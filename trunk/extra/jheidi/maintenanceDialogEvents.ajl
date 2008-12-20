@@ -5,6 +5,8 @@
   Object[] values = tables.getSelectedValues();
   String sql = null;
   
+  String selectedDB = "`" + ((Combo)context.get("/dbs")).getText() + "`.";
+  
   log.debug("event received: " + who);
   
   if ("dbs".equals(who))
@@ -31,7 +33,7 @@
        String sep="";
        for (Object o: values)
        {
-          sql+=sep+"`"+(String)o+"`";
+          sql+=sep+selectedDB + "`"+(String)o+"`";
           sep=",";
        }
      }
@@ -45,7 +47,7 @@
        String sep="";
        for (Object o: values)
        {
-          sql+=sep+"`"+(String)o+"`";
+          sql+=sep+selectedDB + "`"+(String)o+"`";
           sep=",";
        }
      }
@@ -58,7 +60,7 @@
        String sep="";
        for (Object o: values)
        {
-          sql+=sep+"`"+(String)o+"`";
+          sql+=sep+selectedDB + "`"+(String)o+"`";
           sep=",";
        }
      }
@@ -71,7 +73,7 @@
        String sep="";
        for (Object o: values)
        {
-          sql+=sep+"`"+(String)o+"`";
+          sql+=sep+selectedDB + "`"+(String)o+"`";
           sep=",";
        }
      }
@@ -85,10 +87,7 @@
   if ( sql != null )
   {
     DB db = context.get("db");
-    db.begin();
-    db.execute("use `" + ((Combo)context.get("/dbs")).getText() + "`");
     DB.Result result = db.execute(sql);
-    db.end();
     TableUtils.populate((Table)context.get("/results"), result);
   }
     

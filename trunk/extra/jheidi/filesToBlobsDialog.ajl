@@ -56,10 +56,7 @@
     ((Table)dlg.get("files")).rightAlignColumn(1);
 	((Combo)dlg.get("values")).setEditable(true);
     DB db = context.get("db");
-    db.flushStatement("show databases");
-    db.begin();
-    DB.Result dbs = db.execute("show databases");
-    db.end();
+    DB.Result dbs = db.executeNonCached("show databases");
     
     Combo combo = dlg.get("dbs");
     ComboUtils.populate(combo, dbs, 0);

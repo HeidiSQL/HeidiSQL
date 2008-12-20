@@ -54,15 +54,13 @@
     .button("Cancel", 110);
 
     DB db = context.get("db");
-    db.begin();
-    db.execute("use " + (String)context.get("currentDB"));
-    db.flushStatement("show keys from `" + (String) context.get("currentTable") + "`");
-    db.flushStatement("show columns from `" + context.get("currentTable") + "`");
     
-    DB.Result result = db.execute("show keys from `" + (String) context.get("currentTable") + "`");
-    DB.Result allColumns = db.execute("show columns from `" + context.get("currentTable") + "`");
-    db.end();
-   
+    String dbName = context.get("currentDB");
+    String tbName = context.get("currentTable");
+    
+    DB.Result result = db.executeNonCached("show keys from `" + dbName + "`.`" + tbName + "`");
+    DB.Result allColumns = db.executeNonCached("show columns from `" + dbName + "`.`"  + tbName + "`");
+       
     Combo indexes = context.get("/indexes");
     HashObject indexMap = new HashObject();
     for (HashObject index: result)

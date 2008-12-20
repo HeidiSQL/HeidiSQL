@@ -158,7 +158,7 @@
 		   grantOn = selNode.getParent().getText() + "." + selNode.getText();
 	   }
 
-     StringBuilder buffer = new StringBuilder(250);
+     final StringBuilder buffer = new StringBuilder(250);
 	   buffer.append("grant ");
 	   String sep="";
 	   for (Object p : privs )
@@ -174,11 +174,16 @@
 		   buffer.append(" identified by '").append(pwd).append("'");
 	   }
 
-     DB db = context.get("db");
-     db.begin();
-     db.execute(buffer.toString());
-     db.execute("flush privileges");
-	   db.end();
+     final DB db = context.get("db");
+     DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+       public void execute() throws Exception {
+         db.execute(buffer.toString());
+         db.execute("flush privileges");
+       }
+     };
+     
+     db.execute(tx);
+	  
 	   
 	   ((Field)addTab.get("userName")).setText("");
      ((Password)addTab.get("password")).setText("");
@@ -200,15 +205,20 @@
 	  if (dlg.popupConfirm("Confirm Delete!", "Are you sure you want to delete user '" + userNode.getText() + "'?"))
 	  {
 	
-	    String[] userHost = userNode.getText().split("@");
-	    DB db = context.get("db");
-      db.begin();
-      db.query("delete from mysql.user where user=? and host=?", userHost[0], userHost[1]);
-	    db.query("delete from mysql.db where user=? and host=?",  userHost[0], userHost[1]);
-	    db.query("delete from mysql.tables_priv where user=? and host=?", userHost[0], userHost[1]);
-	    db.query("delete from mysql.columns_priv where user=? and host=?", userHost[0], userHost[1]);
-      db.execute("flush privileges");
-	    db.end();
+	    final String[] userHost = userNode.getText().split("@");
+	    final DB db = context.get("db");
+	    DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+       public void execute() throws Exception {
+         db.query("delete from mysql.user where user=? and host=?", userHost[0], userHost[1]);
+         db.query("delete from mysql.db where user=? and host=?",  userHost[0], userHost[1]);
+         db.query("delete from mysql.tables_priv where user=? and host=?", userHost[0], userHost[1]);
+         db.query("delete from mysql.columns_priv where user=? and host=?", userHost[0], userHost[1]);
+         db.execute("flush privileges");
+       }
+      };
+      
+      db.execute(tx);
+	    
 
 	    Tree tree = context.get("/tabs/Edit User/userTree");
 	    tree.getSelectedNode().removeFromParent();
@@ -231,23 +241,31 @@
 	  {
 		  return;
 	  }
-	  String[] userHost = userNode.getText().split("@");
-	  String user =  ((Field)editTab.get("userName")).getText().trim();
-	  String host =  ((Field)editTab.get("host")).getText().trim();
+	  
+    final String[] userHost = userNode.getText().split("@");
+	  final String user =  ((Field)editTab.get("userName")).getText().trim();
+	  final String host =  ((Field)editTab.get("host")).getText().trim();
 	  String pwd =  ((Password)editTab.get("password")).getText().trim();
 
-    DB db = context.get("db");
+    final DB db = context.get("db");
 	//ok what are we doing updating privs? pass? creds? or all?
 	  if (!user.equalsIgnoreCase(userHost[0]) || !host.equalsIgnoreCase(userHost[1]))
 	  {
-      String sql = "set user='" + user + "', host='" + host + "' where user='" + userHost[0] + "' and host='"+ userHost[1]+"'";
-	    db.begin();
-      db.query("update mysql.user " + sql);
-	    db.query("update mysql.db " + sql);
-	    db.query("update mysql.tables_priv " + sql);
-	    db.query("update mysql.columns_priv " + sql);
-      db.execute("flush privileges");
-	    db.end();
+      DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+        public void execute() throws Exception {
+          String sql = "set user='" + user + "', host='" + host + "' where user='" + userHost[0] + "' and host='"+ userHost[1]+"'";
+    	    db.begin();
+          db.query("update mysql.user " + sql);
+    	    db.query("update mysql.db " + sql);
+    	    db.query("update mysql.tables_priv " + sql);
+    	    db.query("update mysql.columns_priv " + sql);
+          db.execute("flush privileges");
+    	    db.end();
+        }
+      };
+      
+      db.execute(tx);
+      
 	    userNode.setText(user + "@" + host);
 	    ((Tree)editTab.get("userTree")).updateUI();
 	  }
@@ -261,7 +279,7 @@
 		  }
 	  }
 
-	  StringBuilder buffer = new StringBuilder(500);
+	  final StringBuilder buffer = new StringBuilder(500);
 	  buffer.append("update mysql.user set ");
 	  int[] selections = privs.getSelectedIndices();
 	  String sep="";
@@ -290,8 +308,14 @@
 	  buffer.append(" where user ='" + user + "'" + " and host='" + host + "'");
 	
 	  log.debug("heres the stmt: " + buffer.toString());
-	  db.execute(buffer.toString());
-	  db.execute("flush privileges");
+	  DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+      public void execute() throws Exception {
+        db.execute(buffer.toString());
+        db.execute("flush privileges");
+      }
+    };
+    
+    db.execute(tx);
 	
 	  ((Password)editTab.get("password")).setText("");
   }

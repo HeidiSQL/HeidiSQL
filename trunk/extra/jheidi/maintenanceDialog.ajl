@@ -64,9 +64,7 @@
   ((Table)context.get("/results")).clear();
   
     DB db = context.get("db");
-    db.begin();
     DB.Result dbs = db.execute("show databases");
-    db.end();
     
     Combo combo = context.get("/dbs");
     ComboUtils.populate(combo, dbs, 0);
