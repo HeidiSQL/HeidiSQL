@@ -11,7 +11,7 @@
   app.toolbarButtonInsets(100, 100, 100, 100);
 	
 	//set up the menus
-	app.menu("&File").item("Connection", "images/connect.gif").item("Close","images/disconnect.gif")
+	app.menu("&File").item("New Connection", "images/connect.gif").item("Close","images/disconnect.gif")
 	   .item("separator", "Import Settings...", "Export Settings...", "separator").item("Exit","images/stop.gif");
 	app.menu("&Edit").item("Cut","images/cut.gif").item("Copy","images/copy.gif").item("Paste", "images/paste.gif");
 	Menu m = app.menu("&Tools").item("Refresh","images/refresh.gif").item("separator").item("Create Database","images/db-center.gif")
@@ -27,8 +27,8 @@
 	help.events("helpMenuEvents").item("SQL Help", "images/helptopic.gif").item("separator", "Check For Updates", "separator", "Heidi SQL Website", "Downloads", "Support Forums", "Bug Tracker", "Feature Tracker", 
 				"separator", "About");
 	
-	app.toolbar("mainToolbar").events("mainToolbarEvents")
-    	.button("Connect", "images/connect.gif")
+	app.toolbar("mainToolbar").events("mainWindowEvents")
+    	.button("New Connection", "images/connect.gif")
     	.button("Close", "images/disconnect.gif")
     	.separator()
     	.button("Cut", "images/cut.gif")
@@ -47,7 +47,7 @@
 	    .button("Export", "images/export.gif")
 	    .separator()
 	    .button("User Manager", "images/usermgr.gif")
-        .button("Maintenance", "images/optimize.gif")
+      .button("Maintenance", "images/optimize.gif")
 	    .separator()
 	    .button("Help", "images/help.gif");
 	    
