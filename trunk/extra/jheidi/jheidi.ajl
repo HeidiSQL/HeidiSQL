@@ -1,12 +1,11 @@
-  import java.util.*;
   import javax.swing.*;
-
+  
   if (LF.isWin)
   {
     SystemUtil.loadWindowsTaskListExePeer("bin/jheidi.exe");
   }
   
-  Frame app = new Frame("connectDialog", "Connection To MySQL");
+  Frame app = new Frame("connectDialog", "New Connection - MySQL");
   WindowContext context = app.getWindowContext();
   env("updater", new AutoUpdater());
 
@@ -14,7 +13,7 @@
   app.tabLayout()
     .insets(10, 12)
     .icon("images/connect.gif")
-	  .image("logo", "images/mysql-logo.gif")		
+	  .image("logo", "images/logo-mysql.gif")		
     .space(LF.isLeopard?2:5)
     .vspace(-1)  
     .button("New", 110)
@@ -33,7 +32,7 @@
     .button("Rename", 74)  
     .nextRow()
     .tab(2)
-    .text("Hostname/IP:")
+    .text("Host:")
     .tab(3)
     .field("host", 281)
     .nextRow()
@@ -73,8 +72,10 @@
     .vspace(10)
     .line(513)
     .nextRow()
-    .tab(1)
+    .vspace(LF.isWin?7:8)
+    .slider("Vendor", SwingConstants.HORIZONTAL, 0, 1, 118)
     .vspace(7)
+    .tab(1)
     .button("Save/Connect", LF.isMac?112: 110)
     .space(20)
     .button("Connect", 110)
@@ -82,51 +83,16 @@
     .button("Cancel", 110)
     .setDefaultButton("Save/Connect"); 
     
-           
-    Combo connProfiles = context.get("/connProfiles");
-    connProfiles.requestFocus();
-    HashObject profiles = new HashObject();
-    connProfiles.setProperty("profiles", profiles);
-    String[] names = null;
+    HashObject vendors = new HashObject();
+    vendors.add("mysql");
+    vendors.add("oracle");
+    env("vendors", vendors);
+    app.setProperty("currentVendor", "mysql");
     
-    try 
-    {
-      List<String> connections = (List<String>)FileUtil.toList(".connectionProfiles");
-      log.debug("connection profiles exist: " + connections.size());
-      names = new String[connections.size()];
-      int count = 0;
-      for (String profileString : connections )
-      {
-        String[] profileAttrs = profileString.split(":");
-        HashObject profile = new HashObject();
-        for (String attr : profileAttrs )
-        {
-           String[] keyValue = attr.split("=");
-           String value = "";
-           if ( keyValue.length == 2 )
-           {
-              value = keyValue[1];
-           }
-           if ( "name".equals(keyValue[0]) )
-           {
-              names[count] = value;
-           }
-           profile.put(keyValue[0], value);
-        }
-        if ( names[count] != null )
-        {
-          profiles.put(names[count++], profile);
-        }
-      }
-      
-    }
-    catch (Exception e)  { e.printStackTrace();/*no profiles i guess*/ }
+    args().put("windowContext", context);
+    args().put("vendor", "mysql");
     
-    if ( profiles.size() > 0 )
-    {
-        connProfiles.setModel(new DefaultComboBoxModel(names));
-        connProfiles.select(names[0]);
-    }
+    script("loadProfiles", args());
     
     app.visible();
 
