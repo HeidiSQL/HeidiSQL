@@ -68,12 +68,8 @@
     .button("Cancel", 110);
     
     DB db = context.get("db");
-    db.begin();
-    db.execute("use " + (String)context.get("currentDB"));
-    db.flushStatement("show full columns from `" + (String) context.get("currentTable") + "`");
-    DB.Result result = db.execute("show full columns from `" + (String) context.get("currentTable") + "`");
-    db.end();
-      
+    DB.Result result = db.executeNonCached("show full columns from `" + context.get("currentDB") + "`.`" + (String) context.get("currentTable") + "`");
+          
     Combo positions = context.get("/positions");
     String selField = arg("fieldToEdit");
     context.put("fieldToEdit", selField);

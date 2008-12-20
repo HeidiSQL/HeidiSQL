@@ -143,35 +143,41 @@
     ((Field)context.get("/tableName")).setText("TableName");
     ((ListBox)context.get("/fields")).events("fieldListEvents");
     
-    DB db = context.get("db");
-    db.begin();
-    DB.Result result = db.execute("show character set");
-    DB.Result dbs = db.execute("show databases");
-    DB.Result engines = db.execute("show engines");
-    db.end();
+    final DB db = context.get("db");
+    final HashObject resultMap = new HashObject();
     
+    DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+      public void execute() throws Exception {
+        resultMap.put("charSet", db.execute("show character set"));
+        resultMap.put("dbs", db.execute("show databases"));
+        resultMap.put("engines", db.execute("show engines"));
+      }
+    };
+    
+    db.execute(tx);
+        
     Combo combo = context.get("/charSets");
-    ComboUtils.populate(combo, result, 0);
+    ComboUtils.populate(combo, (DB.Result)resultMap.getObject("charSet"), 0);
     combo.select("latin1");
     
     combo = context.get("/databases");
-    ComboUtils.populate(combo, dbs, 0);
+    ComboUtils.populate(combo, (DB.Result)resultMap.getObject("dbs"), 0);
     if ( parentContext.get("currentDB") != null )
     {
       combo.select((String)parentContext.get("currentDB"));
     }
     
     combo = context.get("/engines");
-    ComboUtils.populate(combo, engines, 0);
-    for (int i=0; i < engines.size(); i++)
+    ComboUtils.populate(combo, (DB.Result)resultMap.getObject("engines"), 0);
+    for (HashObject engine : (DB.Result)resultMap.getObject("engines"))
     {
-        HashObject engine = engines.get(i);
         if ( "DEFAULT".equals(engine.get("support")))
         {
           combo.select(engine.get(0));
           break;
         }
     }
+    
     
     HashObject newArgs = new HashObject();
     newArgs.put("windowContext", context);

@@ -25,10 +25,10 @@
      }
 
 
-     buffer.append("alter table ").append(tableName);
+     buffer.append("alter table `").append(dbName).append("`.`").append(tableName).append("`");
      if ( who.startsWith("Add") )
      {
-         buffer.append(" add ").append(fieldName);
+         buffer.append(" add ").append("`").append(fieldName).append("`");
      }
      else
      {
@@ -66,11 +66,8 @@
 
       // ALTER TABLE `tablename` ADD `turd` TINYINT(5) UNSIGNED ZEROFILL DEFAULT 'wow' NOT NULL COMMENT 'comment'
      log.debug("heres the statement: " + buffer.toString());
-      DB db = context.get("db");
-      db.begin();
-      db.execute("use " + context.get("currentDB"));
-      db.execute(buffer.toString());
-      db.end();
+     DB db = context.get("db");
+     db.execute(buffer.toString());
       
      context.put("dlgResult", Boolean.TRUE);
      

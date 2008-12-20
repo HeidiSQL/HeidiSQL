@@ -174,7 +174,7 @@
         log.debug("changes were made - generating statement");
         //ALTER TABLE `tablename` DROP INDEX `NewIndex`, ADD FULLTEXT `NewIndex` (`another`, `FieldName`, `whoever`)
         StringBuilder buffer = new StringBuilder(500);
-        buffer.append("alter table ").append(context.get("currentTable"));
+        buffer.append("alter table `").append(context.get("currentDB")).append("`.`").append(context.get("currentTable")).append("`");
         
         String sep=" ";
         for (String ndx : deletes)
@@ -226,8 +226,6 @@
         log.debug("The sql is: " + buffer.toString());
         
         DB db = context.get("db");
-        db.begin();
-        db.execute("use " + context.get("currentDB"));
         db.execute(buffer.toString());
         db.end();
         

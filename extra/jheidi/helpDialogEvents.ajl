@@ -15,7 +15,6 @@
        log.debug("itemName: " + itemName + " clicked");
        
        DB db = context.get("db");
-       db.begin();
        DB.Result items = db.execute("help '" + itemName + "'");
        if ( !items.isEmpty() )
        {
