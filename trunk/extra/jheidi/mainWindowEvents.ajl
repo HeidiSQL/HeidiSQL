@@ -1,18 +1,13 @@
+import javax.swing.tree.*;
+import javax.swing.*;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
-
 
 String who = arg("source");
 WindowContext context = argObj("windowContext");
 log.debug("Event received: " + who);
 
-if ("Close" == who )
-{
-  Frame window = context.get("/");
-  script("removeFromWindowMenu", args());
-  window.dispose();
-}
-else if ("Connection" == who)
+if ("New Connection" == who)
 {
   script("jheidi");
 }
@@ -39,6 +34,7 @@ else if ("Refresh" == who)
       w = worker(script, scriptArgs, Worker.RunOption.LET_FINISH_IF_RUNNING);
       if ( scriptArgs.get("workerKey") != null)
          script = scriptArgs.get("workerKey");
+
       if (!w.isCancelled())
         LongRunningTask.detect(script, "progressWaiter", scriptArgs, w , 250);
     }
@@ -49,7 +45,6 @@ else if ("Refresh" == who)
   }
   
 }
-//we may need a better way of doing this?
 else if ("Cut" == who || "Copy" == who || "Paste" == who )
 {
   Component compFocusOwner =
@@ -80,7 +75,7 @@ else if ("Drop Table" == who)
   {
      NodeInfo dbNode = node.getParent();
      Frame f = context.get("/");
-     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop table '" + dbNode.getText() + "." + node.getText() + "'?"))
+     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop table '" + dbNode.getText() + "." + node.getText() + "'?", "images/deletetable.gif"))
      {
        args().put("tableToDrop", node.getText());
        script("dropTable", args());
@@ -127,7 +122,7 @@ else if ("Drop Database" == who)
   if ( node != null && "db".equals(node.getType()) )
   {
      Frame f = context.get("/");
-     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop db '" + node.getText() + "'?"))
+     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop db '" + node.getText() + "'?", "images/deletedb.gif"))
      {
       args().put("dbToDrop", node.getText());
       DB db = context.get("db");
@@ -137,9 +132,39 @@ else if ("Drop Database" == who)
      }
   }
 }
-else if ("Maintenance" == who)
+else if ("Print" == who)
 {
-  script("maintenanceDialog", args());
+  //this is total shit - but it does work if you try to print something that might fit on 
+  //the page....omg this is bad.
+  Table table = null;
+  String selectedTab = ((Tabs)context.get("/mainTabs")).selected();
+
+  if ("Host" != selectedTab && "Query" != selectedTab)
+  {
+     table = context.get("/mainTabs/"+selectedTab+"/table");
+  }
+  else if ("Host" == selectedTab)
+    {
+     String subTab = ((Tabs)context.get("/mainTabs/Host/tabs")).selected();
+     table = context.get("/mainTabs/Host/tabs/"+subTab+"/table");
+  }
+  else if ("Query" == selectedTab)
+  {
+     table = context.get("/mainTabs/Query/results");
+  }
+  
+  try
+  {
+      table.print();
+  } catch (Exception e) {e.printStackTrace();}
+}
+else if ("Import" == who)
+{
+  script("importCSVDialog",args());
+}
+else if ("Export" == who)
+{
+  script("exportDDLDialog",args());
 }
 else if ("User Manager" == who)
 {
@@ -200,9 +225,24 @@ else if ( "Import Files Into Blob Fields" == who )
 {
   script("filesToBlobsDialog",args());
 }
+else if ("Maintenance" == who)
+{
+  script("maintenanceDialog", args());
+}
+else if ("Help" == who )
+{
+  script("helpDialog", args());
+}
+
 else if ( "Exit" == who )
 {
   System.exit(0);
+}
+else if ("Close" == who )
+{
+  Frame window = context.get("/");
+  script("removeFromWindowMenu", args());
+  window.dispose();
 } 
 else {
   ((Frame)context.get("/")).popupMessage("Feature Unimplemented!");
