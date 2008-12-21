@@ -129,9 +129,13 @@
   
 	app.maximize();
 	app.visible();
+
+  DB conn = argObj("db");
+  DB db = new SQLLoggingDB(conn, editor);
+  db.useCache(true);
+  context.put("db", db);
 		
   args().put("windowContext", context);
-  script("initDB", args());
   Worker w = worker("initTreeWorker", args());
   LongRunningTask.detect("initTreeWorker", "progressWaiter",  args(), w , 250);
   w = worker("loadHostInfoWorker", args());
