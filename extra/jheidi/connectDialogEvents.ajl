@@ -120,12 +120,14 @@ else if ("Save" == event || "Save/Connect" == event || "Connect" == event)
   if ( event.endsWith("Connect"))
   {
     HashObject profile = (HashObject)profiles.getObject(connProfiles.getText());
+    String curVendor = dialog.getProperty("currentVendor");
   
     args().put("profile", profile);
-    DB db = (DB)script("testConnect", args());  
+    DB db = script(String.format("testConnect$%s", curVendor), args());  
     if (db != null)
     {
       dialog.dispose();
+      args().put("db", db);
       script("showMainWindow", args());
     }
   }
@@ -200,7 +202,7 @@ else if ("Vendor" == event)
     else if ( newVendor == "oracle" )
     {
       dialog.setTitle("New Connection - Oracle");
-      hostLabel.setText("Service@Host");
+      hostLabel.setText("Service@Host:");
       compressBox.setEnabled(false);
       dbsLabel.setText(dbsLabel.getText().replaceAll("Database", "Schema"));
       sortBox.setText(sortBox.getText().replaceAll("database", "schema"));
