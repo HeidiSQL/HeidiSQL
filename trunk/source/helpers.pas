@@ -113,6 +113,7 @@ type
   procedure GridToHtml(Grid: TVirtualStringTree; GridData: PGridResult; Title: WideString; S: TStream);
   procedure GridToCsv(Grid: TVirtualStringTree; GridData: PGridResult; Separator, Encloser, Terminator: String; S: TStream);
   procedure GridToXml(Grid: TVirtualStringTree; GridData: PGridResult; root: WideString; S: TStream);
+  procedure GridToSql(Grid: TVirtualStringTree; GridData: PGridResult; Tablename: WideString; S: TStream);
   function esc2ascii(str: String): String;
   function StrCmpBegin(Str1, Str2: string): Boolean;
   function Max(A, B: Integer): Integer; assembler;
@@ -1007,6 +1008,69 @@ begin
   end;
   // footer:
   tmp := '</table>' + CRLF;
+  StreamWrite(S, tmp);
+  Grid.Visible := true;
+  Mainform.showstatus(STATUS_MSG_READY);
+end;
+
+
+{***
+  Converts a TDataSet to XML.
+  @param Grid Object which holds data to export
+  @param string Text used as tablename in INSERTs
+}
+procedure GridToSql(Grid: TVirtualStringTree; GridData: PGridResult; Tablename: WideString; S: TStream);
+var
+  i: Integer;
+  tmp, Data: WideString;
+  Node: PVirtualNode;
+begin
+  // Avoid reloading discarded data before the end.
+  Grid.Visible := false;
+  Node := Grid.GetFirst;
+  while Assigned(Node) do begin
+    if (Node.Index+1) mod 100 = 0 then
+     ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
+    tmp := 'INSERT INTO '+Mainform.Mask(Tablename)+' (';
+    for i:=0 to Grid.Header.Columns.Count-1 do begin
+      // Skip hidden key columns
+      if not (coVisible in Grid.Header.Columns[i].Options) then
+        Continue;
+      tmp := tmp + Mainform.mask(Grid.Header.Columns[i].Text)+', ';
+    end;
+    Delete(tmp, Length(tmp)-1, 2);
+    tmp := tmp + ') VALUES (';
+    // Data:
+    for i:=0 to Grid.Header.Columns.Count-1 do begin
+      // Skip hidden key columns
+      if not (coVisible in Grid.Header.Columns[i].Options) then
+        Continue;
+      // Ensure basic data is loaded.
+      Mainform.Childwin.EnsureChunkLoaded(Grid, Node);
+      if GridData.Rows[Node.Index].Cells[i].IsNull then
+        tmp := tmp + 'NULL'
+      else begin
+        // Load remainder of large fields.
+        Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
+        Data := Grid.Text[Node, i];
+        // Remove 0x.
+        if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
+        // Unformat float values
+        if GridData.Columns[i].IsFloat then Data := FloatStr(Data);
+        // Add data and cell end tag.
+        tmp := tmp + esc(Data);
+      end;
+      tmp := tmp + ', ';
+    end;
+    Delete(tmp, Length(tmp)-1, 2);
+    tmp := tmp + ');' + CRLF;
+    StreamWrite(S, tmp);
+    // Release some memory.
+    Mainform.Childwin.DiscardNodeData(Grid, Node);
+    Node := Grid.GetNext(Node);
+  end;
+  // footer:
+  tmp := CRLF;
   StreamWrite(S, tmp);
   Grid.Visible := true;
   Mainform.showstatus(STATUS_MSG_READY);

@@ -262,6 +262,8 @@ type
     menuViewSave: TMenuItem;
     N25: TMenuItem;
     menuViewDefault: TMenuItem;
+    CopygriddataasSQL1: TMenuItem;
+    CopygriddataasSQL2: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
@@ -2180,6 +2182,7 @@ begin
   MainForm.actCopyAsCSV.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actCopyAsHTML.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actCopyAsXML.Enabled := inDataOrQueryTabNotEmpty;
+  MainForm.actCopyAsSQL.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actExportData.Enabled := inDataOrQueryTabNotEmpty;
   MainForm.actHTMLView.Enabled := inDataOrQueryTabNotEmpty;
   setNull1.Enabled := inDataTab and Assigned(DataGrid.FocusedNode);
