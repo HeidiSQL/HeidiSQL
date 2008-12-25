@@ -303,6 +303,7 @@ object optionsform: Toptionsform
           Top = 18
           Width = 387
           Height = 130
+          Cursor = crHandPoint
           SingleLineMode = False
           Align = alClient
           Font.Charset = DEFAULT_CHARSET
