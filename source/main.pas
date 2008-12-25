@@ -214,6 +214,7 @@ type
     actDataCancelChanges: TAction;
     ToolButton1: TToolButton;
     actRemoveFilter: TAction;
+    actCopyAsSQL: TAction;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -296,6 +297,7 @@ type
     procedure HandleWMRefill(var msg: TMessage); message WM_REFILL_SPAREBUF;
     procedure ReplaceDialogQueryFind(Sender: TObject);
     procedure ReplaceDialogQueryReplace(Sender: TObject);
+    procedure actCopyAsSQLExecute(Sender: TObject);
   private
     FDelimiter: String;
     function GetChildwin: TMDIChild;
@@ -1185,6 +1187,30 @@ begin
   try
     GridData := ChildWin.ActiveData;
     GridToXml(ChildWin.ActiveGrid, GridData, Root, S);
+    StreamToClipboard(S);
+  finally
+    ShowStatus('Freeing data...');
+    S.Free;
+    ShowStatus(STATUS_MSG_READY);
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+
+procedure TMainForm.actCopyAsSQLExecute(Sender: TObject);
+var
+  S: TMemoryStream;
+  Tablename: WideString;
+  GridData: PGridResult;
+begin
+  // Copy data in focused grid as SQL
+  Screen.Cursor := crHourglass;
+  S := TMemoryStream.Create;
+  if ChildWin.ActiveGrid = Childwin.DataGrid then Tablename := Childwin.SelectedTable
+  else Tablename := 'unknown';
+  try
+    GridData := ChildWin.ActiveData;
+    GridToSql(ChildWin.ActiveGrid, GridData, Tablename, S);
     StreamToClipboard(S);
   finally
     ShowStatus('Freeing data...');

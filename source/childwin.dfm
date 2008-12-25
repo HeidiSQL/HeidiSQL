@@ -1623,6 +1623,9 @@ object MDIChild: TMDIChild
       object CopyasXMLdata1: TMenuItem
         Action = MainForm.actCopyAsXML
       end
+      object CopygriddataasSQL2: TMenuItem
+        Action = MainForm.actCopyAsSQL
+      end
     end
     object Exportdata2: TMenuItem
       Action = MainForm.actExportData
@@ -1708,6 +1711,9 @@ object MDIChild: TMDIChild
     end
     object CopyasXMLdata2: TMenuItem
       Action = MainForm.actCopyAsXML
+    end
+    object CopygriddataasSQL1: TMenuItem
+      Action = MainForm.actCopyAsSQL
     end
     object Exportdata1: TMenuItem
       Action = MainForm.actExportData
