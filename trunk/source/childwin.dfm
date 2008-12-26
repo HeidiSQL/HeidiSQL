@@ -1570,31 +1570,41 @@ object MDIChild: TMDIChild
         ImageIndex = 58
         OnClick = QuickFilterClick
       end
+      object QF13: TMenuItem
+        Caption = 'Column IS NULL'
+        ImageIndex = 58
+        OnClick = QuickFilterClick
+      end
+      object QF14: TMenuItem
+        Caption = 'Column IS NOT NULL'
+        ImageIndex = 58
+        OnClick = QuickFilterClick
+      end
       object N7: TMenuItem
         AutoHotkeys = maManual
         Caption = '-'
       end
-      object QF13: TMenuItem
+      object QF15: TMenuItem
         Caption = 'Column = CLIPBOARD'
         ImageIndex = 4
         OnClick = QuickFilterClick
       end
-      object QF14: TMenuItem
+      object QF16: TMenuItem
         Caption = 'Column != CLIPBOARD'
         ImageIndex = 4
         OnClick = QuickFilterClick
       end
-      object QF15: TMenuItem
+      object QF17: TMenuItem
         Caption = 'Column > CLIPBOARD'
         ImageIndex = 4
         OnClick = QuickFilterClick
       end
-      object QF16: TMenuItem
+      object QF18: TMenuItem
         Caption = 'Column < CLIPBOARD'
         ImageIndex = 4
         OnClick = QuickFilterClick
       end
-      object QF17: TMenuItem
+      object QF19: TMenuItem
         Caption = 'Column LIKE %CLIPBOARD%'
         ImageIndex = 4
         OnClick = QuickFilterClick
