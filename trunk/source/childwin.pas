@@ -6689,6 +6689,8 @@ var
 begin
   // Detect mouse hit in grid whitespace and apply changes.
   Grid := Sender as TVirtualStringTree;
+  if not Assigned(Grid.FocusedNode) then
+    Exit;
   Grid.GetHitTestInfoAt(X, Y, False, Hit);
   if (Hit.HitNode = nil) or (Hit.HitColumn = NoColumn) or (Hit.HitColumn = InvalidColumn) then
     DataGridPostUpdateOrInsert(Grid.FocusedNode);
