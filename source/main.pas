@@ -1249,6 +1249,7 @@ begin
       1: GridToCsv(Grid, GridData, ChildWin.prefCSVSeparator, ChildWin.prefCSVEncloser, ChildWin.prefCSVTerminator, FS);
       2: GridToHtml(Grid, GridData, Title, FS);
       3: GridToXml(Grid, GridData, Title, FS);
+      4: GridToSql(Grid, GridData, Title, FS);
     end;
     ShowStatus('Freeing data...');
     FS.Free;

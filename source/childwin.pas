@@ -3420,6 +3420,7 @@ begin
       1: DefaultExt := 'csv';
       2: DefaultExt := 'html';
       3: DefaultExt := 'xml';
+      4: DefaultExt := 'sql';
     end;
   end;
 end;

@@ -688,9 +688,9 @@ object MainForm: TMainForm
     end
     object actExportData: TAction
       Category = 'Export/Import'
-      Caption = 'Export grid data as CSV/HTML/XML...'
+      Caption = 'Export grid data as CSV, HTML, XML or SQL ...'
       Enabled = False
-      Hint = 'Save grid data to file'
+      Hint = 'Save grid data to text file'
       ImageIndex = 20
       OnExecute = actExportDataExecute
     end

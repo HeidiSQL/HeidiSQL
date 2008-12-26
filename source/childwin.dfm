@@ -1797,7 +1797,7 @@ object MDIChild: TMDIChild
     DefaultExt = 'csv'
     Filter = 
       'CSV-Files (*.csv)|*.csv|Hypertext-Files (*.html)|*.html|XML-File' +
-      's (*.xml)|*.xml'
+      's (*.xml)|*.xml|SQL script (*.sql)|*.sql'
     Options = [ofOverwritePrompt, ofEnableSizing]
     OnTypeChange = SaveDialogExportDataTypeChange
     Left = 72
