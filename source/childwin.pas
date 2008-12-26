@@ -3048,13 +3048,19 @@ procedure TMDIChild.QuickFilterClick(Sender: TObject);
 var
   filter,value,column : WideString;
   menuitem : TMenuItem;
+  IsNull: Boolean;
 begin
   // Set filter for "where..."-clause
   value := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
   menuitem := (Sender as TMenuItem);
   column := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
-  if menuitem = QF1 then
+  IsNull := FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].IsNull;
+  if (menuitem = QF1) and IsNull then
+    filter := column + ' IS NULL'
+  else if menuitem = QF1 then
     filter := column + ' =' + ' ' + esc( value )
+  else if (menuitem = QF2) and IsNull then
+    filter := column + ' IS NOT NULL'
   else if menuitem = QF2 then
     filter := column + ' !=' + ' ' + esc( value )
   else if menuitem = QF3 then
@@ -3437,14 +3443,29 @@ begin
     // Manipulate the Quick-filter menuitems
     selectedColumn := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
     // 1. block: include selected columnname and value from datagrid in caption
-    value := sstr(DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn], 100);
-    QF1.Caption := selectedColumn + ' = ' + esc( value );
-    QF2.Caption := selectedColumn + ' != ' + esc( value );
-    QF3.Caption := selectedColumn + ' > ' + esc( value );
-    QF4.Caption := selectedColumn + ' < ' + esc( value );
-    QF5.Caption := selectedColumn + ' LIKE ''' + esc( value, true ) + '%''';
-    QF6.Caption := selectedColumn + ' LIKE ''%' + esc( value, true ) + '''';
-    QF7.Caption := selectedColumn + ' LIKE ''%' + esc( value, true ) + '%''';
+    if FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].IsNull then begin
+      QF1.Caption := selectedColumn + ' IS NULL';
+      QF2.Caption := selectedColumn + ' IS NOT NULL';
+      QF3.Visible := False;
+      QF4.Visible := False;
+      QF5.Visible := False;
+      QF6.Visible := False;
+      QF7.Visible := False;
+    end else begin
+      value := sstr(DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn], 100);
+      QF1.Caption := selectedColumn + ' = ' + esc( value );
+      QF2.Caption := selectedColumn + ' != ' + esc( value );
+      QF3.Caption := selectedColumn + ' > ' + esc( value );
+      QF4.Caption := selectedColumn + ' < ' + esc( value );
+      QF5.Caption := selectedColumn + ' LIKE ''' + esc( value, true ) + '%''';
+      QF6.Caption := selectedColumn + ' LIKE ''%' + esc( value, true ) + '''';
+      QF7.Caption := selectedColumn + ' LIKE ''%' + esc( value, true ) + '%''';
+      QF3.Visible := True;
+      QF4.Visible := True;
+      QF5.Visible := True;
+      QF6.Visible := True;
+      QF7.Visible := True;
+    end;
 
     // 2. block: include only selected columnname in caption
     QF8.Caption := selectedColumn + ' = "..."';
