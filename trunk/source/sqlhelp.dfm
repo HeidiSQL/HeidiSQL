@@ -241,6 +241,7 @@ object frmSQLhelp: TfrmSQLhelp
     end
   end
   object URIOpenerDescription: TSynURIOpener
+    CtrlActivatesLinks = False
     Editor = memoDescription
     URIHighlighter = URIHighlighter
     Left = 448
