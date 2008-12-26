@@ -975,6 +975,7 @@ object MDIChild: TMDIChild
           OnHeaderClick = DataGridHeaderClick
           OnKeyDown = GridKeyDown
           OnKeyUp = controlsKeyUp
+          OnMouseUp = DataGridMouseUp
           OnNewText = DataGridNewText
           Columns = <>
         end

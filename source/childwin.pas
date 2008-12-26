@@ -457,6 +457,8 @@ type
       NewHeight: Integer; var Resize: Boolean);
     procedure pnlQueryMemoCanResize(Sender: TObject; var NewWidth,
       NewHeight: Integer; var Resize: Boolean);
+    procedure DataGridMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
 
     private
       uptime                     : Integer;
@@ -6676,6 +6678,20 @@ procedure TMDIChild.pnlQueryMemoCanResize(Sender: TObject; var NewWidth,
 begin
   // Ensure visibility of query memo while resizing
   Resize := NewWidth >= pnlQueryHelpers.Width + spltQueryHelpers.Width + 40;
+end;
+
+
+procedure TMDIChild.DataGridMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var
+  Grid: TVirtualStringTree;
+  Hit: THitInfo;
+begin
+  // Detect mouse hit in grid whitespace and apply changes.
+  Grid := Sender as TVirtualStringTree;
+  Grid.GetHitTestInfoAt(X, Y, False, Hit);
+  if (Hit.HitNode = nil) or (Hit.HitColumn = NoColumn) or (Hit.HitColumn = InvalidColumn) then
+    DataGridPostUpdateOrInsert(Grid.FocusedNode);
 end;
 
 
