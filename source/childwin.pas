@@ -175,6 +175,8 @@ type
     QF15: TMenuItem;
     QF16: TMenuItem;
     QF17: TMenuItem;
+    QF18: TMenuItem;
+    QF19: TMenuItem;
     N21: TMenuItem;
     pnlQueryHelpers: TPanel;
     tabsetQueryHelpers: TTabSet;
@@ -3114,8 +3116,14 @@ begin
     filter := column + ' LIKE ''%' + filter + '%''';
   end
 
+  else if menuitem = QF13 then
+    filter := column + ' IS NULL'
+
+  else if menuitem = QF14 then
+    filter := column + ' IS NOT NULL'
+
   // Filters with text from clipboard
-  else if (menuitem = QF13) or (menuitem = QF14) or (menuitem = QF15) or (menuitem = QF16) or (menuitem = QF17) then
+  else if (menuitem = QF15) or (menuitem = QF16) or (menuitem = QF17) or (menuitem = QF18) or (menuitem = QF19) then
   begin
     filter := menuitem.Caption;
   end;
@@ -3473,24 +3481,26 @@ begin
     QF10.Caption := selectedColumn + ' > "..."';
     QF11.Caption := selectedColumn + ' < "..."';
     QF12.Caption := selectedColumn + ' LIKE "%...%"';
+    QF13.Caption := selectedColumn + ' IS NULL';
+    QF14.Caption := selectedColumn + ' IS NOT NULL';
 
     // 3. block: include selected columnname and clipboard-content in caption for one-click-filtering
     cpText := Clipboard.AsText;
     if Length(cpText) < 100 then
     begin
-      QF13.Enabled := true; QF13.Caption := selectedColumn + ' = ' + esc( cpText );
-      QF14.Enabled := true; QF14.Caption := selectedColumn + ' != ' + esc( cpText );
-      QF15.Enabled := true; QF15.Caption := selectedColumn + ' > ' + esc( cpText );
-      QF16.Enabled := true; QF16.Caption := selectedColumn + ' < ' + esc( cpText );
-      QF17.Enabled := true; QF17.Caption := selectedColumn + ' LIKE ''%' + esc( cpText, true ) + '%''';
+      QF15.Enabled := true; QF15.Caption := selectedColumn + ' = ' + esc( cpText );
+      QF16.Enabled := true; QF16.Caption := selectedColumn + ' != ' + esc( cpText );
+      QF17.Enabled := true; QF17.Caption := selectedColumn + ' > ' + esc( cpText );
+      QF18.Enabled := true; QF18.Caption := selectedColumn + ' < ' + esc( cpText );
+      QF19.Enabled := true; QF19.Caption := selectedColumn + ' LIKE ''%' + esc( cpText, true ) + '%''';
     end
     else
     begin
-      QF13.Enabled := false; QF13.Caption := selectedColumn + ' = ' + CLPBRD;
-      QF14.Enabled := false; QF14.Caption := selectedColumn + ' != ' + CLPBRD;
-      QF15.Enabled := false; QF15.Caption := selectedColumn + ' > ' + CLPBRD;
-      QF16.Enabled := false; QF16.Caption := selectedColumn + ' < ' + CLPBRD;
-      QF17.Enabled := false; QF17.Caption := selectedColumn + ' LIKE %' + CLPBRD + '%';
+      QF15.Enabled := false; QF15.Caption := selectedColumn + ' = ' + CLPBRD;
+      QF16.Enabled := false; QF16.Caption := selectedColumn + ' != ' + CLPBRD;
+      QF17.Enabled := false; QF17.Caption := selectedColumn + ' > ' + CLPBRD;
+      QF18.Enabled := false; QF18.Caption := selectedColumn + ' < ' + CLPBRD;
+      QF19.Enabled := false; QF19.Caption := selectedColumn + ' LIKE %' + CLPBRD + '%';
     end;
   end;
 end;
