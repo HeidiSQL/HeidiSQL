@@ -215,6 +215,7 @@ type
     ToolButton1: TToolButton;
     actRemoveFilter: TAction;
     actCopyAsSQL: TAction;
+    CopyAsSQLdata: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;

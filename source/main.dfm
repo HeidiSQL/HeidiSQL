@@ -519,6 +519,9 @@ object MainForm: TMainForm
       object CopyasXMLdata1: TMenuItem
         Action = actCopyAsXML
       end
+      object CopyAsSQLdata: TMenuItem
+        Action = actCopyAsSQL
+      end
       object Exportdata1: TMenuItem
         Action = actExportData
       end
