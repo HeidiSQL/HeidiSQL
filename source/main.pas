@@ -1000,20 +1000,12 @@ end;
 
 procedure TMainForm.actPrintListExecute(Sender: TObject);
 var
-  page : TTabSheet;
+  f: TForm;
 begin
-  // print
-  page := ChildWin.PageControlMain.ActivePage;
-  if page.Name = 'SheetData' then
-  begin
-    // TODO: Print data
-  end
-  else if (page.Name = 'SheetQuery') then
-  begin
-    // TODO: Print data
-  end
-  else
-    printlistWindow(self);
+  // Print contents of a list or grid
+  f := TPrintlistForm.Create(Self);
+  f.ShowModal;
+  FreeAndNil(f);
 end;
 
 

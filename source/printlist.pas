@@ -32,27 +32,12 @@ type
     { Public declarations }
   end;
 
-  function printlistWindow(AOwner: TComponent): Boolean;
 
 implementation
 
 uses childwin, main, helpers;
 
 {$R *.DFM}
-
-{**
-  Create form on demand
-  @param TComponent Owner of form (should be calling form)
-  @return Boolean Form closed using modalresult mrOK
-}
-function printlistWindow(AOwner: TComponent): Boolean;
-var
-  f : TprintlistForm;
-begin
-  f := TprintlistForm.Create(AOwner);
-  Result := (f.ShowModal=mrOK);
-  FreeAndNil(f);
-end;
 
 
 procedure TprintlistForm.FormCreate(Sender: TObject);
