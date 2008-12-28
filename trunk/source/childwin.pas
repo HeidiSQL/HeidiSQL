@@ -1084,6 +1084,8 @@ begin
   FreeAndNil(Databases);
   FreeAndNil(CachedTableLists);
 
+  FreeAndNil(CreateTableForm);
+
   ValidateControls(False);
   Action := caFree;
 
