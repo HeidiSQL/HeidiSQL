@@ -379,6 +379,9 @@ object MainForm: TMainForm
       object N1: TMenuItem
         Caption = '-'
       end
+      object actSelectTreeBackground1: TMenuItem
+        Action = actSelectTreeBackground
+      end
       object ExportSettings1: TMenuItem
         Action = actExportSettings
       end
@@ -1183,6 +1186,13 @@ object MainForm: TMainForm
       Caption = 'Remove filter'
       ImageIndex = 26
       OnExecute = actRemoveFilterExecute
+    end
+    object actSelectTreeBackground: TAction
+      Category = 'File'
+      Caption = 'Select session background color ...'
+      Hint = 'Lets you chose a per session color value for the database tree'
+      ImageIndex = 115
+      OnExecute = actSelectTreeBackgroundExecute
     end
   end
   object SaveDialog2: TSaveDialog
@@ -4475,6 +4485,18 @@ object MainForm: TMainForm
           1504BB5D407E1E89E73BF1C7E0C875E3ED5DFB2AD26308FC0FDF3573A18B3D62
           A30000000049454E44AE426082}
         Name = 'PngImage114'
+        Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001974455874536F6674776172650041646F626520496D616765526561
+          647971C9653C000000784944415478DA63FCFFFF3F032580916A06FCCFCF869B
+          C438712A23C3AA6284C961BD8C1FAFA5C3F9FC5A331907A1011487C1C5379BE0
+          26E98BF831069CCD85F337184F664CD8F006CE5F1020C238080DA0380C22AA36
+          C04D5AD116C0786BF63D385F2D558991A17C23C2A64E7FC6416800C561306006
+          0000763095E15A4C85FC0000000049454E44AE426082}
+        Name = 'PngImage115'
         Background = clWindow
       end>
     PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]

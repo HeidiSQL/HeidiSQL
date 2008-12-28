@@ -1265,6 +1265,9 @@ object MDIChild: TMDIChild
       Caption = 'Display size of objects'
       OnClick = menuShowSizeColumnClick
     end
+    object Selectbackgroundcolor1: TMenuItem
+      Action = MainForm.actSelectTreeBackground
+    end
     object menuRefreshDBTree: TMenuItem
       Caption = 'Refresh'
       ImageIndex = 0
