@@ -1583,27 +1583,27 @@ end;
   Occurs when active tab has changed.
 }
 procedure TMDIChild.pcChange(Sender: TObject);
+var
+  tab: TTabSheet;
 begin
-  // Load data.
-  // Do this only if the user clicked the new tab. Not on automatic tab changes.
-  if Sender = PageControlMain then begin
-    if (PageControlMain.ActivePage = tabData) then viewdata(Sender);
-  end;
+  tab := PageControlMain.ActivePage;
 
   // Move focus to relevant controls in order for them to receive keyboard events.
   // Do this only if the user clicked the new tab. Not on automatic tab changes.
   if Sender = PageControlMain then begin
-    if PageControlMain.ActivePage = tabDatabase then ListTables.SetFocus;
-    if PageControlMain.ActivePage = tabTable then ListColumns.SetFocus;
-    if PageControlMain.ActivePage = tabData then DataGrid.SetFocus;
-    if PageControlMain.ActivePage = tabQuery then SynMemoQuery.SetFocus;
+    if tab = tabDatabase then ListTables.SetFocus
+    else if tab = tabTable then ListColumns.SetFocus
+    else if tab = tabData then begin
+      viewdata(Sender);
+      DataGrid.SetFocus;
+    end else if tab = tabQuery then SynMemoQuery.SetFocus;
   end;
 
   // Ensure controls are in a valid state
   ValidateControls;
 
   // Show processlist if it's visible now but empty yet
-  if PageControlMain.ActivePage = tabHost then begin
+  if tab = tabHost then begin
     if ListProcesses.RootNodeCount = 0 then
       ShowProcessList( self );
   end;
