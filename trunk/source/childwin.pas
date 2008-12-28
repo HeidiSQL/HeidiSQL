@@ -266,6 +266,7 @@ type
     menuViewDefault: TMenuItem;
     CopygriddataasSQL1: TMenuItem;
     CopygriddataasSQL2: TMenuItem;
+    Selectbackgroundcolor1: TMenuItem;
     procedure menuRenameColumnClick(Sender: TObject);
     procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
@@ -918,6 +919,7 @@ begin
   pnlQueryMemo.Height := Mainform.GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   pnlQueryHelpers.Width := Mainform.GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
   DBtree.Width := Mainform.GetRegValue(REGNAME_DBTREEWIDTH, DBtree.Width);
+  DBTree.Color := Mainform.GetRegValue(REGNAME_TREEBACKGROUND, clWindow, FConn.Description);
   SynMemoSQLLog.Height := Mainform.GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
   prefMaxColWidth := Mainform.GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
   // Fix registry entry from older versions which can have 0 here which makes no sense

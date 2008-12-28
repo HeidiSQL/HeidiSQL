@@ -299,6 +299,7 @@ type
     procedure ReplaceDialogQueryFind(Sender: TObject);
     procedure ReplaceDialogQueryReplace(Sender: TObject);
     procedure actCopyAsSQLExecute(Sender: TObject);
+    procedure actSelectTreeBackgroundExecute(Sender: TObject);
   private
     FDelimiter: String;
     function GetChildwin: TMDIChild;
@@ -2278,5 +2279,21 @@ procedure TMainForm.actDataCancelChangesExecute(Sender: TObject);
 begin
   Childwin.DataGridCancel(Sender);
 end;
+
+
+procedure TMainForm.actSelectTreeBackgroundExecute(Sender: TObject);
+var
+  cs: TColorSelect;
+begin
+  // Select database tree background color
+  cs := TColorSelect.Create(Self);
+  cs.Dialog.Color := Childwin.DBtree.Color;
+  if cs.Execute then begin
+    Childwin.DBtree.Color := cs.Dialog.Color;
+    OpenRegistry(Childwin.SessionName);
+    regmain.WriteInteger(REGNAME_TREEBACKGROUND, cs.Dialog.Color);
+  end;
+end;
+
 
 end.
