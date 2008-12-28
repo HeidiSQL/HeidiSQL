@@ -43,12 +43,10 @@ type
     ButtonDelete: TButton;
     ButtonChange: TButton;
     EditFieldname: TEdit;
-    Bevel1: TBevel;
     Label4: TLabel;
     DBComboBox: TTNTComboBox;
     ComboBoxTableType: TComboBox;
     Label5: TLabel;
-    Bevel2: TBevel;
     ListboxColumns: TListBox;
     lblCharset: TLabel;
     lblCollation: TLabel;
@@ -84,6 +82,7 @@ type
     procedure comboCharsetChange(Sender: TObject);
     procedure EditFieldnameEnter(Sender: TObject);
     procedure EditFieldnameExit(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     index : Integer;
     dsCollations : TDataSet;
@@ -120,6 +119,10 @@ begin
 
   InheritFont(Font);
 
+  Width := Mainform.GetRegValue(REGNAME_CRTABLEWINWIDTH, Width);
+  Height := Mainform.GetRegValue(REGNAME_CRTABLEWINHEIGHT, Height);
+  SetWindowSizeGrip(Handle, True);
+
   try
     dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
     // Detect servers default charset
@@ -151,6 +154,15 @@ begin
 
   // Display supported engines in pulldown
   Mainform.Childwin.TableEnginesCombo( ComboBoxTableType );
+end;
+
+
+procedure TCreateTableForm.FormDestroy(Sender: TObject);
+begin
+  // Save window layout
+  Mainform.OpenRegistry;
+  Mainform.regmain.WriteInteger( REGNAME_CRTABLEWINWIDTH, Width );
+  Mainform.regmain.WriteInteger( REGNAME_CRTABLEWINHEIGHT, Height );
 end;
 
 
