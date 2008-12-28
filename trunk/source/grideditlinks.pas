@@ -33,7 +33,7 @@ type
 
   TDateTimeEditorLink = class(TInterfacedObject, IVTEditLink)
   private
-    FPicker: TDateTimePicker;
+    FDatePicker, FTimePicker: TDateTimePicker;
     FTree: TCustomVirtualStringTree;
     FNode: PVirtualNode;
     FColumn: TColumnIndex;
@@ -266,15 +266,20 @@ end;
 destructor TDateTimeEditorLink.Destroy;
 begin
   inherited;
-  FPicker.Free;
+  FreeAndNil(FDatePicker);
+  FreeAndNil(FTimePicker);
 end;
 
 
 function TDateTimeEditorLink.BeginEdit: Boolean; stdcall;
 begin
   Result := not FStopping;
-  if Result then
-    FPicker.Show;
+  if Result then begin
+    if Assigned(FDatePicker) then
+      FDatePicker.Show;
+    if Assigned(FTimePicker) then
+      FTimePicker.Show;
+  end;
 end;
 
 
@@ -283,7 +288,10 @@ begin
   Result := not FStopping;
   if Result then begin
     FStopping := True;
-    FPicker.Hide;
+    if Assigned(FDatePicker) then
+      FDatePicker.Hide;
+    if Assigned(FTimePicker) then
+      FTimePicker.Hide;
     FTree.CancelEditNode;
     FTree.SetFocus;
   end;
@@ -292,6 +300,7 @@ end;
 
 function TDateTimeEditorLink.EndEdit: Boolean; stdcall;
 var
+  dt: TDateTime;
   newtext: WideString;
 begin
   Result := not FStopping;
@@ -300,29 +309,45 @@ begin
   if FModified then begin
     case DataType of
       tpDATE:
-        newtext := FormatDateTime(ShortDateFormat, FPicker.Date);
+        newtext := FormatDateTime(ShortDateFormat, FDatePicker.Date);
       tpDATETIME, tpTIMESTAMP:
-        newtext := FormatDateTime(ShortDateFormat+' '+LongTimeFormat, FPicker.DateTime);
+      begin
+	      // Take date and add time
+        dt := FDatePicker.Date;
+        ReplaceTime(dt, FTimePicker.Time);
+        newtext := FormatDateTime(ShortDateFormat+' '+LongTimeFormat, dt);
+      end;
       tpTIME:
-        newtext := FormatDateTime(LongTimeFormat, FPicker.Time);
+        newtext := FormatDateTime(LongTimeFormat, FTimePicker.Time);
     end;
     if newtext <> FTree.Text[FNode, FColumn] then
       FTree.Text[FNode, FColumn] := newtext;
   end;
-  FPicker.Hide;
+  if Assigned(FDatePicker) then
+    FDatePicker.Hide;
+  if Assigned(FTimePicker) then
+    FTimePicker.Hide;
   FTree.SetFocus;
 end;
 
 
 function TDateTimeEditorLink.GetBounds: TRect; stdcall;
 begin
-  Result := FPicker.BoundsRect;
+  // Strange: Seems never called
+  if Assigned(FDatePicker) and (not Assigned(FTimePicker)) then
+    Result := FDatePicker.BoundsRect
+  else if (not Assigned(FDatePicker)) and Assigned(FTimePicker) then
+    Result := FTimePicker.BoundsRect
+  else begin
+    Result.TopLeft := FDatePicker.BoundsRect.TopLeft;
+    Result.BottomRight := FDatePicker.BoundsRect.BottomRight;
+  end;
 end;
 
 
 function TDateTimeEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
-  Text: WideString;
+  dt: TDateTime;
 begin
   Result := Tree is TCustomVirtualStringTree;
   if not Result then
@@ -330,36 +355,38 @@ begin
   Ftree := Tree as TCustomVirtualStringTree;
   FNode := Node;
   FColumn := Column;
-  FPicker := TDateTimePicker.Create(Tree);
-  FPicker.Parent := FTree;
-  FPicker.OnKeyDown := PickerKeyDown;
   DateSeparator := '-';
   TimeSeparator := ':';
   ShortDateFormat := 'yyyy-MM-dd';
   LongTimeFormat := 'HH:mm:ss';
-  case DataType of
-    tpDATE: begin
-      FPicker.Kind := dtkDate;
-      FPicker.Format := ShortDateFormat;
-    end;
-    tpDATETIME, tpTIMESTAMP: begin
-      FPicker.Kind := dtkDate;
-      FPicker.Format := ShortDateFormat + ' ' + LongTimeFormat;
-    end;
-    tpTIME: begin
-      FPicker.Kind := dtkTime;
-      FPicker.Format := LongTimeFormat;
-    end;
-  end;
-  Text := FTree.Text[Node, Column];
   try
-    FPicker.DateTime := StrToDateTime(FTree.Text[Node, Column]);
+    dt := StrToDateTime(FTree.Text[Node, Column]);
   except
-    FPicker.DateTime := Now;
+    dt := Now;
   end;
+  if DataType in [tpDATE, tpDATETIME, tpTIMESTAMP] then begin
+    FDatePicker := TDateTimePicker.Create(Tree);
+    FDatePicker.Parent := FTree;
+    FDatePicker.OnKeyDown := PickerKeyDown;
+    FDatePicker.Kind := dtkDate;
+    FDatePicker.Format := ShortDateFormat;
+    FDatePicker.DateTime := dt;
+    FDatePicker.OnChange := PickerChange;
+  end;
+  if DataType in [tpDATETIME, tpTIMESTAMP, tpTIME] then begin
+    FTimePicker := TDateTimePicker.Create(Tree);
+    FTimePicker.Parent := FTree;
+    FTimePicker.OnKeyDown := PickerKeyDown;
+    FTimePicker.Kind := dtkTime;
+    FTimePicker.Format := LongTimeFormat;
+    FTimePicker.DateTime := dt;
+    FTimePicker.OnChange := PickerChange;
+  end;
+  if Assigned(FDatePicker) then
+    FDatePicker.SetFocus
+  else if Assigned(FTimePicker) then 
+    FTimePicker.SetFocus;
   FModified := False;
-  FPicker.SetFocus;
-  FPicker.OnChange := PickerChange;
 end;
 
 
@@ -369,8 +396,26 @@ end;
 
 
 procedure TDateTimeEditorLink.SetBounds(R: TRect); stdcall;
+var
+  w: Integer;
 begin
-  FPicker.BoundsRect := R;
+  if Assigned(FDatePicker) and (not Assigned(FTimePicker)) then
+    FDatePicker.BoundsRect := R
+  else if (not Assigned(FDatePicker)) and Assigned(FTimePicker) then
+    FTimePicker.BoundsRect := R
+  else begin
+    w := (R.Right - R.Left) div 2;
+
+    FDatePicker.Left := R.Left;
+    FDatePicker.Top := R.Top;
+    FDatePicker.Height := R.Bottom - R.Top;
+    FDatePicker.Width := w;
+
+    FTimePicker.Left := R.Left + w + 1;
+    FTimePicker.Top := R.Top;
+    FTimePicker.Height := R.Bottom - R.Top;
+    FTimePicker.Width := w - 1;
+  end;
 end;
 
 
