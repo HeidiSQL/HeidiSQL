@@ -141,7 +141,7 @@
   LongRunningTask.detect("initTreeMySQLWorker", "progressWaiter",  args(), w , 250);
   w = worker("loadHostInfoWorker", args());
   LongRunningTask.detect("loadHostInfoWorker", "progressWaiter", args(), w , 250);
-  script("initWireEvents", args());
+  script("initWireEvents$mysql", args());
   script("addToWindowMenu", args());
   
   
