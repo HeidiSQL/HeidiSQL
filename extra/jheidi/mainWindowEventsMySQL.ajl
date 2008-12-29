@@ -21,9 +21,9 @@ else if ("Refresh" == who)
     db.flushCache();
   }
 
-  Worker w = worker("initTreeWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+  Worker w = worker("initTreeMySQLWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
   if ( !w.isCancelled())
-    LongRunningTask.detect("initTreeWorker", "progressWaiter", args(), w , 250);
+    LongRunningTask.detect("initTreeMySQLWorker", "progressWaiter", args(), w , 250);
     
   String script = tab.getProperty("refreshScript");
   HashObject scriptArgs = (HashObject)tab.getProperty("refreshArgs");
@@ -93,10 +93,10 @@ else if ("Create Database" == who)
   if ( script("createDBDialog", args()) != null )
   {
     Tree schemaTree = context.get("/schemaTree");
-    Worker w = worker("initTreeWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+    Worker w = worker("initTreeMySQLWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
     if (!w.isCancelled())
     {
-      LongRunningTask.detect("initTreeWorker", "progressWaiter", args(), w, 250);
+      LongRunningTask.detect("initTreeMySQLWorker", "progressWaiter", args(), w, 250);
     }
   }
   
@@ -106,10 +106,10 @@ else if ("Create Table" == who)
   if ( script("createTableDialogMySQL", args()) != null )
   {
     Tree schemaTree = context.get("/schemaTree");
-    Worker w = worker("initTreeWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+    Worker w = worker("initTreeMySQLWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
     if (!w.isCancelled())
     {
-      LongRunningTask.detect("initTreeWorker", "progressWaiter", args(),w,  250);
+      LongRunningTask.detect("initTreeMySQLWorker", "progressWaiter", args(),w,  250);
     }
   }
   
