@@ -6,23 +6,24 @@
   Dialog dlg = new Dialog((Frame)parentContext.get("/"), "fieldDialog", arg("fieldMode") + " Field" );
   WindowContext context = dlg.getWindowContext();
   context.put("db", parentContext.get("db"));
+  context.put("vendor", parentContext.get("vendor"));
   context.put("currentDB", parentContext.get("currentDB"));
   context.put("currentTable", parentContext.get("currentTable"));
   context.put("fieldMode", arg("fieldMode"));
   
-  dlg.events("fieldEvents");
+  dlg.events("fieldEventsOracle");
   dlg.tabLayout()
     .insets(10, 10)
     .icon(arg("fieldMode").equals("Add")?"images/newfield.gif":"images/editfield.gif")
-	  .text("Position:", 90)
+	  /*.text("Position:", 90)
     .setTab()
     .combo("positions", new String[] {"Hi"}, 200)
     .setTab()
-    .nextRow()
-    .tab(1)
-    .text("Name:")
-    .tab(2)
+    .nextRow()*/
+    .text("Name:", 90)
+    .setTab()
     .field("fieldName", 200)
+    .setTab()
     .nextRow()
     .tab(1)
     .text("Type:")
@@ -50,58 +51,39 @@
     .vspace(17)
     .space(LF.isWin?18:13)
     .checkbox("notNull", "Not Null", 90,  false)
-    .setTab()
+    .setTab()/*
     .checkbox("autoInc", "Auto Increment", false)
-    .setTab()
+    .setTab()*/
     .nextRow()
+    .vspace(10)/*
     .tab(3)
     .checkbox("binary", "Binary", 90, false)
     .tab(4)
     .checkbox("unsigned", "Unsigned", 95,false)
     .space(2)
-    .checkbox("zeroFill", "Zero Fill", 77, false)
+    .checkbox("zeroFill", "Zero Fill", 77, false)*/
     .nextRow()
-    .vspace(18)
+    .baseline(context.get("/notNull"))
+    .vspace(45)
     .space(37)
     .button(arg("fieldMode").equals("Add") ?"Add Field" : "Update Field", 110)
     .space(5)
     .button("Cancel", 110);
+
+    Text txt = context.get("/Length/Set:");
+    txt.setText("Length (n[,n]):");
     
-    DB db = context.get("db");
-    DB.Result result = db.executeNonCached("show full columns from `" + context.get("currentDB") + "`.`" + (String) context.get("currentTable") + "`");
-          
-    Combo positions = context.get("/positions");
+    /*Combo positions = context.get("/positions");*/
     String selField = arg("fieldToEdit");
     context.put("fieldToEdit", selField);
-    HashObject selectField = null;
-    String[] posList = new String[result.size() + (selField == null ?2 :3)];
-    int c = 0;
-    if ( selField != null )
-    {
-      posList[c++] = "";
-    }
-    posList[c++] = "Last";
-    posList[c++] = "First";
-    for (int i=0; i < result.size(); i++)
-    {
-      posList[i+c] = "After '" + result.get(i).get(0) + "'";
-      if ( result.get(i).get(0).equals(selField) )
-      {
-        selectField = (HashObject)result.get(i);
-      }
+   
+   ((Field)context.get("/fieldName")).setText(selField == null ?"FieldName":selField);
         
-    }
-    
-    positions.setModel(new DefaultComboBoxModel(posList));
-    
-    ((Field)context.get("/fieldName")).setText("FieldName");
-    ((JCheckBox)context.get("/autoInc")).setEnabled(false);
-    
     HashObject newArgs = new HashObject();
     newArgs.put("windowContext", context);
-    script("initMySQLTypes", newArgs);
+    script("initTypes$" + context.get("vendor"), newArgs);
     
-    if ( selectField != null )
+    /*if ( selectField != null )
     { //populate the dialog
     
       ((Field)context.get("/fieldName")).setText(selectField.get("field"));
@@ -124,7 +106,7 @@
           selectField.get("extra").contains("auto_increment"));
     }
       
-    
+    */
     dlg.visible();
     
     return context.get("dlgResult");
