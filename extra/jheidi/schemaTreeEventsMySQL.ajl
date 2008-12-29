@@ -87,7 +87,7 @@
    args().put("dbName", dbName);
    args().put("tableName", tableName);
    args().put("workerKey", dbName+tableName);
-   Worker w = worker("loadTableInfoWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+   Worker w = worker("loadTableInfoMySQLWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
    
    //in case its already running dont run the detector
    if ( !w.isCancelled() )
