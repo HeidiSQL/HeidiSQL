@@ -12,7 +12,7 @@
       "geometrycollection" };
       
   types.setModel(new DefaultComboBoxModel(typesArray));
-  types.events("typeChangeEvents");
+  types.events("typeChangeEventsMySQL");
   
   Object[] widgets = new Object[] { context.get("/binary"),  context.get("/unsigned"), context.get("/zeroFill"),
       context.get("/lengthSet"), context.get("/defaultValue") };
