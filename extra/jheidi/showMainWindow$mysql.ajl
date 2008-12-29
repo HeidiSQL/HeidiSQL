@@ -62,7 +62,7 @@
 	    .tabs("mainTabs");
 	    
 	Tree schemaTree = app.get("schemaTree");
-	schemaTree.events("schemaTreeEvents");
+	schemaTree.events("schemaTreeEventsMySQL");
 	    
 	Tabs consoleTabs = mainSplit.tabs("consoleTabs");
 	Panel consoleTab = consoleTabs.tab("SQL Log", LF.isWin? "images/vista/sqllog.gif" : "images/sqllog.gif")
