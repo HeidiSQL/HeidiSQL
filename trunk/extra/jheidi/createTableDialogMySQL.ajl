@@ -142,7 +142,7 @@
     new TabOrder(dlg, tabs);
     
     ((Field)context.get("/tableName")).setText("TableName");
-    ((ListBox)context.get("/fields")).events("fieldListEvents");
+    ((ListBox)context.get("/fields")).events("fieldListEventsMySQL");
     
     final DB db = context.get("db");
     final HashObject resultMap = new HashObject();
