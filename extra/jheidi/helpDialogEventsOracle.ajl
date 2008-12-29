@@ -1,0 +1,71 @@
+  
+  String who = arg("source");
+  NodeInfo node = argObj("node");
+  WindowContext context = argObj("windowContext");
+  
+  log.debug("event received: " + who);
+
+  if ( node != null )
+  {
+    String nodeType = node.getType();
+    log.debug("node type = " + nodeType);
+    if ( "helpitem".equals(nodeType) )
+    {
+       String itemName = node.getText();
+       log.debug("itemName: " + itemName + " clicked");
+       
+       DB db = context.get("db");
+       DB.Result items = db.execute("select info from system.help where topic=upper('" + itemName + "') and seq > 4 order by seq");
+       if ( !items.isEmpty() )
+       {
+          HashObject item = items.first();
+          ((Text)context.get("/No Topic Selected")).setText(itemName);
+          TextArea helpText = context.get("/helpText");
+          TextArea exampleText = context.get("/exampleText");
+          String itemText = "";
+          for (HashObject h: items)
+          {
+            if ( h.get("info") != null )
+              itemText+=h.get("info") + "\n";
+            else
+              itemText+="\n";
+          }
+
+          helpText.setText(itemText);
+          helpText.setCaretPosition(0);
+          //exampleText.setText(item.get("example"));
+          //exampleText.setCaretPosition(0);
+       }
+    }
+  }
+  else if ( "Search MySQL".equals(who) )
+  {
+    String query = ((Text)context.get("/No Topic Selected")).getText();
+    query = "No Topic Selected".equals(query) ? "" : query.replace(" ", "+");
+    
+    BareBonesBrowserLaunch.openURL("http://dev.mysql.com/doc/mysql/search.php?version=5.1&q=" + query + "&lang=en");
+  }
+  else if ( "Close".equals(who) )
+  {
+     Dialog d = context.get("/");
+     d.dispose();
+  }
+  
+  
+  
+
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		
