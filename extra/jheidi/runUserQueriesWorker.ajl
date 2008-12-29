@@ -25,7 +25,7 @@
         
         try
         {
-          if (context.get("currentDB") != null)
+          if (context.get("currentDB") != null && context.get("vendor") != "oracle")
           {
             db.execute("use " + context.get("currentDB"));
           }
