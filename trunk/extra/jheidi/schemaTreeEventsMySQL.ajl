@@ -59,7 +59,7 @@
     script("resetTabsMySQL", args());
     args().put("dbName", dbName);
     args().put("workerKey", dbName);
-    Worker w = worker("showTableStatusWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+    Worker w = worker("showTableStatusMySQLWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
     
     //in case its already running dont run the detector
     if (!w.isCancelled())
