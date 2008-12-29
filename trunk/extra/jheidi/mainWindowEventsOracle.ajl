@@ -1,0 +1,143 @@
+import javax.swing.tree.*;
+import javax.swing.*;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+
+String who = arg("source");
+WindowContext context = argObj("windowContext");
+log.debug("Event received: " + who);
+
+if ("New Connection" == who)
+{
+  script("jheidi");
+}
+else if ("Refresh" == who)
+{
+  DB db = context.get("db");
+
+  Panel tab = (Panel)((Tabs)context.get("/mainTabs")).getSelectedComponent();
+  if ( tab.getName() != "Host" )
+  {
+    db.flushCache();
+  }
+
+  Worker w = worker("initTreeOracleWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+  if ( !w.isCancelled())
+    LongRunningTask.detect("initTreeOracleWorker", "progressWaiter", args(), w , 250);
+    
+  String script = tab.getProperty("refreshScript");
+  HashObject scriptArgs = (HashObject)tab.getProperty("refreshArgs");
+  if ( script != null )
+  {
+    if ( script.endsWith("Worker") )
+    {
+      w = worker(script, scriptArgs, Worker.RunOption.LET_FINISH_IF_RUNNING);
+      if ( scriptArgs.get("workerKey") != null)
+         script = scriptArgs.get("workerKey");
+
+      if (!w.isCancelled())
+        LongRunningTask.detect(script, "progressWaiter", scriptArgs, w , 250);
+    }
+    else
+    {
+      script(script, scriptArgs);
+    }
+  }
+  
+}
+else if ("Cut" == who || "Copy" == who || "Paste" == who )
+{
+  Component compFocusOwner =
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
+  
+  if ( compFocusOwner instanceof Editor)
+  {
+    Editor editor = (Editor)compFocusOwner;
+    if ( "Cut" == who )
+    {
+      editor.cut();
+    }
+    else if ("Copy" == who)
+    {
+      editor.copy();
+    }
+    else if ("Paste" == who)
+    {
+      editor.paste();
+    }
+  }
+} 
+else if ("Drop Table" == who)
+{
+  Tree schemaTree = context.get("/schemaTree");
+  NodeInfo node = schemaTree.getSelectedNode();
+  if ( node != null && "table".equals(node.getType()) )
+  {
+     NodeInfo dbNode = node.getParent();
+     Frame f = context.get("/");
+     if (f.popupConfirm("Confirm Delete!", "Are you sure you want to drop table '" + dbNode.getText() + "." + node.getText() + "'?", "images/deletetable.gif"))
+     {
+       args().put("tableToDrop", node.getText());
+       script("dropTable$oracle", args());
+       node.remove();
+       //force the tabs to refresh and the db info to reload
+       //schema tree events will be called by the tree itself
+       context.put("currentDB", null);
+       schemaTree.select(dbNode);
+     }
+  }
+  
+}
+else if ("Create Table" == who)
+{
+  if ( script("createTableDialogOracle", args()) != null )
+  {
+    Tree schemaTree = context.get("/schemaTree");
+    Worker w = worker("initTreeOracleWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+    if (!w.isCancelled())
+    {
+      LongRunningTask.detect("initTreeOracleWorker", "progressWaiter", args(),w,  250);
+    }
+  }
+  
+}
+else if ("Print" == who)
+{
+  //this is total shit - but it does work if you try to print something that might fit on 
+  //the page....omg this is bad.
+  Table table = null;
+  String selectedTab = ((Tabs)context.get("/mainTabs")).selected();
+
+  if ("Host" != selectedTab && "Query" != selectedTab)
+  {
+     table = context.get("/mainTabs/"+selectedTab+"/table");
+  }
+  else if ("Host" == selectedTab)
+    {
+     String subTab = ((Tabs)context.get("/mainTabs/Host/tabs")).selected();
+     table = context.get("/mainTabs/Host/tabs/"+subTab+"/table");
+  }
+  else if ("Query" == selectedTab)
+  {
+     table = context.get("/mainTabs/Query/results");
+  }
+  
+  try
+  {
+      table.print();
+  } catch (Exception e) {e.printStackTrace();}
+}
+else if ( "Exit" == who )
+{
+  System.exit(0);
+}
+else if ("Close" == who )
+{
+  Frame window = context.get("/");
+  script("removeFromWindowMenu", args());
+  window.dispose();
+} 
+else {
+  ((Frame)context.get("/")).popupMessage("Feature Unimplemented!");
+}
+
