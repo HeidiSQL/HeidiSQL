@@ -11,7 +11,7 @@
   context.put("currentTable", parentContext.get("currentTable"));
   context.put("fieldMode", arg("fieldMode"));
   
-  dlg.events("fieldEvents");
+  dlg.events("fieldEventsMySQL");
   dlg.tabLayout()
     .insets(10, 10)
     .icon(arg("fieldMode").equals("Add")?"images/newfield.gif":"images/editfield.gif")
