@@ -8,7 +8,7 @@
   String[] typesArray = new String[] { "varchar2", "char", "number", "date", "timestamp", "clob", "blob", "bfile", "xmltype" };
       
   types.setModel(new DefaultComboBoxModel(typesArray));
-  types.events("typeChangeEvents");
+  types.events("typeChangeEventsOracle");
   
   Object[] widgets = new Object[] { context.get("/binary"),  context.get("/unsigned"), context.get("/zeroFill"),
       context.get("/lengthSet"), context.get("/defaultValue") };
