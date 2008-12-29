@@ -1,0 +1,9 @@
+
+WindowContext context = argObj("windowContext");
+String field = arg("fieldToDrop");
+
+DB db = context.get("db");
+
+db.execute("alter table " + context.get("currentDB") + "." + context.get("currentTable") + " drop column " + field);
+
+
