@@ -1,0 +1,191 @@
+  import java.awt.Dimension;
+  import java.awt.Component;
+  import javax.swing.*;
+  
+  WindowContext parentContext = argObj("windowContext");
+  
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"), "createTableDialog", "Create Table");
+  WindowContext context = dlg.getWindowContext();
+  context.put("db", parentContext.get("db"));
+  context.put("vendor", parentContext.get("vendor"));
+  
+  dlg.events("createTableEventsMySQL");
+  dlg.tabLayout()
+    .icon("images/table.gif")
+    .insets(10, 10)
+    .text("Name:", 73)
+    .setTab()
+    .field("tableName", 200)
+    .setTab()
+    .space(5)
+    .text("Engine:", 96)
+    .setTab()
+    .combo("engines", new String[] {"engines"}, 200)
+    .setTab()
+    .nextRow()
+    .tab(1)
+    .text("Database:")
+    .tab(2)
+    .combo("databases", new String[] {"databases", "There"}, 200)
+    .tab(3)
+    .text("Character set:")
+    .tab(4)
+    .combo("charSets", new String[] { "hi"}, 200)
+    .nextRow()
+    .tab(1)
+    .text("Comment:")
+    .tab(2)
+    .field("comment", 200)
+    .tab(3)
+    .text("Collation:")
+    .tab(4)
+    .combo("collations", new String[] {"hi"}, 200)
+    .nextRow()
+    .vspace(5)
+    .line(595)
+    .nextRow()
+    .tab(1)
+    .text("Columns:")
+    .nextRow()
+    .tab(1)
+    .field("fieldName", 180)
+    .baseline()
+    .space(5)
+    .button("Add", 75)
+    .setTab()
+    .space(16)
+    .vspace(-10)
+    .groupbox("Column Properties",307,230)
+    .nextRow()
+    .vspace(3)
+    .tab(1)
+    .listbox("fields", new String[] {}, 180, 186)
+    .tab(5)
+    .button("Rename", 75)
+    .space(38)
+    .vspace(-13)
+    .text("Type:", 88)
+    .setTab()
+    .combo("types", new String[] {"VARCHAR"}, 170)
+    .setTab()
+    .nextRow()
+    .tab(6)
+    .text("Length/Set:")
+    .tab(7)
+    .field("lengthSet", 170)
+    .nextRow()
+    .tab(6)
+    .text("Default:")
+    .tab(7)
+    .field("defaultValue", 170)
+    .nextRow()
+    .vspace(LF.isWin?20:10)
+    .tab(6)
+    .space(LF.isWin?5:0)
+    .checkbox("primary", "Primary", 90, false)
+    .setTab()
+    .checkbox("index", "Index", 88, false)
+    .setTab()
+    .checkbox("unique", "Unique", 70, false)
+    .setTab()
+    .nextRow()
+    .tab(8)
+    .checkbox("notNull", "Not Null", false)
+    .tab(9)
+    .checkbox("autoInc", "Auto Increment", false)
+    .nextRow()
+    .tab(8)
+    .checkbox("binary", "Binary", false)
+    .tab(9)
+    .checkbox("unsigned", "Unsigned", false)
+    .tab(10)
+    .checkbox("zeroFill", "Zero Fill",80, false)
+    .nextRow();
+    
+	  dlg.baseline((Component)context.get("/Rename"));
+    
+    dlg.tab(5)
+    .vspace(1)
+    .button("Remove", 75)
+    .nextRow()
+    .vspace(1)
+    .tab(5)
+    .imageButton("Up", "images/up.gif", 75)
+    .nextRow()
+    .tab(5)
+    .vspace(1)
+    .imageButton("Down", "images/down.gif", 75)
+    .nextRow();
+    
+     dlg.baseline((Component)context.get("/fieldsScrollPane"));
+    
+     dlg.vspace(193)
+    .line(595)
+    .nextRow()
+    .vspace(5)
+    .space(364)
+    .button("Create", 110)
+    .space(5)
+    .button("Cancel", 110);
+    
+     Text lbl = context.get("/gbColumn Properties");
+     JScrollPane listBox = context.get("/fieldsScrollPane");
+     Field field = context.get("/fieldName");
+     
+     lbl.setPreferredSize(new Dimension(lbl.getPreferredSize().width, listBox.getPreferredSize().height + field.getPreferredSize().height + 21));
+    
+    //because of this side by side layout we cant use default taborder :(
+    String[] tabs = new String [] { "/tableName", "/databases", "/comment", "/engines", "/charSets", "/collations",
+      "/fieldName", "/fields", "/Add", "/Rename", "/Remove", "/Up", "/Down", "/types", "/lengthSet", "/defaultValue",
+      "/primary", "/index", "/unique", "/notNull", "/autoInc", "/binary", "/unsigned", "/zeroFill", "/Create", "/Cancel" };
+    
+    new TabOrder(dlg, tabs);
+    
+    ((Field)context.get("/tableName")).setText("TableName");
+    ((ListBox)context.get("/fields")).events("fieldListEvents");
+    
+    final DB db = context.get("db");
+    final HashObject resultMap = new HashObject();
+    
+    DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+      public void execute() throws Exception {
+        resultMap.put("charSet", db.execute("show character set"));
+        resultMap.put("dbs", db.execute("show databases"));
+        resultMap.put("engines", db.execute("show engines"));
+      }
+    };
+    
+    db.execute(tx);
+        
+    Combo combo = context.get("/charSets");
+    ComboUtils.populate(combo, (DB.Result)resultMap.getObject("charSet"), 0);
+    combo.select("latin1");
+    
+    combo = context.get("/databases");
+    ComboUtils.populate(combo, (DB.Result)resultMap.getObject("dbs"), 0);
+    if ( parentContext.get("currentDB") != null )
+    {
+      combo.select((String)parentContext.get("currentDB"));
+    }
+    
+    combo = context.get("/engines");
+    ComboUtils.populate(combo, (DB.Result)resultMap.getObject("engines"), 0);
+    for (HashObject engine : (DB.Result)resultMap.getObject("engines"))
+    {
+        if ( "DEFAULT".equals(engine.get("support")))
+        {
+          combo.select(engine.get(0));
+          break;
+        }
+    }
+    
+    
+    HashObject newArgs = new HashObject();
+    newArgs.put("windowContext", context);
+    script("initTypes$" +(String) context.get("vendor"), newArgs);
+    
+    dlg.visible();
+    
+    return context.get("dlgResult");
+    
+    
