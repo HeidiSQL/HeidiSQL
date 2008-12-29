@@ -7,7 +7,7 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{DFF14130-FF9F-450A-A1C8-206A92A4E3DF}
 AppName=jHeidi
-AppVerName=jHeidi Alpha 3.6
+AppVerName=jHeidi Alpha 4
 AppPublisher=jheidi.com
 AppPublisherURL=http://www.jheidi.com/
 AppSupportURL=http://forum.heidisql.com/
@@ -32,7 +32,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}";
 
 [Files]
-Source: "..\.connectionProfiles"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\.profiles-mysql"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\.profiles-oracle"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\.autoupdater"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\jheidi.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\jheidi.exe"; DestDir: "{app}"; Flags: ignoreversion

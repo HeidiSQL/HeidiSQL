@@ -10,7 +10,7 @@ SilentInstall silent
 AutoCloseWindow true
 ShowInstDetails nevershow
  
-!define CLASSPATH "jheidi.jar;lib/ajl.jar;lib/swing-worker-1.1.jar;lib/editor.jar;lib/log4j-1.2.13.jar;lib/mysql-connector-java-5.0.7-bin.jar"
+!define CLASSPATH "jheidi.jar;lib/ajl.jar;lib/swing-worker-1.1.jar;lib/editor.jar;lib/log4j-1.2.13.jar;lib/mysql-connector-java-5.0.7-bin.jar;lib/ojdbc14.jar"
 !define CLASS "LaunchJHeidi"
  
 Section ""
