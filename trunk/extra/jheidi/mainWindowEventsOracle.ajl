@@ -127,6 +127,10 @@ else if ("Print" == who)
       table.print();
   } catch (Exception e) {e.printStackTrace();}
 }
+else if ("Help" == who )
+{
+  script("helpDialog$" + context.get("vendor"), args());
+}
 else if ( "Exit" == who )
 {
   System.exit(0);
