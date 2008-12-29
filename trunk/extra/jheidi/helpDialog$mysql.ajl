@@ -6,7 +6,7 @@
   WindowContext context = dlg.getWindowContext();
   context.put("db", parentContext.get("db"));
    
-  dlg.events("helpDialogEvents");
+  dlg.events("helpDialogEventsMySQL");
   dlg.tabLayout()
      .insets(10, 10)
      .icon("images/helptopic.gif")
