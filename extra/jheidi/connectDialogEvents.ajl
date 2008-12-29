@@ -83,7 +83,8 @@ else if ("New" == event )
 }
 else if ("Save" == event || "Save/Connect" == event || "Connect" == event)
 {
-  //do some validation
+  String curVendor = dialog.getProperty("currentVendor");
+
   try
   {
     String value = ((Field)context.get("/timeout")).getText();
@@ -114,21 +115,21 @@ else if ("Save" == event || "Save/Connect" == event || "Connect" == event)
        buffer.append("dbs=").append(h.get("dbs")).append("\n");
     }
     
-    FileUtil.fromString(".connectionProfiles", buffer.toString());
+    FileUtil.fromString(".profiles-" + curVendor, buffer.toString());
   }
     
   if ( event.endsWith("Connect"))
   {
     HashObject profile = (HashObject)profiles.getObject(connProfiles.getText());
-    String curVendor = dialog.getProperty("currentVendor");
-  
+    
     args().put("profile", profile);
     DB db = script(String.format("testConnect$%s", curVendor), args());  
     if (db != null)
     {
       dialog.dispose();
       args().put("db", db);
-      script("showMainWindow", args());
+      args().put("vendor", curVendor);
+      script("showMainWindow$" + curVendor, args());
     }
   }
   
@@ -195,7 +196,7 @@ else if ("Vendor" == event)
     {
       dialog.setTitle("New Connection - MySQL");
       hostLabel.setText("Host:");
-      compressBox.setEnabled(true);
+      compressBox.setText("Use compressed protocol");
       dbsLabel.setText(dbsLabel.getText().replaceAll("Schema", "Database"));
       sortBox.setText(sortBox.getText().replaceAll("schema", "database"));
     }
@@ -203,7 +204,7 @@ else if ("Vendor" == event)
     {
       dialog.setTitle("New Connection - Oracle");
       hostLabel.setText("Service@Host:");
-      compressBox.setEnabled(false);
+      compressBox.setText("Connect as sysdba");
       dbsLabel.setText(dbsLabel.getText().replaceAll("Database", "Schema"));
       sortBox.setText(sortBox.getText().replaceAll("database", "schema"));
     }
