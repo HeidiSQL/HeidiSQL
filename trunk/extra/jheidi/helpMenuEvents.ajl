@@ -7,7 +7,7 @@ log.debug("Event received: " + src);
 
 if (src == "SQL Help")
 {
-  script("helpDialog", args());
+  script("helpDialog$" + context.get("vendor"), args());
 }
 else if (src == "Heidi SQL Website")
 {
