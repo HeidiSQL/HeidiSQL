@@ -7,7 +7,7 @@
   context.put("profile", profile);
   context.put("vendor", vendor);
   
-  app.events("mainWindowEvents");
+  app.events("mainWindowEventsOracle");
   
   app.toolbarButtonInsets(100, 100, 100, 100);
 	
