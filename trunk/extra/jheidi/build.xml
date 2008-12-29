@@ -101,6 +101,7 @@
         <include name="swing-worker-1.1.jar"/>
         <include name="log4j-1.2.13.jar"/>
         <include name="mysql-connector-java-5.0.7-bin.jar"/>
+		<include name="ojdbc14.jar"/>
         <include name="ajl.jar"/>
 	  </fileset>
     </path>
