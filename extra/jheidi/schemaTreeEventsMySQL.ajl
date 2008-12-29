@@ -99,11 +99,11 @@
      Thread.sleep(25);
    } catch (Exception e) {}
    
-   args().put("workerKey", "loadTableData" + dbName + tableName);
-   w = worker("loadTableDataWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+   args().put("workerKey", "loadTableDataMySQLWorker" + dbName + tableName);
+   w = worker("loadTableDataMySQLWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
    
    if ( !w.isCancelled() )
-     LongRunningTask.detect("loadTableData" + dbName+tableName, "progressWaiter", args(), w , 250);
+     LongRunningTask.detect("loadTableDataMySQLWorker" + dbName+tableName, "progressWaiter", args(), w , 250);
    
  }
 

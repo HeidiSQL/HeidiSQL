@@ -99,11 +99,11 @@
      Thread.sleep(25);
    } catch (Exception e) {}
    
-   args().put("workerKey", "loadTableDataOracle" + dbName + tableName);
+   args().put("workerKey", "loadTableDataOracleWorker" + dbName + tableName);
    w = worker("loadTableDataOracleWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
    
    if ( !w.isCancelled() )
-     LongRunningTask.detect("loadTableDataOracle" + dbName+tableName, "progressWaiter", args(), w , 250);
+     LongRunningTask.detect("loadTableDataOracleWorker" + dbName+tableName, "progressWaiter", args(), w , 250);
    
  }
 
