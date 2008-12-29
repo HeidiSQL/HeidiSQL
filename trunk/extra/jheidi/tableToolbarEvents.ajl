@@ -23,7 +23,7 @@ if (event == "Delete Field" )
      if (frame.popupConfirm("Confirm Delete!", "Are you sure you want to drop field '" + tableName + "." + fieldName + "'?", "images/deletefield.gif"))
      {
         args().put("fieldToDrop", fieldName);
-        script("dropField", args());
+        script("dropField$" + context.get("vendor"), args());
         refreshTableTab = true;
      }
   }
@@ -32,7 +32,7 @@ if (event == "Delete Field" )
 else if (event == "New Field")
 {
   args().put("fieldMode", "Add");
-  if ( script("fieldDialog", args()) != null )
+  if ( script("fieldDialog$" + context.get("vendor"), args()) != null )
   {
       refreshTableTab = true;
   }
@@ -45,7 +45,7 @@ else if (event == "Edit Field")
     String fieldName =  (String)table.getValueAt(table.getSelectedRow(), 0);
     args().put("fieldMode", "Edit");
     args().put("fieldToEdit", fieldName);
-    if ( script("fieldDialog", args()) != null )
+    if ( script("fieldDialog$" + context.get("vendor"), args()) != null )
     {
        refreshTableTab = true;
     }
@@ -53,7 +53,7 @@ else if (event == "Edit Field")
 }
 else if (event == "Manage Indexes")
 {
-  if ( script("indexDialog", args()) != null )
+  if ( script("indexDialog$" + context.get("vendor"), args()) != null )
   {
       refreshTableTab = true;
   }
@@ -63,15 +63,21 @@ else
   ((Frame)context.get("/")).popupMessage("Feature Unimplemented!");
 }
 
-
 if ( refreshTableTab )
 {
   DB db = context.get("db");
-  db.flushStatement("show full columns from `" + tableName + "`");
+  String sql = null;
+  if ( ((String)context.get("vendor")).equals("mysql"))
+    sql = String.format("show full columns from `%s`.`%s`", context.get("currentDB"), context.get("currentTable"));
+  else
+    sql = String.format("select lower(column_name) column_name, data_type, data_length, nullable, data_precision, data_scale, data_default, default_length, data_type_mod, data_type_owner, num_distinct, low_value, high_value, density, num_nulls, num_buckets, last_analyzed, sample_size, character_set_name, char_col_decl_length, global_stats,user_stats, avg_col_len, char_length, char_used, histogram from all_tab_columns where table_name=upper('%s') and owner=upper('%s') order by column_id", 
+        context.get("currentTable"), context.get("currentDB"));
+
+  db.flushStatement(sql);
   
   Panel tab = context.get("/mainTabs/Table");
   String script = tab.getProperty("refreshScript");
-  script(script, (HashObject)tab.getProperty("refreshArgs"));
+  worker(script, (HashObject)tab.getProperty("refreshArgs"));
 }
 
   
