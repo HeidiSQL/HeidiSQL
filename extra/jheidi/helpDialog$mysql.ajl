@@ -54,7 +54,7 @@
   
   
   args().put("windowContext", context);
-  script("initHelpTree", args());
+  script("initHelpTreeMySQL", args());
   
 	dlg.visible();
 	   
