@@ -48,7 +48,8 @@
     <property name="jheidi.launcher" value="LaunchJHeidi.java"/>
     <property name="jheidi.jar" value="jheidi.jar"/>  
     <property name=".autoupdater" value=".autoupdater"/>  
-    <property name=".connectionProfiles" value=".connectionProfiles"/>
+    <property name="mysql-profiles" value=".profiles-mysql"/>
+	<property name="oracle-profiles" value=".profiles-oracle"/>
     <property name="bin.client.autoupdater" value="${etc}/bin-client-autoupdater"/>
     <property name="win.client.autoupdater" value="${etc}/win-client-autoupdater"/>
     <property name="osx.client.autoupdater" value="${etc}/osx-client-autoupdater"/>
@@ -274,7 +275,8 @@
       </fileset>
     </chmod>
     
-    <copy file="${etc}/${.connectionProfiles}" tofile="${bin.dist}/${.connectionProfiles}"/>
+    <copy file="${etc}/${mysql-profiles}" tofile="${bin.dist}/${mysql-profiles}"/>
+    <copy file="${etc}/${oracle-profiles}" tofile="${bin.dist}/${oracle-profiles}"/>
     <copy file="${bin.client.autoupdater}" tofile="${bin.dist}/${.autoupdater}"/>
     
     <exec executable="zip" dir="${dist.dir}">
@@ -338,7 +340,8 @@
       <fileset file="${osx.icons}"/>
     </copy>
     
-    <copy file="${etc}/${.connectionProfiles}" tofile="${osx.java}/${.connectionProfiles}"/>
+    <copy file="${etc}/${mysql-profiles}" tofile="${osx.java}/${mysql-profiles}"/>
+    <copy file="${etc}/${oracle-profiles}" tofile="${osx.java}/${oracle-profiles}"/>
     <copy file="${osx.client.autoupdater}" tofile="${osx.java}/${.autoupdater}"/>
     
     <exec executable="zip" dir="${dist.dir}">
@@ -394,7 +397,8 @@
      <path refid="win.bin"/>
     </copy>
     
-    <copy file="${etc}/${.connectionProfiles}" tofile="${win.dist}/${.connectionProfiles}"/>
+    <copy file="${etc}/${mysql-profiles}" tofile="${win.dist}/${mysql-profiles}"/>
+	<copy file="${etc}/${oracle-profiles}" tofile="${win.dist}/${oracle-profiles}"/>
     <copy file="${win.client.autoupdater}" tofile="${win.dist}/${.autoupdater}"/>
     <copy todir="${win.dist}/${innosetup}">
 	  <fileset dir="${etc}/${innosetup}"/>
