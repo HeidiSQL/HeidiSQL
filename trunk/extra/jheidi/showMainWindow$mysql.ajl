@@ -6,7 +6,7 @@
   WindowContext context = app.getWindowContext();
   context.put("profile", profile);
   
-  app.events("mainWindowEvents");
+  app.events("mainWindowEventsMySQL");
   
   app.toolbarButtonInsets(100, 100, 100, 100);
 	
@@ -27,7 +27,7 @@
 	help.events("helpMenuEvents").item("SQL Help", "images/helptopic.gif").item("separator", "Check For Updates", "separator", "Heidi SQL Website", "Downloads", "Support Forums", "Bug Tracker", "Feature Tracker", 
 				"separator", "About");
 	
-	app.toolbar("mainToolbar").events("mainWindowEvents")
+	app.toolbar("mainToolbar").events("mainWindowEventsMySQL")
     	.button("New Connection", "images/connect.gif")
     	.button("Close", "images/disconnect.gif")
     	.separator()
