@@ -1,10 +1,11 @@
   import com.rendion.editor.*;
   
   HashObject profile = argObj("profile");
-  
+  String vendor = arg("vendor");
   Frame app = new Frame("mainWindow", "jHeidi [" + profile.get("name") + " - " + profile.get("user") + "@" + profile.get("host") + "]");
   WindowContext context = app.getWindowContext();
   context.put("profile", profile);
+  context.put("vendor", vendor);
   
   app.events("mainWindowEvents");
   
@@ -14,20 +15,12 @@
 	app.menu("&File").item("New Connection", "images/connect.gif").item("Close","images/disconnect.gif")
 	   .item("separator", "Import Settings...", "Export Settings...", "separator").item("Exit","images/stop.gif");
 	app.menu("&Edit").item("Cut","images/cut.gif").item("Copy","images/copy.gif").item("Paste", "images/paste.gif");
-	Menu m = app.menu("&Tools").item("Refresh","images/refresh.gif").item("separator").item("Create Database","images/db-center.gif")
-	            .item("Drop Database","images/deletedb.gif").item("Create Table","images/table.gif")
-	            .item("Drop Table" ,"images/deletetable.gif").item("separator");
-	Menu flush = m.submenu("Flush");
-	flush.events("flushEvents").item("Hosts", "Logs", "Privileges", "Tables", "Tables with Read Lock", "Status" );
-	m.item("separator").item("User Manager","images/usermgr.gif").item("Maintenance","images/optimize.gif").item(new String[] {"separator", "Preferences"});
-	app.menu("&Import").item("Import CSV File", "images/import.gif").item("Load SQL File", "images/folder.gif").item("Import Files Into Blob Fields");
-	app.menu("E&xport").item("Export Tables as SQL","images/export.gif").item("separator", "Copy as CSV Data", "Copy as HTML Data", "Copy as XML Data","Export Data...");
 	app.menu("&Window").events("windowMenuEvents");
 	Menu help = app.menu("&Help");
 	help.events("helpMenuEvents").item("SQL Help", "images/helptopic.gif").item("separator", "Check For Updates", "separator", "Heidi SQL Website", "Downloads", "Support Forums", "Bug Tracker", "Feature Tracker", 
 				"separator", "About");
 	
-	app.toolbar("mainToolbar").events("mainWindowEvents")
+	app.toolbar("mainToolbar").events("mainWindowEventsOracle")
     	.button("New Connection", "images/connect.gif")
     	.button("Close", "images/disconnect.gif")
     	.separator()
@@ -36,18 +29,10 @@
 	    .button("Paste", "images/paste.gif")
 	    .button("Print", "images/print.gif")
 	    .separator()
-	    .button("Create Database", "images/db-center.gif")
-	    .button("Drop Database", "images/deletedb.gif")
 	    .button("Create Table", "images/table.gif")
 	    .button("Drop Table", "images/deletetable.gif")
 	    .separator()
 	    .button("Refresh", "images/refresh.gif")
-	    .separator()
-	    .button("Import", "images/import.gif")
-	    .button("Export", "images/export.gif")
-	    .separator()
-	    .button("User Manager", "images/usermgr.gif")
-      .button("Maintenance", "images/optimize.gif")
 	    .separator()
 	    .button("Help", "images/help.gif");
 	    
@@ -62,26 +47,24 @@
 	    .tabs("mainTabs");
 	    
 	Tree schemaTree = app.get("schemaTree");
-	schemaTree.events("schemaTreeEvents");
+	schemaTree.events("schemaTreeEventsOracle");
 	    
 	Tabs consoleTabs = mainSplit.tabs("consoleTabs");
 	Panel consoleTab = consoleTabs.tab("SQL Log", LF.isWin? "images/vista/sqllog.gif" : "images/sqllog.gif")
 	          .editor("outputWindow");
 
 	Tabs tabs = app.get("mainTabs");
-	Panel host = tabs.tab("Host", LF.isWin? "images/vista/instance.gif" : "images/instance.gif");
+	Panel host = tabs.tab("Instance", LF.isWin? "images/vista/instance.gif" : "images/instance.gif");
 	host.toolbar("toolbar", 32)
-	    .text("banner", "MySQL version etc")
+	    .text("banner", "Oracle version etc")
 	    .horizontalGlue();
 	    
 	Tabs hostTabs = host.tabs("tabs");
 	hostTabs.tab("Variables").table("table", new String[] {"\t"}, new String[][] {{""}});
-	hostTabs.tab("Processes").table("table", new String[] {"\t"}, new String[][] {{""}});
-  hostTabs.tab("Status").table("table", new String[] {"\t"}, new String[][] {{""}});
 	
-	Panel dbTab = tabs.tab("Database", "images/db-center.gif");
+	Panel dbTab = tabs.tab("Schema", "images/schema.gif");
 	dbTab.toolbar("toolbar", 32)
-	    .text("banner", "No database selected")
+	    .text("banner", "No schema selected")
 	    .horizontalGlue();  
 	dbTab.table("table", new String[] {"\t"}, new String[][] {{""}});
 	
@@ -126,21 +109,22 @@
   
 	AjlEditor editor = consoleTab.get("outputWindow");
   editor.setEditable(false);
-  
-	app.maximize();
+
+  app.maximize();
 	app.visible();
 
   DB conn = argObj("db");
   DB db = new SQLLoggingDB(conn, editor);
   db.useCache(true);
   context.put("db", db);
+  context.put("vendor", vendor);
 		
   args().put("windowContext", context);
-  Worker w = worker("initTreeWorker", args());
-  LongRunningTask.detect("initTreeWorker", "progressWaiter",  args(), w , 250);
-  w = worker("loadHostInfoWorker", args());
-  LongRunningTask.detect("loadHostInfoWorker", "progressWaiter", args(), w , 250);
-  script("initWireEvents", args());
+  Worker w = worker("initTreeOracleWorker", args());
+  LongRunningTask.detect("initTreeOracleWorker", "progressWaiter",  args(), w , 250);
+  w = worker("loadHostInfoOracleWorker", args());
+  LongRunningTask.detect("loadHostInfoOracleWorker", "progressWaiter", args(), w , 250);
+  script("initWireEvents$oracle", args());
   script("addToWindowMenu", args());
   
   
