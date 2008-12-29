@@ -1,0 +1,105 @@
+  import javax.swing.*;
+ 
+  String event = arg("source");
+  WindowContext context = argObj("windowContext");
+  log.debug("event received" + event);
+  
+  if ( event == "Add Field" || event == "Update Field" )
+  {
+     Dialog d = context.get("/");
+    
+     final StringBuilder sql = new StringBuilder(1000);
+     String commentStmt = null;
+     String renameStmt = null;
+
+     String fieldName = ((Field)context.get("/fieldName")).getText();
+     String dbName = (String)context.get("currentDB");
+     String tableName = (String)context.get("currentTable");
+     String lengthSet = ((Field)context.get("/lengthSet")).getText();
+     String defValue = ((Field)context.get("/defaultValue")).getText();
+     String comment = ((Field)context.get("/comment")).getText();
+     String type = ((Combo)context.get("/types")).getText();
+
+     if ( fieldName == null || fieldName.trim().length() == 0 )
+     {
+        d.popupMessage(event, "Please provide a field name before saving.");
+	      return;
+     }
+
+     if ( type.contains("char") && (lengthSet == null || lengthSet.trim().length() == 0))
+     {
+        d.popupMessage(event, "Character types require a length.");
+	      return;
+     }
+
+     sql.append("alter table ").append(dbName).append(".").append(tableName).append("");
+     if ( event.startsWith("Add") )
+     {
+         sql.append(" add ").append(fieldName);
+     }
+     else
+     {
+        sql.append(" modify ").append(fieldName);
+     }
+     sql.append(" ").append(type);
+      if ( lengthSet != null && lengthSet.trim().length() > 0)
+      {
+        sql.append("(").append(lengthSet.trim()).append(")");
+      }
+      if ( defValue != null && defValue.trim().length() > 0)
+      {
+        if ( type.contains("char"))
+        {
+          sql.append(" default '").append(defValue.trim()).append("'");
+        }
+        else
+        {
+          sql.append(" default ").append(defValue.trim());
+        }
+      }
+
+      if ( ((JCheckBox)context.get("/notNull")).isSelected() )
+        sql.append(" not null");
+      else
+        sql.append(" null ");
+
+      if ( comment != null & comment.trim().length() > 0 )
+      {
+        commentStmt = "comment on column %s.%s.%s is '%s'";
+        commentStmt = String.format(commentStmt, dbName, tableName, fieldName, comment);
+      }
+
+      // ALTER TABLE tablename ADD turd TINYINT(5) UNSIGNED ZEROFILL DEFAULT 'wow' NOT NULL 
+     log.debug("heres the statement: " + sql.toString());
+     final DB db = context.get("db");
+     final String myCommentStmt = commentStmt;
+     DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+        public void execute() throws Exception {
+          db.execute(sql.toString());
+          if ( myCommentStmt != null )
+          {
+            db.execute(myCommentStmt);
+          }
+        }
+     };
+
+     db.execute(tx);
+
+     context.put("dlgResult", Boolean.TRUE);
+     
+     d.dispose();
+
+  }
+  else if ( event == "Cancel" )
+  {
+     Dialog d = context.get("/");
+     d.dispose();
+  } 
+  
+  
+  
+  
+  
+    
+
+
