@@ -1,0 +1,45 @@
+  import javax.swing.*;
+  
+  WindowContext context = argObj("windowContext");
+  ListBox l = context.get("/fields");
+  String lastSel = l.getProperty("lastSel");
+  String item = (String)l.getSelectedValue();
+  
+  boolean addingNewItem = context.get("addField") != null;
+  context.put("addField", null);
+  
+  log.debug("adding new?:" + addingNewItem);
+  log.debug("curItem:" + item);
+  log.debug("lastSel:" + lastSel);
+
+  if ( addingNewItem )
+  {
+     l.setProperty("lastSel", item);
+     HashObject ho = new HashObject();
+     ho.put("colName", item);
+     l.setProperty(item, ho);
+  }
+
+  args().put("fieldKey", addingNewItem? item : lastSel);
+  script("createTableStateMySQL", args());
+  
+  l.setProperty("lastSel", item);
+  HashObject ho = l.getProperty(item);
+
+  if ( ho != null && !item.equals(lastSel) )
+  {
+    log.debug("populating props for: " + item);
+    ((Combo)context.get("/types")).select(ho.get("type"));
+    ((Field)context.get("/lengthSet")).setText(ho.get("length"));
+    ((Field)context.get("/defaultValue")).setText(ho.get("default"));
+    ((JCheckBox)context.get("/primary")).setSelected((Boolean)ho.getObject("primary"));
+    ((JCheckBox)context.get("/unique")).setSelected((Boolean)ho.getObject("unique"));
+    ((JCheckBox)context.get("/index")).setSelected((Boolean)ho.getObject("index"));
+    ((JCheckBox)context.get("/notNull")).setSelected((Boolean)ho.getObject("notNull"));
+    ((JCheckBox)context.get("/autoInc")).setSelected((Boolean)ho.getObject("autoInc"));
+    ((JCheckBox)context.get("/binary")).setSelected((Boolean)ho.getObject("binary"));
+    ((JCheckBox)context.get("/unsigned")).setSelected((Boolean)ho.getObject("unsigned"));
+    ((JCheckBox)context.get("/zeroFill")).setSelected((Boolean)ho.getObject("zeroFill"));
+  }
+  
+  

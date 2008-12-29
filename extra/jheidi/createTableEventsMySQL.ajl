@@ -35,7 +35,7 @@
      }
 
      args().put("fieldKey", l.getSelectedValue());
-     script("createTableState", args());
+     script("createTableStateMySQL", args());
      
      buffer.append("create table `").append(dbName).append("`.`").append(tableName).append("` (");
 
