@@ -48,7 +48,7 @@ type
 
 implementation
 
-uses helpers, main, childwin, db;
+uses helpers, main, db;
 
 {$R *.DFM}
 
@@ -114,7 +114,7 @@ var
   ds: TDataSet;
   NodeData: PVTreeData;
 begin
-  NodeData := Mainform.ChildWin.ListTables.GetNodeData(Mainform.ChildWin.ListTables.FocusedNode);
+  NodeData := Mainform.ListTables.GetNodeData(Mainform.ListTables.FocusedNode);
   oldTableName := NodeData.Captions[0];
   editNewTablename.Text := oldTableName + '_copy';
   editNewTablename.SetFocus;
@@ -122,14 +122,14 @@ begin
 
 	// Select TargetDatabase
   ComboSelectDatabase.Items.Clear;
-  ComboSelectDatabase.Items.Assign(Mainform.ChildWin.Databases);
-  ComboSelectDatabase.ItemIndex := ComboSelectDatabase.Items.IndexOf( Mainform.ChildWin.ActiveDatabase );
+  ComboSelectDatabase.Items.Assign(Mainform.Databases);
+  ComboSelectDatabase.ItemIndex := ComboSelectDatabase.Items.IndexOf( Mainform.ActiveDatabase );
   if comboSelectDatabase.ItemIndex = -1 then
     comboSelectDatabase.ItemIndex := 0;
 
   // fill columns:
   CheckListBoxFields.Items.Clear;
-  ds := Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(oldTableName) );
+  ds := Mainform.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(oldTableName) );
   for i:=1 to ds.RecordCount do
   begin
     CheckListBoxFields.Items.Add( ds.Fields[0].AsWideString );
@@ -193,7 +193,7 @@ begin
 
   // keys >
   if CheckBoxWithIndexes.Checked then begin
-    zq := Mainform.ChildWin.GetResults( 'SHOW KEYS FROM ' + mainform.mask(oldtablename) );
+    zq := Mainform.GetResults( 'SHOW KEYS FROM ' + mainform.mask(oldtablename) );
     setLength(keylist, 0);
     keystr := '';
 
@@ -214,7 +214,7 @@ begin
         keylist[which].SubParts := TWideStringList.Create;
         with keylist[which] do // set properties for new key
         begin
-          if Mainform.ChildWin.mysql_version < 40002 then
+          if Mainform.mysql_version < 40002 then
             isFulltext := (zq.FieldByName('Comment').AsString = 'FULLTEXT')
           else
             isFulltext := (zq.FieldByName('Index_type').AsString = 'FULLTEXT');
@@ -277,18 +277,18 @@ begin
   if radioStructure.Checked then
     strquery := strquery + ' WHERE 1 = 0';
 
-  Mainform.ChildWin.ExecUpdateQuery(strquery);
+  Mainform.ExecUpdateQuery(strquery);
 
   if CheckBoxWithIndexes.Checked then begin
     // Find a auto_increment-column
-    zq := Mainform.ChildWin.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
+    zq := Mainform.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
     for i:=1 to zq.RecordCount do
     begin
       if zq.Fields[5].AsString = 'auto_increment' then begin
         if zq.Fields[2].AsString = '' then notnull := 'NOT NULL' else notnull := '';
         if zq.Fields[4].AsWideString <> '' then default := 'DEFAULT "'+zq.Fields[4].AsWideString+'"' else default := '';
         ai_q := 'ALTER TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.'+mainform.mask(editNewTablename.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsWideString)+' '+mainform.mask(zq.Fields[0].AsWideString)+' '+zq.Fields[1].AsWideString+' '+default+' '+notnull+' AUTO_INCREMENT';
-        Mainform.ChildWin.ExecUpdateQuery(ai_q);
+        Mainform.ExecUpdateQuery(ai_q);
       end;
       zq.Next;
     end;
@@ -296,7 +296,7 @@ begin
   end;
   FreeAndNil(zq);
 
-  Mainform.Childwin.MenuRefreshClick(Self);
+  Mainform.MenuRefreshClick(Self);
   close;
 
 end;

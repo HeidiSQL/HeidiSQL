@@ -5,7 +5,6 @@ uses
   SysUtils,
   Dialogs,
   main in '..\..\source\main.pas' {MainForm},
-  childwin in '..\..\source\childwin.pas' {MDIChild},
   about in '..\..\source\about.pas' {AboutBox},
   connections in '..\..\source\connections.pas' {connform},
   createtable in '..\..\source\createtable.pas' {CreateTableForm},

@@ -53,13 +53,13 @@ end;
 procedure TColumnSelectionForm.FormShow(Sender: TObject);
 begin
   // Take column names from listColumns and add here
-  chklistColumns.Items.Text := GetVTCaptions(Mainform.Childwin.ListColumns).Text;
+  chklistColumns.Items.Text := GetVTCaptions(Mainform.ListColumns).Text;
 
   // Check items!
-  if Mainform.Childwin.FDataGridSelect.Count = 0 then // Simply check all items
+  if Mainform.FDataGridSelect.Count = 0 then // Simply check all items
     ToggleCheckListBox( chklistColumns, True )
   else // Only check selected items
-    ToggleCheckListBox( chklistColumns, True, Mainform.Childwin.FDataGridSelect );
+    ToggleCheckListBox( chklistColumns, True, Mainform.FDataGridSelect );
 
   // Call check-event to update state of "Select / Deselect all" checkbox
   chklistColumnsClickCheck( Sender );
@@ -79,19 +79,19 @@ begin
   // Prepare string for storing in registry.
   // Use quote-character as separator to ensure columnnames can
   // be extracted safely later
-  Mainform.Childwin.FDataGridSelect.Clear;
+  Mainform.FDataGridSelect.Clear;
   for i := 0 to chklistColumns.Items.Count - 1 do
   begin
     if chklistColumns.Checked[i] then
-      Mainform.Childwin.FDataGridSelect.Add(chklistColumns.Items[i]);
+      Mainform.FDataGridSelect.Add(chklistColumns.Items[i]);
   end;
 
   // If all columns were selected, delete existing superflous reg-value
   // Otherwise, save value
-  if Mainform.Childwin.FDataGridSelect.Count = chklistColumns.Items.Count then
-    Mainform.Childwin.FDataGridSelect.Clear;
+  if Mainform.FDataGridSelect.Count = chklistColumns.Items.Count then
+    Mainform.FDataGridSelect.Clear;
 
-  Mainform.Childwin.viewdata(Sender);
+  Mainform.viewdata(Sender);
 
   btnCancel.OnClick(Sender);
 end;
@@ -162,7 +162,7 @@ begin
   if not chklistColumns.Sorted then begin
     // Add all fieldnames again
     chklistColumns.Items.BeginUpdate;
-    chklistColumns.Items.Text := GetVTCaptions(Mainform.Childwin.ListColumns).Text;
+    chklistColumns.Items.Text := GetVTCaptions(Mainform.ListColumns).Text;
     chklistColumns.Items.EndUpdate;
   end;
 
@@ -175,13 +175,13 @@ end;
 
 procedure TColumnSelectionForm.btnCancelClick(Sender: TObject);
 begin
-  Mainform.Childwin.tbtnDataColumns.Down := False;
+  Mainform.tbtnDataColumns.Down := False;
   Close;
 end;
 
 
 {**
-  Cancel this dialog if the user clicks elsewhere on childwin
+  Cancel this dialog if the user clicks elsewhere on mainform
 }
 procedure TColumnSelectionForm.FormDeactivate(Sender: TObject);
 begin

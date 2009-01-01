@@ -117,7 +117,7 @@ type
 
 
 implementation
-uses childwin, main, helpers;
+uses main, helpers;
 {$R *.DFM}
 
 const
@@ -161,11 +161,10 @@ end;
 
 
 {**
-  Apply settings to registry, childwin and mainform
+  Apply settings to registry and mainform
 }
 procedure Toptionsform.Apply(Sender: TObject);
 var
-  cwin : TMDIChild;
   reg  : TRegistry;
 begin
   Screen.Cursor := crHourGlass;
@@ -223,63 +222,59 @@ begin
   reg.CloseKey;
   reg.Free;
 
-  // Set relevant properties in childwin
-  cwin := Mainform.Childwin;
-  if cwin <> nil then
-  begin
-    cwin.SynMemoQuery.Font := SynMemoSQLSample.Font;
-    cwin.SynMemoQuery.Gutter.Font := SynMemoSQLSample.Font;
-    cwin.SynMemoSQLLog.Font := SynMemoSQLSample.Font;
-    cwin.SynMemoSQLLog.Gutter.Font := SynMemoSQLSample.Font;
-    cwin.SynMemoProcessView.Font := SynMemoSQLSample.Font;
-    cwin.SynMemoFilter.Font := SynMemoSQLSample.Font;
-    cwin.SynSQLSyn1.KeyAttri.Foreground := SynSQLSynSQLSample.KeyAttri.Foreground;
-    cwin.SynSQLSyn1.FunctionAttri.Foreground := SynSQLSynSQLSample.FunctionAttri.Foreground;
-    cwin.SynSQLSyn1.DataTypeAttri.Foreground := SynSQLSynSQLSample.DataTypeAttri.Foreground;
-    cwin.SynSQLSyn1.NumberAttri.Foreground := SynSQLSynSQLSample.NumberAttri.Foreground;
-    cwin.SynSQLSyn1.StringAttri.Foreground := SynSQLSynSQLSample.StringAttri.Foreground;
-    cwin.SynSQLSyn1.CommentAttri.Foreground := SynSQLSynSQLSample.CommentAttri.Foreground;
-    cwin.SynSQLSyn1.ConditionalCommentAttri.Foreground := SynSQLSynSQLSample.ConditionalCommentAttri.Foreground;
-    cwin.SynSQLSyn1.TablenameAttri.Foreground := SynSQLSynSQLSample.TablenameAttri.Foreground;
-    cwin.SynSQLSyn1.SymbolAttri.Foreground := SynSQLSynSQLSample.SymbolAttri.Foreground;
-    cwin.SynSQLSyn1.IdentifierAttri.Foreground := SynSQLSynSQLSample.IdentifierAttri.Foreground;
-    cwin.SynSQLSyn1.DelimitedIdentifierAttri.Foreground := SynSQLSynSQLSample.DelimitedIdentifierAttri.Foreground;
-    cwin.SynMemoQuery.ActiveLineColor := SynMemoSQLSample.ActiveLineColor;
-    cwin.DataGrid.Font.Name := comboDataFontName.Text;
-    cwin.QueryGrid.Font.Name := comboDataFontName.Text;
-    cwin.DataGrid.Font.Size := updownDataFontSize.Position;
-    cwin.QueryGrid.Font.Size := updownDataFontSize.Position;
-    FixVT(cwin.QueryGrid);
-    FixVT(cwin.DataGrid);
-    cwin.prefLogsqlnum := updownLogLines.Position;
-    cwin.prefLogSqlWidth := updownLogSnip.Position;
-    cwin.TrimSQLLog;
-    if chkLogToFile.Checked then
-      cwin.ActivateFileLogging
-    else if cwin.prefLogToFile then
-      cwin.DeactivateFileLogging;
-    btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
-    cwin.prefMaxColWidth := updownMaxColWidth.Position;
-    cwin.prefCSVSeparator := editCSVSeparator.Text;
-    cwin.prefCSVEncloser := editCSVEncloser.Text;
-    cwin.prefCSVTerminator := editCSVTerminator.Text;
-    cwin.prefPreferShowTables := chkPreferShowTables.Checked;
-    cwin.prefFieldColorNumeric := cboxNumeric.Selected;
-    cwin.prefFieldColorText := cboxText.Selected;
-    cwin.prefFieldColorBinary := cboxBinary.Selected;
-    cwin.prefFieldColorDatetime := cboxDatetime.Selected;
-    cwin.prefFieldColorEnum := cboxEnum.Selected;
-    cwin.prefFieldColorSet := cboxSet.Selected;
-    cwin.prefNullBG := cboxNullBg.Selected;
-    cwin.CalcNullColors;
-    cwin.DataGrid.Repaint;
-    cwin.QueryGrid.Repaint;
-    cwin.prefEnableBinaryEditor := chkEditorBinary.Checked;
-    cwin.prefEnableDatetimeEditor := chkEditorDatetime.Checked;
-    cwin.prefEnableEnumEditor := chkEditorEnum.Checked;
-    cwin.prefEnableSetEditor := chkEditorSet.Checked;
-    cwin.prefEnableNullBG := chkNullBg.Checked;
-  end;
+  // Set relevant properties in mainform
+  Mainform.SynMemoQuery.Font := SynMemoSQLSample.Font;
+  Mainform.SynMemoQuery.Gutter.Font := SynMemoSQLSample.Font;
+  Mainform.SynMemoSQLLog.Font := SynMemoSQLSample.Font;
+  Mainform.SynMemoSQLLog.Gutter.Font := SynMemoSQLSample.Font;
+  Mainform.SynMemoProcessView.Font := SynMemoSQLSample.Font;
+  Mainform.SynMemoFilter.Font := SynMemoSQLSample.Font;
+  Mainform.SynSQLSyn1.KeyAttri.Foreground := SynSQLSynSQLSample.KeyAttri.Foreground;
+  Mainform.SynSQLSyn1.FunctionAttri.Foreground := SynSQLSynSQLSample.FunctionAttri.Foreground;
+  Mainform.SynSQLSyn1.DataTypeAttri.Foreground := SynSQLSynSQLSample.DataTypeAttri.Foreground;
+  Mainform.SynSQLSyn1.NumberAttri.Foreground := SynSQLSynSQLSample.NumberAttri.Foreground;
+  Mainform.SynSQLSyn1.StringAttri.Foreground := SynSQLSynSQLSample.StringAttri.Foreground;
+  Mainform.SynSQLSyn1.CommentAttri.Foreground := SynSQLSynSQLSample.CommentAttri.Foreground;
+  Mainform.SynSQLSyn1.ConditionalCommentAttri.Foreground := SynSQLSynSQLSample.ConditionalCommentAttri.Foreground;
+  Mainform.SynSQLSyn1.TablenameAttri.Foreground := SynSQLSynSQLSample.TablenameAttri.Foreground;
+  Mainform.SynSQLSyn1.SymbolAttri.Foreground := SynSQLSynSQLSample.SymbolAttri.Foreground;
+  Mainform.SynSQLSyn1.IdentifierAttri.Foreground := SynSQLSynSQLSample.IdentifierAttri.Foreground;
+  Mainform.SynSQLSyn1.DelimitedIdentifierAttri.Foreground := SynSQLSynSQLSample.DelimitedIdentifierAttri.Foreground;
+  Mainform.SynMemoQuery.ActiveLineColor := SynMemoSQLSample.ActiveLineColor;
+  Mainform.DataGrid.Font.Name := comboDataFontName.Text;
+  Mainform.QueryGrid.Font.Name := comboDataFontName.Text;
+  Mainform.DataGrid.Font.Size := updownDataFontSize.Position;
+  Mainform.QueryGrid.Font.Size := updownDataFontSize.Position;
+  FixVT(Mainform.QueryGrid);
+  FixVT(Mainform.DataGrid);
+  Mainform.prefLogsqlnum := updownLogLines.Position;
+  Mainform.prefLogSqlWidth := updownLogSnip.Position;
+  Mainform.TrimSQLLog;
+  if chkLogToFile.Checked then
+    Mainform.ActivateFileLogging
+  else if Mainform.prefLogToFile then
+    Mainform.DeactivateFileLogging;
+  btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
+  Mainform.prefMaxColWidth := updownMaxColWidth.Position;
+  Mainform.prefCSVSeparator := editCSVSeparator.Text;
+  Mainform.prefCSVEncloser := editCSVEncloser.Text;
+  Mainform.prefCSVTerminator := editCSVTerminator.Text;
+  Mainform.prefPreferShowTables := chkPreferShowTables.Checked;
+  Mainform.prefFieldColorNumeric := cboxNumeric.Selected;
+  Mainform.prefFieldColorText := cboxText.Selected;
+  Mainform.prefFieldColorBinary := cboxBinary.Selected;
+  Mainform.prefFieldColorDatetime := cboxDatetime.Selected;
+  Mainform.prefFieldColorEnum := cboxEnum.Selected;
+  Mainform.prefFieldColorSet := cboxSet.Selected;
+  Mainform.prefNullBG := cboxNullBg.Selected;
+  Mainform.CalcNullColors;
+  Mainform.DataGrid.Repaint;
+  Mainform.QueryGrid.Repaint;
+  Mainform.prefEnableBinaryEditor := chkEditorBinary.Checked;
+  Mainform.prefEnableDatetimeEditor := chkEditorDatetime.Checked;
+  Mainform.prefEnableEnumEditor := chkEditorEnum.Checked;
+  Mainform.prefEnableSetEditor := chkEditorSet.Checked;
+  Mainform.prefEnableNullBG := chkNullBg.Checked;
 
   // Settings have been applied, send a signal to the user
   btnOK.Enabled := False;

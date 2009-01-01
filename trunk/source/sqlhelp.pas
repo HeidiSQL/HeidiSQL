@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, ShellApi, Buttons, Registry,
-  childwin, PngSpeedButton, SynMemo, SynEditHighlighter, SynHighlighterURI,
+  PngSpeedButton, SynMemo, SynEditHighlighter, SynHighlighterURI,
   SynURIOpener, SynEdit;
 
 type
@@ -44,7 +44,6 @@ type
 
   private
     { Private declarations }
-    m : TMDIChild;
   public
     { Public declarations }
     Keyword: String;
@@ -81,8 +80,6 @@ end;
 }
 procedure TfrmSQLhelp.FormShow(Sender: TObject);
 begin
-  m := Mainform.Childwin;
-
   // Set window-layout
   Top := Mainform.GetRegValue( REGNAME_SQLHELPWINTOP, Top );
   Left := Mainform.GetRegValue( REGNAME_SQLHELPWINLEFT, Left );
@@ -92,10 +89,10 @@ begin
   pnlRightTop.Height := Mainform.GetRegValue( REGNAME_SQLHELPPRHEIGHT, pnlRightTop.Height );
   Caption := DEFAULT_WINDOW_CAPTION;
 
-  MemoDescription.Font.Name := m.SynMemoQuery.Font.Name;
-  MemoDescription.Font.Size := m.SynMemoQuery.Font.size;
-  MemoExample.Font.Name := m.SynMemoQuery.Font.Name;
-  MemoExample.Font.Size := m.SynMemoQuery.Font.size;
+  MemoDescription.Font.Name := Mainform.SynMemoQuery.Font.Name;
+  MemoDescription.Font.Size := Mainform.SynMemoQuery.Font.size;
+  MemoExample.Font.Name := Mainform.SynMemoQuery.Font.Name;
+  MemoExample.Font.Size := Mainform.SynMemoQuery.Font.size;
 
   // Gather help contents for treeview with SQL: HELP "CONTENTS"
   fillTreeLevel( nil );
@@ -132,7 +129,7 @@ begin
   ds := nil;
   try
     Screen.Cursor := crHourglass;
-    ds := m.GetResults( 'HELP "'+topic+'"' );
+    ds := Mainform.GetResults( 'HELP "'+topic+'"' );
     for i:=1 to ds.RecordCount do
     begin
       tnode := treeTopics.Items.AddChild( ParentNode, ds.FieldByName('name').AsString );
@@ -264,7 +261,7 @@ begin
   if Keyword <> '' then
   try
     Screen.Cursor := crHourglass;
-    ds := m.GetResults( 'HELP "'+lblKeyword.Caption+'"' );
+    ds := Mainform.GetResults( 'HELP "'+lblKeyword.Caption+'"' );
     if ds.RecordCount = 1 then
     begin
       // We found exactly one matching help item
@@ -330,7 +327,7 @@ end;
 }
 procedure TfrmSQLhelp.ButtonOnlinehelpClick(Sender: TObject);
 begin
-  ShellExec( APPDOMAIN + 'sqlhelp.php?mysqlversion='+inttostr(m.mysql_version)+
+  ShellExec( APPDOMAIN + 'sqlhelp.php?mysqlversion='+inttostr(Mainform.mysql_version)+
     '&keyword='+urlencode(keyword) );
 end;
 

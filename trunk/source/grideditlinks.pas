@@ -5,7 +5,7 @@ unit grideditlinks;
 interface
 
 uses Windows, Forms, Graphics, messages, VirtualTrees, texteditor, bineditor, ComCtrls, SysUtils, Classes,
-  mysql_structures, Main, ChildWin, helpers, TntStdCtrls, WideStrings, StdCtrls, ExtCtrls, TntCheckLst,
+  mysql_structures, Main, helpers, TntStdCtrls, WideStrings, StdCtrls, ExtCtrls, TntCheckLst,
   Buttons, Controls, Types, PngSpeedButton;
 
 type
@@ -186,7 +186,7 @@ begin
   F := TFont.Create;
   FTree.GetTextInfo(Node, Column, F, FTextBounds, Text);
 
-  IsBinary := MainForm.ChildWin.FDataGridResult.Columns[Column].IsBinary;
+  IsBinary := Mainform.FDataGridResult.Columns[Column].IsBinary;
 
   // Get wide text of the node.
   Text := FTree.Text[FNode, FColumn];

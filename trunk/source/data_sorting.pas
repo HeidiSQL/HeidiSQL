@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Registry, childwin,
+  Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons, Registry,
   WideStrings, TntStdCtrls, helpers;
 
 
@@ -60,9 +60,9 @@ end;
 procedure TDataSortingForm.FormShow(Sender: TObject);
 begin
   // Take column names from listColumns and add here
-  ColumnNames := GetVTCaptions( Mainform.Childwin.ListColumns );
+  ColumnNames := GetVTCaptions( Mainform.ListColumns );
 
-  OrderColumns := Mainform.Childwin.FDataGridSort;
+  OrderColumns := Mainform.FDataGridSort;
   OldOrderClause := ComposeOrderClause(OrderColumns);
 
   // First creation of controls
@@ -304,15 +304,15 @@ end;
 procedure TDataSortingForm.btnOKClick(Sender: TObject);
 begin
   // TODO: apply ordering
-  Mainform.Childwin.FDataGridSort := OrderColumns;
-  Mainform.Childwin.viewdata(Sender);
+  Mainform.FDataGridSort := OrderColumns;
+  Mainform.viewdata(Sender);
   btnCancel.OnClick(Sender);
 end;
 
 
 procedure TDataSortingForm.btnCancelClick(Sender: TObject);
 begin
-  Mainform.Childwin.tbtnDataSorting.Down := False;
+  Mainform.tbtnDataSorting.Down := False;
   Close;
 end;
 
@@ -327,7 +327,7 @@ end;
 
 
 {**
-  Cancel this dialog if the user clicks elsewhere on childwin
+  Cancel this dialog if the user clicks elsewhere on mainform
 }
 procedure TDataSortingForm.FormDeactivate(Sender: TObject);
 begin

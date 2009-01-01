@@ -846,8 +846,8 @@ begin
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
       // Ensure basic data is loaded and load remainder of large fields.
-      Mainform.Childwin.EnsureChunkLoaded(Grid, Node);
-      Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
+      Mainform.EnsureChunkLoaded(Grid, Node);
+      Mainform.EnsureFullWidth(Grid, i, Node);
       Data := Grid.Text[Node, i];
       // Handle nulls.
       if GridData.Rows[Node.Index].Cells[i].IsNull then Data := TEXT_NULL;
@@ -858,7 +858,7 @@ begin
     tmp := tmp + '        </tr>' + CRLF;
     StreamWrite(S, tmp);
     // Release some memory.
-    Mainform.Childwin.DiscardNodeData(Grid, Node);
+    Mainform.DiscardNodeData(Grid, Node);
     Node := Grid.GetNext(Node);
   end;
   // footer:
@@ -924,8 +924,8 @@ begin
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
       // Ensure basic data is loaded and load remainder of large fields.
-      Mainform.Childwin.EnsureChunkLoaded(Grid, Node);
-      Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
+      Mainform.EnsureChunkLoaded(Grid, Node);
+      Mainform.EnsureFullWidth(Grid, i, Node);
       Data := Grid.Text[Node, i];
       // Remove 0x.
       if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
@@ -943,7 +943,7 @@ begin
     tmp := tmp + Terminator;
     StreamWrite(S, tmp);
     // Release some memory.
-    Mainform.Childwin.DiscardNodeData(Grid, Node);
+    Mainform.DiscardNodeData(Grid, Node);
     Node := Grid.GetNext(Node);
   end;
   Grid.Visible := true;
@@ -982,13 +982,13 @@ begin
       // Print cell start tag.
       tmp := tmp + #9#9'<' + Grid.Header.Columns[i].Text;
       // Ensure basic data is loaded.
-      Mainform.Childwin.EnsureChunkLoaded(Grid, Node);
+      Mainform.EnsureChunkLoaded(Grid, Node);
       if GridData.Rows[Node.Index].Cells[i].IsNull then tmp := tmp + ' isnull="true" />' + CRLF
       else begin
         if GridData.Columns[i].IsBinary then tmp := tmp + ' format="hex"';
         tmp := tmp + '>';
         // Load remainder of large fields.
-        Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
+        Mainform.EnsureFullWidth(Grid, i, Node);
         Data := Grid.Text[Node, i];
         // Remove 0x.
         if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
@@ -1003,7 +1003,7 @@ begin
     tmp := tmp + #9'</row>' + CRLF;
     StreamWrite(S, tmp);
     // Release some memory.
-    Mainform.Childwin.DiscardNodeData(Grid, Node);
+    Mainform.DiscardNodeData(Grid, Node);
     Node := Grid.GetNext(Node);
   end;
   // footer:
@@ -1046,12 +1046,12 @@ begin
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
       // Ensure basic data is loaded.
-      Mainform.Childwin.EnsureChunkLoaded(Grid, Node);
+      Mainform.EnsureChunkLoaded(Grid, Node);
       if GridData.Rows[Node.Index].Cells[i].IsNull then
         tmp := tmp + 'NULL'
       else begin
         // Load remainder of large fields.
-        Mainform.Childwin.EnsureFullWidth(Grid, i, Node);
+        Mainform.EnsureFullWidth(Grid, i, Node);
         Data := Grid.Text[Node, i];
         // Remove 0x.
         if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
@@ -1066,7 +1066,7 @@ begin
     tmp := tmp + ');' + CRLF;
     StreamWrite(S, tmp);
     // Release some memory.
-    Mainform.Childwin.DiscardNodeData(Grid, Node);
+    Mainform.DiscardNodeData(Grid, Node);
     Node := Grid.GetNext(Node);
   end;
   // footer:
@@ -2198,7 +2198,7 @@ begin
   end
   else begin
     // Fetch all nodes
-    a := Mainform.Childwin.GetVTreeDataArray( VT )^;
+    a := Mainform.GetVTreeDataArray( VT )^;
     for i := 0 to High(a) do begin
       if (OnlyNodeType = NODETYPE_DEFAULT)
         or (a[i].NodeType = OnlyNodeType) then

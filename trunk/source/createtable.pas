@@ -97,7 +97,7 @@ type
 implementation
 
 uses
-  Main, Childwin, helpers, mysql_structures;
+  Main, helpers, mysql_structures;
 
 var
   cols : array of TMysqlField;
@@ -124,9 +124,9 @@ begin
   SetWindowSizeGrip(Handle, True);
 
   try
-    dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
+    dsCollations := Mainform.GetResults('SHOW COLLATION');
     // Detect servers default charset
-    defaultCharset := Mainform.Childwin.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
+    defaultCharset := Mainform.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
   except
     // Ignore it when the above statements don't work on pre 4.1 servers.
     // If the list(s) are nil, disable the combobox(es), so we create the db without charset.
@@ -153,7 +153,7 @@ begin
   lblCollation.Enabled := comboCollation.Enabled;
 
   // Display supported engines in pulldown
-  Mainform.Childwin.TableEnginesCombo( ComboBoxTableType );
+  Mainform.TableEnginesCombo( ComboBoxTableType );
 end;
 
 
@@ -262,10 +262,10 @@ begin
 
   // Execute CREATE statement and reload tablesList
   try
-    Mainform.Childwin.ActiveDatabase := DBComboBox.Text;
-    Mainform.ChildWin.ExecUpdateQuery( createQuery, False, True );
-    Mainform.ChildWin.MenuRefreshClick(sender);
-    Mainform.ChildWin.SelectedTable := EditTablename.Text;
+    Mainform.ActiveDatabase := DBComboBox.Text;
+    Mainform.ExecUpdateQuery( createQuery, False, True );
+    Mainform.MenuRefreshClick(sender);
+    Mainform.SelectedTable := EditTablename.Text;
   except on E: THandledSQLError do
     // Keep the form open so the user can fix his faulty input
     ModalResult := mrNone;
@@ -540,13 +540,13 @@ begin
 
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
-  DBComboBox.Items.Assign(Mainform.ChildWin.Databases);
+  DBComboBox.Items.Assign(Mainform.Databases);
   // Preselect relevant database in pulldown 
-  DBComboBox.ItemIndex := DBComboBox.Items.IndexOf( Mainform.ChildWin.ActiveDatabase );
+  DBComboBox.ItemIndex := DBComboBox.Items.IndexOf( Mainform.ActiveDatabase );
   if (DBComboBox.ItemIndex = -1) and (DBComboBox.Items.Count > 0) then
     DBComboBox.ItemIndex := 0;
 
-  if Mainform.ChildWin.mysql_version >= 32300 then
+  if Mainform.mysql_version >= 32300 then
   begin
     EditDescription.Visible := true;
     Label3.Visible := true;

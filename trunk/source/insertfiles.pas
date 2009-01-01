@@ -74,7 +74,7 @@ type
 
 implementation
 
-uses main, childwin, helpers, db;
+uses main, helpers, db;
 
 {$R *.DFM}
 
@@ -92,10 +92,10 @@ end;
 { FormShow }
 procedure TfrmInsertFiles.FormShow(Sender: TObject);
 begin
-  Caption := Mainform.ChildWin.MysqlConn.SessionName + ' - Insert files into table ...';
+  Caption := Mainform.MysqlConn.SessionName + ' - Insert files into table ...';
   ComboBoxDBs.Items.Clear;
-  ComboBoxDBs.Items.Assign(Mainform.ChildWin.Databases);
-  ComboBoxDBs.ItemIndex := ComboBoxDBs.Items.IndexOf( Mainform.ChildWin.ActiveDatabase );
+  ComboBoxDBs.Items.Assign(Mainform.Databases);
+  ComboBoxDBs.ItemIndex := ComboBoxDBs.Items.IndexOf( Mainform.ActiveDatabase );
   if ComboBoxDBs.ItemIndex = -1 then
     ComboBoxDBs.ItemIndex := 0;
   ComboBoxDBsChange(self);
@@ -109,7 +109,7 @@ var
 begin
   // read tables from db
   ComboBoxTables.Items.Clear;
-  ds := Mainform.ChildWin.FetchDbTableList(ComboBoxDBs.Text);
+  ds := Mainform.FetchDbTableList(ComboBoxDBs.Text);
   while not ds.Eof do begin
     ComboBoxTables.Items.Add(ds.Fields[0].AsString);
     ds.Next;
@@ -127,7 +127,7 @@ var
 begin
   setlength(cols, 0);
   if ComboBoxTables.ItemIndex > -1 then begin
-    ds := Mainform.ChildWin.GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text));
+    ds := Mainform.GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text));
     for i:=1 to ds.RecordCount do begin
       setlength(cols, length(cols)+1);
       cols[length(cols)-1].Name := ds.Fields[0].AsString;

@@ -33,7 +33,7 @@ type
   
 implementation
 
-uses main, helpers, childwin;
+uses main, helpers;
 
 {$R *.dfm}
 
@@ -45,8 +45,8 @@ procedure TfrmView.FormCreate(Sender: TObject);
 begin
   Width := Mainform.GetRegValue(REGNAME_VIEWWINWIDTH, Width);
   Height := Mainform.GetRegValue(REGNAME_VIEWWINHEIGHT, Height);
-  SynMemoSelect.Highlighter := Mainform.ChildWin.SynSQLSyn1;
-  SynMemoSelect.Font := Mainform.ChildWin.SynMemoQuery.Font;
+  SynMemoSelect.Highlighter := Mainform.SynSQLSyn1;
+  SynMemoSelect.Font := Mainform.SynMemoQuery.Font;
   SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
 end;
@@ -83,8 +83,8 @@ begin
     // Edit mode
     Caption := 'Edit view ...';
     editName.Text := EditViewName;
-    db := Mainform.ChildWin.ActiveDatabase;
-    ds := Mainform.ChildWin.GetResults('SELECT * FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.VIEWS ' +
+    db := Mainform.ActiveDatabase;
+    ds := Mainform.GetResults('SELECT * FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.VIEWS ' +
       'WHERE TABLE_SCHEMA = '+esc(db)+' AND TABLE_NAME = '+esc(EditViewName));
     if ds.RecordCount = 0 then
       raise Exception.Create('Can''t find view definition for "'+EditViewName+'" in '+DBNAME_INFORMATION_SCHEMA);
@@ -172,13 +172,13 @@ begin
 
   // Execute query and keep form open in any error case
   try
-    Mainform.Childwin.ExecUpdateQuery(sql);
+    Mainform.ExecUpdateQuery(sql);
     // Probably rename view
     if (EditViewName <> '') and (EditViewName <> editName.Text) then begin
       renamed := Mainform.mask(editName.Text);
-      Mainform.Childwin.ExecUpdateQuery('RENAME TABLE '+viewname + ' TO '+renamed);
+      Mainform.ExecUpdateQuery('RENAME TABLE '+viewname + ' TO '+renamed);
     end;
-    Mainform.ChildWin.RefreshTreeDB(Mainform.ChildWin.ActiveDatabase);
+    Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
   except
     on E: THandledSQLError do begin
       MessageDlg(E.Message, mtError, [mbOK], 0);
