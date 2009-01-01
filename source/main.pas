@@ -1175,8 +1175,10 @@ begin
   SetLength(FQueryGridResult.Columns, 0);
 
   // Closing connection
-  FMysqlConn.Disconnect;
-  FreeAndNil(FMysqlConn);
+  if Assigned(FMysqlConn) then begin
+    FMysqlConn.Disconnect;
+    FreeAndNil(FMysqlConn);
+  end;
 
   EnterCriticalSection(SqlMessagesLock);
   FreeAndNil(SqlMessages);
