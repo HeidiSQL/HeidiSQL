@@ -25,7 +25,6 @@ var
 implementation
 
 uses
-  ChildWin,
   helpers,
   main;
 

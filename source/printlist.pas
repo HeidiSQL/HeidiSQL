@@ -35,7 +35,7 @@ type
 
 implementation
 
-uses childwin, main, helpers;
+uses main, helpers;
 
 {$R *.DFM}
 
@@ -64,24 +64,22 @@ end;
 
 procedure TprintlistForm.btnPrintClick(Sender: TObject);
 var
-  cwin: TMDIChild;
   list: TVirtualStringTree;
 begin
   // print!
   Screen.Cursor := crHourglass;
-  cwin := Mainform.ChildWin;
   // which ListView to print?
-  case cwin.PageControlMain.ActivePageIndex of
-    0: case cwin.PageControlHost.ActivePageIndex of
-      0: list := cwin.ListVariables;
-      1: list := cwin.ListStatus;
-      2: list := cwin.ListProcesses;
-      else list := cwin.ListCommandStats;
+  case Mainform.PageControlMain.ActivePageIndex of
+    0: case Mainform.PageControlHost.ActivePageIndex of
+      0: list := Mainform.ListVariables;
+      1: list := Mainform.ListStatus;
+      2: list := Mainform.ListProcesses;
+      else list := Mainform.ListCommandStats;
       end;
-    1: list := cwin.ListTables;
-    2: list := cwin.ListColumns;
-    3: list := cwin.DataGrid;
-    else list := cwin.QueryGrid;
+    1: list := Mainform.ListTables;
+    2: list := Mainform.ListColumns;
+    3: list := Mainform.DataGrid;
+    else list := Mainform.QueryGrid;
   end;
   list.Print(Printer, chkPrintHeader.Checked);
   Screen.Cursor := crDefault;

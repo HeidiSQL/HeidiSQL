@@ -120,7 +120,7 @@ const
 implementation
 
 uses
-  helpers, childwin, Main, mysql_structures, db;
+  helpers, Main, mysql_structures, db;
 
 var
   klist : Array of TMysqlIndex;
@@ -192,14 +192,14 @@ begin
   ComboBoxPosition.Items.Add('At End of Table');
   ComboBoxPosition.Items.Add('At Beginning of Table');
 
-	// Reference to childwin's column-ListView
-  ListColumns := Mainform.ChildWin.ListColumns;
+	// Reference to main's column-ListView
+  ListColumns := Mainform.ListColumns;
 
   // get fieldlist
   // add fieldnames
-  for i:=0 to High(Mainform.Childwin.VTRowDataListColumns) do
+  for i:=0 to High(Mainform.VTRowDataListColumns) do
   begin
-    ComboBoxPosition.Items.Add('AFTER ' + mainform.mask(Mainform.Childwin.VTRowDataListColumns[i].Captions[0]));
+    ComboBoxPosition.Items.Add('AFTER ' + mainform.mask(Mainform.VTRowDataListColumns[i].Captions[0]));
   end;
 
   // re-fill datatypes-combobox
@@ -216,7 +216,7 @@ begin
   CheckBoxAutoIncrement.Enabled := true;
 
   // Disable Comment editing on old servers.
-  EditComment.Enabled := Mainform.Childwin.mysql_version >= 40100;
+  EditComment.Enabled := Mainform.mysql_version >= 40100;
   lblComment.Enabled := EditComment.Enabled;
 
   case FMode of
@@ -299,14 +299,12 @@ end;
 procedure TFieldEditForm.InitIndexEditor(Sender: TObject);
 var
   i : Integer;
-  cwin : TMDIChild;
   ds: TDataSet;
 begin
   listColumnsUsed.Items.Clear;
   setlength(klist, 0);
   TempKeys := TStringList.Create;
-  cwin := Mainform.ChildWin;
-  ds := cwin.FSelectedTableKeys;
+  ds := Mainform.FSelectedTableKeys;
   ds.First;
   for i:=1 to ds.RecordCount do
   begin
@@ -319,7 +317,7 @@ begin
       klist[length(klist)-1].Columns.Add(ds.Fields[4].AsWideString);
       klist[length(klist)-1].Modified := false;
       klist[length(klist)-1].Unique := (ds.Fields[1].AsString = '0');
-      if cwin.mysql_version < 40002 then
+      if Mainform.mysql_version < 40002 then
         klist[length(klist)-1].Fulltext := (ds.FieldByName('Comment').AsString = 'FULLTEXT')
       else
         klist[length(klist)-1].Fulltext := (ds.FieldByName('Index_type').AsString = 'FULLTEXT')
@@ -475,17 +473,15 @@ var
   strPosition,
   fielddef,
   sql_alterfield   : WideString;
-  cwin : TMDIChild;
   i: Integer;
   strSetPK: WideString;
 begin
   // Apply Changes to field-definition
 
-  cwin := Mainform.ChildWin;
   strSetPK := '';
 
   // move field if position changed
-  if (ComboBoxPosition.ItemIndex > -1) and (FMode in [femFieldUpdate]) and (cwin.mysql_version < 40001) then
+  if (ComboBoxPosition.ItemIndex > -1) and (FMode in [femFieldUpdate]) and (Mainform.mysql_version < 40001) then
     begin // Move field position
       if MessageDLG('You are about to move a column''s position in the table definition. While there is no handy MySQL way to do that, this will be done in 4 steps:'+CRLF+
        ' 1. Add a temporary column at the specified position'+CRLF+
@@ -505,13 +501,13 @@ begin
     if MessageDlg('Adding the auto_increment attribute will remove an existing primary key (if present) '
       + 'from the table and reapply that to this column.', mtConfirmation, [mbOK, mbCancel], 0) = mrOK then begin
       // Only drop the PK if it exists
-      cwin.FSelectedTableKeys.First;
-      while not cwin.FSelectedTableKeys.Eof do begin
-        if cwin.FSelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY' then begin
+      Mainform.FSelectedTableKeys.First;
+      while not Mainform.FSelectedTableKeys.Eof do begin
+        if Mainform.FSelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY' then begin
           strSetPK := ', DROP PRIMARY KEY';
           break;
         end;
-        cwin.FSelectedTableKeys.Next;
+        Mainform.FSelectedTableKeys.Next;
       end;
       strSetPK := strSetPK + ', ADD PRIMARY KEY('+Mainform.mask(EditFieldName.Text)+')';
     end else
@@ -565,9 +561,9 @@ begin
 
   strPosition := '';
   case ComboBoxPosition.ItemIndex of
-    0 : for i:=High(Mainform.Childwin.VTRowDataListColumns) downto 0 do begin
-          if Mainform.Childwin.VTRowDataListColumns[i].Captions[0] <> FFieldName then begin
-            strPosition := ' AFTER ' + Mainform.Mask(Mainform.Childwin.VTRowDataListColumns[i].Captions[0]);
+    0 : for i:=High(Mainform.VTRowDataListColumns) downto 0 do begin
+          if Mainform.VTRowDataListColumns[i].Captions[0] <> FFieldName then begin
+            strPosition := ' AFTER ' + Mainform.Mask(Mainform.VTRowDataListColumns[i].Captions[0]);
             break;
           end;
         end;
@@ -587,8 +583,8 @@ begin
 
   try
     if (FMode = femFieldAdd) then begin
-      cwin.ExecUpdateQuery(
-        'ALTER TABLE ' + mainform.mask(cwin.SelectedTable) + ' ' +  // table
+      Mainform.ExecUpdateQuery(
+        'ALTER TABLE ' + mainform.mask(Mainform.SelectedTable) + ' ' +  // table
         'ADD ' + mainform.mask(EditFieldname.Text) + ' ' +        // new name
         fielddef +
         strPosition +                                             // Position
@@ -596,36 +592,36 @@ begin
       );
     end else if (FMode = femFieldUpdate) then begin
 
-      sql_alterfield := 'ALTER TABLE ' + mainform.mask(cwin.SelectedTable) + ' ' +
+      sql_alterfield := 'ALTER TABLE ' + mainform.mask(Mainform.SelectedTable) + ' ' +
           'CHANGE ' + mainform.mask(FFieldName) + ' ' +
           mainform.mask(EditFieldName.Text) + ' ' +
           fielddef;
 
-      if cwin.mysql_version >= 40001 then
+      if Mainform.mysql_version >= 40001 then
       begin
         // MySQL 4.0.1+ allows column moving in a ALTER TABLE statement.
         // @see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
-        cwin.ExecUpdateQuery( sql_alterfield + strPosition + strSetPK );
+        Mainform.ExecUpdateQuery( sql_alterfield + strPosition + strSetPK );
       end
       else begin
         // Use manual mechanism on older servers
-        cwin.ExecUpdateQuery( sql_alterfield + strSetPK );
+        Mainform.ExecUpdateQuery( sql_alterfield + strSetPK );
 
         //ShowMessageFmt ('ComboBox position: %d',[ComboBoxPosition.ItemIndex]);
 
         if ComboBoxPosition.ItemIndex > -1 then begin
           // Move field position
-          cwin.ExecUpdateQuery(
-            'ALTER TABLE ' + mainform.mask(cwin.SelectedTable) + ' ' +  // table
+          Mainform.ExecUpdateQuery(
+            'ALTER TABLE ' + mainform.mask(Mainform.SelectedTable) + ' ' +  // table
             'ADD ' + mainform.mask(TEMPFIELDNAME) + ' ' +             // new name
             fielddef +
             strPosition                                               // Position
           );
-          cwin.ExecUpdateQuery('UPDATE ' + mainform.mask(cwin.SelectedTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
-          cwin.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(cwin.SelectedTable) + ' DROP '+mainform.mask(EditFieldName.Text));
+          Mainform.ExecUpdateQuery('UPDATE ' + mainform.mask(Mainform.SelectedTable) + ' SET '+mainform.mask(TEMPFIELDNAME)+'='+mainform.mask(EditFieldName.Text));
+          Mainform.ExecUpdateQuery('ALTER TABLE ' + mainform.mask(Mainform.SelectedTable) + ' DROP '+mainform.mask(EditFieldName.Text));
 
-          cwin.ExecUpdateQuery(
-            'ALTER TABLE ' + mainform.mask(cwin.SelectedTable) + ' ' +
+          Mainform.ExecUpdateQuery(
+            'ALTER TABLE ' + mainform.mask(Mainform.SelectedTable) + ' ' +
             'CHANGE ' + mainform.mask(TEMPFIELDNAME) + ' ' +
             mainform.mask(EditFieldName.Text) + ' ' +
             fielddef
@@ -633,7 +629,7 @@ begin
         end;
       end;
     end;
-    cwin.ShowTableProperties;
+    Mainform.ShowTableProperties;
   except
     on E: THandledSQLError do
     begin
@@ -975,12 +971,12 @@ begin
   begin
     // Remove trailing comma
     delete( query, Length(query)-1, 2 );
-    query := 'ALTER TABLE ' + mainform.mask(Mainform.ChildWin.SelectedTable) + ' ' + query;
+    query := 'ALTER TABLE ' + mainform.mask(Mainform.SelectedTable) + ' ' + query;
     try
       // Send query
-      Mainform.ChildWin.ExecUpdateQuery(query);
+      Mainform.ExecUpdateQuery(query);
       // Refresh listColumns to display correct field-icons
-      Mainform.ChildWin.ShowTableProperties;
+      Mainform.ShowTableProperties;
     except
       On E : Exception do
       begin
@@ -1221,7 +1217,7 @@ var
 begin
   listColumnsAvailable.Items.BeginUpdate;
   listColumnsAvailable.Clear;
-  ds := Mainform.ChildWin.FSelectedTableColumns;
+  ds := Mainform.FSelectedTableColumns;
   ds.First;
   while not ds.Eof do begin
     col := ds.Fields[0].AsWideString;

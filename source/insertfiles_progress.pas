@@ -32,7 +32,7 @@ type
 
 implementation
 
-uses main, childwin, helpers,insertfiles,
+uses main, helpers,insertfiles,
   HeidiComp;
 
 {$I const.inc}
@@ -62,8 +62,8 @@ begin
   Timer1.Enabled := false;
   screen.Cursor := crHourglass;
   ProgressBar1.Max := TfrmInsertFiles(FInsertFilesForm).ListViewFiles.Items.Count;
-  zq := TDeferDataSet.Create(nil, MainForm.ChildWin.RunAsyncPost);
-  zq.Connection := MainForm.ChildWin.Conn.MysqlConn;
+  zq := TDeferDataSet.Create(nil, Mainform.RunAsyncPost);
+  zq.Connection := Mainform.Conn.MysqlConn;
 
   TRY
 

@@ -70,7 +70,7 @@ begin
 
   // Set the value and keep the form open in any error case
   try
-    Mainform.Childwin.ExecUpdateQuery(sql, False, True);
+    Mainform.ExecUpdateQuery(sql, False, True);
   except
     ModalResult := mrNone;
   end;

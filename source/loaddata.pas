@@ -77,7 +77,7 @@ type
 
 implementation
 
-uses Main, Childwin, helpers;
+uses Main, helpers;
 
 {$R *.DFM}
 
@@ -113,8 +113,8 @@ procedure Tloaddataform.FormShow(Sender: TObject);
 begin
   // read dbs and Tables from treeview
   comboDatabase.Items.Clear;
-  comboDatabase.Items.Assign(Mainform.ChildWin.Databases);
-  comboDatabase.ItemIndex := comboDatabase.Items.IndexOf( Mainform.ChildWin.ActiveDatabase );
+  comboDatabase.Items.Assign(Mainform.Databases);
+  comboDatabase.ItemIndex := comboDatabase.Items.IndexOf( Mainform.ActiveDatabase );
   if comboDatabase.ItemIndex = -1 then
     comboDatabase.ItemIndex := 0;
 
@@ -145,9 +145,9 @@ var
 begin
   // read tables from db
   comboTable.Items.Clear;
-  seldb := Mainform.ChildWin.ActiveDatabase;
-  seltable := Mainform.ChildWin.SelectedTable;
-  ds := Mainform.ChildWin.FetchDbTableList(comboDatabase.Text);
+  seldb := Mainform.ActiveDatabase;
+  seltable := Mainform.SelectedTable;
+  ds := Mainform.FetchDbTableList(comboDatabase.Text);
   while not ds.Eof do begin
     comboTable.Items.Add(ds.Fields[0].AsWideString);
     count := comboTable.Items.Count-1;
@@ -163,14 +163,14 @@ begin
   selCharsetIndex := comboCharset.ItemIndex;
   comboCharset.Enabled := False;
   comboCharset.Clear;
-  v := Mainform.Childwin.mysql_version;
+  v := Mainform.mysql_version;
   if ((v >= 50038) and (v < 50100)) or (v >= 50117) then begin
     if dsCharsets = nil then
-      dsCharsets := Mainform.Childwin.GetResults('SHOW CHARSET');
+      dsCharsets := Mainform.GetResults('SHOW CHARSET');
     comboCharset.Enabled := True;
     // Detect db charset
     DefCharset := 'Let server/database decide';
-    dbcreate := Mainform.Childwin.GetVar('SHOW CREATE DATABASE '+Mainform.mask(comboDatabase.Text), 1);
+    dbcreate := Mainform.GetVar('SHOW CREATE DATABASE '+Mainform.mask(comboDatabase.Text), 1);
     rx := TRegExpr.Create;
     rx.ModifierG := True;
     rx.Expression := 'CHARACTER SET (\w+)';
@@ -203,7 +203,7 @@ begin
   // fill columns:
   chklistColumns.Items.Clear;
   if (comboDatabase.Text <> '') and (comboTable.Text <> '') then begin
-    ds := Mainform.ChildWin.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(comboDatabase.Text) + '.' +  mainform.mask(comboTable.Text));
+    ds := Mainform.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(comboDatabase.Text) + '.' +  mainform.mask(comboTable.Text));
     for i:=1 to ds.RecordCount do
     begin
       chklistColumns.Items.Add(ds.Fields[0].AsWideString);
@@ -304,7 +304,7 @@ begin
 //  if col.Count < ColumnsCheckListBox.Items.Count then
   query := query + '(' + implodestr(',', col) + ')';
 
-  Mainform.ChildWin.ExecUpdateQuery(query);
+  Mainform.ExecUpdateQuery(query);
   close;
 end;
 

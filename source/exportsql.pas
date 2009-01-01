@@ -111,7 +111,6 @@ implementation
 
 uses
   Main,
-  Childwin,
   Helpers,
   Synchronization,
   Communication;
@@ -160,20 +159,20 @@ begin
   menu := nil;
   if Owner is TMenuItem then
     menu := (Owner as TMenuItem).GetParentMenu;
-  if menu = Mainform.ChildWin.popupTreeView then begin
+  if menu = Mainform.popupTreeView then begin
     SelectedTables := TWideStringlist.Create;
     // If a table is selected, use that for preselection. If only a db was selected, use all tables inside it.
-    if Mainform.ChildWin.SelectedTable <> '' then
-      SelectedTables.Add(Mainform.ChildWin.SelectedTable)
-    else if Mainform.ChildWin.ActiveDatabase <> '' then begin
-      ds := Mainform.ChildWin.FetchDbTableList(Mainform.ChildWin.ActiveDatabase);
+    if Mainform.SelectedTable <> '' then
+      SelectedTables.Add(Mainform.SelectedTable)
+    else if Mainform.ActiveDatabase <> '' then begin
+      ds := Mainform.FetchDbTableList(Mainform.ActiveDatabase);
       while not ds.Eof do begin
         SelectedTables.Add(ds.Fields[0].AsWideString);
         ds.Next;
       end;
     end;
   end else
-    SelectedTables := GetVTCaptions( Mainform.ChildWin.ListTables, True );
+    SelectedTables := GetVTCaptions( Mainform.ListTables, True );
 
   // Assign images from main imagelist to speedbuttons
   btnFileBrowse.PngImage := Mainform.PngImageListMain.PngImages[10].PngImage;
@@ -187,20 +186,18 @@ procedure TExportSQLForm.FormShow(Sender: TObject);
 var
   i, OutputTo : Integer;
   list: TWindowDataArray;
-  CWin: TMDIChild;
 begin
-  CWin := Mainform.ChildWin;
   barProgress.Position := 0;
   lblProgress.Caption := '';
   PageControl1.ActivePageIndex := 0;
-  SynMemoExampleSQL.Highlighter := CWin.SynSQLSyn1;
-  SynMemoExampleSQL.Font := CWin.SynMemoQuery.Font;
+  SynMemoExampleSQL.Highlighter := Mainform.SynSQLSyn1;
+  SynMemoExampleSQL.Font := Mainform.SynMemoQuery.Font;
 
   // read dbs and Tables from treeview
   comboSelectDatabase.Items.Clear;
-  Caption := CWin.MysqlConn.SessionName + ' - Export Tables...';
-  comboSelectDatabase.Items.Assign(CWin.Databases);
-  comboSelectDatabase.ItemIndex := comboSelectDatabase.Items.IndexOf(CWin.ActiveDatabase);
+  Caption := Mainform.MysqlConn.SessionName + ' - Export Tables...';
+  comboSelectDatabase.Items.Assign(Mainform.Databases);
+  comboSelectDatabase.ItemIndex := comboSelectDatabase.Items.IndexOf(Mainform.ActiveDatabase);
   // Select first database if at least one is available.
   if (comboSelectDatabase.ItemIndex = -1) and (comboSelectDatabase.Items.Count>0) then
     comboSelectDatabase.ItemIndex := 0;
@@ -211,7 +208,7 @@ begin
   with target_versions do
   begin
     Add( IntToStr( SQL_VERSION_ANSI ) + '=ANSI SQL' );
-    Add( IntToStr( CWin.mysql_version ) + '=Same as source (' + ConvertServerVersion(CWin.mysql_version) + ')');
+    Add( IntToStr( Mainform.mysql_version ) + '=Same as source (' + ConvertServerVersion(Mainform.mysql_version) + ')');
     Add( '50100=HeidiSQL w/ MySQL Server 5.1' );
     Add( '50000=HeidiSQL w/ MySQL Server 5.0' );
     Add( '40100=HeidiSQL w/ MySQL Server 4.1' );
@@ -364,23 +361,21 @@ procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
 var
   i : Integer;
   sql: WideString;
-  CWin: TMDIChild;
   CheckThisItem: Boolean;
 begin
-  CWin := Mainform.Childwin;
   // read tables from db
   checkListTables.Items.Clear;
 
   // Fetch tables from DB
   sql := 'FROM ' + MainForm.mask(comboSelectDatabase.Text);
-  if CWin.mysql_version > 50002 then sql := 'SHOW FULL TABLES ' + sql + ' WHERE table_type=''BASE TABLE'''
+  if Mainform.mysql_version > 50002 then sql := 'SHOW FULL TABLES ' + sql + ' WHERE table_type=''BASE TABLE'''
   else sql := 'SHOW TABLES ' + sql;
-  checkListTables.Items.Text := CWin.GetCol( sql ).Text;
+  checkListTables.Items.Text := Mainform.GetCol( sql ).Text;
 
   // select all/some:
   for i:=0 to checkListTables.Items.Count-1 do
   begin
-    if CWin.ActiveDatabase = comboSelectDatabase.Text then
+    if Mainform.ActiveDatabase = comboSelectDatabase.Text then
       CheckThisItem := SelectedTables.IndexOf( checkListTables.Items[i] ) > -1
     else
       CheckThisItem := true;
@@ -516,14 +511,13 @@ var
   RecordCount_all, RecordCount_one, RecordNo_all,
   offset, limit             : Int64;
   sql_select                : WideString;
-  cwin                      : TMDIChild;
   query                     : TDataSet;
   OldActualDatabase         : WideString;
 
 function sourceMask(sql: WideString): WideString;
 begin
-  // Same as cwin.mask(sql).
-  Result := maskSql(cwin.mysql_version, sql);
+  // Same as mask(sql).
+  Result := maskSql(Mainform.mysql_version, sql);
 end;
 
 function destMask(sql: WideString): WideString;
@@ -570,9 +564,6 @@ begin
   exporttables  := cbxTables.Enabled and cbxTables.Checked;
   exportdata    := cbxData.Checked;
 
-  // for easy use of methods in childwin
-  cwin := Mainform.ChildWin;
-
   {***
     @note ansgarbecker
     For "export to file" set max_allowed_packet to the default-value
@@ -587,7 +578,7 @@ begin
     // Extract name part of selected target version
     target_version := MakeInt(target_versions.Names[comboTargetCompat.ItemIndex]);
     target_cliwa := Pos('mysqldump', target_versions.Names[comboTargetCompat.ItemIndex]) > 0;
-    max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
+    max_allowed_packet := MakeInt( Mainform.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
     f := InitFileStream('header');
     if f = nil then
     begin
@@ -602,8 +593,8 @@ begin
 
   // Export to other database in the same window
   if todb then begin
-    target_version := cwin.mysql_version;
-    max_allowed_packet := MakeInt( cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
+    target_version := Mainform.mysql_version;
+    max_allowed_packet := MakeInt( Mainform.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
     sourceDb := comboSelectDatabase.Text;
     destDb := comboOtherDatabase.Text;
   end;
@@ -628,7 +619,7 @@ begin
 
   try
     // Be sure to read everything from the correct database
-    cwin.TemporaryDatabase := comboSelectDatabase.Text;
+    Mainform.TemporaryDatabase := comboSelectDatabase.Text;
 
     {***
       Ouput useful header information only when exporting to file
@@ -636,10 +627,10 @@ begin
     if tofile then
     begin
       wfs(f, '# --------------------------------------------------------');
-      wfs(f, WideFormat('# %-30s%s', ['Host:', cwin.MysqlConn.Connection.HostName]));
+      wfs(f, WideFormat('# %-30s%s', ['Host:', Mainform.MysqlConn.Connection.HostName]));
       wfs(f, WideFormat('# %-30s%s', ['Database:', sourceDb]));
-      wfs(f, WideFormat('# %-30s%s', ['Server version:', cwin.GetVar('SELECT VERSION()')]));
-      wfs(f, WideFormat('# %-30s%s', ['Server OS:', cwin.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]));
+      wfs(f, WideFormat('# %-30s%s', ['Server version:', Mainform.GetVar('SELECT VERSION()')]));
+      wfs(f, WideFormat('# %-30s%s', ['Server OS:', Mainform.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]));
       wfs(f, WideFormat('# %-30s%s', ['Target compatibility:', comboTargetCompat.Text]));
       if extended_insert then
       begin
@@ -654,11 +645,11 @@ begin
     {***
       Set characterset to current one
     }
-    if cwin.mysql_version > 40100 then
-      current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('character_set_connection'), 1 )
-    else if cwin.mysql_version > 40000 then
+    if Mainform.mysql_version > 40100 then
+      current_characterset := Mainform.GetVar( 'SHOW VARIABLES LIKE ' + esc('character_set_connection'), 1 )
+    else if Mainform.mysql_version > 40000 then
       // todo: test this, add charolation --> charset conversion table from 4.0 to 4.1+
-      current_characterset := cwin.GetVar( 'SHOW VARIABLES LIKE ' + esc('character_set'), 1 )
+      current_characterset := Mainform.GetVar( 'SHOW VARIABLES LIKE ' + esc('character_set'), 1 )
     else
       // todo: test this
       current_characterset := 'binary';
@@ -672,7 +663,7 @@ begin
       if i <> 0 then raise Exception.Create('Could not create a GUID.');
       sql := esc(appName + '_' + GuidToString(sameuuid));
       try
-        i := StrToInt(cwin.GetVar('SELECT GET_LOCK(' + sql + ', 0)'));
+        i := StrToInt(Mainform.GetVar('SELECT GET_LOCK(' + sql + ', 0)'));
         if i <> 1 then raise Exception.Create('Could not create a server lock.');
         query := RemoteExecQuery(
           win2export,
@@ -690,7 +681,7 @@ begin
         );
         end;
       finally
-        cwin.ExecuteNonQuery('SELECT RELEASE_LOCK(' + sql + ')');
+        Mainform.ExecuteNonQuery('SELECT RELEASE_LOCK(' + sql + ')');
       end;
     end;
 
@@ -758,7 +749,7 @@ begin
         {***
           CREATE statement for database plus database-switching
         }
-        if cwin.mysql_version < 50002 then
+        if Mainform.mysql_version < 50002 then
         begin
           sql := 'CREATE DATABASE ';
           if comboDatabase.ItemIndex = DB_CREATE_IGNORE then
@@ -769,7 +760,7 @@ begin
         end
         else
         begin
-          sql := cwin.GetVar( 'SHOW CREATE DATABASE ' + sourceMask(sourceDb), 1 );
+          sql := Mainform.GetVar( 'SHOW CREATE DATABASE ' + sourceMask(sourceDb), 1 );
           sql := fixNewlines(sql);
           if target_version = SQL_VERSION_ANSI then
             sql := StringReplace(sql, '`', '"', [rfReplaceAll]);
@@ -848,9 +839,9 @@ begin
         {***
           Let the server generate the CREATE TABLE statement if the version allows that
         }
-        if cwin.mysql_version >= 32320 then
+        if Mainform.mysql_version >= 32320 then
         begin
-          Query := cwin.GetResults('SHOW CREATE TABLE ' + sourceMask(checkListTables.Items[i]));
+          Query := Mainform.GetResults('SHOW CREATE TABLE ' + sourceMask(checkListTables.Items[i]));
           sql := Query.Fields[1].AsWideString;
           Query.Close;
           FreeAndNil(Query);
@@ -860,8 +851,8 @@ begin
         {***
           Generate CREATE TABLE statement by hand on old servers
         }
-        else if cwin.mysql_version < 32320 then begin
-          Query := cwin.GetResults( 'SHOW COLUMNS FROM ' + sourceMask(checkListTables.Items[i]));
+        else if Mainform.mysql_version < 32320 then begin
+          Query := Mainform.GetResults( 'SHOW COLUMNS FROM ' + sourceMask(checkListTables.Items[i]));
           if tofile then
             sql := 'CREATE TABLE ' + destMask(checkListTables.Items[i]) + ' (' + crlf
           else
@@ -882,7 +873,7 @@ begin
           FreeAndNil(Query);
 
           // Keys:
-          Query := cwin.GetResults( 'SHOW KEYS FROM ' + sourceMask(checkListTables.Items[i]));
+          Query := Mainform.GetResults( 'SHOW KEYS FROM ' + sourceMask(checkListTables.Items[i]));
           setLength(keylist, 0);
           keystr := '';
           if Query.RecordCount > 0 then
@@ -955,8 +946,8 @@ begin
         // Run CREATE TABLE on another Database
         else if todb then begin
           if comboTables.ItemIndex = TAB_DROP_CREATE then
-            cwin.ExecUpdateQuery( dropquery );
-          cwin.ExecUpdateQuery( createquery );
+            Mainform.ExecUpdateQuery( dropquery );
+          Mainform.ExecUpdateQuery( createquery );
         end
 
         // Run CREATE TABLE on another host
@@ -977,7 +968,7 @@ begin
         // Set to mysql-readable char:
         DecimalSeparator := '.';
         columnnames := ' (';
-        Query := cwin.GetResults( 'SHOW FIELDS FROM ' + sourceMask(checkListTables.Items[i]));
+        Query := Mainform.GetResults( 'SHOW FIELDS FROM ' + sourceMask(checkListTables.Items[i]));
         for k:=1 to Query.RecordCount do
         begin
           if k>1 then
@@ -1007,7 +998,7 @@ begin
           end
           else if todb then
           begin
-            cwin.ExecUpdateQuery('TRUNCATE TABLE ' + sourceMask(destDb) + '.' + checkListTables.Items[i]);
+            Mainform.ExecUpdateQuery('TRUNCATE TABLE ' + sourceMask(destDb) + '.' + checkListTables.Items[i]);
           end
           else if tohost then
           begin
@@ -1018,7 +1009,7 @@ begin
         // Set rows per step limit and detect total row count
         // Be sure to do this step before the table is locked!
         limit := 5000;
-        RecordCount_all := MakeInt(cwin.GetNamedVar('SHOW TABLE STATUS LIKE '+esc(checkListTables.Items[i]), 'Rows'));
+        RecordCount_all := MakeInt(Mainform.GetNamedVar('SHOW TABLE STATUS LIKE '+esc(checkListTables.Items[i]), 'Rows'));
 
         if RecordCount_all = 0 then begin
           if tofile then
@@ -1036,9 +1027,9 @@ begin
           end
           else if todb then
           begin
-            cwin.ExecUpdateQuery( 'LOCK TABLES ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE, ' + sourceMask(sourceDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE');
+            Mainform.ExecUpdateQuery( 'LOCK TABLES ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE, ' + sourceMask(sourceDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE');
             if target_version > 40000 then
-              cwin.ExecUpdateQuery( 'ALTER TABLE ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' DISABLE KEYS' );
+              Mainform.ExecUpdateQuery( 'ALTER TABLE ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' DISABLE KEYS' );
           end
           else if tohost then
           begin
@@ -1072,7 +1063,7 @@ begin
           end;
 
           // Execute SELECT
-          Query := cwin.GetResults( sql_select );
+          Query := Mainform.GetResults( sql_select );
 
           insertquery := '';
           valuescount := 0;
@@ -1154,7 +1145,7 @@ begin
               insertquery := insertquery + ';';
               wfs(f, insertquery)
             end else if todb then
-              cwin.ExecUpdateQuery(insertquery)
+              Mainform.ExecUpdateQuery(insertquery)
             else if tohost then
               RemoteExecNonQuery(win2export, insertquery);
             if donext then
@@ -1177,8 +1168,8 @@ begin
           else if todb then
           begin
             if target_version > 40000 then
-              cwin.ExecUpdateQuery( 'ALTER TABLE ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i]) + ' ENABLE KEYS' );
-            cwin.ExecUpdateQuery( 'UNLOCK TABLES' );
+              Mainform.ExecUpdateQuery( 'ALTER TABLE ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i]) + ' ENABLE KEYS' );
+            Mainform.ExecUpdateQuery( 'UNLOCK TABLES' );
           end
           else if tohost then
           begin
@@ -1224,7 +1215,7 @@ begin
       RemoteExecNonQuery(win2export, sql );
 
   FINALLY
-    cwin.TemporaryDatabase := '';
+    Mainform.TemporaryDatabase := '';
     if tofile then
       f.Free;
     Screen.Cursor := crDefault;

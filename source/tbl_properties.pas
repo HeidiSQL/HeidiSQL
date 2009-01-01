@@ -58,7 +58,7 @@ type
 implementation
 
 uses
-  Childwin, Main, helpers;
+  Main, helpers;
 
 {$R *.DFM}
 
@@ -73,7 +73,7 @@ begin
   InheritFont(Font);
 
   try
-    dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
+    dsCollations := Mainform.GetResults('SHOW COLLATION');
   except
     // Ignore it when the above statement doesn't work on pre 4.1 servers.
     // If the list is nil, disable the combobox, so we create the db without charset.
@@ -102,12 +102,12 @@ begin
   lblCollation.Enabled := comboCollation.Enabled;
 
   // Display supported engines in pulldown
-  Mainform.Childwin.TableEnginesCombo( comboEngine );
+  Mainform.TableEnginesCombo( comboEngine );
 
   // Setup SynMemo
-  SynMemoCreate.Highlighter := Mainform.Childwin.SynSQLSyn1;
-  SynMemoCreate.Font.Name := Mainform.Childwin.SynMemoQuery.Font.Name;
-  SynMemoCreate.Font.Size := Mainform.Childwin.SynMemoQuery.Font.Size;
+  SynMemoCreate.Highlighter := Mainform.SynSQLSyn1;
+  SynMemoCreate.Font.Name := Mainform.SynMemoQuery.Font.Name;
+  SynMemoCreate.Font.Size := Mainform.SynMemoQuery.Font.Size;
 
   SetWindowSizeGrip( Self.Handle, True );
 end;
@@ -130,7 +130,7 @@ begin
   // Fetch table properties
   sql := 'SHOW TABLE STATUS ';
   sql := sql + 'LIKE '+esc(TableName);
-  ds := Mainform.Childwin.GetResults(sql);
+  ds := Mainform.GetResults(sql);
 
   // Table name
   currentName := ds.FieldByName('Name').AsWideString;
@@ -182,8 +182,8 @@ begin
 
   // SQL preview
   sql := 'SHOW CREATE TABLE ';
-  sql := sql + Mainform.Childwin.mask(currentName);
-  SynMemoCreate.Lines.Text := Mainform.Childwin.GetVar( sql, 1 );
+  sql := sql + Mainform.mask(currentName);
+  SynMemoCreate.Lines.Text := Mainform.GetVar( sql, 1 );
 
   editName.SetFocus;
   editName.SelectAll;
@@ -301,9 +301,9 @@ begin
 
     if AlterSpecs.Count > 0 then
     begin
-      sql := 'ALTER TABLE ' + Mainform.Childwin.mask(currentName) + ' ' + ImplodeStr(', ', AlterSpecs);
+      sql := 'ALTER TABLE ' + Mainform.mask(currentName) + ' ' + ImplodeStr(', ', AlterSpecs);
       try
-        Mainform.ChildWin.ExecUpdateQuery( sql );
+        Mainform.ExecUpdateQuery( sql );
       except
         On E:Exception do
         begin
@@ -312,7 +312,7 @@ begin
           ModalResult := mrNone;
         end;
       end;
-      Mainform.ChildWin.MenuRefreshClick( Sender )
+      Mainform.MenuRefreshClick( Sender )
     end;
 
   end;

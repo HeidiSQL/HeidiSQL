@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Registry, childwin;
+  Dialogs, StdCtrls, Registry;
 
 type
   TFrmDataViewSave = class(TForm)
@@ -18,7 +18,6 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
-    cwin: TMDIChild;
   public
     { Public declarations }
   end;
@@ -36,9 +35,8 @@ procedure TFrmDataViewSave.FormCreate(Sender: TObject);
 begin
   Screen.Cursor := crHourglass;
   InheritFont(Font);
-  cwin := Mainform.Childwin;
   // Load all view names into combobox
-  cwin.GetDataViews(comboSave.Items);
+  Mainform.GetDataViews(comboSave.Items);
   comboSaveChange(comboSave);
   Screen.Cursor := crDefault;
 end;
@@ -61,15 +59,15 @@ begin
   Screen.Cursor := crHourglass;
   viewName := comboSave.Text;
   reg := TRegistry.Create;
-  basekey := cwin.GetRegKeyTable + '\' + REGPREFIX_DATAVIEW + viewName;
+  basekey := Mainform.GetRegKeyTable + '\' + REGPREFIX_DATAVIEW + viewName;
   if reg.OpenKey(basekey, True) then begin
-    reg.WriteString(REGNAME_DISPLAYEDCOLUMNS, Utf8Encode(cwin.FDataGridSelect.DelimitedText));
-    reg.WriteString(REGNAME_FILTER, Utf8Encode(cwin.SynMemoFilter.Text));
-    for i := 0 to High(cwin.FDataGridSort) do
-      Sort := Sort + IntToStr(cwin.FDataGridSort[i].SortDirection) + '_' + cwin.FDataGridSort[i].ColumnName + REGDELIM;
+    reg.WriteString(REGNAME_DISPLAYEDCOLUMNS, Utf8Encode(Mainform.FDataGridSelect.DelimitedText));
+    reg.WriteString(REGNAME_FILTER, Utf8Encode(Mainform.SynMemoFilter.Text));
+    for i := 0 to High(Mainform.FDataGridSort) do
+      Sort := Sort + IntToStr(Mainform.FDataGridSort[i].SortDirection) + '_' + Mainform.FDataGridSort[i].ColumnName + REGDELIM;
     reg.WriteString(REGNAME_SORT, Utf8Encode(Sort));
     if chkDefault.Checked then begin
-      reg.OpenKey(cwin.GetRegKeyTable, False);
+      reg.OpenKey(Mainform.GetRegKeyTable, False);
       reg.WriteString(REGNAME_DEFAULTVIEW, viewName);
     end;
     reg.CloseKey;

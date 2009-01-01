@@ -57,7 +57,7 @@ type
 
 implementation
 
-uses childwin, helpers, main;
+uses helpers, main;
 
 {$R *.DFM}
 
@@ -101,14 +101,14 @@ var
 begin
   // read dbs and Tables from treeview
   DBComboBox.Items.Clear;
-  DBComboBox.Items.Assign(Mainform.ChildWin.Databases);
-  DBComboBox.ItemIndex := DBComboBox.Items.IndexOf( Mainform.ChildWin.ActiveDatabase );
+  DBComboBox.Items.Assign(Mainform.Databases);
+  DBComboBox.ItemIndex := DBComboBox.Items.IndexOf( Mainform.ActiveDatabase );
   if DBComboBox.ItemIndex = -1 then
     DBComboBox.ItemIndex := 0;
   DBComboBox.OnChange(self);
 
   // Fetch selected tables in list and preselect them in the checkboxlist
-  Selected := GetVTCaptions( Mainform.ChildWin.ListTables, True );
+  Selected := GetVTCaptions( Mainform.ListTables, True );
   if Selected.Count > 0 then
     ToggleCheckListBox(TablesCheckListBox, True, Selected)
   else // Select all in checkboxlist if no table is preselected
@@ -124,7 +124,7 @@ var
   ds: TDataset;
 begin
   // read tables from db
-  ds := Mainform.ChildWin.FetchDbTableList(DBComboBox.Text);
+  ds := Mainform.FetchDbTableList(DBComboBox.Text);
   TablesCheckListBox.Items.Clear;
   while not ds.Eof do begin
     TablesCheckListBox.Items.Add(ds.Fields[0].AsWideString);
@@ -158,13 +158,13 @@ var
   sql: WideString;
 begin
   Screen.Cursor := crHourglass;
-  Mainform.ChildWin.TemporaryDatabase := self.DBComboBox.Text;
+  Mainform.TemporaryDatabase := self.DBComboBox.Text;
   ClearResults;
   try
     for i := 0 to TablesCheckListBox.Items.Count - 1 do begin
       if TablesCheckListBox.Checked[i] then begin
         sql := WideStringReplace(pseudoSql, '$table', mainform.mask(TablesCheckListBox.Items[i]), [rfReplaceAll]);
-        ds := Mainform.ChildWin.GetResults(sql);
+        ds := Mainform.GetResults(sql);
         AddResults(ds);
         ds.Close;
         FreeAndNil(ds);
@@ -173,7 +173,7 @@ begin
     end;
   finally
     Screen.Cursor := crDefault;
-    Mainform.ChildWin.TemporaryDatabase := '';
+    Mainform.TemporaryDatabase := '';
     ValidateControls;
   end;
 end;

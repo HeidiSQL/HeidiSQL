@@ -207,11 +207,10 @@ implementation
 
 
 uses
-  main, childwin, helpers, selectdbobject;
+  main, helpers, selectdbobject;
 
 
 var
-  CWin: TMDIChild;
   db: String;
   // Results from SELECT * FROM user/db/...
   dsUser, dsDb, dsTables, dsColumns,
@@ -271,16 +270,15 @@ var
 begin
   // Test if we can access the privileges database and tables by
   // A. Using the mysql-DB
-  CWin := Mainform.Childwin;
   try
-    CWin.ExecUseQuery(DBNAME_MYSQL);
+    Mainform.ExecUseQuery(DBNAME_MYSQL);
   except
     MessageDlg('You have no access to the privileges database.', mtError, [mbOK], 0);
     ModalResult := mrCancel;
     Exit;
   end;
   // B. retrieving a count of all users.
-  test_result := cwin.GetVar( 'SELECT COUNT(*) FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS), 0, true, false );
+  test_result := Mainform.GetVar( 'SELECT COUNT(*) FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS), 0, true, false );
   if test_result = '' then begin
     MessageDlg('You have no access to the privileges tables.', mtError, [mbOK], 0);
     ModalResult := mrCancel;
@@ -288,7 +286,7 @@ begin
   end;
 
   // Set hints text
-  snr := Mainform.Childwin.GetVar('SHOW VARIABLES LIKE ' + esc('skip_name_resolve'), 0, True, False);
+  snr := Mainform.GetVar('SHOW VARIABLES LIKE ' + esc('skip_name_resolve'), 0, True, False);
   if snr = '' then snr := 'Unknown';
   lblHostHints.Caption := StringReplace(lblHostHints.Caption, '$SNR', snr, []);
 
@@ -880,12 +878,12 @@ var
   AcctUpdates, PrivValues, PrivUpdates: TWideStringList;
   procedure LogSQL(sql: String);
   begin
-    Mainform.Childwin.LogSQL(sql);
+    Mainform.LogSQL(sql);
   end;
   procedure Exec(sql: String);
   begin
     //LogSQL(sql);  Exit;
-    Mainform.Childwin.ExecuteNonQuery(sql);
+    Mainform.ExecuteNonQuery(sql);
   end;
   function Mask(sql: String): String;
   begin
@@ -1197,29 +1195,29 @@ var
   i: Integer;
   user, host: WideString;
 begin
-  dsUser := CWin.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS) + ' ORDER BY '
+  dsUser := Mainform.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS) + ' ORDER BY '
     + Mainform.Mask('User')+', '
     + Mainform.Mask('Host'));
-  dsDb := CWin.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_DB)
+  dsDb := Mainform.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_DB)
     // Ignore db entries that contain magic pointers to the mysql.host table.
     + ' WHERE Db <> '#39#39
     + ' ORDER BY '
     + Mainform.Mask('User')+', '
     + Mainform.Mask('Host')+', '
     + Mainform.Mask('Db'));
-  dsTables := CWin.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_TABLES) + ' ORDER BY '
+  dsTables := Mainform.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_TABLES) + ' ORDER BY '
     + Mainform.Mask('User')+', '
     + Mainform.Mask('Host')+', '
     + Mainform.Mask('Db')+', '
     + Mainform.Mask('Table_name'));
-  dsColumns := CWin.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_COLUMNS) + ' ORDER BY '
+  dsColumns := Mainform.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_COLUMNS) + ' ORDER BY '
     + Mainform.Mask('User')+', '
     + Mainform.Mask('Host')+', '
     + Mainform.Mask('Db')+', '
     + Mainform.Mask('Table_name')+', '
     + Mainform.Mask('Column_name'));
-  dsTablesFields := CWin.GetResults('SHOW FIELDS FROM '+db+'.tables_priv LIKE ''%\_priv''');
-  dsColumnsFields := CWin.GetResults('SHOW FIELDS FROM '+db+'.columns_priv LIKE ''%\_priv''');
+  dsTablesFields := Mainform.GetResults('SHOW FIELDS FROM '+db+'.tables_priv LIKE ''%\_priv''');
+  dsColumnsFields := Mainform.GetResults('SHOW FIELDS FROM '+db+'.columns_priv LIKE ''%\_priv''');
   for i := 1 to dsUser.RecordCount do begin
     // Avoid using dsUser.Next and dsUser.Eof here because TUser.Create
     // also iterates through the global dsUser result and moves the cursor

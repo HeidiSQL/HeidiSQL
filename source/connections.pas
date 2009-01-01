@@ -66,7 +66,7 @@ type
 
 
 implementation
- uses Main, helpers, MysqlQueryThread, ChildWin;
+ uses Main, helpers, MysqlQueryThread;
 
 {$I const.inc}
 
@@ -108,7 +108,7 @@ begin
   btn := Sender as TButton;
   btn.Enabled := false;
 
-  if Mainform.CreateMDIChild(
+  if Mainform.InitConnection(
     EditHost.Text,
     EditPort.Text,
     EditUsername.Text,

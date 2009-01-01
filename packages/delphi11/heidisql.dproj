@@ -64,9 +64,6 @@
     <DCCReference Include="..\..\source\bineditor.pas">
       <Form>frmBinEditor</Form>
     </DCCReference>
-    <DCCReference Include="..\..\source\childwin.pas">
-      <Form>MDIChild</Form>
-    </DCCReference>
     <DCCReference Include="..\..\source\column_selection.pas">
       <Form>ColumnSelectionForm</Form>
     </DCCReference>

@@ -40,7 +40,7 @@ type
 
 implementation
 
-uses main, childwin, helpers;
+uses main, helpers;
 
 {$R *.dfm}
 
@@ -55,9 +55,9 @@ begin
   InheritFont(Font);
 
   try
-    dsCollations := Mainform.Childwin.GetResults('SHOW COLLATION');
+    dsCollations := Mainform.GetResults('SHOW COLLATION');
     // Detect servers default charset
-    defaultCharset := Mainform.Childwin.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
+    defaultCharset := Mainform.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
   except
     // Ignore it when the above statements don't work on pre 4.1 servers.
     // If the list(s) are nil, disable the combobox(es), so we create the db without charset.
@@ -84,8 +84,8 @@ begin
   lblCollation.Enabled := comboCollation.Enabled;
 
   // Setup SynMemoPreview
-  SynMemoPreview.Highlighter := Mainform.Childwin.SynSQLSyn1;
-  SynMemoPreview.Font := Mainform.Childwin.SynMemoQuery.Font;
+  SynMemoPreview.Highlighter := Mainform.SynSQLSyn1;
+  SynMemoPreview.Font := Mainform.SynMemoQuery.Font;
 end;
 
 
@@ -116,7 +116,7 @@ begin
     Caption := 'Alter database ...';
     editDBName.Text := modifyDB;
     // "RENAME DB" supported since MySQL 5.1.7
-    editDBName.Enabled := Mainform.Childwin.mysql_version >= 50107;
+    editDBName.Enabled := Mainform.mysql_version >= 50107;
     // Set focus to first enabled component
     if editDBName.Enabled then
     begin
@@ -127,7 +127,7 @@ begin
       comboCharset.SetFocus;
     
     // Detect current charset and collation to be able to preselect them in the pulldowns
-    sql_create := Mainform.Childwin.GetVar('SHOW CREATE DATABASE '+Mainform.mask(modifyDB), 1);
+    sql_create := Mainform.GetVar('SHOW CREATE DATABASE '+Mainform.mask(modifyDB), 1);
     currentCharset := Copy( sql_create, pos('CHARACTER SET', sql_create)+14, Length(sql_create));
     currentCharset := GetFirstWord( currentCharset );
     if currentCharset <> '' then
@@ -227,14 +227,12 @@ end;
 procedure TCreateDatabaseForm.btnOKClick(Sender: TObject);
 var
   sql : WideString;
-  cwin: TMDIChild;
 begin
-  cwin := Mainform.Childwin;
   if modifyDB = '' then
   begin
     sql := GetCreateStatement;
     Try
-      cwin.ExecUpdateQuery( sql );
+      Mainform.ExecUpdateQuery( sql );
       // Close form
       ModalResult := mrOK;
     except
@@ -244,7 +242,7 @@ begin
     end;
   end
   else begin
-    sql := 'ALTER DATABASE ' + cwin.mask( modifyDB );
+    sql := 'ALTER DATABASE ' + Mainform.mask( modifyDB );
     if comboCharset.Enabled and (comboCharset.Text <> '') then
     begin
       sql := sql + ' CHARACTER SET ' + comboCharset.Text;
@@ -252,12 +250,12 @@ begin
         sql := sql + ' COLLATE ' + comboCollation.Text;
     end;
     Try
-      cwin.ExecUpdateQuery( sql );
+      Mainform.ExecUpdateQuery( sql );
       if modifyDB <> editDBName.Text then
       begin
-        cwin.ExecUpdateQuery( 'RENAME DATABASE ' + cwin.mask( modifyDB )
-          + ' TO ' + cwin.mask( editDBName.Text ) );
-        cwin.DBtree.ResetNode(cwin.DBtree.GetFirst);
+        Mainform.ExecUpdateQuery( 'RENAME DATABASE ' + Mainform.mask( modifyDB )
+          + ' TO ' + Mainform.mask( editDBName.Text ) );
+        Mainform.DBtree.ResetNode(Mainform.DBtree.GetFirst);
       end;
       // Close form
       ModalResult := mrOK;
@@ -285,7 +283,7 @@ end;
 }
 function TCreateDatabaseForm.GetCreateStatement: WideString;
 begin
-  Result := 'CREATE DATABASE ' + Mainform.Childwin.mask( editDBName.Text );
+  Result := 'CREATE DATABASE ' + Mainform.mask( editDBName.Text );
   if comboCharset.Enabled and (comboCharset.Text <> '') then
   begin
     Result := Result + ' /*!40100 CHARACTER SET ' + comboCharset.Text;
