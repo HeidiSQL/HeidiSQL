@@ -6,7 +6,7 @@
  */  
 
 // Gather version information for functions
-$ver_cont = file_get_contents('http://dev.mysql.com/doc/refman/5.2/en/func-op-summary-ref.html');
+$ver_cont = file_get_contents('http://dev.mysql.com/doc/refman/6.0/en/func-op-summary-ref.html');
 if( $ver_cont )
 {
 	// <code class="literal">ADDDATE()</code></a>(v4.1.1)
@@ -101,9 +101,11 @@ function getfunctions( $cat, $rootcat='' )
 			if( $df )
 			{
 				$description = trim($m3[2]);
+				$description = preg_replace('#\bURL\:\s+\S+#s', ' ', $description );
 				$description = preg_replace('#(\s+)#', ' ', $description );
 				$description = str_replace(' o ', ' ', $description);
 				$description = str_replace("'", "''", $description );
+				$description = trim($description );
 				$description = wordwrap($description,70, " '".$nl."        +'" );
 			}
 
@@ -113,7 +115,7 @@ function getfunctions( $cat, $rootcat='' )
 				$version = $versions[$name];
 			}
 
-			$fstruc[$name] .= sprintf("    (".$nl
+			$fstruc[$name] = sprintf("    (".$nl
 				."      Name:         '%s';".$nl
 				."      Declaration:  '%s';".$nl
 				."      Category:     '%s';".$nl
