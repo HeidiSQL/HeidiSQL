@@ -748,8 +748,8 @@ var
         +'is a synonym for DATE_ADD(). The related function SUBDATE() is a '
         +'synonym for DATE_SUB(). For information on the INTERVAL unit argument, '
         +'see the discussion for DATE_ADD(). mysql> SELECT '
-        +'DATE_ADD(''1998-01-02'', INTERVAL 31 DAY); -> ''1998-02-02'' mysql> '
-        +'SELECT ADDDATE(''1998-01-02'', INTERVAL 31 DAY); -> ''1998-02-02'' '
+        +'DATE_ADD(''2008-01-02'', INTERVAL 31 DAY); -> ''2008-02-02'' mysql> '
+        +'SELECT ADDDATE(''2008-01-02'', INTERVAL 31 DAY); -> ''2008-02-02'' '
         +'When invoked with the days form of the second argument, MySQL treats '
         +'it as an integer number of days to be added to expr.'
     ),
@@ -767,28 +767,40 @@ var
     // Function nr. 21
     (
       Name:         'AES_DECRYPT';
-      Declaration:  '(str,key_str)';
+      Declaration:  '(crypt_str,key_str)';
       Category:     'Encryption Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'These functions allow encryption and decryption of data using the '
-        +'official AES (Advanced Encryption Standard) algorithm, previously '
-        +'known as "Rijndael." Encoding with a 128-bit key length is used, but '
-        +'you can extend it up to 256 bits by modifying the source. We chose 128 '
-        +'bits because it is much faster and it is secure enough for most '
-        +'purposes. AES_ENCRYPT() encrypts a string and returns a binary string. '
-        +'AES_DECRYPT() decrypts the encrypted string and returns the original '
-        +'string. The input arguments may be any length. If either argument is '
-        +'NULL, the result of this function is also NULL. Because AES is a '
-        +'block-level algorithm, padding is used to encode uneven length strings '
-        +'and so the result string length may be calculated using this formula: '
-        +'16 x (trunc(string_length / 16) + 1) If AES_DECRYPT() detects invalid '
-        +'data or incorrect padding, it returns NULL. However, it is possible '
-        +'for AES_DECRYPT() to return a non-NULL value (possibly garbage) if the '
-        +'input data or the key is invalid. You can use the AES functions to '
-        +'store data in an encrypted form by modifying your queries:'
+      Description:  'This function allows decryption of data using the official AES '
+        +'(Advanced Encryption Standard) algorithm. For more information, see '
+        +'the description of AES_ENCRYPT().'
     ),
 
     // Function nr. 22
+    (
+      Name:         'AES_ENCRYPT';
+      Declaration:  '(str,key_str)';
+      Category:     'Encryption Functions';
+      Version:      SQL_VERSION_ANSI;
+      Description:  'AES_ENCRYPT() and AES_DECRYPT() allow encryption and decryption of '
+        +'data using the official AES (Advanced Encryption Standard) algorithm, '
+        +'previously known as "Rijndael." Encoding with a 128-bit key length is '
+        +'used, but you can extend it up to 256 bits by modifying the source. We '
+        +'chose 128 bits because it is much faster and it is secure enough for '
+        +'most purposes. AES_ENCRYPT() encrypts a string and returns a binary '
+        +'string. AES_DECRYPT() decrypts the encrypted string and returns the '
+        +'original string. The input arguments may be any length. If either '
+        +'argument is NULL, the result of this function is also NULL. Because '
+        +'AES is a block-level algorithm, padding is used to encode uneven '
+        +'length strings and so the result string length may be calculated using '
+        +'this formula: 16 x (trunc(string_length / 16) + 1) If AES_DECRYPT() '
+        +'detects invalid data or incorrect padding, it returns NULL. However, '
+        +'it is possible for AES_DECRYPT() to return a non-NULL value (possibly '
+        +'garbage) if the input data or the key is invalid. You can use the AES '
+        +'functions to store data in an encrypted form by modifying your '
+        +'queries:'
+    ),
+
+    // Function nr. 23
     (
       Name:         'AREA';
       Declaration:  '(poly)';
@@ -798,7 +810,7 @@ var
         +'poly, as measured in its spatial reference system.'
     ),
 
-    // Function nr. 23
+    // Function nr. 24
     (
       Name:         'ASBINARY';
       Declaration:  '(g)';
@@ -808,7 +820,7 @@ var
         +'and returns the binary result.'
     ),
 
-    // Function nr. 24
+    // Function nr. 25
     (
       Name:         'ASCII';
       Declaration:  '(str)';
@@ -816,10 +828,10 @@ var
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns the numeric value of the leftmost character of the string str. '
         +'Returns 0 if str is the empty string. Returns NULL if str is NULL. '
-        +'ASCII() works for characters with numeric values from 0 to 255.'
+        +'ASCII() works for 8-bit characters.'
     ),
 
-    // Function nr. 25
+    // Function nr. 26
     (
       Name:         'ASIN';
       Declaration:  '(X)';
@@ -829,7 +841,7 @@ var
         +'NULL if X is not in the range -1 to 1.'
     ),
 
-    // Function nr. 26
+    // Function nr. 27
     (
       Name:         'ASTEXT';
       Declaration:  '(g)';
@@ -839,7 +851,7 @@ var
         +'and returns the string result.'
     ),
 
-    // Function nr. 27
+    // Function nr. 28
     (
       Name:         'ATAN';
       Declaration:  '(X)';
@@ -848,7 +860,7 @@ var
       Description:  'Returns the arc tangent of X, that is, the value whose tangent is X.'
     ),
 
-    // Function nr. 28
+    // Function nr. 29
     (
       Name:         'ATAN2';
       Declaration:  '(Y,X)';
@@ -859,7 +871,7 @@ var
         +'arguments are used to determine the quadrant of the result.'
     ),
 
-    // Function nr. 29
+    // Function nr. 30
     (
       Name:         'AVG';
       Declaration:  '([DISTINCT] expr)';
@@ -870,7 +882,7 @@ var
         +'if there were no matching rows.'
     ),
 
-    // Function nr. 30
+    // Function nr. 31
     (
       Name:         'BENCHMARK';
       Declaration:  '(count,expr)';
@@ -882,7 +894,7 @@ var
         +'within the mysql client, which reports query execution times:'
     ),
 
-    // Function nr. 31
+    // Function nr. 32
     (
       Name:         'BETWEEN';
       Declaration:  '';
@@ -897,7 +909,7 @@ var
         +'applied to all the three arguments.'
     ),
 
-    // Function nr. 32
+    // Function nr. 33
     (
       Name:         'BIN';
       Declaration:  '(N)';
@@ -908,7 +920,7 @@ var
         +'NULL if N is NULL.'
     ),
 
-    // Function nr. 33
+    // Function nr. 34
     (
       Name:         'BINARY';
       Declaration:  '';
@@ -921,7 +933,7 @@ var
         +'BINARY also causes trailing spaces to be significant.'
     ),
 
-    // Function nr. 34
+    // Function nr. 35
     (
       Name:         'BIT_AND';
       Declaration:  '(expr)';
@@ -931,7 +943,7 @@ var
         +'performed with 64-bit (BIGINT) precision.'
     ),
 
-    // Function nr. 35
+    // Function nr. 36
     (
       Name:         'BIT_COUNT';
       Declaration:  '(N)';
@@ -940,7 +952,7 @@ var
       Description:  'Returns the number of bits that are set in the argument N.'
     ),
 
-    // Function nr. 36
+    // Function nr. 37
     (
       Name:         'BIT_LENGTH';
       Declaration:  '(str)';
@@ -949,7 +961,7 @@ var
       Description:  'Returns the length of the string str in bits.'
     ),
 
-    // Function nr. 37
+    // Function nr. 38
     (
       Name:         'BIT_OR';
       Declaration:  '(expr)';
@@ -959,7 +971,7 @@ var
         +'performed with 64-bit (BIGINT) precision.'
     ),
 
-    // Function nr. 38
+    // Function nr. 39
     (
       Name:         'BIT_XOR';
       Declaration:  '(expr)';
@@ -969,7 +981,7 @@ var
         +'performed with 64-bit (BIGINT) precision.'
     ),
 
-    // Function nr. 39
+    // Function nr. 40
     (
       Name:         'BOUNDARY';
       Declaration:  '(g)';
@@ -979,7 +991,7 @@ var
         +'of the geometry value g.'
     ),
 
-    // Function nr. 40
+    // Function nr. 41
     (
       Name:         'CASE';
       Declaration:  '';
@@ -992,32 +1004,27 @@ var
         +'the result after ELSE is returned, or NULL if there is no ELSE part.'
     ),
 
-    // Function nr. 41
+    // Function nr. 42
     (
       Name:         'CAST';
       Declaration:  '(expr AS type)';
       Category:     'String Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'The CAST() and CONVERT() functions take a value of one type and '
-        +'produce a value of another type. The type can be one of the following '
-        +'values: BINARY[(N)] CHAR[(N)] DATE DATETIME DECIMAL SIGNED [INTEGER] '
-        +'TIME UNSIGNED [INTEGER] BINARY produces a string with the BINARY data '
-        +'type. See http://dev.mysql.com/doc/refman/5.1/en/binary-varbinary.html '
-        +'for a description of how this affects comparisons. If the optional '
-        +'length N is given, BINARY(N) causes the cast to use no more than N '
-        +'bytes of the argument. Values shorter than N bytes are padded with '
-        +'0x00 bytes to a length of N. CHAR(N) causes the cast to use no more '
-        +'than N characters of the argument. CAST() and CONVERT(... USING ...) '
-        +'are standard SQL syntax. The non-USING form of CONVERT() is ODBC '
-        +'syntax. CONVERT() with USING is used to convert data between different '
-        +'character sets. In MySQL, transcoding names are the same as the '
-        +'corresponding character set names. For example, this statement '
-        +'converts the string ''abc'' in the default character set to the '
-        +'corresponding string in the utf8 character set: SELECT CONVERT(''abc'' '
-        +'USING utf8);'
+      Description:  'The CAST() function takes a value of one type and produce a value of '
+        +'another type, similar to CONVERT(). See the description of CONVERT() '
+        +'for more information.'
     ),
 
-    // Function nr. 42
+    // Function nr. 43
+    (
+      Name:         'CEIL';
+      Declaration:  '(X)';
+      Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
+      Description:  'CEIL() is a synonym for CEILING().'
+    ),
+
+    // Function nr. 44
     (
       Name:         'CEILING';
       Declaration:  '(X)';
@@ -1026,7 +1033,7 @@ var
       Description:  'Returns the smallest integer value not less than X.'
     ),
 
-    // Function nr. 43
+    // Function nr. 45
     (
       Name:         'CHAR';
       Declaration:  '(N,... [USING charset_name])';
@@ -1046,7 +1053,7 @@ var
         +'enabled, the result from CHAR() becomes NULL.'
     ),
 
-    // Function nr. 44
+    // Function nr. 46
     (
       Name:         'CHARACTER_LENGTH';
       Declaration:  '(str)';
@@ -1055,7 +1062,7 @@ var
       Description:  'CHARACTER_LENGTH() is a synonym for CHAR_LENGTH().'
     ),
 
-    // Function nr. 45
+    // Function nr. 47
     (
       Name:         'CHARSET';
       Declaration:  '(str)';
@@ -1064,7 +1071,7 @@ var
       Description:  'Returns the character set of the string argument.'
     ),
 
-    // Function nr. 46
+    // Function nr. 48
     (
       Name:         'CHAR_LENGTH';
       Declaration:  '(str)';
@@ -1076,7 +1083,7 @@ var
         +'whereas CHAR_LENGTH() returns 5.'
     ),
 
-    // Function nr. 47
+    // Function nr. 49
     (
       Name:         'COALESCE';
       Declaration:  '(value,...)';
@@ -1086,7 +1093,7 @@ var
         +'non-NULL values.'
     ),
 
-    // Function nr. 48
+    // Function nr. 50
     (
       Name:         'COERCIBILITY';
       Declaration:  '(str)';
@@ -1095,7 +1102,7 @@ var
       Description:  'Returns the collation coercibility value of the string argument.'
     ),
 
-    // Function nr. 49
+    // Function nr. 51
     (
       Name:         'COLLATION';
       Declaration:  '(str)';
@@ -1104,7 +1111,7 @@ var
       Description:  'Returns the collation of the string argument.'
     ),
 
-    // Function nr. 50
+    // Function nr. 52
     (
       Name:         'COMPRESS';
       Declaration:  '(string_to_compress)';
@@ -1116,7 +1123,7 @@ var
         +'compressed string can be uncompressed with UNCOMPRESS().'
     ),
 
-    // Function nr. 51
+    // Function nr. 53
     (
       Name:         'CONCAT';
       Declaration:  '(str1,str2,...)';
@@ -1132,7 +1139,7 @@ var
         +'argument is NULL.'
     ),
 
-    // Function nr. 52
+    // Function nr. 54
     (
       Name:         'CONCAT_WS';
       Declaration:  '(separator,str1,str2,...)';
@@ -1145,7 +1152,7 @@ var
         +'arguments. If the separator is NULL, the result is NULL.'
     ),
 
-    // Function nr. 53
+    // Function nr. 55
     (
       Name:         'CONNECTION_ID';
       Declaration:  '()';
@@ -1156,20 +1163,21 @@ var
         +'connected clients.'
     ),
 
-    // Function nr. 54
+    // Function nr. 56
     (
       Name:         'CONTAINS';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns 1 or 0 to indicate whether g1 completely contains g2.'
+      Description:  'Returns 1 or 0 to indicate whether g1 completely contains g2. This '
+        +'tests the opposite relationship as Within().'
     ),
 
-    // Function nr. 55
+    // Function nr. 57
     (
       Name:         'CONV';
       Declaration:  '(N,from_base,to_base)';
-      Category:     'String Functions';
+      Category:     'Numeric Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'Converts numbers between different number bases. Returns a string '
         +'representation of the number N, converted from base from_base to base '
@@ -1180,7 +1188,32 @@ var
         +'is treated as unsigned. CONV() works with 64-bit precision.'
     ),
 
-    // Function nr. 56
+    // Function nr. 58
+    (
+      Name:         'CONVERT';
+      Declaration:  '(expr,type)';
+      Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
+      Description:  'The CONVERT() and CAST() functions take a value of one type and '
+        +'produce a value of another type. The type can be one of the following '
+        +'values: BINARY[(N)] CHAR[(N)] DATE DATETIME DECIMAL[(M[,D])] SIGNED '
+        +'[INTEGER] TIME UNSIGNED [INTEGER] BINARY produces a string with the '
+        +'BINARY data type. See '
+        +'http://dev.mysql.com/doc/refman/5.1/en/binary-varbinary.html for a '
+        +'description of how this affects comparisons. If the optional length N '
+        +'is given, BINARY(N) causes the cast to use no more than N bytes of the '
+        +'argument. Values shorter than N bytes are padded with 0x00 bytes to a '
+        +'length of N. CHAR(N) causes the cast to use no more than N characters '
+        +'of the argument. CAST() and CONVERT(... USING ...) are standard SQL '
+        +'syntax. The non-USING form of CONVERT() is ODBC syntax. CONVERT() with '
+        +'USING is used to convert data between different character sets. In '
+        +'MySQL, transcoding names are the same as the corresponding character '
+        +'set names. For example, this statement converts the string ''abc'' in '
+        +'the default character set to the corresponding string in the utf8 '
+        +'character set: SELECT CONVERT(''abc'' USING utf8);'
+    ),
+
+    // Function nr. 59
     (
       Name:         'CONVERT_TZ';
       Declaration:  '(dt,from_tz,to_tz)';
@@ -1193,7 +1226,7 @@ var
         +'function returns NULL if the arguments are invalid.'
     ),
 
-    // Function nr. 57
+    // Function nr. 60
     (
       Name:         'COS';
       Declaration:  '(X)';
@@ -1202,7 +1235,7 @@ var
       Description:  'Returns the cosine of X, where X is given in radians.'
     ),
 
-    // Function nr. 58
+    // Function nr. 61
     (
       Name:         'COT';
       Declaration:  '(X)';
@@ -1211,18 +1244,18 @@ var
       Description:  'Returns the cotangent of X.'
     ),
 
-    // Function nr. 59
+    // Function nr. 62
     (
       Name:         'COUNT';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns a count of the number of non-NULL values in the rows retrieved '
-        +'by a SELECT statement. The result is a BIGINT value. COUNT() returns 0 '
-        +'if there were no matching rows.'
+      Description:  'Returns a count of the number of non-NULL values of expr in the rows '
+        +'retrieved by a SELECT statement. The result is a BIGINT value. COUNT() '
+        +'returns 0 if there were no matching rows.'
     ),
 
-    // Function nr. 60
+    // Function nr. 63
     (
       Name:         'CRC32';
       Declaration:  '(expr)';
@@ -1234,7 +1267,7 @@ var
         +'not.'
     ),
 
-    // Function nr. 61
+    // Function nr. 64
     (
       Name:         'CROSSES';
       Declaration:  '(g1,g2)';
@@ -1250,7 +1283,7 @@ var
         +'given geometries'
     ),
 
-    // Function nr. 62
+    // Function nr. 65
     (
       Name:         'CURDATE';
       Declaration:  '()';
@@ -1261,7 +1294,7 @@ var
         +'numeric context.'
     ),
 
-    // Function nr. 63
+    // Function nr. 66
     (
       Name:         'CURRENT_DATE';
       Declaration:  '()';
@@ -1270,7 +1303,7 @@ var
       Description:  'CURRENT_DATE and CURRENT_DATE() are synonyms for CURDATE().'
     ),
 
-    // Function nr. 64
+    // Function nr. 67
     (
       Name:         'CURRENT_TIME';
       Declaration:  '()';
@@ -1279,7 +1312,7 @@ var
       Description:  'CURRENT_TIME and CURRENT_TIME() are synonyms for CURTIME().'
     ),
 
-    // Function nr. 65
+    // Function nr. 68
     (
       Name:         'CURRENT_TIMESTAMP';
       Declaration:  '()';
@@ -1288,7 +1321,7 @@ var
       Description:  'CURRENT_TIMESTAMP and CURRENT_TIMESTAMP() are synonyms for NOW().'
     ),
 
-    // Function nr. 66
+    // Function nr. 69
     (
       Name:         'CURRENT_USER';
       Declaration:  '()';
@@ -1296,25 +1329,23 @@ var
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns the username and hostname combination for the MySQL account '
         +'that the server used to authenticate the current client. This account '
-        +'determines your access privileges. Within a stored routine that is '
-        +'defined with the SQL SECURITY DEFINER characteristic, CURRENT_USER() '
-        +'returns the creator of the routine. The return value is a string in '
-        +'the utf8 character set. The value of CURRENT_USER() can differ from '
-        +'the value of USER().'
+        +'determines your access privileges. The return value is a string in the '
+        +'utf8 character set. The value of CURRENT_USER() can differ from the '
+        +'value of USER().'
     ),
 
-    // Function nr. 67
+    // Function nr. 70
     (
       Name:         'CURTIME';
       Declaration:  '()';
       Category:     'Date and Time Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns the current time as a value in ''HH:MM:SS'' or HHMMSS format, '
-        +'depending on whether the function is used in a string or numeric '
-        +'context.'
+      Description:  'Returns the current time as a value in ''HH:MM:SS'' or HHMMSS.uuuuuu '
+        +'format, depending on whether the function is used in a string or '
+        +'numeric context. The value is expressed in the current time zone.'
     ),
 
-    // Function nr. 68
+    // Function nr. 71
     (
       Name:         'DATABASE';
       Declaration:  '()';
@@ -1327,7 +1358,7 @@ var
         +'as the database that is the default in the calling context.'
     ),
 
-    // Function nr. 69
+    // Function nr. 72
     (
       Name:         'DATE';
       Declaration:  '(expr)';
@@ -1336,7 +1367,7 @@ var
       Description:  'Extracts the date part of the date or datetime expression expr.'
     ),
 
-    // Function nr. 70
+    // Function nr. 73
     (
       Name:         'DATEDIFF';
       Declaration:  '(expr1,expr2)';
@@ -1348,21 +1379,21 @@ var
         +'calculation.'
     ),
 
-    // Function nr. 71
+    // Function nr. 74
     (
       Name:         'DATE_ADD';
       Declaration:  '(date,INTERVAL expr unit)';
       Category:     'Date and Time Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'These functions perform date arithmetic. date is a DATETIME or DATE '
-        +'value specifying the starting date. expr is an expression specifying '
+      Description:  'These functions perform date arithmetic. The date argument specifies '
+        +'the starting date or datetime value. expr is an expression specifying '
         +'the interval value to be added or subtracted from the starting date. '
-        +'expr is a string; it may start with a `-'' for negative intervals. '
-        +'unit is a keyword indicating the units in which the expression should '
-        +'be interpreted.'
+        +'expr is a string; it may start with a "-" for negative intervals. unit '
+        +'is a keyword indicating the units in which the expression should be '
+        +'interpreted.'
     ),
 
-    // Function nr. 72
+    // Function nr. 75
     (
       Name:         'DATE_FORMAT';
       Declaration:  '(date,format)';
@@ -1371,16 +1402,16 @@ var
       Description:  'Formats the date value according to the format string.'
     ),
 
-    // Function nr. 73
+    // Function nr. 76
     (
       Name:         'DATE_SUB';
       Declaration:  '(date,INTERVAL expr unit)';
       Category:     'Date and Time Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'See DATE_ADD().'
+      Description:  'See the description for DATE_ADD().'
     ),
 
-    // Function nr. 74
+    // Function nr. 77
     (
       Name:         'DAY';
       Declaration:  '(date)';
@@ -1389,25 +1420,30 @@ var
       Description:  'DAY() is a synonym for DAYOFMONTH().'
     ),
 
-    // Function nr. 75
+    // Function nr. 78
     (
       Name:         'DAYNAME';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
       Version:      40121;
-      Description:  'Returns the name of the weekday for date.'
+      Description:  'Returns the name of the weekday for date. As of MySQL 5.1.12, the '
+        +'language used for the name is controlled by the value of the '
+        +'lc_time_names system variable '
+        +'(http://dev.mysql.com/doc/refman/5.1/en/locale-support.html).'
     ),
 
-    // Function nr. 76
+    // Function nr. 79
     (
       Name:         'DAYOFMONTH';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns the day of the month for date, in the range 0 to 31.'
+      Description:  'Returns the day of the month for date, in the range 1 to 31, or 0 for '
+        +'dates such as ''0000-00-00'' or ''2008-00-00'' that have a zero day '
+        +'part.'
     ),
 
-    // Function nr. 77
+    // Function nr. 80
     (
       Name:         'DAYOFWEEK';
       Declaration:  '(date)';
@@ -1417,7 +1453,7 @@ var
         +'Saturday). These index values correspond to the ODBC standard.'
     ),
 
-    // Function nr. 78
+    // Function nr. 81
     (
       Name:         'DAYOFYEAR';
       Declaration:  '(date)';
@@ -1426,7 +1462,7 @@ var
       Description:  'Returns the day of the year for date, in the range 1 to 366.'
     ),
 
-    // Function nr. 79
+    // Function nr. 82
     (
       Name:         'DECODE';
       Declaration:  '(crypt_str,pass_str)';
@@ -1436,7 +1472,7 @@ var
         +'password. crypt_str should be a string returned from ENCODE().'
     ),
 
-    // Function nr. 80
+    // Function nr. 83
     (
       Name:         'DEFAULT';
       Declaration:  '(col_name)';
@@ -1446,7 +1482,7 @@ var
         +'column has no default value.'
     ),
 
-    // Function nr. 81
+    // Function nr. 84
     (
       Name:         'DEGREES';
       Declaration:  '(X)';
@@ -1455,15 +1491,15 @@ var
       Description:  'Returns the argument X, converted from radians to degrees.'
     ),
 
-    // Function nr. 82
+    // Function nr. 85
     (
       Name:         'DES_DECRYPT';
       Declaration:  '(crypt_str[,key_str])';
       Category:     'Encryption Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'Decrypts a string encrypted with DES_ENCRYPT(). If an error occurs, '
-        +'this function returns NULL. Note that this function works only if '
-        +'MySQL has been configured with SSL support. See '
+        +'this function returns NULL. This function works only if MySQL has been '
+        +'configured with SSL support. See '
         +'http://dev.mysql.com/doc/refman/5.1/en/secure-connections.html. If no '
         +'key_str argument is given, DES_DECRYPT() examines the first byte of '
         +'the encrypted string to determine the DES key number that was used to '
@@ -1476,27 +1512,52 @@ var
         +'given crypt_str.'
     ),
 
-    // Function nr. 83
+    // Function nr. 86
     (
       Name:         'DES_ENCRYPT';
       Declaration:  '(str[,{key_num|key_str}])';
       Category:     'Encryption Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Encrypts the string with the given key using the Triple-DES algorithm.'
+      Description:  'Encrypts the string with the given key using the Triple-DES algorithm. '
+        +'This function works only if MySQL has been configured with SSL '
+        +'support. See '
+        +'http://dev.mysql.com/doc/refman/5.1/en/secure-connections.html. The '
+        +'encryption key to use is chosen based on the second argument to '
+        +'DES_ENCRYPT(), if one was given. With no argument, the first key from '
+        +'the DES key file is used. With a key_num argument, the given key '
+        +'number (0-9) from the DES key file is used. With a key_str argument, '
+        +'the given key string is used to encrypt str. The key file can be '
+        +'specified with the --des-key-file server option. The return string is '
+        +'a binary string where the first character is CHAR(128 | key_num). If '
+        +'an error occurs, DES_ENCRYPT() returns NULL. The 128 is added to make '
+        +'it easier to recognize an encrypted key. If you use a string key, '
+        +'key_num is 127. The string length for the result is given by this '
+        +'formula: new_len = orig_len + (8 - (orig_len % 8)) + 1 Each line in '
+        +'the DES key file has the following format: key_num des_key_str Each '
+        +'key_num value must be a number in the range from 0 to 9. Lines in the '
+        +'file may be in any order. des_key_str is the string that is used to '
+        +'encrypt the message. There should be at least one space between the '
+        +'number and the key. The first key is the default key that is used if '
+        +'you do not specify any key argument to DES_ENCRYPT(). You can tell '
+        +'MySQL to read new key values from the key file with the FLUSH '
+        +'DES_KEY_FILE statement. This requires the RELOAD privilege. One '
+        +'benefit of having a set of default keys is that it gives applications '
+        +'a way to check for the existence of encrypted column values, without '
+        +'giving the end user the right to decrypt those values.'
     ),
 
-    // Function nr. 84
+    // Function nr. 87
     (
       Name:         'DIMENSION';
       Declaration:  '(g)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns the inherent dimension of the geometry value g. The result can '
-        +'be -1, 0, 1, or 2. The meaning of these values is given in [HELP MBR '
-        +'definition].'
+        +'be -1, 0, 1, or 2. The meaning of these values is given in '
+        +'http://dev.mysql.com/doc/refman/5.1/en/gis-class-geometry.html.'
     ),
 
-    // Function nr. 85
+    // Function nr. 88
     (
       Name:         'DISJOINT';
       Declaration:  '(g1,g2)';
@@ -1506,7 +1567,7 @@ var
         +'not intersect) g2.'
     ),
 
-    // Function nr. 86
+    // Function nr. 89
     (
       Name:         'DIV';
       Declaration:  '';
@@ -1515,7 +1576,7 @@ var
       Description:  'Integer division. Similar to FLOOR(), but is safe with BIGINT values.'
     ),
 
-    // Function nr. 87
+    // Function nr. 90
     (
       Name:         'ELT';
       Declaration:  '(N,str1,str2,str3,...)';
@@ -1526,7 +1587,7 @@ var
         +'complement of FIELD().'
     ),
 
-    // Function nr. 88
+    // Function nr. 91
     (
       Name:         'ENCODE';
       Declaration:  '(str,pass_str)';
@@ -1538,7 +1599,7 @@ var
         +'is. It should suffice for short strings.'
     ),
 
-    // Function nr. 89
+    // Function nr. 92
     (
       Name:         'ENCRYPT';
       Declaration:  '(str[,salt])';
@@ -1549,7 +1610,7 @@ var
         +'characters. If no salt argument is given, a random value is used.'
     ),
 
-    // Function nr. 90
+    // Function nr. 93
     (
       Name:         'ENDPOINT';
       Declaration:  '(ls)';
@@ -1558,7 +1619,7 @@ var
       Description:  'Returns the Point that is the endpoint of the LineString value ls.'
     ),
 
-    // Function nr. 91
+    // Function nr. 94
     (
       Name:         'ENVELOPE';
       Declaration:  '(g)';
@@ -1570,7 +1631,7 @@ var
         +'MAXX MAXY, MINX MAXY, MINX MINY))'
     ),
 
-    // Function nr. 92
+    // Function nr. 95
     (
       Name:         'EQUALS';
       Declaration:  '(g1,g2)';
@@ -1579,32 +1640,33 @@ var
       Description:  'Returns 1 or 0 to indicate whether g1 is spatially equal to g2.'
     ),
 
-    // Function nr. 93
+    // Function nr. 96
     (
       Name:         'EXP';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns the value of e (the base of natural logarithms) raised to the '
-        +'power of X.'
+        +'power of X. The inverse of this function is LOG() (using a single '
+        +'argument only) or LN().'
     ),
 
-    // Function nr. 94
+    // Function nr. 97
     (
       Name:         'EXPORT_SET';
       Declaration:  '(bits,on,off[,separator[,number_of_bits]])';
       Category:     'String Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns a string such that for every bit set in the value bits, you '
-        +'get an on string and for every reset bit, you get an off string. Bits '
-        +'in bits are examined from right to left (from low-order to high-order '
-        +'bits). Strings are added to the result from left to right, separated '
-        +'by the separator string (the default being the comma character `,''). '
-        +'The number of bits examined is given by number_of_bits (defaults to '
-        +'64).'
+        +'get an on string and for every bit not set in the value, you get an '
+        +'off string. Bits in bits are examined from right to left (from '
+        +'low-order to high-order bits). Strings are added to the result from '
+        +'left to right, separated by the separator string (the default being '
+        +'the comma character ","). The number of bits examined is given by '
+        +'number_of_bits (defaults to 64).'
     ),
 
-    // Function nr. 95
+    // Function nr. 98
     (
       Name:         'EXTERIORRING';
       Declaration:  '(poly)';
@@ -1613,7 +1675,7 @@ var
       Description:  'Returns the exterior ring of the Polygon value poly as a LineString.'
     ),
 
-    // Function nr. 96
+    // Function nr. 99
     (
       Name:         'EXTRACT';
       Declaration:  '(unit FROM date)';
@@ -1624,7 +1686,7 @@ var
         +'performing date arithmetic.'
     ),
 
-    // Function nr. 97
+    // Function nr. 100
     (
       Name:         'EXTRACTVALUE';
       Declaration:  '(xml_frag, xpath_expr)';
@@ -1640,17 +1702,18 @@ var
         +'same result. If multiple matches are found, then the content of the '
         +'first child text node of each matching element is returned (in the '
         +'order matched) as a single, space-delimited string. If no matching '
-        +'text node is found for the (augmented) expression --- for whatever '
-        +'reason, as long as xpth_expr is valid, and xml_frag is well-formed --- '
-        +'an empty string is returned. No distinction is made between a match on '
-        +'an empty element and no match at all. This is by design. If you need '
-        +'to determine whether no matching element was found in xml_frag or such '
-        +'an element was found but contained no child text nodes, you should '
-        +'test the result of an expression that uses the XPath count() function. '
-        +'For example, both of these statements return an empty string, as shown '
+        +'text node is found for the expression (including the implicit /text()) '
+        +'--- for whatever reason, as long as xpath_expr is valid, and xml_frag '
+        +'consists of elements which are properly nested and closed --- an empty '
+        +'string is returned. No distinction is made between a match on an empty '
+        +'element and no match at all. This is by design. If you need to '
+        +'determine whether no matching element was found in xml_frag or such an '
+        +'element was found but contained no child text nodes, you should test '
+        +'the result of an expression that uses the XPath count() function. For '
+        +'example, both of these statements return an empty string, as shown '
         +'here: mysql> SELECT ExtractValue(''<a><b/></a>'', ''/a/b''); '
         +'+-------------------------------------+ | '
-        +'ExtractValue(''>a<>b/<>/a<'', ''/a/b'') | '
+        +'ExtractValue(''<a><b/></a>'', ''/a/b'') | '
         +'+-------------------------------------+ | | '
         +'+-------------------------------------+ 1 row in set (0.00 sec) mysql> '
         +'SELECT ExtractValue(''<a><c/></a>'', ''/a/b''); '
@@ -1669,13 +1732,14 @@ var
         +'+-------------------------------------+ | '
         +'ExtractValue(''<a><c/></a>'', ''count(/a/b)'') | '
         +'+-------------------------------------+ | 0 | '
-        +'+-------------------------------------+ 1 row in set (0.01 sec) Note '
-        +'that ExtractValue() returns only CDATA, and does not return any tags '
-        +'that might be contained within a matching tag, nor any of their '
-        +'content (see the result returned as val1 in the following example).'
+        +'+-------------------------------------+ 1 row in set (0.01 sec) '
+        +'*Important*: ExtractValue() returns only CDATA, and does not return '
+        +'any tags that might be contained within a matching tag, nor any of '
+        +'their content (see the result returned as val1 in the following '
+        +'example).'
     ),
 
-    // Function nr. 98
+    // Function nr. 101
     (
       Name:         'FIELD';
       Declaration:  '(str,str1,str2,str3,...)';
@@ -1690,7 +1754,7 @@ var
         +'ELT().'
     ),
 
-    // Function nr. 99
+    // Function nr. 102
     (
       Name:         'FIND_IN_SET';
       Declaration:  '(str,strlist)';
@@ -1698,15 +1762,15 @@ var
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns a value in the range of 1 to N if the string str is in the '
         +'string list strlist consisting of N substrings. A string list is a '
-        +'string composed of substrings separated by `,'' characters. If the '
+        +'string composed of substrings separated by "," characters. If the '
         +'first argument is a constant string and the second is a column of type '
         +'SET, the FIND_IN_SET() function is optimized to use bit arithmetic. '
         +'Returns 0 if str is not in strlist or if strlist is the empty string. '
         +'Returns NULL if either argument is NULL. This function does not work '
-        +'properly if the first argument contains a comma (`,'') character.'
+        +'properly if the first argument contains a comma (",") character.'
     ),
 
-    // Function nr. 100
+    // Function nr. 103
     (
       Name:         'FLOOR';
       Declaration:  '(X)';
@@ -1715,7 +1779,7 @@ var
       Description:  'Returns the largest integer value not greater than X.'
     ),
 
-    // Function nr. 101
+    // Function nr. 104
     (
       Name:         'FORMAT';
       Declaration:  '(X,D)';
@@ -1726,7 +1790,7 @@ var
         +'result has no decimal point or fractional part.'
     ),
 
-    // Function nr. 102
+    // Function nr. 105
     (
       Name:         'FOUND_ROWS';
       Declaration:  '()';
@@ -1740,7 +1804,7 @@ var
         +'statement, and then invoke FOUND_ROWS() afterward:'
     ),
 
-    // Function nr. 103
+    // Function nr. 106
     (
       Name:         'FROM_DAYS';
       Declaration:  '(N)';
@@ -1749,22 +1813,23 @@ var
       Description:  'Given a day number N, returns a DATE value.'
     ),
 
-    // Function nr. 104
+    // Function nr. 107
     (
       Name:         'FROM_UNIXTIME';
       Declaration:  '(unix_timestamp)';
       Category:     'Date and Time Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns a representation of the unix_timestamp argument as a value in '
-        +'''YYYY-MM-DD HH:MM:SS'' or YYYYMMDDHHMMSS format, depending on whether '
-        +'the function is used in a string or numeric context. unix_timestamp is '
-        +'an internal timestamp value such as is produced by the '
-        +'UNIX_TIMESTAMP() function. If format is given, the result is formatted '
-        +'according to the format string, which is used the same way as listed '
-        +'in the entry for the DATE_FORMAT() function.'
+        +'''YYYY-MM-DD HH:MM:SS'' or YYYYMMDDHHMMSS.uuuuuu format, depending on '
+        +'whether the function is used in a string or numeric context. The value '
+        +'is expressed in the current time zone. unix_timestamp is an internal '
+        +'timestamp value such as is produced by the UNIX_TIMESTAMP() function. '
+        +'If format is given, the result is formatted according to the format '
+        +'string, which is used the same way as listed in the entry for the '
+        +'DATE_FORMAT() function.'
     ),
 
-    // Function nr. 105
+    // Function nr. 108
     (
       Name:         'GEOMCOLLFROMTEXT';
       Declaration:  '(wkt[,srid])';
@@ -1774,7 +1839,7 @@ var
         +'SRID.'
     ),
 
-    // Function nr. 106
+    // Function nr. 109
     (
       Name:         'GEOMCOLLFROMWKB';
       Declaration:  '(wkb[,srid])';
@@ -1784,7 +1849,7 @@ var
         +'SRID.'
     ),
 
-    // Function nr. 107
+    // Function nr. 110
     (
       Name:         'GEOMETRY';
       Declaration:  '';
@@ -1793,7 +1858,7 @@ var
       Description:  ''
     ),
 
-    // Function nr. 108
+    // Function nr. 111
     (
       Name:         'GEOMETRYCOLLECTION';
       Declaration:  '(g1,g2,...)';
@@ -1804,7 +1869,7 @@ var
         +'NULL.'
     ),
 
-    // Function nr. 109
+    // Function nr. 112
     (
       Name:         'GEOMETRYTYPE';
       Declaration:  '(g)';
@@ -1815,7 +1880,7 @@ var
         +'instantiable Geometry subclasses.'
     ),
 
-    // Function nr. 110
+    // Function nr. 113
     (
       Name:         'GEOMFROMTEXT';
       Declaration:  '(wkt[,srid])';
@@ -1825,7 +1890,7 @@ var
         +'and SRID.'
     ),
 
-    // Function nr. 111
+    // Function nr. 114
     (
       Name:         'GEOMFROMWKB';
       Declaration:  '(wkb[,srid])';
@@ -1835,17 +1900,17 @@ var
         +'and SRID.'
     ),
 
-    // Function nr. 112
+    // Function nr. 115
     (
       Name:         'GET_FORMAT';
-      Declaration:  '(DATE|TIME|DATETIME, ''EUR''|''USA''|''JIS''|''ISO''|''INTERNAL'')';
+      Declaration:  '({DATE|TIME|DATETIME}, {''EUR''|''USA''|''JIS''|''ISO''|''INTERNAL''})';
       Category:     'Date and Time Functions';
       Version:      40101;
       Description:  'Returns a format string. This function is useful in combination with '
         +'the DATE_FORMAT() and the STR_TO_DATE() functions.'
     ),
 
-    // Function nr. 113
+    // Function nr. 116
     (
       Name:         'GET_LOCK';
       Declaration:  '(str,timeout)';
@@ -1875,7 +1940,7 @@ var
         +'db_name.str or app_name.str.'
     ),
 
-    // Function nr. 114
+    // Function nr. 117
     (
       Name:         'GLENGTH';
       Declaration:  '(ls)';
@@ -1885,7 +1950,7 @@ var
         +'value ls in its associated spatial reference.'
     ),
 
-    // Function nr. 115
+    // Function nr. 118
     (
       Name:         'GREATEST';
       Declaration:  '(value1,value2,...)';
@@ -1896,7 +1961,7 @@ var
         +'LEAST().'
     ),
 
-    // Function nr. 116
+    // Function nr. 119
     (
       Name:         'GROUP_CONCAT';
       Declaration:  '(expr)';
@@ -1909,7 +1974,7 @@ var
         +'[,col_name ...]] [SEPARATOR str_val])'
     ),
 
-    // Function nr. 117
+    // Function nr. 120
     (
       Name:         'HEX';
       Declaration:  '(N_or_S)';
@@ -1919,10 +1984,11 @@ var
         +'hexadecimal value of N, where N is a longlong (BIGINT) number. This is '
         +'equivalent to CONV(N,10,16). If N_or_S is a string, returns a '
         +'hexadecimal string representation of N_or_S where each character in '
-        +'N_or_S is converted to two hexadecimal digits.'
+        +'N_or_S is converted to two hexadecimal digits. The inverse of this '
+        +'operation is performed by the UNHEX() function.'
     ),
 
-    // Function nr. 118
+    // Function nr. 121
     (
       Name:         'HOUR';
       Declaration:  '(time)';
@@ -1933,7 +1999,7 @@ var
         +'much larger, so HOUR can return values greater than 23.'
     ),
 
-    // Function nr. 119
+    // Function nr. 122
     (
       Name:         'IF';
       Declaration:  '(expr1,expr2,expr3)';
@@ -1944,7 +2010,7 @@ var
         +'value, depending on the context in which it is used.'
     ),
 
-    // Function nr. 120
+    // Function nr. 123
     (
       Name:         'IFNULL';
       Declaration:  '(expr1,expr2)';
@@ -1955,7 +2021,7 @@ var
         +'context in which it is used.'
     ),
 
-    // Function nr. 121
+    // Function nr. 124
     (
       Name:         'IN';
       Declaration:  '(value,...)';
@@ -1971,7 +2037,7 @@ var
         +'applied to all the arguments.'
     ),
 
-    // Function nr. 122
+    // Function nr. 125
     (
       Name:         'INET_ATON';
       Declaration:  '(expr)';
@@ -1982,7 +2048,7 @@ var
         +'Addresses may be 4- or 8-byte addresses.'
     ),
 
-    // Function nr. 123
+    // Function nr. 126
     (
       Name:         'INET_NTOA';
       Declaration:  '(expr)';
@@ -1992,7 +2058,7 @@ var
         +'representation of the address as a string.'
     ),
 
-    // Function nr. 124
+    // Function nr. 127
     (
       Name:         'INSERT';
       Declaration:  '(str,pos,len,newstr)';
@@ -2001,12 +2067,12 @@ var
       Description:  'Returns the string str, with the substring beginning at position pos '
         +'and len characters long replaced by the string newstr. Returns the '
         +'original string if pos is not within the length of the string. '
-        +'Replaces the rest of the string from position pos is len is not within '
+        +'Replaces the rest of the string from position pos if len is not within '
         +'the length of the rest of the string. Returns NULL if any argument is '
         +'NULL.'
     ),
 
-    // Function nr. 125
+    // Function nr. 128
     (
       Name:         'INSTR';
       Declaration:  '(str,substr)';
@@ -2017,7 +2083,7 @@ var
         +'except that the order of the arguments is reversed.'
     ),
 
-    // Function nr. 126
+    // Function nr. 129
     (
       Name:         'INTERIORRINGN';
       Declaration:  '(poly,N)';
@@ -2027,7 +2093,7 @@ var
         +'LineString. Rings are numbered beginning with 1.'
     ),
 
-    // Function nr. 127
+    // Function nr. 130
     (
       Name:         'INTERSECTS';
       Declaration:  '(g1,g2)';
@@ -2036,7 +2102,7 @@ var
       Description:  'Returns 1 or 0 to indicate whether g1 spatially intersects g2.'
     ),
 
-    // Function nr. 128
+    // Function nr. 131
     (
       Name:         'INTERVAL';
       Declaration:  '(N,N1,N2,N3,...)';
@@ -2048,7 +2114,7 @@ var
         +'search is used (very fast).'
     ),
 
-    // Function nr. 129
+    // Function nr. 132
     (
       Name:         'IS';
       Declaration:  '';
@@ -2058,7 +2124,7 @@ var
         +'TRUE, FALSE, or UNKNOWN.'
     ),
 
-    // Function nr. 130
+    // Function nr. 133
     (
       Name:         'ISEMPTY';
       Declaration:  '(g)';
@@ -2069,7 +2135,7 @@ var
         +'it represents the empty point set.'
     ),
 
-    // Function nr. 131
+    // Function nr. 134
     (
       Name:         'ISNULL';
       Declaration:  '(expr)';
@@ -2078,7 +2144,7 @@ var
       Description:  'If expr is NULL, ISNULL() returns 1, otherwise it returns 0.'
     ),
 
-    // Function nr. 132
+    // Function nr. 135
     (
       Name:         'ISSIMPLE';
       Declaration:  '(g)';
@@ -2094,7 +2160,7 @@ var
         +'to be classified as not simple. (See [HELP Geometry hierarchy].)'
     ),
 
-    // Function nr. 133
+    // Function nr. 136
     (
       Name:         'IS_FREE_LOCK';
       Declaration:  '(str)';
@@ -2106,7 +2172,7 @@ var
         +'incorrect argument).'
     ),
 
-    // Function nr. 134
+    // Function nr. 137
     (
       Name:         'IS_USED_LOCK';
       Declaration:  '(str)';
@@ -2117,7 +2183,7 @@ var
         +'lock. Otherwise, it returns NULL.'
     ),
 
-    // Function nr. 135
+    // Function nr. 138
     (
       Name:         'LAST_DAY';
       Declaration:  '(date)';
@@ -2127,26 +2193,44 @@ var
         +'the last day of the month. Returns NULL if the argument is invalid.'
     ),
 
-    // Function nr. 136
+    // Function nr. 139
     (
       Name:         'LAST_INSERT_ID';
       Declaration:  '()';
       Category:     'Information Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'LAST_INSERT_ID() (with no argument) returns the first automatically '
-        +'generated value that was set for an AUTO_INCREMENT column by the most '
-        +'recently executed INSERT or UPDATE statement to affect such a column. '
-        +'For example, after inserting a row that generates an AUTO_INCREMENT '
-        +'value, you can get the value like this: mysql> SELECT '
-        +'LAST_INSERT_ID(); -> 195 The currently executing statement does not '
-        +'affect the value of LAST_INSERT_ID(). Suppose that you generate an '
-        +'AUTO_INCREMENT value with one statement, and then refer to '
-        +'LAST_INSERT_ID() in a multiple-row INSERT statement that inserts rows '
-        +'into a table with its own AUTO_INCREMENT column. The value of '
-        +'LAST_INSERT_ID() will remain stable in the second statement; its value '
-        +'for the second and later rows is not affected by the earlier row '
-        +'insertions. (However, if you mix references to LAST_INSERT_ID() and '
-        +'LAST_INSERT_ID(expr), the effect is undefined.) Within the body of a '
+      Description:  'For MySQL 5.1.12 and later, LAST_INSERT_ID() (no arguments) returns '
+        +'the first automatically generated value successfully inserted for an '
+        +'AUTO_INCREMENT column as a result of the most recently executed INSERT '
+        +'statement. The value of LAST_INSERT_ID() remains unchanged if no rows '
+        +'are successfully inserted. For example, after inserting a row that '
+        +'generates an AUTO_INCREMENT value, you can get the value like this: '
+        +'mysql> SELECT LAST_INSERT_ID(); -> 195 In MySQL 5.1.11 and earlier, '
+        +'LAST_INSERT_ID() (no arguments) returns the first automatically '
+        +'generated value if any rows were successfully inserted or updated. '
+        +'This means that the returned value could be a value that was not '
+        +'successfully inserted into the table. If no rows were successfully '
+        +'inserted, LAST_INSERT_ID() returns 0. The value of LAST_INSERT_ID() '
+        +'will be consistent across all versions if all rows in the INSERT or '
+        +'UPDATE statement were successful. if a table contains an '
+        +'AUTO_INCREMENT column and INSERT ... ON DUPLICATE KEY UPDATE updates '
+        +'(rather than inserts) a row, the value of LAST_INSERT_ID() is not '
+        +'meaningful prior to MySQL 5.1.12. For a workaround, see '
+        +'http://dev.mysql.com/doc/refman/5.1/en/insert-on-duplicate.html. The '
+        +'currently executing statement does not affect the value of '
+        +'LAST_INSERT_ID(). Suppose that you generate an AUTO_INCREMENT value '
+        +'with one statement, and then refer to LAST_INSERT_ID() in a '
+        +'multiple-row INSERT statement that inserts rows into a table with its '
+        +'own AUTO_INCREMENT column. The value of LAST_INSERT_ID() will remain '
+        +'stable in the second statement; its value for the second and later '
+        +'rows is not affected by the earlier row insertions. (However, if you '
+        +'mix references to LAST_INSERT_ID() and LAST_INSERT_ID(expr), the '
+        +'effect is undefined.) If the previous statement returned an error, the '
+        +'value of LAST_INSERT_ID() is undefined. For transactional tables, if '
+        +'the statement is rolled back due to an error, the value of '
+        +'LAST_INSERT_ID() is left undefined. For manual ROLLBACK, the value of '
+        +'LAST_INSERT_ID() is not restored to that before the transaction; it '
+        +'remains as it was at the point of the ROLLBACK. Within the body of a '
         +'stored routine (procedure or function) or a trigger, the value of '
         +'LAST_INSERT_ID() changes the same way as for statements executed '
         +'outside the body of these kinds of objects. The effect of a stored '
@@ -2159,7 +2243,7 @@ var
         +'ends, so following statements will not see a changed value.'
     ),
 
-    // Function nr. 137
+    // Function nr. 140
     (
       Name:         'LCASE';
       Declaration:  '(str)';
@@ -2168,7 +2252,7 @@ var
       Description:  'LCASE() is a synonym for LOWER().'
     ),
 
-    // Function nr. 138
+    // Function nr. 141
     (
       Name:         'LEAST';
       Declaration:  '(value1,value2,...)';
@@ -2185,7 +2269,7 @@ var
         +'returns NULL if any argument is NULL.'
     ),
 
-    // Function nr. 139
+    // Function nr. 142
     (
       Name:         'LEFT';
       Declaration:  '(str,len)';
@@ -2195,7 +2279,7 @@ var
         +'any argument is NULL.'
     ),
 
-    // Function nr. 140
+    // Function nr. 143
     (
       Name:         'LENGTH';
       Declaration:  '(str)';
@@ -2207,7 +2291,7 @@ var
         +'CHAR_LENGTH() returns 5.'
     ),
 
-    // Function nr. 141
+    // Function nr. 144
     (
       Name:         'LIKE';
       Declaration:  '';
@@ -2219,7 +2303,7 @@ var
         +'it can be specified as a string expression or table column.'
     ),
 
-    // Function nr. 142
+    // Function nr. 145
     (
       Name:         'LINEFROMTEXT';
       Declaration:  '(wkt[,srid])';
@@ -2228,7 +2312,7 @@ var
       Description:  'Constructs a LINESTRING value using its WKT representation and SRID.'
     ),
 
-    // Function nr. 143
+    // Function nr. 146
     (
       Name:         'LINEFROMWKB';
       Declaration:  '(wkb[,srid])';
@@ -2237,7 +2321,7 @@ var
       Description:  'Constructs a LINESTRING value using its WKB representation and SRID.'
     ),
 
-    // Function nr. 144
+    // Function nr. 147
     (
       Name:         'LINESTRING';
       Declaration:  '(pt1,pt2,...)';
@@ -2249,17 +2333,17 @@ var
         +'value is NULL.'
     ),
 
-    // Function nr. 145
+    // Function nr. 148
     (
       Name:         'LN';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns the natural logarithm of X; that is, the base-e logarithm of '
-        +'X.'
+        +'X. If X is less than or equal to 0, then NULL is returned.'
     ),
 
-    // Function nr. 146
+    // Function nr. 149
     (
       Name:         'LOAD_FILE';
       Declaration:  '(file_name)';
@@ -2276,7 +2360,7 @@ var
         +'literal strings.'
     ),
 
-    // Function nr. 147
+    // Function nr. 150
     (
       Name:         'LOCALTIME';
       Declaration:  '()';
@@ -2285,7 +2369,7 @@ var
       Description:  'LOCALTIME and LOCALTIME() are synonyms for NOW().'
     ),
 
-    // Function nr. 148
+    // Function nr. 151
     (
       Name:         'LOCALTIMESTAMP';
       Declaration:  '()';
@@ -2294,7 +2378,7 @@ var
       Description:  'LOCALTIMESTAMP and LOCALTIMESTAMP() are synonyms for NOW().'
     ),
 
-    // Function nr. 149
+    // Function nr. 152
     (
       Name:         'LOCATE';
       Declaration:  '(substr,str)';
@@ -2306,17 +2390,19 @@ var
         +'position pos. Returns 0 if substr is not in str.'
     ),
 
-    // Function nr. 150
+    // Function nr. 153
     (
       Name:         'LOG';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'If called with one parameter, this function returns the natural '
-        +'logarithm of X.'
+        +'logarithm of X. If X is less than or equal to 0, then NULL is '
+        +'returned. The inverse of this function (when called with a single '
+        +'argument) is the EXP() function.'
     ),
 
-    // Function nr. 151
+    // Function nr. 154
     (
       Name:         'LOG10';
       Declaration:  '(X)';
@@ -2325,7 +2411,7 @@ var
       Description:  'Returns the base-10 logarithm of X.'
     ),
 
-    // Function nr. 152
+    // Function nr. 155
     (
       Name:         'LOG2';
       Declaration:  '(X)';
@@ -2334,7 +2420,7 @@ var
       Description:  'Returns the base-2 logarithm of X.'
     ),
 
-    // Function nr. 153
+    // Function nr. 156
     (
       Name:         'LOWER';
       Declaration:  '(str)';
@@ -2342,10 +2428,18 @@ var
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string str with all characters changed to lowercase '
         +'according to the current character set mapping. The default is latin1 '
-        +'(cp1252 West European).'
+        +'(cp1252 West European). mysql> SELECT LOWER(''QUADRATICALLY''); -> '
+        +'''quadratically'' LOWER() (and UPPER()) are ineffective when applied '
+        +'to binary strings (BINARY, VARBINARY, BLOB). To perform lettercase '
+        +'conversion, convert the string to a non-binary string: mysql> SET @str '
+        +'= BINARY ''New York''; mysql> SELECT LOWER(@str), LOWER(CONVERT(@str '
+        +'USING latin1)); +-------------+-----------------------------------+ | '
+        +'LOWER(@str) | LOWER(CONVERT(@str USING latin1)) | '
+        +'+-------------+-----------------------------------+ | New York | new '
+        +'york | +-------------+-----------------------------------+'
     ),
 
-    // Function nr. 154
+    // Function nr. 157
     (
       Name:         'LPAD';
       Declaration:  '(str,len,padstr)';
@@ -2356,7 +2450,7 @@ var
         +'shortened to len characters.'
     ),
 
-    // Function nr. 155
+    // Function nr. 158
     (
       Name:         'LTRIM';
       Declaration:  '(str)';
@@ -2365,7 +2459,7 @@ var
       Description:  'Returns the string str with leading space characters removed.'
     ),
 
-    // Function nr. 156
+    // Function nr. 159
     (
       Name:         'MAKEDATE';
       Declaration:  '(year,dayofyear)';
@@ -2375,7 +2469,7 @@ var
         +'greater than 0 or the result is NULL.'
     ),
 
-    // Function nr. 157
+    // Function nr. 160
     (
       Name:         'MAKETIME';
       Declaration:  '(hour,minute,second)';
@@ -2385,19 +2479,19 @@ var
         +'arguments.'
     ),
 
-    // Function nr. 158
+    // Function nr. 161
     (
       Name:         'MAKE_SET';
       Declaration:  '(bits,str1,str2,...)';
       Category:     'String Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns a set value (a string containing substrings separated by `,'' '
+      Description:  'Returns a set value (a string containing substrings separated by "," '
         +'characters) consisting of the strings that have the corresponding bit '
         +'in bits set. str1 corresponds to bit 0, str2 to bit 1, and so on. NULL '
         +'values in str1, str2, ... are not appended to the result.'
     ),
 
-    // Function nr. 159
+    // Function nr. 162
     (
       Name:         'MASTER_POS_WAIT';
       Declaration:  '(log_name,log_pos[,timeout])';
@@ -2412,23 +2506,24 @@ var
         +'arguments are incorrect, or an error occurs. It returns -1 if the '
         +'timeout has been exceeded. If the slave SQL thread stops while '
         +'MASTER_POS_WAIT() is waiting, the function returns NULL. If the slave '
-        +'is past the specified position, the function returns immediately.'
+        +'is past the specified position, the function returns immediately. If a '
+        +'timeout value is specified, MASTER_POS_WAIT() stops waiting when '
+        +'timeout seconds have elapsed. timeout must be greater than 0; a zero '
+        +'or negative timeout means no timeout.'
     ),
 
-    // Function nr. 160
+    // Function nr. 163
     (
       Name:         'MATCH';
       Declaration:  '(col1,col2,...)';
       Category:     'String Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'search_modifier: { IN BOOLEAN MODE | IN NATURAL LANGUAGE MODE | IN '
-        +'NATURAL LANGUAGE MODE WITH QUERY EXPANSION | WITH QUERY EXPANSION } '
-        +'MySQL has support for full-text indexing and searching: A full-text '
+      Description:  'MySQL has support for full-text indexing and searching: A full-text '
         +'index in MySQL is an index of type FULLTEXT. Full-text indexes can be '
         +'used only with MyISAM tables, and can be created only for CHAR, '
         +'VARCHAR, or TEXT columns. A FULLTEXT index definition can be given in '
         +'the CREATE TABLE statement when a table is created, or added later '
-        +'using ALTER TABLE or CREATE INDEX. For large datasets, it is much '
+        +'using ALTER TABLE or CREATE INDEX. For large data sets, it is much '
         +'faster to load your data into a table that has no FULLTEXT index and '
         +'then create the index after that, than to load data into a table that '
         +'has an existing FULLTEXT index. Full-text searching is performed using '
@@ -2449,7 +2544,7 @@ var
         +'natural language search interprets the search string as a phrase in '
         +'natural human language (a phrase in free text). There are no special '
         +'operators. The stopword list applies. In addition, words that are '
-        +'present in more than 50% of the rows are considered common and do not '
+        +'present in 50% or more of the rows are considered common and do not '
         +'match. Full-text searches are natural language searches if the IN '
         +'NATURAL LANGUAGE MODE modifier is given or if no modifier is given. A '
         +'query expansion search is a modification of a natural language search. '
@@ -2464,26 +2559,41 @@ var
         +'EXPANSION modifiers were added in MySQL 5.1.7.'
     ),
 
-    // Function nr. 161
+    // Function nr. 164
+    (
+      Name:         'MAX';
+      Declaration:  '([DISTINCT] expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      SQL_VERSION_ANSI;
+      Description:  'Returns the maximum value of expr. MAX() may take a string argument; '
+        +'in such cases, it returns the maximum string value. See '
+        +'http://dev.mysql.com/doc/refman/5.1/en/mysql-indexes.html. The '
+        +'DISTINCT keyword can be used to find the maximum of the distinct '
+        +'values of expr, however, this produces the same result as omitting '
+        +'DISTINCT. MAX() returns NULL if there were no matching rows.'
+    ),
+
+    // Function nr. 165
     (
       Name:         'MBR';
-      Declaration:  '';
+      Declaration:  '(Minimum Bounding Rectangle)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
       Description:  ''
     ),
 
-    // Function nr. 162
+    // Function nr. 166
     (
       Name:         'MBRCONTAINS';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangle of '
-        +'g1 contains the Minimum Bounding Rectangle of g2.'
+        +'g1 contains the Minimum Bounding Rectangle of g2. This tests the '
+        +'opposite relationship as MBRWithin().'
     ),
 
-    // Function nr. 163
+    // Function nr. 167
     (
       Name:         'MBRDISJOINT';
       Declaration:  '(g1,g2)';
@@ -2493,7 +2603,7 @@ var
         +'the two geometries g1 and g2 are disjoint (do not intersect).'
     ),
 
-    // Function nr. 164
+    // Function nr. 168
     (
       Name:         'MBREQUAL';
       Declaration:  '(g1,g2)';
@@ -2503,7 +2613,7 @@ var
         +'the two geometries g1 and g2 are the same.'
     ),
 
-    // Function nr. 165
+    // Function nr. 169
     (
       Name:         'MBRINTERSECTS';
       Declaration:  '(g1,g2)';
@@ -2513,37 +2623,44 @@ var
         +'the two geometries g1 and g2 intersect.'
     ),
 
-    // Function nr. 166
+    // Function nr. 170
     (
       Name:         'MBROVERLAPS';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangles of '
-        +'the two geometries g1 and g2 overlap.'
+        +'the two geometries g1 and g2 overlap. The term spatially overlaps is '
+        +'used if two geometries intersect and their intersection results in a '
+        +'geometry of the same dimension but not equal to either of the given '
+        +'geometries.'
     ),
 
-    // Function nr. 167
+    // Function nr. 171
     (
       Name:         'MBRTOUCHES';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangles of '
-        +'the two geometries g1 and g2 touch.'
+        +'the two geometries g1 and g2 touch. Two geometries spatially touch if '
+        +'the interiors of the geometries do not intersect, but the boundary of '
+        +'one of the geometries intersects either the boundary or the interior '
+        +'of the other.'
     ),
 
-    // Function nr. 168
+    // Function nr. 172
     (
       Name:         'MBRWITHIN';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns 1 or 0 to indicate whether the Minimum Bounding Rectangle of '
-        +'g1 is within the Minimum Bounding Rectangle of g2.'
+        +'g1 is within the Minimum Bounding Rectangle of g2. This tests the '
+        +'opposite relationship as MBRContains().'
     ),
 
-    // Function nr. 169
+    // Function nr. 173
     (
       Name:         'MD5';
       Declaration:  '(str)';
@@ -2554,7 +2671,7 @@ var
         +'was NULL. The return value can, for example, be used as a hash key.'
     ),
 
-    // Function nr. 170
+    // Function nr. 174
     (
       Name:         'MICROSECOND';
       Declaration:  '(expr)';
@@ -2564,7 +2681,7 @@ var
         +'a number in the range from 0 to 999999.'
     ),
 
-    // Function nr. 171
+    // Function nr. 175
     (
       Name:         'MID';
       Declaration:  '(str,pos,len)';
@@ -2573,23 +2690,21 @@ var
       Description:  'MID(str,pos,len) is a synonym for SUBSTRING(str,pos,len).'
     ),
 
-    // Function nr. 172
+    // Function nr. 176
     (
       Name:         'MIN';
       Declaration:  '([DISTINCT] expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns the minimum or maximum value of expr. MIN() and MAX() may take '
-        +'a string argument; in such cases they return the minimum or maximum '
-        +'string value. See '
+      Description:  'Returns the minimum value of expr. MIN() may take a string argument; '
+        +'in such cases, it returns the minimum string value. See '
         +'http://dev.mysql.com/doc/refman/5.1/en/mysql-indexes.html. The '
-        +'DISTINCT keyword can be used to find the minimum or maximum of the '
-        +'distinct values of expr, however, this produces the same result as '
-        +'omitting DISTINCT. MIN() and MAX() return NULL if there were no '
-        +'matching rows.'
+        +'DISTINCT keyword can be used to find the minimum of the distinct '
+        +'values of expr, however, this produces the same result as omitting '
+        +'DISTINCT. MIN() returns NULL if there were no matching rows.'
     ),
 
-    // Function nr. 173
+    // Function nr. 177
     (
       Name:         'MINUTE';
       Declaration:  '(time)';
@@ -2598,7 +2713,7 @@ var
       Description:  'Returns the minute for time, in the range 0 to 59.'
     ),
 
-    // Function nr. 174
+    // Function nr. 178
     (
       Name:         'MLINEFROMTEXT';
       Declaration:  '(wkt[,srid])';
@@ -2608,7 +2723,7 @@ var
         +'SRID.'
     ),
 
-    // Function nr. 175
+    // Function nr. 179
     (
       Name:         'MLINEFROMWKB';
       Declaration:  '(wkb[,srid])';
@@ -2618,25 +2733,39 @@ var
         +'SRID.'
     ),
 
-    // Function nr. 176
+    // Function nr. 180
+    (
+      Name:         'MOD';
+      Declaration:  '(N,M)';
+      Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
+      Description:  'Modulo operation. Returns the remainder of N divided by M.'
+    ),
+
+    // Function nr. 181
     (
       Name:         'MONTH';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns the month for date, in the range 0 to 12.'
+      Description:  'Returns the month for date, in the range 1 to 12 for January to '
+        +'December, or 0 for dates such as ''0000-00-00'' or ''2008-00-00'' that '
+        +'have a zero month part.'
     ),
 
-    // Function nr. 177
+    // Function nr. 182
     (
       Name:         'MONTHNAME';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
       Version:      40121;
-      Description:  'Returns the full name of the month for date.'
+      Description:  'Returns the full name of the month for date. As of MySQL 5.1.12, the '
+        +'language used for the name is controlled by the value of the '
+        +'lc_time_names system variable '
+        +'(http://dev.mysql.com/doc/refman/5.1/en/locale-support.html).'
     ),
 
-    // Function nr. 178
+    // Function nr. 183
     (
       Name:         'MPOINTFROMTEXT';
       Declaration:  '(wkt[,srid])';
@@ -2645,7 +2774,7 @@ var
       Description:  'Constructs a MULTIPOINT value using its WKT representation and SRID.'
     ),
 
-    // Function nr. 179
+    // Function nr. 184
     (
       Name:         'MPOINTFROMWKB';
       Declaration:  '(wkb[,srid])';
@@ -2654,7 +2783,7 @@ var
       Description:  'Constructs a MULTIPOINT value using its WKB representation and SRID.'
     ),
 
-    // Function nr. 180
+    // Function nr. 185
     (
       Name:         'MPOLYFROMTEXT';
       Declaration:  '(wkt[,srid])';
@@ -2663,7 +2792,7 @@ var
       Description:  'Constructs a MULTIPOLYGON value using its WKT representation and SRID.'
     ),
 
-    // Function nr. 181
+    // Function nr. 186
     (
       Name:         'MPOLYFROMWKB';
       Declaration:  '(wkb[,srid])';
@@ -2672,7 +2801,7 @@ var
       Description:  'Constructs a MULTIPOLYGON value using its WKB representation and SRID.'
     ),
 
-    // Function nr. 182
+    // Function nr. 187
     (
       Name:         'MULTILINESTRING';
       Declaration:  '(ls1,ls2,...)';
@@ -2682,7 +2811,7 @@ var
         +'If any argument is not a WKB LineString, the return value is NULL.'
     ),
 
-    // Function nr. 183
+    // Function nr. 188
     (
       Name:         'MULTIPOINT';
       Declaration:  '(pt1,pt2,...)';
@@ -2692,7 +2821,7 @@ var
         +'argument is not a WKB Point, the return value is NULL.'
     ),
 
-    // Function nr. 184
+    // Function nr. 189
     (
       Name:         'MULTIPOLYGON';
       Declaration:  '(poly1,poly2,...)';
@@ -2703,19 +2832,19 @@ var
         +'NULL.'
     ),
 
-    // Function nr. 185
+    // Function nr. 190
     (
       Name:         'NAME_CONST';
       Declaration:  '(name,value)';
       Category:     'Miscellaneous Functions';
       Version:      50012;
       Description:  'Returns the given value. When used to produce a result set column, '
-        +'NAME_CONST() causes the column to have the given name. mysql> SELECT '
-        +'NAME_CONST(''myname'', 14); +--------+ | myname | +--------+ | 14 | '
-        +'+--------+'
+        +'NAME_CONST() causes the column to have the given name. The arguments '
+        +'should be constants. mysql> SELECT NAME_CONST(''myname'', 14); '
+        +'+--------+ | myname | +--------+ | 14 | +--------+'
     ),
 
-    // Function nr. 186
+    // Function nr. 191
     (
       Name:         'NOT';
       Declaration:  '';
@@ -2724,18 +2853,19 @@ var
       Description:  'This is the same as NOT (expr BETWEEN min AND max).'
     ),
 
-    // Function nr. 187
+    // Function nr. 192
     (
       Name:         'NOW';
       Declaration:  '()';
       Category:     'Date and Time Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns the current date and time as a value in ''YYYY-MM-DD '
-        +'HH:MM:SS'' or YYYYMMDDHHMMSS format, depending on whether the function '
-        +'is used in a string or numeric context.'
+        +'HH:MM:SS'' or YYYYMMDDHHMMSS.uuuuuu format, depending on whether the '
+        +'function is used in a string or numeric context. The value is '
+        +'expressed in the current time zone.'
     ),
 
-    // Function nr. 188
+    // Function nr. 193
     (
       Name:         'NULLIF';
       Declaration:  '(expr1,expr2)';
@@ -2745,7 +2875,7 @@ var
         +'is the same as CASE WHEN expr1 = expr2 THEN NULL ELSE expr1 END.'
     ),
 
-    // Function nr. 189
+    // Function nr. 194
     (
       Name:         'NUMINTERIORRINGS';
       Declaration:  '(poly)';
@@ -2754,7 +2884,7 @@ var
       Description:  'Returns the number of interior rings in the Polygon value poly.'
     ),
 
-    // Function nr. 190
+    // Function nr. 195
     (
       Name:         'NUMPOINTS';
       Declaration:  '(ls)';
@@ -2763,27 +2893,27 @@ var
       Description:  'Returns the number of Point objects in the LineString value ls.'
     ),
 
-    // Function nr. 191
+    // Function nr. 196
     (
       Name:         'OCT';
       Declaration:  '(N)';
-      Category:     'String Functions';
+      Category:     'Numeric Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns a string representation of the octal value of N, where N is a '
         +'longlong (BIGINT) number. This is equivalent to CONV(N,10,8). Returns '
         +'NULL if N is NULL.'
     ),
 
-    // Function nr. 192
+    // Function nr. 197
     (
-      Name:         'OCTETLENGTH';
+      Name:         'OCTET_LENGTH';
       Declaration:  '(str)';
       Category:     'String Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'OCTET_LENGTH() is a synonym for LENGTH().'
     ),
 
-    // Function nr. 193
+    // Function nr. 198
     (
       Name:         'OLD_PASSWORD';
       Declaration:  '(str)';
@@ -2798,7 +2928,7 @@ var
         +'http://dev.mysql.com/doc/refman/5.1/en/password-hashing.html.'
     ),
 
-    // Function nr. 194
+    // Function nr. 199
     (
       Name:         'ORD';
       Declaration:  '(str)';
@@ -2812,7 +2942,7 @@ var
         +'as the ASCII() function.'
     ),
 
-    // Function nr. 195
+    // Function nr. 200
     (
       Name:         'OVERLAPS';
       Declaration:  '(g1,g2)';
@@ -2824,7 +2954,7 @@ var
         +'to either of the given geometries.'
     ),
 
-    // Function nr. 196
+    // Function nr. 201
     (
       Name:         'PASSWORD';
       Declaration:  '(str)';
@@ -2836,7 +2966,7 @@ var
         +'storage in the Password column of the user grant table.'
     ),
 
-    // Function nr. 197
+    // Function nr. 202
     (
       Name:         'PERIOD_ADD';
       Declaration:  '(P,N)';
@@ -2847,7 +2977,7 @@ var
         +'date value.'
     ),
 
-    // Function nr. 198
+    // Function nr. 203
     (
       Name:         'PERIOD_DIFF';
       Declaration:  '(P1,P2)';
@@ -2858,7 +2988,7 @@ var
         +'P1 and P2 are not date values.'
     ),
 
-    // Function nr. 199
+    // Function nr. 204
     (
       Name:         'PI';
       Declaration:  '()';
@@ -2869,7 +2999,7 @@ var
         +'internally.'
     ),
 
-    // Function nr. 200
+    // Function nr. 205
     (
       Name:         'POINT';
       Declaration:  '(x,y)';
@@ -2878,7 +3008,7 @@ var
       Description:  'Constructs a WKB Point using its coordinates.'
     ),
 
-    // Function nr. 201
+    // Function nr. 206
     (
       Name:         'POINTFROMTEXT';
       Declaration:  '(wkt[,srid])';
@@ -2887,7 +3017,7 @@ var
       Description:  'Constructs a POINT value using its WKT representation and SRID.'
     ),
 
-    // Function nr. 202
+    // Function nr. 207
     (
       Name:         'POINTFROMWKB';
       Declaration:  '(wkb[,srid])';
@@ -2896,7 +3026,7 @@ var
       Description:  'Constructs a POINT value using its WKB representation and SRID.'
     ),
 
-    // Function nr. 203
+    // Function nr. 208
     (
       Name:         'POINTN';
       Declaration:  '(ls,N)';
@@ -2906,7 +3036,7 @@ var
         +'beginning with 1.'
     ),
 
-    // Function nr. 204
+    // Function nr. 209
     (
       Name:         'POLYFROMTEXT';
       Declaration:  '(wkt[,srid])';
@@ -2915,7 +3045,7 @@ var
       Description:  'Constructs a POLYGON value using its WKT representation and SRID.'
     ),
 
-    // Function nr. 205
+    // Function nr. 210
     (
       Name:         'POLYFROMWKB';
       Declaration:  '(wkb[,srid])';
@@ -2924,7 +3054,7 @@ var
       Description:  'Constructs a POLYGON value using its WKB representation and SRID.'
     ),
 
-    // Function nr. 206
+    // Function nr. 211
     (
       Name:         'POLYGON';
       Declaration:  '(ls1,ls2,...)';
@@ -2936,7 +3066,7 @@ var
         +'NULL.'
     ),
 
-    // Function nr. 207
+    // Function nr. 212
     (
       Name:         'POSITION';
       Declaration:  '(substr IN str)';
@@ -2945,16 +3075,25 @@ var
       Description:  'POSITION(substr IN str) is a synonym for LOCATE(substr,str).'
     ),
 
-    // Function nr. 208
+    // Function nr. 213
     (
-      Name:         'POWER';
+      Name:         'POW';
       Declaration:  '(X,Y)';
       Category:     'Numeric Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns the value of X raised to the power of Y.'
     ),
 
-    // Function nr. 209
+    // Function nr. 214
+    (
+      Name:         'POWER';
+      Declaration:  '(X,Y)';
+      Category:     'Numeric Functions';
+      Version:      SQL_VERSION_ANSI;
+      Description:  'This is a synonym for POW().'
+    ),
+
+    // Function nr. 215
     (
       Name:         'QUARTER';
       Declaration:  '(date)';
@@ -2963,7 +3102,7 @@ var
       Description:  'Returns the quarter of the year for date, in the range 1 to 4.'
     ),
 
-    // Function nr. 210
+    // Function nr. 216
     (
       Name:         'QUOTE';
       Declaration:  '(str)';
@@ -2972,12 +3111,12 @@ var
       Description:  'Quotes a string to produce a result that can be used as a properly '
         +'escaped data value in an SQL statement. The string is returned '
         +'enclosed by single quotes and with each instance of single quote '
-        +'(`''''), backslash (`\''), ASCII NUL, and Control-Z preceded by a '
+        +'("''"), backslash ("\"), ASCII NUL, and Control-Z preceded by a '
         +'backslash. If the argument is NULL, the return value is the word '
         +'"NULL" without enclosing single quotes.'
     ),
 
-    // Function nr. 211
+    // Function nr. 217
     (
       Name:         'RADIANS';
       Declaration:  '(X)';
@@ -2987,19 +3126,20 @@ var
         +'? radians equals 180 degrees.)'
     ),
 
-    // Function nr. 212
+    // Function nr. 218
     (
       Name:         'RAND';
       Declaration:  '()';
       Category:     'Numeric Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns a random floating-point value v between 0 and 1 inclusive '
-        +'(that is, in the range 0 <= v <= 1.0). If an integer argument N is '
-        +'specified, it is used as the seed value, which produces a repeatable '
-        +'sequence of column values.'
+      Description:  'Returns a random floating-point value v in the range 0 <= v < 1.0. If '
+        +'a constant integer argument N is specified, it is used as the seed '
+        +'value, which produces a repeatable sequence of column values. In the '
+        +'following example, note that the sequences of values produced by '
+        +'RAND(3) is the same both places where it occurs.'
     ),
 
-    // Function nr. 213
+    // Function nr. 219
     (
       Name:         'REGEXP';
       Declaration:  '';
@@ -3012,14 +3152,14 @@ var
         +'matches pat; otherwise it returns 0. If either expr or pat is NULL, '
         +'the result is NULL. RLIKE is a synonym for REGEXP, provided for mSQL '
         +'compatibility. The pattern need not be a literal string. For example, '
-        +'it can be specified as a string expression or table column. Note: '
-        +'Because MySQL uses the C escape syntax in strings (for example, `\n'' '
-        +'to represent the newline character), you must double any `\'' that you '
+        +'it can be specified as a string expression or table column. *Note*: '
+        +'Because MySQL uses the C escape syntax in strings (for example, "\n" '
+        +'to represent the newline character), you must double any "\" that you '
         +'use in your REGEXP strings. REGEXP is not case sensitive, except when '
         +'used with binary strings.'
     ),
 
-    // Function nr. 214
+    // Function nr. 220
     (
       Name:         'RELEASE_LOCK';
       Declaration:  '(str)';
@@ -3034,7 +3174,7 @@ var
         +'RELEASE_LOCK(). See [HELP DO].'
     ),
 
-    // Function nr. 215
+    // Function nr. 221
     (
       Name:         'REPEAT';
       Declaration:  '(str,count)';
@@ -3045,7 +3185,7 @@ var
         +'count are NULL.'
     ),
 
-    // Function nr. 216
+    // Function nr. 222
     (
       Name:         'REPLACE';
       Declaration:  '(str,from_str,to_str)';
@@ -3056,7 +3196,7 @@ var
         +'match when searching for from_str.'
     ),
 
-    // Function nr. 217
+    // Function nr. 223
     (
       Name:         'REVERSE';
       Declaration:  '(str)';
@@ -3065,7 +3205,7 @@ var
       Description:  'Returns the string str with the order of the characters reversed.'
     ),
 
-    // Function nr. 218
+    // Function nr. 224
     (
       Name:         'RIGHT';
       Declaration:  '(str,len)';
@@ -3075,19 +3215,19 @@ var
         +'any argument is NULL.'
     ),
 
-    // Function nr. 219
+    // Function nr. 225
     (
       Name:         'ROUND';
       Declaration:  '(X)';
       Category:     'Numeric Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns the argument X, rounded to the nearest integer. With two '
-        +'arguments, returns X rounded to D decimal places. D can be negative to '
-        +'cause D digits left of the decimal point of the value X to become '
-        +'zero.'
+      Description:  'Rounds the argument X to D decimal places. The rounding algorithm '
+        +'depends on the data type of X. D defaults to 0 if not specified. D can '
+        +'be negative to cause D digits left of the decimal point of the value X '
+        +'to become zero.'
     ),
 
-    // Function nr. 220
+    // Function nr. 226
     (
       Name:         'ROW_COUNT';
       Declaration:  '()';
@@ -3099,7 +3239,7 @@ var
         +'API function.'
     ),
 
-    // Function nr. 221
+    // Function nr. 227
     (
       Name:         'RPAD';
       Declaration:  '(str,len,padstr)';
@@ -3110,7 +3250,7 @@ var
         +'is shortened to len characters.'
     ),
 
-    // Function nr. 222
+    // Function nr. 228
     (
       Name:         'RTRIM';
       Declaration:  '(str)';
@@ -3119,7 +3259,7 @@ var
       Description:  'Returns the string str with trailing space characters removed.'
     ),
 
-    // Function nr. 223
+    // Function nr. 229
     (
       Name:         'SCHEMA';
       Declaration:  '()';
@@ -3128,7 +3268,7 @@ var
       Description:  'This function is a synonym for DATABASE().'
     ),
 
-    // Function nr. 224
+    // Function nr. 230
     (
       Name:         'SECOND';
       Declaration:  '(time)';
@@ -3137,18 +3277,19 @@ var
       Description:  'Returns the second for time, in the range 0 to 59.'
     ),
 
-    // Function nr. 225
+    // Function nr. 231
     (
       Name:         'SEC_TO_TIME';
       Declaration:  '(seconds)';
       Category:     'Date and Time Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns the seconds argument, converted to hours, minutes, and '
-        +'seconds, as a value in ''HH:MM:SS'' or HHMMSS format, depending on '
-        +'whether the function is used in a string or numeric context.'
+        +'seconds, as a TIME value. The range of the result is constrained to '
+        +'that of the TIME data type. A warning occurs if the argument '
+        +'corresponds to a value outside that range.'
     ),
 
-    // Function nr. 226
+    // Function nr. 232
     (
       Name:         'SESSION_USER';
       Declaration:  '()';
@@ -3157,9 +3298,9 @@ var
       Description:  'SESSION_USER() is a synonym for USER().'
     ),
 
-    // Function nr. 227
+    // Function nr. 233
     (
-      Name:         'SHA';
+      Name:         'SHA1';
       Declaration:  '(str)';
       Category:     'Encryption Functions';
       Version:      SQL_VERSION_ANSI;
@@ -3171,7 +3312,7 @@ var
         +'with SHA1().'
     ),
 
-    // Function nr. 228
+    // Function nr. 234
     (
       Name:         'SIGN';
       Declaration:  '(X)';
@@ -3181,7 +3322,7 @@ var
         +'X is negative, zero, or positive.'
     ),
 
-    // Function nr. 229
+    // Function nr. 235
     (
       Name:         'SIN';
       Declaration:  '(X)';
@@ -3190,7 +3331,7 @@ var
       Description:  'Returns the sine of X, where X is given in radians.'
     ),
 
-    // Function nr. 230
+    // Function nr. 236
     (
       Name:         'SLEEP';
       Declaration:  '(duration)';
@@ -3201,7 +3342,7 @@ var
         +'duration may have a fractional part given in microseconds.'
     ),
 
-    // Function nr. 231
+    // Function nr. 237
     (
       Name:         'SOUNDEX';
       Declaration:  '(str)';
@@ -3213,10 +3354,18 @@ var
         +'arbitrarily long string. You can use SUBSTRING() on the result to get '
         +'a standard soundex string. All non-alphabetic characters in str are '
         +'ignored. All international alphabetic characters outside the A-Z range '
-        +'are treated as vowels.'
+        +'are treated as vowels. *Important*: When using SOUNDEX(), you should '
+        +'be aware of the following limitations: This function, as currently '
+        +'implemented, is intended to work well with strings that are in the '
+        +'English language only. Strings in other languages may not produce '
+        +'reliable results. This function is not guaranteed to provide '
+        +'consistent results with strings that use multi-byte character sets, '
+        +'including utf-8. We hope to remove these limitations in a future '
+        +'release. See Bug#22638 (http://bugs.mysql.com/22638) for more '
+        +'information.'
     ),
 
-    // Function nr. 232
+    // Function nr. 238
     (
       Name:         'SOUNDS';
       Declaration:  '';
@@ -3225,7 +3374,7 @@ var
       Description:  'This is the same as SOUNDEX(expr1) = SOUNDEX(expr2).'
     ),
 
-    // Function nr. 233
+    // Function nr. 239
     (
       Name:         'SPACE';
       Declaration:  '(N)';
@@ -3234,7 +3383,7 @@ var
       Description:  'Returns a string consisting of N space characters.'
     ),
 
-    // Function nr. 234
+    // Function nr. 240
     (
       Name:         'SPATIAL';
       Declaration:  '';
@@ -3243,18 +3392,20 @@ var
       Description:  'o With CREATE TABLE: CREATE TABLE geom (g GEOMETRY NOT NULL, SPATIAL '
         +'INDEX(g)); With ALTER TABLE: ALTER TABLE geom ADD SPATIAL INDEX(g); '
         +'With CREATE INDEX: CREATE SPATIAL INDEX sp_index ON geom (g); For '
-        +'MyISAM tables, SPATIAL INDEX creates an R-tree index. For other '
-        +'storage engines that support spatial indexing, SPATIAL INDEX creates a '
-        +'B-tree index. A B-tree index on spatial values will be useful for '
-        +'exact-value lookups, but not for range scans. To drop spatial indexes, '
-        +'use ALTER TABLE or DROP INDEX: With ALTER TABLE: ALTER TABLE geom DROP '
-        +'INDEX g; With DROP INDEX: DROP INDEX sp_index ON geom; Example: '
-        +'Suppose that a table geom contains more than 32,000 geometries, which '
-        +'are stored in the column g of type GEOMETRY. The table also has an '
-        +'AUTO_INCREMENT column fid for storing object ID values.'
+        +'MyISAM tables, SPATIAL INDEX creates an R-tree index. For storage '
+        +'engines that support non-spatial indexing of spatial columns, the '
+        +'engine creates a B-tree index. A B-tree index on spatial values will '
+        +'be useful for exact-value lookups, but not for range scans. For more '
+        +'information on indexing spatial columns, see [HELP CREATE INDEX]. To '
+        +'drop spatial indexes, use ALTER TABLE or DROP INDEX: With ALTER TABLE: '
+        +'ALTER TABLE geom DROP INDEX g; With DROP INDEX: DROP INDEX sp_index ON '
+        +'geom; Example: Suppose that a table geom contains more than 32,000 '
+        +'geometries, which are stored in the column g of type GEOMETRY. The '
+        +'table also has an AUTO_INCREMENT column fid for storing object ID '
+        +'values.'
     ),
 
-    // Function nr. 235
+    // Function nr. 241
     (
       Name:         'SQRT';
       Declaration:  '(X)';
@@ -3263,7 +3414,7 @@ var
       Description:  'Returns the square root of a non-negative number X.'
     ),
 
-    // Function nr. 236
+    // Function nr. 242
     (
       Name:         'SRID';
       Declaration:  '(g)';
@@ -3275,7 +3426,7 @@ var
         +'Euclidean (planar) geometry.'
     ),
 
-    // Function nr. 237
+    // Function nr. 243
     (
       Name:         'STARTPOINT';
       Declaration:  '(ls)';
@@ -3284,20 +3435,31 @@ var
       Description:  'Returns the Point that is the start point of the LineString value ls.'
     ),
 
-    // Function nr. 238
+    // Function nr. 244
+    (
+      Name:         'STD';
+      Declaration:  '(expr)';
+      Category:     'Functions and Modifiers for Use with GROUP BY';
+      Version:      SQL_VERSION_ANSI;
+      Description:  'Returns the population standard deviation of expr. This is an '
+        +'extension to standard SQL. The standard SQL function STDDEV_POP() can '
+        +'be used instead. This function returns NULL if there were no matching '
+        +'rows.'
+    ),
+
+    // Function nr. 245
     (
       Name:         'STDDEV';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns the population standard deviation of expr. This is an '
-        +'extension to standard SQL. The STDDEV() form of this function is '
+      Description:  'Returns the population standard deviation of expr. This function is '
         +'provided for compatibility with Oracle. The standard SQL function '
-        +'STDDEV_POP() can be used instead. These functions return NULL if there '
+        +'STDDEV_POP() can be used instead. This function returns NULL if there '
         +'were no matching rows.'
     ),
 
-    // Function nr. 239
+    // Function nr. 246
     (
       Name:         'STDDEV_POP';
       Declaration:  '(expr)';
@@ -3309,7 +3471,7 @@ var
         +'matching rows.'
     ),
 
-    // Function nr. 240
+    // Function nr. 247
     (
       Name:         'STDDEV_SAMP';
       Declaration:  '(expr)';
@@ -3319,7 +3481,7 @@ var
         +'VAR_SAMP(). STDDEV_SAMP() returns NULL if there were no matching rows.'
     ),
 
-    // Function nr. 241
+    // Function nr. 248
     (
       Name:         'STRCMP';
       Declaration:  '(expr1,expr2)';
@@ -3330,7 +3492,7 @@ var
         +'order, and 1 otherwise.'
     ),
 
-    // Function nr. 242
+    // Function nr. 249
     (
       Name:         'STR_TO_DATE';
       Declaration:  '(str,format)';
@@ -3347,7 +3509,7 @@ var
         +'illegal value also produces a warning.'
     ),
 
-    // Function nr. 243
+    // Function nr. 250
     (
       Name:         'SUBDATE';
       Declaration:  '(date,INTERVAL expr unit)';
@@ -3356,15 +3518,24 @@ var
       Description:  'When invoked with the INTERVAL form of the second argument, SUBDATE() '
         +'is a synonym for DATE_SUB(). For information on the INTERVAL unit '
         +'argument, see the discussion for DATE_ADD(). mysql> SELECT '
-        +'DATE_SUB(''1998-01-02'', INTERVAL 31 DAY); -> ''1997-12-02'' mysql> '
-        +'SELECT SUBDATE(''1998-01-02'', INTERVAL 31 DAY); -> ''1997-12-02'' The '
+        +'DATE_SUB(''2008-01-02'', INTERVAL 31 DAY); -> ''2007-12-02'' mysql> '
+        +'SELECT SUBDATE(''2008-01-02'', INTERVAL 31 DAY); -> ''2007-12-02'' The '
         +'second form allows the use of an integer value for days. In such '
         +'cases, it is interpreted as the number of days to be subtracted from '
         +'the date or datetime expression expr. mysql> SELECT '
-        +'SUBDATE(''1998-01-02 12:00:00'', 31); -> ''1997-12-02 12:00:00'''
+        +'SUBDATE(''2008-01-02 12:00:00'', 31); -> ''2007-12-02 12:00:00'''
     ),
 
-    // Function nr. 244
+    // Function nr. 251
+    (
+      Name:         'SUBSTR';
+      Declaration:  '(str,pos)';
+      Category:     'String Functions';
+      Version:      SQL_VERSION_ANSI;
+      Description:  'SUBSTR() is a synonym for SUBSTRING().'
+    ),
+
+    // Function nr. 252
     (
       Name:         'SUBSTRING';
       Declaration:  '(str,pos)';
@@ -3377,10 +3548,12 @@ var
         +'possible to use a negative value for pos. In this case, the beginning '
         +'of the substring is pos characters from the end of the string, rather '
         +'than the beginning. A negative value may be used for pos in any of the '
-        +'forms of this function.'
+        +'forms of this function. For all forms of SUBSTRING(), the position of '
+        +'the first character in the string from which the substring is to be '
+        +'extracted is reckoned as 1.'
     ),
 
-    // Function nr. 245
+    // Function nr. 253
     (
       Name:         'SUBSTRING_INDEX';
       Declaration:  '(str,delim,count)';
@@ -3394,7 +3567,7 @@ var
         +'case-sensitive match when searching for delim.'
     ),
 
-    // Function nr. 246
+    // Function nr. 254
     (
       Name:         'SUBTIME';
       Declaration:  '(expr1,expr2)';
@@ -3405,7 +3578,7 @@ var
         +'a time expression.'
     ),
 
-    // Function nr. 247
+    // Function nr. 255
     (
       Name:         'SUM';
       Declaration:  '([DISTINCT] expr)';
@@ -3417,19 +3590,19 @@ var
         +'rows.'
     ),
 
-    // Function nr. 248
+    // Function nr. 256
     (
       Name:         'SYSDATE';
       Declaration:  '()';
       Category:     'Date and Time Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns the current date and time as a value in ''YYYY-MM-DD '
-        +'HH:MM:SS'' or YYYYMMDDHHMMSS format, depending on whether the function '
-        +'is used in a string or numeric context. SYSDATE() returns the time at '
-        +'which it executes. This differs from the behavior for NOW(), which '
-        +'returns a constant time that indicates the time at which the statement '
-        +'began to execute. (Within a stored routine or trigger, NOW() returns '
-        +'the time at which the routine or triggering statement began to '
+        +'HH:MM:SS'' or YYYYMMDDHHMMSS.uuuuuu format, depending on whether the '
+        +'function is used in a string or numeric context. SYSDATE() returns the '
+        +'time at which it executes. This differs from the behavior for NOW(), '
+        +'which returns a constant time that indicates the time at which the '
+        +'statement began to execute. (Within a stored routine or trigger, NOW() '
+        +'returns the time at which the routine or triggering statement began to '
         +'execute.) mysql> SELECT NOW(), SLEEP(2), NOW(); '
         +'+---------------------+----------+---------------------+ | NOW() | '
         +'SLEEP(2) | NOW() | '
@@ -3450,10 +3623,11 @@ var
         +'unsafe for replication if statement-based binary logging is used. If '
         +'that is a problem, you can use row-based logging, or start the server '
         +'with the --sysdate-is-now option to cause SYSDATE() to be an alias for '
-        +'NOW().'
+        +'NOW(). The non-deterministic nature of SYSDATE() also means that '
+        +'indexes cannot be used for evaluating expressions that refer to it.'
     ),
 
-    // Function nr. 249
+    // Function nr. 257
     (
       Name:         'SYSTEM_USER';
       Declaration:  '()';
@@ -3462,7 +3636,7 @@ var
       Description:  'SYSTEM_USER() is a synonym for USER().'
     ),
 
-    // Function nr. 250
+    // Function nr. 258
     (
       Name:         'TAN';
       Declaration:  '(X)';
@@ -3471,7 +3645,7 @@ var
       Description:  'Returns the tangent of X, where X is given in radians.'
     ),
 
-    // Function nr. 251
+    // Function nr. 259
     (
       Name:         'TIME';
       Declaration:  '(expr)';
@@ -3481,7 +3655,7 @@ var
         +'returns it as a string.'
     ),
 
-    // Function nr. 252
+    // Function nr. 260
     (
       Name:         'TIMEDIFF';
       Declaration:  '(expr1,expr2)';
@@ -3492,7 +3666,7 @@ var
         +'same type.'
     ),
 
-    // Function nr. 253
+    // Function nr. 261
     (
       Name:         'TIMESTAMP';
       Declaration:  '(expr)';
@@ -3504,7 +3678,7 @@ var
         +'returns the result as a datetime value.'
     ),
 
-    // Function nr. 254
+    // Function nr. 262
     (
       Name:         'TIMESTAMPADD';
       Declaration:  '(unit,interval,datetime_expr)';
@@ -3512,25 +3686,31 @@ var
       Version:      50000;
       Description:  'Adds the integer expression interval to the date or datetime '
         +'expression datetime_expr. The unit for interval is given by the unit '
-        +'argument, which should be one of the following values: FRAC_SECOND, '
-        +'SECOND, MINUTE, HOUR, DAY, WEEK, MONTH, QUARTER, or YEAR. The unit '
-        +'value may be specified using one of keywords as shown, or with a '
-        +'prefix of SQL_TSI_. For example, DAY and SQL_TSI_DAY both are legal.'
+        +'argument, which should be one of the following values: FRAC_SECOND '
+        +'(microseconds), SECOND, MINUTE, HOUR, DAY, WEEK, MONTH, QUARTER, or '
+        +'YEAR. Beginning with MySQL 5.1.24, it is possible to use MICROSECOND '
+        +'in place of FRAC_SECOND with this function, and FRAC_SECOND is '
+        +'deprecated. The unit value may be specified using one of keywords as '
+        +'shown, or with a prefix of SQL_TSI_. For example, DAY and SQL_TSI_DAY '
+        +'both are legal.'
     ),
 
-    // Function nr. 255
+    // Function nr. 263
     (
       Name:         'TIMESTAMPDIFF';
       Declaration:  '(unit,datetime_expr1,datetime_expr2)';
       Category:     'Date and Time Functions';
       Version:      50000;
-      Description:  'Returns the integer difference between the date or datetime '
-        +'expressions datetime_expr1 and datetime_expr2. The unit for the result '
-        +'is given by the unit argument. The legal values for unit are the same '
-        +'as those listed in the description of the TIMESTAMPADD() function.'
+      Description:  'Returns datetime_expr2 - datetime_expr1, where datetime_expr1 and '
+        +'datetime_expr2 are date or datetime expressions. One expression may be '
+        +'a date and the other a datetime; a date value is treated as a datetime '
+        +'having the time part ''00:00:00'' where necessary. The unit for the '
+        +'result (an integer) is given by the unit argument. The legal values '
+        +'for unit are the same as those listed in the description of the '
+        +'TIMESTAMPADD() function.'
     ),
 
-    // Function nr. 256
+    // Function nr. 264
     (
       Name:         'TIME_FORMAT';
       Declaration:  '(time,format)';
@@ -3541,7 +3721,7 @@ var
         +'Other specifiers produce a NULL value or 0.'
     ),
 
-    // Function nr. 257
+    // Function nr. 265
     (
       Name:         'TIME_TO_SEC';
       Declaration:  '(time)';
@@ -3550,7 +3730,7 @@ var
       Description:  'Returns the time argument, converted to seconds.'
     ),
 
-    // Function nr. 258
+    // Function nr. 266
     (
       Name:         'TOUCHES';
       Declaration:  '(g1,g2)';
@@ -3562,7 +3742,7 @@ var
         +'the boundary or the interior of the other.'
     ),
 
-    // Function nr. 259
+    // Function nr. 267
     (
       Name:         'TO_DAYS';
       Declaration:  '(date)';
@@ -3572,7 +3752,7 @@ var
         +'0).'
     ),
 
-    // Function nr. 260
+    // Function nr. 268
     (
       Name:         'TRIM';
       Declaration:  '([{BOTH | LEADING | TRAILING} [remstr] FROM] str)';
@@ -3583,7 +3763,7 @@ var
         +'assumed. remstr is optional and, if not specified, spaces are removed.'
     ),
 
-    // Function nr. 261
+    // Function nr. 269
     (
       Name:         'TRUNCATE';
       Declaration:  '(X,D)';
@@ -3595,7 +3775,7 @@ var
         +'zero.'
     ),
 
-    // Function nr. 262
+    // Function nr. 270
     (
       Name:         'UCASE';
       Declaration:  '(str)';
@@ -3604,7 +3784,7 @@ var
       Description:  'UCASE() is a synonym for UPPER().'
     ),
 
-    // Function nr. 263
+    // Function nr. 271
     (
       Name:         'UNCOMPRESS';
       Declaration:  '(string_to_uncompress)';
@@ -3616,7 +3796,7 @@ var
         +'as zlib. Otherwise, the return value is always NULL.'
     ),
 
-    // Function nr. 264
+    // Function nr. 272
     (
       Name:         'UNCOMPRESSED_LENGTH';
       Declaration:  '(compressed_string)';
@@ -3626,7 +3806,7 @@ var
         +'compressed.'
     ),
 
-    // Function nr. 265
+    // Function nr. 273
     (
       Name:         'UNHEX';
       Declaration:  '';
@@ -3638,7 +3818,7 @@ var
         +'resulting characters are returned as a binary string.'
     ),
 
-    // Function nr. 266
+    // Function nr. 274
     (
       Name:         'UNIX_TIMESTAMP';
       Declaration:  '()';
@@ -3655,7 +3835,7 @@ var
         +'http://dev.mysql.com/doc/refman/5.1/en/time-zone-support.html.'
     ),
 
-    // Function nr. 267
+    // Function nr. 275
     (
       Name:         'UPDATEXML';
       Declaration:  '(xml_target, xpath_expr, new_xml)';
@@ -3667,10 +3847,10 @@ var
         +'XPath expression xpath_expr supplied by the user. If no expression '
         +'matching xpath_expr is found, or if multiple matches are found, the '
         +'function returns the original xml_target XML fragment. All three '
-        +'arguments must be strings.'
+        +'arguments should be strings.'
     ),
 
-    // Function nr. 268
+    // Function nr. 276
     (
       Name:         'UPPER';
       Declaration:  '(str)';
@@ -3678,10 +3858,13 @@ var
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string str with all characters changed to uppercase '
         +'according to the current character set mapping. The default is latin1 '
-        +'(cp1252 West European).'
+        +'(cp1252 West European). mysql> SELECT UPPER(''Hej''); -> ''HEJ'' '
+        +'UPPER() is ineffective when applied to binary strings (BINARY, '
+        +'VARBINARY, BLOB). The description of LOWER() shows how to perform '
+        +'lettercase conversion of binary strings.'
     ),
 
-    // Function nr. 269
+    // Function nr. 277
     (
       Name:         'USER';
       Declaration:  '()';
@@ -3691,7 +3874,7 @@ var
         +'utf8 character set.'
     ),
 
-    // Function nr. 270
+    // Function nr. 278
     (
       Name:         'UTC_DATE';
       Declaration:  '()';
@@ -3702,29 +3885,29 @@ var
         +'numeric context.'
     ),
 
-    // Function nr. 271
+    // Function nr. 279
     (
       Name:         'UTC_TIME';
       Declaration:  '()';
       Category:     'Date and Time Functions';
       Version:      40101;
-      Description:  'Returns the current UTC time as a value in ''HH:MM:SS'' or HHMMSS '
-        +'format, depending on whether the function is used in a string or '
-        +'numeric context.'
+      Description:  'Returns the current UTC time as a value in ''HH:MM:SS'' or '
+        +'HHMMSS.uuuuuu format, depending on whether the function is used in a '
+        +'string or numeric context.'
     ),
 
-    // Function nr. 272
+    // Function nr. 280
     (
       Name:         'UTC_TIMESTAMP';
       Declaration:  '()';
       Category:     'Date and Time Functions';
       Version:      40101;
       Description:  'Returns the current UTC date and time as a value in ''YYYY-MM-DD '
-        +'HH:MM:SS'' or YYYYMMDDHHMMSS format, depending on whether the function '
-        +'is used in a string or numeric context.'
+        +'HH:MM:SS'' or YYYYMMDDHHMMSS.uuuuuu format, depending on whether the '
+        +'function is used in a string or numeric context.'
     ),
 
-    // Function nr. 273
+    // Function nr. 281
     (
       Name:         'UUID';
       Declaration:  '()';
@@ -3739,7 +3922,7 @@ var
         +'calls to UUID() are expected to generate two different values, even if '
         +'these calls are performed on two separate computers that are not '
         +'connected to each other. A UUID is a 128-bit number represented by a '
-        +'string of five hexadecimal numbers in '
+        +'utf8 string of five hexadecimal numbers in '
         +'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee format: The first three numbers '
         +'are generated from a timestamp. The fourth number preserves temporal '
         +'uniqueness in case the timestamp value loses monotonicity (for '
@@ -3755,7 +3938,25 @@ var
         +'number.'
     ),
 
-    // Function nr. 274
+    // Function nr. 282
+    (
+      Name:         'UUID_SHORT';
+      Declaration:  '()';
+      Category:     'Miscellaneous Functions';
+      Version:      50120;
+      Description:  'Returns a "short" universal identifier as a 64-bit unsigned integer '
+        +'(rather than a string-form 128-bit identifier as returned by the '
+        +'UUID() function). The value of UUID_SHORT() is guaranteed to be unique '
+        +'if the following conditions hold: The server_id of the current host is '
+        +'unique among your set of master and slave servers server_id is between '
+        +'0 and 255 You don''t set back your system time for your server between '
+        +'mysqld restarts You do not invoke UUID_SHORT() on average more than 16 '
+        +'million times per second between mysqld restarts The UUID_SHORT() '
+        +'return value is constructed this way: (server_id & 255) << 56 + '
+        +'(server_startup_time_in_seconds << 24) + incremented_variable++;'
+    ),
+
+    // Function nr. 283
     (
       Name:         'VALUES';
       Declaration:  '(col_name)';
@@ -3772,7 +3973,7 @@ var
         +'http://dev.mysql.com/doc/refman/5.1/en/insert-on-duplicate.html.'
     ),
 
-    // Function nr. 275
+    // Function nr. 284
     (
       Name:         'VARIANCE';
       Declaration:  '(expr)';
@@ -3783,7 +3984,7 @@ var
         +'instead. VARIANCE() returns NULL if there were no matching rows.'
     ),
 
-    // Function nr. 276
+    // Function nr. 285
     (
       Name:         'VAR_POP';
       Declaration:  '(expr)';
@@ -3796,7 +3997,7 @@ var
         +'rows.'
     ),
 
-    // Function nr. 277
+    // Function nr. 286
     (
       Name:         'VAR_SAMP';
       Declaration:  '(expr)';
@@ -3807,7 +4008,7 @@ var
         +'matching rows.'
     ),
 
-    // Function nr. 278
+    // Function nr. 287
     (
       Name:         'VERSION';
       Declaration:  '()';
@@ -3817,7 +4018,7 @@ var
         +'uses the utf8 character set.'
     ),
 
-    // Function nr. 279
+    // Function nr. 288
     (
       Name:         'WEEK';
       Declaration:  '(date[,mode])';
@@ -3831,7 +4032,7 @@ var
         +'http://dev.mysql.com/doc/refman/5.1/en/server-system-variables.html.'
     ),
 
-    // Function nr. 280
+    // Function nr. 289
     (
       Name:         'WEEKDAY';
       Declaration:  '(date)';
@@ -3841,7 +4042,7 @@ var
         +'Sunday).'
     ),
 
-    // Function nr. 281
+    // Function nr. 290
     (
       Name:         'WEEKOFYEAR';
       Declaration:  '(date)';
@@ -3852,25 +4053,26 @@ var
         +'WEEK(date,3).'
     ),
 
-    // Function nr. 282
+    // Function nr. 291
     (
       Name:         'WITHIN';
       Declaration:  '(g1,g2)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns 1 or 0 to indicate whether g1 is spatially within g2.'
+      Description:  'Returns 1 or 0 to indicate whether g1 is spatially within g2. This '
+        +'tests the opposite relationship as Contains().'
     ),
 
-    // Function nr. 283
+    // Function nr. 292
     (
       Name:         'WKT';
-      Declaration:  '';
+      Declaration:  '(WKT)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
       Description:  ''
     ),
 
-    // Function nr. 284
+    // Function nr. 293
     (
       Name:         'X';
       Declaration:  '(p)';
@@ -3880,7 +4082,7 @@ var
         +'number.'
     ),
 
-    // Function nr. 285
+    // Function nr. 294
     (
       Name:         'XOR';
       Declaration:  '';
@@ -3891,7 +4093,7 @@ var
         +'otherwise 0 is returned.'
     ),
 
-    // Function nr. 286
+    // Function nr. 295
     (
       Name:         'Y';
       Declaration:  '(p)';
@@ -3901,7 +4103,7 @@ var
         +'number.'
     ),
 
-    // Function nr. 287
+    // Function nr. 296
     (
       Name:         'YEAR';
       Declaration:  '(date)';
@@ -3911,19 +4113,19 @@ var
         +'"zero" date.'
     ),
 
-    // Function nr. 288
+    // Function nr. 297
     (
       Name:         'YEARWEEK';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns year and week for a date. The start argument works exactly '
-        +'like the start argument to WEEK(). The year in the result may be '
-        +'different from the year in the date argument for the first and the '
-        +'last week of the year.'
+      Description:  'Returns year and week for a date. The mode argument works exactly like '
+        +'the mode argument to WEEK(). The year in the result may be different '
+        +'from the year in the date argument for the first and the last week of '
+        +'the year.'
     ),
 
-    // Function nr. 289
+    // Function nr. 298
     (
       Name:         '^';
       Declaration:  '';
@@ -3932,7 +4134,7 @@ var
       Description:  'Bitwise XOR:'
     ),
 
-    // Function nr. 290
+    // Function nr. 299
     (
       Name:         '|';
       Declaration:  '';
@@ -3941,7 +4143,7 @@ var
       Description:  'Bitwise OR:'
     ),
 
-    // Function nr. 291
+    // Function nr. 300
     (
       Name:         '||';
       Declaration:  '';
@@ -3953,7 +4155,7 @@ var
         +'operands are NULL, the result is NULL.'
     ),
 
-    // Function nr. 292
+    // Function nr. 301
     (
       Name:         '~';
       Declaration:  '';
