@@ -569,7 +569,7 @@ var
   );
 
 
-  MySqlFunctions: Array [0..291] of TMysqlFunction =
+  MySqlFunctions: Array [0..300] of TMysqlFunction =
   (
     // Function nr. 1
     (
