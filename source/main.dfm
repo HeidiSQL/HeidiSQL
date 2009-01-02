@@ -28,6 +28,52 @@ object MainForm: TMainForm
     AutoSnap = False
     ResizeStyle = rsUpdate
   end
+  object SynMemoSQLLog: TSynMemo
+    Left = 0
+    Top = 388
+    Width = 683
+    Height = 80
+    SingleLineMode = True
+    Align = alBottom
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Courier New'
+    Font.Style = []
+    PopupMenu = popupSqlLog
+    TabOrder = 1
+    OnKeyUp = controlsKeyUp
+    Gutter.AutoSize = True
+    Gutter.DigitCount = 2
+    Gutter.Font.Charset = DEFAULT_CHARSET
+    Gutter.Font.Color = clWindowText
+    Gutter.Font.Height = -11
+    Gutter.Font.Name = 'Terminal'
+    Gutter.Font.Style = []
+    Gutter.ShowLineNumbers = True
+    Highlighter = SynSQLSyn1
+    Options = [eoAutoIndent, eoDragDropEditing, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
+    ReadOnly = True
+    RightEdge = -1
+    RemovedKeystrokes = <
+      item
+        Command = ecDeleteLastChar
+        ShortCut = 8200
+      end
+      item
+        Command = ecLineBreak
+        ShortCut = 8205
+      end
+      item
+        Command = ecContextHelp
+        ShortCut = 112
+      end
+      item
+        Command = ecDeleteLine
+        ShortCut = 16473
+      end>
+    AddedKeystrokes = <>
+  end
   object StatusBar: TStatusBar
     Left = 0
     Top = 468
@@ -1499,52 +1545,6 @@ object MainForm: TMainForm
         end
       end
     end
-  end
-  object SynMemoSQLLog: TSynMemo
-    Left = 0
-    Top = 388
-    Width = 683
-    Height = 80
-    SingleLineMode = True
-    Align = alBottom
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -12
-    Font.Name = 'Courier New'
-    Font.Style = []
-    PopupMenu = popupSqlLog
-    TabOrder = 1
-    OnKeyUp = controlsKeyUp
-    Gutter.AutoSize = True
-    Gutter.DigitCount = 2
-    Gutter.Font.Charset = DEFAULT_CHARSET
-    Gutter.Font.Color = clWindowText
-    Gutter.Font.Height = -11
-    Gutter.Font.Name = 'Terminal'
-    Gutter.Font.Style = []
-    Gutter.ShowLineNumbers = True
-    Highlighter = SynSQLSyn1
-    Options = [eoAutoIndent, eoDragDropEditing, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
-    ReadOnly = True
-    RightEdge = -1
-    RemovedKeystrokes = <
-      item
-        Command = ecDeleteLastChar
-        ShortCut = 8200
-      end
-      item
-        Command = ecLineBreak
-        ShortCut = 8205
-      end
-      item
-        Command = ecContextHelp
-        ShortCut = 112
-      end
-      item
-        Command = ecDeleteLine
-        ShortCut = 16473
-      end>
-    AddedKeystrokes = <>
   end
   object MainMenu1: TMainMenu
     Images = PngImageListMain
