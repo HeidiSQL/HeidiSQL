@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, db, Registry, SynEdit, SynMemo, TntStdCtrls;
+  Dialogs, StdCtrls, db, SynEdit, SynMemo, TntStdCtrls;
 
 type
   TCreateDatabaseForm = class(TForm)

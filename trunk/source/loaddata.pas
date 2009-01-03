@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, comctrls, Buttons, CheckLst, Registry, PngSpeedButton,
+  StdCtrls, ExtCtrls, comctrls, Buttons, CheckLst, PngSpeedButton,
   WideStrings, TntCheckLst, TntStdCtrls, db, SynRegExpr;
 
 type
@@ -120,18 +120,18 @@ begin
 
   comboDatabaseChange(self);
   // filename
-  editFilename.Text := Mainform.GetRegValue(REGNAME_CSV_FILENAME, '');
+  editFilename.Text := GetRegValue(REGNAME_CSV_FILENAME, '');
   // Use options from CSV export
-  editFieldTerminator.Text := Mainform.GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
-  editFieldEncloser.Text := Mainform.GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
-  editLineTerminator.Text := Mainform.GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
+  editFieldTerminator.Text := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
+  editFieldEncloser.Text := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
+  editLineTerminator.Text := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   // Other options
-  chkFieldsEnclosedOptionally.Checked :=  Mainform.GetRegValue(REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked);
-  editFieldEscaper.Text := Mainform.GetRegValue(REGNAME_CSV_ESCAPER, editFieldEscaper.Text);
-  updownIgnoreLines.Position := Mainform.GetRegValue(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
-  chkLowPriority.Checked := Mainform.GetRegValue(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
-  chkReplace.Checked := Mainform.GetRegValue(REGNAME_CSV_REPLACE, chkReplace.Checked);
-  chkIgnore.Checked := Mainform.GetRegValue(REGNAME_CSV_IGNORE, chkIgnore.Checked);
+  chkFieldsEnclosedOptionally.Checked :=  GetRegValue(REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked);
+  editFieldEscaper.Text := GetRegValue(REGNAME_CSV_ESCAPER, editFieldEscaper.Text);
+  updownIgnoreLines.Position := GetRegValue(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
+  chkLowPriority.Checked := GetRegValue(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
+  chkReplace.Checked := GetRegValue(REGNAME_CSV_REPLACE, chkReplace.Checked);
+  chkIgnore.Checked := GetRegValue(REGNAME_CSV_IGNORE, chkIgnore.Checked);
 end;
 
 
@@ -226,7 +226,6 @@ var
   query : WideString;
   col   : TWideStringList;
   i     : Integer;
-  reg   : TRegistry;
 
   // Correctly escape field-terminator, line-terminator or encloser
   // and take care of already escaped characters like \t
@@ -238,24 +237,20 @@ var
 begin
 
   // Save settings
-  reg := TRegistry.Create;
-  if reg.OpenKey(REGPATH, true) then
-  begin
-    // filename
-    reg.WriteString( REGNAME_CSV_FILENAME, editFilename.Text );
-    // Use options from CSV export
-    reg.WriteString( REGNAME_CSV_SEPARATOR, editFieldTerminator.Text );
-    reg.WriteString( REGNAME_CSV_ENCLOSER, editFieldEncloser.Text );
-    reg.WriteString( REGNAME_CSV_TERMINATOR, editLineTerminator.Text );
-    // Other options
-    reg.WriteBool( REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked );
-    reg.WriteString( REGNAME_CSV_ESCAPER, editFieldEscaper.Text );
-    reg.WriteInteger( REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position );
-    reg.WriteBool( REGNAME_CSV_LOWPRIO, chkLowPriority.Checked );
-    reg.WriteBool( REGNAME_CSV_REPLACE, chkReplace.Checked );
-    reg.WriteBool( REGNAME_CSV_IGNORE, chkIgnore.Checked );
-  end;
-  FreeAndNil(reg);
+  OpenRegistry;
+  // filename
+  MainReg.WriteString( REGNAME_CSV_FILENAME, editFilename.Text );
+  // Use options from CSV export
+  MainReg.WriteString( REGNAME_CSV_SEPARATOR, editFieldTerminator.Text );
+  MainReg.WriteString( REGNAME_CSV_ENCLOSER, editFieldEncloser.Text );
+  MainReg.WriteString( REGNAME_CSV_TERMINATOR, editLineTerminator.Text );
+  // Other options
+  MainReg.WriteBool( REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked );
+  MainReg.WriteString( REGNAME_CSV_ESCAPER, editFieldEscaper.Text );
+  MainReg.WriteInteger( REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position );
+  MainReg.WriteBool( REGNAME_CSV_LOWPRIO, chkLowPriority.Checked );
+  MainReg.WriteBool( REGNAME_CSV_REPLACE, chkReplace.Checked );
+  MainReg.WriteBool( REGNAME_CSV_IGNORE, chkIgnore.Checked );
 
   query := 'LOAD DATA ';
 

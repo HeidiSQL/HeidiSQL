@@ -3,7 +3,7 @@ unit texteditor;
 interface
 
 uses
-  Windows, Classes, Graphics, Forms, Controls, helpers, StdCtrls, TntStdCtrls, Registry, VirtualTrees,
+  Windows, Classes, Graphics, Forms, Controls, helpers, StdCtrls, TntStdCtrls, VirtualTrees,
   ComCtrls, ToolWin, Dialogs, SysUtils;
 
 {$I const.inc}
@@ -79,24 +79,18 @@ end;
 
 
 procedure TfrmTextEditor.FormDestroy(Sender: TObject);
-var
-  reg: TRegistry;
 begin
-  reg := TRegistry.Create;
-  if reg.OpenKey(REGPATH, False) then begin
-    reg.WriteInteger( REGNAME_EDITOR_WIDTH, Width );
-    reg.WriteInteger( REGNAME_EDITOR_HEIGHT, Height );
-    reg.CloseKey;
-  end;
-  reg.Free;
+  OpenRegistry;
+  MainReg.WriteInteger( REGNAME_EDITOR_WIDTH, Width );
+  MainReg.WriteInteger( REGNAME_EDITOR_HEIGHT, Height );
 end;
 
 
 procedure TfrmTextEditor.FormShow(Sender: TObject);
 begin
   // Restore form dimensions
-  Width := Mainform.GetRegValue(REGNAME_EDITOR_WIDTH, DEFAULT_EDITOR_WIDTH);
-  Height := Mainform.GetRegValue(REGNAME_EDITOR_HEIGHT, DEFAULT_EDITOR_HEIGHT);
+  Width := GetRegValue(REGNAME_EDITOR_WIDTH, DEFAULT_EDITOR_WIDTH);
+  Height := GetRegValue(REGNAME_EDITOR_HEIGHT, DEFAULT_EDITOR_HEIGHT);
   // Fix label position:
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
   SetWindowSizeGrip(Handle, True);

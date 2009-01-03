@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Forms,
-  Dialogs, StdCtrls, ExtActns, IniFiles, Controls, Graphics, Registry;
+  Dialogs, StdCtrls, ExtActns, IniFiles, Controls, Graphics;
 
 type
   TUrlMonUrlMkSetSessionOption = function(dwOption: Cardinal; pBuffer: PChar; dwBufferLength: Cardinal; dwReserved: Cardinal): HRESULT; stdcall;
@@ -92,8 +92,6 @@ end;
   Download check file
 }
 procedure TfrmUpdateCheck.FormShow(Sender: TObject);
-var
-  reg : TRegistry;
 begin
   Status('Initiating ... ');
   Caption := 'Check for '+APPNAME+' updates ...';
@@ -128,11 +126,8 @@ begin
     end else
       Status('Updates available.');
     // Remember when we did the updatecheck to enable the automatic interval
-    reg := TRegistry.Create;
-    reg.OpenKey(REGPATH, true);
-    reg.WriteString(REGNAME_LAST_UPDATECHECK, DateTimeToStr(Now));
-    reg.CloseKey;
-    FreeAndNil(reg);
+    OpenRegistry;
+    MainReg.WriteString(REGNAME_LAST_UPDATECHECK, DateTimeToStr(Now));
   except
     // Do not popup errors, just display them in the status label
     On E:Exception do

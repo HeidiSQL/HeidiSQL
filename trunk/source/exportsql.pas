@@ -23,7 +23,6 @@ uses
   CheckLst,
   Buttons,
   comctrls,
-  Registry,
   ToolWin,
   DB,
   SynEdit,
@@ -234,17 +233,17 @@ begin
 
   // Read options
   // WithUseDB, UseBackticks, CompleteInserts: deprecated (hardcoded true now)
-  cbxStructure.Checked := Mainform.GetRegValue(REGNAME_EXP_STRUCTURE, cbxStructure.Checked);
-  cbxDatabase.Checked := Mainform.GetRegValue(REGNAME_EXP_CREATEDB, cbxDatabase.Checked);
-  cbxTables.Checked := Mainform.GetRegValue(REGNAME_EXP_CREATETABLE, cbxTables.Checked);
-  cbxData.Checked := Mainform.GetRegValue(REGNAME_EXP_DATA, cbxData.Checked);
-  comboDatabase.ItemIndex := Mainform.GetRegValue(REGNAME_EXP_DBHOW, comboDatabase.ItemIndex);
-  comboTables.ItemIndex := Mainform.GetRegValue(REGNAME_EXP_TABLESHOW, comboTables.ItemIndex);
-  comboData.ItemIndex := Mainform.GetRegValue(REGNAME_EXP_DATAHOW, comboData.ItemIndex);
-  comboTargetCompat.ItemIndex := Mainform.GetRegValue(REGNAME_EXP_COMPAT, comboTargetCompat.ItemIndex);
-  editFileName.Text := Mainform.GetRegValue(REGNAME_EXP_OUTFILE, '');
-  editDirectory.Text := Mainform.GetRegValue(REGNAME_EXP_OUTDIR, '');
-  OutputTo := Mainform.GetRegValue(REGNAME_EXP_TARGET, -1);
+  cbxStructure.Checked := GetRegValue(REGNAME_EXP_STRUCTURE, cbxStructure.Checked);
+  cbxDatabase.Checked := GetRegValue(REGNAME_EXP_CREATEDB, cbxDatabase.Checked);
+  cbxTables.Checked := GetRegValue(REGNAME_EXP_CREATETABLE, cbxTables.Checked);
+  cbxData.Checked := GetRegValue(REGNAME_EXP_DATA, cbxData.Checked);
+  comboDatabase.ItemIndex := GetRegValue(REGNAME_EXP_DBHOW, comboDatabase.ItemIndex);
+  comboTables.ItemIndex := GetRegValue(REGNAME_EXP_TABLESHOW, comboTables.ItemIndex);
+  comboData.ItemIndex := GetRegValue(REGNAME_EXP_DATAHOW, comboData.ItemIndex);
+  comboTargetCompat.ItemIndex := GetRegValue(REGNAME_EXP_COMPAT, comboTargetCompat.ItemIndex);
+  editFileName.Text := GetRegValue(REGNAME_EXP_OUTFILE, '');
+  editDirectory.Text := GetRegValue(REGNAME_EXP_OUTDIR, '');
+  OutputTo := GetRegValue(REGNAME_EXP_TARGET, -1);
   if OutputTo > -1 then
   begin
 
@@ -274,8 +273,8 @@ begin
       OUTPUT_HOST : radioOtherHost.Checked := true;
     end;
   end;
-  Width := Mainform.GetRegValue(REGNAME_EXP_WINWIDTH, Width);
-  Height := Mainform.GetRegValue(REGNAME_EXP_WINHEIGHT, Height);
+  Width := GetRegValue(REGNAME_EXP_WINWIDTH, Width);
+  Height := GetRegValue(REGNAME_EXP_WINHEIGHT, Height);
 
   if EditFileName.Text = '' then
     EditFileName.Text := ExtractFilePath(paramstr(0)) + 'export.sql';
@@ -1251,7 +1250,7 @@ begin
   comboOtherDatabase.Items := comboSelectDatabase.Items;
   comboOtherDatabase.Items.delete(comboSelectDatabase.ItemIndex);
   if comboOtherDatabase.ItemIndex = -1 then begin
-    lastdb := Utf8Decode(Mainform.GetRegValue(REGNAME_EXP_DESTDB, ''));
+    lastdb := Utf8Decode(GetRegValue(REGNAME_EXP_DESTDB, ''));
     comboOtherDatabase.ItemIndex := comboOtherDatabase.Items.IndexOf(lastdb);
   end;
   if (comboOtherDatabase.ItemIndex = -1) and (comboOtherDatabase.Items.Count > 0) then
@@ -1534,9 +1533,8 @@ procedure TExportSQLForm.SaveSettings;
 var
   OutputTo : Byte;
 begin
-  with TRegistry.Create do
-  begin
-    OpenKey(REGPATH, true);
+  OpenRegistry;
+  with MainReg do begin
     // WithUseDB, UseBackticks, CompleteInserts, WithDropTable: deprecated (currently not automagically removed)
     WriteBool(REGNAME_EXP_STRUCTURE,     cbxStructure.Checked);
     WriteBool(REGNAME_EXP_CREATEDB,      cbxDatabase.Checked);
@@ -1559,8 +1557,6 @@ begin
     WriteString(REGNAME_EXP_DESTDB,      Utf8Encode(comboOtherDatabase.Text));
     WriteInteger(REGNAME_EXP_WINWIDTH,   Width );
     WriteInteger(REGNAME_EXP_WINHEIGHT,  Height );
-    CloseKey();
-    Free;
   end;
 end;
 

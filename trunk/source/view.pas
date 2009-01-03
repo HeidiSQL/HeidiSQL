@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, SynEdit, SynMemo, ExtCtrls, Registry, DB, SynRegExpr;
+  Dialogs, StdCtrls, ComCtrls, SynEdit, SynMemo, ExtCtrls, DB, SynRegExpr;
 
 type
   TfrmView = class(TForm)
@@ -43,8 +43,8 @@ uses main, helpers;
 }
 procedure TfrmView.FormCreate(Sender: TObject);
 begin
-  Width := Mainform.GetRegValue(REGNAME_VIEWWINWIDTH, Width);
-  Height := Mainform.GetRegValue(REGNAME_VIEWWINHEIGHT, Height);
+  Width := GetRegValue(REGNAME_VIEWWINWIDTH, Width);
+  Height := GetRegValue(REGNAME_VIEWWINHEIGHT, Height);
   SynMemoSelect.Highlighter := Mainform.SynSQLSyn1;
   SynMemoSelect.Font := Mainform.SynMemoQuery.Font;
   SetWindowSizeGrip( Self.Handle, True );
@@ -56,16 +56,10 @@ end;
   FormDestroy: Save GUI setup
 }
 procedure TfrmView.FormDestroy(Sender: TObject);
-var
-  reg : TRegistry;
 begin
-  reg := TRegistry.Create;
-  if reg.OpenKey(REGPATH, False) then begin
-    reg.WriteInteger( REGNAME_VIEWWINWIDTH, Width );
-    reg.WriteInteger( REGNAME_VIEWWINHEIGHT, Height );
-    reg.CloseKey;
-  end;
-  reg.Free;
+  OpenRegistry;
+  MainReg.WriteInteger( REGNAME_VIEWWINWIDTH, Width );
+  MainReg.WriteInteger( REGNAME_VIEWWINHEIGHT, Height );
   Close;
 end;
 

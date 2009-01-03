@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, ExtCtrls, ShellApi, Buttons, Registry,
+  Dialogs, StdCtrls, ComCtrls, ExtCtrls, ShellApi, Buttons,
   PngSpeedButton, SynMemo, SynEditHighlighter, SynHighlighterURI,
   SynURIOpener, SynEdit;
 
@@ -81,12 +81,12 @@ end;
 procedure TfrmSQLhelp.FormShow(Sender: TObject);
 begin
   // Set window-layout
-  Top := Mainform.GetRegValue( REGNAME_SQLHELPWINTOP, Top );
-  Left := Mainform.GetRegValue( REGNAME_SQLHELPWINLEFT, Left );
-  Width := Mainform.GetRegValue( REGNAME_SQLHELPWINWIDTH, Width );
-  Height := Mainform.GetRegValue( REGNAME_SQLHELPWINHEIGHT, Height );
-  pnlLeft.Width := Mainform.GetRegValue( REGNAME_SQLHELPPLWIDTH, pnlLeft.Width );
-  pnlRightTop.Height := Mainform.GetRegValue( REGNAME_SQLHELPPRHEIGHT, pnlRightTop.Height );
+  Top := GetRegValue( REGNAME_SQLHELPWINTOP, Top );
+  Left := GetRegValue( REGNAME_SQLHELPWINLEFT, Left );
+  Width := GetRegValue( REGNAME_SQLHELPWINWIDTH, Width );
+  Height := GetRegValue( REGNAME_SQLHELPWINHEIGHT, Height );
+  pnlLeft.Width := GetRegValue( REGNAME_SQLHELPPLWIDTH, pnlLeft.Width );
+  pnlRightTop.Height := GetRegValue( REGNAME_SQLHELPPRHEIGHT, pnlRightTop.Height );
   Caption := DEFAULT_WINDOW_CAPTION;
 
   MemoDescription.Font.Name := Mainform.SynMemoQuery.Font.Name;
@@ -302,20 +302,14 @@ end;
   Save layout and close window 
 }
 procedure TfrmSQLhelp.ButtonCloseClick(Sender: TObject);
-var
-  reg : TRegistry;
 begin
-  reg := TRegistry.Create;
-  if reg.OpenKey(REGPATH, False) then begin
-    reg.WriteInteger( REGNAME_SQLHELPWINLEFT, Left );
-    reg.WriteInteger( REGNAME_SQLHELPWINTOP, Top );
-    reg.WriteInteger( REGNAME_SQLHELPWINWIDTH, Width );
-    reg.WriteInteger( REGNAME_SQLHELPWINHEIGHT, Height );
-    reg.WriteInteger( REGNAME_SQLHELPPLWIDTH, pnlLeft.Width );
-    reg.WriteInteger( REGNAME_SQLHELPPRHEIGHT, PnlRightTop.Height );
-    reg.CloseKey;
-  end;
-  reg.Free;
+  OpenRegistry;
+  MainReg.WriteInteger( REGNAME_SQLHELPWINLEFT, Left );
+  MainReg.WriteInteger( REGNAME_SQLHELPWINTOP, Top );
+  MainReg.WriteInteger( REGNAME_SQLHELPWINWIDTH, Width );
+  MainReg.WriteInteger( REGNAME_SQLHELPWINHEIGHT, Height );
+  MainReg.WriteInteger( REGNAME_SQLHELPPLWIDTH, pnlLeft.Width );
+  MainReg.WriteInteger( REGNAME_SQLHELPPRHEIGHT, PnlRightTop.Height );
   Close;
 end;
 

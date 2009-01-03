@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Registry;
+  Dialogs, StdCtrls;
 
 type
   TFrmDataViewSave = class(TForm)
@@ -28,7 +28,7 @@ implementation
 
 {$R *.dfm}
 
-uses main;
+uses main, helpers;
 
 
 procedure TFrmDataViewSave.FormCreate(Sender: TObject);
@@ -52,27 +52,23 @@ end;
 procedure TFrmDataViewSave.btnOKClick(Sender: TObject);
 var
   viewName, basekey, Sort: String;
-  reg: TRegistry;
   i: Integer;
 begin
   // Save current view stuff to registry
   Screen.Cursor := crHourglass;
   viewName := comboSave.Text;
-  reg := TRegistry.Create;
   basekey := Mainform.GetRegKeyTable + '\' + REGPREFIX_DATAVIEW + viewName;
-  if reg.OpenKey(basekey, True) then begin
-    reg.WriteString(REGNAME_DISPLAYEDCOLUMNS, Utf8Encode(Mainform.FDataGridSelect.DelimitedText));
-    reg.WriteString(REGNAME_FILTER, Utf8Encode(Mainform.SynMemoFilter.Text));
+  if MainReg.OpenKey(basekey, True) then begin
+    MainReg.WriteString(REGNAME_DISPLAYEDCOLUMNS, Utf8Encode(Mainform.FDataGridSelect.DelimitedText));
+    MainReg.WriteString(REGNAME_FILTER, Utf8Encode(Mainform.SynMemoFilter.Text));
     for i := 0 to High(Mainform.FDataGridSort) do
       Sort := Sort + IntToStr(Mainform.FDataGridSort[i].SortDirection) + '_' + Mainform.FDataGridSort[i].ColumnName + REGDELIM;
-    reg.WriteString(REGNAME_SORT, Utf8Encode(Sort));
+    MainReg.WriteString(REGNAME_SORT, Utf8Encode(Sort));
     if chkDefault.Checked then begin
-      reg.OpenKey(Mainform.GetRegKeyTable, False);
-      reg.WriteString(REGNAME_DEFAULTVIEW, viewName);
+      MainReg.OpenKey(Mainform.GetRegKeyTable, False);
+      MainReg.WriteString(REGNAME_DEFAULTVIEW, viewName);
     end;
-    reg.CloseKey;
   end;
-  FreeAndNil(reg);
   Screen.Cursor := crDefault;
 end;
 

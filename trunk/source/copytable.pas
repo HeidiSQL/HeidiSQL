@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, CheckLst, ZDataSet, ComCtrls, Registry, WideStrings,
+  StdCtrls, Buttons, CheckLst, ZDataSet, ComCtrls, WideStrings,
   TntStdCtrls, TntCheckLst;
 
 type
@@ -146,15 +146,15 @@ begin
     restore last settings
     @see feature #1647058
   }
-  struc_data := mainform.GetRegValue( REGNAME_COPYTABLE_STRUCDATA, DEFAULT_COPYTABLE_STRUCDATA );
+  struc_data := GetRegValue( REGNAME_COPYTABLE_STRUCDATA, DEFAULT_COPYTABLE_STRUCDATA );
   case struc_data of
     REGVAL_COPYTABLE_STRUCTURE:
       radioStructure.Checked := true;
     REGVAL_COPYTABLE_STRUCTURE_AND_DATA:
       radioStructureAndData.Checked := true;
   end;
-  CheckBoxWithIndexes.Checked := mainform.GetRegValue( REGNAME_COPYTABLE_INDEXES, CheckBoxWithIndexes.Checked );
-  CheckBoxWithAllFields.Checked := mainform.GetRegValue( REGNAME_COPYTABLE_ALLFIELDS, CheckBoxWithAllFields.Checked );
+  CheckBoxWithIndexes.Checked := GetRegValue( REGNAME_COPYTABLE_INDEXES, CheckBoxWithIndexes.Checked );
+  CheckBoxWithAllFields.Checked := GetRegValue( REGNAME_COPYTABLE_ALLFIELDS, CheckBoxWithAllFields.Checked );
   // Ensure CheckListBoxFields + chkSelectAll are en/disabled
   CheckBoxWithAllFieldsClick(Sender);
   // Ensure chkSelectAll shows its correct state
@@ -172,7 +172,6 @@ var
   zq           : TDataSet;
   isFulltext   : Boolean;
   struc_data   : Byte;
-  reg          : TRegistry;
 begin
   // copy table!
 
@@ -180,14 +179,10 @@ begin
   if radioStructure.Checked then struc_data := REGVAL_COPYTABLE_STRUCTURE
   else struc_data := REGVAL_COPYTABLE_STRUCTURE_AND_DATA;
 
-  reg := TRegistry.Create;
-  if reg.OpenKey(REGPATH, False) then begin
-    reg.WriteInteger( REGNAME_COPYTABLE_STRUCDATA, struc_data );
-    reg.WriteBool( REGNAME_COPYTABLE_INDEXES, CheckBoxWithIndexes.Checked );
-    reg.WriteBool( REGNAME_COPYTABLE_ALLFIELDS, CheckBoxWithAllFields.Checked );
-    reg.CloseKey;
-  end;
-  reg.Free;
+  OpenRegistry;
+  MainReg.WriteInteger( REGNAME_COPYTABLE_STRUCDATA, struc_data );
+  MainReg.WriteBool( REGNAME_COPYTABLE_INDEXES, CheckBoxWithIndexes.Checked );
+  MainReg.WriteBool( REGNAME_COPYTABLE_ALLFIELDS, CheckBoxWithAllFields.Checked );
 
   strquery := 'CREATE TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.' + mainform.mask(editNewTablename.Text) + ' ';
 

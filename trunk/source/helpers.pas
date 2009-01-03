@@ -11,7 +11,7 @@ interface
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
   shlobj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
-  TntCheckLst;
+  TntCheckLst, Registry;
 
 type
 
@@ -179,9 +179,14 @@ type
   procedure FixVT(VT: TVirtualStringTree);
   function ColorAdjustBrightness(Col: TColor; ShiftPercent: ShortInt): TColor;
   function ComposeOrderClause(Cols: TOrderColArray): WideString;
+  procedure OpenRegistry(Session: String = '');
+  function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
+  function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
+  function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
 
 var
   MYSQL_KEYWORDS             : TStringList;
+  MainReg                    : TRegistry;
 
 
 implementation
@@ -2782,6 +2787,65 @@ begin
       sort := TXT_DESC;
     result := result + Mainform.Mask( Cols[i].ColumnName ) + ' ' + sort;
   end;
+end;
+
+
+{**
+  Init main registry object and open desired key
+  Outsoureced from GetRegValue() to avoid redundant code
+  in these 3 overloaded methods.
+}
+procedure OpenRegistry(Session: String = '');
+var
+  folder : String;
+begin
+  if MainReg = nil then
+    MainReg := TRegistry.Create;
+  folder := REGPATH;
+  if Session <> '' then
+    folder := folder + REGKEY_SESSIONS + Session;
+  if MainReg.CurrentPath <> folder then
+    MainReg.OpenKey(folder, true);
+end;
+
+
+{**
+  Read a numeric preference value from registry
+}
+function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer;
+begin
+  result := defaultValue;
+  OpenRegistry(Session);
+  if MainReg.ValueExists( valueName ) then
+    result := MainReg.ReadInteger( valueName );
+end;
+
+
+{***
+  Read a boolean preference value from registry
+  @param string Name of the value
+  @param boolean Default-value to return if valueName was not found
+  @param string Subkey of REGPATH where to search for the value
+}
+function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean;
+begin
+  result := defaultValue;
+  OpenRegistry(Session);
+  if MainReg.ValueExists( valueName ) then
+    result := MainReg.ReadBool( valueName );
+end;
+
+
+
+{***
+  Read a text preference value from registry
+}
+function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String;
+begin
+  result := defaultValue;
+  OpenRegistry(Session);
+  if MainReg.ValueExists( valueName ) then
+    result := MainReg.ReadString( valueName );
 end;
 
 

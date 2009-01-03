@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ExtCtrls, StdCtrls, CheckLst, comctrls, Buttons, ToolWin, Db, Registry,
+  ExtCtrls, StdCtrls, CheckLst, comctrls, Buttons, ToolWin, Db,
   WideStrings, TntCheckLst, TntStdCtrls, WideStrUtils;
 
 type
@@ -67,8 +67,8 @@ uses helpers, main;
 }
 procedure Toptimize.FormCreate(Sender: TObject);
 begin
-  Width := Mainform.GetRegValue(REGNAME_MAINTWINWIDTH, Width);
-  Height := Mainform.GetRegValue(REGNAME_MAINTWINHEIGHT, Height);
+  Width := GetRegValue(REGNAME_MAINTWINWIDTH, Width);
+  Height := GetRegValue(REGNAME_MAINTWINHEIGHT, Height);
   SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
 end;
@@ -78,16 +78,10 @@ end;
   FormDestroy: Save GUI setup
 }
 procedure Toptimize.FormDestroy(Sender: TObject);
-var
-  reg : TRegistry;
 begin
-  reg := TRegistry.Create;
-  if reg.OpenKey(REGPATH, False) then begin
-    reg.WriteInteger( REGNAME_MAINTWINWIDTH, Width );
-    reg.WriteInteger( REGNAME_MAINTWINHEIGHT, Height );
-    reg.CloseKey;
-  end;
-  reg.Free;
+  OpenRegistry;
+  MainReg.WriteInteger( REGNAME_MAINTWINWIDTH, Width );
+  MainReg.WriteInteger( REGNAME_MAINTWINHEIGHT, Height );
   Close;
 end;
 
