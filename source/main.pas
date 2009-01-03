@@ -592,7 +592,6 @@ type
     procedure Clear2Click(Sender: TObject);
     procedure EditQuery1Click(Sender: TObject);
     procedure Markall3Click(Sender: TObject);
-    procedure ReadWindowOptions;
     procedure ListTablesDblClick(Sender: TObject);
     procedure TimerConnectErrorCloseWindowTimer(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
@@ -735,7 +734,6 @@ type
     FMysqlConn                 : TMysqlConn;
     FConn                      : TOpenConnProf;
     QueryRunningInterlock      : Integer;
-    lastUsedDB                 : String;
     UserQueryFired             : Boolean;
     UserQueryFiring            : Boolean;
     CachedTableLists           : WideStrings.TWideStringList;
@@ -1283,6 +1281,16 @@ end;
   to complete and can be annoying.
 }
 procedure TMainForm.FormCreate(Sender: TObject);
+var
+  i, j: Integer;
+  miGroup,
+  miFilterGroup,
+  miFunction,
+  miFilterFunction,
+  menuitem : TMenuItem;
+  functioncats : TStringList;
+  fontname, datafontname : String;
+  fontsize, datafontsize : Integer;
 begin
   caption := APPNAME;
   setLocales;
@@ -1293,24 +1301,11 @@ begin
   // Use new Vista dialogs per default.
   //UseLatestCommonDialogs := True;
 
-  // Delphi work around to force usage of Vista's default font (other OSes will be unaffected)
-  SetVistaFonts(Font);
-
   SpareBufRefill;
   ErrorProc := HandleRuntimeError;
 
   refreshMonitorConfig;
   loadWindowConfig;
-
-  // Position of Toolbars
-  ToolBarStandard.Left := GetRegValue(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
-  ToolBarStandard.Top := GetRegValue(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
-  ToolBarDatabase.Left := GetRegValue(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
-  ToolBarDatabase.Top := GetRegValue(REGNAME_TOOLBARDBTOP, ToolBarDatabase.Top);
-  ToolBarData.Left := GetRegValue(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
-  ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
-  ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
-  ToolBarQuery.Top := GetRegValue(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
 
   // Beautify AppRevision
   if Pos('$Rev: WC', AppRevision) < 1 then
@@ -1335,14 +1330,194 @@ begin
   // Folder for session logfiles
   DirnameSessionLogs := DirnameUserAppData + 'Sessionlogs\';
 
+  QueryRunningInterlock := 0;
+  UserQueryFired := False;
+  UserQueryFiring := False;
+  TemporaryDatabase := '';
+
   // SQLFiles-History
   FillPopupQueryLoad;
 
   CachedTableLists := WideStrings.TWideStringList.Create;
+
   InitializeCriticalSection(SqlMessagesLock);
   EnterCriticalSection(SqlMessagesLock);
   SqlMessages := TWideStringList.Create;
   LeaveCriticalSection(SqlMessagesLock);
+
+  // read function-list into menu
+  functioncats := GetFunctionCategories;
+  for i:=0 to functioncats.Count-1 do begin
+    // Create a menu item which gets subitems later
+    miGroup := TMenuItem.Create(popupQuery);
+    miGroup.Caption := functioncats[i];
+    popupQuery.Items.add(miGroup);
+    miFilterGroup := TMenuItem.Create(popupFilter);
+    miFilterGroup.Caption := miGroup.Caption;
+    popupFilter.Items.add(miFilterGroup);
+    for j:=0 to Length(MySqlFunctions)-1 do begin
+      if MySqlFunctions[j].Category <> functioncats[i] then
+        continue;
+      miFunction := TMenuItem.Create(popupQuery);
+      miFunction.Caption := MySqlFunctions[j].Name;
+      miFunction.ImageIndex := 13;
+      // Prevent generating a hotkey
+      miFunction.Caption := StringReplace(miFunction.Caption, '&', '&&', [rfReplaceAll]);
+      // Prevent generating a seperator line
+      if miFunction.Caption = '-' then
+        miFunction.Caption := '&-';
+      miFunction.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration;
+      // Take care of needed server version
+      if MySqlFunctions[j].Version <= mysql_version then begin
+        if MySqlFunctions[j].Description <> '' then
+          miFunction.Hint := miFunction.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
+        miFunction.Tag := j;
+        // Place menuitem on menu
+        miFunction.OnClick := insertFunction;
+      end else begin
+        miFunction.Hint := miFunction.Hint + ' - ('+STR_NOTSUPPORTED+', needs >= '+ConvertServerVersion(MySqlFunctions[j].Version)+')';
+        miFunction.Enabled := False;
+      end;
+      // Prevent generating a seperator for ShortHint and LongHint
+      miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
+      miGroup.Add(miFunction);
+      // Create a copy of the menuitem for popupFilter
+      miFilterFunction := TMenuItem.Create(popupFilter);
+      miFilterFunction.Caption := miFunction.Caption;
+      miFilterFunction.Hint := miFunction.Hint;
+      miFilterFunction.ImageIndex := miFunction.ImageIndex;
+      miFilterFunction.Tag := miFunction.Tag;
+      miFilterFunction.OnClick := miFunction.OnClick;
+      miFilterFunction.Enabled := miFunction.Enabled;
+      miFilterGroup.Add(miFilterFunction);
+    end;
+  end;
+
+  // Delphi work around to force usage of Vista's default font (other OSes will be unaffected)
+  SetVistaFonts(Font);
+  InheritFont(Font);
+  InheritFont(tabsetQueryHelpers.Font);
+  InheritFont(SynCompletionProposal1.Font);
+
+  // Fix node height on Virtual Trees for current DPI settings
+  FixVT(DBTree);
+  FixVT(ListVariables);
+  FixVT(ListStatus);
+  FixVT(ListProcesses);
+  FixVT(ListCommandStats);
+  FixVT(ListTables);
+  FixVT(ListColumns);
+
+  // Position of Toolbars
+  ToolBarStandard.Left := GetRegValue(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
+  ToolBarStandard.Top := GetRegValue(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
+  ToolBarDatabase.Left := GetRegValue(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
+  ToolBarDatabase.Top := GetRegValue(REGNAME_TOOLBARDBTOP, ToolBarDatabase.Top);
+  ToolBarData.Left := GetRegValue(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
+  ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
+  ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
+  ToolBarQuery.Top := GetRegValue(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
+
+  pnlQueryMemo.Height := GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
+  pnlQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
+  DBtree.Width := GetRegValue(REGNAME_DBTREEWIDTH, DBtree.Width);
+  DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, FConn.Description);
+  SynMemoSQLLog.Height := GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
+  prefMaxColWidth := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
+  // Fix registry entry from older versions which can have 0 here which makes no sense
+  // since the autosetting was removed
+  if prefMaxColWidth <= 0 then
+    prefMaxColWidth := DEFAULT_MAXCOLWIDTH;
+  prefLogsqlnum := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
+  prefLogSqlWidth := GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
+  prefCSVSeparator := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
+  prefCSVEncloser := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
+  prefCSVTerminator := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
+  prefRememberFilters := GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
+  prefPreferShowTables := GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
+
+  // SQL-Font:
+  fontname := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
+  fontsize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
+  SynMemoQuery.Font.Name := fontname;
+  SynMemoQuery.Font.Size := fontsize;
+  SynMemoQuery.Gutter.Font.Name := fontname;
+  SynMemoQuery.Gutter.Font.Size := fontsize;
+  SynMemoFilter.Font.Name := fontname;
+  SynMemoFilter.Font.Size := fontsize;
+  SynMemoSQLLog.Font.Name := fontname;
+  SynMemoSQLLog.Font.Size := fontsize;
+  SynMemoSQLLog.Gutter.Font.Name := fontname;
+  SynMemoSQLLog.Gutter.Font.Size := fontsize;
+  SynMemoProcessView.Font.Name := fontname;
+  SynMemoProcessView.Font.Size := fontsize;
+
+  // Data-Font:
+  datafontname := GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
+  datafontsize := GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
+  DataGrid.Font.Name := datafontname;
+  QueryGrid.Font.Name := datafontname;
+  DataGrid.Font.Size := datafontsize;
+  QueryGrid.Font.Size := datafontsize;
+  FixVT(DataGrid);
+  FixVT(QueryGrid);
+  // Load color settings
+  prefFieldColorNumeric := GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
+  prefFieldColorText := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
+  prefFieldColorBinary := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
+  prefFieldColorDatetime := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
+  prefFieldColorEnum := GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
+  prefFieldColorSet := GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
+  prefNullBG := GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
+  CalcNullColors;
+  // Editor enablings
+  prefEnableBinaryEditor := GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
+  prefEnableDatetimeEditor := GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
+  prefEnableEnumEditor := GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
+  prefEnableSetEditor := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
+  prefEnableNullBG := GetRegValue(REGNAME_BG_NULL_ENABLED, DEFAULT_BG_NULL_ENABLED);
+
+  // Color coding:
+  SynSQLSyn1.KeyAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
+  SynSQLSyn1.FunctionAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLFUNCTIONATTRI, ColorToString(DEFAULT_SQLCOLFUNCTIONATTRI)));
+  SynSQLSyn1.DataTypeAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLDATATYPEATTRI, ColorToString(DEFAULT_SQLCOLDATATYPEATTRI)));
+  SynSQLSyn1.NumberAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLNUMBERATTRI, ColorToString(DEFAULT_SQLCOLNUMBERATTRI)));
+  SynSQLSyn1.StringAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLSTRINGATTRI, ColorToString(DEFAULT_SQLCOLSTRINGATTRI)));
+  SynSQLSyn1.CommentAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
+  SynSQLSyn1.ConditionalCommentAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLCONDCOMMATTRI, ColorToString(DEFAULT_SQLCOLCONDCOMMATTRI)));
+  SynSQLSyn1.TablenameAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
+  SynSQLSyn1.SymbolAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLSYMBOLATTRI, ColorToString(DEFAULT_SQLCOLSYMBOLATTRI)));
+  SynSQLSyn1.IdentifierAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLIDENTATTRI, ColorToString(DEFAULT_SQLCOLIDENTATTRI)));
+  SynSQLSyn1.DelimitedIdentifierAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLDELIMIDENTATTRI, ColorToString(DEFAULT_SQLCOLDELIMIDENTATTRI)));
+  SynMemoQuery.ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
+
+  // Switch off/on displaying table/db sized in tree
+  menuShowSizeColumn.Checked := GetRegValue(REGNAME_SIZECOL_TREE, DEFAULT_SIZECOL_TREE);
+  if menuShowSizeColumn.Checked then
+    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible]
+  else
+    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options - [coVisible];
+
+  // Restore width of columns of all VirtualTrees
+  RestoreListSetup(ListVariables);
+  RestoreListSetup(ListStatus);
+  RestoreListSetup(ListProcesses);
+  RestoreListSetup(ListCommandStats);
+  RestoreListSetup(ListTables);
+  RestoreListSetup(ListColumns);
+
+  // Generate menuitems for popupDbGridHeader (column selection for ListTables)
+  popupDBGridHeader.Items.Clear;
+  for i:=0 to ListTables.Header.Columns.Count-1 do
+  begin
+    menuitem := TMenuItem.Create( popupDBGridHeader );
+    menuitem.Caption := ListTables.Header.Columns[i].Text;
+    menuitem.OnClick := MenuTablelistColumnsClick;
+    // Disable hiding first column
+    menuitem.Enabled := i>0;
+    menuitem.Checked := coVisible in ListTables.Header.Columns[i].Options;
+    popupDbGridHeader.Items.Add( menuitem );
+  end;
 end;
 
 
@@ -1360,6 +1535,8 @@ var
   DefaultLastrunDate : String;
   frm : TfrmUpdateCheck;
   dlgResult: Integer;
+  lastUsedDB: WideString;
+  i: Integer;
 begin
   // Do an updatecheck if checked in settings
   if GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK) then begin
@@ -1452,12 +1629,57 @@ begin
 
       //TODO:
       //ds.DisableControls;
-    end;
+    end else
+      Exit;
   end else begin
     // Cannot be done in OnCreate because we need ready forms here:
     dlgResult := ConnectionWindow(Self);
-    if dlgResult = mrCancel then Close;
+    if dlgResult = mrCancel then begin
+      Close;
+      Exit;
+    end;
   end;
+
+  // Activate logging
+  if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
+    ActivateFileLogging;
+
+  Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
+  SessionName := FMysqlConn.SessionName;
+  DatabasesWanted := explode(';', FConn.DatabaseList);
+  if FConn.DatabaseListSort then
+    DatabasesWanted.Sort;
+
+  // Fill variables-list, processlist and DB-tree
+  ShowVariablesAndProcesses( Self );
+  // Invoke population of database tree. It's important to do this here after
+  // having filled DatabasesWanted, not at design time.
+  DBtree.RootNodeCount := 1;
+
+  // Define window properties
+  SetWindowConnected( true );
+  i := SetWindowName( SessionName );
+  winName := SessionName;
+  if ( i <> 0 ) then
+  begin
+    winName := winName + Format( ' (%d)', [i] );
+  end;
+  Application.Title := winName + ' - ' + APPNAME;
+  Caption := winName;
+
+  // Reselect last used database
+  if GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) then begin
+    lastUsedDB := Utf8Decode(GetRegValue(REGNAME_LASTUSEDDB, '', SessionName));
+    if lastUsedDB <> '' then try
+      ActiveDatabase := lastUsedDB;
+    except
+      // Suppress exception message when db was dropped externally or
+      // the session was just opened with "OnlyDBs" in place and the
+      // last db is not contained in this list.
+    end;
+  end else // By default, select the host node
+    DBtree.Selected[DBtree.GetFirst] := true;
+
 end;
 
 
@@ -2088,13 +2310,7 @@ end;
 }
 function TMainform.InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases, parDescription: WideString): Boolean;
 var
-  AutoReconnect    : Boolean;
-  i, j             : Integer;
-  miGroup,
-  miFilterGroup,
-  miFunction,
-  miFilterFunction : TMenuItem;
-  functioncats     : TStringList;
+  AutoReconnect: Boolean;
 begin
   // fill structure
   ZeroMemory (@FConn,SizeOf(FConn));
@@ -2136,10 +2352,6 @@ begin
   end;
 
   Result := True;
-  QueryRunningInterlock := 0;
-  UserQueryFired := False;
-  UserQueryFiring := False;
-  TemporaryDatabase := '';
 
   FConn.MysqlConn := FMysqlConn.Connection; // use this connection (instead of zConn)
 
@@ -2151,8 +2363,6 @@ begin
     MainReg.WriteBool( REGNAME_AUTORECONNECT, False );
   end;
 
-  ReadWindowOptions();
-
   Showstatus( 'Connecting to ' + FConn.MysqlParams.Host + '...' );
 
   try
@@ -2162,103 +2372,12 @@ begin
     Exit;
   end;
 
-  SessionName := FMysqlConn.SessionName;
-  DatabasesWanted := explode(';', FConn.DatabaseList);
-  if FConn.DatabaseListSort then
-    DatabasesWanted.Sort;
-
-  // Delimiter
-  Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
-
-  // Fill variables-list, processlist and DB-tree
-  ShowVariablesAndProcesses( Self );
-  // Invoke population of database tree. It's important to do this here after
-  // having filled DatabasesWanted, not at design time.
-  DBtree.RootNodeCount := 1;
-
   // Re-enable AutoReconnect in Registry!
   if AutoReconnect then begin
     OpenRegistry;
     MainReg.WriteBool( REGNAME_AUTORECONNECT, true );
   end;
 
-  // Define window properties
-  SetWindowConnected( true );
-  i := SetWindowName( SessionName );
-  winName := SessionName;
-  if ( i <> 0 ) then
-  begin
-    winName := winName + Format( ' (%d)', [i] );
-  end;
-  Application.Title := winName + ' - ' + APPNAME;
-  Caption := winName;
-
-  // Reselect last used database
-  if GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) and ( lastUsedDB <> '' ) then
-  begin
-    try
-      ActiveDatabase := Utf8Decode(lastUsedDB);
-    except
-      // Suppress exception message when db was dropped externally or
-      // the session was just opened with "OnlyDBs" in place and the
-      // last db is not contained in this list.
-    end;
-  end else // By default, select the host node
-    DBtree.Selected[DBtree.GetFirst] := true;
-
-  // read function-list into menu
-  functioncats := GetFunctionCategories;
-
-  for i:=0 to functioncats.Count-1 do
-  begin
-    // Create a menu item which gets subitems later
-    miGroup := TMenuItem.Create(popupQuery);
-    miGroup.Caption := functioncats[i];
-    popupQuery.Items.add(miGroup);
-    miFilterGroup := TMenuItem.Create(popupFilter);
-    miFilterGroup.Caption := miGroup.Caption;
-    popupFilter.Items.add(miFilterGroup);
-    for j:=0 to Length(MySqlFunctions)-1 do
-    begin
-      if MySqlFunctions[j].Category <> functioncats[i] then
-        continue;
-      miFunction := TMenuItem.Create(popupQuery);
-      miFunction.Caption := MySqlFunctions[j].Name;
-      miFunction.ImageIndex := 13;
-      // Prevent generating a hotkey
-      miFunction.Caption := StringReplace(miFunction.Caption, '&', '&&', [rfReplaceAll]);
-      // Prevent generating a seperator line
-      if miFunction.Caption = '-' then
-        miFunction.Caption := '&-';
-      miFunction.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration;
-      // Take care of needed server version
-      if MySqlFunctions[j].Version <= mysql_version then
-      begin
-        if MySqlFunctions[j].Description <> '' then
-          miFunction.Hint := miFunction.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
-        miFunction.Tag := j;
-        // Place menuitem on menu
-        miFunction.OnClick := insertFunction;
-      end
-      else
-      begin
-        miFunction.Hint := miFunction.Hint + ' - ('+STR_NOTSUPPORTED+', needs >= '+ConvertServerVersion(MySqlFunctions[j].Version)+')';
-        miFunction.Enabled := False;
-      end;
-      // Prevent generating a seperator for ShortHint and LongHint
-      miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
-      miGroup.Add(miFunction);
-      // Create a copy of the menuitem for popupFilter
-      miFilterFunction := TMenuItem.Create(popupFilter);
-      miFilterFunction.Caption := miFunction.Caption;
-      miFilterFunction.Hint := miFunction.Hint;
-      miFilterFunction.ImageIndex := miFunction.ImageIndex;
-      miFilterFunction.Tag := miFunction.Tag;
-      miFilterFunction.OnClick := miFunction.OnClick;
-      miFilterFunction.Enabled := miFunction.Enabled;
-      miFilterGroup.Add(miFilterFunction);
-    end;
-  end;
   ShowStatus( STATUS_MSG_READY );
 end;
 
@@ -3055,136 +3174,6 @@ begin
         'flag.' );
       end;
     end;
-  end;
-end;
-
-
-
-procedure TMainForm.ReadWindowOptions;
-var
-  i           : Integer;
-  menuitem    : Tmenuitem;
-  fontname, datafontname : String;
-  fontsize, datafontsize : Integer;
-begin
-  InheritFont(Font);
-  InheritFont(tabsetQueryHelpers.Font);
-  InheritFont(SynCompletionProposal1.Font);
-  // Fix node height on Virtual Trees for current DPI settings
-  FixVT(DBTree);
-  FixVT(ListVariables);
-  FixVT(ListStatus);
-  FixVT(ListProcesses);
-  FixVT(ListCommandStats);
-  FixVT(ListTables);
-  FixVT(ListColumns);
-  // Other values:
-  pnlQueryMemo.Height := GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
-  pnlQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
-  DBtree.Width := GetRegValue(REGNAME_DBTREEWIDTH, DBtree.Width);
-  DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, FConn.Description);
-  SynMemoSQLLog.Height := GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
-  prefMaxColWidth := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
-  // Fix registry entry from older versions which can have 0 here which makes no sense
-  // since the autosetting was removed
-  if prefMaxColWidth <= 0 then
-    prefMaxColWidth := DEFAULT_MAXCOLWIDTH;
-  prefLogsqlnum := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
-  prefLogSqlWidth := GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
-  prefCSVSeparator := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
-  prefCSVEncloser := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
-  prefCSVTerminator := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
-  prefRememberFilters := GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
-  prefPreferShowTables := GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
-
-  // SQL-Font:
-  fontname := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
-  fontsize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
-  SynMemoQuery.Font.Name := fontname;
-  SynMemoQuery.Font.Size := fontsize;
-  SynMemoQuery.Gutter.Font.Name := fontname;
-  SynMemoQuery.Gutter.Font.Size := fontsize;
-  SynMemoFilter.Font.Name := fontname;
-  SynMemoFilter.Font.Size := fontsize;
-  SynMemoSQLLog.Font.Name := fontname;
-  SynMemoSQLLog.Font.Size := fontsize;
-  SynMemoSQLLog.Gutter.Font.Name := fontname;
-  SynMemoSQLLog.Gutter.Font.Size := fontsize;
-  SynMemoProcessView.Font.Name := fontname;
-  SynMemoProcessView.Font.Size := fontsize;
-
-  // Data-Font:
-  datafontname := GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
-  datafontsize := GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
-  DataGrid.Font.Name := datafontname;
-  QueryGrid.Font.Name := datafontname;
-  DataGrid.Font.Size := datafontsize;
-  QueryGrid.Font.Size := datafontsize;
-  FixVT(DataGrid);
-  FixVT(QueryGrid);
-  // Load color settings
-  prefFieldColorNumeric := GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
-  prefFieldColorText := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
-  prefFieldColorBinary := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
-  prefFieldColorDatetime := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
-  prefFieldColorEnum := GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
-  prefFieldColorSet := GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
-  prefNullBG := GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
-  CalcNullColors;
-  // Editor enablings
-  prefEnableBinaryEditor := GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
-  prefEnableDatetimeEditor := GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
-  prefEnableEnumEditor := GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
-  prefEnableSetEditor := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
-  prefEnableNullBG := GetRegValue(REGNAME_BG_NULL_ENABLED, DEFAULT_BG_NULL_ENABLED);
-
-  // Color coding:
-  SynSQLSyn1.KeyAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
-  SynSQLSyn1.FunctionAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLFUNCTIONATTRI, ColorToString(DEFAULT_SQLCOLFUNCTIONATTRI)));
-  SynSQLSyn1.DataTypeAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLDATATYPEATTRI, ColorToString(DEFAULT_SQLCOLDATATYPEATTRI)));
-  SynSQLSyn1.NumberAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLNUMBERATTRI, ColorToString(DEFAULT_SQLCOLNUMBERATTRI)));
-  SynSQLSyn1.StringAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLSTRINGATTRI, ColorToString(DEFAULT_SQLCOLSTRINGATTRI)));
-  SynSQLSyn1.CommentAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
-  SynSQLSyn1.ConditionalCommentAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLCONDCOMMATTRI, ColorToString(DEFAULT_SQLCOLCONDCOMMATTRI)));
-  SynSQLSyn1.TablenameAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
-  SynSQLSyn1.SymbolAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLSYMBOLATTRI, ColorToString(DEFAULT_SQLCOLSYMBOLATTRI)));
-  SynSQLSyn1.IdentifierAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLIDENTATTRI, ColorToString(DEFAULT_SQLCOLIDENTATTRI)));
-  SynSQLSyn1.DelimitedIdentifierAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLDELIMIDENTATTRI, ColorToString(DEFAULT_SQLCOLDELIMIDENTATTRI)));
-  SynMemoQuery.ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
-
-  // Switch off/on displaying table/db sized in tree
-  menuShowSizeColumn.Checked := GetRegValue(REGNAME_SIZECOL_TREE, DEFAULT_SIZECOL_TREE);
-  if menuShowSizeColumn.Checked then
-    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible]
-  else
-    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options - [coVisible];
-
-  // Restore width of columns of all VirtualTrees
-  RestoreListSetup(ListVariables);
-  RestoreListSetup(ListStatus);
-  RestoreListSetup(ListProcesses);
-  RestoreListSetup(ListCommandStats);
-  RestoreListSetup(ListTables);
-  RestoreListSetup(ListColumns);
-
-  // Activate logging
-  if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
-    ActivateFileLogging;
-
-  // Set last used database, select it later in Init
-  lastUsedDB := GetRegValue(REGNAME_LASTUSEDDB, '', FConn.Description);
-
-  // Generate menuitems for popupDbGridHeader (column selection for ListTables)
-  popupDBGridHeader.Items.Clear;
-  for i:=0 to ListTables.Header.Columns.Count-1 do
-  begin
-    menuitem := TMenuItem.Create( popupDBGridHeader );
-    menuitem.Caption := ListTables.Header.Columns[i].Text;
-    menuitem.OnClick := MenuTablelistColumnsClick;
-    // Disable hiding first column
-    menuitem.Enabled := i>0;
-    menuitem.Checked := coVisible in ListTables.Header.Columns[i].Options;
-    popupDbGridHeader.Items.Add( menuitem );
   end;
 end;
 
