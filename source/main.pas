@@ -1589,9 +1589,6 @@ begin
     // Parameters belong to connection, not to a SQL file which should get opened
     loadsqlfile := False;
     // Take care for empty description - it gets used to read/write session settings to registry!
-    SessionName := parDescription;
-    if SessionName = '' then
-      SessionName := parHost;
     if InitConnection(
       parHost,
       parPort,
@@ -1602,8 +1599,11 @@ begin
       parCompress,
       parSortDatabases) then
     begin
+      SessionName := parDescription;
+      if SessionName = '' then
+        SessionName := parHost;
       // Save session parameters to registry
-      if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS + parDescription, true) then
+      if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS + SessionName, true) then
       begin
         MainReg.WriteString(REGNAME_HOST, parHost);
         MainReg.WriteString(REGNAME_USER, parUser);
