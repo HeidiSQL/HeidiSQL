@@ -1677,8 +1677,12 @@ begin
       // the session was just opened with "OnlyDBs" in place and the
       // last db is not contained in this list.
     end;
-  end else // By default, select the host node
+  end;
+  // By default, select the host node
+  if not Assigned(DBtree.FocusedNode) then begin
     DBtree.Selected[DBtree.GetFirst] := true;
+    DBtree.FocusedNode := DBtree.GetFirst;
+  end;
 
 end;
 
