@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, CheckLst, ExtCtrls, Registry, TntCheckLst, WideStrings;
+  Dialogs, StdCtrls, CheckLst, ExtCtrls, TntCheckLst, WideStrings;
 
 type
   TColumnSelectionForm = class(TForm)
@@ -65,7 +65,7 @@ begin
   chklistColumnsClickCheck( Sender );
 
   // Restore last used sorting state from registry
-  chkSort.Checked := Mainform.GetRegValue(REGNAME_SORTDISPLAYEDCOLUMNS, chkSort.Checked);
+  chkSort.Checked := GetRegValue(REGNAME_SORTDISPLAYEDCOLUMNS, chkSort.Checked);
 end;
 
 

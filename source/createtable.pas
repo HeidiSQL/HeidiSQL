@@ -119,8 +119,8 @@ begin
 
   InheritFont(Font);
 
-  Width := Mainform.GetRegValue(REGNAME_CRTABLEWINWIDTH, Width);
-  Height := Mainform.GetRegValue(REGNAME_CRTABLEWINHEIGHT, Height);
+  Width := GetRegValue(REGNAME_CRTABLEWINWIDTH, Width);
+  Height := GetRegValue(REGNAME_CRTABLEWINHEIGHT, Height);
   SetWindowSizeGrip(Handle, True);
 
   try
@@ -160,9 +160,9 @@ end;
 procedure TCreateTableForm.FormDestroy(Sender: TObject);
 begin
   // Save window layout
-  Mainform.OpenRegistry;
-  Mainform.regmain.WriteInteger( REGNAME_CRTABLEWINWIDTH, Width );
-  Mainform.regmain.WriteInteger( REGNAME_CRTABLEWINHEIGHT, Height );
+  OpenRegistry;
+  MainReg.WriteInteger( REGNAME_CRTABLEWINWIDTH, Width );
+  MainReg.WriteInteger( REGNAME_CRTABLEWINHEIGHT, Height );
 end;
 
 

@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ComCtrls, StdCtrls, CheckLst, ExtCtrls, Buttons, DB,
-  Registry, ToolWin, TntCheckLst, WideStrings, WideStrUtils;
+  ToolWin, TntCheckLst, WideStrings, WideStrUtils;
 
 {$I const.inc}
 
@@ -227,8 +227,8 @@ var
 }
 procedure TUserManagerForm.FormCreate(Sender: TObject);
 begin
-  Width := Mainform.GetRegValue(REGNAME_USERMNGR_WINWIDTH, Width);
-  Height := Mainform.GetRegValue(REGNAME_USERMNGR_WINHEIGHT, Height);
+  Width := GetRegValue(REGNAME_USERMNGR_WINWIDTH, Width);
+  Height := GetRegValue(REGNAME_USERMNGR_WINHEIGHT, Height);
   db := Mainform.Mask(DBNAME_MYSQL);
   SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
@@ -239,16 +239,10 @@ end;
   FormDestroy: Save GUI setup
 }
 procedure TUserManagerForm.FormDestroy(Sender: TObject);
-var
-  reg: TRegistry;
 begin
-  reg := TRegistry.Create;
-  if reg.OpenKey(REGPATH, False) then begin
-    reg.WriteInteger( REGNAME_USERMNGR_WINWIDTH, Width );
-    reg.WriteInteger( REGNAME_USERMNGR_WINHEIGHT, Height );
-    reg.CloseKey;
-  end;
-  reg.Free;
+  OpenRegistry;
+  MainReg.WriteInteger( REGNAME_USERMNGR_WINWIDTH, Width );
+  MainReg.WriteInteger( REGNAME_USERMNGR_WINHEIGHT, Height );
 end;
 
 

@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, Registry, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
+  StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, SynMemo;
 
 type
@@ -164,63 +164,56 @@ end;
   Apply settings to registry and mainform
 }
 procedure Toptionsform.Apply(Sender: TObject);
-var
-  reg  : TRegistry;
 begin
   Screen.Cursor := crHourGlass;
 
   // Open registry key
-  reg := TRegistry.Create;
-  reg.OpenKey(REGPATH, true);
+  OpenRegistry;
 
   // Save values
-  reg.WriteBool(REGNAME_AUTORECONNECT, chkAutoReconnect.Checked);
-  reg.WriteBool(REGNAME_RESTORELASTUSEDDB, chkRestoreLastDB.Checked);
-  reg.WriteString(REGNAME_FONTNAME, comboSQLFontName.Text);
-  reg.WriteInteger(REGNAME_FONTSIZE, updownSQLFontSize.Position);
-  reg.WriteInteger(REGNAME_LOGSQLNUM, updownLogLines.Position);
-  reg.WriteInteger(REGNAME_LOGSQLWIDTH, updownLogSnip.Position);
-  reg.WriteString(REGNAME_SQLCOLKEYATTRI, colortostring(SynSQLSynSQLSample.KeyAttri.Foreground));
-  reg.WriteString(REGNAME_SQLCOLFUNCTIONATTRI, colortostring(SynSQLSynSQLSample.FunctionAttri.Foreground));
-  reg.WriteString(REGNAME_SQLCOLDATATYPEATTRI, colortostring(SynSQLSynSQLSample.DataTypeAttri.Foreground));
-  reg.WriteString(REGNAME_SQLCOLNUMBERATTRI, colortostring(SynSQLSynSQLSample.NumberAttri.Foreground));
-  reg.WriteString(REGNAME_SQLCOLSTRINGATTRI, colortostring(SynSQLSynSQLSample.StringAttri.Foreground));
-  reg.WriteString(REGNAME_SQLCOLCOMMENTATTRI, colortostring(SynSQLSynSQLSample.CommentAttri.Foreground));
-  reg.WriteString(REGNAME_SQLCOLCONDCOMMATTRI, colortostring(SynSQLSynSQLSample.ConditionalCommentAttri.Foreground));
-  reg.WriteString(REGNAME_SQLCOLTABLENAMEATTRI, colortostring(SynSQLSynSQLSample.TableNameAttri.Foreground));
-  reg.WriteString(REGNAME_SQLCOLSYMBOLATTRI, colortostring(SynSQLSynSQLSample.SymbolAttri.Foreground));
-  reg.WriteString(REGNAME_SQLCOLIDENTATTRI, colortostring(SynSQLSynSQLSample.IdentifierAttri.Foreground));
-  reg.WriteString(REGNAME_SQLCOLDELIMIDENTATTRI, colortostring(SynSQLSynSQLSample.DelimitedIdentifierAttri.Foreground));
-  reg.WriteString(REGNAME_SQLCOLACTIVELINE, ColorToString(SynMemoSQLSample.ActiveLineColor));
-  reg.WriteString(REGNAME_CSV_SEPARATOR, editCSVSeparator.Text);
-  reg.WriteString(REGNAME_CSV_ENCLOSER, editCSVEncloser.Text);
-  reg.WriteString(REGNAME_CSV_TERMINATOR, editCSVTerminator.Text);
-  reg.WriteInteger(REGNAME_MAXCOLWIDTH, updownMaxColWidth.Position);
-  reg.WriteString(REGNAME_DATAFONTNAME, comboDataFontName.Text);
-  reg.WriteInteger(REGNAME_DATAFONTSIZE, updownDataFontSize.Position);
-  reg.WriteBool(REGNAME_LOGTOFILE, chkLogToFile.Checked);
-  reg.WriteBool(REGNAME_DO_UPDATECHECK, chkUpdatecheck.Checked);
-  reg.WriteBool(REGNAME_DO_UPDATECHECK_BUILDS, chkUpdatecheckBuilds.Checked);
-  reg.WriteInteger(REGNAME_UPDATECHECK_INTERVAL, updownUpdatecheckInterval.Position);
-  reg.WriteBool(REGNAME_PREFER_SHOWTABLES, chkPreferShowTables.Checked);
+  MainReg.WriteBool(REGNAME_AUTORECONNECT, chkAutoReconnect.Checked);
+  MainReg.WriteBool(REGNAME_RESTORELASTUSEDDB, chkRestoreLastDB.Checked);
+  MainReg.WriteString(REGNAME_FONTNAME, comboSQLFontName.Text);
+  MainReg.WriteInteger(REGNAME_FONTSIZE, updownSQLFontSize.Position);
+  MainReg.WriteInteger(REGNAME_LOGSQLNUM, updownLogLines.Position);
+  MainReg.WriteInteger(REGNAME_LOGSQLWIDTH, updownLogSnip.Position);
+  MainReg.WriteString(REGNAME_SQLCOLKEYATTRI, colortostring(SynSQLSynSQLSample.KeyAttri.Foreground));
+  MainReg.WriteString(REGNAME_SQLCOLFUNCTIONATTRI, colortostring(SynSQLSynSQLSample.FunctionAttri.Foreground));
+  MainReg.WriteString(REGNAME_SQLCOLDATATYPEATTRI, colortostring(SynSQLSynSQLSample.DataTypeAttri.Foreground));
+  MainReg.WriteString(REGNAME_SQLCOLNUMBERATTRI, colortostring(SynSQLSynSQLSample.NumberAttri.Foreground));
+  MainReg.WriteString(REGNAME_SQLCOLSTRINGATTRI, colortostring(SynSQLSynSQLSample.StringAttri.Foreground));
+  MainReg.WriteString(REGNAME_SQLCOLCOMMENTATTRI, colortostring(SynSQLSynSQLSample.CommentAttri.Foreground));
+  MainReg.WriteString(REGNAME_SQLCOLCONDCOMMATTRI, colortostring(SynSQLSynSQLSample.ConditionalCommentAttri.Foreground));
+  MainReg.WriteString(REGNAME_SQLCOLTABLENAMEATTRI, colortostring(SynSQLSynSQLSample.TableNameAttri.Foreground));
+  MainReg.WriteString(REGNAME_SQLCOLSYMBOLATTRI, colortostring(SynSQLSynSQLSample.SymbolAttri.Foreground));
+  MainReg.WriteString(REGNAME_SQLCOLIDENTATTRI, colortostring(SynSQLSynSQLSample.IdentifierAttri.Foreground));
+  MainReg.WriteString(REGNAME_SQLCOLDELIMIDENTATTRI, colortostring(SynSQLSynSQLSample.DelimitedIdentifierAttri.Foreground));
+  MainReg.WriteString(REGNAME_SQLCOLACTIVELINE, ColorToString(SynMemoSQLSample.ActiveLineColor));
+  MainReg.WriteString(REGNAME_CSV_SEPARATOR, editCSVSeparator.Text);
+  MainReg.WriteString(REGNAME_CSV_ENCLOSER, editCSVEncloser.Text);
+  MainReg.WriteString(REGNAME_CSV_TERMINATOR, editCSVTerminator.Text);
+  MainReg.WriteInteger(REGNAME_MAXCOLWIDTH, updownMaxColWidth.Position);
+  MainReg.WriteString(REGNAME_DATAFONTNAME, comboDataFontName.Text);
+  MainReg.WriteInteger(REGNAME_DATAFONTSIZE, updownDataFontSize.Position);
+  MainReg.WriteBool(REGNAME_LOGTOFILE, chkLogToFile.Checked);
+  MainReg.WriteBool(REGNAME_DO_UPDATECHECK, chkUpdatecheck.Checked);
+  MainReg.WriteBool(REGNAME_DO_UPDATECHECK_BUILDS, chkUpdatecheckBuilds.Checked);
+  MainReg.WriteInteger(REGNAME_UPDATECHECK_INTERVAL, updownUpdatecheckInterval.Position);
+  MainReg.WriteBool(REGNAME_PREFER_SHOWTABLES, chkPreferShowTables.Checked);
   // Save color settings
-  reg.WriteInteger(REGNAME_FIELDCOLOR_NUMERIC, cboxNumeric.Selected);
-  reg.WriteInteger(REGNAME_FIELDCOLOR_TEXT, cboxText.Selected);
-  reg.WriteInteger(REGNAME_FIELDCOLOR_BINARY, cboxBinary.Selected);
-  reg.WriteInteger(REGNAME_FIELDCOLOR_DATETIME, cboxDatetime.Selected);
-  reg.WriteInteger(REGNAME_FIELDCOLOR_ENUM, cboxEnum.Selected);
-  reg.WriteInteger(REGNAME_FIELDCOLOR_SET, cboxSet.Selected);
-  reg.WriteInteger(REGNAME_BG_NULL, cboxNullBg.Selected);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_NUMERIC, cboxNumeric.Selected);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_TEXT, cboxText.Selected);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_BINARY, cboxBinary.Selected);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_DATETIME, cboxDatetime.Selected);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_ENUM, cboxEnum.Selected);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_SET, cboxSet.Selected);
+  MainReg.WriteInteger(REGNAME_BG_NULL, cboxNullBg.Selected);
   // Editor enablings
-  reg.WriteBool(REGNAME_FIELDEDITOR_BINARY, chkEditorBinary.Checked);
-  reg.WriteBool(REGNAME_FIELDEDITOR_DATETIME, chkEditorDatetime.Checked);
-  reg.WriteBool(REGNAME_FIELDEDITOR_ENUM, chkEditorEnum.Checked);
-  reg.WriteBool(REGNAME_FIELDEDITOR_SET, chkEditorSet.Checked);
-  reg.WriteBool(REGNAME_BG_NULL_ENABLED, chkNullBg.Checked);
-
-  // Close registry key
-  reg.CloseKey;
-  reg.Free;
+  MainReg.WriteBool(REGNAME_FIELDEDITOR_BINARY, chkEditorBinary.Checked);
+  MainReg.WriteBool(REGNAME_FIELDEDITOR_DATETIME, chkEditorDatetime.Checked);
+  MainReg.WriteBool(REGNAME_FIELDEDITOR_ENUM, chkEditorEnum.Checked);
+  MainReg.WriteBool(REGNAME_FIELDEDITOR_SET, chkEditorSet.Checked);
+  MainReg.WriteBool(REGNAME_BG_NULL_ENABLED, chkNullBg.Checked);
 
   // Set relevant properties in mainform
   Mainform.SynMemoQuery.Font := SynMemoSQLSample.Font;
@@ -313,28 +306,28 @@ begin
   screen.Cursor := crHourGlass;
 
   // Read and display values
-  sqlfontname := Mainform.GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
-  sqlfontsize := Mainform.GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
-  datafontname := Mainform.GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
-  datafontsize := Mainform.GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
-  chkAutoReconnect.Checked := Mainform.GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
-  chkRestoreLastDB.Checked := Mainform.GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
-  updownLogLines.Position := Mainform.GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
-  updownLogSnip.Position := Mainform.GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
-  chkUpdatecheck.Checked := Mainform.GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK);
-  chkUpdatecheckBuilds.Checked := Mainform.GetRegValue(REGNAME_DO_UPDATECHECK_BUILDS, DEFAULT_DO_UPDATECHECK_BUILDS);
-  updownUpdatecheckInterval.Position := Mainform.GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
+  sqlfontname := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
+  sqlfontsize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
+  datafontname := GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
+  datafontsize := GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
+  chkAutoReconnect.Checked := GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
+  chkRestoreLastDB.Checked := GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
+  updownLogLines.Position := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
+  updownLogSnip.Position := GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
+  chkUpdatecheck.Checked := GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK);
+  chkUpdatecheckBuilds.Checked := GetRegValue(REGNAME_DO_UPDATECHECK_BUILDS, DEFAULT_DO_UPDATECHECK_BUILDS);
+  updownUpdatecheckInterval.Position := GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
   chkUpdatecheckClick(Sender);
-  chkPreferShowTables.Checked := Mainform.GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
+  chkPreferShowTables.Checked := GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
 
   // Default Column-Width in DBGrids:
-  updownMaxColWidth.Position := Mainform.GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
+  updownMaxColWidth.Position := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
   // CSV-Options:
-  editCSVSeparator.Text := Mainform.GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
-  editCSVEncloser.Text := Mainform.GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
-  editCSVTerminator.Text := Mainform.GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
+  editCSVSeparator.Text := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
+  editCSVEncloser.Text := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
+  editCSVTerminator.Text := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   // Log to file
-  chkLogToFile.Checked := Mainform.GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE);
+  chkLogToFile.Checked := GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE);
   btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
 
   // SQL-Appearance:
@@ -344,18 +337,18 @@ begin
                    LPARAM(Pointer(comboSQLFontName.Items))); // customized data
 
   // Color-coding:
-  SynSQLSynSQLSample.KeyAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
-  SynSQLSynSQLSample.FunctionAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLFUNCTIONATTRI, ColorToString(DEFAULT_SQLCOLFUNCTIONATTRI)));
-  SynSQLSynSQLSample.DataTypeAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLDATATYPEATTRI, ColorToString(DEFAULT_SQLCOLDATATYPEATTRI)));
-  SynSQLSynSQLSample.NumberAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLNUMBERATTRI, ColorToString(DEFAULT_SQLCOLNUMBERATTRI)));
-  SynSQLSynSQLSample.StringAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLSTRINGATTRI, ColorToString(DEFAULT_SQLCOLSTRINGATTRI)));
-  SynSQLSynSQLSample.CommentAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
-  SynSQLSynSQLSample.ConditionalCommentAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLCONDCOMMATTRI, ColorToString(DEFAULT_SQLCOLCONDCOMMATTRI)));
-  SynSQLSynSQLSample.TableNameAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
-  SynSQLSynSQLSample.SymbolAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLSYMBOLATTRI, ColorToString(DEFAULT_SQLCOLSYMBOLATTRI)));
-  SynSQLSynSQLSample.IdentifierAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLIDENTATTRI, ColorToString(DEFAULT_SQLCOLIDENTATTRI)));
-  SynSQLSynSQLSample.DelimitedIdentifierAttri.Foreground := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLDELIMIDENTATTRI, ColorToString(DEFAULT_SQLCOLDELIMIDENTATTRI)));
-  SynMemoSQLSample.ActiveLineColor := StringToColor(Mainform.GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
+  SynSQLSynSQLSample.KeyAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLKEYATTRI, ColorToString(DEFAULT_SQLCOLKEYATTRI)));
+  SynSQLSynSQLSample.FunctionAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLFUNCTIONATTRI, ColorToString(DEFAULT_SQLCOLFUNCTIONATTRI)));
+  SynSQLSynSQLSample.DataTypeAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLDATATYPEATTRI, ColorToString(DEFAULT_SQLCOLDATATYPEATTRI)));
+  SynSQLSynSQLSample.NumberAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLNUMBERATTRI, ColorToString(DEFAULT_SQLCOLNUMBERATTRI)));
+  SynSQLSynSQLSample.StringAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLSTRINGATTRI, ColorToString(DEFAULT_SQLCOLSTRINGATTRI)));
+  SynSQLSynSQLSample.CommentAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLCOMMENTATTRI, ColorToString(DEFAULT_SQLCOLCOMMENTATTRI)));
+  SynSQLSynSQLSample.ConditionalCommentAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLCONDCOMMATTRI, ColorToString(DEFAULT_SQLCOLCONDCOMMATTRI)));
+  SynSQLSynSQLSample.TableNameAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLTABLENAMEATTRI, ColorToString(DEFAULT_SQLCOLTABLENAMEATTRI)));
+  SynSQLSynSQLSample.SymbolAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLSYMBOLATTRI, ColorToString(DEFAULT_SQLCOLSYMBOLATTRI)));
+  SynSQLSynSQLSample.IdentifierAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLIDENTATTRI, ColorToString(DEFAULT_SQLCOLIDENTATTRI)));
+  SynSQLSynSQLSample.DelimitedIdentifierAttri.Foreground := StringToColor(GetRegValue(REGNAME_SQLCOLDELIMIDENTATTRI, ColorToString(DEFAULT_SQLCOLDELIMIDENTATTRI)));
+  SynMemoSQLSample.ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
   comboSQLFontName.ItemIndex := comboSQLFontName.Items.IndexOf(sqlfontname);
   updownSQLFontSize.Position := sqlfontsize;
   SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
@@ -381,19 +374,19 @@ begin
   comboDataFontName.ItemIndex := comboDataFontName.Items.IndexOf(datafontname);
   updownDataFontSize.Position := datafontsize;
   // Load color settings
-  cboxNumeric.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
-  cboxText.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
-  cboxBinary.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
-  cboxDatetime.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
-  cboxEnum.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
-  cboxSet.Selected := Mainform.GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
-  cboxNullBG.Selected := Mainform.GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
+  cboxNumeric.Selected := GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
+  cboxText.Selected := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
+  cboxBinary.Selected := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
+  cboxDatetime.Selected := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
+  cboxEnum.Selected := GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
+  cboxSet.Selected := GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
+  cboxNullBG.Selected := GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
   // Editor enablings
-  chkEditorBinary.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
-  chkEditorDatetime.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
-  chkEditorEnum.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
-  chkEditorSet.Checked := Mainform.GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
-  chkNullBG.Checked := Mainform.GetRegValue(REGNAME_BG_NULL_ENABLED, DEFAULT_BG_NULL_ENABLED);
+  chkEditorBinary.Checked := GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
+  chkEditorDatetime.Checked := GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
+  chkEditorEnum.Checked := GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
+  chkEditorSet.Checked := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
+  chkNullBG.Checked := GetRegValue(REGNAME_BG_NULL_ENABLED, DEFAULT_BG_NULL_ENABLED);
 
   btnOK.Enabled := False;
   btnApply.Enabled := False;

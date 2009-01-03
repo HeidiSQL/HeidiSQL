@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, VirtualTrees, DB, Registry, WideStrings,
+  Dialogs, StdCtrls, VirtualTrees, DB, WideStrings,
   TntStdCtrls;
 
 type
@@ -67,24 +67,18 @@ end;
 
 procedure TfrmSelectDBObject.FormCreate(Sender: TObject);
 begin
-  Width := Mainform.GetRegValue(REGNAME_SELECTDBO_WINWIDTH, Width);
-  Height := Mainform.GetRegValue(REGNAME_SELECTDBO_WINHEIGHT, Height);
+  Width := GetRegValue(REGNAME_SELECTDBO_WINWIDTH, Width);
+  Height := GetRegValue(REGNAME_SELECTDBO_WINHEIGHT, Height);
   SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
   FixVT(TreeDBO);
 end;
 
 procedure TfrmSelectDBObject.FormDestroy(Sender: TObject);
-var
-  reg: TRegistry;
 begin
-  reg := TRegistry.Create;
-  if reg.OpenKey(REGPATH, False) then begin
-    reg.WriteInteger( REGNAME_SELECTDBO_WINWIDTH, Width );
-    reg.WriteInteger( REGNAME_SELECTDBO_WINHEIGHT, Height );
-    reg.CloseKey;
-  end;
-  reg.Free;
+  OpenRegistry;
+  MainReg.WriteInteger( REGNAME_SELECTDBO_WINWIDTH, Width );
+  MainReg.WriteInteger( REGNAME_SELECTDBO_WINHEIGHT, Height );
 end;
 
 procedure TfrmSelectDBObject.FormResize(Sender: TObject);

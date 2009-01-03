@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Registry, Buttons, ExtCtrls, ZPlainMySqlDriver,
+  StdCtrls, Buttons, ExtCtrls, ZPlainMySqlDriver,
   PngSpeedButton, TntStdCtrls, ComCtrls, ToolWin;
 
 type
@@ -94,16 +94,12 @@ end;
 // Connect
 procedure Tconnform.ButtonConnectClick(Sender: TObject);
 var
-  reg : TRegistry;
   btn: TButton;
 begin
   Screen.Cursor := crHourglass;
   // Save last connection name to registry
-  reg := TRegistry.Create;
-  if reg.OpenKey(REGPATH, true) then
-    reg.WriteString(REGNAME_LASTSESSION, ComboBoxDescription.Text);
-  reg.CloseKey;
-  reg.Free;
+  OpenRegistry;
+  MainReg.WriteString(REGNAME_LASTSESSION, ComboBoxDescription.Text);
 
   btn := Sender as TButton;
   btn.Enabled := false;
@@ -140,20 +136,15 @@ var
   i       : Integer;
   lastcon : String;
   AutoReconnect : Boolean;
-  reg : TRegistry;
 begin
   Screen.Cursor := crHourglass;
 
   ComboBoxDescription.Items.Clear;
   ComboBoxDescription.Text := '';
-  reg := TRegistry.Create;
-  if reg.OpenKey(REGPATH + REGKEY_SESSIONS, true) then
-  begin
-    reg.GetKeyNames(ComboBoxDescription.Items);
-    reg.Free;
-  end;
-  lastcon := Mainform.GetRegValue(REGNAME_LASTSESSION, '');
-  AutoReconnect := Mainform.GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
+  if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, true) then
+    MainReg.GetKeyNames(ComboBoxDescription.Items);
+  lastcon := GetRegValue(REGNAME_LASTSESSION, '');
+  AutoReconnect := GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
 
   if ComboBoxDescription.Items.Count > 0 then
   begin
@@ -206,22 +197,15 @@ procedure Tconnform.ButtonSaveClick(Sender: TObject);
 begin
   // save connection!
   Screen.Cursor := crHourglass;
-  with TRegistry.Create do
-  begin
-    if OpenKey(REGPATH + REGKEY_SESSIONS + ComboBoxDescription.Text, true) then
-    begin
-      WriteString(REGNAME_HOST, EditHost.Text);
-      WriteString(REGNAME_USER, EditUsername.Text);
-      WriteString(REGNAME_PASSWORD, encrypt(EditPassword.Text));
-      WriteString(REGNAME_PORT, EditPort.Text);
-      WriteString(REGNAME_TIMEOUT, EditTimeout.Text);
-      WriteBool(REGNAME_COMPRESSED, CheckBoxCompressed.Checked);
-      WriteString(REGNAME_ONLYDBS, Utf8Encode(EditOnlyDBs.Text));
-      WriteBool(REGNAME_ONLYDBSSORTED, CheckBoxSorted.Checked);
-      CloseKey;
-    end;
-    Free;
-  end;
+  OpenRegistry(ComboBoxDescription.Text);
+  MainReg.WriteString(REGNAME_HOST, EditHost.Text);
+  MainReg.WriteString(REGNAME_USER, EditUsername.Text);
+  MainReg.WriteString(REGNAME_PASSWORD, encrypt(EditPassword.Text));
+  MainReg.WriteString(REGNAME_PORT, EditPort.Text);
+  MainReg.WriteString(REGNAME_TIMEOUT, EditTimeout.Text);
+  MainReg.WriteBool(REGNAME_COMPRESSED, CheckBoxCompressed.Checked);
+  MainReg.WriteString(REGNAME_ONLYDBS, Utf8Encode(EditOnlyDBs.Text));
+  MainReg.WriteBool(REGNAME_ONLYDBSSORTED, CheckBoxSorted.Checked);
   ComboBoxDescriptionClick(self);
   Screen.Cursor := crDefault;
 end;
@@ -233,41 +217,33 @@ var
   description : String;
 begin
   // save new connection!
-  with TRegistry.Create do
-  begin
-    i := 0;
-    description := 'New Connection';
-    while KeyExists(REGPATH + REGKEY_SESSIONS + description) do
-    begin
-      inc(i);
-      description := 'New Connection' + ' (' + inttostr(i) + ')';
-    end;
-    if not InputQuery('New Connection...', 'Description:', description) then
-      exit;
-    if KeyExists(REGPATH + REGKEY_SESSIONS + description) then
-    begin
-      MessageDlg('Entry "' + description + '" already exists!', mtError, [mbOK], 0);
-      exit;
-    end;
-
-    Screen.Cursor := crHourglass;
-    ComboBoxDescription.Items.Add(description);
-    ComboBoxDescription.ItemIndex := ComboBoxDescription.Items.Count - 1;
-
-    if OpenKey(REGPATH + REGKEY_SESSIONS + ComboBoxDescription.Text, true) then
-    begin
-      WriteString(REGNAME_HOST, DEFAULT_HOST);
-      WriteString(REGNAME_USER, DEFAULT_USER);
-      WriteString(REGNAME_PASSWORD, encrypt(DEFAULT_PASSWORD));
-      WriteString(REGNAME_PORT, inttostr(DEFAULT_PORT));
-      WriteString(REGNAME_TIMEOUT, inttostr(DEFAULT_TIMEOUT));
-      WriteBool(REGNAME_COMPRESSED, DEFAULT_COMPRESSED);
-      WriteString(REGNAME_ONLYDBS, '');
-      WriteBool(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED);
-      CloseKey;
-    end;
-    Free;
+  i := 0;
+  description := 'New Connection';
+  while MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + description) do begin
+    inc(i);
+    description := 'New Connection' + ' (' + inttostr(i) + ')';
   end;
+  if not InputQuery('New Connection...', 'Description:', description) then
+    exit;
+  if MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + description) then
+  begin
+    MessageDlg('Entry "' + description + '" already exists!', mtError, [mbOK], 0);
+    exit;
+  end;
+
+  Screen.Cursor := crHourglass;
+  ComboBoxDescription.Items.Add(description);
+  ComboBoxDescription.ItemIndex := ComboBoxDescription.Items.Count - 1;
+
+  OpenRegistry(ComboBoxDescription.Text);
+  MainReg.WriteString(REGNAME_HOST, DEFAULT_HOST);
+  MainReg.WriteString(REGNAME_USER, DEFAULT_USER);
+  MainReg.WriteString(REGNAME_PASSWORD, encrypt(DEFAULT_PASSWORD));
+  MainReg.WriteString(REGNAME_PORT, inttostr(DEFAULT_PORT));
+  MainReg.WriteString(REGNAME_TIMEOUT, inttostr(DEFAULT_TIMEOUT));
+  MainReg.WriteBool(REGNAME_COMPRESSED, DEFAULT_COMPRESSED);
+  MainReg.WriteString(REGNAME_ONLYDBS, '');
+  MainReg.WriteBool(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED);
 
   EnableDisable(true);
 
@@ -281,12 +257,8 @@ procedure Tconnform.ButtonDeleteClick(Sender: TObject);
 begin
   if MessageDlg('Delete Entry "' + ComboBoxDescription.Text + '" ?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes then
   begin
-    with TRegistry.Create do
-    begin
-      if not DeleteKey(REGPATH + REGKEY_SESSIONS + ComboBoxDescription.Text) then
-        MessageDlg('Error while deleting Key from Registry!', mtError, [mbOK], 0);
-      Free;
-    end;
+    if not MainReg.DeleteKey(REGPATH + REGKEY_SESSIONS + ComboBoxDescription.Text) then
+      MessageDlg('Error while deleting Key from Registry!', mtError, [mbOK], 0);
     FormShow(self);
   end;
 end;
@@ -299,14 +271,14 @@ begin
   // select one connection!
   Screen.Cursor := crHourglass;
   sessname := ComboBoxDescription.Text;
-  EditHost.Text := Mainform.GetRegValue(REGNAME_HOST, '', sessname);
-  EditUsername.Text := Mainform.GetRegValue(REGNAME_USER, '', sessname);
-  EditPassword.Text := decrypt(Mainform.GetRegValue(REGNAME_PASSWORD, '', sessname));
-  EditPort.Text := Mainform.GetRegValue(REGNAME_PORT, '', sessname);
-  EditTimeout.Text := Mainform.GetRegValue(REGNAME_TIMEOUT, '', sessname);;
-  CheckBoxCompressed.Checked := Mainform.GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, sessname);
-  EditOnlyDBs.Text := Utf8Decode(Mainform.GetRegValue(REGNAME_ONLYDBS, '', sessname));
-  CheckBoxSorted.Checked := Mainform.GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, sessname);
+  EditHost.Text := GetRegValue(REGNAME_HOST, '', sessname);
+  EditUsername.Text := GetRegValue(REGNAME_USER, '', sessname);
+  EditPassword.Text := decrypt(GetRegValue(REGNAME_PASSWORD, '', sessname));
+  EditPort.Text := GetRegValue(REGNAME_PORT, '', sessname);
+  EditTimeout.Text := GetRegValue(REGNAME_TIMEOUT, '', sessname);;
+  CheckBoxCompressed.Checked := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, sessname);
+  EditOnlyDBs.Text := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', sessname));
+  CheckBoxSorted.Checked := GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, sessname);
   btnSave.Enabled := false;
   ButtonSaveAndConnect.Enabled := btnSave.Enabled;
   btnEditDesc.Enabled := ComboBoxDescription.ItemIndex > -1;
@@ -373,17 +345,14 @@ begin
     exit;
   end;
 
-  with TRegistry.Create do begin
-    idx := ComboBoxDescription.ItemIndex;
-    try
-      MoveKey(REGPATH + REGKEY_SESSIONS + olddesc, REGPATH + REGKEY_SESSIONS + newdesc, true);
-      ComboBoxDescription.Items[ComboBoxDescription.ItemIndex] := newdesc;
-      ComboBoxDescription.ItemIndex := idx;
-      ComboBoxDescriptionClick(self);
-    except
-      MessageDLG('Error on renaming.', mtError, [mbCancel], 0);
-    end;
-    Free;
+  idx := ComboBoxDescription.ItemIndex;
+  try
+    MainReg.MoveKey(REGPATH + REGKEY_SESSIONS + olddesc, REGPATH + REGKEY_SESSIONS + newdesc, true);
+    ComboBoxDescription.Items[ComboBoxDescription.ItemIndex] := newdesc;
+    ComboBoxDescription.ItemIndex := idx;
+    ComboBoxDescriptionClick(self);
+  except
+    MessageDLG('Error on renaming.', mtError, [mbCancel], 0);
   end;
 
 end;

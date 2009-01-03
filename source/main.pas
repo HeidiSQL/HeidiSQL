@@ -14,7 +14,7 @@ uses
   Communication,
   Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
-  ActnList, ImgList, Registry, ShellApi, ToolWin, Clipbrd, db,
+  ActnList, ImgList, ShellApi, ToolWin, Clipbrd, db,
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, VirtualTrees,
   DateUtils, PngImageList, OptimizeTables, View, Usermanager,
@@ -780,7 +780,6 @@ type
     procedure FocusGridCol(Grid: TBaseVirtualTree; Column: TColumnIndex);
   public
     virtualDesktopName: string;
-    regMain : TRegistry;
     MaintenanceForm: TOptimize;
     ViewForm: TfrmView;
     UserManagerForm: TUserManagerForm;
@@ -843,16 +842,12 @@ type
     DataGridCurrentSort        : WideString;
 
     property Delimiter: String read FDelimiter write SetDelimiter;
-    procedure OpenRegistry(Session: String = '');
     procedure CallSQLHelpWithKeyword( keyword: String );
     procedure AddOrRemoveFromQueryLoadHistory( filename: String;
       AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
     procedure popupQueryLoadClick( sender: TObject );
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
-    function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
-    function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
-    function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
     function InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases, parDescription: WideString): Boolean;
     //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
     function GetVisualDataset: PGridResult;
@@ -1057,7 +1052,8 @@ procedure TMainForm.saveWindowConfig;
 var
   ws: String;
 begin
-  with TRegistry.Create do begin
+  OpenRegistry;
+  with MainReg do begin
     if OpenKey(REGPATH + virtualDesktopName + '\', True) then begin
       // Convert set to string.
       if WindowState = wsNormal then ws := 'Normal' else
@@ -1073,8 +1069,6 @@ begin
       WriteInteger(REGNAME_WINDOWWIDTH, Width);
       WriteInteger(REGNAME_WINDOWHEIGHT, Height);
     end;
-    CloseKey;
-    Free;
   end;
 end;
 
@@ -1083,7 +1077,8 @@ var
   ws: String;
 begin
   // Called on application start or when monitor configuration has changed.
-  with TRegistry.Create do begin
+  OpenRegistry;
+  with MainReg do begin
     if not OpenKey(REGPATH + virtualDesktopName + '\', False) then begin
       // Switch to default configuration if nothing was stored.
       setDefaultWindowConfig;
@@ -1158,7 +1153,6 @@ procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   filename : String;
   buffer   : array[0..MAX_PATH] of char;
-  reg: TRegistry;
 begin
   // Post pending UPDATE
   if DataGridHasChanges then
@@ -1184,41 +1178,37 @@ begin
   FreeAndNil(SqlMessages);
   LeaveCriticalSection(SqlMessagesLock);
 
-  reg := TRegistry.Create();
-  if reg.OpenKey( REGPATH, true ) then
-  begin
-    // Position of Toolbars
-    reg.WriteInteger(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
-    reg.WriteInteger(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
-    reg.WriteInteger(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
-    reg.WriteInteger(REGNAME_TOOLBARDBTOP, ToolBarDatabase.Top);
-    reg.WriteInteger(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
-    reg.WriteInteger(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
-    reg.WriteInteger(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
-    reg.WriteInteger(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
+  OpenRegistry;
+  // Position of Toolbars
+  MainReg.WriteInteger(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
+  MainReg.WriteInteger(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
+  MainReg.WriteInteger(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
+  MainReg.WriteInteger(REGNAME_TOOLBARDBTOP, ToolBarDatabase.Top);
+  MainReg.WriteInteger(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
+  MainReg.WriteInteger(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
+  MainReg.WriteInteger(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
+  MainReg.WriteInteger(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
 
-    // Save delimiter
-    reg.WriteString( REGNAME_DELIMITER, Delimiter );
+  // Save delimiter
+  MainReg.WriteString( REGNAME_DELIMITER, Delimiter );
 
-    reg.WriteInteger( REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height );
-    reg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width );
-    reg.WriteInteger( REGNAME_DBTREEWIDTH, DBtree.width );
-    reg.WriteInteger( REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height );
+  MainReg.WriteInteger( REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height );
+  MainReg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width );
+  MainReg.WriteInteger( REGNAME_DBTREEWIDTH, DBtree.width );
+  MainReg.WriteInteger( REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height );
 
-    // Save width of probably resized columns of all VirtualTrees
-    SaveListSetup(ListVariables);
-    SaveListSetup(ListStatus);
-    SaveListSetup(ListProcesses);
-    SaveListSetup(ListCommandStats);
-    SaveListSetup(ListTables);
-    SaveListSetup(ListColumns);
+  // Save width of probably resized columns of all VirtualTrees
+  SaveListSetup(ListVariables);
+  SaveListSetup(ListStatus);
+  SaveListSetup(ListProcesses);
+  SaveListSetup(ListCommandStats);
+  SaveListSetup(ListTables);
+  SaveListSetup(ListColumns);
 
-    // Open server-specific registry-folder.
-    // relative from already opened folder!
-    reg.OpenKey( REGKEY_SESSIONS + FConn.Description, true );
-    reg.WriteString( REGNAME_LASTUSEDDB, Utf8Encode(ActiveDatabase) );
-  end;
-  FreeAndNil(reg);
+  // Open server-specific registry-folder.
+  // relative from already opened folder!
+  OpenRegistry(FConn.Description);
+  MainReg.WriteString( REGNAME_LASTUSEDDB, Utf8Encode(ActiveDatabase) );
 
   // Clear database and table lists
   DBtree.Clear;
@@ -1252,9 +1242,9 @@ begin
     deletefile(filename+'gif');
   if FileExists(filename+'bmp') then
     deletefile(filename+'bmp');
-  if regMain <> nil then begin
-    regMain.CloseKey;
-    regMain.Free;
+  if MainReg <> nil then begin
+    MainReg.CloseKey;
+    MainReg.Free;
   end;
 end;
 
@@ -1365,7 +1355,6 @@ var
   sValue,
   parHost, parPort, parUser, parPass, parDatabase,
   parTimeout, parCompress, parSortDatabases, parDescription : String;
-  reg : TRegistry;
   LastUpdatecheck : TDateTime;
   UpdatecheckInterval : Integer;
   DefaultLastrunDate : String;
@@ -1438,19 +1427,16 @@ begin
       parDescription) then
     begin
       // Save session parameters to registry
-      reg := TRegistry.Create;
-      if reg.OpenKey(REGPATH + REGKEY_SESSIONS + parDescription, true) then
+      if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS + parDescription, true) then
       begin
-        reg.WriteString(REGNAME_HOST, parHost);
-        reg.WriteString(REGNAME_USER, parUser);
-        reg.WriteString(REGNAME_PASSWORD, encrypt(parPass));
-        reg.WriteString(REGNAME_PORT, parPort);
-        reg.WriteString(REGNAME_TIMEOUT, parTimeout);
-        reg.WriteBool(REGNAME_COMPRESSED, Boolean(StrToIntDef(parCompress, 0)) );
-        reg.WriteString(REGNAME_ONLYDBS, parDatabase);
-        reg.WriteBool(REGNAME_ONLYDBSSORTED, Boolean(StrToIntDef(parSortDatabases, 0)) );
-        reg.CloseKey;
-        reg.Free;
+        MainReg.WriteString(REGNAME_HOST, parHost);
+        MainReg.WriteString(REGNAME_USER, parUser);
+        MainReg.WriteString(REGNAME_PASSWORD, encrypt(parPass));
+        MainReg.WriteString(REGNAME_PORT, parPort);
+        MainReg.WriteString(REGNAME_TIMEOUT, parTimeout);
+        MainReg.WriteBool(REGNAME_COMPRESSED, Boolean(StrToIntDef(parCompress, 0)) );
+        MainReg.WriteString(REGNAME_ONLYDBS, parDatabase);
+        MainReg.WriteBool(REGNAME_ONLYDBSSORTED, Boolean(StrToIntDef(parSortDatabases, 0)) );
       end;
       DataGridHasChanges := False;
 
@@ -1493,15 +1479,8 @@ begin
     if DatabasesWanted.Count > 0 then
     begin
       DatabasesWanted.Add( newdb );
-      with TRegistry.Create do
-      begin
-        if OpenKey(REGPATH + REGKEY_SESSIONS + Conn.Description, false) then
-        begin
-          WriteString( 'OnlyDBs', ImplodeStr( ';', DatabasesWanted ) );
-          CloseKey;
-        end;
-        Free;
-      end;
+      OpenRegistry(Conn.Description);
+      MainReg.WriteString( 'OnlyDBs', ImplodeStr( ';', DatabasesWanted ) );
     end;
     // reload db nodes and switch to new one
     RefreshTree(False, newdb);
@@ -2056,65 +2035,6 @@ begin
 end;
 
 
-{**
-  Init main registry object and open desired key
-  Outsoureced from GetRegValue() to avoid redundant code
-  in these 3 overloaded methods.
-}
-procedure TMainForm.OpenRegistry(Session: String = '');
-var
-  folder : String;
-begin
-  if regMain = nil then
-    regMain := TRegistry.Create;
-  folder := REGPATH;
-  if Session <> '' then
-    folder := folder + REGKEY_SESSIONS + Session;
-  if regMain.CurrentPath <> folder then
-    regMain.OpenKey(folder, false);
-end;
-
-
-{**
-  Read a numeric preference value from registry
-}
-function TMainForm.GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer;
-begin
-  result := defaultValue;
-  OpenRegistry(Session);
-  if regMain.ValueExists( valueName ) then
-    result := regMain.ReadInteger( valueName );
-end;
-
-
-{***
-  Read a boolean preference value from registry
-  @param string Name of the value
-  @param boolean Default-value to return if valueName was not found
-  @param string Subkey of REGPATH where to search for the value
-}
-function TMainForm.GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean;
-begin
-  result := defaultValue;
-  OpenRegistry(Session);
-  if regMain.ValueExists( valueName ) then
-    result := regMain.ReadBool( valueName );
-end;
-
-
-
-{***
-  Read a text preference value from registry
-}
-function TMainForm.GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String;
-begin
-  result := defaultValue;
-  OpenRegistry(Session);
-  if regMain.ValueExists( valueName ) then
-    result := regMain.ReadString( valueName );
-end;
-
-
 
 {**
   Parse commandline for a specific name=value pair
@@ -2175,7 +2095,6 @@ var
   miFunction,
   miFilterFunction : TMenuItem;
   functioncats     : TStringList;
-  reg              : TRegistry;
 begin
   // fill structure
   ZeroMemory (@FConn,SizeOf(FConn));
@@ -2228,11 +2147,8 @@ begin
   // in case of unexpected application-termination
   AutoReconnect := GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
   if AutoReconnect then begin
-    reg := TRegistry.Create();
-    reg.OpenKey( REGPATH, true );
-    reg.WriteBool( REGNAME_AUTORECONNECT, False );
-    reg.CloseKey;
-    FreeAndNil(reg);
+    OpenRegistry;
+    MainReg.WriteBool( REGNAME_AUTORECONNECT, False );
   end;
 
   ReadWindowOptions();
@@ -2262,11 +2178,8 @@ begin
 
   // Re-enable AutoReconnect in Registry!
   if AutoReconnect then begin
-    reg := TRegistry.Create;
-    reg.OpenKey( REGPATH, true );
-    reg.WriteBool( REGNAME_AUTORECONNECT, true );
-    reg.CloseKey;
-    FreeAndNil(reg);
+    OpenRegistry;
+    MainReg.WriteBool( REGNAME_AUTORECONNECT, true );
   end;
 
   // Define window properties
@@ -2541,13 +2454,8 @@ begin
     ClearDbTableList(db);
     if DatabasesWanted.IndexOf(db) > -1 then begin
       DatabasesWanted.Delete( DatabasesWanted.IndexOf(db) );
-      with TRegistry.Create do begin
-        if OpenKey(REGPATH + REGKEY_SESSIONS + Conn.Description, false) then begin
-          WriteString( 'OnlyDBs', ImplodeStr( ';', DatabasesWanted ) );
-          CloseKey;
-        end;
-        Free;
-      end;
+      OpenRegistry(Conn.Description);
+      MainReg.WriteString( 'OnlyDBs', ImplodeStr( ';', DatabasesWanted ) );
     end;
     DBtree.Selected[DBtree.GetFirst] := true;
     RefreshTree(False);
@@ -2887,16 +2795,14 @@ procedure TMainform.AddOrRemoveFromQueryLoadHistory( filename: String; AddIt: Bo
 var
   i                     : Integer;
   Values, newfilelist   : TStringList;
-  reg                   : TRegistry;
   savedfilename         : String;
 begin
   // Add or remove filename to/from history, avoiding duplicates
 
-  reg := TRegistry.Create;
-  reg.openkey(REGPATH, true);
   newfilelist := TStringList.create;
   Values := TStringList.create;
-  reg.GetValueNames( Values );
+  OpenRegistry;
+  MainReg.GetValueNames( Values );
 
   // Add new filename
   if AddIt then
@@ -2907,7 +2813,7 @@ begin
     if Pos( 'SQLFile', Values[i] ) <> 1 then
       continue;
     savedfilename := GetRegValue( Values[i], '' );
-    reg.DeleteValue( Values[i] );
+    MainReg.DeleteValue( Values[i] );
     if CheckIfFileExists and (not FileExists( savedfilename )) then
       continue;
     if (savedfilename <> filename) and (newfilelist.IndexOf(savedfilename)=-1) then
@@ -2918,10 +2824,8 @@ begin
   for i := 0 to newfilelist.Count-1 do begin
     if i >= 20 then
       break;
-    reg.WriteString( 'SQLFile'+IntToStr(i), newfilelist[i] );
+    MainReg.WriteString( 'SQLFile'+IntToStr(i), newfilelist[i] );
   end;
-
-  reg.Free;
 end;
 
 
@@ -3057,7 +2961,7 @@ begin
   if cs.Execute then begin
     DBtree.Color := cs.Dialog.Color;
     OpenRegistry(SessionName);
-    regmain.WriteInteger(REGNAME_TREEBACKGROUND, cs.Dialog.Color);
+    MainReg.WriteInteger(REGNAME_TREEBACKGROUND, cs.Dialog.Color);
   end;
 end;
 
@@ -3430,7 +3334,6 @@ var
   rx                   : TRegExpr;
   ColType              : String;
   ColExists, ShowIt    : Boolean;
-  reg                  : TRegistry;
 
 procedure InitColumn(name: WideString; ColType: String; Visible: Boolean);
 var
@@ -3552,22 +3455,20 @@ begin
         SynMemoFilter.Clear;
         SetLength(FDataGridSort, 0);
         // Load default view settings
-        reg := TRegistry.Create;
-        if reg.OpenKey(GetRegKeyTable, False) then begin
-          if reg.ValueExists(REGNAME_DEFAULTVIEW) then begin
+        OpenRegistry;
+        if MainReg.OpenKey(GetRegKeyTable, False) then begin
+          if MainReg.ValueExists(REGNAME_DEFAULTVIEW) then begin
             // Disable default if crash indicator on current table is found
-            if reg.ValueExists(REGPREFIX_CRASH_IN_DATA) then begin
-              reg.DeleteValue(REGNAME_DEFAULTVIEW);
+            if MainReg.ValueExists(REGPREFIX_CRASH_IN_DATA) then begin
+              MainReg.DeleteValue(REGNAME_DEFAULTVIEW);
               LogSQL('A crash in the previous data loading for this table ('+SelectedTable+') was detected. Filtering was automatically reset to avoid the same crash for now.');
               // Reset crash indicator.
-              reg.DeleteValue(REGPREFIX_CRASH_IN_DATA);
+              MainReg.DeleteValue(REGPREFIX_CRASH_IN_DATA);
             end else begin
-              LoadDataView(reg.ReadString(REGNAME_DEFAULTVIEW));
+              LoadDataView(MainReg.ReadString(REGNAME_DEFAULTVIEW));
             end;
           end;
         end;
-        reg.CloseKey;
-        reg.Free;
       end;
       FillDataViewPopup;
 
@@ -6701,11 +6602,7 @@ procedure TMainForm.SaveListSetup( List: TVirtualStringTree );
 var
   i : Byte;
   ColWidths, ColsVisible, ColPos : String;
-  reg   : TRegistry;
 begin
-  reg := TRegistry.Create;
-  reg.OpenKey( REGPATH, true );
-
   ColWidths := '';
   ColsVisible := '';
   ColPos := '';
@@ -6730,10 +6627,10 @@ begin
     ColPos := ColPos + IntToStr(List.Header.Columns[i].Position);
 
   end;
-  reg.WriteString( REGPREFIX_COLWIDTHS + List.Name, ColWidths );
-  reg.WriteString( REGPREFIX_COLSVISIBLE + List.Name, ColsVisible );
-  reg.WriteString( REGPREFIX_COLPOS + List.Name, ColPos );
-  FreeAndNil(reg);
+  OpenRegistry;
+  MainReg.WriteString( REGPREFIX_COLWIDTHS + List.Name, ColWidths );
+  MainReg.WriteString( REGPREFIX_COLSVISIBLE + List.Name, ColsVisible );
+  MainReg.WriteString( REGPREFIX_COLPOS + List.Name, ColPos );
 end;
 
 
@@ -6900,7 +6797,6 @@ end;
 }
 procedure TMainForm.menuLogToFileClick(Sender: TObject);
 var
-  reg : TRegistry;
   OldprefLogToFile: Boolean;
 begin
   OldprefLogToFile := prefLogToFile;
@@ -6912,10 +6808,8 @@ begin
   // Save option
   if prefLogToFile <> OldprefLogToFile then
   begin
-    reg := TRegistry.Create;
-    reg.OpenKey(REGPATH, true);
-    reg.WriteBool('LogToFile', prefLogToFile);
-    reg.Free;
+    OpenRegistry;
+    MainReg.WriteBool('LogToFile', prefLogToFile);
   end;
 end;
 
@@ -7734,7 +7628,6 @@ var
   query: WideString;
   ds: TDataSet;
   i, j: LongInt;
-  reg: TRegistry;
   regCrashIndicName: String;
 begin
   if Sender = DataGrid then res := @FDataGridResult
@@ -7749,10 +7642,9 @@ begin
     query := query + WideFormat(' LIMIT %d, %d', [start, limit]);
 
     // Set indicator for possibly crashing query
-    reg := TRegistry.Create;
-    reg.OpenKey( REGPATH + REGKEY_SESSIONS + FConn.Description, true );
+    OpenRegistry(FConn.Description);
     regCrashIndicName := Utf8Encode(REGPREFIX_CRASH_IN_DATA + ActiveDatabase + '.' + SelectedTable);
-    reg.WriteBool(regCrashIndicName, True);
+    MainReg.WriteBool(regCrashIndicName, True);
 
     // start query
     ShowStatus('Retrieving data...');
@@ -7766,9 +7658,7 @@ begin
     debug(Format('mem: loaded data chunk from row %d to %d', [start, limit]));
 
     // Query was completed successfully. Reset crash indicator.
-    reg.DeleteValue(regCrashIndicName);
-    reg.CloseKey;
-    reg.Free;
+    MainReg.DeleteValue(regCrashIndicName);
 
     // fill in data
     ShowStatus('Filling grid with record-data...');
@@ -8549,7 +8439,6 @@ end;
 
 procedure TMainForm.menuShowSizeColumnClick(Sender: TObject);
 var
-  reg: TRegistry;
   NewVal: Boolean;
 begin
   NewVal := not TMenuItem(Sender).Checked;
@@ -8558,11 +8447,8 @@ begin
     DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible]
   else
     DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options - [coVisible];
-  reg := TRegistry.Create;
-  reg.OpenKey(REGPATH, true);
-  reg.WriteBool(REGNAME_SIZECOL_TREE, NewVal);
-  reg.CloseKey;
-  FreeAndNil(reg);
+  OpenRegistry;
+  MainReg.WriteBool(REGNAME_SIZECOL_TREE, NewVal);
 end;
 
 
@@ -8666,7 +8552,6 @@ var
   i: Integer;
   DataViews: TStringList;
   mi: TMenuItem;
-  reg: TRegistry;
 begin
   // Load all view names into popupmenu
   for i := popupDataView.Items.Count-1 downto 0 do begin
@@ -8676,15 +8561,13 @@ begin
   end;
   // Unhide "Load xyz by default" item if default is set
   menuViewDefault.Visible := False;
-  reg := TRegistry.Create;
-  if reg.OpenKey(GetRegKeyTable, False) then begin
-    if reg.ValueExists(REGNAME_DEFAULTVIEW) then begin
-      menuViewDefault.Caption := 'Load view "'+reg.ReadString(REGNAME_DEFAULTVIEW)+'" by default';
+  OpenRegistry;
+  if MainReg.OpenKey(GetRegKeyTable, False) then begin
+    if MainReg.ValueExists(REGNAME_DEFAULTVIEW) then begin
+      menuViewDefault.Caption := 'Load view "'+MainReg.ReadString(REGNAME_DEFAULTVIEW)+'" by default';
       menuViewDefault.Visible := True;
     end;
   end;
-  reg.CloseKey;
-  reg.Free;
   // Add views
   DataViews := TStringList.Create;
   GetDataViews(DataViews);
@@ -8712,18 +8595,15 @@ end;
 
 procedure TMainForm.GetDataViews(List: TStrings);
 var
-  reg: TRegistry;
   i: Integer;
 begin
   // Load all view names into popupmenu
-  reg := TRegistry.Create;
-  if reg.OpenKey(GetRegKeyTable, False) then begin
-    reg.GetKeyNames(List);
+  OpenRegistry;
+  if MainReg.OpenKey(GetRegKeyTable, False) then begin
+    MainReg.GetKeyNames(List);
     for i := 0 to List.Count - 1 do
       List[i] := Copy(List[i], Length(REGPREFIX_DATAVIEW)+1, Length(List[i]));
-    reg.CloseKey;
   end;
-  FreeAndNil(reg);
 end;
 
 
@@ -8739,17 +8619,13 @@ end;
 
 
 procedure TMainForm.menuViewDefaultClick(Sender: TObject);
-var
-  reg: TRegistry;
 begin
   menuViewDefault.Visible := False;
-  reg := TRegistry.Create;
-  if reg.OpenKey(GetRegKeyTable, False) then begin
-    if reg.ValueExists(REGNAME_DEFAULTVIEW) then
-      reg.DeleteValue(REGNAME_DEFAULTVIEW)
+  OpenRegistry;
+  if MainReg.OpenKey(GetRegKeyTable, False) then begin
+    if MainReg.ValueExists(REGNAME_DEFAULTVIEW) then
+      MainReg.DeleteValue(REGNAME_DEFAULTVIEW)
   end;
-  reg.CloseKey;
-  reg.Free;
 end;
 
 
@@ -8762,16 +8638,15 @@ end;
 
 procedure TMainForm.LoadDataView(ViewName: String);
 var
-  reg: TRegistry;
   rx: TRegExpr;
   idx: Integer;
 begin
-  reg := TRegistry.Create;
-  if reg.OpenKey(GetRegKeyTable + '\' + REGPREFIX_DATAVIEW + ViewName, False) then begin
+  OpenRegistry;
+  if MainReg.OpenKey(GetRegKeyTable + '\' + REGPREFIX_DATAVIEW + ViewName, False) then begin
     // Columns
-    FDataGridSelect.DelimitedText := Utf8Decode(reg.ReadString(REGNAME_DISPLAYEDCOLUMNS));
+    FDataGridSelect.DelimitedText := Utf8Decode(MainReg.ReadString(REGNAME_DISPLAYEDCOLUMNS));
     // Filter
-    SynMemoFilter.Text := Utf8Decode(reg.ReadString(REGNAME_FILTER));
+    SynMemoFilter.Text := Utf8Decode(MainReg.ReadString(REGNAME_FILTER));
     if SynMemoFilter.GetTextLen > 0 then
       ToggleFilterPanel(True);
     // Sort
@@ -8779,7 +8654,7 @@ begin
     rx := TRegExpr.Create;
     rx.Expression := '\b(\d)_(.+)\'+REGDELIM;
     rx.ModifierG := False;
-    if rx.Exec(Utf8Decode(reg.ReadString(REGNAME_SORT))) then while true do begin
+    if rx.Exec(Utf8Decode(MainReg.ReadString(REGNAME_SORT))) then while true do begin
       idx := Length(FDataGridSort);
       SetLength(FDataGridSort, idx+1);
       FDataGridSort[idx] := TOrderCol.Create;
