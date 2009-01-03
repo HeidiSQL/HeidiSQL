@@ -17,7 +17,6 @@ type
       FConn : TZConnection;
       FOpenConn : TOpenConnProf;
       FLastError : String;
-    function GetSessionName: String;
     function GetIsAlive: Boolean;
     function GetIsConnected: Boolean;
       //FTimer : TTimer;
@@ -30,7 +29,6 @@ type
       property IsAlive : Boolean read GetIsAlive;
       property Connection : TZConnection read FConn;
       property LastError : String read FLastError;
-      property SessionName : String read GetSessionName;
   end;
 
 implementation
@@ -94,11 +92,6 @@ begin
   if FConn.Connected then FConn.Disconnect;
   FreeAndNil (FConn);
   inherited;
-end;
-
-function TMysqlConn.GetSessionName: String;
-begin
-  result := FOpenConn.Description;
 end;
 
 function TMysqlConn.GetIsAlive: Boolean;

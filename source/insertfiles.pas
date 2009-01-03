@@ -92,7 +92,7 @@ end;
 { FormShow }
 procedure TfrmInsertFiles.FormShow(Sender: TObject);
 begin
-  Caption := Mainform.MysqlConn.SessionName + ' - Insert files into table ...';
+  Caption := Mainform.SessionName + ' - Insert files into table ...';
   ComboBoxDBs.Items.Clear;
   ComboBoxDBs.Items.Assign(Mainform.Databases);
   ComboBoxDBs.ItemIndex := ComboBoxDBs.Items.IndexOf( Mainform.ActiveDatabase );

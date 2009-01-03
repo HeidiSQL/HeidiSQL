@@ -112,10 +112,10 @@ begin
     EditOnlyDBs.Text,
     EditTimeout.Text,
     IntToStr(Integer(CheckBoxCompressed.Checked)),
-    IntToStr(Integer(CheckboxSorted.Checked)),
-    ComboboxDescription.Text) then
-    ModalResult := mrOK
-  else begin
+    IntToStr(Integer(CheckboxSorted.Checked))) then begin
+    ModalResult := mrOK;
+    Mainform.SessionName := ComboBoxDescription.Text;
+  end else begin
     ModalResult := mrNone;
     btn.Enabled := True;
   end;

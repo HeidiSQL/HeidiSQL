@@ -846,7 +846,7 @@ type
     procedure popupQueryLoadClick( sender: TObject );
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
-    function InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases, parDescription: WideString): Boolean;
+    function InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases: WideString): Boolean;
     //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
     function GetVisualDataset: PGridResult;
 
@@ -1205,7 +1205,7 @@ begin
 
   // Open server-specific registry-folder.
   // relative from already opened folder!
-  OpenRegistry(FConn.Description);
+  OpenRegistry(SessionName);
   MainReg.WriteString( REGNAME_LASTUSEDDB, Utf8Encode(ActiveDatabase) );
 
   // Clear database and table lists
@@ -1421,7 +1421,6 @@ begin
   pnlQueryMemo.Height := GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   pnlQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
   DBtree.Width := GetRegValue(REGNAME_DBTREEWIDTH, DBtree.Width);
-  DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, FConn.Description);
   SynMemoSQLLog.Height := GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
   prefMaxColWidth := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
   // Fix registry entry from older versions which can have 0 here which makes no sense
@@ -1590,8 +1589,9 @@ begin
     // Parameters belong to connection, not to a SQL file which should get opened
     loadsqlfile := False;
     // Take care for empty description - it gets used to read/write session settings to registry!
-    if parDescription = '' then
-      parDescription := parHost;
+    SessionName := parDescription;
+    if SessionName = '' then
+      SessionName := parHost;
     if InitConnection(
       parHost,
       parPort,
@@ -1600,8 +1600,7 @@ begin
       parDatabase,
       parTimeout,
       parCompress,
-      parSortDatabases,
-      parDescription) then
+      parSortDatabases) then
     begin
       // Save session parameters to registry
       if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS + parDescription, true) then
@@ -1645,10 +1644,11 @@ begin
     ActivateFileLogging;
 
   Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
-  SessionName := FMysqlConn.SessionName;
   DatabasesWanted := explode(';', FConn.DatabaseList);
   if FConn.DatabaseListSort then
     DatabasesWanted.Sort;
+
+  DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
 
   // Fill variables-list, processlist and DB-tree
   ShowVariablesAndProcesses( Self );
@@ -1701,7 +1701,7 @@ begin
     if DatabasesWanted.Count > 0 then
     begin
       DatabasesWanted.Add( newdb );
-      OpenRegistry(Conn.Description);
+      OpenRegistry(SessionName);
       MainReg.WriteString( 'OnlyDBs', ImplodeStr( ';', DatabasesWanted ) );
     end;
     // reload db nodes and switch to new one
@@ -2308,7 +2308,7 @@ end;
   Receive connection parameters and create the mdi-window
   Paremeters are either sent by connection-form or by commandline.
 }
-function TMainform.InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases, parDescription: WideString): Boolean;
+function TMainform.InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases: WideString): Boolean;
 var
   AutoReconnect: Boolean;
 begin
@@ -2337,7 +2337,6 @@ begin
 
     DatabaseList := parDatabase;
     DatabaseListSort := Boolean(StrToIntDef(parSortDatabases, 0));
-    Description := parDescription;
   end;
 
   FMysqlConn := TMysqlConn.Create(@FConn);
@@ -2573,7 +2572,7 @@ begin
     ClearDbTableList(db);
     if DatabasesWanted.IndexOf(db) > -1 then begin
       DatabasesWanted.Delete( DatabasesWanted.IndexOf(db) );
-      OpenRegistry(Conn.Description);
+      OpenRegistry(SessionName);
       MainReg.WriteString( 'OnlyDBs', ImplodeStr( ';', DatabasesWanted ) );
     end;
     DBtree.Selected[DBtree.GetFirst] := true;
@@ -6708,11 +6707,11 @@ begin
   begin
     LogfilePattern := '%s %.6u.log';
     i := 1;
-    FileNameSessionLog := DirnameSessionLogs + goodfilename(Format(LogfilePattern, [FConn.Description, i]));
+    FileNameSessionLog := DirnameSessionLogs + goodfilename(Format(LogfilePattern, [SessionName, i]));
     while FileExists( FileNameSessionLog ) do
     begin
       inc(i);
-      FileNameSessionLog := DirnameSessionLogs + goodfilename(Format(LogfilePattern, [FConn.Description, i]));
+      FileNameSessionLog := DirnameSessionLogs + goodfilename(Format(LogfilePattern, [SessionName, i]));
     end;
   end;
 
@@ -7631,7 +7630,7 @@ begin
     query := query + WideFormat(' LIMIT %d, %d', [start, limit]);
 
     // Set indicator for possibly crashing query
-    OpenRegistry(FConn.Description);
+    OpenRegistry(SessionName);
     regCrashIndicName := Utf8Encode(REGPREFIX_CRASH_IN_DATA + ActiveDatabase + '.' + SelectedTable);
     MainReg.WriteBool(regCrashIndicName, True);
 
