@@ -194,7 +194,7 @@ begin
 
   // read dbs and Tables from treeview
   comboSelectDatabase.Items.Clear;
-  Caption := Mainform.MysqlConn.SessionName + ' - Export Tables...';
+  Caption := Mainform.SessionName + ' - Export Tables...';
   comboSelectDatabase.Items.Assign(Mainform.Databases);
   comboSelectDatabase.ItemIndex := comboSelectDatabase.Items.IndexOf(Mainform.ActiveDatabase);
   // Select first database if at least one is available.

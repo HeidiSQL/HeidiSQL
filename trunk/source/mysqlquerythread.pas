@@ -42,7 +42,6 @@ type
     MysqlParams : TMysqlConnParams; // stuff that needs to be shipped over to the mysql driver.
     DatabaseList : WideString;
     DatabaseListSort : Boolean;
-    Description : String;
     MysqlConn : TZConnection;
   end;
   POpenConnProf = ^TOpenConnProf;
