@@ -435,7 +435,6 @@ begin
         0, SUnknownError);
       raise EZSQLException.Create(SCanNotConnectToServer);
     end;
-    DriverManager.LogMessage(lcConnect, FPlainDriver.GetProtocol, LogMessage);
 
     FAnsiMode := FPlainDriver.GetServerVersion(FHandle) < 40100;
 
@@ -443,7 +442,6 @@ begin
     if not FAnsiMode then begin
       FPlainDriver.SetCharacterSet(FHandle, 'utf8');
       CheckMySQLError(FPlainDriver, FHandle, lcExecute, LogMessage);
-      DriverManager.LogMessage(lcExecute, FPlainDriver.GetProtocol, LogMessage);
     end;
 
     { Sets transaction isolation level. }
