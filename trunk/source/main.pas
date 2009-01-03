@@ -2956,8 +2956,6 @@ procedure TMainForm.SetDelimiter(Value: String);
 var
   ErrMsg: String;
 begin
-  if Value = FDelimiter then
-    Exit;
   ErrMsg := '';
   Value := Trim(Value);
   // Test for empty delimiter.
