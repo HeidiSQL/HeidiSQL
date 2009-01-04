@@ -458,6 +458,7 @@ type
     actNextTab: TNextTab;
     Nexttab1: TMenuItem;
     Previoustab1: TMenuItem;
+    menuConnectTo: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -731,6 +732,7 @@ type
       NewHeight: Integer; var Resize: Boolean);
     procedure DataGridMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure File1Click(Sender: TObject);
   private
     FDelimiter: String;
     uptime                     : Integer;
@@ -1963,6 +1965,38 @@ begin
     end;
   end;
 
+end;
+
+
+procedure TMainForm.File1Click(Sender: TObject);
+var
+  Item: TMenuItem;
+  i: Integer;
+  Connections: TStringList;
+begin
+  // Decide if "Connect to" menu should be enabled
+  menuConnectTo.Enabled := False;
+  if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, False) then begin
+    menuConnectTo.Enabled := MainReg.HasSubKeys;
+    if menuConnectTo.Enabled then begin
+      // Add all sessions to submenu
+      for i := menuConnectTo.Count - 1 downto 0 do
+        menuConnectTo.Delete(i);
+      Connections := TStringList.Create;
+      MainReg.GetKeyNames(Connections);
+      for i := 0 to Connections.Count - 1 do begin
+        Item := TMenuItem.Create(menuConnectTo);
+        Item.Caption := Connections[i];
+        Item.OnClick := SessionConnect;
+        Item.ImageIndex := 37;
+        if Connections[i] = SessionName then begin
+          Item.Checked := True;
+          Item.ImageIndex := -1;
+        end;
+        menuConnectTo.Add(Item);
+      end;
+    end;
+  end;
 end;
 
 
