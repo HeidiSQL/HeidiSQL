@@ -117,7 +117,6 @@ type
     actLoadSQL: TAction;
     ImportSQL1: TMenuItem;
     menuConnections: TPopupMenu;
-    miNewConnection: TMenuItem;
     menuWindow: TMenuItem;
     miFake: TMenuItem;
     menuBugtracker: TMenuItem;
@@ -471,6 +470,8 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure DoAfterConnect;
+    procedure DoDisconnect;
     procedure FormResize(Sender: TObject);
     procedure actUserManagerExecute(Sender: TObject);
     procedure actAboutBoxExecute(Sender: TObject);
@@ -846,6 +847,7 @@ type
     procedure popupQueryLoadClick( sender: TObject );
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
+    procedure SessionConnect(Sender: TObject);
     function InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases: WideString): Boolean;
     //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
     function GetVisualDataset: PGridResult;
@@ -1152,26 +1154,7 @@ var
   filename : String;
   buffer   : array[0..MAX_PATH] of char;
 begin
-  // Post pending UPDATE
-  if DataGridHasChanges then
-    actDataPostChangesExecute(Sender);
-
-  SetWindowConnected( false );
-  SetWindowName( main.discname );
-  Application.Title := APPNAME;
-
-  debug('mem: clearing query and browse data.');
-  SetLength(FDataGridResult.Rows, 0);
-  SetLength(FDataGridResult.Columns, 0);
-  SetLength(FQueryGridResult.Rows, 0);
-  SetLength(FQueryGridResult.Columns, 0);
-
-  // Closing connection
-  if Assigned(FMysqlConn) then begin
-    FMysqlConn.Disconnect;
-    FreeAndNil(FMysqlConn);
-  end;
-
+  DoDisconnect;
   EnterCriticalSection(SqlMessagesLock);
   FreeAndNil(SqlMessages);
   LeaveCriticalSection(SqlMessagesLock);
@@ -1203,29 +1186,11 @@ begin
   SaveListSetup(ListTables);
   SaveListSetup(ListColumns);
 
-  // Open server-specific registry-folder.
-  // relative from already opened folder!
-  OpenRegistry(SessionName);
-  MainReg.WriteString( REGNAME_LASTUSEDDB, Utf8Encode(ActiveDatabase) );
-
-  // Clear database and table lists
-  DBtree.Clear;
-  ClearAllTableLists;
-  FreeAndNil(DatabasesWanted);
-  FreeAndNil(Databases);
-  FreeAndNil(CachedTableLists);
 
   FreeAndNil(CreateTableForm);
 
   ValidateControls(False);
   Action := caFree;
-
-  SetWindowConnected( false );
-  SetWindowName( main.discname );
-  Application.Title := APPNAME;
-
-  if prefLogToFile then
-    DeactivateFileLogging;
 
   saveWindowConfig;
 
@@ -1344,6 +1309,8 @@ begin
   EnterCriticalSection(SqlMessagesLock);
   SqlMessages := TWideStringList.Create;
   LeaveCriticalSection(SqlMessagesLock);
+
+  Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
 
   // read function-list into menu
   functioncats := GetFunctionCategories;
@@ -1534,8 +1501,6 @@ var
   DefaultLastrunDate : String;
   frm : TfrmUpdateCheck;
   dlgResult: Integer;
-  lastUsedDB: WideString;
-  i: Integer;
 begin
   // Do an updatecheck if checked in settings
   if GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK) then begin
@@ -1638,12 +1603,19 @@ begin
       Exit;
     end;
   end;
+  DoAfterConnect;
+end;
 
+
+procedure TMainForm.DoAfterConnect;
+var
+  i: Integer;
+  lastUsedDB: WideString;
+begin
   // Activate logging
   if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
     ActivateFileLogging;
 
-  Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
   DatabasesWanted := explode(';', FConn.DatabaseList);
   if FConn.DatabaseListSort then
     DatabasesWanted.Sort;
@@ -1686,6 +1658,44 @@ begin
 
 end;
 
+
+procedure TMainForm.DoDisconnect;
+begin
+  // Open server-specific registry-folder.
+  // relative from already opened folder!
+  OpenRegistry(SessionName);
+  MainReg.WriteString( REGNAME_LASTUSEDDB, Utf8Encode(ActiveDatabase) );
+
+  // Post pending UPDATE
+  if DataGridHasChanges then
+    actDataPostChangesExecute(Self);
+
+  if prefLogToFile then
+    DeactivateFileLogging;
+
+  // Clear database and table lists
+  DBtree.ClearSelection;
+  DBtree.FocusedNode := nil;
+  DBtree.Clear;
+  ClearAllTableLists;
+  FreeAndNil(DatabasesWanted);
+  FreeAndNil(Databases);
+
+  debug('mem: clearing query and browse data.');
+  SetLength(FDataGridResult.Rows, 0);
+  SetLength(FDataGridResult.Columns, 0);
+  SetLength(FQueryGridResult.Rows, 0);
+  SetLength(FQueryGridResult.Columns, 0);
+
+  // Closing connection
+  if Assigned(FMysqlConn) then begin
+    FMysqlConn.Disconnect;
+    FreeAndNil(FMysqlConn);
+  end;
+  SetWindowConnected( false );
+  SetWindowName( main.discname );
+  Application.Title := APPNAME;
+end;
 
 
 procedure TMainForm.actCreateDatabaseExecute(Sender: TObject);
@@ -1890,19 +1900,13 @@ end;
 procedure TMainForm.menuConnectionsPopup(Sender: TObject);
 var
   i: integer;
-  s: string;
-  keep: boolean;
   list: TWindowDataArray;
   item: TMenuItem;
+  Connections: TStringList;
 begin
   // Delete dynamically added connection menu items.
   for i := menuConnections.Items.Count - 1 downto 0 do begin
-    s := menuConnections.Items[i].Name;
-    SetLength(s, 2);
-    keep := false;
-    if s = 'mi' then keep := true;
-    if s = 'se' then keep := true;
-    if not keep then menuConnections.Items.Delete(i);
+    menuConnections.Items.Delete(i);
   end;
 
   // Check if all the heidisql windows are still alive.
@@ -1910,13 +1914,6 @@ begin
 
   // Fetch list of heidisql windows.
   list := GetWindowList;
-
-  // Add separator before 'open heidisql windows' section.
-  item := TMenuItem.Create(self);
-  item.Caption := '-';
-  menuConnections.Items.Add(item);
-
-  // TODO: Load "all" array with all connections
 
   // Re-create dynamic menu items.
   for i := 0 to High(list) do with list[i] do begin
@@ -1932,8 +1929,36 @@ begin
     item.OnClick := focusWindow;
     menuConnections.Items.Add(item);
   end;
-end;
 
+  // Add separator
+  item := TMenuItem.Create(menuConnections);
+  item.Caption := '-';
+  menuConnections.Items.Add(item);
+
+  // "New window" item
+  item := TMenuItem.Create(menuConnections);
+  item.Action := actOpenSession;
+  item.Default := True;
+  menuConnections.Items.Add(item);
+
+  // All sessions
+  if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, False) then begin
+    Connections := TStringList.Create;
+    MainReg.GetKeyNames(Connections);
+    for i := 0 to Connections.Count - 1 do begin
+      item := TMenuItem.Create(menuConnections);
+      item.Caption := Connections[i];
+      item.OnClick := SessionConnect;
+      item.ImageIndex := 37;
+      if Connections[i] = SessionName then begin
+        item.Checked := True;
+        item.ImageIndex := -1;
+      end;
+      menuConnections.Items.Add(item);
+    end;
+  end;
+
+end;
 
 
 procedure TMainForm.actWebbrowse(Sender: TObject);
@@ -2305,6 +2330,28 @@ begin
     result := True;
   end else
     result := False;
+end;
+
+
+procedure TMainForm.SessionConnect(Sender: TObject);
+var
+  Session: String;
+  parHost, parPort, parUser, parPass, parTimeout, parCompress, parDatabase, parSortDatabases: WideString;
+begin
+  Session := (Sender as TMenuItem).Caption;
+  parHost := GetRegValue(REGNAME_HOST, '', Session);
+  parUser := GetRegValue(REGNAME_USER, '', Session);
+  parPass := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
+  parPort := GetRegValue(REGNAME_PORT, '', Session);
+  parTimeout := GetRegValue(REGNAME_TIMEOUT, '', Session);
+  parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session)));
+  parDatabase := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', Session));
+  parSortDatabases := IntToStr(Integer(GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, Session)));
+  DoDisconnect;
+  if InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases) then begin
+    SessionName := Session;
+    DoAfterConnect;
+  end;
 end;
 
 
