@@ -1547,6 +1547,7 @@ object MainForm: TMainForm
     end
   end
   object MainMenu1: TMainMenu
+    AutoHotkeys = maManual
     Images = PngImageListMain
     Left = 40
     Top = 64
@@ -1554,9 +1555,14 @@ object MainForm: TMainForm
       Tag = 17
       Caption = '&File'
       Hint = 'File related commands'
+      OnClick = File1Click
       object FileNewItem: TMenuItem
         Tag = 23
         Action = actOpenSession
+      end
+      object menuConnectTo: TMenuItem
+        Caption = 'Connect to'
+        Enabled = False
       end
       object N1: TMenuItem
         Caption = '-'
