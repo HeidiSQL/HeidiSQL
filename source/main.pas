@@ -6756,21 +6756,16 @@ begin
   // Ensure directory exists
   ForceDirectories( DirnameSessionLogs );
 
-  // Determine free filename if it's emtpy yet
-  if FileNameSessionLog = '' then
+  // Determine free filename
+  LogfilePattern := '%s %.6u.log';
+  i := 1;
+  FileNameSessionLog := DirnameSessionLogs + goodfilename(Format(LogfilePattern, [SessionName, i]));
+  while FileExists( FileNameSessionLog ) do
   begin
-    LogfilePattern := '%s %.6u.log';
-    i := 1;
+    inc(i);
     FileNameSessionLog := DirnameSessionLogs + goodfilename(Format(LogfilePattern, [SessionName, i]));
-    while FileExists( FileNameSessionLog ) do
-    begin
-      inc(i);
-      FileNameSessionLog := DirnameSessionLogs + goodfilename(Format(LogfilePattern, [SessionName, i]));
-    end;
   end;
 
-  // Be sure file is closed before we (re-)open it
-  DeactivateFileLogging;
   // Create file handle for writing
   AssignFile( FileHandleSessionLog, FileNameSessionLog );
   {$I-} // Supress errors
