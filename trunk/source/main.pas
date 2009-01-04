@@ -1693,6 +1693,7 @@ begin
 
   // Closing connection
   if Assigned(FMysqlConn) then begin
+    LogSQL('Closing connection to "'+SessionName+'" session (' + FMysqlConn.Connection.hostname + ') ...');
     FMysqlConn.Disconnect;
     FreeAndNil(FMysqlConn);
   end;
