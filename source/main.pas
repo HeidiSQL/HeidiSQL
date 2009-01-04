@@ -22,7 +22,7 @@ uses
   SynCompletionProposal, ZSqlMonitor, SynEditHighlighter, SynHighlighterSQL,
   TntStdCtrls, Tabs, SynUnicode, mysqlconn, EditVar, helpers, queryprogress,
   mysqlquery, createdatabase, createtable, tbl_properties, SynRegExpr,
-  WideStrUtils, ZDbcLogging;
+  WideStrUtils, ZDbcLogging, ExtActns;
 
 type
   TMainForm = class(TForm)
@@ -454,6 +454,10 @@ type
     CopygriddataasSQL1: TMenuItem;
     CopygriddataasSQL2: TMenuItem;
     Selectbackgroundcolor1: TMenuItem;
+    actPreviousTab: TPreviousTab;
+    actNextTab: TNextTab;
+    Nexttab1: TMenuItem;
+    Previoustab1: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
