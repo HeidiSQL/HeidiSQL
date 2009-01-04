@@ -93,6 +93,7 @@ begin
 
   InheritFont(Font);
   InheritFont(ProductName.Font);
+  ProductName.Font.Size := 14;
   InheritFont(LabelWebpage.Font);
 
   // Avoid scroll by removing blank line outside visible area in Authors text box
