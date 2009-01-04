@@ -1557,8 +1557,6 @@ object MainForm: TMainForm
       object FileNewItem: TMenuItem
         Tag = 23
         Action = actOpenSession
-        Caption = '&Connection...'
-        Hint = 'Connection...|Establish connection with MySQL-Host'
       end
       object N1: TMenuItem
         Caption = '-'
@@ -1767,8 +1765,8 @@ object MainForm: TMainForm
     Top = 64
     object actOpenSession: TAction
       Category = 'File'
-      Caption = 'New &connection'
-      Hint = 'Connection...|Establish Connection with MySQL-Host'
+      Caption = 'New &window'
+      Hint = 'New window...'
       ImageIndex = 37
       ShortCut = 16462
       OnExecute = actOpenSessionExecute
@@ -2388,15 +2386,11 @@ object MainForm: TMainForm
     Top = 232
   end
   object menuConnections: TPopupMenu
+    AutoHotkeys = maManual
     Images = PngImageListMain
     OnPopup = menuConnectionsPopup
     Left = 72
     Top = 64
-    object miNewConnection: TMenuItem
-      Action = actOpenSession
-      SubMenuImages = PngImageListMain
-      Default = True
-    end
   end
   object PngImageListMain: TPngImageList
     PngImages = <
