@@ -563,7 +563,6 @@ type
     procedure SynCompletionProposal1Execute(Kind: SynCompletionType;
       Sender: TObject; var CurrentInput: WideString; var x, y: Integer;
       var CanExecute: Boolean);
-    procedure PerformConnect;
     procedure pcChange(Sender: TObject);
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
     procedure ValidateQueryControls(FrmIsFocussed: Boolean = true);
@@ -1507,6 +1506,7 @@ var
   DefaultLastrunDate : String;
   frm : TfrmUpdateCheck;
   dlgResult: Integer;
+  AutoReconnect: Boolean;
 begin
   // Do an updatecheck if checked in settings
   if GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK) then begin
@@ -1602,8 +1602,21 @@ begin
     end else
       Exit;
   end else begin
+    // Temporarily disable AutoReconnect in Registry
+    // in case of unexpected application-termination
+    OpenRegistry;
+    AutoReconnect := GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
+    if AutoReconnect then begin
+      OpenRegistry;
+      MainReg.WriteBool( REGNAME_AUTORECONNECT, False );
+    end;
     // Cannot be done in OnCreate because we need ready forms here:
     dlgResult := ConnectionWindow(Self);
+    // Re-enable AutoReconnect in Registry!
+    if AutoReconnect then begin
+      OpenRegistry;
+      MainReg.WriteBool( REGNAME_AUTORECONNECT, true );
+    end;
     if dlgResult = mrCancel then begin
       Close;
       Exit;
@@ -1617,10 +1630,39 @@ procedure TMainForm.DoAfterConnect;
 var
   i: Integer;
   lastUsedDB: WideString;
+  v: String[50];
+  v1, v2, v3: String;
+  rx: TRegExpr;
 begin
   // Activate logging
   if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
     ActivateFileLogging;
+
+  time_connected := 0;
+  TimerConnected.Enabled := true;
+  LogSQL( 'Connection established with host "' + FMysqlConn.Connection.hostname +
+    '" on port ' + IntToStr(FMysqlConn.Connection.Port) );
+  LogSQL( 'Connection-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ) );
+
+  // Detect server version
+  // Be careful with version suffixes, for example: '4.0.31-20070605_Debian-5-log'
+  v := GetVar( 'SELECT VERSION()' );
+  rx := TRegExpr.Create;
+  rx.ModifierG := True;
+  rx.Expression := '^(\d+)\.(\d+)\.(\d+)';
+  if rx.Exec(v) then begin
+    v1 := rx.Match[1];
+    v2 := rx.Match[2];
+    v3 := rx.Match[3];
+  end;
+  rx.Free;
+  mysql_version := MakeInt(v1) *10000 + MakeInt(v2) *100 + MakeInt(v3);
+  tabHost.Caption := 'Host: '+MySQLConn.Connection.HostName;
+  showstatus('MySQL '+v1+'.'+v2+'.'+v3, 3);
+
+  // On Re-Connection, try to restore lost properties
+  if FMysqlConn.Connection.Database <> '' then
+    ExecUseQuery( FMysqlConn.Connection.Database );
 
   DatabasesWanted := explode(';', FConn.DatabaseList);
   if FConn.DatabaseListSort then
@@ -1676,9 +1718,6 @@ begin
   if DataGridHasChanges then
     actDataPostChangesExecute(Self);
 
-  if prefLogToFile then
-    DeactivateFileLogging;
-
   // Clear database and table lists
   DBtree.ClearSelection;
   DBtree.FocusedNode := nil;
@@ -1699,6 +1738,10 @@ begin
     FMysqlConn.Disconnect;
     FreeAndNil(FMysqlConn);
   end;
+
+  if prefLogToFile then
+    DeactivateFileLogging;
+
   SetWindowConnected( false );
   SetWindowName( main.discname );
   Application.Title := APPNAME;
@@ -2386,7 +2429,6 @@ begin
   parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session)));
   parDatabase := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', Session));
   parSortDatabases := IntToStr(Integer(GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, Session)));
-  DoDisconnect;
   if InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases) then begin
     SessionName := Session;
     DoAfterConnect;
@@ -2400,73 +2442,46 @@ end;
 }
 function TMainform.InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases: WideString): Boolean;
 var
-  AutoReconnect: Boolean;
+  MysqlConnection: TMysqlConn;
+  Profile: TOpenConnProf;
 begin
   // fill structure
-  ZeroMemory (@FConn,SizeOf(FConn));
+  ZeroMemory(@Profile, SizeOf(Profile));
+  Profile.MysqlParams.Protocol := 'mysql';
+  Profile.MysqlParams.Host := Trim( parHost );
+  Profile.MysqlParams.Port := StrToIntDef(parPort, DEFAULT_PORT);
+  Profile.MysqlParams.Database := '';
+  Profile.MysqlParams.User := parUser;
+  Profile.MysqlParams.Pass := parPass;
+  if Integer(parCompress) > 0 then
+    Profile.MysqlParams.PrpCompress := 'true'
+  else
+    Profile.MysqlParams.PrpCompress := 'false';
+  Profile.MysqlParams.PrpTimeout := parTimeout;
+  Profile.MysqlParams.PrpDbless := 'true';
+  Profile.MysqlParams.PrpClientLocalFiles := 'true';
+  Profile.MysqlParams.PrpClientInteractive := 'true';
+  Profile.DatabaseList := parDatabase;
+  Profile.DatabaseListSort := Boolean(StrToIntDef(parSortDatabases, 0));
 
-  with FConn do
-  begin
-    MysqlParams.Protocol := 'mysql';
-    MysqlParams.Host := Trim( parHost );
-    MysqlParams.Port := StrToIntDef(parPort, DEFAULT_PORT);
-    MysqlParams.Database := '';
-    MysqlParams.User := parUser;
-    MysqlParams.Pass := parPass;
-
-    // additional
-    if Integer(parCompress) > 0 then
-      MysqlParams.PrpCompress := 'true'
-    else
-      MysqlParams.PrpCompress := 'false';
-
-    MysqlParams.PrpTimeout := parTimeout;
-    MysqlParams.PrpDbless := 'true';
-    MysqlParams.PrpClientLocalFiles := 'true';
-    MysqlParams.PrpClientInteractive := 'true';
-
-    DatabaseList := parDatabase;
-    DatabaseListSort := Boolean(StrToIntDef(parSortDatabases, 0));
-  end;
-
-  FMysqlConn := TMysqlConn.Create(@FConn);
+  MysqlConnection := TMysqlConn.Create(@Profile);
 
   // attempt to establish connection
-  if FMysqlConn.Connect <> MCR_SUCCESS then begin
+  Showstatus( 'Connecting to ' + Profile.MysqlParams.Host + '...' );
+  if MysqlConnection.Connect <> MCR_SUCCESS then begin
     // attempt failed -- show error
-    MessageDlg ( 'Could not establish connection! Details:'+CRLF+CRLF+FMysqlConn.LastError, mtError, [mbOK], 0);
+    MessageDlg ( 'Could not establish connection! Details:'+CRLF+CRLF+MysqlConnection.LastError, mtError, [mbOK], 0);
     Result := False;
-    FreeAndNil (FMysqlConn);
-    Exit;
+    FreeAndNil(MysqlConnection);
+  end else begin
+    Result := True;
+    Profile.MysqlConn := MysqlConnection.Connection;
+    if Assigned(FMysqlConn) then
+      DoDisconnect;
+    // Assign global connection objects
+    FConn := Profile;
+    FMysqlConn := MysqlConnection;
   end;
-
-  Result := True;
-
-  FConn.MysqlConn := FMysqlConn.Connection; // use this connection (instead of zConn)
-
-  // Temporarily disable AutoReconnect in Registry
-  // in case of unexpected application-termination
-  AutoReconnect := GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
-  if AutoReconnect then begin
-    OpenRegistry;
-    MainReg.WriteBool( REGNAME_AUTORECONNECT, False );
-  end;
-
-  Showstatus( 'Connecting to ' + FConn.MysqlParams.Host + '...' );
-
-  try
-    PerformConnect();
-  except
-    TimerConnectErrorCloseWindow.Enabled := true;
-    Exit;
-  end;
-
-  // Re-enable AutoReconnect in Registry!
-  if AutoReconnect then begin
-    OpenRegistry;
-    MainReg.WriteBool( REGNAME_AUTORECONNECT, true );
-  end;
-
   ShowStatus( STATUS_MSG_READY );
 end;
 
@@ -3182,49 +3197,6 @@ begin
   // TODO: Implement this when multiple tabs are implemented.
   //       Return a tab's handle instead of the childwin's handle.
   result := Self.Handle;
-end;
-
-
-procedure TMainForm.PerformConnect;
-var
-  v           : String[50];
-  v1, v2, v3  : String;
-  rx : TRegExpr;
-begin
-  try
-    time_connected := 0;
-    TimerConnected.Enabled := true;
-    LogSQL( 'Connection established with host "' + FMysqlConn.Connection.hostname +
-      '" on port ' + IntToStr(FMysqlConn.Connection.Port) );
-    LogSQL( 'Connection-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ) );
-
-    // Detect server version
-    // Be careful with version suffixes, for example: '4.0.31-20070605_Debian-5-log'
-    v := GetVar( 'SELECT VERSION()' );
-    rx := TRegExpr.Create;
-    rx.ModifierG := True;
-    rx.Expression := '^(\d+)\.(\d+)\.(\d+)';
-    if rx.Exec(v) then begin
-      v1 := rx.Match[1];
-      v2 := rx.Match[2];
-      v3 := rx.Match[3];
-    end;
-    rx.Free;
-    mysql_version := MakeInt(v1) *10000 + MakeInt(v2) *100 + MakeInt(v3);
-    tabHost.Caption := 'Host: '+MySQLConn.Connection.HostName;
-    showstatus('MySQL '+v1+'.'+v2+'.'+v3, 3);
-
-    // On Re-Connection, try to restore lost properties
-    if FMysqlConn.Connection.Database <> '' then
-      ExecUseQuery( FMysqlConn.Connection.Database );
-  except
-    on E: Exception do begin
-      LogSQL( E.Message, true );
-      Screen.Cursor := crDefault;
-      MessageDlg( E.Message, mtError, [mbOK], 0 );
-      raise;
-    end;
-  end;
 end;
 
 
@@ -5933,18 +5905,10 @@ begin
     TimerConnectedTimer(self);
     TimerHostUptime.Enabled := false;
     TimerHostUptimeTimer(self);
-    // 1) CheckConnection is always called from
-    //    within an FQueryRunning-enabled block.
-    // 2) PerformConnect (see below) will make calls
-    //    that open an FQueryRunning block, causing an
-    //    error message.
-    //
-    // Therefore, flick the state of the running
-    // flag before running PerformConnect().
     FQueryRunning := false;
     try
       FMysqlConn.Connection.Reconnect;
-      PerformConnect;
+      time_connected := 0;
     finally
       FQueryRunning := true;
     end;
