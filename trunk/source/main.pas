@@ -1399,6 +1399,8 @@ begin
   pnlQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
   DBtree.Width := GetRegValue(REGNAME_DBTREEWIDTH, DBtree.Width);
   SynMemoSQLLog.Height := GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
+  // Force status bar position to below log memo 
+  StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
   prefMaxColWidth := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
   // Fix registry entry from older versions which can have 0 here which makes no sense
   // since the autosetting was removed
