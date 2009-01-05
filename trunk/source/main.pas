@@ -1191,8 +1191,13 @@ begin
   SaveListSetup(ListTables);
   SaveListSetup(ListColumns);
 
-
   FreeAndNil(CreateTableForm);
+
+  debug('mem: clearing query and browse data.');
+  SetLength(FDataGridResult.Rows, 0);
+  SetLength(FDataGridResult.Columns, 0);
+  SetLength(FQueryGridResult.Rows, 0);
+  SetLength(FQueryGridResult.Columns, 0);
 
   ValidateControls(False);
   Action := caFree;
@@ -1725,12 +1730,6 @@ begin
   ClearAllTableLists;
   FreeAndNil(DatabasesWanted);
   FreeAndNil(Databases);
-
-  debug('mem: clearing query and browse data.');
-  SetLength(FDataGridResult.Rows, 0);
-  SetLength(FDataGridResult.Columns, 0);
-  SetLength(FQueryGridResult.Rows, 0);
-  SetLength(FQueryGridResult.Columns, 0);
 
   // Closing connection
   if Assigned(FMysqlConn) then begin
