@@ -582,6 +582,7 @@ type
     procedure RefreshFieldListClick(Sender: TObject);
     procedure MenuRefreshClick(Sender: TObject);
     procedure LogSQL(msg: WideString = ''; comment: Boolean = true );
+    procedure CheckUptime;
     procedure ShowVariablesAndProcesses(Sender: TObject);
     procedure KillProcess(Sender: TObject);
     procedure PageControlHostChange(Sender: TObject);
@@ -734,7 +735,7 @@ type
     procedure File1Click(Sender: TObject);
   private
     FDelimiter: String;
-    uptime                     : Integer;
+    ServerUptime               : Integer;
     time_connected             : Cardinal;
     viewingdata                : Boolean;
     FMysqlConn                 : TMysqlConn;
@@ -1665,16 +1666,13 @@ begin
   tabHost.Caption := 'Host: '+MySQLConn.Connection.HostName;
   showstatus('MySQL '+v1+'.'+v2+'.'+v3, 3);
 
-  // On Re-Connection, try to restore lost properties
-  if FMysqlConn.Connection.Database <> '' then
-    ExecUseQuery( FMysqlConn.Connection.Database );
-
   DatabasesWanted := explode(';', FConn.DatabaseList);
   if FConn.DatabaseListSort then
     DatabasesWanted.Sort;
 
   DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
 
+  CheckUptime;
   // Fill variables-list, processlist and DB-tree
   ShowVariablesAndProcesses( Self );
   // Invoke population of database tree. It's important to do this here after
@@ -4387,6 +4385,15 @@ begin
 end;
 
 
+procedure TMainForm.CheckUptime;
+begin
+  ServerUptime := MakeInt(GetVar('SHOW STATUS LIKE ''Uptime''', 1));
+  // Avoid division by zero
+  ServerUptime := Max(ServerUptime, 1);
+  TimerHostUptime.Enabled := true;
+end;
+
+
 procedure TMainForm.ShowVariablesAndProcesses(Sender: TObject);
 
   procedure addLVitem( caption: WideString; commandCount: Int64; totalCount: Int64 );
@@ -4404,11 +4411,10 @@ procedure TMainForm.ShowVariablesAndProcesses(Sender: TObject);
     // Total Frequency
     VTRowDataListCommandStats[i].Captions.Add( FormatNumber( commandCount ) );
     // Average per hour
-    uptime := max(uptime, 1);
-    tmpval := commandCount / ( uptime / 60 / 60 );
+    tmpval := commandCount / ( ServerUptime / 60 / 60 );
     VTRowDataListCommandStats[i].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Average per second
-    tmpval := commandCount / uptime;
+    tmpval := commandCount / ServerUptime;
     VTRowDataListCommandStats[i].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Percentage. Take care of division by zero errors and Int64's
     if commandCount < 1 then
@@ -4464,15 +4470,12 @@ begin
   tabVariables.Caption := 'Variables (' + IntToStr(ListVariables.RootNodeCount) + ')';
 
   // STATUS
-  uptime := 1; // avoids division by zero :)
   questions := 1;
 
   ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
 
   // Find uptime and total query count
   while not ds.Eof do begin
-    if lowercase( ds.Fields[0].AsString ) = 'uptime' then
-      uptime := MakeInt(ds.Fields[1].AsString);
     if lowercase( ds.Fields[0].AsString ) = 'questions' then
       questions := MakeInt(ds.Fields[1].AsString);
     ds.Next;
@@ -4500,11 +4503,11 @@ begin
     if valIsNumber then begin
       valCount := MakeInt(val);
       // ... per hour
-      tmpval := valCount / ( uptime / 60 / 60 );
+      tmpval := valCount / ( ServerUptime / 60 / 60 );
       if valIsBytes then avg_perhour := FormatByteNumber( Trunc(tmpval) )
       else avg_perhour := FormatNumber( tmpval, 1 );
       // ... per second
-      tmpval := valCount / uptime;
+      tmpval := valCount / ServerUptime;
       if valIsBytes then avg_persec := FormatByteNumber( Trunc(tmpval) )
       else avg_persec := FormatNumber( tmpval, 1 );
     end;
@@ -4552,10 +4555,6 @@ begin
   ListCommandStats.RootNodeCount := Length(VTRowDataListCommandStats);
   ListCommandStats.EndUpdate;
   SetVTSelection( ListCommandStats, SelectedCaptions );
-
-  TimerHostUptime.Enabled := true;
-  TimerHostUptimeTimer(self);
-  TimerHostUptime.OnTimer := TimerHostUptimeTimer;
 
   Screen.Cursor := crDefault;
 
@@ -5055,14 +5054,14 @@ var
   msg: string;
 begin
   // Host-Uptime
-  days:= uptime div (60*60*24);
-  seconds := uptime mod (60*60*24);
+  days:= ServerUptime div (60*60*24);
+  seconds := ServerUptime mod (60*60*24);
   hours := seconds div (60*60);
   seconds := seconds mod (60*60);
   minutes  := seconds div 60;
   seconds := seconds mod 60;
 
-  inc(uptime);
+  inc(ServerUptime);
   msg := Format('%d days, %.2d:%.2d:%.2d', [days,hours,minutes,seconds]);
   if TimerHostUptime.Enabled then msg := Format('Uptime: %s', [msg])
   else msg := '';
@@ -5912,6 +5911,12 @@ begin
     try
       FMysqlConn.Connection.Reconnect;
       time_connected := 0;
+      TimerConnected.Enabled := true;
+      LogSQL('Connected. Thread-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ));
+      CheckUptime;
+      // Try to restore active database
+      if ActiveDatabase <> '' then
+        ExecUseQuery(ActiveDatabase)
     finally
       FQueryRunning := true;
     end;
