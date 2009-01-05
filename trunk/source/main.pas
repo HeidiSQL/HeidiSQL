@@ -1645,9 +1645,7 @@ begin
 
   time_connected := 0;
   TimerConnected.Enabled := true;
-  LogSQL( 'Connection established with host "' + FMysqlConn.Connection.hostname +
-    '" on port ' + IntToStr(FMysqlConn.Connection.Port) );
-  LogSQL( 'Connection-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ) );
+  LogSQL('Connected. Thread-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ));
 
   // Detect server version
   // Be careful with version suffixes, for example: '4.0.31-20070605_Debian-5-log'
@@ -2443,6 +2441,7 @@ function TMainform.InitConnection(parHost, parPort, parUser, parPass, parDatabas
 var
   MysqlConnection: TMysqlConn;
   Profile: TOpenConnProf;
+  UsingPass: String;
 begin
   // fill structure
   ZeroMemory(@Profile, SizeOf(Profile));
@@ -2466,7 +2465,10 @@ begin
   MysqlConnection := TMysqlConn.Create(@Profile);
 
   // attempt to establish connection
-  Showstatus( 'Connecting to ' + Profile.MysqlParams.Host + '...' );
+  if Profile.MysqlParams.Pass <> '' then UsingPass := 'Yes' else UsingPass := 'No';
+  LogSQL('Connecting to '+Profile.MysqlParams.Host+
+    ', username '+Profile.MysqlParams.User+
+    ', using password: '+UsingPass+' ...');
   if MysqlConnection.Connect <> MCR_SUCCESS then begin
     // attempt failed -- show error
     MessageDlg ( 'Could not establish connection! Details:'+CRLF+CRLF+MysqlConnection.LastError, mtError, [mbOK], 0);
