@@ -918,7 +918,7 @@ var
   MainForm            : TMainForm;
   appstarted          : Boolean = false;               // see connections.pas
   loadsqlfile         : boolean = true;               // load sql-file into query-memo at startup?
-  AppVersion          : String = 'x.y';
+  AppVersion          : String = '4.0 RC2';
   AppRevision         : String = '$Rev$';
   FullAppVersion      : String;
   DirnameCommonAppData,
