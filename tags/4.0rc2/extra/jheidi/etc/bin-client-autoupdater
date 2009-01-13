@@ -1,0 +1,9 @@
+app=jHeidi
+version=Alpha 4
+timestamp=20081229000000
+url=http://heidisql.com/jheidi/files/autoupdater/bin/jheidi-bin-autoupdater
+processKey=jheidi
+libPath=lib
+propPath=.
+releaseNotes=jHeidi Alpha 4 Release Notes\n=====================================\n\nadd basic oracle support\n\n
+jar=autoupdater.jar

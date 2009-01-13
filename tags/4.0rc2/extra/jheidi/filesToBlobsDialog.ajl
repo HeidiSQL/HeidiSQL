@@ -1,0 +1,76 @@
+  
+  WindowContext parentContext = argObj("windowContext");
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"),"filesToBlobsDialog", "Import Files Into Blobs" );
+  WindowContext context = dlg.getWindowContext();
+  context.put("db", parentContext.get("db"));
+  context.put("currentDB", parentContext.get("currentDB"));
+  context.put("currentTable", parentContext.get("currentTable"));
+
+  dlg.events("filesToBlobsEvents");
+  dlg.insets(10, 10);
+  dlg.icon("images/import.gif");
+  dlg.tabLayout()
+	   .insets(10, 10)
+	   .table("files", new String[] {"Filename", "Size [KB]"}, 410, 150)
+	   .space(5)
+	   .button("Add", 110)
+	   .setTab()
+	   .nextRow()
+	   .tab(1)
+	   .button("Remove", 110)
+	   .nextRow()
+	   .tab(1)
+	   .button("Import", 110)
+	   .nextRow()
+	   .tab(1)
+	   .button("Cancel", 110)
+	   .nextRow()
+ 	   .baseline(dlg.get("filesScrollPane"), "South")
+ 	   .vspace(5)
+	   .text("Database:", 70)
+	   .combo("dbs", new String[] {"Hi"}, LF.isWin?335:337)
+	   .nextRow()
+	   .text("Table:", 70)
+	   .combo("tables", new String[] {""}, LF.isWin?335:337)
+	   .nextRow()
+	   .text("Column:", 70)
+ 	   .combo("blobColumns", new String[] {""}, LF.isWin?335:337)
+	   .nextRow()
+	   .vspace(10)
+	   .groupbox("Other Field Values:", LF.isWin?415:417, 150)
+	   .nextRow()
+	   .vspace(20)
+	   .space(15)
+	   .listbox("otherFields", new String[] {}, 125, 100 )
+	   .space(5)
+	   .combo("values", new String[] {"null"}, 250)
+	   .setTab()
+	   .nextRow()
+	   .tab(2)
+	   .text("<html>Enter a value for the other columns<br>if the value needs to be quoted enter <br>the quotes as well.</html>")
+	   .baseline(dlg.get("gbOther Field Values:"), "South");
+          
+   
+    ((Table)dlg.get("files")).setColumnWidths(new int[] {295, 40});
+    ((Table)dlg.get("files")).createDefaultColumnsFromModel();
+    ((Table)dlg.get("files")).rightAlignColumn(1);
+	((Combo)dlg.get("values")).setEditable(true);
+    DB db = context.get("db");
+    DB.Result dbs = db.executeNonCached("show databases");
+    
+    Combo combo = dlg.get("dbs");
+    ComboUtils.populate(combo, dbs, 0);
+    if ( parentContext.get("currentDB") != null )
+    {
+      combo.select((String)parentContext.get("currentDB"));
+    }
+          
+    dlg.setResizable(false);
+  	dlg.visible();
+	   
+	
+	
+    
+    
+    
+

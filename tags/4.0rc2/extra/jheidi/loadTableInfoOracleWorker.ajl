@@ -1,0 +1,128 @@
+  import java.util.*;
+  
+  String event = arg("workerEvent");
+  
+  if ( event == "init" || event == "done")
+  {
+    return;
+  }
+  
+  WindowContext context = argObj("windowContext");
+  Text banner = context.get("/mainTabs/Table/toolbar/banner");
+  Panel tab = context.get("/mainTabs/Table");
+  Worker worker = argObj("worker");
+  Table table = context.get("/mainTabs/Table/table");
+  Toolbar tb = context.get("/mainTabs/Table/toolbar");
+  String tableName = arg("tableName");
+  String dbName = arg("dbName");
+  boolean setRefresh = false;
+
+  
+  if ( event == "longRunningTask" || event == "alreadyRunning")
+  {
+    if ( worker.isDone() && event=="longRunningTask" )
+      return;
+    
+    if ( tableName.equals((String)context.get("currentTable")) &&
+         dbName.equals((String)context.get("currentDB")))
+    {
+      banner.setText("Table properties for " + dbName + "." + tableName + " (loading)");
+      table.clear();
+      tb.updateUI();
+      
+      if ( event == "longRunningTask" )
+      {
+        ToolbarButton btn = context.get("/mainTabs/Table/toolbar/New Field");
+        btn.setEnabled(false);
+  
+        btn = context.get("/mainTabs/Table/toolbar/Manage Indexes");
+        btn.setEnabled(false);
+      }
+    }
+  }
+  else if ( event == "cancelled" )
+  {
+    DB db = worker.getProperty("db");
+    
+    if ( db != null )
+      db.cancel();
+    
+    if ( tableName.equals((String)context.get("currentTable")) &&
+         dbName.equals((String)context.get("currentDB")))
+    {
+      banner.setText("Table properties for " + dbName + "." + tableName + " (load canceled)");
+      setRefresh = true;
+    }
+    
+  }
+  else if ( event == "backgroundTask" )
+  {
+    DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+
+    worker.setProperty("db", db);
+    worker.setProperty("waitOperation", "select lower(column_name) column_name, data_type, data_length, data_precision, data_scale, nullable, data_default, default_length, data_type_mod, data_type_owner,  from all_tab_columns where table_name=upper('" + tableName + "') and owner=upper('" + dbName + "') order by column_id");
+    
+    DB.Result tables = db.execute("select lower(column_name) column_name, data_type, data_length, nullable, data_precision, data_scale, data_default, default_length, data_type_mod, data_type_owner, num_distinct, low_value, high_value, density, num_nulls, num_buckets, last_analyzed, sample_size, character_set_name, char_col_decl_length, global_stats,user_stats, avg_col_len, char_length, char_used, histogram from all_tab_columns where table_name=upper('" + tableName + "') and owner=upper('" + dbName + "') order by column_id");
+    //"select column_name, data_type, data_length, data_precision, data_scale, data_default, default_length, data_type_mod, data_type_owner, num_distinct, low_value, high_value, density, num_nulls, num_buckets, last_analyzed, sample_size, character_set_name, char_col_decl_length, global_stats,user_stats, avg_col_len, char_length, char_used, histogram from all_tab_columns where table_name=upper('" + tableName + "') and owner=upper('" + dbName + "') order by column_id");
+    /*try
+    {
+      Thread.sleep(5000);
+    } catch (Exception e) {}*/
+
+    publish(tables);
+
+  }
+  else if ( event == "update")
+  {
+  
+    DB.Result tables = (DB.Result)((List)argObj("taskResult")).get(0);
+
+    if ( tableName.equals((String)context.get("currentTable")) &&
+         dbName.equals((String)context.get("currentDB")))
+    {
+      
+      banner.setText("Table properties for " + dbName + "." + tableName );
+      TableUtils.populate(table, tables);
+      
+      ToolbarButton btn = context.get("/mainTabs/Table/toolbar/New Field");
+      btn.setEnabled(true);
+  
+      btn = context.get("/mainTabs/Table/toolbar/Manage Indexes");
+      btn.setEnabled(true);
+      setRefresh = true;
+    
+    }
+
+  }
+  
+  if ( setRefresh )
+  {
+    tab.setProperty("refreshScript", "loadTableInfoOracleWorker");
+    tab.setProperty("refreshArgs", args());
+  }
+
+
+  
+  
+  
+
+  
+  
+ 
+  
+  
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

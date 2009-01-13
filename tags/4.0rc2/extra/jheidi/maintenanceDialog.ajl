@@ -1,0 +1,86 @@
+  import java.awt.Component;
+  import java.awt.Font;
+  import javax.swing.*;
+  
+  WindowContext parentContext = argObj("windowContext");
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"),"maintenanceDialog", "Table Maintenance" );
+  WindowContext context = dlg.getWindowContext();
+  context.put("db", parentContext.get("db"));
+   
+  dlg.events("maintenanceDialogEvents");
+  dlg.tabLayout()
+     .insets(10, 10)
+     .icon("images/optimize.gif")
+     .vspace(-4)
+     .text("Select Tables For Maintenance")
+	   .nextRow()
+	   .combo("dbs", new String[] {"Hi"}, 225)
+	   .nextRow()
+	   .vspace(3)
+	   .listbox("tables", new String[] {}, 225, 200)
+	   .space(5)
+	   .button("Select All", 85)
+	   .setTab()
+	   .space(3)
+	   .vspace(-3)
+	   .groupbox("Operations", LF.isWin?223: 226, 209)
+	   .setTab()
+	   .nextRow()
+	   .tab(1)
+ 	   .baseline(context.get("/Select All"))
+ 	   .button("Deselect", 85)
+ 	   .nextRow()
+ 	   .tab(2)
+ 	   .baseline(context.get("/gbOperations"))
+ 	   .space(70)
+ 	   .vspace(40)
+ 	   .button("Optimize", 85)
+ 	   .setTab()
+ 	   .nextRow()
+ 	   .tab(3)
+     .button("Analyze", 85)
+     .nextRow()
+     .tab(3)
+     .button("Check", 85)
+     .nextRow()
+     .tab(3)
+     .button("Repair", 85)
+     .nextRow()
+     .baseline(context.get("/tablesScrollPane"))
+     .vspace(195)
+     .text("Results")
+     .nextRow()
+     .baseline(context.get("/Results"))
+     .table("results", new String[] {"\t"}, new String[][] {{""}}, 550, 100)
+     .nextRow()
+     .baseline(context.get("/resultsScrollPane"), "South")
+     .vspace(5) //why this isnt automatic I have no idea the baseline should be reliable.
+     .line(LF.isWin?553:555)
+     .nextRow()
+     .vspace(2)
+     .space(LF.isWin?444:446)
+     .button("Close", 110);
+     
+  ((Table)context.get("/results")).clear();
+  
+    DB db = context.get("db");
+    DB.Result dbs = db.execute("show databases");
+    
+    Combo combo = context.get("/dbs");
+    ComboUtils.populate(combo, dbs, 0);
+    if ( parentContext.get("currentDB") != null )
+    {
+      combo.select((String)parentContext.get("currentDB"));
+    }
+    
+    ((ListBox)context.get("/tables")).setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+	   
+
+	dlg.visible();
+	   
+	
+	
+    
+    
+    
+

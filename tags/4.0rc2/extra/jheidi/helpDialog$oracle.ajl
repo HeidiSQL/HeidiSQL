@@ -1,0 +1,66 @@
+  import java.awt.Component;
+  import java.awt.Font;
+  
+  WindowContext parentContext = argObj("windowContext");
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"),"helpDialog", "SQL Help" );
+  WindowContext context = dlg.getWindowContext();
+  context.put("db", parentContext.get("db"));
+   
+  dlg.events("helpDialogEventsOracle");
+  dlg.tabLayout()
+     .insets(10, 10)
+     .icon("images/helptopic.gif")
+	   .tree("helpTree", new Object[] {"A Tree"}, 250, 400);
+	
+	//this is the only reliable component in terms of vsize to align on
+	Component tree = dlg.get("helpTreeScrollPane");
+	
+	dlg.space(5)
+	   .vspace(-6)
+	   .text("No Topic Selected", 250)
+	   .setTab()
+	   .nextRow()
+	   .baseline(tree)
+	   .tab(1)
+	   .vspace(15)
+	   .textArea("helpText", 450, 380)
+	   .nextRow()
+	   .baseline(tree)
+	   /*.vspace(191)
+	   .tab(1)
+	   .text("Example:")
+	   .nextRow()
+	   .baseline(tree)
+	   .vspace(215)
+	   /*.tab(1)
+	   /*.textArea("exampleText", 450, 180)
+	   .nextRow()
+	   .baseline(tree)*/
+	   .vspace(405)
+	   .line(712)
+	   .nextRow()
+	   .vspace(5)
+	   .space(LF.isMac?605:603)
+	   /*.space(LF.isMac?112: 110) 
+	   .space(5)*/
+	   .button("Close", 110)
+	   .setDefaultButton("Close");
+	   
+	//((TextArea)context.get("/helpText")).setEditable(false);
+  //((TextArea)context.get("/exampleText")).setEditable(false);
+  ((Tree)context.get("/helpTree")).setRootVisible(false);
+  ((Tree)context.get("/helpTree")).setShowsRootHandles(true);
+  ((Text)context.get("/No Topic Selected")).style(Font.BOLD);
+  
+  
+  args().put("windowContext", context);
+  script("initHelpTreeOracle", args());
+  
+	dlg.visible();
+	   
+	
+	
+    
+    
+    
+

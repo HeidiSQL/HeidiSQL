@@ -1,0 +1,173 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{9d2773a7-5199-4f9f-9b9a-ad4c0c48a953}</ProjectGuid>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Default.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+  <BorlandProject xmlns=""> <Default.Personality> </Default.Personality> </BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Target Name="SynEditR">
+    <MSBuild Projects="..\..\components\synedit\Packages\delphi11\SynEditR.dproj" Targets="" />
+  </Target>
+  <Target Name="SynEditR:Clean">
+    <MSBuild Projects="..\..\components\synedit\Packages\delphi11\SynEditR.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="SynEditR:Make">
+    <MSBuild Projects="..\..\components\synedit\Packages\delphi11\SynEditR.dproj" Targets="Make" />
+  </Target>
+  <Target Name="SynEditD">
+    <MSBuild Projects="..\..\components\synedit\Packages\delphi11\SynEditD.dproj" Targets="" />
+  </Target>
+  <Target Name="SynEditD:Clean">
+    <MSBuild Projects="..\..\components\synedit\Packages\delphi11\SynEditD.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="SynEditD:Make">
+    <MSBuild Projects="..\..\components\synedit\Packages\delphi11\SynEditD.dproj" Targets="Make" />
+  </Target>
+  <Target Name="ZCore">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZCore.dproj" Targets="" />
+  </Target>
+  <Target Name="ZCore:Clean">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZCore.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="ZCore:Make">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZCore.dproj" Targets="Make" />
+  </Target>
+  <Target Name="ZPlain">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZPlain.dproj" Targets="" />
+  </Target>
+  <Target Name="ZPlain:Clean">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZPlain.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="ZPlain:Make">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZPlain.dproj" Targets="Make" />
+  </Target>
+  <Target Name="ZParseSql">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZParseSql.dproj" Targets="" />
+  </Target>
+  <Target Name="ZParseSql:Clean">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZParseSql.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="ZParseSql:Make">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZParseSql.dproj" Targets="Make" />
+  </Target>
+  <Target Name="ZDbc">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZDbc.dproj" Targets="" />
+  </Target>
+  <Target Name="ZDbc:Clean">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZDbc.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="ZDbc:Make">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZDbc.dproj" Targets="Make" />
+  </Target>
+  <Target Name="ZComponent">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZComponent.dproj" Targets="" />
+  </Target>
+  <Target Name="ZComponent:Clean">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZComponent.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="ZComponent:Make">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZComponent.dproj" Targets="Make" />
+  </Target>
+  <Target Name="ZComponentDesign">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZComponentDesign.dproj" Targets="" />
+  </Target>
+  <Target Name="ZComponentDesign:Clean">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZComponentDesign.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="ZComponentDesign:Make">
+    <MSBuild Projects="..\..\components\zeosdbo\packages\delphi11\ZComponentDesign.dproj" Targets="Make" />
+  </Target>
+  <Target Name="HeidiComponents">
+    <MSBuild Projects="..\..\components\heidisql\packages\delphi11\HeidiComponents.dproj" Targets="" />
+  </Target>
+  <Target Name="HeidiComponents:Clean">
+    <MSBuild Projects="..\..\components\heidisql\packages\delphi11\HeidiComponents.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="HeidiComponents:Make">
+    <MSBuild Projects="..\..\components\heidisql\packages\delphi11\HeidiComponents.dproj" Targets="Make" />
+  </Target>
+  <Target Name="TntUnicodeVcl">
+    <MSBuild Projects="..\..\components\tntunictrls\packages\delphi11\TntUnicodeVcl.dproj" Targets="" />
+  </Target>
+  <Target Name="TntUnicodeVcl:Clean">
+    <MSBuild Projects="..\..\components\tntunictrls\packages\delphi11\TntUnicodeVcl.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="TntUnicodeVcl:Make">
+    <MSBuild Projects="..\..\components\tntunictrls\packages\delphi11\TntUnicodeVcl.dproj" Targets="Make" />
+  </Target>
+  <Target Name="TntUnicodeVcl_Design">
+    <MSBuild Projects="..\..\components\tntunictrls\packages\delphi11\TntUnicodeVcl_Design.dproj" Targets="" />
+  </Target>
+  <Target Name="TntUnicodeVcl_Design:Clean">
+    <MSBuild Projects="..\..\components\tntunictrls\packages\delphi11\TntUnicodeVcl_Design.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="TntUnicodeVcl_Design:Make">
+    <MSBuild Projects="..\..\components\tntunictrls\packages\delphi11\TntUnicodeVcl_Design.dproj" Targets="Make" />
+  </Target>
+  <Target Name="VirtualTreesR">
+    <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTreesR.dproj" Targets="" />
+  </Target>
+  <Target Name="VirtualTreesR:Clean">
+    <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTreesR.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="VirtualTreesR:Make">
+    <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTreesR.dproj" Targets="Make" />
+  </Target>
+  <Target Name="VirtualTreesD">
+    <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTreesD.dproj" Targets="" />
+  </Target>
+  <Target Name="VirtualTreesD:Clean">
+    <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTreesD.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="VirtualTreesD:Make">
+    <MSBuild Projects="..\..\components\virtualtreeview\packages\delphi11\VirtualTreesD.dproj" Targets="Make" />
+  </Target>
+  <Target Name="PNG">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PNG.dproj" Targets="" />
+  </Target>
+  <Target Name="PNG:Clean">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PNG.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PNG:Make">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PNG.dproj" Targets="Make" />
+  </Target>
+  <Target Name="PngComponents">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponents.dproj" Targets="" />
+  </Target>
+  <Target Name="PngComponents:Clean">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponents.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PngComponents:Make">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponents.dproj" Targets="Make" />
+  </Target>
+  <Target Name="PngComponentsD">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponentsD.dproj" Targets="" />
+  </Target>
+  <Target Name="PngComponentsD:Clean">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponentsD.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PngComponentsD:Make">
+    <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponentsD.dproj" Targets="Make" />
+  </Target>
+  <Target Name="heidisql">
+    <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="" />
+  </Target>
+  <Target Name="heidisql:Clean">
+    <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="heidisql:Make">
+    <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="Make" />
+  </Target>
+  <Target Name="Build">
+    <CallTarget Targets="SynEditR;SynEditD;ZCore;ZPlain;ZParseSql;ZDbc;ZComponent;ZComponentDesign;HeidiComponents;TntUnicodeVcl;TntUnicodeVcl_Design;VirtualTreesR;VirtualTreesD;PNG;PngComponents;PngComponentsD;heidisql" />
+  </Target>
+  <Target Name="Clean">
+    <CallTarget Targets="SynEditR:Clean;SynEditD:Clean;ZCore:Clean;ZPlain:Clean;ZParseSql:Clean;ZDbc:Clean;ZComponent:Clean;ZComponentDesign:Clean;HeidiComponents:Clean;TntUnicodeVcl:Clean;TntUnicodeVcl_Design:Clean;VirtualTreesR:Clean;VirtualTreesD:Clean;PNG:Clean;PngComponents:Clean;PngComponentsD:Clean;heidisql:Clean" />
+  </Target>
+  <Target Name="Make">
+    <CallTarget Targets="SynEditR:Make;SynEditD:Make;ZCore:Make;ZPlain:Make;ZParseSql:Make;ZDbc:Make;ZComponent:Make;ZComponentDesign:Make;HeidiComponents:Make;TntUnicodeVcl:Make;TntUnicodeVcl_Design:Make;VirtualTreesR:Make;VirtualTreesD:Make;PNG:Make;PngComponents:Make;PngComponentsD:Make;heidisql:Make" />
+  </Target>
+</Project>

@@ -1,0 +1,38 @@
+
+String stateCmd = arg("stateCmd");
+
+log.debug("stateCmd:" + stateCmd);
+WindowContext context = argObj("windowContext");
+
+if ("flush".equals(stateCmd))
+{
+  String profileKey = arg("profileKey");
+  Combo connProfiles = context.get("/connProfiles");
+  HashObject profiles = connProfiles.getProperty("profiles");
+
+  HashObject profile = (HashObject) profiles.getObject(profileKey);
+  String value = ((Field)context.get("/host")).getText();
+  profile.put("host", value == null ? "" : value.trim() );
+  value = ((Field)context.get("/user")).getText();
+  profile.put("user", value == null ? "" : value.trim() );
+  value = ((Password)context.get("/password")).getText();
+  profile.put("password", value == null ? "" : value.trim() );
+  value = ((Field)context.get("/port")).getText();
+  profile.put("port", value == null ? "" : value.trim() );
+  value = ((Field)context.get("/timeout")).getText();
+  profile.put("timeout", value == null ? "" : value.trim() );
+  value = ((Field)context.get("/dbs")).getText();
+  profile.put("dbs", value == null ? "" : value.trim() );
+  boolean checked = ((CheckBox)context.get("/compress")).isSelected();
+  profile.put("compress", checked ? "true" : "false");
+  checked = ((CheckBox)context.get("/sort")).isSelected();
+  profile.put("sort", checked ? "true" : "false");
+
+  return profile;
+  
+  
+}
+
+ 
+
+
