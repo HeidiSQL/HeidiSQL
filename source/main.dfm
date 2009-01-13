@@ -6335,13 +6335,6 @@ object MainForm: TMainForm
       OnClick = menuOpenLogFolderClick
     end
   end
-  object TimerConnectErrorCloseWindow: TTimer
-    Enabled = False
-    Interval = 10
-    OnTimer = TimerConnectErrorCloseWindowTimer
-    Left = 39
-    Top = 269
-  end
   object TimerHost: TTimer
     Enabled = False
     Interval = 5000

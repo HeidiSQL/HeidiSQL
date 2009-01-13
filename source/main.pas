@@ -280,7 +280,6 @@ type
     Markall3: TMenuItem;
     N15: TMenuItem;
     menuMaintenancea: TMenuItem;
-    TimerConnectErrorCloseWindow: TTimer;
     PopupMenuDropTable: TMenuItem;
     N17: TMenuItem;
     ListColumns: TVirtualStringTree;
@@ -599,7 +598,6 @@ type
     procedure EditQuery1Click(Sender: TObject);
     procedure Markall3Click(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
-    procedure TimerConnectErrorCloseWindowTimer(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
     procedure selectall1Click(Sender: TObject);
     procedure popupResultGridPopup(Sender: TObject);
@@ -5158,16 +5156,6 @@ end;
 procedure TMainForm.ListTablesDblClick(Sender: TObject);
 begin
   actEditTableFields.Execute;
-end;
-
-
-procedure TMainForm.TimerConnectErrorCloseWindowTimer(Sender: TObject);
-begin
-  // can't connect -> close MDI-Child
-  TimerConnectErrorCloseWindow.Enabled := false;
-  Showstatus('', 1);
-  ShowStatus( STATUS_MSG_READY );
-  close;
 end;
 
 
