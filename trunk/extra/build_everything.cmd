@@ -225,6 +225,8 @@ if not %err% == 0 goto end
 rem Build main executable
 echo Compiling main project.
 cd /d "%base_dir%\packages\%package_dir%\"
+brcc32 version.rc
+brcc32 icon.rc
 "%compiler%" %params% -e"%base_dir%\out" heidisql.dpr
 if not %errorlevel% == 0 goto end
 

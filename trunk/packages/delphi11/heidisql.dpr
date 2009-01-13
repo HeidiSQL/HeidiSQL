@@ -43,7 +43,8 @@ uses
   uVistaFuncs in '..\..\source\uVistaFuncs.pas',
   dataviewsave in '..\..\source\dataviewsave.pas' {FrmDataViewSave};
 
-{$R *.RES}
+{$R icon.RES}
+{$R version.RES}
 
 begin
   debug('perf: All modules loaded.');
