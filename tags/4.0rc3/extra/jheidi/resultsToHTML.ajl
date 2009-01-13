@@ -1,0 +1,55 @@
+import java.util.*;
+
+WindowContext context = argObj("windowContext");
+DB.Result results = context.get("lastQueryResults");
+StringBuilder buffer = new StringBuilder(1000);
+
+String jHeidiVersion = "Alpha";
+String jHeidiRevNumber = "5150";
+
+if (results != null && !results.isEmpty())
+{
+  String numRecords = Integer.toString(results.size());
+  String[] colNames = results.getColumnNames();
+  String lastQuery = context.get("lastQuerySQL");
+
+  
+  buffer.append("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html>\n<head>\n  <title>");
+  buffer.append(lastQuery).append("</title>\n  <meta name=\"GENERATOR\" content=\"").append(jHeidiVersion);
+  buffer.append(" Revision: ").append(jHeidiRevNumber).append("\">\n  <style type=\"text/css\">\n");
+  buffer.append("tr#header {background-color: ActiveCaption; color: CaptionText;}");
+  buffer.append("th, td {vertical-align: top; font-family: \"Tahoma\"; font-size: 8pt; padding: 0.5em; }\n");
+  buffer.append("table, td {border: 1px solid silver;}\n");
+  buffer.append("table {border-collapse: collapse;}\n");
+  buffer.append("td.isnull {background-color: #00FFFF}\n");
+  buffer.append("td.pk {background-color: #EEEEEE; font-weight: bold;}\n  </style>\n</head>\n\n<body>");
+  buffer.append("\n\n<h3>").append(lastQuery).append("\n  (").append(numRecords)
+    .append(")</h3>\n\n<table>\n  <tr id=\"header\">\n");
+  
+  String openTag="    <th>";
+  String closeTag="</th>\n";
+  
+  for(String col:colNames)
+  {
+    buffer.append(openTag).append(col).append(closeTag);
+  }
+  buffer.append("  </tr>\n");
+  
+  openTag="    <td>";
+  closeTag="</td>\n";
+  
+  for (HashObject row:results)
+  {
+    buffer.append("  <tr>\n");
+    for (String col:colNames)
+    {   
+      buffer.append(openTag).append(row.get(col)).append(closeTag);
+    }
+    buffer.append("  </tr>\n");
+  }  
+  String currentDateTime = new Date().toString();
+  buffer.append("</table>\n\n<p>\n<em>generated ").append(currentDateTime)
+    .append(" by <a href=\"http://www.heidisql.com/\">jHeidi").append(jHeidiVersion)
+    .append(" Revision: ").append(jHeidiRevNumber).append("</a></em></p>\n\n</body></html>");
+}
+return buffer != null ? buffer.toString(): "";

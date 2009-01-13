@@ -1,0 +1,121 @@
+  import java.util.*;
+  
+  String event = arg("workerEvent");
+  
+  if ( event == "init" || event == "done")
+  {
+    return;
+  }
+  
+  WindowContext context = argObj("windowContext");
+  Text banner = context.get("/mainTabs/Data/toolbar/banner");
+  Panel tab = context.get("/mainTabs/Data");
+  Worker worker = argObj("worker");
+  Table table = context.get("/mainTabs/Data/table");
+  Toolbar tb = context.get("/mainTabs/Data/toolbar");
+  final String tableName = arg("tableName");
+  final String dbName = arg("dbName");
+  boolean setRefresh = false;
+
+  
+  if ( event == "longRunningTask" || event == "alreadyRunning")
+  {
+    if ( worker.isDone() && event=="longRunningTask" )
+      return;
+    
+    if ( tableName.equals((String)context.get("currentTable")) &&
+         dbName.equals((String)context.get("currentDB")))
+    {
+      banner.setText(dbName + "." + tableName + " (loading)");
+      table.clear();
+      tb.updateUI();
+    }
+  }
+  else if ( event == "cancelled" )
+  {
+    DB db = worker.getProperty("db");
+    
+    if ( db != null )
+      db.cancel();
+    
+    if ( tableName.equals((String)context.get("currentTable")) &&
+         dbName.equals((String)context.get("currentDB")))
+    {
+      banner.setText(dbName + "." + tableName + " (load canceled)");
+      setRefresh = true;
+    }
+    
+  }
+  else if ( event == "backgroundTask" )
+  {
+    final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+    worker.setProperty("db", db);
+    worker.setProperty("waitOperation", "select count(*) from " + dbName + "." + tableName +"; select * from " + dbName + "." + tableName);
+    
+    DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+      public void execute() {
+        DB.Result count = db.execute("select count(*) from " + dbName + "." + tableName);
+        DB.Result data = db.execute("select * from " + dbName + "." + tableName + " where rownum < 50");
+        HashObject ho = new HashObject();
+        ho.put("count", count);
+        ho.put("data", data);
+        
+        /*try
+        {
+          Thread.sleep(5000);
+        } catch (Exception e) {}*/
+        
+        publish(ho);
+      }
+    };
+    
+    db.execute(tx);
+  }
+  else if ( event == "update")
+  {
+    HashObject resultSets = (HashObject)((java.util.List)argObj("taskResult")).get(0);
+
+    DB.Result data = resultSets.getObject("data");
+    DB.Result count = resultSets.getObject("count");
+
+    if ( tableName.equals((String)context.get("currentTable")) &&
+         dbName.equals((String)context.get("currentDB")))
+    {
+      banner.setText(dbName + "." + tableName + ": " + count.first().get(0) + " total rows");
+      TableUtils.populate(table, data);
+      setRefresh = true;
+    }
+
+  }
+  
+  if ( setRefresh )
+  {
+    tab.setProperty("refreshScript", "loadTableDataOracleWorker");
+    tab.setProperty("refreshArgs", args());
+  }
+
+
+  
+  
+  
+
+  
+  
+ 
+  
+  
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

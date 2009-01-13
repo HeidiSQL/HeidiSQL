@@ -1,0 +1,26 @@
+WindowContext context = argObj("windowContext");
+DB.Result results = context.get("lastQueryResults");
+StringBuilder buffer = new StringBuilder(1000);
+
+if (results != null && !results.isEmpty())
+{
+  String numRecords = Integer.toString(results.size());
+  String[] colNames = results.getColumnNames();
+  
+  buffer.append("<?xml version=\"1.0\"?>\n\n<SQL-query>\n");
+  
+  String newRow="\t<row>\n";
+  String closeRow="\t</row>\n";
+
+  for (HashObject row:results)
+    {
+    buffer.append(newRow);
+    for(String col:colNames)
+      {
+        buffer.append("\t\t<").append(col).append(">").append(row.get(col)).append("</").append(col).append(">\n");
+      }
+      buffer.append(closeRow);
+    }
+    buffer.append("</SQL-query>");
+}    
+return buffer != null ? buffer.toString(): "";

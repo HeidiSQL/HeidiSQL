@@ -1,0 +1,72 @@
+<dataset>
+
+<query key="showVersion">select version()</query>
+
+<query key="showHostVariables">show variables</query>
+
+<query key="showProcesses">show full processlist</query>
+
+<query key="showStatus">show /*!50002 global*/ status</query>
+
+<query key="showTableState">show table status from `%1$s`</query>
+
+<query key="showCharSet">show character set</query>
+
+<query key="createDatabase">create database `%1$s` default character set '%2$s' default collate '%3$s'</query>
+
+<query key="dropDatabase">drop database `%1$s`</query>
+
+<query key="showDatabases">show databases</query>
+
+<query key="showCollations">show collation where charset='%1$s'</query>
+
+<query key="showCharset">show character set</query>
+
+<query key="showEngines">show engines</query>
+
+<query key="showTablesForDB">show tables from `%1$s`</query>
+
+<query key="dropTable">alter table `%1$s`.`%2$s`</query>
+
+<query key="dropField">alter table `%1$s`.`%2$s` drop column `%3$s`</query>
+
+<query key="showColumnsForTable">show full columns from `%1$s`.`%2$s`</query>
+
+<query key="showKeysForTable">show keys from `%1$s`.`%2$s`</query>
+
+<query key="alterTable">alter table `%1$s`.`%2$s`</query>
+
+<query key="showUsers">select * from mysql.user order by user, host</query>
+
+<query key="getRowCount">select count(*) from `%1$s`.`%2$s`</query>
+
+<query key="selectAllForTable">select * from `%1$s`.`%2$s` limit %3$d</query>
+
+<query key="getPrivilegeSet">show columns from `mysql`.`user` where field like '%_priv'</query>
+
+<query key="flushPrivileges">flush privileges</query>
+
+<query key="getUserProperties>select * from `mysql`.`user` where user='%1$s' and host='%2$s'</query>
+
+<query key="repairTable">repair table `%1$s`.`%2$s`</query>
+
+<query key="checkTable">check table `%1$s`.`%2$s`</query>
+
+<query key="optimizeTable">optimize table `%1$s`.`%2$s`</query>
+
+<query key="analyzeTable">analyze table `%1$s`.`%2$s`</query>
+
+<!-- query fragments --> 
+
+
+
+
+
+
+
+
+
+
+
+
+</dataset>

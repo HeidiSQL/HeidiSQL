@@ -1,0 +1,52 @@
+
+  String who = arg("source");
+
+  WindowContext context = argObj("windowContext");
+  log.debug("event received: " + who);
+  
+  if ( "Ok".equals(who) )
+  {
+     Dialog d = context.get("/");
+     Field dbName = context.get("/dbName");
+     Combo charSet = context.get("/charSets");
+     Combo coll = context.get("/collations");
+     
+     DB db = context.get("db");
+     db.execute("create database `" + dbName.getText() + "` default character set '"
+           + charSet.getText() + "' default collate '" + coll.getText() + "'");
+
+     db.flushStatement("show databases");
+     
+     context.put("dlgResult", Boolean.TRUE);
+     
+     d.dispose();
+
+  } else if ( "Cancel".equals(who) )
+  {
+     Dialog d = context.get("/");
+     d.dispose();
+  } 
+  else if ("charSets".equals(who))
+  {
+    DB db = context.get("db");
+    DB.Result result = db.execute("show collation where charset='" + ((Combo)context.get("/charSets")).getText() + "'");
+    
+    String def = null;
+    
+    for (HashObject ho: result)
+    {
+      if ("Yes".equalsIgnoreCase((String)ho.get(3)))
+      {
+         def = (String) ho.get(0);
+         break;
+      }
+    }
+    
+    Combo combo = context.get("/collations");
+    ComboUtils.populate(combo, result, 0);
+    combo.select(def);
+  
+  } 
+    
+
+

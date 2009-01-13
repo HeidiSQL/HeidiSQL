@@ -1,0 +1,200 @@
+  import javax.swing.*;
+  import java.util.*;
+  
+  String event = arg("source");
+  WindowContext context = argObj("windowContext");
+  
+  log.debug("event received: " + event);
+  
+  if ( event == "Create" )
+  {
+     Dialog d = context.get("/");
+     ListBox l = context.get("/fields");
+     ListDataModel model = (ListDataModel)l.getModel();
+     final StringBuilder sql = new StringBuilder(3000);
+     String commentStmt = null;
+
+     String tableName = ((Field)context.get("/tableName")).getText();
+     String dbName = ((Combo)context.get("/databases")).getText();
+     String comment = ((Field)context.get("/comment")).getText();
+     
+     if ( tableName == null || tableName.trim().length() == 0 )
+     {
+        d.popupMessage("Create Table", "Please provide a table name before saving.");
+	      return;
+     } else if ( dbName == null )
+     {
+        d.popupMessage("Create Table", "Please select a database for the new table before saving.");
+	      return;
+	   } else if ( model.size() == 0 )
+     {
+	      d.popupMessage("Create Table", "Please add at least one field before saving.");
+	      return;
+     }
+
+     args().put("fieldKey", l.getSelectedValue());
+     script("createTableStateOracle", args());
+     
+     sql.append("create table ").append(dbName).append(".").append(tableName).append(" (");
+
+     for (int i=0; i < model.size(); i++)
+     {
+	      String fieldName = (String)model.get(i);
+	      HashObject def = l.getProperty(fieldName);
+	      if ( def != null )
+	      {
+          	sql.append(fieldName).append(" ").append(def.get("type"));
+            if ( def.get("length") != null && def.get("length").trim().length() > 0)
+            {
+              sql.append("(").append(def.get("length")).append(")");
+            }
+
+            if ( def.get("default") != null && def.get("default").trim().length() > 0)
+            {
+              if (def.get("type").contains("char"))
+                sql.append(" default '").append(def.get("default")).append("'");
+              else
+                sql.append(" default ").append(def.get("default"));
+            }
+
+            if ( ((Boolean)def.getObject("notNull")) == Boolean.TRUE )
+              sql.append(" not null");
+            else
+              sql.append(" null");
+
+            if ( ((Boolean)def.getObject("primary")) == Boolean.TRUE )
+              sql.append(String.format(", primary key(%s)", fieldName));
+            else if( ((Boolean)def.getObject("index")) == Boolean.TRUE )
+              sql.append(String.format(", unique(%s)", fieldName));
+
+            if (i != model.size()-1)
+            {
+              sql.append(", ");
+            }
+            else
+            {
+              sql.append(")");
+            }
+        }
+       }
+
+      if ( comment != null & comment.trim().length() > 0 )
+      {
+        commentStmt = String.format("comment on column %s.%s is '%s'", dbName, tableName, comment);
+      }
+
+     log.debug("heres the statement: " + sql.toString());
+      
+     final DB db = context.get("db");
+     final String myCommentStmt = commentStmt;
+     DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+        public void execute() throws Exception {
+          db.execute(sql.toString());
+          if ( myCommentStmt != null )
+          {
+            db.execute(myCommentStmt);
+          }
+        }
+     };
+
+     db.execute(tx);
+     db.flushStatement("select lower(owner) owner, lower(object_name) object from all_objects where object_type = 'TABLE' and object_name not like 'BIN$%'  order by owner, object");
+     
+     context.put("dlgResult", Boolean.TRUE);
+     
+     d.dispose();
+
+  } else if ( event == "Cancel" )
+  {
+     Dialog d = context.get("/");
+     d.dispose();
+  } 
+  else if (event == "Add" )
+  {
+    Field f = context.get("/fieldName");
+    Dialog d = context.get("/");
+    ListBox l = context.get("/fields");
+    ListDataModel model = (ListDataModel)l.getModel();
+    String fieldName = f.getText();
+    if ( fieldName != null )
+    {
+      fieldName = fieldName.trim();
+    }
+    
+    if ( fieldName != null && (fieldName.length() > 0) &&
+         !model.contains(fieldName))
+    {
+      model.add(fieldName);
+      context.put("addField", true);
+      l.setSelectedIndex(model.indexOf(fieldName)); //why isnt this firing?
+    }
+    else if ( fieldName == null || fieldName.length() == 0 )
+    {
+      d.popupMessage("Create Table", "Please enter a field name to add.");
+    }
+    else if ( model.contains(fieldName) )
+    {
+      d.popupMessage("Create Table", "Field name '" + fieldName.trim() + "'  already exists in this table.");
+    }
+  }
+  else if (event == "Remove" )
+  {
+    ListBox l = context.get("/fields");
+    int sel = l.getSelectedIndex();
+    if ( sel != -1 )
+    {
+       ((ListDataModel)l.getModel()).remove(sel);
+       l.setSelectedIndex(sel-1 < 0 ? 0: sel-1);
+    }
+    
+  }
+  else if (event == "Up" )
+  {
+    ListBox l = context.get("/fields");
+    int sel = l.getSelectedIndex();
+    if ( sel != -1 ) {
+      ((ListDataModel)l.getModel()).moveUp(sel);
+      l.setSelectedIndex(sel-1 < 0 ? 0: sel-1);
+    }
+     
+  }
+  else if (event == "Down" )
+  {
+    ListBox l = context.get("/fields");
+    int sel = l.getSelectedIndex();
+    if ( sel != -1 ) {
+      ListDataModel model = (ListDataModel)l.getModel();
+      model.moveDown(sel);
+      l.setSelectedIndex(sel+1 > model.size()-1 ? model.size()-1 : sel+1);
+    }   
+  }
+  else if (event == "Rename" )
+  {
+    Field f = context.get("/fieldName");
+    ListBox l = context.get("/fields");
+    ListDataModel model = (ListDataModel)l.getModel();
+    String fieldName = f.getText();
+    int sel = l.getSelectedIndex();
+    if ( sel != -1 && fieldName != null && (fieldName.trim().length() > 0) &&
+         !model.contains(fieldName.trim()))
+    {
+      HashObject vals = l.getProperty((String)l.getSelectedValue());
+      if ( vals != null ) 
+      {
+         l.setProperty(fieldName, vals);
+         l.setProperty("lastSel", fieldName);
+      }
+        
+      model.set(sel, fieldName);
+      l.setSelectedIndex(model.indexOf(fieldName));
+
+    }
+  }
+ 
+  
+  
+  
+  
+    
+
+

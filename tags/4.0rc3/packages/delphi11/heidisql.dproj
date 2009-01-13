@@ -1,0 +1,165 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{53d02113-9bb2-4326-83eb-53734f07dae7}</ProjectGuid>
+    <MainSource>heidisql.dpr</MainSource>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+    <DCC_DependencyCheckOutputName>..\..\out\heidisql.exe</DCC_DependencyCheckOutputName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_DebugInformation>False</DCC_DebugInformation>
+    <DCC_WriteableConstants>True</DCC_WriteableConstants>
+    <DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
+    <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+    <DCC_ExeOutput>..\..\out</DCC_ExeOutput>
+    <DCC_DcuOutput>..\..\build</DCC_DcuOutput>
+    <DCC_ObjOutput>..\..\build</DCC_ObjOutput>
+    <DCC_HppOutput>..\..\build</DCC_HppOutput>
+    <DCC_BplOutput>..\..\build</DCC_BplOutput>
+    <DCC_DcpOutput>..\..\build</DCC_DcpOutput>
+    <DCC_UnitSearchPath>..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\tntunictrls\build</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\tntunictrls\build</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\tntunictrls\build</DCC_ObjPath>
+    <DCC_IncludePath>..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\tntunictrls\build</DCC_IncludePath>
+    <DCC_Define>RELEASE</DCC_Define>
+    <DCC_Description>HeidiSQL</DCC_Description>
+    <DCC_AssertionsAtRuntime>False</DCC_AssertionsAtRuntime>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Version>7.0</Version>
+    <DCC_SymbolReferenceInfo>2</DCC_SymbolReferenceInfo>
+    <DCC_DebugInfoInExe>True</DCC_DebugInfoInExe>
+    <DCC_DebugVN>True</DCC_DebugVN>
+    <DCC_ExeOutput>..\..\out</DCC_ExeOutput>
+    <DCC_DcuOutput>..\..\build</DCC_DcuOutput>
+    <DCC_ObjOutput>..\..\build</DCC_ObjOutput>
+    <DCC_HppOutput>..\..\build</DCC_HppOutput>
+    <DCC_BplOutput>..\..\build</DCC_BplOutput>
+    <DCC_DcpOutput>..\..\build</DCC_DcpOutput>
+    <DCC_UnitSearchPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_ResourcePath>
+    <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_ObjPath>
+    <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_IncludePath>
+    <DCC_Define>DEBUG</DCC_Define>
+    <DCC_Description>HeidiSQL</DCC_Description>
+    <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
+    <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
+  </PropertyGroup>
+  <ProjectExtensions>
+    <Borland.Personality>Delphi.Personality</Borland.Personality>
+    <Borland.ProjectType>VCLApplication</Borland.ProjectType>
+    <BorlandProject>
+<BorlandProject><Delphi.Personality><Parameters><Parameters Name="DebugSourceDirs">..\..;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\source;..\..\components\heidisql\source;..\..\components\synedit\source;..\..\components\zeosdbo\src;..\..\components\zeosdbo\src\plain;..\..\components\zeosdbo\src\component;..\..\components\zeosdbo\src\core;..\..\components\zeosdbo\src\dbc;..\..\components\zeosdbo\src\parsesql</Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><Language><Language Name="ProjectLang">$00000407</Language></Language><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">4</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">True</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">1033</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName"></VersionInfoKeys><VersionInfoKeys Name="FileDescription">HeidiSQL</VersionInfoKeys><VersionInfoKeys Name="FileVersion">4.0.0.0</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename">heidisql.exe</VersionInfoKeys><VersionInfoKeys Name="ProductName">HeidiSQL</VersionInfoKeys><VersionInfoKeys Name="ProductVersion">4</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Source><Source Name="MainSource">heidisql.dpr</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
+  <ItemGroup>
+    <DelphiCompile Include="heidisql.dpr">
+      <MainSource>MainSource</MainSource>
+    </DelphiCompile>
+    <RcCompile Include="icon.rc">
+      <Form>icon.res</Form>
+    </RcCompile>
+    <RcCompile Include="version.rc">
+      <Form>version.res</Form>
+    </RcCompile>
+    <RcCompile Include="manifest.rc">
+      <Form>manifest.res</Form>
+    </RcCompile>
+    <DCCReference Include="..\..\source\about.pas">
+      <Form>AboutBox</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\bineditor.pas">
+      <Form>frmBinEditor</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\column_selection.pas">
+      <Form>ColumnSelectionForm</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\communication.pas" />
+    <DCCReference Include="..\..\source\connections.pas">
+      <Form>connform</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\copytable.pas">
+      <Form>CopyTableForm</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\createdatabase.pas">
+      <Form>CreateDatabaseForm</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\createtable.pas">
+      <Form>CreateTableForm</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\dataviewsave.pas">
+      <Form>FrmDataViewSave</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\data_sorting.pas">
+      <Form>DataSortingForm</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\editvar.pas">
+      <Form>frmEditVariable</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\exportsql.pas">
+      <Form>ExportSQLForm</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\fieldeditor.pas">
+      <Form>FieldEditForm</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\grideditlinks.pas" />
+    <DCCReference Include="..\..\source\helpers.pas" />
+    <DCCReference Include="..\..\source\insertfiles.pas">
+      <Form>frmInsertFiles</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\insertfiles_progress.pas">
+      <Form>frmInsertFilesProgress</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\loaddata.pas">
+      <Form>loaddataform</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\main.pas">
+      <Form>MainForm</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\mysql_structures.pas" />
+    <DCCReference Include="..\..\source\mysqlconn.pas" />
+    <DCCReference Include="..\..\source\mysqlquery.pas" />
+    <DCCReference Include="..\..\source\mysqlquerythread.pas" />
+    <DCCReference Include="..\..\source\optimizetables.pas">
+      <Form>optimize</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\options.pas">
+      <Form>optionsform</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\printlist.pas">
+      <Form>printlistForm</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\queryprogress.pas">
+      <Form>frmQueryProgress</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\runsqlfile.pas">
+      <Form>RunSQLFileForm</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\selectdbobject.pas">
+      <Form>frmSelectDBObject</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\sqlhelp.pas">
+      <Form>frmSQLhelp</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\synchronization.pas" />
+    <DCCReference Include="..\..\source\tbl_properties.pas">
+      <Form>tbl_properties_form</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\texteditor.pas">
+      <Form>frmTextEditor</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\threading.pas" />
+    <DCCReference Include="..\..\source\updatecheck.pas">
+      <Form>frmUpdateCheck</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\usermanager.pas">
+      <Form>UserManagerForm</Form>
+    </DCCReference>
+    <DCCReference Include="..\..\source\uVistaFuncs.pas" />
+    <DCCReference Include="..\..\source\view.pas">
+      <Form>frmView</Form>
+    </DCCReference>
+  </ItemGroup>
+</Project>

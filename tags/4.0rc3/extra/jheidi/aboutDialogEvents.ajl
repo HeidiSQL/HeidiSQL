@@ -1,0 +1,15 @@
+
+WindowContext context = argObj("windowContext");
+Dialog dlg = context.get("/");
+dlg.dispose();
+
+    
+  
+  
+
+
+  
+
+
+
+

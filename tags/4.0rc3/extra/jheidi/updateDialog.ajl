@@ -1,0 +1,41 @@
+
+  WindowContext parentContext = argObj("windowContext");
+  AutoUpdater updater = (AutoUpdater)env("updater");
+  
+  System.out.println("AUTOUP is " + updater);
+  
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"),"updateDialog", "Update Available - " + updater.updateProps.version);
+  WindowContext context = dlg.getWindowContext();
+ 
+  dlg.events("updateDialogEvents");
+  dlg.tabLayout()
+    .insets(10, 10)
+    .space(10)
+    .icon("images/heidi.png")
+	  .image("logo", "images/heidi.png")		
+	  .space(15)
+	  .vspace(5)
+	  .textArea("notes", 400, 210)
+    .nextRow()
+    .baseline(context.get("/logo"))
+    .text(updater.appProps.version, 150, Text.CENTER)
+    .baseline(context.get("/notesScrollPane"), "South")
+    .vspace(7)
+    .space(177)
+    .button("Install", 110)
+    .button("Cancel", 110);
+    
+    TextArea text = context.get("/notes");
+    text.setEditable(false);
+    text.setText("A newer version of jHeidi is available!\n\nYour version is:" + updater.appProps.version + "\n\njHeidi "
+         + updater.updateProps.version + " is now available!" + "\n\n" + updater.updateProps.releaseNotes);
+    
+    text.setCaretPosition(0);
+    
+    dlg.visible();
+     
+
+    
+    
+    
+

@@ -1,0 +1,131 @@
+  import java.util.*;
+    
+  String event = arg("workerEvent");
+  if ( event == "done" || event =="alreadyRunning" || event == "longRunningTask")
+    return;
+  
+  final WindowContext context = argObj("windowContext");
+  Worker worker = argObj("worker");
+  final HashObject profile = context.get("profile");
+  
+  Tree tree = context.get("/schemaTree");
+  NodeInfo root = (NodeInfo)tree.getModel().getRoot();
+  
+  if ( event == "init" )
+  {
+    if ( root.getText().equals("A Tree") )
+    {
+      // we are new and not in a refresh
+      tree.setCellRenderer(new IconicCellRenderer("images/schema.gif", "images/instance.gif", "images/table.gif"));
+      root.setText(profile.get("user") + "@" + profile.get("host"));
+      root.setIcon("instance");
+    } 
+    else 
+    {
+       tree.saveState();
+    }
+    root.removeAllChildren();
+  }
+  else if ( event == "backgroundTask" )
+  {
+    final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+    worker.setProperty("db", db);
+    worker.setProperty("waitOperation", "select lower(owner) from all_objects where object_type = 'TABLE' and object_name not like 'BIN$%' group by owner");
+    
+    DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+      public void execute() 
+      {
+        String dbs = profile.get("dbs");
+    
+        String sql = null;
+        if ( dbs == null || dbs.length() == 0 )
+        {
+           sql = "select lower(owner) owner, lower(object_name) object from all_objects where object_type = 'TABLE' and object_name not like 'BIN$%'  order by owner, object";
+        }
+        else
+        {
+          String[] dbArray = dbs.split(";");
+          sql = "select lower(owner), lower(object_name) object from all_objects where object_type = 'TABLE' and object_name in (";
+          String sep="";
+          for (String aDb: dbArray)
+          {
+            sql+=sep+"'"+aDb + "'";
+            sep=",";
+          }
+          sql+=")";
+        }
+        
+        DB.Result r = db.execute(sql);
+        log.info("schema objects: " + r.size());
+
+        Map allObjects = r.remap("owner");
+
+        HashObject taskResult = new HashObject();
+        taskResult.put("allObjects", allObjects);
+    
+        publish(taskResult);
+      }
+    };
+    
+    db.execute(tx);
+
+  }
+  else if ( event == "update" )
+  {
+    HashObject taskResult = (HashObject)((List)argObj("taskResult")).get(0);
+    
+    Map<String, List<HashObject>> allObjects = taskResult.getObject("allObjects");
+    HashObject schemaNodes = new HashObject();
+
+    List<String> schemas = new ArrayList();
+    schemas.addAll(allObjects.keySet());
+
+    context.put("dbsOrSchemas", schemas);
+    
+    if ( "true".equals(profile.get("sort")))
+    {
+      Collections.sort(schemas);
+    }
+
+    schemaNodes = TreeUtils.populateList(root, schemas, "schema");
+
+    for (String schema: schemas)
+    {
+      List<HashObject> tables = allObjects.get(schema);
+     
+      log.info("populating table list: " + tables.size());
+
+      TreeUtils.populateList((NodeInfo)schemaNodes.getObject(schema), (ArrayList<HashObject>)tables, 1, "table");
+    }
+
+    tree.updateUI();
+    tree.restoreState();
+  }
+  else if ( event == "cancelled" ) 
+  {
+    DB db = worker.getProperty("db");
+    if ( db != null )
+    {
+      db.cancel();
+    }
+  }
+     
+ 
+ 
+ 
+ 
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

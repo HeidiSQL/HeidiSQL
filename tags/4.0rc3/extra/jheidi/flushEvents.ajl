@@ -1,0 +1,26 @@
+
+String who = arg("source");
+
+WindowContext context = argObj("windowContext");
+
+log.debug("Event received: " + who);
+
+String curDB = context.get("currentDB");
+if ( curDB != null )
+{
+  String cmd = who.toLowerCase();
+  DB db = context.get("db");
+  db.begin();
+  db.execute("use " + curDB);
+  db.execute("flush " + cmd);
+  if ( cmd.endsWith("lock") )
+  {
+      ((Frame)context.get("/")).popupMessage("Tables have been flushed and read lock acquired.\nPerform backup or snapshot of table data files now.\nClick OK to unlock when done...");
+      db.execute("unlock tables");
+  }
+  db.end();
+}
+
+
+
+

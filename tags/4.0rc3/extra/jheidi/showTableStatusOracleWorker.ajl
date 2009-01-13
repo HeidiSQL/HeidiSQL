@@ -1,0 +1,103 @@
+  import java.util.*;
+  
+  String event = arg("workerEvent");
+  
+  if ( event == "init" || event == "done")
+  {
+    return;
+  }
+  
+  WindowContext context = argObj("windowContext");
+  Worker worker = argObj("worker");
+  String dbName = arg("dbName");
+  Toolbar tb = context.get("/mainTabs/Schema/toolbar");
+  Text banner = context.get("/mainTabs/Schema/toolbar/banner");
+  Table table = context.get("/mainTabs/Schema/table");
+  Panel tab = context.get("/mainTabs/Schema");
+  boolean setRefresh = false;
+  
+  if (event == "longRunningTask" || event == "alreadyRunning" )
+  {
+    if ( worker.isDone() && event == "longRunningTask" )
+      return;
+    
+    if ( dbName.equals((String)context.get("currentDB")))
+    {
+      banner.setText("Schema " + dbName + ": (loading)");
+      table.clear();
+      tb.updateUI();
+    }
+  }
+  else if (event == "cancelled")
+  {
+    DB db = worker.getProperty("db");
+    
+    if ( db != null )
+      db.cancel();
+
+    if (dbName.equals((String)context.get("currentDB")) )
+    {
+      banner.setText("Schema " + dbName + ": (load canceled)");
+      setRefresh = true;
+    }
+  }    
+  else if (event == "backgroundTask")
+  {
+    DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+
+    worker.setProperty("db", db);
+    worker.setProperty("waitOperation", "select * from all_tables where owner=upper('" + dbName + "')");
+    
+    DB.Result databases = db.execute("select * from all_tables where owner=upper('" + dbName + "')");
+
+    /*try
+    {
+      Thread.sleep(10000);
+    } catch (Exception e) {}*/
+
+    publish(databases);
+   
+  }
+  else if (event == "update")
+  {   
+    DB.Result databases = (DB.Result)((List)argObj("taskResult")).get(0);
+      
+    if ( dbName.equals((String)context.get("currentDB")))
+    {
+      banner.setText("Schema " + dbName + ": " + databases.size() + " table(s)");
+      TableUtils.populate(table, databases);
+      setRefresh = true;
+    }
+  }
+  
+  if ( setRefresh )
+  {
+     tab.setProperty("refreshScript", "showTableStatusOracleWorker");
+     tab.setProperty("refreshArgs", args());
+  }
+    
+  
+    
+
+  
+  
+
+  
+
+ 
+    
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		
