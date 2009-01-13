@@ -64,6 +64,9 @@
     <RcCompile Include="version.rc">
       <Form>version.res</Form>
     </RcCompile>
+    <RcCompile Include="manifest.rc">
+      <Form>manifest.res</Form>
+    </RcCompile>
     <DCCReference Include="..\..\source\about.pas">
       <Form>AboutBox</Form>
     </DCCReference>

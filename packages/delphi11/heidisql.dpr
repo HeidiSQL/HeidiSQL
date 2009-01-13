@@ -45,6 +45,7 @@ uses
 
 {$R icon.RES}
 {$R version.RES}
+{$R manifest.RES}
 
 begin
   debug('perf: All modules loaded.');
