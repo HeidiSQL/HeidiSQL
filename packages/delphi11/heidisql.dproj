@@ -58,13 +58,13 @@
     <DelphiCompile Include="heidisql.dpr">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <RcCompile Include="icon.rc">
+    <RcCompile Include="..\..\res\icon.rc">
       <Form>icon.res</Form>
     </RcCompile>
-    <RcCompile Include="version.rc">
+    <RcCompile Include="..\..\res\version.rc">
       <Form>version.res</Form>
     </RcCompile>
-    <RcCompile Include="manifest.rc">
+    <RcCompile Include="..\..\res\manifest.rc">
       <Form>manifest.res</Form>
     </RcCompile>
     <DCCReference Include="..\..\source\about.pas">
