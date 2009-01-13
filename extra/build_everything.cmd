@@ -227,6 +227,7 @@ echo Compiling main project.
 cd /d "%base_dir%\packages\%package_dir%\"
 brcc32 version.rc
 brcc32 icon.rc
+brcc32 manifest.rc
 "%compiler%" %params% -e"%base_dir%\out" heidisql.dpr
 if not %errorlevel% == 0 goto end
 
