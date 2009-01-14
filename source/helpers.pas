@@ -183,6 +183,7 @@ type
   function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
   function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
   function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
+  procedure ResetVTNodes(Sender: TBaseVirtualTree);
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -2846,6 +2847,20 @@ begin
   OpenRegistry(Session);
   if MainReg.ValueExists( valueName ) then
     result := MainReg.ReadString( valueName );
+end;
+
+
+procedure ResetVTNodes(Sender: TBaseVirtualTree);
+var
+  Node: PVirtualNode;
+begin
+  // Forces a VirtualTree to (re-)initialize its nodes.
+  // I wonder why this is not implemented in VirtualTree.
+  Node := Sender.GetFirst;
+  while Assigned(Node) do begin
+    Node.States := Node.States - [vsInitialized];
+    Node := Sender.GetNext(Node);
+  end;
 end;
 
 
