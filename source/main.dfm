@@ -1665,6 +1665,26 @@ object MainForm: TMainForm
           Action = actFlushStatus
         end
       end
+      object MenuAutoupdate: TMenuItem
+        Caption = 'Auto-refresh'
+        object Set1: TMenuItem
+          Caption = 'Set interval...'
+          OnClick = Autoupdate1Click
+        end
+        object EnableAutoRefresh: TMenuItem
+          Caption = 'Active'
+          RadioItem = True
+          ShortCut = 16500
+          OnClick = EnableAutoRefreshClick
+        end
+        object DisableAutoRefresh: TMenuItem
+          Caption = 'Inactive'
+          Checked = True
+          RadioItem = True
+          ShortCut = 27
+          OnClick = DisableAutoRefreshClick
+        end
+      end
       object N6: TMenuItem
         Caption = '-'
       end
@@ -2145,6 +2165,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Refresh'
       ImageIndex = 0
+      ShortCut = 116
       OnExecute = actRefreshExecute
     end
     object actImportCSV: TAction
@@ -5822,10 +5843,7 @@ object MainForm: TMainForm
       Action = actSelectTreeBackground
     end
     object menuRefreshDBTree: TMenuItem
-      Caption = 'Refresh'
-      ImageIndex = 0
-      ShortCut = 116
-      OnClick = menuRefreshDBTreeClick
+      Action = actRefresh
     end
   end
   object popupDbGrid: TPopupMenu
@@ -5888,10 +5906,7 @@ object MainForm: TMainForm
     end
     object menurefresh2: TMenuItem
       Tag = 28
-      Caption = 'Refresh'
-      ImageIndex = 0
-      ShortCut = 116
-      OnClick = MenuRefreshClick
+      Action = actRefresh
     end
     object selectall1: TMenuItem
       Caption = 'select all'
@@ -5912,26 +5927,6 @@ object MainForm: TMainForm
       ShortCut = 46
       OnClick = KillProcess
     end
-    object MenuAutoupdate: TMenuItem
-      Caption = 'Auto-refresh'
-      object Set1: TMenuItem
-        Caption = 'Set interval...'
-        OnClick = Autoupdate1Click
-      end
-      object EnableAutoRefresh: TMenuItem
-        Caption = 'Active'
-        RadioItem = True
-        ShortCut = 16500
-        OnClick = EnableAutoRefreshClick
-      end
-      object DisableAutoRefresh: TMenuItem
-        Caption = 'Inactive'
-        Checked = True
-        RadioItem = True
-        ShortCut = 27
-        OnClick = DisableAutoRefreshClick
-      end
-    end
     object menuEditVariable: TMenuItem
       Caption = 'Edit ...'
       ImageIndex = 33
@@ -5946,10 +5941,7 @@ object MainForm: TMainForm
     end
     object Refresh1: TMenuItem
       Tag = 28
-      Caption = 'Refresh'
-      ImageIndex = 0
-      ShortCut = 116
-      OnClick = ShowVariablesAndProcesses
+      Action = actRefresh
     end
   end
   object SynSQLSyn1: TSynSQLSyn
@@ -6015,11 +6007,7 @@ object MainForm: TMainForm
     end
     object Refresh2: TMenuItem
       Tag = 28
-      Caption = 'Refresh'
-      Hint = 'Refresh|Refresh Field-List'
-      ImageIndex = 0
-      ShortCut = 116
-      OnClick = RefreshFieldListClick
+      Action = actRefresh
     end
   end
   object popupDataGrid: TPopupMenu
@@ -6248,10 +6236,7 @@ object MainForm: TMainForm
     end
     object Refresh3: TMenuItem
       Tag = 28
-      Caption = 'Refresh'
-      ImageIndex = 0
-      ShortCut = 116
-      OnClick = viewdata
+      Action = actRefresh
     end
   end
   object popupResultGrid: TPopupMenu
@@ -6338,7 +6323,7 @@ object MainForm: TMainForm
   object TimerHost: TTimer
     Enabled = False
     Interval = 5000
-    OnTimer = ShowVariablesAndProcesses
+    OnTimer = TimerHostTimer
     Left = 72
     Top = 269
   end

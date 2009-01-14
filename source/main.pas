@@ -578,8 +578,6 @@ type
     procedure EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure DiscardNodeData(Sender: TVirtualStringTree; Node: PVirtualNode);
     procedure viewdata(Sender: TObject);
-    procedure RefreshFieldListClick(Sender: TObject);
-    procedure MenuRefreshClick(Sender: TObject);
     procedure LogSQL(msg: WideString = ''; comment: Boolean = true );
     procedure CheckUptime;
     procedure ShowVariablesAndProcesses(Sender: TObject);
@@ -706,7 +704,6 @@ type
     procedure ListColumnsDblClick(Sender: TObject);
     procedure ListVariablesDblClick(Sender: TObject);
     procedure menuEditVariableClick(Sender: TObject);
-    procedure menuRefreshDBTreeClick(Sender: TObject);
     procedure menuTreeCollapseAllClick(Sender: TObject);
     procedure menuTreeExpandAllClick(Sender: TObject);
     procedure SynMemoFilterChange(Sender: TObject);
@@ -731,6 +728,7 @@ type
     procedure DataGridMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure File1Click(Sender: TObject);
+    procedure TimerHostTimer(Sender: TObject);
   private
     FDelimiter: String;
     ServerUptime               : Integer;
@@ -2351,7 +2349,7 @@ begin
   FreeAndNil(Views);
 
   // Refresh ListTables + dbtree so the dropped tables are gone:
-  MenuRefreshClick(Sender)
+  actRefresh.Execute;
 end;
 
 
@@ -2616,7 +2614,7 @@ begin
   for i:=0 to t.count-1 do
     ExecUpdateQuery( sql_pattern + mask(t[i]) );
   t.Free;
-  MenuRefreshClick(Sender);
+  actRefresh.Execute;
   Screen.Cursor := crDefault;
 end;
 
@@ -2736,24 +2734,28 @@ end;
 
 
 procedure TMainForm.actRefreshExecute(Sender: TObject);
+var
+  tab: TTabSheet;
 begin
   // Refresh
   // Force data tab update when appropriate.
   dataselected := false;
-  if PageControlMain.ActivePage = tabHost then begin
+  tab := PageControlMain.ActivePage;
+  if ActiveControl = DBtree then
+    RefreshTree(True)
+  else if tab = tabHost then begin
     if PageControlHost.ActivePage = tabVariables then begin
       ListVariables.Tag := VTREE_NOTLOADED;
       ListVariables.Repaint;
     end else
       ShowVariablesAndProcesses(self)
-  end else if PageControlMain.ActivePage = tabDatabase then
-    MenuRefreshClick(self)
-  else if PageControlMain.ActivePage = tabTable then
+  end else if tab = tabDatabase then begin
+    RefreshTreeDB(ActiveDatabase);
+    LoadDatabaseProperties(ActiveDatabase);
+  end else if tab = tabTable then
     ShowTableProperties
-  else if PageControlMain.ActivePage = tabData then
-    viewdata(Sender)
-  else
-    RefreshTree(True);
+  else if tab = tabData then
+    viewdata(Sender);
 end;
 
 
@@ -4041,13 +4043,6 @@ begin
   pcChange( Self );
   ShowStatus( STATUS_MSG_READY );
   Screen.Cursor := crDefault;
-end;
-
-
-{ Show columns of selected table, indicate indexed columns by certain icons }
-procedure TMainForm.RefreshFieldListClick(Sender: TObject);
-begin
-  ShowTableProperties;
 end;
 
 
@@ -7365,25 +7360,6 @@ end;
 
 
 {**
-  Refresh database tab
-}
-procedure TMainForm.MenuRefreshClick(Sender: TObject);
-begin
-  RefreshTreeDB(ActiveDatabase);
-  LoadDatabaseProperties(ActiveDatabase);
-end;
-
-
-{**
-  Refresh whole database tree
-}
-procedure TMainForm.menuRefreshDBTreeClick(Sender: TObject);
-begin
-  RefreshTree(True);
-end;
-
-
-{**
   Refresh the whole tree
 }
 procedure TMainForm.RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
@@ -8767,6 +8743,12 @@ begin
   Grid.GetHitTestInfoAt(X, Y, False, Hit);
   if (Hit.HitNode = nil) or (Hit.HitColumn = NoColumn) or (Hit.HitColumn = InvalidColumn) then
     DataGridPostUpdateOrInsert(Grid.FocusedNode);
+end;
+
+
+procedure TMainForm.TimerHostTimer(Sender: TObject);
+begin
+  actRefresh.Execute;
 end;
 
 
