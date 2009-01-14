@@ -312,7 +312,7 @@ begin
           ModalResult := mrNone;
         end;
       end;
-      Mainform.MenuRefreshClick( Sender )
+      Mainform.actRefresh.Execute;
     end;
 
   end;

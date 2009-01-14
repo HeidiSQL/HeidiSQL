@@ -264,7 +264,7 @@ begin
   try
     Mainform.ActiveDatabase := DBComboBox.Text;
     Mainform.ExecUpdateQuery( createQuery, False, True );
-    Mainform.MenuRefreshClick(sender);
+    Mainform.actRefresh.Execute;
     Mainform.SelectedTable := EditTablename.Text;
   except on E: THandledSQLError do
     // Keep the form open so the user can fix his faulty input

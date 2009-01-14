@@ -291,7 +291,7 @@ begin
   end;
   FreeAndNil(zq);
 
-  Mainform.MenuRefreshClick(Self);
+  Mainform.actRefresh.Execute;
   close;
 
 end;
