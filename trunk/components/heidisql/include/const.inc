@@ -292,3 +292,5 @@ const
   // How many milliseconds to wait before showing a 'waiting for database' sign.
   QUERYWAITTIME: Integer = 2500;
 
+  VTREE_NOTLOADED = 0;
+  VTREE_LOADED = 1;

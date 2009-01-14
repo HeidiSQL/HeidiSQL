@@ -2740,9 +2740,13 @@ begin
   // Refresh
   // Force data tab update when appropriate.
   dataselected := false;
-  if PageControlMain.ActivePage = tabHost then
-    ShowVariablesAndProcesses(self)
-  else if PageControlMain.ActivePage = tabDatabase then
+  if PageControlMain.ActivePage = tabHost then begin
+    if PageControlHost.ActivePage = tabVariables then begin
+      ListVariables.Tag := VTREE_NOTLOADED;
+      ListVariables.Repaint;
+    end else
+      ShowVariablesAndProcesses(self)
+  end else if PageControlMain.ActivePage = tabDatabase then
     MenuRefreshClick(self)
   else if PageControlMain.ActivePage = tabTable then
     ShowTableProperties
@@ -4437,38 +4441,10 @@ begin
   if (Sender is TTimer) and (PageControlMain.ActivePage <> tabHost) then
     Exit;
 
-  // Refresh variables and process-list
+  // Refresh process-list
   Screen.Cursor := crHourglass;
 
-  // Remember selected nodes
-  SelectedCaptions := GetVTCaptions(ListVariables, True);
 
-  // VARIABLES
-  ListVariables.BeginUpdate;
-  ListVariables.Clear;
-  ds := GetResults( 'SHOW VARIABLES', false );
-  SetLength( VTRowDataListVariables, ds.RecordCount );
-  for i:=1 to ds.RecordCount do
-  begin
-    VTRowDataListVariables[i-1].ImageIndex := 25;
-    VTRowDataListVariables[i-1].Captions := WideStrings.TWideStringList.Create;
-    VTRowDataListVariables[i-1].Captions.Add( ds.Fields[0].AsWideString );
-    VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsWideString );
-    ds.Next;
-  end;
-  ds.Close;
-  FreeAndNil(ds);
-  // Tell VirtualTree the number of nodes it will display
-  ListVariables.RootNodeCount := Length(VTRowDataListVariables);
-  ListVariables.EndUpdate;
-  SetVTSelection( ListVariables, SelectedCaptions );
-  // Apply filter
-  if editFilterVariables.Text <> '' then
-    editFilterVTChange(editFilterVariables);
-  // Display number of listed values on tab
-  tabVariables.Caption := 'Variables (' + IntToStr(ListVariables.RootNodeCount) + ')';
-
-  // STATUS
   questions := 1;
 
   ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
@@ -6560,9 +6536,35 @@ procedure TMainForm.vstBeforePaint(Sender: TBaseVirtualTree;
     TargetCanvas: TCanvas);
 var
   i : Integer;
+  vt: TVirtualStringTree;
   h : TVTHeader;
+  ds: TDataSet;
 begin
-  h := TVirtualStringTree(Sender).Header;
+  vt := Sender as TVirtualStringTree;
+  h := vt.Header;
+  if (vt = ListVariables) and (vt.Tag = VTREE_NOTLOADED) then begin
+    // List server variables
+    ResetVTNodes(vt);
+    ds := GetResults('SHOW VARIABLES');
+    SetLength(VTRowDataListVariables, ds.RecordCount);
+    for i:=1 to ds.RecordCount do begin
+      VTRowDataListVariables[i-1].ImageIndex := 25;
+      VTRowDataListVariables[i-1].Captions := WideStrings.TWideStringList.Create;
+      VTRowDataListVariables[i-1].Captions.Add( ds.Fields[0].AsWideString );
+      VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsWideString );
+      ds.Next;
+    end;
+    ds.Close;
+    FreeAndNil(ds);
+    vt.RootNodeCount := Length(VTRowDataListVariables);
+    vt.SortTree(h.SortColumn, h.SortDirection);
+    vt.Tag := VTREE_LOADED;
+    // Apply filter
+    if editFilterVariables.Text <> '' then
+      editFilterVTChange(editFilterVariables);
+    // Display number of listed values on tab
+    tabVariables.Caption := 'Variables (' + IntToStr(vt.RootNodeCount) + ')';
+  end;
   for i := 0 to h.Columns.Count - 1 do
   begin
     if h.SortColumn = i then
