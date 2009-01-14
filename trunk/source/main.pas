@@ -2731,7 +2731,7 @@ begin
   then
     ReplaceDialogQuery.FindText := m.SelText
   else
-    ReplaceDialogQuery.FindText := m.GetWordAtRowCol(m.CaretXY);
+    ReplaceDialogQuery.FindText := m.WordAtCursor;
 end;
 
 
