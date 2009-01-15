@@ -1734,6 +1734,12 @@ begin
   if prefLogToFile then
     DeactivateFileLogging;
 
+  // Invalidate list contents
+  ListVariables.Tag := VTREE_NOTLOADED;
+  ListStatus.Tag := VTREE_NOTLOADED;
+  ListProcesses.Tag := VTREE_NOTLOADED;
+  ListCommandstats.Tag := VTREE_NOTLOADED;
+
   SetWindowConnected( false );
   SetWindowName( main.discname );
   Application.Title := APPNAME;
