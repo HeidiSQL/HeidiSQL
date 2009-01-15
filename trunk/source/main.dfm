@@ -6262,11 +6262,6 @@ object MainForm: TMainForm
     object N13: TMenuItem
       Caption = '-'
     end
-    object EditQuery1: TMenuItem
-      Caption = 'Edit Selection'
-      ImageIndex = 33
-      OnClick = EditQuery1Click
-    end
     object Saveastextfile1: TMenuItem
       Caption = 'Save as textfile...'
       ImageIndex = 10
