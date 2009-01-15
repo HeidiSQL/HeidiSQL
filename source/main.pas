@@ -276,7 +276,6 @@ type
     Clear2: TMenuItem;
     Copy1: TMenuItem;
     N13: TMenuItem;
-    EditQuery1: TMenuItem;
     Markall3: TMenuItem;
     N15: TMenuItem;
     menuMaintenancea: TMenuItem;
@@ -586,7 +585,6 @@ type
     procedure MenuRenameTableClick(Sender: TObject);
     procedure TimerConnectedTimer(Sender: TObject);
     procedure Clear2Click(Sender: TObject);
-    procedure EditQuery1Click(Sender: TObject);
     procedure Markall3Click(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
@@ -4902,15 +4900,6 @@ begin
   Screen.Cursor := crHourglass;
   SynMemoSQLLog.Lines.Clear;
   Screen.Cursor := crDefault;
-end;
-
-
-procedure TMainForm.EditQuery1Click(Sender: TObject);
-begin
-  // take query from history to query-tab
-  SynMemoQuery.Text := SynMemoSQLLog.SelText;
-  PageControlMain.ActivePage := tabQuery;
-  pcChange(self);
 end;
 
 
