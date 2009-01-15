@@ -501,7 +501,6 @@ object MainForm: TMainForm
           Align = alClient
           HotTrack = True
           TabOrder = 0
-          OnChange = PageControlHostChange
           object tabVariables: TTabSheet
             Caption = 'Variables'
             object ListVariables: TVirtualStringTree
@@ -532,7 +531,8 @@ object MainForm: TMainForm
               TreeOptions.MiscOptions = [toToggleOnDblClick]
               TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
               TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
-              OnBeforePaint = vstBeforePaint
+              OnAfterPaint = vstAfterPaint
+              OnBeforePaint = ListVariablesBeforePaint
               OnCompareNodes = vstCompareNodes
               OnDblClick = ListVariablesDblClick
               OnFreeNode = vstFreeNode
@@ -609,7 +609,8 @@ object MainForm: TMainForm
               TreeOptions.MiscOptions = [toToggleOnDblClick]
               TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
               TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
-              OnBeforePaint = vstBeforePaint
+              OnAfterPaint = vstAfterPaint
+              OnBeforePaint = ListStatusBeforePaint
               OnCompareNodes = vstCompareNodes
               OnFreeNode = vstFreeNode
               OnGetText = vstGetText
@@ -708,7 +709,8 @@ object MainForm: TMainForm
               TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
               TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
               TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
-              OnBeforePaint = vstBeforePaint
+              OnAfterPaint = vstAfterPaint
+              OnBeforePaint = ListProcessesBeforePaint
               OnChange = ListProcessesChange
               OnCompareNodes = vstCompareNodes
               OnFreeNode = vstFreeNode
@@ -860,8 +862,9 @@ object MainForm: TMainForm
               TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
               TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
               TreeOptions.SelectionOptions = [toFullRowSelect]
+              OnAfterPaint = vstAfterPaint
               OnBeforeCellPaint = ListCommandStatsBeforeCellPaint
-              OnBeforePaint = vstBeforePaint
+              OnBeforePaint = ListCommandStatsBeforePaint
               OnCompareNodes = vstCompareNodes
               OnFreeNode = vstFreeNode
               OnGetText = vstGetText
@@ -935,7 +938,7 @@ object MainForm: TMainForm
           TreeOptions.MiscOptions = [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
           TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
           TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
-          OnBeforePaint = vstBeforePaint
+          OnAfterPaint = vstAfterPaint
           OnChange = ListTablesChange
           OnCompareNodes = vstCompareNodes
           OnDblClick = ListTablesDblClick
@@ -1091,7 +1094,7 @@ object MainForm: TMainForm
           TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
           TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
           TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
-          OnBeforePaint = vstBeforePaint
+          OnAfterPaint = vstAfterPaint
           OnChange = ListColumnsChange
           OnCompareNodes = vstCompareNodes
           OnDblClick = ListColumnsDblClick

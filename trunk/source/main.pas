@@ -580,9 +580,7 @@ type
     procedure viewdata(Sender: TObject);
     procedure LogSQL(msg: WideString = ''; comment: Boolean = true );
     procedure CheckUptime;
-    procedure ShowVariablesAndProcesses(Sender: TObject);
     procedure KillProcess(Sender: TObject);
-    procedure PageControlHostChange(Sender: TObject);
     procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false;
       CurrentLine: Boolean=false);
     procedure SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
@@ -601,7 +599,6 @@ type
     procedure popupResultGridPopup(Sender: TObject);
     procedure Autoupdate1Click(Sender: TObject);
     procedure EnableAutoRefreshClick(Sender: TObject);
-    procedure ShowProcessList(sender: TObject);
     procedure DisableAutoRefreshClick(Sender: TObject);
     procedure SynMemoQueryDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
@@ -668,8 +665,6 @@ type
         Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure vstCompareNodes(Sender: TBaseVirtualTree; Node1, Node2:
         PVirtualNode; Column: TColumnIndex; var Result: Integer);
-    procedure vstBeforePaint(Sender: TBaseVirtualTree; TargetCanvas:
-        TCanvas);
     procedure vstHeaderDraggedOut(Sender: TVTHeader; Column: TColumnIndex;
         DropPosition: TPoint);
     procedure DBtreeChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
@@ -729,6 +724,11 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure File1Click(Sender: TObject);
     procedure TimerHostTimer(Sender: TObject);
+    procedure ListVariablesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure ListStatusBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure ListProcessesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure vstAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
   private
     FDelimiter: String;
     ServerUptime               : Integer;
@@ -1670,8 +1670,6 @@ begin
   DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
 
   CheckUptime;
-  // Fill variables-list, processlist and DB-tree
-  ShowVariablesAndProcesses( Self );
   // Invoke population of database tree. It's important to do this here after
   // having filled DatabasesWanted, not at design time.
   DBtree.RootNodeCount := 1;
@@ -2735,26 +2733,33 @@ end;
 
 procedure TMainForm.actRefreshExecute(Sender: TObject);
 var
-  tab: TTabSheet;
+  tab1, tab2: TTabSheet;
+  List: TVirtualStringTree;
 begin
   // Refresh
   // Force data tab update when appropriate.
   dataselected := false;
-  tab := PageControlMain.ActivePage;
+  tab1 := PageControlMain.ActivePage;
   if ActiveControl = DBtree then
     RefreshTree(True)
-  else if tab = tabHost then begin
-    if PageControlHost.ActivePage = tabVariables then begin
-      ListVariables.Tag := VTREE_NOTLOADED;
-      ListVariables.Repaint;
-    end else
-      ShowVariablesAndProcesses(self)
-  end else if tab = tabDatabase then begin
+  else if tab1 = tabHost then begin
+    tab2 := PageControlHost.ActivePage;
+    if tab2 = tabVariables then
+      List := ListVariables
+    else if tab2 = tabStatus then
+      List := ListStatus
+    else if tab2 = tabProcessList then
+      List := ListProcesses
+    else
+      List := ListCommandStats;
+    List.Tag := VTREE_NOTLOADED;
+    List.Repaint;
+  end else if tab1 = tabDatabase then begin
     RefreshTreeDB(ActiveDatabase);
     LoadDatabaseProperties(ActiveDatabase);
-  end else if tab = tabTable then
+  end else if tab1 = tabTable then
     ShowTableProperties
-  else if tab = tabData then
+  else if tab1 = tabData then
     viewdata(Sender);
 end;
 
@@ -3745,12 +3750,6 @@ begin
 
   // Ensure controls are in a valid state
   ValidateControls;
-
-  // Show processlist if it's visible now but empty yet
-  if tab = tabHost then begin
-    if ListProcesses.RootNodeCount = 0 then
-      ShowProcessList( self );
-  end;
 end;
 
 
@@ -4392,200 +4391,6 @@ begin
 end;
 
 
-procedure TMainForm.ShowVariablesAndProcesses(Sender: TObject);
-
-  procedure addLVitem( caption: WideString; commandCount: Int64; totalCount: Int64 );
-  var
-    i : Integer;
-    tmpval : Double;
-  begin
-    SetLength( VTRowDataListCommandStats, Length(VTRowDataListCommandStats)+1 );
-    i := Length(VTRowDataListCommandStats)-1;
-    VTRowDataListCommandStats[i].ImageIndex := 25;
-    VTRowDataListCommandStats[i].Captions := WideStrings.TWideStringList.Create;
-    caption := Copy( caption, 5, Length(caption) );
-    caption := WideStringReplace( caption, '_', ' ', [rfReplaceAll] );
-    VTRowDataListCommandStats[i].Captions.Add( caption );
-    // Total Frequency
-    VTRowDataListCommandStats[i].Captions.Add( FormatNumber( commandCount ) );
-    // Average per hour
-    tmpval := commandCount / ( ServerUptime / 60 / 60 );
-    VTRowDataListCommandStats[i].Captions.Add( FormatNumber( tmpval, 1 ) );
-    // Average per second
-    tmpval := commandCount / ServerUptime;
-    VTRowDataListCommandStats[i].Captions.Add( FormatNumber( tmpval, 1 ) );
-    // Percentage. Take care of division by zero errors and Int64's
-    if commandCount < 1 then
-      commandCount := 1;
-    if totalCount < 1 then
-      totalCount := 1;
-    tmpval := 100 / totalCount * commandCount;
-    VTRowDataListCommandStats[i].Captions.Add( FormatNumber( tmpval, 1 ) + ' %' );
-  end;
-
-var
-  i : Integer;
-  questions, valcount : Int64;
-  tmpval : Double;
-  ds : TDataSet;
-  SelectedCaptions: WideStrings.TWideStringList;
-  val, avg_perhour, avg_persec: WideString;
-  valIsBytes, valIsNumber: Boolean;
-begin
-  // Prevent auto update from executing queries if the host tab is not activated
-  if (Sender is TTimer) and (PageControlMain.ActivePage <> tabHost) then
-    Exit;
-
-  // Refresh process-list
-  Screen.Cursor := crHourglass;
-
-
-  questions := 1;
-
-  ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
-
-  // Find uptime and total query count
-  while not ds.Eof do begin
-    if lowercase( ds.Fields[0].AsString ) = 'questions' then
-      questions := MakeInt(ds.Fields[1].AsString);
-    ds.Next;
-  end;
-
-  // Remember selected nodes
-  SelectedCaptions := GetVTCaptions(ListStatus, True);
-  ListStatus.BeginUpdate;
-  ListStatus.Clear;
-  SetLength( VTRowDataListStatus, ds.RecordCount );
-  ds.First;
-  for i:=1 to ds.RecordCount do begin
-    VTRowDataListStatus[i-1].ImageIndex := 25;
-    VTRowDataListStatus[i-1].Captions := WideStrings.TWideStringList.Create;
-    VTRowDataListStatus[i-1].Captions.Add( ds.Fields[0].AsWideString );
-    val := ds.Fields[1].AsWideString;
-    avg_perhour := '';
-    avg_persec := '';
-
-    // Detect value type
-    valIsNumber := IntToStr(MakeInt(val)) = val;
-    valIsBytes := valIsNumber and (Copy(ds.Fields[0].AsWideString, 1, 6) = 'Bytes_');
-
-    // Calculate average values ...
-    if valIsNumber then begin
-      valCount := MakeInt(val);
-      // ... per hour
-      tmpval := valCount / ( ServerUptime / 60 / 60 );
-      if valIsBytes then avg_perhour := FormatByteNumber( Trunc(tmpval) )
-      else avg_perhour := FormatNumber( tmpval, 1 );
-      // ... per second
-      tmpval := valCount / ServerUptime;
-      if valIsBytes then avg_persec := FormatByteNumber( Trunc(tmpval) )
-      else avg_persec := FormatNumber( tmpval, 1 );
-    end;
-
-    // Format numeric or byte values
-    if valIsBytes then
-      val := FormatByteNumber(val)
-    else if valIsNumber then
-      val := FormatNumber(val);
-
-    VTRowDataListStatus[i-1].Captions.Add( val );
-    VTRowDataListStatus[i-1].Captions.Add(avg_perhour);
-    VTRowDataListStatus[i-1].Captions.Add(avg_persec);
-    ds.Next;
-  end;
-  // Tell VirtualTree the number of nodes it will display
-  ListStatus.RootNodeCount := Length(VTRowDataListStatus);
-  ListStatus.EndUpdate;
-  SetVTSelection( ListStatus, SelectedCaptions );
-  // Apply filter
-  if editFilterStatus.Text <> '' then
-    editFilterVTChange(editFilterStatus);
-  // Display number of listed values on tab
-  tabStatus.Caption := 'Status (' + IntToStr(ListStatus.RootNodeCount) + ')';
-
-  // Command-Statistics
-  SelectedCaptions := GetVTCaptions(ListCommandStats, True);
-  ListCommandStats.BeginUpdate;
-  ListCommandStats.Clear;
-  SetLength( VTRowDataListCommandStats, 0 );
-  addLVitem( '    All commands', questions, questions );
-  ds.First;
-  for i:=1 to ds.RecordCount do
-  begin
-    if LowerCase( Copy( ds.Fields[0].AsString, 1, 4 ) ) = 'com_' then
-    begin
-      addLVitem( ds.Fields[0].AsWideString, MakeInt(ds.Fields[1].AsString), questions );
-    end;
-    ds.Next;
-  end;
-  ds.Close;
-  FreeAndNil(ds);
-
-  // Tell VirtualTree the number of nodes it will display
-  ListCommandStats.RootNodeCount := Length(VTRowDataListCommandStats);
-  ListCommandStats.EndUpdate;
-  SetVTSelection( ListCommandStats, SelectedCaptions );
-
-  Screen.Cursor := crDefault;
-
-  ShowProcesslist(self); // look at next procedure
-end;
-
-
-
-procedure TMainForm.ShowProcessList(sender: TObject);
-var
-  i,j : Integer;
-  ds  : TDataSet;
-  SelectedCaptions: WideStrings.TWideStringList;
-begin
-  // No need to update if it's not visible.
-  if PageControlMain.ActivePage <> tabHost then exit;
-  if PageControlHost.ActivePage <> tabProcesslist then exit;
-  Screen.Cursor := crHourglass;
-  // Remember selected nodes
-  SelectedCaptions := GetVTCaptions(ListProcesses, True);
-  try
-    ListProcesses.BeginUpdate;
-    ListProcesses.Clear;
-    debug('ShowProcessList()');
-    ds := GetResults('SHOW FULL PROCESSLIST', false, false);
-    SetLength(VTRowDataListProcesses, ds.RecordCount);
-    for i:=1 to ds.RecordCount do
-    begin
-      VTRowDataListProcesses[i-1].Captions := WideStrings.TWideStringList.Create;
-      VTRowDataListProcesses[i-1].Captions.Add( ds.Fields[0].AsWideString );
-      if AnsiCompareText( ds.Fields[4].AsString, 'Killed') = 0 then
-        VTRowDataListProcesses[i-1].ImageIndex := 26  // killed
-      else begin
-        if ds.FindField('Info').AsString = '' then
-          VTRowDataListProcesses[i-1].ImageIndex := 55 // idle
-        else
-          VTRowDataListProcesses[i-1].ImageIndex := 57 // running query
-      end;
-      for j := 1 to 7 do
-        VTRowDataListProcesses[i-1].Captions.Add(ds.Fields[j].AsWideString);
-      ds.Next;
-    end;
-    ds.Close;
-    FreeAndNil(ds);
-    tabProcessList.Caption := 'Process-List (' + IntToStr(Length(VTRowDataListProcesses)) + ')';
-  except
-    on E: Exception do begin
-      LogSQL('Error loading process list (automatic refresh disabled): ' + e.Message);
-      TimerHost.Enabled := false;
-    end;
-  end;
-  ListProcesses.RootNodeCount := Length(VTRowDataListProcesses);
-  ListProcesses.EndUpdate;
-  // Reselect previous selected nodes
-  SetVTSelection( ListProcesses, SelectedCaptions );
-  // Apply filter
-  if editFilterProcesses.Text <> '' then
-    editFilterVTChange(editFilterProcesses);
-  Screen.Cursor := crDefault;
-end;
-
 procedure TMainForm.KillProcess(Sender: TObject);
 var t : Boolean;
   ProcessIDs : WideStrings.TWideStringList;
@@ -4604,21 +4409,11 @@ begin
       else
         ExecUpdateQuery( 'KILL '+ProcessIDs[i] );
     end;
-    ShowVariablesAndProcesses(self);
+    ListProcesses.Tag := VTREE_NOTLOADED;
+    ListProcesses.Repaint;
   end;
   TimerHost.Enabled := t; // re-enable autorefresh timer
 end;
-
-
-procedure TMainForm.PageControlHostChange(Sender: TObject);
-begin
-  // Show processlist if it's visible now but empty yet
-  if ListProcesses.RootNodeCount = 0 then
-    ShowProcessList( self );
-end;
-
-
-
 
 
 procedure TMainForm.ExecSQLClick(Sender: TObject; Selection: Boolean=false; CurrentLine: Boolean=false);
@@ -6525,41 +6320,15 @@ end;
 
 
 {**
-  VirtualTree gets painted. Adjust background color of sorted column.
+  VirtualTree was painted. Adjust background color of sorted column.
 }
-procedure TMainForm.vstBeforePaint(Sender: TBaseVirtualTree;
-    TargetCanvas: TCanvas);
+procedure TMainForm.vstAfterPaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas);
 var
   i : Integer;
-  vt: TVirtualStringTree;
   h : TVTHeader;
-  ds: TDataSet;
 begin
-  vt := Sender as TVirtualStringTree;
-  h := vt.Header;
-  if (vt = ListVariables) and (vt.Tag = VTREE_NOTLOADED) then begin
-    // List server variables
-    ResetVTNodes(vt);
-    ds := GetResults('SHOW VARIABLES');
-    SetLength(VTRowDataListVariables, ds.RecordCount);
-    for i:=1 to ds.RecordCount do begin
-      VTRowDataListVariables[i-1].ImageIndex := 25;
-      VTRowDataListVariables[i-1].Captions := WideStrings.TWideStringList.Create;
-      VTRowDataListVariables[i-1].Captions.Add( ds.Fields[0].AsWideString );
-      VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsWideString );
-      ds.Next;
-    end;
-    ds.Close;
-    FreeAndNil(ds);
-    vt.RootNodeCount := Length(VTRowDataListVariables);
-    vt.SortTree(h.SortColumn, h.SortDirection);
-    vt.Tag := VTREE_LOADED;
-    // Apply filter
-    if editFilterVariables.Text <> '' then
-      editFilterVTChange(editFilterVariables);
-    // Display number of listed values on tab
-    tabVariables.Caption := 'Variables (' + IntToStr(vt.RootNodeCount) + ')';
-  end;
+  h := (Sender as TVirtualStringTree).Header;
   for i := 0 to h.Columns.Count - 1 do
   begin
     if h.SortColumn = i then
@@ -8749,6 +8518,222 @@ end;
 procedure TMainForm.TimerHostTimer(Sender: TObject);
 begin
   actRefresh.Execute;
+end;
+
+
+procedure TMainForm.ListVariablesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+var
+  i : Integer;
+  vt: TVirtualStringTree;
+  ds: TDataSet;
+begin
+  // Display server variables
+  vt := Sender as TVirtualStringTree;
+  if vt.Tag <> VTREE_NOTLOADED then
+    Exit;
+  ResetVTNodes(vt);
+  Screen.Cursor := crHourglass;
+  ds := GetResults('SHOW VARIABLES');
+  SetLength(VTRowDataListVariables, ds.RecordCount);
+  for i:=1 to ds.RecordCount do begin
+    VTRowDataListVariables[i-1].ImageIndex := 25;
+    VTRowDataListVariables[i-1].Captions := WideStrings.TWideStringList.Create;
+    VTRowDataListVariables[i-1].Captions.Add( ds.Fields[0].AsWideString );
+    VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsWideString );
+    ds.Next;
+  end;
+  ds.Close;
+  FreeAndNil(ds);
+  vt.RootNodeCount := Length(VTRowDataListVariables);
+  vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
+  vt.Tag := VTREE_LOADED;
+  // Apply filter
+  if editFilterVariables.Text <> '' then
+    editFilterVTChange(editFilterVariables);
+  // Display number of listed values on tab
+  tabVariables.Caption := 'Variables (' + IntToStr(vt.RootNodeCount) + ')';
+  Screen.Cursor := crDefault;
+end;
+
+
+procedure TMainForm.ListStatusBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+var
+  i: Integer;
+  valcount: Int64;
+  tmpval: Double;
+  ds: TDataSet;
+  val, avg_perhour, avg_persec: WideString;
+  valIsBytes, valIsNumber: Boolean;
+  vt: TVirtualStringTree;
+begin
+  // Display server status key/value pairs
+  vt := Sender as TVirtualStringTree;
+  if vt.Tag <> VTREE_NOTLOADED then
+    Exit;
+  ResetVTNodes(vt);
+  Screen.Cursor := crHourglass;
+  ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
+  SetLength(VTRowDataListStatus, ds.RecordCount);
+  for i:=1 to ds.RecordCount do begin
+    VTRowDataListStatus[i-1].ImageIndex := 25;
+    VTRowDataListStatus[i-1].Captions := WideStrings.TWideStringList.Create;
+    VTRowDataListStatus[i-1].Captions.Add( ds.Fields[0].AsWideString );
+    val := ds.Fields[1].AsWideString;
+    avg_perhour := '';
+    avg_persec := '';
+
+    // Detect value type
+    valIsNumber := IntToStr(MakeInt(val)) = val;
+    valIsBytes := valIsNumber and (Copy(ds.Fields[0].AsWideString, 1, 6) = 'Bytes_');
+
+    // Calculate average values ...
+    if valIsNumber then begin
+      valCount := MakeInt(val);
+      // ... per hour
+      tmpval := valCount / ( ServerUptime / 60 / 60 );
+      if valIsBytes then avg_perhour := FormatByteNumber( Trunc(tmpval) )
+      else avg_perhour := FormatNumber( tmpval, 1 );
+      // ... per second
+      tmpval := valCount / ServerUptime;
+      if valIsBytes then avg_persec := FormatByteNumber( Trunc(tmpval) )
+      else avg_persec := FormatNumber( tmpval, 1 );
+    end;
+
+    // Format numeric or byte values
+    if valIsBytes then
+      val := FormatByteNumber(val)
+    else if valIsNumber then
+      val := FormatNumber(val);
+
+    VTRowDataListStatus[i-1].Captions.Add( val );
+    VTRowDataListStatus[i-1].Captions.Add(avg_perhour);
+    VTRowDataListStatus[i-1].Captions.Add(avg_persec);
+    ds.Next;
+  end;
+  ds.Close;
+  FreeAndNil(ds);
+  // Tell VirtualTree the number of nodes it will display
+  vt.RootNodeCount := Length(VTRowDataListStatus);
+  vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
+  vt.Tag := VTREE_LOADED;
+  // Apply filter
+  if editFilterStatus.Text <> '' then
+    editFilterVTChange(editFilterStatus);
+  // Display number of listed values on tab
+  tabStatus.Caption := 'Status (' + IntToStr(vt.RootNodeCount) + ')';
+  Screen.Cursor := crDefault;
+end;
+
+
+procedure TMainForm.ListProcessesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+var
+  i, j: Integer;
+  ds: TDataSet;
+  vt: TVirtualStringTree;
+begin
+  // Display client threads
+  vt := Sender as TVirtualStringTree;
+  if vt.Tag <> VTREE_NOTLOADED then
+    Exit;
+  ResetVTNodes(vt);
+  Screen.Cursor := crHourglass;
+  try
+    ds := GetResults('SHOW FULL PROCESSLIST', false, false);
+    SetLength(VTRowDataListProcesses, ds.RecordCount);
+    for i:=1 to ds.RecordCount do begin
+      VTRowDataListProcesses[i-1].Captions := WideStrings.TWideStringList.Create;
+      VTRowDataListProcesses[i-1].Captions.Add( ds.Fields[0].AsWideString );
+      if AnsiCompareText( ds.Fields[4].AsString, 'Killed') = 0 then
+        VTRowDataListProcesses[i-1].ImageIndex := 26  // killed
+      else begin
+        if ds.FindField('Info').AsString = '' then
+          VTRowDataListProcesses[i-1].ImageIndex := 55 // idle
+        else
+          VTRowDataListProcesses[i-1].ImageIndex := 57 // running query
+      end;
+      for j := 1 to 7 do
+        VTRowDataListProcesses[i-1].Captions.Add(ds.Fields[j].AsWideString);
+      ds.Next;
+    end;
+    ds.Close;
+    FreeAndNil(ds);
+    vt.RootNodeCount := Length(VTRowDataListProcesses);
+    vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
+    vt.Tag := VTREE_LOADED;
+    // Apply filter
+    if editFilterProcesses.Text <> '' then
+      editFilterVTChange(editFilterProcesses);
+    // Display number of listed values on tab
+    tabProcessList.Caption := 'Process-List (' + IntToStr(vt.RootNodeCount) + ')';
+  except
+    on E: Exception do begin
+      LogSQL('Error loading process list (automatic refresh disabled): ' + e.Message);
+      TimerHost.Enabled := false;
+    end;
+  end;
+  Screen.Cursor := crDefault;
+end;
+
+
+procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+  procedure addLVitem( idx: Integer; caption: WideString; commandCount: Int64; totalCount: Int64 );
+  var
+    tmpval : Double;
+  begin
+    VTRowDataListCommandStats[idx].ImageIndex := 25;
+    VTRowDataListCommandStats[idx].Captions := WideStrings.TWideStringList.Create;
+    caption := Copy( caption, 5, Length(caption) );
+    caption := WideStringReplace( caption, '_', ' ', [rfReplaceAll] );
+    VTRowDataListCommandStats[idx].Captions.Add( caption );
+    // Total Frequency
+    VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( commandCount ) );
+    // Average per hour
+    tmpval := commandCount / ( ServerUptime / 60 / 60 );
+    VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
+    // Average per second
+    tmpval := commandCount / ServerUptime;
+    VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
+    // Percentage. Take care of division by zero errors and Int64's
+    if commandCount < 1 then
+      commandCount := 1;
+    if totalCount < 1 then
+      totalCount := 1;
+    tmpval := 100 / totalCount * commandCount;
+    VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) + ' %' );
+  end;
+
+var
+  i: Integer;
+  questions: Int64;
+  ds: TDataSet;
+  vt: TVirtualStringTree;
+begin
+  // Display command statistics
+  vt := Sender as TVirtualStringTree;
+  if vt.Tag <> VTREE_NOTLOADED then
+    Exit;
+
+  ResetVTNodes(vt);
+  Screen.Cursor := crHourglass;
+  ds := GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
+  questions := MakeInt(GetVar('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Questions''', 1));
+  if questions = 0 then
+    Raise Exception.Create('Could not detect value of "Questions" status. Command statistics are not available.');
+  SetLength(VTRowDataListCommandStats, ds.RecordCount+1);
+  addLVitem(0, '    All commands', questions, questions );
+  for i:=1 to ds.RecordCount do begin
+    addLVitem(i, ds.Fields[0].AsWideString, MakeInt(ds.Fields[1].AsString), questions );
+    ds.Next;
+  end;
+  ds.Close;
+  FreeAndNil(ds);
+  // Tell VirtualTree the number of nodes it will display
+  vt.RootNodeCount := Length(VTRowDataListCommandStats);
+  vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
+  vt.Tag := VTREE_LOADED;
+  // Display number of listed values on tab
+  tabCommandStats.Caption := 'Command-Statistics (' + IntToStr(vt.RootNodeCount) + ')';
+  Screen.Cursor := crDefault;
 end;
 
 
