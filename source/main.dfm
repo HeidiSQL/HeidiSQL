@@ -1575,6 +1575,26 @@ object MainForm: TMainForm
         Tag = 28
         Action = actRefresh
       end
+      object MenuAutoupdate: TMenuItem
+        Caption = 'Automatic refresh'
+        object Set1: TMenuItem
+          Caption = 'Set interval...'
+          OnClick = Autoupdate1Click
+        end
+        object EnableAutoRefresh: TMenuItem
+          Caption = 'Active'
+          RadioItem = True
+          ShortCut = 16500
+          OnClick = EnableAutoRefreshClick
+        end
+        object DisableAutoRefresh: TMenuItem
+          Caption = 'Inactive'
+          Checked = True
+          RadioItem = True
+          ShortCut = 27
+          OnClick = DisableAutoRefreshClick
+        end
+      end
       object N3: TMenuItem
         Caption = '-'
       end
@@ -1626,26 +1646,6 @@ object MainForm: TMainForm
         object MenuFlushStatus: TMenuItem
           Tag = 42
           Action = actFlushStatus
-        end
-      end
-      object MenuAutoupdate: TMenuItem
-        Caption = 'Auto-refresh'
-        object Set1: TMenuItem
-          Caption = 'Set interval...'
-          OnClick = Autoupdate1Click
-        end
-        object EnableAutoRefresh: TMenuItem
-          Caption = 'Active'
-          RadioItem = True
-          ShortCut = 16500
-          OnClick = EnableAutoRefreshClick
-        end
-        object DisableAutoRefresh: TMenuItem
-          Caption = 'Inactive'
-          Checked = True
-          RadioItem = True
-          ShortCut = 27
-          OnClick = DisableAutoRefreshClick
         end
       end
       object N6: TMenuItem
