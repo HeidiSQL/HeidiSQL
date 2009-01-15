@@ -496,18 +496,19 @@ object MainForm: TMainForm
           Left = 0
           Top = 0
           Width = 502
-          Height = 300
+          Height = 271
           ActivePage = tabVariables
           Align = alClient
           HotTrack = True
           TabOrder = 0
+          OnChange = editFilterVTChange
           object tabVariables: TTabSheet
             Caption = 'Variables'
             object ListVariables: TVirtualStringTree
               Left = 0
-              Top = 25
+              Top = 0
               Width = 494
-              Height = 247
+              Height = 243
               Align = alClient
               DragOperations = []
               Header.AutoSizeIndex = 1
@@ -554,38 +555,14 @@ object MainForm: TMainForm
                   WideText = 'Value'
                 end>
             end
-            object pnlFilterVariables: TPanel
-              Left = 0
-              Top = 0
-              Width = 494
-              Height = 25
-              Align = alTop
-              BevelOuter = bvNone
-              TabOrder = 1
-              object lblFilterVariables: TLabel
-                Left = 1
-                Top = 4
-                Width = 28
-                Height = 13
-                Caption = 'Filter:'
-              end
-              object editFilterVariables: TEdit
-                Left = 34
-                Top = 1
-                Width = 154
-                Height = 21
-                TabOrder = 0
-                OnChange = editFilterVTChange
-              end
-            end
           end
           object tabStatus: TTabSheet
             Caption = 'Status'
             object ListStatus: TVirtualStringTree
               Left = 0
-              Top = 25
+              Top = 0
               Width = 494
-              Height = 247
+              Height = 243
               Align = alClient
               DragOperations = []
               Header.AutoSizeIndex = 1
@@ -644,37 +621,13 @@ object MainForm: TMainForm
                   WideText = 'Avg per second'
                 end>
             end
-            object pnlFilterStatus: TPanel
-              Left = 0
-              Top = 0
-              Width = 494
-              Height = 25
-              Align = alTop
-              BevelOuter = bvNone
-              TabOrder = 1
-              object lblFilterStatus: TLabel
-                Left = 1
-                Top = 4
-                Width = 28
-                Height = 13
-                Caption = 'Filter:'
-              end
-              object editFilterStatus: TEdit
-                Left = 34
-                Top = 1
-                Width = 154
-                Height = 21
-                TabOrder = 0
-                OnChange = editFilterVTChange
-              end
-            end
           end
           object tabProcessList: TTabSheet
             Caption = 'Process-List'
             ImageIndex = 1
             object Splitter3: TSplitter
               Left = 0
-              Top = 199
+              Top = 170
               Width = 494
               Height = 4
               Cursor = crSizeNS
@@ -683,9 +636,9 @@ object MainForm: TMainForm
             end
             object ListProcesses: TVirtualStringTree
               Left = 0
-              Top = 25
+              Top = 0
               Width = 494
-              Height = 174
+              Height = 170
               Align = alClient
               Header.AutoSizeIndex = 7
               Header.Font.Charset = DEFAULT_CHARSET
@@ -763,7 +716,7 @@ object MainForm: TMainForm
             end
             object pnlProcessViewBox: TPanel
               Left = 0
-              Top = 203
+              Top = 174
               Width = 494
               Height = 69
               Align = alBottom
@@ -806,30 +759,6 @@ object MainForm: TMainForm
                 WordWrap = True
               end
             end
-            object pnlFilterProcesses: TPanel
-              Left = 0
-              Top = 0
-              Width = 494
-              Height = 25
-              Align = alTop
-              BevelOuter = bvNone
-              TabOrder = 2
-              object lblFilterProcesses: TLabel
-                Left = 1
-                Top = 4
-                Width = 28
-                Height = 13
-                Caption = 'Filter:'
-              end
-              object editFilterProcesses: TEdit
-                Left = 34
-                Top = 1
-                Width = 154
-                Height = 21
-                TabOrder = 0
-                OnChange = editFilterVTChange
-              end
-            end
           end
           object tabCommandStats: TTabSheet
             Caption = 'Command-Statistics'
@@ -838,7 +767,7 @@ object MainForm: TMainForm
               Left = 0
               Top = 0
               Width = 494
-              Height = 272
+              Height = 243
               Align = alClient
               Header.AutoSizeIndex = 4
               Header.Font.Charset = DEFAULT_CHARSET
@@ -903,6 +832,37 @@ object MainForm: TMainForm
                   WideText = 'Percentage'
                 end>
             end
+          end
+        end
+        object pnlFilterVT: TPanel
+          Left = 0
+          Top = 271
+          Width = 502
+          Height = 29
+          Align = alBottom
+          BevelOuter = bvNone
+          TabOrder = 1
+          object lblFilterVT: TLabel
+            Left = 0
+            Top = 8
+            Width = 28
+            Height = 12
+            Caption = 'Filter:'
+          end
+          object lblFilterVTInfo: TLabel
+            Left = 203
+            Top = 8
+            Width = 66
+            Height = 13
+            Caption = 'lblFilterVTInfo'
+          end
+          object editFilterVT: TEdit
+            Left = 34
+            Top = 5
+            Width = 154
+            Height = 20
+            TabOrder = 0
+            OnChange = editFilterVTChange
           end
         end
       end

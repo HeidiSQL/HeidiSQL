@@ -408,15 +408,10 @@ type
     pnlProcessViewBox: TPanel;
     pnlProcessView: TPanel;
     SynMemoProcessView: TSynMemo;
-    pnlFilterVariables: TPanel;
-    lblFilterVariables: TLabel;
-    editFilterVariables: TEdit;
-    pnlFilterStatus: TPanel;
-    lblFilterStatus: TLabel;
-    editFilterStatus: TEdit;
-    pnlFilterProcesses: TPanel;
-    lblFilterProcesses: TLabel;
-    editFilterProcesses: TEdit;
+    pnlFilterVT: TPanel;
+    editFilterVT: TEdit;
+    lblFilterVT: TLabel;
+    lblFilterVTInfo: TLabel;
     menuEditVariable: TMenuItem;
     menuEditView: TMenuItem;
     Createview2: TMenuItem;
@@ -6783,26 +6778,26 @@ var
   Node : PVirtualNode;
   NodeData : PVTreeData;
   VT : TVirtualStringTree;
-  Edit : TEdit;
   i : Integer;
   match : Boolean;
   search : String;
-  somefiltered : Boolean;
+  tab: TTabSheet;
+  VisibleCount: Cardinal;
 begin
   // Find the correct VirtualTree that shall be filtered
-  if Sender = editFilterVariables then
+  tab := PageControlHost.ActivePage;
+  if tab = tabVariables then
     VT := ListVariables
-  else if Sender = editFilterStatus then
+  else if tab = tabStatus then
     VT := ListStatus
-  else if Sender = editFilterProcesses then
+  else if tab = tabProcesslist then
     VT := ListProcesses
   else
-    Raise Exception.Create('editFilterVTChange() called with wrong sender control ('+(Sender as TControl).Name+')' );
-  Edit := Sender as TEdit;
+    VT := ListCommandStats;
   // Loop through all nodes to adjust their vsVisible state
   Node := VT.GetFirst;
-  search := LowerCase( Edit.Text );
-  somefiltered := False;
+  search := LowerCase( editFilterVT.Text );
+  VisibleCount := 0;
   while Assigned(Node) do begin
     NodeData := VT.GetNodeData(Node);
     // Don't filter anything if the filter text is empty
@@ -6814,24 +6809,30 @@ begin
         break;
       end;
     end;
-    if match then
-      Node.States := Node.States + [vsVisible]
-    else
+    if match then begin
+      Node.States := Node.States + [vsVisible];
+      inc(VisibleCount);
+    end else
       Node.States := Node.States - [vsVisible];
-    if (not somefiltered) and (not match) then
-      somefiltered := True;
     Node := VT.GetNext(Node);
   end;
   // Colorize TEdit with filter string to signalize that some nodes are hidden now
-  if somefiltered then begin
-    Edit.Font.Color := clRed;
-    Edit.Color := clYellow;
+  if VisibleCount <> VT.RootNodeCount then begin
+    editFilterVT.Font.Color := clRed;
+    editFilterVT.Color := clYellow;
   end else begin
-    Edit.Font.Color := clWindowText;
-    Edit.Color := clWindow;
+    editFilterVT.Font.Color := clWindowText;
+    editFilterVT.Color := clWindow;
   end;
+  if search <> '' then begin
+    lblFilterVTInfo.Caption := IntToStr(VisibleCount)+' out of '+IntToStr(VT.RootNodeCount)+' matching. '
+      + IntToStr(VT.RootNodeCount - VisibleCount) + ' hidden.';
+  end else
+    lblFilterVTInfo.Caption := '';
+
   // Needs a refresh to apply visible states
   VT.Refresh;
+  VT.UpdateScrollBars(True);
 end;
 
 
@@ -8553,9 +8554,8 @@ begin
   vt.RootNodeCount := Length(VTRowDataListVariables);
   vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
   vt.Tag := VTREE_LOADED;
-  // Apply filter
-  if editFilterVariables.Text <> '' then
-    editFilterVTChange(editFilterVariables);
+  // Apply or reset filter
+  editFilterVTChange(Sender);
   // Display number of listed values on tab
   tabVariables.Caption := 'Variables (' + IntToStr(vt.RootNodeCount) + ')';
   Screen.Cursor := crDefault;
@@ -8622,9 +8622,8 @@ begin
   vt.RootNodeCount := Length(VTRowDataListStatus);
   vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
   vt.Tag := VTREE_LOADED;
-  // Apply filter
-  if editFilterStatus.Text <> '' then
-    editFilterVTChange(editFilterStatus);
+  // Apply or reset filter
+  editFilterVTChange(Sender);
   // Display number of listed values on tab
   tabStatus.Caption := 'Status (' + IntToStr(vt.RootNodeCount) + ')';
   Screen.Cursor := crDefault;
@@ -8666,9 +8665,8 @@ begin
     vt.RootNodeCount := Length(VTRowDataListProcesses);
     vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
     vt.Tag := VTREE_LOADED;
-    // Apply filter
-    if editFilterProcesses.Text <> '' then
-      editFilterVTChange(editFilterProcesses);
+    // Apply or reset filter
+    editFilterVTChange(Sender);
     // Display number of listed values on tab
     tabProcessList.Caption := 'Process-List (' + IntToStr(vt.RootNodeCount) + ')';
   except
@@ -8737,6 +8735,8 @@ begin
   vt.RootNodeCount := Length(VTRowDataListCommandStats);
   vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
   vt.Tag := VTREE_LOADED;
+  // Apply or reset filter
+  editFilterVTChange(Sender);
   // Display number of listed values on tab
   tabCommandStats.Caption := 'Command-Statistics (' + IntToStr(vt.RootNodeCount) + ')';
   Screen.Cursor := crDefault;
