@@ -8522,11 +8522,13 @@ var
   i : Integer;
   vt: TVirtualStringTree;
   ds: TDataSet;
+  Sel: TWideStringList;
 begin
   // Display server variables
   vt := Sender as TVirtualStringTree;
   if vt.Tag <> VTREE_NOTLOADED then
     Exit;
+  Sel := GetVTCaptions(vt, True);
   ResetVTNodes(vt);
   Screen.Cursor := crHourglass;
   ds := GetResults('SHOW VARIABLES');
@@ -8543,6 +8545,7 @@ begin
   vt.RootNodeCount := Length(VTRowDataListVariables);
   vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
   vt.Tag := VTREE_LOADED;
+  SetVTSelection(vt, Sel);
   // Apply or reset filter
   editFilterVTChange(Sender);
   // Display number of listed values on tab
@@ -8560,11 +8563,13 @@ var
   val, avg_perhour, avg_persec: WideString;
   valIsBytes, valIsNumber: Boolean;
   vt: TVirtualStringTree;
+  Sel: TWideStringList;
 begin
   // Display server status key/value pairs
   vt := Sender as TVirtualStringTree;
   if vt.Tag <> VTREE_NOTLOADED then
     Exit;
+  Sel := GetVTCaptions(vt, True);
   ResetVTNodes(vt);
   Screen.Cursor := crHourglass;
   ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
@@ -8611,6 +8616,7 @@ begin
   vt.RootNodeCount := Length(VTRowDataListStatus);
   vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
   vt.Tag := VTREE_LOADED;
+  SetVTSelection(vt, Sel);
   // Apply or reset filter
   editFilterVTChange(Sender);
   // Display number of listed values on tab
@@ -8624,11 +8630,13 @@ var
   i, j: Integer;
   ds: TDataSet;
   vt: TVirtualStringTree;
+  Sel: TWideStringList;
 begin
   // Display client threads
   vt := Sender as TVirtualStringTree;
   if vt.Tag <> VTREE_NOTLOADED then
     Exit;
+  Sel := GetVTCaptions(vt, True);
   ResetVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
@@ -8654,6 +8662,7 @@ begin
     vt.RootNodeCount := Length(VTRowDataListProcesses);
     vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
     vt.Tag := VTREE_LOADED;
+    SetVTSelection(vt, Sel);
     // Apply or reset filter
     editFilterVTChange(Sender);
     // Display number of listed values on tab
@@ -8700,12 +8709,14 @@ var
   questions: Int64;
   ds: TDataSet;
   vt: TVirtualStringTree;
+  Sel: TWideStringList;
 begin
   // Display command statistics
   vt := Sender as TVirtualStringTree;
   if vt.Tag <> VTREE_NOTLOADED then
     Exit;
 
+  Sel := GetVTCaptions(vt, True);
   ResetVTNodes(vt);
   Screen.Cursor := crHourglass;
   ds := GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
@@ -8724,6 +8735,7 @@ begin
   vt.RootNodeCount := Length(VTRowDataListCommandStats);
   vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
   vt.Tag := VTREE_LOADED;
+  SetVTSelection(vt, Sel);
   // Apply or reset filter
   editFilterVTChange(Sender);
   // Display number of listed values on tab
