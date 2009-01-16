@@ -5830,7 +5830,7 @@ end;
 procedure TMainForm.tabsetQueryHelpersChange(Sender: TObject; NewTab: Integer;
   var AllowChange: Boolean);
 var
-  i : Integer;
+  i, idx : Integer;
   SnippetsAccessible : Boolean;
   Files: TStringList;
 begin
@@ -5896,12 +5896,10 @@ begin
   end;
 
   // Restore last selected item in tab
-  if (Length(QueryHelpersSelectedItems[NewTab]) > 0)
-    and (Length(QueryHelpersSelectedItems[NewTab]) <= lboxQueryHelpers.Count) then
-  begin
-    for i := 0 to Length(QueryHelpersSelectedItems[NewTab]) - 1 do begin
-      lboxQueryHelpers.Selected[QueryHelpersSelectedItems[NewTab][i]] := True;
-    end;
+  for i := 0 to Length(QueryHelpersSelectedItems[NewTab]) - 1 do begin
+    idx := QueryHelpersSelectedItems[NewTab][i];
+    if idx < lboxQueryHelpers.Count then
+      lboxQueryHelpers.Selected[idx] := True;
   end;
 
   lboxQueryHelpers.Items.EndUpdate;
