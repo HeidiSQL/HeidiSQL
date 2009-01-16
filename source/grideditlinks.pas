@@ -788,11 +788,11 @@ begin
   if Result then begin
     FStopping := True;
     if Assigned(FTextEditor) then begin
-      if (FTextEditor.memoText.Modified) then
+      if FTextEditor.GetText <> FTree.Text[FNode, FColumn] then
         FTree.Text[FNode, FColumn] := FTextEditor.GetText;
       FTextEditor.Close;
     end else begin
-      if FEdit.Modified then
+      if FEdit.Text <> FTree.Text[FNode, FColumn] then
         FTree.Text[FNode, FColumn] := FEdit.Text;
     end;
     FPanel.Hide;
