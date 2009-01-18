@@ -1591,7 +1591,7 @@ object MainForm: TMainForm
           Caption = 'Inactive'
           Checked = True
           RadioItem = True
-          ShortCut = 27
+          ShortCut = 24692
           OnClick = DisableAutoRefreshClick
         end
       end
