@@ -170,6 +170,8 @@ const
   REGNAME_CSV_LOWPRIO = 'CSVImportLowPriority';
   REGNAME_CSV_REPLACE = 'CSVImportReplace';
   REGNAME_CSV_IGNORE = 'CSVImportIgnore';
+  REGNAME_COPYMAXSIZE = 'CopyDataMaxSize';
+  DEFAULT_COPYMAXSIZE = 5;
   REGNAME_DO_UPDATECHECK = 'Updatecheck';
   DEFAULT_DO_UPDATECHECK = False;
   REGNAME_DO_UPDATECHECK_BUILDS = 'UpdatecheckBuilds';
@@ -294,3 +296,7 @@ const
 
   VTREE_NOTLOADED = 0;
   VTREE_LOADED = 1;
+
+  MSG_COPYMAXSIZE = 'Copying data is limited to %s but more data is available. '
+        + 'Only %s out of %s rows were copied.' + CRLF + CRLF
+        + 'Increase the value in Tools > Preferences > Export if you need more.';

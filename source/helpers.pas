@@ -784,10 +784,11 @@ end;
 }
 procedure GridToHtml(Grid: TVirtualStringTree; GridData: PGridResult; Title: WideString; S: TStream);
 var
-  i: Integer;
+  i, MaxSize: Integer;
   tmp, Data, Generator: WideString;
   Node: PVirtualNode;
 begin
+  MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
   Generator := APPNAME+' '+FullAppVersion;
   tmp :=
     '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
@@ -866,6 +867,12 @@ begin
     // Release some memory.
     Mainform.DiscardNodeData(Grid, Node);
     Node := Grid.GetNext(Node);
+    if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
+      MessageDlg(
+        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(Grid.RootNodeCount)]),
+        mtWarning, [mbOK], 0);
+      break;
+    end;
   end;
   // footer:
   tmp :=
@@ -893,13 +900,14 @@ end;
 }
 procedure GridToCsv(Grid: TVirtualStringTree; GridData: PGridResult; Separator, Encloser, Terminator: String; S: TStream);
 var
-  i: Integer;
+  i, MaxSize: Integer;
   tmp, Data: WideString;
   Node: PVirtualNode;
 begin
   separator := esc2ascii(separator);
   encloser := esc2ascii(encloser);
   terminator := esc2ascii(terminator);
+  MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
 
   tmp := '';
   // Columns
@@ -951,6 +959,12 @@ begin
     // Release some memory.
     Mainform.DiscardNodeData(Grid, Node);
     Node := Grid.GetNext(Node);
+    if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
+      MessageDlg(
+        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(Grid.RootNodeCount)]),
+        mtWarning, [mbOK], 0);
+      break;
+    end;
   end;
   Grid.Visible := true;
   Mainform.showstatus(STATUS_MSG_READY);
@@ -965,10 +979,11 @@ end;
 }
 procedure GridToXml(Grid: TVirtualStringTree; GridData: PGridResult; root: WideString; S: TStream);
 var
-  i: Integer;
+  i, MaxSize: Integer;
   tmp, Data: WideString;
   Node: PVirtualNode;
 begin
+  MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
   tmp := '<?xml version="1.0"?>' + CRLF + CRLF +
       '<table name="'+root+'">' + CRLF;
   StreamWrite(S, tmp);
@@ -1011,6 +1026,12 @@ begin
     // Release some memory.
     Mainform.DiscardNodeData(Grid, Node);
     Node := Grid.GetNext(Node);
+    if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
+      MessageDlg(
+        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(Grid.RootNodeCount)]),
+        mtWarning, [mbOK], 0);
+      break;
+    end;
   end;
   // footer:
   tmp := '</table>' + CRLF;
@@ -1027,10 +1048,11 @@ end;
 }
 procedure GridToSql(Grid: TVirtualStringTree; GridData: PGridResult; Tablename: WideString; S: TStream);
 var
-  i: Integer;
+  i, MaxSize: Integer;
   tmp, Data: WideString;
   Node: PVirtualNode;
 begin
+  MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
   // Avoid reloading discarded data before the end.
   Grid.Visible := false;
   Node := Grid.GetFirst;
@@ -1074,6 +1096,12 @@ begin
     // Release some memory.
     Mainform.DiscardNodeData(Grid, Node);
     Node := Grid.GetNext(Node);
+    if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
+      MessageDlg(
+        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(Grid.RootNodeCount)]),
+        mtWarning, [mbOK], 0);
+      break;
+    end;
   end;
   // footer:
   tmp := CRLF;

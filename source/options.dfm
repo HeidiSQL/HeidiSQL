@@ -587,14 +587,21 @@ object optionsform: Toptionsform
     end
     object tabCSV: TTabSheet
       BorderWidth = 5
-      Caption = 'CSV'
+      Caption = 'Export'
       ImageIndex = 2
+      object lblCopyDataMaxSize: TLabel
+        Left = 8
+        Top = 200
+        Width = 244
+        Height = 13
+        Caption = 'Limit "Copy as CSV/HTML/XML/SQL" actions to [MB]'
+      end
       object grpCSV: TGroupBox
         Left = 0
         Top = 0
         Width = 399
-        Height = 288
-        Align = alClient
+        Height = 177
+        Align = alTop
         Caption = 'CSV-Strings for copying/saving CSV-data'
         TabOrder = 0
         object lblCSVSeparator: TLabel
@@ -677,6 +684,28 @@ object optionsform: Toptionsform
           Text = 'editCSVTerminator'
           OnChange = Modified
         end
+      end
+      object editCopyDataMaxSize: TEdit
+        Left = 314
+        Top = 197
+        Width = 65
+        Height = 21
+        Anchors = [akTop, akRight]
+        TabOrder = 1
+        Text = '0'
+        OnChange = Modified
+      end
+      object updownCopyDataMaxSize: TUpDown
+        Left = 377
+        Top = 197
+        Width = 17
+        Height = 21
+        Anchors = [akTop, akRight]
+        Associate = editCopyDataMaxSize
+        Max = 999
+        TabOrder = 2
+        Wrap = True
+        OnChanging = anyUpDownLimitChanging
       end
     end
   end

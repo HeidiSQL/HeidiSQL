@@ -91,6 +91,9 @@ type
     grpSQLSample: TGroupBox;
     SynMemoSQLSample: TSynMemo;
     SynSQLSynSQLSample: TSynSQLSyn;
+    lblCopyDataMaxSize: TLabel;
+    editCopyDataMaxSize: TEdit;
+    updownCopyDataMaxSize: TUpDown;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -192,6 +195,8 @@ begin
   MainReg.WriteString(REGNAME_CSV_SEPARATOR, editCSVSeparator.Text);
   MainReg.WriteString(REGNAME_CSV_ENCLOSER, editCSVEncloser.Text);
   MainReg.WriteString(REGNAME_CSV_TERMINATOR, editCSVTerminator.Text);
+  MainReg.WriteInteger(REGNAME_COPYMAXSIZE, updownCopyDataMaxSize.Position);
+
   MainReg.WriteInteger(REGNAME_MAXCOLWIDTH, updownMaxColWidth.Position);
   MainReg.WriteString(REGNAME_DATAFONTNAME, comboDataFontName.Text);
   MainReg.WriteInteger(REGNAME_DATAFONTSIZE, updownDataFontSize.Position);
@@ -322,10 +327,13 @@ begin
 
   // Default Column-Width in DBGrids:
   updownMaxColWidth.Position := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
-  // CSV-Options:
+
+  // Export-Options:
   editCSVSeparator.Text := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
   editCSVEncloser.Text := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
   editCSVTerminator.Text := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
+  updownCopyDataMaxSize.Position := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE);
+
   // Log to file
   chkLogToFile.Checked := GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE);
   btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
