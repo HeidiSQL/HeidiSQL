@@ -774,6 +774,7 @@ begin
   Mainform.Showstatus('Exporting row '+FormatNumber(Node.Index+1)+' of '+FormatNumber(RootNodeCount)+
     ' ('+IntToStr(Trunc((Node.Index+1) / RootNodeCount *100))+'%, '+FormatByteNumber(StreamSize)+')'
     );
+  Mainform.ProgressBarStatus.Position := Node.Index+1;
 end;
 
 
@@ -789,6 +790,8 @@ var
   Node: PVirtualNode;
 begin
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
+  Mainform.ProgressBarStatus.Visible := True;
+  Mainform.ProgressBarStatus.Max := Grid.RootNodeCount;
   Generator := APPNAME+' '+FullAppVersion;
   tmp :=
     '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
@@ -886,6 +889,7 @@ begin
     '</html>' + CRLF;
   StreamWrite(S, tmp);
   Grid.Visible := true;
+  Mainform.ProgressBarStatus.Visible := False;
   Mainform.Showstatus(STATUS_MSG_READY);
 end;
 
@@ -908,6 +912,8 @@ begin
   encloser := esc2ascii(encloser);
   terminator := esc2ascii(terminator);
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
+  Mainform.ProgressBarStatus.Visible := True;
+  Mainform.ProgressBarStatus.Max := Grid.RootNodeCount;
 
   tmp := '';
   // Columns
@@ -967,6 +973,7 @@ begin
     end;
   end;
   Grid.Visible := true;
+  Mainform.ProgressBarStatus.Visible := False;
   Mainform.showstatus(STATUS_MSG_READY);
 end;
 
@@ -984,6 +991,8 @@ var
   Node: PVirtualNode;
 begin
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
+  Mainform.ProgressBarStatus.Visible := True;
+  Mainform.ProgressBarStatus.Max := Grid.RootNodeCount;
   tmp := '<?xml version="1.0"?>' + CRLF + CRLF +
       '<table name="'+root+'">' + CRLF;
   StreamWrite(S, tmp);
@@ -1037,6 +1046,7 @@ begin
   tmp := '</table>' + CRLF;
   StreamWrite(S, tmp);
   Grid.Visible := true;
+  Mainform.ProgressBarStatus.Visible := False;
   Mainform.showstatus(STATUS_MSG_READY);
 end;
 
@@ -1053,6 +1063,8 @@ var
   Node: PVirtualNode;
 begin
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
+  Mainform.ProgressBarStatus.Visible := True;
+  Mainform.ProgressBarStatus.Max := Grid.RootNodeCount;
   // Avoid reloading discarded data before the end.
   Grid.Visible := false;
   Node := Grid.GetFirst;
@@ -1107,6 +1119,7 @@ begin
   tmp := CRLF;
   StreamWrite(S, tmp);
   Grid.Visible := true;
+  Mainform.ProgressBarStatus.Visible := False;
   Mainform.showstatus(STATUS_MSG_READY);
 end;
 

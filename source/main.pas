@@ -22,7 +22,7 @@ uses
   SynCompletionProposal, ZSqlMonitor, SynEditHighlighter, SynHighlighterSQL,
   TntStdCtrls, Tabs, SynUnicode, mysqlconn, EditVar, helpers, queryprogress,
   mysqlquery, createdatabase, createtable, tbl_properties, SynRegExpr,
-  WideStrUtils, ZDbcLogging, ExtActns;
+  WideStrUtils, ZDbcLogging, ExtActns, CommCtrl;
 
 type
   TMainForm = class(TForm)
@@ -452,6 +452,7 @@ type
     actSelectAll: TAction;
     actSelectAll1: TMenuItem;
     N13: TMenuItem;
+    ProgressBarStatus: TProgressBar;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -481,7 +482,7 @@ type
     procedure actCopyAsCSVExecute(Sender: TObject);
     procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
-    procedure showstatus(msg: string=''; panel: Integer=5);
+    procedure showstatus(msg: string=''; panel: Integer=6);
     function mask(str: WideString) : WideString;
     procedure actExecuteQueryExecute(Sender: TObject);
     procedure actExecuteSelectionExecute(Sender: TObject);
@@ -1007,7 +1008,7 @@ begin
   ExecuteNonQuery(query);
 end;
 
-procedure TMainForm.showstatus(msg: string=''; panel: Integer=5);
+procedure TMainForm.showstatus(msg: string=''; panel: Integer=6);
 begin
   // show Message in statusbar
   StatusBar.Panels[panel].Text := msg;
@@ -1486,6 +1487,10 @@ begin
     menuitem.Checked := coVisible in ListTables.Header.Columns[i].Options;
     popupDbGridHeader.Items.Add( menuitem );
   end;
+
+  // Place progressbar on the statusbar
+  ProgressBarStatus.Parent := StatusBar;
+  ProgressBarStatus.Visible := False;
 end;
 
 
@@ -1790,11 +1795,17 @@ end;
 procedure TMainForm.FormResize(Sender: TObject);
 var
   i, room: Integer;
+  PanelRect: TRect;
 begin
   room := 0;
   for i := 1 to Statusbar.Panels.Count - 1 do
     inc(room, Statusbar.Panels[i].Width);
   StatusBar.Panels[0].Width := Statusbar.Width - room;
+  // Retreive the rectancle of the statuspanel (in our case the fifth panel)
+  SendMessage(StatusBar.Handle, SB_GETRECT, 5, Integer(@PanelRect));
+  // Position the progressbar over the panel on the statusbar
+  with PanelRect do
+    ProgressBarStatus.SetBounds(Left, Top, Right-Left, Bottom-Top);
   lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
 end;
 
