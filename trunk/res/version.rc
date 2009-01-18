@@ -7,7 +7,7 @@
     BEGIN
       BLOCK "040904E4"
       BEGIN
-        VALUE "FileDescription", "A lightweight, fast and flexible interface to MySQL\000"
+        VALUE "FileDescription", "HeidiSQL - a lightweight, fast and flexible interface to MySQL\000"
         VALUE "ProductName", "HeidiSQL\000"
         VALUE "LegalCopyright", "See GLP license\000"
       END
