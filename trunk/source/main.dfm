@@ -96,6 +96,9 @@ object MainForm: TMainForm
         Width = 150
       end
       item
+        Width = 80
+      end
+      item
         Width = 250
       end>
   end
@@ -1501,6 +1504,14 @@ object MainForm: TMainForm
         end
       end
     end
+  end
+  object ProgressBarStatus: TProgressBar
+    Left = 545
+    Top = 445
+    Width = 81
+    Height = 17
+    Step = 1
+    TabOrder = 4
   end
   object MainMenu1: TMainMenu
     AutoHotkeys = maManual
