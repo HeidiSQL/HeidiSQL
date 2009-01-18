@@ -7951,6 +7951,7 @@ begin
   Node := Sender.GetFirstSelected;
   sql := 'DELETE FROM '+mask(SelectedTable)+' WHERE';
   while Assigned(Node) do begin
+    EnsureChunkLoaded(Sender, Node);
     sql := sql + ' (' +
       GetWhereClause(@FDataGridResult.Rows[Node.Index], @FDataGridResult.Columns) +
       ') OR';
