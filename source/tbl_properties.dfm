@@ -89,7 +89,6 @@ object tbl_properties_form: Ttbl_properties_form
     Font.Height = -13
     Font.Name = 'Courier New'
     Font.Style = []
-    PopupMenu = popupSynMemo
     TabOrder = 8
     Gutter.Font.Charset = DEFAULT_CHARSET
     Gutter.Font.Color = clWindowText
@@ -181,18 +180,5 @@ object tbl_properties_form: Ttbl_properties_form
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 5
     Text = 'editAutoincrement'
-  end
-  object popupSynMemo: TPopupMenu
-    Images = MainForm.PngImageListMain
-    Left = 16
-    Top = 240
-    object menuCopy: TMenuItem
-      Action = MainForm.EditCopy1
-    end
-    object menuSelectAll: TMenuItem
-      Caption = 'Select all'
-      ShortCut = 16449
-      OnClick = menuSelectAllClick
-    end
   end
 end

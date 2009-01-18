@@ -42,7 +42,6 @@ object MainForm: TMainForm
     Font.Style = []
     PopupMenu = popupSqlLog
     TabOrder = 1
-    OnKeyUp = controlsKeyUp
     Gutter.AutoSize = True
     Gutter.DigitCount = 2
     Gutter.Font.Charset = DEFAULT_CHARSET
@@ -1065,7 +1064,6 @@ object MainForm: TMainForm
           OnGetNodeDataSize = vstGetNodeDataSize
           OnHeaderClick = vstHeaderClick
           OnInitNode = vstInitNode
-          OnKeyUp = controlsKeyUp
           OnNewText = ListColumnsNewText
           Columns = <
             item
@@ -1226,7 +1224,6 @@ object MainForm: TMainForm
             Font.Style = []
             PopupMenu = popupFilter
             TabOrder = 0
-            OnKeyUp = controlsKeyUp
             Gutter.Font.Charset = DEFAULT_CHARSET
             Gutter.Font.Color = clWindowText
             Gutter.Font.Height = -11
@@ -1316,7 +1313,6 @@ object MainForm: TMainForm
           OnPaintText = GridPaintText
           OnHeaderClick = DataGridHeaderClick
           OnKeyDown = GridKeyDown
-          OnKeyUp = controlsKeyUp
           OnMouseUp = DataGridMouseUp
           OnNewText = DataGridNewText
           Columns = <>
@@ -1377,7 +1373,6 @@ object MainForm: TMainForm
             TabOrder = 0
             OnDragDrop = SynMemoQueryDragDrop
             OnDragOver = SynMemoQueryDragOver
-            OnKeyUp = controlsKeyUp
             Gutter.AutoSize = True
             Gutter.Font.Charset = DEFAULT_CHARSET
             Gutter.Font.Color = clWindowText
@@ -1458,7 +1453,6 @@ object MainForm: TMainForm
               TabOrder = 1
               OnClick = lboxQueryHelpersClick
               OnDblClick = lboxQueryHelpersDblClick
-              OnKeyUp = controlsKeyUp
             end
           end
         end
@@ -1503,7 +1497,6 @@ object MainForm: TMainForm
           OnGetText = GridGetText
           OnPaintText = GridPaintText
           OnKeyDown = GridKeyDown
-          OnKeyUp = controlsKeyUp
           Columns = <>
         end
       end
@@ -1560,6 +1553,12 @@ object MainForm: TMainForm
       end
       object Cut1: TMenuItem
         Action = actCut
+      end
+      object N13: TMenuItem
+        Caption = '-'
+      end
+      object actSelectAll1: TMenuItem
+        Action = actSelectAll
       end
     end
     object Extra1: TMenuItem
@@ -1773,13 +1772,14 @@ object MainForm: TMainForm
       ImageIndex = 26
       OnExecute = actExitApplicationExecute
     end
-    object actCopy: TEditCopy
+    object actCopy: TAction
       Tag = 27
       Category = 'Various'
       Caption = '&Copy'
-      Enabled = False
       Hint = 'Copy|Copy to Clipboard'
       ImageIndex = 3
+      ShortCut = 16451
+      OnExecute = actCopyOrCutExecute
     end
     object actCopyAsSQL: TAction
       Category = 'Export/Import'
@@ -1789,12 +1789,14 @@ object MainForm: TMainForm
       ImageIndex = 114
       OnExecute = actCopyAsSQLExecute
     end
-    object actPaste: TEditPaste
+    object actPaste: TAction
       Tag = 58
       Category = 'Various'
       Caption = '&Paste'
       Hint = 'Paste|Paste from Clipboard'
       ImageIndex = 4
+      ShortCut = 16470
+      OnExecute = actPasteExecute
     end
     object actUserManager: TAction
       Tag = 34
@@ -1805,12 +1807,13 @@ object MainForm: TMainForm
       ImageIndex = 11
       OnExecute = actUserManagerExecute
     end
-    object actCut: TEditCut
+    object actCut: TAction
       Category = 'Various'
       Caption = 'Cu&t'
       Hint = 'Cut|Cuts the selection and puts it on the Clipboard'
       ImageIndex = 2
       ShortCut = 16472
+      OnExecute = actCopyOrCutExecute
     end
     object actUndo: TEditUndo
       Category = 'Various'
@@ -2382,6 +2385,13 @@ object MainForm: TMainForm
       ImageIndex = 116
       ShortCut = 16393
       Wrap = True
+    end
+    object actSelectAll: TAction
+      Category = 'Various'
+      Caption = 'Select all'
+      Hint = 'Select all|Select all items or text'
+      ShortCut = 16449
+      OnExecute = actSelectAllExecute
     end
   end
   object SaveDialog2: TSaveDialog
@@ -5871,12 +5881,6 @@ object MainForm: TMainForm
       Tag = 28
       Action = actRefresh
     end
-    object selectall1: TMenuItem
-      Caption = 'select all'
-      ShortCut = 16449
-      Visible = False
-      OnClick = selectall1Click
-    end
   end
   object popupHost: TPopupMenu
     Images = PngImageListMain
@@ -6253,13 +6257,6 @@ object MainForm: TMainForm
       OnClick = Clear2Click
     end
     object N15: TMenuItem
-      Caption = '-'
-    end
-    object Markall3: TMenuItem
-      Caption = 'Select all'
-      OnClick = Markall3Click
-    end
-    object N13: TMenuItem
       Caption = '-'
     end
     object Saveastextfile1: TMenuItem

@@ -38,8 +38,8 @@ type
     PasteItem: TMenuItem;
     StatusBar: TStatusBar;
     ActionList1: TActionList;
-    actCopy: TEditCopy;
-    actPaste: TEditPaste;
+    actCopy: TAction;
+    actPaste: TAction;
     actOpenSession: TAction;
     actExitApplication: TAction;
     Extra1: TMenuItem;
@@ -163,7 +163,7 @@ type
     actSQLhelp: TAction;
     actRefresh: TAction;
     actImportCSV: TAction;
-    actCut: TEditCut;
+    actCut: TAction;
     Cut1: TMenuItem;
     actExportSettings: TAction;
     actImportSettings: TAction;
@@ -275,8 +275,6 @@ type
     popupSqlLog: TPopupMenu;
     Clear2: TMenuItem;
     Copy1: TMenuItem;
-    N13: TMenuItem;
-    Markall3: TMenuItem;
     N15: TMenuItem;
     menuMaintenancea: TMenuItem;
     PopupMenuDropTable: TMenuItem;
@@ -306,7 +304,6 @@ type
     MenuCopyTable: TMenuItem;
     SynMemoFilter: TSynMemo;
     N18: TMenuItem;
-    selectall1: TMenuItem;
     MenuAutoupdate: TMenuItem;
     TimerHost: TTimer;
     Set1: TMenuItem;
@@ -452,6 +449,9 @@ type
     Nexttab1: TMenuItem;
     Previoustab1: TMenuItem;
     menuConnectTo: TMenuItem;
+    actSelectAll: TAction;
+    actSelectAll1: TMenuItem;
+    N13: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -548,7 +548,6 @@ type
     procedure btnDataClick(Sender: TObject);
     procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure ListColumnsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure controlsKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
       const Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
     procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
@@ -585,10 +584,8 @@ type
     procedure MenuRenameTableClick(Sender: TObject);
     procedure TimerConnectedTimer(Sender: TObject);
     procedure Clear2Click(Sender: TObject);
-    procedure Markall3Click(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
-    procedure selectall1Click(Sender: TObject);
     procedure popupResultGridPopup(Sender: TObject);
     procedure Autoupdate1Click(Sender: TObject);
     procedure EnableAutoRefreshClick(Sender: TObject);
@@ -722,6 +719,9 @@ type
     procedure ListProcessesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure vstAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure actCopyOrCutExecute(Sender: TObject);
+    procedure actPasteExecute(Sender: TObject);
+    procedure actSelectAllExecute(Sender: TObject);
   private
     FDelimiter: String;
     ServerUptime               : Integer;
@@ -4903,13 +4903,6 @@ begin
 end;
 
 
-procedure TMainForm.Markall3Click(Sender: TObject);
-begin
-  // select all in history
-  SynMemoSQLLog.SelectAll;
-end;
-
-
 procedure TMainForm.ListTablesDblClick(Sender: TObject);
 begin
   actEditTableFields.Execute;
@@ -5009,12 +5002,6 @@ begin
 end;
 
 
-// select all tables
-procedure TMainForm.selectall1Click(Sender: TObject);
-begin
-  ListTables.SelectAll(False);
-end;
-
 procedure TMainForm.popupQueryPopup(Sender: TObject);
 begin
   // Sets cursor into memo and activates TAction(s) like paste
@@ -5025,43 +5012,6 @@ procedure TMainForm.popupResultGridPopup(Sender: TObject);
 begin
   // data available?
   // Save2CSV.enabled :=
-end;
-
-procedure TMainForm.controlsKeyUp(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
-var
-  Grid : TVirtualStringTree;
-  CB: TUniClipboard;
-begin
-  // Check for F1-pressed
-  if Key = VK_F1 then
-    actSQLhelp.Execute
-
-  // Simulate Ctrl+A-behaviour of common editors
-  else if ( Shift = [ssCtrl] ) and ( Key = Ord('A') ) then
-  begin
-    if Sender is TCustomEdit then
-      TCustomEdit(Sender).SelectAll;
-  end
-
-  // Enable copy + paste shortcuts in dbgrids
-  else if (Sender is TVirtualStringTree) and (not TVirtualStringTree(Sender).IsEditing)
-    and (Shift = [ssCtrl]) and (Assigned(TVirtualStringTree(Sender).FocusedNode))
-    then begin
-    Grid := Sender as TVirtualStringTree;
-    // TODO: Clipboard.AsText is not Unicode safe!
-    if Key = Ord('C') then begin
-      EnsureFullWidth(Grid, Grid.FocusedColumn, Grid.FocusedNode);
-      CopyToClipboard(Grid.Text[Grid.FocusedNode, Grid.FocusedColumn])
-    end else if Key = Ord('V') then begin
-      CB := TUniClipboard.Create;
-      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := CB.AsWideString;
-    end
-    else if Key = Ord('X') then begin
-      CopyToClipboard(Grid.Text[Grid.FocusedNode, Grid.FocusedColumn]);
-      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
-    end;
-  end;
 end;
 
 procedure TMainForm.Autoupdate1Click(Sender: TObject);
@@ -8743,4 +8693,120 @@ begin
 end;
 
 
+procedure TMainForm.actCopyOrCutExecute(Sender: TObject);
+var
+  Control: TWinControl;
+  Edit: TCustomEdit;
+  Grid: TVirtualStringTree;
+  SynMemo: TSynMemo;
+  Success, DoCut: Boolean;
+begin
+  // Copy text from a focused control to clipboard
+  Success := False;
+  Control := ActiveControl;
+  DoCut := Sender = actCut;
+  if Control is TCustomEdit then begin
+    Edit := TCustomEdit(Control);
+    if Edit.SelLength > 0 then begin
+      if DoCut then Edit.CutToClipboard
+      else Edit.CopyToClipboard;
+      Success := True;
+    end;
+  end else if Control is TVirtualStringTree then begin
+    Grid := Control as TVirtualStringTree;
+    if Assigned(Grid.FocusedNode) then begin
+      if Grid = ActiveGrid then
+        EnsureFullWidth(Grid, Grid.FocusedColumn, Grid.FocusedNode);
+      CopyToClipboard(Grid.Text[Grid.FocusedNode, Grid.FocusedColumn]);
+      if (Grid = ActiveGrid) and DoCut then
+        Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
+      Success := True;
+    end;
+  end else if Control is TSynMemo then begin
+    SynMemo := Control as TSynMemo;
+    if SynMemo.SelAvail then begin
+      if DoCut then SynMemo.CutToClipboard
+      else SynMemo.CopyToClipboard;
+      Success := True;
+    end;
+  end;
+  if not Success then
+    MessageBeep(MB_ICONASTERISK);
+end;
+
+
+procedure TMainForm.actPasteExecute(Sender: TObject);
+var
+  Control: TWinControl;
+  Edit: TCustomEdit;
+  Grid: TVirtualStringTree;
+  SynMemo: TSynMemo;
+  Success: Boolean;
+  CB: TUniClipboard;
+begin
+  // Paste text into the focused control
+  Success := False;
+  Control := ActiveControl;
+  if not Clipboard.HasFormat(CF_TEXT) then begin
+    // Do nothing, we cannot paste a picture or so
+  end else if Control is TCustomEdit then begin
+    Edit := TCustomEdit(Control);
+    if not Edit.ReadOnly then begin
+      Edit.PasteFromClipboard;
+      Success := True;
+    end;
+  end else if Control is TVirtualStringTree then begin
+    Grid := Control as TVirtualStringTree;
+    if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
+      CB := TUniClipboard.Create;
+      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := CB.AsWideString;
+      Success := True;
+    end;
+  end else if Control is TSynMemo then begin
+    SynMemo := TSynMemo(Control);
+    if not SynMemo.ReadOnly then begin
+      SynMemo.PasteFromClipboard;
+      Success := True;
+    end;
+  end;
+  if not Success then
+    MessageBeep(MB_ICONASTERISK);
+end;
+
+
+procedure TMainForm.actSelectAllExecute(Sender: TObject);
+var
+  Control: TWinControl;
+  Grid: TVirtualStringTree;
+  ListBox: TTNTListBox;
+  Success: Boolean;
+begin
+  // Select all items, text or whatever
+  Success := False;
+  Control := ActiveControl;
+  if Control is TCustomEdit then begin
+    TCustomEdit(Control).SelectAll;
+    Success := True;
+  end else if Control is TVirtualStringTree then begin
+    Grid := TVirtualStringTree(Control);
+    if toMultiSelect in Grid.TreeOptions.SelectionOptions then begin
+      Grid.SelectAll(False);
+      Success := True;
+    end;
+  end else if Control is TSynMemo then begin
+    TSynMemo(Control).SelectAll;
+    Success := True;
+  end else if Control is TTNTListBox then begin
+    ListBox := TTNTListBox(Control);
+    if ListBox.MultiSelect then begin
+      ListBox.SelectAll;
+      Success := True;
+    end;
+  end;
+  if not Success then
+    MessageBeep(MB_ICONASTERISK);
+end;
+
+
 end.
+

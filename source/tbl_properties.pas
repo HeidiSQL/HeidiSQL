@@ -32,9 +32,6 @@ type
 
     lblCreate: TLabel;
     SynMemoCreate: TSynMemo;
-    popupSynMemo: TPopupMenu;
-    menuCopy: TMenuItem;
-    menuSelectAll: TMenuItem;
     procedure FormDestroy(Sender: TObject);
 
     procedure comboCharsetChange(Sender: TObject);
