@@ -4250,7 +4250,7 @@ begin
   inTableTab := FrmIsFocussed and (PageControlMain.ActivePage = tabTable);
   inDataTab := FrmIsFocussed and (PageControlMain.ActivePage = tabData);
   inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
-  inDataOrQueryTabNotEmpty := inDataOrQueryTab and (hoVisible in ActiveGrid.Header.Options);
+  inDataOrQueryTabNotEmpty := inDataOrQueryTab and (ActiveGrid.RootNodeCount > 0);
   inQueryTab := FrmIsFocussed and (PageControlMain.ActivePage = tabQuery);
 
   SelectedNodes := ListTables.GetSortedSelection(False);
@@ -4327,7 +4327,7 @@ begin
   actCopyAsXML.Enabled := inDataOrQueryTabNotEmpty;
   actCopyAsSQL.Enabled := inDataOrQueryTabNotEmpty;
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
-  actHTMLView.Enabled := inDataOrQueryTabNotEmpty;
+  actHTMLView.Enabled := inDataOrQueryTabNotEmpty and Assigned(ActiveGrid.FocusedNode);
   setNull1.Enabled := inDataTab and Assigned(DataGrid.FocusedNode);
 
   // Query tab
@@ -8456,6 +8456,7 @@ procedure TMainForm.QueryGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
 begin
   if OldColumn <> NewColumn then
     FocusGridCol(Sender, NewColumn);
+  ValidateControls;
 end;
 
 
