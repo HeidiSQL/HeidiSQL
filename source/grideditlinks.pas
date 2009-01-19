@@ -814,6 +814,8 @@ begin
         end else
           FTree.EndEditNode;
       end;
+    VK_F2:
+      ButtonClick(FButton);
     VK_TAB:
       begin
         FFinalAction := VK_TAB;
