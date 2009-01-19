@@ -2240,14 +2240,9 @@ begin
   if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
   Screen.Cursor := crHourGlass;
   showstatus('Saving contents to file...');
-  if g = DataGrid then begin
-    EnsureFullWidth(g, g.FocusedColumn, g.FocusedNode);
-    IsBinary := FDataGridResult.Columns[DataGrid.FocusedColumn].IsBinary;
-  end else begin
-    IsBinary := FQueryGridResult.Columns[QueryGrid.FocusedColumn].IsBinary;
-  end;
+  EnsureFullWidth(g, g.FocusedColumn, g.FocusedNode);
+  IsBinary := ActiveData.Columns[g.FocusedColumn].IsBinary;
   Content := g.Text[g.FocusedNode, g.FocusedColumn];
-  logsql(g.Name);
 
   GetTempPath(MAX_PATH, tmppath);
   filename := tmppath;
