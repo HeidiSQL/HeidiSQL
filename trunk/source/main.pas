@@ -5952,8 +5952,12 @@ procedure TMainForm.ListColumnsNewText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; NewText: WideString);
 var
   def : TDataSet;
-  sql_update, sql_null, sql_default, sql_extra, sql_comment, DefaultValue : WideString;
+  sql_update, sql_null, sql_default, sql_extra, sql_comment, DefaultValue,
+  InputStr, OutputStr : WideString;
   NodeData : PVTreeData;
+  DataViews: TStringList;
+  rx: TRegExpr;
+  i: Integer;
 begin
   // Try to rename, on any error abort and don't rename ListItem
   try
@@ -6009,6 +6013,27 @@ begin
 
     FSelectedTableColumns := nil;
     FSelectedTableKeys := nil;
+
+    // Fix perspectives, using old column name
+    DataViews := TStringList.Create;
+    GetDataViews(DataViews);
+    for i := 0 to DataViews.Count - 1 do begin
+      MainReg.OpenKey(GetRegKeyTable + '\' + REGPREFIX_DATAVIEW + DataViews[i], False);
+      rx := TRegExpr.Create;
+      rx.Expression := '\b(\d_)('+QuoteRegExprMetaChars(NodeData.Captions[0])+')(\'+REGDELIM+')';
+      rx.ModifierG := False;
+      InputStr := Utf8Decode(MainReg.ReadString(REGNAME_SORT));
+      OutputStr := rx.Replace(InputStr, '$1'+NewText+'$3', True);
+      if InputStr <> OutputStr then
+        MainReg.WriteString(REGNAME_SORT, Utf8Encode(OutputStr));
+    end;
+    // Fix in memory perspective
+    if DataGridTable = SelectedTable then begin
+      for i:=0 to Length(FDataGridSort)-1 do begin
+        if FDataGridSort[i].ColumnName = NodeData.Captions[0] then
+          FDataGridSort[i].ColumnName := NewText;
+      end;
+    end;
 
     // Update listitem
     NodeData.Captions[0] := NewText;
