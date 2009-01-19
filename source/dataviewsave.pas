@@ -51,7 +51,8 @@ end;
 
 procedure TFrmDataViewSave.btnOKClick(Sender: TObject);
 var
-  viewName, basekey, Sort: String;
+  viewName, basekey: String;
+  Sort: WideString;
   i: Integer;
 begin
   // Save current view stuff to registry
