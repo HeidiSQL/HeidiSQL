@@ -324,7 +324,6 @@ type
     Exportdata2: TMenuItem;
     SaveDialogExportData: TSaveDialog;
     N11a: TMenuItem;
-    ProgressBarQuery: TProgressBar;
     Copy4: TMenuItem;
     N14: TMenuItem;
     DataInsertDateTime: TMenuItem;
@@ -4466,15 +4465,13 @@ begin
     rowsaffected := 0;
     fieldcount := 0;
     recordcount := 0;
-    ProgressBarQuery.Max := SQL.Count;
-    ProgressBarQuery.Position := 0;
-    ProgressBarQuery.Show();
+    EnableProgressBar(SQL.Count);
 
     showstatus( 'Executing SQL...' );
     for i := 0 to (SQL.Count - 1) do
     begin
-      ProgressBarQuery.StepIt();
-      ProgressBarQuery.Repaint;
+      ProgressBarStatus.StepIt;
+      ProgressBarStatus.Repaint;
       if ( sql[i] = '' ) then
       begin
         continue;
@@ -4508,7 +4505,7 @@ begin
           if actQueryStopOnErrors.Checked or (i = SQL.Count - 1) then begin
             Screen.Cursor := crDefault;
             MessageDlg( E.Message, mtError, [mbOK], 0 );
-            ProgressBarQuery.Hide();
+            ProgressBarStatus.Hide;
             actExecuteQuery.Enabled := true;
             actExecuteSelection.Enabled := true;
             Break;
@@ -4530,7 +4527,7 @@ begin
       end;
     end;
 
-    ProgressBarQuery.Hide();
+    ProgressBarStatus.Hide;
     ValidateQueryControls;
 
     if ( SQL.Count > 1 ) then
