@@ -567,7 +567,7 @@ type
     procedure ShowTable(table: WideString; tab: TTabSheet = nil);
     procedure ShowTableProperties;
     procedure ShowTableData(table: WideString);
-    procedure EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode);
+    function EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode): Boolean;
     procedure EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: WideString);
     procedure EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure DiscardNodeData(Sender: TVirtualStringTree; Node: PVirtualNode);
@@ -2240,7 +2240,8 @@ begin
   if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
   Screen.Cursor := crHourGlass;
   showstatus('Saving contents to file...');
-  EnsureFullWidth(g, g.FocusedColumn, g.FocusedNode);
+  if not EnsureFullWidth(g, g.FocusedColumn, g.FocusedNode) then
+    Exit;
   IsBinary := ActiveData.Columns[g.FocusedColumn].IsBinary;
   Content := g.Text[g.FocusedNode, g.FocusedColumn];
 
@@ -7668,7 +7669,8 @@ var
 begin
   Result := GetKeyColumns.Count > 0;
   if not Result then begin
-    mres := MessageDlg('Grid editing is blocked because this table does not have a primary '+
+    Screen.Cursor := crDefault;
+    mres := MessageDlg('Grid editing and selective row operations are blocked because this table does not have a primary '+
       'or a unique key, or it only contains a unique key which allows NULLs which turns that '+
       'key to be non unique again. You can create or edit the keys using the index manager.'+CRLF+CRLF+
       'Press'+CRLF+
@@ -8073,7 +8075,7 @@ end;
 //       for a row, and fetches 500 rows at a time, for use with GridTo{Xml,Csv,Html}.
 //       Would reduce number of database roundtrips; also the per-query overhead
 //       right now is horrendous for some reason (thinking mysqlquerythread).
-procedure TMainForm.EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode);
+function TMainForm.EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode): Boolean;
 var
   Data: PGridResult;
   Cell: PGridCell;
@@ -8083,6 +8085,8 @@ var
   len: Int64;
   ds: TDataSet;
 begin
+  Result := True;
+
   // Only the data grid uses delayed loading of full-width data.
   if Grid <> DataGrid then Exit;
   Data := @FDataGridResult;
@@ -8096,15 +8100,18 @@ begin
   if (Col.IsBinary) and (len > 2) then len := (len - 2) div 2;
   // Assume width limit in effect if data exactly at limit threshold.
   if len = GridMaxData then begin
-    sql :=
-      'SELECT ' + mask(Col.Name) +
-      ' FROM ' + mask(SelectedTable) +
-      ' WHERE ' + GetWhereClause(Row, @Data.Columns)
-    ;
-    ds := GetResults(sql);
-    if Col.IsBinary then Cell.Text := '0x' + BinToWideHex(ds.Fields[0].AsString)
-    else Cell.Text := ds.Fields[0].AsWideString;
-    Cell.IsNull := ds.Fields[0].IsNull;
+    if CheckUniqueKeyClause then begin
+      sql :=
+        'SELECT ' + mask(Col.Name) +
+        ' FROM ' + mask(SelectedTable) +
+        ' WHERE ' + GetWhereClause(Row, @Data.Columns)
+      ;
+      ds := GetResults(sql);
+      if Col.IsBinary then Cell.Text := '0x' + BinToWideHex(ds.Fields[0].AsString)
+      else Cell.Text := ds.Fields[0].AsWideString;
+      Cell.IsNull := ds.Fields[0].IsNull;
+    end else
+      Result := False;
   end;
 end;
 
