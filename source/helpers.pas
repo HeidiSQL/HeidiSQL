@@ -184,6 +184,7 @@ type
   function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
   function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
   procedure ResetVTNodes(Sender: TBaseVirtualTree);
+  procedure EnableProgressBar(MaxValue: Integer);
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -790,8 +791,7 @@ var
   Node: PVirtualNode;
 begin
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-  Mainform.ProgressBarStatus.Visible := True;
-  Mainform.ProgressBarStatus.Max := Grid.RootNodeCount;
+  EnableProgressBar(Grid.RootNodeCount);
   Generator := APPNAME+' '+FullAppVersion;
   tmp :=
     '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
@@ -912,8 +912,7 @@ begin
   encloser := esc2ascii(encloser);
   terminator := esc2ascii(terminator);
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-  Mainform.ProgressBarStatus.Visible := True;
-  Mainform.ProgressBarStatus.Max := Grid.RootNodeCount;
+  EnableProgressBar(Grid.RootNodeCount);
 
   tmp := '';
   // Columns
@@ -991,8 +990,7 @@ var
   Node: PVirtualNode;
 begin
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-  Mainform.ProgressBarStatus.Visible := True;
-  Mainform.ProgressBarStatus.Max := Grid.RootNodeCount;
+  EnableProgressBar(Grid.RootNodeCount);
   tmp := '<?xml version="1.0"?>' + CRLF + CRLF +
       '<table name="'+root+'">' + CRLF;
   StreamWrite(S, tmp);
@@ -1063,8 +1061,7 @@ var
   Node: PVirtualNode;
 begin
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-  Mainform.ProgressBarStatus.Visible := True;
-  Mainform.ProgressBarStatus.Max := Grid.RootNodeCount;
+  EnableProgressBar(Grid.RootNodeCount);
   // Avoid reloading discarded data before the end.
   Grid.Visible := false;
   Node := Grid.GetFirst;
@@ -2902,6 +2899,14 @@ begin
     Node.States := Node.States - [vsInitialized];
     Node := Sender.GetNext(Node);
   end;
+end;
+
+
+procedure EnableProgressBar(MaxValue: Integer);
+begin
+  Mainform.ProgressBarStatus.Visible := True;
+  Mainform.ProgressBarStatus.Max := MaxValue;
+  Mainform.ProgressBarStatus.Position := 0;
 end;
 
 
