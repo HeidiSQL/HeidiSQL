@@ -790,6 +790,11 @@ var
   tmp, Data, Generator: WideString;
   Node: PVirtualNode;
 begin
+  // Check for unique key in DataGrid here instead of doing that indirectly
+  // by EnsureFullWidth in the loop below
+  if not Mainform.CheckUniqueKeyClause then
+    Exit;
+
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
   EnableProgressBar(Grid.RootNodeCount);
   Generator := APPNAME+' '+FullAppVersion;
@@ -908,6 +913,11 @@ var
   tmp, Data: WideString;
   Node: PVirtualNode;
 begin
+  // Check for unique key in DataGrid here instead of doing that indirectly
+  // by EnsureFullWidth in the loop below
+  if not Mainform.CheckUniqueKeyClause then
+    Exit;
+
   separator := esc2ascii(separator);
   encloser := esc2ascii(encloser);
   terminator := esc2ascii(terminator);
@@ -989,6 +999,11 @@ var
   tmp, Data: WideString;
   Node: PVirtualNode;
 begin
+  // Check for unique key in DataGrid here instead of doing that indirectly
+  // by EnsureFullWidth in the loop below
+  if not Mainform.CheckUniqueKeyClause then
+    Exit;
+
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
   EnableProgressBar(Grid.RootNodeCount);
   tmp := '<?xml version="1.0"?>' + CRLF + CRLF +
@@ -1060,6 +1075,11 @@ var
   tmp, Data: WideString;
   Node: PVirtualNode;
 begin
+  // Check for unique key in DataGrid here instead of doing that indirectly
+  // by EnsureFullWidth in the loop below
+  if not Mainform.CheckUniqueKeyClause then
+    Exit;
+
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
   EnableProgressBar(Grid.RootNodeCount);
   // Avoid reloading discarded data before the end.
