@@ -1147,7 +1147,6 @@ end;
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   filename : String;
-  buffer   : array[0..MAX_PATH] of char;
 begin
   DoDisconnect;
   EnterCriticalSection(SqlMessagesLock);
@@ -1194,9 +1193,7 @@ begin
 
   saveWindowConfig;
 
-  GetTempPath(MAX_PATH, buffer);
-  filename := buffer;
-  filename := '\'+filename+APPNAME+'-preview.';
+  filename := GetTempDir+'\'+APPNAME+'-preview.';
   if FileExists(filename+'html') then
     deletefile(filename+'html');
   if FileExists(filename+'jpg') then
@@ -2231,7 +2228,6 @@ var
   g              : TVirtualStringTree;
   filename       : String;
   f              : Textfile;
-  tmppath        : array[0..MAX_PATH] of char;
   Content        : WideString;
   IsBinary       : Boolean;
 begin
@@ -2244,9 +2240,7 @@ begin
   IsBinary := ActiveData.Columns[g.FocusedColumn].IsBinary;
   Content := g.Text[g.FocusedNode, g.FocusedColumn];
 
-  GetTempPath(MAX_PATH, tmppath);
-  filename := tmppath;
-  filename := filename+'\'+APPNAME+'-preview.';
+  filename := GetTempDir+'\'+APPNAME+'-preview.';
   if IsBinary then begin
     if pos('JFIF', copy(Content, 0, 20)) <> 0 then
       filename := filename + 'jpeg'
