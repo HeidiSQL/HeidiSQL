@@ -1459,21 +1459,11 @@ object MainForm: TMainForm
             end
           end
         end
-        object ProgressBarQuery: TProgressBar
-          Left = 0
-          Top = 100
-          Width = 502
-          Height = 17
-          Align = alTop
-          Step = 1
-          TabOrder = 1
-          Visible = False
-        end
         object QueryGrid: TVirtualStringTree
           Left = 0
-          Top = 130
+          Top = 113
           Width = 502
-          Height = 170
+          Height = 187
           Align = alClient
           EditDelay = 0
           Header.AutoSizeIndex = -1
@@ -1489,7 +1479,7 @@ object MainForm: TMainForm
           IncrementalSearch = isAll
           LineStyle = lsSolid
           PopupMenu = popupResultGrid
-          TabOrder = 2
+          TabOrder = 1
           TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toDisableAutoscrollOnFocus, toDisableAutoscrollOnEdit]
           TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning]
           TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
