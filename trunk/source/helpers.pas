@@ -2284,11 +2284,7 @@ begin
   Node := VT.GetFirst;
   while Assigned(Node) do begin
     NodeData := VT.GetNodeData(Node);
-    if Selected.IndexOf(NodeData.Captions[0]) > -1 then begin
-      if not Assigned(VT.FocusedNode) then
-        VT.FocusedNode := Node;
-      VT.Selected[Node] := True;
-    end;
+    VT.Selected[Node] := Selected.IndexOf(NodeData.Captions[0]) > -1;
     Node := VT.GetNext(Node);
   end;
 end;
