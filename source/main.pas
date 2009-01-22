@@ -5252,78 +5252,73 @@ procedure TMainForm.popupDataGridPopup(Sender: TObject);
 var
   y,m,d,h,i,s,ms : Word;
   cpText, selectedColumn, value : String;
+  CellFocused: Boolean;
 const
   CLPBRD : String = 'CLIPBOARD';
 begin
-  {DONE  -oFrancisco -cData-browsing:Bugfix: [1650528] Access violation with F5}
-  if Assigned(DataGrid.FocusedNode) and (DataGrid.FocusedColumn > -1) then
-  begin
-    DataInsertDateTime.Enabled := FDataGridResult.Columns[DataGrid.FocusedColumn].IsDate;
-    if DataInsertDateTime.Enabled then
-    begin
-      decodedate(now, y, m, d);
-      decodetime(now, h, i, s, ms);
-      DataDateTime.Caption := Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,i,s]);
-      DataDate.Caption := Format('%.4d-%.2d-%.2d', [y,m,d]);
-      DataTime.Caption := Format('%.2d:%.2d:%.2d', [h,i,s]);
-      DataTimestamp.caption := Format('%.4d%.2d%.2d%.2d%.2d%.2d', [y,m,d,h,i,s]);
-      DataYear.Caption := Format('%.4d', [y]);
-    end;
+  CellFocused := Assigned(DataGrid.FocusedNode) and (DataGrid.FocusedColumn > NoColumn);
+  DataInsertDateTime.Enabled := CellFocused;
+  if not CellFocused then
+    Exit;
 
-    // Manipulate the Quick-filter menuitems
-    selectedColumn := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
-    // 1. block: include selected columnname and value from datagrid in caption
-    if FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].IsNull then begin
-      QF1.Caption := selectedColumn + ' IS NULL';
-      QF2.Caption := selectedColumn + ' IS NOT NULL';
-      QF3.Visible := False;
-      QF4.Visible := False;
-      QF5.Visible := False;
-      QF6.Visible := False;
-      QF7.Visible := False;
-    end else begin
-      value := sstr(DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn], 100);
-      QF1.Caption := selectedColumn + ' = ' + esc( value );
-      QF2.Caption := selectedColumn + ' != ' + esc( value );
-      QF3.Caption := selectedColumn + ' > ' + esc( value );
-      QF4.Caption := selectedColumn + ' < ' + esc( value );
-      QF5.Caption := selectedColumn + ' LIKE ''' + esc( value, true ) + '%''';
-      QF6.Caption := selectedColumn + ' LIKE ''%' + esc( value, true ) + '''';
-      QF7.Caption := selectedColumn + ' LIKE ''%' + esc( value, true ) + '%''';
-      QF3.Visible := True;
-      QF4.Visible := True;
-      QF5.Visible := True;
-      QF6.Visible := True;
-      QF7.Visible := True;
-    end;
+  decodedate(now, y, m, d);
+  decodetime(now, h, i, s, ms);
+  DataDateTime.Caption := Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,i,s]);
+  DataDate.Caption := Format('%.4d-%.2d-%.2d', [y,m,d]);
+  DataTime.Caption := Format('%.2d:%.2d:%.2d', [h,i,s]);
+  DataTimestamp.caption := Format('%.4d%.2d%.2d%.2d%.2d%.2d', [y,m,d,h,i,s]);
+  DataYear.Caption := Format('%.4d', [y]);
 
-    // 2. block: include only selected columnname in caption
-    QF8.Caption := selectedColumn + ' = "..."';
-    QF9.Caption := selectedColumn + ' != "..."';
-    QF10.Caption := selectedColumn + ' > "..."';
-    QF11.Caption := selectedColumn + ' < "..."';
-    QF12.Caption := selectedColumn + ' LIKE "%...%"';
-    QF13.Caption := selectedColumn + ' IS NULL';
-    QF14.Caption := selectedColumn + ' IS NOT NULL';
+  // Manipulate the Quick-filter menuitems
+  selectedColumn := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
+  // 1. block: include selected columnname and value from datagrid in caption
+  if FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].IsNull then begin
+    QF1.Caption := selectedColumn + ' IS NULL';
+    QF2.Caption := selectedColumn + ' IS NOT NULL';
+    QF3.Visible := False;
+    QF4.Visible := False;
+    QF5.Visible := False;
+    QF6.Visible := False;
+    QF7.Visible := False;
+  end else begin
+    value := sstr(DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn], 100);
+    QF1.Caption := selectedColumn + ' = ' + esc( value );
+    QF2.Caption := selectedColumn + ' != ' + esc( value );
+    QF3.Caption := selectedColumn + ' > ' + esc( value );
+    QF4.Caption := selectedColumn + ' < ' + esc( value );
+    QF5.Caption := selectedColumn + ' LIKE ''' + esc( value, true ) + '%''';
+    QF6.Caption := selectedColumn + ' LIKE ''%' + esc( value, true ) + '''';
+    QF7.Caption := selectedColumn + ' LIKE ''%' + esc( value, true ) + '%''';
+    QF3.Visible := True;
+    QF4.Visible := True;
+    QF5.Visible := True;
+    QF6.Visible := True;
+    QF7.Visible := True;
+  end;
 
-    // 3. block: include selected columnname and clipboard-content in caption for one-click-filtering
-    cpText := Clipboard.AsText;
-    if Length(cpText) < 100 then
-    begin
-      QF15.Enabled := true; QF15.Caption := selectedColumn + ' = ' + esc( cpText );
-      QF16.Enabled := true; QF16.Caption := selectedColumn + ' != ' + esc( cpText );
-      QF17.Enabled := true; QF17.Caption := selectedColumn + ' > ' + esc( cpText );
-      QF18.Enabled := true; QF18.Caption := selectedColumn + ' < ' + esc( cpText );
-      QF19.Enabled := true; QF19.Caption := selectedColumn + ' LIKE ''%' + esc( cpText, true ) + '%''';
-    end
-    else
-    begin
-      QF15.Enabled := false; QF15.Caption := selectedColumn + ' = ' + CLPBRD;
-      QF16.Enabled := false; QF16.Caption := selectedColumn + ' != ' + CLPBRD;
-      QF17.Enabled := false; QF17.Caption := selectedColumn + ' > ' + CLPBRD;
-      QF18.Enabled := false; QF18.Caption := selectedColumn + ' < ' + CLPBRD;
-      QF19.Enabled := false; QF19.Caption := selectedColumn + ' LIKE %' + CLPBRD + '%';
-    end;
+  // 2. block: include only selected columnname in caption
+  QF8.Caption := selectedColumn + ' = "..."';
+  QF9.Caption := selectedColumn + ' != "..."';
+  QF10.Caption := selectedColumn + ' > "..."';
+  QF11.Caption := selectedColumn + ' < "..."';
+  QF12.Caption := selectedColumn + ' LIKE "%...%"';
+  QF13.Caption := selectedColumn + ' IS NULL';
+  QF14.Caption := selectedColumn + ' IS NOT NULL';
+
+  // 3. block: include selected columnname and clipboard-content in caption for one-click-filtering
+  cpText := Clipboard.AsText;
+  if Length(cpText) < 100 then begin
+    QF15.Enabled := true; QF15.Caption := selectedColumn + ' = ' + esc( cpText );
+    QF16.Enabled := true; QF16.Caption := selectedColumn + ' != ' + esc( cpText );
+    QF17.Enabled := true; QF17.Caption := selectedColumn + ' > ' + esc( cpText );
+    QF18.Enabled := true; QF18.Caption := selectedColumn + ' < ' + esc( cpText );
+    QF19.Enabled := true; QF19.Caption := selectedColumn + ' LIKE ''%' + esc( cpText, true ) + '%''';
+  end else begin
+    QF15.Enabled := false; QF15.Caption := selectedColumn + ' = ' + CLPBRD;
+    QF16.Enabled := false; QF16.Caption := selectedColumn + ' != ' + CLPBRD;
+    QF17.Enabled := false; QF17.Caption := selectedColumn + ' > ' + CLPBRD;
+    QF18.Enabled := false; QF18.Caption := selectedColumn + ' < ' + CLPBRD;
+    QF19.Enabled := false; QF19.Caption := selectedColumn + ' LIKE %' + CLPBRD + '%';
   end;
 end;
 
