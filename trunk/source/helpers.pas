@@ -185,6 +185,7 @@ type
   function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
   procedure ResetVTNodes(Sender: TBaseVirtualTree);
   procedure EnableProgressBar(MaxValue: Integer);
+  function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
 
 var
   MYSQL_KEYWORDS             : TStringList;
@@ -2923,6 +2924,22 @@ begin
   Mainform.ProgressBarStatus.Visible := True;
   Mainform.ProgressBarStatus.Max := MaxValue;
   Mainform.ProgressBarStatus.Position := 0;
+end;
+
+
+function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
+var
+  Number1, Number2 : Extended;
+begin
+  // Custom sort method for TStringLists
+  Number1 := MakeFloat( List[Index1] );
+  Number2 := MakeFloat( List[Index2] );
+  if Number1 > Number2 then
+    Result := 1
+  else if Number1 = Number2 then
+    Result := 0
+  else
+    Result := -1;
 end;
 
 

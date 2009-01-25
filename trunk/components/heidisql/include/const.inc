@@ -198,6 +198,7 @@ const
   REGNAME_COPYTABLE_INDEXES = 'CopyTable_Option_WithIndexes';
   REGNAME_COPYTABLE_ALLFIELDS = 'CopyTable_Option_WithAllFields';
   REGNAME_DEFAULTVIEW = 'DefaultView';
+  REGNAME_FILTERS = 'RecentFilters';
 
   REGNAME_FIELDCOLOR_NUMERIC = 'FieldColor_Numeric';
   REGNAME_FIELDCOLOR_TEXT = 'FieldColor_Text';
