@@ -3708,19 +3708,32 @@ procedure TMainForm.DisplayRowCountStats;
 var
   rows_matching    : Int64; // rows matching to where-filter
   rows_total       : Int64; // total rowcount
-  IsFiltered: Boolean;
+  IsFiltered, IsInnodb: Boolean;
+  ds: TDataSet;
+  i: Integer;
 begin
   lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable + ': ';
 
-  IsFiltered := SynMemoFilter.GetTextLen > 0;
+  IsFiltered := self.DataGridCurrentFilter <> '';
   if GetSelectedNodeType = NODETYPE_TABLE then begin
-    if IsFiltered then begin
-      // Get rowcount from table
+    // Get rowcount from table
+    ds := FetchActiveDbTableList;
+    rows_total := -1;
+    IsInnodb := False;
+    if not prefPreferShowTables then for i := 0 to ds.RecordCount - 1 do begin
+      if ds.Fields[0].AsWideString = SelectedTable then begin
+        rows_total := MakeInt(ds.FieldByName('Rows').AsString);
+        IsInnodb := ds.Fields[1].AsString = 'InnoDB';
+        break;
+      end;
+    end;
+    if rows_total = -1 then begin
+      // Fallback for cases in which the user checked the "Prefer SHOW TABLES" option
       rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask( SelectedTable ), 0 ) );
-    end else begin
-      rows_total := DataGrid.RootNodeCount
     end;
     lblDataTop.Caption := lblDataTop.Caption + FormatNumber( rows_total ) + ' rows total';
+    if IsInnodb then
+      lblDataTop.Caption := lblDataTop.Caption + ' (approximately!)'
   end else begin
     // Don't fetch rowcount from views to fix bug #1844952
     rows_total := -1;
@@ -3732,7 +3745,7 @@ begin
   if( rows_matching <> rows_total ) and IsFiltered then
     lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(rows_matching) + ' matching to filter';
 
-  if ( rows_matching = rows_total ) and IsFiltered then
+  if ( rows_matching >= rows_total ) and IsFiltered then
     lblDataTop.Caption := lblDataTop.Caption + ', filter matches all rows';
 end;
 
