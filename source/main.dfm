@@ -6483,6 +6483,7 @@ object MainForm: TMainForm
   end
   object popupFilter: TPopupMenu
     Images = PngImageListMain
+    OnPopup = popupFilterPopup
     Left = 72
     Top = 128
     object menuFilterCopy: TMenuItem
@@ -6499,6 +6500,11 @@ object MainForm: TMainForm
     end
     object menuFilterApply: TMenuItem
       Action = actApplyFilter
+    end
+    object menuRecentFilters: TMenuItem
+      Caption = 'Recent filters'
+      Enabled = False
+      ImageIndex = 53
     end
     object N20: TMenuItem
       Caption = '-'

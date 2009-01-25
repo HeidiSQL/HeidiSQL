@@ -452,6 +452,7 @@ type
     actSelectAll1: TMenuItem;
     N13: TMenuItem;
     ProgressBarStatus: TProgressBar;
+    menuRecentFilters: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -722,6 +723,8 @@ type
     procedure actCopyOrCutExecute(Sender: TObject);
     procedure actPasteExecute(Sender: TObject);
     procedure actSelectAllExecute(Sender: TObject);
+    procedure popupFilterPopup(Sender: TObject);
+    procedure LoadRecentFilter(Sender: TObject);
   private
     FDelimiter: String;
     ServerUptime               : Integer;
@@ -3132,8 +3135,35 @@ end;
 
 
 procedure TMainForm.actApplyFilterExecute(Sender: TObject);
+var
+  i, nr: Integer;
+  OldNumbers, Filters: TStringList;
+  val: String;
 begin
   viewdata(Sender);
+  // Recreate recent filters list
+  Filters := TStringList.Create;
+  OldNumbers := TStringList.Create;
+  Filters.Add(Trim(Utf8Encode(SynMemoFilter.Text)));
+  MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, True);
+  MainReg.GetValueNames(OldNumbers);
+  OldNumbers.CustomSort(CompareNumbers);
+  // Add old filters
+  for i := 0 to OldNumbers.Count - 1 do begin
+    nr := MakeInt(OldNumbers[i]);
+    if nr = 0 then continue; // Not a valid entry, ignore that
+    val := MainReg.ReadString(OldNumbers[i]);
+    if Filters.IndexOf(val) = -1 then
+      Filters.Add(val);
+    MainReg.DeleteValue(OldNumbers[i]);
+  end;
+  for i := 1 to Filters.Count do begin
+    MainReg.WriteString(IntToStr(i), Filters[i-1]);
+    // Avoid too much registry spam with mega old filters
+    if i = 20 then break;
+  end;
+  FreeAndNil(OldNumbers);
+  FreeAndNil(Filters);
 end;
 
 
@@ -4996,7 +5026,7 @@ begin
   SynMemoFilter.SelectAll;
   SynmemoFilter.SelText := filter;
   ToggleFilterPanel(True);
-  viewdata(Sender);
+  actApplyFilterExecute(Sender);
 end;
 
 
@@ -8830,6 +8860,56 @@ begin
   end;
   if not Success then
     MessageBeep(MB_ICONASTERISK);
+end;
+
+
+procedure TMainForm.popupFilterPopup(Sender: TObject);
+var
+  flt: TStringList;
+  i: Integer;
+  item: TMenuItem;
+  rx: TRegExpr;
+  capt: String;
+begin
+  // Reset menu items
+  menuRecentFilters.Enabled := False;
+  for i := menuRecentFilters.Count - 1 downto 0 do
+    menuRecentFilters.Delete(i);
+  // Enumerate recent filters from registry
+  if MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, False) then begin
+    flt := TStringList.Create;
+    rx := TRegExpr.Create;
+    rx.Expression := '\s+';
+    MainReg.GetValueNames(flt);
+    for i := 0 to flt.Count - 1 do begin
+      item := TMenuItem.Create(popupFilter);
+      capt := MainReg.ReadString(flt[i]);
+      capt := rx.Replace(capt, ' ', True);
+      item.Hint := capt;
+      item.Caption := sstr(capt, 50);
+      item.Tag := MakeInt(flt[i]);
+      item.OnClick := LoadRecentFilter;
+      menuRecentFilters.Add(item);
+    end;
+    FreeAndNil(rx);
+    FreeAndNil(flt);
+    menuRecentFilters.Enabled := menuRecentFilters.Count > 0;
+  end;
+end;
+
+
+procedure TMainForm.LoadRecentFilter(Sender: TObject);
+var
+  key: String;
+begin
+  if MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, False) then begin
+    key := IntToStr((Sender as TMenuItem).Tag);
+    SynMemoFilter.UndoList.AddGroupBreak;
+    SynMemoFilter.BeginUpdate;
+    SynMemoFilter.SelectAll;
+    SynMemoFilter.SelText := Utf8Decode( MainReg.ReadString(key) );
+    SynMemoFilter.EndUpdate;
+  end;
 end;
 
 
