@@ -453,6 +453,8 @@ type
     N13: TMenuItem;
     ProgressBarStatus: TProgressBar;
     menuRecentFilters: TMenuItem;
+    comboRecentFilters: TTntComboBox;
+    lblRecentFilters: TLabel;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -723,7 +725,7 @@ type
     procedure actCopyOrCutExecute(Sender: TObject);
     procedure actPasteExecute(Sender: TObject);
     procedure actSelectAllExecute(Sender: TObject);
-    procedure popupFilterPopup(Sender: TObject);
+    procedure EnumerateRecentFilters;
     procedure LoadRecentFilter(Sender: TObject);
   private
     FDelimiter: String;
@@ -3140,7 +3142,6 @@ var
   OldNumbers, Filters: TStringList;
   val: String;
 begin
-  viewdata(Sender);
   // Recreate recent filters list
   Filters := TStringList.Create;
   OldNumbers := TStringList.Create;
@@ -3164,6 +3165,7 @@ begin
   end;
   FreeAndNil(OldNumbers);
   FreeAndNil(Filters);
+  viewdata(Sender);
 end;
 
 
@@ -3690,6 +3692,7 @@ begin
     FreeAndNil(sl_query);
     AutoCalcColWidths(DataGrid, PrevTableColWidths);
     viewingdata := false;
+    EnumerateRecentFilters;
     Screen.Cursor := crDefault;
   end;
   DataGridDB := ActiveDatabase;
@@ -8863,7 +8866,7 @@ begin
 end;
 
 
-procedure TMainForm.popupFilterPopup(Sender: TObject);
+procedure TMainForm.EnumerateRecentFilters;
 var
   flt: TStringList;
   i: Integer;
@@ -8871,10 +8874,11 @@ var
   rx: TRegExpr;
   capt: String;
 begin
-  // Reset menu items
+  // Reset menu and combobox
   menuRecentFilters.Enabled := False;
   for i := menuRecentFilters.Count - 1 downto 0 do
     menuRecentFilters.Delete(i);
+  comboRecentFilters.Items.Clear;
   // Enumerate recent filters from registry
   if MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, False) then begin
     flt := TStringList.Create;
@@ -8890,24 +8894,39 @@ begin
       item.Tag := MakeInt(flt[i]);
       item.OnClick := LoadRecentFilter;
       menuRecentFilters.Add(item);
+      capt := Utf8Decode(capt);
+      comboRecentFilters.Items.Add(sstr(capt, 100));
     end;
     FreeAndNil(rx);
     FreeAndNil(flt);
     menuRecentFilters.Enabled := menuRecentFilters.Count > 0;
+  end;
+  comboRecentFilters.Visible := comboRecentFilters.Items.Count > 0;
+  lblRecentFilters.Visible := comboRecentFilters.Visible;
+  SynMemoFilter.Height := pnlFilter.Height - 3;
+  SynMemoFilter.Top := comboRecentFilters.Top;
+  if comboRecentFilters.Visible then begin
+    SynMemoFilter.Height := SynMemoFilter.Height - comboRecentFilters.Height;
+    SynMemoFilter.Top := SynMemoFilter.Top + comboRecentFilters.Height;
+    comboRecentFilters.ItemIndex := 0;
   end;
 end;
 
 
 procedure TMainForm.LoadRecentFilter(Sender: TObject);
 var
-  key: String;
+  key: Integer;
 begin
+  // Event handler for both dynamic popup menu items and filter combobox
+  if Sender is TMenuItem then
+    key := (Sender as TMenuItem).Tag
+  else
+    key := (Sender as TTNTComboBox).ItemIndex+1;
   if MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, False) then begin
-    key := IntToStr((Sender as TMenuItem).Tag);
     SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.BeginUpdate;
     SynMemoFilter.SelectAll;
-    SynMemoFilter.SelText := Utf8Decode( MainReg.ReadString(key) );
+    SynMemoFilter.SelText := Utf8Decode( MainReg.ReadString(IntToStr(key)) );
     SynMemoFilter.EndUpdate;
   end;
 end;
