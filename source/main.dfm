@@ -1195,6 +1195,13 @@ object MainForm: TMainForm
             Anchors = [akTop, akRight]
             Caption = 'Create table wide filter:'
           end
+          object lblRecentFilters: TLabel
+            Left = 1
+            Top = 3
+            Width = 68
+            Height = 13
+            Caption = 'Recent filters:'
+          end
           object btnFilterApply: TButton
             Left = 339
             Top = 41
@@ -1215,9 +1222,9 @@ object MainForm: TMainForm
           end
           object SynMemoFilter: TSynMemo
             Left = 0
-            Top = 0
-            Width = 335
-            Height = 63
+            Top = 21
+            Width = 336
+            Height = 42
             SingleLineMode = False
             Anchors = [akLeft, akTop, akRight, akBottom]
             Font.Charset = DEFAULT_CHARSET
@@ -1273,6 +1280,17 @@ object MainForm: TMainForm
             OnChange = editFilterSearchChange
             OnEnter = editFilterSearchEnter
             OnExit = editFilterSearchExit
+          end
+          object comboRecentFilters: TTntComboBox
+            Left = 75
+            Top = 0
+            Width = 261
+            Height = 21
+            Style = csDropDownList
+            Anchors = [akLeft, akTop, akRight]
+            ItemHeight = 13
+            TabOrder = 4
+            OnSelect = LoadRecentFilter
           end
         end
         object DataGrid: TVirtualStringTree
@@ -6483,7 +6501,6 @@ object MainForm: TMainForm
   end
   object popupFilter: TPopupMenu
     Images = PngImageListMain
-    OnPopup = popupFilterPopup
     Left = 72
     Top = 128
     object menuFilterCopy: TMenuItem
