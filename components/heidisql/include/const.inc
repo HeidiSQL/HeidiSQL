@@ -292,6 +292,9 @@ const
   // Data grid: How many rows to fetch at a time.
   GRIDMAXROWS: Cardinal = 500;
 
+  // Data grid: How many rows to display in total
+  GRIDMAXTOTALROWS = 100000;
+
   // How many milliseconds to wait before showing a 'waiting for database' sign.
   QUERYWAITTIME: Integer = 2500;
 
