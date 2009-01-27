@@ -762,7 +762,7 @@ type
     function GetActiveData: PGridResult;
     procedure WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery; ForceDialog: Boolean);
     function RunThreadedQuery(AQuery: WideString; ForceDialog: Boolean): TMysqlQuery;
-    procedure DisplayRowCountStats;
+    procedure DisplayRowCountStats(MatchingRows: Int64);
     procedure insertFunction(Sender: TObject);
     function GetActiveDatabase: WideString;
     function GetSelectedTable: WideString;
@@ -3426,6 +3426,7 @@ var
   rx                   : TRegExpr;
   ColType              : String;
   ColExists, ShowIt    : Boolean;
+  MatchingRows         : Int64;
 
 procedure InitColumn(name: WideString; ColType: String; Visible: Boolean);
 var
@@ -3645,7 +3646,10 @@ begin
         sl_query.Add(select_from);
         // Apply custom WHERE filter
         if DataGridCurrentFilter <> '' then sl_query.Add('WHERE ' + DataGridCurrentFilter);
-        count := StrToInt(GetVar(sl_query.Text));
+        MatchingRows := StrToInt(GetVar(sl_query.Text));
+        count := MatchingRows;
+        if count > GRIDMAXTOTALROWS then
+          count := GRIDMAXTOTALROWS;
       except
         on E:Exception do begin
           // Most likely we have a wrong filter-clause when this happens
@@ -3681,7 +3685,7 @@ begin
         DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
         FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
       end;
-      DisplayRowCountStats;
+      DisplayRowCountStats(MatchingRows);
       dataselected := true;
 
       pcChange(self);
@@ -3704,9 +3708,8 @@ end;
   Calculate + display total rowcount and found rows matching to filter
   in data-tab
 }
-procedure TMainForm.DisplayRowCountStats;
+procedure TMainForm.DisplayRowCountStats(MatchingRows: Int64);
 var
-  rows_matching    : Int64; // rows matching to where-filter
   rows_total       : Int64; // total rowcount
   IsFiltered, IsInnodb: Boolean;
   ds: TDataSet;
@@ -3740,13 +3743,14 @@ begin
     lblDataTop.Caption := lblDataTop.Caption + ' [View]';
   end;
 
-  rows_matching := DataGrid.RootNodeCount;
+  if( MatchingRows <> rows_total ) and IsFiltered then
+    lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(MatchingRows) + ' matching to filter';
 
-  if( rows_matching <> rows_total ) and IsFiltered then
-    lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(rows_matching) + ' matching to filter';
-
-  if ( rows_matching >= rows_total ) and IsFiltered then
+  if ( MatchingRows >= rows_total ) and IsFiltered then
     lblDataTop.Caption := lblDataTop.Caption + ', filter matches all rows';
+
+  if MatchingRows > DataGrid.RootNodeCount then
+    lblDataTop.Caption := lblDataTop.Caption + ', limited to '+FormatNumber(DataGrid.RootNodeCount);
 end;
 
 
