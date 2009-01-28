@@ -2281,11 +2281,20 @@ procedure SetVTSelection( VT: TVirtualStringTree; Selected: TWideStringList );
 var
   Node: PVirtualNode;
   NodeData: PVTreeData;
+  IsSel, FoundFocus: Boolean;
 begin
   Node := VT.GetFirst;
+  FoundFocus := False;
   while Assigned(Node) do begin
     NodeData := VT.GetNodeData(Node);
-    VT.Selected[Node] := Selected.IndexOf(NodeData.Captions[0]) > -1;
+    IsSel := Selected.IndexOf(NodeData.Captions[0]) > -1;
+    VT.Selected[Node] := IsSel;
+    if IsSel and not FoundFocus then begin
+      VT.FocusedNode := Node;
+      FoundFocus := True;
+    end;
+    if IsSel and not (toMultiSelect in VT.TreeOptions.SelectionOptions) then
+      break;
     Node := VT.GetNext(Node);
   end;
 end;
