@@ -8401,7 +8401,6 @@ begin
   if MainReg.OpenKey(GetRegKeyTable, False) then begin
     MainReg.GetKeyNames(List);
     for i := List.Count - 1 downto 0 do begin
-      logsql(Copy(List[i], 0, Length(REGPREFIX_DATAVIEW)));
       if Copy(List[i], 0, Length(REGPREFIX_DATAVIEW)) <> REGPREFIX_DATAVIEW then
         List.Delete(i)
       else
