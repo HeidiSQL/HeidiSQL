@@ -3537,11 +3537,8 @@ begin
       // Switch to <Data>
       PageControlMain.ActivePage := tabData;
 
-      if FDataGridSelect = nil then begin
+      if FDataGridSelect = nil then
         FDataGridSelect := WideStrings.TWideStringlist.Create;
-        FDataGridSelect.Delimiter := REGDELIM;
-        FDataGridSelect.StrictDelimiter := True;
-      end;
       if DataGridTable <> SelectedTable then begin
         FDataGridSelect.Clear;
         SynMemoFilter.Clear;
@@ -3579,7 +3576,7 @@ begin
       // Prepare SELECT statement
       select_base := 'SELECT ';
       // Selected columns
-      if FDataGridSelect.Count = 0 then begin
+      if (FDataGridSelect.Count = 0) or (FDataGridSelect.Count = FSelectedTableColumns.RecordCount) then begin
         tbtnDataColumns.ImageIndex := 107;
       end else begin
         for i := FDataGridSelect.Count - 1 downto 0 do begin
@@ -8442,12 +8439,26 @@ end;
 procedure TMainForm.LoadDataView(ViewName: String);
 var
   rx: TRegExpr;
-  idx: Integer;
+  idx, i: Integer;
+  Col: WideString;
+  HiddenCols: TWideStringList;
 begin
   OpenRegistry;
   if MainReg.OpenKey(GetRegKeyTable + '\' + REGPREFIX_DATAVIEW + ViewName, False) then begin
     // Columns
-    FDataGridSelect.DelimitedText := Utf8Decode(MainReg.ReadString(REGNAME_DISPLAYEDCOLUMNS));
+    HiddenCols := TWideStringlist.Create;
+    HiddenCols.Delimiter := REGDELIM;
+    HiddenCols.StrictDelimiter := True;
+    HiddenCols.DelimitedText := Utf8Decode(MainReg.ReadString(REGNAME_HIDDENCOLUMNS));
+    FSelectedTableColumns.First;
+    FDataGridSelect.Clear;
+    for i := 0 to FSelectedTableColumns.RecordCount - 1 do begin
+      Col := FSelectedTableColumns.Fields[0].AsWideString;
+      if HiddenCols.IndexOf(Col) = -1 then
+        FDataGridSelect.Add(Col);
+      FSelectedTableColumns.Next;
+    end;
+    FreeAndNil(HiddenCols);
     // Filter
     SynMemoFilter.Text := Utf8Decode(MainReg.ReadString(REGNAME_FILTER));
     if SynMemoFilter.GetTextLen > 0 then

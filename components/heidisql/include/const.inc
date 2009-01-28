@@ -38,7 +38,7 @@ const
   // Various names of registry variables
   // User-changable variables have a default value
   // Note: Color values are in HEX format: $00BBGGRR
-  REGNAME_DISPLAYEDCOLUMNS = 'DisplayedColumns';
+  REGNAME_HIDDENCOLUMNS = 'HiddenColumns';
   REGNAME_FILTER = 'Filter';
   REGNAME_SORT = 'Sort';
   REGNAME_SORTDISPLAYEDCOLUMNS = 'DisplayedColumnsSorted';

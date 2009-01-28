@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Dialogs, StdCtrls, WideStrings;
 
 type
   TFrmDataViewSave = class(TForm)
@@ -54,13 +54,26 @@ var
   viewName, basekey: String;
   Sort: WideString;
   i: Integer;
+  Col: WideString;
+  HiddenCols: TWideStringList;
 begin
   // Save current view stuff to registry
   Screen.Cursor := crHourglass;
   viewName := comboSave.Text;
   basekey := Mainform.GetRegKeyTable + '\' + REGPREFIX_DATAVIEW + viewName;
   if MainReg.OpenKey(basekey, True) then begin
-    MainReg.WriteString(REGNAME_DISPLAYEDCOLUMNS, Utf8Encode(Mainform.FDataGridSelect.DelimitedText));
+    HiddenCols := TWideStringlist.Create;
+    HiddenCols.Delimiter := REGDELIM;
+    HiddenCols.StrictDelimiter := True;
+    Mainform.FSelectedTableColumns.First;
+    for i := 0 to Mainform.FSelectedTableColumns.RecordCount - 1 do begin
+      Col := Mainform.FSelectedTableColumns.Fields[0].AsWideString;
+      if Mainform.FDataGridSelect.IndexOf(Col) = -1 then
+        HiddenCols.Add(Col);
+      Mainform.FSelectedTableColumns.Next;
+    end;
+    MainReg.WriteString(REGNAME_HIDDENCOLUMNS, Utf8Encode(HiddenCols.DelimitedText));
+    FreeAndNil(HiddenCols);
     MainReg.WriteString(REGNAME_FILTER, Utf8Encode(Mainform.SynMemoFilter.Text));
     for i := 0 to High(Mainform.FDataGridSort) do
       Sort := Sort + IntToStr(Mainform.FDataGridSort[i].SortDirection) + '_' + Mainform.FDataGridSort[i].ColumnName + REGDELIM;
