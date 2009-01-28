@@ -305,7 +305,7 @@ type
     SynMemoFilter: TSynMemo;
     N18: TMenuItem;
     MenuAutoupdate: TMenuItem;
-    TimerHost: TTimer;
+    TimerRefresh: TTimer;
     Set1: TMenuItem;
     EnableAutoRefresh: TMenuItem;
     DisableAutoRefresh: TMenuItem;
@@ -716,7 +716,6 @@ type
     procedure DataGridMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure File1Click(Sender: TObject);
-    procedure TimerHostTimer(Sender: TObject);
     procedure ListVariablesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure ListStatusBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure ListProcessesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
@@ -4445,8 +4444,8 @@ var t : Boolean;
   ProcessIDs : WideStrings.TWideStringList;
   i : Integer;
 begin
-  t := TimerHost.Enabled;
-  TimerHost.Enabled := false; // prevent av (ListProcesses.selected...)
+  t := TimerRefresh.Enabled;
+  TimerRefresh.Enabled := false; // prevent av (ListProcesses.selected...)
   ProcessIDs := GetVTCaptions( ListProcesses, True );
   if MessageDlg('Kill '+inttostr(ProcessIDs.count)+' Process(es)?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
   begin
@@ -4461,7 +4460,7 @@ begin
     ListProcesses.Tag := VTREE_NOTLOADED;
     ListProcesses.Repaint;
   end;
-  TimerHost.Enabled := t; // re-enable autorefresh timer
+  TimerRefresh.Enabled := t; // re-enable autorefresh timer
 end;
 
 
@@ -5068,12 +5067,12 @@ var
   secondsInt : Integer;
 begin
   // set interval for autorefresh-timer
-  seconds := IntToStr(TimerHost.interval div 1000);
+  seconds := IntToStr(TimerRefresh.interval div 1000);
   if inputquery('Auto-refresh processlist','Update list every ... seconds:', seconds) then begin
     secondsInt := StrToIntDef(seconds, 0);
     if secondsInt > 0 then begin
-      TimerHost.Interval := secondsInt * 1000;
-      TimerHost.Enabled := true;
+      TimerRefresh.Interval := secondsInt * 1000;
+      TimerRefresh.Enabled := true;
       EnableAutoRefresh.Checked := true;
       DisableAutoRefresh.Checked := false;
     end
@@ -5085,7 +5084,7 @@ end;
 procedure TMainForm.EnableAutoRefreshClick(Sender: TObject);
 begin
   // enable autorefresh-timer
-  TimerHost.Enabled := true;
+  TimerRefresh.Enabled := true;
   EnableAutoRefresh.Checked := true;
   DisableAutoRefresh.Checked := false;
 end;
@@ -5093,7 +5092,7 @@ end;
 procedure TMainForm.DisableAutoRefreshClick(Sender: TObject);
 begin
   // enable autorefresh-timer
-  TimerHost.Enabled := false;
+  TimerRefresh.Enabled := false;
   EnableAutoRefresh.Checked := false;
   DisableAutoRefresh.Checked := true;
 end;
@@ -8535,12 +8534,6 @@ begin
 end;
 
 
-procedure TMainForm.TimerHostTimer(Sender: TObject);
-begin
-  actRefresh.Execute;
-end;
-
-
 procedure TMainForm.ListVariablesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   i : Integer;
@@ -8694,7 +8687,7 @@ begin
   except
     on E: Exception do begin
       LogSQL('Error loading process list (automatic refresh disabled): ' + e.Message);
-      TimerHost.Enabled := false;
+      TimerRefresh.Enabled := false;
     end;
   end;
   Screen.Cursor := crDefault;

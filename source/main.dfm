@@ -6314,10 +6314,10 @@ object MainForm: TMainForm
       OnClick = menuOpenLogFolderClick
     end
   end
-  object TimerHost: TTimer
+  object TimerRefresh: TTimer
     Enabled = False
     Interval = 5000
-    OnTimer = TimerHostTimer
+    OnTimer = actRefreshExecute
     Left = 72
     Top = 269
   end
