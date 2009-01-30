@@ -8787,6 +8787,8 @@ begin
   // Copy text from a focused control to clipboard
   Success := False;
   Control := ActiveControl;
+  // Do not handle Search/replace dialog
+  if not Control.Focused then Exit;
   DoCut := Sender = actCut;
   if Control is TCustomEdit then begin
     Edit := TCustomEdit(Control);
@@ -8830,6 +8832,8 @@ begin
   // Paste text into the focused control
   Success := False;
   Control := ActiveControl;
+  // Do not handle Search/replace dialog
+  if not Control.Focused then Exit;
   if not Clipboard.HasFormat(CF_TEXT) then begin
     // Do nothing, we cannot paste a picture or so
   end else if Control is TCustomEdit then begin
@@ -8867,6 +8871,8 @@ begin
   // Select all items, text or whatever
   Success := False;
   Control := ActiveControl;
+  // Do not handle Search/replace dialog
+  if not Control.Focused then Exit;
   if Control is TCustomEdit then begin
     TCustomEdit(Control).SelectAll;
     Success := True;
