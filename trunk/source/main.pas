@@ -687,7 +687,7 @@ type
     procedure ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
-    procedure ListProcessesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure ListProcessesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure editFilterVTChange(Sender: TObject);
     procedure ListColumnsDblClick(Sender: TObject);
     procedure ListVariablesDblClick(Sender: TObject);
@@ -6753,8 +6753,8 @@ end;
   A row in the process list was selected. Fill SynMemoProcessView with
   the SQL of that row.
 }
-procedure TMainForm.ListProcessesChange(Sender: TBaseVirtualTree; Node:
-    PVirtualNode);
+procedure TMainForm.ListProcessesFocusChanged(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex);
 var
   NodeData : PVTreeData;
   enableSQLView : Boolean;

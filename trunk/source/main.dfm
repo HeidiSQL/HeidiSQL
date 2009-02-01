@@ -666,8 +666,8 @@ object MainForm: TMainForm
               TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
               OnAfterPaint = vstAfterPaint
               OnBeforePaint = ListProcessesBeforePaint
-              OnChange = ListProcessesChange
               OnCompareNodes = vstCompareNodes
+              OnFocusChanged = ListProcessesFocusChanged
               OnFreeNode = vstFreeNode
               OnGetText = vstGetText
               OnGetImageIndex = vstGetImageIndex
