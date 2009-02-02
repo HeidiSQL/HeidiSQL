@@ -35,7 +35,6 @@ type
     lblSeconds: TLabel;
     lblOnlyDBs: TLabel;
     EditOnlyDBs: TTNTEdit;
-    TimerCloseFormReminder: TTimer;
     CheckBoxSorted: TCheckBox;
     ButtonSaveAndConnect: TButton;
     ToolBar1: TToolBar;
@@ -54,15 +53,12 @@ type
     procedure ComboBoxDescriptionClick(Sender: TObject);
     procedure EnableDisable(Enable: Boolean);
     procedure Modified(Sender: TObject);
-    procedure TimerCloseFormReminderTimer(Sender: TObject);
     procedure ButtonEditDescClick(Sender: TObject);
   private
     { Private declarations }
   public
     { Public declarations }
   end;
-
-  function ConnectionWindow (AOwner : TComponent; AFlags : String = '') : Integer;
 
 
 implementation
@@ -71,15 +67,6 @@ implementation
 {$I const.inc}
 
 {$R *.DFM}
-
-function ConnectionWindow (AOwner : TComponent; AFlags : String = '') : Integer;
-var
-  f : Tconnform;
-begin
-  f := Tconnform.Create(AOwner);
-  Result := f.ShowModal;
-  FreeAndNil (f);
-end;
 
 
 {**
@@ -135,7 +122,6 @@ procedure Tconnform.FormShow(Sender: TObject);
 var
   i       : Integer;
   lastcon : String;
-  AutoReconnect : Boolean;
 begin
   Screen.Cursor := crHourglass;
 
@@ -144,7 +130,6 @@ begin
   if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, true) then
     MainReg.GetKeyNames(ComboBoxDescription.Items);
   lastcon := GetRegValue(REGNAME_LASTSESSION, '');
-  AutoReconnect := GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
 
   if ComboBoxDescription.Items.Count > 0 then
   begin
@@ -174,15 +159,6 @@ begin
     EnableDisable(false);
   end;
   Screen.Cursor := crDefault;
-
-  if not main.appstarted then
-  begin
-    main.appstarted := true;
-    if AutoReconnect and (ComboBoxDescription.ItemIndex > -1) then
-    begin
-      TimerCloseFormReminder.Enabled := true;
-    end;
-  end;
   MainForm.ShowStatus( STATUS_MSG_READY );
 end;
 
@@ -319,12 +295,6 @@ begin
   btnSave.Enabled := true;
   ButtonSaveAndConnect.Enabled := true;
   CheckBoxSorted.Enabled := EditOnlyDBs.Text <> '';
-end;
-
-procedure Tconnform.TimerCloseFormReminderTimer(Sender: TObject);
-begin
-  TimerCloseFormReminder.Enabled := false;
-  ButtonConnect.Click;
 end;
 
 

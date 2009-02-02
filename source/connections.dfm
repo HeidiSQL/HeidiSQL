@@ -3113,11 +3113,4 @@ object connform: Tconnform
       OnClick = ButtonEditDescClick
     end
   end
-  object TimerCloseFormReminder: TTimer
-    Enabled = False
-    Interval = 1
-    OnTimer = TimerCloseFormReminderTimer
-    Left = 24
-    Top = 8
-  end
 end

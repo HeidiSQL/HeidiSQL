@@ -909,8 +909,6 @@ procedure InheritFont(AFont: TFont);
 
 var
   MainForm            : TMainForm;
-  appstarted          : Boolean = false;               // see connections.pas
-  loadsqlfile         : boolean = true;               // load sql-file into query-memo at startup?
   AppVersion          : String = 'x.y';
   AppRevision         : String = '$Rev$';
   FullAppVersion      : String;
@@ -1505,10 +1503,11 @@ var
   parTimeout, parCompress, parSortDatabases, parDescription : String;
   LastUpdatecheck : TDateTime;
   UpdatecheckInterval : Integer;
-  DefaultLastrunDate : String;
+  DefaultLastrunDate, LastSession: String;
   frm : TfrmUpdateCheck;
   dlgResult: Integer;
-  AutoReconnect: Boolean;
+  Connected, CommandLineMode: Boolean;
+  ConnForm: TConnForm;
 begin
   // Do an updatecheck if checked in settings
   if GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK) then begin
@@ -1529,10 +1528,11 @@ begin
     end;
   end;
 
+  Connected := False;
+
   // Check commandline if parameters were passed. Otherwise show connections windows
   curParam := 1;
-  while curParam <= ParamCount do
-  begin
+  while curParam <= ParamCount do begin
     // -M and -d are choosen not to conflict with mysql.exe
     // http://dev.mysql.com/doc/refman/5.0/en/mysql-command-options.html
     //
@@ -1556,29 +1556,17 @@ begin
       parDescription := sValue;
     Inc(curParam);
   end;
-
-  // Minimal parameter is hostname. If given, user commandline parameters.
-  if parHost <> '' then
-  begin
-    // Parameters belong to connection, not to a SQL file which should get opened
-    loadsqlfile := False;
-    if InitConnection(
-      parHost,
-      parPort,
-      parUser,
-      parPass,
-      parDatabase,
-      parTimeout,
-      parCompress,
-      parSortDatabases) then
-    begin
+  // Minimal parameter for command line mode is hostname
+  CommandLineMode := parHost <> '';
+  if CommandLineMode then begin
+    Connected := InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases);
+    if Connected then begin
       // Take care for empty description - it gets used to read/write session settings to registry!
       SessionName := parDescription;
       if SessionName = '' then
         SessionName := parHost;
       // Save session parameters to registry
-      if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS + SessionName, true) then
-      begin
+      if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS + SessionName, true) then begin
         MainReg.WriteString(REGNAME_HOST, parHost);
         MainReg.WriteString(REGNAME_USER, parUser);
         MainReg.WriteString(REGNAME_PASSWORD, encrypt(parPass));
@@ -1588,44 +1576,48 @@ begin
         MainReg.WriteString(REGNAME_ONLYDBS, parDatabase);
         MainReg.WriteBool(REGNAME_ONLYDBSSORTED, Boolean(StrToIntDef(parSortDatabases, 0)) );
       end;
-      DataGridHasChanges := False;
-
-      { TODO : only load file when autoconnected ?? }
-      if (paramstr(1) <> '') and Main.loadsqlfile then
-      try
-        // load sql-file from paramstr
-        SynMemoQuery.Lines.LoadFromFile(paramstr(1));
-        Main.loadsqlfile := false;
-      except
-        MessageDLG('File could not be opened: ' + paramstr(1), mtError, [mbOK], 0);
-      end;
-
-      //TODO:
-      //ds.DisableControls;
-    end else
-      Exit;
-  end else begin
-    // Temporarily disable AutoReconnect in Registry
-    // in case of unexpected application-termination
-    OpenRegistry;
-    AutoReconnect := GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
-    if AutoReconnect then begin
-      OpenRegistry;
-      MainReg.WriteBool( REGNAME_AUTORECONNECT, False );
     end;
+  end;
+
+  // Auto connection via preference setting
+  // Do not autoconnect if we're in commandline mode and the connection was not successful
+  if (not CommandLineMode) and (not Connected) and GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT) then begin
+    LastSession := GetRegValue(REGNAME_LASTSESSION, '');
+    if LastSession <> '' then begin
+      Connected := InitConnection(
+        GetRegValue(REGNAME_HOST, '', LastSession),
+        GetRegValue(REGNAME_PORT, '', LastSession),
+        GetRegValue(REGNAME_USER, '', LastSession),
+        decrypt(GetRegValue(REGNAME_PASSWORD, '', LastSession)),
+        Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', LastSession)),
+        GetRegValue(REGNAME_TIMEOUT, '', LastSession),
+        IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, LastSession))),
+        IntToStr(Integer(GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, LastSession)))
+        );
+      if Connected then
+        SessionName := LastSession;
+    end;
+  end;
+
+  // Display session manager
+  if not Connected then begin
     // Cannot be done in OnCreate because we need ready forms here:
-    dlgResult := ConnectionWindow(Self);
-    // Re-enable AutoReconnect in Registry!
-    if AutoReconnect then begin
-      OpenRegistry;
-      MainReg.WriteBool( REGNAME_AUTORECONNECT, true );
-    end;
+    ConnForm := TConnForm.Create(Self);
+    dlgResult := ConnForm.ShowModal;
+    FreeAndNil(ConnForm);
     if dlgResult = mrCancel then begin
       Close;
       Exit;
     end;
   end;
+
   DoAfterConnect;
+
+  if (not CommandLineMode) and (ParamStr(1) <> '') then begin
+    // Loading SQL file by command line. Mutually exclusive to connect by command line.
+    QueryLoad(ParamStr(1));
+  end;
+
 end;
 
 
@@ -1637,6 +1629,8 @@ var
   v1, v2, v3: String;
   rx: TRegExpr;
 begin
+  DataGridHasChanges := False;
+
   // Activate logging
   if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
     ActivateFileLogging;
