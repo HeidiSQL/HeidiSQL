@@ -3415,7 +3415,7 @@ end;
 
 procedure TMainForm.viewdata(Sender: TObject);
 var
-  i, count             : Integer;
+  i                    : Integer;
   select_base          : WideString;
   select_from          : WideString;
   sl_query             : TWideStringList;
@@ -3425,7 +3425,7 @@ var
   rx                   : TRegExpr;
   ColType              : String;
   ColExists, ShowIt    : Boolean;
-  MatchingRows         : Int64;
+  Count, MatchingRows  : Int64;
 
 procedure InitColumn(name: WideString; ColType: String; Visible: Boolean);
 var
@@ -3642,7 +3642,7 @@ begin
         sl_query.Add(select_from);
         // Apply custom WHERE filter
         if DataGridCurrentFilter <> '' then sl_query.Add('WHERE ' + DataGridCurrentFilter);
-        MatchingRows := StrToInt(GetVar(sl_query.Text));
+        MatchingRows := MakeInt(GetVar(sl_query.Text));
         count := MatchingRows;
         if count > GRIDMAXTOTALROWS then
           count := GRIDMAXTOTALROWS;
