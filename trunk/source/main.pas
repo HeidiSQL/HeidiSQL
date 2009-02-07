@@ -1255,6 +1255,7 @@ var
   functioncats : TStringList;
   fontname, datafontname : String;
   fontsize, datafontsize : Integer;
+  DisableProcessWindowsGhostingProc: procedure;
 begin
   caption := APPNAME;
   setLocales;
@@ -1489,6 +1490,13 @@ begin
   // Place progressbar on the statusbar
   ProgressBarStatus.Parent := StatusBar;
   ProgressBarStatus.Visible := False;
+
+  // Work around Vistas ghosting feature breaking the GUI
+  DisableProcessWindowsGhostingProc := GetProcAddress(
+    GetModuleHandle('user32.dll'),
+    'DisableProcessWindowsGhosting');
+  if Assigned(DisableProcessWindowsGhostingProc) then
+    DisableProcessWindowsGhostingProc;
 end;
 
 
