@@ -1246,13 +1246,8 @@ end;
 }
 procedure TMainForm.FormCreate(Sender: TObject);
 var
-  i, j: Integer;
-  miGroup,
-  miFilterGroup,
-  miFunction,
-  miFilterFunction,
+  i: Integer;
   menuitem : TMenuItem;
-  functioncats : TStringList;
   fontname, datafontname : String;
   fontsize, datafontsize : Integer;
   DisableProcessWindowsGhostingProc: procedure;
@@ -1311,54 +1306,6 @@ begin
   LeaveCriticalSection(SqlMessagesLock);
 
   Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
-
-  // read function-list into menu
-  functioncats := GetFunctionCategories;
-  for i:=0 to functioncats.Count-1 do begin
-    // Create a menu item which gets subitems later
-    miGroup := TMenuItem.Create(popupQuery);
-    miGroup.Caption := functioncats[i];
-    popupQuery.Items.add(miGroup);
-    miFilterGroup := TMenuItem.Create(popupFilter);
-    miFilterGroup.Caption := miGroup.Caption;
-    popupFilter.Items.add(miFilterGroup);
-    for j:=0 to Length(MySqlFunctions)-1 do begin
-      if MySqlFunctions[j].Category <> functioncats[i] then
-        continue;
-      miFunction := TMenuItem.Create(popupQuery);
-      miFunction.Caption := MySqlFunctions[j].Name;
-      miFunction.ImageIndex := 13;
-      // Prevent generating a hotkey
-      miFunction.Caption := StringReplace(miFunction.Caption, '&', '&&', [rfReplaceAll]);
-      // Prevent generating a seperator line
-      if miFunction.Caption = '-' then
-        miFunction.Caption := '&-';
-      miFunction.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration;
-      // Take care of needed server version
-      if MySqlFunctions[j].Version <= mysql_version then begin
-        if MySqlFunctions[j].Description <> '' then
-          miFunction.Hint := miFunction.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
-        miFunction.Tag := j;
-        // Place menuitem on menu
-        miFunction.OnClick := insertFunction;
-      end else begin
-        miFunction.Hint := miFunction.Hint + ' - ('+STR_NOTSUPPORTED+', needs >= '+ConvertServerVersion(MySqlFunctions[j].Version)+')';
-        miFunction.Enabled := False;
-      end;
-      // Prevent generating a seperator for ShortHint and LongHint
-      miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
-      miGroup.Add(miFunction);
-      // Create a copy of the menuitem for popupFilter
-      miFilterFunction := TMenuItem.Create(popupFilter);
-      miFilterFunction.Caption := miFunction.Caption;
-      miFilterFunction.Hint := miFunction.Hint;
-      miFilterFunction.ImageIndex := miFunction.ImageIndex;
-      miFilterFunction.Tag := miFunction.Tag;
-      miFilterFunction.OnClick := miFunction.OnClick;
-      miFilterFunction.Enabled := miFunction.Enabled;
-      miFilterGroup.Add(miFilterFunction);
-    end;
-  end;
 
   // Delphi work around to force usage of Vista's default font (other OSes will be unaffected)
   SetVistaFonts(Font);
@@ -1631,11 +1578,16 @@ end;
 
 procedure TMainForm.DoAfterConnect;
 var
-  i: Integer;
+  i, j: Integer;
   lastUsedDB: WideString;
   v: String[50];
   v1, v2, v3: String;
   rx: TRegExpr;
+  functioncats : TStringList;
+  miGroup,
+  miFilterGroup,
+  miFunction,
+  miFilterFunction: TMenuItem;
 begin
   DataGridHasChanges := False;
 
@@ -1702,6 +1654,63 @@ begin
     DBtree.FocusedNode := DBtree.GetFirst;
   end;
 
+  // Create function menu items in popupQuery and popupFilter
+  for i:=popupQuery.Items.Count-1 downto 0 do begin
+    if popupQuery.Items[i].Caption = '-' then
+      break;
+    popupQuery.Items.Delete(i);
+  end;
+  for i:=popupFilter.Items.Count-1 downto 0 do begin
+    if popupFilter.Items[i].Caption = '-' then
+      break;
+    popupFilter.Items.Delete(i);
+  end;
+  functioncats := GetFunctionCategories;
+  for i:=0 to functioncats.Count-1 do begin
+    // Create a menu item which gets subitems later
+    miGroup := TMenuItem.Create(popupQuery);
+    miGroup.Caption := functioncats[i];
+    popupQuery.Items.add(miGroup);
+    miFilterGroup := TMenuItem.Create(popupFilter);
+    miFilterGroup.Caption := miGroup.Caption;
+    popupFilter.Items.add(miFilterGroup);
+    for j:=0 to Length(MySqlFunctions)-1 do begin
+      if MySqlFunctions[j].Category <> functioncats[i] then
+        continue;
+      miFunction := TMenuItem.Create(popupQuery);
+      miFunction.Caption := MySqlFunctions[j].Name;
+      miFunction.ImageIndex := 13;
+      // Prevent generating a hotkey
+      miFunction.Caption := StringReplace(miFunction.Caption, '&', '&&', [rfReplaceAll]);
+      // Prevent generating a seperator line
+      if miFunction.Caption = '-' then
+        miFunction.Caption := '&-';
+      miFunction.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration;
+      // Take care of needed server version
+      if MySqlFunctions[j].Version <= mysql_version then begin
+        if MySqlFunctions[j].Description <> '' then
+          miFunction.Hint := miFunction.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
+        miFunction.Tag := j;
+        // Place menuitem on menu
+        miFunction.OnClick := insertFunction;
+      end else begin
+        miFunction.Hint := miFunction.Hint + ' - ('+STR_NOTSUPPORTED+', needs >= '+ConvertServerVersion(MySqlFunctions[j].Version)+')';
+        miFunction.Enabled := False;
+      end;
+      // Prevent generating a seperator for ShortHint and LongHint
+      miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
+      miGroup.Add(miFunction);
+      // Create a copy of the menuitem for popupFilter
+      miFilterFunction := TMenuItem.Create(popupFilter);
+      miFilterFunction.Caption := miFunction.Caption;
+      miFilterFunction.Hint := miFunction.Hint;
+      miFilterFunction.ImageIndex := miFunction.ImageIndex;
+      miFilterFunction.Tag := miFunction.Tag;
+      miFilterFunction.OnClick := miFunction.OnClick;
+      miFilterFunction.Enabled := miFunction.Enabled;
+      miFilterGroup.Add(miFilterFunction);
+    end;
+  end;
 end;
 
 
