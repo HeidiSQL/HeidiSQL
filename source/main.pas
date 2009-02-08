@@ -8797,7 +8797,7 @@ var
 begin
   // Copy text from a focused control to clipboard
   Success := False;
-  Control := ActiveControl;
+  Control := Screen.ActiveControl;
   // Do not handle Search/replace dialog
   if not Control.Focused then Exit;
   DoCut := Sender = actCut;
@@ -8842,7 +8842,7 @@ var
 begin
   // Paste text into the focused control
   Success := False;
-  Control := ActiveControl;
+  Control := Screen.ActiveControl;
   // Do not handle Search/replace dialog
   if not Control.Focused then Exit;
   if not Clipboard.HasFormat(CF_TEXT) then begin
@@ -8881,7 +8881,7 @@ var
 begin
   // Select all items, text or whatever
   Success := False;
-  Control := ActiveControl;
+  Control := Screen.ActiveControl;
   // Do not handle Search/replace dialog
   if not Control.Focused then Exit;
   if Control is TCustomEdit then begin
