@@ -2719,16 +2719,13 @@ procedure TMainForm.actQueryFindExecute(Sender: TObject);
 var
   m: TSynMemo;
 begin
-  FindDialogQuery.execute;
   m := SynMemoQuery;
   // if something is selected search for that text
-  if m.SelAvail and (m.BlockBegin.Line = m.BlockEnd.Line)
-  then
+  if m.SelAvail then
     FindDialogQuery.FindText := m.SelText
-  else try // GetWordAtRowCol throws an AV when no text is present
-    FindDialogQuery.FindText := m.GetWordAtRowCol(m.CaretXY);
-  except
-  end;
+  else
+    FindDialogQuery.FindText := m.WordAtCursor;
+  FindDialogQuery.Execute;
 end;
 
 
@@ -2736,14 +2733,13 @@ procedure TMainForm.actQueryReplaceExecute(Sender: TObject);
 var
   m: TSynMemo;
 begin
-  ReplaceDialogQuery.execute;
   m := SynMemoQuery;
   // if something is selected search for that text
-  if m.SelAvail and (m.BlockBegin.Line = m.BlockEnd.Line)
-  then
+  if m.SelAvail then
     ReplaceDialogQuery.FindText := m.SelText
   else
     ReplaceDialogQuery.FindText := m.WordAtCursor;
+  ReplaceDialogQuery.Execute;
 end;
 
 
