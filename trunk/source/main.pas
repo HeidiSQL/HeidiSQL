@@ -2725,8 +2725,10 @@ begin
   if m.SelAvail and (m.BlockBegin.Line = m.BlockEnd.Line)
   then
     FindDialogQuery.FindText := m.SelText
-  else
+  else try // GetWordAtRowCol throws an AV when no text is present
     FindDialogQuery.FindText := m.GetWordAtRowCol(m.CaretXY);
+  except
+  end;
 end;
 
 
