@@ -105,7 +105,6 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Height = 21
     Style = csDropDownList
     ItemHeight = 13
-    Sorted = True
     TabOrder = 2
     OnChange = Modified
   end
