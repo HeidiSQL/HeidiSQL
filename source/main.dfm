@@ -533,7 +533,7 @@ object MainForm: TMainForm
               TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
               TreeOptions.MiscOptions = [toToggleOnDblClick]
               TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
-              TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+              TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
               OnAfterPaint = vstAfterPaint
               OnBeforePaint = ListVariablesBeforePaint
               OnCompareNodes = vstCompareNodes
@@ -587,7 +587,7 @@ object MainForm: TMainForm
               TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
               TreeOptions.MiscOptions = [toToggleOnDblClick]
               TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
-              TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+              TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
               OnAfterPaint = vstAfterPaint
               OnBeforePaint = ListStatusBeforePaint
               OnCompareNodes = vstCompareNodes
@@ -663,7 +663,7 @@ object MainForm: TMainForm
               TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
               TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
               TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
-              TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
+              TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
               OnAfterPaint = vstAfterPaint
               OnBeforePaint = ListProcessesBeforePaint
               OnCompareNodes = vstCompareNodes
@@ -792,7 +792,7 @@ object MainForm: TMainForm
               TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
               TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
               TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
-              TreeOptions.SelectionOptions = [toFullRowSelect]
+              TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
               OnAfterPaint = vstAfterPaint
               OnBeforeCellPaint = ListCommandStatsBeforeCellPaint
               OnBeforePaint = ListCommandStatsBeforePaint
@@ -5926,6 +5926,12 @@ object MainForm: TMainForm
     OnPopup = popupHostPopup
     Left = 9
     Top = 96
+    object Copy2: TMenuItem
+      Action = actCopy
+    end
+    object N26: TMenuItem
+      Caption = '-'
+    end
     object Kill1: TMenuItem
       Caption = 'Kill Process(es)...'
       Enabled = False

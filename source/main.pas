@@ -455,6 +455,8 @@ type
     menuRecentFilters: TMenuItem;
     comboRecentFilters: TTntComboBox;
     lblRecentFilters: TLabel;
+    Copy2: TMenuItem;
+    N26: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
