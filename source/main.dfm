@@ -1947,7 +1947,7 @@ object MainForm: TMainForm
     end
     object actInsertFiles: TAction
       Category = 'Export/Import'
-      Caption = 'Insert files into BLOB fields...'
+      Caption = 'Insert files into TEXT/BLOB fields...'
       Enabled = False
       ImageIndex = 47
       OnExecute = actInsertFilesExecute
