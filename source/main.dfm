@@ -1940,8 +1940,8 @@ object MainForm: TMainForm
     end
     object actHTMLview: TAction
       Category = 'Export/Import'
-      Caption = 'HTML-view'
-      Hint = 'View contents as HTML-file'
+      Caption = 'Image view'
+      Hint = 'View image contents'
       ImageIndex = 32
       OnExecute = actHTMLviewExecute
     end

@@ -2241,44 +2241,53 @@ end;
 
 // view HTML
 procedure TMainForm.actHTMLviewExecute(Sender: TObject);
+const
+  msgNotBinary = 'Non-binary field selected. Only binary fields containing JPEG, PNG, GIF and BMP images are supported.';
+  msgNotImage = 'Unrecognized image format.  Only JPEG, PNG, GIF and BMP are supported.';
 var
-  g              : TVirtualStringTree;
-  filename       : String;
-  f              : Textfile;
-  Content        : WideString;
-  IsBinary       : Boolean;
-  SaveBinary    : Boolean;
+  g               : TVirtualStringTree;
+  filename        : String;
+  f               : Textfile;
+  Header, Content : String;
+  IsBinary        : Boolean;
+  SaveBinary      : Boolean;
 begin
   g := ActiveGrid;
   if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
   Screen.Cursor := crHourGlass;
   showstatus('Saving contents to file...');
-  if not EnsureFullWidth(g, g.FocusedColumn, g.FocusedNode) then
-    Exit;
   IsBinary := ActiveData.Columns[g.FocusedColumn].IsBinary;
-  Content := g.Text[g.FocusedNode, g.FocusedColumn];
 
+  Header := WideHexToBin(Copy(g.Text[g.FocusedNode, g.FocusedColumn], 3, 20));
   SaveBinary := false;
   filename := GetTempDir+'\'+APPNAME+'-preview.';
-  if IsBinary and (pos('JFIF', copy(Content, 0, 20)) <> 0) then begin
+  if IsBinary and (Copy(Header, 7, 4) = 'JFIF') then begin
     SaveBinary := true;
     filename := filename + 'jpeg';
-  end else if IsBinary and StrCmpBegin('GIF', Content) then begin
+  end else if IsBinary and (Copy(Header, 2, 3) = 'PNG') then begin
+    SaveBinary := true;
+    filename := filename + 'png';
+  end else if IsBinary and StrCmpBegin('GIF', Header) then begin
     SaveBinary := true;
     filename := filename + 'gif';
-  end else if IsBinary and StrCmpBegin('BM', Content) then begin
+  end else if IsBinary and StrCmpBegin('BM', Header) then begin
     SaveBinary := true;
     filename := filename + 'bmp';
-  end else if Isbinary then filename := filename + 'txt'
-  else filename := filename + 'html';
+  end;
+
+  if not IsBinary then begin
+    MessageDlg(msgNotBinary, mtWarning, [mbOk], 0);
+  end else if not SaveBinary then begin
+    MessageDlg(msgNotImage, mtWarning, [mbOk], 0);
+  end;
 
   if SaveBinary then begin
+    if not EnsureFullWidth(g, g.FocusedColumn, g.FocusedNode) then Exit;
+    Content := WideHexToBin(Copy(g.Text[g.FocusedNode, g.FocusedColumn], 3, High(Integer)));
     AssignFile(f, filename);
     Rewrite(f);
     Write(f, Content);
     CloseFile(f);
-  end else begin
-    SaveUnicodeFile(filename, Content);
   end;
   ShowStatus( STATUS_MSG_READY );
   Screen.Cursor := crDefault;
