@@ -2247,6 +2247,7 @@ var
   f              : Textfile;
   Content        : WideString;
   IsBinary       : Boolean;
+  SaveBinary    : Boolean;
 begin
   g := ActiveGrid;
   if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
@@ -2257,20 +2258,26 @@ begin
   IsBinary := ActiveData.Columns[g.FocusedColumn].IsBinary;
   Content := g.Text[g.FocusedNode, g.FocusedColumn];
 
+  SaveBinary := false;
   filename := GetTempDir+'\'+APPNAME+'-preview.';
-  if IsBinary then begin
-    if pos('JFIF', copy(Content, 0, 20)) <> 0 then
-      filename := filename + 'jpeg'
-    else if StrCmpBegin('GIF', Content) then
-      filename := filename + 'gif'
-    else if StrCmpBegin('BM', Content) then
-      filename := filename + 'bmp';
+  if IsBinary and (pos('JFIF', copy(Content, 0, 20)) <> 0) then begin
+    SaveBinary := true;
+    filename := filename + 'jpeg';
+  end else if IsBinary and StrCmpBegin('GIF', Content) then begin
+    SaveBinary := true;
+    filename := filename + 'gif';
+  end else if IsBinary and StrCmpBegin('BM', Content) then begin
+    SaveBinary := true;
+    filename := filename + 'bmp';
+  end else if Isbinary then filename := filename + 'txt'
+  else filename := filename + 'html';
+
+  if SaveBinary then begin
     AssignFile(f, filename);
     Rewrite(f);
     Write(f, Content);
     CloseFile(f);
   end else begin
-    filename := filename + 'html';
     SaveUnicodeFile(filename, Content);
   end;
   ShowStatus( STATUS_MSG_READY );
