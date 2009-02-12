@@ -585,8 +585,8 @@ end;
   Connection.
 }
 procedure TZMySQLConnection.Close;
-var
-  LogMessage: string;
+//var
+//  LogMessage: string;
 begin
   if not Closed then
   begin
