@@ -51,6 +51,9 @@ procedure TfrmInsertFilesProgress.ProcessFiles(Sender: TObject);
     raise exception.Create(msg);
   end;
 
+const
+  ChunkSize = 131072;
+
 var
   i, j: Integer;
   value, filename: String;
@@ -58,6 +61,10 @@ var
   y, m, d, h, mi, s, ms: Word;
   FileStream: TFileStream;
   zq: TDeferDataSet;
+  zqSqlIdx: Integer;
+  readBuf: String;
+  bytesRead: Integer;
+  data: WideString;
 begin
   Timer1.Enabled := false;
   screen.Cursor := crHourglass;
@@ -89,7 +96,7 @@ begin
           continue;
         zq.SQL.Add( ', ' + mainform.mask(cols[j].Name) );
       end;
-      zq.SQL.Add( ') VALUES (:STREAM, ' );
+      zqSqlIdx := zq.SQL.Add( ') VALUES (:STREAM, ' );
 
       for j:=0 to length(cols)-1 do
       begin
@@ -120,9 +127,22 @@ begin
         lblOperation.Repaint;
         FileStream := TFileStream.Create( filename, fmShareDenyWrite );
         try
-          zq.Params.Clear;
-          zq.Params.CreateParam( ftBlob, 'STREAM', ptInput );
-          zq.ParamByName('STREAM').LoadfromStream( FileStream, ftBlob );
+          data := '_binary 0x';
+          while FileStream.Position < FileStream.Size do begin
+            // Read characters from file.
+            // Data is imported as-is (byte for byte).
+            // How the server interprets the data is decided by the
+            // character set on the column that is imported into.
+            // Set the character set on the column before importing the file.
+            //
+            // TODO: Indicate this character set on the GUI.
+            //
+            SetLength(readBuf, ChunkSize div SizeOf(Char));
+            bytesRead := FileStream.Read(PChar(readBuf)^, ChunkSize);
+            SetLength(readBuf, bytesRead div SizeOf(Char));
+            data := data + BinToWideHex(readBuf);
+          end;
+          zq.SQL[zqSqlIdx] := StringReplace(zq.SQL[zqSqlIdx], ':STREAM', data, []);
         finally
           FileStream.Free;
         end;
