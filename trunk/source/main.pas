@@ -3453,6 +3453,7 @@ var
   ColType              : String;
   ColExists, ShowIt    : Boolean;
   Count, MatchingRows  : Int64;
+  OldOffsetXY          : TPoint;
 
 procedure InitColumn(name: WideString; ColType: String; Visible: Boolean);
 var
@@ -3592,6 +3593,7 @@ begin
       rx := TRegExpr.Create;
       ShowStatus('Freeing data...');
       DataGrid.BeginUpdate;
+      OldOffsetXY := DataGrid.OffsetXY;
       debug('mem: clearing browse data.');
       SetLength(FDataGridResult.Columns, 0);
       SetLength(FDataGridResult.Rows, 0);
@@ -3718,6 +3720,8 @@ begin
     DataGrid.EndUpdate;
     FreeAndNil(sl_query);
     AutoCalcColWidths(DataGrid, PrevTableColWidths);
+    if DataGridTable = SelectedTable then
+      DataGrid.OffsetXY := OldOffsetXY;
     viewingdata := false;
     EnumerateRecentFilters;
     Screen.Cursor := crDefault;
