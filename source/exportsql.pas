@@ -99,6 +99,7 @@ type
   private
     { Private declarations }
     SelectedTables: TWideStringList;
+    DoOverwriteAll: Boolean;
     function InitFileStream(TableName: String; OldStream: TFileStream = nil): TFileStream;
   public
     { Public declarations }
@@ -284,6 +285,7 @@ begin
 
   validateControls(Sender);
   generateExampleSQL;
+  DoOverwriteAll := False;
 end;
 
 
@@ -422,6 +424,7 @@ end;
 function TExportSQLForm.InitFileStream(TableName: String; OldStream: TFileStream = nil): TFileStream;
 var
   UnparsedFileName, ParsedFileName, FileName, FilePath : String;
+  dlgResult: Integer;
 begin
   Result := nil;
 
@@ -460,9 +463,12 @@ begin
     OldStream.Free;
 
   // Warn about overwriting target file
-  if FileExists(ParsedFileName) then begin
-    if MessageDlg('Overwrite file "'+ParsedFileName+'" ?', mtConfirmation, [mbYes, mbCancel], 0 ) <> mrYes  then
-      Exit;
+  if FileExists(ParsedFileName) and (not DoOverwriteAll) then begin
+    dlgResult := MessageDlg('Overwrite file "'+ParsedFileName+'" ?', mtConfirmation, [mbYes, mbYesToAll, mbCancel], 0 );
+    if dlgResult = mrCancel then
+      Exit
+    else
+      DoOverwriteAll := dlgResult = mrYesToAll;
   end;
 
   // Create the file
