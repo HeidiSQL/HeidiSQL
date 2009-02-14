@@ -3168,29 +3168,31 @@ var
   OldNumbers, Filters: TStringList;
   val: String;
 begin
-  // Recreate recent filters list
-  Filters := TStringList.Create;
-  OldNumbers := TStringList.Create;
-  Filters.Add(Trim(Utf8Encode(SynMemoFilter.Text)));
-  MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, True);
-  MainReg.GetValueNames(OldNumbers);
-  OldNumbers.CustomSort(CompareNumbers);
-  // Add old filters
-  for i := 0 to OldNumbers.Count - 1 do begin
-    nr := MakeInt(OldNumbers[i]);
-    if nr = 0 then continue; // Not a valid entry, ignore that
-    val := MainReg.ReadString(OldNumbers[i]);
-    if Filters.IndexOf(val) = -1 then
-      Filters.Add(val);
-    MainReg.DeleteValue(OldNumbers[i]);
+  if SynMemoFilter.GetTextLen > 0 then begin
+    // Recreate recent filters list
+    Filters := TStringList.Create;
+    OldNumbers := TStringList.Create;
+    Filters.Add(Trim(Utf8Encode(SynMemoFilter.Text)));
+    MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, True);
+    MainReg.GetValueNames(OldNumbers);
+    OldNumbers.CustomSort(CompareNumbers);
+    // Add old filters
+    for i := 0 to OldNumbers.Count - 1 do begin
+      nr := MakeInt(OldNumbers[i]);
+      if nr = 0 then continue; // Not a valid entry, ignore that
+      val := MainReg.ReadString(OldNumbers[i]);
+      if Filters.IndexOf(val) = -1 then
+        Filters.Add(val);
+      MainReg.DeleteValue(OldNumbers[i]);
+    end;
+    for i := 1 to Filters.Count do begin
+      MainReg.WriteString(IntToStr(i), Filters[i-1]);
+      // Avoid too much registry spam with mega old filters
+      if i = 20 then break;
+    end;
+    FreeAndNil(OldNumbers);
+    FreeAndNil(Filters);
   end;
-  for i := 1 to Filters.Count do begin
-    MainReg.WriteString(IntToStr(i), Filters[i-1]);
-    // Avoid too much registry spam with mega old filters
-    if i = 20 then break;
-  end;
-  FreeAndNil(OldNumbers);
-  FreeAndNil(Filters);
   viewdata(Sender);
 end;
 
