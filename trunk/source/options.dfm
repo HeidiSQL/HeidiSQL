@@ -196,6 +196,7 @@ object optionsform: Toptionsform
         Caption = 'Also check for updated nightly builds'
         Enabled = False
         TabOrder = 11
+        OnClick = Modified
       end
     end
     object tabSQL: TTabSheet
