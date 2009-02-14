@@ -141,7 +141,6 @@ const
 procedure Toptionsform.Modified(Sender: TObject);
 begin
   // Modified
-  btnOK.Enabled := True;
   btnApply.Enabled := True;
 end;
 
@@ -151,14 +150,13 @@ procedure Toptionsform.pagecontrolMainChanging(Sender: TObject;
 begin
   // Remember modification state. First tab switch leads TEdit's with TUpDown
   // to fire OnChange. Avoid enabling the buttons in that case.
-  FWasModified := btnOK.Enabled;
+  FWasModified := btnApply.Enabled;
 end;
 
 
 procedure Toptionsform.pagecontrolMainChange(Sender: TObject);
 begin
   // See OnChanging procedure
-  btnOK.Enabled := FWasModified;
   btnApply.Enabled := FWasModified;
 end;
 
@@ -275,7 +273,6 @@ begin
   Mainform.prefEnableNullBG := chkNullBg.Checked;
 
   // Settings have been applied, send a signal to the user
-  btnOK.Enabled := False;
   btnApply.Enabled := False;
   Screen.Cursor := crDefault;
 end;
@@ -396,7 +393,6 @@ begin
   chkEditorSet.Checked := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
   chkNullBG.Checked := GetRegValue(REGNAME_BG_NULL_ENABLED, DEFAULT_BG_NULL_ENABLED);
 
-  btnOK.Enabled := False;
   btnApply.Enabled := False;
   screen.Cursor := crdefault;
 end;
