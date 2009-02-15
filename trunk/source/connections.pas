@@ -15,44 +15,44 @@ uses
 
 type
   Tconnform = class(TForm)
-    EditHost: TEdit;
+    editHost: TEdit;
     lblHost: TLabel;
     lblUsername: TLabel;
-    EditUsername: TEdit;
+    editUsername: TEdit;
     lblPassword: TLabel;
-    EditPassword: TEdit;
+    editPassword: TEdit;
     lblPort: TLabel;
-    EditPort: TEdit;
+    editPort: TEdit;
     lblTimeout: TLabel;
-    EditTimeout: TEdit;
-    pnlScreen: TPanel;
-    ComboBoxDescription: TComboBox;
-    Image1: TImage;
+    editTimeout: TEdit;
+    pnlLogo: TPanel;
+    comboSession: TComboBox;
+    imgLogo: TImage;
     lblDescription: TLabel;
-    ButtonCancel: TButton;
-    ButtonConnect: TButton;
-    CheckBoxCompressed: TCheckBox;
+    btnCancel: TButton;
+    btnConnect: TButton;
+    chkCompressed: TCheckBox;
     lblSeconds: TLabel;
     lblOnlyDBs: TLabel;
-    EditOnlyDBs: TTNTEdit;
-    CheckBoxSorted: TCheckBox;
-    ButtonSaveAndConnect: TButton;
-    ToolBar1: TToolBar;
+    editOnlyDBs: TTntEdit;
+    chkSorted: TCheckBox;
+    btnSaveAndConnect: TButton;
+    tlbEdit: TToolBar;
     btnNew: TToolButton;
     btnSave: TToolButton;
     btnDelete: TToolButton;
     btnSaveAs: TToolButton;
     btnEditDesc: TButton;
     procedure FormCreate(Sender: TObject);
-    procedure ButtonSaveAndConnectClick(Sender: TObject);
+    procedure btnSaveAndConnectClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure ButtonConnectClick(Sender: TObject);
+    procedure btnConnectClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure ButtonSaveClick(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
     procedure btnSaveAsClick(Sender: TObject);
-    procedure ButtonNewClick(Sender: TObject);
-    procedure ButtonDeleteClick(Sender: TObject);
-    procedure ComboBoxDescriptionClick(Sender: TObject);
+    procedure btnNewClick(Sender: TObject);
+    procedure btnDeleteClick(Sender: TObject);
+    procedure comboSessionSelect(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure ButtonEditDescClick(Sender: TObject);
   private
@@ -81,29 +81,29 @@ end;
 
 
 // Connect
-procedure Tconnform.ButtonConnectClick(Sender: TObject);
+procedure Tconnform.btnConnectClick(Sender: TObject);
 var
   btn: TButton;
 begin
   Screen.Cursor := crHourglass;
   // Save last connection name to registry
   OpenRegistry;
-  MainReg.WriteString(REGNAME_LASTSESSION, ComboBoxDescription.Text);
+  MainReg.WriteString(REGNAME_LASTSESSION, comboSession.Text);
 
   btn := Sender as TButton;
   btn.Enabled := false;
 
   if Mainform.InitConnection(
-    EditHost.Text,
-    EditPort.Text,
-    EditUsername.Text,
-    EditPassword.Text,
-    EditOnlyDBs.Text,
-    EditTimeout.Text,
-    IntToStr(Integer(CheckBoxCompressed.Checked)),
-    IntToStr(Integer(CheckboxSorted.Checked))) then begin
+    editHost.Text,
+    editPort.Text,
+    editUsername.Text,
+    editPassword.Text,
+    editOnlyDBs.Text,
+    editTimeout.Text,
+    IntToStr(Integer(chkCompressed.Checked)),
+    IntToStr(Integer(chkSorted.Checked))) then begin
     ModalResult := mrOK;
-    Mainform.SessionName := ComboBoxDescription.Text;
+    Mainform.SessionName := comboSession.Text;
   end else begin
     ModalResult := mrNone;
     btn.Enabled := True;
@@ -123,12 +123,12 @@ end;
 
 procedure Tconnform.FillSessionCombo(Sender: TObject);
 begin
-  ComboBoxDescription.Items.Clear;
+  comboSession.Items.Clear;
   if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, true) then
-    MainReg.GetKeyNames(ComboBoxDescription.Items);
-  if ComboBoxDescription.Items.Count > 0 then begin
-    ComboBoxDescription.ItemIndex := 0;
-    ComboBoxDescriptionClick(Sender);
+    MainReg.GetKeyNames(comboSession.Items);
+  if comboSession.Items.Count > 0 then begin
+    comboSession.ItemIndex := 0;
+    comboSessionSelect(Sender);
   end;
 end;
 
@@ -139,36 +139,36 @@ var
 begin
   Screen.Cursor := crHourglass;
   FillSessionCombo(Sender);
-  LastSessionIndex := ComboBoxDescription.Items.IndexOf(GetRegValue(REGNAME_LASTSESSION, ''));
+  LastSessionIndex := comboSession.Items.IndexOf(GetRegValue(REGNAME_LASTSESSION, ''));
   if LastSessionIndex > -1 then begin
-    ComboBoxDescription.ItemIndex := LastSessionIndex;
-    ComboBoxDescriptionClick(Sender);
+    comboSession.ItemIndex := LastSessionIndex;
+    comboSessionSelect(Sender);
   end;
-  ComboBoxDescription.SetFocus;
+  comboSession.SetFocus;
   Screen.Cursor := crDefault;
 end;
 
 
-procedure Tconnform.ButtonSaveAndConnectClick(Sender: TObject);
+procedure Tconnform.btnSaveAndConnectClick(Sender: TObject);
 begin
-  ButtonSaveClick( Sender );
-  ButtonConnectClick( Sender );
+  btnSaveClick(Sender);
+  btnConnectClick(Sender);
 end;
 
-procedure Tconnform.ButtonSaveClick(Sender: TObject);
+procedure Tconnform.btnSaveClick(Sender: TObject);
 begin
   // save connection!
   Screen.Cursor := crHourglass;
-  OpenRegistry(ComboBoxDescription.Text);
-  MainReg.WriteString(REGNAME_HOST, EditHost.Text);
-  MainReg.WriteString(REGNAME_USER, EditUsername.Text);
-  MainReg.WriteString(REGNAME_PASSWORD, encrypt(EditPassword.Text));
-  MainReg.WriteString(REGNAME_PORT, EditPort.Text);
-  MainReg.WriteString(REGNAME_TIMEOUT, EditTimeout.Text);
-  MainReg.WriteBool(REGNAME_COMPRESSED, CheckBoxCompressed.Checked);
-  MainReg.WriteString(REGNAME_ONLYDBS, Utf8Encode(EditOnlyDBs.Text));
-  MainReg.WriteBool(REGNAME_ONLYDBSSORTED, CheckBoxSorted.Checked);
-  ComboBoxDescriptionClick(Sender);
+  OpenRegistry(comboSession.Text);
+  MainReg.WriteString(REGNAME_HOST, editHost.Text);
+  MainReg.WriteString(REGNAME_USER, editUsername.Text);
+  MainReg.WriteString(REGNAME_PASSWORD, encrypt(editPassword.Text));
+  MainReg.WriteString(REGNAME_PORT, editPort.Text);
+  MainReg.WriteString(REGNAME_TIMEOUT, editTimeout.Text);
+  MainReg.WriteBool(REGNAME_COMPRESSED, chkCompressed.Checked);
+  MainReg.WriteString(REGNAME_ONLYDBS, Utf8Encode(editOnlyDBs.Text));
+  MainReg.WriteBool(REGNAME_ONLYDBSSORTED, chkSorted.Checked);
+  comboSessionSelect(Sender);
   Screen.Cursor := crDefault;
 end;
 
@@ -190,17 +190,17 @@ begin
       MessageDlg('Session name '''+newName+''' already in use.', mtError, [mbOK], 0)
     else begin
       Screen.Cursor := crHourglass;
-      MainReg.MoveKey(REGKEY_SESSIONS + ComboBoxDescription.Text, REGKEY_SESSIONS + newName, False);
+      MainReg.MoveKey(REGKEY_SESSIONS + comboSession.Text, REGKEY_SESSIONS + newName, False);
       Screen.Cursor := crDefault;
       FillSessionCombo(Sender);
-      ComboBoxDescription.ItemIndex := ComboBoxDescription.Items.IndexOf(newName);
-      ComboBoxDescriptionClick(Sender);
+      comboSession.ItemIndex := comboSession.Items.IndexOf(newName);
+      comboSessionSelect(Sender);
     end;
   end;
 end;
 
 
-procedure Tconnform.ButtonNewClick(Sender: TObject);
+procedure Tconnform.btnNewClick(Sender: TObject);
 var
   i : Integer;
   description : String;
@@ -233,24 +233,24 @@ begin
 
   // show parameters:
   FillSessionCombo(Sender);
-  ComboBoxDescription.ItemIndex := ComboBoxDescription.Items.IndexOf(description);
-  ComboBoxDescriptionClick(Sender);
+  comboSession.ItemIndex := comboSession.Items.IndexOf(description);
+  comboSessionSelect(Sender);
   Screen.Cursor := crDefault;
 end;
 
 
-procedure Tconnform.ButtonDeleteClick(Sender: TObject);
+procedure Tconnform.btnDeleteClick(Sender: TObject);
 begin
-  if MessageDlg('Delete Entry "' + ComboBoxDescription.Text + '" ?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes then
+  if MessageDlg('Delete Entry "' + comboSession.Text + '" ?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes then
   begin
-    if not MainReg.DeleteKey(REGPATH + REGKEY_SESSIONS + ComboBoxDescription.Text) then
+    if not MainReg.DeleteKey(REGPATH + REGKEY_SESSIONS + comboSession.Text) then
       MessageDlg('Error while deleting Key from Registry!', mtError, [mbOK], 0);
     FillSessionCombo(Sender);
   end;
 end;
 
 
-procedure Tconnform.ComboBoxDescriptionClick(Sender: TObject);
+procedure Tconnform.comboSessionSelect(Sender: TObject);
 var
   Session: String;
   SessionSelected: Boolean;
@@ -258,41 +258,41 @@ begin
   // select one connection!
   Screen.Cursor := crHourglass;
   OpenRegistry;
-  Session := ComboBoxDescription.Text;
+  Session := comboSession.Text;
   SessionSelected := (Session <> '') and MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + Session);
   if SessionSelected then begin
-    EditHost.Text := GetRegValue(REGNAME_HOST, '', Session);
-    EditUsername.Text := GetRegValue(REGNAME_USER, '', Session);
-    EditPassword.Text := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
-    EditPort.Text := GetRegValue(REGNAME_PORT, '', Session);
-    EditTimeout.Text := GetRegValue(REGNAME_TIMEOUT, '', Session);
-    CheckBoxCompressed.Checked := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session);
-    EditOnlyDBs.Text := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', Session));
-    CheckBoxSorted.Checked := GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, Session);
+    editHost.Text := GetRegValue(REGNAME_HOST, '', Session);
+    editUsername.Text := GetRegValue(REGNAME_USER, '', Session);
+    editPassword.Text := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
+    editPort.Text := GetRegValue(REGNAME_PORT, '', Session);
+    editTimeout.Text := GetRegValue(REGNAME_TIMEOUT, '', Session);
+    chkCompressed.Checked := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session);
+    editOnlyDBs.Text := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', Session));
+    chkSorted.Checked := GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, Session);
   end else begin
-    EditHost.Text := '';
-    EditUsername.Text := '';
-    EditPassword.Text := '';
-    EditPort.Text := '';
-    EditTimeout.Text := '';
-    CheckBoxCompressed.Checked := False;
-    EditOnlyDBs.Text := '';
-    CheckBoxSorted.Checked := False;
+    editHost.Text := '';
+    editUsername.Text := '';
+    editPassword.Text := '';
+    editPort.Text := '';
+    editTimeout.Text := '';
+    chkCompressed.Checked := False;
+    editOnlyDBs.Text := '';
+    chkSorted.Checked := False;
   end;
 
-  ButtonConnect.Enabled := SessionSelected;
+  btnConnect.Enabled := SessionSelected;
   btnSave.Enabled := SessionSelected;
-  ButtonSaveAndConnect.Enabled := SessionSelected;
+  btnSaveAndConnect.Enabled := SessionSelected;
   btnDelete.Enabled := SessionSelected;
   btnEditDesc.Enabled := SessionSelected;
-  EditHost.Enabled := SessionSelected;
-  EditUsername.Enabled := SessionSelected;
-  EditPassword.Enabled := SessionSelected;
-  EditPort.Enabled := SessionSelected;
-  EditTimeout.Enabled := SessionSelected;
-  EditOnlyDBs.Enabled := SessionSelected;
-  CheckBoxCompressed.Enabled := SessionSelected;
-  CheckBoxSorted.Enabled := SessionSelected;
+  editHost.Enabled := SessionSelected;
+  editUsername.Enabled := SessionSelected;
+  editPassword.Enabled := SessionSelected;
+  editPort.Enabled := SessionSelected;
+  editTimeout.Enabled := SessionSelected;
+  editOnlyDBs.Enabled := SessionSelected;
+  chkCompressed.Enabled := SessionSelected;
+  chkSorted.Enabled := SessionSelected;
   lblHost.Enabled := SessionSelected;
   lblUsername.Enabled := SessionSelected;
   lblPassword.Enabled := SessionSelected;
@@ -309,8 +309,8 @@ end;
 procedure Tconnform.Modified(Sender: TObject);
 begin
   btnSave.Enabled := true;
-  ButtonSaveAndConnect.Enabled := true;
-  CheckBoxSorted.Enabled := EditOnlyDBs.Text <> '';
+  btnSaveAndConnect.Enabled := true;
+  chkSorted.Enabled := editOnlyDBs.Text <> '';
 end;
 
 
@@ -320,23 +320,23 @@ var
   newdesc, olddesc : String;
   idx : Integer;
 begin
-  olddesc := ComboBoxDescription.Text;
+  olddesc := comboSession.Text;
   newdesc := olddesc;
   if not InputQuery('Rename description', 'Rename description:', newdesc) then
     exit;
   if newdesc = olddesc then
     exit;
-  if ComboBoxDescription.Items.IndexOf(newdesc) > -1 then begin
+  if comboSession.Items.IndexOf(newdesc) > -1 then begin
     MessageDLG('Description "'+newdesc+'" already exists!', mtError, [mbCancel], 0);
     exit;
   end;
 
-  idx := ComboBoxDescription.ItemIndex;
+  idx := comboSession.ItemIndex;
   try
     MainReg.MoveKey(REGPATH + REGKEY_SESSIONS + olddesc, REGPATH + REGKEY_SESSIONS + newdesc, true);
-    ComboBoxDescription.Items[ComboBoxDescription.ItemIndex] := newdesc;
-    ComboBoxDescription.ItemIndex := idx;
-    ComboBoxDescriptionClick(self);
+    comboSession.Items[comboSession.ItemIndex] := newdesc;
+    comboSession.ItemIndex := idx;
+    comboSessionSelect(Sender);
   except
     MessageDLG('Error on renaming.', mtError, [mbCancel], 0);
   end;
