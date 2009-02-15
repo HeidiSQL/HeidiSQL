@@ -2993,7 +2993,7 @@ object connform: Tconnform
   object ComboBoxDescription: TComboBox
     Left = 230
     Top = 46
-    Width = 215
+    Width = 190
     Height = 21
     AutoCompleteDelay = 5000
     Style = csDropDownList
@@ -3072,12 +3072,12 @@ object connform: Tconnform
   object ToolBar1: TToolBar
     Left = 139
     Top = 13
-    Width = 264
+    Width = 260
     Height = 22
     Align = alNone
     Anchors = [akLeft, akTop, akRight]
     AutoSize = True
-    ButtonWidth = 66
+    ButtonWidth = 65
     Caption = 'tlbEdit'
     Images = MainForm.PngImageListMain
     List = True
@@ -3092,25 +3092,36 @@ object connform: Tconnform
       OnClick = ButtonNewClick
     end
     object btnSave: TToolButton
-      Left = 66
+      Left = 65
       Top = 0
       Caption = 'Save'
       ImageIndex = 10
       OnClick = ButtonSaveClick
     end
+    object btnSaveAs: TToolButton
+      Left = 130
+      Top = 0
+      Caption = 'Save as'
+      ImageIndex = 10
+      OnClick = btnSaveAsClick
+    end
     object btnDelete: TToolButton
-      Left = 132
+      Left = 195
       Top = 0
       Caption = 'Delete'
       ImageIndex = 46
       OnClick = ButtonDeleteClick
     end
-    object btnEditDesc: TToolButton
-      Left = 198
-      Top = 0
-      Caption = 'Rename'
-      ImageIndex = 33
-      OnClick = ButtonEditDescClick
-    end
+  end
+  object btnEditDesc: TButton
+    Left = 423
+    Top = 46
+    Width = 22
+    Height = 21
+    Hint = 'Rename session ...'
+    Anchors = [akTop, akRight]
+    Caption = '...'
+    TabOrder = 14
+    OnClick = ButtonEditDescClick
   end
 end
