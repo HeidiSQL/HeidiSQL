@@ -3,7 +3,7 @@ object connform: Tconnform
   Left = 288
   Top = 129
   BorderIcons = [biSystemMenu]
-  Caption = 'Connection to MySQL-Host...'
+  Caption = 'Session manager'
   ClientHeight = 284
   ClientWidth = 456
   Color = clBtnFace
@@ -71,13 +71,13 @@ object connform: Tconnform
     Caption = '&Timeout:'
     FocusControl = editTimeout
   end
-  object lblDescription: TLabel
+  object lblSession: TLabel
     Tag = 5
     Left = 139
     Top = 49
-    Width = 57
+    Width = 40
     Height = 13
-    Caption = '&Description:'
+    Caption = '&Session:'
     FocusControl = comboSession
   end
   object lblSeconds: TLabel
