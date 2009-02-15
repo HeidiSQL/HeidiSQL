@@ -33,7 +33,7 @@ object connform: Tconnform
     Width = 72
     Height = 13
     Caption = '&Hostname / IP:'
-    FocusControl = EditHost
+    FocusControl = editHost
   end
   object lblUsername: TLabel
     Tag = 7
@@ -42,7 +42,7 @@ object connform: Tconnform
     Width = 26
     Height = 13
     Caption = '&User:'
-    FocusControl = EditUsername
+    FocusControl = editUsername
   end
   object lblPassword: TLabel
     Tag = 8
@@ -51,7 +51,7 @@ object connform: Tconnform
     Width = 50
     Height = 13
     Caption = '&Password:'
-    FocusControl = EditPassword
+    FocusControl = editPassword
   end
   object lblPort: TLabel
     Tag = 9
@@ -60,7 +60,7 @@ object connform: Tconnform
     Width = 24
     Height = 13
     Caption = 'P&ort:'
-    FocusControl = EditPort
+    FocusControl = editPort
   end
   object lblTimeout: TLabel
     Tag = 10
@@ -69,7 +69,7 @@ object connform: Tconnform
     Width = 42
     Height = 13
     Caption = '&Timeout:'
-    FocusControl = EditTimeout
+    FocusControl = editTimeout
   end
   object lblDescription: TLabel
     Tag = 5
@@ -78,13 +78,13 @@ object connform: Tconnform
     Width = 57
     Height = 13
     Caption = '&Description:'
-    FocusControl = ComboBoxDescription
+    FocusControl = comboSession
   end
   object lblSeconds: TLabel
     Tag = 11
     Left = 391
     Top = 148
-    Width = 49
+    Width = 39
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     Caption = 'seconds'
@@ -96,10 +96,10 @@ object connform: Tconnform
     Width = 63
     Height = 13
     Caption = 'Data&base(s):'
-    FocusControl = EditOnlyDBs
+    FocusControl = editOnlyDBs
     WordWrap = True
   end
-  object EditHost: TEdit
+  object editHost: TEdit
     Left = 230
     Top = 73
     Width = 215
@@ -108,7 +108,7 @@ object connform: Tconnform
     TabOrder = 1
     OnChange = Modified
   end
-  object EditUsername: TEdit
+  object editUsername: TEdit
     Left = 230
     Top = 97
     Width = 215
@@ -117,7 +117,7 @@ object connform: Tconnform
     TabOrder = 2
     OnChange = Modified
   end
-  object EditPassword: TEdit
+  object editPassword: TEdit
     Left = 230
     Top = 121
     Width = 215
@@ -127,7 +127,7 @@ object connform: Tconnform
     TabOrder = 3
     OnChange = Modified
   end
-  object EditPort: TEdit
+  object editPort: TEdit
     Left = 230
     Top = 145
     Width = 43
@@ -135,7 +135,7 @@ object connform: Tconnform
     TabOrder = 4
     OnChange = Modified
   end
-  object EditTimeout: TEdit
+  object editTimeout: TEdit
     Left = 331
     Top = 144
     Width = 51
@@ -143,7 +143,7 @@ object connform: Tconnform
     TabOrder = 5
     OnChange = Modified
   end
-  object pnlScreen: TPanel
+  object pnlLogo: TPanel
     Left = 12
     Top = 13
     Width = 119
@@ -151,7 +151,7 @@ object connform: Tconnform
     AutoSize = True
     BevelOuter = bvLowered
     TabOrder = 8
-    object Image1: TImage
+    object imgLogo: TImage
       Left = 1
       Top = 1
       Width = 117
@@ -2990,7 +2990,7 @@ object connform: Tconnform
         D600}
     end
   end
-  object ComboBoxDescription: TComboBox
+  object comboSession: TComboBox
     Left = 230
     Top = 46
     Width = 190
@@ -3000,9 +3000,9 @@ object connform: Tconnform
     Anchors = [akLeft, akTop, akRight]
     ItemHeight = 13
     TabOrder = 0
-    OnClick = ComboBoxDescriptionClick
+    OnSelect = comboSessionSelect
   end
-  object CheckBoxCompressed: TCheckBox
+  object chkCompressed: TCheckBox
     Tag = 12
     Left = 230
     Top = 171
@@ -3012,7 +3012,7 @@ object connform: Tconnform
     TabOrder = 6
     OnClick = Modified
   end
-  object EditOnlyDBs: TTntEdit
+  object editOnlyDBs: TTntEdit
     Left = 230
     Top = 192
     Width = 215
@@ -3024,7 +3024,7 @@ object connform: Tconnform
     TabOrder = 7
     OnChange = Modified
   end
-  object CheckBoxSorted: TCheckBox
+  object chkSorted: TCheckBox
     Left = 230
     Top = 219
     Width = 215
@@ -3034,7 +3034,7 @@ object connform: Tconnform
     TabOrder = 9
     OnClick = Modified
   end
-  object ButtonSaveAndConnect: TButton
+  object btnSaveAndConnect: TButton
     Left = 139
     Top = 248
     Width = 95
@@ -3043,9 +3043,9 @@ object connform: Tconnform
     Caption = 'Save + Connect'
     ModalResult = 1
     TabOrder = 10
-    OnClick = ButtonSaveAndConnectClick
+    OnClick = btnSaveAndConnectClick
   end
-  object ButtonConnect: TButton
+  object btnConnect: TButton
     Tag = 15
     Left = 245
     Top = 248
@@ -3055,9 +3055,9 @@ object connform: Tconnform
     Caption = 'Connect!'
     Default = True
     TabOrder = 11
-    OnClick = ButtonConnectClick
+    OnClick = btnConnectClick
   end
-  object ButtonCancel: TButton
+  object btnCancel: TButton
     Tag = 16
     Left = 350
     Top = 248
@@ -3069,7 +3069,7 @@ object connform: Tconnform
     ModalResult = 2
     TabOrder = 12
   end
-  object ToolBar1: TToolBar
+  object tlbEdit: TToolBar
     Left = 139
     Top = 13
     Width = 260
@@ -3089,14 +3089,14 @@ object connform: Tconnform
       Top = 0
       Caption = 'New'
       ImageIndex = 45
-      OnClick = ButtonNewClick
+      OnClick = btnNewClick
     end
     object btnSave: TToolButton
       Left = 65
       Top = 0
       Caption = 'Save'
       ImageIndex = 10
-      OnClick = ButtonSaveClick
+      OnClick = btnSaveClick
     end
     object btnSaveAs: TToolButton
       Left = 130
@@ -3110,7 +3110,7 @@ object connform: Tconnform
       Top = 0
       Caption = 'Delete'
       ImageIndex = 46
-      OnClick = ButtonDeleteClick
+      OnClick = btnDeleteClick
     end
   end
   object btnEditDesc: TButton
