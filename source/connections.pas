@@ -28,7 +28,7 @@ type
     pnlLogo: TPanel;
     comboSession: TComboBox;
     imgLogo: TImage;
-    lblDescription: TLabel;
+    lblSession: TLabel;
     btnCancel: TButton;
     btnConnect: TButton;
     chkCompressed: TCheckBox;
@@ -203,25 +203,25 @@ end;
 procedure Tconnform.btnNewClick(Sender: TObject);
 var
   i : Integer;
-  description : String;
+  session : String;
 begin
   // save new connection!
   i := 0;
-  description := 'New Connection';
-  while MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + description) do begin
+  session := 'New session';
+  while MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + session) do begin
     inc(i);
-    description := 'New Connection' + ' (' + inttostr(i) + ')';
+    session := 'New session' + ' (' + inttostr(i) + ')';
   end;
-  if not InputQuery('New Connection...', 'Description:', description) then
+  if not InputQuery('New session ...', 'Session name:', session) then
     exit;
-  if MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + description) then
+  if MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + session) then
   begin
-    MessageDlg('Entry "' + description + '" already exists!', mtError, [mbOK], 0);
+    MessageDlg('Session "' + session + '" already exists!', mtError, [mbOK], 0);
     exit;
   end;
 
   Screen.Cursor := crHourglass;
-  OpenRegistry(description);
+  OpenRegistry(session);
   MainReg.WriteString(REGNAME_HOST, DEFAULT_HOST);
   MainReg.WriteString(REGNAME_USER, DEFAULT_USER);
   MainReg.WriteString(REGNAME_PASSWORD, encrypt(DEFAULT_PASSWORD));
@@ -233,7 +233,7 @@ begin
 
   // show parameters:
   FillSessionCombo(Sender);
-  comboSession.ItemIndex := comboSession.Items.IndexOf(description);
+  comboSession.ItemIndex := comboSession.Items.IndexOf(session);
   comboSessionSelect(Sender);
   Screen.Cursor := crDefault;
 end;
@@ -241,10 +241,10 @@ end;
 
 procedure Tconnform.btnDeleteClick(Sender: TObject);
 begin
-  if MessageDlg('Delete Entry "' + comboSession.Text + '" ?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes then
+  if MessageDlg('Delete session "' + comboSession.Text + '" ?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes then
   begin
     if not MainReg.DeleteKey(REGPATH + REGKEY_SESSIONS + comboSession.Text) then
-      MessageDlg('Error while deleting Key from Registry!', mtError, [mbOK], 0);
+      MessageDlg('Error while deleting session from Registry!', mtError, [mbOK], 0);
     FillSessionCombo(Sender);
   end;
 end;
@@ -298,7 +298,7 @@ begin
   lblPassword.Enabled := SessionSelected;
   lblPort.Enabled := SessionSelected;
   lblTimeout.Enabled := SessionSelected;
-  lblDescription.Enabled := SessionSelected;
+  lblSession.Enabled := SessionSelected;
   lblSeconds.Enabled := SessionSelected;
   lblOnlyDBs.Enabled := SessionSelected;
 
@@ -314,7 +314,7 @@ begin
 end;
 
 
-{ rename connection-description }
+{ rename session }
 procedure Tconnform.ButtonEditDescClick(Sender: TObject);
 var
   newdesc, olddesc : String;
@@ -322,12 +322,12 @@ var
 begin
   olddesc := comboSession.Text;
   newdesc := olddesc;
-  if not InputQuery('Rename description', 'Rename description:', newdesc) then
+  if not InputQuery('Rename session ...', 'Rename session:', newdesc) then
     exit;
   if newdesc = olddesc then
     exit;
   if comboSession.Items.IndexOf(newdesc) > -1 then begin
-    MessageDLG('Description "'+newdesc+'" already exists!', mtError, [mbCancel], 0);
+    MessageDLG('Session "'+newdesc+'" already exists!', mtError, [mbCancel], 0);
     exit;
   end;
 
