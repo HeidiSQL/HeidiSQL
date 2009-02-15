@@ -132,7 +132,7 @@ object MainForm: TMainForm
       object ToolButton9: TToolButton
         Left = 0
         Top = 0
-        Action = actOpenSession
+        Action = actSessionManager
         AutoSize = True
         DropdownMenu = menuConnections
         Style = tbsDropDown
@@ -1531,13 +1531,16 @@ object MainForm: TMainForm
       Caption = '&File'
       Hint = 'File related commands'
       OnClick = File1Click
-      object FileNewItem: TMenuItem
-        Tag = 23
-        Action = actOpenSession
+      object Sessionmanager1: TMenuItem
+        Action = actSessionManager
       end
       object menuConnectTo: TMenuItem
         Caption = 'Connect to'
         Enabled = False
+      end
+      object FileNewItem: TMenuItem
+        Tag = 23
+        Action = actNewWindow
       end
       object N1: TMenuItem
         Caption = '-'
@@ -1776,13 +1779,20 @@ object MainForm: TMainForm
     Images = PngImageListMain
     Left = 8
     Top = 64
-    object actOpenSession: TAction
+    object actSessionManager: TAction
+      Category = 'File'
+      Caption = 'Session manager'
+      Hint = 'Display session manager'
+      ImageIndex = 37
+      OnExecute = actSessionManagerExecute
+    end
+    object actNewWindow: TAction
       Category = 'File'
       Caption = 'New &window'
       Hint = 'New window...'
       ImageIndex = 37
       ShortCut = 16462
-      OnExecute = actOpenSessionExecute
+      OnExecute = actNewWindowExecute
     end
     object actExitApplication: TAction
       Category = 'File'

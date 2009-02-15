@@ -40,7 +40,7 @@ type
     ActionList1: TActionList;
     actCopy: TAction;
     actPaste: TAction;
-    actOpenSession: TAction;
+    actNewWindow: TAction;
     actExitApplication: TAction;
     Extra1: TMenuItem;
     FlushUserPrivileges1: TMenuItem;
@@ -457,6 +457,8 @@ type
     lblRecentFilters: TLabel;
     Copy2: TMenuItem;
     N26: TMenuItem;
+    actSessionManager: TAction;
+    Sessionmanager1: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -516,7 +518,8 @@ type
     procedure actImportCSVExecute(Sender: TObject);
     procedure actImportSettingsExecute(Sender: TObject);
     procedure actLoadSQLExecute(Sender: TObject);
-    procedure actOpenSessionExecute(Sender: TObject);
+    procedure actNewWindowExecute(Sender: TObject);
+    procedure actSessionManagerExecute(Sender: TObject);
     procedure actPreferencesExecute(Sender: TObject);
     procedure actQueryFindExecute(Sender: TObject);
     procedure actQueryReplaceExecute(Sender: TObject);
@@ -1578,6 +1581,17 @@ begin
 end;
 
 
+procedure TMainForm.actSessionManagerExecute(Sender: TObject);
+var
+  ConnForm: TConnForm;
+begin
+  ConnForm := TConnForm.Create(Self);
+  if ConnForm.ShowModal <> mrCancel then
+    DoAfterConnect;
+  FreeAndNil(ConnForm);
+end;
+
+
 procedure TMainForm.DoAfterConnect;
 var
   i, j: Integer;
@@ -2000,10 +2014,13 @@ begin
   item.Caption := '-';
   menuConnections.Items.Add(item);
 
-  // "New window" item
+  // "Session manager" and "New window" items
   item := TMenuItem.Create(menuConnections);
-  item.Action := actOpenSession;
+  item.Action := actSessionManager;
   item.Default := True;
+  menuConnections.Items.Add(item);
+  item := TMenuItem.Create(menuConnections);
+  item.Action := actNewWindow;
   menuConnections.Items.Add(item);
 
   // All sessions
@@ -2726,7 +2743,7 @@ begin
 end;
 
 
-procedure TMainForm.actOpenSessionExecute(Sender: TObject);
+procedure TMainForm.actNewWindowExecute(Sender: TObject);
 begin
   debug('perf: new connection clicked.');
   ShellExec( ExtractFileName(paramstr(0)), ExtractFilePath(paramstr(0)) );
