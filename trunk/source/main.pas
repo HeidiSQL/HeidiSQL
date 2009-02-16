@@ -8389,6 +8389,7 @@ begin
     Exit;
   if Sender = DataGrid then gr := @FDataGridResult
   else gr := @FQueryGridResult;
+  EnsureChunkLoaded(Sender, Node);
   if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
     TargetCanvas.Brush.Color := clHighlight;
     TargetCanvas.FillRect(CellRect);
