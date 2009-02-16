@@ -793,7 +793,7 @@ var
 begin
   // Check for unique key in DataGrid here instead of doing that indirectly
   // by EnsureFullWidth in the loop below
-  if not Mainform.CheckUniqueKeyClause then
+  if (Grid = Mainform.DataGrid) and (not Mainform.CheckUniqueKeyClause) then
     Exit;
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
@@ -916,7 +916,7 @@ var
 begin
   // Check for unique key in DataGrid here instead of doing that indirectly
   // by EnsureFullWidth in the loop below
-  if not Mainform.CheckUniqueKeyClause then
+  if (Grid = Mainform.DataGrid) and (not Mainform.CheckUniqueKeyClause) then
     Exit;
 
   separator := esc2ascii(separator);
@@ -1002,7 +1002,7 @@ var
 begin
   // Check for unique key in DataGrid here instead of doing that indirectly
   // by EnsureFullWidth in the loop below
-  if not Mainform.CheckUniqueKeyClause then
+  if (Grid = Mainform.DataGrid) and (not Mainform.CheckUniqueKeyClause) then
     Exit;
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
@@ -1078,7 +1078,7 @@ var
 begin
   // Check for unique key in DataGrid here instead of doing that indirectly
   // by EnsureFullWidth in the loop below
-  if not Mainform.CheckUniqueKeyClause then
+  if (Grid = Mainform.DataGrid) and (not Mainform.CheckUniqueKeyClause) then
     Exit;
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
