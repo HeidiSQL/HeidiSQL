@@ -290,7 +290,7 @@ const
   GRIDMAXDATA: Integer = 256;
 
   // Data grid: How many rows to fetch at a time.
-  GRIDMAXROWS: Cardinal = 500;
+  GRIDMAXROWS: Cardinal = 1000;
 
   // Data grid: How many rows to display in total
   GRIDMAXTOTALROWS = 100000;
