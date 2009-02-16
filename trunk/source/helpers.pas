@@ -791,10 +791,12 @@ var
   tmp, Data, Generator: WideString;
   Node: PVirtualNode;
 begin
-  // Check for unique key in DataGrid here instead of doing that indirectly
-  // by EnsureFullWidth in the loop below
-  if (Grid = Mainform.DataGrid) and (not Mainform.CheckUniqueKeyClause) then
-    Exit;
+  if Grid = Mainform.DataGrid then begin
+    // Discard all loaded data so EnsureChunkLoaded refetches it with full content lengths.
+    // This makes it superflous to call EnsureFullWidth and to have a unique key
+    for i := 0 to Length(GridData.Rows) - 1 do
+      GridData.Rows[i].Loaded := False;
+  end;
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
   EnableProgressBar(Grid.RootNodeCount);
@@ -862,8 +864,6 @@ begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
-      // Load remainder of large fields.
-      Mainform.EnsureFullWidth(Grid, i, Node);
       Data := Grid.Text[Node, i];
       // Handle nulls.
       if GridData.Rows[Node.Index].Cells[i].IsNull then Data := TEXT_NULL;
@@ -914,10 +914,12 @@ var
   tmp, Data: WideString;
   Node: PVirtualNode;
 begin
-  // Check for unique key in DataGrid here instead of doing that indirectly
-  // by EnsureFullWidth in the loop below
-  if (Grid = Mainform.DataGrid) and (not Mainform.CheckUniqueKeyClause) then
-    Exit;
+  if Grid = Mainform.DataGrid then begin
+    // Discard all loaded data so EnsureChunkLoaded refetches it with full content lengths.
+    // This makes it superflous to call EnsureFullWidth and to have a unique key
+    for i := 0 to Length(GridData.Rows) - 1 do
+      GridData.Rows[i].Loaded := False;
+  end;
 
   separator := esc2ascii(separator);
   encloser := esc2ascii(encloser);
@@ -955,8 +957,6 @@ begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
-      // Load remainder of large fields.
-      Mainform.EnsureFullWidth(Grid, i, Node);
       Data := Grid.Text[Node, i];
       // Remove 0x.
       if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
@@ -1001,10 +1001,12 @@ var
   tmp, Data: WideString;
   Node: PVirtualNode;
 begin
-  // Check for unique key in DataGrid here instead of doing that indirectly
-  // by EnsureFullWidth in the loop below
-  if (Grid = Mainform.DataGrid) and (not Mainform.CheckUniqueKeyClause) then
-    Exit;
+  if Grid = Mainform.DataGrid then begin
+    // Discard all loaded data so EnsureChunkLoaded refetches it with full content lengths.
+    // This makes it superflous to call EnsureFullWidth and to have a unique key
+    for i := 0 to Length(GridData.Rows) - 1 do
+      GridData.Rows[i].Loaded := False;
+  end;
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
   EnableProgressBar(Grid.RootNodeCount);
@@ -1031,8 +1033,6 @@ begin
       else begin
         if GridData.Columns[i].IsBinary then tmp := tmp + ' format="hex"';
         tmp := tmp + '>';
-        // Load remainder of large fields.
-        Mainform.EnsureFullWidth(Grid, i, Node);
         Data := Grid.Text[Node, i];
         // Remove 0x.
         if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
@@ -1076,10 +1076,12 @@ var
   tmp, Data: WideString;
   Node: PVirtualNode;
 begin
-  // Check for unique key in DataGrid here instead of doing that indirectly
-  // by EnsureFullWidth in the loop below
-  if (Grid = Mainform.DataGrid) and (not Mainform.CheckUniqueKeyClause) then
-    Exit;
+  if Grid = Mainform.DataGrid then begin
+    // Discard all loaded data so EnsureChunkLoaded refetches it with full content lengths.
+    // This makes it superflous to call EnsureFullWidth and to have a unique key
+    for i := 0 to Length(GridData.Rows) - 1 do
+      GridData.Rows[i].Loaded := False;
+  end;
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
   EnableProgressBar(Grid.RootNodeCount);
@@ -1106,9 +1108,7 @@ begin
         Continue;
       if GridData.Rows[Node.Index].Cells[i].IsNull then
         tmp := tmp + 'NULL'
-      else begin
-        // Load remainder of large fields.
-        Mainform.EnsureFullWidth(Grid, i, Node);
+      else begin             
         Data := Grid.Text[Node, i];
         // Remove 0x.
         if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
