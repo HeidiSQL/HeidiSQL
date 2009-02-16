@@ -856,13 +856,13 @@ begin
     if (Node.Index+1) mod 100 = 0 then
       ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
     tmp := '        <tr>' + CRLF;
-    // Add cells.
+    // Ensure basic data is loaded
+    Mainform.EnsureChunkLoaded(Grid, Node);
     for i:=0 to Length(GridData.Columns) - 1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
-      // Ensure basic data is loaded and load remainder of large fields.
-      Mainform.EnsureChunkLoaded(Grid, Node);
+      // Load remainder of large fields.
       Mainform.EnsureFullWidth(Grid, i, Node);
       Data := Grid.Text[Node, i];
       // Handle nulls.
@@ -949,12 +949,13 @@ begin
     if (Node.Index+1) mod 100 = 0 then
       ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
     tmp := '';
+    // Ensure basic data is loaded
+    Mainform.EnsureChunkLoaded(Grid, Node);
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
-      // Ensure basic data is loaded and load remainder of large fields.
-      Mainform.EnsureChunkLoaded(Grid, Node);
+      // Load remainder of large fields.
       Mainform.EnsureFullWidth(Grid, i, Node);
       Data := Grid.Text[Node, i];
       // Remove 0x.
@@ -1018,15 +1019,14 @@ begin
     if (Node.Index+1) mod 100 = 0 then
      ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
     tmp := #9'<row>' + CRLF;
-    // Data:
+    // Ensure basic data is loaded.
+    Mainform.EnsureChunkLoaded(Grid, Node);
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
       // Print cell start tag.
       tmp := tmp + #9#9'<' + Grid.Header.Columns[i].Text;
-      // Ensure basic data is loaded.
-      Mainform.EnsureChunkLoaded(Grid, Node);
       if GridData.Rows[Node.Index].Cells[i].IsNull then tmp := tmp + ' isnull="true" />' + CRLF
       else begin
         if GridData.Columns[i].IsBinary then tmp := tmp + ' format="hex"';
@@ -1098,13 +1098,12 @@ begin
     end;
     Delete(tmp, Length(tmp)-1, 2);
     tmp := tmp + ') VALUES (';
-    // Data:
+    // Ensure basic data is loaded.
+    Mainform.EnsureChunkLoaded(Grid, Node);
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
-      // Ensure basic data is loaded.
-      Mainform.EnsureChunkLoaded(Grid, Node);
       if GridData.Rows[Node.Index].Cells[i].IsNull then
         tmp := tmp + 'NULL'
       else begin
