@@ -576,7 +576,7 @@ type
     procedure ShowTableData(table: WideString);
     function EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode): Boolean;
     procedure EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: WideString);
-    procedure EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; FullWidth: Boolean = False);
     procedure DiscardNodeData(Sender: TVirtualStringTree; Node: PVirtualNode);
     procedure viewdata(Sender: TObject);
     procedure LogSQL(msg: WideString = ''; comment: Boolean = true );
@@ -840,8 +840,9 @@ type
     FQueryGridResult           : TGridResult;
     FDataGridSelect            : WideStrings.TWideStringList;
     FDataGridSort              : TOrderColArray;
-    DataGridCurrentSelect      : WideString;
-    DataGridCurrentFilter      : WideString;
+    DataGridCurrentSelect,
+    DataGridCurrentFullSelect,
+    DataGridCurrentFilter,
     DataGridCurrentSort        : WideString;
 
     property Delimiter: String read FDelimiter write SetDelimiter;
@@ -3462,7 +3463,8 @@ end;
 procedure TMainForm.viewdata(Sender: TObject);
 var
   i                    : Integer;
-  select_base          : WideString;
+  select_base,
+  select_base_full,
   select_from          : WideString;
   sl_query             : TWideStringList;
   KeyCols              : WideStrings.TWideStringList;
@@ -3623,6 +3625,7 @@ begin
 
       // Prepare SELECT statement
       select_base := 'SELECT ';
+      select_base_full := select_base;
       // Selected columns
       if (FDataGridSelect.Count = 0) or (FDataGridSelect.Count = FSelectedTableColumns.RecordCount) then begin
         tbtnDataColumns.ImageIndex := 107;
@@ -3660,6 +3663,7 @@ begin
           end else begin
             select_base := select_base + ' ' + Mask(ColName) + ',';
           end;
+          select_base_full := select_base_full + ' ' + Mask(ColName) + ',';
           InitColumn(ColName, FSelectedTableColumns.FieldByName('Type').AsString, ShowIt);
         end;
         FSelectedTableColumns.Next;
@@ -3667,11 +3671,13 @@ begin
       debug('mem: browse column initialization complete.');
       // Cut last comma
       select_base := copy( select_base, 1, Length(select_base)-1 );
+      select_base_full := copy( select_base_full, 1, Length(select_base_full)-1 );
       // Include db name for cases in which dbtree is switching databases and pending updates are in process
       select_from := ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedTable);
 
       // Final SELECT segments
       DataGridCurrentSelect := select_base + select_from;
+      DataGridCurrentFullSelect := select_base_full + select_from;
       DataGridCurrentFilter := SynMemoFilter.Text;
       if Length(FDataGridSort) > 0 then
         DataGridCurrentSort := ComposeOrderClause(FDataGridSort)
@@ -7460,7 +7466,7 @@ begin
   end;
 end;
 
-procedure TMainForm.EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode);
+procedure TMainForm.EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; FullWidth: Boolean = False);
 var
   res: PGridResult;
   start, limit: Cardinal;
@@ -7475,7 +7481,10 @@ begin
     start := Node.Index - (Node.Index mod GridMaxRows);
     limit := TVirtualStringTree(Sender).RootNodeCount - start;
     if limit > GridMaxRows then limit := GridMaxRows;
-    query := DataGridCurrentSelect;
+    if FullWidth then
+      query := DataGridCurrentFullSelect
+    else
+      query := DataGridCurrentSelect;
     if DataGridCurrentFilter <> '' then query := query + ' WHERE ' + DataGridCurrentFilter;
     if DataGridCurrentSort <> '' then query := query + ' ORDER BY ' + DataGridCurrentSort;
     query := query + WideFormat(' LIMIT %d, %d', [start, limit]);
