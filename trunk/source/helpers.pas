@@ -857,7 +857,7 @@ begin
       ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
     tmp := '        <tr>' + CRLF;
     // Ensure basic data is loaded
-    Mainform.EnsureChunkLoaded(Grid, Node);
+    Mainform.EnsureChunkLoaded(Grid, Node, True);
     for i:=0 to Length(GridData.Columns) - 1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
@@ -950,7 +950,7 @@ begin
       ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
     tmp := '';
     // Ensure basic data is loaded
-    Mainform.EnsureChunkLoaded(Grid, Node);
+    Mainform.EnsureChunkLoaded(Grid, Node, True);
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
@@ -1020,7 +1020,7 @@ begin
      ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
     tmp := #9'<row>' + CRLF;
     // Ensure basic data is loaded.
-    Mainform.EnsureChunkLoaded(Grid, Node);
+    Mainform.EnsureChunkLoaded(Grid, Node, True);
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
@@ -1099,7 +1099,7 @@ begin
     Delete(tmp, Length(tmp)-1, 2);
     tmp := tmp + ') VALUES (';
     // Ensure basic data is loaded.
-    Mainform.EnsureChunkLoaded(Grid, Node);
+    Mainform.EnsureChunkLoaded(Grid, Node, True);
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
