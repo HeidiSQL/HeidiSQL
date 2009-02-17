@@ -9164,6 +9164,7 @@ function TVirtualTreeColumns.GetColumnAndBounds(P: TPoint; var ColumnLeft, Colum
 
 var
   I: Integer;
+  J: Integer;
 
 begin
   Result := InvalidColumn;
@@ -9174,9 +9175,10 @@ begin
 
   if FHeader.Treeview.UseRightToLeftAlignment then
     Inc(ColumnLeft, FHeader.Treeview.ComputeRTLOffset(True));
-    
-  for I := 0 to Count - 1 do
-    with Items[FPositionToIndex[I]] do
+
+  for I := 0 to Count - 1 do begin
+    J := FPositionToIndex[I];
+    with Items[J] do
       if coVisible in FOptions then
       begin
         ColumnRight := ColumnLeft + FWidth;
@@ -9187,6 +9189,7 @@ begin
         end;
         ColumnLeft := ColumnRight;
       end;
+  end;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
