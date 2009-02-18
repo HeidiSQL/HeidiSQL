@@ -1483,8 +1483,7 @@ begin
       frm := TfrmUpdateCheck.Create(Self);
       frm.AutoClose := True;
       frm.CheckForBuildsInAutoMode := GetRegValue(REGNAME_DO_UPDATECHECK_BUILDS, DEFAULT_DO_UPDATECHECK_BUILDS);
-      if frm.ShowModal = mrOK then
-        Close;
+      frm.ShowModal;
       FreeAndNil(frm);
     end;
   end;
