@@ -1540,8 +1540,10 @@ const
   block: Cardinal = 65536;
   NLold1 = #13;
   NLold2 = #10;
+  NullOld = #0;
   NLnew1 = 'r';
   NLnew2 = 'n';
+  NullNew = '0';
 var
   bstart, bend, matches, i: Cardinal;
   // These could be bumped to uint64 if necessary.
@@ -1562,7 +1564,8 @@ begin
       (Text[i] = Char3) or
       (Text[i] = Char4) or
       (Text[i] = NLold1) or
-      (Text[i] = NLold2)
+      (Text[i] = NLold2) or
+      (Text[i] = NullOld)
     then Inc(matches);
     SetLength(Result, bend + 1 - bstart + matches + respos);
     for i := bstart to bend do begin
@@ -1573,7 +1576,8 @@ begin
         (Text[i] = Char3) or
         (Text[i] = Char4) or
         (Text[i] = NLold1) or
-        (Text[i] = NLold2)
+        (Text[i] = NLold2) or
+        (Text[i] = NullOld)
       then begin
         Result[respos] := EscChar;
         Inc(respos);
@@ -1583,6 +1587,9 @@ begin
           continue;
         end else if Text[i] = NLold2 then begin
           Result[respos] := NLnew2;
+          continue;
+        end else if Text[i] = NullOld then begin
+          Result[respos] := NullNew;
           continue;
         end;
       end;
