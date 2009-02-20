@@ -5120,7 +5120,7 @@ var
 begin
   // set interval for autorefresh-timer
   seconds := IntToStr(TimerRefresh.interval div 1000);
-  if inputquery('Auto-refresh processlist','Update list every ... seconds:', seconds) then begin
+  if inputquery('Auto refresh','Refresh list every ... second(s):', seconds) then begin
     secondsInt := StrToIntDef(seconds, 0);
     if secondsInt > 0 then begin
       TimerRefresh.Interval := secondsInt * 1000;
