@@ -25,9 +25,10 @@ object ExportSQLForm: TExportSQLForm
   object lblProgress: TLabel
     Left = 3
     Top = 396
-    Width = 52
+    Width = 460
     Height = 13
-    Anchors = [akLeft, akBottom]
+    Anchors = [akLeft, akRight, akBottom]
+    AutoSize = False
     Caption = 'lblProgress'
   end
   object btnExport: TButton
