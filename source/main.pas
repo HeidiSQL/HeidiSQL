@@ -3335,22 +3335,21 @@ var
 begin
   // Shorten very long messages
   snip := (prefLogSqlWidth > 0) and (Length(msg) > prefLogSqlWidth);
-  if snip then
-  begin
+  if snip then begin
     msg :=
       Copy( msg, 0, prefLogSqlWidth ) +
       '/* large SQL query, snipped at  ' +
       FormatNumber( prefLogSqlWidth ) +
       ' characters */';
-  end;
+  end else if (not snip) and (not comment) then
+    msg := msg + Delimiter
+  else if comment then
+    msg := '/* ' + msg + ' */';
+
   msg := WideStringReplace( msg, #9, ' ', [rfReplaceAll] );
   msg := WideStringReplace( msg, #10, ' ', [rfReplaceAll] );
   msg := WideStringReplace( msg, #13, ' ', [rfReplaceAll] );
   msg := WideStringReplace( msg, '  ', ' ', [rfReplaceAll] );
-  if ( comment ) then
-  begin
-    msg := '/* ' + msg + ' */';
-  end;
 
   EnterCriticalSection(SqlMessagesLock);
   try
