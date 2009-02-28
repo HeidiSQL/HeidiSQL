@@ -186,7 +186,7 @@ type
   procedure ResetVTNodes(Sender: TBaseVirtualTree);
   procedure EnableProgressBar(MaxValue: Integer);
   function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
-
+  function ListIndexByRegExpr(List: TWideStrings; Expression: WideString): Integer;
 var
   MYSQL_KEYWORDS             : TStringList;
   MainReg                    : TRegistry;
@@ -2957,6 +2957,25 @@ begin
     Result := -1;
 end;
 
+
+function ListIndexByRegExpr(List: TWideStrings; Expression: WideString): Integer;
+var
+  rx: TRegExpr;
+  i: Integer;
+begin
+  // Find item in stringlist by passing a regular expression
+  rx := TRegExpr.Create;
+  rx.Expression := Expression;
+  rx.ModifierI := True;
+  Result := -1;
+  for i := 0 to List.Count - 1 do begin
+    if rx.Exec(List[i]) then begin
+      Result := i;
+      break;
+    end;
+  end;
+  FreeAndNil(rx);
+end;
 
 initialization
 
