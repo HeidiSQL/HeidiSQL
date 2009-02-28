@@ -144,7 +144,6 @@ type
     ToolButton8: TToolButton;
     ToolButton10: TToolButton;
     ToolBarDatabase: TToolBar;
-    btnDBEmptyTable: TToolButton;
     btnDBDropTable: TToolButton;
     btnDBCopyTable: TToolButton;
     btnCreateTable: TToolButton;
@@ -194,7 +193,6 @@ type
     actQueryReplace: TAction;
     FindDialogQuery: TFindDialog;
     ReplaceDialogQuery: TReplaceDialog;
-    btnEditTableProperties: TToolButton;
     btnEditDatabase: TToolButton;
     ToolBarQuery: TToolBar;
     btnExecuteQuery: TToolButton;
@@ -207,7 +205,6 @@ type
     btnStopOnErrors: TToolButton;
     btnQueryWordwrap: TToolButton;
     PopupQueryLoad: TPopupMenu;
-    btnEditView: TToolButton;
     btnExecuteLine: TToolButton;
     actSetDelimiter: TAction;
     btnSetDelimiter: TToolButton;
