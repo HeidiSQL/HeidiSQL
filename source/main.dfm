@@ -294,7 +294,7 @@ object MainForm: TMainForm
     object ToolBarDatabase: TToolBar
       Left = 407
       Top = 2
-      Width = 184
+      Width = 115
       Height = 22
       Align = alNone
       AutoSize = True
@@ -307,38 +307,23 @@ object MainForm: TMainForm
         Top = 0
         Action = actCreateTable
       end
-      object btnEditTableProperties: TToolButton
-        Left = 23
-        Top = 0
-        Action = actEditTableProperties
-      end
       object btnCreateView: TToolButton
-        Left = 46
+        Left = 23
         Top = 0
         Action = actCreateView
       end
-      object btnEditView: TToolButton
-        Left = 69
-        Top = 0
-        Action = actEditView
-      end
       object btnDBDropTable: TToolButton
-        Left = 92
+        Left = 46
         Top = 0
         Action = actDropTablesAndViews
       end
-      object btnDBEmptyTable: TToolButton
-        Left = 115
-        Top = 0
-        Action = actEmptyTables
-      end
       object btnDBCopyTable: TToolButton
-        Left = 138
+        Left = 69
         Top = 0
         Action = actCopyTable
       end
       object btnDBCreateRoutine: TToolButton
-        Left = 161
+        Left = 92
         Top = 0
         Action = actCreateRoutine
       end
