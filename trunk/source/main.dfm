@@ -119,7 +119,7 @@ object MainForm: TMainForm
     object ToolBarStandard: TToolBar
       Left = 11
       Top = 2
-      Width = 360
+      Width = 377
       Height = 22
       Align = alNone
       AutoSize = True
@@ -137,8 +137,13 @@ object MainForm: TMainForm
         DropdownMenu = menuConnections
         Style = tbsDropDown
       end
+      object btnExit: TToolButton
+        Left = 38
+        Top = 0
+        Action = actExitApplication
+      end
       object tlbSep1: TToolButton
-        Left = 44
+        Left = 61
         Top = 0
         Width = 8
         Caption = 'tlbSep1'
@@ -146,30 +151,30 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ToolButton5: TToolButton
-        Left = 52
+        Left = 69
         Top = 0
         Action = actCopy
         AutoSize = True
       end
       object ToolButton6: TToolButton
-        Left = 75
+        Left = 92
         Top = 0
         Action = actPaste
         AutoSize = True
       end
       object ToolButton14: TToolButton
-        Left = 98
+        Left = 115
         Top = 0
         Hint = 'Undo'
         Action = actUndo
       end
       object ToolButton12: TToolButton
-        Left = 121
+        Left = 138
         Top = 0
         Action = actPrintList
       end
       object tlbSep2: TToolButton
-        Left = 144
+        Left = 161
         Top = 0
         Width = 8
         Caption = 'tlbSep2'
@@ -177,24 +182,24 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonCreateDatabase: TToolButton
-        Left = 152
+        Left = 169
         Top = 0
         Action = actCreateDatabase
         AutoSize = True
       end
       object btnEditDatabase: TToolButton
-        Left = 175
+        Left = 192
         Top = 0
         Action = actEditDatabase
       end
       object ButtonDropDatabase: TToolButton
-        Left = 198
+        Left = 215
         Top = 0
         Action = actDropDatabase
         AutoSize = True
       end
       object ToolButton2: TToolButton
-        Left = 221
+        Left = 238
         Top = 0
         Width = 8
         Caption = 'ToolButton2'
@@ -202,13 +207,13 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonRefresh: TToolButton
-        Left = 229
+        Left = 246
         Top = 0
         Action = actRefresh
         AutoSize = True
       end
       object tlbSep5: TToolButton
-        Left = 252
+        Left = 269
         Top = 0
         Width = 8
         Caption = 'tlbSep5'
@@ -216,25 +221,25 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonUserManager: TToolButton
-        Left = 260
+        Left = 277
         Top = 0
         Action = actUserManager
         AutoSize = True
       end
       object ButtonImportTextfile: TToolButton
-        Left = 283
+        Left = 300
         Top = 0
         Action = actImportCSV
         AutoSize = True
       end
       object ButtonExport: TToolButton
-        Left = 306
+        Left = 323
         Top = 0
         Action = actExportTables
         AutoSize = True
       end
       object tlbSep6: TToolButton
-        Left = 329
+        Left = 346
         Top = 0
         Width = 8
         Caption = 'tlbSep6'
@@ -242,7 +247,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object btnSQLHelp: TToolButton
-        Left = 337
+        Left = 354
         Top = 0
         Action = actSQLhelp
       end
@@ -1788,7 +1793,7 @@ object MainForm: TMainForm
       Category = 'File'
       Caption = 'E&xit'
       Hint = 'Exit|Exit application'
-      ImageIndex = 26
+      ImageIndex = 29
       OnExecute = actExitApplicationExecute
     end
     object actCopy: TAction
