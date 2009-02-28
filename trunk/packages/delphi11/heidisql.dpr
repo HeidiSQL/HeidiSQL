@@ -41,7 +41,8 @@ uses
   bineditor in '..\..\source\bineditor.pas' {frmBinEditor},
   grideditlinks in '..\..\source\grideditlinks.pas',
   uVistaFuncs in '..\..\source\uVistaFuncs.pas',
-  dataviewsave in '..\..\source\dataviewsave.pas' {FrmDataViewSave};
+  dataviewsave in '..\..\source\dataviewsave.pas' {FrmDataViewSave},
+  routine_editor in '..\..\source\routine_editor.pas' {frmRoutineEditor};
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\version.RES}

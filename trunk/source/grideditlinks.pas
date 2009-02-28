@@ -65,6 +65,7 @@ type
     procedure ComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   public
     ValueList: TWideStringList;
+    AllowCustomText: Boolean;
     constructor Create;
     destructor Destroy; override;
     function BeginEdit: Boolean; virtual; stdcall;
@@ -443,6 +444,7 @@ end;
 constructor TEnumEditorLink.Create;
 begin
   inherited;
+  AllowCustomText := False;
 end;
 
 
@@ -506,11 +508,16 @@ begin
   FColumn := Column;
   FCombo := TTnTComboBox.Create(Tree);
   FCombo.Parent := FTree;
-  // Set style to OwnerDraw, otherwise we wouldn't be able to adjust the combo's height
-  FCombo.Style := csOwnerDrawFixed;
   for i := 0 to ValueList.Count - 1 do
     FCombo.Items.Add(ValueList[i]);
-  FCombo.ItemIndex := FCombo.Items.IndexOf(FTree.Text[FNode, FColumn]);
+  if AllowCustomText then begin
+    FCombo.Style := csDropDown;
+    FCombo.Text := FTree.Text[FNode, FColumn];
+  end else begin
+    // Set style to OwnerDraw, otherwise we wouldn't be able to adjust the combo's height
+    FCombo.Style := csOwnerDrawFixed;
+    FCombo.ItemIndex := FCombo.Items.IndexOf(FTree.Text[FNode, FColumn]);
+  end;
   FCombo.SetFocus;
   FCombo.OnKeyDown := ComboKeyDown;
 end;

@@ -134,6 +134,9 @@
     <DCCReference Include="..\..\source\queryprogress.pas">
       <Form>frmQueryProgress</Form>
     </DCCReference>
+    <DCCReference Include="..\..\source\routine_editor.pas">
+      <Form>frmRoutineEditor</Form>
+    </DCCReference>
     <DCCReference Include="..\..\source\runsqlfile.pas">
       <Form>RunSQLFileForm</Form>
     </DCCReference>

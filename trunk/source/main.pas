@@ -22,7 +22,7 @@ uses
   SynCompletionProposal, ZSqlMonitor, SynEditHighlighter, SynHighlighterSQL,
   TntStdCtrls, Tabs, SynUnicode, mysqlconn, EditVar, helpers, queryprogress,
   mysqlquery, createdatabase, createtable, tbl_properties, SynRegExpr,
-  WideStrUtils, ZDbcLogging, ExtActns, CommCtrl;
+  WideStrUtils, ZDbcLogging, ExtActns, CommCtrl, routine_editor;
 
 type
   TMainForm = class(TForm)
@@ -459,6 +459,9 @@ type
     N26: TMenuItem;
     actSessionManager: TAction;
     Sessionmanager1: TMenuItem;
+    actCreateRoutine: TAction;
+    actCreateRoutine1: TMenuItem;
+    btnDBCreateRoutine: TToolButton;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -731,6 +734,7 @@ type
     procedure actSelectAllExecute(Sender: TObject);
     procedure EnumerateRecentFilters;
     procedure LoadRecentFilter(Sender: TObject);
+    procedure actCreateRoutineExecute(Sender: TObject);
   private
     FDelimiter: String;
     ServerUptime               : Integer;
@@ -788,6 +792,7 @@ type
     UserManagerForm: TUserManagerForm;
     SelectDBObjectForm: TfrmSelectDBObject;
     SQLHelpForm: TfrmSQLhelp;
+    RoutineEditForm: TfrmRoutineEditor;
     DatabasesWanted,
     Databases                  : Widestrings.TWideStringList;
     TemporaryDatabase          : WideString;
@@ -1189,6 +1194,7 @@ begin
   SaveListSetup(ListColumns);
 
   FreeAndNil(CreateTableForm);
+  FreeAndNil(RoutineEditForm);
 
   debug('mem: clearing query and browse data.');
   SetLength(FDataGridResult.Rows, 0);
@@ -4390,6 +4396,7 @@ begin
   actCopyTable.Enabled := inDbTab and DBObjectSelected;
   actEditView.Enabled := inDbTab and ViewSelected and (mysql_version >= 50001);
   actCreateView.Enabled := FrmIsFocussed and (ActiveDatabase <> '') and (mysql_version >= 50001);
+  actCreateRoutine.Enabled := FrmIsFocussed and (ActiveDatabase <> '') and (mysql_version >= 50003);
   actCreateDatabase.Enabled := FrmIsFocussed;
   DBfocused := Assigned(DBtree.FocusedNode) and (DBtree.GetNodeLevel(DBtree.FocusedNode) = 1);
   actDropDatabase.Enabled := DBfocused and FrmIsFocussed;
@@ -9018,6 +9025,14 @@ begin
     SynMemoFilter.SelText := Utf8Decode( MainReg.ReadString(IntToStr(key)) );
     SynMemoFilter.EndUpdate;
   end;
+end;
+
+
+procedure TMainForm.actCreateRoutineExecute(Sender: TObject);
+begin
+  if not Assigned(RoutineEditForm) then
+    RoutineEditForm := TfrmRoutineEditor.Create(Self);
+  RoutineEditForm.ShowModal;
 end;
 
 
