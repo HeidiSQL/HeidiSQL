@@ -459,6 +459,7 @@ type
     actCreateRoutine: TAction;
     actCreateRoutine1: TMenuItem;
     btnDBCreateRoutine: TToolButton;
+    btnExit: TToolButton;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
