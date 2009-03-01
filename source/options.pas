@@ -56,7 +56,6 @@ type
     chkUpdatecheck: TCheckBox;
     editUpdatecheckInterval: TEdit;
     updownUpdatecheckInterval: TUpDown;
-    chkPreferShowTables: TCheckBox;
     chkUpdateCheckBuilds: TCheckBox;
     grpFieldLayout: TGroupBox;
     lblFieldDatetime: TLabel;
@@ -202,7 +201,6 @@ begin
   MainReg.WriteBool(REGNAME_DO_UPDATECHECK, chkUpdatecheck.Checked);
   MainReg.WriteBool(REGNAME_DO_UPDATECHECK_BUILDS, chkUpdatecheckBuilds.Checked);
   MainReg.WriteInteger(REGNAME_UPDATECHECK_INTERVAL, updownUpdatecheckInterval.Position);
-  MainReg.WriteBool(REGNAME_PREFER_SHOWTABLES, chkPreferShowTables.Checked);
   // Save color settings
   MainReg.WriteInteger(REGNAME_FIELDCOLOR_NUMERIC, cboxNumeric.Selected);
   MainReg.WriteInteger(REGNAME_FIELDCOLOR_TEXT, cboxText.Selected);
@@ -255,7 +253,6 @@ begin
   Mainform.prefCSVSeparator := editCSVSeparator.Text;
   Mainform.prefCSVEncloser := editCSVEncloser.Text;
   Mainform.prefCSVTerminator := editCSVTerminator.Text;
-  Mainform.prefPreferShowTables := chkPreferShowTables.Checked;
   Mainform.prefFieldColorNumeric := cboxNumeric.Selected;
   Mainform.prefFieldColorText := cboxText.Selected;
   Mainform.prefFieldColorBinary := cboxBinary.Selected;
@@ -320,7 +317,6 @@ begin
   chkUpdatecheckBuilds.Checked := GetRegValue(REGNAME_DO_UPDATECHECK_BUILDS, DEFAULT_DO_UPDATECHECK_BUILDS);
   updownUpdatecheckInterval.Position := GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
   chkUpdatecheckClick(Sender);
-  chkPreferShowTables.Checked := GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
 
   // Default Column-Width in DBGrids:
   updownMaxColWidth.Position := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);

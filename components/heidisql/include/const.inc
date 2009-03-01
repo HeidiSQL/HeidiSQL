@@ -187,8 +187,6 @@ const
   REGNAME_VIEWWINHEIGHT = 'View_WindowHeight';
   REGNAME_CRTABLEWINWIDTH = 'CreateTable_WindowWidth';
   REGNAME_CRTABLEWINHEIGHT = 'CreateTable_WindowHeight';
-  REGNAME_PREFER_SHOWTABLES = 'PreferShowTables';
-  DEFAULT_PREFER_SHOWTABLES = False;
   REGNAME_USERMNGR_WINWIDTH = 'Usermanager_WindowWidth';
   REGNAME_USERMNGR_WINHEIGHT = 'Usermanager_WindowHeight';
   REGNAME_SELECTDBO_WINWIDTH = 'SelectDBO_WindowWidth';

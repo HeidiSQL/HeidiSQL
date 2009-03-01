@@ -175,19 +175,6 @@ object optionsform: Toptionsform
         TabOrder = 10
         OnChanging = anyUpDownLimitChanging
       end
-      object chkPreferShowTables: TCheckBox
-        Left = 16
-        Top = 242
-        Width = 373
-        Height = 34
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 
-          'Use SHOW TABLES instead of SHOW TABLE STATUS (faster for large d' +
-          'atabases, but disables certain functionalities)'
-        TabOrder = 12
-        WordWrap = True
-        OnClick = Modified
-      end
       object chkUpdateCheckBuilds: TCheckBox
         Left = 34
         Top = 210
