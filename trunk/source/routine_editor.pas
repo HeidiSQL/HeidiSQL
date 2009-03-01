@@ -112,6 +112,7 @@ begin
     comboReturns.Items.Add(MySqlDataTypeArray[i].Name);
   SetWindowSizeGrip(Handle, True);
   InheritFont(Font);
+  FixVT(listParameters);
   SynMemoBody.Font.Name := Mainform.SynMemoQuery.Font.Name;
   SynMemoBody.Font.Size := Mainform.SynMemoQuery.Font.Size;
   SynMemoBody.Options := Mainform.SynMemoQuery.Options;
