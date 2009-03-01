@@ -816,7 +816,6 @@ type
     prefCSVEncloser,
     prefCSVTerminator          : String[10];
     prefLogToFile,
-    prefPreferShowTables,
     prefEnableBinaryEditor,
     prefEnableDatetimeEditor,
     prefEnableEnumEditor,
@@ -1359,7 +1358,6 @@ begin
   prefCSVEncloser := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
   prefCSVTerminator := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   prefRememberFilters := GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
-  prefPreferShowTables := GetRegValue(REGNAME_PREFER_SHOWTABLES, DEFAULT_PREFER_SHOWTABLES);
 
   // SQL-Font:
   fontname := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
@@ -3777,7 +3775,7 @@ begin
     ds := FetchActiveDbTableList;
     rows_total := -1;
     IsInnodb := False;
-    if not prefPreferShowTables then for i := 0 to ds.RecordCount - 1 do begin
+    for i := 0 to ds.RecordCount - 1 do begin
       if ds.Fields[0].AsWideString = SelectedTable then begin
         rows_total := MakeInt(ds.FieldByName('Rows').AsString);
         IsInnodb := ds.Fields[1].AsString = 'InnoDB';
@@ -3897,15 +3895,7 @@ begin
     Screen.Cursor := crHourGlass;
     ShowStatus('Fetching tables from "' + db + '" ...');
     try
-      if (mysql_version >= 32300) and (not prefPreferShowTables) then begin
-        ds := GetResults('SHOW TABLE STATUS FROM ' + mask(db), false, false);
-      end else begin
-        // contains table names, nothing else.
-        ds := GetResults('SHOW /*!50002 FULL */ TABLES FROM ' + mask(db), false, false);
-        // could clean up data (rename first column to 'Name') and
-        // and add row counters to data set as a new field by using
-        // SELECT COUNT(*), but that would potentially be rather slow.
-      end;
+      ds := GetResults('SHOW TABLE STATUS FROM ' + mask(db), false, false);
       CachedTableLists.AddObject(db, ds);
       // Add table names to SQL highlighter
       SynSQLSyn1.TableNames.BeginUpdate;
