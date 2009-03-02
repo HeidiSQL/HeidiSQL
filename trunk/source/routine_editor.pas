@@ -168,10 +168,10 @@ begin
     rx.ModifierI := True;
     rx.ModifierG := False;
     // CREATE DEFINER=`root`@`localhost` PROCEDURE `bla2`(IN p1 INT, p2 VARCHAR(20))
-    rx.Expression := '^CREATE\s.+\s(PROCEDURE|FUNCTION)\s.+`\((.+)\)\s';
+    rx.Expression := '^CREATE\s.+\s(PROCEDURE|FUNCTION)\s.+`\((.*)\)\s';
     if rx.Exec(Create) then begin
       Params := explode(',', rx.Match[2]);
-      rx.Expression := '^((IN|OUT|INOUT)\s+)?(\S+)\s+(.+)$';
+      rx.Expression := '^((IN|OUT|INOUT)\s+)?(\S+)\s+(\S+)$';
       for i := 0 to Params.Count - 1 do begin
         if rx.Exec(Trim(Params[i])) then begin
           Context := rx.Match[2];
