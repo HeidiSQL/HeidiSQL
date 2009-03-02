@@ -82,7 +82,6 @@ begin
   OpenRegistry;
   MainReg.WriteInteger( REGNAME_MAINTWINWIDTH, Width );
   MainReg.WriteInteger( REGNAME_MAINTWINHEIGHT, Height );
-  Close;
 end;
 
 

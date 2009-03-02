@@ -1202,6 +1202,7 @@ begin
 
   FreeAndNil(CreateTableForm);
   FreeAndNil(RoutineEditForm);
+  FreeAndNil(MaintenanceForm);
 
   debug('mem: clearing query and browse data.');
   SetLength(FDataGridResult.Rows, 0);
