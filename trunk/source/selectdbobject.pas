@@ -206,7 +206,7 @@ begin
         ds.RecNo := Node.Index+1;
         cols := Mainform.GetCol('SHOW COLUMNS FROM '
           + Mainform.mask(Mainform.Databases[Node.Parent.Index])+'.'
-          + Mainform.Mask(ds.Fields[0].AsWideString));
+          + Mainform.Mask(ds.FieldByName(DBO_NAME).AsWideString));
         FColumns[Node.Parent.Index][Node.Index] := cols;
         ChildCount := cols.Count;
       end;
@@ -226,7 +226,7 @@ begin
     1: begin
         ds := Mainform.FetchDbTableList(Mainform.Databases[Node.Parent.Index]);
         ds.RecNo := Node.Index+1;
-        CellText := ds.Fields[0].AsWideString;
+        CellText := ds.FieldByName(DBO_NAME).AsWideString;
       end;
     2: CellText := FColumns[Node.Parent.Parent.Index][Node.Parent.Index][Node.Index];
   end;

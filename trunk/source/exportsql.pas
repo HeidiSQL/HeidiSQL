@@ -167,7 +167,7 @@ begin
     else if Mainform.ActiveDatabase <> '' then begin
       ds := Mainform.FetchDbTableList(Mainform.ActiveDatabase);
       while not ds.Eof do begin
-        SelectedTables.Add(ds.Fields[0].AsWideString);
+        SelectedTables.Add(ds.FieldByName(DBO_NAME).AsWideString);
         ds.Next;
       end;
     end;
@@ -361,17 +361,17 @@ end;
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
 var
   i : Integer;
-  sql: WideString;
   CheckThisItem: Boolean;
+  ds: TDataset;
 begin
   // read tables from db
   checkListTables.Items.Clear;
-
-  // Fetch tables from DB
-  sql := 'FROM ' + MainForm.mask(comboSelectDatabase.Text);
-  if Mainform.mysql_version > 50002 then sql := 'SHOW FULL TABLES ' + sql + ' WHERE table_type=''BASE TABLE'''
-  else sql := 'SHOW TABLES ' + sql;
-  checkListTables.Items.Text := Mainform.GetCol( sql ).Text;
+  ds := Mainform.FetchDbTableList(comboSelectDatabase.Text);
+  while not ds.Eof do begin
+    if GetDBObjectType(ds.Fields) = NODETYPE_TABLE then
+      checkListTables.Items.Add(ds.FieldByName(DBO_NAME).AsWideString);
+    ds.Next;
+  end;
 
   // select all/some:
   for i:=0 to checkListTables.Items.Count-1 do

@@ -2327,6 +2327,8 @@ end;
 
 // Tell type of db object (table|view) by a given row from a SHOW TABLE STATUS result
 function GetDBObjectType( TableStatus: TFields ): Byte;
+var
+  t: String;
 begin
   {**
     @see http://dev.mysql.com/doc/refman/5.1/en/show-table-status.html
@@ -2337,21 +2339,28 @@ begin
       "Views bla references invalid..."
   }
   Result := NODETYPE_TABLE;
-  if (TableStatus.Count>=3) then begin
-    // Result from SHOW TABLE STATUS
+  if TableStatus.FindField('Type') <> nil then begin
+    t := TableStatus.FindField('Type').AsString;
+    if t = 'BASE TABLE' then
+      Result := NODETYPE_TABLE
+    else if t = 'VIEW' then
+      Result := NODETYPE_VIEW
+    else if t = 'FUNCTION' then
+      Result := NODETYPE_FUNCTION
+    else if t = 'PROCEDURE' then
+      Result := NODETYPE_PROCEDURE;
+  end else begin
     if
       TableStatus[1].IsNull and  // Engine column is NULL for views
       TableStatus[2].IsNull and
-      (Pos('VIEW', UpperCase(TableStatus.FieldByName('Comment').AsWideString)) > 0)
-    then Result := NODETYPE_VIEW;
+      (Pos('VIEW', UpperCase(TableStatus.FieldByName(DBO_COMMENT).AsWideString)) > 0)
+      then Result := NODETYPE_VIEW;
     if
       TableStatus[1].IsNull and
       TableStatus[2].IsNull and
-      (Pos('MARKED AS CRASHED', UpperCase(TableStatus.FieldByName('Comment').AsWideString)) > 0)
-    then Result := NODETYPE_CRASHED_TABLE;
-  end else if (TableStatus.Count=2) // Result from SHOW FULL TABLES
-    and (UpperCase(TableStatus[1].AsWideString) = 'VIEW') then
-    Result := NODETYPE_VIEW;
+      (Pos('MARKED AS CRASHED', UpperCase(TableStatus.FieldByName(DBO_COMMENT).AsWideString)) > 0)
+      then Result := NODETYPE_CRASHED_TABLE;
+  end;
 end;
 
 

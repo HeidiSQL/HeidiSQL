@@ -282,11 +282,13 @@ const
 
   // Node types of Virtual Tree nodes
   NODETYPE_DEFAULT = 0;
-  NODETYPE_TABLE = 1;
-  NODETYPE_VIEW = 2;
-  NODETYPE_DB = 3;
-  NODETYPE_COLUMN = 4;
-  NODETYPE_CRASHED_TABLE = 5;
+  NODETYPE_DB = 1;
+  NODETYPE_TABLE = 2;
+  NODETYPE_CRASHED_TABLE = 3;
+  NODETYPE_VIEW = 4;
+  NODETYPE_FUNCTION = 5;
+  NODETYPE_PROCEDURE = 6;
+  NODETYPE_COLUMN = 7;
 
   // Data grid: How many bytes to fetch from data fields that are potentially large.
   GRIDMAXDATA: Integer = 256;
@@ -306,3 +308,24 @@ const
   MSG_COPYMAXSIZE = 'Copying data is limited to %s but more data is available. '
         + 'Only %s out of %s rows were copied.' + CRLF + CRLF
         + 'Increase the value in Tools > Preferences > Export if you need more.';
+
+  DBO_NAME = 'Name';
+  DBO_TYPE = 'Type';
+  DBO_ENGINE = 'Engine';
+  DBO_VERSION = 'Version';
+  DBO_ROWFORMAT = 'Row_format';
+  DBO_ROWS = 'Rows';
+  DBO_AVGROWLEN = 'Avg_row_length';
+  DBO_DATALEN = 'Data_length';
+  DBO_MAXDATALEN = 'Max_data_length';
+  DBO_INDEXLEN = 'Index_length';
+  DBO_DATAFREE = 'Data_free';
+  DBO_AUTOINC = 'Auto_increment';
+  DBO_CREATED = 'Create_time';
+  DBO_UPDATED = 'Update_time';
+  DBO_CHECKED = 'Check_time';
+  DBO_COLLATION = 'Collation';
+  DBO_CHECKSUM = 'Checksum';
+  DBO_CROPTIONS = 'Create_options';
+  DBO_COMMENT = 'Comment';
+
