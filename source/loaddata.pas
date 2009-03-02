@@ -149,7 +149,8 @@ begin
   seltable := Mainform.SelectedTable;
   ds := Mainform.FetchDbTableList(comboDatabase.Text);
   while not ds.Eof do begin
-    comboTable.Items.Add(ds.Fields[0].AsWideString);
+    if GetDBObjectType(ds.Fields) in [NODETYPE_TABLE, NODETYPE_VIEW] then
+      comboTable.Items.Add(ds.FieldByName(DBO_NAME).AsWideString);
     count := comboTable.Items.Count-1;
     if (comboDatabase.Text = seldb) and (comboTable.Items[count] = seltable) then
       comboTable.ItemIndex := count;

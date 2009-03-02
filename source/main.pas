@@ -113,7 +113,7 @@ type
     actInsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
     actExportTables: TAction;
-    actDropTablesAndViews: TAction;
+    actDropDBobjects: TAction;
     actLoadSQL: TAction;
     ImportSQL1: TMenuItem;
     menuConnections: TPopupMenu;
@@ -460,6 +460,12 @@ type
     actCreateRoutine1: TMenuItem;
     btnDBCreateRoutine: TToolButton;
     btnExit: TToolButton;
+    actEditRoutine: TAction;
+    menuTreeEditRoutine: TMenuItem;
+    menuTreeCreateRoutine: TMenuItem;
+    menuEditRoutine: TMenuItem;
+    lblSorryNoFields: TLabel;
+    lblSorryNoData: TLabel;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -508,7 +514,7 @@ type
     procedure actDataPostChangesExecute(Sender: TObject);
     procedure actDropDatabaseExecute(Sender: TObject);
     procedure actDropFieldsExecute(Sender: TObject);
-    procedure actDropTablesAndViewsExecute(Sender: TObject);
+    procedure actDropDBobjectsExecute(Sender: TObject);
     procedure actEditDatabaseExecute(Sender: TObject);
     procedure actEditIndexesExecute(Sender: TObject);
     procedure actEmptyTablesExecute(Sender: TObject);
@@ -733,6 +739,9 @@ type
     procedure EnumerateRecentFilters;
     procedure LoadRecentFilter(Sender: TObject);
     procedure actCreateRoutineExecute(Sender: TObject);
+    procedure actEditRoutineExecute(Sender: TObject);
+    procedure ListTablesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; var Allowed: Boolean);
   private
     FDelimiter: String;
     ServerUptime               : Integer;
@@ -759,6 +768,7 @@ type
     DataGridDB, DataGridTable  : WideString;
     PrevTableColWidths         : WideStrings.TWideStringList;
     DataGridHasChanges         : Boolean;
+    InformationSchemaTables    : TWideStringlist;
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
     procedure SetDelimiter(Value: String);
@@ -1750,6 +1760,7 @@ begin
   ClearAllTableLists;
   FreeAndNil(DatabasesWanted);
   FreeAndNil(Databases);
+  FreeAndNil(InformationSchemaTables);
 
   // Closing connection
   if Assigned(FMysqlConn) then begin
@@ -1934,7 +1945,7 @@ begin
       // "Edit view" was clicked in DBTree's context menu
       ds := FetchDbTableList(ActiveDatabase);
       ds.RecNo := DBtree.GetFirstSelected.Index+1;
-      ViewForm.EditViewName := ds.Fields[0].AsString;
+      ViewForm.EditViewName := ds.FieldByName(DBO_NAME).AsString;
     end else
       // If we're here, there's a menu item "Edit/Create view" in an unknown location
       raise Exception.Create('Internal error in actCreateViewExexute.');
@@ -2328,11 +2339,34 @@ begin
 end;
 
 // Drop Table(s)
-procedure TMainForm.actDropTablesAndViewsExecute(Sender: TObject);
+procedure TMainForm.actDropDBobjectsExecute(Sender: TObject);
 var
-  i : Integer;
-  Tables, Views : TWideStringList;
-  msg, sql, activeDB : String;
+  AllCount : Integer;
+  Tables, Views, Functions, Procedures: TWideStringList;
+  msg, activeDB : String;
+
+  procedure DoDrop(Kind: String; List: TWideStringlist; MultiDrops: Boolean);
+  var
+    i: Integer;
+    baseSql, sql: WideString;
+  begin
+    if List.Count > 0 then begin
+      baseSql := 'DROP '+Kind+' ';
+      sql := '';
+      for i := 0 to List.Count - 1 do begin
+        if (i > 0) and MultiDrops then sql := sql + ', ';
+        sql := sql + mask(List[i]);
+        if not MultiDrops then begin
+          ExecUpdateQuery(baseSql + sql);
+          sql := '';
+        end;
+      end;
+      if MultiDrops then
+        ExecUpdateQuery(baseSql + sql);
+    end;
+    FreeAndNil(List);
+  end;
+  
 begin
   debug('drop table activated');
   // Set default database name to to ActiveDatabase.
@@ -2341,61 +2375,50 @@ begin
 
   Tables := TWideStringlist.Create;
   Views := TWideStringlist.Create;
+  Procedures := TWideStringlist.Create;
+  Functions := TWideStringlist.Create;
   if (PageControlMain.ActivePage = tabDatabase) and
     ((Sender as TAction).ActionComponent <> PopupMenuDropTable) then begin
     // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
     Tables := GetVTCaptions(ListTables, True, 0, NODETYPE_TABLE);
     Tables.AddStrings(GetVTCaptions(ListTables, True, 0, NODETYPE_CRASHED_TABLE));
     Views := GetVTCaptions(ListTables, True, 0, NODETYPE_VIEW);
+    Procedures := GetVTCaptions(ListTables, True, 0, NODETYPE_PROCEDURE);
+    Functions := GetVTCaptions(ListTables, True, 0, NODETYPE_FUNCTION);
   end else begin
     // Invoked from one of the various buttons, drop table selected in tree view.
     case GetSelectedNodeType of
-      NODETYPE_TABLE: Tables.Add(SelectedTable);
-      NODETYPE_CRASHED_TABLE: Tables.Add(SelectedTable);
-      NODETYPE_VIEW: Views.Add(SelectedTable)
+      NODETYPE_TABLE, NODETYPE_CRASHED_TABLE: Tables.Add(SelectedTable);
+      NODETYPE_VIEW: Views.Add(SelectedTable);
+      NODETYPE_PROCEDURE: Procedures.Add(SelectedTable);
+      NODETYPE_FUNCTION: Functions.Add(SelectedTable);
     end;
   end;
 
   // Fix actions temporarily enabled for popup menu.
   ValidateControls;
 
+  AllCount := Tables.Count + Views.Count + Procedures.Count + Functions.Count;
+
   // Safety stop to avoid firing DROP TABLE without tablenames
-  if (Tables.Count = 0) and (Views.Count = 0) then
+  if (AllCount = 0) then
     Exit;
 
   // Ask user for confirmation to drop selected objects
-  msg := 'Drop ' + IntToStr(Tables.Count+Views.Count) + ' table(s) and/or view(s) in database "'+activeDB+'"?'
+  msg := 'Drop ' + IntToStr(AllCount) + ' object(s) in database "'+activeDB+'"?'
     + CRLF;
-  if Tables.Count > 0 then msg := msg + CRLF + 'Tables: ' + ImplodeStr(', ', Tables);
-  if Views.Count > 0 then msg := msg + CRLF + 'Views: ' + ImplodeStr(', ', Views);
+  if Tables.Count > 0 then msg := msg + CRLF + 'Table(s): ' + ImplodeStr(', ', Tables);
+  if Views.Count > 0 then msg := msg + CRLF + 'View(s): ' + ImplodeStr(', ', Views);
+  if Procedures.Count > 0 then msg := msg + CRLF + 'Procedure(s): ' + ImplodeStr(', ', Procedures);
+  if Functions.Count > 0 then msg := msg + CRLF + 'Function(s): ' + ImplodeStr(', ', Functions);
   if MessageDlg(msg, mtConfirmation, [mbok,mbcancel], 0) <> mrok then
     Exit;
 
-  // Compose and run DROP TABLE query
-  if Tables.Count > 0 then begin
-    sql := 'DROP TABLE ';
-    for i := 0 to Tables.Count - 1 do
-    begin
-      if i > 0 then
-        sql := sql + ', ';
-      sql := sql + mask(Tables[i]);
-    end;
-    ExecUpdateQuery( sql );
-  end;
-  FreeAndNil(Tables);
-
-  // Compose and run DROP VIEW query
-  if Views.Count > 0 then begin
-    sql := 'DROP VIEW ';
-    for i := 0 to Views.Count - 1 do
-    begin
-      if i > 0 then
-        sql := sql + ', ';
-      sql := sql + mask(Views[i]);
-    end;
-    ExecUpdateQuery( sql );
-  end;
-  FreeAndNil(Views);
+  // Compose and run DROP [TABLE|VIEW|...] queries
+  DoDrop('TABLE', Tables, True);
+  DoDrop('VIEW', Views, True);
+  DoDrop('PROCEDURE', Procedures, False);
+  DoDrop('FUNCTION', Functions, False);
 
   // Refresh ListTables + dbtree so the dropped tables are gone:
   actRefresh.Execute;
@@ -2673,10 +2696,18 @@ var
   NodeData: PVTreeData;
 begin
   // table-doubleclick
-  if Assigned(ListTables.FocusedNode) then begin
-    NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    SelectedTable := NodeData.Captions[0];
-    PageControlMain.ActivePage := tabTable;
+  if not Assigned(ListTables.FocusedNode) then
+    Exit;
+
+  NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
+  case NodeData.ImageIndex of
+    ICONINDEX_TABLE, ICONINDEX_CRASHED_TABLE, ICONINDEX_VIEW: begin
+      SelectedTable := NodeData.Captions[0];
+      PageControlMain.ActivePage := tabTable;
+    end;
+    ICONINDEX_STOREDPROCEDURE, ICONINDEX_STOREDFUNCTION: begin
+      actEditRoutine.Execute;
+    end;
   end;
 end;
 
@@ -3578,14 +3609,25 @@ begin
   if DataGridHasChanges then
     actDataPostChangesExecute(Sender);
 
+  // Ensure <Table> and <Data> are visible
+  tabTable.TabVisible := true;
+  tabData.TabVisible := true;
+  // Switch to <Data>
+  PageControlMain.ActivePage := tabData;
+  if not (GetSelectedNodeType in [NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW]) then begin
+    DataGrid.Hide; // Reveals lblSorryNoData
+    pnlDataTop.Hide;
+    pnlFilter.Hide;
+    Screen.Cursor := crDefault;
+    Exit;
+  end else begin
+    DataGrid.Show;
+    pnlFilter.Show;
+    pnlDataTop.Show;
+  end;
+
   try
     if (SelectedTable <> '') and (ActiveDatabase <> '') then begin
-      // Ensure <Table> and <Data> are visible
-      tabTable.TabVisible := true;
-      tabData.TabVisible := true;
-      // Switch to <Data>
-      PageControlMain.ActivePage := tabData;
-
       if FDataGridSelect = nil then
         FDataGridSelect := WideStrings.TWideStringlist.Create;
       if DataGridTable <> SelectedTable then begin
@@ -3776,8 +3818,8 @@ begin
     rows_total := -1;
     IsInnodb := False;
     for i := 0 to ds.RecordCount - 1 do begin
-      if ds.Fields[0].AsWideString = SelectedTable then begin
-        rows_total := MakeInt(ds.FieldByName('Rows').AsString);
+      if ds.FieldByName(DBO_NAME).AsWideString = SelectedTable then begin
+        rows_total := MakeInt(ds.FieldByName(DBO_ROWS).AsString);
         IsInnodb := ds.Fields[1].AsString = 'InnoDB';
         break;
       end;
@@ -3842,10 +3884,11 @@ begin
   // Do this only if the user clicked the new tab. Not on automatic tab changes.
   if Sender = PageControlMain then begin
     if tab = tabDatabase then ListTables.SetFocus
-    else if tab = tabTable then ListColumns.SetFocus
+    else if (tab = tabTable) and (ListColumns.Visible) then ListColumns.SetFocus
     else if tab = tabData then begin
       viewdata(Sender);
-      DataGrid.SetFocus;
+      if DataGrid.Visible then
+        DataGrid.SetFocus;
     end else if tab = tabQuery then SynMemoQuery.SetFocus;
   end;
 
@@ -3888,6 +3931,8 @@ function TMainForm.FetchDbTableList(db: WideString): TDataSet;
 var
   ds: TDataSet;
   OldCursor: TCursor;
+  Unions: TWideStringlist;
+  ListObjectsSQL: WideString;
 begin
   if not DbTableListCached(db) then begin
     // Not in cache, load table list.
@@ -3895,12 +3940,74 @@ begin
     Screen.Cursor := crHourGlass;
     ShowStatus('Fetching tables from "' + db + '" ...');
     try
-      ds := GetResults('SHOW TABLE STATUS FROM ' + mask(db), false, false);
+      if not Assigned(InformationSchemaTables) then
+        InformationSchemaTables := GetCol('SHOW TABLES FROM '+mask(DBNAME_INFORMATION_SCHEMA), 0, True, False);
+      if InformationSchemaTables.IndexOf('TABLES') > -1 then begin
+        Unions := TWideStringlist.Create;
+
+        // Tables and (system) views
+        Unions.Add('SELECT TABLE_NAME AS '+mask(DBO_NAME)+
+            ', TABLE_TYPE AS '+mask(DBO_TYPE)+
+            ', ENGINE AS '+mask(DBO_ENGINE)+
+            ', VERSION AS '+mask(DBO_VERSION)+
+            ', ROW_FORMAT AS '+mask(DBO_ROWFORMAT)+
+            ', TABLE_ROWS AS '+mask(DBO_ROWS)+
+            ', AVG_ROW_LENGTH AS '+mask(DBO_AVGROWLEN)+
+            ', DATA_LENGTH AS '+mask(DBO_DATALEN)+
+            ', MAX_DATA_LENGTH AS '+mask(DBO_MAXDATALEN)+
+            ', INDEX_LENGTH AS '+mask(DBO_INDEXLEN)+
+            ', DATA_FREE AS '+mask(DBO_DATAFREE)+
+            ', AUTO_INCREMENT AS '+mask(DBO_AUTOINC)+
+            ', CREATE_TIME AS '+mask(DBO_CREATED)+
+            ', UPDATE_TIME AS '+mask(DBO_UPDATED)+
+            ', CHECK_TIME AS '+mask(DBO_CHECKED)+
+            ', TABLE_COLLATION AS '+mask(DBO_COLLATION)+
+            ', CHECKSUM AS '+mask(DBO_CHECKSUM)+
+            ', CREATE_OPTIONS AS '+mask(DBO_CROPTIONS)+
+            ', TABLE_COMMENT AS '+mask(DBO_COMMENT)+
+          ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.TABLES ' +
+          'WHERE TABLE_SCHEMA = '+esc(db));
+
+        // Stored routines
+        if InformationSchemaTables.IndexOf('ROUTINES') > -1 then begin
+          Unions.Add('SELECT ROUTINE_NAME AS '+mask(DBO_NAME)+
+            ', ROUTINE_TYPE AS '+mask(DBO_TYPE)+
+            ', NULL AS '+mask(DBO_ENGINE)+
+            ', NULL AS '+mask(DBO_VERSION)+
+            ', NULL AS '+mask(DBO_ROWFORMAT)+
+            ', NULL AS '+mask(DBO_ROWS)+
+            ', NULL AS '+mask(DBO_AVGROWLEN)+
+            ', NULL AS '+mask(DBO_DATALEN)+
+            ', NULL AS '+mask(DBO_MAXDATALEN)+
+            ', NULL AS '+mask(DBO_INDEXLEN)+
+            ', NULL AS '+mask(DBO_DATAFREE)+
+            ', NULL AS '+mask(DBO_AUTOINC)+
+            ', CREATED AS '+mask(DBO_CREATED)+
+            ', LAST_ALTERED AS '+mask(DBO_UPDATED)+
+            ', NULL AS '+mask(DBO_CHECKED)+
+            ', NULL AS '+mask(DBO_COLLATION)+
+            ', NULL AS '+mask(DBO_CHECKSUM)+
+            ', NULL AS '+mask(DBO_CROPTIONS)+
+            ', ROUTINE_COMMENT AS '+mask(DBO_COMMENT)+
+            ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.ROUTINES ' +
+            'WHERE ROUTINE_SCHEMA = '+esc(db));
+        end;
+        if Unions.Count = 1 then
+          ListObjectsSQL := Unions[0]
+        else
+          ListObjectsSQL := '(' + implodestr(') UNION (', Unions) + ')';
+        ListObjectsSQL := ListObjectsSQL + ' ORDER BY `Name`';
+        FreeAndNil(Unions);
+      end else begin
+        // For servers lacking the INFORMATION_SCHEMA or the TABLES table
+        ListObjectsSQL := 'SHOW TABLE STATUS FROM ' + mask(db);
+      end;
+      ds := GetResults(ListObjectsSQL);
       CachedTableLists.AddObject(db, ds);
       // Add table names to SQL highlighter
       SynSQLSyn1.TableNames.BeginUpdate;
       while not ds.Eof do begin
-        SynSQLSyn1.TableNames.Add(ds.Fields[0].AsWideString);
+        SynSQLSyn1.TableNames.Add(ds.FieldByName(DBO_NAME).AsWideString);
         ds.Next;
       end;
       SynSQLSyn1.TableNames.EndUpdate;
@@ -3977,7 +4084,7 @@ var
   i               : Integer;
   bytes           : Int64;
   ds              : TDataSet;
-  ListCaptions,
+  Cap,
   SelectedCaptions: WideStrings.TWideStringList;
 begin
   // DB-Properties
@@ -3986,145 +4093,89 @@ begin
   // Remember selected nodes
   SelectedCaptions := GetVTCaptions(ListTables, True);
 
-  try
-    ds := FetchDbTableList(db);
-    ShowStatus( 'Displaying tables from "' + db + '" ...' );
+  ds := FetchDbTableList(db);
+  ShowStatus( 'Displaying tables from "' + db + '" ...' );
 
-    ListTables.BeginUpdate;
-    ListTables.Clear;
+  ListTables.BeginUpdate;
+  ListTables.Clear;
 
-    SetLength(VTRowDataListTables, ds.RecordCount);
-    for i := 1 to ds.RecordCount do
-    begin
-      listcaptions := WideStrings.TWideStringList.Create;
-      // Table
-      ListCaptions.Add( ds.Fields[0].AsWideString );
+  SetLength(VTRowDataListTables, ds.RecordCount);
+  for i := 1 to ds.RecordCount do
+  begin
+    VTRowDataListTables[i-1].Captions := WideStrings.TWideStringList.Create;
+    Cap := VTRowDataListTables[i-1].Captions;
+    // Object name
+    Cap.Add( FieldContent(ds, DBO_NAME) );
+    if (FieldContent(ds, DBO_ROWS) <> '') then
+      Cap.Add( FormatNumber( FieldContent(ds, DBO_ROWS) ) )
+    else Cap.Add('');
+    // Size: Data_length + Index_length
+    bytes := GetTableSize(ds);
+    if bytes >= 0 then Cap.Add(FormatByteNumber(bytes))
+    else Cap.Add('');
+    Cap.Add( FieldContent(ds, DBO_CREATED) );
+    Cap.Add( FieldContent(ds, DBO_UPDATED) );
+    Cap.Add( FieldContent(ds, DBO_ENGINE) );
+    Cap.Add( FieldContent(ds, DBO_COMMENT) );
+    Cap.Add( FieldContent(ds, DBO_VERSION) );
+    Cap.Add( FieldContent(ds, DBO_ROWFORMAT) );
+    if (FieldContent(ds, DBO_AVGROWLEN) <> '') then
+      Cap.Add( FormatByteNumber(FieldContent(ds, DBO_AVGROWLEN)) )
+    else Cap.Add('');
+    if (FieldContent(ds, DBO_MAXDATALEN) <> '') then
+      Cap.Add( FormatByteNumber(FieldContent(ds, DBO_MAXDATALEN)) )
+    else Cap.Add('');
+    if (FieldContent(ds, DBO_INDEXLEN) <> '') then
+      Cap.Add( FormatByteNumber(FieldContent(ds, DBO_INDEXLEN)) )
+    else Cap.Add('');
+    if (FieldContent(ds, DBO_DATAFREE) <> '') then
+      Cap.Add( FormatByteNumber(FieldContent(ds, DBO_DATAFREE)) )
+    else Cap.Add('');
+    if (FieldContent(ds, DBO_AUTOINC) <> '') then
+      Cap.Add( FormatNumber(FieldContent(ds, DBO_AUTOINC)) )
+    else Cap.Add('');
+    Cap.Add( FieldContent(ds, DBO_AUTOINC) );
+    Cap.Add( FieldContent(ds, DBO_COLLATION) );
+    Cap.Add( FieldContent(ds, DBO_CHECKSUM) );
+    Cap.Add( FieldContent(ds, DBO_CROPTIONS) );
+    if ds.FindField(DBO_TYPE) <> nil then
+      Cap.Add(FieldContent(ds, DBO_TYPE))
+    else
+      Cap.Add('BASE TABLE');
 
-      // Treat tables slightly different than views
-      case GetDBObjectType( ds.Fields) of
-        NODETYPE_TABLE, NODETYPE_CRASHED_TABLE: // A normal table
-        begin
-          if GetDBObjectType(ds.Fields) = NODETYPE_CRASHED_TABLE then begin
-            VTRowDataListTables[i-1].ImageIndex := ICONINDEX_CRASHED_TABLE;
-            VTRowDataListTables[i-1].NodeType := NODETYPE_CRASHED_TABLE;
-          end else begin
-            VTRowDataListTables[i-1].ImageIndex := ICONINDEX_TABLE;
-            VTRowDataListTables[i-1].NodeType := NODETYPE_TABLE;
-          end;
-          // Rows
-          if ds.FindField('Rows') <> nil then
-            ListCaptions.Add( FormatNumber( FieldContent(ds, 'Rows') ) )
-          else
-            ListCaptions.Add('');
-          // Size: Data_length + Index_length
-          bytes := GetTableSize(ds);
-          if bytes >= 0 then ListCaptions.Add(FormatByteNumber(bytes))
-          else ListCaptions.Add('');
-          // Created:
-          ListCaptions.Add( FieldContent(ds, 'Create_time') );
-          // Updated:
-          ListCaptions.Add( FieldContent(ds, 'Update_time') );
-          // Engine
-          if ds.FindField('Type') <> nil then
-            ListCaptions.Add( FieldContent(ds, 'Type') )
-          else
-            ListCaptions.Add( FieldContent(ds, 'Engine') );
-          // Comment
-          ListCaptions.Add( FieldContent(ds, 'Comment') );
-          // Version
-          ListCaptions.Add( FieldContent(ds, 'Version') );
-          // Row format
-          ListCaptions.Add( FieldContent(ds, 'Row_format') );
-          // Avg row length
-          if (FieldContent(ds, 'Avg_row_length') <> '') then
-            ListCaptions.Add( FormatByteNumber(FieldContent(ds, 'Avg_row_length')) )
-          else ListCaptions.Add('');
-          // Max data length
-          if (FieldContent(ds, 'Max_data_length') <> '') then
-            ListCaptions.Add( FormatByteNumber(FieldContent(ds, 'Max_data_length')) )
-          else ListCaptions.Add('');
-          // Index length
-          if (FieldContent(ds, 'Index_length') <> '') then
-            ListCaptions.Add( FormatByteNumber(FieldContent(ds, 'Index_length')) )
-          else ListCaptions.Add('');
-          // Data free
-          if (FieldContent(ds, 'Data_free') <> '') then
-            ListCaptions.Add( FormatByteNumber(FieldContent(ds, 'Data_free')) )
-          else ListCaptions.Add('');
-          // Auto increment
-          if (FieldContent(ds, 'Auto_increment') <> '') then
-            ListCaptions.Add( FormatNumber(FieldContent(ds, 'Auto_increment')) )
-          else ListCaptions.Add('');
-          // Check time
-          ListCaptions.Add( FieldContent(ds, 'Check_time') );
-          // Collation
-          ListCaptions.Add( FieldContent(ds, 'Collation') );
-          // Checksum
-          ListCaptions.Add( FieldContent(ds, 'Checksum') );
-          // Create_options
-          ListCaptions.Add( FieldContent(ds, 'Create_options') );
-          // Object type
-          ListCaptions.Add('Base table');
-        end;
-
-        NODETYPE_VIEW:
-        begin // View
-          VTRowDataListTables[i-1].ImageIndex := ICONINDEX_VIEW;
-          VTRowDataListTables[i-1].NodeType := NODETYPE_VIEW;
-          // Rows
-          ListCaptions.Add('');
-          // Size
-          ListCaptions.Add('');
-          // Created:
-          ListCaptions.Add('');
-          // Updated:
-          ListCaptions.Add('');
-          // Engine
-          ListCaptions.Add('');
-          // Comment
-          ListCaptions.Add(FieldContent(ds, 'Comment'));
-          // Version
-          ListCaptions.Add('');
-          // Row_format
-          ListCaptions.Add('');
-          // Avg_row_length
-          ListCaptions.Add('');
-          // Max_data_length
-          ListCaptions.Add('');
-          // Index_length
-          ListCaptions.Add('');
-          // Data_free
-          ListCaptions.Add('');
-          // Auto_increment
-          ListCaptions.Add('');
-          // Check_time
-          ListCaptions.Add('');
-          // Collation
-          ListCaptions.Add('');
-          // Checksum
-          ListCaptions.Add('');
-          // Create_options
-          ListCaptions.Add('');
-          // Object Type
-          ListCaptions.Add('View');
-        end;
+    VTRowDataListTables[i-1].NodeType := GetDBObjectType( ds.Fields);
+    // Find icon
+    case VTRowDataListTables[i-1].NodeType of
+      NODETYPE_TABLE, NODETYPE_CRASHED_TABLE: // A normal table
+      begin
+        if GetDBObjectType(ds.Fields) = NODETYPE_CRASHED_TABLE then
+          VTRowDataListTables[i-1].ImageIndex := ICONINDEX_CRASHED_TABLE
+        else
+          VTRowDataListTables[i-1].ImageIndex := ICONINDEX_TABLE;
       end;
 
-      VTRowDataListTables[i-1].Captions := ListCaptions;
-      ds.Next;
+      NODETYPE_VIEW:
+        VTRowDataListTables[i-1].ImageIndex := ICONINDEX_VIEW;
+
+      NODETYPE_PROCEDURE:
+        VTRowDataListTables[i-1].ImageIndex := ICONINDEX_STOREDPROCEDURE;
+
+      NODETYPE_FUNCTION:
+        VTRowDataListTables[i-1].ImageIndex := ICONINDEX_STOREDFUNCTION;
     end;
-  finally
-    ListTables.RootNodeCount := Length(VTRowDataListTables);
-    ListTables.EndUpdate;
-    SetVTSelection(ListTables, SelectedCaptions);
-    showstatus(db + ': ' + IntToStr(ListTables.RootNodeCount) +' table(s)', 0);
-    tabDatabase.Caption := sstr('Database: ' + db, 30);
-    ShowStatus(STATUS_MSG_READY);
-    Screen.Cursor := crDefault;
-    // Ensure tree db node displays its chidren initialized
-    DBtree.ReinitChildren(FindDBNode(db), False);
-    ValidateControls;
+
+    ds.Next;
   end;
+  ListTables.RootNodeCount := Length(VTRowDataListTables);
+  ListTables.EndUpdate;
+  SetVTSelection(ListTables, SelectedCaptions);
+  showstatus(db + ': ' + IntToStr(ListTables.RootNodeCount) +' table(s)', 0);
+  tabDatabase.Caption := sstr('Database: ' + db, 30);
+  ShowStatus(STATUS_MSG_READY);
+  Screen.Cursor := crDefault;
+  // Ensure tree db node displays its chidren initialized
+  DBtree.ReinitChildren(FindDBNode(db), False);
+  ValidateControls;
 end;
 
 
@@ -4145,13 +4196,31 @@ var
   dummy: Boolean;
   hasCommentColumn: Boolean;
   SelectedCaptions: WideStrings.TWideStringList;
-  defaultVal: WideString;
+  defaultVal, cap: WideString;
 begin
   // Table-Properties
   dataselected := false;
   Screen.Cursor := crHourGlass;
 
-  tabTable.Caption := sstr('Table: ' + SelectedTable, 30);
+  case GetSelectedNodeType of
+    NODETYPE_TABLE, NODETYPE_CRASHED_TABLE: begin
+      cap := 'Table';
+      tabTable.ImageIndex := ICONINDEX_TABLE;
+    end;
+    NODETYPE_VIEW: begin
+      cap := 'View';
+      tabTable.ImageIndex := ICONINDEX_VIEW;
+    end;
+    NODETYPE_PROCEDURE: begin
+      cap := 'Procedure';
+      tabTable.ImageIndex := ICONINDEX_STOREDPROCEDURE;
+    end;
+    NODETYPE_FUNCTION: begin
+      cap := 'Function';
+      tabTable.ImageIndex := ICONINDEX_STOREDFUNCTION;
+    end;
+  end;
+  tabTable.Caption := sstr(cap+': ' + SelectedTable, 30);
 
   tabDatabase.TabVisible := true;
   tabTable.TabVisible := true;
@@ -4161,6 +4230,13 @@ begin
    (PageControlMain.ActivePage = tabHost) or
    (PageControlMain.ActivePage = tabDatabase)
   ) then PageControlMain.ActivePage := tabTable;
+
+  if not (GetSelectedNodeType in [NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW]) then begin
+    ListColumns.Hide; // Reveals lblSorryNoFields
+    Screen.Cursor := crDefault;
+    Exit;
+  end else
+    ListColumns.Show;
 
   ShowStatus( 'Reading table properties...' );
   // Remember selected nodes
@@ -4334,7 +4410,7 @@ end;
 }
 procedure TMainForm.ValidateControls( FrmIsFocussed: Boolean = true );
 var
-  DBObjectSelected, TableSelected, ViewSelected,
+  DBObjectSelected, TableSelected, ViewSelected, RoutineSelected,
   inDbTab, inTableTab, inDataTab, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
   FieldsSelected, FieldFocused, dummy, DBfocused : Boolean;
   NodeData: PVTreeData;
@@ -4351,12 +4427,14 @@ begin
   DBObjectSelected := (Length(SelectedNodes)>0) and FrmIsFocussed;
   TableSelected := False;
   ViewSelected := False;
+  RoutineSelected := False;
 
   // Check type of first selected node, to en-/disable certain menu items
   if DBObjectSelected then begin
     NodeData := ListTables.GetNodeData( SelectedNodes[0] );
     TableSelected := (NodeData.NodeType = NODETYPE_TABLE) or (NodeData.NodeType = NODETYPE_CRASHED_TABLE);
     ViewSelected := NodeData.NodeType = NODETYPE_VIEW;
+    RoutineSelected := NodeData.NodeType in [NODETYPE_PROCEDURE, NODETYPE_FUNCTION];
   end;
 
   // Standard toolbar and main menu
@@ -4380,9 +4458,10 @@ begin
   // Database tab
   actEmptyTables.Enabled := inDbTab and TableSelected;
   actEditTableProperties.Enabled := inDbTab and TableSelected;
-  MenuRenameTable.Enabled := inDbTab and DBObjectSelected;
-  actCopyTable.Enabled := inDbTab and DBObjectSelected;
+  MenuRenameTable.Enabled := inDbTab and (TableSelected or ViewSelected);
+  actCopyTable.Enabled := inDbTab and (TableSelected or ViewSelected);
   actEditView.Enabled := inDbTab and ViewSelected and (mysql_version >= 50001);
+  actEditRoutine.Enabled := inDbTab and RoutineSelected and (mysql_version >= 50003);
   actCreateView.Enabled := FrmIsFocussed and (ActiveDatabase <> '') and (mysql_version >= 50001);
   actCreateRoutine.Enabled := FrmIsFocussed and (ActiveDatabase <> '') and (mysql_version >= 50003);
   actCreateDatabase.Enabled := FrmIsFocussed;
@@ -4393,7 +4472,7 @@ begin
     actEditDatabase.Hint := STR_NOTSUPPORTED
   else
     actEditDatabase.Hint := 'Rename and/or modify character set of database';
-  actDropTablesAndViews.Enabled := (DBObjectSelected and inDbTab) or ((not inQueryTab) and (SelectedTable <> '') and FrmIsFocussed);
+  actDropDBobjects.Enabled := (DBObjectSelected and inDbTab) or ((not inQueryTab) and (SelectedTable <> '') and FrmIsFocussed);
   actCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
   actEditTableFields.Enabled := DBObjectSelected and inDbTab;
 
@@ -4932,6 +5011,17 @@ begin
 end;
 
 
+procedure TMainForm.ListTablesEditing(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+var
+  NodeData: PVTreeData;
+begin
+  // Tables and views can be renamed, routines cannot
+  NodeData := Sender.GetNodeData(Node);
+  Allowed := NodeData.ImageIndex in [ICONINDEX_TABLE, ICONINDEX_VIEW];
+end;
+
+
 {***
   Rename table after checking the new name for invalid characters
 }
@@ -5257,9 +5347,11 @@ begin
     L := DBtree.GetNodeLevel(DBtree.GetFirstSelected);
   actCreateTable.Enabled := L in [1,2];
   actCreateView.Enabled := (L in [1,2]) and (mysql_version >= 50001);
+  actCreateRoutine.Enabled := (L in [1,2]) and (mysql_version >= 50003);
   actEditTableProperties.Enabled := (L = 2) and ((GetSelectedNodeType = NODETYPE_TABLE) or (GetSelectedNodeType = NODETYPE_CRASHED_TABLE));
   actEditView.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_VIEW);
-  actDropTablesAndViews.Enabled := (L = 2);
+  actEditRoutine.Enabled := (L = 2) and (GetSelectedNodeType in [NODETYPE_PROCEDURE, NODETYPE_FUNCTION]);
+  actDropDBobjects.Enabled := (L = 2);
 end;
 
 
@@ -6940,7 +7032,7 @@ begin
         2: begin
             ds := FetchDbTableList(Databases[Node.Parent.Index]);
             ds.RecNo := Node.Index+1;
-            CellText := ds.Fields[0].AsWideString;
+            CellText := ds.FieldByName(DBO_NAME).AsWideString;
           end;
       end;
     1: case GetNodeType(Node) of
@@ -7032,6 +7124,10 @@ begin
             if Kind = ikSelected then
               ImageIndex := ICONINDEX_CRASHED_TABLE_HIGHLIGHT
               else ImageIndex := ICONINDEX_CRASHED_TABLE;
+          NODETYPE_PROCEDURE:
+            ImageIndex := ICONINDEX_STOREDPROCEDURE;
+          NODETYPE_FUNCTION:
+            ImageIndex := ICONINDEX_STOREDFUNCTION;
         end;
       end;
   end;
@@ -9020,6 +9116,23 @@ procedure TMainForm.actCreateRoutineExecute(Sender: TObject);
 begin
   if not Assigned(RoutineEditForm) then
     RoutineEditForm := TfrmRoutineEditor.Create(Self);
+  RoutineEditForm.ShowModal;
+end;
+
+
+procedure TMainForm.actEditRoutineExecute(Sender: TObject);
+var
+  NodeData: PVTreeData;
+begin
+  if not Assigned(RoutineEditForm) then
+    RoutineEditForm := TfrmRoutineEditor.Create(Self);
+
+  if ListTables.Focused then begin
+    NodeData := ListTables.GetNodeData( ListTables.FocusedNode );
+    RoutineEditForm.AlterRoutineName := NodeData.Captions[0];
+  end else
+    RoutineEditForm.AlterRoutineName := SelectedTable;
+
   RoutineEditForm.ShowModal;
 end;
 

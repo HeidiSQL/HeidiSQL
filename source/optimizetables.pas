@@ -121,7 +121,8 @@ begin
   ds := Mainform.FetchDbTableList(DBComboBox.Text);
   TablesCheckListBox.Items.Clear;
   while not ds.Eof do begin
-    TablesCheckListBox.Items.Add(ds.Fields[0].AsWideString);
+    if GetDBObjectType(ds.Fields) = NODETYPE_TABLE then
+      TablesCheckListBox.Items.Add(ds.FieldByName(DBO_NAME).AsWideString);
     ds.Next;
   end;
   // Check all

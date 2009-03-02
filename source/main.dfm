@@ -320,7 +320,7 @@ object MainForm: TMainForm
       object btnDBDropTable: TToolButton
         Left = 46
         Top = 0
-        Action = actDropTablesAndViews
+        Action = actDropDBobjects
       end
       object btnDBCopyTable: TToolButton
         Left = 69
@@ -899,6 +899,7 @@ object MainForm: TMainForm
           OnChange = ListTablesChange
           OnCompareNodes = vstCompareNodes
           OnDblClick = ListTablesDblClick
+          OnEditing = ListTablesEditing
           OnFreeNode = vstFreeNode
           OnGetText = vstGetText
           OnGetImageIndex = vstGetImageIndex
@@ -1025,6 +1026,18 @@ object MainForm: TMainForm
       object tabTable: TTabSheet
         Caption = 'Table'
         ImageIndex = 14
+        object lblSorryNoFields: TLabel
+          Left = 0
+          Top = 0
+          Width = 502
+          Height = 340
+          Align = alClient
+          Alignment = taCenter
+          Caption = 'Please use the stored routine editor to edit attributes.'
+          Layout = tlCenter
+          WordWrap = True
+          OnClick = actEditRoutineExecute
+        end
         object ListColumns: TVirtualStringTree
           Left = 0
           Top = 0
@@ -1099,6 +1112,17 @@ object MainForm: TMainForm
       object tabData: TTabSheet
         Caption = 'Data'
         ImageIndex = 41
+        object lblSorryNoData: TLabel
+          Left = 0
+          Top = 91
+          Width = 502
+          Height = 249
+          Align = alClient
+          Alignment = taCenter
+          Caption = 'Stored routines don'#39't provide any data you could edit here.'
+          Layout = tlCenter
+          WordWrap = True
+        end
         object pnlDataTop: TPanel
           Left = 0
           Top = 0
@@ -1631,7 +1655,7 @@ object MainForm: TMainForm
       end
       object MenuDropTable: TMenuItem
         Tag = 32
-        Action = actDropTablesAndViews
+        Action = actDropDBobjects
       end
       object N4: TMenuItem
         Caption = '-'
@@ -1974,13 +1998,13 @@ object MainForm: TMainForm
       ShortCut = 16463
       OnExecute = actLoadSQLExecute
     end
-    object actDropTablesAndViews: TAction
+    object actDropDBobjects: TAction
       Category = 'Database'
-      Caption = 'Drop table/view ...'
+      Caption = 'Drop ...'
       Enabled = False
-      Hint = 'Deletes tables and/or views'
+      Hint = 'Deletes tables, views, procedures and functions'
       ImageIndex = 16
-      OnExecute = actDropTablesAndViewsExecute
+      OnExecute = actDropDBobjectsExecute
     end
     object actEditView: TAction
       Category = 'Database'
@@ -2424,6 +2448,13 @@ object MainForm: TMainForm
       Hint = 'Create stored routine|Create stored procedure or function'
       ImageIndex = 119
       OnExecute = actCreateRoutineExecute
+    end
+    object actEditRoutine: TAction
+      Category = 'Database'
+      Caption = 'Edit stored routine ...'
+      Hint = 'Edit stored procedure or function'
+      ImageIndex = 119
+      OnExecute = actEditRoutineExecute
     end
   end
   object SaveDialog2: TSaveDialog
@@ -5933,7 +5964,13 @@ object MainForm: TMainForm
       Action = actEditView
     end
     object PopupMenuDropTable: TMenuItem
-      Action = actDropTablesAndViews
+      Action = actDropDBobjects
+    end
+    object menuTreeCreateRoutine: TMenuItem
+      Action = actCreateRoutine
+    end
+    object menuTreeEditRoutine: TMenuItem
+      Action = actEditRoutine
     end
     object Exporttables2: TMenuItem
       Action = actExportTables
@@ -5977,6 +6014,9 @@ object MainForm: TMainForm
     object menuEditView: TMenuItem
       Action = actEditView
     end
+    object menuEditRoutine: TMenuItem
+      Action = actEditRoutine
+    end
     object InsertfilesintoBLOBfields1a: TMenuItem
       Action = actInsertFiles
     end
@@ -5984,7 +6024,7 @@ object MainForm: TMainForm
       Caption = '-'
     end
     object menudroptablea: TMenuItem
-      Action = actDropTablesAndViews
+      Action = actDropDBobjects
     end
     object menuemptytable: TMenuItem
       Action = actEmptyTables
