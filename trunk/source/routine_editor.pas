@@ -451,6 +451,7 @@ begin
     // Set editing name if create/alter query was successful
     AlterRoutineName := editName.Text;
     AlterRoutineType := ProcOrFunc;
+    Mainform.actRefresh.Execute;
     Modified := False;
   except
     On E:Exception do begin
