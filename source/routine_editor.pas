@@ -405,9 +405,9 @@ end;
 
 procedure TfrmRoutineEditor.PostChanges(Sender: TObject);
 var
-  sql: WideString;
+  BaseSQL, TempSQL, FinalSQL, TempName: WideString;
   i: Integer;
-  par: TWideStringList;
+  par, allRoutineNames: TWideStringList;
   ProcOrFunc: String;
 begin
   // Apply or OK button clicked
@@ -422,32 +422,48 @@ begin
     Exit;
   end;
 
-  sql := 'CREATE '+ProcOrFunc+' '+Mainform.mask(editName.Text)+'(';
+  BaseSQL := '';
   for i := 0 to Parameters.Count - 1 do begin
     par := explode(DELIM, Parameters[i]);
     if ProcOrFunc = 'PROCEDURE' then
-      sql := sql + par[2] + ' ';
-    sql := sql + par[0] + ' ' + par[1];
+      BaseSQL := BaseSQL + par[2] + ' ';
+    BaseSQL := BaseSQL + par[0] + ' ' + par[1];
     if i < Parameters.Count-1 then
-      sql := sql + ', ';
+      BaseSQL := BaseSQL + ', ';
   end;
-  sql := sql + ') ';
+  BaseSQL := BaseSQL + ') ';
   if comboReturns.Enabled then
-    sql := sql + 'RETURNS '+comboReturns.Text+' ';
-  sql := sql + 'LANGUAGE SQL ';
+    BaseSQL := BaseSQL + 'RETURNS '+comboReturns.Text+' ';
+  BaseSQL := BaseSQL + 'LANGUAGE SQL ';
   if not chkDeterministic.Checked then
-    sql := sql + 'NOT ';
-  sql := sql + 'DETERMINISTIC ';
-  sql := sql + UpperCase(comboDataAccess.Text)+' ';
-  sql := sql + 'SQL SECURITY ' + UpperCase(comboSecurity.Text)+' ';
-  sql := sql + 'COMMENT ' + esc(editComment.Text)+' ';
-  sql := sql + SynMemoBody.Text;
+    BaseSQL := BaseSQL + 'NOT ';
+  BaseSQL := BaseSQL + 'DETERMINISTIC ';
+  BaseSQL := BaseSQL + UpperCase(comboDataAccess.Text)+' ';
+  BaseSQL := BaseSQL + 'SQL SECURITY ' + UpperCase(comboSecurity.Text)+' ';
+  BaseSQL := BaseSQL + 'COMMENT ' + esc(editComment.Text)+' ';
+  BaseSQL := BaseSQL + SynMemoBody.Text;
+
   try
-    // Drop the old routine first. There is no way to ALTER parameters or the name of it.
+    // There is no way to ALTER parameters or the name of it.
+    // Create a temp routine, check for syntax errors, then drop the old routine and create it.
     // See also: http://dev.mysql.com/doc/refman/5.0/en/alter-procedure.html
-    if AlterRoutineName <> '' then
-      Mainform.ExecUpdateQuery('DROP '+AlterRoutineType+' '+Mainform.mask(AlterRoutineName), True);
-    Mainform.ExecUpdateQuery(sql, False, True);
+    if AlterRoutineName <> '' then begin
+      // Create temp name
+      i := 0;
+      allRoutineNames := Mainform.GetCol('SELECT ROUTINE_NAME FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.'+Mainform.mask('ROUTINES')+' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase));
+      while True do begin
+        inc(i);
+        TempName := APPNAME + '_temproutine_' + IntToStr(i);
+        if allRoutineNames.IndexOf(TempName) = -1 then
+          break;
+      end;
+      TempSQL := 'CREATE '+ProcOrFunc+' '+Mainform.mask(tempName)+'(' + BaseSQL;
+      Mainform.ExecUpdateQuery(TempSQL, False, True);
+      Mainform.ExecUpdateQuery('DROP '+AlterRoutineType+' IF EXISTS '+Mainform.mask(TempName));
+      Mainform.ExecUpdateQuery('DROP '+AlterRoutineType+' IF EXISTS '+Mainform.mask(AlterRoutineName));
+    end;
+    FinalSQL := 'CREATE '+ProcOrFunc+' '+Mainform.mask(editName.Text)+'(' + BaseSQL;
+    Mainform.ExecUpdateQuery(FinalSQL, False, True);
     // Set editing name if create/alter query was successful
     AlterRoutineName := editName.Text;
     AlterRoutineType := ProcOrFunc;
