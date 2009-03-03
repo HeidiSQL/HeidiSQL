@@ -570,7 +570,7 @@ type
     procedure SynCompletionProposal1Execute(Kind: SynCompletionType;
       Sender: TObject; var CurrentInput: WideString; var x, y: Integer;
       var CanExecute: Boolean);
-    procedure pcChange(Sender: TObject);
+    procedure PageControlMainChange(Sender: TObject);
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
     procedure ValidateQueryControls(FrmIsFocussed: Boolean = true);
     function FieldContent(ds: TDataSet; ColName: WideString): WideString;
@@ -3460,7 +3460,7 @@ begin
   tabData.TabVisible := false;
 
   Caption := winName;
-  pcChange( Self );
+  PageControlMainChange( Self );
 end;
 
 
@@ -3781,7 +3781,7 @@ begin
       DisplayRowCountStats(MatchingRows);
       dataselected := true;
 
-      pcChange(self);
+      PageControlMainChange(Sender);
     end;
   finally
     DataGrid.Header.Columns.EndUpdate;
@@ -3875,7 +3875,7 @@ end;
 {***
   Occurs when active tab has changed.
 }
-procedure TMainForm.pcChange(Sender: TObject);
+procedure TMainForm.PageControlMainChange(Sender: TObject);
 var
   tab: TTabSheet;
 begin
@@ -4184,7 +4184,7 @@ end;
 procedure TMainForm.ShowDBProperties(db: WideString);
 begin
   Screen.Cursor := crHourglass;
-  pcChange( Self );
+  PageControlMainChange(Self);
   ShowStatus( STATUS_MSG_READY );
   Screen.Cursor := crDefault;
 end;
@@ -4356,7 +4356,7 @@ begin
     Screen.Cursor := crDefault;
   end;
 
-  pcChange( Self );
+  PageControlMainChange(Self);
   ShowStatus( STATUS_MSG_READY );
   showstatus(ActiveDatabase + ': '+ SelectedTable + ': ' + IntToStr(ListColumns.RootNodeCount) +' column(s)', 0);
   Screen.Cursor := crDefault;
@@ -4552,7 +4552,7 @@ begin
   dataselected := false;
   PageControlMain.ActivePage := tabData;
   viewdata(self);
-  pcChange( Self );
+  PageControlMainChange(Self);
 end;
 
 
