@@ -37,6 +37,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Width = 28
     Height = 13
     Caption = '&Type:'
+    FocusControl = comboType
   end
   object lblReturns: TLabel
     Left = 8
@@ -83,6 +84,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Width = 68
     Height = 13
     Caption = '&Routine body:'
+    FocusControl = SynMemoBody
   end
   object btnApply: TButton
     Left = 301
@@ -91,7 +93,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Apply'
-    TabOrder = 3
+    TabOrder = 13
     OnClick = PostChanges
   end
   object btnCancel: TButton
@@ -103,7 +105,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 2
+    TabOrder = 12
   end
   object btnOK: TButton
     Left = 139
@@ -114,7 +116,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Caption = 'OK'
     Default = True
     ModalResult = 1
-    TabOrder = 1
+    TabOrder = 11
     OnClick = PostChanges
   end
   object btnHelp: TButton
@@ -124,7 +126,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Help'
-    TabOrder = 0
+    TabOrder = 10
     OnClick = btnHelpClick
   end
   object comboReturns: TComboBox
@@ -134,7 +136,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     ItemHeight = 13
-    TabOrder = 4
+    TabOrder = 2
     Text = 'comboReturns'
     OnChange = Modification
   end
@@ -146,7 +148,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
     ItemHeight = 13
-    TabOrder = 5
+    TabOrder = 1
     OnSelect = comboTypeSelect
   end
   object editName: TTntEdit
@@ -155,7 +157,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Width = 276
     Height = 21
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 6
+    TabOrder = 0
     Text = 'editName'
     OnChange = editNameChange
   end
@@ -220,7 +222,6 @@ object frmRoutineEditor: TfrmRoutineEditor
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning]
     TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toFullVertGridLines]
     TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
-    WantTabs = True
     OnBeforePaint = listParametersBeforePaint
     OnCreateEditor = listParametersCreateEditor
     OnEditing = listParametersEditing
@@ -263,7 +264,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
     ItemHeight = 13
-    TabOrder = 9
+    TabOrder = 3
     OnChange = Modification
   end
   object comboSecurity: TComboBox
@@ -274,7 +275,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
     ItemHeight = 13
-    TabOrder = 10
+    TabOrder = 4
     OnChange = Modification
   end
   object editComment: TTntEdit
@@ -283,7 +284,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Width = 276
     Height = 21
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 11
+    TabOrder = 5
     Text = 'editComment'
     OnChange = Modification
   end
@@ -294,7 +295,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Height = 17
     Anchors = [akLeft, akTop, akRight]
     Caption = '&Deterministic'
-    TabOrder = 12
+    TabOrder = 6
     OnClick = Modification
   end
   object SynMemoBody: TSynMemo
@@ -309,7 +310,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Font.Height = -13
     Font.Name = 'Courier New'
     Font.Style = []
-    TabOrder = 13
+    TabOrder = 9
     OnDragDrop = SynMemoBodyDragDrop
     OnDragOver = SynMemoBodyDragOver
     Gutter.DigitCount = 3
