@@ -485,7 +485,7 @@ object MainForm: TMainForm
       MultiLine = True
       TabHeight = 22
       TabOrder = 1
-      OnChange = pcChange
+      OnChange = PageControlMainChange
       object tabHost: TTabSheet
         Caption = 'Host'
         ImageIndex = 1
