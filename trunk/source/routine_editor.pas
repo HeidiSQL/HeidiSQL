@@ -174,7 +174,7 @@ begin
       rx.Expression := '^((IN|OUT|INOUT)\s+)?(\S+)\s+(\S+)$';
       for i := 0 to Params.Count - 1 do begin
         if rx.Exec(Trim(Params[i])) then begin
-          Context := rx.Match[2];
+          Context := UpperCase(rx.Match[2]);
           if Context = '' then
             Context := 'IN';
           Parameters.Add(rx.Match[3] + DELIM + rx.Match[4] + DELIM + Context);
