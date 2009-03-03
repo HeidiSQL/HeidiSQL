@@ -571,6 +571,7 @@ type
       Sender: TObject; var CurrentInput: WideString; var x, y: Integer;
       var CanExecute: Boolean);
     procedure PageControlMainChange(Sender: TObject);
+    procedure PageControlHostChange(Sender: TObject);
     procedure ValidateControls(FrmIsFocussed: Boolean = true);
     procedure ValidateQueryControls(FrmIsFocussed: Boolean = true);
     function FieldContent(ds: TDataSet; ColName: WideString): WideString;
@@ -3884,7 +3885,8 @@ begin
   // Move focus to relevant controls in order for them to receive keyboard events.
   // Do this only if the user clicked the new tab. Not on automatic tab changes.
   if Sender = PageControlMain then begin
-    if tab = tabDatabase then ListTables.SetFocus
+    if tab = tabHost then PageControlHostChange(Sender)
+    else if tab = tabDatabase then ListTables.SetFocus
     else if (tab = tabTable) and (ListColumns.Visible) then ListColumns.SetFocus
     else if tab = tabData then begin
       viewdata(Sender);
@@ -3895,6 +3897,22 @@ begin
 
   // Ensure controls are in a valid state
   ValidateControls;
+end;
+
+
+procedure TMainForm.PageControlHostChange(Sender: TObject);
+var
+  tab: TTabSheet;
+  list: TBaseVirtualTree;
+begin
+  tab := PageControlHost.ActivePage;
+  if tab = tabVariables then list := ListVariables
+  else if tab = tabStatus then list := ListStatus
+  else if tab = tabProcesslist then list := ListProcesses
+  else if tab = tabCommandStats then list := ListCommandStats
+  else Exit; // Silence compiler warning
+  list.SetFocus;
+  editFilterVTChange(Sender);
 end;
 
 
