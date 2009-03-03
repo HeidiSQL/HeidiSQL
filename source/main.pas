@@ -3782,7 +3782,7 @@ begin
       DisplayRowCountStats(MatchingRows);
       dataselected := true;
 
-      PageControlMainChange(Sender);
+      PageControlMainChange(Self);
     end;
   finally
     DataGrid.Header.Columns.EndUpdate;
