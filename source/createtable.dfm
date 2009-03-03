@@ -106,7 +106,7 @@ object CreateTableForm: TCreateTableForm
     Height = 187
     Anchors = [akTop, akRight, akBottom]
     Caption = 'Column properties:'
-    TabOrder = 9
+    TabOrder = 11
     object lblFieldType: TLabel
       Left = 16
       Top = 24
@@ -297,7 +297,7 @@ object CreateTableForm: TCreateTableForm
     Anchors = [akLeft, akTop, akRight, akBottom]
     ExtendedSelect = False
     ItemHeight = 13
-    TabOrder = 5
+    TabOrder = 7
     OnClick = ListboxColumnsClick
   end
   object ButtonAdd: TButton
@@ -307,7 +307,7 @@ object CreateTableForm: TCreateTableForm
     Height = 25
     Anchors = [akTop, akRight]
     Caption = 'Add'
-    TabOrder = 6
+    TabOrder = 8
     OnClick = Button1Click
   end
   object ButtonDelete: TButton
@@ -318,7 +318,7 @@ object CreateTableForm: TCreateTableForm
     Anchors = [akTop, akRight]
     Caption = 'Remove'
     Enabled = False
-    TabOrder = 8
+    TabOrder = 10
     OnClick = ButtonDeleteClick
   end
   object ButtonChange: TButton
@@ -329,7 +329,7 @@ object CreateTableForm: TCreateTableForm
     Anchors = [akTop, akRight]
     Caption = 'Change'
     Enabled = False
-    TabOrder = 7
+    TabOrder = 9
     OnClick = ButtonChangeClick
   end
   object EditFieldname: TEdit
@@ -339,7 +339,7 @@ object CreateTableForm: TCreateTableForm
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     MaxLength = 64
-    TabOrder = 4
+    TabOrder = 6
     Text = 'FieldName'
     OnChange = EditFieldnameChange
     OnEnter = EditFieldnameEnter
@@ -374,7 +374,7 @@ object CreateTableForm: TCreateTableForm
     Anchors = [akTop, akRight]
     ItemHeight = 13
     Sorted = True
-    TabOrder = 10
+    TabOrder = 4
     OnChange = comboCharsetChange
   end
   object comboCollation: TComboBox
@@ -386,7 +386,7 @@ object CreateTableForm: TCreateTableForm
     Anchors = [akTop, akRight]
     ItemHeight = 13
     Sorted = True
-    TabOrder = 11
+    TabOrder = 5
   end
   object ButtonCreate: TButton
     Left = 314
