@@ -498,7 +498,7 @@ object MainForm: TMainForm
           Align = alClient
           HotTrack = True
           TabOrder = 0
-          OnChange = editFilterVTChange
+          OnChange = PageControlHostChange
           object tabVariables: TTabSheet
             Caption = 'Variables'
             object ListVariables: TVirtualStringTree
