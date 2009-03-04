@@ -1866,7 +1866,8 @@ procedure TMainForm.actUserManagerExecute(Sender: TObject);
 begin
   if UserManagerForm = nil then
     UserManagerForm := TUserManagerForm.Create(Self);
-  UserManagerForm.ShowModal;
+  if UserManagerForm.TestUserAdmin then
+    UserManagerForm.ShowModal;
 end;
 
 procedure TMainForm.menuWindowClick(Sender: TObject);

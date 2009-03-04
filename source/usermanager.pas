@@ -198,6 +198,7 @@ type
     procedure RefreshUserPulldown;
     procedure SetChkToggleStatus;
   public
+    function TestUserAdmin: Boolean;
     { Public declarations }
   end;
 
@@ -256,11 +257,11 @@ end;
 
 
 {**
-  FormShow: Load users and privileges into memory
+  Fail if no access to privilege database.
 }
-procedure TUserManagerForm.FormShow(Sender: TObject);
+function TUserManagerForm.TestUserAdmin: Boolean;
 var
-  test_result, snr: String;
+  test_result: String;
 begin
   // Test if we can access the privileges database and tables by
   // A. Using the mysql-DB
@@ -268,17 +269,27 @@ begin
     Mainform.ExecUseQuery(DBNAME_MYSQL);
   except
     MessageDlg('You have no access to the privileges database.', mtError, [mbOK], 0);
-    ModalResult := mrCancel;
+    Result := false;
     Exit;
   end;
   // B. retrieving a count of all users.
   test_result := Mainform.GetVar( 'SELECT COUNT(*) FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS), 0, true, false );
   if test_result = '' then begin
     MessageDlg('You have no access to the privileges tables.', mtError, [mbOK], 0);
-    ModalResult := mrCancel;
+    Result := false;
     Exit;
   end;
+  Result := true;
+end;
 
+
+{**
+  FormShow: Load users and privileges into memory
+}
+procedure TUserManagerForm.FormShow(Sender: TObject);
+var
+  snr: String;
+begin
   // Set hints text
   snr := Mainform.GetVar('SHOW VARIABLES LIKE ' + esc('skip_name_resolve'), 0, True, False);
   if snr = '' then snr := 'Unknown';
