@@ -158,7 +158,6 @@ type
     procedure DoRollback;
     procedure DoStartTransaction;
 
-    procedure CheckConnected;
     procedure CheckAutoCommitMode;
     procedure CheckNonAutoCommitMode;
 
@@ -185,6 +184,7 @@ type
     function GetAffectedRowsFromLastPost: Int64;
     function GetThreadId: Cardinal;
     function GetEscapeString(const Value: string): string;
+    procedure CheckConnected;
 
     procedure StartTransaction; virtual;
     procedure Commit; virtual;
@@ -704,6 +704,7 @@ begin
       try
         FConnection.Close;
         FConnection.Open;
+        Database := '';
       except
         CloseAllDataSets;
         raise;
