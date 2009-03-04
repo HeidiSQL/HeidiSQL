@@ -890,7 +890,7 @@ type
     function FetchDbTableList(db: WideString): TDataSet;
     function RefreshDbTableList(db: WideString): TDataSet;
     procedure ClearDbTableList(db: WideString);
-    function DbTableListCached(db: WideString): Boolean;
+    function DbTableListCachedAndValid(db: WideString): Boolean;
     procedure ClearAllTableLists;
     procedure EnsureDatabase;
     procedure TestVTreeDataArray( P: PVTreeDataArray );
@@ -3966,7 +3966,7 @@ var
   Unions: TWideStringlist;
   ListObjectsSQL: WideString;
 begin
-  if not DbTableListCached(db) then begin
+  if not DbTableListCachedAndValid(db) then begin
     // Not in cache, load table list.
     OldCursor := Screen.Cursor;
     Screen.Cursor := crHourGlass;
@@ -7088,7 +7088,7 @@ begin
         NODETYPE_DEFAULT: begin
             AllListsCached := true;
             for i := 0 to Databases.Count - 1 do begin
-              if not DbTableListCached(Databases[i]) then begin
+              if not DbTableListCachedAndValid(Databases[i]) then begin
                 AllListsCached := false;
                 break;
               end;
@@ -7111,7 +7111,7 @@ begin
         // Calculate and display the sum of all table sizes in ONE db, if the list is already cached.
         NODETYPE_DB: begin
             db := DBtree.Text[Node, 0];
-            if not DbTableListCached(db) then
+            if not DbTableListCachedAndValid(db) then
               CellText := ''
             else begin
               Bytes := 0;
@@ -7478,10 +7478,22 @@ begin
   else Result := MakeInt(d) + MakeInt(i);
 end;
 
-
-function TMainForm.DbTableListCached(db: WideString): Boolean;
+function TMainForm.DbTableListCachedAndValid(db: WideString): Boolean;
+var
+  ds: TDataSet;
 begin
   Result := CachedTableLists.IndexOf(db) > -1;
+  if Result then begin
+    ds := TDataSet(CachedTableLists.Objects[CachedTableLists.IndexOf(db)]);
+    // Delphi's RTL (TDataSet in DB.pas) throws exceptions right and left
+    // if the database the dataset(-derivate, aka TZDataSet) came from is
+    // currently, or has been earlier been, disconnected.  Therefore, nuke
+    // these datasets, they'll have to be reloaded.
+    if ds.State = dsInactive then begin
+      ClearDbTableList(db);
+      Result := False;
+    end;
+  end;
 end;
 
 procedure TMainForm.editFilterSearchChange(Sender: TObject);
