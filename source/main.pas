@@ -5823,7 +5823,16 @@ begin
     TimerHostUptimeTimer(self);
     FQueryRunning := false;
     try
-      FMysqlConn.Connection.Reconnect;
+      try
+        // CheckConnected() doesn't really check anything, it
+        // just sees if the driver has disposed of it's connection
+        // by means of a Disconnect() or not.  In which case there
+        // is no point in doing a Reconnect(), it will NOP.
+        FMysqlConn.Connection.CheckConnected;
+        FMysqlConn.Connection.Reconnect;
+      except
+        FMysqlConn.Connection.Connect;
+      end;
       time_connected := 0;
       TimerConnected.Enabled := true;
       LogSQL('Connected. Thread-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ));
