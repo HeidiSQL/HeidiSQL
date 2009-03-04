@@ -256,9 +256,9 @@ begin
         AExceptionData := GetExceptionData(Exception.Create('Cancelled by user.'));
         try
           FMysqlConn.Reconnect;
-        finally
-          MainForm.cancelling := false;
+        except
         end;
+        MainForm.cancelling := false;
       end else begin
         AExceptionData := GetExceptionData(E);
       end;
@@ -287,9 +287,9 @@ begin
         AExceptionData := GetExceptionData(Exception.Create('Cancelled by user.'));
         try
           FMysqlConn.Reconnect;
-        finally
-          MainForm.cancelling := false;
+        except
         end;
+        MainForm.cancelling := false;
       end else begin
         AExceptionData := GetExceptionData(E);
       end;
