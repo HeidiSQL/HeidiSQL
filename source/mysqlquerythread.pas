@@ -252,7 +252,16 @@ begin
       if E.Message = SCanNotOpenResultSet then begin
         Result := true;
         FreeAndNil(ADataset);
-      end else AExceptionData := GetExceptionData(E);
+      end else if MainForm.cancelling then begin
+        AExceptionData := GetExceptionData(Exception.Create('Cancelled by user.'));
+        try
+          FMysqlConn.Reconnect;
+        finally
+          MainForm.cancelling := false;
+        end;
+      end else begin
+        AExceptionData := GetExceptionData(E);
+      end;
     end;
   end;
 end;
@@ -273,8 +282,18 @@ begin
     q.DoAsyncExecSql();
     Result := True;
   except
-    On E: Exception do
-      AExceptionData := GetExceptionData(E);
+    On E: Exception do begin
+      if MainForm.cancelling then begin
+        AExceptionData := GetExceptionData(Exception.Create('Cancelled by user.'));
+        try
+          FMysqlConn.Reconnect;
+        finally
+          MainForm.cancelling := false;
+        end;
+      end else begin
+        AExceptionData := GetExceptionData(E);
+      end;
+    end;
   end;
 
   FreeAndNil (q);

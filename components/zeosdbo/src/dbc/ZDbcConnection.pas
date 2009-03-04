@@ -173,6 +173,7 @@ type
     procedure Open; virtual;
     procedure Close; virtual;
     function IsClosed: Boolean; virtual;
+    procedure CancelQuery; virtual;
     function Ping: Boolean; virtual;
     function GetAffectedRowsFromLastPost: Int64; virtual;
     function GetThreadId: Cardinal; virtual;
@@ -776,6 +777,14 @@ end;
 function TZAbstractConnection.IsClosed: Boolean;
 begin
   Result := FClosed;
+end;
+
+{**
+  Cancels a running query in another thread.
+}
+procedure TZAbstractConnection.CancelQuery;
+begin
+  raise Exception.Create('CancelQuery() is unsupported by this particular DB driver.');
 end;
 
 {**

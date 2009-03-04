@@ -32,8 +32,7 @@ uses
 
 procedure TfrmQueryProgress.btnAbortClick(Sender: TObject);
 begin
-  Close();
-  // todo: implement connection killing !!
+  MainForm.CancelQuery;
 end;
 
 

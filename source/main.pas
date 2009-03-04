@@ -628,6 +628,7 @@ type
       HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : WideStrings.TWideStringList;
     procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure MenuTablelistColumnsClick(Sender: TObject);
+    procedure CancelQuery;
     procedure CheckConnection();
     procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
     procedure ExecuteNonQuery(SQLQuery: String);
@@ -795,6 +796,7 @@ type
     procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: Widestrings.TWideStringlist = nil);
     procedure FocusGridCol(Grid: TBaseVirtualTree; Column: TColumnIndex);
   public
+    cancelling: Boolean;
     virtualDesktopName: string;
     MaintenanceForm: TOptimize;
     ViewForm: TfrmView;
@@ -3864,6 +3866,7 @@ var
   signal: Cardinal;
 begin
   debug( 'Waiting for query to complete.' );
+  cancelling := false;
   if ForceDialog then begin
     debug( 'Showing progress form.' );
     WaitForm.ShowModal();
@@ -5798,6 +5801,13 @@ begin
   end;
   // Hack: Un-prevent dynamic loading of records in the context of the wait form's message loop.
   if not DataGrid.Visible then DataGrid.Visible := True;
+end;
+
+
+procedure TMainForm.CancelQuery;
+begin
+  cancelling := true;
+  MysqlConn.Connection.CancelQuery;
 end;
 
 

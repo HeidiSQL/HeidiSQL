@@ -31,9 +31,8 @@ object frmQueryProgress: TfrmQueryProgress
     Width = 73
     Height = 25
     Cancel = True
-    Caption = 'Please wait'
+    Caption = 'Cancel'
     Default = True
-    Enabled = False
     TabOrder = 0
     OnClick = btnAbortClick
   end
