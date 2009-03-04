@@ -2711,12 +2711,12 @@ begin
     Exit;
 
   NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-  case NodeData.ImageIndex of
-    ICONINDEX_TABLE, ICONINDEX_CRASHED_TABLE, ICONINDEX_VIEW: begin
+  case NodeData.NodeType of
+    NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW: begin
       SelectedTable := NodeData.Captions[0];
       PageControlMain.ActivePage := tabTable;
     end;
-    ICONINDEX_STOREDPROCEDURE, ICONINDEX_STOREDFUNCTION: begin
+    NODETYPE_PROCEDURE, NODETYPE_FUNCTION: begin
       actEditRoutine.Execute;
     end;
   end;
@@ -5046,7 +5046,7 @@ var
 begin
   // Tables and views can be renamed, routines cannot
   NodeData := Sender.GetNodeData(Node);
-  Allowed := NodeData.ImageIndex in [ICONINDEX_TABLE, ICONINDEX_VIEW];
+  Allowed := NodeData.NodeType in [NODETYPE_TABLE, NODETYPE_VIEW];
 end;
 
 
