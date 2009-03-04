@@ -5816,6 +5816,7 @@ end;
 procedure TMainForm.CheckConnection;
 var
   connected: Boolean;
+  choice: Integer;
 begin
   if not FMysqlConn.IsAlive then begin
     LogSQL('Connection failure detected. Trying to reconnect.', true);
@@ -5835,8 +5836,29 @@ begin
       except
         connected := False;
       end;
-      if connected then FMysqlConn.Connection.Reconnect
-      else FMysqlConn.Connection.Connect;
+      while not FMysqlConn.IsAlive do begin
+        try
+          if connected then FMysqlConn.Connection.Reconnect
+          else FMysqlConn.Connection.Connect;
+        except
+          on E: Exception do begin
+            MainForm.Visible := False;
+            choice := MessageDlg(
+              'Connection to the server has been lost.'#10#10 +
+              E.Message + #10#10 +
+              'Click Abort to exit this session.',
+              mtError,
+              [mbRetry, mbAbort], 0
+            );
+            if choice = mrAbort then begin
+              Close;
+              Halt(1);
+            end;
+          end;
+        end;
+        if FMysqlConn.IsAlive then MainForm.Visible := True;
+      end;
+
       time_connected := 0;
       TimerConnected.Enabled := true;
       LogSQL('Connected. Thread-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ));
