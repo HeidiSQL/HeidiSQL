@@ -1631,7 +1631,6 @@ begin
   if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
     ActivateFileLogging;
 
-  time_connected := 0;
   TimerConnected.Enabled := true;
   LogSQL('Connected. Thread-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ));
 
@@ -1789,6 +1788,10 @@ begin
   SetWindowConnected( false );
   SetWindowName( main.discname );
   Application.Title := APPNAME;
+
+  TimerConnected.Enabled := False;
+  time_connected := 0;
+  TimerHostUptime.Enabled := False;
 end;
 
 
