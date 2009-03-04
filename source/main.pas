@@ -7949,7 +7949,7 @@ begin
     Allowed := DataGridPostUpdateOrInsert(OldNode)
   else
     Allowed := True;
-  if Allowed and (OldColumn <> NewColumn) then
+  if Allowed and (OldColumn <> NewColumn) and (NewColumn <> -1) then
     FocusGridCol(Sender, NewColumn);
 end;
 
