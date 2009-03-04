@@ -5814,6 +5814,8 @@ end;
 
 // Searchbox unfocused
 procedure TMainForm.CheckConnection;
+var
+  connected: Boolean;
 begin
   if not FMysqlConn.IsAlive then begin
     LogSQL('Connection failure detected. Trying to reconnect.', true);
@@ -5823,16 +5825,18 @@ begin
     TimerHostUptimeTimer(self);
     FQueryRunning := false;
     try
+      connected := True;
       try
         // CheckConnected() doesn't really check anything, it
         // just sees if the driver has disposed of it's connection
         // by means of a Disconnect() or not.  In which case there
         // is no point in doing a Reconnect(), it will NOP.
         FMysqlConn.Connection.CheckConnected;
-        FMysqlConn.Connection.Reconnect;
       except
-        FMysqlConn.Connection.Connect;
+        connected := False;
       end;
+      if connected then FMysqlConn.Connection.Reconnect
+      else FMysqlConn.Connection.Connect;
       time_connected := 0;
       TimerConnected.Enabled := true;
       LogSQL('Connected. Thread-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ));
