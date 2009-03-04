@@ -130,6 +130,8 @@ type
     function GetThreadId: Cardinal; override;
     function GetEscapeString(const Value: string): string; override;
 
+    procedure CancelQuery; override;
+
     procedure SetCatalog(const Catalog: string); override;
     function GetCatalog: string; override;
 
@@ -461,6 +463,11 @@ begin
   end;
 
   inherited Open;
+end;
+
+procedure TZMySQLConnection.CancelQuery;
+begin
+  if not Closed then FPlainDriver.CancelQuery(FHandle);
 end;
 
 {**

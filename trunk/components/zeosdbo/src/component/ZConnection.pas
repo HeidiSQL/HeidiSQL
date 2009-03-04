@@ -180,6 +180,7 @@ type
     procedure Connect; virtual;
     procedure Disconnect; virtual;
     procedure Reconnect;
+    procedure CancelQuery; virtual;
     function Ping: Boolean; virtual;
     function GetAffectedRowsFromLastPost: Int64;
     function GetThreadId: Cardinal;
@@ -668,6 +669,15 @@ begin
 
     DoAfterDisconnect;
   end;
+end;
+
+
+{**
+  Cancel a query running in another thread.
+}
+procedure TZConnection.CancelQuery;
+begin
+  if (FConnection <> nil) then FConnection.CancelQuery;
 end;
 
 

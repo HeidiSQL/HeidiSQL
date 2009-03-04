@@ -64,7 +64,8 @@ interface
 
 uses Classes, ZClasses, ZPlainDriver, ZCompatibility, ZPlainMysqlConstants,
      {$IFDEF ENABLE_MYSQL_DEPRECATED} ZPlainMySql320, ZPlainMySql323, ZPlainMySql40,{$ENDIF}
-     ZPlainMySql41, ZPlainMySql5;
+     ZPlainMySql41, ZPlainMySql5,
+     Winsock;
 
 const
 
@@ -158,6 +159,20 @@ const
   COLLATION_NONE   =  0;
 
 type
+  TZMySQLNet = record
+    { From: mysql-source/include/mysql_com.h }
+    sock: TSocket;
+    { ... more unused ABI here ... }
+  end;
+  PZMySQLNet = ^TZMySQLNet;
+  TZMySQLConnect = record
+    { From: mysql-source/include/mysql.h }
+    net: PZMySQLNet;
+    { ... more unused ABI here ... }
+  end;
+  PZMySQLConnectPeek = ^TZMySQLConnect;
+
+type
   PZMySQLConnect = Pointer;
   PZMySQLResult = Pointer;
   PZMySQLRow = Pointer;
@@ -194,6 +209,7 @@ type
     function GetAffectedRows(Handle: PZMySQLConnect): Int64;
     // char_set_name
     procedure SetCharacterSet(Handle: PZMySQLConnect; const CharSet: PChar);
+    procedure CancelQuery(Handle: PZMySQLConnect);
     procedure Close(Handle: PZMySQLConnect);
     function Connect(Handle: PZMySQLConnect; const Host, User, Password: PChar): PZMySQLConnect;
     function CreateDatabase(Handle: PZMySQLConnect; const Database: PChar): Integer;
@@ -355,6 +371,7 @@ type
     function RealConnect(Handle: PZMySQLConnect;
       const Host, User, Password, Db: PChar; Port: Cardinal;
       UnixSocket: PChar; ClientFlag: Cardinal): PZMySQLConnect;
+    procedure CancelQuery(Handle: PZMySQLConnect);
     procedure Close(Handle: PZMySQLConnect);
 
     function ExecQuery(Handle: PZMySQLConnect; const Query: PChar): Integer;
@@ -479,6 +496,7 @@ type
     function RealConnect(Handle: PZMySQLConnect;
       const Host, User, Password, Db: PChar; Port: Cardinal;
       UnixSocket: PChar; ClientFlag: Cardinal): PZMySQLConnect;
+    procedure CancelQuery(Handle: PZMySQLConnect);
     procedure Close(Handle: PZMySQLConnect);
 
     function ExecQuery(Handle: PZMySQLConnect; const Query: PChar): Integer;
@@ -602,6 +620,7 @@ type
     function RealConnect(Handle: PZMySQLConnect;
       const Host, User, Password, Db: PChar; Port: Cardinal;
       UnixSocket: PChar; ClientFlag: Cardinal): PZMySQLConnect;
+    procedure CancelQuery(Handle: PZMySQLConnect);
     procedure Close(Handle: PZMySQLConnect);
 
     function ExecQuery(Handle: PZMySQLConnect; const Query: PChar): Integer;
@@ -735,6 +754,7 @@ type
     function RealConnect(Handle: PZMySQLConnect;
       const Host, User, Password, Db: PChar; Port: Cardinal;
       UnixSocket: PChar; ClientFlag: Cardinal): PZMySQLConnect;
+    procedure CancelQuery(Handle: PZMySQLConnect);
     procedure Close(Handle: PZMySQLConnect);
 
     function ExecQuery(Handle: PZMySQLConnect; const Query: PChar): Integer;
@@ -870,6 +890,7 @@ type
     function RealConnect(Handle: PZMySQLConnect;
       const Host, User, Password, Db: PChar; Port: Cardinal;
       UnixSocket: PChar; ClientFlag: Cardinal): PZMySQLConnect;
+    procedure CancelQuery(Handle: PZMySQLConnect);
     procedure Close(Handle: PZMySQLConnect);
 
     function ExecQuery(Handle: PZMySQLConnect; const Query: PChar): Integer;
@@ -980,7 +1001,7 @@ type
   end;
 
 implementation
-uses SysUtils, ZMessages;
+uses SysUtils, ZMessages, Windows;
 
 var
   ServerArgs: array of PChar;
@@ -1036,6 +1057,11 @@ procedure TZMySQL320PlainDriver.Initialize;
 begin
   ZPlainMySql320.LibraryLoader.LoadIfNeeded;
   MYSQL_API := ZPlainMySql320.LibraryLoader.api_rec;
+end;
+
+procedure TZMySQL320PlainDriver.CancelQuery(Handle: PZMySQLConnect);
+begin
+  raise Exception.Create('This driver version does not support cancelling a query.');
 end;
 
 procedure TZMySQL320PlainDriver.Close(Handle: PZMySQLConnect);
@@ -1545,6 +1571,11 @@ begin
   MYSQL_API := ZPlainMySql323.LibraryLoader.api_rec;
 end;
 
+procedure TZMySQL323PlainDriver.CancelQuery(Handle: PZMySQLConnect);
+begin
+  raise Exception.Create('This driver version does not support cancelling a query.');
+end;
+
 procedure TZMySQL323PlainDriver.Close(Handle: PZMySQLConnect);
 begin
   MYSQL_API.mysql_close(Handle);
@@ -2049,6 +2080,11 @@ procedure TZMySQL40PlainDriver.Initialize;
 begin
   ZPlainMySql40.LibraryLoader.LoadIfNeeded;
   MYSQL_API := ZPlainMySql40.LibraryLoader.api_rec;
+end;
+
+procedure TZMySQL40PlainDriver.CancelQuery(Handle: PZMySQLConnect);
+begin
+  raise Exception.Create('This driver version does not support cancelling a query.');
 end;
 
 procedure TZMySQL40PlainDriver.Close(Handle: PZMySQLConnect);
@@ -2587,6 +2623,11 @@ procedure TZMySQL41PlainDriver.Initialize;
 begin
   ZPlainMySql41.LibraryLoader.LoadIfNeeded;
   MYSQL_API := ZPlainMySql41.LibraryLoader.api_rec;
+end;
+
+procedure TZMySQL41PlainDriver.CancelQuery(Handle: PZMySQLConnect);
+begin
+  raise Exception.Create('This driver version does not support cancelling a query.');
 end;
 
 procedure TZMySQL41PlainDriver.Close(Handle: PZMySQLConnect);
@@ -3131,6 +3172,19 @@ procedure TZMySQL5PlainDriver.Initialize;
 begin
   ZPlainMySql5.LibraryLoader.LoadIfNeeded;
   MYSQL_API := ZPlainMySql5.LibraryLoader.api_rec;
+end;
+
+procedure TZMySQL5PlainDriver.CancelQuery(Handle: PZMySQLConnect);
+var
+  peek: PZMySQLConnectPeek;
+  res: Integer;
+begin
+  peek := Handle;
+  OutputDebugString(PChar('Tearing connection.'));
+  res := Winsock.shutdown(peek.net.sock, SD_BOTH);
+  if (res <> 0) then OutputDebugString(PChar(Format('Shutdown failed: %d', [WSAGetLastError()])));
+  res := Winsock.closesocket(peek.net.sock);
+  if (res <> 0) then OutputDebugString(PChar(Format('Close failed: %d', [WSAGetLastError()])));
 end;
 
 procedure TZMySQL5PlainDriver.Close(Handle: PZMySQLConnect);

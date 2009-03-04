@@ -243,6 +243,7 @@ type
     procedure Open;
     procedure Close;
     function IsClosed: Boolean;
+    procedure CancelQuery;
     function Ping: Boolean;
     function GetAffectedRowsFromLastPost: Int64;
     function GetThreadId: Cardinal;
