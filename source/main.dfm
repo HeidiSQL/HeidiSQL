@@ -452,6 +452,7 @@ object MainForm: TMainForm
       TreeOptions.SelectionOptions = [toRightClickSelect]
       OnChange = DBtreeChange
       OnDblClick = DBtreeDblClick
+      OnExpanded = DBtreeExpanded
       OnGetText = DBtreeGetText
       OnPaintText = DBtreePaintText
       OnGetImageIndex = DBtreeGetImageIndex
