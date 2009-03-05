@@ -744,6 +744,7 @@ type
     procedure actEditRoutineExecute(Sender: TObject);
     procedure ListTablesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; var Allowed: Boolean);
+    procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     FDelimiter: String;
     ServerUptime               : Integer;
@@ -7271,6 +7272,7 @@ begin
           Screen.Cursor := crDefault;
         end;
         // Auto resize "Size" column in dbtree when needed
+        // See also OnResize
         if coVisible in (Sender as TVirtualStringTree).Header.Columns[1].Options then
           (Sender as TVirtualStringTree).Header.AutoFitColumns(False, smaUseColumnOption, 1, 1);
       end;
@@ -9221,6 +9223,16 @@ begin
     RoutineEditForm.AlterRoutineName := SelectedTable;
 
   RoutineEditForm.ShowModal;
+end;
+
+
+procedure TMainForm.DBtreeExpanded(Sender: TBaseVirtualTree;
+  Node: PVirtualNode);
+begin
+  // Auto resize "Size" column in dbtree when needed
+  // See also OnInitChildren
+  if coVisible in DBtree.Header.Columns[1].Options then
+    DBtree.Header.AutoFitColumns(False, smaUseColumnOption, 1, 1);
 end;
 
 
