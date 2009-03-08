@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Classes, Graphics, Forms, Controls, helpers, StdCtrls, TntStdCtrls, VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils;
+  ComCtrls, ToolWin, Dialogs, SysUtils, Menus, WideStrUtils;
 
 {$I const.inc}
 
@@ -17,6 +17,11 @@ type
     btnApply: TToolButton;
     btnCancel: TToolButton;
     lblTextLength: TLabel;
+    btnLinefeedStyle: TToolButton;
+    popupLinefeedStyle: TPopupMenu;
+    menuWindowsLF: TMenuItem;
+    menuUnixLF: TMenuItem;
+    menuMacLF: TMenuItem;
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnLoadTextClick(Sender: TObject);
@@ -27,10 +32,13 @@ type
     procedure memoTextKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure SelectLinefeedStyle(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
     FStopping: Boolean;
+    DetectedLineFeedStyle: Integer;
+    SelectedLineFeedStyle: Integer;
     procedure SetModified(NewVal: Boolean);
     property Modified: Boolean read FModified write SetModified;
   public
@@ -47,18 +55,59 @@ uses main;
 
 {$R *.dfm}
 
+const
+  NL_WIN = 0;
+  NL_UNX = 1;
+  NL_MAC = 2;
+
 
 function TfrmTextEditor.GetText: WideString;
 begin
   Result := memoText.Text;
+  // Convert linefeed style back to selected
+  if SelectedLineFeedStyle = NL_UNX then
+    Result := WideStringReplace(Result, CRLF, #10, [rfReplaceAll])
+  else if SelectedLineFeedStyle = NL_MAC then
+    Result := WideStringReplace(Result, CRLF, #10#13, [rfReplaceAll])
 end;
+
 
 procedure TfrmTextEditor.SetText(text: WideString);
 begin
+  // Automatic detection of linefeed style
+  if Pos(CRLF, text) > 0 then DetectedLineFeedStyle := NL_WIN
+  else if Pos(#10#13, text) > 0 then DetectedLineFeedStyle := NL_MAC
+  else if Pos(#10, text) > 0 then DetectedLineFeedStyle := NL_UNX
+  else DetectedLineFeedStyle := NL_WIN;
+  SelectLinefeedStyle(popupLineFeedStyle.Items[DetectedLineFeedStyle]);
+  // Unify linefeeds so they're displayed properly 
+  text := WideStringReplace(text, #13, '', [rfReplaceAll]);
+  text := WideStringReplace(text, #10, CRLF, [rfReplaceAll]);
   // TODO: Find out why the Delphi IDE insists hinting that this
   //       property is ANSI when it is in fact a WideString.
   memoText.Text := text;
 end;
+
+
+procedure TfrmTextEditor.SelectLinefeedStyle(Sender: TObject);
+var
+  Selected, Detected: TMenuItem;
+  Menu: TMenu;
+begin
+  Selected := Sender as TMenuItem;
+  Menu := Selected.GetParentMenu;
+  Detected := Menu.Items[DetectedLineFeedStyle];
+  Menu.Items[NL_WIN].Caption := 'Windows® linefeeds';
+  Menu.Items[NL_UNX].Caption := 'UNIX linefeeds';
+  Menu.Items[NL_MAC].Caption := 'Mac OS linefeeds';
+  Detected.Caption := Detected.Caption + ' (detected)';
+  Selected.Default := True;
+  btnLineFeedStyle.Hint := Selected.Caption;
+  btnLineFeedStyle.ImageIndex := Selected.ImageIndex;
+  SelectedLineFeedStyle := Selected.MenuIndex;
+  Modified := True;
+end;
+
 
 procedure TfrmTextEditor.SetMaxLength(len: integer);
 begin
