@@ -3636,9 +3636,9 @@ begin
     Screen.Cursor := crDefault;
     Exit;
   end else begin
-    DataGrid.Show;
-    pnlFilter.Show;
-    pnlDataTop.Show;
+    DataGrid.Visible := True;
+    pnlFilter.Visible := True;
+    pnlDataTop.Visible := True;
   end;
 
   try
@@ -4269,7 +4269,7 @@ begin
     Screen.Cursor := crDefault;
     Exit;
   end else
-    ListColumns.Show;
+    ListColumns.Visible := True;
 
   ShowStatus( 'Reading table properties...' );
   // Remember selected nodes
