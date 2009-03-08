@@ -4,7 +4,7 @@ object frmTextEditor: TfrmTextEditor
   BorderStyle = bsSizeToolWin
   Caption = 'Text editor'
   ClientHeight = 95
-  ClientWidth = 215
+  ClientWidth = 253
   Color = clBtnFace
   Constraints.MinHeight = 100
   Constraints.MinWidth = 130
@@ -20,12 +20,12 @@ object frmTextEditor: TfrmTextEditor
   OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
-    215
+    253
     95)
   PixelsPerInch = 96
   TextHeight = 13
   object lblTextLength: TLabel
-    Left = 103
+    Left = 137
     Top = 77
     Width = 65
     Height = 13
@@ -37,7 +37,7 @@ object frmTextEditor: TfrmTextEditor
   object memoText: TTntMemo
     Left = 0
     Top = 0
-    Width = 215
+    Width = 253
     Height = 72
     Align = alTop
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -52,7 +52,7 @@ object frmTextEditor: TfrmTextEditor
   object tlbStandard: TToolBar
     Left = 0
     Top = 73
-    Width = 97
+    Width = 131
     Height = 22
     Align = alNone
     Anchors = [akLeft, akBottom]
@@ -69,8 +69,16 @@ object frmTextEditor: TfrmTextEditor
       ImageIndex = 62
       OnClick = btnWrapClick
     end
-    object btnLoadText: TToolButton
+    object btnLinefeedStyle: TToolButton
       Left = 23
+      Top = 0
+      Caption = 'Linefeed Style'
+      DropdownMenu = popupLinefeedStyle
+      ImageIndex = 123
+      Style = tbsDropDown
+    end
+    object btnLoadText: TToolButton
+      Left = 61
       Top = 0
       Hint = 'Load textfile'
       Caption = 'Load textfile'
@@ -78,7 +86,7 @@ object frmTextEditor: TfrmTextEditor
       OnClick = btnLoadTextClick
     end
     object btnCancel: TToolButton
-      Left = 46
+      Left = 84
       Top = 0
       Hint = 'Cancel'
       Caption = 'Cancel'
@@ -86,12 +94,32 @@ object frmTextEditor: TfrmTextEditor
       OnClick = btnCancelClick
     end
     object btnApply: TToolButton
-      Left = 69
+      Left = 107
       Top = 0
       Hint = 'Apply changes'
       Caption = 'Apply changes'
       ImageIndex = 55
       OnClick = btnApplyClick
+    end
+  end
+  object popupLinefeedStyle: TPopupMenu
+    Images = MainForm.PngImageListMain
+    Left = 8
+    Top = 16
+    object menuWindowsLF: TMenuItem
+      Caption = 'Windows linefeeds'
+      ImageIndex = 123
+      OnClick = SelectLinefeedStyle
+    end
+    object menuUnixLF: TMenuItem
+      Caption = 'UNIX linefeeds'
+      ImageIndex = 125
+      OnClick = SelectLinefeedStyle
+    end
+    object menuMacLF: TMenuItem
+      Caption = 'Mac OS linefeeds'
+      ImageIndex = 124
+      OnClick = SelectLinefeedStyle
     end
   end
 end
