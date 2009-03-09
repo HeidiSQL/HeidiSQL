@@ -4785,6 +4785,8 @@ begin
         for j:=0 to ds.FieldCount-1 do begin
           if FQueryGridResult.Columns[j].IsBinary then
             FQueryGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
+          else if FQueryGridResult.Columns[j].IsFloat then
+            FQueryGridResult.Rows[i].Cells[j].Text := FormatFloat(GRIDFLOATFORMAT, MakeFloat(ds.Fields[j].AsString))
           else
             FQueryGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
           FQueryGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
@@ -7633,7 +7635,7 @@ begin
         if res.Columns[j].IsBinary then
           res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
         else if res.Columns[j].IsFloat then
-          res.Rows[i].Cells[j].Text := FormatFloat('0.0##############################', MakeFloat(ds.Fields[j].AsString))
+          res.Rows[i].Cells[j].Text := FormatFloat(GRIDFLOATFORMAT, MakeFloat(ds.Fields[j].AsString))
         else
           res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
         res.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
@@ -7696,7 +7698,7 @@ begin
         if res.Columns[j].IsBinary then
           res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
         else if res.Columns[j].IsFloat then
-          res.Rows[i].Cells[j].Text := FormatFloat('0.0##############################', MakeFloat(ds.Fields[j].AsString))
+          res.Rows[i].Cells[j].Text := FormatFloat(GRIDFLOATFORMAT, MakeFloat(ds.Fields[j].AsString))
         else
           res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
         res.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
