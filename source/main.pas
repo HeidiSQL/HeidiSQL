@@ -7632,6 +7632,8 @@ begin
       for j := 0 to ds.Fields.Count - 1 do begin
         if res.Columns[j].IsBinary then
           res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
+        else if res.Columns[j].IsFloat then
+          res.Rows[i].Cells[j].Text := FormatFloat('0.0##############################', MakeFloat(ds.Fields[j].AsString))
         else
           res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
         res.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
@@ -7693,6 +7695,8 @@ begin
       for j := 0 to ds.Fields.Count - 1 do begin
         if res.Columns[j].IsBinary then
           res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
+        else if res.Columns[j].IsFloat then
+          res.Rows[i].Cells[j].Text := FormatFloat('0.0##############################', MakeFloat(ds.Fields[j].AsString))
         else
           res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
         res.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
