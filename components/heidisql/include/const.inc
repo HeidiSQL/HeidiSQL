@@ -299,6 +299,9 @@ const
   // Data grid: How many rows to display in total
   GRIDMAXTOTALROWS = 100000;
 
+  // Used to format floats in datagrids via FormatFloat()
+  GRIDFLOATFORMAT = '0.0##############################';
+
   // How many milliseconds to wait before showing a 'waiting for database' sign.
   QUERYWAITTIME: Integer = 2500;
 
