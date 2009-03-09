@@ -3637,7 +3637,6 @@ begin
     Exit;
   end else begin
     DataGrid.Visible := True;
-    pnlFilter.Visible := True;
     pnlDataTop.Visible := True;
   end;
 
