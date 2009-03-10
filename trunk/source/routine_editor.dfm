@@ -220,7 +220,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     NodeDataSize = 0
     TabOrder = 8
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning]
-    TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toFullVertGridLines]
+    TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toFullVertGridLines, toUseExplorerTheme]
     TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
     OnBeforePaint = listParametersBeforePaint
     OnCreateEditor = listParametersCreateEditor

@@ -448,7 +448,7 @@ object MainForm: TMainForm
       ShowHint = True
       TabOrder = 0
       TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
-      TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages]
+      TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
       TreeOptions.SelectionOptions = [toRightClickSelect]
       OnChange = DBtreeChange
       OnDblClick = DBtreeDblClick
@@ -528,7 +528,7 @@ object MainForm: TMainForm
               TabOrder = 0
               TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
               TreeOptions.MiscOptions = [toToggleOnDblClick]
-              TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+              TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
               TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
               OnAfterPaint = vstAfterPaint
               OnBeforePaint = ListVariablesBeforePaint
@@ -582,7 +582,7 @@ object MainForm: TMainForm
               TabOrder = 0
               TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
               TreeOptions.MiscOptions = [toToggleOnDblClick]
-              TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+              TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
               TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
               OnAfterPaint = vstAfterPaint
               OnBeforePaint = ListStatusBeforePaint
@@ -658,7 +658,7 @@ object MainForm: TMainForm
               TabOrder = 0
               TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
               TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
-              TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+              TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
               TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
               OnAfterPaint = vstAfterPaint
               OnBeforePaint = ListProcessesBeforePaint
@@ -787,7 +787,7 @@ object MainForm: TMainForm
               TabOrder = 0
               TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
               TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
-              TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+              TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
               TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
               OnAfterPaint = vstAfterPaint
               OnBeforeCellPaint = ListCommandStatsBeforeCellPaint
@@ -894,7 +894,7 @@ object MainForm: TMainForm
           TabOrder = 0
           TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
           TreeOptions.MiscOptions = [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
-          TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+          TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
           TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
           OnAfterPaint = vstAfterPaint
           OnChange = ListTablesChange
@@ -1063,7 +1063,7 @@ object MainForm: TMainForm
           ShowHint = True
           TabOrder = 0
           TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
-          TreeOptions.PaintOptions = [toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+          TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
           TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
           OnAfterPaint = vstAfterPaint
           OnChange = ListColumnsChange
