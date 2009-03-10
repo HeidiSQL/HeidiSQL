@@ -232,7 +232,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     OnNewText = listParametersNewText
     Columns = <
       item
-        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible, coFixed, coAllowFocus]
+        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible, coAllowFocus]
         Position = 0
         Width = 25
         WideText = '#'
