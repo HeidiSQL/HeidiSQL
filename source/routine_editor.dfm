@@ -208,11 +208,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     DragType = dtVCL
     EditDelay = 0
     Header.AutoSizeIndex = 1
-    Header.Font.Charset = DEFAULT_CHARSET
-    Header.Font.Color = clWindowText
-    Header.Font.Height = -11
-    Header.Font.Name = 'Tahoma'
-    Header.Font.Style = []
+    Header.DefaultHeight = 17
     Header.MainColumn = 1
     Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
     Header.ParentFont = True
