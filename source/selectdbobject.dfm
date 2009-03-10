@@ -80,7 +80,7 @@ object frmSelectDBObject: TfrmSelectDBObject
     Indent = 16
     Margin = 2
     TabOrder = 0
-    TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages]
+    TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
     OnFocusChanged = TreeDBOFocusChanged
     OnGetText = TreeDBOGetText
     OnGetImageIndex = TreeDBOGetImageIndex
