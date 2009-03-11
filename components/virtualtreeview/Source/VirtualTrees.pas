@@ -10000,17 +10000,18 @@ begin
     Shift := FHeader.GetShiftState;
     if DblClick then
       Shift := Shift + [ssDouble];
-    if not Items[NewClickIndex].FHasImage then // If there is no image for this column, perform normal HeaderClick.
-      FHeader.Treeview.DoHeaderClick(NewClickIndex, Button, Shift, P.X, P.Y)
+    if Items[NewClickIndex].FHasImage and PtInRect(Items[NewClickIndex].FImageRect, P) then
+    begin
+      if Items[NewClickIndex].CheckBox then
+      begin
+        FHeader.Treeview.UpdateColumnCheckState(Items[NewClickIndex]);
+        FHeader.Treeview.DoHeaderCheckBoxClick(NewClickIndex, Button, Shift, P.X, P.Y);
+      end
+      else
+        FHeader.Treeview.DoHeaderImageClick(NewClickIndex, Button, Shift, P.X, P.Y)
+    end
     else
-      if PtInRect(Items[NewClickIndex].FImageRect, P) then
-        if not Items[NewClickIndex].CheckBox then
-          FHeader.Treeview.DoHeaderImageClick(NewClickIndex, Button, Shift, P.X, P.Y)
-        else
-        begin
-          FHeader.Treeview.UpdateColumnCheckState(Items[NewClickIndex]);
-          FHeader.Treeview.DoHeaderCheckBoxClick(NewClickIndex, Button, Shift, P.X, P.Y);
-        end;
+      FHeader.Treeview.DoHeaderClick(NewClickIndex, Button, Shift, P.X, P.Y);
     FHeader.Invalidate(Items[NewClickIndex]);
   end
   else
@@ -21351,8 +21352,11 @@ procedure TBaseVirtualTree.DoHeaderImageClick(Column: TColumnIndex; Button: TMou
   X, Y: Integer);
 
 begin
+  // In case we have an image click event, execute it, otherwise invoke the normal header click as fallback  
   if Assigned(FOnHeaderImageClick) then
-    FOnHeaderImageClick(FHeader, Column, Button, Shift, X, Y);
+    FOnHeaderImageClick(FHeader, Column, Button, Shift, X, Y)
+  else if Assigned(FOnHeaderClick) then
+    FOnHeaderClick(FHeader, Column, Button, Shift, X, Y)
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
