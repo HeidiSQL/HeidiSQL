@@ -1204,15 +1204,12 @@ begin
   SaveListSetup(ListTables);
   SaveListSetup(ListColumns);
 
-  FreeAndNil(CreateTableForm);
   FreeAndNil(RoutineEditForm);
   FreeAndNil(MaintenanceForm);
   FreeAndNil(UserManagerForm);
   FreeAndNil(ViewForm);
   FreeAndNil(SelectDBObjectForm);
   FreeAndNil(SQLHelpForm);
-  FreeAndNil(CreateDatabaseForm);
-  FreeAndNil(TablePropertiesForm);
 
   debug('mem: clearing query and browse data.');
   SetLength(FDataGridResult.Rows, 0);
@@ -1771,6 +1768,13 @@ begin
   FreeAndNil(DatabasesWanted);
   FreeAndNil(Databases);
   FreeAndNil(InformationSchemaTables);
+  FreeAndNil(dsShowEngines);
+  FreeAndNil(dsHaveEngines);
+
+  // Free forms which use session based datasets, fx dsShowEngines
+  FreeAndNil(CreateTableForm);
+  FreeAndNil(TablePropertiesForm);
+  FreeAndNil(CreateDatabaseForm);
 
   // Closing connection
   if Assigned(FMysqlConn) then begin
