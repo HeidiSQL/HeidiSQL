@@ -1587,7 +1587,7 @@ begin
     FreeAndNil(ConnForm);
     if dlgResult = mrCancel then begin
       Close;
-      Exit;
+      Halt;
     end;
   end;
 
