@@ -1346,6 +1346,6 @@ end;
 initialization
 
 finalization
-  MethodPatches.Free;
+  FreeAndNil(MethodPatches);
 
 end.
