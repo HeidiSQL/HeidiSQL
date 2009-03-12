@@ -84,7 +84,7 @@ object frmView: TfrmView
     Gutter.RightOffset = 0
     Gutter.ShowLineNumbers = True
     Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoShowScrollHint]
-    RightEdge = 40
+    RightEdge = 0
     WantTabs = True
   end
   object btnCancel: TButton

@@ -128,6 +128,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Gutter.Font.Style = []
     Gutter.Visible = False
     ReadOnly = True
+    RightEdge = 0
     ScrollBars = ssNone
     WordWrap = True
   end

@@ -98,6 +98,7 @@ object tbl_properties_form: Ttbl_properties_form
     Gutter.Visible = False
     Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
     ReadOnly = True
+    RightEdge = 0
   end
   object btnCancel: TButton
     Left = 229

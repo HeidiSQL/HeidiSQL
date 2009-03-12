@@ -312,6 +312,7 @@ object optionsform: Toptionsform
           Lines.UnicodeStrings = 'SynMemoSQLSample'
           Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoNoCaret, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
           ReadOnly = True
+          RightEdge = 0
           TabWidth = 2
           WordWrap = True
           OnChange = SQLFontChange

@@ -53,7 +53,7 @@ object MainForm: TMainForm
     Highlighter = SynSQLSyn1
     Options = [eoAutoIndent, eoDragDropEditing, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
     ReadOnly = True
-    RightEdge = -1
+    RightEdge = 0
     RemovedKeystrokes = <
       item
         Command = ecDeleteLastChar
@@ -743,6 +743,7 @@ object MainForm: TMainForm
                 Highlighter = SynSQLSyn1
                 Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
                 ReadOnly = True
+                RightEdge = 0
                 WordWrap = True
               end
             end
@@ -1398,7 +1399,7 @@ object MainForm: TMainForm
             Gutter.ShowLineNumbers = True
             Highlighter = SynSQLSyn1
             Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
-            RightEdge = 40
+            RightEdge = 0
             SearchEngine = SynEditSearch1
             TabWidth = 2
             WantTabs = True
