@@ -318,6 +318,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Gutter.ShowLineNumbers = True
     Highlighter = MainForm.SynSQLSyn1
     Lines.UnicodeStrings = 'SynMemoBody'
+    RightEdge = 0
     OnChange = Modification
   end
 end

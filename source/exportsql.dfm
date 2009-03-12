@@ -307,6 +307,7 @@ object ExportSQLForm: TExportSQLForm
           Gutter.Width = 0
           Options = [eoAutoIndent, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces]
           ReadOnly = True
+          RightEdge = 0
           RemovedKeystrokes = <
             item
               Command = ecContextHelp
