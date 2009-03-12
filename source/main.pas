@@ -8466,14 +8466,14 @@ end;
 
 function TMainForm.GetSelTableColumns: TDataset;
 begin
-  if FLastSelectedTableColumns = nil then
+  if (FLastSelectedTableColumns = nil) or (FLastSelectedTableColumns.State = dsInactive) then
     FLastSelectedTableColumns := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable), false );
   Result := FLastSelectedTableColumns;
 end;
 
 function TMainForm.GetSelTableKeys: TDataset;
 begin
-  if FLastSelectedTableKeys = nil then
+  if (FLastSelectedTableKeys = nil) or (FLastSelectedTableKeys.State = dsInactive) then
     FLastSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable) );
   Result := FLastSelectedTableKeys;
 end;
