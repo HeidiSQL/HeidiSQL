@@ -167,6 +167,7 @@ begin
   if FActive <> Value then
   begin
     FActive := Value;
+    if DriverManager = nil then Exit;
     if Value then
       DriverManager.AddLoggingListener(Self)
     else DriverManager.RemoveLoggingListener(Self);
