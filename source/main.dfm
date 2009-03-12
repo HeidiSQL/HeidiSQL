@@ -53,24 +53,6 @@ object MainForm: TMainForm
     Options = [eoAutoIndent, eoDragDropEditing, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
     ReadOnly = True
     RightEdge = 0
-    RemovedKeystrokes = <
-      item
-        Command = ecDeleteLastChar
-        ShortCut = 8200
-      end
-      item
-        Command = ecLineBreak
-        ShortCut = 8205
-      end
-      item
-        Command = ecContextHelp
-        ShortCut = 112
-      end
-      item
-        Command = ecDeleteLine
-        ShortCut = 16473
-      end>
-    AddedKeystrokes = <>
   end
   object StatusBar: TStatusBar
     Left = 0
@@ -1248,24 +1230,6 @@ object MainForm: TMainForm
             WantTabs = True
             WordWrap = True
             OnChange = SynMemoFilterChange
-            RemovedKeystrokes = <
-              item
-                Command = ecDeleteLastChar
-                ShortCut = 8200
-              end
-              item
-                Command = ecLineBreak
-                ShortCut = 8205
-              end
-              item
-                Command = ecContextHelp
-                ShortCut = 112
-              end
-              item
-                Command = ecDeleteLine
-                ShortCut = 16473
-              end>
-            AddedKeystrokes = <>
           end
           object editFilterSearch: TEdit
             Left = 339
@@ -1404,24 +1368,6 @@ object MainForm: TMainForm
             WantTabs = True
             OnDropFiles = SynMemoQueryDropFiles
             OnStatusChange = SynMemoQueryStatusChange
-            RemovedKeystrokes = <
-              item
-                Command = ecDeleteLastChar
-                ShortCut = 8200
-              end
-              item
-                Command = ecLineBreak
-                ShortCut = 8205
-              end
-              item
-                Command = ecContextHelp
-                ShortCut = 112
-              end
-              item
-                Command = ecDeleteLine
-                ShortCut = 16473
-              end>
-            AddedKeystrokes = <>
           end
           object pnlQueryHelpers: TPanel
             Left = 342
