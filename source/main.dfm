@@ -15,7 +15,6 @@ object MainForm: TMainForm
   OnClose = FormClose
   OnCreate = FormCreate
   OnResize = FormResize
-  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object splitterTopBottom: TSplitter

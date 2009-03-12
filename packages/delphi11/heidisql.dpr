@@ -66,6 +66,7 @@ begin
         MainForm.ExecuteRemoteQuery
       );
       debug('perf: Running.');
+      MainForm.Startup;
       Application.Run;
       ActivateMainform(Mainform.Handle);
     finally
