@@ -392,8 +392,12 @@ begin
   begin
     while FFontsInfo.Count > 0 do
     begin
-      ASSERT(1 = PheSharedFontsInfo(FFontsInfo[FFontsInfo.Count - 1])^.RefCount);
-      ReleaseFontsInfo(PheSharedFontsInfo(FFontsInfo[FFontsInfo.Count - 1]));
+      if (1 = PheSharedFontsInfo(FFontsInfo[FFontsInfo.Count - 1])^.RefCount) then begin
+        ReleaseFontsInfo(PheSharedFontsInfo(FFontsInfo[FFontsInfo.Count - 1]));
+      end else begin
+        //ASSERT;
+        break;
+      end;
     end;
     FFontsInfo.Free;
   end;
