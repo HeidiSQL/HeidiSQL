@@ -308,16 +308,6 @@ object ExportSQLForm: TExportSQLForm
           Options = [eoAutoIndent, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces]
           ReadOnly = True
           RightEdge = 0
-          RemovedKeystrokes = <
-            item
-              Command = ecContextHelp
-              ShortCut = 112
-            end>
-          AddedKeystrokes = <
-            item
-              Command = ecContextHelp
-              ShortCut = 16496
-            end>
         end
       end
       object groupOptions: TGroupBox
