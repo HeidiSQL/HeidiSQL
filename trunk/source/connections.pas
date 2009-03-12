@@ -43,6 +43,7 @@ type
     btnDelete: TToolButton;
     btnSaveAs: TToolButton;
     btnEditDesc: TButton;
+    procedure CreateParams(var Params: TCreateParams); override;
     procedure FormCreate(Sender: TObject);
     procedure btnSaveAndConnectClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -69,6 +70,14 @@ implementation
 {$I const.inc}
 
 {$R *.DFM}
+
+
+procedure Tconnform.CreateParams(var Params: TCreateParams);
+begin
+  inherited;
+  Params.ExStyle := Params.ExStyle OR WS_EX_APPWINDOW;
+  Params.WndParent := GetDesktopWindow;
+end;
 
 
 {**
