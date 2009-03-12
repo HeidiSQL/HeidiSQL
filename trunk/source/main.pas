@@ -481,7 +481,7 @@ type
     procedure DisplayChange(var msg: TMessage); message WM_DISPLAYCHANGE;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
-    procedure FormShow(Sender: TObject);
+    procedure Startup;
     procedure DoAfterConnect;
     procedure DoDisconnect;
     procedure FormResize(Sender: TObject);
@@ -1278,18 +1278,6 @@ var
   fontname, datafontname : String;
   fontsize, datafontsize : Integer;
   DisableProcessWindowsGhostingProc: procedure;
-
-  curParam : Byte;
-  sValue,
-  parHost, parPort, parUser, parPass, parDatabase,
-  parTimeout, parCompress, parSortDatabases, parDescription : String;
-  LastUpdatecheck : TDateTime;
-  UpdatecheckInterval : Integer;
-  DefaultLastrunDate, LastSession: String;
-  frm : TfrmUpdateCheck;
-  dlgResult: Integer;
-  Connected, CommandLineMode: Boolean;
-  ConnForm: TConnForm;
 begin
   caption := APPNAME;
   setLocales;
@@ -1482,10 +1470,26 @@ begin
     'DisableProcessWindowsGhosting');
   if Assigned(DisableProcessWindowsGhostingProc) then
     DisableProcessWindowsGhostingProc;
+end;
+
 
 {**
   Check for connection parameters on commandline or show connections form.
 }
+procedure TMainForm.Startup;
+var
+  curParam : Byte;
+  sValue,
+  parHost, parPort, parUser, parPass, parDatabase,
+  parTimeout, parCompress, parSortDatabases, parDescription : String;
+  LastUpdatecheck : TDateTime;
+  UpdatecheckInterval : Integer;
+  DefaultLastrunDate, LastSession: String;
+  frm : TfrmUpdateCheck;
+  dlgResult: Integer;
+  Connected, CommandLineMode: Boolean;
+  ConnForm: TConnForm;
+begin
   // Do an updatecheck if checked in settings
   if GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK) then begin
     DefaultLastrunDate := '2000-01-01';
@@ -1587,17 +1591,12 @@ begin
     end;
   end;
 
+  DoAfterConnect;
+
   if (not CommandLineMode) and (ParamStr(1) <> '') then begin
     // Loading SQL file by command line. Mutually exclusive to connect by command line.
     QueryLoad(ParamStr(1));
   end;
-
-end;
-
-
-procedure TMainForm.FormShow(Sender: TObject);
-begin
-  DoAfterConnect;
 end;
 
 
