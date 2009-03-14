@@ -1,6 +1,6 @@
 unit VirtualTrees;
 
-// Version 4.8.4
+// Version 4.8.5
 //
 // The contents of this file are subject to the Mozilla Public License
 // Version 1.1 (the "License"); you may not use this file except in compliance
@@ -25,6 +25,11 @@ unit VirtualTrees;
 //----------------------------------------------------------------------------------------------------------------------
 //
 //  March 2009
+//   - Bug fix: fixed an issue in TVirtualTreeColumns.HandleClick that could lead to a case where no header click event
+//              is triggered
+//   - Bug fix: fixed an issue in TBaseVirtualTree.HandleHotTrack that could lead to an endless loop under certain
+//              conditions
+//   - Improvement: removed unused variables in TVirtualTreeColumn.ComputeHeaderLayout
 //   - Bug fix: corrected TBaseVirtualTree.GetVisibleParent
 //   - Improvement: extended hot node tracking to track the hot column too
 //   - Improvement: new THitPosition hiOnItemButtonExact used to draw hot buttons when using Windows Vista's Explorer
@@ -314,7 +319,7 @@ type
 {$endif COMPILER_12_UP}
 
 const
-  VTVersion = '4.8.4';
+  VTVersion = '4.8.5';
   VTTreeStreamVersion = 2;
   VTHeaderStreamVersion = 6;    // The header needs an own stream version to indicate changes only relevant to the header.
 
@@ -8821,9 +8826,6 @@ var
   TextSpacing: Integer;
   UseText: Boolean;
   R: TRect;
-  CaptionText: UnicodeString;
-  H1,
-  H2: Integer;
 
 begin
   UseText := Length(FText) > 0;
@@ -21352,7 +21354,6 @@ procedure TBaseVirtualTree.DoHeaderImageClick(Column: TColumnIndex; Button: TMou
   X, Y: Integer);
 
 begin
-  // In case we have an image click event, execute it, otherwise invoke the normal header click as fallback  
   if Assigned(FOnHeaderImageClick) then
     FOnHeaderImageClick(FHeader, Column, Button, Shift, X, Y)
   else if Assigned(FOnHeaderClick) then
@@ -22976,7 +22977,7 @@ begin
     FCurrentHotColumn := HitInfo.HitColumn;
   end;
 
-  ButtonIsHit := hiOnItemButtonExact in HitInfo.HitPositions;
+  ButtonIsHit := (hiOnItemButtonExact in HitInfo.HitPositions) and (toHotTrack in FOptions.FPaintOptions);
   if Assigned(FCurrentHotNode) and ((FHotNodeButtonHit <> ButtonIsHit) or DoInvalidate) then
   begin
     FHotNodeButtonHit := ButtonIsHit and (toHotTrack in FOptions.FPaintOptions);
