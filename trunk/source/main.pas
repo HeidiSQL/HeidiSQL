@@ -720,9 +720,7 @@ type
     procedure popupDataViewPopup(Sender: TObject);
     procedure menuViewDefaultClick(Sender: TObject);
     procedure menuViewSaveClick(Sender: TObject);
-    procedure QueryGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
-      NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
-      var Allowed: Boolean);
+    procedure QueryGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure pnlQueryHelpersCanResize(Sender: TObject; var NewWidth,
       NewHeight: Integer; var Resize: Boolean);
     procedure pnlQueryMemoCanResize(Sender: TObject; var NewWidth,
@@ -795,7 +793,6 @@ type
     function GetSelTableColumns: TDataset;
     function GetSelTableKeys: TDataset;
     procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: Widestrings.TWideStringlist = nil);
-    procedure FocusGridCol(Grid: TBaseVirtualTree; Column: TColumnIndex);
   public
     cancelling: Boolean;
     virtualDesktopName: string;
@@ -7982,8 +7979,6 @@ begin
     Allowed := DataGridPostUpdateOrInsert(OldNode)
   else
     Allowed := True;
-  if Allowed and (OldColumn <> NewColumn) and (NewColumn <> -1) then
-    FocusGridCol(Sender, NewColumn);
 end;
 
 
@@ -8735,31 +8730,9 @@ begin
 end;
 
 
-procedure TMainForm.QueryGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
-  NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
-  var Allowed: Boolean);
+procedure TMainForm.QueryGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
 begin
-  if OldColumn <> NewColumn then
-    FocusGridCol(Sender, NewColumn);
   ValidateControls;
-end;
-
-
-procedure TMainForm.FocusGridCol(Grid: TBaseVirtualTree; Column: TColumnIndex);
-var
-  g: TVirtualStringTree;
-  MinX, MaxX, i: Integer;
-begin
-  g := Grid as TVirtualStringTree;
-  MinX := 0;
-  for i:=0 to Column do
-    MinX := MinX + g.Header.Columns[i].Width;
-  MaxX := -(MinX - g.Header.Columns[Column].Width);
-  MinX := -(MinX - g.Width + 20); // Assume 20px for vertical scrollbar.
-  if g.OffsetX > MinX then
-    g.OffsetX := MinX
-  else if g.OffsetX < MaxX then
-    g.OffsetX := MaxX;
 end;
 
 
