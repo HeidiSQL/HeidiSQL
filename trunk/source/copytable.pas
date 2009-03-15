@@ -254,6 +254,19 @@ begin
   end;
   // < keys
 
+  // Add collation and engine clauses
+  zq := Mainform.FetchActiveDbTableList;
+  while not zq.Eof do begin
+    if zq.FieldByName(DBO_NAME).AsWideString = oldTableName then begin
+      if zq.FieldByName(DBO_COLLATION).AsString <> '' then
+        strquery := strquery + ' COLLATE ' + zq.FieldByName(DBO_COLLATION).AsString;
+      if zq.FieldByName(DBO_ENGINE).AsString <> '' then
+        strquery := strquery + ' ENGINE=' + zq.FieldByName(DBO_ENGINE).AsString;
+      break;
+    end;
+    zq.Next;
+  end;
+
   strquery := strquery + ' SELECT';
 
   // which fields?
