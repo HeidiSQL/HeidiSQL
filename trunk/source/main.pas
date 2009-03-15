@@ -3629,16 +3629,6 @@ begin
   tabData.TabVisible := true;
   // Switch to <Data>
   PageControlMain.ActivePage := tabData;
-  if not (GetSelectedNodeType in [NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW]) then begin
-    DataGrid.Hide; // Reveals lblSorryNoData
-    pnlDataTop.Hide;
-    pnlFilter.Hide;
-    Screen.Cursor := crDefault;
-    Exit;
-  end else begin
-    DataGrid.Visible := True;
-    pnlDataTop.Visible := True;
-  end;
 
   try
     if (SelectedTable <> '') and (ActiveDatabase <> '') then begin
@@ -3678,6 +3668,20 @@ begin
       DataGrid.Header.Columns.BeginUpdate;
       DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
       DataGrid.Header.Columns.Clear;
+
+      // No data for routines
+      if FSelectedTableColumns = nil then begin
+        DataGrid.Enabled := False;
+        pnlDataTop.Enabled := False;
+        pnlFilter.Enabled := False;
+        lblSorryNoData.Parent := DataGrid;
+        Exit; // Jump to *finally*
+      end else begin
+        DataGrid.Enabled := True;
+        pnlDataTop.Enabled := True;
+        pnlFilter.Enabled := True;
+        lblSorryNoData.Parent := tabData;
+      end;
 
       // Prepare SELECT statement
       select_base := 'SELECT ';
@@ -3900,10 +3904,10 @@ begin
   if Sender = PageControlMain then begin
     if tab = tabHost then PageControlHostChange(Sender)
     else if tab = tabDatabase then ListTables.SetFocus
-    else if (tab = tabTable) and (ListColumns.Visible) then ListColumns.SetFocus
+    else if (tab = tabTable) and (ListColumns.CanFocus) then ListColumns.SetFocus
     else if tab = tabData then begin
       viewdata(Sender);
-      if DataGrid.Visible then
+      if DataGrid.CanFocus then
         DataGrid.SetFocus;
     end else if tab = tabQuery then SynMemoQuery.SetFocus;
   end;
@@ -4263,21 +4267,24 @@ begin
    (PageControlMain.ActivePage = tabDatabase)
   ) then PageControlMain.ActivePage := tabTable;
 
-  if not (GetSelectedNodeType in [NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW]) then begin
-    ListColumns.Hide; // Reveals lblSorryNoFields
-    Screen.Cursor := crDefault;
-    Exit;
-  end else
-    ListColumns.Visible := True;
-
-  ShowStatus( 'Reading table properties...' );
   // Remember selected nodes
   SelectedCaptions := GetVTCaptions(ListColumns, True);
   ListColumns.BeginUpdate;
   ListColumns.Clear;
   FSelectedTableColumns := nil;
   FSelectedTableKeys := nil;
+
   Try
+    // No column view for routines
+    if FSelectedTableColumns = nil then begin
+      ListColumns.Enabled := False;
+      lblSorryNoFields.Parent := ListColumns;
+      Exit; // Jump to *finally*
+    end else begin
+      ListColumns.Enabled := True;
+      lblSorryNoFields.Parent := tabTable;
+    end;
+
     // Hide column "Comment" on old servers.
     hasCommentColumn := FSelectedTableColumns.FindField('Comment') <> nil;
     if not hasCommentColumn then
@@ -4328,7 +4335,6 @@ begin
     if tabsetQueryHelpers.TabIndex = 0 then
       tabsetQueryHelpers.OnChange( Self, tabsetQueryHelpers.TabIndex, dummy);
 
-    Screen.Cursor := crHourglass;
     for i:=1 to FSelectedTableKeys.RecordCount do
     begin
       // Search for the column name in listColumns
@@ -8460,15 +8466,27 @@ end;
 
 function TMainForm.GetSelTableColumns: TDataset;
 begin
-  if (FLastSelectedTableColumns = nil) or (FLastSelectedTableColumns.State = dsInactive) then
-    FLastSelectedTableColumns := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable), false );
+  if (FLastSelectedTableColumns = nil) or (FLastSelectedTableColumns.State = dsInactive) then begin
+    FreeAndNil(FLastSelectedTableColumns);
+	// Avoid SQL error on routines
+    if GetSelectedNodeType in [NODETYPE_TABLE, NODETYPE_VIEW] then begin
+      ShowStatus('Reading table columns ...');
+      FLastSelectedTableColumns := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable), false );
+    end;
+  end;
   Result := FLastSelectedTableColumns;
 end;
 
 function TMainForm.GetSelTableKeys: TDataset;
 begin
-  if (FLastSelectedTableKeys = nil) or (FLastSelectedTableKeys.State = dsInactive) then
-    FLastSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable) );
+  if (FLastSelectedTableKeys = nil) or (FLastSelectedTableKeys.State = dsInactive) then begin
+    FreeAndNil(FLastSelectedTableKeys);
+	// Avoid SQL error on routines
+    if GetSelectedNodeType in [NODETYPE_TABLE, NODETYPE_VIEW] then begin
+      ShowStatus('Reading table keys ...');
+      FLastSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable) );
+    end;
+  end;
   Result := FLastSelectedTableKeys;
 end;
 
