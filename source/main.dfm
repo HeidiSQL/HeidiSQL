@@ -1230,6 +1230,16 @@ object MainForm: TMainForm
             WantTabs = True
             WordWrap = True
             OnChange = SynMemoFilterChange
+            RemovedKeystrokes = <
+              item
+                Command = ecDeleteLine
+                ShortCut = 16473
+              end>
+            AddedKeystrokes = <
+              item
+                Command = ecRedo
+                ShortCut = 16473
+              end>
           end
           object editFilterSearch: TEdit
             Left = 339
@@ -1367,6 +1377,16 @@ object MainForm: TMainForm
             WantTabs = True
             OnDropFiles = SynMemoQueryDropFiles
             OnStatusChange = SynMemoQueryStatusChange
+            RemovedKeystrokes = <
+              item
+                Command = ecDeleteLine
+                ShortCut = 16473
+              end>
+            AddedKeystrokes = <
+              item
+                Command = ecRedo
+                ShortCut = 16473
+              end>
           end
           object pnlQueryHelpers: TPanel
             Left = 342

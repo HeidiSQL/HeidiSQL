@@ -321,5 +321,15 @@ object frmRoutineEditor: TfrmRoutineEditor
     RightEdge = 0
     WantTabs = True
     OnChange = Modification
+    RemovedKeystrokes = <
+      item
+        Command = ecDeleteLine
+        ShortCut = 16473
+      end>
+    AddedKeystrokes = <
+      item
+        Command = ecRedo
+        ShortCut = 16473
+      end>
   end
 end

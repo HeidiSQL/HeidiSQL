@@ -86,6 +86,16 @@ object frmView: TfrmView
     Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoShowScrollHint]
     RightEdge = 0
     WantTabs = True
+    RemovedKeystrokes = <
+      item
+        Command = ecDeleteLine
+        ShortCut = 16473
+      end>
+    AddedKeystrokes = <
+      item
+        Command = ecRedo
+        ShortCut = 16473
+      end>
   end
   object btnCancel: TButton
     Left = 341
