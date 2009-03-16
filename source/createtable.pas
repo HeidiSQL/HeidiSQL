@@ -202,8 +202,12 @@ begin
       createQuery := createQuery  + ' UNSIGNED';                              // Unsigned
     if FieldType.HasZerofill and cols[i].Zerofill then
       createQuery := createQuery  + ' ZEROFILL';                              // Zerofill
-    if cols[i].Default <> '' then
-      createQuery := createQuery  + ' DEFAULT ''' + cols[i].Default + '''';   // Default
+    if cols[i].Default <> '' then begin
+      createQuery := createQuery  + ' DEFAULT ';
+      if cols[i].FieldType = tpBIT then
+        createQuery := createQuery  + ' b';
+      createQuery := createQuery  + '''' + cols[i].Default + '''';   // Default
+    end;
     if cols[i].NotNull then
       createQuery := createQuery  + ' NOT NULL';                              // Not null
     if cols[i].AutoIncrement then

@@ -535,7 +535,11 @@ begin
     case comboDefault.ItemIndex of
       DEFAULT_NULL: strDefault := 'NULL';
       DEFAULT_CURTS: strDefault := 'CURRENT_TIMESTAMP';
-      DEFAULT_CUSTOM: strDefault := esc(editDefault.Text);
+      DEFAULT_CUSTOM: begin
+        strDefault := esc(editDefault.Text);
+        if IndexToType(ComboBoxType.ItemIndex) = tpBIT then
+          strDefault := 'b' + strDefault;
+      end;
     end;
     if strDefault <> '' then
       strDefault := ' DEFAULT '+strDefault;
