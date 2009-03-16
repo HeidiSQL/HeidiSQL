@@ -2126,6 +2126,10 @@ begin
   Key := WideChar(Message.CharCode);
 
   Form := GetParentForm(Self);
+  if (Form <> nil) and (Form <> TWinControl(Self)) and (Message.CharCode = VK_ESCAPE) then begin
+    SendMessage(Form.Handle, WM_IME_KEYDOWN, Message.CharCode, 0);
+    Exit;
+  end;
   if (Form <> nil) and (Form <> TWinControl(Self)) and Form.KeyPreview and
     (Key <= High(AnsiChar)) and TAccessWinControl(Form).DoKeyPress(Message)
   then
