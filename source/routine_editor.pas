@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, SynEdit, SynMemo, StdCtrls, TntStdCtrls, ComCtrls, ToolWin,
-  VirtualTrees, WideStrings, db, SynRegExpr;
+  VirtualTrees, WideStrings, db, SynRegExpr, WideStrUtils;
 
 type
   TfrmRoutineEditor = class(TForm)
@@ -177,7 +177,7 @@ begin
           Context := UpperCase(rx.Match[2]);
           if Context = '' then
             Context := 'IN';
-          Parameters.Add(rx.Match[3] + DELIM + rx.Match[4] + DELIM + Context);
+          Parameters.Add(WideDequotedStr(rx.Match[3], '`') + DELIM + rx.Match[4] + DELIM + Context);
         end;
       end;
       FreeAndNil(Params);
@@ -427,7 +427,7 @@ begin
     par := explode(DELIM, Parameters[i]);
     if ProcOrFunc = 'PROCEDURE' then
       BaseSQL := BaseSQL + par[2] + ' ';
-    BaseSQL := BaseSQL + par[0] + ' ' + par[1];
+    BaseSQL := BaseSQL + Mainform.Mask(par[0]) + ' ' + par[1];
     if i < Parameters.Count-1 then
       BaseSQL := BaseSQL + ', ';
   end;
