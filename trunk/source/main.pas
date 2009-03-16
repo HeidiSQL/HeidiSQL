@@ -4277,11 +4277,9 @@ begin
   Try
     // No column view for routines
     if FSelectedTableColumns = nil then begin
-      ListColumns.Enabled := False;
       lblSorryNoFields.Parent := ListColumns;
       Exit; // Jump to *finally*
     end else begin
-      ListColumns.Enabled := True;
       lblSorryNoFields.Parent := tabTable;
     end;
 
