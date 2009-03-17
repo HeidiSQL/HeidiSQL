@@ -319,6 +319,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Highlighter = MainForm.SynSQLSyn1
     Lines.UnicodeStrings = 'SynMemoBody'
     RightEdge = 0
+    TabWidth = 3
     WantTabs = True
     OnChange = Modification
     RemovedKeystrokes = <

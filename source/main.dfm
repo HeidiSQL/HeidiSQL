@@ -1373,7 +1373,7 @@ object MainForm: TMainForm
             Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
             RightEdge = 0
             SearchEngine = SynEditSearch1
-            TabWidth = 2
+            TabWidth = 3
             WantTabs = True
             OnDropFiles = SynMemoQueryDropFiles
             OnStatusChange = SynMemoQueryStatusChange
