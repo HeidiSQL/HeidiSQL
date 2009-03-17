@@ -1874,7 +1874,7 @@ begin
     if Pos('?', SQL) > 0 then
     begin
       Tokens := Connection.GetDriver.GetTokenizer.
-        TokenizeBufferToList(SQL, [toUnifyWhitespaces]);
+        TokenizeBufferToList(SQL, []);
       try
         Temp := '';
         for I := 0 to Tokens.Count - 1 do
