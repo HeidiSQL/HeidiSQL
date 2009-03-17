@@ -168,10 +168,12 @@ var
   i,which,k    : Integer;
   keylist      : Array of TMyKey;
   keystr       : WideString;
-  ai_q, notnull, default    : WideString;
+  notnull,
+  default      : WideString;
   zq           : TDataSet;
   isFulltext   : Boolean;
   struc_data   : Byte;
+  Fixes        : TWideStringlist;
 begin
   // copy table!
 
@@ -287,22 +289,39 @@ begin
 
   Mainform.ExecUpdateQuery(strquery);
 
-  if CheckBoxWithIndexes.Checked then begin
-    // Find a auto_increment-column
-    zq := Mainform.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
-    for i:=1 to zq.RecordCount do
-    begin
-      if zq.Fields[5].AsString = 'auto_increment' then begin
-        if zq.Fields[2].AsString = '' then notnull := 'NOT NULL' else notnull := '';
-        if zq.Fields[4].AsWideString <> '' then default := 'DEFAULT "'+zq.Fields[4].AsWideString+'"' else default := '';
-        ai_q := 'ALTER TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.'+mainform.mask(editNewTablename.Text)+' CHANGE '+mainform.mask(zq.Fields[0].AsWideString)+' '+mainform.mask(zq.Fields[0].AsWideString)+' '+zq.Fields[1].AsWideString+' '+default+' '+notnull+' AUTO_INCREMENT';
-        Mainform.ExecUpdateQuery(ai_q);
-      end;
-      zq.Next;
+  // Fix missing auto_increment property and CURRENT_TIMESTAMP defaults in new table
+  zq := Mainform.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
+  Fixes := TWideStringlist.Create;
+  while not zq.Eof do begin
+    notnull := '';
+    if zq.FieldByName('Null').AsString = '' then
+      notnull := 'NOT NULL';
+    default := '';
+    if zq.FieldByName('Default').AsWideString <> '' then begin
+      default := 'DEFAULT ';
+      if zq.FieldByName('Default').AsWideString = 'CURRENT_TIMESTAMP' then
+        default := default + zq.FieldByName('Default').AsWideString
+      else
+        default := default + esc(zq.FieldByName('Default').AsWideString);
     end;
-    zq.Close;
+
+    if (CheckBoxWithIndexes.Checked and (zq.FieldByName('Extra').AsString = 'auto_increment'))
+      or (zq.FieldByName('Default').AsString = 'CURRENT_TIMESTAMP') then begin
+      Fixes.Add('CHANGE '+Mainform.mask(zq.FieldByName('Field').AsWideString)+' '+
+        Mainform.mask(zq.FieldByName('Field').AsWideString)+' '+
+        zq.FieldByName('Type').AsWideString+' '+default+' '+notnull+' '+zq.FieldByName('Extra').AsString);
+    end;
+
+    zq.Next;
   end;
+  if Fixes.Count > 0 then begin
+    Mainform.ExecUpdateQuery('ALTER TABLE '+Mainform.mask(ComboSelectDatabase.Text) + '.'+Mainform.mask(editNewTablename.Text)+ ' '+
+      ImplodeStr(', ', Fixes)
+      );
+  end;
+  zq.Close;
   FreeAndNil(zq);
+  FreeAndNil(Fixes);
 
   Mainform.actRefresh.Execute;
   close;
