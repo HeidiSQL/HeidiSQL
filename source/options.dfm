@@ -241,7 +241,7 @@ object optionsform: Toptionsform
         Width = 397
         Height = 68
         Anchors = [akLeft, akTop, akRight, akBottom]
-        Caption = 'Syntax colors'
+        Caption = 'Syntax'
         TabOrder = 1
         object lblSQLColElement: TLabel
           Left = 19
@@ -251,7 +251,7 @@ object optionsform: Toptionsform
           Caption = 'Element:'
         end
         object lblSQLColColor: TLabel
-          Left = 192
+          Left = 188
           Top = 18
           Width = 29
           Height = 13
@@ -268,14 +268,32 @@ object optionsform: Toptionsform
           OnChange = comboSQLColElementChange
         end
         object cboxSQLColColor: TColorBox
-          Left = 192
+          Left = 188
           Top = 33
-          Width = 177
+          Width = 124
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
           ItemHeight = 16
           TabOrder = 1
           OnChange = SQLFontChange
+        end
+        object chkSQLBold: TCheckBox
+          Left = 322
+          Top = 26
+          Width = 72
+          Height = 17
+          Caption = 'Bold'
+          TabOrder = 2
+          OnClick = SQLFontChange
+        end
+        object chkSQLItalic: TCheckBox
+          Left = 322
+          Top = 45
+          Width = 65
+          Height = 17
+          Caption = 'Italic'
+          TabOrder = 3
+          OnClick = SQLFontChange
         end
       end
       object grpSQLSample: TGroupBox

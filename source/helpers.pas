@@ -11,7 +11,7 @@ interface
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
   shlobj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
-  TntCheckLst, Registry;
+  TntCheckLst, Registry, SynEditHighlighter;
 
 type
 
@@ -187,6 +187,7 @@ type
   procedure EnableProgressBar(MaxValue: Integer);
   function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
   function ListIndexByRegExpr(List: TWideStrings; Expression: WideString): Integer;
+  procedure RestoreSyneditStyle(Attri: TSynHighlighterAttributes; ColorRegName: String; ColorDefault: Integer);
 var
   MYSQL_KEYWORDS             : TStringList;
   MainReg                    : TRegistry;
@@ -2985,6 +2986,22 @@ begin
   end;
   FreeAndNil(rx);
 end;
+
+
+procedure RestoreSyneditStyle(Attri: TSynHighlighterAttributes; ColorRegName: String; ColorDefault: Integer);
+begin
+  // Read font color, bold + italic style of a SynEdit attribute set from registry
+  Attri.Foreground := StringToColor(GetRegValue(ColorRegName, ColorToString(ColorDefault)));
+  if GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in Attri.Style) then
+    Attri.Style := Attri.Style + [fsBold]
+  else
+    Attri.Style := Attri.Style - [fsBold];
+  if GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in Attri.Style) then
+    Attri.Style := Attri.Style + [fsItalic]
+  else
+    Attri.Style := Attri.Style - [fsItalic];
+end;
+
 
 initialization
 
