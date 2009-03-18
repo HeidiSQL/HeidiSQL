@@ -4851,19 +4851,23 @@ var
   Tables           : TStringList;
   tablename        : WideString;
   rx               : TRegExpr;
+const
+  ItemPattern: WideString = '\image{%d}\hspace{5}%s';
 
   procedure addTable( Fields: TFields );
-  var ObjName, ObjType: WideString;
+  var ObjName: WideString; Icon: Integer;
   begin
     ObjName := Fields[0].AsWideString;
     case GetDBObjectType(Fields) of
-      NODETYPE_CRASHED_TABLE: ObjType := 'table';
-      NODETYPE_TABLE: ObjType := 'table';
-      NODETYPE_VIEW: ObjType := 'view';
-      else ObjType := 'unknown';
+      NODETYPE_TABLE: Icon := ICONINDEX_TABLE;
+      NODETYPE_CRASHED_TABLE: Icon := ICONINDEX_CRASHED_TABLE;
+      NODETYPE_FUNCTION: Icon := ICONINDEX_STOREDFUNCTION;
+      NODETYPE_PROCEDURE: Icon := ICONINDEX_STOREDPROCEDURE;
+      NODETYPE_VIEW: Icon := ICONINDEX_VIEW;
+      else Icon := -1;
     end;
     SynCompletionProposal1.InsertList.Add( ObjName );
-    SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.TableNameAttri.Foreground)+'}'+ObjType+'\color{clWindowText}\column{}' + ObjName );
+    SynCompletionProposal1.ItemList.Add( WideFormat(ItemPattern, [Icon, ObjName]) );
   end;
 
   procedure addColumns( tablename: WideString );
@@ -4887,7 +4891,7 @@ var
     for i:=0 to ds.RecordCount-1 do
     begin
       SynCompletionProposal1.InsertList.Add( ds.FieldByName( 'Field' ).AsWideString );
-      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(clTeal)+'}column\color{clWindowText}\column{}' + ds.FieldByName( 'Field' ).AsWideString + '\style{-B} ' + ds.FieldByName( 'Type' ).AsString );
+      SynCompletionProposal1.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_FIELD, ds.FieldByName('Field').AsWideString + ' \color{clSilver}' + ds.FieldByName('Type').AsString]) );
       ds.Next;
     end;
     ds.Close;
@@ -4975,7 +4979,7 @@ begin
       SynCompletionProposal1.ItemList.Add(Databases[i]);
     end;
     for i:=0 to SynCompletionProposal1.ItemList.count-1 do
-      SynCompletionProposal1.ItemList[i] := '\hspace{2}\color{'+ColorToString(SynSQLSyn1.TableNameAttri.Foreground)+'}database\color{clWindowText}\column{}' + SynCompletionProposal1.ItemList[i];
+      SynCompletionProposal1.ItemList[i] := WideFormat(ItemPattern, [ICONINDEX_DB, SynCompletionProposal1.ItemList[i]]);
 
     if ActiveDatabase <> '' then begin
       // Display tables from current db
@@ -4995,14 +4999,14 @@ begin
       if MySqlFunctions[i].Version > mysql_version then
         continue;
       SynCompletionProposal1.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
-      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.FunctionAttri.Foreground)+'}function\color{clWindowText}\column{}' + MySQLFunctions[i].Name + '\style{-B}' + MySQLFunctions[i].Declaration );
+      SynCompletionProposal1.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_FUNCTION, MySQLFunctions[i].Name + '\color{clSilver}' + MySQLFunctions[i].Declaration] ) );
     end;
 
     // Add keywords
     for i := 0 to MYSQL_KEYWORDS.Count - 1 do
     begin
       SynCompletionProposal1.InsertList.Add( MYSQL_KEYWORDS[i] );
-      SynCompletionProposal1.ItemList.Add( '\hspace{2}\color{'+ColorToString(SynSQLSyn1.KeyAttri.Foreground)+'}keyword\color{clWindowText}\column{}'+MYSQL_KEYWORDS[i] );
+      SynCompletionProposal1.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_KEYWORD, MYSQL_KEYWORDS[i]] ) );
     end;
 
   end;
