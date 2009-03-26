@@ -4851,6 +4851,8 @@ var
   Tables           : TStringList;
   tablename        : WideString;
   rx               : TRegExpr;
+  PrevShortToken,
+  PrevLongToken    : WideString;
 const
   ItemPattern: WideString = '\image{%d}\hspace{5}%s';
 
@@ -4901,6 +4903,18 @@ const
 begin
   SynCompletionProposal1.InsertList.Clear;
   SynCompletionProposal1.ItemList.Clear;
+  PrevShortToken := SynCompletionProposal1.PreviousToken;
+  PrevShortToken := WideDequotedStr(PrevShortToken, '`');
+
+  rx := TRegExpr.Create;
+
+  // Find longer token, ignore EndOfTokenChars, just the last chars up to a whitespace 
+  rx.Expression := '(\S+).$';
+  PrevLongToken := Copy(SynCompletionProposal1.Editor.LineText, 0, x);
+  if rx.Exec(PrevLongToken) then
+    PrevLongToken := rx.Match[1]
+  else
+    PrevLongToken := '';
 
   // Get column-names into the proposal pulldown
   // when we write sql like "SELECT t.|col FROM table [AS] t"
@@ -4919,7 +4933,6 @@ begin
   end;
 
   // 2. Parse FROM clause to detect relevant table/view, probably aliased
-  rx := TRegExpr.Create;
   rx.ModifierG := True;
   rx.ModifierI := True;
   rx.Expression := '\b(FROM|INTO|UPDATE)\s+(.+)(WHERE|HAVING|ORDER|GROUP)?';
@@ -4932,14 +4945,14 @@ begin
     Tables.Delimiter := ',';
     Tables.StrictDelimiter := true;
     Tables.DelimitedText := TableClauses;
-    rx.Expression := '`?(\w+)`?(\s+(AS\s+)?`?(\w+)`?)?';
+    rx.Expression := '(\S+)\s+(AS\s+)?(\S+)';
+
     for i := 0 to Tables.Count - 1 do begin
       // If the just typed word equals the alias of this table or the
       // tablename itself, set tablename var and break loop
       if rx.Exec(Tables[i]) then begin
-        if (WideDequotedStr(SynCompletionProposal1.PreviousToken,'`') = WideDequotedStr(rx.Match[4],'`') )
-          or (SynCompletionProposal1.PreviousToken = rx.Match[1]) then begin
-          tablename := Trim(rx.Match[1]);
+        if PrevShortToken = WideDequotedStr(rx.Match[3],'`') then begin
+          tablename := rx.Match[1];
           break;
         end;
       end;
@@ -4950,15 +4963,15 @@ begin
   if (tablename <> '') then begin
     // add columns to proposal
     addColumns( tablename );
-  end else if SynCompletionProposal1.PreviousToken <> '' then begin
+  end else if PrevLongToken <> '' then begin
     // assuming previoustoken itself is a table
-    addColumns( SynCompletionProposal1.PreviousToken );
+    addColumns( PrevLongToken );
   end;
 
 
   if Length(CurrentInput) = 0 then // makes only sense if the user has typed "database."
   begin
-    i := Databases.IndexOf( SynCompletionProposal1.PreviousToken );
+    i := Databases.IndexOf(PrevShortToken);
     if i > -1 then begin
       // Only display tables from specified db
       Screen.Cursor := crHourGlass;
