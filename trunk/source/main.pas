@@ -22,7 +22,7 @@ uses
   SynCompletionProposal, ZSqlMonitor, SynEditHighlighter, SynHighlighterSQL,
   TntStdCtrls, Tabs, SynUnicode, mysqlconn, EditVar, helpers, queryprogress,
   mysqlquery, createdatabase, createtable, tbl_properties, SynRegExpr,
-  WideStrUtils, ZDbcLogging, ExtActns, CommCtrl, routine_editor;
+  WideStrUtils, ZDbcLogging, ExtActns, CommCtrl, routine_editor, options;
 
 type
   TMainForm = class(TForm)
@@ -802,6 +802,7 @@ type
     SelectDBObjectForm: TfrmSelectDBObject;
     SQLHelpForm: TfrmSQLhelp;
     RoutineEditForm: TfrmRoutineEditor;
+    OptionsForm: Toptionsform;
     DatabasesWanted,
     Databases                  : Widestrings.TWideStringList;
     TemporaryDatabase          : WideString;
@@ -966,7 +967,6 @@ uses
   connections,
   exportsql,
   loaddata,
-  options,
   printlist,
   copytable,
   insertfiles,
@@ -1207,6 +1207,7 @@ begin
   FreeAndNil(ViewForm);
   FreeAndNil(SelectDBObjectForm);
   FreeAndNil(SQLHelpForm);
+  FreeAndNil(OptionsForm);
 
   debug('mem: clearing query and browse data.');
   SetLength(FDataGridResult.Rows, 0);
@@ -1831,13 +1832,11 @@ begin
 end;
 
 procedure TMainForm.actPreferencesExecute(Sender: TObject);
-var
-  f: Toptionsform;
 begin
   // Preferences
-  f := Toptionsform.Create(Self);
-  f.ShowModal;
-  FreeAndNil(f);
+  if OptionsForm = nil then
+    OptionsForm := Toptionsform.Create(Self);
+  OptionsForm.ShowModal;
 end;
 
 procedure TMainForm.actReadmeExecute(Sender: TObject);
