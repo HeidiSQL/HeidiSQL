@@ -303,25 +303,33 @@ end;
 
 
 procedure Toptionsform.FormCreate(Sender: TObject);
+  // Callback function used by EnumFontFamilies()
+  function EnumFixedProc(lpelf: PEnumLogFont; lpntm: PNewTextMetric; FontType: Integer; Data: LPARAM): Integer; stdcall;
+  begin
+    Result := 1;  // don't cancel
+    if (lpelf^.elfLogFont.lfPitchAndFamily and FIXED_PITCH) <> 0 then
+      (TStrings(Data)).Add(String(lpelf^.elfLogFont.lfFaceName));
+  end;
 begin
   InheritFont(Font);
+  EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, LPARAM(Pointer(comboSQLFontName.Items)));
+  SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
+    '  ''String literal'' AS lit' + CRLF +
+    'FROM tableA AS ta -- A comment' + CRLF +
+    'WHERE `columnA` IS NULL; # More comment' + CRLF +
+    CRLF +
+    'CREATE TABLE /*!32312 IF NOT EXISTS*/ tableB' + CRLF +
+    '  (id INT, name VARCHAR(30) DEFAULT "standard")';
+  SynSQLSynSQLSample.TableNames.CommaText := 'tableA,tableB';
+  comboSQLColElement.Items.Delimiter := ',';
+  comboSQLColElement.Items.StrictDelimiter := True;
+  comboSQLColElement.Items.DelimitedText := SQLEL_KEYWORD+','+SQLEL_FUNCTION+','+SQLEL_DATATYPE+','+
+    SQLEL_NUMBER+','+SQLEL_STRING+','+SQLEL_COMMENT+','+SQLEL_CONDCOMM+','+SQLEL_TABLE+','+
+    SQLEL_SYMBOL+','+SQLEL_IDENT+','+SQLEL_DELIMIDENT+','+SQLEL_ACTLINE;
+  comboSQLColElement.ItemIndex := 0;
 end;
 
 procedure Toptionsform.FormShow(Sender: TObject);
-
-// ----------- Callback.Funktion for Fixed_Pitch -----------------//
-function EnumFixedProc(lpelf: PEnumLogFont;
-                       lpntm: PNewTextMetric;
-                       FontType: Integer;
-                       Data: LPARAM)  // Strings-Objekt
-                       : Integer;     // 0 = Cancel
-                       stdcall;       // Important for all API-Callbacks
-begin
-  Result := 1;  // don't cancel
-  if (lpelf^.elfLogFont.lfPitchAndFamily and FIXED_PITCH) <> 0 then
-    (TStrings(Data)).Add(String(lpelf^.elfLogFont.lfFaceName));
-end;
-
 var
   sqlfontname : String;
   sqlfontsize : Integer;
@@ -357,13 +365,7 @@ begin
   chkLogToFile.Checked := GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE);
   btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
 
-  // SQL-Appearance:
-  EnumFontFamilies(Canvas.Handle,  // HDC of Device-Context.
-                   nil,            // Name of Font-Family (PChar)
-                   @EnumFixedProc, // Address of Callback-Function
-                   LPARAM(Pointer(comboSQLFontName.Items))); // customized data
-
-  // Color-coding:
+  // SQL:
   RestoreSyneditStyle(SynSQLSynSQLSample.KeyAttri, REGNAME_SQLCOLKEYATTRI, DEFAULT_SQLCOLKEYATTRI);
   RestoreSyneditStyle(SynSQLSynSQLSample.FunctionAttri, REGNAME_SQLCOLFUNCTIONATTRI, DEFAULT_SQLCOLFUNCTIONATTRI);
   RestoreSyneditStyle(SynSQLSynSQLSample.DataTypeAttri, REGNAME_SQLCOLDATATYPEATTRI, DEFAULT_SQLCOLDATATYPEATTRI);
@@ -378,22 +380,8 @@ begin
   SynMemoSQLSample.ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
   comboSQLFontName.ItemIndex := comboSQLFontName.Items.IndexOf(sqlfontname);
   updownSQLFontSize.Position := sqlfontsize;
-  SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
-    '  ''String literal'' AS lit' + CRLF +
-    'FROM tableA AS ta -- A comment' + CRLF +
-    'WHERE `columnA` IS NULL; # More comment' + CRLF +
-    CRLF +
-    'CREATE TABLE /*!32312 IF NOT EXISTS*/ tableB' + CRLF +
-    '  (id INT, name VARCHAR(30) DEFAULT "standard")';
   SynMemoSQLSample.Font.Name := sqlfontname;
   SynMemoSQLSample.Font.Size := sqlfontsize;
-  SynSQLSynSQLSample.TableNames.CommaText := 'tableA,tableB';
-  comboSQLColElement.Items.Delimiter := ',';
-  comboSQLColElement.Items.StrictDelimiter := True;
-  comboSQLColElement.Items.DelimitedText := SQLEL_KEYWORD+','+SQLEL_FUNCTION+','+SQLEL_DATATYPE+','+
-    SQLEL_NUMBER+','+SQLEL_STRING+','+SQLEL_COMMENT+','+SQLEL_CONDCOMM+','+SQLEL_TABLE+','+
-    SQLEL_SYMBOL+','+SQLEL_IDENT+','+SQLEL_DELIMIDENT+','+SQLEL_ACTLINE;
-  comboSQLColElement.ItemIndex := 0;
   comboSQLColElementChange(Sender);
 
   // Data-Appearance:
