@@ -6526,7 +6526,8 @@ object MainForm: TMainForm
   end
   object SynCompletionProposal1: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
-    Width = 262
+    NbLinesInWindow = 12
+    Width = 350
     EndOfTokenChr = '()[]. ='#9
     TriggerChars = '.'
     Font.Charset = DEFAULT_CHARSET
@@ -6541,12 +6542,11 @@ object MainForm: TMainForm
     TitleFont.Style = [fsBold]
     Columns = <
       item
-        BiggestWord = 'databasemore'
-        BiggestWordW = 'databasemore'
+        BiggestWord = 'databasemoremore'
+        BiggestWordW = 'databasemoremore'
       end
       item
         BiggestWord = 'IHAVENOCLUEWHICHLENGTH'
-        DefaultFontStyle = [fsBold]
         BiggestWordW = 'IHAVENOCLUEWHICHLENGTH'
       end>
     ItemHeight = 18
