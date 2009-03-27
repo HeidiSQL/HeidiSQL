@@ -4870,7 +4870,7 @@ const
       NODETYPE_VIEW: Icon := ICONINDEX_VIEW;
       else Icon := -1;
     end;
-    SynCompletionProposal1.InsertList.Add( Mask(ObjName) );
+    SynCompletionProposal1.InsertList.Add( ObjName );
     SynCompletionProposal1.ItemList.Add( WideFormat(ItemPattern, [Icon, ObjType, ObjName]) );
   end;
 
@@ -4894,7 +4894,7 @@ const
     if ds = nil then exit;
     for i:=0 to ds.RecordCount-1 do
     begin
-      SynCompletionProposal1.InsertList.Add( Mask(ds.FieldByName( 'Field' ).AsWideString) );
+      SynCompletionProposal1.InsertList.Add( ds.FieldByName( 'Field' ).AsWideString );
       SynCompletionProposal1.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_FIELD, GetFirstWord(ds.FieldByName('Type').AsString), ds.FieldByName('Field').AsWideString]) );
       ds.Next;
     end;
@@ -4989,7 +4989,7 @@ begin
   if (SynCompletionProposal1.ItemList.count = 0) and (Length(CurrentInput)>0) then begin
     // Add databases
     for i := 0 to Databases.Count - 1 do begin
-      SynCompletionProposal1.InsertList.Add(Mask(Databases[i]));
+      SynCompletionProposal1.InsertList.Add(Databases[i]);
       SynCompletionProposal1.ItemList.Add(WideFormat(ItemPattern, [ICONINDEX_DB, 'database', Databases[i]]));
     end;
 
