@@ -4986,7 +4986,7 @@ begin
     end;
   end;
 
-  if (SynCompletionProposal1.ItemList.count = 0) and (Length(CurrentInput)>0) then begin
+  if SynCompletionProposal1.ItemList.count = 0 then begin
     // Add databases
     for i := 0 to Databases.Count - 1 do begin
       SynCompletionProposal1.InsertList.Add(Databases[i]);
