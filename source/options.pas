@@ -459,6 +459,8 @@ var
 begin
   sm := Sender as TSynMemo;
   sm.GetHighlighterAttriAtRowCol(sm.CaretXY, Token, Attri);
+  if Attri = nil then
+    Exit;
   AttriIdx := ComboSQLColElement.Items.IndexOf(Attri.FriendlyName);
   if AttriIdx = -1 then
     Exit;
