@@ -2997,7 +2997,8 @@ begin
   // Default colors defined and used from highlighter on main form
   for i := 0 to Highlighter.AttrCount - 1 do begin
     Attri := Highlighter.Attribute[i];
-    Attri.Foreground := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_COLOR, Mainform.SynSQLSyn1.Attribute[i].Foreground);
+    Attri.Foreground := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_FG, Mainform.SynSQLSyn1.Attribute[i].Foreground);
+    Attri.Background := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_BG, Mainform.SynSQLSyn1.Attribute[i].Background);
     Attri.IntegerStyle := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Mainform.SynSQLSyn1.Attribute[i].IntegerStyle)
   end;
 end;

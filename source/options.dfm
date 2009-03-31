@@ -244,33 +244,40 @@ object optionsform: Toptionsform
         Caption = 'Syntax'
         TabOrder = 1
         object lblSQLColElement: TLabel
-          Left = 19
-          Top = 18
+          Left = 15
+          Top = 17
           Width = 42
           Height = 13
           Caption = 'Element:'
         end
-        object lblSQLColColor: TLabel
-          Left = 188
-          Top = 18
-          Width = 29
+        object lblSQLColForeground: TLabel
+          Left = 213
+          Top = 16
+          Width = 60
           Height = 13
-          Caption = 'Color:'
+          Caption = 'Foreground:'
+        end
+        object lblSQLColBackground: TLabel
+          Left = 213
+          Top = 42
+          Width = 60
+          Height = 13
+          Caption = 'Background:'
         end
         object comboSQLColElement: TComboBox
-          Left = 16
-          Top = 33
-          Width = 161
+          Left = 67
+          Top = 13
+          Width = 130
           Height = 21
           Style = csDropDownList
           ItemHeight = 13
           TabOrder = 0
           OnChange = comboSQLColElementChange
         end
-        object cboxSQLColColor: TColorBox
-          Left = 188
-          Top = 33
-          Width = 124
+        object cboxSQLColForeground: TColorBox
+          Left = 284
+          Top = 13
+          Width = 110
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
           ItemHeight = 16
@@ -278,22 +285,32 @@ object optionsform: Toptionsform
           OnChange = SQLFontChange
         end
         object chkSQLBold: TCheckBox
-          Left = 322
-          Top = 26
-          Width = 72
+          Left = 67
+          Top = 41
+          Width = 57
           Height = 17
           Caption = 'Bold'
           TabOrder = 2
           OnClick = SQLFontChange
         end
         object chkSQLItalic: TCheckBox
-          Left = 322
-          Top = 45
-          Width = 65
+          Left = 130
+          Top = 41
+          Width = 57
           Height = 17
           Caption = 'Italic'
           TabOrder = 3
           OnClick = SQLFontChange
+        end
+        object cboxSQLColBackground: TColorBox
+          Left = 284
+          Top = 39
+          Width = 110
+          Height = 22
+          Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
+          ItemHeight = 16
+          TabOrder = 4
+          OnChange = SQLFontChange
         end
       end
       object grpSQLSample: TGroupBox
