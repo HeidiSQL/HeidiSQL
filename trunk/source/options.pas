@@ -85,8 +85,8 @@ type
     grpSQLColors: TGroupBox;
     comboSQLColElement: TComboBox;
     lblSQLColElement: TLabel;
-    lblSQLColColor: TLabel;
-    cboxSQLColColor: TColorBox;
+    lblSQLColForeground: TLabel;
+    cboxSQLColForeground: TColorBox;
     grpSQLSample: TGroupBox;
     SynMemoSQLSample: TSynMemo;
     SynSQLSynSQLSample: TSynSQLSyn;
@@ -95,6 +95,8 @@ type
     updownCopyDataMaxSize: TUpDown;
     chkSQLBold: TCheckBox;
     chkSQLItalic: TCheckBox;
+    lblSQLColBackground: TLabel;
+    cboxSQLColBackground: TColorBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -170,7 +172,8 @@ begin
   MainReg.WriteInteger(REGNAME_LOGSQLWIDTH, updownLogSnip.Position);
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
     Attri := SynSQLSynSQLSample.Attribute[i];
-    MainReg.WriteInteger(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_COLOR, Attri.Foreground);
+    MainReg.WriteInteger(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_FG, Attri.Foreground);
+    MainReg.WriteInteger(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_BG, Attri.Background);
     MainReg.WriteInteger(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Attri.IntegerStyle);
   end;
   MainReg.WriteString(REGNAME_SQLCOLACTIVELINE, ColorToString(SynMemoSQLSample.ActiveLineColor));
@@ -355,17 +358,19 @@ procedure Toptionsform.SQLFontChange(Sender: TObject);
 var
   AttriIdx: Integer;
   Attri: TSynHighlighterAttributes;
-  col: TColor;
+  Foreground, Background: TColor;
 begin
   SynMemoSQLSample.Font.Name := comboSQLFontName.Items[comboSQLFontName.ItemIndex];
   SynMemoSQLSample.Font.Size := updownSQLFontSize.Position;
   AttriIdx := comboSQLColElement.ItemIndex;
-  col := cboxSQLColColor.Selected;
+  Foreground := cboxSQLColForeground.Selected;
+  Background := cboxSQLColBackground.Selected;
   if AttriIdx = comboSQLColElement.Items.Count-1 then begin
-    SynMemoSQLSample.ActiveLineColor := col;
+    SynMemoSQLSample.ActiveLineColor := Foreground;
   end else begin
     Attri := SynSqlSynSQLSample.Attribute[AttriIdx];
-    Attri.Foreground := col;
+    Attri.Foreground := Foreground;
+    Attri.Background := Background;
     if chkSQLBold.Checked then Attri.Style := Attri.Style + [fsBold]
     else Attri.Style := Attri.Style - [fsBold];
     if chkSQLItalic.Checked then Attri.Style := Attri.Style + [fsItalic]
@@ -417,16 +422,18 @@ procedure Toptionsform.comboSQLColElementChange(Sender: TObject);
 var
   AttriIdx: Integer;
   Attri: TSynHighlighterAttributes;
-  col: TColor;
+  Foreground, Background: TColor;
 begin
   AttriIdx := comboSQLColElement.ItemIndex;
   if AttriIdx = comboSQLColElement.Items.Count-1 then begin
-    col := SynMemoSQLSample.ActiveLineColor;
+    Foreground := SynMemoSQLSample.ActiveLineColor;
+    Background := clNone;
     chkSQLBold.Enabled := False;
     chkSQLItalic.Enabled := False;
   end else begin
     Attri := SynSqlSynSQLSample.Attribute[AttriIdx];
-    col := Attri.Foreground;
+    Foreground := Attri.Foreground;
+    Background := Attri.Background;
     chkSQLBold.Enabled := True;
     chkSQLItalic.Enabled := True;
     chkSQLBold.OnClick := nil;
@@ -436,7 +443,8 @@ begin
     chkSQLBold.OnClick := SQLFontChange;
     chkSQLItalic.OnClick := SQLFontChange;
   end;
-  cboxSQLColColor.Selected := col;
+  cboxSQLColForeground.Selected := Foreground;
+  cboxSQLColBackground.Selected := Background;
 end;
 
 
