@@ -4833,7 +4833,12 @@ var
   tablename        : WideString;
   rx               : TRegExpr;
   PrevShortToken,
-  PrevLongToken    : WideString;
+  PrevLongToken,
+  Token            : WideString;
+  Start,
+  TokenTypeInt     : Integer;
+  Attri            : TSynHighlighterAttributes;
+  Editor           : TCustomSynEdit;
 const
   ItemPattern: WideString = '\image{%d}\hspace{5}\color{clSilver}%s\column{}\color{clWindowText}%s';
 
@@ -4885,6 +4890,13 @@ const
   end;
 
 begin
+  Editor := (Sender as TSynCompletionProposal).Editor;
+  Editor.GetHighlighterAttriAtRowColEx(Editor.CaretXY, Token, TokenTypeInt, Start, Attri);
+  if TtkTokenKind(TokenTypeInt) = tkString then begin
+    CanExecute := False;
+    Exit;
+  end;
+
   SynCompletionProposal1.InsertList.Clear;
   SynCompletionProposal1.ItemList.Clear;
   PrevShortToken := SynCompletionProposal1.PreviousToken;
@@ -4892,9 +4904,9 @@ begin
 
   rx := TRegExpr.Create;
 
-  // Find longer token, ignore EndOfTokenChars, just the last chars up to a whitespace 
+  // Find longer token, ignore EndOfTokenChars, just the last chars up to a whitespace
   rx.Expression := '(\S+).$';
-  PrevLongToken := Copy(SynCompletionProposal1.Editor.LineText, 0, x);
+  PrevLongToken := Copy(Editor.LineText, 0, x);
   if rx.Exec(PrevLongToken) then
     PrevLongToken := rx.Match[1]
   else
@@ -4906,14 +4918,14 @@ begin
   // spaces are not detected correctly.
 
   // 1. find the currently edited sql-statement around the cursor position in synmemo
-  j := Length(SynCompletionProposal1.Editor.Text);
-  for i := SynCompletionProposal1.Editor.SelStart+1024 downto SynCompletionProposal1.Editor.SelStart-1024 do
+  j := Length(Editor.Text);
+  for i := Editor.SelStart+1024 downto Editor.SelStart-1024 do
   begin
     if i > j then
       continue;
     if i < 1 then
       break;
-    sql := SynCompletionProposal1.Editor.Text[i] + sql;
+    sql := Editor.Text[i] + sql;
   end;
 
   // 2. Parse FROM clause to detect relevant table/view, probably aliased
