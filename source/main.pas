@@ -24,6 +24,15 @@ uses
   mysqlquery, createdatabase, createtable, tbl_properties, SynRegExpr,
   WideStrUtils, ZDbcLogging, ExtActns, CommCtrl, routine_editor, options;
 
+const
+  // The InnoDB folks are raging over the lack of count(*) support
+  // in the storage engine.  To avoid count(*), the first of these
+  // constants decide how many rows the data area should estimate
+  // in any table.  The second value decides how many percent above the
+  // number of seen (or simulated) rows the scrollbar should project.
+  SIMULATE_INITIAL_ROWS = 10000;
+  SIMULATE_MORE_ROWS = 20;
+
 type
   TMainForm = class(TForm)
     MainMenu1: TMainMenu;
@@ -740,10 +749,12 @@ type
     procedure LoadRecentFilter(Sender: TObject);
     procedure actCreateRoutineExecute(Sender: TObject);
     procedure actEditRoutineExecute(Sender: TObject);
+    procedure DataGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
     procedure ListTablesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; var Allowed: Boolean);
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
+    ReachedEOT                 : Boolean;
     FDelimiter: String;
     ServerUptime               : Integer;
     time_connected             : Cardinal;
@@ -779,7 +790,7 @@ type
     function GetActiveData: PGridResult;
     procedure WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery; ForceDialog: Boolean);
     function RunThreadedQuery(AQuery: WideString; ForceDialog: Boolean): TMysqlQuery;
-    procedure DisplayRowCountStats(MatchingRows: Int64);
+    procedure DisplayRowCountStats(MatchingRows: Int64 = -1);
     procedure insertFunction(Sender: TObject);
     function GetActiveDatabase: WideString;
     function GetSelectedTable: WideString;
@@ -856,6 +867,7 @@ type
     FDataGridSort              : TOrderColArray;
     DataGridCurrentSelect,
     DataGridCurrentFullSelect,
+    DataGridCurrentFrom,
     DataGridCurrentFilter,
     DataGridCurrentSort        : WideString;
 
@@ -3518,7 +3530,6 @@ var
   rx                   : TRegExpr;
   ColType              : String;
   ColExists, ShowIt    : Boolean;
-  Count, MatchingRows  : Int64;
   OldOffsetXY          : TPoint;
 
 procedure InitColumn(name: WideString; ColType: String; Visible: Boolean);
@@ -3735,8 +3746,9 @@ begin
       select_from := ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedTable);
 
       // Final SELECT segments
-      DataGridCurrentSelect := select_base + select_from;
-      DataGridCurrentFullSelect := select_base_full + select_from;
+      DataGridCurrentSelect := select_base;
+      DataGridCurrentFullSelect := select_base_full;
+      DataGridCurrentFrom := select_from;
       DataGridCurrentFilter := SynMemoFilter.Text;
       if Length(FDataGridSort) > 0 then
         DataGridCurrentSort := ComposeOrderClause(FDataGridSort)
@@ -3749,38 +3761,15 @@ begin
       if DataGridCurrentSort <> '' then tbtnDataSorting.ImageIndex := 108
       else tbtnDataSorting.ImageIndex := 107;
 
-      try
-        ShowStatus('Counting rows...');
-        sl_query.Add('SELECT COUNT(*)');
-        sl_query.Add(select_from);
-        // Apply custom WHERE filter
-        if DataGridCurrentFilter <> '' then sl_query.Add('WHERE ' + DataGridCurrentFilter);
-        MatchingRows := MakeInt(GetVar(sl_query.Text));
-        count := MatchingRows;
-        if count > GRIDMAXTOTALROWS then
-          count := GRIDMAXTOTALROWS;
-      except
-        on E:Exception do begin
-          // Most likely we have a wrong filter-clause when this happens
-          // Put the user with his nose onto the wrong filter
-          // either specified by user or
-          // created by HeidiSQL by using the search box
-          SynMemoFilter.Color := $008080FF; // light pink
-          DataGrid.Header.Options := DataGrid.Header.Options - [hoVisible];
-          MessageDlg( E.Message, mtError, [mbOK], 0 );
-          raise;
-        end;
-      end;
-      ShowStatus( STATUS_MSG_READY );
-
       debug('mem: initializing browse rows (internal data).');
       try
-        SetLength(FDataGridResult.Rows, count);
-        for i := 0 to count - 1 do begin
+        ReachedEOT := False;
+        SetLength(FDataGridResult.Rows, SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100);
+        for i := 0 to SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100 - 1 do begin
           FDataGridResult.Rows[i].Loaded := False;
         end;
         debug('mem: initializing browse rows (grid).');
-        DataGrid.RootNodeCount := count;
+        DataGrid.RootNodeCount := SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100;
       except
         DataGrid.RootNodeCount := 0;
         SetLength(FDataGridResult.Rows, 0);
@@ -3794,7 +3783,7 @@ begin
         DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
         FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
       end;
-      DisplayRowCountStats(MatchingRows);
+      DisplayRowCountStats();
       dataselected := true;
 
       PageControlMainChange(Self);
@@ -3841,27 +3830,20 @@ begin
         break;
       end;
     end;
-    if rows_total = -1 then begin
-      // Fallback for cases in which the user checked the "Prefer SHOW TABLES" option
-      rows_total := StrToInt64( GetVar( 'SELECT COUNT(*) FROM ' + mask( SelectedTable ), 0 ) );
+
+    if rows_total > -1 then begin
+      lblDataTop.Caption := lblDataTop.Caption + FormatNumber(rows_total) + ' rows total';
+      if IsInnodb then lblDataTop.Caption := lblDataTop.Caption + ' (approximately)';
     end;
-    lblDataTop.Caption := lblDataTop.Caption + FormatNumber( rows_total ) + ' rows total';
-    if IsInnodb then
-      lblDataTop.Caption := lblDataTop.Caption + ' (approximately!)'
-  end else begin
-    // Don't fetch rowcount from views to fix bug #1844952
-    rows_total := -1;
-    lblDataTop.Caption := lblDataTop.Caption + ' [View]';
+
+    if MatchingRows = GRIDMAXTOTALROWS then begin
+      lblDataTop.Caption := lblDataTop.Caption + ', limited to ' + FormatNumber( GRIDMAXTOTALROWS);
+    end else if MatchingRows = rows_total then begin
+      lblDataTop.Caption := lblDataTop.Caption + ', filter matches all rows';
+    end else if IsFiltered and (MatchingRows > -1) then begin
+      lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(MatchingRows) + ' matches filter';
+    end;
   end;
-
-  if( MatchingRows <> rows_total ) and IsFiltered then
-    lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(MatchingRows) + ' matching to filter';
-
-  if ( MatchingRows >= rows_total ) and IsFiltered then
-    lblDataTop.Caption := lblDataTop.Caption + ', filter matches all rows';
-
-  if MatchingRows > DataGrid.RootNodeCount then
-    lblDataTop.Caption := lblDataTop.Caption + ', limited to '+FormatNumber(DataGrid.RootNodeCount);
 end;
 
 
@@ -7621,7 +7603,7 @@ begin
   if Sender = DataGrid then res := @FDataGridResult
   else res := @FQueryGridResult;
   if (not res.Rows[Node.Index].Loaded) and (res.Rows[Node.Index].State <> grsInserted) then begin
-    query := DataGridCurrentSelect;
+    query := DataGridCurrentSelect + DataGridCurrentFrom;
     // Passed WhereClause has prio over current filter, fixes bug #754
     if WhereClause <> '' then begin
       query := query + ' WHERE ' + WhereClause;
@@ -7672,6 +7654,7 @@ var
   query: WideString;
   ds: TDataSet;
   i, j: LongInt;
+  hi: LongInt;
   regCrashIndicName: String;
 begin
   if Sender = DataGrid then res := @FDataGridResult
@@ -7681,9 +7664,9 @@ begin
     limit := TVirtualStringTree(Sender).RootNodeCount - start;
     if limit > GridMaxRows then limit := GridMaxRows;
     if FullWidth then
-      query := DataGridCurrentFullSelect
+      query := DataGridCurrentFullSelect + DataGridCurrentFrom
     else
-      query := DataGridCurrentSelect;
+      query := DataGridCurrentSelect + DataGridCurrentFrom;
     if DataGridCurrentFilter <> '' then query := query + ' WHERE ' + DataGridCurrentFilter;
     if DataGridCurrentSort <> '' then query := query + ' ORDER BY ' + DataGridCurrentSort;
     query := query + WideFormat(' LIMIT %d, %d', [start, limit]);
@@ -7701,6 +7684,16 @@ begin
       limit := ds.RecordCount;
       TVirtualStringTree(Sender).RootNodeCount := start + limit;
       SetLength(res.Rows, start + limit);
+      ReachedEOT := true;
+    end;
+    if not ReachedEOT then begin
+      hi := start + limit;
+      if hi < SIMULATE_INITIAL_ROWS then hi := SIMULATE_INITIAL_ROWS;
+      hi := hi * (100 + SIMULATE_MORE_ROWS) div 100;
+      Sender.BeginUpdate;
+      TVirtualStringTree(Sender).RootNodeCount := Cardinal(hi);
+      SetLength(res.Rows, hi);
+      Sender.EndUpdate;
     end;
     debug(Format('mem: loaded data chunk from row %d to %d', [start, limit]));
 
@@ -9234,6 +9227,52 @@ begin
     RoutineEditForm.AlterRoutineName := SelectedTable;
 
   RoutineEditForm.ShowModal;
+end;
+
+procedure TMainForm.DataGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
+var
+  query: String;
+  count: Int64;
+begin
+  // If the user moves the scrollbar all the way to the bottom of the data grid,
+  // for example by pressing CTRL+END, jump to the bottom of table data.
+  if ReachedEOT then Exit;
+  if tsThumbTracking in Sender.TreeStates then Exit;
+  if Int64(- Sender.OffsetY - DeltaY) < Int64(Sender.RootNode.TotalHeight) then Exit;
+
+  // First, figure out how many rows the table contains.
+  ShowStatus('Counting rows...');
+  query := 'SELECT COUNT(*)' + DataGridCurrentFrom;
+  if DataGridCurrentFilter <> '' then query := query + ' WHERE ' + DataGridCurrentFilter;
+  try
+    count := MakeInt(GetVar(query));
+    // Work around a memory allocation bug in VirtualTree.
+    if count > GRIDMAXTOTALROWS then count := GRIDMAXTOTALROWS;
+  except
+    on E: Exception do begin
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+      Exit;
+    end;
+  end;
+  ShowStatus(STATUS_MSG_READY);
+
+  // Then, adjust the data grid and data containers.
+  debug('mem: initializing browse rows (internal data).');
+  try
+    SetLength(FDataGridResult.Rows, count);
+    debug('mem: initializing browse rows (grid).');
+    DataGrid.RootNodeCount := count;
+    ReachedEOT := True;
+    DisplayRowCountStats(count);
+  except
+    DataGrid.RootNodeCount := 0;
+    SetLength(FDataGridResult.Rows, 0);
+    PageControlMain.ActivePage := tabTable;
+    raise;
+  end;
+
+  // Finally, jump to the last row.
+  Sender.ScrollIntoView(Sender.GetLast, False);
 end;
 
 
