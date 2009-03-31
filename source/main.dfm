@@ -6133,8 +6133,11 @@ object MainForm: TMainForm
   object SynSQLSyn1: TSynSQLSyn
     DefaultFilter = 'SQL files (*.sql)|*.sql'
     CommentAttri.Foreground = clGray
+    ConditionalCommentAttri.Foreground = clGray
     DataTypeAttri.Foreground = clMaroon
+    DelimitedIdentifierAttri.Foreground = clOlive
     FunctionAttri.Foreground = clNavy
+    IdentifierAttri.Foreground = clOlive
     KeyAttri.Foreground = clBlue
     NumberAttri.Foreground = clPurple
     StringAttri.Foreground = clGreen

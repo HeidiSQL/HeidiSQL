@@ -272,7 +272,7 @@ object optionsform: Toptionsform
           Top = 33
           Width = 124
           Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
+          Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
           ItemHeight = 16
           TabOrder = 1
           OnChange = SQLFontChange

@@ -187,7 +187,7 @@ type
   procedure EnableProgressBar(MaxValue: Integer);
   function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
   function ListIndexByRegExpr(List: TWideStrings; Expression: WideString): Integer;
-  procedure RestoreSyneditStyle(Attri: TSynHighlighterAttributes; ColorRegName: String; ColorDefault: Integer);
+  procedure RestoreSyneditStyles(Highlighter: TSynCustomHighlighter);
 var
   MYSQL_KEYWORDS             : TStringList;
   MainReg                    : TRegistry;
@@ -2988,18 +2988,18 @@ begin
 end;
 
 
-procedure RestoreSyneditStyle(Attri: TSynHighlighterAttributes; ColorRegName: String; ColorDefault: Integer);
+procedure RestoreSyneditStyles(Highlighter: TSynCustomHighlighter);
+var
+  i: Integer;
+  Attri: TSynHighlighterAttributes;
 begin
-  // Read font color, bold + italic style of a SynEdit attribute set from registry
-  Attri.Foreground := StringToColor(GetRegValue(ColorRegName, ColorToString(ColorDefault)));
-  if GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in Attri.Style) then
-    Attri.Style := Attri.Style + [fsBold]
-  else
-    Attri.Style := Attri.Style - [fsBold];
-  if GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in Attri.Style) then
-    Attri.Style := Attri.Style + [fsItalic]
-  else
-    Attri.Style := Attri.Style - [fsItalic];
+  // Read font color, bold + italic style of SynEdit attributes from registry
+  // Default colors defined and used from highlighter on main form
+  for i := 0 to Highlighter.AttrCount - 1 do begin
+    Attri := Highlighter.Attribute[i];
+    Attri.Foreground := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_COLOR, Mainform.SynSQLSyn1.Attribute[i].Foreground);
+    Attri.IntegerStyle := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Mainform.SynSQLSyn1.Attribute[i].IntegerStyle)
+  end;
 end;
 
 
