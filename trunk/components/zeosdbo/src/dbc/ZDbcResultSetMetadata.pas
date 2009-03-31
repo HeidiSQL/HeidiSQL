@@ -65,7 +65,7 @@ uses
     Comobj,
   {$ENDIF}
 {$ENDIF}
-  ZTokenizer, ZSelectSchema, ZCompatibility, ZDbcResultSet;
+  ZTokenizer, ZSelectSchema, ZCompatibility, ZDbcResultSet, WideStrings;
 
 type
 
@@ -79,8 +79,8 @@ type
     FNullable: TZColumnNullableType;
     FSigned: Boolean;
     FColumnDisplaySize: Integer;
-    FColumnLabel: string;
-    FColumnName: string;
+    FColumnLabel: WideString;
+    FColumnName: WideString;
     FSchemaName: string;
     FPrecision: Integer;
     FScale: Integer;
@@ -104,8 +104,8 @@ type
     property Signed: Boolean read FSigned write FSigned;
     property ColumnDisplaySize: Integer read FColumnDisplaySize
       write FColumnDisplaySize;
-    property ColumnLabel: string read FColumnLabel write FColumnLabel;
-    property ColumnName: string read FColumnName write FColumnName;
+    property ColumnLabel: WideString read FColumnLabel write FColumnLabel;
+    property ColumnName: WideString read FColumnName write FColumnName;
     property SchemaName: string read FSchemaName write FSchemaName;
     property Precision: Integer read FPrecision write FPrecision;
     property Scale: Integer read FScale write FScale;
@@ -124,7 +124,7 @@ type
   private
     FLoaded: Boolean;
     FMetadata: IZDatabaseMetadata;
-    FColumnsLabels: TStrings;
+    FColumnsLabels: TWideStrings;
     FSQL: WideString;
     FTableColumns: TZHashMap;
     FIdentifierConvertor: IZIdentifierConvertor;
@@ -136,14 +136,14 @@ type
     function GetTableColumns(TableRef: TZTableRef): IZResultSet;
     function ReadColumnByRef(FieldRef: TZFieldRef;
       ColumnInfo: TZColumnInfo): Boolean;
-    function ReadColumnByName(FieldName: string; TableRef: TZTableRef;
+    function ReadColumnByName(FieldName: WideString; TableRef: TZTableRef;
       ColumnInfo: TZColumnInfo): Boolean;
     procedure ClearColumn(ColumnInfo: TZColumnInfo);
     procedure LoadColumns;
     procedure ReplaceStarColumns(SelectSchema: IZSelectSchema);
 
     property MetaData: IZDatabaseMetadata read FMetadata write FMetadata;
-    property ColumnsLabels: TStrings read FColumnsLabels write FColumnsLabels;
+    property ColumnsLabels: TWideStrings read FColumnsLabels write FColumnsLabels;
     property SQL: WideString read FSQL write FSQL;
     property IdentifierConvertor: IZIdentifierConvertor
       read FIdentifierConvertor write FIdentifierConvertor;
@@ -163,8 +163,8 @@ type
 
     function IsSigned(Column: Integer): Boolean; virtual;
     function GetColumnDisplaySize(Column: Integer): Integer; virtual;
-    function GetColumnLabel(Column: Integer): string; virtual;
-    function GetColumnName(Column: Integer): string; virtual;
+    function GetColumnLabel(Column: Integer): WideString; virtual;
+    function GetColumnName(Column: Integer): WideString; virtual;
     function GetSchemaName(Column: Integer): string; virtual;
     function GetPrecision(Column: Integer): Integer; virtual;
     function GetScale(Column: Integer): Integer; virtual;
@@ -353,17 +353,17 @@ end;
   @param column the first column is 1, the second is 2, ...
   @return the suggested column title
 }
-function TZAbstractResultSetMetadata.GetColumnLabel(Column: Integer): string;
+function TZAbstractResultSetMetadata.GetColumnLabel(Column: Integer): WideString;
 var
   I, J, N: Integer;
-  ColumnName: string;
+  ColumnName: WideString;
   ColumnsInfo: TObjectList;
 begin
   { Prepare unique column labels. }
   if FColumnsLabels = nil then
   begin
     ColumnsInfo := FResultSet.ColumnsInfo;
-    FColumnsLabels := TStringList.Create;
+    FColumnsLabels := TWideStringList.Create;
     for I := 0 to ColumnsInfo.Count - 1 do
     begin
       N := 0;
@@ -390,7 +390,7 @@ end;
   @return column name
 }
 function TZAbstractResultSetMetadata.GetColumnName(
-  Column: Integer): string;
+  Column: Integer): WideString;
 begin
   if not Loaded then LoadColumns;
   Result := TZColumnInfo(FResultSet.ColumnsInfo[Column - 1]).ColumnName;
@@ -573,7 +573,7 @@ end;
   @param ColumnInfo a column information object.
   @return <code>True</code> is column was found and read.
 }
-function TZAbstractResultSetMetadata.ReadColumnByName(FieldName: string;
+function TZAbstractResultSetMetadata.ReadColumnByName(FieldName: WideString;
   TableRef: TZTableRef; ColumnInfo: TZColumnInfo): Boolean;
 var
   TableColumns: IZResultSet;
@@ -587,14 +587,14 @@ begin
   { Locates a column row. }
   TableColumns.BeforeFirst;
   while TableColumns.Next do
-    if TableColumns.GetString(4) = FieldName then
+    if TableColumns.GetUnicodeString(4) = FieldName then
       Break;
   if TableColumns.IsAfterLast then
   begin
     { Locates a column row with case insensitivity. }
     TableColumns.BeforeFirst;
     while TableColumns.Next do
-      if AnsiUpperCase(TableColumns.GetString(4)) = AnsiUpperCase(FieldName) then
+      if WideUpperCase(TableColumns.GetUnicodeString(4)) = WideUpperCase(FieldName) then
         Break;
     if TableColumns.IsAfterLast then
       Exit;

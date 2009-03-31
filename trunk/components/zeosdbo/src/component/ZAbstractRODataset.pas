@@ -1420,8 +1420,8 @@ var
   AutoInit: Boolean;
   FieldType: TFieldType;
   ResultSet: IZResultSet;
-  FieldName: string;
-  FName: string;
+  FieldName: WideString;
+  FName: WideString;
 begin
   FieldDefs.Clear;
   ResultSet := Self.ResultSet;
@@ -1456,7 +1456,7 @@ begin
         while FieldDefs.IndexOf(FName) >= 0 do
         begin
           Inc(J);
-          FName := Format('%s_%d', [FieldName, J]);
+          FName := WideFormat('%s_%d', [FieldName, J]);
         end;
 
         // Workaround for bug in DB.pas:
