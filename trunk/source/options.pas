@@ -124,20 +124,6 @@ implementation
 uses main, helpers;
 {$R *.DFM}
 
-const
-  SQLEL_KEYWORD = 'Keywords';
-  SQLEL_FUNCTION = 'Functions';
-  SQLEL_DATATYPE = 'Data types';
-  SQLEL_NUMBER = 'Numeric values';
-  SQLEL_STRING = 'String values';
-  SQLEL_COMMENT = 'Comments';
-  SQLEL_CONDCOMM = 'Conditional comments';
-  SQLEL_TABLE = 'Table names';
-  SQLEL_SYMBOL = 'Symbols';
-  SQLEL_IDENT = 'Identifiers';
-  SQLEL_DELIMIDENT = 'Delimited identifiers';
-  SQLEL_ACTLINE = 'Active line background';
-
 
 procedure Toptionsform.Modified(Sender: TObject);
 begin
@@ -166,6 +152,9 @@ end;
   Apply settings to registry and mainform
 }
 procedure Toptionsform.Apply(Sender: TObject);
+var
+  i: Integer;
+  Attri: TSynHighlighterAttributes;
 begin
   Screen.Cursor := crHourGlass;
 
@@ -179,41 +168,12 @@ begin
   MainReg.WriteInteger(REGNAME_FONTSIZE, updownSQLFontSize.Position);
   MainReg.WriteInteger(REGNAME_LOGSQLNUM, updownLogLines.Position);
   MainReg.WriteInteger(REGNAME_LOGSQLWIDTH, updownLogSnip.Position);
-  MainReg.WriteString(REGNAME_SQLCOLKEYATTRI, colortostring(SynSQLSynSQLSample.KeyAttri.Foreground));
-  MainReg.WriteString(REGNAME_SQLCOLFUNCTIONATTRI, colortostring(SynSQLSynSQLSample.FunctionAttri.Foreground));
-  MainReg.WriteString(REGNAME_SQLCOLDATATYPEATTRI, colortostring(SynSQLSynSQLSample.DataTypeAttri.Foreground));
-  MainReg.WriteString(REGNAME_SQLCOLNUMBERATTRI, colortostring(SynSQLSynSQLSample.NumberAttri.Foreground));
-  MainReg.WriteString(REGNAME_SQLCOLSTRINGATTRI, colortostring(SynSQLSynSQLSample.StringAttri.Foreground));
-  MainReg.WriteString(REGNAME_SQLCOLCOMMENTATTRI, colortostring(SynSQLSynSQLSample.CommentAttri.Foreground));
-  MainReg.WriteString(REGNAME_SQLCOLCONDCOMMATTRI, colortostring(SynSQLSynSQLSample.ConditionalCommentAttri.Foreground));
-  MainReg.WriteString(REGNAME_SQLCOLTABLENAMEATTRI, colortostring(SynSQLSynSQLSample.TableNameAttri.Foreground));
-  MainReg.WriteString(REGNAME_SQLCOLSYMBOLATTRI, colortostring(SynSQLSynSQLSample.SymbolAttri.Foreground));
-  MainReg.WriteString(REGNAME_SQLCOLIDENTATTRI, colortostring(SynSQLSynSQLSample.IdentifierAttri.Foreground));
-  MainReg.WriteString(REGNAME_SQLCOLDELIMIDENTATTRI, colortostring(SynSQLSynSQLSample.DelimitedIdentifierAttri.Foreground));
+  for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
+    Attri := SynSQLSynSQLSample.Attribute[i];
+    MainReg.WriteInteger(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_COLOR, Attri.Foreground);
+    MainReg.WriteInteger(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Attri.IntegerStyle);
+  end;
   MainReg.WriteString(REGNAME_SQLCOLACTIVELINE, ColorToString(SynMemoSQLSample.ActiveLineColor));
-
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.KeyAttri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in SynSQLSynSQLSample.KeyAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.KeyAttri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in SynSQLSynSQLSample.KeyAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.FunctionAttri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in SynSQLSynSQLSample.FunctionAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.FunctionAttri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in SynSQLSynSQLSample.FunctionAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.DataTypeAttri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in SynSQLSynSQLSample.DataTypeAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.DataTypeAttri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in SynSQLSynSQLSample.DataTypeAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.NumberAttri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in SynSQLSynSQLSample.NumberAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.NumberAttri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in SynSQLSynSQLSample.NumberAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.StringAttri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in SynSQLSynSQLSample.StringAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.StringAttri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in SynSQLSynSQLSample.StringAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.CommentAttri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in SynSQLSynSQLSample.CommentAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.CommentAttri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in SynSQLSynSQLSample.CommentAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.ConditionalCommentAttri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in SynSQLSynSQLSample.ConditionalCommentAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.ConditionalCommentAttri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in SynSQLSynSQLSample.ConditionalCommentAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.TableNameAttri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in SynSQLSynSQLSample.TableNameAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.TableNameAttri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in SynSQLSynSQLSample.TableNameAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.SymbolAttri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in SynSQLSynSQLSample.SymbolAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.SymbolAttri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in SynSQLSynSQLSample.SymbolAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.IdentifierAttri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in SynSQLSynSQLSample.IdentifierAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.IdentifierAttri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in SynSQLSynSQLSample.IdentifierAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.DelimitedIdentifierAttri.FriendlyName+REGPOSTFIX_SQL_BOLD, fsBold in SynSQLSynSQLSample.DelimitedIdentifierAttri.Style);
-  MainReg.WriteBool(REGPREFIX_SQLATTRI+SynSQLSynSQLSample.DelimitedIdentifierAttri.FriendlyName+REGPOSTFIX_SQL_ITALIC, fsItalic in SynSQLSynSQLSample.DelimitedIdentifierAttri.Style);
 
   MainReg.WriteString(REGNAME_CSV_SEPARATOR, editCSVSeparator.Text);
   MainReg.WriteString(REGNAME_CSV_ENCLOSER, editCSVEncloser.Text);
@@ -249,17 +209,9 @@ begin
   Mainform.SynMemoSQLLog.Gutter.Font := SynMemoSQLSample.Font;
   Mainform.SynMemoProcessView.Font := SynMemoSQLSample.Font;
   Mainform.SynMemoFilter.Font := SynMemoSQLSample.Font;
-  Mainform.SynSQLSyn1.KeyAttri.AssignColorAndStyle(SynSQLSynSQLSample.KeyAttri);
-  Mainform.SynSQLSyn1.FunctionAttri.AssignColorAndStyle(SynSQLSynSQLSample.FunctionAttri);
-  Mainform.SynSQLSyn1.DataTypeAttri.AssignColorAndStyle(SynSQLSynSQLSample.DataTypeAttri);
-  Mainform.SynSQLSyn1.NumberAttri.AssignColorAndStyle(SynSQLSynSQLSample.NumberAttri);
-  Mainform.SynSQLSyn1.StringAttri.AssignColorAndStyle(SynSQLSynSQLSample.StringAttri);
-  Mainform.SynSQLSyn1.CommentAttri.AssignColorAndStyle(SynSQLSynSQLSample.CommentAttri);
-  Mainform.SynSQLSyn1.ConditionalCommentAttri.AssignColorAndStyle(SynSQLSynSQLSample.ConditionalCommentAttri);
-  Mainform.SynSQLSyn1.TablenameAttri.AssignColorAndStyle(SynSQLSynSQLSample.TablenameAttri);
-  Mainform.SynSQLSyn1.SymbolAttri.AssignColorAndStyle(SynSQLSynSQLSample.SymbolAttri);
-  Mainform.SynSQLSyn1.IdentifierAttri.AssignColorAndStyle(SynSQLSynSQLSample.IdentifierAttri);
-  Mainform.SynSQLSyn1.DelimitedIdentifierAttri.AssignColorAndStyle(SynSQLSynSQLSample.DelimitedIdentifierAttri);
+  for i := 0 to SynSQLSynSQLSample.AttrCount - 1 do begin
+    Mainform.SynSQLSyn1.Attribute[i].AssignColorAndStyle(SynSQLSynSQLSample.Attribute[i]);
+  end;
   Mainform.SynMemoQuery.ActiveLineColor := SynMemoSQLSample.ActiveLineColor;
   Mainform.DataGrid.Font.Name := comboDataFontName.Text;
   Mainform.QueryGrid.Font.Name := comboDataFontName.Text;
@@ -303,6 +255,8 @@ end;
 
 
 procedure Toptionsform.FormCreate(Sender: TObject);
+var
+  i: Integer;
   // Callback function used by EnumFontFamilies()
   function EnumFixedProc(lpelf: PEnumLogFont; lpntm: PNewTextMetric; FontType: Integer; Data: LPARAM): Integer; stdcall;
   begin
@@ -321,11 +275,9 @@ begin
     'CREATE TABLE /*!32312 IF NOT EXISTS*/ tableB' + CRLF +
     '  (id INT, name VARCHAR(30) DEFAULT "standard")';
   SynSQLSynSQLSample.TableNames.CommaText := 'tableA,tableB';
-  comboSQLColElement.Items.Delimiter := ',';
-  comboSQLColElement.Items.StrictDelimiter := True;
-  comboSQLColElement.Items.DelimitedText := SQLEL_KEYWORD+','+SQLEL_FUNCTION+','+SQLEL_DATATYPE+','+
-    SQLEL_NUMBER+','+SQLEL_STRING+','+SQLEL_COMMENT+','+SQLEL_CONDCOMM+','+SQLEL_TABLE+','+
-    SQLEL_SYMBOL+','+SQLEL_IDENT+','+SQLEL_DELIMIDENT+','+SQLEL_ACTLINE;
+  for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do
+    comboSQLColElement.Items.Add(SynSQLSynSQLSample.Attribute[i].FriendlyName);
+  comboSQLColElement.Items.Add('Active line background');
   comboSQLColElement.ItemIndex := 0;
 end;
 
@@ -366,17 +318,7 @@ begin
   btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
 
   // SQL:
-  RestoreSyneditStyle(SynSQLSynSQLSample.KeyAttri, REGNAME_SQLCOLKEYATTRI, DEFAULT_SQLCOLKEYATTRI);
-  RestoreSyneditStyle(SynSQLSynSQLSample.FunctionAttri, REGNAME_SQLCOLFUNCTIONATTRI, DEFAULT_SQLCOLFUNCTIONATTRI);
-  RestoreSyneditStyle(SynSQLSynSQLSample.DataTypeAttri, REGNAME_SQLCOLDATATYPEATTRI, DEFAULT_SQLCOLDATATYPEATTRI);
-  RestoreSyneditStyle(SynSQLSynSQLSample.NumberAttri, REGNAME_SQLCOLNUMBERATTRI, DEFAULT_SQLCOLNUMBERATTRI);
-  RestoreSyneditStyle(SynSQLSynSQLSample.StringAttri, REGNAME_SQLCOLSTRINGATTRI, DEFAULT_SQLCOLSTRINGATTRI);
-  RestoreSyneditStyle(SynSQLSynSQLSample.CommentAttri, REGNAME_SQLCOLCOMMENTATTRI, DEFAULT_SQLCOLCOMMENTATTRI);
-  RestoreSyneditStyle(SynSQLSynSQLSample.ConditionalCommentAttri, REGNAME_SQLCOLCONDCOMMATTRI, DEFAULT_SQLCOLCONDCOMMATTRI);
-  RestoreSyneditStyle(SynSQLSynSQLSample.TableNameAttri, REGNAME_SQLCOLTABLENAMEATTRI, DEFAULT_SQLCOLTABLENAMEATTRI);
-  RestoreSyneditStyle(SynSQLSynSQLSample.SymbolAttri, REGNAME_SQLCOLSYMBOLATTRI, DEFAULT_SQLCOLSYMBOLATTRI);
-  RestoreSyneditStyle(SynSQLSynSQLSample.IdentifierAttri, REGNAME_SQLCOLIDENTATTRI, DEFAULT_SQLCOLIDENTATTRI);
-  RestoreSyneditStyle(SynSQLSynSQLSample.DelimitedIdentifierAttri, REGNAME_SQLCOLDELIMIDENTATTRI, DEFAULT_SQLCOLDELIMIDENTATTRI);
+  RestoreSyneditStyles(SynSQLSynSQLSample);
   SynMemoSQLSample.ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
   comboSQLFontName.ItemIndex := comboSQLFontName.Items.IndexOf(sqlfontname);
   updownSQLFontSize.Position := sqlfontsize;
@@ -411,33 +353,23 @@ end;
 
 procedure Toptionsform.SQLFontChange(Sender: TObject);
 var
-  elem: String;
-  attr: TSynHighlighterAttributes;
+  AttriIdx: Integer;
+  Attri: TSynHighlighterAttributes;
   col: TColor;
 begin
   SynMemoSQLSample.Font.Name := comboSQLFontName.Items[comboSQLFontName.ItemIndex];
   SynMemoSQLSample.Font.Size := updownSQLFontSize.Position;
-  elem := comboSQLColElement.Text;
+  AttriIdx := comboSQLColElement.ItemIndex;
   col := cboxSQLColColor.Selected;
-  if elem = SQLEL_ACTLINE then begin
+  if AttriIdx = comboSQLColElement.Items.Count-1 then begin
     SynMemoSQLSample.ActiveLineColor := col;
   end else begin
-    if elem = SQLEL_KEYWORD then attr := SynSqlSynSQLSample.KeyAttri
-    else if elem = SQLEL_FUNCTION then attr := SynSqlSynSQLSample.FunctionAttri
-    else if elem = SQLEL_DATATYPE then attr := SynSqlSynSQLSample.DatatypeAttri
-    else if elem = SQLEL_NUMBER then attr := SynSqlSynSQLSample.NumberAttri
-    else if elem = SQLEL_STRING then attr := SynSqlSynSQLSample.StringAttri
-    else if elem = SQLEL_COMMENT then attr := SynSqlSynSQLSample.CommentAttri
-    else if elem = SQLEL_CONDCOMM then attr := SynSqlSynSQLSample.ConditionalCommentAttri
-    else if elem = SQLEL_TABLE then attr := SynSqlSynSQLSample.TablenameAttri
-    else if elem = SQLEL_SYMBOL then attr := SynSqlSynSQLSample.SymbolAttri
-    else if elem = SQLEL_IDENT then attr := SynSqlSynSQLSample.IdentifierAttri
-    else attr := SynSqlSynSQLSample.DelimitedIdentifierAttri;
-    attr.Foreground := col;
-    if chkSQLBold.Checked then attr.Style := attr.Style + [fsBold]
-    else attr.Style := attr.Style - [fsBold];
-    if chkSQLItalic.Checked then attr.Style := attr.Style + [fsItalic]
-    else attr.Style := attr.Style - [fsItalic];
+    Attri := SynSqlSynSQLSample.Attribute[AttriIdx];
+    Attri.Foreground := col;
+    if chkSQLBold.Checked then Attri.Style := Attri.Style + [fsBold]
+    else Attri.Style := Attri.Style - [fsBold];
+    if chkSQLItalic.Checked then Attri.Style := Attri.Style + [fsItalic]
+    else Attri.Style := Attri.Style - [fsItalic];
   end;
   Modified(Sender);
 end;
@@ -483,34 +415,24 @@ end;
 
 procedure Toptionsform.comboSQLColElementChange(Sender: TObject);
 var
-  elem: String;
-  attr: TSynHighlighterAttributes;
+  AttriIdx: Integer;
+  Attri: TSynHighlighterAttributes;
   col: TColor;
 begin
-  elem := comboSQLColElement.Text;
-  if elem = SQLEL_ACTLINE then begin
+  AttriIdx := comboSQLColElement.ItemIndex;
+  if AttriIdx = comboSQLColElement.Items.Count-1 then begin
     col := SynMemoSQLSample.ActiveLineColor;
     chkSQLBold.Enabled := False;
     chkSQLItalic.Enabled := False;
   end else begin
-    if elem = SQLEL_KEYWORD then attr := SynSqlSynSQLSample.KeyAttri
-    else if elem = SQLEL_FUNCTION then attr := SynSqlSynSQLSample.FunctionAttri
-    else if elem = SQLEL_DATATYPE then attr := SynSqlSynSQLSample.DatatypeAttri
-    else if elem = SQLEL_NUMBER then attr := SynSqlSynSQLSample.NumberAttri
-    else if elem = SQLEL_STRING then attr := SynSqlSynSQLSample.StringAttri
-    else if elem = SQLEL_COMMENT then attr := SynSqlSynSQLSample.CommentAttri
-    else if elem = SQLEL_CONDCOMM then attr := SynSqlSynSQLSample.ConditionalCommentAttri
-    else if elem = SQLEL_TABLE then attr := SynSqlSynSQLSample.TablenameAttri
-    else if elem = SQLEL_SYMBOL then attr := SynSqlSynSQLSample.SymbolAttri
-    else if elem = SQLEL_IDENT then attr := SynSqlSynSQLSample.IdentifierAttri
-    else attr := SynSqlSynSQLSample.DelimitedIdentifierAttri;
-    col := attr.Foreground;
+    Attri := SynSqlSynSQLSample.Attribute[AttriIdx];
+    col := Attri.Foreground;
     chkSQLBold.Enabled := True;
     chkSQLItalic.Enabled := True;
     chkSQLBold.OnClick := nil;
     chkSQLItalic.OnClick := nil;
-    chkSQLBold.Checked := fsBold in attr.Style;
-    chkSQLItalic.Checked := fsItalic in attr.Style;
+    chkSQLBold.Checked := fsBold in Attri.Style;
+    chkSQLItalic.Checked := fsItalic in Attri.Style;
     chkSQLBold.OnClick := SQLFontChange;
     chkSQLItalic.OnClick := SQLFontChange;
   end;
@@ -531,30 +453,16 @@ end;
 procedure Toptionsform.SynMemoSQLSampleClick(Sender: TObject);
 var
   Token: WideString;
-  Start, TokenTypeInt: Integer;
   Attri: TSynHighlighterAttributes;
+  AttriIdx: Integer;
   sm: TSynMemo;
-  f: String;
 begin
   sm := Sender as TSynMemo;
-  sm.GetHighlighterAttriAtRowColEx(sm.CaretXY, Token, TokenTypeInt, Start, Attri);
-  case TtkTokenKind(TokenTypeInt) of
-    tkKey: f := SQLEL_KEYWORD;
-    tkFunction: f := SQLEL_FUNCTION;
-    tkDatatype: f := SQLEL_DATATYPE;
-    tkNumber: f := SQLEL_NUMBER;
-    tkString: f := SQLEL_STRING;
-    tkComment: f := SQLEL_COMMENT;
-    tkConditionalComment: f := SQLEL_CONDCOMM;
-    tkTableName: f := SQLEL_TABLE;
-    tkSymbol: f := SQLEL_SYMBOL;
-    tkIdentifier: f := SQLEL_IDENT;
-    tkDelimitedIdentifier: f := SQLEL_DELIMIDENT;
-    else f := '';
-  end;
-  if f = '' then
+  sm.GetHighlighterAttriAtRowCol(sm.CaretXY, Token, Attri);
+  AttriIdx := ComboSQLColElement.Items.IndexOf(Attri.FriendlyName);
+  if AttriIdx = -1 then
     Exit;
-  ComboSQLColElement.ItemIndex := ComboSQLColElement.Items.IndexOf(f);
+  ComboSQLColElement.ItemIndex := AttriIdx;
   ComboSQLColElement.OnChange(Sender);
 end;
 
