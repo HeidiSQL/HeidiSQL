@@ -755,8 +755,8 @@ type
 
     function IsSigned(Column: Integer): Boolean;
     function GetColumnDisplaySize(Column: Integer): Integer;
-    function GetColumnLabel(Column: Integer): string;
-    function GetColumnName(Column: Integer): string;
+    function GetColumnLabel(Column: Integer): WideString;
+    function GetColumnName(Column: Integer): WideString;
     function GetSchemaName(Column: Integer): string;
     function GetPrecision(Column: Integer): Integer;
     function GetScale(Column: Integer): Integer;

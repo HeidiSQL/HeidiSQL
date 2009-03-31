@@ -76,15 +76,15 @@ type
   private
     FCatalog: string;
     FSchema: string;
-    FTable: string;
+    FTable: WideString;
     FAlias: string;
   public
     constructor Create(const Catalog, Schema, Table, Alias: string);
-    function FullName: string;
+    function FullName: WideString;
 
     property Catalog: string read FCatalog write FCatalog;
     property Schema: string read FSchema write FSchema;
-    property Table: string read FTable write FTable;
+    property Table: WideString read FTable write FTable;
     property Alias: string read FAlias write FAlias;
   end;
 
@@ -203,7 +203,7 @@ end;
   Gets a full database table name.
   @return a full database table name.
 }
-function TZTableRef.FullName: string;
+function TZTableRef.FullName: WideString;
 begin
   Result := FTable;
   if FCatalog <> '' then
