@@ -262,9 +262,18 @@ begin
     begin
       FieldFlags := FPlainDriver.GetFieldFlags(FieldHandle);
 
-      ColumnLabel := FPlainDriver.GetFieldName(FieldHandle);
-      ColumnName := FPlainDriver.GetFieldOrigName(FieldHandle);
-      TableName := FPlainDriver.GetFieldTable(FieldHandle);
+      // Note: the server does not tell us which character set these are
+      //       encoded in, it's not part of the protocol spec.  Have to
+      //       make a more or less qualified guess, unfortunately.
+      if not ((Statement.GetConnection) as IZMySQLConnection).GetAnsiMode then begin
+        ColumnLabel := UTF8Decode(FPlainDriver.GetFieldName(FieldHandle));
+        ColumnName := UTF8Decode(FPlainDriver.GetFieldOrigName(FieldHandle));
+        TableName := UTF8Decode(FPlainDriver.GetFieldTable(FieldHandle));
+      end else begin
+        ColumnLabel := WideString(FPlainDriver.GetFieldName(FieldHandle));
+        ColumnName := WideString(FPlainDriver.GetFieldOrigName(FieldHandle));
+        TableName := WideString(FPlainDriver.GetFieldTable(FieldHandle));
+      end;
       ReadOnly := (FPlainDriver.GetFieldTable(FieldHandle) = '');
       Writable := not ReadOnly;
       ColumnType := ConvertMySQLHandleToSQLType(FPlainDriver, FieldHandle, FieldFlags, Bug10491);
