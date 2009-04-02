@@ -1,7 +1,7 @@
 ; **************************************************************************
 ; Name: HeidiSQL Portable
 ;
-; Version: 3.2 Revision 1129
+; Version: 4.0 Release Candidate 3
 ;
 ; Website: http://www.heidisql.com/
 ;
@@ -10,7 +10,7 @@
 ;	Required plugins: NewAdvSplash, Registry, FindProcDLL, Messagebox
 ;
 ; License:
-;	Copyright© 2007 by Bruno Soares Pasin
+;	Copyright© 2009 by HeidiSQL Team
 ;
 ; Attention: When doing backups of existing directories or files, this could be a lengthy
 ;	operation depending on the speed of your USB device. Keep this in mind!
@@ -24,10 +24,10 @@
 ; **************************************************************************
 ; * Define constants 
 ; **************************************************************************
-!define AUTHOR "Bruno Soares Pasin"
+!define AUTHOR "HeidiSQL Team"
 !define APP "HeidiSQL"
 !define VER "1.0.0.0"
-!define APPVER "3.2 Revision 1129"
+!define APPVER "4.0 Release Candidate 3"
 !define EXE "heidisql.exe"
 !define PNAME "${App}Portable"
 !define ICON "..\..\res\mainicon.ico"
