@@ -8554,8 +8554,10 @@ begin
       Rect := Tree.GetDisplayRect(Node, i, True, True);
       ColTextWidth := Max(ColTextWidth, Rect.Right - Rect.Left);
       inc(j);
-      if j > 100 then
-        break;
+      if j > 100 then break;
+      // GetDisplayRect may have implicitely taken the node away.
+      // Strange that Node keeps being assigned though, probably a timing issue.
+      if Tree.RootNodeCount = 0 then break;
       Node := Tree.GetNextVisible(Node);
     end;
     // text margins and minimal extra space
