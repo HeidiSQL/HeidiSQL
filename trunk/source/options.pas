@@ -97,6 +97,7 @@ type
     chkSQLItalic: TCheckBox;
     lblSQLColBackground: TLabel;
     cboxSQLColBackground: TColorBox;
+    btnRestoreDefaults: TButton;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -114,6 +115,7 @@ type
     procedure pagecontrolMainChange(Sender: TObject);
     procedure updownSQLFontSizeClick(Sender: TObject; Button: TUDBtnType);
     procedure SynMemoSQLSampleClick(Sender: TObject);
+    procedure btnRestoreDefaultsClick(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -474,6 +476,24 @@ begin
     Exit;
   ComboSQLColElement.ItemIndex := AttriIdx;
   ComboSQLColElement.OnChange(Sender);
+end;
+
+
+procedure Toptionsform.btnRestoreDefaultsClick(Sender: TObject);
+var
+  ValueList: TStringlist;
+  i: Integer;
+begin
+  // Factory defaults
+  if MessageDlg('Reset all preference options to default values?'+CRLF+CRLF+'This also applies to automatic settings, e.g. toolbar positions.',
+    mtConfirmation, [mbOK, mbCancel], 0) = mrCancel then
+    Exit;
+  OpenRegistry;
+  ValueList := TStringlist.Create;
+  Mainreg.GetValueNames(ValueList);
+  for i:=0 to ValueList.Count-1 do
+    Mainreg.DeleteValue(ValueList[i]);
+  FormShow(Sender);
 end;
 
 
