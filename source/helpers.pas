@@ -131,9 +131,6 @@ type
   function MakeFloat( Str: String ): Extended;
   function FloatStr(Val: String): String;
   function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
-  function hasNullChar(Text: string): boolean;
-  function hasIrregularChars(Text: string): boolean;
-  function hasIrregularNewlines(Text: string): boolean;
   procedure debug(txt: String);
   function fixNewlines(txt: string): string;
   function bool2str( boolval : Boolean ) : String;
@@ -147,11 +144,8 @@ type
   function maskSql(sql_version: integer; str: WideString) : WideString;
   procedure ActivateWindow(Window : HWnd);
   function GetApplication(MainForm: HWnd): HWnd;
-  procedure ActivateMainForm(MainForm: HWnd);
   procedure ShellExec( cmd: String; path: String = '' );
   function getFirstWord( text: String ): String;
-  function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
-  function GetFieldValue( Field: TField ): WideString;
   function LastPos(needle: WideChar; haystack: WideString): Integer;
   function ConvertServerVersion( Version: Integer ): String;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
@@ -1643,94 +1637,6 @@ end;
 
 
 {***
-  Detect NUL character in a text.
-}
-function hasNullChar(Text: string): boolean;
-var
-  i: integer;
-begin
-  result := false;
-  for i:=1 to length(Text) do
-  begin
-    if Ord(Text[i]) = 0 then
-    begin
-      result := true;
-      exit;
-    end;
-  end;
-end;
-
-
-
-{***
-  Detect non-latin1 characters in a text (except 9, 10 and 13)
-
-  @param string Text to test
-  @return boolean Text has any non-latin1-characters?
-}
-function hasIrregularChars(Text: string): boolean;
-var
-  i: integer;
-  b: byte;
-begin
-  result := false;
-  for i:=1 to length(Text) do
-  begin
-    b := Ord(Text[i]);
-    // Latin1 characters is everything except 0..31 and 127..159.
-    // 9..13 is HTAB, LF, VTAB, FF, CR.  We only allow 9, 10 and 13,
-    // because those are the ones that we can escape in esc().
-    if b in [0..8, 11..12, 14..31, 127..159] then
-    begin
-      result := true;
-      exit;
-    end;
-  end;
-end;
-
-
-
-{***
-  The MEMO editor changes all single CRs or LFs to Windows CRLF
-  behind the user's back, so it's not useful for editing fields
-  where these kinds of line endings occur.  At least not without
-  asking the user if it's ok to auto convert to windows format first.
-  For now, we just disallow editing so no-one gets surprised.
-
-  @param string Text to test
-  @return boolean Text has some non-windows linebreaks?
-}
-function hasIrregularNewlines(Text: string): boolean;
-var
-  i: integer;
-  b, b2: byte;
-begin
-  result := false;
-  if length(Text) = 0 then exit;
-  result := true;
-  i := 1;
-  repeat
-    b := Ord(Text[i]);
-    if b = 13 then
-    begin
-      b2 := Ord(Text[i+1]);
-      if b2 = 10 then i := i + 1
-      else exit;
-    end
-    else if b = 10 then exit;
-    i := i + 1;
-  until i >= length(Text);
-  if i = length(Text) then
-  begin
-    b := Ord(Text[length(Text)]);
-    if b in [10, 13] then exit;
-  end;
-  result := false;
-end;
-
-
-
-{***
   Use DebugView from SysInternals or Delphi's Event Log to view.
 
   @param string Text to ouput
@@ -1978,21 +1884,6 @@ end;
 
 
 {***
-  Given a Delphi MainForm, activate the application it belongs to.
-
-  @param HWnd The mainform's window handle
-}
-procedure ActivateMainForm(MainForm: HWnd);
-var
-  delphiApp: HWnd;
-begin
-  delphiApp := GetApplication(MainForm);
-  ActivateWindow(delphiApp);
-end;
-
-
-
-{***
   Activate a specific form
 
   @note Copyright: This function was nicked from usenet:
@@ -2091,53 +1982,6 @@ begin
       break;
     end;
     inc(i);
-  end;
-end;
-
-
-{***
-  HeidiSQL is currently a non-Unicode application, blindly
-  following the ANSI codepage in use by Windows.
-
-  This function can help when determining which
-  MySQL character set matches the ANSI codepage.
-
-  Delphi has excellent support for Unicode strings
-  (automatic conversion between single- and multi-byte,
-  etc.), so if Zeos could be coerced to regard MySQL
-  strings as UTF-8 (or even look at @character_set_results,
-  ho hum...), we could skip all this and just use
-  "SET NAMES utf8".
-}
-function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
-var
-  i: integer;
-begin
-  result := '';
-  for i := 0 to Length(charset_conv_table) - 1 do begin
-    if charset_conv_table[i].codepage = codepage then begin
-      result := charset_conv_table[i].charset;
-      exit;
-    end;
-  end;
-end;
-
-
-{***
-  Retrieve the string value from a field
-  Zeos gives "True" or "False" for enum (boolean) fields which
-  gets corrected here to "Y" or "N"
-  @param TField Field object which holds a value
-  @return String Field value
-}
-function GetFieldValue( Field: TField ): WideString;
-begin
-  Result := '';
-  case Field.DataType of
-    ftBoolean:
-      Result := Bool2Str( Field.AsBoolean );
-    else
-      Result := Field.AsWideString;
   end;
 end;
 

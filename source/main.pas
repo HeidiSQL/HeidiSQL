@@ -881,7 +881,6 @@ type
     procedure SessionConnect(Sender: TObject);
     function InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases: WideString): Boolean;
     //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
-    function GetVisualDataset: PGridResult;
 
     function ExecUpdateQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
     function ExecSelectQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
@@ -5679,21 +5678,6 @@ begin
   Result := ds.Fields.FieldByName(x).AsWideString;
   ds.Close;
   FreeAndNil(ds);
-end;
-
-{***
-  This returns the GridResult object that is currently visible to the user,
-  depending on with tabsheet is active.
-
-  @return PGridResult if data/query tab is active, nil otherwise.
-}
-function TMainForm.GetVisualDataset: PGridResult;
-begin
-  Result := nil;
-  case PageControlMain.ActivePageIndex of
-    3: Result := @FDataGridResult;
-    4: Result := @FQueryGridResult;
-  end;
 end;
 
 
