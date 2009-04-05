@@ -7,7 +7,6 @@ const
   // Names of the system tables and system databases
   PRIVTABLE_USERS           = 'user';
   PRIVTABLE_DB              = 'db';
-  PRIVTABLE_HOST            = 'host';
   PRIVTABLE_TABLES          = 'tables_priv';
   PRIVTABLE_COLUMNS         = 'columns_priv';
   DBNAME_INFORMATION_SCHEMA = 'information_schema';
@@ -42,7 +41,6 @@ const
   REGNAME_FILTER = 'Filter';
   REGNAME_SORT = 'Sort';
   REGNAME_SORTDISPLAYEDCOLUMNS = 'DisplayedColumnsSorted';
-  REGNAME_LISTTABLESCOLUMNNAMES = 'ListTablesColumnNames';
   REGNAME_LASTSESSION = 'lastcon';
   REGNAME_AUTORECONNECT = 'AutoReconnect';
   DEFAULT_AUTORECONNECT = False;
@@ -58,10 +56,6 @@ const
   DEFAULT_DATAFONTNAME = 'Tahoma';
   REGNAME_DATAFONTSIZE = 'DataFontSize';
   DEFAULT_DATAFONTSIZE = 8;
-  REGNAME_DATALIMITSTART = 'DataLimitStart';
-  DEFAULT_DATALIMITSTART = 0;
-  REGNAME_DATALIMITEND = 'DataLimitEnd';
-  DEFAULT_DATALIMITEND = 5000;
   // how much memory we're aiming to use for the
   // data grid and it's automatic limit function
   REGNAME_LOGSQLNUM = 'logsqlnum';
@@ -101,7 +95,6 @@ const
   DEFAULT_EDITOR_WIDTH = 100;
   REGNAME_EDITOR_HEIGHT = 'MemoEditorHeight';
   DEFAULT_EDITOR_HEIGHT = 100;
-  REGNAME_SQLWHEREFILE = 'SQLWhereFile';
   REGNAME_DELIMITER = 'Delimiter';
   DEFAULT_DELIMITER = ';';
   REGNAME_SQLHELPWINLEFT = 'SQLHelp_WindowLeft';
@@ -112,6 +105,8 @@ const
   REGNAME_SQLHELPPRHEIGHT = 'SQLHelp_PnlRightTopHeight';
   REGNAME_PROCEDITOR_WIDTH = 'ProcedureEditorWidth';
   REGNAME_PROCEDITOR_HEIGHT = 'ProcedureEditorHeight';
+  REGNAME_TABLEEDITOR_WIDTH = 'TableEditorWidth';
+  REGNAME_TABLEEDITOR_HEIGHT = 'TableEditorHeight';
   REGNAME_HOST = 'Host';
   DEFAULT_HOST = '127.0.0.1';
   REGNAME_USER = 'User';
@@ -196,12 +191,10 @@ const
   DEFAULT_FIELDCOLOR_SET = $00808000; // clTeal
   COLORSHIFT_NULLFIELDS = 45; // Percentage of brightness to add to normal field colors for NULL values
 
-  REGNAME_FIELDEDITOR_NUMERIC = 'FieldEditor_Numeric';
   REGNAME_FIELDEDITOR_BINARY = 'FieldEditor_Binary';
   REGNAME_FIELDEDITOR_DATETIME = 'FieldEditor_Datetime';
   REGNAME_FIELDEDITOR_ENUM = 'FieldEditor_Enum';
   REGNAME_FIELDEDITOR_SET = 'FieldEditor_Set';
-  DEFAULT_FIELDEDITOR_NUMERIC = True;
   DEFAULT_FIELDEDITOR_BINARY = True;
   DEFAULT_FIELDEDITOR_DATETIME = True;
   DEFAULT_FIELDEDITOR_ENUM = True;
