@@ -767,9 +767,18 @@ object optionsform: Toptionsform
     TabOrder = 2
     OnClick = Apply
   end
+  object btnRestoreDefaults: TButton
+    Left = 8
+    Top = 338
+    Width = 97
+    Height = 25
+    Caption = 'Factory defaults'
+    TabOrder = 4
+    OnClick = btnRestoreDefaultsClick
+  end
   object SynSQLSynSQLSample: TSynSQLSyn
     SQLDialect = sqlMySQL
-    Left = 8
+    Left = 144
     Top = 336
   end
 end
