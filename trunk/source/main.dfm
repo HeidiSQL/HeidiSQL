@@ -1302,6 +1302,7 @@ object MainForm: TMainForm
           OnKeyDown = GridKeyDown
           OnMouseUp = DataGridMouseUp
           OnNewText = DataGridNewText
+          OnScroll = DataGridScroll
           Columns = <>
         end
       end
