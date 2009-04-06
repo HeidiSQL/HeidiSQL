@@ -1110,7 +1110,10 @@ begin
                 ftBoolean:
                   value := esc( Bool2Str( Query.Fields[k].AsBoolean ) );
                 ftBlob:
-                  value := '0x' + BinToWideHex(Query.Fields[k].AsString);
+                  if Query.Fields[k].AsString <> '' then
+                    value := '0x' + BinToWideHex(Query.Fields[k].AsString)
+                  else
+                    value := esc('');
                 else
                   value := esc( Query.Fields[k].AsWideString, False, target_version );
               end;
