@@ -98,6 +98,8 @@ type
     lblSQLColBackground: TLabel;
     cboxSQLColBackground: TColorBox;
     btnRestoreDefaults: TButton;
+    lblMaxTotalRows: TLabel;
+    editMaxTotalRows: TEdit;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -157,7 +159,7 @@ end;
 }
 procedure Toptionsform.Apply(Sender: TObject);
 var
-  i: Integer;
+  i, maxrows: Integer;
   Attri: TSynHighlighterAttributes;
 begin
   Screen.Cursor := crHourGlass;
@@ -186,6 +188,8 @@ begin
   MainReg.WriteInteger(REGNAME_COPYMAXSIZE, updownCopyDataMaxSize.Position);
 
   MainReg.WriteInteger(REGNAME_MAXCOLWIDTH, updownMaxColWidth.Position);
+  maxrows := StrToIntDef(editMaxTotalRows.Text, DEFAULT_MAXTOTALROWS);
+  MainReg.WriteInteger(REGNAME_MAXTOTALROWS, maxrows);
   MainReg.WriteString(REGNAME_DATAFONTNAME, comboDataFontName.Text);
   MainReg.WriteInteger(REGNAME_DATAFONTSIZE, updownDataFontSize.Position);
   MainReg.WriteBool(REGNAME_LOGTOFILE, chkLogToFile.Checked);
@@ -233,6 +237,7 @@ begin
     Mainform.DeactivateFileLogging;
   btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
   Mainform.prefMaxColWidth := updownMaxColWidth.Position;
+  Mainform.prefMaxTotalRows := maxrows;
   Mainform.prefCSVSeparator := editCSVSeparator.Text;
   Mainform.prefCSVEncloser := editCSVEncloser.Text;
   Mainform.prefCSVTerminator := editCSVTerminator.Text;
@@ -311,6 +316,7 @@ begin
 
   // Default Column-Width in DBGrids:
   updownMaxColWidth.Position := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
+  editMaxTotalRows.Text := IntToStr(GetRegValue(REGNAME_MAXTOTALROWS, DEFAULT_MAXTOTALROWS));
 
   // Export-Options:
   editCSVSeparator.Text := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);

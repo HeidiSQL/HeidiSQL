@@ -70,6 +70,8 @@ const
   DEFAULT_SQLCOLACTIVELINE = $00FFFFFF; // clWhite
   REGNAME_MAXCOLWIDTH = 'MaxColWidth';
   DEFAULT_MAXCOLWIDTH = 300;
+  REGNAME_MAXTOTALROWS = 'DatagridMaximumRows';
+  DEFAULT_MAXTOTALROWS = 100000;
   REGNAME_REMEMBERFILTERS = 'RememberFilters';
   DEFAULT_REMEMBERFILTERS = True;
   REGNAME_LOGTOFILE = 'LogToFile';
@@ -272,9 +274,6 @@ const
 
   // Data grid: How many rows to fetch at a time.
   GRIDMAXROWS: Cardinal = 1000;
-
-  // Data grid: How many rows to display in total
-  GRIDMAXTOTALROWS = 100000;
 
   // Used to format floats in datagrids via FormatFloat()
   GRIDFLOATFORMAT = '0.0##############################';

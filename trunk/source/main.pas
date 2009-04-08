@@ -834,7 +834,8 @@ type
     prefRememberFilters        : Boolean;
     prefLogsqlnum,
     prefLogSqlWidth,
-    prefMaxColWidth            : Integer;
+    prefMaxColWidth,
+    prefMaxTotalRows           : Integer;
     prefCSVSeparator,
     prefCSVEncloser,
     prefCSVTerminator          : String[10];
@@ -1375,6 +1376,7 @@ begin
   // Force status bar position to below log memo 
   StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
   prefMaxColWidth := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
+  prefMaxTotalRows := GetRegValue(REGNAME_MAXTOTALROWS, DEFAULT_MAXTOTALROWS);
   // Fix registry entry from older versions which can have 0 here which makes no sense
   // since the autosetting was removed
   if prefMaxColWidth <= 0 then
@@ -3825,8 +3827,8 @@ begin
       if IsInnodb then lblDataTop.Caption := lblDataTop.Caption + ' (approximately)';
     end;
 
-    if MatchingRows = GRIDMAXTOTALROWS then begin
-      lblDataTop.Caption := lblDataTop.Caption + ', limited to ' + FormatNumber( GRIDMAXTOTALROWS);
+    if MatchingRows = prefMaxTotalRows then begin
+      lblDataTop.Caption := lblDataTop.Caption + ', limited to ' + FormatNumber(prefMaxTotalRows);
     end else if MatchingRows = rows_total then begin
       lblDataTop.Caption := lblDataTop.Caption + ', filter matches all rows';
     end else if IsFiltered and (MatchingRows > -1) then begin
@@ -9235,7 +9237,7 @@ begin
   try
     count := MakeInt(GetVar(query));
     // Work around a memory allocation bug in VirtualTree.
-    if count > GRIDMAXTOTALROWS then count := GRIDMAXTOTALROWS;
+    if count > prefMaxTotalRows then count := prefMaxTotalRows;
   except
     on E: Exception do begin
       MessageDlg(E.Message, mtError, [mbOK], 0);
