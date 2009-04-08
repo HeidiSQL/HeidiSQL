@@ -360,29 +360,36 @@ object optionsform: Toptionsform
       ImageIndex = 4
       object lblMaxColWidth: TLabel
         Left = 4
-        Top = 12
+        Top = 8
         Width = 177
         Height = 13
         Caption = 'Maximum column-width in data-grids:'
       end
       object lblDataFontHint: TLabel
         Left = 340
-        Top = 40
+        Top = 59
         Width = 29
         Height = 13
         Caption = 'points'
       end
       object lblDataFont: TLabel
         Left = 4
-        Top = 40
+        Top = 59
         Width = 26
         Height = 13
         Caption = '&Font:'
         FocusControl = comboDataFontName
       end
+      object lblMaxTotalRows: TLabel
+        Left = 4
+        Top = 33
+        Width = 229
+        Height = 13
+        Caption = 'Maximum number of rows displayed in data tab:'
+      end
       object editMaxColWidth: TEdit
         Left = 277
-        Top = 9
+        Top = 5
         Width = 42
         Height = 21
         TabOrder = 0
@@ -391,7 +398,7 @@ object optionsform: Toptionsform
       end
       object updownMaxColWidth: TUpDown
         Left = 319
-        Top = 9
+        Top = 5
         Width = 16
         Height = 21
         Associate = editMaxColWidth
@@ -403,7 +410,7 @@ object optionsform: Toptionsform
       end
       object comboDataFontName: TComboBox
         Left = 60
-        Top = 36
+        Top = 55
         Width = 193
         Height = 21
         Style = csDropDownList
@@ -413,7 +420,7 @@ object optionsform: Toptionsform
       end
       object editDataFontSize: TEdit
         Left = 277
-        Top = 36
+        Top = 55
         Width = 42
         Height = 21
         TabOrder = 3
@@ -422,7 +429,7 @@ object optionsform: Toptionsform
       end
       object updownDataFontSize: TUpDown
         Left = 319
-        Top = 36
+        Top = 55
         Width = 16
         Height = 21
         Associate = editDataFontSize
@@ -431,9 +438,9 @@ object optionsform: Toptionsform
       end
       object grpFieldLayout: TGroupBox
         Left = 4
-        Top = 72
+        Top = 81
         Width = 391
-        Height = 209
+        Height = 200
         Anchors = [akLeft, akTop, akBottom]
         Caption = 'Field colors and editors'
         TabOrder = 5
@@ -607,6 +614,14 @@ object optionsform: Toptionsform
           TabOrder = 10
           OnChange = Modified
         end
+      end
+      object editMaxTotalRows: TEdit
+        Left = 277
+        Top = 30
+        Width = 92
+        Height = 21
+        TabOrder = 6
+        OnChange = Modified
       end
     end
     object tabCSV: TTabSheet
