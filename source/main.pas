@@ -7037,9 +7037,18 @@ begin
   end else
     lblFilterVTInfo.Caption := '';
 
-  // Needs a refresh to apply visible states
-  VT.Refresh;
-  VT.UpdateScrollBars(True);
+  // RootNode.TotalHeight needs to be recalculated so the scrollbar has the correct
+  // range, ignoring hidden nodes.
+  // Similar to what is done by VT.FixupTotalHeight() which doesn't work
+  // for some reason if called from within VT.UpdateVerticalScrollBar()
+  VT.RootNode.TotalHeight := 0;
+  Node := VT.GetFirst;
+  while Assigned(Node) do begin
+    if vsVisible in Node.States then
+      Inc(VT.RootNode.TotalHeight, Node.TotalHeight);
+    Node := Node.NextSibling;
+  end;
+  VT.UpdateVerticalScrollBar(True);
 end;
 
 
