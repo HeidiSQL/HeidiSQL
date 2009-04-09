@@ -1482,7 +1482,7 @@ var
   curParam : Byte;
   sValue,
   parHost, parPort, parUser, parPass, parDatabase,
-  parTimeout, parCompress, parSortDatabases, parDescription : String;
+  parTimeout, parCompress, parDescription : String;
   LastUpdatecheck : TDateTime;
   UpdatecheckInterval : Integer;
   DefaultLastrunDate, LastSession: String;
@@ -1537,26 +1537,26 @@ begin
       parDescription := sValue;
     Inc(curParam);
   end;
+
+  // Find stored session if -dSessionName was passed
+  if (parDescription <> '') and (MainReg.OpenKey(REGPATH + REGKEY_SESSIONS + parDescription, False)) then begin
+    parHost := GetRegValue(REGNAME_HOST, DEFAULT_HOST, parDescription);
+    parUser := GetRegValue(REGNAME_USER, DEFAULT_USER, parDescription);
+    parPass := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, parDescription));
+    parPort := GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), parDescription);
+    parTimeout := GetRegValue(REGNAME_TIMEOUT, IntToStr(DEFAULT_TIMEOUT), parDescription);
+    parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, parDescription)));
+    parDatabase := GetRegValue(REGNAME_ONLYDBS, '', parDescription);
+  end;
+
   // Minimal parameter for command line mode is hostname
   CommandLineMode := parHost <> '';
   if CommandLineMode then begin
-    Connected := InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases);
+    Connected := InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, IntToStr(Integer(DEFAULT_ONLYDBSSORTED)));
     if Connected then begin
-      // Take care for empty description - it gets used to read/write session settings to registry!
       SessionName := parDescription;
       if SessionName = '' then
         SessionName := parHost;
-      // Save session parameters to registry
-      if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS + SessionName, true) then begin
-        MainReg.WriteString(REGNAME_HOST, parHost);
-        MainReg.WriteString(REGNAME_USER, parUser);
-        MainReg.WriteString(REGNAME_PASSWORD, encrypt(parPass));
-        MainReg.WriteString(REGNAME_PORT, parPort);
-        MainReg.WriteString(REGNAME_TIMEOUT, parTimeout);
-        MainReg.WriteBool(REGNAME_COMPRESSED, Boolean(StrToIntDef(parCompress, 0)) );
-        MainReg.WriteString(REGNAME_ONLYDBS, parDatabase);
-        MainReg.WriteBool(REGNAME_ONLYDBSSORTED, Boolean(StrToIntDef(parSortDatabases, 0)) );
-      end;
     end;
   end;
 
