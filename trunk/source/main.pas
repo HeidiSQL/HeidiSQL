@@ -6899,8 +6899,11 @@ begin
   Combobox.Items.Clear;
 
   // Cache datasets
-  if (dsShowEngines = nil) and (dsHaveEngines = nil) then
+  if ((dsShowEngines = nil) or (dsShowEngines.State = dsInactive)) and
+    ((dsHaveEngines = nil) or (dsShowEngines.State = dsInactive)) then
   begin
+    FreeAndNil(dsShowEngines);
+    FreeAndNil(dsHaveEngines);
     dsShowEngines := GetResults('SHOW ENGINES', True);
     if dsShowEngines = nil then
       dsHaveEngines := GetResults('SHOW VARIABLES LIKE ''have%''');
