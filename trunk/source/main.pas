@@ -7679,7 +7679,17 @@ begin
     // start query
     ShowStatus('Retrieving data...');
     debug(Format('mem: loading data chunk from row %d to %d', [start, limit]));
-    ds := GetResults(query);
+    try
+      ds := GetResults(query);
+    except
+      // if something bad happened, nuke cache, reset cursor and display error.
+      TVirtualStringTree(Sender).RootNodeCount := 0;
+      SetLength(res.Rows, 0);
+      ReachedEOT := true;
+      ShowStatus(STATUS_MSG_READY);
+      Screen.Cursor := crDefault;
+      raise;
+    end;
     if Cardinal(ds.RecordCount) < limit then begin
       limit := ds.RecordCount;
       TVirtualStringTree(Sender).RootNodeCount := start + limit;
