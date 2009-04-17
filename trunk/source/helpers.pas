@@ -1529,7 +1529,7 @@ end;
 {***
  Attempt to do string replacement faster than StringReplace and WideStringReplace.
 }
-function escChars(Text: WideString; EscChar, Char1, Char2, Char3, Char4: WideChar): WideString;
+function escChars(const Text: WideString; EscChar, Char1, Char2, Char3, Char4: WideChar): WideString;
 const
   // Attempt to match whatever the CPU cache will hold.
   block: Cardinal = 65536;
@@ -1537,6 +1537,7 @@ var
   bstart, bend, matches, i: Cardinal;
   // These could be bumped to uint64 if necessary.
   len, respos: Cardinal;
+  next: WideChar;
 begin
   len := Length(Text);
   Result := '';
@@ -1555,17 +1556,22 @@ begin
     then Inc(matches);
     SetLength(Result, bend + 1 - bstart + matches + respos);
     for i := bstart to bend do begin
+      next := Text[i];
       if
-        (Text[i] = Char1) or
-        (Text[i] = Char2) or
-        (Text[i] = Char3) or
-        (Text[i] = Char4)
+        (next = Char1) or
+        (next = Char2) or
+        (next = Char3) or
+        (next = Char4)
       then begin
         Inc(respos);
         Result[respos] := EscChar;
+        // Special values for MySQL escape.
+        if next = #13 then next := 'r';
+        if next = #10 then next := 'n';
+        if next = #0 then next := '0';
       end;
       Inc(respos);
-      Result[respos] := Text[i];
+      Result[respos] := next;
     end;
   until bend = len;
 end;
@@ -1602,6 +1608,16 @@ begin
     EscChar := '''';
   end;
   Result := escChars(Text, EscChar, c1, c2, c3, c4);
+  if sql_version <> SQL_VERSION_ANSI then begin
+    // Remove characters that SynEdit chokes on, so that
+    // the SQL file can be non-corruptedly loaded again.
+    c1 := #13;
+    c2 := #10;
+    c3 := #0;
+    c4 := #0;
+    // TODO: SynEdit also chokes on WideChar($2028) and possibly WideChar($2029).
+    Result := escChars(Result, EscChar, c1, c2, c3, c4);
+  end;
   if not ProcessJokerChars then begin
     // Add surrounding single quotes only for non-LIKE-values
     // because in all cases we're using ProcessLIKEChars we
