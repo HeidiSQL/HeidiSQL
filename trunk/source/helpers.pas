@@ -131,8 +131,8 @@ type
   function MakeFloat( Str: String ): Extended;
   function FloatStr(Val: String): String;
   function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
-  function hasNullChar(Text: string): boolean;
-  function hasIrregularNewlines(Text: string): boolean;
+  function hasNullChar(Text: WideString): boolean;
+  function hasIrregularNewlines(Text: WideString): boolean;
   procedure debug(txt: String);
   function fixNewlines(txt: string): string;
   function bool2str( boolval : Boolean ) : String;
@@ -1636,14 +1636,14 @@ end;
 {***
   Detect NUL character in a text.
 }
-function hasNullChar(Text: string): boolean;
+function hasNullChar(Text: WideString): boolean;
 var
   i: integer;
 begin
   result := false;
   for i:=1 to length(Text) do
   begin
-    if Ord(Text[i]) = 0 then
+    if Text[i] = #0 then
     begin
       result := true;
       exit;
@@ -1654,40 +1654,54 @@ end;
 
 
 {***
-  The MEMO editor changes all single CRs or LFs to Windows CRLF
-  behind the user's back, so it's not useful for editing fields
-  where these kinds of line endings occur.  At least not without
-  asking the user if it's ok to auto convert to windows format first.
-  For now, we just disallow editing so no-one gets surprised.
+  SynEdit removes all newlines and semi-randomly decides a
+  new newline format to use for any text edited.
 
   @param string Text to test
-  @return boolean Text has some non-windows linebreaks?
+  @return boolean Text has mixed linebreaks?
 }
-function hasIrregularNewlines(Text: string): boolean;
+function hasIrregularNewlines(Text: WideString): boolean;
+const
+  TYPE_CRLF = 1;
+  TYPE_CR = 2;
+  TYPE_LF = 4;
+  TYPE_WIDE = 8;
 var
   i: integer;
-  b, b2: byte;
+  c, c2: WideChar;
+  types: integer;
 begin
   result := false;
   if length(Text) = 0 then exit;
   result := true;
   i := 1;
+  types := 0;
   repeat
-    b := Ord(Text[i]);
-    if b = 13 then
-    begin
-      b2 := Ord(Text[i+1]);
-      if b2 = 10 then i := i + 1
-      else exit;
-    end
-    else if b = 10 then exit;
+    c := Text[i];
+    if c = #13 then begin
+      if i < length(Text) then begin
+        c2 := Text[i+1];
+        if c2 = #10 then begin
+          Inc(i);
+          types := types or TYPE_CRLF;
+          if types <> TYPE_CRLF then Exit;
+          continue;
+        end;
+      end;
+      types := types or TYPE_CR;
+      if types <> TYPE_CR then Exit;
+      continue;
+    end else if c = #10 then begin
+      types := types or TYPE_LF;
+      if types <> TYPE_LF then Exit;
+      continue;
+    end else if c = WideChar($2027) then begin
+      types := types or TYPE_WIDE;
+      if types <> TYPE_WIDE then Exit;
+      continue;
+    end;
     i := i + 1;
-  until i >= length(Text);
-  if i = length(Text) then
-  begin
-    b := Ord(Text[length(Text)]);
-    if b in [10, 13] then exit;
-  end;
+  until i > length(Text);
   result := false;
 end;
 
