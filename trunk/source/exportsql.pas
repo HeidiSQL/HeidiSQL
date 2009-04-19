@@ -278,7 +278,7 @@ begin
   Height := GetRegValue(REGNAME_EXP_WINHEIGHT, Height);
 
   if EditFileName.Text = '' then
-    EditFileName.Text := ExtractFilePath(paramstr(0)) + 'export.sql';
+    EditFileName.Text := DirnameUserAppData + goodfilename(Mainform.ActiveDatabase + '.sql');
 
   // Tell the user how to use the table pattern  
   EditFileName.Hint := 'Usage for generating one file per table: c:\foo\bar_'+TABLENAME_PATTERN+'.sql';
