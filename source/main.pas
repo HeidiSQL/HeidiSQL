@@ -1320,6 +1320,8 @@ begin
 
   // User folder for HeidiSQL's data (<user name>\Application Data)
   DirnameUserAppData := GetShellFolder(CSIDL_APPDATA) + '\' + APPNAME + '\';
+  // Ensure directory exists
+  ForceDirectories(DirnameUserAppData);
 
   // Folder which contains snippet-files
   DIRNAME_SNIPPETS := DirnameCommonAppData + 'Snippets\';
