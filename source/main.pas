@@ -781,6 +781,7 @@ type
     PrevTableColWidths         : WideStrings.TWideStringList;
     DataGridHasChanges         : Boolean;
     InformationSchemaTables    : TWideStringlist;
+    QueryMemoLineBreaks        : TLineBreaks;
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
     procedure SetDelimiter(Value: String);
@@ -1473,6 +1474,8 @@ begin
     'DisableProcessWindowsGhosting');
   if Assigned(DisableProcessWindowsGhostingProc) then
     DisableProcessWindowsGhostingProc;
+
+  QueryMemoLineBreaks := lbsNone;
 end;
 
 
@@ -2920,6 +2923,8 @@ end;
 
 
 procedure TMainForm.actSaveSQLExecute(Sender: TObject);
+var
+  Text, LB: WideString;
 begin
   // Save SQL
   if SaveDialogSQLFile.Execute then
@@ -2928,9 +2933,18 @@ begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
     case (Sender as TAction).Tag of
-      0: SaveUnicodeFile( SaveDialogSQLFile.FileName, SynMemoQuery.Text );
-      1: SaveUnicodeFile( SaveDialogSQLFile.FileName, SynMemoQuery.SelText );
+      0: Text := SynMemoQuery.Text;
+      1: Text := SynMemoQuery.SelText;
     end;
+    LB := '';
+    case QueryMemoLineBreaks of
+      lbsUnix: LB := LB_UNIX;
+      lbsMac: LB := LB_MAC;
+      lbsWide: LB := LB_WIDE;
+    end;
+    if LB <> '' then
+      Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
+    SaveUnicodeFile( SaveDialogSQLFile.FileName, Text );
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2940,6 +2954,7 @@ procedure TMainForm.actSaveSQLSnippetExecute(Sender: TObject);
 var
   snippetname : String;
   mayChange   : Boolean;
+  Text, LB: WideString;
 begin
   // Save snippet
   if InputQuery( 'Save snippet', 'Snippet name:', snippetname) then
@@ -2957,9 +2972,18 @@ begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
     case (Sender as TComponent).Tag of
-      0: SaveUnicodeFile(snippetname, SynMemoQuery.Text);
-      1: SaveUnicodeFile(snippetname, SynMemoQuery.SelText);
+      0: Text := SynMemoQuery.Text;
+      1: Text := SynMemoQuery.SelText;
     end;
+    LB := '';
+    case QueryMemoLineBreaks of
+      lbsUnix: LB := LB_UNIX;
+      lbsMac: LB := LB_MAC;
+      lbsWide: LB := LB_WIDE;
+    end;
+    if LB <> '' then
+      Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
+    SaveUnicodeFile( snippetname, Text );
     FillPopupQueryLoad;
     if tabsetQueryHelpers.TabIndex = 3 then begin
       // SQL Snippets selected in query helper, refresh list
@@ -4614,12 +4638,22 @@ var
   fieldcount        : Integer;
   recordcount       : Integer;
   ds                : TDataSet;
-  ColName           : WideString;
+  ColName,
+  Text, LB          : WideString;
   col               : TVirtualTreeColumn;
 begin
-  if CurrentLine then SQL := parseSQL(SynMemoQuery.LineText)
-  else if Selection then SQL := parseSQL(SynMemoQuery.SelText)
-  else SQL := parseSQL(SynMemoQuery.Text);
+  if CurrentLine then Text := SynMemoQuery.LineText
+  else if Selection then Text := SynMemoQuery.SelText
+  else Text := SynMemoQuery.Text;
+  // Give text back its original linebreaks if possible
+  case QueryMemoLineBreaks of
+    lbsUnix: LB := LB_UNIX;
+    lbsMac: LB := LB_MAC;
+    lbsWide: LB := LB_WIDE;
+  end;
+  if LB <> '' then
+    Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
+  SQL := parseSQL(Text);
 
   if ( SQL.Count = 0 ) then
   begin
@@ -5401,6 +5435,7 @@ procedure TMainForm.QueryLoad( filename: String; ReplaceContent: Boolean = true 
 var
   filecontent      : WideString;
   msgtext          : String;
+  LineBreaks       : TLineBreaks;
 begin
   // Ask for action when loading a big file
   if FileExists(filename) and (_GetFileSize( filename ) > 5*SIZE_MB) then
@@ -5442,8 +5477,16 @@ begin
     PagecontrolMain.ActivePage := tabQuery;
     SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
     SynMemoQuery.BeginUpdate;
-    if ReplaceContent then
+    LineBreaks := ScanLineBreaks(filecontent);
+    if ReplaceContent then begin
       SynMemoQuery.SelectAll;
+      QueryMemoLineBreaks := LineBreaks;
+    end else begin
+      if (QueryMemoLineBreaks <> lbsNone) and (QueryMemoLineBreaks <> LineBreaks) then
+        QueryMemoLineBreaks := lbsMixed
+      else
+        QueryMemoLineBreaks := LineBreaks;
+    end;
     SynMemoQuery.SelText := filecontent;
     SynMemoQuery.SelStart := SynMemoQuery.SelEnd;
     SynMemoQuery.EndUpdate;
