@@ -1,8 +1,11 @@
 // Common constants
 const
 
-  // Carriage return / Line feed
+  // Line breaks
   CRLF = #13#10;
+  LB_UNIX = #10;
+  LB_MAC = #13;
+  LB_WIDE = WideChar($2027);
 
   // Names of the system tables and system databases
   PRIVTABLE_USERS           = 'user';
