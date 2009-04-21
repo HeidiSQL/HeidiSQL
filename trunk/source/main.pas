@@ -5487,6 +5487,8 @@ begin
       else
         QueryMemoLineBreaks := LineBreaks;
     end;
+    if QueryMemoLineBreaks = lbsMixed then
+      MessageDlg('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).', mtInformation, [mbOK], 0);
     SynMemoQuery.SelText := filecontent;
     SynMemoQuery.SelStart := SynMemoQuery.SelEnd;
     SynMemoQuery.EndUpdate;
