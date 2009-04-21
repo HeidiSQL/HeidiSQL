@@ -57,11 +57,6 @@ uses main;
 
 {$R *.dfm}
 
-const
-  NL_WIN = 0;
-  NL_UNX = 1;
-  NL_MAC = 2;
-
 
 function TfrmTextEditor.GetText: WideString;
 var
