@@ -99,6 +99,8 @@ type
   end;
   TOrderColArray = Array of TOrderCol;
 
+  TLineBreaks = (lbsNone, lbsWindows, lbsUnix, lbsMac, lbsWide, lbsMixed);
+
 {$I const.inc}
 
   function implodestr(seperator: WideString; a: TWideStringList) :WideString;
@@ -132,7 +134,7 @@ type
   function FloatStr(Val: String): String;
   function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
   function hasNullChar(Text: WideString): boolean;
-  function hasIrregularNewlines(Text: WideString): boolean;
+  function ScanLineBreaks(Text: WideString): TLineBreaks;
   procedure debug(txt: String);
   function fixNewlines(txt: string): string;
   function bool2str( boolval : Boolean ) : String;
@@ -1656,53 +1658,46 @@ end;
 {***
   SynEdit removes all newlines and semi-randomly decides a
   new newline format to use for any text edited.
+  See also: Delphi's incomplete implementation of TTextLineBreakStyle in System.pas
 
   @param string Text to test
-  @return boolean Text has mixed linebreaks?
+  @return TLineBreaks
 }
-function hasIrregularNewlines(Text: WideString): boolean;
-const
-  TYPE_CRLF = 1;
-  TYPE_CR = 2;
-  TYPE_LF = 4;
-  TYPE_WIDE = 8;
+function ScanLineBreaks(Text: WideString): TLineBreaks;
 var
   i: integer;
-  c, c2: WideChar;
-  types: integer;
+  c: WideChar;
+  procedure SetResult(Style: TLineBreaks);
+  begin
+    // Note: Prefer "(foo <> a) and (foo <> b)" over "not (foo in [a, b])" in excessive loops
+    // for performance reasons - there is or was a Delphi bug leaving those inline SETs in memory
+    // after usage. Unfortunately can't remember which bug id it was and if it still exists.
+    if (Result <> lbsNone) and (Result <> Style) then
+      Result := lbsMixed
+    else
+      Result := Style;
+  end;
 begin
-  result := false;
+  Result := lbsNone;
   if length(Text) = 0 then exit;
-  result := true;
   i := 1;
-  types := 0;
   repeat
     c := Text[i];
     if c = #13 then begin
-      if i < length(Text) then begin
-        c2 := Text[i+1];
-        if c2 = #10 then begin
-          Inc(i);
-          types := types or TYPE_CRLF;
-          if types <> TYPE_CRLF then Exit;
-          continue;
-        end;
-      end;
-      types := types or TYPE_CR;
-      if types <> TYPE_CR then Exit;
-      continue;
-    end else if c = #10 then begin
-      types := types or TYPE_LF;
-      if types <> TYPE_LF then Exit;
-      continue;
-    end else if c = WideChar($2027) then begin
-      types := types or TYPE_WIDE;
-      if types <> TYPE_WIDE then Exit;
-      continue;
-    end;
+      if (i < length(Text)) and (Text[i+1] = #10) then begin
+        Inc(i);
+        SetResult(lbsWindows);
+      end else
+        SetResult(lbsMac);
+    end else if c = LB_UNIX then
+      SetResult(lbsUnix)
+    else if c = LB_WIDE then
+      SetResult(lbsWide);
     i := i + 1;
+    // No need to do more checks after detecting mixed style
+    if Result = lbsMixed then
+      break;
   until i > length(Text);
-  result := false;
 end;
 
 
