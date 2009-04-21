@@ -69,11 +69,11 @@ object frmTextEditor: TfrmTextEditor
       ImageIndex = 62
       OnClick = btnWrapClick
     end
-    object btnLinefeedStyle: TToolButton
+    object btnLinebreaks: TToolButton
       Left = 23
       Top = 0
-      Caption = 'Linefeed Style'
-      DropdownMenu = popupLinefeedStyle
+      Caption = 'Linebreaks'
+      DropdownMenu = popupLinebreaks
       ImageIndex = 123
       Style = tbsDropDown
     end
@@ -102,24 +102,34 @@ object frmTextEditor: TfrmTextEditor
       OnClick = btnApplyClick
     end
   end
-  object popupLinefeedStyle: TPopupMenu
+  object popupLinebreaks: TPopupMenu
     Images = MainForm.PngImageListMain
     Left = 8
     Top = 16
-    object menuWindowsLF: TMenuItem
-      Caption = 'Windows linefeeds'
+    object menuWindowsLB: TMenuItem
+      Caption = 'Windows linebreaks'
       ImageIndex = 123
-      OnClick = SelectLinefeedStyle
+      OnClick = SelectLinebreaks
     end
-    object menuUnixLF: TMenuItem
-      Caption = 'UNIX linefeeds'
+    object menuUnixLB: TMenuItem
+      Caption = 'UNIX linebreaks'
       ImageIndex = 125
-      OnClick = SelectLinefeedStyle
+      OnClick = SelectLinebreaks
     end
-    object menuMacLF: TMenuItem
-      Caption = 'Mac OS linefeeds'
+    object menuMacLB: TMenuItem
+      Caption = 'Mac OS linebreaks'
       ImageIndex = 124
-      OnClick = SelectLinefeedStyle
+      OnClick = SelectLinebreaks
+    end
+    object menuWideLB: TMenuItem
+      Caption = 'Unicode linebreaks'
+      ImageIndex = 68
+      OnClick = SelectLinebreaks
+    end
+    object menuMixedLB: TMenuItem
+      Caption = 'Mixed linebreaks'
+      ImageIndex = 122
+      OnClick = SelectLinebreaks
     end
   end
 end

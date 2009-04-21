@@ -17,11 +17,13 @@ type
     btnApply: TToolButton;
     btnCancel: TToolButton;
     lblTextLength: TLabel;
-    btnLinefeedStyle: TToolButton;
-    popupLinefeedStyle: TPopupMenu;
-    menuWindowsLF: TMenuItem;
-    menuUnixLF: TMenuItem;
-    menuMacLF: TMenuItem;
+    btnLinebreaks: TToolButton;
+    popupLinebreaks: TPopupMenu;
+    menuWindowsLB: TMenuItem;
+    menuUnixLB: TMenuItem;
+    menuMacLB: TMenuItem;
+    menuMixedLB: TMenuItem;
+    menuWideLB: TMenuItem;
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnLoadTextClick(Sender: TObject);
@@ -32,13 +34,13 @@ type
     procedure memoTextKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure SelectLinefeedStyle(Sender: TObject);
+    procedure SelectLinebreaks(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
     FStopping: Boolean;
-    DetectedLineFeedStyle: Integer;
-    SelectedLineFeedStyle: Integer;
+    DetectedLineBreaks,
+    SelectedLineBreaks: TLineBreaks;
     procedure SetModified(NewVal: Boolean);
     property Modified: Boolean read FModified write SetModified;
   public
@@ -62,49 +64,81 @@ const
 
 
 function TfrmTextEditor.GetText: WideString;
+var
+  LB: WideString;
 begin
   Result := memoText.Text;
-  // Convert linefeed style back to selected
-  if SelectedLineFeedStyle = NL_UNX then
-    Result := WideStringReplace(Result, CRLF, #10, [rfReplaceAll])
-  else if SelectedLineFeedStyle = NL_MAC then
-    Result := WideStringReplace(Result, CRLF, #10#13, [rfReplaceAll])
+  // Convert linebreaks back to selected
+  LB := '';
+  case SelectedLineBreaks of
+    lbsUnix: LB := LB_UNIX;
+    lbsMac: LB := LB_MAC;
+    lbsWide: LB := LB_WIDE;
+  end;
+  if LB <> '' then
+    Result := WideStringReplace(Result, CRLF, LB, [rfReplaceAll]);
 end;
 
 
 procedure TfrmTextEditor.SetText(text: WideString);
+var
+  LB: WideString;
+  Detected: TMenuItem;
 begin
-  // Automatic detection of linefeed style
-  if Pos(CRLF, text) > 0 then DetectedLineFeedStyle := NL_WIN
-  else if Pos(#10#13, text) > 0 then DetectedLineFeedStyle := NL_MAC
-  else if Pos(#10, text) > 0 then DetectedLineFeedStyle := NL_UNX
-  else DetectedLineFeedStyle := NL_WIN;
-  SelectLinefeedStyle(popupLineFeedStyle.Items[DetectedLineFeedStyle]);
-  // Unify linefeeds so they're displayed properly 
-  text := WideStringReplace(text, #13, '', [rfReplaceAll]);
-  text := WideStringReplace(text, #10, CRLF, [rfReplaceAll]);
+  DetectedLineBreaks := ScanLineBreaks(text);
+  case DetectedLineBreaks of
+    lbsWindows, lbsNone: Detected := menuWindowsLB;
+    lbsUnix: Detected := menuUnixLB;
+    lbsMac: Detected := menuMacLB;
+    lbsWide: Detected := menuWideLB;
+    lbsMixed: Detected := menuMixedLB;
+    else Detected := nil;
+  end;
+  if Assigned(Detected) then
+    SelectLineBreaks(Detected);
+
+  // Replace consistent linebreaks with CRLF so they're displayed properly
+  LB := '';
+  case DetectedLineBreaks of
+    lbsUnix: LB := LB_UNIX;
+    lbsMac: LB := LB_MAC;
+    lbsWide: LB := LB_WIDE;
+  end;
+  if LB <> '' then
+    text := WideStringReplace(text, LB, CRLF, [rfReplaceAll]);
   // TODO: Find out why the Delphi IDE insists hinting that this
   //       property is ANSI when it is in fact a WideString.
   memoText.Text := text;
 end;
 
 
-procedure TfrmTextEditor.SelectLinefeedStyle(Sender: TObject);
+procedure TfrmTextEditor.SelectLinebreaks(Sender: TObject);
 var
   Selected, Detected: TMenuItem;
-  Menu: TMenu;
 begin
   Selected := Sender as TMenuItem;
-  Menu := Selected.GetParentMenu;
-  Detected := Menu.Items[DetectedLineFeedStyle];
-  Menu.Items[NL_WIN].Caption := 'Windows® linefeeds';
-  Menu.Items[NL_UNX].Caption := 'UNIX linefeeds';
-  Menu.Items[NL_MAC].Caption := 'Mac OS linefeeds';
+  case DetectedLineBreaks of
+    lbsWindows, lbsNone: Detected := menuWindowsLB;
+    lbsUnix: Detected := menuUnixLB;
+    lbsMac: Detected := menuMacLB;
+    lbsWide: Detected := menuWideLB;
+    lbsMixed: Detected := menuMixedLB;
+    else Detected := nil;
+  end;
+  menuWindowsLB.Caption := 'Windows® linebreaks';
+  menuUnixLB.Caption := 'UNIX linebreaks';
+  menuMacLB.Caption := 'Mac OS linebreaks';
+  menuWideLB.Caption := 'Unicode linebreaks';
+  menuMixedLB.Caption := 'Mixed linebreaks';
   Detected.Caption := Detected.Caption + ' (detected)';
   Selected.Default := True;
-  btnLineFeedStyle.Hint := Selected.Caption;
-  btnLineFeedStyle.ImageIndex := Selected.ImageIndex;
-  SelectedLineFeedStyle := Selected.MenuIndex;
+  btnLineBreaks.Hint := Selected.Caption;
+  btnLineBreaks.ImageIndex := Selected.ImageIndex;
+  if Selected = menuWindowsLB then SelectedLineBreaks := lbsWindows
+  else if Selected = menuUnixLB then SelectedLineBreaks := lbsUnix
+  else if Selected = menuMacLB then SelectedLineBreaks := lbsMac
+  else if Selected = menuWideLB then SelectedLineBreaks := lbsWide
+  else if Selected = menuMixedLB then SelectedLineBreaks := lbsMixed;
   Modified := True;
 end;
 
