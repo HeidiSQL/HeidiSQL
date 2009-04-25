@@ -188,6 +188,7 @@ type
   function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
   function ListIndexByRegExpr(List: TWideStrings; Expression: WideString): Integer;
   procedure RestoreSyneditStyles(Highlighter: TSynCustomHighlighter);
+  procedure CheckAndWarnIfNulChar(var Text: WideString);
 var
   MYSQL_KEYWORDS             : TStringList;
   MainReg                    : TRegistry;
@@ -2942,6 +2943,16 @@ begin
     Attri.Foreground := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_FG, Mainform.SynSQLSyn1.Attribute[i].Foreground);
     Attri.Background := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_BG, Mainform.SynSQLSyn1.Attribute[i].Background);
     Attri.IntegerStyle := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Mainform.SynSQLSyn1.Attribute[i].IntegerStyle)
+  end;
+end;
+
+
+procedure CheckAndWarnIfNulChar(var Text: WideString);
+begin
+  // Used by grid cell editors which use some TCustomEdit descendent which all cut a text at a NUL char
+  if Pos(#0, Text) > 0 then begin
+    MessageDlg('Text contains at least one NUL (\0) char. To avoid cutting off the rest they were just removed.', mtWarning, [mbOK], 0);
+    Text := WideStringReplace(Text, #0, '', [rfReplaceAll]);
   end;
 end;
 

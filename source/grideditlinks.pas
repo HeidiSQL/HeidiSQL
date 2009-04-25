@@ -873,6 +873,7 @@ begin
   FColumn := Column;
 
   FTree.GetTextInfo(Node, Column, FEdit.Font, FTextBounds, NodeText);
+  CheckAndWarnIfNulChar(NodeText);
   FPanel.Parent := FTree;
   FEdit.Font.Color := clWindowText;
   FEdit.Text := NodeText;

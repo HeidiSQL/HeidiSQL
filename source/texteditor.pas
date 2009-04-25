@@ -101,6 +101,9 @@ begin
   end;
   if LB <> '' then
     text := WideStringReplace(text, LB, CRLF, [rfReplaceAll]);
+
+  CheckAndWarnIfNulChar(text);
+
   // TODO: Find out why the Delphi IDE insists hinting that this
   //       property is ANSI when it is in fact a WideString.
   memoText.Text := text;
