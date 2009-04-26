@@ -42,12 +42,12 @@ type
     DetectedLineBreaks,
     SelectedLineBreaks: TLineBreaks;
     procedure SetModified(NewVal: Boolean);
-    property Modified: Boolean read FModified write SetModified;
   public
     function GetText: WideString; override;
     procedure SetText(text: WideString); override;
     procedure SetMaxLength(len: integer); override;
     procedure SetFont(font: TFont); override;
+    property Modified: Boolean read FModified write SetModified;
   end;
 
 
@@ -107,6 +107,9 @@ begin
   // TODO: Find out why the Delphi IDE insists hinting that this
   //       property is ANSI when it is in fact a WideString.
   memoText.Text := text;
+
+  memoText.SelectAll;
+  Modified := False;
 end;
 
 
@@ -175,10 +178,7 @@ begin
   // Fix label position:
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
   SetWindowSizeGrip(Handle, True);
-  memoText.SelectAll;
   memoText.SetFocus;
-  memoTextChange(Sender);
-  Modified := False;
 end;
 
 

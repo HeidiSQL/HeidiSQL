@@ -844,7 +844,8 @@ procedure TInplaceEditorLink.DoButtonClick;
 begin
   FTextEditor := TfrmTextEditor.Create(FTree);
   FTextEditor.SetFont(FEdit.Font);
-  FTextEditor.SetText(FTree.Text[FNode, FColumn]);
+  FTextEditor.SetText(FEdit.Text);
+  FTextEditor.Modified := FEdit.Text <> FTree.Text[FNode, FColumn];
   FTextEditor.SetMaxLength(Self.FMaxLength);
   FTextEditor.ShowModal;
 end;
