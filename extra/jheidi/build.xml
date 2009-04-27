@@ -348,7 +348,7 @@
     
     <copy file="${etc}/${mysql-profiles}" tofile="${osx.java}/${mysql-profiles}"/>
     <copy file="${etc}/${oracle-profiles}" tofile="${osx.java}/${oracle-profiles}"/>
-    <copy file="${etc}/${drizzle-profiles}" tofile="${bin.dist}/${drizzle-profiles}"/> 
+    <copy file="${etc}/${drizzle-profiles}" tofile="${osx.java}/${drizzle-profiles}"/> 
     <copy file="${osx.client.autoupdater}" tofile="${osx.java}/${.autoupdater}"/>
     
     <exec executable="zip" dir="${dist.dir}">
@@ -406,7 +406,7 @@
     
     <copy file="${etc}/${mysql-profiles}" tofile="${win.dist}/${mysql-profiles}"/>
 	  <copy file="${etc}/${oracle-profiles}" tofile="${win.dist}/${oracle-profiles}"/>
-	  <copy file="${etc}/${drizzle-profiles}" tofile="${bin.dist}/${drizzle-profiles}"/> 
+	  <copy file="${etc}/${drizzle-profiles}" tofile="${win.dist}/${drizzle-profiles}"/> 
     <copy file="${win.client.autoupdater}" tofile="${win.dist}/${.autoupdater}"/>
     <copy todir="${win.dist}/${innosetup}">
 	  <fileset dir="${etc}/${innosetup}"/>
