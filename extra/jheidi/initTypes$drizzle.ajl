@@ -18,7 +18,7 @@
   // p, i, u, b, u, z, n, a, l
   int[] ZERO_6 =    new int[] { 0, 2, 1, 1, 1 };
   int[] SEVEN =     new int[] { 0, 2, 1, 2, 1 };
-  int[] EIGHT_12 =  new int[] { 0, 0, 0, 1, 1 };
+  int[] EIGHT_12 =  new int[] { 0, 0, 0, 0, 1 };
   int[] THIRT_14 =  new int[] { 1, 0, 0, 2, 1 }; 
   int[] FIFT_18 =   new int[] { 1, 0, 0, 0, 0 };
   int[] NINT_20 =   new int[] { 0, 0, 0, 2, 1 }; 
@@ -38,13 +38,17 @@
   {
       if (i < 4)
          typeMap.put(typesArray[i], ZERO_6);
-      else if ( i == 5 )
+      else if ( i == 4 )
          typeMap.put(typesArray[i], SEVEN);
       else if ( i < 9 )
          typeMap.put(typesArray[i], EIGHT_12);
-      else if ( i < 12 )
+      else if ( i < 11 )
          typeMap.put(typesArray[i], THIRT_14);
+      else if ( i == 11 )
+         typeMap.put(typesArray[i], TWEN1_24);
       else if ( i < 14 )
+         typeMap.put(typesArray[i], NINT_20);
+      else if ( i == 14 )
          typeMap.put(typesArray[i], TWEN1_24);
       else if ( i < 17 )
          typeMap.put(typesArray[i], TWEN5_26);
