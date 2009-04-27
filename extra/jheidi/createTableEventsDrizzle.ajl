@@ -1,0 +1,253 @@
+  import javax.swing.*;
+  import java.util.*;
+  
+  String who = arg("source");
+  WindowContext context = argObj("windowContext");
+  
+  log.debug("event received: " + who);
+  
+  if ( "Create".equals(who) )
+  {
+     Dialog d = context.get("/");
+     ListBox l = context.get("/fields");
+     ListDataModel model = (ListDataModel)l.getModel();
+     StringBuilder buffer = new StringBuilder(3000);
+
+     String tableName = ((Field)context.get("/tableName")).getText();
+     String dbName = ((Combo)context.get("/databases")).getText();
+     String comment = ((Field)context.get("/comment")).getText();
+     String engine = ((Combo)context.get("/engines")).getText();
+     String charSet = ((Combo)context.get("/charSets")).getText();
+     String coll = ((Combo)context.get("/collations")).getText();
+     
+     if ( tableName == null || tableName.trim().length() == 0 )
+     {
+        d.popupMessage("Create Table", "Please provide a table name before saving.");
+	      return;
+     } else if ( dbName == null )
+     {
+        d.popupMessage("Create Table", "Please select a database for the new table before saving.");
+	      return;
+	   } else if ( model.size() == 0 )
+     {
+	      d.popupMessage("Create Table", "Please add at least one field before saving.");
+	      return;
+     }
+
+     args().put("fieldKey", l.getSelectedValue());
+     script("createTableStateMySQL", args());
+     
+     buffer.append("create table `").append(dbName).append("`.`").append(tableName).append("` (");
+
+     List<String> priKeys = new ArrayList<String>();
+     List<String> uniques = new ArrayList<String>();
+     List<String> indxs = new ArrayList<String>();
+     
+     for (int i=0; i < model.size(); i++)
+     {
+	      String fieldName = (String)model.get(i);
+	      HashObject def = l.getProperty(fieldName);
+	      if ( def != null )
+	      {
+          	buffer.append(fieldName).append(" ").append(def.get("type"));
+            if ( def.get("length") != null && def.get("length").trim().length() > 0)
+            {
+              buffer.append("(").append(def.get("length")).append(")");
+            }
+            if ( ((Boolean)def.getObject("binary")) == Boolean.TRUE )
+              buffer.append(" binary");
+
+            if ( def.get("default") != null && def.get("default").trim().length() > 0)
+            {
+              buffer.append(" default '").append(def.get("default")).append("'");
+            }
+
+            if ( ((Boolean)def.getObject("notNull")) == Boolean.TRUE )
+              buffer.append(" not null");
+            if ( ((Boolean)def.getObject("autoInc")) == Boolean.TRUE )
+              buffer.append(" auto_increment");
+
+            if (i != model.size()-1)
+            {
+              buffer.append(", ");
+            }
+
+            if ( ((Boolean)def.getObject("primary")) == Boolean.TRUE )
+              priKeys.add(fieldName);
+
+            if ( ((Boolean)def.getObject("unique")) == Boolean.TRUE )
+              uniques.add(fieldName);
+
+            if ( ((Boolean)def.getObject("index")) == Boolean.TRUE )
+              indxs.add(fieldName);
+        }
+      }
+
+       if ( priKeys.size() > 0)
+       {
+          buffer.append(", PRIMARY KEY(");
+
+          for ( int i=0; i < priKeys.size(); i++)
+          {
+            buffer.append(priKeys.get(i));
+            buffer.append(i!=priKeys.size()-1?",":"");
+          }
+          buffer.append(")");
+       }
+
+       if ( uniques.size() > 0)
+       {
+          buffer.append(", UNIQUE(");
+
+          for ( int i=0; i < uniques.size(); i++)
+          {
+            buffer.append(uniques.get(i));
+            buffer.append(i!=uniques.size()-1?",":"");
+          }
+          buffer.append(")");
+       }
+
+       if ( indxs.size() > 0)
+       {
+          buffer.append(", INDEX(");
+
+          for ( int i=0; i < indxs.size(); i++)
+          {
+            buffer.append(indxs.get(i));
+            buffer.append(i!=indxs.size()-1?",":"");
+          }
+          buffer.append(")");
+       }
+       buffer.append(")");
+
+       buffer.append(" engine=").append(engine);
+       /*.append(" default charset ").append(charSet)
+       .append(" collate ").append(coll); */
+
+      // CREATE TABLE `test`.`TableName` (`bob` TINYINT (10) UNSIGNED ZEROFILL DEFAULT 'goo' NOT NULL AUTO_INCREMENT, PRIMARY KEY(`bob`), UNIQUE(`bob`), INDEX(`bob`)) TYPE = InnoDB /*!40100 DEFAULT CHARSET latin1 COLLATE latin1_swedish_ci */
+     log.debug("heres the statement: " + buffer.toString());
+      
+     DB db = context.get("db");
+     db.execute(buffer.toString());
+    
+     db.flushStatement("select table_name from information_schema.tables where table_schema = '" + dbName + "' order by table_name");
+     
+     context.put("dlgResult", Boolean.TRUE);
+     
+     d.dispose();
+
+  } else if ( "Cancel".equals(who) )
+  {
+     Dialog d = context.get("/");
+     d.dispose();
+  } 
+  else if ("charSets".equals(who))
+  {
+    DB db = context.get("db");
+    DB.Result result = db.execute("select * from information_schema.collations where character_set_name='" + ((Combo)context.get("/charSets")).getText() + "'");
+    
+    String def = null;
+    
+    for (HashObject ho: result)
+    {
+      if ("Yes".equalsIgnoreCase((String)ho.get(3)))
+      {
+         def = (String)ho.get(0);
+         break;
+      }
+    }
+    
+    Combo combo = context.get("/collations");
+    ComboUtils.populate(combo, result, 0);
+    combo.select(def);
+  
+  } 
+  else if ("Add".equals(who) )
+  {
+    Field f = context.get("/fieldName");
+    Dialog d = context.get("/");
+    ListBox l = context.get("/fields");
+    ListDataModel model = (ListDataModel)l.getModel();
+    String fieldName = f.getText();
+    if ( fieldName != null )
+    {
+      fieldName = fieldName.trim();
+    }
+    
+    if ( fieldName != null && (fieldName.length() > 0) &&
+         !model.contains(fieldName))
+    {
+      model.add(fieldName);
+      context.put("addField", true);
+      l.setSelectedIndex(model.indexOf(fieldName)); //why isnt this firing?
+    }
+    else if ( fieldName == null || fieldName.length() == 0 )
+    {
+      d.popupMessage("Create Table", "Please enter a field name to add.");
+    }
+    else if ( model.contains(fieldName) )
+    {
+      d.popupMessage("Create Table", "Field name '" + fieldName.trim() + "'  already exists in this table.");
+    }
+  }
+  else if ("Remove".equals(who) )
+  {
+    ListBox l = context.get("/fields");
+    int sel = l.getSelectedIndex();
+    if ( sel != -1 )
+    {
+       ((ListDataModel)l.getModel()).remove(sel);
+       l.setSelectedIndex(sel-1 < 0 ? 0: sel-1);
+    }
+    
+  }
+  else if ("Up".equals(who) )
+  {
+    ListBox l = context.get("/fields");
+    int sel = l.getSelectedIndex();
+    if ( sel != -1 ) {
+      ((ListDataModel)l.getModel()).moveUp(sel);
+      l.setSelectedIndex(sel-1 < 0 ? 0: sel-1);
+    }
+     
+  }
+  else if ("Down".equals(who) )
+  {
+    ListBox l = context.get("/fields");
+    int sel = l.getSelectedIndex();
+    if ( sel != -1 ) {
+      ListDataModel model = (ListDataModel)l.getModel();
+      model.moveDown(sel);
+      l.setSelectedIndex(sel+1 > model.size()-1 ? model.size()-1 : sel+1);
+    }   
+  }
+  else if ("Rename".equals(who) )
+  {
+    Field f = context.get("/fieldName");
+    ListBox l = context.get("/fields");
+    ListDataModel model = (ListDataModel)l.getModel();
+    String fieldName = f.getText();
+    int sel = l.getSelectedIndex();
+    if ( sel != -1 && fieldName != null && (fieldName.trim().length() > 0) &&
+         !model.contains(fieldName.trim()))
+    {
+      HashObject vals = l.getProperty((String)l.getSelectedValue());
+      if ( vals != null ) 
+      {
+         l.setProperty(fieldName, vals);
+         l.setProperty("lastSel", fieldName);
+      }
+        
+      model.set(sel, fieldName);
+      l.setSelectedIndex(model.indexOf(fieldName));
+
+    }
+  }
+ 
+  
+  
+  
+  
+    
+
+

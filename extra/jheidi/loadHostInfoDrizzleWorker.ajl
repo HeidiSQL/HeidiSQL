@@ -1,0 +1,104 @@
+
+  String event = arg("workerEvent");
+  if ( event == "init" || event == "done")
+    return;
+  
+  WindowContext context = argObj("windowContext");
+  Worker worker = argObj("worker");
+  boolean setRefresh = false;
+  
+  if ( event == "longRunningTask" || event == "alreadyRunning")
+  {
+    if ( worker.isDone() && event=="longRunningTask" )
+      return;
+    
+    Text  banner = context.get("/mainTabs/Host/toolbar/banner");
+    banner.setText("Drizzle (loading)");
+  }
+  else if ( event == "backgroundTask" )
+  {
+    final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+    worker.setProperty("db", db);
+    worker.setProperty("waitOperation","host information");
+
+    db.useCache(false);
+    
+    DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+        public void execute() throws Exception
+        {
+          DB.Result version = db.execute("select version()");
+          DB.Result vars = db.execute("select * from information_schema.global_variables");
+          DB.Result processes = db.execute("select * from information_schema.processlist");
+          DB.Result status = db.execute("select * from information_schema.global_status");
+          HashObject ho = new HashObject();
+          ho.put("version", version);
+          ho.put("vars", vars);
+          ho.put("processes", processes);
+          ho.put("status", status);
+          
+          /*try
+          {
+            Thread.sleep(5000);
+          } catch (Exception e) {}*/
+        
+          publish(ho);
+        }
+      };
+    
+    db.execute(tx);
+  }
+  else if ( event == "update" )
+  {
+    HashObject resultSets = (HashObject)((java.util.List)argObj("taskResult")).get(0);
+
+    DB.Result version =  resultSets.getObject("version");
+    DB.Result vars =  resultSets.getObject("vars");
+    DB.Result processes =  resultSets.getObject("processes");
+    DB.Result status = resultSets.getObject("status");
+    
+    Text  banner = context.get("/mainTabs/Host/toolbar/banner");
+    banner.setText("Drizzle " + version.first().get(0));
+    Table varTable = context.get("/mainTabs/Host/tabs/Variables/table");
+    TableUtils.populate(varTable, vars);
+    Table processTable = context.get("/mainTabs/Host/tabs/Processes/table");
+    TableUtils.populate(processTable, processes);
+    Table statusTable = context.get("/mainTabs/Host/tabs/Status/table");
+    TableUtils.populate(statusTable, status);
+    setRefresh = true;
+    
+  }
+  else if ( event == "cancelled" )
+  {
+    DB db = worker.getProperty("db");
+    if ( db != null )
+      db.cancel();
+    
+    Text  banner = context.get("/mainTabs/Host/toolbar/banner");
+    banner.setText("Drizzle (load canceled)");
+    setRefresh = true;
+
+  }
+  
+  if ( setRefresh )
+  {
+    //let the refresh button know what to do
+    Panel tab = context.get("/mainTabs/Host");
+    tab.setProperty("refreshScript", "loadHostInfoDrizzleWorker");
+    tab.setProperty("refreshArgs", args());
+  }
+  
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

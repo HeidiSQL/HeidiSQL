@@ -192,11 +192,21 @@ else if ("Vendor" == event)
     Text logoImage = context.get("/logo");
     logoImage.setIcon(new ImageIcon("images/logo-" + newVendor + ".gif"));
     
-    if ( newVendor == "mysql" )
+    if ( newVendor == "mysql")
     {
       dialog.setTitle("New Connection - MySQL");
       hostLabel.setText("Host:");
       compressBox.setText("Use compressed protocol");
+      compressBox.setEnabled(true);
+      dbsLabel.setText(dbsLabel.getText().replaceAll("Schema", "Database"));
+      sortBox.setText(sortBox.getText().replaceAll("schema", "database"));
+    }
+    else if ( newVendor == "drizzle")
+    {
+      dialog.setTitle("New Connection - Drizzle");
+      hostLabel.setText("Host:");
+      compressBox.setText("Use compressed protocol");
+      compressBox.setEnabled(false);
       dbsLabel.setText(dbsLabel.getText().replaceAll("Schema", "Database"));
       sortBox.setText(sortBox.getText().replaceAll("schema", "database"));
     }
@@ -205,6 +215,7 @@ else if ("Vendor" == event)
       dialog.setTitle("New Connection - Oracle");
       hostLabel.setText("Service@Host:");
       compressBox.setText("Connect as sysdba");
+      compressBox.setEnabled(true);
       dbsLabel.setText(dbsLabel.getText().replaceAll("Database", "Schema"));
       sortBox.setText(sortBox.getText().replaceAll("database", "schema"));
     }

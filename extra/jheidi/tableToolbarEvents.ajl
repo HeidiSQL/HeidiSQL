@@ -68,10 +68,19 @@ if ( refreshTableTab )
   DB db = context.get("db");
   String sql = null;
   if ( ((String)context.get("vendor")).equals("mysql"))
+  {
     sql = String.format("show full columns from `%s`.`%s`", context.get("currentDB"), context.get("currentTable"));
+  }
+  else if ( ((String)context.get("vendor")).equals("drizzle"))
+  {
+    sql = "select column_name, column_type, collation_name, is_nullable, column_key, column_default, extra, privileges, column_comment from information_schema.columns where table_schema='" + 
+      (String)context.get("currentDB") + "' and table_name='"  + (String) context.get("currentTable") + "'";
+  }
   else
+  {
     sql = String.format("select lower(column_name) column_name, data_type, data_length, nullable, data_precision, data_scale, data_default, default_length, data_type_mod, data_type_owner, num_distinct, low_value, high_value, density, num_nulls, num_buckets, last_analyzed, sample_size, character_set_name, char_col_decl_length, global_stats,user_stats, avg_col_len, char_length, char_used, histogram from all_tab_columns where table_name=upper('%s') and owner=upper('%s') order by column_id", 
         context.get("currentTable"), context.get("currentDB"));
+  }
 
   db.flushStatement(sql);
   

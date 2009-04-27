@@ -1,0 +1,142 @@
+  import javax.swing.*;
+  import java.util.*;
+
+  WindowContext parentContext = argObj("windowContext");
+  
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"), "fieldDialog", arg("fieldMode") + " Field" );
+  WindowContext context = dlg.getWindowContext();
+  context.put("db", parentContext.get("db"));
+  context.put("vendor", parentContext.get("vendor"));
+  context.put("currentDB", parentContext.get("currentDB"));
+  context.put("currentTable", parentContext.get("currentTable"));
+  context.put("fieldMode", arg("fieldMode"));
+  
+  dlg.events("fieldEventsDrizzle");
+  dlg.tabLayout()
+    .insets(10, 10)
+    .icon(arg("fieldMode").equals("Add")?"images/newfield.gif":"images/editfield.gif")
+	  .text("Position:", 90)
+    .setTab()
+    .combo("positions", new String[] {"Hi"}, 200)
+    .setTab()
+    .nextRow()
+    .tab(1)
+    .text("Name:")
+    .tab(2)
+    .field("fieldName", 200)
+    .nextRow()
+    .tab(1)
+    .text("Type:")
+    .tab(2)
+    .combo("types", new String[] {"Hi"}, 200)
+    .nextRow()
+    .tab(1)
+    .text("Length/Set:")
+    .tab(2)
+    .field("lengthSet", 200)
+    .nextRow()
+    .tab(1)
+    .text("Default:")
+    .tab(2)
+    .field("defaultValue", 200)
+    .nextRow()
+    .tab(1)
+    .text("Comment:")
+    .tab(2)
+    .field("comment", 200)
+    .nextRow()
+    .space(-2)
+    .groupbox("Attributes",LF.isWin?302:301, 87)
+    .nextRow()
+    .vspace(17)
+    .space(LF.isWin?18:13)
+    .checkbox("notNull", "Not Null", 90,  false)
+    .setTab()
+    .checkbox("autoInc", "Auto Increment", false)
+    .setTab()
+    .nextRow()
+    .tab(3)
+    .checkbox("binary", "Binary", 90, false)
+    .tab(4)
+    .checkbox("unsigned", "Unsigned", 95,false)
+    .space(2)
+    .checkbox("zeroFill", "Zero Fill", 77, false)
+    .nextRow()
+    .vspace(18)
+    .space(37)
+    .button(arg("fieldMode").equals("Add") ?"Add Field" : "Update Field", 110)
+    .space(5)
+    .button("Cancel", 110);
+    
+    CheckBox check = context.get("/unsigned");
+    check.setVisible(false);
+    check = context.get("/zeroFill");
+    check.setVisible(false);
+     
+    DB db = context.get("db");
+  
+    DB.Result result = db.executeNonCached("select column_name, column_type, collation_name, is_nullable, column_key, column_default, extra, privileges, column_comment from information_schema.columns where table_schema='" + 
+      (String)context.get("currentDB") + "' and table_name='"  + (String) context.get("currentTable") + "'");
+          
+    Combo positions = context.get("/positions");
+    String selField = arg("fieldToEdit");
+    context.put("fieldToEdit", selField);
+    HashObject selectField = null;
+    String[] posList = new String[result.size() + (selField == null ?2 :3)];
+    int c = 0;
+    if ( selField != null )
+    {
+      posList[c++] = "";
+    }
+    posList[c++] = "Last";
+    posList[c++] = "First";
+    for (int i=0; i < result.size(); i++)
+    {
+      posList[i+c] = "After '" + result.get(i).get(0) + "'";
+      if ( result.get(i).get(0).equals(selField) )
+      {
+        selectField = (HashObject)result.get(i);
+      }
+        
+    }
+    
+    positions.setModel(new DefaultComboBoxModel(posList));
+    positions.setEnabled(false);
+    
+    ((Field)context.get("/fieldName")).setText("FieldName");
+    ((JCheckBox)context.get("/autoInc")).setEnabled(false);
+    
+    HashObject newArgs = new HashObject();
+    newArgs.put("windowContext", context);
+    script("initTypes$" + context.get("vendor"), newArgs);
+    
+    if ( selectField != null )
+    { //populate the dialog
+    
+      ((Field)context.get("/fieldName")).setText(selectField.get("column_name"));
+      
+      String type = selectField.get("column_type");
+      int paren = type.indexOf("(");
+      int space = type.indexOf(" ");
+      String typeOnly = paren !=-1 ? type.substring(0, paren) : (space != -1 ? type.substring(0, type.indexOf(" ")) : type);
+      ((Combo)context.get("/types")).select(typeOnly);
+      if ( paren != -1 )
+      {
+        ((Field)context.get("/lengthSet")).setText(type.substring(paren+1, type.indexOf(")")));
+      }
+      ((Field)context.get("/defaultValue")).setText(selectField.get("default")!= null ? selectField.get("default") : "");
+      ((Field)context.get("/comment")).setText(selectField.get("comment")!= null ? selectField.get("comment") : "");
+      ((JCheckBox)context.get("/binary")).setSelected(type.contains("binary"));
+      ((JCheckBox)context.get("/unsigned")).setSelected(type.contains("unsigned"));
+      ((JCheckBox)context.get("/zeroFill")).setSelected(type.contains("zerofill"));
+      ((JCheckBox)context.get("/notNull")).setSelected(selectField.get("is_nullable").equals("NO"));
+      ((JCheckBox)context.get("/autoInc")).setSelected(selectField.get("extra") != null && 
+      selectField.get("extra").contains("auto_increment"));
+    }
+      
+    
+    dlg.visible();
+    
+    return context.get("dlgResult");
+    
+    

@@ -5,7 +5,7 @@
   WindowContext context = dlg.getWindowContext();
   context.put("db", parentContext.get("db"));
   
-  dlg.events("createDBEvents");
+  dlg.events("createDBEventsDrizzle");
   dlg.tabLayout()
     .insets(10, 10)
     .icon("images/db.gif")
@@ -34,11 +34,15 @@
     dlg.setDefaultButton((Button)context.get("/Ok"));
     
     DB db = context.get("db");
-    DB.Result result = db.execute("show character set");
+    DB.Result result = db.execute("select character_set_name as charset, description, default_collate_name as 'default collation', maxlen from information_schema.character_sets");
      
     Combo combo = context.get("/charSets");
     ComboUtils.populate(combo, result, 0);
-    combo.select("latin1");
+    combo.select("utf8");
+    combo.setEnabled(false);
+    
+    combo = context.get("/collations");
+    combo.setEnabled(false);
     
     dlg.visible();
     
