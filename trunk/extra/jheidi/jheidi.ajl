@@ -73,7 +73,7 @@
     .line(513)
     .nextRow()
     .vspace(LF.isWin?7:8)
-    .slider("Vendor", SwingConstants.HORIZONTAL, 0, 1, 118)
+    .slider("Vendor", SwingConstants.HORIZONTAL, 0, 2, 118)
     .vspace(7)
     .tab(1)
     .button("Save/Connect", LF.isMac?112: 110)
@@ -85,6 +85,7 @@
     
     HashObject vendors = new HashObject();
     vendors.add("mysql");
+    vendors.add("drizzle");
     vendors.add("oracle");
     env("vendors", vendors);
     app.setProperty("currentVendor", "mysql");

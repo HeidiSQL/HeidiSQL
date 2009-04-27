@@ -1,7 +1,7 @@
 app=jHeidi
-version=Alpha 3 Update 4
-timestamp=20080601000000
-url=http://heidisql.com/jheidi/files/autoupdater/bin/jheidi-bin-autoupdater
+version=Alpha 3 Update 5
+timestamp=20081002000000
+url=http://www.heidisql.com/jheidi/files/autoupdater/bin/jheidi-bin-autoupdater
 processKey=jheidi
 libPath=lib
 propPath=.

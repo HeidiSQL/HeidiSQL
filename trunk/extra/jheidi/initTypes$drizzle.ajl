@@ -1,0 +1,74 @@
+  import javax.swing.*;
+  import java.util.*;
+ 
+  WindowContext context = argObj("windowContext");
+  
+  Combo types = context.get("/types");
+  
+  String[] typesArray = new String[] { "int", "bigint", "float", "double","decimal","date", 
+      "time", "datetime", "timestamp", "char", "varchar", "text",
+      "binary", "varbinary", "blob", "enum", "set", "bit" };
+      
+  types.setModel(new DefaultComboBoxModel(typesArray));
+  types.events("typeChangeEventsMySQL");
+  
+  Object[] widgets = new Object[] { context.get("/binary"),  context.get("/unsigned"), context.get("/zeroFill"),
+      context.get("/lengthSet"), context.get("/defaultValue") };
+      
+  // p, i, u, b, u, z, n, a, l
+  int[] ZERO_6 =    new int[] { 0, 2, 1, 1, 1 };
+  int[] SEVEN =     new int[] { 0, 2, 1, 2, 1 };
+  int[] EIGHT_12 =  new int[] { 0, 0, 0, 1, 1 };
+  int[] THIRT_14 =  new int[] { 1, 0, 0, 2, 1 }; 
+  int[] FIFT_18 =   new int[] { 1, 0, 0, 0, 0 };
+  int[] NINT_20 =   new int[] { 0, 0, 0, 2, 1 }; 
+  int[] TWEN1_24 =  new int[] { 0, 0, 0, 0, 0 };
+  int[] TWEN5_26 =  new int[] { 0, 0, 0, 1, 1 }; 
+  int[] TWEN7 =     new int[] { 0, 0, 0, 0, 1 };
+  int[] TWEN8 =     new int[] { 0, 0, 0, 0, 1 };
+  
+  HashObject typeMap = new HashObject();
+  HashObject defSizeMap = new HashObject();
+
+  types.setProperty("typeStateMap", typeMap);
+  types.setProperty("defSizeMap", defSizeMap); 
+  types.setProperty("widgets", widgets);
+  
+  for (int i=0; i < typesArray.length; i++)
+  {
+      if (i < 4)
+         typeMap.put(typesArray[i], ZERO_6);
+      else if ( i == 5 )
+         typeMap.put(typesArray[i], SEVEN);
+      else if ( i < 9 )
+         typeMap.put(typesArray[i], EIGHT_12);
+      else if ( i < 12 )
+         typeMap.put(typesArray[i], THIRT_14);
+      else if ( i < 14 )
+         typeMap.put(typesArray[i], TWEN1_24);
+      else if ( i < 17 )
+         typeMap.put(typesArray[i], TWEN5_26);
+      else if ( i == 17 )
+         typeMap.put(typesArray[i], TWEN7);
+     
+  }
+  
+  defSizeMap.put(typesArray[9], "50");
+  defSizeMap.put(typesArray[10], "50");
+  defSizeMap.put(typesArray[12], "50");
+  defSizeMap.put(typesArray[13], "50");
+  defSizeMap.put(typesArray[15], "'Y', 'N'");
+  defSizeMap.put(typesArray[16], "'Y', 'N'");
+  defSizeMap.put(typesArray[17], "'Y', 'N'");
+  
+  types.select("int");
+      
+  
+        
+  
+  
+  
+    
+    
+    
+    

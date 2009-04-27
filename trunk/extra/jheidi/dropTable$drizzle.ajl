@@ -1,0 +1,12 @@
+
+WindowContext context = argObj("windowContext");
+String table = arg("tableToDrop");
+
+DB db = context.get("db");
+
+db.execute("drop table `" + context.get("currentDB") + "`.`" + table + "`");
+db.flushStatement("select table_name from information_schema.tables where table_schema = '" + context.get("currentDB") + "' order by table_name");
+
+
+
+
