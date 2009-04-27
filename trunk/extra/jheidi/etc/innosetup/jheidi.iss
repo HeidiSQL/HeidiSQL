@@ -34,6 +34,7 @@ Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescrip
 [Files]
 Source: "..\.profiles-mysql"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\.profiles-oracle"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\.profiles-drizzle"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\.autoupdater"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\jheidi.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\jheidi.exe"; DestDir: "{app}"; Flags: ignoreversion
