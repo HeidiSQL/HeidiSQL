@@ -6,7 +6,7 @@ interface
 
 uses Windows, Forms, Graphics, messages, VirtualTrees, texteditor, bineditor, ComCtrls, SysUtils, Classes,
   mysql_structures, Main, helpers, TntStdCtrls, WideStrings, StdCtrls, ExtCtrls, TntCheckLst,
-  Buttons, Controls, Types, PngSpeedButton;
+  Buttons, Controls, Types, PngSpeedButton, Dialogs;
 
 type
   TMemoEditorLink = class(TInterfacedObject, IVTEditLink)
@@ -874,7 +874,10 @@ begin
   FColumn := Column;
 
   FTree.GetTextInfo(Node, Column, FEdit.Font, FTextBounds, NodeText);
-  CheckAndWarnIfNulChar(NodeText);
+  if ScanNulChar(NodeText) then begin
+    MessageDlg(SContainsNulCharGrid, mtInformation, [mbOK], 0);
+    NodeText := RemoveNulChars(NodeText);
+  end;
   FPanel.Parent := FTree;
   FEdit.Font.Color := clWindowText;
   FEdit.Text := NodeText;

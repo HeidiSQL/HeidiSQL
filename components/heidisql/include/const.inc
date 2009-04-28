@@ -290,6 +290,8 @@ const
   MSG_COPYMAXSIZE = 'Copying data is limited to %s but more data is available. '
         + 'Only %s out of %s rows were copied.' + CRLF + CRLF
         + 'Increase the value in Tools > Preferences > Export if you need more.';
+  SContainsNulCharFile = 'This file contains NUL characters. They have been converted to ASCII spaces (SP).';
+  SContainsNulCharGrid = 'This cell contains NUL characters. They have been converted to ASCII spaces (SP). Press ESC to cancel editing.';
 
   DBO_NAME = 'Name';
   DBO_TYPE = 'Type';

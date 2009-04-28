@@ -5479,7 +5479,7 @@ begin
 
     if ScanNulChar(filecontent) then begin
       filecontent := RemoveNulChars(filecontent);
-      MessageDlg('This file contains NUL characters. They have been converted to ASCII spaces (SP).', mtInformation, [mbOK], 0);
+      MessageDlg(SContainsNulCharFile, mtInformation, [mbOK], 0);
     end;
 
     SynMemoQuery.BeginUpdate;
