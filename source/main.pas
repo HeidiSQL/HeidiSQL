@@ -5476,6 +5476,12 @@ begin
     FillPopupQueryLoad;
     PagecontrolMain.ActivePage := tabQuery;
     SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
+
+    if ScanNulChar(filecontent) then begin
+      filecontent := RemoveNulChars(filecontent);
+      MessageDlg('This file contains NUL characters. They have been converted to ASCII spaces (SP).', mtInformation, [mbOK], 0);
+    end;
+
     SynMemoQuery.BeginUpdate;
     LineBreaks := ScanLineBreaks(filecontent);
     if ReplaceContent then begin
@@ -5489,6 +5495,7 @@ begin
     end;
     if QueryMemoLineBreaks = lbsMixed then
       MessageDlg('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).', mtInformation, [mbOK], 0);
+
     SynMemoQuery.SelText := filecontent;
     SynMemoQuery.SelStart := SynMemoQuery.SelEnd;
     SynMemoQuery.EndUpdate;
