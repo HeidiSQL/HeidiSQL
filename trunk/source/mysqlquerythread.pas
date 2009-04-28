@@ -241,7 +241,8 @@ begin
   q.Connection := FMysqlConn;
   // Parameter checking is used only in Insert Files, which has it's own TZQuery.
   q.ParamCheck := false;
-  q.SQL.Text := ASql;
+  q.SQL.Clear;
+  q.SQL.Add(ASql);
   ADataset := q;
 
   try
