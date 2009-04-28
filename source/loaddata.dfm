@@ -3,7 +3,7 @@ object loaddataform: Tloaddataform
   Top = 111
   BorderStyle = bsDialog
   BorderWidth = 3
-  Caption = 'Import Textfile'
+  Caption = 'Import text file'
   ClientHeight = 343
   ClientWidth = 423
   Color = clBtnFace
@@ -360,8 +360,8 @@ object loaddataform: Tloaddataform
   object OpenDialogCSVFile: TOpenDialog
     DefaultExt = 'csv'
     Filter = 
-      'CSV-Files (*.csv)|*.csv|Textfiles (*.txt)|*.txt|All Files (*.*)|' +
-      '*.*'
+      'MySQL CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt|All files' +
+      ' (*.*)|*.*'
     Left = 392
   end
 end
