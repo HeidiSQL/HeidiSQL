@@ -133,8 +133,9 @@ type
   function MakeFloat( Str: String ): Extended;
   function FloatStr(Val: String): String;
   function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
-  function hasNullChar(Text: WideString): boolean;
+  function ScanNulChar(Text: WideString): Boolean;
   function ScanLineBreaks(Text: WideString): TLineBreaks;
+  function RemoveNulChars(Text: WideString): WideString;
   procedure debug(txt: String);
   function fixNewlines(txt: string): string;
   function bool2str( boolval : Boolean ) : String;
@@ -1638,8 +1639,9 @@ end;
 
 {***
   Detect NUL character in a text.
+  Useful because fx SynEdit cuts of all text after it encounters a NUL.
 }
-function hasNullChar(Text: WideString): boolean;
+function ScanNulChar(Text: WideString): boolean;
 var
   i: integer;
 begin
@@ -1698,6 +1700,30 @@ begin
     // No need to do more checks after detecting mixed style
     if Result = lbsMixed then
       break;
+  until i > length(Text);
+end;
+
+
+
+{***
+  Mangle input text so that SynEdit can load it.
+
+  @param string Text to test
+  @return Boolean
+}
+function RemoveNulChars(Text: WideString): WideString;
+var
+  i: integer;
+  c: WideChar;
+begin
+  SetLength(Result, Length(Text));
+  if Length(Text) = 0 then Exit;
+  i := 1;
+  repeat
+    c := Text[i];
+    if c = #0 then Result[i] := #32
+    else Result[i] := c;
+    i := i + 1;
   until i > length(Text);
 end;
 
