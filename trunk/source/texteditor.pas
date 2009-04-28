@@ -102,7 +102,10 @@ begin
   if LB <> '' then
     text := WideStringReplace(text, LB, CRLF, [rfReplaceAll]);
 
-  CheckAndWarnIfNulChar(text);
+  if ScanNulChar(text) then begin
+    MessageDlg(SContainsNulCharGrid, mtInformation, [mbOK], 0);
+    text := RemoveNulChars(text);
+  end;
 
   // TODO: Find out why the Delphi IDE insists hinting that this
   //       property is ANSI when it is in fact a WideString.
