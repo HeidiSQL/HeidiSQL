@@ -3800,7 +3800,6 @@ begin
         DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
         FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
       end;
-      DisplayRowCountStats();
       dataselected := true;
 
       PageControlMainChange(Self);
@@ -3831,8 +3830,9 @@ var
   IsFiltered, IsInnodb: Boolean;
   ds: TDataSet;
   i: Integer;
+  s: WideString;
 begin
-  lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable + ': ';
+  lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable;
 
   IsFiltered := self.DataGridCurrentFilter <> '';
   if GetSelectedNodeType = NODETYPE_TABLE then begin
@@ -3842,23 +3842,26 @@ begin
     IsInnodb := False;
     for i := 0 to ds.RecordCount - 1 do begin
       if ds.FieldByName(DBO_NAME).AsWideString = SelectedTable then begin
-        rows_total := MakeInt(ds.FieldByName(DBO_ROWS).AsString);
+        s := ds.FieldByName(DBO_ROWS).AsString;
+        if s <> '' then rows_total := MakeInt(s);
         IsInnodb := ds.Fields[1].AsString = 'InnoDB';
         break;
       end;
     end;
 
     if rows_total > -1 then begin
-      lblDataTop.Caption := lblDataTop.Caption + FormatNumber(rows_total) + ' rows total';
+      lblDataTop.Caption := lblDataTop.Caption + ': ' + FormatNumber(rows_total) + ' rows total';
       if IsInnodb then lblDataTop.Caption := lblDataTop.Caption + ' (approximately)';
-    end;
 
-    if MatchingRows = prefMaxTotalRows then begin
-      lblDataTop.Caption := lblDataTop.Caption + ', limited to ' + FormatNumber(prefMaxTotalRows);
-    end else if MatchingRows = rows_total then begin
-      lblDataTop.Caption := lblDataTop.Caption + ', filter matches all rows';
-    end else if IsFiltered and (MatchingRows > -1) then begin
-      lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(MatchingRows) + ' matches filter';
+      if MatchingRows = prefMaxTotalRows then begin
+        lblDataTop.Caption := lblDataTop.Caption + ', limited to ' + FormatNumber(prefMaxTotalRows);
+      end else if IsFiltered then begin
+        if MatchingRows = rows_total then begin
+          lblDataTop.Caption := lblDataTop.Caption + ', filter matches all rows';
+        end else if IsFiltered and (MatchingRows > -1) then begin
+          lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(MatchingRows) + ' matches filter';
+        end;
+      end;
     end;
   end;
 end;
@@ -7779,6 +7782,11 @@ begin
       end;
       res.Rows[i].Loaded := True;
       ds.Next;
+    end;
+
+    if res = @FDataGridResult then begin
+      if ReachedEOT then DisplayRowCountStats(Length(res.Rows))
+      else DisplayRowCountStats(-1);
     end;
 
     ShowStatus( STATUS_MSG_READY );
