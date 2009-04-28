@@ -163,7 +163,8 @@ else if ("connProfiles" == event)
      ((CheckBox)context.get("/sort")).setSelected(sort);
      
      boolean enabled = !"Default Local (MySQL)".equals(connProfiles.getText())
-         && !"Default Local (Oracle)".equals(connProfiles.getText());
+         && !"Default Local (Oracle)".equals(connProfiles.getText()) 
+         &&!"Default Local (Drizzle)".equals(connProfiles.getText());
      ((Button)context.get("/Delete")).setEnabled(enabled);
      ((Button)context.get("/Rename")).setEnabled(enabled);
      
