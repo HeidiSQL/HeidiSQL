@@ -1,0 +1,51 @@
+
+  WindowContext parentContext = argObj("windowContext");
+  
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"), "createDBDialog", "Create Database");
+  WindowContext context = dlg.getWindowContext();
+  context.put("db", parentContext.get("db"));
+  
+  dlg.events("createDBEventsDrizzle");
+  dlg.tabLayout()
+    .insets(10, 10)
+    .icon("images/db.gif")
+	  .text("Name:", 90)
+    .setTab()
+    .space(10)
+    .field("dbName", 200)
+    .setTab()
+    .nextRow()
+    .tab(1)
+    .text("Character Set:")
+    .tab(2)
+    .combo("charSets", new String[] {"Hi", "There"}, 200)
+    .nextRow()
+    .tab(1)
+    .text("Collation:")
+    .tab(2)
+    .combo("collations", new String[] {"hi"}, 200)
+    .nextRow()
+    .vspace(10)
+    .space(42)
+    .button("Ok", 110)
+    .space(10)
+    .button("Cancel", 110);
+    
+    dlg.setDefaultButton((Button)context.get("/Ok"));
+    
+    DB db = context.get("db");
+    DB.Result result = db.execute("select character_set_name as charset, description, default_collate_name as 'default collation', maxlen from information_schema.character_sets");
+     
+    Combo combo = context.get("/charSets");
+    ComboUtils.populate(combo, result, 0);
+    combo.select("utf8");
+    combo.setEnabled(false);
+    
+    combo = context.get("/collations");
+    combo.setEnabled(false);
+    
+    dlg.visible();
+    
+    return context.get("dlgResult");
+    
+    

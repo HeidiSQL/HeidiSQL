@@ -1,0 +1,33 @@
+  
+  String who = arg("source");
+  WindowContext context = argObj("windowContext");
+  AutoUpdater updater = (AutoUpdater)env("updater");
+  
+  if ( "Install".equals(who) )
+  {
+    updater.update(true, true);
+  }
+  else
+  {
+    ((Dialog)context.get("/")).dispose();
+  }
+
+  
+  
+  
+
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

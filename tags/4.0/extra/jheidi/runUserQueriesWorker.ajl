@@ -1,0 +1,108 @@
+  import java.util.*;
+  
+  String event = arg("workerEvent");
+  if ( event == "init" || event == "done" || event == "longRunningTask")
+  {
+    return;
+  }
+  
+  final WindowContext context = argObj("windowContext");
+  final HashObject userQueries = argObj("userQueries");
+  Worker worker = argObj("worker");
+  
+  if (event == "backgroundTask")
+  {
+    final DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+    
+    db.useCache(false);
+    
+    worker.setProperty("db", db);
+    
+    DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+      public void execute() throws Exception {
+        
+        DB.Result results = null;
+        
+        try
+        {
+          if (context.get("currentDB") != null && context.get("vendor") != "oracle")
+          {
+            db.execute("use " + context.get("currentDB"));
+          }
+    
+          db.setLimit(1000);
+
+          for (String userQuery : (List<String>)userQueries)
+          {
+             results = db.execute(userQuery);
+          }
+          db.setLimit(-1);
+        }
+        finally
+        {
+          publish(results);
+        }
+      }
+    };
+    
+    db.execute(tx);
+  }
+  else if ( event == "update" )
+  {   
+    DB.Result results = (DB.Result)((List)argObj("taskResult")).get(0);
+    
+    if ( results != null )
+    {
+    //if the last statement didnt have any results oh well!
+      Table t = context.get("/mainTabs/Query/results");
+      TableUtils.populate(t, results);
+      
+      context.put("lastQuerySQL", userQueries.get(userQueries.size()-1));
+      context.put("lastQueryResults", results);
+    }
+    
+    ToolbarButton btn = context.get("/mainTabs/Query/toolbar/Stop");
+    btn.setEnabled(false);
+    
+    btn = context.get("/mainTabs/Query/toolbar/Run");
+    btn.setEnabled(true);
+    
+    Editor editor = context.get("/mainTabs/Query/editor");
+    if (editor.getSelectedText() != null && editor.getSelectedText().length() > 0)
+    {
+       btn = context.get("/mainTabs/Query/toolbar/Run Selection");
+       btn.setEnabled(true);
+    }
+  }
+  else if (event == "cancelled" )
+  {
+    DB db = worker.getProperty("db");
+    
+    if ( db != null )
+      db.cancel();
+  }
+  
+    
+
+  
+  
+
+  
+
+ 
+    
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+	

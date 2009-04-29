@@ -1,0 +1,164 @@
+  import javax.swing.*;
+  import java.awt.Font;
+  
+  WindowContext parentContext = argObj("windowContext");
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"),"userManagerDialog", "User Manager" );
+  WindowContext context = dlg.getWindowContext();
+  context.put("db", parentContext.get("db"));
+
+  dlg.events("userManagerEvents");
+  dlg.insets(10, 10);
+  dlg.icon("images/usermgr.gif");
+  
+  Tabs tabs = dlg.tabs("tabs", true);
+	Panel addUser = tabs.tab("Add User");
+	addUser.tabLayout();
+	addUser.insets(10, 10);
+ 
+  addUser.text("Grant access to:", 270)
+      .text("Credentials:")
+      .setTab()
+      .nextRow()
+      .tree("schemaTree", new Object[] {"A Tree"}, 250, 315)
+	    .tab(1)
+	    .text("User Name:", 85)
+	    .field("userName", 130)
+	    .setTab()
+	    .nextRow()
+	    .tab(1)
+	    .text("From Host:")
+	    .tab(2)
+	    .field("host", 130)
+	    .nextRow()
+	    .tab(1)
+	    .text("Password:")
+	    .tab(2)
+	    .password("password", 130)
+	    .nextRow()
+ 	    .vspace(10)
+	    .tab(1)
+	    .line(222)
+	    .nextRow()
+	    .tab(1)
+	    .text("Privileges:")
+	    .tab(2)
+	    .vspace(5)
+	    .listbox("privs", new String[] {}, 130, 165, false )
+	    .nextRow()
+	    .baseline(addUser.get("privsScrollPane"), "South")
+	    .tab(2)
+	    .checkbox("allPrivs", "All Privileges", false, true)
+	    .nextRow();
+	    
+	    
+      
+  DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
+  db.useCache(false);
+  
+  DB.Result result = db.execute("show columns from `mysql`.`user` where field like '%_priv'");
+  String[] privList = new String[result.size()];
+  int[] selections = new int[8];
+  int c = 0;
+  int i= 0;
+  for (HashObject ho: result)
+  {
+    privList[c] = ho.get("field");
+    privList[c] = privList[c].substring(0,privList[c].lastIndexOf("_"));
+    if ( "Select".equals(privList[c]) ||
+         "Insert".equals(privList[c]) ||
+         "Update".equals(privList[c]) ||
+         "Delete".equals(privList[c]) ||
+         "Index".equals(privList[c]) ||
+         "Alter".equals(privList[c]) ||
+         "Create".equals(privList[c]) ||
+         "Drop".equals(privList[c]))
+    {
+      System.out.println("priv = " + privList[c] + " i=" + i);
+      selections[i] = c;
+      i++;
+    }
+    c++;  
+  }
+  
+  ListBox privs = addUser.get("privs");
+  privs.setModel(new ListDataModel(privList));
+  privs.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+  privs.setSelectedIndices(selections);
+  
+  HashObject profile = parentContext.get("profile");  
+  ((Field)addUser.get("host")).setText("%");
+  
+  Tree thisTree = addUser.get("schemaTree");
+  TreeUtils.copyTreeModel((Tree)parentContext.get("/schemaTree"), thisTree);
+  NodeInfo root = (NodeInfo)thisTree.getModel().getRoot();
+  root.setText("Global Access");
+  thisTree.updateUI();
+  thisTree.select(root);
+
+  ((Text)addUser.get("Credentials:")).style(Font.BOLD);
+  ((Text)addUser.get("Grant access to:")).style(Font.BOLD);
+  ((Text)addUser.get("Privileges:")).style(Font.BOLD);
+     
+  Panel editUser = tabs.tab("Edit User");
+  
+  editUser.tabLayout();
+	editUser.insets(10, 10);
+	
+	editUser
+	    .text("Select A User:", 270)
+      .text("Credentials:")
+      .setTab()
+      .nextRow()
+      .tree("userTree", new Object[] {"A Tree"}, 250, 315)
+	    .tab(1)
+	    .text("User Name:", 85)
+	    .field("userName", 130)
+	    .setTab()
+	    .nextRow()
+	    .tab(1)
+	    .text("From Host:")
+	    .tab(2)
+	    .field("host", 130)
+	    .nextRow()
+	    .tab(1)
+	    .text("Password:")
+	    .tab(2)
+	    .password("password", 130)
+	    .nextRow()
+ 	    .vspace(10)
+	    .tab(1)
+	    .line(222)
+	    .nextRow()
+	    .tab(1)
+	    .text("Privileges:")
+	    .tab(2)
+	    .vspace(5)
+	    .listbox("privs", new String[] {}, 130, 165, false )
+	    .nextRow()
+	    .baseline(editUser.get("privsScrollPane"), "South")
+	    .tab(2)
+	    .checkbox("allPrivs", "All Privileges", false, true)
+	    .nextRow();
+	    
+	    
+	privs = editUser.get("privs");
+  privs.setModel(new ListDataModel(privList));
+  privs.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+	  
+  ((Text)editUser.get("Select A User:")).style(Font.BOLD);
+  ((Text)editUser.get("Credentials:")).style(Font.BOLD);
+  ((Text)editUser.get("Privileges:")).style(Font.BOLD);
+  
+  args().put("windowContext", context);
+   
+  script("initUserTree", args());
+  
+  dlg.setResizable(false);
+  dlg.visible();
+	   
+	
+	
+    
+    
+    
+

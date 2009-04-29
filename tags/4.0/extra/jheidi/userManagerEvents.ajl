@@ -1,0 +1,345 @@
+  import java.util.*;
+
+  String who = arg("source");
+  NodeInfo node = argObj("node");
+  WindowContext context = argObj("windowContext");
+  Dialog dlg = context.get("/");
+  
+  log.debug("event received: " + who);
+  
+  if ("tabs".equals(who))
+  {
+     //this is sloppy move this code out of here and reduce to one simple block
+     if ( "Add User".equals(arg("selectedTab")) )
+     {
+       Panel buttons = dlg.get("addButtonPanel");
+	     if ( buttons != null )
+	     {
+	       Panel otherButtons = dlg.get("editButtonPanel");
+	       if (otherButtons != null)
+	       {
+	         otherButtons.setVisible(false);
+	       }
+         buttons.setVisible(true);
+         dlg.south(buttons);
+	     }
+	     else 
+	     {
+	       buttons = dlg.panel("addButtonPanel", "South");
+         buttons.tabLayout();
+         buttons.insets(8, 0, 4, 0);
+         buttons.space(LF.isWin?292:294)
+            .button("Add User", 110)
+            .space(5)
+            .button("Close", 110);
+       }
+     }
+     else
+     {
+       Panel buttons = dlg.get("editButtonPanel");
+	     if ( buttons != null )
+	     {
+	        buttons.setVisible(true);
+	        Panel otherButtons = dlg.get("addButtonPanel");
+	        if (otherButtons != null)
+	        {
+	           otherButtons.setVisible(false);
+	        }
+          dlg.south(buttons);
+	     }
+	     else 
+	     {
+	       buttons = dlg.panel("editButtonPanel", "South");
+         buttons.tabLayout();
+         buttons.insets(8, 0, 4, 0);
+         buttons.space(LF.isWin?169:172)
+            .button("Update", 110)
+            .space(5)
+            .button("Delete", 110)
+            .space(5)
+            .button("Close", 110);
+  		   Panel otherButtons = dlg.get("addButtonPanel");
+	       otherButtons.setVisible(false);
+       }
+     }
+  }
+  else if ("userTree".equals(who))
+  {
+     String[] userHost = node.getText().split("@");
+     Panel editTab = context.get("/tabs/Edit User");
+     ListBox privs = editTab.get("privs");
+     
+     DB db = context.get("db");
+     DB.Result result = db.execute("select * from `mysql`.`user` where user='" + userHost[0] + "' and host='" + userHost[1] + "'");
+     HashObject user = result.first();
+     
+     int c = 0;
+     List allowedPrivs = new ArrayList();
+     for (String priv: (ListDataModel)privs.getModel())
+     {
+       priv = priv.toLowerCase() + "_priv";
+       if ("Y".equals(user.get(priv)))
+       {
+          allowedPrivs.add(c);
+       }
+       c++;
+     }
+     
+     int[] selections = new int[allowedPrivs.size()];
+     for (int i=0; i < selections.length; i++)
+     {
+         selections[i] = (Integer)allowedPrivs.get(i);
+     }
+     privs.setSelectedIndices(selections);
+     
+     ((Field)editTab.get("userName")).setText(userHost[0]);
+     ((Field)editTab.get("host")).setText(userHost[1]);
+     
+  }
+  else if ("allPrivs".equals(who))
+  {
+  
+    String selectedTab = ((Tabs)context.get("/tabs")).selected();
+    CheckBox cb = context.get("/tabs/" + selectedTab + "/allPrivs");
+    ListBox privs = context.get("/tabs/" + selectedTab + "/privs");
+    if ( cb.isSelected() )
+    {
+      privs.selectAll();
+    }
+    else
+    {
+      privs.clearSelection();
+    }
+  
+  }
+  else if ("Add User".equals(who))
+  {
+     Panel addTab = context.get("/tabs/Add User");
+     System.out.println("addTab is:" + addTab);
+     String user = ((Field)addTab.get("userName")).getText().trim();
+     String pwd = ((Password)addTab.get("password")).getText().trim();
+     String host = ((Field)addTab.get("host")).getText().trim();
+     Object[] privs = ((ListBox)addTab.get("privs")).getSelectedValues();
+     NodeInfo selNode = ((Tree)addTab.get("schemaTree")).getSelectedNode();
+     
+     if ( "".equals(user) )
+     {
+       dlg.popupMessage("Add User", "Please provide a user name.");
+       ((Field)addTab.get("userName")).requestFocus();
+       return;
+     }
+     
+     if ( "".equals(host) )
+     {
+       dlg.popupMessage("Add User", "Please provide a host name.");
+       ((Field)addTab.get("host")).requestFocus();
+       return;
+     }
+     
+     if ( selNode == null )
+     {
+       dlg.popupMessage("Add User", "Please select global access or a database to grant privileges.");
+       ((Tree)addTab.get("schemaTree")).requestFocus();
+       return;
+     }
+
+	   if (privs.length ==0)
+	   {
+		   privs = new Object[] {"usage"};
+	   }
+
+	   String grantOn = "*.*";
+	   if ("db".equals(selNode.getType()))
+	   {
+		   grantOn= selNode.getText() + ".*";
+	   }
+	   else if ("table".equals(selNode.getType()))
+	   {
+		   grantOn = selNode.getParent().getText() + "." + selNode.getText();
+	   }
+
+     final StringBuilder buffer = new StringBuilder(250);
+	   buffer.append("grant ");
+	   String sep="";
+	   for (Object p : privs )
+	   {
+		   buffer.append(sep).append(p);
+		   sep=",";
+	   }
+	   buffer.append(" on ").append(grantOn).append(" to '")
+	      .append(user).append("'@'").append(host).append("'");
+
+	   if (!"".equals(pwd))
+	   {
+		   buffer.append(" identified by '").append(pwd).append("'");
+	   }
+
+     final DB db = context.get("db");
+     DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+       public void execute() throws Exception {
+         db.execute(buffer.toString());
+         db.execute("flush privileges");
+       }
+     };
+     
+     db.execute(tx);
+	  
+	   
+	   ((Field)addTab.get("userName")).setText("");
+     ((Password)addTab.get("password")).setText("");
+     ((Field)addTab.get("host")).setText("%");
+
+	   script("initUserTree", args());
+  }
+  else if ("Delete".equals(who))
+  {
+     
+    Panel editTab = context.get("/tabs/Edit User");
+  	NodeInfo userNode = ((Tree)editTab.get("userTree")).getSelectedNode();
+	  if (userNode == null )
+	  {
+		  return;
+	  }
+
+	
+	  if (dlg.popupConfirm("Confirm Delete!", "Are you sure you want to delete user '" + userNode.getText() + "'?"))
+	  {
+	
+	    final String[] userHost = userNode.getText().split("@");
+	    final DB db = context.get("db");
+	    DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+       public void execute() throws Exception {
+         db.query("delete from mysql.user where user=? and host=?", userHost[0], userHost[1]);
+         db.query("delete from mysql.db where user=? and host=?",  userHost[0], userHost[1]);
+         db.query("delete from mysql.tables_priv where user=? and host=?", userHost[0], userHost[1]);
+         db.query("delete from mysql.columns_priv where user=? and host=?", userHost[0], userHost[1]);
+         db.execute("flush privileges");
+       }
+      };
+      
+      db.execute(tx);
+	    
+
+	    Tree tree = context.get("/tabs/Edit User/userTree");
+	    tree.getSelectedNode().removeFromParent();
+	    tree.updateUI();
+	    ((Field)editTab.get("userName")).setText("");
+	    ((Field)editTab.get("host")).setText("");
+	    ((Password)editTab.get("password")).setText("");
+	    ((ListBox)editTab.get("privs")).clearSelection();
+
+	  }
+  }
+  else if ("Update".equals(who))
+  {
+	  Panel editTab = context.get("/tabs/Edit User");
+	  NodeInfo userNode = ((Tree)editTab.get("userTree")).getSelectedNode();
+	  ListBox privs = editTab.get("privs");
+	  ListDataModel privsModel = (ListDataModel)privs.getModel();
+
+	  if (userNode == null)
+	  {
+		  return;
+	  }
+	  
+    final String[] userHost = userNode.getText().split("@");
+	  final String user =  ((Field)editTab.get("userName")).getText().trim();
+	  final String host =  ((Field)editTab.get("host")).getText().trim();
+	  String pwd =  ((Password)editTab.get("password")).getText().trim();
+
+    final DB db = context.get("db");
+	//ok what are we doing updating privs? pass? creds? or all?
+	  if (!user.equalsIgnoreCase(userHost[0]) || !host.equalsIgnoreCase(userHost[1]))
+	  {
+      DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+        public void execute() throws Exception {
+          String sql = "set user='" + user + "', host='" + host + "' where user='" + userHost[0] + "' and host='"+ userHost[1]+"'";
+    	    db.begin();
+          db.query("update mysql.user " + sql);
+    	    db.query("update mysql.db " + sql);
+    	    db.query("update mysql.tables_priv " + sql);
+    	    db.query("update mysql.columns_priv " + sql);
+          db.execute("flush privileges");
+    	    db.end();
+        }
+      };
+      
+      db.execute(tx);
+      
+	    userNode.setText(user + "@" + host);
+	    ((Tree)editTab.get("userTree")).updateUI();
+	  }
+
+	  if (!"".equals(pwd))
+	  {
+		  if (dlg.popupConfirm("Confirm Password Change!", "Are you sure you want to update " + userNode.getText() + "'s password?"))
+		  {
+			  String sql = "update mysql.user set password=password('" + pwd + "') where user='" + userHost[0] + "' and host='"+ userHost[1]+"'";
+			  db.query(sql);
+		  }
+	  }
+
+	  final StringBuilder buffer = new StringBuilder(500);
+	  buffer.append("update mysql.user set ");
+	  int[] selections = privs.getSelectedIndices();
+	  String sep="";
+    
+	  for (int i=0; i < privsModel.size(); i++)
+	  {
+		  boolean found = false;
+		  String priv = (String)privsModel.get(i)+"_priv";
+		  buffer.append(sep).append(priv).append("='");
+		  for( int j=0; j<selections.length; j++)
+		  {
+			  if (selections[j]==i)
+			  {
+				  found = true;
+				  buffer.append("Y'");
+				  break;
+			  }
+		  }
+		  if (!found)
+		  {
+         buffer.append("N'");
+		  }
+		  sep=",";
+	  }
+
+	  buffer.append(" where user ='" + user + "'" + " and host='" + host + "'");
+	
+	  log.debug("heres the stmt: " + buffer.toString());
+	  DB.AutoCleanupTX tx = new DB.AutoCleanupTX() {
+      public void execute() throws Exception {
+        db.execute(buffer.toString());
+        db.execute("flush privileges");
+      }
+    };
+    
+    db.execute(tx);
+	
+	  ((Password)editTab.get("password")).setText("");
+  }
+  else if ("Close".equals(who))
+  {
+	  dlg.dispose();
+  }
+
+  
+  
+  
+
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

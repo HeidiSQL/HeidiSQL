@@ -1,0 +1,108 @@
+  import javax.swing.*;
+
+  WindowContext parentContext = argObj("windowContext");
+  
+  Dialog dlg = new Dialog((Frame)parentContext.get("/"), "indexDialog", "Manage Indexes");
+  WindowContext context = dlg.getWindowContext();
+  context.put("db", parentContext.get("db"));
+  context.put("currentDB", parentContext.get("currentDB"));
+  context.put("currentTable", parentContext.get("currentTable"));
+  
+  dlg.events("indexEventsOracle")
+    .insets(10,10)
+    .tabLayout()
+    .icon("images/manageindexes.gif")
+	  .text("Index Name:", 89)
+    .setTab()
+    .combo("indexes", new String[] {"", "Hi"}, 243)
+    .setTab()
+    .nextRow()
+    .tab(2)
+    .space(87)
+    .button("Add", 75)
+    .button("Delete", 75)
+    .nextRow()
+    .vspace(5)
+    .tab(1)
+    .checkbox("primary", "Primary", false, true)
+    .tab(2)
+    .checkbox("unique", "Unique", false, true)
+    .nextRow()
+    .tab(1)
+    .text("Columns:", 183)
+    .setTab()
+    .text("Columns In Index:", 150)
+    .setTab()
+    .nextRow()
+    .tab(1)
+    .listbox("fields", new String[] {}, 150, 200 )
+    .vspace(50)
+    .space(-1)
+    .imageButton("right", "images/right.gif", 28)
+    .vspace(0)
+    .space(-35)
+    .vspace(90)
+    .imageButton("left", "images/left.gif", 28)
+    .vspace(0)
+    .tab(4)
+    .listbox("indexFields", new String[] {}, 150, 200 )
+    .nextRow()
+    .vspace(205)
+    .space(45)
+    .button("Update Indexes", LF.isMac?LF.isLeopard?123:122:120)
+    .space(5)
+    .button("Cancel", 110);
+
+    DB db = context.get("db");
+    
+    String dbName = context.get("currentDB");
+    String tbName = context.get("currentTable");
+    
+    
+    DB.Result result = db.executeNonCached("select lower(a.index_name) key_name, a.column_position seq_in_index,  lower(a.column_name) column_name, b.constraint_type constraint_type" + 
+                                           " from all_ind_columns a, all_constraints b where a.table_owner=upper('%s') and a.table_name=upper('%s') " + 
+                                           " and b.owner=a.table_owner and b.table_name=a.table_name and b.index_name=a.index_name order by key_name, seq_in_index", 
+                                           dbName, tbName);
+    Table tableColumns = parentContext.get("/mainTabs/Table/table");
+    DB.Result allColumns = ((ResultTableModel)tableColumns.getModel()).getResult();
+       
+    Combo indexes = context.get("/indexes");
+    HashObject indexMap = new HashObject();
+    for (HashObject index: result)
+    {
+      if ( indexMap.getObject(index.get("key_name")) == null )
+      {
+          indexMap.put(index.get("key_name"), new HashObject());
+      }
+      ((HashObject)indexMap.getObject(index.get("key_name"))).put(index.get("column_name"), index);
+    }
+    
+    String[] allCols = new String[allColumns.size()];
+    for (int i=0; i < allColumns.size(); i++)
+    {
+        allCols[i] = ((HashObject)allColumns.get(i)).get("column_name");
+        System.out.println("adding col: " + allCols[i]);
+    }
+    
+    Object[] keys = indexMap.keySet().toArray();
+    
+    indexes.setModel(new DefaultComboBoxModel(keys));
+    indexes.setProperty("indexMap", indexMap);
+    indexes.setProperty("allColumns", allCols);
+    indexes.setProperty("storedValues", new HashObject());
+    
+    if ( keys.length > 0 )
+    {
+      indexes.select((String)keys[0]);
+    }
+    
+    if ( indexMap.size() == 0 )
+    {
+      ((Button)context.get("/Delete")).setEnabled(false);
+    }
+
+    dlg.visible();
+    
+    return context.get("dlgResult");
+    
+    

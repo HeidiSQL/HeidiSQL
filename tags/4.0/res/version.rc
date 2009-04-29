@@ -1,0 +1,20 @@
+1 VERSIONINFO
+  FILEVERSION 0,0,0,0
+  FILEOS VOS__WINDOWS32
+  FILETYPE VFT_APP
+  BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+      BLOCK "040904E4"
+      BEGIN
+        VALUE "FileDescription", "HeidiSQL - a lightweight, fast and flexible interface to MySQL\000"
+        VALUE "ProductName", "HeidiSQL\000"
+        VALUE "LegalCopyright", "See GLP license\000"
+      END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+      VALUE "Translation", 0x0409 0x04E4
+    END 
+  END
+ 

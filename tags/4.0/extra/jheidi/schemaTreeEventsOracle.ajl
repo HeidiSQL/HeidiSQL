@@ -1,0 +1,129 @@
+    
+  NodeInfo node = argObj("node");
+  final WindowContext context = argObj("windowContext");
+      
+  Tabs tabs = context.get("/mainTabs");
+  String selectedTab = tabs.selected();
+  String nodeType = node.getType();
+  
+  boolean dbChanged = false;
+  boolean tableChanged = false;
+    
+  log.debug("node type = " + nodeType);
+  log.debug("selected tab = " + selectedTab);
+  
+  if ( nodeType == null )
+  {
+    tabs.select("Instance");
+    args().put("selectedTab", "Instance");
+    context.put("currentDB", null);
+    script("resetTabsOracle", args());
+  }
+  else if ( "schema" == nodeType )
+  {
+     Panel tab = tabs.select("Schema");
+    
+     if ( !node.getText().equals(context.get("currentDB")) )
+     {
+       dbChanged = true;
+     }
+  }
+  else if ( "table" == nodeType )
+  {
+     String dbName = node.getParent().getText();
+     Panel tab = tabs.get("Table");
+     if ("Instance" == selectedTab || "Schema" == selectedTab)
+     {
+        tabs.select("Table");
+     }
+  
+     if (!node.getParent().getText().equals(context.get("currentDB")))
+     {
+         dbChanged = true;
+     }
+
+     if ( !node.getText().equals(context.get("currentTable")) || dbChanged )
+     {
+        tableChanged = true;
+     }
+  }
+
+  if (dbChanged)
+  {
+    String dbName = tabs.selected() == "Schema"?node.getText():node.getParent().getText();
+    log.debug("selectedTab: " + selectedTab + " dbName: " + dbName);
+    context.put("currentDB", dbName);
+    context.remove("currentTable");
+    
+    args().put("selectedTab", "Schema");
+    script("resetTabsOracle", args());
+    args().put("dbName", dbName);
+    args().put("workerKey", dbName);
+    Worker w = worker("showTableStatusOracleWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+    
+    //in case its already running dont run the detector
+    if (!w.isCancelled())
+      LongRunningTask.detect(dbName, "progressWaiter",   args(), w , 250);
+    
+    //superficiality just to keep the pbar stack in order
+    //since we cant guarantee which one of the threads will be detected long
+    //in the "right" order"
+    if ( tableChanged )
+    {
+      try
+      {
+        Thread.sleep(25);
+      } catch (Exception e) {}
+    }
+  }
+
+ if (tableChanged)
+ {
+   String dbName = node.getParent().getText();
+   String tableName = node.getText();
+
+   context.put("currentTable", tableName);
+
+   args().put("dbName", dbName);
+   args().put("tableName", tableName);
+   args().put("workerKey", dbName+tableName);
+   Worker w = worker("loadTableInfoOracleWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+   
+   //in case its already running dont run the detector
+   if ( !w.isCancelled() )
+     LongRunningTask.detect(dbName+tableName, "progressWaiter", args(), w , 250);
+
+   //superficial for the gui
+   try
+   {
+     Thread.sleep(25);
+   } catch (Exception e) {}
+   
+   args().put("workerKey", "loadTableDataOracleWorker" + dbName + tableName);
+   w = worker("loadTableDataOracleWorker", args(), Worker.RunOption.LET_FINISH_IF_RUNNING);
+   
+   if ( !w.isCancelled() )
+     LongRunningTask.detect("loadTableDataOracleWorker" + dbName+tableName, "progressWaiter", args(), w , 250);
+   
+ }
+
+
+
+  
+  
+
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		

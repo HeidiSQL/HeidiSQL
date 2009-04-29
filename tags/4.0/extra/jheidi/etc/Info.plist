@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleAllowMixedLocalizations</key>
+	<string>false</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>JavaApplicationStub</string>
+	<key>CFBundleGetInfoString</key>
+	<string>jHeidi</string>
+	<key>CFBundleIconFile</key>
+	<string>icon.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.rendion.ajl.AjlScript.1</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>jHeidi</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1.0</string>
+	<key>Java</key>
+	<dict>
+		<key>Arguments</key>
+		<string>jheidi</string>
+		<key>ClassPath</key>
+		<array>
+			<string>jheidi.jar</string>
+			<string>lib/quaqua.jar</string>
+			<string>lib/ajl.jar</string>
+			<string>lib/swing-worker-1.1.jar</string>
+			<string>lib/editor.jar</string>
+			<string>lib/mysql-connector-java-5.0.7-bin.jar</string>
+			<string>lib/ojdbc14.jar</string>
+			<string>lib/log4j-1.2.13.jar</string>
+			<string>lib/drizzle-jdbc-0.1.jar</string>
+			<string>lib/slf4j-api-1.5.6.jar</string>
+			<string>lib/slf4j-nop-1.5.6.jar</string>
+		</array>
+		<key>JVMVersion</key>
+		<string>1.6</string>
+		<key>MainClass</key>
+		<string>com.rendion.ajl.AjlScript</string>
+		<key>Properties</key>
+		<dict>
+			<key>apple.laf.useScreenMenuBar</key>
+			<string>true</string>
+			<key>java.library.path</key>
+			<string>lib</string>
+			<key>log4jconfig</key>
+			<string>/logs/log4jconfig.xml</string>
+			<key>usePrecompiledClassFiles</key>
+			<string>true</string>
+		</dict>
+		<key>WorkingDirectory</key>
+		<string>$JAVAROOT</string>
+	</dict>
+</dict>
+</plist>

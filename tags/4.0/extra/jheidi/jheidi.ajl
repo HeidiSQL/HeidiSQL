@@ -1,0 +1,105 @@
+  import javax.swing.*;
+  
+  if (LF.isWin)
+  {
+    SystemUtil.loadWindowsTaskListExePeer("bin/jheidi.exe");
+  }
+  
+  Frame app = new Frame("connectDialog", "New Connection - MySQL");
+  WindowContext context = app.getWindowContext();
+  env("updater", new AutoUpdater());
+
+  app.events("connectDialogEvents");
+  app.tabLayout()
+    .insets(10, 12)
+    .icon("images/connect.gif")
+	  .image("logo", "images/logo-mysql.gif")		
+    .space(LF.isLeopard?2:5)
+    .vspace(-1)  
+    .button("New", 110)
+    .setTab()
+    .space(20)
+    .button("Save", 110)
+    .space(20)
+    .button("Delete", 110)
+    .nextRow()
+    .vspace(10)
+    .tab(1)
+    .space(4)
+    .text("Description:", 92).setTab()
+    .space(0)
+    .combo("connProfiles", new String[] {"New Connection"}, 200).setTab()  
+    .button("Rename", 74)  
+    .nextRow()
+    .tab(2)
+    .text("Host:")
+    .tab(3)
+    .field("host", 281)
+    .nextRow()
+    .tab(2)
+    .text("User:")
+    .tab(3)
+    .field("user", 281)
+    .nextRow()
+    .tab(2)
+    .text("Password:")
+    .tab(3)
+    .password("password", 281)
+    .nextRow()
+    .tab(2)
+    .text("Port:")
+    .tab(3)
+    .field("port", 50)
+    .space(10)
+    .text("Timeout:")
+    .space(5)
+    .field("timeout", 50)
+    .space(2)
+    .text("seconds")
+    .nextRow()
+    .tab(3)
+    .vspace(2)
+    .checkbox("compress", "Use compressed protocol", false)
+    .nextRow()
+    .tab(2)
+    .text("<html>Database(s):<br>(separated by<br> semicolon)</html>")
+    .tab(3)
+    .field("dbs", 281)
+    .nextRow()
+    .tab(3)
+    .checkbox("sort", "Sort databases A-Z", true)
+    .nextRow()
+    .vspace(10)
+    .line(513)
+    .nextRow()
+    .vspace(LF.isWin?7:8)
+    .slider("Vendor", SwingConstants.HORIZONTAL, 0, 2, 118)
+    .vspace(7)
+    .tab(1)
+    .button("Save/Connect", LF.isMac?112: 110)
+    .space(20)
+    .button("Connect", 110)
+    .space(20)
+    .button("Cancel", 110)
+    .setDefaultButton("Save/Connect"); 
+    
+    HashObject vendors = new HashObject();
+    vendors.add("mysql");
+    vendors.add("drizzle");
+    vendors.add("oracle");
+    env("vendors", vendors);
+    app.setProperty("currentVendor", "mysql");
+    
+    args().put("windowContext", context);
+    args().put("vendor", "mysql");
+    
+    script("loadProfiles", args());
+    
+    app.visible();
+
+    
+
+    
+
+    
+    

@@ -1,0 +1,83 @@
+  import java.util.*;
+  
+  String event = arg("workerEvent");
+  if ( event == "init" || event == "done")
+    return;
+
+  WindowContext context = argObj("windowContext");
+  
+  if (event == "backgroundTask")
+  {
+    HashObject results = new HashObject();
+       
+    try
+    {
+      AutoUpdater updater = (AutoUpdater)env("updater");
+      if ( updater.updateExists() )
+      {
+         results.put("updateExists", "true");
+      }
+    }
+    catch (Exception e) 
+    {
+      log.error("Auto Update Check Failed!", e);
+      Throwable rootCause = ExceptionUtil.getRootCause(e);
+      
+      if ( rootCause.getMessage().contains("HTTP") || rootCause.getMessage().contains("refused") )
+      {
+         results.put("error", "The update server could not be contacted\nPlease try again later.");
+      }
+      else
+      {
+        results.put("error", rootCause.getMessage());
+      }
+    }
+    
+    publish(results);
+   
+  }
+  else if ( event == "update")
+  {   
+    HashObject result = (HashObject)((List)argObj("taskResult")).get(0);
+    
+    if ( result.get("error") != null )
+    {
+      Frame f = context.get("/");
+    
+      ((Frame)context.get("/")).popupMessage("Auto Update Error", result.get("error"));
+    }
+    else if (result.get("updateExists") != null)
+    {
+      script("updateDialog", args());
+    }
+    else
+    {
+      ((Frame)context.get("/")).popupMessage("Auto Update", "No updates for jHeidi are currently available.");
+    }
+    
+  }
+  
+    
+
+  
+  
+
+  
+
+ 
+    
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+		
