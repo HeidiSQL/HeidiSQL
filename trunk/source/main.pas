@@ -7377,6 +7377,9 @@ begin
       end;
     2: begin
         newDb := Databases[Node.Parent.Index];
+        lblSorryNoData.Visible := False;
+        if GetSelectedNodeType = NODETYPE_PROCEDURE then lblSorryNoData.Visible := True;
+        if GetSelectedNodeType = NODETYPE_FUNCTION then lblSorryNoData.Visible := True;
         ShowTable( (Sender as TVirtualStringTree).Text[Node, 0] );
       end;
   end;
