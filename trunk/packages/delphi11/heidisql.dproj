@@ -51,7 +51,50 @@
     <Borland.Personality>Delphi.Personality</Borland.Personality>
     <Borland.ProjectType>VCLApplication</Borland.ProjectType>
     <BorlandProject>
-<BorlandProject><Delphi.Personality><Parameters><Parameters Name="DebugSourceDirs">..\..;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\source;..\..\components\heidisql\source;..\..\components\synedit\source;..\..\components\zeosdbo\src;..\..\components\zeosdbo\src\plain;..\..\components\zeosdbo\src\component;..\..\components\zeosdbo\src\core;..\..\components\zeosdbo\src\dbc;..\..\components\zeosdbo\src\parsesql</Parameters><Parameters Name="UseLauncher">False</Parameters><Parameters Name="LoadAllSymbols">True</Parameters><Parameters Name="LoadUnspecifiedSymbols">False</Parameters></Parameters><Language><Language Name="ProjectLang">$00000407</Language></Language><VersionInfo><VersionInfo Name="IncludeVerInfo">True</VersionInfo><VersionInfo Name="AutoIncBuild">False</VersionInfo><VersionInfo Name="MajorVer">0</VersionInfo><VersionInfo Name="MinorVer">0</VersionInfo><VersionInfo Name="Release">0</VersionInfo><VersionInfo Name="Build">0</VersionInfo><VersionInfo Name="Debug">False</VersionInfo><VersionInfo Name="PreRelease">True</VersionInfo><VersionInfo Name="Special">False</VersionInfo><VersionInfo Name="Private">False</VersionInfo><VersionInfo Name="DLL">False</VersionInfo><VersionInfo Name="Locale">1033</VersionInfo><VersionInfo Name="CodePage">1252</VersionInfo></VersionInfo><VersionInfoKeys><VersionInfoKeys Name="CompanyName"></VersionInfoKeys><VersionInfoKeys Name="FileDescription">HeidiSQL</VersionInfoKeys><VersionInfoKeys Name="FileVersion">0.0.0.0</VersionInfoKeys><VersionInfoKeys Name="InternalName"></VersionInfoKeys><VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys><VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys><VersionInfoKeys Name="OriginalFilename">heidisql.exe</VersionInfoKeys><VersionInfoKeys Name="ProductName">HeidiSQL</VersionInfoKeys><VersionInfoKeys Name="ProductVersion">0</VersionInfoKeys><VersionInfoKeys Name="Comments"></VersionInfoKeys></VersionInfoKeys><Source><Source Name="MainSource">heidisql.dpr</Source></Source></Delphi.Personality></BorlandProject></BorlandProject>
+      <BorlandProject>
+        <Delphi.Personality>
+          <Parameters>
+            <Parameters Name="DebugSourceDirs">..\..;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\source;..\..\components\heidisql\source;..\..\components\synedit\source;..\..\components\zeosdbo\src;..\..\components\zeosdbo\src\plain;..\..\components\zeosdbo\src\component;..\..\components\zeosdbo\src\core;..\..\components\zeosdbo\src\dbc;..\..\components\zeosdbo\src\parsesql</Parameters>
+            <Parameters Name="UseLauncher">False</Parameters>
+            <Parameters Name="LoadAllSymbols">True</Parameters>
+            <Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
+          </Parameters>
+          <Language>
+            <Language Name="ProjectLang">$00000407</Language>
+          </Language>
+          <VersionInfo>
+            <VersionInfo Name="IncludeVerInfo">True</VersionInfo>
+            <VersionInfo Name="AutoIncBuild">False</VersionInfo>
+            <VersionInfo Name="MajorVer">0</VersionInfo>
+            <VersionInfo Name="MinorVer">0</VersionInfo>
+            <VersionInfo Name="Release">0</VersionInfo>
+            <VersionInfo Name="Build">0</VersionInfo>
+            <VersionInfo Name="Debug">False</VersionInfo>
+            <VersionInfo Name="PreRelease">True</VersionInfo>
+            <VersionInfo Name="Special">False</VersionInfo>
+            <VersionInfo Name="Private">False</VersionInfo>
+            <VersionInfo Name="DLL">False</VersionInfo>
+            <VersionInfo Name="Locale">1033</VersionInfo>
+            <VersionInfo Name="CodePage">1252</VersionInfo>
+          </VersionInfo>
+          <VersionInfoKeys>
+            <VersionInfoKeys Name="CompanyName"></VersionInfoKeys>
+            <VersionInfoKeys Name="FileDescription">HeidiSQL</VersionInfoKeys>
+            <VersionInfoKeys Name="FileVersion">0.0.0.0</VersionInfoKeys>
+            <VersionInfoKeys Name="InternalName"></VersionInfoKeys>
+            <VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys>
+            <VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
+            <VersionInfoKeys Name="OriginalFilename">heidisql.exe</VersionInfoKeys>
+            <VersionInfoKeys Name="ProductName">HeidiSQL</VersionInfoKeys>
+            <VersionInfoKeys Name="ProductVersion">0</VersionInfoKeys>
+            <VersionInfoKeys Name="Comments"></VersionInfoKeys>
+          </VersionInfoKeys>
+          <Source>
+            <Source Name="MainSource">heidisql.dpr</Source>
+          </Source>
+        </Delphi.Personality>
+      </BorlandProject>
+    </BorlandProject>
   </ProjectExtensions>
   <Import Project="$(MSBuildBinPath)\Borland.Delphi.Targets" />
   <ItemGroup>
