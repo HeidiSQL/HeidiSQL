@@ -3808,7 +3808,6 @@ begin
     DataGrid.Header.Columns.EndUpdate;
     DataGrid.EndUpdate;
     FreeAndNil(sl_query);
-    AutoCalcColWidths(DataGrid, PrevTableColWidths);
     if DataGridTable = SelectedTable then
       DataGrid.OffsetXY := OldOffsetXY;
     viewingdata := false;
@@ -3817,6 +3816,7 @@ begin
   end;
   DataGridDB := ActiveDatabase;
   DataGridTable := SelectedTable;
+  AutoCalcColWidths(DataGrid, PrevTableColWidths);
 end;
 
 
@@ -8593,49 +8593,54 @@ begin
   // Find optimal default width for columns. Needs to be done late, after the SQL
   // composing to enable text width calculation based on actual table content
   Tree.BeginUpdate;
-  // Weird: Fixes first time calculation always based on Tahoma/8pt font
-  Tree.Canvas.Font := Tree.Font;
-  for i := 0 to Tree.Header.Columns.Count - 1 do begin
-    Col := Tree.Header.Columns[i];
-    if not (coVisible in Col.Options) then
-      continue;
-    if (PrevLayout <> nil) and (PrevLayout.IndexOfName(Col.Text) > -1) then begin
-      Col.Width := MakeInt(PrevLayout.Values[Col.Text]);
-      continue;
-    end;
-    ColTextWidth := Tree.Canvas.TextWidth(Tree.Header.Columns[i].Text);
-    // Add space for sort glyph
-    if Col.ImageIndex > -1 then
-      ColTextWidth := ColTextWidth + 20;
-    Node := Tree.GetFirstVisible;
-    // Go backwards 50 nodes from focused one if tree was scrolled
-    j := 0;
-    if Assigned(Tree.FocusedNode) then begin
-      Node := Tree.FocusedNode;
-      while Assigned(Node) do begin
-        inc(j);
-        if (Node = Tree.GetFirst) or (j > 50) then
-          break;
-        Node := Tree.GetPreviousVisible(Node);
+  try
+    // Weird: Fixes first time calculation always based on Tahoma/8pt font
+    Tree.Canvas.Font := Tree.Font;
+    for i := 0 to Tree.Header.Columns.Count - 1 do begin
+      Col := Tree.Header.Columns[i];
+      if not (coVisible in Col.Options) then
+        continue;
+      if (PrevLayout <> nil) and (PrevLayout.IndexOfName(Col.Text) > -1) then begin
+        Col.Width := MakeInt(PrevLayout.Values[Col.Text]);
+        continue;
       end;
+      ColTextWidth := Tree.Canvas.TextWidth(Tree.Header.Columns[i].Text);
+      // Add space for sort glyph
+      if Col.ImageIndex > -1 then
+        ColTextWidth := ColTextWidth + 20;
+      Node := Tree.GetFirstVisible;
+      // Go backwards 50 nodes from focused one if tree was scrolled
+      j := 0;
+      if Assigned(Tree.FocusedNode) then begin
+        Node := Tree.FocusedNode;
+        while Assigned(Node) do begin
+          inc(j);
+          if (Node = Tree.GetFirst) or (j > 50) then
+            break;
+          Node := Tree.GetPreviousVisible(Node);
+        end;
+      end;
+      j := 0;
+      while Assigned(Node) do begin
+        // Note: this causes the node to load, an exception can propagate
+        //       here if the query or connection dies.
+        Rect := Tree.GetDisplayRect(Node, i, True, True);
+        ColTextWidth := Max(ColTextWidth, Rect.Right - Rect.Left);
+        inc(j);
+        if j > 100 then break;
+        // GetDisplayRect may have implicitely taken the node away.
+        // Strange that Node keeps being assigned though, probably a timing issue.
+        if Tree.RootNodeCount = 0 then break;
+        Node := Tree.GetNextVisible(Node);
+      end;
+      // text margins and minimal extra space
+      ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 5;
+      ColTextWidth := Min(ColTextWidth, prefMaxColWidth);
+      Col.Width := ColTextWidth;
     end;
-    j := 0;
-    while Assigned(Node) do begin
-      Rect := Tree.GetDisplayRect(Node, i, True, True);
-      ColTextWidth := Max(ColTextWidth, Rect.Right - Rect.Left);
-      inc(j);
-      if j > 100 then break;
-      // GetDisplayRect may have implicitely taken the node away.
-      // Strange that Node keeps being assigned though, probably a timing issue.
-      if Tree.RootNodeCount = 0 then break;
-      Node := Tree.GetNextVisible(Node);
-    end;
-    // text margins and minimal extra space
-    ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 5;
-    ColTextWidth := Min(ColTextWidth, prefMaxColWidth);
-    Col.Width := ColTextWidth;
+  finally
+    Tree.EndUpdate;
   end;
-  Tree.EndUpdate;
 end;
 
 
