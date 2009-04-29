@@ -560,6 +560,24 @@
 			<br />
 		</li>
 		<li>
+			<strong>Edit the AppVerName, AppVersion, VersionInfoVersion and OutputBaseFilename variables in tags/4.0rc1/out/heidisql.iss.</strong><br />
+			(TODO: At some point, the ISS file should be modified to only contain one version number variable.)<br />
+			(TODO: Get the revision number in there somewhere.)<br />
+			<br />
+		</li>
+		<li>
+			<strong>Edit the MajorVer, MinorVer, FileVersion and ProductVersion variables in tags/4.0rc1/packages/heidisql.dproj.</strong><br />
+			(TODO: Find out if there is a way to automate this.)<br />
+			(TODO: Get the revision number in there somewhere.)<br />
+			<br />
+		</li>
+		<li>
+			<strong>Edit the FILEVERSION variable in tags/4.0rc1/res/version.rc.</strong><br />
+			(TODO: Find out if it is really necessary to do both this and the above step; both looks like they will end up in the final exe.)<br />
+			(TODO: Get the revision number in there somewhere.)<br />
+			<br />
+		</li>
+		<li>
 			<strong>Run 'svn commit tags' to commit "tags" and all subitems.</strong><br />
 			This step creates a repository revision containing the copy with the new appversion.<br />
 			This step also writes the new revision number of this change into $Revision$ in main.pas.<br />
@@ -576,11 +594,18 @@
 		</li>
 		<li>
 			<strong>Build installer in the tags/4.0rc1 directory.</strong><br />
+			Use the build_everything.cmd script for this, so the version number in main.pas is updated correctly.<br />
+			Make sure that the version number does not end in 'M' for 'Mixed', if it does then you did something wrong further up.<br />
 			<br />
 		</li>
 		<li>
 			<strong>Upload!</strong><br />
+			Please the file in the download section on the Google Code site as the preferred version, deprecate older versions.<br />
 			<br />
+		</li>
+		<li>
+			<strong>Update the autoupdater configuration that dev.heidisql.com publishes.</strong><br />
+			Clients configured to automatically update HeidiSQL will pull down a new client when they see the changed version from here.  This information is stored in a MySQL database.
 		</li>
 	</ol>
 
