@@ -260,9 +260,9 @@ begin
   zq := Mainform.FetchActiveDbTableList;
   while not zq.Eof do begin
     if zq.FieldByName(DBO_NAME).AsWideString = oldTableName then begin
-      if zq.FieldByName(DBO_COLLATION).AsString <> '' then
+      if (zq.FindField(DBO_COLLATION) <> nil) and (zq.FieldByName(DBO_COLLATION).AsString <> '') then
         strquery := strquery + ' COLLATE ' + zq.FieldByName(DBO_COLLATION).AsString;
-      if zq.FieldByName(DBO_ENGINE).AsString <> '' then
+      if (zq.FindField(DBO_ENGINE) <> nil) and (zq.FieldByName(DBO_ENGINE).AsString <> '') then
         strquery := strquery + ' ENGINE=' + zq.FieldByName(DBO_ENGINE).AsString;
       break;
     end;
