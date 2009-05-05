@@ -84,3 +84,33 @@ Type: files; Name: "{app}\heidisql_forum.url"
 Type: files; Name: "{app}\donate.url"
 Type: files; Name: "{app}\function.txt"
 
+[Code]
+procedure DonateClick(Sender: TObject);
+var
+  ErrorCode: Integer;
+begin
+  ShellExec('open', 'http://www.heidisql.com/donate.php', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+end;
+
+procedure InitializeWizard();
+var
+  txt: TNewStaticText;
+  btn: TButton;
+begin
+  txt := TNewStaticText.Create(WizardForm);
+  txt.Parent := WizardForm.FinishedPage;
+  txt.Caption := 'HeidiSQL is free software. You may make a donation:';
+  txt.Left := WizardForm.FinishedLabel.Left;
+  txt.Top := WizardForm.FinishedLabel.Top + 130;
+  txt.AutoSize := True;
+
+  btn := TButton.Create(WizardForm);
+  btn.Parent := WizardForm.FinishedPage;
+  btn.Left := txt.Left;
+  btn.Top := txt.Top + txt.Height + 10;
+  btn.Width := 120;
+  btn.Height := WizardForm.CancelButton.Height;
+  btn.Caption := 'Donate';
+  btn.OnClick := @DonateClick;
+end;
+
