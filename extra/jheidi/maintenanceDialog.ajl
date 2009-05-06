@@ -13,31 +13,31 @@
      .icon("images/optimize.gif")
      .vspace(-4)
      .text("Select Tables For Maintenance")
-	   .nextRow()
-	   .combo("dbs", new String[] {"Hi"}, 225)
-	   .nextRow()
-	   .vspace(3)
-	   .listbox("tables", new String[] {}, 225, 200)
-	   .space(5)
-	   .button("Select All", 85)
-	   .setTab()
-	   .space(3)
-	   .vspace(-3)
-	   .groupbox("Operations", LF.isWin?223: 226, 209)
-	   .setTab()
-	   .nextRow()
-	   .tab(1)
- 	   .baseline(context.get("/Select All"))
- 	   .button("Deselect", 85)
- 	   .nextRow()
- 	   .tab(2)
- 	   .baseline(context.get("/gbOperations"))
- 	   .space(70)
- 	   .vspace(40)
- 	   .button("Optimize", 85)
- 	   .setTab()
- 	   .nextRow()
- 	   .tab(3)
+     .nextRow()
+     .combo("dbs", new String[] {"Hi"}, 225)
+     .nextRow()
+     .vspace(3)
+     .listbox("tables", new String[] {}, 225, 200)
+     .space(5)
+     .button("Select All", 85)
+     .setTab()
+     .space(3)
+     .vspace(-3)
+     .groupbox("Operations", LF.isWin?223: 226, 209)
+     .setTab()
+     .nextRow()
+     .tab(1)
+     .baseline(context.get("/Select All"))
+     .button("Deselect", 85)
+     .nextRow()
+     .tab(2)
+     .baseline(context.get("/gbOperations"))
+     .space(70)
+     .vspace(40)
+     .button("Optimize", 85)
+     .setTab()
+     .nextRow()
+     .tab(3)
      .button("Analyze", 85)
      .nextRow()
      .tab(3)
@@ -74,12 +74,12 @@
     }
     
     ((ListBox)context.get("/tables")).setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-	   
+     
 
-	dlg.visible();
-	   
-	
-	
+  dlg.visible();
+     
+  
+  
     
     
     

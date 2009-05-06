@@ -78,7 +78,7 @@
     .setTab()
     .nextRow();
     
-	  dlg.baseline((Component)context.get("/Rename"));
+    dlg.baseline((Component)context.get("/Rename"));
     
     dlg.tab(3)
     .vspace(1)

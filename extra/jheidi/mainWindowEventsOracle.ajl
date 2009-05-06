@@ -3,15 +3,15 @@ import javax.swing.*;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
 
-String who = arg("source");
+String event = arg("source");
 WindowContext context = argObj("windowContext");
-log.debug("Event received: " + who);
+log.debug("Event received: " + event);
 
-if ("New Connection" == who)
+if (event == "New Connection")
 {
   script("jheidi");
 }
-else if ("Refresh" == who)
+else if (event == "Refresh")
 {
   DB db = context.get("db");
 
@@ -45,7 +45,7 @@ else if ("Refresh" == who)
   }
   
 }
-else if ("Cut" == who || "Copy" == who || "Paste" == who )
+else if (event == "Cut" || event == "Copy" || event == "Paste" )
 {
   Component compFocusOwner =
         KeyboardFocusManager.getCurrentKeyboardFocusManager().getPermanentFocusOwner();
@@ -53,21 +53,21 @@ else if ("Cut" == who || "Copy" == who || "Paste" == who )
   if ( compFocusOwner instanceof Editor)
   {
     Editor editor = (Editor)compFocusOwner;
-    if ( "Cut" == who )
+    if ( event == "Cut" )
     {
       editor.cut();
     }
-    else if ("Copy" == who)
+    else if (event == "Copy")
     {
       editor.copy();
     }
-    else if ("Paste" == who)
+    else if (event == "Paste")
     {
       editor.paste();
     }
   }
 } 
-else if ("Drop Table" == who)
+else if (event == "Drop Table")
 {
   Tree schemaTree = context.get("/schemaTree");
   NodeInfo node = schemaTree.getSelectedNode();
@@ -88,7 +88,7 @@ else if ("Drop Table" == who)
   }
   
 }
-else if ("Create Table" == who)
+else if (event == "Create Table")
 {
   if ( script("createTableDialogOracle", args()) != null )
   {
@@ -101,7 +101,7 @@ else if ("Create Table" == who)
   }
   
 }
-else if ("Print" == who)
+else if (event == "Print")
 {
   //this is total shit - but it does work if you try to print something that might fit on 
   //the page....omg this is bad.
@@ -127,15 +127,15 @@ else if ("Print" == who)
       table.print();
   } catch (Exception e) {e.printStackTrace();}
 }
-else if ("Help" == who )
+else if (event == "Help")
 {
   script("helpDialog$" + context.get("vendor"), args());
 }
-else if ( "Exit" == who )
+else if (event == "Exit")
 {
   System.exit(0);
 }
-else if ("Close" == who )
+else if (event == "Close")
 {
   Frame window = context.get("/");
   script("removeFromWindowMenu", args());

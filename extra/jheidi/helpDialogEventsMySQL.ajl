@@ -1,9 +1,9 @@
   
-  String who = arg("source");
+  String event = arg("source");
   NodeInfo node = argObj("node");
   WindowContext context = argObj("windowContext");
   
-  log.debug("event received: " + who);
+  log.debug("event received: " + event);
 
   if ( node != null )
   {
@@ -29,14 +29,14 @@
        }
     }
   }
-  else if ( "Search MySQL".equals(who) )
+  else if ( event == "Search MySQL" )
   {
     String query = ((Text)context.get("/No Topic Selected")).getText();
     query = "No Topic Selected".equals(query) ? "" : query.replace(" ", "+");
     
     BareBonesBrowserLaunch.openURL("http://dev.mysql.com/doc/mysql/search.php?version=5.1&q=" + query + "&lang=en");
   }
-  else if ( "Close".equals(who) )
+  else if ( event == "Close" )
   {
      Dialog d = context.get("/");
      d.dispose();
@@ -59,4 +59,4 @@
 
 
 
-		
+    

@@ -21,15 +21,15 @@
      if ( tableName == null || tableName.trim().length() == 0 )
      {
         d.popupMessage("Create Table", "Please provide a table name before saving.");
-	      return;
+        return;
      } else if ( dbName == null )
      {
         d.popupMessage("Create Table", "Please select a database for the new table before saving.");
-	      return;
-	   } else if ( model.size() == 0 )
+        return;
+     } else if ( model.size() == 0 )
      {
-	      d.popupMessage("Create Table", "Please add at least one field before saving.");
-	      return;
+        d.popupMessage("Create Table", "Please add at least one field before saving.");
+        return;
      }
 
      args().put("fieldKey", l.getSelectedValue());
@@ -39,11 +39,11 @@
 
      for (int i=0; i < model.size(); i++)
      {
-	      String fieldName = (String)model.get(i);
-	      HashObject def = l.getProperty(fieldName);
-	      if ( def != null )
-	      {
-          	sql.append(fieldName).append(" ").append(def.get("type"));
+        String fieldName = (String)model.get(i);
+        HashObject def = l.getProperty(fieldName);
+        if ( def != null )
+        {
+            sql.append(fieldName).append(" ").append(def.get("type"));
             if ( def.get("length") != null && def.get("length").trim().length() > 0)
             {
               sql.append("(").append(def.get("length")).append(")");

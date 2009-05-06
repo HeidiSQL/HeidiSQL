@@ -9,7 +9,7 @@
   dlg.tabLayout()
     .insets(10, 10)
     .icon("images/db.gif")
-	  .text("Name:", 90)
+    .text("Name:", 90)
     .setTab()
     .space(10)
     .field("dbName", 200)

@@ -1,15 +1,15 @@
 import java.sql.Statement;
 
-String who = arg("source");
+String event = arg("source");
 
 WindowContext context = argObj("windowContext");
 Editor editor = context.get("/mainTabs/Query/editor");
 
-log.debug("Event received: " + who);
+log.debug("Event received: " + event);
 
-if ("Run" == who || "Run Selection" == who )
+if (event == "Run" || event == "Run Selection" )
 {
-  String editorText = who.startsWith("Run S") ? editor.getSelectedText() : editor.getText();
+  String editorText = event.startsWith("Run S") ? editor.getSelectedText() : editor.getText();
   if ( editorText != null  )
   {
     StringBuilder query = new StringBuilder(1000);
@@ -62,7 +62,7 @@ if ("Run" == who || "Run Selection" == who )
     }
   }
 }
-else if ("Open Script" == who)
+else if (event == "Open Script")
 {
   Frame f = context.get("/");
   String file = f.openFile(null, "SQL Script Files", "sql");
@@ -72,10 +72,10 @@ else if ("Open Script" == who)
     editor.setProperty("filePath", file);
   }
 }
-else if ("Save" == who || "Save As" == who)
+else if (event == "Save" || event == "Save As")
 {
   Frame f = context.get("/");
-  if ( editor.getProperty("filePath") != null && "Save".equals(who))
+  if ( editor.getProperty("filePath") != null && "Save".equals(event))
   {
     FileUtil.fromString((String)editor.getProperty("filePath"), editor.getText());
   }
@@ -89,7 +89,7 @@ else if ("Save" == who || "Save As" == who)
     }
   }
 }
-else if ("Search" == who )
+else if (event == "Search")
 {
   Frame f = context.get("/");
   String txt = f.popupQuestion("Search", "Enter text to search for:");
@@ -100,7 +100,7 @@ else if ("Search" == who )
   } 
   
 }
-else if ("Stop" == who)
+else if (event == "Stop")
 {
   ToolbarButton btn = context.get("/mainTabs/Query/toolbar/Stop");
   btn.setEnabled(false);
@@ -122,7 +122,7 @@ else if ("Stop" == who)
   }
   
 }
-else if ("Clear" == who)
+else if (event == "Clear")
 {
   editor.setText("");
 }
