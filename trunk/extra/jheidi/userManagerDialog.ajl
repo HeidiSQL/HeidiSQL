@@ -11,46 +11,46 @@
   dlg.icon("images/usermgr.gif");
   
   Tabs tabs = dlg.tabs("tabs", true);
-	Panel addUser = tabs.tab("Add User");
-	addUser.tabLayout();
-	addUser.insets(10, 10);
+  Panel addUser = tabs.tab("Add User");
+  addUser.tabLayout();
+  addUser.insets(10, 10);
  
   addUser.text("Grant access to:", 270)
       .text("Credentials:")
       .setTab()
       .nextRow()
       .tree("schemaTree", new Object[] {"A Tree"}, 250, 315)
-	    .tab(1)
-	    .text("User Name:", 85)
-	    .field("userName", 130)
-	    .setTab()
-	    .nextRow()
-	    .tab(1)
-	    .text("From Host:")
-	    .tab(2)
-	    .field("host", 130)
-	    .nextRow()
-	    .tab(1)
-	    .text("Password:")
-	    .tab(2)
-	    .password("password", 130)
-	    .nextRow()
- 	    .vspace(10)
-	    .tab(1)
-	    .line(222)
-	    .nextRow()
-	    .tab(1)
-	    .text("Privileges:")
-	    .tab(2)
-	    .vspace(5)
-	    .listbox("privs", new String[] {}, 130, 165, false )
-	    .nextRow()
-	    .baseline(addUser.get("privsScrollPane"), "South")
-	    .tab(2)
-	    .checkbox("allPrivs", "All Privileges", false, true)
-	    .nextRow();
-	    
-	    
+      .tab(1)
+      .text("User Name:", 85)
+      .field("userName", 130)
+      .setTab()
+      .nextRow()
+      .tab(1)
+      .text("From Host:")
+      .tab(2)
+      .field("host", 130)
+      .nextRow()
+      .tab(1)
+      .text("Password:")
+      .tab(2)
+      .password("password", 130)
+      .nextRow()
+      .vspace(10)
+      .tab(1)
+      .line(222)
+      .nextRow()
+      .tab(1)
+      .text("Privileges:")
+      .tab(2)
+      .vspace(5)
+      .listbox("privs", new String[] {}, 130, 165, false )
+      .nextRow()
+      .baseline(addUser.get("privsScrollPane"), "South")
+      .tab(2)
+      .checkbox("allPrivs", "All Privileges", false, true)
+      .nextRow();
+      
+      
       
   DB db = new SQLLoggingDB((SQLLoggingDB)context.get("db"));
   db.useCache(false);
@@ -102,49 +102,49 @@
   Panel editUser = tabs.tab("Edit User");
   
   editUser.tabLayout();
-	editUser.insets(10, 10);
-	
-	editUser
-	    .text("Select A User:", 270)
+  editUser.insets(10, 10);
+  
+  editUser
+      .text("Select A User:", 270)
       .text("Credentials:")
       .setTab()
       .nextRow()
       .tree("userTree", new Object[] {"A Tree"}, 250, 315)
-	    .tab(1)
-	    .text("User Name:", 85)
-	    .field("userName", 130)
-	    .setTab()
-	    .nextRow()
-	    .tab(1)
-	    .text("From Host:")
-	    .tab(2)
-	    .field("host", 130)
-	    .nextRow()
-	    .tab(1)
-	    .text("Password:")
-	    .tab(2)
-	    .password("password", 130)
-	    .nextRow()
- 	    .vspace(10)
-	    .tab(1)
-	    .line(222)
-	    .nextRow()
-	    .tab(1)
-	    .text("Privileges:")
-	    .tab(2)
-	    .vspace(5)
-	    .listbox("privs", new String[] {}, 130, 165, false )
-	    .nextRow()
-	    .baseline(editUser.get("privsScrollPane"), "South")
-	    .tab(2)
-	    .checkbox("allPrivs", "All Privileges", false, true)
-	    .nextRow();
-	    
-	    
-	privs = editUser.get("privs");
+      .tab(1)
+      .text("User Name:", 85)
+      .field("userName", 130)
+      .setTab()
+      .nextRow()
+      .tab(1)
+      .text("From Host:")
+      .tab(2)
+      .field("host", 130)
+      .nextRow()
+      .tab(1)
+      .text("Password:")
+      .tab(2)
+      .password("password", 130)
+      .nextRow()
+      .vspace(10)
+      .tab(1)
+      .line(222)
+      .nextRow()
+      .tab(1)
+      .text("Privileges:")
+      .tab(2)
+      .vspace(5)
+      .listbox("privs", new String[] {}, 130, 165, false )
+      .nextRow()
+      .baseline(editUser.get("privsScrollPane"), "South")
+      .tab(2)
+      .checkbox("allPrivs", "All Privileges", false, true)
+      .nextRow();
+      
+      
+  privs = editUser.get("privs");
   privs.setModel(new ListDataModel(privList));
   privs.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-	  
+    
   ((Text)editUser.get("Select A User:")).style(Font.BOLD);
   ((Text)editUser.get("Credentials:")).style(Font.BOLD);
   ((Text)editUser.get("Privileges:")).style(Font.BOLD);
@@ -155,9 +155,9 @@
   
   dlg.setResizable(false);
   dlg.visible();
-	   
-	
-	
+     
+  
+  
     
     
     

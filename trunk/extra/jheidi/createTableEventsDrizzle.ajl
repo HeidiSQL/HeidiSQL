@@ -1,12 +1,12 @@
   import javax.swing.*;
   import java.util.*;
   
-  String who = arg("source");
+  String event = arg("source");
   WindowContext context = argObj("windowContext");
   
-  log.debug("event received: " + who);
+  log.debug("event received: " + event);
   
-  if ( "Create".equals(who) )
+  if ( event == "Create" )
   {
      Dialog d = context.get("/");
      ListBox l = context.get("/fields");
@@ -23,15 +23,15 @@
      if ( tableName == null || tableName.trim().length() == 0 )
      {
         d.popupMessage("Create Table", "Please provide a table name before saving.");
-	      return;
+        return;
      } else if ( dbName == null )
      {
         d.popupMessage("Create Table", "Please select a database for the new table before saving.");
-	      return;
-	   } else if ( model.size() == 0 )
+        return;
+     } else if ( model.size() == 0 )
      {
-	      d.popupMessage("Create Table", "Please add at least one field before saving.");
-	      return;
+        d.popupMessage("Create Table", "Please add at least one field before saving.");
+        return;
      }
 
      args().put("fieldKey", l.getSelectedValue());
@@ -45,11 +45,11 @@
      
      for (int i=0; i < model.size(); i++)
      {
-	      String fieldName = (String)model.get(i);
-	      HashObject def = l.getProperty(fieldName);
-	      if ( def != null )
-	      {
-          	buffer.append(fieldName).append(" ").append(def.get("type"));
+        String fieldName = (String)model.get(i);
+        HashObject def = l.getProperty(fieldName);
+        if ( def != null )
+        {
+            buffer.append(fieldName).append(" ").append(def.get("type"));
             if ( def.get("length") != null && def.get("length").trim().length() > 0)
             {
               buffer.append("(").append(def.get("length")).append(")");
@@ -136,12 +136,12 @@
      
      d.dispose();
 
-  } else if ( "Cancel".equals(who) )
+  } else if ( event == "Cancel" )
   {
      Dialog d = context.get("/");
      d.dispose();
   } 
-  else if ("charSets".equals(who))
+  else if (event == "charSets")
   {
     DB db = context.get("db");
     DB.Result result = db.execute("select * from information_schema.collations where character_set_name='" + ((Combo)context.get("/charSets")).getText() + "'");
@@ -162,7 +162,7 @@
     combo.select(def);
   
   } 
-  else if ("Add".equals(who) )
+  else if (event == "Add")
   {
     Field f = context.get("/fieldName");
     Dialog d = context.get("/");
@@ -190,7 +190,7 @@
       d.popupMessage("Create Table", "Field name '" + fieldName.trim() + "'  already exists in this table.");
     }
   }
-  else if ("Remove".equals(who) )
+  else if (event == "Remove")
   {
     ListBox l = context.get("/fields");
     int sel = l.getSelectedIndex();
@@ -201,7 +201,7 @@
     }
     
   }
-  else if ("Up".equals(who) )
+  else if (event == "Up")
   {
     ListBox l = context.get("/fields");
     int sel = l.getSelectedIndex();
@@ -211,7 +211,7 @@
     }
      
   }
-  else if ("Down".equals(who) )
+  else if (event == "Down")
   {
     ListBox l = context.get("/fields");
     int sel = l.getSelectedIndex();
@@ -221,7 +221,7 @@
       l.setSelectedIndex(sel+1 > model.size()-1 ? model.size()-1 : sel+1);
     }   
   }
-  else if ("Rename".equals(who) )
+  else if (event == "Rename")
   {
     Field f = context.get("/fieldName");
     ListBox l = context.get("/fields");

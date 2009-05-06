@@ -1,10 +1,10 @@
   import javax.swing.*;
  
-  String who = arg("source");
+  String event = arg("source");
   WindowContext context = argObj("windowContext");
-  log.debug("event received" + who);
+  log.debug("event received" + event);
   
-  if ( "Add Field".equals(who) || "Update Field".equals(who) )
+  if ( event == "Add Field" || event == "Update Field" )
   {
      Dialog d = context.get("/");
     
@@ -20,13 +20,13 @@
 
      if ( fieldName == null || fieldName.trim().length() == 0 )
      {
-        d.popupMessage(who, "Please provide a field name before saving.");
-	      return;
+        d.popupMessage(event, "Please provide a field name before saving.");
+        return;
      }
 
 
      buffer.append("alter table `").append(dbName).append("`.`").append(tableName).append("`");
-     if ( who.startsWith("Add") )
+     if ( event.startsWith("Add") )
      {
          buffer.append(" add ").append("`").append(fieldName).append("`");
      }
@@ -73,7 +73,7 @@
      d.dispose();
 
   }
-  else if ( "Cancel".equals(who) )
+  else if ( event == "Cancel" )
   {
      Dialog d = context.get("/");
      d.dispose();

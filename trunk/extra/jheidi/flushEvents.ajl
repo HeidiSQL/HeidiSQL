@@ -1,14 +1,14 @@
 
-String who = arg("source");
+String event = arg("source");
 
 WindowContext context = argObj("windowContext");
 
-log.debug("Event received: " + who);
+log.debug("Event received: " + event);
 
 String curDB = context.get("currentDB");
 if ( curDB != null )
 {
-  String cmd = who.toLowerCase();
+  String cmd = event.toLowerCase();
   DB db = context.get("db");
   db.begin();
   db.execute("use " + curDB);

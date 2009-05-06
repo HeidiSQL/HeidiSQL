@@ -23,13 +23,13 @@
      if ( fieldName == null || fieldName.trim().length() == 0 )
      {
         d.popupMessage(event, "Please provide a field name before saving.");
-	      return;
+        return;
      }
 
      if ( type.contains("char") && (lengthSet == null || lengthSet.trim().length() == 0))
      {
         d.popupMessage(event, "Character types require a length.");
-	      return;
+        return;
      }
 
      sql.append("alter table ").append(dbName).append(".").append(tableName).append("");

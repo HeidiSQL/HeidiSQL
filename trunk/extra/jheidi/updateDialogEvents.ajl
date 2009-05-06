@@ -1,9 +1,9 @@
   
-  String who = arg("source");
+  String event = arg("source");
   WindowContext context = argObj("windowContext");
   AutoUpdater updater = (AutoUpdater)env("updater");
   
-  if ( "Install".equals(who) )
+  if ( event == "Install" )
   {
     updater.update(true, true);
   }
@@ -30,4 +30,4 @@
 
 
 
-		
+    

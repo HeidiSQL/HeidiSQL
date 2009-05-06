@@ -13,74 +13,74 @@
   dlg.icon("images/import.gif");
   
   Tabs tabs = dlg.tabs("tabs");
-	Panel source = tabs.tab("Source");
-	source.tabLayout();
-	source.insets(10, 10);
+  Panel source = tabs.tab("Source");
+  source.tabLayout();
+  source.insets(10, 10);
  
   source.groupbox("Filename", 300, 70).space(5)
-	   .nextRow()
-	   .vspace(LF.isWin?22:20)
-	   .space(15)
-	   .field("fileName", 235)
-	   .setTab()
-	   .vspace(LF.isMac?19:20)
-	   .imageButton("openFile", "images/folder.gif", 32)
-	   .nextRow()
-	   .baseline(context.get("/tabs/Source/gbFilename"), "South")
-	   .groupbox("Fields", 300, 125)
-	   .nextRow()
-	   .vspace(LF.isWin?21:17)
-	   .tab(1)
-	   .text("Separator",90)
-	   .field("fieldSep", 41)
-	   .setTab()
-	   .nextRow()
-	   .tab(1)
-	   .text("Enclosed By", 100)
-	   .tab(2)
-	   .field("enclosedBy", 41)
-	   .nextRow()
-	   .tab(1)
-	   .text("Escaped By", 100)
-	   .tab(2)
-	   .field("escapedBy", 41)
-	   .nextRow()
-	   .baseline(context.get("/tabs/Source/gbFields"), "South")
-	   .groupbox("Lines", 300, 95)
-	   .nextRow()
-	   .vspace(LF.isWin?21:17)
-	   .tab(1)
-	   .text("Separator",100)
-	   .tab(2)
-	   .field("lineSep", 41)
-	   .nextRow()
-	   .tab(1)
-	   .text("Header Lines", 100)
-	   .tab(2)
-	   .field("ignore", 41);
+     .nextRow()
+     .vspace(LF.isWin?22:20)
+     .space(15)
+     .field("fileName", 235)
+     .setTab()
+     .vspace(LF.isMac?19:20)
+     .imageButton("openFile", "images/folder.gif", 32)
+     .nextRow()
+     .baseline(context.get("/tabs/Source/gbFilename"), "South")
+     .groupbox("Fields", 300, 125)
+     .nextRow()
+     .vspace(LF.isWin?21:17)
+     .tab(1)
+     .text("Separator",90)
+     .field("fieldSep", 41)
+     .setTab()
+     .nextRow()
+     .tab(1)
+     .text("Enclosed By", 100)
+     .tab(2)
+     .field("enclosedBy", 41)
+     .nextRow()
+     .tab(1)
+     .text("Escaped By", 100)
+     .tab(2)
+     .field("escapedBy", 41)
+     .nextRow()
+     .baseline(context.get("/tabs/Source/gbFields"), "South")
+     .groupbox("Lines", 300, 95)
+     .nextRow()
+     .vspace(LF.isWin?21:17)
+     .tab(1)
+     .text("Separator",100)
+     .tab(2)
+     .field("lineSep", 41)
+     .nextRow()
+     .tab(1)
+     .text("Header Lines", 100)
+     .tab(2)
+     .field("ignore", 41);
      
   Panel dest = tabs.tab("Destination");
   
   dest.tabLayout();
-	dest.insets(10, 10);
-	
-	dest.text("Database:")
-	   .nextRow()
-	   .combo("dbs", new String[] {"Hi"}, 300)
-	   .nextRow()
-	   .text("Import into table:")
-	   .nextRow()
-	   .combo("tables", new String[] {""}, 300)
-	   .nextRow()
-	   .text("Select columns in input file:")
-	   .nextRow()
-	   .vspace(3)
-	   .listbox("fields", new String[] {}, 262, 155)
-	   .imageButton("Up", "images/up.gif", 32)
-	   .setTab()
-	   .nextRow()
-	   .tab(1)
-	   .imageButton("Down", "images/down.gif", 32);
+  dest.insets(10, 10);
+  
+  dest.text("Database:")
+     .nextRow()
+     .combo("dbs", new String[] {"Hi"}, 300)
+     .nextRow()
+     .text("Import into table:")
+     .nextRow()
+     .combo("tables", new String[] {""}, 300)
+     .nextRow()
+     .text("Select columns in input file:")
+     .nextRow()
+     .vspace(3)
+     .listbox("fields", new String[] {}, 262, 155)
+     .imageButton("Up", "images/up.gif", 32)
+     .setTab()
+     .nextRow()
+     .tab(1)
+     .imageButton("Down", "images/down.gif", 32);
    
    Panel buttons = dlg.panel("buttonPanel", "South");
    buttons.tabLayout();
@@ -109,10 +109,10 @@
     ((ListBox)dest.get("fields")).setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
           
     dlg.setResizable(false);
-  	dlg.visible();
-	   
-	
-	
+    dlg.visible();
+     
+  
+  
     
     
     

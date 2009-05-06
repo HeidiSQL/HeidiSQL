@@ -9,7 +9,7 @@
     <property name="project.version.short" value="Alpha"/>
     <property name="ftp.password" value="****"/>
     <property name="java.target" value="1.5"/> 
-	  <property name="ajl.cmd" value="./ajl"/> 
+    <property name="ajl.cmd" value="./ajl"/> 
     <!-- end -->
 
     <!-- common symbols -->    
@@ -49,8 +49,8 @@
     <property name="jheidi.jar" value="jheidi.jar"/>  
     <property name=".autoupdater" value=".autoupdater"/>  
     <property name="mysql-profiles" value=".profiles-mysql"/>
-	  <property name="oracle-profiles" value=".profiles-oracle"/>
-	  <property name="drizzle-profiles" value=".profiles-drizzle"/>
+    <property name="oracle-profiles" value=".profiles-oracle"/>
+    <property name="drizzle-profiles" value=".profiles-drizzle"/>
     <property name="bin.client.autoupdater" value="${etc}/bin-client-autoupdater"/>
     <property name="win.client.autoupdater" value="${etc}/win-client-autoupdater"/>
     <property name="osx.client.autoupdater" value="${etc}/osx-client-autoupdater"/>
@@ -72,22 +72,22 @@
     <property name="jheidi.bin.name" value="jheidi-bin"/>
     <property name="jheidi.osx.name" value="jheidi-osx"/>
     <property name="jheidi.win.name" value="jheidi-win"/>
-	<property name="jheidi.exe" value="jheidi.exe"/>
-	<property name="jheidi-setup.exe" value="jheidi-setup.exe"/>
-	<property name="innosetup" value="innosetup"/>
-	<property name="nsis" value="nsis"/>
+    <property name="jheidi.exe" value="jheidi.exe"/>
+    <property name="jheidi-setup.exe" value="jheidi-setup.exe"/>
+    <property name="innosetup" value="innosetup"/>
+    <property name="nsis" value="nsis"/>
     <property name="bin.dist" value="${dist.dir}/${jheidi.bin.name}"/>
     <property name="win.dist" value="${dist.dir}/${jheidi.win.name}"/>
     <property name="osx.dist" value="${osx.java}/${jheidi.osx.name}"/>
 
-	<!-- auto update properties --> 
-	<property name="autoupdater.dir" value="${upload.dir}/autoupdater"/>
-	<property name="autoupdater.win.dir" value="${autoupdater.dir}/win"/>
-	<property name="autoupdater.bin.dir" value="${autoupdater.dir}/bin"/>
-	<property name="autoupdater.osx.dir" value="${autoupdater.dir}/osx"/>
-	<property name="osx.server.autoupdater" value="${etc}/osx-server-autoupdater"/>
-	<property name="win.server.autoupdater" value="${etc}/win-server-autoupdater"/>
-	<property name="bin.server.autoupdater" value="${etc}/bin-server-autoupdater"/>
+  <!-- auto update properties --> 
+  <property name="autoupdater.dir" value="${upload.dir}/autoupdater"/>
+  <property name="autoupdater.win.dir" value="${autoupdater.dir}/win"/>
+  <property name="autoupdater.bin.dir" value="${autoupdater.dir}/bin"/>
+  <property name="autoupdater.osx.dir" value="${autoupdater.dir}/osx"/>
+  <property name="osx.server.autoupdater" value="${etc}/osx-server-autoupdater"/>
+  <property name="win.server.autoupdater" value="${etc}/win-server-autoupdater"/>
+  <property name="bin.server.autoupdater" value="${etc}/bin-server-autoupdater"/>
 
     <!-- path collections -->    
     <path id="ajl.classpath">
@@ -105,9 +105,9 @@
         <include name="drizzle-jdbc-0.1.jar"/>
         <include name="slf4j-api-1.5.6.jar"/>
         <include name="slf4j-nop-1.5.6.jar"/>
-		    <include name="ojdbc14.jar"/>
+        <include name="ojdbc14.jar"/>
         <include name="ajl.jar"/>
-	  </fileset>
+    </fileset>
     </path>
     
     <path id="jheidi.libs.osx">    
@@ -181,12 +181,17 @@
       <arg value="-c"/>
     </exec>
     <javac fork="true" target="${java.target}" srcdir="${src}" destdir="${classes}" classpath="${lib}/${ajl.jar}" includes="${jheidi.launcher}"/>
-	<sleep seconds="2"/>
+  <sleep seconds="2"/>
     <delete>
       <fileset dir="${classes}">
         <include name="**/*.java"/>
       </fileset>   
     </delete>
+  </target>
+
+  <target name="unixFriendlySourceFiles">
+  <fixcrlf srcdir="." includes="*.xml" tab="remove" tablength="2" javafiles="no" eol="lf"/>
+  <fixcrlf srcdir="." includes="*.ajl" tab="remove" tablength="2" javafiles="yes" eol="lf"/>
   </target>
   
   
@@ -364,7 +369,7 @@
     <exec executable="${nsis.cmd}" dir="${etc}/${nsis}">
       <arg value="jheidi.nsi"/>
     </exec>
-	<copy file="${etc}/${nsis}/${jheidi.exe}" tofile="${components.dir}/${jheidi.exe}"/>
+  <copy file="${etc}/${nsis}/${jheidi.exe}" tofile="${components.dir}/${jheidi.exe}"/>
   </target>
 
   <target name="deploy.win" depends="jheidi.jar, jheidi.exe" if="innosetup.cmd">
@@ -375,8 +380,8 @@
      <mkdir dir="${win.dist}/${lib}"/>
      <mkdir dir="${win.dist}/${images}"/>
      <mkdir dir="${win.dist}/${logs}"/>
-	 <mkdir dir="${win.dist}/${innosetup}"/>
-	 <mkdir dir="${win.dist}/${bin}"/>
+   <mkdir dir="${win.dist}/${innosetup}"/>
+   <mkdir dir="${win.dist}/${bin}"/>
           
     <copy todir="${win.dist}/${lib}">
       <path refid="jheidi.libs"/>
@@ -386,10 +391,10 @@
      <fileset dir="${images}"/>
     </copy>
 
-	<!-- this is the mutex stub NOT the app exe -->
-	<copy todir="${win.dist}/${bin}">
-	 <fileset file="${bin}/${jheidi.exe}"/>
-	</copy>
+  <!-- this is the mutex stub NOT the app exe -->
+  <copy todir="${win.dist}/${bin}">
+   <fileset file="${bin}/${jheidi.exe}"/>
+  </copy>
     
     <copy todir="${win.dist}/${logs}">
      <fileset dir="${logs}"/>
@@ -405,17 +410,17 @@
     </copy>
     
     <copy file="${etc}/${mysql-profiles}" tofile="${win.dist}/${mysql-profiles}"/>
-	  <copy file="${etc}/${oracle-profiles}" tofile="${win.dist}/${oracle-profiles}"/>
-	  <copy file="${etc}/${drizzle-profiles}" tofile="${win.dist}/${drizzle-profiles}"/> 
+    <copy file="${etc}/${oracle-profiles}" tofile="${win.dist}/${oracle-profiles}"/>
+    <copy file="${etc}/${drizzle-profiles}" tofile="${win.dist}/${drizzle-profiles}"/> 
     <copy file="${win.client.autoupdater}" tofile="${win.dist}/${.autoupdater}"/>
     <copy todir="${win.dist}/${innosetup}">
-	  <fileset dir="${etc}/${innosetup}"/>
-	</copy>
+    <fileset dir="${etc}/${innosetup}"/>
+  </copy>
 
-	<exec executable="${innosetup.cmd}" dir="${win.dist}/${innosetup}">
+  <exec executable="${innosetup.cmd}" dir="${win.dist}/${innosetup}">
       <arg value="jheidi.iss"/>
     </exec>
-	<copy file="${win.dist}/${innosetup}/Output/${jheidi-setup.exe}" tofile="${upload.dir}/${jheidi-setup.exe}"/>
+  <copy file="${win.dist}/${innosetup}/Output/${jheidi-setup.exe}" tofile="${upload.dir}/${jheidi-setup.exe}"/>
   </target>
 
   <target name="deploy.all" depends="deploy.bin, deploy.osx, deploy.win"/>
@@ -464,46 +469,46 @@
 
   <target name="autoupdate.dirs">
      <mkdir dir="${autoupdater.win.dir}"/>
-	 <mkdir dir="${autoupdater.bin.dir}"/>
-	 <mkdir dir="${autoupdater.osx.dir}"/>
+   <mkdir dir="${autoupdater.bin.dir}"/>
+   <mkdir dir="${autoupdater.osx.dir}"/>
      <copy file="${win.server.autoupdater}" tofile="${autoupdater.win.dir}/jheidi-win-autoupdater"/>
-	 <copy file="${bin.server.autoupdater}" tofile="${autoupdater.bin.dir}/jheidi-bin-autoupdater"/>
-	 <copy file="${osx.server.autoupdater}" tofile="${autoupdater.osx.dir}/jheidi-osx-autoupdater"/>
-	 <copy todir="${autoupdater.win.dir}">
-	   <fileset dir="${etc}">
-	     <include name="readme*.txt"/>
-	   </fileset>
-	   <fileset file="${lib}/autoupdater.jar"/>
-	 </copy>
-	 <copy todir="${autoupdater.bin.dir}">
-	   <fileset dir="${etc}">
-	     <include name="readme*.txt"/>
-	   </fileset>
-	   <fileset file="${lib}/autoupdater.jar"/>
-	 </copy>
-	 <copy todir="${autoupdater.osx.dir}">
-	   <fileset dir="${etc}">
-	     <include name="readme*.txt"/>
-	   </fileset>
-	   <fileset file="${lib}/autoupdater.jar"/>
-	 </copy>
+   <copy file="${bin.server.autoupdater}" tofile="${autoupdater.bin.dir}/jheidi-bin-autoupdater"/>
+   <copy file="${osx.server.autoupdater}" tofile="${autoupdater.osx.dir}/jheidi-osx-autoupdater"/>
+   <copy todir="${autoupdater.win.dir}">
+     <fileset dir="${etc}">
+       <include name="readme*.txt"/>
+     </fileset>
+     <fileset file="${lib}/autoupdater.jar"/>
+   </copy>
+   <copy todir="${autoupdater.bin.dir}">
+     <fileset dir="${etc}">
+       <include name="readme*.txt"/>
+     </fileset>
+     <fileset file="${lib}/autoupdater.jar"/>
+   </copy>
+   <copy todir="${autoupdater.osx.dir}">
+     <fileset dir="${etc}">
+       <include name="readme*.txt"/>
+     </fileset>
+     <fileset file="${lib}/autoupdater.jar"/>
+   </copy>
   </target>
 
   <!-- use -D to pass the file path to copy to the upload dirs -->
   <target name="autoupdate.copy">
     <copy todir="${autoupdater.win.dir}">
       <fileset dir=".">
-	    <include name="${file}"/>
+      <include name="${file}"/>
       </fileset>
     </copy>
     <copy todir="${autoupdater.bin.dir}">
       <fileset dir=".">
-	    <include name="${file}"/>
+      <include name="${file}"/>
       </fileset>
     </copy>
     <copy todir="${autoupdater.osx.dir}">
       <fileset dir=".">
-	    <include name="${file}"/>
+      <include name="${file}"/>
       </fileset>
     </copy>
   </target>
@@ -511,17 +516,17 @@
   <target name="autoupdate.jheidi.jar">
     <copy todir="${autoupdater.win.dir}">
       <fileset dir="${components.dir}">
-	    <include name="${jheidi.jar}"/>
+      <include name="${jheidi.jar}"/>
       </fileset>
     </copy>
     <copy todir="${autoupdater.bin.dir}">
       <fileset dir="${components.dir}">
-	    <include name="${jheidi.jar}"/>
+      <include name="${jheidi.jar}"/>
       </fileset>
     </copy>
     <copy todir="${autoupdater.osx.dir}">
       <fileset dir="${components.dir}">
-	    <include name="${jheidi.jar}"/>
+      <include name="${jheidi.jar}"/>
       </fileset>
     </copy>
   </target>
@@ -533,7 +538,7 @@
        password="${ftp.password}"
        passive="no">
       <fileset dir="${upload.dir}/autoupdater/win">
-	    <include name="**/*"/>
+      <include name="**/*"/>
       </fileset>
     </ftp>
   </target>
@@ -545,7 +550,7 @@
        password="${ftp.password}"
        passive="no">
       <fileset dir="${upload.dir}/autoupdater/bin">
-	    <include name="**/*"/>
+      <include name="**/*"/>
       </fileset>
     </ftp>
   </target>
@@ -557,7 +562,7 @@
        password="${ftp.password}"
        passive="no">
       <fileset dir="${upload.dir}/autoupdater/osx">
-	    <include name="**/*"/>
+      <include name="**/*"/>
       </fileset>
     </ftp>
   </target>

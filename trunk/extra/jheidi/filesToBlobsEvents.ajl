@@ -1,12 +1,12 @@
   import java.io.*;
   import javax.swing.*;
   
-  String who = arg("source");
+  String event = arg("source");
   WindowContext context = argObj("windowContext");
   Dialog dlg = context.get("/");
-  log.debug("event received: *" + who + "*");
+  log.debug("event received: *" + event + "*");
  
-  if ( "Import".equals(who) )
+  if ( event == "Import" )
   {
      int fileCount = ((Table)dlg.get("files")).getModel().getRowCount();
      String intoDB = ((Combo)dlg.get("dbs")).getText();
@@ -105,11 +105,11 @@
     }
     dlg.dispose();
   }
-  else if ( "Cancel".equals(who) )
+  else if ( event == "Cancel" )
   {
     dlg.dispose();
   } 
-  else if ("Add".equals(who) )
+  else if (event == "Add" )
   {
     File[] files = dlg.openFiles();
     Table fileTable = dlg.get("files");
@@ -123,12 +123,12 @@
     }
      
   }
-  else if ("Remove".equals(who) )
+  else if (event == "Remove")
   {
      Table fileTable = dlg.get("files");
      fileTable.removeSelectedRows();
   }
-  else if ("dbs".equals(who))
+  else if (event == "dbs")
   {
   
     String selection = ((Combo)dlg.get("dbs")).getText();
@@ -148,7 +148,7 @@
       ListBox l = dlg.get("otherFields");
       ((ListDataModel)l.getModel()).clear();
 
-	    combo = dlg.get("blobColumns");
+      combo = dlg.get("blobColumns");
       combo.clear();
     }
 
@@ -158,7 +158,7 @@
     combo.getEditor().setItem("null");
     
   }
-  else if ("tables".equals(who))
+  else if (event == "tables")
   {
     String selection = ((Combo)context.get("/tables")).getText();
     String dbsel = ((Combo)context.get("/dbs")).getText();
@@ -167,30 +167,30 @@
     DB.Result otherFields = db.execute("show columns from `" + dbsel + "`.`" + selection + "` where type not like '%blob'");
     DB.Result blobFields = db.execute("show columns from `" + dbsel + "`.`" + selection + "` where type like '%blob'");
     
-	  Combo combo = dlg.get("blobColumns");
+    Combo combo = dlg.get("blobColumns");
     if (!blobFields.isEmpty())
     {
-	    ComboUtils.populate(combo, blobFields, 0);
+      ComboUtils.populate(combo, blobFields, 0);
     }
-	  else {
-		  combo.clear();
-	  }
+    else {
+      combo.clear();
+    }
 
-	  ListBox listbox = dlg.get("otherFields");
-	  if ( !otherFields.isEmpty())
-	  {
-	    ListBoxUtils.populate(listbox, otherFields, 0);
-	  }
-	  else
-	  {
-		  ((ListDataModel)listbox.getModel()).clear();
+    ListBox listbox = dlg.get("otherFields");
+    if ( !otherFields.isEmpty())
+    {
+      ListBoxUtils.populate(listbox, otherFields, 0);
+    }
+    else
+    {
+      ((ListDataModel)listbox.getModel()).clear();
     }
     combo = dlg.get("values");
     combo.setProperty("userValues", null);
     combo.setProperty("lastSel", null);
     combo.getEditor().setItem("null");
   }
-  else if ("blobColumns".equals(who))
+  else if (event == "blobColumns")
   {
     Combo combo = dlg.get("blobColumns");
     if ( !(combo.getModel() instanceof ResultListModel) )
@@ -223,30 +223,30 @@
         }
     }
   }
-  else if ("otherFields".equals(who))
+  else if (event == "otherFields")
   {
-	  ListBox listbox = dlg.get("otherFields");
-	  Combo values = dlg.get("values");
-	  HashObject userValues = values.getProperty("userValues");
- 	  String selection = (String)listbox.getSelectedValue();
- 	  String lastSel = values.getProperty("lastSel");
- 	  String value = (String)values.getEditor().getItem();
- 	  
-	  if ( userValues == null )
-	  {
-		  userValues = new HashObject();
-		  values.setProperty("userValues", userValues);
-	  }
-	
-	  userValues.put(lastSel, value);
-	  if ( userValues.get(selection) == null )
-	  {
-	    userValues.put(selection, "null");
-	  }
-	
-	  values.getEditor().setItem(userValues.get(selection));
-	  values.setProperty("lastSel", selection);
-	  
+    ListBox listbox = dlg.get("otherFields");
+    Combo values = dlg.get("values");
+    HashObject userValues = values.getProperty("userValues");
+    String selection = (String)listbox.getSelectedValue();
+    String lastSel = values.getProperty("lastSel");
+    String value = (String)values.getEditor().getItem();
+    
+    if ( userValues == null )
+    {
+      userValues = new HashObject();
+      values.setProperty("userValues", userValues);
+    }
+  
+    userValues.put(lastSel, value);
+    if ( userValues.get(selection) == null )
+    {
+      userValues.put(selection, "null");
+    }
+  
+    values.getEditor().setItem(userValues.get(selection));
+    values.setProperty("lastSel", selection);
+    
   }
   
     

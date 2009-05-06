@@ -1,6 +1,6 @@
   import java.util.*;
 
-  String who = arg("source");
+  String event = arg("source");
   WindowContext context = argObj("windowContext");
   
   Dialog dlg = context.get("/");    
@@ -9,9 +9,9 @@
   
   ListBox tables = source.get("tables");
 
-  log.debug("event received: " + who);
+  log.debug("event received: " + event);
   
-  if ("dbs".equals(who))
+  if (event == "dbs")
   {
     String selection = ((Combo)source.get("dbs")).getText();
     DB db = context.get("db");
@@ -20,7 +20,7 @@
     
     ListBoxUtils.populate(tables, result, 0);
   }
-  else if ( "database".equals(who) )
+  else if ( event == "database" )
   {
     String dbCreateOption = ((Combo)dest.get("database")).getText();
     if ( "Recreate (remove tables)".equals(dbCreateOption) )
@@ -34,7 +34,7 @@
       ((Combo)dest.get("data")).setEnabled(true);
     }
   }
-  else if ( "tables".equals(who) )
+  else if ( event == "tables" )
   {
     String tableCreateOption = ((Combo)dest.get("database")).getText();
     if ( "Recreate (remove data)".equals(tableCreateOption) )
@@ -46,24 +46,24 @@
     }
     
   }  
-  else if ( "Select All".equals(who) )
+  else if ( event == "Select All" )
   {
      if (tables.getModel().getSize() > 0)
      {
        tables.setSelectionInterval(0, tables.getModel().getSize()-1);
      }
   }
-  else if ( "Deselect".equals(who) )
+  else if ( event == "Deselect" )
   {
     tables.clearSelection();
   }
 
-  else if ( "Cancel".equals(who) )
+  else if ( event == "Cancel" )
   {
      Dialog d = context.get("/");
      d.dispose();
   }
-  else if ("saveFile".equals(who))
+  else if ( event == "saveFile")
   {
     String file = dlg.saveFile(null, "sql", new String[] {"sql"});
     Field f = dest.get("fileName");
@@ -72,7 +72,7 @@
       f.setText(file);
     }
   }
-  else if ( "Export".equals(who) )
+  else if ( event == "Export" )
   {        
     //flush and validate
     Tabs tabs = context.get("/tabs");

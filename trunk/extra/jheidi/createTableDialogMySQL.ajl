@@ -102,7 +102,7 @@
     .checkbox("zeroFill", "Zero Fill",80, false)
     .nextRow();
     
-	  dlg.baseline((Component)context.get("/Rename"));
+    dlg.baseline((Component)context.get("/Rename"));
     
     dlg.tab(5)
     .vspace(1)

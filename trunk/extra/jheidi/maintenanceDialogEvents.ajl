@@ -1,4 +1,4 @@
-  String who = arg("source");
+  String event = arg("source");
   WindowContext context = argObj("windowContext");
   
   ListBox tables = context.get("/tables");
@@ -7,9 +7,9 @@
   
   String selectedDB = "`" + ((Combo)context.get("/dbs")).getText() + "`.";
   
-  log.debug("event received: " + who);
+  log.debug("event received: " + event);
   
-  if ("dbs".equals(who))
+  if (event == "dbs")
   {
     String selection = ((Combo)context.get("/dbs")).getText();
     DB db = context.get("db");
@@ -17,15 +17,15 @@
     
     ListBoxUtils.populate(tables, result, 0);
   }
-  else if ( "Select All".equals(who) )
+  else if ( event == "Select All" )
   {
       tables.selectAll();
   }
-  else if ( "Deselect".equals(who) )
+  else if ( event == "Deselect" )
   {
     tables.clearSelection();
   }
-  else if ( "Optimize".equals(who) )
+  else if ( event == "Optimize" )
   {
      if ( values.length >0 )
      {
@@ -39,7 +39,7 @@
      }
      
   } 
-  else if ( "Analyze".equals(who) )
+  else if ( event == "Analyze" )
   {
     if ( values.length >0 )
      {
@@ -52,7 +52,7 @@
        }
      }
   }
-  else if ( "Check".equals(who) )
+  else if ( event == "Check" )
   {
     if ( values.length >0 )
      {
@@ -65,7 +65,7 @@
        }
      }
   }
-  else if ( "Repair".equals(who) )
+  else if ( event == "Repair" )
   {
    if ( values.length >0 )
      {
@@ -78,7 +78,7 @@
        }
      }
   }
-  else if ( "Close".equals(who) )
+  else if ( event == "Close" )
   {
      Dialog d = context.get("/");
      d.dispose();

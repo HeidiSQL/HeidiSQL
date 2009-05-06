@@ -13,7 +13,7 @@
   app.tabLayout()
     .insets(10, 12)
     .icon("images/connect.gif")
-	  .image("logo", "images/logo-mysql.gif")		
+    .image("logo", "images/logo-mysql.gif")   
     .space(LF.isLeopard?2:5)
     .vspace(-1)  
     .button("New", 110)

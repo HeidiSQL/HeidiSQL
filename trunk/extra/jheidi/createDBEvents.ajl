@@ -1,10 +1,10 @@
 
-  String who = arg("source");
+  String event = arg("source");
 
   WindowContext context = argObj("windowContext");
-  log.debug("event received: " + who);
+  log.debug("event received: " + event);
   
-  if ( "Ok".equals(who) )
+  if ( event == "Ok" )
   {
      Dialog d = context.get("/");
      Field dbName = context.get("/dbName");
@@ -21,12 +21,13 @@
      
      d.dispose();
 
-  } else if ( "Cancel".equals(who) )
+  }
+  else if ( event == "Cancel" )
   {
      Dialog d = context.get("/");
      d.dispose();
   } 
-  else if ("charSets".equals(who))
+  else if (event == "charSets")
   {
     DB db = context.get("db");
     DB.Result result = db.execute("show collation where charset='" + ((Combo)context.get("/charSets")).getText() + "'");

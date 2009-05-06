@@ -12,7 +12,7 @@
     .insets(10,10)
     .tabLayout()
     .icon("images/manageindexes.gif")
-	  .text("Index Name:", 89)
+    .text("Index Name:", 89)
     .setTab()
     .combo("indexes", new String[] {"", "Hi"}, 243)
     .setTab()
