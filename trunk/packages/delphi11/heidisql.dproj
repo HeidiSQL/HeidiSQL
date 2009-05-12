@@ -129,9 +129,6 @@
     <DCCReference Include="..\..\source\createdatabase.pas">
       <Form>CreateDatabaseForm</Form>
     </DCCReference>
-    <DCCReference Include="..\..\source\createtable.pas">
-      <Form>CreateTableForm</Form>
-    </DCCReference>
     <DCCReference Include="..\..\source\dataviewsave.pas">
       <Form>FrmDataViewSave</Form>
     </DCCReference>
@@ -190,8 +187,8 @@
       <Form>frmSQLhelp</Form>
     </DCCReference>
     <DCCReference Include="..\..\source\synchronization.pas" />
-    <DCCReference Include="..\..\source\tbl_properties.pas">
-      <Form>tbl_properties_form</Form>
+    <DCCReference Include="..\..\source\table_editor.pas">
+      <Form>frmTableEditor</Form>
     </DCCReference>
     <DCCReference Include="..\..\source\texteditor.pas">
       <Form>frmTextEditor</Form>

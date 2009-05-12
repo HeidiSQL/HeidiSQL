@@ -1108,7 +1108,7 @@ begin
                 ftInteger, ftSmallint, ftWord:
                   value := Query.Fields[k].AsWideString;
                 ftBoolean:
-                  value := esc( Bool2Str( Query.Fields[k].AsBoolean ) );
+                  value := esc( BoolToStr( Query.Fields[k].AsBoolean ) );
                 ftBlob:
                   if Query.Fields[k].AsString <> '' then
                     value := '0x' + BinToWideHex(Query.Fields[k].AsString)
