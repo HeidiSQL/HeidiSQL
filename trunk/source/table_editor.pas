@@ -182,6 +182,8 @@ begin
   InheritFont(Font);
   FixVT(listColumns);
   FixVT(treeIndexes);
+  Mainform.RestoreListSetup(listColumns);
+  Mainform.RestoreListSetup(treeIndexes);
   FLoaded := False;
   comboRowFormat.Items.CommaText := 'DEFAULT,DYNAMIC,FIXED,COMPRESSED,REDUNDANT,COMPACT';
   comboInsertMethod.Items.CommaText := 'NO,FIRST,LAST';
@@ -204,6 +206,8 @@ begin
   MainReg.WriteInteger(REGNAME_TABLEEDITOR_WIDTH, Width);
   MainReg.WriteInteger(REGNAME_TABLEEDITOR_HEIGHT, Height);
   MainReg.WriteInteger(REGNAME_TABLEEDITOR_TABSHEIGHT, PageControlMain.Height);
+  Mainform.SaveListSetup(listColumns);
+  Mainform.SaveListSetup(treeIndexes);
 end;
 
 
