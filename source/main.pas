@@ -798,8 +798,6 @@ type
     function GetSelectedTable: WideString;
     procedure SetSelectedDatabase(db: WideString);
     procedure SetSelectedTable(table: WideString);
-    procedure SaveListSetup( List: TVirtualStringTree );
-    procedure RestoreListSetup( List: TVirtualStringTree );
     procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: WideStrings.TWideStringList );
     function GetTableSize(ds: TDataSet): Int64;
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
@@ -934,6 +932,8 @@ type
     procedure DataViewClick(Sender: TObject);
     procedure LoadDataView(ViewName: String);
     function GetRegKeyTable: String;
+    procedure SaveListSetup( List: TVirtualStringTree );
+    procedure RestoreListSetup( List: TVirtualStringTree );
     function GetCollations: TDataset;
 end;
 
@@ -6672,7 +6672,7 @@ end;
 procedure TMainForm.SaveListSetup( List: TVirtualStringTree );
 var
   i : Byte;
-  ColWidths, ColsVisible, ColPos : String;
+  ColWidths, ColsVisible, ColPos, Regname: String;
 begin
   ColWidths := '';
   ColsVisible := '';
@@ -6699,9 +6699,12 @@ begin
 
   end;
   OpenRegistry;
-  MainReg.WriteString( REGPREFIX_COLWIDTHS + List.Name, ColWidths );
-  MainReg.WriteString( REGPREFIX_COLSVISIBLE + List.Name, ColsVisible );
-  MainReg.WriteString( REGPREFIX_COLPOS + List.Name, ColPos );
+  Regname := List.Name;
+  if GetParentForm(List) <> Self then
+    Regname := GetParentForm(List).Name + '.' + Regname;
+  MainReg.WriteString( REGPREFIX_COLWIDTHS + Regname, ColWidths );
+  MainReg.WriteString( REGPREFIX_COLSVISIBLE + Regname, ColsVisible );
+  MainReg.WriteString( REGPREFIX_COLPOS + Regname, ColPos );
 end;
 
 
@@ -6714,11 +6717,15 @@ var
   colwidth, colpos : Integer;
   Value : WideString;
   ValueList : WideStrings.TWideStringList;
+  Regname: String;
 begin
   ValueList := WideStrings.TWideStringList.Create;
 
   // Column widths
-  Value := GetRegValue(REGPREFIX_COLWIDTHS + List.Name, '');
+  Regname := List.Name;
+  if GetParentForm(List) <> Self then
+    Regname := GetParentForm(List).Name + '.' + Regname;
+  Value := GetRegValue(REGPREFIX_COLWIDTHS + Regname, '');
   if Value <> '' then begin
     ValueList := Explode( ',', Value );
     for i := 0 to ValueList.Count - 1 do
@@ -6731,14 +6738,14 @@ begin
   end;
 
   // Column visibility
-  Value := GetRegValue(REGPREFIX_COLSVISIBLE + List.Name, '');
+  Value := GetRegValue(REGPREFIX_COLSVISIBLE + Regname, '');
   if Value <> '' then begin
     ValueList := Explode( ',', Value );
     SetVisibleListColumns( List, ValueList );
   end;
 
   // Column position
-  Value := GetRegValue(REGPREFIX_COLPOS + List.Name, '');
+  Value := GetRegValue(REGPREFIX_COLPOS + Regname, '');
   if Value <> '' then begin
     ValueList := Explode( ',', Value );
     for i := 0 to ValueList.Count - 1 do
