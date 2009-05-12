@@ -21,7 +21,7 @@ uses
   SelectDBObject, Widestrings, ShlObj, SynEditMiscClasses, SynEditSearch,
   SynCompletionProposal, ZSqlMonitor, SynEditHighlighter, SynHighlighterSQL,
   TntStdCtrls, Tabs, SynUnicode, mysqlconn, EditVar, helpers, queryprogress,
-  mysqlquery, createdatabase, createtable, tbl_properties, SynRegExpr,
+  mysqlquery, createdatabase, table_editor, SynRegExpr,
   WideStrUtils, ZDbcLogging, ExtActns, CommCtrl, routine_editor, options;
 
 const
@@ -772,7 +772,8 @@ type
     SqlMessages                : TWideStringList;
     SqlMessagesLock            : TRtlCriticalSection;
     dsShowEngines,
-    dsHaveEngines              : TDataSet;
+    dsHaveEngines,
+    dsCollations               : TDataset;
     FilterPanelManuallyOpened  : Boolean;
     winName                    : String;
     FLastSelectedTableColumns,
@@ -861,8 +862,7 @@ type
     prefNullColorDefault,
     prefNullBG                 : TColor;
     CreateDatabaseForm         : TCreateDatabaseForm;
-    CreateTableForm            : TCreateTableForm;
-    TablePropertiesForm        : Ttbl_properties_form;
+    TableEditorForm            : TfrmTableEditor;
     FDataGridResult,
     FQueryGridResult           : TGridResult;
     FDataGridSelect            : WideStrings.TWideStringList;
@@ -934,6 +934,7 @@ type
     procedure DataViewClick(Sender: TObject);
     procedure LoadDataView(ViewName: String);
     function GetRegKeyTable: String;
+    function GetCollations: TDataset;
 end;
 
 
@@ -1775,10 +1776,10 @@ begin
   FreeAndNil(InformationSchemaTables);
   FreeAndNil(dsShowEngines);
   FreeAndNil(dsHaveEngines);
+  FreeAndNil(dsCollations);
 
   // Free forms which use session based datasets, fx dsShowEngines
-  FreeAndNil(CreateTableForm);
-  FreeAndNil(TablePropertiesForm);
+  FreeAndNil(TableEditorForm);
   FreeAndNil(CreateDatabaseForm);
 
   // Closing connection
@@ -2674,9 +2675,9 @@ end;
 
 procedure TMainForm.actCreateTableExecute(Sender: TObject);
 begin
-  if CreateTableForm = nil then
-    CreateTableForm := TCreateTableForm.Create(Self);
-  CreateTableForm.ShowModal;
+  if TableEditorForm = nil then
+    TableEditorForm := TfrmTableEditor.Create(Self);
+  TableEditorForm.ShowModal;
 end;
 
 
@@ -2739,18 +2740,18 @@ var
   NodeData: PVTreeData;
   caller: TComponent;
 begin
-  if TablePropertiesForm = nil then
-    TablePropertiesForm := Ttbl_properties_form.Create(Self);
+  if TableEditorForm = nil then
+    TableEditorForm := TfrmTableEditor.Create(Self);
 
   caller := TAction(Sender).ActionComponent;
   if caller = menuTreeAlterTable then
-    TablePropertiesForm.TableName := SelectedTable
+    TableEditorForm.AlterTableName := SelectedTable
   else begin
     NodeData := ListTables.GetNodeData( ListTables.FocusedNode );
-    TablePropertiesForm.TableName := NodeData.Captions[0];
+    TableEditorForm.AlterTableName := NodeData.Captions[0];
   end;
 
-  TablePropertiesForm.ShowModal;
+  TableEditorForm.ShowModal;
 end;
 
 
@@ -9367,6 +9368,15 @@ begin
     DBtree.Header.AutoFitColumns(False, smaUseColumnOption, 1, 1);
 end;
 
+
+function TMainform.GetCollations: TDataset;
+begin
+  // Return cached collation list, used in several places, e.g. table editor
+  if (dsCollations = nil) or (dsCollations.State = dsInactive) then
+    dsCollations := GetResults('SHOW COLLATION');
+  dsCollations.First;
+  Result := dsCollations;
+end;
 
 end.
 

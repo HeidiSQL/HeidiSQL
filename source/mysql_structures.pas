@@ -4167,6 +4167,7 @@ var
   );
 
   function GetFunctionCategories: TStringList;
+  function GetDatatypeByName(Datatype: String): TMysqlDataTypeRecord;
 
 implementation
 
@@ -4184,5 +4185,19 @@ begin
   end;
   Result.Sort;
 end;
+
+
+function GetDatatypeByName(Datatype: String): TMysqlDataTypeRecord;
+var
+  i: Integer;
+begin
+  for i:=Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do begin
+    if MySqlDataTypeArray[i].Name = Datatype then begin
+      Result := MySqlDataTypeArray[i];
+      break;
+    end;
+  end;
+end;
+
 
 end.

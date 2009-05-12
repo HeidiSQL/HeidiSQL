@@ -138,7 +138,8 @@ type
   function RemoveNulChars(Text: WideString): WideString;
   procedure debug(txt: String);
   function fixNewlines(txt: string): string;
-  function bool2str( boolval : Boolean ) : String;
+  function BoolToStr(val: Boolean): String;
+  function StrToBool(val: String): Boolean;
   function GetShellFolder(CSIDL: integer): string;
   function getFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
   function goodfilename( str: String ): String;
@@ -1768,14 +1769,19 @@ end;
   @param boolean Value to convert
   @return string
 }
-function bool2str( boolval : Boolean ) : String;
+function BoolToStr(val: Boolean): String;
 begin
-  if boolval then
+  if val then
     result := 'Y'
   else
     result := 'N';
 end;
 
+
+function StrToBool(val: String): Boolean;
+begin
+  Result := val = 'Y';
+end;
 
 
 {***

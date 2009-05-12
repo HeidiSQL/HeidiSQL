@@ -7,10 +7,8 @@ uses
   main in '..\..\source\main.pas' {MainForm},
   about in '..\..\source\about.pas' {AboutBox},
   connections in '..\..\source\connections.pas' {connform},
-  createtable in '..\..\source\createtable.pas' {CreateTableForm},
   fieldeditor in '..\..\source\fieldeditor.pas' {FieldEditForm},
   exportsql in '..\..\source\exportsql.pas' {ExportSQLForm},
-  tbl_properties in '..\..\source\tbl_properties.pas' {tbl_properties_form},
   loaddata in '..\..\source\loaddata.pas' {loaddataform},
   usermanager in '..\..\source\usermanager.pas' {UserManagerForm},
   options in '..\..\source\options.pas' {optionsform},
@@ -42,7 +40,8 @@ uses
   grideditlinks in '..\..\source\grideditlinks.pas',
   uVistaFuncs in '..\..\source\uVistaFuncs.pas',
   dataviewsave in '..\..\source\dataviewsave.pas' {FrmDataViewSave},
-  routine_editor in '..\..\source\routine_editor.pas' {frmRoutineEditor};
+  routine_editor in '..\..\source\routine_editor.pas' {frmRoutineEditor},
+  table_editor in '..\..\source\table_editor.pas' {frmTableEditor};
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\version.RES}

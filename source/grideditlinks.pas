@@ -152,6 +152,35 @@ type
     property OnButtonClick: TButtonClickEvent read FOnButtonClick write FOnButtonClick;
   end;
 
+  TColumnDefaultType = (cdtText, cdtNull, cdtCurTS, cdtAutoInc);
+  TColumnDefaultEditorLink = class(TInterfacedObject, IVTEditLink)
+  private
+    FTree: TCustomVirtualStringTree;
+    FNode: PVirtualNode;
+    FColumn: TColumnIndex;
+    FStopping: Boolean;
+    FPanel: TPanel;
+    FRadioText, FRadioNULL, FRadioCurTS, FRadioAutoInc: TRadioButton;
+    FMemoText: TTNTMemo;
+    FBtnOK, FBtnCancel: TButton;
+    procedure RadioClick(Sender: TObject);
+    procedure TextChange(Sender: TObject);
+    procedure BtnOKClick(Sender: TObject);
+    procedure BtnCancelClick(Sender: TObject);
+  public
+    DefaultType: TColumnDefaultType;
+    DefaultText: WideString;
+    constructor Create;
+    destructor Destroy; override;
+    function BeginEdit: Boolean; virtual; stdcall;
+    function CancelEdit: Boolean; virtual; stdcall;
+    function EndEdit: Boolean; virtual; stdcall;
+    function GetBounds: TRect; virtual; stdcall;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
+    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
+    procedure SetBounds(R: TRect); virtual; stdcall;
+  end;
+
 implementation
 
 
@@ -962,5 +991,212 @@ begin
   FButtonVisible := Value;
   CalcEditorPosition;
 end;
+
+
+
+{ Column default editor }
+
+constructor TColumnDefaultEditorLink.Create;
+begin
+  inherited;
+end;
+
+
+destructor TColumnDefaultEditorLink.Destroy;
+begin
+  inherited;
+  FPanel.Free;
+end;
+
+
+function TColumnDefaultEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
+var
+  F: TFont;
+  TextBounds: TRect;
+  NodeText: WideString;
+  Default: TColumnDefaultType;
+const
+  m = 5;
+begin
+  Ftree := Tree as TCustomVirtualStringTree;
+  FNode := Node;
+  FColumn := Column;
+
+  // Initial size, font and text of the node.
+  F := TFont.Create;
+  FTree.GetTextInfo(Node, Column, F, TextBounds, NodeText);
+
+  FPanel := TPanel.Create(Tree);
+  FPanel.Parent := FTree;
+  FPanel.Left := TextBounds.Left;
+  FPanel.Top := TextBounds.Top;
+  FPanel.Width := 200;
+  FPanel.ParentBackground := False;
+  // usefull but looks ugly:
+  //SetWindowSizeGrip(FPanel.Handle, True);
+
+  FRadioText := TRadioButton.Create(FPanel);
+  FRadioText.Parent := FPanel;
+  FRadioText.Top := m;
+  FRadioText.Left := m;
+  FRadioText.Width := FRadioText.Parent.Width - 2 * FRadioText.Left;
+  FRadioText.OnClick := RadioClick;
+  FRadioText.Caption := 'Text:';
+
+  FMemoText := TTNTMemo.Create(FPanel);
+  FMemoText.Parent := FPanel;
+  FMemoText.Top := FRadioText.Top + FRadioText.Height + m;
+  FMemoText.Left := 2*m;
+  FMemoText.Width := FMemoText.Parent.Width - FMemoText.Left - m;
+  FMemoText.Height := 40;
+  FMemoText.ScrollBars := ssVertical;
+  FMemoText.OnChange := TextChange;
+
+  FRadioNull := TRadioButton.Create(FPanel);
+  FRadioNull.Parent := FPanel;
+  FRadioNull.Top := FMemoText.Top + FMemoText.Height + m;
+  FRadioNull.Left := m;
+  FRadioNull.Width := FRadioNull.Parent.Width - 2 * FRadioNull.Left;
+  FRadioNull.OnClick := RadioClick;
+  FRadioNull.Caption := 'NULL';
+
+  FRadioCurTS := TRadioButton.Create(FPanel);
+  FRadioCurTS.Parent := FPanel;
+  FRadioCurTS.Top := FRadioNull.Top + FRadioNull.Height + m;
+  FRadioCurTS.Left := m;
+  FRadioCurTS.Width := FRadioCurTS.Parent.Width - 2 * FRadioCurTS.Left;
+  FRadioCurTS.OnClick := RadioClick;
+  FRadioCurTS.Caption := 'CURRENT_TIMESTAMP';
+
+  FRadioAutoInc := TRadioButton.Create(FPanel);
+  FRadioAutoInc.Parent := FPanel;
+  FRadioAutoInc.Top := FRadioCurTS.Top + FRadioCurTS.Height + m;
+  FRadioAutoInc.Left := m;
+  FRadioAutoInc.Width := FRadioAutoInc.Parent.Width - 2 * FRadioAutoInc.Left;
+  FRadioAutoInc.OnClick := RadioClick;
+  FRadioAutoInc.Caption := 'AUTO_INCREMENT';
+
+  FBtnOk := TButton.Create(FPanel);
+  FBtnOk.Parent := FPanel;
+  FBtnOk.Width := 60;
+  FBtnOk.Top := FRadioAutoInc.Top + FRadioAutoInc.Height + m;
+  FBtnOk.Left := FPanel.Width - 2*m - 2*FBtnOk.Width;
+  FBtnOk.OnClick := BtnOkClick;
+  FBtnOk.Caption := 'OK';
+
+  FBtnCancel := TButton.Create(FPanel);
+  FBtnCancel.Parent := FPanel;
+  FBtnCancel.Top := FBtnOk.Top;
+  FBtnCancel.Width := FBtnOk.Width;
+  FBtnCancel.Left := FBtnOk.Left + FBtnOk.Width + m;
+  FBtnCancel.OnClick := BtnCancelClick;
+  FBtnCancel.Caption := 'Cancel';
+
+  FPanel.Height := FBtnOk.Top + FBtnOk.Height + m;
+  FRadioText.Anchors := [akLeft, akTop, akRight];
+  FMemoText.Anchors := [akLeft, akTop, akRight, akBottom];
+  FRadioNull.Anchors := [akLeft, akBottom, akRight];
+  FRadioCurTS.Anchors := [akLeft, akBottom, akRight];
+  FRadioAutoInc.Anchors := [akLeft, akBottom, akRight];
+  FBtnOk.Anchors := [akBottom, akRight];
+  FBtnCancel.Anchors := FBtnOk.Anchors;
+
+  case DefaultType of
+    cdtText: begin
+      FRadioText.Checked := True;
+      FMemoText.Text := DefaultText;
+    end;
+    cdtNull: FRadioNull.Checked := True;
+    cdtCurTS: FRadioCurTS.Checked := True;
+    cdtAutoInc: FRadioAutoInc.Checked := True;
+  end;
+  Result := True;
+end;
+
+
+procedure TColumnDefaultEditorLink.ProcessMessage(var Message: TMessage); stdcall;
+begin
+end;
+
+
+function TColumnDefaultEditorLink.GetBounds: TRect; stdcall;
+begin
+  Result := FPanel.BoundsRect;
+end;
+
+
+procedure TColumnDefaultEditorLink.SetBounds(R: TRect); stdcall;
+begin
+  FPanel.Top := R.Top;
+  FPanel.Left := R.Left;
+end;
+
+
+function TColumnDefaultEditorLink.BeginEdit: Boolean; stdcall;
+begin
+  Result := not FStopping;
+  if Result then
+    FPanel.Show;
+end;
+
+
+function TColumnDefaultEditorLink.CancelEdit: Boolean; stdcall;
+begin
+  Result := not FStopping;
+  if Result then begin
+    FStopping := True;
+    FTree.SetFocus;
+  end;
+end;
+
+
+function TColumnDefaultEditorLink.EndEdit: Boolean; stdcall;
+var
+  newtext: WideString;
+begin
+  Result := not FStopping;
+  if Result then begin
+    FStopping := True;
+    if FRadioText.Checked then
+      newText := IntToStr(Integer(cdtText)) + FMemoText.Text
+    else if FRadioNull.Checked then
+      newText := IntToStr(Integer(cdtNull)) + 'NULL'
+    else if FRadioCurTS.Checked then
+      newText := IntToStr(Integer(cdtCurTS)) + 'CURRENT_TIMESTAMP'
+    else
+      newText := IntToStr(Integer(cdtAutoInc)) + 'AUTO_INCREMENT';
+    if newtext <> FTree.Text[FNode, FColumn] then
+      FTree.Text[FNode, FColumn] := newtext;
+    FTree.SetFocus;
+  end;
+end;
+
+
+procedure TColumnDefaultEditorLink.RadioClick(Sender: TObject);
+begin
+  if not FRadioText.Checked then
+    FMemoText.Color := clBtnFace
+  else
+    FMemoText.Color := clWindow;
+end;
+
+
+procedure TColumnDefaultEditorLink.TextChange(Sender: TObject);
+begin
+  FRadioText.Checked := True;
+end;
+
+
+procedure TColumnDefaultEditorLink.BtnOkClick(Sender: TObject);
+begin
+  FTree.EndEditNode;
+end;
+
+
+procedure TColumnDefaultEditorLink.BtnCancelClick(Sender: TObject);
+begin
+  FTree.CancelEditNode;
+end;
+
 
 end.
