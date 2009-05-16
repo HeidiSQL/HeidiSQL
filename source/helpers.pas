@@ -1521,16 +1521,11 @@ end;
   Unformat a formatted float value. Used for CSV export and composing WHERE clauses for grid editing.
 }
 function FloatStr(Val: String): String;
-var
-  i: Integer;
 begin
-  Result := '';
-  for i:=1 to Length(Val) do begin
-    if (Val[i] in ['0'..'9']) or ((i=1) and (Val[i]='-')) then
-      Result := Result + Val[i]
-    else if Val[i] = DecimalSeparator then
-      Result := Result + '.';   
-  end;
+  Result := Val;
+  if ThousandSeparator <> DecimalSeparator then
+    Result := StringReplace(Val, ThousandSeparator, '', [rfReplaceAll]);
+  Result := StringReplace(Val, DecimalSeparator, '.', [rfReplaceAll]);
 end;
 
 

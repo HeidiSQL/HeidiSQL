@@ -4800,8 +4800,6 @@ begin
         for j:=0 to ds.FieldCount-1 do begin
           if FQueryGridResult.Columns[j].IsBinary then
             FQueryGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
-          else if FQueryGridResult.Columns[j].IsFloat then
-            FQueryGridResult.Rows[i].Cells[j].Text := FormatFloat(GRIDFLOATFORMAT, MakeFloat(ds.Fields[j].AsString))
           else
             FQueryGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
           FQueryGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
@@ -7701,8 +7699,6 @@ begin
       for j := 0 to ds.Fields.Count - 1 do begin
         if res.Columns[j].IsBinary then
           res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
-        else if res.Columns[j].IsFloat then
-          res.Rows[i].Cells[j].Text := FormatFloat(GRIDFLOATFORMAT, MakeFloat(ds.Fields[j].AsString))
         else
           res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
         res.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
@@ -7785,8 +7781,6 @@ begin
       for j := 0 to ds.Fields.Count - 1 do begin
         if res.Columns[j].IsBinary then
           res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
-        else if res.Columns[j].IsFloat then
-          res.Rows[i].Cells[j].Text := FormatFloat(GRIDFLOATFORMAT, MakeFloat(ds.Fields[j].AsString))
         else
           res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
         res.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
@@ -8104,10 +8098,13 @@ begin
   for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
     if Row.Cells[i].Modified then begin
       Val := Row.Cells[i].NewText;
-      if FDataGridResult.Columns[i].IsFloat then Val := FloatStr(Val);
-      if not FDataGridResult.Columns[i].IsBinary then Val := esc(Val);
-      if FDataGridResult.Columns[i].IsBinary then CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + FDataGridResult.Columns[i].Name + '".');
-      if Val = '0x' then Val := esc('');
+      if FDataGridResult.Columns[i].IsFloat then
+        Val := FloatStr(Val)
+      else if FDataGridResult.Columns[i].IsBinary then begin
+        CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + FDataGridResult.Columns[i].Name + '".');
+        if Val = '0x' then Val := esc('');
+      end else
+        Val := esc(Val);
       if Row.Cells[i].NewIsNull then Val := 'NULL';
       sql := sql + ' ' + mask(FDataGridResult.Columns[i].Name) + '=' + Val + ', ';
     end;
@@ -8186,9 +8183,14 @@ begin
     // Find old value of key column
     KeyVal := Row.Cells[j].Text;
     // Quote if needed
-    if FDataGridResult.Columns[j].IsFloat then KeyVal := FloatStr(KeyVal);
-    if not FDataGridResult.Columns[j].IsBinary then KeyVal := esc(KeyVal);
-    if KeyVal = '0x' then KeyVal := esc('');
+    if FDataGridResult.Columns[j].IsFloat then
+      KeyVal := FloatStr(KeyVal)
+    else if FDataGridResult.Columns[j].IsBinary then begin
+      if KeyVal = '0x' then
+        KeyVal := esc('');
+    end else
+      KeyVal := esc(KeyVal);
+
     if Row.Cells[j].IsNull then KeyVal := ' IS NULL'
     else KeyVal := '=' + KeyVal;
     Result := Result + mask(KeyCols[i]) + KeyVal + ' AND ';
@@ -8301,10 +8303,14 @@ begin
     if Row.Cells[i].Modified then begin
       Cols := Cols + mask(FDataGridResult.Columns[i].Name) + ', ';
       Val := Row.Cells[i].NewText;
-      if FDataGridResult.Columns[i].IsFloat then Val := FloatStr(Val);
-      if not FDataGridResult.Columns[i].IsBinary then Val := esc(Val);
-      if FDataGridResult.Columns[i].IsBinary then CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + FDataGridResult.Columns[i].Name + '".');
-      if Val = '0x' then Val := esc('');
+      if FDataGridResult.Columns[i].IsFloat then
+        Val := FloatStr(Val)
+      else if FDataGridResult.Columns[i].IsBinary then begin
+        CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + FDataGridResult.Columns[i].Name + '".');
+        if Val = '0x' then
+          Val := esc('');
+      end else
+        Val := esc(Val);
       if Row.Cells[i].NewIsNull then Val := 'NULL';
       Vals := Vals + Val + ', ';
     end;
