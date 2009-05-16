@@ -181,6 +181,10 @@ type
     procedure SetBounds(R: TRect); virtual; stdcall;
   end;
 
+
+function GetColumnDefaultType(var Text: WideString): TColumnDefaultType;
+
+
 implementation
 
 
@@ -1196,6 +1200,13 @@ end;
 procedure TColumnDefaultEditorLink.BtnCancelClick(Sender: TObject);
 begin
   FTree.CancelEditNode;
+end;
+
+
+function GetColumnDefaultType(var Text: WideString): TColumnDefaultType;
+begin
+  Result := TColumnDefaultType(MakeInt(Copy(Text, 1, 1)));
+  Text := Copy(Text, 2, Length(Text)-1);
 end;
 
 
