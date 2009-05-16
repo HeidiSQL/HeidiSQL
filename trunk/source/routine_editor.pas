@@ -415,10 +415,12 @@ begin
   if editName.Text = '' then begin
     MessageDlg('Please specify the routine''s name.', mtError, [mbOK], 0);
     editName.SetFocus;
+    ModalResult := mrNone;
     Exit;
   end else if (ProcOrFunc = 'FUNCTION') and (comboReturns.Text = '') then begin
     MessageDlg('Please specify the function''s returning datatype.', mtError, [mbOK], 0);
     comboReturns.SetFocus;
+    ModalResult := mrNone;
     Exit;
   end;
 
