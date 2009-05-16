@@ -384,7 +384,7 @@ end;
 function TfrmTableEditor.ComposeAlterStatement: WideString;
 var
   Specs, Props, IndexesComposed, OldIndexesComposed: TWideStringlist;
-  ColSpec, IndexSQL: WideString;
+  ColSpec, IndexSQL, DefaultText: WideString;
   i, j: Integer;
   AddIt, DropIt: Boolean;
   dt: TMySQLDataTypeRecord;
@@ -430,9 +430,10 @@ begin
       ColSpec := ColSpec + ' NOT';
     ColSpec := ColSpec + ' NULL';
     if Props[4] <> '' then begin
-      DefaultType := TColumnDefaultType(MakeInt(Copy(Props[4], 1, 1)));
+      DefaultText := Props[4];
+      DefaultType := GetColumnDefaultType(DefaultText);
       case DefaultType of
-        cdtText:     ColSpec := ColSpec + ' DEFAULT '+esc(Copy(Props[4], 2, Length(Props[4])-1));
+        cdtText:     ColSpec := ColSpec + ' DEFAULT '+esc(DefaultText);
         cdtNull:     ColSpec := ColSpec + ' DEFAULT NULL';
         cdtCurTS:    ColSpec := ColSpec + ' DEFAULT CURRENT_TIMESTAMP';
         cdtAutoInc:  ColSpec := ColSpec + ' AUTO_INCREMENT';
@@ -502,6 +503,7 @@ var
   ColProps: TWideStringlist;
   dt: TMySQLDataTypeRecord;
   DefaultType: TColumnDefaultType;
+  DefaultText: WideString;
 begin
   // Compose CREATE query, called by buttons and for SQL code tab
   Result := 'CREATE TABLE '+Mainform.mask(editName.Text)+' ('+CRLF;
@@ -516,12 +518,11 @@ begin
     if not StrToBool(ColProps[3]) then
       Result := Result + ' NOT';
     Result := Result + ' NULL';
-    if ColProps[4] <> '' then
-      Result := Result + ' DEFAULT '+esc(ColProps[4]);
     if ColProps[4] <> '' then begin
-      DefaultType := TColumnDefaultType(MakeInt(Copy(ColProps[4], 1, 1)));
+      DefaultText := ColProps[4];
+      DefaultType := GetColumnDefaultType(DefaultText);
       case DefaultType of
-        cdtText:     Result := Result + ' DEFAULT '+esc(Copy(ColProps[4], 2, Length(ColProps[4])-1));
+        cdtText:     Result := Result + ' DEFAULT '+esc(DefaultText);
         cdtNull:     Result := Result + ' DEFAULT NULL';
         cdtCurTS:    Result := Result + ' DEFAULT CURRENT_TIMESTAMP';
         cdtAutoInc:  Result := Result + ' AUTO_INCREMENT';
@@ -945,8 +946,8 @@ begin
     6: begin
       DefaultEditor := TColumnDefaultEditorLink.Create;
       Props := TWideStringlist(Columns.Objects[Node.Index]);
-      DefaultEditor.DefaultType := TColumnDefaultType(MakeInt(Copy(Props[Column-2], 0, 1)));
-      DefaultEditor.DefaultText := Copy(Props[Column-2], 2, Length(Props[Column-2])-1);
+      DefaultEditor.DefaultText := Props[Column-2];
+      DefaultEditor.DefaultType := GetColumnDefaultType(DefaultEditor.DefaultText);
       EditLink := DefaultEditor;
     end
     else
