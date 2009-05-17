@@ -77,8 +77,7 @@ begin
       else list := Mainform.ListCommandStats;
       end;
     1: list := Mainform.ListTables;
-    2: list := Mainform.ListColumns;
-    3: list := Mainform.DataGrid;
+    2: list := Mainform.DataGrid;
     else list := Mainform.QueryGrid;
   end;
   list.Print(Printer, chkPrintHeader.Checked);
