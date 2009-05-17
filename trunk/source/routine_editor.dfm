@@ -215,7 +215,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Images = MainForm.PngImageListMain
     NodeDataSize = 0
     TabOrder = 8
-    TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+    TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
     TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toFullVertGridLines, toUseExplorerTheme]
     TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
     OnBeforePaint = listParametersBeforePaint

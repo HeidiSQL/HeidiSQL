@@ -856,7 +856,7 @@ object MainForm: TMainForm
           ShowHint = True
           TabOrder = 0
           TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
-          TreeOptions.MiscOptions = [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+          TreeOptions.MiscOptions = [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
           TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
           TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
           OnAfterPaint = vstAfterPaint
@@ -1201,7 +1201,7 @@ object MainForm: TMainForm
           LineStyle = lsSolid
           PopupMenu = popupDataGrid
           TabOrder = 2
-          TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+          TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
           TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
           TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
           WantTabs = True
@@ -1371,7 +1371,7 @@ object MainForm: TMainForm
           LineStyle = lsSolid
           PopupMenu = popupResultGrid
           TabOrder = 1
-          TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+          TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
           TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
           TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
           WantTabs = True
