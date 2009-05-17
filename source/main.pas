@@ -655,8 +655,7 @@ type
         PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
     procedure GridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
         TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
-    procedure DataGridHeaderClick(Sender: TVTHeader; Column: TColumnIndex; Button:
-        TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure DataGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
     procedure GridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DataGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
         TColumnIndex; NewText: WideString);
@@ -677,8 +676,7 @@ type
     procedure vstGetImageIndex(Sender: TBaseVirtualTree; Node:
         PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
         Boolean; var ImageIndex: Integer);
-    procedure vstHeaderClick(Sender: TVTHeader; Column: TColumnIndex;
-        Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure vstHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
     procedure vstCompareNodes(Sender: TBaseVirtualTree; Node1, Node2:
         PVirtualNode; Column: TColumnIndex; var Result: Integer);
     procedure vstHeaderDraggedOut(Sender: TVTHeader; Column: TColumnIndex;
@@ -6516,21 +6514,20 @@ end;
   A column header of a VirtualStringTree was clicked:
   Toggle the sort direction
 }
-procedure TMainForm.vstHeaderClick(Sender: TVTHeader; Column:
-    TColumnIndex; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TMainForm.vstHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
 begin
   // Don't call sorting procedure on right click
   // Some list-headers have a contextmenu which should popup then.
-  if Button = mbRight then
+  if HitInfo.Button = mbRight then
     Exit;
 
-  if Sender.SortColumn <> Column then
-    Sender.SortColumn := Column
+  if Sender.SortColumn <> HitInfo.Column then
+    Sender.SortColumn := HitInfo.Column
   else if Sender.SortDirection = sdAscending then
     Sender.SortDirection := sdDescending
   else
     Sender.SortDirection := sdAscending;
-  Sender.Treeview.SortTree( Column, Sender.SortDirection );
+  Sender.Treeview.SortTree( HitInfo.Column, Sender.SortDirection );
 end;
 
 
@@ -7937,16 +7934,15 @@ end;
   Left button: handle ORDER BY
   Right button: show column selection box
 }
-procedure TMainForm.DataGridHeaderClick(Sender: TVTHeader; Column:
-    TColumnIndex; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TMainForm.DataGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
 var
   frm: TForm;
   i, j : Integer;
   columnexists : Boolean;
   ColName: WideString;
 begin
-  if Button = mbLeft then begin
-    ColName := Sender.Columns[Column].Text;
+  if HitInfo.Button = mbLeft then begin
+    ColName := Sender.Columns[HitInfo.Column].Text;
     // Add a new order column after a columns title has been clicked
     // Check if order column is already existant
     columnexists := False;
@@ -7979,8 +7975,8 @@ begin
   end else begin
     frm := TColumnSelectionForm.Create(self);
     // Position new form relative to btn's position
-    frm.Top := Y + DataGrid.ClientOrigin.Y - Integer(DataGrid.Header.Height);
-    frm.Left := X + DataGrid.ClientOrigin.X;
+    frm.Top := HitInfo.Y + DataGrid.ClientOrigin.Y - Integer(DataGrid.Header.Height);
+    frm.Left := HitInfo.X + DataGrid.ClientOrigin.X;
     // Display form
     frm.Show;
   end;
