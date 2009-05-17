@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, CheckLst, ExtCtrls, TntCheckLst, WideStrings;
+  Dialogs, StdCtrls, CheckLst, ExtCtrls, TntCheckLst, WideStrings, DB;
 
 type
   TColumnSelectionForm = class(TForm)
@@ -51,9 +51,15 @@ end;
   FormShow
 }
 procedure TColumnSelectionForm.FormShow(Sender: TObject);
+var
+  ds: TDataSet;
 begin
-  // Take column names from listColumns and add here
-  chklistColumns.Items.Text := GetVTCaptions(Mainform.ListColumns).Text;
+  ds := Mainform.FSelectedTableColumns;
+  ds.First;
+  while not ds.Eof do begin
+    chklistColumns.Items.Add(ds.Fields[0].AsWideString);
+    ds.Next;
+  end;
 
   // Check items!
   if Mainform.FDataGridSelect.Count = 0 then // Simply check all items
@@ -147,6 +153,7 @@ procedure TColumnSelectionForm.chkSortClick(Sender: TObject);
 var
   checkedfields : TStringList;
   i: Integer;
+  ds: TDataSet;
 begin
   // Memorize checked items in a list
   checkedfields := TStringList.Create;
@@ -162,7 +169,12 @@ begin
   if not chklistColumns.Sorted then begin
     // Add all fieldnames again
     chklistColumns.Items.BeginUpdate;
-    chklistColumns.Items.Text := GetVTCaptions(Mainform.ListColumns).Text;
+    ds := Mainform.FSelectedTableColumns;
+    ds.First;
+    while not ds.Eof do begin
+      chklistColumns.Items.Add(ds.Fields[0].AsWideString);
+      ds.Next;
+    end;
     chklistColumns.Items.EndUpdate;
   end;
 

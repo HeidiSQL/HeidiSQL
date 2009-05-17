@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons,
-  WideStrings, TntStdCtrls, helpers;
+  WideStrings, TntStdCtrls, helpers, Db;
 
 
 type
@@ -51,6 +51,7 @@ uses main;
 procedure TDataSortingForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  ColumnNames := TWideStringlist.Create;
 end;
 
 
@@ -58,9 +59,17 @@ end;
   Initialization
 }
 procedure TDataSortingForm.FormShow(Sender: TObject);
+var
+  ds: TDataset;
 begin
   // Take column names from listColumns and add here
-  ColumnNames := GetVTCaptions( Mainform.ListColumns );
+  ColumnNames.Clear;
+  ds := Mainform.FSelectedTableColumns;
+  ds.First;
+  while not ds.Eof do begin
+    ColumnNames.Add(ds.Fields[0].AsWideString);
+    ds.Next;
+  end;
 
   OrderColumns := Mainform.FDataGridSort;
   OldOrderClause := ComposeOrderClause(OrderColumns);

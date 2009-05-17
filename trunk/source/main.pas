@@ -161,10 +161,6 @@ type
     actEmptyTables: TAction;
     actEditTableFields: TAction;
     actEditTableProperties: TAction;
-    actEditField: TAction;
-    actCreateField: TAction;
-    actDropFields: TAction;
-    actEditIndexes: TAction;
     actDropDatabase: TAction;
     actCreateDatabase: TAction;
     actEditDatabase: TAction;
@@ -232,7 +228,6 @@ type
     tabQuery: TTabSheet;
     popupTreeView: TPopupMenu;
     menuRefreshDBTree: TMenuItem;
-    tabTable: TTabSheet;
     popupDbGrid: TPopupMenu;
     menuproperties: TMenuItem;
     menudroptablea: TMenuItem;
@@ -258,16 +253,10 @@ type
     menucreatetablea: TMenuItem;
     OpenDialog1: TOpenDialog;
     TimerHostUptime: TTimer;
-    popupTableGrid: TPopupMenu;
-    Refresh2: TMenuItem;
-    DropField1: TMenuItem;
-    N3a: TMenuItem;
     N5a: TMenuItem;
     PopupmenuDropDatabase: TMenuItem;
     popupDataGrid: TPopupMenu;
     Refresh3: TMenuItem;
-    MenuAddField: TMenuItem;
-    MenuEditField: TMenuItem;
     popupResultGrid: TPopupMenu;
     Copyrecords1: TMenuItem;
     CopyasCSVData1: TMenuItem;
@@ -285,7 +274,6 @@ type
     menuMaintenancea: TMenuItem;
     PopupMenuDropTable: TMenuItem;
     N17: TMenuItem;
-    ListColumns: TVirtualStringTree;
     CopycontentsasHTML1: TMenuItem;
     CopycontentsasHTML2: TMenuItem;
     Copy3: TMenuItem;
@@ -305,7 +293,6 @@ type
     DropFilter1: TMenuItem;
     PrintList2: TMenuItem;
     PrintList3: TMenuItem;
-    PrintList4: TMenuItem;
     N1a: TMenuItem;
     MenuCopyTable: TMenuItem;
     SynMemoFilter: TSynMemo;
@@ -341,7 +328,6 @@ type
     ViewasHTML1: TMenuItem;
     HTMLview1: TMenuItem;
     InsertfilesintoBLOBfields1a: TMenuItem;
-    InsertfilesintoBLOBfields2: TMenuItem;
     InsertfilesintoBLOBfields3: TMenuItem;
     N19: TMenuItem;
     setNULL1: TMenuItem;
@@ -353,8 +339,6 @@ type
     OpenDialogSQLFile: TOpenDialog;
     SaveDialogSQLFile: TSaveDialog;
     SynEditSearch1: TSynEditSearch;
-    N16: TMenuItem;
-    ManageIndexes1: TMenuItem;
     tabCommandStats: TTabSheet;
     ListCommandStats: TVirtualStringTree;
     QF13: TMenuItem;
@@ -383,7 +367,6 @@ type
     MenuItem2: TMenuItem;
     lblDataTop: TTNTLabel;
     spltQueryHelpers: TSplitter;
-    menuRenameColumn: TMenuItem;
     N22: TMenuItem;
     N23: TMenuItem;
     menuSaveSelectionToFile: TMenuItem;
@@ -473,13 +456,11 @@ type
     menuTreeEditRoutine: TMenuItem;
     menuTreeCreateRoutine: TMenuItem;
     menuEditRoutine: TMenuItem;
-    lblSorryNoFields: TLabel;
     lblSorryNoData: TLabel;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
     procedure setDefaultWindowConfig;
-    procedure actCreateFieldExecute(Sender: TObject);
     procedure actEditTablePropertiesExecute(Sender: TObject);
     procedure actCreateTableExecute(Sender: TObject);
     procedure actCreateViewExecute(Sender: TObject);
@@ -522,12 +503,9 @@ type
     procedure actDataLastExecute(Sender: TObject);
     procedure actDataPostChangesExecute(Sender: TObject);
     procedure actDropDatabaseExecute(Sender: TObject);
-    procedure actDropFieldsExecute(Sender: TObject);
     procedure actDropDBobjectsExecute(Sender: TObject);
     procedure actEditDatabaseExecute(Sender: TObject);
-    procedure actEditIndexesExecute(Sender: TObject);
     procedure actEmptyTablesExecute(Sender: TObject);
-    procedure actEditFieldExecute(Sender: TObject);
     procedure actEditTableFieldsExecute(Sender: TObject);
     procedure actExportSettingsExecute(Sender: TObject);
     procedure actFlushExecute(Sender: TObject);
@@ -561,9 +539,6 @@ type
     procedure ReplaceDialogQueryReplace(Sender: TObject);
     procedure actCopyAsSQLExecute(Sender: TObject);
     procedure actSelectTreeBackgroundExecute(Sender: TObject);
-    procedure menuRenameColumnClick(Sender: TObject);
-    procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-        Column: TColumnIndex; NewText: WideString);
     procedure popupQueryPopup(Sender: TObject);
     procedure lboxQueryHelpersClick(Sender: TObject);
     procedure lboxQueryHelpersDblClick(Sender: TObject);
@@ -588,9 +563,6 @@ type
     procedure ShowHost;
     procedure ShowDatabase(db: WideString);
     procedure ShowDBProperties(db: WideString);
-    procedure ShowTable(table: WideString; tab: TTabSheet = nil);
-    procedure ShowTableProperties;
-    procedure ShowTableData(table: WideString);
     function EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode): Boolean;
     procedure EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: WideString);
     procedure EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; FullWidth: Boolean = False);
@@ -710,7 +682,6 @@ type
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure ListProcessesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure editFilterVTChange(Sender: TObject);
-    procedure ListColumnsDblClick(Sender: TObject);
     procedure ListVariablesDblClick(Sender: TObject);
     procedure menuEditVariableClick(Sender: TObject);
     procedure menuTreeCollapseAllClick(Sender: TObject);
@@ -823,8 +794,7 @@ type
     VTRowDataListStatus,
     VTRowDataListProcesses,
     VTRowDataListCommandStats,
-    VTRowDataListTables,
-    VTRowDataListColumns       : TVTreeDataArray;
+    VTRowDataListTables        : TVTreeDataArray;
 
     FProgressForm              : TFrmQueryProgress;
 
@@ -985,7 +955,6 @@ uses
   Threading,
   mysql_structures,
   UpdateCheck,
-  fieldeditor,
   uVistaFuncs,
   runsqlfile,
   column_selection,
@@ -1211,7 +1180,6 @@ begin
   SaveListSetup(ListProcesses);
   SaveListSetup(ListCommandStats);
   SaveListSetup(ListTables);
-  SaveListSetup(ListColumns);
 
   FreeAndNil(RoutineEditForm);
   FreeAndNil(MaintenanceForm);
@@ -1359,7 +1327,6 @@ begin
   FixVT(ListProcesses);
   FixVT(ListCommandStats);
   FixVT(ListTables);
-  FixVT(ListColumns);
 
   // Position of Toolbars
   ToolBarStandard.Left := GetRegValue(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
@@ -1448,7 +1415,6 @@ begin
   RestoreListSetup(ListProcesses);
   RestoreListSetup(ListCommandStats);
   RestoreListSetup(ListTables);
-  RestoreListSetup(ListColumns);
 
   // Generate menuitems for popupDbGridHeader (column selection for ListTables)
   popupDBGridHeader.Items.Clear;
@@ -2609,68 +2575,6 @@ begin
 end;
 
 
-procedure TMainForm.actCreateFieldExecute(Sender: TObject);
-begin
-  FieldEditorWindow(Self, femFieldAdd);
-end;
-
-
-procedure TMainForm.actEditFieldExecute(Sender: TObject);
-var
-  fieldname: WideString;
-  fem: TFieldEditorMode;
-begin
-  fieldname := '';
-  fem := femFieldAdd;
-  if Assigned(ListColumns.FocusedNode) and (vsSelected in ListColumns.FocusedNode.States) then
-    fieldname := ListColumns.Text[ListColumns.FocusedNode, 0];
-  if fieldname <> '' then
-    fem := femFieldUpdate;
-  FieldEditorWindow(Self, fem, fieldname);
-end;
-
-
-procedure TMainForm.actDropFieldsExecute(Sender: TObject);
-var
-  i: Integer;
-  dropCmd: String;
-  dropList: TWideStringList;
-begin
-  // We allow the user to select and delete multiple listItems
-  dropList := GetVTCaptions( ListColumns, True );
-  // User confirmation
-  if MessageDlg('Delete ' + IntToStr(dropList.Count) + ' column(s): ' + ImplodeStr( ', ', dropList ) + ' ?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
-  try
-    // Concat fields for ALTER query
-    for i := 0 to dropList.Count - 1 do
-      dropCmd := dropCmd + 'DROP ' + mask(dropList[i]) + ', ';
-    // Remove trailing comma
-    delete(dropCmd, Length(dropCmd)-1, 2);
-    // Execute field dropping
-    ExecUpdateQuery( 'ALTER TABLE '+mask(SelectedTable)+' ' + dropCmd );
-    // Rely on the server respective ExecUpdateQuery has raised an exception so the
-    // following code will be skipped on any error
-    ListColumns.BeginUpdate;
-    ListColumns.DeleteSelectedNodes;
-    ListColumns.EndUpdate;
-    FSelectedTableColumns := nil;
-    FSelectedTableKeys := nil;
-    // Set focus on first item
-    ListColumns.FocusedNode := ListColumns.GetFirstVisible;
-  except
-    On E : Exception do begin
-      MessageDlg( E.Message, mtError, [mbOK], 0 );
-    end;
-  end;
-end;
-
-
-procedure TMainForm.actEditIndexesExecute(Sender: TObject);
-begin
-  FieldEditorWindow(Self, femIndexEditor);
-end;
-
-
 procedure TMainForm.actCreateTableExecute(Sender: TObject);
 begin
   if TableEditorForm = nil then
@@ -2724,7 +2628,7 @@ begin
   case NodeData.NodeType of
     NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW: begin
       SelectedTable := NodeData.Captions[0];
-      PageControlMain.ActivePage := tabTable;
+      PageControlMain.ActivePage := tabData;
     end;
     NODETYPE_PROCEDURE, NODETYPE_FUNCTION: begin
       actEditRoutine.Execute;
@@ -2858,9 +2762,7 @@ begin
   end else if tab1 = tabDatabase then begin
     RefreshTreeDB(ActiveDatabase);
     LoadDatabaseProperties(ActiveDatabase);
-  end else if tab1 = tabTable then
-    ShowTableProperties
-  else if tab1 = tabData then
+  end else if tab1 = tabData then
     viewdata(Sender);
 end;
 
@@ -2868,6 +2770,7 @@ end;
 procedure TMainForm.actSQLhelpExecute(Sender: TObject);
 var
   keyword : String;
+  ds: TDataset;
 begin
   // Call SQL Help from various places
   if mysql_version < 40100 then
@@ -2880,12 +2783,9 @@ begin
   // Data-Tab
   else if (PageControlMain.ActivePage = tabData)
     and Assigned(DataGrid.FocusedNode) then begin
-    keyword := VTRowDataListColumns[DataGrid.FocusedColumn].Captions[1];
-  end
-  // Table-Tab
-  else if ListColumns.Focused and Assigned(ListColumns.FocusedNode) then
-  begin
-    keyword := ListColumns.Text[ListColumns.FocusedNode, 1];
+    ds := Mainform.FSelectedTableColumns;
+    ds.RecNo := DataGrid.FocusedColumn;
+    keyword := ds.FieldByName('Type').AsWideString;
   end
   else if lboxQueryHelpers.Focused then
   begin
@@ -3492,12 +3392,10 @@ procedure TMainForm.ShowHost;
 begin
   if (not DBTree.Dragging) and (
    (PageControlMain.ActivePage = tabDatabase) or
-   (PageControlMain.ActivePage = tabTable) or
    (PageControlMain.ActivePage = tabData)
   ) then PageControlMain.ActivePage := tabHost;
 
   tabDatabase.TabVisible := false;
-  tabTable.TabVisible := false;
   tabData.TabVisible := false;
 
   Caption := winName;
@@ -3509,12 +3407,10 @@ procedure TMainForm.ShowDatabase(db: WideString);
 begin
   if (not DBtree.Dragging) and (
    (PageControlMain.ActivePage = tabHost) or
-   (PageControlMain.ActivePage = tabTable) or
    (PageControlMain.ActivePage = tabData)
   ) then PageControlMain.ActivePage := tabDatabase;
 
   tabDatabase.TabVisible := true;
-  tabTable.TabVisible := false;
   tabData.TabVisible := false;
 
   Caption := winName + ' - /' + db;
@@ -3522,16 +3418,6 @@ begin
 end;
 
 
-{***
-  Do the default action (show table properties or table data) for a table.
-}
-procedure TMainForm.ShowTable(table: WideString; tab: TTabSheet = nil);
-begin
-  if tab = nil then tab := tabTable; // Alternative default: tabData
-  if tab = tabTable then ShowTableProperties;
-  if tab = tabData then ShowTableData( table );
-  Caption := winName + ' - /' + ActiveDatabase + '/' + SelectedTable;
-end;
 
 procedure TMainForm.viewdata(Sender: TObject);
 var
@@ -3650,8 +3536,7 @@ begin
   if DataGridHasChanges then
     actDataPostChangesExecute(Sender);
 
-  // Ensure <Table> and <Data> are visible
-  tabTable.TabVisible := true;
+  // Ensure <Data> is visible
   tabData.TabVisible := true;
   // Switch to <Data>
   PageControlMain.ActivePage := tabData;
@@ -3662,6 +3547,8 @@ begin
         FDataGridSelect := WideStrings.TWideStringlist.Create;
       if DataGridTable <> SelectedTable then begin
         FDataGridSelect.Clear;
+        FSelectedTableColumns := nil;
+        FSelectedTableKeys := nil;
         SynMemoFilter.Clear;
         SetLength(FDataGridSort, 0);
         // Load default view settings
@@ -3789,7 +3676,7 @@ begin
       except
         DataGrid.RootNodeCount := 0;
         SetLength(FDataGridResult.Rows, 0);
-        PageControlMain.ActivePage := tabTable;
+        PageControlMain.ActivePage := tabDatabase;
         raise;
       end;
       debug('mem: browse row initialization complete.');
@@ -3904,7 +3791,6 @@ begin
   if Sender = PageControlMain then begin
     if tab = tabHost then PageControlHostChange(Sender)
     else if tab = tabDatabase then ListTables.SetFocus
-    else if (tab = tabTable) and (ListColumns.CanFocus) then ListColumns.SetFocus
     else if tab = tabData then begin
       viewdata(Sender);
       if DataGrid.CanFocus then
@@ -4225,179 +4111,6 @@ begin
 end;
 
 
-procedure TMainForm.ShowTableProperties;
-var
-  i,j : Integer;
-  isFulltext : Boolean;
-  dummy: Boolean;
-  hasCommentColumn: Boolean;
-  SelectedCaptions: WideStrings.TWideStringList;
-  defaultVal, cap: WideString;
-begin
-  // Table-Properties
-  dataselected := false;
-  Screen.Cursor := crHourGlass;
-
-  case GetSelectedNodeType of
-    NODETYPE_TABLE, NODETYPE_CRASHED_TABLE: begin
-      cap := 'Table';
-      tabTable.ImageIndex := ICONINDEX_TABLE;
-    end;
-    NODETYPE_VIEW: begin
-      cap := 'View';
-      tabTable.ImageIndex := ICONINDEX_VIEW;
-    end;
-    NODETYPE_PROCEDURE: begin
-      cap := 'Procedure';
-      tabTable.ImageIndex := ICONINDEX_STOREDPROCEDURE;
-    end;
-    NODETYPE_FUNCTION: begin
-      cap := 'Function';
-      tabTable.ImageIndex := ICONINDEX_STOREDFUNCTION;
-    end;
-  end;
-  tabTable.Caption := sstr(cap+': ' + SelectedTable, 30);
-
-  tabDatabase.TabVisible := true;
-  tabTable.TabVisible := true;
-  tabData.TabVisible := true;
-
-  if (not DBtree.Dragging) and (
-   (PageControlMain.ActivePage = tabHost) or
-   (PageControlMain.ActivePage = tabDatabase)
-  ) then PageControlMain.ActivePage := tabTable;
-
-  // Remember selected nodes
-  SelectedCaptions := GetVTCaptions(ListColumns, True);
-  ListColumns.BeginUpdate;
-  ListColumns.Clear;
-  FSelectedTableColumns := nil;
-  FSelectedTableKeys := nil;
-
-  Try
-    // No column view for routines
-    if FSelectedTableColumns = nil then begin
-      lblSorryNoFields.Parent := ListColumns;
-      Exit; // Jump to *finally*
-    end else begin
-      lblSorryNoFields.Parent := tabTable;
-    end;
-
-    // Hide column "Comment" on old servers.
-    hasCommentColumn := FSelectedTableColumns.FindField('Comment') <> nil;
-    if not hasCommentColumn then
-      ListColumns.Header.Columns[5].Options := ListColumns.Header.Columns[5].Options - [coVisible];
-
-    SetLength(VTRowDataListColumns, FSelectedTableColumns.RecordCount);
-    for i:=1 to FSelectedTableColumns.RecordCount do
-    begin
-      VTRowDataListColumns[i-1].ImageIndex := ICONINDEX_FIELD;
-      VTRowDataListColumns[i-1].Captions := WideStrings.TWideStringList.Create;
-      VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Field').AsWideString );
-      VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Type').AsWideString );
-      if lowercase( FSelectedTableColumns.FieldByName('Null').AsString ) = 'yes' then
-        VTRowDataListColumns[i-1].Captions.Add('Yes')
-        else VTRowDataListColumns[i-1].Captions.Add('No');
-
-      if FSelectedTableColumns.FieldByName('Default').IsNull then
-        // In MySQL, it is not possible to use fx NOW() as a column default.
-        // Also, if default is NULL, then the actual default is either NULL
-        // or nothing at all.  Looking at another column, "Null", can help
-        // determine which one it really is, as can a SHOW CREATE TABLE.
-        // According with the above, it is not possible in MySQL to create
-        // a column which may be NULL but which has no default value.
-        if LowerCase(FSelectedTableColumns.FieldByName('Null').AsString) = 'yes' then
-          VTRowDataListColumns[i-1].Captions.Add('NULL')
-        else
-          // No default value.
-          VTRowDataListColumns[i-1].Captions.Add('')
-      else begin
-        defaultVal := FSelectedTableColumns.FieldByName('Default').AsWideString;
-        if UpperCase(defaultVal) <> 'CURRENT_TIMESTAMP' then
-          defaultVal := '''' + defaultVal + '''';
-        VTRowDataListColumns[i-1].Captions.Add(defaultVal);
-      end;
-
-      VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Extra').AsWideString );
-      if hasCommentColumn then
-        VTRowDataListColumns[i-1].Captions.Add( FSelectedTableColumns.FieldByName('Comment').AsWideString )
-      else
-        VTRowDataListColumns[i-1].Captions.Add('');
-
-      FSelectedTableColumns.Next;
-    end;
-
-    ListColumns.RootNodeCount := Length(VTRowDataListColumns);
-
-    // Manually invoke OnChange event of tabset to fill helper list with data
-    if tabsetQueryHelpers.TabIndex = 0 then
-      tabsetQueryHelpers.OnChange( Self, tabsetQueryHelpers.TabIndex, dummy);
-
-    for i:=1 to FSelectedTableKeys.RecordCount do
-    begin
-      // Search for the column name in listColumns
-      for j:=0 to Length(VTRowDataListColumns)-1 do
-      begin
-        if FSelectedTableKeys.FieldByName('Column_name').AsWideString = VTRowDataListColumns[j].Captions[0] then
-        begin
-          // Only apply a new icon if it was not already changed
-          if VTRowDataListColumns[j].ImageIndex <> ICONINDEX_FIELD then
-            break;
-
-          // Check if column is part of a fulltext key
-          if mysql_version < 40002 then
-            isFulltext := (FSelectedTableKeys.FieldByName('Comment').AsString = 'FULLTEXT')
-          else
-            isFulltext := (FSelectedTableKeys.FieldByName('Index_type').AsString = 'FULLTEXT');
-
-          // Primary key
-          if FSelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY' then
-            VTRowDataListColumns[j].ImageIndex := ICONINDEX_PRIMARYKEY
-          // Fulltext index
-          else if isFullText then
-            VTRowDataListColumns[j].ImageIndex := ICONINDEX_FULLTEXTKEY
-          // Unique index
-          else if FSelectedTableKeys.FieldByName('Non_unique').AsString = '0' then
-            VTRowDataListColumns[j].ImageIndex := ICONINDEX_UNIQUEKEY
-          // Normal index
-          else
-            VTRowDataListColumns[j].ImageIndex := ICONINDEX_INDEXKEY;
-
-          // Column was found and processed
-          break;
-        end;
-      end;
-      FSelectedTableKeys.Next;
-    end;
-    {
-      ** note, ansgarbecker, 2007-08-26
-      VT has a pretty autosorting feature, which keeps the sorting even after having
-      filled it with new data.
-      But: Don't use this auto-sorting here, neither automatically nor manual
-      because that would cause big confusion to the user if a just clicked
-      table displays its fields not in the natural order.
-
-      @todo Detect if the list was just refreshed (and then keep sorting)
-      or if another table get displayed (then don't sort, as below)
-    }
-    ListColumns.Header.SortColumn := -1;
-    ListColumns.Header.SortDirection := sdAscending;
-
-  finally
-
-    ListColumns.EndUpdate;
-    // Reselect previous selected nodes
-    SetVTSelection(ListColumns, SelectedCaptions);
-    Screen.Cursor := crDefault;
-  end;
-
-  PageControlMainChange(Self);
-  ShowStatus( STATUS_MSG_READY );
-  showstatus(ActiveDatabase + ': '+ SelectedTable + ': ' + IntToStr(ListColumns.RootNodeCount) +' column(s)', 0);
-  Screen.Cursor := crDefault;
-end;
-
-
 {***
   Execute a query and return a resultset
   The currently active connection is used
@@ -4447,13 +4160,12 @@ end;
 procedure TMainForm.ValidateControls( FrmIsFocussed: Boolean = true );
 var
   DBObjectSelected, TableSelected, ViewSelected, RoutineSelected,
-  inDbTab, inTableTab, inDataTab, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
-  FieldsSelected, FieldFocused, dummy, DBfocused : Boolean;
+  inDbTab, inDataTab, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
+  dummy, DBfocused : Boolean;
   NodeData: PVTreeData;
   SelectedNodes: TNodeArray;
 begin
   inDbTab := FrmIsFocussed and (PageControlMain.ActivePage = tabDatabase);
-  inTableTab := FrmIsFocussed and (PageControlMain.ActivePage = tabTable);
   inDataTab := FrmIsFocussed and (PageControlMain.ActivePage = tabData);
   inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and (ActiveGrid.RootNodeCount > 0);
@@ -4512,16 +4224,6 @@ begin
   actCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
   actEditTableFields.Enabled := DBObjectSelected and inDbTab;
 
-  // Table tab
-  FieldFocused := inTableTab and Assigned(ListColumns.FocusedNode);
-  FieldsSelected := inTableTab and (Length(ListColumns.GetSortedSelection(False))>0);
-  // Toggle state of menuitems and buttons
-  actEditField.Enabled := FieldFocused and FieldsSelected;
-  actCreateField.Enabled := inTableTab;
-  actDropFields.Enabled := FieldsSelected;
-  actEditIndexes.Enabled := inTableTab;
-  menuRenameColumn.Enabled := FieldFocused and FieldsSelected;
-
   // Data tab - if query results are made editable, these will need
   //            to be changed to look at which tab is focused.
   actDataInsert.Enabled := inDataTab;
@@ -4579,15 +4281,6 @@ begin
   actQueryWordWrap.Enabled := InQueryTab;
   actClearQueryEditor.Enabled := InQueryTab and NotEmpty;
   actSetDelimiter.Enabled := InQueryTab;
-end;
-
-
-procedure TMainForm.ShowTableData(table: WideString);
-begin
-  dataselected := false;
-  PageControlMain.ActivePage := tabData;
-  viewdata(self);
-  PageControlMainChange(Self);
 end;
 
 
@@ -6100,9 +5793,12 @@ begin
     begin
       // Keep native order of columns
       lboxQueryHelpers.Sorted := False;
-      if SelectedTable <> '' then for i := 0 to High(VTRowDataListColumns) do
-      begin
-        lboxQueryHelpers.Items.Add(VTRowDataListColumns[i].Captions[0]);
+      if SelectedTable <> '' then begin
+        FSelectedTableColumns.First;
+        while not FSelectedTableColumns.Eof do begin
+          lboxQueryHelpers.Items.Add(FSelectedTableColumns.Fields[0].AsWideString);
+          FSelectedTableColumns.Next;
+        end;
       end;
     end;
 
@@ -6221,116 +5917,6 @@ begin
   sm.UndoList.AddGroupBreak;
   if not SynMemoFilter.Focused then
     ValidateQueryControls;
-end;
-
-
-{**
-  Activate inline-item-editor of listColumns
-}
-procedure TMainForm.menuRenameColumnClick(Sender: TObject);
-begin
-  ListColumns.EditNode(ListColumns.FocusedNode, 0);
-end;
-
-
-{**
-  Rename a column name from within listColumns
-}
-procedure TMainForm.ListColumnsNewText(Sender: TBaseVirtualTree; Node:
-    PVirtualNode; Column: TColumnIndex; NewText: WideString);
-var
-  def : TDataSet;
-  sql_update, sql_null, sql_default, sql_extra, sql_comment, DefaultValue,
-  InputStr, OutputStr : WideString;
-  NodeData : PVTreeData;
-  DataViews: TStringList;
-  rx: TRegExpr;
-  i: Integer;
-begin
-  // Try to rename, on any error abort and don't rename ListItem
-  try
-    ensureValidIdentifier( NewText );
-
-    // Fetch data from listitem
-    NodeData := ListColumns.GetNodeData(Node);
-
-    // Fetch column definition
-    def := GetResults( 'SHOW FULL COLUMNS FROM ' + mask(SelectedTable) + ' LIKE ' + esc(NodeData.Captions[0]), False, False );
-
-    // Check NOT NULL
-    sql_null := 'NULL ';
-    if UpperCase(def.FieldByName('Null').AsString) = 'NO' then
-      sql_null := 'NOT NULL ';
-
-    // Check default value, take care of non-literals / functions
-    sql_default := '';
-    DefaultValue := def.FieldByName('Default').AsWideString;
-    if DefaultValue <> '' then
-    begin
-      if (UpperCase(def.FieldByName('Type').AsString) <> 'TIMESTAMP') and (DefaultValue <> 'CURRENT_TIMESTAMP') then
-        DefaultValue := esc(DefaultValue);
-      sql_default := 'DEFAULT ' + DefaultValue + ' ';
-    end;
-
-    // Check extra options (auto_increment)
-    sql_extra := '';
-    if def.FieldByName('Extra').AsString <> '' then
-      sql_extra := ' '+WideUpperCase(def.FieldByName('Extra').AsString);
-
-    // Comment
-    sql_comment := '';
-    if def.FieldByName('Comment').AsWideString <> '' then
-      sql_comment := ' COMMENT '+esc(def.FieldByName('Comment').AsWideString);
-
-    // Concat column definition
-    sql_update := 'ALTER TABLE ' + mask(SelectedTable) +
-      ' CHANGE ' + mask(NodeData.Captions[0]) +
-      ' ' + mask(NewText) + ' ' +
-      def.FieldByName('Type').AsString + ' ' +
-      sql_null +
-      sql_default +
-      sql_extra +
-      sql_comment;
-
-    // Cleanup
-    def.Close;
-    FreeAndNil(def);
-
-    // Fire ALTER query
-    ExecUpdateQuery( sql_update, False, False );
-
-    FSelectedTableColumns := nil;
-    FSelectedTableKeys := nil;
-
-    // Fix perspectives, using old column name
-    DataViews := TStringList.Create;
-    GetDataViews(DataViews);
-    for i := 0 to DataViews.Count - 1 do begin
-      MainReg.OpenKey(GetRegKeyTable + '\' + REGPREFIX_DATAVIEW + DataViews[i], False);
-      rx := TRegExpr.Create;
-      rx.Expression := '\b(\d_)('+QuoteRegExprMetaChars(NodeData.Captions[0])+')(\'+REGDELIM+')';
-      rx.ModifierG := False;
-      InputStr := Utf8Decode(MainReg.ReadString(REGNAME_SORT));
-      OutputStr := rx.Replace(InputStr, '$1'+NewText+'$3', True);
-      if InputStr <> OutputStr then
-        MainReg.WriteString(REGNAME_SORT, Utf8Encode(OutputStr));
-    end;
-    // Fix in memory perspective
-    if DataGridTable = SelectedTable then begin
-      for i:=0 to Length(FDataGridSort)-1 do begin
-        if FDataGridSort[i].ColumnName = NodeData.Captions[0] then
-          FDataGridSort[i].ColumnName := NewText;
-      end;
-    end;
-
-    // Update listitem
-    NodeData.Captions[0] := NewText;
-  except
-    On E : Exception do
-    begin
-      MessageDlg( E.Message, mtError, [mbOK], 0 );
-    end;
-  end;
 end;
 
 
@@ -6617,8 +6203,6 @@ begin
     Result := @VTRowDataListProcesses
   else if VT = ListTables then
     Result := @VTRowDataListTables
-  else if VT = ListColumns then
-    Result := @VTRowDataListColumns
   else begin
     raise Exception.Create( VT.ClassName + ' "' + VT.Name + '" doesn''t have an assigned array with data.' );
   end;
@@ -6635,7 +6219,6 @@ begin
   if P = @VTRowDataListCommandStats then Exit;
   if P = @VTRowDataListProcesses then Exit;
   if P = @VTRowDataListTables then Exit;
-  if P = @VTRowDataListColumns then Exit;
   raise Exception.Create('Assertion failed: Invalid global VT array.');
 end;
 
@@ -7383,7 +6966,10 @@ begin
         lblSorryNoData.Visible := False;
         if GetSelectedNodeType = NODETYPE_PROCEDURE then lblSorryNoData.Visible := True;
         if GetSelectedNodeType = NODETYPE_FUNCTION then lblSorryNoData.Visible := True;
-        ShowTable( (Sender as TVirtualStringTree).Text[Node, 0] );
+        dataselected := false;
+        PageControlMain.ActivePage := tabData;
+        viewdata(self);
+        PageControlMainChange(Self);
       end;
   end;
   if newDb <> '' then
@@ -7599,14 +7185,16 @@ begin
   Clause := '';
   Add := '';
   if ed.Text <> '' then begin
-    for i := 0 to Length(VTRowDataListColumns) - 1 do begin
+    FSelectedTableColumns.First;
+    for i := 0 to FSelectedTableColumns.RecordCount - 1 do begin
       if i > 0 then
         Add := Add + ' OR ';
-      Add := Add + mask(VTRowDataListColumns[i].Captions[0]) + ' LIKE ' + esc('%'+ed.Text+'%');
+      Add := Add + mask(FSelectedTableColumns.Fields[0].AsWideString) + ' LIKE ' + esc('%'+ed.Text+'%');
       if Length(Add) > 45 then begin
         Clause := Clause + Add + CRLF;
         Add := '';
       end;
+      FSelectedTableColumns.Next;
     end;
     if Add <> '' then
       Clause := Clause + Add;
@@ -7615,12 +7203,6 @@ begin
   SynMemoFilter.SelectAll;
   SynMemoFilter.SelText := Clause;
   SynMemoFilterChange(Sender);
-end;
-
-
-procedure TMainForm.ListColumnsDblClick(Sender: TObject);
-begin
-  actEditField.Execute;
 end;
 
 
@@ -8036,7 +7618,7 @@ begin
       '  [Cancel] to cancel editing.',
       mtWarning, [mbOK, mbCancel], 0);
     if mres = mrOK then
-      actEditIndexesExecute(DataGrid);
+      actEditTablePropertiesExecute(actEditTableProperties);
   end;
 end;
 
@@ -9359,7 +8941,7 @@ begin
   except
     DataGrid.RootNodeCount := 0;
     SetLength(FDataGridResult.Rows, 0);
-    PageControlMain.ActivePage := tabTable;
+    PageControlMain.ActivePage := tabDatabase;
     raise;
   end;
 

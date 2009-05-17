@@ -987,88 +987,6 @@ object MainForm: TMainForm
             end>
         end
       end
-      object tabTable: TTabSheet
-        Caption = 'Table'
-        ImageIndex = 14
-        object lblSorryNoFields: TLabel
-          Left = 0
-          Top = 0
-          Width = 502
-          Height = 340
-          Align = alClient
-          Alignment = taCenter
-          Caption = 'Please use the stored routine editor to edit attributes.'
-          Layout = tlCenter
-          WordWrap = True
-          OnClick = actEditRoutineExecute
-        end
-        object ListColumns: TVirtualStringTree
-          Left = 0
-          Top = 0
-          Width = 502
-          Height = 300
-          Align = alClient
-          EditDelay = 500
-          Header.AutoSizeIndex = -1
-          Header.DefaultHeight = 17
-          Header.Height = 20
-          Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-          Header.ParentFont = True
-          HintMode = hmTooltip
-          Images = PngImageListMain
-          IncrementalSearch = isInitializedOnly
-          ParentShowHint = False
-          PopupMenu = popupTableGrid
-          ShowHint = True
-          TabOrder = 0
-          TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
-          TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
-          TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
-          OnAfterPaint = vstAfterPaint
-          OnChange = ListColumnsChange
-          OnCompareNodes = vstCompareNodes
-          OnDblClick = ListColumnsDblClick
-          OnFreeNode = vstFreeNode
-          OnGetText = vstGetText
-          OnGetImageIndex = vstGetImageIndex
-          OnGetHint = vstGetHint
-          OnGetNodeDataSize = vstGetNodeDataSize
-          OnHeaderClick = vstHeaderClick
-          OnInitNode = vstInitNode
-          OnNewText = ListColumnsNewText
-          Columns = <
-            item
-              Position = 0
-              Width = 120
-              WideText = 'Name'
-            end
-            item
-              Position = 1
-              Width = 120
-              WideText = 'Type'
-            end
-            item
-              Position = 2
-              Width = 40
-              WideText = 'Null'
-            end
-            item
-              Position = 3
-              Width = 115
-              WideText = 'Default'
-            end
-            item
-              Position = 4
-              Width = 80
-              WideText = 'Extra'
-            end
-            item
-              Position = 5
-              Width = 120
-              WideText = 'Comment'
-            end>
-        end
-      end
       object tabData: TTabSheet
         Caption = 'Data'
         ImageIndex = 41
@@ -2041,39 +1959,6 @@ object MainForm: TMainForm
       Hint = 'Edit table engine, charset, auto increment etc.'
       ImageIndex = 17
       OnExecute = actEditTablePropertiesExecute
-    end
-    object actEditField: TAction
-      Category = 'Table'
-      Caption = 'Edit column'
-      Enabled = False
-      Hint = 'Edit column properties'
-      ImageIndex = 93
-      ShortCut = 32781
-      OnExecute = actEditFieldExecute
-    end
-    object actCreateField: TAction
-      Category = 'Table'
-      Caption = 'Add column'
-      Enabled = False
-      Hint = 'Create new column in selected table'
-      ImageIndex = 91
-      OnExecute = actCreateFieldExecute
-    end
-    object actDropFields: TAction
-      Category = 'Table'
-      Caption = 'Delete selected column(s) ...'
-      Enabled = False
-      Hint = 'Delete selected column(s)'
-      ImageIndex = 92
-      OnExecute = actDropFieldsExecute
-    end
-    object actEditIndexes: TAction
-      Category = 'Table'
-      Caption = 'Edit indexes'
-      Enabled = False
-      Hint = 'Create and edit indexes for the selected table'
-      ImageIndex = 18
-      OnExecute = actEditIndexesExecute
     end
     object actDropDatabase: TAction
       Category = 'Database'
@@ -6216,46 +6101,6 @@ object MainForm: TMainForm
     OnTimer = TimerHostUptimeTimer
     Left = 7
     Top = 269
-  end
-  object popupTableGrid: TPopupMenu
-    Images = PngImageListMain
-    Left = 72
-    Top = 96
-    object MenuEditField: TMenuItem
-      Action = actEditField
-      Default = True
-    end
-    object MenuAddField: TMenuItem
-      Action = actCreateField
-    end
-    object DropField1: TMenuItem
-      Action = actDropFields
-    end
-    object menuRenameColumn: TMenuItem
-      Caption = 'Rename Field'
-      ImageIndex = 33
-      ShortCut = 113
-      OnClick = menuRenameColumnClick
-    end
-    object N16: TMenuItem
-      Caption = '-'
-    end
-    object ManageIndexes1: TMenuItem
-      Action = actEditIndexes
-    end
-    object N3a: TMenuItem
-      Caption = '-'
-    end
-    object InsertfilesintoBLOBfields2: TMenuItem
-      Action = actInsertFiles
-    end
-    object PrintList4: TMenuItem
-      Action = actPrintList
-    end
-    object Refresh2: TMenuItem
-      Tag = 28
-      Action = actRefresh
-    end
   end
   object popupDataGrid: TPopupMenu
     AutoHotkeys = maManual

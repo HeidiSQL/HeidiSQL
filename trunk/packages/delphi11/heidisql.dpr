@@ -7,7 +7,6 @@ uses
   main in '..\..\source\main.pas' {MainForm},
   about in '..\..\source\about.pas' {AboutBox},
   connections in '..\..\source\connections.pas' {connform},
-  fieldeditor in '..\..\source\fieldeditor.pas' {FieldEditForm},
   exportsql in '..\..\source\exportsql.pas' {ExportSQLForm},
   loaddata in '..\..\source\loaddata.pas' {loaddataform},
   usermanager in '..\..\source\usermanager.pas' {UserManagerForm},
