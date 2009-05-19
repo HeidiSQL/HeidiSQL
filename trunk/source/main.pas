@@ -6878,8 +6878,6 @@ begin
   end;
   if newDb <> '' then
     LoadDatabaseProperties(newDb);
-  if PageControlMain.ActivePage = tabData then
-    viewData(self);
 end;
 
 
