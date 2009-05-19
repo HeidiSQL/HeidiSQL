@@ -1,8 +1,8 @@
 object MainForm: TMainForm
   Left = 241
   Top = 114
-  ClientHeight = 487
-  ClientWidth = 683
+  ClientHeight = 486
+  ClientWidth = 756
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clBlack
@@ -19,8 +19,8 @@ object MainForm: TMainForm
   TextHeight = 13
   object splitterTopBottom: TSplitter
     Left = 0
-    Top = 384
-    Width = 683
+    Top = 383
+    Width = 756
     Height = 4
     Cursor = crSizeNS
     Align = alBottom
@@ -29,8 +29,8 @@ object MainForm: TMainForm
   end
   object SynMemoSQLLog: TSynMemo
     Left = 0
-    Top = 388
-    Width = 683
+    Top = 387
+    Width = 756
     Height = 80
     SingleLineMode = True
     Align = alBottom
@@ -56,8 +56,8 @@ object MainForm: TMainForm
   end
   object StatusBar: TStatusBar
     Left = 0
-    Top = 468
-    Width = 683
+    Top = 467
+    Width = 756
     Height = 19
     AutoHint = True
     Panels = <
@@ -86,8 +86,8 @@ object MainForm: TMainForm
   object ControlBar1: TControlBar
     Left = 0
     Top = 0
-    Width = 683
-    Height = 52
+    Width = 756
+    Height = 26
     Align = alTop
     AutoSize = True
     BevelKind = bkNone
@@ -100,7 +100,7 @@ object MainForm: TMainForm
     object ToolBarStandard: TToolBar
       Left = 11
       Top = 2
-      Width = 377
+      Width = 298
       Height = 22
       Align = alNone
       AutoSize = True
@@ -119,12 +119,12 @@ object MainForm: TMainForm
         Style = tbsDropDown
       end
       object btnExit: TToolButton
-        Left = 38
+        Left = 44
         Top = 0
         Action = actExitApplication
       end
       object tlbSep1: TToolButton
-        Left = 61
+        Left = 67
         Top = 0
         Width = 8
         Caption = 'tlbSep1'
@@ -132,95 +132,62 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ToolButton5: TToolButton
-        Left = 69
+        Left = 75
         Top = 0
         Action = actCopy
         AutoSize = True
       end
       object ToolButton6: TToolButton
-        Left = 92
+        Left = 98
         Top = 0
         Action = actPaste
         AutoSize = True
       end
       object ToolButton14: TToolButton
-        Left = 115
+        Left = 121
         Top = 0
         Hint = 'Undo'
         Action = actUndo
       end
       object ToolButton12: TToolButton
-        Left = 138
+        Left = 144
         Top = 0
         Action = actPrintList
       end
       object tlbSep2: TToolButton
-        Left = 161
+        Left = 167
         Top = 0
         Width = 8
         Caption = 'tlbSep2'
         ImageIndex = 3
         Style = tbsSeparator
       end
-      object ButtonCreateDatabase: TToolButton
-        Left = 169
-        Top = 0
-        Action = actCreateDatabase
-        AutoSize = True
-      end
-      object btnEditDatabase: TToolButton
-        Left = 192
-        Top = 0
-        Action = actEditDatabase
-      end
-      object ButtonDropDatabase: TToolButton
-        Left = 215
-        Top = 0
-        Action = actDropDatabase
-        AutoSize = True
-      end
-      object ToolButton2: TToolButton
-        Left = 238
-        Top = 0
-        Width = 8
-        Caption = 'ToolButton2'
-        ImageIndex = 32
-        Style = tbsSeparator
-      end
       object ButtonRefresh: TToolButton
-        Left = 246
+        Left = 175
         Top = 0
         Action = actRefresh
         AutoSize = True
       end
-      object tlbSep5: TToolButton
-        Left = 269
-        Top = 0
-        Width = 8
-        Caption = 'tlbSep5'
-        ImageIndex = 19
-        Style = tbsSeparator
-      end
       object ButtonUserManager: TToolButton
-        Left = 277
+        Left = 198
         Top = 0
         Action = actUserManager
         AutoSize = True
       end
       object ButtonImportTextfile: TToolButton
-        Left = 300
+        Left = 221
         Top = 0
         Action = actImportCSV
         AutoSize = True
       end
       object ButtonExport: TToolButton
-        Left = 323
+        Left = 244
         Top = 0
         Action = actExportTables
         AutoSize = True
       end
       object tlbSep6: TToolButton
-        Left = 346
+        Left = 267
         Top = 0
         Width = 8
         Caption = 'tlbSep6'
@@ -228,14 +195,14 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object btnSQLHelp: TToolButton
-        Left = 354
+        Left = 275
         Top = 0
         Action = actSQLhelp
       end
     end
     object ToolBarData: TToolBar
-      Left = 11
-      Top = 28
+      Left = 322
+      Top = 2
       Width = 138
       Height = 22
       Align = alNone
@@ -277,46 +244,9 @@ object MainForm: TMainForm
         Action = actDataCancelChanges
       end
     end
-    object ToolBarDatabase: TToolBar
-      Left = 407
-      Top = 2
-      Width = 115
-      Height = 22
-      Align = alNone
-      AutoSize = True
-      Caption = 'ToolBarDatabase'
-      Images = PngImageListMain
-      TabOrder = 2
-      Wrapable = False
-      object btnCreateTable: TToolButton
-        Left = 0
-        Top = 0
-        Action = actCreateTable
-      end
-      object btnCreateView: TToolButton
-        Left = 23
-        Top = 0
-        Action = actCreateView
-      end
-      object btnDBDropTable: TToolButton
-        Left = 46
-        Top = 0
-        Action = actDropDBobjects
-      end
-      object btnDBCopyTable: TToolButton
-        Left = 69
-        Top = 0
-        Action = actCopyTable
-      end
-      object btnDBCreateRoutine: TToolButton
-        Left = 92
-        Top = 0
-        Action = actCreateRoutine
-      end
-    end
     object ToolBarQuery: TToolBar
-      Left = 398
-      Top = 28
+      Left = 473
+      Top = 2
       Width = 268
       Height = 22
       Align = alNone
@@ -325,7 +255,7 @@ object MainForm: TMainForm
       EdgeInner = esNone
       EdgeOuter = esNone
       Images = PngImageListMain
-      TabOrder = 3
+      TabOrder = 2
       Wrapable = False
       object btnExecuteQuery: TToolButton
         Left = 0
@@ -388,9 +318,9 @@ object MainForm: TMainForm
   end
   object panelTop: TPanel
     Left = 0
-    Top = 52
-    Width = 683
-    Height = 332
+    Top = 26
+    Width = 756
+    Height = 357
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
@@ -399,7 +329,7 @@ object MainForm: TMainForm
       Left = 169
       Top = 0
       Width = 4
-      Height = 332
+      Height = 357
       Cursor = crSizeWE
       ResizeStyle = rsUpdate
     end
@@ -407,7 +337,7 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 169
-      Height = 332
+      Height = 357
       Align = alLeft
       Constraints.MinWidth = 40
       DragMode = dmAutomatic
@@ -426,7 +356,7 @@ object MainForm: TMainForm
       IncrementalSearch = isInitializedOnly
       Indent = 16
       ParentShowHint = False
-      PopupMenu = popupTreeView
+      PopupMenu = popupDB
       ShowHint = True
       TabOrder = 0
       TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
@@ -459,8 +389,8 @@ object MainForm: TMainForm
     object PageControlMain: TPageControl
       Left = 173
       Top = 0
-      Width = 510
-      Height = 332
+      Width = 583
+      Height = 357
       ActivePage = tabHost
       Align = alClient
       HotTrack = True
@@ -475,8 +405,8 @@ object MainForm: TMainForm
         object PageControlHost: TPageControl
           Left = 0
           Top = 0
-          Width = 502
-          Height = 271
+          Width = 575
+          Height = 296
           ActivePage = tabVariables
           Align = alClient
           HotTrack = True
@@ -487,8 +417,8 @@ object MainForm: TMainForm
             object ListVariables: TVirtualStringTree
               Left = 0
               Top = 0
-              Width = 494
-              Height = 243
+              Width = 567
+              Height = 268
               Align = alClient
               DragOperations = []
               Header.AutoSizeIndex = 1
@@ -527,7 +457,7 @@ object MainForm: TMainForm
                 end
                 item
                   Position = 1
-                  Width = 330
+                  Width = 403
                   WideText = 'Value'
                 end>
             end
@@ -537,8 +467,8 @@ object MainForm: TMainForm
             object ListStatus: TVirtualStringTree
               Left = 0
               Top = 0
-              Width = 494
-              Height = 243
+              Width = 567
+              Height = 268
               Align = alClient
               DragOperations = []
               Header.AutoSizeIndex = 1
@@ -577,7 +507,7 @@ object MainForm: TMainForm
                 item
                   Alignment = taRightJustify
                   Position = 1
-                  Width = 130
+                  Width = 203
                   WideText = 'Value'
                 end
                 item
@@ -599,8 +529,8 @@ object MainForm: TMainForm
             ImageIndex = 1
             object Splitter3: TSplitter
               Left = 0
-              Top = 170
-              Width = 494
+              Top = 195
+              Width = 567
               Height = 4
               Cursor = crSizeNS
               Align = alBottom
@@ -609,8 +539,8 @@ object MainForm: TMainForm
             object ListProcesses: TVirtualStringTree
               Left = 0
               Top = 0
-              Width = 494
-              Height = 170
+              Width = 567
+              Height = 195
               Align = alClient
               Header.AutoSizeIndex = 7
               Header.DefaultHeight = 17
@@ -678,14 +608,14 @@ object MainForm: TMainForm
                 end
                 item
                   Position = 7
-                  Width = 10
+                  Width = 73
                   WideText = 'Info'
                 end>
             end
             object pnlProcessViewBox: TPanel
               Left = 0
-              Top = 174
-              Width = 494
+              Top = 199
+              Width = 567
               Height = 69
               Align = alBottom
               BevelOuter = bvNone
@@ -693,7 +623,7 @@ object MainForm: TMainForm
               object pnlProcessView: TPanel
                 Left = 0
                 Top = 0
-                Width = 494
+                Width = 567
                 Height = 15
                 Align = alTop
                 Alignment = taLeftJustify
@@ -704,7 +634,7 @@ object MainForm: TMainForm
               object SynMemoProcessView: TSynMemo
                 Left = 0
                 Top = 15
-                Width = 494
+                Width = 567
                 Height = 54
                 SingleLineMode = False
                 Align = alClient
@@ -735,8 +665,8 @@ object MainForm: TMainForm
             object ListCommandStats: TVirtualStringTree
               Left = 0
               Top = 0
-              Width = 494
-              Height = 243
+              Width = 567
+              Height = 268
               Align = alClient
               Header.AutoSizeIndex = 4
               Header.DefaultHeight = 17
@@ -793,7 +723,7 @@ object MainForm: TMainForm
                 end
                 item
                   Position = 4
-                  Width = 70
+                  Width = 143
                   WideText = 'Percentage'
                 end>
             end
@@ -801,8 +731,8 @@ object MainForm: TMainForm
         end
         object pnlFilterVT: TPanel
           Left = 0
-          Top = 271
-          Width = 502
+          Top = 296
+          Width = 575
           Height = 29
           Align = alBottom
           BevelOuter = bvNone
@@ -837,8 +767,8 @@ object MainForm: TMainForm
         object ListTables: TVirtualStringTree
           Left = 0
           Top = 0
-          Width = 502
-          Height = 300
+          Width = 575
+          Height = 325
           Align = alClient
           EditDelay = 500
           Header.AutoSizeIndex = -1
@@ -852,7 +782,7 @@ object MainForm: TMainForm
           Images = PngImageListMain
           IncrementalSearch = isInitializedOnly
           ParentShowHint = False
-          PopupMenu = popupDbGrid
+          PopupMenu = popupDB
           ShowHint = True
           TabOrder = 0
           TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
@@ -862,7 +792,7 @@ object MainForm: TMainForm
           OnAfterPaint = vstAfterPaint
           OnChange = ListTablesChange
           OnCompareNodes = vstCompareNodes
-          OnDblClick = ListTablesDblClick
+          OnDblClick = actViewDataExecute
           OnEditing = ListTablesEditing
           OnFreeNode = vstFreeNode
           OnGetText = vstGetText
@@ -993,8 +923,8 @@ object MainForm: TMainForm
         object lblSorryNoData: TLabel
           Left = 0
           Top = 91
-          Width = 502
-          Height = 249
+          Width = 575
+          Height = 234
           Align = alClient
           Alignment = taCenter
           Caption = 'Stored routines don'#39't provide any data you could edit here.'
@@ -1004,7 +934,7 @@ object MainForm: TMainForm
         object pnlDataTop: TPanel
           Left = 0
           Top = 0
-          Width = 502
+          Width = 575
           Height = 25
           Align = alTop
           Alignment = taLeftJustify
@@ -1014,7 +944,7 @@ object MainForm: TMainForm
           object lblDataTop: TTntLabel
             Left = 1
             Top = 1
-            Width = 220
+            Width = 293
             Height = 23
             Align = alLeft
             Anchors = [akLeft, akTop, akRight, akBottom]
@@ -1024,7 +954,7 @@ object MainForm: TMainForm
             WordWrap = True
           end
           object tlbDataButtons: TToolBar
-            Left = 169
+            Left = 242
             Top = 1
             Width = 332
             Height = 23
@@ -1075,17 +1005,17 @@ object MainForm: TMainForm
         object pnlFilter: TPanel
           Left = 0
           Top = 25
-          Width = 502
+          Width = 575
           Height = 66
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 1
           Visible = False
           DesignSize = (
-            502
+            575
             66)
           object lblTableFilter: TLabel
-            Left = 339
+            Left = 412
             Top = 0
             Width = 114
             Height = 13
@@ -1100,7 +1030,7 @@ object MainForm: TMainForm
             Caption = 'Recent filters:'
           end
           object btnFilterApply: TButton
-            Left = 339
+            Left = 412
             Top = 41
             Width = 76
             Height = 22
@@ -1109,7 +1039,7 @@ object MainForm: TMainForm
             TabOrder = 2
           end
           object btnFilterClear: TButton
-            Left = 419
+            Left = 492
             Top = 41
             Width = 76
             Height = 22
@@ -1120,7 +1050,7 @@ object MainForm: TMainForm
           object SynMemoFilter: TSynMemo
             Left = 0
             Top = 21
-            Width = 336
+            Width = 409
             Height = 42
             SingleLineMode = False
             Anchors = [akLeft, akTop, akRight, akBottom]
@@ -1160,7 +1090,7 @@ object MainForm: TMainForm
               end>
           end
           object editFilterSearch: TEdit
-            Left = 339
+            Left = 412
             Top = 15
             Width = 156
             Height = 21
@@ -1173,7 +1103,7 @@ object MainForm: TMainForm
           object comboRecentFilters: TTntComboBox
             Left = 75
             Top = 0
-            Width = 261
+            Width = 334
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -1185,8 +1115,8 @@ object MainForm: TMainForm
         object DataGrid: TVirtualStringTree
           Left = 0
           Top = 91
-          Width = 502
-          Height = 209
+          Width = 575
+          Height = 234
           Align = alClient
           BottomSpace = 120
           EditDelay = 0
@@ -1230,7 +1160,7 @@ object MainForm: TMainForm
         object spltQuery: TSplitter
           Left = 0
           Top = 96
-          Width = 502
+          Width = 575
           Height = 4
           Cursor = crSizeNS
           Align = alTop
@@ -1238,15 +1168,15 @@ object MainForm: TMainForm
         end
         object LabelResultinfo: TLabel
           Left = 0
-          Top = 117
-          Width = 502
+          Top = 100
+          Width = 575
           Height = 13
           Align = alTop
         end
         object pnlQueryMemo: TPanel
           Left = 0
           Top = 0
-          Width = 502
+          Width = 575
           Height = 96
           Align = alTop
           BevelOuter = bvNone
@@ -1254,7 +1184,7 @@ object MainForm: TMainForm
           TabOrder = 0
           OnCanResize = pnlQueryMemoCanResize
           object spltQueryHelpers: TSplitter
-            Left = 338
+            Left = 411
             Top = 0
             Width = 4
             Height = 96
@@ -1265,7 +1195,7 @@ object MainForm: TMainForm
           object SynMemoQuery: TSynMemo
             Left = 0
             Top = 0
-            Width = 338
+            Width = 411
             Height = 96
             SingleLineMode = False
             Align = alClient
@@ -1308,7 +1238,7 @@ object MainForm: TMainForm
               end>
           end
           object pnlQueryHelpers: TPanel
-            Left = 342
+            Left = 415
             Top = 0
             Width = 160
             Height = 96
@@ -1357,8 +1287,8 @@ object MainForm: TMainForm
         object QueryGrid: TVirtualStringTree
           Left = 0
           Top = 113
-          Width = 502
-          Height = 187
+          Width = 575
+          Height = 212
           Align = alClient
           EditDelay = 0
           Header.AutoSizeIndex = -1
@@ -1386,8 +1316,8 @@ object MainForm: TMainForm
     end
   end
   object ProgressBarStatus: TProgressBar
-    Left = 545
-    Top = 445
+    Left = 535
+    Top = 405
     Width = 81
     Height = 17
     Step = 1
@@ -1487,31 +1417,6 @@ object MainForm: TMainForm
           ShortCut = 24692
           OnClick = DisableAutoRefreshClick
         end
-      end
-      object N3: TMenuItem
-        Caption = '-'
-      end
-      object MenuCreateDatabase: TMenuItem
-        Tag = 29
-        Action = actCreateDatabase
-      end
-      object MenuCreateTable: TMenuItem
-        Tag = 30
-        Action = actCreateTable
-      end
-      object Createview1: TMenuItem
-        Action = actCreateView
-      end
-      object MenuDropDatabase: TMenuItem
-        Tag = 31
-        Action = actDropDatabase
-      end
-      object MenuDropTable: TMenuItem
-        Tag = 32
-        Action = actDropDBobjects
-      end
-      object N4: TMenuItem
-        Caption = '-'
       end
       object Flush1: TMenuItem
         Tag = 33
@@ -1786,8 +1691,8 @@ object MainForm: TMainForm
     end
     object actCopyTable: TAction
       Tag = 62
-      Category = 'Tools'
-      Caption = 'Create table copy ...'
+      Category = 'Database'
+      Caption = 'Table copy'
       Enabled = False
       Hint = 'Create a base table copy of this table or view'
       ImageIndex = 19
@@ -1851,28 +1756,20 @@ object MainForm: TMainForm
       ShortCut = 16463
       OnExecute = actLoadSQLExecute
     end
-    object actDropDBobjects: TAction
+    object actDropObjects: TAction
       Category = 'Database'
       Caption = 'Drop ...'
       Enabled = False
       Hint = 'Deletes tables, views, procedures and functions'
-      ImageIndex = 16
-      OnExecute = actDropDBobjectsExecute
-    end
-    object actEditView: TAction
-      Category = 'Database'
-      Caption = 'Edit view ...'
-      Enabled = False
-      Hint = 'Edit view ...'
-      ImageIndex = 103
-      OnExecute = actEditViewExecute
+      ImageIndex = 131
+      OnExecute = actDropObjectsExecute
     end
     object actCreateView: TAction
       Category = 'Database'
-      Caption = 'Create view ...'
+      Caption = 'View'
       Enabled = False
       Hint = 'Create view ...'
-      ImageIndex = 102
+      ImageIndex = 81
       OnExecute = actCreateViewExecute
     end
     object actDataFirst: TAction
@@ -1929,10 +1826,10 @@ object MainForm: TMainForm
     end
     object actCreateTable: TAction
       Category = 'Database'
-      Caption = 'Create new table'
+      Caption = 'Table'
       Enabled = False
       Hint = 'Create new table in selected database'
-      ImageIndex = 15
+      ImageIndex = 14
       OnExecute = actCreateTableExecute
     end
     object actEmptyTables: TAction
@@ -1944,45 +1841,12 @@ object MainForm: TMainForm
       ShortCut = 8238
       OnExecute = actEmptyTablesExecute
     end
-    object actEditTableFields: TAction
-      Category = 'Database'
-      Caption = 'Table properties'
-      Enabled = False
-      ImageIndex = 44
-      ShortCut = 16397
-      OnExecute = actEditTableFieldsExecute
-    end
-    object actEditTableProperties: TAction
-      Category = 'Database'
-      Caption = 'Alter table ...'
-      Enabled = False
-      Hint = 'Edit table engine, charset, auto increment etc.'
-      ImageIndex = 17
-      OnExecute = actEditTablePropertiesExecute
-    end
-    object actDropDatabase: TAction
-      Category = 'Database'
-      Caption = 'Drop database'
-      Enabled = False
-      Hint = 'Delete database and all contained tables and objects'
-      ImageIndex = 7
-      OnExecute = actDropDatabaseExecute
-    end
     object actCreateDatabase: TAction
       Category = 'Database'
-      Caption = 'Create database'
-      Enabled = False
+      Caption = 'Database'
       Hint = 'Create a new, blank database'
-      ImageIndex = 6
+      ImageIndex = 5
       OnExecute = actCreateDatabaseExecute
-    end
-    object actEditDatabase: TAction
-      Category = 'Database'
-      Caption = 'Edit database'
-      Enabled = False
-      Hint = 'Edit database properties'
-      ImageIndex = 8
-      OnExecute = actEditDatabaseExecute
     end
     object actSQLhelp: TAction
       Category = 'Tools'
@@ -2264,17 +2128,24 @@ object MainForm: TMainForm
     end
     object actCreateRoutine: TAction
       Category = 'Database'
-      Caption = 'Create stored routine ...'
+      Caption = 'Stored routine'
       Hint = 'Create stored routine|Create stored procedure or function'
       ImageIndex = 119
       OnExecute = actCreateRoutineExecute
     end
-    object actEditRoutine: TAction
+    object actViewData: TAction
+      Category = 'Data'
+      Caption = 'Data ...'
+      Hint = 'Displays data grid and allows row editing'
+      ImageIndex = 41
+      OnExecute = actViewDataExecute
+    end
+    object actEditObject: TAction
       Category = 'Database'
-      Caption = 'Edit stored routine ...'
-      Hint = 'Edit stored procedure or function'
-      ImageIndex = 119
-      OnExecute = actEditRoutineExecute
+      Caption = 'Edit'
+      Hint = 'Edit selected object'
+      ImageIndex = 129
+      OnExecute = actEditObjectExecute
     end
   end
   object SaveDialog2: TSaveDialog
@@ -5883,6 +5754,87 @@ object MainForm: TMainForm
           00000049454E44AE426082}
         Name = 'PngImage127'
         Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001974455874536F6674776172650041646F626520496D616765526561
+          647971C9653C0000028D4944415478DAA5535D489351187EDE4D97A66BA43941
+          DD4A13442A22A1AE5C0A41DE24659AE2554449A42652897F74D11F2166A99151
+          B94483B23FCC0B2FA208121D269A7E966EE22FE8D0F9B3D4747F6E3B9D6FCA2E
+          AC2EACC3F978F9CE39CFF33EEFCBFB10630CFFB3E8447E634E7CE2C132B38505
+          78B8DC6E30FEB9DC2E1E19DC8CFFBB5C3C324F74F1BB6D32C78A5E6F2C6CBA97
+          F1806EBE1E71C9E50192CD661ED11BDC55F909522A793EFC4F35CC4E4EE07141
+          2251F1B3217635357CD304B9953A688B8F1015350C728208ACC9609E0D227CED
+          EEFE0DB4D5212070BA0DD2C07D5899FB0CB2194F5351BD8195A48421AB72DCFB
+          B0367F177A7A7BA1D168BC6796A9662CE975F00FD14011198785311D0CEF6B4D
+          5450D7CF4A4F46803C994505C42320088297C032D502FB421702E407601E1E84
+          62C76EC8E44AE83F35D8E88AF63B57102EAA86772468AD14F1CCF94307A9A503
+          8AA824D8A71A619D27CC182C58B2F07BBB39862E3D113C045EEC7A2B06F403F0
+          73F4213A74128AE8E3B0191F42227362757927CC5F0650317A0CD5D7CF11E5D5
+          74B1D25415F21E99BCF5569F0F457F5B1D62D56628F7A670700D24BE4E387E46
+          62BE5D80FFE122E46AA7F1A63C8DE8E2FD4E5692A65ACFBDA66361F423D89280
+          988464384CF520A903B6C508CC71B03A538B790B21A7BC156F2BD28972AA3A38
+          81DA031629267A9A114813709212C1C1EDD8AE9471B00AE64E3DFC12AE41CA9B
+          27363AFB4E2B9AEE6690E88597A1AAB074B738EF2E378ED22DA4673FC5E08BCB
+          308EEBB045BD1F8B262B5A6C993039833C3EE15B5CAFB8173268A31B6F64ED59
+          2D3C7BC10712177A3FBCC3F8D8D0B22224283EE9769FF047376E2438A509B2C6
+          45297D0EC54682F9DA75D699D933C965DF46FF36D2BF001FB12E08B619789100
+          00000049454E44AE426082}
+        Name = 'PngImage129'
+        Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001974455874536F6674776172650041646F626520496D616765526561
+          647971C9653C000002274944415478DA63FCFFFF3F03258031A06045B68D8369
+          E7BB6FFFB9C166FDFBC7F01F88FFFEFB0BA4FF33FCFB0FE4FFFD0BA4FF83E9BF
+          40393EB65F5FAF5F7F5ABEBE3F7C2A63CBEABB7F7979B99948B5F9EEF51BFF26
+          16D83333562DBB43961F5E3F79CC30ABD48191B172F1EDFFB5C1D2241B9033E1
+          18C3DC4A6746C68A45378106C830409CF11F8C18181919CE9D3D8B53B3B19111
+          43D684A30C0BAADD80062CBCF1BF2A508A2175C203B88239050A0CE72F5C60B0
+          B5B5C56AC0972F5F18B27A0F332CAAF764642C9D7FF57F75900C0323D866900B
+          18813403C3C58B17711AF0E9D32786AC9EC30C4B9ABC19194BE65E01BA401AE4
+          6A06789260847805450C2201F6268804B960598B1F2363D1EC8B6003FE232901
+          71AE5DBF8662EBF59767186EBC3AC7F0E5C727865FBF7F317CFCA0C1B0BEBD9F
+          91316FDA99FFD5C1B20C79335FC2154F4A1767B879F326DC0B9B4FAC6038F778
+          2783B1960983AC902AC3BE2B1B184E5C39CCF0E0CE9B5EC6DCC9A7FE5785C8C2
+          9D0703B76FDF861B90D4EDC5E0EFE9C6C0C0CCC4E0AF99C7D0B3279581998189
+          61C5FA4D3F18B3279E001A2007F7DB7F34FF82E8B4A95E0C5951D90C5EDA2970
+          D94D97A732B4CE6801E78595E2B25261FF40E9FD2F300F8068505EF8FD1B4C83
+          F2C0A38FF90C817E4E0C7F18FE3154BA2D6068DF99C0C0C1CC0E710131B9D13C
+          5BB2454691BFDA4ACF864155D290E1F6F3F30CC72E1D617872FF632F5106400D
+          E900C51E10F302F167209E7672EAF30A0014A4029CA878604C0000000049454E
+          44AE426082}
+        Name = 'PngImage130'
+        Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001974455874536F6674776172650041646F626520496D616765526561
+          647971C9653C0000022D4944415478DAA5535F48535118FF7DDE91C8583E442C
+          A66B11F8D4DBC2B74449E80F51D80CD78B8F62CC1A239274A38C90202A9A4546
+          7FC4B43023280A7AB11EA2B90A71B641EE6EAC61A4A386A531A756DBBDA773EE
+          E89291A0F571CFFD71CEF79DDFF7FBC1F9883186FF09AAF30CB66CABA93C3BB3
+          C08C1A97AA82F1A5A80A470695F1BDA270641A2A3CB776CD8F79594E1D7F78D1
+          79853AEF271593C958B4DACE4939A67679AA25F20EBCFB270FD35393B8DE5A43
+          D47E3BC14ED497AD9AE0B0FF257ADA6B89DAFAE39CA01C05194CFB4084B15068
+          D9CB5BED76B8FC41DCF2EDE0047D31E6DD6F4193FFBD5E70D3B3096FC2615455
+          55FD95209BCDC2752180FE8EDD44ADBDE3CCE72807699D8502E2084422916509
+          32990C5CE703B8737A0FD1B19EB75C4199500DFD4950C1CA92B34242B329FE42
+          C140E73EA2A337221A01FBAD446CA2727469DBB1C750461E20FF6912D27A335E
+          956C87B7B78FC8DD3DCA7CF556B8AFA5F5DA4BCD66C4E371DDC2D4A36ECC06EF
+          A2A2BA0EC59BB760313284F1C033CCC664371DB93CC2BC07ACBABC5F91482474
+          82178D15A83C780825C9E7402A089496E2B3C186D0D0F004B574BDE6041B756F
+          EC0FBF02A38D36D49E1B04D91D7AF66BC7068C06BE30310BF7CC564B832ADEBB
+          C26740A098855C4E4331030DE126EC74EC85F1C3137C5F4C638113CC6524C849
+          A46825D318705A4E159B8C3EEBBABCC15094C2DC741E136949C97D6327574420
+          62D8696D9B9FF9D82C2964532496E2B7AEEE7A9A3FF313796C0BA07E0D8F0600
+          00000049454E44AE426082}
+        Name = 'PngImage131'
+        Background = clWindow
       end>
     PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
     Left = 104
@@ -5904,46 +5856,54 @@ object MainForm: TMainForm
     Left = 104
     Top = 64
   end
-  object popupTreeView: TPopupMenu
+  object popupDB: TPopupMenu
     Images = PngImageListMain
-    OnPopup = popupTreeViewPopup
+    OnPopup = popupDBPopup
     Left = 136
     Top = 64
-    object NewDatabase1: TMenuItem
-      Action = actCreateDatabase
+    object menuViewData: TMenuItem
+      Action = actViewData
     end
-    object menuAlterdatabase: TMenuItem
-      Action = actEditDatabase
+    object N16: TMenuItem
+      Caption = '-'
     end
-    object PopupmenuDropDatabase: TMenuItem
-      Action = actDropDatabase
+    object menuEditObject: TMenuItem
+      Action = actEditObject
+      ShortCut = 32781
+    end
+    object menuDeleteObject: TMenuItem
+      Action = actDropObjects
+    end
+    object menuCreateObject: TMenuItem
+      Caption = 'Create new'
+      ImageIndex = 130
+      object menuCreateDB: TMenuItem
+        Action = actCreateDatabase
+      end
+      object menuCreateTable: TMenuItem
+        Action = actCreateTable
+      end
+      object menuCreateTableCopy: TMenuItem
+        Action = actCopyTable
+      end
+      object menuCreateView: TMenuItem
+        Action = actCreateView
+      end
+      object menuCreateRoutine: TMenuItem
+        Action = actCreateRoutine
+      end
     end
     object N17: TMenuItem
       Caption = '-'
     end
-    object PopupMenuCreateTable: TMenuItem
-      Action = actCreateTable
-    end
-    object menuTreeAlterTable: TMenuItem
-      Action = actEditTableProperties
-    end
-    object menuTreeCreateView: TMenuItem
-      Action = actCreateView
-    end
-    object menuTreeEditView: TMenuItem
-      Action = actEditView
-    end
-    object PopupMenuDropTable: TMenuItem
-      Action = actDropDBobjects
-    end
-    object menuTreeCreateRoutine: TMenuItem
-      Action = actCreateRoutine
-    end
-    object menuTreeEditRoutine: TMenuItem
-      Action = actEditRoutine
-    end
-    object Exporttables2: TMenuItem
+    object menuExporttables: TMenuItem
       Action = actExportTables
+    end
+    object menuMaintenance2: TMenuItem
+      Action = actMaintenance
+    end
+    object menuEmptyTables: TMenuItem
+      Action = actEmptyTables
     end
     object N5a: TMenuItem
       Caption = '-'
@@ -5962,79 +5922,13 @@ object MainForm: TMainForm
       Caption = 'Display size of objects'
       OnClick = menuShowSizeColumnClick
     end
-    object Selectbackgroundcolor1: TMenuItem
+    object menuSelectBGColor: TMenuItem
       Action = actSelectTreeBackground
     end
-    object menuRefreshDBTree: TMenuItem
-      Action = actRefresh
-    end
-  end
-  object popupDbGrid: TPopupMenu
-    AutoHotkeys = maManual
-    Images = PngImageListMain
-    Left = 40
-    Top = 96
-    object menuproperties: TMenuItem
-      Action = actEditTableFields
-      Default = True
-    end
-    object menuAlterTable: TMenuItem
-      Action = actEditTableProperties
-    end
-    object menuEditView: TMenuItem
-      Action = actEditView
-    end
-    object menuEditRoutine: TMenuItem
-      Action = actEditRoutine
-    end
-    object InsertfilesintoBLOBfields1a: TMenuItem
-      Action = actInsertFiles
-    end
-    object N2: TMenuItem
-      Caption = '-'
-    end
-    object menudroptablea: TMenuItem
-      Action = actDropDBobjects
-    end
-    object menuemptytable: TMenuItem
-      Action = actEmptyTables
-    end
-    object MenuRenameTable: TMenuItem
-      Caption = 'Rename'
-      Enabled = False
-      ImageIndex = 33
-      ShortCut = 113
-      OnClick = MenuRenameTableClick
-    end
-    object menuMaintenancea: TMenuItem
-      Action = actMaintenance
-    end
-    object N18: TMenuItem
-      Caption = '-'
-    end
-    object MenuCopyTable: TMenuItem
-      Action = actCopyTable
-    end
-    object menucreatetablea: TMenuItem
-      Action = actCreateTable
-    end
-    object Createview2: TMenuItem
-      Action = actCreateView
-    end
-    object actCreateRoutine1: TMenuItem
-      Action = actCreateRoutine
-    end
-    object Exporttables1: TMenuItem
-      Action = actExportTables
-    end
-    object N10: TMenuItem
-      Caption = '-'
-    end
-    object PrintList3: TMenuItem
+    object menuPrint: TMenuItem
       Action = actPrintList
     end
-    object menurefresh2: TMenuItem
-      Tag = 28
+    object menuRefreshDB: TMenuItem
       Action = actRefresh
     end
   end
