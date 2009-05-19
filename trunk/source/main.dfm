@@ -1143,8 +1143,8 @@ object MainForm: TMainForm
           OnEditCancelled = DataGridEditCancelled
           OnEdited = DataGridEdited
           OnEditing = DataGridEditing
-          OnEnter = DataGridEnter
-          OnExit = DataGridExit
+          OnEnter = ValidateControls
+          OnExit = ValidateControls
           OnFocusChanging = DataGridFocusChanging
           OnGetText = GridGetText
           OnPaintText = GridPaintText
@@ -1610,7 +1610,6 @@ object MainForm: TMainForm
       Tag = 34
       Category = 'Tools'
       Caption = 'User manager'
-      Enabled = False
       Hint = 'Manage user authentication and privileges'
       ImageIndex = 11
       OnExecute = actUserManagerExecute
@@ -1642,7 +1641,6 @@ object MainForm: TMainForm
       Tag = 35
       Category = 'Tools'
       Caption = 'Maintenance'
-      Enabled = False
       Hint = 'Optimize, repair and analyse tables'
       ImageIndex = 39
       OnExecute = actMaintenanceExecute
@@ -1685,7 +1683,6 @@ object MainForm: TMainForm
       Tag = 61
       Category = 'Various'
       Caption = 'Print...'
-      Enabled = False
       Hint = 'Print List or Data'
       ImageIndex = 34
       ShortCut = 16464
@@ -1737,14 +1734,12 @@ object MainForm: TMainForm
     object actInsertFiles: TAction
       Category = 'Export/Import'
       Caption = 'Insert files into TEXT/BLOB fields...'
-      Enabled = False
       ImageIndex = 47
       OnExecute = actInsertFilesExecute
     end
     object actExportTables: TAction
       Category = 'Export/Import'
       Caption = 'Export database as SQL'
-      Enabled = False
       Hint = 'Dump database objects to an SQL file'
       ImageIndex = 20
       OnExecute = actExportTablesExecute
@@ -1752,7 +1747,6 @@ object MainForm: TMainForm
     object actLoadSQL: TAction
       Category = 'SQL'
       Caption = 'Load SQL file...'
-      Enabled = False
       Hint = 'Load SQL file...'
       ImageIndex = 52
       ShortCut = 16463
@@ -1862,7 +1856,6 @@ object MainForm: TMainForm
     object actRefresh: TAction
       Category = 'Various'
       Caption = 'Refresh'
-      Enabled = False
       Hint = 'Refresh'
       ImageIndex = 0
       ShortCut = 116
@@ -1871,7 +1864,6 @@ object MainForm: TMainForm
     object actImportCSV: TAction
       Category = 'Export/Import'
       Caption = 'Import CSV file...'
-      Enabled = False
       Hint = 'Import a CSV or tab delimited file'
       ImageIndex = 50
       OnExecute = actImportCSVExecute
@@ -1897,42 +1889,36 @@ object MainForm: TMainForm
     object actFlushHosts: TAction
       Category = 'Tools'
       Caption = 'Hosts'
-      Enabled = False
       ImageIndex = 28
       OnExecute = actFlushExecute
     end
     object actFlushLogs: TAction
       Category = 'Tools'
       Caption = 'Logs'
-      Enabled = False
       ImageIndex = 28
       OnExecute = actFlushExecute
     end
     object actFlushPrivileges: TAction
       Category = 'Tools'
       Caption = 'Privileges'
-      Enabled = False
       ImageIndex = 28
       OnExecute = actFlushExecute
     end
     object actFlushTables: TAction
       Category = 'Tools'
       Caption = 'Tables'
-      Enabled = False
       ImageIndex = 28
       OnExecute = actFlushExecute
     end
     object actFlushTableswithreadlock: TAction
       Category = 'Tools'
       Caption = 'Tables with read lock'
-      Enabled = False
       ImageIndex = 28
       OnExecute = actFlushExecute
     end
     object actFlushStatus: TAction
       Category = 'Tools'
       Caption = 'Status'
-      Enabled = False
       ImageIndex = 28
       OnExecute = actFlushExecute
     end

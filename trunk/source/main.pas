@@ -513,8 +513,8 @@ type
       var CanExecute: Boolean);
     procedure PageControlMainChange(Sender: TObject);
     procedure PageControlHostChange(Sender: TObject);
-    procedure ValidateControls(FrmIsFocussed: Boolean = true);
-    procedure ValidateQueryControls(FrmIsFocussed: Boolean = true);
+    procedure ValidateControls(Sender: TObject);
+    procedure ValidateQueryControls(Sender: TObject);
     function FieldContent(ds: TDataSet; ColName: WideString): WideString;
     procedure LoadDatabaseProperties(db: WideString);
     procedure ShowHost;
@@ -679,8 +679,6 @@ type
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actEditObjectExecute(Sender: TObject);
     procedure actViewDataExecute(Sender: TObject);
-    procedure DataGridEnter(Sender: TObject);
-    procedure DataGridExit(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -1152,7 +1150,6 @@ begin
   SetLength(FQueryGridResult.Rows, 0);
   SetLength(FQueryGridResult.Columns, 0);
 
-  ValidateControls(False);
   Action := caFree;
 
   saveWindowConfig;
@@ -2359,7 +2356,7 @@ begin
   end;
 
   // Fix actions temporarily enabled for popup menu.
-  ValidateControls;
+  ValidateControls(Sender);
 
   AllCount := Tables.Count + Views.Count + Procedures.Count + Functions.Count;
 
@@ -3690,7 +3687,7 @@ begin
   end;
 
   // Ensure controls are in a valid state
-  ValidateControls;
+  ValidateControls(Sender);
 end;
 
 
@@ -3988,7 +3985,7 @@ begin
   Screen.Cursor := crDefault;
   // Ensure tree db node displays its chidren initialized
   DBtree.ReinitChildren(FindDBNode(db), False);
-  ValidateControls;
+  ValidateControls(Self);
 end;
 
 
@@ -4033,7 +4030,7 @@ end;
 procedure TMainForm.ListTablesChange(Sender: TBaseVirtualTree; Node:
     PVirtualNode);
 begin
-  ValidateControls;
+  ValidateControls(Sender);
 end;
 
 
@@ -4043,47 +4040,23 @@ end;
   Invoked when
     - active sheet changes
     - highlighted database changes
-    - ChildWindow is activated / deactivated
-  @param Boolean Is this form activated in terms of our remaining MDI-functionality?
-    Only used with False by FormDeactivate-procedure to
-    deactivate various controls on mainform
+    ...
 }
-procedure TMainForm.ValidateControls( FrmIsFocussed: Boolean = true );
+procedure TMainForm.ValidateControls(Sender: TObject);
 var
-  DBObjectSelected,
-  inDbTab, inDataGrid, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
+  inDataGrid, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
   dummy: Boolean;
   SelectedNodes: TNodeArray;
 begin
-  inDbTab := FrmIsFocussed and (PageControlMain.ActivePage = tabDatabase);
-  inDataGrid := FrmIsFocussed and (ActiveControl = DataGrid);
-  inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
+  inDataGrid := ActiveControl = DataGrid;
+  inDataOrQueryTab := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery);
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and (ActiveGrid.RootNodeCount > 0);
-  inQueryTab := FrmIsFocussed and (PageControlMain.ActivePage = tabQuery);
+  inQueryTab := PageControlMain.ActivePage = tabQuery;
 
   SelectedNodes := ListTables.GetSortedSelection(False);
-  DBObjectSelected := (Length(SelectedNodes)>0) and FrmIsFocussed;
 
-  // Standard toolbar and main menu
-  actRefresh.Enabled := FrmIsFocussed;
-  actFlushHosts.Enabled := FrmIsFocussed;
-  actFlushLogs.Enabled := FrmIsFocussed;
-  actFlushPrivileges.Enabled := FrmIsFocussed;
-  actFlushTables.Enabled := FrmIsFocussed;
-  actFlushTableswithreadlock.Enabled := FrmIsFocussed;
-  actFlushStatus.Enabled := FrmIsFocussed;
-  actUserManager.Enabled := FrmIsFocussed;
-  actMaintenance.Enabled := FrmIsFocussed;
-  actInsertFiles.Enabled := FrmIsFocussed;
-  // PrintList should only be active if we're focussing one of the ListViews,
-  // at least as long we are not able to print DBGrids
-  actPrintList.Enabled := FrmIsFocussed;
-  actSQLhelp.Enabled := (mysql_version >= 40100) and FrmIsFocussed;
-  actImportCSV.Enabled := (mysql_version >= 32206) and FrmIsFocussed;
-  actExportTables.Enabled := FrmIsFocussed;
-
-  // Database tab
-  actDropObjects.Enabled := (DBObjectSelected and inDbTab) or ((not inQueryTab) and (SelectedTable <> '') and FrmIsFocussed);
+  actSQLhelp.Enabled := mysql_version >= 40100;
+  actImportCSV.Enabled := mysql_version >= 32206;
 
   // Data tab - if query results are made editable, these will need
   //            to be changed to look at which tab is focused.
@@ -4104,31 +4077,22 @@ begin
   setNull1.Enabled := inDataGrid and Assigned(DataGrid.FocusedNode);
 
   // Query tab
-  actLoadSQL.Enabled := FrmIsFocussed;
   // Manually invoke OnChange event of tabset to fill helper list with data
-  if inQueryTab and FrmIsFocussed then
+  if inQueryTab then
     tabsetQueryHelpers.OnChange(Self, tabsetQueryHelpers.TabIndex, dummy);
-  ValidateQueryControls(FrmIsFocussed);
+  ValidateQueryControls(Sender);
 
   if not inQueryTab then // Empty panel with "Line:Char"
     showstatus('', 1);
-
-  if not FrmIsFocussed then begin
-    // Empty "connected" and "uptime"
-    showstatus('', 1);
-    showstatus('', 2);
-    showstatus('', 3);
-    showstatus('', 4);
-  end;
 end;
 
-procedure TMainForm.ValidateQueryControls(FrmIsFocussed: Boolean = true);
+procedure TMainForm.ValidateQueryControls(Sender: TObject);
 var
   InQueryTab, NotEmpty, HasSelection: Boolean;
 begin
-  InQueryTab := FrmIsFocussed and (PageControlMain.ActivePage = tabQuery);
-  NotEmpty := FrmIsFocussed and (SynMemoQuery.GetTextLen > 0);
-  HasSelection := FrmIsFocussed and SynMemoQuery.SelAvail;
+  InQueryTab := PageControlMain.ActivePage = tabQuery;
+  NotEmpty := SynMemoQuery.GetTextLen > 0;
+  HasSelection := SynMemoQuery.SelAvail;
   actExecuteQuery.Enabled := InQueryTab and NotEmpty;
   actExecuteSelection.Enabled := InQueryTab and HasSelection;
   actExecuteLine.Enabled := InQueryTab and (SynMemoQuery.LineText <> '');
@@ -4142,18 +4106,6 @@ begin
   actQueryWordWrap.Enabled := InQueryTab;
   actClearQueryEditor.Enabled := InQueryTab and NotEmpty;
   actSetDelimiter.Enabled := InQueryTab;
-end;
-
-
-procedure TMainForm.DataGridEnter(Sender: TObject);
-begin
-  ValidateControls(True);
-end;
-
-
-procedure TMainForm.DataGridExit(Sender: TObject);
-begin
-  ValidateControls(True);
 end;
 
 
@@ -4308,7 +4260,7 @@ begin
     end;
 
     ProgressBarStatus.Hide;
-    ValidateQueryControls;
+    ValidateQueryControls(Sender);
 
     if ( SQL.Count > 1 ) then
     begin
@@ -4381,7 +4333,7 @@ begin
       AutoCalcColWidths(QueryGrid);
     end;
     // Ensure controls are in a valid state
-    ValidateControls;
+    ValidateControls(Sender);
     viewingdata := false;
     Screen.Cursor := crDefault;
     ShowStatus( STATUS_MSG_READY );
@@ -4395,7 +4347,7 @@ end;
 procedure TMainForm.ListColumnsChange(Sender: TBaseVirtualTree; Node:
     PVirtualNode);
 begin
-  ValidateControls;
+  ValidateControls(Sender);
 end;
 
 
@@ -4617,7 +4569,7 @@ var
   sm: TSynMemo;
 begin
   sm := Sender as TSynMemo;
-  ValidateQueryControls;
+  ValidateQueryControls(Sender);
   showstatus(FormatNumber(sm.CaretY)+' : '+FormatNumber(sm.CaretX), 1);
 end;
 
@@ -5834,7 +5786,7 @@ begin
   sm.SelText := f;
   sm.UndoList.AddGroupBreak;
   if not SynMemoFilter.Focused then
-    ValidateQueryControls;
+    ValidateQueryControls(Sender);
 end;
 
 
@@ -7512,7 +7464,7 @@ begin
   if Row.State = grsDefault then
     FDataGridResult.Rows[Node.Index].State := grsModified;
   DataGridHasChanges := True;
-  ValidateControls;
+  ValidateControls(Sender);
 end;
 
 
@@ -7545,7 +7497,7 @@ end;
 procedure TMainForm.DataGridChange(Sender: TBaseVirtualTree; Node:
     PVirtualNode);
 begin
-  ValidateControls;
+  ValidateControls(Sender);
 end;
 
 
@@ -7654,7 +7606,7 @@ begin
   end;
   Sender.RepaintNode(Sender.FocusedNode);
   DataGridHasChanges := False;
-  ValidateControls;
+  ValidateControls(Sender);
 end;
 
 
@@ -7774,7 +7726,7 @@ begin
   DataGrid.ClearSelection;
   DataGrid.Selected[DataGrid.FocusedNode] := True;
   DataGridHasChanges := True;
-  ValidateControls;
+  ValidateControls(DataGrid);
 end;
 
 
@@ -7816,7 +7768,7 @@ begin
     SetLength(FDataGridResult.Rows, Length(FDataGridResult.Rows) - 1);
     Sender.EndUpdate;
     DataGridHasChanges := False;
-    ValidateControls;
+    ValidateControls(Sender);
     Result := True; // Important for DataGridFocusChanging to allow moving focus
   end else begin
     // At least one field was modified, assume this INSERT should be posted
@@ -7916,7 +7868,7 @@ begin
     end;
   end;
   DataGridHasChanges := False;
-  ValidateControls;
+  ValidateControls(Sender);
 end;
 
 
@@ -8345,7 +8297,7 @@ end;
 
 procedure TMainForm.QueryGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
 begin
-  ValidateControls;
+  ValidateControls(Sender);
 end;
 
 
