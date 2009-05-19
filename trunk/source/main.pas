@@ -54,14 +54,8 @@ type
     Extra1: TMenuItem;
     FlushUserPrivileges1: TMenuItem;
     MenuCopyCSV: TMenuItem;
-    N3: TMenuItem;
     MenuRefresh1: TMenuItem;
     MenuExport: TMenuItem;
-    MenuCreateDatabase: TMenuItem;
-    MenuCreateTable: TMenuItem;
-    N4: TMenuItem;
-    MenuDropDatabase: TMenuItem;
-    MenuDropTable: TMenuItem;
     N5: TMenuItem;
     MenuImportTextFile: TMenuItem;
     Flush1: TMenuItem;
@@ -96,10 +90,7 @@ type
     ToolButton6: TToolButton;
     ToolButton12: TToolButton;
     tlbSep2: TToolButton;
-    ButtonCreateDatabase: TToolButton;
-    ButtonDropDatabase: TToolButton;
     ButtonRefresh: TToolButton;
-    tlbSep5: TToolButton;
     ButtonImportTextfile: TToolButton;
     ButtonExport: TToolButton;
     ButtonUserManager: TToolButton;
@@ -122,7 +113,7 @@ type
     actInsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
     actExportTables: TAction;
-    actDropDBobjects: TAction;
+    actDropObjects: TAction;
     actLoadSQL: TAction;
     ImportSQL1: TMenuItem;
     menuConnections: TPopupMenu;
@@ -138,10 +129,7 @@ type
     tlbSep6: TToolButton;
     menuUpdateCheck: TMenuItem;
     PngImageListMain: TPngImageList;
-    actEditView: TAction;
     actCreateView: TAction;
-    ToolButton2: TToolButton;
-    Createview1: TMenuItem;
     ToolButton3: TToolButton;
     actDataFirst: TAction;
     actDataLast: TAction;
@@ -152,18 +140,9 @@ type
     ToolButton7: TToolButton;
     ToolButton8: TToolButton;
     ToolButton10: TToolButton;
-    ToolBarDatabase: TToolBar;
-    btnDBDropTable: TToolButton;
-    btnDBCopyTable: TToolButton;
-    btnCreateTable: TToolButton;
-    btnCreateView: TToolButton;
     actCreateTable: TAction;
     actEmptyTables: TAction;
-    actEditTableFields: TAction;
-    actEditTableProperties: TAction;
-    actDropDatabase: TAction;
     actCreateDatabase: TAction;
-    actEditDatabase: TAction;
     actSQLhelp: TAction;
     actRefresh: TAction;
     actImportCSV: TAction;
@@ -171,6 +150,7 @@ type
     Cut1: TMenuItem;
     actExportSettings: TAction;
     actImportSettings: TAction;
+    actSelectTreeBackground: TAction;
     actPreferences: TAction;
     actFlushHosts: TAction;
     actFlushLogs: TAction;
@@ -198,7 +178,6 @@ type
     actQueryReplace: TAction;
     FindDialogQuery: TFindDialog;
     ReplaceDialogQuery: TReplaceDialog;
-    btnEditDatabase: TToolButton;
     ToolBarQuery: TToolBar;
     btnExecuteQuery: TToolButton;
     btnExecuteSelection: TToolButton;
@@ -226,12 +205,8 @@ type
     tabDatabase: TTabSheet;
     splitterTopBottom: TSplitter;
     tabQuery: TTabSheet;
-    popupTreeView: TPopupMenu;
-    menuRefreshDBTree: TMenuItem;
-    popupDbGrid: TPopupMenu;
-    menuproperties: TMenuItem;
-    menudroptablea: TMenuItem;
-    menuemptytable: TMenuItem;
+    popupDB: TPopupMenu;
+    menuRefreshDB: TMenuItem;
     tabHost: TTabSheet;
     PageControlHost: TPageControl;
     tabVariables: TTabSheet;
@@ -240,21 +215,16 @@ type
     ListProcesses: TVirtualStringTree;
     popupHost: TPopupMenu;
     Kill1: TMenuItem;
-    NewDatabase1: TMenuItem;
     ListTables: TVirtualStringTree;
     Refresh1: TMenuItem;
     pnlDataTop: TPanel;
-    menurefresh2: TMenuItem;
-    N2: TMenuItem;
     pnlQueryMemo: TPanel;
     SynSQLSyn1: TSynSQLSyn;
     SynMemoQuery: TSynMemo;
     spltQuery: TSplitter;
-    menucreatetablea: TMenuItem;
     OpenDialog1: TOpenDialog;
     TimerHostUptime: TTimer;
     N5a: TMenuItem;
-    PopupmenuDropDatabase: TMenuItem;
     popupDataGrid: TPopupMenu;
     Refresh3: TMenuItem;
     popupResultGrid: TPopupMenu;
@@ -262,17 +232,12 @@ type
     CopyasCSVData1: TMenuItem;
     N9a: TMenuItem;
     LabelResultinfo: TLabel;
-    menuAlterTable: TMenuItem;
-    N10: TMenuItem;
-    MenuRenameTable: TMenuItem;
     TimerConnected: TTimer;
     N12: TMenuItem;
     popupSqlLog: TPopupMenu;
     Clear2: TMenuItem;
     Copy1: TMenuItem;
     N15: TMenuItem;
-    menuMaintenancea: TMenuItem;
-    PopupMenuDropTable: TMenuItem;
     N17: TMenuItem;
     CopycontentsasHTML1: TMenuItem;
     CopycontentsasHTML2: TMenuItem;
@@ -292,11 +257,8 @@ type
     N7: TMenuItem;
     DropFilter1: TMenuItem;
     PrintList2: TMenuItem;
-    PrintList3: TMenuItem;
     N1a: TMenuItem;
-    MenuCopyTable: TMenuItem;
     SynMemoFilter: TSynMemo;
-    N18: TMenuItem;
     MenuAutoupdate: TMenuItem;
     TimerRefresh: TTimer;
     Set1: TMenuItem;
@@ -327,13 +289,11 @@ type
     DataYear: TMenuItem;
     ViewasHTML1: TMenuItem;
     HTMLview1: TMenuItem;
-    InsertfilesintoBLOBfields1a: TMenuItem;
     InsertfilesintoBLOBfields3: TMenuItem;
     N19: TMenuItem;
     setNULL1: TMenuItem;
     ZSQLMonitor1: TZSQLMonitor;
-    Exporttables1: TMenuItem;
-    Exporttables2: TMenuItem;
+    menuExporttables: TMenuItem;
     popupDbGridHeader: TPopupMenu;
     SynCompletionProposal1: TSynCompletionProposal;
     OpenDialogSQLFile: TOpenDialog;
@@ -378,12 +338,9 @@ type
     menuLoadSnippet: TMenuItem;
     menuInsertSnippetAtCursor: TMenuItem;
     menuExplore: TMenuItem;
-    PopupMenuCreateTable: TMenuItem;
     menuSQLhelp2: TMenuItem;
     N24: TMenuItem;
     menuSQLhelpData: TMenuItem;
-    menuAlterdatabase: TMenuItem;
-    menuTreeAlterTable: TMenuItem;
     menuLogToFile: TMenuItem;
     menuOpenLogFolder: TMenuItem;
     tabStatus: TTabSheet;
@@ -397,10 +354,6 @@ type
     lblFilterVT: TLabel;
     lblFilterVTInfo: TLabel;
     menuEditVariable: TMenuItem;
-    menuEditView: TMenuItem;
-    Createview2: TMenuItem;
-    menuTreeCreateView: TMenuItem;
-    menuTreeEditView: TMenuItem;
     menuTreeExpandAll: TMenuItem;
     menuTreeCollapseAll: TMenuItem;
     tlbDataButtons: TToolBar;
@@ -431,7 +384,7 @@ type
     menuViewDefault: TMenuItem;
     CopygriddataasSQL1: TMenuItem;
     CopygriddataasSQL2: TMenuItem;
-    Selectbackgroundcolor1: TMenuItem;
+    menuSelectBGColor: TMenuItem;
     actPreviousTab: TPreviousTab;
     actNextTab: TNextTab;
     Nexttab1: TMenuItem;
@@ -449,19 +402,27 @@ type
     actSessionManager: TAction;
     Sessionmanager1: TMenuItem;
     actCreateRoutine: TAction;
-    actCreateRoutine1: TMenuItem;
-    btnDBCreateRoutine: TToolButton;
     btnExit: TToolButton;
-    actEditRoutine: TAction;
-    menuTreeEditRoutine: TMenuItem;
-    menuTreeCreateRoutine: TMenuItem;
-    menuEditRoutine: TMenuItem;
     lblSorryNoData: TLabel;
+    menuPrint: TMenuItem;
+    N16: TMenuItem;
+    menuEditObject: TMenuItem;
+    menuCreateObject: TMenuItem;
+    menuDeleteObject: TMenuItem;
+    menuMaintenance2: TMenuItem;
+    menuEmptyTables: TMenuItem;
+    actViewData: TAction;
+    menuViewData: TMenuItem;
+    actEditObject: TAction;
+    menuCreateDB: TMenuItem;
+    menuCreateTable: TMenuItem;
+    menuCreateTableCopy: TMenuItem;
+    menuCreateView: TMenuItem;
+    menuCreateRoutine: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
     procedure setDefaultWindowConfig;
-    procedure actEditTablePropertiesExecute(Sender: TObject);
     procedure actCreateTableExecute(Sender: TObject);
     procedure actCreateViewExecute(Sender: TObject);
     procedure menuWindowClick(Sender: TObject);
@@ -480,7 +441,6 @@ type
     procedure actApplyFilterExecute(Sender: TObject);
     procedure actClearEditorExecute(Sender: TObject);
     procedure actMaintenanceExecute(Sender: TObject);
-    procedure actEditViewExecute(Sender: TObject);
     procedure actCopyAsHTMLExecute(Sender: TObject);
     procedure actCopyAsCSVExecute(Sender: TObject);
     procedure actPrintListExecute(Sender: TObject);
@@ -502,11 +462,8 @@ type
     procedure actDataInsertExecute(Sender: TObject);
     procedure actDataLastExecute(Sender: TObject);
     procedure actDataPostChangesExecute(Sender: TObject);
-    procedure actDropDatabaseExecute(Sender: TObject);
-    procedure actDropDBobjectsExecute(Sender: TObject);
-    procedure actEditDatabaseExecute(Sender: TObject);
+    procedure actDropObjectsExecute(Sender: TObject);
     procedure actEmptyTablesExecute(Sender: TObject);
-    procedure actEditTableFieldsExecute(Sender: TObject);
     procedure actExportSettingsExecute(Sender: TObject);
     procedure actFlushExecute(Sender: TObject);
     procedure actImportCSVExecute(Sender: TObject);
@@ -581,7 +538,6 @@ type
     procedure MenuRenameTableClick(Sender: TObject);
     procedure TimerConnectedTimer(Sender: TObject);
     procedure Clear2Click(Sender: TObject);
-    procedure ListTablesDblClick(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
     procedure popupResultGridPopup(Sender: TObject);
     procedure Autoupdate1Click(Sender: TObject);
@@ -594,7 +550,7 @@ type
       AFiles: TUnicodeStrings);
     procedure popupHostPopup(Sender: TObject);
     procedure Saveastextfile1Click(Sender: TObject);
-    procedure popupTreeViewPopup(Sender: TObject);
+    procedure popupDBPopup(Sender: TObject);
     procedure SaveDialogExportDataTypeChange(Sender: TObject);
     procedure popupDataGridPopup(Sender: TObject);
     procedure InsertDate(Sender: TObject);
@@ -717,11 +673,12 @@ type
     procedure EnumerateRecentFilters;
     procedure LoadRecentFilter(Sender: TObject);
     procedure actCreateRoutineExecute(Sender: TObject);
-    procedure actEditRoutineExecute(Sender: TObject);
     procedure DataGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
     procedure ListTablesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; var Allowed: Boolean);
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure actEditObjectExecute(Sender: TObject);
+    procedure actViewDataExecute(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -1159,8 +1116,6 @@ begin
   // Position of Toolbars
   MainReg.WriteInteger(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
   MainReg.WriteInteger(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
-  MainReg.WriteInteger(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
-  MainReg.WriteInteger(REGNAME_TOOLBARDBTOP, ToolBarDatabase.Top);
   MainReg.WriteInteger(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
   MainReg.WriteInteger(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
   MainReg.WriteInteger(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
@@ -1331,8 +1286,6 @@ begin
   // Position of Toolbars
   ToolBarStandard.Left := GetRegValue(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
   ToolBarStandard.Top := GetRegValue(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
-  ToolBarDatabase.Left := GetRegValue(REGNAME_TOOLBARDBLEFT, ToolBarDatabase.Left);
-  ToolBarDatabase.Top := GetRegValue(REGNAME_TOOLBARDBTOP, ToolBarDatabase.Top);
   ToolBarData.Left := GetRegValue(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
   ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
   ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
@@ -1915,30 +1868,10 @@ end;
   Create a view
 }
 procedure TMainForm.actCreateViewExecute(Sender: TObject);
-var
-  NodeData: PVTreeData;
-  ds: TDataset;
 begin
   if ViewForm = nil then
     ViewForm := TfrmView.Create(Self);
   ViewForm.EditViewName := '';
-  if (Sender as TAction) = actEditView then begin
-    // Edit mode
-    if actEditView.ActionComponent = menuEditView then begin
-      // "Edit view" was clicked in ListTables' context menu
-      NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-      ViewForm.EditViewName := NodeData.Captions[0];
-    end else if actEditView.ActionComponent = menuTreeEditView then begin
-      // "Edit view" was clicked in DBTree's context menu
-      ds := FetchDbTableList(ActiveDatabase);
-      ds.RecNo := DBtree.GetFirstSelected.Index+1;
-      ViewForm.EditViewName := ds.FieldByName(DBO_NAME).AsString;
-    end else
-      // If we're here, there's a menu item "Edit/Create view" in an unknown location
-      raise Exception.Create('Internal error in actCreateViewExexute.');
-  end else begin
-    // Create mode. Nothing special here.
-  end;
   ViewForm.ShowModal;
 end;
 
@@ -1946,12 +1879,6 @@ end;
 {**
   Edit view
 }
-procedure TMainForm.actEditViewExecute(Sender: TObject);
-begin
-  actCreateViewExecute(Sender);
-end;
-
-
 procedure TMainForm.actPrintListExecute(Sender: TObject);
 var
   f: TForm;
@@ -2319,18 +2246,43 @@ end;
 procedure TMainForm.actExportTablesExecute(Sender: TObject);
 var
   f: TExportSQLForm;
+  ds: TDataset;
+  InDBTree: Boolean;
+  Comp: TComponent;
 begin
-  f := TExportSQLForm.Create((Sender as TAction).ActionComponent);
+  f := TExportSQLForm.Create(Self);
+
+  // popupDB is used in DBTree AND ListTables
+  InDBTree := False;
+  Comp := (Sender as TAction).ActionComponent;
+  if Comp is TMenuItem then
+    InDBTree := TPopupMenu((Comp as TMenuItem).GetParentMenu).PopupComponent = DBTree;
+  if InDBTree then begin
+    // If a table is selected, use that for preselection. If only a db was selected, use all tables inside it.
+    if SelectedTable <> '' then
+      f.SelectedTables.Add(Mainform.SelectedTable)
+    else if Mainform.ActiveDatabase <> '' then begin
+      ds := Mainform.FetchDbTableList(Mainform.ActiveDatabase);
+      while not ds.Eof do begin
+        f.SelectedTables.Add(ds.FieldByName(DBO_NAME).AsWideString);
+        ds.Next;
+      end;
+    end;
+  end else
+    f.SelectedTables := GetVTCaptions( Mainform.ListTables, True );
+
   f.ShowModal;
   FreeAndNil(f);
 end;
 
 // Drop Table(s)
-procedure TMainForm.actDropDBobjectsExecute(Sender: TObject);
+procedure TMainForm.actDropObjectsExecute(Sender: TObject);
 var
   AllCount : Integer;
   Tables, Views, Functions, Procedures: TWideStringList;
-  msg, activeDB : String;
+  msg, activeDB : WideString;
+  InDBTree: Boolean;
+  Act: TAction;
 
   procedure DoDrop(Kind: String; List: TWideStringlist; MultiDrops: Boolean);
   var
@@ -2353,9 +2305,9 @@ var
     end;
     FreeAndNil(List);
   end;
-  
+
 begin
-  debug('drop table activated');
+  debug('drop objects activated');
   // Set default database name to to ActiveDatabase.
   // Can be overwritten when someone selects a table in dbtree from different database
   activeDB := ActiveDatabase;
@@ -2364,22 +2316,44 @@ begin
   Views := TWideStringlist.Create;
   Procedures := TWideStringlist.Create;
   Functions := TWideStringlist.Create;
-  if (PageControlMain.ActivePage = tabDatabase) and
-    ((Sender as TAction).ActionComponent <> PopupMenuDropTable) then begin
-    // Invoked from one of the various buttons, SheetDatabase is the active page, drop highlighted table(s).
-    Tables := GetVTCaptions(ListTables, True, 0, NODETYPE_TABLE);
-    Tables.AddStrings(GetVTCaptions(ListTables, True, 0, NODETYPE_CRASHED_TABLE));
-    Views := GetVTCaptions(ListTables, True, 0, NODETYPE_VIEW);
-    Procedures := GetVTCaptions(ListTables, True, 0, NODETYPE_PROCEDURE);
-    Functions := GetVTCaptions(ListTables, True, 0, NODETYPE_FUNCTION);
-  end else begin
-    // Invoked from one of the various buttons, drop table selected in tree view.
+
+  Act := Sender as TAction;
+  InDBTree := (Act.ActionComponent is TMenuItem)
+    and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
+  if InDBTree then begin
+    // drop table selected in tree view.
     case GetSelectedNodeType of
+      NODETYPE_DB: begin
+        if MessageDlg('Drop Database "'+activeDB+'"?' + crlf + crlf + 'WARNING: You will lose all tables in database '+activeDB+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
+          Abort;
+        Screen.Cursor := crHourglass;
+        try
+          ExecUpdateQuery( 'DROP DATABASE ' + mask(activeDB) );
+          ClearDbTableList(activeDB);
+          if DatabasesWanted.IndexOf(activeDB) > -1 then begin
+            DatabasesWanted.Delete( DatabasesWanted.IndexOf(activeDB) );
+            OpenRegistry(SessionName);
+            MainReg.WriteString( 'OnlyDBs', ImplodeStr( ';', DatabasesWanted ) );
+          end;
+          DBtree.Selected[DBtree.GetFirst] := true;
+          RefreshTree(False);
+        finally
+          Screen.Cursor := crDefault;
+        end;
+        Exit;
+      end;
       NODETYPE_TABLE, NODETYPE_CRASHED_TABLE: Tables.Add(SelectedTable);
       NODETYPE_VIEW: Views.Add(SelectedTable);
       NODETYPE_PROCEDURE: Procedures.Add(SelectedTable);
       NODETYPE_FUNCTION: Functions.Add(SelectedTable);
     end;
+  end else begin
+    // Invoked from database tab
+    Tables := GetVTCaptions(ListTables, True, 0, NODETYPE_TABLE);
+    Tables.AddStrings(GetVTCaptions(ListTables, True, 0, NODETYPE_CRASHED_TABLE));
+    Views := GetVTCaptions(ListTables, True, 0, NODETYPE_VIEW);
+    Procedures := GetVTCaptions(ListTables, True, 0, NODETYPE_PROCEDURE);
+    Functions := GetVTCaptions(ListTables, True, 0, NODETYPE_FUNCTION);
   end;
 
   // Fix actions temporarily enabled for popup menu.
@@ -2613,91 +2587,6 @@ begin
   t.Free;
   actRefresh.Execute;
   Screen.Cursor := crDefault;
-end;
-
-
-procedure TMainForm.actEditTableFieldsExecute(Sender: TObject);
-var
-  NodeData: PVTreeData;
-begin
-  // table-doubleclick
-  if not Assigned(ListTables.FocusedNode) then
-    Exit;
-
-  NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-  case NodeData.NodeType of
-    NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW: begin
-      SelectedTable := NodeData.Captions[0];
-      PageControlMain.ActivePage := tabData;
-    end;
-    NODETYPE_PROCEDURE, NODETYPE_FUNCTION: begin
-      actEditRoutine.Execute;
-    end;
-  end;
-end;
-
-
-procedure TMainForm.actEditTablePropertiesExecute(Sender: TObject);
-var
-  NodeData: PVTreeData;
-  caller: TComponent;
-begin
-  if TableEditorForm = nil then
-    TableEditorForm := TfrmTableEditor.Create(Self);
-
-  caller := TAction(Sender).ActionComponent;
-  if caller = menuTreeAlterTable then
-    TableEditorForm.AlterTableName := SelectedTable
-  else begin
-    NodeData := ListTables.GetNodeData( ListTables.FocusedNode );
-    TableEditorForm.AlterTableName := NodeData.Captions[0];
-  end;
-
-  TableEditorForm.ShowModal;
-end;
-
-
-procedure TMainForm.actDropDatabaseExecute(Sender: TObject);
-var
-  tndb: PVirtualNode;
-  db: String;
-begin
-  // Drop DB.
-  case DBtree.GetNodeLevel(DBtree.GetFirstSelected) of
-    1: tndb := DBtree.GetFirstSelected;
-    2: tndb := DBtree.GetFirstSelected.Parent;
-    else Exit;
-  end;
-  if not Assigned(tndb) then raise Exception.Create('Internal error: Cannot drop NIL database.');
-  db := Databases[tndb.Index];
-
-  if MessageDlg('Drop Database "'+db+'"?' + crlf + crlf + 'WARNING: You will lose all tables in database '+db+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
-    Abort;
-
-  Screen.Cursor := crHourglass;
-  try
-    ExecUpdateQuery( 'DROP DATABASE ' + mask(db) );
-    ClearDbTableList(db);
-    if DatabasesWanted.IndexOf(db) > -1 then begin
-      DatabasesWanted.Delete( DatabasesWanted.IndexOf(db) );
-      OpenRegistry(SessionName);
-      MainReg.WriteString( 'OnlyDBs', ImplodeStr( ';', DatabasesWanted ) );
-    end;
-    DBtree.Selected[DBtree.GetFirst] := true;
-    RefreshTree(False);
-  except
-    MessageDLG('Dropping failed.'+crlf+'Maybe '''+db+''' is not a valid database-name.', mtError, [mbOK], 0)
-  end;
-  Screen.Cursor := crDefault;
-end;
-
-
-procedure TMainForm.actEditDatabaseExecute(Sender: TObject);
-begin
-  if CreateDatabaseForm = nil then
-    CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
-  CreateDatabaseForm.modifyDB := ActiveDatabase;
-  CreateDatabaseForm.ShowModal;
 end;
 
 
@@ -4159,10 +4048,9 @@ end;
 }
 procedure TMainForm.ValidateControls( FrmIsFocussed: Boolean = true );
 var
-  DBObjectSelected, TableSelected, ViewSelected, RoutineSelected,
+  DBObjectSelected,
   inDbTab, inDataTab, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
-  dummy, DBfocused : Boolean;
-  NodeData: PVTreeData;
+  dummy: Boolean;
   SelectedNodes: TNodeArray;
 begin
   inDbTab := FrmIsFocussed and (PageControlMain.ActivePage = tabDatabase);
@@ -4173,17 +4061,6 @@ begin
 
   SelectedNodes := ListTables.GetSortedSelection(False);
   DBObjectSelected := (Length(SelectedNodes)>0) and FrmIsFocussed;
-  TableSelected := False;
-  ViewSelected := False;
-  RoutineSelected := False;
-
-  // Check type of first selected node, to en-/disable certain menu items
-  if DBObjectSelected then begin
-    NodeData := ListTables.GetNodeData( SelectedNodes[0] );
-    TableSelected := (NodeData.NodeType = NODETYPE_TABLE) or (NodeData.NodeType = NODETYPE_CRASHED_TABLE);
-    ViewSelected := NodeData.NodeType = NODETYPE_VIEW;
-    RoutineSelected := NodeData.NodeType in [NODETYPE_PROCEDURE, NODETYPE_FUNCTION];
-  end;
 
   // Standard toolbar and main menu
   actRefresh.Enabled := FrmIsFocussed;
@@ -4204,25 +4081,7 @@ begin
   actExportTables.Enabled := FrmIsFocussed;
 
   // Database tab
-  actEmptyTables.Enabled := inDbTab and TableSelected;
-  actEditTableProperties.Enabled := inDbTab and TableSelected;
-  MenuRenameTable.Enabled := inDbTab and (TableSelected or ViewSelected);
-  actCopyTable.Enabled := inDbTab and (TableSelected or ViewSelected);
-  actEditView.Enabled := inDbTab and ViewSelected and (mysql_version >= 50001);
-  actEditRoutine.Enabled := inDbTab and RoutineSelected and (mysql_version >= 50003);
-  actCreateView.Enabled := FrmIsFocussed and (ActiveDatabase <> '') and (mysql_version >= 50001);
-  actCreateRoutine.Enabled := FrmIsFocussed and (ActiveDatabase <> '') and (mysql_version >= 50003);
-  actCreateDatabase.Enabled := FrmIsFocussed;
-  DBfocused := Assigned(DBtree.FocusedNode) and (DBtree.GetNodeLevel(DBtree.FocusedNode) = 1);
-  actDropDatabase.Enabled := DBfocused and FrmIsFocussed;
-  actEditDatabase.Enabled := DBfocused and FrmIsFocussed and (mysql_version >= 50002);
-  if mysql_version < 50002 then
-    actEditDatabase.Hint := STR_NOTSUPPORTED
-  else
-    actEditDatabase.Hint := 'Rename and/or modify character set of database';
-  actDropDBobjects.Enabled := (DBObjectSelected and inDbTab) or ((not inQueryTab) and (SelectedTable <> '') and FrmIsFocussed);
-  actCreateTable.Enabled := (ActiveDatabase <> '') and FrmIsFocussed;
-  actEditTableFields.Enabled := DBObjectSelected and inDbTab;
+  actDropObjects.Enabled := (DBObjectSelected and inDbTab) or ((not inQueryTab) and (SelectedTable <> '') and FrmIsFocussed);
 
   // Data tab - if query results are made editable, these will need
   //            to be changed to look at which tab is focused.
@@ -4852,9 +4711,12 @@ begin
 end;
 
 
-procedure TMainForm.ListTablesDblClick(Sender: TObject);
+procedure TMainForm.actViewDataExecute(Sender: TObject);
 begin
-  actEditTableFields.Execute;
+  if Assigned(ListTables.FocusedNode) then begin
+    SelectedTable := ListTables.Text[ListTables.FocusedNode, ListTables.FocusedColumn];
+    PageControlMain.ActivePage := tabData;
+  end;
 end;
 
 
@@ -5102,22 +4964,64 @@ begin
   end;
 end;
 
-procedure TMainForm.popupTreeViewPopup(Sender: TObject);
+procedure TMainForm.popupDBPopup(Sender: TObject);
 var
   L: Cardinal;
+  ds: TDataset;
+  HasFocus, InDBTree: Boolean;
 begin
-  // toggle drop-items and remember right-clicked item
-  if DBtree.GetFirstSelected = nil then
-    L := 0
+  // DBtree and ListTables both use popupDB as menu. Find out which of them was rightclicked.
+  if Sender is TPopupMenu then
+    InDBTree := (Sender as TPopupMenu).PopupComponent = DBTree
+  else if Sender is TMenuItem then
+    InDBTree := TPopupMenu((Sender as TMenuItem).GetParentMenu).PopupComponent = DBTree
   else
-    L := DBtree.GetNodeLevel(DBtree.GetFirstSelected);
-  actCreateTable.Enabled := L in [1,2];
-  actCreateView.Enabled := (L in [1,2]) and (mysql_version >= 50001);
-  actCreateRoutine.Enabled := (L in [1,2]) and (mysql_version >= 50003);
-  actEditTableProperties.Enabled := (L = 2) and ((GetSelectedNodeType = NODETYPE_TABLE) or (GetSelectedNodeType = NODETYPE_CRASHED_TABLE));
-  actEditView.Enabled := (L = 2) and (GetSelectedNodeType = NODETYPE_VIEW);
-  actEditRoutine.Enabled := (L = 2) and (GetSelectedNodeType in [NODETYPE_PROCEDURE, NODETYPE_FUNCTION]);
-  actDropDBobjects.Enabled := (L = 2);
+    InDBTree := False;
+
+  if InDBtree then begin
+    HasFocus := Assigned(DBtree.FocusedNode);
+    if HasFocus then
+      L := DBtree.GetNodeLevel(DBtree.FocusedNode)
+    else
+      L := 0;
+    actCreateDatabase.Enabled := L = 0;
+    actCreateTable.Enabled := L in [1,2];
+    actCreateView.Enabled := L in [1,2];
+    actCreateRoutine.Enabled := L in [1,2];
+    actDropObjects.Enabled := L in [1,2];
+    actCopyTable.Enabled := HasFocus and (GetSelectedNodeType in [NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW]);
+    actEmptyTables.Enabled := HasFocus and (GetSelectedNodeType in [NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW]);
+    actEditObject.Enabled := L > 0;
+    // Show certain items which are valid only here
+    actViewData.Visible := False;
+    menuTreeExpandAll.Visible := True;
+    menuTreeCollapseAll.Visible := True;
+    menuShowSizeColumn.Visible := True;
+    actSelectTreeBackground.Visible := True;
+  end else begin
+    HasFocus := Assigned(ListTables.FocusedNode);
+    actCreateDatabase.Enabled := False;
+    actCreateTable.Enabled := True;
+    actCreateView.Enabled := True;
+    actCreateRoutine.Enabled := True;
+    actDropObjects.Enabled := ListTables.SelectedCount > 0;
+    actEmptyTables.Enabled := False;
+    if HasFocus then begin
+      ds := FetchDbTableList(ActiveDatabase);
+      ds.RecNo := ListTables.FocusedNode.Index+1;
+      actEmptyTables.Enabled := GetDBObjectType(ds.Fields) in [NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW];
+    end;
+    actEditObject.Enabled := HasFocus;
+    // Show certain items which are valid only here
+    actViewData.Visible := True;
+    actViewData.Enabled := actEmptyTables.Enabled;
+    menuTreeExpandAll.Visible := False;
+    menuTreeCollapseAll.Visible := False;
+    menuShowSizeColumn.Visible := False;
+    actSelectTreeBackground.Visible := False;
+  end;
+  actCreateView.Enabled := actCreateView.Enabled and (mysql_version >= 50001);
+  actCreateRoutine.Enabled := actCreateRoutine.Enabled and (mysql_version >= 50003);
 end;
 
 
@@ -7618,7 +7522,7 @@ begin
       '  [Cancel] to cancel editing.',
       mtWarning, [mbOK, mbCancel], 0);
     if mres = mrOK then
-      actEditTablePropertiesExecute(actEditTableProperties);
+      actEditObjectExecute(actEditObject);
   end;
 end;
 
@@ -8887,22 +8791,6 @@ begin
 end;
 
 
-procedure TMainForm.actEditRoutineExecute(Sender: TObject);
-var
-  NodeData: PVTreeData;
-begin
-  if not Assigned(RoutineEditForm) then
-    RoutineEditForm := TfrmRoutineEditor.Create(Self);
-
-  if ListTables.Focused then begin
-    NodeData := ListTables.GetNodeData( ListTables.FocusedNode );
-    RoutineEditForm.AlterRoutineName := NodeData.Captions[0];
-  end else
-    RoutineEditForm.AlterRoutineName := SelectedTable;
-
-  RoutineEditForm.ShowModal;
-end;
-
 procedure TMainForm.DataGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
 var
   query: String;
@@ -8968,6 +8856,58 @@ begin
   dsCollations.First;
   Result := dsCollations;
 end;
+
+
+procedure TMainForm.actEditObjectExecute(Sender: TObject);
+var
+  Act: TAction;
+  InDBTree: Boolean;
+  ObjectType: Byte;
+  ObjectName: WideString;
+  ds: TDataset;
+begin
+  Act := Sender as TAction;
+  InDBTree := (Act.ActionComponent is TMenuItem)
+    and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
+
+  if InDBTree then begin
+    ObjectType := GetSelectedNodeType;
+    ObjectName := DBTree.Text[DBTree.FocusedNode, DBTree.FocusedColumn];
+  end else begin
+    ds := FetchDbTableList(ActiveDatabase);
+    ds.RecNo := ListTables.FocusedNode.Index +1;
+    ObjectType := GetDBObjectType(ds.Fields);
+    ObjectName := ListTables.Text[ListTables.FocusedNode, ListTables.FocusedColumn];
+  end;
+
+  case ObjectType of
+    NODETYPE_DB: begin
+      if CreateDatabaseForm = nil then
+        CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
+      CreateDatabaseForm.modifyDB := ObjectName;
+      CreateDatabaseForm.ShowModal;
+    end;
+    NODETYPE_TABLE, NODETYPE_CRASHED_TABLE: begin
+      if TableEditorForm = nil then
+        TableEditorForm := TfrmTableEditor.Create(Self);
+      TableEditorForm.AlterTableName := ObjectName;
+      TableEditorForm.ShowModal;
+    end;
+    NODETYPE_VIEW: begin
+      if ViewForm = nil then
+        ViewForm := TfrmView.Create(Self);
+      ViewForm.EditViewName := ObjectName;
+      ViewForm.ShowModal;
+    end;
+    NODETYPE_FUNCTION, NODETYPE_PROCEDURE: begin
+      if not Assigned(RoutineEditForm) then
+        RoutineEditForm := TfrmRoutineEditor.Create(Self);
+      RoutineEditForm.AlterRoutineName := ObjectName;
+      RoutineEditForm.ShowModal;
+    end;
+  end;
+end;
+
 
 end.
 

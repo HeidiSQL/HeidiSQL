@@ -98,11 +98,11 @@ type
     procedure SaveSettings;
   private
     { Private declarations }
-    SelectedTables: TWideStringList;
     DoOverwriteAll: Boolean;
     function InitFileStream(TableName: String; OldStream: TFileStream = nil): TFileStream;
   public
     { Public declarations }
+    SelectedTables: TWideStringList;
   end;
 
 {$I const.inc}
@@ -152,33 +152,13 @@ var
 
 
 procedure TExportSQLForm.FormCreate(Sender: TObject);
-var
-  menu: TMenu;
-  ds: TDataset;
 begin
-  menu := nil;
-  if Owner is TMenuItem then
-    menu := (Owner as TMenuItem).GetParentMenu;
-  if menu = Mainform.popupTreeView then begin
-    SelectedTables := TWideStringlist.Create;
-    // If a table is selected, use that for preselection. If only a db was selected, use all tables inside it.
-    if Mainform.SelectedTable <> '' then
-      SelectedTables.Add(Mainform.SelectedTable)
-    else if Mainform.ActiveDatabase <> '' then begin
-      ds := Mainform.FetchDbTableList(Mainform.ActiveDatabase);
-      while not ds.Eof do begin
-        SelectedTables.Add(ds.FieldByName(DBO_NAME).AsWideString);
-        ds.Next;
-      end;
-    end;
-  end else
-    SelectedTables := GetVTCaptions( Mainform.ListTables, True );
-
   // Assign images from main imagelist to speedbuttons
   btnFileBrowse.PngImage := Mainform.PngImageListMain.PngImages[10].PngImage;
   btnDirectoryBrowse.PngImage := Mainform.PngImageListMain.PngImages[51].PngImage;
   SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
+  SelectedTables := TWideStringlist.Create;
 end;
 
 
