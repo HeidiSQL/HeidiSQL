@@ -679,6 +679,8 @@ type
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actEditObjectExecute(Sender: TObject);
     procedure actViewDataExecute(Sender: TObject);
+    procedure DataGridEnter(Sender: TObject);
+    procedure DataGridExit(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -4049,12 +4051,12 @@ end;
 procedure TMainForm.ValidateControls( FrmIsFocussed: Boolean = true );
 var
   DBObjectSelected,
-  inDbTab, inDataTab, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
+  inDbTab, inDataGrid, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
   dummy: Boolean;
   SelectedNodes: TNodeArray;
 begin
   inDbTab := FrmIsFocussed and (PageControlMain.ActivePage = tabDatabase);
-  inDataTab := FrmIsFocussed and (PageControlMain.ActivePage = tabData);
+  inDataGrid := FrmIsFocussed and (ActiveControl = DataGrid);
   inDataOrQueryTab := FrmIsFocussed and ((PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery));
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and (ActiveGrid.RootNodeCount > 0);
   inQueryTab := FrmIsFocussed and (PageControlMain.ActivePage = tabQuery);
@@ -4085,12 +4087,12 @@ begin
 
   // Data tab - if query results are made editable, these will need
   //            to be changed to look at which tab is focused.
-  actDataInsert.Enabled := inDataTab;
-  actDataDelete.Enabled := inDataTab and (DataGrid.SelectedCount > 0);
-  actDataFirst.Enabled := inDataTab;
-  actDataLast.Enabled := inDataTab;
-  actDataPostChanges.Enabled := inDataTab and DataGridHasChanges;
-  actDataCancelChanges.Enabled := inDataTab and DataGridHasChanges;
+  actDataInsert.Enabled := inDataGrid;
+  actDataDelete.Enabled := inDataGrid and (DataGrid.SelectedCount > 0);
+  actDataFirst.Enabled := inDataGrid;
+  actDataLast.Enabled := inDataGrid;
+  actDataPostChanges.Enabled := inDataGrid and DataGridHasChanges;
+  actDataCancelChanges.Enabled := inDataGrid and DataGridHasChanges;
 
   // Activate export-options if we're on Data- or Query-tab
   actCopyAsCSV.Enabled := inDataOrQueryTabNotEmpty;
@@ -4099,7 +4101,7 @@ begin
   actCopyAsSQL.Enabled := inDataOrQueryTabNotEmpty;
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
   actHTMLView.Enabled := inDataOrQueryTabNotEmpty and Assigned(ActiveGrid.FocusedNode);
-  setNull1.Enabled := inDataTab and Assigned(DataGrid.FocusedNode);
+  setNull1.Enabled := inDataGrid and Assigned(DataGrid.FocusedNode);
 
   // Query tab
   actLoadSQL.Enabled := FrmIsFocussed;
@@ -4140,6 +4142,18 @@ begin
   actQueryWordWrap.Enabled := InQueryTab;
   actClearQueryEditor.Enabled := InQueryTab and NotEmpty;
   actSetDelimiter.Enabled := InQueryTab;
+end;
+
+
+procedure TMainForm.DataGridEnter(Sender: TObject);
+begin
+  ValidateControls(True);
+end;
+
+
+procedure TMainForm.DataGridExit(Sender: TObject);
+begin
+  ValidateControls(True);
 end;
 
 

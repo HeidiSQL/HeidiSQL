@@ -1143,6 +1143,8 @@ object MainForm: TMainForm
           OnEditCancelled = DataGridEditCancelled
           OnEdited = DataGridEdited
           OnEditing = DataGridEditing
+          OnEnter = DataGridEnter
+          OnExit = DataGridExit
           OnFocusChanging = DataGridFocusChanging
           OnGetText = GridGetText
           OnPaintText = GridPaintText
