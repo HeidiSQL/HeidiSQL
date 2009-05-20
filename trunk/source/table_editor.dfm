@@ -267,14 +267,14 @@ object frmTableEditor: TfrmTableEditor
         Caption = 'Average row length:'
       end
       object lblInsertMethod: TLabel
-        Left = 315
+        Left = 258
         Top = 98
         Width = 79
         Height = 13
         Caption = 'INSERT method:'
       end
       object lblUnion: TLabel
-        Left = 315
+        Left = 258
         Top = 52
         Width = 63
         Height = 13
@@ -295,14 +295,14 @@ object frmTableEditor: TfrmTableEditor
         Caption = 'Row format:'
       end
       object lblCollation: TLabel
-        Left = 315
+        Left = 258
         Top = 6
         Width = 81
         Height = 13
         Caption = 'Default collation:'
       end
       object lblEngine: TLabel
-        Left = 315
+        Left = 258
         Top = 29
         Width = 36
         Height = 13
@@ -311,7 +311,7 @@ object frmTableEditor: TfrmTableEditor
       object editAvgRowLen: TEdit
         Left = 136
         Top = 26
-        Width = 153
+        Width = 110
         Height = 21
         TabOrder = 1
         OnChange = editNumEditChange
@@ -319,7 +319,7 @@ object frmTableEditor: TfrmTableEditor
       object editMaxRows: TEdit
         Left = 136
         Top = 49
-        Width = 153
+        Width = 110
         Height = 21
         TabOrder = 2
         OnChange = editNumEditChange
@@ -337,7 +337,7 @@ object frmTableEditor: TfrmTableEditor
       object comboRowFormat: TComboBox
         Left = 136
         Top = 95
-        Width = 153
+        Width = 110
         Height = 21
         Style = csDropDownList
         ItemHeight = 0
@@ -345,9 +345,9 @@ object frmTableEditor: TfrmTableEditor
         OnChange = Modification
       end
       object memoUnionTables: TTntMemo
-        Left = 411
+        Left = 354
         Top = 49
-        Width = 160
+        Width = 217
         Height = 44
         Anchors = [akLeft, akTop, akRight]
         Lines.Strings = (
@@ -356,9 +356,9 @@ object frmTableEditor: TfrmTableEditor
         OnChange = Modification
       end
       object comboInsertMethod: TComboBox
-        Left = 411
+        Left = 354
         Top = 95
-        Width = 160
+        Width = 217
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -369,27 +369,27 @@ object frmTableEditor: TfrmTableEditor
       object editAutoInc: TEdit
         Left = 136
         Top = 3
-        Width = 152
+        Width = 110
         Height = 21
         TabOrder = 0
         OnChange = editNumEditChange
       end
       object comboCollation: TComboBox
-        Left = 411
+        Left = 354
         Top = 3
-        Width = 160
+        Width = 104
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         ItemHeight = 0
         Sorted = True
         TabOrder = 5
-        OnChange = Modification
+        OnChange = chkCharsetConvertClick
       end
       object comboEngine: TComboBox
-        Left = 411
+        Left = 354
         Top = 26
-        Width = 160
+        Width = 217
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -397,6 +397,16 @@ object frmTableEditor: TfrmTableEditor
         TabOrder = 6
         OnChange = Modification
         OnSelect = comboEngineSelect
+      end
+      object chkCharsetConvert: TCheckBox
+        Left = 464
+        Top = 5
+        Width = 107
+        Height = 17
+        Anchors = [akTop, akRight]
+        Caption = 'Convert data'
+        TabOrder = 9
+        OnClick = chkCharsetConvertClick
       end
     end
     object tabIndexes: TTabSheet
