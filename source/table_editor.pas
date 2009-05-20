@@ -71,6 +71,7 @@ type
     menuClearColumns: TMenuItem;
     menuMoveUpColumn: TMenuItem;
     menuMoveDownColumn: TMenuItem;
+    chkCharsetConvert: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure editNameChange(Sender: TObject);
@@ -127,6 +128,7 @@ type
     procedure btnRemoveIndexClick(Sender: TObject);
     procedure menuAddIndexColumnClick(Sender: TObject);
     procedure PageControlMainChange(Sender: TObject);
+    procedure chkCharsetConvertClick(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
@@ -331,6 +333,8 @@ end;
 procedure TfrmTableEditor.btnApplyClick(Sender: TObject);
 var
   sql: WideString;
+  i: Integer;
+  Props: TWideStringlist;
 begin
   // Create or alter table
   if AlterTableName = '' then
@@ -339,9 +343,20 @@ begin
     sql := ComposeAlterStatement;
   try
     Mainform.ExecUpdateQuery(sql, False, True);
-    ResetModificationFlags;
     // Set table name for altering if Apply was clicked
     AlterTableName := editName.Text;
+    if chkCharsetConvert.Checked then begin
+      // Autoadjust column collations
+      for i:=0 to Columns.Count-1 do begin
+        Props := TWideStringlist(Columns.Objects[i]);
+        if Props[6] <> '' then begin
+          Props.OnChange := nil;
+          Props[6] := comboCollation.Text;
+          Props.OnChange := ColumnsChange;
+        end;
+      end;
+    end;
+    ResetModificationFlags;
   except
     ModalResult := mrNone;
   end;
@@ -367,6 +382,10 @@ begin
     Parts.Assign(TWideStringlist(Indexes.Objects[i]));
     OldIndexes.AddObject(Indexes[i], Parts);
   end;
+  // Enable converting data for an existing table
+  chkCharsetConvert.Enabled := AlterTablename <> '';
+  // Assist the user in auto unchecking this checkbox so data doesn't get converted more than once accidently
+  chkCharsetConvert.Checked := False;
   Modified := False;
 end;
 
@@ -389,6 +408,7 @@ var
   AddIt, DropIt: Boolean;
   dt: TMySQLDataTypeRecord;
   DefaultType: TColumnDefaultType;
+  ds: TDataset;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
   SetStatus('Composing ALTER statement ...');
@@ -397,7 +417,7 @@ begin
     Specs.Add('RENAME TO ' + Mainform.mask(editName.Text));
   if memoComment.Tag = ModifiedFlag then
     Specs.Add('COMMENT = ' + esc(memoComment.Text));
-  if comboCollation.Tag = ModifiedFlag then
+  if (comboCollation.Tag = ModifiedFlag) or (chkCharsetConvert.Checked) then
     Specs.Add('COLLATE = ' + comboCollation.Text);
   if comboEngine.Tag = ModifiedFlag then
     Specs.Add('ENGINE = ' + comboEngine.Text);
@@ -415,6 +435,17 @@ begin
     Specs.Add('UNION = ('+memoUnionTables.Text+')');
   if comboInsertMethod.Enabled and (comboInsertMethod.Tag = ModifiedFlag) and (comboInsertMethod.Text <> '') then
     Specs.Add('INSERT_METHOD = '+comboInsertMethod.Text);
+  if chkCharsetConvert.Checked then begin
+    ds := Mainform.GetCollations;
+    while not ds.Eof do begin
+      if ds.FieldByName('Collation').AsWideString = comboCollation.Text then begin
+        Specs.Add('CONVERT TO CHARSET '+ds.FieldByName('Charset').AsString);
+        break;
+      end;
+      ds.Next;
+    end;
+  end;
+
   // Update columns
   for i:=0 to Columns.Count - 1 do begin
     AddIt := True;
@@ -441,8 +472,13 @@ begin
     end;
     if Props[5] <> '' then
       ColSpec := ColSpec + ' COMMENT '+esc(Props[5]);
-    if Props[6] <> '' then
-      ColSpec := ColSpec + ' COLLATE '+Props[6];
+    if Props[6] <> '' then begin
+      ColSpec := ColSpec + ' COLLATE ';
+      if chkCharsetConvert.Checked then
+        ColSpec := ColSpec + comboCollation.Text
+      else
+        ColSpec := ColSpec + Props[6];
+    end;
     if i = 0 then
       ColSpec := ColSpec + ' FIRST'
     else
@@ -792,6 +828,8 @@ procedure TfrmTableEditor.listColumnsEditing(Sender: TBaseVirtualTree;
 begin
   // No editor for very first column and checkbox columns
   Allowed := not (Column in [0, 4, 5]);
+  // No editing of collation allowed if "Convert data" was checked
+  Allowed := Allowed and ((Column = 8) and (not chkCharsetConvert.Checked));
 end;
 
 
@@ -809,6 +847,8 @@ begin
     else begin
       Properties := TWideStringList(Columns.Objects[Node.Index]);
       CellText := Properties[Column-2];
+      if (Column = 8) and (CellText <> '') and (chkCharsetConvert.Checked) then
+        CellText := comboCollation.Text;
     end;
   end;
   if Column = 6 then
@@ -1433,6 +1473,17 @@ begin
     SynMemoSQLcode.EndUpdate;
     SQLCodeValid := True;
   end;
+end;
+
+
+procedure TfrmTableEditor.chkCharsetConvertClick(Sender: TObject);
+begin
+  if chkCharsetConvert.Checked then
+    listColumns.Header.Columns[8].Color := clBtnFace
+  else
+    listColumns.Header.Columns[8].Color := clWindow;
+  listColumns.Repaint;
+  Modification(Sender);
 end;
 
 
