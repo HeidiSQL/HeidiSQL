@@ -678,7 +678,7 @@ begin
     Properties.Assign(DefProperties);
   end else begin
     idx := Columns.Count;
-    Properties.CommaText := 'INT,10,'+BoolToStr(False)+','+BoolToStr(True)+',0,,';
+    Properties.CommaText := 'INT,10,'+BoolToStr(False)+','+BoolToStr(True)+','+IntToStr(Integer(cdtNull))+'NULL,,';
   end;
   Columns.InsertObject(idx, 'Column '+IntToStr(idx+1), Properties);
   SelectNode(listColumns, idx);
