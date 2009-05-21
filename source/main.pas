@@ -6565,6 +6565,7 @@ begin
     Node := Node.NextSibling;
   end;
   VT.UpdateVerticalScrollBar(True);
+  VT.Repaint;
 end;
 
 
