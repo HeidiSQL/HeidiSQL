@@ -826,10 +826,13 @@ end;
 procedure TfrmTableEditor.listColumnsEditing(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 begin
-  // No editor for very first column and checkbox columns
-  Allowed := not (Column in [0, 4, 5]);
-  // No editing of collation allowed if "Convert data" was checked
-  Allowed := Allowed and ((Column = 8) and (not chkCharsetConvert.Checked));
+  case Column of
+    // No editor for very first column and checkbox columns
+    0, 4, 5: Allowed := False;
+    // No editing of collation allowed if "Convert data" was checked
+    8: Allowed := not chkCharsetConvert.Checked;
+    else Allowed := True;
+  end;
 end;
 
 
