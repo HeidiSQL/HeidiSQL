@@ -438,6 +438,7 @@ object frmTableEditor: TfrmTableEditor
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toFullVertGridLines, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toExtendedFocus, toRightClickSelect]
         OnBeforePaint = treeIndexesBeforePaint
+        OnClick = treeIndexesClick
         OnCreateEditor = treeIndexesCreateEditor
         OnDragOver = treeIndexesDragOver
         OnDragDrop = treeIndexesDragDrop
