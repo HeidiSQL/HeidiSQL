@@ -683,6 +683,7 @@ begin
   end;
   Columns.InsertObject(idx, 'Column '+IntToStr(idx+1), Properties);
   SelectNode(listColumns, idx);
+  listColumns.EditNode(listColumns.FocusedNode, 1);
 end;
 
 
