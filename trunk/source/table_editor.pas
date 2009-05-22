@@ -129,6 +129,7 @@ type
     procedure menuAddIndexColumnClick(Sender: TObject);
     procedure PageControlMainChange(Sender: TObject);
     procedure chkCharsetConvertClick(Sender: TObject);
+    procedure treeIndexesClick(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
@@ -1254,6 +1255,21 @@ procedure TfrmTableEditor.treeIndexesFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 begin
   ValidateIndexControls;
+end;
+
+
+procedure TfrmTableEditor.treeIndexesClick(Sender: TObject);
+var
+  VT: TVirtualStringTree;
+  Node: PVirtualNode;
+begin
+  // Handle click event
+  VT := Sender as TVirtualStringTree;
+  if not Assigned(VT.FocusedNode) then
+    Exit;
+  Node := VT.GetNodeAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y);
+  if Assigned(Node) then
+    VT.EditNode(Node, VT.FocusedColumn);
 end;
 
 
