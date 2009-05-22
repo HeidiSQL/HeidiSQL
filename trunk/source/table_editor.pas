@@ -521,7 +521,7 @@ begin
   // Add changed or added indexes
   for i:=0 to IndexesComposed.Count-1 do begin
     if OldIndexesComposed.IndexOf(IndexesComposed[i]) = -1 then
-      Specs.Add(IndexesComposed[i]);
+      Specs.Add('ADD '+IndexesComposed[i]);
   end;
 
   Result := 'ALTER TABLE '+Mainform.mask(AlterTableName) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
@@ -606,7 +606,7 @@ var
 begin
   IndexName := Copy(IndexList[idx], 1, LastPos(REGDELIM, IndexList[idx])-1);
   IndexType := Copy(IndexList[idx], LastPos(REGDELIM, IndexList[idx])+1, Length(IndexList[idx]));
-  Result := 'ADD ';
+  Result := '';
   if IndexType = PKEY then
     Result := Result + 'PRIMARY KEY '
   else begin
