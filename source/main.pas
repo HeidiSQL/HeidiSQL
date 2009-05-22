@@ -5976,6 +5976,11 @@ begin
   // Some list-headers have a contextmenu which should popup then.
   if HitInfo.Button = mbRight then
     Exit;
+  // Beginning with VT's r181, this proc is also called when doubleclicking-to-autofit
+  // Seems buggy in VT as this suddenly calls it with Column=-1 in those cases.
+  // See also issue #1150
+  if HitInfo.Column = NoColumn then
+    Exit;
 
   if Sender.SortColumn <> HitInfo.Column then
     Sender.SortColumn := HitInfo.Column
