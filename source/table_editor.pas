@@ -219,7 +219,7 @@ var
   ds: TDataset;
   Props: TWideStringlist;
   IndexType: String;
-  LastKeyName, CreateTable: WideString;
+  LastKeyName, CreateTable, engine: WideString;
   rx: TRegExpr;
 begin
   SetStatus('Initializing ...');
@@ -227,11 +227,7 @@ begin
   PageControlMain.ActivePage := tabBasic;
   Mainform.TableEnginesCombo(comboEngine);
   comboCollation.Items.Clear;
-  ds := Mainform.GetCollations;
-  while not ds.Eof do begin
-    comboCollation.Items.Add(ds.FieldByName('Collation').AsString);
-    ds.Next;
-  end;
+  Mainform.GetCollations(comboCollation.Items);
 
   if AlterTableName = '' then begin
     // Creating new table
@@ -254,8 +250,13 @@ begin
     editName.Text := AlterTableName;
     ds := Mainform.GetResults('SHOW TABLE STATUS LIKE '+esc(AlterTableName));
     memoComment.Text := ds.FieldByName(DBO_COMMENT).AsWideString;
-    comboEngine.ItemIndex := comboEngine.Items.IndexOf(ds.FieldByName(DBO_ENGINE).AsString);
-    comboCollation.ItemIndex := comboCollation.Items.IndexOf(ds.FieldByName(DBO_COLLATION).AsString);
+    if ds.FindField(DBO_ENGINE) <> nil then
+      engine := ds.FieldByName(DBO_ENGINE).AsString
+    else
+      engine := ds.FieldByName(DBO_ENGINE_DEPRECATED).AsString;
+    comboEngine.ItemIndex := comboEngine.Items.IndexOf(engine);
+    if ds.FindField(DBO_COLLATION) <> nil then
+      comboCollation.ItemIndex := comboCollation.Items.IndexOf(ds.FieldByName(DBO_COLLATION).AsString);
     editAutoInc.Text := ds.FieldByName(DBO_AUTOINC).AsString;
     editAvgRowLen.Text := ds.FieldByName(DBO_AVGROWLEN).AsString;
     comboRowFormat.ItemIndex := comboRowFormat.Items.IndexOf(ds.FieldByName(DBO_ROWFORMAT).AsString);
@@ -286,8 +287,14 @@ begin
         Props.Add(IntToStr(Integer(cdtCurTS))+ds.FieldByName('Default').AsWideString)
       else
         Props.Add(IntToStr(Integer(cdtText))+ds.FieldByName('Default').AsWideString);
-      Props.Add(ds.FieldByName('Comment').AsWideString);
-      Props.Add(ds.FieldByName('Collation').AsString);
+      if ds.FindField('Comment') <> nil then
+        Props.Add(ds.FieldByName('Comment').AsWideString)
+      else
+        Props.Add('');
+      if ds.FindField('Collation') <> nil then
+        Props.Add(ds.FieldByName('Collation').AsString)
+      else
+        Props.Add('');
       Columns.AddObject(ds.FieldByName('Field').AsWideString, Props);
       ds.Next;
     end;
@@ -384,7 +391,7 @@ begin
     OldIndexes.AddObject(Indexes[i], Parts);
   end;
   // Enable converting data for an existing table
-  chkCharsetConvert.Enabled := AlterTablename <> '';
+  chkCharsetConvertClick(comboCollation);
   // Assist the user in auto unchecking this checkbox so data doesn't get converted more than once accidently
   chkCharsetConvert.Checked := False;
   Modified := False;
@@ -966,7 +973,6 @@ var
   EnumEditor: TEnumEditorLink;
   DefaultEditor: TColumnDefaultEditorLink;
   i: Integer;
-  ds: TDataset;
   Props: TWideStringlist;
 begin
   // Start cell editor
@@ -981,11 +987,7 @@ begin
     8: begin // Collation pulldown
       EnumEditor := TEnumEditorLink.Create;
       EnumEditor.ValueList := TWideStringList.Create;
-      ds := Mainform.GetCollations;
-      while not ds.Eof do begin
-        EnumEditor.ValueList.Add(ds.FieldByName('Collation').AsString);
-        ds.Next;
-      end;
+      Mainform.GetCollations(TStrings(EnumEditor.ValueList));
       EditLink := EnumEditor;
       end;
     6: begin
@@ -1502,6 +1504,7 @@ begin
     listColumns.Header.Columns[8].Color := clBtnFace
   else
     listColumns.Header.Columns[8].Color := clWindow;
+  chkCharsetConvert.Enabled := (AlterTablename <> '') and (comboCollation.ItemIndex > -1);
   listColumns.Repaint;
   Modification(Sender);
 end;

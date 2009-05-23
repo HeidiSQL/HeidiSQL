@@ -859,7 +859,7 @@ type
     function GetRegKeyTable: String;
     procedure SaveListSetup( List: TVirtualStringTree );
     procedure RestoreListSetup( List: TVirtualStringTree );
-    function GetCollations: TDataset;
+    function GetCollations(Items: TStrings = nil): TDataset;
 end;
 
 
@@ -8818,12 +8818,21 @@ begin
 end;
 
 
-function TMainform.GetCollations: TDataset;
+function TMainform.GetCollations(Items: TStrings = nil): TDataset;
 begin
   // Return cached collation list, used in several places, e.g. table editor
   if (dsCollations = nil) or (dsCollations.State = dsInactive) then
-    dsCollations := GetResults('SHOW COLLATION');
-  dsCollations.First;
+    dsCollations := GetResults('SHOW COLLATION', True);
+  if Assigned(dsCollations) then begin
+    dsCollations.First;
+    if Assigned(Items) then begin
+      while not dsCollations.Eof do begin
+        Items.Add(dsCollations.FieldByName('Collation').AsString);
+        dsCollations.Next;
+      end;
+      dsCollations.First;
+    end;
+  end;
   Result := dsCollations;
 end;
 

@@ -293,6 +293,7 @@ const
   DBO_NAME = 'Name';
   DBO_TYPE = 'Type';
   DBO_ENGINE = 'Engine';
+  DBO_ENGINE_DEPRECATED = 'Type';
   DBO_VERSION = 'Version';
   DBO_ROWFORMAT = 'Row_format';
   DBO_ROWS = 'Rows';
