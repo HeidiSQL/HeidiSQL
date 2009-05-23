@@ -4933,8 +4933,8 @@ end;
 procedure TMainForm.popupDBPopup(Sender: TObject);
 var
   L: Cardinal;
-  ds: TDataset;
   HasFocus, InDBTree: Boolean;
+  NodeData: PVTreeData;
 begin
   // DBtree and ListTables both use popupDB as menu. Find out which of them was rightclicked.
   if Sender is TPopupMenu then
@@ -4973,14 +4973,14 @@ begin
     actDropObjects.Enabled := ListTables.SelectedCount > 0;
     actEmptyTables.Enabled := False;
     if HasFocus then begin
-      ds := FetchDbTableList(ActiveDatabase);
-      ds.RecNo := ListTables.FocusedNode.Index+1;
-      actEmptyTables.Enabled := GetDBObjectType(ds.Fields) in [NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW];
+      NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
+      actEmptyTables.Enabled := NodeData.NodeType in [NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW];
     end;
     actEditObject.Enabled := HasFocus;
     // Show certain items which are valid only here
     actViewData.Visible := True;
     actViewData.Enabled := actEmptyTables.Enabled;
+    actCopyTable.Enabled := actEmptyTables.Enabled;
     menuTreeExpandAll.Visible := False;
     menuTreeCollapseAll.Visible := False;
     menuShowSizeColumn.Visible := False;
@@ -8834,7 +8834,7 @@ var
   InDBTree: Boolean;
   ObjectType: Byte;
   ObjectName: WideString;
-  ds: TDataset;
+  NodeData: PVTreeData;
 begin
   Act := Sender as TAction;
   InDBTree := (Act.ActionComponent is TMenuItem)
@@ -8844,9 +8844,8 @@ begin
     ObjectType := GetSelectedNodeType;
     ObjectName := DBTree.Text[DBTree.FocusedNode, DBTree.FocusedColumn];
   end else begin
-    ds := FetchDbTableList(ActiveDatabase);
-    ds.RecNo := ListTables.FocusedNode.Index +1;
-    ObjectType := GetDBObjectType(ds.Fields);
+    NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
+    ObjectType := NodeData.NodeType;
     ObjectName := ListTables.Text[ListTables.FocusedNode, ListTables.FocusedColumn];
   end;
 
