@@ -411,6 +411,7 @@ var
   i: Integer;
   par, allRoutineNames: TWideStringList;
   ProcOrFunc: String;
+  TargetExists: Boolean;
 begin
   // Apply or OK button clicked
   ProcOrFunc := UpperCase(GetFirstWord(comboType.Text));
@@ -458,7 +459,9 @@ begin
         ' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase)+
         ' AND ROUTINE_TYPE = '+esc(ProcOrFunc)
         );
-      if (editName.Text <> AlterRoutineName) and (allRoutineNames.IndexOf(editName.Text) > -1) then begin
+      TargetExists := ((editName.Text <> AlterRoutineName) or (ProcOrFunc <> AlterRoutineType)) and
+        (allRoutineNames.IndexOf(editName.Text) > -1);
+      if TargetExists then begin
         if MessageDlg('Routine "'+editName.Text+'" already exists. Overwrite it?',
           mtConfirmation, [mbOk, mbCancel], 0) = mrCancel then begin
           ModalResult := mrNone;
@@ -474,10 +477,10 @@ begin
       TempSQL := 'CREATE '+ProcOrFunc+' '+Mainform.mask(tempName)+'(' + BaseSQL;
       Mainform.ExecUpdateQuery(TempSQL, False, True);
       // Drop temporary routine, used for syntax checking
-      Mainform.ExecUpdateQuery('DROP '+AlterRoutineType+' IF EXISTS '+Mainform.mask(TempName));
+      Mainform.ExecUpdateQuery('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(TempName));
       // Drop edited routine
       Mainform.ExecUpdateQuery('DROP '+AlterRoutineType+' IF EXISTS '+Mainform.mask(AlterRoutineName));
-      if editName.Text <> AlterRoutineName then begin
+      if TargetExists then begin
         // Drop target routine - overwriting has been confirmed, see above
         Mainform.ExecUpdateQuery('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(editName.Text));
       end;
