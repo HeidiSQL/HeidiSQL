@@ -679,6 +679,7 @@ type
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actEditObjectExecute(Sender: TObject);
     procedure actViewDataExecute(Sender: TObject);
+    procedure ListTablesDblClick(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -8887,6 +8888,21 @@ begin
         RoutineEditForm.AlterRoutineType := 'PROCEDURE';
       RoutineEditForm.ShowModal;
     end;
+  end;
+end;
+
+
+procedure TMainForm.ListTablesDblClick(Sender: TObject);
+var
+  NodeData: PVTreeData;
+begin
+  // DoubleClick: Display datagrid for tables and views, editor dialog for routines
+  NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
+  case NodeData.NodeType of
+    NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW:
+      actViewDataExecute(actViewData);
+    NODETYPE_FUNCTION, NODETYPE_PROCEDURE:
+      actEditObjectExecute(actEditObject);
   end;
 end;
 

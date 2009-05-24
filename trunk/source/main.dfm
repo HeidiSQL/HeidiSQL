@@ -792,7 +792,7 @@ object MainForm: TMainForm
           OnAfterPaint = vstAfterPaint
           OnChange = ListTablesChange
           OnCompareNodes = vstCompareNodes
-          OnDblClick = actViewDataExecute
+          OnDblClick = ListTablesDblClick
           OnEditing = ListTablesEditing
           OnFreeNode = vstFreeNode
           OnGetText = vstGetText
