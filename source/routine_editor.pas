@@ -71,13 +71,13 @@ type
   private
     { Private declarations }
     Parameters: TWideStringList;
-    AlterRoutineType: String;
     FModified: Boolean;
     procedure SetModified(Value: Boolean);
     property Modified: Boolean read FModified write SetModified;
   public
     { Public declarations }
     AlterRoutineName: WideString;
+    AlterRoutineType: String;
   end;
 
 
@@ -149,13 +149,15 @@ begin
   if editName.Text <> '' then begin
     // Editing existing routine
     ds := Mainform.GetResults('SELECT * FROM '+DBNAME_INFORMATION_SCHEMA+'.ROUTINES'+
-      ' WHERE ROUTINE_SCHEMA='+esc(Mainform.ActiveDatabase)+' AND ROUTINE_NAME='+esc(AlterRoutineName));
+      ' WHERE ROUTINE_SCHEMA='+esc(Mainform.ActiveDatabase)+
+      ' AND ROUTINE_NAME='+esc(AlterRoutineName)+
+      ' AND ROUTINE_TYPE='+esc(AlterRoutineType)
+      );
     if ds.RecordCount <> 1 then begin
       MessageDlg('Cannot find properties of stored routine '+AlterRoutineName, mtError, [mbOK], 0);
       Close;
     end;
     ds.First;
-    AlterRoutineType := ds.FieldByName('ROUTINE_TYPE').AsString;
     comboType.ItemIndex := ListIndexByRegExpr(comboType.Items, '^'+AlterRoutineType+'\b');
     chkDeterministic.Checked := ds.FieldByName('IS_DETERMINISTIC').AsString = 'YES';
     comboReturns.Text := ds.FieldByName('DTD_IDENTIFIER').AsWideString;
