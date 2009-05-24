@@ -253,7 +253,7 @@ begin
     if ds.FindField(DBO_ENGINE) <> nil then
       engine := ds.FieldByName(DBO_ENGINE).AsString
     else
-      engine := ds.FieldByName(DBO_ENGINE_DEPRECATED).AsString;
+      engine := ds.FieldByName(DBO_TYPE).AsString;
     comboEngine.ItemIndex := comboEngine.Items.IndexOf(engine);
     if ds.FindField(DBO_COLLATION) <> nil then
       comboCollation.ItemIndex := comboCollation.Items.IndexOf(ds.FieldByName(DBO_COLLATION).AsString);
