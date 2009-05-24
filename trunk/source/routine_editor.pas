@@ -454,7 +454,10 @@ begin
     if AlterRoutineName <> '' then begin
       // Create temp name
       i := 0;
-      allRoutineNames := Mainform.GetCol('SELECT ROUTINE_NAME FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.'+Mainform.mask('ROUTINES')+' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase));
+      allRoutineNames := Mainform.GetCol('SELECT ROUTINE_NAME FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.'+Mainform.mask('ROUTINES')+
+        ' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase)+
+        ' AND ROUTINE_TYPE = '+esc(ProcOrFunc)
+        );
       while True do begin
         inc(i);
         TempName := APPNAME + '_temproutine_' + IntToStr(i);
