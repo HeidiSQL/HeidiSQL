@@ -458,6 +458,13 @@ begin
         ' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase)+
         ' AND ROUTINE_TYPE = '+esc(ProcOrFunc)
         );
+      if (editName.Text <> AlterRoutineName) and (allRoutineNames.IndexOf(editName.Text) > -1) then begin
+        if MessageDlg('Routine "'+editName.Text+'" already exists. Overwrite it?',
+          mtConfirmation, [mbOk, mbCancel], 0) = mrCancel then begin
+          ModalResult := mrNone;
+          Exit;
+        end;
+      end;
       while True do begin
         inc(i);
         TempName := APPNAME + '_temproutine_' + IntToStr(i);
@@ -466,8 +473,14 @@ begin
       end;
       TempSQL := 'CREATE '+ProcOrFunc+' '+Mainform.mask(tempName)+'(' + BaseSQL;
       Mainform.ExecUpdateQuery(TempSQL, False, True);
+      // Drop temporary routine, used for syntax checking
       Mainform.ExecUpdateQuery('DROP '+AlterRoutineType+' IF EXISTS '+Mainform.mask(TempName));
+      // Drop edited routine
       Mainform.ExecUpdateQuery('DROP '+AlterRoutineType+' IF EXISTS '+Mainform.mask(AlterRoutineName));
+      if editName.Text <> AlterRoutineName then begin
+        // Drop target routine - overwriting has been confirmed, see above
+        Mainform.ExecUpdateQuery('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(editName.Text));
+      end;
     end;
     FinalSQL := 'CREATE '+ProcOrFunc+' '+Mainform.mask(editName.Text)+'(' + BaseSQL;
     Mainform.ExecUpdateQuery(FinalSQL, False, True);
