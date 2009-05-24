@@ -8881,6 +8881,10 @@ begin
       if not Assigned(RoutineEditForm) then
         RoutineEditForm := TfrmRoutineEditor.Create(Self);
       RoutineEditForm.AlterRoutineName := ObjectName;
+      if ObjectType = NODETYPE_FUNCTION then
+        RoutineEditForm.AlterRoutineType := 'FUNCTION'
+      else
+        RoutineEditForm.AlterRoutineType := 'PROCEDURE';
       RoutineEditForm.ShowModal;
     end;
   end;
