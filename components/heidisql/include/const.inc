@@ -291,8 +291,8 @@ const
   SContainsNulCharGrid = 'This cell contains NUL characters. They have been converted to ASCII spaces (SP). Press ESC to cancel editing.';
 
   DBO_NAME = 'Name';
+  DBO_TYPE = 'Type';
   DBO_ENGINE = 'Engine';
-  DBO_ENGINE_DEPRECATED = 'Type';
   DBO_VERSION = 'Version';
   DBO_ROWFORMAT = 'Row_format';
   DBO_ROWS = 'Rows';
