@@ -184,6 +184,7 @@ object ExportSQLForm: TExportSQLForm
           ParentShowHint = False
           ShowHint = True
           TabOrder = 1
+          OnChange = editFileNameChange
           OnDblClick = btnFileBrowseClick
         end
         object radioOtherDatabase: TRadioButton

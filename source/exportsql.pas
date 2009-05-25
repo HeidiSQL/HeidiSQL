@@ -96,9 +96,11 @@ type
     procedure checkListTablesKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure SaveSettings;
+    procedure editFileNameChange(Sender: TObject);
   private
     { Private declarations }
-    DoOverwriteAll: Boolean;
+    DoOverwriteAll,
+    FilenameEdited: Boolean;
     function InitFileStream(TableName: String; OldStream: TFileStream = nil): TFileStream;
   public
     { Public declarations }
@@ -181,7 +183,6 @@ begin
   // Select first database if at least one is available.
   if (comboSelectDatabase.ItemIndex = -1) and (comboSelectDatabase.Items.Count>0) then
     comboSelectDatabase.ItemIndex := 0;
-  comboSelectDatabaseChange(self);
 
   // Initialize and fill list with target versions
   target_versions := TStringList.Create;
@@ -223,6 +224,8 @@ begin
   comboData.ItemIndex := GetRegValue(REGNAME_EXP_DATAHOW, comboData.ItemIndex);
   comboTargetCompat.ItemIndex := GetRegValue(REGNAME_EXP_COMPAT, comboTargetCompat.ItemIndex);
   editFileName.Text := GetRegValue(REGNAME_EXP_OUTFILE, '');
+  FilenameEdited := False;
+  comboSelectDatabaseChange(self);
   editDirectory.Text := GetRegValue(REGNAME_EXP_OUTDIR, '');
   OutputTo := GetRegValue(REGNAME_EXP_TARGET, -1);
   if OutputTo > -1 then
@@ -256,9 +259,6 @@ begin
   end;
   Width := GetRegValue(REGNAME_EXP_WINWIDTH, Width);
   Height := GetRegValue(REGNAME_EXP_WINHEIGHT, Height);
-
-  if EditFileName.Text = '' then
-    EditFileName.Text := DirnameUserAppData + goodfilename(Mainform.ActiveDatabase + '.sql');
 
   // Tell the user how to use the table pattern  
   EditFileName.Hint := 'Usage for generating one file per table: c:\foo\bar_'+TABLENAME_PATTERN+'.sql';
@@ -343,6 +343,7 @@ var
   i : Integer;
   CheckThisItem: Boolean;
   ds: TDataset;
+  dir: WideString;
 begin
   // read tables from db
   checkListTables.Items.Clear;
@@ -363,6 +364,13 @@ begin
     checkListTables.checked[i] := CheckThisItem;
   end;
 
+  if not FilenameEdited then begin
+    dir := ExtractFilePath(EditFilename.Text);
+    if not DirectoryExists(dir) then
+      dir := DirnameUserAppData;
+    EditFileName.Text := dir + goodfilename(comboSelectDatabase.Text + '.sql');
+    FilenameEdited := False;
+  end;
   // write items for "Another Databases":
   fillcombo_anotherdb(self);
 end;
@@ -1565,6 +1573,12 @@ begin
   Browse.BrowseOptions := Browse.BrowseOptions - [bifNoNewFolderButton] + [bifNewDialogStyle];
   if Browse.Execute then
     EditDirectory.Text := Browse.Folder;
+end;
+
+
+procedure TExportSQLForm.editFileNameChange(Sender: TObject);
+begin
+  FilenameEdited := True;
 end;
 
 
