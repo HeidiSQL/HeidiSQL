@@ -719,6 +719,9 @@ begin
   // Set empty values in changelist
   for i:=0 to ColumnsChanges.Count - 1 do
     ColumnsChanges[i] := ColumnsChanges.Names[i] + ColumnsChanges.NameValueSeparator;
+  // Column data gets freed below - end any editor which could cause AV's
+  if listColumns.IsEditing then
+    listColumns.CancelEditNode;
   // I suspect Columns.Clear to be silly enough and leave its objects in memory,
   // so we'll free them explicitely
   for i := 0 to Columns.Count - 1 do
@@ -1172,6 +1175,9 @@ procedure TfrmTableEditor.btnClearIndexesClick(Sender: TObject);
 var i: Integer;
 begin
   // Clear all indexes
+  // Column data gets freed below - end any editor which could cause AV's
+  if treeIndexes.IsEditing then
+    treeIndexes.CancelEditNode;
   for i := 0 to Indexes.Count - 1 do
     Indexes.Objects[i].Free;
   Indexes.Clear;
