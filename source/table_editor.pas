@@ -946,26 +946,26 @@ var
   VT: TVirtualStringTree;
   Props: TWideStringlist;
   dt: TMySQLDataTypeRecord;
-  Node: PVirtualNode;
+  Click: THitInfo;
 begin
   // Handle click event
   VT := Sender as TVirtualStringTree;
-  if not Assigned(VT.FocusedNode) then
+  VT.GetHitTestInfoAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y, True, Click);
+  if not Assigned(Click.HitNode) then
     Exit;
-  if VT.FocusedColumn in [4, 5] then begin
+  if Click.HitColumn in [4, 5] then begin
     // For checkboxes, cell editors are disabled, instead toggle their state
-    Props := TWideStringList(Columns.Objects[VT.FocusedNode.Index]);
+    Props := TWideStringList(Columns.Objects[Click.HitNode.Index]);
     dt := GetDatatypeByName(Props[0]);
-    if dt.HasUnsigned or (VT.FocusedColumn = 5) then begin
-      Props[VT.FocusedColumn-2] := BoolToStr(not StrToBool(Props[VT.FocusedColumn-2]));
-      VT.InvalidateNode(VT.FocusedNode);
+    if dt.HasUnsigned or (Click.HitColumn = 5) then begin
+      Props[Click.HitColumn-2] := BoolToStr(not StrToBool(Props[Click.HitColumn-2]));
+      VT.InvalidateNode(Click.HitNode);
     end;
   end else begin
     // All other cells go into edit mode please
     // Explicitely done on OnClick, not in OnFocusChanged which seemed annoying for keyboard users
-    Node := VT.GetNodeAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y);
-    if Assigned(Node) then
-      VT.EditNode(Node, VT.FocusedColumn);
+    if Assigned(Click.HitNode) then
+      VT.EditNode(Click.HitNode, Click.HitColumn);
   end;
 end;
 
@@ -1270,15 +1270,13 @@ end;
 procedure TfrmTableEditor.treeIndexesClick(Sender: TObject);
 var
   VT: TVirtualStringTree;
-  Node: PVirtualNode;
+  Click: THitInfo;
 begin
   // Handle click event
   VT := Sender as TVirtualStringTree;
-  if not Assigned(VT.FocusedNode) then
-    Exit;
-  Node := VT.GetNodeAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y);
-  if Assigned(Node) then
-    VT.EditNode(Node, VT.FocusedColumn);
+  VT.GetHitTestInfoAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y, True, Click);
+  if Assigned(Click.HitNode) then
+    VT.EditNode(Click.HitNode, Click.HitColumn);
 end;
 
 
