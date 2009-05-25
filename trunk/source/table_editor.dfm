@@ -643,25 +643,25 @@ object frmTableEditor: TfrmTableEditor
     object menuAddIndex: TMenuItem
       Caption = 'Add index'
       ImageIndex = 45
-      ShortCut = 45
+      ShortCut = 16429
       OnClick = btnAddIndexClick
     end
     object menuAddIndexColumn: TMenuItem
       Caption = 'Add column'
       ImageIndex = 91
-      ShortCut = 16429
+      ShortCut = 24621
       OnClick = menuAddIndexColumnClick
     end
     object menuRemoveIndex: TMenuItem
       Caption = 'Remove'
       ImageIndex = 46
-      ShortCut = 46
+      ShortCut = 16430
       OnClick = btnRemoveIndexClick
     end
     object menuClearIndexes: TMenuItem
       Caption = 'Clear'
       ImageIndex = 26
-      ShortCut = 16430
+      ShortCut = 24622
       OnClick = btnClearIndexesClick
     end
     object menuMoveUpIndex: TMenuItem
@@ -684,19 +684,19 @@ object frmTableEditor: TfrmTableEditor
     object menuAddColumn: TMenuItem
       Caption = 'Add column'
       ImageIndex = 45
-      ShortCut = 45
+      ShortCut = 16429
       OnClick = btnAddColumnClick
     end
     object menuRemoveColumn: TMenuItem
       Caption = 'Remove column'
       ImageIndex = 46
-      ShortCut = 46
+      ShortCut = 16430
       OnClick = btnRemoveColumnClick
     end
     object menuClearColumns: TMenuItem
       Caption = 'Clear all columns'
       ImageIndex = 26
-      ShortCut = 16430
+      ShortCut = 24622
       OnClick = btnClearColumnsClick
     end
     object menuMoveUpColumn: TMenuItem
