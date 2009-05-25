@@ -250,7 +250,8 @@ begin
     FStopping := True;
     FForm.Close;
     FTree.CancelEditNode;
-    FTree.SetFocus;
+    if FTree.CanFocus then
+      FTree.SetFocus;
   end;
 end;
 
@@ -263,7 +264,8 @@ begin
     if FForm.GetText <> FTree.Text[FNode, FColumn] then
       FTree.Text[FNode, FColumn] := FForm.GetText;
     FForm.Close;
-    FTree.SetFocus;
+    if FTree.CanFocus then
+      FTree.SetFocus;
   except
     FStopping := False;
     raise;
@@ -327,7 +329,8 @@ begin
     if Assigned(FTimePicker) then
       FTimePicker.Hide;
     FTree.CancelEditNode;
-    FTree.SetFocus;
+    if FTree.CanFocus then
+      FTree.SetFocus;
   end;
 end;
 
@@ -361,7 +364,8 @@ begin
     FDatePicker.Hide;
   if Assigned(FTimePicker) then
     FTimePicker.Hide;
-  FTree.SetFocus;
+  if FTree.CanFocus then
+    FTree.SetFocus;
 end;
 
 
@@ -503,7 +507,8 @@ begin
     FStopping := True;
     FCombo.Hide;
     FTree.CancelEditNode;
-    FTree.SetFocus;
+    if FTree.CanFocus then
+      FTree.SetFocus;
   end;
 end;
 
@@ -519,7 +524,8 @@ begin
   if newtext <> FTree.Text[FNode, FColumn] then
     FTree.Text[FNode, FColumn] := newtext;
   FCombo.Hide;
-  FTree.SetFocus;
+  if FTree.CanFocus then
+    FTree.SetFocus;
 end;
 
 
@@ -612,7 +618,8 @@ begin
     FStopping := True;
     FPanel.Hide;
     FTree.CancelEditNode;
-    FTree.SetFocus;
+    if FTree.CanFocus then
+      FTree.SetFocus;
   end;
 end;
 
@@ -633,7 +640,8 @@ begin
   if newtext <> FTree.Text[FNode, FColumn] then
     FTree.Text[FNode, FColumn] := newtext;
   FPanel.Hide;
-  FTree.SetFocus;
+  if FTree.CanFocus then
+    FTree.SetFocus;
 end;
 
 
@@ -818,7 +826,8 @@ begin
     if Assigned(FTextEditor) then
       FTextEditor.Close;
     FPanel.Hide;
-    FTree.SetFocus;
+    if FTree.CanFocus then
+      FTree.SetFocus;
   end;
 end;
 
@@ -836,7 +845,8 @@ begin
         FTree.Text[FNode, FColumn] := FEdit.Text;
     end;
     FPanel.Hide;
-    FTree.SetFocus;
+    if FTree.CanFocus then
+      FTree.SetFocus;
   end;
 end;
 
@@ -1149,7 +1159,8 @@ begin
   Result := not FStopping;
   if Result then begin
     FStopping := True;
-    FTree.SetFocus;
+    if FTree.CanFocus then
+      FTree.SetFocus;
   end;
 end;
 
@@ -1171,7 +1182,8 @@ begin
       newText := IntToStr(Integer(cdtAutoInc)) + 'AUTO_INCREMENT';
     if newtext <> FTree.Text[FNode, FColumn] then
       FTree.Text[FNode, FColumn] := newtext;
-    FTree.SetFocus;
+    if FTree.CanFocus then
+      FTree.SetFocus;
   end;
 end;
 
