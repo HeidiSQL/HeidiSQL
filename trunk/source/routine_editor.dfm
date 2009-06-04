@@ -1,30 +1,22 @@
 object frmRoutineEditor: TfrmRoutineEditor
   Left = 0
   Top = 0
-  Caption = 'Stored routine editor'
-  ClientHeight = 464
-  ClientWidth = 384
-  Color = clBtnFace
-  Constraints.MinHeight = 500
-  Constraints.MinWidth = 400
+  Width = 475
+  Height = 484
+  Constraints.MinHeight = 240
+  Constraints.MinWidth = 320
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
-  Position = poMainFormCenter
-  OnClose = FormClose
-  OnCreate = FormCreate
-  OnDestroy = FormDestroy
-  OnShow = FormShow
+  ParentFont = False
+  TabOrder = 0
   DesignSize = (
-    384
-    464)
-  PixelsPerInch = 96
-  TextHeight = 13
+    475
+    484)
   object lblName: TLabel
-    Left = 8
+    Left = 3
     Top = 11
     Width = 31
     Height = 13
@@ -32,7 +24,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     FocusControl = editName
   end
   object lblType: TLabel
-    Left = 8
+    Left = 3
     Top = 36
     Width = 28
     Height = 13
@@ -40,7 +32,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     FocusControl = comboType
   end
   object lblReturns: TLabel
-    Left = 8
+    Left = 3
     Top = 61
     Width = 42
     Height = 13
@@ -48,14 +40,14 @@ object frmRoutineEditor: TfrmRoutineEditor
     FocusControl = comboReturns
   end
   object lblParameters: TLabel
-    Left = 8
+    Left = 3
     Top = 187
     Width = 59
     Height = 13
     Caption = 'Parameters:'
   end
   object lblSQL: TLabel
-    Left = 8
+    Left = 3
     Top = 87
     Width = 62
     Height = 13
@@ -63,7 +55,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     FocusControl = comboDataAccess
   end
   object lblSecurity: TLabel
-    Left = 8
+    Left = 3
     Top = 112
     Width = 65
     Height = 13
@@ -71,7 +63,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     FocusControl = comboSecurity
   end
   object lblComment: TLabel
-    Left = 8
+    Left = 3
     Top = 137
     Width = 49
     Height = 13
@@ -79,49 +71,39 @@ object frmRoutineEditor: TfrmRoutineEditor
     FocusControl = editComment
   end
   object lblSQLcode: TLabel
-    Left = 8
+    Left = 3
     Top = 317
     Width = 68
     Height = 13
     Caption = '&Routine body:'
     FocusControl = SynMemoBody
   end
-  object btnApply: TButton
-    Left = 301
-    Top = 432
+  object btnSave: TButton
+    Left = 165
+    Top = 455
     Width = 75
     Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = 'Apply'
-    TabOrder = 13
-    OnClick = PostChanges
-  end
-  object btnCancel: TButton
-    Left = 220
-    Top = 432
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 12
-  end
-  object btnOK: TButton
-    Left = 139
-    Top = 432
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = 'OK'
+    Anchors = [akLeft, akBottom]
+    Caption = 'Save'
     Default = True
-    ModalResult = 1
-    TabOrder = 11
+    TabOrder = 12
     OnClick = PostChanges
+  end
+  object btnDiscard: TButton
+    Left = 84
+    Top = 455
+    Width = 75
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Cancel = True
+    Caption = 'Discard'
+    ModalResult = 2
+    TabOrder = 11
+    OnClick = btnDiscardClick
   end
   object btnHelp: TButton
-    Left = 8
-    Top = 432
+    Left = 3
+    Top = 455
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -130,9 +112,9 @@ object frmRoutineEditor: TfrmRoutineEditor
     OnClick = btnHelpClick
   end
   object comboReturns: TComboBox
-    Left = 100
+    Left = 95
     Top = 58
-    Width = 276
+    Width = 377
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     ItemHeight = 13
@@ -141,9 +123,9 @@ object frmRoutineEditor: TfrmRoutineEditor
     OnChange = Modification
   end
   object comboType: TTntComboBox
-    Left = 100
+    Left = 95
     Top = 33
-    Width = 276
+    Width = 377
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
@@ -152,9 +134,9 @@ object frmRoutineEditor: TfrmRoutineEditor
     OnSelect = comboTypeSelect
   end
   object editName: TTntEdit
-    Left = 100
+    Left = 95
     Top = 8
-    Width = 276
+    Width = 377
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
@@ -162,7 +144,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     OnChange = editNameChange
   end
   object tlbParameters: TToolBar
-    Left = 8
+    Left = 3
     Top = 206
     Width = 72
     Height = 84
@@ -198,9 +180,9 @@ object frmRoutineEditor: TfrmRoutineEditor
     end
   end
   object listParameters: TVirtualStringTree
-    Left = 100
+    Left = 95
     Top = 206
-    Width = 276
+    Width = 377
     Height = 100
     Anchors = [akLeft, akTop, akRight]
     DragImageKind = diMainColumnOnly
@@ -236,7 +218,7 @@ object frmRoutineEditor: TfrmRoutineEditor
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 1
-        Width = 87
+        Width = 188
         WideText = 'Name'
       end
       item
@@ -253,9 +235,9 @@ object frmRoutineEditor: TfrmRoutineEditor
       end>
   end
   object comboDataAccess: TComboBox
-    Left = 100
+    Left = 95
     Top = 84
-    Width = 276
+    Width = 377
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
@@ -264,9 +246,9 @@ object frmRoutineEditor: TfrmRoutineEditor
     OnChange = Modification
   end
   object comboSecurity: TComboBox
-    Left = 100
+    Left = 95
     Top = 109
-    Width = 276
+    Width = 377
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
@@ -275,9 +257,9 @@ object frmRoutineEditor: TfrmRoutineEditor
     OnChange = Modification
   end
   object editComment: TTntEdit
-    Left = 100
+    Left = 95
     Top = 134
-    Width = 276
+    Width = 377
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 5
@@ -285,9 +267,9 @@ object frmRoutineEditor: TfrmRoutineEditor
     OnChange = Modification
   end
   object chkDeterministic: TCheckBox
-    Left = 100
+    Left = 95
     Top = 161
-    Width = 276
+    Width = 377
     Height = 17
     Anchors = [akLeft, akTop, akRight]
     Caption = '&Deterministic'
@@ -295,10 +277,10 @@ object frmRoutineEditor: TfrmRoutineEditor
     OnClick = Modification
   end
   object SynMemoBody: TSynMemo
-    Left = 8
+    Left = 3
     Top = 336
-    Width = 368
-    Height = 90
+    Width = 469
+    Height = 113
     SingleLineMode = False
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = DEFAULT_CHARSET

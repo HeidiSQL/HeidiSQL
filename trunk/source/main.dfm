@@ -362,9 +362,9 @@ object MainForm: TMainForm
       TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
       TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
       TreeOptions.SelectionOptions = [toRightClickSelect]
-      OnChange = DBtreeChange
       OnDblClick = DBtreeDblClick
       OnExpanded = DBtreeExpanded
+      OnFocusChanged = DBtreeFocusChanged
       OnGetText = DBtreeGetText
       OnPaintText = DBtreePaintText
       OnGetImageIndex = DBtreeGetImageIndex
@@ -916,6 +916,10 @@ object MainForm: TMainForm
               WideText = 'Type'
             end>
         end
+      end
+      object tabEditor: TTabSheet
+        Caption = 'Table'
+        ImageIndex = 14
       end
       object tabData: TTabSheet
         Caption = 'Data'
@@ -2121,13 +2125,6 @@ object MainForm: TMainForm
       Hint = 'Create stored routine|Create stored procedure or function'
       ImageIndex = 119
       OnExecute = actCreateRoutineExecute
-    end
-    object actViewData: TAction
-      Category = 'Data'
-      Caption = 'Data ...'
-      Hint = 'Displays data grid and allows row editing'
-      ImageIndex = 41
-      OnExecute = actViewDataExecute
     end
     object actEditObject: TAction
       Category = 'Database'
@@ -5850,12 +5847,6 @@ object MainForm: TMainForm
     OnPopup = popupDBPopup
     Left = 136
     Top = 64
-    object menuViewData: TMenuItem
-      Action = actViewData
-    end
-    object N16: TMenuItem
-      Caption = '-'
-    end
     object menuEditObject: TMenuItem
       Action = actEditObject
       ShortCut = 32781

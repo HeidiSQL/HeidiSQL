@@ -405,20 +405,18 @@ type
     btnExit: TToolButton;
     lblSorryNoData: TLabel;
     menuPrint: TMenuItem;
-    N16: TMenuItem;
     menuEditObject: TMenuItem;
     menuCreateObject: TMenuItem;
     menuDeleteObject: TMenuItem;
     menuMaintenance2: TMenuItem;
     menuEmptyTables: TMenuItem;
-    actViewData: TAction;
-    menuViewData: TMenuItem;
     actEditObject: TAction;
     menuCreateDB: TMenuItem;
     menuCreateTable: TMenuItem;
     menuCreateTableCopy: TMenuItem;
     menuCreateView: TMenuItem;
     menuCreateRoutine: TMenuItem;
+    tabEditor: TTabSheet;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -609,7 +607,8 @@ type
         PVirtualNode; Column: TColumnIndex; var Result: Integer);
     procedure vstHeaderDraggedOut(Sender: TVTHeader; Column: TColumnIndex;
         DropPosition: TPoint);
-    procedure DBtreeChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex);
     procedure DBtreeDblClick(Sender: TObject);
     procedure DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var
@@ -678,7 +677,6 @@ type
       Column: TColumnIndex; var Allowed: Boolean);
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actEditObjectExecute(Sender: TObject);
-    procedure actViewDataExecute(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
@@ -722,24 +720,25 @@ type
     procedure DisplayRowCountStats(MatchingRows: Int64 = -1);
     procedure insertFunction(Sender: TObject);
     function GetActiveDatabase: WideString;
-    function GetSelectedTable: WideString;
+    function GetSelectedTable: TListNode;
     procedure SetSelectedDatabase(db: WideString);
-    procedure SetSelectedTable(table: WideString);
+    procedure SelectDBObject(Text: WideString; NodeType: TListNodeType);
     procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: WideStrings.TWideStringList );
     function GetTableSize(ds: TDataSet): Int64;
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     function GetSelTableColumns: TDataset;
     function GetSelTableKeys: TDataset;
     procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: Widestrings.TWideStringlist = nil);
+    procedure PlaceObjectEditor(Which: TListNodeType);
   public
     cancelling: Boolean;
     virtualDesktopName: string;
     MaintenanceForm: TOptimize;
-    ViewForm: TfrmView;
+    ViewEditor: TfrmView;
     UserManagerForm: TUserManagerForm;
     SelectDBObjectForm: TfrmSelectDBObject;
     SQLHelpForm: TfrmSQLhelp;
-    RoutineEditForm: TfrmRoutineEditor;
+    RoutineEditor: TfrmRoutineEditor;
     OptionsForm: Toptionsform;
     DatabasesWanted,
     Databases                  : Widestrings.TWideStringList;
@@ -786,7 +785,7 @@ type
     prefNullColorDefault,
     prefNullBG                 : TColor;
     CreateDatabaseForm         : TCreateDatabaseForm;
-    TableEditorForm            : TfrmTableEditor;
+    TableEditor                : TfrmTableEditor;
     FDataGridResult,
     FQueryGridResult           : TGridResult;
     FDataGridSelect            : WideStrings.TWideStringList;
@@ -819,7 +818,7 @@ type
     property Conn : TOpenConnProf read FConn;
 
     property ActiveDatabase : WideString read GetActiveDatabase write SetSelectedDatabase;
-    property SelectedTable : WideString read GetSelectedTable write SetSelectedTable;
+    property SelectedTable : TListNode read GetSelectedTable;
 
     function FetchActiveDbTableList: TDataSet;
     function RefreshActiveDbTableList: TDataSet;
@@ -835,8 +834,8 @@ type
     procedure DeactivateFileLogging;
     procedure TrimSQLLog;
     procedure TableEnginesCombo(var Combobox: TCombobox);
-    function GetNodeType(Node: PVirtualNode): Byte;
-    function GetSelectedNodeType: Byte;
+    function GetNodeType(Node: PVirtualNode): TListNodeType;
+    function GetSelectedNodeType: TListNodeType;
     procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
     procedure RefreshTreeDB(db: WideString);
     function FindDBNode(db: WideString): PVirtualNode;
@@ -861,6 +860,7 @@ type
     procedure SaveListSetup( List: TVirtualStringTree );
     procedure RestoreListSetup( List: TVirtualStringTree );
     function GetCollations(Items: TStrings = nil): TDataset;
+    procedure SetEditorTabCaption(Editor: TFrame; ObjName: WideString);
 end;
 
 
@@ -1137,10 +1137,10 @@ begin
   SaveListSetup(ListCommandStats);
   SaveListSetup(ListTables);
 
-  FreeAndNil(RoutineEditForm);
+  FreeAndNil(RoutineEditor);
   FreeAndNil(MaintenanceForm);
   FreeAndNil(UserManagerForm);
-  FreeAndNil(ViewForm);
+  FreeAndNil(ViewEditor);
   FreeAndNil(SelectDBObjectForm);
   FreeAndNil(SQLHelpForm);
   FreeAndNil(OptionsForm);
@@ -1696,7 +1696,7 @@ begin
   FreeAndNil(dsCollations);
 
   // Free forms which use session based datasets, fx dsShowEngines
-  FreeAndNil(TableEditorForm);
+  FreeAndNil(TableEditor);
   FreeAndNil(CreateDatabaseForm);
 
   // Closing connection
@@ -1869,10 +1869,10 @@ end;
 }
 procedure TMainForm.actCreateViewExecute(Sender: TObject);
 begin
-  if ViewForm = nil then
-    ViewForm := TfrmView.Create(Self);
-  ViewForm.EditViewName := '';
-  ViewForm.ShowModal;
+  tabEditor.TabVisible := True;
+  PagecontrolMain.ActivePage := tabEditor;
+  PlaceObjectEditor(lntView);
+  ViewEditor.Init;
 end;
 
 
@@ -2080,7 +2080,7 @@ begin
   // Copy data in focused grid as HTML table
   Screen.Cursor := crHourglass;
   S := TMemoryStream.Create;
-  if ActiveGrid = DataGrid then Title := SelectedTable
+  if ActiveGrid = DataGrid then Title := SelectedTable.Text
   else Title := 'SQL query';
   try
     GridData := ActiveData;
@@ -2104,7 +2104,7 @@ begin
   // Copy data in focused grid as XML
   Screen.Cursor := crHourglass;
   S := TMemoryStream.Create;
-  if ActiveGrid = DataGrid then Root := SelectedTable
+  if ActiveGrid = DataGrid then Root := SelectedTable.Text
   else Root := 'SQL query';
   try
     GridData := ActiveData;
@@ -2128,7 +2128,7 @@ begin
   // Copy data in focused grid as SQL
   Screen.Cursor := crHourglass;
   S := TMemoryStream.Create;
-  if ActiveGrid = DataGrid then Tablename := SelectedTable
+  if ActiveGrid = DataGrid then Tablename := SelectedTable.Text
   else Tablename := 'unknown';
   try
     GridData := ActiveData;
@@ -2157,7 +2157,7 @@ begin
   Grid := ActiveGrid;
   GridData := ActiveData;
   if Grid = DataGrid then
-    Title := SelectedTable
+    Title := SelectedTable.Text
   else
     Title := 'SQL query';
 
@@ -2259,10 +2259,10 @@ begin
     InDBTree := TPopupMenu((Comp as TMenuItem).GetParentMenu).PopupComponent = DBTree;
   if InDBTree then begin
     // If a table is selected, use that for preselection. If only a db was selected, use all tables inside it.
-    if SelectedTable <> '' then
-      f.SelectedTables.Add(Mainform.SelectedTable)
+    if SelectedTable.Text <> '' then
+      f.SelectedTables.Add(SelectedTable.Text)
     else if Mainform.ActiveDatabase <> '' then begin
-      ds := Mainform.FetchDbTableList(Mainform.ActiveDatabase);
+      ds := Mainform.FetchDbTableList(ActiveDatabase);
       while not ds.Eof do begin
         f.SelectedTables.Add(ds.FieldByName(DBO_NAME).AsWideString);
         ds.Next;
@@ -2323,7 +2323,7 @@ begin
   if InDBTree then begin
     // drop table selected in tree view.
     case GetSelectedNodeType of
-      NODETYPE_DB: begin
+      lntDb: begin
         if MessageDlg('Drop Database "'+activeDB+'"?' + crlf + crlf + 'WARNING: You will lose all tables in database '+activeDB+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
           Abort;
         Screen.Cursor := crHourglass;
@@ -2342,18 +2342,18 @@ begin
         end;
         Exit;
       end;
-      NODETYPE_TABLE, NODETYPE_CRASHED_TABLE: Tables.Add(SelectedTable);
-      NODETYPE_VIEW: Views.Add(SelectedTable);
-      NODETYPE_PROCEDURE: Procedures.Add(SelectedTable);
-      NODETYPE_FUNCTION: Functions.Add(SelectedTable);
+      lntTable, lntCrashedTable: Tables.Add(SelectedTable.Text);
+      lntView: Views.Add(SelectedTable.Text);
+      lntProcedure: Procedures.Add(SelectedTable.Text);
+      lntFunction: Functions.Add(SelectedTable.Text);
     end;
   end else begin
     // Invoked from database tab
-    Tables := GetVTCaptions(ListTables, True, 0, NODETYPE_TABLE);
-    Tables.AddStrings(GetVTCaptions(ListTables, True, 0, NODETYPE_CRASHED_TABLE));
-    Views := GetVTCaptions(ListTables, True, 0, NODETYPE_VIEW);
-    Procedures := GetVTCaptions(ListTables, True, 0, NODETYPE_PROCEDURE);
-    Functions := GetVTCaptions(ListTables, True, 0, NODETYPE_FUNCTION);
+    Tables := GetVTCaptions(ListTables, True, 0, lntTable);
+    Tables.AddStrings(GetVTCaptions(ListTables, True, 0, lntCrashedTable));
+    Views := GetVTCaptions(ListTables, True, 0, lntView);
+    Procedures := GetVTCaptions(ListTables, True, 0, lntProcedure);
+    Functions := GetVTCaptions(ListTables, True, 0, lntFunction);
   end;
 
   // Fix actions temporarily enabled for popup menu.
@@ -2551,9 +2551,10 @@ end;
 
 procedure TMainForm.actCreateTableExecute(Sender: TObject);
 begin
-  if TableEditorForm = nil then
-    TableEditorForm := TfrmTableEditor.Create(Self);
-  TableEditorForm.ShowModal;
+  tabEditor.TabVisible := True;
+  PagecontrolMain.ActivePage := tabEditor;
+  PlaceObjectEditor(lntTable);
+  TableEditor.Init;
 end;
 
 
@@ -3285,6 +3286,7 @@ begin
   ) then PageControlMain.ActivePage := tabHost;
 
   tabDatabase.TabVisible := false;
+  tabEditor.TabVisible := false;
   tabData.TabVisible := false;
 
   Caption := winName;
@@ -3300,6 +3302,7 @@ begin
   ) then PageControlMain.ActivePage := tabDatabase;
 
   tabDatabase.TabVisible := true;
+  tabEditor.TabVisible := false;
   tabData.TabVisible := false;
 
   Caption := winName + ' - /' + db;
@@ -3425,16 +3428,14 @@ begin
   if DataGridHasChanges then
     actDataPostChangesExecute(Sender);
 
-  // Ensure <Data> is visible
-  tabData.TabVisible := true;
   // Switch to <Data>
   PageControlMain.ActivePage := tabData;
 
   try
-    if (SelectedTable <> '') and (ActiveDatabase <> '') then begin
+    if (SelectedTable.Text <> '') and (ActiveDatabase <> '') then begin
       if FDataGridSelect = nil then
         FDataGridSelect := WideStrings.TWideStringlist.Create;
-      if DataGridTable <> SelectedTable then begin
+      if DataGridTable <> SelectedTable.Text then begin
         FDataGridSelect.Clear;
         FSelectedTableColumns := nil;
         FSelectedTableKeys := nil;
@@ -3447,7 +3448,7 @@ begin
             // Disable default if crash indicator on current table is found
             if MainReg.ValueExists(REGPREFIX_CRASH_IN_DATA) then begin
               MainReg.DeleteValue(REGNAME_DEFAULTVIEW);
-              LogSQL('A crash in the previous data loading for this table ('+SelectedTable+') was detected. Filtering was automatically reset to avoid the same crash for now.');
+              LogSQL('A crash in the previous data loading for this table ('+SelectedTable.Text+') was detected. Filtering was automatically reset to avoid the same crash for now.');
               // Reset crash indicator.
               MainReg.DeleteValue(REGPREFIX_CRASH_IN_DATA);
             end else begin
@@ -3535,7 +3536,7 @@ begin
       select_base := copy( select_base, 1, Length(select_base)-1 );
       select_base_full := copy( select_base_full, 1, Length(select_base_full)-1 );
       // Include db name for cases in which dbtree is switching databases and pending updates are in process
-      select_from := ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedTable);
+      select_from := ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedTable.Text);
 
       // Final SELECT segments
       DataGridCurrentSelect := select_base;
@@ -3571,7 +3572,7 @@ begin
       debug('mem: browse row initialization complete.');
 
       // Switched to another table
-      if DataGridTable <> SelectedTable then begin
+      if DataGridTable <> SelectedTable.Text then begin
         DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
         FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
       end;
@@ -3583,14 +3584,14 @@ begin
     DataGrid.Header.Columns.EndUpdate;
     DataGrid.EndUpdate;
     FreeAndNil(sl_query);
-    if DataGridTable = SelectedTable then
+    if DataGridTable = SelectedTable.Text then
       DataGrid.OffsetXY := OldOffsetXY;
     viewingdata := false;
     EnumerateRecentFilters;
     Screen.Cursor := crDefault;
   end;
   DataGridDB := ActiveDatabase;
-  DataGridTable := SelectedTable;
+  DataGridTable := SelectedTable.Text;
   AutoCalcColWidths(DataGrid, PrevTableColWidths);
 end;
 
@@ -3607,16 +3608,16 @@ var
   i: Integer;
   s: WideString;
 begin
-  lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable;
+  lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable.Text;
 
   IsFiltered := self.DataGridCurrentFilter <> '';
-  if GetSelectedNodeType = NODETYPE_TABLE then begin
+  if GetSelectedNodeType = lntTable then begin
     // Get rowcount from table
     ds := FetchActiveDbTableList;
     rows_total := -1;
     IsInnodb := False;
     for i := 0 to ds.RecordCount - 1 do begin
-      if ds.FieldByName(DBO_NAME).AsWideString = SelectedTable then begin
+      if ds.FieldByName(DBO_NAME).AsWideString = SelectedTable.Text then begin
         s := ds.FieldByName(DBO_ROWS).AsString;
         if s <> '' then rows_total := MakeInt(s);
         IsInnodb := ds.Fields[1].AsString = 'InnoDB';
@@ -3957,21 +3958,21 @@ begin
     VTRowDataListTables[i-1].NodeType := GetDBObjectType( ds.Fields);
     // Find icon
     case VTRowDataListTables[i-1].NodeType of
-      NODETYPE_TABLE, NODETYPE_CRASHED_TABLE: // A normal table
+      lntTable, lntCrashedTable: // A normal table
       begin
-        if GetDBObjectType(ds.Fields) = NODETYPE_CRASHED_TABLE then
+        if GetDBObjectType(ds.Fields) = lntCrashedTable then
           VTRowDataListTables[i-1].ImageIndex := ICONINDEX_CRASHED_TABLE
         else
           VTRowDataListTables[i-1].ImageIndex := ICONINDEX_TABLE;
       end;
 
-      NODETYPE_VIEW:
+      lntView:
         VTRowDataListTables[i-1].ImageIndex := ICONINDEX_VIEW;
 
-      NODETYPE_PROCEDURE:
+      lntProcedure:
         VTRowDataListTables[i-1].ImageIndex := ICONINDEX_STOREDPROCEDURE;
 
-      NODETYPE_FUNCTION:
+      lntFunction:
         VTRowDataListTables[i-1].ImageIndex := ICONINDEX_STOREDFUNCTION;
     end;
 
@@ -4396,11 +4397,11 @@ const
     if Fields.FindField(DBO_TYPE) <> nil then
       ObjType := LowerCase(Fields.FieldByName(DBO_TYPE).AsString);
     case GetDBObjectType(Fields) of
-      NODETYPE_TABLE: Icon := ICONINDEX_TABLE;
-      NODETYPE_CRASHED_TABLE: Icon := ICONINDEX_CRASHED_TABLE;
-      NODETYPE_FUNCTION: Icon := ICONINDEX_STOREDFUNCTION;
-      NODETYPE_PROCEDURE: Icon := ICONINDEX_STOREDPROCEDURE;
-      NODETYPE_VIEW: Icon := ICONINDEX_VIEW;
+      lntTable: Icon := ICONINDEX_TABLE;
+      lntCrashedTable: Icon := ICONINDEX_CRASHED_TABLE;
+      lntFunction: Icon := ICONINDEX_STOREDFUNCTION;
+      lntProcedure: Icon := ICONINDEX_STOREDPROCEDURE;
+      lntView: Icon := ICONINDEX_VIEW;
       else Icon := -1;
     end;
     SynCompletionProposal1.InsertList.Add( ObjName );
@@ -4610,7 +4611,7 @@ var
 begin
   // Tables and views can be renamed, routines cannot
   NodeData := Sender.GetNodeData(Node);
-  Allowed := NodeData.NodeType in [NODETYPE_TABLE, NODETYPE_VIEW];
+  Allowed := NodeData.NodeType in [lntTable, lntView];
 end;
 
 
@@ -4675,15 +4676,6 @@ begin
   Screen.Cursor := crHourglass;
   SynMemoSQLLog.Lines.Clear;
   Screen.Cursor := crDefault;
-end;
-
-
-procedure TMainForm.actViewDataExecute(Sender: TObject);
-begin
-  if Assigned(ListTables.FocusedNode) then begin
-    SelectedTable := ListTables.Text[ListTables.FocusedNode, ListTables.FocusedColumn];
-    PageControlMain.ActivePage := tabData;
-  end;
 end;
 
 
@@ -4956,8 +4948,8 @@ begin
     actCreateView.Enabled := L in [1,2];
     actCreateRoutine.Enabled := L in [1,2];
     actDropObjects.Enabled := L in [1,2];
-    actCopyTable.Enabled := HasFocus and (GetSelectedNodeType in [NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW]);
-    actEmptyTables.Enabled := HasFocus and (GetSelectedNodeType in [NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW]);
+    actCopyTable.Enabled := HasFocus and (GetSelectedNodeType in [lntTable, lntCrashedTable, lntView]);
+    actEmptyTables.Enabled := HasFocus and (GetSelectedNodeType in [lntTable, lntCrashedTable, lntView]);
     actEditObject.Enabled := L > 0;
     // Show certain items which are valid only here
     actViewData.Visible := False;
@@ -4975,7 +4967,7 @@ begin
     actEmptyTables.Enabled := False;
     if HasFocus then begin
       NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-      actEmptyTables.Enabled := NodeData.NodeType in [NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW];
+      actEmptyTables.Enabled := NodeData.NodeType in [lntTable, lntCrashedTable, lntView];
     end;
     actEditObject.Enabled := HasFocus;
     // Show certain items which are valid only here
@@ -5515,23 +5507,25 @@ begin
 end;
 
 
-function TMainForm.GetSelectedTable: WideString;
+function TMainForm.GetSelectedTable: TListNode;
 begin
-  if DBtree.GetFirstSelected = nil then Result := ''
-  else case DBtree.GetNodeLevel(DBtree.GetFirstSelected) of
-      2: Result := DBtree.Text[DBtree.GetFirstSelected, 0];
-    else Result := '';
+  if Assigned(DBtree.FocusedNode) and (DBtree.GetNodeLevel(DBtree.FocusedNode)=2) then begin
+    Result.Text := DBtree.Text[DBtree.FocusedNode, 0];
+    Result.NodeType := GetSelectedNodeType;
+  end else begin
+    Result.Text := '';
+    Result.NodeType := lntNone;
   end;
 end;
 
 
-function TMainForm.GetNodeType(Node: PVirtualNode): Byte;
+function TMainForm.GetNodeType(Node: PVirtualNode): TListNodeType;
 var
   ds: TDataset;
 begin
-  Result := NODETYPE_DEFAULT;
+  Result := lntNone;
   if Assigned(Node) then case DBtree.GetNodeLevel(Node) of
-    1: Result := NODETYPE_DB;
+    1: Result := lntDb;
     2: begin
       ds := FetchDbTableList(DBTree.Text[Node.Parent, 0]);
       ds.RecNo := Node.Index+1;
@@ -5540,17 +5534,18 @@ begin
   end;
 end;
 
-function TMainForm.GetSelectedNodeType: Byte;
+function TMainForm.GetSelectedNodeType: TListNodeType;
 begin
   Result := GetNodeType(DBtree.GetFirstSelected);
 end;
 
 
-procedure TMainForm.SetSelectedTable(table: WideString);
+procedure TMainForm.SelectDBObject(Text: WideString; NodeType: TListNodeType);
 var
   i: integer;
   dbnode, tnode, snode: PVirtualNode;
 begin
+  debug('SelectDBObject()');
   // Detect db node
   case DBtree.GetNodeLevel( DBtree.GetFirstSelected ) of
     1: dbnode := DBtree.GetFirstSelected;
@@ -5562,7 +5557,7 @@ begin
   tnode := DBtree.GetFirstChild(dbnode);
   for i := 0 to dbnode.ChildCount - 1 do begin
     // Select table node if it has the wanted caption
-    if DBtree.Text[tnode, 0] = table then begin
+    if (DBtree.Text[tnode, 0] = Text) and (GetNodeType(tnode) = NodeType) then begin
       snode := tnode;
       break;
     end;
@@ -5573,7 +5568,7 @@ begin
     tnode := DBtree.GetFirstChild(dbnode);
     for i := 0 to dbnode.ChildCount - 1 do begin
       // Select table node if it has the wanted caption
-      if AnsiCompareText(DBtree.Text[tnode, 0], table) = 0 then begin
+      if (AnsiCompareText(DBtree.Text[tnode, 0], Text) = 0) and (GetNodeType(tnode) = NodeType) then begin
         snode := tnode;
         break;
       end;
@@ -5585,9 +5580,11 @@ begin
     DBTree.ScrollIntoView(snode, False);
     DBtree.Expanded[dbnode] := True;
     DBtree.Selected[snode] := True;
+    // Implicitely calls OnFocusChanged:
+    DBTree.FocusedNode := snode;
     exit;
   end;
-  raise Exception.Create('Table node ' + table + ' not found in tree.');
+  raise Exception.Create('Table node ' + Text + ' not found in tree.');
 end;
 
 
@@ -5664,7 +5661,7 @@ begin
     begin
       // Keep native order of columns
       lboxQueryHelpers.Sorted := False;
-      if SelectedTable <> '' then begin
+      if SelectedTable.Text <> '' then begin
         FSelectedTableColumns.First;
         while not FSelectedTableColumns.Eof do begin
           lboxQueryHelpers.Items.Add(FSelectedTableColumns.Fields[0].AsWideString);
@@ -6172,13 +6169,15 @@ var
   Value : WideString;
   ValueList : WideStrings.TWideStringList;
   Regname: String;
+  frm: TCustomForm;
 begin
   ValueList := WideStrings.TWideStringList.Create;
 
   // Column widths
   Regname := List.Name;
-  if GetParentForm(List) <> Self then
-    Regname := GetParentForm(List).Name + '.' + Regname;
+  frm := GetParentForm(List);
+  if (frm <> Self) and (Assigned(frm)) then
+    Regname := frm.Name + '.' + Regname;
   Value := GetRegValue(REGPREFIX_COLWIDTHS + Regname, '');
   if Value <> '' then begin
     ValueList := Explode( ',', Value );
@@ -6634,7 +6633,7 @@ begin
       end;
     1: case GetNodeType(Node) of
         // Calculate and display the sum of all table sizes in ALL dbs if all table lists are cached
-        NODETYPE_DEFAULT: begin
+        lntNone: begin
             AllListsCached := true;
             for i := 0 to Databases.Count - 1 do begin
               if not DbTableListCachedAndValid(Databases[i]) then begin
@@ -6658,7 +6657,7 @@ begin
             else CellText := '';
           end;
         // Calculate and display the sum of all table sizes in ONE db, if the list is already cached.
-        NODETYPE_DB: begin
+        lntDb: begin
             db := DBtree.Text[Node, 0];
             if not DbTableListCachedAndValid(db) then
               CellText := ''
@@ -6676,7 +6675,7 @@ begin
               else CellText := '';
             end;
           end;
-        NODETYPE_TABLE: begin
+        lntTable: begin
           db := DBtree.Text[Node.Parent, 0];
           ds := FetchDbTableList(db);
           ds.RecNo := Node.Index + 1;
@@ -6709,21 +6708,21 @@ begin
         ds := FetchDbTableList(Databases[Node.Parent.Index]);
         ds.RecNo := Node.Index+1;
         case GetDBObjectType(ds.Fields) of
-          NODETYPE_TABLE:
+          lntTable:
             if Kind = ikSelected then
               ImageIndex := ICONINDEX_TABLE_HIGHLIGHT
               else ImageIndex := ICONINDEX_TABLE;
-          NODETYPE_VIEW:
+          lntView:
             if Kind = ikSelected then
               ImageIndex := ICONINDEX_VIEW_HIGHLIGHT
               else ImageIndex := ICONINDEX_VIEW;
-          NODETYPE_CRASHED_TABLE:
+          lntCrashedTable:
             if Kind = ikSelected then
               ImageIndex := ICONINDEX_CRASHED_TABLE_HIGHLIGHT
               else ImageIndex := ICONINDEX_CRASHED_TABLE;
-          NODETYPE_PROCEDURE:
+          lntProcedure:
             ImageIndex := ICONINDEX_STOREDPROCEDURE;
-          NODETYPE_FUNCTION:
+          lntFunction:
             ImageIndex := ICONINDEX_STOREDFUNCTION;
         end;
       end;
@@ -6823,10 +6822,12 @@ end;
 {**
   Selection in database tree has changed
 }
-procedure TMainForm.DBtreeChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex);
 var
   newDb: WideString;
 begin
+  debug('DBtreeFocusChanged()');
   if not Assigned(Node) then
     Exit;
   // Post pending UPDATE
@@ -6840,13 +6841,15 @@ begin
       end;
     2: begin
         newDb := Databases[Node.Parent.Index];
-        lblSorryNoData.Visible := False;
-        if GetSelectedNodeType = NODETYPE_PROCEDURE then lblSorryNoData.Visible := True;
-        if GetSelectedNodeType = NODETYPE_FUNCTION then lblSorryNoData.Visible := True;
-        dataselected := false;
-        PageControlMain.ActivePage := tabData;
-        viewdata(self);
-        PageControlMainChange(Self);
+        tabEditor.TabVisible := True;
+        tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntCrashedTable, lntView];
+        if tabEditor.TabVisible then begin
+          actEditObjectExecute(Sender);
+          if (PagecontrolMain.ActivePage <> tabEditor) and (PagecontrolMain.ActivePage <> tabData) then
+            PagecontrolMain.ActivePage := tabEditor
+          else if PagecontrolMain.ActivePage = tabData then
+            ViewData(Sender);
+        end;
       end;
   end;
   if newDb <> '' then
@@ -6888,7 +6891,8 @@ end;
 }
 procedure TMainForm.RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
 var
-  oldActiveDatabase, oldSelectedTable, db: WideString;
+  oldActiveDatabase, db: WideString;
+  oldSelectedTable: TListNode;
   Node: PVirtualNode;
   ExpandedDBs, TablesFetched: WideStrings.TWideStringList;
   i: Integer;
@@ -6938,7 +6942,7 @@ begin
   TablesFetched.Free;
 
   try
-    if oldSelectedTable <> '' then SelectedTable := oldSelectedTable;
+    if oldSelectedTable.Text <> '' then SelectDBObject(oldSelectedTable.Text, oldSelectedTable.NodeType);
   except
   end;
   DBTree.EndUpdate;
@@ -7191,7 +7195,7 @@ begin
 
     // Set indicator for possibly crashing query
     OpenRegistry(SessionName);
-    regCrashIndicName := Utf8Encode(REGPREFIX_CRASH_IN_DATA + ActiveDatabase + '.' + SelectedTable);
+    regCrashIndicName := Utf8Encode(REGPREFIX_CRASH_IN_DATA + ActiveDatabase + '.' + SelectedTable.Text);
     MainReg.WriteBool(regCrashIndicName, True);
 
     // start query
@@ -7807,7 +7811,7 @@ var
   msg: String;
 begin
   Node := Sender.GetFirstSelected;
-  sql := 'DELETE FROM '+mask(SelectedTable)+' WHERE';
+  sql := 'DELETE FROM '+mask(SelectedTable.Text)+' WHERE';
   while Assigned(Node) do begin
     EnsureChunkLoaded(Sender, Node);
     sql := sql + ' (' +
@@ -7928,7 +7932,7 @@ begin
     if CheckUniqueKeyClause then begin
       sql :=
         'SELECT ' + mask(Col.Name) +
-        ' FROM ' + mask(SelectedTable) +
+        ' FROM ' + mask(SelectedTable.Text) +
         ' WHERE ' + GetWhereClause(Row, @Data.Columns)
       ;
       ds := GetResults(sql);
@@ -8016,9 +8020,9 @@ begin
   if (FLastSelectedTableColumns = nil) or (FLastSelectedTableColumns.State = dsInactive) then begin
     FreeAndNil(FLastSelectedTableColumns);
 	// Avoid SQL error on routines
-    if GetSelectedNodeType in [NODETYPE_TABLE, NODETYPE_VIEW] then begin
+    if GetSelectedNodeType in [lntTable, lntView] then begin
       ShowStatus('Reading table columns ...');
-      FLastSelectedTableColumns := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable), false );
+      FLastSelectedTableColumns := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable.Text), false );
     end;
   end;
   Result := FLastSelectedTableColumns;
@@ -8029,9 +8033,9 @@ begin
   if (FLastSelectedTableKeys = nil) or (FLastSelectedTableKeys.State = dsInactive) then begin
     FreeAndNil(FLastSelectedTableKeys);
 	// Avoid SQL error on routines
-    if GetSelectedNodeType in [NODETYPE_TABLE, NODETYPE_VIEW] then begin
+    if GetSelectedNodeType in [lntTable, lntView] then begin
       ShowStatus('Reading table keys ...');
-      FLastSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable) );
+      FLastSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable.Text) );
     end;
   end;
   Result := FLastSelectedTableKeys;
@@ -8298,7 +8302,7 @@ function TMainForm.GetRegKeyTable: String;
 begin
   // Return the slightly complex registry path to \Servers\ThisServer\curdb|curtable
   Result := REGPATH + REGKEY_SESSIONS + SessionName + '\' +
-    Utf8Encode(ActiveDatabase) + REGDELIM + Utf8Encode(SelectedTable);
+    Utf8Encode(ActiveDatabase) + REGDELIM + Utf8Encode(SelectedTable.Text);
 end;
 
 
@@ -8756,9 +8760,10 @@ end;
 
 procedure TMainForm.actCreateRoutineExecute(Sender: TObject);
 begin
-  if not Assigned(RoutineEditForm) then
-    RoutineEditForm := TfrmRoutineEditor.Create(Self);
-  RoutineEditForm.ShowModal;
+  tabEditor.TabVisible := True;
+  PagecontrolMain.ActivePage := tabEditor;
+  PlaceObjectEditor(lntProcedure);
+  RoutineEditor.Init;
 end;
 
 
@@ -8838,56 +8843,101 @@ begin
 end;
 
 
+procedure TMainForm.PlaceObjectEditor(Which: TListNodeType);
+var
+  frm: TFrame;
+begin
+  // Place the relevant editor frame onto the editor tab, hide all others
+  if (not (Which in [lntTable, lntCrashedTable])) and Assigned(TableEditor) then
+    FreeAndNil(TableEditor);
+  if (Which <> lntView) and Assigned(ViewEditor) then
+    FreeAndNil(ViewEditor);
+  if (not (Which in [lntProcedure, lntFunction])) and Assigned(RoutineEditor) then
+    FreeAndNil(RoutineEditor);
+  if Which in [lntTable, lntCrashedTable] then begin
+    if not Assigned(TableEditor) then
+      TableEditor := TfrmTableEditor.Create(tabEditor);
+    frm := TableEditor;
+  end else if Which = lntView then begin
+    if not Assigned(ViewEditor) then
+      ViewEditor := TfrmView.Create(tabEditor);
+    frm := ViewEditor;
+  end else if Which in [lntProcedure, lntFunction] then begin
+    if not Assigned(RoutineEditor) then
+      RoutineEditor := TfrmRoutineEditor.Create(tabEditor);
+    frm := RoutineEditor;
+  end else
+    Exit;
+  frm.Parent := tabEditor;
+end;
+
+
+procedure TMainForm.SetEditorTabCaption(Editor: TFrame; ObjName: WideString);
+var
+  ObjType, Cap: WideString;
+  IconIndex: Integer;
+begin
+  if Editor = TableEditor then begin
+    ObjType := 'Table';
+    IconIndex := ICONINDEX_TABLE;
+  end else if Editor = ViewEditor then begin
+    ObjType := 'View';
+    IconIndex := ICONINDEX_VIEW;
+  end else if Editor = RoutineEditor then begin
+    ObjType := 'Routine';
+    IconIndex := ICONINDEX_STOREDPROCEDURE;
+  end else
+    Exit;
+  tabEditor.ImageIndex := IconIndex;
+  Cap := ObjType+': ';
+  if ObjName = '' then
+    Cap := Cap + '[Untitled]'
+  else
+    Cap := sstr(Cap + ObjName, 30);
+  tabEditor.Caption := Cap;
+end;
+
+
 procedure TMainForm.actEditObjectExecute(Sender: TObject);
 var
-  Act: TAction;
-  InDBTree: Boolean;
-  ObjectType: Byte;
-  ObjectName: WideString;
   NodeData: PVTreeData;
+  RoutineType: String;
 begin
-  Act := Sender as TAction;
-  InDBTree := (Act.ActionComponent is TMenuItem)
-    and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
-
-  if InDBTree then begin
-    ObjectType := GetSelectedNodeType;
-    ObjectName := DBTree.Text[DBTree.FocusedNode, DBTree.FocusedColumn];
-  end else begin
+  debug('actEditObjectExecute()');
+  if ListTables.Focused then begin
+    // Got here from ListTables.OnDblClick or ListTables's context menu item "Edit"
     NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    ObjectType := NodeData.NodeType;
-    ObjectName := ListTables.Text[ListTables.FocusedNode, ListTables.FocusedColumn];
+    if (NodeData.Captions[0] <> SelectedTable.Text) or (NodeData.NodeType <> SelectedTable.NodeType) then
+      SelectDBObject(NodeData.Captions[0], NodeData.NodeType);
   end;
 
-  case ObjectType of
-    NODETYPE_DB: begin
+  case SelectedTable.NodeType of
+    lntDb: begin
       if CreateDatabaseForm = nil then
         CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
-      CreateDatabaseForm.modifyDB := ObjectName;
+      CreateDatabaseForm.modifyDB := ActiveDatabase;
       CreateDatabaseForm.ShowModal;
     end;
-    NODETYPE_TABLE, NODETYPE_CRASHED_TABLE: begin
-      if TableEditorForm = nil then
-        TableEditorForm := TfrmTableEditor.Create(Self);
-      TableEditorForm.AlterTableName := ObjectName;
-      TableEditorForm.ShowModal;
+
+    lntTable, lntCrashedTable: begin
+      PlaceObjectEditor(SelectedTable.NodeType);
+      TableEditor.Init(SelectedTable.Text);
     end;
-    NODETYPE_VIEW: begin
-      if ViewForm = nil then
-        ViewForm := TfrmView.Create(Self);
-      ViewForm.EditViewName := ObjectName;
-      ViewForm.ShowModal;
+
+    lntView: begin
+      PlaceObjectEditor(SelectedTable.NodeType);
+      ViewEditor.Init(SelectedTable.Text);
     end;
-    NODETYPE_FUNCTION, NODETYPE_PROCEDURE: begin
-      if not Assigned(RoutineEditForm) then
-        RoutineEditForm := TfrmRoutineEditor.Create(Self);
-      RoutineEditForm.AlterRoutineName := ObjectName;
-      if ObjectType = NODETYPE_FUNCTION then
-        RoutineEditForm.AlterRoutineType := 'FUNCTION'
+
+    lntFunction, lntProcedure: begin
+      PlaceObjectEditor(SelectedTable.NodeType);
+      if SelectedTable.NodeType = lntFunction then
+        RoutineType := 'FUNCTION'
       else
-        RoutineEditForm.AlterRoutineType := 'PROCEDURE';
-      RoutineEditForm.ShowModal;
+        RoutineType := 'PROCEDURE';
+      RoutineEditor.Init(SelectedTable.Text, RoutineType);
     end;
+
   end;
 end;
 
@@ -8896,13 +8946,11 @@ procedure TMainForm.ListTablesDblClick(Sender: TObject);
 var
   NodeData: PVTreeData;
 begin
-  // DoubleClick: Display datagrid for tables and views, editor dialog for routines
-  NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-  case NodeData.NodeType of
-    NODETYPE_TABLE, NODETYPE_CRASHED_TABLE, NODETYPE_VIEW:
-      actViewDataExecute(actViewData);
-    NODETYPE_FUNCTION, NODETYPE_PROCEDURE:
-      actEditObjectExecute(actEditObject);
+  // DoubleClick: Display editor
+  debug('ListTablesDblClick()');
+  if Assigned(ListTables.FocusedNode) then begin
+    NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
+    SelectDBObject(ListTables.Text[ListTables.FocusedNode, ListTables.FocusedColumn], NodeData.NodeType);
   end;
 end;
 

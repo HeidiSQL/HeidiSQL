@@ -106,10 +106,6 @@ const
   REGNAME_SQLHELPWINHEIGHT = 'SQLHelp_WindowHeight';
   REGNAME_SQLHELPPLWIDTH = 'SQLHelp_PnlLeftWidth';
   REGNAME_SQLHELPPRHEIGHT = 'SQLHelp_PnlRightTopHeight';
-  REGNAME_PROCEDITOR_WIDTH = 'ProcedureEditorWidth';
-  REGNAME_PROCEDITOR_HEIGHT = 'ProcedureEditorHeight';
-  REGNAME_TABLEEDITOR_WIDTH = 'TableEditorWidth';
-  REGNAME_TABLEEDITOR_HEIGHT = 'TableEditorHeight';
   REGNAME_TABLEEDITOR_TABSHEIGHT = 'TableEditorTabsHeight';
   REGNAME_HOST = 'Host';
   DEFAULT_HOST = '127.0.0.1';
@@ -164,10 +160,6 @@ const
   REGNAME_LAST_UPDATECHECK = 'UpdatecheckLastrun';
   REGNAME_MAINTWINWIDTH = 'Maintenance_WindowWidth';
   REGNAME_MAINTWINHEIGHT = 'Maintenance_WindowHeight';
-  REGNAME_VIEWWINWIDTH = 'View_WindowWidth';
-  REGNAME_VIEWWINHEIGHT = 'View_WindowHeight';
-  REGNAME_CRTABLEWINWIDTH = 'CreateTable_WindowWidth';
-  REGNAME_CRTABLEWINHEIGHT = 'CreateTable_WindowHeight';
   REGNAME_USERMNGR_WINWIDTH = 'Usermanager_WindowWidth';
   REGNAME_USERMNGR_WINHEIGHT = 'Usermanager_WindowHeight';
   REGNAME_SELECTDBO_WINWIDTH = 'SelectDBO_WindowWidth';
@@ -261,16 +253,6 @@ const
   ORDER_DESC = 1;           // dito
   TXT_ASC = 'ASC';          // Used for caption of "Direction"-button
   TXT_DESC = 'DESC';        // dito
-
-  // Node types of Virtual Tree nodes
-  NODETYPE_DEFAULT = 0;
-  NODETYPE_DB = 1;
-  NODETYPE_TABLE = 2;
-  NODETYPE_CRASHED_TABLE = 3;
-  NODETYPE_VIEW = 4;
-  NODETYPE_FUNCTION = 5;
-  NODETYPE_PROCEDURE = 6;
-  NODETYPE_COLUMN = 7;
 
   // Data grid: How many bytes to fetch from data fields that are potentially large.
   GRIDMAXDATA: Integer = 256;

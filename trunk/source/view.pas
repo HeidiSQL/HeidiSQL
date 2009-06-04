@@ -7,27 +7,27 @@ uses
   Dialogs, StdCtrls, ComCtrls, SynEdit, SynMemo, ExtCtrls, DB, SynRegExpr;
 
 type
-  TfrmView = class(TForm)
+  TfrmView = class(TFrame)
     editName: TEdit;
     lblName: TLabel;
     rgAlgorithm: TRadioGroup;
     SynMemoSelect: TSynMemo;
     lblSelect: TLabel;
-    btnCancel: TButton;
-    btnOK: TButton;
+    btnDiscard: TButton;
+    btnSave: TButton;
     rgCheck: TRadioGroup;
     btnHelp: TButton;
     procedure btnHelpClick(Sender: TObject);
-    procedure btnOKClick(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
     procedure editNameChange(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure FormShow(Sender: TObject);
+    procedure btnDiscardClick(Sender: TObject);
   private
     { Private declarations }
+    FEditViewName: WideString;
   public
     { Public declarations }
-    EditViewName: String;
+    constructor Create(AOwner: TComponent); override;
+    procedure Init(EditViewName: WideString='');
   end;
 
   
@@ -39,49 +39,37 @@ uses main, helpers;
 
 
 {**
-  FormCreate: Restore GUI setup
+  Create: Restore GUI setup
 }
-procedure TfrmView.FormCreate(Sender: TObject);
+constructor TfrmView.Create(AOwner: TComponent);
 begin
-  Width := GetRegValue(REGNAME_VIEWWINWIDTH, Width);
-  Height := GetRegValue(REGNAME_VIEWWINHEIGHT, Height);
+  inherited Create(AOwner);
+  Align := alClient;
   SynMemoSelect.Highlighter := Mainform.SynSQLSyn1;
   SynMemoSelect.Font := Mainform.SynMemoQuery.Font;
-  SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
-end;
-
-
-{**
-  FormDestroy: Save GUI setup
-}
-procedure TfrmView.FormDestroy(Sender: TObject);
-begin
-  OpenRegistry;
-  MainReg.WriteInteger( REGNAME_VIEWWINWIDTH, Width );
-  MainReg.WriteInteger( REGNAME_VIEWWINHEIGHT, Height );
-  Close;
 end;
 
 
 {**
   FormShow: Fill controls with content in edit mode
 }
-procedure TfrmView.FormShow(Sender: TObject);
+procedure TfrmView.Init(EditViewName: WideString='');
 var
   ds: TDataset;
   db: String;
   rx: TRegExpr;
 begin
-  if EditViewName <> '' then begin
+	FEditViewName := EditViewName;
+  if FEditViewName <> '' then begin
     // Edit mode
-    Caption := 'Edit view ...';
-    editName.Text := EditViewName;
+    editName.Text := FEditViewName;
+    Mainform.SetEditorTabCaption(Self, FEditViewName);
     db := Mainform.ActiveDatabase;
     ds := Mainform.GetResults('SELECT * FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.VIEWS ' +
-      'WHERE TABLE_SCHEMA = '+esc(db)+' AND TABLE_NAME = '+esc(EditViewName));
+      'WHERE TABLE_SCHEMA = '+esc(db)+' AND TABLE_NAME = '+esc(FEditViewName));
     if ds.RecordCount = 0 then
-      raise Exception.Create('Can''t find view definition for "'+EditViewName+'" in '+DBNAME_INFORMATION_SCHEMA);
+      raise Exception.Create('Can''t find view definition for "'+FEditViewName+'" in '+DBNAME_INFORMATION_SCHEMA);
     // Algorithm is not changeable as we cannot look up its current state!
     rgAlgorithm.Enabled := False;
     rgAlgorithm.ItemIndex := 0;
@@ -96,7 +84,7 @@ begin
     rx.Free;
   end else begin
     // Create mode
-    Caption := 'Create view ...';
+    Mainform.SetEditorTabCaption(Self, '');
     editName.Text := 'myview';
     rgAlgorithm.Enabled := True;
     rgAlgorithm.ItemIndex := 0;
@@ -105,7 +93,7 @@ begin
     SynMemoSelect.Text := 'SELECT ';
   end;
   // Ensure name is validated
-  editNameChange(Sender);
+  editNameChange(Self);
 end;
 
 
@@ -114,12 +102,12 @@ end;
 }
 procedure TfrmView.editNameChange(Sender: TObject);
 begin
-  btnOK.Enabled := False;
+  btnSave.Enabled := False;
   try
     ensureValidIdentifier( editName.Text );
     editName.Font.Color := clWindowText;
     editName.Color := clWindow;
-    btnOK.Enabled := True;
+    btnSave.Enabled := True;
   except
     editName.Font.Color := clRed;
     editName.Color := clYellow;
@@ -134,7 +122,7 @@ procedure TfrmView.btnHelpClick(Sender: TObject);
 var
   keyword: String;
 begin
-  if EditViewName = '' then
+  if FEditViewName = '' then
     keyword := 'CREATE VIEW'
   else
     keyword := 'ALTER VIEW';
@@ -142,20 +130,27 @@ begin
 end;
 
 
+procedure TfrmView.btnDiscardClick(Sender: TObject);
+begin
+  // Reinit editor, discarding changes
+  Init(FEditViewName);
+end;
+
+
 {**
   Apply changes: Compose and execute SQL
 }
-procedure TfrmView.btnOKClick(Sender: TObject);
+procedure TfrmView.btnSaveClick(Sender: TObject);
 var
   sql, viewname, renamed: String;
 begin
   // Compose CREATE or ALTER statement
-  if EditViewName = '' then begin
+  if FEditViewName = '' then begin
     sql := 'CREATE ';
     viewname := editName.Text;
   end else begin
     sql := 'ALTER ';
-    viewname := EditViewName;
+    viewname := FEditViewName;
   end;
   viewname := Mainform.mask(viewname);
   if rgAlgorithm.Enabled and (rgAlgorithm.ItemIndex > -1) then
@@ -165,20 +160,13 @@ begin
     sql := sql + 'WITH '+Uppercase(rgCheck.Items[rgCheck.ItemIndex])+' CHECK OPTION';
 
   // Execute query and keep form open in any error case
-  try
-    Mainform.ExecUpdateQuery(sql);
-    // Probably rename view
-    if (EditViewName <> '') and (EditViewName <> editName.Text) then begin
-      renamed := Mainform.mask(editName.Text);
-      Mainform.ExecUpdateQuery('RENAME TABLE '+viewname + ' TO '+renamed);
-    end;
-    Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
-  except
-    on E: THandledSQLError do begin
-      MessageDlg(E.Message, mtError, [mbOK], 0);
-      ModalResult := mrNone;
-    end;
+  Mainform.ExecUpdateQuery(sql);
+  // Probably rename view
+  if (FEditViewName <> '') and (FEditViewName <> editName.Text) then begin
+    renamed := Mainform.mask(editName.Text);
+    Mainform.ExecUpdateQuery('RENAME TABLE '+viewname + ' TO '+renamed);
   end;
+  Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
 end;
 
 

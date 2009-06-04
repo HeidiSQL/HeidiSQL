@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ComCtrls, StdCtrls, CheckLst, ExtCtrls, Buttons, DB,
-  ToolWin, TntCheckLst, WideStrings, WideStrUtils;
+  ToolWin, TntCheckLst, WideStrings, WideStrUtils, helpers;
 
 {$I const.inc}
 
@@ -14,7 +14,7 @@ uses
 type
   TPrivilege = class(TObject)
     private
-      FDBOType: Byte;
+      FDBOType: TListNodeType;
       // Internal Flags
       FDeleted: Boolean;
       FAdded: Boolean;
@@ -28,7 +28,7 @@ type
       SelectedPrivNames: TWideStringList;
       constructor Create(Fields: TFields; FieldDefs: TDataset = nil; AvoidFieldDefs: TDataSet = nil; CropFieldDefs: TDataSet = nil; SimulateDbField: Boolean = False);
       procedure Merge(Fields: TFields);
-      property DBOType: Byte read FDBOType;
+      property DBOType: TListNodeType read FDBOType;
       property DBOKey: String read GetDBOKey;
       property DBOPrettyKey: String read GetDBOPrettyKey;
       property PrettyPrivNames: TWideStringList read GetPrettyPrivNames;
@@ -202,13 +202,13 @@ type
     { Public declarations }
   end;
 
-procedure GetPrivilegeRowKey(Fields: TFields; SimulateDbField: Boolean; out DBOType: Byte; out DBONames: TWideStringList);
+procedure GetPrivilegeRowKey(Fields: TFields; SimulateDbField: Boolean; out DBOType: TListNodeType; out DBONames: TWideStringList);
 
 implementation
 
 
 uses
-  main, helpers, selectdbobject;
+  main, selectdbobject;
 
 
 var
@@ -448,11 +448,11 @@ begin
     for i := 0 to u.Privileges.Count - 1 do begin
       Icon := -1;
       case u.Privileges[i].DBOType of
-        NODETYPE_DEFAULT:   Icon := ICONINDEX_SERVER;
-        NODETYPE_DB:        Icon := ICONINDEX_DB;
-        NODETYPE_TABLE:     Icon := ICONINDEX_TABLE;
-        NODETYPE_VIEW:      Icon := ICONINDEX_VIEW;
-        NODETYPE_COLUMN:    Icon := ICONINDEX_FIELD;
+        lntNone:      Icon := ICONINDEX_SERVER;
+        lntDb:        Icon := ICONINDEX_DB;
+        lntTable:     Icon := ICONINDEX_TABLE;
+        lntView:      Icon := ICONINDEX_VIEW;
+        lntColumn:    Icon := ICONINDEX_FIELD;
       end;
       pname := u.Privileges[i].DBOPrettyKey;
       if u.Privileges[i].Deleted then begin
@@ -585,7 +585,7 @@ begin
     for i := 0 to priv.PrivNames.Count - 1 do begin
       boxPrivs.Checked[i] := priv.SelectedPrivNames.IndexOf(priv.PrivNames[i]) > -1;
     end;
-    EnableDelete := (priv.DBOType <> NODETYPE_DEFAULT) and
+    EnableDelete := (priv.DBOType <> lntNone) and
       (priv.DBOKey <> '%') and (not priv.Deleted);
   end;
   if comboUsers.ItemIndex > -1 then
@@ -1058,28 +1058,28 @@ begin
       // Go.
       LogSQL('Applying privilege to account ' + u.Name + '@' + u.Host + ' for ' + p.DBOPrettyKey + '.');
       case p.DBOType of
-        NODETYPE_DEFAULT: begin
+        lntNone: begin
           TableSet := dsUser;
           TableName := mask(PRIVTABLE_USERS);
           SetFieldName := '';
         end;
-        NODETYPE_DB: begin
+        lntDb: begin
           TableSet := dsDb;
           TableName := mask(PRIVTABLE_DB);
           SetFieldName := '';
         end;
-        NODETYPE_TABLE: begin
+        lntTable: begin
           TableSet := dsTables;
           TableName := mask(PRIVTABLE_TABLES);
           SetFieldName := 'table_priv';
         end;
-        NODETYPE_COLUMN: begin
+        lntColumn: begin
           TableSet := dsColumns;
           TableName := mask(PRIVTABLE_COLUMNS);
           SetFieldName := 'column_priv';
         end;
         else begin
-          raise Exception.Create('Processed privilege has an undefined db object type: ' + IntToStr(p.DBOType));
+          raise Exception.Create('Processed privilege has an undefined db object type: ' + IntToStr(Integer(p.DBOType)));
         end;
       end;
       // Deduce a key for this privilege definition, appropriate for DELETE.
@@ -1092,7 +1092,7 @@ begin
         end;
       end;
       // Special case: remove redundant privileges in mysql.user.
-      if (p.DBOType = NODETYPE_DB) and (p.DBOKey = '%') then begin
+      if (p.DBOType = lntDb) and (p.DBOKey = '%') then begin
         PrivUpdates.Clear;
         for k := 0 to p.PrivNames.Count - 1 do begin
           if dsUser.FindField(p.PrivNames[k] + '_priv') <> nil then
@@ -1103,7 +1103,7 @@ begin
         Exec(sql + AcctWhere);
       end;
       // Remove old privilege definition.
-      if (p.DBOType <> NODETYPE_DEFAULT) then begin
+      if (p.DBOType <> lntNone) then begin
         sql := 'DELETE FROM ' + db + '.' + TableName;
         Exec(sql + AcctWhere + PrivWhere);
       end else begin
@@ -1150,7 +1150,7 @@ begin
         PrivUpdates.Add(mask(SetFieldName) + '=' + esc(Delim(PrivValues, False)));
       sql := sql + ' SET ' + PrivWhere + ', ' + Delim(PrivUpdates);
       // Special case: UPDATE instead of INSERT for server-level privileges (see further above).
-      if (p.DBOType = NODETYPE_DEFAULT) then begin
+      if (p.DBOType = lntNone) then begin
         // Server barfs if we do not set missing defaults, sigh.
         PrivValues.Clear;
         if dsUser.FindField('ssl_cipher') <> nil then
@@ -1166,7 +1166,7 @@ begin
       end;
       Exec(sql);
       // Special case: update redundant column privileges in mysql.tables_priv.
-      if (p.DBOType = NODETYPE_COLUMN) and (dsTables.FindField('column_priv') <> nil) then begin
+      if (p.DBOType = lntColumn) and (dsTables.FindField('column_priv') <> nil) then begin
         // We need to deduce a completely new key because column_priv in mysql.tables_priv does not have a column field next to it, sigh.
         PrivUpdates.Clear;
         PrivUpdates.Add(mask('Host') + '=' + esc(u.Host));
@@ -1471,7 +1471,7 @@ end;
 function TPrivileges.FindPrivilege(Fields: TFields; SimulateDbField: Boolean): TPrivilege;
 var
   i : Integer;
-  DBOType: Byte;
+  DBOType: TListNodeType;
   DBONames: TWideStringList;
 begin
   Result := nil;
@@ -1493,7 +1493,7 @@ begin
   SetLength(FPrivilegeItems, Length(FPrivilegeItems)+1);
   FPrivilegeItems[Length(FPrivilegeItems)-1] := Result;
   // Minimum default privs for a new user should be read only for everything, or?
-  if FOwner.Added and (Result.FDBOType = NODETYPE_DB) and (Result.DBOKey = '%') then begin
+  if FOwner.Added and (Result.FDBOType = lntDb) and (Result.DBOKey = '%') then begin
     Result.SelectedPrivNames.Add('Select');
     Result.Modified := True;
   end;
@@ -1629,14 +1629,14 @@ function TPrivilege.GetDBOPrettyKey: String;
 begin
   Result := '';
   case FDBOType of
-    NODETYPE_DEFAULT:   Result := Result + 'Server privileges';
-    NODETYPE_DB:        Result := Result + 'Database: ';
-    NODETYPE_TABLE:     Result := Result + 'Table: ';
-    NODETYPE_COLUMN:    Result := Result + 'Column: ';
+    lntNone:      Result := Result + 'Server privileges';
+    lntDb:        Result := Result + 'Database: ';
+    lntTable:     Result := Result + 'Table: ';
+    lntColumn:    Result := Result + 'Column: ';
   end;
   Result := Result + GetDBOKey;
   // Special case "db=%"
-  if (FDBOType = NODETYPE_DB) and (DBOKey = '%') then
+  if (FDBOType = lntDb) and (DBOKey = '%') then
     Result := 'All databases';
 end;
 
@@ -1663,25 +1663,25 @@ begin
 end;
 
 
-procedure GetPrivilegeRowKey(Fields: TFields; SimulateDbField: Boolean; out DBOType: Byte; out DBONames: TWideStringList);
+procedure GetPrivilegeRowKey(Fields: TFields; SimulateDbField: Boolean; out DBOType: TListNodeType; out DBONames: TWideStringList);
 begin
-  DBOType := NODETYPE_DEFAULT;
+  DBOType := lntNone;
   DBONames := TWideStringList.Create;
   DBONames.Delimiter := '.';
   if SimulateDbField then begin
-    DBOType := NODETYPE_DB;
+    DBOType := lntDb;
     DBONames.Add('%');
   end;
   if Fields.FindField('Db') <> nil then begin
-    DBOType := NODETYPE_DB;
+    DBOType := lntDb;
     DBONames.Add(Fields.FieldByName('Db').AsString);
   end;
   if Fields.FindField('Table_name') <> nil then begin
-    DBOType := NODETYPE_TABLE;
+    DBOType := lntTable;
     DBONames.Add(Fields.FieldByName('Table_name').AsString);
   end;
   if Fields.FindField('Column_name') <> nil then begin
-    DBOType := NODETYPE_COLUMN;
+    DBOType := lntColumn;
     DBONames.Add(Fields.FieldByName('Column_name').AsString);
   end;
 end;
