@@ -4952,7 +4952,6 @@ begin
     actEmptyTables.Enabled := HasFocus and (GetSelectedNodeType in [lntTable, lntCrashedTable, lntView]);
     actEditObject.Enabled := L > 0;
     // Show certain items which are valid only here
-    actViewData.Visible := False;
     menuTreeExpandAll.Visible := True;
     menuTreeCollapseAll.Visible := True;
     menuShowSizeColumn.Visible := True;
@@ -4971,8 +4970,6 @@ begin
     end;
     actEditObject.Enabled := HasFocus;
     // Show certain items which are valid only here
-    actViewData.Visible := True;
-    actViewData.Enabled := actEmptyTables.Enabled;
     actCopyTable.Enabled := actEmptyTables.Enabled;
     menuTreeExpandAll.Visible := False;
     menuTreeCollapseAll.Visible := False;
