@@ -171,9 +171,9 @@ begin
         ds := Mainform.FetchDbTableList(Mainform.Databases[Node.Parent.Index]);
         ds.RecNo := Node.Index+1;
         case GetDBObjectType(ds.Fields) of
-          NODETYPE_CRASHED_TABLE: ImageIndex := ICONINDEX_CRASHED_TABLE;
-          NODETYPE_TABLE: ImageIndex := ICONINDEX_TABLE;
-          NODETYPE_VIEW: ImageIndex := ICONINDEX_VIEW;
+          lntCrashedTable: ImageIndex := ICONINDEX_CRASHED_TABLE;
+          lntTable: ImageIndex := ICONINDEX_TABLE;
+          lntView: ImageIndex := ICONINDEX_VIEW;
         end;
       end;
     2: ImageIndex := ICONINDEX_FIELD;

@@ -111,7 +111,7 @@ begin
   ComboBoxTables.Items.Clear;
   ds := Mainform.FetchDbTableList(ComboBoxDBs.Text);
   while not ds.Eof do begin
-    if GetDBObjectType(ds.Fields) in [NODETYPE_TABLE, NODETYPE_VIEW] then
+    if GetDBObjectType(ds.Fields) in [lntTable, lntView] then
       ComboBoxTables.Items.Add(ds.FieldByName(DBO_NAME).AsString);
     ds.Next;
   end;

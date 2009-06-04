@@ -8,10 +8,9 @@ uses
   SynRegExpr, ActiveX, DB, ExtCtrls, ImgList, SynEdit, SynMemo, Menus;
 
 type
-  TfrmTableEditor = class(TForm)
-    btnApply: TButton;
-    btnCancel: TButton;
-    btnOK: TButton;
+  TfrmTableEditor = class(TFrame)
+    btnSave: TButton;
+    btnDiscard: TButton;
     btnHelp: TButton;
     listColumns: TVirtualStringTree;
     PageControlMain: TPageControl;
@@ -72,8 +71,6 @@ type
     menuMoveUpColumn: TMenuItem;
     menuMoveDownColumn: TMenuItem;
     chkCharsetConvert: TCheckBox;
-    procedure FormCreate(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure editNameChange(Sender: TObject);
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
@@ -84,11 +81,9 @@ type
     procedure btnHelpClick(Sender: TObject);
     procedure listColumnsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
-    procedure FormShow(Sender: TObject);
     procedure listColumnsEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
     procedure listColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
     procedure btnMoveUpColumnClick(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure btnMoveDownColumnClick(Sender: TObject);
     procedure listColumnsDragOver(Sender: TBaseVirtualTree; Source: TObject; Shift: TShiftState; State: TDragState;
 		  Pt: TPoint; Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
@@ -105,7 +100,7 @@ type
     procedure treeIndexesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
       var Ghosted: Boolean; var ImageIndex: Integer);
     procedure btnClearIndexesClick(Sender: TObject);
-    procedure btnApplyClick(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
     procedure editNumEditChange(Sender: TObject);
     procedure comboEngineSelect(Sender: TObject);
     procedure listColumnsClick(Sender: TObject);
@@ -130,10 +125,12 @@ type
     procedure PageControlMainChange(Sender: TObject);
     procedure chkCharsetConvertClick(Sender: TObject);
     procedure treeIndexesClick(Sender: TObject);
+    procedure btnDiscardClick(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
     FLoaded: Boolean;
+    FAlterTableName: WideString;
     SQLCodeValid: Boolean;
     Columns, ColumnsChanges,
     Indexes, OldIndexes: TWideStringList;
@@ -154,7 +151,9 @@ type
     procedure UpdateSQLcode;
   public
     { Public declarations }
-    AlterTableName: WideString;
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Init(AlterTableName: WideString='');
   end;
 
 
@@ -175,13 +174,13 @@ const
 {$R *.dfm}
 
 
-procedure TfrmTableEditor.FormCreate(Sender: TObject);
+constructor TfrmTableEditor.Create(AOwner: TComponent);
 begin
-  // Restore form dimensions
-  Width := GetRegValue(REGNAME_TABLEEDITOR_WIDTH, Width);
-  Height := GetRegValue(REGNAME_TABLEEDITOR_HEIGHT, Height);
+  inherited Create(AOwner);
+  // Do not set alClient via DFM! In conjunction with ExplicitXXX properties that
+  // repeatedly breaks the GUI layout when you reload the project
+  Align := alClient;
   PageControlMain.Height := GetRegValue(REGNAME_TABLEEDITOR_TABSHEIGHT, PageControlMain.Height);
-  SetWindowSizeGrip(Handle, True);
   InheritFont(Font);
   FixVT(listColumns);
   FixVT(treeIndexes);
@@ -202,19 +201,18 @@ begin
 end;
 
 
-procedure TfrmTableEditor.FormDestroy(Sender: TObject);
+destructor TfrmTableEditor.Destroy;
 begin
-  // Store form dimensions
+  // Store GUI setup
   OpenRegistry;
-  MainReg.WriteInteger(REGNAME_TABLEEDITOR_WIDTH, Width);
-  MainReg.WriteInteger(REGNAME_TABLEEDITOR_HEIGHT, Height);
   MainReg.WriteInteger(REGNAME_TABLEEDITOR_TABSHEIGHT, PageControlMain.Height);
   Mainform.SaveListSetup(listColumns);
   Mainform.SaveListSetup(treeIndexes);
+  Inherited;
 end;
 
 
-procedure TfrmTableEditor.FormShow(Sender: TObject);
+procedure TfrmTableEditor.Init(AlterTableName: WideString='');
 var
   ds: TDataset;
   Props: TWideStringlist;
@@ -223,15 +221,20 @@ var
   rx: TRegExpr;
 begin
   SetStatus('Initializing ...');
-  // Always start with "basic" tab activated
-  PageControlMain.ActivePage := tabBasic;
+  // Start with "basic" tab activated when just called
+  if FAlterTableName <> AlterTableName then
+    PageControlMain.ActivePage := tabBasic;
   Mainform.TableEnginesCombo(comboEngine);
   comboCollation.Items.Clear;
   Mainform.GetCollations(comboCollation.Items);
+  FAlterTableName := AlterTableName;
+  btnClearColumnsClick(Self);
+  btnClearIndexesClick(Self);
 
-  if AlterTableName = '' then begin
+  if FAlterTableName = '' then begin
     // Creating new table
     editName.Clear;
+    Mainform.SetEditorTabCaption(Self, '');
     memoComment.Text := '';
     editAutoInc.Text := '';
     editAvgRowLen.Text := '';
@@ -243,12 +246,12 @@ begin
     comboInsertMethod.ItemIndex := -1;
 
     PageControlMain.ActivePage := tabBasic;
-    editName.SetFocus;
 
   end else begin
     // Editing existing table
-    editName.Text := AlterTableName;
-    ds := Mainform.GetResults('SHOW TABLE STATUS LIKE '+esc(AlterTableName));
+    editName.Text := FAlterTableName;
+    Mainform.SetEditorTabCaption(Self, FAlterTableName);
+    ds := Mainform.GetResults('SHOW TABLE STATUS LIKE '+esc(FAlterTableName));
     memoComment.Text := ds.FieldByName(DBO_COMMENT).AsWideString;
     if ds.FindField(DBO_ENGINE) <> nil then
       engine := ds.FieldByName(DBO_ENGINE).AsString
@@ -261,7 +264,7 @@ begin
     editAvgRowLen.Text := ds.FieldByName(DBO_AVGROWLEN).AsString;
     comboRowFormat.ItemIndex := comboRowFormat.Items.IndexOf(ds.FieldByName(DBO_ROWFORMAT).AsString);
     FreeAndNil(ds);
-    CreateTable := Mainform.GetVar('SHOW CREATE TABLE '+Mainform.mask(AlterTableName), 1);
+    CreateTable := Mainform.GetVar('SHOW CREATE TABLE '+Mainform.mask(FAlterTableName), 1);
     rx := TRegExpr.Create;
     rx.ModifierI := True;
     rx.Expression := '\bUNION=\((.+)\)';
@@ -271,7 +274,8 @@ begin
       memoUnionTables.Clear;
     FreeAndNil(rx);
 
-    ds := Mainform.GetResults('SHOW FULL COLUMNS FROM '+Mainform.mask(AlterTableName));
+    ds := Mainform.GetResults('SHOW FULL COLUMNS FROM '+Mainform.mask(FAlterTableName));
+    listColumns.BeginUpdate;
     while not ds.Eof do begin
       Props := TWideStringlist.Create;
       Props.OnChange := ColumnsChange;
@@ -299,8 +303,9 @@ begin
       ds.Next;
     end;
     FreeAndNil(ds);
+    listColumns.EndUpdate;
 
-    ds := Mainform.GetResults('SHOW KEYS FROM '+Mainform.mask(AlterTableName));
+    ds := Mainform.GetResults('SHOW KEYS FROM '+Mainform.mask(FAlterTableName));
     LastKeyName := '';
     Props := nil;
     while not ds.Eof do begin
@@ -326,48 +331,53 @@ begin
 
   end;
   // Validate controls
-  ColumnsChange(Sender);
+  ColumnsChange(Self);
   comboEngineSelect(comboEngine);
   ValidateColumnControls;
   ValidateIndexControls;
   ResetModificationFlags;
-  // Indicate change mechanisms can call their events now. See Modification(). 
+  // Indicate change mechanisms can call their events now. See Modification().
   FLoaded := True;
   // Empty status label
   SetStatus;
 end;
 
 
-procedure TfrmTableEditor.btnApplyClick(Sender: TObject);
+procedure TfrmTableEditor.btnDiscardClick(Sender: TObject);
+begin
+  // Reinit GUI, discarding changes
+  Init(FAlterTableName);
+end;
+
+
+procedure TfrmTableEditor.btnSaveClick(Sender: TObject);
 var
   sql: WideString;
   i: Integer;
   Props: TWideStringlist;
 begin
   // Create or alter table
-  if AlterTableName = '' then
+  if FAlterTableName = '' then
     sql := ComposeCreateStatement
   else
     sql := ComposeAlterStatement;
-  try
-    Mainform.ExecUpdateQuery(sql, False, True);
-    // Set table name for altering if Apply was clicked
-    AlterTableName := editName.Text;
-    if chkCharsetConvert.Checked then begin
-      // Autoadjust column collations
-      for i:=0 to Columns.Count-1 do begin
-        Props := TWideStringlist(Columns.Objects[i]);
-        if Props[6] <> '' then begin
-          Props.OnChange := nil;
-          Props[6] := comboCollation.Text;
-          Props.OnChange := ColumnsChange;
-        end;
+  Mainform.ExecUpdateQuery(sql);
+  // Set table name for altering if Apply was clicked
+  FAlterTableName := editName.Text;
+  Mainform.SetEditorTabCaption(Self, FAlterTableName);
+  Mainform.tabData.TabVisible := True;
+  if chkCharsetConvert.Checked then begin
+    // Autoadjust column collations
+    for i:=0 to Columns.Count-1 do begin
+      Props := TWideStringlist(Columns.Objects[i]);
+      if Props[6] <> '' then begin
+        Props.OnChange := nil;
+        Props[6] := comboCollation.Text;
+        Props.OnChange := ColumnsChange;
       end;
     end;
-    ResetModificationFlags;
-  except
-    ModalResult := mrNone;
   end;
+  ResetModificationFlags;
 end;
 
 
@@ -398,16 +408,6 @@ begin
 end;
 
 
-procedure TfrmTableEditor.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  // Reset edited table name for the next call
-  AlterTableName := '';
-  FLoaded := False;
-  btnClearColumnsClick(Sender);
-  btnClearIndexesClick(Sender);
-end;
-
-
 function TfrmTableEditor.ComposeAlterStatement: WideString;
 var
   Specs, Props, IndexesComposed, OldIndexesComposed: TWideStringlist;
@@ -421,7 +421,7 @@ begin
   // Compose ALTER query, called by buttons and for SQL code tab
   SetStatus('Composing ALTER statement ...');
   Specs := TWideStringlist.Create;
-  if editName.Text <> AlterTableName then
+  if editName.Text <> FAlterTableName then
     Specs.Add('RENAME TO ' + Mainform.mask(editName.Text));
   if memoComment.Tag = ModifiedFlag then
     Specs.Add('COMMENT = ' + esc(memoComment.Text));
@@ -532,7 +532,7 @@ begin
       Specs.Add('ADD '+IndexesComposed[i]);
   end;
 
-  Result := 'ALTER TABLE '+Mainform.mask(AlterTableName) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
+  Result := 'ALTER TABLE '+Mainform.mask(FAlterTableName) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
   FreeAndNil(Specs);
   FreeAndNil(IndexesComposed);
   FreeAndNil(OldIndexesComposed);
@@ -1010,8 +1010,8 @@ procedure TfrmTableEditor.SetModified(Value: Boolean);
 begin
   // Some value has changed
   FModified := Value;
-  btnOK.Enabled := FModified;
-  btnApply.Enabled := FModified;
+  btnSave.Enabled := FModified;
+  btnDiscard.Enabled := FModified;
   SQLCodeValid := False;
   UpdateSQLcode;
 end;
@@ -1491,7 +1491,7 @@ begin
   if (PageControlMain.ActivePage = tabSQLCode) and (not SQLCodeValid) then begin
     SynMemoSQLcode.BeginUpdate;
     OldTopLine := SynMemoSQLcode.TopLine;
-    if AlterTableName <> '' then
+    if FAlterTableName <> '' then
       SynMemoSQLcode.Text := ComposeAlterStatement
     else
       SynMemoSQLcode.Text := ComposeCreateStatement;
@@ -1508,7 +1508,7 @@ begin
     listColumns.Header.Columns[8].Color := clBtnFace
   else
     listColumns.Header.Columns[8].Color := clWindow;
-  chkCharsetConvert.Enabled := (AlterTablename <> '') and (comboCollation.ItemIndex > -1);
+  chkCharsetConvert.Enabled := (FAlterTablename <> '') and (comboCollation.ItemIndex > -1);
   listColumns.Repaint;
   Modification(Sender);
 end;

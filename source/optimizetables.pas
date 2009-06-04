@@ -120,7 +120,7 @@ begin
   ds := Mainform.FetchDbTableList(DBComboBox.Text);
   TablesCheckListBox.Items.Clear;
   while not ds.Eof do begin
-    if GetDBObjectType(ds.Fields) = NODETYPE_TABLE then
+    if GetDBObjectType(ds.Fields) = lntTable then
       TablesCheckListBox.Items.Add(ds.FieldByName(DBO_NAME).AsWideString);
     ds.Next;
   end;

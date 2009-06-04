@@ -15,11 +15,17 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
 
 type
 
+  TListNodeType = (lntNone, lntDb, lntTable, lntCrashedTable, lntView, lntFunction, lntProcedure, lntColumn);
+  TListNode = record
+    Text: WideString;
+    NodeType: TListNodeType;
+  end;
+
   // Define a record which can hold everything we need for one row / node in a VirtualStringTree
   TVTreeData = record
     Captions: TWideStringList;
     ImageIndex: Integer;
-    NodeType: Byte;
+    NodeType: TListNodeType;
   end;
   PVTreedata = ^TVTreeData;
 
@@ -160,11 +166,11 @@ type
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber( Seconds: Cardinal ): String;
   function TColorToHex( Color : TColor ): string;
-  function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: Integer = NODETYPE_DEFAULT ): TWideStringList;
+  function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: TListNodeType = lntNone ): TWideStringList;
   procedure SetVTSelection( VT: TVirtualStringTree; Selected: TWideStringList );
   function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
   function GetTempDir: String;
-  function GetDBObjectType( TableStatus: TFields ): Byte;
+  function GetDBObjectType( TableStatus: TFields ): TListNodeType;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
   procedure SaveUnicodeFile(Filename: String; Text: WideString);
   function CreateUnicodeFileStream(Filename: String): TFileStream;
@@ -2217,7 +2223,7 @@ end;
   Return a TStringList with captions from all selected nodes in a VirtualTree
   Especially helpful when toMultiSelect is True
 }
-function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: Integer = NODETYPE_DEFAULT ): TWideStringList;
+function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: TListNodeType = lntNone ): TWideStringList;
 var
   SelectedNodes : TNodeArray;
   NodeData: PVTreeData;
@@ -2232,7 +2238,7 @@ begin
     for i := 0 to Length(SelectedNodes) - 1 do
     begin
       NodeData := VT.GetNodeData( SelectedNodes[i] );
-      if (OnlyNodeType = NODETYPE_DEFAULT) // Add all nodes, regardless of their types
+      if (OnlyNodeType = lntNone) // Add all nodes, regardless of their types
         or (NodeData.NodeType = OnlyNodeType) then // Node in loop is of specified type
         Result.Add( NodeData.Captions[Column] );
     end;
@@ -2241,7 +2247,7 @@ begin
     // Fetch all nodes
     a := Mainform.GetVTreeDataArray( VT )^;
     for i := 0 to High(a) do begin
-      if (OnlyNodeType = NODETYPE_DEFAULT)
+      if (OnlyNodeType = lntNone)
         or (a[i].NodeType = OnlyNodeType) then
         Result.Add( a[i].Captions[ Column ] );
     end;
@@ -2296,7 +2302,7 @@ end;
 
 
 // Tell type of db object (table|view) by a given row from a SHOW TABLE STATUS result
-function GetDBObjectType( TableStatus: TFields ): Byte;
+function GetDBObjectType( TableStatus: TFields ): TListNodeType;
 var
   t: String;
 begin
@@ -2308,28 +2314,28 @@ begin
       but for views which is missing its tables, it says
       "Views bla references invalid..."
   }
-  Result := NODETYPE_TABLE;
+  Result := lntTable;
   if TableStatus.FindField('Type') <> nil then begin
     t := TableStatus.FindField('Type').AsString;
     if t = 'BASE TABLE' then
-      Result := NODETYPE_TABLE
+      Result := lntTable
     else if t = 'VIEW' then
-      Result := NODETYPE_VIEW
+      Result := lntView
     else if t = 'FUNCTION' then
-      Result := NODETYPE_FUNCTION
+      Result := lntFunction
     else if t = 'PROCEDURE' then
-      Result := NODETYPE_PROCEDURE;
+      Result := lntProcedure;
   end else begin
     if
       TableStatus[1].IsNull and  // Engine column is NULL for views
       TableStatus[2].IsNull and
       (Pos('VIEW', UpperCase(TableStatus.FieldByName(DBO_COMMENT).AsWideString)) > 0)
-      then Result := NODETYPE_VIEW;
+      then Result := lntView;
     if
       TableStatus[1].IsNull and
       TableStatus[2].IsNull and
       (Pos('MARKED AS CRASHED', UpperCase(TableStatus.FieldByName(DBO_COMMENT).AsWideString)) > 0)
-      then Result := NODETYPE_CRASHED_TABLE;
+      then Result := lntCrashedTable;
   end;
 end;
 

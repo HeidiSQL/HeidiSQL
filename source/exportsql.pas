@@ -349,7 +349,7 @@ begin
   checkListTables.Items.Clear;
   ds := Mainform.FetchDbTableList(comboSelectDatabase.Text);
   while not ds.Eof do begin
-    if GetDBObjectType(ds.Fields) = NODETYPE_TABLE then
+    if GetDBObjectType(ds.Fields) = lntTable then
       checkListTables.Items.Add(ds.FieldByName(DBO_NAME).AsWideString);
     ds.Next;
   end;

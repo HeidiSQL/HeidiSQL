@@ -1,84 +1,62 @@
 object frmTableEditor: TfrmTableEditor
   Left = 0
   Top = 0
-  Caption = 'Table editor'
-  ClientHeight = 412
-  ClientWidth = 598
-  Color = clBtnFace
+  Width = 607
+  Height = 391
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
-  Position = poMainFormCenter
-  OnClose = FormClose
-  OnCreate = FormCreate
-  OnDestroy = FormDestroy
-  OnShow = FormShow
+  ParentFont = False
+  TabOrder = 0
   DesignSize = (
-    598
-    412)
-  PixelsPerInch = 96
-  TextHeight = 13
+    607
+    391)
   object SplitterTopBottom: TSplitter
     AlignWithMargins = True
-    Left = 8
-    Top = 158
-    Width = 582
+    Left = 3
+    Top = 153
+    Width = 601
     Height = 8
     Cursor = crSizeNS
-    Margins.Left = 8
     Margins.Top = 0
-    Margins.Right = 8
     Margins.Bottom = 0
     Align = alTop
     ResizeStyle = rsUpdate
   end
   object lblStatus: TLabel
-    Left = 104
-    Top = 384
+    Left = 246
+    Top = 367
     Width = 41
     Height = 13
     Anchors = [akLeft, akBottom]
     Caption = 'lblStatus'
   end
-  object btnApply: TButton
-    Left = 515
-    Top = 379
+  object btnSave: TButton
+    Left = 165
+    Top = 362
     Width = 75
     Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = 'Apply'
-    TabOrder = 6
-    OnClick = btnApplyClick
-  end
-  object btnCancel: TButton
-    Left = 434
-    Top = 379
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
-    TabOrder = 5
-  end
-  object btnOK: TButton
-    Left = 353
-    Top = 379
-    Width = 75
-    Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = 'OK'
+    Anchors = [akLeft, akBottom]
+    Caption = 'Save'
     Default = True
-    ModalResult = 1
+    TabOrder = 5
+    OnClick = btnSaveClick
+  end
+  object btnDiscard: TButton
+    Left = 84
+    Top = 362
+    Width = 75
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Caption = 'Discard'
     TabOrder = 4
-    OnClick = btnApplyClick
+    OnClick = btnDiscardClick
   end
   object btnHelp: TButton
-    Left = 8
-    Top = 379
+    Left = 3
+    Top = 362
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -88,17 +66,15 @@ object frmTableEditor: TfrmTableEditor
   end
   object listColumns: TVirtualStringTree
     AlignWithMargins = True
-    Left = 8
-    Top = 196
-    Width = 582
-    Height = 176
-    Margins.Left = 8
-    Margins.Top = 8
-    Margins.Right = 8
-    Margins.Bottom = 40
+    Left = 3
+    Top = 186
+    Width = 601
+    Height = 173
+    Margins.Bottom = 32
     Align = alClient
+    BottomSpace = 60
     CheckImageKind = ckSystem
-    Constraints.MinHeight = 50
+    Constraints.MinHeight = 4
     DragMode = dmAutomatic
     Header.AutoSizeIndex = -1
     Header.DefaultHeight = 17
@@ -188,18 +164,15 @@ object frmTableEditor: TfrmTableEditor
   end
   object PageControlMain: TPageControl
     AlignWithMargins = True
-    Left = 8
-    Top = 8
-    Width = 582
+    Left = 3
+    Top = 3
+    Width = 601
     Height = 150
-    Margins.Left = 8
-    Margins.Top = 8
-    Margins.Right = 8
     Margins.Bottom = 0
-    ActivePage = tabBasic
+    ActivePage = tabSQLCode
     Align = alTop
     Constraints.MinHeight = 150
-    Constraints.MinWidth = 500
+    Constraints.MinWidth = 304
     Images = MainForm.PngImageListMain
     TabOrder = 0
     OnChange = PageControlMainChange
@@ -207,7 +180,7 @@ object frmTableEditor: TfrmTableEditor
       Caption = 'Basic'
       ImageIndex = 14
       DesignSize = (
-        574
+        593
         121)
       object lblName: TLabel
         Left = 4
@@ -224,9 +197,9 @@ object frmTableEditor: TfrmTableEditor
         Caption = 'Comment:'
       end
       object editName: TTntEdit
-        Left = 123
+        Left = 72
         Top = 3
-        Width = 448
+        Width = 520
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
@@ -234,10 +207,10 @@ object frmTableEditor: TfrmTableEditor
         OnChange = editNameChange
       end
       object memoComment: TTntMemo
-        Left = 123
+        Left = 72
         Top = 30
-        Width = 448
-        Height = 83
+        Width = 520
+        Height = 87
         Anchors = [akLeft, akTop, akRight, akBottom]
         Lines.Strings = (
           'memoComment')
@@ -250,7 +223,7 @@ object frmTableEditor: TfrmTableEditor
       Caption = 'Options'
       ImageIndex = 39
       DesignSize = (
-        574
+        593
         121)
       object lblAutoinc: TLabel
         Left = 4
@@ -347,7 +320,7 @@ object frmTableEditor: TfrmTableEditor
       object memoUnionTables: TTntMemo
         Left = 354
         Top = 49
-        Width = 217
+        Width = 238
         Height = 44
         Anchors = [akLeft, akTop, akRight]
         Lines.Strings = (
@@ -358,7 +331,7 @@ object frmTableEditor: TfrmTableEditor
       object comboInsertMethod: TComboBox
         Left = 354
         Top = 95
-        Width = 217
+        Width = 238
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -377,7 +350,7 @@ object frmTableEditor: TfrmTableEditor
       object comboCollation: TComboBox
         Left = 354
         Top = 3
-        Width = 104
+        Width = 119
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -389,7 +362,7 @@ object frmTableEditor: TfrmTableEditor
       object comboEngine: TComboBox
         Left = 354
         Top = 26
-        Width = 217
+        Width = 238
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -399,7 +372,7 @@ object frmTableEditor: TfrmTableEditor
         OnSelect = comboEngineSelect
       end
       object chkCharsetConvert: TCheckBox
-        Left = 464
+        Left = 481
         Top = 5
         Width = 107
         Height = 17
@@ -413,13 +386,13 @@ object frmTableEditor: TfrmTableEditor
       Caption = 'Indexes'
       ImageIndex = 13
       DesignSize = (
-        574
+        593
         121)
       object treeIndexes: TVirtualStringTree
         Left = 75
         Top = 3
-        Width = 251
-        Height = 110
+        Width = 300
+        Height = 114
         Anchors = [akLeft, akTop, akRight, akBottom]
         DragMode = dmAutomatic
         EditDelay = 0
@@ -453,7 +426,7 @@ object frmTableEditor: TfrmTableEditor
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
-            Width = 151
+            Width = 196
             WideText = 'Name'
           end
           item
@@ -522,10 +495,10 @@ object frmTableEditor: TfrmTableEditor
         end
       end
       object StaticText1: TStaticText
-        Left = 341
+        Left = 381
         Top = 25
-        Width = 221
-        Height = 39
+        Width = 188
+        Height = 66
         Anchors = [akTop, akRight]
         AutoSize = False
         Caption = 
@@ -540,7 +513,7 @@ object frmTableEditor: TfrmTableEditor
       object SynMemoSQLcode: TSynMemo
         Left = 0
         Top = 0
-        Width = 574
+        Width = 593
         Height = 121
         SingleLineMode = False
         Align = alClient
@@ -568,13 +541,11 @@ object frmTableEditor: TfrmTableEditor
   end
   object pnlColumnsTop: TPanel
     AlignWithMargins = True
-    Left = 8
-    Top = 166
-    Width = 582
+    Left = 3
+    Top = 161
+    Width = 601
     Height = 22
-    Margins.Left = 8
     Margins.Top = 0
-    Margins.Right = 8
     Margins.Bottom = 0
     Align = alTop
     Alignment = taLeftJustify
@@ -638,8 +609,8 @@ object frmTableEditor: TfrmTableEditor
   end
   object popupIndexes: TPopupMenu
     Images = MainForm.PngImageListMain
-    Left = 296
-    Top = 376
+    Left = 344
+    Top = 360
     object menuAddIndex: TMenuItem
       Caption = 'Add index'
       ImageIndex = 45
@@ -679,8 +650,8 @@ object frmTableEditor: TfrmTableEditor
   end
   object popupColumns: TPopupMenu
     Images = MainForm.PngImageListMain
-    Left = 264
-    Top = 376
+    Left = 312
+    Top = 360
     object menuAddColumn: TMenuItem
       Caption = 'Add column'
       ImageIndex = 45

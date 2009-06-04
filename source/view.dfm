@@ -1,46 +1,38 @@
 object frmView: TfrmView
   Left = 0
   Top = 0
-  BorderIcons = [biSystemMenu, biMaximize]
-  Caption = 'frmView'
-  ClientHeight = 275
-  ClientWidth = 422
-  Color = clBtnFace
-  Constraints.MinHeight = 250
-  Constraints.MinWidth = 360
+  Width = 451
+  Height = 304
+  Constraints.MinHeight = 240
+  Constraints.MinWidth = 320
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
-  Position = poOwnerFormCenter
-  OnCreate = FormCreate
-  OnDestroy = FormDestroy
-  OnShow = FormShow
+  ParentFont = False
+  TabOrder = 0
   DesignSize = (
-    422
-    275)
-  PixelsPerInch = 96
-  TextHeight = 13
+    451
+    304)
   object lblName: TLabel
-    Left = 8
-    Top = 8
+    Left = 3
+    Top = 6
     Width = 31
     Height = 13
     Caption = 'Name:'
   end
   object lblSelect: TLabel
-    Left = 8
+    Left = 3
     Top = 124
     Width = 85
     Height = 13
     Caption = 'Select statement:'
   end
   object editName: TEdit
-    Left = 45
-    Top = 5
-    Width = 371
+    Left = 42
+    Top = 3
+    Width = 405
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
@@ -48,9 +40,9 @@ object frmView: TfrmView
     OnChange = editNameChange
   end
   object rgAlgorithm: TRadioGroup
-    Left = 8
+    Left = 3
     Top = 32
-    Width = 201
+    Width = 206
     Height = 86
     Caption = 'Algorithm'
     ItemIndex = 0
@@ -61,10 +53,10 @@ object frmView: TfrmView
     TabOrder = 1
   end
   object SynMemoSelect: TSynMemo
-    Left = 8
+    Left = 3
     Top = 143
-    Width = 408
-    Height = 95
+    Width = 444
+    Height = 128
     SingleLineMode = False
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = DEFAULT_CHARSET
@@ -97,33 +89,32 @@ object frmView: TfrmView
         ShortCut = 16473
       end>
   end
-  object btnCancel: TButton
-    Left = 341
-    Top = 244
+  object btnDiscard: TButton
+    Left = 84
+    Top = 276
     Width = 75
     Height = 25
-    Anchors = [akRight, akBottom]
+    Anchors = [akLeft, akBottom]
     Cancel = True
-    Caption = 'Cancel'
-    ModalResult = 2
+    Caption = 'Discard'
     TabOrder = 3
+    OnClick = btnDiscardClick
   end
-  object btnOK: TButton
-    Left = 260
-    Top = 244
+  object btnSave: TButton
+    Left = 162
+    Top = 276
     Width = 75
     Height = 25
-    Anchors = [akRight, akBottom]
-    Caption = 'OK'
+    Anchors = [akLeft, akBottom]
+    Caption = 'Save'
     Default = True
-    ModalResult = 1
     TabOrder = 4
-    OnClick = btnOKClick
+    OnClick = btnSaveClick
   end
   object rgCheck: TRadioGroup
     Left = 215
     Top = 32
-    Width = 201
+    Width = 232
     Height = 86
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Check option for updates'
@@ -135,8 +126,8 @@ object frmView: TfrmView
     TabOrder = 5
   end
   object btnHelp: TButton
-    Left = 8
-    Top = 244
+    Left = 3
+    Top = 276
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
