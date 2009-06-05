@@ -347,7 +347,7 @@ object frmTableEditor: TfrmTableEditor
         TabOrder = 0
         OnChange = editNumEditChange
       end
-      object comboCollation: TComboBox
+      object comboCollation: TTntComboBox
         Left = 354
         Top = 3
         Width = 119

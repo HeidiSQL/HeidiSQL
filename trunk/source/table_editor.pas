@@ -35,7 +35,7 @@ type
     memoUnionTables: TTntMemo;
     comboInsertMethod: TComboBox;
     lblCollation: TLabel;
-    comboCollation: TComboBox;
+    comboCollation: TTNTComboBox;
     lblEngine: TLabel;
     comboEngine: TComboBox;
     treeIndexes: TVirtualStringTree;
@@ -259,7 +259,7 @@ begin
       engine := ds.FieldByName(DBO_TYPE).AsString;
     comboEngine.ItemIndex := comboEngine.Items.IndexOf(engine);
     if ds.FindField(DBO_COLLATION) <> nil then
-      comboCollation.ItemIndex := comboCollation.Items.IndexOf(ds.FieldByName(DBO_COLLATION).AsString);
+      comboCollation.ItemIndex := comboCollation.Items.IndexOf(ds.FieldByName(DBO_COLLATION).AsWideString);
     editAutoInc.Text := ds.FieldByName(DBO_AUTOINC).AsString;
     editAvgRowLen.Text := ds.FieldByName(DBO_AVGROWLEN).AsString;
     comboRowFormat.ItemIndex := comboRowFormat.Items.IndexOf(ds.FieldByName(DBO_ROWFORMAT).AsString);
@@ -448,7 +448,7 @@ begin
     ds := Mainform.GetCollations;
     while not ds.Eof do begin
       if ds.FieldByName('Collation').AsWideString = comboCollation.Text then begin
-        Specs.Add('CONVERT TO CHARSET '+ds.FieldByName('Charset').AsString);
+        Specs.Add('CONVERT TO CHARSET '+ds.FieldByName('Charset').AsWideString);
         break;
       end;
       ds.Next;
@@ -994,7 +994,7 @@ begin
     8: begin // Collation pulldown
       EnumEditor := TEnumEditorLink.Create;
       EnumEditor.ValueList := TWideStringList.Create;
-      Mainform.GetCollations(TStrings(EnumEditor.ValueList));
+      Mainform.GetCollations(EnumEditor.ValueList);
       EditLink := EnumEditor;
       end;
     6: begin
