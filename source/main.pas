@@ -513,6 +513,7 @@ type
     procedure PageControlHostChange(Sender: TObject);
     procedure ValidateControls(Sender: TObject);
     procedure ValidateQueryControls(Sender: TObject);
+    procedure RefreshQueryHelpers;
     function FieldContent(ds: TDataSet; ColName: WideString): WideString;
     procedure LoadDatabaseProperties(db: WideString);
     procedure ShowHost;
@@ -4046,8 +4047,7 @@ end;
 }
 procedure TMainForm.ValidateControls(Sender: TObject);
 var
-  inDataGrid, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty,
-  dummy: Boolean;
+  inDataGrid, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty: Boolean;
   SelectedNodes: TNodeArray;
 begin
   inDataGrid := ActiveControl = DataGrid;
@@ -4080,12 +4080,20 @@ begin
 
   // Query tab
   // Manually invoke OnChange event of tabset to fill helper list with data
-  if inQueryTab then
-    tabsetQueryHelpers.OnChange(Self, tabsetQueryHelpers.TabIndex, dummy);
+  if inQueryTab then RefreshQueryHelpers;
+
   ValidateQueryControls(Sender);
 
   if not inQueryTab then // Empty panel with "Line:Char"
     showstatus('', 1);
+end;
+
+procedure TMainForm.RefreshQueryHelpers;
+var
+  dummy: Boolean;
+begin
+  dummy := True;
+  tabsetQueryHelpers.OnChange(Self, tabsetQueryHelpers.TabIndex, dummy);
 end;
 
 procedure TMainForm.ValidateQueryControls(Sender: TObject);
@@ -6842,10 +6850,23 @@ begin
         tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntCrashedTable, lntView];
         if tabEditor.TabVisible then begin
           actEditObjectExecute(Sender);
-          if (PagecontrolMain.ActivePage <> tabEditor) and (PagecontrolMain.ActivePage <> tabData) then
-            PagecontrolMain.ActivePage := tabEditor
-          else if PagecontrolMain.ActivePage = tabData then
+          // When a table is clicked in the tree, and the current
+          // tab is a Host or Database tab, switch to showing table columns.
+          if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
+            PagecontrolMain.ActivePage := tabEditor;
+          // When a table is clicked in the tree, and the data
+          // tab is active, update the data tab
+          if PagecontrolMain.ActivePage = tabData then
             ViewData(Sender);
+          // When a table is clicked in the tree, and the query
+          // tab is active, update the list of columns
+          if PagecontrolMain.ActivePage = tabQuery then begin
+            // Don't know why this next line is necessary, couldn't find
+            // documented in the code how the refresh mechanism for it is
+            // supposed to work.  It is necessary, though.
+            FSelectedTableColumns := nil;
+            RefreshQueryHelpers;
+          end;
         end;
       end;
   end;
