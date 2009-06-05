@@ -313,7 +313,8 @@ begin
         Props := TWideStringlist.Create;
         Props.OnChange := IndexesChange;
         IndexType := ds.FieldByName('Key_name').AsString;
-        if (ds.FieldByName('Index_type').AsString = FKEY) or (ds.FieldByName('Index_type').AsString = SKEY) then
+        if (ds.FindField('Index_type') <> nil) and (
+          (ds.FieldByName('Index_type').AsString = FKEY) or (ds.FieldByName('Index_type').AsString = SKEY)) then
           IndexType := ds.FieldByName('Index_type').AsString
         else if (IndexType <> PKEY) and (ds.FieldByName('Non_unique').AsInteger = 0) then
           IndexType := UKEY
@@ -487,10 +488,13 @@ begin
       else
         ColSpec := ColSpec + Props[6];
     end;
-    if i = 0 then
-      ColSpec := ColSpec + ' FIRST'
-    else
-      ColSpec := ColSpec + ' AFTER '+Mainform.mask(Columns[i-1]);
+    // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
+    if Mainform.mysql_version >= 40001 then begin
+      if i = 0 then
+        ColSpec := ColSpec + ' FIRST'
+      else
+        ColSpec := ColSpec + ' AFTER '+Mainform.mask(Columns[i-1]);
+    end;
     for j:=0 to ColumnsChanges.Count - 1 do begin
       if ColumnsChanges.ValueFromIndex[j] = Columns[i] then begin
         Specs.Add('CHANGE COLUMN '+Mainform.mask(ColumnsChanges.Names[j]) + ColSpec);
