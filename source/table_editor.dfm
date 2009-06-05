@@ -169,7 +169,7 @@ object frmTableEditor: TfrmTableEditor
     Width = 601
     Height = 150
     Margins.Bottom = 0
-    ActivePage = tabSQLCode
+    ActivePage = tabBasic
     Align = alTop
     Constraints.MinHeight = 150
     Constraints.MinWidth = 304
@@ -210,7 +210,7 @@ object frmTableEditor: TfrmTableEditor
         Left = 72
         Top = 30
         Width = 520
-        Height = 87
+        Height = 86
         Anchors = [akLeft, akTop, akRight, akBottom]
         Lines.Strings = (
           'memoComment')
@@ -391,7 +391,7 @@ object frmTableEditor: TfrmTableEditor
         Left = 75
         Top = 3
         Width = 300
-        Height = 114
+        Height = 113
         Anchors = [akLeft, akTop, akRight, akBottom]
         DragMode = dmAutomatic
         EditDelay = 0
