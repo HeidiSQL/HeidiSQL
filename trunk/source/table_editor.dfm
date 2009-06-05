@@ -368,7 +368,6 @@ object frmTableEditor: TfrmTableEditor
         Anchors = [akLeft, akTop, akRight]
         ItemHeight = 0
         TabOrder = 6
-        OnChange = Modification
         OnSelect = comboEngineSelect
       end
       object chkCharsetConvert: TCheckBox
