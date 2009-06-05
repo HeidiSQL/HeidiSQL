@@ -1081,6 +1081,7 @@ begin
   IsMerge := (Sender as TComboBox).Text = 'MRG_MYISAM';
   memoUnionTables.Enabled := IsMerge;
   comboInsertMethod.Enabled := IsMerge;
+  Modification(Sender);
 end;
 
 
