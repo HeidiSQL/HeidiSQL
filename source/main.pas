@@ -5666,7 +5666,7 @@ begin
     begin
       // Keep native order of columns
       lboxQueryHelpers.Sorted := False;
-      if SelectedTable.Text <> '' then begin
+      if (SelectedTable.Text <> '') and Assigned(FSelectedTableColumns) then begin
         FSelectedTableColumns.First;
         while not FSelectedTableColumns.Eof do begin
           lboxQueryHelpers.Items.Add(FSelectedTableColumns.Fields[0].AsWideString);
