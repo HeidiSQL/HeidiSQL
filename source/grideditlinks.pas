@@ -1096,6 +1096,7 @@ begin
   FBtnOk.Top := FRadioAutoInc.Top + FRadioAutoInc.Height + m;
   FBtnOk.Left := FPanel.Width - 2*m - 2*FBtnOk.Width;
   FBtnOk.OnClick := BtnOkClick;
+  FBtnOk.Default := True;
   FBtnOk.Caption := 'OK';
 
   FBtnCancel := TButton.Create(FPanel);
@@ -1104,6 +1105,7 @@ begin
   FBtnCancel.Width := FBtnOk.Width;
   FBtnCancel.Left := FBtnOk.Left + FBtnOk.Width + m;
   FBtnCancel.OnClick := BtnCancelClick;
+  FBtnCancel.Cancel := True;
   FBtnCancel.Caption := 'Cancel';
 
   FPanel.Height := FBtnOk.Top + FBtnOk.Height + m;
