@@ -379,6 +379,7 @@ begin
     end;
   end;
   ResetModificationFlags;
+  Mainform.ResetSelectedTableStuff;
 end;
 
 

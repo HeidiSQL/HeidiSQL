@@ -64,7 +64,7 @@ var
 begin
   // Take column names from listColumns and add here
   ColumnNames.Clear;
-  ds := Mainform.FSelectedTableColumns;
+  ds := Mainform.SelectedTableColumns;
   ds.First;
   while not ds.Eof do begin
     ColumnNames.Add(ds.Fields[0].AsWideString);

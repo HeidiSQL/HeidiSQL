@@ -54,7 +54,7 @@ procedure TColumnSelectionForm.FormShow(Sender: TObject);
 var
   ds: TDataSet;
 begin
-  ds := Mainform.FSelectedTableColumns;
+  ds := Mainform.SelectedTableColumns;
   ds.First;
   while not ds.Eof do begin
     chklistColumns.Items.Add(ds.Fields[0].AsWideString);
@@ -169,7 +169,7 @@ begin
   if not chklistColumns.Sorted then begin
     // Add all fieldnames again
     chklistColumns.Items.BeginUpdate;
-    ds := Mainform.FSelectedTableColumns;
+    ds := Mainform.SelectedTableColumns;
     ds.First;
     while not ds.Eof do begin
       chklistColumns.Items.Add(ds.Fields[0].AsWideString);

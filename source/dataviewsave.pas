@@ -65,12 +65,12 @@ begin
     HiddenCols := TWideStringlist.Create;
     HiddenCols.Delimiter := REGDELIM;
     HiddenCols.StrictDelimiter := True;
-    Mainform.FSelectedTableColumns.First;
-    for i := 0 to Mainform.FSelectedTableColumns.RecordCount - 1 do begin
-      Col := Mainform.FSelectedTableColumns.Fields[0].AsWideString;
+    Mainform.SelectedTableColumns.First;
+    for i := 0 to Mainform.SelectedTableColumns.RecordCount - 1 do begin
+      Col := Mainform.SelectedTableColumns.Fields[0].AsWideString;
       if Mainform.FDataGridSelect.IndexOf(Col) = -1 then
         HiddenCols.Add(Col);
-      Mainform.FSelectedTableColumns.Next;
+      Mainform.SelectedTableColumns.Next;
     end;
     MainReg.WriteString(REGNAME_HIDDENCOLUMNS, Utf8Encode(HiddenCols.DelimitedText));
     FreeAndNil(HiddenCols);
