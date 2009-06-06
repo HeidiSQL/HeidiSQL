@@ -149,10 +149,9 @@ begin
   Screen.Cursor := crHourglass;
   FillSessionCombo(Sender);
   LastSessionIndex := comboSession.Items.IndexOf(GetRegValue(REGNAME_LASTSESSION, ''));
-  if LastSessionIndex > -1 then begin
+  if LastSessionIndex > -1 then
     comboSession.ItemIndex := LastSessionIndex;
-    comboSessionSelect(Sender);
-  end;
+  comboSessionSelect(Sender);
   comboSession.SetFocus;
   Screen.Cursor := crDefault;
 end;
@@ -255,6 +254,7 @@ begin
     if not MainReg.DeleteKey(REGPATH + REGKEY_SESSIONS + comboSession.Text) then
       MessageDlg('Error while deleting session from Registry!', mtError, [mbOK], 0);
     FillSessionCombo(Sender);
+    comboSessionSelect(Sender);
   end;
 end;
 
