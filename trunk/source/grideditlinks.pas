@@ -538,6 +538,7 @@ end;
 function TEnumEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
   i: Integer;
+  CellRect: TRect;
 begin
   Result := Tree is TCustomVirtualStringTree;
   if not Result then
@@ -545,8 +546,12 @@ begin
   Ftree := Tree as TCustomVirtualStringTree;
   FNode := Node;
   FColumn := Column;
-  FCombo := TTnTComboBox.Create(Tree);
+  FCombo := TTnTComboBox.Create(FTree);
   FCombo.Parent := FTree;
+
+  CellRect := Ftree.GetDisplayRect(FNode, FColumn, False);
+  FCombo.BoundsRect := CellRect;
+  FCombo.ItemHeight := CellRect.Bottom - CellRect.Top - 4;
   for i := 0 to ValueList.Count - 1 do
     FCombo.Items.Add(ValueList[i]);
   if AllowCustomText then begin
@@ -569,8 +574,8 @@ end;
 
 procedure TEnumEditorLink.SetBounds(R: TRect); stdcall;
 begin
-  FCombo.BoundsRect := R;
-  FCombo.ItemHeight := R.Bottom - R.Top - 4;
+  FCombo.BoundsRect := Ftree.GetDisplayRect(FNode, FColumn, False);
+  FCombo.ItemHeight := FCombo.BoundsRect.Bottom - FCombo.BoundsRect.Top - 4;
 end;
 
 
