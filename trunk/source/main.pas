@@ -702,8 +702,8 @@ type
     dsCollations               : TDataset;
     FilterPanelManuallyOpened  : Boolean;
     winName                    : String;
-    FLastSelectedTableColumns,
-    FLastSelectedTableKeys     : TDataset;
+    FSelectedTableColumns,
+    FSelectedTableKeys     : TDataset;
     DataGridDB, DataGridTable  : WideString;
     PrevTableColWidths         : WideStrings.TWideStringList;
     DataGridHasChanges         : Boolean;
@@ -727,8 +727,8 @@ type
     procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: WideStrings.TWideStringList );
     function GetTableSize(ds: TDataSet): Int64;
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
-    function GetSelTableColumns: TDataset;
-    function GetSelTableKeys: TDataset;
+    function GetSelectedTableColumns: TDataset;
+    function GetSelectedTableKeys: TDataset;
     procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: Widestrings.TWideStringlist = nil);
     procedure PlaceObjectEditor(Which: TListNodeType);
   public
@@ -850,8 +850,8 @@ type
     function CheckUniqueKeyClause: Boolean;
     procedure DataGridInsertRow;
     procedure DataGridCancel(Sender: TObject);
-    property FSelectedTableColumns: TDataset read GetSelTableColumns write FLastSelectedTableColumns;
-    property FSelectedTableKeys: TDataset read GetSelTableKeys write FLastSelectedTableKeys;
+    property SelectedTableColumns: TDataset read GetSelectedTableColumns write FSelectedTableColumns;
+    property SelectedTableKeys: TDataset read GetSelectedTableKeys write FSelectedTableKeys;
     procedure CalcNullColors;
     procedure FillDataViewPopup;
     procedure GetDataViews(List: TStrings);
@@ -862,6 +862,7 @@ type
     procedure RestoreListSetup( List: TVirtualStringTree );
     function GetCollations(Items: TWideStrings = nil): TDataset;
     procedure SetEditorTabCaption(Editor: TFrame; ObjName: WideString);
+    procedure ResetSelectedTableStuff;
 end;
 
 
@@ -2674,7 +2675,7 @@ begin
   // Data-Tab
   else if (PageControlMain.ActivePage = tabData)
     and Assigned(DataGrid.FocusedNode) then begin
-    ds := Mainform.FSelectedTableColumns;
+    ds := SelectedTableColumns;
     ds.RecNo := DataGrid.FocusedColumn;
     keyword := ds.FieldByName('Type').AsWideString;
   end
@@ -3404,14 +3405,14 @@ begin
     FDataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
   end;
 
-  FSelectedTableKeys.First;
-  for k := 0 to FSelectedTableKeys.RecordCount - 1 do begin
-    if (FSelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY')
-      and (FSelectedTableKeys.FieldByName('Column_name').AsWideString = name) then begin
+  SelectedTableKeys.First;
+  for k := 0 to SelectedTableKeys.RecordCount - 1 do begin
+    if (SelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY')
+      and (SelectedTableKeys.FieldByName('Column_name').AsWideString = name) then begin
       FDataGridResult.Columns[idx].IsPriPart := True;
       break;
     end;
-    FSelectedTableKeys.Next;
+    SelectedTableKeys.Next;
   end;
 end;
 
@@ -3438,8 +3439,7 @@ begin
         FDataGridSelect := WideStrings.TWideStringlist.Create;
       if DataGridTable <> SelectedTable.Text then begin
         FDataGridSelect.Clear;
-        FSelectedTableColumns := nil;
-        FSelectedTableKeys := nil;
+        ResetSelectedTableStuff;
         SynMemoFilter.Clear;
         SetLength(FDataGridSort, 0);
         // Load default view settings
@@ -3474,7 +3474,7 @@ begin
       DataGrid.Header.Columns.Clear;
 
       // No data for routines
-      if FSelectedTableColumns = nil then begin
+      if SelectedTableColumns = nil then begin
         DataGrid.Enabled := False;
         pnlDataTop.Enabled := False;
         pnlFilter.Enabled := False;
@@ -3491,18 +3491,18 @@ begin
       select_base := 'SELECT ';
       select_base_full := select_base;
       // Selected columns
-      if (FDataGridSelect.Count = 0) or (FDataGridSelect.Count = FSelectedTableColumns.RecordCount) then begin
+      if (FDataGridSelect.Count = 0) or (FDataGridSelect.Count = SelectedTableColumns.RecordCount) then begin
         tbtnDataColumns.ImageIndex := 107;
       end else begin
         for i := FDataGridSelect.Count - 1 downto 0 do begin
           ColExists := False;
-          FSelectedTableColumns.First;
-          while not FSelectedTableColumns.Eof do begin
-            if FDataGridSelect[i] = FSelectedTableColumns.FieldByName('Field').AsWideString then begin
+          SelectedTableColumns.First;
+          while not SelectedTableColumns.Eof do begin
+            if FDataGridSelect[i] = SelectedTableColumns.FieldByName('Field').AsWideString then begin
               ColExists := True;
               break;
             end;
-            FSelectedTableColumns.Next;
+            SelectedTableColumns.Next;
           end;
           if not ColExists then
             FDataGridSelect.Delete(i);
@@ -3515,12 +3515,12 @@ begin
       // Truncate column array.
       SetLength(FDataGridResult.Columns, 0);
       debug('mem: initializing browse columns.');
-      FSelectedTableColumns.First;
-      while not FSelectedTableColumns.Eof do begin
-        ColName := FSelectedTableColumns.FieldByName('Field').AsWideString;
+      SelectedTableColumns.First;
+      while not SelectedTableColumns.Eof do begin
+        ColName := SelectedTableColumns.FieldByName('Field').AsWideString;
         ShowIt := (FDataGridSelect.Count=0) or (FDataGridSelect.IndexOf(ColName)>-1);
         if ShowIt or (KeyCols.IndexOf(ColName)>-1) then begin
-          ColType := FSelectedTableColumns.FieldByName('Type').AsString;
+          ColType := SelectedTableColumns.FieldByName('Type').AsString;
           rx.Expression := '^((tiny|medium|long)?(text|blob)|(var)?(char|binary))\b(\(\d+\))?';
           if rx.Exec(ColType) then begin
             select_base := select_base + ' ' + 'LEFT(' + Mask(ColName) + ', ' + IntToStr(GridMaxData) + ')' + ',';
@@ -3528,9 +3528,9 @@ begin
             select_base := select_base + ' ' + Mask(ColName) + ',';
           end;
           select_base_full := select_base_full + ' ' + Mask(ColName) + ',';
-          InitColumn(ColName, FSelectedTableColumns.FieldByName('Type').AsString, ShowIt);
+          InitColumn(ColName, SelectedTableColumns.FieldByName('Type').AsString, ShowIt);
         end;
-        FSelectedTableColumns.Next;
+        SelectedTableColumns.Next;
       end;
       debug('mem: browse column initialization complete.');
       // Cut last comma
@@ -5666,11 +5666,11 @@ begin
     begin
       // Keep native order of columns
       lboxQueryHelpers.Sorted := False;
-      if (SelectedTable.Text <> '') and Assigned(FSelectedTableColumns) then begin
-        FSelectedTableColumns.First;
-        while not FSelectedTableColumns.Eof do begin
-          lboxQueryHelpers.Items.Add(FSelectedTableColumns.Fields[0].AsWideString);
-          FSelectedTableColumns.Next;
+      if (SelectedTable.Text <> '') and Assigned(SelectedTableColumns) then begin
+        SelectedTableColumns.First;
+        while not SelectedTableColumns.Eof do begin
+          lboxQueryHelpers.Items.Add(SelectedTableColumns.Fields[0].AsWideString);
+          SelectedTableColumns.Next;
         end;
       end;
     end;
@@ -6864,7 +6864,7 @@ begin
             // Don't know why this next line is necessary, couldn't find
             // documented in the code how the refresh mechanism for it is
             // supposed to work.  It is necessary, though.
-            FSelectedTableColumns := nil;
+            ResetSelectedTableStuff;
             RefreshQueryHelpers;
           end;
         end;
@@ -7082,16 +7082,16 @@ begin
   Clause := '';
   Add := '';
   if ed.Text <> '' then begin
-    FSelectedTableColumns.First;
-    for i := 0 to FSelectedTableColumns.RecordCount - 1 do begin
+    SelectedTableColumns.First;
+    for i := 0 to SelectedTableColumns.RecordCount - 1 do begin
       if i > 0 then
         Add := Add + ' OR ';
-      Add := Add + mask(FSelectedTableColumns.Fields[0].AsWideString) + ' LIKE ' + esc('%'+ed.Text+'%');
+      Add := Add + mask(SelectedTableColumns.Fields[0].AsWideString) + ' LIKE ' + esc('%'+ed.Text+'%');
       if Length(Add) > 45 then begin
         Clause := Clause + Add + CRLF;
         Add := '';
       end;
-      FSelectedTableColumns.Next;
+      SelectedTableColumns.Next;
     end;
     if Add <> '' then
       Clause := Clause + Add;
@@ -7687,47 +7687,47 @@ var
   begin
     // Find relevant key column names
     Result.Clear;
-    FSelectedTableKeys.First;
-    while not FSelectedTableKeys.Eof do begin
-      if FSelectedTableKeys.FieldByName('Key_name').AsWideString = KeyName then
-        Result.Add(FSelectedTableKeys.FieldByName('Column_name').AsWideString);
-      FSelectedTableKeys.Next;
+    SelectedTableKeys.First;
+    while not SelectedTableKeys.Eof do begin
+      if SelectedTableKeys.FieldByName('Key_name').AsWideString = KeyName then
+        Result.Add(SelectedTableKeys.FieldByName('Column_name').AsWideString);
+      SelectedTableKeys.Next;
     end;
   end;
 
 begin
   Result := WideStrings.TWideStringlist.Create;
   // Find best key for updates
-  FSelectedTableKeys.First;
+  SelectedTableKeys.First;
   // 1. round: find a primary key
-  while not FSelectedTableKeys.Eof do begin
-    if FSelectedTableKeys.FieldByName('Key_name').AsWideString = 'PRIMARY' then begin
-      FindColumns(FSelectedTableKeys.FieldByName('Key_name').AsWideString);
+  while not SelectedTableKeys.Eof do begin
+    if SelectedTableKeys.FieldByName('Key_name').AsWideString = 'PRIMARY' then begin
+      FindColumns(SelectedTableKeys.FieldByName('Key_name').AsWideString);
       Exit;
     end;
-    FSelectedTableKeys.Next;
+    SelectedTableKeys.Next;
   end;
   // no primary key available -> 2. round: find a unique key
-  FSelectedTableKeys.First;
-  while not FSelectedTableKeys.Eof do begin
-    if FSelectedTableKeys.FieldByName('Non_unique').AsInteger = 0 then begin
+  SelectedTableKeys.First;
+  while not SelectedTableKeys.Eof do begin
+    if SelectedTableKeys.FieldByName('Non_unique').AsInteger = 0 then begin
       // We found a UNIQUE key - better than nothing. Check if one of the key
       // columns allows NULLs which makes it dangerous to use in UPDATES + DELETES.
-      FindColumns(FSelectedTableKeys.FieldByName('Key_name').AsWideString);
-      FSelectedTableColumns.First;
+      FindColumns(SelectedTableKeys.FieldByName('Key_name').AsWideString);
+      SelectedTableColumns.First;
       AllowsNull := False;
       for i := 0 to Result.Count - 1 do begin
-        while (not FSelectedTableColumns.Eof) and (not AllowsNull) do begin
-          if FSelectedTableColumns.FieldByName('Field').AsWideString = Result[i] then
-            AllowsNull := UpperCase(FSelectedTableColumns.FieldByName('Null').AsString) = 'YES';
-          FSelectedTableColumns.Next;
+        while (not SelectedTableColumns.Eof) and (not AllowsNull) do begin
+          if SelectedTableColumns.FieldByName('Field').AsWideString = Result[i] then
+            AllowsNull := UpperCase(SelectedTableColumns.FieldByName('Null').AsString) = 'YES';
+          SelectedTableColumns.Next;
         end;
         if AllowsNull then break;
       end;
       if AllowsNull then Result.Clear
       else break;
     end;
-    FSelectedTableKeys.Next;
+    SelectedTableKeys.Next;
   end;
 end;
 
@@ -7774,7 +7774,7 @@ begin
   Cols := '';
   Vals := '';
   for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
-    FSelectedTableColumns.RecNo := i;
+    SelectedTableColumns.RecNo := i;
     if Row.Cells[i].Modified then begin
       Cols := Cols + mask(FDataGridResult.Columns[i].Name) + ', ';
       Val := Row.Cells[i].NewText;
@@ -8033,30 +8033,30 @@ begin
 end;
 
 
-function TMainForm.GetSelTableColumns: TDataset;
+function TMainForm.GetSelectedTableColumns: TDataset;
 begin
-  if (FLastSelectedTableColumns = nil) or (FLastSelectedTableColumns.State = dsInactive) then begin
-    FreeAndNil(FLastSelectedTableColumns);
+  if (FSelectedTableColumns = nil) or (FSelectedTableColumns.State = dsInactive) then begin
+    FreeAndNil(FSelectedTableColumns);
 	// Avoid SQL error on routines
     if GetSelectedNodeType in [lntTable, lntView] then begin
       ShowStatus('Reading table columns ...');
-      FLastSelectedTableColumns := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable.Text), false );
+      FSelectedTableColumns := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable.Text), false );
     end;
   end;
-  Result := FLastSelectedTableColumns;
+  Result := FSelectedTableColumns;
 end;
 
-function TMainForm.GetSelTableKeys: TDataset;
+function TMainForm.GetSelectedTableKeys: TDataset;
 begin
-  if (FLastSelectedTableKeys = nil) or (FLastSelectedTableKeys.State = dsInactive) then begin
-    FreeAndNil(FLastSelectedTableKeys);
+  if (FSelectedTableKeys = nil) or (FSelectedTableKeys.State = dsInactive) then begin
+    FreeAndNil(FSelectedTableKeys);
 	// Avoid SQL error on routines
     if GetSelectedNodeType in [lntTable, lntView] then begin
       ShowStatus('Reading table keys ...');
-      FLastSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable.Text) );
+      FSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable.Text) );
     end;
   end;
-  Result := FLastSelectedTableKeys;
+  Result := FSelectedTableKeys;
 end;
 
 
@@ -8285,13 +8285,13 @@ begin
     HiddenCols.Delimiter := REGDELIM;
     HiddenCols.StrictDelimiter := True;
     HiddenCols.DelimitedText := Utf8Decode(MainReg.ReadString(REGNAME_HIDDENCOLUMNS));
-    FSelectedTableColumns.First;
+    SelectedTableColumns.First;
     FDataGridSelect.Clear;
-    for i := 0 to FSelectedTableColumns.RecordCount - 1 do begin
-      Col := FSelectedTableColumns.Fields[0].AsWideString;
+    for i := 0 to SelectedTableColumns.RecordCount - 1 do begin
+      Col := SelectedTableColumns.Fields[0].AsWideString;
       if HiddenCols.IndexOf(Col) = -1 then
         FDataGridSelect.Add(Col);
-      FSelectedTableColumns.Next;
+      SelectedTableColumns.Next;
     end;
     FreeAndNil(HiddenCols);
     // Filter
@@ -8972,6 +8972,13 @@ begin
   end;
 end;
 
+
+procedure TMainform.ResetSelectedTableStuff;
+begin
+  // Free selected table's cached column and key list
+  FreeAndNil(FSelectedTableColumns);
+  FreeAndNil(FSelectedTableKeys);
+end;
 
 end.
 
