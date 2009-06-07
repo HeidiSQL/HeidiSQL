@@ -132,12 +132,14 @@ object frmTableEditor: TfrmTableEditor
         WideText = 'Length/Set'
       end
       item
+        Alignment = taCenter
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 4
         Width = 60
         WideText = 'Unsigned'
       end
       item
+        Alignment = taCenter
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 5
         Width = 70
