@@ -72,9 +72,8 @@ object frmTableEditor: TfrmTableEditor
     Height = 173
     Margins.Bottom = 32
     Align = alClient
-    BottomSpace = 60
     CheckImageKind = ckSystem
-    Constraints.MinHeight = 4
+    Constraints.MinHeight = 50
     DragMode = dmAutomatic
     Header.AutoSizeIndex = -1
     Header.DefaultHeight = 17
