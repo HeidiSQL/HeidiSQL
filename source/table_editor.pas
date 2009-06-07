@@ -54,8 +54,10 @@ type
     btnMoveUpColumn: TToolButton;
     btnMoveDownColumn: TToolButton;
     SplitterTopBottom: TSplitter;
-    tabSQLCode: TTabSheet;
-    SynMemoSQLcode: TSynMemo;
+    tabCREATEcode: TTabSheet;
+    tabALTERCode: TTabSheet;
+    SynMemoCREATEcode: TSynMemo;
+    SynMemoALTERcode: TSynMemo;
     popupIndexes: TPopupMenu;
     menuAddIndex: TMenuItem;
     menuAddIndexColumn: TMenuItem;
@@ -131,7 +133,7 @@ type
     FModified: Boolean;
     FLoaded: Boolean;
     FAlterTableName: WideString;
-    SQLCodeValid: Boolean;
+    CreateCodeValid, AlterCodeValid: Boolean;
     Columns, ColumnsChanges,
     Indexes, OldIndexes: TWideStringList;
     procedure ColumnsChange(Sender: TObject);
@@ -189,9 +191,12 @@ begin
   FLoaded := False;
   comboRowFormat.Items.CommaText := 'DEFAULT,DYNAMIC,FIXED,COMPRESSED,REDUNDANT,COMPACT';
   comboInsertMethod.Items.CommaText := 'NO,FIRST,LAST';
-  SynMemoSQLcode.TabWidth := Mainform.SynMemoQuery.TabWidth;
-  SynMemoSQLcode.Font.Name := Mainform.SynMemoQuery.Font.Name;
-  SynMemoSQLcode.Font.Size := Mainform.SynMemoQuery.Font.Size;
+  SynMemoALTERcode.TabWidth := Mainform.SynMemoQuery.TabWidth;
+  SynMemoALTERcode.Font.Name := Mainform.SynMemoQuery.Font.Name;
+  SynMemoALTERcode.Font.Size := Mainform.SynMemoQuery.Font.Size;
+  SynMemoCREATEcode.TabWidth := Mainform.SynMemoQuery.TabWidth;
+  SynMemoCREATEcode.Font.Name := Mainform.SynMemoQuery.Font.Name;
+  SynMemoCREATEcode.Font.Size := Mainform.SynMemoQuery.Font.Size;
   Columns := TWideStringList.Create;
   Columns.OnChange := ColumnsChange;
   ColumnsChanges := TWideStringList.Create;
@@ -230,6 +235,7 @@ begin
   FAlterTableName := AlterTableName;
   btnClearColumnsClick(Self);
   btnClearIndexesClick(Self);
+  tabALTERcode.TabVisible := FAlterTableName <> '';
 
   if FAlterTableName = '' then begin
     // Creating new table
@@ -365,6 +371,7 @@ begin
   Mainform.ExecUpdateQuery(sql);
   // Set table name for altering if Apply was clicked
   FAlterTableName := editName.Text;
+  tabALTERcode.TabVisible := FAlterTableName <> '';
   Mainform.SetEditorTabCaption(Self, FAlterTableName);
   Mainform.tabData.TabVisible := True;
   if chkCharsetConvert.Checked then begin
@@ -1017,7 +1024,8 @@ begin
   FModified := Value;
   btnSave.Enabled := FModified;
   btnDiscard.Enabled := FModified;
-  SQLCodeValid := False;
+  CreateCodeValid := False;
+  AlterCodeValid := False;
   UpdateSQLcode;
 end;
 
@@ -1494,16 +1502,20 @@ procedure TfrmTableEditor.UpdateSQLcode;
 var
   OldTopLine: Integer;
 begin
-  if (PageControlMain.ActivePage = tabSQLCode) and (not SQLCodeValid) then begin
-    SynMemoSQLcode.BeginUpdate;
-    OldTopLine := SynMemoSQLcode.TopLine;
-    if FAlterTableName <> '' then
-      SynMemoSQLcode.Text := ComposeAlterStatement
-    else
-      SynMemoSQLcode.Text := ComposeCreateStatement;
-    SynMemoSQLcode.TopLine := OldTopLine;
-    SynMemoSQLcode.EndUpdate;
-    SQLCodeValid := True;
+  if (PageControlMain.ActivePage = tabALTERCode) and (not AlterCodeValid) then begin
+    SynMemoALTERcode.BeginUpdate;
+    OldTopLine := SynMemoALTERcode.TopLine;
+    SynMemoALTERcode.Text := ComposeAlterStatement;
+    SynMemoALTERcode.TopLine := OldTopLine;
+    SynMemoALTERcode.EndUpdate;
+    AlterCodeValid := True;
+  end else if (PageControlMain.ActivePage = tabCREATECode) and (not CreateCodeValid) then begin
+    SynMemoCREATEcode.BeginUpdate;
+    OldTopLine := SynMemoCREATEcode.TopLine;
+    SynMemoCREATEcode.Text := ComposeCreateStatement;
+    SynMemoCREATEcode.TopLine := OldTopLine;
+    SynMemoCREATEcode.EndUpdate;
+    CreateCodeValid := True;
   end;
 end;
 
