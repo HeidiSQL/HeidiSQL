@@ -507,10 +507,10 @@ object frmTableEditor: TfrmTableEditor
         TabOrder = 2
       end
     end
-    object tabSQLCode: TTabSheet
-      Caption = 'SQL code'
+    object tabCREATEcode: TTabSheet
+      Caption = 'CREATE code'
       ImageIndex = 119
-      object SynMemoSQLcode: TSynMemo
+      object SynMemoCREATEcode: TSynMemo
         Left = 0
         Top = 0
         Width = 593
@@ -533,7 +533,38 @@ object frmTableEditor: TfrmTableEditor
         Gutter.LeftOffset = 2
         Gutter.ShowLineNumbers = True
         Highlighter = MainForm.SynSQLSyn1
-        Lines.UnicodeStrings = 'SynMemoSQLcode'
+        Lines.UnicodeStrings = 'SynMemoALTERcode'
+        Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
+        ReadOnly = True
+      end
+    end
+    object tabALTERCode: TTabSheet
+      Caption = 'ALTER code'
+      ImageIndex = 119
+      object SynMemoALTERcode: TSynMemo
+        Left = 0
+        Top = 0
+        Width = 593
+        Height = 121
+        SingleLineMode = False
+        Align = alClient
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = []
+        TabOrder = 0
+        Gutter.AutoSize = True
+        Gutter.DigitCount = 2
+        Gutter.Font.Charset = DEFAULT_CHARSET
+        Gutter.Font.Color = clWindowText
+        Gutter.Font.Height = -11
+        Gutter.Font.Name = 'Courier New'
+        Gutter.Font.Style = []
+        Gutter.LeftOffset = 2
+        Gutter.ShowLineNumbers = True
+        Highlighter = MainForm.SynSQLSyn1
+        Lines.UnicodeStrings = 'SynMemoALTERcode'
         Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
         ReadOnly = True
       end
