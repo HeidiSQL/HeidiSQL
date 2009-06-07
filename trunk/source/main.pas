@@ -7420,6 +7420,8 @@ var
   columnexists : Boolean;
   ColName: WideString;
 begin
+  if HitInfo.Column = NoColumn then
+    Exit;
   if HitInfo.Button = mbLeft then begin
     ColName := Sender.Columns[HitInfo.Column].Text;
     // Add a new order column after a columns title has been clicked
