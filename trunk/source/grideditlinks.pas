@@ -1045,8 +1045,7 @@ begin
 
   FPanel := TPanel.Create(Tree);
   FPanel.Parent := FTree;
-  FPanel.Left := TextBounds.Left;
-  FPanel.Top := TextBounds.Top;
+  SetBounds(TextBounds);
   FPanel.Width := 200;
   FPanel.ParentBackground := False;
   // usefull but looks ugly:
@@ -1145,9 +1144,27 @@ end;
 
 
 procedure TColumnDefaultEditorLink.SetBounds(R: TRect); stdcall;
+var
+  TreeBottom, TreeRight,
+  PanelTop, PanelLeft: Integer;
+  TreeRect: TRect;
 begin
-  FPanel.Top := R.Top;
-  FPanel.Left := R.Left;
+  TreeRect := FTree.BoundsRect;
+
+  PanelTop := R.Top;
+  TreeBottom := TreeRect.Bottom - TreeRect.Top -
+    (FTree as TVirtualStringtree).Header.Height - 20; // Column header and scrollbar
+  if R.Top + FPanel.Height > TreeBottom then
+    PanelTop := Max(0, TreeBottom - FPanel.Height);
+
+  PanelLeft := R.Left;
+  TreeRight := TreeRect.Right - TreeRect.Left - 20;
+  mainform.LogSQL(inttostr(treeright));
+  if R.Left + FPanel.Width > TreeRight then
+    PanelLeft := Max(0, TreeRight - FPanel.Width);
+
+  FPanel.Top := PanelTop;
+  FPanel.Left := PanelLeft;
 end;
 
 
