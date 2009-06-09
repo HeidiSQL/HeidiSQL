@@ -106,6 +106,9 @@ type
     procedure editNumEditChange(Sender: TObject);
     procedure comboEngineSelect(Sender: TObject);
     procedure listColumnsClick(Sender: TObject);
+    procedure listColumnsBeforeCellPaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure listColumnsAfterCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
@@ -151,6 +154,7 @@ type
     property Modified: Boolean read FModified write SetModified;
     procedure SetStatus(msg: WideString = '');
     procedure UpdateSQLcode;
+    function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -778,6 +782,19 @@ begin
 end;
 
 
+procedure TfrmTableEditor.listColumnsBeforeCellPaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+begin
+  // Darken cell background to signalize it doesn't allow length/set
+  // Exclude non editable checkbox columns - grey looks ugly there.
+  if (not CellEditingAllowed(Node, Column)) and (not (Column in [4, 5])) then begin
+    TargetCanvas.Brush.Color := clBtnFace;
+    TargetCanvas.FillRect(CellRect);
+  end;
+end;
+
+
 procedure TfrmTableEditor.listColumnsAfterCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellRect: TRect);
@@ -785,26 +802,18 @@ var
   Props: TWideStringlist;
   ImageIndex, X, Y: Integer;
   VT: TVirtualStringTree;
-  dt: TMysqlDataTypeRecord;
 begin
   // Paint checkbox image in certain columns
-  if not (Column in [4, 5]) then
-    Exit;
-  Props := TWideStringlist(Columns.Objects[Node.Index]);
-
-  // Restrict "Allow NULL" checkbox to numeric datatypes
-  if Column = 4 then begin
-    dt := GetDatatypeByName(Props[0]);
-    if not dt.HasUnsigned then
-      Exit;
+  // while restricting "Allow NULL" checkbox to numeric datatypes
+  if (Column in [4, 5]) and CellEditingAllowed(Node, Column) then begin
+    Props := TWideStringlist(Columns.Objects[Node.Index]);
+    if StrToBool(Props[Column-2]) then ImageIndex := 128
+    else ImageIndex := 127;
+    VT := TVirtualStringTree(Sender);
+    X := CellRect.Left + (VT.Header.Columns[Column].Width div 2) - (VT.Images.Width div 2);
+    Y := CellRect.Top + Integer(VT.NodeHeight[Node] div 2) - (VT.Images.Height div 2);
+    VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
   end;
-
-  if StrToBool(Props[Column-2]) then ImageIndex := 128
-  else ImageIndex := 127;
-  VT := TVirtualStringTree(Sender);
-  X := CellRect.Left + (VT.Header.Columns[Column].Width div 2) - (VT.Images.Width div 2);
-  Y := CellRect.Top + Integer(VT.NodeHeight[Node] div 2) - (VT.Images.Height div 2);
-  VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
 end;
 
 
@@ -850,12 +859,26 @@ end;
 procedure TfrmTableEditor.listColumnsEditing(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 begin
+  // Allow text editing? Explicitely block that in checkbox columns 
+  Allowed := CellEditingAllowed(Node, Column) and (not (Column in [4,5]));
+end;
+
+
+function TfrmTableEditor.CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
+var
+  Props: TWideStringlist;
+  dt: TMysqlDataTypeRecord;
+begin
+  Props := TWideStringlist(Columns.Objects[Node.Index]);
+  dt := GetDatatypeByName(Props[0]);
   case Column of
     // No editor for very first column and checkbox columns
-    0, 4, 5: Allowed := False;
+    0: Result := False;
+    3: Result := dt.HasLength;
+    4: Result := dt.HasUnsigned;
     // No editing of collation allowed if "Convert data" was checked
-    8: Allowed := not chkCharsetConvert.Checked;
-    else Allowed := True;
+    8: Result := not chkCharsetConvert.Checked;
+    else Result := True;
   end;
 end;
 
@@ -949,6 +972,11 @@ begin
   end else if Column > 1 then begin
     Properties := TWideStringList(Columns.Objects[Node.Index]);
     Properties[Column-2] := NewText;
+    if (Column = 2) and (not CellEditingAllowed(Node, 3)) then begin
+      // Reset length/set for column types which don't support that
+      Properties[1] := '';
+    end;
+
   end;
 end;
 
@@ -957,7 +985,6 @@ procedure TfrmTableEditor.listColumnsClick(Sender: TObject);
 var
   VT: TVirtualStringTree;
   Props: TWideStringlist;
-  dt: TMySQLDataTypeRecord;
   Click: THitInfo;
 begin
   // Handle click event
@@ -968,8 +995,7 @@ begin
   if Click.HitColumn in [4, 5] then begin
     // For checkboxes, cell editors are disabled, instead toggle their state
     Props := TWideStringList(Columns.Objects[Click.HitNode.Index]);
-    dt := GetDatatypeByName(Props[0]);
-    if dt.HasUnsigned or (Click.HitColumn = 5) then begin
+    if CellEditingAllowed(Click.HitNode, Click.HitColumn) then begin
       Props[Click.HitColumn-2] := BoolToStr(not StrToBool(Props[Click.HitColumn-2]));
       VT.InvalidateNode(Click.HitNode);
     end;
@@ -1520,10 +1546,6 @@ end;
 
 procedure TfrmTableEditor.chkCharsetConvertClick(Sender: TObject);
 begin
-  if chkCharsetConvert.Checked then
-    listColumns.Header.Columns[8].Color := clBtnFace
-  else
-    listColumns.Header.Columns[8].Color := clWindow;
   chkCharsetConvert.Enabled := (FAlterTablename <> '') and (comboCollation.ItemIndex > -1);
   listColumns.Repaint;
   Modification(Sender);
