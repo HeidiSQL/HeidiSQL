@@ -833,8 +833,8 @@ type
     procedure DeactivateFileLogging;
     procedure TrimSQLLog;
     procedure TableEnginesCombo(var Combobox: TCombobox);
-    function GetNodeType(Node: PVirtualNode): TListNodeType;
-    function GetSelectedNodeType: TListNodeType;
+    function GetTreeNodeType(Node: PVirtualNode): TListNodeType;
+    function GetFocusedTreeNodeType: TListNodeType;
     procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
     procedure RefreshTreeDB(db: WideString);
     function FindDBNode(db: WideString): PVirtualNode;
@@ -2322,7 +2322,7 @@ begin
     and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
   if InDBTree then begin
     // drop table selected in tree view.
-    case GetSelectedNodeType of
+    case GetFocusedTreeNodeType of
       lntDb: begin
         if MessageDlg('Drop Database "'+activeDB+'"?' + crlf + crlf + 'WARNING: You will lose all tables in database '+activeDB+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
           Abort;
@@ -3610,7 +3610,7 @@ begin
   lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable.Text;
 
   IsFiltered := self.DataGridCurrentFilter <> '';
-  if GetSelectedNodeType = lntTable then begin
+  if GetFocusedTreeNodeType = lntTable then begin
     // Get rowcount from table
     ds := FetchActiveDbTableList;
     rows_total := -1;
@@ -4938,8 +4938,8 @@ begin
     actCreateView.Enabled := L in [1,2];
     actCreateRoutine.Enabled := L in [1,2];
     actDropObjects.Enabled := L in [1,2];
-    actCopyTable.Enabled := HasFocus and (GetSelectedNodeType in [lntTable, lntCrashedTable, lntView]);
-    actEmptyTables.Enabled := HasFocus and (GetSelectedNodeType in [lntTable, lntCrashedTable, lntView]);
+    actCopyTable.Enabled := HasFocus and (GetFocusedTreeNodeType in [lntTable, lntCrashedTable, lntView]);
+    actEmptyTables.Enabled := HasFocus and (GetFocusedTreeNodeType in [lntTable, lntCrashedTable, lntView]);
     actEditObject.Enabled := L > 0;
     // Show certain items which are valid only here
     menuTreeExpandAll.Visible := True;
@@ -5498,7 +5498,7 @@ function TMainForm.GetSelectedTable: TListNode;
 begin
   if Assigned(DBtree.FocusedNode) and (DBtree.GetNodeLevel(DBtree.FocusedNode)=2) then begin
     Result.Text := DBtree.Text[DBtree.FocusedNode, 0];
-    Result.NodeType := GetSelectedNodeType;
+    Result.NodeType := GetFocusedTreeNodeType;
   end else begin
     Result.Text := '';
     Result.NodeType := lntNone;
@@ -5506,7 +5506,7 @@ begin
 end;
 
 
-function TMainForm.GetNodeType(Node: PVirtualNode): TListNodeType;
+function TMainForm.GetTreeNodeType(Node: PVirtualNode): TListNodeType;
 var
   ds: TDataset;
 begin
@@ -5521,9 +5521,9 @@ begin
   end;
 end;
 
-function TMainForm.GetSelectedNodeType: TListNodeType;
+function TMainForm.GetFocusedTreeNodeType: TListNodeType;
 begin
-  Result := GetNodeType(DBtree.FocusedNode);
+  Result := GetTreeNodeType(DBtree.FocusedNode);
 end;
 
 
@@ -5544,7 +5544,7 @@ begin
   tnode := DBtree.GetFirstChild(dbnode);
   for i := 0 to dbnode.ChildCount - 1 do begin
     // Select table node if it has the wanted caption
-    if (DBtree.Text[tnode, 0] = Text) and (GetNodeType(tnode) = NodeType) then begin
+    if (DBtree.Text[tnode, 0] = Text) and (GetTreeNodeType(tnode) = NodeType) then begin
       snode := tnode;
       break;
     end;
@@ -5555,7 +5555,7 @@ begin
     tnode := DBtree.GetFirstChild(dbnode);
     for i := 0 to dbnode.ChildCount - 1 do begin
       // Select table node if it has the wanted caption
-      if (AnsiCompareText(DBtree.Text[tnode, 0], Text) = 0) and (GetNodeType(tnode) = NodeType) then begin
+      if (AnsiCompareText(DBtree.Text[tnode, 0], Text) = 0) and (GetTreeNodeType(tnode) = NodeType) then begin
         snode := tnode;
         break;
       end;
@@ -6618,7 +6618,7 @@ begin
             CellText := ds.FieldByName(DBO_NAME).AsWideString;
           end;
       end;
-    1: case GetNodeType(Node) of
+    1: case GetTreeNodeType(Node) of
         // Calculate and display the sum of all table sizes in ALL dbs if all table lists are cached
         lntNone: begin
             AllListsCached := true;
@@ -8022,7 +8022,7 @@ begin
   if (FSelectedTableColumns = nil) or (FSelectedTableColumns.State = dsInactive) then begin
     FreeAndNil(FSelectedTableColumns);
 	// Avoid SQL error on routines
-    if GetSelectedNodeType in [lntTable, lntView] then begin
+    if GetFocusedTreeNodeType in [lntTable, lntView] then begin
       ShowStatus('Reading table columns ...');
       FSelectedTableColumns := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable.Text), false );
     end;
@@ -8035,7 +8035,7 @@ begin
   if (FSelectedTableKeys = nil) or (FSelectedTableKeys.State = dsInactive) then begin
     FreeAndNil(FSelectedTableKeys);
 	// Avoid SQL error on routines
-    if GetSelectedNodeType in [lntTable, lntView] then begin
+    if GetFocusedTreeNodeType in [lntTable, lntView] then begin
       ShowStatus('Reading table keys ...');
       FSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable.Text) );
     end;
