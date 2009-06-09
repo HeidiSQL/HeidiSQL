@@ -1202,7 +1202,7 @@ begin
       newText := IntToStr(Integer(cdtCurTS)) + 'CURRENT_TIMESTAMP'
     else
       newText := IntToStr(Integer(cdtAutoInc)) + 'AUTO_INCREMENT';
-    if newtext <> FTree.Text[FNode, FColumn] then
+    if newtext <> IntToStr(Integer(DefaultType)) + DefaultText then
       FTree.Text[FNode, FColumn] := newtext;
     if FTree.CanFocus then
       FTree.SetFocus;
