@@ -5523,7 +5523,7 @@ end;
 
 function TMainForm.GetSelectedNodeType: TListNodeType;
 begin
-  Result := GetNodeType(DBtree.GetFirstSelected);
+  Result := GetNodeType(DBtree.FocusedNode);
 end;
 
 
