@@ -15,9 +15,6 @@ const
   DBNAME_INFORMATION_SCHEMA = 'information_schema';
   DBNAME_MYSQL              = 'mysql';
 
-  // Related field things
-  TEMPFIELDNAME             = 'temp_fieldname';
-
   // Placeholder text for NULL values
   TEXT_NULL                 = '(NULL)';
 
