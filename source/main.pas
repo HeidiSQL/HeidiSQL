@@ -501,7 +501,6 @@ type
       var AllowChange: Boolean);
     procedure btnDataClick(Sender: TObject);
     procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure ListColumnsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
       const Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
     procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
@@ -534,7 +533,6 @@ type
     procedure FormActivate(Sender: TObject);
     procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: WideString);
-    procedure MenuRenameTableClick(Sender: TObject);
     procedure TimerConnectedTimer(Sender: TObject);
     procedure Clear2Click(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
@@ -4351,16 +4349,6 @@ begin
 end;
 
 
-{**
-  Clicked somewhere in the field-list of the "Table"-tabsheet
-}
-procedure TMainForm.ListColumnsChange(Sender: TBaseVirtualTree; Node:
-    PVirtualNode);
-begin
-  ValidateControls(Sender);
-end;
-
-
 { Proposal about to insert a String into synmemo }
 procedure TMainForm.SynCompletionProposal1CodeCompletion(Sender: TObject;
   var Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
@@ -4655,12 +4643,6 @@ begin
       MessageDlg( E.Message, mtError, [mbOK], 0 );
     end;
   end;
-end;
-
-procedure TMainForm.MenuRenameTableClick(Sender: TObject);
-begin
-  // menuitem for edit table-name
-  ListTables.EditNode( ListTables.FocusedNode, 0 );
 end;
 
 
