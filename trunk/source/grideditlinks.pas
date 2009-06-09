@@ -1159,7 +1159,6 @@ begin
 
   PanelLeft := R.Left;
   TreeRight := TreeRect.Right - TreeRect.Left - 20;
-  mainform.LogSQL(inttostr(treeright));
   if R.Left + FPanel.Width > TreeRight then
     PanelLeft := Max(0, TreeRight - FPanel.Width);
 
