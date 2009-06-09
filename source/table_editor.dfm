@@ -92,6 +92,7 @@ object frmTableEditor: TfrmTableEditor
     TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
     WantTabs = True
     OnAfterCellPaint = listColumnsAfterCellPaint
+    OnBeforeCellPaint = listColumnsBeforeCellPaint
     OnBeforePaint = listColumnsBeforePaint
     OnClick = listColumnsClick
     OnCreateEditor = listColumnsCreateEditor
