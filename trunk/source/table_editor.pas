@@ -1160,7 +1160,6 @@ end;
 procedure TfrmTableEditor.btnRemoveIndexClick(Sender: TObject);
 var
   IndexParts: TWideStringlist;
-  Name: WideString;
   idx: Integer;
   NewSelectNode: PVirtualNode;
 begin
@@ -1175,11 +1174,10 @@ begin
       idx := treeIndexes.FocusedNode.Parent.Index;
       IndexParts := TWideStringlist(Indexes.Objects[idx]);
       IndexParts.Delete(treeIndexes.FocusedNode.Index);
-      Name := treeIndexes.Text[treeIndexes.FocusedNode.Parent, 0];
+      treeIndexes.DeleteNode(treeIndexes.FocusedNode);
     end;
   end;
   NewSelectNode := treeIndexes.GetPreviousVisible(treeIndexes.FocusedNode);
-  treeIndexes.DeleteNode(treeIndexes.FocusedNode);
   if Assigned(NewSelectNode) then
     SelectNode(treeIndexes, NewSelectNode.Index, NewSelectNode.Parent);
 end;
