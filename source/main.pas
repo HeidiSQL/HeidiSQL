@@ -5501,7 +5501,7 @@ begin
     Result.NodeType := GetFocusedTreeNodeType;
   end else begin
     Result.Text := '';
-    Result.NodeType := lntNone;
+    Result.NodeType := GetFocusedTreeNodeType;
   end;
 end;
 
