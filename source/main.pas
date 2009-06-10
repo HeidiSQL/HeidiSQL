@@ -5501,7 +5501,7 @@ begin
     Result.NodeType := GetFocusedTreeNodeType;
   end else begin
     Result.Text := '';
-    Result.NodeType := GetFocusedTreeNodeType;
+    Result.NodeType := lntNone;
   end;
 end;
 
@@ -8913,7 +8913,7 @@ begin
       SelectDBObject(NodeData.Captions[0], NodeData.NodeType);
   end;
 
-  case SelectedTable.NodeType of
+  case GetFocusedTreeNodeType of
     lntDb: begin
       if CreateDatabaseForm = nil then
         CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
