@@ -137,7 +137,7 @@ type
     FLoaded: Boolean;
     FAlterTableName: WideString;
     CreateCodeValid, AlterCodeValid: Boolean;
-    Columns, ColumnsChanges,
+    Columns, ColumnNames, ColumnsChanges,
     Indexes, OldIndexes: TWideStringList;
     procedure ColumnsChange(Sender: TObject);
     procedure IndexesChange(Sender: TObject);
@@ -203,6 +203,7 @@ begin
   SynMemoCREATEcode.Font.Size := Mainform.SynMemoQuery.Font.Size;
   Columns := TWideStringList.Create;
   Columns.OnChange := ColumnsChange;
+  ColumnNames := TWideStringList.Create;
   ColumnsChanges := TWideStringList.Create;
   Indexes := TWideStringList.Create;
   Indexes.OnChange := IndexesChange;
@@ -403,9 +404,10 @@ begin
   for i:=0 to ComponentCount-1 do
     Components[i].Tag := NotModifiedFlag;
   // Reset name value pairs for column changes
+  ColumnNames.Clear;
   ColumnsChanges.Clear;
   for i:=0 to Columns.Count-1 do
-    ColumnsChanges.Add(Columns[i] + ColumnsChanges.NameValueSeparator + Columns[i]);
+    ColumnNames.Add(Columns[i] + ColumnNames.NameValueSeparator + Columns[i]);
   // Copy index list so we have one to work with and one which can later be used to detect changes
   OldIndexes.Clear;
   for i:=0 to Indexes.Count-1 do begin
@@ -507,10 +509,12 @@ begin
       else
         ColSpec := ColSpec + ' AFTER '+Mainform.mask(Columns[i-1]);
     end;
-    for j:=0 to ColumnsChanges.Count - 1 do begin
-      if ColumnsChanges.ValueFromIndex[j] = Columns[i] then begin
-        Specs.Add('CHANGE COLUMN '+Mainform.mask(ColumnsChanges.Names[j]) + ColSpec);
+    for j:=0 to ColumnNames.Count - 1 do begin
+      if ColumnNames.ValueFromIndex[j] = Columns[i] then begin
         AddIt := False;
+        // Only touch column if it was changed
+        if ColumnsChanges.IndexOf(Columns[i]) > -1 then
+          Specs.Add('CHANGE COLUMN '+Mainform.mask(ColumnNames.Names[j]) + ColSpec);
         break;
       end;
     end;
@@ -518,9 +522,9 @@ begin
       Specs.Add('ADD COLUMN '+ColSpec);
   end;
   // Delete columns
-  for i:=0 to ColumnsChanges.Count-1 do begin
-    if ColumnsChanges.ValueFromIndex[i] = '' then
-      Specs.Add('DROP COLUMN '+Mainform.mask(ColumnsChanges.Names[i]));
+  for i:=0 to ColumnNames.Count-1 do begin
+    if ColumnNames.ValueFromIndex[i] = '' then
+      Specs.Add('DROP COLUMN '+Mainform.mask(ColumnNames.Names[i]));
   end;
 
   // Prepare ADD INDEX ... clauses once so we don't call GetIndexSQL() too often
@@ -717,9 +721,9 @@ var
 begin
   // Remove selected column
   n := listColumns.FocusedNode;
-  for i:=0 to ColumnsChanges.Count-1 do begin
-    if ColumnsChanges.ValueFromIndex[i] = Columns[n.Index] then begin
-      ColumnsChanges[i] := ColumnsChanges.Names[i] + ColumnsChanges.NameValueSeparator;
+  for i:=0 to ColumnNames.Count-1 do begin
+    if ColumnNames.ValueFromIndex[i] = Columns[n.Index] then begin
+      ColumnNames[i] := ColumnNames.Names[i] + ColumnNames.NameValueSeparator;
       break;
     end;
   end;
@@ -733,8 +737,8 @@ procedure TfrmTableEditor.btnClearColumnsClick(Sender: TObject);
 var i: Integer;
 begin
   // Set empty values in changelist
-  for i:=0 to ColumnsChanges.Count - 1 do
-    ColumnsChanges[i] := ColumnsChanges.Names[i] + ColumnsChanges.NameValueSeparator;
+  for i:=0 to ColumnNames.Count - 1 do
+    ColumnNames[i] := ColumnNames.Names[i] + ColumnNames.NameValueSeparator;
   // Column data gets freed below - end any editor which could cause AV's
   if listColumns.IsEditing then
     listColumns.CancelEditNode;
@@ -961,13 +965,14 @@ begin
       Exit;
     end;
 
-    for i:=0 to ColumnsChanges.Count -1 do begin
-      if ColumnsChanges.ValueFromIndex[i] = Columns[Node.Index] then begin
-        ColumnsChanges.ValueFromIndex[i] := NewText;
+    for i:=0 to ColumnNames.Count -1 do begin
+      if ColumnNames.ValueFromIndex[i] = Columns[Node.Index] then begin
+        ColumnNames.ValueFromIndex[i] := NewText;
         break;
       end;
     end;
 
+    ColumnsChanges.Add(NewText);
     Columns[Node.Index] := NewText;
   end else if Column > 1 then begin
     Properties := TWideStringList(Columns.Objects[Node.Index]);
@@ -976,7 +981,7 @@ begin
       // Reset length/set for column types which don't support that
       Properties[1] := '';
     end;
-
+    ColumnsChanges.Add(Columns[Node.Index]);
   end;
 end;
 
@@ -997,6 +1002,7 @@ begin
     Props := TWideStringList(Columns.Objects[Click.HitNode.Index]);
     if CellEditingAllowed(Click.HitNode, Click.HitColumn) then begin
       Props[Click.HitColumn-2] := BoolToStr(not StrToBool(Props[Click.HitColumn-2]));
+      ColumnsChanges.Add(Columns[Click.HitNode.Index]);
       VT.InvalidateNode(Click.HitNode);
     end;
   end else begin
@@ -1087,6 +1093,7 @@ begin
   if listColumns.IsEditing then
     listColumns.EndEditNode;
   listColumns.FocusedColumn := listColumns.Header.MainColumn;
+  ColumnsChanges.Add(Columns[listColumns.FocusedNode.Index]);
   Columns.Move(listColumns.FocusedNode.Index, NewIdx);
   SelectNode(listColumns, NewIdx);
 end;
