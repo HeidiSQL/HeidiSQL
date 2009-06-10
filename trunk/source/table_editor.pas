@@ -192,7 +192,6 @@ begin
   FixVT(treeIndexes);
   Mainform.RestoreListSetup(listColumns);
   Mainform.RestoreListSetup(treeIndexes);
-  FLoaded := False;
   comboRowFormat.Items.CommaText := 'DEFAULT,DYNAMIC,FIXED,COMPRESSED,REDUNDANT,COMPACT';
   comboInsertMethod.Items.CommaText := 'NO,FIRST,LAST';
   SynMemoALTERcode.TabWidth := Mainform.SynMemoQuery.TabWidth;
@@ -231,6 +230,7 @@ var
   rx: TRegExpr;
 begin
   SetStatus('Initializing ...');
+  FLoaded := False;
   // Start with "basic" tab activated when just called
   if FAlterTableName <> AlterTableName then
     PageControlMain.ActivePage := tabBasic;
