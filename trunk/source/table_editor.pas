@@ -400,6 +400,10 @@ var
   i: Integer;
   Parts: TWideStringlist;
 begin
+  // Enable converting data for an existing table
+  chkCharsetConvertClick(comboCollation);
+  // Assist the user in auto unchecking this checkbox so data doesn't get converted more than once accidently
+  chkCharsetConvert.Checked := False;
   // Reset modification flags of TEdits and TMemos
   for i:=0 to ComponentCount-1 do
     Components[i].Tag := NotModifiedFlag;
@@ -415,10 +419,6 @@ begin
     Parts.Assign(TWideStringlist(Indexes.Objects[i]));
     OldIndexes.AddObject(Indexes[i], Parts);
   end;
-  // Enable converting data for an existing table
-  chkCharsetConvertClick(comboCollation);
-  // Assist the user in auto unchecking this checkbox so data doesn't get converted more than once accidently
-  chkCharsetConvert.Checked := False;
   Modified := False;
 end;
 
