@@ -1484,8 +1484,10 @@ var
   i : Integer;
   StrNumber : String;
   p_kb, p_mb, p_gb, p_tb, p_pb : Integer;
+  HasDecimalSep: Boolean;
 begin
   StrNumber := '';
+  HasDecimalSep := False;
   for i:=1 to Length(Str) do
   begin
     if (Str[i] in ['0'..'9', DecimalSeparator]) or ((Str[i] = '-') and (StrNumber='')) then
@@ -1493,6 +1495,11 @@ begin
       // Avoid confusion and AV in StrToFloat()
       if (ThousandSeparator = DecimalSeparator) and (Str[i] = DecimalSeparator) then
         continue;
+      // Ensure only 1 decimalseparator is left
+      if (Str[i] = DecimalSeparator) and HasDecimalSep then
+        continue;
+      if Str[i] = DecimalSeparator then
+        HasDecimalSep := True;
       StrNumber := StrNumber + Str[i];
     end;
   end;
