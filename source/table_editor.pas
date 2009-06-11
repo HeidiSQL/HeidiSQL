@@ -975,13 +975,13 @@ begin
     ColumnsChanges.Add(NewText);
     Columns[Node.Index] := NewText;
   end else if Column > 1 then begin
+    ColumnsChanges.Add(Columns[Node.Index]);
     Properties := TWideStringList(Columns.Objects[Node.Index]);
     Properties[Column-2] := NewText;
     if (Column = 2) and (not CellEditingAllowed(Node, 3)) then begin
       // Reset length/set for column types which don't support that
       Properties[1] := '';
     end;
-    ColumnsChanges.Add(Columns[Node.Index]);
   end;
 end;
 
@@ -1001,8 +1001,8 @@ begin
     // For checkboxes, cell editors are disabled, instead toggle their state
     Props := TWideStringList(Columns.Objects[Click.HitNode.Index]);
     if CellEditingAllowed(Click.HitNode, Click.HitColumn) then begin
-      Props[Click.HitColumn-2] := BoolToStr(not StrToBool(Props[Click.HitColumn-2]));
       ColumnsChanges.Add(Columns[Click.HitNode.Index]);
+      Props[Click.HitColumn-2] := BoolToStr(not StrToBool(Props[Click.HitColumn-2]));
       VT.InvalidateNode(Click.HitNode);
     end;
   end else begin
