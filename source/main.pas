@@ -6405,7 +6405,7 @@ begin
 
   // Cache datasets
   if ((dsShowEngines = nil) or (dsShowEngines.State = dsInactive)) and
-    ((dsHaveEngines = nil) or (dsShowEngines.State = dsInactive)) then
+    ((dsHaveEngines = nil) or (dsHaveEngines.State = dsInactive)) then
   begin
     FreeAndNil(dsShowEngines);
     FreeAndNil(dsHaveEngines);
