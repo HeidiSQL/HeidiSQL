@@ -1592,8 +1592,6 @@ begin
   begin
     winName := winName + Format( ' (%d)', [i] );
   end;
-  Application.Title := winName + ' - ' + APPNAME;
-  Caption := winName;
 
   // Reselect last used database
   if GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) then begin
@@ -3289,7 +3287,6 @@ begin
   tabEditor.TabVisible := false;
   tabData.TabVisible := false;
 
-  Caption := winName;
   PageControlMainChange( Self );
 end;
 
@@ -3305,7 +3302,6 @@ begin
   tabEditor.TabVisible := false;
   tabData.TabVisible := false;
 
-  Caption := winName + ' - /' + db;
   ShowDBProperties( db );
 end;
 
@@ -6812,7 +6808,7 @@ end;
 procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
-  newDb: WideString;
+  newDb, newDbObject, Cap: WideString;
 begin
   debug('DBtreeFocusChanged()');
   if not Assigned(Node) then
@@ -6828,6 +6824,7 @@ begin
       end;
     2: begin
         newDb := Databases[Node.Parent.Index];
+        newDbObject := SelectedTable.Text;
         tabEditor.TabVisible := True;
         tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntCrashedTable, lntView];
         if tabEditor.TabVisible then begin
@@ -6854,6 +6851,15 @@ begin
   end;
   if newDb <> '' then
     LoadDatabaseProperties(newDb);
+  // Set window caption and taskbar text
+  Cap := winName;
+  if newDb <> '' then
+    Cap := Cap + ' /' + newDb;
+  if newDbObject <> '' then
+    Cap := Cap + '/' + newDbObject;
+  Cap := Cap + ' - ' + APPNAME + ' ' + FullAppVersion;
+  Caption := Cap;
+  Application.Title := Cap;
 end;
 
 
