@@ -8829,8 +8829,10 @@ end;
 function TMainform.GetCollations(Items: TWideStrings = nil): TDataset;
 begin
   // Return cached collation list, used in several places, e.g. table editor
-  if (dsCollations = nil) or (dsCollations.State = dsInactive) then
+  if (dsCollations = nil) or (dsCollations.State = dsInactive) then begin
+    FreeAndNil(dsCollations);
     dsCollations := GetResults('SHOW COLLATION', True);
+  end;
   if Assigned(dsCollations) then begin
     dsCollations.First;
     if Assigned(Items) then begin
