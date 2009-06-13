@@ -190,6 +190,11 @@ begin
   InheritFont(Font);
   FixVT(listColumns);
   FixVT(treeIndexes);
+  // Try the best to auto fit various column widths, respecting a custom DPI setting and a pulldown arrow
+  listColumns.Header.Columns[2].Width := Mainform.Canvas.TextWidth('GEOMETRYCOLLECTION') + 6*listColumns.TextMargin;
+  listColumns.Header.Columns[6].Width := Mainform.Canvas.TextWidth('AUTO_INCREMENT') + 4*listColumns.TextMargin;
+  listColumns.Header.Columns[8].Width := Mainform.Canvas.TextWidth('macroman_general_ci') + 6*listColumns.TextMargin;
+  // Overide column widths by custom values
   Mainform.RestoreListSetup(listColumns);
   Mainform.RestoreListSetup(treeIndexes);
   comboRowFormat.Items.CommaText := 'DEFAULT,DYNAMIC,FIXED,COMPRESSED,REDUNDANT,COMPACT';
@@ -827,12 +832,12 @@ var
   VT: TVirtualStringTree;
   OldNodeCount: Cardinal;
 begin
-  // (Re)paint column list. Adjust number of nodes and autofit leftmost counter column.
+  // (Re)paint column list. Adjust number of nodes and autofit both counter and name column.
   VT := Sender as TVirtualStringTree;
   OldNodeCount := VT.RootNodeCount;
   VT.RootNodeCount := Columns.Count;
   if OldNodeCount <> VT.RootNodeCount then
-    VT.Header.AutoFitColumns(False, smaUseColumnOption, 0, 0);
+    VT.Header.AutoFitColumns(False, smaUseColumnOption, 0, 1);
 end;
 
 

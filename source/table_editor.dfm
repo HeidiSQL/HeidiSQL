@@ -114,6 +114,7 @@ object frmTableEditor: TfrmTableEditor
         WideText = '#'
       end
       item
+        MinWidth = 50
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 1
         Width = 100
@@ -142,7 +143,7 @@ object frmTableEditor: TfrmTableEditor
         Alignment = taCenter
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 5
-        Width = 70
+        Width = 65
         WideText = 'Allow NULL'
       end
       item
