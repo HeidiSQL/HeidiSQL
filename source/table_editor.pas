@@ -553,7 +553,7 @@ begin
   end;
   // Add changed or added indexes
   for i:=0 to IndexesComposed.Count-1 do begin
-    if OldIndexesComposed.IndexOf(IndexesComposed[i]) = -1 then
+    if (OldIndexesComposed.IndexOf(IndexesComposed[i]) = -1) and (IndexesComposed[i] <> '') then
       Specs.Add('ADD '+IndexesComposed[i]);
   end;
 
@@ -568,11 +568,11 @@ end;
 
 function TfrmTableEditor.ComposeCreateStatement: WideString;
 var
-  i: Integer;
+  i, IndexCount: Integer;
   ColProps: TWideStringlist;
   dt: TMySQLDataTypeRecord;
   DefaultType: TColumnDefaultType;
-  DefaultText: WideString;
+  DefaultText, tmp: WideString;
 begin
   // Compose CREATE query, called by buttons and for SQL code tab
   Result := 'CREATE TABLE '+Mainform.mask(editName.Text)+' ('+CRLF;
@@ -604,19 +604,28 @@ begin
     Result := Result + ','+CRLF;
   end;
 
+  IndexCount := 0;
   for i:=0 to Indexes.Count - 1 do begin
-    Result := Result + #9 + GetIndexSQL(Indexes, i) + ','+CRLF;
+    tmp := GetIndexSQL(Indexes, i);
+    if tmp <> '' then begin
+      Result := Result + #9 + GetIndexSQL(Indexes, i) + ','+CRLF;
+      Inc(IndexCount);
+    end;
   end;
-  if Columns.Count + Indexes.Count > 0 then
+  if Columns.Count + IndexCount > 0 then
     Delete(Result, Length(Result)-2, 3);
 
-  Result := Result + CRLF +
-    ')' + CRLF +
-    'COMMENT = '+esc(memoComment.Text) + CRLF +
-    'COLLATE = '+comboCollation.Text + CRLF +
-    'ENGINE = '+comboEngine.Text + CRLF +
-    'ROW_FORMAT = '+comboRowFormat.Text + CRLF +
-    'CHECKSUM = '+IntToStr(Integer(chkChecksum.Checked)) + CRLF;
+  Result := Result + CRLF + ')' + CRLF;
+  if memoComment.Text <> '' then
+    Result := Result + 'COMMENT = '+esc(memoComment.Text) + CRLF;
+  if comboCollation.Text <> '' then
+    Result := Result + 'COLLATE = '+comboCollation.Text + CRLF;
+  if comboEngine.Text <> '' then
+    Result := Result + 'ENGINE = '+comboEngine.Text + CRLF;
+  if comboRowFormat.Text <> '' then
+    Result := Result + 'ROW_FORMAT = '+comboRowFormat.Text + CRLF;
+  if chkChecksum.Checked then
+    Result := Result + 'CHECKSUM = '+IntToStr(Integer(chkChecksum.Checked)) + CRLF;
   if editAutoInc.Text <> '' then
     Result := Result + 'AUTO_INCREMENT = '+editAutoInc.Text + CRLF;
   if editAvgRowLen.Text <> '' then
@@ -637,9 +646,13 @@ var
   Parts: TWideStringlist;
   i, p: Integer;
 begin
+  Result := '';
+  Parts := TWideStringlist(IndexList.Objects[idx]);
+  // Supress SQL error  trying index creation with 0 column
+  if Parts.Count = 0 then
+    Exit;
   IndexName := Copy(IndexList[idx], 1, LastPos(REGDELIM, IndexList[idx])-1);
   IndexType := Copy(IndexList[idx], LastPos(REGDELIM, IndexList[idx])+1, Length(IndexList[idx]));
-  Result := '';
   if IndexType = PKEY then
     Result := Result + 'PRIMARY KEY '
   else begin
@@ -648,7 +661,6 @@ begin
     Result := Result + 'INDEX ' + Mainform.Mask(IndexName) + ' ';
   end;
   Result := Result + '(';
-  Parts := TWideStringlist(IndexList.Objects[idx]);
   for i:=0 to Parts.Count - 1 do begin
     ColName := Parts[i];
     p := LastPos('(', ColName);
