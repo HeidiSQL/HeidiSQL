@@ -3888,7 +3888,7 @@ end;
 
 procedure TMainForm.LoadDatabaseProperties(db: WideString);
 var
-  i               : Integer;
+  i, img          : Integer;
   bytes           : Int64;
   ds              : TDataSet;
   Cap,
@@ -3953,23 +3953,14 @@ begin
     VTRowDataListTables[i-1].NodeType := GetDBObjectType( ds.Fields);
     // Find icon
     case VTRowDataListTables[i-1].NodeType of
-      lntTable, lntCrashedTable: // A normal table
-      begin
-        if GetDBObjectType(ds.Fields) = lntCrashedTable then
-          VTRowDataListTables[i-1].ImageIndex := ICONINDEX_CRASHED_TABLE
-        else
-          VTRowDataListTables[i-1].ImageIndex := ICONINDEX_TABLE;
-      end;
-
-      lntView:
-        VTRowDataListTables[i-1].ImageIndex := ICONINDEX_VIEW;
-
-      lntProcedure:
-        VTRowDataListTables[i-1].ImageIndex := ICONINDEX_STOREDPROCEDURE;
-
-      lntFunction:
-        VTRowDataListTables[i-1].ImageIndex := ICONINDEX_STOREDFUNCTION;
+      lntTable:         img := ICONINDEX_TABLE;
+      lntCrashedTable:  img := ICONINDEX_CRASHED_TABLE;
+      lntView:          img := ICONINDEX_VIEW;
+      lntProcedure:     img := ICONINDEX_STOREDPROCEDURE;
+      lntFunction:      img := ICONINDEX_STOREDFUNCTION;
+      else              img := -1;
     end;
+    VTRowDataListTables[i-1].ImageIndex := img;
 
     ds.Next;
   end;
