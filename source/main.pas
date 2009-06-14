@@ -2198,7 +2198,7 @@ begin
   if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
   Screen.Cursor := crHourGlass;
   showstatus('Saving contents to file...');
-  IsBinary := ActiveData.Columns[g.FocusedColumn].IsBinary;
+  IsBinary := ActiveData.Columns[g.FocusedColumn].DatatypeCat = dtcBinary;
 
   Header := WideHexToBin(Copy(g.Text[g.FocusedNode, g.FocusedColumn], 3, 20));
   SaveBinary := false;
@@ -3347,24 +3347,24 @@ begin
   rx.Expression := '^(tiny|small|medium|big)?int\b';
   if rx.Exec(ColType) then begin
     col.Alignment := taRightJustify;
-    FDataGridResult.Columns[idx].IsInt := True;
+    FDataGridResult.Columns[idx].DatatypeCat := dtcInteger;
   end;
   rx.Expression := '^(float|double|decimal)\b';
   if rx.Exec(ColType) then begin
     col.Alignment := taRightJustify;
-    FDataGridResult.Columns[idx].IsFloat := True;
+    FDataGridResult.Columns[idx].DatatypeCat := dtcReal;
   end;
   rx.Expression := '^(date|datetime|time(stamp)?)\b';
   if rx.Exec(ColType) then begin
-    FDataGridResult.Columns[idx].IsDate := True;
-    if rx.Match[1] = 'date' then FDataGridResult.Columns[idx].DataType := tpDATE
-    else if rx.Match[1] = 'time' then FDataGridResult.Columns[idx].DataType := tpTIME
-    else if rx.Match[1] = 'timestamp' then FDataGridResult.Columns[idx].DataType := tpTIMESTAMP
-    else FDataGridResult.Columns[idx].DataType := tpDATETIME;
+    FDataGridResult.Columns[idx].DatatypeCat := dtcTemporal;
+    if rx.Match[1] = 'date' then FDataGridResult.Columns[idx].Datatype := dtDate
+    else if rx.Match[1] = 'time' then FDataGridResult.Columns[idx].Datatype := dtTime
+    else if rx.Match[1] = 'timestamp' then FDataGridResult.Columns[idx].Datatype := dtTimestamp
+    else FDataGridResult.Columns[idx].Datatype := dtDatetime;
   end;
   rx.Expression := '^((tiny|medium|long)?text|(var)?char)\b(\(\d+\))?';
   if rx.Exec(ColType) then begin
-    FDataGridResult.Columns[idx].IsText := True;
+    FDataGridResult.Columns[idx].DatatypeCat := dtcText;
     if rx.Match[4] <> '' then
       FDataGridResult.Columns[idx].MaxLength := MakeInt(rx.Match[4])
     else if ColType = 'tinytext' then
@@ -3383,16 +3383,16 @@ begin
   end;
   rx.Expression := '^((tiny|medium|long)?blob|(var)?binary|bit)\b';
   if rx.Exec(ColType) then
-    FDataGridResult.Columns[idx].IsBinary := True;
+    FDataGridResult.Columns[idx].DatatypeCat := dtcBinary;
   if Copy(ColType, 1, 5) = 'enum(' then begin
-    FDataGridResult.Columns[idx].IsEnum := True;
+    FDataGridResult.Columns[idx].DatatypeCat := dtcIntegerNamed;
     FDataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
     FDataGridResult.Columns[idx].ValueList.QuoteChar := '''';
     FDataGridResult.Columns[idx].ValueList.Delimiter := ',';
     FDataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
   end;
   if Copy(ColType, 1, 4) = 'set(' then begin
-    FDataGridResult.Columns[idx].IsSet := True;
+    FDataGridResult.Columns[idx].DatatypeCat := dtcSetNamed;
     FDataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
     FDataGridResult.Columns[idx].ValueList.QuoteChar := '''';
     FDataGridResult.Columns[idx].ValueList.Delimiter := ',';
@@ -4297,17 +4297,17 @@ begin
         col.Options := col.Options - [coAllowClick];
         FQueryGridResult.Columns[i].Name := ColName;
         if ds.Fields[i].DataType in [ftSmallint, ftInteger, ftWord, ftLargeint] then begin
-          FQueryGridResult.Columns[i].IsInt := True;
+          FQueryGridResult.Columns[i].DatatypeCat := dtcInteger;
           col.Alignment := taRightJustify;
         end else if ds.Fields[i].DataType in [ftFloat] then begin
-          FQueryGridResult.Columns[i].IsFloat := True;
+          FQueryGridResult.Columns[i].DatatypeCat := dtcReal;
           col.Alignment := taRightJustify;
         end else if ds.Fields[i].DataType in [ftDate, ftTime, ftDateTime, ftTimeStamp] then
-          FQueryGridResult.Columns[i].IsDate := True
+          FQueryGridResult.Columns[i].DatatypeCat := dtcTemporal
         else if ds.Fields[i].DataType in [ftWideString, ftMemo, ftWideMemo] then
-          FQueryGridResult.Columns[i].IsText := True
+          FQueryGridResult.Columns[i].DatatypeCat := dtcText
         else if ds.Fields[i].DataType in [ftBlob] then
-          FQueryGridResult.Columns[i].IsBinary := True;
+          FQueryGridResult.Columns[i].DatatypeCat := dtcBinary;
       end;
       debug('mem: query column initialization complete.');
       debug('mem: clearing and initializing query rows (internal data).');
@@ -4318,7 +4318,7 @@ begin
         FQueryGridResult.Rows[i].Loaded := True;
         SetLength(FQueryGridResult.Rows[i].Cells, ds.FieldCount);
         for j:=0 to ds.FieldCount-1 do begin
-          if FQueryGridResult.Columns[j].IsBinary then
+          if FQueryGridResult.Columns[j].DatatypeCat = dtcBinary then
             FQueryGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
           else
             FQueryGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
@@ -4547,9 +4547,9 @@ begin
     end;
 
     // Add keywords
-    for i := 0 to MYSQL_KEYWORDS.Count - 1 do begin
-      SynCompletionProposal1.InsertList.Add( MYSQL_KEYWORDS[i] );
-      SynCompletionProposal1.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_KEYWORD, 'keyword', MYSQL_KEYWORDS[i]] ) );
+    for i := 0 to MySQLKeywords.Count - 1 do begin
+      SynCompletionProposal1.InsertList.Add( MySQLKeywords[i] );
+      SynCompletionProposal1.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i]] ) );
     end;
 
   end;
@@ -5670,8 +5670,8 @@ begin
     begin
       // State of items in popupmenu
       menuHelp.Enabled := True;
-      for i := 0 to MYSQL_KEYWORDS.Count - 1 do
-        lboxQueryHelpers.Items.Add(MYSQL_KEYWORDS[i]);
+      for i := 0 to MySQLKeywords.Count - 1 do
+        lboxQueryHelpers.Items.Add(MySQLKeywords[i]);
     end;
 
     3: // SQL Snippets
@@ -7161,7 +7161,7 @@ begin
       SetLength(res.Rows[Node.Index].Cells, ds.Fields.Count);
       i := Node.Index;
       for j := 0 to ds.Fields.Count - 1 do begin
-        if res.Columns[j].IsBinary then
+        if res.Columns[j].DatatypeCat = dtcBinary then
           res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
         else
           res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
@@ -7243,7 +7243,7 @@ begin
     for i := start to start + limit - 1 do begin
       SetLength(res.Rows[i].Cells, ds.Fields.Count);
       for j := 0 to ds.Fields.Count - 1 do begin
-        if res.Columns[j].IsBinary then
+        if res.Columns[j].DatatypeCat = dtcBinary then
           res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
         else
           res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
@@ -7360,22 +7360,22 @@ begin
   else if vsSelected in Node.States then
     cl := clBlack
   // Numeric field
-  else if r.Columns[Column].isInt or r.Columns[Column].isFloat then
+  else if r.Columns[Column].DatatypeCat in [dtcInteger, dtcReal] then
     if isNull then cl := prefNullColorNumeric else cl := prefFieldColorNumeric
   // Date field
-  else if r.Columns[Column].isDate then
+  else if r.Columns[Column].DatatypeCat = dtcTemporal then
     if isNull then cl := prefNullColorDatetime else cl := prefFieldColorDatetime
   // Text field
-  else if r.Columns[Column].isText then
+  else if r.Columns[Column].DatatypeCat = dtcText then
     if isNull then cl := prefNullColorText else cl := prefFieldColorText
   // Text field
-  else if r.Columns[Column].isBinary then
+  else if r.Columns[Column].DatatypeCat = dtcBinary then
     if isNull then cl := prefNullColorBinary else cl := prefFieldColorBinary
   // Enum field
-  else if r.Columns[Column].isEnum then
+  else if r.Columns[Column].DatatypeCat = dtcIntegerNamed then
     if isNull then cl := prefNullColorEnum else cl := prefFieldColorEnum
   // Set field
-  else if r.Columns[Column].isSet then
+  else if r.Columns[Column].DatatypeCat = dtcSetNamed then
     if isNull then cl := prefNullColorSet else cl := prefFieldColorSet
   else
     if isNull then cl := prefNullColorDefault else cl := clWindowText;
@@ -7563,9 +7563,9 @@ begin
   for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
     if Row.Cells[i].Modified then begin
       Val := Row.Cells[i].NewText;
-      if FDataGridResult.Columns[i].IsFloat then
+      if FDataGridResult.Columns[i].DatatypeCat = dtcReal then
         Val := FloatStr(Val)
-      else if FDataGridResult.Columns[i].IsBinary then begin
+      else if FDataGridResult.Columns[i].DatatypeCat = dtcBinary then begin
         CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + FDataGridResult.Columns[i].Name + '".');
         if Val = '0x' then Val := esc('');
       end else
@@ -7648,9 +7648,9 @@ begin
     // Find old value of key column
     KeyVal := Row.Cells[j].Text;
     // Quote if needed
-    if FDataGridResult.Columns[j].IsFloat then
+    if FDataGridResult.Columns[j].DatatypeCat = dtcReal then
       KeyVal := FloatStr(KeyVal)
-    else if FDataGridResult.Columns[j].IsBinary then begin
+    else if FDataGridResult.Columns[j].DatatypeCat = dtcBinary then begin
       if KeyVal = '0x' then
         KeyVal := esc('');
     end else
@@ -7768,9 +7768,9 @@ begin
     if Row.Cells[i].Modified then begin
       Cols := Cols + mask(FDataGridResult.Columns[i].Name) + ', ';
       Val := Row.Cells[i].NewText;
-      if FDataGridResult.Columns[i].IsFloat then
+      if FDataGridResult.Columns[i].DatatypeCat = dtcReal then
         Val := FloatStr(Val)
-      else if FDataGridResult.Columns[i].IsBinary then begin
+      else if FDataGridResult.Columns[i].DatatypeCat = dtcBinary then begin
         CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + FDataGridResult.Columns[i].Name + '".');
         if Val = '0x' then
           Val := esc('');
@@ -7934,7 +7934,7 @@ begin
   Cell := @Data.Rows[Node.Index].Cells[Column];
   len := Length(Cell.Text);
   // Recalculate due to textual formatting of raw binary data.
-  if (Col.IsBinary) and (len > 2) then len := (len - 2) div 2;
+  if (Col.DatatypeCat = dtcBinary) and (len > 2) then len := (len - 2) div 2;
   // Assume width limit in effect if data exactly at limit threshold.
   if len = GridMaxData then begin
     if CheckUniqueKeyClause then begin
@@ -7944,7 +7944,7 @@ begin
         ' WHERE ' + GetWhereClause(Row, @Data.Columns)
       ;
       ds := GetResults(sql);
-      if Col.IsBinary then Cell.Text := '0x' + BinToWideHex(ds.Fields[0].AsString)
+      if Col.DatatypeCat = dtcBinary then Cell.Text := '0x' + BinToWideHex(ds.Fields[0].AsString)
       else Cell.Text := ds.Fields[0].AsWideString;
       Cell.IsNull := ds.Fields[0].IsNull;
     end else
@@ -7993,25 +7993,27 @@ var
   EnumEditor: TEnumEditorLink;
   SetEditor: TSetEditorLink;
   InplaceEditor: TInplaceEditorLink;
+  TypeCat: TDatatypeCategoryIndex;
 begin
-  if FDataGridResult.Columns[Column].IsText then begin
+  TypeCat := FDataGridResult.Columns[Column].DatatypeCat;
+  if TypeCat = dtcText then begin
     InplaceEditor := TInplaceEditorLink.Create(Sender as TVirtualStringTree);
     InplaceEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
     InplaceEditor.ButtonVisible := true;
     EditLink := InplaceEditor;
-  end else if FDataGridResult.Columns[Column].IsBinary and prefEnableBinaryEditor then begin
+  end else if (TypeCat = dtcBinary) and prefEnableBinaryEditor then begin
     MemoEditor := TMemoEditorLink.Create;
     MemoEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
     EditLink := MemoEditor;
-  end else if FDataGridResult.Columns[Column].IsDate and prefEnableDatetimeEditor then begin
+  end else if (TypeCat = dtcTemporal) and prefEnableDatetimeEditor then begin
     DateTimeEditor := TDateTimeEditorLink.Create;
-    DateTimeEditor.DataType := FDataGridResult.Columns[Column].DataType;
+    DateTimeEditor.Datatype := FDataGridResult.Columns[Column].Datatype;
     EditLink := DateTimeEditor;
-  end else if FDataGridResult.Columns[Column].IsEnum and prefEnableEnumEditor then begin
+  end else if (TypeCat = dtcIntegerNamed) and prefEnableEnumEditor then begin
     EnumEditor := TEnumEditorLink.Create;
     EnumEditor.ValueList := FDataGridResult.Columns[Column].ValueList;
     EditLink := EnumEditor;
-  end else if FDataGridResult.Columns[Column].IsSet and prefEnableSetEditor then begin
+  end else if (TypeCat = dtcSetNamed) and prefEnableSetEditor then begin
     SetEditor := TSetEditorLink.Create;
     SetEditor.ValueList := FDataGridResult.Columns[Column].ValueList;
     EditLink := SetEditor;

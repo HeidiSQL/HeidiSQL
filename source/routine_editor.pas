@@ -105,8 +105,8 @@ begin
   comboDataAccess.Items.Add('Modifies SQL data');
   comboSecurity.Items.Add('Definer');
   comboSecurity.Items.Add('Invoker');
-  for i := Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
-    comboReturns.Items.Add(MySqlDataTypeArray[i].Name);
+  for i := Low(Datatypes) to High(Datatypes) do
+    comboReturns.Items.Add(Datatypes[i].Name);
   SetWindowSizeGrip(Handle, True);
   InheritFont(Font);
   FixVT(listParameters);
@@ -336,8 +336,8 @@ begin
     EnumEditor := TEnumEditorLink.Create;
     EnumEditor.AllowCustomText := True;
     EnumEditor.ValueList := TWideStringList.Create;
-    for i:=Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
-      EnumEditor.ValueList.Add(MySqlDataTypeArray[i].Name);
+    for i:=Low(Datatypes) to High(Datatypes) do
+      EnumEditor.ValueList.Add(Datatypes[i].Name);
     EditLink := EnumEditor;
   end else if Column = 3 then begin
     EnumEditor := TEnumEditorLink.Create;

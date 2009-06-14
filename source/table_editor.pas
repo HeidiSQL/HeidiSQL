@@ -434,7 +434,7 @@ var
   ColSpec, IndexSQL, DefaultText: WideString;
   i, j: Integer;
   AddIt, DropIt: Boolean;
-  dt: TMySQLDataTypeRecord;
+  dt: TDatatype;
   DefaultType: TColumnDefaultType;
   ds: TDataset;
 begin
@@ -570,7 +570,7 @@ function TfrmTableEditor.ComposeCreateStatement: WideString;
 var
   i, IndexCount: Integer;
   ColProps: TWideStringlist;
-  dt: TMySQLDataTypeRecord;
+  dt: TDatatype;
   DefaultType: TColumnDefaultType;
   DefaultText, tmp: WideString;
 begin
@@ -888,7 +888,7 @@ end;
 function TfrmTableEditor.CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
   Props: TWideStringlist;
-  dt: TMysqlDataTypeRecord;
+  dt: TDatatype;
 begin
   Props := TWideStringlist(Columns.Objects[Node.Index]);
   dt := GetDatatypeByName(Props[0]);
@@ -933,7 +933,7 @@ procedure TfrmTableEditor.listColumnsPaintText(Sender: TBaseVirtualTree;
 var
   Datatype: String;
   TextColor: TColor;
-  dt: TMySQLDatatypeRecord;
+  dt: TDatatype;
 begin
   // Give datatype column specific color, as set in preferences
   if vsSelected in Node.States then
@@ -945,12 +945,12 @@ begin
       dt := GetDatatypeByName(Datatype);
 
       case dt.Category of
-        catInteger, catReal: TextColor := Mainform.prefFieldColorNumeric;
-        catTemporal:         TextColor := Mainform.prefFieldColorDateTime;
-        catText:             TextColor := Mainform.prefFieldColorText;
-        catBinary:           TextColor := Mainform.prefFieldColorBinary;
-        catIntegerNamed:     TextColor := Mainform.prefFieldColorEnum;
-        catSet, catSetNamed: TextColor := Mainform.prefFieldColorSet;
+        dtcInteger, dtcReal: TextColor := Mainform.prefFieldColorNumeric;
+        dtcTemporal:         TextColor := Mainform.prefFieldColorDateTime;
+        dtcText:             TextColor := Mainform.prefFieldColorText;
+        dtcBinary:           TextColor := Mainform.prefFieldColorBinary;
+        dtcIntegerNamed:     TextColor := Mainform.prefFieldColorEnum;
+        dtcSet, dtcSetNamed: TextColor := Mainform.prefFieldColorSet;
         // TODO: catSpatial
         else                 TextColor := TargetCanvas.Font.Color;
       end;
@@ -1044,8 +1044,8 @@ begin
     2: begin // Datatype pulldown
       EnumEditor := TEnumEditorLink.Create;
       EnumEditor.ValueList := TWideStringList.Create;
-      for i:=Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do
-        EnumEditor.ValueList.Add(MySqlDataTypeArray[i].Name);
+      for i:=Low(Datatypes) to High(Datatypes) do
+        EnumEditor.ValueList.Add(Datatypes[i].Name);
       EditLink := EnumEditor;
       end;
     8: begin // Collation pulldown
