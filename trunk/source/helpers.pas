@@ -11,7 +11,7 @@ interface
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
   shlobj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
-  TntCheckLst, Registry, SynEditHighlighter;
+  TntCheckLst, Registry, SynEditHighlighter, mysql_structures;
 
 type
 
@@ -55,16 +55,10 @@ type
   PGridCell = ^TGridCell;
   TGridColumn = record
     Name: WideString;
-    DataType: Byte; // @see constants in mysql_structures.pas
+    Datatype: TDatatypeIndex; // @see mysql_structures.pas
+    DatatypeCat: TDatatypeCategoryIndex;
     MaxLength: Cardinal;
     IsPriPart: Boolean;
-    IsBinary: Boolean;
-    IsText: Boolean;
-    IsEnum: Boolean;
-    IsSet: Boolean;
-    IsInt: Boolean;
-    IsFloat: Boolean;
-    IsDate: Boolean;
     ValueList: TWideStringList;
   end;
   PGridColumn = ^TGridColumn;
@@ -197,7 +191,6 @@ type
   function ListIndexByRegExpr(List: TWideStrings; Expression: WideString): Integer;
   procedure RestoreSyneditStyles(Highlighter: TSynCustomHighlighter);
 var
-  MYSQL_KEYWORDS             : TStringList;
   MainReg                    : TRegistry;
 
 
@@ -944,7 +937,7 @@ begin
       Continue;
     Data := GridData.Columns[i].Name;
     // Alter column name in header if data is not raw.
-    if GridData.Columns[i].IsBinary then Data := 'HEX(' + Data + ')';
+    if GridData.Columns[i].DatatypeCat = dtcBinary then Data := 'HEX(' + Data + ')';
     // Add header item.
     if tmp <> '' then tmp := tmp + Separator;
     tmp := tmp + Encloser + Data + Encloser;
@@ -968,9 +961,9 @@ begin
         Continue;
       Data := Grid.Text[Node, i];
       // Remove 0x.
-      if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
+      if GridData.Columns[i].DatatypeCat = dtcBinary then Delete(Data, 1, 2);
       // Unformat float values
-      if GridData.Columns[i].IsFloat then Data := FloatStr(Data);
+      if GridData.Columns[i].DatatypeCat = dtcReal then Data := FloatStr(Data);
       // Escape encloser characters inside data per de-facto CSV.
       Data := WideStringReplace(Data, Encloser, Encloser + Encloser, [rfReplaceAll]);
       // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
@@ -1040,13 +1033,13 @@ begin
       tmp := tmp + #9#9'<' + Grid.Header.Columns[i].Text;
       if GridData.Rows[Node.Index].Cells[i].IsNull then tmp := tmp + ' isnull="true" />' + CRLF
       else begin
-        if GridData.Columns[i].IsBinary then tmp := tmp + ' format="hex"';
+        if GridData.Columns[i].DatatypeCat = dtcBinary then tmp := tmp + ' format="hex"';
         tmp := tmp + '>';
         Data := Grid.Text[Node, i];
         // Remove 0x.
-        if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
+        if GridData.Columns[i].DatatypeCat = dtcBinary then Delete(Data, 1, 2);
         // Unformat float values
-        if GridData.Columns[i].IsFloat then Data := FloatStr(Data);
+        if GridData.Columns[i].DatatypeCat = dtcReal then Data := FloatStr(Data);
         // Escape XML control characters in data.
         Data := htmlentities(Data);
         // Add data and cell end tag.
@@ -1120,9 +1113,9 @@ begin
       else begin             
         Data := Grid.Text[Node, i];
         // Remove 0x.
-        if GridData.Columns[i].IsBinary then Delete(Data, 1, 2);
+        if GridData.Columns[i].DatatypeCat = dtcBinary then Delete(Data, 1, 2);
         // Unformat float values
-        if GridData.Columns[i].IsFloat then Data := FloatStr(Data);
+        if GridData.Columns[i].DatatypeCat = dtcReal then Data := FloatStr(Data);
         // Add data and cell end tag.
         tmp := tmp + esc(Data);
       end;
@@ -2984,50 +2977,6 @@ begin
     Attri.IntegerStyle := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Mainform.SynSQLSyn1.Attribute[i].IntegerStyle)
   end;
 end;
-
-
-initialization
-
-
-
-// Keywords copied from SynHighligherSQL
-MYSQL_KEYWORDS := TStringList.Create;
-MYSQL_KEYWORDS.CommaText := 'ACTION,AFTER,AGAINST,AGGREGATE,ALGORITHM,ALL,ALTER,ANALYZE,AND,ANY,AS,' +
-  'ASC,AT,AUTO_INCREMENT,AVG_ROW_LENGTH,BACKUP,BEFORE,BEGIN,BENCHMARK,BETWEEN,BINLOG,BIT,' +
-  'BOOL,BOTH,BY,CACHE,CALL,CASCADE,CASCADED,CHANGE,CHARACTER,CHARSET,CHECK,' +
-  'CHECKSUM,CLIENT,COLLATE,COLLATION,COLUMN,COLUMNS,COMMENT,COMMIT,' +
-  'COMMITTED,COMPLETION,CONCURRENT,CONNECTION,CONSISTENT,CONSTRAINT,' +
-  'CONVERT,CONTAINS,CONTENTS,CREATE,CROSS,DATA,DATABASE,DATABASES,' +
-  'DEALLOCATE,DEC,DEFAULT,DEFINER,DELAYED,DELAY_KEY_WRITE,DELETE,DESC,' +
-  'DETERMINISTIC,DIRECTORY,DISABLE,DISCARD,DESCRIBE,DISTINCT,DISTINCTROW,' +
-  'DIV,DROP,DUAL,DUMPFILE,DUPLICATE,EACH,ELSE,ENABLE,ENCLOSED,END,ENDS,' +
-  'ENGINE,ENGINES,ESCAPE,ESCAPED,ERRORS,EVENT,EVENTS,EVERY,EXECUTE,EXISTS,' +
-  'EXPANSION,EXPLAIN,FALSE,FIELDS,FILE,FIRST,FLUSH,FOR,FORCE,FOREIGN,FROM,' +
-  'FULL,FULLTEXT,FUNCTION,FUNCTIONS,GLOBAL,GRANT,GRANTS,GROUP,HAVING,HELP,' +
-  'HIGH_PRIORITY,HOSTS,IDENTIFIED,IGNORE,INDEX,INFILE,INNER,INSERT,' +
-  'INSERT_METHOD,INSTALL,INT1,INT2,INT3,INT4,INT8,INTO,IO_THREAD,IS,' +
-  'ISOLATION,INVOKER,JOIN,KEY,KEYS,KILL,LAST,LEADING,LEAVES,LEVEL,LESS,' +
-  'LIKE,LIMIT,LINEAR,LINES,LIST,LOAD,LOCAL,LOCK,LOGS,LONG,LOW_PRIORITY,' +
-  'MASTER,MASTER_HOST,MASTER_LOG_FILE,MASTER_LOG_POS,MASTER_CONNECT_RETRY,' +
-  'MASTER_PASSWORD,MASTER_PORT,MASTER_SSL,MASTER_SSL_CA,MASTER_SSL_CAPATH,' +
-  'MASTER_SSL_CERT,MASTER_SSL_CIPHER,MASTER_SSL_KEY,MASTER_USER,MATCH,' +
-  'MAX_ROWS,MAXVALUE,MIDDLEINT,MIN_ROWS,MOD,MODE,MODIFY,MODIFIES,NAMES,' +
-  'NATURAL,NEW,NO,NODEGROUP,NOT,NULL,OJ,OFFSET,OLD,ON,OPTIMIZE,OPTION,' +
-  'OPTIONALLY,OPEN,OR,ORDER,OUTER,OUTFILE,PACK_KEYS,PARTIAL,PARTITION,' +
-  'PARTITIONS,PLUGIN,PLUGINS,PREPARE,PRESERVE,PRIMARY,PRIVILEGES,PROCEDURE,' +
-  'PROCESS,PROCESSLIST,QUERY,RAID_CHUNKS,RAID_CHUNKSIZE,RAID_TYPE,RANGE,' +
-  'READ,REBUILD,REFERENCES,REGEXP,RELAY_LOG_FILE,RELAY_LOG_POS,RELOAD,' +
-  'RENAME,REORGANIZE,REPAIR,REPEATABLE,REPLACE,REPLICATION,RESTRICT,RESET,' +
-  'RESTORE,RETURN,RETURNS,REVOKE,RLIKE,ROLLBACK,ROLLUP,ROUTINE,ROW,' +
-  'ROW_FORMAT,ROWS,SAVEPOINT,SCHEDULE,SCHEMA,SCHEMAS,SECURITY,SELECT,' +
-  'SERIALIZABLE,SESSION,SET,SHARE,SHOW,SHUTDOWN,SIMPLE,SLAVE,SNAPSHOT,' +
-  'SONAME,SQL,SQL_BIG_RESULT,SQL_BUFFER_RESULT,SQL_CACHE,' +
-  'SQL_CALC_FOUND_ROWS,SQL_NO_CACHE,SQL_SMALL_RESULT,SQL_THREAD,START,' +
-  'STARTING,STARTS,STATUS,STOP,STORAGE,STRAIGHT_JOIN,SUBPARTITION,' +
-  'SUBPARTITIONS,SUPER,TABLE,TABLES,TABLESPACE,TEMPORARY,TERMINATED,THAN,' +
-  'THEN,TO,TRAILING,TRANSACTION,TRIGGER,TRIGGERS,TRUE,TYPE,UNCOMMITTED,' +
-  'UNINSTALL,UNIQUE,UNLOCK,UPDATE,UPGRADE,UNION,USAGE,USE,USING,VALUES,' +
-  'VARIABLES,VARYING,VIEW,WARNINGS,WHERE,WITH,WORK,WRITE';
 
 
 end.

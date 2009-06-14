@@ -42,7 +42,7 @@ type
     procedure PickerKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure PickerChange(Sender: TObject);
   public
-    DataType: Byte; // @see mysql_structures
+    Datatype: TDatatypeIndex; // @see mysql_structures
     constructor Create;
     destructor Destroy; override;
     function BeginEdit: Boolean; virtual; stdcall;
@@ -220,7 +220,7 @@ begin
   F := TFont.Create;
   FTree.GetTextInfo(Node, Column, F, FTextBounds, Text);
 
-  IsBinary := Mainform.FDataGridResult.Columns[Column].IsBinary;
+  IsBinary := Mainform.FDataGridResult.Columns[Column].DatatypeCat = dtcBinary;
 
   // Get wide text of the node.
   Text := FTree.Text[FNode, FColumn];
@@ -344,17 +344,17 @@ begin
   if Not Result then
     Exit;
   if FModified then begin
-    case DataType of
-      tpDATE:
+    case Datatype of
+      dtDate:
         newtext := FormatDateTime(ShortDateFormat, FDatePicker.Date);
-      tpDATETIME, tpTIMESTAMP:
+      dtDatetime, dtTimestamp:
       begin
 	      // Take date and add time
         dt := FDatePicker.Date;
         ReplaceTime(dt, FTimePicker.Time);
         newtext := FormatDateTime(ShortDateFormat+' '+LongTimeFormat, dt);
       end;
-      tpTIME:
+      dtTime:
         newtext := FormatDateTime(LongTimeFormat, FTimePicker.Time);
     end;
     if newtext <> FTree.Text[FNode, FColumn] then
@@ -402,7 +402,7 @@ begin
   except
     dt := Now;
   end;
-  if DataType in [tpDATE, tpDATETIME, tpTIMESTAMP] then begin
+  if Datatype in [dtDate, dtDatetime, dtTimestamp] then begin
     FDatePicker := TDateTimePicker.Create(Tree);
     FDatePicker.Parent := FTree;
     FDatePicker.OnKeyDown := PickerKeyDown;
@@ -411,7 +411,7 @@ begin
     FDatePicker.DateTime := dt;
     FDatePicker.OnChange := PickerChange;
   end;
-  if DataType in [tpDATETIME, tpTIMESTAMP, tpTIME] then begin
+  if Datatype in [dtDatetime, dtTimestamp, dtTime] then begin
     FTimePicker := TDateTimePicker.Create(Tree);
     FTimePicker.Parent := FTree;
     FTimePicker.OnKeyDown := PickerKeyDown;

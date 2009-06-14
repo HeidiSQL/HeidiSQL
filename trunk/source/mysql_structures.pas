@@ -12,19 +12,22 @@ uses
 {$I const.inc}
 
 type
-  // MySQL Index structure
-  TMysqlIndex = record
-    Name:     WideString;
-    Columns:  TWideStringList;
-    Unique:   Boolean;
-    Fulltext: Boolean;
-    Modified: Boolean;
-    Ready:    Boolean;
-  end;
+  // MySQL data types
+  TDatatypeIndex = (dtTinyint, dtSmallint, dtMediumint, dtInt, dtBigint,
+    dtFloat, dtDouble, dtDecimal,
+    dtDate, dtTime, dtYear, dtDatetime, dtTimestamp,
+    dtChar, dtVarchar, dtTinytext, dtText, dtMediumtext, dtLongtext,
+    dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob,
+    dtEnum, dtSet, dtBit,
+    dtPoint, dtLinestring, dtPolygon, dtGeometry, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection);
 
-  // MySQL Data Type structure
-  TMysqlDataTypeRecord = record
-    Index:           Integer;
+  // MySQL data type categorization
+  TDatatypeCategoryIndex = (dtcInteger, dtcReal, dtcTemporal, dtcText, dtcBinary,
+    dtcIntegerNamed, dtcSet, dtcSetNamed, dtcSpatial);
+
+  // MySQL data type structure
+  TDatatype = record
+    Index:           TDatatypeIndex;
     Name:            String[18];
     HasLength:       Boolean; // Can have Length- or Set-attribute?
     RequiresLength:  Boolean; // Must have a Length- or Set-attribute?
@@ -33,32 +36,16 @@ type
     HasBinary:       Boolean; // Can be binary?
     HasDefault:      Boolean; // Can have a default value?
     DefLengthSet:    String;  // Should be set for types which require a length/set
-    Category:        Integer;
+    Category:        TDatatypeCategoryIndex;
   end;
 
-  // MySQL Data Type category structure
-  TMysqlDataTypeCategory = record
-    Index:           Integer;
+  // MySQL data type category structure
+  TDatatypeCategory = record
+    Index:           TDatatypeCategoryIndex;
     Name:            String[32];
   end;
 
-  // MySQL Field structure
-  TMysqlField = record
-    Name:          String[64];
-    FieldType:     Byte;
-    LengthSet:     String;
-    Default:       String;
-    Primary:       Boolean;
-    Index:         Boolean;
-    Unique:        Boolean;
-    Binary:        Boolean;
-    Unsigned:      Boolean;
-    Zerofill:      Boolean;
-    NotNull:       Boolean;
-    AutoIncrement: Boolean;
-  end;
-
-  // MySQL Functions structure
+  // MySQL functions structure
   TMySQLFunction = record
     Name:         String;
     Declaration:  String;
@@ -67,105 +54,54 @@ type
     Description:  String;
   end;
 
-
-
-// MySQL Field Types Constants
-const
-  tpTINYINT    = 0;
-  tpSMALLINT   = 1;
-  tpMEDIUMINT  = 2;
-  tpINT        = 3;
-  tpBIGINT     = 4;
-  tpFLOAT      = 5;
-  tpDOUBLE     = 6;
-  tpDECIMAL    = 7;
-  tpDATE       = 8;
-  tpTIME       = 9;
-  tpYEAR       = 10;
-  tpDATETIME   = 11;
-  tpTIMESTAMP  = 12;
-  tpCHAR       = 13;
-  tpVARCHAR    = 14;
-  tpTINYTEXT   = 15;
-  tpTEXT       = 16;
-  tpMEDIUMTEXT = 17;
-  tpLONGTEXT   = 18;
-  tpBINARY     = 19;
-  tpVARBINARY  = 20;
-  tpTINYBLOB   = 21;
-  tpBLOB       = 22;
-  tpMEDIUMBLOB = 23;
-  tpLONGBLOB   = 24;
-  tpENUM       = 25;
-  tpSET        = 26;
-  tpBIT        = 27;
-  tpPOINT      = 28;
-  tpLINESTRING = 29;
-  tpPOLYGON    = 30;
-  tpGEOMETRY   = 31;
-  tpMULTIPOINT = 32;
-  tpMULTILINESTRING    = 33;
-  tpMULTIPOLYGON       = 34;
-  tpGEOMETRYCOLLECTION = 35;
-
-  // MySQL field type categorization
-const
-  catInteger       = 0;
-  catReal          = 1;
-  catTemporal      = 2;
-  catText          = 3;
-  catBinary        = 4;
-  catIntegerNamed  = 5;
-  catSet           = 6;
-  catSetNamed      = 7;
-  catSpatial       = 8;
-
 var
+  MySQLKeywords: TStringList;
+
   // MySQL data type categories
-  MySqlDataTypeCategories: array[0..8] of TMysqlDataTypeCategory = (
+  DatatypeCategories: array[0..8] of TDatatypeCategory = (
     (
-      Index:           catInteger;
+      Index:           dtcInteger;
       Name:            'Integer'
     ),
     (
-      Index:           catIntegerNamed;
+      Index:           dtcIntegerNamed;
       Name:            'Integer, named (nonstandard)'
     ),
     (
-      Index:           catReal;
+      Index:           dtcReal;
       Name:            'Real'
     ),
     (
-      Index:           catText;
+      Index:           dtcText;
       Name:            'Text'
     ),
     (
-      Index:           catBinary;
+      Index:           dtcBinary;
       Name:            'Binary'
     ),
     (
-      Index:           catTemporal;
+      Index:           dtcTemporal;
       Name:            'Temporal (time)'
     ),
     (
-      Index:           catSpatial;
+      Index:           dtcSpatial;
       Name:            'Spatial (geometry)'
     ),
     (
-      Index:           catSet;
+      Index:           dtcSet;
       Name:            'Set of Bits (nonstandard)'
     ),
     (
-      Index:           catSetNamed;
+      Index:           dtcSetNamed;
       Name:            'Set of Bits, named (nonstandard)'
     )
   );
 
   // MySQL Data Type List and Properties
-  MySqlDataTypeArray: array [0..35] of TMysqlDataTypeRecord =
+  Datatypes: array [0..35] of TDatatype =
   (
     (
-      Index:           tpTINYINT;
+      Index:           dtTinyint;
       Name:            'TINYINT';
       HasLength:       True;
       RequiresLength:  False;
@@ -173,10 +109,10 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catInteger;
+      Category:        dtcInteger;
     ),
     (
-      Index:           tpSMALLINT;
+      Index:           dtSmallint;
       Name:            'SMALLINT';
       HasLength:       True;
       RequiresLength:  False;
@@ -184,10 +120,10 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catInteger;
+      Category:        dtcInteger;
     ),
     (
-      Index:           tpMEDIUMINT;
+      Index:           dtMediumint;
       Name:            'MEDIUMINT';
       HasLength:       True;
       RequiresLength:  False;
@@ -195,10 +131,10 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catInteger;
+      Category:        dtcInteger;
     ),
     (
-      Index:           tpINT;
+      Index:           dtInt;
       Name:            'INT';
       HasLength:       True;
       RequiresLength:  False;
@@ -206,10 +142,10 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catInteger;
+      Category:        dtcInteger;
     ),
     (
-      Index:           tpBIGINT;
+      Index:           dtBigint;
       Name:            'BIGINT';
       HasLength:       True;
       RequiresLength:  False;
@@ -217,10 +153,10 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catInteger;
+      Category:        dtcInteger;
     ),
     (
-      Index:           tpFLOAT;
+      Index:           dtFloat;
       Name:            'FLOAT';
       HasLength:       True;
       RequiresLength:  False;
@@ -228,10 +164,10 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catReal;
+      Category:        dtcReal;
     ),
     (
-      Index:           tpDOUBLE;
+      Index:           dtDouble;
       Name:            'DOUBLE';
       HasLength:       True;
       RequiresLength:  False;
@@ -239,10 +175,10 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catReal;
+      Category:        dtcReal;
     ),
     (
-      Index:           tpDECIMAL;
+      Index:           dtDecimal;
       Name:            'DECIMAL';
       HasLength:       True;
       RequiresLength:  True;
@@ -250,10 +186,10 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catReal;
+      Category:        dtcReal;
     ),
     (
-      Index:           tpDATE;
+      Index:           dtDate;
       Name:            'DATE';
       HasLength:       False;
       RequiresLength:  False;
@@ -261,10 +197,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catTemporal;
+      Category:        dtcTemporal;
     ),
     (
-      Index:           tpTIME;
+      Index:           dtTime;
       Name:            'TIME';
       HasLength:       False;
       RequiresLength:  False;
@@ -272,10 +208,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catTemporal;
+      Category:        dtcTemporal;
     ),
     (
-      Index:           tpYEAR;
+      Index:           dtYear;
       Name:            'YEAR';
       HasLength:       False;
       RequiresLength:  False;
@@ -283,10 +219,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catTemporal;
+      Category:        dtcTemporal;
     ),
     (
-      Index:           tpDATETIME;
+      Index:           dtDatetime;
       Name:            'DATETIME';
       HasLength:       False;
       RequiresLength:  False;
@@ -294,10 +230,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catTemporal;
+      Category:        dtcTemporal;
     ),
     (
-      Index:           tpTIMESTAMP;
+      Index:           dtTimestamp;
       Name:            'TIMESTAMP';
       HasLength:       False;
       RequiresLength:  False;
@@ -305,10 +241,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catTemporal;
+      Category:        dtcTemporal;
     ),
     (
-      Index:           tpCHAR;
+      Index:           dtCHAR;
       Name:            'CHAR';
       HasLength:       True;
       RequiresLength:  True;
@@ -317,10 +253,10 @@ var
       HasBinary:       True;
       HasDefault:      True;
       DefLengthSet:    '50';
-      Category:        catText;
+      Category:        dtcText;
     ),
     (
-      Index:           tpVARCHAR;
+      Index:           dtVarchar;
       Name:            'VARCHAR';
       HasLength:       True;
       RequiresLength:  True;
@@ -329,10 +265,10 @@ var
       HasBinary:       True; // MySQL-Help says the opposite but it's valid for older versions at least.
       HasDefault:      True;
       DefLengthSet:    '50';
-      Category:        catText;
+      Category:        dtcText;
     ),
     (
-      Index:           tpTINYTEXT;
+      Index:           dtTinytext;
       Name:            'TINYTEXT';
       HasLength:       False;
       RequiresLength:  False;
@@ -340,10 +276,10 @@ var
       HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      False;
-      Category:        catText;
+      Category:        dtcText;
     ),
     (
-      Index:           tpTEXT;
+      Index:           dtText;
       Name:            'TEXT';
       HasLength:       False;
       RequiresLength:  False;
@@ -351,10 +287,10 @@ var
       HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      False;
-      Category:        catText;
+      Category:        dtcText;
     ),
     (
-      Index:           tpMEDIUMTEXT;
+      Index:           dtMediumtext;
       Name:            'MEDIUMTEXT';
       HasLength:       False;
       RequiresLength:  False;
@@ -362,10 +298,10 @@ var
       HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      False;
-      Category:        catText;
+      Category:        dtcText;
     ),
     (
-      Index:           tpLONGTEXT;
+      Index:           dtLongtext;
       Name:            'LONGTEXT';
       HasLength:       False;
       RequiresLength:  False;
@@ -373,10 +309,10 @@ var
       HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      False;
-      Category:        catText;
+      Category:        dtcText;
     ),
     (
-      Index:           tpBINARY;
+      Index:           dtBinary;
       Name:            'BINARY';
       HasLength:       True;
       RequiresLength:  True;
@@ -385,10 +321,10 @@ var
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '50';
-      Category:        catBinary;
+      Category:        dtcBinary;
     ),
     (
-      Index:           tpVARBINARY;
+      Index:           dtVarbinary;
       Name:            'VARBINARY';
       HasLength:       True;
       RequiresLength:  True;
@@ -397,10 +333,10 @@ var
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '50';
-      Category:        catBinary;
+      Category:        dtcBinary;
     ),
     (
-      Index:           tpTINYBLOB;
+      Index:           dtTinyblob;
       Name:           'TINYBLOB';
       HasLength:       False;
       RequiresLength:  False;
@@ -408,10 +344,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        catBinary;
+      Category:        dtcBinary;
     ),
     (
-      Index:           tpBLOB;
+      Index:           dtBlob;
       Name:            'BLOB';
       HasLength:       False;
       RequiresLength:  False;
@@ -419,10 +355,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        catBinary;
+      Category:        dtcBinary;
     ),
     (
-      Index:           tpMEDIUMBLOB;
+      Index:           dtMediumblob;
       Name:            'MEDIUMBLOB';
       HasLength:       False;
       RequiresLength:  False;
@@ -430,10 +366,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        catBinary;
+      Category:        dtcBinary;
     ),
     (
-      Index:           tpLONGBLOB;
+      Index:           dtLongblob;
       Name:            'LONGBLOB';
       HasLength:       False;
       RequiresLength:  False;
@@ -441,10 +377,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        catBinary;
+      Category:        dtcBinary;
     ),
     (
-      Index:           tpENUM;
+      Index:           dtEnum;
       Name:            'ENUM';
       HasLength:       True; // Obviously this is not meant as "length", but as "set of values"
       RequiresLength:  True;
@@ -453,10 +389,10 @@ var
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '''Y'',''N''';
-      Category:        catIntegerNamed;
+      Category:        dtcIntegerNamed;
     ),
     (
-      Index:           tpSET;
+      Index:           dtSet;
       Name:            'SET';
       HasLength:       True; // Same as for ENUM
       RequiresLength:  True;
@@ -465,10 +401,10 @@ var
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '''Value A'',''Value B''';
-      Category:        catSetNamed;
+      Category:        dtcSetNamed;
     ),
     (
-      Index:           tpBIT;
+      Index:           dtBit;
       Name:            'BIT';
       HasLength:       True;
       RequiresLength:  False;
@@ -476,10 +412,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        catSet;
+      Category:        dtcSet;
     ),
     (
-      Index:           tpPOINT;
+      Index:           dtPoint;
       Name:            'POINT';
       HasLength:       False;
       RequiresLength:  False;
@@ -487,10 +423,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        catSpatial;
+      Category:        dtcSpatial;
     ),
     (
-      Index:           tpLINESTRING;
+      Index:           dtLinestring;
       Name:            'LINESTRING';
       HasLength:       False;
       RequiresLength:  False;
@@ -498,10 +434,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        catSpatial;
+      Category:        dtcSpatial;
     ),
     (
-      Index:           tpPOLYGON;
+      Index:           dtPolygon;
       Name:            'POLYGON';
       HasLength:       False;
       RequiresLength:  False;
@@ -509,10 +445,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        catSpatial;
+      Category:        dtcSpatial;
     ),
     (
-      Index:           tpGEOMETRY;
+      Index:           dtGeometry;
       Name:            'GEOMETRY';
       HasLength:       False;
       RequiresLength:  False;
@@ -520,10 +456,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        catSpatial;
+      Category:        dtcSpatial;
     ),
     (
-      Index:           tpMULTIPOINT;
+      Index:           dtMultipoint;
       Name:            'MULTIPOINT';
       HasLength:       False;
       RequiresLength:  False;
@@ -531,10 +467,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        catSpatial;
+      Category:        dtcSpatial;
     ),
     (
-      Index:           tpMULTILINESTRING;
+      Index:           dtMultilinestring;
       Name:            'MULTILINESTRING';
       HasLength:       False;
       RequiresLength:  False;
@@ -542,10 +478,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        catSpatial;
+      Category:        dtcSpatial;
     ),
     (
-      Index:           tpMULTIPOLYGON;
+      Index:           dtMultipolygon;
       Name:            'MULTIPOLYGON';
       HasLength:       False;
       RequiresLength:  False;
@@ -553,10 +489,10 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        catSpatial;
+      Category:        dtcSpatial;
     ),
     (
-      Index:           tpGEOMETRYCOLLECTION;
+      Index:           dtGeometrycollection;
       Name:            'GEOMETRYCOLLECTION';
       HasLength:       False;
       RequiresLength:  False;
@@ -564,7 +500,7 @@ var
       HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        catSpatial;
+      Category:        dtcSpatial;
     )
   );
 
@@ -4167,7 +4103,7 @@ var
   );
 
   function GetFunctionCategories: TStringList;
-  function GetDatatypeByName(Datatype: String): TMysqlDataTypeRecord;
+  function GetDatatypeByName(Datatype: String): TDatatype;
 
 implementation
 
@@ -4187,17 +4123,58 @@ begin
 end;
 
 
-function GetDatatypeByName(Datatype: String): TMysqlDataTypeRecord;
+function GetDatatypeByName(Datatype: String): TDatatype;
 var
   i: Integer;
 begin
-  for i:=Low(MySqlDataTypeArray) to High(MySqlDataTypeArray) do begin
-    if MySqlDataTypeArray[i].Name = Datatype then begin
-      Result := MySqlDataTypeArray[i];
+  for i:=Low(Datatypes) to High(Datatypes) do begin
+    if Datatypes[i].Name = Datatype then begin
+      Result := Datatypes[i];
       break;
     end;
   end;
 end;
 
+
+initialization
+
+// Keywords copied from SynHighligherSQL
+MySQLKeywords := TStringList.Create;
+MySQLKeywords.CommaText := 'ACTION,AFTER,AGAINST,AGGREGATE,ALGORITHM,ALL,ALTER,ANALYZE,AND,ANY,AS,' +
+  'ASC,AT,AUTO_INCREMENT,AVG_ROW_LENGTH,BACKUP,BEFORE,BEGIN,BENCHMARK,BETWEEN,BINLOG,BIT,' +
+  'BOOL,BOTH,BY,CACHE,CALL,CASCADE,CASCADED,CHANGE,CHARACTER,CHARSET,CHECK,' +
+  'CHECKSUM,CLIENT,COLLATE,COLLATION,COLUMN,COLUMNS,COMMENT,COMMIT,' +
+  'COMMITTED,COMPLETION,CONCURRENT,CONNECTION,CONSISTENT,CONSTRAINT,' +
+  'CONVERT,CONTAINS,CONTENTS,CREATE,CROSS,DATA,DATABASE,DATABASES,' +
+  'DEALLOCATE,DEC,DEFAULT,DEFINER,DELAYED,DELAY_KEY_WRITE,DELETE,DESC,' +
+  'DETERMINISTIC,DIRECTORY,DISABLE,DISCARD,DESCRIBE,DISTINCT,DISTINCTROW,' +
+  'DIV,DROP,DUAL,DUMPFILE,DUPLICATE,EACH,ELSE,ENABLE,ENCLOSED,END,ENDS,' +
+  'ENGINE,ENGINES,ESCAPE,ESCAPED,ERRORS,EVENT,EVENTS,EVERY,EXECUTE,EXISTS,' +
+  'EXPANSION,EXPLAIN,FALSE,FIELDS,FILE,FIRST,FLUSH,FOR,FORCE,FOREIGN,FROM,' +
+  'FULL,FULLTEXT,FUNCTION,FUNCTIONS,GLOBAL,GRANT,GRANTS,GROUP,HAVING,HELP,' +
+  'HIGH_PRIORITY,HOSTS,IDENTIFIED,IGNORE,INDEX,INFILE,INNER,INSERT,' +
+  'INSERT_METHOD,INSTALL,INT1,INT2,INT3,INT4,INT8,INTO,IO_THREAD,IS,' +
+  'ISOLATION,INVOKER,JOIN,KEY,KEYS,KILL,LAST,LEADING,LEAVES,LEVEL,LESS,' +
+  'LIKE,LIMIT,LINEAR,LINES,LIST,LOAD,LOCAL,LOCK,LOGS,LONG,LOW_PRIORITY,' +
+  'MASTER,MASTER_HOST,MASTER_LOG_FILE,MASTER_LOG_POS,MASTER_CONNECT_RETRY,' +
+  'MASTER_PASSWORD,MASTER_PORT,MASTER_SSL,MASTER_SSL_CA,MASTER_SSL_CAPATH,' +
+  'MASTER_SSL_CERT,MASTER_SSL_CIPHER,MASTER_SSL_KEY,MASTER_USER,MATCH,' +
+  'MAX_ROWS,MAXVALUE,MIDDLEINT,MIN_ROWS,MOD,MODE,MODIFY,MODIFIES,NAMES,' +
+  'NATURAL,NEW,NO,NODEGROUP,NOT,NULL,OJ,OFFSET,OLD,ON,OPTIMIZE,OPTION,' +
+  'OPTIONALLY,OPEN,OR,ORDER,OUTER,OUTFILE,PACK_KEYS,PARTIAL,PARTITION,' +
+  'PARTITIONS,PLUGIN,PLUGINS,PREPARE,PRESERVE,PRIMARY,PRIVILEGES,PROCEDURE,' +
+  'PROCESS,PROCESSLIST,QUERY,RAID_CHUNKS,RAID_CHUNKSIZE,RAID_TYPE,RANGE,' +
+  'READ,REBUILD,REFERENCES,REGEXP,RELAY_LOG_FILE,RELAY_LOG_POS,RELOAD,' +
+  'RENAME,REORGANIZE,REPAIR,REPEATABLE,REPLACE,REPLICATION,RESTRICT,RESET,' +
+  'RESTORE,RETURN,RETURNS,REVOKE,RLIKE,ROLLBACK,ROLLUP,ROUTINE,ROW,' +
+  'ROW_FORMAT,ROWS,SAVEPOINT,SCHEDULE,SCHEMA,SCHEMAS,SECURITY,SELECT,' +
+  'SERIALIZABLE,SESSION,SET,SHARE,SHOW,SHUTDOWN,SIMPLE,SLAVE,SNAPSHOT,' +
+  'SONAME,SQL,SQL_BIG_RESULT,SQL_BUFFER_RESULT,SQL_CACHE,' +
+  'SQL_CALC_FOUND_ROWS,SQL_NO_CACHE,SQL_SMALL_RESULT,SQL_THREAD,START,' +
+  'STARTING,STARTS,STATUS,STOP,STORAGE,STRAIGHT_JOIN,SUBPARTITION,' +
+  'SUBPARTITIONS,SUPER,TABLE,TABLES,TABLESPACE,TEMPORARY,TERMINATED,THAN,' +
+  'THEN,TO,TRAILING,TRANSACTION,TRIGGER,TRIGGERS,TRUE,TYPE,UNCOMMITTED,' +
+  'UNINSTALL,UNIQUE,UNLOCK,UPDATE,UPGRADE,UNION,USAGE,USE,USING,VALUES,' +
+  'VARIABLES,VARYING,VIEW,WARNINGS,WHERE,WITH,WORK,WRITE';
 
 end.
