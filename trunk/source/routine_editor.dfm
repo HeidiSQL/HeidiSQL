@@ -291,12 +291,14 @@ object frmRoutineEditor: TfrmRoutineEditor
     TabOrder = 9
     OnDragDrop = SynMemoBodyDragDrop
     OnDragOver = SynMemoBodyDragOver
-    Gutter.DigitCount = 3
+    Gutter.AutoSize = True
+    Gutter.DigitCount = 2
     Gutter.Font.Charset = DEFAULT_CHARSET
     Gutter.Font.Color = clWindowText
     Gutter.Font.Height = -11
     Gutter.Font.Name = 'Courier New'
     Gutter.Font.Style = []
+    Gutter.LeftOffset = 2
     Gutter.ShowLineNumbers = True
     Highlighter = MainForm.SynSQLSyn1
     Lines.UnicodeStrings = 'SynMemoBody'
