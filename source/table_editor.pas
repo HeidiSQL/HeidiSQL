@@ -311,7 +311,7 @@ begin
         Props.Add(ds.FieldByName('Comment').AsWideString)
       else
         Props.Add('');
-      if ds.FindField('Collation') <> nil then
+      if (ds.FindField('Collation') <> nil) and (ds.FieldByName('Collation').AsString <> 'NULL') then
         Props.Add(ds.FieldByName('Collation').AsString)
       else
         Props.Add('');
