@@ -72,7 +72,7 @@ object frmView: TfrmView
     Gutter.Font.Height = -11
     Gutter.Font.Name = 'Courier New'
     Gutter.Font.Style = []
-    Gutter.LeftOffset = 10
+    Gutter.LeftOffset = 2
     Gutter.RightOffset = 0
     Gutter.ShowLineNumbers = True
     Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoShowScrollHint]
