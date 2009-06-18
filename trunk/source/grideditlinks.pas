@@ -152,7 +152,7 @@ type
     property OnButtonClick: TButtonClickEvent read FOnButtonClick write FOnButtonClick;
   end;
 
-  TColumnDefaultType = (cdtText, cdtNull, cdtCurTS, cdtAutoInc);
+  TColumnDefaultType = (cdtText, cdtTextUpdateTS, cdtNull, cdtNullUpdateTS, cdtCurTS, cdtCurTSUpdateTS, cdtAutoInc);
   TColumnDefaultEditorLink = class(TInterfacedObject, IVTEditLink)
   private
     FTree: TCustomVirtualStringTree;
@@ -161,6 +161,7 @@ type
     FStopping: Boolean;
     FPanel: TPanel;
     FRadioText, FRadioNULL, FRadioCurTS, FRadioAutoInc: TRadioButton;
+    FCheckCurTS: TCheckbox;
     FMemoText: TTNTMemo;
     FBtnOK, FBtnCancel: TButton;
     procedure RadioClick(Sender: TObject);
@@ -183,6 +184,7 @@ type
 
 
 function GetColumnDefaultType(var Text: WideString): TColumnDefaultType;
+function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: WideString): WideString;
 
 
 implementation
@@ -1033,7 +1035,7 @@ var
   NodeText: WideString;
   Default: TColumnDefaultType;
 const
-  m = 5;
+  m = 3;
 begin
   Ftree := Tree as TCustomVirtualStringTree;
   FNode := Node;
@@ -1084,9 +1086,17 @@ begin
   FRadioCurTS.OnClick := RadioClick;
   FRadioCurTS.Caption := 'CURRENT_TIMESTAMP';
 
+  FCheckCurTS := TCheckbox.Create(FPanel);
+  FCheckCurTS.Parent := FPanel;
+  FCheckCurTS.Top := FRadioCurTS.Top + FRadioCurTS.Height + m;
+  FCheckCurTS.Left := m;
+  FCheckCurTS.Width := FCheckCurTS.Parent.Width - 2 * FCheckCurTS.Left;
+  FCheckCurTS.OnClick := RadioClick;
+  FCheckCurTS.Caption := 'ON UPDATE CURRENT_TIMESTAMP';
+
   FRadioAutoInc := TRadioButton.Create(FPanel);
   FRadioAutoInc.Parent := FPanel;
-  FRadioAutoInc.Top := FRadioCurTS.Top + FRadioCurTS.Height + m;
+  FRadioAutoInc.Top := FCheckCurTS.Top + FCheckCurTS.Height + m;
   FRadioAutoInc.Left := m;
   FRadioAutoInc.Width := FRadioAutoInc.Parent.Width - 2 * FRadioAutoInc.Left;
   FRadioAutoInc.OnClick := RadioClick;
@@ -1115,19 +1125,22 @@ begin
   FMemoText.Anchors := [akLeft, akTop, akRight, akBottom];
   FRadioNull.Anchors := [akLeft, akBottom, akRight];
   FRadioCurTS.Anchors := [akLeft, akBottom, akRight];
+  FCheckCurTS.Anchors := [akLeft, akBottom, akRight];
   FRadioAutoInc.Anchors := [akLeft, akBottom, akRight];
   FBtnOk.Anchors := [akBottom, akRight];
   FBtnCancel.Anchors := FBtnOk.Anchors;
+  FPanel.Width := GetParentForm(FPanel).Canvas.TextWidth(FCheckCurTS.Caption) + 2*FCheckCurTS.Left + 16;
 
   case DefaultType of
-    cdtText: begin
+    cdtText, cdtTextUpdateTS: begin
       FRadioText.Checked := True;
       FMemoText.Text := DefaultText;
     end;
-    cdtNull: FRadioNull.Checked := True;
-    cdtCurTS: FRadioCurTS.Checked := True;
+    cdtNull, cdtNullUpdateTS: FRadioNull.Checked := True;
+    cdtCurTS, cdtCurTSUpdateTS: FRadioCurTS.Checked := True;
     cdtAutoInc: FRadioAutoInc.Checked := True;
   end;
+  FCheckCurTS.Checked := DefaultType in [cdtTextUpdateTS, cdtNullUpdateTS, cdtCurTSUpdateTS];
   Result := True;
 end;
 
@@ -1188,19 +1201,36 @@ end;
 
 function TColumnDefaultEditorLink.EndEdit: Boolean; stdcall;
 var
-  newtext: WideString;
+  newText: WideString;
+  newDefaultType: TColumnDefaultType;
 begin
   Result := not FStopping;
   if Result then begin
     FStopping := True;
-    if FRadioText.Checked then
-      newText := IntToStr(Integer(cdtText)) + FMemoText.Text
+    if FRadioText.Checked and FCheckCurTS.Checked then
+      newDefaultType := cdtTextUpdateTS
+    else if FRadioText.Checked then
+      newDefaultType := cdtText
+    else if FRadioNull.Checked and FCheckCurTS.Checked then
+      newDefaultType := cdtNullUpdateTS
     else if FRadioNull.Checked then
-      newText := IntToStr(Integer(cdtNull)) + 'NULL'
+      newDefaultType := cdtNull
+    else if FRadioCurTS.Checked and FCheckCurTS.Checked then
+      newDefaultType := cdtCurTSUpdateTS
     else if FRadioCurTS.Checked then
-      newText := IntToStr(Integer(cdtCurTS)) + 'CURRENT_TIMESTAMP'
+      newDefaultType := cdtCurTS
+    else if FRadioAutoInc.Checked then
+      newDefaultType := cdtAutoInc
     else
-      newText := IntToStr(Integer(cdtAutoInc)) + 'AUTO_INCREMENT';
+      newDefaultType := cdtText;
+
+    case newDefaultType of
+      cdtText, cdtTextUpdateTS: newText := FMemoText.Text;
+      cdtNull, cdtNullUpdateTS: newText := 'NULL';
+      cdtCurTS, cdtCurTSUpdateTS: newText := 'CURRENT_TIMESTAMP';
+      cdtAutoInc: newText := 'AUTO_INCREMENT';
+    end;
+    newText := IntToStr(Integer(newDefaultType)) + newText;
     if newtext <> IntToStr(Integer(DefaultType)) + DefaultText then
       FTree.Text[FNode, FColumn] := newtext;
     if FTree.CanFocus then
@@ -1240,6 +1270,20 @@ function GetColumnDefaultType(var Text: WideString): TColumnDefaultType;
 begin
   Result := TColumnDefaultType(MakeInt(Copy(Text, 1, 1)));
   Text := Copy(Text, 2, Length(Text)-1);
+end;
+
+
+function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: WideString): WideString;
+begin
+  case DefaultType of
+    cdtText:           Result := ' DEFAULT '+esc(Text);
+    cdtTextUpdateTS:   Result := ' DEFAULT '+esc(Text)+' ON UPDATE CURRENT_TIMESTAMP';
+    cdtNull:           Result := ' DEFAULT NULL';
+    cdtNullUpdateTS:   Result := ' DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP';
+    cdtCurTS:          Result := ' DEFAULT CURRENT_TIMESTAMP';
+    cdtCurTSUpdateTS:  Result := ' DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
+    cdtAutoInc:        Result := ' AUTO_INCREMENT';
+  end;
 end;
 
 
