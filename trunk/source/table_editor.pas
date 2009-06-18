@@ -538,25 +538,25 @@ begin
   if editName.Text <> FAlterTableName then
     Specs.Add('RENAME TO ' + Mainform.mask(editName.Text));
   if memoComment.Tag = ModifiedFlag then
-    Specs.Add('COMMENT = ' + esc(memoComment.Text));
+    Specs.Add('COMMENT=' + esc(memoComment.Text));
   if (comboCollation.Tag = ModifiedFlag) or (chkCharsetConvert.Checked) then
-    Specs.Add('COLLATE = ' + comboCollation.Text);
+    Specs.Add('COLLATE=' + comboCollation.Text);
   if comboEngine.Tag = ModifiedFlag then
-    Specs.Add('ENGINE = ' + comboEngine.Text);
+    Specs.Add('ENGINE=' + comboEngine.Text);
   if comboRowFormat.Tag = ModifiedFlag then
-    Specs.Add('ROW_FORMAT = ' + comboRowFormat.Text);
+    Specs.Add('ROW_FORMAT=' + comboRowFormat.Text);
   if chkChecksum.Tag = ModifiedFlag then
-    Specs.Add('CHECKSUM = ' + IntToStr(Integer(chkChecksum.Checked)));
+    Specs.Add('CHECKSUM=' + IntToStr(Integer(chkChecksum.Checked)));
   if editAutoInc.Tag = ModifiedFlag then
-    Specs.Add('AUTO_INCREMENT = ' + IntToStr(MakeInt(editAutoInc.Text)));
+    Specs.Add('AUTO_INCREMENT=' + IntToStr(MakeInt(editAutoInc.Text)));
   if editAvgRowLen.Tag = ModifiedFlag then
-    Specs.Add('AVG_ROW_LENGTH = ' + IntToStr(MakeInt(editAvgRowLen.Text)));
+    Specs.Add('AVG_ROW_LENGTH=' + IntToStr(MakeInt(editAvgRowLen.Text)));
   if editMaxRows.Tag = ModifiedFlag then
-    Specs.Add('MAX_ROWS = ' + IntToStr(MakeInt(editMaxRows.Text)));
+    Specs.Add('MAX_ROWS=' + IntToStr(MakeInt(editMaxRows.Text)));
   if memoUnionTables.Enabled and (memoUnionTables.Tag = ModifiedFlag) and (memoUnionTables.Text <> '') then
-    Specs.Add('UNION = ('+memoUnionTables.Text+')');
+    Specs.Add('UNION=('+memoUnionTables.Text+')');
   if comboInsertMethod.Enabled and (comboInsertMethod.Tag = ModifiedFlag) and (comboInsertMethod.Text <> '') then
-    Specs.Add('INSERT_METHOD = '+comboInsertMethod.Text);
+    Specs.Add('INSERT_METHOD='+comboInsertMethod.Text);
   if chkCharsetConvert.Checked then begin
     ds := Mainform.GetCollations;
     while not ds.Eof do begin
@@ -706,25 +706,25 @@ begin
 
   Result := Result + CRLF + ')' + CRLF;
   if memoComment.Text <> '' then
-    Result := Result + 'COMMENT = '+esc(memoComment.Text) + CRLF;
+    Result := Result + 'COMMENT='+esc(memoComment.Text) + CRLF;
   if comboCollation.Text <> '' then
-    Result := Result + 'COLLATE = '+comboCollation.Text + CRLF;
+    Result := Result + 'COLLATE='+comboCollation.Text + CRLF;
   if comboEngine.Text <> '' then
-    Result := Result + 'ENGINE = '+comboEngine.Text + CRLF;
+    Result := Result + 'ENGINE='+comboEngine.Text + CRLF;
   if comboRowFormat.Text <> '' then
-    Result := Result + 'ROW_FORMAT = '+comboRowFormat.Text + CRLF;
+    Result := Result + 'ROW_FORMAT='+comboRowFormat.Text + CRLF;
   if chkChecksum.Checked then
-    Result := Result + 'CHECKSUM = '+IntToStr(Integer(chkChecksum.Checked)) + CRLF;
+    Result := Result + 'CHECKSUM='+IntToStr(Integer(chkChecksum.Checked)) + CRLF;
   if editAutoInc.Text <> '' then
-    Result := Result + 'AUTO_INCREMENT = '+editAutoInc.Text + CRLF;
+    Result := Result + 'AUTO_INCREMENT='+editAutoInc.Text + CRLF;
   if editAvgRowLen.Text <> '' then
-    Result := Result + 'AVG_ROW_LENGTH = '+editAvgRowLen.Text + CRLF;
+    Result := Result + 'AVG_ROW_LENGTH='+editAvgRowLen.Text + CRLF;
   if editMaxRows.Text <> '' then
-    Result := Result + 'MAX_ROWS = '+editMaxRows.Text + CRLF;
+    Result := Result + 'MAX_ROWS='+editMaxRows.Text + CRLF;
   if memoUnionTables.Enabled and (memoUnionTables.Text <> '') then
-    Result := Result + 'UNION = ('+memoUnionTables.Text+')' + CRLF;
+    Result := Result + 'UNION=('+memoUnionTables.Text+')' + CRLF;
   if comboInsertMethod.Enabled and (comboInsertMethod.Text <> '') then
-    Result := Result + 'INSERT_METHOD = '+comboInsertMethod.Text + CRLF;
+    Result := Result + 'INSERT_METHOD='+comboInsertMethod.Text + CRLF;
 
 end;
 
