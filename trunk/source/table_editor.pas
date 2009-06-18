@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, TntStdCtrls, ComCtrls, ToolWin, VirtualTrees, WideStrings,
-  SynRegExpr, ActiveX, DB, ExtCtrls, ImgList, SynEdit, SynMemo, Menus;
+  SynRegExpr, ActiveX, DB, ExtCtrls, ImgList, SynEdit, SynMemo, Menus, WideStrUtils;
 
 type
   TfrmTableEditor = class(TFrame)
@@ -376,6 +376,8 @@ begin
           end;
           ColDefaultType := cdtText;
           ColDefaultText := Copy(ColSpec, 2, i-3);
+          // A single quote gets escaped by single quote - remove the escape char - escaping is done in Save action afterwards
+          ColDefaultText := WideStringReplace(ColDefaultText, '''''', '''', [rfReplaceAll]);
           Delete(ColSpec, 1, i);
         end;
       end;
@@ -400,6 +402,7 @@ begin
             break;
         end;
         Props[5] := Copy(ColSpec, 10, i-11);
+        Props[5] := WideStringReplace(Props[5], '''''', '''', [rfReplaceAll]);
         Delete(ColSpec, 1, i);
       end;
 
