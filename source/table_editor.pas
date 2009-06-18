@@ -231,8 +231,12 @@ var
   ds: TDataset;
   Props: TWideStringlist;
   IndexType: String;
-  LastKeyName, CreateTable, engine: WideString;
-  rx: TRegExpr;
+  LastKeyName, CreateTable, engine, ColSpec: WideString;
+  rx, rxCol: TRegExpr;
+  i: Integer;
+  InLiteral: Boolean;
+  ColDefaultType: TColumnDefaultType;
+  ColDefaultText: WideString;
 begin
   SetStatus('Initializing ...');
   FLoaded := False;
@@ -288,37 +292,123 @@ begin
       memoUnionTables.Text := rx.Match[1]
     else
       memoUnionTables.Clear;
-    FreeAndNil(rx);
 
-    ds := Mainform.GetResults('SHOW FULL COLUMNS FROM '+Mainform.mask(FAlterTableName));
+
     listColumns.BeginUpdate;
-    while not ds.Eof do begin
+    rx.ModifierS := False;
+    rx.Expression := '\s+`([^`]+)`\s(\w+)(.+)';
+    rxCol := TRegExpr.Create;
+    rxCol.ModifierI := True;
+    if rx.Exec(CreateTable) then while true do begin
       Props := TWideStringlist.Create;
       Props.OnChange := ColumnsChange;
-      Props.Add(UpperCase(GetFirstWord(ds.FieldByName('Type').AsString)));
-      Props.Add(getEnumValues(ds.FieldByName('Type').AsWideString));
-      Props.Add(BoolToStr(Pos('unsigned', ds.FieldByName('Type').AsWideString) > 0));
-      Props.Add(BoolToStr(ds.FieldByName('Null').AsString = 'YES'));
-      if ds.FieldByName('Extra').AsWideString = 'auto_increment' then
-        Props.Add(IntToStr(Integer(cdtAutoInc))+'AUTO_INCREMENT')
-      else if ds.FieldByName('Default').IsNull then
-        Props.Add(IntToStr(Integer(cdtNull))+'NULL')
-      else if ds.FieldByName('Default').AsWideString = 'CURRENT_TIMESTAMP' then
-        Props.Add(IntToStr(Integer(cdtCurTS))+ds.FieldByName('Default').AsWideString)
-      else
-        Props.Add(IntToStr(Integer(cdtText))+ds.FieldByName('Default').AsWideString);
-      if ds.FindField('Comment') <> nil then
-        Props.Add(ds.FieldByName('Comment').AsWideString)
-      else
-        Props.Add('');
-      if (ds.FindField('Collation') <> nil) and (ds.FieldByName('Collation').AsString <> 'NULL') then
-        Props.Add(ds.FieldByName('Collation').AsString)
-      else
-        Props.Add('');
-      Columns.AddObject(ds.FieldByName('Field').AsWideString, Props);
-      ds.Next;
+      // Create needed number of property columns
+      Props.CommaText := ',,,,,,';
+      ColSpec := rx.Match[3];
+
+      // Strip trailing comma
+      if ColSpec[Length(ColSpec)] = ',' then
+        Delete(ColSpec, Length(ColSpec), 1);
+
+      // Datatype
+      Props[0] := UpperCase(rx.Match[2]);
+
+      // Length / Set
+      // Various datatypes, e.g. BLOBs, don't have any length property
+      InLiteral := False;
+      if (ColSpec <> '') and (ColSpec[1] = '(') then begin
+        for i:=2 to Length(ColSpec) do begin
+          if (ColSpec[i] = ')') and (not InLiteral) then
+            break;
+          if ColSpec[i] = '''' then
+            InLiteral := not InLiteral;
+        end;
+        Props[1] := Copy(ColSpec, 2, i-2);
+        Delete(ColSpec, 1, i);
+      end;
+      ColSpec := Trim(ColSpec);
+
+      // Unsigned
+      if UpperCase(Copy(ColSpec, 1, 8)) = 'UNSIGNED' then begin
+        Props[2] := BoolToStr(True);
+        Delete(ColSpec, 1, 9);
+      end else
+        Props[2] := BoolToStr(False);
+
+      // Collation
+      rxCol.Expression := '^(CHARACTER SET \w+)?\s+COLLATE (\w+)\b';
+      if rxCol.Exec(ColSpec) then begin
+        Props[6] := rxCol.Match[2];
+        Delete(ColSpec, 1, rxCol.MatchLen[0]+1);
+      end;
+
+      // Allow NULL
+      if UpperCase(Copy(ColSpec, 1, 8)) = 'NOT NULL' then begin
+        Props[3] := BoolToStr(False);
+        Delete(ColSpec, 1, 9);
+      end else
+        Props[3] := BoolToStr(True);
+
+      // Default value
+      ColDefaultType := cdtNull;
+      ColDefaultText := 'NULL';
+      if UpperCase(Copy(ColSpec, 1, 14)) = 'AUTO_INCREMENT' then begin
+        ColDefaultType := cdtAutoInc;
+        ColDefaultText := 'AUTO_INCREMENT';
+        Delete(ColSpec, 1, 15);
+      end else if UpperCase(Copy(ColSpec, 1, 8)) = 'DEFAULT ' then begin
+        Delete(ColSpec, 1, 8);
+        if UpperCase(Copy(ColSpec, 1, 4)) = 'NULL' then begin
+          ColDefaultType := cdtNull;
+          ColDefaultText := 'NULL';
+          Delete(ColSpec, 1, 5);
+        end else if UpperCase(Copy(ColSpec, 1, 17)) = 'CURRENT_TIMESTAMP' then begin
+          ColDefaultType := cdtCurTS;
+          ColDefaultText := 'CURRENT_TIMESTAMP';
+          Delete(ColSpec, 1, 18);
+        end else if ColSpec[1] = '''' then begin
+          InLiteral := True;
+          for i:=2 to Length(ColSpec) do begin
+            if ColSpec[i] = '''' then
+              InLiteral := not InLiteral
+            else if not InLiteral then
+              break;
+          end;
+          ColDefaultType := cdtText;
+          ColDefaultText := Copy(ColSpec, 2, i-3);
+          Delete(ColSpec, 1, i);
+        end;
+      end;
+      if Copy(ColSpec, 1, 27) = 'ON UPDATE CURRENT_TIMESTAMP' then begin
+        // Adjust default type
+        case ColDefaultType of
+          cdtText: ColDefaultType := cdtTextUpdateTS;
+          cdtNull: ColDefaultType := cdtNullUpdateTS;
+          cdtCurTS: ColDefaultType := cdtCurTSUpdateTS;
+        end;
+        Delete(ColSpec, 1, 28);
+      end;
+      Props[4] := IntToStr(Integer(ColDefaultType)) + ColDefaultText;
+
+      // Comment
+      if UpperCase(Copy(ColSpec, 1, 9)) = 'COMMENT ''' then begin
+        InLiteral := True;
+        for i:=10 to Length(ColSpec) do begin
+          if ColSpec[i] = '''' then
+            InLiteral := not InLiteral
+          else if not InLiteral then
+            break;
+        end;
+        Props[5] := Copy(ColSpec, 10, i-11);
+        Delete(ColSpec, 1, i);
+      end;
+
+      Columns.AddObject(rx.Match[1], Props);
+      if not rx.ExecNext then
+        break;
     end;
-    FreeAndNil(ds);
+    FreeAndNil(rx);
+    FreeAndNil(rxCol);
     listColumns.EndUpdate;
 
     ds := Mainform.GetResults('SHOW KEYS FROM '+Mainform.mask(FAlterTableName));
@@ -491,12 +581,7 @@ begin
     if Props[4] <> '' then begin
       DefaultText := Props[4];
       DefaultType := GetColumnDefaultType(DefaultText);
-      case DefaultType of
-        cdtText:     ColSpec := ColSpec + ' DEFAULT '+esc(DefaultText);
-        cdtNull:     ColSpec := ColSpec + ' DEFAULT NULL';
-        cdtCurTS:    ColSpec := ColSpec + ' DEFAULT CURRENT_TIMESTAMP';
-        cdtAutoInc:  ColSpec := ColSpec + ' AUTO_INCREMENT';
-      end;
+      ColSpec := ColSpec + ' ' + GetColumnDefaultClause(DefaultType, DefaultText);
     end;
     if Props[5] <> '' then
       ColSpec := ColSpec + ' COMMENT '+esc(Props[5]);
@@ -590,12 +675,7 @@ begin
     if ColProps[4] <> '' then begin
       DefaultText := ColProps[4];
       DefaultType := GetColumnDefaultType(DefaultText);
-      case DefaultType of
-        cdtText:     Result := Result + ' DEFAULT '+esc(DefaultText);
-        cdtNull:     Result := Result + ' DEFAULT NULL';
-        cdtCurTS:    Result := Result + ' DEFAULT CURRENT_TIMESTAMP';
-        cdtAutoInc:  Result := Result + ' AUTO_INCREMENT';
-      end;
+      Result := Result + ' ' + GetColumnDefaultClause(DefaultType, DefaultText);
     end;
     if ColProps[5] <> '' then
       Result := Result + ' COMMENT '+esc(ColProps[5]);
