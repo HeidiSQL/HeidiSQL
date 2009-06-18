@@ -65,7 +65,6 @@ type
     menuMoveUpIndex: TMenuItem;
     menuMoveDownIndex: TMenuItem;
     menuClearIndexes: TMenuItem;
-    lblStatus: TLabel;
     popupColumns: TPopupMenu;
     menuAddColumn: TMenuItem;
     menuRemoveColumn: TMenuItem;
@@ -152,7 +151,6 @@ type
     function ComposeAlterStatement: WideString;
     function GetIndexSQL(IndexList: TWideStringlist; idx: Integer): WideString;
     property Modified: Boolean read FModified write SetModified;
-    procedure SetStatus(msg: WideString = '');
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
   public
@@ -238,7 +236,8 @@ var
   ColDefaultType: TColumnDefaultType;
   ColDefaultText: WideString;
 begin
-  SetStatus('Initializing ...');
+  Mainform.showstatus('Initializing editor ...');
+  Screen.Cursor := crHourglass;
   FLoaded := False;
   // Start with "basic" tab activated when just called
   if FAlterTableName <> AlterTableName then
@@ -448,8 +447,9 @@ begin
   ResetModificationFlags;
   // Indicate change mechanisms can call their events now. See Modification().
   FLoaded := True;
-  // Empty status label
-  SetStatus;
+  // Empty status panel
+  Mainform.showstatus;
+  Screen.Cursor := crDefault;
 end;
 
 
@@ -532,7 +532,8 @@ var
   ds: TDataset;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
-  SetStatus('Composing ALTER statement ...');
+  Mainform.showstatus('Composing ALTER statement ...');
+  Screen.Cursor := crHourglass;
   Specs := TWideStringlist.Create;
   if editName.Text <> FAlterTableName then
     Specs.Add('RENAME TO ' + Mainform.mask(editName.Text));
@@ -568,7 +569,9 @@ begin
   end;
 
   // Update columns
+  EnableProgressBar(Columns.Count + OldIndexes.Count + Indexes.Count);
   for i:=0 to Columns.Count - 1 do begin
+    Mainform.ProgressBarStatus.StepIt;
     AddIt := True;
     ColSpec := ' ' + Mainform.mask(Columns[i]);
     Props := TWideStringlist(Columns.Objects[i]);
@@ -629,6 +632,7 @@ begin
     OldIndexesComposed.Add(GetIndexSQL(OldIndexes, i));
   // Drop indexes
   for i:=0 to OldIndexesComposed.Count-1 do begin
+    Mainform.ProgressBarStatus.StepIt;
     DropIt := IndexesComposed.IndexOf(OldIndexesComposed[i]) = -1;
     if not DropIt then
       Continue;
@@ -641,6 +645,7 @@ begin
   end;
   // Add changed or added indexes
   for i:=0 to IndexesComposed.Count-1 do begin
+    Mainform.ProgressBarStatus.StepIt;
     if (OldIndexesComposed.IndexOf(IndexesComposed[i]) = -1) and (IndexesComposed[i] <> '') then
       Specs.Add('ADD '+IndexesComposed[i]);
   end;
@@ -649,7 +654,8 @@ begin
   FreeAndNil(Specs);
   FreeAndNil(IndexesComposed);
   FreeAndNil(OldIndexesComposed);
-  SetStatus;
+  Mainform.showstatus;
+  Mainform.ProgressBarStatus.Hide;
   Screen.Cursor := crDefault;
 end;
 
@@ -1609,17 +1615,6 @@ begin
   IndexParts := TWideStringlist(Indexes.Objects[treeIndexes.FocusedNode.Parent.Index]);
   IndexParts.Move(treeIndexes.FocusedNode.Index, NewIdx);
   SelectNode(treeIndexes, NewIdx, treeIndexes.FocusedNode.Parent);
-end;
-
-
-procedure TfrmTableEditor.SetStatus(msg: WideString);
-begin
-  if msg <> '' then
-    Screen.Cursor := crHourglass
-  else
-    Screen.Cursor := crDefault;
-  lblStatus.Caption := msg;
-  lblStatus.Repaint;
 end;
 
 

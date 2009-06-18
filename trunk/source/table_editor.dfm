@@ -25,14 +25,6 @@ object frmTableEditor: TfrmTableEditor
     Align = alTop
     ResizeStyle = rsUpdate
   end
-  object lblStatus: TLabel
-    Left = 246
-    Top = 367
-    Width = 41
-    Height = 13
-    Anchors = [akLeft, akBottom]
-    Caption = 'lblStatus'
-  end
   object btnSave: TButton
     Left = 165
     Top = 362
