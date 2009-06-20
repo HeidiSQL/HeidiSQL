@@ -39,6 +39,7 @@ Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "A
 Name: "quicklaunchicon"; Description: "Create a &Quick Launch icon"; GroupDescription: "Additional icons:"; MinVersion: 4,4; Flags: unchecked
 Name: "associatesqlfiles"; Description: "Associate .&SQL-Files with HeidiSQL"; GroupDescription: "Options:";
 Name: "activate_updatechecks"; Description: "Automatically check heidisql.com for updates"; GroupDescription: "Options:";
+Name: "activate_statistics"; Description: "Automatically report client and server versions on heidisql.com"; GroupDescription: "Options:";
 
 [InstallDelete]
 Type: files; Name: "{app}\libmysql40.dll"
@@ -74,6 +75,7 @@ Root: HKCR; Subkey: "SQLScriptFile\DefaultIcon"; ValueType: string; ValueName: "
 Root: HKCR; Subkey: "SQLScriptFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\heidisql.exe"" ""%1"""; Tasks: associatesqlfiles
 ; Enable auto-updatechecks if this option was checked. Only save the value when it's checked, as the default in HeidiSQL is False (see const.inc)
 Root: HKCU; Subkey: "Software\HeidiSQL"; ValueType: dword; ValueName: "Updatecheck"; ValueData: 1; Tasks: activate_updatechecks
+Root: HKCU; Subkey: "Software\HeidiSQL"; ValueType: dword; ValueName: "DoUsageStatistics"; ValueData: 1; Tasks: activate_statistics
 
 [Run]
 Filename: "{app}\heidisql.exe"; Description: "Launch HeidiSQL"; Flags: nowait postinstall skipifsilent
