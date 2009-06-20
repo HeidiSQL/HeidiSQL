@@ -185,6 +185,19 @@ object optionsform: Toptionsform
         TabOrder = 11
         OnClick = Modified
       end
+      object chkDoStatistics: TCheckBox
+        Left = 16
+        Top = 233
+        Width = 379
+        Height = 48
+        Caption = 
+          'Count in usage statistics. This option, if enabled, will cause H' +
+          'eidiSQL to ping heidisql.com at most once every month.  This is ' +
+          'used to count the used HeidiSQL and MySQL versions.'
+        TabOrder = 12
+        WordWrap = True
+        OnClick = Modified
+      end
     end
     object tabSQL: TTabSheet
       BorderWidth = 5
