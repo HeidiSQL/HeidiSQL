@@ -1411,7 +1411,7 @@ var
   DefaultLastrunDate, LastSession, StatsURL: String;
   frm : TfrmUpdateCheck;
   dlgResult: Integer;
-  Connected, CommandLineMode: Boolean;
+  Connected, CommandLineMode, DecideForStatistic: Boolean;
   ConnForm: TConnForm;
   StatsCall: TDownloadUrl2;
   SessionNames: TStringlist;
@@ -1472,6 +1472,16 @@ begin
       FreeAndNil(StatsCall);
     end;
   end;
+
+  // Ask if we shall activate statistic calls. Would be used by noone otherwise.
+  OpenRegistry;
+  if not Mainreg.ValueExists(REGNAME_DO_STATISTICS) then begin
+    DecideForStatistic := MessageDlg(APPNAME + ' has a new statistics feature: If activated, server and client versions '+
+      'are reported once per month and displayed on heidisql.com.'+CRLF+CRLF+'Activate this feature?',
+      mtConfirmation, [mbYes, mbNo], 0) = mrYes;
+    Mainreg.WriteBool(REGNAME_DO_STATISTICS, DecideForStatistic);
+  end;
+
 
   Connected := False;
 
