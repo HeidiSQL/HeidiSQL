@@ -169,6 +169,11 @@ const
   REGNAME_COPYTABLE_ALLFIELDS = 'CopyTable_Option_WithAllFields';
   REGNAME_DEFAULTVIEW = 'DefaultView';
   REGNAME_FILTERS = 'RecentFilters';
+  REGNAME_SERVERVERSION = 'ServerVersion';
+  REGNAME_LASTCONNECT = 'LastConnect';
+  REGNAME_DO_STATISTICS = 'DoUsageStatistics';
+  DEFAULT_DO_STATISTICS = False;
+  REGNAME_LAST_STATSCALL = 'LastUsageStatisticCall';
 
   REGNAME_FIELDCOLOR_NUMERIC = 'FieldColor_Numeric';
   REGNAME_FIELDCOLOR_TEXT = 'FieldColor_Text';

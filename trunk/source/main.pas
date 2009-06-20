@@ -1406,17 +1406,20 @@ var
   sValue,
   parHost, parPort, parUser, parPass, parDatabase,
   parTimeout, parCompress, parDescription : String;
-  LastUpdatecheck : TDateTime;
-  UpdatecheckInterval : Integer;
-  DefaultLastrunDate, LastSession: String;
+  LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
+  UpdatecheckInterval, i: Integer;
+  DefaultLastrunDate, LastSession, StatsURL: String;
   frm : TfrmUpdateCheck;
   dlgResult: Integer;
   Connected, CommandLineMode: Boolean;
   ConnForm: TConnForm;
+  StatsCall: TDownloadUrl2;
+  SessionNames: TStringlist;
 begin
+  DefaultLastrunDate := '2000-01-01';
+
   // Do an updatecheck if checked in settings
   if GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK) then begin
-    DefaultLastrunDate := '2000-01-01';
     try
       LastUpdatecheck := StrToDateTime( GetRegValue(REGNAME_LAST_UPDATECHECK, DefaultLastrunDate) );
     except
@@ -1429,6 +1432,44 @@ begin
       frm.CheckForBuildsInAutoMode := GetRegValue(REGNAME_DO_UPDATECHECK_BUILDS, DEFAULT_DO_UPDATECHECK_BUILDS);
       frm.ShowModal;
       FreeAndNil(frm);
+    end;
+  end;
+
+  // Call user statistics if checked in settings
+  if GetRegValue(REGNAME_DO_STATISTICS, DEFAULT_DO_STATISTICS) then begin
+    try
+      LastStatsCall := StrToDateTime( GetRegValue(REGNAME_LAST_STATSCALL, DefaultLastrunDate) );
+    except
+      LastStatsCall := StrToDateTime( DefaultLastrunDate );
+    end;
+    if DaysBetween(Now, LastStatsCall) >= 30 then begin
+      // Report used SVN revision
+      StatsURL := APPDOMAIN + 'savestats.php?c=' + AppRevision;
+      // Enumerate actively used server versions
+      SessionNames := TStringlist.Create;
+      if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, true) then
+        MainReg.GetKeyNames(SessionNames);
+      for i:=0 to SessionNames.Count-1 do begin
+        try
+          LastConnect := StrToDateTime(GetRegValue(REGNAME_LASTCONNECT, DefaultLastrunDate, SessionNames[i]));
+        except
+          LastConnect := StrToDateTime(DefaultLastrunDate);
+        end;
+        if LastConnect > LastStatsCall then begin
+          StatsURL := StatsURL + '&s[]=' + IntToStr(GetRegValue(REGNAME_SERVERVERSION, 0, SessionNames[i]));
+        end;
+      end;
+      StatsCall := TDownloadUrl2.Create(Self);
+      StatsCall.URL := StatsURL;
+      StatsCall.SetUserAgent(APPNAME + ' ' + FullAppVersion);
+      try
+        StatsCall.ExecuteTarget(nil);
+        OpenRegistry;
+        MainReg.WriteString(REGNAME_LAST_STATSCALL, DateTimeToStr(Now));
+      except
+        // Silently ignore it when the url could not be called over the network.
+      end;
+      FreeAndNil(StatsCall);
     end;
   end;
 
@@ -1572,6 +1613,11 @@ begin
   mysql_version := MakeInt(v1) *10000 + MakeInt(v2) *100 + MakeInt(v3);
   tabHost.Caption := 'Host: '+MySQLConn.Connection.HostName;
   showstatus('MySQL '+v1+'.'+v2+'.'+v3, 3);
+
+  // Save server version
+  OpenRegistry(SessionName);
+  Mainreg.WriteInteger(REGNAME_SERVERVERSION, mysql_version);
+  Mainreg.WriteString(REGNAME_LASTCONNECT, DateTimeToStr(Now));
 
   DatabasesWanted := explode(';', FConn.DatabaseList);
   if FConn.DatabaseListSort then

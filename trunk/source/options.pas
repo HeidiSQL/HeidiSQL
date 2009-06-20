@@ -100,6 +100,7 @@ type
     btnRestoreDefaults: TButton;
     lblMaxTotalRows: TLabel;
     editMaxTotalRows: TEdit;
+    chkDoStatistics: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -196,6 +197,7 @@ begin
   MainReg.WriteBool(REGNAME_DO_UPDATECHECK, chkUpdatecheck.Checked);
   MainReg.WriteBool(REGNAME_DO_UPDATECHECK_BUILDS, chkUpdatecheckBuilds.Checked);
   MainReg.WriteInteger(REGNAME_UPDATECHECK_INTERVAL, updownUpdatecheckInterval.Position);
+  MainReg.WriteBool(REGNAME_DO_STATISTICS, chkDoStatistics.Checked);
   // Save color settings
   MainReg.WriteInteger(REGNAME_FIELDCOLOR_NUMERIC, cboxNumeric.Selected);
   MainReg.WriteInteger(REGNAME_FIELDCOLOR_TEXT, cboxText.Selected);
@@ -313,6 +315,7 @@ begin
   chkUpdatecheckBuilds.Checked := GetRegValue(REGNAME_DO_UPDATECHECK_BUILDS, DEFAULT_DO_UPDATECHECK_BUILDS);
   updownUpdatecheckInterval.Position := GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
   chkUpdatecheckClick(Sender);
+  chkDoStatistics.Checked := GetRegValue(REGNAME_DO_STATISTICS, DEFAULT_DO_STATISTICS);
 
   // Default Column-Width in DBGrids:
   updownMaxColWidth.Position := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
