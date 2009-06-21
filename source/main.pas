@@ -2618,10 +2618,16 @@ var
   i: Integer;
   sql_pattern: String;
 begin
-  if ListTables.SelectedCount = 0 then
-    exit;
   // Add selected items/tables to helper list
-  t := GetVTCaptions(ListTables, True);
+  if ListTables.Focused then
+    t := GetVTCaptions(ListTables, True)
+  else begin
+    t := TWideStringList.Create;
+    t.Add(SelectedTable.Text);
+  end;
+  if t.Count = 0 then
+    Exit;
+
   if MessageDlg('Empty ' + IntToStr(t.count) + ' table(s) ?' + CRLF + '(' + implodestr(', ', t) + ')',
     mtConfirmation, [mbOk, mbCancel], 0) <> mrOk then
     exit;
