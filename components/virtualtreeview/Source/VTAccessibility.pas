@@ -78,7 +78,10 @@ type
     function accLocation(out pxLeft: Integer;
       out pyTop: Integer; out pcxWidth: Integer;
       out pcyHeight: Integer; varChild: OleVariant): HResult; stdcall;
+
+
     constructor Create(VirtualTree: TVirtualStringTree);
+    function Get_accFocus(out pvarChild: OleVariant): HRESULT; stdcall;
   end;
 
   TVTMultiColumnItemAccessibility = class(TVirtualTreeItemAccessibility, IAccessible)
@@ -104,7 +107,7 @@ type
 
 implementation
 
-uses SysUtils, Forms;
+uses SysUtils, Forms, Variants, Math;
 
 
 { TVirtualTreeAccessibility }
@@ -154,6 +157,7 @@ function TVirtualTreeAccessibility.accLocation(out pxLeft: Integer;
 // returns the location of the VirtualStringTree object.
 var
   P: TPoint;
+  DisplayRect : TRect;
 begin
   Result := S_FALSE;
   if varChild = CHILDID_SELF then
@@ -166,6 +170,14 @@ begin
       pcxWidth := FVirtualTree.Width;
       pcyHeight := FVirtualTree.Height;
       Result := S_OK;
+    end;
+  end
+  else if VarType(varchild) = VT_I4 then
+  begin
+    // return the location of the focused node
+    if (FVirtualTree <> nil) and (FVirtualTree.AccessibleItem <> nil) then
+    begin
+      RESULT := FVirtualTree.AccessibleItem.accLocation(pxLeft,pyTop,pcxWidth,pcyHeight,CHILDID_SELF);
     end;
   end;
 end;
@@ -332,10 +344,18 @@ begin
       else if FVirtualTree.Name <> '' then
         pszName := FVirtualTree.Name
       else if FVirtualTree.ClassName <> '' then
-             pszName := FVirtualTree.ClassName
+        pszName := FVirtualTree.ClassName
       else
         PSZName := FVirtualTree.DefaultText;
       result := S_OK;
+    end;
+  end
+  else if varType(varChild) = VT_I4 then
+  begin
+    // return the name for the inner accessible item
+    if (FVirtualTree <> nil) and (FVirtualTree.AccessibleItem <> nil) then
+    begin
+      RESULT := FVirtualTree.AccessibleItem.Get_accName(CHILDID_SELF,pszName);
     end;
   end;
 end;
@@ -343,9 +363,24 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 function TVirtualTreeAccessibility.Get_accParent(out ppdispParent: IDispatch): HResult;
 // Returns false, the tree itself does not have a parent.
+var
+  hParent :HWND;
 begin
+  Result :=E_INVALIDARG;
   ppdispParent := nil;
-  Result := S_FALSE;
+
+  // Addition - Simon Moscrop 7/5/2009
+  if (FVirtualTree.HandleAllocated) then
+  begin
+    (* return the accesible object from the 'parent' which is the window of the
+       tree itself! (This doesn't initially appear correct but it seems to
+       be exactly what all the other controls do! To verfify try pointing the
+       ms accessibility explorer at a simple button control which has been dropped
+       onto a form.
+       *)
+    hParent := FVirtualTree.Handle;
+    RESULT := AccessibleObjectFromWindow(hParent,CHILDID_SELF,IID_IAccessible,pointeR(ppDispParent));
+  end;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -359,6 +394,14 @@ begin
   begin
     if FVirtualTree <> nil then
       pvarRole := ROLE_SYSTEM_OUTLINE
+  end
+  else if VarType(varChild) = VT_I4 then
+  begin
+    // return the role of the inner accessible object
+    if (FVirtualTree <> nil) and (FVirtualTree.FocusedNode <> nil) then
+      pvarRole := ROLE_SYSTEM_OUTLINEITEM
+    else
+      RESULT := S_FALSE;
   end;
 end;
 
@@ -390,6 +433,16 @@ begin
     end
     else
       Result := E_INVALIDARG;
+  end
+  else if VarType(VarChild) = VT_I4 then
+  begin
+    // return the state of the inner accessible item
+    if (FVirtualTree <> nil) and (FVirtualTree.AccessibleItem <> nil) then
+    begin
+      RESULT := FVirtualTree.AccessibleItem.Get_accState(CHILDID_SELF,pVarState)
+    end
+    else
+      RESULT := E_INVALIDARG;
   end;
 end;
 
@@ -397,8 +450,14 @@ end;
 function TVirtualTreeAccessibility.Get_accValue(varChild: OleVariant; out pszValue: WideString): HResult;
 // the TreeView control itself does not have a value, returning false here.
 begin
+  RESULT := S_FALSE;
+  
   pszValue := '';
-  Result := S_FALSE;//DISP_E_MEMBERNOTFOUND;
+  if VarType(varChild) = VT_I4 then
+    if varChild = CHILDID_SELF then
+       Result := S_FALSE
+    else if (FVirtualTree <> nil) and (FVirtualTree.AccessibleItem <> nil) then
+      RESULT := FVirtualTree.AccessibleItem.Get_accValue(CHILDID_SELF,pszValue);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -414,7 +473,7 @@ end;
 function TVirtualTreeAccessibility.Set_accName(varChild: OleVariant; const pszName: WideString): HResult; stdcall;
 // not supported.
 begin
-  Result := DISP_E_MEMBERNOTFOUND
+  Result := DISP_E_MEMBERNOTFOUND;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -437,7 +496,7 @@ begin
   Result := S_FALSE;
   if varChild = CHILDID_SELF then
   begin
-   if FVirtualTree.FocusedNode <> nil then
+    if FVirtualTree.FocusedNode <> nil then
     begin
       DisplayRect := FVirtualTree.GetDisplayRect(FVirtualTree.FocusedNode, -1, TRUE, FALSE);
       P := FVirtualTree.ClientToScreen(DisplayRect.TopLeft);
@@ -481,6 +540,19 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+function TVirtualTreeItemAccessibility.Get_accFocus(
+  out pvarChild: OleVariant): HRESULT;
+begin
+  // must override this or we get an infinite loop when using MS narrator
+  // when navigating using the arrow keys.
+  RESULT := S_FALSE;
+  if FVirtualTree.FocusedNode <> nil then
+  begin
+    pvarChild := CHILDID_SELF;
+    RESULT := S_OK;
+  end;
+end;
+
 function TVirtualTreeItemAccessibility.Get_accName(varChild: OleVariant; out pszName: WideString): HResult;
 // the name is the node's caption.
 var
@@ -575,7 +647,7 @@ function TVirtualTreeItemAccessibility.Get_accValue(varChild: OleVariant; out ps
 // for a TreeView item, the value is the nesting level number, 0-based.
 begin
   pszValue := '';
-  Result := S_FALSE;//DISP_E_MEMBERNOTFOUND;
+  Result := S_FALSE;
   if varChild = childid_self then
     if FVirtualTree <> nil then
       if FVirtualTree.FocusedNode <> nil then
