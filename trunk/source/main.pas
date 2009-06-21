@@ -8421,26 +8421,30 @@ begin
   Sel := GetVTCaptions(vt, True);
   ResetVTNodes(vt);
   Screen.Cursor := crHourglass;
-  ds := GetResults('SHOW VARIABLES');
-  SetLength(VTRowDataListVariables, ds.RecordCount);
-  for i:=1 to ds.RecordCount do begin
-    VTRowDataListVariables[i-1].ImageIndex := 25;
-    VTRowDataListVariables[i-1].Captions := WideStrings.TWideStringList.Create;
-    VTRowDataListVariables[i-1].Captions.Add( ds.Fields[0].AsWideString );
-    VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsWideString );
-    ds.Next;
+  try
+    ds := GetResults('SHOW VARIABLES');
+    SetLength(VTRowDataListVariables, ds.RecordCount);
+    for i:=1 to ds.RecordCount do begin
+      VTRowDataListVariables[i-1].ImageIndex := 25;
+      VTRowDataListVariables[i-1].Captions := WideStrings.TWideStringList.Create;
+      VTRowDataListVariables[i-1].Captions.Add( ds.Fields[0].AsWideString );
+      VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsWideString );
+      ds.Next;
+    end;
+    ds.Close;
+    FreeAndNil(ds);
+    vt.RootNodeCount := Length(VTRowDataListVariables);
+    vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
+    SetVTSelection(vt, Sel);
+    // Apply or reset filter
+    editFilterVTChange(Sender);
+    // Display number of listed values on tab
+    tabVariables.Caption := 'Variables (' + IntToStr(vt.RootNodeCount) + ')';
+  finally
+    // Important to flag the tree as "loaded", otherwise OnPaint will cause an endless loop
+    vt.Tag := VTREE_LOADED;
+    Screen.Cursor := crDefault;
   end;
-  ds.Close;
-  FreeAndNil(ds);
-  vt.RootNodeCount := Length(VTRowDataListVariables);
-  vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
-  vt.Tag := VTREE_LOADED;
-  SetVTSelection(vt, Sel);
-  // Apply or reset filter
-  editFilterVTChange(Sender);
-  // Display number of listed values on tab
-  tabVariables.Caption := 'Variables (' + IntToStr(vt.RootNodeCount) + ')';
-  Screen.Cursor := crDefault;
 end;
 
 
@@ -8462,56 +8466,59 @@ begin
   Sel := GetVTCaptions(vt, True);
   ResetVTNodes(vt);
   Screen.Cursor := crHourglass;
-  ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
-  SetLength(VTRowDataListStatus, ds.RecordCount);
-  for i:=1 to ds.RecordCount do begin
-    VTRowDataListStatus[i-1].ImageIndex := 25;
-    VTRowDataListStatus[i-1].Captions := WideStrings.TWideStringList.Create;
-    VTRowDataListStatus[i-1].Captions.Add( ds.Fields[0].AsWideString );
-    val := ds.Fields[1].AsWideString;
-    avg_perhour := '';
-    avg_persec := '';
+  try
+    ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
+    SetLength(VTRowDataListStatus, ds.RecordCount);
+    for i:=1 to ds.RecordCount do begin
+      VTRowDataListStatus[i-1].ImageIndex := 25;
+      VTRowDataListStatus[i-1].Captions := WideStrings.TWideStringList.Create;
+      VTRowDataListStatus[i-1].Captions.Add( ds.Fields[0].AsWideString );
+      val := ds.Fields[1].AsWideString;
+      avg_perhour := '';
+      avg_persec := '';
 
-    // Detect value type
-    valIsNumber := IntToStr(MakeInt(val)) = val;
-    valIsBytes := valIsNumber and (Copy(ds.Fields[0].AsWideString, 1, 6) = 'Bytes_');
+      // Detect value type
+      valIsNumber := IntToStr(MakeInt(val)) = val;
+      valIsBytes := valIsNumber and (Copy(ds.Fields[0].AsWideString, 1, 6) = 'Bytes_');
 
-    // Calculate average values ...
-    if valIsNumber then begin
-      valCount := MakeInt(val);
-      // ... per hour
-      tmpval := valCount / ( ServerUptime / 60 / 60 );
-      if valIsBytes then avg_perhour := FormatByteNumber( Trunc(tmpval) )
-      else avg_perhour := FormatNumber( tmpval, 1 );
-      // ... per second
-      tmpval := valCount / ServerUptime;
-      if valIsBytes then avg_persec := FormatByteNumber( Trunc(tmpval) )
-      else avg_persec := FormatNumber( tmpval, 1 );
+      // Calculate average values ...
+      if valIsNumber then begin
+        valCount := MakeInt(val);
+        // ... per hour
+        tmpval := valCount / ( ServerUptime / 60 / 60 );
+        if valIsBytes then avg_perhour := FormatByteNumber( Trunc(tmpval) )
+        else avg_perhour := FormatNumber( tmpval, 1 );
+        // ... per second
+        tmpval := valCount / ServerUptime;
+        if valIsBytes then avg_persec := FormatByteNumber( Trunc(tmpval) )
+        else avg_persec := FormatNumber( tmpval, 1 );
+      end;
+
+      // Format numeric or byte values
+      if valIsBytes then
+        val := FormatByteNumber(val)
+      else if valIsNumber then
+        val := FormatNumber(val);
+
+      VTRowDataListStatus[i-1].Captions.Add( val );
+      VTRowDataListStatus[i-1].Captions.Add(avg_perhour);
+      VTRowDataListStatus[i-1].Captions.Add(avg_persec);
+      ds.Next;
     end;
-
-    // Format numeric or byte values
-    if valIsBytes then
-      val := FormatByteNumber(val)
-    else if valIsNumber then
-      val := FormatNumber(val);
-
-    VTRowDataListStatus[i-1].Captions.Add( val );
-    VTRowDataListStatus[i-1].Captions.Add(avg_perhour);
-    VTRowDataListStatus[i-1].Captions.Add(avg_persec);
-    ds.Next;
+    ds.Close;
+    FreeAndNil(ds);
+    // Tell VirtualTree the number of nodes it will display
+    vt.RootNodeCount := Length(VTRowDataListStatus);
+    vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
+    SetVTSelection(vt, Sel);
+    // Apply or reset filter
+    editFilterVTChange(Sender);
+    // Display number of listed values on tab
+    tabStatus.Caption := 'Status (' + IntToStr(vt.RootNodeCount) + ')';
+  finally
+    vt.Tag := VTREE_LOADED;
+    Screen.Cursor := crDefault;
   end;
-  ds.Close;
-  FreeAndNil(ds);
-  // Tell VirtualTree the number of nodes it will display
-  vt.RootNodeCount := Length(VTRowDataListStatus);
-  vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
-  vt.Tag := VTREE_LOADED;
-  SetVTSelection(vt, Sel);
-  // Apply or reset filter
-  editFilterVTChange(Sender);
-  // Display number of listed values on tab
-  tabStatus.Caption := 'Status (' + IntToStr(vt.RootNodeCount) + ')';
-  Screen.Cursor := crDefault;
 end;
 
 
@@ -8551,7 +8558,6 @@ begin
     FreeAndNil(ds);
     vt.RootNodeCount := Length(VTRowDataListProcesses);
     vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
-    vt.Tag := VTREE_LOADED;
     SetVTSelection(vt, Sel);
     // Apply or reset filter
     editFilterVTChange(Sender);
@@ -8563,6 +8569,7 @@ begin
       TimerRefresh.Enabled := false;
     end;
   end;
+  vt.Tag := VTREE_LOADED;
   Screen.Cursor := crDefault;
 end;
 
@@ -8609,28 +8616,31 @@ begin
   Sel := GetVTCaptions(vt, True);
   ResetVTNodes(vt);
   Screen.Cursor := crHourglass;
-  ds := GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
-  questions := MakeInt(GetVar('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Questions''', 1));
-  if questions = 0 then
-    Raise Exception.Create('Could not detect value of "Questions" status. Command statistics are not available.');
-  SetLength(VTRowDataListCommandStats, ds.RecordCount+1);
-  addLVitem(0, '    All commands', questions, questions );
-  for i:=1 to ds.RecordCount do begin
-    addLVitem(i, ds.Fields[0].AsWideString, MakeInt(ds.Fields[1].AsString), questions );
-    ds.Next;
+  try
+    ds := GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
+    questions := MakeInt(GetVar('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Questions''', 1));
+    if questions = 0 then
+      Raise Exception.Create('Could not detect value of "Questions" status. Command statistics are not available.');
+    SetLength(VTRowDataListCommandStats, ds.RecordCount+1);
+    addLVitem(0, '    All commands', questions, questions );
+    for i:=1 to ds.RecordCount do begin
+      addLVitem(i, ds.Fields[0].AsWideString, MakeInt(ds.Fields[1].AsString), questions );
+      ds.Next;
+    end;
+    ds.Close;
+    FreeAndNil(ds);
+    // Tell VirtualTree the number of nodes it will display
+    vt.RootNodeCount := Length(VTRowDataListCommandStats);
+    vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
+    SetVTSelection(vt, Sel);
+    // Apply or reset filter
+    editFilterVTChange(Sender);
+    // Display number of listed values on tab
+    tabCommandStats.Caption := 'Command-Statistics (' + IntToStr(vt.RootNodeCount) + ')';
+  finally
+    vt.Tag := VTREE_LOADED;
+    Screen.Cursor := crDefault;
   end;
-  ds.Close;
-  FreeAndNil(ds);
-  // Tell VirtualTree the number of nodes it will display
-  vt.RootNodeCount := Length(VTRowDataListCommandStats);
-  vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
-  vt.Tag := VTREE_LOADED;
-  SetVTSelection(vt, Sel);
-  // Apply or reset filter
-  editFilterVTChange(Sender);
-  // Display number of listed values on tab
-  tabCommandStats.Caption := 'Command-Statistics (' + IntToStr(vt.RootNodeCount) + ')';
-  Screen.Cursor := crDefault;
 end;
 
 
