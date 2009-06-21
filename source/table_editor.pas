@@ -345,12 +345,15 @@ begin
       if UpperCase(Copy(ColSpec, 1, 8)) = 'NOT NULL' then begin
         Props[3] := BoolToStr(False);
         Delete(ColSpec, 1, 9);
-      end else
+        ColDefaultType := cdtText;
+        ColDefaultText := '';
+      end else begin
         Props[3] := BoolToStr(True);
+        ColDefaultType := cdtNull;
+        ColDefaultText := 'NULL';
+      end;
 
       // Default value
-      ColDefaultType := cdtNull;
-      ColDefaultText := 'NULL';
       if UpperCase(Copy(ColSpec, 1, 14)) = 'AUTO_INCREMENT' then begin
         ColDefaultType := cdtAutoInc;
         ColDefaultText := 'AUTO_INCREMENT';
