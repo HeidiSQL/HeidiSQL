@@ -1023,36 +1023,49 @@ procedure TfrmTableEditor.listColumnsPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
 var
-  Datatype: String;
+  Default: WideString;
   TextColor: TColor;
   dt: TDatatype;
+  Props: TWideStringlist;
 begin
   // Give datatype column specific color, as set in preferences
   if vsSelected in Node.States then
     Exit;
+  if not (Column in [2, 6]) then
+    Exit;
+
+  Props := TWideStringlist(Columns.Objects[Node.Index]);
+  dt := GetDatatypeByName(Props[0]);
+  Default := Props[4];
+  TextColor := TargetCanvas.Font.Color;
 
   case Column of
-    2: begin
-      Datatype := TWideStringlist(Columns.Objects[Node.Index])[0];
-      dt := GetDatatypeByName(Datatype);
-
-      case dt.Category of
-        dtcInteger, dtcReal: TextColor := Mainform.prefFieldColorNumeric;
-        dtcTemporal:         TextColor := Mainform.prefFieldColorDateTime;
-        dtcText:             TextColor := Mainform.prefFieldColorText;
-        dtcBinary:           TextColor := Mainform.prefFieldColorBinary;
-        dtcIntegerNamed:     TextColor := Mainform.prefFieldColorEnum;
-        dtcSet, dtcSetNamed: TextColor := Mainform.prefFieldColorSet;
-        // TODO: catSpatial
-        else                 TextColor := TargetCanvas.Font.Color;
-      end;
+    2: case dt.Category of
+      dtcInteger, dtcReal: TextColor := Mainform.prefFieldColorNumeric;
+      dtcTemporal:         TextColor := Mainform.prefFieldColorDateTime;
+      dtcText:             TextColor := Mainform.prefFieldColorText;
+      dtcBinary:           TextColor := Mainform.prefFieldColorBinary;
+      dtcIntegerNamed:     TextColor := Mainform.prefFieldColorEnum;
+      dtcSet, dtcSetNamed: TextColor := Mainform.prefFieldColorSet;
+      // TODO: catSpatial
+      else                 TextColor := TargetCanvas.Font.Color;
     end;
 
-    6: begin
-      // TODO: text black, special values blue?
-      TextColor := clBlue;
+    6: case GetColumnDefaultType(Default) of
+      cdtNull, cdtNullUpdateTS:
+        case dt.Category of
+          dtcInteger, dtcReal: TextColor := Mainform.prefNullColorNumeric;
+          dtcTemporal:         TextColor := Mainform.prefNullColorDateTime;
+          dtcText:             TextColor := Mainform.prefNullColorText;
+          dtcBinary:           TextColor := Mainform.prefNullColorBinary;
+          dtcIntegerNamed:     TextColor := Mainform.prefNullColorEnum;
+          dtcSet, dtcSetNamed: TextColor := Mainform.prefNullColorSet;
+        end;
+      cdtCurTS, cdtCurTSUpdateTS:
+        TextColor := Mainform.prefFieldColorDateTime;
+      cdtAutoInc:
+        TextColor := clNavy;
     end;
-    else Exit;
   end;
 
   TargetCanvas.Font.Color := TextColor;
