@@ -7,7 +7,7 @@
 [Setup]
 AppId=HeidiSQL
 AppName=HeidiSQL Portable
-AppVerName=HeidiSQL Portable 4.0RC3
+AppVerName=HeidiSQL Portable 4.0
 AppVersion=1.0.0.0
 VersionInfoVersion=1.0.0.0
 AppPublisher=Ansgar Becker
@@ -15,16 +15,17 @@ AppPublisherURL=http://www.heidisql.com/
 AppSupportURL=http://forum.heidisql.com/
 AppUpdatesURL=http://download.heidisql.com/
 AppContact=heidisql@anse.de
-DefaultDirName=.\HeidiSQLPortable
+DefaultDirName=\HeidiSQLPortable
 LicenseFile=.\..\..\out\license.txt
 WizardImageFile=.\installer-logo-portable.bmp
 WizardImageBackColor=$ffffff
 WizardSmallImageFile=.\..\..\res\installer-small-logo.bmp
 OutputDir=.
-OutputBaseFilename=HeidiSQLPortable_4.0RC3_Setup
+OutputBaseFilename=HeidiSQLPortable_4.0_Setup
 SetupIconFile=.\..\..\res\mainicon.ico
 ; uncomment the following line if you want your installation to run on NT 3.51 too.
 ; MinVersion=4,3.51
+UsePreviousAppDir=no
 DirExistsWarning=auto
 PrivilegesRequired=none
 ; no uninstallation support is included, requiring the end-user
@@ -51,3 +52,33 @@ Filename: "{app}\App\HeidiSQL\donate.url"; Section: "InternetShortcut"; Key: "UR
 
 [Run]
 Filename: "{app}\HeidiSQLPortable.exe"; Description: "Launch HeidiSQL Portable"; Flags: nowait postinstall skipifsilent
+
+[Code]
+procedure DonateClick(Sender: TObject);
+var
+  ErrorCode: Integer;
+begin
+  ShellExec('open', 'http://www.heidisql.com/donate.php', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+end;
+
+procedure InitializeWizard();
+var
+  txt: TNewStaticText;
+  btn: TButton;
+begin
+  txt := TNewStaticText.Create(WizardForm);
+  txt.Parent := WizardForm.FinishedPage;
+  txt.Caption := 'HeidiSQL is free software. You may make a donation:';
+  txt.Left := WizardForm.FinishedLabel.Left;
+  txt.Top := WizardForm.FinishedLabel.Top + 130;
+  txt.AutoSize := True;
+  
+  btn := TButton.Create(WizardForm);
+  btn.Parent := WizardForm.FinishedPage;
+  btn.Left := txt.Left;
+  btn.Top := txt.Top + txt.Height + 10;
+  btn.Width := 120;
+  btn.Height := WizardForm.CancelButton.Height;
+  btn.Caption := 'Donate';
+  btn.OnClick := @DonateClick;
+end;

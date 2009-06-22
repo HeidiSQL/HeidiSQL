@@ -27,7 +27,7 @@
 !define AUTHOR "HeidiSQL Team"
 !define APP "HeidiSQL"
 !define VER "1.0.0.0"
-!define APPVER "4.0 Release Candidate 3"
+!define APPVER "4.0"
 !define EXE "heidisql.exe"
 !define PNAME "${App}Portable"
 !define ICON "..\..\res\mainicon.ico"
