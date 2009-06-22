@@ -1077,6 +1077,7 @@ procedure TfrmTableEditor.listColumnsNewText(Sender: TBaseVirtualTree;
 var
   Properties: TWideStringList;
   idx, i: Integer;
+  dt: TDatatype;
 begin
   // Column property edited
   if Column = 1 then begin
@@ -1100,9 +1101,14 @@ begin
     ColumnsChanges.Add(Columns[Node.Index]);
     Properties := TWideStringList(Columns.Objects[Node.Index]);
     Properties[Column-2] := NewText;
-    if (Column = 2) and (not CellEditingAllowed(Node, 3)) then begin
+    if Column = 2 then begin
+      dt := GetDatatypeByName(NewText);
       // Reset length/set for column types which don't support that
-      Properties[1] := '';
+      if not dt.HasLength then
+        Properties[1] := '';
+      // Suggest length/set if required
+      if dt.RequiresLength and (Properties[1] = '') then
+        Properties[1] := dt.DefLengthSet;
     end;
   end;
 end;
@@ -1113,6 +1119,7 @@ var
   VT: TVirtualStringTree;
   Props: TWideStringlist;
   Click: THitInfo;
+  Default: WideString;
 begin
   // Handle click event
   VT := Sender as TVirtualStringTree;
@@ -1125,6 +1132,12 @@ begin
     if CellEditingAllowed(Click.HitNode, Click.HitColumn) then begin
       ColumnsChanges.Add(Columns[Click.HitNode.Index]);
       Props[Click.HitColumn-2] := BoolToStr(not StrToBool(Props[Click.HitColumn-2]));
+      // Switch default value from NULL to Text if Allow Null is off
+      if (Click.HitColumn = 5) and (not StrToBool(Props[Click.HitColumn-2])) then begin
+        Default := Props[4];
+        if GetColumnDefaultType(Default) in [cdtNull, cdtNullUpdateTS] then
+          Props[4] := IntToStr(Integer(cdtText));
+      end;
       VT.InvalidateNode(Click.HitNode);
     end;
   end else begin
