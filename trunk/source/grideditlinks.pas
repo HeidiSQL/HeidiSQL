@@ -394,6 +394,7 @@ end;
 function TDateTimeEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
   NodeText: WideString;
+  MinColWidth: Integer;
 begin
   Result := not FStopping;
   if not Result then
@@ -414,6 +415,10 @@ begin
     dtTime: NodeText := TimeToStr(Now);
   end;
   FMaskEdit.Text := NodeText;
+  // Auto-enlarge current tree column so the text in the edit is not cut
+  MinColWidth := FTextBounds.Right - FTextBounds.Left + FUpDown.Width + 5;
+  if FTree.Header.Columns[FColumn].Width < MinColWidth then
+    FTree.Header.Columns[FColumn].Width := MinColWidth;
 end;
 
 
