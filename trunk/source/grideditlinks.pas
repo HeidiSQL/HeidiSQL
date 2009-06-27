@@ -363,7 +363,6 @@ begin
   Result := not FStopping;
   if Result then begin
     FStopping := True;
-    FMaskEdit.Hide;
     FTree.CancelEditNode;
     if FTree.CanFocus then
       FTree.SetFocus;
@@ -381,7 +380,6 @@ begin
   newtext := FMaskEdit.Text;
   if newtext <> FTree.Text[FNode, FColumn] then
     FTree.Text[FNode, FColumn] := newtext;
-  FMaskEdit.Hide;
   if FTree.CanFocus then
     FTree.SetFocus;
 end;
