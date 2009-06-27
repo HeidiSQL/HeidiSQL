@@ -5,8 +5,8 @@ unit grideditlinks;
 interface
 
 uses Windows, Forms, Graphics, messages, VirtualTrees, texteditor, bineditor, ComCtrls, SysUtils, Classes,
-  mysql_structures, Main, helpers, TntStdCtrls, WideStrings, StdCtrls, ExtCtrls, TntCheckLst,
-  Buttons, Controls, Types, PngSpeedButton, Dialogs;
+  mysql_structures, helpers, TntStdCtrls, WideStrings, StdCtrls, ExtCtrls, TntCheckLst,
+  Buttons, Controls, Types, PngSpeedButton, Dialogs, Mask, MaskUtils, DateUtils ;
 
 type
   TMemoEditorLink = class(TInterfacedObject, IVTEditLink)
@@ -33,17 +33,25 @@ type
 
   TDateTimeEditorLink = class(TInterfacedObject, IVTEditLink)
   private
-    FDatePicker, FTimePicker: TDateTimePicker;
-    FTree: TCustomVirtualStringTree;
+    FMaskEdit: TMaskEdit;
+    FTimer: TTimer;
+    FModifyOffset: Integer;
+    FTimerCalls: Integer;
+    FUpDown: TUpDown;
+    FTree: TVirtualStringTree;
     FNode: PVirtualNode;
     FColumn: TColumnIndex;
+    FTextBounds: TRect;
     FStopping: Boolean;
-    FModified: Boolean;
-    procedure PickerKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure PickerChange(Sender: TObject);
+    procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure DoKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure UpDownChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: SmallInt; Direction: TUpDownDirection);
+    procedure UpDownMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure DoOnTimer(Sender: TObject);
+    procedure ModifyDate(Offset: Integer);
   public
     Datatype: TDatatypeIndex; // @see mysql_structures
-    constructor Create;
+    constructor Create(Tree: TVirtualStringTree); overload;
     destructor Destroy; override;
     function BeginEdit: Boolean; virtual; stdcall;
     function CancelEdit: Boolean; virtual; stdcall;
@@ -189,6 +197,8 @@ function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: WideStrin
 
 implementation
 
+uses main;
+
 
 constructor TMemoEditorLink.Create;
 begin
@@ -295,17 +305,39 @@ end;
 
 { DateTime editor }
 
-constructor TDateTimeEditorLink.Create;
+constructor TDateTimeEditorLink.Create(Tree: TVirtualStringTree);
 begin
-  inherited;
+  inherited Create;
+  FTree := Tree;
+  // Avoid flicker
+  SendMessage(FTree.Handle, WM_SETREDRAW, 0, 0);
+
+  FMaskEdit := TMaskEdit.Create(FTree);
+  FMaskEdit.Parent := FTree;
+  FMaskEdit.Hide;
+  FMaskEdit.BorderStyle := bsNone;
+  FMaskEdit.OnKeyDown := DoKeyDown;
+  FMaskEdit.OnKeyUp := DoKeyUp;
+
+  FUpDown := TUpDown.Create(FTree);
+  FUpDown.Hide;
+  FUpDown.Parent := FTree;
+  FUpDown.OnChangingEx := UpDownChangingEx;
+  FUpDown.OnMouseUp := UpDownMouseUp;
+
+  FTimer := TTimer.Create(FMaskEdit);
+  FTimer.Interval := 50;
+  FTimer.OnTimer := DoOnTimer;
+  FTimer.Enabled := False;
 end;
 
 
 destructor TDateTimeEditorLink.Destroy;
 begin
   inherited;
-  FreeAndNil(FDatePicker);
-  FreeAndNil(FTimePicker);
+  FreeAndNil(FTimer);
+  FreeAndNil(FUpDown);
+  FreeAndNil(FMaskEdit);
 end;
 
 
@@ -313,10 +345,13 @@ function TDateTimeEditorLink.BeginEdit: Boolean; stdcall;
 begin
   Result := not FStopping;
   if Result then begin
-    if Assigned(FDatePicker) then
-      FDatePicker.Show;
-    if Assigned(FTimePicker) then
-      FTimePicker.Show;
+    SendMessage(FTree.Handle, WM_SETREDRAW, 1, 0);
+    FMaskEdit.Show;
+    FUpDown.Show;
+    FMaskEdit.SetFocus;
+	// Focus very last segment of date
+    FMaskEdit.SelStart :=  Length(FMaskEdit.Text)-1;
+    FMaskEdit.SelLength := 1;
   end;
 end;
 
@@ -326,10 +361,7 @@ begin
   Result := not FStopping;
   if Result then begin
     FStopping := True;
-    if Assigned(FDatePicker) then
-      FDatePicker.Hide;
-    if Assigned(FTimePicker) then
-      FTimePicker.Hide;
+    FMaskEdit.Hide;
     FTree.CancelEditNode;
     if FTree.CanFocus then
       FTree.SetFocus;
@@ -339,33 +371,15 @@ end;
 
 function TDateTimeEditorLink.EndEdit: Boolean; stdcall;
 var
-  dt: TDateTime;
   newtext: WideString;
 begin
   Result := not FStopping;
   if Not Result then
     Exit;
-  if FModified then begin
-    case Datatype of
-      dtDate:
-        newtext := FormatDateTime(ShortDateFormat, FDatePicker.Date);
-      dtDatetime, dtTimestamp:
-      begin
-	      // Take date and add time
-        dt := FDatePicker.Date;
-        ReplaceTime(dt, FTimePicker.Time);
-        newtext := FormatDateTime(ShortDateFormat+' '+LongTimeFormat, dt);
-      end;
-      dtTime:
-        newtext := FormatDateTime(LongTimeFormat, FTimePicker.Time);
-    end;
-    if newtext <> FTree.Text[FNode, FColumn] then
-      FTree.Text[FNode, FColumn] := newtext;
-  end;
-  if Assigned(FDatePicker) then
-    FDatePicker.Hide;
-  if Assigned(FTimePicker) then
-    FTimePicker.Hide;
+  newtext := FMaskEdit.Text;
+  if newtext <> FTree.Text[FNode, FColumn] then
+    FTree.Text[FNode, FColumn] := newtext;
+  FMaskEdit.Hide;
   if FTree.CanFocus then
     FTree.SetFocus;
 end;
@@ -373,60 +387,33 @@ end;
 
 function TDateTimeEditorLink.GetBounds: TRect; stdcall;
 begin
-  // Strange: Seems never called
-  if Assigned(FDatePicker) and (not Assigned(FTimePicker)) then
-    Result := FDatePicker.BoundsRect
-  else if (not Assigned(FDatePicker)) and Assigned(FTimePicker) then
-    Result := FTimePicker.BoundsRect
-  else begin
-    Result.TopLeft := FDatePicker.BoundsRect.TopLeft;
-    Result.BottomRight := FDatePicker.BoundsRect.BottomRight;
-  end;
+  Result := FMaskEdit.BoundsRect;
 end;
 
 
 function TDateTimeEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
-  dt: TDateTime;
+  NodeText: WideString;
 begin
-  Result := Tree is TCustomVirtualStringTree;
+  Result := not FStopping;
   if not Result then
     Exit;
-  Ftree := Tree as TCustomVirtualStringTree;
+  case Datatype of
+    dtDate: FMaskEdit.EditMask := '0000-00-00;1; ';
+    dtDatetime, dtTimestamp: FMaskEdit.EditMask := '0000-00-00 00\:00\:00;1; ';
+    dtTime: FMaskEdit.EditMask := '00\:00\:00;1; ';
+    //dtYear??
+  end;
   FNode := Node;
   FColumn := Column;
-  DateSeparator := '-';
-  TimeSeparator := ':';
-  ShortDateFormat := 'yyyy-MM-dd';
-  LongTimeFormat := 'HH:mm:ss';
-  try
-    dt := StrToDateTime(FTree.Text[Node, Column]);
-  except
-    dt := Now;
+  FTree.GetTextInfo(FNode, FColumn, FMaskEdit.Font, FTextBounds, NodeText);
+  FMaskEdit.Font.Color := clWindowText;
+  if NodeText = '' then case Datatype of
+    dtDate: NodeText := DateToStr(Now);
+    dtDatetime, dtTimestamp: NodeText := DateTimeToStr(Now);
+    dtTime: NodeText := TimeToStr(Now);
   end;
-  if Datatype in [dtDate, dtDatetime, dtTimestamp] then begin
-    FDatePicker := TDateTimePicker.Create(Tree);
-    FDatePicker.Parent := FTree;
-    FDatePicker.OnKeyDown := PickerKeyDown;
-    FDatePicker.Kind := dtkDate;
-    FDatePicker.Format := ShortDateFormat;
-    FDatePicker.DateTime := dt;
-    FDatePicker.OnChange := PickerChange;
-  end;
-  if Datatype in [dtDatetime, dtTimestamp, dtTime] then begin
-    FTimePicker := TDateTimePicker.Create(Tree);
-    FTimePicker.Parent := FTree;
-    FTimePicker.OnKeyDown := PickerKeyDown;
-    FTimePicker.Kind := dtkTime;
-    FTimePicker.Format := LongTimeFormat;
-    FTimePicker.DateTime := dt;
-    FTimePicker.OnChange := PickerChange;
-  end;
-  if Assigned(FDatePicker) then
-    FDatePicker.SetFocus
-  else if Assigned(FTimePicker) then 
-    FTimePicker.SetFocus;
-  FModified := False;
+  FMaskEdit.Text := NodeText;
 end;
 
 
@@ -437,44 +424,151 @@ end;
 
 procedure TDateTimeEditorLink.SetBounds(R: TRect); stdcall;
 var
-  w: Integer;
+  r2: TRect;
+  OldSelStart, OldSelLen: Integer;
 begin
-  if Assigned(FDatePicker) and (not Assigned(FTimePicker)) then
-    FDatePicker.BoundsRect := R
-  else if (not Assigned(FDatePicker)) and Assigned(FTimePicker) then
-    FTimePicker.BoundsRect := R
-  else begin
-    w := (R.Right - R.Left) div 2;
-
-    FDatePicker.Left := R.Left;
-    FDatePicker.Top := R.Top;
-    FDatePicker.Height := R.Bottom - R.Top;
-    FDatePicker.Width := w;
-
-    FTimePicker.Left := R.Left + w + 1;
-    FTimePicker.Top := R.Top;
-    FTimePicker.Height := R.Bottom - R.Top;
-    FTimePicker.Width := w - 1;
-  end;
+  r2 := R;
+  Inc(r2.Left, R.Right-R.Left-FUpDown.Width);
+  Dec(r2.Top, 2);
+  FUpDown.BoundsRect := r2;
+  r2.Top := FTextBounds.Top;
+  r2.Bottom := FTextBounds.Bottom;
+  r2.Left := FTextBounds.Left + FTree.TextMargin;
+  r2.Right := R.Right - FUpDown.Width;
+  FMaskEdit.BoundsRect := r2;
+  OldSelStart := FMaskEdit.SelStart;
+  OldSelLen := FMaskEdit.SelLength;
+  FMaskEdit.SelStart := 0;
+  FMaskEdit.SelStart := OldSelStart;
+  FMaskEdit.SelLength := OldSelLen;
 end;
 
 
-procedure TDateTimeEditorLink.PickerKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TDateTimeEditorLink.DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   case Key of
     // Cancel by Escape
     VK_ESCAPE: FTree.CancelEditNode;
     // Apply changes and end editing by [Ctrl +] Enter
     VK_RETURN: FTree.EndEditNode;
+    // Increase date on arrow-up, decrease it on arrow-down
+    VK_UP, VK_DOWN: if not FTimer.Enabled then begin
+      if Key = VK_UP then FModifyOffset := 1
+      else FModifyOffset := -1;
+      FTimerCalls := 0;
+      DoOnTimer(Sender);
+      FTimer.Enabled := True;
+    end;
   end;
 end;
 
 
-procedure TDateTimeEditorLink.PickerChange(Sender: TObject);
+procedure TDateTimeEditorLink.DoKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  FModified := True;
+  FTimer.Enabled := False;
 end;
 
+
+procedure TDateTimeEditorLink.UpDownChangingEx(Sender: TObject; var AllowChange: Boolean;
+  NewValue: SmallInt; Direction: TUpDownDirection);
+begin
+  if FTimer.Enabled then
+    Exit;
+  if Direction = updUp then FModifyOffset := 1
+  else FModifyOffset := -1;
+  FTimerCalls := 0;
+  DoOnTimer(Sender);
+  FTimer.Enabled := True;
+end;
+
+
+procedure TDateTimeEditorLink.UpDownMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  FTimer.Enabled := False;
+end;
+
+
+procedure TDateTimeEditorLink.DoOnTimer(Sender: TObject);
+var
+  DelayCalls: Integer;
+begin
+  Inc(FTimerCalls);
+  // 0.5 second delay before counting up/down
+  DelayCalls := 500 Div FTimer.Interval;
+  if (FTimerCalls > DelayCalls) or (not (Sender is TTimer)) then
+    ModifyDate(FModifyOffset);
+  // Speed up counting in steps
+  if FTimerCalls in [DelayCalls*5, DelayCalls*10] then begin
+    if FModifyOffset > 0 then
+      Inc(FModifyOffset, 3)
+    else
+      Dec(FModifyOffset, 3);
+  end;
+end;
+
+
+procedure TDateTimeEditorLink.ModifyDate(Offset: Integer);
+var
+  dt: TDateTime;
+  d: TDate;
+  t: TTime;
+  text: String;
+  OldSelStart, OldSelLength: Integer;
+begin
+  try
+    case Datatype of
+      dtDate: begin
+        d := StrToDate(FMaskEdit.Text);
+        // De- or increase focused date segment
+        case FMaskEdit.SelStart of
+          0..3: d := IncYear(d, Offset);
+          5,6: d := IncMonth(d, Offset);
+          8,9: d := IncDay(d, Offset);
+        end;
+        text := DateToStr(d);
+      end;
+
+      dtDateTime, dtTimestamp: begin
+        dt := StrToDateTime(FMaskEdit.Text);
+        case FMaskEdit.SelStart of
+          0..3: dt := IncYear(dt, Offset);
+          5,6: dt := IncMonth(dt, Offset);
+          8,9: dt := IncDay(dt, Offset);
+          11,12: dt := IncHour(dt, Offset);
+          14,15: dt := IncMinute(dt, Offset);
+          17,18: dt := IncSecond(dt, Offset);
+        end;
+        text := DateTimeToStr(dt);
+        if Length(text) = 10 then
+          text := text + ' 00:00:00';
+      end;
+
+      dtTime: begin
+        t := StrToTime(FMaskEdit.Text);
+        case FMaskEdit.SelStart of
+          0,1: t := IncHour(t, Offset);
+          3,4: t := IncMinute(t, Offset);
+          6,7: t := IncSecond(t, Offset);
+        end;
+        text := TimeToStr(t);
+      end;
+
+      else text := '';
+    end;
+
+    if text <> '' then begin
+      OldSelStart := FMaskEdit.SelStart;
+      OldSelLength := FMaskEdit.SelLength;
+      FMaskEdit.Text := text;
+      FMaskEdit.SelStart := OldSelStart;
+      FMaskEdit.SelLength := OldSelLength;
+    end;
+  except
+    // Ignore any DateToStr exception. Should only appear in cases where the users
+    // enters invalid dates
+  end;
+end;
 
 
 
