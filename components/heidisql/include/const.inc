@@ -211,6 +211,7 @@ const
   REGPREFIX_COLPOS = 'ColPositions_';
   REGPREFIX_CRASH_IN_DATA = 'DataCrashIndicator_';
   REGPREFIX_DATAVIEW = 'View_';
+  REGPREFIX_DATEEDITOR_CURSOR = 'DateTimeEditor_CursorPos_Type';
 
   // Various iconindexes
   ICONINDEX_PRIMARYKEY = 25;
