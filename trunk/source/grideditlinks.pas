@@ -335,6 +335,8 @@ end;
 destructor TDateTimeEditorLink.Destroy;
 begin
   inherited;
+  OpenRegistry;
+  Mainreg.WriteInteger(REGPREFIX_DATEEDITOR_CURSOR+IntToStr(Integer(Datatype)), FMaskEdit.SelStart);
   FreeAndNil(FTimer);
   FreeAndNil(FUpDown);
   FreeAndNil(FMaskEdit);
@@ -349,8 +351,8 @@ begin
     FMaskEdit.Show;
     FUpDown.Show;
     FMaskEdit.SetFocus;
-	// Focus very last segment of date
-    FMaskEdit.SelStart :=  Length(FMaskEdit.Text)-1;
+    // Focus very last segment of date
+    FMaskEdit.SelStart := GetRegValue(REGPREFIX_DATEEDITOR_CURSOR+IntToStr(Integer(Datatype)), Length(FMaskEdit.Text)-1);
     FMaskEdit.SelLength := 1;
   end;
 end;
