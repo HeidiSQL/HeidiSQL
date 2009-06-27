@@ -499,8 +499,8 @@ var
   DelayCalls: Integer;
 begin
   Inc(FTimerCalls);
-  // 0.5 second delay before counting up/down
-  DelayCalls := 500 Div FTimer.Interval;
+  // short delay before counting up/down
+  DelayCalls := 350 Div FTimer.Interval;
   if (FTimerCalls > DelayCalls) or (not (Sender is TTimer)) then
     ModifyDate(FModifyOffset);
   // Speed up counting in steps
