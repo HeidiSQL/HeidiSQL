@@ -8059,8 +8059,8 @@ begin
     MemoEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
     EditLink := MemoEditor;
   end else if (TypeCat = dtcTemporal) and prefEnableDatetimeEditor then begin
-    DateTimeEditor := TDateTimeEditorLink.Create;
-    DateTimeEditor.Datatype := FDataGridResult.Columns[Column].Datatype;
+    DateTimeEditor := TDateTimeEditorLink.Create(Sender as TVirtualStringTree);
+    DateTimeEditor.DataType := FDataGridResult.Columns[Column].Datatype;
     EditLink := DateTimeEditor;
   end else if (TypeCat = dtcIntegerNamed) and prefEnableEnumEditor then begin
     EnumEditor := TEnumEditorLink.Create;
@@ -8211,8 +8211,11 @@ begin
   else gr := @FQueryGridResult;
   EnsureChunkLoaded(Sender, Node);
   if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
-    TargetCanvas.Brush.Color := clHighlight;
-    TargetCanvas.FillRect(CellRect);
+    if not Sender.IsEditing then begin
+	  // Editors may not cover the whole cell rectangle, so any colored area looks broken then
+      TargetCanvas.Brush.Color := clHighlight;
+      TargetCanvas.FillRect(CellRect);
+    end;
   end else if vsSelected in Node.States then begin
     TargetCanvas.Brush.Color := $0040FFFF;
     TargetCanvas.FillRect(CellRect);
