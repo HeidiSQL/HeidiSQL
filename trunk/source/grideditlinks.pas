@@ -43,12 +43,15 @@ type
     FColumn: TColumnIndex;
     FTextBounds: TRect;
     FStopping: Boolean;
+    FFinalKeyDown: Integer;
+    FOldWndProc: TWndMethod;
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure UpDownChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: SmallInt; Direction: TUpDownDirection);
     procedure UpDownMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure DoOnTimer(Sender: TObject);
     procedure ModifyDate(Offset: Integer);
+    procedure EditWndProc(var Message: TMessage);
   public
     Datatype: TDatatypeIndex; // @see mysql_structures
     constructor Create(Tree: TVirtualStringTree); overload;
@@ -131,7 +134,7 @@ type
     FStopping: Boolean;
     FButtonVisible: boolean;
     FOnButtonClick: TButtonClickEvent;
-    FFinalAction: integer;
+    FFinalKeyDown: integer;
     FMaxLength: integer;
     FOldWndProc: TWndMethod;
     procedure EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -318,6 +321,8 @@ begin
   FMaskEdit.BorderStyle := bsNone;
   FMaskEdit.OnKeyDown := DoKeyDown;
   FMaskEdit.OnKeyUp := DoKeyUp;
+  FOldWndProc := FMaskEdit.WindowProc;
+  FMaskEdit.WindowProc := EditWndProc;
 
   FUpDown := TUpDown.Create(FTree);
   FUpDown.Hide;
@@ -340,6 +345,12 @@ begin
   FreeAndNil(FTimer);
   FreeAndNil(FUpDown);
   FreeAndNil(FMaskEdit);
+  case FFinalKeyDown of
+    VK_TAB: begin
+      SendMessage(FTree.Handle, WM_KEYDOWN, FFinalKeyDown, 0);
+      SendMessage(FTree.Handle, WM_KEYDOWN, VK_RETURN, 0);
+    end;
+  end;
 end;
 
 
@@ -424,6 +435,21 @@ end;
 
 procedure TDateTimeEditorLink.ProcessMessage(var Message: TMessage); stdcall;
 begin
+  FMaskEdit.WindowProc(Message);
+end;
+
+
+procedure TDateTimeEditorLink.EditWndProc(var Message: TMessage);
+begin
+  case Message.Msg of
+    WM_CHAR:
+      if not (TWMChar(Message).CharCode in [VK_ESCAPE, VK_TAB]) then
+        FOldWndProc(Message);
+    WM_GETDLGCODE:
+      Message.Result := Message.Result or DLGC_WANTARROWS or DLGC_WANTALLKEYS or DLGC_WANTTAB;
+  else
+    FOldWndProc(Message);
+  end;
 end;
 
 
@@ -451,11 +477,12 @@ end;
 
 procedure TDateTimeEditorLink.DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
+  FFinalKeyDown := Key;
   case Key of
     // Cancel by Escape
     VK_ESCAPE: FTree.CancelEditNode;
     // Apply changes and end editing by [Ctrl +] Enter
-    VK_RETURN: FTree.EndEditNode;
+    VK_RETURN, VK_TAB: FTree.EndEditNode;
     // Increase date on arrow-up, decrease it on arrow-down
     VK_UP, VK_DOWN: if not FTimer.Enabled then begin
       if Key = VK_UP then FModifyOffset := 1
@@ -896,7 +923,7 @@ begin
   if Assigned(FTextEditor) then
     FTextEditor.Release;
   FPanel.Free;
-  case FFinalAction of
+  case FFinalKeyDown of
     VK_TAB: begin
       SendMessage(FTree.Handle, WM_KEYDOWN, VK_TAB, 0);
       SendMessage(FTree.Handle, WM_KEYDOWN, VK_RETURN, 0);
@@ -972,7 +999,7 @@ begin
       ButtonClick(FButton);
     VK_TAB:
       begin
-        FFinalAction := VK_TAB;
+        FFinalKeyDown := VK_TAB;
         FTree.EndEditNode;
       end;
   end;
