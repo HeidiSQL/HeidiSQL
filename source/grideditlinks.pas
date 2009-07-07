@@ -193,6 +193,44 @@ type
     procedure SetBounds(R: TRect); virtual; stdcall;
   end;
 
+  TDataTypeEditorLink = class(TInterfacedObject, IVTEditLink)
+  private
+    FTree: TVirtualStringTree;
+    FTreeSelect: TVirtualStringTree;
+    FMemoHelp: TMemo;
+    FNode: PVirtualNode;
+    FColumn: TColumnIndex;
+    FTextBounds: TRect;
+    FStopping: Boolean;
+    FFinalKeyDown: Integer;
+    FOldWndProc: TWndMethod;
+    procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure EditWndProc(var Message: TMessage);
+    procedure DoTreeSelectGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+    procedure DoTreeSelectInitNode(Sender: TBaseVirtualTree;
+      ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+    procedure DoTreeSelectInitChildren(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; var ChildCount: Cardinal);
+    procedure DoTreeSelectHotChange(Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode);
+    procedure DoTreeSelectPaintText(Sender: TBaseVirtualTree;
+      const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType);
+    procedure DoTreeSelectFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
+        PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
+    procedure DoTreeSelectFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
+  public
+    Datatype: TDatatypeIndex;
+    constructor Create(Tree: TVirtualStringTree); overload;
+    destructor Destroy; override;
+    function BeginEdit: Boolean; virtual; stdcall;
+    function CancelEdit: Boolean; virtual; stdcall;
+    function EndEdit: Boolean; virtual; stdcall;
+    function GetBounds: TRect; virtual; stdcall;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
+    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
+    procedure SetBounds(R: TRect); virtual; stdcall;
+  end;
 
 function GetColumnDefaultType(var Text: WideString): TColumnDefaultType;
 function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: WideString): WideString;
@@ -1410,6 +1448,294 @@ begin
     cdtCurTSUpdateTS:  Result := ' DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
     cdtAutoInc:        Result := ' AUTO_INCREMENT';
   end;
+end;
+
+
+
+{ Datatype selector }
+constructor TDataTypeEditorLink.Create(Tree: TVirtualStringTree);
+var
+  ParentControl: TWinControl;
+begin
+  inherited Create;
+  FTree := Tree;
+  // Enable mouse scrolling on FtreeSelect, plus ensure the
+  // tree is not partly hidden when it pops up in a bottom cell
+  ParentControl := GetParentForm(FTree);
+  // Avoid flicker
+  SendMessage(ParentControl.Handle, WM_SETREDRAW, 0, 0);
+
+  FTreeSelect := TVirtualStringTree.Create(FTree);
+  FTreeSelect.TreeOptions.PaintOptions := FTreeSelect.TreeOptions.PaintOptions
+    - [toShowTreeLines, toShowButtons, toShowRoot]
+    + [toHotTrack, toUseExplorerTheme, toHideTreeLinesIfThemed];
+  FTreeSelect.TreeOptions.SelectionOptions := FTreeSelect.TreeOptions.SelectionOptions
+    + [toFullRowSelect];
+  FTreeSelect.Header.Columns.Add;
+  FTreeSelect.Header.AutoSizeIndex := 0;
+  FTreeSelect.Header.Options := FTreeSelect.Header.Options + [hoAutoResize];
+  FTreeSelect.Parent := ParentControl;
+  FTreeSelect.TextMargin := 0;
+  FTreeSelect.RootNodeCount := Length(DatatypeCategories);
+  FTreeSelect.OnGetText := DoTreeSelectGetText;
+  FTreeSelect.OnInitNode := DoTreeSelectInitNode;
+  FTreeSelect.OnInitChildren := DoTreeSelectInitChildren;
+  FTreeSelect.OnKeyDown := DoKeyDown;
+  FTreeSelect.OnHotChange := DoTreeSelectHotChange;
+  FTreeSelect.OnPaintText := DoTreeSelectPaintText;
+  FTreeSelect.Hide;
+  FOldWndProc := FTreeSelect.WindowProc;
+  FTreeSelect.WindowProc := EditWndProc;
+
+  FMemoHelp := TMemo.Create(FTree);
+  FMemoHelp.Parent := ParentControl;
+  FMemoHelp.Color := clInfoBk;
+  FMemoHelp.Font.Color := clInfoText;
+  FMemoHelp.BorderStyle := bsNone;
+  FMemoHelp.BevelKind := bkFlat;
+  FMemoHelp.BevelInner := bvNone;
+  FMemoHelp.Hide;
+end;
+
+
+destructor TDataTypeEditorLink.Destroy;
+begin
+  inherited;
+  FreeAndNil(FTreeSelect);
+  FreeAndNil(FMemoHelp);
+  if FFinalKeyDown = VK_TAB then begin
+    SendMessage(FTree.Handle, WM_KEYDOWN, FFinalKeyDown, 0);
+    SendMessage(FTree.Handle, WM_KEYDOWN, VK_F2, 0);
+  end;
+end;
+
+
+function TDataTypeEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
+var
+  NodeText: WideString;
+  dt: TDatatype;
+  CatNode, TypeNode: PVirtualNode;
+begin
+  Result := not FStopping;
+  if not Result then
+    Exit;
+  FNode := Node;
+  FColumn := Column;
+  FTree.GetTextInfo(FNode, FColumn, FTreeSelect.Font, FTextBounds, NodeText);
+  // Highlighted cell has white font, fix that
+  FTreeSelect.Font.Color := FTree.Font.Color;
+
+  // Find and select current datatype in tree
+  dt := GetDataTypeByName(NodeText);
+  CatNode := FTreeSelect.GetFirst;
+  while Assigned(CatNode) do begin
+    if CatNode.Index = Cardinal(dt.Category) then begin
+      TypeNode := FTreeSelect.GetFirstChild(CatNode);
+      while Assigned(TypeNode) do begin
+        if FTreeSelect.Text[TypeNode, 0] = NodeText then begin
+          FTreeSelect.FocusedNode := TypeNode;
+          FTreeSelect.Selected[TypeNode] := True;
+          break;
+        end;
+        TypeNode := FTreeSelect.GetNextSibling(TypeNode);
+      end;
+    end;
+    CatNode := FTreeSelect.GetNextSibling(CatNode);
+  end;
+  if Assigned(FTreeSelect.FocusedNode) then
+    FTreeSelect.ScrollIntoView(FTreeSelect.FocusedNode, True);
+  FTreeSelect.OnFocusChanging := DoTreeSelectFocusChanging;
+  FTreeSelect.OnFocusChanged := DoTreeSelectFocusChanged;
+end;
+
+
+function TDataTypeEditorLink.BeginEdit: Boolean;
+begin
+  Result := not FStopping;
+  if Result then begin
+    SendMessage(FTreeSelect.Parent.Handle, WM_SETREDRAW, 1, 0);
+    FTreeSelect.Show;
+    FTreeSelect.SetFocus;
+  end;
+end;
+
+
+function TDataTypeEditorLink.CancelEdit: Boolean;
+begin
+  Result := not FStopping;
+  if Result then begin
+    FStopping := True;
+    FTree.CancelEditNode;
+    if FTree.CanFocus then
+      FTree.SetFocus;
+  end;
+end;
+
+
+function TDataTypeEditorLink.EndEdit: Boolean;
+var
+  newtext: WideString;
+begin
+  Result := not FStopping;
+  if Not Result then
+    Exit;
+  newtext := FTreeSelect.Text[FTreeSelect.FocusedNode, 0];
+  if newtext <> FTree.Text[FNode, FColumn] then
+    FTree.Text[FNode, FColumn] := newtext;
+  if FTree.CanFocus then
+    FTree.SetFocus;
+end;
+
+
+function TDataTypeEditorLink.GetBounds: TRect;
+begin
+  Result := FTreeSelect.BoundsRect;
+end;
+
+
+procedure TDataTypeEditorLink.SetBounds(R: TRect);
+begin
+  // Set position of tree. As the tree's parent is mainform, not listcolumns, add listcolumn's x + y positions
+  FTreeSelect.SetBounds(R.Left + FTree.ClientOrigin.X,
+    R.Top + FTree.ClientOrigin.Y - FTreeSelect.Header.Height - GetSystemMetrics(SM_CYMENU),
+    R.Right-R.Left,
+    250);
+end;
+
+
+procedure TDataTypeEditorLink.ProcessMessage(var Message: TMessage);
+begin
+  FTreeSelect.WindowProc(Message);
+end;
+
+
+procedure TDataTypeEditorLink.DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  FFinalKeyDown := Key;
+  case Key of
+    // Cancel by Escape
+    VK_ESCAPE: FTree.CancelEditNode;
+    // Apply changes and end editing by [Ctrl +] Enter or Tab
+    VK_RETURN, VK_TAB: FTree.EndEditNode;
+  end;
+end;
+
+
+procedure TDataTypeEditorLink.EditWndProc(var Message: TMessage);
+begin
+  case Message.Msg of
+    WM_CHAR:
+      if not (TWMChar(Message).CharCode in [VK_ESCAPE, VK_TAB]) then
+        FOldWndProc(Message);
+    WM_GETDLGCODE:
+      Message.Result := Message.Result or DLGC_WANTARROWS or DLGC_WANTALLKEYS or DLGC_WANTTAB;
+  else
+    FOldWndProc(Message);
+  end;
+end;
+
+
+procedure TDataTypeEditorLink.DoTreeSelectInitNode(Sender: TBaseVirtualTree;
+  ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+begin
+  // First level nodes always expanded
+  if Sender.GetNodeLevel(Node) = 0 then
+    InitialStates := InitialStates + [ivsExpanded, ivsHasChildren];
+end;
+
+
+procedure TDataTypeEditorLink.DoTreeSelectInitChildren(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; var ChildCount: Cardinal);
+var
+  i: Integer;
+begin
+  // Tell number of datatypes per category
+  ChildCount := 0;
+  if Sender.GetNodeLevel(Node) = 0 then for i:=Low(Datatypes) to High(Datatypes) do begin
+    if Datatypes[i].Category = DatatypeCategories[Node.Index].Index then
+      Inc(ChildCount);
+  end;
+end;
+
+
+procedure TDataTypeEditorLink.DoTreeSelectGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+var
+  i: Integer;
+  Counter: Cardinal;
+begin
+  // Get cell text
+  case Sender.GetNodeLevel(Node) of
+    0: CellText := DatatypeCategories[Node.Index].Name;
+    1: begin
+         Counter := 0;
+         for i:=Low(Datatypes) to High(Datatypes) do begin
+           if Datatypes[i].Category = DatatypeCategories[Node.Parent.Index].Index then begin
+             Inc(Counter);
+             if Counter = Node.Index+1 then begin
+               CellText := Datatypes[i].Name;
+               break;
+             end;
+           end;
+         end;
+       end;
+  end;
+end;
+
+
+procedure TDataTypeEditorLink.DoTreeSelectHotChange(Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode);
+var
+  R: TRect;
+  NodeText: WideString;
+  bmp: TBitMap;
+begin
+  // Display help box for hovered datatype
+  FMemoHelp.Clear;
+  if Assigned(NewNode) and (Sender.GetNodeLevel(NewNode) = 1) then begin
+    R := FTreeSelect.GetDisplayRect(NewNode, 0, False);
+    NodeText := FTreeSelect.Text[NewNode, 0];
+    FMemoHelp.Width := Min(250, FTreeSelect.Left);
+    FMemoHelp.Left := FTreeSelect.Left - FMemoHelp.Width + (Integer(FTreeSelect.Indent) Div 2);
+    FMemoHelp.Top := FTreeSelect.Top + R.Top + 3;
+    FMemoHelp.Text := GetDatatypeByName(NodeText).Description;
+    // Calc height of memo
+    bmp := TBitMap.Create;
+    bmp.Canvas.Font.Assign(FMemoHelp.Font);
+    R := Rect(0, 0, FMemoHelp.Width, 0);
+    DrawText(bmp.Canvas.Handle, PChar(FMemoHelp.Text), Length(FMemoHelp.Text), R, DT_WORDBREAK or DT_CALCRECT);
+    FreeAndNil(bmp);
+    FMemoHelp.Height := R.Bottom + 2;
+    FMemoHelp.Show;
+  end;
+  if FMemoHelp.GetTextLen = 0 then
+    FMemoHelp.Hide;
+end;
+
+
+procedure TDataTypeEditorLink.DoTreeSelectPaintText(Sender: TBaseVirtualTree;
+  const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  TextType: TVSTTextType);
+begin
+  // Give datatype column specific color, as set in preferences
+  case Sender.GetNodeLevel(Node) of
+    0: TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
+    1: if not (vsSelected in Node.States) then
+      TargetCanvas.Font.Color := DatatypeCategories[Node.Parent.Index].Color;
+  end;
+end;
+
+
+procedure TDataTypeEditorLink.DoTreeSelectFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
+    PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
+begin
+  // Allow only 2nd level datatypes to be focused, not their category
+  Allowed := Sender.GetNodeLevel(NewNode) = 1;
+end;
+
+procedure TDataTypeEditorLink.DoTreeSelectFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
+begin
+  // Datatype selected - end editing
+  FTree.EndEditNode;
 end;
 
 

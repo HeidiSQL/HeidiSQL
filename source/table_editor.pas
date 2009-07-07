@@ -1040,29 +1040,13 @@ begin
   TextColor := TargetCanvas.Font.Color;
 
   case Column of
-    2: case dt.Category of
-      dtcInteger, dtcReal: TextColor := Mainform.prefFieldColorNumeric;
-      dtcTemporal:         TextColor := Mainform.prefFieldColorDateTime;
-      dtcText:             TextColor := Mainform.prefFieldColorText;
-      dtcBinary:           TextColor := Mainform.prefFieldColorBinary;
-      dtcIntegerNamed:     TextColor := Mainform.prefFieldColorEnum;
-      dtcSet, dtcSetNamed: TextColor := Mainform.prefFieldColorSet;
-      // TODO: catSpatial
-      else                 TextColor := TargetCanvas.Font.Color;
-    end;
+    2: TextColor := DatatypeCategories[Integer(dt.Category)].Color;
 
     6: case GetColumnDefaultType(Default) of
       cdtNull, cdtNullUpdateTS:
-        case dt.Category of
-          dtcInteger, dtcReal: TextColor := Mainform.prefNullColorNumeric;
-          dtcTemporal:         TextColor := Mainform.prefNullColorDateTime;
-          dtcText:             TextColor := Mainform.prefNullColorText;
-          dtcBinary:           TextColor := Mainform.prefNullColorBinary;
-          dtcIntegerNamed:     TextColor := Mainform.prefNullColorEnum;
-          dtcSet, dtcSetNamed: TextColor := Mainform.prefNullColorSet;
-        end;
+        TextColor := DatatypeCategories[Integer(dt.Category)].NullColor;
       cdtCurTS, cdtCurTSUpdateTS:
-        TextColor := Mainform.prefFieldColorDateTime;
+        TextColor := DatatypeCategories[Integer(dtcTemporal)].Color;
       cdtAutoInc:
         TextColor := clNavy;
     end;
@@ -1154,17 +1138,15 @@ procedure TfrmTableEditor.listColumnsCreateEditor(Sender: TBaseVirtualTree;
 var
   EnumEditor: TEnumEditorLink;
   DefaultEditor: TColumnDefaultEditorLink;
-  i: Integer;
+  DatatypeEditor: TDatatypeEditorLink;
   Props: TWideStringlist;
 begin
   // Start cell editor
   case Column of
     2: begin // Datatype pulldown
-      EnumEditor := TEnumEditorLink.Create;
-      EnumEditor.ValueList := TWideStringList.Create;
-      for i:=Low(Datatypes) to High(Datatypes) do
-        EnumEditor.ValueList.Add(Datatypes[i].Name);
-      EditLink := EnumEditor;
+      DatatypeEditor := TDatatypeEditorLink.Create(Sender as TVirtualStringTree);
+      DatatypeEditor.Datatype := dtDateTime;
+      EditLink := DataTypeEditor;
       end;
     8: begin // Collation pulldown
       EnumEditor := TEnumEditorLink.Create;
