@@ -769,18 +769,6 @@ type
     prefEnableEnumEditor,
     prefEnableSetEditor,
     prefEnableNullBG           : Boolean;
-    prefFieldColorNumeric,
-    prefFieldColorText,
-    prefFieldColorBinary,
-    prefFieldColorDatetime,
-    prefFieldColorEnum,
-    prefFieldColorSet,
-    prefNullColorNumeric,
-    prefNullColorText,
-    prefNullColorBinary,
-    prefNullColorDatetime,
-    prefNullColorEnum,
-    prefNullColorSet,
     prefNullColorDefault,
     prefNullBG                 : TColor;
     CreateDatabaseForm         : TCreateDatabaseForm;
@@ -1336,12 +1324,14 @@ begin
   FixVT(DataGrid);
   FixVT(QueryGrid);
   // Load color settings
-  prefFieldColorNumeric := GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
-  prefFieldColorText := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
-  prefFieldColorBinary := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
-  prefFieldColorDatetime := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
-  prefFieldColorEnum := GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
-  prefFieldColorSet := GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
+  DatatypeCategories[Integer(dtcInteger)].Color := GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
+  DatatypeCategories[Integer(dtcReal)].Color := GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
+  DatatypeCategories[Integer(dtcText)].Color := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
+  DatatypeCategories[Integer(dtcBinary)].Color := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
+  DatatypeCategories[Integer(dtcTemporal)].Color := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
+  DatatypeCategories[Integer(dtcIntegerNamed)].Color := GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
+  DatatypeCategories[Integer(dtcSet)].Color := GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
+  DatatypeCategories[Integer(dtcSetNamed)].Color := GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
   prefNullBG := GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
   CalcNullColors;
   // Editor enablings
@@ -7368,14 +7358,11 @@ end;
 
 
 procedure TMainForm.CalcNullColors;
+var
+  i: Integer;
 begin
-  prefNullColorNumeric := ColorAdjustBrightness(prefFieldColorNumeric, COLORSHIFT_NULLFIELDS);
-  prefNullColorText := ColorAdjustBrightness(prefFieldColorText, COLORSHIFT_NULLFIELDS);
-  prefNullColorBinary := ColorAdjustBrightness(prefFieldColorBinary, COLORSHIFT_NULLFIELDS);
-  prefNullColorDatetime := ColorAdjustBrightness(prefFieldColorDatetime, COLORSHIFT_NULLFIELDS);
-  prefNullColorEnum := ColorAdjustBrightness(prefFieldColorEnum, COLORSHIFT_NULLFIELDS);
-  prefNullColorSet := ColorAdjustBrightness(prefFieldColorSet, COLORSHIFT_NULLFIELDS);
-  prefNullColorDefault := ColorAdjustBrightness(clWindow, COLORSHIFT_NULLFIELDS);
+  for i:=Low(DatatypeCategories) to High(DatatypeCategories) do
+    DatatypeCategories[i].NullColor := ColorAdjustBrightness(DatatypeCategories[i].Color, COLORSHIFT_NULLFIELDS);
 end;
 
 
@@ -7387,7 +7374,6 @@ procedure TMainForm.GridPaintText(Sender: TBaseVirtualTree; const
     TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType:
     TVSTTextType);
 var
-  isNull: Boolean;
   cl: TColor;
   r: PGridResult;
 begin
@@ -7404,34 +7390,15 @@ begin
   if r.Columns[Column].IsPriPart then
     TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
 
-  // NULL value
-  isNull := r.Rows[Node.Index].Cells[Column].IsNull;
-
   // Do not apply any color on a selected, highlighted cell to keep readability
   if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
     cl := clHighlightText
   else if vsSelected in Node.States then
     cl := clBlack
-  // Numeric field
-  else if r.Columns[Column].DatatypeCat in [dtcInteger, dtcReal] then
-    if isNull then cl := prefNullColorNumeric else cl := prefFieldColorNumeric
-  // Date field
-  else if r.Columns[Column].DatatypeCat = dtcTemporal then
-    if isNull then cl := prefNullColorDatetime else cl := prefFieldColorDatetime
-  // Text field
-  else if r.Columns[Column].DatatypeCat = dtcText then
-    if isNull then cl := prefNullColorText else cl := prefFieldColorText
-  // Text field
-  else if r.Columns[Column].DatatypeCat = dtcBinary then
-    if isNull then cl := prefNullColorBinary else cl := prefFieldColorBinary
-  // Enum field
-  else if r.Columns[Column].DatatypeCat = dtcIntegerNamed then
-    if isNull then cl := prefNullColorEnum else cl := prefFieldColorEnum
-  // Set field
-  else if r.Columns[Column].DatatypeCat = dtcSetNamed then
-    if isNull then cl := prefNullColorSet else cl := prefFieldColorSet
+  else if r.Rows[Node.Index].Cells[Column].IsNull then
+    cl := DatatypeCategories[Integer(r.Columns[Column].DatatypeCat)].NullColor
   else
-    if isNull then cl := prefNullColorDefault else cl := clWindowText;
+    cl := DatatypeCategories[Integer(r.Columns[Column].DatatypeCat)].Color;
   TargetCanvas.Font.Color := cl;
 end;
 

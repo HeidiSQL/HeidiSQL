@@ -128,7 +128,7 @@ type
 
 
 implementation
-uses main, helpers;
+uses main, helpers, mysql_structures;
 {$R *.DFM}
 
 
@@ -243,12 +243,14 @@ begin
   Mainform.prefCSVSeparator := editCSVSeparator.Text;
   Mainform.prefCSVEncloser := editCSVEncloser.Text;
   Mainform.prefCSVTerminator := editCSVTerminator.Text;
-  Mainform.prefFieldColorNumeric := cboxNumeric.Selected;
-  Mainform.prefFieldColorText := cboxText.Selected;
-  Mainform.prefFieldColorBinary := cboxBinary.Selected;
-  Mainform.prefFieldColorDatetime := cboxDatetime.Selected;
-  Mainform.prefFieldColorEnum := cboxEnum.Selected;
-  Mainform.prefFieldColorSet := cboxSet.Selected;
+  DatatypeCategories[Integer(dtcInteger)].Color := cboxNumeric.Selected;
+  DatatypeCategories[Integer(dtcReal)].Color := cboxNumeric.Selected;
+  DatatypeCategories[Integer(dtcText)].Color := cboxText.Selected;
+  DatatypeCategories[Integer(dtcBinary)].Color := cboxBinary.Selected;
+  DatatypeCategories[Integer(dtcTemporal)].Color := cboxDatetime.Selected;
+  DatatypeCategories[Integer(dtcIntegerNamed)].Color := cboxEnum.Selected;
+  DatatypeCategories[Integer(dtcSet)].Color := cboxSet.Selected;
+  DatatypeCategories[Integer(dtcSetNamed)].Color := cboxSet.Selected;
   Mainform.prefNullBG := cboxNullBg.Selected;
   Mainform.CalcNullColors;
   Mainform.DataGrid.Repaint;

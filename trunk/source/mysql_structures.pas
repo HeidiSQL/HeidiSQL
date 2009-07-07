@@ -7,7 +7,7 @@ unit mysql_structures;
 interface
 
 uses
-  Classes, Widestrings;
+  Classes, Widestrings, Graphics;
 
 {$I const.inc}
 
@@ -22,13 +22,14 @@ type
     dtPoint, dtLinestring, dtPolygon, dtGeometry, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection);
 
   // MySQL data type categorization
-  TDatatypeCategoryIndex = (dtcInteger, dtcReal, dtcTemporal, dtcText, dtcBinary,
-    dtcIntegerNamed, dtcSet, dtcSetNamed, dtcSpatial);
+  TDatatypeCategoryIndex = (dtcInteger, dtcIntegerNamed, dtcReal, dtcText, dtcBinary, dtcTemporal,
+    dtcSpatial, dtcSet, dtcSetNamed);
 
   // MySQL data type structure
   TDatatype = record
     Index:           TDatatypeIndex;
     Name:            String[18];
+    Description:     String;
     HasLength:       Boolean; // Can have Length- or Set-attribute?
     RequiresLength:  Boolean; // Must have a Length- or Set-attribute?
     HasUnsigned:     Boolean; // Can be unsigned?
@@ -43,6 +44,8 @@ type
   TDatatypeCategory = record
     Index:           TDatatypeCategoryIndex;
     Name:            String[32];
+    Color:           TColor;
+    NullColor:       TColor;
   end;
 
   // MySQL functions structure
@@ -103,6 +106,9 @@ var
     (
       Index:           dtTinyint;
       Name:            'TINYINT';
+      Description:     'TINYINT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
+        'A very small integer. The signed range is -128 to 127. ' +
+        'The unsigned range is 0 to 255.';
       HasLength:       True;
       RequiresLength:  False;
       HasUnsigned:     True;
@@ -114,6 +120,9 @@ var
     (
       Index:           dtSmallint;
       Name:            'SMALLINT';
+      Description:     'SMALLINT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
+        'A small integer. The signed range is -32768 to 32767. ' +
+        'The unsigned range is 0 to 65535.';
       HasLength:       True;
       RequiresLength:  False;
       HasUnsigned:     True;
@@ -125,6 +134,9 @@ var
     (
       Index:           dtMediumint;
       Name:            'MEDIUMINT';
+      Description:     'MEDIUMINT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
+        'A medium-sized integer. The signed range is -8388608 to 8388607. ' +
+        'The unsigned range is 0 to 16777215.';
       HasLength:       True;
       RequiresLength:  False;
       HasUnsigned:     True;
@@ -136,6 +148,9 @@ var
     (
       Index:           dtInt;
       Name:            'INT';
+      Description:     'INT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
+        'A normal-size integer. The signed range is -2147483648 to 2147483647. ' +
+        'The unsigned range is 0 to 4294967295.';
       HasLength:       True;
       RequiresLength:  False;
       HasUnsigned:     True;
@@ -147,6 +162,9 @@ var
     (
       Index:           dtBigint;
       Name:            'BIGINT';
+      Description:     'BIGINT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
+        'A large integer. The signed range is -9223372036854775808 to ' +
+        '9223372036854775807. The unsigned range is 0 to 18446744073709551615.';
       HasLength:       True;
       RequiresLength:  False;
       HasUnsigned:     True;
@@ -158,6 +176,12 @@ var
     (
       Index:           dtFloat;
       Name:            'FLOAT';
+      Description:     'FLOAT[(M,D)] [UNSIGNED] [ZEROFILL]' + CRLF +
+        'A small (single-precision) floating-point number. Allowable values are '+
+        '-3.402823466E+38 to -1.175494351E-38, 0, and 1.175494351E-38 to '+
+        '3.402823466E+38. These are the theoretical limits, based on the IEEE '+
+        'standard. The actual range might be slightly smaller depending on your '+
+        'hardware or operating system.';
       HasLength:       True;
       RequiresLength:  False;
       HasUnsigned:     True;
@@ -169,6 +193,12 @@ var
     (
       Index:           dtDouble;
       Name:            'DOUBLE';
+      Description:     'DOUBLE[(M,D)] [UNSIGNED] [ZEROFILL]' + CRLF +
+        'A normal-size (double-precision) floating-point number. Allowable ' +
+        'values are -1.7976931348623157E+308 to -2.2250738585072014E-308, 0, and ' +
+        '2.2250738585072014E-308 to 1.7976931348623157E+308. These are the ' +
+        'theoretical limits, based on the IEEE standard. The actual range might ' +
+        'be slightly smaller depending on your hardware or operating system.';
       HasLength:       True;
       RequiresLength:  False;
       HasUnsigned:     True;
@@ -180,6 +210,14 @@ var
     (
       Index:           dtDecimal;
       Name:            'DECIMAL';
+      Description:     'DECIMAL[(M[,D])] [UNSIGNED] [ZEROFILL]' + CRLF +
+        'A packed "exact" fixed-point number. M is the total number of digits ' +
+        '(the precision) and D is the number of digits after the decimal point ' +
+        '(the scale). The decimal point and (for negative numbers) the "-" sign ' +
+        'are not counted in M. If D is 0, values have no decimal point or ' +
+        'fractional part. The maximum number of digits (M) for DECIMAL is 65. ' +
+        'The maximum number of supported decimals (D) is 30. If D is omitted, ' +
+        'the default is 0. If M is omitted, the default is 10.';
       HasLength:       True;
       RequiresLength:  True;
       HasUnsigned:     True;
@@ -191,6 +229,10 @@ var
     (
       Index:           dtDate;
       Name:            'DATE';
+      Description:     'DATE' + CRLF +
+        'A date. The supported range is ''1000-01-01'' to ''9999-12-31''. MySQL ' +
+        'displays DATE values in ''YYYY-MM-DD'' format, but allows assignment of ' +
+        'values to DATE columns using either strings or numbers.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -202,6 +244,10 @@ var
     (
       Index:           dtTime;
       Name:            'TIME';
+      Description:     'TIME' + CRLF +
+        'A time. The range is ''-838:59:59'' to ''838:59:59''. MySQL displays TIME ' +
+        'values in ''HH:MM:SS'' format, but allows assignment of values to TIME ' +
+        'columns using either strings or numbers.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -213,6 +259,13 @@ var
     (
       Index:           dtYear;
       Name:            'YEAR';
+      Description:     'YEAR[(2|4)]' + CRLF +
+        'A year in two-digit or four-digit format. The default is four-digit ' +
+        'format. In four-digit format, the allowable values are 1901 to 2155, ' +
+        'and 0000. In two-digit format, the allowable values are 70 to 69, ' +
+        'representing years from 1970 to 2069. MySQL displays YEAR values in ' +
+        'YYYY format, but allows you to assign values to YEAR columns using ' +
+        'either strings or numbers.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -224,6 +277,11 @@ var
     (
       Index:           dtDatetime;
       Name:            'DATETIME';
+      Description:     'DATETIME' + CRLF +
+        'A date and time combination. The supported range is ''1000-01-01 ' +
+        '00:00:00'' to ''9999-12-31 23:59:59''. MySQL displays DATETIME values in ' +
+        '''YYYY-MM-DD HH:MM:SS'' format, but allows assignment of values to ' +
+        'DATETIME columns using either strings or numbers.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -235,6 +293,13 @@ var
     (
       Index:           dtTimestamp;
       Name:            'TIMESTAMP';
+      Description:     'TIMESTAMP' + CRLF +
+        'A timestamp. The range is ''1970-01-01 00:00:01'' UTC to ''2038-01-09 ' +
+        '03:14:07'' UTC. TIMESTAMP values are stored as the number of seconds ' +
+        'since the epoch (''1970-01-01 00:00:00'' UTC). A TIMESTAMP cannot ' +
+        'represent the value ''1970-01-01 00:00:00'' because that is equivalent to ' +
+        '0 seconds from the epoch and the value 0 is reserved for representing ' +
+        '''0000-00-00 00:00:00'', the "zero" TIMESTAMP value.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -246,6 +311,12 @@ var
     (
       Index:           dtCHAR;
       Name:            'CHAR';
+      Description:     'CHAR[(M)]' + CRLF +
+        'A fixed-length string that is always right-padded with spaces to the ' +
+        'specified length when stored. M represents the column length in ' +
+        'characters. The range of M is 0 to 255. If M is omitted, the length is 1.' + CRLF + CRLF +
+        '*Note*: Trailing spaces are removed when CHAR values are retrieved ' +
+        'unless the PAD_CHAR_TO_FULL_LENGTH SQL mode is enabled.';
       HasLength:       True;
       RequiresLength:  True;
       HasUnsigned:     False;
@@ -258,6 +329,16 @@ var
     (
       Index:           dtVarchar;
       Name:            'VARCHAR';
+      Description:     'VARCHAR(M)' + CRLF +
+        'A variable-length string. M represents the maximum column length in ' +
+        'characters. The range of M is 0 to 65,535. The effective maximum length ' +
+        'of a VARCHAR is subject to the maximum row size (65,535 bytes, which is ' +
+        'shared among all columns) and the character set used. For example, utf8 ' +
+        'characters can require up to three bytes per character, so a VARCHAR ' +
+        'column that uses the utf8 character set can be declared to be a maximum ' +
+        'of 21,844 characters. ' + CRLF + CRLF +
+        '*Note*: MySQL 5.1 follows the standard SQL specification, and does not ' +
+        'remove trailing spaces from VARCHAR values.';
       HasLength:       True;
       RequiresLength:  True;
       HasUnsigned:     False;
@@ -270,6 +351,11 @@ var
     (
       Index:           dtTinytext;
       Name:            'TINYTEXT';
+      Description:     'TINYTEXT' + CRLF +
+        'A TEXT column with a maximum length of 255 (28 - 1) characters. The ' +
+        'effective maximum length is less if the value contains multi-byte ' +
+        'characters. Each TINYTEXT value is stored using a one-byte length ' +
+        'prefix that indicates the number of bytes in the value.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -281,6 +367,14 @@ var
     (
       Index:           dtText;
       Name:            'TEXT';
+      Description:     'TEXT[(M)]' + CRLF +
+        'A TEXT column with a maximum length of 65,535 (216 - 1) characters. The ' +
+        'effective maximum length is less if the value contains multi-byte ' +
+        'characters. Each TEXT value is stored using a two-byte length prefix ' +
+        'that indicates the number of bytes in the value. ' + CRLF +
+        'An optional length M can be given for this type. If this is done, MySQL ' +
+        'creates the column as the smallest TEXT type large enough to hold ' +
+        'values M characters long.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -292,6 +386,11 @@ var
     (
       Index:           dtMediumtext;
       Name:            'MEDIUMTEXT';
+      Description:     'MEDIUMTEXT' + CRLF +
+        'A TEXT column with a maximum length of 16,777,215 (224 - 1) characters. ' +
+        'The effective maximum length is less if the value contains multi-byte ' +
+        'characters. Each MEDIUMTEXT value is stored using a three-byte length ' +
+        'prefix that indicates the number of bytes in the value.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -303,6 +402,14 @@ var
     (
       Index:           dtLongtext;
       Name:            'LONGTEXT';
+      Description:     'LONGTEXT' + CRLF +
+        'A TEXT column with a maximum length of 4,294,967,295 or 4GB (232 - 1) ' +
+        'characters. The effective maximum length is less if the value contains ' +
+        'multi-byte characters. The effective maximum length of LONGTEXT columns ' +
+        'also depends on the configured maximum packet size in the client/server ' +
+        'protocol and available memory. Each LONGTEXT value is stored using a ' +
+        'four-byte length prefix that indicates the number of bytes in the ' +
+        'value.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -314,6 +421,10 @@ var
     (
       Index:           dtBinary;
       Name:            'BINARY';
+      Description:     'BINARY(M)' + CRLF +
+        'The BINARY type is similar to the CHAR type, but stores binary byte ' +
+        'strings rather than non-binary character strings. M represents the ' +
+        'column length in bytes.';
       HasLength:       True;
       RequiresLength:  True;
       HasUnsigned:     False;
@@ -326,6 +437,10 @@ var
     (
       Index:           dtVarbinary;
       Name:            'VARBINARY';
+      Description:     'VARBINARY(M)' + CRLF +
+        'The VARBINARY type is similar to the VARCHAR type, but stores binary ' +
+        'byte strings rather than non-binary character strings. M represents the ' +
+        'maximum column length in bytes.';
       HasLength:       True;
       RequiresLength:  True;
       HasUnsigned:     False;
@@ -338,6 +453,10 @@ var
     (
       Index:           dtTinyblob;
       Name:           'TINYBLOB';
+      Description:     'TINYBLOB' + CRLF +
+        'A BLOB column with a maximum length of 255 (28 - 1) bytes. Each ' +
+        'TINYBLOB value is stored using a one-byte length prefix that indicates ' +
+        'the number of bytes in the value.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -349,6 +468,13 @@ var
     (
       Index:           dtBlob;
       Name:            'BLOB';
+      Description:     'BLOB[(M)]' + CRLF +
+        'A BLOB column with a maximum length of 65,535 (216 - 1) bytes. Each ' +
+        'BLOB value is stored using a two-byte length prefix that indicates the ' +
+        'number of bytes in the value. ' + CRLF +
+        'An optional length M can be given for this type. If this is done, MySQL ' +
+        'creates the column as the smallest BLOB type large enough to hold ' +
+        'values M bytes long.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -360,6 +486,10 @@ var
     (
       Index:           dtMediumblob;
       Name:            'MEDIUMBLOB';
+      Description:     'MEDIUMBLOB' + CRLF +
+        'A BLOB column with a maximum length of 16,777,215 (224 - 1) bytes. Each ' +
+        'MEDIUMBLOB value is stored using a three-byte length prefix that ' +
+        'indicates the number of bytes in the value.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -371,6 +501,12 @@ var
     (
       Index:           dtLongblob;
       Name:            'LONGBLOB';
+      Description:     'LONGBLOB' + CRLF +
+        'A BLOB column with a maximum length of 4,294,967,295 or 4GB (232 - 1) ' +
+        'bytes. The effective maximum length of LONGBLOB columns depends on the ' +
+        'configured maximum packet size in the client/server protocol and ' +
+        'available memory. Each LONGBLOB value is stored using a four-byte ' +
+        'length prefix that indicates the number of bytes in the value.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -382,6 +518,11 @@ var
     (
       Index:           dtEnum;
       Name:            'ENUM';
+      Description:     'ENUM(''value1'',''value2'',...)' + CRLF +
+        'An enumeration. A string object that can have only one value, chosen ' +
+        'from the list of values ''value1'', ''value2'', ..., NULL or the special '''' ' +
+        'error value. An ENUM column can have a maximum of 65,535 distinct ' +
+        'values. ENUM values are represented internally as integers.';
       HasLength:       True; // Obviously this is not meant as "length", but as "set of values"
       RequiresLength:  True;
       HasUnsigned:     False;
@@ -394,6 +535,11 @@ var
     (
       Index:           dtSet;
       Name:            'SET';
+      Description:     'SET(''value1'',''value2'',...)' + CRLF +
+        'A set. A string object that can have zero or more values, each of which ' +
+        'must be chosen from the list of values ''value1'', ''value2'', ... A SET ' +
+        'column can have a maximum of 64 members. SET values are represented ' +
+        'internally as integers.';
       HasLength:       True; // Same as for ENUM
       RequiresLength:  True;
       HasUnsigned:     False;
@@ -406,6 +552,9 @@ var
     (
       Index:           dtBit;
       Name:            'BIT';
+      Description:     'BIT[(M)]' + CRLF +
+        'A bit-field type. M indicates the number of bits per value, from 1 to ' +
+        '64. The default is 1 if M is omitted.';
       HasLength:       True;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -417,6 +566,8 @@ var
     (
       Index:           dtPoint;
       Name:            'POINT';
+      Description:     'POINT(x,y)' + CRLF +
+        'Constructs a WKB Point using its coordinates.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -428,6 +579,10 @@ var
     (
       Index:           dtLinestring;
       Name:            'LINESTRING';
+      Description:     'LINESTRING(pt1,pt2,...)' + CRLF +
+        'Constructs a WKB LineString value from a number of WKB Point arguments. ' +
+        'If any argument is not a WKB Point, the return value is NULL. If the ' +
+        'number of Point arguments is less than two, the return value is NULL.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -439,6 +594,10 @@ var
     (
       Index:           dtPolygon;
       Name:            'POLYGON';
+      Description:     'POLYGON(ls1,ls2,...)' + CRLF +
+        'Constructs a WKB Polygon value from a number of WKB LineString ' +
+        'arguments. If any argument does not represent the WKB of a LinearRing ' +
+        '(that is, not a closed and simple LineString) the return value is NULL.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -450,6 +609,7 @@ var
     (
       Index:           dtGeometry;
       Name:            'GEOMETRY';
+      Description:     '';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -461,6 +621,9 @@ var
     (
       Index:           dtMultipoint;
       Name:            'MULTIPOINT';
+      Description:     'MULTIPOINT(pt1,pt2,...)' + CRLF +
+        'Constructs a WKB MultiPoint value using WKB Point arguments. If any ' +
+        'argument is not a WKB Point, the return value is NULL.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -472,6 +635,9 @@ var
     (
       Index:           dtMultilinestring;
       Name:            'MULTILINESTRING';
+      Description:     'MULTILINESTRING(ls1,ls2,...)' + CRLF +
+        'Constructs a WKB MultiLineString value using WKB LineString arguments. ' +
+        'If any argument is not a WKB LineString, the return value is NULL.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -483,6 +649,10 @@ var
     (
       Index:           dtMultipolygon;
       Name:            'MULTIPOLYGON';
+      Description:     'MULTIPOLYGON(poly1,poly2,...)' + CRLF +
+        'Constructs a WKB MultiPolygon value from a set of WKB Polygon ' +
+        'arguments. If any argument is not a WKB Polygon, the return value is ' +
+        'NULL.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
@@ -494,6 +664,9 @@ var
     (
       Index:           dtGeometrycollection;
       Name:            'GEOMETRYCOLLECTION';
+      Description:     'GEOMETRYCOLLECTION(g1,g2,...)' + CRLF +
+        'Constructs a WKB GeometryCollection. If any argument is not a ' +
+        'well-formed WKB representation of a geometry, the return value is NULL.';
       HasLength:       False;
       RequiresLength:  False;
       HasUnsigned:     False;
