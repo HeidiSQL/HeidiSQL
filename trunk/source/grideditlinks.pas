@@ -219,6 +219,7 @@ type
     procedure DoTreeSelectFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
         PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
     procedure DoTreeSelectFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
+    procedure DoTreeSelectExit(Sender: TObject);
   public
     Datatype: TDatatypeIndex;
     constructor Create(Tree: TVirtualStringTree); overload;
@@ -1484,6 +1485,7 @@ begin
   FTreeSelect.OnKeyDown := DoKeyDown;
   FTreeSelect.OnHotChange := DoTreeSelectHotChange;
   FTreeSelect.OnPaintText := DoTreeSelectPaintText;
+  FTreeSelect.OnExit := DoTreeSelectExit;
   FTreeSelect.Hide;
   FOldWndProc := FTreeSelect.WindowProc;
   FTreeSelect.WindowProc := EditWndProc;
@@ -1740,5 +1742,10 @@ begin
   FTree.EndEditNode;
 end;
 
+procedure TDataTypeEditorLink.DoTreeSelectExit(Sender: TObject);
+begin
+  // Tree unfocused - end editing
+  FTree.CancelEditNode;
+end;
 
 end.
