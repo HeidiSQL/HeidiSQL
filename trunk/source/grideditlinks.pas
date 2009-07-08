@@ -1223,7 +1223,7 @@ begin
   FRadioText.Left := m;
   FRadioText.Width := FRadioText.Parent.Width - 2 * FRadioText.Left;
   FRadioText.OnClick := RadioClick;
-  FRadioText.Caption := 'Text:';
+  FRadioText.Caption := 'Custom:';
 
   FMemoText := TTNTMemo.Create(FPanel);
   FMemoText.Parent := FPanel;
