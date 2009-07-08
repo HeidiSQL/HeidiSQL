@@ -1474,6 +1474,9 @@ begin
   FTreeSelect.Header.Columns.Add;
   FTreeSelect.Parent := ParentControl;
   FTreeSelect.TextMargin := 0;
+  FTreeSelect.BorderStyle := bsNone;
+  FTreeSelect.BevelKind := bkFlat;
+  FTreeSelect.BevelInner := bvNone;
   FTreeSelect.RootNodeCount := Length(DatatypeCategories);
   FTreeSelect.OnGetText := DoTreeSelectGetText;
   FTreeSelect.OnInitNode := DoTreeSelectInitNode;
