@@ -1472,8 +1472,6 @@ begin
   FTreeSelect.TreeOptions.SelectionOptions := FTreeSelect.TreeOptions.SelectionOptions
     + [toFullRowSelect];
   FTreeSelect.Header.Columns.Add;
-  FTreeSelect.Header.AutoSizeIndex := 0;
-  FTreeSelect.Header.Options := FTreeSelect.Header.Options + [hoAutoResize];
   FTreeSelect.Parent := ParentControl;
   FTreeSelect.TextMargin := 0;
   FTreeSelect.RootNodeCount := Length(DatatypeCategories);
@@ -1542,6 +1540,7 @@ begin
     end;
     CatNode := FTreeSelect.GetNextSibling(CatNode);
   end;
+  FTreeSelect.Header.AutoFitColumns(False, smaUseColumnOption, 0, 0);
   if Assigned(FTreeSelect.FocusedNode) then
     FTreeSelect.ScrollIntoView(FTreeSelect.FocusedNode, True);
   FTreeSelect.OnFocusChanging := DoTreeSelectFocusChanging;
@@ -1598,7 +1597,7 @@ begin
   // Set position of tree. As the tree's parent is mainform, not listcolumns, add listcolumn's x + y positions
   FTreeSelect.SetBounds(R.Left + FTree.ClientOrigin.X,
     R.Top + FTree.ClientOrigin.Y - FTreeSelect.Header.Height - GetSystemMetrics(SM_CYMENU),
-    R.Right-R.Left,
+    FTreeSelect.Header.Columns[0].Width + GetSystemMetrics(SM_CXVSCROLL) + 5,
     250);
 end;
 
