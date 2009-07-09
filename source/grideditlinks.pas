@@ -43,7 +43,7 @@ type
     FColumn: TColumnIndex;
     FTextBounds: TRect;
     FStopping: Boolean;
-    FFinalKeyDown: Integer;
+    FLastKeyDown: Integer;
     FOldWndProc: TWndMethod;
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -134,7 +134,7 @@ type
     FStopping: Boolean;
     FButtonVisible: boolean;
     FOnButtonClick: TButtonClickEvent;
-    FFinalKeyDown: integer;
+    FLastKeyDown: integer;
     FMaxLength: integer;
     FOldWndProc: TWndMethod;
     procedure EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -202,7 +202,7 @@ type
     FColumn: TColumnIndex;
     FTextBounds: TRect;
     FStopping: Boolean;
-    FFinalKeyDown: Integer;
+    FLastKeyDown: Integer;
     FOldWndProc: TWndMethod;
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure EditWndProc(var Message: TMessage);
@@ -218,7 +218,7 @@ type
       TextType: TVSTTextType);
     procedure DoTreeSelectFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
         PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
-    procedure DoTreeSelectFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
+    procedure DoTreeSelectClick(Sender: TObject);
     procedure DoTreeSelectExit(Sender: TObject);
   public
     Datatype: TDatatypeIndex;
@@ -384,9 +384,9 @@ begin
   FreeAndNil(FTimer);
   FreeAndNil(FUpDown);
   FreeAndNil(FMaskEdit);
-  case FFinalKeyDown of
+  case FLastKeyDown of
     VK_TAB: begin
-      SendMessage(FTree.Handle, WM_KEYDOWN, FFinalKeyDown, 0);
+      SendMessage(FTree.Handle, WM_KEYDOWN, FLastKeyDown, 0);
       SendMessage(FTree.Handle, WM_KEYDOWN, VK_RETURN, 0);
     end;
   end;
@@ -516,7 +516,7 @@ end;
 
 procedure TDateTimeEditorLink.DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  FFinalKeyDown := Key;
+  FLastKeyDown := Key;
   case Key of
     // Cancel by Escape
     VK_ESCAPE: FTree.CancelEditNode;
@@ -962,7 +962,7 @@ begin
   if Assigned(FTextEditor) then
     FTextEditor.Release;
   FPanel.Free;
-  case FFinalKeyDown of
+  case FLastKeyDown of
     VK_TAB: begin
       SendMessage(FTree.Handle, WM_KEYDOWN, VK_TAB, 0);
       SendMessage(FTree.Handle, WM_KEYDOWN, VK_RETURN, 0);
@@ -1038,7 +1038,7 @@ begin
       ButtonClick(FButton);
     VK_TAB:
       begin
-        FFinalKeyDown := VK_TAB;
+        FLastKeyDown := VK_TAB;
         FTree.EndEditNode;
       end;
   end;
@@ -1478,6 +1478,7 @@ begin
   FTreeSelect.BorderStyle := bsNone;
   FTreeSelect.BevelKind := bkFlat;
   FTreeSelect.BevelInner := bvNone;
+  FTreeSelect.IncrementalSearch := isAll;
   FTreeSelect.RootNodeCount := Length(DatatypeCategories);
   FTreeSelect.OnGetText := DoTreeSelectGetText;
   FTreeSelect.OnInitNode := DoTreeSelectInitNode;
@@ -1506,8 +1507,8 @@ begin
   inherited;
   FreeAndNil(FTreeSelect);
   FreeAndNil(FMemoHelp);
-  if FFinalKeyDown = VK_TAB then begin
-    SendMessage(FTree.Handle, WM_KEYDOWN, FFinalKeyDown, 0);
+  if FLastKeyDown = VK_TAB then begin
+    SendMessage(FTree.Handle, WM_KEYDOWN, FLastKeyDown, 0);
     SendMessage(FTree.Handle, WM_KEYDOWN, VK_F2, 0);
   end;
 end;
@@ -1549,7 +1550,7 @@ begin
   if Assigned(FTreeSelect.FocusedNode) then
     FTreeSelect.ScrollIntoView(FTreeSelect.FocusedNode, True);
   FTreeSelect.OnFocusChanging := DoTreeSelectFocusChanging;
-  FTreeSelect.OnFocusChanged := DoTreeSelectFocusChanged;
+  FTreeSelect.OnClick := DoTreeSelectClick;
 end;
 
 
@@ -1615,7 +1616,7 @@ end;
 
 procedure TDataTypeEditorLink.DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  FFinalKeyDown := Key;
+  FLastKeyDown := Key;
   case Key of
     // Cancel by Escape
     VK_ESCAPE: FTree.CancelEditNode;
@@ -1731,15 +1732,27 @@ end;
 
 procedure TDataTypeEditorLink.DoTreeSelectFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
     PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
+var
+  JumpToNode: PVirtualNode;
 begin
   // Allow only 2nd level datatypes to be focused, not their category
   Allowed := Sender.GetNodeLevel(NewNode) = 1;
+  if not Allowed then begin
+    JumpToNode := nil;
+    if FLastKeyDown = VK_UP then
+      JumpToNode := Sender.GetPrevious(NewNode)
+    else if FLastKeyDown = VK_DOWN then
+      JumpToNode := Sender.GetNext(NewNode);
+    if Assigned(JumpToNode) then
+      Sender.FocusedNode := JumpToNode;
+  end;
 end;
 
-procedure TDataTypeEditorLink.DoTreeSelectFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
+procedure TDataTypeEditorLink.DoTreeSelectClick(Sender: TObject);
 begin
-  // Datatype selected - end editing
-  FTree.EndEditNode;
+  // Click into editor - end editing
+  if Assigned(FTreeSelect.FocusedNode) then
+    FTree.EndEditNode;
 end;
 
 procedure TDataTypeEditorLink.DoTreeSelectExit(Sender: TObject);
