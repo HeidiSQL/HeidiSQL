@@ -8008,37 +8008,44 @@ end;
 procedure TMainForm.DataGridCreateEditor(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
 var
-  MemoEditor: TMemoEditorLink;
+  VT: TVirtualStringTree;
+  HexEditor: THexEditorLink;
   DateTimeEditor: TDateTimeEditorLink;
   EnumEditor: TEnumEditorLink;
   SetEditor: TSetEditorLink;
   InplaceEditor: TInplaceEditorLink;
   TypeCat: TDatatypeCategoryIndex;
 begin
+  VT := Sender as TVirtualStringTree;
   TypeCat := FDataGridResult.Columns[Column].DatatypeCat;
   if TypeCat = dtcText then begin
-    InplaceEditor := TInplaceEditorLink.Create(Sender as TVirtualStringTree);
+    InplaceEditor := TInplaceEditorLink.Create(VT);
+    InplaceEditor.DataType := FDataGridResult.Columns[Column].Datatype;
     InplaceEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
-    InplaceEditor.ButtonVisible := true;
+    InplaceEditor.ButtonVisible := True;
     EditLink := InplaceEditor;
   end else if (TypeCat = dtcBinary) and prefEnableBinaryEditor then begin
-    MemoEditor := TMemoEditorLink.Create;
-    MemoEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
-    EditLink := MemoEditor;
+    HexEditor := THexEditorLink.Create(VT);
+    HexEditor.DataType := FDataGridResult.Columns[Column].Datatype;
+    HexEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
+    EditLink := HexEditor;
   end else if (TypeCat = dtcTemporal) and prefEnableDatetimeEditor then begin
-    DateTimeEditor := TDateTimeEditorLink.Create(Sender as TVirtualStringTree);
+    DateTimeEditor := TDateTimeEditorLink.Create(VT);
     DateTimeEditor.DataType := FDataGridResult.Columns[Column].Datatype;
     EditLink := DateTimeEditor;
   end else if (TypeCat = dtcIntegerNamed) and prefEnableEnumEditor then begin
-    EnumEditor := TEnumEditorLink.Create;
+    EnumEditor := TEnumEditorLink.Create(VT);
+    EnumEditor.DataType := FDataGridResult.Columns[Column].Datatype;
     EnumEditor.ValueList := FDataGridResult.Columns[Column].ValueList;
     EditLink := EnumEditor;
   end else if (TypeCat = dtcSetNamed) and prefEnableSetEditor then begin
-    SetEditor := TSetEditorLink.Create;
+    SetEditor := TSetEditorLink.Create(VT);
+    SetEditor.DataType := FDataGridResult.Columns[Column].Datatype;
     SetEditor.ValueList := FDataGridResult.Columns[Column].ValueList;
     EditLink := SetEditor;
   end else begin
-    InplaceEditor := TInplaceEditorLink.Create(Sender as TVirtualStringTree);
+    InplaceEditor := TInplaceEditorLink.Create(VT);
+    InplaceEditor.DataType := FDataGridResult.Columns[Column].Datatype;
     InplaceEditor.ButtonVisible := False;
     EditLink := InplaceEditor;
   end;

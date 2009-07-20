@@ -327,20 +327,22 @@ end;
 procedure TfrmRoutineEditor.listParametersCreateEditor(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
 var
+  VT: TVirtualStringTree;
   EnumEditor: TEnumEditorLink;
   i: Integer;
 begin
+  VT := Sender as TVirtualStringTree;
   if Column = 1 then
     EditLink := TStringEditLink.Create
   else if Column = 2 then begin
-    EnumEditor := TEnumEditorLink.Create;
+    EnumEditor := TEnumEditorLink.Create(VT);
     EnumEditor.AllowCustomText := True;
     EnumEditor.ValueList := TWideStringList.Create;
     for i:=Low(Datatypes) to High(Datatypes) do
       EnumEditor.ValueList.Add(Datatypes[i].Name);
     EditLink := EnumEditor;
   end else if Column = 3 then begin
-    EnumEditor := TEnumEditorLink.Create;
+    EnumEditor := TEnumEditorLink.Create(VT);
     EnumEditor.ValueList := TWideStringList.Create;
     EnumEditor.ValueList.Add('IN');
     EnumEditor.ValueList.Add('OUT');
