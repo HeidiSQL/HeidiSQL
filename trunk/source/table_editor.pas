@@ -1136,26 +1136,28 @@ end;
 procedure TfrmTableEditor.listColumnsCreateEditor(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
 var
+  VT: TVirtualStringTree;
   EnumEditor: TEnumEditorLink;
   DefaultEditor: TColumnDefaultEditorLink;
   DatatypeEditor: TDatatypeEditorLink;
   Props: TWideStringlist;
 begin
   // Start cell editor
+  VT := Sender as TVirtualStringTree;
   case Column of
     2: begin // Datatype pulldown
-      DatatypeEditor := TDatatypeEditorLink.Create(Sender as TVirtualStringTree);
+      DatatypeEditor := TDatatypeEditorLink.Create(VT);
       DatatypeEditor.Datatype := dtDateTime;
       EditLink := DataTypeEditor;
       end;
     8: begin // Collation pulldown
-      EnumEditor := TEnumEditorLink.Create;
+      EnumEditor := TEnumEditorLink.Create(VT);
       EnumEditor.ValueList := TWideStringList.Create;
       Mainform.GetCollations(EnumEditor.ValueList);
       EditLink := EnumEditor;
       end;
     6: begin
-      DefaultEditor := TColumnDefaultEditorLink.Create;
+      DefaultEditor := TColumnDefaultEditorLink.Create(VT);
       Props := TWideStringlist(Columns.Objects[Node.Index]);
       DefaultEditor.DefaultText := Props[Column-2];
       DefaultEditor.DefaultType := GetColumnDefaultType(DefaultEditor.DefaultText);
@@ -1486,20 +1488,22 @@ end;
 procedure TfrmTableEditor.treeIndexesCreateEditor(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
 var
+  VT: TVirtualStringTree;
   EnumEditor: TEnumEditorLink;
   Level: Cardinal;
 begin
   // Start cell editor
+  VT := Sender as TVirtualStringTree;
   Level := (Sender as TVirtualStringtree).GetNodeLevel(Node);
   if (Level = 0) and (Column = 1) then begin
     // Index type pulldown
-    EnumEditor := TEnumEditorLink.Create;
+    EnumEditor := TEnumEditorLink.Create(VT);
     EnumEditor.ValueList := TWideStringList.Create;
     EnumEditor.ValueList.CommaText := PKEY +','+ KEY +','+ UKEY +','+ FKEY +','+ SKEY;
     EditLink := EnumEditor;
   end else if (Level = 1) and (Column = 0) then begin
     // Column names pulldown
-    EnumEditor := TEnumEditorLink.Create;
+    EnumEditor := TEnumEditorLink.Create(VT);
     EnumEditor.ValueList := Columns;
     EnumEditor.AllowCustomText := True; // Allows adding a subpart in index parts: "TextCol(20)"
     EditLink := EnumEditor;

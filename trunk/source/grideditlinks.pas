@@ -6,170 +6,131 @@ interface
 
 uses Windows, Forms, Graphics, messages, VirtualTrees, texteditor, bineditor, ComCtrls, SysUtils, Classes,
   mysql_structures, helpers, TntStdCtrls, WideStrings, StdCtrls, ExtCtrls, TntCheckLst,
-  Buttons, Controls, Types, PngSpeedButton, Dialogs, Mask, MaskUtils, DateUtils ;
+  Buttons, Controls, Types, Dialogs, Mask, MaskUtils, DateUtils ;
 
 type
-  TMemoEditorLink = class(TInterfacedObject, IVTEditLink)
+  TBaseGridEditorLink = class(TInterfacedObject, IVTEditLink)
   private
-    FForm: TMemoEditor;
-    FTree: TCustomVirtualStringTree; // A back reference to the tree calling.
-    FNode: PVirtualNode;             // The node to be edited.
-    FColumn: TColumnIndex;           // The column of the node.
-    FTextBounds: TRect;              // Smallest rectangle around the text.
-    FStopping: Boolean;              // Set to True when the edit link requests stopping the edit action.
+    FParentForm: TWinControl;      // A back reference to the main form
+    FTree: TVirtualStringTree;        // A back reference to the tree calling.
+    FNode: PVirtualNode;              // The node to be edited.
+    FColumn: TColumnIndex;            // The column of the node.
+    FCellText: WideString;            // Original cell text value
+    FCellFont: TFont;                 // Cosmetic
+    FMainControl: TWinControl;        // The editor's most important component
+    FStopping: Boolean;               // Set to True when the edit link requests stopping the edit action.
+    FLastKeyDown: Integer;            // Set in OnKeyDown on the editor's main control
+    FOldWindowProc: TWndMethod;       // Temporary switched to TempWindowProc to be able to catch Tab key
+    procedure TempWindowProc(var Message: TMessage);
+    procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure DoEndEdit(Sender: TObject);
+    procedure DoCancelEdit(Sender: TObject);
+    function GetCellRect(InnerTextBounds: Boolean): TRect;
   public
-    FieldType: Integer;
-    MaxLength: Integer;
-    constructor Create;
+    Datatype: TDatatypeIndex;                        // The data type of the cell being edited. Mostly used in data grids.
+    constructor Create; overload;                    // The original constructor, not used any more, throws an exception if you do
+    constructor Create(Tree: TVirtualStringTree); overload; virtual; // The right constructor, we need the Tree reference
     destructor Destroy; override;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
     function BeginEdit: Boolean; virtual; stdcall;
     function CancelEdit: Boolean; virtual; stdcall;
-    function EndEdit: Boolean; virtual; stdcall;
-    function GetBounds: TRect; virtual; stdcall;
-    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
-    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
-    procedure SetBounds(R: TRect); virtual; stdcall;
+    function EndEdit: Boolean; virtual; stdcall; abstract;
+    function EndEditHelper(NewText: WideString): Boolean;
+    function GetBounds: TRect; virtual; stdcall;     // Normally useless and unused
+    procedure ProcessMessage(var Message: TMessage); stdcall;
+    procedure SetBounds(R: TRect); virtual; stdcall; abstract;
   end;
 
-  TDateTimeEditorLink = class(TInterfacedObject, IVTEditLink)
+  THexEditorLink = class(TBaseGridEditorLink)
   private
+    FForm: TfrmBinEditor;
+  public
+    MaxLength: Integer;
+    constructor Create(Tree: TVirtualStringTree); override;
+    destructor Destroy; override;
+    function BeginEdit: Boolean; override;
+    function EndEdit: Boolean; override;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
+    procedure SetBounds(R: TRect); override;
+  end;
+
+  TDateTimeEditorLink = class(TBaseGridEditorLink)
+  private
+    FPanel: TPanel;
     FMaskEdit: TMaskEdit;
     FTimer: TTimer;
     FModifyOffset: Integer;
     FTimerCalls: Integer;
     FUpDown: TUpDown;
-    FTree: TVirtualStringTree;
-    FNode: PVirtualNode;
-    FColumn: TColumnIndex;
-    FTextBounds: TRect;
-    FStopping: Boolean;
-    FLastKeyDown: Integer;
-    FOldWndProc: TWndMethod;
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure UpDownChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: SmallInt; Direction: TUpDownDirection);
     procedure UpDownMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure DoOnTimer(Sender: TObject);
     procedure ModifyDate(Offset: Integer);
-    procedure EditWndProc(var Message: TMessage);
   public
-    Datatype: TDatatypeIndex; // @see mysql_structures
-    constructor Create(Tree: TVirtualStringTree); overload;
+    constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
-    function BeginEdit: Boolean; virtual; stdcall;
-    function CancelEdit: Boolean; virtual; stdcall;
-    function EndEdit: Boolean; virtual; stdcall;
-    function GetBounds: TRect; virtual; stdcall;
-    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
-    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
-    procedure SetBounds(R: TRect); virtual; stdcall;
+    function BeginEdit: Boolean; override;
+    function EndEdit: Boolean; override;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
+    procedure SetBounds(R: TRect); override;
   end;
 
-type
-  TEnumEditorLink = class(TInterfacedObject, IVTEditLink)
+  TEnumEditorLink = class(TBaseGridEditorLink)
   private
     FCombo: TTnTComboBox;
-    FTree: TCustomVirtualStringTree;
-    FNode: PVirtualNode;
-    FColumn: TColumnIndex;
-    FStopping: Boolean;
-    procedure ComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   public
     ValueList: TWideStringList;
     AllowCustomText: Boolean;
-    constructor Create;
+    constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
-    function BeginEdit: Boolean; virtual; stdcall;
-    function CancelEdit: Boolean; virtual; stdcall;
-    function EndEdit: Boolean; virtual; stdcall;
-    function GetBounds: TRect; virtual; stdcall;
-    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
-    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
-    procedure SetBounds(R: TRect); virtual; stdcall;
+    function BeginEdit: Boolean; override;
+    function EndEdit: Boolean; override;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
+    procedure SetBounds(R: TRect); override;
   end;
 
-type
-  TSetEditorLink = class(TInterfacedObject, IVTEditLink)
+  TSetEditorLink = class(TBaseGridEditorLink)
   private
     FPanel: TPanel;
     FCheckList: TTNTCheckListBox;
     FBtnOK, FBtnCancel: TButton;
-    FTree: TCustomVirtualStringTree;
-    FNode: PVirtualNode;
-    FColumn: TColumnIndex;
-    FTextBounds: TRect;
-    FStopping: Boolean;
-    procedure CheckListKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure BtnOkClick(Sender: TObject);
-    procedure BtnCancelClick(Sender: TObject);
   public
     ValueList: TWideStringList;
-    constructor Create;
+    constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
-    function BeginEdit: Boolean; virtual; stdcall;
-    function CancelEdit: Boolean; virtual; stdcall;
-    function EndEdit: Boolean; virtual; stdcall;
-    function GetBounds: TRect; virtual; stdcall;
-    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
-    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
-    procedure SetBounds(R: TRect); virtual; stdcall;
+    function BeginEdit: Boolean; override;
+    function EndEdit: Boolean; override;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
+    procedure SetBounds(R: TRect); override;
   end;
 
-  // Handler for custom button click processing
-  TButtonClickEvent = procedure (Sender: TObject; Tree: TBaseVirtualTree;
-    Node: PVirtualNode; Column: TColumnIndex);
-
   // Inplace editor with button
-  TInplaceEditorLink = class(TInterfacedObject, IVTEditLink)
+  TInplaceEditorLink = class(TBaseGridEditorLink)
   private
     FPanel: TPanel;
     FEdit: TTntEdit;
-    FButton: TPNGSpeedButton;
+    FButton: TButton;
     FTextEditor: TfrmTextEditor;
-    FTree: TVirtualStringTree;
-    FNode: PVirtualNode;
-    FColumn: TColumnIndex;
-    FAlignment: TAlignment;
-    FTextBounds: TRect;
-    FStopping: Boolean;
-    FButtonVisible: boolean;
-    FOnButtonClick: TButtonClickEvent;
-    FLastKeyDown: integer;
-    FMaxLength: integer;
-    FOldWndProc: TWndMethod;
-    procedure EditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    FMaxLength: Integer;
+    procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ButtonClick(Sender: TObject);
-    procedure SetButtonVisible(const Value: boolean);
-    procedure EditWndProc(var Message: TMessage);
-  protected
-    procedure DoButtonClick;
-    procedure CalcEditorPosition;
-    procedure CalcButtonPosition;
   public
-    constructor Create(Tree: TVirtualStringTree); overload;
+    ButtonVisible: Boolean;
+    constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
-    function BeginEdit: Boolean; virtual; stdcall;
-    function CancelEdit: Boolean; virtual; stdcall;
-    function EndEdit: Boolean; virtual; stdcall;
-    function GetBounds: TRect; virtual; stdcall;
-    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
-    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
-    procedure SetBounds(R: TRect); virtual; stdcall;
-    property Panel: TPanel read FPanel;
-    property Edit: TTntEdit read FEdit;
-    property Button: TPNGSpeedButton read FButton;
-    property ButtonVisible: boolean read FButtonVisible write SetButtonVisible;
-    property MaxLength: integer read FMaxLength write FMaxLength; // Used for frmTextEditor initialization
-    property OnButtonClick: TButtonClickEvent read FOnButtonClick write FOnButtonClick;
+    function BeginEdit: Boolean; override;
+    function CancelEdit: Boolean; override;
+    function EndEdit: Boolean; override;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
+    procedure SetBounds(R: TRect); override;
+    property MaxLength: Integer read FMaxLength write FMaxLength;
   end;
 
   TColumnDefaultType = (cdtText, cdtTextUpdateTS, cdtNull, cdtNullUpdateTS, cdtCurTS, cdtCurTSUpdateTS, cdtAutoInc);
-  TColumnDefaultEditorLink = class(TInterfacedObject, IVTEditLink)
+  TColumnDefaultEditorLink = class(TBaseGridEditorLink)
   private
-    FTree: TCustomVirtualStringTree;
-    FNode: PVirtualNode;
-    FColumn: TColumnIndex;
-    FStopping: Boolean;
     FPanel: TPanel;
     FRadioText, FRadioNULL, FRadioCurTS, FRadioAutoInc: TRadioButton;
     FCheckCurTS: TCheckbox;
@@ -177,35 +138,21 @@ type
     FBtnOK, FBtnCancel: TButton;
     procedure RadioClick(Sender: TObject);
     procedure TextChange(Sender: TObject);
-    procedure BtnOKClick(Sender: TObject);
-    procedure BtnCancelClick(Sender: TObject);
   public
     DefaultType: TColumnDefaultType;
     DefaultText: WideString;
-    constructor Create;
+    constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
-    function BeginEdit: Boolean; virtual; stdcall;
-    function CancelEdit: Boolean; virtual; stdcall;
-    function EndEdit: Boolean; virtual; stdcall;
-    function GetBounds: TRect; virtual; stdcall;
-    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
-    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
-    procedure SetBounds(R: TRect); virtual; stdcall;
+    function BeginEdit: Boolean; override;
+    function EndEdit: Boolean; override;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
+    procedure SetBounds(R: TRect); override;
   end;
 
-  TDataTypeEditorLink = class(TInterfacedObject, IVTEditLink)
+  TDataTypeEditorLink = class(TBaseGridEditorLink)
   private
-    FTree: TVirtualStringTree;
     FTreeSelect: TVirtualStringTree;
     FMemoHelp: TMemo;
-    FNode: PVirtualNode;
-    FColumn: TColumnIndex;
-    FTextBounds: TRect;
-    FStopping: Boolean;
-    FLastKeyDown: Integer;
-    FOldWndProc: TWndMethod;
-    procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure EditWndProc(var Message: TMessage);
     procedure DoTreeSelectGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
     procedure DoTreeSelectInitNode(Sender: TBaseVirtualTree;
@@ -218,19 +165,13 @@ type
       TextType: TVSTTextType);
     procedure DoTreeSelectFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
         PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
-    procedure DoTreeSelectClick(Sender: TObject);
-    procedure DoTreeSelectExit(Sender: TObject);
   public
-    Datatype: TDatatypeIndex;
-    constructor Create(Tree: TVirtualStringTree); overload;
+    constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
-    function BeginEdit: Boolean; virtual; stdcall;
-    function CancelEdit: Boolean; virtual; stdcall;
-    function EndEdit: Boolean; virtual; stdcall;
-    function GetBounds: TRect; virtual; stdcall;
-    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
-    procedure ProcessMessage(var Message: TMessage); virtual; stdcall;
-    procedure SetBounds(R: TRect); virtual; stdcall;
+    function BeginEdit: Boolean; override;
+    function EndEdit: Boolean; override;
+    function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
+    procedure SetBounds(R: TRect); override;
   end;
 
 function GetColumnDefaultType(var Text: WideString): TColumnDefaultType;
@@ -239,106 +180,189 @@ function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: WideStrin
 
 implementation
 
-uses main;
 
 
-constructor TMemoEditorLink.Create;
+constructor TBaseGridEditorLink.Create;
 begin
-  inherited;
-  FForm := nil;
+  raise Exception.Create('Wrong constructor called: ' + Self.ClassName + '.Create.' + CRLF +
+    'Instead, please call the overloaded version ' + Self.ClassName + '.Create(VirtualStringTree).');
 end;
 
-destructor TMemoEditorLink.Destroy;
+constructor TBaseGridEditorLink.Create(Tree: TVirtualStringTree);
 begin
-  inherited;
-  FreeAndNil(FForm);
+  inherited Create;
+  FTree := Tree;
+  // Enable mouse scrolling, plus ensure the editor component
+  // is not partly hidden when it pops up in a bottom cell
+  FParentForm := GetParentForm(FTree);
 end;
 
+destructor TBaseGridEditorLink.Destroy;
+begin
+  inherited;
+  if FLastKeyDown = VK_TAB then begin
+    SendMessage(FTree.Handle, WM_KEYDOWN, FLastKeyDown, 0);
+    SendMessage(FTree.Handle, WM_KEYDOWN, VK_F2, 0);
+  end;
+end;
 
-function TMemoEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
-// Retrieves the true text bounds from the owner tree.
+function TBaseGridEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
-  IsBinary: Boolean;
-  Text: WideString;
-  F: TFont;
-begin
-  Result := Tree is TCustomVirtualStringTree;
-  if not Result then
-    exit;
-
-  FTree := Tree as TVirtualStringTree;
-  FNode := Node;
-  FColumn := Column;
-
-  // Initial size, font and text (ANSI) of the node.
-  F := TFont.Create;
-  FTree.GetTextInfo(Node, Column, F, FTextBounds, Text);
-
-  IsBinary := Mainform.FDataGridResult.Columns[Column].DatatypeCat = dtcBinary;
-
-  // Get wide text of the node.
-  Text := FTree.Text[FNode, FColumn];
-
-  // Create the text editor form
-  if IsBinary then FForm := TfrmBinEditor.Create(Ftree)
-  else FForm := TfrmTextEditor.Create(Ftree);
-
-  FForm.SetFont(F);
-  FForm.SetText(Text);
-  FForm.SetMaxLength(MaxLength);
-end;
-
-
-function TMemoEditorLink.BeginEdit: Boolean; stdcall;
+  FCellTextBounds: TRect;
 begin
   Result := not FStopping;
-  if Result then
-    FForm.ShowModal;
+  if not Result then
+    Exit;
+  FNode := Node;
+  FColumn := Column;
+  FCellFont := TFont.Create;
+  FTree.GetTextInfo(FNode, FColumn, FCellFont, FCellTextBounds, FCellText);
+  FCellFont.Color := DatatypeCategories[Integer(Datatypes[Integer(Datatype)].Category)].Color;
+  if Assigned(FMainControl) then begin
+    FOldWindowProc := FMainControl.WindowProc;
+    FMainControl.WindowProc := TempWindowProc;
+  end;
 end;
 
+function TBaseGridEditorLink.BeginEdit: Boolean;
+begin
+  Result := not FStopping;
+end;
 
-function TMemoEditorLink.CancelEdit: Boolean; stdcall;
+function TBaseGridEditorLink.CancelEdit: Boolean;
 begin
   Result := not FStopping;
   if Result then begin
     FStopping := True;
-    FForm.Close;
     FTree.CancelEditNode;
     if FTree.CanFocus then
       FTree.SetFocus;
   end;
 end;
 
-
-function TMemoEditorLink.EndEdit: Boolean; stdcall;
+function TBaseGridEditorLink.EndEditHelper(NewText: WideString): Boolean;
 begin
   Result := not FStopping;
-  if Result then try
-    FStopping := True;
-    if FForm.GetText <> FTree.Text[FNode, FColumn] then
-      FTree.Text[FNode, FColumn] := FForm.GetText;
-    FForm.Close;
-    if FTree.CanFocus then
-      FTree.SetFocus;
-  except
-    FStopping := False;
-    raise;
+  if Not Result then
+    Exit;
+  if NewText <> FCellText then
+    FTree.Text[FNode, FColumn] := NewText;
+  if FTree.CanFocus and (FLastKeyDown <> VK_TAB) then
+    FTree.SetFocus;
+end;
+
+procedure TBaseGridEditorLink.TempWindowProc(var Message: TMessage);
+begin
+  case Message.Msg of
+    WM_CHAR: // Catch hotkeys
+      if not (TWMChar(Message).CharCode = VK_TAB) then
+        FOldWindowProc(Message);
+    WM_GETDLGCODE: // "WantTabs" mode for main control
+      Message.Result := Message.Result or DLGC_WANTARROWS or DLGC_WANTALLKEYS or DLGC_WANTTAB;
+    else
+      FOldWindowProc(Message);
   end;
 end;
 
-
-function TMemoEditorLink.GetBounds: TRect; stdcall;
+procedure TBaseGridEditorLink.ProcessMessage(var Message: TMessage);
 begin
-  Result := FForm.BoundsRect;
+  if Assigned(FMainControl) then
+    FMainControl.WindowProc(Message);
+end;
+
+function TBaseGridEditorLink.GetBounds: TRect; stdcall;
+begin
+  // Only important if the editor resizes itself.
+  Result := Rect(0, 0, 0, 0);
+end;
+
+function TBaseGridEditorLink.GetCellRect(InnerTextBounds: Boolean): TRect;
+begin
+  // Return the cell's rectangle, relative to the parent form.
+  Result := FTree.GetDisplayRect(FNode, FColumn, False);
+  Dec(Result.Bottom, 1);
+  if InnerTextBounds then begin
+    OffsetRect(Result, -Result.Left, -Result.Top);
+    Inc(Result.Left, 8);
+    Inc(Result.Top, 2);
+    Dec(Result.Bottom, 1);
+  end else begin
+    // Recalculate top left corner of rectangle, so it is relative to the parent form (which is FParentForm)
+    OffsetRect(Result,
+      FTree.ClientOrigin.X - FParentForm.ClientOrigin.X,
+      FTree.ClientOrigin.Y - FParentForm.ClientOrigin.Y
+      );
+  end;
+end;
+
+procedure TBaseGridEditorLink.DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  FLastKeyDown := Key;
+  case Key of
+    // Cancel by Escape
+    VK_ESCAPE: FTree.CancelEditNode;
+    // Apply changes and end editing by [Ctrl +] Enter or Tab
+    VK_RETURN, VK_TAB: FTree.EndEditNode;
+  end;
+end;
+
+procedure TBaseGridEditorLink.DoEndEdit(Sender: TObject);
+begin
+  FTree.EndEditNode;
+end;
+
+procedure TBaseGridEditorLink.DoCancelEdit(Sender: TObject);
+begin
+  FTree.CancelEditNode;
 end;
 
 
-procedure TMemoEditorLink.ProcessMessage(var Message: TMessage); stdcall;
+
+
+constructor THexEditorLink.Create(Tree: TVirtualStringTree);
 begin
+  inherited Create(Tree);
+end;
+
+destructor THexEditorLink.Destroy;
+begin
+  inherited;
+  FForm.Close;
+  FreeAndNil(FForm);
 end;
 
 
-procedure TMemoEditorLink.SetBounds(R: TRect); stdcall;
+function THexEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
+var
+  IsBinary: Boolean;
+begin
+  Result := inherited PrepareEdit(Tree, Node, Column);
+  if not Result then
+    Exit;
+
+  // Create the text editor form
+  FForm := TfrmBinEditor.Create(Ftree);
+  FForm.SetFont(FCellFont);
+  FForm.SetText(FCellText);
+  FForm.SetMaxLength(MaxLength);
+end;
+
+
+function THexEditorLink.BeginEdit: Boolean; stdcall;
+begin
+  Result := inherited BeginEdit;
+  if Result then
+    FForm.ShowModal;
+end;
+
+
+function THexEditorLink.EndEdit: Boolean; stdcall;
+begin
+  Result := EndEditHelper(FForm.GetText);
+end;
+
+
+procedure THexEditorLink.SetBounds(R: TRect); stdcall;
 begin
   // Not in use, form's position is centered on mainform
 end;
@@ -349,23 +373,26 @@ end;
 
 constructor TDateTimeEditorLink.Create(Tree: TVirtualStringTree);
 begin
-  inherited Create;
-  FTree := Tree;
-  // Avoid flicker
-  SendMessage(FTree.Handle, WM_SETREDRAW, 0, 0);
+  inherited Create(Tree);
 
-  FMaskEdit := TMaskEdit.Create(FTree);
-  FMaskEdit.Parent := FTree;
-  FMaskEdit.Hide;
+  FPanel := TPanel.Create(FParentForm);
+  FPanel.Parent := FParentForm;
+  FPanel.Hide;
+  FPanel.ControlStyle := FPanel.ControlStyle - [csOpaque];
+  FPanel.ParentBackground := False;
+  FPanel.Color := FTree.Color;
+  FPanel.BevelOuter := bvNone;
+  FPanel.OnExit := DoEndEdit;
+
+  FMaskEdit := TMaskEdit.Create(FPanel);
+  FMaskEdit.Parent := FPanel;
   FMaskEdit.BorderStyle := bsNone;
   FMaskEdit.OnKeyDown := DoKeyDown;
   FMaskEdit.OnKeyUp := DoKeyUp;
-  FOldWndProc := FMaskEdit.WindowProc;
-  FMaskEdit.WindowProc := EditWndProc;
+  FMainControl := FMaskEdit;
 
-  FUpDown := TUpDown.Create(FTree);
-  FUpDown.Hide;
-  FUpDown.Parent := FTree;
+  FUpDown := TUpDown.Create(FPanel);
+  FUpDown.Parent := FPanel;
   FUpDown.OnChangingEx := UpDownChangingEx;
   FUpDown.OnMouseUp := UpDownMouseUp;
 
@@ -378,28 +405,21 @@ end;
 
 destructor TDateTimeEditorLink.Destroy;
 begin
-  inherited;
   OpenRegistry;
   Mainreg.WriteInteger(REGPREFIX_DATEEDITOR_CURSOR+IntToStr(Integer(Datatype)), FMaskEdit.SelStart);
   FreeAndNil(FTimer);
   FreeAndNil(FUpDown);
   FreeAndNil(FMaskEdit);
-  case FLastKeyDown of
-    VK_TAB: begin
-      SendMessage(FTree.Handle, WM_KEYDOWN, FLastKeyDown, 0);
-      SendMessage(FTree.Handle, WM_KEYDOWN, VK_RETURN, 0);
-    end;
-  end;
+  FreeAndNil(FPanel);
+  inherited;
 end;
 
 
 function TDateTimeEditorLink.BeginEdit: Boolean; stdcall;
 begin
-  Result := not FStopping;
+  Result := inherited BeginEdit;
   if Result then begin
-    SendMessage(FTree.Handle, WM_SETREDRAW, 1, 0);
-    FMaskEdit.Show;
-    FUpDown.Show;
+    FPanel.Show;
     FMaskEdit.SetFocus;
     // Focus very last segment of date
     FMaskEdit.SelStart := GetRegValue(REGPREFIX_DATEEDITOR_CURSOR+IntToStr(Integer(Datatype)), Length(FMaskEdit.Text)-1);
@@ -408,45 +428,18 @@ begin
 end;
 
 
-function TDateTimeEditorLink.CancelEdit: Boolean; stdcall;
+function TDateTimeEditorLink.EndEdit: Boolean;
 begin
-  Result := not FStopping;
-  if Result then begin
-    FStopping := True;
-    FTree.CancelEditNode;
-    if FTree.CanFocus then
-      FTree.SetFocus;
-  end;
-end;
-
-
-function TDateTimeEditorLink.EndEdit: Boolean; stdcall;
-var
-  newtext: WideString;
-begin
-  Result := not FStopping;
-  if Not Result then
-    Exit;
-  newtext := FMaskEdit.Text;
-  if newtext <> FTree.Text[FNode, FColumn] then
-    FTree.Text[FNode, FColumn] := newtext;
-  if FTree.CanFocus then
-    FTree.SetFocus;
-end;
-
-
-function TDateTimeEditorLink.GetBounds: TRect; stdcall;
-begin
-  Result := FMaskEdit.BoundsRect;
+  Result := EndEditHelper(FMaskEdit.Text);
 end;
 
 
 function TDateTimeEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
-  NodeText: WideString;
   MinColWidth: Integer;
+  CellText: WideString;
 begin
-  Result := not FStopping;
+  Result := inherited PrepareEdit(Tree, Node, Column);
   if not Result then
     Exit;
   case Datatype of
@@ -455,57 +448,35 @@ begin
     dtTime: FMaskEdit.EditMask := '00\:00\:00;1; ';
     //dtYear??
   end;
-  FNode := Node;
-  FColumn := Column;
-  FTree.GetTextInfo(FNode, FColumn, FMaskEdit.Font, FTextBounds, NodeText);
-  FMaskEdit.Font.Color := clWindowText;
-  if NodeText = '' then case Datatype of
-    dtDate: NodeText := DateToStr(Now);
-    dtDatetime, dtTimestamp: NodeText := DateTimeToStr(Now);
-    dtTime: NodeText := TimeToStr(Now);
+  CellText := FCellText;
+  if CellText = '' then case Datatype of
+    dtDate: CellText := DateToStr(Now);
+    dtDatetime, dtTimestamp: CellText := DateTimeToStr(Now);
+    dtTime: CellText := TimeToStr(Now);
   end;
-  FMaskEdit.Text := NodeText;
+  FMaskEdit.Text := CellText;
+  FMaskEdit.Font.Assign(FCellFont);
   // Auto-enlarge current tree column so the text in the edit is not cut
-  MinColWidth := FTextBounds.Right - FTextBounds.Left + FUpDown.Width + 5;
+  MinColWidth := FTree.Canvas.TextWidth(CellText) + FTree.TextMargin + FUpDown.Width + 5;
   if FTree.Header.Columns[FColumn].Width < MinColWidth then
     FTree.Header.Columns[FColumn].Width := MinColWidth;
 end;
 
 
-procedure TDateTimeEditorLink.ProcessMessage(var Message: TMessage); stdcall;
-begin
-  FMaskEdit.WindowProc(Message);
-end;
-
-
-procedure TDateTimeEditorLink.EditWndProc(var Message: TMessage);
-begin
-  case Message.Msg of
-    WM_CHAR:
-      if not (TWMChar(Message).CharCode in [VK_ESCAPE, VK_TAB]) then
-        FOldWndProc(Message);
-    WM_GETDLGCODE:
-      Message.Result := Message.Result or DLGC_WANTARROWS or DLGC_WANTALLKEYS or DLGC_WANTTAB;
-  else
-    FOldWndProc(Message);
-  end;
-end;
-
-
 procedure TDateTimeEditorLink.SetBounds(R: TRect); stdcall;
 var
-  r2: TRect;
+  EditRect: TRect;
   OldSelStart, OldSelLen: Integer;
 begin
-  r2 := R;
-  Inc(r2.Left, R.Right-R.Left-FUpDown.Width);
-  Dec(r2.Top, 2);
-  FUpDown.BoundsRect := r2;
-  r2.Top := FTextBounds.Top;
-  r2.Bottom := FTextBounds.Bottom;
-  r2.Left := FTextBounds.Left + FTree.TextMargin;
-  r2.Right := R.Right - FUpDown.Width;
-  FMaskEdit.BoundsRect := r2;
+  FPanel.BoundsRect := GetCellRect(False);
+
+  FUpDown.Left := FPanel.Width - FUpDown.Width;
+  FUpDown.Height := FPanel.Height;
+
+  EditRect := GetCellRect(True);
+  EditRect.Right := FUpDown.Left;
+  FMaskEdit.BoundsRect := EditRect;
+
   OldSelStart := FMaskEdit.SelStart;
   OldSelLen := FMaskEdit.SelLength;
   FMaskEdit.SelStart := 0;
@@ -516,20 +487,13 @@ end;
 
 procedure TDateTimeEditorLink.DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  FLastKeyDown := Key;
-  case Key of
-    // Cancel by Escape
-    VK_ESCAPE: FTree.CancelEditNode;
-    // Apply changes and end editing by [Ctrl +] Enter
-    VK_RETURN, VK_TAB: FTree.EndEditNode;
-    // Increase date on arrow-up, decrease it on arrow-down
-    VK_UP, VK_DOWN: if not FTimer.Enabled then begin
-      if Key = VK_UP then FModifyOffset := 1
-      else FModifyOffset := -1;
-      FTimerCalls := 0;
-      DoOnTimer(Sender);
-      FTimer.Enabled := True;
-    end;
+  inherited DoKeyDown(Sender, Key, Shift);
+  if (Key in [VK_UP, VK_DOWN]) and (not FTimer.Enabled) then begin
+    if Key = VK_UP then FModifyOffset := 1
+    else FModifyOffset := -1;
+    FTimerCalls := 0;
+    DoOnTimer(Sender);
+    FTimer.Enabled := True;
   end;
 end;
 
@@ -645,113 +609,65 @@ end;
 
 { Enum editor }
 
-constructor TEnumEditorLink.Create;
+constructor TEnumEditorLink.Create(Tree: TVirtualStringTree);
 begin
-  inherited;
+  inherited Create(Tree);
   AllowCustomText := False;
+  FCombo := TTnTComboBox.Create(FParentForm);
+  FCombo.Hide;
+  FCombo.Parent := FParentForm;
+  FCombo.OnKeyDown := DoKeyDown;
+  FCombo.OnExit := DoEndEdit;
+  FMainControl := FCombo;
 end;
 
 
 destructor TEnumEditorLink.Destroy;
 begin
-  inherited;
   FCombo.Free;
+  inherited;
 end;
 
 
 function TEnumEditorLink.BeginEdit: Boolean; stdcall;
 begin
-  Result := not FStopping;
-  if Result then
-    FCombo.Show;
-end;
-
-
-function TEnumEditorLink.CancelEdit: Boolean; stdcall;
-begin
-  Result := not FStopping;
+  Result := inherited BeginEdit;
   if Result then begin
-    FStopping := True;
-    FCombo.Hide;
-    FTree.CancelEditNode;
-    if FTree.CanFocus then
-      FTree.SetFocus;
+    FCombo.Show;
+    FCombo.SetFocus;
   end;
 end;
 
 
 function TEnumEditorLink.EndEdit: Boolean; stdcall;
-var
-  newtext: WideString;
 begin
-  Result := not FStopping;
-  if Not Result then
-    Exit;
-  newText := FCombo.Text;
-  if newtext <> FTree.Text[FNode, FColumn] then
-    FTree.Text[FNode, FColumn] := newtext;
-  FCombo.Hide;
-  if FTree.CanFocus then
-    FTree.SetFocus;
-end;
-
-
-function TEnumEditorLink.GetBounds: TRect; stdcall;
-begin
-  Result := FCombo.BoundsRect;
+  Result := EndEditHelper(FCombo.Text);
 end;
 
 
 function TEnumEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
   i: Integer;
-  CellRect: TRect;
 begin
-  Result := Tree is TCustomVirtualStringTree;
-  if not Result then
-    Exit;
-  Ftree := Tree as TCustomVirtualStringTree;
-  FNode := Node;
-  FColumn := Column;
-  FCombo := TTnTComboBox.Create(FTree);
-  FCombo.Parent := FTree;
-
-  CellRect := Ftree.GetDisplayRect(FNode, FColumn, False);
-  FCombo.BoundsRect := CellRect;
-  for i := 0 to ValueList.Count - 1 do
-    FCombo.Items.Add(ValueList[i]);
-  if AllowCustomText then begin
-    FCombo.Style := csDropDown;
-    FCombo.Text := FTree.Text[FNode, FColumn];
-  end else begin
-    // Set style to OwnerDraw, otherwise we wouldn't be able to adjust the combo's height
-    FCombo.Style := csOwnerDrawFixed;
-    FCombo.ItemIndex := FCombo.Items.IndexOf(FTree.Text[FNode, FColumn]);
+  Result := inherited PrepareEdit(Tree, Node, Column);
+  if Result then begin
+    for i := 0 to ValueList.Count - 1 do
+      FCombo.Items.Add(ValueList[i]);
+    if AllowCustomText then begin
+      FCombo.Style := csDropDown;
+      FCombo.Text := FCellText;
+    end else begin
+      // Set style to OwnerDraw, otherwise we wouldn't be able to adjust the combo's height
+      FCombo.Style := csOwnerDrawFixed;
+      FCombo.ItemIndex := FCombo.Items.IndexOf(FCellText);
+    end;
   end;
-  FCombo.SetFocus;
-  FCombo.OnKeyDown := ComboKeyDown;
-end;
-
-
-procedure TEnumEditorLink.ProcessMessage(var Message: TMessage); stdcall;
-begin
 end;
 
 
 procedure TEnumEditorLink.SetBounds(R: TRect); stdcall;
 begin
-  FCombo.BoundsRect := Ftree.GetDisplayRect(FNode, FColumn, False);
-end;
-
-
-procedure TEnumEditorLink.ComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  case Key of
-    // Cancel by Escape
-    VK_ESCAPE: FTree.CancelEditNode;
-    // Apply changes and end editing by [Ctrl +] Enter
-    VK_RETURN: FTree.EndEditNode;
-  end;
+  FCombo.BoundsRect := GetCellRect(False);
 end;
 
 
@@ -759,37 +675,45 @@ end;
 
 { SET editor }
 
-constructor TSetEditorLink.Create;
+constructor TSetEditorLink.Create(Tree: TVirtualStringTree);
 begin
-  inherited;
+  inherited Create(Tree);
+  FPanel := TPanel.Create(FParentForm);
+  FPanel.Hide;
+  FPanel.Parent := FParentForm;
+  FPanel.ParentBackground := False;
+  FPanel.OnExit := DoEndEdit;
+
+  FCheckList := TTNTCheckListBox.Create(FPanel);
+  FCheckList.Parent := FPanel;
+  FCheckList.OnKeyDown := DoKeyDown;
+  FMainControl := FCheckList;
+
+  FBtnOk := TButton.Create(FPanel);
+  FBtnOk.Parent := FPanel;
+  FBtnOk.Caption := 'OK';
+  FBtnOk.OnClick := DoEndEdit;
+
+  FBtnCancel := TButton.Create(FPanel);
+  FBtnCancel.Parent := FPanel;
+  FBtnCancel.Caption := 'Cancel';
+  FBtnCancel.OnClick := DoCancelEdit;
 end;
 
 
 destructor TSetEditorLink.Destroy;
 begin
+  FreeAndNil(FPanel);
   inherited;
-  FCheckList.Free;
-  FPanel.Free;
 end;
 
 
 function TSetEditorLink.BeginEdit: Boolean; stdcall;
 begin
-  Result := not FStopping;
-  if Result then
-    FPanel.Show;
-end;
-
-
-function TSetEditorLink.CancelEdit: Boolean; stdcall;
-begin
-  Result := not FStopping;
+  Result := inherited BeginEdit;
   if Result then begin
-    FStopping := True;
-    FPanel.Hide;
-    FTree.CancelEditNode;
-    if FTree.CanFocus then
-      FTree.SetFocus;
+    FPanel.Show;
+    FCheckList.SetFocus;
   end;
 end;
 
@@ -799,78 +723,29 @@ var
   newtext: WideString;
   i: Integer;
 begin
-  Result := not FStopping;
-  if Not Result then
-    Exit;
   newText := '';
   for i := 0 to FCheckList.Items.Count - 1 do
     if FCheckList.Checked[i] then newText := newText + FCheckList.Items[i] + ',';
   Delete(newText, Length(newText), 1);
-    
-  if newtext <> FTree.Text[FNode, FColumn] then
-    FTree.Text[FNode, FColumn] := newtext;
-  FPanel.Hide;
-  if FTree.CanFocus then
-    FTree.SetFocus;
-end;
-
-
-function TSetEditorLink.GetBounds: TRect; stdcall;
-begin
-  Result := FPanel.BoundsRect;
+  Result := EndEditHelper(newText);
 end;
 
 
 function TSetEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
-  F: TFont;
-  SelValues: TWideStringList;
-  Text: WideString;
+  SelValues: TWideStringlist;
 begin
-  Result := Tree is TCustomVirtualStringTree;
+  Result := inherited PrepareEdit(Tree, Node, Column);
   if not Result then
     Exit;
-  Ftree := Tree as TCustomVirtualStringTree;
-  FNode := Node;
-  FColumn := Column;
 
-  // Initial size, font and text of the node.
-  F := TFont.Create;
-  FTree.GetTextInfo(Node, Column, F, FTextBounds, Text);
+  FCheckList.Font.Assign(FCellFont);
+  FCheckList.Items.Assign(ValueList);
   SelValues := TWideStringList.Create;
   SelValues.Delimiter := ',';
   SelValues.StrictDelimiter := True;
-  SelValues.DelimitedText := Text;
-
-  FPanel := TPanel.Create(Tree);
-  FPanel.Parent := FTree;
-  FPanel.Left := FTextBounds.Left;
-  FPanel.Top := FTextBounds.Top;
-  FPanel.ParentBackground := False;
-
-  FCheckList := TTNTCheckListBox.Create(FPanel);
-  FCheckList.Parent := FPanel;
-  FCheckList.Font.Name := F.Name;
-  FCheckList.Font.Size := F.Size;
-  FCheckList.Items.Assign(ValueList);
+  SelValues.DelimitedText := FCellText;
   ToggleCheckListBox(FCheckList, True, SelValues);
-  FCheckList.SetFocus;
-  FCheckList.OnKeyDown := CheckListKeyDown;
-
-  FBtnOk := TButton.Create(FPanel);
-  FBtnOk.Parent := FPanel;
-  FBtnOk.Caption := 'OK';
-  FBtnOk.OnClick := BtnOkClick;
-
-  FBtnCancel := TButton.Create(FPanel);
-  FBtnCancel.Parent := FPanel;
-  FBtnCancel.Caption := 'Cancel';
-  FBtnCancel.OnClick := BtnCancelClick;
-end;
-
-
-procedure TSetEditorLink.ProcessMessage(var Message: TMessage); stdcall;
-begin
 end;
 
 
@@ -878,6 +753,7 @@ procedure TSetEditorLink.SetBounds(R: TRect); stdcall;
 const
   margin = 3;
 begin
+  R := GetCellRect(False);
   FPanel.Top := R.Top;
   FPanel.Left := R.Left;
   FPanel.Width := R.Right - R.Left;
@@ -900,58 +776,32 @@ begin
 end;
 
 
-procedure TSetEditorLink.CheckListKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  case Key of
-    // Cancel by Escape
-    VK_ESCAPE: FTree.CancelEditNode;
-    // Apply changes and end editing by [Ctrl +] Enter
-    VK_RETURN: FTree.EndEditNode;
-  end;
-end;
-
-procedure TSetEditorLink.BtnOkClick(Sender: TObject);
-begin
-  FTree.EndEditNode;
-end;
-
-procedure TSetEditorLink.BtnCancelClick(Sender: TObject);
-begin
-  FTree.CancelEditNode;
-end;
-
 { TInplaceEditorLink }
 
 constructor TInplaceEditorLink.Create(Tree: TVirtualStringTree);
 begin
-  inherited Create;
-  FTree := Tree;
-  SendMessage(FTree.Handle, WM_SETREDRAW, 0, 0);  // Avoid flikering
-  FButtonVisible := false;
-  FOnButtonClick := nil;
+  inherited Create(Tree);
+  ButtonVisible := false;
   FTextEditor := nil;
 
-  FPanel := TPanel.Create(nil);
+  FPanel := TPanel.Create(FParentForm);
+  FPanel.Parent := FParentForm;
   FPanel.Hide;
+  FPanel.ParentBackground := False;
+  FPanel.Color := FTree.Color;
   FPanel.BevelOuter := bvNone;
-  FPanel.ParentBackground := false; // Prevents transparency under XP theme
-  FPanel.ParentColor := false;
-  FPanel.Color := clWindow;
+  FPanel.OnExit := DoEndEdit;
 
   FEdit := TTntEdit.Create(FPanel);
-  FEdit.Hide;
   FEdit.Parent := FPanel;
   FEdit.BorderStyle := bsNone;
-  FEdit.Color := clWindow;
-  FEdit.OnKeyDown := EditKeyDown;
-  FOldWndProc := FEdit.WindowProc;
-  FEdit.WindowProc := EditWndProc;
+  FEdit.OnKeyDown := DoKeyDown;
+  FMainControl := FEdit;
 
-  FButton := TPNGSpeedButton.Create(FPanel);
-  FButton.PNGImage := Mainform.PngImageListMain.PngImages[33].PngImage;
-  FButton.Hide;
+  FButton := TButton.Create(FPanel);
   FButton.Parent := FPanel;
-  FButton.Width := 20;
+  FButton.TabStop := False;
+  FButton.Caption := '…';
   FButton.Hint := 'Edit text in popup editor ...';
   FButton.ShowHint := True;
   FButton.OnClick := ButtonClick;
@@ -961,262 +811,111 @@ destructor TInplaceEditorLink.Destroy;
 begin
   if Assigned(FTextEditor) then
     FTextEditor.Release;
+  FEdit.Free;
+  FButton.Free;
   FPanel.Free;
-  case FLastKeyDown of
-    VK_TAB: begin
-      SendMessage(FTree.Handle, WM_KEYDOWN, VK_TAB, 0);
-      SendMessage(FTree.Handle, WM_KEYDOWN, VK_RETURN, 0);
-    end;
-  end;
   inherited;
 end;
 
 function TInplaceEditorLink.BeginEdit: Boolean;
 begin
-  Result := not FStopping;
+  Result := inherited BeginEdit;
   if Result then begin
-    if FButtonVisible then
-      FButton.Show;
-    FEdit.SelectAll;
-    FEdit.Show;
+    FButton.Visible := ButtonVisible;
+    SetBounds(Rect(0, 0, 0, 0));
     FPanel.Show;
     FEdit.SetFocus;
-    SendMessage(FTree.Handle, WM_SETREDRAW, 1, 0);
-    FTree.Repaint;
-    FPanel.Repaint;
-    FEdit.Repaint;
   end;
 end;
 
 function TInplaceEditorLink.CancelEdit: Boolean;
 begin
-  Result := not FStopping;
+  Result := inherited CancelEdit;
   if Result then begin
-    FStopping := True;
     if Assigned(FTextEditor) then
       FTextEditor.Close;
-    FPanel.Hide;
-    if FTree.CanFocus then
-      FTree.SetFocus;
   end;
 end;
 
 function TInplaceEditorLink.EndEdit: Boolean;
+var
+  NewText: WideString;
 begin
-  Result := not FStopping;
-  if Result then begin
-    FStopping := True;
-    if Assigned(FTextEditor) then begin
-      if FTextEditor.GetText <> FTree.Text[FNode, FColumn] then
-        FTree.Text[FNode, FColumn] := FTextEditor.GetText;
-      FTextEditor.Close;
-    end else begin
-      if FEdit.Text <> FTree.Text[FNode, FColumn] then
-        FTree.Text[FNode, FColumn] := FEdit.Text;
-    end;
-    FPanel.Hide;
-    if FTree.CanFocus then
-      FTree.SetFocus;
+  if Assigned(FTextEditor) then begin
+    NewText := FTextEditor.GetText;
+    FTextEditor.Close;
+  end else begin
+    NewText := FEdit.Text;
   end;
+  Result := EndEditHelper(NewText);
 end;
 
-procedure TInplaceEditorLink.EditKeyDown(Sender: TObject; var Key: Word;
+procedure TInplaceEditorLink.DoKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  case Key of
-    VK_ESCAPE:
-      FTree.CancelEditNode;
-    VK_RETURN:
-      begin
-        if (ssCtrl in Shift) then begin
-          Key := 0;
-          ButtonClick(FButton);
-        end else
-          FTree.EndEditNode;
-      end;
-    VK_F2:
-      ButtonClick(FButton);
-    VK_TAB:
-      begin
-        FLastKeyDown := VK_TAB;
-        FTree.EndEditNode;
-      end;
-  end;
+  inherited DoKeyDown(Sender, Key, Shift);
+  if Key = VK_F2 then
+    ButtonClick(FButton);
 end;
 
 procedure TInplaceEditorLink.ButtonClick(Sender: TObject);
 begin
-  if not FButtonVisible then Exit; // Button was invisible, but hotkey was pressed
-  if Assigned(FOnButtonClick) then
-    FOnButtonClick(Self, FTree, FNode, FColumn)
-  else
-    DoButtonClick;
-end;
-
-procedure TInplaceEditorLink.DoButtonClick;
-begin
+  if not FButton.Visible then Exit; // Button was invisible, but hotkey was pressed
   FTextEditor := TfrmTextEditor.Create(FTree);
   FTextEditor.SetFont(FEdit.Font);
   FTextEditor.SetText(FEdit.Text);
-  FTextEditor.Modified := FEdit.Text <> FTree.Text[FNode, FColumn];
+  FTextEditor.Modified := FEdit.Text <> FCellText;
   FTextEditor.SetMaxLength(Self.FMaxLength);
   FTextEditor.ShowModal;
 end;
 
-procedure TInplaceEditorLink.EditWndProc(var Message: TMessage);
-begin
-  case Message.Msg of
-    WM_CHAR:
-      if not (TWMChar(Message).CharCode in [VK_ESCAPE, VK_TAB]) then
-        FOldWndProc(Message);
-    WM_GETDLGCODE:
-      Message.Result := Message.Result or DLGC_WANTARROWS or DLGC_WANTALLKEYS or DLGC_WANTTAB;
-  else
-    FOldWndProc(Message);
-  end;
-end;
-
 function TInplaceEditorLink.PrepareEdit(Tree: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex): Boolean;
-var
-  NodeText: widestring;
 begin
-  Result := not FStopping;
-  if not Result then Exit; 
-  FNode := Node;
-  FColumn := Column;
+  Result := inherited PrepareEdit(Tree, Node, Column);
+  if not Result then
+    Exit;
 
-  FTree.GetTextInfo(Node, Column, FEdit.Font, FTextBounds, NodeText);
-  if ScanNulChar(NodeText) then begin
-    MessageDlg(SContainsNulCharGrid, mtInformation, [mbOK], 0);
-    NodeText := RemoveNulChars(NodeText);
-  end;
-  FPanel.Parent := FTree;
+  FEdit.Font.Assign(FCellFont);
   FEdit.Font.Color := clWindowText;
-  FEdit.Text := NodeText;
-
-  if Column <= NoColumn then begin
-    FEdit.BidiMode := FTree.BidiMode;
-    FAlignment := FTree.Alignment;
-  end else begin
-    FEdit.BidiMode := FTree.Header.Columns[Column].BidiMode;
-    FAlignment := FTree.Header.Columns[Column].Alignment;
-  end;
-  if FEdit.BidiMode <> bdLeftToRight then
-    ChangeBidiModeAlignment(FAlignment);
-  Result := true;
-end;
-
-procedure TInplaceEditorLink.ProcessMessage(var Message: TMessage);
-begin
-  FEdit.WindowProc(Message);
-end;
-
-function TInplaceEditorLink.GetBounds: TRect;
-begin
-  Result := FPanel.BoundsRect;
+  if ScanNulChar(FCellText) then begin
+    MessageDlg(SContainsNulCharGrid, mtInformation, [mbOK], 0);
+    FEdit.Text := RemoveNulChars(FCellText);
+  end else
+    FEdit.Text := FCellText;
 end;
 
 procedure TInplaceEditorLink.SetBounds(R: TRect);
 begin
   if not FStopping then begin
-    // Fix for wrong rect calculation, when left alignment is used
-    if FAlignment = taLeftJustify then begin
-      Dec(R.Left, 4);
-      Dec(R.Right, 1);
-    end;
-    // Set the edit's bounds but make sure there's a minimum width and the right border does not
-    // extend beyond the parent's left/right border.
-    if R.Left < 0 then
-      R.Left := 0;
-    if R.Right - R.Left < 30 then begin
-      if FAlignment = taRightJustify then
-        R.Left := R.Right - 30
-      else
-        R.Right := R.Left + 30;
-    end;
-    if R.Right > FTree.ClientWidth then
-      R.Right := FTree.ClientWidth;
-    FPanel.BoundsRect := R;
-    // Position edit control according to FTextBounds
-    CalcEditorPosition;
-    CalcButtonPosition;
+    // Position edit control according to cell text bounds
+    FPanel.BoundsRect := GetCellRect(False);
+    R := GetCellRect(True);
+    if FButton.Visible then
+      Dec(R.Right, 20);
+    FEdit.BoundsRect := R;
+
+    FButton.BoundsRect := Rect(FEdit.BoundsRect.Right, 0, FPanel.Width, FPanel.Height);
   end;
-end;
-
-procedure TInplaceEditorLink.CalcEditorPosition;
-var
-  R: TRect;
-begin
-  if not Assigned(FTree) then
-    Exit;
-  R.Top := FTextBounds.Top - FPanel.Top;
-  R.Bottom := FTextBounds.Bottom - FPanel.Top;
-  R.Left := FTree.TextMargin;
-  R.Right := FPanel.Width - R.Left;
-  if FButtonVisible then
-    Dec(R.Right, FButton.Width);
-  FEdit.BoundsRect := R;
-end;
-
-procedure TInplaceEditorLink.CalcButtonPosition;
-var
-  R: TRect;
-begin
-  R.Top := 0;
-  R.Bottom := FPanel.Height;
-  R.Left := FPanel.Width - 16;
-  R.Right := FPanel.Width;
-  FButton.BoundsRect := R;
-end;
-
-procedure TInplaceEditorLink.SetButtonVisible(const Value: boolean);
-begin
-  FButtonVisible := Value;
-  CalcEditorPosition;
 end;
 
 
 
 { Column default editor }
 
-constructor TColumnDefaultEditorLink.Create;
-begin
-  inherited;
-end;
-
-
-destructor TColumnDefaultEditorLink.Destroy;
-begin
-  inherited;
-  FPanel.Free;
-end;
-
-
-function TColumnDefaultEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
-var
-  F: TFont;
-  TextBounds: TRect;
-  NodeText: WideString;
-  Default: TColumnDefaultType;
+constructor TColumnDefaultEditorLink.Create(Tree: TVirtualStringTree);
 const
   m = 3;
 begin
-  Ftree := Tree as TCustomVirtualStringTree;
-  FNode := Node;
-  FColumn := Column;
+  inherited Create(Tree);
 
-  // Initial size, font and text of the node.
-  F := TFont.Create;
-  FTree.GetTextInfo(Node, Column, F, TextBounds, NodeText);
-
-  FPanel := TPanel.Create(Tree);
-  FPanel.Parent := FTree;
-  SetBounds(TextBounds);
+  FPanel := TPanel.Create(FParentForm);
+  FPanel.Hide;
+  FPanel.Parent := FParentForm;
+  FPanel.OnExit := DoEndEdit;
   FPanel.Width := 200;
   FPanel.ParentBackground := False;
-  // usefull but looks ugly:
-  //SetWindowSizeGrip(FPanel.Handle, True);
+  FMainControl := FPanel;
 
   FRadioText := TRadioButton.Create(FPanel);
   FRadioText.Parent := FPanel;
@@ -1272,7 +971,7 @@ begin
   FBtnOk.Width := 60;
   FBtnOk.Top := FRadioAutoInc.Top + FRadioAutoInc.Height + m;
   FBtnOk.Left := FPanel.Width - 2*m - 2*FBtnOk.Width;
-  FBtnOk.OnClick := BtnOkClick;
+  FBtnOk.OnClick := DoEndEdit;
   FBtnOk.Default := True;
   FBtnOk.Caption := 'OK';
 
@@ -1281,7 +980,7 @@ begin
   FBtnCancel.Top := FBtnOk.Top;
   FBtnCancel.Width := FBtnOk.Width;
   FBtnCancel.Left := FBtnOk.Left + FBtnOk.Width + m;
-  FBtnCancel.OnClick := BtnCancelClick;
+  FBtnCancel.OnClick := DoCancelEdit;
   FBtnCancel.Cancel := True;
   FBtnCancel.Caption := 'Cancel';
 
@@ -1295,6 +994,19 @@ begin
   FBtnOk.Anchors := [akBottom, akRight];
   FBtnCancel.Anchors := FBtnOk.Anchors;
   FPanel.Width := GetParentForm(FPanel).Canvas.TextWidth(FCheckCurTS.Caption) + 2*FCheckCurTS.Left + 16;
+end;
+
+
+destructor TColumnDefaultEditorLink.Destroy;
+begin
+  FPanel.Free;
+  inherited;
+end;
+
+
+function TColumnDefaultEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
+begin
+  inherited PrepareEdit(Tree, Node, Column);
 
   case DefaultType of
     cdtText, cdtTextUpdateTS: begin
@@ -1310,38 +1022,13 @@ begin
 end;
 
 
-procedure TColumnDefaultEditorLink.ProcessMessage(var Message: TMessage); stdcall;
-begin
-end;
-
-
-function TColumnDefaultEditorLink.GetBounds: TRect; stdcall;
-begin
-  Result := FPanel.BoundsRect;
-end;
-
-
 procedure TColumnDefaultEditorLink.SetBounds(R: TRect); stdcall;
 var
-  TreeBottom, TreeRight,
-  PanelTop, PanelLeft: Integer;
-  TreeRect: TRect;
+  CellRect: TRect;
 begin
-  TreeRect := FTree.BoundsRect;
-
-  PanelTop := R.Top;
-  TreeBottom := TreeRect.Bottom - TreeRect.Top -
-    (FTree as TVirtualStringtree).Header.Height - 20; // Column header and scrollbar
-  if R.Top + FPanel.Height > TreeBottom then
-    PanelTop := Max(0, TreeBottom - FPanel.Height);
-
-  PanelLeft := R.Left;
-  TreeRight := TreeRect.Right - TreeRect.Left - 20;
-  if R.Left + FPanel.Width > TreeRight then
-    PanelLeft := Max(0, TreeRight - FPanel.Width);
-
-  FPanel.Top := PanelTop;
-  FPanel.Left := PanelLeft;
+  CellRect := GetCellRect(False);
+  FPanel.Left := CellRect.Left;
+  FPanel.Top := CellRect.Top;
 end;
 
 
@@ -1350,17 +1037,6 @@ begin
   Result := not FStopping;
   if Result then
     FPanel.Show;
-end;
-
-
-function TColumnDefaultEditorLink.CancelEdit: Boolean; stdcall;
-begin
-  Result := not FStopping;
-  if Result then begin
-    FStopping := True;
-    if FTree.CanFocus then
-      FTree.SetFocus;
-  end;
 end;
 
 
@@ -1419,18 +1095,6 @@ begin
 end;
 
 
-procedure TColumnDefaultEditorLink.BtnOkClick(Sender: TObject);
-begin
-  FTree.EndEditNode;
-end;
-
-
-procedure TColumnDefaultEditorLink.BtnCancelClick(Sender: TObject);
-begin
-  FTree.CancelEditNode;
-end;
-
-
 function GetColumnDefaultType(var Text: WideString): TColumnDefaultType;
 begin
   Result := TColumnDefaultType(MakeInt(Copy(Text, 1, 1)));
@@ -1455,25 +1119,18 @@ end;
 
 { Datatype selector }
 constructor TDataTypeEditorLink.Create(Tree: TVirtualStringTree);
-var
-  ParentControl: TWinControl;
 begin
-  inherited Create;
-  FTree := Tree;
-  // Enable mouse scrolling on FtreeSelect, plus ensure the
-  // tree is not partly hidden when it pops up in a bottom cell
-  ParentControl := GetParentForm(FTree);
-  // Avoid flicker
-  SendMessage(ParentControl.Handle, WM_SETREDRAW, 0, 0);
+  inherited Create(Tree);
 
-  FTreeSelect := TVirtualStringTree.Create(FTree);
+  FTreeSelect := TVirtualStringTree.Create(FParentForm);
+  FTreeSelect.Hide;
   FTreeSelect.TreeOptions.PaintOptions := FTreeSelect.TreeOptions.PaintOptions
     - [toShowTreeLines, toShowButtons, toShowRoot]
     + [toHotTrack, toUseExplorerTheme, toHideTreeLinesIfThemed];
   FTreeSelect.TreeOptions.SelectionOptions := FTreeSelect.TreeOptions.SelectionOptions
     + [toFullRowSelect];
   FTreeSelect.Header.Columns.Add;
-  FTreeSelect.Parent := ParentControl;
+  FTreeSelect.Parent := FParentForm;
   FTreeSelect.TextMargin := 0;
   FTreeSelect.BorderStyle := bsNone;
   FTreeSelect.BevelKind := bkFlat;
@@ -1486,57 +1143,48 @@ begin
   FTreeSelect.OnKeyDown := DoKeyDown;
   FTreeSelect.OnHotChange := DoTreeSelectHotChange;
   FTreeSelect.OnPaintText := DoTreeSelectPaintText;
-  FTreeSelect.OnExit := DoTreeSelectExit;
-  FTreeSelect.Hide;
-  FOldWndProc := FTreeSelect.WindowProc;
-  FTreeSelect.WindowProc := EditWndProc;
+  FTreeSelect.OnExit := DoEndEdit;
+  FMainControl := FTreeSelect;
 
-  FMemoHelp := TMemo.Create(FTree);
-  FMemoHelp.Parent := ParentControl;
+  FMemoHelp := TMemo.Create(FParentForm);
+  FMemoHelp.Hide;
+  FMemoHelp.Parent := FParentForm;
   FMemoHelp.Color := clInfoBk;
   FMemoHelp.Font.Color := clInfoText;
   FMemoHelp.BorderStyle := bsNone;
   FMemoHelp.BevelKind := bkFlat;
   FMemoHelp.BevelInner := bvNone;
-  FMemoHelp.Hide;
 end;
 
 
 destructor TDataTypeEditorLink.Destroy;
 begin
-  inherited;
   FreeAndNil(FTreeSelect);
   FreeAndNil(FMemoHelp);
-  if FLastKeyDown = VK_TAB then begin
-    SendMessage(FTree.Handle, WM_KEYDOWN, FLastKeyDown, 0);
-    SendMessage(FTree.Handle, WM_KEYDOWN, VK_F2, 0);
-  end;
+  inherited;
 end;
 
 
 function TDataTypeEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
-  NodeText: WideString;
   dt: TDatatype;
   CatNode, TypeNode: PVirtualNode;
 begin
-  Result := not FStopping;
+  Result := inherited PrepareEdit(Tree, Node, Column);
   if not Result then
     Exit;
-  FNode := Node;
-  FColumn := Column;
-  FTree.GetTextInfo(FNode, FColumn, FTreeSelect.Font, FTextBounds, NodeText);
+  FTreeSelect.Font.Assign(FCellFont);
   // Highlighted cell has white font, fix that
   FTreeSelect.Font.Color := FTree.Font.Color;
 
   // Find and select current datatype in tree
-  dt := GetDataTypeByName(NodeText);
+  dt := GetDataTypeByName(FCellText);
   CatNode := FTreeSelect.GetFirst;
   while Assigned(CatNode) do begin
     if CatNode.Index = Cardinal(dt.Category) then begin
       TypeNode := FTreeSelect.GetFirstChild(CatNode);
       while Assigned(TypeNode) do begin
-        if FTreeSelect.Text[TypeNode, 0] = NodeText then begin
+        if FTreeSelect.Text[TypeNode, 0] = FCellText then begin
           FTreeSelect.FocusedNode := TypeNode;
           FTreeSelect.Selected[TypeNode] := True;
           break;
@@ -1550,93 +1198,39 @@ begin
   if Assigned(FTreeSelect.FocusedNode) then
     FTreeSelect.ScrollIntoView(FTreeSelect.FocusedNode, True);
   FTreeSelect.OnFocusChanging := DoTreeSelectFocusChanging;
-  FTreeSelect.OnClick := DoTreeSelectClick;
+  FTreeSelect.OnClick := DoEndEdit;
 end;
 
 
 function TDataTypeEditorLink.BeginEdit: Boolean;
 begin
-  Result := not FStopping;
+  Result := inherited BeginEdit;
   if Result then begin
-    SendMessage(FTreeSelect.Parent.Handle, WM_SETREDRAW, 1, 0);
     FTreeSelect.Show;
     FTreeSelect.SetFocus;
   end;
 end;
 
 
-function TDataTypeEditorLink.CancelEdit: Boolean;
-begin
-  Result := not FStopping;
-  if Result then begin
-    FStopping := True;
-    FTree.CancelEditNode;
-    if FTree.CanFocus then
-      FTree.SetFocus;
-  end;
-end;
-
-
 function TDataTypeEditorLink.EndEdit: Boolean;
-var
-  newtext: WideString;
 begin
-  Result := not FStopping;
-  if Not Result then
-    Exit;
-  newtext := FTreeSelect.Text[FTreeSelect.FocusedNode, 0];
-  if newtext <> FTree.Text[FNode, FColumn] then
-    FTree.Text[FNode, FColumn] := newtext;
-  if FTree.CanFocus then
-    FTree.SetFocus;
-end;
-
-
-function TDataTypeEditorLink.GetBounds: TRect;
-begin
-  Result := FTreeSelect.BoundsRect;
+  if Assigned(FTreeSelect.FocusedNode) then
+    Result := EndEditHelper(FTreeSelect.Text[FTreeSelect.FocusedNode, 0])
+  else
+    Result := FTree.CancelEditNode;
 end;
 
 
 procedure TDataTypeEditorLink.SetBounds(R: TRect);
+var
+  CellRect: TRect;
 begin
   // Set position of tree. As the tree's parent is mainform, not listcolumns, add listcolumn's x + y positions
-  FTreeSelect.SetBounds(R.Left + FTree.ClientOrigin.X,
-    R.Top + FTree.ClientOrigin.Y - FTreeSelect.Header.Height - GetSystemMetrics(SM_CYMENU),
+  CellRect := GetCellRect(False);
+  FTreeSelect.SetBounds(CellRect.Left,
+    CellRect.Top,
     FTreeSelect.Header.Columns[0].Width + GetSystemMetrics(SM_CXVSCROLL) + 5,
     250);
-end;
-
-
-procedure TDataTypeEditorLink.ProcessMessage(var Message: TMessage);
-begin
-  FTreeSelect.WindowProc(Message);
-end;
-
-
-procedure TDataTypeEditorLink.DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  FLastKeyDown := Key;
-  case Key of
-    // Cancel by Escape
-    VK_ESCAPE: FTree.CancelEditNode;
-    // Apply changes and end editing by [Ctrl +] Enter or Tab
-    VK_RETURN, VK_TAB: FTree.EndEditNode;
-  end;
-end;
-
-
-procedure TDataTypeEditorLink.EditWndProc(var Message: TMessage);
-begin
-  case Message.Msg of
-    WM_CHAR:
-      if not (TWMChar(Message).CharCode in [VK_ESCAPE, VK_TAB]) then
-        FOldWndProc(Message);
-    WM_GETDLGCODE:
-      Message.Result := Message.Result or DLGC_WANTARROWS or DLGC_WANTALLKEYS or DLGC_WANTTAB;
-  else
-    FOldWndProc(Message);
-  end;
 end;
 
 
@@ -1748,17 +1342,5 @@ begin
   end;
 end;
 
-procedure TDataTypeEditorLink.DoTreeSelectClick(Sender: TObject);
-begin
-  // Click into editor - end editing
-  if Assigned(FTreeSelect.FocusedNode) then
-    FTree.EndEditNode;
-end;
-
-procedure TDataTypeEditorLink.DoTreeSelectExit(Sender: TObject);
-begin
-  // Tree unfocused - end editing
-  FTree.CancelEditNode;
-end;
 
 end.
