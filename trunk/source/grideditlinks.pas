@@ -333,8 +333,6 @@ end;
 
 
 function THexEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
-var
-  IsBinary: Boolean;
 begin
   Result := inherited PrepareEdit(Tree, Node, Column);
   if not Result then
