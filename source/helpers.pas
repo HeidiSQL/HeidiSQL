@@ -85,14 +85,6 @@ type
   end;
   PGridResult = ^TGridResult;
 
-  TMemoEditor = class(TForm)
-  public
-    function GetText: WideString; virtual; abstract;
-    procedure SetText(text: WideString); virtual; abstract;
-    procedure SetMaxLength(len: integer); virtual; abstract;
-    procedure SetFont(font: TFont); virtual; abstract;
-  end;
-
   TOrderCol = class(TObject)
     ColumnName: WideString;
     SortDirection: Byte;

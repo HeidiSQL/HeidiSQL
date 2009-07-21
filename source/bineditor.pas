@@ -9,7 +9,7 @@ uses
 {$I const.inc}
 
 type
-  TfrmBinEditor = class(TMemoEditor)
+  TfrmBinEditor = class(TForm)
     memoText: TTntMemo;
     tlbStandard: TToolBar;
     btnWrap: TToolButton;
@@ -34,10 +34,10 @@ type
     procedure SetModified(NewVal: Boolean);
     property Modified: Boolean read FModified write SetModified;
   public
-    function GetText: WideString; override;
-    procedure SetText(text: WideString); override;
-    procedure SetMaxLength(len: integer); override;
-    procedure SetFont(font: TFont); override;
+    function GetText: WideString;
+    procedure SetText(text: WideString);
+    procedure SetMaxLength(len: integer);
+    procedure SetFont(font: TFont);
   end;
 
 
