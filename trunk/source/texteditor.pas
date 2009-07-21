@@ -9,7 +9,7 @@ uses
 {$I const.inc}
 
 type
-  TfrmTextEditor = class(TMemoEditor)
+  TfrmTextEditor = class(TForm)
     memoText: TTntMemo;
     tlbStandard: TToolBar;
     btnWrap: TToolButton;
@@ -43,10 +43,10 @@ type
     SelectedLineBreaks: TLineBreaks;
     procedure SetModified(NewVal: Boolean);
   public
-    function GetText: WideString; override;
-    procedure SetText(text: WideString); override;
-    procedure SetMaxLength(len: integer); override;
-    procedure SetFont(font: TFont); override;
+    function GetText: WideString;
+    procedure SetText(text: WideString);
+    procedure SetMaxLength(len: integer);
+    procedure SetFont(font: TFont);
     property Modified: Boolean read FModified write SetModified;
   end;
 
