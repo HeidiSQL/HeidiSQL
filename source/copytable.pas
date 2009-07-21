@@ -114,8 +114,12 @@ var
   ds: TDataSet;
   NodeData: PVTreeData;
 begin
-  NodeData := Mainform.ListTables.GetNodeData(Mainform.ListTables.FocusedNode);
-  oldTableName := NodeData.Captions[0];
+  if Mainform.DBtree.Focused then
+    oldTableName := Mainform.SelectedTable.Text
+  else begin
+    NodeData := Mainform.ListTables.GetNodeData(Mainform.ListTables.FocusedNode);
+    oldTableName := NodeData.Captions[0];
+  end;
   editNewTablename.Text := oldTableName + '_copy';
   editNewTablename.SetFocus;
   lblNewTablename.Caption := 'Copy ''' + oldTableName + ''' to new table:';
