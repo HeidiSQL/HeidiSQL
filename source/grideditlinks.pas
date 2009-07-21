@@ -559,7 +559,7 @@ begin
         case FMaskEdit.SelStart of
           0..3: d := IncYear(d, Offset);
           5,6: d := IncMonth(d, Offset);
-          8,9: d := IncDay(d, Offset);
+          8..10: d := IncDay(d, Offset);
         end;
         text := DateToStr(d);
       end;
@@ -572,7 +572,7 @@ begin
           8,9: dt := IncDay(dt, Offset);
           11,12: dt := IncHour(dt, Offset);
           14,15: dt := IncMinute(dt, Offset);
-          17,18: dt := IncSecond(dt, Offset);
+          17..19: dt := IncSecond(dt, Offset);
         end;
         text := DateTimeToStr(dt);
         if Length(text) = 10 then
@@ -584,7 +584,7 @@ begin
         case FMaskEdit.SelStart of
           0,1: t := IncHour(t, Offset);
           3,4: t := IncMinute(t, Offset);
-          6,7: t := IncSecond(t, Offset);
+          6..8: t := IncSecond(t, Offset);
         end;
         text := TimeToStr(t);
       end;
