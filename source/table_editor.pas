@@ -335,7 +335,7 @@ begin
         Props[2] := BoolToStr(False);
 
       // Collation
-      rxCol.Expression := '^(CHARACTER SET \w+)?\s+COLLATE (\w+)\b';
+      rxCol.Expression := '^(CHARACTER SET \w+\s+)?COLLATE (\w+)\b';
       if rxCol.Exec(ColSpec) then begin
         Props[6] := rxCol.Match[2];
         Delete(ColSpec, 1, rxCol.MatchLen[0]+1);
