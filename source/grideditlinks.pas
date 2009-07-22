@@ -1103,13 +1103,13 @@ end;
 function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: WideString): WideString;
 begin
   case DefaultType of
-    cdtText:           Result := ' DEFAULT '+esc(Text);
-    cdtTextUpdateTS:   Result := ' DEFAULT '+esc(Text)+' ON UPDATE CURRENT_TIMESTAMP';
-    cdtNull:           Result := ' DEFAULT NULL';
-    cdtNullUpdateTS:   Result := ' DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP';
-    cdtCurTS:          Result := ' DEFAULT CURRENT_TIMESTAMP';
-    cdtCurTSUpdateTS:  Result := ' DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
-    cdtAutoInc:        Result := ' AUTO_INCREMENT';
+    cdtText:           Result := 'DEFAULT '+esc(Text);
+    cdtTextUpdateTS:   Result := 'DEFAULT '+esc(Text)+' ON UPDATE CURRENT_TIMESTAMP';
+    cdtNull:           Result := 'DEFAULT NULL';
+    cdtNullUpdateTS:   Result := 'DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP';
+    cdtCurTS:          Result := 'DEFAULT CURRENT_TIMESTAMP';
+    cdtCurTSUpdateTS:  Result := 'DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
+    cdtAutoInc:        Result := 'AUTO_INCREMENT';
   end;
 end;
 
