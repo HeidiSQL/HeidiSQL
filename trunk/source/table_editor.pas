@@ -654,6 +654,7 @@ begin
   end;
 
   Result := 'ALTER TABLE '+Mainform.mask(FAlterTableName) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
+  Result := Trim(Result);
   FreeAndNil(Specs);
   FreeAndNil(IndexesComposed);
   FreeAndNil(OldIndexesComposed);
@@ -728,7 +729,7 @@ begin
     Result := Result + 'UNION=('+memoUnionTables.Text+')' + CRLF;
   if comboInsertMethod.Enabled and (comboInsertMethod.Text <> '') then
     Result := Result + 'INSERT_METHOD='+comboInsertMethod.Text + CRLF;
-
+  Result := Trim(Result);
 end;
 
 
