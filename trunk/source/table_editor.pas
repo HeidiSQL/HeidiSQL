@@ -1165,7 +1165,7 @@ begin
       EditLink := DefaultEditor;
     end
     else
-      EditLink := TStringEditLink.Create
+      EditLink := TInplaceEditorLink.Create(VT);
   end;
 end;
 
@@ -1509,7 +1509,7 @@ begin
     EnumEditor.AllowCustomText := True; // Allows adding a subpart in index parts: "TextCol(20)"
     EditLink := EnumEditor;
   end else
-    EditLink := TStringEditLink.Create
+    EditLink := TInplaceEditorLink.Create(VT);
 end;
 
 
