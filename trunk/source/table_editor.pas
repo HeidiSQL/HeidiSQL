@@ -1045,7 +1045,7 @@ begin
 
     6: case GetColumnDefaultType(Default) of
       cdtNull, cdtNullUpdateTS:
-        TextColor := DatatypeCategories[Integer(dt.Category)].NullColor;
+        TextColor := clGray;
       cdtCurTS, cdtCurTSUpdateTS:
         TextColor := DatatypeCategories[Integer(dtcTemporal)].Color;
       cdtAutoInc:
