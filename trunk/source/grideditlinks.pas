@@ -1033,8 +1033,13 @@ end;
 function TColumnDefaultEditorLink.BeginEdit: Boolean; stdcall;
 begin
   Result := not FStopping;
-  if Result then
+  if Result then begin
     FPanel.Show;
+    if FRadioText.Checked then FRadioText.SetFocus
+    else if FRadioNull.Checked then FRadioNull.SetFocus
+    else if FRadioCurTS.Checked then FRadioCurTS.SetFocus
+    else if FRadioAutoInc.Checked then FRadioAutoInc.SetFocus;
+  end;
 end;
 
 
