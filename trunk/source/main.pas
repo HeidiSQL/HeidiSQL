@@ -3437,6 +3437,7 @@ begin
   if rx.Exec(ColType) then
     FDataGridResult.Columns[idx].DatatypeCat := dtcBinary;
   if Copy(ColType, 1, 5) = 'enum(' then begin
+    FDataGridResult.Columns[idx].Datatype := dtEnum;
     FDataGridResult.Columns[idx].DatatypeCat := dtcIntegerNamed;
     FDataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
     FDataGridResult.Columns[idx].ValueList.QuoteChar := '''';
@@ -3444,6 +3445,7 @@ begin
     FDataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
   end;
   if Copy(ColType, 1, 4) = 'set(' then begin
+    FDataGridResult.Columns[idx].Datatype := dtSet;
     FDataGridResult.Columns[idx].DatatypeCat := dtcSetNamed;
     FDataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
     FDataGridResult.Columns[idx].ValueList.QuoteChar := '''';
