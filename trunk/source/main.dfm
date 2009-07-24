@@ -1125,7 +1125,6 @@ object MainForm: TMainForm
           Width = 575
           Height = 234
           Align = alClient
-          BottomSpace = 120
           EditDelay = 0
           Header.AutoSizeIndex = -1
           Header.DefaultHeight = 17
