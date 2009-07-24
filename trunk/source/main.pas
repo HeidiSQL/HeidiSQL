@@ -677,6 +677,7 @@ type
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actEditObjectExecute(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
+    procedure DataGridClick(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -7541,6 +7542,13 @@ begin
   ValidateControls(Sender);
 end;
 
+
+procedure TMainForm.DataGridClick(Sender: TObject);
+begin
+  // Start editing by click
+  if Assigned(DataGrid.FocusedNode) then
+    DataGrid.EditNode(DataGrid.FocusedNode, DataGrid.FocusedColumn);
+end;
 
 {**
   DataGrid: node and/or column focus is about to change. See if we allow that.
