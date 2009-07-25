@@ -7544,10 +7544,15 @@ end;
 
 
 procedure TMainForm.DataGridClick(Sender: TObject);
+var
+  VT: TVirtualStringTree;
+  Click: THitInfo;
 begin
   // Start editing by click
-  if Assigned(DataGrid.FocusedNode) then
-    DataGrid.EditNode(DataGrid.FocusedNode, DataGrid.FocusedColumn);
+  VT := Sender as TVirtualStringTree;
+  VT.GetHitTestInfoAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y, True, Click);
+  if Assigned(Click.HitNode) and (Click.HitColumn > NoColumn) then
+    VT.EditNode(Click.HitNode, Click.HitColumn);
 end;
 
 {**
