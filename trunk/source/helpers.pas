@@ -188,7 +188,7 @@ var
 
 implementation
 
-uses main;
+uses main, uVistaFuncs;
 
 type
   CharacterSet = record
@@ -2790,6 +2790,11 @@ begin
     VT.DefaultNodeHeight := ReadOnlyNodeHeight;
   // The header needs slightly more height than the normal nodes
   VT.Header.Height := Trunc(ReadOnlyNodeHeight * 1.2);
+  // Disable hottracking in non-Vista mode, looks ugly in XP, but nice in Vista 
+  if (toUseExplorerTheme in VT.TreeOptions.PaintOptions) and IsWindowsVista then
+    VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
+  else
+    VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toHotTrack];
 end;
 
 
