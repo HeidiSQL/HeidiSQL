@@ -72,6 +72,9 @@ type
     menuMoveUpColumn: TMenuItem;
     menuMoveDownColumn: TMenuItem;
     chkCharsetConvert: TCheckBox;
+    N1: TMenuItem;
+    menuCreateIndex: TMenuItem;
+    menuAddToIndex: TMenuItem;
     procedure editNameChange(Sender: TObject);
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
@@ -130,6 +133,8 @@ type
     procedure chkCharsetConvertClick(Sender: TObject);
     procedure treeIndexesClick(Sender: TObject);
     procedure btnDiscardClick(Sender: TObject);
+    procedure popupColumnsPopup(Sender: TObject);
+    procedure AddIndexByColumn(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
@@ -153,6 +158,8 @@ type
     property Modified: Boolean read FModified write SetModified;
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
+    function GetIndexIcon(idx: Integer): Integer;
+    procedure GetIndexInfo(idx: Integer; var IndexName, IndexType: WideString);
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -1364,11 +1371,7 @@ begin
   case VT.GetNodeLevel(Node) of
     0: begin
       IndexType := VT.Text[Node, 1];
-      if IndexType = PKEY then ImageIndex := ICONINDEX_PRIMARYKEY
-      else if IndexType = KEY then ImageIndex := ICONINDEX_INDEXKEY
-      else if IndexType = UKEY then ImageIndex := ICONINDEX_UNIQUEKEY
-      else if IndexType = FKEY then ImageIndex := ICONINDEX_FULLTEXTKEY
-      else if IndexType = SKEY then ImageIndex := ICONINDEX_SPATIALKEY;
+      ImageIndex := GetIndexIcon(Node.Index);
     end;
     1: ImageIndex := 42;
   end;
@@ -1380,17 +1383,17 @@ procedure TfrmTableEditor.treeIndexesGetText(Sender: TBaseVirtualTree;
   var CellText: WideString);
 var
   IndexProps: TWideStringlist;
-  IndexType: WideString;
+  IndexName, IndexType: WideString;
 begin
   // Index tree showing cell text
   case Sender.GetNodeLevel(Node) of
     0: begin
-      IndexType := Copy(Indexes[Node.Index], LastPos(REGDELIM, Indexes[Node.Index])+1, Length(Indexes[Node.Index]));
+      GetIndexInfo(Node.Index, IndexName, IndexType);
       case Column of
         0: if IndexType = PKEY then
              CellText := IndexType + ' KEY' // Fixed name "PRIMARY KEY", cannot be changed
            else
-             CellText := Copy(Indexes[Node.Index], 1, LastPos(REGDELIM, Indexes[Node.Index])-1);
+             CellText := IndexName;
         1: CellText := IndexType;
       end;
     end;
@@ -1667,6 +1670,124 @@ begin
   chkCharsetConvert.Enabled := (FAlterTablename <> '') and (comboCollation.ItemIndex > -1);
   listColumns.Repaint;
   Modification(Sender);
+end;
+
+
+procedure TfrmTableEditor.popupColumnsPopup(Sender: TObject);
+  function AddItem(Parent: TMenuItem; Caption: String; ImageIndex: Integer): TMenuItem;
+  begin
+    Result := TMenuItem.Create(Parent.GetParentMenu);
+    Result.Caption := Caption;
+    Result.ImageIndex := ImageIndex;
+    Result.OnClick := AddIndexByColumn;
+    Parent.Add(Result);
+  end;
+var
+  i: Integer;
+  IndexName, IndexType: WideString;
+  Item: TMenuItem;
+  PrimaryKeyExists,
+  ColumnFocused: Boolean;
+  IndexParts: TWideStringList;
+begin
+  ColumnFocused := Assigned(ListColumns.FocusedNode);
+  menuAddToIndex.Clear;
+  menuCreateIndex.Clear;
+  menuAddToIndex.Enabled := ColumnFocused;
+  menuCreateIndex.Enabled := ColumnFocused;
+  if not ColumnFocused then
+    Exit;
+
+  // Auto create submenu items for "Add to index" ...
+  PrimaryKeyExists := False;
+  for i:=0 to Indexes.Count-1 do begin
+    GetIndexInfo(i, IndexName, IndexType);
+    if IndexType = PKEY then
+      PrimaryKeyExists := True
+    else
+      IndexName := IndexName + ' ('+IndexType+')';
+    Item := AddItem(menuAddToIndex, IndexName, GetIndexIcon(i));
+    // Disable menuitem if column is already part of index
+    IndexParts := TWideStringList(Indexes.Objects[i]);
+    Item.Enabled := IndexParts.IndexOf(Columns[ListColumns.FocusedNode.Index]) = -1;
+  end;
+  menuAddToIndex.Enabled := menuAddToIndex.Count > 0;
+
+  // ... and for item "Create index"
+  Item := AddItem(menuCreateIndex, PKEY, ICONINDEX_PRIMARYKEY);
+  Item.Enabled := not PrimaryKeyExists;
+  AddItem(menuCreateIndex, KEY, ICONINDEX_INDEXKEY);
+  AddItem(menuCreateIndex, UKEY, ICONINDEX_UNIQUEKEY);
+  AddItem(menuCreateIndex, FKEY, ICONINDEX_FULLTEXTKEY);
+  AddItem(menuCreateIndex, SKEY, ICONINDEX_SPATIALKEY);
+end;
+
+
+procedure TfrmTableEditor.AddIndexByColumn(Sender: TObject);
+var
+  Item: TMenuItem;
+  i: Integer;
+  IndexName, IndexType,
+  NewName, NewType, NewPart: WideString;
+  IndexParts: TWideStringlist;
+begin
+  // Auto create index or add column to existing one by rightclicking a column
+  Item := (Sender as TMenuItem);
+  NewPart := Columns[ListColumns.FocusedNode.Index];
+  if Item.Parent = menuCreateIndex then begin
+    NewName := 'Index '+IntToStr(Indexes.Count+1);
+    // Remove auto hotkeys
+    NewType := StringReplace(Item.Caption, '&', '', [rfReplaceAll]);
+    // Avoid creating a second key with the same column
+    for i:=0 to Indexes.Count-1 do begin
+      IndexParts := TWideStringList(Indexes.Objects[i]);
+      GetIndexInfo(i, IndexName, IndexType);
+      if (IndexType = NewType) and (IndexParts.Count = 1) and (IndexParts[0] = NewPart) then begin
+        if MessageDlg('Key already exists. Really create a second identical key? This will slow down queries on this table.',
+          mtConfirmation, [mbYes, mbNo], 0) = mrNo then
+          Exit;
+        break;
+      end;
+    end;
+    IndexParts := TWideStringlist.Create;
+    IndexParts.OnChange := IndexesChange;
+    // TODO: Enable multiselection in ListColumns so one can create a multicolumn key in two clicks
+    IndexParts.Add(NewPart);
+    Indexes.AddObject(NewName+REGDELIM+NewType, IndexParts);
+    PageControlMain.ActivePage := tabIndexes;
+    treeIndexes.Repaint;
+    SelectNode(treeIndexes, Indexes.Count-1);
+    SelectNode(treeIndexes, 0, treeIndexes.FocusedNode);
+  end else begin
+    IndexParts := TWideStringlist(Indexes.Objects[Item.MenuIndex]);
+    PageControlMain.ActivePage := tabIndexes;
+    IndexParts.Add(NewPart);
+    SelectNode(treeIndexes, Item.MenuIndex);
+    treeIndexes.ReinitChildren(treeIndexes.FocusedNode, False);
+    SelectNode(treeIndexes, IndexParts.Count-1, treeIndexes.FocusedNode);
+  end;
+end;
+
+
+function TfrmTableEditor.GetIndexIcon(idx: Integer): Integer;
+var
+  IndexType, IndexName: WideString;
+begin
+  // Detect key icon index for specified index
+  GetIndexInfo(idx, IndexName, IndexType);
+  if IndexType = PKEY then Result := ICONINDEX_PRIMARYKEY
+  else if IndexType = KEY then Result := ICONINDEX_INDEXKEY
+  else if IndexType = UKEY then Result := ICONINDEX_UNIQUEKEY
+  else if IndexType = FKEY then Result := ICONINDEX_FULLTEXTKEY
+  else if IndexType = SKEY then Result := ICONINDEX_SPATIALKEY
+  else Result := -1;
+end;
+
+
+procedure TfrmTableEditor.GetIndexInfo(idx: Integer; var IndexName, IndexType: WideString);
+begin
+  IndexName := Copy(Indexes[idx], 1, LastPos(REGDELIM, Indexes[idx])-1);
+  IndexType := Copy(Indexes[idx], LastPos(REGDELIM, Indexes[idx])+1, Length(Indexes[idx]));
 end;
 
 

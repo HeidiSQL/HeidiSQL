@@ -675,6 +675,7 @@ object frmTableEditor: TfrmTableEditor
   end
   object popupColumns: TPopupMenu
     Images = MainForm.PngImageListMain
+    OnPopup = popupColumnsPopup
     Left = 312
     Top = 360
     object menuAddColumn: TMenuItem
@@ -706,6 +707,17 @@ object frmTableEditor: TfrmTableEditor
       ImageIndex = 75
       ShortCut = 16452
       OnClick = btnMoveDownColumnClick
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object menuCreateIndex: TMenuItem
+      Caption = 'Create new index'
+      ImageIndex = 13
+    end
+    object menuAddToIndex: TMenuItem
+      Caption = 'Add to index'
+      ImageIndex = 13
     end
   end
 end
