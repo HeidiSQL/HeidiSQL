@@ -195,6 +195,9 @@ begin
   // Enable mouse scrolling, plus ensure the editor component
   // is not partly hidden when it pops up in a bottom cell
   FParentForm := GetParentForm(FTree);
+  // Avoid flicker
+  FParentForm.Repaint;
+  SendMessage(FParentForm.Handle, WM_SETREDRAW, 0, 0);
 end;
 
 destructor TBaseGridEditorLink.Destroy;
@@ -222,6 +225,9 @@ begin
     FOldWindowProc := FMainControl.WindowProc;
     FMainControl.WindowProc := TempWindowProc;
   end;
+  // Adjust editor position and allow repainting mainform  
+  SetBounds(FCellTextBounds);
+  SendMessage(FParentForm.Handle, WM_SETREDRAW, 1, 0);
 end;
 
 function TBaseGridEditorLink.BeginEdit: Boolean;
@@ -376,7 +382,6 @@ begin
   FPanel := TPanel.Create(FParentForm);
   FPanel.Parent := FParentForm;
   FPanel.Hide;
-  FPanel.ControlStyle := FPanel.ControlStyle - [csOpaque];
   FPanel.ParentBackground := False;
   FPanel.Color := FTree.Color;
   FPanel.BevelOuter := bvNone;
