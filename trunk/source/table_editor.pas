@@ -1639,6 +1639,8 @@ end;
 
 procedure TfrmTableEditor.PageControlMainChange(Sender: TObject);
 begin
+  if treeIndexes.IsEditing then
+    treeIndexes.EndEditNode;
   UpdateSQLcode;
 end;
 
