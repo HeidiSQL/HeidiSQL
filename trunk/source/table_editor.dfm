@@ -80,8 +80,8 @@ object frmTableEditor: TfrmTableEditor
     PopupMenu = popupColumns
     TabOrder = 2
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toFullRowDrag, toEditOnClick]
-    TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
-    TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
+    TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+    TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
     WantTabs = True
     OnAfterCellPaint = listColumnsAfterCellPaint
     OnBeforeCellPaint = listColumnsBeforeCellPaint
@@ -606,16 +606,8 @@ object frmTableEditor: TfrmTableEditor
         ImageIndex = 46
         OnClick = btnRemoveColumnClick
       end
-      object btnClearColumns: TToolButton
-        Left = 132
-        Top = 0
-        Hint = 'Remove all columns'
-        Caption = 'Clear'
-        ImageIndex = 26
-        OnClick = btnClearColumnsClick
-      end
       object btnMoveUpColumn: TToolButton
-        Left = 198
+        Left = 132
         Top = 0
         Hint = 'Move up'
         Caption = 'Up'
@@ -623,7 +615,7 @@ object frmTableEditor: TfrmTableEditor
         OnClick = btnMoveUpColumnClick
       end
       object btnMoveDownColumn: TToolButton
-        Left = 264
+        Left = 198
         Top = 0
         Hint = 'Move down'
         Caption = 'Down'
@@ -689,12 +681,6 @@ object frmTableEditor: TfrmTableEditor
       ImageIndex = 46
       ShortCut = 16430
       OnClick = btnRemoveColumnClick
-    end
-    object menuClearColumns: TMenuItem
-      Caption = 'Clear all columns'
-      ImageIndex = 26
-      ShortCut = 24622
-      OnClick = btnClearColumnsClick
     end
     object menuMoveUpColumn: TMenuItem
       Caption = 'Move up'
