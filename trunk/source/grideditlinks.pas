@@ -17,6 +17,7 @@ type
     FColumn: TColumnIndex;            // The column of the node.
     FCellText: WideString;            // Original cell text value
     FCellFont: TFont;                 // Cosmetic
+    FCellBackground: TColor;
     FMainControl: TWinControl;        // The editor's most important component
     FStopping: Boolean;               // Set to True when the edit link requests stopping the edit action.
     FLastKeyDown: Integer;            // Set in OnKeyDown on the editor's main control
@@ -221,6 +222,7 @@ begin
   FCellFont := TFont.Create;
   FTree.GetTextInfo(FNode, FColumn, FCellFont, FCellTextBounds, FCellText);
   FCellFont.Color := DatatypeCategories[Integer(Datatypes[Integer(Datatype)].Category)].Color;
+  FCellBackground := FTree.Header.Columns[FColumn].Color;
   if Assigned(FMainControl) then begin
     FOldWindowProc := FMainControl.WindowProc;
     FMainControl.WindowProc := TempWindowProc;
@@ -383,12 +385,12 @@ begin
   FPanel.Parent := FParentForm;
   FPanel.Hide;
   FPanel.ParentBackground := False;
-  FPanel.Color := FTree.Color;
   FPanel.BevelOuter := bvNone;
   FPanel.OnExit := DoEndEdit;
 
   FMaskEdit := TMaskEdit.Create(FPanel);
   FMaskEdit.Parent := FPanel;
+  FMaskEdit.ParentColor := True;
   FMaskEdit.BorderStyle := bsNone;
   FMaskEdit.OnKeyDown := DoKeyDown;
   FMaskEdit.OnKeyUp := DoKeyUp;
@@ -459,6 +461,7 @@ begin
   end;
   FMaskEdit.Text := CellText;
   FMaskEdit.Font.Assign(FCellFont);
+  FPanel.Color := FCellBackground;
   // Auto-enlarge current tree column so the text in the edit is not cut
   MinColWidth := FTree.Canvas.TextWidth(CellText) + FTree.TextMargin + FUpDown.Width + 5;
   if FTree.Header.Columns[FColumn].Width < MinColWidth then
@@ -791,12 +794,12 @@ begin
   FPanel.Parent := FParentForm;
   FPanel.Hide;
   FPanel.ParentBackground := False;
-  FPanel.Color := FTree.Color;
   FPanel.BevelOuter := bvNone;
   FPanel.OnExit := DoEndEdit;
 
   FEdit := TTntEdit.Create(FPanel);
   FEdit.Parent := FPanel;
+  FEdit.ParentColor := True;
   FEdit.BorderStyle := bsNone;
   FEdit.OnKeyDown := DoKeyDown;
   FMainControl := FEdit;
@@ -881,6 +884,7 @@ begin
 
   FEdit.Font.Assign(FCellFont);
   FEdit.Font.Color := clWindowText;
+  FPanel.Color := FCellBackground;
   if ScanNulChar(FCellText) then begin
     MessageDlg(SContainsNulCharGrid, mtInformation, [mbOK], 0);
     FEdit.Text := RemoveNulChars(FCellText);
