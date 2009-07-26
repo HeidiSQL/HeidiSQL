@@ -2217,32 +2217,22 @@ end;
 }
 function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: TListNodeType = lntNone ): TWideStringList;
 var
-  SelectedNodes : TNodeArray;
+  Node: PVirtualNode;
   NodeData: PVTreeData;
-  i: Integer;
-  a : TVTreeDataArray;
 begin
   Result := TWideStringList.Create;
-  if OnlySelected then
-  begin
-    // Fetch only selected nodes
-    SelectedNodes := VT.GetSortedSelection(False);
-    for i := 0 to Length(SelectedNodes) - 1 do
-    begin
-      NodeData := VT.GetNodeData( SelectedNodes[i] );
-      if (OnlyNodeType = lntNone) // Add all nodes, regardless of their types
-        or (NodeData.NodeType = OnlyNodeType) then // Node in loop is of specified type
-        Result.Add( NodeData.Captions[Column] );
+  if OnlySelected then Node := VT.GetFirstSelected
+  else Node := VT.GetFirst;
+  while Assigned(Node) do begin
+    if OnlyNodeType = lntNone then // Add all nodes, regardless of their types
+      Result.Add( VT.Text[Node, Column] )
+    else begin
+      NodeData := VT.GetNodeData(Node);
+      if (NodeData.NodeType = OnlyNodeType) then // Node in loop is of specified type
+        Result.Add(NodeData.Captions[Column]);
     end;
-  end
-  else begin
-    // Fetch all nodes
-    a := Mainform.GetVTreeDataArray( VT )^;
-    for i := 0 to High(a) do begin
-      if (OnlyNodeType = lntNone)
-        or (a[i].NodeType = OnlyNodeType) then
-        Result.Add( a[i].Captions[ Column ] );
-    end;
+    if OnlySelected then Node := VT.GetNextSelected(Node)
+    else Node := VT.GetNext(Node);
   end;
 end;
 

@@ -50,7 +50,6 @@ type
     tlbColumns: TToolBar;
     btnAddColumn: TToolButton;
     btnRemoveColumn: TToolButton;
-    btnClearColumns: TToolButton;
     btnMoveUpColumn: TToolButton;
     btnMoveDownColumn: TToolButton;
     SplitterTopBottom: TSplitter;
@@ -68,7 +67,6 @@ type
     popupColumns: TPopupMenu;
     menuAddColumn: TMenuItem;
     menuRemoveColumn: TMenuItem;
-    menuClearColumns: TMenuItem;
     menuMoveUpColumn: TMenuItem;
     menuMoveDownColumn: TMenuItem;
     chkCharsetConvert: TCheckBox;
@@ -79,7 +77,6 @@ type
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
     procedure btnRemoveColumnClick(Sender: TObject);
-    procedure btnClearColumnsClick(Sender: TObject);
     procedure listColumnsBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure listColumnsFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure btnHelpClick(Sender: TObject);
@@ -253,7 +250,7 @@ begin
   comboCollation.Items.Clear;
   Mainform.GetCollations(comboCollation.Items);
   FAlterTableName := AlterTableName;
-  btnClearColumnsClick(Self);
+  Columns.Clear;
   btnClearIndexesClick(Self);
   tabALTERcode.TabVisible := FAlterTableName <> '';
 
@@ -833,37 +830,29 @@ end;
 
 procedure TfrmTableEditor.btnRemoveColumnClick(Sender: TObject);
 var
-  i: Integer;
-  n: PVirtualNode;
+  i, FocusIndex: Integer;
+  SelCols: TWideStringList;
 begin
-  // Remove selected column
-  n := listColumns.FocusedNode;
+  // Remove selected column(s)
+  SelCols := GetVTCaptions(listColumns, true, 1);
+  // Remember focused node index
+  if Assigned(listColumns.FocusedNode) then
+    FocusIndex := listColumns.FocusedNode.Index
+  else
+    FocusIndex := listColumns.GetFirstSelected.Index;
+
+  // Set empty value for name=val column name pairs
   for i:=0 to ColumnNames.Count-1 do begin
-    if ColumnNames.ValueFromIndex[i] = Columns[n.Index] then begin
+    if SelCols.IndexOf(ColumnNames.ValueFromIndex[i]) > -1 then begin
       ColumnNames[i] := ColumnNames.Names[i] + ColumnNames.NameValueSeparator;
-      break;
     end;
   end;
-  Columns.Delete(n.Index);
-  if (not Assigned(n)) and (Columns.Count > 0) then
-    SelectNode(listColumns, Columns.Count-1);
-end;
-
-
-procedure TfrmTableEditor.btnClearColumnsClick(Sender: TObject);
-var i: Integer;
-begin
-  // Set empty values in changelist
-  for i:=0 to ColumnNames.Count - 1 do
-    ColumnNames[i] := ColumnNames.Names[i] + ColumnNames.NameValueSeparator;
-  // Column data gets freed below - end any editor which could cause AV's
-  if listColumns.IsEditing then
-    listColumns.CancelEditNode;
-  // I suspect Columns.Clear to be silly enough and leave its objects in memory,
-  // so we'll free them explicitely
-  for i := 0 to Columns.Count - 1 do
-    Columns.Objects[i].Free;
-  Columns.Clear;
+  for i:=0 to SelCols.Count-1 do begin
+    Columns.Delete(Columns.IndexOf(SelCols[i]));
+  end;
+  if Columns.Count > 0 then
+    SelectNode(listColumns, Min(FocusIndex, Columns.Count-1));
+  ValidateColumnControls;
 end;
 
 
@@ -965,13 +954,11 @@ procedure TfrmTableEditor.ValidateColumnControls;
 var Node: PVirtualNode;
 begin
   Node := listColumns.FocusedNode;
-  btnRemoveColumn.Enabled := Assigned(Node);
-  btnClearColumns.Enabled := Columns.Count > 0;
+  btnRemoveColumn.Enabled := listColumns.SelectedCount > 0;
   btnMoveUpColumn.Enabled := Assigned(Node) and (Node <> listColumns.GetFirst);
   btnMoveDownColumn.Enabled := Assigned(Node) and (Node <> listColumns.GetLast);
 
   menuRemoveColumn.Enabled := btnRemoveColumn.Enabled;
-  menuClearColumns.Enabled := btnClearColumns.Enabled;
   menuMoveUpColumn.Enabled := btnMoveUpColumn.Enabled;
   menuMoveDownColumn.Enabled := btnMoveDownColumn.Enabled;
 end;
@@ -1208,8 +1195,8 @@ begin
     if Node.Index = idx then begin
       VT.FocusedNode := Node;
       VT.Selected[Node] := True;
-      break;
-    end;
+    end else
+      VT.Selected[Node] := False;
     Node := VT.GetNextSibling(Node);
   end;
 end;
@@ -1689,15 +1676,16 @@ var
   IndexName, IndexType: WideString;
   Item: TMenuItem;
   PrimaryKeyExists,
-  ColumnFocused: Boolean;
+  ColumnsSelected: Boolean;
   IndexParts: TWideStringList;
+  Node: PVirtualNode;
 begin
-  ColumnFocused := Assigned(ListColumns.FocusedNode);
+  ColumnsSelected := ListColumns.SelectedCount > 0;
   menuAddToIndex.Clear;
   menuCreateIndex.Clear;
-  menuAddToIndex.Enabled := ColumnFocused;
-  menuCreateIndex.Enabled := ColumnFocused;
-  if not ColumnFocused then
+  menuAddToIndex.Enabled := ColumnsSelected;
+  menuCreateIndex.Enabled := ColumnsSelected;
+  if not ColumnsSelected then
     Exit;
 
   // Auto create submenu items for "Add to index" ...
@@ -1709,9 +1697,18 @@ begin
     else
       IndexName := IndexName + ' ('+IndexType+')';
     Item := AddItem(menuAddToIndex, IndexName, GetIndexIcon(i));
-    // Disable menuitem if column is already part of index
+    // Disable menuitem if all selected columns are already part of this index,
+    // enable it if one or more selected columns are not.
+    Item.Enabled := False;
     IndexParts := TWideStringList(Indexes.Objects[i]);
-    Item.Enabled := IndexParts.IndexOf(Columns[ListColumns.FocusedNode.Index]) = -1;
+    Node := listColumns.GetFirstSelected;
+    while Assigned(Node) do begin
+      if IndexParts.IndexOf(Columns[Node.Index]) = -1 then begin
+        Item.Enabled := True;
+        Break;
+      end;
+      Node := listColumns.GetNextSelected(Node);
+    end;
   end;
   menuAddToIndex.Enabled := menuAddToIndex.Count > 0;
 
@@ -1730,40 +1727,41 @@ var
   Item: TMenuItem;
   i: Integer;
   IndexName, IndexType,
-  NewName, NewType, NewPart: WideString;
-  IndexParts: TWideStringlist;
+  NewName, NewType: WideString;
+  IndexParts, NewParts: TWideStringlist;
 begin
-  // Auto create index or add column to existing one by rightclicking a column
+  // Auto create index or add columns to existing one by rightclicking a column
   Item := (Sender as TMenuItem);
-  NewPart := Columns[ListColumns.FocusedNode.Index];
+  NewParts := GetVTCaptions(listColumns, True, 1);
   if Item.Parent = menuCreateIndex then begin
     NewName := 'Index '+IntToStr(Indexes.Count+1);
     // Remove auto hotkeys
     NewType := StringReplace(Item.Caption, '&', '', [rfReplaceAll]);
-    // Avoid creating a second key with the same column
+    // Avoid creating a second key with the same columns
     for i:=0 to Indexes.Count-1 do begin
       IndexParts := TWideStringList(Indexes.Objects[i]);
       GetIndexInfo(i, IndexName, IndexType);
-      if (IndexType = NewType) and (IndexParts.Count = 1) and (IndexParts[0] = NewPart) then begin
-        if MessageDlg('Key already exists. Really create a second identical key? This will slow down queries on this table.',
+      if (IndexType = NewType) and (IndexParts.Text = NewParts.Text) then begin
+        if MessageDlg('Key already exists. Really create another identical one?'+CRLF+CRLF+
+          'This will increase disk usage and probably slow down queries on this table.',
           mtConfirmation, [mbYes, mbNo], 0) = mrNo then
           Exit;
         break;
       end;
     end;
-    IndexParts := TWideStringlist.Create;
-    IndexParts.OnChange := IndexesChange;
-    // TODO: Enable multiselection in ListColumns so one can create a multicolumn key in two clicks
-    IndexParts.Add(NewPart);
-    Indexes.AddObject(NewName+REGDELIM+NewType, IndexParts);
+    NewParts.OnChange := IndexesChange;
+    Indexes.AddObject(NewName+REGDELIM+NewType, NewParts);
     PageControlMain.ActivePage := tabIndexes;
     treeIndexes.Repaint;
     SelectNode(treeIndexes, Indexes.Count-1);
     SelectNode(treeIndexes, 0, treeIndexes.FocusedNode);
   end else begin
-    IndexParts := TWideStringlist(Indexes.Objects[Item.MenuIndex]);
     PageControlMain.ActivePage := tabIndexes;
-    IndexParts.Add(NewPart);
+    IndexParts := TWideStringlist(Indexes.Objects[Item.MenuIndex]);
+    for i:=0 to NewParts.Count-1 do begin
+      if IndexParts.IndexOf(NewParts[i]) = -1 then
+        IndexParts.Add(NewParts[i]);
+    end;
     SelectNode(treeIndexes, Item.MenuIndex);
     treeIndexes.ReinitChildren(treeIndexes.FocusedNode, False);
     SelectNode(treeIndexes, IndexParts.Count-1, treeIndexes.FocusedNode);
