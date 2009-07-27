@@ -54,7 +54,6 @@ type
     Extra1: TMenuItem;
     FlushUserPrivileges1: TMenuItem;
     MenuCopyCSV: TMenuItem;
-    MenuRefresh1: TMenuItem;
     MenuExport: TMenuItem;
     N5: TMenuItem;
     MenuImportTextFile: TMenuItem;
@@ -259,11 +258,7 @@ type
     PrintList2: TMenuItem;
     N1a: TMenuItem;
     SynMemoFilter: TSynMemo;
-    MenuAutoupdate: TMenuItem;
     TimerRefresh: TTimer;
-    Set1: TMenuItem;
-    EnableAutoRefresh: TMenuItem;
-    DisableAutoRefresh: TMenuItem;
     Saveastextfile1: TMenuItem;
     QF7: TMenuItem;
     QF5: TMenuItem;
@@ -417,6 +412,9 @@ type
     menuCreateView: TMenuItem;
     menuCreateRoutine: TMenuItem;
     tabEditor: TTabSheet;
+    popupRefresh: TPopupMenu;
+    menuAutoRefreshSetInterval: TMenuItem;
+    menuAutoRefresh: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -537,9 +535,8 @@ type
     procedure Clear2Click(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
     procedure popupResultGridPopup(Sender: TObject);
-    procedure Autoupdate1Click(Sender: TObject);
-    procedure EnableAutoRefreshClick(Sender: TObject);
-    procedure DisableAutoRefreshClick(Sender: TObject);
+    procedure AutoRefreshSetInterval(Sender: TObject);
+    procedure AutoRefreshToggle(Sender: TObject);
     procedure SynMemoQueryDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
     procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -4816,7 +4813,7 @@ begin
   // Save2CSV.enabled :=
 end;
 
-procedure TMainForm.Autoupdate1Click(Sender: TObject);
+procedure TMainForm.AutoRefreshSetInterval(Sender: TObject);
 var
   seconds : String;
   secondsInt : Integer;
@@ -4828,31 +4825,19 @@ begin
     if secondsInt > 0 then begin
       TimerRefresh.Interval := secondsInt * 1000;
       TimerRefresh.Enabled := true;
-      EnableAutoRefresh.Checked := true;
-      DisableAutoRefresh.Checked := false;
+      menuAutoRefresh.Checked := true;
     end
     else
       MessageDLG('Seconds must be between 1 and ' + IntToStr(maxint) + '.', mtError, [mbOK], 0);
   end;
 end;
 
-procedure TMainForm.EnableAutoRefreshClick(Sender: TObject);
+procedure TMainForm.AutoRefreshToggle(Sender: TObject);
 begin
   // enable autorefresh-timer
-  TimerRefresh.Enabled := true;
-  EnableAutoRefresh.Checked := true;
-  DisableAutoRefresh.Checked := false;
+  TimerRefresh.Enabled := not TimerRefresh.Enabled;
+  menuAutoRefresh.Checked := TimerRefresh.Enabled;
 end;
-
-procedure TMainForm.DisableAutoRefreshClick(Sender: TObject);
-begin
-  // enable autorefresh-timer
-  TimerRefresh.Enabled := false;
-  EnableAutoRefresh.Checked := false;
-  DisableAutoRefresh.Checked := true;
-end;
-
-
 
 procedure TMainForm.SynMemoQueryDragOver(Sender, Source: TObject; X,
   Y: Integer; State: TDragState; var Accept: Boolean);
@@ -5400,7 +5385,8 @@ begin
     except
       on E: Exception do begin
         // Ensure auto-updating processlist is disabled, see bug #1865305
-        DisableAutoRefreshClick(self);
+        if TimerRefresh.Enabled then
+          AutoRefreshToggle(nil);
         Screen.Cursor := crDefault;
         raise Exception.Create('Failed to reconnect, giving up. (' + E.Message + ')');
       end;

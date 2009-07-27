@@ -101,7 +101,7 @@ object MainForm: TMainForm
     object ToolBarStandard: TToolBar
       Left = 11
       Top = 2
-      Width = 298
+      Width = 319
       Height = 22
       Align = alNone
       AutoSize = True
@@ -168,27 +168,29 @@ object MainForm: TMainForm
         Top = 0
         Action = actRefresh
         AutoSize = True
+        DropdownMenu = popupRefresh
+        Style = tbsDropDown
       end
       object ButtonUserManager: TToolButton
-        Left = 198
+        Left = 219
         Top = 0
         Action = actUserManager
         AutoSize = True
       end
       object ButtonImportTextfile: TToolButton
-        Left = 221
+        Left = 242
         Top = 0
         Action = actImportCSV
         AutoSize = True
       end
       object ButtonExport: TToolButton
-        Left = 244
+        Left = 265
         Top = 0
         Action = actExportTables
         AutoSize = True
       end
       object tlbSep6: TToolButton
-        Left = 267
+        Left = 288
         Top = 0
         Width = 8
         Caption = 'tlbSep6'
@@ -196,13 +198,13 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object btnSQLHelp: TToolButton
-        Left = 275
+        Left = 296
         Top = 0
         Action = actSQLhelp
       end
     end
     object ToolBarData: TToolBar
-      Left = 322
+      Left = 343
       Top = 2
       Width = 138
       Height = 22
@@ -246,7 +248,7 @@ object MainForm: TMainForm
       end
     end
     object ToolBarQuery: TToolBar
-      Left = 473
+      Left = 494
       Top = 2
       Width = 268
       Height = 22
@@ -1404,30 +1406,6 @@ object MainForm: TMainForm
       end
       object Previoustab1: TMenuItem
         Action = actPreviousTab
-      end
-      object MenuRefresh1: TMenuItem
-        Tag = 28
-        Action = actRefresh
-      end
-      object MenuAutoupdate: TMenuItem
-        Caption = 'Automatic refresh'
-        object Set1: TMenuItem
-          Caption = 'Set interval...'
-          OnClick = Autoupdate1Click
-        end
-        object EnableAutoRefresh: TMenuItem
-          Caption = 'Active'
-          RadioItem = True
-          ShortCut = 16500
-          OnClick = EnableAutoRefreshClick
-        end
-        object DisableAutoRefresh: TMenuItem
-          Caption = 'Inactive'
-          Checked = True
-          RadioItem = True
-          ShortCut = 24692
-          OnClick = DisableAutoRefreshClick
-        end
       end
       object Flush1: TMenuItem
         Tag = 33
@@ -6510,6 +6488,19 @@ object MainForm: TMainForm
     end
     object N25: TMenuItem
       Caption = '-'
+    end
+  end
+  object popupRefresh: TPopupMenu
+    Left = 40
+    Top = 96
+    object menuAutoRefresh: TMenuItem
+      Caption = 'Auto refresh'
+      ShortCut = 16500
+      OnClick = AutoRefreshToggle
+    end
+    object menuAutoRefreshSetInterval: TMenuItem
+      Caption = 'Set interval ...'
+      OnClick = AutoRefreshSetInterval
     end
   end
 end
