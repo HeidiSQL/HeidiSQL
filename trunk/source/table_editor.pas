@@ -299,7 +299,7 @@ begin
 
     listColumns.BeginUpdate;
     rx.ModifierS := False;
-    rx.Expression := '\s+`([^`]+)`\s(\w+)(.+)';
+    rx.Expression := '\s+`([^`]+)`\s(\w+)(.*)';
     rxCol := TRegExpr.Create;
     rxCol.ModifierI := True;
     if rx.Exec(CreateTable) then while true do begin
@@ -310,7 +310,7 @@ begin
       ColSpec := rx.Match[3];
 
       // Strip trailing comma
-      if ColSpec[Length(ColSpec)] = ',' then
+      if (ColSpec <> '') and (ColSpec[Length(ColSpec)] = ',') then
         Delete(ColSpec, Length(ColSpec), 1);
 
       // Datatype
