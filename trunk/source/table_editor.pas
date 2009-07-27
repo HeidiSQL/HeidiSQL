@@ -355,6 +355,9 @@ begin
         Props[3] := BoolToStr(True);
         ColDefaultType := cdtNull;
         ColDefaultText := 'NULL';
+        // Sporadically there is a "NULL" found at this position. 
+        if UpperCase(Copy(ColSpec, 1, 4)) = 'NULL' then
+          Delete(ColSpec, 1, 5);
       end;
 
       // Default value
