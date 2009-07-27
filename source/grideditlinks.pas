@@ -922,6 +922,9 @@ begin
   FPanel.OnExit := DoEndEdit;
   FPanel.Width := 200;
   FPanel.ParentBackground := False;
+  FPanel.Color := clWindow;
+  FPanel.BevelKind := bkFlat;
+  FPanel.BevelOuter := bvNone;
   FMainControl := FPanel;
 
   FRadioText := TRadioButton.Create(FPanel);
