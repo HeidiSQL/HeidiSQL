@@ -390,7 +390,7 @@ begin
           Delete(ColSpec, 1, i);
         end;
       end;
-      if Copy(ColSpec, 1, 27) = 'ON UPDATE CURRENT_TIMESTAMP' then begin
+      if UpperCase(Copy(ColSpec, 1, 27)) = 'ON UPDATE CURRENT_TIMESTAMP' then begin
         // Adjust default type
         case ColDefaultType of
           cdtText: ColDefaultType := cdtTextUpdateTS;
