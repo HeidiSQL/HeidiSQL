@@ -1188,9 +1188,9 @@ begin
   Result := inherited PrepareEdit(Tree, Node, Column);
   if not Result then
     Exit;
-  FTreeSelect.Font.Assign(FCellFont);
-  // Highlighted cell has white font, fix that
-  FTreeSelect.Font.Color := FTree.Font.Color;
+  // Just use font name and size, avoid bold style and white color
+  FTreeSelect.Font.Name := FCellFont.Name;
+  FTreeSelect.Font.Size := FCellFont.Size;
 
   // Find and select current datatype in tree
   dt := GetDataTypeByName(FCellText);
