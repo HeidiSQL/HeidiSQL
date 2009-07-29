@@ -94,6 +94,7 @@ object frmTableEditor: TfrmTableEditor
     OnFocusChanged = listColumnsFocusChanged
     OnGetText = listColumnsGetText
     OnPaintText = listColumnsPaintText
+    OnGetImageIndex = listColumnsGetImageIndex
     OnNewText = listColumnsNewText
     Columns = <
       item

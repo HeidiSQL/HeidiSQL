@@ -132,6 +132,9 @@ type
     procedure btnDiscardClick(Sender: TObject);
     procedure popupColumnsPopup(Sender: TObject);
     procedure AddIndexByColumn(Sender: TObject);
+    procedure listColumnsGetImageIndex(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+      var Ghosted: Boolean; var ImageIndex: Integer);
   private
     { Private declarations }
     FModified: Boolean;
@@ -1017,6 +1020,34 @@ begin
 end;
 
 
+procedure TfrmTableEditor.listColumnsGetImageIndex(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+  var Ghosted: Boolean; var ImageIndex: Integer);
+var
+  IndexName, IndexType: WideString;
+  Props: TWideStringlist;
+  i: Integer;
+begin
+  // Primary key icon
+  if Column <> 0 then Exit;
+
+  for i:=0 to Indexes.Count-1 do begin
+    GetIndexInfo(i, IndexName, IndexType);
+    Props := TWideStringlist(Indexes.Objects[i]);
+    if Props.IndexOf(Columns[Node.Index]) > -1 then begin
+      if IndexType = PKEY then ImageIndex := ICONINDEX_PRIMARYKEY
+      else if IndexType = UKEY then ImageIndex := ICONINDEX_UNIQUEKEY
+      else if IndexType = KEY then ImageIndex := ICONINDEX_INDEXKEY
+      else if IndexType = FKEY then ImageIndex := ICONINDEX_FULLTEXTKEY
+      else if IndexType = SKEY then ImageIndex := ICONINDEX_SPATIALKEY;
+    end;
+    // Priority for PK columns. We cannot display more than one icon anyway.
+    if ImageIndex > -1 then
+      break;
+  end;
+end;
+
+
 procedure TfrmTableEditor.listColumnsPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
@@ -1025,18 +1056,29 @@ var
   TextColor: TColor;
   dt: TDatatype;
   Props: TWideStringlist;
+  i: Integer;
+  IndexName, IndexType: WideString;
 begin
-  // Give datatype column specific color, as set in preferences
-  if vsSelected in Node.States then
-    Exit;
-  if not (Column in [2, 6]) then
-    Exit;
+  // Bold font for primary key columns
+  for i:=0 to Indexes.Count-1 do begin
+    GetIndexInfo(i, IndexName, IndexType);
+    if IndexType = PKEY then begin
+      if TWideStringlist(Indexes.Objects[i]).IndexOf(Columns[Node.Index]) > -1 then
+        TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
+      break;
+    end;
+  end;
 
+  // No specific colors for selected nodes, would interfere with blue selection background
+  if vsSelected in Node.States then Exit;
+  // Break early if nothing to do
+  if not (Column in [2, 6]) then Exit;
+
+  // Give datatype column specific color, as set in preferences
   Props := TWideStringlist(Columns.Objects[Node.Index]);
   dt := GetDatatypeByName(Props[0]);
   Default := Props[4];
   TextColor := TargetCanvas.Font.Color;
-
   case Column of
     2: TextColor := DatatypeCategories[Integer(dt.Category)].Color;
 
@@ -1049,7 +1091,6 @@ begin
         TextColor := clNavy;
     end;
   end;
-
   TargetCanvas.Font.Color := TextColor;
 end;
 
