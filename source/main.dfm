@@ -328,6 +328,7 @@ object MainForm: TMainForm
     AutoSize = True
     BevelOuter = bvNone
     TabOrder = 0
+    OnDblClick = panelTopDblClick
     object Splitter1: TSplitter
       Left = 169
       Top = 0
@@ -399,9 +400,11 @@ object MainForm: TMainForm
       HotTrack = True
       Images = PngImageListMain
       MultiLine = True
+      PopupMenu = popupMainTabs
       TabHeight = 22
       TabOrder = 1
       OnChange = PageControlMainChange
+      OnMouseUp = PageControlMainMouseUp
       object tabHost: TTabSheet
         Caption = 'Host'
         ImageIndex = 1
@@ -1169,6 +1172,7 @@ object MainForm: TMainForm
         Caption = 'Query'
         ImageIndex = 57
         object spltQuery: TSplitter
+          Tag = 8
           Left = 0
           Top = 96
           Width = 575
@@ -1185,6 +1189,7 @@ object MainForm: TMainForm
           Align = alTop
         end
         object pnlQueryMemo: TPanel
+          Tag = 1
           Left = 0
           Top = 0
           Width = 575
@@ -1195,6 +1200,7 @@ object MainForm: TMainForm
           TabOrder = 0
           OnCanResize = pnlQueryMemoCanResize
           object spltQueryHelpers: TSplitter
+            Tag = 5
             Left = 411
             Top = 0
             Width = 4
@@ -1204,6 +1210,7 @@ object MainForm: TMainForm
             ResizeStyle = rsUpdate
           end
           object SynMemoQuery: TSynMemo
+            Tag = 6
             Left = 0
             Top = 0
             Width = 411
@@ -1250,6 +1257,7 @@ object MainForm: TMainForm
               end>
           end
           object pnlQueryHelpers: TPanel
+            Tag = 2
             Left = 415
             Top = 0
             Width = 160
@@ -1259,6 +1267,7 @@ object MainForm: TMainForm
             TabOrder = 1
             OnCanResize = pnlQueryHelpersCanResize
             object tabsetQueryHelpers: TTabSet
+              Tag = 4
               Left = 0
               Top = 72
               Width = 160
@@ -1281,6 +1290,7 @@ object MainForm: TMainForm
               OnChange = tabsetQueryHelpersChange
             end
             object lboxQueryHelpers: TTntListBox
+              Tag = 3
               Left = 0
               Top = 0
               Width = 160
@@ -1297,6 +1307,7 @@ object MainForm: TMainForm
           end
         end
         object QueryGrid: TVirtualStringTree
+          Tag = 7
           Left = 0
           Top = 113
           Width = 575
@@ -1356,6 +1367,12 @@ object MainForm: TMainForm
       object FileNewItem: TMenuItem
         Tag = 23
         Action = actNewWindow
+      end
+      object Newquerytab1: TMenuItem
+        Action = actNewQueryTab
+      end
+      object Closetab1: TMenuItem
+        Action = actCloseQueryTab
       end
       object N1: TMenuItem
         Caption = '-'
@@ -2114,6 +2131,21 @@ object MainForm: TMainForm
       Hint = 'Edit selected object'
       ImageIndex = 129
       OnExecute = actEditObjectExecute
+    end
+    object actNewQueryTab: TAction
+      Category = 'File'
+      Caption = 'New query tab'
+      ImageIndex = 132
+      ShortCut = 16468
+      OnExecute = actNewQueryTabExecute
+    end
+    object actCloseQueryTab: TAction
+      Category = 'File'
+      Caption = 'Close query tab'
+      Enabled = False
+      ImageIndex = 133
+      ShortCut = 16499
+      OnExecute = actCloseQueryTabExecute
     end
   end
   object SaveDialog2: TSaveDialog
@@ -5803,6 +5835,48 @@ object MainForm: TMainForm
           00000049454E44AE426082}
         Name = 'PngImage131'
         Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001974455874536F6674776172650041646F626520496D616765526561
+          647971C9653C000001974944415478DA63FCFFFF3F032580719818306FDE3C67
+          20BB1588CD89D4770F880B93929236C10CB86660A0A5292E2E023195114C42D9
+          081AC2666478FDFA2DC3A953179E000D908519F0CAC9C952F4D9B3B70CBF7FFF
+          056B606262826B026166666630CDC2C2C2202D2DCCB075EBDE1F400338910CB0
+          127DF5EA03C3CF9FBFE19A619A401826C6C2C2CC202929CCB079F32E54035C5C
+          6C445FBFFE0474C11F140DE83433331383B8B810C3A64D3B500D7075B5137DFB
+          F613C39F3FFF5034C0D8E71F1E65B8F8F818C3E7EF1F197EFDFEC520C224F7A7
+          A774262BE3DCB973FF2B28C832E8EBEBC0030F116010FE9EF39B18AEBE39C260
+          AC65C2202BA4CAB0EFCA068613570E33F07DD660001B4028CE0EBE5AC910E4E3
+          C9C00074BEBF661E43CF9E540666062686D51BB71197907CAA0DFF6745653378
+          69A7C0C5365D9ECAD03AA38538032C73A4BF07F9B973FC61F8C750E9B680A17D
+          67020307333BC38AF59B7E10658079B6648B8C227FB5959E0D83AAA421C3EDE7
+          E7198E5D3AC2F0E4FEC75EA2F302D0900E209505C4BC40FC1988A79D9CFABC02
+          001E0BB99292493F4C0000000049454E44AE426082}
+        Name = 'PngImage132'
+        Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001974455874536F6674776172650041646F626520496D616765526561
+          647971C9653C0000019F4944415478DA63FCFFFF3F032580719818306FDE3C67
+          20BB1588CD89D4770F880B93929236C10CB86660A0A5292E2E023195114C42D9
+          081AC2666478FDFA2DC3A953179E000D908519F0CAC9C952F4D9B3B70CBF7FFF
+          056B606262826B026166666630CDC2C2C2202D2DCCB075EBDE1F400338910CB0
+          127DF5EA03C3CF9FBFE19A619A401826C6C2C2CC202929CCB079F32E54035C5C
+          6C445FBFFE0474C11F140DE83433331383B8B810C3A64D3B500D7075B5137DFB
+          F613C39F3FFF5034C0D8BF8EAD66F87A6439C3AF670F199845C519DE489BFF09
+          ED5DC3CA3877EEDCFF0A0AB20CFAFA3AF0C043041884FF66E70286EF673732A8
+          DA0732B02B69337CBFB88BE1DA91BD0CF7B87519C006108A33F14D550C4EA9A5
+          0C9C770F30303C3DCAC0C0CFCFF086459EE1D4B1EBC425A43D4EACFF9C7B5632
+          321A05C1C53ED44B309C39FCF63F5106EC7465796C13112FC3FD682BC3CFEF2F
+          19BE01C53E7F6266B87E97E12951061C0E976A60E7E5AE9615FEC3C2C2F494E1
+          F3EB3F0CF75F32FFFDFDE37F1DD179E148B86CC5D777CFD399FF32CAFF65FEFF
+          14A86BBAC7EE3F6D0006ACC5DB721214F10000000049454E44AE426082}
+        Name = 'PngImage133'
+        Background = clWindow
       end>
     PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
     Left = 104
@@ -6501,6 +6575,20 @@ object MainForm: TMainForm
     object menuAutoRefreshSetInterval: TMenuItem
       Caption = 'Set interval ...'
       OnClick = AutoRefreshSetInterval
+    end
+  end
+  object popupMainTabs: TPopupMenu
+    Images = PngImageListMain
+    OnPopup = popupMainTabsPopup
+    Left = 72
+    Top = 96
+    object menuNewQueryTab: TMenuItem
+      Action = actNewQueryTab
+    end
+    object menuCloseTab: TMenuItem
+      Caption = 'Close query tab'
+      ImageIndex = 133
+      OnClick = menuCloseQueryTab
     end
   end
 end
