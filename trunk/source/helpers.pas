@@ -79,11 +79,10 @@ type
   end;
   PGridRow = ^TGridRow;
   TGridRows = Array of TGridRow;
-  TGridResult = record
+  TGridResult = class(TObject)
     Rows: TGridRows;
     Columns: TGridColumns;
   end;
-  PGridResult = ^TGridResult;
 
   TOrderCol = class(TObject)
     ColumnName: WideString;
@@ -104,10 +103,10 @@ type
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function htmlentities(str: WideString): WideString;
-  procedure GridToHtml(Grid: TVirtualStringTree; GridData: PGridResult; Title: WideString; S: TStream);
-  procedure GridToCsv(Grid: TVirtualStringTree; GridData: PGridResult; Separator, Encloser, Terminator: String; S: TStream);
-  procedure GridToXml(Grid: TVirtualStringTree; GridData: PGridResult; root: WideString; S: TStream);
-  procedure GridToSql(Grid: TVirtualStringTree; GridData: PGridResult; Tablename: WideString; S: TStream);
+  procedure GridToHtml(Grid: TVirtualStringTree; Title: WideString; S: TStream);
+  procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: String; S: TStream);
+  procedure GridToXml(Grid: TVirtualStringTree; root: WideString; S: TStream);
+  procedure GridToSql(Grid: TVirtualStringTree; Tablename: WideString; S: TStream);
   function esc2ascii(str: String): String;
   function StrCmpBegin(Str1, Str2: string): Boolean;
   function Max(A, B: Integer): Integer; assembler;
@@ -779,12 +778,14 @@ end;
   @param Grid Object which holds data to export
   @param string Text used in <title>
 }
-procedure GridToHtml(Grid: TVirtualStringTree; GridData: PGridResult; Title: WideString; S: TStream);
+procedure GridToHtml(Grid: TVirtualStringTree; Title: WideString; S: TStream);
 var
   i, MaxSize: Integer;
   tmp, Data, Generator: WideString;
   Node: PVirtualNode;
+  GridData: TGridResult;
 begin
+  GridData := Mainform.GridResult(Grid);
   if Grid = Mainform.DataGrid then begin
     // Discard all loaded data so EnsureChunkLoaded refetches it with full content lengths.
     // This makes it superflous to call EnsureFullWidth and to have a unique key
@@ -902,12 +903,14 @@ end;
   @param string Field-encloser
   @param string Line-terminator
 }
-procedure GridToCsv(Grid: TVirtualStringTree; GridData: PGridResult; Separator, Encloser, Terminator: String; S: TStream);
+procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: String; S: TStream);
 var
   i, MaxSize: Integer;
   tmp, Data: WideString;
   Node: PVirtualNode;
+  GridData: TGridResult;
 begin
+  GridData := Mainform.GridResult(Grid);
   if Grid = Mainform.DataGrid then begin
     // Discard all loaded data so EnsureChunkLoaded refetches it with full content lengths.
     // This makes it superflous to call EnsureFullWidth and to have a unique key
@@ -989,12 +992,14 @@ end;
   @param Grid Object which holds data to export
   @param string Text used as root-element
 }
-procedure GridToXml(Grid: TVirtualStringTree; GridData: PGridResult; root: WideString; S: TStream);
+procedure GridToXml(Grid: TVirtualStringTree; root: WideString; S: TStream);
 var
   i, MaxSize: Integer;
   tmp, Data: WideString;
   Node: PVirtualNode;
+  GridData: TGridResult;
 begin
+  GridData := Mainform.GridResult(Grid);
   if Grid = Mainform.DataGrid then begin
     // Discard all loaded data so EnsureChunkLoaded refetches it with full content lengths.
     // This makes it superflous to call EnsureFullWidth and to have a unique key
@@ -1064,12 +1069,14 @@ end;
   @param Grid Object which holds data to export
   @param string Text used as tablename in INSERTs
 }
-procedure GridToSql(Grid: TVirtualStringTree; GridData: PGridResult; Tablename: WideString; S: TStream);
+procedure GridToSql(Grid: TVirtualStringTree; Tablename: WideString; S: TStream);
 var
   i, MaxSize: Integer;
   tmp, Data: WideString;
   Node: PVirtualNode;
+  GridData: TGridResult;
 begin
+  GridData := Mainform.GridResult(Grid);
   if Grid = Mainform.DataGrid then begin
     // Discard all loaded data so EnsureChunkLoaded refetches it with full content lengths.
     // This makes it superflous to call EnsureFullWidth and to have a unique key

@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
-  SynEdit, SynMemo;
+  SynEdit, SynMemo, VirtualTrees;
 
 type
   Toptionsform = class(TForm)
@@ -162,6 +162,8 @@ procedure Toptionsform.Apply(Sender: TObject);
 var
   i, maxrows: Integer;
   Attri: TSynHighlighterAttributes;
+  Memo: TSynMemo;
+  Grid: TVirtualStringTree;
 begin
   Screen.Cursor := crHourGlass;
 
@@ -214,8 +216,11 @@ begin
   MainReg.WriteBool(REGNAME_BG_NULL_ENABLED, chkNullBg.Checked);
 
   // Set relevant properties in mainform
-  Mainform.SynMemoQuery.Font := SynMemoSQLSample.Font;
-  Mainform.SynMemoQuery.Gutter.Font := SynMemoSQLSample.Font;
+  for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
+    Memo := Mainform.QueryControl(i, Mainform.SynMemoQuery) as TSynMemo;
+    Memo.Font := SynMemoSQLSample.Font;
+    Memo.Gutter.Font := SynMemoSQLSample.Font;
+  end;
   Mainform.SynMemoSQLLog.Font := SynMemoSQLSample.Font;
   Mainform.SynMemoSQLLog.Gutter.Font := SynMemoSQLSample.Font;
   Mainform.SynMemoProcessView.Font := SynMemoSQLSample.Font;
@@ -225,11 +230,15 @@ begin
   end;
   Mainform.SynMemoQuery.ActiveLineColor := SynMemoSQLSample.ActiveLineColor;
   Mainform.DataGrid.Font.Name := comboDataFontName.Text;
-  Mainform.QueryGrid.Font.Name := comboDataFontName.Text;
   Mainform.DataGrid.Font.Size := updownDataFontSize.Position;
-  Mainform.QueryGrid.Font.Size := updownDataFontSize.Position;
-  FixVT(Mainform.QueryGrid);
   FixVT(Mainform.DataGrid);
+  for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
+    Grid := Mainform.QueryControl(i, Mainform.QueryGrid) as TVirtualStringTree;
+    Grid.Font.Name := comboDataFontName.Text;
+    Grid.Font.Size := updownDataFontSize.Position;
+    FixVT(Grid);
+  end;
+
   Mainform.prefLogsqlnum := updownLogLines.Position;
   Mainform.prefLogSqlWidth := updownLogSnip.Position;
   Mainform.TrimSQLLog;

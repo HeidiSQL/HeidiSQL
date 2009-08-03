@@ -22,7 +22,8 @@ uses
   SynCompletionProposal, ZSqlMonitor, SynEditHighlighter, SynHighlighterSQL,
   TntStdCtrls, Tabs, SynUnicode, mysqlconn, EditVar, helpers, queryprogress,
   mysqlquery, createdatabase, table_editor, SynRegExpr,
-  WideStrUtils, ZDbcLogging, ExtActns, CommCtrl, routine_editor, options;
+  WideStrUtils, ZDbcLogging, ExtActns, CommCtrl, routine_editor, options,
+  Contnrs;
 
 const
   // The InnoDB folks are raging over the lack of count(*) support
@@ -415,6 +416,13 @@ type
     popupRefresh: TPopupMenu;
     menuAutoRefreshSetInterval: TMenuItem;
     menuAutoRefresh: TMenuItem;
+    popupMainTabs: TPopupMenu;
+    menuNewQueryTab: TMenuItem;
+    menuCloseTab: TMenuItem;
+    actNewQueryTab: TAction;
+    actCloseQueryTab: TAction;
+    Newquerytab1: TMenuItem;
+    Closetab1: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -675,6 +683,23 @@ type
     procedure actEditObjectExecute(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
     procedure DataGridClick(Sender: TObject);
+    procedure panelTopDblClick(Sender: TObject);
+    procedure PageControlMainMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure actNewQueryTabExecute(Sender: TObject);
+    procedure actCloseQueryTabExecute(Sender: TObject);
+    procedure menuCloseQueryTab(Sender: TObject);
+    procedure CloseQueryTab(PageIndex: Integer);
+    procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    function GetMainTabAt(X, Y: Integer): Integer;
+    procedure FixQueryTabCloseButtons;
+    function QueryTabCloseButton(PageIndex: Integer): TSpeedButton;
+    function QueryControl(PageIndex: Integer; Base: TControl): TControl;
+    function ActiveQueryControl(Base: TControl): TControl;
+    function ActiveQueryMemo: TSynMemo;
+    function ActiveQueryHelpers: TTntListBox;
+    function ActiveQueryTabset: TTabset;
+    function QueryTabActive: Boolean;
+    procedure popupMainTabsPopup(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -705,13 +730,14 @@ type
     DataGridHasChanges         : Boolean;
     InformationSchemaTables    : TWideStringlist;
     QueryMemoLineBreaks        : TLineBreaks;
+    FLastMouseUpOnPageControl  : Cardinal;
+    FLastTabNumberOnMouseUp    : Integer;
+    FGridResults               : TObjectList;
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
     procedure SetDelimiter(Value: String);
     function GetQueryRunning: Boolean;
     procedure SetQueryRunning(running: Boolean);
-    function GetActiveGrid: TVirtualStringTree;
-    function GetActiveData: PGridResult;
     procedure WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery; ForceDialog: Boolean);
     function RunThreadedQuery(AQuery: WideString; ForceDialog: Boolean): TMysqlQuery;
     procedure DisplayRowCountStats(MatchingRows: Int64 = -1);
@@ -771,8 +797,6 @@ type
     prefNullBG                 : TColor;
     CreateDatabaseForm         : TCreateDatabaseForm;
     TableEditor                : TfrmTableEditor;
-    FDataGridResult,
-    FQueryGridResult           : TGridResult;
     FDataGridSelect            : WideStrings.TWideStringList;
     FDataGridSort              : TOrderColArray;
     DataGridCurrentSelect,
@@ -797,8 +821,10 @@ type
     procedure ExecUseQuery(db: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
 
     property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
-    property ActiveGrid: TVirtualStringTree read GetActiveGrid;
-    property ActiveData: PGridResult read GetActiveData;
+    function ActiveGrid: TVirtualStringTree;
+    function GridResult(Grid: TBaseVirtualTree): TGridResult; overload;
+    function GridResult(PageIndex: Integer): TGridResult; overload;
+    function DataGridResult: TGridResult;
     property MysqlConn : TMysqlConn read FMysqlConn;
     property Conn : TOpenConnProf read FConn;
 
@@ -1132,10 +1158,8 @@ begin
   FreeAndNil(OptionsForm);
 
   debug('mem: clearing query and browse data.');
-  SetLength(FDataGridResult.Rows, 0);
-  SetLength(FDataGridResult.Columns, 0);
-  SetLength(FQueryGridResult.Rows, 0);
-  SetLength(FQueryGridResult.Columns, 0);
+  SetLength(DataGridResult.Rows, 0);
+  SetLength(DataGridResult.Columns, 0);
 
   Action := caFree;
 
@@ -1382,6 +1406,11 @@ begin
     DisableProcessWindowsGhostingProc;
 
   QueryMemoLineBreaks := lbsNone;
+
+  FGridResults := TObjectList.Create;
+  // Add two static results for the Data and Query tab. Results for added query tabs will be created on demand.
+  FGridResults.Add(TGridResult.Create);
+  FGridResults.Add(TGridResult.Create);
 end;
 
 
@@ -1886,7 +1915,7 @@ var
   m: TSynMemo;
 begin
   if Sender = actClearQueryEditor then
-    m := SynMemoQuery
+    m := ActiveQueryMemo
   else begin
     m := SynMemoFilter;
     editFilterSearch.Clear;
@@ -2095,14 +2124,12 @@ end;
 procedure TMainForm.actCopyAsCSVExecute(Sender: TObject);
 var
   S: TMemoryStream;
-  GridData: PGridResult;
 begin
   // Copy data in focused grid as CSV
   Screen.Cursor := crHourglass;
   S := TMemoryStream.Create;
   try
-    GridData := ActiveData;
-    GridToCsv(ActiveGrid, GridData, prefCSVSeparator, prefCSVEncloser, prefCSVTerminator, S);
+    GridToCsv(ActiveGrid, prefCSVSeparator, prefCSVEncloser, prefCSVTerminator, S);
     StreamToClipboard(S);
   finally
     ShowStatus('Freeing data...');
@@ -2117,7 +2144,6 @@ procedure TMainForm.actCopyAsHTMLExecute(Sender: TObject);
 var
   S: TMemoryStream;
   Title: WideString;
-  GridData: PGridResult;
 begin
   // Copy data in focused grid as HTML table
   Screen.Cursor := crHourglass;
@@ -2125,8 +2151,7 @@ begin
   if ActiveGrid = DataGrid then Title := SelectedTable.Text
   else Title := 'SQL query';
   try
-    GridData := ActiveData;
-    GridToHtml(ActiveGrid, GridData, Title, S);
+    GridToHtml(ActiveGrid, Title, S);
     StreamToClipboard(S);
   finally
     ShowStatus('Freeing data...');
@@ -2141,7 +2166,6 @@ procedure TMainForm.actCopyAsXMLExecute(Sender: TObject);
 var
   S: TMemoryStream;
   Root: WideString;
-  GridData: PGridResult;
 begin
   // Copy data in focused grid as XML
   Screen.Cursor := crHourglass;
@@ -2149,8 +2173,7 @@ begin
   if ActiveGrid = DataGrid then Root := SelectedTable.Text
   else Root := 'SQL query';
   try
-    GridData := ActiveData;
-    GridToXml(ActiveGrid, GridData, Root, S);
+    GridToXml(ActiveGrid, Root, S);
     StreamToClipboard(S);
   finally
     ShowStatus('Freeing data...');
@@ -2165,7 +2188,6 @@ procedure TMainForm.actCopyAsSQLExecute(Sender: TObject);
 var
   S: TMemoryStream;
   Tablename: WideString;
-  GridData: PGridResult;
 begin
   // Copy data in focused grid as SQL
   Screen.Cursor := crHourglass;
@@ -2173,8 +2195,7 @@ begin
   if ActiveGrid = DataGrid then Tablename := SelectedTable.Text
   else Tablename := 'unknown';
   try
-    GridData := ActiveData;
-    GridToSql(ActiveGrid, GridData, Tablename, S);
+    GridToSql(ActiveGrid, Tablename, S);
     StreamToClipboard(S);
   finally
     ShowStatus('Freeing data...');
@@ -2187,8 +2208,6 @@ end;
 
 procedure TMainForm.actExportDataExecute(Sender: TObject);
 var
-  Grid: TVirtualStringTree;
-  GridData: PGridResult;
   Dialog: TSaveDialog;
   FS: TFileStream;
   Title: WideString;
@@ -2196,9 +2215,7 @@ begin
   // Save data in current dataset as CSV, HTML or XML
   Dialog := SaveDialogExportData;
 
-  Grid := ActiveGrid;
-  GridData := ActiveData;
-  if Grid = DataGrid then
+  if ActiveGrid = DataGrid then
     Title := SelectedTable.Text
   else
     Title := 'SQL query';
@@ -2210,10 +2227,10 @@ begin
     Screen.Cursor := crHourGlass;
     FS := openfs(Dialog.FileName);
     case Dialog.FilterIndex of
-      1: GridToCsv(Grid, GridData, prefCSVSeparator, prefCSVEncloser, prefCSVTerminator, FS);
-      2: GridToHtml(Grid, GridData, Title, FS);
-      3: GridToXml(Grid, GridData, Title, FS);
-      4: GridToSql(Grid, GridData, Title, FS);
+      1: GridToCsv(ActiveGrid, prefCSVSeparator, prefCSVEncloser, prefCSVTerminator, FS);
+      2: GridToHtml(ActiveGrid, Title, FS);
+      3: GridToXml(ActiveGrid, Title, FS);
+      4: GridToSql(ActiveGrid, Title, FS);
     end;
     ShowStatus('Freeing data...');
     FS.Free;
@@ -2242,7 +2259,7 @@ begin
   if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
   Screen.Cursor := crHourGlass;
   showstatus('Saving contents to file...');
-  IsBinary := ActiveData.Columns[g.FocusedColumn].DatatypeCat = dtcBinary;
+  IsBinary := GridResult(ActiveGrid).Columns[g.FocusedColumn].DatatypeCat = dtcBinary;
 
   Header := WideHexToBin(Copy(g.Text[g.FocusedNode, g.FocusedColumn], 3, 20));
   SaveBinary := false;
@@ -2431,7 +2448,6 @@ end;
 // Load SQL-file, make sure that SheetQuery is activated
 procedure TMainForm.actLoadSQLExecute(Sender: TObject);
 begin
-  PageControlMain.ActivePage := tabQuery;
   if OpenDialogSQLfile.Execute then
     QueryLoad( OpenDialogSQLfile.FileName );
 end;
@@ -2563,7 +2579,7 @@ procedure TMainForm.actDataDeleteExecute(Sender: TObject);
 begin
   // Delete row(s)
   if (DataGrid.SelectedCount = 1) and
-    (FDataGridResult.Rows[DataGrid.GetFirstSelected.Index].State = grsInserted)
+    (DataGridResult.Rows[DataGrid.GetFirstSelected.Index].State = grsInserted)
     then begin
     // Deleting the virtual row which is only in memory by stopping edit mode
     actDataCancelChanges.Execute;
@@ -2647,29 +2663,23 @@ end;
 
 
 procedure TMainForm.actQueryFindExecute(Sender: TObject);
-var
-  m: TSynMemo;
 begin
-  m := SynMemoQuery;
   // if something is selected search for that text
-  if m.SelAvail then
-    FindDialogQuery.FindText := m.SelText
+  if ActiveQueryMemo.SelAvail then
+    FindDialogQuery.FindText := ActiveQueryMemo.SelText
   else
-    FindDialogQuery.FindText := m.WordAtCursor;
+    FindDialogQuery.FindText := ActiveQueryMemo.WordAtCursor;
   FindDialogQuery.Execute;
 end;
 
 
 procedure TMainForm.actQueryReplaceExecute(Sender: TObject);
-var
-  m: TSynMemo;
 begin
-  m := SynMemoQuery;
   // if something is selected search for that text
-  if m.SelAvail then
-    ReplaceDialogQuery.FindText := m.SelText
+  if ActiveQueryMemo.SelAvail then
+    ReplaceDialogQuery.FindText := ActiveQueryMemo.SelText
   else
-    ReplaceDialogQuery.FindText := m.WordAtCursor;
+    ReplaceDialogQuery.FindText := ActiveQueryMemo.WordAtCursor;
   ReplaceDialogQuery.Execute;
 end;
 
@@ -2725,12 +2735,12 @@ begin
     ds.RecNo := DataGrid.FocusedColumn;
     keyword := ds.FieldByName('Type').AsWideString;
   end
-  else if lboxQueryHelpers.Focused then
+  else if QueryTabActive and ActiveQueryHelpers.Focused then
   begin
     // Makes only sense if one of the tabs "SQL fn" or "SQL kw" was selected
-    if tabsetQueryHelpers.TabIndex in [1,2] then
+    if ActiveQueryTabset.TabIndex in [1,2] then
     begin
-      keyword := lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex];
+      keyword := ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex];
     end;
   end;
 
@@ -2770,8 +2780,8 @@ begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
     case (Sender as TAction).Tag of
-      0: Text := SynMemoQuery.Text;
-      1: Text := SynMemoQuery.SelText;
+      0: Text := ActiveQueryMemo.Text;
+      1: Text := ActiveQueryMemo.SelText;
     end;
     LB := '';
     case QueryMemoLineBreaks of
@@ -2809,8 +2819,8 @@ begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
     case (Sender as TComponent).Tag of
-      0: Text := SynMemoQuery.Text;
-      1: Text := SynMemoQuery.SelText;
+      0: Text := ActiveQueryMemo.Text;
+      1: Text := ActiveQueryMemo.SelText;
     end;
     LB := '';
     case QueryMemoLineBreaks of
@@ -2840,7 +2850,7 @@ end;
 
 procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
 begin
-  SynMemoQuery.WordWrap := TAction(Sender).Checked;
+  ActiveQueryMemo.WordWrap := TAction(Sender).Checked;
 end;
 
 
@@ -2859,7 +2869,7 @@ begin
     Include(Options, ssoMatchCase);
   if frWholeWord in FindDialogQuery.Options then
     Include(Options, ssoWholeWord);
-  if SynMemoQuery.SearchReplace(Search, '', Options) = 0 then
+  if ActiveQueryMemo.SearchReplace(Search, '', Options) = 0 then
   begin
     MessageBeep(MB_ICONASTERISK);
     ShowStatus( 'SearchText ''' + Search + ''' not found!', 0);
@@ -2893,15 +2903,15 @@ begin
     Include(Options, ssoReplace)
   else
     Include(Options, ssoReplaceAll);
-  if SynMemoQuery.SearchReplace( Search, ReplaceDialogQuery.ReplaceText, Options) = 0 then
+  if ActiveQueryMemo.SearchReplace( Search, ReplaceDialogQuery.ReplaceText, Options) = 0 then
   begin
     MessageBeep(MB_ICONASTERISK);
     ShowStatus( 'SearchText ''' + Search + ''' not found!', 0);
     if ssoBackwards in Options then
-      SynMemoQuery.BlockEnd := SynMemoQuery.BlockBegin
+      ActiveQueryMemo.BlockEnd := ActiveQueryMemo.BlockBegin
     else
-      SynMemoQuery.BlockBegin := SynMemoQuery.BlockEnd;
-    SynMemoQuery.CaretXY := SynMemoQuery.BlockBegin;
+      ActiveQueryMemo.BlockBegin := ActiveQueryMemo.BlockEnd;
+    ActiveQueryMemo.CaretXY := ActiveQueryMemo.BlockBegin;
   end;
 end;
 
@@ -3377,9 +3387,9 @@ var
   k: Integer;
   idx: Integer;
 begin
-  idx := Length(FDataGridResult.Columns);
-  SetLength(FDataGridResult.Columns, idx+1);
-  FDataGridResult.Columns[idx].Name := name;
+  idx := Length(DataGridResult.Columns);
+  SetLength(DataGridResult.Columns, idx+1);
+  DataGridResult.Columns[idx].Name := name;
   col := DataGrid.Header.Columns.Add;
   col.Text := name;
   col.Options := col.Options + [coSmartResize];
@@ -3397,65 +3407,65 @@ begin
   rx.Expression := '^(tiny|small|medium|big)?int\b';
   if rx.Exec(ColType) then begin
     col.Alignment := taRightJustify;
-    FDataGridResult.Columns[idx].DatatypeCat := dtcInteger;
+    DataGridResult.Columns[idx].DatatypeCat := dtcInteger;
   end;
   rx.Expression := '^(float|double|decimal)\b';
   if rx.Exec(ColType) then begin
     col.Alignment := taRightJustify;
-    FDataGridResult.Columns[idx].DatatypeCat := dtcReal;
+    DataGridResult.Columns[idx].DatatypeCat := dtcReal;
   end;
   rx.Expression := '^(date|datetime|time(stamp)?)\b';
   if rx.Exec(ColType) then begin
-    FDataGridResult.Columns[idx].DatatypeCat := dtcTemporal;
-    if rx.Match[1] = 'date' then FDataGridResult.Columns[idx].Datatype := dtDate
-    else if rx.Match[1] = 'time' then FDataGridResult.Columns[idx].Datatype := dtTime
-    else if rx.Match[1] = 'timestamp' then FDataGridResult.Columns[idx].Datatype := dtTimestamp
-    else FDataGridResult.Columns[idx].Datatype := dtDatetime;
+    DataGridResult.Columns[idx].DatatypeCat := dtcTemporal;
+    if rx.Match[1] = 'date' then DataGridResult.Columns[idx].Datatype := dtDate
+    else if rx.Match[1] = 'time' then DataGridResult.Columns[idx].Datatype := dtTime
+    else if rx.Match[1] = 'timestamp' then DataGridResult.Columns[idx].Datatype := dtTimestamp
+    else DataGridResult.Columns[idx].Datatype := dtDatetime;
   end;
   rx.Expression := '^((tiny|medium|long)?text|(var)?char)\b(\(\d+\))?';
   if rx.Exec(ColType) then begin
-    FDataGridResult.Columns[idx].DatatypeCat := dtcText;
+    DataGridResult.Columns[idx].DatatypeCat := dtcText;
     if rx.Match[4] <> '' then
-      FDataGridResult.Columns[idx].MaxLength := MakeInt(rx.Match[4])
+      DataGridResult.Columns[idx].MaxLength := MakeInt(rx.Match[4])
     else if ColType = 'tinytext' then
       // 255 is the width in bytes. If characters that use multiple bytes are
       // contained, the width in characters is decreased below this number.
-      FDataGridResult.Columns[idx].MaxLength := 255
+      DataGridResult.Columns[idx].MaxLength := 255
     else if ColType = 'text' then
-      FDataGridResult.Columns[idx].MaxLength := 65535
+      DataGridResult.Columns[idx].MaxLength := 65535
     else if ColType = 'mediumtext' then
-      FDataGridResult.Columns[idx].MaxLength := 16777215
+      DataGridResult.Columns[idx].MaxLength := 16777215
     else if ColType = 'longtext' then
-      FDataGridResult.Columns[idx].MaxLength := 4294967295
+      DataGridResult.Columns[idx].MaxLength := 4294967295
     else
       // Fallback for unknown column types
-      FDataGridResult.Columns[idx].MaxLength := MaxInt;
+      DataGridResult.Columns[idx].MaxLength := MaxInt;
   end;
   rx.Expression := '^((tiny|medium|long)?blob|(var)?binary|bit)\b';
   if rx.Exec(ColType) then
-    FDataGridResult.Columns[idx].DatatypeCat := dtcBinary;
+    DataGridResult.Columns[idx].DatatypeCat := dtcBinary;
   if Copy(ColType, 1, 5) = 'enum(' then begin
-    FDataGridResult.Columns[idx].Datatype := dtEnum;
-    FDataGridResult.Columns[idx].DatatypeCat := dtcIntegerNamed;
-    FDataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
-    FDataGridResult.Columns[idx].ValueList.QuoteChar := '''';
-    FDataGridResult.Columns[idx].ValueList.Delimiter := ',';
-    FDataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
+    DataGridResult.Columns[idx].Datatype := dtEnum;
+    DataGridResult.Columns[idx].DatatypeCat := dtcIntegerNamed;
+    DataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
+    DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
+    DataGridResult.Columns[idx].ValueList.Delimiter := ',';
+    DataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
   end;
   if Copy(ColType, 1, 4) = 'set(' then begin
-    FDataGridResult.Columns[idx].Datatype := dtSet;
-    FDataGridResult.Columns[idx].DatatypeCat := dtcSetNamed;
-    FDataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
-    FDataGridResult.Columns[idx].ValueList.QuoteChar := '''';
-    FDataGridResult.Columns[idx].ValueList.Delimiter := ',';
-    FDataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
+    DataGridResult.Columns[idx].Datatype := dtSet;
+    DataGridResult.Columns[idx].DatatypeCat := dtcSetNamed;
+    DataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
+    DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
+    DataGridResult.Columns[idx].ValueList.Delimiter := ',';
+    DataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
   end;
 
   SelectedTableKeys.First;
   for k := 0 to SelectedTableKeys.RecordCount - 1 do begin
     if (SelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY')
       and (SelectedTableKeys.FieldByName('Column_name').AsWideString = name) then begin
-      FDataGridResult.Columns[idx].IsPriPart := True;
+      DataGridResult.Columns[idx].IsPriPart := True;
       break;
     end;
     SelectedTableKeys.Next;
@@ -3512,8 +3522,8 @@ begin
       DataGrid.BeginUpdate;
       OldOffsetXY := DataGrid.OffsetXY;
       debug('mem: clearing browse data.');
-      SetLength(FDataGridResult.Columns, 0);
-      SetLength(FDataGridResult.Rows, 0);
+      SetLength(DataGridResult.Columns, 0);
+      SetLength(DataGridResult.Rows, 0);
       DataGrid.RootNodeCount := 0;
       DataGrid.Header.Columns.BeginUpdate;
       DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
@@ -3559,7 +3569,7 @@ begin
       // Ensure key columns are included to enable editing
       KeyCols := GetKeyColumns;
       // Truncate column array.
-      SetLength(FDataGridResult.Columns, 0);
+      SetLength(DataGridResult.Columns, 0);
       debug('mem: initializing browse columns.');
       SelectedTableColumns.First;
       while not SelectedTableColumns.Eof do begin
@@ -3604,15 +3614,15 @@ begin
       debug('mem: initializing browse rows (internal data).');
       try
         ReachedEOT := False;
-        SetLength(FDataGridResult.Rows, SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100);
+        SetLength(DataGridResult.Rows, SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100);
         for i := 0 to SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100 - 1 do begin
-          FDataGridResult.Rows[i].Loaded := False;
+          DataGridResult.Rows[i].Loaded := False;
         end;
         debug('mem: initializing browse rows (grid).');
         DataGrid.RootNodeCount := SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100;
       except
         DataGrid.RootNodeCount := 0;
-        SetLength(FDataGridResult.Rows, 0);
+        SetLength(DataGridResult.Rows, 0);
         PageControlMain.ActivePage := tabDatabase;
         raise;
       end;
@@ -3732,11 +3742,16 @@ begin
       viewdata(Sender);
       if DataGrid.CanFocus then
         DataGrid.SetFocus;
-    end else if tab = tabQuery then SynMemoQuery.SetFocus;
+    end else if QueryTabActive then begin
+      ActiveQueryMemo.SetFocus;
+      ActiveQueryMemo.WordWrap := actQueryWordWrap.Checked;
+      SynMemoQueryStatusChange(ActiveQueryMemo, []);
+    end;
   end;
 
   // Ensure controls are in a valid state
   ValidateControls(Sender);
+  FixQueryTabCloseButtons;
 end;
 
 
@@ -4084,13 +4099,12 @@ end;
 }
 procedure TMainForm.ValidateControls(Sender: TObject);
 var
-  inDataGrid, inQueryTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty: Boolean;
+  inDataGrid, inDataOrQueryTab, inDataOrQueryTabNotEmpty: Boolean;
   SelectedNodes: TNodeArray;
 begin
   inDataGrid := ActiveControl = DataGrid;
-  inDataOrQueryTab := (PageControlMain.ActivePage = tabData) or (PageControlMain.ActivePage = tabQuery);
+  inDataOrQueryTab := (PageControlMain.ActivePage = tabData) or QueryTabActive;
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and (ActiveGrid.RootNodeCount > 0);
-  inQueryTab := PageControlMain.ActivePage = tabQuery;
 
   SelectedNodes := ListTables.GetSortedSelection(False);
 
@@ -4117,11 +4131,11 @@ begin
 
   // Query tab
   // Manually invoke OnChange event of tabset to fill helper list with data
-  if inQueryTab then RefreshQueryHelpers;
+  if QueryTabActive then RefreshQueryHelpers;
 
   ValidateQueryControls(Sender);
 
-  if not inQueryTab then // Empty panel with "Line:Char"
+  if not QueryTabActive then // Empty panel with "Line:Char"
     showstatus('', 1);
 end;
 
@@ -4130,29 +4144,34 @@ var
   dummy: Boolean;
 begin
   dummy := True;
-  tabsetQueryHelpers.OnChange(Self, tabsetQueryHelpers.TabIndex, dummy);
+  ActiveQueryTabset.OnChange(Self, ActiveQueryTabset.TabIndex, dummy);
 end;
 
 procedure TMainForm.ValidateQueryControls(Sender: TObject);
 var
-  InQueryTab, NotEmpty, HasSelection: Boolean;
+  NotEmpty, HasSelection: Boolean;
+  Memo: TSynMemo;
 begin
-  InQueryTab := PageControlMain.ActivePage = tabQuery;
-  NotEmpty := SynMemoQuery.GetTextLen > 0;
-  HasSelection := SynMemoQuery.SelAvail;
-  actExecuteQuery.Enabled := InQueryTab and NotEmpty;
-  actExecuteSelection.Enabled := InQueryTab and HasSelection;
-  actExecuteLine.Enabled := InQueryTab and (SynMemoQuery.LineText <> '');
-  actSaveSQL.Enabled := InQueryTab and NotEmpty;
-  actSaveSQLselection.Enabled := InQueryTab and HasSelection;
-  actSaveSQLSnippet.Enabled := InQueryTab and NotEmpty;
-  actSaveSQLSelectionSnippet.Enabled := InQueryTab and HasSelection;
-  actQueryFind.Enabled := InQueryTab and NotEmpty;
-  actQueryReplace.Enabled := InQueryTab and NotEmpty;
-  actQueryStopOnErrors.Enabled := InQueryTab;
-  actQueryWordWrap.Enabled := InQueryTab;
-  actClearQueryEditor.Enabled := InQueryTab and NotEmpty;
-  actSetDelimiter.Enabled := InQueryTab;
+  if QueryTabActive then
+    Memo := ActiveQueryMemo
+  else
+    Memo := nil;
+  NotEmpty := QueryTabActive and (Memo.GetTextLen > 0);
+  HasSelection := QueryTabActive and Memo.SelAvail;
+  actExecuteQuery.Enabled := QueryTabActive and NotEmpty;
+  actExecuteSelection.Enabled := QueryTabActive and HasSelection;
+  actExecuteLine.Enabled := QueryTabActive and (Memo.LineText <> '');
+  actSaveSQL.Enabled := QueryTabActive and NotEmpty;
+  actSaveSQLselection.Enabled := QueryTabActive and HasSelection;
+  actSaveSQLSnippet.Enabled := QueryTabActive and NotEmpty;
+  actSaveSQLSelectionSnippet.Enabled := QueryTabActive and HasSelection;
+  actQueryFind.Enabled := QueryTabActive and NotEmpty;
+  actQueryReplace.Enabled := QueryTabActive and NotEmpty;
+  actQueryStopOnErrors.Enabled := QueryTabActive;
+  actQueryWordWrap.Enabled := QueryTabActive;
+  actClearQueryEditor.Enabled := QueryTabActive and NotEmpty;
+  actSetDelimiter.Enabled := QueryTabActive;
+  actCloseQueryTab.Enabled := PageControlMain.ActivePageIndex > tabQuery.PageIndex;
 end;
 
 
@@ -4201,17 +4220,20 @@ var
   SQLscriptend      : Integer;
   SQLTime           : Double;
   LastVistaCheck    : Cardinal;
-  VistaCheck        : Boolean; 
+  VistaCheck        : Boolean;
   fieldcount        : Integer;
   recordcount       : Integer;
   ds                : TDataSet;
   ColName,
   Text, LB          : WideString;
   col               : TVirtualTreeColumn;
+  ResultLabel       : TLabel;
+  ActiveGridResult  : TGridResult;
 begin
-  if CurrentLine then Text := SynMemoQuery.LineText
-  else if Selection then Text := SynMemoQuery.SelText
-  else Text := SynMemoQuery.Text;
+  ResultLabel := ActiveQueryControl(LabelResultInfo) as TLabel;
+  if CurrentLine then Text := ActiveQueryMemo.LineText
+  else if Selection then Text := ActiveQueryMemo.SelText
+  else Text := ActiveQueryMemo.Text;
   // Give text back its original linebreaks if possible
   case QueryMemoLineBreaks of
     lbsUnix: LB := LB_UNIX;
@@ -4224,13 +4246,13 @@ begin
 
   if ( SQL.Count = 0 ) then
   begin
-    LabelResultinfo.Caption := '(nothing to do)';
+    ResultLabel.Caption := '(nothing to do)';
     Exit;
   end;
 
   SQLscriptstart := GetTickCount();
   LastVistaCheck := GetTickCount();
-  LabelResultinfo.Caption := '';
+  ResultLabel.Caption := '';
 
   ds := nil;
   try
@@ -4256,7 +4278,7 @@ begin
         continue;
       end;
       // open last query with data-aware:
-      LabelResultinfo.Caption := '';
+      ResultLabel.Caption := '';
       // ok, let's rock
       SQLstart := GetTickCount();
       try
@@ -4295,13 +4317,13 @@ begin
       SQLend := GetTickCount();
       SQLTime := (SQLend - SQLstart) / 1000;
 
-      LabelResultinfo.Caption :=
+      ResultLabel.Caption :=
         FormatNumber( rowsaffected ) +' row(s) affected, '+
         FormatNumber( fieldcount ) +' column(s) x '+
         FormatNumber( recordcount ) +' row(s) in last result set.';
       if ( SQL.Count = 1 ) then
       begin
-        LabelResultinfo.Caption := LabelResultinfo.Caption +
+        ResultLabel.Caption := ResultLabel.Caption +
           ' Query time: '+ FormatNumber( SQLTime, 3) +' sec.';
       end;
     end;
@@ -4313,7 +4335,7 @@ begin
     begin
       SQLscriptend := GetTickCount();
       SQLTime := (SQLscriptend - SQLscriptstart) / 1000;
-      LabelResultinfo.Caption := LabelResultinfo.Caption +' Batch time: '+
+      ResultLabel.Caption := ResultLabel.Caption +' Batch time: '+
         FormatNumber( SQLTime, 3 ) +' sec.';
     end;
 
@@ -4326,58 +4348,59 @@ begin
     viewingdata := true;
 
     if ds <> nil then begin
-      QueryGrid.BeginUpdate;
-      QueryGrid.Header.Options := QueryGrid.Header.Options + [hoVisible];
-      QueryGrid.Header.Columns.BeginUpdate;
-      QueryGrid.Header.Columns.Clear;
+      ActiveGrid.BeginUpdate;
+      ActiveGrid.Header.Options := ActiveGrid.Header.Options + [hoVisible];
+      ActiveGrid.Header.Columns.BeginUpdate;
+      ActiveGrid.Header.Columns.Clear;
       debug('mem: clearing and initializing query columns.');
-      SetLength(FQueryGridResult.Columns, 0);
-      SetLength(FQueryGridResult.Columns, ds.FieldCount);
+      ActiveGridResult := GridResult(ActiveGrid);
+      SetLength(ActiveGridResult.Columns, 0);
+      SetLength(ActiveGridResult.Columns, ds.FieldCount);
       for i:=0 to ds.FieldCount-1 do begin
         ColName := ds.Fields[i].FieldName;
-        col := QueryGrid.Header.Columns.Add;
+        col := ActiveGrid.Header.Columns.Add;
         col.Text := ColName;
         col.Options := col.Options - [coAllowClick];
-        FQueryGridResult.Columns[i].Name := ColName;
+        ActiveGridResult.Columns[i].Name := ColName;
         if ds.Fields[i].DataType in [ftSmallint, ftInteger, ftWord, ftLargeint] then begin
-          FQueryGridResult.Columns[i].DatatypeCat := dtcInteger;
+          ActiveGridResult.Columns[i].DatatypeCat := dtcInteger;
           col.Alignment := taRightJustify;
         end else if ds.Fields[i].DataType in [ftFloat] then begin
-          FQueryGridResult.Columns[i].DatatypeCat := dtcReal;
+          ActiveGridResult.Columns[i].DatatypeCat := dtcReal;
           col.Alignment := taRightJustify;
         end else if ds.Fields[i].DataType in [ftDate, ftTime, ftDateTime, ftTimeStamp] then
-          FQueryGridResult.Columns[i].DatatypeCat := dtcTemporal
+          ActiveGridResult.Columns[i].DatatypeCat := dtcTemporal
         else if ds.Fields[i].DataType in [ftWideString, ftMemo, ftWideMemo] then
-          FQueryGridResult.Columns[i].DatatypeCat := dtcText
+          ActiveGridResult.Columns[i].DatatypeCat := dtcText
         else if ds.Fields[i].DataType in [ftBlob] then
-          FQueryGridResult.Columns[i].DatatypeCat := dtcBinary;
+          ActiveGridResult.Columns[i].DatatypeCat := dtcBinary;
       end;
       debug('mem: query column initialization complete.');
       debug('mem: clearing and initializing query rows (internal data).');
-      SetLength(FQueryGridResult.Rows, 0);
-      SetLength(FQueryGridResult.Rows, ds.RecordCount);
+      SetLength(ActiveGridResult.Rows, 0);
+      SetLength(ActiveGridResult.Rows, ds.RecordCount);
       ds.First;
       for i:=0 to ds.RecordCount-1 do begin
-        FQueryGridResult.Rows[i].Loaded := True;
-        SetLength(FQueryGridResult.Rows[i].Cells, ds.FieldCount);
+        ActiveGridResult.Rows[i].Loaded := True;
+        SetLength(ActiveGridResult.Rows[i].Cells, ds.FieldCount);
         for j:=0 to ds.FieldCount-1 do begin
-          if FQueryGridResult.Columns[j].DatatypeCat = dtcBinary then
-            FQueryGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
+          if ActiveGridResult.Columns[j].DatatypeCat = dtcBinary then
+            ActiveGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
           else
-            FQueryGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
-          FQueryGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
+            ActiveGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
+          ActiveGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
         end;
         ds.Next;
       end;
       ds.Free;
       debug('mem: initializing query rows (grid).');
-      QueryGrid.RootNodeCount := Length(FQueryGridResult.Rows);
+      ActiveGrid.RootNodeCount := Length(ActiveGridResult.Rows);
       debug('mem: query row initialization complete.');
-      QueryGrid.Header.Columns.EndUpdate;
-      QueryGrid.ClearSelection;
-      QueryGrid.OffsetXY := Point(0, 0);
-      QueryGrid.EndUpdate;
-      AutoCalcColWidths(QueryGrid);
+      ActiveGrid.Header.Columns.EndUpdate;
+      ActiveGrid.ClearSelection;
+      ActiveGrid.OffsetXY := Point(0, 0);
+      ActiveGrid.EndUpdate;
+      AutoCalcColWidths(ActiveGrid);
     end;
     // Ensure controls are in a valid state
     ValidateControls(Sender);
@@ -4721,7 +4744,7 @@ begin
   value := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
   menuitem := (Sender as TMenuItem);
   column := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
-  IsNull := FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].IsNull;
+  IsNull := DataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].IsNull;
   if (menuitem = QF1) and IsNull then
     filter := column + ' IS NULL'
   else if menuitem = QF1 then
@@ -4804,7 +4827,7 @@ end;
 procedure TMainForm.popupQueryPopup(Sender: TObject);
 begin
   // Sets cursor into memo and activates TAction(s) like paste
-  SynMemoQuery.SetFocus;
+  ActiveQueryMemo.SetFocus;
 end;
 
 procedure TMainForm.popupResultGridPopup(Sender: TObject);
@@ -4843,17 +4866,19 @@ procedure TMainForm.SynMemoQueryDragOver(Sender, Source: TObject; X,
   Y: Integer; State: TDragState; var Accept: Boolean);
 var
   src : TControl;
+  Memo: TSynMemo;
 begin
   // dragging an object over the query-memo
+  Memo := ActiveQueryMemo;
   src := Source as TControl;
   // Accepting drag's from DBTree and QueryHelpers
-  Accept := (src = DBtree) or (src = lboxQueryHelpers);
+  Accept := (src = DBtree) or (src = ActiveQueryHelpers);
   // set x-position of cursor
-  SynMemoQuery.CaretX := (x - SynMemoQuery.Gutter.Width) div SynMemoQuery.CharWidth - 1 + SynMemoQuery.LeftChar;
+  Memo.CaretX := (x - Memo.Gutter.Width) div Memo.CharWidth - 1 + Memo.LeftChar;
   // set y-position of cursor
-  SynMemoQuery.CaretY := y div SynMemoQuery.LineHeight + SynMemoQuery.TopLine;
-  if not SynMemoQuery.Focused then
-    SynMemoQuery.SetFocus;
+  Memo.CaretY := y div Memo.LineHeight + Memo.TopLine;
+  if not Memo.Focused then
+    Memo.SetFocus;
 end;
 
 
@@ -4866,7 +4891,7 @@ var
   i: Integer;
 begin
   // dropping a tree node or listbox item into the query-memo
-  SynMemoQuery.UndoList.AddGroupBreak;
+  ActiveQueryMemo.UndoList.AddGroupBreak;
   src := Source as TControl;
   Text := 'Error: Unspecified source control in drag''n drop operation!';
   LoadText := True;
@@ -4874,17 +4899,17 @@ begin
   // been performed in OnDragOver. So, only do typecasting here.
   if src = DBtree then
     Text := DBtree.Text[DBtree.GetFirstSelected, 0]
-  else if (src = lboxQueryHelpers) and (lboxQueryHelpers.ItemIndex > -1) then begin
+  else if (src = ActiveQueryHelpers) and (ActiveQueryHelpers.ItemIndex > -1) then begin
     // Snippets tab
     if tabsetQueryHelpers.TabIndex = 3 then begin
-      QueryLoad( DIRNAME_SNIPPETS + lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex] + '.sql', False );
+      QueryLoad( DIRNAME_SNIPPETS + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
       LoadText := False;
     // All other tabs
     end else begin
       Text := '';
-      for i := 0 to lboxQueryHelpers.Items.Count - 1 do begin
-        if lboxQueryHelpers.Selected[i] then
-          Text := Text + lboxQueryHelpers.Items[i] + ', ';
+      for i := 0 to ActiveQueryHelpers.Items.Count - 1 do begin
+        if ActiveQueryHelpers.Selected[i] then
+          Text := Text + ActiveQueryHelpers.Items[i] + ', ';
       end;
       Delete(Text, Length(Text)-1, 2);
     end;
@@ -4892,8 +4917,8 @@ begin
   // Only insert text if no previous action did the job.
   // Should be false when dropping a snippet-file here
   if LoadText then
-    SynMemoQuery.SelText := Text;
-  SynMemoQuery.UndoList.AddGroupBreak;
+    ActiveQueryMemo.SelText := Text;
+  ActiveQueryMemo.UndoList.AddGroupBreak;
 end;
 
 
@@ -5044,18 +5069,19 @@ begin
     if Pos( DIRNAME_SNIPPETS, filename ) = 0 then
       AddOrRemoveFromQueryLoadHistory( filename, true );
     FillPopupQueryLoad;
-    PagecontrolMain.ActivePage := tabQuery;
-    SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
+    if not QueryTabActive then
+      PagecontrolMain.ActivePage := tabQuery;
+    ActiveQueryMemo.UndoList.AddGroupBreak;
 
     if ScanNulChar(filecontent) then begin
       filecontent := RemoveNulChars(filecontent);
       MessageDlg(SContainsNulCharFile, mtInformation, [mbOK], 0);
     end;
 
-    SynMemoQuery.BeginUpdate;
+    ActiveQueryMemo.BeginUpdate;
     LineBreaks := ScanLineBreaks(filecontent);
     if ReplaceContent then begin
-      SynMemoQuery.SelectAll;
+      ActiveQueryMemo.SelectAll;
       QueryMemoLineBreaks := LineBreaks;
     end else begin
       if (QueryMemoLineBreaks <> lbsNone) and (QueryMemoLineBreaks <> LineBreaks) then
@@ -5066,9 +5092,9 @@ begin
     if QueryMemoLineBreaks = lbsMixed then
       MessageDlg('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).', mtInformation, [mbOK], 0);
 
-    SynMemoQuery.SelText := filecontent;
-    SynMemoQuery.SelStart := SynMemoQuery.SelEnd;
-    SynMemoQuery.EndUpdate;
+    ActiveQueryMemo.SelText := filecontent;
+    ActiveQueryMemo.SelStart := ActiveQueryMemo.SelEnd;
+    ActiveQueryMemo.EndUpdate;
   except on E:Exception do
     // File does not exist, is locked or broken
     MessageDlg(E.message, mtError, [mbOK], 0);
@@ -5120,7 +5146,7 @@ begin
   // Manipulate the Quick-filter menuitems
   selectedColumn := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
   // 1. block: include selected columnname and value from datagrid in caption
-  if FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].IsNull then begin
+  if DataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].IsNull then begin
     QF1.Caption := selectedColumn + ' IS NULL';
     QF2.Caption := selectedColumn + ' IS NOT NULL';
     QF3.Visible := False;
@@ -5489,23 +5515,6 @@ begin
 end;
 
 
-
-function TMainForm.GetActiveGrid: TVirtualStringTree;
-begin
-  Result := nil;
-  if PageControlMain.ActivePage = tabData then Result := DataGrid
-  else if PageControlMain.ActivePage = tabQuery then Result := QueryGrid;
-end;
-
-function TMainForm.GetActiveData: PGridResult;
-begin
-  Result := nil;
-  if PageControlMain.ActivePage = tabData then Result := @FDataGridResult
-  else if PageControlMain.ActivePage = tabQuery then Result := @FQueryGridResult;
-end;
-
-
-
 function TMainForm.GetActiveDatabase: WideString;
 var
   s: PVirtualNode;
@@ -5659,27 +5668,27 @@ var
   SnippetsAccessible : Boolean;
   Files: TStringList;
 begin
-  lboxQueryHelpers.Items.BeginUpdate;
-  lboxQueryHelpers.Items.Clear;
+  ActiveQueryHelpers.Items.BeginUpdate;
+  ActiveQueryHelpers.Items.Clear;
   // By default sorted alpabetically
-  lboxQueryHelpers.Sorted := True;
+  ActiveQueryHelpers.Sorted := True;
   // By default disable all items in popupmenu, enable them when needed
   menuInsertSnippetAtCursor.Enabled := False;
   menuLoadSnippet.Enabled := False;
   menuDeleteSnippet.Enabled := False;
   menuExplore.Enabled := False;
   menuHelp.Enabled := False;
-  lboxQueryHelpers.MultiSelect := True;
+  ActiveQueryHelpers.MultiSelect := True;
 
   case NewTab of
     0: // Cols
     begin
       // Keep native order of columns
-      lboxQueryHelpers.Sorted := False;
+      ActiveQueryHelpers.Sorted := False;
       if (SelectedTable.Text <> '') and Assigned(SelectedTableColumns) then begin
         SelectedTableColumns.First;
         while not SelectedTableColumns.Eof do begin
-          lboxQueryHelpers.Items.Add(SelectedTableColumns.Fields[0].AsWideString);
+          ActiveQueryHelpers.Items.Add(SelectedTableColumns.Fields[0].AsWideString);
           SelectedTableColumns.Next;
         end;
       end;
@@ -5694,7 +5703,7 @@ begin
         // Don't display unsupported functions here
         if MySqlFunctions[i].Version > mysql_version then
           continue;
-        lboxQueryHelpers.Items.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
+        ActiveQueryHelpers.Items.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
       end;
     end;
 
@@ -5703,18 +5712,18 @@ begin
       // State of items in popupmenu
       menuHelp.Enabled := True;
       for i := 0 to MySQLKeywords.Count - 1 do
-        lboxQueryHelpers.Items.Add(MySQLKeywords[i]);
+        ActiveQueryHelpers.Items.Add(MySQLKeywords[i]);
     end;
 
     3: // SQL Snippets
     begin
-      lboxQueryHelpers.MultiSelect := False;
+      ActiveQueryHelpers.MultiSelect := False;
       Files := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
       for i := 0 to Files.Count - 1 do
-        lboxQueryHelpers.Items.Add(Files[i]);
+        ActiveQueryHelpers.Items.Add(Files[i]);
 	  Files.Free;
       // State of items in popupmenu
-      SnippetsAccessible := lboxQueryHelpers.Items.Count > 0;
+      SnippetsAccessible := ActiveQueryHelpers.Items.Count > 0;
       menuDeleteSnippet.Enabled := SnippetsAccessible;
       menuInsertSnippetAtCursor.Enabled := SnippetsAccessible;
       menuLoadSnippet.Enabled := SnippetsAccessible;
@@ -5726,12 +5735,11 @@ begin
   // Restore last selected item in tab
   for i := 0 to Length(QueryHelpersSelectedItems[NewTab]) - 1 do begin
     idx := QueryHelpersSelectedItems[NewTab][i];
-    if idx < lboxQueryHelpers.Count then
-      lboxQueryHelpers.Selected[idx] := True;
+    if idx < ActiveQueryHelpers.Count then
+      ActiveQueryHelpers.Selected[idx] := True;
   end;
 
-  lboxQueryHelpers.Items.EndUpdate;
-
+  ActiveQueryHelpers.Items.EndUpdate;
 end;
 
 
@@ -5745,20 +5753,20 @@ var
   text: WideString;
   i: Integer;
 begin
-  for i := 0 to lboxQueryHelpers.Items.Count - 1 do begin
-    if lboxQueryHelpers.Selected[i] then
-      text := text + lboxQueryHelpers.Items[i] + ', ';
+  for i := 0 to ActiveQueryHelpers.Items.Count - 1 do begin
+    if ActiveQueryHelpers.Selected[i] then
+      text := text + ActiveQueryHelpers.Items[i] + ', ';
   end;
   Delete(text, Length(text)-1, 2);
 
-  case tabsetQueryHelpers.TabIndex of
+  case ActiveQueryTabset.TabIndex of
     3: // Load snippet file ínto query-memo
-      QueryLoad( DIRNAME_SNIPPETS + lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex] + '.sql', False );
+      QueryLoad( DIRNAME_SNIPPETS + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
     else // For all other tabs just insert the item from the list
-      SynMemoQuery.SelText := text;
+      ActiveQueryMemo.SelText := text;
   end;
 
-  SynMemoQuery.SetFocus;
+  ActiveQueryMemo.SetFocus;
 end;
 
 
@@ -5769,9 +5777,9 @@ procedure TMainForm.lboxQueryHelpersClick(Sender: TObject);
 var
   i, s, idx: Integer;
 begin
-  s := tabsetQueryHelpers.TabIndex;
+  s := ActiveQueryTabset.TabIndex;
   SetLength(QueryHelpersSelectedItems[s], 0);
-  for i := 0 to lboxQueryHelpers.Count - 1 do if lboxQueryHelpers.Selected[i] then begin
+  for i := 0 to ActiveQueryHelpers.Count - 1 do if ActiveQueryHelpers.Selected[i] then begin
     idx := Length(QueryHelpersSelectedItems[s]);
     SetLength(QueryHelpersSelectedItems[s], idx+1);
     QueryHelpersSelectedItems[s][idx] := i;
@@ -5791,7 +5799,7 @@ begin
   if SynMemoFilter.Focused then
     sm := SynMemoFilter
   else
-    sm := SynMemoQuery;
+    sm := ActiveQueryMemo;
   // Restore function name from array
   f := MySQLFunctions[TControl(Sender).tag].Name
     + MySQLFunctions[TControl(Sender).tag].Declaration;
@@ -5812,10 +5820,10 @@ var
   mayChange : Boolean;
 begin
   // Don't do anything if no item was selected
-  if lboxQueryHelpers.ItemIndex = -1 then
+  if ActiveQueryHelpers.ItemIndex = -1 then
     abort;
 
-  snippetfile := DIRNAME_SNIPPETS + lboxQueryHelpers.Items[ lboxQueryHelpers.ItemIndex ] + '.sql';
+  snippetfile := DIRNAME_SNIPPETS + ActiveQueryHelpers.Items[ ActiveQueryHelpers.ItemIndex ] + '.sql';
   if MessageDlg( 'Delete snippet file? ' + CRLF + snippetfile, mtConfirmation, [mbOk, mbCancel], 0) = mrOk then
   begin
     Screen.Cursor := crHourGlass;
@@ -5823,7 +5831,7 @@ begin
     begin
       // Refresh list with snippets
       mayChange := True; // Unused; satisfies callee parameter collection which is probably dictated by tabset.
-      tabsetQueryHelpersChange( Sender, tabsetQueryHelpers.TabIndex, mayChange );
+      tabsetQueryHelpersChange( Sender, ActiveQueryTabset.TabIndex, mayChange );
       FillPopupQueryLoad;
     end
     else
@@ -5841,7 +5849,7 @@ end;
 }
 procedure TMainForm.menuInsertSnippetAtCursorClick(Sender: TObject);
 begin
-  QueryLoad( DIRNAME_SNIPPETS + lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex] + '.sql', False );
+  QueryLoad( DIRNAME_SNIPPETS + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
 end;
 
 
@@ -5850,7 +5858,7 @@ end;
 }
 procedure TMainForm.menuLoadSnippetClick(Sender: TObject);
 begin
-  QueryLoad( DIRNAME_SNIPPETS + lboxQueryHelpers.Items[lboxQueryHelpers.ItemIndex] + '.sql', True );
+  QueryLoad( DIRNAME_SNIPPETS + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', True );
 end;
 
 
@@ -6903,9 +6911,9 @@ begin
   Node := DBtree.GetFirstSelected;
   if not Assigned(Node) then Exit;
   if DBtree.GetNodeLevel(Node) = 0 then Exit;
-  if PageControlMain.ActivePage <> tabQuery then Exit;
-  SynMemoQuery.SelText := DBtree.Text[Node, 0];
-  SynMemoQuery.SetFocus;
+  if not QueryTabActive then Exit;
+  ActiveQueryMemo.SelText := DBtree.Text[Node, 0];
+  ActiveQueryMemo.SetFocus;
 end;
 
 
@@ -7157,13 +7165,12 @@ end;
 
 procedure TMainForm.EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: WideString);
 var
-  res: PGridResult;
+  res: TGridResult;
   query: WideString;
   ds: TDataSet;
   i, j: LongInt;
 begin
-  if Sender = DataGrid then res := @FDataGridResult
-  else res := @FQueryGridResult;
+  res := GridResult(Sender);
   if (not res.Rows[Node.Index].Loaded) and (res.Rows[Node.Index].State <> grsInserted) then begin
     query := DataGridCurrentSelect + DataGridCurrentFrom;
     // Passed WhereClause has prio over current filter, fixes bug #754
@@ -7209,7 +7216,7 @@ end;
 
 procedure TMainForm.EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; FullWidth: Boolean = False);
 var
-  res: PGridResult;
+  res: TGridResult;
   start, limit: Cardinal;
   query: WideString;
   ds: TDataSet;
@@ -7217,8 +7224,7 @@ var
   hi: LongInt;
   regCrashIndicName: String;
 begin
-  if Sender = DataGrid then res := @FDataGridResult
-  else res := @FQueryGridResult;
+  res := GridResult(Sender);
   if (not res.Rows[Node.Index].Loaded) and (res.Rows[Node.Index].State <> grsInserted) then begin
     start := Node.Index - (Node.Index mod GridMaxRows);
     limit := TVirtualStringTree(Sender).RootNodeCount - start;
@@ -7285,7 +7291,7 @@ begin
       ds.Next;
     end;
 
-    if res = @FDataGridResult then begin
+    if res = DataGridResult then begin
       if ReachedEOT then DisplayRowCountStats(Length(res.Rows))
       else DisplayRowCountStats(-1);
     end;
@@ -7296,16 +7302,13 @@ begin
 end;
 
 procedure TMainForm.DiscardNodeData(Sender: TVirtualStringTree; Node: PVirtualNode);
-var
-  Data: PGridResult;
 begin
   // Avoid discarding query data as it will never be reloaded.
   if Sender <> DataGrid then Exit;
-  Data := @FDataGridResult;
   // Avoid rows being edited.
-  if Data.Rows[Node.Index].State = grsDefault then begin
-    Data.Rows[Node.Index].Loaded := false;
-    SetLength(Data.Rows[Node.Index].Cells, 0);
+  if DataGridResult.Rows[Node.Index].State = grsDefault then begin
+    DataGridResult.Rows[Node.Index].Loaded := false;
+    SetLength(DataGridResult.Rows[Node.Index].Cells, 0);
   end;
 end;
 
@@ -7317,13 +7320,12 @@ procedure TMainForm.GridGetText(Sender: TBaseVirtualTree; Node:
     WideString);
 var
   c: PGridCell;
-  gr: PGridResult;
+  gr: TGridResult;
   EditingCell: Boolean;
 begin
   if Column = -1 then
     Exit;
-  if Sender = DataGrid then gr := @FDataGridResult
-  else gr := @FQueryGridResult;
+  gr := GridResult(Sender);
   if Node.Index >= Cardinal(Length(gr.Rows)) then Exit;
   EnsureChunkLoaded(Sender, Node);
   if Node.Index >= Cardinal(Length(gr.Rows)) then Exit;
@@ -7364,13 +7366,12 @@ procedure TMainForm.GridPaintText(Sender: TBaseVirtualTree; const
     TVSTTextType);
 var
   cl: TColor;
-  r: PGridResult;
+  r: TGridResult;
 begin
   if Column = -1 then
     Exit;
 
-  if Sender = DataGrid then r := @FDataGridResult
-  else r := @FQueryGridResult;
+  r := GridResult(Sender);
 
   if Node.Index >= Cardinal(Length(r.Rows)) then
     Exit;
@@ -7398,9 +7399,9 @@ procedure TMainForm.DataGridAfterCellPaint(Sender: TBaseVirtualTree;
 begin
   // Don't waist time
   if Column = -1 then Exit;
-  if Node.Index >= Cardinal(Length(FDataGridResult.Rows)) then Exit;
+  if Node.Index >= Cardinal(Length(DataGridResult.Rows)) then Exit;
   // Paint a red triangle at the top left corner of the cell
-  if FDataGridResult.Rows[Node.Index].Cells[Column].Modified then
+  if DataGridResult.Rows[Node.Index].Cells[Column].Modified then
     PngImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 111);
 end;
 
@@ -7470,7 +7471,7 @@ begin
     Exit;
   // Internally calls OnNewText event:
   DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn] := '';
-  FDataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].NewIsNull := True;
+  DataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].NewIsNull := True;
   DataGrid.RepaintNode(DataGrid.FocusedNode);
 end;
 
@@ -7483,14 +7484,14 @@ procedure TMainForm.DataGridNewText(Sender: TBaseVirtualTree; Node:
 var
   Row: PGridRow;
 begin
-  Row := @FDataGridResult.Rows[Node.Index];
+  Row := @DataGridResult.Rows[Node.Index];
   // Remember new value
   Row.Cells[Column].NewText := NewText;
   Row.Cells[Column].NewIsNull := False;
   Row.Cells[Column].Modified := True;
   // Set state of row for UPDATE mode, don't touch grsInserted
   if Row.State = grsDefault then
-    FDataGridResult.Rows[Node.Index].State := grsModified;
+    DataGridResult.Rows[Node.Index].State := grsModified;
   DataGridHasChanges := True;
   ValidateControls(Sender);
 end;
@@ -7562,8 +7563,8 @@ end;
 function TMainForm.DataGridPostUpdateOrInsert(Node: PVirtualNode): Boolean;
 begin
   Result := True;
-  if Cardinal(High(FDataGridResult.Rows)) >= Node.Index then
-    case FDataGridResult.Rows[Node.Index].State of
+  if Cardinal(High(DataGridResult.Rows)) >= Node.Index then
+    case DataGridResult.Rows[Node.Index].State of
       grsModified: Result := GridPostUpdate(DataGrid);
       grsInserted: Result := GridPostInsert(DataGrid);
     end;
@@ -7580,24 +7581,24 @@ var
   Row: PGridRow;
 begin
   sql := 'UPDATE '+mask(DataGridDB)+'.'+mask(DataGridTable)+' SET';
-  Row := @FDataGridResult.Rows[Sender.FocusedNode.Index];
-  for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
+  Row := @DataGridResult.Rows[Sender.FocusedNode.Index];
+  for i := 0 to Length(DataGridResult.Columns) - 1 do begin
     if Row.Cells[i].Modified then begin
       Val := Row.Cells[i].NewText;
-      if FDataGridResult.Columns[i].DatatypeCat = dtcReal then
+      if DataGridResult.Columns[i].DatatypeCat = dtcReal then
         Val := FloatStr(Val)
-      else if FDataGridResult.Columns[i].DatatypeCat = dtcBinary then begin
-        CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + FDataGridResult.Columns[i].Name + '".');
+      else if DataGridResult.Columns[i].DatatypeCat = dtcBinary then begin
+        CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + DataGridResult.Columns[i].Name + '".');
         if Val = '0x' then Val := esc('');
       end else
         Val := esc(Val);
       if Row.Cells[i].NewIsNull then Val := 'NULL';
-      sql := sql + ' ' + mask(FDataGridResult.Columns[i].Name) + '=' + Val + ', ';
+      sql := sql + ' ' + mask(DataGridResult.Columns[i].Name) + '=' + Val + ', ';
     end;
   end;
   // Cut trailing comma
   sql := Copy(sql, 1, Length(sql)-2);
-  sql := sql + ' WHERE ' + GetWhereClause(Row, @FDataGridResult.Columns);
+  sql := sql + ' WHERE ' + GetWhereClause(Row, @DataGridResult.Columns);
   try
     // Send UPDATE query
     if (ExecUpdateQuery(sql, False, True) = 0) then begin
@@ -7618,7 +7619,7 @@ begin
   if Result then begin
     // Reselect just updated row in grid from server to ensure displaying
     // correct values which were silently converted by the server
-    for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
+    for i := 0 to Length(DataGridResult.Columns) - 1 do begin
       if not Row.Cells[i].Modified then
         Continue;
       Row.Cells[i].Text := Row.Cells[i].NewText;
@@ -7626,7 +7627,7 @@ begin
     end;
     GridFinalizeEditing(Sender);
     Row.Loaded := false;
-    EnsureNodeLoaded(Sender, Sender.FocusedNode, GetWhereClause(Row, @FDataGridResult.Columns));
+    EnsureNodeLoaded(Sender, Sender.FocusedNode, GetWhereClause(Row, @DataGridResult.Columns));
   end;
 end;
 
@@ -7639,10 +7640,10 @@ var
   i, c: Integer;
 begin
   c := Sender.FocusedNode.Index;
-  FDataGridResult.Rows[c].State := grsDefault;
-  for i := 0 to Length(FDataGridResult.Rows[c].Cells) - 1 do begin
-    FDataGridResult.Rows[c].Cells[i].NewText := '';
-    FDataGridResult.Rows[c].Cells[i].Modified := False;
+  DataGridResult.Rows[c].State := grsDefault;
+  for i := 0 to Length(DataGridResult.Rows[c].Cells) - 1 do begin
+    DataGridResult.Rows[c].Cells[i].NewText := '';
+    DataGridResult.Rows[c].Cells[i].Modified := False;
   end;
   Sender.RepaintNode(Sender.FocusedNode);
   DataGridHasChanges := False;
@@ -7669,9 +7670,9 @@ begin
     // Find old value of key column
     KeyVal := Row.Cells[j].Text;
     // Quote if needed
-    if FDataGridResult.Columns[j].DatatypeCat = dtcReal then
+    if DataGridResult.Columns[j].DatatypeCat = dtcReal then
       KeyVal := FloatStr(KeyVal)
-    else if FDataGridResult.Columns[j].DatatypeCat = dtcBinary then begin
+    else if DataGridResult.Columns[j].DatatypeCat = dtcBinary then begin
       if KeyVal = '0x' then
         KeyVal := esc('');
     end else
@@ -7750,17 +7751,17 @@ procedure TMainForm.DataGridInsertRow;
 var
   i, j: Integer;
 begin
-  // Scroll to the bottom to ensure we append the new row at the very last FDataGridResult chunk
+  // Scroll to the bottom to ensure we append the new row at the very last DataGridResult chunk
   DataGrid.FocusedNode := DataGrid.GetLast;
   DataGrid.Repaint;
   // Steeling focus now to invoke posting a pending row update
   DataGrid.FocusedNode := nil;
-  i := Length(FDataGridResult.Rows);
-  SetLength(FDataGridResult.Rows, i+1);
-  SetLength(FDataGridResult.Rows[i].Cells, Length(FDataGridResult.Columns));
-  FDataGridResult.Rows[i].State := grsInserted;
-  for j := 0 to Length(FDataGridResult.Rows[i].Cells) - 1 do begin
-    FDataGridResult.Rows[i].Cells[j].Text := '';
+  i := Length(DataGridResult.Rows);
+  SetLength(DataGridResult.Rows, i+1);
+  SetLength(DataGridResult.Rows[i].Cells, Length(DataGridResult.Columns));
+  DataGridResult.Rows[i].State := grsInserted;
+  for j := 0 to Length(DataGridResult.Rows[i].Cells) - 1 do begin
+    DataGridResult.Rows[i].Cells[j].Text := '';
   end;
   DataGrid.FocusedNode := DataGrid.AddChild(nil);
   DataGrid.ClearSelection;
@@ -7781,18 +7782,18 @@ var
   Node: PVirtualNode;
 begin
   Node := Sender.FocusedNode;
-  Row := @FDataGridResult.Rows[Node.Index];
+  Row := @DataGridResult.Rows[Node.Index];
   Cols := '';
   Vals := '';
-  for i := 0 to Length(FDataGridResult.Columns) - 1 do begin
+  for i := 0 to Length(DataGridResult.Columns) - 1 do begin
     SelectedTableColumns.RecNo := i;
     if Row.Cells[i].Modified then begin
-      Cols := Cols + mask(FDataGridResult.Columns[i].Name) + ', ';
+      Cols := Cols + mask(DataGridResult.Columns[i].Name) + ', ';
       Val := Row.Cells[i].NewText;
-      if FDataGridResult.Columns[i].DatatypeCat = dtcReal then
+      if DataGridResult.Columns[i].DatatypeCat = dtcReal then
         Val := FloatStr(Val)
-      else if FDataGridResult.Columns[i].DatatypeCat = dtcBinary then begin
-        CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + FDataGridResult.Columns[i].Name + '".');
+      else if DataGridResult.Columns[i].DatatypeCat = dtcBinary then begin
+        CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + DataGridResult.Columns[i].Name + '".');
         if Val = '0x' then
           Val := esc('');
       end else
@@ -7805,7 +7806,7 @@ begin
     // No field was manually modified, cancel the INSERT in that case
     Sender.BeginUpdate;
     Sender.DeleteNode(Node);
-    SetLength(FDataGridResult.Rows, Length(FDataGridResult.Rows) - 1);
+    SetLength(DataGridResult.Rows, Length(DataGridResult.Rows) - 1);
     Sender.EndUpdate;
     DataGridHasChanges := False;
     ValidateControls(Sender);
@@ -7821,7 +7822,7 @@ begin
     end;
     Result := True;
     Row.Loaded := false;
-    EnsureNodeLoaded(Sender, Node, GetWhereClause(Row, @FDataGridResult.Columns));
+    EnsureNodeLoaded(Sender, Node, GetWhereClause(Row, @DataGridResult.Columns));
     GridFinalizeEditing(Sender);
   end;
 end;
@@ -7844,7 +7845,7 @@ begin
   while Assigned(Node) do begin
     EnsureChunkLoaded(Sender, Node);
     sql := sql + ' (' +
-      GetWhereClause(@FDataGridResult.Rows[Node.Index], @FDataGridResult.Columns) +
+      GetWhereClause(@DataGridResult.Rows[Node.Index], @DataGridResult.Columns) +
       ') OR';
     Node := Sender.GetNextSelected(Node);
   end;
@@ -7868,12 +7869,12 @@ begin
       Sender.BeginUpdate;
       Nodes := Sender.GetSortedSelection(True);
       for i:=High(Nodes) downto Low(Nodes) do begin
-        for j := Nodes[i].Index to High(FDataGridResult.Rows)-1 do begin
+        for j := Nodes[i].Index to High(DataGridResult.Rows)-1 do begin
           // Move upper rows by one so the selected row gets overwritten
-          FDataGridResult.Rows[j] := FDataGridResult.Rows[j+1];
+          DataGridResult.Rows[j] := DataGridResult.Rows[j+1];
         end;
       end;
-      SetLength(FDataGridResult.Rows, Length(FDataGridResult.Rows) - Selected);
+      SetLength(DataGridResult.Rows, Length(DataGridResult.Rows) - Selected);
       Sender.DeleteSelectedNodes;
       Sender.EndUpdate;
     end else begin
@@ -7897,12 +7898,12 @@ procedure TMainForm.DataGridCancel(Sender: TObject);
 var
   i: Integer;
 begin
-  case FDataGridResult.Rows[DataGrid.FocusedNode.Index].State of
+  case DataGridResult.Rows[DataGrid.FocusedNode.Index].State of
     grsModified: GridFinalizeEditing(DataGrid);
     grsInserted: begin
-      i := Length(FDataGridResult.Rows);
+      i := Length(DataGridResult.Rows);
       DataGrid.DeleteNode(DataGrid.FocusedNode, False);
-      SetLength(FDataGridResult.Rows, i-1);
+      SetLength(DataGridResult.Rows, i-1);
       // Focus+select last node if possible
       actDataLastExecute(Sender);
     end;
@@ -7935,7 +7936,6 @@ end;
 //       right now is horrendous for some reason (thinking mysqlquerythread).
 function TMainForm.EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode): Boolean;
 var
-  Data: PGridResult;
   Cell: PGridCell;
   Row: PGridRow;
   Col: PGridColumn;
@@ -7947,12 +7947,11 @@ begin
 
   // Only the data grid uses delayed loading of full-width data.
   if Grid <> DataGrid then Exit;
-  Data := @FDataGridResult;
 
   // Load entire data for field.
-  Col := @Data.Columns[Column];
-  Row := @Data.Rows[Node.Index];
-  Cell := @Data.Rows[Node.Index].Cells[Column];
+  Col := @DataGridResult.Columns[Column];
+  Row := @DataGridResult.Rows[Node.Index];
+  Cell := @DataGridResult.Rows[Node.Index].Cells[Column];
   len := Length(Cell.Text);
   // Recalculate due to textual formatting of raw binary data.
   if (Col.DatatypeCat = dtcBinary) and (len > 2) then len := (len - 2) div 2;
@@ -7962,7 +7961,7 @@ begin
       sql :=
         'SELECT ' + mask(Col.Name) +
         ' FROM ' + mask(SelectedTable.Text) +
-        ' WHERE ' + GetWhereClause(Row, @Data.Columns)
+        ' WHERE ' + GetWhereClause(Row, @DataGridResult.Columns)
       ;
       ds := GetResults(sql);
       if Col.DatatypeCat = dtcBinary then Cell.Text := '0x' + BinToWideHex(ds.Fields[0].AsString)
@@ -7977,7 +7976,7 @@ procedure TMainForm.DataGridEditing(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 begin
   Allowed := True;
-  if FDataGridResult.Rows[Node.Index].State = grsDefault then
+  if DataGridResult.Rows[Node.Index].State = grsDefault then
     Allowed := CheckUniqueKeyClause;
   if Allowed then begin
     // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
@@ -8018,35 +8017,35 @@ var
   TypeCat: TDatatypeCategoryIndex;
 begin
   VT := Sender as TVirtualStringTree;
-  TypeCat := FDataGridResult.Columns[Column].DatatypeCat;
+  TypeCat := DataGridResult.Columns[Column].DatatypeCat;
   if TypeCat = dtcText then begin
     InplaceEditor := TInplaceEditorLink.Create(VT);
-    InplaceEditor.DataType := FDataGridResult.Columns[Column].Datatype;
-    InplaceEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
+    InplaceEditor.DataType := DataGridResult.Columns[Column].Datatype;
+    InplaceEditor.MaxLength := DataGridResult.Columns[Column].MaxLength;
     InplaceEditor.ButtonVisible := True;
     EditLink := InplaceEditor;
   end else if (TypeCat = dtcBinary) and prefEnableBinaryEditor then begin
     HexEditor := THexEditorLink.Create(VT);
-    HexEditor.DataType := FDataGridResult.Columns[Column].Datatype;
-    HexEditor.MaxLength := FDataGridResult.Columns[Column].MaxLength;
+    HexEditor.DataType := DataGridResult.Columns[Column].Datatype;
+    HexEditor.MaxLength := DataGridResult.Columns[Column].MaxLength;
     EditLink := HexEditor;
   end else if (TypeCat = dtcTemporal) and prefEnableDatetimeEditor then begin
     DateTimeEditor := TDateTimeEditorLink.Create(VT);
-    DateTimeEditor.DataType := FDataGridResult.Columns[Column].Datatype;
+    DateTimeEditor.DataType := DataGridResult.Columns[Column].Datatype;
     EditLink := DateTimeEditor;
   end else if (TypeCat = dtcIntegerNamed) and prefEnableEnumEditor then begin
     EnumEditor := TEnumEditorLink.Create(VT);
-    EnumEditor.DataType := FDataGridResult.Columns[Column].Datatype;
-    EnumEditor.ValueList := FDataGridResult.Columns[Column].ValueList;
+    EnumEditor.DataType := DataGridResult.Columns[Column].Datatype;
+    EnumEditor.ValueList := DataGridResult.Columns[Column].ValueList;
     EditLink := EnumEditor;
   end else if (TypeCat = dtcSetNamed) and prefEnableSetEditor then begin
     SetEditor := TSetEditorLink.Create(VT);
-    SetEditor.DataType := FDataGridResult.Columns[Column].Datatype;
-    SetEditor.ValueList := FDataGridResult.Columns[Column].ValueList;
+    SetEditor.DataType := DataGridResult.Columns[Column].Datatype;
+    SetEditor.ValueList := DataGridResult.Columns[Column].ValueList;
     EditLink := SetEditor;
   end else begin
     InplaceEditor := TInplaceEditorLink.Create(VT);
-    InplaceEditor.DataType := FDataGridResult.Columns[Column].Datatype;
+    InplaceEditor.DataType := DataGridResult.Columns[Column].Datatype;
     InplaceEditor.ButtonVisible := False;
     EditLink := InplaceEditor;
   end;
@@ -8178,12 +8177,11 @@ procedure TMainForm.GridBeforeCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
-  gr: PGridResult;
+  gr: TGridResult;
 begin
   if Column = -1 then
     Exit;
-  if Sender = DataGrid then gr := @FDataGridResult
-  else gr := @FQueryGridResult;
+  gr := GridResult(Sender);
   EnsureChunkLoaded(Sender, Node);
   if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
     if not Sender.IsEditing then begin
@@ -8848,14 +8846,14 @@ begin
   // Then, adjust the data grid and data containers.
   debug('mem: initializing browse rows (internal data).');
   try
-    SetLength(FDataGridResult.Rows, count);
+    SetLength(DataGridResult.Rows, count);
     debug('mem: initializing browse rows (grid).');
     DataGrid.RootNodeCount := count;
     ReachedEOT := True;
     DisplayRowCountStats(count);
   except
     DataGrid.RootNodeCount := 0;
-    SetLength(FDataGridResult.Rows, 0);
+    SetLength(DataGridResult.Rows, 0);
     PageControlMain.ActivePage := tabDatabase;
     raise;
   end;
@@ -9013,6 +9011,394 @@ begin
   // Free selected table's cached column and key list
   FreeAndNil(FSelectedTableColumns);
   FreeAndNil(FSelectedTableKeys);
+end;
+
+
+procedure TMainForm.actNewQueryTabExecute(Sender: TObject);
+var
+  tab: TTabSheet;
+  i, SharedTag: Integer;
+  CloseButton: TSpeedButton;
+  New_pnlQueryMemo: TPanel;
+  New_pnlQueryHelpers: TPanel;
+  New_lboxQueryHelpers: TTntListBox;
+  New_tabsetQueryHelpers: TTabSet;
+  New_SynMemoQuery: TSynMemo;
+  New_spltQueryHelpers: TSplitter;
+  New_spltQuery: TSplitter;
+  New_LabelResultInfo: TLabel;
+  New_QueryGrid: TVirtualStringTree;
+begin
+  // In order to find the matching close button to a tab in FixQueryTabCloseButtons
+  // we give both (tab + button) the same .Tag property
+  SharedTag := 1;
+  for i:=tabQuery.PageIndex to PageControlMain.PageCount-1 do
+    SharedTag := Max(SharedTag, PageControlMain.Pages[i].Tag);
+  Inc(SharedTag);
+  tab := TTabSheet.Create(PageControlMain);
+  tab.PageControl := PageControlMain;
+  tab.Tag := SharedTag;
+  tab.Caption := tabQuery.Caption + ' #'+IntToStr(SharedTag)+'      ';
+  tab.ImageIndex := tabQuery.ImageIndex;
+
+  FGridResults.Add(TGridResult.Create);
+
+  CloseButton := TSpeedButton.Create(tab);
+  CloseButton.Parent := PageControlMain;
+  CloseButton.Tag := SharedTag;
+  CloseButton.Width := 14;
+  CloseButton.Height := 16;
+  CloseButton.Flat := True;
+  CloseButton.Caption := '×';
+  CloseButton.OnMouseUp := CloseButtonOnMouseUp;
+  FixQueryTabCloseButtons;
+
+  // Dumb code which replicates all controls from tabQuery
+  New_pnlQueryMemo := TPanel.Create(tab);
+  New_pnlQueryMemo.Parent := tab;
+  New_pnlQueryMemo.Tag := pnlQueryMemo.Tag;
+  New_pnlQueryMemo.BevelOuter := pnlQueryMemo.BevelOuter;
+  New_pnlQueryMemo.Align := pnlQueryMemo.Align;
+
+  New_SynMemoQuery := TSynMemo.Create(New_pnlQueryMemo);
+  New_SynMemoQuery.Parent := New_pnlQueryMemo;
+  New_SynMemoQuery.Tag := SynMemoQuery.Tag;
+  New_SynMemoQuery.Align := SynMemoQuery.Align;
+  New_SynMemoQuery.Options := SynMemoQuery.Options;
+  New_SynMemoQuery.PopupMenu := SynMemoQuery.PopupMenu;
+  New_SynMemoQuery.TabWidth := SynMemoQuery.TabWidth;
+  New_SynMemoQuery.RightEdge := SynMemoQuery.RightEdge;
+  New_SynMemoQuery.WantTabs := SynMemoQuery.WantTabs;
+  New_SynMemoQuery.Highlighter := SynMemoQuery.Highlighter;
+  New_SynMemoQuery.SearchEngine := SynMemoQuery.SearchEngine;
+  New_SynMemoQuery.Gutter.Assign(SynMemoQuery.Gutter);
+  New_SynMemoQuery.Font.Assign(SynMemoQuery.Font);
+  New_SynMemoQuery.ActiveLineColor := SynMemoQuery.ActiveLineColor;
+  New_SynMemoQuery.OnDragDrop := SynMemoQuery.OnDragDrop;
+  New_SynMemoQuery.OnDragOver := SynMemoQuery.OnDragOver;
+  New_SynMemoQuery.OnDropFiles := SynMemoQuery.OnDropFiles;
+  New_SynMemoQuery.OnStatusChange := SynMemoQuery.OnStatusChange;
+
+  New_spltQueryHelpers := TSplitter.Create(New_pnlQueryMemo);
+  New_spltQueryHelpers.Parent := New_pnlQueryMemo;
+  New_spltQueryHelpers.Tag := spltQueryHelpers.Tag;
+  New_spltQueryHelpers.Align := spltQueryHelpers.Align;
+  New_spltQueryHelpers.Cursor := spltQueryHelpers.Cursor;
+  New_spltQueryHelpers.ResizeStyle := spltQueryHelpers.ResizeStyle;
+  New_spltQueryHelpers.Width := spltQueryHelpers.Width;
+
+  New_pnlQueryHelpers := TPanel.Create(New_pnlQueryMemo);
+  New_pnlQueryHelpers.Parent := New_pnlQueryMemo;
+  New_pnlQueryHelpers.Tag := pnlQueryHelpers.Tag;
+  New_pnlQueryHelpers.BevelOuter := pnlQueryHelpers.BevelOuter;
+  New_pnlQueryHelpers.Align := pnlQueryHelpers.Align;
+
+  New_lboxQueryHelpers := TTntListBox.Create(New_pnlQueryHelpers);
+  New_lboxQueryHelpers.Parent := New_pnlQueryHelpers;
+  New_lboxQueryHelpers.Tag := lboxQueryHelpers.Tag;
+  New_lboxQueryHelpers.Align := lboxQueryHelpers.Align;
+  New_lboxQueryHelpers.PopupMenu := lboxQueryHelpers.PopupMenu;
+  New_lboxQueryHelpers.MultiSelect := lboxQueryHelpers.MultiSelect;
+  New_lboxQueryHelpers.DragMode := lboxQueryHelpers.DragMode;
+  New_lboxQueryHelpers.Font.Assign(lboxQueryHelpers.Font);
+  New_lboxQueryHelpers.OnClick := lboxQueryHelpers.OnClick;
+  New_lboxQueryHelpers.OnDblClick := lboxQueryHelpers.OnDblClick;
+
+  New_tabsetQueryHelpers := TTabSet.Create(New_pnlQueryHelpers);
+  New_tabsetQueryHelpers.Parent := New_pnlQueryHelpers;
+  New_tabsetQueryHelpers.Tag := tabsetQueryHelpers.Tag;
+  New_tabsetQueryHelpers.Height := tabsetQueryHelpers.Height;
+  New_tabsetQueryHelpers.Align := tabsetQueryHelpers.Align;
+  New_tabsetQueryHelpers.Tabs := tabsetQueryHelpers.Tabs;
+  New_tabsetQueryHelpers.Style := tabsetQueryHelpers.Style;
+  New_tabsetQueryHelpers.Font.Assign(tabsetQueryHelpers.Font);
+  New_tabsetQueryHelpers.OnChange := tabsetQueryHelpers.OnChange;
+
+  New_spltQuery := TSplitter.Create(tab);
+  New_spltQuery.Parent := tab;
+  New_spltQuery.Tag := spltQuery.Tag;
+  New_spltQuery.Align := spltQuery.Align;
+  New_spltQuery.Height := spltQuery.Height;
+  New_spltQuery.Cursor := spltQuery.Cursor;
+  New_spltQuery.ResizeStyle := spltQuery.ResizeStyle;
+
+  New_LabelResultInfo := TLabel.Create(tab);
+  New_LabelResultInfo.Parent := tab;
+  New_LabelResultInfo.Tag := LabelResultInfo.Tag;
+  New_LabelResultInfo.Align := LabelResultInfo.Align;
+  New_LabelResultInfo.Font.Assign(LabelResultInfo.Font);
+  New_LabelResultInfo.Caption := '';
+
+  New_QueryGrid := TVirtualStringTree.Create(tab);
+  New_QueryGrid.Parent := tab;
+  New_QueryGrid.Tag := QueryGrid.Tag;
+  New_QueryGrid.Align := QueryGrid.Align;
+  New_QueryGrid.TreeOptions := QueryGrid.TreeOptions;
+  New_QueryGrid.PopupMenu := QueryGrid.PopupMenu;
+  New_QueryGrid.LineStyle := QueryGrid.LineStyle;
+  New_QueryGrid.Font.Assign(QueryGrid.Font);
+  New_QueryGrid.Header.ParentFont := QueryGrid.Header.ParentFont;
+  New_QueryGrid.WantTabs := QueryGrid.WantTabs;
+  New_QueryGrid.OnBeforeCellPaint := QueryGrid.OnBeforeCellPaint;
+  New_QueryGrid.OnFocusChanged := QueryGrid.OnFocusChanged;
+  New_QueryGrid.OnGetText := QueryGrid.OnGetText;
+  New_QueryGrid.OnKeyDown := QueryGrid.OnKeyDown;
+  New_QueryGrid.OnPaintText := QueryGrid.OnPaintText;
+  FixVT(New_QueryGrid);
+
+  // Set splitter positions
+  New_pnlQueryMemo.Height := pnlQueryMemo.Height;
+  New_pnlQueryMemo.Top := pnlQueryMemo.Top;
+  New_spltQuery.Top := spltQuery.Top;
+  New_pnlQueryHelpers.Width := pnlQueryHelpers.Width;
+
+  // Show new tab
+  PageControlMain.ActivePage := tab;
+  PageControlMainChange(Sender);
+end;
+
+
+procedure TMainForm.panelTopDblClick(Sender: TObject);
+var
+  aRect: TRect;
+  aPoint: TPoint;
+begin
+  // Catch doubleclick on PageControlMain's underlying panel, which gets fired
+  // when user clicks right besides the visible tabs
+  aPoint := PageControlMain.ClientOrigin;
+  aRect := Rect(aPoint.X, aPoint.Y, aPoint.X + PageControlMain.Width, aPoint.Y + PageControlMain.Height - tabQuery.Height);
+  GetCursorPos(aPoint);
+  if PtInRect(aRect, aPoint) then
+    actNewQueryTab.Execute;
+end;
+
+
+procedure TMainForm.actCloseQueryTabExecute(Sender: TObject);
+begin
+  // Close active query tab by main action
+  CloseQueryTab(PageControlMain.ActivePageIndex);
+end;
+
+
+procedure TMainForm.menuCloseQueryTab(Sender: TObject);
+var
+  aPoint: TPoint;
+begin
+  // Close query tab by menu item
+  aPoint := PageControlMain.ScreenToClient(popupMainTabs.PopupPoint);
+  CloseQueryTab(GetMainTabAt(aPoint.X, aPoint.Y));
+end;
+
+
+procedure TMainForm.popupMainTabsPopup(Sender: TObject);
+var
+  aPoint: TPoint;
+begin
+  // Detect if there is a tab under mouse position
+  aPoint := PageControlMain.ScreenToClient(popupMainTabs.PopupPoint);
+  menuCloseTab.Enabled := GetMainTabAt(aPoint.X, aPoint.Y) > tabQuery.PageIndex;
+end;
+
+
+procedure TMainForm.CloseQueryTab(PageIndex: Integer);
+var
+  NewPageIndex: Integer;
+begin
+  if PageIndex <= tabQuery.PageIndex then
+    Exit;
+  FGridResults.Delete(PageIndex-tabData.PageIndex);
+  // Work around bugs in ComCtrls.TPageControl.RemovePage
+  NewPageIndex := PageControlMain.ActivePageIndex;
+  if NewPageIndex >= PageIndex then
+    Dec(NewPageIndex);
+  // Avoid excessive flicker:
+  LockWindowUpdate(PageControlMain.Handle);
+  PageControlMain.Pages[PageIndex].Free;
+  PageControlMain.ActivePageIndex := NewPageIndex;
+  FixQueryTabCloseButtons;
+  LockWindowUpdate(0);
+  PageControlMain.OnChange(PageControlMain);
+end;
+
+
+procedure TMainForm.CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  aPoint: TPoint;
+begin
+  // Click on "Close" button of Query tab
+  if Button <> mbLeft then
+    Exit;
+  aPoint := PageControlMain.ScreenToClient((Sender as TSpeedButton).ClientToScreen(Point(X,Y)));
+  CloseQueryTab(GetMainTabAt(aPoint.X, aPoint.Y));
+end;
+
+
+procedure TMainForm.PageControlMainMouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  CurTickcount: Cardinal;
+  TabNumber: Integer;
+begin
+  // Simulate doubleclick on tab to close it
+  CurTickcount := GetTickCount;
+  TabNumber := GetMainTabAt(X, Y);
+  if (TabNumber = FLastTabNumberOnMouseUp)
+    and (CurTickcount - FLastMouseUpOnPageControl <= GetDoubleClickTime) then
+    CloseQueryTab(TabNumber)
+  else begin
+    FLastMouseUpOnPageControl := CurTickcount;
+    FLastTabNumberOnMouseUp := TabNumber;
+  end;
+end;
+
+
+function TMainForm.GetMainTabAt(X, Y: Integer): Integer;
+var
+  i: Integer;
+begin
+  // Return page index of main tab by coordinates
+  Result := PageControlMain.IndexOfTabAt(X, Y);
+  for i:=0 to PageControlMain.PageCount-1 do begin
+    if (i<=Result) and (not PageControlMain.Pages[i].TabVisible) then
+      Inc(Result);
+  end;
+end;
+
+
+procedure TMainForm.FixQueryTabCloseButtons;
+var
+  i, PageIndex, VisiblePageIndex: Integer;
+  Rect: TRect;
+  btn: TSpeedButton;
+begin
+  // Fix positions of "Close" buttons on Query tabs
+  LockWindowUpdate(PageControlMain.Handle);
+  for PageIndex:=tabQuery.PageIndex+1 to PageControlMain.PageCount-1 do begin
+    VisiblePageIndex := PageIndex;
+    for i:=0 to PageControlMain.PageCount-1 do begin
+      if (i<=VisiblePageIndex) and (not PageControlMain.Pages[i].TabVisible) then
+        Dec(VisiblePageIndex);
+    end;
+    Rect := PageControlMain.TabRect(VisiblePageIndex);
+    btn := QueryTabCloseButton(PageIndex);
+    btn.Top := Rect.Top + 2;
+    btn.Left := Rect.Right - 19;
+  end;
+  LockWindowUpdate(0);
+end;
+
+
+function TMainForm.QueryTabCloseButton(PageIndex: Integer): TSpeedButton;
+var
+  i: Integer;
+begin
+  // Return close button of given query tab
+  Result := nil;
+  for i:=0 to PageControlMain.ControlCount-1 do begin
+    if not (PageControlMain.Controls[i] is TSpeedButton) then
+      continue;
+    if PageControlMain.Controls[i].Tag = PageControlMain.Pages[PageIndex].Tag then begin
+      Result := PageControlMain.Controls[i] as TSpeedButton;
+      Break;
+    end;
+  end;
+  if not Assigned(Result) then
+    Raise Exception.Create('Couldn''t find close button on query tab #'+IntToStr(PageIndex));
+end;
+
+
+function TMainForm.QueryControl(PageIndex: Integer; Base: TControl): TControl;
+  // Find control reference on a given query tab
+  procedure FindChild(Parent: TWinControl);
+  var
+    i: Integer;
+  begin
+    if Assigned(Result) then
+      Exit;
+    for i:=0 to Parent.ControlCount-1 do begin
+      if Parent.Controls[i].Tag = Base.Tag then begin
+        Result := Parent.Controls[i];
+        break;
+      end;
+      if Parent.Controls[i] is TPanel then
+        FindChild(TWinControl(Parent.Controls[i]));
+    end;
+  end;
+begin
+  if (PageIndex < tabQuery.PageIndex) or (PageIndex >= PageControlMain.PageCount) then
+    Raise Exception.Create(PageControlMain.Pages[PageIndex].Name+' is not a Query tab.');
+  Result := nil;
+  FindChild(PageControlMain.Pages[PageIndex]);
+  if not Assigned(Result) then
+    Raise Exception.Create('Couln''t find the matching component of '+Base.Name+' on Query tab #'+IntToStr(PageIndex));
+end;
+
+
+function TMainForm.ActiveQueryControl(Base: TControl): TControl;
+begin
+  // Return component reference on current Query tab
+  Result := QueryControl(PageControlMain.ActivePageIndex, Base);
+end;
+
+
+function TMainForm.ActiveQueryMemo: TSynMemo;
+begin
+  // Return current query memo
+  Result := ActiveQueryControl(SynMemoQuery) as TSynMemo;
+end;
+
+
+function TMainForm.ActiveQueryHelpers: TTntListBox;
+begin
+  // Return current query helpers listbox
+  Result := ActiveQueryControl(lboxQueryHelpers) as TTntListBox;
+end;
+
+
+function TMainForm.ActiveQueryTabset: TTabset;
+begin
+  // Return current query helpers tabset
+  Result := ActiveQueryControl(tabsetQueryHelpers) as TTabset;
+end;
+
+
+function TMainForm.ActiveGrid: TVirtualStringTree;
+begin
+  if PageControlMain.ActivePage = tabData then Result := DataGrid
+  else Result := ActiveQueryControl(QueryGrid) as TVirtualStringTree;
+end;
+
+
+function TMainForm.GridResult(Grid: TBaseVirtualTree): TGridResult;
+begin
+  // All grids (data- and query-grids) are placed directly on a TTabSheet
+  Result := GridResult((Grid.Parent as TTabSheet).PageIndex)
+end;
+
+
+function TMainForm.GridResult(PageIndex: Integer): TGridResult;
+begin
+  // Return the grid result for "Data" or one of the "Query" tabs.
+  // Results are enumerated like the tabs on which they get displayed, starting at tabData
+  Dec(PageIndex, tabData.PageIndex);
+  if PageIndex < FGridResults.Count then
+    Result := FGridResults[PageIndex] as TGridResult
+  else
+    Result := nil;
+end;
+
+
+function TMainForm.DataGridResult: TGridResult;
+begin
+  // Dumb method for easier access to often used grid data on "Data" tab
+  Result := GridResult(DataGrid);
+end;
+
+
+function TMainForm.QueryTabActive: Boolean;
+begin
+  // Find out if the active main tab is a query tab
+  Result := PageControlMain.ActivePage.PageIndex >= tabQuery.PageIndex;
 end;
 
 end.
