@@ -6891,6 +6891,7 @@ begin
   end;
   if newDb <> '' then
     LoadDatabaseProperties(newDb);
+  FixQueryTabCloseButtons;
   // Set window caption and taskbar text
   Cap := winName;
   if newDb <> '' then
@@ -8946,6 +8947,7 @@ begin
   else
     Cap := sstr(Cap + ObjName, 30);
   tabEditor.Caption := Cap;
+  FixQueryTabCloseButtons;
 end;
 
 
