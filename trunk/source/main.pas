@@ -699,6 +699,7 @@ type
     function ActiveQueryHelpers: TTntListBox;
     function ActiveQueryTabset: TTabset;
     function QueryTabActive: Boolean;
+    function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
     procedure popupMainTabsPopup(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
@@ -3752,7 +3753,7 @@ begin
       viewdata(Sender);
       if DataGrid.CanFocus then
         DataGrid.SetFocus;
-    end else if QueryTabActive then begin
+    end else if IsQueryTab(tab.PageIndex, True) then begin
       ActiveQueryMemo.SetFocus;
       ActiveQueryMemo.WordWrap := actQueryWordWrap.Checked;
       SynMemoQueryStatusChange(ActiveQueryMemo, []);
@@ -4181,7 +4182,7 @@ begin
   actQueryWordWrap.Enabled := QueryTabActive;
   actClearQueryEditor.Enabled := QueryTabActive and NotEmpty;
   actSetDelimiter.Enabled := QueryTabActive;
-  actCloseQueryTab.Enabled := PageControlMain.ActivePageIndex > tabQuery.PageIndex;
+  actCloseQueryTab.Enabled := IsQueryTab(PageControlMain.ActivePageIndex, False);
 end;
 
 
@@ -9205,10 +9206,12 @@ end;
 procedure TMainForm.popupMainTabsPopup(Sender: TObject);
 var
   aPoint: TPoint;
+  PageIndex: Integer;
 begin
   // Detect if there is a tab under mouse position
   aPoint := PageControlMain.ScreenToClient(popupMainTabs.PopupPoint);
-  menuCloseTab.Enabled := GetMainTabAt(aPoint.X, aPoint.Y) > tabQuery.PageIndex;
+  PageIndex := GetMainTabAt(aPoint.X, aPoint.Y);
+  menuCloseTab.Enabled := IsQueryTab(PageIndex, False);
 end;
 
 
@@ -9216,7 +9219,7 @@ procedure TMainForm.CloseQueryTab(PageIndex: Integer);
 var
   NewPageIndex: Integer;
 begin
-  if PageIndex <= tabQuery.PageIndex then
+  if not IsQueryTab(PageIndex, False) then
     Exit;
   FGridResults.Delete(PageIndex-tabData.PageIndex);
   // Work around bugs in ComCtrls.TPageControl.RemovePage
@@ -9347,7 +9350,7 @@ function TMainForm.QueryControl(PageIndex: Integer; Base: TControl): TControl;
     end;
   end;
 begin
-  if (PageIndex < tabQuery.PageIndex) or (PageIndex >= PageControlMain.PageCount) then
+  if not IsQueryTab(PageIndex, True) then
     Raise Exception.Create(PageControlMain.Pages[PageIndex].Name+' is not a Query tab.');
   Result := nil;
   FindChild(PageControlMain.Pages[PageIndex]);
@@ -9420,7 +9423,17 @@ end;
 function TMainForm.QueryTabActive: Boolean;
 begin
   // Find out if the active main tab is a query tab
-  Result := PageControlMain.ActivePage.PageIndex >= tabQuery.PageIndex;
+  Result := IsQueryTab(PageControlMain.ActivePageIndex, True);
+end;
+
+function TMainForm.IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
+var
+  Min: Integer;
+begin
+  // Find out if the given main tab is a query tab
+  Min := tabQuery.PageIndex+1;
+  if IncludeFixed then Dec(Min);
+  Result := PageIndex >= Min;
 end;
 
 end.
