@@ -2135,6 +2135,7 @@ object MainForm: TMainForm
     object actNewQueryTab: TAction
       Category = 'File'
       Caption = 'New query tab'
+      Hint = 'Open a blank query tab'
       ImageIndex = 132
       ShortCut = 16468
       OnExecute = actNewQueryTabExecute
