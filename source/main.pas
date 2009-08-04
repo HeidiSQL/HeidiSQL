@@ -23,7 +23,7 @@ uses
   TntStdCtrls, Tabs, SynUnicode, mysqlconn, EditVar, helpers, queryprogress,
   mysqlquery, createdatabase, table_editor, SynRegExpr,
   WideStrUtils, ZDbcLogging, ExtActns, CommCtrl, routine_editor, options,
-  Contnrs;
+  Contnrs, PngSpeedButton;
 
 const
   // The InnoDB folks are raging over the lack of count(*) support
@@ -804,6 +804,7 @@ type
     DataGridCurrentFrom,
     DataGridCurrentFilter,
     DataGridCurrentSort        : WideString;
+    btnAddTab                  : TPngSpeedButton;
 
     property Delimiter: String read FDelimiter write SetDelimiter;
     procedure CallSQLHelpWithKeyword( keyword: String );
@@ -1411,6 +1412,15 @@ begin
   // Add two static results for the Data and Query tab. Results for added query tabs will be created on demand.
   FGridResults.Add(TGridResult.Create);
   FGridResults.Add(TGridResult.Create);
+
+  btnAddTab := TPngSpeedButton.Create(PageControlMain);
+  btnAddTab.Parent := PageControlMain;
+  btnAddTab.PngImage := PngImageListMain.PngImages[actNewQueryTab.ImageIndex].PngImage;
+  btnAddTab.Height := PageControlMain.TabHeight - 2;
+  btnAddTab.Width := btnAddTab.Height;
+  btnAddTab.Flat := True;
+  btnAddTab.Hint := actNewQueryTab.Hint;
+  btnAddTab.OnClick := actNewQueryTab.OnExecute;
 end;
 
 
@@ -9286,6 +9296,16 @@ begin
     btn.Top := Rect.Top + 2;
     btn.Left := Rect.Right - 19;
   end;
+  // Set position of "Add tab" button
+  VisiblePageIndex := PageControlMain.PageCount-1;
+  for i:=0 to PageControlMain.PageCount-1 do begin
+    if not PageControlMain.Pages[i].TabVisible then
+      Dec(VisiblePageIndex);
+  end;
+  Rect := PageControlMain.TabRect(VisiblePageIndex);
+  btnAddTab.Top := Rect.Top;
+  btnAddTab.Left := Rect.Right + 5;
+
   LockWindowUpdate(0);
 end;
 
