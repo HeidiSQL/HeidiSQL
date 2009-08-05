@@ -9092,6 +9092,7 @@ begin
   New_SynMemoQuery.OnDragOver := SynMemoQuery.OnDragOver;
   New_SynMemoQuery.OnDropFiles := SynMemoQuery.OnDropFiles;
   New_SynMemoQuery.OnStatusChange := SynMemoQuery.OnStatusChange;
+  SynCompletionProposal1.AddEditor(New_SynMemoQuery);
 
   New_spltQueryHelpers := TSplitter.Create(New_pnlQueryMemo);
   New_spltQueryHelpers.Parent := New_pnlQueryMemo;
