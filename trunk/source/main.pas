@@ -2636,10 +2636,11 @@ begin
   // Add selected items/tables to helper list
   if ListTables.Focused then
     t := GetVTCaptions(ListTables, True)
-  else begin
+  else if DBTree.Focused then begin
     t := TWideStringList.Create;
     t.Add(SelectedTable.Text);
-  end;
+  end else
+    Exit;
   if t.Count = 0 then
     Exit;
 
