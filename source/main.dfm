@@ -6375,7 +6375,7 @@ object MainForm: TMainForm
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
     NbLinesInWindow = 12
     Width = 350
-    EndOfTokenChr = '()[]. ='#9
+    EndOfTokenChr = ',()[]. ='#9
     TriggerChars = '.'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -6407,7 +6407,7 @@ object MainForm: TMainForm
     OnCodeCompletion = SynCompletionProposal1CodeCompletion
     Left = 40
     Top = 304
-    EndOfTokenChrW = '()[]. ='#9
+    EndOfTokenChrW = ',()[]. ='#9
     TriggerCharsW = '.'
   end
   object OpenDialogSQLFile: TOpenDialog

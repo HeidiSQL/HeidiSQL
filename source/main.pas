@@ -4521,8 +4521,8 @@ begin
 
   rx := TRegExpr.Create;
 
-  // Find longer token, ignore EndOfTokenChars, just the last chars up to a whitespace
-  rx.Expression := '(\S+).$';
+  // Find longer token, ignore EndOfTokenChars, just the last chars up to a whitespace, comma or paranthesis
+  rx.Expression := '([^\s,\(\)]+).$';
   PrevLongToken := Copy(Editor.LineText, 0, x);
   if rx.Exec(PrevLongToken) then
     PrevLongToken := rx.Match[1]
