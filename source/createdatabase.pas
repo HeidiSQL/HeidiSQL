@@ -103,6 +103,7 @@ var
   selectCharset,
   currentCharset,
   sql_create : WideString;
+  colpos: Integer;
 begin
   if modifyDB = '' then
   begin
@@ -134,8 +135,12 @@ begin
       selectCharset := currentCharset
     else
       selectCharset := defaultCharset;
-    currentCollation := Copy( sql_create, pos('COLLATE', sql_create)+8, Length(sql_create));
-    currentCollation := GetFirstWord( currentCollation );
+    currentCollation := '';
+    colpos := pos('COLLATE', sql_create);
+    if colpos > 0 then begin
+      currentCollation := Copy( sql_create, colpos+8, Length(sql_create));
+      currentCollation := GetFirstWord( currentCollation );
+    end;
   end;
 
   // Preselect charset item in pulldown
