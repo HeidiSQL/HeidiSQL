@@ -692,7 +692,7 @@ type
     procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     function GetMainTabAt(X, Y: Integer): Integer;
     procedure FixQueryTabCloseButtons;
-    function QueryTabCloseButton(PageIndex: Integer): TSpeedButton;
+    function QueryTabCloseButton(PageIndex: Integer): TPngSpeedButton;
     function QueryControl(PageIndex: Integer; Base: TControl): TControl;
     function ActiveQueryControl(Base: TControl): TControl;
     function ActiveQueryMemo: TSynMemo;
@@ -9031,7 +9031,7 @@ procedure TMainForm.actNewQueryTabExecute(Sender: TObject);
 var
   tab: TTabSheet;
   i, SharedTag: Integer;
-  CloseButton: TSpeedButton;
+  CloseButton: TPngSpeedButton;
   New_pnlQueryMemo: TPanel;
   New_pnlQueryHelpers: TPanel;
   New_lboxQueryHelpers: TTntListBox;
@@ -9056,13 +9056,13 @@ begin
 
   FGridResults.Add(TGridResult.Create);
 
-  CloseButton := TSpeedButton.Create(tab);
+  CloseButton := TPngSpeedButton.Create(tab);
   CloseButton.Parent := PageControlMain;
   CloseButton.Tag := SharedTag;
-  CloseButton.Width := 14;
+  CloseButton.Width := 16;
   CloseButton.Height := 16;
   CloseButton.Flat := True;
-  CloseButton.Caption := '×';
+  CloseButton.PngImage := PngImageListMain.PngImages[134].PngImage;
   CloseButton.OnMouseUp := CloseButtonOnMouseUp;
   FixQueryTabCloseButtons;
 
@@ -9243,7 +9243,7 @@ begin
   // Click on "Close" button of Query tab
   if Button <> mbLeft then
     Exit;
-  aPoint := PageControlMain.ScreenToClient((Sender as TSpeedButton).ClientToScreen(Point(X,Y)));
+  aPoint := PageControlMain.ScreenToClient((Sender as TPngSpeedButton).ClientToScreen(Point(X,Y)));
   CloseQueryTab(GetMainTabAt(aPoint.X, aPoint.Y));
 end;
 
@@ -9284,7 +9284,7 @@ procedure TMainForm.FixQueryTabCloseButtons;
 var
   i, PageIndex, VisiblePageIndex: Integer;
   Rect: TRect;
-  btn: TSpeedButton;
+  btn: TPngSpeedButton;
 begin
   // Fix positions of "Close" buttons on Query tabs
   LockWindowUpdate(PageControlMain.Handle);
@@ -9313,17 +9313,17 @@ begin
 end;
 
 
-function TMainForm.QueryTabCloseButton(PageIndex: Integer): TSpeedButton;
+function TMainForm.QueryTabCloseButton(PageIndex: Integer): TPngSpeedButton;
 var
   i: Integer;
 begin
   // Return close button of given query tab
   Result := nil;
   for i:=0 to PageControlMain.ControlCount-1 do begin
-    if not (PageControlMain.Controls[i] is TSpeedButton) then
+    if not (PageControlMain.Controls[i] is TPngSpeedButton) then
       continue;
     if PageControlMain.Controls[i].Tag = PageControlMain.Pages[PageIndex].Tag then begin
-      Result := PageControlMain.Controls[i] as TSpeedButton;
+      Result := PageControlMain.Controls[i] as TPngSpeedButton;
       Break;
     end;
   end;
