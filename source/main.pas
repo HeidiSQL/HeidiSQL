@@ -4456,6 +4456,7 @@ var
   TokenTypeInt     : Integer;
   Attri            : TSynHighlighterAttributes;
   Editor           : TCustomSynEdit;
+  Queries          : TWideStringList;
 const
   ItemPattern: WideString = '\image{%d}\hspace{5}\color{clSilver}%s\column{}\color{clWindowText}%s';
 
@@ -4535,15 +4536,16 @@ begin
   // spaces are not detected correctly.
 
   // 1. find the currently edited sql-statement around the cursor position in synmemo
-  j := Length(Editor.Text);
-  for i := Editor.SelStart+1024 downto Editor.SelStart-1024 do
-  begin
-    if i > j then
-      continue;
-    if i < 1 then
+  Queries := parsesql(Editor.Text);
+  j := 0;
+  for i:=0 to Queries.Count-1 do begin
+    Inc(j, Length(Queries[i])+1);
+    if (j >= Editor.SelStart) or (i = Queries.Count-1) then begin
+      sql := Queries[i];
       break;
-    sql := Editor.Text[i] + sql;
+    end;
   end;
+  FreeAndNil(Queries);
 
   // 2. Parse FROM clause to detect relevant table/view, probably aliased
   rx.ModifierG := True;
