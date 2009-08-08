@@ -9,6 +9,8 @@ const
   MCR_SUCCESS = 0;
   MCR_FAILED = 1;
 
+{$I const.inc}
+
 type
 
 
@@ -52,7 +54,13 @@ begin
   with FOpenConn.MysqlParams do
     begin
       FConn.Protocol := 'mysql';
-      FConn.Hostname := Host;
+      if FOpenConn.MysqlParams.NetType = NETTYPE_TCPIP then begin
+        FConn.Hostname := Host;
+        FConn.SocketName := '';
+      end else begin
+        FConn.Hostname := '.';
+        FConn.SocketName := Host;
+      end;
       FConn.User := User;
       FConn.Password := Pass;
       FConn.Port := Port;

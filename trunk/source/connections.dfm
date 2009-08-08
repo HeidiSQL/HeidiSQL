@@ -4,12 +4,12 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu]
   Caption = 'Session manager'
-  ClientHeight = 284
+  ClientHeight = 304
   ClientWidth = 456
   Color = clBtnFace
-  Constraints.MaxHeight = 320
+  Constraints.MaxHeight = 340
   Constraints.MaxWidth = 800
-  Constraints.MinHeight = 320
+  Constraints.MinHeight = 340
   Constraints.MinWidth = 462
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -23,13 +23,13 @@ object connform: Tconnform
   OnShow = FormShow
   DesignSize = (
     456
-    284)
+    304)
   PixelsPerInch = 96
   TextHeight = 13
   object lblHost: TLabel
     Tag = 6
     Left = 139
-    Top = 76
+    Top = 101
     Width = 72
     Height = 13
     Caption = '&Hostname / IP:'
@@ -38,7 +38,7 @@ object connform: Tconnform
   object lblUsername: TLabel
     Tag = 7
     Left = 139
-    Top = 100
+    Top = 125
     Width = 26
     Height = 13
     Caption = '&User:'
@@ -47,7 +47,7 @@ object connform: Tconnform
   object lblPassword: TLabel
     Tag = 8
     Left = 139
-    Top = 124
+    Top = 149
     Width = 50
     Height = 13
     Caption = '&Password:'
@@ -56,7 +56,7 @@ object connform: Tconnform
   object lblPort: TLabel
     Tag = 9
     Left = 139
-    Top = 148
+    Top = 173
     Width = 24
     Height = 13
     Caption = 'P&ort:'
@@ -65,7 +65,7 @@ object connform: Tconnform
   object lblTimeout: TLabel
     Tag = 10
     Left = 279
-    Top = 148
+    Top = 173
     Width = 42
     Height = 13
     Caption = '&Timeout:'
@@ -83,7 +83,7 @@ object connform: Tconnform
   object lblSeconds: TLabel
     Tag = 11
     Left = 391
-    Top = 148
+    Top = 173
     Width = 39
     Height = 13
     Anchors = [akLeft, akTop, akRight]
@@ -92,7 +92,7 @@ object connform: Tconnform
   object lblOnlyDBs: TLabel
     Tag = 13
     Left = 139
-    Top = 195
+    Top = 218
     Width = 63
     Height = 13
     Caption = 'Data&base(s):'
@@ -101,7 +101,7 @@ object connform: Tconnform
   end
   object editHost: TEdit
     Left = 230
-    Top = 73
+    Top = 98
     Width = 215
     Height = 21
     Anchors = [akLeft, akTop, akRight]
@@ -110,7 +110,7 @@ object connform: Tconnform
   end
   object editUsername: TEdit
     Left = 230
-    Top = 97
+    Top = 122
     Width = 215
     Height = 21
     Anchors = [akLeft, akTop, akRight]
@@ -119,7 +119,7 @@ object connform: Tconnform
   end
   object editPassword: TEdit
     Left = 230
-    Top = 121
+    Top = 146
     Width = 215
     Height = 21
     Anchors = [akLeft, akTop, akRight]
@@ -129,7 +129,7 @@ object connform: Tconnform
   end
   object editPort: TEdit
     Left = 230
-    Top = 145
+    Top = 170
     Width = 43
     Height = 21
     TabOrder = 4
@@ -137,7 +137,7 @@ object connform: Tconnform
   end
   object editTimeout: TEdit
     Left = 331
-    Top = 144
+    Top = 169
     Width = 51
     Height = 21
     TabOrder = 5
@@ -3005,7 +3005,7 @@ object connform: Tconnform
   object chkCompressed: TCheckBox
     Tag = 12
     Left = 230
-    Top = 171
+    Top = 194
     Width = 215
     Height = 17
     Caption = '&Compressed client/server protocol'
@@ -3014,7 +3014,7 @@ object connform: Tconnform
   end
   object editOnlyDBs: TTntEdit
     Left = 230
-    Top = 192
+    Top = 215
     Width = 215
     Height = 21
     Hint = 'A list of wanted databases, separated by semicolon'
@@ -3026,7 +3026,7 @@ object connform: Tconnform
   end
   object chkSorted: TCheckBox
     Left = 230
-    Top = 219
+    Top = 242
     Width = 215
     Height = 17
     Anchors = [akLeft, akTop, akRight]
@@ -3036,7 +3036,7 @@ object connform: Tconnform
   end
   object btnSaveAndConnect: TButton
     Left = 139
-    Top = 248
+    Top = 271
     Width = 95
     Height = 25
     Anchors = [akTop, akRight]
@@ -3048,7 +3048,7 @@ object connform: Tconnform
   object btnConnect: TButton
     Tag = 15
     Left = 245
-    Top = 248
+    Top = 271
     Width = 95
     Height = 25
     Anchors = [akTop, akRight]
@@ -3060,7 +3060,7 @@ object connform: Tconnform
   object btnCancel: TButton
     Tag = 16
     Left = 350
-    Top = 248
+    Top = 271
     Width = 95
     Height = 25
     Anchors = [akTop, akRight]
@@ -3123,5 +3123,25 @@ object connform: Tconnform
     Caption = '...'
     TabOrder = 14
     OnClick = ButtonEditDescClick
+  end
+  object radioTypeTCPIP: TRadioButton
+    Left = 230
+    Top = 75
+    Width = 67
+    Height = 17
+    Caption = 'TCP/IP'
+    Checked = True
+    TabOrder = 15
+    TabStop = True
+    OnClick = radioNetTypeClick
+  end
+  object radioTypeNamedPipe: TRadioButton
+    Left = 314
+    Top = 75
+    Width = 113
+    Height = 17
+    Caption = 'Named pipe'
+    TabOrder = 16
+    OnClick = radioNetTypeClick
   end
 end

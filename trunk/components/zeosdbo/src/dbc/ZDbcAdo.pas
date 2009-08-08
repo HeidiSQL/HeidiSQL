@@ -101,7 +101,7 @@ type
     procedure StartTransaction; virtual;
   public
     constructor Create(Driver: IZDriver; const Url: string;
-      PlainDriver: IZPlainDriver; const HostName: string; Port: Integer;
+      PlainDriver: IZPlainDriver; const HostName: string; Port: Integer; const SocketName: string;
       const Database: string; const User: string; const Password: string; Info: TStrings);
 
     destructor Destroy; override;
@@ -175,19 +175,20 @@ var
   TempInfo: TStrings;
   HostName, Database, UserName, Password: string;
   Port: Integer;
+  SocketName: string;
   Protocol: string;
   PlainDriver: IZPlainDriver;
 begin
   TempInfo := TStringList.Create;
   try
-    ResolveDatabaseUrl(Url, Info, HostName, Port, Database,
+    ResolveDatabaseUrl(Url, Info, HostName, Port, SocketName, Database,
       UserName, Password, TempInfo);
     Protocol := ResolveConnectionProtocol(Url, GetSupportedProtocols);
     if Protocol = FAdoPlainDriver.GetProtocol then
       PlainDriver := FAdoPlainDriver;
     PlainDriver.Initialize;
     Result := TZAdoConnection.Create(Self, Url, PlainDriver, HostName,
-      Port, Database, UserName, Password, TempInfo);
+      Port, SocketName, Database, UserName, Password, TempInfo);
   finally
     TempInfo.Free;
   end;
@@ -224,12 +225,12 @@ end;
   @param Info a string list with extra connection parameters.
 }
 constructor TZAdoConnection.Create(Driver: IZDriver; const Url: string;
-  PlainDriver: IZPlainDriver; const HostName: string; Port: Integer;
+  PlainDriver: IZPlainDriver; const HostName: string; Port: Integer; const SocketName: string;
   const Database: string; const User: string; const Password: string; Info: TStrings);
 begin
   FAdoConnection := CoConnection.Create;
   FPLainDriver := PlainDriver;
-  inherited Create(Driver, Url, HostName, Port, Database, User, Password, Info,
+  inherited Create(Driver, Url, HostName, Port, SocketName, Database, User, Password, Info,
     TZAdoDatabaseMetadata.Create(Self, Url, Info));
 end;
 

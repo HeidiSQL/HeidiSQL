@@ -111,7 +111,7 @@ type
     FAnsiMode: Boolean;
   public
     constructor Create(Driver: IZDriver; const Url: string;
-      PlainDriver: IZMySQLPlainDriver; const HostName: string; Port: Integer;
+      PlainDriver: IZMySQLPlainDriver; const HostName: string; Port: Integer; const SocketName: string;
       const Database: string; const User: string; const Password: string; Info: TStrings);
     destructor Destroy; override;
 
@@ -208,20 +208,20 @@ end;
 function TZMySQLDriver.Connect(const Url: string; Info: TStrings): IZConnection;
 var
   TempInfo: TStrings;
-  HostName, Database, UserName, Password: string;
+  HostName, Database, UserName, Password, SocketName: string;
   Port: Integer;
   PlainDriver: IZMySQLPlainDriver;
 begin
   TempInfo := TStringList.Create;
   try
     PlainDriver := GetPlainDriver(Url);
-    ResolveDatabaseUrl(Url, Info, HostName, Port, Database,
+    ResolveDatabaseUrl(Url, Info, HostName, Port, SocketName, Database,
       UserName, Password, TempInfo);
     // PATCH ADDED BY tohenk
     if PlainDriver <> nil then
       PlainDriver.BuildArguments(TempInfo);
     Result := TZMySQLConnection.Create(Self, Url, PlainDriver, HostName, Port,
-      Database, UserName, Password, TempInfo);
+      SocketName, Database, UserName, Password, TempInfo);
   finally
     TempInfo.Free;
   end;
@@ -350,10 +350,10 @@ end;
   @param Info a string list with extra connection parameters.
 }
 constructor TZMySQLConnection.Create(Driver: IZDriver; const Url: string;
-  PlainDriver: IZMySQLPlainDriver; const HostName: string; Port: Integer;
+  PlainDriver: IZMySQLPlainDriver; const HostName: string; Port: Integer; const SocketName: string;
   const Database, User, Password: string; Info: TStrings);
 begin
-  inherited Create(Driver, Url, HostName, Port, Database, User, Password, Info,
+  inherited Create(Driver, Url, HostName, Port, SocketName, Database, User, Password, Info,
     TZMySQLDatabaseMetadata.Create(Self, Url, Info));
 
   { Sets a default properties }
@@ -429,7 +429,7 @@ begin
 
     { Connect to MySQL database. }
     if FPlainDriver.RealConnect(FHandle, PChar(HostName), PChar(User),
-      PChar(Password), PChar(Database), Port, nil,
+      PChar(Password), PChar(Database), Port, PChar(SocketName),
       ClientFlag) = nil then
     begin
       CheckMySQLError(FPlainDriver, FHandle, lcConnect, LogMessage);

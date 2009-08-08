@@ -184,12 +184,13 @@ var
   TempInfo: TStrings;
   HostName, Database, UserName, Password: string;
   Port: Integer;
+  SocketName: string;
   Protocol: string;
   PlainDriver: IZDBLibPlainDriver;
 begin
   TempInfo := TStringList.Create;
   try
-    ResolveDatabaseUrl(Url, Info, HostName, Port, Database,
+    ResolveDatabaseUrl(Url, Info, HostName, Port, SocketName, Database,
       UserName, Password, TempInfo);
     Protocol := ResolveConnectionProtocol(Url, GetSupportedProtocols);
     if Protocol = FMSSqlPlainDriver.GetProtocol then
@@ -269,7 +270,7 @@ begin
     Metadata := TZSybaseDatabaseMetadata.Create(Self, Url, Info)
   else Metadata := nil;
 
-  inherited Create(Driver, Url, HostName, Port, Database, User, Password, Info,
+  inherited Create(Driver, Url, HostName, Port, SocketName, Database, User, Password, Info,
     Metadata);
 
   FHandle := nil;

@@ -228,12 +228,13 @@ var
   TempInfo: TStrings;
   HostName, UserName, Password: string;
   Port: Integer;
+  SocketName: string;
 begin
   inherited Create(Connection, Url, Info);
 
   TempInfo := TStringList.Create;
   try
-    ResolveDatabaseUrl(Url, Info, HostName, Port, FDatabase,
+    ResolveDatabaseUrl(Url, Info, HostName, Port, SocketName, FDatabase,
       UserName, Password, TempInfo);
   finally
     TempInfo.Free;

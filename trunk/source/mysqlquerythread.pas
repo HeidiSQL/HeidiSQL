@@ -21,6 +21,7 @@ type
 
   // Mysql protocol-relevant connection parameter structure
   TMysqlConnParams = record
+    NetType: Integer;
     Host: String;
     Database: WideString;
     Protocol,
@@ -117,7 +118,13 @@ begin
   FResult := 0;
   FSql := ASql;
 
-  mc.HostName := AConn.MysqlParams.Host;
+  if AConn.MysqlParams.NetType = NETTYPE_TCPIP then begin
+    mc.HostName := AConn.MysqlParams.Host;
+    mc.SocketName := '';
+  end else begin
+    mc.HostName := '.';
+    mc.SocketName := AConn.MysqlParams.Host;
+  end;
   mc.Database := AConn.MysqlParams.Database;
   mc.User := AConn.MysqlParams.User;
   mc.Password := AConn.MysqlParams.Pass;
