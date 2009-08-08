@@ -102,7 +102,7 @@ type
   public
     constructor Create(Driver: IZDriver; const Url: string;
       PlainDriver: IZASAPlainDriver;
-      const HostName: string; Port: Integer; const Database: string;
+      const HostName: string; Port: Integer; const SocketName: string; const Database: string;
       const User: string; const Password: string; Info: TStrings);
     destructor Destroy; override;
 
@@ -172,14 +172,15 @@ var
   TempInfo: TStrings;
   HostName, Database, UserName, Password: string;
   Port: Integer;
+  SocketName: string;
   PlainDriver: IZASAPlainDriver;
 begin
  TempInfo := TStringList.Create;
  try
-   ResolveDatabaseUrl(Url, Info, HostName, Port, Database,
+   ResolveDatabaseUrl(Url, Info, HostName, Port, SocketName, Database,
       UserName, Password, TempInfo);
    PlainDriver := GetPlainDriver(Url);
-   Result := TZASAConnection.Create(Self, Url, PlainDriver, HostName, Port,
+   Result := TZASAConnection.Create(Self, Url, PlainDriver, HostName, Port, SocketName,
      Database, UserName, Password, TempInfo);
  finally
    TempInfo.Free;
@@ -334,10 +335,10 @@ end;
   @param Info a string list with extra connection parameters.
 }
 constructor TZASAConnection.Create(Driver: IZDriver; const Url: string;
-  PlainDriver: IZASAPlainDriver; const HostName: string; Port: Integer;
+  PlainDriver: IZASAPlainDriver; const HostName: string; Port: Integer; const SocketName: string;
   const Database, User, Password: string; Info: TStrings);
 begin
-  inherited Create(Driver, Url, HostName, Port, Database, User, Password, Info,
+  inherited Create(Driver, Url, HostName, Port, SocketName, Database, User, Password, Info,
     TZASADatabaseMetadata.Create(Self, Url, Info));
 
   FPlainDriver := PlainDriver;

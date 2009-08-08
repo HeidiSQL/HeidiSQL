@@ -103,6 +103,7 @@ type
     FDriver: IZDriver;
     FHostName: string;
     FPort: Integer;
+    FSocketName: string;
     FDatabase: string;
     FUser: string;
     FPassword: string;
@@ -114,7 +115,7 @@ type
     FMetadata: TContainedObject;
   protected
     constructor Create(Driver: IZDriver; const Url: string; const HostName: string;
-      Port: Integer; const Database: string; const User: string; const Password: string;
+      Port: Integer; const SocketName: string; const Database: string; const User: string; const Password: string;
       Info: TStrings; Metadata: TContainedObject);
     procedure RaiseUnsupportedException;
 
@@ -128,6 +129,7 @@ type
     property Driver: IZDriver read FDriver write FDriver;
     property HostName: string read FHostName write FHostName;
     property Port: Integer read FPort write FPort;
+    property SocketName: string read FSocketName write FSocketName;
     property Database: string read FDatabase write FDatabase;
     property User: string read FUser write FUser;
     property Password: string read FPassword write FPassword;
@@ -402,12 +404,13 @@ end;
   @param Info a string list with extra connection parameters.
 }
 constructor TZAbstractConnection.Create(Driver: IZDriver; const Url: string;
-  const HostName: string; Port: Integer; const Database: string; const User: string;
+  const HostName: string; Port: Integer; const SocketName: string; const Database: string; const User: string;
   const Password: string; Info: TStrings; Metadata: TContainedObject);
 begin
   FDriver := Driver;
   FHostName := HostName;
   FPort := Port;
+  FSocketName := SocketName;
   FDatabase := Database;
   FMetadata := Metadata;
 

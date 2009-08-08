@@ -43,6 +43,8 @@ type
     btnDelete: TToolButton;
     btnSaveAs: TToolButton;
     btnEditDesc: TButton;
+    radioTypeTCPIP: TRadioButton;
+    radioTypeNamedPipe: TRadioButton;
     procedure CreateParams(var Params: TCreateParams); override;
     procedure FormCreate(Sender: TObject);
     procedure btnSaveAndConnectClick(Sender: TObject);
@@ -56,6 +58,7 @@ type
     procedure comboSessionSelect(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure ButtonEditDescClick(Sender: TObject);
+    procedure radioNetTypeClick(Sender: TObject);
   private
     { Private declarations }
     procedure FillSessionCombo(Sender: TObject);
@@ -93,6 +96,7 @@ end;
 procedure Tconnform.btnConnectClick(Sender: TObject);
 var
   btn: TButton;
+  ConType: Byte;
 begin
   Screen.Cursor := crHourglass;
   // Save last connection name to registry
@@ -102,7 +106,11 @@ begin
   btn := Sender as TButton;
   btn.Enabled := false;
 
+  if radioTypeTCPIP.Checked then ConType := NETTYPE_TCPIP
+  else ConType := NETTYPE_NAMEDPIPE;
+
   if Mainform.InitConnection(
+    ConType,
     editHost.Text,
     editPort.Text,
     editUsername.Text,
@@ -172,6 +180,10 @@ begin
   MainReg.WriteString(REGNAME_USER, editUsername.Text);
   MainReg.WriteString(REGNAME_PASSWORD, encrypt(editPassword.Text));
   MainReg.WriteString(REGNAME_PORT, editPort.Text);
+  if radioTypeTCPIP.Checked then
+    MainReg.WriteInteger(REGNAME_NETTYPE, NETTYPE_TCPIP)
+  else
+    MainReg.WriteInteger(REGNAME_NETTYPE, NETTYPE_NAMEDPIPE);
   MainReg.WriteString(REGNAME_TIMEOUT, editTimeout.Text);
   MainReg.WriteBool(REGNAME_COMPRESSED, chkCompressed.Checked);
   MainReg.WriteString(REGNAME_ONLYDBS, Utf8Encode(editOnlyDBs.Text));
@@ -230,6 +242,7 @@ begin
 
   Screen.Cursor := crHourglass;
   OpenRegistry(session);
+  MainReg.WriteInteger(REGNAME_NETTYPE, DEFAULT_NETTYPE);
   MainReg.WriteString(REGNAME_HOST, DEFAULT_HOST);
   MainReg.WriteString(REGNAME_USER, DEFAULT_USER);
   MainReg.WriteString(REGNAME_PASSWORD, encrypt(DEFAULT_PASSWORD));
@@ -270,6 +283,10 @@ begin
   Session := comboSession.Text;
   SessionSelected := (Session <> '') and MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + Session);
   if SessionSelected then begin
+    case GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, Session) of
+      NETTYPE_NAMEDPIPE: radioTypeNamedPipe.Checked := True;
+      else radioTypeTCPIP.Checked := True;
+    end;
     editHost.Text := GetRegValue(REGNAME_HOST, '', Session);
     editUsername.Text := GetRegValue(REGNAME_USER, '', Session);
     editPassword.Text := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
@@ -279,6 +296,7 @@ begin
     editOnlyDBs.Text := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', Session));
     chkSorted.Checked := GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, Session);
   end else begin
+    radioTypeTCPIP.Checked := True;
     editHost.Text := '';
     editUsername.Text := '';
     editPassword.Text := '';
@@ -294,6 +312,8 @@ begin
   btnSaveAndConnect.Enabled := SessionSelected;
   btnDelete.Enabled := SessionSelected;
   btnEditDesc.Enabled := SessionSelected;
+  radioTypeTCPIP.Enabled := SessionSelected;
+  radioTypeNamedPipe.Enabled := SessionSelected;
   editHost.Enabled := SessionSelected;
   editUsername.Enabled := SessionSelected;
   editPassword.Enabled := SessionSelected;
@@ -310,6 +330,8 @@ begin
   lblSession.Enabled := SessionSelected;
   lblSeconds.Enabled := SessionSelected;
   lblOnlyDBs.Enabled := SessionSelected;
+
+  radioNetTypeClick(Sender);
 
   Screen.Cursor := crDefault;
 end;
@@ -350,6 +372,18 @@ begin
     MessageDLG('Error on renaming.', mtError, [mbCancel], 0);
   end;
 
+end;
+
+
+procedure Tconnform.radioNetTypeClick(Sender: TObject);
+begin
+  // Toggle between TCP/IP and named pipes mode
+  if radioTypeTCPIP.Checked then
+    lblHost.Caption := 'Hostname / IP:'
+  else
+    lblHost.Caption := 'Socket name:';
+  editPort.Enabled := radioTypeTCPIP.Checked;
+  lblPort.Enabled := editPort.Enabled;
 end;
 
 

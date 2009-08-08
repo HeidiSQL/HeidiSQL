@@ -815,7 +815,7 @@ type
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
     procedure SessionConnect(Sender: TObject);
-    function InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases: WideString): Boolean;
+    function InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases: WideString): Boolean;
     //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
 
     function ExecUpdateQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
@@ -1430,7 +1430,7 @@ end;
 }
 procedure TMainForm.Startup;
 var
-  curParam : Byte;
+  curParam, parNetType: Byte;
   sValue,
   parHost, parPort, parUser, parPass, parDatabase,
   parTimeout, parCompress, parDescription : String;
@@ -1515,6 +1515,7 @@ begin
 
   // Check commandline if parameters were passed. Otherwise show connections windows
   curParam := 1;
+  parNetType := NETTYPE_TCPIP;
   while curParam <= ParamCount do begin
     // -M and -d are choosen not to conflict with mysql.exe
     // http://dev.mysql.com/doc/refman/5.0/en/mysql-command-options.html
@@ -1525,6 +1526,8 @@ begin
       parHost := sValue
     else if GetParamValue('P', 'port', curParam, sValue) then
       parPort := sValue
+    else if GetParamValue('T', 'nettype', curParam, sValue) then
+      parNetType := StrToIntDef(sValue, NETTYPE_TCPIP)
     else if GetParamValue('C', 'compress', curParam, sValue) then
       parCompress := sValue
     else if GetParamValue('M', 'timeout', curParam, sValue) then
@@ -1542,6 +1545,7 @@ begin
 
   // Find stored session if -dSessionName was passed
   if (parDescription <> '') and (MainReg.OpenKey(REGPATH + REGKEY_SESSIONS + parDescription, False)) then begin
+    parNetType := GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, parDescription);
     parHost := GetRegValue(REGNAME_HOST, DEFAULT_HOST, parDescription);
     parUser := GetRegValue(REGNAME_USER, DEFAULT_USER, parDescription);
     parPass := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, parDescription));
@@ -1554,7 +1558,7 @@ begin
   // Minimal parameter for command line mode is hostname
   CommandLineMode := parHost <> '';
   if CommandLineMode then begin
-    Connected := InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, IntToStr(Integer(DEFAULT_ONLYDBSSORTED)));
+    Connected := InitConnection(parNetType, parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, IntToStr(Integer(DEFAULT_ONLYDBSSORTED)));
     if Connected then begin
       SessionName := parDescription;
       if SessionName = '' then
@@ -1568,6 +1572,7 @@ begin
     LastSession := GetRegValue(REGNAME_LASTSESSION, '');
     if LastSession <> '' then begin
       Connected := InitConnection(
+        GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, LastSession),
         GetRegValue(REGNAME_HOST, '', LastSession),
         GetRegValue(REGNAME_PORT, '', LastSession),
         GetRegValue(REGNAME_USER, '', LastSession),
@@ -2514,9 +2519,11 @@ end;
 procedure TMainForm.SessionConnect(Sender: TObject);
 var
   Session: String;
+  parNetType: Integer;
   parHost, parPort, parUser, parPass, parTimeout, parCompress, parDatabase, parSortDatabases: WideString;
 begin
   Session := (Sender as TMenuItem).Caption;
+  parNetType := GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, Session);
   parHost := GetRegValue(REGNAME_HOST, '', Session);
   parUser := GetRegValue(REGNAME_USER, '', Session);
   parPass := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
@@ -2525,7 +2532,7 @@ begin
   parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session)));
   parDatabase := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', Session));
   parSortDatabases := IntToStr(Integer(GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, Session)));
-  if InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases) then begin
+  if InitConnection(parNetType, parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases) then begin
     SessionName := Session;
     DoAfterConnect;
   end;
@@ -2536,15 +2543,16 @@ end;
   Receive connection parameters and create the mdi-window
   Paremeters are either sent by connection-form or by commandline.
 }
-function TMainform.InitConnection(parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases: WideString): Boolean;
+function TMainform.InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases: WideString): Boolean;
 var
   MysqlConnection: TMysqlConn;
   Profile: TOpenConnProf;
-  UsingPass: String;
+  UsingPass, NetType: String;
 begin
   // fill structure
   ZeroMemory(@Profile, SizeOf(Profile));
   Profile.MysqlParams.Protocol := 'mysql';
+  Profile.MysqlParams.NetType := parNetType;
   Profile.MysqlParams.Host := Trim( parHost );
   Profile.MysqlParams.Port := StrToIntDef(parPort, DEFAULT_PORT);
   Profile.MysqlParams.Database := '';
@@ -2565,7 +2573,12 @@ begin
 
   // attempt to establish connection
   if Profile.MysqlParams.Pass <> '' then UsingPass := 'Yes' else UsingPass := 'No';
-  LogSQL('Connecting to '+Profile.MysqlParams.Host+
+  case parNetType of
+    NETTYPE_TCPIP: NetType := 'TCP/IP';
+    NETTYPE_NAMEDPIPE: NetType := 'named pipe';
+    else NetType := 'unknown protocol';
+  end;
+  LogSQL('Connecting to '+Profile.MysqlParams.Host+' via '+NetType+
     ', username '+Profile.MysqlParams.User+
     ', using password: '+UsingPass+' ...');
   if MysqlConnection.Connect <> MCR_SUCCESS then begin

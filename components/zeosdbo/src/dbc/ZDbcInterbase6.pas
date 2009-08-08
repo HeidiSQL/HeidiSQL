@@ -199,11 +199,12 @@ var
   TempInfo: TStrings;
   HostName, Database, UserName, Password: string;
   Port: Integer;
+  SocketName: string;
   PlainDriver: IZInterbasePlainDriver;
 begin
  TempInfo := TStringList.Create;
  try
-   ResolveDatabaseUrl(Url, Info, HostName, Port, Database,
+   ResolveDatabaseUrl(Url, Info, HostName, Port, SocketName, Database,
       UserName, Password, TempInfo);
    PlainDriver := GetPlainDriver(Url);
    Result := TZInterbase6Connection.Create(Self, Url, PlainDriver, HostName,
@@ -397,7 +398,7 @@ var
   ClientCodePage: string;
   UserSetDialect: string;
 begin
-  inherited Create(Driver, Url, HostName, Port, Database, User, Password, Info,
+  inherited Create(Driver, Url, HostName, Port, SocketName, Database, User, Password, Info,
     TZInterbase6DatabaseMetadata.Create(Self, Url, Info));
 
   FPlainDriver := PlainDriver;

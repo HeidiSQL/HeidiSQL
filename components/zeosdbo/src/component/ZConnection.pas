@@ -112,6 +112,7 @@ type
     FProtocol: string;
     FHostName: string;
     FPort: Integer;
+    FSocketName: string;
     FDatabase: WideString;
     FUser: string;
     FPassword: string;
@@ -219,6 +220,7 @@ type
     property Protocol: string read FProtocol write FProtocol;
     property HostName: string read FHostName write FHostName;
     property Port: Integer read FPort write FPort default 0;
+    property SocketName: string read FSocketName write FSocketName;
     property Database: WideString read FDatabase write FDatabase;
     property User: string read FUser write FUser;
     property Password: string read FPassword write FPassword;
@@ -482,13 +484,13 @@ function TZConnection.ConstructURL(const UserName, Password: string): string;
 begin
   if Port <> 0 then
   begin
-    Result := Format('zdbc:%s://%s:%d/%s?UID=%s;PWD=%s', [FProtocol, FHostName,
-      FPort, FDatabase, UserName, Password]);
+    Result := Format('zdbc:%s://%s:%d@%s/%s?UID=%s;PWD=%s', [FProtocol, FHostName,
+      FPort, SocketName, FDatabase, UserName, Password]);
   end
   else
   begin
-    Result := Format('zdbc:%s://%s/%s?UID=%s;PWD=%s', [FProtocol, FHostName,
-      FDatabase, UserName, Password]);
+    Result := Format('zdbc:%s://%s@%s/%s?UID=%s;PWD=%s', [FProtocol, FHostName,
+      SocketName, FDatabase, UserName, Password]);
   end;
 end;
 

@@ -84,7 +84,7 @@ function ResolveConnectionProtocol(Url: string;
   @param ResutlInfo a result info parameters.
 }
 procedure ResolveDatabaseUrl(const Url: string; Info: TStrings;
-  var HostName: string; var Port: Integer; var Database: string;
+  var HostName: string; var Port: Integer; var SocketName: string; var Database: string;
   var UserName: string; var Password: string; ResultInfo: TStrings);
 
 {**
@@ -205,7 +205,7 @@ end;
   @param ResutlInfo a result info parameters.
 }
 procedure ResolveDatabaseUrl(const Url: string; Info: TStrings;
-  var HostName: string; var Port: Integer; var Database: string;
+  var HostName: string; var Port: Integer; var SocketName: string; var Database: string;
   var UserName: string; var Password: string; ResultInfo: TStrings);
 var
   Index: Integer;
@@ -220,6 +220,7 @@ begin
   { Set default values. }
   HostName := 'localhost';
   Port := 0;
+  SocketName := '';
   Database := '';
   UserName := '';
   Password := '';
@@ -247,12 +248,26 @@ begin
     if Pos(':', Temp) = 1 then
     begin
       Delete(Temp, 1, 1);
-      Index := FirstDelimiter('/?', Temp);
+      Index := FirstDelimiter('@?', Temp);
+      if Index = 0 then
+        Index := FirstDelimiter('/?', Temp);
       if Index = 0 then
         RaiseException;
 
       Port := StrToInt(Copy(Temp, 1, Index - 1));
       Delete(Temp, 1, Index - 1);
+
+      { Retrieves socket name }
+      if Pos('@', Temp) = 1 then
+      begin
+        Delete(Temp, 1, 1);
+        Index := FirstDelimiter('/?', Temp);
+        if Index = 0 then
+          RaiseException;
+
+        SocketName := Copy(Temp, 1, Index - 1);
+        Delete(Temp, 1, Index - 1);
+      end;
     end;
 
     if Pos('/', Temp) <> 1 then
