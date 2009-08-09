@@ -66,7 +66,6 @@ begin
       FConn.Port := Port;
 
       FConn.Properties.Values['compress'] := PrpCompress;
-      FConn.Properties.Values['timeout'] := PrpTimeout;
       FConn.Properties.Values['dbless'] := PrpDbless;
       FConn.Properties.Values['CLIENT_LOCAL_FILES'] := PrpClientLocalFiles;
       FConn.Properties.Values['CLIENT_INTERACTIVE'] := PrpClientInteractive;

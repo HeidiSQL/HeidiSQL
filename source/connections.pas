@@ -10,58 +10,78 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, ExtCtrls, ZPlainMySqlDriver,
-  PngSpeedButton, TntStdCtrls, ComCtrls, ToolWin;
+  StdCtrls, Buttons, ExtCtrls, ComCtrls, WideStrings,
+  TntStdCtrls, VirtualTrees, Menus;
 
 type
   Tconnform = class(TForm)
-    editHost: TEdit;
-    lblHost: TLabel;
-    lblUsername: TLabel;
-    editUsername: TEdit;
-    lblPassword: TLabel;
-    editPassword: TEdit;
-    lblPort: TLabel;
-    editPort: TEdit;
-    lblTimeout: TLabel;
-    editTimeout: TEdit;
-    pnlLogo: TPanel;
-    comboSession: TComboBox;
-    imgLogo: TImage;
     lblSession: TLabel;
     btnCancel: TButton;
-    btnConnect: TButton;
-    chkCompressed: TCheckBox;
-    lblSeconds: TLabel;
+    btnOpen: TButton;
+    btnSave: TButton;
+    ListSessions: TVirtualStringTree;
+    btnNew: TButton;
+    btnDelete: TButton;
+    grpDetails: TGroupBox;
+    lblHost: TLabel;
+    lblUsername: TLabel;
+    lblPassword: TLabel;
+    lblPort: TLabel;
     lblOnlyDBs: TLabel;
-    editOnlyDBs: TTntEdit;
-    chkSorted: TCheckBox;
-    btnSaveAndConnect: TButton;
-    tlbEdit: TToolBar;
-    btnNew: TToolButton;
-    btnSave: TToolButton;
-    btnDelete: TToolButton;
-    btnSaveAs: TToolButton;
-    btnEditDesc: TButton;
+    editHost: TEdit;
+    editUsername: TEdit;
+    editPassword: TEdit;
+    editPort: TEdit;
+    chkCompressed: TCheckBox;
     radioTypeTCPIP: TRadioButton;
     radioTypeNamedPipe: TRadioButton;
+    memoDatabases: TTntMemo;
+    updownPort: TUpDown;
+    lblLastConnectLeft: TLabel;
+    lblLastConnectRight: TLabel;
+    lblCreatedLeft: TLabel;
+    lblCreatedRight: TLabel;
+    lblNetworkType: TLabel;
+    popupSessions: TPopupMenu;
+    Save1: TMenuItem;
+    Delete1: TMenuItem;
+    Saveas1: TMenuItem;
     procedure CreateParams(var Params: TCreateParams); override;
     procedure FormCreate(Sender: TObject);
-    procedure btnSaveAndConnectClick(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure btnConnectClick(Sender: TObject);
+    procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnSaveAsClick(Sender: TObject);
     procedure btnNewClick(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);
-    procedure comboSessionSelect(Sender: TObject);
-    procedure Modified(Sender: TObject);
-    procedure ButtonEditDescClick(Sender: TObject);
+    procedure Modification(Sender: TObject);
     procedure radioNetTypeClick(Sender: TObject);
+    procedure ListSessionsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+    procedure ListSessionsFocusChanged(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex);
+    procedure ListSessionsGetImageIndex(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+      var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure ListSessionsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; NewText: WideString);
+    procedure ListSessionsFocusChanging(Sender: TBaseVirtualTree; OldNode,
+      NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
+      var Allowed: Boolean);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     { Private declarations }
-    procedure FillSessionCombo(Sender: TObject);
+    FLoaded: Boolean;
+    FSessionNames: TStringlist;
+    FSessionModified, FSessionAdded: Boolean;
+    FOrgNetType: Byte;
+    FOrgHost, FOrgUser, FOrgPassword, FOrgDatabases: WideString;
+    FOrgCompressed: Boolean;
+    FOrgPort: Integer;
+    function SelectedSession: String;
+    procedure RefreshSessionList(RefetchRegistry: Boolean);
+    procedure FinalizeModifications(var CanProceed: Boolean);
+    procedure SaveCurrentValues(Session: String; IsNew: Boolean);
   public
     { Public declarations }
   end;
@@ -83,28 +103,53 @@ begin
 end;
 
 
-{**
-  FormCreate
-}
 procedure Tconnform.FormCreate(Sender: TObject);
+var
+  LastSession: String;
 begin
+  // Fix GUI stuff
   InheritFont(Font);
+  SetWindowSizeGrip(Handle, True);
+  FixVT(ListSessions);
+  FLoaded := False;
+  FSessionNames := TStringList.Create;
+  RefreshSessionList(True);
+  // Focus last session
+  LastSession := GetRegValue(REGNAME_LASTSESSION, '');
+  btnSave.Enabled := False;
+  btnDelete.Enabled := False;
+  SelectNode(ListSessions, FSessionNames.IndexOf(LastSession));
 end;
 
 
-// Connect
-procedure Tconnform.btnConnectClick(Sender: TObject);
-var
-  btn: TButton;
-  ConType: Byte;
+procedure Tconnform.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
+  // Modifications? Ask if they should be saved.
+  FinalizeModifications(CanClose);
+end;
+
+
+procedure Tconnform.FormShow(Sender: TObject);
+begin
+  ListSessions.SetFocus;
+  FLoaded := True;
+end;
+
+
+procedure Tconnform.btnOpenClick(Sender: TObject);
+var
+  ConType: Byte;
+  CanProceed: Boolean;
+begin
+  // Connect to selected session
+  FinalizeModifications(CanProceed);
+  if not CanProceed then
+    Exit;
+
   Screen.Cursor := crHourglass;
   // Save last connection name to registry
   OpenRegistry;
-  MainReg.WriteString(REGNAME_LASTSESSION, comboSession.Text);
-
-  btn := Sender as TButton;
-  btn.Enabled := false;
+  MainReg.WriteString(REGNAME_LASTSESSION, SelectedSession);
 
   if radioTypeTCPIP.Checked then ConType := NETTYPE_TCPIP
   else ConType := NETTYPE_NAMEDPIPE;
@@ -115,67 +160,21 @@ begin
     editPort.Text,
     editUsername.Text,
     editPassword.Text,
-    editOnlyDBs.Text,
-    editTimeout.Text,
-    IntToStr(Integer(chkCompressed.Checked)),
-    IntToStr(Integer(chkSorted.Checked))) then begin
+    memoDatabases.Text,
+    IntToStr(Integer(chkCompressed.Checked))) then begin
     ModalResult := mrOK;
-    Mainform.SessionName := comboSession.Text;
+    Mainform.SessionName := SelectedSession;
   end else begin
     ModalResult := mrNone;
-    btn.Enabled := True;
   end;
 
   Screen.Cursor := crDefault;
 end;
 
 
-
-// Read all connections from registry
-procedure Tconnform.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure Tconnform.SaveCurrentValues(Session: String; IsNew: Boolean);
 begin
-  Action := caFree;
-end;
-
-
-procedure Tconnform.FillSessionCombo(Sender: TObject);
-begin
-  comboSession.Items.Clear;
-  if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, true) then
-    MainReg.GetKeyNames(comboSession.Items);
-  if comboSession.Items.Count > 0 then begin
-    comboSession.ItemIndex := 0;
-    comboSessionSelect(Sender);
-  end;
-end;
-
-
-procedure Tconnform.FormShow(Sender: TObject);
-var
-  LastSessionIndex: Integer;
-begin
-  Screen.Cursor := crHourglass;
-  FillSessionCombo(Sender);
-  LastSessionIndex := comboSession.Items.IndexOf(GetRegValue(REGNAME_LASTSESSION, ''));
-  if LastSessionIndex > -1 then
-    comboSession.ItemIndex := LastSessionIndex;
-  comboSessionSelect(Sender);
-  comboSession.SetFocus;
-  Screen.Cursor := crDefault;
-end;
-
-
-procedure Tconnform.btnSaveAndConnectClick(Sender: TObject);
-begin
-  btnSaveClick(Sender);
-  btnConnectClick(Sender);
-end;
-
-procedure Tconnform.btnSaveClick(Sender: TObject);
-begin
-  // save connection!
-  Screen.Cursor := crHourglass;
-  OpenRegistry(comboSession.Text);
+  OpenRegistry(Session);
   MainReg.WriteString(REGNAME_HOST, editHost.Text);
   MainReg.WriteString(REGNAME_USER, editUsername.Text);
   MainReg.WriteString(REGNAME_PASSWORD, encrypt(editPassword.Text));
@@ -184,12 +183,24 @@ begin
     MainReg.WriteInteger(REGNAME_NETTYPE, NETTYPE_TCPIP)
   else
     MainReg.WriteInteger(REGNAME_NETTYPE, NETTYPE_NAMEDPIPE);
-  MainReg.WriteString(REGNAME_TIMEOUT, editTimeout.Text);
   MainReg.WriteBool(REGNAME_COMPRESSED, chkCompressed.Checked);
-  MainReg.WriteString(REGNAME_ONLYDBS, Utf8Encode(editOnlyDBs.Text));
-  MainReg.WriteBool(REGNAME_ONLYDBSSORTED, chkSorted.Checked);
-  comboSessionSelect(Sender);
-  Screen.Cursor := crDefault;
+  MainReg.WriteString(REGNAME_ONLYDBS, Utf8Encode(memoDatabases.Text));
+  if IsNew then
+    MainReg.WriteString(REGNAME_SESSIONCREATED, DateTimeToStr(Now));
+  FSessionModified := False;
+  FSessionAdded := False;
+  RefreshSessionList(True);
+  ListSessions.FocusedNode := nil;
+  SelectNode(ListSessions, FSessionNames.IndexOf(Session));
+  btnNew.Enabled := True;
+  btnSave.Enabled := False;
+end;
+
+
+procedure Tconnform.btnSaveClick(Sender: TObject);
+begin
+  // Save session settings
+  SaveCurrentValues(SelectedSession, FSessionAdded);
 end;
 
 
@@ -198,7 +209,7 @@ var
   newName: String;
   NameOK: Boolean;
 begin
-  // Save as ...
+  // Save session as ...
   newName := 'Enter new session name ...';
   NameOK := False;
   OpenRegistry;
@@ -209,12 +220,9 @@ begin
     if not NameOK then
       MessageDlg('Session name '''+newName+''' already in use.', mtError, [mbOK], 0)
     else begin
-      Screen.Cursor := crHourglass;
-      MainReg.MoveKey(REGKEY_SESSIONS + comboSession.Text, REGKEY_SESSIONS + newName, False);
-      Screen.Cursor := crDefault;
-      FillSessionCombo(Sender);
-      comboSession.ItemIndex := comboSession.Items.IndexOf(newName);
-      comboSessionSelect(Sender);
+      // Create the key and save its values
+      OpenRegistry(newName);
+      SaveCurrentValues(newName, True);
     end;
   end;
 end;
@@ -222,156 +230,209 @@ end;
 
 procedure Tconnform.btnNewClick(Sender: TObject);
 var
-  i : Integer;
-  session : String;
+  i, NewIdx: Integer;
+  NewName: String;
 begin
-  // save new connection!
+  // Create new session
   i := 0;
-  session := 'New session';
-  while MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + session) do begin
+  NewName := 'Unnamed';
+  while MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + NewName) do begin
     inc(i);
-    session := 'New session' + ' (' + inttostr(i) + ')';
+    NewName := 'Unnamed-' + IntToStr(i);
   end;
-  if not InputQuery('New session ...', 'Session name:', session) then
-    exit;
-  if MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + session) then
-  begin
-    MessageDlg('Session "' + session + '" already exists!', mtError, [mbOK], 0);
-    exit;
-  end;
-
-  Screen.Cursor := crHourglass;
-  OpenRegistry(session);
-  MainReg.WriteInteger(REGNAME_NETTYPE, DEFAULT_NETTYPE);
-  MainReg.WriteString(REGNAME_HOST, DEFAULT_HOST);
-  MainReg.WriteString(REGNAME_USER, DEFAULT_USER);
-  MainReg.WriteString(REGNAME_PASSWORD, encrypt(DEFAULT_PASSWORD));
-  MainReg.WriteString(REGNAME_PORT, inttostr(DEFAULT_PORT));
-  MainReg.WriteString(REGNAME_TIMEOUT, inttostr(DEFAULT_TIMEOUT));
-  MainReg.WriteBool(REGNAME_COMPRESSED, DEFAULT_COMPRESSED);
-  MainReg.WriteString(REGNAME_ONLYDBS, '');
-  MainReg.WriteBool(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED);
-
-  // show parameters:
-  FillSessionCombo(Sender);
-  comboSession.ItemIndex := comboSession.Items.IndexOf(session);
-  comboSessionSelect(Sender);
-  Screen.Cursor := crDefault;
+  FSessionNames.Add(NewName);
+  FSessionNames.Sort;
+  NewIdx := FSessionNames.IndexOf(NewName);
+  // Select it
+  RefreshSessionList(False);
+  SelectNode(ListSessions, NewIdx);
+  FSessionAdded := True;
+  ListSessions.EditNode(ListSessions.FocusedNode, ListSessions.FocusedColumn);
 end;
 
 
 procedure Tconnform.btnDeleteClick(Sender: TObject);
+var
+  SessionKey: String;
 begin
-  if MessageDlg('Delete session "' + comboSession.Text + '" ?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes then
+  if MessageDlg('Delete session "' + SelectedSession + '" ?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes then
   begin
-    if not MainReg.DeleteKey(REGPATH + REGKEY_SESSIONS + comboSession.Text) then
-      MessageDlg('Error while deleting session from Registry!', mtError, [mbOK], 0);
-    FillSessionCombo(Sender);
-    comboSessionSelect(Sender);
+    SessionKey := REGPATH + REGKEY_SESSIONS + SelectedSession;
+    if MainReg.KeyExists(SessionKey) then
+      MainReg.DeleteKey(SessionKey);
+    FSessionNames.Delete(FSessionNames.IndexOf(SelectedSession));
+    RefreshSessionList(False);
+    if (not Assigned(ListSessions.FocusedNode)) and (ListSessions.RootNodeCount > 0) then
+      SelectNode(ListSessions, ListSessions.RootNodeCount-1);
   end;
 end;
 
 
-procedure Tconnform.comboSessionSelect(Sender: TObject);
+function Tconnform.SelectedSession: String;
+begin
+  Result := FSessionNames[ListSessions.FocusedNode.Index];
+end;
+
+
+procedure Tconnform.RefreshSessionList(RefetchRegistry: Boolean);
+begin
+  // Refresh list of session names
+  if RefetchRegistry then begin
+    MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, True);
+    MainReg.GetKeyNames(FSessionNames);
+  end;
+  ListSessions.RootNodeCount := FSessionNames.Count;
+  ListSessions.Repaint;
+end;
+
+
+procedure Tconnform.ListSessionsGetImageIndex(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+  var Ghosted: Boolean; var ImageIndex: Integer);
+begin
+  // A new session gets an additional plus symbol, editing gets a pencil
+  ImageIndex := 36;
+  if Node = Sender.FocusedNode then begin
+    if FSessionAdded then ImageIndex := 72
+    else if FSessionModified then ImageIndex := 135;
+  end
+end;
+
+
+procedure Tconnform.ListSessionsGetText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+  var CellText: WideString);
+begin
+  // Display session name cell
+  CellText := FSessionNames[Node.Index];
+  if (FSessionModified or FSessionAdded) and (Node = Sender.FocusedNode) and (not Sender.IsEditing) then
+    CellText := CellText + ' *';
+end;
+
+
+procedure Tconnform.ListSessionsFocusChanged(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex);
 var
-  Session: String;
-  SessionSelected: Boolean;
+  SessionFocused, SessionExists: Boolean;
+  LastConnect, Created, DummyDate: TDateTime;
 begin
   // select one connection!
   Screen.Cursor := crHourglass;
   OpenRegistry;
-  Session := comboSession.Text;
-  SessionSelected := (Session <> '') and MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + Session);
-  if SessionSelected then begin
-    case GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, Session) of
+  SessionFocused := Assigned(Node);
+  SessionExists := SessionFocused;
+  if SessionFocused then begin
+    SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + SelectedSession);
+    lblLastConnectRight.Caption := 'unknown or never';
+    lblLastConnectRight.Hint := '';
+    lblLastConnectRight.Enabled := False;
+    lblCreatedRight.Caption := 'unknown';
+    lblCreatedRight.Hint := lblLastConnectRight.Hint;
+    lblCreatedRight.Enabled := lblLastConnectRight.Enabled;
+
+    if SessionExists then begin
+      OpenRegistry(SelectedSession);
+      FOrgNetType := GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, SelectedSession);
+      FOrgHost := GetRegValue(REGNAME_HOST, '', SelectedSession);
+      FOrgUser := GetRegValue(REGNAME_USER, '', SelectedSession);
+      FOrgPassword := decrypt(GetRegValue(REGNAME_PASSWORD, '', SelectedSession));
+      FOrgPort := StrToIntDef(GetRegValue(REGNAME_PORT, '', SelectedSession), DEFAULT_PORT);
+      FOrgCompressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SelectedSession);
+      FOrgDatabases := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', SelectedSession));
+      DummyDate := StrToDateTime('2000-01-01');
+      LastConnect := StrToDateTimeDef(GetRegValue(REGNAME_LASTCONNECT, '', SelectedSession), DummyDate);
+      if LastConnect <> DummyDate then begin
+        lblLastConnectRight.Hint := DateTimeToStr(LastConnect);
+        lblLastConnectRight.Caption := DateBackFriendlyCaption(LastConnect);
+        lblLastConnectRight.Enabled := True;
+      end;
+      Created := StrToDateTimeDef(GetRegValue(REGNAME_SESSIONCREATED, '', SelectedSession), DummyDate);
+      if Created <> DummyDate then begin
+        lblCreatedRight.Hint := DateTimeToStr(Created);
+        lblCreatedRight.Caption := DateBackFriendlyCaption(Created);
+        lblCreatedRight.Enabled := True;
+      end;
+
+    end else begin
+      // Editing a new session, not saved yet
+      FOrgNetType := NETTYPE_TCPIP;
+      FOrgHost := DEFAULT_HOST;
+      FOrgUser := DEFAULT_USER;
+      FOrgPassword := '';
+      FOrgPort := DEFAULT_PORT;
+      FOrgCompressed := DEFAULT_COMPRESSED;
+      FOrgDatabases := '';
+    end;
+
+    case FOrgNetType of
       NETTYPE_NAMEDPIPE: radioTypeNamedPipe.Checked := True;
       else radioTypeTCPIP.Checked := True;
     end;
-    editHost.Text := GetRegValue(REGNAME_HOST, '', Session);
-    editUsername.Text := GetRegValue(REGNAME_USER, '', Session);
-    editPassword.Text := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
-    editPort.Text := GetRegValue(REGNAME_PORT, '', Session);
-    editTimeout.Text := GetRegValue(REGNAME_TIMEOUT, '', Session);
-    chkCompressed.Checked := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session);
-    editOnlyDBs.Text := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', Session));
-    chkSorted.Checked := GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, Session);
-  end else begin
-    radioTypeTCPIP.Checked := True;
-    editHost.Text := '';
-    editUsername.Text := '';
-    editPassword.Text := '';
-    editPort.Text := '';
-    editTimeout.Text := '';
-    chkCompressed.Checked := False;
-    editOnlyDBs.Text := '';
-    chkSorted.Checked := False;
+    radioNetTypeClick(Sender);
+    editHost.Text := FOrgHost;
+    editUsername.Text := FOrgUser;
+    editPassword.Text := FOrgPassword;
+    updownPort.Position := FOrgPort;
+    chkCompressed.Checked := FOrgCompressed;
+    memoDatabases.Text := FOrgDatabases;
   end;
 
-  btnConnect.Enabled := SessionSelected;
-  btnSave.Enabled := SessionSelected;
-  btnSaveAndConnect.Enabled := SessionSelected;
-  btnDelete.Enabled := SessionSelected;
-  btnEditDesc.Enabled := SessionSelected;
-  radioTypeTCPIP.Enabled := SessionSelected;
-  radioTypeNamedPipe.Enabled := SessionSelected;
-  editHost.Enabled := SessionSelected;
-  editUsername.Enabled := SessionSelected;
-  editPassword.Enabled := SessionSelected;
-  editPort.Enabled := SessionSelected;
-  editTimeout.Enabled := SessionSelected;
-  editOnlyDBs.Enabled := SessionSelected;
-  chkCompressed.Enabled := SessionSelected;
-  chkSorted.Enabled := SessionSelected;
-  lblHost.Enabled := SessionSelected;
-  lblUsername.Enabled := SessionSelected;
-  lblPassword.Enabled := SessionSelected;
-  lblPort.Enabled := SessionSelected;
-  lblTimeout.Enabled := SessionSelected;
-  lblSession.Enabled := SessionSelected;
-  lblSeconds.Enabled := SessionSelected;
-  lblOnlyDBs.Enabled := SessionSelected;
-
-  radioNetTypeClick(Sender);
+  grpDetails.Visible := SessionFocused;
+  btnOpen.Enabled := SessionFocused;
+  btnNew.Enabled := SessionExists;
+  btnSave.Enabled := not SessionExists;
+  btnDelete.Enabled := SessionFocused;
+  FSessionModified := False;
+  FSessionAdded := False;
+  ListSessions.Repaint;
 
   Screen.Cursor := crDefault;
 end;
 
 
-procedure Tconnform.Modified(Sender: TObject);
+procedure Tconnform.ListSessionsFocusChanging(Sender: TBaseVirtualTree; OldNode,
+  NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
+  var Allowed: Boolean);
 begin
-  btnSave.Enabled := true;
-  btnSaveAndConnect.Enabled := true;
-  chkSorted.Enabled := editOnlyDBs.Text <> '';
+  FinalizeModifications(Allowed);
 end;
 
 
-{ rename session }
-procedure Tconnform.ButtonEditDescClick(Sender: TObject);
+procedure Tconnform.ListSessionsNewText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
 var
-  newdesc, olddesc : String;
-  idx : Integer;
+  SessionKey: String;
 begin
-  olddesc := comboSession.Text;
-  newdesc := olddesc;
-  if not InputQuery('Rename session ...', 'Rename session:', newdesc) then
-    exit;
-  if newdesc = olddesc then
-    exit;
-  if comboSession.Items.IndexOf(newdesc) > -1 then begin
-    MessageDLG('Session "'+newdesc+'" already exists!', mtError, [mbCancel], 0);
-    exit;
+  // Rename session
+  OpenRegistry;
+  if MainReg.KeyExists(REGKEY_SESSIONS + NewText) then begin
+    MessageDLG('Session "'+NewText+'" already exists!', mtError, [mbCancel], 0);
+    NewText := SelectedSession;
+  end else begin
+    SessionKey := REGPATH + REGKEY_SESSIONS + SelectedSession;
+    if MainReg.KeyExists(SessionKey) then
+      MainReg.MoveKey(SessionKey, REGPATH + REGKEY_SESSIONS + NewText, true);
+    FSessionNames[FSessionNames.IndexOf(SelectedSession)] := NewText;
+    RefreshSessionList(False);
   end;
+end;
 
-  idx := comboSession.ItemIndex;
-  try
-    MainReg.MoveKey(REGPATH + REGKEY_SESSIONS + olddesc, REGPATH + REGKEY_SESSIONS + newdesc, true);
-    comboSession.Items[comboSession.ItemIndex] := newdesc;
-    comboSession.ItemIndex := idx;
-    comboSessionSelect(Sender);
-  except
-    MessageDLG('Error on renaming.', mtError, [mbCancel], 0);
+
+procedure Tconnform.Modification(Sender: TObject);
+var
+  NetType: Byte;
+begin
+  // Some modification -
+  if FLoaded then begin
+    if radioTypeTCPIP.Checked then NetType := NETTYPE_TCPIP
+    else NetType := NETTYPE_NAMEDPIPE;
+    FSessionModified := (FOrgHost <> editHost.Text) or (FOrgUser <> editUsername.Text)
+      or (FOrgPassword <> editPassword.Text) or (FOrgPort <> updownPort.Position)
+      or (FOrgCompressed <> chkCompressed.Checked) or (FOrgDatabases <> memoDatabases.Text)
+      or (FOrgNetType <> NetType);
+    ListSessions.Repaint;
+    btnSave.Enabled := FSessionModified or FSessionAdded;
   end;
-
 end;
 
 
@@ -379,11 +440,32 @@ procedure Tconnform.radioNetTypeClick(Sender: TObject);
 begin
   // Toggle between TCP/IP and named pipes mode
   if radioTypeTCPIP.Checked then
-    lblHost.Caption := 'Hostname / IP:'
+    lblHost.Caption := '&Hostname / IP:'
   else
     lblHost.Caption := 'Socket name:';
   editPort.Enabled := radioTypeTCPIP.Checked;
   lblPort.Enabled := editPort.Enabled;
+  updownPort.Enabled := editPort.Enabled;
+  Modification(Sender);
+end;
+
+
+procedure Tconnform.FinalizeModifications(var CanProceed: Boolean);
+begin
+  if FSessionModified or FSessionAdded then begin
+    case MessageDlg('Save settings for "'+SelectedSession+'"?', mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
+      mrYes: begin
+          btnSave.OnClick(Self);
+          CanProceed := True;
+        end;
+      mrNo: begin
+          RefreshSessionList(True);
+          CanProceed := True;
+        end;
+      mrCancel: CanProceed := False;
+    end;
+  end else
+    CanProceed := True;
 end;
 
 

@@ -23,7 +23,7 @@ uses
   TntStdCtrls, Tabs, SynUnicode, mysqlconn, EditVar, helpers, queryprogress,
   mysqlquery, createdatabase, table_editor, SynRegExpr,
   WideStrUtils, ZDbcLogging, ExtActns, CommCtrl, routine_editor, options,
-  Contnrs, PngSpeedButton;
+  Contnrs, PngSpeedButton, connections;
 
 const
   // The InnoDB folks are raging over the lack of count(*) support
@@ -764,6 +764,7 @@ type
     SQLHelpForm: TfrmSQLhelp;
     RoutineEditor: TfrmRoutineEditor;
     OptionsForm: Toptionsform;
+    SessionManager: TConnForm;
     DatabasesWanted,
     Databases                  : Widestrings.TWideStringList;
     TemporaryDatabase          : WideString;
@@ -815,7 +816,7 @@ type
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
     procedure SessionConnect(Sender: TObject);
-    function InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases: WideString): Boolean;
+    function InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parDatabase, parCompress: WideString): Boolean;
     //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
 
     function ExecUpdateQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
@@ -918,7 +919,6 @@ implementation
 
 uses
   About,
-  connections,
   exportsql,
   loaddata,
   printlist,
@@ -1433,7 +1433,7 @@ var
   curParam, parNetType: Byte;
   sValue,
   parHost, parPort, parUser, parPass, parDatabase,
-  parTimeout, parCompress, parDescription : String;
+  parCompress, parDescription : String;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
   DefaultLastrunDate, LastSession, StatsURL: String;
@@ -1530,8 +1530,6 @@ begin
       parNetType := StrToIntDef(sValue, NETTYPE_TCPIP)
     else if GetParamValue('C', 'compress', curParam, sValue) then
       parCompress := sValue
-    else if GetParamValue('M', 'timeout', curParam, sValue) then
-      parTimeout := sValue
     else if GetParamValue('u', 'user', curParam, sValue) then
       parUser := sValue
     else if GetParamValue('p', 'password', curParam, sValue) then
@@ -1550,7 +1548,6 @@ begin
     parUser := GetRegValue(REGNAME_USER, DEFAULT_USER, parDescription);
     parPass := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, parDescription));
     parPort := GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), parDescription);
-    parTimeout := GetRegValue(REGNAME_TIMEOUT, IntToStr(DEFAULT_TIMEOUT), parDescription);
     parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, parDescription)));
     parDatabase := GetRegValue(REGNAME_ONLYDBS, '', parDescription);
   end;
@@ -1558,7 +1555,7 @@ begin
   // Minimal parameter for command line mode is hostname
   CommandLineMode := parHost <> '';
   if CommandLineMode then begin
-    Connected := InitConnection(parNetType, parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, IntToStr(Integer(DEFAULT_ONLYDBSSORTED)));
+    Connected := InitConnection(parNetType, parHost, parPort, parUser, parPass, parDatabase, parCompress);
     if Connected then begin
       SessionName := parDescription;
       if SessionName = '' then
@@ -1578,9 +1575,7 @@ begin
         GetRegValue(REGNAME_USER, '', LastSession),
         decrypt(GetRegValue(REGNAME_PASSWORD, '', LastSession)),
         Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', LastSession)),
-        GetRegValue(REGNAME_TIMEOUT, '', LastSession),
-        IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, LastSession))),
-        IntToStr(Integer(GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, LastSession)))
+        IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, LastSession)))
         );
       if Connected then
         SessionName := LastSession;
@@ -1609,13 +1604,11 @@ end;
 
 
 procedure TMainForm.actSessionManagerExecute(Sender: TObject);
-var
-  ConnForm: TConnForm;
 begin
-  ConnForm := TConnForm.Create(Self);
-  if ConnForm.ShowModal <> mrCancel then
+  if not Assigned(SessionManager) then
+    SessionManager := TConnForm.Create(Self);
+  if SessionManager.ShowModal <> mrCancel then
     DoAfterConnect;
-  FreeAndNil(ConnForm);
 end;
 
 
@@ -1663,8 +1656,7 @@ begin
   Mainreg.WriteString(REGNAME_LASTCONNECT, DateTimeToStr(Now));
 
   DatabasesWanted := explode(';', FConn.DatabaseList);
-  if FConn.DatabaseListSort then
-    DatabasesWanted.Sort;
+  DatabasesWanted.Sort;
 
   DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
 
@@ -2520,7 +2512,7 @@ procedure TMainForm.SessionConnect(Sender: TObject);
 var
   Session: String;
   parNetType: Integer;
-  parHost, parPort, parUser, parPass, parTimeout, parCompress, parDatabase, parSortDatabases: WideString;
+  parHost, parPort, parUser, parPass, parCompress, parDatabase: WideString;
 begin
   Session := (Sender as TMenuItem).Caption;
   parNetType := GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, Session);
@@ -2528,11 +2520,9 @@ begin
   parUser := GetRegValue(REGNAME_USER, '', Session);
   parPass := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
   parPort := GetRegValue(REGNAME_PORT, '', Session);
-  parTimeout := GetRegValue(REGNAME_TIMEOUT, '', Session);
   parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session)));
   parDatabase := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', Session));
-  parSortDatabases := IntToStr(Integer(GetRegValue(REGNAME_ONLYDBSSORTED, DEFAULT_ONLYDBSSORTED, Session)));
-  if InitConnection(parNetType, parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases) then begin
+  if InitConnection(parNetType, parHost, parPort, parUser, parPass, parDatabase, parCompress) then begin
     SessionName := Session;
     DoAfterConnect;
   end;
@@ -2543,7 +2533,7 @@ end;
   Receive connection parameters and create the mdi-window
   Paremeters are either sent by connection-form or by commandline.
 }
-function TMainform.InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parDatabase, parTimeout, parCompress, parSortDatabases: WideString): Boolean;
+function TMainform.InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parDatabase, parCompress: WideString): Boolean;
 var
   MysqlConnection: TMysqlConn;
   Profile: TOpenConnProf;
@@ -2562,12 +2552,10 @@ begin
     Profile.MysqlParams.PrpCompress := 'true'
   else
     Profile.MysqlParams.PrpCompress := 'false';
-  Profile.MysqlParams.PrpTimeout := parTimeout;
   Profile.MysqlParams.PrpDbless := 'true';
   Profile.MysqlParams.PrpClientLocalFiles := 'true';
   Profile.MysqlParams.PrpClientInteractive := 'true';
   Profile.DatabaseList := parDatabase;
-  Profile.DatabaseListSort := Boolean(StrToIntDef(parSortDatabases, 0));
 
   MysqlConnection := TMysqlConn.Create(@Profile);
 
