@@ -11,7 +11,7 @@ interface
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
   shlobj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
-  TntCheckLst, Registry, SynEditHighlighter, mysql_structures;
+  TntCheckLst, Registry, SynEditHighlighter, mysql_structures, DateUtils;
 
 type
 
@@ -181,6 +181,8 @@ type
   function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
   function ListIndexByRegExpr(List: TWideStrings; Expression: WideString): Integer;
   procedure RestoreSyneditStyles(Highlighter: TSynCustomHighlighter);
+  procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil);
+  function DateBackFriendlyCaption(d: TDateTime): String;
 var
   MainReg                    : TRegistry;
 
@@ -2970,6 +2972,46 @@ begin
     Attri.Background := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_BG, Mainform.SynSQLSyn1.Attribute[i].Background);
     Attri.IntegerStyle := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Mainform.SynSQLSyn1.Attribute[i].IntegerStyle)
   end;
+end;
+
+
+procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil);
+var
+  Node: PVirtualNode;
+begin
+  // Helper to focus and highlight a node by its index
+  if Assigned(ParentNode) then
+    Node := VT.GetFirstChild(ParentNode)
+  else
+    Node := VT.GetFirst;
+  while Assigned(Node) do begin
+    if Node.Index = idx then begin
+      VT.FocusedNode := Node;
+      VT.Selected[Node] := True;
+    end else
+      VT.Selected[Node] := False;
+    Node := VT.GetNextSibling(Node);
+  end;
+end;
+
+
+function DateBackFriendlyCaption(d: TDateTime): String;
+var
+  MonthsAgo, DaysAgo, HoursAgo, MinutesAgo: Int64;
+begin
+  MonthsAgo := MonthsBetween(Now, d);
+  DaysAgo := DaysBetween(Now, d);
+  HoursAgo := HoursBetween(Now, d);
+  MinutesAgo := MinutesBetween(Now, d);
+  if MonthsAgo = 1 then Result := FormatNumber(MonthsAgo)+' month ago'
+  else if MonthsAgo > 1 then Result := FormatNumber(MonthsAgo)+' months ago'
+  else if DaysAgo = 1 then Result := FormatNumber(DaysAgo)+' day ago'
+  else if DaysAgo > 1 then Result := FormatNumber(DaysAgo)+' days ago'
+  else if HoursAgo = 1 then Result := FormatNumber(HoursAgo)+' hour ago'
+  else if HoursAgo > 1 then Result := FormatNumber(HoursAgo)+' hours ago'
+  else if MinutesAgo = 1 then Result := FormatNumber(MinutesAgo)+' minute ago'
+  else if MinutesAgo > 0 then Result := FormatNumber(MinutesAgo)+' minutes ago'
+  else Result := 'less than a minute ago';
 end;
 
 

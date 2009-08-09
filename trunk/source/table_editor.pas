@@ -147,7 +147,6 @@ type
     procedure IndexesChange(Sender: TObject);
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
-    procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil);
     procedure MoveFocusedColumn(NewIdx: Cardinal);
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
     procedure SetModified(Value: Boolean);
@@ -1224,25 +1223,6 @@ procedure TfrmTableEditor.ColumnsChange(Sender: TObject);
 begin
   Modification(Sender);
   listColumns.Repaint;
-end;
-
-
-procedure TfrmTableEditor.SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil);
-var Node: PVirtualNode;
-begin
-  // Helper to focus and highlight a node by its index
-  if Assigned(ParentNode) then
-    Node := VT.GetFirstChild(ParentNode)
-  else
-    Node := VT.GetFirst;
-  while Assigned(Node) do begin
-    if Node.Index = idx then begin
-      VT.FocusedNode := Node;
-      VT.Selected[Node] := True;
-    end else
-      VT.Selected[Node] := False;
-    Node := VT.GetNextSibling(Node);
-  end;
 end;
 
 

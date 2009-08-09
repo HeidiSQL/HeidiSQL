@@ -29,7 +29,6 @@ type
     Pass : String;
     Port : Integer;
     PrpCompress,
-    PrpTimeout,
     PrpDbless,
     PrpClientLocalFiles,
     PrpClientInteractive : String;
@@ -42,7 +41,6 @@ type
   TOpenConnProf = record
     MysqlParams : TMysqlConnParams; // stuff that needs to be shipped over to the mysql driver.
     DatabaseList : WideString;
-    DatabaseListSort : Boolean;
     MysqlConn : TZConnection;
   end;
   POpenConnProf = ^TOpenConnProf;
