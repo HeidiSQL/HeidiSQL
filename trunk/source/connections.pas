@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, Buttons, ExtCtrls, ComCtrls, WideStrings,
-  TntStdCtrls, VirtualTrees, Menus;
+  TntStdCtrls, VirtualTrees, Menus, DateUtils;
 
 type
   Tconnform = class(TForm)
@@ -339,7 +339,7 @@ begin
       FOrgPort := StrToIntDef(GetRegValue(REGNAME_PORT, '', SelectedSession), DEFAULT_PORT);
       FOrgCompressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SelectedSession);
       FOrgDatabases := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', SelectedSession));
-      DummyDate := StrToDateTime('2000-01-01');
+      DummyDate := IncYear(Now, -100);
       LastConnect := StrToDateTimeDef(GetRegValue(REGNAME_LASTCONNECT, '', SelectedSession), DummyDate);
       if LastConnect <> DummyDate then begin
         lblLastConnectRight.Hint := DateTimeToStr(LastConnect);
