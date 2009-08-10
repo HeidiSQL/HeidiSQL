@@ -111,6 +111,7 @@ begin
   InheritFont(Font);
   SetWindowSizeGrip(Handle, True);
   FixVT(ListSessions);
+  ListSessions.OnGetHint := Mainform.vstGetHint;
   FLoaded := False;
   FSessionNames := TStringList.Create;
   RefreshSessionList(True);

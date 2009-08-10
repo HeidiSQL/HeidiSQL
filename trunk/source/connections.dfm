@@ -72,7 +72,7 @@ object connform: Tconnform
     Top = 27
     Width = 162
     Height = 235
-    Anchors = [akLeft, akTop, akRight, akBottom]
+    Anchors = [akLeft, akTop, akBottom]
     EditDelay = 250
     Header.AutoSizeIndex = 0
     Header.DefaultHeight = 17
@@ -82,6 +82,7 @@ object connform: Tconnform
     Header.Font.Name = 'Tahoma'
     Header.Font.Style = []
     Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
+    HintMode = hmTooltip
     Images = MainForm.PngImageListMain
     PopupMenu = popupSessions
     TabOrder = 0
@@ -126,7 +127,7 @@ object connform: Tconnform
     Top = 10
     Width = 309
     Height = 254
-    Anchors = [akTop, akRight, akBottom]
+    Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Details'
     TabOrder = 1
     Visible = False
