@@ -19,6 +19,7 @@ object connform: Tconnform
   ShowHint = True
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
     494
