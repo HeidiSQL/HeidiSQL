@@ -50,6 +50,7 @@ begin
   debug('perf: All modules loaded.');
   Application.Initialize;
   Application.Title := APPNAME;
+  Application.UpdateFormatSettings := False;
   Application.CreateForm(TMainForm, MainForm);
   debug('perf: Main created.');
 
