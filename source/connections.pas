@@ -69,6 +69,7 @@ type
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
       var Allowed: Boolean);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -110,6 +111,8 @@ begin
   // Fix GUI stuff
   InheritFont(Font);
   SetWindowSizeGrip(Handle, True);
+  Width := GetRegValue(REGNAME_SESSMNGR_WINWIDTH, Width);
+  Height := GetRegValue(REGNAME_SESSMNGR_WINHEIGHT, Height);
   FixVT(ListSessions);
   ListSessions.OnGetHint := Mainform.vstGetHint;
   FLoaded := False;
@@ -120,6 +123,15 @@ begin
   btnSave.Enabled := False;
   btnDelete.Enabled := False;
   SelectNode(ListSessions, FSessionNames.IndexOf(LastSession));
+end;
+
+
+procedure Tconnform.FormDestroy(Sender: TObject);
+begin
+  // Save GUI stuff
+  OpenRegistry;
+  MainReg.WriteInteger(REGNAME_SESSMNGR_WINWIDTH, Width);
+  MainReg.WriteInteger(REGNAME_SESSMNGR_WINHEIGHT, Height);
 end;
 
 
