@@ -131,8 +131,6 @@ end;
 
 procedure Tconnform.FormShow(Sender: TObject);
 begin
-  // ??
-//  setLocales;
   ListSessions.SetFocus;
   FLoaded := True;
 end;
