@@ -364,6 +364,7 @@ begin
       FOrgDatabases := '';
     end;
 
+    FLoaded := False;
     case FOrgNetType of
       NETTYPE_NAMEDPIPE: radioTypeNamedPipe.Checked := True;
       else radioTypeTCPIP.Checked := True;
@@ -375,6 +376,7 @@ begin
     updownPort.Position := FOrgPort;
     chkCompressed.Checked := FOrgCompressed;
     memoDatabases.Text := FOrgDatabases;
+    FLoaded := True;
   end;
 
   grpDetails.Visible := SessionFocused;
