@@ -46,6 +46,7 @@ type
     Save1: TMenuItem;
     Delete1: TMenuItem;
     Saveas1: TMenuItem;
+    TimerStatistics: TTimer;
     procedure CreateParams(var Params: TCreateParams); override;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
@@ -70,6 +71,8 @@ type
       var Allowed: Boolean);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormDestroy(Sender: TObject);
+    procedure TimerStatisticsTimer(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -142,9 +145,19 @@ begin
 end;
 
 
+procedure Tconnform.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  // Suspend calculating statistics as long as they're not visible
+  TimerStatistics.Enabled := False;
+end;
+
+
 procedure Tconnform.FormShow(Sender: TObject);
 begin
   ListSessions.SetFocus;
+  // Reactivate statistics
+  TimerStatistics.Enabled := True;
+  TimerStatistics.OnTimer(Sender);
   FLoaded := True;
 end;
 
@@ -327,22 +340,15 @@ procedure Tconnform.ListSessionsFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
   SessionFocused, SessionExists: Boolean;
-  LastConnect, Created, DummyDate: TDateTime;
 begin
   // select one connection!
   Screen.Cursor := crHourglass;
+  TimerStatistics.Enabled := False;
   OpenRegistry;
   SessionFocused := Assigned(Node);
   SessionExists := SessionFocused;
   if SessionFocused then begin
     SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + SelectedSession);
-    lblLastConnectRight.Caption := 'unknown or never';
-    lblLastConnectRight.Hint := '';
-    lblLastConnectRight.Enabled := False;
-    lblCreatedRight.Caption := 'unknown';
-    lblCreatedRight.Hint := lblLastConnectRight.Hint;
-    lblCreatedRight.Enabled := lblLastConnectRight.Enabled;
-
     if SessionExists then begin
       OpenRegistry(SelectedSession);
       FOrgNetType := GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, SelectedSession);
@@ -352,20 +358,6 @@ begin
       FOrgPort := StrToIntDef(GetRegValue(REGNAME_PORT, '', SelectedSession), DEFAULT_PORT);
       FOrgCompressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SelectedSession);
       FOrgDatabases := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', SelectedSession));
-      DummyDate := StrToDateTime('2000-01-01');
-      LastConnect := StrToDateTimeDef(GetRegValue(REGNAME_LASTCONNECT, '', SelectedSession), DummyDate);
-      if LastConnect <> DummyDate then begin
-        lblLastConnectRight.Hint := DateTimeToStr(LastConnect);
-        lblLastConnectRight.Caption := DateBackFriendlyCaption(LastConnect);
-        lblLastConnectRight.Enabled := True;
-      end;
-      Created := StrToDateTimeDef(GetRegValue(REGNAME_SESSIONCREATED, '', SelectedSession), DummyDate);
-      if Created <> DummyDate then begin
-        lblCreatedRight.Hint := DateTimeToStr(Created);
-        lblCreatedRight.Caption := DateBackFriendlyCaption(Created);
-        lblCreatedRight.Enabled := True;
-      end;
-
     end else begin
       // Editing a new session, not saved yet
       FOrgNetType := NETTYPE_TCPIP;
@@ -400,8 +392,41 @@ begin
   FSessionModified := False;
   FSessionAdded := False;
   ListSessions.Repaint;
+  TimerStatistics.Enabled := True;
+  TimerStatistics.OnTimer(Sender);
 
   Screen.Cursor := crDefault;
+end;
+
+
+procedure Tconnform.TimerStatisticsTimer(Sender: TObject);
+var
+  LastConnect, Created, DummyDate: TDateTime;
+begin
+  // Continuously update statistics labels
+  lblLastConnectRight.Caption := 'unknown or never';
+  lblLastConnectRight.Hint := '';
+  lblLastConnectRight.Enabled := False;
+  lblCreatedRight.Caption := 'unknown';
+  lblCreatedRight.Hint := lblLastConnectRight.Hint;
+  lblCreatedRight.Enabled := lblLastConnectRight.Enabled;
+
+  if (not Assigned(ListSessions.FocusedNode)) or FSessionAdded then
+    Exit;
+
+  DummyDate := StrToDateTime('2000-01-01');
+  LastConnect := StrToDateTimeDef(GetRegValue(REGNAME_LASTCONNECT, '', SelectedSession), DummyDate);
+  if LastConnect <> DummyDate then begin
+    lblLastConnectRight.Hint := DateTimeToStr(LastConnect);
+    lblLastConnectRight.Caption := DateBackFriendlyCaption(LastConnect);
+    lblLastConnectRight.Enabled := True;
+  end;
+  Created := StrToDateTimeDef(GetRegValue(REGNAME_SESSIONCREATED, '', SelectedSession), DummyDate);
+  if Created <> DummyDate then begin
+    lblCreatedRight.Hint := DateTimeToStr(Created);
+    lblCreatedRight.Caption := DateBackFriendlyCaption(Created);
+    lblCreatedRight.Enabled := True;
+  end;
 end;
 
 

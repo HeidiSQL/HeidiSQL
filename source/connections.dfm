@@ -17,6 +17,7 @@ object connform: Tconnform
   OldCreateOrder = False
   Position = poOwnerFormCenter
   ShowHint = True
+  OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -332,5 +333,11 @@ object connform: Tconnform
       ShortCut = 46
       OnClick = btnDeleteClick
     end
+  end
+  object TimerStatistics: TTimer
+    Interval = 60000
+    OnTimer = TimerStatisticsTimer
+    Left = 208
+    Top = 272
   end
 end
