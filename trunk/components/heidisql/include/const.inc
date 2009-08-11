@@ -179,6 +179,8 @@ const
   REGNAME_FILTERS = 'RecentFilters';
   REGNAME_SERVERVERSION = 'ServerVersion';
   REGNAME_LASTCONNECT = 'LastConnect';
+  REGNAME_CONNECTCOUNT = 'ConnectCount';
+  REGNAME_REFUSEDCOUNT = 'RefusedCount';
   REGNAME_SESSIONCREATED = 'SessionCreated';
   REGNAME_DO_STATISTICS = 'DoUsageStatistics';
   DEFAULT_DO_STATISTICS = False;
