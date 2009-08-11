@@ -47,6 +47,8 @@ type
     Delete1: TMenuItem;
     Saveas1: TMenuItem;
     TimerStatistics: TTimer;
+    lblCounterLeft: TLabel;
+    lblCounterRight: TLabel;
     procedure CreateParams(var Params: TCreateParams); override;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
@@ -187,10 +189,11 @@ begin
     editUsername.Text,
     editPassword.Text,
     memoDatabases.Text,
-    IntToStr(Integer(chkCompressed.Checked))) then begin
+    IntToStr(Integer(chkCompressed.Checked)),
+    SelectedSession) then begin
     ModalResult := mrOK;
-    Mainform.SessionName := SelectedSession;
   end else begin
+    TimerStatistics.OnTimer(Sender);
     ModalResult := mrNone;
   end;
 
@@ -402,14 +405,17 @@ end;
 procedure Tconnform.TimerStatisticsTimer(Sender: TObject);
 var
   LastConnect, Created, DummyDate: TDateTime;
+  Connects, Refused: Integer;
 begin
   // Continuously update statistics labels
   lblLastConnectRight.Caption := 'unknown or never';
   lblLastConnectRight.Hint := '';
   lblLastConnectRight.Enabled := False;
   lblCreatedRight.Caption := 'unknown';
-  lblCreatedRight.Hint := lblLastConnectRight.Hint;
-  lblCreatedRight.Enabled := lblLastConnectRight.Enabled;
+  lblCreatedRight.Hint := '';
+  lblCreatedRight.Enabled := False;
+  lblCounterRight.Caption := 'not available';
+  lblCounterRight.Enabled := False;
 
   if (not Assigned(ListSessions.FocusedNode)) or FSessionAdded then
     Exit;
@@ -427,6 +433,15 @@ begin
     lblCreatedRight.Caption := DateBackFriendlyCaption(Created);
     lblCreatedRight.Enabled := True;
   end;
+  Connects := GetRegValue(REGNAME_CONNECTCOUNT, 0, SelectedSession);
+  Refused := GetRegValue(REGNAME_REFUSEDCOUNT, 0, SelectedSession);
+  lblCounterRight.Enabled := Connects + Refused > 0;
+  if Connects > 0 then begin
+    lblCounterRight.Caption := 'Successful connects: '+IntToStr(Connects);
+    if Refused > 0 then
+      lblCounterRight.Caption := lblCounterRight.Caption + ', unsuccessful: '+IntToStr(Refused);
+  end else if Refused > 0 then
+    lblCounterRight.Caption := 'Unsuccessful connects: '+IntToStr(Refused);
 end;
 
 

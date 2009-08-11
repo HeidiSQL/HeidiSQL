@@ -816,7 +816,7 @@ type
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
     procedure SessionConnect(Sender: TObject);
-    function InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parDatabase, parCompress: WideString): Boolean;
+    function InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parDatabase, parCompress, parSession: WideString): Boolean;
     //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
 
     function ExecUpdateQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
@@ -1433,7 +1433,7 @@ var
   curParam, parNetType: Byte;
   sValue,
   parHost, parPort, parUser, parPass, parDatabase,
-  parCompress, parDescription : String;
+  parCompress, parSession: String;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
   DefaultLastrunDate, LastSession, StatsURL: String;
@@ -1537,30 +1537,27 @@ begin
     else if GetParamValue('D', 'database', curParam, sValue) then
       parDatabase := sValue
     else if GetParamValue('d', 'description', curParam, sValue) then
-      parDescription := sValue;
+      parSession := sValue;
     Inc(curParam);
   end;
 
   // Find stored session if -dSessionName was passed
-  if (parDescription <> '') and (MainReg.OpenKey(REGPATH + REGKEY_SESSIONS + parDescription, False)) then begin
-    parNetType := GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, parDescription);
-    parHost := GetRegValue(REGNAME_HOST, DEFAULT_HOST, parDescription);
-    parUser := GetRegValue(REGNAME_USER, DEFAULT_USER, parDescription);
-    parPass := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, parDescription));
-    parPort := GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), parDescription);
-    parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, parDescription)));
-    parDatabase := GetRegValue(REGNAME_ONLYDBS, '', parDescription);
+  if (parSession <> '') and MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + parSession) then begin
+    parNetType := GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, parSession);
+    parHost := GetRegValue(REGNAME_HOST, DEFAULT_HOST, parSession);
+    parUser := GetRegValue(REGNAME_USER, DEFAULT_USER, parSession);
+    parPass := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, parSession));
+    parPort := GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), parSession);
+    parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, parSession)));
+    parDatabase := GetRegValue(REGNAME_ONLYDBS, '', parSession);
   end;
 
   // Minimal parameter for command line mode is hostname
   CommandLineMode := parHost <> '';
   if CommandLineMode then begin
-    Connected := InitConnection(parNetType, parHost, parPort, parUser, parPass, parDatabase, parCompress);
-    if Connected then begin
-      SessionName := parDescription;
-      if SessionName = '' then
-        SessionName := parHost;
-    end;
+    if parSession = '' then
+      parSession := parHost;
+    Connected := InitConnection(parNetType, parHost, parPort, parUser, parPass, parDatabase, parCompress, parSession);
   end;
 
   // Auto connection via preference setting
@@ -1575,10 +1572,9 @@ begin
         GetRegValue(REGNAME_USER, '', LastSession),
         decrypt(GetRegValue(REGNAME_PASSWORD, '', LastSession)),
         Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', LastSession)),
-        IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, LastSession)))
+        IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, LastSession))),
+        LastSession
         );
-      if Connected then
-        SessionName := LastSession;
     end;
   end;
 
@@ -2522,10 +2518,8 @@ begin
   parPort := GetRegValue(REGNAME_PORT, '', Session);
   parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session)));
   parDatabase := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', Session));
-  if InitConnection(parNetType, parHost, parPort, parUser, parPass, parDatabase, parCompress) then begin
-    SessionName := Session;
+  if InitConnection(parNetType, parHost, parPort, parUser, parPass, parDatabase, parCompress, Session) then
     DoAfterConnect;
-  end;
 end;
 
 
@@ -2533,11 +2527,12 @@ end;
   Receive connection parameters and create the mdi-window
   Paremeters are either sent by connection-form or by commandline.
 }
-function TMainform.InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parDatabase, parCompress: WideString): Boolean;
+function TMainform.InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parDatabase, parCompress, parSession: WideString): Boolean;
 var
   MysqlConnection: TMysqlConn;
   Profile: TOpenConnProf;
   UsingPass, NetType: String;
+  SessionExists: Boolean;
 begin
   // fill structure
   ZeroMemory(@Profile, SizeOf(Profile));
@@ -2569,12 +2564,24 @@ begin
   LogSQL('Connecting to '+Profile.MysqlParams.Host+' via '+NetType+
     ', username '+Profile.MysqlParams.User+
     ', using password: '+UsingPass+' ...');
+  SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + parSession);
   if MysqlConnection.Connect <> MCR_SUCCESS then begin
-    // attempt failed -- show error
+    // attempt failed
+    if SessionExists then begin
+      // Save "refused" counter
+      OpenRegistry(parSession);
+      MainReg.WriteInteger(REGNAME_REFUSEDCOUNT, GetRegValue(REGNAME_REFUSEDCOUNT, 0, parSession)+1);
+    end;
     MessageDlg ( 'Could not establish connection! Details:'+CRLF+CRLF+MysqlConnection.LastError, mtError, [mbOK], 0);
     Result := False;
     FreeAndNil(MysqlConnection);
   end else begin
+    if SessionExists then begin
+      // Save "refused" counter
+      OpenRegistry(parSession);
+      MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, parSession)+1);
+    end;
+    SessionName := parSession;
     Result := True;
     Profile.MysqlConn := MysqlConnection.Connection;
     if Assigned(FMysqlConn) then

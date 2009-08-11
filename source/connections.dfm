@@ -4,10 +4,10 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu]
   Caption = 'Session manager'
-  ClientHeight = 303
+  ClientHeight = 319
   ClientWidth = 494
   Color = clBtnFace
-  Constraints.MinHeight = 320
+  Constraints.MinHeight = 355
   Constraints.MinWidth = 510
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -24,7 +24,7 @@ object connform: Tconnform
   OnShow = FormShow
   DesignSize = (
     494
-    303)
+    319)
   PixelsPerInch = 96
   TextHeight = 13
   object lblSession: TLabel
@@ -37,7 +37,7 @@ object connform: Tconnform
   end
   object btnSave: TButton
     Left = 64
-    Top = 270
+    Top = 286
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -48,7 +48,7 @@ object connform: Tconnform
   object btnOpen: TButton
     Tag = 15
     Left = 320
-    Top = 270
+    Top = 286
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -60,7 +60,7 @@ object connform: Tconnform
   object btnCancel: TButton
     Tag = 16
     Left = 406
-    Top = 270
+    Top = 286
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -73,7 +73,7 @@ object connform: Tconnform
     Left = 9
     Top = 27
     Width = 162
-    Height = 235
+    Height = 251
     Anchors = [akLeft, akTop, akBottom]
     EditDelay = 250
     Header.AutoSizeIndex = 0
@@ -106,7 +106,7 @@ object connform: Tconnform
   end
   object btnNew: TButton
     Left = 8
-    Top = 270
+    Top = 286
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -116,7 +116,7 @@ object connform: Tconnform
   end
   object btnDelete: TButton
     Left = 120
-    Top = 270
+    Top = 286
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -128,14 +128,14 @@ object connform: Tconnform
     Left = 177
     Top = 10
     Width = 309
-    Height = 254
+    Height = 270
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Details'
     TabOrder = 1
     Visible = False
     DesignSize = (
       309
-      254)
+      270)
     object lblHost: TLabel
       Tag = 6
       Left = 8
@@ -199,7 +199,7 @@ object connform: Tconnform
     end
     object lblCreatedLeft: TLabel
       Left = 8
-      Top = 230
+      Top = 247
       Width = 43
       Height = 13
       Anchors = [akLeft, akBottom]
@@ -207,7 +207,7 @@ object connform: Tconnform
     end
     object lblCreatedRight: TLabel
       Left = 99
-      Top = 230
+      Top = 247
       Width = 5
       Height = 13
       Anchors = [akLeft, akBottom]
@@ -219,6 +219,22 @@ object connform: Tconnform
       Width = 69
       Height = 13
       Caption = 'Network type:'
+    end
+    object lblCounterLeft: TLabel
+      Left = 8
+      Top = 229
+      Width = 43
+      Height = 13
+      Anchors = [akLeft, akBottom]
+      Caption = 'Counter:'
+    end
+    object lblCounterRight: TLabel
+      Left = 99
+      Top = 229
+      Width = 5
+      Height = 13
+      Anchors = [akLeft, akBottom]
+      Caption = '?'
     end
     object editHost: TEdit
       Left = 99
@@ -314,7 +330,7 @@ object connform: Tconnform
   object popupSessions: TPopupMenu
     Images = MainForm.PngImageListMain
     Left = 176
-    Top = 272
+    Top = 288
     object Save1: TMenuItem
       Caption = 'Save'
       ImageIndex = 10
@@ -338,6 +354,6 @@ object connform: Tconnform
     Interval = 60000
     OnTimer = TimerStatisticsTimer
     Left = 208
-    Top = 272
+    Top = 288
   end
 end
