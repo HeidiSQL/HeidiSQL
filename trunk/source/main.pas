@@ -1158,6 +1158,7 @@ begin
   FreeAndNil(SelectDBObjectForm);
   FreeAndNil(SQLHelpForm);
   FreeAndNil(OptionsForm);
+  FreeAndNil(SessionManager);
 
   debug('mem: clearing query and browse data.');
   SetLength(DataGridResult.Rows, 0);
