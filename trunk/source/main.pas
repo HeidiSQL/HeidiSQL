@@ -682,7 +682,6 @@ type
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actEditObjectExecute(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
-    procedure DataGridClick(Sender: TObject);
     procedure panelTopDblClick(Sender: TObject);
     procedure PageControlMainMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure actNewQueryTabExecute(Sender: TObject);
@@ -7553,18 +7552,6 @@ begin
   ValidateControls(Sender);
 end;
 
-
-procedure TMainForm.DataGridClick(Sender: TObject);
-var
-  VT: TVirtualStringTree;
-  Click: THitInfo;
-begin
-  // Start editing by click
-  VT := Sender as TVirtualStringTree;
-  VT.GetHitTestInfoAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y, True, Click);
-  if Assigned(Click.HitNode) and (Click.HitColumn > NoColumn) then
-    VT.EditNode(Click.HitNode, Click.HitColumn);
-end;
 
 {**
   DataGrid: node and/or column focus is about to change. See if we allow that.
