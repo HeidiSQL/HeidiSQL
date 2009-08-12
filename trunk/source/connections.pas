@@ -392,6 +392,7 @@ begin
   btnNew.Enabled := SessionExists;
   btnSave.Enabled := not SessionExists;
   btnDelete.Enabled := SessionFocused;
+  btnOpen.Enabled := SessionFocused;
   FSessionModified := False;
   FSessionAdded := False;
   ListSessions.Repaint;
