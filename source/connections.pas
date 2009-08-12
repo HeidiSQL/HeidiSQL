@@ -418,7 +418,8 @@ begin
   lblCounterRight.Caption := 'not available';
   lblCounterRight.Enabled := False;
 
-  if (not Assigned(ListSessions.FocusedNode)) or FSessionAdded then
+  if (not Assigned(ListSessions.FocusedNode))
+    or (not MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + SelectedSession)) then
     Exit;
 
   DummyDate := StrToDateTime('2000-01-01');
