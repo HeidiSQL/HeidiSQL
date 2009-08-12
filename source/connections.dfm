@@ -54,6 +54,7 @@ object connform: Tconnform
     Anchors = [akRight, akBottom]
     Caption = 'Open'
     Default = True
+    Enabled = False
     TabOrder = 5
     OnClick = btnOpenClick
   end
