@@ -1149,7 +1149,6 @@ object MainForm: TMainForm
           OnAfterCellPaint = DataGridAfterCellPaint
           OnBeforeCellPaint = GridBeforeCellPaint
           OnChange = DataGridChange
-          OnClick = DataGridClick
           OnColumnResize = DataGridColumnResize
           OnCreateEditor = DataGridCreateEditor
           OnEditCancelled = DataGridEditCancelled
