@@ -35,6 +35,17 @@ object connform: Tconnform
     Height = 13
     Caption = '&Saved sessions:'
   end
+  object lblHelp: TLabel
+    Left = 177
+    Top = 27
+    Width = 296
+    Height = 190
+    Anchors = [akLeft, akTop, akRight]
+    AutoSize = False
+    Caption = 'lblHelp'
+    Visible = False
+    WordWrap = True
+  end
   object btnSave: TButton
     Left = 64
     Top = 286

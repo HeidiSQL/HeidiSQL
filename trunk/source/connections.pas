@@ -49,6 +49,7 @@ type
     TimerStatistics: TTimer;
     lblCounterLeft: TLabel;
     lblCounterRight: TLabel;
+    lblHelp: TLabel;
     procedure CreateParams(var Params: TCreateParams); override;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
@@ -88,6 +89,7 @@ type
     procedure RefreshSessionList(RefetchRegistry: Boolean);
     procedure FinalizeModifications(var CanProceed: Boolean);
     procedure SaveCurrentValues(Session: String; IsNew: Boolean);
+    procedure ValidateControls;
   public
     { Public declarations }
   end;
@@ -125,9 +127,8 @@ begin
   RefreshSessionList(True);
   // Focus last session
   LastSession := GetRegValue(REGNAME_LASTSESSION, '');
-  btnSave.Enabled := False;
-  btnDelete.Enabled := False;
   SelectNode(ListSessions, FSessionNames.IndexOf(LastSession));
+  ValidateControls;
 end;
 
 
@@ -221,8 +222,6 @@ begin
   RefreshSessionList(True);
   ListSessions.FocusedNode := nil;
   SelectNode(ListSessions, FSessionNames.IndexOf(Session));
-  btnNew.Enabled := True;
-  btnSave.Enabled := False;
 end;
 
 
@@ -276,6 +275,7 @@ begin
   RefreshSessionList(False);
   SelectNode(ListSessions, NewIdx);
   FSessionAdded := True;
+  ValidateControls;
   ListSessions.EditNode(ListSessions.FocusedNode, ListSessions.FocusedColumn);
 end;
 
@@ -349,7 +349,6 @@ begin
   TimerStatistics.Enabled := False;
   OpenRegistry;
   SessionFocused := Assigned(Node);
-  SessionExists := SessionFocused;
   if SessionFocused then begin
     SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + SelectedSession);
     if SessionExists then begin
@@ -387,15 +386,10 @@ begin
     FLoaded := True;
   end;
 
-  grpDetails.Visible := SessionFocused;
-  btnOpen.Enabled := SessionFocused;
-  btnNew.Enabled := SessionExists;
-  btnSave.Enabled := not SessionExists;
-  btnDelete.Enabled := SessionFocused;
-  btnOpen.Enabled := SessionFocused;
   FSessionModified := False;
   FSessionAdded := False;
   ListSessions.Repaint;
+  ValidateControls;
   TimerStatistics.Enabled := True;
   TimerStatistics.OnTimer(Sender);
 
@@ -488,7 +482,7 @@ begin
       or (FOrgCompressed <> chkCompressed.Checked) or (FOrgDatabases <> memoDatabases.Text)
       or (FOrgNetType <> NetType);
     ListSessions.Repaint;
-    btnSave.Enabled := FSessionModified or FSessionAdded;
+    ValidateControls;
   end;
 end;
 
@@ -523,6 +517,34 @@ begin
     end;
   end else
     CanProceed := True;
+end;
+
+
+procedure Tconnform.ValidateControls;
+var
+  SessionFocused: Boolean;
+begin
+  SessionFocused := Assigned(ListSessions.FocusedNode);
+
+  btnOpen.Enabled := SessionFocused;
+  btnNew.Enabled := not FSessionAdded;
+  btnSave.Enabled := FSessionModified or FSessionAdded;
+  btnDelete.Enabled := SessionFocused;
+  btnOpen.Enabled := SessionFocused;
+
+  if not SessionFocused then begin
+    grpDetails.Visible := False;
+    lblHelp.Visible := True;
+    if FSessionNames.Count = 0 then
+      lblHelp.Caption := 'New here? In order to connect to a MySQL server, you have to create a so called '+
+        '"session" at first. Just click the "New" button on the bottom left to create your first session.'+CRLF+CRLF+
+        'Give it a friendly name (e.g. "Local DB server") so you''ll recall it the next time you start '+APPNAME+'.'
+    else
+      lblHelp.Caption := 'Please click a session on the left list to edit parameters, doubleclick to open it.';
+  end else begin
+    lblHelp.Visible := False;
+    grpDetails.Visible := True;
+  end;
 end;
 
 
