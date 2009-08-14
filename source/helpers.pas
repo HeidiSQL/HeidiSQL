@@ -2794,6 +2794,9 @@ begin
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
   else
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toHotTrack];
+  VT.OnGetHint := MainForm.vstGetHint;
+  VT.ShowHint := True;
+  VT.HintMode := hmToolTip;
 end;
 
 
