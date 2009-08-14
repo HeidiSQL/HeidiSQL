@@ -1438,9 +1438,7 @@ var
   UpdatecheckInterval, i: Integer;
   DefaultLastrunDate, LastSession, StatsURL: String;
   frm : TfrmUpdateCheck;
-  dlgResult: Integer;
   Connected, CommandLineMode, DecideForStatistic: Boolean;
-  ConnForm: TConnForm;
   StatsCall: TDownloadUrl2;
   SessionNames: TStringlist;
 begin
@@ -1581,10 +1579,9 @@ begin
   // Display session manager
   if not Connected then begin
     // Cannot be done in OnCreate because we need ready forms here:
-    ConnForm := TConnForm.Create(Self);
-    dlgResult := ConnForm.ShowModal;
-    FreeAndNil(ConnForm);
-    if dlgResult = mrCancel then begin
+    if not Assigned(SessionManager) then
+      SessionManager := TConnForm.Create(Self);
+    if SessionManager.ShowModal = mrCancel then begin
       Close;
       Halt;
     end;
