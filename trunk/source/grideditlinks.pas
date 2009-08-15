@@ -290,9 +290,11 @@ var
   CellBounds, TextBounds: TRect;
   Ghosted: Boolean;
   ImageIndex: Integer;
+  f: TFont;
 begin
   // Return the cell's rectangle, relative to the parent form.
-  FTree.GetTextInfo(FNode, FColumn, FCellFont, TextBounds, Text);
+  f := TFont.Create;
+  FTree.GetTextInfo(FNode, FColumn, f, TextBounds, Text);
   CellBounds := FTree.GetDisplayRect(FNode, FColumn, False);
 
   Inc(CellBounds.Left, Integer(FTree.GetNodeLevel(FNode)) * (Integer(FTree.Indent)+FTree.TextMargin));
