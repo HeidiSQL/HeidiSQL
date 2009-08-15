@@ -285,21 +285,46 @@ begin
 end;
 
 function TBaseGridEditorLink.GetCellRect(InnerTextBounds: Boolean): TRect;
+var
+  Text: WideString;
+  CellBounds, TextBounds: TRect;
+  Ghosted: Boolean;
+  ImageIndex: Integer;
 begin
   // Return the cell's rectangle, relative to the parent form.
-  Result := FTree.GetDisplayRect(FNode, FColumn, False);
-  Dec(Result.Bottom, 1);
+  FTree.GetTextInfo(FNode, FColumn, FCellFont, TextBounds, Text);
+  CellBounds := FTree.GetDisplayRect(FNode, FColumn, False);
+
+  Inc(CellBounds.Left, Integer(FTree.GetNodeLevel(FNode)) * (Integer(FTree.Indent)+FTree.TextMargin));
+  if (toShowRoot in FTree.TreeOptions.PaintOptions)
+    and (FColumn = FTree.Header.MainColumn) then begin
+    // Reserve space for plus or minus button
+    Inc(CellBounds.Left, FTree.Indent);
+  end;
+  if Assigned(FTree.Images) and Assigned(FTree.OnGetImageIndex) then begin
+    // Reserve space for image
+    ImageIndex := -1;
+    FTree.OnGetImageIndex(FTree, FNode, ikNormal, FColumn, Ghosted, ImageIndex);
+    if ImageIndex > -1 then
+      Inc(CellBounds.Left, FTree.Images.Width+2);
+  end;
+  TextBounds.Left := CellBounds.Left + 2*FTree.TextMargin;
+
   if InnerTextBounds then begin
-    OffsetRect(Result, -Result.Left, -Result.Top);
-    Inc(Result.Left, 8);
-    Inc(Result.Top, 2);
-    Dec(Result.Bottom, 1);
+    // Inner bounds are considered to be relative to the outer cell bounds
+    Result := Rect(TextBounds.Left-CellBounds.Left,
+      TextBounds.Top-CellBounds.Top,
+      CellBounds.Right-CellBounds.Left, // Far right edge of cell, not of text
+      CellBounds.Bottom-CellBounds.Top
+      );
   end else begin
     // Recalculate top left corner of rectangle, so it is relative to the parent form (which is FParentForm)
+    Result := CellBounds;
     OffsetRect(Result,
       FTree.ClientOrigin.X - FParentForm.ClientOrigin.X,
       FTree.ClientOrigin.Y - FParentForm.ClientOrigin.Y
       );
+    Dec(Result.Bottom, 1);
   end;
 end;
 
