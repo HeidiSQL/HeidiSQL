@@ -651,6 +651,7 @@ begin
   FCombo.Parent := FParentForm;
   FCombo.OnKeyDown := DoKeyDown;
   FCombo.OnExit := DoEndEdit;
+  ValueList := TWideStringList.Create;
   FMainControl := FCombo;
 end;
 
@@ -711,6 +712,8 @@ end;
 constructor TSetEditorLink.Create(Tree: TVirtualStringTree);
 begin
   inherited Create(Tree);
+  ValueList := TWideStringList.Create;
+
   FPanel := TPanel.Create(FParentForm);
   FPanel.Hide;
   FPanel.Parent := FParentForm;
