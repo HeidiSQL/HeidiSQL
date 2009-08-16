@@ -96,6 +96,7 @@ type
 
   function implodestr(seperator: WideString; a: TWideStringList) :WideString;
   function explode(separator, a: WideString) :TWideStringList;
+  procedure ExplodeQuotedList(Text: WideString; var List: TWideStringList);
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: WideString): WideString;
   function parsesql(sql: WideString) : TWideStringList;
@@ -3017,6 +3018,36 @@ begin
   else Result := 'less than a minute ago';
 end;
 
+
+procedure ExplodeQuotedList(Text: WideString; var List: TWideStringList);
+var
+  i: Integer;
+  Quote: WideChar;
+  Opened, Closed: Boolean;
+  Item: WideString;
+begin
+  Text := Trim(Text);
+  if Length(Text) > 0 then
+    Quote := Text[1]
+  else
+    Quote := '`';
+  Opened := False;
+  Closed := True;
+  Item := '';
+  for i:=1 to Length(Text) do begin
+    if Text[i] = Quote then begin
+      Opened := not Opened;
+      Closed := not Closed;
+      if Closed then begin
+        List.Add(Item);
+        Item := '';
+      end;
+      Continue;
+    end;
+    if Opened and (not Closed) then
+      Item := Item + Text[i];
+  end;
+end;
 
 end.
 

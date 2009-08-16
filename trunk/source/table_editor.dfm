@@ -502,6 +502,118 @@ object frmTableEditor: TfrmTableEditor
         TabOrder = 2
       end
     end
+    object tabForeignKeys: TTabSheet
+      Caption = 'Foreign keys'
+      ImageIndex = 136
+      DesignSize = (
+        593
+        121)
+      object tlbForeignKeys: TToolBar
+        Left = 3
+        Top = 3
+        Width = 66
+        Height = 66
+        Align = alNone
+        AutoSize = True
+        ButtonWidth = 66
+        Caption = 'tlbForeignKeys'
+        Images = MainForm.PngImageListMain
+        List = True
+        ShowCaptions = True
+        TabOrder = 0
+        object btnAddForeignKey: TToolButton
+          Left = 0
+          Top = 0
+          Caption = 'Add'
+          ImageIndex = 45
+          Wrap = True
+          OnClick = btnAddForeignKeyClick
+        end
+        object btnRemoveForeignKey: TToolButton
+          Left = 0
+          Top = 22
+          Caption = 'Remove'
+          Enabled = False
+          ImageIndex = 46
+          Wrap = True
+          OnClick = btnRemoveForeignKeyClick
+        end
+        object btnClearForeignKeys: TToolButton
+          Left = 0
+          Top = 44
+          Caption = 'Clear'
+          Enabled = False
+          ImageIndex = 26
+          OnClick = btnClearForeignKeysClick
+        end
+      end
+      object listForeignKeys: TVirtualStringTree
+        Left = 75
+        Top = 3
+        Width = 511
+        Height = 111
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        EditDelay = 0
+        Header.AutoSizeIndex = 0
+        Header.DefaultHeight = 17
+        Header.Font.Charset = DEFAULT_CHARSET
+        Header.Font.Color = clWindowText
+        Header.Font.Height = -11
+        Header.Font.Name = 'Tahoma'
+        Header.Font.Style = []
+        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+        Images = MainForm.PngImageListMain
+        TabOrder = 1
+        TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+        TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.SelectionOptions = [toExtendedFocus]
+        OnBeforePaint = listForeignKeysBeforePaint
+        OnClick = treeIndexesClick
+        OnCreateEditor = listForeignKeysCreateEditor
+        OnEditing = listForeignKeysEditing
+        OnFocusChanged = listForeignKeysFocusChanged
+        OnGetText = listForeignKeysGetText
+        OnGetImageIndex = listForeignKeysGetImageIndex
+        OnNewText = listForeignKeysNewText
+        Columns = <
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 0
+            Width = 87
+            WideText = 'Key name'
+          end
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 1
+            Width = 80
+            WideText = 'Columns'
+          end
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 2
+            Width = 100
+            WideText = 'Reference table'
+          end
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 3
+            Width = 80
+            WideText = 'Foreign columns'
+          end
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 4
+            Width = 80
+            WideText = 'On UPDATE'
+          end
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 5
+            Width = 80
+            WideText = 'On DELETE'
+          end>
+      end
+    end
     object tabCREATEcode: TTabSheet
       Caption = 'CREATE code'
       ImageIndex = 119

@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, TntStdCtrls, ComCtrls, ToolWin, VirtualTrees, WideStrings,
-  SynRegExpr, ActiveX, DB, ExtCtrls, ImgList, SynEdit, SynMemo, Menus, WideStrUtils;
+  SynRegExpr, ActiveX, DB, ExtCtrls, ImgList, SynEdit, SynMemo, Menus, WideStrUtils,
+  Contnrs;
 
 type
   TfrmTableEditor = class(TFrame)
@@ -73,6 +74,12 @@ type
     N1: TMenuItem;
     menuCreateIndex: TMenuItem;
     menuAddToIndex: TMenuItem;
+    tabForeignKeys: TTabSheet;
+    tlbForeignKeys: TToolBar;
+    btnAddForeignKey: TToolButton;
+    btnRemoveForeignKey: TToolButton;
+    btnClearForeignKeys: TToolButton;
+    listForeignKeys: TVirtualStringTree;
     procedure editNameChange(Sender: TObject);
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
@@ -135,6 +142,24 @@ type
     procedure listColumnsGetImageIndex(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
       var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure listForeignKeysBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure listForeignKeysCreateEditor(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+    procedure listForeignKeysFocusChanged(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex);
+    procedure listForeignKeysGetImageIndex(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+      var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure listForeignKeysGetText(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+      var CellText: WideString);
+    procedure listForeignKeysNewText(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
+    procedure btnClearForeignKeysClick(Sender: TObject);
+    procedure btnAddForeignKeyClick(Sender: TObject);
+    procedure btnRemoveForeignKeyClick(Sender: TObject);
+    procedure listForeignKeysEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+      var Allowed: Boolean);
   private
     { Private declarations }
     FModified: Boolean;
@@ -142,7 +167,9 @@ type
     FAlterTableName: WideString;
     CreateCodeValid, AlterCodeValid: Boolean;
     Columns, ColumnNames, ColumnsChanges,
-    Indexes, OldIndexes: TWideStringList;
+    Indexes, OldIndexes,
+    DeletedForeignKeys: TWideStringList;
+    ForeignKeys: TObjectList;
     procedure ColumnsChange(Sender: TObject);
     procedure IndexesChange(Sender: TObject);
     procedure ValidateColumnControls;
@@ -154,6 +181,7 @@ type
     function ComposeCreateStatement: WideString;
     function ComposeAlterStatement: WideString;
     function GetIndexSQL(IndexList: TWideStringlist; idx: Integer): WideString;
+    function GetForeignKeySQL(idx: Integer): WideString;
     property Modified: Boolean read FModified write SetModified;
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
@@ -164,6 +192,15 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Init(AlterTableName: WideString='');
+  end;
+
+  // Helper object to manage foreign keys in a TObjectList 
+  TForeignKey = class(TObject)
+    KeyName, ReferenceTable, OnUpdate, OnDelete: WideString;
+    Columns, ForeignColumns: TWideStringList;
+    Modified, Added: Boolean;
+    constructor Create;
+    destructor Destroy; override;
   end;
 
 
@@ -194,6 +231,7 @@ begin
   InheritFont(Font);
   FixVT(listColumns);
   FixVT(treeIndexes);
+  FixVT(listForeignKeys);
   // Try the best to auto fit various column widths, respecting a custom DPI setting and a pulldown arrow
   listColumns.Header.Columns[2].Width := Mainform.Canvas.TextWidth('GEOMETRYCOLLECTION') + 6*listColumns.TextMargin;
   listColumns.Header.Columns[6].Width := Mainform.Canvas.TextWidth('AUTO_INCREMENT') + 4*listColumns.TextMargin;
@@ -201,6 +239,7 @@ begin
   // Overide column widths by custom values
   Mainform.RestoreListSetup(listColumns);
   Mainform.RestoreListSetup(treeIndexes);
+  Mainform.RestoreListSetup(listForeignKeys);
   comboRowFormat.Items.CommaText := 'DEFAULT,DYNAMIC,FIXED,COMPRESSED,REDUNDANT,COMPACT';
   comboInsertMethod.Items.CommaText := 'NO,FIRST,LAST';
   SynMemoALTERcode.TabWidth := Mainform.SynMemoQuery.TabWidth;
@@ -216,6 +255,8 @@ begin
   Indexes := TWideStringList.Create;
   Indexes.OnChange := IndexesChange;
   OldIndexes := TWideStringList.Create;
+  ForeignKeys := TObjectList.Create;
+  DeletedForeignKeys := TWideStringList.Create;
 end;
 
 
@@ -226,6 +267,7 @@ begin
   MainReg.WriteInteger(REGNAME_TABLEEDITOR_TABSHEIGHT, PageControlMain.Height);
   Mainform.SaveListSetup(listColumns);
   Mainform.SaveListSetup(treeIndexes);
+  Mainform.SaveListSetup(listForeignKeys);
   Inherited;
 end;
 
@@ -241,6 +283,7 @@ var
   InLiteral: Boolean;
   ColDefaultType: TColumnDefaultType;
   ColDefaultText: WideString;
+  ForeignKey: TForeignKey;
 begin
   Mainform.showstatus('Initializing editor ...');
   Screen.Cursor := crHourglass;
@@ -254,6 +297,7 @@ begin
   FAlterTableName := AlterTableName;
   Columns.Clear;
   btnClearIndexesClick(Self);
+  btnClearForeignKeysClick(Self);
   tabALTERcode.TabVisible := FAlterTableName <> '';
 
   if FAlterTableName = '' then begin
@@ -421,9 +465,27 @@ begin
       if not rx.ExecNext then
         break;
     end;
-    FreeAndNil(rx);
     FreeAndNil(rxCol);
     listColumns.EndUpdate;
+
+    // Detect foreign keys
+    // CONSTRAINT `FK1` FOREIGN KEY (`which`) REFERENCES `fk1` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+    rx.Expression := '\s+CONSTRAINT\s+`([^`]+)`\sFOREIGN KEY\s+\(([^\)]+)\)\s+REFERENCES\s+`([^`]+)`\s\(([^\)]+)\)(\s+ON DELETE (RESTRICT|CASCADE|SET NULL|NO ACTION))?(\s+ON UPDATE (RESTRICT|CASCADE|SET NULL|NO ACTION))?';
+    if rx.Exec(CreateTable) then while true do begin
+      ForeignKey := TForeignKey.Create;
+      ForeignKeys.Add(ForeignKey);
+      ForeignKey.KeyName := rx.Match[1];
+      ForeignKey.ReferenceTable := rx.Match[3];
+      ExplodeQuotedList(rx.Match[2], ForeignKey.Columns);
+      ExplodeQuotedList(rx.Match[4], ForeignKey.ForeignColumns);
+      if rx.Match[6] <> '' then
+        ForeignKey.OnDelete := rx.Match[6];
+      if rx.Match[8] <> '' then
+        ForeignKey.OnUpdate := rx.Match[8];
+      if not rx.ExecNext then
+        break;
+    end;
+    FreeAndNil(rx);
 
     ds := Mainform.GetResults('SHOW KEYS FROM '+Mainform.mask(FAlterTableName));
     LastKeyName := '';
@@ -476,13 +538,28 @@ procedure TfrmTableEditor.btnSaveClick(Sender: TObject);
 var
   sql: WideString;
   i: Integer;
-  Props: TWideStringlist;
+  Props, Specs: TWideStringlist;
+  Key: TForeignKey;
 begin
   // Create or alter table
   if FAlterTableName = '' then
     sql := ComposeCreateStatement
-  else
+  else begin
     sql := ComposeAlterStatement;
+	// Special case for altered foreign keys: These have to be dropped in a seperate query
+	// otherwise the server would return error 121 "Duplicate key on write or update"
+	// See also http://dev.mysql.com/doc/refman/5.1/en/innodb-foreign-key-constraints.html :
+	//   "You cannot add a foreign key and drop a foreign key in separate clauses of a single
+	//   ALTER TABLE  statement. Separate statements are required."
+    Specs := TWideStringList.Create;
+    for i:=0 to ForeignKeys.Count-1 do begin
+      Key := ForeignKeys[i] as TForeignKey;
+      if Key.Modified and (not Key.Added) then
+        Specs.Add('DROP FOREIGN KEY '+Mainform.mask(Key.KeyName));
+    end;
+	if Specs.Count > 0 then
+      Mainform.ExecUpdateQuery('ALTER TABLE '+Mainform.mask(FAlterTableName)+' '+ImplodeStr(', ', Specs));
+  end;
   Mainform.ExecUpdateQuery(sql);
   // Set table name for altering if Apply was clicked
   FAlterTableName := editName.Text;
@@ -509,6 +586,7 @@ procedure TfrmTableEditor.ResetModificationFlags;
 var
   i: Integer;
   Parts: TWideStringlist;
+  Key: TForeignKey;
 begin
   // Enable converting data for an existing table
   chkCharsetConvertClick(comboCollation);
@@ -529,6 +607,12 @@ begin
     Parts.Assign(TWideStringlist(Indexes.Objects[i]));
     OldIndexes.AddObject(Indexes[i], Parts);
   end;
+  DeletedForeignKeys.Clear;
+  for i:=0 to ForeignKeys.Count-1 do begin
+    Key := ForeignKeys[i] as TForeignKey;
+    Key.Added := False;
+    Key.Modified := False;
+  end;
   Modified := False;
 end;
 
@@ -542,6 +626,7 @@ var
   dt: TDatatype;
   DefaultType: TColumnDefaultType;
   ds: TDataset;
+  Key: TForeignKey;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
   Mainform.showstatus('Composing ALTER statement ...');
@@ -662,6 +747,15 @@ begin
       Specs.Add('ADD '+IndexesComposed[i]);
   end;
 
+  for i:=0 to DeletedForeignKeys.Count-1 do
+    Specs.Add('DROP FOREIGN KEY '+Mainform.mask(DeletedForeignKeys[i]));
+
+  for i:=0 to ForeignKeys.Count-1 do begin
+    Key := ForeignKeys[i] as TForeignKey;
+    if Key.Added or Key.Modified then
+      Specs.Add('ADD '+GetForeignKeySQL(i));
+  end;
+
   Result := 'ALTER TABLE '+Mainform.mask(FAlterTableName) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
   Result := Trim(Result);
   FreeAndNil(Specs);
@@ -714,7 +808,11 @@ begin
       Inc(IndexCount);
     end;
   end;
-  if Columns.Count + IndexCount > 0 then
+
+  for i:=0 to ForeignKeys.Count-1 do
+    Result := Result + #9 + GetForeignKeySQL(i) + ','+CRLF;
+
+  if Columns.Count + IndexCount + ForeignKeys.Count > 0 then
     Delete(Result, Length(Result)-2, 3);
 
   Result := Result + CRLF + ')' + CRLF;
@@ -776,6 +874,28 @@ begin
     Delete(Result, Length(Result)-1, 2);
 
   Result := Result + ')';
+end;
+
+
+function TfrmTableEditor.GetForeignKeySQL(idx: Integer): WideString;
+var
+  Key: TForeignKey;
+  i: Integer;
+begin
+  Key := ForeignKeys[idx] as TForeignKey;
+  Result := 'CONSTRAINT '+Mainform.mask(Key.KeyName)+' FOREIGN KEY (';
+  for i:=0 to Key.Columns.Count-1 do
+    Result := Result + Mainform.mask(Key.Columns[i]) + ', ';
+  if Key.Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
+  Result := Result + ') REFERENCES ' + Mainform.mask(Key.ReferenceTable) + ' (';
+  for i:=0 to Key.ForeignColumns.Count-1 do
+    Result := Result + Mainform.mask(Key.ForeignColumns[i]) + ', ';
+  if Key.ForeignColumns.Count > 0 then Delete(Result, Length(Result)-1, 2);
+  Result := Result + ')';
+  if Key.OnUpdate <> '' then
+    Result := Result + ' ON UPDATE ' + Key.OnUpdate;
+  if Key.OnDelete <> '' then
+    Result := Result + ' ON DELETE ' + Key.OnDelete;
 end;
 
 
@@ -1815,10 +1935,232 @@ begin
 end;
 
 
+procedure TfrmTableEditor.btnAddForeignKeyClick(Sender: TObject);
+var
+  Key: TForeignKey;
+  idx: Integer;
+begin
+  // Add new foreign key
+  Key := TForeignKey.Create;
+  idx := ForeignKeys.Add(Key);
+  Key.KeyName := 'FK'+IntToStr(idx+1);
+  Key.OnUpdate := '';
+  Key.OnDelete := '';
+  Key.Added := True;
+  Modification(Sender);
+  listForeignKeys.Repaint;
+  SelectNode(listForeignKeys, idx);
+  listForeignKeys.EditNode(listForeignKeys.FocusedNode, listForeignKeys.Header.MainColumn);
+end;
+
+
+procedure TfrmTableEditor.btnRemoveForeignKeyClick(Sender: TObject);
+var
+  Key: TForeignKey;
+begin
+  // Remove a foreign key
+  Key := ForeignKeys[listForeignKeys.FocusedNode.Index] as TForeignKey;
+  if not Key.Added then
+    DeletedForeignKeys.Add(Key.KeyName);
+  ForeignKeys.Delete(listForeignKeys.FocusedNode.Index);
+  Modification(Sender);
+  listForeignKeys.Repaint;
+end;
+
+
+procedure TfrmTableEditor.btnClearForeignKeysClick(Sender: TObject);
+var
+  i: Integer;
+  Key: TForeignKey;
+begin
+  // Clear all foreign keys
+  for i:=ForeignKeys.Count-1 downto 0 do begin
+    Key := ForeignKeys[i] as TForeignKey;
+    if not Key.Added then
+      DeletedForeignKeys.Add(Key.KeyName);
+    ForeignKeys.Delete(i);
+  end;
+  Modification(Sender);
+  listForeignKeys.Repaint;
+end;
+
+
+procedure TfrmTableEditor.listForeignKeysBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+var
+  VT: TVirtualStringTree;
+begin
+  // Set RootNodeCount
+  VT := Sender as TVirtualStringTree;
+  VT.RootNodeCount := ForeignKeys.Count;
+  btnClearForeignKeys.Enabled := VT.RootNodeCount > 0;
+end;
+
+
+procedure TfrmTableEditor.listForeignKeysEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; var Allowed: Boolean);
+var
+  Key: TForeignKey;
+  ds: TDataset;
+begin
+  // Disallow editing foreign columns when no reference table was selected.
+  // Also, check for existance of reference table and warn if it's missing.
+  if Column = 3 then begin
+    Key := ForeignKeys[Node.Index] as TForeignKey;
+    Allowed := False;
+    if Key.ReferenceTable = '' then
+      MessageDlg('Please select a reference table before selecting foreign columns.', mtError, [mbOk], 0)
+    else begin
+      ds := Mainform.FetchActiveDbTableList;
+      while not ds.Eof do begin
+        if ds.FieldByName(DBO_NAME).AsWideString = Key.ReferenceTable then begin
+          Allowed := True;
+          Break;
+        end;
+        ds.Next;
+      end;
+      if not Allowed then
+        MessageDlg('Reference table "'+Key.ReferenceTable+'" seems to be missing, broken or non-accessible.', mtError, [mbOk], 0)
+    end;
+  end else
+    Allowed := True;
+end;
+
+
+procedure TfrmTableEditor.listForeignKeysCreateEditor(
+  Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+  out EditLink: IVTEditLink);
+var
+  VT: TVirtualStringTree;
+  EnumEditor: TEnumEditorLink;
+  SetEditor: TSetEditorLink;
+  ds: TDataset;
+  i: Integer;
+  Key: TForeignKey;
+begin
+  // Init grid editor in foreign key list
+  VT := Sender as TVirtualStringTree;
+  case Column of
+    0: EditLink := TInplaceEditorLink.Create(VT);
+    1: begin
+        SetEditor := TSetEditorLink.Create(VT);
+        for i:=0 to Columns.Count-1 do
+          SetEditor.ValueList.Add(Columns[i]);
+        EditLink := SetEditor;
+      end;
+    2: begin
+        EnumEditor := TEnumEditorLink.Create(VT);
+        ds := Mainform.FetchActiveDbTableList;
+        while not ds.Eof do begin
+          EnumEditor.ValueList.Add(ds.FieldByName(DBO_NAME).AsWideString);
+          ds.Next;
+        end;
+        EditLink := EnumEditor;
+      end;
+    3: begin
+        Key := ForeignKeys[Node.Index] as TForeignKey;
+        SetEditor := TSetEditorLink.Create(VT);
+        SetEditor.ValueList := Mainform.GetCol('SHOW COLUMNS FROM '+Mainform.mask(Key.ReferenceTable));
+        EditLink := SetEditor;
+      end;
+    4, 5: begin
+        EnumEditor := TEnumEditorLink.Create(VT);
+        EnumEditor.ValueList.Text := 'RESTRICT'+CRLF+'CASCADE'+CRLF+'SET NULL'+CRLF+'NO ACTION';
+        EditLink := EnumEditor;
+      end;
+  end;
+end;
+
+
+procedure TfrmTableEditor.listForeignKeysFocusChanged(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex);
+begin
+  // Focus on foreign key list changed
+  btnRemoveForeignKey.Enabled := Assigned(Sender.FocusedNode);
+end;
+
+
+procedure TfrmTableEditor.listForeignKeysGetImageIndex(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+  var Ghosted: Boolean; var ImageIndex: Integer);
+begin
+  // Return image index for node cell in foreign key list
+  case Column of
+    0: ImageIndex := 136;
+    else ImageIndex := -1;
+  end;
+end;
+
+
+procedure TfrmTableEditor.listForeignKeysGetText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+  var CellText: WideString);
+var
+  Key: TForeignKey;
+begin
+  // Return cell text in foreign key list
+  Key := ForeignKeys[Node.Index] as TForeignKey;
+  case Column of
+    0: CellText := Key.KeyName;
+    1: CellText := Key.Columns.CommaText;
+    2: CellText := Key.ReferenceTable;
+    3: CellText := Key.ForeignColumns.CommaText;
+    4: begin
+        CellText := Key.OnUpdate;
+        // Both ON UPDATE + DELETE default to "RESTRICT", see http://dev.mysql.com/doc/refman/5.1/en/innodb-foreign-key-constraints.html
+        if CellText = '' then
+          CellText := 'RESTRICT';
+      end;
+    5: begin
+        CellText := Key.OnDelete;
+        if CellText = '' then
+          CellText := 'RESTRICT';
+      end;
+  end;
+end;
+
+
+procedure TfrmTableEditor.listForeignKeysNewText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
+var
+  Key: TForeignKey;
+begin
+  // Cell text in foreign key list edited
+  Key := ForeignKeys[Node.Index] as TForeignKey;
+  Key.Modified := True;
+  Modification(Sender);
+  case Column of
+    0: Key.KeyName := NewText;
+    1: Key.Columns.CommaText := NewText;
+    2: Key.ReferenceTable := NewText;
+    3: Key.ForeignColumns.CommaText := NewText;
+    4: Key.OnUpdate := NewText;
+    5: Key.OnDelete := NewText;
+  end;
+end;
+
+
 procedure TfrmTableEditor.btnHelpClick(Sender: TObject);
 begin
   // Help button
   Mainform.CallSQLHelpWithKeyword('CREATE TABLE');
+end;
+
+
+
+{ *** TForeignKey structure }
+
+constructor TForeignKey.Create;
+begin
+  inherited Create;
+  Columns := TWideStringlist.Create;
+  ForeignColumns := TWideStringlist.Create;
+end;
+
+destructor TForeignKey.Destroy;
+begin
+  inherited Destroy;
+  FreeAndNil(Columns);
+  FreeAndNil(ForeignColumns);
 end;
 
 
