@@ -1454,7 +1454,7 @@ begin
   // Handle click event
   VT := Sender as TVirtualStringTree;
   VT.GetHitTestInfoAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y, True, Click);
-  if Assigned(Click.HitNode) then
+  if Assigned(Click.HitNode) and (Click.HitColumn > NoColumn) and (hiOnItemLabel in Click.HitPositions) then
     VT.EditNode(Click.HitNode, Click.HitColumn);
 end;
 
