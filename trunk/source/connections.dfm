@@ -98,6 +98,7 @@ object connform: Tconnform
     Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
     HintMode = hmTooltip
     Images = MainForm.PngImageListMain
+    IncrementalSearch = isAll
     PopupMenu = popupSessions
     TabOrder = 0
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
