@@ -104,6 +104,7 @@ object connform: Tconnform
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
     TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
     TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+    OnCreateEditor = ListSessionsCreateEditor
     OnDblClick = btnOpenClick
     OnFocusChanged = ListSessionsFocusChanged
     OnFocusChanging = ListSessionsFocusChanging
