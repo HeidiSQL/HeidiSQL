@@ -76,6 +76,8 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure TimerStatisticsTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+      out EditLink: IVTEditLink);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -96,7 +98,7 @@ type
 
 
 implementation
- uses Main, helpers, MysqlQueryThread;
+ uses Main, helpers, MysqlQueryThread, grideditlinks;
 
 {$I const.inc}
 
@@ -336,6 +338,14 @@ begin
   CellText := FSessionNames[Node.Index];
   if (FSessionModified or FSessionAdded) and (Node = Sender.FocusedNode) and (not Sender.IsEditing) then
     CellText := CellText + ' *';
+end;
+
+
+procedure Tconnform.ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; out EditLink: IVTEditLink);
+begin
+  // Use our own text editor to rename a session
+  EditLink := TInplaceEditorLink.Create(Sender as TVirtualStringTree);
 end;
 
 
