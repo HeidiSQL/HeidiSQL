@@ -33,7 +33,7 @@ object connform: Tconnform
     Top = 8
     Width = 77
     Height = 13
-    Caption = '&Saved sessions:'
+    Caption = 'Saved sessions:'
   end
   object lblHelp: TLabel
     Left = 177
@@ -156,7 +156,7 @@ object connform: Tconnform
       Top = 45
       Width = 72
       Height = 13
-      Caption = '&Hostname / IP:'
+      Caption = 'Hostname / IP:'
       FocusControl = editHost
     end
     object lblUsername: TLabel
@@ -165,7 +165,7 @@ object connform: Tconnform
       Top = 70
       Width = 26
       Height = 13
-      Caption = '&User:'
+      Caption = 'User:'
       FocusControl = editUsername
     end
     object lblPassword: TLabel
@@ -174,7 +174,7 @@ object connform: Tconnform
       Top = 95
       Width = 50
       Height = 13
-      Caption = '&Password:'
+      Caption = 'Password:'
       FocusControl = editPassword
     end
     object lblPort: TLabel
@@ -183,7 +183,7 @@ object connform: Tconnform
       Top = 120
       Width = 24
       Height = 13
-      Caption = 'P&ort:'
+      Caption = 'Port:'
       FocusControl = editPort
     end
     object lblOnlyDBs: TLabel
@@ -192,7 +192,7 @@ object connform: Tconnform
       Top = 167
       Width = 63
       Height = 13
-      Caption = '&Database(s):'
+      Caption = 'Database(s):'
       WordWrap = True
     end
     object lblLastConnectLeft: TLabel
@@ -294,7 +294,7 @@ object connform: Tconnform
       Width = 205
       Height = 17
       Anchors = [akLeft, akTop, akRight]
-      Caption = '&Compressed client/server protocol'
+      Caption = 'Compressed client/server protocol'
       TabOrder = 7
       OnClick = Modification
     end
