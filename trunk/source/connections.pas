@@ -501,7 +501,7 @@ procedure Tconnform.radioNetTypeClick(Sender: TObject);
 begin
   // Toggle between TCP/IP and named pipes mode
   if radioTypeTCPIP.Checked then
-    lblHost.Caption := '&Hostname / IP:'
+    lblHost.Caption := 'Hostname / IP:'
   else
     lblHost.Caption := 'Socket name:';
   editPort.Enabled := radioTypeTCPIP.Checked;
