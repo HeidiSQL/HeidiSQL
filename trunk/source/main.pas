@@ -722,7 +722,6 @@ type
     dsHaveEngines,
     dsCollations               : TDataset;
     FilterPanelManuallyOpened  : Boolean;
-    winName                    : String;
     FSelectedTableColumns,
     FSelectedTableKeys     : TDataset;
     DataGridDB, DataGridTable  : WideString;
@@ -770,6 +769,7 @@ type
     dataselected               : Boolean;
     editing                    : Boolean;
     mysql_version              : Integer;
+    WindowNumber               : Integer;
     SessionName                : String;
     VTRowDataListVariables,
     VTRowDataListStatus,
@@ -875,6 +875,7 @@ type
     function GetCollations(Items: TWideStrings = nil): TDataset;
     procedure SetEditorTabCaption(Editor: TFrame; ObjName: WideString);
     procedure ResetSelectedTableStuff;
+    procedure SetWindowCaption;
 end;
 
 
@@ -1660,12 +1661,7 @@ begin
 
   // Define window properties
   SetWindowConnected( true );
-  i := SetWindowName( SessionName );
-  winName := SessionName;
-  if ( i <> 0 ) then
-  begin
-    winName := winName + Format( ' (%d)', [i] );
-  end;
+  WindowNumber := SetWindowName(SessionName);
 
   // Reselect last used database
   if GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) then begin
@@ -6867,7 +6863,7 @@ end;
 procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
-  newDb, newDbObject, Cap: WideString;
+  newDb, newDbObject: WideString;
 begin
   debug('DBtreeFocusChanged()');
   if not Assigned(Node) then
@@ -6911,15 +6907,7 @@ begin
   if newDb <> '' then
     LoadDatabaseProperties(newDb);
   FixQueryTabCloseButtons;
-  // Set window caption and taskbar text
-  Cap := winName;
-  if newDb <> '' then
-    Cap := Cap + ' /' + newDb;
-  if newDbObject <> '' then
-    Cap := Cap + '/' + newDbObject;
-  Cap := Cap + ' - ' + APPNAME + ' ' + FullAppVersion;
-  Caption := Cap;
-  Application.Title := Cap;
+  SetWindowCaption;
 end;
 
 
@@ -9432,6 +9420,24 @@ begin
   if IncludeFixed then Dec(Min);
   Result := PageIndex >= Min;
 end;
+
+procedure TMainForm.SetWindowCaption;
+var
+  Cap: String;
+begin
+  // Set window caption and taskbar text
+  Cap := SessionName;
+  if WindowNumber <> 0 then
+    Cap := Cap + Format( ' (%d)', [WindowNumber] );
+  if ActiveDatabase <> '' then
+    Cap := Cap + ' /' + ActiveDatabase;
+  if SelectedTable.Text <> '' then
+    Cap := Cap + '/' + SelectedTable.Text;
+  Cap := Cap + ' - ' + APPNAME + ' ' + FullAppVersion;
+  Caption := Cap;
+  Application.Title := Cap;
+end;
+
 
 end.
 

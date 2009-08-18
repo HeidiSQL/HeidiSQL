@@ -473,6 +473,11 @@ begin
     SessionKey := REGPATH + REGKEY_SESSIONS + SelectedSession;
     if MainReg.KeyExists(SessionKey) then
       MainReg.MoveKey(SessionKey, REGPATH + REGKEY_SESSIONS + NewText, true);
+    // Also fix internal session name in main form, which gets used to store e.g. "lastuseddb" later
+    if Mainform.SessionName = SelectedSession then begin
+      Mainform.SessionName := NewText;
+      Mainform.SetWindowCaption;
+    end;
     FSessionNames[FSessionNames.IndexOf(SelectedSession)] := NewText;
     RefreshSessionList(False);
   end;
