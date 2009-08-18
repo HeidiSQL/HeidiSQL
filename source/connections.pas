@@ -116,6 +116,7 @@ end;
 procedure Tconnform.FormCreate(Sender: TObject);
 var
   LastSession: String;
+  hSysMenu: THandle;
 begin
   // Fix GUI stuff
   InheritFont(Font);
@@ -131,6 +132,11 @@ begin
   LastSession := GetRegValue(REGNAME_LASTSESSION, '');
   SelectNode(ListSessions, FSessionNames.IndexOf(LastSession));
   ValidateControls;
+  // Add own menu items to system menu
+  hSysMenu := GetSystemMenu(Handle, False);
+  AppendMenu(hSysMenu, MF_SEPARATOR, 0, #0);
+  AppendMenu(hSysMenu, MF_STRING, MSG_UPDATECHECK, PAnsiChar(Mainform.actUpdateCheck.Caption));
+  AppendMenu(hSysMenu, MF_STRING, MSG_ABOUT, PAnsiChar(Mainform.actAboutBox.Caption));
 end;
 
 

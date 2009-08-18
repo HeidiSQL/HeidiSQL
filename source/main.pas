@@ -33,6 +33,8 @@ const
   // number of seen (or simulated) rows the scrollbar should project.
   SIMULATE_INITIAL_ROWS = 10000;
   SIMULATE_MORE_ROWS = 20;
+  MSG_UPDATECHECK = WM_USER + 1;
+  MSG_ABOUT = WM_USER + 2;
 
 type
   TMainForm = class(TForm)
@@ -876,6 +878,7 @@ type
     procedure SetEditorTabCaption(Editor: TFrame; ObjName: WideString);
     procedure ResetSelectedTableStuff;
     procedure SetWindowCaption;
+    procedure OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
 end;
 
 
@@ -9436,6 +9439,19 @@ begin
   Cap := Cap + ' - ' + APPNAME + ' ' + FullAppVersion;
   Caption := Cap;
   Application.Title := Cap;
+end;
+
+
+procedure TMainForm.OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
+begin
+  // Clicks on system window menu get handled here
+  if Msg.message = WM_SYSCOMMAND then begin
+    case Msg.wParam of
+      MSG_UPDATECHECK: Mainform.actUpdateCheck.Execute;
+      MSG_ABOUT: Mainform.actAboutBox.Execute;
+    end;
+    Handled := True;
+  end;
 end;
 
 
