@@ -251,8 +251,8 @@ end;
 function TBaseGridEditorLink.EndEditHelper(NewText: WideString): Boolean;
 begin
   Result := not FStopping;
-  if Not Result then
-    Exit;
+  if FStopping then Exit;
+  FStopping := True;
   if NewText <> FCellText then
     FTree.Text[FNode, FColumn] := NewText;
   if FTree.CanFocus and (FLastKeyDown <> VK_TAB) then
@@ -759,6 +759,8 @@ var
   newtext: WideString;
   i: Integer;
 begin
+  Result := not FStopping;
+  if FStopping then Exit;
   newText := '';
   for i := 0 to FCheckList.Items.Count - 1 do
     if FCheckList.Checked[i] then newText := newText + FCheckList.Items[i] + ',';
@@ -877,6 +879,8 @@ function TInplaceEditorLink.EndEdit: Boolean;
 var
   NewText: WideString;
 begin
+  Result := not FStopping;
+  if FStopping then Exit;
   if Assigned(FTextEditor) then begin
     NewText := FTextEditor.GetText;
     FTextEditor.Close;
