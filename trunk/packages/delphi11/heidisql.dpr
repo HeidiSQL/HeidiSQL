@@ -52,6 +52,7 @@ begin
   Application.Title := APPNAME;
   Application.UpdateFormatSettings := False;
   Application.CreateForm(TMainForm, MainForm);
+  Application.OnMessage := Mainform.OnMessageHandler;
   debug('perf: Main created.');
 
   try
