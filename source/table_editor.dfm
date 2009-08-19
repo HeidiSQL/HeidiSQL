@@ -67,6 +67,7 @@ object frmTableEditor: TfrmTableEditor
     CheckImageKind = ckSystem
     Constraints.MinHeight = 50
     DragMode = dmAutomatic
+    EditDelay = 0
     Header.AutoSizeIndex = -1
     Header.DefaultHeight = 17
     Header.Font.Charset = DEFAULT_CHARSET
