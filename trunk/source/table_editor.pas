@@ -1285,7 +1285,7 @@ begin
   end else begin
     // All other cells go into edit mode please
     // Explicitely done on OnClick, not in OnFocusChanged which seemed annoying for keyboard users
-    if Assigned(Click.HitNode) and (Click.HitColumn > NoColumn) then
+    if Assigned(Click.HitNode) and (Click.HitColumn > NoColumn) and (hiOnItemLabel in Click.HitPositions) then
       VT.EditNode(Click.HitNode, Click.HitColumn);
   end;
 end;
