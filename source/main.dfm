@@ -13,6 +13,7 @@ object MainForm: TMainForm
   OldCreateOrder = True
   OnActivate = FormActivate
   OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnResize = FormResize
   PixelsPerInch = 96

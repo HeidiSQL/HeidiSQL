@@ -37,6 +37,25 @@ const
   MSG_ABOUT = WM_USER + 2;
 
 type
+  TQueryTab = class(TObject)
+    Number: Integer;
+    CloseButton: TPngSpeedButton;
+    pnlMemo: TPanel;
+    pnlHelpers: TPanel;
+    lboxHelpers: TTntListBox;
+    HelperListSelectedItems: Array[0..3] of Array of Integer;
+    tabsetHelpers: TTabSet;
+    Memo: TSynMemo;
+    MemoFilename: String;
+    MemoLineBreaks: TLineBreaks;
+    spltHelpers: TSplitter;
+    spltQuery: TSplitter;
+    LabelResultInfo: TLabel;
+    Grid: TVirtualStringTree;
+    TabSheet: TTabSheet;
+    GridResult: TGridResult;
+  end;
+
   TMainForm = class(TForm)
     MainMenu1: TMainMenu;
     File1: TMenuItem;
@@ -693,15 +712,14 @@ type
     procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     function GetMainTabAt(X, Y: Integer): Integer;
     procedure FixQueryTabCloseButtons;
-    function QueryTabCloseButton(PageIndex: Integer): TPngSpeedButton;
-    function QueryControl(PageIndex: Integer; Base: TControl): TControl;
-    function ActiveQueryControl(Base: TControl): TControl;
+    function ActiveQueryTab: TQueryTab;
     function ActiveQueryMemo: TSynMemo;
     function ActiveQueryHelpers: TTntListBox;
     function ActiveQueryTabset: TTabset;
     function QueryTabActive: Boolean;
     function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
     procedure popupMainTabsPopup(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -714,7 +732,6 @@ type
     UserQueryFired             : Boolean;
     UserQueryFiring            : Boolean;
     CachedTableLists           : WideStrings.TWideStringList;
-    QueryHelpersSelectedItems  : Array[0..3] of Array of Integer;
     EditVariableForm           : TfrmEditVariable;
     FileNameSessionLog         : String;
     FileHandleSessionLog       : Textfile;
@@ -730,10 +747,9 @@ type
     PrevTableColWidths         : WideStrings.TWideStringList;
     DataGridHasChanges         : Boolean;
     InformationSchemaTables    : TWideStringlist;
-    QueryMemoLineBreaks        : TLineBreaks;
     FLastMouseUpOnPageControl  : Cardinal;
     FLastTabNumberOnMouseUp    : Integer;
-    FGridResults               : TObjectList;
+    DataGridResult             : TGridResult;
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
     procedure SetDelimiter(Value: String);
@@ -754,6 +770,9 @@ type
     function GetSelectedTableKeys: TDataset;
     procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: Widestrings.TWideStringlist = nil);
     procedure PlaceObjectEditor(Which: TListNodeType);
+    procedure SetTabCaption(PageIndex: Integer; Text: String);
+    function ConfirmTabClose(PageIndex: Integer): Boolean;
+    procedure SaveQueryMemo(Filename: String; OnlySelection: Boolean);
   public
     cancelling: Boolean;
     virtualDesktopName: string;
@@ -808,6 +827,7 @@ type
     DataGridCurrentFilter,
     DataGridCurrentSort        : WideString;
     btnAddTab                  : TPngSpeedButton;
+    QueryTabs                  : TObjectList;
 
     property Delimiter: String read FDelimiter write SetDelimiter;
     procedure CallSQLHelpWithKeyword( keyword: String );
@@ -828,7 +848,6 @@ type
     function ActiveGrid: TVirtualStringTree;
     function GridResult(Grid: TBaseVirtualTree): TGridResult; overload;
     function GridResult(PageIndex: Integer): TGridResult; overload;
-    function DataGridResult: TGridResult;
     property MysqlConn : TMysqlConn read FMysqlConn;
     property Conn : TOpenConnProf read FConn;
 
@@ -1121,6 +1140,18 @@ begin
   // (no wait for WindowPosChanged + load here - see above.)
 end;
 
+procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+var
+  i: Integer;
+begin
+  // Ask if SQL should be saved
+  for i:=0 to QueryTabs.Count-1 do begin
+    CanClose := ConfirmTabClose(i+tabQuery.PageIndex);
+    if not CanClose then
+      break;
+  end;
+end;
+
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   filename : String;
@@ -1227,6 +1258,7 @@ var
   fontname, datafontname : String;
   fontsize, datafontsize : Integer;
   DisableProcessWindowsGhostingProc: procedure;
+  QueryTab: TQueryTab;
 begin
   caption := APPNAME;
   setLocales;
@@ -1411,12 +1443,25 @@ begin
   if Assigned(DisableProcessWindowsGhostingProc) then
     DisableProcessWindowsGhostingProc;
 
-  QueryMemoLineBreaks := lbsNone;
+  QueryTab := TQueryTab.Create;
+  QueryTab.TabSheet := tabQuery;
+  QueryTab.Number := 1;
+  QueryTab.pnlMemo := pnlQueryMemo;
+  QueryTab.pnlHelpers := pnlQueryHelpers;
+  QueryTab.lboxHelpers := lboxQueryHelpers;
+  QueryTab.tabsetHelpers := tabsetQueryHelpers;
+  QueryTab.Memo := SynMemoQuery;
+  QueryTab.MemoLineBreaks := lbsNone;
+  QueryTab.spltHelpers := spltQueryHelpers;
+  QueryTab.spltQuery := spltQuery;
+  QueryTab.LabelResultInfo := LabelResultInfo;
+  QueryTab.Grid := QueryGrid;
+  QueryTab.GridResult := TGridResult.Create;
 
-  FGridResults := TObjectList.Create;
-  // Add two static results for the Data and Query tab. Results for added query tabs will be created on demand.
-  FGridResults.Add(TGridResult.Create);
-  FGridResults.Add(TGridResult.Create);
+  QueryTabs := TObjectList.Create;
+  QueryTabs.Add(QueryTab);
+
+  DataGridResult := TGridResult.Create;
 
   btnAddTab := TPngSpeedButton.Create(PageControlMain);
   btnAddTab.Parent := PageControlMain;
@@ -2786,30 +2831,38 @@ end;
 
 
 procedure TMainForm.actSaveSQLExecute(Sender: TObject);
+begin
+  // Save SQL
+  if SaveDialogSQLFile.Execute then begin
+    // Save complete content or just the selected text,
+    // depending on the tag of calling control
+    SaveQueryMemo(SaveDialogSQLFile.FileName, (Sender as TAction).Tag = 1);
+  end;
+end;
+
+
+procedure TMainForm.SaveQueryMemo(Filename: String; OnlySelection: Boolean);
 var
   Text, LB: WideString;
 begin
-  // Save SQL
-  if SaveDialogSQLFile.Execute then
-  begin
-    Screen.Cursor := crHourGlass;
-    // Save complete content or just the selected text,
-    // depending on the tag of calling control
-    case (Sender as TAction).Tag of
-      0: Text := ActiveQueryMemo.Text;
-      1: Text := ActiveQueryMemo.SelText;
-    end;
-    LB := '';
-    case QueryMemoLineBreaks of
-      lbsUnix: LB := LB_UNIX;
-      lbsMac: LB := LB_MAC;
-      lbsWide: LB := LB_WIDE;
-    end;
-    if LB <> '' then
-      Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
-    SaveUnicodeFile( SaveDialogSQLFile.FileName, Text );
-    Screen.Cursor := crDefault;
+  Screen.Cursor := crHourGlass;
+  if OnlySelection then
+    Text := ActiveQueryMemo.SelText
+  else
+    Text := ActiveQueryMemo.Text;
+  LB := '';
+  case ActiveQueryTab.MemoLineBreaks of
+    lbsUnix: LB := LB_UNIX;
+    lbsMac: LB := LB_MAC;
+    lbsWide: LB := LB_WIDE;
   end;
+  if LB <> '' then
+    Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
+  SaveUnicodeFile( Filename, Text );
+  SetTabCaption(PageControlMain.ActivePageIndex, ExtractFilename(Filename));
+  ActiveQueryTab.MemoFilename := Filename;
+  ActiveQueryTab.Memo.Modified := False;
+  Screen.Cursor := crDefault;
 end;
 
 
@@ -2839,7 +2892,7 @@ begin
       1: Text := ActiveQueryMemo.SelText;
     end;
     LB := '';
-    case QueryMemoLineBreaks of
+    case ActiveQueryTab.MemoLineBreaks of
       lbsUnix: LB := LB_UNIX;
       lbsMac: LB := LB_MAC;
       lbsWide: LB := LB_WIDE;
@@ -2848,7 +2901,7 @@ begin
       Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
     SaveUnicodeFile( snippetname, Text );
     FillPopupQueryLoad;
-    if tabsetQueryHelpers.TabIndex = 3 then begin
+    if ActiveQueryTabset.TabIndex = 3 then begin
       // SQL Snippets selected in query helper, refresh list
       mayChange := True; // Unused; satisfies callee parameter collection which is probably dictated by tabset.
       tabsetQueryHelpersChange(Sender, 3, mayChange);
@@ -4246,12 +4299,12 @@ var
   ResultLabel       : TLabel;
   ActiveGridResult  : TGridResult;
 begin
-  ResultLabel := ActiveQueryControl(LabelResultInfo) as TLabel;
+  ResultLabel := ActiveQueryTab.LabelResultInfo;
   if CurrentLine then Text := ActiveQueryMemo.LineText
   else if Selection then Text := ActiveQueryMemo.SelText
   else Text := ActiveQueryMemo.Text;
   // Give text back its original linebreaks if possible
-  case QueryMemoLineBreaks of
+  case ActiveQueryTab.MemoLineBreaks of
     lbsUnix: LB := LB_UNIX;
     lbsMac: LB := LB_MAC;
     lbsWide: LB := LB_WIDE;
@@ -5100,19 +5153,22 @@ begin
     LineBreaks := ScanLineBreaks(filecontent);
     if ReplaceContent then begin
       ActiveQueryMemo.SelectAll;
-      QueryMemoLineBreaks := LineBreaks;
+      ActiveQueryTab.MemoLineBreaks := LineBreaks;
     end else begin
-      if (QueryMemoLineBreaks <> lbsNone) and (QueryMemoLineBreaks <> LineBreaks) then
-        QueryMemoLineBreaks := lbsMixed
+      if (ActiveQueryTab.MemoLineBreaks <> lbsNone) and (ActiveQueryTab.MemoLineBreaks <> LineBreaks) then
+        ActiveQueryTab.MemoLineBreaks := lbsMixed
       else
-        QueryMemoLineBreaks := LineBreaks;
+        ActiveQueryTab.MemoLineBreaks := LineBreaks;
     end;
-    if QueryMemoLineBreaks = lbsMixed then
+    if ActiveQueryTab.MemoLineBreaks = lbsMixed then
       MessageDlg('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).', mtInformation, [mbOK], 0);
 
     ActiveQueryMemo.SelText := filecontent;
     ActiveQueryMemo.SelStart := ActiveQueryMemo.SelEnd;
     ActiveQueryMemo.EndUpdate;
+    SetTabCaption(PageControlMain.ActivePageIndex, sstr(ExtractFilename(filename), 70));
+    ActiveQueryMemo.Modified := False;
+    ActiveQueryTab.MemoFilename := filename;
   except on E:Exception do
     // File does not exist, is locked or broken
     MessageDlg(E.message, mtError, [mbOK], 0);
@@ -5751,8 +5807,8 @@ begin
   end;
 
   // Restore last selected item in tab
-  for i := 0 to Length(QueryHelpersSelectedItems[NewTab]) - 1 do begin
-    idx := QueryHelpersSelectedItems[NewTab][i];
+  for i := 0 to Length(ActiveQueryTab.HelperListSelectedItems[NewTab]) - 1 do begin
+    idx := ActiveQueryTab.HelperListSelectedItems[NewTab][i];
     if idx < ActiveQueryHelpers.Count then
       ActiveQueryHelpers.Selected[idx] := True;
   end;
@@ -5796,11 +5852,11 @@ var
   i, s, idx: Integer;
 begin
   s := ActiveQueryTabset.TabIndex;
-  SetLength(QueryHelpersSelectedItems[s], 0);
+  SetLength(ActiveQueryTab.HelperListSelectedItems[s], 0);
   for i := 0 to ActiveQueryHelpers.Count - 1 do if ActiveQueryHelpers.Selected[i] then begin
-    idx := Length(QueryHelpersSelectedItems[s]);
-    SetLength(QueryHelpersSelectedItems[s], idx+1);
-    QueryHelpersSelectedItems[s][idx] := i;
+    idx := Length(ActiveQueryTab.HelperListSelectedItems[s]);
+    SetLength(ActiveQueryTab.HelperListSelectedItems[s], idx+1);
+    ActiveQueryTab.HelperListSelectedItems[s][idx] := i;
   end;
 end;
 
@@ -9016,145 +9072,130 @@ end;
 
 procedure TMainForm.actNewQueryTabExecute(Sender: TObject);
 var
-  tab: TTabSheet;
-  i, SharedTag: Integer;
-  CloseButton: TPngSpeedButton;
-  New_pnlQueryMemo: TPanel;
-  New_pnlQueryHelpers: TPanel;
-  New_lboxQueryHelpers: TTntListBox;
-  New_tabsetQueryHelpers: TTabSet;
-  New_SynMemoQuery: TSynMemo;
-  New_spltQueryHelpers: TSplitter;
-  New_spltQuery: TSplitter;
-  New_LabelResultInfo: TLabel;
-  New_QueryGrid: TVirtualStringTree;
+  i: Integer;
+  QueryTab: TQueryTab;
 begin
-  // In order to find the matching close button to a tab in FixQueryTabCloseButtons
-  // we give both (tab + button) the same .Tag property
-  SharedTag := 1;
-  for i:=tabQuery.PageIndex to PageControlMain.PageCount-1 do
-    SharedTag := Max(SharedTag, PageControlMain.Pages[i].Tag);
-  Inc(SharedTag);
-  tab := TTabSheet.Create(PageControlMain);
-  tab.PageControl := PageControlMain;
-  tab.Tag := SharedTag;
-  tab.Caption := tabQuery.Caption + ' #'+IntToStr(SharedTag)+'      ';
-  tab.ImageIndex := tabQuery.ImageIndex;
+  i := TQueryTab(QueryTabs[QueryTabs.Count-1]).Number + 1;
 
-  FGridResults.Add(TGridResult.Create);
+  QueryTabs.Add(TQueryTab.Create);
+  QueryTab := QueryTabs[QueryTabs.Count-1] as TQueryTab;
+  QueryTab.Number := i;
 
-  CloseButton := TPngSpeedButton.Create(tab);
-  CloseButton.Parent := PageControlMain;
-  CloseButton.Tag := SharedTag;
-  CloseButton.Width := 16;
-  CloseButton.Height := 16;
-  CloseButton.Flat := True;
-  CloseButton.PngImage := PngImageListMain.PngImages[134].PngImage;
-  CloseButton.OnMouseUp := CloseButtonOnMouseUp;
-  FixQueryTabCloseButtons;
+  QueryTab.TabSheet := TTabSheet.Create(PageControlMain);
+  QueryTab.TabSheet.PageControl := PageControlMain;
+  QueryTab.TabSheet.ImageIndex := tabQuery.ImageIndex;
+
+  QueryTab.CloseButton := TPngSpeedButton.Create(QueryTab.TabSheet);
+  QueryTab.CloseButton.Parent := PageControlMain;
+  QueryTab.CloseButton.Width := 16;
+  QueryTab.CloseButton.Height := 16;
+  QueryTab.CloseButton.Flat := True;
+  QueryTab.CloseButton.PngImage := PngImageListMain.PngImages[134].PngImage;
+  QueryTab.CloseButton.OnMouseUp := CloseButtonOnMouseUp;
+  SetTabCaption(QueryTab.TabSheet.PageIndex, 'Query #'+IntToStr(i));
 
   // Dumb code which replicates all controls from tabQuery
-  New_pnlQueryMemo := TPanel.Create(tab);
-  New_pnlQueryMemo.Parent := tab;
-  New_pnlQueryMemo.Tag := pnlQueryMemo.Tag;
-  New_pnlQueryMemo.BevelOuter := pnlQueryMemo.BevelOuter;
-  New_pnlQueryMemo.Align := pnlQueryMemo.Align;
+  QueryTab.pnlMemo := TPanel.Create(QueryTab.TabSheet);
+  QueryTab.pnlMemo.Parent := QueryTab.TabSheet;
+  QueryTab.pnlMemo.Tag := pnlQueryMemo.Tag;
+  QueryTab.pnlMemo.BevelOuter := pnlQueryMemo.BevelOuter;
+  QueryTab.pnlMemo.Align := pnlQueryMemo.Align;
 
-  New_SynMemoQuery := TSynMemo.Create(New_pnlQueryMemo);
-  New_SynMemoQuery.Parent := New_pnlQueryMemo;
-  New_SynMemoQuery.Tag := SynMemoQuery.Tag;
-  New_SynMemoQuery.Align := SynMemoQuery.Align;
-  New_SynMemoQuery.Options := SynMemoQuery.Options;
-  New_SynMemoQuery.PopupMenu := SynMemoQuery.PopupMenu;
-  New_SynMemoQuery.TabWidth := SynMemoQuery.TabWidth;
-  New_SynMemoQuery.RightEdge := SynMemoQuery.RightEdge;
-  New_SynMemoQuery.WantTabs := SynMemoQuery.WantTabs;
-  New_SynMemoQuery.Highlighter := SynMemoQuery.Highlighter;
-  New_SynMemoQuery.SearchEngine := SynMemoQuery.SearchEngine;
-  New_SynMemoQuery.Gutter.Assign(SynMemoQuery.Gutter);
-  New_SynMemoQuery.Font.Assign(SynMemoQuery.Font);
-  New_SynMemoQuery.ActiveLineColor := SynMemoQuery.ActiveLineColor;
-  New_SynMemoQuery.OnDragDrop := SynMemoQuery.OnDragDrop;
-  New_SynMemoQuery.OnDragOver := SynMemoQuery.OnDragOver;
-  New_SynMemoQuery.OnDropFiles := SynMemoQuery.OnDropFiles;
-  New_SynMemoQuery.OnStatusChange := SynMemoQuery.OnStatusChange;
-  SynCompletionProposal1.AddEditor(New_SynMemoQuery);
+  QueryTab.Memo := TSynMemo.Create(QueryTab.pnlMemo);
+  QueryTab.Memo.Parent := QueryTab.pnlMemo;
+  QueryTab.Memo.Tag := SynMemoQuery.Tag;
+  QueryTab.Memo.Align := SynMemoQuery.Align;
+  QueryTab.Memo.Options := SynMemoQuery.Options;
+  QueryTab.Memo.PopupMenu := SynMemoQuery.PopupMenu;
+  QueryTab.Memo.TabWidth := SynMemoQuery.TabWidth;
+  QueryTab.Memo.RightEdge := SynMemoQuery.RightEdge;
+  QueryTab.Memo.WantTabs := SynMemoQuery.WantTabs;
+  QueryTab.Memo.Highlighter := SynMemoQuery.Highlighter;
+  QueryTab.Memo.SearchEngine := SynMemoQuery.SearchEngine;
+  QueryTab.Memo.Gutter.Assign(SynMemoQuery.Gutter);
+  QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
+  QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
+  QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
+  QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
+  QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
+  QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
+  SynCompletionProposal1.AddEditor(QueryTab.Memo);
 
-  New_spltQueryHelpers := TSplitter.Create(New_pnlQueryMemo);
-  New_spltQueryHelpers.Parent := New_pnlQueryMemo;
-  New_spltQueryHelpers.Tag := spltQueryHelpers.Tag;
-  New_spltQueryHelpers.Align := spltQueryHelpers.Align;
-  New_spltQueryHelpers.Cursor := spltQueryHelpers.Cursor;
-  New_spltQueryHelpers.ResizeStyle := spltQueryHelpers.ResizeStyle;
-  New_spltQueryHelpers.Width := spltQueryHelpers.Width;
+  QueryTab.spltHelpers := TSplitter.Create(QueryTab.pnlMemo);
+  QueryTab.spltHelpers.Parent := QueryTab.pnlMemo;
+  QueryTab.spltHelpers.Tag := spltQueryHelpers.Tag;
+  QueryTab.spltHelpers.Align := spltQueryHelpers.Align;
+  QueryTab.spltHelpers.Cursor := spltQueryHelpers.Cursor;
+  QueryTab.spltHelpers.ResizeStyle := spltQueryHelpers.ResizeStyle;
+  QueryTab.spltHelpers.Width := spltQueryHelpers.Width;
 
-  New_pnlQueryHelpers := TPanel.Create(New_pnlQueryMemo);
-  New_pnlQueryHelpers.Parent := New_pnlQueryMemo;
-  New_pnlQueryHelpers.Tag := pnlQueryHelpers.Tag;
-  New_pnlQueryHelpers.BevelOuter := pnlQueryHelpers.BevelOuter;
-  New_pnlQueryHelpers.Align := pnlQueryHelpers.Align;
+  QueryTab.pnlHelpers := TPanel.Create(QueryTab.pnlMemo);
+  QueryTab.pnlHelpers.Parent := QueryTab.pnlMemo;
+  QueryTab.pnlHelpers.Tag := pnlQueryHelpers.Tag;
+  QueryTab.pnlHelpers.BevelOuter := pnlQueryHelpers.BevelOuter;
+  QueryTab.pnlHelpers.Align := pnlQueryHelpers.Align;
 
-  New_lboxQueryHelpers := TTntListBox.Create(New_pnlQueryHelpers);
-  New_lboxQueryHelpers.Parent := New_pnlQueryHelpers;
-  New_lboxQueryHelpers.Tag := lboxQueryHelpers.Tag;
-  New_lboxQueryHelpers.Align := lboxQueryHelpers.Align;
-  New_lboxQueryHelpers.PopupMenu := lboxQueryHelpers.PopupMenu;
-  New_lboxQueryHelpers.MultiSelect := lboxQueryHelpers.MultiSelect;
-  New_lboxQueryHelpers.DragMode := lboxQueryHelpers.DragMode;
-  New_lboxQueryHelpers.Font.Assign(lboxQueryHelpers.Font);
-  New_lboxQueryHelpers.OnClick := lboxQueryHelpers.OnClick;
-  New_lboxQueryHelpers.OnDblClick := lboxQueryHelpers.OnDblClick;
+  QueryTab.lboxHelpers := TTntListBox.Create(QueryTab.pnlHelpers);
+  QueryTab.lboxHelpers.Parent := QueryTab.pnlHelpers;
+  QueryTab.lboxHelpers.Tag := lboxQueryHelpers.Tag;
+  QueryTab.lboxHelpers.Align := lboxQueryHelpers.Align;
+  QueryTab.lboxHelpers.PopupMenu := lboxQueryHelpers.PopupMenu;
+  QueryTab.lboxHelpers.MultiSelect := lboxQueryHelpers.MultiSelect;
+  QueryTab.lboxHelpers.DragMode := lboxQueryHelpers.DragMode;
+  QueryTab.lboxHelpers.Font.Assign(lboxQueryHelpers.Font);
+  QueryTab.lboxHelpers.OnClick := lboxQueryHelpers.OnClick;
+  QueryTab.lboxHelpers.OnDblClick := lboxQueryHelpers.OnDblClick;
 
-  New_tabsetQueryHelpers := TTabSet.Create(New_pnlQueryHelpers);
-  New_tabsetQueryHelpers.Parent := New_pnlQueryHelpers;
-  New_tabsetQueryHelpers.Tag := tabsetQueryHelpers.Tag;
-  New_tabsetQueryHelpers.Height := tabsetQueryHelpers.Height;
-  New_tabsetQueryHelpers.Align := tabsetQueryHelpers.Align;
-  New_tabsetQueryHelpers.Tabs := tabsetQueryHelpers.Tabs;
-  New_tabsetQueryHelpers.Style := tabsetQueryHelpers.Style;
-  New_tabsetQueryHelpers.Font.Assign(tabsetQueryHelpers.Font);
-  New_tabsetQueryHelpers.OnChange := tabsetQueryHelpers.OnChange;
+  QueryTab.tabsetHelpers := TTabSet.Create(QueryTab.pnlHelpers);
+  QueryTab.tabsetHelpers.Parent := QueryTab.pnlHelpers;
+  QueryTab.tabsetHelpers.Tag := tabsetQueryHelpers.Tag;
+  QueryTab.tabsetHelpers.Height := tabsetQueryHelpers.Height;
+  QueryTab.tabsetHelpers.Align := tabsetQueryHelpers.Align;
+  QueryTab.tabsetHelpers.Tabs := tabsetQueryHelpers.Tabs;
+  QueryTab.tabsetHelpers.Style := tabsetQueryHelpers.Style;
+  QueryTab.tabsetHelpers.Font.Assign(tabsetQueryHelpers.Font);
+  QueryTab.tabsetHelpers.OnChange := tabsetQueryHelpers.OnChange;
 
-  New_spltQuery := TSplitter.Create(tab);
-  New_spltQuery.Parent := tab;
-  New_spltQuery.Tag := spltQuery.Tag;
-  New_spltQuery.Align := spltQuery.Align;
-  New_spltQuery.Height := spltQuery.Height;
-  New_spltQuery.Cursor := spltQuery.Cursor;
-  New_spltQuery.ResizeStyle := spltQuery.ResizeStyle;
+  QueryTab.spltQuery := TSplitter.Create(QueryTab.TabSheet);
+  QueryTab.spltQuery.Parent := QueryTab.TabSheet;
+  QueryTab.spltQuery.Tag := spltQuery.Tag;
+  QueryTab.spltQuery.Align := spltQuery.Align;
+  QueryTab.spltQuery.Height := spltQuery.Height;
+  QueryTab.spltQuery.Cursor := spltQuery.Cursor;
+  QueryTab.spltQuery.ResizeStyle := spltQuery.ResizeStyle;
 
-  New_LabelResultInfo := TLabel.Create(tab);
-  New_LabelResultInfo.Parent := tab;
-  New_LabelResultInfo.Tag := LabelResultInfo.Tag;
-  New_LabelResultInfo.Align := LabelResultInfo.Align;
-  New_LabelResultInfo.Font.Assign(LabelResultInfo.Font);
-  New_LabelResultInfo.Caption := '';
+  QueryTab.LabelResultInfo := TLabel.Create(QueryTab.TabSheet);
+  QueryTab.LabelResultInfo.Parent := QueryTab.TabSheet;
+  QueryTab.LabelResultInfo.Tag := LabelResultInfo.Tag;
+  QueryTab.LabelResultInfo.Align := LabelResultInfo.Align;
+  QueryTab.LabelResultInfo.Font.Assign(LabelResultInfo.Font);
+  QueryTab.LabelResultInfo.Caption := '';
 
-  New_QueryGrid := TVirtualStringTree.Create(tab);
-  New_QueryGrid.Parent := tab;
-  New_QueryGrid.Tag := QueryGrid.Tag;
-  New_QueryGrid.Align := QueryGrid.Align;
-  New_QueryGrid.TreeOptions := QueryGrid.TreeOptions;
-  New_QueryGrid.PopupMenu := QueryGrid.PopupMenu;
-  New_QueryGrid.LineStyle := QueryGrid.LineStyle;
-  New_QueryGrid.Font.Assign(QueryGrid.Font);
-  New_QueryGrid.Header.ParentFont := QueryGrid.Header.ParentFont;
-  New_QueryGrid.WantTabs := QueryGrid.WantTabs;
-  New_QueryGrid.OnBeforeCellPaint := QueryGrid.OnBeforeCellPaint;
-  New_QueryGrid.OnFocusChanged := QueryGrid.OnFocusChanged;
-  New_QueryGrid.OnGetText := QueryGrid.OnGetText;
-  New_QueryGrid.OnKeyDown := QueryGrid.OnKeyDown;
-  New_QueryGrid.OnPaintText := QueryGrid.OnPaintText;
-  FixVT(New_QueryGrid);
+  QueryTab.Grid := TVirtualStringTree.Create(QueryTab.TabSheet);
+  QueryTab.Grid.Parent := QueryTab.TabSheet;
+  QueryTab.Grid.Tag := QueryGrid.Tag;
+  QueryTab.Grid.Align := QueryGrid.Align;
+  QueryTab.Grid.TreeOptions := QueryGrid.TreeOptions;
+  QueryTab.Grid.PopupMenu := QueryGrid.PopupMenu;
+  QueryTab.Grid.LineStyle := QueryGrid.LineStyle;
+  QueryTab.Grid.Font.Assign(QueryGrid.Font);
+  QueryTab.Grid.Header.ParentFont := QueryGrid.Header.ParentFont;
+  QueryTab.Grid.WantTabs := QueryGrid.WantTabs;
+  QueryTab.Grid.OnBeforeCellPaint := QueryGrid.OnBeforeCellPaint;
+  QueryTab.Grid.OnFocusChanged := QueryGrid.OnFocusChanged;
+  QueryTab.Grid.OnGetText := QueryGrid.OnGetText;
+  QueryTab.Grid.OnKeyDown := QueryGrid.OnKeyDown;
+  QueryTab.Grid.OnPaintText := QueryGrid.OnPaintText;
+  FixVT(QueryTab.Grid);
 
   // Set splitter positions
-  New_pnlQueryMemo.Height := pnlQueryMemo.Height;
-  New_pnlQueryMemo.Top := pnlQueryMemo.Top;
-  New_spltQuery.Top := spltQuery.Top;
-  New_pnlQueryHelpers.Width := pnlQueryHelpers.Width;
+  QueryTab.pnlMemo.Height := pnlQueryMemo.Height;
+  QueryTab.pnlMemo.Top := pnlQueryMemo.Top;
+  QueryTab.spltQuery.Top := spltQuery.Top;
+  QueryTab.pnlHelpers.Width := pnlQueryHelpers.Width;
 
   // Show new tab
-  PageControlMain.ActivePage := tab;
+  PageControlMain.ActivePage := QueryTab.TabSheet;
   PageControlMainChange(Sender);
 end;
 
@@ -9209,7 +9250,9 @@ var
 begin
   if not IsQueryTab(PageIndex, False) then
     Exit;
-  FGridResults.Delete(PageIndex-tabData.PageIndex);
+  // Ask user if query content shall be saved to disk
+  if not ConfirmTabClose(PageIndex) then
+    Exit;
   // Work around bugs in ComCtrls.TPageControl.RemovePage
   NewPageIndex := PageControlMain.ActivePageIndex;
   if NewPageIndex >= PageIndex then
@@ -9217,6 +9260,7 @@ begin
   // Avoid excessive flicker:
   LockWindowUpdate(PageControlMain.Handle);
   PageControlMain.Pages[PageIndex].Free;
+  QueryTabs.Delete(PageIndex-tabQuery.PageIndex);
   PageControlMain.ActivePageIndex := NewPageIndex;
   FixQueryTabCloseButtons;
   LockWindowUpdate(0);
@@ -9283,7 +9327,7 @@ begin
         Dec(VisiblePageIndex);
     end;
     Rect := PageControlMain.TabRect(VisiblePageIndex);
-    btn := QueryTabCloseButton(PageIndex);
+    btn := TQueryTab(QueryTabs[PageIndex-tabQuery.PageIndex]).CloseButton;
     btn.Top := Rect.Top + 2;
     btn.Left := Rect.Right - 19;
   end;
@@ -9301,84 +9345,37 @@ begin
 end;
 
 
-function TMainForm.QueryTabCloseButton(PageIndex: Integer): TPngSpeedButton;
-var
-  i: Integer;
+function TMainForm.ActiveQueryTab: TQueryTab;
 begin
-  // Return close button of given query tab
-  Result := nil;
-  for i:=0 to PageControlMain.ControlCount-1 do begin
-    if not (PageControlMain.Controls[i] is TPngSpeedButton) then
-      continue;
-    if PageControlMain.Controls[i].Tag = PageControlMain.Pages[PageIndex].Tag then begin
-      Result := PageControlMain.Controls[i] as TPngSpeedButton;
-      Break;
-    end;
-  end;
-  if not Assigned(Result) then
-    Raise Exception.Create('Couldn''t find close button on query tab #'+IntToStr(PageIndex));
-end;
-
-
-function TMainForm.QueryControl(PageIndex: Integer; Base: TControl): TControl;
-  // Find control reference on a given query tab
-  procedure FindChild(Parent: TWinControl);
-  var
-    i: Integer;
-  begin
-    if Assigned(Result) then
-      Exit;
-    for i:=0 to Parent.ControlCount-1 do begin
-      if Parent.Controls[i].Tag = Base.Tag then begin
-        Result := Parent.Controls[i];
-        break;
-      end;
-      if Parent.Controls[i] is TPanel then
-        FindChild(TWinControl(Parent.Controls[i]));
-    end;
-  end;
-begin
-  if not IsQueryTab(PageIndex, True) then
-    Raise Exception.Create(PageControlMain.Pages[PageIndex].Name+' is not a Query tab.');
-  Result := nil;
-  FindChild(PageControlMain.Pages[PageIndex]);
-  if not Assigned(Result) then
-    Raise Exception.Create('Couln''t find the matching component of '+Base.Name+' on Query tab #'+IntToStr(PageIndex));
-end;
-
-
-function TMainForm.ActiveQueryControl(Base: TControl): TControl;
-begin
-  // Return component reference on current Query tab
-  Result := QueryControl(PageControlMain.ActivePageIndex, Base);
+  Result := QueryTabs[PageControlMain.ActivePageIndex-tabQuery.PageIndex] as TQueryTab;
 end;
 
 
 function TMainForm.ActiveQueryMemo: TSynMemo;
 begin
   // Return current query memo
-  Result := ActiveQueryControl(SynMemoQuery) as TSynMemo;
+  Result := ActiveQueryTab.Memo;
 end;
 
 
 function TMainForm.ActiveQueryHelpers: TTntListBox;
 begin
   // Return current query helpers listbox
-  Result := ActiveQueryControl(lboxQueryHelpers) as TTntListBox;
+  Result := ActiveQueryTab.lboxHelpers;
 end;
 
 
 function TMainForm.ActiveQueryTabset: TTabset;
 begin
   // Return current query helpers tabset
-  Result := ActiveQueryControl(tabsetQueryHelpers) as TTabset;
+  Result := ActiveQueryTab.tabsetHelpers
 end;
 
 
 function TMainForm.ActiveGrid: TVirtualStringTree;
 begin
   if PageControlMain.ActivePage = tabData then Result := DataGrid
-  else Result := ActiveQueryControl(QueryGrid) as TVirtualStringTree;
+  else Result := ActiveQueryTab.Grid;
 end;
 
 
@@ -9393,18 +9390,13 @@ function TMainForm.GridResult(PageIndex: Integer): TGridResult;
 begin
   // Return the grid result for "Data" or one of the "Query" tabs.
   // Results are enumerated like the tabs on which they get displayed, starting at tabData
-  Dec(PageIndex, tabData.PageIndex);
-  if PageIndex < FGridResults.Count then
-    Result := FGridResults[PageIndex] as TGridResult
+  Dec(PageIndex, tabQuery.PageIndex);
+  if PageIndex < 0 then
+    Result := DataGridResult
+  else if PageIndex < QueryTabs.Count then
+    Result := TQueryTab(QueryTabs[PageIndex]).GridResult
   else
     Result := nil;
-end;
-
-
-function TMainForm.DataGridResult: TGridResult;
-begin
-  // Dumb method for easier access to often used grid data on "Data" tab
-  Result := GridResult(DataGrid);
 end;
 
 
@@ -9455,6 +9447,44 @@ begin
   end;
 end;
 
+
+procedure TMainForm.SetTabCaption(PageIndex: Integer; Text: String);
+begin
+  // Leave space for close button on closable query tabs
+  if IsQueryTab(PageIndex, False) then
+    Text := Text + '      ';
+  PageControlMain.Pages[PageIndex].Caption := Text;
+  FixQueryTabCloseButtons;
+end;
+
+
+function TMainForm.ConfirmTabClose(PageIndex: Integer): Boolean;
+var
+  msg: String;
+  Tab: TQueryTab;
+begin
+  Tab := QueryTabs[PageIndex-tabQuery.PageIndex] as TQueryTab;
+  if not Tab.Memo.Modified then
+    Result := True
+  else begin
+    if Tab.MemoFilename <> '' then
+      msg := 'Save changes to file '+CRLF+CRLF+Tab.MemoFilename+' ?'
+    else
+      msg := 'Save content of tab "'+Trim(Tab.TabSheet.Caption)+'" ?';
+    case MessageDlg(msg, mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
+      mrNo: Result := True;
+      mrYes: begin
+        if Tab.MemoFilename <> '' then
+          SaveQueryMemo(Tab.MemoFilename, False)
+        else
+          actSaveSQLExecute(actSaveSQL);
+        // The save dialog can be cancelled.
+        Result := not Tab.Memo.Modified;
+      end;
+      else Result := False;
+    end;
+  end;
+end;
 
 end.
 

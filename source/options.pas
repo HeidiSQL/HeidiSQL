@@ -217,7 +217,7 @@ begin
 
   // Set relevant properties in mainform
   for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
-    Memo := Mainform.QueryControl(i, Mainform.SynMemoQuery) as TSynMemo;
+    Memo := TQueryTab(Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex]).Memo;
     Memo.Font := SynMemoSQLSample.Font;
     Memo.Gutter.Font := SynMemoSQLSample.Font;
   end;
@@ -233,7 +233,7 @@ begin
   Mainform.DataGrid.Font.Size := updownDataFontSize.Position;
   FixVT(Mainform.DataGrid);
   for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
-    Grid := Mainform.QueryControl(i, Mainform.QueryGrid) as TVirtualStringTree;
+    Grid := TQueryTab(Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex]).Grid;
     Grid.Font.Name := comboDataFontName.Text;
     Grid.Font.Size := updownDataFontSize.Position;
     FixVT(Grid);
