@@ -9446,11 +9446,12 @@ procedure TMainForm.OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
 begin
   // Clicks on system window menu get handled here
   if Msg.message = WM_SYSCOMMAND then begin
+    Handled := True;
     case Msg.wParam of
       MSG_UPDATECHECK: Mainform.actUpdateCheck.Execute;
       MSG_ABOUT: Mainform.actAboutBox.Execute;
+      else Handled := False;
     end;
-    Handled := True;
   end;
 end;
 
