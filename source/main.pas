@@ -9080,6 +9080,7 @@ begin
   QueryTabs.Add(TQueryTab.Create);
   QueryTab := QueryTabs[QueryTabs.Count-1] as TQueryTab;
   QueryTab.Number := i;
+  QueryTab.GridResult := TGridResult.Create;
 
   QueryTab.TabSheet := TTabSheet.Create(PageControlMain);
   QueryTab.TabSheet.PageControl := PageControlMain;
