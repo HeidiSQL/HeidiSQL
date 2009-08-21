@@ -291,6 +291,7 @@ end;
 procedure Tconnform.btnDeleteClick(Sender: TObject);
 var
   SessionKey: String;
+  Node: PVirtualNode;
 begin
   if MessageDlg('Delete session "' + SelectedSession + '" ?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes then
   begin
@@ -300,7 +301,12 @@ begin
     FSessionNames.Delete(FSessionNames.IndexOf(SelectedSession));
     RefreshSessionList(False);
     if (not Assigned(ListSessions.FocusedNode)) and (ListSessions.RootNodeCount > 0) then
-      SelectNode(ListSessions, ListSessions.RootNodeCount-1);
+      SelectNode(ListSessions, ListSessions.RootNodeCount-1)
+    else begin
+      Node := ListSessions.FocusedNode;
+      ListSessions.FocusedNode := nil;
+      ListSessions.FocusedNode := Node;
+    end;
   end;
 end;
 
