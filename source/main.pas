@@ -898,6 +898,7 @@ type
     procedure ResetSelectedTableStuff;
     procedure SetWindowCaption;
     procedure OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
+    function MaskMulti(str: WideString): WideString;
 end;
 
 
@@ -2129,6 +2130,21 @@ end;
 function TMainform.mask(str: WideString) : WideString;
 begin
   result := maskSql(mysql_version, str);
+end;
+
+
+// Quote identifier, probably with multiple segments, e.g. db.table.column
+function TMainform.MaskMulti(str: WideString): WideString;
+var
+  Segments: TWideStringlist;
+  i: Integer;
+begin
+  Segments := Explode('.', str);
+  Result := '';
+  for i:=0 to Segments.Count-1 do
+    Result := Result + mask(Segments[i]) + '.';
+  FreeAndNil(Segments);
+  Delete(Result, Length(Result), 1);
 end;
 
 
