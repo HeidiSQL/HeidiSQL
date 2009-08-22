@@ -470,12 +470,12 @@ begin
 
     // Detect foreign keys
     // CONSTRAINT `FK1` FOREIGN KEY (`which`) REFERENCES `fk1` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-    rx.Expression := '\s+CONSTRAINT\s+`([^`]+)`\sFOREIGN KEY\s+\(([^\)]+)\)\s+REFERENCES\s+`([^`]+)`\s\(([^\)]+)\)(\s+ON DELETE (RESTRICT|CASCADE|SET NULL|NO ACTION))?(\s+ON UPDATE (RESTRICT|CASCADE|SET NULL|NO ACTION))?';
+    rx.Expression := '\s+CONSTRAINT\s+`([^`]+)`\sFOREIGN KEY\s+\(([^\)]+)\)\s+REFERENCES\s+`([^\(]+)`\s\(([^\)]+)\)(\s+ON DELETE (RESTRICT|CASCADE|SET NULL|NO ACTION))?(\s+ON UPDATE (RESTRICT|CASCADE|SET NULL|NO ACTION))?';
     if rx.Exec(CreateTable) then while true do begin
       ForeignKey := TForeignKey.Create;
       ForeignKeys.Add(ForeignKey);
       ForeignKey.KeyName := rx.Match[1];
-      ForeignKey.ReferenceTable := rx.Match[3];
+      ForeignKey.ReferenceTable := WideStringReplace(rx.Match[3], '`', '', [rfReplaceAll]);
       ExplodeQuotedList(rx.Match[2], ForeignKey.Columns);
       ExplodeQuotedList(rx.Match[4], ForeignKey.ForeignColumns);
       if rx.Match[6] <> '' then
@@ -887,7 +887,7 @@ begin
   for i:=0 to Key.Columns.Count-1 do
     Result := Result + Mainform.mask(Key.Columns[i]) + ', ';
   if Key.Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
-  Result := Result + ') REFERENCES ' + Mainform.mask(Key.ReferenceTable) + ' (';
+  Result := Result + ') REFERENCES ' + Mainform.MaskMulti(Key.ReferenceTable) + ' (';
   for i:=0 to Key.ForeignColumns.Count-1 do
     Result := Result + Mainform.mask(Key.ForeignColumns[i]) + ', ';
   if Key.ForeignColumns.Count > 0 then Delete(Result, Length(Result)-1, 2);
@@ -2000,7 +2000,6 @@ procedure TfrmTableEditor.listForeignKeysEditing(Sender: TBaseVirtualTree; Node:
   Column: TColumnIndex; var Allowed: Boolean);
 var
   Key: TForeignKey;
-  ds: TDataset;
 begin
   // Disallow editing foreign columns when no reference table was selected.
   // Also, check for existance of reference table and warn if it's missing.
@@ -2010,16 +2009,13 @@ begin
     if Key.ReferenceTable = '' then
       MessageDlg('Please select a reference table before selecting foreign columns.', mtError, [mbOk], 0)
     else begin
-      ds := Mainform.FetchActiveDbTableList;
-      while not ds.Eof do begin
-        if ds.FieldByName(DBO_NAME).AsWideString = Key.ReferenceTable then begin
-          Allowed := True;
-          Break;
-        end;
-        ds.Next;
-      end;
-      if not Allowed then
+      try
+        Mainform.GetVar('SELECT 1 FROM '+Mainform.MaskMulti(Key.ReferenceTable));
+        Allowed := True;
+      except
+        // Leave Allowed = False
         MessageDlg('Reference table "'+Key.ReferenceTable+'" seems to be missing, broken or non-accessible.', mtError, [mbOk], 0)
+      end;
     end;
   end else
     Allowed := True;
@@ -2049,6 +2045,7 @@ begin
       end;
     2: begin
         EnumEditor := TEnumEditorLink.Create(VT);
+        EnumEditor.AllowCustomText := True;
         ds := Mainform.FetchActiveDbTableList;
         while not ds.Eof do begin
           EnumEditor.ValueList.Add(ds.FieldByName(DBO_NAME).AsWideString);
@@ -2059,7 +2056,7 @@ begin
     3: begin
         Key := ForeignKeys[Node.Index] as TForeignKey;
         SetEditor := TSetEditorLink.Create(VT);
-        SetEditor.ValueList := Mainform.GetCol('SHOW COLUMNS FROM '+Mainform.mask(Key.ReferenceTable));
+        SetEditor.ValueList := Mainform.GetCol('SHOW COLUMNS FROM '+Mainform.MaskMulti(Key.ReferenceTable));
         EditLink := SetEditor;
       end;
     4, 5: begin
