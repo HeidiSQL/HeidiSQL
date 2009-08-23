@@ -3466,6 +3466,7 @@ var
   ColType              : String;
   ColExists, ShowIt    : Boolean;
   OldOffsetXY          : TPoint;
+  RefreshingData       : Boolean;
 
 procedure InitColumn(name: WideString; ColType: String; Visible: Boolean);
 var
@@ -3574,11 +3575,14 @@ begin
   // Switch to <Data>
   PageControlMain.ActivePage := tabData;
 
+  // Indicates whether the current table data is just refreshed or if we're in another table
+  RefreshingData := (ActiveDatabase = DataGridDB) and (SelectedTable.Text = DataGridTable);
+
   try
     if (SelectedTable.Text <> '') and (ActiveDatabase <> '') then begin
       if FDataGridSelect = nil then
         FDataGridSelect := WideStrings.TWideStringlist.Create;
-      if DataGridTable <> SelectedTable.Text then begin
+      if not RefreshingData then begin
         FDataGridSelect.Clear;
         ResetSelectedTableStuff;
         SynMemoFilter.Clear;
@@ -3714,7 +3718,7 @@ begin
       debug('mem: browse row initialization complete.');
 
       // Switched to another table
-      if DataGridTable <> SelectedTable.Text then begin
+      if not RefreshingData then begin
         DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
         FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
       end;
@@ -3726,7 +3730,7 @@ begin
     DataGrid.Header.Columns.EndUpdate;
     DataGrid.EndUpdate;
     FreeAndNil(sl_query);
-    if DataGridTable = SelectedTable.Text then
+    if RefreshingData then
       DataGrid.OffsetXY := OldOffsetXY;
     viewingdata := false;
     EnumerateRecentFilters;
