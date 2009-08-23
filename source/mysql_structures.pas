@@ -59,6 +59,7 @@ type
 
 var
   MySQLKeywords: TStringList;
+  MySQLErrorCodes: TWideStringList;
 
   // MySQL data type categories
   DatatypeCategories: array[0..8] of TDatatypeCategory = (
@@ -4280,6 +4281,8 @@ var
 
 implementation
 
+uses helpers;
+
 function GetFunctionCategories: TStringList;
 var
   i: Integer;
@@ -4349,5 +4352,77 @@ MySQLKeywords.CommaText := 'ACTION,AFTER,AGAINST,AGGREGATE,ALGORITHM,ALL,ALTER,A
   'THEN,TO,TRAILING,TRANSACTION,TRIGGER,TRIGGERS,TRUE,TYPE,UNCOMMITTED,' +
   'UNINSTALL,UNIQUE,UNLOCK,UPDATE,UPGRADE,UNION,USAGE,USE,USING,VALUES,' +
   'VARIABLES,VARYING,VIEW,WARNINGS,WHERE,WITH,WORK,WRITE';
+
+// Error codes copied from perror.exe
+MySQLErrorCodes := Explode(',', '0=No error,'+
+  '1=Operation not permitted,'+
+  '2=No such file or directory,'+
+  '3=No such process,'+
+  '4=Interrupted function call,'+
+  '5=Input/output error,'+
+  '6=No such device or address,'+
+  '7=Arg list too long,'+
+  '8=Exec format error,'+
+  '9=Bad file descriptor,'+
+  '10=No child processes,'+
+  '11=Resource temporarily unavailable,'+
+  '12=Not enough space,'+
+  '13=Permission denied,'+
+  '14=Bad address,'+
+  '16=Resource device,'+
+  '17=File exists,'+
+  '18=Improper link,'+
+  '19=No such device,'+
+  '20=Not a directory,'+
+  '21=Is a directory,'+
+  '22=Invalid argument,'+
+  '23=Too many open files in system,'+
+  '24=Too many open files,'+
+  '25=Inappropriate I/O control operation,'+
+  '27=File too large,'+
+  '28=No space left on device,'+
+  '29=Invalid seek,'+
+  '30=Read-only file system,'+
+  '31=Too many links,'+
+  '32=Broken pipe,'+
+  '33=Domain error,'+
+  '34=Result too large,'+
+  '36=Resource deadlock avoided,'+
+  '38=Filename too long,'+
+  '39=No locks available,'+
+  '40=Function not implemented,'+
+  '41=Directory not empty,'+
+  '42=Illegal byte sequence,'+
+  '120=Didn''t find key on read or update,'+
+  '121=Duplicate key on write or update,'+
+  '123=Someone has changed the row since it was read (while the table was locked to prevent it),'+
+  '124=Wrong index given to function,'+
+  '126=Index file is crashed,'+
+  '127=Record-file is crashed,'+
+  '128=Out of memory,'+
+  '130=Incorrect file format,'+
+  '131=Command not supported by database,'+
+  '132=Old database file,'+
+  '133=No record read before update,'+
+  '134=Record was already deleted (or record file crashed),'+
+  '135=No more room in record file,'+
+  '136=No more room in index file,'+
+  '137=No more records (read after end of file),'+
+  '138=Unsupported extension used for table,'+
+  '139=Too big row,'+
+  '140=Wrong create options,'+
+  '141=Duplicate unique key or constraint on write or update,'+
+  '142=Unknown character set used,'+
+  '143=Conflicting table definitions in sub-tables of MERGE table,'+
+  '144=Table is crashed and last repair failed,'+
+  '145=Table was marked as crashed and should be repaired,'+
+  '146=Lock timed out; Retry transaction,'+
+  '147=Lock table is full;  Restart program with a larger locktable,'+
+  '148=Updates are not allowed under a read only transactions,'+
+  '149=Lock deadlock; Retry transaction,'+
+  '150=Foreign key constraint is incorrectly formed,'+
+  '151=Cannot add a child row,'+
+  '152=Cannot delete a parent row');
+
 
 end.
