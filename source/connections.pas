@@ -78,6 +78,9 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       out EditLink: IVTEditLink);
+    procedure updownPortChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint;
+      Direction: TUpDownDirection);
+    procedure editPortChange(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -402,7 +405,7 @@ begin
     editHost.Text := FOrgHost;
     editUsername.Text := FOrgUser;
     editPassword.Text := FOrgPassword;
-    updownPort.Position := FOrgPort;
+    editPort.Text := IntToStr(FOrgPort);
     chkCompressed.Checked := FOrgCompressed;
     memoDatabases.Text := FOrgDatabases;
     FLoaded := True;
@@ -496,6 +499,33 @@ begin
 end;
 
 
+procedure Tconnform.updownPortChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint;
+  Direction: TUpDownDirection);
+var
+  ud: TUpDown;
+  NewVal: Integer;
+begin
+  // Work around smallint values of TUpDown, allow integer values
+  ud := Sender as TUpDown;
+  NewVal := ud.Tag;
+  case Direction of
+    updUp: Inc(NewVal);
+    // "updNone" is fired when down arrow is pressed. VCL bug?
+    updDown, updNone: Dec(NewVal);
+  end;
+  editPort.Text := IntToStr(NewVal);
+  AllowChange := False;
+end;
+
+
+procedure Tconnform.editPortChange(Sender: TObject);
+begin
+  // Work around smallint values of TUpDown, allow integer values
+  updownPort.Tag := MakeInt(TEdit(Sender).Text);
+  Modification(Sender);
+end;
+
+
 procedure Tconnform.Modification(Sender: TObject);
 var
   NetType: Byte;
@@ -505,7 +535,7 @@ begin
     if radioTypeTCPIP.Checked then NetType := NETTYPE_TCPIP
     else NetType := NETTYPE_NAMEDPIPE;
     FSessionModified := (FOrgHost <> editHost.Text) or (FOrgUser <> editUsername.Text)
-      or (FOrgPassword <> editPassword.Text) or (FOrgPort <> updownPort.Position)
+      or (FOrgPassword <> editPassword.Text) or (FOrgPort <> updownPort.Tag)
       or (FOrgCompressed <> chkCompressed.Checked) or (FOrgDatabases <> memoDatabases.Text)
       or (FOrgNetType <> NetType);
     ListSessions.Repaint;

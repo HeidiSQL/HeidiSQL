@@ -285,7 +285,7 @@ object connform: Tconnform
       Height = 21
       TabOrder = 5
       Text = '0'
-      OnChange = Modification
+      OnChange = editPortChange
     end
     object chkCompressed: TCheckBox
       Tag = 12
@@ -335,10 +335,10 @@ object connform: Tconnform
       Top = 117
       Width = 17
       Height = 21
-      Associate = editPort
       Max = 32767
       TabOrder = 6
       Thousands = False
+      OnChangingEx = updownPortChangingEx
     end
   end
   object popupSessions: TPopupMenu
