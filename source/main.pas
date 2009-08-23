@@ -5699,6 +5699,7 @@ begin
     DBtree.Expanded[dbnode] := True;
     DBtree.Selected[snode] := True;
     // Implicitely calls OnFocusChanged:
+    DBTree.FocusedNode := nil;
     DBTree.FocusedNode := snode;
     exit;
   end;
