@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, Forms, Db, Classes, ZConnection, ZDataSet, StdCtrls, SysUtils,
   ZMessages,
-  HeidiComp;
+  HeidiComp, SynRegExpr, mysql_structures;
 
 {$IFDEF EXAMPLE_APP}
 const
@@ -311,10 +311,24 @@ begin
 end;
 
 procedure TMysqlQueryThread.SetState(AResult: Integer; AComment: String);
+var
+  rx: TRegExpr;
+  msg: String;
 begin
   debug(Format('qry: Setting status %d with comment %s', [AResult, AComment]));
   FResult := AResult;
   FComment := AComment;
+  if FResult <> MQR_SUCCESS then begin
+    // Find "(errno: 123)" in message and add more meaningful message from perror.exe
+    rx := TRegExpr.Create;
+    rx.Expression := '.+\(errno\:\s+(\d+)\)';
+    if rx.Exec(FComment) then begin
+      msg := MySQLErrorCodes.Values[rx.Match[1]];
+      if msg <> '' then
+        FComment := FComment + CRLF + CRLF + msg;
+    end;
+    rx.Free;
+  end;
 end;
 
 end.
