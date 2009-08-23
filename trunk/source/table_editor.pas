@@ -345,7 +345,8 @@ begin
 
     listColumns.BeginUpdate;
     rx.ModifierS := False;
-    rx.Expression := '\s+`([^`]+)`\s(\w+)(.*)';
+    rx.ModifierM := True;
+    rx.Expression := '^\s+`([^`]+)`\s(\w+)(.*)';
     rxCol := TRegExpr.Create;
     rxCol.ModifierI := True;
     if rx.Exec(CreateTable) then while true do begin
