@@ -849,9 +849,8 @@ destructor TInplaceEditorLink.Destroy;
 begin
   if Assigned(FTextEditor) then
     FTextEditor.Release;
-  FEdit.Free;
-  FButton.Free;
-  FPanel.Free;
+  if not (csDestroying in FPanel.ComponentState) then
+    FPanel.Free;
   inherited;
 end;
 
