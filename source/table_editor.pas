@@ -80,6 +80,7 @@ type
     btnRemoveForeignKey: TToolButton;
     btnClearForeignKeys: TToolButton;
     listForeignKeys: TVirtualStringTree;
+    lblNoForeignKeys: TLabel;
     procedure editNameChange(Sender: TObject);
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
@@ -1770,9 +1771,23 @@ end;
 
 
 procedure TfrmTableEditor.PageControlMainChange(Sender: TObject);
+var
+  SupportsForeignKeys: Boolean;
 begin
   if treeIndexes.IsEditing then
     treeIndexes.EndEditNode;
+  if PageControlMain.ActivePage = tabForeignKeys then begin
+    SupportsForeignKeys := LowerCase(comboEngine.Text) = 'innodb';
+    ListForeignKeys.Enabled := SupportsForeignKeys;
+    tlbForeignKeys.Enabled := SupportsForeignKeys;
+    lblNoForeignKeys.Caption := 'The selected table engine ('+comboEngine.Text+') does not support foreign keys. '+
+      'To enable foreign keys you have to change the table engine in the "Options" tab to "InnoDB".';
+    if SupportsForeignKeys then
+      ListForeignKeys.Height := lblNoForeignKeys.Top - ListForeignKeys.Top + lblNoForeignKeys.Height
+    else
+      ListForeignKeys.Height := lblNoForeignKeys.Top - ListForeignKeys.Top - 4;
+    lblNoForeignKeys.Visible := not SupportsForeignKeys;
+  end;
   UpdateSQLcode;
 end;
 

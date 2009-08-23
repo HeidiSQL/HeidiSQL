@@ -509,6 +509,21 @@ object frmTableEditor: TfrmTableEditor
       DesignSize = (
         593
         121)
+      object lblNoForeignKeys: TLabel
+        Left = 75
+        Top = 105
+        Width = 515
+        Height = 13
+        Anchors = [akLeft, akRight, akBottom]
+        AutoSize = False
+        Caption = 'lblNoForeignKeys'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clRed
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+      end
       object tlbForeignKeys: TToolBar
         Left = 3
         Top = 3
@@ -551,8 +566,8 @@ object frmTableEditor: TfrmTableEditor
       object listForeignKeys: TVirtualStringTree
         Left = 75
         Top = 3
-        Width = 511
-        Height = 111
+        Width = 515
+        Height = 103
         Anchors = [akLeft, akTop, akRight, akBottom]
         EditDelay = 0
         Header.AutoSizeIndex = 0
@@ -580,7 +595,7 @@ object frmTableEditor: TfrmTableEditor
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
-            Width = 87
+            Width = 91
             WideText = 'Key name'
           end
           item
