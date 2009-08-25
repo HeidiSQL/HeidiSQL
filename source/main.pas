@@ -9368,8 +9368,14 @@ end;
 
 
 function TMainForm.ActiveQueryTab: TQueryTab;
+var
+  idx: Integer;
 begin
-  Result := QueryTabs[PageControlMain.ActivePageIndex-tabQuery.PageIndex] as TQueryTab;
+  idx := PageControlMain.ActivePageIndex-tabQuery.PageIndex;
+  if (idx >= 0) and (idx < QueryTabs.Count) then
+    Result := QueryTabs[idx] as TQueryTab
+  else
+    Result := nil;
 end;
 
 
@@ -9396,8 +9402,10 @@ end;
 
 function TMainForm.ActiveGrid: TVirtualStringTree;
 begin
+  Result := nil;
   if PageControlMain.ActivePage = tabData then Result := DataGrid
-  else Result := ActiveQueryTab.Grid;
+  else if ActiveQueryTab <> nil then
+    Result := ActiveQueryTab.Grid;
 end;
 
 
