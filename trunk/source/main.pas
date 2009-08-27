@@ -2638,7 +2638,6 @@ begin
       OpenRegistry(parSession);
       MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, parSession)+1);
     end;
-    SessionName := parSession;
     Result := True;
     Profile.MysqlConn := MysqlConnection.Connection;
     if Assigned(FMysqlConn) then
@@ -2646,6 +2645,7 @@ begin
     // Assign global connection objects
     FConn := Profile;
     FMysqlConn := MysqlConnection;
+    SessionName := parSession;
   end;
   ShowStatus( STATUS_MSG_READY );
 end;
