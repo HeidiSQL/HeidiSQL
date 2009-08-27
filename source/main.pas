@@ -8700,6 +8700,7 @@ procedure TMainForm.actCopyOrCutExecute(Sender: TObject);
 var
   Control: TWinControl;
   Edit: TCustomEdit;
+  Combo: TCustomComboBox;
   Grid: TVirtualStringTree;
   SynMemo: TSynMemo;
   Success, DoCut: Boolean;
@@ -8715,6 +8716,13 @@ begin
     if Edit.SelLength > 0 then begin
       if DoCut then Edit.CutToClipboard
       else Edit.CopyToClipboard;
+      Success := True;
+    end;
+  end else if Control is TCustomComboBox then begin
+    Combo := TCustomComboBox(Control);
+    if Combo.SelLength > 0 then begin
+      CopyToClipboard(Combo.SelText);
+      if DoCut then Combo.SelText := '';
       Success := True;
     end;
   end else if Control is TVirtualStringTree then begin
@@ -8744,6 +8752,8 @@ procedure TMainForm.actPasteExecute(Sender: TObject);
 var
   Control: TWinControl;
   Edit: TCustomEdit;
+  Combo: TComboBox;
+  TNTCombo: TTNTComboBox;
   Grid: TVirtualStringTree;
   SynMemo: TSynMemo;
   Success: Boolean;
@@ -8752,6 +8762,7 @@ begin
   // Paste text into the focused control
   Success := False;
   Control := Screen.ActiveControl;
+  CB := TUniClipboard.Create;
   // Do not handle Search/replace dialog
   if not Control.Focused then Exit;
   if not Clipboard.HasFormat(CF_TEXT) then begin
@@ -8762,10 +8773,21 @@ begin
       Edit.PasteFromClipboard;
       Success := True;
     end;
+  end else if Control is TComboBox then begin
+    Combo := TComboBox(Control);
+    if Combo.Style = csDropDown then begin
+      Combo.SelText := CB.AsWideString;
+      Success := True;
+    end;
+  end else if Control is TTNTComboBox then begin
+    TNTCombo := TTNTComboBox(Control);
+    if TNTCombo.Style = csDropDown then begin
+      TNTCombo.SelText := CB.AsWideString;
+      Success := True;
+    end;
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
     if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
-      CB := TUniClipboard.Create;
       Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := CB.AsWideString;
       Success := True;
     end;
