@@ -219,7 +219,9 @@ type
     actCopyAsSQL: TAction;
     CopyAsSQLdata: TMenuItem;
     panelTop: TPanel;
+    pnlLeft: TPanel;
     DBtree: TVirtualStringTree;
+    comboOnlyDBs: TTntComboBox;
     Splitter1: TSplitter;
     PageControlMain: TPageControl;
     tabData: TTabSheet;
@@ -720,6 +722,12 @@ type
     function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
     procedure popupMainTabsPopup(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure comboOnlyDBsChange(Sender: TObject);
+    procedure comboOnlyDBsExit(Sender: TObject);
+    procedure comboOnlyDBsDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
+      var Accept: Boolean);
+    procedure comboOnlyDBsDragDrop(Sender, Source: TObject; X, Y: Integer);
+    procedure comboOnlyDBsKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -784,7 +792,7 @@ type
     RoutineEditor: TfrmRoutineEditor;
     OptionsForm: Toptionsform;
     SessionManager: TConnForm;
-    DatabasesWanted,
+    AllDatabases,
     Databases                  : Widestrings.TWideStringList;
     TemporaryDatabase          : WideString;
     dataselected               : Boolean;
@@ -837,7 +845,7 @@ type
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
     procedure SessionConnect(Sender: TObject);
-    function InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parDatabase, parCompress, parSession: WideString): Boolean;
+    function InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parCompress, parSession: WideString): Boolean;
     //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
 
     function ExecUpdateQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
@@ -1176,7 +1184,7 @@ begin
 
   MainReg.WriteInteger( REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height );
   MainReg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width );
-  MainReg.WriteInteger( REGNAME_DBTREEWIDTH, DBtree.width );
+  MainReg.WriteInteger( REGNAME_DBTREEWIDTH, pnlLeft.width );
   MainReg.WriteInteger( REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height );
 
   // Save width of probably resized columns of all VirtualTrees
@@ -1342,7 +1350,7 @@ begin
 
   pnlQueryMemo.Height := GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   pnlQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
-  DBtree.Width := GetRegValue(REGNAME_DBTREEWIDTH, DBtree.Width);
+  pnlLeft.Width := GetRegValue(REGNAME_DBTREEWIDTH, pnlLeft.Width);
   SynMemoSQLLog.Height := GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
   // Force status bar position to below log memo 
   StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
@@ -1482,7 +1490,7 @@ procedure TMainForm.Startup;
 var
   curParam, parNetType: Byte;
   sValue,
-  parHost, parPort, parUser, parPass, parDatabase,
+  parHost, parPort, parUser, parPass,
   parCompress, parSession: String;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
@@ -1582,8 +1590,6 @@ begin
       parUser := sValue
     else if GetParamValue('p', 'password', curParam, sValue) then
       parPass := sValue
-    else if GetParamValue('D', 'database', curParam, sValue) then
-      parDatabase := sValue
     else if GetParamValue('d', 'description', curParam, sValue) then
       parSession := sValue;
     Inc(curParam);
@@ -1597,7 +1603,6 @@ begin
     parPass := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, parSession));
     parPort := GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), parSession);
     parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, parSession)));
-    parDatabase := GetRegValue(REGNAME_ONLYDBS, '', parSession);
   end;
 
   // Minimal parameter for command line mode is hostname
@@ -1605,7 +1610,7 @@ begin
   if CommandLineMode then begin
     if parSession = '' then
       parSession := parHost;
-    Connected := InitConnection(parNetType, parHost, parPort, parUser, parPass, parDatabase, parCompress, parSession);
+    Connected := InitConnection(parNetType, parHost, parPort, parUser, parPass, parCompress, parSession);
   end;
 
   // Auto connection via preference setting
@@ -1619,7 +1624,6 @@ begin
         GetRegValue(REGNAME_PORT, '', LastSession),
         GetRegValue(REGNAME_USER, '', LastSession),
         decrypt(GetRegValue(REGNAME_PASSWORD, '', LastSession)),
-        Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', LastSession)),
         IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, LastSession))),
         LastSession
         );
@@ -1698,15 +1702,16 @@ begin
   Mainreg.WriteInteger(REGNAME_SERVERVERSION, mysql_version);
   Mainreg.WriteString(REGNAME_LASTCONNECT, DateTimeToStr(Now));
 
-  DatabasesWanted := explode(';', FConn.DatabaseList);
-  DatabasesWanted.Sort;
+  comboOnlyDBs.Items.Text := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', SessionName));
+  if comboOnlyDBs.Items.Count > 0 then
+    comboOnlyDBs.ItemIndex := 0
+  else
+    comboOnlyDBs.Text := '';
+  RefreshTree(False);
 
   DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
 
   CheckUptime;
-  // Invoke population of database tree. It's important to do this here after
-  // having filled DatabasesWanted, not at design time.
-  DBtree.RootNodeCount := 1;
 
   // Define window properties
   SetWindowConnected( true );
@@ -1795,6 +1800,7 @@ begin
   // relative from already opened folder!
   OpenRegistry(SessionName);
   MainReg.WriteString( REGNAME_LASTUSEDDB, Utf8Encode(ActiveDatabase) );
+  MainReg.WriteString( REGNAME_ONLYDBS, Utf8Encode(comboOnlyDBs.Items.Text) );
 
   // Post pending UPDATE
   if DataGridHasChanges then
@@ -1803,10 +1809,8 @@ begin
   // Clear database and table lists
   DBtree.ClearSelection;
   DBtree.FocusedNode := nil;
-  DBtree.Clear;
   ClearAllTableLists;
-  FreeAndNil(DatabasesWanted);
-  FreeAndNil(Databases);
+  FreeAndNil(AllDatabases);
   FreeAndNil(InformationSchemaTables);
   FreeAndNil(dsShowEngines);
   FreeAndNil(dsHaveEngines);
@@ -1855,13 +1859,12 @@ begin
   if CreateDatabaseForm.ShowModal = mrOK then
   begin
     newdb := CreateDatabaseForm.editDBName.Text;
-    // Add DB to OnlyDBs-regkey if this is not empty
-    if DatabasesWanted.Count > 0 then
-    begin
-      DatabasesWanted.Add( newdb );
-      OpenRegistry(SessionName);
-      MainReg.WriteString( 'OnlyDBs', ImplodeStr( ';', DatabasesWanted ) );
+    // Add new DB to database filter if it's not empty
+    if comboOnlyDBs.Text <> '' then begin
+      comboOnlyDBs.Text := comboOnlyDBs.Text + ';' + newdb;
+      comboOnlyDBs.Items.Insert(0, comboOnlyDBs.Text);
     end;
+	FreeAndNil(AllDatabases);
     // reload db nodes and switch to new one
     RefreshTree(False, newdb);
   end;
@@ -2450,11 +2453,6 @@ begin
         try
           ExecUpdateQuery( 'DROP DATABASE ' + mask(activeDB) );
           ClearDbTableList(activeDB);
-          if DatabasesWanted.IndexOf(activeDB) > -1 then begin
-            DatabasesWanted.Delete( DatabasesWanted.IndexOf(activeDB) );
-            OpenRegistry(SessionName);
-            MainReg.WriteString( 'OnlyDBs', ImplodeStr( ';', DatabasesWanted ) );
-          end;
           DBtree.Selected[DBtree.GetFirst] := true;
           RefreshTree(False);
         finally
@@ -2565,7 +2563,7 @@ procedure TMainForm.SessionConnect(Sender: TObject);
 var
   Session: String;
   parNetType: Integer;
-  parHost, parPort, parUser, parPass, parCompress, parDatabase: WideString;
+  parHost, parPort, parUser, parPass, parCompress: WideString;
 begin
   Session := (Sender as TMenuItem).Caption;
   parNetType := GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, Session);
@@ -2574,8 +2572,7 @@ begin
   parPass := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
   parPort := GetRegValue(REGNAME_PORT, '', Session);
   parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session)));
-  parDatabase := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', Session));
-  if InitConnection(parNetType, parHost, parPort, parUser, parPass, parDatabase, parCompress, Session) then
+  if InitConnection(parNetType, parHost, parPort, parUser, parPass, parCompress, Session) then
     DoAfterConnect;
 end;
 
@@ -2584,7 +2581,7 @@ end;
   Receive connection parameters and create the mdi-window
   Paremeters are either sent by connection-form or by commandline.
 }
-function TMainform.InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parDatabase, parCompress, parSession: WideString): Boolean;
+function TMainform.InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parCompress, parSession: WideString): Boolean;
 var
   MysqlConnection: TMysqlConn;
   Profile: TOpenConnProf;
@@ -2607,7 +2604,6 @@ begin
   Profile.MysqlParams.PrpDbless := 'true';
   Profile.MysqlParams.PrpClientLocalFiles := 'true';
   Profile.MysqlParams.PrpClientInteractive := 'true';
-  Profile.DatabaseList := parDatabase;
 
   MysqlConnection := TMysqlConn.Create(@Profile);
 
@@ -6855,34 +6851,50 @@ procedure TMainForm.DBtreeInitChildren(Sender: TBaseVirtualTree; Node:
     PVirtualNode; var ChildCount: Cardinal);
 var
   ds: TDataset;
-  specialDbs: WideStrings.TWideStringList;
-  dbName: WideString;
-  i: Integer;
+  i, j: Integer;
+  DatabasesWanted: TWideStringList;
+  rx: TRegExpr;
 begin
   case Sender.GetNodeLevel(Node) of
     // Root node has only one single child (user@host)
     0: begin
         Screen.Cursor := crHourglass;
-        Showstatus( 'Reading Databases...' );
         try
-          Databases := WideStrings.TWideStringList.Create;
-          if DatabasesWanted.Count = 0 then begin
-            ds := GetResults( 'SHOW DATABASES' );
-            specialDbs := WideStrings.TWideStringList.Create;
-            for i:=1 to ds.RecordCount do begin
-              dbName := ds.FieldByName('Database').AsWideString;
-              if dbName = DBNAME_INFORMATION_SCHEMA then specialDbs.Insert( 0, dbName )
-              else Databases.Add( dbName );
-              ds.Next;
+          if not Assigned(AllDatabases) then begin
+            Showstatus( 'Reading Databases...' );
+            AllDatabases := GetCol('SHOW DATABASES');
+          end;
+          if not Assigned(Databases) then
+            Databases := TWideStringList.Create;
+          Databases.Clear;
+          DatabasesWanted := Explode(';', comboOnlyDBs.Text);
+          if DatabasesWanted.Count > 0 then begin
+		  	// Add wanted dbs by comparing strings
+            for i:=0 to AllDatabases.Count-1 do begin
+              if DatabasesWanted.IndexOf(AllDatabases[i]) > -1 then
+                Databases.Add(AllDatabases[i]);
             end;
-            ds.Close;
-            FreeAndNil(ds);
-            Databases.Sort;
-            // Prioritised position of system-databases
-            for i := specialDbs.Count - 1 downto 0 do
-              Databases.Insert( 0, specialDbs[i] );
-          end else for i:=0 to DatabasesWanted.Count-1 do
-            Databases.Add(DatabasesWanted[i]);
+			// Add dbs by regular expression, avoiding duplicates
+            rx := TRegExpr.Create;
+            for i:=0 to DatabasesWanted.Count-1 do begin
+              rx.Expression := '^'+DatabasesWanted[i]+'$';
+              for j:=0 to AllDatabases.Count-1 do begin
+                if (Databases.IndexOf(AllDatabases[j]) = -1) and rx.Exec(AllDatabases[j]) then
+                  Databases.Add(AllDatabases[j]);
+              end;
+            end;
+            rx.Free;
+          end;
+          FreeAndNil(DatabasesWanted);
+          if Databases.Count = 0 then
+            Databases.Assign(AllDatabases);
+          Databases.Sort;
+
+          // Prioritised position of virtual system database
+          i := Databases.IndexOf(DBNAME_INFORMATION_SCHEMA);
+          if i > -1 then
+            Databases.Move(i, 0);
+
           showstatus( IntToStr( Databases.Count ) + ' Databases', 0 );
           ChildCount := Databases.Count;
           // Avoids excessive InitializeKeywordLists() calls.
@@ -7053,9 +7065,11 @@ begin
 
   // ReInit tree population
   DBTree.BeginUpdate;
-  DBtree.ReinitChildren(DBTree.GetFirst, False); // .ResetNode(DBtree.GetFirst);
-  if DoResetTableCache then
+  if DoResetTableCache then begin
     ClearAllTableLists;
+    FreeAndNil(AllDatabases);
+  end;
+  DBtree.ReinitChildren(DBTree.GetFirst, False); // .ResetNode(DBtree.GetFirst);
   // Reselect active or new database if present. Could have been deleted or renamed.
   try
     if SelectDatabase <> '' then ActiveDatabase := SelectDatabase
@@ -9537,6 +9551,76 @@ begin
     end;
   end;
 end;
+
+
+procedure TMainForm.comboOnlyDBsChange(Sender: TObject);
+begin
+  // Immediately apply database filter
+  RefreshTree(False);
+end;
+
+
+procedure TMainForm.comboOnlyDBsExit(Sender: TObject);
+var
+  i: Integer;
+  FilterText: WideString;
+begin
+  // Add (move) custom filter text to (in) drop down history, if not empty
+  FilterText := comboOnlyDBs.Text;
+  if FilterText <> '' then begin
+    i := comboOnlyDBs.Items.IndexOf(FilterText);
+    if i > -1 then
+      comboOnlyDBs.Items.Move(i, 0)
+    else
+      comboOnlyDBs.Items.Insert(0, FilterText);
+    comboOnlyDBs.Text := FilterText;
+  end;
+end;
+
+
+procedure TMainForm.comboOnlyDBsDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
+  var Accept: Boolean);
+begin
+  // DBtree dragging node over DB filter dropdown
+  Accept := (Source = DBtree) and (DBtree.GetNodeLevel(DBtree.FocusedNode) = 1);
+end;
+
+
+procedure TMainForm.comboOnlyDBsDragDrop(Sender, Source: TObject; X, Y: Integer);
+var
+  dbs: TWideStringList;
+  newdb: WideString;
+begin
+  // DBtree node dropped on DB filter dropdown
+  dbs := Explode(';', comboOnlyDBs.Text);
+  newdb := DBtree.Text[DBtree.FocusedNode, DBtree.FocusedColumn];
+  if dbs.IndexOf(newdb) = -1 then begin
+    if (comboOnlyDBs.Text <> '') and (comboOnlyDBs.Text[Length(comboOnlyDBs.Text)-1] <> ';') then
+      comboOnlyDBs.Text := comboOnlyDBs.Text + ';';
+    comboOnlyDBs.Text := comboOnlyDBs.Text + newdb;
+    comboOnlyDBs.Items.Insert(0, comboOnlyDBs.Text);
+    comboOnlyDBs.OnChange(Sender);
+  end;
+end;
+
+
+procedure TMainForm.comboOnlyDBsKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  i: Integer;
+begin
+  // Pressing Delete key while filters are dropped down, deletes the filter from the list
+  i := comboOnlyDBs.ItemIndex;
+  if comboOnlyDBs.DroppedDown and (Key=VK_DELETE) and (i > -1) then begin
+    Key := 0;
+    comboOnlyDBs.Items.Delete(i);
+    if comboOnlyDBs.Items.Count > i then
+      comboOnlyDBs.ItemIndex := i
+    else
+      comboOnlyDBs.ItemIndex := i-1;
+    comboOnlyDBs.OnChange(Sender);
+  end;
+end;
+
 
 end.
 
