@@ -4,10 +4,10 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu]
   Caption = 'Session manager'
-  ClientHeight = 319
+  ClientHeight = 274
   ClientWidth = 494
   Color = clBtnFace
-  Constraints.MinHeight = 355
+  Constraints.MinHeight = 310
   Constraints.MinWidth = 510
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -24,7 +24,7 @@ object connform: Tconnform
   OnShow = FormShow
   DesignSize = (
     494
-    319)
+    274)
   PixelsPerInch = 96
   TextHeight = 13
   object lblSession: TLabel
@@ -48,7 +48,7 @@ object connform: Tconnform
   end
   object btnSave: TButton
     Left = 64
-    Top = 286
+    Top = 241
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -59,7 +59,7 @@ object connform: Tconnform
   object btnOpen: TButton
     Tag = 15
     Left = 320
-    Top = 286
+    Top = 241
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -72,7 +72,7 @@ object connform: Tconnform
   object btnCancel: TButton
     Tag = 16
     Left = 406
-    Top = 286
+    Top = 241
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -85,7 +85,7 @@ object connform: Tconnform
     Left = 9
     Top = 27
     Width = 162
-    Height = 251
+    Height = 206
     Anchors = [akLeft, akTop, akBottom]
     EditDelay = 250
     Header.AutoSizeIndex = 0
@@ -120,7 +120,7 @@ object connform: Tconnform
   end
   object btnNew: TButton
     Left = 8
-    Top = 286
+    Top = 241
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -130,7 +130,7 @@ object connform: Tconnform
   end
   object btnDelete: TButton
     Left = 120
-    Top = 286
+    Top = 241
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -142,14 +142,14 @@ object connform: Tconnform
     Left = 177
     Top = 10
     Width = 309
-    Height = 270
+    Height = 225
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Details'
     TabOrder = 1
     Visible = False
     DesignSize = (
       309
-      270)
+      225)
     object lblHost: TLabel
       Tag = 6
       Left = 8
@@ -186,45 +186,32 @@ object connform: Tconnform
       Caption = 'Port:'
       FocusControl = editPort
     end
-    object lblOnlyDBs: TLabel
-      Tag = 13
-      Left = 8
-      Top = 167
-      Width = 63
-      Height = 13
-      Caption = 'Database(s):'
-      WordWrap = True
-    end
     object lblLastConnectLeft: TLabel
       Left = 8
-      Top = 211
+      Top = 167
       Width = 65
       Height = 13
-      Anchors = [akLeft, akBottom]
       Caption = 'Last connect:'
     end
     object lblLastConnectRight: TLabel
       Left = 99
-      Top = 211
+      Top = 167
       Width = 5
       Height = 13
-      Anchors = [akLeft, akBottom]
       Caption = '?'
     end
     object lblCreatedLeft: TLabel
       Left = 8
-      Top = 247
+      Top = 203
       Width = 43
       Height = 13
-      Anchors = [akLeft, akBottom]
       Caption = 'Created:'
     end
     object lblCreatedRight: TLabel
       Left = 99
-      Top = 247
+      Top = 203
       Width = 5
       Height = 13
-      Anchors = [akLeft, akBottom]
       Caption = '?'
     end
     object lblNetworkType: TLabel
@@ -236,18 +223,16 @@ object connform: Tconnform
     end
     object lblCounterLeft: TLabel
       Left = 8
-      Top = 229
+      Top = 185
       Width = 43
       Height = 13
-      Anchors = [akLeft, akBottom]
       Caption = 'Counter:'
     end
     object lblCounterRight: TLabel
       Left = 99
-      Top = 229
+      Top = 185
       Width = 5
       Height = 13
-      Anchors = [akLeft, akBottom]
       Caption = '?'
     end
     object editHost: TEdit
@@ -318,18 +303,6 @@ object connform: Tconnform
       TabOrder = 1
       OnClick = radioNetTypeClick
     end
-    object memoDatabases: TTntMemo
-      Left = 99
-      Top = 164
-      Width = 205
-      Height = 41
-      Anchors = [akLeft, akTop, akRight, akBottom]
-      Lines.Strings = (
-        'memoDatabases')
-      ScrollBars = ssVertical
-      TabOrder = 8
-      OnChange = Modification
-    end
     object updownPort: TUpDown
       Left = 159
       Top = 117
@@ -344,7 +317,7 @@ object connform: Tconnform
   object popupSessions: TPopupMenu
     Images = MainForm.PngImageListMain
     Left = 176
-    Top = 288
+    Top = 240
     object Save1: TMenuItem
       Caption = 'Save'
       ImageIndex = 10
@@ -368,6 +341,6 @@ object connform: Tconnform
     Interval = 60000
     OnTimer = TimerStatisticsTimer
     Left = 208
-    Top = 288
+    Top = 240
   end
 end

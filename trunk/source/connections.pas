@@ -27,7 +27,6 @@ type
     lblUsername: TLabel;
     lblPassword: TLabel;
     lblPort: TLabel;
-    lblOnlyDBs: TLabel;
     editHost: TEdit;
     editUsername: TEdit;
     editPassword: TEdit;
@@ -35,7 +34,6 @@ type
     chkCompressed: TCheckBox;
     radioTypeTCPIP: TRadioButton;
     radioTypeNamedPipe: TRadioButton;
-    memoDatabases: TTntMemo;
     updownPort: TUpDown;
     lblLastConnectLeft: TLabel;
     lblLastConnectRight: TLabel;
@@ -87,7 +85,7 @@ type
     FSessionNames: TStringlist;
     FSessionModified, FSessionAdded: Boolean;
     FOrgNetType: Byte;
-    FOrgHost, FOrgUser, FOrgPassword, FOrgDatabases: WideString;
+    FOrgHost, FOrgUser, FOrgPassword: WideString;
     FOrgCompressed: Boolean;
     FOrgPort: Integer;
     function SelectedSession: String;
@@ -200,7 +198,6 @@ begin
     editPort.Text,
     editUsername.Text,
     editPassword.Text,
-    memoDatabases.Text,
     IntToStr(Integer(chkCompressed.Checked)),
     SelectedSession) then begin
     ModalResult := mrOK;
@@ -225,7 +222,6 @@ begin
   else
     MainReg.WriteInteger(REGNAME_NETTYPE, NETTYPE_NAMEDPIPE);
   MainReg.WriteBool(REGNAME_COMPRESSED, chkCompressed.Checked);
-  MainReg.WriteString(REGNAME_ONLYDBS, Utf8Encode(memoDatabases.Text));
   if IsNew then
     MainReg.WriteString(REGNAME_SESSIONCREATED, DateTimeToStr(Now));
   FSessionModified := False;
@@ -384,7 +380,6 @@ begin
       FOrgPassword := decrypt(GetRegValue(REGNAME_PASSWORD, '', SelectedSession));
       FOrgPort := StrToIntDef(GetRegValue(REGNAME_PORT, '', SelectedSession), DEFAULT_PORT);
       FOrgCompressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SelectedSession);
-      FOrgDatabases := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', SelectedSession));
     end else begin
       // Editing a new session, not saved yet
       FOrgNetType := NETTYPE_TCPIP;
@@ -393,7 +388,6 @@ begin
       FOrgPassword := '';
       FOrgPort := DEFAULT_PORT;
       FOrgCompressed := DEFAULT_COMPRESSED;
-      FOrgDatabases := '';
     end;
 
     FLoaded := False;
@@ -407,7 +401,6 @@ begin
     editPassword.Text := FOrgPassword;
     editPort.Text := IntToStr(FOrgPort);
     chkCompressed.Checked := FOrgCompressed;
-    memoDatabases.Text := FOrgDatabases;
     FLoaded := True;
   end;
 
@@ -536,7 +529,7 @@ begin
     else NetType := NETTYPE_NAMEDPIPE;
     FSessionModified := (FOrgHost <> editHost.Text) or (FOrgUser <> editUsername.Text)
       or (FOrgPassword <> editPassword.Text) or (FOrgPort <> updownPort.Tag)
-      or (FOrgCompressed <> chkCompressed.Checked) or (FOrgDatabases <> memoDatabases.Text)
+      or (FOrgCompressed <> chkCompressed.Checked)
       or (FOrgNetType <> NetType);
     ListSessions.Repaint;
     ValidateControls;

@@ -338,59 +338,6 @@ object MainForm: TMainForm
       Cursor = crSizeWE
       ResizeStyle = rsUpdate
     end
-    object DBtree: TVirtualStringTree
-      Left = 0
-      Top = 0
-      Width = 169
-      Height = 357
-      Align = alLeft
-      Constraints.MinWidth = 40
-      DragMode = dmAutomatic
-      DragType = dtVCL
-      Header.AutoSizeIndex = 0
-      Header.DefaultHeight = 17
-      Header.Font.Charset = DEFAULT_CHARSET
-      Header.Font.Color = clWindowText
-      Header.Font.Height = -11
-      Header.Font.Name = 'Tahoma'
-      Header.Font.Style = []
-      Header.Options = [hoAutoResize, hoColumnResize, hoDrag]
-      HintMode = hmTooltip
-      HotCursor = crHandPoint
-      Images = PngImageListMain
-      IncrementalSearch = isInitializedOnly
-      Indent = 16
-      ParentShowHint = False
-      PopupMenu = popupDB
-      ShowHint = True
-      TabOrder = 0
-      TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
-      TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
-      TreeOptions.SelectionOptions = [toRightClickSelect]
-      OnDblClick = DBtreeDblClick
-      OnExpanded = DBtreeExpanded
-      OnFocusChanged = DBtreeFocusChanged
-      OnGetText = DBtreeGetText
-      OnPaintText = DBtreePaintText
-      OnGetImageIndex = DBtreeGetImageIndex
-      OnGetHint = vstGetHint
-      OnGetNodeDataSize = DBtreeGetNodeDataSize
-      OnInitChildren = DBtreeInitChildren
-      OnInitNode = DBtreeInitNode
-      Columns = <
-        item
-          Position = 0
-          Width = 110
-          WideText = 'Name'
-        end
-        item
-          Alignment = taRightJustify
-          MinWidth = 0
-          Position = 1
-          Width = 55
-          WideText = 'Size'
-        end>
-    end
     object PageControlMain: TPageControl
       Left = 173
       Top = 0
@@ -1336,6 +1283,98 @@ object MainForm: TMainForm
           OnKeyDown = GridKeyDown
           Columns = <>
         end
+      end
+    end
+    object pnlLeft: TPanel
+      Left = 0
+      Top = 0
+      Width = 169
+      Height = 357
+      Align = alLeft
+      BevelOuter = bvNone
+      TabOrder = 0
+      object DBtree: TVirtualStringTree
+        Left = 0
+        Top = 0
+        Width = 169
+        Height = 336
+        Align = alClient
+        BevelEdges = [beRight]
+        BevelInner = bvNone
+        BevelOuter = bvRaised
+        BevelKind = bkFlat
+        BorderStyle = bsNone
+        Constraints.MinWidth = 40
+        DragMode = dmAutomatic
+        DragType = dtVCL
+        Header.AutoSizeIndex = 0
+        Header.DefaultHeight = 17
+        Header.Font.Charset = DEFAULT_CHARSET
+        Header.Font.Color = clWindowText
+        Header.Font.Height = -11
+        Header.Font.Name = 'Tahoma'
+        Header.Font.Style = []
+        Header.Options = [hoAutoResize, hoColumnResize, hoDrag]
+        HintMode = hmTooltip
+        HotCursor = crHandPoint
+        Images = PngImageListMain
+        IncrementalSearch = isInitializedOnly
+        Indent = 16
+        ParentShowHint = False
+        PopupMenu = popupDB
+        RootNodeCount = 1
+        ShowHint = True
+        TabOrder = 0
+        TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
+        TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.SelectionOptions = [toRightClickSelect]
+        OnDblClick = DBtreeDblClick
+        OnExpanded = DBtreeExpanded
+        OnFocusChanged = DBtreeFocusChanged
+        OnGetText = DBtreeGetText
+        OnPaintText = DBtreePaintText
+        OnGetImageIndex = DBtreeGetImageIndex
+        OnGetHint = vstGetHint
+        OnGetNodeDataSize = DBtreeGetNodeDataSize
+        OnInitChildren = DBtreeInitChildren
+        OnInitNode = DBtreeInitNode
+        Columns = <
+          item
+            Position = 0
+            Width = 113
+            WideText = 'Name'
+          end
+          item
+            Alignment = taRightJustify
+            MinWidth = 0
+            Position = 1
+            Width = 55
+            WideText = 'Size'
+          end>
+      end
+      object comboOnlyDBs: TTntComboBox
+        AlignWithMargins = True
+        Left = 0
+        Top = 336
+        Width = 169
+        Height = 21
+        Hint = 
+          'Database filter|A list of databases, separated by semicolon. Can' +
+          ' contain regular expressions, e.g. "mydb;test.*;project\d+".'
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alBottom
+        ItemHeight = 13
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+        OnChange = comboOnlyDBsChange
+        OnDragDrop = comboOnlyDBsDragDrop
+        OnDragOver = comboOnlyDBsDragOver
+        OnExit = comboOnlyDBsExit
+        OnKeyDown = comboOnlyDBsKeyDown
       end
     end
   end

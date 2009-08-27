@@ -40,7 +40,6 @@ type
   //  but to keep the name short; this beats "TConnectionProfileDataAndConnectionObject", which I guess would be the proper name.
   TOpenConnProf = record
     MysqlParams : TMysqlConnParams; // stuff that needs to be shipped over to the mysql driver.
-    DatabaseList : WideString;
     MysqlConn : TZConnection;
   end;
   POpenConnProf = ^TOpenConnProf;
