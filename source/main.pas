@@ -6869,12 +6869,12 @@ begin
           Databases.Clear;
           DatabasesWanted := Explode(';', comboOnlyDBs.Text);
           if DatabasesWanted.Count > 0 then begin
-		  	// Add wanted dbs by comparing strings
+            // Add wanted dbs by comparing strings
             for i:=0 to AllDatabases.Count-1 do begin
               if DatabasesWanted.IndexOf(AllDatabases[i]) > -1 then
                 Databases.Add(AllDatabases[i]);
             end;
-			// Add dbs by regular expression, avoiding duplicates
+            // Add dbs by regular expression, avoiding duplicates
             rx := TRegExpr.Create;
             for i:=0 to DatabasesWanted.Count-1 do begin
               rx.Expression := '^'+DatabasesWanted[i]+'$';
