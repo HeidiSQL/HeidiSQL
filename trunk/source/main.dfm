@@ -1299,11 +1299,6 @@ object MainForm: TMainForm
         Width = 169
         Height = 336
         Align = alClient
-        BevelEdges = [beRight]
-        BevelInner = bvNone
-        BevelOuter = bvRaised
-        BevelKind = bkFlat
-        BorderStyle = bsNone
         Constraints.MinWidth = 40
         DragMode = dmAutomatic
         DragType = dtVCL
