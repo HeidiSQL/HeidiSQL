@@ -6463,7 +6463,7 @@ object MainForm: TMainForm
     Left = 40
     Top = 128
   end
-  object SynCompletionProposal1: TSynCompletionProposal
+  object SynCompletionProposal: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
     NbLinesInWindow = 12
     Width = 350
@@ -6491,12 +6491,12 @@ object MainForm: TMainForm
     ItemHeight = 18
     Images = PngImageListMain
     Margin = 1
-    OnExecute = SynCompletionProposal1Execute
+    OnExecute = SynCompletionProposalExecute
     ShortCut = 16416
     Editor = SynMemoQuery
     TimerInterval = 500
-    OnAfterCodeCompletion = SynCompletionProposal1AfterCodeCompletion
-    OnCodeCompletion = SynCompletionProposal1CodeCompletion
+    OnAfterCodeCompletion = SynCompletionProposalAfterCodeCompletion
+    OnCodeCompletion = SynCompletionProposalCodeCompletion
     Left = 40
     Top = 304
     EndOfTokenChrW = ',()[]. ='#9
