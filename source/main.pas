@@ -6879,8 +6879,15 @@ begin
             for i:=0 to DatabasesWanted.Count-1 do begin
               rx.Expression := '^'+DatabasesWanted[i]+'$';
               for j:=0 to AllDatabases.Count-1 do begin
-                if (Databases.IndexOf(AllDatabases[j]) = -1) and rx.Exec(AllDatabases[j]) then
-                  Databases.Add(AllDatabases[j]);
+                if (Databases.IndexOf(AllDatabases[j]) = -1) then try
+                  // The regular expression can have syntax errors which lead to an AV
+                  if rx.Exec(AllDatabases[j]) then
+                    Databases.Add(AllDatabases[j]);
+                  comboOnlyDBs.Color := clWindow;
+                except
+                  comboOnlyDBs.Color := clFuchsia;
+                  break;
+                end;
               end;
             end;
             rx.Free;
