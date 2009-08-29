@@ -314,7 +314,7 @@ type
     ZSQLMonitor1: TZSQLMonitor;
     menuExporttables: TMenuItem;
     popupDbGridHeader: TPopupMenu;
-    SynCompletionProposal1: TSynCompletionProposal;
+    SynCompletionProposal: TSynCompletionProposal;
     OpenDialogSQLFile: TOpenDialog;
     SaveDialogSQLFile: TSaveDialog;
     SynEditSearch1: TSynEditSearch;
@@ -530,11 +530,11 @@ type
       var AllowChange: Boolean);
     procedure btnDataClick(Sender: TObject);
     procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
+    procedure SynCompletionProposalAfterCodeCompletion(Sender: TObject;
       const Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
-    procedure SynCompletionProposal1CodeCompletion(Sender: TObject;
+    procedure SynCompletionProposalCodeCompletion(Sender: TObject;
       var Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
-    procedure SynCompletionProposal1Execute(Kind: SynCompletionType;
+    procedure SynCompletionProposalExecute(Kind: SynCompletionType;
       Sender: TObject; var CurrentInput: WideString; var x, y: Integer;
       var CanExecute: Boolean);
     procedure PageControlMainChange(Sender: TObject);
@@ -1330,7 +1330,10 @@ begin
   SetVistaFonts(Font);
   InheritFont(Font);
   InheritFont(tabsetQueryHelpers.Font);
-  InheritFont(SynCompletionProposal1.Font);
+  InheritFont(SynCompletionProposal.Font);
+
+  // Enable auto completion in data tab, filter editor
+  SynCompletionProposal.AddEditor(SynMemoFilter);
 
   // Fix node height on Virtual Trees for current DPI settings
   FixVT(DBTree);
@@ -4497,22 +4500,22 @@ end;
 
 
 { Proposal about to insert a String into synmemo }
-procedure TMainForm.SynCompletionProposal1CodeCompletion(Sender: TObject;
+procedure TMainForm.SynCompletionProposalCodeCompletion(Sender: TObject;
   var Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
 begin
-  SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
+  (Sender as TSynCompletionProposal).Form.CurrentEditor.UndoList.AddGroupBreak;
 end;
 
 
-procedure TMainForm.SynCompletionProposal1AfterCodeCompletion(Sender: TObject;
+procedure TMainForm.SynCompletionProposalAfterCodeCompletion(Sender: TObject;
   const Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
 begin
-  SynCompletionProposal1.Editor.UndoList.AddGroupBreak;
+  (Sender as TSynCompletionProposal).Form.CurrentEditor.UndoList.AddGroupBreak;
 end;
 
 
 { Proposal-Combobox pops up }
-procedure TMainForm.SynCompletionProposal1Execute(Kind: SynCompletionType;
+procedure TMainForm.SynCompletionProposalExecute(Kind: SynCompletionType;
   Sender: TObject; var CurrentInput: WideString; var x, y: Integer;
   var CanExecute: Boolean);
 var
@@ -4528,6 +4531,7 @@ var
   Start,
   TokenTypeInt     : Integer;
   Attri            : TSynHighlighterAttributes;
+  Proposal         : TSynCompletionProposal;
   Editor           : TCustomSynEdit;
   Queries          : TWideStringList;
 const
@@ -4548,8 +4552,8 @@ const
       lntView: Icon := ICONINDEX_VIEW;
       else Icon := -1;
     end;
-    SynCompletionProposal1.InsertList.Add( ObjName );
-    SynCompletionProposal1.ItemList.Add( WideFormat(ItemPattern, [Icon, ObjType, ObjName]) );
+    Proposal.InsertList.Add( ObjName );
+    Proposal.ItemList.Add( WideFormat(ItemPattern, [Icon, ObjType, ObjName]) );
   end;
 
   procedure addColumns( tablename: WideString );
@@ -4572,8 +4576,8 @@ const
     if ds = nil then exit;
     for i:=0 to ds.RecordCount-1 do
     begin
-      SynCompletionProposal1.InsertList.Add( ds.FieldByName( 'Field' ).AsWideString );
-      SynCompletionProposal1.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_FIELD, GetFirstWord(ds.FieldByName('Type').AsString), ds.FieldByName('Field').AsWideString]) );
+      Proposal.InsertList.Add( ds.FieldByName( 'Field' ).AsWideString );
+      Proposal.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_FIELD, GetFirstWord(ds.FieldByName('Type').AsString), ds.FieldByName('Field').AsWideString]) );
       ds.Next;
     end;
     ds.Close;
@@ -4581,16 +4585,17 @@ const
   end;
 
 begin
-  Editor := (Sender as TSynCompletionProposal).Editor;
+  Proposal := Sender as TSynCompletionProposal;
+  Editor := Proposal.Form.CurrentEditor;
   Editor.GetHighlighterAttriAtRowColEx(Editor.CaretXY, Token, TokenTypeInt, Start, Attri);
   if TtkTokenKind(TokenTypeInt) = tkString then begin
     CanExecute := False;
     Exit;
   end;
 
-  SynCompletionProposal1.InsertList.Clear;
-  SynCompletionProposal1.ItemList.Clear;
-  PrevShortToken := SynCompletionProposal1.PreviousToken;
+  Proposal.InsertList.Clear;
+  Proposal.ItemList.Clear;
+  PrevShortToken := Proposal.PreviousToken;
   PrevShortToken := WideDequotedStr(PrevShortToken, '`');
 
   rx := TRegExpr.Create;
@@ -4609,16 +4614,22 @@ begin
   // spaces are not detected correctly.
 
   // 1. find the currently edited sql-statement around the cursor position in synmemo
-  Queries := parsesql(Editor.Text);
-  j := 0;
-  for i:=0 to Queries.Count-1 do begin
-    Inc(j, Length(Queries[i])+1);
-    if (j >= Editor.SelStart) or (i = Queries.Count-1) then begin
-      sql := Queries[i];
-      break;
+  if Editor = SynMemoFilter then begin
+    // Concat query segments, set in viewdata(), so the below regular expressions can find structure
+    sql := DataGridCurrentFullSelect + DataGridCurrentFrom + ' WHERE ' + Editor.Text;
+  end else begin
+    // Proposal in one of the query tabs
+    Queries := parsesql(Editor.Text);
+    j := 0;
+    for i:=0 to Queries.Count-1 do begin
+      Inc(j, Length(Queries[i])+1);
+      if (j >= Editor.SelStart) or (i = Queries.Count-1) then begin
+        sql := Queries[i];
+        break;
+      end;
     end;
+    FreeAndNil(Queries);
   end;
-  FreeAndNil(Queries);
 
   // 2. Parse FROM clause to detect relevant table/view, probably aliased
   rx.ModifierG := True;
@@ -4672,11 +4683,11 @@ begin
     end;
   end;
 
-  if SynCompletionProposal1.ItemList.count = 0 then begin
+  if Proposal.ItemList.count = 0 then begin
     // Add databases
     for i := 0 to Databases.Count - 1 do begin
-      SynCompletionProposal1.InsertList.Add(Databases[i]);
-      SynCompletionProposal1.ItemList.Add(WideFormat(ItemPattern, [ICONINDEX_DB, 'database', Databases[i]]));
+      Proposal.InsertList.Add(Databases[i]);
+      Proposal.ItemList.Add(WideFormat(ItemPattern, [ICONINDEX_DB, 'database', Databases[i]]));
     end;
 
     if ActiveDatabase <> '' then begin
@@ -4687,7 +4698,7 @@ begin
         ds.Next;
       end;
       if Length(CurrentInput) = 0 then // assume that we have already a dbname in memo
-        SynCompletionProposal1.Position := Databases.Count;
+        Proposal.Position := Databases.Count;
     end;
 
     // Add functions
@@ -4695,14 +4706,14 @@ begin
       // Don't display unsupported functions here
       if MySqlFunctions[i].Version > mysql_version then
         continue;
-      SynCompletionProposal1.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
-      SynCompletionProposal1.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clSilver}' + MySQLFunctions[i].Declaration] ) );
+      Proposal.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
+      Proposal.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clSilver}' + MySQLFunctions[i].Declaration] ) );
     end;
 
     // Add keywords
     for i := 0 to MySQLKeywords.Count - 1 do begin
-      SynCompletionProposal1.InsertList.Add( MySQLKeywords[i] );
-      SynCompletionProposal1.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i]] ) );
+      Proposal.InsertList.Add( MySQLKeywords[i] );
+      Proposal.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i]] ) );
     end;
 
   end;
@@ -9184,7 +9195,7 @@ begin
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
-  SynCompletionProposal1.AddEditor(QueryTab.Memo);
+  SynCompletionProposal.AddEditor(QueryTab.Memo);
 
   QueryTab.spltHelpers := TSplitter.Create(QueryTab.pnlMemo);
   QueryTab.spltHelpers.Parent := QueryTab.pnlMemo;
