@@ -4994,15 +4994,14 @@ end;
 procedure TMainForm.SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
   AFiles: TUnicodeStrings);
 var
-  i        : Integer;
+  i: Integer;
 begin
-  // one or more files from explorer or somewhere else was
-  // dropped onto the query-memo - let's load their contents:
-  for i:=0 to AFiles.Count-1 do
-  begin
-    if fileExists(AFiles[i]) then
-    begin
-      QueryLoad( AFiles[i], false );
+  // One or more files from explorer or somewhere else was dropped onto the
+  // query-memo - load their contents into seperate tabs
+  for i:=0 to AFiles.Count-1 do begin
+    if fileExists(AFiles[i]) then begin
+      actNewQueryTab.Execute;
+      QueryLoad(AFiles[i], false);
     end;
   end;
 end;
