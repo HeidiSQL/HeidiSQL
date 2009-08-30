@@ -169,6 +169,7 @@ begin
   if not chklistColumns.Sorted then begin
     // Add all fieldnames again
     chklistColumns.Items.BeginUpdate;
+    chklistColumns.Clear;
     ds := Mainform.SelectedTableColumns;
     ds.First;
     while not ds.Eof do begin
