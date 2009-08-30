@@ -397,18 +397,16 @@ begin
       if UpperCase(Copy(ColSpec, 1, 8)) = 'NOT NULL' then begin
         Props[3] := BoolToStr(False);
         Delete(ColSpec, 1, 9);
-        ColDefaultType := cdtText;
-        ColDefaultText := '';
       end else begin
         Props[3] := BoolToStr(True);
-        ColDefaultType := cdtNull;
-        ColDefaultText := 'NULL';
-        // Sporadically there is a "NULL" found at this position. 
+        // Sporadically there is a "NULL" found at this position.
         if UpperCase(Copy(ColSpec, 1, 4)) = 'NULL' then
           Delete(ColSpec, 1, 5);
       end;
 
       // Default value
+      ColDefaultType := cdtNothing;
+      ColDefaultText := '';
       if UpperCase(Copy(ColSpec, 1, 14)) = 'AUTO_INCREMENT' then begin
         ColDefaultType := cdtAutoInc;
         ColDefaultText := 'AUTO_INCREMENT';
@@ -687,6 +685,7 @@ begin
       DefaultText := Props[4];
       DefaultType := GetColumnDefaultType(DefaultText);
       ColSpec := ColSpec + ' ' + GetColumnDefaultClause(DefaultType, DefaultText);
+      ColSpec := Trim(ColSpec); // Remove whitespace for columns without default value
     end;
     if Props[5] <> '' then
       ColSpec := ColSpec + ' COMMENT '+esc(Props[5]);
@@ -794,6 +793,7 @@ begin
       DefaultText := ColProps[4];
       DefaultType := GetColumnDefaultType(DefaultText);
       Result := Result + ' ' + GetColumnDefaultClause(DefaultType, DefaultText);
+      Result := Trim(Result); // Remove whitespace for columns without default value
     end;
     if ColProps[5] <> '' then
       Result := Result + ' COMMENT '+esc(ColProps[5]);
@@ -947,7 +947,7 @@ begin
     Properties.Assign(DefProperties);
   end else begin
     idx := Columns.Count;
-    Properties.CommaText := 'INT,10,'+BoolToStr(False)+','+BoolToStr(True)+','+IntToStr(Integer(cdtNull))+'NULL,,';
+    Properties.CommaText := 'INT,10,'+BoolToStr(False)+','+BoolToStr(True)+','+IntToStr(Integer(cdtNothing))+',,';
   end;
   Columns.InsertObject(idx, 'Column '+IntToStr(idx+1), Properties);
   SelectNode(listColumns, idx);
