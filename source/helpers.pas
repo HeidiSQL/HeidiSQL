@@ -92,6 +92,13 @@ type
 
   TLineBreaks = (lbsNone, lbsWindows, lbsUnix, lbsMac, lbsWide, lbsMixed);
 
+  TMyKey = record
+    Name     : String;
+    _type    : String;
+    Columns  : TWideStringList;
+    SubParts : TWideStringList;
+  end;
+
 {$I const.inc}
 
   function implodestr(seperator: WideString; a: TWideStringList) :WideString;
@@ -184,6 +191,7 @@ type
   procedure RestoreSyneditStyles(Highlighter: TSynCustomHighlighter);
   procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil);
   function DateBackFriendlyCaption(d: TDateTime): String;
+  procedure InheritFont(AFont: TFont);
 var
   MainReg                    : TRegistry;
 
@@ -3048,6 +3056,14 @@ begin
       Item := Item + Text[i];
   end;
 end;
+
+
+procedure InheritFont(AFont: TFont);
+begin
+  AFont.Name := Mainform.Font.Name;
+  AFont.Size := Mainform.Font.Size;
+end;
+
 
 end.
 

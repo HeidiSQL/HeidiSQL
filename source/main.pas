@@ -25,16 +25,6 @@ uses
   WideStrUtils, ZDbcLogging, ExtActns, CommCtrl, routine_editor, options,
   Contnrs, PngSpeedButton, connections;
 
-const
-  // The InnoDB folks are raging over the lack of count(*) support
-  // in the storage engine.  To avoid count(*), the first of these
-  // constants decide how many rows the data area should estimate
-  // in any table.  The second value decides how many percent above the
-  // number of seen (or simulated) rows the scrollbar should project.
-  SIMULATE_INITIAL_ROWS = 10000;
-  SIMULATE_MORE_ROWS = 20;
-  MSG_UPDATECHECK = WM_USER + 1;
-  MSG_ABOUT = WM_USER + 2;
 
 type
   TQueryTab = class(TObject)
@@ -55,6 +45,13 @@ type
     TabSheet: TTabSheet;
     GridResult: TGridResult;
   end;
+
+  // Represents errors already "handled" (shown to user),
+  // which can thus safely be ignored.
+  THandledSQLError = class(Exception)
+  end;
+
+  PMethod = ^TMethod;
 
   TMainForm = class(TForm)
     MainMenu1: TMainMenu;
@@ -910,9 +907,6 @@ type
 end;
 
 
-procedure InheritFont(AFont: TFont);
-
-
 var
   MainForm            : TMainForm;
   AppVersion          : String = 'x.y';
@@ -920,7 +914,7 @@ var
   FullAppVersion      : String;
   DirnameCommonAppData,
   DirnameUserAppData,
-  DIRNAME_SNIPPETS,
+  DirnameSnippets,
   DirnameSessionLogs  : String;
 
 const
@@ -929,53 +923,29 @@ const
   ICON_MYSELF_DISCONNECTED = -1;
   ICON_OTHER_CONNECTED = 36;
   ICON_OTHER_DISCONNECTED = -1;
+  // The InnoDB folks are raging over the lack of count(*) support
+  // in the storage engine.  To avoid count(*), the first of these
+  // constants decide how many rows the data area should estimate
+  // in any table.  The second value decides how many percent above the
+  // number of seen (or simulated) rows the scrollbar should project.
+  SIMULATE_INITIAL_ROWS = 10000;
+  SIMULATE_MORE_ROWS = 20;
+  MSG_UPDATECHECK = WM_USER + 1;
+  MSG_ABOUT = WM_USER + 2;
 
 {$I const.inc}
-
-type TMyKey = record
-  Name     : String;
-  _type    : String;
-  Columns  : TWideStringList;
-  SubParts : TWideStringList;
-end;
-
-type
-  // Represents errors already "handled" (shown to user),
-  // which can thus safely be ignored.
-  THandledSQLError = class(Exception)
-  end;
 
 
 implementation
 
 uses
-  About,
-  exportsql,
-  loaddata,
-  printlist,
-  copytable,
-  insertfiles,
-  Threading,
-  mysql_structures,
-  UpdateCheck,
-  uVistaFuncs,
-  runsqlfile,
-  column_selection,
-  data_sorting,
-  grideditlinks,
-  dataviewsave;
+  About, exportsql, loaddata, printlist, copytable, insertfiles, Threading,
+  mysql_structures, UpdateCheck, uVistaFuncs, runsqlfile, column_selection,
+  data_sorting, grideditlinks, dataviewsave;
 
-type
-  PMethod = ^TMethod;
 
 {$R *.DFM}
 
-
-procedure InheritFont(AFont: TFont);
-begin
-  AFont.Name := Mainform.Font.Name;
-  AFont.Size := Mainform.Font.Size;
-end;
 
 procedure TMainForm.HandleWMComplete(var msg: TMessage);
 begin
@@ -1304,7 +1274,7 @@ begin
   ForceDirectories(DirnameUserAppData);
 
   // Folder which contains snippet-files
-  DIRNAME_SNIPPETS := DirnameCommonAppData + 'Snippets\';
+  DirnameSnippets := DirnameCommonAppData + 'Snippets\';
 
   // Folder for session logfiles
   DirnameSessionLogs := DirnameUserAppData + 'Sessionlogs\';
@@ -2893,7 +2863,7 @@ begin
     if Copy( snippetname, Length(snippetname)-4, 4 ) <> '.sql' then
       snippetname := snippetname + '.sql';
     // cleanup snippetname from special characters
-    snippetname := DIRNAME_SNIPPETS + goodfilename(snippetname);
+    snippetname := DirnameSnippets + goodfilename(snippetname);
     if FileExists( snippetname ) then
     begin
       if MessageDlg( 'Overwrite existing snippet '+snippetname+'?', mtConfirmation, [mbOK, mbCancel], 0 ) <> mrOK then
@@ -3011,7 +2981,7 @@ begin
   popupQueryLoad.Items.Clear;
 
   // Snippets
-  snippets := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
+  snippets := getFilesFromDir( DirnameSnippets, '*.sql', true );
   snippetsfolder := TMenuItem.Create( popupQueryLoad );
   snippetsfolder.Caption := 'Snippets';
   popupQueryLoad.Items.Add(snippetsfolder);
@@ -3067,7 +3037,7 @@ begin
   filename := (Sender as TMenuItem).Caption;
   if Pos( '\', filename ) = 0 then
   begin // assuming we load a snippet
-    filename := DIRNAME_SNIPPETS + filename + '.sql';
+    filename := DirnameSnippets + filename + '.sql';
   end
   else
   begin // assuming we load a file from the recent-list
@@ -5000,7 +4970,7 @@ begin
   else if (src = ActiveQueryHelpers) and (ActiveQueryHelpers.ItemIndex > -1) then begin
     // Snippets tab
     if tabsetQueryHelpers.TabIndex = 3 then begin
-      QueryLoad( DIRNAME_SNIPPETS + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
+      QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
       LoadText := False;
     // All other tabs
     end else begin
@@ -5145,7 +5115,7 @@ begin
         begin
           RunSQLFileWindow( Self, filename );
           // Add filename to history menu
-          if Pos( DIRNAME_SNIPPETS, filename ) = 0 then
+          if Pos( DirnameSnippets, filename ) = 0 then
             AddOrRemoveFromQueryLoadHistory( filename, true );
           // Don't load into editor
           Abort;
@@ -5164,7 +5134,7 @@ begin
   Screen.Cursor := crHourGlass;
   try
     filecontent := ReadTextfile(filename);
-    if Pos( DIRNAME_SNIPPETS, filename ) = 0 then
+    if Pos( DirnameSnippets, filename ) = 0 then
       AddOrRemoveFromQueryLoadHistory( filename, true );
     FillPopupQueryLoad;
     if not QueryTabActive then
@@ -5820,7 +5790,7 @@ begin
     3: // SQL Snippets
     begin
       ActiveQueryHelpers.MultiSelect := False;
-      Files := getFilesFromDir( DIRNAME_SNIPPETS, '*.sql', true );
+      Files := getFilesFromDir( DirnameSnippets, '*.sql', true );
       for i := 0 to Files.Count - 1 do
         ActiveQueryHelpers.Items.Add(Files[i]);
 	  Files.Free;
@@ -5863,7 +5833,7 @@ begin
 
   case ActiveQueryTabset.TabIndex of
     3: // Load snippet file ínto query-memo
-      QueryLoad( DIRNAME_SNIPPETS + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
+      QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
     else // For all other tabs just insert the item from the list
       ActiveQueryMemo.SelText := text;
   end;
@@ -5925,7 +5895,7 @@ begin
   if ActiveQueryHelpers.ItemIndex = -1 then
     abort;
 
-  snippetfile := DIRNAME_SNIPPETS + ActiveQueryHelpers.Items[ ActiveQueryHelpers.ItemIndex ] + '.sql';
+  snippetfile := DirnameSnippets + ActiveQueryHelpers.Items[ ActiveQueryHelpers.ItemIndex ] + '.sql';
   if MessageDlg( 'Delete snippet file? ' + CRLF + snippetfile, mtConfirmation, [mbOk, mbCancel], 0) = mrOk then
   begin
     Screen.Cursor := crHourGlass;
@@ -5951,7 +5921,7 @@ end;
 }
 procedure TMainForm.menuInsertSnippetAtCursorClick(Sender: TObject);
 begin
-  QueryLoad( DIRNAME_SNIPPETS + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
+  QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
 end;
 
 
@@ -5960,7 +5930,7 @@ end;
 }
 procedure TMainForm.menuLoadSnippetClick(Sender: TObject);
 begin
-  QueryLoad( DIRNAME_SNIPPETS + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', True );
+  QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', True );
 end;
 
 
@@ -5972,14 +5942,14 @@ begin
   // Normally the snippets folder is created at installation. But it sure
   // can be the case that it has been deleted or that the application was
   // not installed properly. Ask if we should create the folder now.
-  if DirectoryExists( DIRNAME_SNIPPETS ) then
-    ShellExec( '', DIRNAME_SNIPPETS )
+  if DirectoryExists( DirnameSnippets ) then
+    ShellExec( '', DirnameSnippets )
   else
-    if MessageDlg( 'Snippets folder does not exist: ' + DIRNAME_SNIPPETS + CRLF + CRLF + 'This folder is normally created when you install '+appname+'.' + CRLF + CRLF + 'Shall it be created now?',
+    if MessageDlg( 'Snippets folder does not exist: ' + DirnameSnippets + CRLF + CRLF + 'This folder is normally created when you install '+appname+'.' + CRLF + CRLF + 'Shall it be created now?',
       mtWarning, [mbYes, mbNo], 0 ) = mrYes then
     try
       Screen.Cursor := crHourglass;
-      ForceDirectories( DIRNAME_SNIPPETS );
+      ForceDirectories( DirnameSnippets );
     finally
       Screen.Cursor := crDefault;
     end;
