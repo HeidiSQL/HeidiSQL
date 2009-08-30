@@ -129,11 +129,11 @@ type
     property MaxLength: Integer read FMaxLength write FMaxLength;
   end;
 
-  TColumnDefaultType = (cdtText, cdtTextUpdateTS, cdtNull, cdtNullUpdateTS, cdtCurTS, cdtCurTSUpdateTS, cdtAutoInc);
+  TColumnDefaultType = (cdtNothing, cdtText, cdtTextUpdateTS, cdtNull, cdtNullUpdateTS, cdtCurTS, cdtCurTSUpdateTS, cdtAutoInc);
   TColumnDefaultEditorLink = class(TBaseGridEditorLink)
   private
     FPanel: TPanel;
-    FRadioText, FRadioNULL, FRadioCurTS, FRadioAutoInc: TRadioButton;
+    FRadioNothing, FRadioText, FRadioNULL, FRadioCurTS, FRadioAutoInc: TRadioButton;
     FCheckCurTS: TCheckbox;
     FMemoText: TTNTMemo;
     FBtnOK, FBtnCancel: TButton;
@@ -960,9 +960,17 @@ begin
   FPanel.BevelOuter := bvNone;
   FMainControl := FPanel;
 
+  FRadioNothing := TRadioButton.Create(FPanel);
+  FRadioNothing.Parent := FPanel;
+  FRadioNothing.Top := m;
+  FRadioNothing.Left := m;
+  FRadioNothing.Width := FRadioNothing.Parent.Width - 2 * FRadioNothing.Left;
+  FRadioNothing.OnClick := RadioClick;
+  FRadioNothing.Caption := 'No default value';
+
   FRadioText := TRadioButton.Create(FPanel);
   FRadioText.Parent := FPanel;
-  FRadioText.Top := m;
+  FRadioText.Top := FRadioNothing.Top + FRadioNothing.Height + m;;
   FRadioText.Left := m;
   FRadioText.Width := FRadioText.Parent.Width - 2 * FRadioText.Left;
   FRadioText.OnClick := RadioClick;
@@ -1028,6 +1036,7 @@ begin
   FBtnCancel.Caption := 'Cancel';
 
   FPanel.Height := FBtnOk.Top + FBtnOk.Height + m;
+  FRadioNothing.Anchors := [akLeft, akTop, akRight];
   FRadioText.Anchors := [akLeft, akTop, akRight];
   FMemoText.Anchors := [akLeft, akTop, akRight, akBottom];
   FRadioNull.Anchors := [akLeft, akBottom, akRight];
@@ -1052,6 +1061,7 @@ begin
   inherited PrepareEdit(Tree, Node, Column);
 
   case DefaultType of
+    cdtNothing: FRadioNothing.Checked := True;
     cdtText, cdtTextUpdateTS: begin
       FRadioText.Checked := True;
       FMemoText.Text := DefaultText;
@@ -1080,7 +1090,8 @@ begin
   Result := not FStopping;
   if Result then begin
     FPanel.Show;
-    if FRadioText.Checked then FRadioText.SetFocus
+    if FRadioNothing.Checked then FRadioNothing.SetFocus
+    else if FRadioText.Checked then FRadioText.SetFocus
     else if FRadioNull.Checked then FRadioNull.SetFocus
     else if FRadioCurTS.Checked then FRadioCurTS.SetFocus
     else if FRadioAutoInc.Checked then FRadioAutoInc.SetFocus;
@@ -1096,7 +1107,9 @@ begin
   Result := not FStopping;
   if Result then begin
     FStopping := True;
-    if FRadioText.Checked and FCheckCurTS.Checked then
+    if FRadioNothing.Checked then
+      newDefaultType := cdtNothing
+    else if FRadioText.Checked and FCheckCurTS.Checked then
       newDefaultType := cdtTextUpdateTS
     else if FRadioText.Checked then
       newDefaultType := cdtText
@@ -1114,6 +1127,7 @@ begin
       newDefaultType := cdtText;
 
     case newDefaultType of
+      cdtNothing: newText := '';
       cdtText, cdtTextUpdateTS: newText := FMemoText.Text;
       cdtNull, cdtNullUpdateTS: newText := 'NULL';
       cdtCurTS, cdtCurTSUpdateTS: newText := 'CURRENT_TIMESTAMP';
@@ -1134,6 +1148,7 @@ begin
     FMemoText.Color := clBtnFace
   else
     FMemoText.Color := clWindow;
+  FCheckCurTS.Enabled := not FRadioNothing.Checked;
 end;
 
 
@@ -1153,6 +1168,7 @@ end;
 function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: WideString): WideString;
 begin
   case DefaultType of
+    cdtNothing:        Result := '';
     cdtText:           Result := 'DEFAULT '+esc(Text);
     cdtTextUpdateTS:   Result := 'DEFAULT '+esc(Text)+' ON UPDATE CURRENT_TIMESTAMP';
     cdtNull:           Result := 'DEFAULT NULL';
