@@ -1045,7 +1045,7 @@ begin
   FRadioAutoInc.Anchors := [akLeft, akBottom, akRight];
   FBtnOk.Anchors := [akBottom, akRight];
   FBtnCancel.Anchors := FBtnOk.Anchors;
-  FPanel.Width := GetParentForm(FPanel).Canvas.TextWidth(FCheckCurTS.Caption) + 2*FCheckCurTS.Left + 16;
+  FPanel.Width := GetParentForm(FPanel).Canvas.TextWidth(FCheckCurTS.Caption) + 2*FCheckCurTS.Left + 24;
 end;
 
 
