@@ -79,6 +79,7 @@ type
     procedure updownPortChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint;
       Direction: TUpDownDirection);
     procedure editPortChange(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -88,6 +89,7 @@ type
     FOrgHost, FOrgUser, FOrgPassword: WideString;
     FOrgCompressed: Boolean;
     FOrgPort: Integer;
+    FWidthListSessions: Byte; // Percentage values
     function SelectedSession: String;
     procedure RefreshSessionList(RefetchRegistry: Boolean);
     procedure FinalizeModifications(var CanProceed: Boolean);
@@ -122,6 +124,7 @@ begin
   // Fix GUI stuff
   InheritFont(Font);
   SetWindowSizeGrip(Handle, True);
+  FWidthListSessions := Round(100 / ClientWidth * ListSessions.Width);
   Width := GetRegValue(REGNAME_SESSMNGR_WINWIDTH, Width);
   Height := GetRegValue(REGNAME_SESSMNGR_WINHEIGHT, Height);
   FixVT(ListSessions);
@@ -595,6 +598,27 @@ begin
     lblHelp.Visible := False;
     grpDetails.Visible := True;
   end;
+end;
+
+
+procedure Tconnform.FormResize(Sender: TObject);
+var
+  ButtonWidth: Integer;
+const
+  Margin = 6;
+begin
+  // Resize form - adjust width of both main components
+  ListSessions.Width := Round(ClientWidth / 100 * FWidthListSessions);
+  grpDetails.Left := 2 * ListSessions.Left + ListSessions.Width;
+  grpDetails.Width := ClientWidth - grpDetails.Left - Margin;
+  lblHelp.Left := grpDetails.Left;
+  ButtonWidth := Round((ListSessions.Width - 2 * Margin) / 3);
+  btnNew.Width := ButtonWidth;
+  btnSave.Width := ButtonWidth;
+  btnDelete.Width := ButtonWidth;
+  btnNew.Left := ListSessions.Left;
+  btnSave.Left := btnNew.Left + btnNew.Width + Margin;
+  btnDelete.Left := btnSave.Left + btnSave.Width + Margin;
 end;
 
 
