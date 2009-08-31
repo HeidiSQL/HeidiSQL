@@ -685,7 +685,7 @@ begin
       DefaultText := Props[4];
       DefaultType := GetColumnDefaultType(DefaultText);
       ColSpec := ColSpec + ' ' + GetColumnDefaultClause(DefaultType, DefaultText);
-      ColSpec := Trim(ColSpec); // Remove whitespace for columns without default value
+      ColSpec := TrimRight(ColSpec); // Remove whitespace for columns without default value
     end;
     if Props[5] <> '' then
       ColSpec := ColSpec + ' COMMENT '+esc(Props[5]);
@@ -793,7 +793,7 @@ begin
       DefaultText := ColProps[4];
       DefaultType := GetColumnDefaultType(DefaultText);
       Result := Result + ' ' + GetColumnDefaultClause(DefaultType, DefaultText);
-      Result := Trim(Result); // Remove whitespace for columns without default value
+      Result := TrimRight(Result); // Remove whitespace for columns without default value
     end;
     if ColProps[5] <> '' then
       Result := Result + ' COMMENT '+esc(ColProps[5]);
