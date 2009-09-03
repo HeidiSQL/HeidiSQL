@@ -99,6 +99,9 @@ type
     SubParts : TWideStringList;
   end;
 
+  // General purpose editing status flag
+  TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
+
 {$I const.inc}
 
   function implodestr(seperator: WideString; a: TWideStringList) :WideString;

@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, TntStdCtrls, ComCtrls, ToolWin, VirtualTrees, WideStrings,
   SynRegExpr, ActiveX, DB, ExtCtrls, ImgList, SynEdit, SynMemo, Menus, WideStrUtils,
-  Contnrs;
+  Contnrs, grideditlinks, mysql_structures, helpers;
 
 type
   TfrmTableEditor = class(TFrame)
@@ -85,7 +85,6 @@ type
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
     procedure btnRemoveColumnClick(Sender: TObject);
-    procedure listColumnsBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure listColumnsFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure btnHelpClick(Sender: TObject);
     procedure listColumnsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -161,21 +160,23 @@ type
     procedure btnRemoveForeignKeyClick(Sender: TObject);
     procedure listForeignKeysEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       var Allowed: Boolean);
+    procedure listColumnsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+      var InitialStates: TVirtualNodeInitStates);
+    procedure listColumnsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure listColumnsNodeMoved(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     { Private declarations }
     FModified: Boolean;
     FLoaded: Boolean;
     FAlterTableName: WideString;
     CreateCodeValid, AlterCodeValid: Boolean;
-    Columns, ColumnNames, ColumnsChanges,
+    FColumns: TObjectList;
     Indexes, OldIndexes,
     DeletedForeignKeys: TWideStringList;
     ForeignKeys: TObjectList;
-    procedure ColumnsChange(Sender: TObject);
     procedure IndexesChange(Sender: TObject);
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
-    procedure MoveFocusedColumn(NewIdx: Cardinal);
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
     procedure SetModified(Value: Boolean);
     procedure ResetModificationFlags;
@@ -195,7 +196,24 @@ type
     procedure Init(AlterTableName: WideString='');
   end;
 
-  // Helper object to manage foreign keys in a TObjectList 
+  // Column object, many of them in a TObjectList
+  TColumn = class(TObject)
+    Name, OldName: WideString;
+    DataType: TDatatype;
+    LengthSet: WideString;
+    Unsigned, AllowNull: Boolean;
+    DefaultType: TColumnDefaultType;
+    DefaultText: WideString;
+    Comment, Collation: WideString;
+    FStatus: TEditingStatus;
+    private
+      procedure SetStatus(Value: TEditingStatus);
+    public
+      property Status: TEditingStatus read FStatus write SetStatus;
+  end;
+  PColumn = ^TColumn;
+
+  // Helper object to manage foreign keys in a TObjectList
   TForeignKey = class(TObject)
     KeyName, ReferenceTable, OnUpdate, OnDelete: WideString;
     Columns, ForeignColumns: TWideStringList;
@@ -207,7 +225,7 @@ type
 
 implementation
 
-uses main, helpers, grideditlinks, mysql_structures;
+uses main;
 
 const
   PKEY = 'PRIMARY';
@@ -249,10 +267,7 @@ begin
   SynMemoCREATEcode.TabWidth := Mainform.SynMemoQuery.TabWidth;
   SynMemoCREATEcode.Font.Name := Mainform.SynMemoQuery.Font.Name;
   SynMemoCREATEcode.Font.Size := Mainform.SynMemoQuery.Font.Size;
-  Columns := TWideStringList.Create;
-  Columns.OnChange := ColumnsChange;
-  ColumnNames := TWideStringList.Create;
-  ColumnsChanges := TWideStringList.Create;
+  FColumns := TObjectList.Create;
   Indexes := TWideStringList.Create;
   Indexes.OnChange := IndexesChange;
   OldIndexes := TWideStringList.Create;
@@ -277,13 +292,12 @@ procedure TfrmTableEditor.Init(AlterTableName: WideString='');
 var
   ds: TDataset;
   Props: TWideStringlist;
+  Col: TColumn;
   IndexType: String;
   LastKeyName, CreateTable, engine, ColSpec: WideString;
   rx, rxCol: TRegExpr;
   i: Integer;
   InLiteral: Boolean;
-  ColDefaultType: TColumnDefaultType;
-  ColDefaultText: WideString;
   ForeignKey: TForeignKey;
 begin
   Mainform.showstatus('Initializing editor ...');
@@ -296,7 +310,8 @@ begin
   comboCollation.Items.Clear;
   Mainform.GetCollations(comboCollation.Items);
   FAlterTableName := AlterTableName;
-  Columns.Clear;
+  listColumns.BeginUpdate;
+  FColumns.Clear;
   btnClearIndexesClick(Self);
   btnClearForeignKeysClick(Self);
   tabALTERcode.TabVisible := FAlterTableName <> '';
@@ -343,26 +358,25 @@ begin
     else
       memoUnionTables.Clear;
 
-
-    listColumns.BeginUpdate;
     rx.ModifierS := False;
     rx.ModifierM := True;
     rx.Expression := '^\s+`([^`]+)`\s(\w+)(.*)';
     rxCol := TRegExpr.Create;
     rxCol.ModifierI := True;
     if rx.Exec(CreateTable) then while true do begin
-      Props := TWideStringlist.Create;
-      Props.OnChange := ColumnsChange;
-      // Create needed number of property columns
-      Props.CommaText := ',,,,,,';
       ColSpec := rx.Match[3];
 
       // Strip trailing comma
       if (ColSpec <> '') and (ColSpec[Length(ColSpec)] = ',') then
         Delete(ColSpec, Length(ColSpec), 1);
 
+      Col := TColumn.Create;
+      FColumns.Add(Col);
+      Col.Name := rx.Match[1];
+      Col.Status := esUntouched;
+
       // Datatype
-      Props[0] := UpperCase(rx.Match[2]);
+      Col.DataType := GetDatatypeByName(UpperCase(rx.Match[2]));
 
       // Length / Set
       // Various datatypes, e.g. BLOBs, don't have any length property
@@ -374,52 +388,52 @@ begin
           if ColSpec[i] = '''' then
             InLiteral := not InLiteral;
         end;
-        Props[1] := Copy(ColSpec, 2, i-2);
+        Col.LengthSet := Copy(ColSpec, 2, i-2);
         Delete(ColSpec, 1, i);
       end;
       ColSpec := Trim(ColSpec);
 
       // Unsigned
       if UpperCase(Copy(ColSpec, 1, 8)) = 'UNSIGNED' then begin
-        Props[2] := BoolToStr(True);
+        Col.Unsigned := True;
         Delete(ColSpec, 1, 9);
       end else
-        Props[2] := BoolToStr(False);
+        Col.Unsigned := False;
 
       // Collation
       rxCol.Expression := '^(CHARACTER SET \w+\s+)?COLLATE (\w+)\b';
       if rxCol.Exec(ColSpec) then begin
-        Props[6] := rxCol.Match[2];
+        Col.Collation := rxCol.Match[2];
         Delete(ColSpec, 1, rxCol.MatchLen[0]+1);
       end;
 
       // Allow NULL
       if UpperCase(Copy(ColSpec, 1, 8)) = 'NOT NULL' then begin
-        Props[3] := BoolToStr(False);
+        Col.AllowNull := False;
         Delete(ColSpec, 1, 9);
       end else begin
-        Props[3] := BoolToStr(True);
+        Col.AllowNull := True;
         // Sporadically there is a "NULL" found at this position.
         if UpperCase(Copy(ColSpec, 1, 4)) = 'NULL' then
           Delete(ColSpec, 1, 5);
       end;
 
       // Default value
-      ColDefaultType := cdtNothing;
-      ColDefaultText := '';
+      Col.DefaultType := cdtNothing;
+      Col.DefaultText := '';
       if UpperCase(Copy(ColSpec, 1, 14)) = 'AUTO_INCREMENT' then begin
-        ColDefaultType := cdtAutoInc;
-        ColDefaultText := 'AUTO_INCREMENT';
+        Col.DefaultType := cdtAutoInc;
+        Col.DefaultText := 'AUTO_INCREMENT';
         Delete(ColSpec, 1, 15);
       end else if UpperCase(Copy(ColSpec, 1, 8)) = 'DEFAULT ' then begin
         Delete(ColSpec, 1, 8);
         if UpperCase(Copy(ColSpec, 1, 4)) = 'NULL' then begin
-          ColDefaultType := cdtNull;
-          ColDefaultText := 'NULL';
+          Col.DefaultType := cdtNull;
+          Col.DefaultText := 'NULL';
           Delete(ColSpec, 1, 5);
         end else if UpperCase(Copy(ColSpec, 1, 17)) = 'CURRENT_TIMESTAMP' then begin
-          ColDefaultType := cdtCurTS;
-          ColDefaultText := 'CURRENT_TIMESTAMP';
+          Col.DefaultType := cdtCurTS;
+          Col.DefaultText := 'CURRENT_TIMESTAMP';
           Delete(ColSpec, 1, 18);
         end else if ColSpec[1] = '''' then begin
           InLiteral := True;
@@ -429,23 +443,22 @@ begin
             else if not InLiteral then
               break;
           end;
-          ColDefaultType := cdtText;
-          ColDefaultText := Copy(ColSpec, 2, i-3);
+          Col.DefaultType := cdtText;
+          Col.DefaultText := Copy(ColSpec, 2, i-3);
           // A single quote gets escaped by single quote - remove the escape char - escaping is done in Save action afterwards
-          ColDefaultText := WideStringReplace(ColDefaultText, '''''', '''', [rfReplaceAll]);
+          Col.DefaultText := WideStringReplace(Col.DefaultText, '''''', '''', [rfReplaceAll]);
           Delete(ColSpec, 1, i);
         end;
       end;
       if UpperCase(Copy(ColSpec, 1, 27)) = 'ON UPDATE CURRENT_TIMESTAMP' then begin
         // Adjust default type
-        case ColDefaultType of
-          cdtText: ColDefaultType := cdtTextUpdateTS;
-          cdtNull: ColDefaultType := cdtNullUpdateTS;
-          cdtCurTS: ColDefaultType := cdtCurTSUpdateTS;
+        case Col.DefaultType of
+          cdtText: Col.DefaultType := cdtTextUpdateTS;
+          cdtNull: Col.DefaultType := cdtNullUpdateTS;
+          cdtCurTS: Col.DefaultType := cdtCurTSUpdateTS;
         end;
         Delete(ColSpec, 1, 28);
       end;
-      Props[4] := IntToStr(Integer(ColDefaultType)) + ColDefaultText;
 
       // Comment
       if UpperCase(Copy(ColSpec, 1, 9)) = 'COMMENT ''' then begin
@@ -456,17 +469,15 @@ begin
           else if not InLiteral then
             break;
         end;
-        Props[5] := Copy(ColSpec, 10, i-11);
-        Props[5] := WideStringReplace(Props[5], '''''', '''', [rfReplaceAll]);
+        Col.Comment := Copy(ColSpec, 10, i-11);
+        Col.Comment := WideStringReplace(Col.Comment, '''''', '''', [rfReplaceAll]);
         Delete(ColSpec, 1, i);
       end;
 
-      Columns.AddObject(rx.Match[1], Props);
       if not rx.ExecNext then
         break;
     end;
     FreeAndNil(rxCol);
-    listColumns.EndUpdate;
 
     // Detect foreign keys
     // CONSTRAINT `FK1` FOREIGN KEY (`which`) REFERENCES `fk1` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -513,8 +524,10 @@ begin
     FreeAndNil(ds);
 
   end;
+  listColumns.RootNodeCount := FColumns.Count;
+  ResetVTNodes(listColumns);
+  listColumns.EndUpdate;
   // Validate controls
-  ColumnsChange(Self);
   comboEngineSelect(comboEngine);
   ValidateColumnControls;
   ValidateIndexControls;
@@ -538,8 +551,9 @@ procedure TfrmTableEditor.btnSaveClick(Sender: TObject);
 var
   sql: WideString;
   i: Integer;
-  Props, Specs: TWideStringlist;
+  Specs: TWideStringlist;
   Key: TForeignKey;
+  Col: TColumn;
 begin
   // Create or alter table
   if FAlterTableName = '' then
@@ -568,13 +582,10 @@ begin
   Mainform.tabData.TabVisible := True;
   if chkCharsetConvert.Checked then begin
     // Autoadjust column collations
-    for i:=0 to Columns.Count-1 do begin
-      Props := TWideStringlist(Columns.Objects[i]);
-      if Props[6] <> '' then begin
-        Props.OnChange := nil;
-        Props[6] := comboCollation.Text;
-        Props.OnChange := ColumnsChange;
-      end;
+    for i:=0 to FColumns.Count-1 do begin
+      Col := FColumns[i] as TColumn;
+      if Col.Collation <> '' then
+        Col.Collation := comboCollation.Text;
     end;
   end;
   ResetModificationFlags;
@@ -587,6 +598,7 @@ var
   i: Integer;
   Parts: TWideStringlist;
   Key: TForeignKey;
+  Col: TColumn;
 begin
   // Enable converting data for an existing table
   chkCharsetConvertClick(comboCollation);
@@ -595,11 +607,16 @@ begin
   // Reset modification flags of TEdits and TMemos
   for i:=0 to ComponentCount-1 do
     Components[i].Tag := NotModifiedFlag;
-  // Reset name value pairs for column changes
-  ColumnNames.Clear;
-  ColumnsChanges.Clear;
-  for i:=0 to Columns.Count-1 do
-    ColumnNames.Add(Columns[i] + ColumnNames.NameValueSeparator + Columns[i]);
+  // Reset column changes
+  for i:=FColumns.Count-1 downto 0 do begin
+    Col := FColumns[i] as TColumn;
+    if Col.Status = esDeleted then
+      FColumns.Delete(i)
+    else begin
+      Col.Status := esUntouched;
+      Col.OldName := '';
+    end;
+  end;
   // Copy index list so we have one to work with and one which can later be used to detect changes
   OldIndexes.Clear;
   for i:=0 to Indexes.Count-1 do begin
@@ -619,14 +636,14 @@ end;
 
 function TfrmTableEditor.ComposeAlterStatement: WideString;
 var
-  Specs, Props, IndexesComposed, OldIndexesComposed: TWideStringlist;
-  ColSpec, IndexSQL, DefaultText: WideString;
-  i, j: Integer;
-  AddIt, DropIt: Boolean;
-  dt: TDatatype;
-  DefaultType: TColumnDefaultType;
+  Specs, IndexesComposed, OldIndexesComposed: TWideStringlist;
+  ColSpec, OldColName, IndexSQL: WideString;
+  i: Integer;
+  DropIt: Boolean;
   ds: TDataset;
   Key: TForeignKey;
+  Col: TColumn;
+  Node, PreviousNode: PVirtualNode;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
   Mainform.showstatus('Composing ALTER statement ...');
@@ -666,59 +683,68 @@ begin
   end;
 
   // Update columns
-  EnableProgressBar(Columns.Count + OldIndexes.Count + Indexes.Count);
-  for i:=0 to Columns.Count - 1 do begin
+  EnableProgressBar(FColumns.Count + OldIndexes.Count + Indexes.Count);
+  for i:=0 to FColumns.Count - 1 do begin
     Mainform.ProgressBarStatus.StepIt;
-    AddIt := True;
-    ColSpec := ' ' + Mainform.mask(Columns[i]);
-    Props := TWideStringlist(Columns.Objects[i]);
-    ColSpec := ColSpec + ' ' +Props[0];
-    if Props[1] <> '' then
-      ColSpec := ColSpec + '(' + Props[1] + ')';
-    dt := GetDatatypeByName(Props[0]);
-    if dt.HasUnsigned and StrToBool(Props[2]) then
-      ColSpec := ColSpec + ' UNSIGNED';
-    if not StrToBool(Props[3]) then
-      ColSpec := ColSpec + ' NOT';
-    ColSpec := ColSpec + ' NULL';
-    if Props[4] <> '' then begin
-      DefaultText := Props[4];
-      DefaultType := GetColumnDefaultType(DefaultText);
-      ColSpec := ColSpec + ' ' + GetColumnDefaultClause(DefaultType, DefaultText);
-      ColSpec := TrimRight(ColSpec); // Remove whitespace for columns without default value
-    end;
-    if Props[5] <> '' then
-      ColSpec := ColSpec + ' COMMENT '+esc(Props[5]);
-    if Props[6] <> '' then begin
-      ColSpec := ColSpec + ' COLLATE ';
-      if chkCharsetConvert.Checked then
-        ColSpec := ColSpec + comboCollation.Text
-      else
-        ColSpec := ColSpec + Props[6];
-    end;
-    // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
-    if Mainform.mysql_version >= 40001 then begin
-      if i = 0 then
-        ColSpec := ColSpec + ' FIRST'
-      else
-        ColSpec := ColSpec + ' AFTER '+Mainform.mask(Columns[i-1]);
-    end;
-    for j:=0 to ColumnNames.Count - 1 do begin
-      if ColumnNames.ValueFromIndex[j] = Columns[i] then begin
-        AddIt := False;
-        // Only touch column if it was changed
-        if ColumnsChanges.IndexOf(Columns[i]) > -1 then
-          Specs.Add('CHANGE COLUMN '+Mainform.mask(ColumnNames.Names[j]) + ColSpec);
-        break;
+    Col := FColumns[i] as TColumn;
+    case Col.Status of
+      esUntouched, esAddedDeleted: Continue;
+      esDeleted: begin
+        // Delete columns
+        OldColName := Col.OldName;
+        if OldColName = '' then
+          OldColName := Col.Name;
+        Specs.Add('DROP COLUMN '+Mainform.mask(OldColName));
+        Continue;
+      end;
+      else begin
+        ColSpec := Mainform.mask(Col.Name);
+        ColSpec := ColSpec + ' ' + Col.DataType.Name;
+        if Col.LengthSet <> '' then
+          ColSpec := ColSpec + '(' + Col.LengthSet + ')';
+        if Col.DataType.HasUnsigned and Col.Unsigned then
+          ColSpec := ColSpec + ' UNSIGNED';
+        if not Col.AllowNull then
+          ColSpec := ColSpec + ' NOT';
+        ColSpec := ColSpec + ' NULL';
+        if Col.DefaultType <> cdtNothing then begin
+          ColSpec := ColSpec + ' ' + GetColumnDefaultClause(Col.DefaultType, Col.DefaultText);
+          ColSpec := TrimRight(ColSpec); // Remove whitespace for columns without default value
+        end;
+        if Col.Comment <> '' then
+          ColSpec := ColSpec + ' COMMENT '+esc(Col.Comment);
+        if Col.Collation <> '' then begin
+          ColSpec := ColSpec + ' COLLATE ';
+          if chkCharsetConvert.Checked then
+            ColSpec := ColSpec + comboCollation.Text
+          else
+            ColSpec := ColSpec + Col.Collation;
+        end;
+        // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
+        if Mainform.mysql_version >= 40001 then begin
+          // Find position in list
+          Node := listColumns.GetFirst;
+          PreviousNode := nil;
+          while Assigned(Node) do begin
+            if listColumns.Text[Node, 1] = Col.Name then
+              break;
+            PreviousNode := Node;
+            Node := listColumns.GetNextSibling(Node);
+          end;
+          if not Assigned(PreviousNode) then
+            ColSpec := ColSpec + ' FIRST'
+          else
+            ColSpec := ColSpec + ' AFTER '+Mainform.mask(listColumns.Text[PreviousNode, 1]);
+        end;
+        if Col.Status = esModified then begin
+          OldColName := Col.OldName;
+          if OldColName = '' then
+            OldColName := Col.Name;
+          Specs.Add('CHANGE COLUMN '+Mainform.mask(OldColName) + ' ' + ColSpec);
+        end else if Col.Status in [esAddedUntouched, esAddedModified] then
+          Specs.Add('ADD COLUMN ' + ColSpec);
       end;
     end;
-    if AddIt then
-      Specs.Add('ADD COLUMN '+ColSpec);
-  end;
-  // Delete columns
-  for i:=0 to ColumnNames.Count-1 do begin
-    if ColumnNames.ValueFromIndex[i] = '' then
-      Specs.Add('DROP COLUMN '+Mainform.mask(ColumnNames.Names[i]));
   end;
 
   // Prepare ADD INDEX ... clauses once so we don't call GetIndexSQL() too often
@@ -771,35 +797,33 @@ end;
 function TfrmTableEditor.ComposeCreateStatement: WideString;
 var
   i, IndexCount: Integer;
-  ColProps: TWideStringlist;
-  dt: TDatatype;
-  DefaultType: TColumnDefaultType;
-  DefaultText, tmp: WideString;
+  Col: PColumn;
+  Node: PVirtualNode;
+  tmp: WideString;
 begin
   // Compose CREATE query, called by buttons and for SQL code tab
   Result := 'CREATE TABLE '+Mainform.mask(editName.Text)+' ('+CRLF;
-  for i:=0 to Columns.Count - 1 do begin
-    ColProps := TWideStringlist(Columns.Objects[i]);
-    Result := Result + #9 + Mainform.mask(Columns[i]) + ' ' +ColProps[0];
-    if ColProps[1] <> '' then
-      Result := Result + '(' + ColProps[1] + ')';
-    dt := GetDatatypeByName(ColProps[0]);
-    if dt.HasUnsigned and StrToBool(ColProps[2]) then
+  Node := listColumns.GetFirst;
+  while Assigned(Node) do begin
+    Col := listColumns.GetNodeData(Node);
+    Result := Result + #9 + Mainform.mask(Col.Name) + ' ' +Col.DataType.Name;
+    if Col.LengthSet <> '' then
+      Result := Result + '(' + Col.LengthSet + ')';
+    if Col.DataType.HasUnsigned and Col.Unsigned then
       Result := Result + ' UNSIGNED';
-    if not StrToBool(ColProps[3]) then
+    if not Col.AllowNull then
       Result := Result + ' NOT';
     Result := Result + ' NULL';
-    if ColProps[4] <> '' then begin
-      DefaultText := ColProps[4];
-      DefaultType := GetColumnDefaultType(DefaultText);
-      Result := Result + ' ' + GetColumnDefaultClause(DefaultType, DefaultText);
+    if Col.DefaultType <> cdtNothing then begin
+      Result := Result + ' ' + GetColumnDefaultClause(Col.DefaultType, Col.DefaultText);
       Result := TrimRight(Result); // Remove whitespace for columns without default value
     end;
-    if ColProps[5] <> '' then
-      Result := Result + ' COMMENT '+esc(ColProps[5]);
-    if ColProps[6] <> '' then
-      Result := Result + ' COLLATE '+ColProps[6];
+    if Col.Comment <> '' then
+      Result := Result + ' COMMENT '+esc(Col.Comment);
+    if Col.Collation <> '' then
+      Result := Result + ' COLLATE '+Col.Collation;
     Result := Result + ','+CRLF;
+    Node := listColumns.GetNextSibling(Node);
   end;
 
   IndexCount := 0;
@@ -814,7 +838,7 @@ begin
   for i:=0 to ForeignKeys.Count-1 do
     Result := Result + #9 + GetForeignKeySQL(i) + ','+CRLF;
 
-  if Columns.Count + IndexCount + ForeignKeys.Count > 0 then
+  if Integer(listColumns.RootNodeCount) + IndexCount + ForeignKeys.Count > 0 then
     Delete(Result, Length(Result)-2, 3);
 
   Result := Result + CRLF + ')' + CRLF;
@@ -932,53 +956,80 @@ end;
 
 procedure TfrmTableEditor.btnAddColumnClick(Sender: TObject);
 var
-  DefProperties, Properties: TWideStringList;
+  NewCol: TColumn;
+  FocusedCol: PColumn;
   fn: PVirtualNode;
   idx: Integer;
 begin
   // Add new column after selected one
   fn := listColumns.FocusedNode;
-  Properties := TWideStringList.Create;
-  Properties.OnChange := ColumnsChange;
+  NewCol := TColumn.Create;
   if Assigned(fn) then begin
     idx := fn.Index+1;
     // Copy properties from focused node
-    DefProperties := TWideStringlist(Columns.Objects[fn.Index]);
-    Properties.Assign(DefProperties);
+    FocusedCol := listColumns.GetNodeData(fn);
+    NewCol.DataType := FocusedCol.DataType;
+    NewCol.LengthSet := FocusedCol.LengthSet;
+    NewCol.Unsigned := FocusedCol.Unsigned;
+    NewCol.AllowNull := FocusedCol.AllowNull;
+    NewCol.DefaultType := FocusedCol.DefaultType;
+    NewCol.DefaultText := FocusedCol.DefaultText;
+    NewCol.Comment := FocusedCol.Comment;
+    NewCol.Collation := FocusedCol.Collation;
   end else begin
-    idx := Columns.Count;
-    Properties.CommaText := 'INT,10,'+BoolToStr(False)+','+BoolToStr(True)+','+IntToStr(Integer(cdtNothing))+',,';
+    idx := FColumns.Count;
+    NewCol.DataType := GetDatatypeByName('INT');
+    NewCol.LengthSet := '10';
+    NewCol.Unsigned := False;
+    NewCol.AllowNull := True;
+    NewCol.DefaultType := cdtNothing;
+    NewCol.DefaultText := '';
+    NewCol.Comment := '';
+    NewCol.Collation := '';
   end;
-  Columns.InsertObject(idx, 'Column '+IntToStr(idx+1), Properties);
+  NewCol.Name := 'Column '+IntToStr(idx+1);
+  FColumns.Add(NewCol);
+  NewCol.Status := esAddedUntouched;
+  listColumns.InsertNode(fn, amInsertAfter, @NewCol);
   SelectNode(listColumns, idx);
+  ValidateColumnControls;
   listColumns.EditNode(listColumns.FocusedNode, 1);
 end;
 
 
 procedure TfrmTableEditor.btnRemoveColumnClick(Sender: TObject);
 var
-  i, FocusIndex: Integer;
-  SelCols: TWideStringList;
+  Node, NodeFocus: PVirtualNode;
+  Col: PColumn;
 begin
   // Remove selected column(s)
-  SelCols := GetVTCaptions(listColumns, true, 1);
-  // Remember focused node index
-  if Assigned(listColumns.FocusedNode) then
-    FocusIndex := listColumns.FocusedNode.Index
-  else
-    FocusIndex := listColumns.GetFirstSelected.Index;
-
-  // Set empty value for name=val column name pairs
-  for i:=0 to ColumnNames.Count-1 do begin
-    if SelCols.IndexOf(ColumnNames.ValueFromIndex[i]) > -1 then begin
-      ColumnNames[i] := ColumnNames.Names[i] + ColumnNames.NameValueSeparator;
+  Node := listColumns.GetFirstSelected;
+  while Assigned(Node) do begin
+    Col := listColumns.GetNodeData(Node);
+    if Col.OldName <> '' then begin
+      Col.Name := Col.OldName;
+      Col.OldName := '';
     end;
+    Col.Status := esDeleted;
+    Node := listColumns.GetNextSelected(Node);
   end;
-  for i:=0 to SelCols.Count-1 do begin
-    Columns.Delete(Columns.IndexOf(SelCols[i]));
+  // Find next unselected node for new focus
+  Node := listColumns.FocusedNode;
+  NodeFocus := nil;
+  while Assigned(Node) do begin
+    if not (vsSelected in Node.States) then begin
+      NodeFocus := Node;
+      break;
+    end;
+    Node := listColumns.GetNextSibling(Node);
   end;
-  if Columns.Count > 0 then
-    SelectNode(listColumns, Min(FocusIndex, Columns.Count-1));
+
+  listColumns.DeleteSelectedNodes;
+
+  if not Assigned(NodeFocus) then
+    NodeFocus := listColumns.GetLast;
+  if Assigned(NodeFocus) then
+    SelectNode(listColumns, NodeFocus.Index);
   ValidateColumnControls;
 end;
 
@@ -986,14 +1037,16 @@ end;
 procedure TfrmTableEditor.btnMoveUpColumnClick(Sender: TObject);
 begin
   // Move column up
-  MoveFocusedColumn(listColumns.FocusedNode.Index-1);
+  listColumns.MoveTo(listColumns.FocusedNode, listColumns.GetPreviousSibling(listColumns.FocusedNode), amInsertBefore, False);
+  ValidateColumnControls;
 end;
 
 
 procedure TfrmTableEditor.btnMoveDownColumnClick(Sender: TObject);
 begin
   // Move column down
-  MoveFocusedColumn(listColumns.FocusedNode.Index+1);
+  listColumns.MoveTo(listColumns.FocusedNode, listColumns.GetNextSibling(listColumns.FocusedNode), amInsertAfter, False);
+  ValidateColumnControls;
 end;
 
 
@@ -1012,10 +1065,17 @@ procedure TfrmTableEditor.listColumnsDragDrop(Sender: TBaseVirtualTree;
   Shift: TShiftState; Pt: TPoint; var Effect: Integer; Mode: TDropMode);
 var
   Node: PVirtualNode;
+  AttachMode: TVTNodeAttachMode;
 begin
   Node := Sender.GetNodeAt(Pt.X, Pt.Y);
-  if Assigned(Node) then
-    MoveFocusedColumn(Node.Index);
+  if Assigned(Node) then begin
+    case Mode of
+      dmAbove, dmOnNode: AttachMode := amInsertBefore;
+      else AttachMode := amInsertAfter;
+    end;
+    listColumns.MoveTo(listColumns.FocusedNode, Node, AttachMode, False);
+    ValidateColumnControls;
+  end;
 end;
 
 
@@ -1036,36 +1096,21 @@ procedure TfrmTableEditor.listColumnsAfterCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellRect: TRect);
 var
-  Props: TWideStringlist;
+  Col: PColumn;
   ImageIndex, X, Y: Integer;
   VT: TVirtualStringTree;
 begin
   // Paint checkbox image in certain columns
   // while restricting "Allow NULL" checkbox to numeric datatypes
   if (Column in [4, 5]) and CellEditingAllowed(Node, Column) then begin
-    Props := TWideStringlist(Columns.Objects[Node.Index]);
-    if StrToBool(Props[Column-2]) then ImageIndex := 128
+    Col := Sender.GetNodeData(Node);
+    if (Col.Unsigned and (Column=4)) or (Col.AllowNull and (Column=5)) then ImageIndex := 128
     else ImageIndex := 127;
     VT := TVirtualStringTree(Sender);
     X := CellRect.Left + (VT.Header.Columns[Column].Width div 2) - (VT.Images.Width div 2);
     Y := CellRect.Top + Integer(VT.NodeHeight[Node] div 2) - (VT.Images.Height div 2);
     VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
   end;
-end;
-
-
-procedure TfrmTableEditor.listColumnsBeforePaint(Sender: TBaseVirtualTree;
-  TargetCanvas: TCanvas);
-var
-  VT: TVirtualStringTree;
-  OldNodeCount: Cardinal;
-begin
-  // (Re)paint column list. Adjust number of nodes and autofit both counter and name column.
-  VT := Sender as TVirtualStringTree;
-  OldNodeCount := VT.RootNodeCount;
-  VT.RootNodeCount := Columns.Count;
-  if OldNodeCount <> VT.RootNodeCount then
-    VT.Header.AutoFitColumns(False, smaUseColumnOption, 0, 1);
 end;
 
 
@@ -1101,16 +1146,14 @@ end;
 
 function TfrmTableEditor.CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
-  Props: TWideStringlist;
-  dt: TDatatype;
+  Col: PColumn;
 begin
-  Props := TWideStringlist(Columns.Objects[Node.Index]);
-  dt := GetDatatypeByName(Props[0]);
+  Col := listColumns.GetNodeData(Node);
   case Column of
     // No editor for very first column and checkbox columns
     0: Result := False;
-    3: Result := dt.HasLength;
-    4: Result := dt.HasUnsigned;
+    3: Result := Col.DataType.HasLength;
+    4: Result := Col.DataType.HasUnsigned;
     // No editing of collation allowed if "Convert data" was checked
     8: Result := not chkCharsetConvert.Checked;
     else Result := True;
@@ -1122,22 +1165,41 @@ procedure TfrmTableEditor.listColumnsGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
   var CellText: WideString);
 var
-  Properties: TWideStringList;
+  Col: PColumn;
 begin
   // Display column text
+  Col := Sender.GetNodeData(Node);
   case Column of
     0: CellText := IntToStr(Node.Index+1);
-    1: CellText := Columns[Node.Index];
+    1: CellText := Col.Name;
+    2: CellText := Col.DataType.Name;
+    3: CellText := Col.LengthSet;
     4, 5: CellText := ''; // Checkbox
-    else begin
-      Properties := TWideStringList(Columns.Objects[Node.Index]);
-      CellText := Properties[Column-2];
-      if (Column = 8) and (CellText <> '') and (chkCharsetConvert.Checked) then
+    6: case Col.DefaultType of
+      cdtNothing:                 CellText := '';
+      cdtText, cdtTextUpdateTS:   CellText := Col.DefaultText;
+      cdtNull, cdtNullUpdateTS:   CellText := 'NULL';
+      cdtCurTS, cdtCurTSUpdateTS: CellText := 'CURRENT_TIMESTAMP';
+      cdtAutoInc:                 CellText := 'AUTO_INCREMENT';
+    end;
+    7: CellText := Col.Comment;
+    8: begin
+      CellText := Col.Collation;
+      if (CellText <> '') and (chkCharsetConvert.Checked) then
         CellText := comboCollation.Text;
     end;
   end;
-  if Column = 6 then
-    CellText := Copy(CellText, 2, Length(CellText)-1);
+end;
+
+
+procedure TfrmTableEditor.listColumnsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+  var InitialStates: TVirtualNodeInitStates);
+var
+  Col: PColumn;
+begin
+  // Bind data to node
+  Col := Sender.GetNodeData(Node);
+  Col^ := FColumns[Node.Index] as TColumn;
 end;
 
 
@@ -1148,14 +1210,16 @@ var
   IndexName, IndexType: WideString;
   Props: TWideStringlist;
   i: Integer;
+  Col: PColumn;
 begin
   // Primary key icon
   if Column <> 0 then Exit;
+  Col := Sender.GetNodeData(Node);
 
   for i:=0 to Indexes.Count-1 do begin
     GetIndexInfo(i, IndexName, IndexType);
     Props := TWideStringlist(Indexes.Objects[i]);
-    if Props.IndexOf(Columns[Node.Index]) > -1 then begin
+    if Props.IndexOf(Col.Name) > -1 then begin
       if IndexType = PKEY then ImageIndex := ICONINDEX_PRIMARYKEY
       else if IndexType = UKEY then ImageIndex := ICONINDEX_UNIQUEKEY
       else if IndexType = KEY then ImageIndex := ICONINDEX_INDEXKEY
@@ -1169,22 +1233,27 @@ begin
 end;
 
 
+procedure TfrmTableEditor.listColumnsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+begin
+  NodeDataSize := SizeOf(TColumn);
+end;
+
+
 procedure TfrmTableEditor.listColumnsPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
 var
-  Default: WideString;
   TextColor: TColor;
-  dt: TDatatype;
-  Props: TWideStringlist;
   i: Integer;
   IndexName, IndexType: WideString;
+  Col: PColumn;
 begin
+  Col := Sender.GetNodeData(Node);
   // Bold font for primary key columns
   for i:=0 to Indexes.Count-1 do begin
     GetIndexInfo(i, IndexName, IndexType);
     if IndexType = PKEY then begin
-      if TWideStringlist(Indexes.Objects[i]).IndexOf(Columns[Node.Index]) > -1 then
+      if TWideStringlist(Indexes.Objects[i]).IndexOf(Col.Name) > -1 then
         TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
       break;
     end;
@@ -1196,14 +1265,11 @@ begin
   if not (Column in [2, 6]) then Exit;
 
   // Give datatype column specific color, as set in preferences
-  Props := TWideStringlist(Columns.Objects[Node.Index]);
-  dt := GetDatatypeByName(Props[0]);
-  Default := Props[4];
   TextColor := TargetCanvas.Font.Color;
   case Column of
-    2: TextColor := DatatypeCategories[Integer(dt.Category)].Color;
+    2: TextColor := DatatypeCategories[Integer(Col.DataType.Category)].Color;
 
-    6: case GetColumnDefaultType(Default) of
+    6: case Col.DefaultType of
       cdtNull, cdtNullUpdateTS:
         TextColor := clGray;
       cdtCurTS, cdtCurTSUpdateTS:
@@ -1219,76 +1285,88 @@ end;
 procedure TfrmTableEditor.listColumnsNewText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
 var
-  Properties: TWideStringList;
-  idx, i: Integer;
-  dt: TDatatype;
+  i: Integer;
+  Col: PColumn;
 begin
   // Column property edited
-  if Column = 1 then begin
-    idx := Columns.IndexOf(NewText);
-    if (idx > -1) and (idx <> Integer(Node.Index)) then begin
-      MessageDlg('Column "'+NewText+'" already exists.', mtError, [mbOk], 0);
-      Sender.EditNode(Node, Column);
-      Exit;
-    end;
-
-    for i:=0 to ColumnNames.Count -1 do begin
-      if ColumnNames.ValueFromIndex[i] = Columns[Node.Index] then begin
-        ColumnNames.ValueFromIndex[i] := NewText;
-        break;
+  Col := Sender.GetNodeData(Node);
+  case Column of
+    1: begin
+      for i:=0 to FColumns.Count-1 do begin
+        if TColumn(FColumns[i]).Name = NewText then begin
+          MessageDlg('Column "'+NewText+'" already exists.', mtError, [mbOk], 0);
+          Exit;
+        end;
       end;
+      Col.OldName := Col.Name;
+      Col.Name := NewText;
     end;
-
-    ColumnsChanges.Add(NewText);
-    Columns[Node.Index] := NewText;
-  end else if Column > 1 then begin
-    ColumnsChanges.Add(Columns[Node.Index]);
-    Properties := TWideStringList(Columns.Objects[Node.Index]);
-    Properties[Column-2] := NewText;
-    if Column = 2 then begin
-      dt := GetDatatypeByName(NewText);
+    2: begin
+      Col.DataType := GetDatatypeByName(NewText);
       // Reset length/set for column types which don't support that
-      if not dt.HasLength then
-        Properties[1] := '';
+      if not Col.DataType.HasLength then
+        Col.LengthSet := '';
       // Suggest length/set if required
-      if dt.RequiresLength and (Properties[1] = '') then
-        Properties[1] := dt.DefLengthSet;
+      if Col.DataType.RequiresLength and (Col.LengthSet = '') then
+        Col.LengthSet := Col.DataType.DefLengthSet;
     end;
+    3: Col.LengthSet := NewText;
+    // 4 + 5 are checkboxes - handled in OnClick
+    6: begin
+      Col.DefaultText := NewText;
+      Col.DefaultType := GetColumnDefaultType(Col.DefaultText);
+    end;
+    7: Col.Comment := NewText;
+    8: Col.Collation := NewText;
   end;
+  Col.Status := esModified;
+end;
+
+
+procedure TfrmTableEditor.listColumnsNodeMoved(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+  Col: PColumn;
+begin
+  Col := Sender.GetNodeData(Node);
+  Col.Status := esModified;
 end;
 
 
 procedure TfrmTableEditor.listColumnsClick(Sender: TObject);
 var
   VT: TVirtualStringTree;
-  Props: TWideStringlist;
+  Col: PColumn;
   Click: THitInfo;
-  Default: WideString;
 begin
   // Handle click event
   VT := Sender as TVirtualStringTree;
   VT.GetHitTestInfoAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y, True, Click);
   if not Assigned(Click.HitNode) then
     Exit;
-  if Click.HitColumn in [4, 5] then begin
-    // For checkboxes, cell editors are disabled, instead toggle their state
-    Props := TWideStringList(Columns.Objects[Click.HitNode.Index]);
-    if CellEditingAllowed(Click.HitNode, Click.HitColumn) then begin
-      ColumnsChanges.Add(Columns[Click.HitNode.Index]);
-      Props[Click.HitColumn-2] := BoolToStr(not StrToBool(Props[Click.HitColumn-2]));
-      // Switch default value from NULL to Text if Allow Null is off
-      if (Click.HitColumn = 5) and (not StrToBool(Props[Click.HitColumn-2])) then begin
-        Default := Props[4];
-        if GetColumnDefaultType(Default) in [cdtNull, cdtNullUpdateTS] then
-          Props[4] := IntToStr(Integer(cdtText));
+  // For checkboxes, cell editors are disabled, instead toggle their state
+  if CellEditingAllowed(Click.HitNode, Click.HitColumn) then begin
+    Col := VT.GetNodeData(Click.HitNode);
+    case Click.HitColumn of
+      4: begin
+        Col.Unsigned := not Col.Unsigned;
+        Col.Status := esModified;
+        VT.InvalidateNode(Click.HitNode);
       end;
-      VT.InvalidateNode(Click.HitNode);
+      5: begin
+        Col.AllowNull := not Col.AllowNull;
+        // Switch default value from NULL to Text if Allow Null is off
+        if (not Col.AllowNull) and (Col.DefaultType in [cdtNull, cdtNullUpdateTS]) then
+          Col.DefaultType := cdtText;
+        Col.Status := esModified;
+        VT.InvalidateNode(Click.HitNode);
+      end;
+      else begin
+        // All other cells go into edit mode please
+        // Explicitely done on OnClick, not in OnFocusChanged which seemed annoying for keyboard users
+        if Assigned(Click.HitNode) and (Click.HitColumn > NoColumn) and (hiOnItemLabel in Click.HitPositions) then
+          VT.EditNode(Click.HitNode, Click.HitColumn);
+      end;
     end;
-  end else begin
-    // All other cells go into edit mode please
-    // Explicitely done on OnClick, not in OnFocusChanged which seemed annoying for keyboard users
-    if Assigned(Click.HitNode) and (Click.HitColumn > NoColumn) and (hiOnItemLabel in Click.HitPositions) then
-      VT.EditNode(Click.HitNode, Click.HitColumn);
   end;
 end;
 
@@ -1300,14 +1378,15 @@ var
   EnumEditor: TEnumEditorLink;
   DefaultEditor: TColumnDefaultEditorLink;
   DatatypeEditor: TDatatypeEditorLink;
-  Props: TWideStringlist;
+  Col: PColumn;
 begin
   // Start cell editor
   VT := Sender as TVirtualStringTree;
+  Col := Sender.GetNodeData(Node);
   case Column of
     2: begin // Datatype pulldown
       DatatypeEditor := TDatatypeEditorLink.Create(VT);
-      DatatypeEditor.Datatype := dtDateTime;
+      DatatypeEditor.Datatype := Col.DataType.Index;
       EditLink := DataTypeEditor;
       end;
     8: begin // Collation pulldown
@@ -1318,9 +1397,8 @@ begin
       end;
     6: begin
       DefaultEditor := TColumnDefaultEditorLink.Create(VT);
-      Props := TWideStringlist(Columns.Objects[Node.Index]);
-      DefaultEditor.DefaultText := Props[Column-2];
-      DefaultEditor.DefaultType := GetColumnDefaultType(DefaultEditor.DefaultText);
+      DefaultEditor.DefaultText := Col.DefaultText;
+      DefaultEditor.DefaultType := Col.DefaultType;
       EditLink := DefaultEditor;
     end
     else
@@ -1338,24 +1416,6 @@ begin
   CreateCodeValid := False;
   AlterCodeValid := False;
   UpdateSQLcode;
-end;
-
-
-procedure TfrmTableEditor.ColumnsChange(Sender: TObject);
-begin
-  Modification(Sender);
-  listColumns.Repaint;
-end;
-
-
-procedure TfrmTableEditor.MoveFocusedColumn(NewIdx: Cardinal);
-begin
-  if listColumns.IsEditing then
-    listColumns.EndEditNode;
-  listColumns.FocusedColumn := listColumns.Header.MainColumn;
-  ColumnsChanges.Add(Columns[listColumns.FocusedNode.Index]);
-  Columns.Move(listColumns.FocusedNode.Index, NewIdx);
-  SelectNode(listColumns, NewIdx);
 end;
 
 
@@ -1419,6 +1479,7 @@ var
   i, j, p: Integer;
   Col, NewCol: WideString;
   ColExists: Boolean;
+  Column: TColumn;
 begin
   // Add column to index
   Node := treeIndexes.FocusedNode;
@@ -1427,20 +1488,24 @@ begin
   if treeIndexes.GetNodeLevel(Node) = 1 then
     Node := Node.Parent;
   IndexParts := TWideStringlist(Indexes.Objects[Node.Index]);
+  // Find the first unused column for that index as default
   ColExists := False;
   NewCol := '';
-  for i:=0 to Columns.Count - 1 do begin
+  for i:=0 to FColumns.Count-1 do begin
+    Column := FColumns[i] as TColumn;
+    if Column.Status = esDeleted then
+      Continue;
     for j:=0 to IndexParts.Count - 1 do begin
       Col := IndexParts[j];
       p := LastPos('(', Col);
       if p > 0 then
         Col := Copy(Col, 0, p-1);
-      ColExists := Col = Columns[i];
+      ColExists := Col = Column.Name;
       if ColExists then
         break;
     end;
     if not ColExists then begin
-      NewCol := Columns[i];
+      NewCol := Column.Name;
       break;
     end;
   end;
@@ -1628,6 +1693,8 @@ var
   VT: TVirtualStringTree;
   EnumEditor: TEnumEditorLink;
   Level: Cardinal;
+  ColNode: PVirtualNode;
+  Col: PColumn;
 begin
   // Start cell editor
   VT := Sender as TVirtualStringTree;
@@ -1641,7 +1708,12 @@ begin
   end else if (Level = 1) and (Column = 0) then begin
     // Column names pulldown
     EnumEditor := TEnumEditorLink.Create(VT);
-    EnumEditor.ValueList := Columns;
+    ColNode := listColumns.GetFirst;
+    while Assigned(ColNode) do begin
+      Col := listColumns.GetNodeData(ColNode);
+      EnumEditor.ValueList.Add(Col.Name);
+      ColNode := listColumns.GetNext(ColNode);
+    end;
     EnumEditor.AllowCustomText := True; // Allows adding a subpart in index parts: "TextCol(20)"
     EditLink := EnumEditor;
   end else
@@ -1705,10 +1777,12 @@ var
   IndexParts: TWideStringlist;
   ColName: WideString;
   ColPos: Integer;
-  VT: TVirtualStringtree;
+  VT, SourceVT: TVirtualStringtree;
+  Col: PColumn;
 begin
   // Column node dropped here
   VT := Sender as TVirtualStringtree;
+  SourceVT := Source as TVirtualStringtree;
   Node := VT.GetNodeAt(Pt.X, Pt.Y);
   if not Assigned(Node) then begin
     MessageBeep(MB_ICONEXCLAMATION);
@@ -1725,7 +1799,8 @@ begin
     MoveFocusedIndexPart(ColPos)
   else begin
     IndexParts := TWideStringlist(Indexes.Objects[Node.Index]);
-    ColName := Columns[(Source as TVirtualStringTree).FocusedNode.Index];
+    Col := SourceVT.GetNodeData(SourceVT.FocusedNode);
+    ColName := Col.Name;
     if IndexParts.IndexOf(ColName) > -1 then begin
       if MessageDlg('Index "'+VT.Text[Node, 0]+'" already contains the column "'+ColName+'". It is possible to add a column twice into a index, but total nonsense in practice.'+CRLF+CRLF+'Add anyway?',
         mtConfirmation, [mbYes, mbNo], 0) = mrNo then
@@ -1839,6 +1914,7 @@ var
   ColumnsSelected: Boolean;
   IndexParts: TWideStringList;
   Node: PVirtualNode;
+  Col: PColumn;
 begin
   ColumnsSelected := ListColumns.SelectedCount > 0;
   menuAddToIndex.Clear;
@@ -1863,7 +1939,8 @@ begin
     IndexParts := TWideStringList(Indexes.Objects[i]);
     Node := listColumns.GetFirstSelected;
     while Assigned(Node) do begin
-      if IndexParts.IndexOf(Columns[Node.Index]) = -1 then begin
+      Col := listColumns.GetNodeData(Node);
+      if IndexParts.IndexOf(Col.Name) = -1 then begin
         Item.Enabled := True;
         Break;
       end;
@@ -2046,8 +2123,9 @@ var
   EnumEditor: TEnumEditorLink;
   SetEditor: TSetEditorLink;
   ds: TDataset;
-  i: Integer;
   Key: TForeignKey;
+  ColNode: PVirtualNode;
+  Col: PColumn;
 begin
   // Init grid editor in foreign key list
   VT := Sender as TVirtualStringTree;
@@ -2055,8 +2133,12 @@ begin
     0: EditLink := TInplaceEditorLink.Create(VT);
     1: begin
         SetEditor := TSetEditorLink.Create(VT);
-        for i:=0 to Columns.Count-1 do
-          SetEditor.ValueList.Add(Columns[i]);
+        ColNode := listColumns.GetFirst;
+        while Assigned(ColNode) do begin
+          Col := listColumns.GetNodeData(ColNode);
+          SetEditor.ValueList.Add(Col.Name);
+          ColNode := listColumns.GetNextSibling(ColNode);
+        end;
         EditLink := SetEditor;
       end;
     2: begin
@@ -2176,5 +2258,16 @@ begin
   FreeAndNil(ForeignColumns);
 end;
 
+procedure TColumn.SetStatus(Value: TEditingStatus);
+begin
+  // Set editing flag and enable "Save" button
+  if (FStatus = esAddedUntouched) and (Value = esModified) then
+    Value := esAddedModified
+  else if (FStatus in [esAddedUntouched, esAddedModified]) and (Value = esDeleted) then
+    Value := esAddedDeleted;
+  FStatus := Value;
+  if Value <> esUntouched then
+    Mainform.TableEditor.Modification(Self);
+end;
 
 end.
