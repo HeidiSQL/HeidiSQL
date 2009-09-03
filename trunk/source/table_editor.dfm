@@ -77,7 +77,6 @@ object frmTableEditor: TfrmTableEditor
     Header.Font.Style = []
     Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
     Images = MainForm.PngImageListMain
-    NodeDataSize = 0
     PopupMenu = popupColumns
     TabOrder = 2
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toFullRowDrag, toEditOnClick]
@@ -86,7 +85,6 @@ object frmTableEditor: TfrmTableEditor
     WantTabs = True
     OnAfterCellPaint = listColumnsAfterCellPaint
     OnBeforeCellPaint = listColumnsBeforeCellPaint
-    OnBeforePaint = listColumnsBeforePaint
     OnClick = listColumnsClick
     OnCreateEditor = listColumnsCreateEditor
     OnDragOver = listColumnsDragOver
@@ -96,7 +94,10 @@ object frmTableEditor: TfrmTableEditor
     OnGetText = listColumnsGetText
     OnPaintText = listColumnsPaintText
     OnGetImageIndex = listColumnsGetImageIndex
+    OnGetNodeDataSize = listColumnsGetNodeDataSize
+    OnInitNode = listColumnsInitNode
     OnNewText = listColumnsNewText
+    OnNodeMoved = listColumnsNodeMoved
     Columns = <
       item
         Alignment = taRightJustify
