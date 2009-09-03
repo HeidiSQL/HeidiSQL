@@ -8472,7 +8472,7 @@ begin
   if vt.Tag <> VTREE_NOTLOADED then
     Exit;
   Sel := GetVTCaptions(vt, True);
-  ResetVTNodes(vt);
+  DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
     ds := GetResults('SHOW VARIABLES');
@@ -8517,7 +8517,7 @@ begin
   if vt.Tag <> VTREE_NOTLOADED then
     Exit;
   Sel := GetVTCaptions(vt, True);
-  ResetVTNodes(vt);
+  DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
     ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
@@ -8587,7 +8587,7 @@ begin
   if vt.Tag <> VTREE_NOTLOADED then
     Exit;
   Sel := GetVTCaptions(vt, True);
-  ResetVTNodes(vt);
+  DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
     ds := GetResults('SHOW FULL PROCESSLIST', false, false);
@@ -8667,7 +8667,7 @@ begin
     Exit;
 
   Sel := GetVTCaptions(vt, True);
-  ResetVTNodes(vt);
+  DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
     ds := GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
