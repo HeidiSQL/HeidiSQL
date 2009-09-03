@@ -525,7 +525,7 @@ begin
 
   end;
   listColumns.RootNodeCount := FColumns.Count;
-  ResetVTNodes(listColumns);
+  DeInitializeVTNodes(listColumns);
   listColumns.EndUpdate;
   // Validate controls
   comboEngineSelect(comboEngine);

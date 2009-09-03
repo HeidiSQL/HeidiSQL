@@ -187,7 +187,7 @@ type
   function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
   function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
   function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
-  procedure ResetVTNodes(Sender: TBaseVirtualTree);
+  procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   procedure EnableProgressBar(MaxValue: Integer);
   function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
   function ListIndexByRegExpr(List: TWideStrings; Expression: WideString): Integer;
@@ -2916,7 +2916,7 @@ begin
 end;
 
 
-procedure ResetVTNodes(Sender: TBaseVirtualTree);
+procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
 var
   Node: PVirtualNode;
 begin
