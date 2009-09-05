@@ -9549,19 +9549,23 @@ end;
 
 procedure TMainForm.comboOnlyDBsExit(Sender: TObject);
 var
-  i: Integer;
+  i, idx: Integer;
   FilterText: WideString;
 begin
   // Add (move) custom filter text to (in) drop down history, if not empty
   FilterText := comboOnlyDBs.Text;
-  if FilterText <> '' then begin
-    i := comboOnlyDBs.Items.IndexOf(FilterText);
-    if i > -1 then
-      comboOnlyDBs.Items.Move(i, 0)
-    else
-      comboOnlyDBs.Items.Insert(0, FilterText);
-    comboOnlyDBs.Text := FilterText;
+  idx := -1;
+  for i:=0 to comboOnlyDBs.Items.Count-1 do begin
+    if comboOnlyDBs.Items[i] = FilterText then begin
+      idx := i;
+      break;
+    end;
   end;
+  if idx > -1 then
+    comboOnlyDBs.Items.Move(idx, 0)
+  else
+    comboOnlyDBs.Items.Insert(0, FilterText);
+  comboOnlyDBs.Text := FilterText;
 end;
 
 
