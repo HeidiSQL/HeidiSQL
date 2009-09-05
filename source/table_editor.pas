@@ -970,8 +970,14 @@ begin
     NewCol.LengthSet := FocusedCol.LengthSet;
     NewCol.Unsigned := FocusedCol.Unsigned;
     NewCol.AllowNull := FocusedCol.AllowNull;
-    NewCol.DefaultType := FocusedCol.DefaultType;
-    NewCol.DefaultText := FocusedCol.DefaultText;
+    // There can be only one
+    if FocusedCol.DefaultType = cdtAutoInc then begin
+      NewCol.DefaultType := cdtText;
+      NewCol.DefaultText := '0';
+    end else begin
+      NewCol.DefaultType := FocusedCol.DefaultType;
+      NewCol.DefaultText := FocusedCol.DefaultText;
+    end;
     NewCol.Comment := FocusedCol.Comment;
     NewCol.Collation := FocusedCol.Collation;
   end else begin
