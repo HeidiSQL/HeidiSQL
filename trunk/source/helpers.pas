@@ -192,7 +192,8 @@ type
   function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
   function ListIndexByRegExpr(List: TWideStrings; Expression: WideString): Integer;
   procedure RestoreSyneditStyles(Highlighter: TSynCustomHighlighter);
-  procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil);
+  procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
+  procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
   function DateBackFriendlyCaption(d: TDateTime): String;
   procedure InheritFont(AFont: TFont);
 var
@@ -2990,7 +2991,7 @@ begin
 end;
 
 
-procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil);
+procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
 var
   Node: PVirtualNode;
 begin
@@ -3007,6 +3008,14 @@ begin
       VT.Selected[Node] := False;
     Node := VT.GetNextSibling(Node);
   end;
+end;
+
+
+procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
+begin
+  VT.ClearSelection;
+  VT.FocusedNode := Node;
+  VT.Selected[Node] := True;
 end;
 
 
