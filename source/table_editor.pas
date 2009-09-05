@@ -642,8 +642,9 @@ var
   DropIt: Boolean;
   ds: TDataset;
   Key: TForeignKey;
-  Col: TColumn;
-  Node, PreviousNode: PVirtualNode;
+  Col, PreviousCol: PColumn;
+  ColObj: TColumn;
+  Node: PVirtualNode;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
   Mainform.showstatus('Composing ALTER statement ...');
@@ -684,66 +685,61 @@ begin
 
   // Update columns
   EnableProgressBar(FColumns.Count + OldIndexes.Count + Indexes.Count);
-  for i:=0 to FColumns.Count - 1 do begin
+  Node := listColumns.GetFirst;
+  PreviousCol := nil;
+  while Assigned(Node) do begin
     Mainform.ProgressBarStatus.StepIt;
-    Col := FColumns[i] as TColumn;
-    case Col.Status of
-      esUntouched, esAddedDeleted: Continue;
-      esDeleted: begin
-        // Delete columns
+    Col := listColumns.GetNodeData(Node);
+    if Col.Status <> esUntouched then begin
+      ColSpec := Mainform.mask(Col.Name);
+      ColSpec := ColSpec + ' ' + Col.DataType.Name;
+      if Col.LengthSet <> '' then
+        ColSpec := ColSpec + '(' + Col.LengthSet + ')';
+      if Col.DataType.HasUnsigned and Col.Unsigned then
+        ColSpec := ColSpec + ' UNSIGNED';
+      if not Col.AllowNull then
+        ColSpec := ColSpec + ' NOT';
+      ColSpec := ColSpec + ' NULL';
+      if Col.DefaultType <> cdtNothing then begin
+        ColSpec := ColSpec + ' ' + GetColumnDefaultClause(Col.DefaultType, Col.DefaultText);
+        ColSpec := TrimRight(ColSpec); // Remove whitespace for columns without default value
+      end;
+      if Col.Comment <> '' then
+        ColSpec := ColSpec + ' COMMENT '+esc(Col.Comment);
+      if Col.Collation <> '' then begin
+        ColSpec := ColSpec + ' COLLATE ';
+        if chkCharsetConvert.Checked then
+          ColSpec := ColSpec + comboCollation.Text
+        else
+          ColSpec := ColSpec + Col.Collation;
+      end;
+      // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
+      if Mainform.mysql_version >= 40001 then begin
+        if PreviousCol = nil then
+          ColSpec := ColSpec + ' FIRST'
+        else
+          ColSpec := ColSpec + ' AFTER '+Mainform.mask(PreviousCol.Name);
+      end;
+      if Col.Status = esModified then begin
         OldColName := Col.OldName;
         if OldColName = '' then
           OldColName := Col.Name;
-        Specs.Add('DROP COLUMN '+Mainform.mask(OldColName));
-        Continue;
-      end;
-      else begin
-        ColSpec := Mainform.mask(Col.Name);
-        ColSpec := ColSpec + ' ' + Col.DataType.Name;
-        if Col.LengthSet <> '' then
-          ColSpec := ColSpec + '(' + Col.LengthSet + ')';
-        if Col.DataType.HasUnsigned and Col.Unsigned then
-          ColSpec := ColSpec + ' UNSIGNED';
-        if not Col.AllowNull then
-          ColSpec := ColSpec + ' NOT';
-        ColSpec := ColSpec + ' NULL';
-        if Col.DefaultType <> cdtNothing then begin
-          ColSpec := ColSpec + ' ' + GetColumnDefaultClause(Col.DefaultType, Col.DefaultText);
-          ColSpec := TrimRight(ColSpec); // Remove whitespace for columns without default value
-        end;
-        if Col.Comment <> '' then
-          ColSpec := ColSpec + ' COMMENT '+esc(Col.Comment);
-        if Col.Collation <> '' then begin
-          ColSpec := ColSpec + ' COLLATE ';
-          if chkCharsetConvert.Checked then
-            ColSpec := ColSpec + comboCollation.Text
-          else
-            ColSpec := ColSpec + Col.Collation;
-        end;
-        // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
-        if Mainform.mysql_version >= 40001 then begin
-          // Find position in list
-          Node := listColumns.GetFirst;
-          PreviousNode := nil;
-          while Assigned(Node) do begin
-            if listColumns.Text[Node, 1] = Col.Name then
-              break;
-            PreviousNode := Node;
-            Node := listColumns.GetNextSibling(Node);
-          end;
-          if not Assigned(PreviousNode) then
-            ColSpec := ColSpec + ' FIRST'
-          else
-            ColSpec := ColSpec + ' AFTER '+Mainform.mask(listColumns.Text[PreviousNode, 1]);
-        end;
-        if Col.Status = esModified then begin
-          OldColName := Col.OldName;
-          if OldColName = '' then
-            OldColName := Col.Name;
-          Specs.Add('CHANGE COLUMN '+Mainform.mask(OldColName) + ' ' + ColSpec);
-        end else if Col.Status in [esAddedUntouched, esAddedModified] then
-          Specs.Add('ADD COLUMN ' + ColSpec);
-      end;
+        Specs.Add('CHANGE COLUMN '+Mainform.mask(OldColName) + ' ' + ColSpec);
+      end else if Col.Status in [esAddedUntouched, esAddedModified] then
+        Specs.Add('ADD COLUMN ' + ColSpec);
+    end;
+    PreviousCol := Col;
+    Node := listColumns.GetNextSibling(Node);
+  end;
+
+  // Deleted columns, not available as Node in above loop
+  for i:=0 to FColumns.Count-1 do begin
+    ColObj := FColumns[i] as TColumn;
+    if ColObj.Status = esDeleted then begin
+      OldColName := ColObj.OldName;
+      if OldColName = '' then
+        OldColName := ColObj.Name;
+      Specs.Add('DROP COLUMN '+Mainform.mask(OldColName));
     end;
   end;
 
@@ -958,7 +954,7 @@ procedure TfrmTableEditor.btnAddColumnClick(Sender: TObject);
 var
   NewCol: TColumn;
   FocusedCol: PColumn;
-  fn: PVirtualNode;
+  fn, NewNode: PVirtualNode;
   idx: Integer;
 begin
   // Add new column after selected one
@@ -977,7 +973,7 @@ begin
     NewCol.Comment := FocusedCol.Comment;
     NewCol.Collation := FocusedCol.Collation;
   end else begin
-    idx := FColumns.Count;
+    idx := listColumns.RootNodeCount;
     NewCol.DataType := GetDatatypeByName('INT');
     NewCol.LengthSet := '10';
     NewCol.Unsigned := False;
@@ -988,12 +984,12 @@ begin
     NewCol.Collation := '';
   end;
   NewCol.Name := 'Column '+IntToStr(idx+1);
-  FColumns.Add(NewCol);
+  FColumns.Insert(idx, NewCol);
+  NewNode := listColumns.InsertNode(fn, amInsertAfter, @NewCol);
   NewCol.Status := esAddedUntouched;
-  listColumns.InsertNode(fn, amInsertAfter, @NewCol);
-  SelectNode(listColumns, idx);
+  SelectNode(listColumns, NewNode);
   ValidateColumnControls;
-  listColumns.EditNode(listColumns.FocusedNode, 1);
+  listColumns.EditNode(NewNode, 1);
 end;
 
 
@@ -2261,7 +2257,7 @@ end;
 procedure TColumn.SetStatus(Value: TEditingStatus);
 begin
   // Set editing flag and enable "Save" button
-  if (FStatus = esAddedUntouched) and (Value = esModified) then
+  if (FStatus in [esAddedUntouched, esAddedModified]) and (Value = esModified) then
     Value := esAddedModified
   else if (FStatus in [esAddedUntouched, esAddedModified]) and (Value = esDeleted) then
     Value := esAddedDeleted;
