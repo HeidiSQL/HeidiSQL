@@ -81,6 +81,8 @@ type
     btnClearForeignKeys: TToolButton;
     listForeignKeys: TVirtualStringTree;
     lblNoForeignKeys: TLabel;
+    menuCopyColumnCell: TMenuItem;
+    N2: TMenuItem;
     procedure editNameChange(Sender: TObject);
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
