@@ -1969,7 +1969,6 @@ begin
   Item := (Sender as TMenuItem);
   NewParts := GetVTCaptions(listColumns, True, 1);
   if Item.Parent = menuCreateIndex then begin
-    NewName := 'Index '+IntToStr(Indexes.Count+1);
     // Remove auto hotkeys
     NewType := StringReplace(Item.Caption, '&', '', [rfReplaceAll]);
     // Avoid creating a second key with the same columns
@@ -1985,6 +1984,7 @@ begin
       end;
     end;
     NewParts.OnChange := IndexesChange;
+    NewName := ImplodeStr('_', NewParts);
     Indexes.AddObject(NewName+REGDELIM+NewType, NewParts);
     PageControlMain.ActivePage := tabIndexes;
     treeIndexes.Repaint;
