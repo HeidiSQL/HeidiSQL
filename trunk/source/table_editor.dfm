@@ -800,6 +800,12 @@ object frmTableEditor: TfrmTableEditor
     OnPopup = popupColumnsPopup
     Left = 312
     Top = 360
+    object menuCopyColumnCell: TMenuItem
+      Action = MainForm.actCopy
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
     object menuAddColumn: TMenuItem
       Caption = 'Add column'
       ImageIndex = 45
