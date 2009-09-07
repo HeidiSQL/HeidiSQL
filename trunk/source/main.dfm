@@ -338,958 +338,11 @@ object MainForm: TMainForm
       Cursor = crSizeWE
       ResizeStyle = rsUpdate
     end
-    object PageControlMain: TPageControl
-      Left = 173
-      Top = 0
-      Width = 583
-      Height = 357
-      ActivePage = tabHost
-      Align = alClient
-      HotTrack = True
-      Images = PngImageListMain
-      MultiLine = True
-      PopupMenu = popupMainTabs
-      TabHeight = 22
-      TabOrder = 1
-      OnChange = PageControlMainChange
-      OnMouseUp = PageControlMainMouseUp
-      object tabHost: TTabSheet
-        Caption = 'Host'
-        ImageIndex = 1
-        object PageControlHost: TPageControl
-          Left = 0
-          Top = 0
-          Width = 575
-          Height = 296
-          ActivePage = tabVariables
-          Align = alClient
-          HotTrack = True
-          TabOrder = 0
-          OnChange = PageControlHostChange
-          object tabVariables: TTabSheet
-            Caption = 'Variables'
-            object ListVariables: TVirtualStringTree
-              Left = 0
-              Top = 0
-              Width = 567
-              Height = 268
-              Align = alClient
-              DragOperations = []
-              Header.AutoSizeIndex = 1
-              Header.DefaultHeight = 17
-              Header.Height = 20
-              Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-              Header.ParentFont = True
-              Header.SortColumn = 0
-              HintMode = hmTooltip
-              Images = PngImageListMain
-              IncrementalSearch = isInitializedOnly
-              ParentShowHint = False
-              PopupMenu = popupHost
-              ShowHint = True
-              TabOrder = 0
-              TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
-              TreeOptions.MiscOptions = [toToggleOnDblClick]
-              TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
-              TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
-              OnAfterPaint = vstAfterPaint
-              OnBeforePaint = ListVariablesBeforePaint
-              OnCompareNodes = vstCompareNodes
-              OnDblClick = ListVariablesDblClick
-              OnFreeNode = vstFreeNode
-              OnGetText = vstGetText
-              OnGetImageIndex = vstGetImageIndex
-              OnGetHint = vstGetHint
-              OnGetNodeDataSize = vstGetNodeDataSize
-              OnHeaderClick = vstHeaderClick
-              OnInitNode = vstInitNode
-              Columns = <
-                item
-                  Position = 0
-                  Width = 160
-                  WideText = 'Variable'
-                end
-                item
-                  Position = 1
-                  Width = 403
-                  WideText = 'Value'
-                end>
-            end
-          end
-          object tabStatus: TTabSheet
-            Caption = 'Status'
-            object ListStatus: TVirtualStringTree
-              Left = 0
-              Top = 0
-              Width = 567
-              Height = 268
-              Align = alClient
-              DragOperations = []
-              Header.AutoSizeIndex = 1
-              Header.DefaultHeight = 17
-              Header.Height = 20
-              Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-              Header.ParentFont = True
-              Header.SortColumn = 0
-              HintMode = hmTooltip
-              Images = PngImageListMain
-              IncrementalSearch = isInitializedOnly
-              ParentShowHint = False
-              PopupMenu = popupHost
-              ShowHint = True
-              TabOrder = 0
-              TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
-              TreeOptions.MiscOptions = [toToggleOnDblClick]
-              TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
-              TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
-              OnAfterPaint = vstAfterPaint
-              OnBeforePaint = ListStatusBeforePaint
-              OnCompareNodes = vstCompareNodes
-              OnFreeNode = vstFreeNode
-              OnGetText = vstGetText
-              OnGetImageIndex = vstGetImageIndex
-              OnGetHint = vstGetHint
-              OnGetNodeDataSize = vstGetNodeDataSize
-              OnHeaderClick = vstHeaderClick
-              OnInitNode = vstInitNode
-              Columns = <
-                item
-                  Position = 0
-                  Width = 160
-                  WideText = 'Variable'
-                end
-                item
-                  Alignment = taRightJustify
-                  Position = 1
-                  Width = 203
-                  WideText = 'Value'
-                end
-                item
-                  Alignment = taRightJustify
-                  Position = 2
-                  Width = 100
-                  WideText = 'Avg per hour'
-                end
-                item
-                  Alignment = taRightJustify
-                  Position = 3
-                  Width = 100
-                  WideText = 'Avg per second'
-                end>
-            end
-          end
-          object tabProcessList: TTabSheet
-            Caption = 'Process-List'
-            ImageIndex = 1
-            object Splitter3: TSplitter
-              Left = 0
-              Top = 195
-              Width = 567
-              Height = 4
-              Cursor = crSizeNS
-              Align = alBottom
-              ResizeStyle = rsUpdate
-            end
-            object ListProcesses: TVirtualStringTree
-              Left = 0
-              Top = 0
-              Width = 567
-              Height = 195
-              Align = alClient
-              Header.AutoSizeIndex = 7
-              Header.DefaultHeight = 17
-              Header.Height = 20
-              Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-              Header.ParentFont = True
-              Header.SortColumn = 0
-              Header.SortDirection = sdDescending
-              HintMode = hmTooltip
-              Images = PngImageListMain
-              IncrementalSearch = isInitializedOnly
-              ParentShowHint = False
-              PopupMenu = popupHost
-              ShowHint = True
-              TabOrder = 0
-              TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
-              TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
-              TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
-              TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
-              OnAfterPaint = vstAfterPaint
-              OnBeforePaint = ListProcessesBeforePaint
-              OnCompareNodes = vstCompareNodes
-              OnFocusChanged = ListProcessesFocusChanged
-              OnFreeNode = vstFreeNode
-              OnGetText = vstGetText
-              OnGetImageIndex = vstGetImageIndex
-              OnGetHint = vstGetHint
-              OnGetNodeDataSize = vstGetNodeDataSize
-              OnHeaderClick = vstHeaderClick
-              OnInitNode = vstInitNode
-              Columns = <
-                item
-                  Alignment = taRightJustify
-                  Position = 0
-                  Width = 70
-                  WideText = 'id'
-                end
-                item
-                  Position = 1
-                  Width = 80
-                  WideText = 'User'
-                end
-                item
-                  Position = 2
-                  Width = 80
-                  WideText = 'Host'
-                end
-                item
-                  Position = 3
-                  Width = 80
-                  WideText = 'DB'
-                end
-                item
-                  Position = 4
-                  Width = 80
-                  WideText = 'Command'
-                end
-                item
-                  Position = 5
-                  WideText = 'Time'
-                end
-                item
-                  Position = 6
-                  WideText = 'State'
-                end
-                item
-                  Position = 7
-                  Width = 73
-                  WideText = 'Info'
-                end>
-            end
-            object pnlProcessViewBox: TPanel
-              Left = 0
-              Top = 199
-              Width = 567
-              Height = 69
-              Align = alBottom
-              BevelOuter = bvNone
-              TabOrder = 1
-              object pnlProcessView: TPanel
-                Left = 0
-                Top = 0
-                Width = 567
-                Height = 15
-                Align = alTop
-                Alignment = taLeftJustify
-                BevelOuter = bvNone
-                Caption = 'Process SQL:'
-                TabOrder = 0
-              end
-              object SynMemoProcessView: TSynMemo
-                Left = 0
-                Top = 15
-                Width = 567
-                Height = 54
-                SingleLineMode = False
-                Align = alClient
-                Font.Charset = DEFAULT_CHARSET
-                Font.Color = clWindowText
-                Font.Height = -13
-                Font.Name = 'Courier New'
-                Font.Style = []
-                TabOrder = 1
-                Gutter.AutoSize = True
-                Gutter.DigitCount = 2
-                Gutter.Font.Charset = DEFAULT_CHARSET
-                Gutter.Font.Color = clWindowText
-                Gutter.Font.Height = -11
-                Gutter.Font.Name = 'Courier New'
-                Gutter.Font.Style = []
-                Gutter.LeftOffset = 2
-                Gutter.ShowLineNumbers = True
-                Highlighter = SynSQLSyn1
-                Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
-                ReadOnly = True
-                RightEdge = 0
-                WordWrap = True
-              end
-            end
-          end
-          object tabCommandStats: TTabSheet
-            Caption = 'Command-Statistics'
-            ImageIndex = 2
-            object ListCommandStats: TVirtualStringTree
-              Left = 0
-              Top = 0
-              Width = 567
-              Height = 268
-              Align = alClient
-              Header.AutoSizeIndex = 4
-              Header.DefaultHeight = 17
-              Header.Height = 20
-              Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-              Header.ParentFont = True
-              Header.SortColumn = 1
-              Header.SortDirection = sdDescending
-              HintMode = hmTooltip
-              Images = PngImageListMain
-              IncrementalSearch = isInitializedOnly
-              ParentShowHint = False
-              PopupMenu = popupHost
-              ShowHint = True
-              TabOrder = 0
-              TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
-              TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
-              TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
-              TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
-              OnAfterPaint = vstAfterPaint
-              OnBeforeCellPaint = ListCommandStatsBeforeCellPaint
-              OnBeforePaint = ListCommandStatsBeforePaint
-              OnCompareNodes = vstCompareNodes
-              OnFreeNode = vstFreeNode
-              OnGetText = vstGetText
-              OnGetImageIndex = vstGetImageIndex
-              OnGetHint = vstGetHint
-              OnGetNodeDataSize = vstGetNodeDataSize
-              OnHeaderClick = vstHeaderClick
-              OnInitNode = vstInitNode
-              Columns = <
-                item
-                  Position = 0
-                  Width = 120
-                  WideText = 'Command-type'
-                end
-                item
-                  Alignment = taRightJustify
-                  Position = 1
-                  Width = 100
-                  WideText = 'Total count'
-                end
-                item
-                  Alignment = taRightJustify
-                  Position = 2
-                  Width = 100
-                  WideText = 'Average per hour'
-                end
-                item
-                  Alignment = taRightJustify
-                  Position = 3
-                  Width = 100
-                  WideText = 'Average per second'
-                end
-                item
-                  Position = 4
-                  Width = 143
-                  WideText = 'Percentage'
-                end>
-            end
-          end
-        end
-        object pnlFilterVT: TPanel
-          Left = 0
-          Top = 296
-          Width = 575
-          Height = 29
-          Align = alBottom
-          BevelOuter = bvNone
-          TabOrder = 1
-          object lblFilterVT: TLabel
-            Left = 0
-            Top = 8
-            Width = 28
-            Height = 12
-            Caption = 'Filter:'
-          end
-          object lblFilterVTInfo: TLabel
-            Left = 203
-            Top = 8
-            Width = 66
-            Height = 13
-            Caption = 'lblFilterVTInfo'
-          end
-          object editFilterVT: TEdit
-            Left = 34
-            Top = 5
-            Width = 154
-            Height = 20
-            TabOrder = 0
-            OnChange = editFilterVTChange
-          end
-        end
-      end
-      object tabDatabase: TTabSheet
-        Caption = 'Database'
-        ImageIndex = 5
-        object ListTables: TVirtualStringTree
-          Left = 0
-          Top = 0
-          Width = 575
-          Height = 325
-          Align = alClient
-          EditDelay = 500
-          Header.AutoSizeIndex = -1
-          Header.DefaultHeight = 17
-          Header.Height = 20
-          Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-          Header.ParentFont = True
-          Header.PopupMenu = popupDbGridHeader
-          Header.SortColumn = 0
-          HintMode = hmTooltip
-          Images = PngImageListMain
-          IncrementalSearch = isInitializedOnly
-          ParentShowHint = False
-          PopupMenu = popupDB
-          ShowHint = True
-          TabOrder = 0
-          TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
-          TreeOptions.MiscOptions = [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-          TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
-          TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
-          OnAfterPaint = vstAfterPaint
-          OnChange = ListTablesChange
-          OnCompareNodes = vstCompareNodes
-          OnDblClick = ListTablesDblClick
-          OnEditing = ListTablesEditing
-          OnFreeNode = vstFreeNode
-          OnGetText = vstGetText
-          OnGetImageIndex = vstGetImageIndex
-          OnGetHint = vstGetHint
-          OnGetNodeDataSize = vstGetNodeDataSize
-          OnHeaderClick = vstHeaderClick
-          OnHeaderDraggedOut = vstHeaderDraggedOut
-          OnInitNode = vstInitNode
-          OnNewText = ListTablesNewText
-          Columns = <
-            item
-              Position = 0
-              Width = 120
-              WideText = 'Name'
-            end
-            item
-              Alignment = taRightJustify
-              Position = 1
-              Width = 70
-              WideText = 'Rows'
-            end
-            item
-              Alignment = taRightJustify
-              Position = 2
-              Width = 70
-              WideText = 'Size'
-            end
-            item
-              Position = 3
-              Width = 120
-              WideText = 'Created'
-            end
-            item
-              Position = 4
-              Width = 120
-              WideText = 'Updated'
-            end
-            item
-              Position = 5
-              Width = 70
-              WideText = 'Engine'
-            end
-            item
-              Position = 6
-              Width = 100
-              WideText = 'Comment'
-            end
-            item
-              Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
-              Position = 7
-              WideText = 'Version'
-            end
-            item
-              Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
-              Position = 8
-              Width = 70
-              WideText = 'Row format'
-            end
-            item
-              Alignment = taRightJustify
-              Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
-              Position = 9
-              Width = 70
-              WideText = 'Avg row length'
-            end
-            item
-              Alignment = taRightJustify
-              Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
-              Position = 10
-              Width = 70
-              WideText = 'Max data length'
-            end
-            item
-              Alignment = taRightJustify
-              Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
-              Position = 11
-              Width = 70
-              WideText = 'Index length'
-            end
-            item
-              Alignment = taRightJustify
-              Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
-              Position = 12
-              Width = 70
-              WideText = 'Data free'
-            end
-            item
-              Alignment = taRightJustify
-              Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
-              Position = 13
-              Width = 90
-              WideText = 'Auto increment'
-            end
-            item
-              Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
-              Position = 14
-              Width = 120
-              WideText = 'Check time'
-            end
-            item
-              Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
-              Position = 15
-              Width = 70
-              WideText = 'Collation'
-            end
-            item
-              Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
-              Position = 16
-              Width = 70
-              WideText = 'Checksum'
-            end
-            item
-              Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
-              Position = 17
-              Width = 70
-              WideText = 'Create options'
-            end
-            item
-              Position = 18
-              WideText = 'Type'
-            end>
-        end
-      end
-      object tabEditor: TTabSheet
-        Caption = 'Table'
-        ImageIndex = 14
-      end
-      object tabData: TTabSheet
-        Caption = 'Data'
-        ImageIndex = 41
-        object lblSorryNoData: TLabel
-          Left = 0
-          Top = 91
-          Width = 575
-          Height = 234
-          Align = alClient
-          Alignment = taCenter
-          Caption = 'Stored routines don'#39't provide any data you could edit here.'
-          Layout = tlCenter
-          WordWrap = True
-        end
-        object pnlDataTop: TPanel
-          Left = 0
-          Top = 0
-          Width = 575
-          Height = 25
-          Align = alTop
-          Alignment = taLeftJustify
-          BevelOuter = bvNone
-          BorderWidth = 1
-          TabOrder = 0
-          object lblDataTop: TTntLabel
-            Left = 1
-            Top = 1
-            Width = 293
-            Height = 23
-            Align = alLeft
-            Anchors = [akLeft, akTop, akRight, akBottom]
-            AutoSize = False
-            Caption = 'Data'
-            Layout = tlCenter
-            WordWrap = True
-          end
-          object tlbDataButtons: TToolBar
-            Left = 242
-            Top = 1
-            Width = 332
-            Height = 23
-            Align = alRight
-            AutoSize = True
-            ButtonWidth = 83
-            Caption = 'tlbDataButtons'
-            Images = PngImageListMain
-            List = True
-            ShowCaptions = True
-            TabOrder = 0
-            Wrapable = False
-            object tbtnDataSorting: TToolButton
-              Left = 0
-              Top = 0
-              AllowAllUp = True
-              Caption = 'Sorting'
-              ImageIndex = 107
-              Style = tbsTextButton
-              OnClick = btnDataClick
-            end
-            object tbtnDataColumns: TToolButton
-              Left = 83
-              Top = 0
-              AllowAllUp = True
-              Caption = 'Columns'
-              ImageIndex = 107
-              Style = tbsTextButton
-              OnClick = btnDataClick
-            end
-            object tbtnDataFilter: TToolButton
-              Left = 166
-              Top = 0
-              AllowAllUp = True
-              Caption = 'Filter'
-              ImageIndex = 107
-              OnClick = btnDataClick
-            end
-            object tbtnDataView: TToolButton
-              Left = 249
-              Top = 0
-              Caption = 'Perspective'
-              DropdownMenu = popupDataView
-              ImageIndex = 112
-            end
-          end
-        end
-        object pnlFilter: TPanel
-          Left = 0
-          Top = 25
-          Width = 575
-          Height = 66
-          Align = alTop
-          BevelOuter = bvNone
-          TabOrder = 1
-          Visible = False
-          DesignSize = (
-            575
-            66)
-          object lblTableFilter: TLabel
-            Left = 412
-            Top = 0
-            Width = 114
-            Height = 13
-            Anchors = [akTop, akRight]
-            Caption = 'Create table wide filter:'
-          end
-          object lblRecentFilters: TLabel
-            Left = 1
-            Top = 3
-            Width = 68
-            Height = 13
-            Caption = 'Recent filters:'
-          end
-          object btnFilterApply: TButton
-            Left = 412
-            Top = 41
-            Width = 76
-            Height = 22
-            Action = actApplyFilter
-            Anchors = [akTop, akRight]
-            TabOrder = 2
-          end
-          object btnFilterClear: TButton
-            Left = 492
-            Top = 41
-            Width = 76
-            Height = 22
-            Action = actClearFilterEditor
-            Anchors = [akTop, akRight]
-            TabOrder = 3
-          end
-          object SynMemoFilter: TSynMemo
-            Left = 0
-            Top = 21
-            Width = 409
-            Height = 42
-            SingleLineMode = False
-            Anchors = [akLeft, akTop, akRight, akBottom]
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clWindowText
-            Font.Height = -13
-            Font.Name = 'Courier New'
-            Font.Style = []
-            PopupMenu = popupFilter
-            TabOrder = 0
-            Gutter.Font.Charset = DEFAULT_CHARSET
-            Gutter.Font.Color = clWindowText
-            Gutter.Font.Height = -11
-            Gutter.Font.Name = 'Terminal'
-            Gutter.Font.Style = []
-            Gutter.LeftOffset = 10
-            Gutter.RightOffset = 0
-            Gutter.ShowLineNumbers = True
-            Gutter.Visible = False
-            Gutter.Width = 0
-            Highlighter = SynSQLSyn1
-            Options = [eoAutoIndent, eoDragDropEditing, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
-            RightEdge = 0
-            ScrollBars = ssVertical
-            WantTabs = True
-            WordWrap = True
-            OnChange = SynMemoFilterChange
-            RemovedKeystrokes = <
-              item
-                Command = ecDeleteLine
-                ShortCut = 16473
-              end>
-            AddedKeystrokes = <
-              item
-                Command = ecRedo
-                ShortCut = 16473
-              end>
-          end
-          object editFilterSearch: TEdit
-            Left = 412
-            Top = 15
-            Width = 156
-            Height = 21
-            Anchors = [akTop, akRight]
-            TabOrder = 1
-            OnChange = editFilterSearchChange
-            OnEnter = editFilterSearchEnter
-            OnExit = editFilterSearchExit
-          end
-          object comboRecentFilters: TTntComboBox
-            Left = 75
-            Top = 0
-            Width = 334
-            Height = 21
-            Style = csDropDownList
-            Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 13
-            TabOrder = 4
-            OnSelect = LoadRecentFilter
-          end
-        end
-        object DataGrid: TVirtualStringTree
-          Left = 0
-          Top = 91
-          Width = 575
-          Height = 234
-          Align = alClient
-          EditDelay = 0
-          Header.AutoSizeIndex = -1
-          Header.DefaultHeight = 17
-          Header.Height = 20
-          Header.Images = PngImageListMain
-          Header.MainColumn = -1
-          Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages]
-          Header.ParentFont = True
-          IncrementalSearch = isInitializedOnly
-          LineStyle = lsSolid
-          PopupMenu = popupDataGrid
-          TabOrder = 2
-          TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-          TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
-          TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
-          WantTabs = True
-          OnAfterCellPaint = DataGridAfterCellPaint
-          OnBeforeCellPaint = GridBeforeCellPaint
-          OnChange = DataGridChange
-          OnColumnResize = DataGridColumnResize
-          OnCreateEditor = DataGridCreateEditor
-          OnEditCancelled = DataGridEditCancelled
-          OnEdited = DataGridEdited
-          OnEditing = DataGridEditing
-          OnEnter = ValidateControls
-          OnExit = ValidateControls
-          OnFocusChanging = DataGridFocusChanging
-          OnGetText = GridGetText
-          OnPaintText = GridPaintText
-          OnHeaderClick = DataGridHeaderClick
-          OnKeyDown = GridKeyDown
-          OnMouseUp = DataGridMouseUp
-          OnNewText = DataGridNewText
-          OnScroll = DataGridScroll
-          Columns = <>
-        end
-      end
-      object tabQuery: TTabSheet
-        Caption = 'Query'
-        ImageIndex = 57
-        object spltQuery: TSplitter
-          Tag = 8
-          Left = 0
-          Top = 96
-          Width = 575
-          Height = 4
-          Cursor = crSizeNS
-          Align = alTop
-          ResizeStyle = rsUpdate
-        end
-        object LabelResultinfo: TLabel
-          Left = 0
-          Top = 100
-          Width = 575
-          Height = 13
-          Align = alTop
-        end
-        object pnlQueryMemo: TPanel
-          Tag = 1
-          Left = 0
-          Top = 0
-          Width = 575
-          Height = 96
-          Align = alTop
-          BevelOuter = bvNone
-          Constraints.MinHeight = 10
-          TabOrder = 0
-          OnCanResize = pnlQueryMemoCanResize
-          object spltQueryHelpers: TSplitter
-            Tag = 5
-            Left = 411
-            Top = 0
-            Width = 4
-            Height = 96
-            Cursor = crSizeWE
-            Align = alRight
-            ResizeStyle = rsUpdate
-          end
-          object SynMemoQuery: TSynMemo
-            Tag = 6
-            Left = 0
-            Top = 0
-            Width = 411
-            Height = 96
-            SingleLineMode = False
-            Align = alClient
-            ActiveLineColor = clWindow
-            Font.Charset = DEFAULT_CHARSET
-            Font.Color = clWindowText
-            Font.Height = -13
-            Font.Name = 'Courier New'
-            Font.Style = []
-            PopupMenu = popupQuery
-            TabOrder = 0
-            OnDragDrop = SynMemoQueryDragDrop
-            OnDragOver = SynMemoQueryDragOver
-            Gutter.AutoSize = True
-            Gutter.DigitCount = 2
-            Gutter.Font.Charset = DEFAULT_CHARSET
-            Gutter.Font.Color = clWindowText
-            Gutter.Font.Height = -11
-            Gutter.Font.Name = 'Terminal'
-            Gutter.Font.Style = []
-            Gutter.LeftOffset = 2
-            Gutter.RightOffset = 0
-            Gutter.ShowLineNumbers = True
-            Highlighter = SynSQLSyn1
-            Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
-            RightEdge = 0
-            SearchEngine = SynEditSearch1
-            TabWidth = 3
-            WantTabs = True
-            OnDropFiles = SynMemoQueryDropFiles
-            OnStatusChange = SynMemoQueryStatusChange
-            RemovedKeystrokes = <
-              item
-                Command = ecDeleteLine
-                ShortCut = 16473
-              end>
-            AddedKeystrokes = <
-              item
-                Command = ecRedo
-                ShortCut = 16473
-              end>
-          end
-          object pnlQueryHelpers: TPanel
-            Tag = 2
-            Left = 415
-            Top = 0
-            Width = 160
-            Height = 96
-            Align = alRight
-            BevelOuter = bvNone
-            TabOrder = 1
-            OnCanResize = pnlQueryHelpersCanResize
-            object tabsetQueryHelpers: TTabSet
-              Tag = 4
-              Left = 0
-              Top = 72
-              Width = 160
-              Height = 24
-              Align = alBottom
-              Font.Charset = DEFAULT_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -11
-              Font.Name = 'Tahoma'
-              Font.Style = []
-              ParentShowHint = False
-              ShowHint = False
-              Style = tsModernTabs
-              Tabs.Strings = (
-                'Cols'
-                'SQL fn'
-                'SQL kw'
-                'Snippets')
-              TabIndex = 0
-              OnChange = tabsetQueryHelpersChange
-            end
-            object lboxQueryHelpers: TTntListBox
-              Tag = 3
-              Left = 0
-              Top = 0
-              Width = 160
-              Height = 72
-              Align = alClient
-              DragMode = dmAutomatic
-              ItemHeight = 13
-              MultiSelect = True
-              PopupMenu = popupQueryHelpers
-              TabOrder = 1
-              OnClick = lboxQueryHelpersClick
-              OnDblClick = lboxQueryHelpersDblClick
-            end
-          end
-        end
-        object QueryGrid: TVirtualStringTree
-          Tag = 7
-          Left = 0
-          Top = 113
-          Width = 575
-          Height = 212
-          Align = alClient
-          Constraints.MinHeight = 10
-          EditDelay = 0
-          Header.AutoSizeIndex = -1
-          Header.DefaultHeight = 17
-          Header.Height = 20
-          Header.MainColumn = -1
-          Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoShowHint]
-          Header.ParentFont = True
-          IncrementalSearch = isAll
-          LineStyle = lsSolid
-          PopupMenu = popupResultGrid
-          TabOrder = 1
-          TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-          TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
-          TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
-          WantTabs = True
-          OnBeforeCellPaint = GridBeforeCellPaint
-          OnFocusChanged = QueryGridFocusChanged
-          OnGetText = GridGetText
-          OnPaintText = GridPaintText
-          OnKeyDown = GridKeyDown
-          Columns = <>
-        end
-      end
-    end
     object pnlLeft: TPanel
       Left = 0
       Top = 0
       Width = 169
-      Height = 357
+      Height = 377
       Align = alLeft
       BevelOuter = bvNone
       TabOrder = 0
@@ -1297,7 +350,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 169
-        Height = 336
+        Height = 356
         Align = alClient
         Constraints.MinWidth = 40
         DragMode = dmAutomatic
@@ -1336,7 +389,7 @@ object MainForm: TMainForm
         Columns = <
           item
             Position = 0
-            Width = 113
+            Width = 110
             WideText = 'Name'
           end
           item
@@ -1350,7 +403,7 @@ object MainForm: TMainForm
       object comboOnlyDBs: TTntComboBox
         AlignWithMargins = True
         Left = 0
-        Top = 336
+        Top = 356
         Width = 169
         Height = 21
         Hint = 
@@ -1370,6 +423,972 @@ object MainForm: TMainForm
         OnDragOver = comboOnlyDBsDragOver
         OnExit = comboOnlyDBsExit
         OnKeyDown = comboOnlyDBsKeyDown
+      end
+    end
+    object pnlRight: TPanel
+      Left = 173
+      Top = 0
+      Width = 583
+      Height = 377
+      Align = alClient
+      BevelOuter = bvNone
+      TabOrder = 1
+      object pnlFilterVT: TPanel
+        Left = 0
+        Top = 351
+        Width = 583
+        Height = 26
+        Align = alBottom
+        BevelOuter = bvNone
+        TabOrder = 0
+        Visible = False
+        object lblFilterVT: TLabel
+          Left = 36
+          Top = 6
+          Width = 28
+          Height = 13
+          Caption = 'Filter:'
+        end
+        object lblFilterVTInfo: TLabel
+          Left = 239
+          Top = 6
+          Width = 66
+          Height = 13
+          Caption = 'lblFilterVTInfo'
+        end
+        object btnCloseFilterPanel: TPngSpeedButton
+          Left = 5
+          Top = 4
+          Width = 16
+          Height = 16
+          Hint = 'Hides the filter panel'
+          Flat = True
+          OnClick = actFilterPanelExecute
+        end
+        object editFilterVT: TTNTEdit
+          Left = 70
+          Top = 3
+          Width = 154
+          Height = 21
+          TabOrder = 0
+          OnChange = editFilterVTChange
+        end
+      end
+      object PageControlMain: TPageControl
+        Left = 0
+        Top = 0
+        Width = 583
+        Height = 351
+        ActivePage = tabHost
+        Align = alClient
+        HotTrack = True
+        Images = PngImageListMain
+        MultiLine = True
+        PopupMenu = popupMainTabs
+        TabHeight = 22
+        TabOrder = 1
+        OnChange = PageControlMainChange
+        OnMouseUp = PageControlMainMouseUp
+        object tabHost: TTabSheet
+          Caption = 'Host'
+          ImageIndex = 1
+          object PageControlHost: TPageControl
+            Left = 0
+            Top = 0
+            Width = 575
+            Height = 319
+            ActivePage = tabVariables
+            Align = alClient
+            HotTrack = True
+            TabOrder = 0
+            OnChange = PageControlHostChange
+            object tabVariables: TTabSheet
+              Caption = 'Variables'
+              object ListVariables: TVirtualStringTree
+                Left = 0
+                Top = 0
+                Width = 567
+                Height = 291
+                Align = alClient
+                DragOperations = []
+                Header.AutoSizeIndex = 1
+                Header.DefaultHeight = 17
+                Header.Height = 20
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+                Header.ParentFont = True
+                Header.SortColumn = 0
+                HintMode = hmTooltip
+                Images = PngImageListMain
+                IncrementalSearch = isInitializedOnly
+                ParentShowHint = False
+                PopupMenu = popupHost
+                ShowHint = True
+                TabOrder = 0
+                TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
+                TreeOptions.MiscOptions = [toToggleOnDblClick]
+                TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
+                OnAfterPaint = vstAfterPaint
+                OnBeforePaint = ListVariablesBeforePaint
+                OnCompareNodes = vstCompareNodes
+                OnDblClick = ListVariablesDblClick
+                OnFreeNode = vstFreeNode
+                OnGetText = vstGetText
+                OnGetImageIndex = vstGetImageIndex
+                OnGetHint = vstGetHint
+                OnGetNodeDataSize = vstGetNodeDataSize
+                OnHeaderClick = vstHeaderClick
+                OnInitNode = vstInitNode
+                Columns = <
+                  item
+                    Position = 0
+                    Width = 160
+                    WideText = 'Variable'
+                  end
+                  item
+                    Position = 1
+                    Width = 403
+                    WideText = 'Value'
+                  end>
+              end
+            end
+            object tabStatus: TTabSheet
+              Caption = 'Status'
+              object ListStatus: TVirtualStringTree
+                Left = 0
+                Top = 0
+                Width = 567
+                Height = 291
+                Align = alClient
+                DragOperations = []
+                Header.AutoSizeIndex = 1
+                Header.DefaultHeight = 17
+                Header.Height = 20
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+                Header.ParentFont = True
+                Header.SortColumn = 0
+                HintMode = hmTooltip
+                Images = PngImageListMain
+                IncrementalSearch = isInitializedOnly
+                ParentShowHint = False
+                PopupMenu = popupHost
+                ShowHint = True
+                TabOrder = 0
+                TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
+                TreeOptions.MiscOptions = [toToggleOnDblClick]
+                TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
+                OnAfterPaint = vstAfterPaint
+                OnBeforePaint = ListStatusBeforePaint
+                OnCompareNodes = vstCompareNodes
+                OnFreeNode = vstFreeNode
+                OnGetText = vstGetText
+                OnGetImageIndex = vstGetImageIndex
+                OnGetHint = vstGetHint
+                OnGetNodeDataSize = vstGetNodeDataSize
+                OnHeaderClick = vstHeaderClick
+                OnInitNode = vstInitNode
+                Columns = <
+                  item
+                    Position = 0
+                    Width = 160
+                    WideText = 'Variable'
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Position = 1
+                    Width = 203
+                    WideText = 'Value'
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Position = 2
+                    Width = 100
+                    WideText = 'Avg per hour'
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Position = 3
+                    Width = 100
+                    WideText = 'Avg per second'
+                  end>
+              end
+            end
+            object tabProcessList: TTabSheet
+              Caption = 'Process-List'
+              ImageIndex = 1
+              object Splitter3: TSplitter
+                Left = 0
+                Top = 218
+                Width = 567
+                Height = 4
+                Cursor = crSizeNS
+                Align = alBottom
+                ResizeStyle = rsUpdate
+              end
+              object ListProcesses: TVirtualStringTree
+                Left = 0
+                Top = 0
+                Width = 567
+                Height = 218
+                Align = alClient
+                Header.AutoSizeIndex = 7
+                Header.DefaultHeight = 17
+                Header.Height = 20
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+                Header.ParentFont = True
+                Header.SortColumn = 0
+                Header.SortDirection = sdDescending
+                HintMode = hmTooltip
+                Images = PngImageListMain
+                IncrementalSearch = isInitializedOnly
+                ParentShowHint = False
+                PopupMenu = popupHost
+                ShowHint = True
+                TabOrder = 0
+                TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
+                TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+                TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+                OnAfterPaint = vstAfterPaint
+                OnBeforePaint = ListProcessesBeforePaint
+                OnCompareNodes = vstCompareNodes
+                OnFocusChanged = ListProcessesFocusChanged
+                OnFreeNode = vstFreeNode
+                OnGetText = vstGetText
+                OnGetImageIndex = vstGetImageIndex
+                OnGetHint = vstGetHint
+                OnGetNodeDataSize = vstGetNodeDataSize
+                OnHeaderClick = vstHeaderClick
+                OnInitNode = vstInitNode
+                Columns = <
+                  item
+                    Alignment = taRightJustify
+                    Position = 0
+                    Width = 70
+                    WideText = 'id'
+                  end
+                  item
+                    Position = 1
+                    Width = 80
+                    WideText = 'User'
+                  end
+                  item
+                    Position = 2
+                    Width = 80
+                    WideText = 'Host'
+                  end
+                  item
+                    Position = 3
+                    Width = 80
+                    WideText = 'DB'
+                  end
+                  item
+                    Position = 4
+                    Width = 80
+                    WideText = 'Command'
+                  end
+                  item
+                    Position = 5
+                    WideText = 'Time'
+                  end
+                  item
+                    Position = 6
+                    WideText = 'State'
+                  end
+                  item
+                    Position = 7
+                    Width = 73
+                    WideText = 'Info'
+                  end>
+              end
+              object pnlProcessViewBox: TPanel
+                Left = 0
+                Top = 222
+                Width = 567
+                Height = 69
+                Align = alBottom
+                BevelOuter = bvNone
+                TabOrder = 1
+                object pnlProcessView: TPanel
+                  Left = 0
+                  Top = 0
+                  Width = 567
+                  Height = 15
+                  Align = alTop
+                  Alignment = taLeftJustify
+                  BevelOuter = bvNone
+                  Caption = 'Process SQL:'
+                  TabOrder = 0
+                end
+                object SynMemoProcessView: TSynMemo
+                  Left = 0
+                  Top = 15
+                  Width = 567
+                  Height = 54
+                  SingleLineMode = False
+                  Align = alClient
+                  Font.Charset = DEFAULT_CHARSET
+                  Font.Color = clWindowText
+                  Font.Height = -13
+                  Font.Name = 'Courier New'
+                  Font.Style = []
+                  TabOrder = 1
+                  Gutter.AutoSize = True
+                  Gutter.DigitCount = 2
+                  Gutter.Font.Charset = DEFAULT_CHARSET
+                  Gutter.Font.Color = clWindowText
+                  Gutter.Font.Height = -11
+                  Gutter.Font.Name = 'Courier New'
+                  Gutter.Font.Style = []
+                  Gutter.LeftOffset = 2
+                  Gutter.ShowLineNumbers = True
+                  Highlighter = SynSQLSyn1
+                  Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
+                  ReadOnly = True
+                  RightEdge = 0
+                  WordWrap = True
+                end
+              end
+            end
+            object tabCommandStats: TTabSheet
+              Caption = 'Command-Statistics'
+              ImageIndex = 2
+              object ListCommandStats: TVirtualStringTree
+                Left = 0
+                Top = 0
+                Width = 567
+                Height = 291
+                Align = alClient
+                Header.AutoSizeIndex = 4
+                Header.DefaultHeight = 17
+                Header.Height = 20
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+                Header.ParentFont = True
+                Header.SortColumn = 1
+                Header.SortDirection = sdDescending
+                HintMode = hmTooltip
+                Images = PngImageListMain
+                IncrementalSearch = isInitializedOnly
+                ParentShowHint = False
+                PopupMenu = popupHost
+                ShowHint = True
+                TabOrder = 0
+                TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
+                TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+                TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
+                OnAfterPaint = vstAfterPaint
+                OnBeforeCellPaint = ListCommandStatsBeforeCellPaint
+                OnBeforePaint = ListCommandStatsBeforePaint
+                OnCompareNodes = vstCompareNodes
+                OnFreeNode = vstFreeNode
+                OnGetText = vstGetText
+                OnGetImageIndex = vstGetImageIndex
+                OnGetHint = vstGetHint
+                OnGetNodeDataSize = vstGetNodeDataSize
+                OnHeaderClick = vstHeaderClick
+                OnInitNode = vstInitNode
+                Columns = <
+                  item
+                    Position = 0
+                    Width = 120
+                    WideText = 'Command-type'
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Position = 1
+                    Width = 100
+                    WideText = 'Total count'
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Position = 2
+                    Width = 100
+                    WideText = 'Average per hour'
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Position = 3
+                    Width = 100
+                    WideText = 'Average per second'
+                  end
+                  item
+                    Position = 4
+                    Width = 143
+                    WideText = 'Percentage'
+                  end>
+              end
+            end
+          end
+        end
+        object tabDatabase: TTabSheet
+          Caption = 'Database'
+          ImageIndex = 5
+          object ListTables: TVirtualStringTree
+            Left = 0
+            Top = 0
+            Width = 575
+            Height = 319
+            Align = alClient
+            EditDelay = 500
+            Header.AutoSizeIndex = -1
+            Header.DefaultHeight = 17
+            Header.Height = 20
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+            Header.ParentFont = True
+            Header.PopupMenu = popupDbGridHeader
+            Header.SortColumn = 0
+            HintMode = hmTooltip
+            Images = PngImageListMain
+            IncrementalSearch = isInitializedOnly
+            ParentShowHint = False
+            PopupMenu = popupDB
+            ShowHint = True
+            TabOrder = 0
+            TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
+            TreeOptions.MiscOptions = [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+            TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
+            TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
+            OnAfterPaint = vstAfterPaint
+            OnChange = ListTablesChange
+            OnCompareNodes = vstCompareNodes
+            OnDblClick = ListTablesDblClick
+            OnEditing = ListTablesEditing
+            OnFreeNode = vstFreeNode
+            OnGetText = vstGetText
+            OnGetImageIndex = vstGetImageIndex
+            OnGetHint = vstGetHint
+            OnGetNodeDataSize = vstGetNodeDataSize
+            OnHeaderClick = vstHeaderClick
+            OnHeaderDraggedOut = vstHeaderDraggedOut
+            OnInitNode = vstInitNode
+            OnNewText = ListTablesNewText
+            Columns = <
+              item
+                Position = 0
+                Width = 120
+                WideText = 'Name'
+              end
+              item
+                Alignment = taRightJustify
+                Position = 1
+                Width = 70
+                WideText = 'Rows'
+              end
+              item
+                Alignment = taRightJustify
+                Position = 2
+                Width = 70
+                WideText = 'Size'
+              end
+              item
+                Position = 3
+                Width = 120
+                WideText = 'Created'
+              end
+              item
+                Position = 4
+                Width = 120
+                WideText = 'Updated'
+              end
+              item
+                Position = 5
+                Width = 70
+                WideText = 'Engine'
+              end
+              item
+                Position = 6
+                Width = 100
+                WideText = 'Comment'
+              end
+              item
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 7
+                WideText = 'Version'
+              end
+              item
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 8
+                Width = 70
+                WideText = 'Row format'
+              end
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 9
+                Width = 70
+                WideText = 'Avg row length'
+              end
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 10
+                Width = 70
+                WideText = 'Max data length'
+              end
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 11
+                Width = 70
+                WideText = 'Index length'
+              end
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 12
+                Width = 70
+                WideText = 'Data free'
+              end
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 13
+                Width = 90
+                WideText = 'Auto increment'
+              end
+              item
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 14
+                Width = 120
+                WideText = 'Check time'
+              end
+              item
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 15
+                Width = 70
+                WideText = 'Collation'
+              end
+              item
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 16
+                Width = 70
+                WideText = 'Checksum'
+              end
+              item
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 17
+                Width = 70
+                WideText = 'Create options'
+              end
+              item
+                Position = 18
+                WideText = 'Type'
+              end>
+          end
+        end
+        object tabEditor: TTabSheet
+          Caption = 'Table'
+          ImageIndex = 14
+        end
+        object tabData: TTabSheet
+          Caption = 'Data'
+          ImageIndex = 41
+          object lblSorryNoData: TLabel
+            Left = 0
+            Top = 91
+            Width = 575
+            Height = 228
+            Align = alClient
+            Alignment = taCenter
+            Caption = 'Stored routines don'#39't provide any data you could edit here.'
+            Layout = tlCenter
+            WordWrap = True
+          end
+          object pnlDataTop: TPanel
+            Left = 0
+            Top = 0
+            Width = 575
+            Height = 25
+            Align = alTop
+            Alignment = taLeftJustify
+            BevelOuter = bvNone
+            BorderWidth = 1
+            TabOrder = 0
+            object lblDataTop: TTntLabel
+              Left = 1
+              Top = 1
+              Width = 293
+              Height = 23
+              Align = alLeft
+              Anchors = [akLeft, akTop, akRight, akBottom]
+              AutoSize = False
+              Caption = 'Data'
+              Layout = tlCenter
+              WordWrap = True
+            end
+            object tlbDataButtons: TToolBar
+              Left = 242
+              Top = 1
+              Width = 332
+              Height = 23
+              Align = alRight
+              AutoSize = True
+              ButtonWidth = 83
+              Caption = 'tlbDataButtons'
+              Images = PngImageListMain
+              List = True
+              ShowCaptions = True
+              TabOrder = 0
+              Wrapable = False
+              object tbtnDataSorting: TToolButton
+                Left = 0
+                Top = 0
+                AllowAllUp = True
+                Caption = 'Sorting'
+                ImageIndex = 107
+                Style = tbsTextButton
+                OnClick = btnDataClick
+              end
+              object tbtnDataColumns: TToolButton
+                Left = 83
+                Top = 0
+                AllowAllUp = True
+                Caption = 'Columns'
+                ImageIndex = 107
+                Style = tbsTextButton
+                OnClick = btnDataClick
+              end
+              object tbtnDataFilter: TToolButton
+                Left = 166
+                Top = 0
+                AllowAllUp = True
+                Caption = 'Filter'
+                ImageIndex = 107
+                OnClick = btnDataClick
+              end
+              object tbtnDataView: TToolButton
+                Left = 249
+                Top = 0
+                Caption = 'Perspective'
+                DropdownMenu = popupDataView
+                ImageIndex = 112
+              end
+            end
+          end
+          object pnlFilter: TPanel
+            Left = 0
+            Top = 25
+            Width = 575
+            Height = 66
+            Align = alTop
+            BevelOuter = bvNone
+            TabOrder = 1
+            Visible = False
+            DesignSize = (
+              575
+              66)
+            object lblTableFilter: TLabel
+              Left = 412
+              Top = 0
+              Width = 114
+              Height = 13
+              Anchors = [akTop, akRight]
+              Caption = 'Create table wide filter:'
+            end
+            object lblRecentFilters: TLabel
+              Left = 1
+              Top = 3
+              Width = 68
+              Height = 13
+              Caption = 'Recent filters:'
+            end
+            object btnFilterApply: TButton
+              Left = 412
+              Top = 41
+              Width = 76
+              Height = 22
+              Action = actApplyFilter
+              Anchors = [akTop, akRight]
+              TabOrder = 2
+            end
+            object btnFilterClear: TButton
+              Left = 492
+              Top = 41
+              Width = 76
+              Height = 22
+              Action = actClearFilterEditor
+              Anchors = [akTop, akRight]
+              TabOrder = 3
+            end
+            object SynMemoFilter: TSynMemo
+              Left = 0
+              Top = 21
+              Width = 409
+              Height = 42
+              SingleLineMode = False
+              Anchors = [akLeft, akTop, akRight, akBottom]
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -13
+              Font.Name = 'Courier New'
+              Font.Style = []
+              PopupMenu = popupFilter
+              TabOrder = 0
+              Gutter.Font.Charset = DEFAULT_CHARSET
+              Gutter.Font.Color = clWindowText
+              Gutter.Font.Height = -11
+              Gutter.Font.Name = 'Terminal'
+              Gutter.Font.Style = []
+              Gutter.LeftOffset = 10
+              Gutter.RightOffset = 0
+              Gutter.ShowLineNumbers = True
+              Gutter.Visible = False
+              Gutter.Width = 0
+              Highlighter = SynSQLSyn1
+              Options = [eoAutoIndent, eoDragDropEditing, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
+              RightEdge = 0
+              ScrollBars = ssVertical
+              WantTabs = True
+              WordWrap = True
+              OnChange = SynMemoFilterChange
+              RemovedKeystrokes = <
+                item
+                  Command = ecDeleteLine
+                  ShortCut = 16473
+                end>
+              AddedKeystrokes = <
+                item
+                  Command = ecRedo
+                  ShortCut = 16473
+                end>
+            end
+            object editFilterSearch: TEdit
+              Left = 412
+              Top = 15
+              Width = 156
+              Height = 21
+              Anchors = [akTop, akRight]
+              TabOrder = 1
+              OnChange = editFilterSearchChange
+              OnEnter = editFilterSearchEnter
+              OnExit = editFilterSearchExit
+            end
+            object comboRecentFilters: TTntComboBox
+              Left = 75
+              Top = 0
+              Width = 334
+              Height = 21
+              Style = csDropDownList
+              Anchors = [akLeft, akTop, akRight]
+              ItemHeight = 13
+              TabOrder = 4
+              OnSelect = LoadRecentFilter
+            end
+          end
+          object DataGrid: TVirtualStringTree
+            Left = 0
+            Top = 91
+            Width = 575
+            Height = 228
+            Align = alClient
+            EditDelay = 0
+            Header.AutoSizeIndex = -1
+            Header.DefaultHeight = 17
+            Header.Height = 20
+            Header.Images = PngImageListMain
+            Header.MainColumn = -1
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages]
+            Header.ParentFont = True
+            IncrementalSearch = isInitializedOnly
+            LineStyle = lsSolid
+            PopupMenu = popupDataGrid
+            TabOrder = 2
+            TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+            TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
+            TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
+            WantTabs = True
+            OnAfterCellPaint = DataGridAfterCellPaint
+            OnBeforeCellPaint = GridBeforeCellPaint
+            OnChange = DataGridChange
+            OnColumnResize = DataGridColumnResize
+            OnCreateEditor = DataGridCreateEditor
+            OnEditCancelled = DataGridEditCancelled
+            OnEdited = DataGridEdited
+            OnEditing = DataGridEditing
+            OnEnter = ValidateControls
+            OnExit = ValidateControls
+            OnFocusChanging = DataGridFocusChanging
+            OnGetText = GridGetText
+            OnPaintText = GridPaintText
+            OnHeaderClick = DataGridHeaderClick
+            OnKeyDown = GridKeyDown
+            OnMouseUp = DataGridMouseUp
+            OnNewText = DataGridNewText
+            OnScroll = DataGridScroll
+            Columns = <>
+          end
+        end
+        object tabQuery: TTabSheet
+          Caption = 'Query'
+          ImageIndex = 57
+          object spltQuery: TSplitter
+            Tag = 8
+            Left = 0
+            Top = 96
+            Width = 575
+            Height = 4
+            Cursor = crSizeNS
+            Align = alTop
+            ResizeStyle = rsUpdate
+          end
+          object LabelResultinfo: TLabel
+            Left = 0
+            Top = 100
+            Width = 575
+            Height = 13
+            Align = alTop
+          end
+          object pnlQueryMemo: TPanel
+            Tag = 1
+            Left = 0
+            Top = 0
+            Width = 575
+            Height = 96
+            Align = alTop
+            BevelOuter = bvNone
+            Constraints.MinHeight = 10
+            TabOrder = 0
+            OnCanResize = pnlQueryMemoCanResize
+            object spltQueryHelpers: TSplitter
+              Tag = 5
+              Left = 411
+              Top = 0
+              Width = 4
+              Height = 96
+              Cursor = crSizeWE
+              Align = alRight
+              ResizeStyle = rsUpdate
+            end
+            object SynMemoQuery: TSynMemo
+              Tag = 6
+              Left = 0
+              Top = 0
+              Width = 411
+              Height = 96
+              SingleLineMode = False
+              Align = alClient
+              ActiveLineColor = clWindow
+              Font.Charset = DEFAULT_CHARSET
+              Font.Color = clWindowText
+              Font.Height = -13
+              Font.Name = 'Courier New'
+              Font.Style = []
+              PopupMenu = popupQuery
+              TabOrder = 0
+              OnDragDrop = SynMemoQueryDragDrop
+              OnDragOver = SynMemoQueryDragOver
+              Gutter.AutoSize = True
+              Gutter.DigitCount = 2
+              Gutter.Font.Charset = DEFAULT_CHARSET
+              Gutter.Font.Color = clWindowText
+              Gutter.Font.Height = -11
+              Gutter.Font.Name = 'Terminal'
+              Gutter.Font.Style = []
+              Gutter.LeftOffset = 2
+              Gutter.RightOffset = 0
+              Gutter.ShowLineNumbers = True
+              Highlighter = SynSQLSyn1
+              Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
+              RightEdge = 0
+              SearchEngine = SynEditSearch1
+              TabWidth = 3
+              WantTabs = True
+              OnDropFiles = SynMemoQueryDropFiles
+              OnStatusChange = SynMemoQueryStatusChange
+              RemovedKeystrokes = <
+                item
+                  Command = ecDeleteLine
+                  ShortCut = 16473
+                end>
+              AddedKeystrokes = <
+                item
+                  Command = ecRedo
+                  ShortCut = 16473
+                end>
+            end
+            object pnlQueryHelpers: TPanel
+              Tag = 2
+              Left = 415
+              Top = 0
+              Width = 160
+              Height = 96
+              Align = alRight
+              BevelOuter = bvNone
+              TabOrder = 1
+              OnCanResize = pnlQueryHelpersCanResize
+              object tabsetQueryHelpers: TTabSet
+                Tag = 4
+                Left = 0
+                Top = 72
+                Width = 160
+                Height = 24
+                Align = alBottom
+                Font.Charset = DEFAULT_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -11
+                Font.Name = 'Tahoma'
+                Font.Style = []
+                ParentShowHint = False
+                ShowHint = False
+                Style = tsModernTabs
+                Tabs.Strings = (
+                  'Cols'
+                  'SQL fn'
+                  'SQL kw'
+                  'Snippets')
+                TabIndex = 0
+                OnChange = tabsetQueryHelpersChange
+              end
+              object lboxQueryHelpers: TTntListBox
+                Tag = 3
+                Left = 0
+                Top = 0
+                Width = 160
+                Height = 72
+                Align = alClient
+                DragMode = dmAutomatic
+                ItemHeight = 13
+                MultiSelect = True
+                PopupMenu = popupQueryHelpers
+                TabOrder = 1
+                OnClick = lboxQueryHelpersClick
+                OnDblClick = lboxQueryHelpersDblClick
+              end
+            end
+          end
+          object QueryGrid: TVirtualStringTree
+            Tag = 7
+            Left = 0
+            Top = 113
+            Width = 575
+            Height = 206
+            Align = alClient
+            Constraints.MinHeight = 10
+            EditDelay = 0
+            Header.AutoSizeIndex = -1
+            Header.DefaultHeight = 17
+            Header.Height = 20
+            Header.MainColumn = -1
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoShowHint]
+            Header.ParentFont = True
+            IncrementalSearch = isAll
+            LineStyle = lsSolid
+            PopupMenu = popupResultGrid
+            TabOrder = 1
+            TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+            TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
+            TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
+            WantTabs = True
+            OnBeforeCellPaint = GridBeforeCellPaint
+            OnFocusChanged = QueryGridFocusChanged
+            OnGetText = GridGetText
+            OnPaintText = GridPaintText
+            OnKeyDown = GridKeyDown
+            Columns = <>
+          end
+        end
       end
     end
   end
@@ -1447,6 +1466,9 @@ object MainForm: TMainForm
       end
       object actSelectAll1: TMenuItem
         Action = actSelectAll
+      end
+      object actFindInVT1: TMenuItem
+        Action = actFilterPanel
       end
     end
     object Extra1: TMenuItem
@@ -2181,6 +2203,15 @@ object MainForm: TMainForm
       ImageIndex = 133
       ShortCut = 16499
       OnExecute = actCloseQueryTabExecute
+    end
+    object actFilterPanel: TAction
+      Category = 'Various'
+      AutoCheck = True
+      Caption = 'Filter panel'
+      Hint = 'Activates the filter panel'
+      ImageIndex = 30
+      ShortCut = 16454
+      OnExecute = actFilterPanelExecute
     end
   end
   object SaveDialog2: TSaveDialog
