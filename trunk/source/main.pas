@@ -751,7 +751,6 @@ type
     DataGridDB, DataGridTable  : WideString;
     PrevTableColWidths         : WideStrings.TWideStringList;
     DataGridHasChanges         : Boolean;
-    InformationSchemaTables    : TWideStringlist;
     FLastMouseUpOnPageControl  : Cardinal;
     FLastTabNumberOnMouseUp    : Integer;
     DataGridResult             : TGridResult;
@@ -789,8 +788,7 @@ type
     RoutineEditor: TfrmRoutineEditor;
     OptionsForm: Toptionsform;
     SessionManager: TConnForm;
-    AllDatabases,
-    Databases                  : Widestrings.TWideStringList;
+    AllDatabases, Databases, InformationSchemaTables: TWideStringList;
     TemporaryDatabase          : WideString;
     dataselected               : Boolean;
     editing                    : Boolean;
@@ -9053,6 +9051,7 @@ procedure TMainForm.actEditObjectExecute(Sender: TObject);
 var
   NodeData: PVTreeData;
   RoutineType: String;
+  db: WideString;
 begin
   debug('actEditObjectExecute()');
   if ListTables.Focused then begin
@@ -9067,7 +9066,17 @@ begin
       if CreateDatabaseForm = nil then
         CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
       CreateDatabaseForm.modifyDB := ActiveDatabase;
-      CreateDatabaseForm.ShowModal;
+      if CreateDatabaseForm.ShowModal = mrOk then begin
+        db := CreateDatabaseForm.editDBName.Text;
+        // Add new DB to database filter if it's not empty
+        if comboOnlyDBs.Text <> '' then begin
+          comboOnlyDBs.Text := comboOnlyDBs.Text + ';' + db;
+          comboOnlyDBs.Items.Insert(0, comboOnlyDBs.Text);
+        end;
+        FreeAndNil(AllDatabases);
+        // reload db nodes and switch to new one
+        RefreshTree(False, db);
+      end;
     end;
 
     lntTable, lntCrashedTable: begin

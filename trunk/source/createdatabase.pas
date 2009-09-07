@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, db, SynEdit, SynMemo, TntStdCtrls;
+  Dialogs, StdCtrls, db, SynEdit, SynMemo, TntStdCtrls, WideStrings;
 
 type
   TCreateDatabaseForm = class(TForm)
@@ -108,7 +108,6 @@ begin
   if modifyDB = '' then
   begin
     Caption := 'Create database ...';
-    editDBName.Enabled := True;
     editDBName.Text := '';
     editDBName.SetFocus;
     selectCharset := defaultCharset;
@@ -116,16 +115,8 @@ begin
   else begin
     Caption := 'Alter database ...';
     editDBName.Text := modifyDB;
-    // "RENAME DB" supported since MySQL 5.1.7
-    editDBName.Enabled := Mainform.mysql_version >= 50107;
-    // Set focus to first enabled component
-    if editDBName.Enabled then
-    begin
-      editDBName.SetFocus;
-      editDBName.SelectAll;
-    end
-    else
-      comboCharset.SetFocus;
+    editDBName.SetFocus;
+    editDBName.SelectAll;
     
     // Detect current charset and collation to be able to preselect them in the pulldowns
     sql_create := Mainform.GetVar('SHOW CREATE DATABASE '+Mainform.mask(modifyDB), 1);
@@ -232,21 +223,20 @@ end;
 procedure TCreateDatabaseForm.btnOKClick(Sender: TObject);
 var
   sql : WideString;
+  AllDatabases, Unions, ObjectsLeft: TWideStringList;
+  ObjectsInNewDb, ObjectsInOldDb: TDataset;
+  OldObjType, NewObjType: TListNodeType;
 begin
-  if modifyDB = '' then
-  begin
+  if modifyDB = '' then try
     sql := GetCreateStatement;
-    Try
-      Mainform.ExecUpdateQuery( sql );
-      // Close form
-      ModalResult := mrOK;
-    except
-      On E:Exception do
-        MessageDlg( 'Creating database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
-      // Keep form open
-    end;
-  end
-  else begin
+    Mainform.ExecUpdateQuery( sql );
+    // Close form
+    ModalResult := mrOK;
+  except
+    On E:Exception do
+      MessageDlg( 'Creating database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
+    // Keep form open
+  end else try
     sql := 'ALTER DATABASE ' + Mainform.mask( modifyDB );
     if comboCharset.Enabled and (comboCharset.Text <> '') then
     begin
@@ -254,21 +244,79 @@ begin
       if comboCollation.Enabled and (comboCollation.Text <> '') then
         sql := sql + ' COLLATE ' + comboCollation.Text;
     end;
-    Try
-      Mainform.ExecUpdateQuery( sql );
-      if modifyDB <> editDBName.Text then
-      begin
-        Mainform.ExecUpdateQuery( 'RENAME DATABASE ' + Mainform.mask( modifyDB )
-          + ' TO ' + Mainform.mask( editDBName.Text ) );
-        Mainform.DBtree.ResetNode(Mainform.DBtree.GetFirst);
+    if modifyDB = editDBName.Text then begin
+      // Alter database
+      Mainform.ExecUpdateQuery(sql);
+    end else begin
+      // Rename database
+      ObjectsInOldDb := MainForm.RefreshDbTableList(modifyDB);
+      AllDatabases := Mainform.GetCol('SHOW DATABASES');
+      if AllDatabases.IndexOf(editDBName.Text) = -1 then begin
+        // Target db does not exist - create it
+        Mainform.ExecUpdateQuery(GetCreateStatement);
+      end else begin
+        // Target db exists - warn if there are tables with same names
+        ObjectsInNewDb := MainForm.RefreshDbTableList(editDBName.Text);
+        while not ObjectsInNewDb.Eof do begin
+          NewObjType := GetDBObjectType(ObjectsInNewDb.Fields);
+          ObjectsInOldDb.First;
+          while not ObjectsInOldDb.Eof do begin
+            OldObjType := GetDBObjectType(ObjectsInOldDb.Fields);
+            if not (OldObjType in [lntTable, lntCrashedTable, lntView]) then
+              Raise Exception.Create('Database "'+modifyDB+'" contains stored routine(s), which cannot be moved.');
+            if (ObjectsInOldDb.FieldByName(DBO_NAME).AsWideString = ObjectsInNewDb.FieldByName(DBO_NAME).AsWideString)
+              and (OldObjType = NewObjType) then begin
+              // One or more objects have a naming conflict
+              Raise Exception.Create('Database "'+editDBName.Text+'" exists and has objects with same names as in "'+modifyDB+'"');
+            end;
+            ObjectsInOldDb.Next;
+          end;
+          ObjectsInNewDb.Next;
+        end;
+        if MessageDlg('Database "'+editDBName.Text+'" exists. But it does not contain objects with same names as in '+
+          '"'+modifyDB+'", so it''s uncritical to move everything.'+CRLF+CRLF+'Move all objects to "'+editDBName.Text+'"?',
+          mtConfirmation, [mbYes, mbCancel], 0) <> mrYes then
+          Exit;
       end;
-      // Close form
-      ModalResult := mrOK;
-    except
-      On E:Exception do
-        MessageDlg( 'Altering database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
-      // Keep form open
+      // Move all tables, views and procedures to target db
+      ObjectsInOldDb.First;
+      sql := 'RENAME TABLE ';
+      while not ObjectsInOldDb.Eof do begin
+        sql := sql + Mainform.mask(modifyDb)+'.'+Mainform.mask(ObjectsInOldDb.FieldByName(DBO_NAME).AsWideString)+' TO '+
+          Mainform.mask(editDBName.Text)+'.'+Mainform.mask(ObjectsInOldDb.FieldByName(DBO_NAME).AsWideString)+', ';
+        ObjectsInOldDb.Next;
+      end;
+      Delete(sql, Length(sql)-1, 2);
+      Mainform.ExecUpdateQuery(sql);
+      Mainform.ClearDbTableList(modifyDB);
+      Mainform.ClearDbTableList(editDBName.Text);
+      // Last step for renaming: drop source database
+      ObjectsLeft := TWideStringList.Create;
+      if Assigned(Mainform.InformationSchemaTables) then begin
+        // Last check if old db is really empty, before we drop it. Especially triggers need to be checked.
+        Unions := TWideStringList.Create;
+        if Mainform.InformationSchemaTables.IndexOf('TABLES') > -1 then
+          Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.TABLES WHERE TABLE_SCHEMA='+esc(modifyDB));
+        if Mainform.InformationSchemaTables.IndexOf('ROUTINES') > -1 then
+          Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.ROUTINES WHERE ROUTINE_SCHEMA='+esc(modifyDB));
+        if Mainform.InformationSchemaTables.IndexOf('TRIGGERS') > -1 then
+          Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.TRIGGERS WHERE TRIGGER_SCHEMA='+esc(modifyDB));
+        if Unions.Count = 1 then
+          ObjectsLeft := Mainform.GetCol(Unions[0])
+        else if Unions.Count > 1 then
+          ObjectsLeft := Mainform.GetCol('(' + implodestr(') UNION (', Unions) + ')');
+      end;
+      if ObjectsLeft.Count = 0 then begin
+        Mainform.ExecUpdateQuery('DROP DATABASE '+modifyDB);
+      end;
+      FreeAndNil(ObjectsLeft);
     end;
+    // Close form
+    ModalResult := mrOK;
+  except
+    On E:Exception do
+      MessageDlg( 'Altering database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
+    // Keep form open
   end;
 end;
 
