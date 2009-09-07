@@ -44,6 +44,7 @@ type
     Grid: TVirtualStringTree;
     TabSheet: TTabSheet;
     GridResult: TGridResult;
+    FilterText: WideString;
   end;
 
   // Represents errors already "handled" (shown to user),
@@ -366,7 +367,7 @@ type
     pnlProcessView: TPanel;
     SynMemoProcessView: TSynMemo;
     pnlFilterVT: TPanel;
-    editFilterVT: TEdit;
+    editFilterVT: TTNTEdit;
     lblFilterVT: TLabel;
     lblFilterVTInfo: TLabel;
     menuEditVariable: TMenuItem;
@@ -443,6 +444,10 @@ type
     actCloseQueryTab: TAction;
     Newquerytab1: TMenuItem;
     Closetab1: TMenuItem;
+    pnlRight: TPanel;
+    btnCloseFilterPanel: TPngSpeedButton;
+    actFilterPanel: TAction;
+    actFindInVT1: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -725,6 +730,7 @@ type
       var Accept: Boolean);
     procedure comboOnlyDBsDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure comboOnlyDBsKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure actFilterPanelExecute(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -754,6 +760,9 @@ type
     FLastMouseUpOnPageControl  : Cardinal;
     FLastTabNumberOnMouseUp    : Integer;
     DataGridResult             : TGridResult;
+    // Filter text per tab for filter panel 
+    FilterTextVariables, FilterTextStatus, FilterTextProcessList, FilterTextCommandStats,
+    FilterTextDatabase, FilterTextData: WideString;
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
     procedure SetDelimiter(Value: String);
@@ -777,6 +786,7 @@ type
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
     procedure SaveQueryMemo(Filename: String; OnlySelection: Boolean);
+    procedure UpdateFilterPanel(Sender: TObject);
   public
     cancelling: Boolean;
     virtualDesktopName: string;
@@ -1155,6 +1165,9 @@ begin
   MainReg.WriteInteger( REGNAME_DBTREEWIDTH, pnlLeft.width );
   MainReg.WriteInteger( REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height );
 
+  // Filter panel
+  MainReg.WriteBool(REGNAME_FILTERACTIVE, pnlFilterVT.Tag=Integer(True));
+
   // Save width of probably resized columns of all VirtualTrees
   SaveListSetup(ListVariables);
   SaveListSetup(ListStatus);
@@ -1451,6 +1464,12 @@ begin
   btnAddTab.Flat := True;
   btnAddTab.Hint := actNewQueryTab.Hint;
   btnAddTab.OnClick := actNewQueryTab.OnExecute;
+
+  // Filter panel
+  btnCloseFilterPanel.PngImage := PngImageListMain.PngImages[134].PngImage;
+  if GetRegValue(REGNAME_FILTERACTIVE, DEFAULT_FILTERACTIVE) then
+    actFilterPanelExecute(nil);
+  lblFilterVTInfo.Caption := '';
 end;
 
 
@@ -3805,6 +3824,9 @@ begin
     end;
   end;
 
+  // Filter panel has one text per tab, which we need to update
+  UpdateFilterPanel(Sender);
+
   // Ensure controls are in a valid state
   ValidateControls(Sender);
   FixQueryTabCloseButtons;
@@ -3823,7 +3845,7 @@ begin
   else if tab = tabCommandStats then list := ListCommandStats
   else Exit; // Silence compiler warning
   list.SetFocus;
-  editFilterVTChange(Sender);
+  UpdateFilterPanel(Sender);
 end;
 
 
@@ -6596,37 +6618,67 @@ end;
 procedure TMainForm.editFilterVTChange(Sender: TObject);
 var
   Node : PVirtualNode;
-  NodeData : PVTreeData;
   VT : TVirtualStringTree;
   i : Integer;
   match : Boolean;
-  search : String;
+  search : WideString;
   tab: TTabSheet;
   VisibleCount: Cardinal;
+  rx: TRegExpr;
+  CellText: WideString;
 begin
   // Find the correct VirtualTree that shall be filtered
-  tab := PageControlHost.ActivePage;
-  if tab = tabVariables then
-    VT := ListVariables
-  else if tab = tabStatus then
-    VT := ListStatus
-  else if tab = tabProcesslist then
-    VT := ListProcesses
-  else
+  tab := PageControlMain.ActivePage;
+  if tab = tabHost then
+    tab := PageControlHost.ActivePage;
+  VT := nil;
+  if tab = tabVariables then begin
+    VT := ListVariables;
+    FilterTextVariables := editFilterVT.Text;
+  end else if tab = tabStatus then begin
+    VT := ListStatus;
+    FilterTextStatus := editFilterVT.Text;
+  end else if tab = tabProcesslist then begin
+    VT := ListProcesses;
+    FilterTextProcessList := editFilterVT.Text;
+  end else if tab = tabCommandStats then begin
     VT := ListCommandStats;
+    FilterTextCommandStats := editFilterVT.Text;
+  end else if tab = tabDatabase then begin
+    VT := ListTables;
+    FilterTextDatabase := editFilterVT.Text;
+  end else if tab = tabData then begin
+    VT := DataGrid;
+    FilterTextData := editFilterVT.Text;
+  end else if QueryTabActive and (tab = ActiveQueryTab.TabSheet) then begin
+    VT := ActiveGrid;
+    ActiveQueryTab.FilterText := editFilterVT.Text;
+  end;
+  if not Assigned(VT) then
+    Exit;
   // Loop through all nodes to adjust their vsVisible state
   Node := VT.GetFirst;
   search := LowerCase( editFilterVT.Text );
   VisibleCount := 0;
+  rx := TRegExpr.Create;
+  rx.Expression := editFilterVT.Text;
+  rx.ModifierI := True;
   while Assigned(Node) do begin
-    NodeData := VT.GetNodeData(Node);
     // Don't filter anything if the filter text is empty
     match := search = '';
     // Search for given text in node's captions
-    if not match then for i := 0 to NodeData.Captions.Count - 1 do begin
-      if Pos( search, LowerCase(NodeData.Captions[i]) ) > 0 then begin
+    if not match then for i := 0 to VT.Header.Columns.Count - 1 do begin
+      CellText := VT.Text[Node, i];
+      if Pos( search, LowerCase(CellText) ) > 0 then begin
         match := True;
         break;
+      end else try
+        if rx.Exec(CellText) then begin
+          match := True;
+          break;
+        end;
+      except
+        // Ignore syntax errors in regexp
       end;
     end;
     if match then begin
@@ -6635,14 +6687,6 @@ begin
     end else
       Node.States := Node.States - [vsVisible];
     Node := VT.GetNext(Node);
-  end;
-  // Colorize TEdit with filter string to signalize that some nodes are hidden now
-  if VisibleCount <> VT.RootNodeCount then begin
-    editFilterVT.Font.Color := clRed;
-    editFilterVT.Color := clYellow;
-  end else begin
-    editFilterVT.Font.Color := clWindowText;
-    editFilterVT.Color := clWindow;
   end;
   if search <> '' then begin
     lblFilterVTInfo.Caption := IntToStr(VisibleCount)+' out of '+IntToStr(VT.RootNodeCount)+' matching. '
@@ -9111,6 +9155,7 @@ begin
   if Assigned(ListTables.FocusedNode) then begin
     NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
     SelectDBObject(ListTables.Text[ListTables.FocusedNode, ListTables.FocusedColumn], NodeData.NodeType);
+    PageControlMainChange(Sender);
   end;
 end;
 
@@ -9621,6 +9666,60 @@ begin
   end;
 end;
 
+
+procedure TMainForm.actFilterPanelExecute(Sender: TObject);
+var
+  MakeVisible: Boolean;
+begin
+  // (De-)activate or focus filter panel
+  MakeVisible := Sender <> btnCloseFilterPanel;
+  pnlFilterVT.Visible := MakeVisible;
+  pnlFilterVT.Tag := Integer(MakeVisible);
+  ValidateControls(Sender);
+  // On startup, we cannot SetFocus, throws exceptons. Call with nil in that special case - see FormCreate
+  if Assigned(Sender) and MakeVisible then
+    editFilterVT.SetFocus;
+end;
+
+
+procedure TMainForm.UpdateFilterPanel(Sender: TObject);
+var
+  tab: TTabSheet;
+  f: WideString;
+  FilterPanelVisible: Boolean;
+begin
+  // Called when active tab changes
+  pnlFilterVT.Enabled := PageControlMain.ActivePage <> tabEditor;
+  lblFilterVT.Enabled := pnlFilterVT.Enabled;
+  editFilterVT.Enabled := pnlFilterVT.Enabled;
+  lblFilterVTInfo.Enabled := pnlFilterVT.Enabled;
+  if pnlFilterVT.Enabled then
+    editFilterVT.Color := clWindow
+  else
+    editFilterVT.Color := clBtnFace;
+
+  tab := PageControlMain.ActivePage;
+  if tab = tabHost then
+    tab := PageControlHost.ActivePage;
+  FilterPanelVisible := pnlFilterVT.Tag = Integer(True);
+  if not FilterPanelVisible then begin
+    if editFilterVT.Text <> '' then
+      editFilterVT.Text := ''
+    else
+      editFilterVTChange(Sender);
+  end else begin
+    if tab = tabVariables then f := FilterTextVariables
+    else if tab = tabStatus then f := FilterTextStatus
+    else if tab = tabProcesslist then f := FilterTextProcessList
+    else if tab = tabCommandStats then f := FilterTextCommandStats
+    else if tab = tabDatabase then f := FilterTextDatabase
+    else if tab = tabData then f := FilterTextData
+    else if QueryTabActive and (tab = ActiveQueryTab.TabSheet) then f := ActiveQueryTab.FilterText;
+    if editFilterVT.Text <> f then
+      editFilterVT.Text := f
+  end;
+
+end;
 
 end.
 

@@ -181,6 +181,8 @@ const
   REGNAME_DO_STATISTICS = 'DoUsageStatistics';
   DEFAULT_DO_STATISTICS = False;
   REGNAME_LAST_STATSCALL = 'LastUsageStatisticCall';
+  REGNAME_FILTERACTIVE = 'FilterPanel';
+  DEFAULT_FILTERACTIVE = False;
 
   REGNAME_FIELDCOLOR_NUMERIC = 'FieldColor_Numeric';
   REGNAME_FIELDCOLOR_TEXT = 'FieldColor_Text';
