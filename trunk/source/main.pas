@@ -5852,7 +5852,8 @@ begin
 
   case ActiveQueryTabset.TabIndex of
     3: // Load snippet file ínto query-memo
-      QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
+      if ActiveQueryHelpers.ItemIndex > -1 then
+        QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
     else // For all other tabs just insert the item from the list
       ActiveQueryMemo.SelText := text;
   end;
