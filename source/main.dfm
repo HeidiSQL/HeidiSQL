@@ -1248,7 +1248,6 @@ object MainForm: TMainForm
             Height = 96
             Align = alTop
             BevelOuter = bvNone
-            Constraints.MinHeight = 10
             TabOrder = 0
             OnCanResize = pnlQueryMemoCanResize
             object spltQueryHelpers: TSplitter
@@ -1365,7 +1364,6 @@ object MainForm: TMainForm
             Width = 575
             Height = 206
             Align = alClient
-            Constraints.MinHeight = 10
             EditDelay = 0
             Header.AutoSizeIndex = -1
             Header.DefaultHeight = 17
