@@ -3,8 +3,6 @@ object frmRoutineEditor: TfrmRoutineEditor
   Top = 0
   Width = 475
   Height = 484
-  Constraints.MinHeight = 240
-  Constraints.MinWidth = 320
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11

@@ -65,7 +65,6 @@ object frmTableEditor: TfrmTableEditor
     Margins.Bottom = 32
     Align = alClient
     CheckImageKind = ckSystem
-    Constraints.MinHeight = 50
     DragMode = dmAutomatic
     EditDelay = 0
     Header.AutoSizeIndex = -1
@@ -169,8 +168,6 @@ object frmTableEditor: TfrmTableEditor
     Margins.Bottom = 0
     ActivePage = tabBasic
     Align = alTop
-    Constraints.MinHeight = 150
-    Constraints.MinWidth = 304
     Images = MainForm.PngImageListMain
     TabOrder = 0
     OnChange = PageControlMainChange
