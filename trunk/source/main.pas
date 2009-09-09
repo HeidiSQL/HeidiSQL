@@ -5844,20 +5844,19 @@ var
   text: WideString;
   i: Integer;
 begin
-  for i := 0 to ActiveQueryHelpers.Items.Count - 1 do begin
-    if ActiveQueryHelpers.Selected[i] then
-      text := text + ActiveQueryHelpers.Items[i] + ', ';
+  if ActiveQueryTabset.TabIndex = 3 then begin
+    // Load snippet file into query-memo
+    if ActiveQueryHelpers.ItemIndex > -1 then
+      QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
+  end else begin
+    // For all other tabs just insert selected list item(s)
+    for i := 0 to ActiveQueryHelpers.Items.Count - 1 do begin
+      if ActiveQueryHelpers.Selected[i] then
+        text := text + ActiveQueryHelpers.Items[i] + ', ';
+    end;
+    Delete(text, Length(text)-1, 2);
+    ActiveQueryMemo.SelText := text;
   end;
-  Delete(text, Length(text)-1, 2);
-
-  case ActiveQueryTabset.TabIndex of
-    3: // Load snippet file ínto query-memo
-      if ActiveQueryHelpers.ItemIndex > -1 then
-        QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
-    else // For all other tabs just insert the item from the list
-      ActiveQueryMemo.SelText := text;
-  end;
-
   ActiveQueryMemo.SetFocus;
 end;
 
