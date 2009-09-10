@@ -6656,7 +6656,7 @@ begin
   end;
   if not Assigned(VT) then
     Exit;
-  // Loop through all nodes to adjust their vsVisible state
+  // Loop through all nodes and hide non matching
   Node := VT.GetFirst;
   search := LowerCase( editFilterVT.Text );
   VisibleCount := 0;
@@ -6681,11 +6681,9 @@ begin
         // Ignore syntax errors in regexp
       end;
     end;
-    if match then begin
-      Node.States := Node.States + [vsVisible];
+    VT.IsVisible[Node] := match;
+    if match then
       inc(VisibleCount);
-    end else
-      Node.States := Node.States - [vsVisible];
     Node := VT.GetNext(Node);
   end;
   if search <> '' then begin
@@ -6693,18 +6691,6 @@ begin
       + IntToStr(VT.RootNodeCount - VisibleCount) + ' hidden.';
   end else
     lblFilterVTInfo.Caption := '';
-
-  // RootNode.TotalHeight needs to be recalculated so the scrollbar has the correct
-  // range, ignoring hidden nodes.
-  // Similar to what is done by VT.FixupTotalHeight() which doesn't work
-  // for some reason if called from within VT.UpdateVerticalScrollBar()
-  VT.RootNode.TotalHeight := 0;
-  Node := VT.GetFirst;
-  while Assigned(Node) do begin
-    if vsVisible in Node.States then
-      Inc(VT.RootNode.TotalHeight, Node.TotalHeight);
-    Node := Node.NextSibling;
-  end;
   VT.UpdateVerticalScrollBar(True);
   VT.Repaint;
 end;
