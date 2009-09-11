@@ -6691,7 +6691,6 @@ begin
       + IntToStr(VT.RootNodeCount - VisibleCount) + ' hidden.';
   end else
     lblFilterVTInfo.Caption := '';
-  VT.UpdateVerticalScrollBar(True);
   VT.Repaint;
 end;
 
