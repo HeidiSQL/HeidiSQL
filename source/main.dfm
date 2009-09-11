@@ -6729,11 +6729,4 @@ object MainForm: TMainForm
     Left = 40
     Top = 269
   end
-  object TimerFilterDBTree: TTimer
-    Enabled = False
-    Interval = 500
-    OnTimer = TimerFilterDBTreeTimer
-    Left = 136
-    Top = 269
-  end
 end
