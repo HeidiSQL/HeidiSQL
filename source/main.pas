@@ -6863,6 +6863,7 @@ var
   i, j: Integer;
   DatabasesWanted: TWideStringList;
   rx: TRegExpr;
+  FilterError: Boolean;
 begin
   case Sender.GetNodeLevel(Node) of
     // Root node has only one single child (user@host)
@@ -6877,30 +6878,27 @@ begin
             Databases := TWideStringList.Create;
           Databases.Clear;
           DatabasesWanted := Explode(';', comboOnlyDBs.Text);
+          FilterError := False;
           if DatabasesWanted.Count > 0 then begin
-            // Add wanted dbs by comparing strings
-            for i:=0 to AllDatabases.Count-1 do begin
-              if DatabasesWanted.IndexOf(AllDatabases[i]) > -1 then
-                Databases.Add(AllDatabases[i]);
-            end;
             // Add dbs by regular expression, avoiding duplicates
             rx := TRegExpr.Create;
-            for i:=0 to DatabasesWanted.Count-1 do begin
-              rx.Expression := '^'+DatabasesWanted[i]+'$';
-              for j:=0 to AllDatabases.Count-1 do begin
-                if (Databases.IndexOf(AllDatabases[j]) = -1) then try
-                  // The regular expression can have syntax errors which lead to an AV
-                  if rx.Exec(AllDatabases[j]) then
-                    Databases.Add(AllDatabases[j]);
-                  comboOnlyDBs.Color := clWindow;
-                except
-                  comboOnlyDBs.Color := clFuchsia;
-                  break;
-                end;
-              end;
+            rx.Expression := '('+ImplodeStr('|', DatabasesWanted)+')';
+            for j:=0 to AllDatabases.Count-1 do try
+              // The regular expression can have syntax errors which lead to an AV
+              if rx.Exec(AllDatabases[j]) then
+                Databases.Add(AllDatabases[j]);
+            except
+              FilterError := True;
+              break;
             end;
             rx.Free;
+            if Databases.Count = 0 then
+              FilterError := True;
           end;
+          if FilterError then
+            comboOnlyDBs.Color := clWebPink
+          else
+            comboOnlyDBs.Color := clWindow;
           FreeAndNil(DatabasesWanted);
           if Databases.Count = 0 then
             Databases.Assign(AllDatabases);
