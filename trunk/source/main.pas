@@ -6911,14 +6911,6 @@ begin
 
           showstatus( IntToStr( Databases.Count ) + ' Databases', 0 );
           ChildCount := Databases.Count;
-          // Avoids excessive InitializeKeywordLists() calls.
-          SynSQLSyn1.TableNames.BeginUpdate;
-          SynSQLSyn1.TableNames.Clear;
-          // Let synedit know all database names so that they can be highlighted
-          // TODO: Is this right?  Adding "<db name>.<table name>" seems to make more sense..
-          for i := 0 to Databases.Count - 1 do
-            SynSQLSyn1.TableNames.Add(Databases[i]);
-          SynSQLSyn1.TableNames.EndUpdate;
         finally
           ShowStatus( STATUS_MSG_READY );
           Screen.Cursor := crDefault;
