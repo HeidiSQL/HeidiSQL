@@ -448,6 +448,7 @@ type
     btnCloseFilterPanel: TPngSpeedButton;
     actFilterPanel: TAction;
     actFindInVT1: TMenuItem;
+    TimerFilterVT: TTimer;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -731,6 +732,7 @@ type
     procedure comboOnlyDBsDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure comboOnlyDBsKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure actFilterPanelExecute(Sender: TObject);
+    procedure TimerFilterVTTimer(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -6613,9 +6615,16 @@ end;
 
 {***
   Apply a filter to a Virtual Tree.
-  Currently used for ListVariables, ListStatus and ListProcesses
 }
 procedure TMainForm.editFilterVTChange(Sender: TObject);
+begin
+  // Reset typing timer
+  TimerFilterVT.Enabled := False;
+  TimerFilterVT.Enabled := True;
+end;
+
+
+procedure TMainForm.TimerFilterVTTimer(Sender: TObject);
 var
   Node : PVirtualNode;
   VT : TVirtualStringTree;
@@ -6624,9 +6633,10 @@ var
   search : WideString;
   tab: TTabSheet;
   VisibleCount: Cardinal;
-  rx: TRegExpr;
   CellText: WideString;
 begin
+  // Disable timer to avoid filtering in a loop
+  TimerFilterVT.Enabled := True;
   // Find the correct VirtualTree that shall be filtered
   tab := PageControlMain.ActivePage;
   if tab = tabHost then
@@ -6660,9 +6670,6 @@ begin
   Node := VT.GetFirst;
   search := LowerCase( editFilterVT.Text );
   VisibleCount := 0;
-  rx := TRegExpr.Create;
-  rx.Expression := editFilterVT.Text;
-  rx.ModifierI := True;
   while Assigned(Node) do begin
     // Don't filter anything if the filter text is empty
     match := search = '';
@@ -6672,13 +6679,6 @@ begin
       if Pos( search, LowerCase(CellText) ) > 0 then begin
         match := True;
         break;
-      end else try
-        if rx.Exec(CellText) then begin
-          match := True;
-          break;
-        end;
-      except
-        // Ignore syntax errors in regexp
       end;
     end;
     VT.IsVisible[Node] := match;

@@ -6723,4 +6723,10 @@ object MainForm: TMainForm
       OnClick = menuCloseQueryTab
     end
   end
+  object TimerFilterVT: TTimer
+    Enabled = False
+    OnTimer = TimerFilterVTTimer
+    Left = 40
+    Top = 269
+  end
 end
