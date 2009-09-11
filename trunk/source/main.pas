@@ -6636,7 +6636,7 @@ var
   CellText: WideString;
 begin
   // Disable timer to avoid filtering in a loop
-  TimerFilterVT.Enabled := True;
+  TimerFilterVT.Enabled := False;
   // Find the correct VirtualTree that shall be filtered
   tab := PageControlMain.ActivePage;
   if tab = tabHost then
