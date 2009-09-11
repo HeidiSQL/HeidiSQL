@@ -449,7 +449,6 @@ type
     actFilterPanel: TAction;
     actFindInVT1: TMenuItem;
     TimerFilterVT: TTimer;
-    TimerFilterDBTree: TTimer;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -734,7 +733,6 @@ type
     procedure comboOnlyDBsKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure actFilterPanelExecute(Sender: TObject);
     procedure TimerFilterVTTimer(Sender: TObject);
-    procedure TimerFilterDBTreeTimer(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -9573,16 +9571,7 @@ end;
 
 procedure TMainForm.comboOnlyDBsChange(Sender: TObject);
 begin
-  // Reset editing timer
-  TimerFilterDBTree.Enabled := False;
-  TimerFilterDBTree.Enabled := True;
-end;
-
-
-procedure TMainForm.TimerFilterDBTreeTimer(Sender: TObject);
-begin
-  // Apply database filter as the user has finished typing
-  TimerFilterDBTree.Enabled := False;
+  // Immediately apply database filter
   RefreshTree(False);
 end;
 
