@@ -777,7 +777,6 @@ type
     function GetActiveDatabase: WideString;
     function GetSelectedTable: TListNode;
     procedure SetSelectedDatabase(db: WideString);
-    procedure SelectDBObject(Text: WideString; NodeType: TListNodeType);
     procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: WideStrings.TWideStringList );
     function GetTableSize(ds: TDataSet): Int64;
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
@@ -914,6 +913,7 @@ type
     procedure SetWindowCaption;
     procedure OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
     function MaskMulti(str: WideString): WideString;
+    procedure SelectDBObject(Text: WideString; NodeType: TListNodeType);
 end;
 
 
