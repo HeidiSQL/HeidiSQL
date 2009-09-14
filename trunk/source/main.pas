@@ -17,7 +17,7 @@ uses
   ActnList, ImgList, ShellApi, ToolWin, Clipbrd, db,
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
   HeidiComp, sqlhelp, MysqlQueryThread, VirtualTrees,
-  DateUtils, PngImageList, OptimizeTables, View, Usermanager,
+  DateUtils, PngImageList, TableTools, View, Usermanager,
   SelectDBObject, Widestrings, ShlObj, SynEditMiscClasses, SynEditSearch,
   SynCompletionProposal, ZSqlMonitor, SynEditHighlighter, SynHighlighterSQL,
   TntStdCtrls, Tabs, SynUnicode, mysqlconn, EditVar, helpers, queryprogress,
@@ -791,7 +791,7 @@ type
   public
     cancelling: Boolean;
     virtualDesktopName: string;
-    MaintenanceForm: TOptimize;
+    TableToolsDialog: TfrmTableTools;
     ViewEditor: TfrmView;
     UserManagerForm: TUserManagerForm;
     SelectDBObjectForm: TfrmSelectDBObject;
@@ -1178,7 +1178,7 @@ begin
   SaveListSetup(ListTables);
 
   FreeAndNil(RoutineEditor);
-  FreeAndNil(MaintenanceForm);
+  FreeAndNil(TableToolsDialog);
   FreeAndNil(UserManagerForm);
   FreeAndNil(ViewEditor);
   FreeAndNil(SelectDBObjectForm);
@@ -1970,9 +1970,9 @@ end;
 procedure TMainForm.actMaintenanceExecute(Sender: TObject);
 begin
   // optimize / repair... tables
-  if MaintenanceForm = nil then
-    MaintenanceForm := TOptimize.Create(Self);
-  MaintenanceForm.ShowModal;
+  if TableToolsDialog = nil then
+    TableToolsDialog := TfrmTableTools.Create(Self);
+  TableToolsDialog.ShowModal;
 end;
 
 
@@ -6112,22 +6112,13 @@ end;
 procedure TMainForm.vstCompareNodes(Sender: TBaseVirtualTree; Node1,
     Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 var
-  NodeData1, NodeData2 : PVTreeData;
+  VT: TVirtualStringTree;
   CellText1, CellText2 : String;
   Number1, Number2 : Extended;
 begin
-  NodeData1 := Sender.GetNodeData(Node1);
-  NodeData2 := Sender.GetNodeData(Node2);
-
-  // If captions-item from either nodes is not set, assume empty string
-  if NodeData1.Captions.Count >= Column then
-    CellText1 := NodeData1.Captions[Column]
-  else
-    CellText1 := '';
-  if NodeData2.Captions.Count >= Column then
-    CellText2 := NodeData2.Captions[Column]
-  else
-    CellText2 := '';
+  VT := Sender as TVirtualStringTree;
+  CellText1 := VT.Text[Node1, Column];
+  CellText2 := VT.Text[Node2, Column];
 
   // Map value "0" to "N/A" strings
   if CellText1 = '' then
@@ -6857,13 +6848,15 @@ end;
 procedure TMainForm.DBtreeInitChildren(Sender: TBaseVirtualTree; Node:
     PVirtualNode; var ChildCount: Cardinal);
 var
+  VT: TVirtualStringTree;
   ds: TDataset;
   i, j: Integer;
   DatabasesWanted: TWideStringList;
   rx: TRegExpr;
   FilterError: Boolean;
 begin
-  case Sender.GetNodeLevel(Node) of
+  VT := Sender as TVirtualStringTree;
+  case VT.GetNodeLevel(Node) of
     // Root node has only one single child (user@host)
     0: begin
         Screen.Cursor := crHourglass;
@@ -6927,8 +6920,8 @@ begin
         end;
         // Auto resize "Size" column in dbtree when needed
         // See also OnResize
-        if coVisible in (Sender as TVirtualStringTree).Header.Columns[1].Options then
-          (Sender as TVirtualStringTree).Header.AutoFitColumns(False, smaUseColumnOption, 1, 1);
+        if (VT = DBtree) and (coVisible in VT.Header.Columns[1].Options) then
+          VT.Header.AutoFitColumns(False, smaUseColumnOption, 1, 1);
       end;
     else Exit;
   end;

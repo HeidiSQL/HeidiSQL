@@ -157,8 +157,9 @@ const
   REGNAME_UPDATECHECK_INTERVAL = 'UpdatecheckInterval';
   DEFAULT_UPDATECHECK_INTERVAL = 3;
   REGNAME_LAST_UPDATECHECK = 'UpdatecheckLastrun';
-  REGNAME_MAINTWINWIDTH = 'Maintenance_WindowWidth';
-  REGNAME_MAINTWINHEIGHT = 'Maintenance_WindowHeight';
+  REGNAME_TOOLSWINWIDTH = 'TableTools_WindowWidth';
+  REGNAME_TOOLSWINHEIGHT = 'TableTools_WindowHeight';
+  REGNAME_TOOLSTREEWIDTH = 'TableTools_TreeWidth';
   REGNAME_USERMNGR_WINWIDTH = 'Usermanager_WindowWidth';
   REGNAME_USERMNGR_WINHEIGHT = 'Usermanager_WindowHeight';
   REGNAME_SELECTDBO_WINWIDTH = 'SelectDBO_WindowWidth';
