@@ -277,7 +277,7 @@ begin
   while not ds.Eof do begin
     Row := TWideStringlist.Create;
     for i:=0 to ds.FieldCount-1 do begin
-      Row.Add(ds.Fields[i].AsWideString);
+      Row.Add(ds.Fields[i].AsString);
     end;
     FResults.Add(Row);
     ds.Next;
