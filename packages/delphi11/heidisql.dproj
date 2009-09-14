@@ -159,8 +159,8 @@
     <DCCReference Include="..\..\source\mysqlconn.pas" />
     <DCCReference Include="..\..\source\mysqlquery.pas" />
     <DCCReference Include="..\..\source\mysqlquerythread.pas" />
-    <DCCReference Include="..\..\source\optimizetables.pas">
-      <Form>optimize</Form>
+    <DCCReference Include="..\..\source\tabletools.pas">
+      <Form>frmTableTools</Form>
     </DCCReference>
     <DCCReference Include="..\..\source\options.pas">
       <Form>optionsform</Form>

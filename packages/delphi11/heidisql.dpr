@@ -11,7 +11,7 @@ uses
   loaddata in '..\..\source\loaddata.pas' {loaddataform},
   usermanager in '..\..\source\usermanager.pas' {UserManagerForm},
   options in '..\..\source\options.pas' {optionsform},
-  optimizetables in '..\..\source\optimizetables.pas' {optimize},
+  tabletools in '..\..\source\tabletools.pas' {frmTableTools},
   printlist in '..\..\source\printlist.pas' {printlistForm},
   copytable in '..\..\source\copytable.pas' {CopyTableForm},
   insertfiles in '..\..\source\insertfiles.pas' {frmInsertFiles},
