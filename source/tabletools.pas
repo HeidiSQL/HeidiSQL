@@ -184,7 +184,7 @@ begin
       ds := Mainform.FetchDbTableList(Mainform.Databases[ParentNode.Index]);
       ds.RecNo := Node.Index+1;
       if not (GetDBObjectType(ds.Fields) in [lntTable, lntCrashedTable, lntView]) then
-        Include(InitialStates, ivsDisabled);
+        Node.CheckType := ctNone;
     end;
   end;
 end;
@@ -234,7 +234,7 @@ var
 begin
   // Prepare SQL for one table node
   if (csCheckedNormal in [Node.CheckState, Node.Parent.CheckState]) and
-    (not TreeObjects.IsDisabled[Node]) then begin
+    (Node.CheckType <> ctNone) then begin
     SQL := UpperCase(comboOperation.Text) + ' TABLE ' +
       Mainform.mask(TreeObjects.Text[Node.Parent, 0])+'.'+Mainform.mask(TreeObjects.Text[Node, 0]);
     if chkQuick.Enabled and chkQuick.Checked then SQL := SQL + ' QUICK';
