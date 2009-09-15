@@ -104,6 +104,8 @@ end;
 
 procedure TfrmTableTools.FormShow(Sender: TObject);
 begin
+  // When this form is displayed the second time, databases may be deleted or filtered
+  treeObjects.ReinitChildren(treeObjects.GetFirst, False);
   // CHECKSUM available since MySQL 4.1.1
   if Mainform.mysql_version < 40101 then
     comboOperation.Items[comboOperation.Items.IndexOf('Checksum')] := 'Checksum ('+STR_NOTSUPPORTED+')';
