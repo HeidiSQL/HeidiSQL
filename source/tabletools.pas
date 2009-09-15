@@ -180,8 +180,10 @@ begin
   case Sender.GetNodeLevel(Node) of
     1: begin
       // Preselect active database
-      if Mainform.Databases[Node.Index] = Mainform.ActiveDatabase then
+      if Mainform.Databases[Node.Index] = Mainform.ActiveDatabase then begin
         Node.CheckState := csCheckedNormal;
+        TreeObjects.ReinitChildren(Node, False);
+      end;
       ValidateControls(Sender);
     end;
     2: begin
@@ -189,7 +191,9 @@ begin
       ds := Mainform.FetchDbTableList(Mainform.Databases[ParentNode.Index]);
       ds.RecNo := Node.Index+1;
       if not (GetDBObjectType(ds.Fields) in [lntTable, lntCrashedTable, lntView]) then
-        Node.CheckType := ctNone;
+        Node.CheckType := ctNone
+      else if Node.Parent.CheckState in [csCheckedNormal, csCheckedPressed] then
+        Node.CheckState := csCheckedNormal;
     end;
   end;
 end;
