@@ -123,7 +123,7 @@ begin
   chkFast.Enabled := op = 'check';
   chkMedium.Enabled := op = 'check';
   chkExtended.Enabled := (op = 'check') or (op = 'checksum') or (op = 'repair');
-  chkChanged.Enabled := op = 'changed';
+  chkChanged.Enabled := op = 'check';
   chkUseFrm.Enabled := op = 'repair';
   ValidateControls(Sender);
 end;
