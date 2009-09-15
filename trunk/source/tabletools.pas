@@ -133,6 +133,11 @@ procedure TfrmTableTools.ValidateControls(Sender: TObject);
 begin
   btnExecuteMaintenance.Enabled := (Pos(STR_NOTSUPPORTED, comboOperation.Text) = 0) and
     (TreeObjects.CheckedCount > 0);
+  // CHECKSUM's options are mutually exclusive
+  if comboOperation.Text = 'Checksum' then begin
+    if (Sender = chkExtended) and chkExtended.Checked then chkQuick.Checked := False
+    else if chkQuick.Checked then chkExtended.Checked := False;
+  end;
 end;
 
 
@@ -198,11 +203,7 @@ end;
 
 procedure TfrmTableTools.MaintenanceOptionClick(Sender: TObject);
 begin
-  // CHECKSUM's options are mutually exclusive
-  if comboOperation.Text = 'Checksum' then begin
-    if (Sender = chkQuick) and chkQuick.Checked then chkExtended.Checked := False;
-    if (Sender = chkExtended) and chkExtended.Checked then chkQuick.Checked := False;
-  end;
+  ValidateControls(Sender);
 end;
 
 procedure TfrmTableTools.ExecuteOperation(Sender: TObject);
