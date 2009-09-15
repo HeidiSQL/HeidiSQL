@@ -157,7 +157,6 @@ function TVirtualTreeAccessibility.accLocation(out pxLeft: Integer;
 // returns the location of the VirtualStringTree object.
 var
   P: TPoint;
-  DisplayRect : TRect;
 begin
   Result := S_FALSE;
   if varChild = CHILDID_SELF then

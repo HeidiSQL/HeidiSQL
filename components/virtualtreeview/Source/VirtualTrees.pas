@@ -24,7 +24,33 @@ unit VirtualTrees;
 // (C) 1999-2001 digital publishing AG. All Rights Reserved.
 //----------------------------------------------------------------------------------------------------------------------
 //
+//  September 2009
+//   - Improvement: new TVirtualNodeInitState ivsReInit to indicate that a node is about to be re-initialized
+//   - Bug fix: TCustomVirtualStringTree.DoTextMeasuring now makes use of the parameter Width of the
+//              OnMeasureTextWidth event
+//   - Bug fix: TBaseVirtualTree.DetermineLineImageAndSelectLevel will no longer access LineImage[-1]
+//   - Bug fix: clearing the columns now correctly reset TBaseVirtualTree.FFocusedColumn
+//   - Improvement: explorer style painting is now more close to the real explorer
+//   - Bug fix: TCustomVirtualStringTree.TContentToHTML.WriteStyle will no longer produce invalid CSS
+//   - Bug fix: the parameter DragEffect of TBaseVirtualTree.DragAndDrop is now var as it should be
+//  August 2009
+//   - Bug fix: TBaseVirtualTree.MoveTo now initializes the target node using the target tree
+//   - Bug fix: TBaseVirtualTree.FVisibleCount is now calculated correctly when using filtered nodes
+//   - Improvement: introduced new initial node state ivsFiltered
+//  July 2009
+//   - Improvement: modified TVTHeader.HandleHeaderMouseMove to make resizing the autosize column with the
+//                  mouse possible
+//   - Improvement: modified TBaseVirtualTree.DoCreateEditor so that applications can now return NIL in OnCreateEditor
+//                  to use the standard editor of the tree
+//   - Bug fix: pressing CTRL + PgUp/PgDown no longer leads to an index-out-of-bounds exception if no columns are used
+//   - Bug fix: avoided race condition between TBaseVirtualTree.DeleteNode and the worker thread 
+//   - Bug fix: TBaseVirtualTree.ToggleNode could produce an overflow if range checking was enabled 
+//   - Bug fix: TWorkerThread will no longer reference the tree after it has been destroyed (Mantis issue #384)
+//   - Improvement: removed support for Delphi versions older than Delphi 7
+//   - Improvement: removed local memory manager
 //  June 2009
+//   - Bug fix: TBaseVirtualTree.InternalConnectNode checked the expanded state of the wrong node if Mode was
+//              amAddChildFirst or amAddChildLast
 //   - Improvement: 'hidden nodes' are now called 'filtered nodes'
 //   - Improvement: converted line endings back to CR/LF
 //   - Improvement: new events TBaseVirtualTree.OnCanSplitterResizeNode and TBaseVirtualTree.OnCanSplitterResizeHeader
@@ -274,14 +300,14 @@ unit VirtualTrees;
 // For full document history see help file.
 //
 // Credits for their valuable assistance and code donations go to:
-//   Freddy Ertl, Marian Aldenhövel, Thomas Bogenrieder, Jim Kuenemann, Werner Lehmann, Jens Treichler,
-//   Paul Gallagher (IBO tree), Ondrej Kelle, Ronaldo Melo Ferraz, Heri Bender, Roland Bedürftig (BCB)
+//   Freddy Ertl, Marian AldenhÃ¶vel, Thomas Bogenrieder, Jim Kuenemann, Werner Lehmann, Jens Treichler,
+//   Paul Gallagher (IBO tree), Ondrej Kelle, Ronaldo Melo Ferraz, Heri Bender, Roland BedÃ¼rftig (BCB)
 //   Anthony Mills, Alexander Egorushkin (BCB), Mathias Torell (BCB), Frank van den Bergh, Vadim Sedulin, Peter Evans,
 //   Milan Vandrovec (BCB), Steve Moss, Joe White, David Clark, Anders Thomsen, Igor Afanasyev, Eugene Programmer,
 //   Corbin Dunn, Richard Pringle, Uli Gerhardt, Azza, Igor Savkic, Daniel Bauten, Timo Tegtmeier, Dmitry Zegebart,
 //   Andreas Hausladen
 // Beta testers:
-//   Freddy Ertl, Hans-Jürgen Schnorrenberg, Werner Lehmann, Jim Kueneman, Vadim Sedulin, Moritz Franckenstein,
+//   Freddy Ertl, Hans-JÃ¼rgen Schnorrenberg, Werner Lehmann, Jim Kueneman, Vadim Sedulin, Moritz Franckenstein,
 //   Wim van der Vegt, Franc v/d Westelaken
 // Indirect contribution (via publicly accessible work of those persons):
 //   Alex Denissov, Hiroyuki Hori (MMXAsm expert)
@@ -303,12 +329,10 @@ interface
 {$I Compilers.inc}
 {$I VTConfig.inc}
 
-{$ifdef COMPILER_7_UP}
-  // For some things to work we need code, which is classified as being unsafe for .NET.
-  {$warn UNSAFE_TYPE off}
-  {$warn UNSAFE_CAST off}
-  {$warn UNSAFE_CODE off}
-{$endif COMPILER_7_UP}
+// For some things to work we need code, which is classified as being unsafe for .NET.
+{$warn UNSAFE_TYPE off}
+{$warn UNSAFE_CAST off}
+{$warn UNSAFE_CODE off}
 
 {$ifdef COMPILER_12_UP}
   {$WARN IMPLICIT_STRING_CAST       OFF}
@@ -324,17 +348,11 @@ uses
   {$ifndef COMPILER_10_UP}
     MSAAIntf, // MSAA support for Delphi up to 2005
   {$else}
-    oleacc, // MSAA support in Delphi 2006 or higher
+    oleacc,   // MSAA support in Delphi 2006 or higher
   {$endif COMPILER_10_UP}
   Messages, SysUtils, Classes, Graphics, Controls, Forms, ImgList, ActiveX, StdCtrls, Menus, Printers,
-  CommCtrl  // image lists, common controls tree structures
-  {$ifdef ThemeSupport}
-    {$ifndef COMPILER_7_UP}
-      , ThemeSrv, TMSchema, UxTheme  // Windows XP themes support. Get these units from www.soft-gems.net
-    {$else}
-      , Themes, UxTheme
-    {$endif COMPILER_7_UP}
-  {$endif ThemeSupport}
+  CommCtrl,   // image lists, common controls tree structures
+  Themes, UxTheme
   {$ifdef TntSupport}
     , TntStdCtrls       // Unicode aware inplace editor.
   {$endif TntSupport}
@@ -496,10 +514,6 @@ type
 
   TWMPrintClient = TWMPrint;
 
-  {$ifndef COMPILER_5_UP}
-    TWMContextMenu = TWMMouse;
-  {$endif COMPILER_5_UP}
-
   // Be careful when adding new states as this might change the size of the type which in turn
   // changes the alignment in the node record as well as the stream chunks.
   // Do not reorder the states and always add new states at the end of this enumeration in order to avoid
@@ -530,7 +544,9 @@ type
     ivsExpanded,
     ivsHasChildren,
     ivsMultiline,
-    ivsSelected
+    ivsSelected,
+    ivsFiltered,
+    ivsReInit
   );
   TVirtualNodeInitStates = set of TVirtualNodeInitState;
 
@@ -892,33 +908,6 @@ type
     Data: record end;        // this is a placeholder, each node gets extra data determined by NodeDataSize
   end;
 
-  // TVTNodeMemoryManager is a high-performance local memory manager for allocating TVirtualNode structures.
-  // It is not thread-safe in itself, because it assumes that the virtual tree is being used within a single
-  // thread. The local memory manager supports only fixed-length allocation requests - all requests must be of
-  // the same size. The performance improvements are a result of TVTNodeMemoryManager getting 16K blocks
-  // of memory from the Delphi memory manager and then managing them in a highly efficient manner.
-  // A consequence is that node memory allocations/deallocations are not visible to memory debugging tools.
-  //
-  // The local memory manager is disabled by default - to enable it {$define UseLocalMemoryManager}. For smaller trees,
-  // say less than 10,000 nodes, there is really no major performance benefit in using the local memory manager.
-  {$ifdef UseLocalMemoryManager}
-    TVTNodeMemoryManager = class
-    private
-      FAllocSize: Cardinal;       // The memory allocated for each node
-      FBlockList: TList;          // List of allocated blocks
-      FBytesAvailable: Cardinal;  // Bytes available in current block
-      FNext: PVirtualNode;        // Pointer to next available node in current block
-      FFreeSpace: PVirtualNode;   // Pointer to free space chain
-    public
-      constructor Create;
-      destructor Destroy; override;
-
-      function AllocNode(const Size: Cardinal): PVirtualNode;
-      procedure FreeNode(const Node: PVirtualNode);
-      procedure Clear;
-    end;
-  {$endif UseLocalMemoryManager}
-
   // Structure used when info about a certain position in the header is needed.
   TVTHeaderHitInfo = record
     X,
@@ -1205,10 +1194,6 @@ type
     vsOwnerDraw
   );
 
-  {$ifndef COMPILER_5_UP}
-    TImageIndex = Integer;
-  {$endif COMPILER_5_UP}
-
   TVTHeaderColumnLayout = (
     blGlyphLeft,
     blGlyphRight,
@@ -1270,7 +1255,7 @@ type
     procedure SetWidth(Value: Integer);
   protected
     procedure ComputeHeaderLayout(DC: HDC; Client: TRect; UseHeaderGlyph, UseSortGlyph: Boolean;
-      var HeaderGlyphPos, SortGlyphPos: TPoint; var TextBounds: TRect; DrawFormat: Cardinal;
+      var HeaderGlyphPos, SortGlyphPos: TPoint; var SortGlyphSize: TSize; var TextBounds: TRect; DrawFormat: Cardinal;
       CalculateTextRect: Boolean = False);
     procedure DefineProperties(Filer: TFiler); override;
     procedure GetAbsoluteBounds(var Left, Right: Integer);
@@ -1754,7 +1739,8 @@ type
     tsVCLDragPending,         // One-shot flag to avoid clearing the current selection on implicit mouse up for VCL drag.
     tsWheelPanning,           // Wheel mouse panning is active or soon will be.
     tsWheelScrolling,         // Wheel mouse scrolling is active or soon will be.
-    tsWindowCreating          // Set during window handle creation to avoid frequent unnecessary updates.
+    tsWindowCreating,         // Set during window handle creation to avoid frequent unnecessary updates.
+    tsUseExplorerTheme        // The tree runs under WinVista+ and is using the explorer theme
   );
 
   TChangeStates = set of (
@@ -2161,9 +2147,6 @@ type
                                                  // to happen immediately, regardless of the normal update state
     FNodeDataSize: Integer;                      // number of bytes to allocate with each node (in addition to its base
                                                  // structure and the internal data), if -1 then do callback
-    {$ifdef UseLocalMemoryManager}
-      FNodeMemoryManager: TVTNodeMemoryManager;  // High-performance local memory manager.
-    {$endif UseLocalMemoryManager}
     FStates: TVirtualTreeStates;                 // various active/pending states the tree needs to consider
     FLastSelected,
     FFocusedNode: PVirtualNode;
@@ -2611,9 +2594,7 @@ type
     procedure WMSetFocus(var Msg: TWMSetFocus); message WM_SETFOCUS;
     procedure WMSize(var Message: TWMSize); message WM_SIZE;
     procedure WMTimer(var Message: TWMTimer); message WM_TIMER;
-    {$ifdef ThemeSupport}
-      procedure WMThemeChanged(var Message: TMessage); message WM_THEMECHANGED;
-    {$endif ThemeSupport}
+    procedure WMThemeChanged(var Message: TMessage); message WM_THEMECHANGED;
     procedure WMVScroll(var Message: TWMVScroll); message WM_VSCROLL;
   protected
     procedure AddToSelection(Node: PVirtualNode); overload; virtual;
@@ -2749,7 +2730,7 @@ type
     procedure DoUpdating(State: TVTUpdateState); virtual;
     function DoValidateCache: Boolean; virtual;
     procedure DragAndDrop(AllowedEffects: Integer; DataObject: IDataObject;
-      DragEffect: Integer); virtual;
+      var DragEffect: Integer); virtual;
     procedure DragCanceled; override;
     function DragDrop(const DataObject: IDataObject; KeyState: Integer; Pt: TPoint;
       var Effect: Integer): HResult; reintroduce; virtual;
@@ -3029,7 +3010,7 @@ type
     function CancelEditNode: Boolean;
     procedure CancelOperation;
     function CanEdit(Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual;
-    function CanFocus: Boolean; {$ifdef COMPILER_5_UP} override;{$endif}
+    function CanFocus: Boolean; override;
     procedure Clear; virtual;
     procedure ClearChecked;
     procedure ClearSelection;
@@ -3581,9 +3562,7 @@ type
     property OnColumnWidthDblClickResize;
     property OnColumnWidthTracking;
     property OnCompareNodes;
-    {$ifdef COMPILER_5_UP}
-      property OnContextPopup;
-    {$endif COMPILER_5_UP}
+    property OnContextPopup;
     property OnCreateDataObject;
     property OnCreateDragManager;
     property OnCreateEditor;
@@ -3832,9 +3811,7 @@ type
     property OnColumnWidthDblClickResize;
     property OnColumnWidthTracking;
     property OnCompareNodes;
-    {$ifdef COMPILER_5_UP}
-      property OnContextPopup;
-    {$endif COMPILER_5_UP}
+    property OnContextPopup;
     property OnCreateDataObject;
     property OnCreateDragManager;
     property OnCreateEditor;
@@ -3994,7 +3971,7 @@ const
 
   // Do not modify the copyright in any way! Usage of this unit is prohibited without the copyright notice
   // in the compiled binary file.
-  Copyright: string = 'Virtual Treeview © 1999, 2009 Mike Lischke';
+  Copyright: string = 'Virtual Treeview Â© 1999, 2009 Mike Lischke';
 
 var
   StandardOLEFormat: TFormatEtc = (
@@ -4074,6 +4051,11 @@ const
       FSB_ENCARTA_MODE
     );
   {$endif}
+  
+  {$ifndef COMPILER_11_UP}
+    const
+      TVP_HOTGLYPH = 4;
+  {$endif COMPILER_11_UP}
 
   RTLFlag: array[Boolean] of Integer = (0, ETO_RTLREADING);
   AlignmentToDrawFlag: array[TAlignment] of Cardinal = (DT_LEFT, DT_RIGHT, DT_CENTER);
@@ -4102,6 +4084,7 @@ type
     FWaiterList: TThreadList;
     FRefCount: Cardinal;
   protected
+    procedure CancelValidation(Tree: TBaseVirtualTree);
     procedure ChangeTreeStates(EnterStates, LeaveStates: TChangeStates);
     procedure Execute; override;
   public
@@ -4160,33 +4143,6 @@ var
   SystemFlatCheckImages: TImageList;   // global flat system check images
   Initialized: Boolean;                // True if global structures have been initialized.
   NeedToUnitialize: Boolean;           // True if the OLE subsystem could be initialized successfully.
-
-  {$ifndef COMPILER_5_UP}
-    HintFont: TFont;                   // In Delphi 4 there is no TScreen.HintFont yet.
-  {$endif COMPILER_5_UP}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-{$ifndef COMPILER_6_UP}
-
-  procedure RaiseLastOSError;
-
-  begin
-    RaiseLastWin32Error;
-  end;
-
-//----------------------------------------------------------------------------------------------------------------------
-
-  function IfThen(AValue: Boolean; const ATrue: Integer; const AFalse: Integer = 0): Integer;
-
-  begin
-    if AValue then
-      Result := ATrue
-    else
-      Result := AFalse;
-  end;
-
-{$endif COMPILER_6_UP}
 
 //----------------- TClipboardFormats ----------------------------------------------------------------------------------
 
@@ -5797,9 +5753,6 @@ procedure InitializeGlobalStructures;
 // initialization of stuff global to the unit
 
 var
-  {$ifndef COMPILER_5_UP}
-    NonClientMetrics: TNonClientMetrics;
-  {$endif COMPILER_5_UP}
   Flags: Cardinal;
 
 begin
@@ -5865,16 +5818,6 @@ begin
   CreateSystemImageSet(SystemCheckImages, Flags, False);
   CreateSystemImageSet(SystemFlatCheckImages, Flags, True);
 
-  {$ifndef COMPILER_5_UP}
-    // In Delphi 4 there is no TScreen.HintFont hence we have to manage this manually.
-    HintFont := TFont.Create;
-    NonClientMetrics.cbSize := SizeOf(NonClientMetrics);
-    if SystemParametersInfo(SPI_GETNONCLIENTMETRICS, 0, @NonClientMetrics, 0) then
-      HintFont.Handle := CreateFontIndirect(NonClientMetrics.lfStatusFont)
-    else
-      HintFont.Size := 8;
-  {$endif COMPILER_5_UP}
-
   // Specify an useful timer resolution for timeGetTime.
   timeBeginPeriod(MinimumTimerInterval);
 
@@ -5907,10 +5850,6 @@ var
 
 begin
   timeEndPeriod(MinimumTimerInterval);
-  {$ifndef COMPILER_5_UP}
-    HintFont.Free;
-    HintFont := nil;
-  {$endif COMPILER_5_UP}
 
   LightCheckImages.Free;
   LightCheckImages := nil;
@@ -6018,17 +5957,6 @@ begin
         Terminate;
         SetEvent(WorkEvent);
 
-        // The following work around is no longer necessary with Delphi 6 and up.
-        {$ifndef COMPILER_6_UP}
-          // There is a problem when the thread is freed in the exit code of a DLL. This can happen when a tree is
-          // destroyed on unload of a DLL (e.g. control panel applet). In this case only the main thread will get
-          // CPU time, other threads will never awake again. The VCL however waits for a thread when freeing it
-          // which will result in a deadlock (the WaitFor call does not return because the thread does not get CPU time).
-          // If a thread is however suspended then the VCL does not wait and all is fine.
-          if IsLibrary then
-            Suspend;
-        {$endif COMPILER_6_UP}
-
         WorkerThread.Free;
       end;
       WorkerThread := nil;
@@ -6055,6 +5983,26 @@ begin
   inherited;
 
   FWaiterList.Free;
+end;
+
+//----------------------------------------------------------------------------------------------------------------------
+
+procedure TWorkerThread.CancelValidation(Tree: TBaseVirtualTree);
+
+var
+  Msg: TMsg;
+
+begin
+  // Wait for any references to this tree to be released.
+  // Pump WM_CHANGESTATE messages so the thread doesn't block on SendMessage calls.
+  while FCurrentTree = Tree do
+  begin
+    if Tree.HandleAllocated and PeekMessage(Msg, Tree.Handle, WM_CHANGESTATE, WM_CHANGESTATE, PM_REMOVE) then
+    begin
+      TranslateMessage(Msg);
+      DispatchMessage(Msg);
+    end;
+  end;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -6101,20 +6049,21 @@ begin
       end;
 
       // Something to do?
-      try
-        if Assigned(FCurrentTree) then
-        begin
+      if Assigned(FCurrentTree) then
+      begin
+        try
           ChangeTreeStates([csValidating], [csUseCache]);
           EnterStates := [];
           if not (tsStopValidation in FCurrentTree.FStates) and FCurrentTree.DoValidateCache then
             EnterStates := [csUseCache];
+
+        finally
+          LeaveStates := [csValidating, csStopValidation];
+          if csUseCache in EnterStates then
+            Include(LeaveStates, csValidationNeeded);
+          ChangeTreeStates(EnterStates, LeaveStates);
+          FCurrentTree := nil;
         end;
-      finally
-        LeaveStates := [csValidating, csStopValidation];
-        if csUseCache in EnterStates then
-          Include(LeaveStates, csValidationNeeded);
-        ChangeTreeStates(EnterStates, LeaveStates);
-        FCurrentTree := nil;
       end;
     end;
   end;
@@ -6151,6 +6100,7 @@ begin
   finally
     FWaiterList.UnlockList;
   end;
+  CancelValidation(Tree);
 end;
 
 //----------------- TBufferedAnsiString ------------------------------------------------------------------------------------
@@ -6386,30 +6336,32 @@ begin
     with FOwner do
       if HandleAllocated then
       begin
-        {$ifdef ThemeSupport}
-          if (tsUseThemes in FStates) or (toThemeAware in ToBeSet) then
-            if (toUseExplorerTheme in ToBeSet) and IsWinVistaOrAbove then
-              SetWindowTheme(Handle, 'explorer', nil)
-            else
-              SetWindowTheme(Handle, '', nil);
-        {$endif ThemeSupport}
+        if (tsUseThemes in FStates) or ((toThemeAware in ToBeSet) and ThemeServices.ThemesEnabled) then
+          if (toUseExplorerTheme in ToBeSet) and IsWinVistaOrAbove then
+          begin
+            SetWindowTheme(Handle, 'explorer', nil);
+            DoStateChange([tsUseExplorerTheme]);
+          end
+          else
+          begin
+            SetWindowTheme(Handle, '', nil);
+            DoStateChange([], [tsUseExplorerTheme]);
+          end;
 
         if not (csLoading in ComponentState) then
         begin
-          {$ifdef ThemeSupport}
-            if (toThemeAware in ToBeSet + ToBeCleared) or (toUseExplorerTheme in ToBeSet + ToBeCleared) then
-            begin
-              if (toThemeAware in ToBeSet) and ThemeServices.ThemesEnabled then
-                DoStateChange([tsUseThemes])
-              else
-                if (toThemeAware in ToBeCleared) then
-                  DoStateChange([], [tsUseThemes]);
-
-              PrepareBitmaps(True, False);
-              RedrawWindow(Handle, nil, 0, RDW_INVALIDATE or RDW_VALIDATE or RDW_FRAME);
-            end
+          if (toThemeAware in ToBeSet + ToBeCleared) or (toUseExplorerTheme in ToBeSet + ToBeCleared) then
+          begin
+            if (toThemeAware in ToBeSet) and ThemeServices.ThemesEnabled then
+              DoStateChange([tsUseThemes])
             else
-          {$endif ThemeSupport}
+              if (toThemeAware in ToBeCleared) then
+                DoStateChange([], [tsUseThemes]);
+
+            PrepareBitmaps(True, False);
+            RedrawWindow(Handle, nil, 0, RDW_INVALIDATE or RDW_VALIDATE or RDW_FRAME);
+          end
+          else
           if toShowFilteredNodes in ToBeSet + ToBeCleared then
           begin
             BeginUpdate;
@@ -6417,7 +6369,7 @@ begin
             Run := GetFirst;
             while Assigned(Run) do
             begin
-              if vsFiltered in Run.States then
+              if (vsFiltered in Run.States) and FullyVisible[Run] then
                 if toShowFilteredNodes in ToBeSet then
                 begin
                   Inc(FVisibleCount);
@@ -6491,103 +6443,6 @@ begin
   else
     inherited;
 end;
-
-//----------------- TVTNodeMemoryManager -------------------------------------------------------------------------------
-
-{$ifdef UseLocalMemoryManager}
-
-  const
-    NodeMemoryGuard: PVirtualNode = PVirtualNode($FEEFEFFE);
-
-  constructor TVTNodeMemoryManager.Create;
-
-  begin
-    FBlockList := TList.Create;
-  end;
-
-  //----------------------------------------------------------------------------------------------------------------------
-
-  destructor TVTNodeMemoryManager.Destroy;
-
-  begin
-    Clear;
-    FBlockList.Free;
-  end;
-
-  //----------------------------------------------------------------------------------------------------------------------
-
-  function TVTNodeMemoryManager.AllocNode(const Size: Cardinal): PVirtualNode;
-
-  // Allocates memory for a node using the local memory manager.
-
-  const
-    BlockSize = (16 * 1024);   // Blocks larger than 16K offer no significant performance improvement.
-
-  begin
-    if FAllocSize = 0 then
-      // Recalculate allocation size first time after a clear.
-      FAllocSize := (Size + 3) and not 3   // Force alignment on 32-bit boundaries.
-    else
-      // Allocation size cannot be increased unless Memory Manager is explicitly cleared.
-      Assert(Size <= FAllocSize, 'Node memory manager allocation size cannot be increased.');
-
-    if Assigned(FFreeSpace) then
-    begin
-      // Assign node from free-space chain.
-      Assert(FFreeSpace.NextSibling = NodeMemoryGuard, 'Memory overwrite in node memory manager free space chain.');
-      Result := FFreeSpace;                // Assign node
-      FFreeSpace := Result.PrevSibling;    // Point to prev node in free-space chain
-    end
-    else
-    begin
-      if FBytesAvailable < FAllocSize then
-      begin
-        // Get another block from the Delphi memory manager.
-        GetMem(FNext, BlockSize);
-        FBytesAvailable := BlockSize;
-        FBlockList.Add(FNext);
-      end;
-      // Assign node from current block.
-      Result := FNext;
-     Inc(PByte(FNext), FAllocSize);
-      Dec(FBytesAvailable, FAllocSize);
-    end;
-
-    // Clear the memory.
-   ZeroMemory(Result, FAllocSize);
-  end;
-
-  //----------------------------------------------------------------------------------------------------------------------
-
-  procedure TVTNodeMemoryManager.Clear;
-
-  // Releases all memory held by the local memory manager.
-
-  var
-    I: Integer;
-
-  begin
-    for I := 0 to FBlockList.Count - 1 do
-      FreeMem(FBlockList[I]);
-    FBlockList.Clear;
-    FFreeSpace := nil;
-    FBytesAvailable := 0;
-    FAllocSize := 0;
-  end;
-
-  //----------------------------------------------------------------------------------------------------------------------
-
-  procedure TVTNodeMemoryManager.FreeNode(const Node: PVirtualNode);
-
-  // Frees node memory that was allocated using the local memory manager.
-
-  begin
-    Node.PrevSibling := FFreeSpace;         // Point to previous free node.
-    Node.NextSibling := NodeMemoryGuard;    // Memory guard to detect overwrites.
-    FFreeSpace := Node;                     // Point Free chain pointer to me.
-  end;
-
-{$endif UseLocalMemoryManager}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -7497,12 +7352,7 @@ var
   Shadow: Integer;
 
 begin
-  {$ifndef COMPILER_7_UP}
-    if MMXAvailable then
-      Shadow := ShadowSize
-    else
-  {$endif COMPILER_7_UP}
-    Shadow := 0;
+  Shadow := 0;
 
   with FHintData, FDrawBuffer do
   begin
@@ -7512,11 +7362,7 @@ begin
       // If the given node is nil then we have to display a header hint.
       if (Node = nil) or (Tree.FHintMode <> hmToolTip) then
       begin
-        {$ifndef COMPILER_5_UP}
-          Canvas.Font := HintFont;
-        {$else}
-          Canvas.Font := Screen.HintFont;
-        {$endif COMPILER_5_UP}
+        Canvas.Font := Screen.HintFont;
         Y := 2;
       end
       else
@@ -7543,12 +7389,7 @@ begin
           Font.Color := clInfoText;
           Pen.Color := clBlack;
           Brush.Color := clInfoBk;
-          {$ifdef COMPILER_5_UP}
-            Rectangle(R);
-          {$else}
-            with R do
-              Rectangle(Left, Top, Right, Bottom);
-          {$endif COMPILER_5_UP}
+          Rectangle(R);
 
           // Determine text position and don't forget the border.
           InflateRect(R, -1, -1);
@@ -7753,13 +7594,7 @@ begin
           ChangeBidiModeAlignment(Alignment);
 
         if (Node = nil) or (Tree.FHintMode <> hmToolTip) then
-        begin
-          {$ifndef COMPILER_5_UP}
-            Canvas.Font := HintFont;
-          {$else}
-            Canvas.Font := Screen.HintFont
-          {$endif COMPILER_5_UP}
-        end
+          Canvas.Font := Screen.HintFont
         else
         begin
           Canvas.Font := Tree.Font;
@@ -7857,15 +7692,6 @@ begin
             // The text is centered horizontally with usual text margin for left and right borders (plus border).
             Inc(Result.Right, 2 * Tree.FTextMargin + 2);
           end;
-
-          {$ifndef COMPILER_7_UP}
-            // Add some pixels for the shadow if MMX is available for blending.
-            if MMXAvailable then
-            begin
-              Inc(Result.Right, ShadowSize);
-              Inc(Result.Bottom, ShadowSize);
-            end;
-          {$endif COMPILER_7_UP}
         end;
       end;
     end;
@@ -8932,7 +8758,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TVirtualTreeColumn.ComputeHeaderLayout(DC: HDC; Client: TRect; UseHeaderGlyph, UseSortGlyph: Boolean;
-  var HeaderGlyphPos, SortGlyphPos: TPoint; var TextBounds: TRect; DrawFormat: Cardinal;
+  var HeaderGlyphPos, SortGlyphPos: TPoint; var SortGlyphSize: TSize; var TextBounds: TRect; DrawFormat: Cardinal;
   CalculateTextRect: Boolean = False);
 
 // The layout of a column header is determined by a lot of factors. This method takes them all into account and
@@ -8945,14 +8771,14 @@ var
   TextSize: TSize;
   TextPos,
   ClientSize,
-  HeaderGlyphSize,
-  SortGlyphSize: TPoint;
+  HeaderGlyphSize: TPoint;
   CurrentAlignment: TAlignment;
   MinLeft,
   MaxRight,
   TextSpacing: Integer;
   UseText: Boolean;
   R: TRect;
+  Theme: HTHEME;
 
 begin
   UseText := Length(FText) > 0;
@@ -8977,12 +8803,27 @@ begin
       HeaderGlyphSize := Point(0, 0);
     if UseSortGlyph then
     begin
-      SortGlyphSize := Point(UtilityImages.Width, UtilityImages.Height);
+      if tsUseExplorerTheme in FHeader.Treeview.FStates then
+      begin
+        R := Rect(0, 0, 100, 100);
+        Theme := OpenThemeData(FHeader.Treeview.Handle, 'HEADER');
+        GetThemePartSize(Theme, DC, HP_HEADERSORTARROW, HSAS_SORTEDUP, @R, TS_TRUE, SortGlyphSize);
+        CloseThemeData(Theme);
+      end
+      else
+      begin
+        SortGlyphSize.cx := UtilityImages.Width;
+        SortGlyphSize.cy := UtilityImages.Height;
+      end;
+
       // In any case, the sort glyph is vertically centered.
-      SortGlyphPos.Y := (ClientSize.Y - SortGlyphSize.Y) div 2;
+      SortGlyphPos.Y := (ClientSize.Y - SortGlyphSize.cy) div 2;
     end
     else
-      SortGlyphSize := Point(0, 0);
+    begin
+      SortGlyphSize.cx := 0;
+      SortGlyphSize.cy := 0;
+    end;
   end;
 
   if UseText then
@@ -9018,7 +8859,7 @@ begin
   if UseSortGlyph and not (UseText or UseHeaderGlyph) then
   begin
     // Center the sort glyph in the available area if nothing else is there.
-    SortGlyphPos := Point((ClientSize.X - SortGlyphSize.X) div 2, (ClientSize.Y - SortGlyphSize.Y) div 2);
+    SortGlyphPos := Point((ClientSize.X - SortGlyphSize.cx) div 2, (ClientSize.Y - SortGlyphSize.cy) div 2);
   end
   else
   begin
@@ -9056,7 +8897,7 @@ begin
           begin
             // In RTL context is the sort glyph placed on the left hand side.
             SortGlyphPos.X := MinLeft;
-            Inc(MinLeft, SortGlyphSize.X + FSpacing);
+            Inc(MinLeft, SortGlyphSize.cx + FSpacing);
           end;
           if Layout in [blGlyphTop, blGlyphBottom] then
           begin
@@ -9100,7 +8941,7 @@ begin
             HeaderGlyphPos.X := (ClientSize.X - HeaderGlyphSize.X) div 2;
             TextPos.X := (ClientSize.X - TextSize.cx) div 2;
             if UseSortGlyph then
-              Dec(TextPos.X, SortGlyphSize.X div 2);
+              Dec(TextPos.X, SortGlyphSize.cx div 2);
           end
           else
           begin
@@ -9135,7 +8976,7 @@ begin
             else
             begin
               // Sort glyph on the left hand side.
-              SortGlyphPos.X := MinLeft - FSpacing - SortGlyphSize.X;
+              SortGlyphPos.X := MinLeft - FSpacing - SortGlyphSize.cx;
             end;
         end;
     else
@@ -9144,7 +8985,7 @@ begin
       if UseSortGlyph and (FBidiMode = bdLeftToRight) then
       begin
         // In LTR context is the sort glyph placed on the right hand side.
-        Dec(MaxRight, SortGlyphSize.X);
+        Dec(MaxRight, SortGlyphSize.cx);
         SortGlyphPos.X := MaxRight;
         Dec(MaxRight, FSpacing);
       end;
@@ -9179,7 +9020,7 @@ begin
         end;
       end;
       if UseSortGlyph and (FBidiMode <> bdLeftToRight) then
-        SortGlyphPos.X := MaxRight - SortGlyphSize.X;
+        SortGlyphPos.X := MaxRight - SortGlyphSize.cx;
     end;
   end;
 
@@ -9195,8 +9036,8 @@ begin
     if FBidiMode = bdLeftToRight then
     begin
       // Sort glyph on the right hand side.
-      if SortGlyphPos.X + SortGlyphSize.X > MaxRight then
-        SortGlyphPos.X := MaxRight - SortGlyphSize.X;
+      if SortGlyphPos.X + SortGlyphSize.cx > MaxRight then
+        SortGlyphPos.X := MaxRight - SortGlyphSize.cx;
       MaxRight := SortGlyphPos.X - FSpacing;
     end;
 
@@ -9205,7 +9046,7 @@ begin
       SortGlyphPos.X := MinLeft;
     // Left border needs only adjustment if the sort glyph marks the left border.
     if FBidiMode <> bdLeftToRight then
-      MinLeft := SortGlyphPos.X + SortGlyphSize.X + FSpacing;
+      MinLeft := SortGlyphPos.X + SortGlyphSize.cx + FSpacing;
 
     // Finally transform sort glyph to its actual position.
     with SortGlyphPos do
@@ -10484,6 +10325,10 @@ begin
         FSortColumn := NoColumn;
       end;
 
+    with Header.Treeview do
+      if not (csLoading in ComponentState) then
+        FFocusedColumn := NoColumn;
+
     inherited Clear;
   finally
     FClearing := False;
@@ -10874,9 +10719,10 @@ var
   OwnerDraw,
   WrapCaption,
   AdvancedOwnerDraw: Boolean;
-  {$ifdef ThemeSupport}
-    Details: TThemedElementDetails;
-  {$endif ThemeSupport}
+  Details: TThemedElementDetails;
+  SortGlyphSize: TSize;
+  Glyph: TThemedHeader;
+  Pos: TRect;
 
   PaintInfo: THeaderPaintInfo;
   RequestedElements,
@@ -10955,14 +10801,12 @@ begin
     end
     else
     begin
-      {$ifdef ThemeSupport}
-        if tsUseThemes in FHeader.Treeview.FStates then
-        begin
-          Details := ThemeServices.GetElementDetails(thHeaderItemRightNormal);
-          ThemeServices.DrawElement(Handle, Details, R, @R);
-        end
-        else
-      {$endif ThemeSupport}
+      if tsUseThemes in FHeader.Treeview.FStates then
+      begin
+        Details := ThemeServices.GetElementDetails(thHeaderItemRightNormal);
+        ThemeServices.DrawElement(Handle, Details, R, @R);
+      end
+      else
         if FHeader.Style = hsXPStyle then
           DrawXPButton(Handle, Run, False, False, False)
         else
@@ -11061,20 +10905,18 @@ begin
               else
               begin
                 // Draw button first before setting the clip region.
-                {$ifdef ThemeSupport}
-                  if tsUseThemes in FHeader.Treeview.FStates then
-                  begin
-                    if IsDownIndex then
-                      Details := ThemeServices.GetElementDetails(thHeaderItemPressed)
-                    else
-                      if IsHoverIndex then
-                        Details := ThemeServices.GetElementDetails(thHeaderItemHot)
-                      else
-                        Details := ThemeServices.GetElementDetails(thHeaderItemNormal);
-                    ThemeServices.DrawElement(Handle, Details, PaintRectangle, @PaintRectangle);
-                  end
+                if tsUseThemes in FHeader.Treeview.FStates then
+                begin
+                  if IsDownIndex then
+                    Details := ThemeServices.GetElementDetails(thHeaderItemPressed)
                   else
-                {$endif ThemeSupport}
+                    if IsHoverIndex then
+                      Details := ThemeServices.GetElementDetails(thHeaderItemHot)
+                    else
+                      Details := ThemeServices.GetElementDetails(thHeaderItemNormal);
+                  ThemeServices.DrawElement(Handle, Details, PaintRectangle, @PaintRectangle);
+                end
+                else
                 begin
                   if FHeader.Style = hsXPStyle then
                     DrawXPButton(Handle, PaintRectangle, RightBorderFlag <> 0, IsDownIndex, IsHoverIndex)
@@ -11106,7 +10948,7 @@ begin
               if UseRightToLeftReading then
                 DrawFormat := DrawFormat + DT_RTLREADING;
               ComputeHeaderLayout(Handle, PaintRectangle, ShowHeaderGlyph, ShowSortGlyph, GlyphPos, SortGlyphPos,
-                TextRectangle, DrawFormat);
+                SortGlyphSize, TextRectangle, DrawFormat);
 
               // Move glyph and text one pixel to the right and down to simulate a pressed button.
               if IsDownIndex then
@@ -11160,14 +11002,30 @@ begin
                 ColCaptionText := Text;
 
               if not (hpeText in ActualElements) and (Length(Text) > 0) then
-                DrawButtonText(Handle, ColCaptionText, TextRectangle, IsEnabled, IsHoverIndex and (hoHotTrack in FHeader.FOptions) and
-                not (tsUseThemes in FHeader.Treeview.FStates), DrawFormat, WrapCaption );
+                DrawButtonText(Handle, ColCaptionText, TextRectangle, IsEnabled,
+                               IsHoverIndex and (hoHotTrack in FHeader.FOptions) and
+                               not (tsUseThemes in FHeader.Treeview.FStates), DrawFormat, WrapCaption);
 
               // sort glyph
               if not (hpeSortGlyph in ActualElements) and ShowSortGlyph then
               begin
-                SortIndex := SortGlyphs[FHeader.FSortDirection, tsUseThemes in FHeader.Treeview.FStates];
-                UtilityImages.Draw(FHeaderBitmap.Canvas, SortGlyphPos.X, SortGlyphPos.Y, SortIndex);
+                if tsUseExplorerTheme in FHeader.Treeview.FStates then
+                begin
+                  Pos.TopLeft := SortGlyphPos;
+                  Pos.Right := Pos.Left + SortGlyphSize.cx;
+                  Pos.Bottom := Pos.Top + SortGlyphSize.cy;
+                  if FHeader.FSortDirection = sdAscending then
+                    Glyph := thHeaderSortArrowSortedUp
+                  else
+                    Glyph := thHeaderSortArrowSortedDown;
+                  Details := ThemeServices.GetElementDetails(Glyph);
+                  ThemeServices.DrawElement(Handle, Details, Pos, @Pos);
+                end
+                else
+                begin
+                  SortIndex := SortGlyphs[FHeader.FSortDirection, tsUseThemes in FHeader.Treeview.FStates];
+                  UtilityImages.Draw(FHeaderBitmap.Canvas, SortGlyphPos.X, SortGlyphPos.Y, SortIndex);
+                end;
               end;
 
               // Show an indication if this column is the current drop target in a header drag operation.
@@ -11518,9 +11376,7 @@ begin
     if Assigned(FImages) then
     begin
       FImages.UnRegisterChanges(FImageChangeLink);
-      {$ifdef COMPILER_5_UP}
-        FImages.RemoveFreeNotification(FOwner);
-      {$endif COMPILER_5_UP}
+      FImages.RemoveFreeNotification(FOwner);
     end;
     FImages := Value;
     if Assigned(FImages) then
@@ -12042,7 +11898,9 @@ function TVTHeader.HandleHeaderMouseMove(var Message: TWMMouseMove): Boolean;
 
 var
   P: TPoint;
+  NextColumn,
   I: TColumnIndex;
+  NewWidth: Integer;
 
 begin
   Result := False;
@@ -12068,10 +11926,29 @@ begin
         if hsColumnWidthTracking in FStates then
         begin
           if DoColumnWidthTracking(FColumns.FTrackIndex, GetShiftState, FTrackPoint, P) then
+          begin
             if Treeview.UseRightToLeftAlignment then
-              FColumns[FColumns.FTrackIndex].Width := FTrackPoint.X - XPos
+            begin
+              NewWidth := FTrackPoint.X - XPos;
+              NextColumn := FColumns.GetPreviousVisibleColumn(FColumns.FTrackIndex);
+          end
             else
-              FColumns[FColumns.FTrackIndex].Width := XPos - FTrackPoint.X;
+            begin
+              NewWidth := XPos - FTrackPoint.X;
+              NextColumn := FColumns.GetNextVisibleColumn(FColumns.FTrackIndex);
+            end;
+
+            // The autosized column cannot be resized using the mouse normally. Instead we resize the next
+            // visible column, so it look as we directly resize the autosized column.
+            if (hoAutoResize in FOptions) and (FColumns.FTrackIndex = FAutoSizeIndex) and
+               (NextColumn > NoColumn) and (coResizable in FColumns[NextColumn].FOptions) and
+               (FColumns[FColumns.FTrackIndex].FMinWidth < NewWidth) and
+               (FColumns[FColumns.FTrackIndex].FMaxWidth > NewWidth) then
+              FColumns[NextColumn].Width := FColumns[NextColumn].Width - NewWidth
+                                            + FColumns[FColumns.FTrackIndex].Width
+            else
+              FColumns[FColumns.FTrackIndex].Width := NewWidth;
+          end;
           HandleHeaderMouseMove := True;
           Result := 0;
         end
@@ -13730,10 +13607,6 @@ begin
   FClipboardFormats := TClipboardFormats.Create(Self);
   FOptions := GetOptionsClass.Create(Self);
 
-  {$ifdef UseLocalMemoryManager}
-    FNodeMemoryManager := TVTNodeMemoryManager.Create;
-  {$endif UseLocalMemoryManager}
-
   AddThreadReference;
 end;
 
@@ -13769,9 +13642,6 @@ begin
 
   FreeMem(FRoot);
 
-  {$ifdef UseLocalMemoryManager}
-    FNodeMemoryManager.Free;
-  {$endif UseLocalMemoryManager}
   FPlusBM.Free;
   FHotPlusBM.Free;
   FMinusBM.Free;
@@ -14509,7 +14379,7 @@ begin
         begin
           if (poDrawSelection in PaintOptions) and (toFullRowSelect in FOptions.FSelectionOptions) and
              (vsSelected in Node.States) and not (toUseBlendedSelection in FOptions.PaintOptions) and not
-             ((tsUseThemes in FStates) and (toUseExplorerTheme in FOptions.FPaintOptions) and IsWinVistaOrAbove) then
+             (tsUseExplorerTheme in FStates) then
           begin
             if toShowHorzGridLines in FOptions.PaintOptions then
               Dec(R.Bottom);
@@ -14610,6 +14480,7 @@ function TBaseVirtualTree.DetermineLineImageAndSelectLevel(Node: PVirtualNode; v
 
 var
   X: Integer;
+  Indent: Integer;
   Run: PVirtualNode;
 
 begin
@@ -14631,6 +14502,7 @@ begin
 
   // Set initial size of line index array, this will automatically initialized all entries to ltNone.
   SetLength(LineImage, X);
+  Indent := X - 1;
 
   // Only use lines if requested.
   if (toShowTreeLines in FOptions.FPaintOptions) and
@@ -14722,6 +14594,9 @@ begin
       end;
     end;
   end;
+
+  if (tsUseExplorerTheme in FStates) and HasChildren[Node] and (Indent >= 0) then
+    LineImage[Indent] := ltNone;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -15435,10 +15310,8 @@ end;
 
 procedure TBaseVirtualTree.InterruptValidation;
 
-// Waits until the worker thread has stopped validating the caches of this tree.
-
 var
-  Msg: TMsg;
+  WasValidating: Boolean;
 
 begin
   DoStateChange([tsStopValidation], [tsUseCache]);
@@ -15446,27 +15319,10 @@ begin
   // Check the worker thread existance. It might already be gone (usually on destruction of the last tree).
   if Assigned(WorkerThread) then
   begin
-    if tsValidating in FStates then
-    begin
-      // Do a hard break until the worker thread has stopped validation.
-      while (tsValidating in FStates) and (WorkerThread.CurrentTree = Self) and not Application.Terminated do
-      begin
-        // Pump our own messages to avoid a deadlock.
-        if PeekMessage(Msg, Handle, 0, 0, PM_REMOVE) then
-        begin
-          if Msg.message = WM_QUIT then
-          begin
-            PostQuitMessage(Msg.WParam);
-            Break;
-          end;
-          TranslateMessage(Msg);
-          DispatchMessage(Msg);
-        end;
-      end;
+    WasValidating := (tsValidating in FStates);
+    WorkerThread.RemoveTree(Self);
+    if WasValidating then
       DoStateChange([tsValidationNeeded]);
-    end
-    else // Remove any pending validation.
-      WorkerThread.RemoveTree(Self);
   end;
 end;
 
@@ -15545,11 +15401,7 @@ begin
     Inc(Size, FNodeDataSize);
   end;
 
-  {$ifdef UseLocalMemoryManager}
-    Result := FNodeMemoryManager.AllocNode(Size + FTotalInternalDataSize);
-  {$else}
-    Result := AllocMem(Size + FTotalInternalDataSize);
-  {$endif UseLocalMemoryManager}
+  Result := AllocMem(Size + FTotalInternalDataSize);
 
   // Fill in some default values.
   with Result^ do
@@ -15632,15 +15484,8 @@ var
   PatternBitmap: HBITMAP;
   Bits: Pointer;
   Size: TSize;
-  {$ifdef ThemeSupport}
-    Theme: HTHEME;
-    R: TRect;
-
-    {$ifndef COMPILER_11_UP}
-      const
-        TVP_HOTGLYPH = 4;
-    {$endif COMPILER_11_UP}
-  {$endif ThemeSupport}
+  Theme: HTHEME;
+  R: TRect;
 
   //--------------- local function --------------------------------------------
 
@@ -15651,23 +15496,18 @@ var
       Width := Size.cx;
       Height := Size.cy;
 
-      {$Ifdef ThemeSupport}
-        if IsWinVistaOrAbove and (tsUseThemes in FStates) and (toUseExplorerTheme in FOptions.FPaintOptions) then
-        begin
-          if not (coParentColor in FHeader.FColumns[FHeader.FMainColumn].FOptions) then
-            Brush.Color := FHeader.FColumns[FHeader.FMainColumn].Color
-          else
-            Brush.Color := Self.Color;
-        end
+      if IsWinVistaOrAbove and (tsUseThemes in FStates) and (toUseExplorerTheme in FOptions.FPaintOptions) then
+      begin
+        if not (coParentColor in FHeader.FColumns[FHeader.FMainColumn].FOptions) then
+          Brush.Color := FHeader.FColumns[FHeader.FMainColumn].Color
         else
-        begin
-      {$EndIf ThemeSupport}
-          Transparent := True;
-          TransparentColor := clFuchsia;
-          Brush.Color := clFuchsia;
-      {$Ifdef ThemeSupport}
-        end;
-      {$EndIf ThemeSupport}
+          Brush.Color := Self.Color;
+      end
+      else
+        Brush.Color := clFuchsia;
+
+      Transparent := True;
+      TransparentColor := Brush.Color;
 
       FillRect(Rect(0, 0, Width, Height));
     end;
@@ -15679,19 +15519,14 @@ begin
   Size.cx := 9;
   Size.cy := 9;
 
-  {$ifdef ThemeSupport}
-    if tsUseThemes in FStates then
-    begin
-      Theme := OpenThemeData(Handle, 'TREEVIEW');
-      if IsWinVistaOrAbove and (toUseExplorerTheme in FOptions.FPaintOptions) then
-      begin
-        R := Rect(0, 0, 100, 100);
-        GetThemePartSize(Theme, FPlusBM.Canvas.Handle, TVP_GLYPH, GLPS_OPENED, @R, TS_TRUE, Size);
-      end;
-    end
-    else
-      Theme := 0;
-  {$endif ThemeSupport}
+  if tsUseThemes in FStates then
+  begin
+    R := Rect(0, 0, 100, 100);
+    Theme := OpenThemeData(Handle, 'TREEVIEW');
+    GetThemePartSize(Theme, FPlusBM.Canvas.Handle, TVP_GLYPH, GLPS_OPENED, @R, TS_TRUE, Size);
+  end
+  else
+    Theme := 0;
 
   if NeedButtons then
   begin
@@ -15700,7 +15535,7 @@ begin
       // box is always of odd size
       FillBitmap(FMinusBM);
       FillBitmap(FHotMinusBM);
-      if not (IsWinVistaOrAbove and (tsUseThemes in FStates) and (toUseExplorerTheme in FOptions.FPaintOptions)) then
+      if not (tsUseExplorerTheme in FStates) then
       begin
         if FButtonStyle = bsTriangle then
         begin
@@ -15736,7 +15571,7 @@ begin
     begin
       FillBitmap(FPlusBM);
       FillBitmap(FHotPlusBM);
-      if not (IsWinVistaOrAbove and (tsUseThemes in FStates) and (toUseExplorerTheme in FOptions.FPaintOptions)) then
+      if not (tsUseExplorerTheme in FStates) then
       begin
         if FButtonStyle = bsTriangle then
         begin
@@ -15771,25 +15606,23 @@ begin
       end;
     end;
 
-    {$ifdef ThemeSupport}
-      // Overwrite glyph images if theme is active.
-      if (tsUseThemes in FStates) and (Theme <> 0) then
+    // Overwrite glyph images if theme is active.
+    if tsUseThemes in FStates then
+    begin
+      R := Rect(0, 0, Size.cx, Size.cy);
+      DrawThemeBackground(Theme, FPlusBM.Canvas.Handle, TVP_GLYPH, GLPS_CLOSED, R, nil);
+      DrawThemeBackground(Theme, FMinusBM.Canvas.Handle, TVP_GLYPH, GLPS_OPENED, R, nil);
+      if tsUseExplorerTheme in FStates then
       begin
-        R := Rect(0, 0, Size.cx, Size.cy);
-        DrawThemeBackground(Theme, FPlusBM.Canvas.Handle, TVP_GLYPH, GLPS_CLOSED, R, nil);
-        DrawThemeBackground(Theme, FMinusBM.Canvas.Handle, TVP_GLYPH, GLPS_OPENED, R, nil);
-        if IsWinVistaOrAbove and (toUseExplorerTheme in FOptions.FPaintOptions) then
-        begin
-          DrawThemeBackground(Theme, FHotPlusBM.Canvas.Handle, TVP_HOTGLYPH, GLPS_CLOSED, R, nil);
-          DrawThemeBackground(Theme, FHotMinusBM.Canvas.Handle, TVP_HOTGLYPH, GLPS_OPENED, R, nil);
-        end
-        else
-        begin
-          FHotPlusBM.Canvas.Draw(0, 0, FPlusBM);
-          FHotMinusBM.Canvas.Draw(0, 0, FMinusBM);
-        end;
+        DrawThemeBackground(Theme, FHotPlusBM.Canvas.Handle, TVP_HOTGLYPH, GLPS_CLOSED, R, nil);
+        DrawThemeBackground(Theme, FHotMinusBM.Canvas.Handle, TVP_HOTGLYPH, GLPS_OPENED, R, nil);
+      end
+      else
+      begin
+        FHotPlusBM.Canvas.Draw(0, 0, FPlusBM);
+        FHotMinusBM.Canvas.Draw(0, 0, FMinusBM);
       end;
-    {$endif ThemeSupport}
+    end;
   end;
 
   if NeedLines then
@@ -15810,6 +15643,9 @@ begin
     FDottedBrush := CreatePatternBrush(PatternBitmap);
     DeleteObject(PatternBitmap);
   end;
+
+  if tsUseThemes in FStates then
+    CloseThemeData(Theme);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -16103,7 +15939,7 @@ begin
         begin
           Remaining := NewChildCount - Node.ChildCount;
           Count := Remaining;
-
+          
           // New nodes to add.
           if Assigned(Node.LastChild) then
             Index := Node.LastChild.Index + 1
@@ -16227,9 +16063,7 @@ begin
     if Assigned(FCustomCheckImages) then
     begin
       FCustomCheckImages.UnRegisterChanges(FCustomCheckChangeLink);
-      {$ifdef COMPILER_5_UP}
-        FCustomCheckImages.RemoveFreeNotification(Self);
-      {$endif COMPILER_5_UP}
+      FCustomCheckImages.RemoveFreeNotification(Self);
       // Reset the internal check image list reference too, if necessary.
       if FCheckImages = FCustomCheckImages then
         FCheckImages := nil;
@@ -16458,9 +16292,7 @@ begin
     if Assigned(FImages) then
     begin
       FImages.UnRegisterChanges(FImageChangeLink);
-      {$ifdef COMPILER_5_UP}
-        FImages.RemoveFreeNotification(Self);
-      {$endif COMPILER_5_UP}
+      FImages.RemoveFreeNotification(Self);
     end;
     FImages := Value;
     if Assigned(FImages) then
@@ -16764,9 +16596,7 @@ begin
     if Assigned(FStateImages) then
     begin
       FStateImages.UnRegisterChanges(FStateChangeLink);
-      {$ifdef COMPILER_5_UP}
-        FStateImages.RemoveFreeNotification(Self);
-      {$endif COMPILER_5_UP}
+      FStateImages.RemoveFreeNotification(Self);
     end;
     FStateImages := Value;
     if Assigned(FStateImages) then
@@ -18187,7 +18017,7 @@ begin
             else
               if [ssShift] = Shift then
               begin
-                if FFocusedColumn = InvalidColumn then
+                if FFocusedColumn <= NoColumn then
                   NewColumn := FHeader.FColumns.GetFirstVisibleColumn
                 else
                 begin
@@ -18238,7 +18068,7 @@ begin
             else
               if [ssShift] = Shift then
               begin
-                if FFocusedColumn = InvalidColumn then
+                if FFocusedColumn <= NoColumn then
                   NewColumn := FHeader.FColumns.GetFirstVisibleColumn
                 else
                 begin
@@ -18934,40 +18764,36 @@ var
   DC: HDC;
   R: TRect;
   Flags: DWORD;
-  {$ifdef ThemeSupport}
-    ExStyle: Integer;
-    TempRgn: HRGN;
-    BorderWidth,
-    BorderHeight: Integer;
-  {$endif ThemeSupport}
+  ExStyle: Integer;
+  TempRgn: HRGN;
+  BorderWidth,
+  BorderHeight: Integer;
 
 begin
-  {$ifdef ThemeSupport}
-    if tsUseThemes in FStates then
+  if tsUseThemes in FStates then
+  begin
+    // If theming is enabled and the client edge border is set for the window then prevent the default window proc
+    // from painting the old border to avoid flickering.
+    ExStyle := GetWindowLong(Handle, GWL_EXSTYLE);
+    if (ExStyle and WS_EX_CLIENTEDGE) <> 0 then
     begin
-      // If theming is enabled and the client edge border is set for the window then prevent the default window proc
-      // from painting the old border to avoid flickering.
-      ExStyle := GetWindowLong(Handle, GWL_EXSTYLE);
-      if (ExStyle and WS_EX_CLIENTEDGE) <> 0 then
-      begin
-        GetWindowRect(Handle, R);
-        // Determine width of the client edge.
-        BorderWidth := GetSystemMetrics(SM_CXEDGE);
-        BorderHeight := GetSystemMetrics(SM_CYEDGE);
-        InflateRect(R, -BorderWidth, -BorderHeight);
-        TempRgn := CreateRectRgnIndirect(R);
-        // Exclude the border from the message region if there is one. Otherwise just use the inflated
-        // window area region.
-        if Message.Rgn <> 1 then
-          CombineRgn(TempRgn, Message.Rgn, TempRgn, RGN_AND);
-        DefWindowProc(Handle, Message.Msg, Integer(TempRgn), 0);
-        DeleteObject(TempRgn);
-      end
-      else
-        DefaultHandler(Message);
+      GetWindowRect(Handle, R);
+      // Determine width of the client edge.
+      BorderWidth := GetSystemMetrics(SM_CXEDGE);
+      BorderHeight := GetSystemMetrics(SM_CYEDGE);
+      InflateRect(R, -BorderWidth, -BorderHeight);
+      TempRgn := CreateRectRgnIndirect(R);
+      // Exclude the border from the message region if there is one. Otherwise just use the inflated
+      // window area region.
+      if Message.Rgn <> 1 then
+        CombineRgn(TempRgn, Message.Rgn, TempRgn, RGN_AND);
+      DefWindowProc(Handle, Message.Msg, Integer(TempRgn), 0);
+      DeleteObject(TempRgn);
     end
     else
-  {$endif ThemeSupport}
+      DefaultHandler(Message);
+  end
+  else
     DefaultHandler(Message);
 
   Flags := DCX_CACHE or DCX_CLIPSIBLINGS or DCX_WINDOW or DCX_VALIDATE;
@@ -18987,10 +18813,8 @@ begin
     OriginalWMNCPaint(DC);
     ReleaseDC(Handle, DC);
   end;
-  {$ifdef ThemeSupport}
     if tsUseThemes in FStates then
       ThemeServices.PaintBorder(Self, False);
-  {$endif ThemeSupport}
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -19244,24 +19068,17 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-{$ifdef ThemeSupport}
+procedure TBaseVirtualTree.WMThemeChanged(var Message: TMessage);
 
-  procedure TBaseVirtualTree.WMThemeChanged(var Message: TMessage);
+begin
+  inherited;
 
-  begin
-    inherited;
-
-    {$ifndef COMPILER_7_UP}
-      ThemeServices.UpdateThemes;
-    {$endif COMPILER_7_UP}
-    if ThemeServices.ThemesEnabled and (toThemeAware in TreeOptions.PaintOptions) then
-      DoStateChange([tsUseThemes])
-    else
-      DoStateChange([], [tsUseThemes]);
-    RedrawWindow(Handle, nil, 0, RDW_INVALIDATE or RDW_VALIDATE or RDW_FRAME);
-  end;
-
-{$endif ThemeSupport}
+  if ThemeServices.ThemesEnabled and (toThemeAware in TreeOptions.PaintOptions) then
+    DoStateChange([tsUseThemes])
+  else
+    DoStateChange([], [tsUseThemes]);
+  RedrawWindow(Handle, nil, 0, RDW_INVALIDATE or RDW_VALIDATE or RDW_FRAME);
+end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -20004,16 +19821,19 @@ begin
   inherited;
   DoStateChange([], [tsWindowCreating]);
 
-  {$ifdef ThemeSupport}
-    if ThemeServices.ThemesEnabled and (toThemeAware in TreeOptions.PaintOptions) then
+  if ThemeServices.ThemesEnabled and (toThemeAware in TreeOptions.PaintOptions) then
+  begin
+    DoStateChange([tsUseThemes]);
+    if (toUseExplorerTheme in FOptions.FPaintOptions) and IsWinVistaOrAbove then
     begin
-      DoStateChange([tsUseThemes]);
-      if (toUseExplorerTheme in FOptions.FPaintOptions) and IsWinVistaOrAbove then
-        SetWindowTheme(Handle, 'explorer', nil);
+      DoStateChange([tsUseExplorerTheme]);
+      SetWindowTheme(Handle, 'explorer', nil);
     end
     else
-  {$endif ThemeSupport}
-    DoStateChange([], [tsUseThemes]);
+      DoStateChange([], [tsUseExplorerTheme]);
+  end
+  else
+    DoStateChange([], [tsUseThemes, tsUseExplorerTheme]);
 
   // Because of the special recursion and update stopper when creating the window (or resizing it)
   // we have to manually trigger the auto size calculation here.
@@ -20834,11 +20654,7 @@ function TBaseVirtualTree.DoCreateEditor(Node: PVirtualNode; Column: TColumnInde
 begin
   Result := nil;
   if Assigned(FOnCreateEditor) then
-  begin
     FOnCreateEditor(Self, Node, Column, Result);
-    if Result = nil then
-      ShowError(SEditLinkIsNil, hcTFEditLinkIsNil);
-  end;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -21166,11 +20982,7 @@ begin
     FDropTargetNode := nil;
   if Assigned(FOnFreeNode) and ([vsInitialized, vsInitialUserData] * Node.States <> []) then
     FOnFreeNode(Self, Node);
-  {$ifdef UseLocalMemoryManager}
-    FNodeMemoryManager.FreeNode(Node);
-  {$else}
-    FreeMem(Node);
-  {$endif UseLocalMemoryManager}
+  FreeMem(Node);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -22144,7 +21956,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TBaseVirtualTree.DragAndDrop(AllowedEffects: Integer;
-  DataObject: IDataObject; DragEffect: Integer);
+  DataObject: IDataObject; var DragEffect: Integer);
 
 begin
   ActiveX.DoDragDrop(DataObject, DragManager as IDropSource, AllowedEffects, DragEffect);
@@ -22999,7 +22811,7 @@ begin
   CheckPositions := [hiOnItemLabel, hiOnItemCheckbox];
 
   // If running under Windows Vista using the explorer theme hitting the buttons makes the node hot, too.
-  if (IsWinVistaOrAbove and (tsUseThemes in FStates) and (toUseExplorerTheme in FOptions.FPaintOptions)) then
+  if tsUseExplorerTheme in FStates then
     Include(CheckPositions, hiOnItemButtonExact);
 
   if (CheckPositions * HitInfo.HitPositions = []) and not (toFullRowSelect in FOptions.FSelectionOptions) then
@@ -23797,8 +23609,10 @@ var
 begin
   with Node^ do
   begin
-    Include(States, vsInitialized);
     InitStates := [];
+    if vsInitialized in States then
+      Include(InitStates, ivsReInit);
+    Include(States, vsInitialized);
     if Parent = FRoot then
       DoInitNode(nil, Node, InitStates)
     else
@@ -23814,6 +23628,8 @@ begin
     end;
     if ivsMultiline in InitStates then
       Include(States, vsMultiline);
+    if ivsFiltered in InitStates then
+      Include(States, vsFiltered);
 
     // Expanded may already be set (when called from ReinitNode) or be set in DoInitNode, allow both.
     if (vsExpanded in Node.States) xor (ivsExpanded in InitStates) then
@@ -24105,8 +23921,12 @@ begin
           // Add the new node's height only if its parent is expanded.
           if (vsExpanded in Destination.Parent.States) and IsEffectivelyVisible[Node] then
             AdjustTotalHeight(Destination.Parent, Node.TotalHeight, True);
-          if FullyVisible[Node] and not IsEffectivelyFiltered[Node] then
-            Inc(FVisibleCount, CountVisibleChildren(Node) + 1);
+          if FullyVisible[Node] then
+          begin
+            Inc(FVisibleCount, CountVisibleChildren(Node));
+            if not IsEffectivelyFiltered[Node] then
+              Inc(FVisibleCount);
+          end;
         end;
       amInsertAfter:
         begin
@@ -24135,8 +23955,12 @@ begin
           // Add the new node's height only if its parent is expanded.
           if (vsExpanded in Destination.Parent.States) and IsEffectivelyVisible[Node] then
             AdjustTotalHeight(Destination.Parent, Node.TotalHeight, True);
-          if FullyVisible[Node] and not IsEffectivelyFiltered[Node] then
-            Inc(FVisibleCount, CountVisibleChildren(Node) + 1);
+          if FullyVisible[Node] then
+          begin
+            Inc(FVisibleCount, CountVisibleChildren(Node));
+            if not IsEffectivelyFiltered[Node] then
+              Inc(FVisibleCount);
+          end;
         end;
       amAddChildFirst:
         begin
@@ -24169,10 +23993,14 @@ begin
           Include(Destination.States, vsHasChildren);
           AdjustTotalCount(Destination, Node.TotalCount, True);
           // Add the new node's height only if its parent is expanded.
-          if (vsExpanded in Destination.Parent.States) and IsEffectivelyVisible[Node] then
+          if (vsExpanded in Destination.States) and IsEffectivelyVisible[Node] then
             AdjustTotalHeight(Destination, Node.TotalHeight, True);
-          if FullyVisible[Node] and not IsEffectivelyFiltered[Node] then
-            Inc(FVisibleCount, CountVisibleChildren(Node) + 1);
+          if FullyVisible[Node] then
+          begin
+            Inc(FVisibleCount, CountVisibleChildren(Node));
+            if not IsEffectivelyFiltered[Node] then
+              Inc(FVisibleCount);
+          end;
         end;
       amAddChildLast:
         begin
@@ -24200,10 +24028,14 @@ begin
           Include(Destination.States, vsHasChildren);
           AdjustTotalCount(Destination, Node.TotalCount, True);
           // Add the new node's height only if its parent is expanded.
-          if (vsExpanded in Destination.Parent.States) and IsEffectivelyVisible[Node] then
+          if (vsExpanded in Destination.States) and IsEffectivelyVisible[Node] then
             AdjustTotalHeight(Destination, Node.TotalHeight, True);
-          if FullyVisible[Node] and not IsEffectivelyFiltered[Node] then
-            Inc(FVisibleCount, CountVisibleChildren(Node) + 1);
+          if FullyVisible[Node] then
+          begin
+            Inc(FVisibleCount, CountVisibleChildren(Node));
+            if not IsEffectivelyFiltered[Node] then
+              Inc(FVisibleCount);
+          end;
         end;
     else
       // amNoWhere: do nothing
@@ -24288,7 +24120,12 @@ begin
     if AdjustHeight then
       AdjustTotalHeight(Parent, -Integer(Node.TotalHeight), True);
     if FullyVisible[Node] then
-      Dec(FVisibleCount, CountVisibleChildren(Node) + 1);
+    begin
+      Dec(FVisibleCount, CountVisibleChildren(Node));
+      if not IsEffectivelyFiltered[Node] then
+        Dec(FVisibleCount);
+    end;
+
     if Assigned(Node.PrevSibling) then
       Node.PrevSibling.NextSibling := Node.NextSibling
     else
@@ -24722,45 +24559,41 @@ procedure TBaseVirtualTree.PaintCheckImage(const PaintInfo: TVTPaintInfo);
 
 var
   ForegroundColor: COLORREF;
-  {$ifdef ThemeSupport}
-    R: TRect;
-    Details: TThemedElementDetails;
-  {$endif ThemeSupport}
+  R: TRect;
+  Details: TThemedElementDetails;
 
 begin
   with PaintInfo, ImageInfo[iiCheck] do
   begin
-    {$ifdef ThemeSupport}
-      if (tsUseThemes in FStates) and (FCheckImageKind = ckSystemDefault) then
-      begin
-        R := Rect(XPos - 1, YPos, XPos + 16, YPos + 16);
-        Details.Element := teButton;
-        case Index of
-          0..8: // radio buttons
-            begin
-              Details.Part := BP_RADIOBUTTON;
-              Details.State := Index;
-            end;
-          9..20: // check boxes
-            begin
-              Details.Part := BP_CHECKBOX;
-              Details.State := Index - 8;
-            end;
-          21..24: // buttons
-            begin
-              Details.Part := BP_PUSHBUTTON;
-              Details.State := Index - 20;
-            end;
-        else
-          Details.Part := 0;
-          Details.State := 0;
-        end;
-        ThemeServices.DrawElement(Canvas.Handle, Details, R);
-        if Index in [21..24] then
-          UtilityImages.Draw(Canvas, XPos - 1, YPos, 4);
-      end
+    if (tsUseThemes in FStates) and (FCheckImageKind = ckSystemDefault) then
+    begin
+      R := Rect(XPos - 1, YPos, XPos + 16, YPos + 16);
+      Details.Element := teButton;
+      case Index of
+        0..8: // radio buttons
+          begin
+            Details.Part := BP_RADIOBUTTON;
+            Details.State := Index;
+          end;
+        9..20: // check boxes
+          begin
+            Details.Part := BP_CHECKBOX;
+            Details.State := Index - 8;
+          end;
+        21..24: // buttons
+          begin
+            Details.Part := BP_PUSHBUTTON;
+            Details.State := Index - 20;
+          end;
       else
-    {$endif ThemeSupport}
+        Details.Part := 0;
+        Details.State := 0;
+      end;
+      ThemeServices.DrawElement(Canvas.Handle, Details, R);
+      if Index in [21..24] then
+        UtilityImages.Draw(Canvas, XPos - 1, YPos, 4);
+    end
+    else
       with FCheckImages do
       begin
         if (vsSelected in Node.States) and not Ghosted then
@@ -24866,6 +24699,10 @@ var
   Bitmap: TBitmap;
   XPos: Integer;
   IsHot: Boolean;
+  Theme: HTHEME;
+  Glyph: Integer;
+  State: Integer;
+  Pos: TRect;
 
 begin
   IsHot := (toHotTrack in FOptions.FPaintOptions) and (FCurrentHotNode = Node) and FHotNodeButtonHit;
@@ -24891,8 +24728,18 @@ begin
   else
     XPos := R.Right - ButtonX - Bitmap.Width;
 
-  // Need to draw this masked.
-  Canvas.Draw(XPos, R.Top + ButtonY, Bitmap);
+  if tsUseExplorerTheme in FStates then
+  begin
+    Glyph := IfThen(IsHot, TVP_HOTGLYPH, TVP_GLYPH);
+    State := IfThen(vsExpanded in Node.States, GLPS_OPENED, GLPS_CLOSED);
+    Pos := Rect(XPos, R.Top + ButtonY, XPos + Bitmap.Width, R.Top + ButtonY + Bitmap.Height);
+    Theme := OpenThemeData(Handle, 'TREEVIEW');
+    DrawThemeBackground(Theme, Canvas.Handle, Glyph, State, Pos, nil);
+    CloseThemeData(Theme);
+  end
+  else
+    // Need to draw this masked.
+    Canvas.Draw(XPos, R.Top + ButtonY, Bitmap);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -25056,15 +24903,12 @@ var
   BackColorBackup: COLORREF;
   FocusRect,
   InnerRect: TRect;
-  {$ifdef ThemeSupport}
-    RowRect: TRect;
-    Theme: HTHEME;
-
-    {$ifndef COMPILER_11_UP}
-      const
-        TREIS_HOTSELECTED = 6;
-    {$endif COMPILER_11_UP}
-  {$endif ThemeSupport}
+  RowRect: TRect;
+  Theme: HTHEME;
+  {$ifndef COMPILER_11_UP}
+    const
+      TREIS_HOTSELECTED = 6;
+  {$endif COMPILER_11_UP}
 
   //--------------- local functions -------------------------------------------
 
@@ -25090,32 +24934,26 @@ var
 
   //---------------------------------------------------------------------------
 
-  {$ifdef ThemeSupport}
-    procedure DrawBackground(State: Integer);
-    begin
-      with PaintInfo do
-        if (toGridExtensions in FOptions.FMiscOptions) or (toFullRowSelect in FOptions.FSelectionOptions) then
-          DrawThemeBackground(Theme, Canvas.Handle, TVP_TREEITEM, State, RowRect, @CellRect)
-        else
-          DrawThemeBackground(Theme, Canvas.Handle, TVP_TREEITEM, State, InnerRect, nil);
-    end;
-  {$endif ThemeSupport}
+  procedure DrawBackground(State: Integer);
+  begin
+    with PaintInfo do
+      if (toGridExtensions in FOptions.FMiscOptions) or (toFullRowSelect in FOptions.FSelectionOptions) then
+        DrawThemeBackground(Theme, Canvas.Handle, TVP_TREEITEM, State, RowRect, @CellRect)
+      else
+        DrawThemeBackground(Theme, Canvas.Handle, TVP_TREEITEM, State, InnerRect, nil);
+  end;
 
   //--------------- end local functions ---------------------------------------
 
 begin
-  {$ifdef ThemeSupport}
-    if IsWinVistaOrAbove and (tsUseThemes in FStates) and (toUseExplorerTheme in FOptions.FPaintOptions) then
-    begin
-      RowRect := Rect(0, PaintInfo.CellRect.Top, FRangeX, PaintInfo.CellRect.Bottom);
-      if toShowVertGridLines in FOptions.PaintOptions then
-        Dec(RowRect.Right);
-      Theme := OpenThemeData(Handle, 'TREEVIEW');
-    end
-    else
-      Theme := 0;
-  {$endif ThemeSupport}
-
+  if tsUseExplorerTheme in FStates then
+  begin
+    Theme := OpenThemeData(Handle, 'TREEVIEW');
+    RowRect := Rect(0, PaintInfo.CellRect.Top, FRangeX, PaintInfo.CellRect.Bottom);
+    if toShowVertGridLines in FOptions.PaintOptions then
+      Dec(RowRect.Right);
+  end;
+  
   with PaintInfo, Canvas do
   begin
     // Fill cell background if its color differs from tree background.
@@ -25197,65 +25035,54 @@ begin
             if (toGridExtensions in FOptions.FMiscOptions) or (toFullRowSelect in FOptions.FSelectionOptions) then
               InnerRect := CellRect;
             if not IsRectEmpty(InnerRect) then
-              {$ifdef ThemeSupport}
-                if Theme <> 0 then
-                begin
-                  // If the node is also hot, its background will be drawn later.
-                  if not (toHotTrack in FOptions.FPaintOptions) or (Node <> FCurrentHotNode) or
-                     ((Column <> FCurrentHotColumn) and not (toFullRowSelect in FOptions.FSelectionOptions)) then
-                    DrawBackground(IfThen(Self.Focused, TREIS_SELECTED, TREIS_SELECTEDNOTFOCUS));
-                end
-                else
-              {$endif ThemeSupport}
-              if MMXAvailable and (toUseBlendedSelection in FOptions.PaintOptions) then
-                AlphaBlendSelection(Brush.Color)
+              if tsUseExplorerTheme in FStates then
+              begin
+                // If the node is also hot, its background will be drawn later.
+                if not (toHotTrack in FOptions.FPaintOptions) or (Node <> FCurrentHotNode) or
+                   ((Column <> FCurrentHotColumn) and not (toFullRowSelect in FOptions.FSelectionOptions)) then
+                  DrawBackground(IfThen(Self.Focused, TREIS_SELECTED, TREIS_SELECTEDNOTFOCUS));
+              end
               else
-                with InnerRect do
-                  RoundRect(Left, Top, Right, Bottom, FSelectionCurveRadius, FSelectionCurveRadius);
+                if MMXAvailable and (toUseBlendedSelection in FOptions.PaintOptions) then
+                  AlphaBlendSelection(Brush.Color)
+                else
+                  with InnerRect do
+                    RoundRect(Left, Top, Right, Bottom, FSelectionCurveRadius, FSelectionCurveRadius);
           end;
       end;
     end;
 
-    {$ifdef ThemeSupport}
-      if (Theme <> 0) and (toHotTrack in FOptions.FPaintOptions) and (Node = FCurrentHotNode) and
-         ((Column = FCurrentHotColumn) or (toFullRowSelect in FOptions.FSelectionOptions)) then
-        DrawBackground(IfThen((vsSelected in Node.States) and not (toAlwaysHideSelection in FOptions.FPaintOptions),
-                              TREIS_HOTSELECTED, TREIS_HOT));
-    {$endif ThemeSupport}
+    if (tsUseExplorerTheme in FStates) and (toHotTrack in FOptions.FPaintOptions) and (Node = FCurrentHotNode) and
+       ((Column = FCurrentHotColumn) or (toFullRowSelect in FOptions.FSelectionOptions)) then
+      DrawBackground(IfThen((vsSelected in Node.States) and not (toAlwaysHideSelection in FOptions.FPaintOptions),
+                            TREIS_HOTSELECTED, TREIS_HOT));
 
     if (Column = FFocusedColumn) or (toFullRowSelect in FOptions.FSelectionOptions) then
     begin
       // draw focus rect
       if (poDrawFocusRect in PaintOptions) and
          (Focused or (toPopupMode in FOptions.FPaintOptions)) and (FFocusedNode = Node) and
-         ( (Column = FFocusedColumn)
-           {$ifdef ThemeSupport} or
+         ( (Column = FFocusedColumn) or
              (not (toExtendedFocus in FOptions.FSelectionOptions) and
              (toFullRowSelect in FOptions.FSelectionOptions) and
-             (Theme <> 0) )
-          {$endif ThemeSupport}
-         ) then
+             (tsUseExplorerTheme in FStates) ) ) then
       begin
         TextColorBackup := GetTextColor(Handle);
         SetTextColor(Handle, $FFFFFF);
         BackColorBackup := GetBkColor(Handle);
         SetBkColor(Handle, 0);
 
-        {$ifdef ThemeSupport}
-          if not (toExtendedFocus in FOptions.FSelectionOptions) and (toFullRowSelect in FOptions.FSelectionOptions) and
-            (Theme <> 0) then
-            FocusRect := RowRect
-          else
-        {$endif ThemeSupport}
-        if toGridExtensions in FOptions.FMiscOptions then
-          FocusRect := CellRect
+        if not (toExtendedFocus in FOptions.FSelectionOptions) and (toFullRowSelect in FOptions.FSelectionOptions) and
+          (tsUseExplorerTheme in FStates) then
+          FocusRect := RowRect
         else
-          FocusRect := InnerRect;
+          if toGridExtensions in FOptions.FMiscOptions then
+            FocusRect := CellRect
+          else
+            FocusRect := InnerRect;
 
-        {$ifdef ThemeSupport}
-          if Theme <> 0 then
-            InflateRect(FocusRect, -1, -1);
-        {$endif ThemeSupport}
+        if Theme <> 0 then
+          InflateRect(FocusRect, -1, -1);
 
         Windows.DrawFocusRect(Handle, FocusRect);
         SetTextColor(Handle, TextColorBackup);
@@ -25264,7 +25091,7 @@ begin
     end;
   end;
 
-  if Theme <> 0 then
+  if tsUseExplorerTheme in FStates then
     CloseThemeData(Theme);
 end;
 
@@ -25784,11 +25611,7 @@ begin
   FPanningImage.LoadFromResourceName(HInstance, ImageName);
   SetWindowRgn(FPanningWindow, CreateClipRegion, False);
 
-  {$ifdef COMPILER_6_UP}
-    SetWindowLong(FPanningWindow, GWL_WNDPROC, Integer(Classes.MakeObjectInstance(PanningWindowProc)));
-  {$else}
-    SetWindowLong(FPanningWindow, GWL_WNDPROC, Integer(MakeObjectInstance(PanningWindowProc)));
-  {$endif}
+  SetWindowLong(FPanningWindow, GWL_WNDPROC, Integer(Classes.MakeObjectInstance(PanningWindowProc)));
   ShowWindow(FPanningWindow, SW_SHOWNOACTIVATE);
 
   // Setup the panscroll timer and capture all mouse input.
@@ -25818,11 +25641,7 @@ begin
     Instance := Pointer(GetWindowLong(FPanningWindow, GWL_WNDPROC));
     DestroyWindow(FPanningWindow);
     if Instance <> @DefWindowProc then
-      {$ifdef COMPILER_6_UP}
-        Classes.FreeObjectInstance(Instance);
-      {$else}
-        FreeObjectInstance(Instance);
-      {$endif}
+      Classes.FreeObjectInstance(Instance);
     FPanningWindow := 0;
     FPanningImage.Free;
     FPanningImage := nil;
@@ -26818,11 +26637,7 @@ var
   Form: TCustomForm;
 
 begin
-  {$ifdef COMPILER_5_UP}
-    Result := inherited CanFocus;
-  {$else}
-    Result := True;
-  {$endif}
+  Result := inherited CanFocus;
 
   if Result and not (csDesigning in ComponentState) then
   begin
@@ -26863,9 +26678,6 @@ begin
       FOffsetX := 0;
       FOffsetY := 0;
 
-      {$ifdef UseLocalMemoryManager}
-        FNodeMemoryManager.Clear;
-      {$endif UseLocalMemoryManager}
     finally
       EndUpdate;
     end;
@@ -27232,6 +27044,9 @@ begin
       DoStateChange([], [tsHint]);
     end;
 
+    if not ParentClearing then
+      InterruptValidation;
+
     DeleteChildren(Node);
     InternalDisconnectNode(Node, False, Reindex);
     DoFreeNode(Node);
@@ -27424,40 +27239,34 @@ begin
 
   if not Result then
   begin
-    {$ifdef COMPILER_5_UP}
-      Result := Action is TEditSelectAll;
+    Result := Action is TEditSelectAll;
+    if Result then
+      SelectAll(False)
+    else
+    begin
+      Result := Action is TEditCopy;
       if Result then
-        SelectAll(False)
+        CopyToClipboard
       else
+        if not (toReadOnly in FOptions.FMiscOptions) then
         begin
-    {$endif COMPILER_5_UP}
-        Result := Action is TEditCopy;
-        if Result then
-          CopyToClipboard
-        else
-          if not (toReadOnly in FOptions.FMiscOptions) then
+          Result := Action is TEditCut;
+          if Result then
+            CutToClipBoard
+          else
           begin
-            Result := Action is TEditCut;
+            Result := Action is TEditPaste;
             if Result then
-              CutToClipBoard
-            else
-            begin
-              Result := Action is TEditPaste;
-              if Result then
-                PasteFromClipboard
-              {$ifdef COMPILER_5_UP}
-                else
-                begin
-                  Result := Action is TEditDelete;
-                  if Result then
-                    DeleteSelectedNodes
-                end;
-              {$endif COMPILER_5_UP}
-            end;
+              PasteFromClipboard
+              else
+              begin
+                Result := Action is TEditDelete;
+                if Result then
+                  DeleteSelectedNodes
+              end;
           end;
-    {$ifdef COMPILER_5_UP}
       end;
-    {$endif COMPILER_5_UP}
+    end;
   end;
 end;
 
@@ -30581,10 +30390,10 @@ begin
 
     // Make sure the target node is initialized.
     if not (vsInitialized in Target.States) then
-      InitNode(Target)
+      TargetTree.InitNode(Target)
     else
       if (vsHasChildren in Target.States) and (Target.ChildCount = 0) then
-        InitChildren(Target);
+        TargetTree.InitChildren(Target);
 
     if TargetTree = Self then
     begin
@@ -31595,11 +31404,7 @@ type
 function TOLEMemoryStream.Write(const Buffer; Count: Integer): Integer;
 
 begin
-  {$ifdef COMPILER_5_UP}
-    raise EStreamError.CreateRes(PResStringRec(@SCantWriteResourceStreamError));
-  {$else}
-    raise EStreamError.Create(SCantWriteResourceStreamError);
-  {$endif COMPILER_5_UP}
+  raise EStreamError.CreateRes(PResStringRec(@SCantWriteResourceStreamError));
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -32417,7 +32222,7 @@ begin
               // on the position of the node to be collapsed.
               R1 := GetDisplayRect(Node, NoColumn, False);
               Mode2 := tamNoScroll;
-              HeightDelta := -Node.TotalHeight + NodeHeight[Node];
+              HeightDelta := -Integer(Node.TotalHeight) + Integer(NodeHeight[Node]);
               if toChildrenAbove in FOptions.FPaintOptions then
               begin
                 PosHoldable := (FOffsetY + (Integer(Node.TotalHeight - NodeHeight[Node]))) <= 0;
@@ -32751,12 +32556,10 @@ begin
     Result := inherited UpdateAction(Action)
   else
   begin
-    Result := (Action is TEditCut) or (Action is TEditCopy)
-      {$ifdef COMPILER_5_UP} or (Action is TEditDelete) {$endif COMPILER_5_UP};
+    Result := (Action is TEditCut) or (Action is TEditCopy) or (Action is TEditDelete);
 
     if Result then
-      TAction(Action).Enabled := (FSelectionCount > 0) and
-        ({$ifdef COMPILER_5_UP} (Action is TEditDelete) or {$endif COMPILER_5_UP} (FClipboardFormats.Count > 0))
+      TAction(Action).Enabled := (FSelectionCount > 0) and ((Action is TEditDelete) or (FClipboardFormats.Count > 0))
     else
     begin
       Result := Action is TEditPaste;
@@ -32764,13 +32567,11 @@ begin
         TAction(Action).Enabled := True
       else
       begin
-        {$ifdef COMPILER_5_UP}
-          Result := Action is TEditSelectAll;
-          if Result then
-            TAction(Action).Enabled := (toMultiSelect in FOptions.FSelectionOptions) and (FVisibleCount > 0)
-          else
-        {$endif COMPILER_5_UP}
-            Result := inherited UpdateAction(Action);
+        Result := Action is TEditSelectAll;
+        if Result then
+          TAction(Action).Enabled := (toMultiSelect in FOptions.FSelectionOptions) and (FVisibleCount > 0)
+        else
+          Result := inherited UpdateAction(Action);
       end;
     end;
   end;
@@ -33575,8 +33376,7 @@ begin
 
     if (toHotTrack in FOptions.FPaintOptions) and (Node = FCurrentHotNode) then
     begin
-      if not IsWinVistaOrAbove or not (tsUseThemes in FStates) or
-         not (toUseExplorerTheme in FOptions.FPaintOptions) then
+      if not (tsUseExplorerTheme in FStates) then
         Canvas.Font.Style := Canvas.Font.Style + [fsUnderline];
       Canvas.Font.Color := FColors.HotColor;
     end;
@@ -33588,17 +33388,15 @@ begin
       begin
         if Node = FDropTargetNode then
         begin
-          if (FLastDropMode = dmOnNode) or (vsSelected in Node.States) and
-             (not IsWinVistaOrAbove or not (tsUseThemes in FStates) or
-              not (toUseExplorerTheme in FOptions.FPaintOptions)) then
+          if (FLastDropMode = dmOnNode) or (vsSelected in Node.States) and not
+             (tsUseExplorerTheme in FStates) then
             Canvas.Font.Color := clHighlightText;
         end
         else
           if vsSelected in Node.States then
           begin
-            if (Focused or (toPopupMode in FOptions.FPaintOptions)) and
-               (not IsWinVistaOrAbove or not (tsUseThemes in FStates) or
-                not (toUseExplorerTheme in FOptions.FPaintOptions)) then
+            if (Focused or (toPopupMode in FOptions.FPaintOptions)) and not
+               (tsUseExplorerTheme in FStates) then
               Canvas.Font.Color := clHighlightText;
           end;
       end;
@@ -34139,9 +33937,9 @@ begin
       DrawTextW(Canvas.Handle, PWideChar(Text), Length(Text), R, DrawFormat, False);
     Size.cx := R.Right - R.Left;
   end;
+  Result := Size.cx;
   if Assigned(FOnMeasureTextWidth) then
     FOnMeasureTextWidth(Self, Canvas, Node, Column, Text, Result);
-  Result := Size.cx;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -34509,7 +34307,7 @@ function TCustomVirtualStringTree.ContentToHTML(Source: TVSTTextSourceType; Capt
 
 // Renders the current tree content (depending on Source) as HTML text encoded in UTF-8.
 // If Caption is not empty then it is used to create and fill the header for the table built here.
-// Based on ideas and code from Frank van den Bergh and Andreas Hörstemeier.
+// Based on ideas and code from Frank van den Bergh and Andreas HÃ¶rstemeier.
 
 type
   UCS2 = Word;
@@ -34654,24 +34452,25 @@ var
 
   begin
     if Length(Name) = 0 then
-      Buffer.Add(' style="{font:')
+      Buffer.Add(' style="{')
     else
     begin
       Buffer.Add('.');
       Buffer.Add(Name);
-      Buffer.Add('{font:');
+      Buffer.Add('{');
     end;
-    if fsUnderline in Font.Style then
-      Buffer.Add(' underline');
-    if fsItalic in Font.Style then
-      Buffer.Add(' italic');
-    if fsBold in Font.Style then
-      Buffer.Add(' bold');
+
+    Buffer.Add(Format('font-family: ''%s''; ', [Font.Name]));
     if Font.Size < 0 then
-      Buffer.Add(Format(' %dpx "%s";', [Font.Height, Font.Name]))
+      Buffer.Add(Format('font-size: %dpx; ', [Font.Height]))
     else
-      Buffer.Add(Format(' %dpt "%s";', [Font.Size, Font.Name]));
-    Buffer.Add('color:');
+      Buffer.Add(Format('font-size: %dpt; ', [Font.Size]));
+
+    Buffer.Add(Format('font-style: %s; ', [IfThen(fsItalic in Font.Style, 'italic', 'normal')]));
+    Buffer.Add(Format('font-weight: %s; ', [IfThen(fsBold in Font.Style, 'bold', 'normal')]));
+    Buffer.Add(Format('text-decoration: %s; ', [IfThen(fsUnderline in Font.Style, 'underline', 'none')]));
+
+    Buffer.Add('color: ');
     WriteColorAsHex(Font.Color);
     Buffer.Add(';}');
     if Length(Name) = 0 then
@@ -35023,7 +34822,7 @@ end;
 function TCustomVirtualStringTree.ContentToRTF(Source: TVSTTextSourceType): AnsiString;
 
 // Renders the current tree content (depending on Source) as RTF (rich text).
-// Based on ideas and code from Frank van den Bergh and Andreas Hörstemeier.
+// Based on ideas and code from Frank van den Bergh and Andreas HÃ¶rstemeier.
 
 var
   Fonts: TStringList;
