@@ -349,6 +349,7 @@ begin
       comboCollation.ItemIndex := comboCollation.Items.IndexOf(ds.FieldByName(DBO_COLLATION).AsWideString);
     editAutoInc.Text := ds.FieldByName(DBO_AUTOINC).AsString;
     editAvgRowLen.Text := ds.FieldByName(DBO_AVGROWLEN).AsString;
+    chkChecksum.Checked := Pos('checksum=1', LowerCase(ds.FieldByName(DBO_CROPTIONS).AsString)) > 0;
     comboRowFormat.ItemIndex := comboRowFormat.Items.IndexOf(ds.FieldByName(DBO_ROWFORMAT).AsString);
     FreeAndNil(ds);
     CreateTable := Mainform.GetVar('SHOW CREATE TABLE '+Mainform.mask(FAlterTableName), 1);
