@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons,
-  WideStrings, WideStrUtils, VirtualTrees, ExtCtrls, Db, Contnrs, Graphics;
+  WideStrings, WideStrUtils, VirtualTrees, ExtCtrls, Db, Contnrs, Graphics, TntStdCtrls;
 
 type
   TfrmTableTools = class(TForm)
@@ -22,7 +22,7 @@ type
     ResultGrid: TVirtualStringTree;
     lblResults: TLabel;
     PageControlTools: TPageControl;
-    Maintenance: TTabSheet;
+    tabMaintenance: TTabSheet;
     comboOperation: TComboBox;
     lblOperation: TLabel;
     chkQuick: TCheckBox;
@@ -34,6 +34,17 @@ type
     chkUseFrm: TCheckBox;
     lblOptions: TLabel;
     btnHelp: TButton;
+    tabFindInDB: TTabSheet;
+    lblFindText: TLabel;
+    memoFindText: TTntMemo;
+    btnFindText: TButton;
+    comboDataTypes: TComboBox;
+    lblDataTypes: TLabel;
+    pnlSkipLargeTables: TPanel;
+    lblSkipLargeTables: TLabel;
+    editSkipLargeTables: TEdit;
+    udSkipLargeTables: TUpDown;
+    lblSkipLargeTablesMB: TLabel;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -53,18 +64,20 @@ type
     procedure ResultGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: WideString);
     procedure TreeObjectsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure MaintenanceOptionClick(Sender: TObject);
     procedure ResultGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
     procedure ResultGridCompareNodes(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode;
       Column: TColumnIndex; var Result: Integer);
     procedure ResultGridPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType);
+    procedure ValidateControls(Sender: TObject);
   private
     { Private declarations }
     FResults: TObjectList;
-    procedure ValidateControls(Sender: TObject);
+    FRealResultCounter: Integer;
     procedure ProcessTableNode(Sender: TObject; Node: PVirtualNode);
     procedure AddResults(SQL: WideString);
+    procedure AddNotes(Col1, Col2, Col3, Col4: WideString);
+    procedure UpdateResultGrid;
   public
     { Public declarations }
   end;
@@ -72,17 +85,28 @@ type
 
 implementation
 
-uses main, helpers;
+uses main, helpers, mysql_structures;
+
+const
+  STRSKIPPED = 'Skipped - ';
 
 {$R *.DFM}
 
 
 procedure TfrmTableTools.FormCreate(Sender: TObject);
+var
+  i: Integer;
 begin
   // Restore GUI setup
   Width := GetRegValue(REGNAME_TOOLSWINWIDTH, Width);
   Height := GetRegValue(REGNAME_TOOLSWINHEIGHT, Height);
   TreeObjects.Width := GetRegValue(REGNAME_TOOLSTREEWIDTH, TreeObjects.Width);
+  memoFindText.Text := Utf8Decode(GetRegValue(REGNAME_TOOLSFINDTEXT, ''));
+  comboDatatypes.Items.Add('All data types');
+  for i:=Low(DatatypeCategories) to High(DatatypeCategories) do
+    comboDatatypes.Items.Add(DatatypeCategories[i].Name);
+  comboDatatypes.ItemIndex := GetRegValue(REGNAME_TOOLSDATATYPE, 0);
+  udSkipLargeTables.Position := GetRegValue(REGNAME_TOOLSSKIPMB, udSkipLargeTables.Position);
   SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
   FixVT(TreeObjects);
@@ -99,6 +123,9 @@ begin
   MainReg.WriteInteger( REGNAME_TOOLSWINWIDTH, Width );
   MainReg.WriteInteger( REGNAME_TOOLSWINHEIGHT, Height );
   MainReg.WriteInteger( REGNAME_TOOLSTREEWIDTH, TreeObjects.Width);
+  MainReg.WriteString( REGNAME_TOOLSFINDTEXT, Utf8Encode(memoFindText.Text));
+  MainReg.WriteInteger( REGNAME_TOOLSSKIPMB, udSkipLargeTables.Position);
+  MainReg.WriteInteger( REGNAME_TOOLSDATATYPE, comboDatatypes.ItemIndex);
 end;
 
 
@@ -130,9 +157,12 @@ end;
 
 
 procedure TfrmTableTools.ValidateControls(Sender: TObject);
+var
+  SomeChecked: Boolean;
 begin
-  btnExecuteMaintenance.Enabled := (Pos(STR_NOTSUPPORTED, comboOperation.Text) = 0) and
-    (TreeObjects.CheckedCount > 0);
+  SomeChecked := TreeObjects.CheckedCount > 0;
+  btnExecuteMaintenance.Enabled := (Pos(STR_NOTSUPPORTED, comboOperation.Text) = 0) and SomeChecked;
+  btnFindText.Enabled := SomeChecked and (memoFindText.Text <> '');
   // CHECKSUM's options are mutually exclusive
   if comboOperation.Text = 'Checksum' then begin
     if (Sender = chkExtended) and chkExtended.Checked then chkQuick.Checked := False
@@ -205,11 +235,6 @@ begin
 end;
 
 
-procedure TfrmTableTools.MaintenanceOptionClick(Sender: TObject);
-begin
-  ValidateControls(Sender);
-end;
-
 procedure TfrmTableTools.ExecuteOperation(Sender: TObject);
 var
   DBNode, TableNode: PVirtualNode;
@@ -217,6 +242,7 @@ begin
   Screen.Cursor := crHourGlass;
   ResultGrid.Clear;
   FResults.Clear;
+  FRealResultCounter := 0;
   TreeObjects.SetFocus;
   DBNode := TreeObjects.GetFirstChild(TreeObjects.GetFirst);
   while Assigned(DBNode) do begin
@@ -235,20 +261,76 @@ end;
 
 procedure TfrmTableTools.ProcessTableNode(Sender: TObject; Node: PVirtualNode);
 var
-  SQL: WideString;
+  SQL, db, table, QuotedTable: WideString;
+  TableSize, RowsInTable: Int64;
+  ds: TDataset;
+  i: Integer;
+  HasSelectedDatatype: Boolean;
 begin
   // Prepare SQL for one table node
-  if (csCheckedNormal in [Node.CheckState, Node.Parent.CheckState]) and
-    (Node.CheckType <> ctNone) then begin
-    SQL := UpperCase(comboOperation.Text) + ' TABLE ' +
-      Mainform.mask(TreeObjects.Text[Node.Parent, 0])+'.'+Mainform.mask(TreeObjects.Text[Node, 0]);
-    if chkQuick.Enabled and chkQuick.Checked then SQL := SQL + ' QUICK';
-    if chkFast.Enabled and chkFast.Checked then SQL := SQL + ' FAST';
-    if chkMedium.Enabled and chkMedium.Checked then SQL := SQL + ' MEDIUM';
-    if chkExtended.Enabled and chkExtended.Checked then SQL := SQL + ' EXTENDED';
-    if chkChanged.Enabled and chkChanged.Checked then SQL := SQL + ' CHANGED';
-    if chkUseFrm.Enabled and chkUseFrm.Checked then SQL := SQL + ' USE_FRM';
-    AddResults(SQL);
+  if (csCheckedNormal in [Node.CheckState, Node.Parent.CheckState]) and (Node.CheckType <> ctNone) then begin
+    db := TreeObjects.Text[Node.Parent, 0];
+    table := TreeObjects.Text[Node, 0];
+    QuotedTable := Mainform.mask(db)+'.'+Mainform.mask(table);
+    // Find table in cashed dataset and check its size - perhaps it has to be skipped
+    TableSize := 0;
+    RowsInTable := 0;
+    ds := Mainform.FetchDbTableList(db);
+    while not ds.Eof do begin
+      if (ds.FieldByName(DBO_NAME).AsWideString = table)
+        and (GetDBObjectType(ds.Fields) in [lntTable, lntCrashedTable]) then begin
+        TableSize := GetTableSize(ds);
+        RowsInTable := MakeInt(ds.FieldByName(DBO_ROWS).AsString);
+        // Avoid division by zero in below SQL
+        if RowsInTable = 0 then
+          RowsInTable := 1;
+        break;
+      end;
+      ds.Next;
+    end;
+    if (udSkipLargeTables.Position = 0) or ((TableSize div SIZE_MB) < udSkipLargeTables.Position) then try
+      if Sender = btnExecuteMaintenance then begin
+        SQL := UpperCase(comboOperation.Text) + ' TABLE ' + QuotedTable;
+        if chkQuick.Enabled and chkQuick.Checked then SQL := SQL + ' QUICK';
+        if chkFast.Enabled and chkFast.Checked then SQL := SQL + ' FAST';
+        if chkMedium.Enabled and chkMedium.Checked then SQL := SQL + ' MEDIUM';
+        if chkExtended.Enabled and chkExtended.Checked then SQL := SQL + ' EXTENDED';
+        if chkChanged.Enabled and chkChanged.Checked then SQL := SQL + ' CHANGED';
+        if chkUseFrm.Enabled and chkUseFrm.Checked then SQL := SQL + ' USE_FRM';
+      end else if Sender = btnFindText then begin
+        ds := Mainform.GetResults('SHOW COLUMNS FROM '+QuotedTable);
+        SQL := '';
+        while not ds.Eof do begin
+          HasSelectedDatatype := comboDatatypes.ItemIndex = 0;
+          if not HasSelectedDatatype then for i:=Low(Datatypes) to High(Datatypes) do begin
+            HasSelectedDatatype := (LowerCase(getFirstWord(ds.FieldByName('Type').AsString)) = LowerCase(Datatypes[i].Name))
+              and (Integer(Datatypes[i].Category)+1 = comboDatatypes.ItemIndex);
+            if HasSelectedDatatype then
+              break;
+          end;
+          if HasSelectedDatatype then
+            SQL := SQL + Mainform.mask(ds.FieldByName('Field').AsWideString) + ' LIKE ' + esc('%'+memoFindText.Text+'%') + ' OR ';
+          ds.Next;
+        end;
+        if SQL <> '' then begin
+          Delete(SQL, Length(SQL)-3, 3);
+          SQL := 'SELECT '''+db+''' AS `Database`, '''+table+''' AS `Table`, COUNT(*) AS `Found rows`, '
+            + 'CONCAT(ROUND(100 / '+IntToStr(RowsInTable)+' * COUNT(*), 1), ''%'') AS `Relevance` FROM '+QuotedTable+' WHERE '
+            + SQL;
+        end;
+      end;
+      if SQL <> '' then
+        AddResults(SQL)
+      else
+        AddNotes(db, table, STRSKIPPED+'table doesn''t have columns of selected type ('+comboDatatypes.Text+').', '');
+    except
+      // The above SQL can easily throw an exception, e.g. if a table is corrupted.
+      // In such cases we create a dummy row, including the error message
+      on E:Exception do
+        AddNotes(db, table, 'error', E.Message);
+    end else begin
+      AddNotes(db, table, STRSKIPPED+FormatByteNumber(TableSize), '');
+    end;
   end;
 end;
 
@@ -268,7 +350,7 @@ begin
   // Add missing columns
   for i:=ResultGrid.Header.Columns.Count to ds.FieldCount-1 do begin
     Col := ResultGrid.Header.Columns.Add;
-    Col.Width := 100;
+    Col.Width := 130;
   end;
   // Remove superfluous columns
   for i:=ResultGrid.Header.Columns.Count-1 downto ds.FieldCount do
@@ -278,7 +360,9 @@ begin
     Col := ResultGrid.Header.Columns[i];
     Col.Text := ds.Fields[i].FieldName;
     if ds.Fields[i].DataType in [ftSmallint, ftInteger, ftWord, ftLargeint, ftFloat] then
-      Col.Alignment := taRightJustify;
+      Col.Alignment := taRightJustify
+    else
+      Col.Alignment := taLeftJustify;
   end;
   ds.First;
   while not ds.Eof do begin
@@ -290,12 +374,36 @@ begin
     ds.Next;
   end;
 
+  Inc(FRealResultCounter);
+  lblResults.Caption := IntToStr(FRealResultCounter)+' results:';
+  lblResults.Repaint;
+  UpdateResultGrid;
+end;
+
+
+procedure TfrmTableTools.AddNotes(Col1, Col2, Col3, Col4: WideString);
+var
+  Row: TWideStringlist;
+begin
+  // Adds a row with non SQL results
+  Row := TWideStringlist.Create;
+  Row.Add(Col1);
+  Row.Add(Col2);
+  Row.Add(Col3);
+  Row.Add(Col4);
+  FResults.Add(Row);
+  UpdateResultGrid;
+end;
+
+
+procedure TfrmTableTools.UpdateResultGrid;
+begin
+  // Refresh resultgrid
   ResultGrid.RootNodeCount := FResults.Count;
   ResultGrid.FocusedNode := ResultGrid.GetLast;
   ResultGrid.Selected[ResultGrid.FocusedNode] := True;
   ResultGrid.Repaint;
 end;
-
 
 procedure TfrmTableTools.ResultGridCompareNodes(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode;
   Column: TColumnIndex; var Result: Integer);
@@ -326,14 +434,16 @@ var
   VT: TVirtualStringTree;
   Msg: WideString;
 begin
-  // Red text color for errors, purple for nodes
-  VT := Sender as TVirtualStringTree;
-  if VT.Header.Columns.Count >= 3 then begin
-    Msg := LowerCase(VT.Text[Node, 2]);
-    if Msg = 'note' then
+  // Red text color for errors, purple for notes, grey for skipped tables
+  if not (vsSelected in Node.States) then begin
+    VT := Sender as TVirtualStringTree;
+    Msg := VT.Text[Node, 2];
+    if LowerCase(Msg) = 'note' then
       TargetCanvas.Font.Color := clPurple
-    else if Msg = 'error' then
-      TargetCanvas.Font.Color := clRed;
+    else if LowerCase(Msg) = 'error' then
+      TargetCanvas.Font.Color := clRed
+    else if Pos(STRSKIPPED, Msg) > 0 then
+      TargetCanvas.Font.Color := clGray;
   end;
 end;
 
@@ -344,7 +454,10 @@ var
 begin
   if Column > NoColumn then begin
     Data := Sender.GetNodeData(Node);
-    CellText := Data^[Column];
+    if Data^.Count > Column then
+      CellText := Data^[Column]
+    else
+      CellText := '';
   end;
 end;
 

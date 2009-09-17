@@ -1515,6 +1515,9 @@ object MainForm: TMainForm
       object menuMaintenance: TMenuItem
         Action = actMaintenance
       end
+      object actFindTextOnServer1: TMenuItem
+        Action = actFindTextOnServer
+      end
       object N7: TMenuItem
         Caption = '-'
       end
@@ -1702,6 +1705,14 @@ object MainForm: TMainForm
       Hint = 'Optimize, repair and analyse tables'
       ImageIndex = 39
       OnExecute = actMaintenanceExecute
+    end
+    object actFindTextOnServer: TAction
+      Category = 'Tools'
+      Caption = 'Find text on server'
+      Hint = 'Searches selected tables for text occurences'
+      ImageIndex = 30
+      ShortCut = 24646
+      OnExecute = actFindTextOnServerExecute
     end
     object actCopyAsHTML: TAction
       Tag = 49
@@ -6069,6 +6080,9 @@ object MainForm: TMainForm
     end
     object menuMaintenance2: TMenuItem
       Action = actMaintenance
+    end
+    object Findtextonserver1: TMenuItem
+      Action = actFindTextOnServer
     end
     object menuEmptyTables: TMenuItem
       Action = actEmptyTables
