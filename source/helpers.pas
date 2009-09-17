@@ -196,6 +196,8 @@ type
   procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
   function DateBackFriendlyCaption(d: TDateTime): String;
   procedure InheritFont(AFont: TFont);
+  function FieldContent(ds: TDataSet; ColName: WideString): WideString;
+  function GetTableSize(ds: TDataSet): Int64;
 var
   MainReg                    : TRegistry;
 
@@ -3074,6 +3076,26 @@ procedure InheritFont(AFont: TFont);
 begin
   AFont.Name := Mainform.Font.Name;
   AFont.Size := Mainform.Font.Size;
+end;
+
+
+// Fetch content from a row cell, avoiding NULLs to cause AVs
+function FieldContent(ds: TDataSet; ColName: WideString): WideString;
+begin
+  Result := '';
+  if (ds.FindField(colName) <> nil) and (not ds.FindField(ColName).IsNull) then
+    Result := ds.FieldByName(ColName).AsWideString;
+end;
+
+
+function GetTableSize(ds: TDataSet): Int64;
+var
+  d, i: String;
+begin
+  d := FieldContent(ds, 'Data_length');
+  i := FieldContent(ds, 'Index_length');
+  if (d = '') or (i = '') then Result := -1
+  else Result := MakeInt(d) + MakeInt(i);
 end;
 
 

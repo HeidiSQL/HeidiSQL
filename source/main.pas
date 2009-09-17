@@ -449,6 +449,9 @@ type
     actFilterPanel: TAction;
     actFindInVT1: TMenuItem;
     TimerFilterVT: TTimer;
+    actFindTextOnServer: TAction;
+    actFindTextOnServer1: TMenuItem;
+    Findtextonserver1: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -545,7 +548,6 @@ type
     procedure ValidateControls(Sender: TObject);
     procedure ValidateQueryControls(Sender: TObject);
     procedure RefreshQueryHelpers;
-    function FieldContent(ds: TDataSet; ColName: WideString): WideString;
     procedure LoadDatabaseProperties(db: WideString);
     procedure ShowHost;
     procedure ShowDatabase(db: WideString);
@@ -733,6 +735,7 @@ type
     procedure comboOnlyDBsKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure actFilterPanelExecute(Sender: TObject);
     procedure TimerFilterVTTimer(Sender: TObject);
+    procedure actFindTextOnServerExecute(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -778,7 +781,6 @@ type
     function GetSelectedTable: TListNode;
     procedure SetSelectedDatabase(db: WideString);
     procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: WideStrings.TWideStringList );
-    function GetTableSize(ds: TDataSet): Int64;
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     function GetSelectedTableColumns: TDataset;
     function GetSelectedTableKeys: TDataset;
@@ -1972,6 +1974,16 @@ begin
   // optimize / repair... tables
   if TableToolsDialog = nil then
     TableToolsDialog := TfrmTableTools.Create(Self);
+  TableToolsDialog.PageControlTools.ActivePage := TableToolsDialog.tabMaintenance;
+  TableToolsDialog.ShowModal;
+end;
+
+procedure TMainForm.actFindTextOnServerExecute(Sender: TObject);
+begin
+  // Find text on server
+  if TableToolsDialog = nil then
+    TableToolsDialog := TfrmTableTools.Create(Self);
+  TableToolsDialog.PageControlTools.ActivePage := TableToolsDialog.tabFind;
   TableToolsDialog.ShowModal;
 end;
 
@@ -4018,18 +4030,6 @@ begin
     FreeAndNil(ds);
   end;
   CachedTableLists.Clear;
-end;
-
-
-// Fetch content from a row cell, avoiding NULLs to cause AVs
-function TMainForm.FieldContent(ds: TDataSet; ColName: WideString): WideString;
-begin
-  Result := '';
-  if
-    (ds.FindField(colName) <> nil) and
-    (not ds.FindField(ColName).IsNull)
-  then
-    Result := ds.FieldByName(ColName).AsWideString;
 end;
 
 
@@ -7170,16 +7170,6 @@ begin
   DBtree.ScrollIntoView(DBtree.GetFirstSelected, False);
 end;
 
-
-function TMainForm.GetTableSize(ds: TDataSet): Int64;
-var
-  d, i: String;
-begin
-  d := FieldContent(ds, 'Data_length');
-  i := FieldContent(ds, 'Index_length');
-  if (d = '') or (i = '') then Result := -1
-  else Result := MakeInt(d) + MakeInt(i);
-end;
 
 function TMainForm.DbTableListCachedAndValid(db: WideString): Boolean;
 var

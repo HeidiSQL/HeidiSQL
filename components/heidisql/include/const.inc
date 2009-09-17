@@ -160,6 +160,8 @@ const
   REGNAME_TOOLSWINWIDTH = 'TableTools_WindowWidth';
   REGNAME_TOOLSWINHEIGHT = 'TableTools_WindowHeight';
   REGNAME_TOOLSTREEWIDTH = 'TableTools_TreeWidth';
+  REGNAME_TOOLSFINDTEXT = 'TableTools_FindText';
+  REGNAME_TOOLSSKIPMB = 'TableTools_SkipMB';
   REGNAME_USERMNGR_WINWIDTH = 'Usermanager_WindowWidth';
   REGNAME_USERMNGR_WINHEIGHT = 'Usermanager_WindowHeight';
   REGNAME_SELECTDBO_WINWIDTH = 'SelectDBO_WindowWidth';
