@@ -34,7 +34,7 @@ type
     chkUseFrm: TCheckBox;
     lblOptions: TLabel;
     btnHelp: TButton;
-    tabFindInDB: TTabSheet;
+    tabFind: TTabSheet;
     lblFindText: TLabel;
     memoFindText: TTntMemo;
     btnFindText: TButton;

@@ -255,7 +255,7 @@ object frmTableTools: TfrmTableTools
             OnClick = btnHelpClick
           end
         end
-        object tabFindInDB: TTabSheet
+        object tabFind: TTabSheet
           Caption = 'Find text'
           ImageIndex = 30
           DesignSize = (
