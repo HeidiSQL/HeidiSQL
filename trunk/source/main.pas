@@ -1900,6 +1900,7 @@ begin
   with PanelRect do
     ProgressBarStatus.SetBounds(Left, Top, Right-Left, Bottom-Top);
   lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
+  FixQueryTabCloseButtons;
 end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
@@ -9376,6 +9377,9 @@ var
   btn: TPngSpeedButton;
 begin
   // Fix positions of "Close" buttons on Query tabs
+  // Avoid AV on Startup, when Mainform.OnResize is called once or twice implicitely.
+  if not Assigned(btnAddTab) then
+    Exit;
   LockWindowUpdate(PageControlMain.Handle);
   for PageIndex:=tabQuery.PageIndex+1 to PageControlMain.PageCount-1 do begin
     VisiblePageIndex := PageIndex;
