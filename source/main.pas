@@ -9045,8 +9045,7 @@ begin
     Cap := Cap + '[Untitled]'
   else
     Cap := sstr(Cap + ObjName, 30);
-  tabEditor.Caption := Cap;
-  FixQueryTabCloseButtons;
+  SetTabCaption(tabEditor.PageIndex, Cap);
 end;
 
 
