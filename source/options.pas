@@ -11,9 +11,16 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
-  SynEdit, SynMemo, VirtualTrees;
+  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList;
 
 type
+  TShortcutItemData = record
+    Action: TAction;
+    KeyStroke: TSynEditKeyStroke;
+    Shortcut1, Shortcut2: TShortcut;
+  end;
+  PShortcutItemData = ^TShortcutItemData;
+
   Toptionsform = class(TForm)
     pagecontrolMain: TPageControl;
     tabMisc: TTabSheet;
@@ -101,6 +108,13 @@ type
     lblMaxTotalRows: TLabel;
     editMaxTotalRows: TEdit;
     chkDoStatistics: TCheckBox;
+    tabShortcuts: TTabSheet;
+    TreeShortcutItems: TVirtualStringTree;
+    Shortcut1: THotKey;
+    lblShortcut1: TLabel;
+    lblShortcutHint: TLabel;
+    Shortcut2: THotKey;
+    lblShortcut2: TLabel;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -119,9 +133,21 @@ type
     procedure updownSQLFontSizeClick(Sender: TObject; Button: TUDBtnType);
     procedure SynMemoSQLSampleClick(Sender: TObject);
     procedure btnRestoreDefaultsClick(Sender: TObject);
+    procedure TreeShortcutItemsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+      var InitialStates: TVirtualNodeInitStates);
+    procedure TreeShortcutItemsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType; var CellText: WideString);
+    procedure TreeShortcutItemsInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
+    procedure TreeShortcutItemsGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
+      Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure TreeShortcutItemsFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
+    procedure TreeShortcutItemsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure Shortcut1Change(Sender: TObject);
+    procedure Shortcut2Change(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
+    FShortcutCategories: TStringList;
   public
     { Public declarations }
   end;
@@ -162,8 +188,9 @@ procedure Toptionsform.Apply(Sender: TObject);
 var
   i, maxrows: Integer;
   Attri: TSynHighlighterAttributes;
-  Memo: TSynMemo;
   Grid: TVirtualStringTree;
+  CatNode, ItemNode: PVirtualNode;
+  Data: PShortcutItemData;
 begin
   Screen.Cursor := crHourGlass;
 
@@ -215,20 +242,30 @@ begin
   MainReg.WriteBool(REGNAME_FIELDEDITOR_SET, chkEditorSet.Checked);
   MainReg.WriteBool(REGNAME_BG_NULL_ENABLED, chkNullBg.Checked);
 
+  // Shortcuts
+  CatNode := TreeShortcutItems.GetFirst;
+  while Assigned(CatNode) do begin
+    ItemNode := TreeShortcutItems.GetFirstChild(CatNode);
+    while Assigned(ItemNode) do begin
+      Data := TreeShortcutItems.GetNodeData(ItemNode);
+      // Save modified shortcuts
+      if Assigned(Data.KeyStroke) then begin
+        if Data.Shortcut1 <> Data.KeyStroke.ShortCut then
+          MainReg.WriteInteger(REGPREFIX_SHORTCUT1+EditorCommandToCodeString(Data.KeyStroke.Command), Data.Shortcut1);
+        if Data.Shortcut2 <> Data.KeyStroke.ShortCut2 then
+          MainReg.WriteInteger(REGPREFIX_SHORTCUT2+EditorCommandToCodeString(Data.KeyStroke.Command), Data.Shortcut2);
+      end else begin
+        if Data.Shortcut1 <> Data.Action.ShortCut then
+          MainReg.WriteInteger(REGPREFIX_SHORTCUT1+Data.Action.Name, Data.Shortcut1);
+      end;
+      ItemNode := TreeShortcutItems.GetNextSibling(ItemNode);
+    end;
+    CatNode := TreeShortcutItems.GetNextSibling(CatNode);
+  end;
+  // Populate SynMemo settings to all instances
+  Mainform.SetupSynEditors;
+
   // Set relevant properties in mainform
-  for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
-    Memo := TQueryTab(Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex]).Memo;
-    Memo.Font := SynMemoSQLSample.Font;
-    Memo.Gutter.Font := SynMemoSQLSample.Font;
-  end;
-  Mainform.SynMemoSQLLog.Font := SynMemoSQLSample.Font;
-  Mainform.SynMemoSQLLog.Gutter.Font := SynMemoSQLSample.Font;
-  Mainform.SynMemoProcessView.Font := SynMemoSQLSample.Font;
-  Mainform.SynMemoFilter.Font := SynMemoSQLSample.Font;
-  for i := 0 to SynSQLSynSQLSample.AttrCount - 1 do begin
-    Mainform.SynSQLSyn1.Attribute[i].AssignColorAndStyle(SynSQLSynSQLSample.Attribute[i]);
-  end;
-  Mainform.SynMemoQuery.ActiveLineColor := SynMemoSQLSample.ActiveLineColor;
   Mainform.DataGrid.Font.Name := comboDataFontName.Text;
   Mainform.DataGrid.Font.Size := updownDataFontSize.Position;
   FixVT(Mainform.DataGrid);
@@ -302,20 +339,23 @@ begin
     comboSQLColElement.Items.Add(SynSQLSynSQLSample.Attribute[i].FriendlyName);
   comboSQLColElement.Items.Add('Active line background');
   comboSQLColElement.ItemIndex := 0;
+  FShortcutCategories := TStringList.Create;
+  for i:=0 to Mainform.ActionList1.ActionCount-1 do begin
+    if FShortcutCategories.IndexOf(Mainform.ActionList1.Actions[i].Category) = -1 then
+      FShortcutCategories.Add(Mainform.ActionList1.Actions[i].Category);
+  end;
+  FShortcutCategories.Add('SQL editing');
+  TreeShortcutItems.RootNodeCount := FShortcutCategories.Count;
 end;
 
 procedure Toptionsform.FormShow(Sender: TObject);
 var
-  sqlfontname : String;
-  sqlfontsize : Integer;
   datafontname : String;
   datafontsize : Integer;
 begin
   screen.Cursor := crHourGlass;
 
   // Read and display values
-  sqlfontname := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
-  sqlfontsize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
   datafontname := GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
   datafontsize := GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
   chkAutoReconnect.Checked := GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
@@ -343,12 +383,9 @@ begin
   btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
 
   // SQL:
-  RestoreSyneditStyles(SynSQLSynSQLSample);
-  SynMemoSQLSample.ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
-  comboSQLFontName.ItemIndex := comboSQLFontName.Items.IndexOf(sqlfontname);
-  updownSQLFontSize.Position := sqlfontsize;
-  SynMemoSQLSample.Font.Name := sqlfontname;
-  SynMemoSQLSample.Font.Size := sqlfontsize;
+  Mainform.SetupSynEditors;
+  comboSQLFontName.ItemIndex := comboSQLFontName.Items.IndexOf(SynMemoSQLSample.Font.Name);
+  updownSQLFontSize.Position := SynMemoSQLSample.Font.Size;
   comboSQLColElementChange(Sender);
 
   // Data-Appearance:
@@ -369,6 +406,10 @@ begin
   chkEditorEnum.Checked := GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
   chkEditorSet.Checked := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
   chkNullBG.Checked := GetRegValue(REGNAME_BG_NULL_ENABLED, DEFAULT_BG_NULL_ENABLED);
+
+  // Shortcuts
+  TreeShortcutItems.ReinitChildren(nil, True);
+  TreeShortcutItems.FocusedNode := nil;
 
   btnApply.Enabled := False;
   screen.Cursor := crdefault;
@@ -516,5 +557,161 @@ begin
   FormShow(Sender);
 end;
 
+
+procedure Toptionsform.TreeShortcutItemsFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex);
+var
+  ShortcutFocused: Boolean;
+  Data: PShortcutItemData;
+begin
+  // Shortcut item focus change in tree
+  ShortcutFocused := Assigned(Node) and (Sender.GetNodeLevel(Node) = 1);
+  lblShortcutHint.Enabled := ShortcutFocused;
+  lblShortcut1.Enabled := ShortcutFocused;
+  lblShortcut2.Enabled := ShortcutFocused;
+  Shortcut1.Enabled := lblShortcut1.Enabled;
+  if ShortcutFocused then begin
+    Data := Sender.GetNodeData(Node);
+    lblShortcutHint.Caption := TreeShortcutItems.Text[Node, 0];
+    if Assigned(Data.Action) then begin
+      lblShortcut2.Enabled := False;
+      if Data.Action.Hint <> '' then
+        lblShortcutHint.Caption := Data.Action.Hint;
+    end;
+    Shortcut1.HotKey := Data.ShortCut1;
+    Shortcut2.HotKey := Data.ShortCut2;
+  end;
+  Shortcut2.Enabled := lblShortcut2.Enabled;
+end;
+
+
+procedure Toptionsform.TreeShortcutItemsGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+var
+  Data: PShortcutItemData;
+begin
+  // Fetch icon number of shortcut item
+  if Sender.GetNodeLevel(Node) = 1 then begin
+    Data := Sender.GetNodeData(Node);
+    if Assigned(Data.KeyStroke) then
+      ImageIndex := 114
+    else if Assigned(Data.Action) then
+      ImageIndex := Data.Action.ImageIndex;
+  end;
+end;
+
+
+procedure Toptionsform.TreeShortcutItemsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+begin
+  NodeDataSize := SizeOf(TShortcutItemData);
+end;
+
+
+procedure Toptionsform.TreeShortcutItemsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+  TextType: TVSTTextType; var CellText: WideString);
+var
+  Data: PShortcutItemData;
+  i: Integer;
+  t: WideString;
+begin
+  // Fetch text of shortcut item
+  case Sender.GetNodeLevel(Node) of
+    0: CellText := FShortcutCategories[Node.Index];
+    1: begin
+      Data := Sender.GetNodeData(Node);
+      if Assigned(Data.KeyStroke) then begin
+        t := EditorCommandToCodeString(Data.KeyStroke.Command);
+        t := Copy(t, 3, Length(t)-2);
+        // Insert spaces before uppercase chars
+        CellText := '';
+        for i:=1 to Length(t) do begin
+          if (i > 1) and (UpperCase(t[i]) = t[i]) then
+            CellText := CellText + ' ';
+          CellText := CellText + t[i];
+        end;
+      end else if Assigned(Data.Action) then begin
+        CellText := Data.Action.Caption;
+        CellText := StringReplace(CellText, '&', '', [rfReplaceAll]);
+      end;
+    end;
+  end;
+end;
+
+
+procedure Toptionsform.TreeShortcutItemsInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  var ChildCount: Cardinal);
+var
+  i: Integer;
+  Category: WideString;
+begin
+  // First initialization of shortcut items
+  if Sender.GetNodeLevel(Node) = 0 then begin
+    ChildCount := 0;
+    if Integer(Node.Index) = FShortcutCategories.Count-1 then
+      ChildCount := Mainform.SynMemoQuery.Keystrokes.Count
+    else begin
+      Category := (Sender as TVirtualStringTree).Text[Node, 0];
+      for i:=0 to Mainform.ActionList1.ActionCount-1 do begin
+        if Mainform.ActionList1.Actions[i].Category = Category then
+          Inc(ChildCount);
+      end;
+    end;
+  end;
+end;
+
+
+procedure Toptionsform.TreeShortcutItemsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+  var InitialStates: TVirtualNodeInitStates);
+var
+  Data: PShortcutItemData;
+  ItemIndex, i: Integer;
+  Category: WideString;
+begin
+  if Sender.GetNodeLevel(Node) = 0 then
+    Include(InitialStates, ivsHasChildren);
+  Data := Sender.GetNodeData(Node);
+
+  if Sender.GetNodeLevel(Node) = 1 then begin
+    if Integer(Node.Parent.Index) = FShortcutCategories.Count-1 then begin
+      Data^.KeyStroke := Mainform.SynMemoQuery.Keystrokes[Node.Index];
+      Data^.Shortcut1 := Data.KeyStroke.ShortCut;
+      Data^.Shortcut2 := Data.KeyStroke.ShortCut2;
+    end else begin
+      ItemIndex := -1;
+      Category := (Sender as TVirtualStringTree).Text[Node.Parent, 0];
+      for i:=0 to Mainform.ActionList1.ActionCount-1 do begin
+        if Mainform.ActionList1.Actions[i].Category = Category then
+          Inc(ItemIndex);
+        if ItemIndex = Integer(Node.Index) then begin
+          Data^.Action := TAction(Mainform.ActionList1.Actions[i]);
+          Data^.Shortcut1 := Data.Action.ShortCut;
+          break;
+        end;
+      end;
+    end;
+  end;
+end;
+
+
+procedure Toptionsform.Shortcut1Change(Sender: TObject);
+var
+  Data: PShortcutItemData;
+begin
+  // Shortcut 1 changed
+  Data := TreeShortcutItems.GetNodeData(TreeShortcutItems.FocusedNode);
+  Data.Shortcut1 := (Sender as THotKey).HotKey;
+  Modified(Sender);
+end;
+
+
+procedure Toptionsform.Shortcut2Change(Sender: TObject);
+var
+  Data: PShortcutItemData;
+begin
+  // Shortcut 2 changed
+  Data := TreeShortcutItems.GetNodeData(TreeShortcutItems.FocusedNode);
+  Data.Shortcut2 := (Sender as THotKey).HotKey;
+  Modified(Sender);
+end;
 
 end.

@@ -110,9 +110,6 @@ begin
   SetWindowSizeGrip(Handle, True);
   InheritFont(Font);
   FixVT(listParameters);
-  SynMemoBody.Font.Name := Mainform.SynMemoQuery.Font.Name;
-  SynMemoBody.Font.Size := Mainform.SynMemoQuery.Font.Size;
-  SynMemoBody.Options := Mainform.SynMemoQuery.Options;
   Parameters := TWideStringList.Create;
 end;
 
@@ -126,6 +123,7 @@ var
   rx: TRegExpr;
   i: Integer;
 begin
+  MainForm.SetupSynEditors;
   FAlterRoutineName := AlterRoutineName;
   FAlterRoutineType := AlterRoutineType;
   editName.Text := FAlterRoutineName;

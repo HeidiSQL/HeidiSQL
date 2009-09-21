@@ -173,7 +173,7 @@ begin
   lblProgress.Caption := '';
   PageControl1.ActivePageIndex := 0;
   SynMemoExampleSQL.Highlighter := Mainform.SynSQLSyn1;
-  SynMemoExampleSQL.Font := Mainform.SynMemoQuery.Font;
+  MainForm.SetupSynEditors;
 
   // read dbs and Tables from treeview
   comboSelectDatabase.Items.Clear;

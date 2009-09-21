@@ -263,12 +263,6 @@ begin
   Mainform.RestoreListSetup(listForeignKeys);
   comboRowFormat.Items.CommaText := 'DEFAULT,DYNAMIC,FIXED,COMPRESSED,REDUNDANT,COMPACT';
   comboInsertMethod.Items.CommaText := 'NO,FIRST,LAST';
-  SynMemoALTERcode.TabWidth := Mainform.SynMemoQuery.TabWidth;
-  SynMemoALTERcode.Font.Name := Mainform.SynMemoQuery.Font.Name;
-  SynMemoALTERcode.Font.Size := Mainform.SynMemoQuery.Font.Size;
-  SynMemoCREATEcode.TabWidth := Mainform.SynMemoQuery.TabWidth;
-  SynMemoCREATEcode.Font.Name := Mainform.SynMemoQuery.Font.Name;
-  SynMemoCREATEcode.Font.Size := Mainform.SynMemoQuery.Font.Size;
   FColumns := TObjectList.Create;
   Indexes := TWideStringList.Create;
   Indexes.OnChange := IndexesChange;
@@ -317,6 +311,7 @@ begin
   btnClearIndexesClick(Self);
   btnClearForeignKeysClick(Self);
   tabALTERcode.TabVisible := FAlterTableName <> '';
+  MainForm.SetupSynEditors;
 
   if FAlterTableName = '' then begin
     // Creating new table

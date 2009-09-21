@@ -191,7 +191,6 @@ type
   procedure EnableProgressBar(MaxValue: Integer);
   function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
   function ListIndexByRegExpr(List: TWideStrings; Expression: WideString): Integer;
-  procedure RestoreSyneditStyles(Highlighter: TSynCustomHighlighter);
   procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
   procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
   function DateBackFriendlyCaption(d: TDateTime): String;
@@ -2974,22 +2973,6 @@ begin
     end;
   end;
   FreeAndNil(rx);
-end;
-
-
-procedure RestoreSyneditStyles(Highlighter: TSynCustomHighlighter);
-var
-  i: Integer;
-  Attri: TSynHighlighterAttributes;
-begin
-  // Read font color, bold + italic style of SynEdit attributes from registry
-  // Default colors defined and used from highlighter on main form
-  for i := 0 to Highlighter.AttrCount - 1 do begin
-    Attri := Highlighter.Attribute[i];
-    Attri.Foreground := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_FG, Mainform.SynSQLSyn1.Attribute[i].Foreground);
-    Attri.Background := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_BG, Mainform.SynSQLSyn1.Attribute[i].Background);
-    Attri.IntegerStyle := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Mainform.SynSQLSyn1.Attribute[i].IntegerStyle)
-  end;
 end;
 
 
