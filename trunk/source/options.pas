@@ -257,6 +257,8 @@ begin
       end else begin
         if Data.Shortcut1 <> Data.Action.ShortCut then
           MainReg.WriteInteger(REGPREFIX_SHORTCUT1+Data.Action.Name, Data.Shortcut1);
+        // Apply shortcut for this session
+        Data.Action.ShortCut := Data.Shortcut1;
       end;
       ItemNode := TreeShortcutItems.GetNextSibling(ItemNode);
     end;
