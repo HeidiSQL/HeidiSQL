@@ -9726,7 +9726,7 @@ begin
     Editor.TabWidth := BaseEditor.TabWidth;
     // Shortcuts
     if Editor = BaseEditor then for j:=0 to Editor.Keystrokes.Count-1 do begin
-      KeyStroke := Editor.Keystrokes[i];
+      KeyStroke := Editor.Keystrokes[j];
       Keystroke.ShortCut := GetRegValue(REGPREFIX_SHORTCUT1+EditorCommandToCodeString(Keystroke.Command), KeyStroke.ShortCut);
       Keystroke.ShortCut2 := GetRegValue(REGPREFIX_SHORTCUT2+EditorCommandToCodeString(Keystroke.Command), KeyStroke.ShortCut2);
     end else
