@@ -225,6 +225,8 @@ const
   REGPREFIX_CRASH_IN_DATA = 'DataCrashIndicator_';
   REGPREFIX_DATAVIEW = 'View_';
   REGPREFIX_DATEEDITOR_CURSOR = 'DateTimeEditor_CursorPos_Type';
+  REGPREFIX_SHORTCUT1 = 'Shortcut1_';
+  REGPREFIX_SHORTCUT2 = 'Shortcut2_';
 
   // Various iconindexes
   ICONINDEX_PRIMARYKEY = 25;

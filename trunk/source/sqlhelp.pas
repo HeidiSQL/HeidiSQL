@@ -88,11 +88,7 @@ begin
   pnlLeft.Width := GetRegValue( REGNAME_SQLHELPPLWIDTH, pnlLeft.Width );
   pnlRightTop.Height := GetRegValue( REGNAME_SQLHELPPRHEIGHT, pnlRightTop.Height );
   Caption := DEFAULT_WINDOW_CAPTION;
-
-  MemoDescription.Font.Name := Mainform.SynMemoQuery.Font.Name;
-  MemoDescription.Font.Size := Mainform.SynMemoQuery.Font.size;
-  MemoExample.Font.Name := Mainform.SynMemoQuery.Font.Name;
-  MemoExample.Font.Size := Mainform.SynMemoQuery.Font.size;
+  MainForm.FixSynEditors;
 
   // Gather help contents for treeview with SQL: HELP "CONTENTS"
   fillTreeLevel( nil );

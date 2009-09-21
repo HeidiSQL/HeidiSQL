@@ -46,7 +46,6 @@ begin
   inherited Create(AOwner);
   Align := alClient;
   SynMemoSelect.Highlighter := Mainform.SynSQLSyn1;
-  SynMemoSelect.Font := Mainform.SynMemoQuery.Font;
   InheritFont(Font);
 end;
 
@@ -94,6 +93,7 @@ begin
   end;
   // Ensure name is validated
   editNameChange(Self);
+  MainForm.SetupSynEditors;
 end;
 
 

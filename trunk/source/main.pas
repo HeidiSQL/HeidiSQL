@@ -23,7 +23,7 @@ uses
   TntStdCtrls, Tabs, SynUnicode, mysqlconn, EditVar, helpers, queryprogress,
   mysqlquery, createdatabase, table_editor, SynRegExpr,
   WideStrUtils, ZDbcLogging, ExtActns, CommCtrl, routine_editor, options,
-  Contnrs, PngSpeedButton, connections;
+  Contnrs, PngSpeedButton, connections, SynEditKeyCmds, exportsql;
 
 
 type
@@ -834,6 +834,7 @@ type
     prefNullColorDefault,
     prefNullBG                 : TColor;
     CreateDatabaseForm         : TCreateDatabaseForm;
+    ExportSQLForm              : TExportSQLForm;
     TableEditor                : TfrmTableEditor;
     FDataGridSelect            : WideStrings.TWideStringList;
     FDataGridSort              : TOrderColArray;
@@ -916,6 +917,7 @@ type
     procedure OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
     function MaskMulti(str: WideString): WideString;
     procedure SelectDBObject(Text: WideString; NodeType: TListNodeType);
+    procedure SetupSynEditors;
 end;
 
 
@@ -951,7 +953,7 @@ const
 implementation
 
 uses
-  About, exportsql, loaddata, printlist, copytable, insertfiles, Threading,
+  About, loaddata, printlist, copytable, insertfiles, Threading,
   mysql_structures, UpdateCheck, uVistaFuncs, runsqlfile, column_selection,
   data_sorting, grideditlinks, dataviewsave;
 
@@ -1249,10 +1251,11 @@ procedure TMainForm.FormCreate(Sender: TObject);
 var
   i: Integer;
   menuitem : TMenuItem;
-  fontname, datafontname : String;
-  fontsize, datafontsize : Integer;
+  datafontname : String;
+  datafontsize : Integer;
   DisableProcessWindowsGhostingProc: procedure;
   QueryTab: TQueryTab;
+  Action: TAction;
 begin
   caption := APPNAME;
   setLocales;
@@ -1355,22 +1358,6 @@ begin
   prefCSVTerminator := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   prefRememberFilters := GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
 
-  // SQL-Font:
-  fontname := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
-  fontsize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
-  SynMemoQuery.Font.Name := fontname;
-  SynMemoQuery.Font.Size := fontsize;
-  SynMemoQuery.Gutter.Font.Name := fontname;
-  SynMemoQuery.Gutter.Font.Size := fontsize;
-  SynMemoFilter.Font.Name := fontname;
-  SynMemoFilter.Font.Size := fontsize;
-  SynMemoSQLLog.Font.Name := fontname;
-  SynMemoSQLLog.Font.Size := fontsize;
-  SynMemoSQLLog.Gutter.Font.Name := fontname;
-  SynMemoSQLLog.Gutter.Font.Size := fontsize;
-  SynMemoProcessView.Font.Name := fontname;
-  SynMemoProcessView.Font.Size := fontsize;
-
   // Data-Font:
   datafontname := GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
   datafontsize := GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
@@ -1398,10 +1385,6 @@ begin
   prefEnableSetEditor := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
   prefEnableNullBG := GetRegValue(REGNAME_BG_NULL_ENABLED, DEFAULT_BG_NULL_ENABLED);
 
-  // Color coding:
-  RestoreSyneditStyles(SynSQLSyn1);
-  SynMemoQuery.ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
-
   // Switch off/on displaying table/db sized in tree
   menuShowSizeColumn.Checked := GetRegValue(REGNAME_SIZECOL_TREE, DEFAULT_SIZECOL_TREE);
   if menuShowSizeColumn.Checked then
@@ -1415,6 +1398,12 @@ begin
   RestoreListSetup(ListProcesses);
   RestoreListSetup(ListCommandStats);
   RestoreListSetup(ListTables);
+
+  // Shortcuts
+  for i:=0 to ActionList1.ActionCount-1 do begin
+    Action := TAction(ActionList1.Actions[i]);
+    Action.ShortCut := GetRegValue(REGPREFIX_SHORTCUT1+Action.Name, Action.ShortCut);
+  end;
 
   // Generate menuitems for popupDbGridHeader (column selection for ListTables)
   popupDBGridHeader.Items.Clear;
@@ -1457,6 +1446,9 @@ begin
 
   QueryTabs := TObjectList.Create;
   QueryTabs.Add(QueryTab);
+
+  // SynMemo font, hightlighting and shortcuts
+  SetupSynEditors;
 
   DataGridResult := TGridResult.Create;
 
@@ -2373,12 +2365,11 @@ end;
 
 procedure TMainForm.actExportTablesExecute(Sender: TObject);
 var
-  f: TExportSQLForm;
   ds: TDataset;
   InDBTree: Boolean;
   Comp: TComponent;
 begin
-  f := TExportSQLForm.Create(Self);
+  ExportSQLForm := TExportSQLForm.Create(Self);
 
   // popupDB is used in DBTree AND ListTables
   InDBTree := False;
@@ -2388,19 +2379,18 @@ begin
   if InDBTree then begin
     // If a table is selected, use that for preselection. If only a db was selected, use all tables inside it.
     if SelectedTable.Text <> '' then
-      f.SelectedTables.Add(SelectedTable.Text)
+      ExportSQLForm.SelectedTables.Add(SelectedTable.Text)
     else if Mainform.ActiveDatabase <> '' then begin
       ds := Mainform.FetchDbTableList(ActiveDatabase);
       while not ds.Eof do begin
-        f.SelectedTables.Add(ds.FieldByName(DBO_NAME).AsWideString);
+        ExportSQLForm.SelectedTables.Add(ds.FieldByName(DBO_NAME).AsWideString);
         ds.Next;
       end;
     end;
   end else
-    f.SelectedTables := GetVTCaptions( Mainform.ListTables, True );
+    ExportSQLForm.SelectedTables := GetVTCaptions( Mainform.ListTables, True );
 
-  f.ShowModal;
-  FreeAndNil(f);
+  ExportSQLForm.ShowModal;
 end;
 
 // Drop Table(s)
@@ -9244,6 +9234,7 @@ begin
   QueryTab.Grid.OnKeyDown := QueryGrid.OnKeyDown;
   QueryTab.Grid.OnPaintText := QueryGrid.OnPaintText;
   FixVT(QueryTab.Grid);
+  SetupSynEditors;
 
   // Set splitter positions
   QueryTab.pnlMemo.Height := pnlQueryMemo.Height;
@@ -9681,6 +9672,77 @@ begin
   end;
 
 end;
+
+
+procedure TMainform.SetupSynEditors;
+var
+  i, j: Integer;
+  Editors: TObjectList;
+  BaseEditor, Editor: TSynMemo;
+  FontName: String;
+  FontSize: Integer;
+  KeyStroke: TSynEditKeyStroke;
+  ActiveLineColor: TColor;
+  Attri: TSynHighlighterAttributes;
+begin
+  // Restore font, highlighter and shortcuts for each instantiated TSynMemo
+  Editors := TObjectList.Create;
+  BaseEditor := SynMemoQuery;
+  for i:=0 to QueryTabs.Count-1 do
+    Editors.Add(TQueryTab(QueryTabs[i]).Memo);
+  Editors.Add(SynMemoFilter);
+  Editors.Add(SynMemoProcessView);
+  Editors.Add(SynMemoSQLLog);
+  if Assigned(TableEditor) then begin
+    Editors.Add(TableEditor.SynMemoCREATEcode);
+    Editors.Add(TableEditor.SynMemoALTERcode);
+  end;
+  if Assigned(ViewEditor) then
+    Editors.Add(ViewEditor.SynMemoSelect);
+  if Assigned(RoutineEditor) then
+    Editors.Add(RoutineEditor.SynMemoBody);
+  if Assigned(CreateDatabaseForm) then
+    Editors.Add(CreateDatabaseForm.SynMemoPreview);
+  if Assigned(OptionsForm) then
+    Editors.Add(OptionsForm.SynMemoSQLSample);
+  if Assigned(SQLHelpForm) then begin
+    Editors.Add(SQLHelpForm.memoDescription);
+    Editors.Add(SQLHelpForm.MemoExample);
+  end;
+  if Assigned(ExportSQLForm) then
+    Editors.Add(ExportSQLForm.SynMemoExampleSQL);
+
+  FontName := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
+  FontSize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
+  ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
+  for i:=0 to Editors.Count-1 do begin
+    Editor := Editors[i] as TSynMemo;
+    Editor.Font.Name := FontName;
+    Editor.Font.Size := FontSize;
+    Editor.Gutter.Font.Name := FontName;
+    Editor.Gutter.Font.Size := FontSize;
+    Editor.ActiveLineColor := ActiveLineColor;
+    Editor.Options := BaseEditor.Options;
+    Editor.TabWidth := BaseEditor.TabWidth;
+    // Shortcuts
+    if Editor = BaseEditor then for j:=0 to Editor.Keystrokes.Count-1 do begin
+      KeyStroke := Editor.Keystrokes[i];
+      Keystroke.ShortCut := GetRegValue(REGPREFIX_SHORTCUT1+EditorCommandToCodeString(Keystroke.Command), KeyStroke.ShortCut);
+      Keystroke.ShortCut2 := GetRegValue(REGPREFIX_SHORTCUT2+EditorCommandToCodeString(Keystroke.Command), KeyStroke.ShortCut2);
+    end else
+      Editor.Keystrokes := BaseEditor.KeyStrokes;
+  end;
+  // Highlighting
+  for i:=0 to SynSQLSyn1.AttrCount - 1 do begin
+    Attri := SynSQLSyn1.Attribute[i];
+    Attri.Foreground := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_FG, Attri.Foreground);
+    Attri.Background := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_BG, Attri.Background);
+    Attri.IntegerStyle := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Attri.IntegerStyle);
+    if Assigned(OptionsForm) then
+      OptionsForm.SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(Attri);
+  end;
+end;
+
 
 end.
 

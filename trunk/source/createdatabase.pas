@@ -85,7 +85,6 @@ begin
 
   // Setup SynMemoPreview
   SynMemoPreview.Highlighter := Mainform.SynSQLSyn1;
-  SynMemoPreview.Font := Mainform.SynMemoQuery.Font;
 end;
 
 
@@ -147,6 +146,7 @@ begin
 
   // Invoke SQL preview
   Modified(Sender);
+  MainForm.SetupSynEditors;
 end;
 
 

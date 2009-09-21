@@ -760,6 +760,86 @@ object optionsform: Toptionsform
         OnChanging = anyUpDownLimitChanging
       end
     end
+    object tabShortcuts: TTabSheet
+      Caption = 'Shortcuts'
+      ImageIndex = 4
+      DesignSize = (
+        409
+        298)
+      object lblShortcut1: TLabel
+        Left = 199
+        Top = 62
+        Width = 45
+        Height = 13
+        Caption = 'Shortcut:'
+        Enabled = False
+      end
+      object lblShortcutHint: TLabel
+        Left = 199
+        Top = 3
+        Width = 207
+        Height = 46
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        AutoSize = False
+        Caption = 'Please select a shortcut item in the tree.'
+        Enabled = False
+        WordWrap = True
+      end
+      object lblShortcut2: TLabel
+        Left = 199
+        Top = 107
+        Width = 98
+        Height = 13
+        Caption = 'Secondary shortcut:'
+        Enabled = False
+      end
+      object TreeShortcutItems: TVirtualStringTree
+        Left = 3
+        Top = 3
+        Width = 190
+        Height = 292
+        Header.AutoSizeIndex = 0
+        Header.DefaultHeight = 17
+        Header.Font.Charset = DEFAULT_CHARSET
+        Header.Font.Color = clWindowText
+        Header.Font.Height = -11
+        Header.Font.Name = 'Tahoma'
+        Header.Font.Style = []
+        Header.MainColumn = -1
+        Images = MainForm.PngImageListMain
+        TabOrder = 0
+        OnFocusChanged = TreeShortcutItemsFocusChanged
+        OnGetText = TreeShortcutItemsGetText
+        OnGetImageIndex = TreeShortcutItemsGetImageIndex
+        OnGetNodeDataSize = TreeShortcutItemsGetNodeDataSize
+        OnInitChildren = TreeShortcutItemsInitChildren
+        OnInitNode = TreeShortcutItemsInitNode
+        Columns = <>
+      end
+      object Shortcut1: THotKey
+        Left = 199
+        Top = 81
+        Width = 207
+        Height = 19
+        Enabled = False
+        HotKey = 0
+        Modifiers = []
+        TabOrder = 1
+        OnChange = Shortcut1Change
+      end
+      object Shortcut2: THotKey
+        Left = 199
+        Top = 125
+        Width = 207
+        Height = 19
+        Anchors = [akLeft, akTop, akRight]
+        Enabled = False
+        HotKey = 0
+        Modifiers = []
+        TabOrder = 2
+        OnChange = Shortcut2Change
+      end
+    end
   end
   object btnCancel: TButton
     Left = 270
