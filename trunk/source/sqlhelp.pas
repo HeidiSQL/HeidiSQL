@@ -88,7 +88,7 @@ begin
   pnlLeft.Width := GetRegValue( REGNAME_SQLHELPPLWIDTH, pnlLeft.Width );
   pnlRightTop.Height := GetRegValue( REGNAME_SQLHELPPRHEIGHT, pnlRightTop.Height );
   Caption := DEFAULT_WINDOW_CAPTION;
-  MainForm.FixSynEditors;
+  MainForm.SetupSynEditors;
 
   // Gather help contents for treeview with SQL: HELP "CONTENTS"
   fillTreeLevel( nil );
