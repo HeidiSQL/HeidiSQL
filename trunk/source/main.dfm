@@ -1321,6 +1321,14 @@ object MainForm: TMainForm
                 item
                   Command = ecRedo
                   ShortCut = 16473
+                end
+                item
+                  Command = ecUpperCase
+                  ShortCut = 16469
+                end
+                item
+                  Command = ecLowerCase
+                  ShortCut = 16460
                 end>
             end
             object pnlQueryHelpers: TPanel
