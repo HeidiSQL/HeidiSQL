@@ -1298,10 +1298,26 @@ object MainForm: TMainForm
               OnStatusChange = SynMemoQueryStatusChange
               RemovedKeystrokes = <
                 item
+                  Command = ecDeleteWord
+                  ShortCut = 16468
+                end
+                item
                   Command = ecDeleteLine
                   ShortCut = 16473
+                end
+                item
+                  Command = ecDeleteEOL
+                  ShortCut = 24665
                 end>
               AddedKeystrokes = <
+                item
+                  Command = ecDeleteWord
+                  ShortCut = 16430
+                end
+                item
+                  Command = ecDeleteEOL
+                  ShortCut = 24622
+                end
                 item
                   Command = ecRedo
                   ShortCut = 16473
