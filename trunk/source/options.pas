@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
-  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList;
+  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses;
 
 type
   TShortcutItemData = record
@@ -110,10 +110,10 @@ type
     chkDoStatistics: TCheckBox;
     tabShortcuts: TTabSheet;
     TreeShortcutItems: TVirtualStringTree;
-    Shortcut1: THotKey;
+    Shortcut1: TSynHotKey;
     lblShortcut1: TLabel;
     lblShortcutHint: TLabel;
-    Shortcut2: THotKey;
+    Shortcut2: TSynHotKey;
     lblShortcut2: TLabel;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -144,6 +144,8 @@ type
     procedure TreeShortcutItemsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure Shortcut1Change(Sender: TObject);
     procedure Shortcut2Change(Sender: TObject);
+    procedure ShortcutEnter(Sender: TObject);
+    procedure ShortcutExit(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -412,6 +414,7 @@ begin
   // Shortcuts
   TreeShortcutItems.ReinitChildren(nil, True);
   TreeShortcutItems.FocusedNode := nil;
+  TreeShortcutItems.OnFocusChanged(TreeShortcutItems, TreeShortcutItems.FocusedNode, NoColumn);
 
   btnApply.Enabled := False;
   screen.Cursor := crdefault;
@@ -701,7 +704,7 @@ var
 begin
   // Shortcut 1 changed
   Data := TreeShortcutItems.GetNodeData(TreeShortcutItems.FocusedNode);
-  Data.Shortcut1 := (Sender as THotKey).HotKey;
+  Data.Shortcut1 := (Sender as TSynHotKey).HotKey;
   Modified(Sender);
 end;
 
@@ -712,8 +715,25 @@ var
 begin
   // Shortcut 2 changed
   Data := TreeShortcutItems.GetNodeData(TreeShortcutItems.FocusedNode);
-  Data.Shortcut2 := (Sender as THotKey).HotKey;
+  Data.Shortcut2 := (Sender as TSynHotKey).HotKey;
   Modified(Sender);
 end;
+
+
+procedure Toptionsform.ShortcutEnter(Sender: TObject);
+begin
+  // Remove Esc and Enter shortcuts from buttons
+  btnOk.Default := False;
+  btnCancel.Cancel := False;
+end;
+
+
+procedure Toptionsform.ShortcutExit(Sender: TObject);
+begin
+  // Readd Esc and Enter shortcuts to buttons
+  btnOk.Default := True;
+  btnCancel.Cancel := True;
+end;
+
 
 end.
