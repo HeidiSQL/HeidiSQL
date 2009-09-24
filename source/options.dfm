@@ -772,7 +772,6 @@ object optionsform: Toptionsform
         Width = 45
         Height = 13
         Caption = 'Shortcut:'
-        Enabled = False
       end
       object lblShortcutHint: TLabel
         Left = 199
@@ -782,7 +781,6 @@ object optionsform: Toptionsform
         Anchors = [akLeft, akTop, akRight, akBottom]
         AutoSize = False
         Caption = 'Please select a shortcut item in the tree.'
-        Enabled = False
         WordWrap = True
       end
       object lblShortcut2: TLabel
@@ -791,7 +789,6 @@ object optionsform: Toptionsform
         Width = 98
         Height = 13
         Caption = 'Secondary shortcut:'
-        Enabled = False
       end
       object TreeShortcutItems: TVirtualStringTree
         Left = 3
@@ -816,28 +813,27 @@ object optionsform: Toptionsform
         OnInitNode = TreeShortcutItemsInitNode
         Columns = <>
       end
-      object Shortcut1: THotKey
+      object Shortcut1: TSynHotKey
         Left = 199
         Top = 81
         Width = 207
         Height = 19
-        Enabled = False
         HotKey = 0
         Modifiers = []
-        TabOrder = 1
         OnChange = Shortcut1Change
+        OnEnter = ShortcutEnter
+        OnExit = ShortcutExit
       end
-      object Shortcut2: THotKey
+      object Shortcut2: TSynHotKey
         Left = 199
         Top = 125
         Width = 207
         Height = 19
-        Anchors = [akLeft, akTop, akRight]
-        Enabled = False
         HotKey = 0
         Modifiers = []
-        TabOrder = 2
         OnChange = Shortcut2Change
+        OnEnter = ShortcutEnter
+        OnExit = ShortcutExit
       end
     end
   end
