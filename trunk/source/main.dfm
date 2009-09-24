@@ -6763,6 +6763,7 @@ object MainForm: TMainForm
   end
   object TimerFilterVT: TTimer
     Enabled = False
+    Interval = 500
     OnTimer = TimerFilterVTTimer
     Left = 40
     Top = 269
