@@ -9,7 +9,7 @@
 	<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
 	<meta name="description" content="Additional information file for HeidiSQL developers." />
 	<meta name="author" content="Ansgar Becker, David Dindorp" />
-	<link rel='stylesheet' type='text/css' href='styles.css' />
+	<link rel="stylesheet" type="text/css" href="styles.css" />
 </head>
 
 <body>
@@ -40,7 +40,7 @@
 
 	<h2 id="basics">Basic information</h2>
 	<p>
-		For the basics, please refer to <a href='readme.html'>this document</a>.
+		For the basics, please refer to <a href="readme.html">this document</a>.
 	</p>
 
 	<p>
@@ -133,7 +133,7 @@
 	<h2 id="furtherdevelopment">Further development</h2>
 	<p>
 		Once the initial build and installation process is complete, please refer to
-		<a href='readme.html#furtherdevelopment'>this document</a> for more information
+		<a href="readme.html#furtherdevelopment">this document</a> for more information
 		regarding consequent building of the project.
 	</p>
 
@@ -161,13 +161,13 @@
 		Install the components where it says so ;-).
 	</p>
 	<p>
-		If you still have problems, you can also opt to <a href='#cleaning'>start over</a>.
+		If you still have problems, you can also opt to <a href="#cleaning">start over</a>.
 	</p>
 
 	<h3 id="troubleshooting_1">"Unable to install component" error message</h3>
 	<p>
 		Remove the (already installed) component by going to Project --> Options --> Packages,
-		selecting the relevant component and clicking 'Remove'.
+		selecting the relevant component and clicking "Remove".
 	</p>
 	<p>
 		Then try installing the component again.
@@ -183,7 +183,7 @@
 		"%ALLUSERSPROFILE%\Documents\RAD Studio\5.0\Bpl"
 	</p>
 	<p>
-		Then repeat the <a href='#troubleshooting_1'>above step</a>.
+		Then repeat the <a href="#troubleshooting_1">above step</a>.
 	</p>
 
 	<h3 id="cleaning">How can I completely clean my build environment?</h3>
@@ -218,7 +218,7 @@
 		</ul>
 	</p>
 	<p>
-		Now you can restart your <a href='#gettingstarted'>build process</a>.
+		Now you can restart your <a href="#gettingstarted">build process</a>.
 	</p>
 
 
@@ -276,7 +276,7 @@
 	<p>
 		The idea of separating designtime and runtime is that designtime code does not need to be linked
 		into the final executable, thus saving space.  See this article for details:<br />
-		<a href='http://community.borland.com/article/0,1410,27717,00.html'>http://community.borland.com/article/0,1410,27717,00.html</a>
+		<a href="http://community.borland.com/article/0,1410,27717,00.html">http://community.borland.com/article/0,1410,27717,00.html</a>
 	</p>
 	<p>
 		If in doubt, you can always choose "designtime and runtime".  If you do designate a project as being
@@ -290,8 +290,8 @@
 	</p>
 	<p>
 		You can Google for more information about components here:<br />
-		<a href='http://groups.google.com/groups/dir?sel=33614735'>borland.public.delphi.vcl usenet groups</a><br />
-		<a href='http://groups.google.com/groups/dir?sel=33614713'>borland.public.cppbuilder.vcl usenet groups</a>
+		<a href="http://groups.google.com/groups/dir?sel=33614735">borland.public.delphi.vcl usenet groups</a><br />
+		<a href="http://groups.google.com/groups/dir?sel=33614713">borland.public.cppbuilder.vcl usenet groups</a>
 	</p>
 
 	<h3>How do I find out what's changed in a ".res" file?</h3>
@@ -368,9 +368,9 @@
 	</p>
 	<p>
 		In here, you can find the method responsible for an exception from a long list of methods.  First
-		click the 'Base Address' header to sort by base address.  Then select the module with the base address
+		click the "Base Address" header to sort by base address.  Then select the module with the base address
 		that is closest to, but not higher than, the memory address you're seeking.  A list of entry points
-		on the right-hand side gets filled.  Select the 'Address' header in this list to sort by address.  Now,
+		on the right-hand side gets filled.  Select the "Address" header in this list to sort by address.  Now,
 		from the list of entry points, find the function by looking for the closest match that doesn't exceed
 		the memory address sought.
 	</p>
@@ -388,14 +388,14 @@
 	</p>
 	<p>
 		Make sure that names of procedures are printed in the Disassembly view.  This is enabled by
-		ticking the 'mixed source' menu item in the context menu that pops up when you right-click inside
+		ticking the "mixed source" menu item in the context menu that pops up when you right-click inside
 		the Disassembly window.  Note that it is easy to disable this by accident by pressing CTRL-X.
 	</p>
 	<p>
-		The Disassembly window contains a 'go to address' function, which is activated by right-clicking
+		The Disassembly window contains a "go to address" function, which is activated by right-clicking
 		inside the window and choosing "Goto Address" from the context menu that pops up.  Enter an address
 		in Pascal hexadecimal notation, for example $65C6DB, to scroll to the relevant memory address.
-		Make sure that 'mixed source' is enabled (see above).  Browse upwards in the disassembly view until
+		Make sure that "mixed source" is enabled (see above).  Browse upwards in the disassembly view until
 		a function name along with a line number is visible in the Disassembly view.  Double-click the line
 		number to go directly to the source code file.
 	</p>
@@ -409,22 +409,22 @@
 
 	<h2 id="thirdparty">Upgrading third-party packages</h2>
 	<p>
-		There are two methods to do this.  One uses 'svn update' purely,
+		There are two methods to do this.  One uses "svn update" purely,
 		the other uses the automatic merging feature in Subversion.
 	</p>
 
-	<h3>Updating a vendor package using purely 'svn update'.</h3>
+	<h3>Updating a vendor package using purely "svn update".</h3>
 	<p>
 		This is the old method, which was required before Subversion supported automatic merging.
 	</p>
 	<ol>
 		<li>
-			<strong>Run 'svn log' on the package's top folder and find the first vendor revision.</strong><br />
-    		This step finds a 'base' revision where the source code in our repository matches that of the vendor's.<br />
+			<strong>Run "svn log" on the package's top folder and find the first vendor revision.</strong><br />
+    		This step finds a "base" revision where the source code in our repository matches that of the vendor"s.<br />
 			<br />
 		</li>
 		<li>
-			<strong>Run 'svn update -r&lt;XXX&gt;'.</strong><br />
+			<strong>Run "svn update -r&lt;XXX&gt;".</strong><br />
 			This step "updates" the local working copy to the revision found above.<br />
 			The correct terminology would be "downdate", except that downdate is not a proper English word.<br />
 			<br />
@@ -434,7 +434,7 @@
 			<br />
 		</li>
 		<li>
-			<strong>Run 'svn update' to update to HEAD again.</strong><br />
+			<strong>Run "svn update" to update to HEAD again.</strong><br />
 			This step re-applies all the changes from the HeidiSQL repository.<br />
 			Files that have been deleted or renamed in HeidiSQL are deleted or renamed in the local working copy.<br />
 			Subversion has an automatic merge algorithm that merges the changes already performed in the HeidiSQL
@@ -454,7 +454,7 @@
 			<br />
 		</li>
 		<li>
-			<strong>Run 'svn commit' to commit the changes.</strong><br />
+			<strong>Run "svn commit" to commit the changes.</strong><br />
 			This step creates a repository revision with the updated vendor package.<br />
 			<br />
 		</li>
@@ -478,7 +478,7 @@
 			<br />
 		</li>
 		<li>
-			<strong>Run 'svn commit' to commit the changes.</strong><br />
+			<strong>Run "svn commit" to commit the changes.</strong><br />
 			This step creates a repository revision with the updated vendor package.<br />
 			If an automated script is used (see above), this is done automatically for each vendor revision.<br />
 			<br />
@@ -488,7 +488,7 @@
 			<br />
 		</li>
 		<li>
-			<strong>Run 'svn merge &lt;repository&gt;/3rdparty/&lt;package&gt; ./'.</strong><br />
+			<strong>Run "svn merge &lt;repository&gt;/3rdparty/&lt;package&gt; ./".</strong><br />
 			This step takes the changes from the revision created above, and merges them into the project space.
 			While doing this, Subversion automatically marks the revisions that has been merged, so that the
 			next time around it will not attempt to merge these changes again.  Files that have already been
@@ -506,7 +506,7 @@
 			<br />
 		</li>
 		<li>
-			<strong>Run 'svn commit' to commit the changes.</strong><br />
+			<strong>Run "svn commit" to commit the changes.</strong><br />
 			This step creates a repository revision, adding the vendor updates to the project.<br />
 			<br />
 		</li>
@@ -540,17 +540,17 @@
 	<ol>
 		<li>
 			<strong>Make sure your working copy contains both "trunk" and "tags" from repository.</strong><br />
-			If you need to check out "tags", you may put a tick in 'checkout top folder only' to spare bandwidth.<br />
+			If you need to check out "tags", you may put a tick in "checkout top folder only" to spare bandwidth.<br />
 			<br />
 		</li>
 		<li>
-			<strong>Run 'svn update -rHEAD' on the trunk folder.</strong><br />
+			<strong>Run "svn update -rHEAD" on the trunk folder.</strong><br />
     		This step ensures that all files copied in the next step are at the same source revision.<br />
-		   Using the TortoiseSVN 'svn update' command is fine too.<br />
+		   Using the TortoiseSVN "svn update" command is fine too.<br />
 			<br />
 		</li>
 		<li>
-			<strong>Run 'svn copy trunk tags/4.0rc1'.</strong><br />
+			<strong>Run "svn copy trunk tags/4.0rc1".</strong><br />
 			This step creates an exact duplicate of the current HEAD revision of trunk.<br />
 			<br />
 		</li>
@@ -578,24 +578,24 @@
 			<br />
 		</li>
 		<li>
-			<strong>Run 'svn commit tags' to commit "tags" and all subitems.</strong><br />
+			<strong>Run "svn commit tags" to commit "tags" and all subitems.</strong><br />
 			This step creates a repository revision containing the copy with the new appversion.<br />
 			This step also writes the new revision number of this change into $Revision$ in main.pas.<br />
 			<i>Point of no return!</i>  After this step, the version number is final.<br />
 			<br />
 		</li>
-		<li><strong><a href='#cleaning'>Clean</a> your build environment.</strong><br />
+		<li><strong><a href="#cleaning">Clean</a> your build environment.</strong><br />
 			This step prevents old binary components from being included in the new version.<br />
 			<br />
 		</li>
-		<li><strong><a href='#gettingstarted'>Build HeidiSQL</a> from tags/4.0rc1.</strong><br />
-			(Under some circumstances it is OK to use one of the superpackages instead of this and the previous step.  If in doubt, don't ;-).)<br />
+		<li><strong><a href="#gettingstarted">Build HeidiSQL</a> from tags/4.0rc1.</strong><br />
+			(Under some circumstances it is OK to use one of the superpackages instead of this and the previous step.  If in doubt, don"t ;-).)<br />
 			<br />
 		</li>
 		<li>
 			<strong>Build installer in the tags/4.0rc1 directory.</strong><br />
 			Use the build_everything.cmd script for this, so the version number in main.pas is updated correctly.<br />
-			Make sure that the version number does not end in 'M' for 'Mixed', if it does then you did something wrong further up.<br />
+			Make sure that the version number does not end in "M" for "Mixed", if it does then you did something wrong further up.<br />
 			<br />
 		</li>
 		<li>
