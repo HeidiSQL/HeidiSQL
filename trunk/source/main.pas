@@ -7583,21 +7583,16 @@ end;
   Checks if there is a unique key available which can be used for UPDATEs and INSERTs
 }
 function TMainForm.CheckUniqueKeyClause: Boolean;
-var
-  mres: Integer;
 begin
   Result := GetKeyColumns.Count > 0;
   if not Result then begin
     Screen.Cursor := crDefault;
-    mres := MessageDlg('Grid editing and selective row operations are blocked because this table does not have a primary '+
-      'or a unique key, or it only contains a unique key which allows NULLs which turns that '+
-      'key to be non unique again. You can create or edit the keys using the index manager.'+CRLF+CRLF+
-      'Press'+CRLF+
-      '  [Ok] to cancel editing and call the index manager'+CRLF+
-      '  [Cancel] to cancel editing.',
-      mtWarning, [mbOK, mbCancel], 0);
-    if mres = mrOK then
-      actEditObjectExecute(actEditObject);
+    MessageDlg('Grid editing and selective row operations are blocked because this table either'+CRLF+
+      '* has no primary or unique key'+CRLF+
+      '* or it only contains a unique key which allows NULLs (which turns that '+
+      'key to be non unique again.)'+CRLF+CRLF+
+      'You should create a primary key on the "Table" tab.',
+      mtWarning, [mbOK], 0);
   end;
 end;
 
