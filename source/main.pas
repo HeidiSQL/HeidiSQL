@@ -1950,9 +1950,11 @@ procedure TMainForm.actClearEditorExecute(Sender: TObject);
 var
   m: TSynMemo;
 begin
-  if Sender = actClearQueryEditor then
-    m := ActiveQueryMemo
-  else begin
+  if Sender = actClearQueryEditor then begin
+    m := ActiveQueryMemo;
+    if QueryTabActive then
+      SetTabCaption(PageControlMain.ActivePageIndex, '');
+  end else begin
     m := SynMemoFilter;
     editFilterSearch.Clear;
   end;
@@ -9139,7 +9141,7 @@ begin
   QueryTab.CloseButton.Flat := True;
   QueryTab.CloseButton.PngImage := PngImageListMain.PngImages[134].PngImage;
   QueryTab.CloseButton.OnMouseUp := CloseButtonOnMouseUp;
-  SetTabCaption(QueryTab.TabSheet.PageIndex, 'Query #'+IntToStr(i));
+  SetTabCaption(QueryTab.TabSheet.PageIndex, '');
 
   // Dumb code which replicates all controls from tabQuery
   QueryTab.pnlMemo := TPanel.Create(QueryTab.TabSheet);
@@ -9509,9 +9511,15 @@ end;
 
 procedure TMainForm.SetTabCaption(PageIndex: Integer; Text: String);
 begin
-  // Leave space for close button on closable query tabs
-  if IsQueryTab(PageIndex, False) then
+  // Special case if passed text is empty: Reset query tab caption to "Query #123" 
+  if (PageIndex = tabQuery.PageIndex) and (Text = '') then
+    Text := 'Query';
+  if IsQueryTab(PageIndex, False) then begin
+    if Text = '' then
+      Text := 'Query #'+IntToStr(PageIndex-tabQuery.PageIndex);
+    // Leave space for close button on closable query tabs
     Text := Text + '      ';
+  end;
   PageControlMain.Pages[PageIndex].Caption := Text;
   FixQueryTabCloseButtons;
 end;
