@@ -593,6 +593,7 @@ begin
   Mainform.DBtree.OnFocusChanged := nil;
   Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
   Mainform.DBtree.OnFocusChanged := FocusChangeEvent;
+  Mainform.ResetSelectedTableStuff;
   Mainform.SelectDBObject(FAlterTableName, lntTable);
 end;
 
