@@ -6974,7 +6974,7 @@ begin
             ViewData(Sender);
           // When a table is clicked in the tree, and the query
           // tab is active, update the list of columns
-          if PagecontrolMain.ActivePage = tabQuery then begin
+          if QueryTabActive then begin
             // Don't know why this next line is necessary, couldn't find
             // documented in the code how the refresh mechanism for it is
             // supposed to work.  It is necessary, though.
