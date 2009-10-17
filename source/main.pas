@@ -1980,7 +1980,6 @@ begin
     TableToolsDialog.SelectedTables := GetVTCaptions(ListTables, True, 0, [lntTable, lntCrashedTable, lntView])
   else
     TableToolsDialog.SelectedTables.Clear;
-  logsql(TableToolsDialog.SelectedTables.CommaText);
   if Sender = actMaintenance then
     TableToolsDialog.PageControlTools.ActivePage := TableToolsDialog.tabMaintenance
   else
