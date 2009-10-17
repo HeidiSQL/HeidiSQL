@@ -473,7 +473,7 @@ type
     procedure actAboutBoxExecute(Sender: TObject);
     procedure actApplyFilterExecute(Sender: TObject);
     procedure actClearEditorExecute(Sender: TObject);
-    procedure actMaintenanceExecute(Sender: TObject);
+    procedure actTableToolsExecute(Sender: TObject);
     procedure actCopyAsHTMLExecute(Sender: TObject);
     procedure actCopyAsCSVExecute(Sender: TObject);
     procedure actPrintListExecute(Sender: TObject);
@@ -735,7 +735,6 @@ type
     procedure comboOnlyDBsKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure actFilterPanelExecute(Sender: TObject);
     procedure TimerFilterVTTimer(Sender: TObject);
-    procedure actFindTextOnServerExecute(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -1964,21 +1963,28 @@ begin
   m.SelEnd := 0;
 end;
 
-procedure TMainForm.actMaintenanceExecute(Sender: TObject);
+procedure TMainForm.actTableToolsExecute(Sender: TObject);
+var
+  Act: TAction;
+  InDBTree: Boolean;
 begin
-  // optimize / repair... tables
+  // Show table tools dialog
   if TableToolsDialog = nil then
     TableToolsDialog := TfrmTableTools.Create(Self);
-  TableToolsDialog.PageControlTools.ActivePage := TableToolsDialog.tabMaintenance;
-  TableToolsDialog.ShowModal;
-end;
-
-procedure TMainForm.actFindTextOnServerExecute(Sender: TObject);
-begin
-  // Find text on server
-  if TableToolsDialog = nil then
-    TableToolsDialog := TfrmTableTools.Create(Self);
-  TableToolsDialog.PageControlTools.ActivePage := TableToolsDialog.tabFind;
+  Act := Sender as TAction;
+  InDBTree := (Act.ActionComponent is TMenuItem)
+    and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
+  if InDBTree and (SelectedTable.NodeType in [lntTable, lntCrashedTable, lntView]) then
+    TableToolsDialog.SelectedTables.Text := SelectedTable.Text
+  else if not InDBTree then
+    TableToolsDialog.SelectedTables := GetVTCaptions(ListTables, True, 0, [lntTable, lntCrashedTable, lntView])
+  else
+    TableToolsDialog.SelectedTables.Clear;
+  logsql(TableToolsDialog.SelectedTables.CommaText);
+  if Sender = actMaintenance then
+    TableToolsDialog.PageControlTools.ActivePage := TableToolsDialog.tabMaintenance
+  else
+    TableToolsDialog.PageControlTools.ActivePage := TableToolsDialog.tabFind;
   TableToolsDialog.ShowModal;
 end;
 
@@ -2464,11 +2470,11 @@ begin
     end;
   end else begin
     // Invoked from database tab
-    Tables := GetVTCaptions(ListTables, True, 0, lntTable);
-    Tables.AddStrings(GetVTCaptions(ListTables, True, 0, lntCrashedTable));
-    Views := GetVTCaptions(ListTables, True, 0, lntView);
-    Procedures := GetVTCaptions(ListTables, True, 0, lntProcedure);
-    Functions := GetVTCaptions(ListTables, True, 0, lntFunction);
+    Tables := GetVTCaptions(ListTables, True, 0, [lntTable]);
+    Tables.AddStrings(GetVTCaptions(ListTables, True, 0, [lntCrashedTable]));
+    Views := GetVTCaptions(ListTables, True, 0, [lntView]);
+    Procedures := GetVTCaptions(ListTables, True, 0, [lntProcedure]);
+    Functions := GetVTCaptions(ListTables, True, 0, [lntFunction]);
   end;
 
   // Fix actions temporarily enabled for popup menu.
