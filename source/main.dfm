@@ -1728,7 +1728,7 @@ object MainForm: TMainForm
       Caption = 'Maintenance'
       Hint = 'Optimize, repair and analyse tables'
       ImageIndex = 39
-      OnExecute = actMaintenanceExecute
+      OnExecute = actTableToolsExecute
     end
     object actFindTextOnServer: TAction
       Category = 'Tools'
@@ -1736,7 +1736,7 @@ object MainForm: TMainForm
       Hint = 'Searches selected tables for text occurences'
       ImageIndex = 30
       ShortCut = 24646
-      OnExecute = actFindTextOnServerExecute
+      OnExecute = actTableToolsExecute
     end
     object actCopyAsHTML: TAction
       Tag = 49
