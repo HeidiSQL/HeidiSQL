@@ -16,6 +16,7 @@ uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
 type
 
   TListNodeType = (lntNone, lntDb, lntTable, lntCrashedTable, lntView, lntFunction, lntProcedure, lntColumn);
+  TListNodeTypes = Set of TListNodeType;
   TListNode = record
     Text: WideString;
     NodeType: TListNodeType;
@@ -162,7 +163,7 @@ type
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber( Seconds: Cardinal ): String;
   function TColorToHex( Color : TColor ): string;
-  function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: TListNodeType = lntNone ): TWideStringList;
+  function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeTypes: TListNodeTypes = [lntNone] ): TWideStringList;
   procedure SetVTSelection( VT: TVirtualStringTree; Selected: TWideStringList );
   function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
   function GetTempDir: String;
@@ -2238,7 +2239,7 @@ end;
   Return a TStringList with captions from all selected nodes in a VirtualTree
   Especially helpful when toMultiSelect is True
 }
-function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeType: TListNodeType = lntNone ): TWideStringList;
+function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeTypes: TListNodeTypes = [lntNone] ): TWideStringList;
 var
   Node: PVirtualNode;
   NodeData: PVTreeData;
@@ -2247,11 +2248,11 @@ begin
   if OnlySelected then Node := VT.GetFirstSelected
   else Node := VT.GetFirst;
   while Assigned(Node) do begin
-    if OnlyNodeType = lntNone then // Add all nodes, regardless of their types
+    if OnlyNodeTypes = [lntNone] then // Add all nodes, regardless of their types
       Result.Add( VT.Text[Node, Column] )
     else begin
       NodeData := VT.GetNodeData(Node);
-      if (NodeData.NodeType = OnlyNodeType) then // Node in loop is of specified type
+      if (NodeData.NodeType in OnlyNodeTypes) then // Node in loop is of specified type
         Result.Add(NodeData.Captions[Column]);
     end;
     if OnlySelected then Node := VT.GetNextSelected(Node)
