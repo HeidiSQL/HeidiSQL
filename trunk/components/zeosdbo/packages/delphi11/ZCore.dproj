@@ -18,10 +18,10 @@
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
     <DCC_BplOutput>..\..\build</DCC_BplOutput>
     <DCC_DcpOutput>..\..\build</DCC_DcpOutput>
-    <DCC_UnitSearchPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include</DCC_UnitSearchPath>
-    <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include</DCC_ResourcePath>
-    <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include</DCC_ObjPath>
-    <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include</DCC_IncludePath>
+    <DCC_UnitSearchPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source</DCC_ResourcePath>
+    <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source</DCC_ObjPath>
+    <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source</DCC_IncludePath>
     <DCC_Define>RELEASE</DCC_Define>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -33,10 +33,10 @@
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
     <DCC_BplOutput>..\..\build</DCC_BplOutput>
     <DCC_DcpOutput>..\..\build</DCC_DcpOutput>
-    <DCC_UnitSearchPath>$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include</DCC_UnitSearchPath>
-    <DCC_ResourcePath>$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include</DCC_ResourcePath>
-    <DCC_ObjPath>$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include</DCC_ObjPath>
-    <DCC_IncludePath>$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include</DCC_IncludePath>
+    <DCC_UnitSearchPath>$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source</DCC_ResourcePath>
+    <DCC_ObjPath>$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source</DCC_ObjPath>
+    <DCC_IncludePath>$(BDS)\Lib\Debug\Indy10;$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source</DCC_IncludePath>
     <DCC_RangeChecking>True</DCC_RangeChecking>
     <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
   </PropertyGroup>

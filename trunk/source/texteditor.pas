@@ -4,13 +4,14 @@ interface
 
 uses
   Windows, Classes, Graphics, Forms, Controls, helpers, StdCtrls, TntStdCtrls, VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils, Menus, WideStrUtils;
+  ComCtrls, ToolWin, Dialogs, SysUtils, Menus, WideStrUtils, RichEdit,
+  TntComCtrls;
 
 {$I const.inc}
 
 type
   TfrmTextEditor = class(TForm)
-    memoText: TTntMemo;
+    memoText: TTntRichEdit;
     tlbStandard: TToolBar;
     btnWrap: TToolButton;
     btnLoadText: TToolButton;
@@ -151,6 +152,7 @@ procedure TfrmTextEditor.SetMaxLength(len: integer);
 begin
   // Input: Length in number of bytes.
   memoText.MaxLength := len;
+  SendMessage(memoText.Handle, EM_EXLIMITTEXT, 0, $1000000);
 end;
 
 procedure TfrmTextEditor.SetFont(font: TFont);
