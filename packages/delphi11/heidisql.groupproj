@@ -144,13 +144,13 @@
     <MSBuild Projects="..\..\components\pngcomponents\packages\delphi11\PngComponentsD.dproj" Targets="Make" />
   </Target>
   <Target Name="heidisql">
-    <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="" />
+    <MSBuild Projects="heidisql.dproj" Targets="" />
   </Target>
   <Target Name="heidisql:Clean">
-    <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="Clean" />
+    <MSBuild Projects="heidisql.dproj" Targets="Clean" />
   </Target>
   <Target Name="heidisql:Make">
-    <MSBuild Projects="..\..\packages\delphi11\heidisql.dproj" Targets="Make" />
+    <MSBuild Projects="heidisql.dproj" Targets="Make" />
   </Target>
   <Target Name="Build">
     <CallTarget Targets="SynEditR;SynEditD;ZCore;ZPlain;ZParseSql;ZDbc;ZComponent;ZComponentDesign;TntUnicodeVcl;TntUnicodeVcl_Design;VirtualTreesR;VirtualTreesD;PNG;PngComponents;PngComponentsD;heidisql" />
