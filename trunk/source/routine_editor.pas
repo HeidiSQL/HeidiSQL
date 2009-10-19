@@ -117,8 +117,8 @@ end;
 procedure TfrmRoutineEditor.Init(AlterRoutineName: WideString=''; AlterRoutineType: String='');
 var
   ds: TDataSet;
-  Create: WideString;
-  Params: TWideStringlist;
+  Create, Params: WideString;
+  ParenthesesCount: Integer;
   Context: String;
   rx: TRegExpr;
   i: Integer;
@@ -156,21 +156,30 @@ begin
     Create := Mainform.GetVar('SHOW CREATE '+FAlterRoutineType+' '+Mainform.mask(editName.Text), 2);
     rx := TRegExpr.Create;
     rx.ModifierI := True;
-    rx.ModifierG := False;
+    rx.ModifierG := True;
     // CREATE DEFINER=`root`@`localhost` PROCEDURE `bla2`(IN p1 INT, p2 VARCHAR(20))
-    rx.Expression := '^CREATE\s.+\s(PROCEDURE|FUNCTION)\s.+`\((.*)\)\s';
-    if rx.Exec(Create) then begin
-      Params := explode(',', rx.Match[2]);
-      rx.Expression := '^((IN|OUT|INOUT)\s+)?(\S+)\s+(\S+)$';
-      for i := 0 to Params.Count - 1 do begin
-        if rx.Exec(Trim(Params[i])) then begin
-          Context := UpperCase(rx.Match[2]);
-          if Context = '' then
-            Context := 'IN';
-          Parameters.Add(WideDequotedStr(rx.Match[3], '`') + DELIM + rx.Match[4] + DELIM + Context);
-        end;
+    // CREATE DEFINER=`root`@`localhost` FUNCTION `test3`(`?b` varchar(20)) RETURNS tinyint(4)
+    // CREATE DEFINER=`root`@`localhost` PROCEDURE `test3`(IN `Param1` int(1) unsigned)
+    ParenthesesCount := 0;
+    for i:=1 to Length(Create) do begin
+      if Create[i] = ')' then begin
+        Dec(ParenthesesCount);
+        if ParenthesesCount = 0 then
+          break;
       end;
-      FreeAndNil(Params);
+      if ParenthesesCount >= 1 then
+        Params := Params + Create[i];
+      if Create[i] = '(' then
+        Inc(ParenthesesCount);
+    end;
+    rx.Expression := '(^|,)\s*((IN|OUT|INOUT)\s+)?(\S+)\s+([^,]+)';
+    if rx.Exec(Params) then while true do begin
+      Context := UpperCase(rx.Match[3]);
+      if Context = '' then
+        Context := 'IN';
+      Parameters.Add(WideDequotedStr(rx.Match[4], '`') + DELIM + rx.Match[5] + DELIM + Context);
+      if not rx.ExecNext then
+        break;
     end;
     FreeAndNil(ds);
   end else
