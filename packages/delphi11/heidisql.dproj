@@ -19,10 +19,10 @@
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
     <DCC_BplOutput>..\..\build</DCC_BplOutput>
     <DCC_DcpOutput>..\..\build</DCC_DcpOutput>
-    <DCC_UnitSearchPath>..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\tntunictrls\build</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\tntunictrls\build</DCC_ResourcePath>
-    <DCC_ObjPath>..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\tntunictrls\build</DCC_ObjPath>
-    <DCC_IncludePath>..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\tntunictrls\build</DCC_IncludePath>
+    <DCC_UnitSearchPath>..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\tntunictrls\build</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\tntunictrls\build</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\tntunictrls\build</DCC_ObjPath>
+    <DCC_IncludePath>..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\tntunictrls\build</DCC_IncludePath>
     <DCC_Define>RELEASE</DCC_Define>
     <DCC_Description>HeidiSQL</DCC_Description>
     <DCC_AssertionsAtRuntime>False</DCC_AssertionsAtRuntime>
@@ -38,10 +38,10 @@
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
     <DCC_BplOutput>..\..\build</DCC_BplOutput>
     <DCC_DcpOutput>..\..\build</DCC_DcpOutput>
-    <DCC_UnitSearchPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_UnitSearchPath>
-    <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_ResourcePath>
-    <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_ObjPath>
-    <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\build;..\..\components\heidisql\build;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_IncludePath>
+    <DCC_UnitSearchPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_ResourcePath>
+    <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_ObjPath>
+    <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\zeosdbo\build;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_IncludePath>
     <DCC_Define>DEBUG</DCC_Define>
     <DCC_Description>HeidiSQL</DCC_Description>
     <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
@@ -54,7 +54,7 @@
       <BorlandProject>
         <Delphi.Personality>
           <Parameters>
-            <Parameters Name="DebugSourceDirs">..\..;..\..\components\compilerdetection\include;..\..\components\heidisql\include;..\..\components\edbimage\source;..\..\components\heidisql\source;..\..\components\synedit\source;..\..\components\zeosdbo\src;..\..\components\zeosdbo\src\plain;..\..\components\zeosdbo\src\component;..\..\components\zeosdbo\src\core;..\..\components\zeosdbo\src\dbc;..\..\components\zeosdbo\src\parsesql</Parameters>
+            <Parameters Name="DebugSourceDirs">..\..;..\..\components\synedit\source;..\..\components\zeosdbo\src;..\..\components\zeosdbo\src\plain;..\..\components\zeosdbo\src\component;..\..\components\zeosdbo\src\core;..\..\components\zeosdbo\src\dbc;..\..\components\zeosdbo\src\parsesql</Parameters>
             <Parameters Name="UseLauncher">False</Parameters>
             <Parameters Name="LoadAllSymbols">True</Parameters>
             <Parameters Name="LoadUnspecifiedSymbols">False</Parameters>

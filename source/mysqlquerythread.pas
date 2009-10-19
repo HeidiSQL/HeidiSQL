@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, Forms, Db, Classes, ZConnection, ZDataSet, StdCtrls, SysUtils,
   ZMessages,
-  HeidiComp, SynRegExpr, mysql_structures;
+  helpers, SynRegExpr, mysql_structures;
 
 {$IFDEF EXAMPLE_APP}
 const
@@ -83,7 +83,7 @@ type
 implementation
 
 uses
-  MysqlQuery, Dialogs, helpers, communication
+  MysqlQuery, Dialogs, communication
 {$IFNDEF EXAMPLE_APP}
 , Main
 {$ENDIF}

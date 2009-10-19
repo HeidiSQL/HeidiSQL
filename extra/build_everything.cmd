@@ -101,9 +101,9 @@ set compiler=dcc32.exe
 set params=--no-config
 set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BDE;DbiErrs=BDE
 set params=%params% -B
-set params=%params% -i"%base_dir%\components\compilerdetection\include;%base_dir%\components\heidisql\include"
-set params=%params% -r"%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources;%base_dir%\components\edbimage\resources"
-set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\zeosdbo\build;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\heidisql\build;%base_dir%\components\edbimage\build;%base_dir%\components\tntunictrls\build;%base_dir%\components\pngcomponents\build"
+set params=%params% -i"%base_dir%\source"
+set params=%params% -r"%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources"
+set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\zeosdbo\build;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\tntunictrls\build;%base_dir%\components\pngcomponents\build"
 set params=%params% -N0"..\..\build" 
 set params=%params% -LE"..\..\build"
 set params=%params% -LN"..\..\build"
@@ -193,11 +193,6 @@ if not %err% == 0 goto end
 call :compile zeosdbo ZComponent
 if not %err% == 0 goto end
 call :compile zeosdbo ZComponentDesign
-if not %err% == 0 goto end
-
-
-rem Build HeidiComponents
-call :compile heidisql HeidiComponents
 if not %err% == 0 goto end
 
 

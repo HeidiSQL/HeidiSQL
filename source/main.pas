@@ -16,7 +16,7 @@ uses
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
   ActnList, ImgList, ShellApi, ToolWin, Clipbrd, db,
   SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
-  HeidiComp, sqlhelp, MysqlQueryThread, VirtualTrees,
+  sqlhelp, MysqlQueryThread, VirtualTrees,
   DateUtils, PngImageList, TableTools, View, Usermanager,
   SelectDBObject, Widestrings, ShlObj, SynEditMiscClasses, SynEditSearch,
   SynCompletionProposal, ZSqlMonitor, SynEditHighlighter, SynHighlighterSQL,

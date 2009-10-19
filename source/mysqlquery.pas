@@ -2,8 +2,7 @@ unit MysqlQuery;
 
 interface
 
-uses Windows, Messages, Classes, Db, ZConnection, ZDataSet, MysqlQueryThread,
-  HeidiComp;
+uses Windows, Messages, Classes, Db, ZConnection, ZDataSet, MysqlQueryThread, helpers;
 
 const
   // Thread notification events
@@ -69,8 +68,7 @@ implementation
 
 uses
   SysUtils,
-  Dialogs,
-  helpers;
+  Dialogs;
 
 
 {***

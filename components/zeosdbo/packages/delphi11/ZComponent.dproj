@@ -15,10 +15,10 @@
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
     <DCC_BplOutput>..\..\build</DCC_BplOutput>
     <DCC_DcpOutput>..\..\build</DCC_DcpOutput>
-    <DCC_UnitSearchPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_UnitSearchPath>
-    <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_ResourcePath>
-    <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_ObjPath>
-    <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_IncludePath>
+    <DCC_UnitSearchPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source;..\..\build</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source;..\..\build</DCC_ResourcePath>
+    <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source;..\..\build</DCC_ObjPath>
+    <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source;..\..\build</DCC_IncludePath>
     <DCC_Define>RELEASE</DCC_Define>
     <DCC_RangeChecking>True</DCC_RangeChecking>
     <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
@@ -32,10 +32,10 @@
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
     <DCC_BplOutput>..\..\build</DCC_BplOutput>
     <DCC_DcpOutput>..\..\build</DCC_DcpOutput>
-    <DCC_UnitSearchPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_UnitSearchPath>
-    <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_ResourcePath>
-    <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_ObjPath>
-    <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\compilerdetection\include;..\..\build</DCC_IncludePath>
+    <DCC_UnitSearchPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source;..\..\build</DCC_UnitSearchPath>
+    <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source;..\..\build</DCC_ResourcePath>
+    <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source;..\..\build</DCC_ObjPath>
+    <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;.\..\..\..\..\source;..\..\build</DCC_IncludePath>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>

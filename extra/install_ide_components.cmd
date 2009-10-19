@@ -111,11 +111,6 @@ call :install zeosdbo ZComponentDesign
 if not %err% == 0 goto end
 
 
-rem Install HeidiComponents
-call :install heidisql HeidiComponents
-if not %err% == 0 goto end
-
-
 rem Install TNTUnicodeControls
 call :install tntunictrls TntUnicodeVcl_Design
 if not %err% == 0 goto end

@@ -32,8 +32,7 @@ type
 
 implementation
 
-uses main, helpers,insertfiles,
-  HeidiComp;
+uses main, helpers,insertfiles;
 
 {$I const.inc}
 {$R *.DFM}

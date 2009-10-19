@@ -21,10 +21,10 @@
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
     <DCC_BplOutput>..\..\build</DCC_BplOutput>
     <DCC_DcpOutput>..\..\build</DCC_DcpOutput>
-    <DCC_UnitSearchPath>..\..\source;..\..\..\compilerdetection\include;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\..\source;..\..\..\compilerdetection\include;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_ResourcePath>
-    <DCC_ObjPath>..\..\source;..\..\..\compilerdetection\include;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_ObjPath>
-    <DCC_IncludePath>..\..\source;..\..\..\compilerdetection\include;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_IncludePath>
+    <DCC_UnitSearchPath>..\..\source;..\..\..\..\source;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\source;..\..\..\..\source;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\source;..\..\..\..\source;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_ObjPath>
+    <DCC_IncludePath>..\..\source;..\..\..\..\source;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <Version>7.0</Version>
@@ -37,10 +37,10 @@
     <DCC_HppOutput>..\..\build</DCC_HppOutput>
     <DCC_BplOutput>..\..\build</DCC_BplOutput>
     <DCC_DcpOutput>..\..\build</DCC_DcpOutput>
-    <DCC_UnitSearchPath>..\..\source;..\..\..\compilerdetection\include;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\..\source;..\..\..\compilerdetection\include;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_ResourcePath>
-    <DCC_ObjPath>..\..\source;..\..\..\compilerdetection\include;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_ObjPath>
-    <DCC_IncludePath>..\..\source;..\..\..\compilerdetection\include;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_IncludePath>
+    <DCC_UnitSearchPath>..\..\source;..\..\..\..\source;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_UnitSearchPath>
+    <DCC_ResourcePath>..\..\source;..\..\..\..\source;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_ResourcePath>
+    <DCC_ObjPath>..\..\source;..\..\..\..\source;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_ObjPath>
+    <DCC_IncludePath>..\..\source;..\..\..\..\source;..\..\resources;..\..\build;..\..\..\tntunictrls\build</DCC_IncludePath>
     <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
     <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
   </PropertyGroup>
