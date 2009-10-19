@@ -7468,9 +7468,7 @@ begin
     TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
 
   // Do not apply any color on a selected, highlighted cell to keep readability
-  if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
-    cl := clHighlightText
-  else if vsSelected in Node.States then
+  if vsSelected in Node.States then
     cl := clBlack
   else if r.Rows[Node.Index].Cells[Column].IsNull then
     cl := DatatypeCategories[Integer(r.Columns[Column].DatatypeCat)].NullColor
@@ -8255,12 +8253,12 @@ begin
   EnsureChunkLoaded(Sender, Node);
   if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
     if not Sender.IsEditing then begin
-	  // Editors may not cover the whole cell rectangle, so any colored area looks broken then
-      TargetCanvas.Brush.Color := clHighlight;
+      // Editors may not cover the whole cell rectangle, so any colored area looks broken then
+      TargetCanvas.Brush.Color := $00FFCCCC;
       TargetCanvas.FillRect(CellRect);
     end;
   end else if vsSelected in Node.States then begin
-    TargetCanvas.Brush.Color := $0040FFFF;
+    TargetCanvas.Brush.Color := $00EEEEEE;
     TargetCanvas.FillRect(CellRect);
   end else if prefEnableNullBG and gr.Rows[Node.Index].Cells[Column].IsNull then begin
     TargetCanvas.Brush.Color := prefNullBG;
