@@ -23,11 +23,12 @@ type
     LabelVersion: TLabel;
     LabelCompiled: TLabel;
     LabelWebpage: TLabel;
-    LabelAuthors: TLabel;
+    PageControlTexts: TPageControl;
+    tabAuthors: TTabSheet;
     ButtonBoard: TButton;
     ImageHeidisql: TImage;
     MemoThanks: TMemo;
-    LabelThanks: TLabel;
+    tabThanks: TTabSheet;
     MemoAuthors: TMemo;
     ImageDonate: TImage;
     btnUpdateCheck: TButton;
