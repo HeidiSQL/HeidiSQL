@@ -24,7 +24,19 @@ unit VirtualTrees;
 // (C) 1999-2001 digital publishing AG. All Rights Reserved.
 //----------------------------------------------------------------------------------------------------------------------
 //
+//  October 2009
+//   - Bug fix: enabling checkbox support for a column is now possible without assigning a dummy imagelist  
+//   - Bug fix: checkboxes in the header are now correctly aligned
+//   - Improvement: changed TBaseVirtualTree.PaintCheckImage to be usable by TVirtualTreeColumns.PaintHeader to be
+//                  able to paint themed header checkboxes
+//   - Bug fix: TBaseVirtualTree.GetCheckImage now correctly handles cases when Node is nil and ImgCheckType is either
+//              ctTriStateCheckBox or ctNone
+//   - Bug fix: TBaseVirtualTree.HasImage now implicitly initializes the given node if needed to avoid requesting the
+//              imageindex for nodes that are not initialized
+//   - Bug fix: fixed possible AV when setting toExplorerTheme with no columns defined
+//   - Improvement: new events TBaseVirtualTree.OnSaveTree and TBaseVirtualTree.OnLoadTree
 //  September 2009
+//   - Bug fix: TBaseVirtualTree.OnColumnClick will no longer be triggered twice
 //   - Improvement: new TVirtualNodeInitState ivsReInit to indicate that a node is about to be re-initialized
 //   - Bug fix: TCustomVirtualStringTree.DoTextMeasuring now makes use of the parameter Width of the
 //              OnMeasureTextWidth event
@@ -1737,6 +1749,7 @@ type
     tsValidationNeeded,       // Something in the structure of the tree has changed. The cache needs validation.
     tsVCLDragging,            // VCL drag'n drop in progress.
     tsVCLDragPending,         // One-shot flag to avoid clearing the current selection on implicit mouse up for VCL drag.
+    tsVCLDragFinished,        // Flag to avoid triggering the OnColumnClick event twice
     tsWheelPanning,           // Wheel mouse panning is active or soon will be.
     tsWheelScrolling,         // Wheel mouse scrolling is active or soon will be.
     tsWindowCreating,         // Set during window handle creation to avoid frequent unnecessary updates.
@@ -2025,6 +2038,7 @@ type
     var HelpContext: Integer) of object;
   TVTCreateEditorEvent = procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
     out EditLink: IVTEditLink) of object;
+  TVTSaveTreeEvent = procedure(Sender: TBaseVirtualTree; Stream: TStream) of object;
   TVTSaveNodeEvent = procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Stream: TStream) of object;
 
   // header/column events
@@ -2348,6 +2362,10 @@ type
                                                  // (see OnLoadNode) to give the application the opportunity to save
                                                  // their node specific, persistent data (note: never save memory
                                                  // references)
+    FOnLoadTree,                                 // called after the tree has been loaded from a stream to allow an
+                                                 // application to load their own data saved in OnSaveTree
+    FOnSaveTree: TVTSaveTreeEvent;               // called after the tree has been saved to a stream to allow an
+                                                 // application to save its own data
 
     // header/column mouse events
     FOnAfterAutoFitColumn: TVTAfterAutoFitColumnEvent;
@@ -2786,7 +2804,7 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure OriginalWMNCPaint(DC: HDC); virtual;
     procedure Paint; override;
-    procedure PaintCheckImage(const PaintInfo: TVTPaintInfo); virtual;
+    procedure PaintCheckImage(Canvas: TCanvas; const ImageInfo: TVTImageInfo; Selected: Boolean); virtual;
     procedure PaintImage(var PaintInfo: TVTPaintInfo; ImageInfoIndex: TVTImageInfoIndex; DoOverlay: Boolean); virtual;
     procedure PaintNodeButton(Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; const R: TRect; ButtonX,
       ButtonY: Integer; BidiMode: TBiDiMode); virtual;
@@ -2976,6 +2994,7 @@ type
     property OnInitNode: TVTInitNodeEvent read FOnInitNode write FOnInitNode;
     property OnKeyAction: TVTKeyActionEvent read FOnKeyAction write FOnKeyAction;
     property OnLoadNode: TVTSaveNodeEvent read FOnLoadNode write FOnLoadNode;
+    property OnLoadTree: TVTSaveTreeEvent read FOnLoadTree write FOnLoadTree;
     property OnMeasureItem: TVTMeasureItemEvent read FOnMeasureItem write FOnMeasureItem;
     property OnNodeCopied: TVTNodeCopiedEvent read FOnNodeCopied write FOnNodeCopied;
     property OnNodeCopying: TVTNodeCopyingEvent read FOnNodeCopying write FOnNodeCopying;
@@ -2989,6 +3008,7 @@ type
     property OnRenderOLEData: TVTRenderOLEDataEvent read FOnRenderOLEData write FOnRenderOLEData;
     property OnResetNode: TVTChangeEvent read FOnResetNode write FOnResetNode;
     property OnSaveNode: TVTSaveNodeEvent read FOnSaveNode write FOnSaveNode;
+    property OnSaveTree: TVTSaveTreeEvent read FOnSaveTree write FOnSaveTree;
     property OnScroll: TVTScrollEvent read FOnScroll write FOnScroll;
     property OnShowScrollbar: TVTScrollbarShowEvent read FOnShowScrollbar write FOnShowScrollbar;
     property OnStateChange: TVTStateChangeEvent read FOnStateChange write FOnStateChange;
@@ -3618,6 +3638,7 @@ type
     property OnKeyPress;
     property OnKeyUp;
     property OnLoadNode;
+    property OnLoadTree;
     property OnMeasureItem;
     property OnMeasureTextWidth;
     property OnMouseDown;
@@ -3637,6 +3658,7 @@ type
     property OnResetNode;
     property OnResize;
     property OnSaveNode;
+    property OnSaveTree;
     property OnScroll;
     property OnShortenString;
     property OnShowScrollbar;
@@ -3865,6 +3887,7 @@ type
     property OnKeyPress;
     property OnKeyUp;
     property OnLoadNode;
+    property OnLoadTree;
     property OnMeasureItem;
     property OnMouseDown;
     property OnMouseMove;
@@ -3882,6 +3905,7 @@ type
     property OnResetNode;
     property OnResize;
     property OnSaveNode;
+    property OnSaveTree;
     property OnScroll;
     property OnShowScrollbar;
     property OnStartDock;
@@ -8798,7 +8822,8 @@ begin
       if not FCheckBox then
         HeaderGlyphSize := Point(FImages.Width, FImages.Height)
       else
-        HeaderGlyphSize := Point(Treeview.CheckImages.Width, Treeview.CheckImages.Height)
+        with TBaseVirtualTree.GetCheckImageListFor(FHeader.Treeview.CheckImageKind) do
+          HeaderGlyphSize := Point(Width, Height)
     else
       HeaderGlyphSize := Point(0, 0);
     if UseSortGlyph then
@@ -9065,6 +9090,8 @@ begin
       HeaderGlyphPos.X := MinLeft;
     if Layout = blGlyphLeft then
       MinLeft := HeaderGlyphPos.X + HeaderGlyphSize.X + FSpacing;
+    if FCheckBox and (Owner.Header.MainColumn = Self.Index) then
+      Dec(HeaderGlyphPos.X, 2 + 2 * Integer(toShowRoot in Owner.FHeader.Treeview.TreeOptions.FPaintOptions));
     // Finally transform header glyph to its actual position.
     with HeaderGlyphPos do
     begin
@@ -10731,10 +10758,10 @@ var
   SavedDC: Integer;
   Temp: TRect;
   ColCaptionText: UnicodeString;
-  ColImages: TCustomImageList;
-  ColImageIndex: Integer;
+  ColImageInfo: TVTImageInfo;
 
 begin
+  ColImageInfo.Ghosted := False;
   Run := FHeader.Treeview.FHeaderRect;
   FHeaderBitmap.Width := Max(Run.Right, R.Right - R.Left);
   FHeaderBitmap.Height := Run.Bottom;
@@ -10878,7 +10905,8 @@ begin
             else
               DropMark := dmmNone;
             IsEnabled := (coEnabled in FOptions) and (FHeader.Treeview.Enabled);
-            ShowHeaderGlyph := (hoShowImages in FHeader.FOptions) and Assigned(Images) and (FImageIndex > -1);
+            ShowHeaderGlyph := (hoShowImages in FHeader.FOptions) and
+              ((Assigned(Images) and (FImageIndex > -1)) or FCheckBox);
             ShowSortGlyph := (Integer(FPositionToIndex[I]) = FHeader.FSortColumn) and (hoShowSortGlyphs in FHeader.FOptions);
             WrapCaption := coWrapCaption in FOptions;
 
@@ -10971,27 +10999,28 @@ begin
               begin
                 if not FCheckBox then
                 begin
-                  ColImages := Images;
-                  ColImageIndex := FImageIndex;
+                  ColImageInfo.Images := Images;
+                  Images.Draw(FHeaderBitmap.Canvas, GlyphPos.X, GlyphPos.Y, FImageIndex, IsEnabled);
                 end
                 else
                 begin
                   with Header.Treeview do
                   begin
-                    ColImages := GetCheckImageListFor(CheckImageKind);
-                    ColImageIndex := GetCheckImage(nil, FCheckType, FCheckState, IsEnabled);
+                    ColImageInfo.Images := GetCheckImageListFor(CheckImageKind);
+                    ColImageInfo.Index := GetCheckImage(nil, FCheckType, FCheckState, IsEnabled);
+                    ColImageInfo.XPos := GlyphPos.X;
+                    ColImageInfo.YPos := GlyphPos.Y;
+                    PaintCheckImage(FHeaderBitmap.Canvas, ColImageInfo, False);
                   end;
                 end;
-
-                ColImages.Draw( FHeaderBitmap.Canvas, GlyphPos.X, GlyphPos.Y, ColImageIndex, IsEnabled );
 
                 FHasImage := True;
                 with FImageRect do
                 begin
                   Left := GlyphPos.X;
                   Top := GlyphPos.Y;
-                  Right := Left + ColImages.Width;
-                  Bottom := Top + ColImages.Height;
+                  Right := Left + ColImageInfo.Images.Width;
+                  Bottom := Top + ColImageInfo.Images.Height;
                 end;
               end;
 
@@ -15498,7 +15527,7 @@ var
 
       if IsWinVistaOrAbove and (tsUseThemes in FStates) and (toUseExplorerTheme in FOptions.FPaintOptions) then
       begin
-        if not (coParentColor in FHeader.FColumns[FHeader.FMainColumn].FOptions) then
+        if (FHeader.FMainColumn >= 0) and not (coParentColor in FHeader.FColumns[FHeader.FMainColumn].FOptions) then
           Brush.Color := FHeader.FColumns[FHeader.FMainColumn].Color
         else
           Brush.Color := Self.Color;
@@ -17052,7 +17081,7 @@ begin
             if DragMessage = dmDragEnter then
               DoStateChange([tsVCLDragging]);
             if DragMessage = dmDragLeave then
-              DoStateChange([], [tsVCLDragging]);
+              DoStateChange([tsVCLDragFinished], [tsVCLDragging]);
 
             if DragMessage = dmDragMove then
               with ScreenToClient(Pos) do
@@ -22110,7 +22139,10 @@ var
   P: TPoint;
 
 begin
-  DoStateChange([], [tsVCLDragPending, tsVCLDragging, tsUserDragObject]);
+  if [tsVCLDragPending, tsVCLDragging, tsVCLDragFinished] * FStates = [] then
+    Exit;
+
+  DoStateChange([], [tsVCLDragPending, tsVCLDragging, tsUserDragObject, tsVCLDragFinished]);
 
   GetCursorPos(P);
   P := ScreenToClient(P);
@@ -22577,22 +22609,26 @@ const
   );
 
 var
-  AType: TCheckType;
+  IsHot: Boolean;
 
 begin
-  if not Assigned(Node) then
-    Result := CheckStateToCheckImage[ImgCheckType, ImgCheckState, ImgEnabled, False]
+  if Assigned(Node) then
+  begin
+    ImgCheckType := Node.CheckType;
+    ImgCheckState := Node.CheckState;
+    ImgEnabled := not (vsDisabled in Node.States) and Enabled;
+    IsHot := Node = FCurrentHotNode;
+  end
   else
-    if Node.CheckType = ctNone then
-      Result := -1
-    else
-    begin
-      AType := Node.CheckType;
-      if AType = ctTriStateCheckBox then
-        AType := ctCheckBox;
-      Result := CheckStateToCheckImage[AType, Node.CheckState, not (vsDisabled in Node.States) and Enabled,
-        Node = FCurrentHotNode];
-    end;
+    IsHot := False;
+
+  if ImgCheckType = ctTriStateCheckBox then
+    ImgCheckType := ctCheckBox;
+
+  if ImgCheckType = ctNone then
+    Result := -1
+  else
+    Result := CheckStateToCheckImage[ImgCheckType, ImgCheckState, ImgEnabled, IsHot];
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -22614,7 +22650,9 @@ begin
     ckXP:
       Result := XPImages;
     ckSystemDefault:
-      Result := SystemCheckImages;    ckSystemFlat:      Result := SystemFlatCheckImages;
+      Result := SystemCheckImages;
+    ckSystemFlat:
+      Result := SystemFlatCheckImages;
     else
       Result := nil;
   end;
@@ -23549,12 +23587,16 @@ function TBaseVirtualTree.HasImage(Node: PVirtualNode; Kind: TVTImageKind; Colum
 
 // Determines whether the given node has got an image of the given kind in the given column.
 // Returns True if so, otherwise False.
+// The given node will be implicitly initialized if needed.
 
 var
   Ghosted: Boolean;
   Index: Integer;
 
 begin
+  if not (vsInitialized in Node.States) then
+    InitNode(Node);
+
   Index := -1;
   Ghosted := False;
   DoGetImageIndex(Node, Kind, Column, Ghosted, Index);
@@ -24555,7 +24597,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure TBaseVirtualTree.PaintCheckImage(const PaintInfo: TVTPaintInfo);
+procedure TBaseVirtualTree.PaintCheckImage(Canvas: TCanvas; const ImageInfo: TVTImageInfo; Selected: Boolean);
 
 var
   ForegroundColor: COLORREF;
@@ -24563,7 +24605,7 @@ var
   Details: TThemedElementDetails;
 
 begin
-  with PaintInfo, ImageInfo[iiCheck] do
+  with ImageInfo do
   begin
     if (tsUseThemes in FStates) and (FCheckImageKind = ckSystemDefault) then
     begin
@@ -24596,7 +24638,7 @@ begin
     else
       with FCheckImages do
       begin
-        if (vsSelected in Node.States) and not Ghosted then
+        if Selected and not Ghosted then
         begin
           if Focused or (toPopupMode in FOptions.FPaintOptions) then
             ForegroundColor := ColorToRGB(FColors.FocusedSelectionColor)
@@ -25081,7 +25123,7 @@ begin
           else
             FocusRect := InnerRect;
 
-        if Theme <> 0 then
+        if tsUseExplorerTheme in FStates then
           InflateRect(FocusRect, -1, -1);
 
         Windows.DrawFocusRect(Handle, FocusRect);
@@ -30301,6 +30343,8 @@ begin
             InternalAddFromStream(Stream, Version, Node);
           end;
           DoNodeCopied(nil);
+          if Assigned(FOnLoadTree) then
+            FOnLoadTree(Self, Stream);
         finally
           EndUpdate;
         end;
@@ -30862,7 +30906,7 @@ begin
                               PaintNodeButton(Canvas, Node, Column, CellRect, ButtonX, ButtonY, BidiMode);
 
                             if ImageInfo[iiCheck].Index > -1 then
-                              PaintCheckImage(PaintInfo);
+                              PaintCheckImage(Canvas, PaintInfo.ImageInfo[iiCheck], vsSelected in PaintInfo.Node.States);
                           end;
 
                           if ImageInfo[iiState].Index > -1 then
@@ -31690,6 +31734,8 @@ begin
     Stream.WriteBuffer(Count, SizeOf(Count));
     WriteNode(Stream, Node);
   end;
+  if Assigned(FOnSaveTree) then
+    FOnSaveTree(Self, Stream);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
