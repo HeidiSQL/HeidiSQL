@@ -1462,15 +1462,12 @@ object AboutBox: TAboutBox
     Left = 1
     Top = 0
     Width = 394
-    Height = 374
+    Height = 127
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelInner = bvRaised
     BevelOuter = bvLowered
     TabOrder = 2
     OnMouseMove = MouseOver
-    DesignSize = (
-      394
-      374)
     object ProductName: TLabel
       Left = 10
       Top = 10
@@ -1521,64 +1518,13 @@ object AboutBox: TAboutBox
       OnClick = OpenURL
       OnMouseMove = MouseOver
     end
-    object LabelAuthors: TLabel
-      Left = 10
-      Top = 101
-      Width = 42
-      Height = 13
-      Caption = 'Authors:'
-    end
-    object LabelThanks: TLabel
-      Left = 10
-      Top = 245
-      Width = 66
-      Height = 13
-      Caption = 'Thanks go to:'
-    end
-    object MemoThanks: TMemo
-      Left = 10
-      Top = 264
-      Width = 376
-      Height = 99
-      Anchors = [akLeft, akTop, akRight, akBottom]
-      Lines.Strings = (
-        'ZeosLib under GPL - http://sourceforge.net/projects/zeoslib/'
-        'Mike Lischke for VirtualTreeView (GNU Lesser Public License)'
-        'SynEdit under LGPL - http://synedit.sourceforge.net'
-        'TNT Unicode Controls - '
-        'http://www.mh-nexus.de/tntunicodecontrols.htm'
-        'Mark James for his Silk icon set'
-        'Inno Setup - http://www.jrsoftware.org/'
-        'MySQL for great database software')
-      ReadOnly = True
-      ScrollBars = ssVertical
-      TabOrder = 0
-    end
-    object MemoAuthors: TMemo
-      Left = 10
-      Top = 120
-      Width = 376
-      Height = 119
-      Anchors = [akLeft, akTop, akRight]
-      Lines.Strings = (
-        '- Ansgar Becker (project lead and development)'
-        '- David Dindorp (development)'
-        '- Francisco Ernesto Teixeira (development)'
-        '- Martijn Nijenhof (development)'
-        '- Sven Lorenz (graphics)'
-        '- Mikkel M. Gerhardt-Pedersen (additional bugfixes)'
-        '- Tony Peng (additional bugfixes)'
-        '- Nemanja Corlija (commandline parser)')
-      ReadOnly = True
-      TabOrder = 1
-    end
     object btnUpdateCheck: TButton
       Left = 264
       Top = 36
       Width = 122
       Height = 22
       Action = MainForm.actUpdateCheck
-      TabOrder = 2
+      TabOrder = 0
     end
   end
   object ButtonBoard: TButton
@@ -1591,5 +1537,56 @@ object AboutBox: TAboutBox
     Caption = 'User to user forum'
     TabOrder = 3
     OnClick = OpenURL
+  end
+  object PageControlTexts: TPageControl
+    Left = 1
+    Top = 133
+    Width = 394
+    Height = 241
+    ActivePage = tabThanks
+    TabOrder = 4
+    object tabAuthors: TTabSheet
+      Caption = 'Authors'
+      object MemoAuthors: TMemo
+        Left = 0
+        Top = 0
+        Width = 386
+        Height = 213
+        Align = alClient
+        Lines.Strings = (
+          '- Ansgar Becker (project lead and development)'
+          '- David Dindorp (development)'
+          '- Francisco Ernesto Teixeira (development)'
+          '- Martijn Nijenhof (development)'
+          '- Sven Lorenz (graphics)'
+          '- Mikkel M. Gerhardt-Pedersen (additional bugfixes)'
+          '- Tony Peng (additional bugfixes)'
+          '- Nemanja Corlija (commandline parser)')
+        ReadOnly = True
+        TabOrder = 0
+      end
+    end
+    object tabThanks: TTabSheet
+      Caption = 'Thank goes to'
+      ImageIndex = 1
+      object MemoThanks: TMemo
+        Left = 0
+        Top = 0
+        Width = 386
+        Height = 213
+        Align = alClient
+        Lines.Strings = (
+          'ZeosLib under GPL - http://sourceforge.net/projects/zeoslib/'
+          'Mike Lischke for VirtualTreeView (GNU Lesser Public License)'
+          'SynEdit under LGPL - http://synedit.sourceforge.net'
+          'TNT Unicode Controls - '
+          'http://www.mh-nexus.de/tntunicodecontrols.htm'
+          'Mark James for his Silk icon set'
+          'Inno Setup - http://www.jrsoftware.org/'
+          'MySQL for great database software')
+        ReadOnly = True
+        TabOrder = 0
+      end
+    end
   end
 end
