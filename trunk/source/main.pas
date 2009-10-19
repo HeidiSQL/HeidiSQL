@@ -5745,6 +5745,8 @@ begin
     // Unhide inline filter panel
     ToggleFilterPanel;
     FilterPanelManuallyOpened := pnlFilter.Visible;
+    if FilterPanelManuallyOpened then
+      SynMemoFilter.SetFocus;
   end;
 end;
 
