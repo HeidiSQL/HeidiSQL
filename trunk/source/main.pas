@@ -3191,6 +3191,11 @@ var
   OldNumbers, Filters: TStringList;
   val: String;
 begin
+  // If filter box is empty but filter generator box not, most users expect
+  // the filter to be auto generated on button click
+  if (SynMemoFilter.GetTextLen = 0) and (editFilterSearch.Text <> '') then
+    editFilterSearchChange(editFilterSearch);
+
   if SynMemoFilter.GetTextLen > 0 then begin
     // Recreate recent filters list
     Filters := TStringList.Create;
