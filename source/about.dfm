@@ -1543,7 +1543,7 @@ object AboutBox: TAboutBox
     Top = 133
     Width = 394
     Height = 241
-    ActivePage = tabThanks
+    ActivePage = tabAuthors
     TabOrder = 4
     object tabAuthors: TTabSheet
       Caption = 'Authors'
