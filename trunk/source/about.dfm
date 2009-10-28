@@ -1576,7 +1576,6 @@ object AboutBox: TAboutBox
         Height = 213
         Align = alClient
         Lines.Strings = (
-          'ZeosLib under GPL - http://sourceforge.net/projects/zeoslib/'
           'Mike Lischke for VirtualTreeView (GNU Lesser Public License)'
           'SynEdit under LGPL - http://synedit.sourceforge.net'
           'TNT Unicode Controls - '
