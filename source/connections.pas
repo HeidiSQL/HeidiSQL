@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, Buttons, ExtCtrls, ComCtrls, WideStrings,
-  TntStdCtrls, VirtualTrees, Menus;
+  TntStdCtrls, VirtualTrees, Menus, mysql_api;
 
 type
   Tconnform = class(TForm)
@@ -101,7 +101,7 @@ type
 
 
 implementation
- uses Main, helpers, MysqlQueryThread, grideditlinks;
+ uses Main, helpers, grideditlinks;
 
 {$I const.inc}
 
@@ -181,6 +181,7 @@ procedure Tconnform.btnOpenClick(Sender: TObject);
 var
   ConType: Byte;
   CanProceed: Boolean;
+  Host, Socket: String;
 begin
   // Connect to selected session
   FinalizeModifications(CanProceed);
@@ -195,9 +196,17 @@ begin
   if radioTypeTCPIP.Checked then ConType := NETTYPE_TCPIP
   else ConType := NETTYPE_NAMEDPIPE;
 
+  Host := editHost.Text;
+  if ConType = NETTYPE_TCPIP then begin
+    Socket := '';
+    Host := editHost.Text;
+  end else begin
+    Socket := editHost.Text;
+    Host := '.';
+  end;
   if Mainform.InitConnection(
-    ConType,
-    editHost.Text,
+    Host,
+    Socket,
     editPort.Text,
     editUsername.Text,
     editPassword.Text,
