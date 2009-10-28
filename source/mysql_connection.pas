@@ -5,7 +5,7 @@ unit mysql_connection;
 interface
 
 uses
-  Classes, SysUtils, windows, mysql_api, mysql_structures, WideStrings, WideStrUtils;
+  Classes, SysUtils, windows, mysql_api, mysql_structures, WideStrings, WideStrUtils, cUnicodeCodecs;
 
 type
 
@@ -673,7 +673,7 @@ end;
 function TMySQLQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): WideString;
 begin
   if (Column > -1) and (Column < ColumnCount) then
-    Result := Utf8Decode(FCurrentRow[Column])
+    Result := UTF8StringToWideString(FCurrentRow[Column])
   else if not IgnoreErrors then
     Raise Exception.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
 end;

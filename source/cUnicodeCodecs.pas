@@ -2051,7 +2051,7 @@ begin
   if Size > 0 then
     begin
       P := Pointer(Result);
-      Q := @Buf;
+      //Q := @Buf;
       For I := 0 to Size - 1 do
         begin
           P^ := Q^;
@@ -2166,7 +2166,7 @@ var I : AnsiChar;
 begin
   if Ch = #$FFFF then
     raise EConvertError.CreateFmt(SCannotConvert, [Ord(Ch), Encoding]);
-  P := @Map;
+  //P := @Map;
   for I := #$00 to #$FF do
     if P^ <> Ch then
       Inc(P)
@@ -2193,7 +2193,7 @@ begin
     end;
   if Ch = #$FFFF then
     raise EConvertError.CreateFmt(SCannotConvert, [Ord(Ch), Encoding]);
-  P := @Map;
+  //P := @Map;
   for I := #$80 to #$FF do
     if P^ <> Ch then
       Inc(P)
@@ -2220,7 +2220,7 @@ begin
     end;
   if Ch = #$FFFF then
     raise EConvertError.CreateFmt(SCannotConvert, [Ord(Ch), Encoding]);
-  P := @Map;
+  //P := @Map;
   for I := #$A0 to #$FF do
     if P^ <> Ch then
       Inc(P)
