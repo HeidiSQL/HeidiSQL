@@ -196,5 +196,7 @@
     <DCCReference Include="..\..\source\view.pas">
       <Form>frmView</Form>
     </DCCReference>
+    <None Include="..\..\source\compilers.inc" />
+    <None Include="..\..\source\const.inc" />
   </ItemGroup>
 </Project>
