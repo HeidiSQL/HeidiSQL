@@ -5,8 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, TntStdCtrls, ComCtrls, ToolWin, VirtualTrees, WideStrings,
-  SynRegExpr, ActiveX, DB, ExtCtrls, ImgList, SynEdit, SynMemo, Menus, WideStrUtils,
-  Contnrs, grideditlinks, mysql_structures, helpers;
+  SynRegExpr, ActiveX, ExtCtrls, ImgList, SynEdit, SynMemo, Menus, WideStrUtils,
+  Contnrs, grideditlinks, mysql_structures, mysql_connection, helpers;
 
 type
   TfrmTableEditor = class(TFrame)
@@ -286,7 +286,7 @@ end;
 
 procedure TfrmTableEditor.Init(AlterTableName: WideString='');
 var
-  ds: TDataset;
+  Results: TMySQLQuery;
   Props: TWideStringlist;
   Col: TColumn;
   IndexType: String;
@@ -323,7 +323,7 @@ begin
     editMaxRows.Text := '';
     chkChecksum.Checked := False;
     comboRowFormat.ItemIndex := 0;
-    comboCollation.ItemIndex := comboCollation.Items.IndexOf(Mainform.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
+    comboCollation.ItemIndex := comboCollation.Items.IndexOf(Mainform.Connection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
     memoUnionTables.Clear;
     comboInsertMethod.ItemIndex := -1;
 
@@ -333,21 +333,21 @@ begin
     // Editing existing table
     editName.Text := FAlterTableName;
     Mainform.SetEditorTabCaption(Self, FAlterTableName);
-    ds := Mainform.GetResults('SHOW TABLE STATUS LIKE '+esc(FAlterTableName));
-    memoComment.Text := ds.FieldByName(DBO_COMMENT).AsWideString;
-    if ds.FindField(DBO_ENGINE) <> nil then
-      engine := ds.FieldByName(DBO_ENGINE).AsString
+    Results := Mainform.Connection.GetResults('SHOW TABLE STATUS LIKE '+esc(FAlterTableName));
+    memoComment.Text := Results.Col(DBO_COMMENT);
+    if Results.ColExists(DBO_ENGINE) then
+      engine := Results.Col(DBO_ENGINE)
     else
-      engine := ds.FieldByName(DBO_TYPE).AsString;
+      engine := Results.Col(DBO_TYPE);
     comboEngine.ItemIndex := comboEngine.Items.IndexOf(engine);
-    if ds.FindField(DBO_COLLATION) <> nil then
-      comboCollation.ItemIndex := comboCollation.Items.IndexOf(ds.FieldByName(DBO_COLLATION).AsWideString);
-    editAutoInc.Text := ds.FieldByName(DBO_AUTOINC).AsString;
-    editAvgRowLen.Text := ds.FieldByName(DBO_AVGROWLEN).AsString;
-    chkChecksum.Checked := Pos('checksum=1', LowerCase(ds.FieldByName(DBO_CROPTIONS).AsString)) > 0;
-    comboRowFormat.ItemIndex := comboRowFormat.Items.IndexOf(ds.FieldByName(DBO_ROWFORMAT).AsString);
-    FreeAndNil(ds);
-    CreateTable := Mainform.GetVar('SHOW CREATE TABLE '+Mainform.mask(FAlterTableName), 1);
+    if Results.ColExists(DBO_COLLATION) then
+      comboCollation.ItemIndex := comboCollation.Items.IndexOf(Results.Col(DBO_COLLATION));
+    editAutoInc.Text := Results.Col(DBO_AUTOINC);
+    editAvgRowLen.Text := Results.Col(DBO_AVGROWLEN);
+    chkChecksum.Checked := Pos('checksum=1', LowerCase(Results.Col(DBO_CROPTIONS))) > 0;
+    comboRowFormat.ItemIndex := comboRowFormat.Items.IndexOf(Results.Col(DBO_ROWFORMAT));
+    FreeAndNil(Results);
+    CreateTable := Mainform.Connection.GetVar('SHOW CREATE TABLE '+Mainform.mask(FAlterTableName), 1);
     rx := TRegExpr.Create;
     rx.ModifierI := True;
     rx.Expression := '\bUNION=\((.+)\)';
@@ -496,30 +496,30 @@ begin
     end;
     FreeAndNil(rx);
 
-    ds := Mainform.GetResults('SHOW KEYS FROM '+Mainform.mask(FAlterTableName));
+    Results := Mainform.Connection.GetResults('SHOW KEYS FROM '+Mainform.mask(FAlterTableName));
     LastKeyName := '';
     Props := nil;
-    while not ds.Eof do begin
-      if LastKeyName <> ds.FieldByName('Key_name').AsWideString then begin
+    while not Results.Eof do begin
+      if LastKeyName <> Results.Col('Key_name') then begin
         Props := TWideStringlist.Create;
         Props.OnChange := IndexesChange;
-        IndexType := ds.FieldByName('Key_name').AsString;
-        if (ds.FindField('Index_type') <> nil) and (
-          (ds.FieldByName('Index_type').AsString = FKEY) or (ds.FieldByName('Index_type').AsString = SKEY)) then
-          IndexType := ds.FieldByName('Index_type').AsString
-        else if (IndexType <> PKEY) and (ds.FieldByName('Non_unique').AsInteger = 0) then
+        IndexType := Results.Col('Key_name');
+        if Results.ColExists('Index_type') and (
+          (Results.Col('Index_type') = FKEY) or (Results.Col('Index_type') = SKEY)) then
+          IndexType := Results.Col('Index_type')
+        else if (IndexType <> PKEY) and (Results.Col('Non_unique') = '0') then
           IndexType := UKEY
-        else if ds.FieldByName('Non_unique').AsInteger = 1 then
+        else if Results.Col('Non_unique') = '1' then
           IndexType := KEY;
-        Indexes.AddObject(ds.FieldByName('Key_name').AsWideString+REGDELIM+IndexType, Props);
+        Indexes.AddObject(Results.Col('Key_name')+REGDELIM+IndexType, Props);
       end;
-      Props.Add(ds.FieldByName('Column_name').AsWideString);
-      if ds.FieldByName('Sub_part').AsString <> '' then
-        Props[Props.Count-1] := Props[Props.Count-1] + '('+ds.FieldByName('Sub_part').AsString+')';
-      LastKeyName := ds.FieldByName('Key_name').AsWideString;
-      ds.Next;
+      Props.Add(Results.Col('Column_name'));
+      if Results.Col('Sub_part') <> '' then
+        Props[Props.Count-1] := Props[Props.Count-1] + '('+Results.Col('Sub_part')+')';
+      LastKeyName := Results.Col('Key_name');
+      Results.Next;
     end;
-    FreeAndNil(ds);
+    FreeAndNil(Results);
 
   end;
   listColumns.RootNodeCount := FColumns.Count;
@@ -571,9 +571,9 @@ begin
         Specs.Add('DROP FOREIGN KEY '+Mainform.mask(Key.KeyName));
     end;
     if Specs.Count > 0 then
-      Mainform.ExecUpdateQuery('ALTER TABLE '+Mainform.mask(FAlterTableName)+' '+ImplodeStr(', ', Specs));
+      Mainform.Connection.Query('ALTER TABLE '+Mainform.mask(FAlterTableName)+' '+ImplodeStr(', ', Specs));
   end;
-  Mainform.ExecUpdateQuery(sql);
+  Mainform.Connection.Query(sql);
   // Set table name for altering if Apply was clicked
   FAlterTableName := editName.Text;
   tabALTERcode.TabVisible := FAlterTableName <> '';
@@ -645,7 +645,7 @@ var
   ColSpec, OldColName, IndexSQL: WideString;
   i: Integer;
   DropIt: Boolean;
-  ds: TDataset;
+  Results: TMySQLQuery;
   Key: TForeignKey;
   Col, PreviousCol: PColumn;
   ColObj: TColumn;
@@ -678,13 +678,13 @@ begin
   if comboInsertMethod.Enabled and (comboInsertMethod.Tag = ModifiedFlag) and (comboInsertMethod.Text <> '') then
     Specs.Add('INSERT_METHOD='+comboInsertMethod.Text);
   if chkCharsetConvert.Checked then begin
-    ds := Mainform.GetCollations;
-    while not ds.Eof do begin
-      if ds.FieldByName('Collation').AsWideString = comboCollation.Text then begin
-        Specs.Add('CONVERT TO CHARSET '+ds.FieldByName('Charset').AsWideString);
+    Results := Mainform.GetCollations;
+    while not Results.Eof do begin
+      if Results.Col('Collation') = comboCollation.Text then begin
+        Specs.Add('CONVERT TO CHARSET '+Results.Col('Charset'));
         break;
       end;
-      ds.Next;
+      Results.Next;
     end;
   end;
 
@@ -719,7 +719,7 @@ begin
           ColSpec := ColSpec + Col.Collation;
       end;
       // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
-      if Mainform.mysql_version >= 40001 then begin
+      if Mainform.Connection.ServerVersionInt >= 40001 then begin
         if PreviousCol = nil then
           ColSpec := ColSpec + ' FIRST'
         else
@@ -2110,7 +2110,7 @@ begin
       MessageDlg('Please select a reference table before selecting foreign columns.', mtError, [mbOk], 0)
     else begin
       try
-        Mainform.GetVar('SELECT 1 FROM '+Mainform.MaskMulti(Key.ReferenceTable));
+        Mainform.Connection.GetVar('SELECT 1 FROM '+Mainform.MaskMulti(Key.ReferenceTable));
         Allowed := True;
       except
         // Leave Allowed = False
@@ -2129,7 +2129,7 @@ var
   VT: TVirtualStringTree;
   EnumEditor: TEnumEditorLink;
   SetEditor: TSetEditorLink;
-  ds: TDataset;
+  Results: TMySQLQuery;
   Key: TForeignKey;
   ColNode: PVirtualNode;
   Col: PColumn;
@@ -2151,17 +2151,17 @@ begin
     2: begin
         EnumEditor := TEnumEditorLink.Create(VT);
         EnumEditor.AllowCustomText := True;
-        ds := Mainform.FetchActiveDbTableList;
-        while not ds.Eof do begin
-          EnumEditor.ValueList.Add(ds.FieldByName(DBO_NAME).AsWideString);
-          ds.Next;
+        Results := Mainform.FetchActiveDbTableList;
+        while not Results.Eof do begin
+          EnumEditor.ValueList.Add(Results.Col(DBO_NAME));
+          Results.Next;
         end;
         EditLink := EnumEditor;
       end;
     3: begin
         Key := ForeignKeys[Node.Index] as TForeignKey;
         SetEditor := TSetEditorLink.Create(VT);
-        SetEditor.ValueList := Mainform.GetCol('SHOW COLUMNS FROM '+Mainform.MaskMulti(Key.ReferenceTable));
+        SetEditor.ValueList := Mainform.Connection.GetCol('SHOW COLUMNS FROM '+Mainform.MaskMulti(Key.ReferenceTable));
         EditLink := SetEditor;
       end;
     4, 5: begin

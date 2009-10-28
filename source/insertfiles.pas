@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ImgList, Buttons, ShellApi, Math, insertfiles_progress;
+  StdCtrls, ComCtrls, ImgList, Buttons, ShellApi, Math, insertfiles_progress,
+  mysql_connection;
 
 type TCol = record
   Name   : String;   // for displaying in lists
@@ -105,15 +106,15 @@ end;
 { Read tables from selected DB }
 procedure TfrmInsertFiles.ComboBoxDBsChange(Sender: TObject);
 var
-  ds: TDataset;
+  Results: TMySQLQuery;
 begin
   // read tables from db
   ComboBoxTables.Items.Clear;
-  ds := Mainform.FetchDbTableList(ComboBoxDBs.Text);
-  while not ds.Eof do begin
-    if GetDBObjectType(ds.Fields) in [lntTable, lntView] then
-      ComboBoxTables.Items.Add(ds.FieldByName(DBO_NAME).AsString);
-    ds.Next;
+  Results := Mainform.FetchDbTableList(ComboBoxDBs.Text);
+  while not Results.Eof do begin
+    if GetDBObjectType(Results) in [lntTable, lntView] then
+      ComboBoxTables.Items.Add(Results.Col(DBO_NAME));
+    Results.Next;
   end;
   if ComboBoxTables.Items.Count > 0 then
     ComboBoxTables.ItemIndex := 0;
@@ -123,22 +124,20 @@ end;
 { Show Columns from selected table }
 procedure TfrmInsertFiles.ComboBoxTablesChange(Sender: TObject);
 var
-  i : Integer;
-  ds : TDataSet;
+  Results: TMySQLQuery;
 begin
   setlength(cols, 0);
   if ComboBoxTables.ItemIndex > -1 then begin
-    ds := Mainform.GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text));
-    for i:=1 to ds.RecordCount do begin
+    Results := Mainform.Connection.GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text));
+    while not Results.Eof do begin
       setlength(cols, length(cols)+1);
-      cols[length(cols)-1].Name := ds.Fields[0].AsString;
-      cols[length(cols)-1].isBLOB := (pos('blob', lowercase(ds.Fields[1].AsString)) > 0) or (pos('text', lowercase(ds.Fields[1].AsString)) > 0);
+      cols[length(cols)-1].Name := Results.Col(0);
+      cols[length(cols)-1].isBLOB := (pos('blob', lowercase(Results.Col(1))) > 0) or (pos('text', lowercase(Results.Col(1))) > 0);
       cols[length(cols)-1].Value := 'NULL';
       cols[length(cols)-1].Quote := false;
-      ds.Next;
+      Results.Next;
     end;
-    ds.Close;
-    FreeAndNil(ds);
+    FreeAndNil(Results);
     DisplayColumns(self);
   end;
 end;

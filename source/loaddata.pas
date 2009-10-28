@@ -11,7 +11,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ExtCtrls, comctrls, Buttons, CheckLst, PngSpeedButton,
-  WideStrings, TntCheckLst, TntStdCtrls, db, SynRegExpr;
+  WideStrings, TntCheckLst, TntStdCtrls, mysql_connection, SynRegExpr;
 
 type
   Tloaddataform = class(TForm)
@@ -68,7 +68,7 @@ type
     procedure btnColDownClick(Sender: TObject);
   private
     { Private declarations }
-    dsCharsets: TDataset;
+    dsCharsets: TMySQLQuery;
   public
     { Public declarations }
   end;
@@ -138,7 +138,7 @@ end;
 procedure Tloaddataform.comboDatabaseChange(Sender: TObject);
 var
   count, i, selCharsetIndex, v: Integer;
-  ds: TDataset;
+  ds: TMySQLQuery;
   seldb, seltable, dbcreate: WideString;
   rx: TRegExpr;
   DefCharset: String;
@@ -149,8 +149,8 @@ begin
   seltable := Mainform.SelectedTable.Text;
   ds := Mainform.FetchDbTableList(comboDatabase.Text);
   while not ds.Eof do begin
-    if GetDBObjectType(ds.Fields) in [lntTable, lntView] then
-      comboTable.Items.Add(ds.FieldByName(DBO_NAME).AsWideString);
+    if GetDBObjectType(ds) in [lntTable, lntView] then
+      comboTable.Items.Add(ds.Col(DBO_NAME));
     count := comboTable.Items.Count-1;
     if (comboDatabase.Text = seldb) and (comboTable.Items[count] = seltable) then
       comboTable.ItemIndex := count;
@@ -164,14 +164,14 @@ begin
   selCharsetIndex := comboCharset.ItemIndex;
   comboCharset.Enabled := False;
   comboCharset.Clear;
-  v := Mainform.mysql_version;
+  v := Mainform.Connection.ServerVersionInt;
   if ((v >= 50038) and (v < 50100)) or (v >= 50117) then begin
     if dsCharsets = nil then
-      dsCharsets := Mainform.GetResults('SHOW CHARSET');
+      dsCharsets := Mainform.Connection.GetResults('SHOW CHARSET');
     comboCharset.Enabled := True;
     // Detect db charset
     DefCharset := 'Let server/database decide';
-    dbcreate := Mainform.GetVar('SHOW CREATE DATABASE '+Mainform.mask(comboDatabase.Text), 1);
+    dbcreate := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+Mainform.mask(comboDatabase.Text), 1);
     rx := TRegExpr.Create;
     rx.ModifierG := True;
     rx.Expression := 'CHARACTER SET (\w+)';
@@ -179,9 +179,10 @@ begin
       DefCharset := DefCharset + ' ('+rx.Match[1]+')';
     comboCharset.Items.Add(DefCharset);
     dsCharsets.First;
-    for i:=1 to dsCharsets.RecordCount do begin
-      comboCharset.Items.Add(dsCharsets.Fields[1].AsWideString + ' ('+dsCharsets.Fields[0].AsWideString+')');
-      if dsCharsets.Fields[0].AsWideString = 'utf8' then begin
+    while not dsCharsets.Eof do begin
+      comboCharset.Items.Add(dsCharsets.Col(1) + ' ('+dsCharsets.Col(0)+')');
+      if dsCharsets.Col(0) = 'utf8' then begin
+        i := comboCharset.Items.Count-1;
         comboCharset.Items[i] := comboCharset.Items[i] + ' - '+APPNAME+' output';
         if selCharsetIndex = -1 then
           selCharsetIndex := i;
@@ -197,22 +198,11 @@ end;
 
 
 procedure Tloaddataform.comboTableChange(Sender: TObject);
-var
-  i : Integer;
-  ds : TDataSet;
 begin
   // fill columns:
   chklistColumns.Items.Clear;
-  if (comboDatabase.Text <> '') and (comboTable.Text <> '') then begin
-    ds := Mainform.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(comboDatabase.Text) + '.' +  mainform.mask(comboTable.Text));
-    for i:=1 to ds.RecordCount do
-    begin
-      chklistColumns.Items.Add(ds.Fields[0].AsWideString);
-      ds.Next;
-    end;
-    ds.Close;
-    FreeAndNil(ds);
-  end;
+  if (comboDatabase.Text <> '') and (comboTable.Text <> '') then
+    chklistColumns.Items.Text := Mainform.Connection.GetCol('SHOW FIELDS FROM ' + mainform.mask(comboDatabase.Text) + '.' +  mainform.mask(comboTable.Text)).Text;
 
   // select all:
   ToggleCheckListBox( chklistColumns, True );
@@ -267,7 +257,7 @@ begin
 
   if comboCharset.ItemIndex > 0 then begin
     dsCharsets.RecNo := comboCharset.ItemIndex;
-    query := query + 'CHARACTER SET '+dsCharsets.Fields[0].AsString+' ';
+    query := query + 'CHARACTER SET '+dsCharsets.Col(0)+' ';
   end;
 
   // Fields:
@@ -300,7 +290,7 @@ begin
 //  if col.Count < ColumnsCheckListBox.Items.Count then
   query := query + '(' + implodestr(',', col) + ')';
 
-  Mainform.ExecUpdateQuery(query);
+  Mainform.Connection.Query(query);
   close;
 end;
 

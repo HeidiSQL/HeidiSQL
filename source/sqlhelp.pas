@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, ShellApi, Buttons,
   PngSpeedButton, SynMemo, SynEditHighlighter, SynHighlighterURI,
-  SynURIOpener, SynEdit;
+  SynURIOpener, SynEdit, mysql_connection;
 
 type
   TfrmSQLhelp = class(TForm)
@@ -57,7 +57,7 @@ type
 
 implementation
 
-uses ZDataset, helpers, main, db;
+uses helpers, main, db;
 
 {$I const.inc}
 
@@ -107,46 +107,36 @@ end;
 }
 procedure TfrmSQLhelp.fillTreeLevel( ParentNode: TTreeNode );
 var
-  tnode   : TTreeNode;
-  i       : integer;
-  ds      : TDataSet;
-  topic   : String;
+  tnode: TTreeNode;
+  Results: TMySQLQuery;
+  topic: String;
 begin
-  if ParentNode = nil then
-  begin
+  if ParentNode = nil then begin
     treeTopics.Items.Clear;
     topic := 'CONTENTS';
-  end
-  else
-  begin
+  end else begin
     ParentNode.DeleteChildren;
     topic := ParentNode.Text;
   end;
-  ds := nil;
   try
     Screen.Cursor := crHourglass;
-    ds := Mainform.GetResults( 'HELP "'+topic+'"' );
-    for i:=1 to ds.RecordCount do
-    begin
-      tnode := treeTopics.Items.AddChild( ParentNode, ds.FieldByName('name').AsString );
-      if (ds.FindField('is_it_category') <> nil) and (ds.FieldByName('is_it_category').AsString = 'Y') then
-      begin
+    Results := Mainform.Connection.GetResults( 'HELP "'+topic+'"' );
+    while not Results.Eof do begin
+      tnode := treeTopics.Items.AddChild( ParentNode, Results.Col('name'));
+      if Results.ColExists('is_it_category') and (Results.Col('is_it_category') = 'Y') then begin
         tnode.ImageIndex := ICONINDEX_CATEGORY_CLOSED;
         tnode.SelectedIndex := ICONINDEX_CATEGORY_OPENED;
         // Add a dummy item to show the plus-button so the user sees that there this
         // is a category. When the plus-button is clicked, fetch the content of the category
         treeTopics.Items.AddChild( tnode, DUMMY_NODE_TEXT );
-      end
-      else
-      begin
+      end else begin
         tnode.ImageIndex := ICONINDEX_HELPITEM;
         tnode.SelectedIndex := tnode.ImageIndex;
       end;
-      ds.Next;
+      Results.Next;
     end;
   finally
-    if ds <> nil then ds.Close;
-    FreeAndNil( ds );
+    FreeAndNil(Results);
     Screen.Cursor := crDefault;
   end;
 end;
@@ -245,7 +235,7 @@ end;
 }
 function TfrmSQLhelp.ShowHelpItem: Boolean;
 var
-  ds : TDataSet;
+  Results: TMySQLQuery;
 begin
   lblKeyword.Caption := Copy(Keyword, 0, 100);
   MemoDescription.Lines.Clear;
@@ -253,26 +243,23 @@ begin
   Caption := DEFAULT_WINDOW_CAPTION;
   result := false; // Keyword not found yet
 
-  ds := nil;
   if Keyword <> '' then
   try
     Screen.Cursor := crHourglass;
-    ds := Mainform.GetResults( 'HELP "'+lblKeyword.Caption+'"' );
-    if ds.RecordCount = 1 then
-    begin
+    Results := Mainform.Connection.GetResults('HELP "'+lblKeyword.Caption+'"');
+    if Results.RecordCount = 1 then begin
       // We found exactly one matching help item
-      lblKeyword.Caption := ds.FieldByName('name').AsString;
+      lblKeyword.Caption := Results.Col('name');
       Keyword := lblKeyword.Caption;
       if lblKeyword.Caption = '&' then
         lblKeyword.Caption := '&&'; // Avoid displaying "_" as alt-hotkey
       Caption := Caption + ' - ' + Keyword;
-      MemoDescription.Text := fixNewlines(ds.FieldByName('description').AsString);
-      MemoExample.Text := fixNewlines(ds.FieldByName('example').AsString);
+      MemoDescription.Text := fixNewlines(Results.Col('description'));
+      MemoExample.Text := fixNewlines(Results.Col('example'));
       result := true;
     end;
   finally
-    if ds <> nil then ds.Close;
-    FreeAndNil( ds );
+    FreeAndNil(Results);
     Screen.Cursor := crDefault;
   end;
 
@@ -317,7 +304,7 @@ end;
 }
 procedure TfrmSQLhelp.ButtonOnlinehelpClick(Sender: TObject);
 begin
-  ShellExec( APPDOMAIN + 'sqlhelp.php?mysqlversion='+inttostr(Mainform.mysql_version)+
+  ShellExec( APPDOMAIN + 'sqlhelp.php?mysqlversion='+inttostr(Mainform.Connection.ServerVersionInt)+
     '&keyword='+urlencode(keyword) );
 end;
 

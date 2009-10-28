@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, SynEdit, SynMemo, StdCtrls, TntStdCtrls, ComCtrls, ToolWin,
-  VirtualTrees, WideStrings, db, SynRegExpr, WideStrUtils;
+  VirtualTrees, WideStrings, mysql_connection, SynRegExpr, WideStrUtils;
 
 type
   TfrmRoutineEditor = class(TFrame)
@@ -116,7 +116,7 @@ end;
 
 procedure TfrmRoutineEditor.Init(AlterRoutineName: WideString=''; AlterRoutineType: String='');
 var
-  ds: TDataSet;
+  Results: TMySQLQuery;
   Create, Params: WideString;
   ParenthesesCount: Integer;
   Context: String;
@@ -138,22 +138,21 @@ begin
   if FAlterRoutineName <> '' then begin
     // Editing existing routine
     Mainform.SetEditorTabCaption(Self, FAlterRoutineName);
-    ds := Mainform.GetResults('SELECT * FROM '+DBNAME_INFORMATION_SCHEMA+'.ROUTINES'+
+    Results := Mainform.Connection.GetResults('SELECT * FROM '+DBNAME_INFORMATION_SCHEMA+'.ROUTINES'+
       ' WHERE ROUTINE_SCHEMA='+esc(Mainform.ActiveDatabase)+
       ' AND ROUTINE_NAME='+esc(FAlterRoutineName)+
       ' AND ROUTINE_TYPE='+esc(FAlterRoutineType)
       );
-    if ds.RecordCount <> 1 then
+    if Results.RecordCount <> 1 then
       Exception.Create('Cannot find properties of stored routine '+FAlterRoutineName);
-    ds.First;
     comboType.ItemIndex := ListIndexByRegExpr(comboType.Items, '^'+FAlterRoutineType+'\b');
-    chkDeterministic.Checked := ds.FieldByName('IS_DETERMINISTIC').AsString = 'YES';
-    comboReturns.Text := ds.FieldByName('DTD_IDENTIFIER').AsWideString;
-    comboDataAccess.ItemIndex := comboDataAccess.Items.IndexOf(ds.FieldByName('SQL_DATA_ACCESS').AsString);
-    comboSecurity.ItemIndex := comboSecurity.Items.IndexOf(ds.FieldByName('SECURITY_TYPE').AsString);
-    editComment.Text := ds.FieldByName('ROUTINE_COMMENT').AsWideString;
-    SynMemoBody.Text := ds.FieldByName('ROUTINE_DEFINITION').AsWideString;
-    Create := Mainform.GetVar('SHOW CREATE '+FAlterRoutineType+' '+Mainform.mask(editName.Text), 2);
+    chkDeterministic.Checked := Results.Col('IS_DETERMINISTIC') = 'YES';
+    comboReturns.Text := Results.Col('DTD_IDENTIFIER');
+    comboDataAccess.ItemIndex := comboDataAccess.Items.IndexOf(Results.Col('SQL_DATA_ACCESS'));
+    comboSecurity.ItemIndex := comboSecurity.Items.IndexOf(Results.Col('SECURITY_TYPE'));
+    editComment.Text := Results.Col('ROUTINE_COMMENT');
+    SynMemoBody.Text := Results.Col('ROUTINE_DEFINITION');
+    Create := Mainform.Connection.GetVar('SHOW CREATE '+FAlterRoutineType+' '+Mainform.mask(editName.Text), 2);
     rx := TRegExpr.Create;
     rx.ModifierI := True;
     rx.ModifierG := True;
@@ -181,7 +180,7 @@ begin
       if not rx.ExecNext then
         break;
     end;
-    FreeAndNil(ds);
+    FreeAndNil(Results);
   end else
     Mainform.SetEditorTabCaption(Self, '');
   editNameChange(Self);
@@ -443,7 +442,7 @@ begin
   if FAlterRoutineName <> '' then begin
     // Create temp name
     i := 0;
-    allRoutineNames := Mainform.GetCol('SELECT ROUTINE_NAME FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.'+Mainform.mask('ROUTINES')+
+    allRoutineNames := Mainform.Connection.GetCol('SELECT ROUTINE_NAME FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.'+Mainform.mask('ROUTINES')+
       ' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase)+
       ' AND ROUTINE_TYPE = '+esc(ProcOrFunc)
       );
@@ -462,18 +461,18 @@ begin
         break;
     end;
     TempSQL := 'CREATE '+ProcOrFunc+' '+Mainform.mask(tempName)+'(' + BaseSQL;
-    Mainform.ExecUpdateQuery(TempSQL, False, True);
+    Mainform.Connection.Query(TempSQL);
     // Drop temporary routine, used for syntax checking
-    Mainform.ExecUpdateQuery('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(TempName));
+    Mainform.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(TempName));
     // Drop edited routine
-    Mainform.ExecUpdateQuery('DROP '+FAlterRoutineType+' IF EXISTS '+Mainform.mask(FAlterRoutineName));
+    Mainform.Connection.Query('DROP '+FAlterRoutineType+' IF EXISTS '+Mainform.mask(FAlterRoutineName));
     if TargetExists then begin
       // Drop target routine - overwriting has been confirmed, see above
-      Mainform.ExecUpdateQuery('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(editName.Text));
+      Mainform.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(editName.Text));
     end;
   end;
   FinalSQL := 'CREATE '+ProcOrFunc+' '+Mainform.mask(editName.Text)+'(' + BaseSQL;
-  Mainform.ExecUpdateQuery(FinalSQL, False, True);
+  Mainform.Connection.Query(FinalSQL);
   // Set editing name if create/alter query was successful
   FAlterRoutineName := editName.Text;
   FAlterRoutineType := ProcOrFunc;

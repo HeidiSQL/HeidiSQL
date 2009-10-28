@@ -155,10 +155,9 @@
     <DCCReference Include="..\..\source\main.pas">
       <Form>MainForm</Form>
     </DCCReference>
+    <DCCReference Include="..\..\source\mysql_api.pas" />
+    <DCCReference Include="..\..\source\mysql_connection.pas" />
     <DCCReference Include="..\..\source\mysql_structures.pas" />
-    <DCCReference Include="..\..\source\mysqlconn.pas" />
-    <DCCReference Include="..\..\source\mysqlquery.pas" />
-    <DCCReference Include="..\..\source\mysqlquerythread.pas" />
     <DCCReference Include="..\..\source\tabletools.pas">
       <Form>frmTableTools</Form>
     </DCCReference>
@@ -167,9 +166,6 @@
     </DCCReference>
     <DCCReference Include="..\..\source\printlist.pas">
       <Form>printlistForm</Form>
-    </DCCReference>
-    <DCCReference Include="..\..\source\queryprogress.pas">
-      <Form>frmQueryProgress</Form>
     </DCCReference>
     <DCCReference Include="..\..\source\routine_editor.pas">
       <Form>frmRoutineEditor</Form>
@@ -183,7 +179,6 @@
     <DCCReference Include="..\..\source\sqlhelp.pas">
       <Form>frmSQLhelp</Form>
     </DCCReference>
-    <DCCReference Include="..\..\source\synchronization.pas" />
     <DCCReference Include="..\..\source\table_editor.pas">
       <Form>frmTableEditor</Form>
     </DCCReference>

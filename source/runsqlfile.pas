@@ -143,7 +143,8 @@ begin
         lblTimeValue.Caption := FormatTimeNumber( (GetTickCount - starttime) DIV 1000 );
 
         // Execute single query and display affected rows
-        rowsaffected := rowsaffected + Mainform.ExecUpdateQuery( SQL[i], True, False );
+        Mainform.Connection.Query(SQL[i]);
+        rowsaffected := rowsaffected + Mainform.Connection.RowsAffected;
         lblAffectedRowsValue.Caption := FormatNumber( rowsaffected );
 
         Repaint;

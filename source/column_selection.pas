@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, CheckLst, ExtCtrls, TntCheckLst, WideStrings, DB;
+  Dialogs, StdCtrls, CheckLst, ExtCtrls, TntCheckLst, WideStrings, mysql_connection;
 
 type
   TColumnSelectionForm = class(TForm)
@@ -52,13 +52,13 @@ end;
 }
 procedure TColumnSelectionForm.FormShow(Sender: TObject);
 var
-  ds: TDataSet;
+  Results: TMySQLQuery;
 begin
-  ds := Mainform.SelectedTableColumns;
-  ds.First;
-  while not ds.Eof do begin
-    chklistColumns.Items.Add(ds.Fields[0].AsWideString);
-    ds.Next;
+  Results := Mainform.SelectedTableColumns;
+  Results.First;
+  while not Results.Eof do begin
+    chklistColumns.Items.Add(Results.Col(0));
+    Results.Next;
   end;
 
   // Check items!
@@ -153,7 +153,7 @@ procedure TColumnSelectionForm.chkSortClick(Sender: TObject);
 var
   checkedfields : TStringList;
   i: Integer;
-  ds: TDataSet;
+  Results: TMySQLQuery;
 begin
   // Memorize checked items in a list
   checkedfields := TStringList.Create;
@@ -170,11 +170,11 @@ begin
     // Add all fieldnames again
     chklistColumns.Items.BeginUpdate;
     chklistColumns.Clear;
-    ds := Mainform.SelectedTableColumns;
-    ds.First;
-    while not ds.Eof do begin
-      chklistColumns.Items.Add(ds.Fields[0].AsWideString);
-      ds.Next;
+    Results := Mainform.SelectedTableColumns;
+    Results.First;
+    while not Results.Eof do begin
+      chklistColumns.Items.Add(Results.Col(0));
+      Results.Next;
     end;
     chklistColumns.Items.EndUpdate;
   end;

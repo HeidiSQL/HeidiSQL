@@ -5,7 +5,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, StdCtrls, CheckLst, ExtCtrls, Buttons, DB,
+  ComCtrls, StdCtrls, CheckLst, ExtCtrls, Buttons, mysql_connection,
   ToolWin, TntCheckLst, WideStrings, WideStrUtils, helpers;
 
 {$I const.inc}
@@ -26,8 +26,8 @@ type
       DBONames: TWideStringList;
       PrivNames: TWideStringList;
       SelectedPrivNames: TWideStringList;
-      constructor Create(Fields: TFields; FieldDefs: TDataset = nil; AvoidFieldDefs: TDataSet = nil; CropFieldDefs: TDataSet = nil; SimulateDbField: Boolean = False);
-      procedure Merge(Fields: TFields);
+      constructor Create(Fields: TMySQLQuery; FieldDefs: TMySQLQuery=nil; AvoidFieldDefs: TMySQLQuery=nil; CropFieldDefs: TMySQLQuery=nil; SimulateDbField: Boolean = False);
+      procedure Merge(Fields: TMySQLQuery);
       property DBOType: TListNodeType read FDBOType;
       property DBOKey: String read GetDBOKey;
       property DBOPrettyKey: String read GetDBOPrettyKey;
@@ -47,11 +47,11 @@ type
       function GetCount: Integer;
     public
       constructor Create(AOwner: TUser);
-      function AddPrivilege(Fields: TFields; FieldDefs: TDataset = nil; AvoidFieldDefs: TDataSet = nil; CropFieldDefs: TDataSet = nil; SimulateDbField: Boolean = False): TPrivilege;
+      function AddPrivilege(Fields: TMySQLQuery; FieldDefs: TMySQLQuery=nil; AvoidFieldDefs: TMySQLQuery=nil; CropFieldDefs: TMySQLQuery=nil; SimulateDbField: Boolean = False): TPrivilege;
       property Items[Index: Integer]: TPrivilege read GetPrivilege; default;
       property Count: Integer read GetCount;
       procedure DeletePrivilege(Index: Integer);
-      function FindPrivilege(Fields: TFields; SimulateDbField: Boolean): TPrivilege;
+      function FindPrivilege(Fields: TMySQLQuery; SimulateDbField: Boolean): TPrivilege;
   end;
 
   TUser = class(TObject)
@@ -85,7 +85,7 @@ type
       procedure SetHost(str: String);
       procedure SetPassword(str: String);
     public
-      constructor Create(Fields: TFields = nil); overload;
+      constructor Create(Fields: TMySQLQuery=nil); overload;
       constructor Create(Name: String; Host: String); overload;
       property Name: String read GetName write SetName;
       property Host: String read GetHost write SetHost;
@@ -202,7 +202,7 @@ type
     { Public declarations }
   end;
 
-procedure GetPrivilegeRowKey(Fields: TFields; SimulateDbField: Boolean; out DBOType: TListNodeType; out DBONames: TWideStringList);
+procedure GetPrivilegeRowKey(Fields: TMySQLQuery; SimulateDbField: Boolean; out DBOType: TListNodeType; out DBONames: TWideStringList);
 
 implementation
 
@@ -216,7 +216,7 @@ var
   // Results from SELECT * FROM user/db/...
   dsUser, dsDb, dsTables, dsColumns,
   // Results from SHOW FIELDS FROM user/db/...
-  dsTablesFields, dsColumnsFields : TDataset;
+  dsTablesFields, dsColumnsFields : TMySQLQuery;
 
 
 {$R *.DFM}
@@ -266,14 +266,14 @@ begin
   // Test if we can access the privileges database and tables by
   // A. Using the mysql-DB
   try
-    Mainform.ExecUseQuery(DBNAME_MYSQL);
+    Mainform.Connection.Database := DBNAME_MYSQL;
   except
     MessageDlg('You have no access to the privileges database.', mtError, [mbOK], 0);
     Result := false;
     Exit;
   end;
   // B. retrieving a count of all users.
-  test_result := Mainform.GetVar( 'SELECT COUNT(*) FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS), 0, true, false );
+  test_result := Mainform.Connection.GetVar('SELECT COUNT(*) FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS));
   if test_result = '' then begin
     MessageDlg('You have no access to the privileges tables.', mtError, [mbOK], 0);
     Result := false;
@@ -291,26 +291,26 @@ var
   snr: String;
 begin
   // Set hints text
-  snr := Mainform.GetVar('SHOW VARIABLES LIKE ' + esc('skip_name_resolve'), 0, True, False);
+  snr := Mainform.Connection.GetVar('SHOW VARIABLES LIKE ' + esc('skip_name_resolve'));
   if snr = '' then snr := 'Unknown';
   lblHostHints.Caption := StringReplace(lblHostHints.Caption, '$SNR', snr, []);
 
   // Load users into memory
   Users := TUsers.Create;
   // Enable limitations editors only if relevant columns exist
-  lblMaxQuestions.Enabled := dsUser.FindField('max_questions') <> nil;
+  lblMaxQuestions.Enabled := dsUser.ColExists('max_questions');
   editMaxQuestions.Enabled := lblMaxQuestions.Enabled;
   udMaxQuestions.Enabled := lblMaxQuestions.Enabled;
 
-  lblMaxUpdates.Enabled := dsUser.FindField('max_updates') <> nil;
+  lblMaxUpdates.Enabled := dsUser.ColExists('max_updates');
   editMaxQuestions.Enabled := lblMaxUpdates.Enabled;
   udMaxUpdates.Enabled := lblMaxUpdates.Enabled;
 
-  lblMaxConnections.Enabled := dsUser.FindField('max_connections') <> nil;
+  lblMaxConnections.Enabled := dsUser.ColExists('max_connections');
   editMaxConnections.Enabled := lblMaxConnections.Enabled;
   udMaxConnections.Enabled := lblMaxConnections.Enabled;
 
-  lblMaxUserConnections.Enabled := dsUser.FindField('max_user_connections') <> nil;
+  lblMaxUserConnections.Enabled := dsUser.ColExists('max_user_connections');
   editMaxUserConnections.Enabled := lblMaxUserConnections.Enabled;
   udMaxUserConnections.Enabled := lblMaxUserConnections.Enabled;
 
@@ -600,7 +600,7 @@ end;
 procedure TUserManagerForm.btnAddObjectClick(Sender: TObject);
 var
   NewObj: TWideStringList;
-  ds, FieldDefs: TDataset;
+  ds, FieldDefs: TMySQLQuery;
   NewPriv: TPrivilege;
   u: TUser;
   i: Integer;
@@ -626,7 +626,7 @@ begin
       else
         Exception.Create('Added privilege object has an invalid number of segments ('+IntToStr(NewObj.Count)+')');
     end;
-    NewPriv := u.Privileges.AddPrivilege(ds.Fields, FieldDefs);
+    NewPriv := u.Privileges.AddPrivilege(ds, FieldDefs);
     NewPriv.Added := True;
     NewPriv.DBONames := NewObj;
     u.Modified := True;
@@ -878,7 +878,7 @@ var
   u: TUser;
   p: TPrivilege;
   sql, TableName, SetFieldName: String;
-  TableSet: TDataSet;
+  TableSet: TMySQLQuery;
   AcctWhere, AcctValues, PrivWhere: String;
   AcctUpdates, PrivValues, PrivUpdates: TWideStringList;
   procedure LogSQL(sql: String);
@@ -888,7 +888,7 @@ var
   procedure Exec(sql: String);
   begin
     //LogSQL(sql);  Exit;
-    Mainform.ExecuteNonQuery(sql);
+    Mainform.Connection.Query(sql);
   end;
   function Mask(sql: String): String;
   begin
@@ -981,16 +981,16 @@ begin
     end else if u.PasswordModified then
       AcctUpdates.Add(mask('Password') + '= PASSWORD(' + esc(u.Password) + ')');
     // Apply limitation updates.
-    if dsUser.FindField('max_questions') <> nil then
+    if dsUser.ColExists('max_questions') then
       if u.FOldMaxQuestions <> u.MaxQuestions then
         AcctUpdates.Add(mask('max_questions') + '=' + IntToStr(u.MaxQuestions));
-    if dsUser.FindField('max_updates') <> nil then
+    if dsUser.ColExists('max_updates') then
       if u.FOldMaxUpdates <> u.MaxUpdates then
         AcctUpdates.Add(mask('max_updates') + '=' + IntToStr(u.MaxUpdates));
-    if dsUser.FindField('max_connections') <> nil then
+    if dsUser.ColExists('max_connections') then
       if u.FOldMaxConnections <> u.MaxConnections then
         AcctUpdates.Add(mask('max_connections') + '=' + IntToStr(u.MaxConnections));
-    if dsUser.FindField('max_user_connections') <> nil then
+    if dsUser.ColExists('max_user_connections') then
       if u.FOldMaxUserConnections <> u.MaxUserConnections then
         AcctUpdates.Add(mask('max_user_connections') + '=' + IntToStr(u.MaxUserConnections));
     // Skip accounts with fx only username / host changes, they've already been processed.
@@ -1020,20 +1020,20 @@ begin
     else
       AcctUpdates.Add(mask('Password') + '=PASSWORD(' + esc(u.Password) + ')');
     // Apply limits.
-    if dsUser.FindField('max_questions') <> nil then
+    if dsUser.ColExists('max_questions') then
       AcctUpdates.Add(mask('max_questions') + '=' + IntToStr(u.MaxQuestions));
-    if dsUser.FindField('max_updates') <> nil then
+    if dsUser.ColExists('max_updates') then
       AcctUpdates.Add(mask('max_updates') + '=' + IntToStr(u.MaxUpdates));
-    if dsUser.FindField('max_connections') <> nil then
+    if dsUser.ColExists('max_connections') then
       AcctUpdates.Add(mask('max_connections') + '=' + IntToStr(u.MaxConnections));
-    if dsUser.FindField('max_user_connections') <> nil then
+    if dsUser.ColExists('max_user_connections') then
       AcctUpdates.Add(mask('max_user_connections') + '=' + IntToStr(u.MaxUserConnections));
     // Special case: work around missing default values (bug) in MySQL.
-    if dsUser.FindField('ssl_cipher') <> nil then
+    if dsUser.ColExists('ssl_cipher') then
       AcctUpdates.Add(mask('ssl_cipher') + '=' + esc(''));
-    if dsUser.FindField('x509_issuer') <> nil then
+    if dsUser.ColExists('x509_issuer') then
       AcctUpdates.Add(mask('x509_issuer') + '=' + esc(''));
-    if dsUser.FindField('x509_subject') <> nil then
+    if dsUser.ColExists('x509_subject') then
       AcctUpdates.Add(mask('x509_subject') + '=' + esc(''));
     sql := 'INSERT INTO ' + db + '.' + mask(PRIVTABLE_USERS);
     sql := sql + ' SET ' + Delim(AcctUpdates);
@@ -1095,7 +1095,7 @@ begin
       if (p.DBOType = lntDb) and (p.DBOKey = '%') then begin
         PrivUpdates.Clear;
         for k := 0 to p.PrivNames.Count - 1 do begin
-          if dsUser.FindField(p.PrivNames[k] + '_priv') <> nil then
+          if dsUser.ColExists(p.PrivNames[k] + '_priv') then
             PrivUpdates.Add(mask(p.PrivNames[k] + '_priv') + '=' + esc('N'));
         end;
         sql := 'UPDATE ' + db + '.' + mask(PRIVTABLE_USERS);
@@ -1113,7 +1113,7 @@ begin
         //               instead, we have to set them manually to 'N'.
         PrivUpdates.Clear;
         for k := 0 to p.PrivNames.Count - 1 do
-          if TableSet.FindField(p.PrivNames[k] + '_priv') <> nil then
+          if TableSet.ColExists(p.PrivNames[k] + '_priv') then
             PrivUpdates.Add(mask(p.PrivNames[k] + '_priv') + '=' + esc('N'));
         sql := 'UPDATE ' + db + '.' + TableName;
         sql := sql + ' SET ' + Delim(PrivUpdates);
@@ -1137,7 +1137,7 @@ begin
       // Assemble values of new privilege definition.
       for k := 0 to p.PrivNames.Count - 1 do begin
         if p.SelectedPrivNames.IndexOf(p.PrivNames[k]) > -1 then c := 'Y' else c := 'N';
-        if TableSet.FindField(p.PrivNames[k] + '_priv') <> nil then begin
+        if TableSet.ColExists(p.PrivNames[k] + '_priv') then begin
           // There's an ENUM field matching the privilege name.
           PrivUpdates.Add(mask(p.PrivNames[k] + '_priv') + '=' + esc(c));
         end else
@@ -1153,11 +1153,11 @@ begin
       if (p.DBOType = lntNone) then begin
         // Server barfs if we do not set missing defaults, sigh.
         PrivValues.Clear;
-        if dsUser.FindField('ssl_cipher') <> nil then
+        if dsUser.ColExists('ssl_cipher') then
           PrivValues.Add(mask('ssl_cipher') + '=' + esc(''));
-        if dsUser.FindField('x509_issuer') <> nil then
+        if dsUser.ColExists('x509_issuer') then
           PrivValues.Add(mask('x509_issuer') + '=' + esc(''));
-        if dsUser.FindField('x509_subject') <> nil then
+        if dsUser.ColExists('x509_subject') then
           PrivValues.Add(mask('x509_subject') + '=' + esc(''));
         if PrivValues.Count > 0 then
           sql := sql + ', ' + Delim(PrivValues);
@@ -1166,7 +1166,7 @@ begin
       end;
       Exec(sql);
       // Special case: update redundant column privileges in mysql.tables_priv.
-      if (p.DBOType = lntColumn) and (dsTables.FindField('column_priv') <> nil) then begin
+      if (p.DBOType = lntColumn) and dsTables.ColExists('column_priv') then begin
         // We need to deduce a completely new key because column_priv in mysql.tables_priv does not have a column field next to it, sigh.
         PrivUpdates.Clear;
         PrivUpdates.Add(mask('Host') + '=' + esc(u.Host));
@@ -1200,55 +1200,55 @@ var
   i: Integer;
   user, host: WideString;
 begin
-  dsUser := Mainform.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS) + ' ORDER BY '
+  dsUser := Mainform.Connection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS) + ' ORDER BY '
     + Mainform.Mask('User')+', '
     + Mainform.Mask('Host'));
-  dsDb := Mainform.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_DB)
+  dsDb := Mainform.Connection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_DB)
     // Ignore db entries that contain magic pointers to the mysql.host table.
     + ' WHERE Db <> '#39#39
     + ' ORDER BY '
     + Mainform.Mask('User')+', '
     + Mainform.Mask('Host')+', '
     + Mainform.Mask('Db'));
-  dsTables := Mainform.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_TABLES) + ' ORDER BY '
+  dsTables := Mainform.Connection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_TABLES) + ' ORDER BY '
     + Mainform.Mask('User')+', '
     + Mainform.Mask('Host')+', '
     + Mainform.Mask('Db')+', '
     + Mainform.Mask('Table_name'));
-  dsColumns := Mainform.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_COLUMNS) + ' ORDER BY '
+  dsColumns := Mainform.Connection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_COLUMNS) + ' ORDER BY '
     + Mainform.Mask('User')+', '
     + Mainform.Mask('Host')+', '
     + Mainform.Mask('Db')+', '
     + Mainform.Mask('Table_name')+', '
     + Mainform.Mask('Column_name'));
-  dsTablesFields := Mainform.GetResults('SHOW FIELDS FROM '+db+'.tables_priv LIKE ''%\_priv''');
-  dsColumnsFields := Mainform.GetResults('SHOW FIELDS FROM '+db+'.columns_priv LIKE ''%\_priv''');
-  for i := 1 to dsUser.RecordCount do begin
+  dsTablesFields := Mainform.Connection.GetResults('SHOW FIELDS FROM '+db+'.tables_priv LIKE ''%\_priv''');
+  dsColumnsFields := Mainform.Connection.GetResults('SHOW FIELDS FROM '+db+'.columns_priv LIKE ''%\_priv''');
+  for i:=0 to dsUser.RecordCount-1 do begin
     // Avoid using dsUser.Next and dsUser.Eof here because TUser.Create
     // also iterates through the global dsUser result and moves the cursor
     dsUser.RecNo := i;
-    u := TUser.Create(dsUser.Fields);
+    u := TUser.Create(dsUser);
     AddUser(u);
   end;
   // Find orphaned privileges in mysql.db.
-  for i := 1 to dsDb.RecordCount do begin
+  for i:=0 to dsDb.RecordCount-1 do begin
     dsDb.RecNo := i;
-    user := dsDb.Fields.FieldByName('User').AsWideString;
-    host := dsDb.Fields.FieldByName('Host').AsWideString;
+    user := dsDb.Col('User');
+    host := dsDb.Col('Host');
     if FindUser(user, host) = nil then AddUser(TUser.Create(user, host));
   end;
   // Find orphaned privileges in mysql.tables_priv.
-  for i := 1 to dsTables.RecordCount do begin
+  for i:=0 to dsTables.RecordCount-1 do begin
     dsTables.RecNo := i;
-    user := dsTables.Fields.FieldByName('User').AsWideString;
-    host := dsTables.Fields.FieldByName('Host').AsWideString;
+    user := dsTables.Col('User');
+    host := dsTables.Col('Host');
     if FindUser(user, host) = nil then AddUser(TUser.Create(user, host));
   end;
   // Find orphaned privileges in mysql.columns_priv.
-  for i := 1 to dsColumns.RecordCount do begin
+  for i:=0 to dsColumns.RecordCount-1 do begin
     dsColumns.RecNo := i;
-    user := dsColumns.Fields.FieldByName('User').AsWideString;
-    host := dsColumns.Fields.FieldByName('Host').AsWideString;
+    user := dsColumns.Col('User');
+    host := dsColumns.Col('Host');
     if FindUser(user, host) = nil then AddUser(TUser.Create(user, host));
   end;
 end;
@@ -1322,7 +1322,7 @@ begin
   FPrivileges := TPrivileges.Create(Self);
 end;
 
-constructor TUser.Create(Fields: TFields);
+constructor TUser.Create(Fields: TMySQLQuery);
 begin
   // Loading an existing user
   FAdded := False;
@@ -1331,8 +1331,8 @@ begin
   FPasswordModified := False;
   FDisabled := False;
   FNameChanged := False;
-  FOldName := Fields.FieldByName('User').AsWideString;
-  FOldHost := Fields.FieldByName('Host').AsWideString;
+  FOldName := Fields.Col('User', True);
+  FOldHost := Fields.Col('Host', True);
   if FOldHost = '' then begin
     // Get rid of duplicate entries.
     // Todo: handle collisions.
@@ -1340,22 +1340,22 @@ begin
     FOtherModified := True;
   end;
   FPassword := '';
-  FOldPasswordHashed := Fields.FieldByName('Password').AsString;
+  FOldPasswordHashed := Fields.Col('Password', True);
   FOldMaxQuestions := 0;
-  if Fields.FindField('max_questions') <> nil then
-    FOldMaxQuestions := MakeInt(Fields.FieldByName('max_questions').AsString);
+  if Fields.ColExists('max_questions') then
+    FOldMaxQuestions := MakeInt(Fields.Col('max_questions'));
   FMaxQuestions := FOldMaxQuestions;
   FOldMaxUpdates := 0;
-  if Fields.FindField('max_updates') <> nil then
-    FOldMaxUpdates := MakeInt(Fields.FieldByName('max_updates').AsString);
+  if Fields.ColExists('max_updates') then
+    FOldMaxUpdates := MakeInt(Fields.Col('max_updates'));
   FMaxUpdates := FOldMaxUpdates;
   FOldMaxConnections := 0;
-  if Fields.FindField('max_connections') <> nil then
-    FOldMaxConnections := MakeInt(Fields.FieldByName('max_connections').AsString);
+  if Fields.ColExists('max_connections') then
+    FOldMaxConnections := MakeInt(Fields.Col('max_connections'));
   FMaxConnections := FOldMaxConnections;
   FOldMaxUserConnections := 0;
-  if Fields.FindField('max_user_connections') <> nil then
-    FOldMaxUserConnections := MakeInt(Fields.FieldByName('max_user_connections').AsString);
+  if Fields.ColExists('max_user_connections') then
+    FOldMaxUserConnections := MakeInt(Fields.Col('max_user_connections'));
   FMaxUserConnections := FOldMaxUserConnections;
 
   FPrivileges := TPrivileges.Create(Self);
@@ -1413,30 +1413,30 @@ var
   p: TPrivilege;
   host, user: String;
   // Extract privilege objects from results of user, db, tables_priv + columns_priv
-  procedure LoadPrivs(ds: TDataset; FieldDefs: TDataset = nil; AvoidFieldDefs: TDataset = nil; CropDbFieldDefs: TDataset = nil);
+  procedure LoadPrivs(ds: TMySQLQuery; FieldDefs: TMySQLQuery=nil; AvoidFieldDefs: TMySQLQuery=nil; CropDbFieldDefs: TMySQLQuery=nil);
   var
     hasUserField : Boolean;
     simulateDb : Boolean;
   begin
     ds.First;
     // The priv table 'host' does not have a user field, use '%'.
-    hasUserField := ds.FieldDefs.IndexOf('User') > -1;
+    hasUserField := ds.ColExists('User');
     user := '%';
     // When cropping the priv table 'user' to load only db privileges, use '%' for db.
     simulateDb := cropDbFieldDefs <> nil;
     while not ds.Eof do begin
-      if hasUserField then user := ds.FieldByName('User').AsWideString;
-      host := ds.FieldByName('Host').AsWideString;
+      if hasUserField then user := ds.Col('User');
+      host := ds.Col('Host');
       // Canonicalize: Host='' and Host='%' means the same.
       if host = '' then host := '%';
       if (host = FOwner.FOldHost) and (user = FOwner.FOldName) then begin
         // Find existing privilege, or create + add new one.
-        p := FindPrivilege(ds.Fields, simulateDb);
+        p := FindPrivilege(ds, simulateDb);
         if (p = nil) then begin
-          p := AddPrivilege(ds.Fields, FieldDefs, AvoidFieldDefs, CropDbFieldDefs, simulateDb);
+          p := AddPrivilege(ds, FieldDefs, AvoidFieldDefs, CropDbFieldDefs, simulateDb);
         end;
         // Merge grants from row into the privilege object.
-        p.Merge(ds.Fields)
+        p.Merge(ds)
       end;
       ds.Next;
     end;
@@ -1445,8 +1445,8 @@ begin
   FOwner := AOwner;
   if AOwner.Added then begin
     // Create blanket "server privileges" and "all objects" items.
-    AddPrivilege(dsUser.Fields, nil, dsDb);
-    AddPrivilege(dsUser.Fields, nil, nil, dsDb, True);
+    AddPrivilege(dsUser, nil, dsDb);
+    AddPrivilege(dsUser, nil, nil, dsDb, True);
   end;
   // Load server privileges from 'user' rows, avoiding db privileges.
   LoadPrivs(dsUser, nil, dsDb);
@@ -1468,7 +1468,7 @@ begin
  Result := Length(FPrivilegeItems);
 end;
 
-function TPrivileges.FindPrivilege(Fields: TFields; SimulateDbField: Boolean): TPrivilege;
+function TPrivileges.FindPrivilege(Fields: TMySQLQuery; SimulateDbField: Boolean): TPrivilege;
 var
   i : Integer;
   DBOType: TListNodeType;
@@ -1487,7 +1487,7 @@ begin
   end;
 end;
 
-function TPrivileges.AddPrivilege(Fields: TFields; FieldDefs: TDataset = nil; AvoidFieldDefs: TDataSet = nil; CropFieldDefs: TDataSet = nil; SimulateDbField: Boolean = False): TPrivilege;
+function TPrivileges.AddPrivilege(Fields: TMySQLQuery; FieldDefs: TMySQLQuery=nil; AvoidFieldDefs: TMySQLQuery=nil; CropFieldDefs: TMySQLQuery=nil; SimulateDbField: Boolean = False): TPrivilege;
 begin
   Result := TPrivilege.Create(Fields, FieldDefs, AvoidFieldDefs, CropFieldDefs, SimulateDbField);
   SetLength(FPrivilegeItems, Length(FPrivilegeItems)+1);
@@ -1518,20 +1518,19 @@ end;
 
 { *** TPrivilege *** }
 
-constructor TPrivilege.Create(Fields: TFields; FieldDefs: TDataset = nil; AvoidFieldDefs: TDataSet = nil; CropFieldDefs: TDataSet = nil; SimulateDbField: Boolean = False);
+constructor TPrivilege.Create(Fields: TMySQLQuery; FieldDefs: TMySQLQuery=nil; AvoidFieldDefs: TMySQLQuery=nil; CropFieldDefs: TMySQLQuery=nil; SimulateDbField: Boolean = False);
 var
   i: Integer;
   tables_col_ignore: Boolean;
-  cropNames: TWideStringList;
   // Find possible values for the given SET column
   function GetSETValues(FieldName: String): TWideStringList;
   begin
     FieldDefs.First;
     Result := TWideStringList.Create;
     while not FieldDefs.Eof do begin
-      if FieldDefs.FieldByName('Field').AsWideString = FieldName + '_priv' then begin
+      if FieldDefs.Col('Field') = FieldName + '_priv' then begin
         Result.QuoteChar := '''';
-        Result.DelimitedText := getEnumValues( FieldDefs.FieldByName('Type').AsWideString );
+        Result.DelimitedText := getEnumValues(FieldDefs.Col('Type'));
       end;
       FieldDefs.Next;
     end;
@@ -1545,22 +1544,20 @@ begin
   PrivNames := TWideStringList.Create;
   SelectedPrivNames := TWideStringList.Create;
   // Find out what xxxx_priv privilege columns this server/version has.
-  Fields.GetFieldNames(PrivNames);
+  PrivNames.Text := Fields.ColumnNames.Text;
   for i := PrivNames.Count - 1 downto 0 do begin
     if Length(PrivNames[i]) > 5 then begin
       if Copy(PrivNames[i], Length(PrivNames[i]) - 4, 5) = '_priv' then begin
         // Avoid duplicated db privileges in user table.
         if AvoidFieldDefs = nil then Continue;
-        if AvoidFieldDefs.FieldDefs.IndexOf(PrivNames[i]) = -1 then Continue;
+        if AvoidFieldDefs.ColumnNames.IndexOf(PrivNames[i]) = -1 then Continue;
       end;
     end;
-    PrivNames.Delete(i)
+    PrivNames.Delete(i);
   end;
   if CropFieldDefs <> nil then begin
-    cropNames := TWideStringList.Create;
-    CropFieldDefs.Fields.GetFieldNames(cropNames);
     for i := PrivNames.Count - 1 downto 0 do begin
-      if cropNames.IndexOf(PrivNames[i]) = -1 then PrivNames.Delete(i);
+      if CropFieldDefs.ColumnNames.IndexOf(PrivNames[i]) = -1 then PrivNames.Delete(i);
     end;
   end;
   // Find out what SET columns in tables_priv this server/version has.
@@ -1590,34 +1587,29 @@ begin
   GetPrivilegeRowKey(Fields, SimulateDbField, FDBOType, DBONames);
 end;
 
-procedure TPrivilege.Merge(Fields: TFields);
+procedure TPrivilege.Merge(Fields: TMySQLQuery);
 var
   i: Integer;
   tmp: TStringList;
-  fieldNames: TStringList;
 begin
-  fieldNames := TStringList.Create;
-  Fields.GetFieldNames(fieldNames);
   // Apply ENUM privileges, skipping any SET privileges.
   for i := PrivNames.Count - 1 downto 0 do begin
-    if fieldNames.IndexOf(PrivNames[i] + '_priv') > -1 then begin
-      if UpperCase(Fields.FieldByName(PrivNames[i] + '_priv').AsString) = 'Y' then begin
+    if Fields.ColumnNames.IndexOf(PrivNames[i] + '_priv') > -1 then begin
+      if UpperCase(Fields.Col(PrivNames[i] + '_priv')) = 'Y' then begin
         SelectedPrivNames.Add(PrivNames[i]);
       end;
     end;
   end;
   // Parse SET field in column "tables_priv"
-  i := fieldNames.IndexOf('Table_priv');
-  if i > -1 then begin
+  if Fields.ColExists('Table_priv') then begin
     tmp := TStringList.Create;
-    tmp.CommaText := Fields.FieldByName('Table_priv').AsString;
+    tmp.CommaText := Fields.Col('Table_priv');
     SelectedPrivNames.AddStrings(tmp);
   end else begin
     // Parse SET field in column "columns_priv"
-    i := fieldNames.IndexOf('Column_priv');
-    if i > -1 then begin
+    if Fields.ColExists('Column_priv') then begin
       tmp := TStringList.Create;
-      tmp.CommaText := Fields.FieldByName('Column_priv').AsString;
+      tmp.CommaText := Fields.Col('Column_priv');
       SelectedPrivNames.AddStrings(tmp);
     end;
   end;
@@ -1663,7 +1655,7 @@ begin
 end;
 
 
-procedure GetPrivilegeRowKey(Fields: TFields; SimulateDbField: Boolean; out DBOType: TListNodeType; out DBONames: TWideStringList);
+procedure GetPrivilegeRowKey(Fields: TMySQLQuery; SimulateDbField: Boolean; out DBOType: TListNodeType; out DBONames: TWideStringList);
 begin
   DBOType := lntNone;
   DBONames := TWideStringList.Create;
@@ -1672,17 +1664,17 @@ begin
     DBOType := lntDb;
     DBONames.Add('%');
   end;
-  if Fields.FindField('Db') <> nil then begin
+  if Fields.ColExists('Db') then begin
     DBOType := lntDb;
-    DBONames.Add(Fields.FieldByName('Db').AsString);
+    DBONames.Add(Fields.Col('Db'));
   end;
-  if Fields.FindField('Table_name') <> nil then begin
+  if Fields.ColExists('Table_name') then begin
     DBOType := lntTable;
-    DBONames.Add(Fields.FieldByName('Table_name').AsString);
+    DBONames.Add(Fields.Col('Table_name'));
   end;
-  if Fields.FindField('Column_name') <> nil then begin
+  if Fields.ColExists('Column_name') then begin
     DBOType := lntColumn;
-    DBONames.Add(Fields.FieldByName('Column_name').AsString);
+    DBONames.Add(Fields.Col('Column_name'));
   end;
 end;
 

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, db, SynEdit, SynMemo, TntStdCtrls, WideStrings;
+  Dialogs, StdCtrls, mysql_connection, SynEdit, SynMemo, TntStdCtrls, WideStrings;
 
 type
   TCreateDatabaseForm = class(TForm)
@@ -29,7 +29,7 @@ type
     function GetCreateStatement: WideString;
   private
     { Private declarations }
-    dsCollations : TDataSet;
+    dsCollations : TMySQLQuery;
     defaultCharset : String;
     currentCollation : String;
   public
@@ -55,9 +55,9 @@ begin
   InheritFont(Font);
 
   try
-    dsCollations := Mainform.GetResults('SHOW COLLATION');
+    dsCollations := Mainform.Connection.GetResults('SHOW COLLATION');
     // Detect servers default charset
-    defaultCharset := Mainform.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
+    defaultCharset := Mainform.Connection.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
   except
     // Ignore it when the above statements don't work on pre 4.1 servers.
     // If the list(s) are nil, disable the combobox(es), so we create the db without charset.
@@ -70,9 +70,8 @@ begin
   begin
     comboCharset.Items.BeginUpdate;
     dsCollations.First;
-    while not dsCollations.Eof do
-    begin
-      charset := dsCollations.FieldByName('Charset').AsString;
+    while not dsCollations.Eof do begin
+      charset := dsCollations.Col('Charset');
       if comboCharset.Items.IndexOf(charset) = -1 then
         comboCharset.Items.Add(charset);
       dsCollations.Next;
@@ -90,7 +89,6 @@ end;
 
 procedure TCreateDatabaseForm.FormDestroy(Sender: TObject);
 begin
-  if dsCollations <> nil then dsCollations.Close;
   FreeAndNil(dsCollations);
 end;
 
@@ -118,7 +116,7 @@ begin
     editDBName.SelectAll;
     
     // Detect current charset and collation to be able to preselect them in the pulldowns
-    sql_create := Mainform.GetVar('SHOW CREATE DATABASE '+Mainform.mask(modifyDB), 1);
+    sql_create := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+Mainform.mask(modifyDB), 1);
     currentCharset := Copy( sql_create, pos('CHARACTER SET', sql_create)+14, Length(sql_create));
     currentCharset := GetFirstWord( currentCharset );
     if currentCharset <> '' then
@@ -166,13 +164,12 @@ begin
   comboCollation.Items.BeginUpdate;
   comboCollation.Items.Clear;
   dsCollations.First;
-  while not dsCollations.Eof do
-  begin
-    if dsCollations.FieldByName('Charset').AsString = comboCharset.Text then
+  while not dsCollations.Eof do begin
+    if dsCollations.Col('Charset') = comboCharset.Text then
     begin
-      comboCollation.Items.Add( dsCollations.FieldByName('Collation').AsString );
-      if dsCollations.FieldByName('Default').AsString = 'Yes' then
-        defaultCollation := dsCollations.FieldByName('Collation').AsString;
+      comboCollation.Items.Add( dsCollations.Col('Collation'));
+      if dsCollations.Col('Default') = 'Yes' then
+        defaultCollation := dsCollations.Col('Collation');
     end;
     dsCollations.Next;
   end;
@@ -224,12 +221,12 @@ procedure TCreateDatabaseForm.btnOKClick(Sender: TObject);
 var
   sql : WideString;
   AllDatabases, Unions, ObjectsLeft: TWideStringList;
-  ObjectsInNewDb, ObjectsInOldDb: TDataset;
+  ObjectsInNewDb, ObjectsInOldDb: TMySQLQuery;
   OldObjType, NewObjType: TListNodeType;
 begin
   if modifyDB = '' then try
     sql := GetCreateStatement;
-    Mainform.ExecUpdateQuery( sql );
+    Mainform.Connection.Query(sql);
     // Close form
     ModalResult := mrOK;
   except
@@ -246,25 +243,25 @@ begin
     end;
     if modifyDB = editDBName.Text then begin
       // Alter database
-      Mainform.ExecUpdateQuery(sql);
+      Mainform.Connection.Query(sql);
     end else begin
       // Rename database
       ObjectsInOldDb := MainForm.RefreshDbTableList(modifyDB);
-      AllDatabases := Mainform.GetCol('SHOW DATABASES');
+      AllDatabases := Mainform.Connection.GetCol('SHOW DATABASES');
       if AllDatabases.IndexOf(editDBName.Text) = -1 then begin
         // Target db does not exist - create it
-        Mainform.ExecUpdateQuery(GetCreateStatement);
+        Mainform.Connection.Query(GetCreateStatement);
       end else begin
         // Target db exists - warn if there are tables with same names
         ObjectsInNewDb := MainForm.RefreshDbTableList(editDBName.Text);
         while not ObjectsInNewDb.Eof do begin
-          NewObjType := GetDBObjectType(ObjectsInNewDb.Fields);
+          NewObjType := GetDBObjectType(ObjectsInNewDb);
           ObjectsInOldDb.First;
           while not ObjectsInOldDb.Eof do begin
-            OldObjType := GetDBObjectType(ObjectsInOldDb.Fields);
+            OldObjType := GetDBObjectType(ObjectsInOldDb);
             if not (OldObjType in [lntTable, lntCrashedTable, lntView]) then
               Raise Exception.Create('Database "'+modifyDB+'" contains stored routine(s), which cannot be moved.');
-            if (ObjectsInOldDb.FieldByName(DBO_NAME).AsWideString = ObjectsInNewDb.FieldByName(DBO_NAME).AsWideString)
+            if (ObjectsInOldDb.Col(DBO_NAME) = ObjectsInNewDb.Col(DBO_NAME))
               and (OldObjType = NewObjType) then begin
               // One or more objects have a naming conflict
               Raise Exception.Create('Database "'+editDBName.Text+'" exists and has objects with same names as in "'+modifyDB+'"');
@@ -282,12 +279,12 @@ begin
       ObjectsInOldDb.First;
       sql := 'RENAME TABLE ';
       while not ObjectsInOldDb.Eof do begin
-        sql := sql + Mainform.mask(modifyDb)+'.'+Mainform.mask(ObjectsInOldDb.FieldByName(DBO_NAME).AsWideString)+' TO '+
-          Mainform.mask(editDBName.Text)+'.'+Mainform.mask(ObjectsInOldDb.FieldByName(DBO_NAME).AsWideString)+', ';
+        sql := sql + Mainform.mask(modifyDb)+'.'+Mainform.mask(ObjectsInOldDb.Col(DBO_NAME))+' TO '+
+          Mainform.mask(editDBName.Text)+'.'+Mainform.mask(ObjectsInOldDb.Col(DBO_NAME))+', ';
         ObjectsInOldDb.Next;
       end;
       Delete(sql, Length(sql)-1, 2);
-      Mainform.ExecUpdateQuery(sql);
+      Mainform.Connection.Query(sql);
       Mainform.ClearDbTableList(modifyDB);
       Mainform.ClearDbTableList(editDBName.Text);
       // Last step for renaming: drop source database
@@ -302,12 +299,12 @@ begin
         if Mainform.InformationSchemaTables.IndexOf('TRIGGERS') > -1 then
           Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.TRIGGERS WHERE TRIGGER_SCHEMA='+esc(modifyDB));
         if Unions.Count = 1 then
-          ObjectsLeft := Mainform.GetCol(Unions[0])
+          ObjectsLeft := Mainform.Connection.GetCol(Unions[0])
         else if Unions.Count > 1 then
-          ObjectsLeft := Mainform.GetCol('(' + implodestr(') UNION (', Unions) + ')');
+          ObjectsLeft := Mainform.Connection.GetCol('(' + implodestr(') UNION (', Unions) + ')');
       end;
       if ObjectsLeft.Count = 0 then begin
-        Mainform.ExecUpdateQuery('DROP DATABASE '+modifyDB);
+        Mainform.Connection.Query('DROP DATABASE '+modifyDB);
       end;
       FreeAndNil(ObjectsLeft);
     end;

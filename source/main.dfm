@@ -1591,13 +1591,6 @@ object MainForm: TMainForm
         Action = actExportData
       end
     end
-    object menuWindow: TMenuItem
-      Caption = '&Window'
-      OnClick = menuWindowClick
-      object miFake: TMenuItem
-        Caption = 'fake item - see notes in menuWindowClick()'
-      end
-    end
     object Help1: TMenuItem
       Tag = 22
       Caption = '&Help'
@@ -6464,7 +6457,6 @@ object MainForm: TMainForm
     end
   end
   object TimerConnected: TTimer
-    Enabled = False
     OnTimer = TimerConnectedTimer
     Left = 103
     Top = 269
@@ -6516,13 +6508,6 @@ object MainForm: TMainForm
     OnTypeChange = SaveDialogExportDataTypeChange
     Left = 40
     Top = 200
-  end
-  object ZSQLMonitor1: TZSQLMonitor
-    Active = True
-    MaxTraceCount = 100
-    OnLogTrace = ZSQLMonitor1LogTrace
-    Left = 104
-    Top = 304
   end
   object popupDbGridHeader: TPopupMenu
     AutoHotkeys = maManual

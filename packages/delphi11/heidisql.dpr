@@ -17,14 +17,7 @@ uses
   insertfiles in '..\..\source\insertfiles.pas' {frmInsertFiles},
   insertfiles_progress in '..\..\source\insertfiles_progress.pas' {frmInsertFilesProgress},
   helpers in '..\..\source\helpers.pas',
-  synchronization in '..\..\source\synchronization.pas',
-  communication in '..\..\source\communication.pas',
-  threading in '..\..\source\threading.pas',
   sqlhelp in '..\..\source\sqlhelp.pas' {frmSQLhelp},
-  queryprogress in '..\..\source\queryprogress.pas' {frmQueryProgress},
-  mysqlquery in '..\..\source\mysqlquery.pas',
-  mysqlquerythread in '..\..\source\mysqlquerythread.pas',
-  mysqlconn in '..\..\source\mysqlconn.pas',
   mysql_structures in '..\..\source\mysql_structures.pas',
   column_selection in '..\..\source\column_selection.pas' {ColumnSelectionForm},
   data_sorting in '..\..\source\data_sorting.pas' {DataSortingForm},
@@ -40,7 +33,9 @@ uses
   uVistaFuncs in '..\..\source\uVistaFuncs.pas',
   dataviewsave in '..\..\source\dataviewsave.pas' {FrmDataViewSave},
   routine_editor in '..\..\source\routine_editor.pas' {frmRoutineEditor},
-  table_editor in '..\..\source\table_editor.pas' {frmTableEditor};
+  table_editor in '..\..\source\table_editor.pas' {frmTableEditor},
+  mysql_api in '..\..\source\mysql_api.pas',
+  mysql_connection in '..\..\source\mysql_connection.pas';
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\version.RES}
@@ -54,26 +49,6 @@ begin
   Application.CreateForm(TMainForm, MainForm);
   Application.OnMessage := Mainform.OnMessageHandler;
   debug('perf: Main created.');
-
-  try
-    try
-      InitializeSync(MainForm.Handle);
-      SetWindowName(main.discname);
-      InitializeThreading(MainForm.Handle);
-      InitializeComm(
-        MainForm.Handle,
-        MainForm.ExecuteRemoteNonQuery,
-        MainForm.ExecuteRemoteQuery
-      );
-      debug('perf: Running.');
-      MainForm.Startup;
-      Application.Run;
-    finally
-      DeInitializeSync;
-    end;
-  except
-    on e: Exception do begin
-      ShowMessage(e.ClassName + ': ' + e.Message);
-    end;
-  end;
+  MainForm.Startup;
+  Application.Run;
  end.

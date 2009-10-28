@@ -10,8 +10,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, CheckLst, ZDataSet, ComCtrls, WideStrings,
-  TntStdCtrls, TntCheckLst;
+  StdCtrls, Buttons, CheckLst, ComCtrls, WideStrings,
+  TntStdCtrls, TntCheckLst, mysql_connection;
 
 type
   TCopyTableForm = class(TForm)
@@ -111,7 +111,6 @@ procedure TCopyTableForm.FormShow(Sender: TObject);
 var
   i : Integer;
   struc_data : Byte;
-  ds: TDataSet;
   NodeData: PVTreeData;
 begin
   if Mainform.DBtree.Focused then
@@ -132,15 +131,7 @@ begin
     comboSelectDatabase.ItemIndex := 0;
 
   // fill columns:
-  CheckListBoxFields.Items.Clear;
-  ds := Mainform.GetResults( 'SHOW FIELDS FROM ' + mainform.mask(oldTableName) );
-  for i:=1 to ds.RecordCount do
-  begin
-    CheckListBoxFields.Items.Add( ds.Fields[0].AsWideString );
-    ds.Next;
-  end;
-  ds.Close;
-  FreeAndNil(ds);
+  CheckListBoxFields.Items.Text := Mainform.Connection.GetCol('SHOW FIELDS FROM ' + mainform.mask(oldTableName)).Text;
 
   // select all:
   for i:=0 to CheckListBoxFields.Items.Count-1 do
@@ -174,7 +165,7 @@ var
   keystr       : WideString;
   notnull,
   default      : WideString;
-  zq           : TDataSet;
+  Results      : TMySQLQuery;
   isFulltext   : Boolean;
   struc_data   : Byte;
   Fixes        : TWideStringlist;
@@ -194,17 +185,17 @@ begin
 
   // keys >
   if CheckBoxWithIndexes.Checked then begin
-    zq := Mainform.GetResults( 'SHOW KEYS FROM ' + mainform.mask(oldtablename) );
+    Results := Mainform.Connection.GetResults('SHOW KEYS FROM ' + mainform.mask(oldtablename));
     setLength(keylist, 0);
     keystr := '';
 
-    for i:=1 to zq.RecordCount do
+    for i:=1 to Results.RecordCount do
     begin
       which := -1;
 
       for k:=0 to length(keylist)-1 do
       begin
-        if keylist[k].Name = zq.Fields[2].AsString then // keyname exists!
+        if keylist[k].Name = Results.Col(2) then // keyname exists!
           which := k;
       end;
       if which = -1 then
@@ -213,30 +204,27 @@ begin
         which := high(keylist);
         keylist[which].Columns := TWideStringList.Create;
         keylist[which].SubParts := TWideStringList.Create;
-        with keylist[which] do // set properties for new key
-        begin
-          if Mainform.mysql_version < 40002 then
-            isFulltext := (zq.FieldByName('Comment').AsString = 'FULLTEXT')
-          else
-            isFulltext := (zq.FieldByName('Index_type').AsString = 'FULLTEXT');
-          Name := zq.Fields[2].AsString;
-          if zq.Fields[2].AsString = 'PRIMARY' then
-            _type := 'PRIMARY'
-          else if isFulltext then
-            _type := 'FULLTEXT'
-          else if zq.Fields[1].AsString = '1' then
-            _type := ''
-          else if zq.Fields[1].AsString = '0' then
-            _type := 'UNIQUE';
-        end;
+        // set properties for new key
+        if Mainform.Connection.ServerVersionInt < 40002 then
+          isFulltext := Results.Col('Comment') = 'FULLTEXT'
+        else
+          isFulltext := Results.Col('Index_type') = 'FULLTEXT';
+        keylist[which].Name := Results.Col(2);
+        if Results.Col(2) = 'PRIMARY' then
+          keylist[which]._type := 'PRIMARY'
+        else if isFulltext then
+          keylist[which]._type := 'FULLTEXT'
+        else if Results.Col(1) = '1' then
+          keylist[which]._type := ''
+        else if Results.Col(1) = '0' then
+          keylist[which]._type := 'UNIQUE';
       end;
       // add column
-      keylist[which].Columns.add( zq.FieldByName('Column_Name').AsWideString );
-      keylist[which].SubParts.add( zq.FieldByName('Sub_part').AsWideString );
-      zq.Next;
+      keylist[which].Columns.add(Results.Col('Column_Name'));
+      keylist[which].SubParts.add(Results.Col('Sub_part'));
+      Results.Next;
     end;
-    zq.Close;
-    FreeAndNil(zq);
+    FreeAndNil(Results);
     for k:=0 to high(keylist) do
     begin
       if k > 0 then
@@ -261,16 +249,16 @@ begin
   // < keys
 
   // Add collation and engine clauses
-  zq := Mainform.FetchActiveDbTableList;
-  while not zq.Eof do begin
-    if zq.FieldByName(DBO_NAME).AsWideString = oldTableName then begin
-      if (zq.FindField(DBO_COLLATION) <> nil) and (zq.FieldByName(DBO_COLLATION).AsString <> '') then
-        strquery := strquery + ' COLLATE ' + zq.FieldByName(DBO_COLLATION).AsString;
-      if (zq.FindField(DBO_ENGINE) <> nil) and (zq.FieldByName(DBO_ENGINE).AsString <> '') then
-        strquery := strquery + ' ENGINE=' + zq.FieldByName(DBO_ENGINE).AsString;
+  Results := Mainform.FetchActiveDbTableList;
+  while not Results.Eof do begin
+    if Results.Col(DBO_NAME) = oldTableName then begin
+      if Results.ColExists(DBO_COLLATION) and (Results.Col(DBO_COLLATION) <> '') then
+        strquery := strquery + ' COLLATE ' + Results.Col(DBO_COLLATION);
+      if Results.ColExists(DBO_ENGINE) and (Results.Col(DBO_ENGINE) <> '') then
+        strquery := strquery + ' ENGINE=' + Results.Col(DBO_ENGINE);
       break;
     end;
-    zq.Next;
+    Results.Next;
   end;
 
   strquery := strquery + ' SELECT';
@@ -291,40 +279,39 @@ begin
   if radioStructure.Checked then
     strquery := strquery + ' WHERE 1 = 0';
 
-  Mainform.ExecUpdateQuery(strquery);
+  Mainform.Connection.Query(strquery, False);
 
   // Fix missing auto_increment property and CURRENT_TIMESTAMP defaults in new table
-  zq := Mainform.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
+  Results := Mainform.Connection.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
   Fixes := TWideStringlist.Create;
-  while not zq.Eof do begin
+  while not Results.Eof do begin
     notnull := '';
-    if zq.FieldByName('Null').AsString = '' then
+    if Results.Col('Null') = '' then
       notnull := 'NOT NULL';
     default := '';
-    if zq.FieldByName('Default').AsWideString <> '' then begin
+    if Results.Col('Default') <> '' then begin
       default := 'DEFAULT ';
-      if zq.FieldByName('Default').AsWideString = 'CURRENT_TIMESTAMP' then
-        default := default + zq.FieldByName('Default').AsWideString
+      if Results.Col('Default') = 'CURRENT_TIMESTAMP' then
+        default := default + Results.Col('Default')
       else
-        default := default + esc(zq.FieldByName('Default').AsWideString);
+        default := default + esc(Results.Col('Default'));
     end;
 
-    if (CheckBoxWithIndexes.Checked and (zq.FieldByName('Extra').AsString = 'auto_increment'))
-      or (zq.FieldByName('Default').AsString = 'CURRENT_TIMESTAMP') then begin
-      Fixes.Add('CHANGE '+Mainform.mask(zq.FieldByName('Field').AsWideString)+' '+
-        Mainform.mask(zq.FieldByName('Field').AsWideString)+' '+
-        zq.FieldByName('Type').AsWideString+' '+default+' '+notnull+' '+zq.FieldByName('Extra').AsString);
+    if (CheckBoxWithIndexes.Checked and (Results.Col('Extra') = 'auto_increment'))
+      or (Results.Col('Default') = 'CURRENT_TIMESTAMP') then begin
+      Fixes.Add('CHANGE '+Mainform.mask(Results.Col('Field'))+' '+
+        Mainform.mask(Results.Col('Field'))+' '+
+        Results.Col('Type')+' '+default+' '+notnull+' '+Results.Col('Extra'));
     end;
 
-    zq.Next;
+    Results.Next;
   end;
   if Fixes.Count > 0 then begin
-    Mainform.ExecUpdateQuery('ALTER TABLE '+Mainform.mask(ComboSelectDatabase.Text) + '.'+Mainform.mask(editNewTablename.Text)+ ' '+
+    Mainform.Connection.Query('ALTER TABLE '+Mainform.mask(ComboSelectDatabase.Text) + '.'+Mainform.mask(editNewTablename.Text)+ ' '+
       ImplodeStr(', ', Fixes)
       );
   end;
-  zq.Close;
-  FreeAndNil(zq);
+  Results.Free;
   FreeAndNil(Fixes);
 
   Mainform.actRefresh.Execute;

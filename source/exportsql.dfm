@@ -148,13 +148,13 @@ object ExportSQLForm: TExportSQLForm
         Left = 235
         Top = 0
         Width = 376
-        Height = 200
+        Height = 161
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Output'
         TabOrder = 0
         DesignSize = (
           376
-          200)
+          161)
         object btnFileBrowse: TPngSpeedButton
           Left = 344
           Top = 42
@@ -218,40 +218,7 @@ object ExportSQLForm: TExportSQLForm
           Color = clBtnFace
           Enabled = False
           ItemHeight = 13
-          TabOrder = 6
-        end
-        object radioOtherHost: TRadioButton
-          Left = 9
-          Top = 152
-          Width = 256
-          Height = 17
-          Caption = 'Another host and optionally another database'
-          TabOrder = 8
-          OnClick = radioOtherHostClick
-        end
-        object comboOtherHost: TComboBox
-          Left = 26
-          Top = 169
-          Width = 137
-          Height = 21
-          Style = csDropDownList
-          Color = clBtnFace
-          Enabled = False
-          ItemHeight = 13
           TabOrder = 5
-          OnSelect = comboOtherHostSelect
-        end
-        object comboOtherHostDatabase: TTntComboBox
-          Left = 168
-          Top = 169
-          Width = 198
-          Height = 21
-          Style = csDropDownList
-          Anchors = [akLeft, akTop, akRight]
-          Color = clBtnFace
-          Enabled = False
-          ItemHeight = 13
-          TabOrder = 7
         end
         object radioDirectory: TRadioButton
           Left = 9
@@ -278,9 +245,9 @@ object ExportSQLForm: TExportSQLForm
       end
       object groupExampleSql: TGroupBox
         Left = 235
-        Top = 206
+        Top = 167
         Width = 376
-        Height = 107
+        Height = 146
         Anchors = [akLeft, akTop, akRight, akBottom]
         Caption = 'Example SQL'
         TabOrder = 1
@@ -288,7 +255,7 @@ object ExportSQLForm: TExportSQLForm
           Left = 2
           Top = 15
           Width = 372
-          Height = 90
+          Height = 129
           SingleLineMode = False
           Align = alClient
           Color = clBtnFace
