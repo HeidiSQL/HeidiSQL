@@ -71,7 +71,6 @@ http://www.heidisql.com/donate.php
 ----------------------------------------
  ** Very special thanks go to:
 ----------------------------------------
-- ZeosLib under GPL - http://sourceforge.net/projects/zeoslib/
 - SynEdit under LGPL - http://synedit.sourceforge.net
 - TNT Unicode Controls with unicode exceptions - http://www.mh-nexus.de/tntunicodecontrols.htm
 - Inno Setup - http://www.jrsoftware.org/
