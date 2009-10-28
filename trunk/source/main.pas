@@ -10,20 +10,19 @@ unit Main;
 interface
 
 uses
-  Synchronization,
-  Communication,
   Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
   StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
-  ActnList, ImgList, ShellApi, ToolWin, Clipbrd, db,
-  SynMemo, synedit, SynEditTypes, ZDataSet, ZSqlProcessor,
-  sqlhelp, MysqlQueryThread, VirtualTrees,
+  ActnList, ImgList, ShellApi, ToolWin, Clipbrd,
+  SynMemo, synedit, SynEditTypes,
+  sqlhelp, VirtualTrees,
   DateUtils, PngImageList, TableTools, View, Usermanager,
   SelectDBObject, Widestrings, ShlObj, SynEditMiscClasses, SynEditSearch,
-  SynCompletionProposal, ZSqlMonitor, SynEditHighlighter, SynHighlighterSQL,
-  TntStdCtrls, Tabs, SynUnicode, mysqlconn, EditVar, helpers, queryprogress,
-  mysqlquery, createdatabase, table_editor, SynRegExpr,
-  WideStrUtils, ZDbcLogging, ExtActns, CommCtrl, routine_editor, options,
-  Contnrs, PngSpeedButton, connections, SynEditKeyCmds, exportsql;
+  SynCompletionProposal, SynEditHighlighter, SynHighlighterSQL,
+  TntStdCtrls, Tabs, SynUnicode, EditVar, helpers,
+  createdatabase, table_editor, SynRegExpr,
+  WideStrUtils, ExtActns, CommCtrl, routine_editor, options,
+  Contnrs, PngSpeedButton, connections, SynEditKeyCmds, exportsql,
+  mysql_connection, mysql_api;
 
 
 type
@@ -136,8 +135,6 @@ type
     actLoadSQL: TAction;
     ImportSQL1: TMenuItem;
     menuConnections: TPopupMenu;
-    menuWindow: TMenuItem;
-    miFake: TMenuItem;
     menuBugtracker: TMenuItem;
     menuFeaturetracker: TMenuItem;
     menuDownload: TMenuItem;
@@ -309,7 +306,6 @@ type
     InsertfilesintoBLOBfields3: TMenuItem;
     N19: TMenuItem;
     setNULL1: TMenuItem;
-    ZSQLMonitor1: TZSQLMonitor;
     menuExporttables: TMenuItem;
     popupDbGridHeader: TPopupMenu;
     SynCompletionProposal: TSynCompletionProposal;
@@ -458,7 +454,6 @@ type
     procedure setDefaultWindowConfig;
     procedure actCreateTableExecute(Sender: TObject);
     procedure actCreateViewExecute(Sender: TObject);
-    procedure menuWindowClick(Sender: TObject);
     procedure focusWindow(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -518,13 +513,7 @@ type
     procedure actSQLhelpExecute(Sender: TObject);
     procedure actUpdateCheckExecute(Sender: TObject);
     procedure actWebbrowse(Sender: TObject);
-    function ExecuteRemoteQuery(sender: THandle; query: string): TDataSet;
-    procedure ExecuteRemoteNonQuery(sender: THandle; query: string);
     procedure FindDialogQueryFind(Sender: TObject);
-    procedure HandleWMComplete(var msg: TMessage); message WM_COMPLETED;
-    procedure HandleWMCopyData(var msg: TWMCopyData); message WM_COPYDATA;
-    procedure HandleWMProcessLog(var msg: TMessage); message WM_PROCESSLOG;
-    procedure HandleWMRefill(var msg: TMessage); message WM_REFILL_SPAREBUF;
     procedure ReplaceDialogQueryFind(Sender: TObject);
     procedure ReplaceDialogQueryReplace(Sender: TObject);
     procedure actCopyAsSQLExecute(Sender: TObject);
@@ -557,7 +546,7 @@ type
     procedure EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; FullWidth: Boolean = False);
     procedure DiscardNodeData(Sender: TVirtualStringTree; Node: PVirtualNode);
     procedure viewdata(Sender: TObject);
-    procedure LogSQL(msg: WideString = ''; comment: Boolean = true );
+    procedure LogSQL(Msg: WideString; Category: TMySQLLogCategory=lcInfo);
     procedure CheckUptime;
     procedure KillProcess(Sender: TObject);
     procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false;
@@ -585,21 +574,8 @@ type
     procedure popupDataGridPopup(Sender: TObject);
     procedure InsertDate(Sender: TObject);
     procedure setNULL1Click(Sender: TObject);
-    function GetNamedVar( SQLQuery: WideString; x: WideString;
-      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : WideString;
-    function GetVar( SQLQuery: WideString; x: Integer = 0;
-      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : WideString;
-    function GetResults( SQLQuery: WideString;
-      HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
-    function GetCol( SQLQuery: WideString; x: Integer = 0;
-      HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : WideStrings.TWideStringList;
-    procedure ZSQLMonitor1LogTrace(Sender: TObject; Event: TZLoggingEvent);
     procedure MenuTablelistColumnsClick(Sender: TObject);
-    procedure CancelQuery;
-    procedure CheckConnection();
     procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
-    procedure ExecuteNonQuery(SQLQuery: String);
-    function ExecuteQuery(query: String): TDataSet;
     function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
     procedure DataGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure DataGridCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -623,7 +599,6 @@ type
     procedure menuExploreClick(Sender: TObject);
     procedure menuInsertSnippetAtCursorClick(Sender: TObject);
     procedure menuLoadSnippetClick(Sender: TObject);
-    procedure RunAsyncPost(ds: TDeferDataSet);
     procedure vstGetNodeDataSize(Sender: TBaseVirtualTree; var
         NodeDataSize: Integer);
     procedure vstInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
@@ -663,7 +638,6 @@ type
     procedure vstGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; var LineBreakStyle: TVTTooltipLineBreakStyle; var
         HintText: WideString);
-    procedure ProcessSqlLog;
     procedure ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
@@ -739,13 +713,7 @@ type
     ReachedEOT                 : Boolean;
     FDelimiter: String;
     ServerUptime               : Integer;
-    time_connected             : Cardinal;
     viewingdata                : Boolean;
-    FMysqlConn                 : TMysqlConn;
-    FConn                      : TOpenConnProf;
-    QueryRunningInterlock      : Integer;
-    UserQueryFired             : Boolean;
-    UserQueryFiring            : Boolean;
     CachedTableLists           : WideStrings.TWideStringList;
     EditVariableForm           : TfrmEditVariable;
     FileNameSessionLog         : String;
@@ -754,10 +722,10 @@ type
     SqlMessagesLock            : TRtlCriticalSection;
     dsShowEngines,
     dsHaveEngines,
-    dsCollations               : TDataset;
-    FilterPanelManuallyOpened  : Boolean;
+    dsCollations,
     FSelectedTableColumns,
-    FSelectedTableKeys     : TDataset;
+    FSelectedTableKeys         : TMySQLQuery;
+    FilterPanelManuallyOpened  : Boolean;
     DataGridDB, DataGridTable  : WideString;
     PrevTableColWidths         : WideStrings.TWideStringList;
     DataGridHasChanges         : Boolean;
@@ -770,10 +738,6 @@ type
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
     procedure SetDelimiter(Value: String);
-    function GetQueryRunning: Boolean;
-    procedure SetQueryRunning(running: Boolean);
-    procedure WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery; ForceDialog: Boolean);
-    function RunThreadedQuery(AQuery: WideString; ForceDialog: Boolean): TMysqlQuery;
     procedure DisplayRowCountStats(MatchingRows: Int64 = -1);
     procedure insertFunction(Sender: TObject);
     function GetActiveDatabase: WideString;
@@ -781,15 +745,17 @@ type
     procedure SetSelectedDatabase(db: WideString);
     procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: WideStrings.TWideStringList );
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
-    function GetSelectedTableColumns: TDataset;
-    function GetSelectedTableKeys: TDataset;
+    function GetSelectedTableColumns: TMySQLQuery;
+    function GetSelectedTableKeys: TMySQLQuery;
     procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: Widestrings.TWideStringlist = nil);
     procedure PlaceObjectEditor(Which: TListNodeType);
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
     procedure SaveQueryMemo(Filename: String; OnlySelection: Boolean);
     procedure UpdateFilterPanel(Sender: TObject);
+    procedure DatabaseChanged(Database: WideString);
   public
+    Connection: TMySQLConnection;
     cancelling: Boolean;
     virtualDesktopName: string;
     TableToolsDialog: TfrmTableTools;
@@ -804,7 +770,6 @@ type
     TemporaryDatabase          : WideString;
     dataselected               : Boolean;
     editing                    : Boolean;
-    mysql_version              : Integer;
     WindowNumber               : Integer;
     SessionName                : String;
     VTRowDataListVariables,
@@ -812,9 +777,6 @@ type
     VTRowDataListProcesses,
     VTRowDataListCommandStats,
     VTRowDataListTables        : TVTreeDataArray;
-
-    FProgressForm              : TFrmQueryProgress;
-
     // Variables set by preferences dialog
     prefRememberFilters        : Boolean;
     prefLogsqlnum,
@@ -853,31 +815,22 @@ type
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
     procedure SessionConnect(Sender: TObject);
-    function InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parCompress, parSession: WideString): Boolean;
-    //procedure HandleQueryNotification(ASender : TMysqlQuery; AEvent : Integer);
+    function InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, parSession: WideString): Boolean;
 
-    function ExecUpdateQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
-    function ExecSelectQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
-    procedure ExecUseQuery(db: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
-
-    property FQueryRunning: Boolean read GetQueryRunning write SetQueryRunning;
     function ActiveGrid: TVirtualStringTree;
     function GridResult(Grid: TBaseVirtualTree): TGridResult; overload;
     function GridResult(PageIndex: Integer): TGridResult; overload;
-    property MysqlConn : TMysqlConn read FMysqlConn;
-    property Conn : TOpenConnProf read FConn;
 
     property ActiveDatabase : WideString read GetActiveDatabase write SetSelectedDatabase;
     property SelectedTable : TListNode read GetSelectedTable;
 
-    function FetchActiveDbTableList: TDataSet;
-    function RefreshActiveDbTableList: TDataSet;
-    function FetchDbTableList(db: WideString): TDataSet;
-    function RefreshDbTableList(db: WideString): TDataSet;
+    function FetchActiveDbTableList: TMySQLQuery;
+    function RefreshActiveDbTableList: TMySQLQuery;
+    function FetchDbTableList(db: WideString): TMySQLQuery;
+    function RefreshDbTableList(db: WideString): TMySQLQuery;
     procedure ClearDbTableList(db: WideString);
     function DbTableListCachedAndValid(db: WideString): Boolean;
     procedure ClearAllTableLists;
-    procedure EnsureDatabase;
     procedure TestVTreeDataArray( P: PVTreeDataArray );
     function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
     procedure ActivateFileLogging;
@@ -899,8 +852,8 @@ type
     function CheckUniqueKeyClause: Boolean;
     procedure DataGridInsertRow;
     procedure DataGridCancel(Sender: TObject);
-    property SelectedTableColumns: TDataset read GetSelectedTableColumns write FSelectedTableColumns;
-    property SelectedTableKeys: TDataset read GetSelectedTableKeys write FSelectedTableKeys;
+    property SelectedTableColumns: TMySQLQuery read GetSelectedTableColumns write FSelectedTableColumns;
+    property SelectedTableKeys: TMySQLQuery read GetSelectedTableKeys write FSelectedTableKeys;
     procedure CalcNullColors;
     procedure FillDataViewPopup;
     procedure GetDataViews(List: TStrings);
@@ -909,7 +862,7 @@ type
     function GetRegKeyTable: String;
     procedure SaveListSetup( List: TVirtualStringTree );
     procedure RestoreListSetup( List: TVirtualStringTree );
-    function GetCollations(Items: TWideStrings = nil): TDataset;
+    function GetCollations(Items: TWideStrings = nil): TMySQLQuery;
     procedure SetEditorTabCaption(Editor: TFrame; ObjName: WideString);
     procedure ResetSelectedTableStuff;
     procedure SetWindowCaption;
@@ -952,48 +905,13 @@ const
 implementation
 
 uses
-  About, loaddata, printlist, copytable, insertfiles, Threading,
+  About, loaddata, printlist, copytable, insertfiles,
   mysql_structures, UpdateCheck, uVistaFuncs, runsqlfile, column_selection,
   data_sorting, grideditlinks, dataviewsave;
 
 
 {$R *.DFM}
 
-
-procedure TMainForm.HandleWMComplete(var msg: TMessage);
-begin
-  HandleWMCompleteMessage(msg);
-end;
-
-procedure TMainForm.HandleWMCopyData(var msg: TWMCopyData);
-begin
-  HandleWMCopyDataMessage(msg);
-end;
-
-procedure TMainForm.HandleWMProcessLog(var msg: TMessage);
-begin
-  ProcessSqlLog;
-end;
-
-function TMainForm.ExecuteRemoteQuery(sender: THandle; query: string): TDataSet;
-//var
-  //tab: THandle;
-begin
-  // tab := TMDIChild(ActiveMDIChild).CreateOrGetRemoteQueryTab(sender);
-  // TQueryTab(tab).AddText(query);
-  // tab.ExecOrQueueQuery(query);
-  result := ExecuteQuery(query);
-end;
-
-procedure TMainForm.ExecuteRemoteNonQuery(sender: THandle; query: string);
-//var
-  //tab: THandle;
-begin
-  // tab := TMDIChild(ActiveMDIChild).CreateOrGetRemoteQueryTab(sender);
-  // TQueryTab(tab).AddText(query);
-  // tab.ExecOrQueueQuery(query);
-  ExecuteNonQuery(query);
-end;
 
 procedure TMainForm.showstatus(msg: string=''; panel: Integer=6);
 begin
@@ -1096,7 +1014,7 @@ var
 begin
   flushwhat := UpperCase(TAction(Sender).Caption);
   delete(flushwhat, pos('&', flushwhat), 1);
-  ExecUpdateQuery('FLUSH ' + flushwhat);
+  Connection.Query('FLUSH ' + flushwhat);
   if Sender = actFlushTableswithreadlock then begin
     MessageDlg(
       'Tables have been flushed and read lock acquired.'#10 +
@@ -1104,7 +1022,7 @@ begin
       'Press OK to unlock when done...',
       mtInformation, [mbOk], 0
     );
-    ExecUpdateQuery('UNLOCK TABLES');
+    Connection.Query('UNLOCK TABLES');
   end;
 end;
 
@@ -1213,32 +1131,6 @@ begin
 end;
 
 
-var
-  spareMemory: Pointer = nil;
-
-procedure HandleRuntimeError(ErrorCode: Byte; ErrorAddr: Pointer);
-begin
-  if spareMemory <> nil then FreeMem(spareMemory);
-  debug('mem: released spare block.');
-  spareMemory := nil;
-  if MainForm <> nil then begin
-    PostMessage(MainForm.Handle, WM_REFILL_SPAREBUF, 0, 0);
-  end;
-  raise Exception.Create('Runtime error ' + IntToStr(ErrorCode) + ' at ' + IntToHex(Cardinal(ErrorAddr), 8) + '.');
-end;
-
-procedure SpareBufRefill;
-begin
-  debug('mem: reallocating spare block.');
-  if spareMemory = nil then spareMemory := AllocMem(6543210);
-end;
-
-procedure TMainForm.HandleWMRefill(var msg: TMessage);
-begin
-  SpareBufRefill;
-end;
-
-
 {***
   OnCreate Event
   Important to set the windowstate here instead of in OnShow
@@ -1264,9 +1156,6 @@ begin
 
   // Use new Vista dialogs per default.
   //UseLatestCommonDialogs := True;
-
-  SpareBufRefill;
-  ErrorProc := HandleRuntimeError;
 
   refreshMonitorConfig;
   loadWindowConfig;
@@ -1296,9 +1185,6 @@ begin
   // Folder for session logfiles
   DirnameSessionLogs := DirnameUserAppData + 'Sessionlogs\';
 
-  QueryRunningInterlock := 0;
-  UserQueryFired := False;
-  UserQueryFiring := False;
   TemporaryDatabase := '';
 
   // SQLFiles-History
@@ -1473,9 +1359,9 @@ end;
 }
 procedure TMainForm.Startup;
 var
-  curParam, parNetType: Byte;
+  curParam, NetType: Byte;
   sValue,
-  parHost, parPort, parUser, parPass,
+  parHost, parSocketname, parPort, parUser, parPass,
   parCompress, parSession: String;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
@@ -1556,7 +1442,6 @@ begin
 
   // Check commandline if parameters were passed. Otherwise show connections windows
   curParam := 1;
-  parNetType := NETTYPE_TCPIP;
   while curParam <= ParamCount do begin
     // -M and -d are choosen not to conflict with mysql.exe
     // http://dev.mysql.com/doc/refman/5.0/en/mysql-command-options.html
@@ -1567,8 +1452,8 @@ begin
       parHost := sValue
     else if GetParamValue('P', 'port', curParam, sValue) then
       parPort := sValue
-    else if GetParamValue('T', 'nettype', curParam, sValue) then
-      parNetType := StrToIntDef(sValue, NETTYPE_TCPIP)
+    else if GetParamValue('s', 'socket', curParam, sValue) then
+      parSocketname := sValue
     else if GetParamValue('C', 'compress', curParam, sValue) then
       parCompress := sValue
     else if GetParamValue('u', 'user', curParam, sValue) then
@@ -1582,8 +1467,14 @@ begin
 
   // Find stored session if -dSessionName was passed
   if (parSession <> '') and MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + parSession) then begin
-    parNetType := GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, parSession);
+    NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, parSession);
     parHost := GetRegValue(REGNAME_HOST, DEFAULT_HOST, parSession);
+    if NetType = NETTYPE_TCPIP then
+      parSocketname := ''
+    else begin
+      parSocketname := parHost;
+      parHost := '.';
+    end;
     parUser := GetRegValue(REGNAME_USER, DEFAULT_USER, parSession);
     parPass := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, parSession));
     parPort := GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), parSession);
@@ -1595,7 +1486,7 @@ begin
   if CommandLineMode then begin
     if parSession = '' then
       parSession := parHost;
-    Connected := InitConnection(parNetType, parHost, parPort, parUser, parPass, parCompress, parSession);
+    Connected := InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, parSession);
   end;
 
   // Auto connection via preference setting
@@ -1603,9 +1494,17 @@ begin
   if (not CommandLineMode) and (not Connected) and GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT) then begin
     LastSession := GetRegValue(REGNAME_LASTSESSION, '');
     if LastSession <> '' then begin
+      parHost := GetRegValue(REGNAME_HOST, '', LastSession);
+      NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, LastSession);
+      if NetType = NETTYPE_TCPIP then
+        parSocketname := ''
+      else begin
+        parSocketname := parHost;
+        parHost := '.';
+      end;
       Connected := InitConnection(
-        GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, LastSession),
-        GetRegValue(REGNAME_HOST, '', LastSession),
+        parHost,
+        parSocketname,
         GetRegValue(REGNAME_PORT, '', LastSession),
         GetRegValue(REGNAME_USER, '', LastSession),
         decrypt(GetRegValue(REGNAME_PASSWORD, '', LastSession)),
@@ -1648,9 +1547,6 @@ procedure TMainForm.DoAfterConnect;
 var
   i, j: Integer;
   lastUsedDB: WideString;
-  v: String[50];
-  v1, v2, v3: String;
-  rx: TRegExpr;
   functioncats : TStringList;
   miGroup,
   miFilterGroup,
@@ -1663,28 +1559,12 @@ begin
   if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
     ActivateFileLogging;
 
-  TimerConnected.Enabled := true;
-  LogSQL('Connected. Thread-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ));
-
-  // Detect server version
-  // Be careful with version suffixes, for example: '4.0.31-20070605_Debian-5-log'
-  v := GetVar( 'SELECT VERSION()' );
-  rx := TRegExpr.Create;
-  rx.ModifierG := True;
-  rx.Expression := '^(\d+)\.(\d+)\.(\d+)';
-  if rx.Exec(v) then begin
-    v1 := rx.Match[1];
-    v2 := rx.Match[2];
-    v3 := rx.Match[3];
-  end;
-  rx.Free;
-  mysql_version := MakeInt(v1) *10000 + MakeInt(v2) *100 + MakeInt(v3);
-  tabHost.Caption := 'Host: '+MySQLConn.Connection.HostName;
-  showstatus('MySQL '+v1+'.'+v2+'.'+v3, 3);
+  tabHost.Caption := 'Host: '+Connection.HostName;
+  showstatus('MySQL '+Connection.ServerVersionStr, 3);
 
   // Save server version
   OpenRegistry(SessionName);
-  Mainreg.WriteInteger(REGNAME_SERVERVERSION, mysql_version);
+  Mainreg.WriteInteger(REGNAME_SERVERVERSION, Connection.ServerVersionInt);
   Mainreg.WriteString(REGNAME_LASTCONNECT, DateTimeToStr(Now));
 
   comboOnlyDBs.Items.Text := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', SessionName));
@@ -1697,10 +1577,6 @@ begin
   DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
 
   CheckUptime;
-
-  // Define window properties
-  SetWindowConnected( true );
-  WindowNumber := SetWindowName(SessionName);
 
   // Reselect last used database
   if GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) then begin
@@ -1752,14 +1628,14 @@ begin
         miFunction.Caption := '&-';
       miFunction.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration;
       // Take care of needed server version
-      if MySqlFunctions[j].Version <= mysql_version then begin
+      if MySqlFunctions[j].Version <= Connection.ServerVersionInt then begin
         if MySqlFunctions[j].Description <> '' then
           miFunction.Hint := miFunction.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
         miFunction.Tag := j;
         // Place menuitem on menu
         miFunction.OnClick := insertFunction;
       end else begin
-        miFunction.Hint := miFunction.Hint + ' - ('+STR_NOTSUPPORTED+', needs >= '+ConvertServerVersion(MySqlFunctions[j].Version)+')';
+        miFunction.Hint := miFunction.Hint + ' - ('+STR_NOTSUPPORTED+', needs >= '+Connection.ConvertServerVersion(MySqlFunctions[j].Version)+')';
         miFunction.Enabled := False;
       end;
       // Prevent generating a seperator for ShortHint and LongHint
@@ -1806,11 +1682,8 @@ begin
   FreeAndNil(CreateDatabaseForm);
 
   // Closing connection
-  if Assigned(FMysqlConn) then begin
-    LogSQL('Closing connection to "'+SessionName+'" session (' + FMysqlConn.Connection.hostname + ') ...');
-    FMysqlConn.Disconnect;
-    FreeAndNil(FMysqlConn);
-  end;
+  if Assigned(Connection) then
+    FreeAndNil(Connection);
 
   if prefLogToFile then
     DeactivateFileLogging;
@@ -1821,12 +1694,8 @@ begin
   ListProcesses.Tag := VTREE_NOTLOADED;
   ListCommandstats.Tag := VTREE_NOTLOADED;
 
-  SetWindowConnected( false );
-  SetWindowName( main.discname );
   Application.Title := APPNAME;
 
-  TimerConnected.Enabled := False;
-  time_connected := 0;
   TimerHostUptime.Enabled := False;
 end;
 
@@ -1900,43 +1769,6 @@ begin
     UserManagerForm := TUserManagerForm.Create(Self);
   if UserManagerForm.TestUserAdmin then
     UserManagerForm.ShowModal;
-end;
-
-procedure TMainForm.menuWindowClick(Sender: TObject);
-var
-  i: integer;
-  list: TWindowDataArray;
-  item: TMenuItem;
-begin
-  // Delete dynamically added connection menu items.
-  // NOTE: The menu doesn't like having 0 items, so we keep one which we delete later.
-  for i := menuWindow.Count - 1 downto 1 do menuWindow.Delete(i);
-
-  // Check if all the heidisql windows are still alive.
-  CheckForCrashedWindows;
-
-  // Fetch the list of windows.
-  list := GetWindowList;
-
-  // TODO: Load "all" array with all connections
-
-  // Re-create dynamic menu items.
-  for i := 0 to High(list) do with list[i] do begin
-    // TODO: Remove connection with this UID from "all" array
-    item := TMenuItem.Create(self);
-    if namePostfix <> 0 then name := name + Format(' (%d)', [namePostFix]);
-    item.Caption := name;
-    if (appHandle = Handle) and (connected) then item.ImageIndex := ICON_MYSELF_CONNECTED
-    else if (appHandle = Handle) and (not connected) then item.ImageIndex := ICON_MYSELF_DISCONNECTED
-    else if (appHandle <> Handle) and (connected) then item.ImageIndex := ICON_OTHER_CONNECTED
-    else if (appHandle <> Handle) and (not connected) then item.ImageIndex := ICON_OTHER_DISCONNECTED;
-    item.Tag := appHandle;
-    item.OnClick := focusWindow;
-    menuWindow.Add(item);
-  end;
-  // NOTE: The menu breaks if it has 0 items at any point.  Therefore we delete item 0 as the last thing.
-  //       Perhaps later the Window menu will contain more items, for now it's initially filled with a fake menu item.
-  menuWindow.Delete(0);
 end;
 
 procedure TMainForm.actAboutBoxExecute(Sender: TObject);
@@ -2030,7 +1862,6 @@ end;
 procedure TMainForm.menuConnectionsPopup(Sender: TObject);
 var
   i: integer;
-  list: TWindowDataArray;
   item: TMenuItem;
   Connections: TStringList;
 begin
@@ -2038,32 +1869,6 @@ begin
   for i := menuConnections.Items.Count - 1 downto 0 do begin
     menuConnections.Items.Delete(i);
   end;
-
-  // Check if all the heidisql windows are still alive.
-  CheckForCrashedWindows;
-
-  // Fetch list of heidisql windows.
-  list := GetWindowList;
-
-  // Re-create dynamic menu items.
-  for i := 0 to High(list) do with list[i] do begin
-    // TODO: Remove connection with this UID from "all" array
-    item := TMenuItem.Create(self);
-    if namePostfix <> 0 then name := name + Format(' (%d)', [namePostFix]);
-    item.Caption := name;
-    if (appHandle = Handle) and (connected) then item.ImageIndex := ICON_MYSELF_CONNECTED
-    else if (appHandle = Handle) and (not connected) then item.ImageIndex := ICON_MYSELF_DISCONNECTED
-    else if (appHandle <> Handle) and (connected) then item.ImageIndex := ICON_OTHER_CONNECTED
-    else if (appHandle <> Handle) and (not connected) then item.ImageIndex := ICON_OTHER_DISCONNECTED;
-    item.Tag := appHandle;
-    item.OnClick := focusWindow;
-    menuConnections.Items.Add(item);
-  end;
-
-  // Add separator
-  item := TMenuItem.Create(menuConnections);
-  item.Caption := '-';
-  menuConnections.Items.Add(item);
 
   // "Session manager" and "New window" items
   item := TMenuItem.Create(menuConnections);
@@ -2136,7 +1941,7 @@ end;
 // Escape database, table, field, index or key name.
 function TMainform.mask(str: WideString) : WideString;
 begin
-  result := maskSql(mysql_version, str);
+  result := Connection.QuoteIdent(str);
 end;
 
 
@@ -2372,7 +2177,7 @@ end;
 
 procedure TMainForm.actExportTablesExecute(Sender: TObject);
 var
-  ds: TDataset;
+  Results: TMySQLQuery;
   InDBTree: Boolean;
   Comp: TComponent;
 begin
@@ -2388,10 +2193,10 @@ begin
     if SelectedTable.Text <> '' then
       ExportSQLForm.SelectedTables.Add(SelectedTable.Text)
     else if Mainform.ActiveDatabase <> '' then begin
-      ds := Mainform.FetchDbTableList(ActiveDatabase);
-      while not ds.Eof do begin
-        ExportSQLForm.SelectedTables.Add(ds.FieldByName(DBO_NAME).AsWideString);
-        ds.Next;
+      Results := Mainform.FetchDbTableList(ActiveDatabase);
+      while not Results.Eof do begin
+        ExportSQLForm.SelectedTables.Add(Results.Col(DBO_NAME));
+        Results.Next;
       end;
     end;
   end else
@@ -2421,12 +2226,12 @@ var
         if (i > 0) and MultiDrops then sql := sql + ', ';
         sql := sql + mask(List[i]);
         if not MultiDrops then begin
-          ExecUpdateQuery(baseSql + sql);
+          Connection.Query(baseSql + sql);
           sql := '';
         end;
       end;
       if MultiDrops then
-        ExecUpdateQuery(baseSql + sql);
+        Connection.Query(baseSql + sql);
     end;
     FreeAndNil(List);
   end;
@@ -2453,7 +2258,7 @@ begin
           Abort;
         Screen.Cursor := crHourglass;
         try
-          ExecUpdateQuery( 'DROP DATABASE ' + mask(activeDB) );
+          Connection.Query('DROP DATABASE ' + mask(activeDB));
           ClearDbTableList(activeDB);
           DBtree.Selected[DBtree.GetFirst] := true;
           RefreshTree(False);
@@ -2564,17 +2369,23 @@ end;
 procedure TMainForm.SessionConnect(Sender: TObject);
 var
   Session: String;
-  parNetType: Integer;
-  parHost, parPort, parUser, parPass, parCompress: WideString;
+  NetType: Integer;
+  parHost, parSocketname, parPort, parUser, parPass, parCompress: WideString;
 begin
   Session := (Sender as TMenuItem).Caption;
-  parNetType := GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, Session);
+  NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, Session);
   parHost := GetRegValue(REGNAME_HOST, '', Session);
+  if NetType = NETTYPE_TCPIP then
+    parSocketname := ''
+  else begin
+    parSocketname := parHost;
+    parHost := '.';
+  end;
   parUser := GetRegValue(REGNAME_USER, '', Session);
   parPass := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
   parPort := GetRegValue(REGNAME_PORT, '', Session);
   parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session)));
-  if InitConnection(parNetType, parHost, parPort, parUser, parPass, parCompress, Session) then
+  if InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, Session) then
     DoAfterConnect;
 end;
 
@@ -2583,66 +2394,43 @@ end;
   Receive connection parameters and create the mdi-window
   Paremeters are either sent by connection-form or by commandline.
 }
-function TMainform.InitConnection(parNetType: Integer; parHost, parPort, parUser, parPass, parCompress, parSession: WideString): Boolean;
+function TMainform.InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, parSession: WideString): Boolean;
 var
-  MysqlConnection: TMysqlConn;
-  Profile: TOpenConnProf;
-  UsingPass, NetType: String;
+  ConnectionAttempt: TMySQLConnection;
   SessionExists: Boolean;
 begin
-  // fill structure
-  ZeroMemory(@Profile, SizeOf(Profile));
-  Profile.MysqlParams.Protocol := 'mysql';
-  Profile.MysqlParams.NetType := parNetType;
-  Profile.MysqlParams.Host := Trim( parHost );
-  Profile.MysqlParams.Port := StrToIntDef(parPort, DEFAULT_PORT);
-  Profile.MysqlParams.Database := '';
-  Profile.MysqlParams.User := parUser;
-  Profile.MysqlParams.Pass := parPass;
-  if Integer(parCompress) > 0 then
-    Profile.MysqlParams.PrpCompress := 'true'
-  else
-    Profile.MysqlParams.PrpCompress := 'false';
-  Profile.MysqlParams.PrpDbless := 'true';
-  Profile.MysqlParams.PrpClientLocalFiles := 'true';
-  Profile.MysqlParams.PrpClientInteractive := 'true';
-
-  MysqlConnection := TMysqlConn.Create(@Profile);
+  ConnectionAttempt := TMySQLConnection.Create(Self);
+  ConnectionAttempt.OnLog := LogSQL;
+  ConnectionAttempt.OnDatabaseChanged := DatabaseChanged;
+  ConnectionAttempt.Hostname := parHost;
+  ConnectionAttempt.Socketname := parSocketname;
+  ConnectionAttempt.Username := parUser;
+  ConnectionAttempt.Password := parPass;
+  ConnectionAttempt.Port := StrToIntDef(parPort, MYSQL_PORT);
+  ConnectionAttempt.Active := True;
 
   // attempt to establish connection
-  if Profile.MysqlParams.Pass <> '' then UsingPass := 'Yes' else UsingPass := 'No';
-  case parNetType of
-    NETTYPE_TCPIP: NetType := 'TCP/IP';
-    NETTYPE_NAMEDPIPE: NetType := 'named pipe';
-    else NetType := 'unknown protocol';
-  end;
-  LogSQL('Connecting to '+Profile.MysqlParams.Host+' via '+NetType+
-    ', username '+Profile.MysqlParams.User+
-    ', using password: '+UsingPass+' ...');
   SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + parSession);
-  if MysqlConnection.Connect <> MCR_SUCCESS then begin
+  if not ConnectionAttempt.Active then begin
     // attempt failed
     if SessionExists then begin
       // Save "refused" counter
       OpenRegistry(parSession);
       MainReg.WriteInteger(REGNAME_REFUSEDCOUNT, GetRegValue(REGNAME_REFUSEDCOUNT, 0, parSession)+1);
     end;
-    MessageDlg ( 'Could not establish connection! Details:'+CRLF+CRLF+MysqlConnection.LastError, mtError, [mbOK], 0);
     Result := False;
-    FreeAndNil(MysqlConnection);
+    FreeAndNil(ConnectionAttempt);
   end else begin
     if SessionExists then begin
       // Save "refused" counter
       OpenRegistry(parSession);
       MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, parSession)+1);
     end;
+
     Result := True;
-    Profile.MysqlConn := MysqlConnection.Connection;
-    if Assigned(FMysqlConn) then
+    if Assigned(Connection) then
       DoDisconnect;
-    // Assign global connection objects
-    FConn := Profile;
-    FMysqlConn := MysqlConnection;
+    Connection := ConnectionAttempt;
     SessionName := parSession;
   end;
   ShowStatus( STATUS_MSG_READY );
@@ -2717,13 +2505,13 @@ begin
     @see http://dev.mysql.com/doc/refman/5.0/en/truncate.html
     @see https://sourceforge.net/tracker/index.php?func=detail&aid=1644143&group_id=164593&atid=832350
   }
-  if mysql_version < 50003 then
+  if Connection.ServerVersionInt < 50003 then
     sql_pattern := 'DELETE FROM '
   else
     sql_pattern := 'TRUNCATE ';
 
   for i:=0 to t.count-1 do
-    ExecUpdateQuery( sql_pattern + mask(t[i]) );
+    Connection.Query( sql_pattern + mask(t[i]) );
   t.Free;
   actRefresh.Execute;
   Screen.Cursor := crDefault;
@@ -2793,10 +2581,10 @@ end;
 procedure TMainForm.actSQLhelpExecute(Sender: TObject);
 var
   keyword : String;
-  ds: TDataset;
+  Results: TMySQLQuery;
 begin
   // Call SQL Help from various places
-  if mysql_version < 40100 then
+  if Connection.ServerVersionInt < 40100 then
     exit;
 
   keyword := '';
@@ -2806,9 +2594,9 @@ begin
   // Data-Tab
   else if (PageControlMain.ActivePage = tabData)
     and Assigned(DataGrid.FocusedNode) then begin
-    ds := SelectedTableColumns;
-    ds.RecNo := DataGrid.FocusedColumn;
-    keyword := ds.FieldByName('Type').AsWideString;
+    Results := SelectedTableColumns;
+    Results.RecNo := DataGrid.FocusedColumn;
+    keyword := Results.Col('Type');
   end
   else if QueryTabActive and ActiveQueryHelpers.Focused then
   begin
@@ -3298,105 +3086,44 @@ begin
 end;
 
 
-function TMainForm.GetQueryRunning: Boolean;
-begin
-  Result := ( QueryRunningInterlock = 1 );
-end;
-
-
-procedure TMainForm.SetQueryRunning(running: Boolean);
-var
-  newValue    : Integer;
-  oldValue    : Integer;
-begin
-  if ( running ) then
-  begin
-    newValue := 1;
-  end
-  else
-  begin
-    newValue := 0;
-  end;
-
-  oldValue := InterlockedExchange( QueryRunningInterlock, newValue );
-  if ( newValue = oldValue ) then
-  begin
-    case ( newValue ) of
-      1 :
-      begin
-        raise Exception.Create( 'Error: Default connection is ' +
-        'already executing a query.' );
-      end;
-      0 :
-      begin
-        raise Exception.Create( 'Internal badness: Double reset of running ' +
-        'flag.' );
-      end;
-    end;
-  end;
-end;
-
-
 {**
   Add a SQL-command or comment to SynMemoSQLLog
 }
-procedure TMainForm.LogSQL(msg: WideString = ''; comment: Boolean = true);
+procedure TMainForm.LogSQL(Msg: WideString; Category: TMySQLLogCategory=lcInfo);
 var
-  snip : boolean;
+  snip, IsSQL: Boolean;
 begin
+  if Category = lcDebug then
+    Exit;
   // Shorten very long messages
-  snip := (prefLogSqlWidth > 0) and (Length(msg) > prefLogSqlWidth);
+  snip := (prefLogSqlWidth > 0) and (Length(Msg) > prefLogSqlWidth);
+  IsSQL := Category = lcSQL;
   if snip then begin
-    msg :=
-      Copy( msg, 0, prefLogSqlWidth ) +
+    Msg :=
+      Copy(Msg, 0, prefLogSqlWidth) +
       '/* large SQL query, snipped at  ' +
-      FormatNumber( prefLogSqlWidth ) +
+      FormatNumber(prefLogSqlWidth) +
       ' characters */';
-  end else if (not snip) and (not comment) then
-    msg := msg + Delimiter
-  else if comment then
-    msg := '/* ' + msg + ' */';
+  end else if (not snip) and IsSQL then
+    Msg := Msg + Delimiter
+  else if not IsSQL then
+    Msg := '/* ' + Msg + ' */';
 
-  msg := WideStringReplace( msg, #9, ' ', [rfReplaceAll] );
-  msg := WideStringReplace( msg, #10, ' ', [rfReplaceAll] );
-  msg := WideStringReplace( msg, #13, ' ', [rfReplaceAll] );
-  msg := WideStringReplace( msg, '  ', ' ', [rfReplaceAll] );
-
-  EnterCriticalSection(SqlMessagesLock);
-  try
-    SqlMessages.Add(msg);
-  finally
-    LeaveCriticalSection(SqlMessagesLock);
-  end;
-  PostMessage(Handle, WM_PROCESSLOG, 0, 0);
-end;
-
-procedure TMainForm.ProcessSqlLog;
-var
-  msg: WideString;
-begin
-  EnterCriticalSection(SqlMessagesLock);
-  try
-    if SqlMessages = nil then Exit;
-    if SqlMessages.Count < 1 then Exit;
-    msg := SqlMessages[0];
-    SqlMessages.Delete(0);
-  finally
-    LeaveCriticalSection(SqlMessagesLock);
-  end;
-
-  SynMemoSQLLog.Lines.Add( msg );
-
+  Msg := WideStringReplace(Msg, #9, ' ', [rfReplaceAll]);
+  Msg := WideStringReplace(Msg, #10, ' ', [rfReplaceAll]);
+  Msg := WideStringReplace(Msg, #13, ' ', [rfReplaceAll]);
+  Msg := WideStringReplace(Msg, '  ', ' ', [rfReplaceAll]);
+  SynMemoSQLLog.Lines.Add(Msg);
   TrimSQLLog;
 
   // Scroll to last line and repaint
-  SynMemoSQLLog.GotoLineAndCenter( SynMemoSQLLog.Lines.Count );
+  SynMemoSQLLog.GotoLineAndCenter(SynMemoSQLLog.Lines.Count);
   SynMemoSQLLog.Repaint;
 
   // Log to file?
   if prefLogToFile then
   try
-    WriteLn( FileHandleSessionLog, Format('[%s] %s', [DateTimeToStr(Now), msg]) );
+    WriteLn(FileHandleSessionLog, Format('[%s] %s', [DateTimeToStr(Now), msg]));
   except
     DeactivateFileLogging;
     MessageDlg('Error writing to session log file:'+CRLF+FileNameSessionLog+CRLF+CRLF+'Logging is disabled now.', mtError, [mbOK], 0);
@@ -3552,8 +3279,8 @@ begin
 
   SelectedTableKeys.First;
   for k := 0 to SelectedTableKeys.RecordCount - 1 do begin
-    if (SelectedTableKeys.FieldByName('Key_name').AsString = 'PRIMARY')
-      and (SelectedTableKeys.FieldByName('Column_name').AsWideString = name) then begin
+    if (SelectedTableKeys.Col('Key_name') = 'PRIMARY')
+      and (SelectedTableKeys.Col('Column_name') = name) then begin
       DataGridResult.Columns[idx].IsPriPart := True;
       break;
     end;
@@ -3646,7 +3373,7 @@ begin
           ColExists := False;
           SelectedTableColumns.First;
           while not SelectedTableColumns.Eof do begin
-            if FDataGridSelect[i] = SelectedTableColumns.FieldByName('Field').AsWideString then begin
+            if FDataGridSelect[i] = SelectedTableColumns.Col('Field') then begin
               ColExists := True;
               break;
             end;
@@ -3665,10 +3392,10 @@ begin
       debug('mem: initializing browse columns.');
       SelectedTableColumns.First;
       while not SelectedTableColumns.Eof do begin
-        ColName := SelectedTableColumns.FieldByName('Field').AsWideString;
+        ColName := SelectedTableColumns.Col('Field');
         ShowIt := (FDataGridSelect.Count=0) or (FDataGridSelect.IndexOf(ColName)>-1);
         if ShowIt or (KeyCols.IndexOf(ColName)>-1) then begin
-          ColType := SelectedTableColumns.FieldByName('Type').AsString;
+          ColType := SelectedTableColumns.Col('Type');
           rx.Expression := '^((tiny|medium|long)?(text|blob)|(var)?(char|binary))\b(\(\d+\))?';
           if rx.Exec(ColType) then begin
             select_base := select_base + ' ' + 'LEFT(' + Mask(ColName) + ', ' + IntToStr(GridMaxData) + ')' + ',';
@@ -3676,7 +3403,7 @@ begin
             select_base := select_base + ' ' + Mask(ColName) + ',';
           end;
           select_base_full := select_base_full + ' ' + Mask(ColName) + ',';
-          InitColumn(ColName, SelectedTableColumns.FieldByName('Type').AsString, ShowIt);
+          InitColumn(ColName, SelectedTableColumns.Col('Type'), ShowIt);
         end;
         SelectedTableColumns.Next;
       end;
@@ -3753,8 +3480,7 @@ procedure TMainForm.DisplayRowCountStats(MatchingRows: Int64);
 var
   rows_total       : Int64; // total rowcount
   IsFiltered, IsInnodb: Boolean;
-  ds: TDataSet;
-  i: Integer;
+  Results: TMySQLQuery;
   s: WideString;
 begin
   lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable.Text;
@@ -3762,14 +3488,14 @@ begin
   IsFiltered := self.DataGridCurrentFilter <> '';
   if GetFocusedTreeNodeType = lntTable then begin
     // Get rowcount from table
-    ds := FetchActiveDbTableList;
+    Results := FetchActiveDbTableList;
     rows_total := -1;
     IsInnodb := False;
-    for i := 0 to ds.RecordCount - 1 do begin
-      if ds.FieldByName(DBO_NAME).AsWideString = SelectedTable.Text then begin
-        s := ds.FieldByName(DBO_ROWS).AsString;
+    while not Results.Eof do begin
+      if Results.Col(DBO_NAME) = SelectedTable.Text then begin
+        s := Results.Col(DBO_ROWS);
         if s <> '' then rows_total := MakeInt(s);
-        IsInnodb := ds.Fields[1].AsString = 'InnoDB';
+        IsInnodb := Results.Col(1) = 'InnoDB';
         break;
       end;
     end;
@@ -3789,30 +3515,6 @@ begin
       end;
     end;
   end;
-end;
-
-
-procedure TMainForm.WaitForQueryCompletion(WaitForm: TfrmQueryProgress; query: TMySqlQuery; ForceDialog: Boolean);
-var
-  signal: Cardinal;
-begin
-  debug( 'Waiting for query to complete.' );
-  cancelling := false;
-  if ForceDialog then begin
-    debug( 'Showing progress form.' );
-    WaitForm.ShowModal();
-  end else begin
-    signal := WaitForSingleObject(query.EventHandle, QueryWaitTime);
-    if signal = 0 then debug( 'Query completed within ' + IntToStr(QueryWaitTime) + 'msec.' )
-    else begin
-      debug( IntToStr(QueryWaitTime) + 'msec passed, showing progress form.' );
-      // Hack: Prevent dynamic loading of records in the context of the wait form's message loop.
-      DataGrid.Visible := False;
-      WaitForm.ShowModal();
-    end;
-  end;
-  CloseHandle(query.EventHandle);
-  debug( 'Query complete.' );
 end;
 
 
@@ -3867,38 +3569,18 @@ end;
 
 
 {***
-  Ensures that we're connected to the currently selected database.
-}
-procedure TMainForm.EnsureDatabase;
-var
-  db: WideString;
-begin
-  // Some functions temporarily switch away from the database selected by the user, handle that.
-  if TemporaryDatabase <> '' then db := TemporaryDatabase
-  else db := ActiveDatabase;
-  // Blank = database undefined
-  if db = '' then Exit;
-  if (FMysqlConn.Connection.Database <> db) or (UserQueryFired and not UserQueryFiring) then begin
-    ExecUseQuery(db, false, false);
-    UserQueryFired := false;
-    FMysqlConn.Connection.Database := db;
-  end;
-end;
-
-
-{***
   Look for list of tables for current database in cache.
   Retrieve from server if necessary.
-  @return TDataSet The cached list of tables for the active database.
+  @return TMySQLQuery The cached list of tables for the active database.
 }
-function TMainForm.FetchActiveDbTableList: TDataSet;
+function TMainForm.FetchActiveDbTableList: TMySQLQuery;
 begin
   Result := FetchDbTableList(ActiveDatabase);
 end;
 
-function TMainForm.FetchDbTableList(db: WideString): TDataSet;
+function TMainForm.FetchDbTableList(db: WideString): TMySQLQuery;
 var
-  ds: TDataSet;
+  Results: TMySQLQuery;
   OldCursor: TCursor;
   Unions: TWideStringlist;
   ListObjectsSQL: WideString;
@@ -3910,7 +3592,7 @@ begin
     ShowStatus('Fetching tables from "' + db + '" ...');
     try
       if not Assigned(InformationSchemaTables) then
-        InformationSchemaTables := GetCol('SHOW TABLES FROM '+mask(DBNAME_INFORMATION_SCHEMA), 0, True, False);
+        InformationSchemaTables := Connection.GetCol('SHOW TABLES FROM '+mask(DBNAME_INFORMATION_SCHEMA));
       if InformationSchemaTables.IndexOf('TABLES') > -1 then begin
         Unions := TWideStringlist.Create;
 
@@ -3971,13 +3653,13 @@ begin
         // For servers lacking the INFORMATION_SCHEMA or the TABLES table
         ListObjectsSQL := 'SHOW TABLE STATUS FROM ' + mask(db);
       end;
-      ds := GetResults(ListObjectsSQL);
-      CachedTableLists.AddObject(db, ds);
+      Results := Connection.GetResults(ListObjectsSQL);
+      CachedTableLists.AddObject(db, Results);
       // Add table names to SQL highlighter
       SynSQLSyn1.TableNames.BeginUpdate;
-      while not ds.Eof do begin
-        SynSQLSyn1.TableNames.Add(ds.FieldByName(DBO_NAME).AsWideString);
-        ds.Next;
+      while not Results.Eof do begin
+        SynSQLSyn1.TableNames.Add(Results.Col(DBO_NAME));
+        Results.Next;
       end;
       SynSQLSyn1.TableNames.EndUpdate;
     finally
@@ -3985,21 +3667,21 @@ begin
       Screen.Cursor := OldCursor;
     end;
   end;
-  Result := TDataSet(CachedTableLists.Objects[CachedTableLists.IndexOf(db)]);
+  Result := TMySQLQuery(CachedTableLists.Objects[CachedTableLists.IndexOf(db)]);
   Result.First;
 end;
 
 
 {***
   Nukes cached table list for active database, then refreshes it.
-  @return TDataSet The newly cached list of tables for the active database.
+  @return TMySQLQuery The newly cached list of tables for the active database.
 }
-function TMainForm.RefreshActiveDbTableList: TDataSet;
+function TMainForm.RefreshActiveDbTableList: TMySQLQuery;
 begin
   Result := RefreshDbTableList(ActiveDatabase);
 end;
 
-function TMainForm.RefreshDbTableList(db: WideString): TDataSet;
+function TMainForm.RefreshDbTableList(db: WideString): TMySQLQuery;
 begin
   ClearDbTableList(db);
   Result := FetchDbTableList(db);
@@ -4025,12 +3707,11 @@ end;
 procedure TMainForm.ClearAllTableLists;
 var
   idx: Integer;
-  ds: TDataSet;
+  Results: TMySQLQuery;
 begin
   for idx := 0 to CachedTableLists.Count - 1 do begin
-    ds := TDataSet(CachedTableLists.Objects[idx]);
-    ds.Close;
-    FreeAndNil(ds);
+    Results := TMySQLQuery(CachedTableLists.Objects[idx]);
+    FreeAndNil(Results);
   end;
   CachedTableLists.Clear;
 end;
@@ -4040,9 +3721,9 @@ procedure TMainForm.LoadDatabaseProperties(db: WideString);
 var
   i, img          : Integer;
   bytes           : Int64;
-  ds              : TDataSet;
+  Results         : TMySQLQuery;
   Cap,
-  SelectedCaptions: WideStrings.TWideStringList;
+  SelectedCaptions: TWideStringList;
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
@@ -4050,59 +3731,59 @@ begin
   // Remember selected nodes
   SelectedCaptions := GetVTCaptions(ListTables, True);
 
-  ds := FetchDbTableList(db);
+  Results := FetchDbTableList(db);
   ShowStatus( 'Displaying tables from "' + db + '" ...' );
 
   ListTables.BeginUpdate;
   ListTables.Clear;
 
-  SetLength(VTRowDataListTables, ds.RecordCount);
-  for i := 1 to ds.RecordCount do
-  begin
-    VTRowDataListTables[i-1].Captions := WideStrings.TWideStringList.Create;
-    Cap := VTRowDataListTables[i-1].Captions;
+  SetLength(VTRowDataListTables, Results.RecordCount);
+  i := 0;
+  while not Results.Eof do begin
+    VTRowDataListTables[i].Captions := TWideStringList.Create;
+    Cap := VTRowDataListTables[i].Captions;
     // Object name
-    Cap.Add( FieldContent(ds, DBO_NAME) );
-    if (FieldContent(ds, DBO_ROWS) <> '') then
-      Cap.Add( FormatNumber( FieldContent(ds, DBO_ROWS) ) )
+    Cap.Add(Results.Col(DBO_NAME));
+    if Results.Col(DBO_ROWS, True) <> '' then
+      Cap.Add( FormatNumber(Results.Col(DBO_ROWS) ) )
     else Cap.Add('');
     // Size: Data_length + Index_length
-    bytes := GetTableSize(ds);
+    bytes := GetTableSize(Results);
     if bytes >= 0 then Cap.Add(FormatByteNumber(bytes))
     else Cap.Add('');
-    Cap.Add( FieldContent(ds, DBO_CREATED) );
-    Cap.Add( FieldContent(ds, DBO_UPDATED) );
-    Cap.Add( FieldContent(ds, DBO_ENGINE) );
-    Cap.Add( FieldContent(ds, DBO_COMMENT) );
-    Cap.Add( FieldContent(ds, DBO_VERSION) );
-    Cap.Add( FieldContent(ds, DBO_ROWFORMAT) );
-    if (FieldContent(ds, DBO_AVGROWLEN) <> '') then
-      Cap.Add( FormatByteNumber(FieldContent(ds, DBO_AVGROWLEN)) )
+    Cap.Add(Results.Col(DBO_CREATED, True));
+    Cap.Add(Results.Col(DBO_UPDATED, True));
+    Cap.Add(Results.Col(DBO_ENGINE, True));
+    Cap.Add(Results.Col(DBO_COMMENT, True));
+    Cap.Add(Results.Col(DBO_VERSION, True));
+    Cap.Add(Results.Col(DBO_ROWFORMAT, True));
+    if Results.Col(DBO_AVGROWLEN, True) <> '' then
+      Cap.Add( FormatByteNumber(Results.Col(DBO_AVGROWLEN)) )
     else Cap.Add('');
-    if (FieldContent(ds, DBO_MAXDATALEN) <> '') then
-      Cap.Add( FormatByteNumber(FieldContent(ds, DBO_MAXDATALEN)) )
+    if Results.Col(DBO_MAXDATALEN, True) <> '' then
+      Cap.Add( FormatByteNumber(Results.Col(DBO_MAXDATALEN)) )
     else Cap.Add('');
-    if (FieldContent(ds, DBO_INDEXLEN) <> '') then
-      Cap.Add( FormatByteNumber(FieldContent(ds, DBO_INDEXLEN)) )
+    if Results.Col(DBO_INDEXLEN, True) <> '' then
+      Cap.Add( FormatByteNumber(Results.Col(DBO_INDEXLEN, True)) )
     else Cap.Add('');
-    if (FieldContent(ds, DBO_DATAFREE) <> '') then
-      Cap.Add( FormatByteNumber(FieldContent(ds, DBO_DATAFREE)) )
+    if Results.Col(DBO_DATAFREE, True) <> '' then
+      Cap.Add( FormatByteNumber(Results.Col(DBO_DATAFREE)) )
     else Cap.Add('');
-    if (FieldContent(ds, DBO_AUTOINC) <> '') then
-      Cap.Add( FormatNumber(FieldContent(ds, DBO_AUTOINC)) )
+    if Results.Col(DBO_AUTOINC, True) <> '' then
+      Cap.Add( FormatNumber(Results.Col(DBO_AUTOINC)) )
     else Cap.Add('');
-    Cap.Add( FieldContent(ds, DBO_AUTOINC) );
-    Cap.Add( FieldContent(ds, DBO_COLLATION) );
-    Cap.Add( FieldContent(ds, DBO_CHECKSUM) );
-    Cap.Add( FieldContent(ds, DBO_CROPTIONS) );
-    if ds.FindField(DBO_TYPE) <> nil then
-      Cap.Add(FieldContent(ds, DBO_TYPE))
+    Cap.Add(Results.Col(DBO_AUTOINC));
+    Cap.Add(Results.Col(DBO_COLLATION));
+    Cap.Add(Results.Col(DBO_CHECKSUM));
+    Cap.Add(Results.Col(DBO_CROPTIONS));
+    if Results.ColExists(DBO_TYPE) then
+      Cap.Add(Results.Col(DBO_TYPE))
     else
       Cap.Add('BASE TABLE');
 
-    VTRowDataListTables[i-1].NodeType := GetDBObjectType( ds.Fields);
+    VTRowDataListTables[i].NodeType := GetDBObjectType(Results);
     // Find icon
-    case VTRowDataListTables[i-1].NodeType of
+    case VTRowDataListTables[i].NodeType of
       lntTable:         img := ICONINDEX_TABLE;
       lntCrashedTable:  img := ICONINDEX_CRASHED_TABLE;
       lntView:          img := ICONINDEX_VIEW;
@@ -4110,9 +3791,10 @@ begin
       lntFunction:      img := ICONINDEX_STOREDFUNCTION;
       else              img := -1;
     end;
-    VTRowDataListTables[i-1].ImageIndex := img;
+    VTRowDataListTables[i].ImageIndex := img;
 
-    ds.Next;
+    Results.Next;
+    Inc(i);
   end;
   ListTables.RootNodeCount := Length(VTRowDataListTables);
   ListTables.EndUpdate;
@@ -4134,30 +3816,6 @@ begin
   PageControlMainChange(Self);
   ShowStatus( STATUS_MSG_READY );
   Screen.Cursor := crDefault;
-end;
-
-
-{***
-  Execute a query and return a resultset
-  The currently active connection is used
-
-  @param String The single SQL-query to be executed on the server
-}
-function TMainForm.ExecuteQuery(query: String): TDataSet;
-begin
-  result := GetResults(query, false, false);
-end;
-
-
-{***
-  Execute a query without returning a resultset
-  The currently active connection is used
-
-  @param String The single SQL-query to be executed on the server
-}
-procedure TMainForm.ExecuteNonQuery(SQLQuery: String);
-begin
-  ExecUpdateQuery(SQLQuery);
 end;
 
 
@@ -4191,8 +3849,8 @@ begin
 
   SelectedNodes := ListTables.GetSortedSelection(False);
 
-  actSQLhelp.Enabled := mysql_version >= 40100;
-  actImportCSV.Enabled := mysql_version >= 32206;
+  actSQLhelp.Enabled := Connection.ServerVersionInt >= 40100;
+  actImportCSV.Enabled := Connection.ServerVersionInt >= 32206;
 
   // Data tab - if query results are made editable, these will need
   //            to be changed to look at which tab is focused.
@@ -4260,7 +3918,7 @@ end;
 
 procedure TMainForm.CheckUptime;
 begin
-  ServerUptime := MakeInt(GetVar('SHOW STATUS LIKE ''Uptime''', 1));
+  ServerUptime := MakeInt(Connection.GetVar('SHOW STATUS LIKE ''Uptime''', 1));
   // Avoid division by zero
   ServerUptime := Max(ServerUptime, 1);
   TimerHostUptime.Enabled := true;
@@ -4280,10 +3938,10 @@ begin
     for i := 0 to ProcessIDs.Count - 1 do
     begin
       // Don't kill own process
-      if ProcessIDs[i] = IntToStr( MySQLConn.Connection.GetThreadId ) then
+      if ProcessIDs[i] = IntToStr(Connection.ThreadId) then
         LogSQL('Ignoring own process id '+ProcessIDs[i]+' when trying to kill it.')
       else
-        ExecUpdateQuery( 'KILL '+ProcessIDs[i] );
+        Connection.Query('KILL '+ProcessIDs[i]);
     end;
     ListProcesses.Tag := VTREE_NOTLOADED;
     ListProcesses.Repaint;
@@ -4302,11 +3960,9 @@ var
   SQLscriptstart    : Integer;
   SQLscriptend      : Integer;
   SQLTime           : Double;
-  LastVistaCheck    : Cardinal;
-  VistaCheck        : Boolean;
   fieldcount        : Integer;
   recordcount       : Integer;
-  ds                : TDataSet;
+  Results           : TMySQLQuery;
   ColName,
   Text, LB          : WideString;
   col               : TVirtualTreeColumn;
@@ -4326,66 +3982,45 @@ begin
   if LB <> '' then
     Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
   SQL := parseSQL(Text);
-
-  if ( SQL.Count = 0 ) then
-  begin
+  if SQL.Count = 0 then begin
     ResultLabel.Caption := '(nothing to do)';
     Exit;
   end;
 
-  SQLscriptstart := GetTickCount();
-  LastVistaCheck := GetTickCount();
+  SQLscriptstart := GetTickCount;
   ResultLabel.Caption := '';
 
-  ds := nil;
+  Results := nil;
   try
     showstatus( 'Initializing SQL...' );
     actExecuteQuery.Enabled := false;
     actExecuteSelection.Enabled := false;
-
-    // Let EnsureActiveDatabase know that we've fired user queries.
-    UserQueryFiring := true;
 
     rowsaffected := 0;
     fieldcount := 0;
     recordcount := 0;
     EnableProgressBar(SQL.Count);
 
-    showstatus( 'Executing SQL...' );
-    for i := 0 to (SQL.Count - 1) do
-    begin
+    showstatus('Executing SQL...');
+    for i:=0 to SQL.Count-1 do begin
       ProgressBarStatus.StepIt;
       ProgressBarStatus.Repaint;
-      if ( sql[i] = '' ) then
-      begin
+      if SQL[i] = '' then
         continue;
-      end;
-      // open last query with data-aware:
       ResultLabel.Caption := '';
-      // ok, let's rock
-      SQLstart := GetTickCount();
+      SQLstart := GetTickCount;
       try
-        VistaCheck := false;
-        if GetTickCount() - LastVistaCheck > 2500 then begin
-          VistaCheck := true;
-          LastVistaCheck := GetTickCount();
-        end;
-        ds := GetResults( SQL[i], false, false, VistaCheck );
-        if ( ds <> nil ) then
-        begin
-          fieldcount := ds.Fieldcount;
-          recordcount := ds.Recordcount;
-          rowsaffected := rowsaffected + TZQuery(ds).RowsAffected;
-        end
-        else
-        begin
+        Results := Connection.GetResults(SQL[i]);
+        if Assigned(Results) then begin
+          fieldcount := Results.ColumnCount;
+          recordcount := Results.Recordcount;
+        end else begin
           fieldcount := 0;
           recordcount := 0;
-          rowsaffected := FMysqlConn.Connection.GetAffectedRowsFromLastPost;
+          rowsaffected := Connection.RowsAffected;
         end;
       except
-        on E:Exception do
-        begin
+        on E:Exception do begin
           if actQueryStopOnErrors.Checked or (i = SQL.Count - 1) then begin
             Screen.Cursor := crDefault;
             MessageDlg( E.Message, mtError, [mbOK], 0 );
@@ -4397,40 +4032,35 @@ begin
         end;
       end;
 
-      SQLend := GetTickCount();
+      SQLend := GetTickCount;
       SQLTime := (SQLend - SQLstart) / 1000;
 
       ResultLabel.Caption :=
         FormatNumber( rowsaffected ) +' row(s) affected, '+
         FormatNumber( fieldcount ) +' column(s) x '+
         FormatNumber( recordcount ) +' row(s) in last result set.';
-      if ( SQL.Count = 1 ) then
-      begin
-        ResultLabel.Caption := ResultLabel.Caption +
-          ' Query time: '+ FormatNumber( SQLTime, 3) +' sec.';
-      end;
+      if i < SQL.Count-1 then
+        FreeAndNil(Results);
+      if SQL.Count = 1 then
+        ResultLabel.Caption := ResultLabel.Caption + ' Query time: '+ FormatNumber( SQLTime, 3) +' sec.';
     end;
 
     ProgressBarStatus.Hide;
     ValidateQueryControls(Sender);
 
-    if ( SQL.Count > 1 ) then
+    if SQL.Count > 1 then
     begin
-      SQLscriptend := GetTickCount();
+      SQLscriptend := GetTickCount;
       SQLTime := (SQLscriptend - SQLscriptstart) / 1000;
       ResultLabel.Caption := ResultLabel.Caption +' Batch time: '+
-        FormatNumber( SQLTime, 3 ) +' sec.';
+        FormatNumber(SQLTime, 3) +' sec.';
     end;
 
   finally
-    // Let EnsureActiveDatabase know that we've fired user queries.
-    UserQueryFired := true;
-    UserQueryFiring := false;
-
     // Avoid excessive GridHighlightChanged() when flicking controls.
     viewingdata := true;
 
-    if ds <> nil then begin
+    if Assigned(Results) and Results.HasResult then begin
       ActiveGrid.BeginUpdate;
       ActiveGrid.Header.Options := ActiveGrid.Header.Options + [hoVisible];
       ActiveGrid.Header.Columns.BeginUpdate;
@@ -4438,44 +4068,35 @@ begin
       debug('mem: clearing and initializing query columns.');
       ActiveGridResult := GridResult(ActiveGrid);
       SetLength(ActiveGridResult.Columns, 0);
-      SetLength(ActiveGridResult.Columns, ds.FieldCount);
-      for i:=0 to ds.FieldCount-1 do begin
-        ColName := ds.Fields[i].FieldName;
+      SetLength(ActiveGridResult.Columns, Results.ColumnCount);
+      for i:=0 to Results.ColumnCount-1 do begin
+        ColName := Results.ColumnNames[i];
         col := ActiveGrid.Header.Columns.Add;
         col.Text := ColName;
         col.Options := col.Options - [coAllowClick];
         ActiveGridResult.Columns[i].Name := ColName;
-        if ds.Fields[i].DataType in [ftSmallint, ftInteger, ftWord, ftLargeint] then begin
-          ActiveGridResult.Columns[i].DatatypeCat := dtcInteger;
+        ActiveGridResult.Columns[i].DatatypeCat := Results.DataType(i).Category;
+        if ActiveGridResult.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then
           col.Alignment := taRightJustify;
-        end else if ds.Fields[i].DataType in [ftFloat] then begin
-          ActiveGridResult.Columns[i].DatatypeCat := dtcReal;
-          col.Alignment := taRightJustify;
-        end else if ds.Fields[i].DataType in [ftDate, ftTime, ftDateTime, ftTimeStamp] then
-          ActiveGridResult.Columns[i].DatatypeCat := dtcTemporal
-        else if ds.Fields[i].DataType in [ftWideString, ftMemo, ftWideMemo] then
-          ActiveGridResult.Columns[i].DatatypeCat := dtcText
-        else if ds.Fields[i].DataType in [ftBlob] then
-          ActiveGridResult.Columns[i].DatatypeCat := dtcBinary;
       end;
       debug('mem: query column initialization complete.');
       debug('mem: clearing and initializing query rows (internal data).');
       SetLength(ActiveGridResult.Rows, 0);
-      SetLength(ActiveGridResult.Rows, ds.RecordCount);
-      ds.First;
-      for i:=0 to ds.RecordCount-1 do begin
+      SetLength(ActiveGridResult.Rows, Results.RecordCount);
+      Results.First;
+      for i:=0 to Results.RecordCount-1 do begin
         ActiveGridResult.Rows[i].Loaded := True;
-        SetLength(ActiveGridResult.Rows[i].Cells, ds.FieldCount);
-        for j:=0 to ds.FieldCount-1 do begin
+        SetLength(ActiveGridResult.Rows[i].Cells, Results.ColumnCount);
+        for j:=0 to Results.ColumnCount-1 do begin
           if ActiveGridResult.Columns[j].DatatypeCat = dtcBinary then
-            ActiveGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
+            ActiveGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j))
           else
-            ActiveGridResult.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
-          ActiveGridResult.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
+            ActiveGridResult.Rows[i].Cells[j].Text := Results.Col(j);
+          ActiveGridResult.Rows[i].Cells[j].IsNull := Results.IsNull(j);
         end;
-        ds.Next;
+        Results.Next;
       end;
-      ds.Free;
+      Results.Free;
       debug('mem: initializing query rows (grid).');
       ActiveGrid.RootNodeCount := Length(ActiveGridResult.Rows);
       debug('mem: query row initialization complete.');
@@ -4515,7 +4136,7 @@ procedure TMainForm.SynCompletionProposalExecute(Kind: SynCompletionType;
   var CanExecute: Boolean);
 var
   i,j              : Integer;
-  ds               : TDataset;
+  Results          : TMySQLQuery;
   sql, TableClauses: WideString;
   Tables           : TStringList;
   tablename        : WideString;
@@ -4532,14 +4153,14 @@ var
 const
   ItemPattern: WideString = '\image{%d}\hspace{5}\color{clSilver}%s\column{}\color{clWindowText}%s';
 
-  procedure addTable( Fields: TFields );
+  procedure addTable(Results: TMySQLQuery);
   var ObjName, ObjType: WideString; Icon: Integer;
   begin
-    ObjName := Fields[0].AsWideString;
+    ObjName := Results.Col(0);
     ObjType := '';
-    if Fields.FindField(DBO_TYPE) <> nil then
-      ObjType := LowerCase(Fields.FieldByName(DBO_TYPE).AsString);
-    case GetDBObjectType(Fields) of
+    if Results.ColExists(DBO_TYPE) then
+      ObjType := LowerCase(Results.Col(DBO_TYPE));
+    case GetDBObjectType(Results) of
       lntTable: Icon := ICONINDEX_TABLE;
       lntCrashedTable: Icon := ICONINDEX_CRASHED_TABLE;
       lntFunction: Icon := ICONINDEX_STOREDFUNCTION;
@@ -4554,8 +4175,7 @@ const
   procedure addColumns( tablename: WideString );
   var
     dbname : WideString;
-    i : Integer;
-    ds : TDataSet;
+    Columns: TMySQLQuery;
   begin
     dbname := ActiveDatabase;
     if Pos( '.', tablename ) > -1 then
@@ -4567,16 +4187,17 @@ const
     // Rely on what the user typed is already a valid masked/quoted identifier.
     if dbname <> '' then
       tablename := dbname + '.' + tablename;
-    ds := getResults( 'SHOW COLUMNS FROM '+tablename, true, false );
-    if ds = nil then exit;
-    for i:=0 to ds.RecordCount-1 do
-    begin
-      Proposal.InsertList.Add( ds.FieldByName( 'Field' ).AsWideString );
-      Proposal.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_FIELD, GetFirstWord(ds.FieldByName('Type').AsString), ds.FieldByName('Field').AsWideString]) );
-      ds.Next;
+    try
+      Columns := Connection.GetResults('SHOW COLUMNS FROM '+tablename);
+    except
+      Exit;
     end;
-    ds.Close;
-    FreeAndNil(ds);
+    while not Columns.Eof do begin
+      Proposal.InsertList.Add(Columns.Col('Field'));
+      Proposal.ItemList.Add(WideFormat(ItemPattern, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );
+      Columns.Next;
+    end;
+    FreeAndNil(Columns);
   end;
 
 begin
@@ -4669,10 +4290,10 @@ begin
     if i > -1 then begin
       // Only display tables from specified db
       Screen.Cursor := crHourGlass;
-      ds := FetchDbTableList(Databases[i]);
-      while not ds.Eof do begin
-        addTable(ds.Fields);
-        ds.Next;
+      Results := FetchDbTableList(Databases[i]);
+      while not Results.Eof do begin
+        addTable(Results);
+        Results.Next;
       end;
       Screen.Cursor := crDefault;
     end;
@@ -4687,10 +4308,10 @@ begin
 
     if ActiveDatabase <> '' then begin
       // Display tables from current db
-      ds := FetchActiveDbTableList;
-      while not ds.Eof do begin
-        addTable(ds.Fields);
-        ds.Next;
+      Results := FetchActiveDbTableList;
+      while not Results.Eof do begin
+        addTable(Results);
+        Results.Next;
       end;
       if Length(CurrentInput) = 0 then // assume that we have already a dbname in memo
         Proposal.Position := Databases.Count;
@@ -4699,7 +4320,7 @@ begin
     // Add functions
     for i := 0 to Length(MySQLFunctions) - 1 do begin
       // Don't display unsupported functions here
-      if MySqlFunctions[i].Version > mysql_version then
+      if MySqlFunctions[i].Version > Connection.ServerVersionInt then
         continue;
       Proposal.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
       Proposal.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clSilver}' + MySQLFunctions[i].Declaration] ) );
@@ -4781,7 +4402,7 @@ begin
   try
     ensureValidIdentifier( NewText );
     // rename table
-    ExecUpdateQuery( 'RENAME TABLE ' + mask(NodeData.Captions[0]) + ' TO ' + mask(NewText), False, False );
+    Connection.Query('RENAME TABLE ' + mask(NodeData.Captions[0]) + ' TO ' + mask(NewText));
 
     if SynSQLSyn1.TableNames.IndexOf( NewText ) = -1 then begin
       SynSQLSyn1.TableNames.Add(NewText);
@@ -4803,15 +4424,12 @@ end;
 
 procedure TMainForm.TimerConnectedTimer(Sender: TObject);
 begin
-  if not TimerConnected.Enabled then begin
+  if Assigned(Connection) and Connection.Active then begin
+    // calculate and display connection-time
+    showstatus('Connected: ' + FormatTimeNumber((GetTickCount-Connection.ConnectionStarted) Div 1000), 2 );
+  end else begin
     showstatus('Disconnected.', 2);
-    exit;
   end;
-
-  inc(time_connected);
-
-  // calculate and display connection-time
-  showstatus( 'Connected: ' + FormatTimeNumber(time_connected), 2 );
 end;
 
 
@@ -5036,7 +4654,7 @@ procedure TMainForm.popupHostPopup(Sender: TObject);
 begin
   Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and Assigned(ListProcesses.FocusedNode);
   menuEditVariable.Enabled := False;
-  if mysql_version >= 40003 then
+  if Connection.ServerVersionInt >= 40003 then
     menuEditVariable.Enabled := (PageControlHost.ActivePage = tabVariables) and Assigned(ListVariables.FocusedNode)
   else
     menuEditVariable.Hint := STR_NOTSUPPORTED;
@@ -5110,8 +4728,8 @@ begin
     menuShowSizeColumn.Visible := False;
     actSelectTreeBackground.Visible := False;
   end;
-  actCreateView.Enabled := actCreateView.Enabled and (mysql_version >= 50001);
-  actCreateRoutine.Enabled := actCreateRoutine.Enabled and (mysql_version >= 50003);
+  actCreateView.Enabled := actCreateView.Enabled and (Connection.ServerVersionInt >= 50001);
+  actCreateRoutine.Enabled := actCreateRoutine.Enabled and (Connection.ServerVersionInt >= 50003);
 end;
 
 
@@ -5301,315 +4919,6 @@ begin
 end;
 
 
-procedure TMainForm.ExecUseQuery(db: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false);
-begin
-  ExecUpdateQuery('USE ' + mask(db), HandleErrors, DisplayErrors);
-  FConn.MysqlParams.Database := db;
-end;
-
-
-{***
-  Execute a query without returning a resultset
-  The currently active connection is used
-
-  @param String The single SQL-query to be executed on the server
-}
-function TMainForm.ExecUpdateQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false): Int64;
-var
-  MysqlQuery : TMysqlQuery;
-  ds: TDataSet;
-begin
-  Result := -1; // Silence compiler warning.
-  MysqlQuery := nil;
-  try
-    try
-      // Start query execution
-      MysqlQuery := RunThreadedQuery(sql, false);
-      Result := FMysqlConn.Connection.GetAffectedRowsFromLastPost;
-      // Inspect query result code and log / notify user on failure
-      if MysqlQuery.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
-      begin
-        raise Exception.Create(MysqlQuery.Comment);
-      end;
-    except
-      on E: Exception do begin
-        LogSQL( E.Message, True );
-        if DisplayErrors then MessageDlg( E.Message, mtError, [mbOK], 0 );
-        // Recreate exception, since we free it below the caller
-        // won't know what happened otherwise.
-        if not HandleErrors then raise THandledSQLError.Create(MysqlQuery.Comment);
-        Result := -1;
-      end;
-    end;
-  finally
-    // Cleanup the MysqlQuery object, we won't need it anymore
-    if MysqlQuery <> nil then begin
-    if MysqlQuery.MysqlDataset <> nil then
-      MysqlQuery.MysqlDataset.Close;
-      ds := MysqlQuery.MysqlDataset;
-      FreeAndNil(ds);
-    end;
-    FreeAndNil (MysqlQuery);
-  end;
-end;
-
-
-{***
-  Execute a query which may return a resultset. The caller is responsible for
-  freeing the MysqlQuery object and its Dataset member, only on returnvalue True.
-  The currently active connection is used
-
-  @param String The single SQL-query to be executed on the server
-  @return TMysqlQuery Containing the dataset and info data availability
-}
-function TMainForm.ExecSelectQuery(sql: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
-var
-  res: TMysqlQuery;
-begin
-  res := nil;
-  result := nil;
-  try
-    try
-      // Start query execution
-      res := RunThreadedQuery(sql, ForceDialog);
-      result := res.MysqlDataset;
-      // Inspect query result code and log / notify user on failure
-      if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
-      begin
-        raise Exception.Create(res.Comment);
-      end;
-    except
-      on E: Exception do begin
-        LogSQL( E.Message, True );
-        if DisplayErrors then MessageDlg( E.Message, mtError, [mbOK], 0 );
-        if not HandleErrors then raise THandledSQLError.Create(E.Message);
-        Result := nil;
-      end;
-    end;
-  finally
-    FreeAndNil(res);
-  end;
-end;
-
-
-{***
-  Executes a query.
-}
-function TMainForm.GetResults( SQLQuery: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false; ForceDialog: Boolean = false): TDataSet;
-begin
-  result := ExecSelectQuery(SQLQuery, HandleErrors, DisplayErrors, ForceDialog);
-end;
-
-
-{***
-  Execute a query and return String from column x
-}
-function TMainForm.GetVar( SQLQuery: WideString; x: Integer = 0; HandleErrors: Boolean = false; DisplayErrors: Boolean = false) : WideString;
-var
-  ds: TDataSet;
-begin
-  ds := GetResults( SQLQuery, HandleErrors, DisplayErrors );
-  if ds = nil then exit;
-  Result := ds.Fields[x].AsWideString;
-  ds.Close;
-  FreeAndNil(ds);
-end;
-
-
-function TMainForm.GetNamedVar( SQLQuery: WideString; x: WideString; HandleErrors: Boolean = false; DisplayErrors: Boolean = false) : WideString;
-var
-  ds: TDataSet;
-begin
-  ds := GetResults( SQLQuery, HandleErrors, DisplayErrors );
-  if ds = nil then exit;
-  Result := ds.Fields.FieldByName(x).AsWideString;
-  ds.Close;
-  FreeAndNil(ds);
-end;
-
-
-{***
-  Execute a query and return column x as Stringlist
-
-  @param  String SQL query String
-  @param  Integer 0-based column index in the resultset to return
-  @return TStringList
-}
-function TMainForm.GetCol( SQLQuery: WideString; x: Integer = 0; HandleErrors: Boolean = false; DisplayErrors: Boolean = false ) : WideStrings.TWideStringList;
-var
-  i: Integer;
-  ds: TDataSet;
-begin
-  ds := GetResults( SQLQuery, HandleErrors, DisplayErrors);
-  Result := WideStrings.TWideStringList.Create;
-  if ds = nil then exit;
-  for i := 0 to ds.RecordCount - 1 do
-  begin
-    Result.Add( ds.Fields[x].AsWideString );
-    ds.Next;
-  end;
-  ds.Close;
-  FreeAndNil(ds);
-end;
-
-
-{***
-  Event procedure handler for the ZSQLMonitor1 object
-}
-procedure TMainForm.ZSQLMonitor1LogTrace(Sender: TObject;
-  Event: TZLoggingEvent);
-begin
-  LogSQL( Event.Message, (Event.Category <> lcExecute) );
-end;
-
-
-procedure TMainForm.RunAsyncPost(ds: TDeferDataSet);
-var
-  res: TMysqlQuery;
-begin
-  FQueryRunning := true;
-  try
-    try
-      CheckConnection;
-    except
-      on E: Exception do begin
-        raise Exception.Create('Failed to reconnect, giving up. (' + E.Message + ')');
-      end;
-    end;
-    FProgressForm := TFrmQueryProgress.Create(Self);
-    debug('RunThreadedQuery(): Launching asynchronous query.');
-    res := ExecPostAsync(FConn,FProgressForm.Handle,ds);
-    WaitForQueryCompletion(FProgressForm, res, false);
-    if res.Result in [MQR_CONNECT_FAIL,MQR_QUERY_FAIL] then
-    begin
-      raise Exception.Create(res.Comment);
-    end;
-  finally
-    FQueryRunning := false;
-  end;
-end;
-
-{***
-  Run a query in a separate thread of execution on the current connection.
-}
-function TMainForm.RunThreadedQuery(AQuery: WideString; ForceDialog: Boolean): TMysqlQuery;
-begin
-  Result := nil;
-  if (Copy(AQuery, 1, 3) <> 'USE') then EnsureDatabase;
-  // Indicate a querythread is active (only one thread allow at this moment)
-  FQueryRunning := true;
-  try
-    // Check if the connection of the current window is still alive
-    // Otherwise reconnect
-    try
-      CheckConnection;
-    except
-      on E: Exception do begin
-        // Ensure auto-updating processlist is disabled, see bug #1865305
-        if TimerRefresh.Enabled then
-          AutoRefreshToggle(nil);
-        Screen.Cursor := crDefault;
-        raise Exception.Create('Failed to reconnect, giving up. (' + E.Message + ')');
-      end;
-    end;
-
-    // Create instance of the progress form (but don't show it yet)
-    FProgressForm := TFrmQueryProgress.Create(Self);
-
-    { Launch a thread of execution that passes the query to the server
-
-      The progressform serves as receiver of the status
-      messages (WM_MYSQL_THREAD_NOTIFY) of the thread:
-
-      * After the thread starts it notifies the progressform (MQE_INITED)
-        (which calls ShowModal on itself)
-      * Waits for a completion message from the thread (MQE_FINISHED) to remove itself
-      * Set FQueryRunning to false
-    }
-    debug('RunThreadedQuery(): Launching asynchronous query.');
-    Result := ExecMysqlStatementAsync (AQuery,FConn,FProgressForm.Handle,RunAsyncPost);
-
-    { Repeatedly check if the query has finished by inspecting FQueryRunning
-      Allow repainting of user interface
-    }
-    WaitForQueryCompletion(FProgressForm, Result, ForceDialog);
-  finally
-    FQueryRunning := false;
-  end;
-  // Hack: Un-prevent dynamic loading of records in the context of the wait form's message loop.
-  if not DataGrid.Visible then DataGrid.Visible := True;
-end;
-
-
-procedure TMainForm.CancelQuery;
-begin
-  cancelling := true;
-  MysqlConn.Connection.CancelQuery;
-end;
-
-
-// Searchbox unfocused
-procedure TMainForm.CheckConnection;
-var
-  connected: Boolean;
-  choice: Integer;
-begin
-  if not FMysqlConn.IsAlive then begin
-    LogSQL('Connection failure detected. Trying to reconnect.', true);
-    TimerConnected.Enabled := false;
-    TimerConnectedTimer(self);
-    TimerHostUptime.Enabled := false;
-    TimerHostUptimeTimer(self);
-    FQueryRunning := false;
-    try
-      FMysqlConn.Connection.Disconnect;
-      connected := True;
-      try
-        // CheckConnected() doesn't really check anything, it
-        // just sees if the driver has disposed of it's connection
-        // by means of a Disconnect() or not.  In which case there
-        // is no point in doing a Reconnect(), it will NOP.
-        FMysqlConn.Connection.CheckConnected;
-      except
-        connected := False;
-      end;
-      while not FMysqlConn.IsAlive do begin
-        try
-          if connected then FMysqlConn.Connection.Reconnect
-          else FMysqlConn.Connection.Connect;
-        except
-          on E: Exception do begin
-            MainForm.Visible := False;
-            choice := MessageDlg(
-              'Connection to the server has been lost.'#10#10 +
-              E.Message + #10#10 +
-              'Click Abort to exit this session.',
-              mtError,
-              [mbRetry, mbAbort], 0
-            );
-            if choice = mrAbort then begin
-              Close;
-              Halt(1);
-            end;
-          end;
-        end;
-        if FMysqlConn.IsAlive then MainForm.Visible := True;
-      end;
-
-      time_connected := 0;
-      TimerConnected.Enabled := true;
-      LogSQL('Connected. Thread-ID: ' + IntToStr( MySQLConn.Connection.GetThreadId ));
-      CheckUptime;
-      // Try to restore active database
-      if ActiveDatabase <> '' then
-        ExecUseQuery(ActiveDatabase)
-    finally
-      FQueryRunning := true;
-    end;
-  end;
-end;
-
-
 function TMainForm.GetActiveDatabase: WideString;
 var
   s: PVirtualNode;
@@ -5640,15 +4949,15 @@ end;
 
 function TMainForm.GetTreeNodeType(Node: PVirtualNode): TListNodeType;
 var
-  ds: TDataset;
+  Results: TMySQLQuery;
 begin
   Result := lntNone;
   if Assigned(Node) then case DBtree.GetNodeLevel(Node) of
     1: Result := lntDb;
     2: begin
-      ds := FetchDbTableList(DBTree.Text[Node.Parent, 0]);
-      ds.RecNo := Node.Index+1;
-      Result := GetDBObjectType(ds.Fields);
+      Results := FetchDbTableList(DBTree.Text[Node.Parent, 0]);
+      Results.RecNo := Node.Index;
+      Result := GetDBObjectType(Results);
     end;
   end;
 end;
@@ -5786,7 +5095,7 @@ begin
       if (SelectedTable.Text <> '') and Assigned(SelectedTableColumns) then begin
         SelectedTableColumns.First;
         while not SelectedTableColumns.Eof do begin
-          ActiveQueryHelpers.Items.Add(SelectedTableColumns.Fields[0].AsWideString);
+          ActiveQueryHelpers.Items.Add(SelectedTableColumns.Col(0));
           SelectedTableColumns.Next;
         end;
       end;
@@ -5799,7 +5108,7 @@ begin
       for i := 0 to Length(MySQLFunctions) - 1 do
       begin
         // Don't display unsupported functions here
-        if MySqlFunctions[i].Version > mysql_version then
+        if MySqlFunctions[i].Version > Connection.ServerVersionInt then
           continue;
         ActiveQueryHelpers.Items.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
       end;
@@ -6529,21 +5838,20 @@ begin
   Combobox.Items.Clear;
 
   // Cache datasets
-  if ((dsShowEngines = nil) or (dsShowEngines.State = dsInactive)) and
-    ((dsHaveEngines = nil) or (dsHaveEngines.State = dsInactive)) then
-  begin
+  if dsShowEngines = nil then begin
     FreeAndNil(dsShowEngines);
+    dsShowEngines := Connection.GetResults('SHOW ENGINES');
+  end;
+  if dsHaveEngines = nil then begin
     FreeAndNil(dsHaveEngines);
-    dsShowEngines := GetResults('SHOW ENGINES', True);
-    if dsShowEngines = nil then
-      dsHaveEngines := GetResults('SHOW VARIABLES LIKE ''have%''');
+    dsHaveEngines := Connection.GetResults('SHOW VARIABLES LIKE ''have%''');
   end;
 
-  if dsShowEngines <> nil then begin
+  if Assigned(dsShowEngines) then begin
     dsShowEngines.First;
     while not dsShowEngines.Eof do begin
-      engineName := dsShowEngines.FieldByName('Engine').AsString;
-      engineSupport := LowerCase(dsShowEngines.FieldByName('Support').AsString);
+      engineName := dsShowEngines.Col('Engine');
+      engineSupport := LowerCase(dsShowEngines.Col('Support'));
       // Add to dropdown if supported
       if engineSupport <> 'no' then
         Combobox.Items.Add(engineName);
@@ -6566,14 +5874,14 @@ begin
     HaveEngineList.CommaText := 'ARCHIVE,BDB,BLACKHOLE,CSV,EXAMPLE,FEDERATED,INNODB,ISAM';
     dsHaveEngines.First;
     while not dsHaveEngines.Eof do begin
-      engineName := copy(dsHaveEngines.Fields[0].AsString, 6, Length(dsHaveEngines.Fields[0].AsString) );
+      engineName := copy(dsHaveEngines.Col(0), 6, Length(dsHaveEngines.Col(0)) );
       // Strip additional "_engine" suffix, fx from "have_blackhole_engine"
       if Pos('_', engineName) > 0 then
         engineName := copy(engineName, 0, Pos('_', engineName)-1);
       engineName := UpperCase(engineName);
       // Add engine to dropdown if it's a) in HaveEngineList and b) activated
       if (HaveEngineList.IndexOf(engineName) > -1)
-        and (LowerCase(dsHaveEngines.Fields[1].AsString) = 'yes') then
+        and (LowerCase(dsHaveEngines.Col(1)) = 'yes') then
         Combobox.Items.Add(engineName);
       dsHaveEngines.Next;
     end;
@@ -6711,7 +6019,7 @@ begin
   EditVariableForm.VarValue := NodeData.Captions[1];
   // Refresh relevant list node
   if EditVariableForm.ShowModal = mrOK then
-    NodeData.Captions[1] := GetVar('SHOW VARIABLES LIKE '+esc(NodeData.Captions[0]), 1);
+    NodeData.Captions[1] := Connection.GetVar('SHOW VARIABLES LIKE '+esc(NodeData.Captions[0]), 1);
 end;
 
 
@@ -6732,7 +6040,7 @@ procedure TMainForm.DBtreeGetText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText:
     WideString);
 var
-  ds: TDataset;
+  Results: TMySQLQuery;
   db, eng: WideString;
   i: Integer;
   Bytes: Int64;
@@ -6740,12 +6048,12 @@ var
 begin
   case Column of
     0: case Sender.GetNodeLevel(Node) of
-        0: CellText := FConn.MysqlParams.User + '@' + FConn.MysqlParams.Host;
+        0: CellText := Connection.Username + '@' + Connection.Hostname;
         1: CellText := Databases[Node.Index];
         2: begin
-            ds := FetchDbTableList(Databases[Node.Parent.Index]);
-            ds.RecNo := Node.Index+1;
-            CellText := ds.FieldByName(DBO_NAME).AsWideString;
+            Results := FetchDbTableList(Databases[Node.Parent.Index]);
+            Results.RecNo := Node.Index;
+            CellText := Results.Col(DBO_NAME);
           end;
       end;
     1: case GetTreeNodeType(Node) of
@@ -6763,10 +6071,10 @@ begin
             if AllListsCached then begin
               Bytes := 0;
               for i := 0 to Databases.Count - 1 do begin
-                ds := FetchDbTableList(Databases[i]);
-                while not ds.Eof do begin
-                  Bytes := Bytes + GetTableSize(ds);
-                  ds.Next;
+                Results := FetchDbTableList(Databases[i]);
+                while not Results.Eof do begin
+                  Bytes := Bytes + GetTableSize(Results);
+                  Results.Next;
                 end;
               end;
             end;
@@ -6780,13 +6088,13 @@ begin
               CellText := ''
             else begin
               Bytes := 0;
-              ds := FetchDbTableList(db);
-              while not ds.Eof do begin
-                if ds.FindField('Type') <> nil then eng := FieldContent(ds, 'Type')
-                else eng := FieldContent(ds, 'Engine');
+              Results := FetchDbTableList(db);
+              while not Results.Eof do begin
+                if Results.ColExists(DBO_TYPE) then eng := Results.Col(DBO_TYPE)
+                else eng := Results.Col('Engine');
                 if UpperCase(eng) <> 'MRG_MYISAM' then
-                  Bytes := Bytes + GetTableSize(ds);
-                ds.Next;
+                  Bytes := Bytes + GetTableSize(Results);
+                Results.Next;
               end;
               if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
               else CellText := '';
@@ -6794,9 +6102,9 @@ begin
           end;
         lntTable: begin
           db := DBtree.Text[Node.Parent, 0];
-          ds := FetchDbTableList(db);
-          ds.RecNo := Node.Index + 1;
-          Bytes := GetTableSize(ds);
+          Results := FetchDbTableList(db);
+          Results.RecNo := Node.Index + 1;
+          Bytes := GetTableSize(Results);
           CellText := FormatByteNumber(Bytes);
         end
         else CellText := ''; // Applies for views and crashed tables
@@ -6812,7 +6120,7 @@ procedure TMainForm.DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
     Boolean; var ImageIndex: Integer);
 var
-  ds: TDataset;
+  Results: TMySQLQuery;
 begin
   if Column > 0 then
     Exit;
@@ -6822,9 +6130,9 @@ begin
          ImageIndex := ICONINDEX_DB_HIGHLIGHT
          else ImageIndex := ICONINDEX_DB;
     2: begin
-        ds := FetchDbTableList(Databases[Node.Parent.Index]);
-        ds.RecNo := Node.Index+1;
-        case GetDBObjectType(ds.Fields) of
+        Results := FetchDbTableList(Databases[Node.Parent.Index]);
+        Results.RecNo := Node.Index;
+        case GetDBObjectType(Results) of
           lntTable:
             if Kind = ikSelected then
               ImageIndex := ICONINDEX_TABLE_HIGHLIGHT
@@ -6854,7 +6162,7 @@ procedure TMainForm.DBtreeInitChildren(Sender: TBaseVirtualTree; Node:
     PVirtualNode; var ChildCount: Cardinal);
 var
   VT: TVirtualStringTree;
-  ds: TDataset;
+  Results: TMySQLQuery;
   i, j: Integer;
   DatabasesWanted: TWideStringList;
   rx: TRegExpr;
@@ -6868,7 +6176,7 @@ begin
         try
           if not Assigned(AllDatabases) then begin
             Showstatus( 'Reading Databases...' );
-            AllDatabases := GetCol('SHOW DATABASES');
+            AllDatabases := Connection.GetCol('SHOW DATABASES');
           end;
           if not Assigned(Databases) then
             Databases := TWideStringList.Create;
@@ -6917,8 +6225,8 @@ begin
         Screen.Cursor := crHourglass;
         Showstatus( 'Reading Tables...' );
         try
-          ds := FetchDbTableList(Databases[Node.Index]);
-          ChildCount := ds.RecordCount;
+          Results := FetchDbTableList(Databases[Node.Index]);
+          ChildCount := Results.RecordCount;
         finally
           ShowStatus( STATUS_MSG_READY );
           Screen.Cursor := crDefault;
@@ -6969,10 +6277,12 @@ begin
     0: ShowHost;
     1: begin
         newDb := Databases[Node.Index];
+        Connection.Database := newDb;
         ShowDatabase( newDb );
       end;
     2: begin
         newDb := Databases[Node.Parent.Index];
+        Connection.Database := newDb;
         newDbObject := SelectedTable.Text;
         tabEditor.TabVisible := True;
         tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntCrashedTable, lntView];
@@ -7002,6 +6312,13 @@ begin
     LoadDatabaseProperties(newDb);
   FixQueryTabCloseButtons;
   SetWindowCaption;
+end;
+
+
+procedure TMainForm.DatabaseChanged(Database: WideString);
+begin
+  if Database <> ActiveDatabase then
+    ActiveDatabase := Database;
 end;
 
 
@@ -7177,21 +6494,8 @@ end;
 
 
 function TMainForm.DbTableListCachedAndValid(db: WideString): Boolean;
-var
-  ds: TDataSet;
 begin
   Result := CachedTableLists.IndexOf(db) > -1;
-  if Result then begin
-    ds := TDataSet(CachedTableLists.Objects[CachedTableLists.IndexOf(db)]);
-    // Delphi's RTL (TDataSet in DB.pas) throws exceptions right and left
-    // if the database the dataset(-derivate, aka TZDataSet) came from is
-    // currently, or has been earlier been, disconnected.  Therefore, nuke
-    // these datasets, they'll have to be reloaded.
-    if ds.State = dsInactive then begin
-      ClearDbTableList(db);
-      Result := False;
-    end;
-  end;
 end;
 
 procedure TMainForm.editFilterSearchChange(Sender: TObject);
@@ -7208,7 +6512,7 @@ begin
     for i := 0 to SelectedTableColumns.RecordCount - 1 do begin
       if i > 0 then
         Add := Add + ' OR ';
-      Add := Add + mask(SelectedTableColumns.Fields[0].AsWideString) + ' LIKE ' + esc('%'+ed.Text+'%');
+      Add := Add + mask(SelectedTableColumns.Col(0)) + ' LIKE ' + esc('%'+ed.Text+'%');
       if Length(Add) > 45 then begin
         Clause := Clause + Add + CRLF;
         Add := '';
@@ -7261,7 +6565,7 @@ procedure TMainForm.EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNod
 var
   res: TGridResult;
   query: WideString;
-  ds: TDataSet;
+  Results: TMySQLQuery;
   i, j: LongInt;
 begin
   res := GridResult(Sender);
@@ -7276,9 +6580,9 @@ begin
 
     // start query
     ShowStatus('Retrieving data...');
-    ds := GetResults(query);
+    Results := Connection.GetResults(query);
     // If new data does not match current filter, remove from tree.
-    if Cardinal(ds.RecordCount) < 1 then begin
+    if Results.RecordCount < 1 then begin
       // Remove entry from dynamic array.
       for i := Node.Index to Length(res.Rows) - 1 do begin
         if i < Length(res.Rows) - 1 then res.Rows[i] := res.Rows[i + 1];
@@ -7290,21 +6594,21 @@ begin
 
     // fill in data
     ShowStatus('Filling grid with record-data...');
-    if Cardinal(ds.RecordCount) > 0 then begin
-      SetLength(res.Rows[Node.Index].Cells, ds.Fields.Count);
+    if Results.RecordCount > 0 then begin
+      SetLength(res.Rows[Node.Index].Cells, Results.ColumnCount);
       i := Node.Index;
-      for j := 0 to ds.Fields.Count - 1 do begin
+      for j := 0 to Results.ColumnCount - 1 do begin
         if res.Columns[j].DatatypeCat = dtcBinary then
-          res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
+          res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j))
         else
-          res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
-        res.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
+          res.Rows[i].Cells[j].Text := Results.Col(j);
+        res.Rows[i].Cells[j].IsNull := Results.IsNull(j);
       end;
       res.Rows[Node.Index].Loaded := True;
     end;
 
     ShowStatus( STATUS_MSG_READY );
-    FreeAndNil(ds);
+    FreeAndNil(Results);
   end;
 end;
 
@@ -7313,7 +6617,7 @@ var
   res: TGridResult;
   start, limit: Cardinal;
   query: WideString;
-  ds: TDataSet;
+  Results: TMySQLQuery;
   i, j: LongInt;
   hi: LongInt;
   regCrashIndicName: String;
@@ -7340,7 +6644,7 @@ begin
     ShowStatus('Retrieving data...');
     debug(Format('mem: loading data chunk from row %d to %d', [start, limit]));
     try
-      ds := GetResults(query);
+      Results := Connection.GetResults(query);
     except
       // if something bad happened, nuke cache, reset cursor and display error.
       TVirtualStringTree(Sender).RootNodeCount := 0;
@@ -7350,8 +6654,8 @@ begin
       Screen.Cursor := crDefault;
       raise;
     end;
-    if Cardinal(ds.RecordCount) < limit then begin
-      limit := ds.RecordCount;
+    if Cardinal(Results.RecordCount) < limit then begin
+      limit := Results.RecordCount;
       TVirtualStringTree(Sender).RootNodeCount := start + limit;
       SetLength(res.Rows, start + limit);
       ReachedEOT := true;
@@ -7372,17 +6676,17 @@ begin
 
     // fill in data
     ShowStatus('Filling grid with record-data...');
-    for i := start to start + limit - 1 do begin
-      SetLength(res.Rows[i].Cells, ds.Fields.Count);
-      for j := 0 to ds.Fields.Count - 1 do begin
+    for i:=start to start+limit-1 do begin
+      SetLength(res.Rows[i].Cells, Results.ColumnCount);
+      for j:=0 to Results.ColumnCount-1 do begin
         if res.Columns[j].DatatypeCat = dtcBinary then
-          res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(ds.Fields[j].AsString)
+          res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j))
         else
-          res.Rows[i].Cells[j].Text := ds.Fields[j].AsWideString;
-        res.Rows[i].Cells[j].IsNull := ds.Fields[j].IsNull;
+          res.Rows[i].Cells[j].Text := Results.Col(j);
+        res.Rows[i].Cells[j].IsNull := Results.IsNull(j);
       end;
       res.Rows[i].Loaded := True;
-      ds.Next;
+      Results.Next;
     end;
 
     if res = DataGridResult then begin
@@ -7391,7 +6695,7 @@ begin
     end;
 
     ShowStatus( STATUS_MSG_READY );
-    FreeAndNil(ds);
+    FreeAndNil(Results);
   end;
 end;
 
@@ -7676,7 +6980,8 @@ begin
   sql := sql + ' WHERE ' + GetWhereClause(Row, @DataGridResult.Columns);
   try
     // Send UPDATE query
-    if (ExecUpdateQuery(sql, False, True) = 0) then begin
+    Connection.Query(sql);
+    if Connection.RowsAffected = 0 then begin
       MessageDlg('Your change did not affect any row! This can have several causes:' + CRLF + CRLF +
         'a) Your changes were silently converted by the server. For instance, if you tried to ' +
         'update an unsigned TINYINT field from its maximum value 255 to a higher value.' + CRLF + CRLF +
@@ -7776,8 +7081,8 @@ var
     Result.Clear;
     SelectedTableKeys.First;
     while not SelectedTableKeys.Eof do begin
-      if SelectedTableKeys.FieldByName('Key_name').AsWideString = KeyName then
-        Result.Add(SelectedTableKeys.FieldByName('Column_name').AsWideString);
+      if SelectedTableKeys.Col('Key_name') = KeyName then
+        Result.Add(SelectedTableKeys.Col('Column_name'));
       SelectedTableKeys.Next;
     end;
   end;
@@ -7788,8 +7093,8 @@ begin
   SelectedTableKeys.First;
   // 1. round: find a primary key
   while not SelectedTableKeys.Eof do begin
-    if SelectedTableKeys.FieldByName('Key_name').AsWideString = 'PRIMARY' then begin
-      FindColumns(SelectedTableKeys.FieldByName('Key_name').AsWideString);
+    if SelectedTableKeys.Col('Key_name') = 'PRIMARY' then begin
+      FindColumns(SelectedTableKeys.Col('Key_name'));
       Exit;
     end;
     SelectedTableKeys.Next;
@@ -7797,16 +7102,16 @@ begin
   // no primary key available -> 2. round: find a unique key
   SelectedTableKeys.First;
   while not SelectedTableKeys.Eof do begin
-    if SelectedTableKeys.FieldByName('Non_unique').AsInteger = 0 then begin
+    if MakeInt(SelectedTableKeys.Col('Non_unique')) = 0 then begin
       // We found a UNIQUE key - better than nothing. Check if one of the key
       // columns allows NULLs which makes it dangerous to use in UPDATES + DELETES.
-      FindColumns(SelectedTableKeys.FieldByName('Key_name').AsWideString);
+      FindColumns(SelectedTableKeys.Col('Key_name'));
       SelectedTableColumns.First;
       AllowsNull := False;
-      for i := 0 to Result.Count - 1 do begin
+      for i:=0 to Result.Count-1 do begin
         while (not SelectedTableColumns.Eof) and (not AllowsNull) do begin
-          if SelectedTableColumns.FieldByName('Field').AsWideString = Result[i] then
-            AllowsNull := UpperCase(SelectedTableColumns.FieldByName('Null').AsString) = 'YES';
+          if SelectedTableColumns.Col('Field') = Result[i] then
+            AllowsNull := UpperCase(SelectedTableColumns.Col('Null')) = 'YES';
           SelectedTableColumns.Next;
         end;
         if AllowsNull then break;
@@ -7892,9 +7197,9 @@ begin
     Cols := Copy(Cols, 1, Length(Cols)-2);
     sql := 'INSERT INTO '+mask(DataGridDB)+'.'+mask(DataGridTable)+' ('+Cols+') VALUES ('+Vals+')';
     // Send INSERT query
-    if (ExecUpdateQuery(sql) = 0) then begin
+    Connection.Query(sql);
+    if Connection.RowsAffected = 0 then
       MessageBox(Self.Handle, 'Server failed to insert row.', 'Error', 0);
-    end;
     Result := True;
     Row.Loaded := false;
     EnsureNodeLoaded(Sender, Node, GetWhereClause(Row, @DataGridResult.Columns));
@@ -7928,7 +7233,7 @@ begin
 
   try
     // Send DELETE query
-    ExecUpdateQuery(sql, False, True);
+    Connection.Query(sql);
     Result := True;
   except
     Result := False;
@@ -7936,7 +7241,7 @@ begin
 
   if Result then begin
     // Remove deleted row nodes out of the grid
-    Affected := FMysqlConn.Connection.GetAffectedRowsFromLastPost;
+    Affected := Connection.RowsAffected;
     Selected := Sender.SelectedCount;
     if Affected = Selected then begin
       // Fine. Number of deleted rows equals the selected node count.
@@ -8016,7 +7321,7 @@ var
   Col: PGridColumn;
   sql: WideString;
   len: Int64;
-  ds: TDataSet;
+  Results: TMySQLQuery;
 begin
   Result := True;
 
@@ -8038,10 +7343,10 @@ begin
         ' FROM ' + mask(SelectedTable.Text) +
         ' WHERE ' + GetWhereClause(Row, @DataGridResult.Columns)
       ;
-      ds := GetResults(sql);
-      if Col.DatatypeCat = dtcBinary then Cell.Text := '0x' + BinToWideHex(ds.Fields[0].AsString)
-      else Cell.Text := ds.Fields[0].AsWideString;
-      Cell.IsNull := ds.Fields[0].IsNull;
+      Results := Connection.GetResults(sql);
+      if Col.DatatypeCat = dtcBinary then Cell.Text := '0x' + BinToWideHex(Results.Col(0))
+      else Cell.Text := Results.Col(0);
+      Cell.IsNull := Results.IsNull(0);
     end else
       Result := False;
   end;
@@ -8127,27 +7432,25 @@ begin
 end;
 
 
-function TMainForm.GetSelectedTableColumns: TDataset;
+function TMainForm.GetSelectedTableColumns: TMySQLQuery;
 begin
-  if (FSelectedTableColumns = nil) or (FSelectedTableColumns.State = dsInactive) then begin
-    FreeAndNil(FSelectedTableColumns);
-	// Avoid SQL error on routines
+  if not Assigned(FSelectedTableColumns) then begin
+    // Avoid SQL error on routines
     if GetFocusedTreeNodeType in [lntTable, lntView] then begin
       ShowStatus('Reading table columns ...');
-      FSelectedTableColumns := GetResults( 'SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable.Text), false );
+      FSelectedTableColumns := Connection.GetResults('SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable.Text));
     end;
   end;
   Result := FSelectedTableColumns;
 end;
 
-function TMainForm.GetSelectedTableKeys: TDataset;
+function TMainForm.GetSelectedTableKeys: TMySQLQuery;
 begin
-  if (FSelectedTableKeys = nil) or (FSelectedTableKeys.State = dsInactive) then begin
-    FreeAndNil(FSelectedTableKeys);
-	// Avoid SQL error on routines
+  if not Assigned(FSelectedTableKeys) then begin
+    // Avoid SQL error on routines
     if GetFocusedTreeNodeType in [lntTable, lntView] then begin
       ShowStatus('Reading table keys ...');
-      FSelectedTableKeys := GetResults( 'SHOW KEYS FROM ' + mask(SelectedTable.Text) );
+      FSelectedTableKeys := Connection.GetResults('SHOW KEYS FROM ' + mask(SelectedTable.Text));
     end;
   end;
   Result := FSelectedTableKeys;
@@ -8370,7 +7673,7 @@ end;
 procedure TMainForm.LoadDataView(ViewName: String);
 var
   rx: TRegExpr;
-  idx, i: Integer;
+  idx: Integer;
   Col: WideString;
   HiddenCols: TWideStringList;
 begin
@@ -8383,8 +7686,8 @@ begin
     HiddenCols.DelimitedText := Utf8Decode(MainReg.ReadString(REGNAME_HIDDENCOLUMNS));
     SelectedTableColumns.First;
     FDataGridSelect.Clear;
-    for i := 0 to SelectedTableColumns.RecordCount - 1 do begin
-      Col := SelectedTableColumns.Fields[0].AsWideString;
+    while not SelectedTableColumns.Eof do begin
+      Col := SelectedTableColumns.Col(0);
       if HiddenCols.IndexOf(Col) = -1 then
         FDataGridSelect.Add(Col);
       SelectedTableColumns.Next;
@@ -8462,7 +7765,7 @@ procedure TMainForm.ListVariablesBeforePaint(Sender: TBaseVirtualTree; TargetCan
 var
   i : Integer;
   vt: TVirtualStringTree;
-  ds: TDataSet;
+  Results: TMySQLQuery;
   Sel: TWideStringList;
 begin
   // Display server variables
@@ -8473,17 +7776,16 @@ begin
   DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
-    ds := GetResults('SHOW VARIABLES');
-    SetLength(VTRowDataListVariables, ds.RecordCount);
-    for i:=1 to ds.RecordCount do begin
-      VTRowDataListVariables[i-1].ImageIndex := 25;
-      VTRowDataListVariables[i-1].Captions := WideStrings.TWideStringList.Create;
-      VTRowDataListVariables[i-1].Captions.Add( ds.Fields[0].AsWideString );
-      VTRowDataListVariables[i-1].Captions.Add( ds.Fields[1].AsWideString );
-      ds.Next;
+    Results := Connection.GetResults('SHOW VARIABLES');
+    SetLength(VTRowDataListVariables, Results.RecordCount);
+    for i:=0 to Results.RecordCount-1 do begin
+      VTRowDataListVariables[i].ImageIndex := 25;
+      VTRowDataListVariables[i].Captions := TWideStringList.Create;
+      VTRowDataListVariables[i].Captions.Add(Results.Col(0));
+      VTRowDataListVariables[i].Captions.Add(Results.Col(1));
+      Results.Next;
     end;
-    ds.Close;
-    FreeAndNil(ds);
+    FreeAndNil(Results);
     vt.RootNodeCount := Length(VTRowDataListVariables);
     vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
     SetVTSelection(vt, Sel);
@@ -8504,7 +7806,7 @@ var
   i: Integer;
   valcount: Int64;
   tmpval: Double;
-  ds: TDataSet;
+  Results: TMySQLQuery;
   val, avg_perhour, avg_persec: WideString;
   valIsBytes, valIsNumber: Boolean;
   vt: TVirtualStringTree;
@@ -8518,19 +7820,19 @@ begin
   DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
-    ds := GetResults( 'SHOW /*!50002 GLOBAL */ STATUS' );
-    SetLength(VTRowDataListStatus, ds.RecordCount);
-    for i:=1 to ds.RecordCount do begin
-      VTRowDataListStatus[i-1].ImageIndex := 25;
-      VTRowDataListStatus[i-1].Captions := WideStrings.TWideStringList.Create;
-      VTRowDataListStatus[i-1].Captions.Add( ds.Fields[0].AsWideString );
-      val := ds.Fields[1].AsWideString;
+    Results := Connection.GetResults('SHOW /*!50002 GLOBAL */ STATUS');
+    SetLength(VTRowDataListStatus, Results.RecordCount);
+    for i:=0 to Results.RecordCount-1 do begin
+      VTRowDataListStatus[i].ImageIndex := 25;
+      VTRowDataListStatus[i].Captions := TWideStringList.Create;
+      VTRowDataListStatus[i].Captions.Add(Results.Col(0));
+      val := Results.Col(1);
       avg_perhour := '';
       avg_persec := '';
 
       // Detect value type
       valIsNumber := IntToStr(MakeInt(val)) = val;
-      valIsBytes := valIsNumber and (Copy(ds.Fields[0].AsWideString, 1, 6) = 'Bytes_');
+      valIsBytes := valIsNumber and (Copy(Results.Col(0), 1, 6) = 'Bytes_');
 
       // Calculate average values ...
       if valIsNumber then begin
@@ -8551,13 +7853,12 @@ begin
       else if valIsNumber then
         val := FormatNumber(val);
 
-      VTRowDataListStatus[i-1].Captions.Add( val );
-      VTRowDataListStatus[i-1].Captions.Add(avg_perhour);
-      VTRowDataListStatus[i-1].Captions.Add(avg_persec);
-      ds.Next;
+      VTRowDataListStatus[i].Captions.Add( val );
+      VTRowDataListStatus[i].Captions.Add(avg_perhour);
+      VTRowDataListStatus[i].Captions.Add(avg_persec);
+      Results.Next;
     end;
-    ds.Close;
-    FreeAndNil(ds);
+    FreeAndNil(Results);
     // Tell VirtualTree the number of nodes it will display
     vt.RootNodeCount := Length(VTRowDataListStatus);
     vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
@@ -8576,7 +7877,7 @@ end;
 procedure TMainForm.ListProcessesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   i, j: Integer;
-  ds: TDataSet;
+  Results: TMySQLQuery;
   vt: TVirtualStringTree;
   Sel: TWideStringList;
 begin
@@ -8588,25 +7889,24 @@ begin
   DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
-    ds := GetResults('SHOW FULL PROCESSLIST', false, false);
-    SetLength(VTRowDataListProcesses, ds.RecordCount);
-    for i:=1 to ds.RecordCount do begin
-      VTRowDataListProcesses[i-1].Captions := WideStrings.TWideStringList.Create;
-      VTRowDataListProcesses[i-1].Captions.Add( ds.Fields[0].AsWideString );
-      if AnsiCompareText( ds.Fields[4].AsString, 'Killed') = 0 then
-        VTRowDataListProcesses[i-1].ImageIndex := 26  // killed
+    Results := Connection.GetResults('SHOW FULL PROCESSLIST');
+    SetLength(VTRowDataListProcesses, Results.RecordCount);
+    for i:=0 to Results.RecordCount-1 do begin
+      VTRowDataListProcesses[i].Captions := TWideStringList.Create;
+      VTRowDataListProcesses[i].Captions.Add(Results.Col(0));
+      if AnsiCompareText(Results.Col(4), 'Killed') = 0 then
+        VTRowDataListProcesses[i].ImageIndex := 26  // killed
       else begin
-        if ds.FindField('Info').AsString = '' then
-          VTRowDataListProcesses[i-1].ImageIndex := 55 // idle
+        if Results.Col('Info') = '' then
+          VTRowDataListProcesses[i].ImageIndex := 55 // idle
         else
-          VTRowDataListProcesses[i-1].ImageIndex := 57 // running query
+          VTRowDataListProcesses[i].ImageIndex := 57 // running query
       end;
       for j := 1 to 7 do
-        VTRowDataListProcesses[i-1].Captions.Add(ds.Fields[j].AsWideString);
-      ds.Next;
+        VTRowDataListProcesses[i].Captions.Add(Results.Col(j));
+      Results.Next;
     end;
-    ds.Close;
-    FreeAndNil(ds);
+    FreeAndNil(Results);
     vt.RootNodeCount := Length(VTRowDataListProcesses);
     vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
     SetVTSelection(vt, Sel);
@@ -8655,7 +7955,7 @@ procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; Target
 var
   i: Integer;
   questions: Int64;
-  ds: TDataSet;
+  Results: TMySQLQuery;
   vt: TVirtualStringTree;
   Sel: TWideStringList;
 begin
@@ -8668,18 +7968,17 @@ begin
   DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
-    ds := GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
-    questions := MakeInt(GetVar('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Questions''', 1));
+    Results := Connection.GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
+    questions := MakeInt(Connection.GetVar('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Questions''', 1));
     if questions = 0 then
       Raise Exception.Create('Could not detect value of "Questions" status. Command statistics are not available.');
-    SetLength(VTRowDataListCommandStats, ds.RecordCount+1);
+    SetLength(VTRowDataListCommandStats, Results.RecordCount+1);
     addLVitem(0, '    All commands', questions, questions );
-    for i:=1 to ds.RecordCount do begin
-      addLVitem(i, ds.Fields[0].AsWideString, MakeInt(ds.Fields[1].AsString), questions );
-      ds.Next;
+    for i:=0 to Results.RecordCount-1 do begin
+      addLVitem(i, Results.Col(0), MakeInt(Results.Col(1)), questions );
+      Results.Next;
     end;
-    ds.Close;
-    FreeAndNil(ds);
+    FreeAndNil(Results);
     // Tell VirtualTree the number of nodes it will display
     vt.RootNodeCount := Length(VTRowDataListCommandStats);
     vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
@@ -8929,7 +8228,7 @@ begin
   query := 'SELECT COUNT(*)' + DataGridCurrentFrom;
   if DataGridCurrentFilter <> '' then query := query + ' WHERE ' + DataGridCurrentFilter;
   try
-    count := MakeInt(GetVar(query));
+    count := MakeInt(Connection.GetVar(query));
     // Work around a memory allocation bug in VirtualTree.
     if count > prefMaxTotalRows then count := prefMaxTotalRows;
   except
@@ -8970,18 +8269,16 @@ begin
 end;
 
 
-function TMainform.GetCollations(Items: TWideStrings = nil): TDataset;
+function TMainform.GetCollations(Items: TWideStrings = nil): TMySQLQuery;
 begin
   // Return cached collation list, used in several places, e.g. table editor
-  if (dsCollations = nil) or (dsCollations.State = dsInactive) then begin
-    FreeAndNil(dsCollations);
-    dsCollations := GetResults('SHOW COLLATION', True);
-  end;
+  if dsCollations = nil then
+    dsCollations := Connection.GetResults('SHOW COLLATION');
   if Assigned(dsCollations) then begin
     dsCollations.First;
     if Assigned(Items) then begin
       while not dsCollations.Eof do begin
-        Items.Add(dsCollations.FieldByName('Collation').AsWideString);
+        Items.Add(dsCollations.Col('Collation'));
         dsCollations.Next;
       end;
       dsCollations.First;
@@ -9640,7 +8937,6 @@ begin
   MakeVisible := Sender <> btnCloseFilterPanel;
   pnlFilterVT.Visible := MakeVisible;
   pnlFilterVT.Tag := Integer(MakeVisible);
-  ValidateControls(Sender);
   // On startup, we cannot SetFocus, throws exceptons. Call with nil in that special case - see FormCreate
   if Assigned(Sender) and MakeVisible then
     editFilterVT.SetFocus;

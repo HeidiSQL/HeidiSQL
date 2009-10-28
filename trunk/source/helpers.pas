@@ -9,9 +9,9 @@ unit helpers;
 interface
 
 uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
-  forms, controls, ShellApi, checklst, windows, ZDataset, ZAbstractDataset,
+  forms, controls, ShellApi, checklst, windows,
   shlobj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
-  TntCheckLst, Registry, SynEditHighlighter, mysql_structures, DateUtils;
+  TntCheckLst, Registry, SynEditHighlighter, mysql_connection, mysql_structures, DateUtils;
 
 type
 
@@ -45,7 +45,7 @@ type
     property AsWideString: WideString read GetAsWideString write SetAsWideString;
   end;
 
-  // Structures for result grids, mapped from a TDataset to some handy VirtualTree structure
+  // Structures for result grids, mapped from a TMySQLQuery to some handy VirtualTree structure
   TGridCell = record
     Text: WideString;
     NewText: WideString; // Used to create UPDATE clauses with needed columns
@@ -103,23 +103,6 @@ type
   // General purpose editing status flag
   TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
 
-  TDeferDataSet = class;
-  TAsyncPostRunner = procedure(ds: TDeferDataSet) of object;
-
-  TDeferDataSet = class(TZQuery)
-  private
-    callback: TAsyncPostRunner;
-    kind: Integer;
-  protected
-    procedure InternalPost; override;
-    procedure InternalRefresh; override;
-  public
-    constructor Create(AOwner: TComponent; PostCallback: TAsyncPostRunner); reintroduce;
-    procedure ExecSQL; override;
-    procedure DoAsync;
-    procedure DoAsyncExecSql;
-  end;
-
 {$I const.inc}
 
   function implodestr(seperator: WideString; a: TWideStringList) :WideString;
@@ -175,7 +158,6 @@ type
   function getFirstWord( text: String ): String;
   function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
   function LastPos(needle: WideChar; haystack: WideString): Integer;
-  function ConvertServerVersion( Version: Integer ): String;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber( Seconds: Cardinal ): String;
@@ -184,7 +166,7 @@ type
   procedure SetVTSelection( VT: TVirtualStringTree; Selected: TWideStringList );
   function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
   function GetTempDir: String;
-  function GetDBObjectType( TableStatus: TFields ): TListNodeType;
+  function GetDBObjectType(TableStatus: TMySQLQuery): TListNodeType;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
   procedure SaveUnicodeFile(Filename: String; Text: WideString);
   function CreateUnicodeFileStream(Filename: String): TFileStream;
@@ -213,8 +195,7 @@ type
   procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
   function DateBackFriendlyCaption(d: TDateTime): String;
   procedure InheritFont(AFont: TFont);
-  function FieldContent(ds: TDataSet; ColName: WideString): WideString;
-  function GetTableSize(ds: TDataSet): Int64;
+  function GetTableSize(Results: TMySQLQuery): Int64;
 var
   MainReg                    : TRegistry;
 
@@ -931,7 +912,7 @@ end;
 
 
 {***
-  Converts a TDataSet to CSV-values.
+  Converts grid contents to CSV-values.
   @param Grid Object which holds data to export
   @param string Field-separator
   @param string Field-encloser
@@ -1022,7 +1003,7 @@ end;
 
 
 {***
-  Converts a TDataSet to XML.
+  Converts grid contents to XML.
   @param Grid Object which holds data to export
   @param string Text used as root-element
 }
@@ -1099,7 +1080,7 @@ end;
 
 
 {***
-  Converts a TDataSet to XML.
+  Converts grid contents to XML.
   @param Grid Object which holds data to export
   @param string Text used as tablename in INSERTs
 }
@@ -2173,21 +2154,6 @@ end;
 
 
 {**
-  Convert integer version to real version string
-}
-function ConvertServerVersion( Version: Integer ): String;
-var
-  v : String;
-  v1, v2 : Byte;
-begin
-  v := IntToStr( Version );
-  v1 := StrToIntDef( v[2]+v[3], 0 );
-  v2 := StrToIntDef( v[4]+v[5], 0 );
-  Result := v[1] + '.' + IntToStr(v1) + '.' + IntToStr(v2);
-end;
-
-
-{**
   Format a filesize to automatically use the best fitting expression
   16 100 000 Bytes -> 16,1 MB
   4 500 Bytes -> 4,5 KB
@@ -2325,7 +2291,7 @@ end;
 
 
 // Tell type of db object (table|view) by a given row from a SHOW TABLE STATUS result
-function GetDBObjectType( TableStatus: TFields ): TListNodeType;
+function GetDBObjectType(TableStatus: TMySQLQuery): TListNodeType;
 var
   t: String;
 begin
@@ -2338,8 +2304,8 @@ begin
       "Views bla references invalid..."
   }
   Result := lntTable;
-  if TableStatus.FindField('Type') <> nil then begin
-    t := TableStatus.FindField('Type').AsString;
+  if TableStatus.ColExists('Type') then begin
+    t := TableStatus.Col('Type');
     if t = 'BASE TABLE' then
       Result := lntTable
     else if t = 'VIEW' then
@@ -2350,14 +2316,14 @@ begin
       Result := lntProcedure;
   end else begin
     if
-      TableStatus[1].IsNull and  // Engine column is NULL for views
-      TableStatus[2].IsNull and
-      (Pos('VIEW', UpperCase(TableStatus.FieldByName(DBO_COMMENT).AsWideString)) > 0)
+      TableStatus.IsNull(1) and  // Engine column is NULL for views
+      TableStatus.IsNull(2) and
+      (Pos('VIEW', UpperCase(TableStatus.Col(DBO_COMMENT))) > 0)
       then Result := lntView;
     if
-      TableStatus[1].IsNull and
-      TableStatus[2].IsNull and
-      (Pos('MARKED AS CRASHED', UpperCase(TableStatus.FieldByName(DBO_COMMENT).AsWideString)) > 0)
+      TableStatus.IsNull(1) and
+      TableStatus.IsNull(2) and
+      (Pos('MARKED AS CRASHED', UpperCase(TableStatus.Col(DBO_COMMENT))) > 0)
       then Result := lntCrashedTable;
   end;
 end;
@@ -3080,65 +3046,14 @@ begin
 end;
 
 
-// Fetch content from a row cell, avoiding NULLs to cause AVs
-function FieldContent(ds: TDataSet; ColName: WideString): WideString;
-begin
-  Result := '';
-  if (ds.FindField(colName) <> nil) and (not ds.FindField(ColName).IsNull) then
-    Result := ds.FieldByName(ColName).AsWideString;
-end;
-
-
-function GetTableSize(ds: TDataSet): Int64;
+function GetTableSize(Results: TMySQLQuery): Int64;
 var
   d, i: String;
 begin
-  d := FieldContent(ds, 'Data_length');
-  i := FieldContent(ds, 'Index_length');
+  d := Results.Col('Data_length', True);
+  i := Results.Col('Index_length', True);
   if (d = '') or (i = '') then Result := -1
   else Result := MakeInt(d) + MakeInt(i);
-end;
-
-
-procedure TDeferDataSet.InternalPost;
-begin
-  kind := 1;
-  if @callback = nil then DoAsync
-  else callback(self);
-end;
-
-procedure TDeferDataSet.InternalRefresh;
-begin
-  kind := 3;
-  if @callback = nil then DoAsync
-  else callback(self);
-end;
-
-procedure TDeferDataSet.ExecSql;
-begin
-  kind := 2;
-  if @callback = nil then DoAsync
-  else callback(self);
-end;
-
-constructor TDeferDataSet.Create(AOwner: TComponent; PostCallback: TAsyncPostRunner);
-begin
-  callback := PostCallback;
-  inherited Create(AOwner);
-end;
-
-procedure TDeferDataSet.DoAsync;
-begin
-  case kind of
-    1: inherited InternalPost;
-    2: inherited ExecSQL;
-    3: inherited InternalRefresh;
-  end;
-end;
-
-procedure TDeferDataSet.DoAsyncExecSql;
-begin
-  inherited ExecSql;
 end;
 
 

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, Db, ZDataset;
+  StdCtrls, ComCtrls, ExtCtrls, mysql_connection;
 
 type
   TfrmInsertFilesProgress = class(TForm)
@@ -59,17 +59,13 @@ var
   dt: TDateTime;
   y, m, d, h, mi, s, ms: Word;
   FileStream: TFileStream;
-  zq: TDeferDataSet;
-  zqSqlIdx: Integer;
   readBuf: String;
   bytesRead: Integer;
-  data: WideString;
+  sql, data: WideString;
 begin
   Timer1.Enabled := false;
   screen.Cursor := crHourglass;
   ProgressBar1.Max := TfrmInsertFiles(FInsertFilesForm).ListViewFiles.Items.Count;
-  zq := TDeferDataSet.Create(nil, Mainform.RunAsyncPost);
-  zq.Connection := Mainform.Conn.MysqlConn;
 
   TRY
 
@@ -83,44 +79,16 @@ begin
       filename := ListViewFiles.Items[i].Caption;
       lblFilename.Caption := mince(filename, 30) + ' ('+FormatNumber(ListViewFiles.Items[i].SubItems[0])+' KB)';
       lblFilename.Repaint;
-      zq.ParamCheck := true;
-      zq.SQL.Clear;
-      zq.SQL.Add( 'INSERT INTO '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text) +
-        ' (' + mainform.mask(ComboBoxColumns.Text) );
+      sql := 'INSERT INTO '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text) +
+        ' (' + mainform.mask(ComboBoxColumns.Text);
       lblOperation.caption := 'Inserting data ...';
       lblOperation.Repaint;
       for j:=0 to length(cols)-1 do
       begin
         if cols[j].Name = ComboBoxColumns.Text then
           continue;
-        zq.SQL.Add( ', ' + mainform.mask(cols[j].Name) );
+        sql := sql + ', ' + mainform.mask(cols[j].Name);
       end;
-      zqSqlIdx := zq.SQL.Add( ') VALUES (:STREAM, ' );
-
-      for j:=0 to length(cols)-1 do
-      begin
-        if cols[j].Name = ComboBoxColumns.Text then
-          continue;
-        Value := cols[j].Value;
-        if pos('%', Value) > 0 then
-        begin
-          //Value := stringreplace(Value, '%filesize%', inttostr(size), [rfReplaceAll]);
-          Value := stringreplace(Value, '%filename%', ExtractFileName(filename), [rfReplaceAll]);
-          Value := stringreplace(Value, '%filepath%', ExtractFilePath(filename), [rfReplaceAll]);
-          FileAge(filename, dt);
-          DecodeDate(dt, y, m, d);
-          DecodeTime(dt, h, mi, s, ms);
-          Value := stringreplace(Value, '%filedate%', Format('%.4d-%.2d-%.2d', [y,m,d]), [rfReplaceAll]);
-          Value := stringreplace(Value, '%filedatetime%', Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), [rfReplaceAll]);
-          Value := stringreplace(Value, '%filetime%', Format('%.2d:%.2d:%.2d', [h,mi,s]), [rfReplaceAll]);
-        end;
-        if cols[j].Quote then
-          Value := esc(Value);
-        zq.SQL.Add( Value + ', ' );
-      end;
-      // Strip last komma + space + CR + LF
-      zq.SQL.Text := copy( zq.SQL.Text, 1, length(zq.SQL.Text)-4 );
-      zq.SQL.Add( ')' );
       try
         lblOperation.caption := 'Reading file ...';
         lblOperation.Repaint;
@@ -141,7 +109,6 @@ begin
             SetLength(readBuf, bytesRead div SizeOf(Char));
             data := data + BinToWideHex(readBuf);
           end;
-          zq.SQL[zqSqlIdx] := StringReplace(zq.SQL[zqSqlIdx], ':STREAM', data, []);
         finally
           FileStream.Free;
         end;
@@ -149,7 +116,33 @@ begin
         MessageDlg( 'Error reading file:' + CRLF + filename, mtError, [mbOK], 0 );
         break;
       end;
-      zq.ExecSql;
+      sql := sql + ') VALUES ('+data+', ';
+
+      for j:=0 to length(cols)-1 do
+      begin
+        if cols[j].Name = ComboBoxColumns.Text then
+          continue;
+        Value := cols[j].Value;
+        if pos('%', Value) > 0 then
+        begin
+          //Value := stringreplace(Value, '%filesize%', inttostr(size), [rfReplaceAll]);
+          Value := stringreplace(Value, '%filename%', ExtractFileName(filename), [rfReplaceAll]);
+          Value := stringreplace(Value, '%filepath%', ExtractFilePath(filename), [rfReplaceAll]);
+          FileAge(filename, dt);
+          DecodeDate(dt, y, m, d);
+          DecodeTime(dt, h, mi, s, ms);
+          Value := stringreplace(Value, '%filedate%', Format('%.4d-%.2d-%.2d', [y,m,d]), [rfReplaceAll]);
+          Value := stringreplace(Value, '%filedatetime%', Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), [rfReplaceAll]);
+          Value := stringreplace(Value, '%filetime%', Format('%.2d:%.2d:%.2d', [h,mi,s]), [rfReplaceAll]);
+        end;
+        if cols[j].Quote then
+          Value := esc(Value);
+        sql := sql + Value + ', ';
+      end;
+      // Strip last comma + space
+      sql := copy(sql, 1, length(sql)-2);
+      sql := sql + ')';
+      Mainform.Connection.Query(sql);
       lblOperation.caption := 'Freeing memory ...';
       lblOperation.Repaint;
       ProgressBar1.StepIt;
@@ -158,7 +151,6 @@ begin
   end;
 
   FINALLY
-    FreeAndNil(zq);
     screen.Cursor := crDefault;
     Close();
   END;

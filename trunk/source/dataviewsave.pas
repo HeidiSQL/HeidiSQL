@@ -67,7 +67,7 @@ begin
     HiddenCols.StrictDelimiter := True;
     Mainform.SelectedTableColumns.First;
     for i := 0 to Mainform.SelectedTableColumns.RecordCount - 1 do begin
-      Col := Mainform.SelectedTableColumns.Fields[0].AsWideString;
+      Col := Mainform.SelectedTableColumns.Col(0);
       if Mainform.FDataGridSelect.IndexOf(Col) = -1 then
         HiddenCols.Add(Col);
       Mainform.SelectedTableColumns.Next;

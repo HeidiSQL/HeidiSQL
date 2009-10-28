@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, SynEdit, SynMemo, ExtCtrls, DB, SynRegExpr;
+  Dialogs, StdCtrls, ComCtrls, SynEdit, SynMemo, ExtCtrls, mysql_connection, SynRegExpr;
 
 type
   TfrmView = class(TFrame)
@@ -55,8 +55,8 @@ end;
 }
 procedure TfrmView.Init(EditViewName: WideString='');
 var
-  ds: TDataset;
-  db: String;
+  Results: TMySQLQuery;
+  db: WideString;
   rx: TRegExpr;
 begin
 	FEditViewName := EditViewName;
@@ -65,21 +65,21 @@ begin
     editName.Text := FEditViewName;
     Mainform.SetEditorTabCaption(Self, FEditViewName);
     db := Mainform.ActiveDatabase;
-    ds := Mainform.GetResults('SELECT * FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.VIEWS ' +
+    Results := Mainform.Connection.GetResults('SELECT * FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.VIEWS ' +
       'WHERE TABLE_SCHEMA = '+esc(db)+' AND TABLE_NAME = '+esc(FEditViewName));
-    if ds.RecordCount = 0 then
+    if Results.RecordCount = 0 then
       raise Exception.Create('Can''t find view definition for "'+FEditViewName+'" in '+DBNAME_INFORMATION_SCHEMA);
     // Algorithm is not changeable as we cannot look up its current state!
     rgAlgorithm.Enabled := False;
     rgAlgorithm.ItemIndex := 0;
-    rgCheck.ItemIndex := rgCheck.Items.IndexOf(ds.FieldByName('CHECK_OPTION').AsString);
-    rgCheck.Enabled := ds.FieldByName('IS_UPDATABLE').AsString = 'YES';
+    rgCheck.ItemIndex := rgCheck.Items.IndexOf(Results.Col('CHECK_OPTION'));
+    rgCheck.Enabled := Results.Col('IS_UPDATABLE') = 'YES';
 
     rx := TRegExpr.Create;
     rx.ModifierG := True;
     rx.ModifierI := True;
     rx.Expression := '\s+WITH\s+\w+\s+CHECK\s+OPTION$';
-    SynMemoSelect.Text := rx.Replace(ds.FieldByName('VIEW_DEFINITION').AsString, '');
+    SynMemoSelect.Text := rx.Replace(Results.Col('VIEW_DEFINITION'), '');
     rx.Free;
   end else begin
     // Create mode
@@ -160,11 +160,11 @@ begin
     sql := sql + 'WITH '+Uppercase(rgCheck.Items[rgCheck.ItemIndex])+' CHECK OPTION';
 
   // Execute query and keep form open in any error case
-  Mainform.ExecUpdateQuery(sql);
+  Mainform.Connection.Query(sql);
   // Probably rename view
   if (FEditViewName <> '') and (FEditViewName <> editName.Text) then begin
     renamed := Mainform.mask(editName.Text);
-    Mainform.ExecUpdateQuery('RENAME TABLE '+viewname + ' TO '+renamed);
+    Mainform.Connection.Query('RENAME TABLE '+viewname + ' TO '+renamed);
   end;
   Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
 end;

@@ -7,7 +7,7 @@ unit mysql_structures;
 interface
 
 uses
-  Classes, Widestrings, Graphics;
+  Classes, Widestrings, Graphics, mysql_api;
 
 {$I const.inc}
 
@@ -28,6 +28,7 @@ type
   // MySQL data type structure
   TDatatype = record
     Index:           TDatatypeIndex;
+    NativeType:      Cardinal; // See field types in mysql_api.pas
     Name:            String[18];
     Description:     String;
     HasLength:       Boolean; // Can have Length- or Set-attribute?
@@ -106,6 +107,7 @@ var
   (
     (
       Index:           dtTinyint;
+      NativeType:      FIELD_TYPE_TINY;
       Name:            'TINYINT';
       Description:     'TINYINT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
         'A very small integer. The signed range is -128 to 127. ' +
@@ -120,6 +122,7 @@ var
     ),
     (
       Index:           dtSmallint;
+      NativeType:      FIELD_TYPE_SHORT;
       Name:            'SMALLINT';
       Description:     'SMALLINT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
         'A small integer. The signed range is -32768 to 32767. ' +
@@ -134,6 +137,7 @@ var
     ),
     (
       Index:           dtMediumint;
+      NativeType:      FIELD_TYPE_INT24;
       Name:            'MEDIUMINT';
       Description:     'MEDIUMINT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
         'A medium-sized integer. The signed range is -8388608 to 8388607. ' +
@@ -148,6 +152,7 @@ var
     ),
     (
       Index:           dtInt;
+      NativeType:      FIELD_TYPE_LONG;
       Name:            'INT';
       Description:     'INT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
         'A normal-size integer. The signed range is -2147483648 to 2147483647. ' +
@@ -162,6 +167,7 @@ var
     ),
     (
       Index:           dtBigint;
+      NativeType:      FIELD_TYPE_LONGLONG;
       Name:            'BIGINT';
       Description:     'BIGINT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
         'A large integer. The signed range is -9223372036854775808 to ' +
@@ -176,6 +182,7 @@ var
     ),
     (
       Index:           dtFloat;
+      NativeType:      FIELD_TYPE_FLOAT;
       Name:            'FLOAT';
       Description:     'FLOAT[(M,D)] [UNSIGNED] [ZEROFILL]' + CRLF +
         'A small (single-precision) floating-point number. Allowable values are '+
@@ -193,6 +200,7 @@ var
     ),
     (
       Index:           dtDouble;
+      NativeType:      FIELD_TYPE_DOUBLE;
       Name:            'DOUBLE';
       Description:     'DOUBLE[(M,D)] [UNSIGNED] [ZEROFILL]' + CRLF +
         'A normal-size (double-precision) floating-point number. Allowable ' +
@@ -210,6 +218,7 @@ var
     ),
     (
       Index:           dtDecimal;
+      NativeType:      FIELD_TYPE_DECIMAL;
       Name:            'DECIMAL';
       Description:     'DECIMAL[(M[,D])] [UNSIGNED] [ZEROFILL]' + CRLF +
         'A packed "exact" fixed-point number. M is the total number of digits ' +
@@ -229,6 +238,7 @@ var
     ),
     (
       Index:           dtDate;
+      NativeType:      FIELD_TYPE_DATE;
       Name:            'DATE';
       Description:     'DATE' + CRLF +
         'A date. The supported range is ''1000-01-01'' to ''9999-12-31''. MySQL ' +
@@ -244,6 +254,7 @@ var
     ),
     (
       Index:           dtTime;
+      NativeType:      FIELD_TYPE_TIME;
       Name:            'TIME';
       Description:     'TIME' + CRLF +
         'A time. The range is ''-838:59:59'' to ''838:59:59''. MySQL displays TIME ' +
@@ -259,6 +270,7 @@ var
     ),
     (
       Index:           dtYear;
+      NativeType:      FIELD_TYPE_YEAR;
       Name:            'YEAR';
       Description:     'YEAR[(2|4)]' + CRLF +
         'A year in two-digit or four-digit format. The default is four-digit ' +
@@ -277,6 +289,7 @@ var
     ),
     (
       Index:           dtDatetime;
+      NativeType:      FIELD_TYPE_DATETIME;
       Name:            'DATETIME';
       Description:     'DATETIME' + CRLF +
         'A date and time combination. The supported range is ''1000-01-01 ' +
@@ -293,6 +306,7 @@ var
     ),
     (
       Index:           dtTimestamp;
+      NativeType:      FIELD_TYPE_TIMESTAMP;
       Name:            'TIMESTAMP';
       Description:     'TIMESTAMP' + CRLF +
         'A timestamp. The range is ''1970-01-01 00:00:01'' UTC to ''2038-01-09 ' +
@@ -311,6 +325,7 @@ var
     ),
     (
       Index:           dtCHAR;
+      NativeType:      FIELD_TYPE_STRING;
       Name:            'CHAR';
       Description:     'CHAR[(M)]' + CRLF +
         'A fixed-length string that is always right-padded with spaces to the ' +
@@ -329,6 +344,7 @@ var
     ),
     (
       Index:           dtVarchar;
+      NativeType:      FIELD_TYPE_VAR_STRING;
       Name:            'VARCHAR';
       Description:     'VARCHAR(M)' + CRLF +
         'A variable-length string. M represents the maximum column length in ' +
@@ -351,6 +367,7 @@ var
     ),
     (
       Index:           dtTinytext;
+      NativeType:      FIELD_TYPE_TINY_BLOB;
       Name:            'TINYTEXT';
       Description:     'TINYTEXT' + CRLF +
         'A TEXT column with a maximum length of 255 (28 - 1) characters. The ' +
@@ -367,6 +384,7 @@ var
     ),
     (
       Index:           dtText;
+      NativeType:      FIELD_TYPE_BLOB;
       Name:            'TEXT';
       Description:     'TEXT[(M)]' + CRLF +
         'A TEXT column with a maximum length of 65,535 (216 - 1) characters. The ' +
@@ -386,6 +404,7 @@ var
     ),
     (
       Index:           dtMediumtext;
+      NativeType:      FIELD_TYPE_MEDIUM_BLOB;
       Name:            'MEDIUMTEXT';
       Description:     'MEDIUMTEXT' + CRLF +
         'A TEXT column with a maximum length of 16,777,215 (224 - 1) characters. ' +
@@ -402,6 +421,7 @@ var
     ),
     (
       Index:           dtLongtext;
+      NativeType:      FIELD_TYPE_LONG_BLOB;
       Name:            'LONGTEXT';
       Description:     'LONGTEXT' + CRLF +
         'A TEXT column with a maximum length of 4,294,967,295 or 4GB (232 - 1) ' +
@@ -421,6 +441,7 @@ var
     ),
     (
       Index:           dtBinary;
+      NativeType:      FIELD_TYPE_STRING;
       Name:            'BINARY';
       Description:     'BINARY(M)' + CRLF +
         'The BINARY type is similar to the CHAR type, but stores binary byte ' +
@@ -437,6 +458,7 @@ var
     ),
     (
       Index:           dtVarbinary;
+      NativeType:      FIELD_TYPE_VAR_STRING;
       Name:            'VARBINARY';
       Description:     'VARBINARY(M)' + CRLF +
         'The VARBINARY type is similar to the VARCHAR type, but stores binary ' +
@@ -453,6 +475,7 @@ var
     ),
     (
       Index:           dtTinyblob;
+      NativeType:      FIELD_TYPE_TINY_BLOB;
       Name:           'TINYBLOB';
       Description:     'TINYBLOB' + CRLF +
         'A BLOB column with a maximum length of 255 (28 - 1) bytes. Each ' +
@@ -468,6 +491,7 @@ var
     ),
     (
       Index:           dtBlob;
+      NativeType:      FIELD_TYPE_BLOB;
       Name:            'BLOB';
       Description:     'BLOB[(M)]' + CRLF +
         'A BLOB column with a maximum length of 65,535 (216 - 1) bytes. Each ' +
@@ -486,6 +510,7 @@ var
     ),
     (
       Index:           dtMediumblob;
+      NativeType:      FIELD_TYPE_MEDIUM_BLOB;
       Name:            'MEDIUMBLOB';
       Description:     'MEDIUMBLOB' + CRLF +
         'A BLOB column with a maximum length of 16,777,215 (224 - 1) bytes. Each ' +
@@ -501,6 +526,7 @@ var
     ),
     (
       Index:           dtLongblob;
+      NativeType:      FIELD_TYPE_LONG_BLOB;
       Name:            'LONGBLOB';
       Description:     'LONGBLOB' + CRLF +
         'A BLOB column with a maximum length of 4,294,967,295 or 4GB (232 - 1) ' +
@@ -518,6 +544,7 @@ var
     ),
     (
       Index:           dtEnum;
+      NativeType:      FIELD_TYPE_ENUM;
       Name:            'ENUM';
       Description:     'ENUM(''value1'',''value2'',...)' + CRLF +
         'An enumeration. A string object that can have only one value, chosen ' +
@@ -535,6 +562,7 @@ var
     ),
     (
       Index:           dtSet;
+      NativeType:      FIELD_TYPE_SET;
       Name:            'SET';
       Description:     'SET(''value1'',''value2'',...)' + CRLF +
         'A set. A string object that can have zero or more values, each of which ' +
@@ -552,6 +580,7 @@ var
     ),
     (
       Index:           dtBit;
+      NativeType:      FIELD_TYPE_BIT;
       Name:            'BIT';
       Description:     'BIT[(M)]' + CRLF +
         'A bit-field type. M indicates the number of bits per value, from 1 to ' +
@@ -566,6 +595,7 @@ var
     ),
     (
       Index:           dtPoint;
+      NativeType:      FIELD_TYPE_GEOMETRY;
       Name:            'POINT';
       Description:     'POINT(x,y)' + CRLF +
         'Constructs a WKB Point using its coordinates.';
@@ -579,6 +609,7 @@ var
     ),
     (
       Index:           dtLinestring;
+      NativeType:      FIELD_TYPE_GEOMETRY;
       Name:            'LINESTRING';
       Description:     'LINESTRING(pt1,pt2,...)' + CRLF +
         'Constructs a WKB LineString value from a number of WKB Point arguments. ' +
@@ -594,6 +625,7 @@ var
     ),
     (
       Index:           dtPolygon;
+      NativeType:      FIELD_TYPE_GEOMETRY;
       Name:            'POLYGON';
       Description:     'POLYGON(ls1,ls2,...)' + CRLF +
         'Constructs a WKB Polygon value from a number of WKB LineString ' +
@@ -609,6 +641,7 @@ var
     ),
     (
       Index:           dtGeometry;
+      NativeType:      FIELD_TYPE_GEOMETRY;
       Name:            'GEOMETRY';
       Description:     '';
       HasLength:       False;
@@ -621,6 +654,7 @@ var
     ),
     (
       Index:           dtMultipoint;
+      NativeType:      FIELD_TYPE_GEOMETRY;
       Name:            'MULTIPOINT';
       Description:     'MULTIPOINT(pt1,pt2,...)' + CRLF +
         'Constructs a WKB MultiPoint value using WKB Point arguments. If any ' +
@@ -635,6 +669,7 @@ var
     ),
     (
       Index:           dtMultilinestring;
+      NativeType:      FIELD_TYPE_GEOMETRY;
       Name:            'MULTILINESTRING';
       Description:     'MULTILINESTRING(ls1,ls2,...)' + CRLF +
         'Constructs a WKB MultiLineString value using WKB LineString arguments. ' +
@@ -649,6 +684,7 @@ var
     ),
     (
       Index:           dtMultipolygon;
+      NativeType:      FIELD_TYPE_GEOMETRY;
       Name:            'MULTIPOLYGON';
       Description:     'MULTIPOLYGON(poly1,poly2,...)' + CRLF +
         'Constructs a WKB MultiPolygon value from a set of WKB Polygon ' +
@@ -664,6 +700,7 @@ var
     ),
     (
       Index:           dtGeometrycollection;
+      NativeType:      FIELD_TYPE_GEOMETRY;
       Name:            'GEOMETRYCOLLECTION';
       Description:     'GEOMETRYCOLLECTION(g1,g2,...)' + CRLF +
         'Constructs a WKB GeometryCollection. If any argument is not a ' +

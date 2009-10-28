@@ -9,8 +9,8 @@ unit tabletools;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons,
-  WideStrings, WideStrUtils, VirtualTrees, ExtCtrls, Db, Contnrs, Graphics, TntStdCtrls;
+  Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs,
+  WideStrings, WideStrUtils, VirtualTrees, ExtCtrls, mysql_connection, Contnrs, Graphics, TntStdCtrls;
 
 type
   TfrmTableTools = class(TForm)
@@ -137,7 +137,7 @@ begin
   TreeObjects.Clear;
   TreeObjects.RootNodeCount := Mainform.DBtree.RootNodeCount;
   // CHECKSUM available since MySQL 4.1.1
-  if Mainform.mysql_version < 40101 then
+  if Mainform.Connection.ServerVersionInt < 40101 then
     comboOperation.Items[comboOperation.Items.IndexOf('Checksum')] := 'Checksum ('+STR_NOTSUPPORTED+')';
   comboOperation.OnChange(Sender);
 end;
@@ -204,7 +204,7 @@ end;
 procedure TfrmTableTools.TreeObjectsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
   var InitialStates: TVirtualNodeInitStates);
 var
-  ds: TDataset;
+  Results: TMySQLQuery;
 begin
   // Attach a checkbox to all nodes
   Mainform.DBtreeInitNode(Sender, ParentNode, Node, InitialStates);
@@ -224,10 +224,10 @@ begin
       end;
     end;
     2: begin
-      ds := Mainform.FetchDbTableList(Mainform.Databases[ParentNode.Index]);
-      ds.RecNo := Node.Index+1;
+      Results := Mainform.FetchDbTableList(Mainform.Databases[ParentNode.Index]);
+      Results.RecNo := Node.Index;
       // No checkbox for stored routines
-      if not (GetDBObjectType(ds.Fields) in [lntTable, lntCrashedTable, lntView]) then
+      if not (GetDBObjectType(Results) in [lntTable, lntCrashedTable, lntView]) then
         Node.CheckType := ctNone
       else begin
         if Node.Parent.CheckState in [csCheckedNormal, csCheckedPressed] then begin
@@ -236,7 +236,7 @@ begin
         end else if (Mainform.Databases[Node.Parent.Index] = Mainform.ActiveDatabase)
 		  // ... or table name is in SelectedTables
           and (SelectedTables.Count > 0)
-          and (SelectedTables.IndexOf(ds.FieldByName(DBO_NAME).AsWideString) > -1) then begin
+          and (SelectedTables.IndexOf(Results.Col(DBO_NAME)) > -1) then begin
           Node.CheckState := csCheckedNormal;
           Node.Parent.CheckState := csMixedNormal;
         end;
@@ -281,7 +281,7 @@ procedure TfrmTableTools.ProcessTableNode(Sender: TObject; Node: PVirtualNode);
 var
   SQL, db, table, QuotedTable: WideString;
   TableSize, RowsInTable: Int64;
-  ds: TDataset;
+  Results: TMySQLQuery;
   i: Integer;
   HasSelectedDatatype: Boolean;
 begin
@@ -293,18 +293,18 @@ begin
     // Find table in cashed dataset and check its size - perhaps it has to be skipped
     TableSize := 0;
     RowsInTable := 0;
-    ds := Mainform.FetchDbTableList(db);
-    while not ds.Eof do begin
-      if (ds.FieldByName(DBO_NAME).AsWideString = table)
-        and (GetDBObjectType(ds.Fields) in [lntTable, lntCrashedTable]) then begin
-        TableSize := GetTableSize(ds);
-        RowsInTable := MakeInt(ds.FieldByName(DBO_ROWS).AsString);
+    Results := Mainform.FetchDbTableList(db);
+    while not Results.Eof do begin
+      if (Results.Col(DBO_NAME) = table)
+        and (GetDBObjectType(Results) in [lntTable, lntCrashedTable]) then begin
+        TableSize := GetTableSize(Results);
+        RowsInTable := MakeInt(Results.Col(DBO_ROWS));
         // Avoid division by zero in below SQL
         if RowsInTable = 0 then
           RowsInTable := 1;
         break;
       end;
-      ds.Next;
+      Results.Next;
     end;
     if (udSkipLargeTables.Position = 0) or ((TableSize div SIZE_MB) < udSkipLargeTables.Position) then try
       if Sender = btnExecuteMaintenance then begin
@@ -316,19 +316,19 @@ begin
         if chkChanged.Enabled and chkChanged.Checked then SQL := SQL + ' CHANGED';
         if chkUseFrm.Enabled and chkUseFrm.Checked then SQL := SQL + ' USE_FRM';
       end else if Sender = btnFindText then begin
-        ds := Mainform.GetResults('SHOW COLUMNS FROM '+QuotedTable);
+        Results := Mainform.Connection.GetResults('SHOW COLUMNS FROM '+QuotedTable);
         SQL := '';
-        while not ds.Eof do begin
+        while not Results.Eof do begin
           HasSelectedDatatype := comboDatatypes.ItemIndex = 0;
           if not HasSelectedDatatype then for i:=Low(Datatypes) to High(Datatypes) do begin
-            HasSelectedDatatype := (LowerCase(getFirstWord(ds.FieldByName('Type').AsString)) = LowerCase(Datatypes[i].Name))
+            HasSelectedDatatype := (LowerCase(getFirstWord(Results.Col('Type'))) = LowerCase(Datatypes[i].Name))
               and (Integer(Datatypes[i].Category)+1 = comboDatatypes.ItemIndex);
             if HasSelectedDatatype then
               break;
           end;
           if HasSelectedDatatype then
-            SQL := SQL + Mainform.mask(ds.FieldByName('Field').AsWideString) + ' LIKE ' + esc('%'+memoFindText.Text+'%') + ' OR ';
-          ds.Next;
+            SQL := SQL + Mainform.mask(Results.Col('Field')) + ' LIKE ' + esc('%'+memoFindText.Text+'%') + ' OR ';
+          Results.Next;
         end;
         if SQL <> '' then begin
           Delete(SQL, Length(SQL)-3, 3);
@@ -358,39 +358,40 @@ var
   i: Integer;
   Col: TVirtualTreeColumn;
   Row: TWideStringlist;
-  ds: TDataset;
+  Results: TMySQLQuery;
 begin
   // Execute query and append results into grid
-  ds := Mainform.GetResults(SQL);
-  if ds = nil then
+  Results := Mainform.Connection.GetResults(SQL);
+  if Results = nil then
     Exit;
 
   // Add missing columns
-  for i:=ResultGrid.Header.Columns.Count to ds.FieldCount-1 do begin
+  for i:=ResultGrid.Header.Columns.Count to Results.ColumnCount-1 do begin
     Col := ResultGrid.Header.Columns.Add;
     Col.Width := 130;
   end;
   // Remove superfluous columns
-  for i:=ResultGrid.Header.Columns.Count-1 downto ds.FieldCount do
+  for i:=ResultGrid.Header.Columns.Count-1 downto Results.ColumnCount do
     ResultGrid.Header.Columns[i].Free;
   // Set column header names
-  for i:=0 to ds.FieldCount-1 do begin
+  for i:=0 to Results.ColumnCount-1 do begin
     Col := ResultGrid.Header.Columns[i];
-    Col.Text := ds.Fields[i].FieldName;
-    if ds.Fields[i].DataType in [ftSmallint, ftInteger, ftWord, ftLargeint, ftFloat] then
+    Col.Text := Results.ColumnNames[i];
+    if Results.DataType(i).Category in [dtcInteger, dtcIntegerNamed, dtcReal] then
       Col.Alignment := taRightJustify
     else
       Col.Alignment := taLeftJustify;
   end;
-  ds.First;
-  while not ds.Eof do begin
+  Results.First;
+  while not Results.Eof do begin
     Row := TWideStringlist.Create;
-    for i:=0 to ds.FieldCount-1 do begin
-      Row.Add(ds.Fields[i].AsString);
+    for i:=0 to Results.ColumnCount-1 do begin
+      Row.Add(Results.Col(i));
     end;
     FResults.Add(Row);
-    ds.Next;
+    Results.Next;
   end;
+  Results.Free;
 
   Inc(FRealResultCounter);
   lblResults.Caption := IntToStr(FRealResultCounter)+' results:';

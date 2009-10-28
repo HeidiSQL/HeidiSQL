@@ -70,9 +70,10 @@ begin
 
   // Set the value and keep the form open in any error case
   try
-    Mainform.ExecUpdateQuery(sql, False, True);
+    Mainform.Connection.Query(sql);
   except
     ModalResult := mrNone;
+    Raise;
   end;
 end;
 

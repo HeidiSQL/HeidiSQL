@@ -9,7 +9,6 @@ unit exportsql;
 interface
 
 uses
-  Threading,
   Windows,
   Messages,
   SysUtils,
@@ -24,11 +23,9 @@ uses
   Buttons,
   comctrls,
   ToolWin,
-  DB,
   SynEdit,
   SynMemo,
-  ZDataSet,
-  PngSpeedButton, StdActns, WideStrings, TntCheckLst, TntStdCtrls, Menus;
+  PngSpeedButton, StdActns, WideStrings, TntCheckLst, TntStdCtrls, Menus, mysql_connection, mysql_structures;
 
 type
   TExportSQLForm = class(TForm)
@@ -52,9 +49,6 @@ type
     radioOtherDatabase: TRadioButton;
     radioFile: TRadioButton;
     comboOtherDatabase: TTNTComboBox;
-    radioOtherHost: TRadioButton;
-    comboOtherHost: TComboBox;
-    comboOtherHostDatabase: TTNTComboBox;
     groupExampleSql: TGroupBox;
     SynMemoExampleSQL: TSynMemo;
     groupOptions: TGroupBox;
@@ -72,7 +66,6 @@ type
     btnDirectoryBrowse: TPngSpeedButton;
     procedure FormCreate(Sender: TObject);
     procedure comboTargetCompatChange(Sender: TObject);
-    procedure comboOtherHostSelect(Sender: TObject);
     procedure comboDataChange(Sender: TObject);
     procedure comboTablesChange(Sender: TObject);
     procedure comboDatabaseChange(Sender: TObject);
@@ -91,7 +84,6 @@ type
     procedure validateRadioControls(Sender: TObject);
     procedure validateControls(Sender: TObject);
     procedure cbxStructureClick(Sender: TObject);
-    procedure radioOtherHostClick(Sender: TObject);
     procedure cbxDataClick(Sender: TObject);
     procedure checkListTablesKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
@@ -113,9 +105,7 @@ implementation
 
 uses
   Main,
-  Helpers,
-  Synchronization,
-  Communication;
+  Helpers;
 
 {$R *.DFM}
 
@@ -136,7 +126,6 @@ const
   // Order of radiobutton group "Output"
   OUTPUT_FILE       = 1;
   OUTPUT_DB         = 2;
-  OUTPUT_HOST       = 3;
   OUTPUT_DIR        = 4;
 
   // Default output compatibility
@@ -148,8 +137,6 @@ const
 var
   appHandles: array of THandle;
   cancelDialog: TForm = nil;
-  remote_version: integer;
-  remote_max_allowed_packet : Int64;
   target_versions : TStringList;
 
 
@@ -167,7 +154,6 @@ end;
 procedure TExportSQLForm.FormShow(Sender: TObject);
 var
   i, OutputTo : Integer;
-  list: TWindowDataArray;
 begin
   barProgress.Position := 0;
   lblProgress.Caption := '';
@@ -189,7 +175,7 @@ begin
   with target_versions do
   begin
     Add( IntToStr( SQL_VERSION_ANSI ) + '=ANSI SQL' );
-    Add( IntToStr( Mainform.mysql_version ) + '=Same as source (' + ConvertServerVersion(Mainform.mysql_version) + ')');
+    Add( IntToStr( Mainform.Connection.ServerVersionInt ) + '=Same as source (' + Mainform.Connection.ServerVersionStr + ')');
     Add( '50100=HeidiSQL w/ MySQL Server 5.1' );
     Add( '50000=HeidiSQL w/ MySQL Server 5.0' );
     Add( '40100=HeidiSQL w/ MySQL Server 4.1' );
@@ -227,35 +213,11 @@ begin
   FilenameEdited := False;
   comboSelectDatabaseChange(self);
   editDirectory.Text := GetRegValue(REGNAME_EXP_OUTDIR, '');
-  OutputTo := GetRegValue(REGNAME_EXP_TARGET, -1);
-  if OutputTo > -1 then
-  begin
-
-    {***
-      @note ansgarbecker, 2007-02-24
-        If OutputTo is now OUTPUT_HOST and there are no other windows
-        to export to, reset OutputTo to OUTPUT_FILE to avoid the error-popup
-        "You need at least 2 windows...", which should not be fired in
-        FormShow rather than only when the user has really clicked that
-        radiobutton.
-        As a benefit, the OUTPUT_FILE won't be saved to registry here
-        so the OUTPUT_HOST is still enabled in registry and will be used
-        the next time if we have more than 1 window
-      @see bug #1666054
-    }
-    // Check if all the heidisql windows are still alive.
-    CheckForCrashedWindows;
-    // Fetch list of heidisql windows.
-    list := GetWindowList;
-    if (Length(list) < 2) and (OutputTo = OUTPUT_HOST) then
-      OutputTo := OUTPUT_FILE;
-
-    case OutputTo of
-      OUTPUT_FILE : radioFile.Checked := true;
-      OUTPUT_DIR  : radioDirectory.Checked := true;
-      OUTPUT_DB   : radioOtherDatabase.Checked := true;
-      OUTPUT_HOST : radioOtherHost.Checked := true;
-    end;
+  OutputTo := GetRegValue(REGNAME_EXP_TARGET, OUTPUT_FILE);
+  case OutputTo of
+    OUTPUT_FILE : radioFile.Checked := true;
+    OUTPUT_DIR  : radioDirectory.Checked := true;
+    OUTPUT_DB   : radioOtherDatabase.Checked := true;
   end;
   Width := GetRegValue(REGNAME_EXP_WINWIDTH, Width);
   Height := GetRegValue(REGNAME_EXP_WINHEIGHT, Height);
@@ -281,77 +243,20 @@ begin
   generateExampleSQL;
 end;
 
-procedure TExportSQLForm.comboOtherHostSelect(Sender: TObject);
-var
-  data: TDataSet;
-  j: integer;
-  versions : TWideStringList;
-begin
-  // Get both databases and version right when the radio
-  // is clicked, so we can switch to the 'file' radio
-  // immediately when something goes wrong.
-  try
-    data := RemoteExecQuery(
-      appHandles[comboOtherHost.ItemIndex],
-      'SHOW DATABASES',
-      'Fetching remote list of databases...'
-    );
-    comboOtherHostDatabase.Clear;
-    for j:=0 to data.RecordCount - 1 do begin
-      comboOtherHostDatabase.Items.Add(data.FieldByName('Database').AsWideString);
-      data.Next;
-    end;
-    data.Free;
-
-    data := RemoteExecQuery(
-      appHandles[comboOtherHost.ItemIndex],
-      'SELECT VERSION()',
-      'Probing for remote version...'
-    );
-    versions := explode('.', data.Fields[0].AsWideString);
-    remote_version := MakeInt(versions[0]) * 10000 + MakeInt(versions[1]) * 100 + MakeInt(versions[2]);
-    data.Free;
-
-    // Fetch the max_allowed_packet variable to be sure not to
-    // overload the server when using "Extended Insert"
-    data := RemoteExecQuery(
-      appHandles[comboOtherHost.ItemIndex],
-      'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'),
-      'Checking for maximum allowed SQL-packet size on server '+comboOtherHost.Text+'...'
-    );
-    remote_max_allowed_packet := MakeInt( data.FieldByName('Value').AsString );
-    data.Free;
-  except
-    on E: Exception do begin
-      ShowMessage(E.Message);
-      radioFile.Checked := true;
-      E.Free;
-    end;
-  end;
-
-  // Select remote database with the same name as the source db if available
-  if comboOtherHostDatabase.Items.IndexOf( comboSelectDatabase.Text ) > -1 then
-    comboOtherHostDatabase.ItemIndex := comboOtherHostDatabase.Items.IndexOf( comboSelectDatabase.Text )
-  // Otherwise, select first database if available
-  else if comboOtherHostDatabase.Items.Count > 0 then
-    comboOtherHostDatabase.ItemIndex := 0;
-
-end;
-
 procedure TExportSQLForm.comboSelectDatabaseChange(Sender: TObject);
 var
   i : Integer;
   CheckThisItem: Boolean;
-  ds: TDataset;
+  Results: TMySQLQuery;
   dir: WideString;
 begin
   // read tables from db
   checkListTables.Items.Clear;
-  ds := Mainform.FetchDbTableList(comboSelectDatabase.Text);
-  while not ds.Eof do begin
-    if GetDBObjectType(ds.Fields) = lntTable then
-      checkListTables.Items.Add(ds.FieldByName(DBO_NAME).AsWideString);
-    ds.Next;
+  Results := Mainform.FetchDbTableList(comboSelectDatabase.Text);
+  while not Results.Eof do begin
+    if GetDBObjectType(Results) = lntTable then
+      checkListTables.Items.Add(Results.Col(DBO_NAME));
+    Results.Next;
   end;
 
   // select all/some:
@@ -482,11 +387,8 @@ var
   keystr                    : WideString;
   sourceDb, destDb          : WideString;
   which                     : Integer;
-  tofile,todb,tohost        : boolean;
-  samehost                  : boolean;
-  sameuuid                  : TGuid;
+  tofile,todb               : boolean;
   tcount,tablecounter       : Integer;
-  win2export                : THandle;
   StrProgress               : String;
   value                     : WideString;
   Escaped,fullvalue         : PChar;
@@ -504,13 +406,13 @@ var
   RecordCount_all, RecordCount_one, RecordNo_all,
   offset, limit             : Int64;
   sql_select                : WideString;
-  query                     : TDataSet;
+  query                     : TMySQLQuery;
   OldActualDatabase         : WideString;
 
 function sourceMask(sql: WideString): WideString;
 begin
   // Same as mask(sql).
-  Result := maskSql(Mainform.mysql_version, sql);
+  Result := maskSql(Mainform.Connection.ServerVersionInt, sql);
 end;
 
 function destMask(sql: WideString): WideString;
@@ -540,7 +442,6 @@ begin
   // to where?
   tofile := radioFile.Checked or radioDirectory.Checked;
   todb := radioOtherDatabase.Checked;
-  tohost := radioOtherHost.Checked;
 
   // export!
   pageControl1.ActivePageIndex := 0;
@@ -549,7 +450,6 @@ begin
   // Initialize default-variables
   target_version := SQL_VERSION_DEFAULT;
   target_cliwa := false;
-  win2export := 0;
   max_allowed_packet := 1024*1024;
 
   // export what?
@@ -571,7 +471,7 @@ begin
     // Extract name part of selected target version
     target_version := MakeInt(target_versions.Names[comboTargetCompat.ItemIndex]);
     target_cliwa := Pos('mysqldump', target_versions.Names[comboTargetCompat.ItemIndex]) > 0;
-    max_allowed_packet := MakeInt( Mainform.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
+    max_allowed_packet := MakeInt( Mainform.Connection.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
     f := InitFileStream('header');
     if f = nil then
     begin
@@ -586,25 +486,10 @@ begin
 
   // Export to other database in the same window
   if todb then begin
-    target_version := Mainform.mysql_version;
-    max_allowed_packet := MakeInt( Mainform.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
+    target_version := Mainform.Connection.ServerVersionInt;
+    max_allowed_packet := MakeInt( Mainform.Connection.GetVar( 'SHOW VARIABLES LIKE ' + esc('max_allowed_packet'), 1 ) );
     sourceDb := comboSelectDatabase.Text;
     destDb := comboOtherDatabase.Text;
-  end;
-
-  // Export to other window/host
-  if tohost then begin
-    target_version := remote_version;
-    max_allowed_packet := remote_max_allowed_packet;
-    win2export := appHandles[comboOtherHost.ItemIndex];
-    sourceDb := comboSelectDatabase.Text;
-    if exportdb then begin
-      // Use original DB-name from source-server
-      destDb := comboSelectDatabase.Text;
-    end else begin
-      // Use existing DB-name on target-server
-      destDb := comboOtherHostDatabase.Items[comboOtherHostDatabase.ItemIndex];
-    end;
   end;
 
   // MySQL has supported extended insert since 3.23.
@@ -620,10 +505,10 @@ begin
     if tofile then
     begin
       wfs(f, '# --------------------------------------------------------');
-      wfs(f, WideFormat('# %-30s%s', ['Host:', Mainform.MysqlConn.Connection.HostName]));
+      wfs(f, WideFormat('# %-30s%s', ['Host:', Mainform.Connection.HostName]));
       wfs(f, WideFormat('# %-30s%s', ['Database:', sourceDb]));
-      wfs(f, WideFormat('# %-30s%s', ['Server version:', Mainform.GetVar('SELECT VERSION()')]));
-      wfs(f, WideFormat('# %-30s%s', ['Server OS:', Mainform.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]));
+      wfs(f, WideFormat('# %-30s%s', ['Server version:', Mainform.Connection.GetVar('SELECT VERSION()')]));
+      wfs(f, WideFormat('# %-30s%s', ['Server OS:', Mainform.Connection.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]));
       wfs(f, WideFormat('# %-30s%s', ['Target compatibility:', comboTargetCompat.Text]));
       if extended_insert then
       begin
@@ -638,71 +523,27 @@ begin
     {***
       Set characterset to current one
     }
-    if Mainform.mysql_version > 40100 then
-      current_characterset := Mainform.GetVar( 'SHOW VARIABLES LIKE ' + esc('character_set_connection'), 1 )
-    else if Mainform.mysql_version > 40000 then
+    if Mainform.Connection.ServerVersionInt > 40100 then
+      current_characterset := Mainform.Connection.GetVar( 'SHOW VARIABLES LIKE ' + esc('character_set_connection'), 1 )
+    else if Mainform.Connection.ServerVersionInt > 40000 then
       // todo: test this, add charolation --> charset conversion table from 4.0 to 4.1+
-      current_characterset := Mainform.GetVar( 'SHOW VARIABLES LIKE ' + esc('character_set'), 1 )
+      current_characterset := Mainform.Connection.GetVar( 'SHOW VARIABLES LIKE ' + esc('character_set'), 1 )
     else
       // todo: test this
       current_characterset := 'binary';
 
     {***
-      Check if source and destination session is connected to the same server.
-    }
-    samehost := todb;
-    if tohost then begin
-      i := CreateGuid(sameuuid);
-      if i <> 0 then raise Exception.Create('Could not create a GUID.');
-      sql := esc(appName + '_' + GuidToString(sameuuid));
-      try
-        i := StrToInt(Mainform.GetVar('SELECT GET_LOCK(' + sql + ', 0)'));
-        if i <> 1 then raise Exception.Create('Could not create a server lock.');
-        query := RemoteExecQuery(
-          win2export,
-          'SELECT GET_LOCK(' + sql + ', 0)',
-          'Checking for same server...'
-        );
-        i := query.Fields[0].AsInteger;
-        query.Free;
-        if i <> 1 then samehost := true
-        else begin
-        query := RemoteExecQuery(
-          win2export,
-          'SELECT RELEASE_LOCK(' + sql + ')',
-          'Releasing remote lock...'
-        );
-        end;
-      finally
-        Mainform.ExecuteNonQuery('SELECT RELEASE_LOCK(' + sql + ')');
-      end;
-    end;
-
-    {***
-     Avoid destructive actions (DROP before CREATE) on same host and database.
-    }
-    if tohost and samehost then begin
-      if exportdb and (comboDatabase.ItemIndex = DB_DROP_CREATE) then raise Exception.Create('Aborted: selected action "database recreate" on same source/destination host would drop source database.');
-      if exporttables and (comboTables.ItemIndex = TAB_DROP_CREATE) then begin
-        if sourceDb = destDb then raise Exception.Create('Aborted: selected action "tables recreate" on same source/destination host and database would drop source tables.');
-      end;
-    end;
-
-    {***
       Some actions which are only needed if we're not in OtherDatabase-mode:
       Set character set, create and use database.
     }
-    if tofile or tohost then
+    if tofile then
     begin
       // Switch to correct SQL_MODE so MySQL doesn't reject ANSI SQL
       if target_version = SQL_VERSION_ANSI then
       begin
         sql := makeConditionalStmt('SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''ANSI,NO_BACKSLASH_ESCAPES''', 40101, tofile);
         sql := fixSQL( sql, target_version, target_cliwa );
-        if tofile then
-          wfs(f, sql)
-        else if tohost then
-          RemoteExecNonQuery(win2export, sql );
+        wfs(f, sql)
       end;
 
       {***
@@ -711,10 +552,7 @@ begin
       }
       sql := makeConditionalStmt('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0', 40014, tofile);
       sql := fixSQL( sql, target_version, target_cliwa );
-      if tofile then
-        wfs(f, sql)
-      else if tohost then
-        RemoteExecNonQuery(win2export, sql );
+      wfs(f, sql);
 
       if exportdb then
       begin
@@ -735,14 +573,12 @@ begin
           sql := 'DROP DATABASE IF EXISTS ' + destMask(destDb);
           if tofile then
             wfs(f, sql + ';')
-          else if tohost then
-            RemoteExecNonQuery(win2export, sql );
         end;
 
         {***
           CREATE statement for database plus database-switching
         }
-        if Mainform.mysql_version < 50002 then
+        if Mainform.Connection.ServerVersionInt < 50002 then
         begin
           sql := 'CREATE DATABASE ';
           if comboDatabase.ItemIndex = DB_CREATE_IGNORE then
@@ -753,7 +589,7 @@ begin
         end
         else
         begin
-          sql := Mainform.GetVar( 'SHOW CREATE DATABASE ' + sourceMask(sourceDb), 1 );
+          sql := Mainform.Connection.GetVar( 'SHOW CREATE DATABASE ' + sourceMask(sourceDb), 1 );
           sql := fixNewlines(sql);
           if target_version = SQL_VERSION_ANSI then
             sql := StringReplace(sql, '`', '"', [rfReplaceAll]);
@@ -764,9 +600,7 @@ begin
         end;
         sql := fixSQL( sql, target_version, target_cliwa );
         if tofile then
-          wfs(f, sql + ';')
-        else if tohost then
-          RemoteExecNonQuery(win2export, sql);
+          wfs(f, sql + ';');
         if exporttables then
         begin
           if tofile then
@@ -829,93 +663,10 @@ begin
           createquery := createquery + '#' + crlf + crlf;
         end;
 
-        {***
-          Let the server generate the CREATE TABLE statement if the version allows that
-        }
-        if Mainform.mysql_version >= 32320 then
-        begin
-          Query := Mainform.GetResults('SHOW CREATE TABLE ' + sourceMask(checkListTables.Items[i]));
-          sql := Query.Fields[1].AsWideString;
-          Query.Close;
-          FreeAndNil(Query);
-          sql := fixNewlines(sql);
-          sql := fixSQL( sql, target_version, target_cliwa );
-        end
-        {***
-          Generate CREATE TABLE statement by hand on old servers
-        }
-        else if Mainform.mysql_version < 32320 then begin
-          Query := Mainform.GetResults( 'SHOW COLUMNS FROM ' + sourceMask(checkListTables.Items[i]));
-          if tofile then
-            sql := 'CREATE TABLE ' + destMask(checkListTables.Items[i]) + ' (' + crlf
-          else
-            sql := sql + 'CREATE TABLE ' + destMask(destDb) + '.' + sourceMask(checkListTables.Items[i]) + ' (' + crlf;
-          for j := 1 to Query.Fieldcount do
-          begin
-            sql := sql + '  ' + destMask(Query.Fields[0].AsWideString) + ' ' + Query.Fields[1].AsWideString;
-            if Query.Fields[2].AsString <> 'YES' then
-              sql := sql + ' NOT NULL';
-            if Query.Fields[4].AsWideString <> '' then
-              sql := sql + ' DEFAULT ''' + Query.Fields[4].AsWideString + '''';
-            if Query.Fields[5].AsWideString <> '' then
-              sql := sql + ' ' + Query.Fields[5].AsWideString;
-            if j < Query.Fieldcount then
-              sql := sql + ',' + crlf;
-          end;
-          Query.Close;
-          FreeAndNil(Query);
-
-          // Keys:
-          Query := Mainform.GetResults( 'SHOW KEYS FROM ' + sourceMask(checkListTables.Items[i]));
-          setLength(keylist, 0);
-          keystr := '';
-          if Query.RecordCount > 0 then
-            keystr := ',';
-
-          for j := 1 to Query.RecordCount do
-          begin
-            which := -1;
-
-            for k:=0 to length(keylist)-1 do
-            begin
-              if keylist[k].Name = Query.Fields[2].AsString then // keyname exists!
-                which := k;
-            end;
-            if which = -1 then
-            begin
-              setlength(keylist, length(keylist)+1);
-              which := high(keylist);
-              keylist[which].Columns := TWideStringList.Create;
-              with keylist[which] do // set properties for new key
-              begin
-                Name := Query.Fields[2].AsString;
-                if Query.Fields[2].AsString = 'PRIMARY' then
-                  _type := 'PRIMARY'
-                else if Query.FieldCount >= 10 then if Query.Fields[9].AsString = 'FULLTEXT' then
-                  _type := 'FULLTEXT'
-                else if Query.Fields[1].AsString = '1' then
-                  _type := ''
-                else if Query.Fields[1].AsString = '0' then
-                  _type := 'UNIQUE';
-              end;
-            end;
-            keylist[which].Columns.add(destMask(Query.Fields[4].AsWideString)); // add column(s)
-            Query.Next;
-          end;
-          Query.Close;
-          FreeAndNil(Query);
-          for k:=0 to high(keylist) do
-          begin
-            if k > 0 then
-              keystr := keystr + ',';
-            if keylist[k].Name = 'PRIMARY' then
-              keystr := keystr + crlf + '  PRIMARY KEY ('
-            else
-              keystr := keystr + crlf + '  ' + keylist[k]._type + ' KEY ' + destMask(keylist[k].Name) + ' (';
-            keystr := keystr + implodestr(',', keylist[k].Columns) + ')';
-          end;
-          sql := sql + keystr + crlf + ')';
-        end; // mysql_version < 32320
+        // Let the server generate the CREATE TABLE statement
+        sql := Mainform.Connection.GetVar('SHOW CREATE TABLE ' + sourceMask(checkListTables.Items[i]), 1);
+        sql := fixNewlines(sql);
+        sql := fixSQL( sql, target_version, target_cliwa );
 
         if not tofile then Insert(destMask(destDb) + '.', sql, Pos('TABLE', sql) + 6);
         
@@ -939,15 +690,8 @@ begin
         // Run CREATE TABLE on another Database
         else if todb then begin
           if comboTables.ItemIndex = TAB_DROP_CREATE then
-            Mainform.ExecUpdateQuery( dropquery );
-          Mainform.ExecUpdateQuery( createquery );
-        end
-
-        // Run CREATE TABLE on another host
-        else if tohost then begin
-          if comboTables.ItemIndex = TAB_DROP_CREATE then
-            RemoteExecNonQuery(win2export, dropquery);
-          RemoteExecNonQuery(win2export, createquery);
+            Mainform.Connection.Query( dropquery );
+          Mainform.Connection.Query( createquery );
         end;
 
         barProgress.StepIt;
@@ -961,16 +705,15 @@ begin
         // Set to mysql-readable char:
         DecimalSeparator := '.';
         columnnames := ' (';
-        Query := Mainform.GetResults( 'SHOW FIELDS FROM ' + sourceMask(checkListTables.Items[i]));
-        for k:=1 to Query.RecordCount do
+        Query := Mainform.Connection.GetResults( 'SHOW FIELDS FROM ' + sourceMask(checkListTables.Items[i]));
+        for k:=0 to Query.RecordCount-1 do
         begin
           if k>1 then
             columnnames := columnnames + ', ';
-          columnnames := columnnames + destMask(Query.Fields[0].AsWideString);
+          columnnames := columnnames + destMask(Query.Col(0));
           Query.Next;
         end;
         columnnames := columnnames+')';
-        Query.Close;
         FreeAndNil(Query);
 
         if tofile then
@@ -986,23 +729,15 @@ begin
         if comboData.ItemIndex = DATA_TRUNCATE_INSERT then
         begin
           if tofile then
-          begin
-            wfs(f, 'TRUNCATE TABLE ' + destMask(checkListTables.Items[i]) + ';');
-          end
+            wfs(f, 'TRUNCATE TABLE ' + destMask(checkListTables.Items[i]) + ';')
           else if todb then
-          begin
-            Mainform.ExecUpdateQuery('TRUNCATE TABLE ' + sourceMask(destDb) + '.' + checkListTables.Items[i]);
-          end
-          else if tohost then
-          begin
-            RemoteExecNonQuery(win2export, 'TRUNCATE TABLE ' + destMask(destDb) + '.' + checkListTables.Items[i]);
-          end;
+            Mainform.Connection.Query('TRUNCATE TABLE ' + sourceMask(destDb) + '.' + checkListTables.Items[i]);
         end;
 
         // Set rows per step limit and detect total row count
         // Be sure to do this step before the table is locked!
         limit := 5000;
-        RecordCount_all := MakeInt(Mainform.GetNamedVar('SHOW TABLE STATUS LIKE '+esc(checkListTables.Items[i]), 'Rows'));
+        RecordCount_all := MakeInt(Mainform.Connection.GetVar('SHOW TABLE STATUS LIKE '+esc(checkListTables.Items[i]), 'Rows'));
 
         if RecordCount_all = 0 then begin
           if tofile then
@@ -1020,16 +755,10 @@ begin
           end
           else if todb then
           begin
-            Mainform.ExecUpdateQuery( 'LOCK TABLES ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE, ' + sourceMask(sourceDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE');
+            Mainform.Connection.Query( 'LOCK TABLES ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE, ' + sourceMask(sourceDb) + '.' + sourceMask(checkListTables.Items[i])+ ' WRITE');
             if target_version > 40000 then
-              Mainform.ExecUpdateQuery( 'ALTER TABLE ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' DISABLE KEYS' );
+              Mainform.Connection.Query( 'ALTER TABLE ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i])+ ' DISABLE KEYS' );
           end
-          else if tohost then
-          begin
-            RemoteExecNonQuery(win2export, 'LOCK TABLES ' + destMask(destDb) + '.' + destMask(checkListTables.Items[i]) + ' WRITE');
-            if target_version > 40000 then
-              RemoteExecNonQuery(win2export, 'ALTER TABLE ' + destMask(destDb) + '.' + destMask(checkListTables.Items[i]) + ' DISABLE KEYS');
-          end;
         end;
 
         offset := 0;
@@ -1056,7 +785,7 @@ begin
           end;
 
           // Execute SELECT
-          Query := Mainform.GetResults( sql_select );
+          Query := Mainform.Connection.GetResults( sql_select );
 
           insertquery := '';
           valuescount := 0;
@@ -1087,26 +816,24 @@ begin
             end;
             thesevalues := '(';
 
-            for k := 0 to Query.fieldcount-1 do
+            for k := 0 to Query.ColumnCount-1 do
             begin
-              if Query.Fields[k].IsNull then
+              if Query.IsNull(k) then
                 value := 'NULL'
               else
-              case Query.Fields[k].DataType of
-                ftInteger, ftSmallint, ftWord:
-                  value := Query.Fields[k].AsWideString;
-                ftBoolean:
-                  value := esc( BoolToStr( Query.Fields[k].AsBoolean ) );
-                ftBlob:
-                  if Query.Fields[k].AsString <> '' then
-                    value := '0x' + BinToWideHex(Query.Fields[k].AsString)
+              case Query.DataType(k).Category of
+                dtcInteger:
+                  value := Query.Col(k);
+                dtcBinary:
+                  if Query.Col(k) <> '' then
+                    value := '0x' + BinToWideHex(Query.Col(k))
                   else
                     value := esc('');
                 else
-                  value := esc( Query.Fields[k].AsWideString, False, target_version );
+                  value := esc( Query.Col(k), False, target_version );
               end;
               thesevalues := thesevalues + value;
-              if k < Query.Fieldcount-1 then
+              if k < Query.ColumnCount-1 then
                 thesevalues := thesevalues + ',';
             end;
             thesevalues := thesevalues + ')';
@@ -1141,15 +868,12 @@ begin
               insertquery := insertquery + ';';
               wfs(f, insertquery)
             end else if todb then
-              Mainform.ExecUpdateQuery(insertquery)
-            else if tohost then
-              RemoteExecNonQuery(win2export, insertquery);
+              Mainform.Connection.Query(insertquery);
             if donext then
               Query.Next;
             donext := true;
             insertquery := '';
           end;
-          Query.Close;
           FreeAndNil(Query);
         end;
         // Set back to local setting:
@@ -1164,14 +888,8 @@ begin
           else if todb then
           begin
             if target_version > 40000 then
-              Mainform.ExecUpdateQuery( 'ALTER TABLE ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i]) + ' ENABLE KEYS' );
-            Mainform.ExecUpdateQuery( 'UNLOCK TABLES' );
-          end
-          else if tohost then
-          begin
-            if target_version > 40000 then
-              RemoteExecNonQuery(win2export, 'ALTER TABLE ' + destMask(destDb) + '.' + destMask(checkListTables.Items[i]) + ' ENABLE KEYS');
-            RemoteExecNonQuery(win2export, 'UNLOCK TABLES');
+              Mainform.Connection.Query( 'ALTER TABLE ' + sourceMask(destDb) + '.' + sourceMask(checkListTables.Items[i]) + ' ENABLE KEYS' );
+            Mainform.Connection.Query( 'UNLOCK TABLES' );
           end;
         end;
         barProgress.StepIt;
@@ -1189,14 +907,11 @@ begin
     end;
 
     // Restore old value for SQL_MODE
-    if (tofile or tohost) and (target_version = SQL_VERSION_ANSI) then
+    if tofile and (target_version = SQL_VERSION_ANSI) then
     begin
       sql := makeConditionalStmt('SET SQL_MODE=@OLD_SQL_MODE', 40101, tofile);
       sql := fixSql(sql, target_version, target_cliwa);
-      if tofile then
-        wfs(f, sql)
-      else if tohost then
-        RemoteExecNonQuery(win2export, sql );
+      wfs(f, sql);
     end;
 
     {***
@@ -1206,9 +921,7 @@ begin
     sql := makeConditionalStmt('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS', 40014, tofile);
     sql := fixSQL( sql, target_version, target_cliwa );
     if tofile then
-      wfs(f, sql)
-    else if tohost then
-      RemoteExecNonQuery(win2export, sql );
+      wfs(f, sql);
 
   FINALLY
     Mainform.TemporaryDatabase := '';
@@ -1328,10 +1041,6 @@ begin
   btnDirectoryBrowse.Enabled := False;
   comboOtherDatabase.Enabled := False;
   comboOtherDatabase.Color := DisabledColor;
-  comboOtherHost.Enabled := False;
-  comboOtherHost.Color := DisabledColor;
-  comboOtherHostDatabase.Enabled := False;
-  comboOtherHostDatabase.Color := DisabledColor;
 
   // Silence compiler warning
   ControlToFocus := EditFileName;
@@ -1350,11 +1059,6 @@ begin
     comboOtherDatabase.Enabled := True;
     comboOtherDatabase.Color := EnabledColor;
     ControlToFocus := comboOtherDatabase;
-  end else if radioOtherHost.Checked then begin
-    comboOtherHost.Enabled := True;
-    comboOtherHost.Color := EnabledColor;
-    comboOtherHostDatabase.Color := EnabledColor;
-    ControlToFocus := comboOtherHost;
   end;
   if ControlToFocus.CanFocus then
     ControlToFocus.SetFocus;
@@ -1365,16 +1069,13 @@ end;
 
 procedure TExportSQLForm.validateControls(Sender: TObject);
 begin
-  cbxDatabase.Enabled := cbxStructure.Checked and (radioFile.Checked or radioDirectory.Checked or radioOtherHost.Checked);
+  cbxDatabase.Enabled := cbxStructure.Checked and (radioFile.Checked or radioDirectory.Checked);
   comboDatabase.Enabled := cbxDatabase.Enabled and cbxDatabase.Checked;
 
   cbxTables.Enabled := cbxStructure.Checked;
   comboTables.Enabled := cbxTables.Enabled and cbxTables.Checked;
 
   comboData.Enabled := cbxData.Checked;
-
-  // Should possible be in validateRadioControls() but is dependent on properties decided above.
-  comboOtherHostDatabase.Enabled := not (cbxDatabase.Enabled and cbxDatabase.Checked);
 
   // Prevent choosing export of db struct + data but no table struct.
   if cbxData.Checked then begin
@@ -1473,55 +1174,6 @@ begin
 end;
 
 
-procedure TExportSQLForm.radioOtherHostClick(Sender: TObject);
-var
-  list: TWindowDataArray;
-  i, k: integer;
-begin
-  // Check if all the heidisql windows are still alive.
-  CheckForCrashedWindows;
-
-  // Fetch list of heidisql windows.
-  list := GetWindowList;
-
-  // Fill list of hosts.
-  comboOtherHost.Items.Clear;
-  SetLength(appHandles, High(list));
-  k := 0;
-  for i := 0 to High(list) do with list[i] do begin
-    // Do not include current window.
-    if appHandle <> MainForm.Handle then begin
-      // Do not include non-connected windows.
-      if connected then begin
-        if namePostfix <> 0 then name := name + Format(' (%d)', [namePostFix]);
-        comboOtherHost.Items.Add(name);
-        appHandles[k] := appHandle;
-        k := k + 1;
-      end;
-    end;
-  end;
-
-  // Abort if no other windows.
-  if comboOtherHost.Items.Count = 0 then begin
-    MessageDLG('You need at least two open connection-windows to enable this option.', mtError, [mbOK], 0);
-    radioFile.Checked := true;
-    abort;
-  end;
-
-  // Select first host and call change event
-  comboOtherHost.ItemIndex := 0;
-  comboOtherHost.OnSelect(comboOtherHost);
-
-  // De-select database structure to enable database dropdown box.
-  cbxDatabase.Checked := false;
-
-  validateRadioControls(Sender);
-  validateControls(Sender);
-  generateExampleSql;
-end;
-
-
-
 {***
   Save settings in registry, should be called just before closing
   the form, but not when Cancel was pressed.
@@ -1547,9 +1199,7 @@ begin
     if radioDirectory.checked then
       OutputTo := OUTPUT_DIR
     else if radioOtherDatabase.checked then
-      OutputTo := OUTPUT_DB
-    else if radioOtherHost.checked then
-      OutputTo := OUTPUT_HOST;
+      OutputTo := OUTPUT_DB;
     WriteInteger(REGNAME_EXP_TARGET,     OutputTo );
     WriteString(REGNAME_EXP_DESTDB,      Utf8Encode(comboOtherDatabase.Text));
     WriteInteger(REGNAME_EXP_WINWIDTH,   Width );
