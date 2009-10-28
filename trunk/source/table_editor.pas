@@ -334,7 +334,6 @@ begin
     editName.Text := FAlterTableName;
     Mainform.SetEditorTabCaption(Self, FAlterTableName);
     Results := Mainform.Connection.GetResults('SHOW TABLE STATUS LIKE '+esc(FAlterTableName));
-    memoComment.Text := Results.Col(DBO_COMMENT);
     if Results.ColExists(DBO_ENGINE) then
       engine := Results.Col(DBO_ENGINE)
     else
@@ -355,6 +354,11 @@ begin
       memoUnionTables.Text := rx.Match[1]
     else
       memoUnionTables.Clear;
+    rx.Expression := '\bCOMMENT=''((.+)[^''])''';
+    if rx.Exec(CreateTable) then
+      memoComment.Text := WideStringReplace(rx.Match[1], '''''', '''', [rfReplaceAll])
+    else
+      memoComment.Clear;
 
     rx.ModifierS := False;
     rx.ModifierM := True;

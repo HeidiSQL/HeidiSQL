@@ -35,7 +35,8 @@ uses
   routine_editor in '..\..\source\routine_editor.pas' {frmRoutineEditor},
   table_editor in '..\..\source\table_editor.pas' {frmTableEditor},
   mysql_api in '..\..\source\mysql_api.pas',
-  mysql_connection in '..\..\source\mysql_connection.pas';
+  mysql_connection in '..\..\source\mysql_connection.pas',
+  cUnicodeCodecs in '..\..\source\cUnicodeCodecs.pas';
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\version.RES}

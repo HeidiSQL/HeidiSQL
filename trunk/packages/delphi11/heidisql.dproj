@@ -129,6 +129,7 @@
     <DCCReference Include="..\..\source\createdatabase.pas">
       <Form>CreateDatabaseForm</Form>
     </DCCReference>
+    <DCCReference Include="..\..\source\cUnicodeCodecs.pas" />
     <DCCReference Include="..\..\source\dataviewsave.pas">
       <Form>FrmDataViewSave</Form>
     </DCCReference>
