@@ -268,7 +268,7 @@ begin
     FConnectionStarted := 0;
     FHandle := nil;
     FCapabilities := [];
-    Log(lcInfo, 'Connection to '+FHostname+' closed');
+    Log(lcInfo, 'Connection to '+FHostname+' closed at '+DateTimeToStr(Now));
   end;
 
 end;
