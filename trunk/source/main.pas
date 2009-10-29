@@ -7978,7 +7978,7 @@ begin
       Raise Exception.Create('Could not detect value of "Questions" status. Command statistics are not available.');
     SetLength(VTRowDataListCommandStats, Results.RecordCount+1);
     addLVitem(0, '    All commands', questions, questions );
-    for i:=0 to Results.RecordCount-1 do begin
+    for i:=1 to Results.RecordCount do begin
       addLVitem(i, Results.Col(0), MakeInt(Results.Col(1)), questions );
       Results.Next;
     end;
