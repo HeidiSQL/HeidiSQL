@@ -3773,8 +3773,8 @@ begin
       Cap.Add( FormatNumber(Results.Col(DBO_AUTOINC)) )
     else Cap.Add('');
     Cap.Add(Results.Col(DBO_AUTOINC));
-    Cap.Add(Results.Col(DBO_COLLATION));
-    Cap.Add(Results.Col(DBO_CHECKSUM));
+    Cap.Add(Results.Col(DBO_COLLATION, True));
+    Cap.Add(Results.Col(DBO_CHECKSUM, True));
     Cap.Add(Results.Col(DBO_CROPTIONS));
     if Results.ColExists(DBO_TYPE) then
       Cap.Add(Results.Col(DBO_TYPE))
@@ -5840,7 +5840,11 @@ begin
   // Cache datasets
   if dsShowEngines = nil then begin
     FreeAndNil(dsShowEngines);
-    dsShowEngines := Connection.GetResults('SHOW ENGINES');
+    try
+      dsShowEngines := Connection.GetResults('SHOW ENGINES');
+    except
+      // Ignore errors on old servers
+    end;
   end;
   if dsHaveEngines = nil then begin
     FreeAndNil(dsHaveEngines);
@@ -8272,8 +8276,11 @@ end;
 function TMainform.GetCollations(Items: TWideStrings = nil): TMySQLQuery;
 begin
   // Return cached collation list, used in several places, e.g. table editor
-  if dsCollations = nil then
+  if dsCollations = nil then try
     dsCollations := Connection.GetResults('SHOW COLLATION');
+  except
+    // Ignore errors on old servers
+  end;
   if Assigned(dsCollations) then begin
     dsCollations.First;
     if Assigned(Items) then begin

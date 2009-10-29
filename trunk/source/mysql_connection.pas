@@ -307,7 +307,8 @@ begin
       FRowsAffected := 0;
       if DoStoreResult then begin
         Result := mysql_store_result(FHandle);
-        FRowsFound := mysql_num_rows(Result);
+        if Result <> nil then
+          FRowsFound := mysql_num_rows(Result);
         Log(lcDebug, IntToStr(RowsFound)+' rows found.');
       end;
     end else begin
@@ -545,7 +546,7 @@ begin
   try
     Results := GetResults(SQL);
     Result := TWideStringList.Create;
-    while not Results.Eof do begin
+    if Results.RecordCount > 0 then while not Results.Eof do begin
       Result.Add(Results.Col(Column));
       Results.Next;
     end;
