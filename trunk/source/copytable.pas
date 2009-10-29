@@ -220,7 +220,7 @@ begin
           keylist[which]._type := 'UNIQUE';
       end;
       // add column
-      keylist[which].Columns.add(Results.Col('Column_Name'));
+      keylist[which].Columns.add(Results.Col('Column_name'));
       keylist[which].SubParts.add(Results.Col('Sub_part'));
       Results.Next;
     end;
