@@ -3591,8 +3591,11 @@ begin
     Screen.Cursor := crHourGlass;
     ShowStatus('Fetching tables from "' + db + '" ...');
     try
-      if not Assigned(InformationSchemaTables) then
+      if not Assigned(InformationSchemaTables) then try
         InformationSchemaTables := Connection.GetCol('SHOW TABLES FROM '+mask(DBNAME_INFORMATION_SCHEMA));
+      except
+        InformationSchemaTables := TWideStringlist.Create;
+      end;
       if InformationSchemaTables.IndexOf('TABLES') > -1 then begin
         Unions := TWideStringlist.Create;
 
