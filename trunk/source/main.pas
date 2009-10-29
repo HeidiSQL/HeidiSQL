@@ -3583,7 +3583,7 @@ var
   Results: TMySQLQuery;
   OldCursor: TCursor;
   Unions: TWideStringlist;
-  ListObjectsSQL: WideString;
+  ListObjectsSQL, Tables: WideString;
 begin
   if not DbTableListCachedAndValid(db) then begin
     // Not in cache, load table list.
@@ -3656,12 +3656,11 @@ begin
       Results := Connection.GetResults(ListObjectsSQL);
       CachedTableLists.AddObject(db, Results);
       // Add table names to SQL highlighter
-      SynSQLSyn1.TableNames.BeginUpdate;
       while not Results.Eof do begin
-        SynSQLSyn1.TableNames.Add(Results.Col(DBO_NAME));
+        Tables := Tables + Results.Col(DBO_NAME) + CRLF;
         Results.Next;
       end;
-      SynSQLSyn1.TableNames.EndUpdate;
+      SynSQLSyn1.TableNames.Text := Trim(Tables);
     finally
       ShowStatus(STATUS_MSG_READY);
       Screen.Cursor := OldCursor;
