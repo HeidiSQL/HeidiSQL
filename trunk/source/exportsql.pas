@@ -708,7 +708,7 @@ begin
         Query := Mainform.Connection.GetResults( 'SHOW FIELDS FROM ' + sourceMask(checkListTables.Items[i]));
         for k:=0 to Query.RecordCount-1 do
         begin
-          if k>1 then
+          if k>0 then
             columnnames := columnnames + ', ';
           columnnames := columnnames + destMask(Query.Col(0));
           Query.Next;
