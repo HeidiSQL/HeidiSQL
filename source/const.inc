@@ -278,9 +278,6 @@ const
   // Data grid: How many rows to fetch at a time.
   GRIDMAXROWS: Cardinal = 1000;
 
-  // How many milliseconds to wait before showing a 'waiting for database' sign.
-  QUERYWAITTIME: Integer = 2500;
-
   VTREE_NOTLOADED = 0;
   VTREE_LOADED = 1;
 

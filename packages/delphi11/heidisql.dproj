@@ -186,7 +186,6 @@
     <DCCReference Include="..\..\source\texteditor.pas">
       <Form>frmTextEditor</Form>
     </DCCReference>
-    <DCCReference Include="..\..\source\threading.pas" />
     <DCCReference Include="..\..\source\updatecheck.pas">
       <Form>frmUpdateCheck</Form>
     </DCCReference>
