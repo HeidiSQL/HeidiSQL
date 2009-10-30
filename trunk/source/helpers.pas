@@ -141,8 +141,6 @@ type
   function RemoveNulChars(Text: WideString): WideString;
   procedure debug(txt: String);
   function fixNewlines(txt: string): string;
-  function BoolToStr(val: Boolean): String;
-  function StrToBool(val: String): Boolean;
   function GetShellFolder(CSIDL: integer): string;
   function getFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
   function goodfilename( str: String ): String;
@@ -151,20 +149,14 @@ type
   function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
   procedure setLocales;
   function maskSql(sql_version: integer; str: WideString) : WideString;
-  procedure ActivateWindow(Window : HWnd);
-  function GetApplication(MainForm: HWnd): HWnd;
-  procedure ActivateMainForm(MainForm: HWnd);
   procedure ShellExec( cmd: String; path: String = '' );
   function getFirstWord( text: String ): String;
-  function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
   function LastPos(needle: WideChar; haystack: WideString): Integer;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber( Seconds: Cardinal ): String;
-  function TColorToHex( Color : TColor ): string;
   function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeTypes: TListNodeTypes = [lntNone] ): TWideStringList;
   procedure SetVTSelection( VT: TVirtualStringTree; Selected: TWideStringList );
-  function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
   function GetTempDir: String;
   function GetDBObjectType(TableStatus: TMySQLQuery): TListNodeType;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
@@ -220,16 +212,6 @@ type
   end;
 
 const
-  charset_conv_table: array[0..7] of CharacterSet = (
-    (codepage: 1250; charset: 'cp1250'), // ANSI Central European; Central European (Windows)
-    (codepage: 1251; charset: 'cp1251'), // ANSI Cyrillic; Cyrillic (Windows)
-    (codepage: 1252; charset: 'latin1'), // ANSI Latin 1; Western European (Windows)
-    (codepage: 1255; charset: 'hebrew'), // ANSI Hebrew; Hebrew (Windows)
-    (codepage: 1256; charset: 'cp1256'), // ANSI Arabic; Arabic (Windows)
-    (codepage: 1257; charset: 'cp1257'), // ANSI Baltic; Baltic (Windows)
-    (codepage: 936; charset: 'gbk'),     // Windows Simplified Chinese GBK
-    (codepage: 950; charset: 'big5')     // Windows Chinese Big5
-  );
   SizeGripProp = 'SizeGrip';
 
 var
@@ -1778,28 +1760,6 @@ end;
 
 
 {***
-  Convert a boolean True/False to a string Y/N
-
-  @see TUserManagerForm::getColumnNamesOrValues
-  @param boolean Value to convert
-  @return string
-}
-function BoolToStr(val: Boolean): String;
-begin
-  if val then
-    result := 'Y'
-  else
-    result := 'N';
-end;
-
-
-function StrToBool(val: String): Boolean;
-begin
-  Result := val = 'Y';
-end;
-
-
-{***
   Get the path of a Windows(r)-shellfolder, specified by an integer or a constant
 
   @param integer Number or constant
@@ -1984,61 +1944,6 @@ end;
 
 
 {***
-  Given a Delphi MainForm, acquire the handle of that form's Application.
-
-  @param HWnd The mainform's window handle
-  @return HWnd
-}
-function GetApplication(MainForm: HWnd): HWnd;
-begin
-  result := GetWindowLong(MainForm, GWL_HWNDPARENT);
-end;
-
-
-
-{***
-  Given a Delphi MainForm, activate the application it belongs to.
-
-  @param HWnd The mainform's window handle
-}
-procedure ActivateMainForm(MainForm: HWnd);
-var
-  delphiApp: HWnd;
-begin
-  delphiApp := GetApplication(MainForm);
-  ActivateWindow(delphiApp);
-end;
-
-
-
-{***
-  Activate a specific form
-
-  @note Copyright: This function was nicked from usenet:
-        Delphi & focus control by Tony Tanzillo in autodesk.autocad.customization.vba.
-  @param HWnd Form to activate
-}
-procedure ActivateWindow(Window : HWnd);
-var
-  state : TWindowPlacement;
-begin
-  if not IsWindow(Window) then exit;
-  if IsIconic(Window) then begin
-    state.length := SizeOf(TWindowPlacement);
-    GetWindowPlacement(Window, PWindowPlacement(@state));
-    if (state.flags and WPF_RESTORETOMAXIMIZED) = WPF_RESTORETOMAXIMIZED then begin
-      ShowWindow(Window, SW_SHOWMAXIMIZED)
-    end else begin
-      ShowWindow(Window, SW_RESTORE);
-    end;
-  end;
-  BringWindowToTop(Window);
-  SetForegroundWindow(Window);
-end;
-
-
-
-{***
   Open URL or execute system command
 
   @param string Command or URL to execute
@@ -2110,23 +2015,6 @@ begin
       break;
     end;
     inc(i);
-  end;
-end;
-
-
-{***
-  This function maps MySQL character sets to Windows ANSI codepages.
-}
-function ConvertWindowsCodepageToMysqlCharacterSet(codepage: Cardinal): string;
-var
-  i: integer;
-begin
-  result := '';
-  for i := 0 to Length(charset_conv_table) - 1 do begin
-    if charset_conv_table[i].codepage = codepage then begin
-      result := charset_conv_table[i].charset;
-      exit;
-    end;
   end;
 end;
 
@@ -2206,19 +2094,6 @@ end;
 
 
 {**
-  Return TColor value in XXXXXX format
-  (X being a hex digit)
-}
-function TColorToHex( Color : TColor ): string;
-begin
-  Result := '#' +
-    { red   } IntToHex( GetRValue( Color ), 2 ) +
-    { green } IntToHex( GetGValue( Color ), 2 ) +
-    { blue }  IntToHex( GetBValue( Color ), 2 );
-end;
-
-
-{**
   Return a TStringList with captions from all selected nodes in a VirtualTree
   Especially helpful when toMultiSelect is True
 }
@@ -2268,16 +2143,6 @@ begin
       break;
     Node := VT.GetNext(Node);
   end;
-end;
-
-
-function Pos2(const Needle, HayStack: string; const StartPos: Integer) : Integer;
-var
-  NewHayStack: string;
-begin
-  NewHayStack := Copy(HayStack, StartPos, Length(HayStack));
-  Result := Pos(Needle, NewHayStack);
-  if Result > 0 then Result := Result + StartPos - 1;
 end;
 
 

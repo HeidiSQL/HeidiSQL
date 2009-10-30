@@ -43,13 +43,6 @@ begin
 end;
 
 procedure TfrmInsertFilesProgress.ProcessFiles(Sender: TObject);
-
-  procedure die(msg : String);
-  begin
-    Screen.Cursor := crDefault;
-    raise exception.Create(msg);
-  end;
-
 const
   ChunkSize = 131072;
 

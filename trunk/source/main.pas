@@ -454,7 +454,6 @@ type
     procedure setDefaultWindowConfig;
     procedure actCreateTableExecute(Sender: TObject);
     procedure actCreateViewExecute(Sender: TObject);
-    procedure focusWindow(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
     procedure DisplayChange(var msg: TMessage); message WM_DISPLAYCHANGE;
@@ -576,7 +575,6 @@ type
     procedure setNULL1Click(Sender: TObject);
     procedure MenuTablelistColumnsClick(Sender: TObject);
     procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
-    function CreateOrGetRemoteQueryTab(sender: THandle): THandle;
     procedure DataGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure DataGridCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; out EditLink: IVTEditLink);
@@ -1853,12 +1851,6 @@ begin
 end;
 
 
-procedure TMainForm.focusWindow(Sender: TObject);
-begin
-  ActivateWindow((Sender as TMenuItem).Tag);
-end;
-
-
 procedure TMainForm.menuConnectionsPopup(Sender: TObject);
 var
   i: integer;
@@ -3072,17 +3064,6 @@ begin
     OpenRegistry(SessionName);
     MainReg.WriteInteger(REGNAME_TREEBACKGROUND, cs.Dialog.Color);
   end;
-end;
-
-
-function TMainForm.CreateOrGetRemoteQueryTab(sender: THandle): THandle;
-begin
-  // Should create a tab for commands from another window,
-  // or return a handle to an existing tab if one already exists for that window.
-  //
-  // TODO: Implement this when multiple tabs are implemented.
-  //       Return a tab's handle instead of the childwin's handle.
-  result := Self.Handle;
 end;
 
 
