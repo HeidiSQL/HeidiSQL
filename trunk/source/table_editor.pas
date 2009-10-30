@@ -2207,9 +2207,9 @@ begin
   Key := ForeignKeys[Node.Index] as TForeignKey;
   case Column of
     0: CellText := Key.KeyName;
-    1: CellText := Key.Columns.CommaText;
+    1: CellText := ImplodeStr(',', Key.Columns);
     2: CellText := Key.ReferenceTable;
-    3: CellText := Key.ForeignColumns.CommaText;
+    3: CellText := ImplodeStr(',', Key.ForeignColumns);
     4: begin
         CellText := Key.OnUpdate;
         // Both ON UPDATE + DELETE default to "RESTRICT", see http://dev.mysql.com/doc/refman/5.1/en/innodb-foreign-key-constraints.html
@@ -2236,9 +2236,9 @@ begin
   Modification(Sender);
   case Column of
     0: Key.KeyName := NewText;
-    1: Key.Columns.CommaText := NewText;
+    1: Key.Columns := Explode(',', NewText);
     2: Key.ReferenceTable := NewText;
-    3: Key.ForeignColumns.CommaText := NewText;
+    3: Key.ForeignColumns := Explode(',', NewText);
     4: Key.OnUpdate := NewText;
     5: Key.OnDelete := NewText;
   end;
