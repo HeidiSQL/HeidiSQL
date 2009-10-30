@@ -5,7 +5,7 @@ unit mysql_connection;
 interface
 
 uses
-  Classes, SysUtils, windows, mysql_api, mysql_structures, WideStrings, WideStrUtils, cUnicodeCodecs;
+  Classes, SysUtils, windows, mysql_api, mysql_structures, WideStrings, WideStrUtils, cUnicodeCodecs, SynRegExpr;
 
 type
 
@@ -369,8 +369,21 @@ end;
   Return the last error nicely formatted
 }
 function TMySQLConnection.GetLastError: WideString;
+var
+  Msg, Additional: WideString;
+  rx: TRegExpr;
 begin
-  Result := WideFormat('SQL Error (%d): %s', [mysql_errno(FHandle), Utf8Decode(mysql_error(FHandle))]);
+  Msg := Utf8Decode(mysql_error(FHandle));
+  // Find "(errno: 123)" in message and add more meaningful message from perror.exe
+  rx := TRegExpr.Create;
+  rx.Expression := '.+\(errno\:\s+(\d+)\)';
+  if rx.Exec(Msg) then begin
+    Additional := MySQLErrorCodes.Values[rx.Match[1]];
+    if Additional <> '' then
+      Msg := Msg + CRLF + CRLF + Additional;
+  end;
+  rx.Free;
+  Result := WideFormat('SQL Error (%d): %s', [mysql_errno(FHandle), Msg]);
 end;
 
 
