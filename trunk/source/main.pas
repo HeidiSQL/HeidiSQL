@@ -4047,6 +4047,8 @@ begin
 
     if Assigned(Results) and Results.HasResult then begin
       ActiveGrid.BeginUpdate;
+      // Reset filter if filter panel was disabled
+      UpdateFilterPanel(Sender);
       ActiveGrid.Header.Options := ActiveGrid.Header.Options + [hoVisible];
       ActiveGrid.Header.Columns.BeginUpdate;
       ActiveGrid.Header.Columns.Clear;
