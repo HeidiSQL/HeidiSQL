@@ -4420,6 +4420,7 @@ procedure TMainForm.Clear2Click(Sender: TObject);
 begin
   // clear history-memo
   Screen.Cursor := crHourglass;
+  SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + SynMemoSQLLog.Lines.Count;
   SynMemoSQLLog.Lines.Clear;
   Screen.Cursor := crDefault;
 end;
