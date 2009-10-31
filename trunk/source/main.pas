@@ -2693,6 +2693,8 @@ begin
     end;
     if LB <> '' then
       Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
+    if not DirectoryExists(DirnameSnippets) then
+      ForceDirectories(DirnameSnippets);
     SaveUnicodeFile( snippetname, Text );
     FillPopupQueryLoad;
     if ActiveQueryTabset.TabIndex = 3 then begin
