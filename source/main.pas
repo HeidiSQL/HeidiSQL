@@ -3825,9 +3825,10 @@ end;
 }
 procedure TMainForm.ValidateControls(Sender: TObject);
 var
-  inDataGrid, inDataOrQueryTab, inDataOrQueryTabNotEmpty: Boolean;
+  inDataGrid, inDataTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty: Boolean;
   SelectedNodes: TNodeArray;
 begin
+  inDataTab := PageControlMain.ActivePage = tabData;
   inDataGrid := ActiveControl = DataGrid;
   inDataOrQueryTab := (PageControlMain.ActivePage = tabData) or QueryTabActive;
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and (ActiveGrid.RootNodeCount > 0);
@@ -3845,6 +3846,8 @@ begin
   actDataLast.Enabled := inDataGrid;
   actDataPostChanges.Enabled := inDataGrid and DataGridHasChanges;
   actDataCancelChanges.Enabled := inDataGrid and DataGridHasChanges;
+  if (not inDataTab) and DataGrid.IsEditing then
+    DataGrid.EndEditNode;
 
   // Activate export-options if we're on Data- or Query-tab
   actCopyAsCSV.Enabled := inDataOrQueryTabNotEmpty;
