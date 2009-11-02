@@ -306,18 +306,16 @@ begin
     Log(lcError, GetLastError);
     raise Exception.Create(GetLastError);
   end else begin
-    Result := nil;
-    // Affected rows are -1 for SELECT queries, 0 for UPDATE queries including
-    // admin commands e.g. FLUSH PRIVILEGES
+    // We must call mysql_store_result() + mysql_free_result() to unblock the connection
+    // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html 
     FRowsAffected := mysql_affected_rows(FHandle);
-    if FRowsAffected = -1 then begin
+    Result := mysql_store_result(FHandle);
+    if Result <> nil then begin
+      FRowsFound := mysql_num_rows(Result);
       FRowsAffected := 0;
-      if DoStoreResult then begin
-        Result := mysql_store_result(FHandle);
-        if Result <> nil then
-          FRowsFound := mysql_num_rows(Result);
-        Log(lcDebug, IntToStr(RowsFound)+' rows found.');
-      end;
+      Log(lcDebug, IntToStr(RowsFound)+' rows found.');
+      if not DoStoreResult then
+        mysql_free_result(Result);
     end else begin
       // Query did not return a result
       FRowsFound := 0;
