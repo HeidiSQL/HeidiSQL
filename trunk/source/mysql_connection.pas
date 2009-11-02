@@ -80,6 +80,7 @@ type
       FRowsFound: Int64;
       FRowsAffected: Int64;
       FServerVersionUntouched: String;
+      FLastQueryStart, FLastQueryEnd: Cardinal;
       function GetActive: Boolean;
       procedure SetActive(Value: Boolean);
       procedure SetDatabase(Value: WideString);
@@ -89,6 +90,7 @@ type
       function GetLastError: WideString;
       function GetServerVersionStr: String;
       function GetServerVersionInt: Integer;
+      function GetLastQueryDuration: Cardinal;
       procedure Log(Category: TMySQLLogCategory; Msg: WideString);
       procedure DetectCapabilities;
     public
@@ -113,6 +115,7 @@ type
       property Capabilities: TMySQLServerCapabilities read FCapabilities;
       property RowsFound: Int64 read FRowsFound;
       property RowsAffected: Int64 read FRowsAffected;
+      property LastQueryDuration: Cardinal read GetLastQueryDuration;
     published
       property Active: Boolean read GetActive write SetActive default False;
       property Hostname: String read FHostname write FHostname;
@@ -178,6 +181,8 @@ begin
   FRowsFound := 0;
   FRowsAffected := 0;
   FConnectionStarted := 0;
+  FLastQueryStart := 0;
+  FLastQueryEnd := 0;
 end;
 
 
@@ -294,7 +299,9 @@ begin
     Active := True;
   Log(lcSQL, SQL);
   NativeSQL := UTF8Encode(SQL);
+  FLastQueryStart := GetTickCount;
   querystatus := mysql_real_query(FHandle, PChar(NativeSQL), Length(NativeSQL));
+  FLastQueryEnd := GetTickCount;
   if querystatus <> 0 then begin
     Log(lcError, GetLastError);
     raise Exception.Create(GetLastError);
@@ -549,6 +556,12 @@ begin
   addCap(cpTruncateTable, ver >= 50003);
   addCap(cpAlterDatabase, ver >= 50002);
   addCap(cpRenameDatabase, ver >= 50107);
+end;
+
+
+function TMySQLConnection.GetLastQueryDuration: Cardinal;
+begin
+  Result := FLastQueryEnd - FLastQueryStart;
 end;
 
 
