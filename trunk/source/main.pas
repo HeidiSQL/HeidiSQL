@@ -6285,7 +6285,7 @@ end;
 
 procedure TMainForm.DatabaseChanged(Database: WideString);
 begin
-  if Database <> ActiveDatabase then
+  if (Database <> ActiveDatabase) and (Databases.IndexOf(Database) > -1) then
     ActiveDatabase := Database;
 end;
 
