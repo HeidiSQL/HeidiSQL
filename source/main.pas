@@ -3940,22 +3940,15 @@ end;
 
 procedure TMainForm.ExecSQLClick(Sender: TObject; Selection: Boolean=false; CurrentLine: Boolean=false);
 var
-  SQL               : WideStrings.TWideStringList;
-  i, j              : Integer;
-  rowsaffected      : Integer;
-  SQLstart          : Integer;
-  SQLend            : Integer;
-  SQLscriptstart    : Integer;
-  SQLscriptend      : Integer;
-  SQLTime           : Double;
-  fieldcount        : Integer;
-  recordcount       : Integer;
-  Results           : TMySQLQuery;
-  ColName,
-  Text, LB          : WideString;
-  col               : TVirtualTreeColumn;
-  ResultLabel       : TLabel;
-  ActiveGridResult  : TGridResult;
+  SQL: TWideStringList;
+  i, j, QueryCount: Integer;
+  SQLTime: Cardinal;
+  Results: TMySQLQuery;
+  ColName, Text, LB: WideString;
+  col: TVirtualTreeColumn;
+  ResultLabel: TLabel;
+  ActiveGridResult: TGridResult;
+  cap: String;
 begin
   ResultLabel := ActiveQueryTab.LabelResultInfo;
   if CurrentLine then Text := ActiveQueryMemo.LineText
@@ -3969,139 +3962,119 @@ begin
   end;
   if LB <> '' then
     Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
+  showstatus('Initializing SQL...');
   SQL := parseSQL(Text);
   if SQL.Count = 0 then begin
     ResultLabel.Caption := '(nothing to do)';
     Exit;
   end;
 
-  SQLscriptstart := GetTickCount;
   ResultLabel.Caption := '';
-
-  Results := nil;
-  try
-    showstatus( 'Initializing SQL...' );
-    actExecuteQuery.Enabled := false;
-    actExecuteSelection.Enabled := false;
-
-    rowsaffected := 0;
-    fieldcount := 0;
-    recordcount := 0;
-    EnableProgressBar(SQL.Count);
-
-    showstatus('Executing SQL...');
-    for i:=0 to SQL.Count-1 do begin
-      ProgressBarStatus.StepIt;
-      ProgressBarStatus.Repaint;
-      if SQL[i] = '' then
-        continue;
-      ResultLabel.Caption := '';
-      SQLstart := GetTickCount;
-      try
-        Results := Connection.GetResults(SQL[i]);
-        if Assigned(Results) then begin
-          fieldcount := Results.ColumnCount;
-          recordcount := Results.Recordcount;
-        end else begin
-          fieldcount := 0;
-          recordcount := 0;
-          rowsaffected := Connection.RowsAffected;
-        end;
-      except
-        on E:Exception do begin
-          if actQueryStopOnErrors.Checked or (i = SQL.Count - 1) then begin
-            Screen.Cursor := crDefault;
-            MessageDlg( E.Message, mtError, [mbOK], 0 );
-            ProgressBarStatus.Hide;
-            actExecuteQuery.Enabled := true;
-            actExecuteSelection.Enabled := true;
-            Break;
-          end;
-        end;
-      end;
-
-      SQLend := GetTickCount;
-      SQLTime := (SQLend - SQLstart) / 1000;
-
-      ResultLabel.Caption :=
-        FormatNumber( rowsaffected ) +' row(s) affected, '+
-        FormatNumber( fieldcount ) +' column(s) x '+
-        FormatNumber( recordcount ) +' row(s) in last result set.';
+  FreeAndNil(Results);
+  actExecuteQuery.Enabled := false;
+  actExecuteSelection.Enabled := false;
+  EnableProgressBar(SQL.Count);
+  showstatus('Executing SQL...');
+  SQLtime := 0;
+  QueryCount := 0;
+  for i:=0 to SQL.Count-1 do begin
+    ProgressBarStatus.StepIt;
+    ProgressBarStatus.Repaint;
+    if SQL[i] = '' then
+      continue;
+    try
+      // Immediately free results for all but last query
       if i < SQL.Count-1 then
-        FreeAndNil(Results);
-      if SQL.Count = 1 then
-        ResultLabel.Caption := ResultLabel.Caption + ' Query time: '+ FormatNumber( SQLTime, 3) +' sec.';
-    end;
-
-    ProgressBarStatus.Hide;
-    ValidateQueryControls(Sender);
-
-    if SQL.Count > 1 then
-    begin
-      SQLscriptend := GetTickCount;
-      SQLTime := (SQLscriptend - SQLscriptstart) / 1000;
-      ResultLabel.Caption := ResultLabel.Caption +' Batch time: '+
-        FormatNumber(SQLTime, 3) +' sec.';
-    end;
-
-  finally
-    // Avoid excessive GridHighlightChanged() when flicking controls.
-    viewingdata := true;
-
-    if Assigned(Results) and Results.HasResult then begin
-      ActiveGrid.BeginUpdate;
-      // Reset filter if filter panel was disabled
-      UpdateFilterPanel(Sender);
-      ActiveGrid.Header.Options := ActiveGrid.Header.Options + [hoVisible];
-      ActiveGrid.Header.Columns.BeginUpdate;
-      ActiveGrid.Header.Columns.Clear;
-      debug('mem: clearing and initializing query columns.');
-      ActiveGridResult := GridResult(ActiveGrid);
-      SetLength(ActiveGridResult.Columns, 0);
-      SetLength(ActiveGridResult.Columns, Results.ColumnCount);
-      for i:=0 to Results.ColumnCount-1 do begin
-        ColName := Results.ColumnNames[i];
-        col := ActiveGrid.Header.Columns.Add;
-        col.Text := ColName;
-        col.Options := col.Options - [coAllowClick];
-        ActiveGridResult.Columns[i].Name := ColName;
-        ActiveGridResult.Columns[i].DatatypeCat := Results.DataType(i).Category;
-        if ActiveGridResult.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then
-          col.Alignment := taRightJustify;
-      end;
-      debug('mem: query column initialization complete.');
-      debug('mem: clearing and initializing query rows (internal data).');
-      SetLength(ActiveGridResult.Rows, 0);
-      SetLength(ActiveGridResult.Rows, Results.RecordCount);
-      Results.First;
-      for i:=0 to Results.RecordCount-1 do begin
-        ActiveGridResult.Rows[i].Loaded := True;
-        SetLength(ActiveGridResult.Rows[i].Cells, Results.ColumnCount);
-        for j:=0 to Results.ColumnCount-1 do begin
-          if ActiveGridResult.Columns[j].DatatypeCat = dtcBinary then
-            ActiveGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j))
-          else
-            ActiveGridResult.Rows[i].Cells[j].Text := Results.Col(j);
-          ActiveGridResult.Rows[i].Cells[j].IsNull := Results.IsNull(j);
+        Connection.Query(SQL[i])
+      else
+        Results := Connection.GetResults(SQL[i]);
+      Inc(SQLtime, Connection.LastQueryDuration);
+      Inc(QueryCount);
+      if Assigned(Results) and Results.HasResult then
+        ResultLabel.Caption := FormatNumber(Results.ColumnCount) +' column(s) x '+FormatNumber(Results.RecordCount) +' row(s) in last result set.'
+      else
+        ResultLabel.Caption := FormatNumber(Connection.RowsAffected) +' row(s) affected by last query.';
+    except
+      on E:Exception do begin
+        if actQueryStopOnErrors.Checked or (i = SQL.Count - 1) then begin
+          Screen.Cursor := crDefault;
+          MessageDlg( E.Message, mtError, [mbOK], 0 );
+          Break;
         end;
-        Results.Next;
       end;
-      Results.Free;
-      debug('mem: initializing query rows (grid).');
-      ActiveGrid.RootNodeCount := Length(ActiveGridResult.Rows);
-      debug('mem: query row initialization complete.');
-      ActiveGrid.Header.Columns.EndUpdate;
-      ActiveGrid.ClearSelection;
-      ActiveGrid.OffsetXY := Point(0, 0);
-      ActiveGrid.EndUpdate;
-      AutoCalcColWidths(ActiveGrid);
     end;
-    // Ensure controls are in a valid state
-    ValidateControls(Sender);
-    viewingdata := false;
-    Screen.Cursor := crDefault;
-    ShowStatus( STATUS_MSG_READY );
   end;
+
+  if ResultLabel.Caption <> '' then begin
+    cap := ' Duration for ';
+    cap := cap + IntToStr(QueryCount);
+    if QueryCount < SQL.Count then
+      cap := cap + ' of ' + IntToStr(SQL.Count);
+    if SQL.Count = 1 then
+      cap := cap + ' query'
+    else
+      cap := cap + ' queries';
+    cap := cap + ': '+FormatNumber(SQLTime/1000, 3) +' sec.';
+    ResultLabel.Caption := ResultLabel.Caption + cap;
+  end;
+
+  // Avoid excessive GridHighlightChanged() when flicking controls.
+  viewingdata := true;
+  ProgressBarStatus.Hide;
+
+  if Assigned(Results) and Results.HasResult then begin
+    ActiveGrid.BeginUpdate;
+    // Reset filter if filter panel was disabled
+    UpdateFilterPanel(Sender);
+    ActiveGrid.Header.Options := ActiveGrid.Header.Options + [hoVisible];
+    ActiveGrid.Header.Columns.BeginUpdate;
+    ActiveGrid.Header.Columns.Clear;
+    debug('mem: clearing and initializing query columns.');
+    ActiveGridResult := GridResult(ActiveGrid);
+    SetLength(ActiveGridResult.Columns, 0);
+    SetLength(ActiveGridResult.Columns, Results.ColumnCount);
+    for i:=0 to Results.ColumnCount-1 do begin
+      ColName := Results.ColumnNames[i];
+      col := ActiveGrid.Header.Columns.Add;
+      col.Text := ColName;
+      col.Options := col.Options - [coAllowClick];
+      ActiveGridResult.Columns[i].Name := ColName;
+      ActiveGridResult.Columns[i].DatatypeCat := Results.DataType(i).Category;
+      if ActiveGridResult.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then
+        col.Alignment := taRightJustify;
+    end;
+    debug('mem: query column initialization complete.');
+    debug('mem: clearing and initializing query rows (internal data).');
+    SetLength(ActiveGridResult.Rows, 0);
+    SetLength(ActiveGridResult.Rows, Results.RecordCount);
+    Results.First;
+    for i:=0 to Results.RecordCount-1 do begin
+      ActiveGridResult.Rows[i].Loaded := True;
+      SetLength(ActiveGridResult.Rows[i].Cells, Results.ColumnCount);
+      for j:=0 to Results.ColumnCount-1 do begin
+        if ActiveGridResult.Columns[j].DatatypeCat = dtcBinary then
+          ActiveGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j))
+        else
+          ActiveGridResult.Rows[i].Cells[j].Text := Results.Col(j);
+        ActiveGridResult.Rows[i].Cells[j].IsNull := Results.IsNull(j);
+      end;
+      Results.Next;
+    end;
+    Results.Free;
+    debug('mem: initializing query rows (grid).');
+    ActiveGrid.RootNodeCount := Length(ActiveGridResult.Rows);
+    debug('mem: query row initialization complete.');
+    ActiveGrid.Header.Columns.EndUpdate;
+    ActiveGrid.ClearSelection;
+    ActiveGrid.OffsetXY := Point(0, 0);
+    ActiveGrid.EndUpdate;
+    AutoCalcColWidths(ActiveGrid);
+  end;
+  // Ensure controls are in a valid state
+  ValidateControls(Sender);
+  viewingdata := false;
+  Screen.Cursor := crDefault;
+  ShowStatus( STATUS_MSG_READY );
 end;
 
 
