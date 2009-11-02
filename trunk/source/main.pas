@@ -3980,8 +3980,6 @@ begin
   for i:=0 to SQL.Count-1 do begin
     ProgressBarStatus.StepIt;
     ProgressBarStatus.Repaint;
-    if SQL[i] = '' then
-      continue;
     try
       // Immediately free results for all but last query
       if i < SQL.Count-1 then
