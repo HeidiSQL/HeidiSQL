@@ -1570,6 +1570,7 @@ begin
     comboOnlyDBs.ItemIndex := 0
   else
     comboOnlyDBs.Text := '';
+  FreeAndNil(AllDatabases);
   RefreshTree(False);
 
   DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
@@ -2251,10 +2252,11 @@ begin
         Screen.Cursor := crHourglass;
         try
           Connection.Query('DROP DATABASE ' + mask(activeDB));
-          ClearDbTableList(activeDB);
-          DBtree.Selected[DBtree.GetFirst] := true;
-          RefreshTree(False);
         finally
+          DBtree.FocusedNode := DBtree.GetFirst;
+          DBTree.Selected[DBtree.FocusedNode] := True;
+          ClearDbTableList(activeDB);
+          RefreshTree(False);
           Screen.Cursor := crDefault;
         end;
         Exit;
