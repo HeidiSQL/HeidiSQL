@@ -103,17 +103,17 @@ RestartApplicationText=restart application
 CloseApplicationText=close application
 [BugReport]
 ListThreads=1
-ListModules=1
-ListHardware=1
+ListModules=0
+ListHardware=0
 ShowCpuRegisters=0
-ShowStackDump=1
-Disassembly=1
+ShowStackDump=0
+Disassembly=0
 HideUglyItems=0
 ShowRelativeAddrs=1
 ShowRelativeLines=1
 FormatDisassembly=0
 LimitDisassembly=5
-EnabledPlugins=modules|processes|hardware
+EnabledPlugins=
 [Filters]
 Filter1ExceptionClasses=EDBEditError
 Filter1DontCreateBugReport=1
