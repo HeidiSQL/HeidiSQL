@@ -986,7 +986,7 @@ begin
       NewCol.DefaultText := FocusedCol.DefaultText;
     end;
     NewCol.Comment := FocusedCol.Comment;
-    NewCol.Collation := FocusedCol.Collation;
+    NewCol.Collation := '';
   end else begin
     idx := listColumns.RootNodeCount;
     NewCol.DataType := GetDatatypeByName('INT');
@@ -1404,6 +1404,7 @@ begin
       EnumEditor := TEnumEditorLink.Create(VT);
       EnumEditor.ValueList := TWideStringList.Create;
       Mainform.GetCollations(EnumEditor.ValueList);
+      EnumEditor.ValueList.Insert(0, '');
       EditLink := EnumEditor;
       end;
     6: begin
