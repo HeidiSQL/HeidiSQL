@@ -42,11 +42,10 @@
     <DCC_ResourcePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_ResourcePath>
     <DCC_ObjPath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_ObjPath>
     <DCC_IncludePath>$(BDS)\RaveReports\Lib;$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\resources;..\..\components\tntunictrls\build;..\..\components\pngcomponents\build</DCC_IncludePath>
-    <DCC_Define>DEBUG;madExcept</DCC_Define>
+    <DCC_Define>DEBUG</DCC_Define>
     <DCC_Description>HeidiSQL</DCC_Description>
     <DCC_TypedAtParameter>True</DCC_TypedAtParameter>
     <DCC_GenerateStackFrames>True</DCC_GenerateStackFrames>
-    <DCC_MapFile>3</DCC_MapFile>
   </PropertyGroup>
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality</Borland.Personality>

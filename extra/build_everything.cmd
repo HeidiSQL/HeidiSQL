@@ -92,7 +92,6 @@ pause >NUL:
 goto :eof
 
 :init
-set mad_dir="%compiler_dir%\..\madCollection"
 set start_time=%DATE% %TIME%
 set start_dir=%CD%
 cd ..
@@ -100,12 +99,12 @@ set base_dir=%CD%
 
 set compiler=dcc32.exe
 set params=--no-config
-set params=%params% -DDEBUG;madExcept -GD
+set params=%params% -DDEBUG -GD
 set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BDE;DbiErrs=BDE
 set params=%params% -B
 set params=%params% -i"%base_dir%\source"
 set params=%params% -r"%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources"
-set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\tntunictrls\build;%base_dir%\components\pngcomponents\build;%mad_dir%\madExcept\BDS4;%mad_dir%\madDisAsm\BDS4;%mad_dir%\madBasic\BDS4"
+set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\tntunictrls\build;%base_dir%\components\pngcomponents\build"
 set params=%params% -N0"..\..\build" 
 set params=%params% -LE"..\..\build"
 set params=%params% -LN"..\..\build"
@@ -214,7 +213,7 @@ brcc32 ..\..\res\manifest.rc
 if not %errorlevel% == 0 goto end
 
 rem Patch executable with exception handler
-"%mad_dir%\madExcept\Tools\madExceptPatch.exe" "%base_dir%\out\heidisql.exe" heidisql.mes
+"%compiler_dir%\..\madCollection\madExcept\Tools\madExceptPatch.exe" "%base_dir%\out\heidisql.exe" heidisql.mes
 
 echo.
 echo Started:   %start_time%
