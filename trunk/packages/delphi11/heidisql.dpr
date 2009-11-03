@@ -1,6 +1,11 @@
 program heidisql;
 
 uses
+  madExcept,
+  madLinkDisAsm,
+  madListHardware,
+  madListProcesses,
+  madListModules,
   Forms,
   SysUtils,
   Dialogs,
