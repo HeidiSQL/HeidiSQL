@@ -1784,11 +1784,9 @@ procedure TMainForm.actClearEditorExecute(Sender: TObject);
 var
   m: TSynMemo;
 begin
-  if Sender = actClearQueryEditor then begin
-    m := ActiveQueryMemo;
-    if QueryTabActive then
-      SetTabCaption(PageControlMain.ActivePageIndex, '');
-  end else begin
+  if Sender = actClearQueryEditor then
+    m := ActiveQueryMemo
+  else begin
     m := SynMemoFilter;
     editFilterSearch.Clear;
   end;
@@ -1796,6 +1794,11 @@ begin
   m.SelText := '';
   m.SelStart := 0;
   m.SelEnd := 0;
+  if QueryTabActive then begin
+    SetTabCaption(PageControlMain.ActivePageIndex, '');
+    ActiveQueryTab.MemoFilename := '';
+    ActiveQueryTab.Memo.Modified := False;
+  end;
 end;
 
 procedure TMainForm.actTableToolsExecute(Sender: TObject);
