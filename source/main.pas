@@ -712,7 +712,7 @@ type
     FDelimiter: String;
     ServerUptime               : Integer;
     viewingdata                : Boolean;
-    CachedTableLists           : WideStrings.TWideStringList;
+    CachedTableLists           : TWideStringList;
     EditVariableForm           : TfrmEditVariable;
     FileNameSessionLog         : String;
     FileHandleSessionLog       : Textfile;
@@ -725,7 +725,7 @@ type
     FSelectedTableKeys         : TMySQLQuery;
     FilterPanelManuallyOpened  : Boolean;
     DataGridDB, DataGridTable  : WideString;
-    PrevTableColWidths         : WideStrings.TWideStringList;
+    PrevTableColWidths         : TWideStringList;
     DataGridHasChanges         : Boolean;
     FLastMouseUpOnPageControl  : Cardinal;
     FLastTabNumberOnMouseUp    : Integer;
@@ -741,11 +741,11 @@ type
     function GetActiveDatabase: WideString;
     function GetSelectedTable: TListNode;
     procedure SetSelectedDatabase(db: WideString);
-    procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: WideStrings.TWideStringList );
+    procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TWideStringList );
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     function GetSelectedTableColumns: TMySQLQuery;
     function GetSelectedTableKeys: TMySQLQuery;
-    procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: Widestrings.TWideStringlist = nil);
+    procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: TWideStringlist = nil);
     procedure PlaceObjectEditor(Which: TListNodeType);
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
@@ -795,7 +795,7 @@ type
     CreateDatabaseForm         : TCreateDatabaseForm;
     ExportSQLForm              : TExportSQLForm;
     TableEditor                : TfrmTableEditor;
-    FDataGridSelect            : WideStrings.TWideStringList;
+    FDataGridSelect            : TWideStringList;
     FDataGridSort              : TOrderColArray;
     DataGridCurrentSelect,
     DataGridCurrentFullSelect,
@@ -846,7 +846,7 @@ type
     function DataGridPostUpdateOrInsert(Node: PVirtualNode): Boolean;
     procedure GridFinalizeEditing(Sender: TBaseVirtualTree);
     function GetWhereClause(Row: PGridRow; Columns: PGridColumns): WideString;
-    function GetKeyColumns: WideStrings.TWideStringlist;
+    function GetKeyColumns: TWideStringlist;
     function CheckUniqueKeyClause: Boolean;
     procedure DataGridInsertRow;
     procedure DataGridCancel(Sender: TObject);
@@ -1188,7 +1188,7 @@ begin
   // SQLFiles-History
   FillPopupQueryLoad;
 
-  CachedTableLists := WideStrings.TWideStringList.Create;
+  CachedTableLists := TWideStringList.Create;
 
   InitializeCriticalSection(SqlMessagesLock);
   EnterCriticalSection(SqlMessagesLock);
@@ -3174,7 +3174,7 @@ var
   select_base_full,
   select_from          : WideString;
   sl_query             : TWideStringList;
-  KeyCols              : WideStrings.TWideStringList;
+  KeyCols              : TWideStringList;
   ColName              : WideString;
   col                  : TVirtualTreeColumn;
   rx                   : TRegExpr;
@@ -3248,7 +3248,7 @@ begin
   if Copy(ColType, 1, 5) = 'enum(' then begin
     DataGridResult.Columns[idx].Datatype := dtEnum;
     DataGridResult.Columns[idx].DatatypeCat := dtcIntegerNamed;
-    DataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
+    DataGridResult.Columns[idx].ValueList := TWideStringList.Create;
     DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
     DataGridResult.Columns[idx].ValueList.Delimiter := ',';
     DataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
@@ -3256,7 +3256,7 @@ begin
   if Copy(ColType, 1, 4) = 'set(' then begin
     DataGridResult.Columns[idx].Datatype := dtSet;
     DataGridResult.Columns[idx].DatatypeCat := dtcSetNamed;
-    DataGridResult.Columns[idx].ValueList := WideStrings.TWideStringList.Create;
+    DataGridResult.Columns[idx].ValueList := TWideStringList.Create;
     DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
     DataGridResult.Columns[idx].ValueList.Delimiter := ',';
     DataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
@@ -3296,7 +3296,7 @@ begin
   try
     if (SelectedTable.Text <> '') and (ActiveDatabase <> '') then begin
       if FDataGridSelect = nil then
-        FDataGridSelect := WideStrings.TWideStringlist.Create;
+        FDataGridSelect := TWideStringlist.Create;
       if not RefreshingData then begin
         FDataGridSelect.Clear;
         ResetSelectedTableStuff;
@@ -3917,7 +3917,7 @@ end;
 
 procedure TMainForm.KillProcess(Sender: TObject);
 var t : Boolean;
-  ProcessIDs : WideStrings.TWideStringList;
+  ProcessIDs : TWideStringList;
   i : Integer;
 begin
   t := TimerRefresh.Enabled;
@@ -5486,10 +5486,10 @@ end;
 procedure TMainForm.MenuTablelistColumnsClick(Sender: TObject);
 var
   menuitem : TMenuItem;
-  VisibleColumns : WideStrings.TWideStringList;
+  VisibleColumns : TWideStringList;
   i : Integer;
 begin
-  VisibleColumns := WideStrings.TWideStringList.Create;
+  VisibleColumns := TWideStringList.Create;
   menuitem := TMenuItem( Sender );
   menuitem.Checked := not menuitem.Checked;
   for i := 0 to ListTables.Header.Columns.Count - 1 do
@@ -5552,11 +5552,11 @@ var
   i : Byte;
   colwidth, colpos : Integer;
   Value : WideString;
-  ValueList : WideStrings.TWideStringList;
+  ValueList : TWideStringList;
   Regname: String;
   frm: TCustomForm;
 begin
-  ValueList := WideStrings.TWideStringList.Create;
+  ValueList := TWideStringList.Create;
 
   // Column widths
   Regname := List.Name;
@@ -5602,7 +5602,7 @@ end;
 {**
   (Un)hide columns in a VirtualStringTree.
 }
-procedure TMainForm.SetVisibleListColumns( List: TVirtualStringTree; Columns: WideStrings.TWideStringList );
+procedure TMainForm.SetVisibleListColumns( List: TVirtualStringTree; Columns: TWideStringList );
 var
   i : Integer;
 begin
@@ -6327,7 +6327,7 @@ var
   oldActiveDatabase, db: WideString;
   oldSelectedTable: TListNode;
   Node: PVirtualNode;
-  ExpandedDBs, TablesFetched: WideStrings.TWideStringList;
+  ExpandedDBs, TablesFetched: TWideStringList;
   i: Integer;
 begin
   // Remember currently active database and table
@@ -6338,8 +6338,8 @@ begin
     DBtree.ClearSelection;
 
   // Remember expandation status of all dbs and whether their tables were fetched
-  ExpandedDBs := WideStrings.TWideStringList.Create;
-  TablesFetched := WideStrings.TWideStringList.Create;
+  ExpandedDBs := TWideStringList.Create;
+  TablesFetched := TWideStringList.Create;
   Node := DBtree.GetFirstChild(DBtree.GetFirst);
   for i := 0 to DBtree.GetFirst.ChildCount - 1 do begin
     db := DBtree.Text[Node, 0];
@@ -7006,7 +7006,7 @@ function TMainForm.GetWhereClause(Row: PGridRow; Columns: PGridColumns): WideStr
 var
   i, j: Integer;
   KeyVal: WideString;
-  KeyCols: WideStrings.TWideStringlist;
+  KeyCols: TWideStringlist;
 begin
   Result := '';
   KeyCols := GetKeyColumns;
@@ -7038,7 +7038,7 @@ end;
 {**
   Find key columns for a WHERE clause by analysing a SHOW KEYS FROM ... resultset
 }
-function TMainForm.GetKeyColumns: WideStrings.TWideStringlist;
+function TMainForm.GetKeyColumns: TWideStringlist;
 var
   i: Integer;
   AllowsNull: Boolean;
@@ -7056,7 +7056,7 @@ var
   end;
 
 begin
-  Result := WideStrings.TWideStringlist.Create;
+  Result := TWideStringlist.Create;
   // Find best key for updates
   SelectedTableKeys.First;
   // 1. round: find a primary key
@@ -7440,7 +7440,7 @@ begin
 end;
 
 
-procedure TMainForm.AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: Widestrings.TWideStringlist = nil);
+procedure TMainForm.AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: TWideStringlist = nil);
 var
   Node: PVirtualNode;
   i, j, ColTextWidth: Integer;
@@ -7513,7 +7513,7 @@ begin
   if tsUpdating in Sender.Treeview.TreeStates then
     Exit;
   if PrevTableColWidths = nil then
-    PrevTableColWidths := WideStrings.TWideStringList.Create;
+    PrevTableColWidths := TWideStringList.Create;
   col := Sender.Columns[Column];
   PrevTableColWidths.Values[col.Text] := inttostr(col.Width);
 end;
@@ -7899,7 +7899,7 @@ procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; Target
     tmpval : Double;
   begin
     VTRowDataListCommandStats[idx].ImageIndex := 25;
-    VTRowDataListCommandStats[idx].Captions := WideStrings.TWideStringList.Create;
+    VTRowDataListCommandStats[idx].Captions := TWideStringList.Create;
     caption := Copy( caption, 5, Length(caption) );
     caption := WideStringReplace( caption, '_', ' ', [rfReplaceAll] );
     VTRowDataListCommandStats[idx].Captions.Add( caption );
