@@ -1675,6 +1675,10 @@ begin
   FreeAndNil(dsShowEngines);
   FreeAndNil(dsHaveEngines);
   FreeAndNil(dsCollations);
+  FreeAndNil(FDataGridSelect);
+  ResetSelectedTableStuff;
+  SynMemoFilter.Clear;
+  SetLength(FDataGridSort, 0);
 
   // Free forms which use session based datasets, fx dsShowEngines
   FreeAndNil(TableEditor);
