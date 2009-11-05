@@ -9012,6 +9012,7 @@ begin
     Editor.ActiveLineColor := ActiveLineColor;
     Editor.Options := BaseEditor.Options;
     Editor.TabWidth := BaseEditor.TabWidth;
+    Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
     // Shortcuts
     if Editor = BaseEditor then for j:=0 to Editor.Keystrokes.Count-1 do begin
       KeyStroke := Editor.Keystrokes[j];
