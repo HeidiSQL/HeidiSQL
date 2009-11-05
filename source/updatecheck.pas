@@ -37,7 +37,7 @@ type
   public
     { Public declarations }
     AutoClose: Boolean; // Automatically close dialog after detecting no available downloads
-    CurrentRevision: Integer;
+    CurrentRevision, BuildRevision: Integer;
     CheckForBuildsInAutoMode: Boolean;
     BuildSize: Integer;
   end;
@@ -116,14 +116,13 @@ begin
     CheckfileDownload.ExecuteTarget(nil);
     Status('Reading check file ...');
     ReadCheckFile;
-    if (not groupRelease.Enabled) and (not groupBuild.Enabled) then begin
-      // Developer versions probably have "unknown" (0) as revision,
-      // which makes it impossible to compare the revisions.
-      if CurrentRevision = 0 then
-        Status('Error: Cannot determine current revision. Using a developer version?')
-      else
-        Status('Your '+APPNAME+' is up-to-date (no update available).');
-    end else
+    // Developer versions probably have "unknown" (0) as revision,
+    // which makes it impossible to compare the revisions.
+    if CurrentRevision = 0 then
+      Status('Error: Cannot determine current revision. Using a developer version?')
+    else if CurrentRevision = BuildRevision then
+      Status('Your '+APPNAME+' is up-to-date (no update available).')
+    else if groupRelease.Enabled or groupBuild.Enabled then
       Status('Updates available.');
     // Remember when we did the updatecheck to enable the automatic interval
     OpenRegistry;
@@ -155,7 +154,7 @@ procedure TfrmUpdateCheck.ReadCheckFile;
 var
   Ini : TIniFile;
   ReleaseVersion : String;
-  ReleaseRevision, BuildRevision : Integer;
+  ReleaseRevision: Integer;
   Note : String;
   Compiled : TDateTime;
 const
@@ -175,7 +174,7 @@ begin
       memoRelease.Lines.Add( 'Note: ' + Note );
     btnRelease.Caption := 'Download version ' + ReleaseVersion;
     // Enable the download button if the current version is outdated
-    groupRelease.Enabled := (CurrentRevision > 0) and (ReleaseRevision > CurrentRevision);
+    groupRelease.Enabled := ReleaseRevision > CurrentRevision;
     btnRelease.Enabled := groupRelease.Enabled;
     memoRelease.Enabled := groupRelease.Enabled;
     if not memoRelease.Enabled then
@@ -199,7 +198,7 @@ begin
     // A new release should have priority over a new nightly build.
     // So the user should not be able to download a newer build here
     // before having installed the new release.
-    groupBuild.Enabled := (CurrentRevision > 0) and (BuildRevision > CurrentRevision) and (not btnRelease.Enabled);
+    groupBuild.Enabled := (CurrentRevision = 0) or ((BuildRevision > CurrentRevision) and (not btnRelease.Enabled));
     btnBuild.Enabled := groupBuild.Enabled;
     memoBuild.Enabled := groupBuild.Enabled;
     if not memoBuild.Enabled then
