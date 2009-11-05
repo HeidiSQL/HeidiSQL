@@ -1963,19 +1963,15 @@ end;
 procedure TMainForm.actExportSettingsExecute(Sender: TObject);
 begin
   // Export settings to .reg-file
-  if SaveDialog2.Execute then begin
-    if winexec(pchar('regedit.exe /e "'+SaveDialog2.FileName+'" HKEY_CURRENT_USER'+REGPATH), SW_SHOW) = ERROR_FILE_NOT_FOUND then
-      MessageDlg('File not found: regedit.exe', mtError, [mbOK], 0);
-  end;
+  if SaveDialog2.Execute then
+    ShellExec('regedit.exe', '', '/e "'+SaveDialog2.FileName+'" HKEY_CURRENT_USER'+REGPATH);
 end;
 
 procedure TMainForm.actImportSettingsExecute(Sender: TObject);
 begin
   // Import settings from .reg-file
-  if OpenDialog2.Execute then begin
-    if winexec(pchar('regedit.exe "'+OpenDialog2.FileName+'"'), SW_SHOW) = ERROR_FILE_NOT_FOUND then
-      MessageDlg('File not found: regedit.exe', mtError, [mbOK], 0);
-  end;
+  if OpenDialog2.Execute then
+    ShellExec('regedit.exe', '', '"'+OpenDialog2.FileName+'"');
 end;
 
 procedure TMainForm.actExecuteQueryExecute(Sender: TObject);

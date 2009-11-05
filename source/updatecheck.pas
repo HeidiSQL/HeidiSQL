@@ -300,7 +300,7 @@ begin
   Write(Scriptfile, ScriptContent);
   CloseFile(ScriptFile);
   // Calling the script will now terminate the running exe...
-  WinExec(PAnsiChar('cscript.exe "'+ScriptFilename+'"'), 1);
+  ShellExec('cscript.exe', '', '"'+ScriptFilename+'"');
 end;
 
 

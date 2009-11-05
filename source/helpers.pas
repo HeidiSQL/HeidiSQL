@@ -149,7 +149,7 @@ type
   function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
   procedure setLocales;
   function maskSql(sql_version: integer; str: WideString) : WideString;
-  procedure ShellExec( cmd: String; path: String = '' );
+  procedure ShellExec(cmd: String; path: String=''; params: String='');
   function getFirstWord( text: String ): String;
   function LastPos(needle: WideChar; haystack: WideString): Integer;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
@@ -1949,15 +1949,9 @@ end;
   @param string Command or URL to execute
   @param string Working directory, only usefull is first param is a system command
 }
-procedure ShellExec( cmd: String; path: String = '' );
-var
-  ppath : PChar;
+procedure ShellExec(cmd: String; path: String=''; params: String='');
 begin
-  if path <> '' then
-    ppath := pchar(path)
-  else
-    ppath := nil;
-  ShellExecute(0, 'open', pchar(cmd), Nil, ppath, SW_SHOWNORMAL);
+  ShellExecute(0, 'open', PChar(cmd), PChar(params), PChar(path), SW_SHOWNORMAL);
 end;
 
 
