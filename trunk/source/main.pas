@@ -2404,7 +2404,12 @@ begin
   ConnectionAttempt.Username := parUser;
   ConnectionAttempt.Password := parPass;
   ConnectionAttempt.Port := StrToIntDef(parPort, MYSQL_PORT);
-  ConnectionAttempt.Active := True;
+  try
+    ConnectionAttempt.Active := True;
+  except
+    on E:Exception do
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+  end;
 
   // attempt to establish connection
   SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + parSession);
