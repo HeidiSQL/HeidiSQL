@@ -1,13 +1,11 @@
 ; **************************************************************************
 ; Name: HeidiSQL Portable
 ;
-; Version: 4.0 Release Candidate 3
-;
 ; Website: http://www.heidisql.com/
 ;
 ; Written for:
-;	NSIS 2.17 or higher
-;	Required plugins: NewAdvSplash, Registry, FindProcDLL, Messagebox
+;	NSIS 2.45 or higher
+;	Required plugins: Registry, FindProcDLL
 ;
 ; License:
 ;	Copyright© 2009 by HeidiSQL Team
@@ -17,7 +15,7 @@
 ;	The status window showing the copy is enabled
 ;
 ; Portable application template created 2006 by Karl Loncarek, version 1.4.1 - 2006/11/30,
-; modified by Bruno Soares Pasin for heidisql.com
+; modified by Bruno Soares Pasin and Francisco Ernesto Teixeira for heidisql.com
 ; License of this template see the respective readme.txt.
 ; **************************************************************************
 
@@ -31,7 +29,7 @@
 !define EXE "heidisql.exe"
 !define PNAME "${App}Portable"
 !define ICON "..\..\res\mainicon.ico"
-!define SPLASHIMAGE "${PNAME}.jpg"
+!define SPLASHIMAGE "${PNAME}.bmp"
 !define REGKEYS "HKEY_CURRENT_USER\Software\HeidiSQL"
 !define INI "${PNAME}.ini"
 
@@ -311,7 +309,7 @@ FunctionEnd
 Function CheckEXE
 	IfFileExists "$PROGRAMDIR\$PROGRAMEXE" FoundEXE
 		; Program executable not where expected
-		MessageBox MB_OK|MB_ICONEXCLAMATION `$PROGRAMEXE was not found.  Please check your configuration!`
+		MessageBox MB_OK|MB_ICONEXCLAMATION `$PROGRAMEXE was not found. Please check your configuration!`
 		Abort
 	FoundEXE: ; Check if already running and set variable
 		FindProcDLL::FindProc "$PROGRAMEXE"                 
@@ -338,8 +336,8 @@ Section "Main"
 	!ifdef SPLASHIMAGE
 		StrCmp "$SPLASHSCREEN" "enabled" 0 NoSplash
 		InitPluginsDir
-		File /oname=$PLUGINSDIR\splash.jpg "${SPLASHIMAGE}"	
-		newadvsplash::show /NOUNLOAD 2500 200 200 -1 /L $PLUGINSDIR\splash.jpg
+		File /oname=$PLUGINSDIR\splash.bmp "${SPLASHIMAGE}"	
+    advsplash::show 1000 600 400 -1 $PLUGINSDIR\splash
 		NoSplash:
 	!endif
 	StrCmp $SECONDLAUNCH "true" SimplyStartProgram
