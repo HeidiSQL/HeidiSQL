@@ -6969,7 +6969,10 @@ begin
     end;
     Result := True;
   except
-    Result := False;
+    on E:Exception do begin
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+      Result := False;
+    end;
   end;
 
   if Result then begin
@@ -7173,13 +7176,20 @@ begin
     Cols := Copy(Cols, 1, Length(Cols)-2);
     sql := 'INSERT INTO '+mask(DataGridDB)+'.'+mask(DataGridTable)+' ('+Cols+') VALUES ('+Vals+')';
     // Send INSERT query
-    Connection.Query(sql);
-    if Connection.RowsAffected = 0 then
-      MessageBox(Self.Handle, 'Server failed to insert row.', 'Error', 0);
-    Result := True;
-    Row.Loaded := false;
-    EnsureNodeLoaded(Sender, Node, GetWhereClause(Row, @DataGridResult.Columns));
-    GridFinalizeEditing(Sender);
+    try
+      Connection.Query(sql);
+      if Connection.RowsAffected = 0 then
+        MessageBox(Self.Handle, 'Server failed to insert row.', 'Error', 0);
+      Result := True;
+      Row.Loaded := false;
+      EnsureNodeLoaded(Sender, Node, GetWhereClause(Row, @DataGridResult.Columns));
+      GridFinalizeEditing(Sender);
+    except
+      on E:Exception do begin
+        MessageDlg(E.Message, mtError, [mbOK], 0);
+        Result := False;
+      end;
+    end;
   end;
 end;
 
@@ -7212,7 +7222,10 @@ begin
     Connection.Query(sql);
     Result := True;
   except
-    Result := False;
+    on E:Exception do begin
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+      Result := False;
+    end;
   end;
 
   if Result then begin
