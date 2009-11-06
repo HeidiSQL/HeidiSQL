@@ -362,7 +362,7 @@ begin
 
     rx.ModifierS := False;
     rx.ModifierM := True;
-    rx.Expression := '^\s+`([^`]+)`\s(\w+)(.*)';
+    rx.Expression := '^\s+[`"]([^`"]+)[`"]\s(\w+)(.*)';
     rxCol := TRegExpr.Create;
     rxCol.ModifierI := True;
     if rx.Exec(CreateTable) then while true do begin
@@ -483,12 +483,13 @@ begin
 
     // Detect foreign keys
     // CONSTRAINT `FK1` FOREIGN KEY (`which`) REFERENCES `fk1` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-    rx.Expression := '\s+CONSTRAINT\s+`([^`]+)`\sFOREIGN KEY\s+\(([^\)]+)\)\s+REFERENCES\s+`([^\(]+)`\s\(([^\)]+)\)(\s+ON DELETE (RESTRICT|CASCADE|SET NULL|NO ACTION))?(\s+ON UPDATE (RESTRICT|CASCADE|SET NULL|NO ACTION))?';
+    rx.Expression := '\s+CONSTRAINT\s+[`"]([^`"]+)[`"]\sFOREIGN KEY\s+\(([^\)]+)\)\s+REFERENCES\s+[`"]([^\(]+)[`"]\s\(([^\)]+)\)(\s+ON DELETE (RESTRICT|CASCADE|SET NULL|NO ACTION))?(\s+ON UPDATE (RESTRICT|CASCADE|SET NULL|NO ACTION))?';
     if rx.Exec(CreateTable) then while true do begin
       ForeignKey := TForeignKey.Create;
       ForeignKeys.Add(ForeignKey);
       ForeignKey.KeyName := rx.Match[1];
       ForeignKey.ReferenceTable := WideStringReplace(rx.Match[3], '`', '', [rfReplaceAll]);
+      ForeignKey.ReferenceTable := WideStringReplace(ForeignKey.ReferenceTable, '"', '', [rfReplaceAll]);
       ExplodeQuotedList(rx.Match[2], ForeignKey.Columns);
       ExplodeQuotedList(rx.Match[4], ForeignKey.ForeignColumns);
       if rx.Match[6] <> '' then
