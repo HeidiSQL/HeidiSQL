@@ -184,9 +184,6 @@ var
   Host, Socket: String;
 begin
   // Connect to selected session
-  FinalizeModifications(CanProceed);
-  if not CanProceed then
-    Exit;
 
   Screen.Cursor := crHourglass;
   // Save last connection name to registry
