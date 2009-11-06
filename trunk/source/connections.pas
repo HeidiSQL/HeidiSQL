@@ -180,7 +180,6 @@ end;
 procedure Tconnform.btnOpenClick(Sender: TObject);
 var
   ConType: Byte;
-  CanProceed: Boolean;
   Host, Socket: String;
 begin
   // Connect to selected session
