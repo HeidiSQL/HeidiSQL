@@ -716,8 +716,6 @@ type
     EditVariableForm           : TfrmEditVariable;
     FileNameSessionLog         : String;
     FileHandleSessionLog       : Textfile;
-    SqlMessages                : TWideStringList;
-    SqlMessagesLock            : TRtlCriticalSection;
     dsShowEngines,
     dsHaveEngines,
     dsCollations,
@@ -1065,9 +1063,6 @@ var
   filename : String;
 begin
   DoDisconnect;
-  EnterCriticalSection(SqlMessagesLock);
-  FreeAndNil(SqlMessages);
-  LeaveCriticalSection(SqlMessagesLock);
 
   OpenRegistry;
   // Position of Toolbars
@@ -1189,11 +1184,6 @@ begin
   FillPopupQueryLoad;
 
   CachedTableLists := TWideStringList.Create;
-
-  InitializeCriticalSection(SqlMessagesLock);
-  EnterCriticalSection(SqlMessagesLock);
-  SqlMessages := TWideStringList.Create;
-  LeaveCriticalSection(SqlMessagesLock);
 
   Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
 
