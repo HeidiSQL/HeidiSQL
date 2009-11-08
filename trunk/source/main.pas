@@ -1560,7 +1560,10 @@ begin
     comboOnlyDBs.ItemIndex := 0
   else
     comboOnlyDBs.Text := '';
+  // Forces Tree.ReInitChildren to refetch database names
   FreeAndNil(AllDatabases);
+  // All db nodes must get collapsed to avoid auto initialization of table caches (along with AVs)
+  menuTreeCollapseAllClick(Self);
   RefreshTree(False);
 
   DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
@@ -6322,63 +6325,31 @@ end;
 }
 procedure TMainForm.RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
 var
-  oldActiveDatabase, db: WideString;
+  oldActiveDatabase: WideString;
   oldSelectedTable: TListNode;
-  Node: PVirtualNode;
-  ExpandedDBs, TablesFetched: TWideStringList;
-  i: Integer;
 begin
   // Remember currently active database and table
   oldActiveDatabase := ActiveDatabase;
   oldSelectedTable := SelectedTable;
-  // Temporary unselect any node to postpone event handlings
-  if (DBtree.GetFirstSelected <> nil) and (DBtree.GetNodeLevel(DBtree.GetFirstSelected) > 0) then
-    DBtree.ClearSelection;
-
-  // Remember expandation status of all dbs and whether their tables were fetched
-  ExpandedDBs := TWideStringList.Create;
-  TablesFetched := TWideStringList.Create;
-  Node := DBtree.GetFirstChild(DBtree.GetFirst);
-  for i := 0 to DBtree.GetFirst.ChildCount - 1 do begin
-    db := DBtree.Text[Node, 0];
-    if DBtree.ChildrenInitialized[Node] then
-      TablesFetched.Add(db);
-    if vsExpanded in Node.States then
-      ExpandedDBs.Add(db);
-    Node := DBtree.GetNextSibling(Node);
-  end;
+  DBtree.FocusedNode := nil;
 
   // ReInit tree population
-  DBTree.BeginUpdate;
   if DoResetTableCache then begin
     ClearAllTableLists;
     FreeAndNil(AllDatabases);
   end;
-  DBtree.ReinitChildren(DBTree.GetFirst, False); // .ResetNode(DBtree.GetFirst);
+  DBtree.ReinitChildren(DBTree.GetFirst, False);
+
   // Reselect active or new database if present. Could have been deleted or renamed.
   try
-    if SelectDatabase <> '' then ActiveDatabase := SelectDatabase
-    else if oldActiveDatabase <> '' then ActiveDatabase := oldActiveDatabase;
+    if SelectDatabase <> '' then
+      ActiveDatabase := SelectDatabase
+    else if oldActiveDatabase <> '' then
+      ActiveDatabase := oldActiveDatabase;
+    if oldSelectedTable.Text <> '' then
+      SelectDBObject(oldSelectedTable.Text, oldSelectedTable.NodeType);
   except
   end;
-
-  // Expand nodes which were previously expanded
-  Node := DBtree.GetFirstChild(DBtree.GetFirst);
-  for i := 0 to DBtree.GetFirst.ChildCount - 1 do begin
-    db := DBtree.Text[Node, 0];
-    if TablesFetched.IndexOf(db) > -1 then
-      DBtree.ReinitChildren(Node, False);
-    DBtree.Expanded[Node] := ExpandedDBs.IndexOf(db) > -1;
-    Node := DBtree.GetNextSibling(Node);
-  end;
-  ExpandedDBs.Free;
-  TablesFetched.Free;
-
-  try
-    if oldSelectedTable.Text <> '' then SelectDBObject(oldSelectedTable.Text, oldSelectedTable.NodeType);
-  except
-  end;
-  DBTree.EndUpdate;
 end;
 
 
