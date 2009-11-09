@@ -58,7 +58,7 @@ type
   TMySQLClientOptions = set of TMySQLClientOption;
 
 const
-  DEFAULT_MYSQLOPTIONS = [opCompress, opLocalFiles, opInteractive, opProtocol41];
+  DEFAULT_MYSQLOPTIONS = [opCompress, opLocalFiles, opInteractive, opProtocol41, opMultiStatements];
 
 type
   TMySQLQuery = class;
