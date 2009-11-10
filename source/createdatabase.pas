@@ -248,28 +248,34 @@ begin
       // Rename database
       ObjectsInOldDb := MainForm.RefreshDbTableList(modifyDB);
       AllDatabases := Mainform.Connection.GetCol('SHOW DATABASES');
-      if AllDatabases.IndexOf(editDBName.Text) = -1 then begin
-        // Target db does not exist - create it
-        Mainform.Connection.Query(GetCreateStatement);
-      end else begin
-        // Target db exists - warn if there are tables with same names
-        ObjectsInNewDb := MainForm.RefreshDbTableList(editDBName.Text);
-        while not ObjectsInNewDb.Eof do begin
-          NewObjType := GetDBObjectType(ObjectsInNewDb);
-          ObjectsInOldDb.First;
-          while not ObjectsInOldDb.Eof do begin
-            OldObjType := GetDBObjectType(ObjectsInOldDb);
-            if not (OldObjType in [lntTable, lntCrashedTable, lntView]) then
-              Raise Exception.Create('Database "'+modifyDB+'" contains stored routine(s), which cannot be moved.');
+      if AllDatabases.IndexOf(editDBName.Text) > -1 then
+        ObjectsInNewDb := MainForm.RefreshDbTableList(editDBName.Text)
+      else
+        ObjectsInNewDb := nil; // Silence compiler warning
+      // Warn if there are tables with same names in new db
+      while not ObjectsInOldDb.Eof do begin
+        OldObjType := GetDBObjectType(ObjectsInOldDb);
+        if not (OldObjType in [lntTable, lntCrashedTable, lntView]) then
+          Raise Exception.Create('Database "'+modifyDB+'" contains stored routine(s), which cannot be moved.');
+        if Assigned(ObjectsInNewDb) then begin
+          ObjectsInNewDb.First;
+          while not ObjectsInNewDb.Eof do begin
+            NewObjType := GetDBObjectType(ObjectsInNewDb);
             if (ObjectsInOldDb.Col(DBO_NAME) = ObjectsInNewDb.Col(DBO_NAME))
               and (OldObjType = NewObjType) then begin
               // One or more objects have a naming conflict
               Raise Exception.Create('Database "'+editDBName.Text+'" exists and has objects with same names as in "'+modifyDB+'"');
             end;
-            ObjectsInOldDb.Next;
+            ObjectsInNewDb.Next;
           end;
-          ObjectsInNewDb.Next;
         end;
+        ObjectsInOldDb.Next;
+      end;
+
+      if AllDatabases.IndexOf(editDBName.Text) = -1 then begin
+        // Target db does not exist - create it
+        Mainform.Connection.Query(GetCreateStatement);
+      end else begin
         if MessageDlg('Database "'+editDBName.Text+'" exists. But it does not contain objects with same names as in '+
           '"'+modifyDB+'", so it''s uncritical to move everything.'+CRLF+CRLF+'Move all objects to "'+editDBName.Text+'"?',
           mtConfirmation, [mbYes, mbCancel], 0) <> mrYes then
