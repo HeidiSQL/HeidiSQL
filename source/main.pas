@@ -3433,11 +3433,6 @@ begin
       end;
       debug('mem: browse row initialization complete.');
 
-      // Switched to another table
-      if not RefreshingData then begin
-        DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
-        FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
-      end;
       dataselected := true;
 
       PageControlMainChange(Self);
@@ -3447,7 +3442,12 @@ begin
     DataGrid.EndUpdate;
     FreeAndNil(sl_query);
     if RefreshingData then
-      DataGrid.OffsetXY := OldOffsetXY;
+      DataGrid.OffsetXY := OldOffsetXY
+    else begin
+      // Switched to another table
+      DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
+      FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
+    end;
     viewingdata := false;
     EnumerateRecentFilters;
     Screen.Cursor := crDefault;
