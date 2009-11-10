@@ -50,7 +50,6 @@ object frmUpdateCheck: TfrmUpdateCheck
     Height = 177
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Nightly build'
-    Enabled = False
     TabOrder = 1
     DesignSize = (
       368

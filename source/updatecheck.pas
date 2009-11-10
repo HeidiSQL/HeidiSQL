@@ -122,7 +122,7 @@ begin
       Status('Error: Cannot determine current revision. Using a developer version?')
     else if CurrentRevision = BuildRevision then
       Status('Your '+APPNAME+' is up-to-date (no update available).')
-    else if groupRelease.Enabled or groupBuild.Enabled then
+    else if groupRelease.Enabled or btnBuild.Enabled then
       Status('Updates available.');
     // Remember when we did the updatecheck to enable the automatic interval
     OpenRegistry;
@@ -142,7 +142,7 @@ begin
   // as expected in FormShow
   if AutoClose
     and (not groupRelease.Enabled)
-    and ((not CheckForBuildsInAutoMode) or (not groupBuild.Enabled)) then
+    and ((not CheckForBuildsInAutoMode) or (not btnBuild.Enabled)) then
     PostMessage(Self.Handle, WM_CLOSE, 0, 0);
 end;
 
@@ -198,13 +198,7 @@ begin
     // A new release should have priority over a new nightly build.
     // So the user should not be able to download a newer build here
     // before having installed the new release.
-    groupBuild.Enabled := (CurrentRevision = 0) or ((BuildRevision > CurrentRevision) and (not btnRelease.Enabled));
-    btnBuild.Enabled := groupBuild.Enabled;
-    memoBuild.Enabled := groupBuild.Enabled;
-    if not memoBuild.Enabled then
-      memoBuild.Font.Color := cl3DDkShadow
-    else
-      memoBuild.Font.Color := clWindowText;
+    btnBuild.Enabled := (CurrentRevision = 0) or ((BuildRevision > CurrentRevision) and (not btnRelease.Enabled));
   end;
 end;
 
