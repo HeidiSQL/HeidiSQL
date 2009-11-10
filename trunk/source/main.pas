@@ -1508,8 +1508,8 @@ begin
     if not Assigned(SessionManager) then
       SessionManager := TConnForm.Create(Self);
     if SessionManager.ShowModal = mrCancel then begin
-      Close;
-      Halt;
+      Free;
+      Exit;
     end;
   end;
 
