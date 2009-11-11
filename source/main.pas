@@ -5513,6 +5513,7 @@ procedure TMainForm.SaveListSetup( List: TVirtualStringTree );
 var
   i : Byte;
   ColWidths, ColsVisible, ColPos, Regname: String;
+  OwnerForm: TCustomForm;
 begin
   ColWidths := '';
   ColsVisible := '';
@@ -5540,8 +5541,15 @@ begin
   end;
   OpenRegistry;
   Regname := List.Name;
-  if GetParentForm(List) <> Self then
-    Regname := GetParentForm(List).Name + '.' + Regname;
+  OwnerForm := GetParentForm(List);
+  if OwnerForm <> Self then begin
+    // On a windows shutdown, GetParentForm() seems sporadically unable to find the owner form
+    // In that case we would cause an exception when accessing it. Emergency break in that case.
+    // See issue #1462
+    if not Assigned(OwnerForm) then
+      Exit;
+    Regname := OwnerForm.Name + '.' + Regname;
+  end;
   MainReg.WriteString( REGPREFIX_COLWIDTHS + Regname, ColWidths );
   MainReg.WriteString( REGPREFIX_COLSVISIBLE + Regname, ColsVisible );
   MainReg.WriteString( REGPREFIX_COLPOS + Regname, ColPos );
