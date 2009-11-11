@@ -1746,6 +1746,9 @@ var
   i, room: Integer;
   PanelRect: TRect;
 begin
+  // Exit early when user pressed "Cancel" on connection dialog
+  if csDestroying in ComponentState then
+    Exit;
   room := 0;
   for i := 1 to Statusbar.Panels.Count - 1 do
     inc(room, Statusbar.Panels[i].Width);
