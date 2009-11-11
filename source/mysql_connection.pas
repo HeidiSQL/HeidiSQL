@@ -636,8 +636,7 @@ destructor TMySQLQuery.Destroy;
 begin
   inherited Destroy;
   FreeAndNil(FColumnNames);
-  if FLastResult <> nil then
-    mysql_free_result(FLastResult);
+  mysql_free_result(FLastResult);
 end;
 
 
