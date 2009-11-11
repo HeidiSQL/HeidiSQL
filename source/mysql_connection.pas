@@ -681,9 +681,10 @@ begin
     FRecNo := RecordCount;
     FEof := True;
   end else begin
+    if FRecNo+1 <> Value then
+      mysql_data_seek(FLastResult, Value);
     FRecNo := Value;
     FEof := False;
-    mysql_data_seek(FLastResult, FRecNo);
     FCurrentRow := mysql_fetch_row(FLastResult);
   end;
 end;
