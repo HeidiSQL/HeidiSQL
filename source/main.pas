@@ -7930,11 +7930,14 @@ begin
   Screen.Cursor := crHourglass;
   try
     Results := Connection.GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
-    questions := MakeInt(Connection.GetVar('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Questions''', 1));
-    if questions = 0 then
-      Raise Exception.Create('Could not detect value of "Questions" status. Command statistics are not available.');
+    questions := 0;
+    while not Results.Eof do begin
+      Inc(questions, MakeInt(Results.Col(1)));
+      Results.Next;
+    end;
     SetLength(VTRowDataListCommandStats, Results.RecordCount+1);
     addLVitem(0, '    All commands', questions, questions );
+    Results.First;
     for i:=1 to Results.RecordCount do begin
       addLVitem(i, Results.Col(0), MakeInt(Results.Col(1)), questions );
       Results.Next;
