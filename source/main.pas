@@ -4893,7 +4893,7 @@ var
 begin
   // Find currently selected database node in database tree,
   // or the parent if a table is currently selected.
-  s := DBtree.GetFirstSelected;
+  s := DBtree.FocusedNode;
   if not Assigned(s) then Result := ''
   else case DBtree.GetNodeLevel(s) of
     2: Result := Databases[s.Parent.Index];
