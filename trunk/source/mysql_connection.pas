@@ -143,6 +143,7 @@ type
       FLastResult: PMYSQL_RES;
       FCurrentRow: PMYSQL_ROW;
       FEof: Boolean;
+      FDatatypes: Array of TDatatype;
       procedure SetSQL(Value: WideString);
       procedure SetRecNo(Value: Int64);
     public
@@ -648,18 +649,29 @@ end;
 
 procedure TMySQLQuery.Execute;
 var
-  i: Integer;
+  i, j, NumFields: Integer;
   Field: PMYSQL_FIELD;
 begin
   FLastResult := Connection.Query(FSQL, True);
   FRecordCount := Connection.RowsFound;
   if HasResult then begin
-    for i:=0 to mysql_num_fields(FLastResult)-1 do begin
+    NumFields := mysql_num_fields(FLastResult);
+    SetLength(FDatatypes, NumFields);
+    for i:=0 to NumFields-1 do begin
       Field := mysql_fetch_field_direct(FLastResult, i);
       FColumnNames.Add(Utf8Decode(Field.name));
+
+      FDatatypes[i] := Datatypes[Low(Datatypes)];
+      for j:=Low(Datatypes) to High(Datatypes) do begin
+        if Field._type = Datatypes[j].NativeType then begin
+          FDatatypes[i] := Datatypes[j];
+          break;
+        end;
+      end;
     end;
     RecNo := 0;
-  end;
+  end else
+    SetLength(FDatatypes, 0);
 end;
 
 
@@ -718,18 +730,8 @@ end;
 
 
 function TMySQLQuery.DataType(Column: Integer): TDataType;
-var
-  i: Integer;
-  Field: PMYSQL_FIELD;
 begin
-  Field := mysql_fetch_field_direct(FLastResult, Column);
-  Result := Datatypes[Low(Datatypes)];
-  for i:=Low(Datatypes) to High(Datatypes) do begin
-    if Field._type = Datatypes[i].NativeType then begin
-      Result := Datatypes[i];
-      break;
-    end;
-  end;
+  Result := FDatatypes[Column];
 end;
 
 
