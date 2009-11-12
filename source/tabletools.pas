@@ -131,11 +131,38 @@ end;
 
 
 procedure TfrmTableTools.FormShow(Sender: TObject);
+var
+  DBNode, TableNode, FirstChecked: PVirtualNode;
 begin
   // When this form is displayed the second time, databases may be deleted or filtered.
   // Also, checked nodes must be unchecked and unchecked nodes may need to be checked.
   TreeObjects.Clear;
   TreeObjects.RootNodeCount := Mainform.DBtree.RootNodeCount;
+
+  DBNode := TreeObjects.GetFirstChild(TreeObjects.GetFirst);
+  while Assigned(DBNode) do begin
+    if TreeObjects.Text[DBNode, 0] = Mainform.ActiveDatabase then begin
+      if SelectedTables.Count = 0 then begin
+        // Preselect active database
+        DBNode.CheckState := csCheckedNormal;
+      end else begin
+        DBNode.CheckState := csMixedNormal;
+        // Expand db node so checked table nodes are visible
+        TreeObjects.Expanded[DBNode] := true;
+        TableNode := TreeObjects.GetFirstChild(DBNode);
+        while Assigned(TableNode) do begin
+          if SelectedTables.IndexOf(TreeObjects.Text[TableNode, 0]) > -1 then
+            TableNode.CheckState := csCheckedNormal;
+          TableNode := TreeObjects.GetNextSibling(TableNode);
+        end;
+      end;
+    end;
+    DBNode := TreeObjects.GetNextSibling(DBNode);
+  end;
+
+  FirstChecked := TreeObjects.GetFirstChecked;
+  if Assigned(FirstChecked) then
+    TreeObjects.ScrollIntoView(FirstChecked, True);
   // CHECKSUM available since MySQL 4.1.1
   if Mainform.Connection.ServerVersionInt < 40101 then
     comboOperation.Items[comboOperation.Items.IndexOf('Checksum')] := 'Checksum ('+STR_NOTSUPPORTED+')';
@@ -211,36 +238,12 @@ begin
   Node.CheckType := ctTriStateCheckBox;
   Node.CheckState := csUncheckedNormal;
   case Sender.GetNodeLevel(Node) of
-    1: begin
-      if Mainform.Databases[Node.Index] = Mainform.ActiveDatabase then begin
-        if SelectedTables.Count = 0 then begin
-          // Preselect active database
-          Node.CheckState := csCheckedNormal;
-          TreeObjects.ReinitChildren(Node, False);
-        end else begin
-          // Expand db node so checked table nodes are visible
-          Include(InitialStates, ivsExpanded);
-        end;
-      end;
-    end;
     2: begin
       Results := Mainform.FetchDbTableList(Mainform.Databases[ParentNode.Index]);
       Results.RecNo := Node.Index;
       // No checkbox for stored routines
       if not (GetDBObjectType(Results) in [lntTable, lntCrashedTable, lntView]) then
         Node.CheckType := ctNone
-      else begin
-        if Node.Parent.CheckState in [csCheckedNormal, csCheckedPressed] then begin
-          // Check table node if either parent db is checked ...
-          Node.CheckState := csCheckedNormal
-        end else if (Mainform.Databases[Node.Parent.Index] = Mainform.ActiveDatabase)
-		  // ... or table name is in SelectedTables
-          and (SelectedTables.Count > 0)
-          and (SelectedTables.IndexOf(Results.Col(DBO_NAME)) > -1) then begin
-          Node.CheckState := csCheckedNormal;
-          Node.Parent.CheckState := csMixedNormal;
-        end;
-      end;
     end;
   end;
   ValidateControls(Sender);
