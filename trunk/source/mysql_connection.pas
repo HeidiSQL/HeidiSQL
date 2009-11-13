@@ -568,16 +568,13 @@ function TMySQLConnection.GetCol(SQL: WideString; Column: Integer=0): TWideStrin
 var
   Results: TMySQLQuery;
 begin
-  try
-    Results := GetResults(SQL);
-    Result := TWideStringList.Create;
-    if Results.RecordCount > 0 then while not Results.Eof do begin
-      Result.Add(Results.Col(Column));
-      Results.Next;
-    end;
-  finally
-    FreeAndNil(Results);
+  Results := GetResults(SQL);
+  Result := TWideStringList.Create;
+  if Results.RecordCount > 0 then while not Results.Eof do begin
+    Result.Add(Results.Col(Column));
+    Results.Next;
   end;
+  FreeAndNil(Results);
 end;
 
 
@@ -588,15 +585,12 @@ function TMySQLConnection.GetVar(SQL: WideString; Column: Integer=0): WideString
 var
   Results: TMySQLQuery;
 begin
-  try
-    Results := GetResults(SQL);
-    if Results.RecordCount > 0 then
-      Result := Results.Col(Column)
-    else
-      Result := '';
-  finally
-    FreeAndNil(Results);
-  end;
+  Results := GetResults(SQL);
+  if Results.RecordCount > 0 then
+    Result := Results.Col(Column)
+  else
+    Result := '';
+  FreeAndNil(Results);
 end;
 
 
@@ -607,15 +601,12 @@ function TMySQLConnection.GetVar(SQL: WideString; Column: WideString): WideStrin
 var
   Results: TMySQLQuery;
 begin
-  try
-    Results := GetResults(SQL);
-    if Results.RecordCount > 0 then
-      Result := Results.Col(Column)
-    else
-      Result := '';
-  finally
-    FreeAndNil(Results);
-  end;
+  Results := GetResults(SQL);
+  if Results.RecordCount > 0 then
+    Result := Results.Col(Column)
+  else
+    Result := '';
+  FreeAndNil(Results);
 end;
 
 
