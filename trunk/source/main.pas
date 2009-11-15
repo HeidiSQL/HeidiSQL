@@ -3094,8 +3094,8 @@ begin
       FormatNumber(prefLogSqlWidth) +
       ' characters */';
   end else if (not snip) and IsSQL then
-    Msg := Msg + Delimiter
-  else if not IsSQL then
+    Msg := Msg + Delimiter;
+  if not IsSQL then
     Msg := '/* ' + Msg + ' */';
 
   Msg := WideStringReplace(Msg, #9, ' ', [rfReplaceAll]);
