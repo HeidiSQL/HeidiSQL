@@ -1231,6 +1231,7 @@ object MainForm: TMainForm
             Height = 4
             Cursor = crSizeNS
             Align = alTop
+            AutoSnap = False
             ResizeStyle = rsUpdate
           end
           object LabelResultinfo: TLabel
