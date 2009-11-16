@@ -94,11 +94,12 @@ type
     ExportStream: TStream;
     ExportLastDatabaseInFileMode: Widestring;
     procedure SetToolMode(Value: TToolMode);
-    procedure ProcessTableNode(Sender: TObject; Node: PVirtualNode);
     procedure AddResults(SQL: WideString);
     procedure AddNotes(Col1, Col2, Col3, Col4: WideString);
     procedure UpdateResultGrid;
-    procedure DoExportObject(db, obj: WideString; NodeType: TListNodeType; RowsInTable, AvgRowLen: Int64);
+    procedure DoMaintenance(db, obj: WideString; NodeType: TListNodeType);
+    procedure DoFind(db, obj: WideString; NodeType: TListNodeType; RowsInTable: Int64);
+    procedure DoExport(db, obj: WideString; NodeType: TListNodeType; RowsInTable, AvgRowLen: Int64);
   public
     { Public declarations }
     SelectedTables: TWideStringList;
@@ -321,6 +322,10 @@ end;
 procedure TfrmTableTools.Execute(Sender: TObject);
 var
   DBNode, TableNode: PVirtualNode;
+  Results: TMySQLQuery;
+  NodeType: TListNodeType;
+  db, table: WideString;
+  TableSize, RowsInTable, AvgRowLen: Int64;
 begin
   Screen.Cursor := crHourGlass;
   if tabsTools.ActivePage = tabMaintenance then
@@ -337,7 +342,31 @@ begin
     if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
       TableNode := TreeObjects.GetFirstChild(DBNode);
       while Assigned(TableNode) do begin
-        ProcessTableNode(Sender, TableNode);
+        if (csCheckedNormal in [TableNode.CheckState, DBNode.CheckState]) and (TableNode.CheckType <> ctNone) then begin
+          Results := Mainform.FetchDbTableList(TreeObjects.Text[DBNode, 0]);
+          Results.RecNo := TableNode.Index;
+          NodeType := GetDBObjectType(Results);
+          db := TreeObjects.Text[DBNode, 0];
+          table := TreeObjects.Text[TableNode, 0];
+          // Find table in cashed dataset and check its size - perhaps it has to be skipped
+          TableSize := GetTableSize(Results);
+          RowsInTable := MakeInt(Results.Col(DBO_ROWS));
+          AvgRowLen := MakeInt(Results.Col(DBO_AVGROWLEN));
+          if (udSkipLargeTables.Position = 0) or ((TableSize div SIZE_MB) < udSkipLargeTables.Position) then try
+            case FToolMode of
+              tmMaintenance:  DoMaintenance(db, table, NodeType);
+              tmFind:         DoFind(db, table, NodeType, RowsInTable);
+              tmSQLExport:    DoExport(db, table, NodeType, RowsInTable, AvgRowLen);
+            end;
+          except
+            // The above SQL can easily throw an exception, e.g. if a table is corrupted.
+            // In such cases we create a dummy row, including the error message
+            on E:Exception do
+              AddNotes(db, table, 'error', E.Message);
+          end else begin
+            AddNotes(db, table, STRSKIPPED+FormatByteNumber(TableSize), '');
+          end;
+        end;
         TableNode := TreeObjects.GetNextSibling(TableNode);
       end;
     end;
@@ -353,90 +382,50 @@ begin
 end;
 
 
-procedure TfrmTableTools.ProcessTableNode(Sender: TObject; Node: PVirtualNode);
+procedure TfrmTableTools.DoMaintenance(db, obj: WideString; NodeType: TListNodeType);
 var
-  SQL, db, table, QuotedTable: WideString;
-  TableSize, RowsInTable, AvgRowLen: Int64;
-  Results: TMySQLQuery;
-  i: Integer;
-  HasSelectedDatatype: Boolean;
-  NodeType: TListNodeType;
+  SQL: WideString;
 begin
-  // Prepare SQL for one table node
-  if (csCheckedNormal in [Node.CheckState, Node.Parent.CheckState]) and (Node.CheckType <> ctNone) then begin
-    db := TreeObjects.Text[Node.Parent, 0];
-    table := TreeObjects.Text[Node, 0];
-    QuotedTable := Mainform.mask(db)+'.'+Mainform.mask(table);
-    // Find table in cashed dataset and check its size - perhaps it has to be skipped
-    TableSize := 0;
-    RowsInTable := 0;
-    AvgRowLen := 0;
-    Results := Mainform.FetchDbTableList(db);
-    Results.RecNo := Node.Index;
-    NodeType := GetDBObjectType(Results);
-    if NodeType in [lntTable, lntCrashedTable] then begin
-      TableSize := GetTableSize(Results);
-      RowsInTable := MakeInt(Results.Col(DBO_ROWS));
-      AvgRowLen := MakeInt(Results.Col(DBO_AVGROWLEN));
+  SQL := UpperCase(comboOperation.Text) + ' TABLE ' + Mainform.mask(db) + '.' + Mainform.mask(obj);
+  if chkQuick.Enabled and chkQuick.Checked then SQL := SQL + ' QUICK';
+  if chkFast.Enabled and chkFast.Checked then SQL := SQL + ' FAST';
+  if chkMedium.Enabled and chkMedium.Checked then SQL := SQL + ' MEDIUM';
+  if chkExtended.Enabled and chkExtended.Checked then SQL := SQL + ' EXTENDED';
+  if chkChanged.Enabled and chkChanged.Checked then SQL := SQL + ' CHANGED';
+  if chkUseFrm.Enabled and chkUseFrm.Checked then SQL := SQL + ' USE_FRM';
+  AddResults(SQL);
+end;
+
+
+procedure TfrmTableTools.DoFind(db, obj: WideString; NodeType: TListNodeType; RowsInTable: Int64);
+var
+  Results: TMySQLQuery;
+  SQL: WideString;
+  HasSelectedDatatype: Boolean;
+  i: Integer;
+begin
+  Results := Mainform.Connection.GetResults('SHOW COLUMNS FROM '+Mainform.mask(db)+'.'+Mainform.mask(obj));
+  SQL := '';
+  while not Results.Eof do begin
+    HasSelectedDatatype := comboDatatypes.ItemIndex = 0;
+    if not HasSelectedDatatype then for i:=Low(Datatypes) to High(Datatypes) do begin
+      HasSelectedDatatype := (LowerCase(getFirstWord(Results.Col('Type'))) = LowerCase(Datatypes[i].Name))
+        and (Integer(Datatypes[i].Category)+1 = comboDatatypes.ItemIndex);
+      if HasSelectedDatatype then
+        break;
     end;
-    if (udSkipLargeTables.Position = 0) or ((TableSize div SIZE_MB) < udSkipLargeTables.Position) then try
-
-      case FToolMode of
-        tmMaintenance: begin
-          SQL := UpperCase(comboOperation.Text) + ' TABLE ' + QuotedTable;
-          if chkQuick.Enabled and chkQuick.Checked then SQL := SQL + ' QUICK';
-          if chkFast.Enabled and chkFast.Checked then SQL := SQL + ' FAST';
-          if chkMedium.Enabled and chkMedium.Checked then SQL := SQL + ' MEDIUM';
-          if chkExtended.Enabled and chkExtended.Checked then SQL := SQL + ' EXTENDED';
-          if chkChanged.Enabled and chkChanged.Checked then SQL := SQL + ' CHANGED';
-          if chkUseFrm.Enabled and chkUseFrm.Checked then SQL := SQL + ' USE_FRM';
-          AddResults(SQL);
-        end;
-
-        tmFind: begin
-          Results := Mainform.Connection.GetResults('SHOW COLUMNS FROM '+QuotedTable);
-          SQL := '';
-          while not Results.Eof do begin
-            HasSelectedDatatype := comboDatatypes.ItemIndex = 0;
-            if not HasSelectedDatatype then for i:=Low(Datatypes) to High(Datatypes) do begin
-              HasSelectedDatatype := (LowerCase(getFirstWord(Results.Col('Type'))) = LowerCase(Datatypes[i].Name))
-                and (Integer(Datatypes[i].Category)+1 = comboDatatypes.ItemIndex);
-              if HasSelectedDatatype then
-                break;
-            end;
-            if HasSelectedDatatype then
-              SQL := SQL + Mainform.mask(Results.Col('Field')) + ' LIKE ' + esc('%'+memoFindText.Text+'%') + ' OR ';
-            Results.Next;
-          end;
-          if SQL <> '' then begin
-            Delete(SQL, Length(SQL)-3, 3);
-            SQL := 'SELECT '''+db+''' AS `Database`, '''+table+''' AS `Table`, COUNT(*) AS `Found rows`, '
-              + 'CONCAT(ROUND(100 / '+IntToStr(Max(RowsInTable,1))+' * COUNT(*), 1), ''%'') AS `Relevance` FROM '+QuotedTable+' WHERE '
-              + SQL;
-            AddResults(SQL);
-          end else
-            AddNotes(db, table, STRSKIPPED+'table doesn''t have columns of selected type ('+comboDatatypes.Text+').', '');
-        end;
-
-        tmSQLExport: begin
-          AddResults('SELECT '+esc(db)+' AS '+Mainform.mask('Database')+', ' +
-            esc(table)+' AS '+Mainform.mask('Table')+', ' +
-            IntToStr(RowsInTable)+' AS '+Mainform.mask('Rows')+', '+
-            '0 AS '+Mainform.mask('Duration')
-            );
-          DoExportObject(db, table, NodeType, RowsInTable, AvgRowLen);
-        end;
-
-      end;
-    except
-      // The above SQL can easily throw an exception, e.g. if a table is corrupted.
-      // In such cases we create a dummy row, including the error message
-      on E:Exception do
-        AddNotes(db, table, 'error', E.Message);
-    end else begin
-      AddNotes(db, table, STRSKIPPED+FormatByteNumber(TableSize), '');
-    end;
+    if HasSelectedDatatype then
+      SQL := SQL + Mainform.mask(Results.Col('Field')) + ' LIKE ' + esc('%'+memoFindText.Text+'%') + ' OR ';
+    Results.Next;
   end;
+  if SQL <> '' then begin
+    Delete(SQL, Length(SQL)-3, 3);
+    SQL := 'SELECT '''+db+''' AS `Database`, '''+obj+''' AS `Table`, COUNT(*) AS `Found rows`, '
+      + 'CONCAT(ROUND(100 / '+IntToStr(Max(RowsInTable,1))+' * COUNT(*), 1), ''%'') AS `Relevance` FROM '+Mainform.mask(db)+'.'+Mainform.mask(obj)+' WHERE '
+      + SQL;
+    AddResults(SQL);
+  end else
+    AddNotes(db, obj, STRSKIPPED+'table doesn''t have columns of selected type ('+comboDatatypes.Text+').', '');
 end;
 
 
@@ -689,7 +678,7 @@ begin
 end;
 
 
-procedure TfrmTableTools.DoExportObject(db, obj: WideString; NodeType: TListNodeType; RowsInTable, AvgRowLen: Int64);
+procedure TfrmTableTools.DoExport(db, obj: WideString; NodeType: TListNodeType; RowsInTable, AvgRowLen: Int64);
 var
   ToFile, ToDir, ToDb, IsLastRowInChunk, NeedsDBStructure: Boolean;
   Struc, Header, BaseInsert, Row, TargetDbAndObject, objtype: WideString;
@@ -733,6 +722,11 @@ var
   end;
 begin
   // Handle one table, view or routine in SQL export mode
+  AddResults('SELECT '+esc(db)+' AS '+Mainform.mask('Database')+', ' +
+    esc(obj)+' AS '+Mainform.mask('Table')+', ' +
+    IntToStr(RowsInTable)+' AS '+Mainform.mask('Rows')+', '+
+    '0 AS '+Mainform.mask('Duration')
+    );
   ToFile := comboExportOutputType.Text = OUTPUT_FILE;
   ToDir := comboExportOutputType.Text = OUTPUT_DIR;
   ToDb := comboExportOutputType.Text = OUTPUT_DB;
