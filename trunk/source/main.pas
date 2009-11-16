@@ -8451,6 +8451,7 @@ begin
   QueryTab.spltQuery.Height := spltQuery.Height;
   QueryTab.spltQuery.Cursor := spltQuery.Cursor;
   QueryTab.spltQuery.ResizeStyle := spltQuery.ResizeStyle;
+  QueryTab.spltQuery.AutoSnap := spltQuery.AutoSnap;
 
   QueryTab.LabelResultInfo := TLabel.Create(QueryTab.TabSheet);
   QueryTab.LabelResultInfo.Parent := QueryTab.TabSheet;
