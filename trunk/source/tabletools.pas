@@ -834,6 +834,7 @@ begin
         if ToDb then
           TargetDbAndObject := m(comboExportOutputTarget.Text) + '.' + TargetDbAndObject;
         Offset := 0;
+        RowCount := 0;
         // Calculate limit so we select ~100MB per loop
         Limit := Round(100 * SIZE_MB / Max(AvgRowLen,1));
         // Calculate max rows per INSERT, so we always get ~800KB
@@ -856,7 +857,6 @@ begin
             BaseInsert := BaseInsert + m(Data.ColumnNames[i]) + ', ';
           Delete(BaseInsert, Length(BaseInsert)-1, 2);
           BaseInsert := BaseInsert + ') VALUES (';
-          RowCount := 0;
           while true do begin
             RowsInChunk := 0;
             Output(BaseInsert, False, True, True, True);
