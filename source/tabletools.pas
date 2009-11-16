@@ -893,6 +893,7 @@ begin
               break;
 
           end;
+          FreeAndNil(Data);
 
         end;
         Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True);
