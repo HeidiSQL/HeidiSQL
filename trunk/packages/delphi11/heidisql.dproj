@@ -139,9 +139,6 @@
     <DCCReference Include="..\..\source\editvar.pas">
       <Form>frmEditVariable</Form>
     </DCCReference>
-    <DCCReference Include="..\..\source\exportsql.pas">
-      <Form>ExportSQLForm</Form>
-    </DCCReference>
     <DCCReference Include="..\..\source\grideditlinks.pas" />
     <DCCReference Include="..\..\source\helpers.pas" />
     <DCCReference Include="..\..\source\insertfiles.pas">
