@@ -21,7 +21,7 @@ uses
   TntStdCtrls, Tabs, SynUnicode, EditVar, helpers,
   createdatabase, table_editor, SynRegExpr,
   WideStrUtils, ExtActns, CommCtrl, routine_editor, options,
-  Contnrs, PngSpeedButton, connections, SynEditKeyCmds, exportsql,
+  Contnrs, PngSpeedButton, connections, SynEditKeyCmds,
   mysql_connection, mysql_api;
 
 
@@ -483,7 +483,6 @@ type
     procedure actExecuteLineExecute(Sender: TObject);
     procedure actHTMLviewExecute(Sender: TObject);
     procedure actInsertFilesExecute(Sender: TObject);
-    procedure actExportTablesExecute(Sender: TObject);
     procedure actDataDeleteExecute(Sender: TObject);
     procedure actDataFirstExecute(Sender: TObject);
     procedure actDataInsertExecute(Sender: TObject);
@@ -791,7 +790,6 @@ type
     prefNullColorDefault,
     prefNullBG                 : TColor;
     CreateDatabaseForm         : TCreateDatabaseForm;
-    ExportSQLForm              : TExportSQLForm;
     TableEditor                : TfrmTableEditor;
     FDataGridSelect            : TWideStringList;
     FDataGridSort              : TOrderColArray;
@@ -1815,9 +1813,11 @@ begin
   else
     TableToolsDialog.SelectedTables.Clear;
   if Sender = actMaintenance then
-    TableToolsDialog.PageControlTools.ActivePage := TableToolsDialog.tabMaintenance
-  else
-    TableToolsDialog.PageControlTools.ActivePage := TableToolsDialog.tabFind;
+    TableToolsDialog.ToolMode := tmMaintenance
+  else if Sender = actFindTextOnServer then
+    TableToolsDialog.ToolMode := tmFind
+  else if Sender = actExportTables then
+    TableToolsDialog.ToolMode := tmSQLExport;
   TableToolsDialog.ShowModal;
 end;
 
@@ -2165,36 +2165,6 @@ end;
 procedure TMainForm.actInsertFilesExecute(Sender: TObject);
 begin
   InsertFilesWindow(Self);
-end;
-
-procedure TMainForm.actExportTablesExecute(Sender: TObject);
-var
-  Results: TMySQLQuery;
-  InDBTree: Boolean;
-  Comp: TComponent;
-begin
-  ExportSQLForm := TExportSQLForm.Create(Self);
-
-  // popupDB is used in DBTree AND ListTables
-  InDBTree := False;
-  Comp := (Sender as TAction).ActionComponent;
-  if Comp is TMenuItem then
-    InDBTree := TPopupMenu((Comp as TMenuItem).GetParentMenu).PopupComponent = DBTree;
-  if InDBTree then begin
-    // If a table is selected, use that for preselection. If only a db was selected, use all tables inside it.
-    if SelectedTable.Text <> '' then
-      ExportSQLForm.SelectedTables.Add(SelectedTable.Text)
-    else if Mainform.ActiveDatabase <> '' then begin
-      Results := Mainform.FetchDbTableList(ActiveDatabase);
-      while not Results.Eof do begin
-        ExportSQLForm.SelectedTables.Add(Results.Col(DBO_NAME));
-        Results.Next;
-      end;
-    end;
-  end else
-    ExportSQLForm.SelectedTables := GetVTCaptions( Mainform.ListTables, True );
-
-  ExportSQLForm.ShowModal;
 end;
 
 // Drop Table(s)
@@ -8985,8 +8955,6 @@ begin
     Editors.Add(SQLHelpForm.memoDescription);
     Editors.Add(SQLHelpForm.MemoExample);
   end;
-  if Assigned(ExportSQLForm) then
-    Editors.Add(ExportSQLForm.SynMemoExampleSQL);
 
   FontName := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
   FontSize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);

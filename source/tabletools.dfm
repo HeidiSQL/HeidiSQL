@@ -20,6 +20,22 @@ object frmTableTools: TfrmTableTools
     383)
   PixelsPerInch = 96
   TextHeight = 13
+  object lblSkipLargeTablesMB: TLabel
+    Left = 192
+    Top = 355
+    Width = 87
+    Height = 13
+    Anchors = [akLeft, akBottom]
+    Caption = 'MB (0 = unlimited)'
+  end
+  object lblSkipLargeTables: TLabel
+    Left = 8
+    Top = 355
+    Width = 107
+    Height = 13
+    Anchors = [akLeft, akBottom]
+    Caption = 'Skip tables larger than'
+  end
   object btnClose: TButton
     Left = 461
     Top = 350
@@ -81,7 +97,7 @@ object frmTableTools: TfrmTableTools
       Columns = <
         item
           Position = 0
-          Width = 144
+          Width = 140
           WideText = 'Dummy, keeps compatibility to mainform.dbtree'
         end>
     end
@@ -93,22 +109,11 @@ object frmTableTools: TfrmTableTools
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
-      object lblResults: TLabel
-        AlignWithMargins = True
-        Left = 0
-        Top = 191
-        Width = 380
-        Height = 13
-        Margins.Left = 0
-        Margins.Right = 0
-        Align = alTop
-        Caption = 'Results:'
-      end
       object ResultGrid: TVirtualStringTree
         Left = 0
-        Top = 207
+        Top = 137
         Width = 380
-        Height = 129
+        Height = 199
         Align = alClient
         Header.AutoSizeIndex = -1
         Header.DefaultHeight = 17
@@ -123,7 +128,7 @@ object frmTableTools: TfrmTableTools
         TabOrder = 0
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
         TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
         OnCompareNodes = ResultGridCompareNodes
         OnGetText = ResultGridGetText
@@ -133,21 +138,22 @@ object frmTableTools: TfrmTableTools
         OnInitNode = ResultGridInitNode
         Columns = <>
       end
-      object PageControlTools: TPageControl
+      object tabsTools: TPageControl
         Left = 0
         Top = 0
         Width = 380
-        Height = 161
-        ActivePage = tabMaintenance
+        Height = 137
+        ActivePage = tabSQLexport
         Align = alTop
         Images = MainForm.PngImageListMain
         TabOrder = 1
+        OnChange = ValidateControls
         object tabMaintenance: TTabSheet
           Caption = 'Maintenance'
           ImageIndex = 39
           DesignSize = (
             372
-            132)
+            108)
           object lblOperation: TLabel
             Left = 3
             Top = 14
@@ -173,7 +179,7 @@ object frmTableTools: TfrmTableTools
             ItemIndex = 0
             TabOrder = 0
             Text = 'Check'
-            OnChange = comboOperationChange
+            OnChange = ValidateControls
             Items.Strings = (
               'Check'
               'Analyze'
@@ -226,22 +232,13 @@ object frmTableTools: TfrmTableTools
             TabOrder = 5
             OnClick = ValidateControls
           end
-          object btnExecuteMaintenance: TButton
-            Left = 80
-            Top = 99
-            Width = 75
-            Height = 25
-            Caption = 'Execute'
-            TabOrder = 6
-            OnClick = ExecuteOperation
-          end
           object chkUseFrm: TCheckBox
             Left = 184
             Top = 76
             Width = 97
             Height = 17
             Caption = 'Use FRM file'
-            TabOrder = 7
+            TabOrder = 6
             OnClick = ValidateControls
           end
           object btnHelp: TButton
@@ -251,7 +248,7 @@ object frmTableTools: TfrmTableTools
             Height = 25
             Anchors = [akTop, akRight]
             Caption = 'Help'
-            TabOrder = 8
+            TabOrder = 7
             OnClick = btnHelpClick
           end
         end
@@ -260,7 +257,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 30
           DesignSize = (
             372
-            132)
+            108)
           object lblFindText: TLabel
             Left = 3
             Top = 14
@@ -279,21 +276,11 @@ object frmTableTools: TfrmTableTools
             Left = 80
             Top = 11
             Width = 289
-            Height = 57
+            Height = 53
             Anchors = [akLeft, akTop, akRight, akBottom]
             ScrollBars = ssVertical
             TabOrder = 0
             OnChange = ValidateControls
-          end
-          object btnFindText: TButton
-            Left = 80
-            Top = 99
-            Width = 75
-            Height = 25
-            Anchors = [akLeft, akBottom]
-            Caption = 'Find'
-            TabOrder = 1
-            OnClick = ExecuteOperation
           end
           object comboDataTypes: TComboBox
             Left = 264
@@ -303,50 +290,159 @@ object frmTableTools: TfrmTableTools
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             ItemHeight = 13
+            TabOrder = 1
+          end
+        end
+        object tabSQLexport: TTabSheet
+          Caption = 'SQL export'
+          ImageIndex = 9
+          DesignSize = (
+            372
+            108)
+          object lblExportData: TLabel
+            Left = 224
+            Top = 4
+            Width = 27
+            Height = 13
+            Caption = 'Data:'
+          end
+          object lblExportOutputType: TLabel
+            Left = 3
+            Top = 51
+            Width = 38
+            Height = 13
+            Caption = 'Output:'
+          end
+          object lblExportDatabases: TLabel
+            Left = 3
+            Top = 4
+            Width = 63
+            Height = 13
+            Caption = 'Database(s):'
+          end
+          object lblExportTables: TLabel
+            Left = 3
+            Top = 25
+            Width = 43
+            Height = 13
+            Caption = 'Table(s):'
+          end
+          object lblExportOutputTarget: TLabel
+            Left = 2
+            Top = 77
+            Width = 46
+            Height = 13
+            Caption = 'Filename:'
+          end
+          object btnExportOutputTargetSelect: TPngSpeedButton
+            Left = 346
+            Top = 74
+            Width = 23
+            Height = 21
+            Hint = 'Browse filesystem'
+            Anchors = [akTop, akRight]
+            Flat = True
+            OnClick = btnExportOutputTargetSelectClick
+          end
+          object chkExportDatabasesCreate: TCheckBox
+            Left = 144
+            Top = 3
+            Width = 73
+            Height = 17
+            Caption = 'Create'
+            TabOrder = 0
+            OnClick = chkExportOptionClick
+          end
+          object chkExportDatabasesDrop: TCheckBox
+            Left = 80
+            Top = 3
+            Width = 60
+            Height = 17
+            Caption = 'Drop'
+            TabOrder = 1
+            OnClick = chkExportOptionClick
+          end
+          object chkExportTablesDrop: TCheckBox
+            Left = 80
+            Top = 24
+            Width = 60
+            Height = 17
+            Caption = 'Drop'
             TabOrder = 2
+            OnClick = chkExportOptionClick
+          end
+          object chkExportTablesCreate: TCheckBox
+            Left = 144
+            Top = 24
+            Width = 74
+            Height = 17
+            Caption = 'Create'
+            TabOrder = 3
+            OnClick = chkExportOptionClick
+          end
+          object comboExportData: TComboBox
+            Left = 224
+            Top = 22
+            Width = 145
+            Height = 21
+            Style = csDropDownList
+            Anchors = [akLeft, akTop, akRight]
+            ItemHeight = 13
+            TabOrder = 4
+          end
+          object comboExportOutputType: TComboBox
+            Left = 80
+            Top = 48
+            Width = 289
+            Height = 21
+            Style = csDropDownList
+            Anchors = [akLeft, akTop, akRight]
+            ItemHeight = 13
+            TabOrder = 5
+            OnChange = comboExportOutputTypeChange
+          end
+          object comboExportOutputTarget: TTntComboBox
+            Left = 80
+            Top = 74
+            Width = 263
+            Height = 21
+            Anchors = [akLeft, akTop, akRight]
+            ItemHeight = 13
+            TabOrder = 6
+            Text = 'comboExportOutputTarget'
+            OnExit = comboExportOutputTargetExit
           end
         end
       end
-      object pnlSkipLargeTables: TPanel
-        Left = 0
-        Top = 161
-        Width = 380
-        Height = 27
-        Align = alTop
-        BevelOuter = bvNone
-        TabOrder = 2
-        object lblSkipLargeTables: TLabel
-          Left = 0
-          Top = 6
-          Width = 107
-          Height = 13
-          Caption = 'Skip tables larger than'
-        end
-        object lblSkipLargeTablesMB: TLabel
-          Left = 184
-          Top = 6
-          Width = 87
-          Height = 13
-          Caption = 'MB (0 = unlimited)'
-        end
-        object editSkipLargeTables: TEdit
-          Left = 122
-          Top = 3
-          Width = 40
-          Height = 21
-          TabOrder = 0
-          Text = '20'
-        end
-        object udSkipLargeTables: TUpDown
-          Left = 162
-          Top = 3
-          Width = 16
-          Height = 21
-          Associate = editSkipLargeTables
-          Position = 20
-          TabOrder = 1
-        end
-      end
     end
+  end
+  object btnExecute: TButton
+    Left = 380
+    Top = 350
+    Width = 75
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Caption = 'Execute'
+    TabOrder = 2
+    OnClick = Execute
+  end
+  object editSkipLargeTables: TEdit
+    Left = 130
+    Top = 352
+    Width = 40
+    Height = 21
+    Anchors = [akLeft, akBottom]
+    TabOrder = 3
+    Text = '20'
+  end
+  object udSkipLargeTables: TUpDown
+    Left = 170
+    Top = 352
+    Width = 16
+    Height = 21
+    Anchors = [akLeft, akBottom]
+    Associate = editSkipLargeTables
+    Position = 20
+    TabOrder = 4
   end
 end

@@ -125,7 +125,6 @@ type
   function Min(A, B: Integer): Integer; assembler;
   function urlencode(url: String): String;
   function openfs(filename: String): TFileStream;
-  procedure wfs( var s: TFileStream; str: WideString = '');
   procedure StreamWrite(S: TStream; Text: WideString = '');
   function fixSQL( sql: WideString; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): WideString;
   procedure ToggleCheckListBox(list: TTNTCheckListBox; state: Boolean); Overload;
@@ -140,7 +139,7 @@ type
   function ScanLineBreaks(Text: WideString): TLineBreaks;
   function RemoveNulChars(Text: WideString): WideString;
   procedure debug(txt: String);
-  function fixNewlines(txt: string): string;
+  function fixNewlines(txt: Widestring): Widestring;
   function GetShellFolder(CSIDL: integer): string;
   function getFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
   function goodfilename( str: String ): String;
@@ -148,7 +147,6 @@ type
   function FormatNumber( int: Int64 ): String; Overload;
   function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
   procedure setLocales;
-  function maskSql(sql_version: integer; str: WideString) : WideString;
   procedure ShellExec(cmd: String; path: String=''; params: String='');
   function getFirstWord( text: String ): String;
   function LastPos(needle: WideChar; haystack: WideString): Integer;
@@ -1229,17 +1227,6 @@ begin
     Result.WriteBuffer(sUTF8BOMString, 3);
 end;
 
-{***
-  Write a line of text plus CRLF to existing FileStream in UTF-8
-  @param TFileStream
-  @param string Text to write
-  @return void
-}
-procedure wfs( var s: TFileStream; str: WideString = '');
-begin
-  StreamWrite(s, str + CRLF);
-end;
-
 
 {**
   Write some UTF8 text to a file- or memorystream
@@ -1749,11 +1736,11 @@ end;
   @param string Text to fix
   @return string
 }
-function fixNewlines(txt: string): string;
+function fixNewlines(txt: Widestring): WideString;
 begin
-  txt := StringReplace(txt, CRLF, #10, [rfReplaceAll]);
-  txt := StringReplace(txt, #13, #10, [rfReplaceAll]);
-  txt := StringReplace(txt, #10, CRLF, [rfReplaceAll]);
+  txt := WidestringReplace(txt, CRLF, #10, [rfReplaceAll]);
+  txt := WidestringReplace(txt, #13, #10, [rfReplaceAll]);
+  txt := WidestringReplace(txt, #10, CRLF, [rfReplaceAll]);
   result := txt;
 end;
 
@@ -1908,37 +1895,6 @@ begin
   if DecimalSeparatorSystemdefault = '' then
     DecimalSeparatorSystemdefault := DecimalSeparator;
   DecimalSeparator := DecimalSeparatorSystemdefault;
-end;
-
-
-
-{***
-  Quote identifiers either with double quotes to be ANSI-compatibile,
-  mysql-compatible backticks, or not at all for mysql below 3.23
-
-  @param integer MySQL version as compact number
-  @param string Identifier
-  @return string (not) quoted identifier
-  @see http://www.heidisql.com/forum/viewtopic.php?t=161
-}
-function maskSql(sql_version: integer; str: WideString) : WideString;
-begin
-  // Quote ANSI-compatible (but not MySQL-compatible)?
-  if sql_version = SQL_VERSION_ANSI then
-  begin
-    result := WideStringReplace(str, '"', '""', [rfReplaceAll]);
-    result := '"' + result + '"';
-  end
-  // Quote MySQL-compatible
-  else if sql_version >= 32300 then
-  begin
-    result := WideStringReplace(str, '`', '``', [rfReplaceAll]);
-    result := '`' + result + '`';
-  end
-  else
-  begin
-    result := str;
-  end;
 end;
 
 
@@ -2844,6 +2800,7 @@ begin
   VT.ClearSelection;
   VT.FocusedNode := Node;
   VT.Selected[Node] := True;
+  VT.ScrollIntoView(Node, True);
 end;
 
 
