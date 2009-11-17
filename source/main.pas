@@ -3052,7 +3052,7 @@ procedure TMainForm.LogSQL(Msg: WideString; Category: TMySQLLogCategory=lcInfo);
 var
   snip, IsSQL: Boolean;
 begin
-  if Category = lcDebug then
+  if (Category = lcDebug) or (csDestroying in ComponentState) then
     Exit;
   // Shorten very long messages
   snip := (prefLogSqlWidth > 0) and (Length(Msg) > prefLogSqlWidth);
