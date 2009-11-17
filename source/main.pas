@@ -869,7 +869,7 @@ end;
 
 var
   MainForm            : TMainForm;
-  AppVersion          : String = 'x.y';
+  AppVersion          : String = '4.0';
   AppRevision         : String = '$Rev$';
   FullAppVersion      : String;
   DirnameCommonAppData,

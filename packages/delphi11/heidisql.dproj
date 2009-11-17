@@ -80,7 +80,7 @@
           <VersionInfoKeys>
             <VersionInfoKeys Name="CompanyName"></VersionInfoKeys>
             <VersionInfoKeys Name="FileDescription">HeidiSQL</VersionInfoKeys>
-            <VersionInfoKeys Name="FileVersion">0.0.0.0</VersionInfoKeys>
+            <VersionInfoKeys Name="FileVersion">4.0.0.0</VersionInfoKeys>
             <VersionInfoKeys Name="InternalName"></VersionInfoKeys>
             <VersionInfoKeys Name="LegalCopyright"></VersionInfoKeys>
             <VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
