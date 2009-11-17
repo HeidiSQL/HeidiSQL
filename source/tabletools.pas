@@ -326,6 +326,8 @@ var
   NodeType: TListNodeType;
   db, table: WideString;
   TableSize, RowsInTable, AvgRowLen: Int64;
+  i: Integer;
+  ViewNodes: TNodeArray;
 begin
   Screen.Cursor := crHourGlass;
   if tabsTools.ActivePage = tabMaintenance then
@@ -356,7 +358,14 @@ begin
             case FToolMode of
               tmMaintenance:  DoMaintenance(db, table, NodeType);
               tmFind:         DoFind(db, table, NodeType, RowsInTable);
-              tmSQLExport:    DoExport(db, table, NodeType, RowsInTable, AvgRowLen);
+              tmSQLExport: begin
+                // Views have to be exported at the very end so at least all needed tables are ready when a view gets imported
+                if NodeType = lntView then begin
+                  SetLength(ViewNodes, Length(ViewNodes)+1);
+                  ViewNodes[Length(ViewNodes)-1] := TableNode;
+                end else
+                  DoExport(db, table, NodeType, RowsInTable, AvgRowLen);
+              end;
             end;
           except
             // The above SQL can easily throw an exception, e.g. if a table is corrupted.
@@ -372,6 +381,18 @@ begin
     end;
     DBNode := TreeObjects.GetNextSibling(DBNode);
   end;
+
+  // Special block for late created views in export mode
+  if FToolMode = tmSQLExport then for i:=Low(ViewNodes) to High(ViewNodes) do begin
+    db := TreeObjects.Text[ViewNodes[i].Parent, 0];
+    table := TreeObjects.Text[ViewNodes[i], 0];
+    try
+      DoExport(db, table, lntView, 0, 0);
+    except on E:Exception do
+      AddNotes(db, table, 'error', E.Message);
+    end;
+  end;
+
   if Assigned(ExportStream) then begin
     if comboExportOutputType.Text = OUTPUT_FILE then
       StreamWrite(ExportStream, EXPORT_FILE_FOOTER);
