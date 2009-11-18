@@ -86,13 +86,16 @@ type
     procedure btnExportOutputTargetSelectClick(Sender: TObject);
     procedure comboExportOutputTargetExit(Sender: TObject);
     procedure comboExportOutputTypeChange(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     FResults: TObjectList;
     FToolMode: TToolMode;
     OutputFiles, OutputDirs: TWideStringList;
     ExportStream: TStream;
-    ExportLastDatabaseInFileMode: Widestring;
+    ExportLastDatabase: Widestring;
+    FTargetConnection: TMySQLConnection;
+    FLastOutputSelectedIndex: Integer;
     procedure SetToolMode(Value: TToolMode);
     procedure AddResults(SQL: WideString);
     procedure AddNotes(Col1, Col2, Col3, Col4: WideString);
@@ -116,6 +119,7 @@ const
   OUTPUT_FILE = 'One big file';
   OUTPUT_DIR = 'Directory - one file per object';
   OUTPUT_DB = 'Database';
+  OUTPUT_SERVER = 'Server: ';
   DATA_NO = 'No data';
   DATA_REPLACE = 'Replace (truncate existing data)';
   DATA_INSERT = 'Insert';
@@ -129,6 +133,7 @@ const
 procedure TfrmTableTools.FormCreate(Sender: TObject);
 var
   i: Integer;
+  SessionNames: TStringList;
 begin
   // Restore GUI setup
   Width := GetRegValue(REGNAME_TOOLSWINWIDTH, Width);
@@ -155,6 +160,14 @@ begin
   OutputDirs.Text := GetRegValue(REGNAME_EXP_OUTDIRS, '');
   comboExportOutputType.Items.Text := OUTPUT_FILE+CRLF +OUTPUT_DIR+CRLF +OUTPUT_DB;
   comboExportOutputType.ItemIndex := GetRegValue(REGNAME_EXP_OUTPUT, 0);
+  // Add session names from registry
+  SessionNames := TStringList.Create;
+  MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, True);
+  MainReg.GetKeyNames(SessionNames);
+  for i:=0 to SessionNames.Count-1 do begin
+    if SessionNames[i] <> Mainform.SessionName then
+      comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionNames[i]);
+  end;
 
   // Various
   udSkipLargeTables.Position := GetRegValue(REGNAME_TOOLSSKIPMB, udSkipLargeTables.Position);
@@ -168,6 +181,8 @@ end;
 
 
 procedure TfrmTableTools.FormDestroy(Sender: TObject);
+var
+  OutputItem: Integer;
 begin
   // Save GUI setup
   OpenRegistry;
@@ -183,7 +198,11 @@ begin
   MainReg.WriteBool(REGNAME_EXP_CREATETABLE, chkExportTablesCreate.Checked);
   MainReg.WriteBool(REGNAME_EXP_DROPTABLE, chkExportTablesDrop.Checked);
   MainReg.WriteInteger(REGNAME_EXP_DATAHOW, comboExportData.ItemIndex);
-  MainReg.WriteInteger(REGNAME_EXP_OUTPUT, comboExportOutputType.ItemIndex);
+  // Do not remember a selected session name for the next time
+  OutputItem := comboExportOutputType.ItemIndex;
+  if OutputItem > 2 then
+    OutputItem := 0;
+  MainReg.WriteInteger(REGNAME_EXP_OUTPUT, OutputItem);
   MainReg.WriteString(REGNAME_EXP_OUTFILES, OutputFiles.Text);
   MainReg.WriteString(REGNAME_EXP_OUTDIRS, OutputDirs.Text);
 
@@ -229,6 +248,14 @@ begin
     comboOperation.Items[comboOperation.Items.IndexOf('Checksum')] := 'Checksum ('+STR_NOTSUPPORTED+')';
   comboOperation.OnChange(Sender);
   comboExportOutputType.OnChange(Sender);
+end;
+
+
+procedure TfrmTableTools.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  // Auto close temorary connection
+  if Assigned(FTargetConnection) then
+    FreeAndNil(FTargetConnection);
 end;
 
 
@@ -398,7 +425,7 @@ begin
       StreamWrite(ExportStream, EXPORT_FILE_FOOTER);
     FreeAndNil(ExportStream);
   end;
-  ExportLastDatabaseInFileMode := '';
+  ExportLastDatabase := '';
   Screen.Cursor := crDefault;
 end;
 
@@ -585,11 +612,15 @@ end;
 procedure TfrmTableTools.comboExportOutputTypeChange(Sender: TObject);
 var
   OldItem: WideString;
-  NewIdx: Integer;
+  NewIdx, NetType: Integer;
   DBNode: PVirtualNode;
+  SessionName: String;
+  Databases: TWideStringlist;
 begin
   // Target type (file, directory, ...) selected
   OldItem := comboExportOutputTarget.Text;
+  if Assigned(FTargetConnection) then
+    FreeAndNil(FTargetConnection);
   if comboExportOutputType.Text = OUTPUT_FILE then begin
     comboExportOutputTarget.Style := csDropDown;
     comboExportOutputTarget.Items.Text := OutputFiles.Text;
@@ -615,9 +646,53 @@ begin
         comboExportOutputTarget.Items.Add(TreeObjects.Text[DBNode, 0]);
       DBNode := TreeObjects.GetNextSibling(DBNode);
     end;
+  end else begin
+    // Server selected. Display databases in below dropdown
+    comboExportOutputTarget.Style := csDropDownList;
+    lblExportOutputTarget.Caption := 'Database:';
+    btnExportOutputTargetSelect.Enabled := False;
+    btnExportOutputTargetSelect.PngImage := Mainform.PngImageListMain.PngImages[27].PngImage;
+    SessionName := Copy(comboExportOutputType.Text, Length(OUTPUT_SERVER)+1, Length(comboExportOutputType.Text));
+    FreeAndNil(FTargetConnection);
+    FTargetConnection := TMySQLConnection.Create(Self);
+    FTargetConnection.Hostname := GetRegValue(REGNAME_HOST, DEFAULT_HOST, SessionName);
+    FTargetConnection.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, SessionName);
+    FTargetConnection.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, SessionName));
+    FTargetConnection.Port := StrToInt(GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), SessionName));
+    if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SessionName) then
+      FTargetConnection.Options := FTargetConnection.Options + [opCompress]
+    else
+      FTargetConnection.Options := FTargetConnection.Options - [opCompress];
+    NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, SessionName);
+    if NetType = NETTYPE_TCPIP then
+      FTargetConnection.Socketname := ''
+    else begin
+      FTargetConnection.Socketname := FTargetConnection.Hostname;
+      FTargetConnection.Hostname := '.';
+    end;
+    FTargetConnection.LogPrefix := '['+SessionName+'] ';
+    FTargetConnection.OnLog := Mainform.LogSQL;
+    Screen.Cursor := crHourglass;
+    try
+      FTargetConnection.Active := True;
+      Databases := FTargetConnection.GetCol('SHOW DATABASES');
+      comboExportOutputTarget.Items.Text := Databases.Text;
+      comboExportOutputTarget.Items.Insert(0, '[Same as on source server]');
+      comboExportOutputTarget.ItemIndex := 0;
+      Screen.Cursor := crDefault;
+    except
+      on E:Exception do begin
+        Screen.Cursor := crDefault;
+        MessageDlg(E.Message, mtError, [mbOK], 0);
+        comboExportOutputType.ItemIndex := FLastOutputSelectedIndex;
+      end;
+    end;
   end;
-  chkExportDatabasesCreate.Enabled := comboExportOutputType.Text = OUTPUT_FILE;
-  chkExportDatabasesDrop.Enabled := comboExportOutputType.Text = OUTPUT_FILE;
+
+  FLastOutputSelectedIndex := comboExportOutputType.ItemIndex;
+  chkExportDatabasesCreate.Enabled := (comboExportOutputType.Text = OUTPUT_FILE)
+    or (Copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER);
+  chkExportDatabasesDrop.Enabled := chkExportDatabasesCreate.Enabled;
   NewIdx := comboExportOutputTarget.Items.IndexOf(OldItem);
   if (NewIdx = -1) and (comboExportOutputTarget.Items.Count > 0) then
     NewIdx := 0;
@@ -701,8 +776,8 @@ end;
 
 procedure TfrmTableTools.DoExport(db, obj: WideString; NodeType: TListNodeType; RowsInTable, AvgRowLen: Int64);
 var
-  ToFile, ToDir, ToDb, IsLastRowInChunk, NeedsDBStructure: Boolean;
-  Struc, Header, BaseInsert, Row, TargetDbAndObject, objtype: WideString;
+  ToFile, ToDir, ToDb, ToServer, IsLastRowInChunk, NeedsDBStructure: Boolean;
+  Struc, Header, FinalDbName, BaseInsert, Row, TargetDbAndObject, objtype: WideString;
   LogRow: TWideStringlist;
   i: Integer;
   RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset: Int64;
@@ -716,7 +791,7 @@ var
   end;
 
   // Pass output to file or query, and append semicolon if needed 
-  procedure Output(SQL: WideString; IsEndOfQuery, ForFile, ForDir, ForDb: Boolean);
+  procedure Output(SQL: WideString; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
   var
     SA: AnsiString;
     ChunkSize: Integer;
@@ -726,7 +801,7 @@ var
         SQL := SQL + ';'+CRLF;
       StreamWrite(ExportStream, SQL);
     end;
-    if (ToDb and ForDb) then begin
+    if (ToDb and ForDb) or (ToServer and ForServer) then begin
       StreamWrite(ExportStream, SQL);
       if IsEndOfQuery then begin
         ExportStream.Position := 0;
@@ -735,7 +810,8 @@ var
         ExportStream.Read(PAnsiChar(SA)^, ChunkSize);
         ExportStream.Size := 0;
         SQL := UTF8Decode(SA);
-        Mainform.Connection.Query(SQL);
+        if ToDB then Mainform.Connection.Query(SQL)
+        else if ToServer then FTargetConnection.Query(SQL);
         SQL := '';
       end;
     end;
@@ -751,6 +827,7 @@ begin
   ToFile := comboExportOutputType.Text = OUTPUT_FILE;
   ToDir := comboExportOutputType.Text = OUTPUT_DIR;
   ToDb := comboExportOutputType.Text = OUTPUT_DB;
+  ToServer := Copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER;
   case NodeType of
     lntTable, lntCrashedTable: objtype := 'table';
     lntView: objtype := 'view';
@@ -764,9 +841,9 @@ begin
     end;
     if ToFile and (not Assigned(ExportStream)) then
       ExportStream := openfs(comboExportOutputTarget.Text);
-    if ToDb then
+    if ToDb or ToServer then
       ExportStream := TMemoryStream.Create;
-    if (db<>ExportLastDatabaseInFileMode) or ToDir then begin
+    if (db<>ExportLastDatabase) or ToDir then begin
       Header := '# --------------------------------------------------------' + CRLF +
         WideFormat('# %-30s%s', ['Host:', Mainform.Connection.HostName]) + CRLF +
         WideFormat('# %-30s%s', ['Database:', db]) + CRLF +
@@ -778,7 +855,7 @@ begin
         '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
         '/*!40101 SET NAMES '+Mainform.Connection.CharacterSet+' */;' + CRLF +
         '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF;
-      Output(Header, False, db<>ExportLastDatabaseInFileMode, True, False);
+      Output(Header, False, db<>ExportLastDatabase, True, False, False);
     end;
   except
     on E:Exception do begin
@@ -787,31 +864,42 @@ begin
     end;
   end;
 
-  // Database structure. Do that only in single-file mode. drop/create/use in directory or database mode makes no sense
+  // Database structure. Do that only in single-file and server mode. drop/create/use in directory or database mode makes no sense
+  FinalDbName := db;
+  if ToDb or (ToServer and (comboExportOutputTarget.ItemIndex > 0)) then
+    FinalDbName := comboExportOutputTarget.Text;
+  NeedsDBStructure := FinalDbName <> ExportLastDatabase;
   if chkExportDatabasesDrop.Checked or chkExportDatabasesCreate.Checked then begin
-    NeedsDBStructure := db <> ExportLastDatabaseInFileMode;
-    Output(CRLF+'# Dumping database structure for '+db+CRLF, False, NeedsDBStructure, False, False);
+    Output(CRLF+'# Dumping database structure for '+db+CRLF, False, NeedsDBStructure, False, False, False);
     if chkExportDatabasesDrop.Checked and chkExportDatabasesDrop.Enabled then
-      Output('DROP DATABASE IF EXISTS '+m(db), True, NeedsDBStructure, False, False);
+      Output('DROP DATABASE IF EXISTS '+m(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     if chkExportDatabasesCreate.Checked and chkExportDatabasesCreate.Enabled then begin
-      if Mainform.Connection.ServerVersionInt >= 40100 then
-        Struc := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+m(db), 1)
-      else
-        Struc := 'CREATE DATABASE IF NOT EXISTS '+m(db);
-      Output(Struc, True, NeedsDBStructure, False, False);
-      Output('USE '+m(db), True, NeedsDBStructure, False, False);
+      if Mainform.Connection.ServerVersionInt >= 40100 then begin
+        Struc := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+m(db), 1);
+        // Gracefully ignore it when target database exists, important in server mode
+        Insert('IF NOT EXISTS ', Struc, Pos('DATABASE', Struc) + 9);
+        // Create the right dbname
+        Struc := WideStringReplace(Struc, db, FinalDbName, []);
+      end else
+        Struc := 'CREATE DATABASE IF NOT EXISTS '+m(FinalDbName);
+      Output(Struc, True, NeedsDBStructure, False, False, NeedsDBStructure);
+      Output('USE '+m(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     end;
+  end;
+  if ToServer and (not chkExportDatabasesCreate.Checked) then begin
+    // Export to server without "CREATE/USE dbname" and "Same dbs as on source server" - needs a "USE dbname"
+    Output('USE '+m(FinalDbName), True, False, False, False, NeedsDBStructure);
   end;
 
   // Table structure
   if chkExportTablesDrop.Checked or chkExportTablesCreate.Checked then begin
-    Output(CRLF+CRLF+'# Dumping structure for '+objtype+' '+db+'.'+obj+CRLF, False, True, True, False);
+    Output(CRLF+CRLF+'# Dumping structure for '+objtype+' '+db+'.'+obj+CRLF, False, True, True, False, False);
     if chkExportTablesDrop.Checked then begin
       Struc := 'DROP TABLE IF EXISTS ';
       if ToDb then
-        Struc := Struc + m(comboExportOutputTarget.Text)+'.';
+        Struc := Struc + m(FinalDbName)+'.';
       Struc := Struc + m(obj);
-      Output(Struc, True, True, True, True);
+      Output(Struc, True, True, True, True, True);
     end;
     if chkExportTablesCreate.Checked then begin
       try
@@ -821,15 +909,15 @@ begin
           Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
         if ToDb then begin
           if NodeType = lntTable then
-            Insert(m(comboExportOutputTarget.Text)+'.', Struc, Pos('EXISTS', Struc) + 7 )
+            Insert(m(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
           else if NodeType = lntView then
-            Insert(m(comboExportOutputTarget.Text)+'.', Struc, Pos('VIEW', Struc) + 5 );
+            Insert(m(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
         end;
-        Output(Struc, True, True, True, True);
+        Output(Struc, True, True, True, True, True);
       except
         On E:Exception do begin
           // Catch the exception message and dump it into the export file for debugging reasons
-          Output('/* '+E.Message+' */', False, True, True, False);
+          Output('/* '+E.Message+' */', False, True, True, False, False);
           Raise;
         end;
       end;
@@ -840,14 +928,14 @@ begin
     lntTable, lntCrashedTable: begin
       // Table data
       if comboExportData.Text = DATA_NO then begin
-        Output(CRLF+'# Data exporting was unselected.'+CRLF, False, True, True, False);
+        Output(CRLF+'# Data exporting was unselected.'+CRLF, False, True, True, False, False);
       end else if RowsInTable = 0 then begin
-        Output(CRLF+'# No rows in table '+db+'.'+obj+CRLF, False, True, True, False);
+        Output(CRLF+'# No rows in table '+db+'.'+obj+CRLF, False, True, True, False, False);
       end else begin
-        Output(CRLF+'# Dumping data for table '+db+'.'+obj+': '+FormatNumber(RowsInTable)+' rows'+CRLF, False, True, True, False);
+        Output(CRLF+'# Dumping data for table '+db+'.'+obj+': '+FormatNumber(RowsInTable)+' rows'+CRLF, False, True, True, False, False);
         TargetDbAndObject := m(obj);
         if ToDb then
-          TargetDbAndObject := m(comboExportOutputTarget.Text) + '.' + TargetDbAndObject;
+          TargetDbAndObject := m(FinalDbName) + '.' + TargetDbAndObject;
         Offset := 0;
         RowCount := 0;
         // Calculate limit so we select ~100MB per loop
@@ -855,8 +943,8 @@ begin
         // Calculate max rows per INSERT, so we always get ~800KB
         MaxRowsInChunk := Round(SIZE_MB * 0.6 / Max(AvgRowLen,1));
         if comboExportData.Text = DATA_REPLACE then
-          Output('DELETE FROM '+TargetDbAndObject, True, True, True, True);
-        Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True);
+          Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
+        Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
         BaseInsert := 'INSERT INTO ';
         if comboExportData.Text = DATA_INSERTNEW then
           BaseInsert := 'INSERT IGNORE INTO '
@@ -874,7 +962,7 @@ begin
           BaseInsert := BaseInsert + ') VALUES (';
           while true do begin
             RowsInChunk := 0;
-            Output(BaseInsert, False, True, True, True);
+            Output(BaseInsert, False, True, True, True, True);
 
             while not Data.Eof do begin
               Inc(RowCount);
@@ -895,11 +983,11 @@ begin
               IsLastRowInChunk := (RowsInChunk = MaxRowsInChunk) or Data.Eof;
               if not IsLastRowInChunk then
                 Row := Row + ', (';
-              Output(Row, False, True, True, True);
+              Output(Row, False, True, True, True, True);
               if IsLastRowInChunk then
                 break;
             end;
-            Output('', True, True, True, True);
+            Output('', True, True, True, True, True);
             LogRow := TWideStringList(FResults.Last);
             LogRow[2] := FormatNumber(RowCount) + ' / ' + FormatNumber(100/Max(RowsInTable,1)*RowCount, 0)+'%';
             LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000);
@@ -911,15 +999,15 @@ begin
           FreeAndNil(Data);
 
         end;
-        Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True);
-        Output(EXPORT_FILE_FOOTER, False, False, True, False);
+        Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True, True);
+        Output(EXPORT_FILE_FOOTER, False, False, True, False, False);
       end;
     end;
 
     lntView: // Do not export data for views
   end;
 
-  ExportLastDatabaseInFileMode := db;
+  ExportLastDatabase := FinalDbName;
 end;
 
 

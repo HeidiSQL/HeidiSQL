@@ -73,6 +73,7 @@ type
       FUsername: String;
       FPassword: String;
       FDatabase: WideString;
+      FLogPrefix: WideString;
       FOnLog: TMySQLLogEvent;
       FOnDatabaseChanged: TMySQLDatabaseChangedEvent;
       FOptions: TMySQLClientOptions;
@@ -125,6 +126,7 @@ type
       property Password: String read FPassword write FPassword;
       property Database: WideString read FDatabase write SetDatabase;
       property Options: TMySQLClientOptions read FOptions write FOptions default [opCompress, opLocalFiles, opInteractive, opProtocol41];
+      property LogPrefix: WideString read FLogPrefix write FLogPrefix;
       // Events
       property OnLog: TMySQLLogEvent read FOnLog write FOnLog;
       property OnDatabaseChanged: TMySQLDatabaseChangedEvent read FOnDatabaseChanged write FOnDatabaseChanged;
@@ -184,6 +186,7 @@ begin
   FConnectionStarted := 0;
   FLastQueryStart := 0;
   FLastQueryEnd := 0;
+  FLogPrefix := '';
 end;
 
 
@@ -478,7 +481,7 @@ end;
 procedure TMySQLConnection.Log(Category: TMySQLLogCategory; Msg: WideString);
 begin
   if Assigned(FOnLog) then
-    FOnLog(Msg, Category);
+    FOnLog(FLogPrefix+Msg, Category);
 end;
 
 
