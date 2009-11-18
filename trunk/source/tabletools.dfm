@@ -125,7 +125,7 @@ object frmTableTools: TfrmTableTools
         Header.Font.Style = []
         Header.Images = MainForm.PngImageListMain
         Header.MainColumn = -1
-        Header.Options = [hoColumnResize, hoShowSortGlyphs, hoVisible]
+        Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
         TabOrder = 0
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
