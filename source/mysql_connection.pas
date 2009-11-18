@@ -706,10 +706,22 @@ end;
 
 
 function TMySQLQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): WideString;
+var
+  LengthPointer: PLongInt;
+  BinLen: LongInt;
+  Bin: String;
 begin
-  if (Column > -1) and (Column < ColumnCount) then
-    Result := UTF8StringToWideString(FCurrentRow[Column])
-  else if not IgnoreErrors then
+  if (Column > -1) and (Column < ColumnCount) then begin
+    if FDatatypes[Column].Category = dtcBinary then begin
+      LengthPointer := mysql_fetch_lengths(FLastResult);
+      if LengthPointer <> nil then begin
+        BinLen := PLongInt(LongInt(LengthPointer) + Column * SizeOf(LongInt))^;
+        SetString(Bin, FCurrentRow[Column], BinLen);
+        Result := WideString(Bin);
+      end;
+    end else
+      Result := UTF8StringToWideString(FCurrentRow[Column]);
+  end else if not IgnoreErrors then
     Raise Exception.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
 end;
 
