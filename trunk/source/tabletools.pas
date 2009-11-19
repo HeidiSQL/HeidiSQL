@@ -160,6 +160,7 @@ begin
   OutputDirs.Text := GetRegValue(REGNAME_EXP_OUTDIRS, '');
   comboExportOutputType.Items.Text := OUTPUT_FILE+CRLF +OUTPUT_DIR+CRLF +OUTPUT_DB;
   comboExportOutputType.ItemIndex := GetRegValue(REGNAME_EXP_OUTPUT, 0);
+  comboExportOutputTarget.Text := '';
   // Add session names from registry
   SessionNames := TStringList.Create;
   MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, True);
