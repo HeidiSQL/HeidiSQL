@@ -784,7 +784,7 @@ var
   Struc, Header, FinalDbName, BaseInsert, Row, TargetDbAndObject, objtype: WideString;
   LogRow: TWideStringlist;
   i: Integer;
-  RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset: Int64;
+  RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;
   Data: TMySQLQuery;
 
@@ -1001,7 +1001,11 @@ begin
               break;
 
           end;
+          ResultCount := Data.RecordCount;
           FreeAndNil(Data);
+          // Break if end of table data, avoid one last empty/useless SELECT in next loop
+          if ResultCount < Limit then
+            break;
 
         end;
         Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True, True);
