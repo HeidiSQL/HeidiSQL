@@ -511,7 +511,10 @@ begin
   while not Results.Eof do begin
     Row := TWideStringlist.Create;
     for i:=0 to Results.ColumnCount-1 do begin
-      Row.Add(Results.Col(i));
+      if Results.DataType(i).Category = dtcInteger then
+        Row.Add(FormatNumber(Results.Col(i)))
+      else
+        Row.Add(Results.Col(i));
     end;
     FResults.Add(Row);
     Results.Next;
