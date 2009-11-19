@@ -82,6 +82,7 @@ type
       FRowsAffected: Int64;
       FServerVersionUntouched: String;
       FLastQueryStart, FLastQueryEnd: Cardinal;
+      FIsUnicode: Boolean;
       function GetActive: Boolean;
       procedure SetActive(Value: Boolean);
       procedure SetDatabase(Value: WideString);
@@ -117,6 +118,7 @@ type
       property RowsFound: Int64 read FRowsFound;
       property RowsAffected: Int64 read FRowsAffected;
       property LastQueryDuration: Cardinal read GetLastQueryDuration;
+      property IsUnicode: Boolean read FIsUnicode;
     published
       property Active: Boolean read GetActive write SetActive default False;
       property Hostname: String read FHostname write FHostname;
@@ -187,6 +189,7 @@ begin
   FLastQueryStart := 0;
   FLastQueryEnd := 0;
   FLogPrefix := '';
+  FIsUnicode := False;
 end;
 
 
@@ -205,7 +208,7 @@ var
   Connected: PMYSQL;
   ClientFlags: Integer;
   Error, tmpdb: WideString;
-  UsingPass, Protocol: String;
+  UsingPass, Protocol, CurCharset: String;
 begin
   FActive := Value;
 
@@ -262,7 +265,9 @@ begin
     end else begin
       Log(lcInfo, 'Connected. Thread-ID: '+IntToStr(ThreadId));
       CharacterSet := 'utf8';
-      Log(lcInfo, 'Characterset: '+CharacterSet);
+      CurCharset := CharacterSet;
+      Log(lcInfo, 'Characterset: '+CurCharset);
+      FIsUnicode := CurCharset = 'utf8';
       FConnectionStarted := GetTickCount;
       FServerVersionUntouched := mysql_get_server_info(FHandle);
       DetectCapabilities;
@@ -719,8 +724,12 @@ begin
         SetString(Bin, FCurrentRow[Column], BinLen);
         Result := WideString(Bin);
       end;
-    end else
-      Result := UTF8StringToWideString(FCurrentRow[Column]);
+    end else begin
+      if Connection.IsUnicode then
+        Result := UTF8StringToWideString(FCurrentRow[Column])
+      else
+        Result := FCurrentRow[Column];
+    end;
   end else if not IgnoreErrors then
     Raise Exception.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
 end;
