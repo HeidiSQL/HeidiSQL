@@ -141,6 +141,10 @@ const
   FIELD_TYPE_CHAR      = FIELD_TYPE_TINY;
   FIELD_TYPE_INTERVAL  = FIELD_TYPE_ENUM;
 
+  COLLATION_BINARY = 63;
+  // Equivalent to COLLATION_BINARY, this is what a new driver returns when connected to a pre-4.1 server.
+  COLLATION_NONE   =  0;
+
   MAX_MYSQL_MANAGER_ERR = 256;
   MAX_MYSQL_MANAGER_MSG = 256;
 

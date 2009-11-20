@@ -650,6 +650,7 @@ procedure TMySQLQuery.Execute;
 var
   i, j, NumFields: Integer;
   Field: PMYSQL_FIELD;
+  IsBinary: Boolean;
 begin
   FLastResult := Connection.Query(FSQL, True);
   FRecordCount := Connection.RowsFound;
@@ -664,7 +665,11 @@ begin
       for j:=Low(Datatypes) to High(Datatypes) do begin
         if Field._type = Datatypes[j].NativeType then begin
           // Text and Blob types share the same constants (see FIELD_TYPEs in mysql_api)
-          if ((Field.flags and BINARY_FLAG) = BINARY_FLAG) and (Datatypes[j].Category <> dtcBinary) then
+          if Connection.IsUnicode then
+            IsBinary := Field.charsetnr = COLLATION_BINARY
+          else
+            IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
+          if IsBinary and (Datatypes[j].Category = dtcText) then
             continue;
           FDatatypes[i] := Datatypes[j];
           break;
