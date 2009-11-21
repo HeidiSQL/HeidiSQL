@@ -831,7 +831,7 @@ type
     procedure DeactivateFileLogging;
     procedure TrimSQLLog;
     procedure TableEnginesCombo(var Combobox: TCombobox);
-    function GetTreeNodeType(Node: PVirtualNode): TListNodeType;
+    function GetTreeNodeType(Tree: TBaseVirtualTree; Node: PVirtualNode): TListNodeType;
     function GetFocusedTreeNodeType: TListNodeType;
     procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
     procedure RefreshTreeDB(db: WideString);
@@ -4885,15 +4885,15 @@ begin
 end;
 
 
-function TMainForm.GetTreeNodeType(Node: PVirtualNode): TListNodeType;
+function TMainForm.GetTreeNodeType(Tree: TBaseVirtualTree; Node: PVirtualNode): TListNodeType;
 var
   Results: TMySQLQuery;
 begin
   Result := lntNone;
-  if Assigned(Node) then case DBtree.GetNodeLevel(Node) of
+  if Assigned(Node) then case Tree.GetNodeLevel(Node) of
     1: Result := lntDb;
     2: begin
-      Results := FetchDbTableList(DBTree.Text[Node.Parent, 0]);
+      Results := FetchDbTableList((Tree as TVirtualStringTree).Text[Node.Parent, 0]);
       Results.RecNo := Node.Index;
       Result := GetDBObjectType(Results);
     end;
@@ -4902,7 +4902,7 @@ end;
 
 function TMainForm.GetFocusedTreeNodeType: TListNodeType;
 begin
-  Result := GetTreeNodeType(DBtree.FocusedNode);
+  Result := GetTreeNodeType(DBTree, DBtree.FocusedNode);
 end;
 
 
@@ -4923,7 +4923,7 @@ begin
   tnode := DBtree.GetFirstChild(dbnode);
   for i := 0 to dbnode.ChildCount - 1 do begin
     // Select table node if it has the wanted caption
-    if (DBtree.Text[tnode, 0] = Text) and (GetTreeNodeType(tnode) = NodeType) then begin
+    if (DBtree.Text[tnode, 0] = Text) and (GetTreeNodeType(DBTree, tnode) = NodeType) then begin
       snode := tnode;
       break;
     end;
@@ -4934,7 +4934,7 @@ begin
     tnode := DBtree.GetFirstChild(dbnode);
     for i := 0 to dbnode.ChildCount - 1 do begin
       // Select table node if it has the wanted caption
-      if (AnsiCompareText(DBtree.Text[tnode, 0], Text) = 0) and (GetTreeNodeType(tnode) = NodeType) then begin
+      if (AnsiCompareText(DBtree.Text[tnode, 0], Text) = 0) and (GetTreeNodeType(DBtree, tnode) = NodeType) then begin
         snode := tnode;
         break;
       end;
@@ -6006,7 +6006,7 @@ begin
             CellText := Results.Col(DBO_NAME);
           end;
       end;
-    1: case GetTreeNodeType(Node) of
+    1: case GetTreeNodeType(Sender, Node) of
         // Calculate and display the sum of all table sizes in ALL dbs if all table lists are cached
         lntNone: begin
             AllListsCached := true;
@@ -6033,7 +6033,7 @@ begin
           end;
         // Calculate and display the sum of all table sizes in ONE db, if the list is already cached.
         lntDb: begin
-            db := DBtree.Text[Node, 0];
+            db := (Sender as TVirtualStringTree).Text[Node, 0];
             if not DbTableListCachedAndValid(db) then
               CellText := ''
             else begin
@@ -6051,7 +6051,7 @@ begin
             end;
           end;
         lntTable: begin
-          db := DBtree.Text[Node.Parent, 0];
+          db := (Sender as TVirtualStringTree).Text[Node.Parent, 0];
           Results := FetchDbTableList(db);
           Results.RecNo := Node.Index;
           Bytes := GetTableSize(Results);
@@ -6293,7 +6293,7 @@ begin
   // Grey out rather unimportant "Size" column
   if Column <> 1 then
     Exit;
-  case DBtree.GetNodeLevel(Node) of
+  case Sender.GetNodeLevel(Node) of
     0: TargetCanvas.Font.Color := clWindowText;
     1: TargetCanvas.Font.Color := $008f8f8f;
     2: TargetCanvas.Font.Color := $00cfcfcf;

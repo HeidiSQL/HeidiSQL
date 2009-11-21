@@ -87,6 +87,8 @@ type
     procedure comboExportOutputTargetExit(Sender: TObject);
     procedure comboExportOutputTypeChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure TreeObjectsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType);
   private
     { Private declarations }
     FResults: TObjectList;
@@ -338,6 +340,13 @@ begin
     end;
   end;
   ValidateControls(Sender);
+end;
+
+
+procedure TfrmTableTools.TreeObjectsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+begin
+  Mainform.DBtreePaintText(Sender, TargetCanvas, Node, Column, TextType);
 end;
 
 
