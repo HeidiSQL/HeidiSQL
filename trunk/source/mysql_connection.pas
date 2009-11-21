@@ -650,19 +650,25 @@ procedure TMySQLQuery.Execute;
 var
   i, j, NumFields: Integer;
   Field: PMYSQL_FIELD;
-  IsBinary: Boolean;
+  IsBinary, Bug10491: Boolean;
 begin
   FLastResult := Connection.Query(FSQL, True);
   FRecordCount := Connection.RowsFound;
   if HasResult then begin
     NumFields := mysql_num_fields(FLastResult);
     SetLength(FDatatypes, NumFields);
+    // Workaround for bug 10491 and friends, see http://bugs.mysql.com/10491
+    Bug10491 := (Connection.ServerVersionInt < 50046) and
+      (Connection.ServerVersionInt >= 40100) and
+      (UpperCase(Copy(Trim(FSQL), 1, 4)) = 'SHOW');
     for i:=0 to NumFields-1 do begin
       Field := mysql_fetch_field_direct(FLastResult, i);
       FColumnNames.Add(Utf8Decode(Field.name));
 
       FDatatypes[i] := Datatypes[Low(Datatypes)];
-      for j:=Low(Datatypes) to High(Datatypes) do begin
+      if Bug10491 then
+        FDatatypes[i] := Datatypes[Integer(dtText)]
+      else for j:=Low(Datatypes) to High(Datatypes) do begin
         if Field._type = Datatypes[j].NativeType then begin
           // Text and Blob types share the same constants (see FIELD_TYPEs in mysql_api)
           if Connection.IsUnicode then
