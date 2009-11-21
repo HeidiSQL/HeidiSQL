@@ -40,27 +40,27 @@ object frmInsertFilesProgress: TfrmInsertFilesProgress
     Caption = 'Nr.'
   end
   object lblNumber: TLabel
-    Left = 112
+    Left = 131
     Top = 16
     Width = 47
     Height = 13
     Caption = 'lblNumber'
   end
   object lblFilename: TLabel
-    Left = 112
+    Left = 131
     Top = 32
     Width = 52
     Height = 13
     Caption = 'lblFilename'
   end
   object lblOperation: TLabel
-    Left = 112
+    Left = 131
     Top = 48
     Width = 58
     Height = 13
     Caption = 'lblOperation'
   end
-  object ProgressBar1: TProgressBar
+  object pbReadingFiles: TProgressBar
     Left = 16
     Top = 72
     Width = 385
@@ -68,7 +68,7 @@ object frmInsertFilesProgress: TfrmInsertFilesProgress
     Step = 1
     TabOrder = 0
   end
-  object Button1: TButton
+  object btnCancel: TButton
     Left = 168
     Top = 104
     Width = 75
@@ -76,9 +76,9 @@ object frmInsertFilesProgress: TfrmInsertFilesProgress
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 1
-    OnClick = Button1Click
+    OnClick = btnCancelClick
   end
-  object Timer1: TTimer
+  object timerStartReading: TTimer
     Enabled = False
     Interval = 1
     OnTimer = ProcessFiles

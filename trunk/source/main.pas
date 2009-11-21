@@ -22,7 +22,7 @@ uses
   createdatabase, table_editor, SynRegExpr,
   WideStrUtils, ExtActns, CommCtrl, routine_editor, options,
   Contnrs, PngSpeedButton, connections, SynEditKeyCmds,
-  mysql_connection, mysql_api;
+  mysql_connection, mysql_api, insertfiles;
 
 
 type
@@ -791,6 +791,7 @@ type
     prefNullBG                 : TColor;
     CreateDatabaseForm         : TCreateDatabaseForm;
     TableEditor                : TfrmTableEditor;
+    InsertFiles                : TfrmInsertFiles;
     FDataGridSelect            : TWideStringList;
     FDataGridSort              : TOrderColArray;
     DataGridCurrentSelect,
@@ -899,7 +900,7 @@ const
 implementation
 
 uses
-  About, loaddata, printlist, copytable, insertfiles,
+  About, loaddata, printlist, copytable,
   mysql_structures, UpdateCheck, uVistaFuncs, runsqlfile, column_selection,
   data_sorting, grideditlinks, dataviewsave;
 
@@ -2164,7 +2165,9 @@ end;
 
 procedure TMainForm.actInsertFilesExecute(Sender: TObject);
 begin
-  InsertFilesWindow(Self);
+  if not Assigned(InsertFiles) then
+    InsertFiles := TfrmInsertFiles.Create(Self);
+  InsertFiles.ShowModal;
 end;
 
 // Drop Table(s)
