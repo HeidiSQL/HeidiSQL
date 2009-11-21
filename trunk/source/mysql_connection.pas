@@ -668,6 +668,10 @@ begin
       FDatatypes[i] := Datatypes[Low(Datatypes)];
       if Bug10491 then
         FDatatypes[i] := Datatypes[Integer(dtText)]
+      else if (Field.flags and ENUM_FLAG) = ENUM_FLAG then
+        FDatatypes[i] := Datatypes[Integer(dtEnum)]
+      else if (Field.flags and SET_FLAG) = SET_FLAG then
+        FDatatypes[i] := Datatypes[Integer(dtSet)]
       else for j:=Low(Datatypes) to High(Datatypes) do begin
         if Field._type = Datatypes[j].NativeType then begin
           // Text and Blob types share the same constants (see FIELD_TYPEs in mysql_api)
