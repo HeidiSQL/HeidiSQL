@@ -144,9 +144,6 @@
     <DCCReference Include="..\..\source\insertfiles.pas">
       <Form>frmInsertFiles</Form>
     </DCCReference>
-    <DCCReference Include="..\..\source\insertfiles_progress.pas">
-      <Form>frmInsertFilesProgress</Form>
-    </DCCReference>
     <DCCReference Include="..\..\source\loaddata.pas">
       <Form>loaddataform</Form>
     </DCCReference>
