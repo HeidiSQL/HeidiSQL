@@ -92,14 +92,19 @@ object frmTableTools: TfrmTableTools
       TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
       OnChecked = TreeObjectsChecked
       OnGetText = TreeObjectsGetText
+      OnPaintText = TreeObjectsPaintText
       OnGetImageIndex = TreeObjectsGetImageIndex
       OnInitChildren = TreeObjectsInitChildren
       OnInitNode = TreeObjectsInitNode
       Columns = <
         item
           Position = 0
-          Width = 140
+          Width = 90
           WideText = 'Dummy, keeps compatibility to mainform.dbtree'
+        end
+        item
+          Position = 1
+          WideText = 'Size'
         end>
     end
     object pnlRight: TPanel
