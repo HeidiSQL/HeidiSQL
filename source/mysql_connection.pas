@@ -408,29 +408,27 @@ end;
 function TMySQLConnection.GetServerVersionInt: Integer;
 var
   i, dots: Byte;
-  fullversion, v1, v2, v3: String;
+  v1, v2, v3: String;
 begin
   Result := -1;
 
   dots := 0;
-  // Avoid calling GetServerVersionUntouched too often
-  fullversion := ServerVersionUntouched;
   v1 := '';
   v2 := '';
   v3 := '';
-  for i:=1 to Length(fullversion) do begin
-    if fullversion[i] = '.' then begin
+  for i:=1 to Length(FServerVersionUntouched) do begin
+    if FServerVersionUntouched[i] = '.' then begin
       inc(dots);
       // We expect exactly 2 dots.
       if dots > 2 then
         break;
-    end else if fullversion[i] in ['0'..'9'] then begin
+    end else if FServerVersionUntouched[i] in ['0'..'9'] then begin
       if dots = 0 then
-        v1 := v1 + fullversion[i]
+        v1 := v1 + FServerVersionUntouched[i]
       else if dots = 1 then
-        v2 := v2 + fullversion[i]
+        v2 := v2 + FServerVersionUntouched[i]
       else if dots = 2 then
-        v3 := v3 + fullversion[i];
+        v3 := v3 + FServerVersionUntouched[i];
     end else // Don't include potential numbers of trailing string
       break;
   end;
