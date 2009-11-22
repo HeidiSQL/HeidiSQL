@@ -72,8 +72,10 @@ begin
   try
     Mainform.Connection.Query(sql);
   except
-    ModalResult := mrNone;
-    Raise;
+    on E:Exception do begin
+      ModalResult := mrNone;
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+    end;
   end;
 end;
 

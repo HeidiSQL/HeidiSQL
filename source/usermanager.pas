@@ -296,7 +296,17 @@ begin
   lblHostHints.Caption := StringReplace(lblHostHints.Caption, '$SNR', snr, []);
 
   // Load users into memory
-  Users := TUsers.Create;
+  try
+    Users := TUsers.Create;
+  except
+    // At least one priv table is missing or non-accessible when we get an exception.
+    // Proceeding would result in follow up errors, so cancel the whole dialog in that case.
+    on E:Exception do begin
+      MessageDlg(E.Message+CRLF+CRLF+'The user manager cannot proceed with this error.', mtError, [mbOK], 0);
+      PostMessage(Handle, WM_CLOSE, 0, 0); 
+      Exit;
+    end;
+  end;
   // Enable limitations editors only if relevant columns exist
   lblMaxQuestions.Enabled := dsUser.ColExists('max_questions');
   editMaxQuestions.Enabled := lblMaxQuestions.Enabled;
@@ -885,11 +895,6 @@ var
   begin
     Mainform.LogSQL(sql);
   end;
-  procedure Exec(sql: String);
-  begin
-    //LogSQL(sql);  Exit;
-    Mainform.Connection.Query(sql);
-  end;
   function Mask(sql: String): String;
   begin
     Result := Mainform.Mask(sql);
@@ -929,10 +934,17 @@ begin
     LogSQL('Deleting account ' + u.FOldName + '@' + u.FOldHost + '.');
     AcctWhere := AccountSqlClause(u.FOldName, u.FOldHost, True);
     sql := 'DELETE FROM ' + db + '.';
-    Exec(sql + mask(PRIVTABLE_COLUMNS) + AcctWhere);
-    Exec(sql + mask(PRIVTABLE_TABLES) + AcctWhere);
-    Exec(sql + mask(PRIVTABLE_DB) + AcctWhere);
-    Exec(sql + mask(PRIVTABLE_USERS) + AcctWhere);
+    try
+      Mainform.Connection.Query(sql + mask(PRIVTABLE_COLUMNS) + AcctWhere);
+      Mainform.Connection.Query(sql + mask(PRIVTABLE_TABLES) + AcctWhere);
+      Mainform.Connection.Query(sql + mask(PRIVTABLE_DB) + AcctWhere);
+      Mainform.Connection.Query(sql + mask(PRIVTABLE_USERS) + AcctWhere);
+    except
+      on E:Exception do begin
+        MessageDlg(E.Message, mtError, [mbOK], 0);
+        Exit;
+      end;
+    end;
   end;
 
   AcctUpdates := TWideStringList.Create;
@@ -958,11 +970,18 @@ begin
     AcctWhere := AccountSqlClause(u.FOldName, u.FOldHost);
     AcctValues := ' SET ' + Delim(AcctUpdates);
     sql := 'UPDATE ' + db + '.';
-    // Todo: Allow concurrency by skipping this account and removing from Users array if changing key in mysql.user fails.
-    Exec(sql + mask(PRIVTABLE_USERS) + AcctValues + AcctWhere);
-    Exec(sql + mask(PRIVTABLE_DB) + AcctValues + AcctWhere);
-    Exec(sql + mask(PRIVTABLE_TABLES) + AcctValues + AcctWhere);
-    Exec(sql + mask(PRIVTABLE_COLUMNS) + AcctValues + AcctWhere);
+    try
+      // Todo: Allow concurrency by skipping this account and removing from Users array if changing key in mysql.user fails.
+      Mainform.Connection.Query(sql + mask(PRIVTABLE_USERS) + AcctValues + AcctWhere);
+      Mainform.Connection.Query(sql + mask(PRIVTABLE_DB) + AcctValues + AcctWhere);
+      Mainform.Connection.Query(sql + mask(PRIVTABLE_TABLES) + AcctValues + AcctWhere);
+      Mainform.Connection.Query(sql + mask(PRIVTABLE_COLUMNS) + AcctValues + AcctWhere);
+    except
+      on E:Exception do begin
+        MessageDlg(E.Message, mtError, [mbOK], 0);
+        Exit;
+      end;
+    end;
   end;
 
   LogSQL('Applying changes to authentication details and limitations...');
@@ -1000,7 +1019,14 @@ begin
     AcctWhere := AccountSqlClause(u.Name, u.Host);
     AcctValues := ' SET ' + Delim(AcctUpdates);
     sql := 'UPDATE ' + db + '.';
-    Exec(sql + mask(PRIVTABLE_USERS) + AcctValues + AcctWhere);
+    try
+      Mainform.Connection.Query(sql + mask(PRIVTABLE_USERS) + AcctValues + AcctWhere);
+    except
+      on E:Exception do begin
+        MessageDlg(E.Message, mtError, [mbOK], 0);
+        Exit;
+      end;
+    end;
   end;
 
   LogSQL('Creating new accounts...');
@@ -1037,8 +1063,15 @@ begin
       AcctUpdates.Add(mask('x509_subject') + '=' + esc(''));
     sql := 'INSERT INTO ' + db + '.' + mask(PRIVTABLE_USERS);
     sql := sql + ' SET ' + Delim(AcctUpdates);
-    // Todo: Allow concurrency by skipping this account and removing from Users array if inserting key in mysql.user fails.
-    Exec(sql);
+    try
+      // Todo: Allow concurrency by skipping this account and removing from Users array if inserting key in mysql.user fails.
+      Mainform.Connection.Query(sql);
+    except
+      on E:Exception do begin
+        MessageDlg(E.Message, mtError, [mbOK], 0);
+        Exit;
+      end;
+    end;
   end;
 
   LogSQL('Applying privilege changes...');
@@ -1100,12 +1133,26 @@ begin
         end;
         sql := 'UPDATE ' + db + '.' + mask(PRIVTABLE_USERS);
         sql := sql + ' SET ' + Delim(PrivUpdates);
-        Exec(sql + AcctWhere);
+        try
+          Mainform.Connection.Query(sql + AcctWhere);
+        except
+          on E:Exception do begin
+            MessageDlg(E.Message, mtError, [mbOK], 0);
+            Exit;
+          end;
+        end;
       end;
       // Remove old privilege definition.
       if (p.DBOType <> lntNone) then begin
         sql := 'DELETE FROM ' + db + '.' + TableName;
-        Exec(sql + AcctWhere + PrivWhere);
+        try
+          Mainform.Connection.Query(sql + AcctWhere + PrivWhere);
+        except
+          on E:Exception do begin
+            MessageDlg(E.Message, mtError, [mbOK], 0);
+            Exit;
+          end;
+        end;
       end else begin
         // Special case: avoid removing old definition when dealing with
         //               server-level privileges, since they're entangled with
@@ -1164,7 +1211,14 @@ begin
         sql := sql + ' ON DUPLICATE KEY UPDATE';
         sql := sql + ' ' + Delim(PrivUpdates);
       end;
-      Exec(sql);
+      try
+        Mainform.Connection.Query(sql);
+      except
+        on E:Exception do begin
+          MessageDlg(E.Message, mtError, [mbOK], 0);
+          Exit;
+        end;
+      end;
       // Special case: update redundant column privileges in mysql.tables_priv.
       if (p.DBOType = lntColumn) and dsTables.ColExists('column_priv') then begin
         // We need to deduce a completely new key because column_priv in mysql.tables_priv does not have a column field next to it, sigh.
@@ -1184,11 +1238,26 @@ begin
         sql := sql + ', ' + mask('column_priv') + '=' + esc(Delim(PrivValues, False));
         sql := sql + ' ON DUPLICATE KEY UPDATE';
         sql := sql + ' ' + mask('column_priv') + '=' + esc(Delim(PrivValues, False));
-        Exec(sql);
+        try
+          Mainform.Connection.Query(sql);
+        except
+          on E:Exception do begin
+            MessageDlg(E.Message, mtError, [mbOK], 0);
+            Exit;
+          end;
+        end;
       end;
     end;
   end;
-  Exec('FLUSH PRIVILEGES');
+  try
+    Mainform.Connection.Query('FLUSH PRIVILEGES');
+    ModalResult := mrOK;
+  except
+    on E:Exception do begin
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+      Exit;
+    end;
+  end;
 end;
 
 

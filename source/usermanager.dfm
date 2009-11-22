@@ -71,7 +71,6 @@ object UserManagerForm: TUserManagerForm
     Anchors = [akRight, akBottom]
     Caption = 'OK'
     Default = True
-    ModalResult = 1
     TabOrder = 2
     OnClick = btnOKClick
   end

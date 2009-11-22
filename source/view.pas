@@ -159,14 +159,18 @@ begin
   if rgCheck.Enabled and (rgCheck.ItemIndex > 0) then
     sql := sql + 'WITH '+Uppercase(rgCheck.Items[rgCheck.ItemIndex])+' CHECK OPTION';
 
-  // Execute query and keep form open in any error case
-  Mainform.Connection.Query(sql);
-  // Probably rename view
-  if (FEditViewName <> '') and (FEditViewName <> editName.Text) then begin
-    renamed := Mainform.mask(editName.Text);
-    Mainform.Connection.Query('RENAME TABLE '+viewname + ' TO '+renamed);
+  try
+    Mainform.Connection.Query(sql);
+    // Probably rename view
+    if (FEditViewName <> '') and (FEditViewName <> editName.Text) then begin
+      renamed := Mainform.mask(editName.Text);
+      Mainform.Connection.Query('RENAME TABLE '+viewname + ' TO '+renamed);
+    end;
+    Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
+  except
+    on E:Exception do
+      MessageDlg(E.Message, mtError, [mbOk], 0);
   end;
-  Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
 end;
 
 

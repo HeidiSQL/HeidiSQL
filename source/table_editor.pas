@@ -560,46 +560,51 @@ var
   FocusChangeEvent: procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex) of object;
 begin
   // Create or alter table
-  if FAlterTableName = '' then
-    sql := ComposeCreateStatement
-  else begin
-    sql := ComposeAlterStatement;
-    // Special case for altered foreign keys: These have to be dropped in a seperate query
-    // otherwise the server would return error 121 "Duplicate key on write or update"
-    // See also http://dev.mysql.com/doc/refman/5.1/en/innodb-foreign-key-constraints.html :
-    //   "You cannot add a foreign key and drop a foreign key in separate clauses of a single
-    //   ALTER TABLE  statement. Separate statements are required."
-    Specs := TWideStringList.Create;
-    for i:=0 to ForeignKeys.Count-1 do begin
-      Key := ForeignKeys[i] as TForeignKey;
-      if Key.Modified and (not Key.Added) then
-        Specs.Add('DROP FOREIGN KEY '+Mainform.mask(Key.KeyName));
+  try
+    if FAlterTableName = '' then
+      sql := ComposeCreateStatement
+    else begin
+      sql := ComposeAlterStatement;
+      // Special case for altered foreign keys: These have to be dropped in a seperate query
+      // otherwise the server would return error 121 "Duplicate key on write or update"
+      // See also http://dev.mysql.com/doc/refman/5.1/en/innodb-foreign-key-constraints.html :
+      //   "You cannot add a foreign key and drop a foreign key in separate clauses of a single
+      //   ALTER TABLE  statement. Separate statements are required."
+      Specs := TWideStringList.Create;
+      for i:=0 to ForeignKeys.Count-1 do begin
+        Key := ForeignKeys[i] as TForeignKey;
+        if Key.Modified and (not Key.Added) then
+          Specs.Add('DROP FOREIGN KEY '+Mainform.mask(Key.KeyName));
+      end;
+      if Specs.Count > 0 then
+        Mainform.Connection.Query('ALTER TABLE '+Mainform.mask(FAlterTableName)+' '+ImplodeStr(', ', Specs));
     end;
-    if Specs.Count > 0 then
-      Mainform.Connection.Query('ALTER TABLE '+Mainform.mask(FAlterTableName)+' '+ImplodeStr(', ', Specs));
-  end;
-  Mainform.Connection.Query(sql);
-  // Set table name for altering if Apply was clicked
-  FAlterTableName := editName.Text;
-  tabALTERcode.TabVisible := FAlterTableName <> '';
-  if chkCharsetConvert.Checked then begin
-    // Autoadjust column collations
-    for i:=0 to FColumns.Count-1 do begin
-      Col := FColumns[i] as TColumn;
-      if Col.Collation <> '' then
-        Col.Collation := comboCollation.Text;
+    Mainform.Connection.Query(sql);
+    // Set table name for altering if Apply was clicked
+    FAlterTableName := editName.Text;
+    tabALTERcode.TabVisible := FAlterTableName <> '';
+    if chkCharsetConvert.Checked then begin
+      // Autoadjust column collations
+      for i:=0 to FColumns.Count-1 do begin
+        Col := FColumns[i] as TColumn;
+        if Col.Collation <> '' then
+          Col.Collation := comboCollation.Text;
+      end;
     end;
-  end;
-  ResetModificationFlags;
+    ResetModificationFlags;
 
-  // Refresh db tree and reselect edited table node.
-  // Supress tab jumping, implicitely invoked by RefreshTreeDB.
-  FocusChangeEvent := Mainform.DBtree.OnFocusChanged;
-  Mainform.DBtree.OnFocusChanged := nil;
-  Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
-  Mainform.DBtree.OnFocusChanged := FocusChangeEvent;
-  Mainform.ResetSelectedTableStuff;
-  Mainform.SelectDBObject(FAlterTableName, lntTable);
+    // Refresh db tree and reselect edited table node.
+    // Supress tab jumping, implicitely invoked by RefreshTreeDB.
+    FocusChangeEvent := Mainform.DBtree.OnFocusChanged;
+    Mainform.DBtree.OnFocusChanged := nil;
+    Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
+    Mainform.DBtree.OnFocusChanged := FocusChangeEvent;
+    Mainform.ResetSelectedTableStuff;
+    Mainform.SelectDBObject(FAlterTableName, lntTable);
+  except
+    on E:Exception do
+      MessageDlg(E.Message, mtError, [mbOk], 0);
+  end;
 end;
 
 
