@@ -36,7 +36,7 @@ type
     memoUnionTables: TTntMemo;
     comboInsertMethod: TComboBox;
     lblCollation: TLabel;
-    comboCollation: TTNTComboBox;
+    comboCollation: TComboBox;
     lblEngine: TLabel;
     comboEngine: TComboBox;
     treeIndexes: TVirtualStringTree;
@@ -302,9 +302,9 @@ begin
   // Start with "basic" tab activated when just called
   if FAlterTableName <> AlterTableName then
     PageControlMain.ActivePage := tabBasic;
-  Mainform.TableEnginesCombo(comboEngine);
-  comboCollation.Items.Clear;
-  Mainform.GetCollations(comboCollation.Items);
+  comboEngine.Items := Mainform.Connection.TableEngines;
+  comboEngine.ItemIndex := comboEngine.Items.IndexOf(Mainform.Connection.TableEngineDefault);
+  comboCollation.Items := Mainform.Connection.CollationList;
   FAlterTableName := AlterTableName;
   listColumns.BeginUpdate;
   FColumns.Clear;
@@ -688,8 +688,8 @@ begin
   if comboInsertMethod.Enabled and (comboInsertMethod.Tag = ModifiedFlag) and (comboInsertMethod.Text <> '') then
     Specs.Add('INSERT_METHOD='+comboInsertMethod.Text);
   if chkCharsetConvert.Checked then begin
-    Results := Mainform.GetCollations;
-    while not Results.Eof do begin
+    Results := Mainform.Connection.CollationTable;
+    if Assigned(Results) then while not Results.Eof do begin
       if Results.Col('Collation') = comboCollation.Text then begin
         Specs.Add('CONVERT TO CHARSET '+Results.Col('Charset'));
         break;
@@ -1409,7 +1409,7 @@ begin
     8: begin // Collation pulldown
       EnumEditor := TEnumEditorLink.Create(VT);
       EnumEditor.ValueList := TWideStringList.Create;
-      Mainform.GetCollations(EnumEditor.ValueList);
+      EnumEditor.ValueList.Text := Mainform.Connection.CollationList.Text;
       EnumEditor.ValueList.Insert(0, '');
       EditLink := EnumEditor;
       end;

@@ -83,6 +83,10 @@ type
       FServerVersionUntouched: String;
       FLastQueryStart, FLastQueryEnd: Cardinal;
       FIsUnicode: Boolean;
+      FTableEngines: TStringList;
+      FTableEngineDefault: String;
+      FCollationTable: TMySQLQuery;
+      FCollationsUnavailable: Boolean;
       function GetActive: Boolean;
       procedure SetActive(Value: Boolean);
       procedure SetDatabase(Value: WideString);
@@ -93,8 +97,12 @@ type
       function GetServerVersionStr: String;
       function GetServerVersionInt: Integer;
       function GetLastQueryDuration: Cardinal;
+      function GetTableEngines: TStringList;
+      function GetCollationTable: TMySQLQuery;
+      function GetCollationList: TStringList;
       procedure Log(Category: TMySQLLogCategory; Msg: WideString);
       procedure DetectCapabilities;
+      procedure ClearCache;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -119,6 +127,10 @@ type
       property RowsAffected: Int64 read FRowsAffected;
       property LastQueryDuration: Cardinal read GetLastQueryDuration;
       property IsUnicode: Boolean read FIsUnicode;
+      property TableEngines: TStringList read GetTableEngines;
+      property TableEngineDefault: String read FTableEngineDefault;
+      property CollationTable: TMySQLQuery read GetCollationTable;
+      property CollationList: TStringList read GetCollationList;
     published
       property Active: Boolean read GetActive write SetActive default False;
       property Hostname: String read FHostname write FHostname;
@@ -196,6 +208,7 @@ end;
 destructor TMySQLConnection.Destroy;
 begin
   if Active then Active := False;
+  ClearCache;
   inherited Destroy;
 end;
 
@@ -290,8 +303,10 @@ end;
 
 function TMySQLConnection.GetActive: Boolean;
 begin
-  if FActive and (mysql_ping(FHandle) <> 0) then
+  if FActive and (mysql_ping(FHandle) <> 0) then begin
     Active := False;
+    ClearCache;
+  end;
   Result := FActive;
 end;
 
@@ -615,6 +630,93 @@ begin
   FreeAndNil(Results);
 end;
 
+
+function TMySQLConnection.GetTableEngines: TStringList;
+var
+  ShowEngines, HaveEngines: TMySQLQuery;
+  engineName, engineSupport: String;
+  PossibleEngines: TStringList;
+begin
+  if not Assigned(FTableEngines) then begin
+    FTableEngines := TStringList.Create;
+    try
+      ShowEngines := GetResults('SHOW ENGINES');
+      while not ShowEngines.Eof do begin
+        engineName := ShowEngines.Col('Engine');
+        engineSupport := LowerCase(ShowEngines.Col('Support'));
+        // Add to dropdown if supported
+        if engineSupport <> 'no' then
+          FTableEngines.Add(engineName);
+        // Check if this is the default engine
+        if engineSupport = 'default' then
+          FTableEngineDefault := engineName;
+        ShowEngines.Next;
+      end;
+    except
+      // Ignore errors on old servers and try a fallback:
+      // Manually fetch available engine types by analysing have_* options
+      // This is for servers below 4.1 or when the SHOW ENGINES statement has
+      // failed for some other reason
+      HaveEngines := GetResults('SHOW VARIABLES LIKE ''have%''');
+      // Add default engines which will not show in a have_* variable:
+      FTableEngines.CommaText := 'MyISAM,MRG_MyISAM,HEAP';
+      FTableEngineDefault := 'MyISAM';
+      // Possible other engines:
+      PossibleEngines := TStringList.Create;
+      PossibleEngines.CommaText := 'ARCHIVE,BDB,BLACKHOLE,CSV,EXAMPLE,FEDERATED,INNODB,ISAM';
+      while not HaveEngines.Eof do begin
+        engineName := copy(HaveEngines.Col(0), 6, Length(HaveEngines.Col(0)));
+        // Strip additional "_engine" suffix, fx from "have_blackhole_engine"
+        if Pos('_', engineName) > 0 then
+          engineName := copy(engineName, 0, Pos('_', engineName)-1);
+        engineName := UpperCase(engineName);
+        // Add engine to list if it's a) in HaveEngineList and b) activated
+        if (PossibleEngines.IndexOf(engineName) > -1)
+          and (LowerCase(HaveEngines.Col(1)) = 'yes') then
+          FTableEngines.Add(engineName);
+        HaveEngines.Next;
+      end;
+    end;
+  end;
+  Result := FTableEngines;
+end;
+
+
+function TMySQLConnection.GetCollationTable: TMySQLQuery;
+begin
+  if (not Assigned(FCollationTable)) and (not FCollationsUnavailable) then try
+    FCollationTable := GetResults('SHOW COLLATION');
+  except
+    // Ignore errors on old servers
+    FCollationsUnavailable := True;
+  end;
+  if Assigned(FCollationTable) then
+    FCollationTable.First;
+  Result := FCollationTable;
+end;
+
+
+function TMySQLConnection.GetCollationList: TStringList;
+var
+  c: TMySQLQuery;
+begin
+  c := CollationTable;
+  Result := TStringList.Create;
+  if not FCollationsUnavailable then while not c.Eof do begin
+    Result.Add(c.Col('Collation'));
+    c.Next;
+  end;
+end;
+
+
+procedure TMySQLConnection.ClearCache;
+begin
+  // Free cached lists and results. Called when the connection was closed and/or destroyed
+  FreeAndNil(FCollationTable);
+  FCollationsUnavailable := False;
+  FreeAndNil(FTableEngines);
+  FTableEngineDefault := '';
+end;
 
 
 

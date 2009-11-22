@@ -18,7 +18,6 @@ type
     comboCollation: TComboBox;
     lblPreview: TLabel;
     SynMemoPreview: TSynMemo;
-    procedure FormDestroy(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure comboCharsetChange(Sender: TObject);
     procedure Modified(Sender: TObject);
@@ -29,7 +28,7 @@ type
     function GetCreateStatement: WideString;
   private
     { Private declarations }
-    dsCollations : TMySQLQuery;
+    CollationTable: TMySQLQuery;
     defaultCharset : String;
     currentCollation : String;
   public
@@ -53,44 +52,10 @@ var
   charset: String;
 begin
   InheritFont(Font);
-
-  try
-    dsCollations := Mainform.Connection.GetResults('SHOW COLLATION');
-    // Detect servers default charset
-    defaultCharset := Mainform.Connection.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
-  except
-    // Ignore it when the above statements don't work on pre 4.1 servers.
-    // If the list(s) are nil, disable the combobox(es), so we create the db without charset.
-  end;
-
-  // Create a list with charsets from collations dataset
-  comboCharset.Enabled := dsCollations <> nil;
-  lblCharset.Enabled := comboCharset.Enabled;
-  if comboCharset.Enabled then
-  begin
-    comboCharset.Items.BeginUpdate;
-    dsCollations.First;
-    while not dsCollations.Eof do begin
-      charset := dsCollations.Col('Charset');
-      if comboCharset.Items.IndexOf(charset) = -1 then
-        comboCharset.Items.Add(charset);
-      dsCollations.Next;
-    end;
-    comboCharset.Items.EndUpdate;
-  end;
-
-  comboCollation.Enabled := dsCollations <> nil;
-  lblCollation.Enabled := comboCollation.Enabled;
-
   // Setup SynMemoPreview
   SynMemoPreview.Highlighter := Mainform.SynSQLSyn1;
 end;
 
-
-procedure TCreateDatabaseForm.FormDestroy(Sender: TObject);
-begin
-  FreeAndNil(dsCollations);
-end;
 
 {**
   Form gets displayed: Set default values.
@@ -100,8 +65,28 @@ var
   selectCharset,
   currentCharset,
   sql_create : WideString;
+  Charset: String;
   colpos: Integer;
 begin
+  CollationTable := Mainform.Connection.CollationTable;
+  // Detect servers default charset
+  defaultCharset := Mainform.Connection.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
+  comboCharset.Enabled := Assigned(CollationTable);
+  lblCharset.Enabled := comboCharset.Enabled;
+  comboCollation.Enabled := comboCharset.Enabled;
+  lblCollation.Enabled := comboCharset.Enabled;
+  if comboCharset.Enabled then begin
+    // Create a list with charsets from collations dataset
+    comboCharset.Items.BeginUpdate;
+    while not CollationTable.Eof do begin
+      Charset := CollationTable.Col('Charset');
+      if comboCharset.Items.IndexOf(Charset) = -1 then
+        comboCharset.Items.Add(Charset);
+      CollationTable.Next;
+    end;
+    comboCharset.Items.EndUpdate;
+  end;
+
   if modifyDB = '' then
   begin
     Caption := 'Create database ...';
@@ -157,21 +142,21 @@ var
   defaultCollation : String;
 begin
   // Abort if collations were not fetched successfully
-  if dsCollations = nil then
+  if not Assigned(CollationTable) then
     Exit;
 
   // Fill pulldown with fitting collations
   comboCollation.Items.BeginUpdate;
   comboCollation.Items.Clear;
-  dsCollations.First;
-  while not dsCollations.Eof do begin
-    if dsCollations.Col('Charset') = comboCharset.Text then
+  CollationTable.First;
+  while not CollationTable.Eof do begin
+    if CollationTable.Col('Charset') = comboCharset.Text then
     begin
-      comboCollation.Items.Add( dsCollations.Col('Collation'));
-      if dsCollations.Col('Default') = 'Yes' then
-        defaultCollation := dsCollations.Col('Collation');
+      comboCollation.Items.Add(CollationTable.Col('Collation'));
+      if CollationTable.Col('Default') = 'Yes' then
+        defaultCollation := CollationTable.Col('Collation');
     end;
-    dsCollations.Next;
+    CollationTable.Next;
   end;
 
   // Preselect default or current collation
