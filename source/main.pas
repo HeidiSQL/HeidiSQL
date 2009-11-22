@@ -46,13 +46,6 @@ type
     FilterText: WideString;
   end;
 
-  // Represents errors already "handled" (shown to user),
-  // which can thus safely be ignored.
-  THandledSQLError = class(Exception)
-  end;
-
-  PMethod = ^TMethod;
-
   TMainForm = class(TForm)
     MainMenu1: TMainMenu;
     File1: TMenuItem;
