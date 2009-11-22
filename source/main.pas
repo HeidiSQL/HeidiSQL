@@ -1091,6 +1091,8 @@ begin
   FreeAndNil(SQLHelpForm);
   FreeAndNil(OptionsForm);
   FreeAndNil(SessionManager);
+  FreeAndNil(TableEditor);
+  FreeAndNil(CreateDatabaseForm);
 
   debug('mem: clearing query and browse data.');
   SetLength(DataGridResult.Rows, 0);
