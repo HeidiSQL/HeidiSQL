@@ -131,9 +131,9 @@ Filter2ShowBox=0
 Filter2Assis=
 GeneralDontCreateBugReport=0
 GeneralDontCreateScreenshot=0
-GeneralDontSuspendThreads=1
+GeneralDontSuspendThreads=0
 GeneralDontCallHandlers=0
-GeneralShowBox=2
+GeneralShowBox=0
 GeneralAssis=
 [Assistants]
 Assistant1=SendAssistant|Send Assistant|ContactForm|DetailsForm|ScrShotForm
