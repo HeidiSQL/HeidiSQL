@@ -850,6 +850,8 @@ begin
   try
     if ToDir then begin
       FreeAndNil(ExportStream);
+      if not DirectoryExists(comboExportOutputTarget.Text) then
+        ForceDirectories(comboExportOutputTarget.Text);
       ExportStream := openfs(comboExportOutputTarget.Text+'\'+GoodFileName(obj)+'.sql');
     end;
     if ToFile and (not Assigned(ExportStream)) then
