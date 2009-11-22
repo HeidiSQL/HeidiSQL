@@ -708,9 +708,6 @@ type
     EditVariableForm           : TfrmEditVariable;
     FileNameSessionLog         : String;
     FileHandleSessionLog       : Textfile;
-    dsShowEngines,
-    dsHaveEngines,
-    dsCollations,
     FSelectedTableColumns,
     FSelectedTableKeys         : TMySQLQuery;
     FilterPanelManuallyOpened  : Boolean;
@@ -824,7 +821,6 @@ type
     procedure ActivateFileLogging;
     procedure DeactivateFileLogging;
     procedure TrimSQLLog;
-    procedure TableEnginesCombo(var Combobox: TCombobox);
     function GetTreeNodeType(Tree: TBaseVirtualTree; Node: PVirtualNode): TListNodeType;
     function GetFocusedTreeNodeType: TListNodeType;
     procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
@@ -850,7 +846,6 @@ type
     function GetRegKeyTable: String;
     procedure SaveListSetup( List: TVirtualStringTree );
     procedure RestoreListSetup( List: TVirtualStringTree );
-    function GetCollations(Items: TWideStrings = nil): TMySQLQuery;
     procedure SetEditorTabCaption(Editor: TFrame; ObjName: WideString);
     procedure ResetSelectedTableStuff;
     procedure SetWindowCaption;
@@ -1662,17 +1657,10 @@ begin
   ClearAllTableLists;
   FreeAndNil(AllDatabases);
   FreeAndNil(InformationSchemaTables);
-  FreeAndNil(dsShowEngines);
-  FreeAndNil(dsHaveEngines);
-  FreeAndNil(dsCollations);
   FreeAndNil(FDataGridSelect);
   ResetSelectedTableStuff;
   SynMemoFilter.Clear;
   SetLength(FDataGridSort, 0);
-
-  // Free forms which use session based datasets, fx dsShowEngines
-  FreeAndNil(TableEditor);
-  FreeAndNil(CreateDatabaseForm);
 
   // Closing connection
   if Assigned(Connection) then
@@ -5784,81 +5772,6 @@ end;
 
 
 {**
-  Fetch table engines from server
-  Currently used in tbl_properties and createtable
-}
-procedure TMainForm.TableEnginesCombo(var Combobox: TCombobox);
-var
-  engineName, defaultEngine, engineSupport : String;
-  HaveEngineList : TStrings;
-begin
-  Combobox.Items.BeginUpdate;
-  Combobox.Items.Clear;
-
-  // Cache datasets
-  if dsShowEngines = nil then begin
-    FreeAndNil(dsShowEngines);
-    try
-      dsShowEngines := Connection.GetResults('SHOW ENGINES');
-    except
-      // Ignore errors on old servers
-    end;
-  end;
-  if dsHaveEngines = nil then begin
-    FreeAndNil(dsHaveEngines);
-    dsHaveEngines := Connection.GetResults('SHOW VARIABLES LIKE ''have%''');
-  end;
-
-  if Assigned(dsShowEngines) then begin
-    dsShowEngines.First;
-    while not dsShowEngines.Eof do begin
-      engineName := dsShowEngines.Col('Engine');
-      engineSupport := LowerCase(dsShowEngines.Col('Support'));
-      // Add to dropdown if supported
-      if engineSupport <> 'no' then
-        Combobox.Items.Add(engineName);
-      // Check if this is the default engine
-      if engineSupport = 'default' then
-        defaultEngine := engineName;
-      dsShowEngines.Next;
-    end;
-  end
-  else begin
-    // Manually fetch available engine types by analysing have_* options
-    // This is for servers below 4.1 or when the SHOW ENGINES statement has
-    // failed for some other reason
-
-    // Add default engines which will not show in a have_* variable:
-    Combobox.Items.CommaText := 'MyISAM,MRG_MyISAM,HEAP';
-    defaultEngine := 'MyISAM';
-    // Possible other engines:
-    HaveEngineList := TStringList.Create;
-    HaveEngineList.CommaText := 'ARCHIVE,BDB,BLACKHOLE,CSV,EXAMPLE,FEDERATED,INNODB,ISAM';
-    dsHaveEngines.First;
-    while not dsHaveEngines.Eof do begin
-      engineName := copy(dsHaveEngines.Col(0), 6, Length(dsHaveEngines.Col(0)) );
-      // Strip additional "_engine" suffix, fx from "have_blackhole_engine"
-      if Pos('_', engineName) > 0 then
-        engineName := copy(engineName, 0, Pos('_', engineName)-1);
-      engineName := UpperCase(engineName);
-      // Add engine to dropdown if it's a) in HaveEngineList and b) activated
-      if (HaveEngineList.IndexOf(engineName) > -1)
-        and (LowerCase(dsHaveEngines.Col(1)) = 'yes') then
-        Combobox.Items.Add(engineName);
-      dsHaveEngines.Next;
-    end;
-  end;
-
-  Combobox.Sorted := True;
-
-  // Select default
-  Combobox.ItemIndex := Combobox.Items.IndexOf(defaultEngine);
-
-  Combobox.Items.EndUpdate;
-end;
-
-
-{**
   A row in the process list was selected. Fill SynMemoProcessView with
   the SQL of that row.
 }
@@ -8212,28 +8125,6 @@ begin
   // See also OnInitChildren
   if coVisible in DBtree.Header.Columns[1].Options then
     DBtree.Header.AutoFitColumns(False, smaUseColumnOption, 1, 1);
-end;
-
-
-function TMainform.GetCollations(Items: TWideStrings = nil): TMySQLQuery;
-begin
-  // Return cached collation list, used in several places, e.g. table editor
-  if dsCollations = nil then try
-    dsCollations := Connection.GetResults('SHOW COLLATION');
-  except
-    // Ignore errors on old servers
-  end;
-  if Assigned(dsCollations) then begin
-    dsCollations.First;
-    if Assigned(Items) then begin
-      while not dsCollations.Eof do begin
-        Items.Add(dsCollations.Col('Collation'));
-        dsCollations.Next;
-      end;
-      dsCollations.First;
-    end;
-  end;
-  Result := dsCollations;
 end;
 
 
