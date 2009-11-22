@@ -1009,15 +1009,20 @@ var
 begin
   flushwhat := UpperCase(TAction(Sender).Caption);
   delete(flushwhat, pos('&', flushwhat), 1);
-  Connection.Query('FLUSH ' + flushwhat);
-  if Sender = actFlushTableswithreadlock then begin
-    MessageDlg(
-      'Tables have been flushed and read lock acquired.'#10 +
-      'Perform backup or snapshot of table data files now.'#10 +
-      'Press OK to unlock when done...',
-      mtInformation, [mbOk], 0
-    );
-    Connection.Query('UNLOCK TABLES');
+  try
+    Connection.Query('FLUSH ' + flushwhat);
+    if Sender = actFlushTableswithreadlock then begin
+      MessageDlg(
+        'Tables have been flushed and read lock acquired.'#10 +
+        'Perform backup or snapshot of table data files now.'#10 +
+        'Press OK to unlock when done...',
+        mtInformation, [mbOk], 0
+      );
+      Connection.Query('UNLOCK TABLES');
+    end;
+  except
+    on E:Exception do
+      MessageDlg(E.Message, mtError, [mbOK], 0);
   end;
 end;
 
@@ -2221,15 +2226,15 @@ begin
       lntDb: begin
         if MessageDlg('Drop Database "'+activeDB+'"?' + crlf + crlf + 'WARNING: You will lose all tables in database '+activeDB+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
           Abort;
-        Screen.Cursor := crHourglass;
         try
           Connection.Query('DROP DATABASE ' + mask(activeDB));
-        finally
           DBtree.FocusedNode := DBtree.GetFirst;
           DBTree.Selected[DBtree.FocusedNode] := True;
           ClearDbTableList(activeDB);
           RefreshTree(False);
-          Screen.Cursor := crDefault;
+        except
+          on E:Exception do
+            MessageDlg(E.Message, mtError, [mbOK], 0);
         end;
         Exit;
       end;
@@ -2266,14 +2271,18 @@ begin
   if MessageDlg(msg, mtConfirmation, [mbok,mbcancel], 0) <> mrok then
     Exit;
 
-  // Compose and run DROP [TABLE|VIEW|...] queries
-  DoDrop('TABLE', Tables, True);
-  DoDrop('VIEW', Views, True);
-  DoDrop('PROCEDURE', Procedures, False);
-  DoDrop('FUNCTION', Functions, False);
-
-  // Refresh ListTables + dbtree so the dropped tables are gone:
-  actRefresh.Execute;
+  try
+    // Compose and run DROP [TABLE|VIEW|...] queries
+    DoDrop('TABLE', Tables, True);
+    DoDrop('VIEW', Views, True);
+    DoDrop('PROCEDURE', Procedures, False);
+    DoDrop('FUNCTION', Functions, False);
+    // Refresh ListTables + dbtree so the dropped tables are gone:
+    actRefresh.Execute;
+  except
+    on E:Exception do
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+  end;
 end;
 
 
@@ -2481,10 +2490,15 @@ begin
   else
     sql_pattern := 'TRUNCATE ';
 
-  for i:=0 to t.count-1 do
-    Connection.Query( sql_pattern + mask(t[i]) );
+  try
+    for i:=0 to t.count-1 do
+      Connection.Query( sql_pattern + mask(t[i]) );
+    actRefresh.Execute;
+  except
+    on E:Exception do
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+  end;
   t.Free;
-  actRefresh.Execute;
   Screen.Cursor := crDefault;
 end;
 
@@ -3902,13 +3916,17 @@ begin
   ProcessIDs := GetVTCaptions( ListProcesses, True );
   if MessageDlg('Kill '+inttostr(ProcessIDs.count)+' Process(es)?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
   begin
-    for i := 0 to ProcessIDs.Count - 1 do
-    begin
-      // Don't kill own process
-      if ProcessIDs[i] = IntToStr(Connection.ThreadId) then
-        LogSQL('Ignoring own process id '+ProcessIDs[i]+' when trying to kill it.')
-      else
-        Connection.Query('KILL '+ProcessIDs[i]);
+    try
+      for i:=0 to ProcessIDs.Count-1 do begin
+        // Don't kill own process
+        if ProcessIDs[i] = IntToStr(Connection.ThreadId) then
+          LogSQL('Ignoring own process id '+ProcessIDs[i]+' when trying to kill it.')
+        else
+          Connection.Query('KILL '+ProcessIDs[i]);
+      end;
+    except
+      on E:Exception do
+        MessageDlg(E.Message, mtError, [mbOK], 0);
     end;
     ListProcesses.Tag := VTREE_NOTLOADED;
     ListProcesses.Repaint;
@@ -4354,10 +4372,8 @@ begin
     RefreshActiveDbTableList;
     DBTree.InvalidateChildren(FindDBNode(ActiveDatabase), True);
   except
-    On E : Exception do
-    begin
-      MessageDlg( E.Message, mtError, [mbOK], 0 );
-    end;
+    on E:Exception do
+      MessageDlg(E.Message, mtError, [mbOK], 0);
   end;
 end;
 

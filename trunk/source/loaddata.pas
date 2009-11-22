@@ -290,8 +290,14 @@ begin
 //  if col.Count < ColumnsCheckListBox.Items.Count then
   query := query + '(' + implodestr(',', col) + ')';
 
-  Mainform.Connection.Query(query);
-  close;
+  try
+    Mainform.Connection.Query(query);
+  except
+    on E:Exception do begin
+      MessageDlg(E.Message, mtError, [mbOk], 0);
+      ModalResult := mrNone;
+    end;
+  end;
 end;
 
 procedure Tloaddataform.btnOpenFileClick(Sender: TObject);

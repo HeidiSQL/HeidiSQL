@@ -279,44 +279,48 @@ begin
   if radioStructure.Checked then
     strquery := strquery + ' WHERE 1 = 0';
 
-  Mainform.Connection.Query(strquery, False);
+  try
+    Mainform.Connection.Query(strquery, False);
 
-  // Fix missing auto_increment property and CURRENT_TIMESTAMP defaults in new table
-  Results := Mainform.Connection.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
-  Fixes := TWideStringlist.Create;
-  while not Results.Eof do begin
-    notnull := '';
-    if Results.Col('Null') = '' then
-      notnull := 'NOT NULL';
-    default := '';
-    if Results.Col('Default') <> '' then begin
-      default := 'DEFAULT ';
-      if Results.Col('Default') = 'CURRENT_TIMESTAMP' then
-        default := default + Results.Col('Default')
-      else
-        default := default + esc(Results.Col('Default'));
+    // Fix missing auto_increment property and CURRENT_TIMESTAMP defaults in new table
+    Results := Mainform.Connection.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
+    Fixes := TWideStringlist.Create;
+    while not Results.Eof do begin
+      notnull := '';
+      if Results.Col('Null') = '' then
+        notnull := 'NOT NULL';
+      default := '';
+      if Results.Col('Default') <> '' then begin
+        default := 'DEFAULT ';
+        if Results.Col('Default') = 'CURRENT_TIMESTAMP' then
+          default := default + Results.Col('Default')
+        else
+          default := default + esc(Results.Col('Default'));
+      end;
+
+      if (CheckBoxWithIndexes.Checked and (Results.Col('Extra') = 'auto_increment'))
+        or (Results.Col('Default') = 'CURRENT_TIMESTAMP') then begin
+        Fixes.Add('CHANGE '+Mainform.mask(Results.Col('Field'))+' '+
+          Mainform.mask(Results.Col('Field'))+' '+
+          Results.Col('Type')+' '+default+' '+notnull+' '+Results.Col('Extra'));
+      end;
+
+      Results.Next;
     end;
-
-    if (CheckBoxWithIndexes.Checked and (Results.Col('Extra') = 'auto_increment'))
-      or (Results.Col('Default') = 'CURRENT_TIMESTAMP') then begin
-      Fixes.Add('CHANGE '+Mainform.mask(Results.Col('Field'))+' '+
-        Mainform.mask(Results.Col('Field'))+' '+
-        Results.Col('Type')+' '+default+' '+notnull+' '+Results.Col('Extra'));
+    if Fixes.Count > 0 then begin
+      Mainform.Connection.Query('ALTER TABLE '+Mainform.mask(ComboSelectDatabase.Text) + '.'+Mainform.mask(editNewTablename.Text)+ ' '+
+        ImplodeStr(', ', Fixes)
+        );
     end;
-
-    Results.Next;
+    Results.Free;
+    FreeAndNil(Fixes);
+    Mainform.actRefresh.Execute;
+  except
+    on E:Exception do begin
+      MessageDlg(E.Message, mtError, [mbOk], 0);
+      ModalResult := mrNone;
+    end;
   end;
-  if Fixes.Count > 0 then begin
-    Mainform.Connection.Query('ALTER TABLE '+Mainform.mask(ComboSelectDatabase.Text) + '.'+Mainform.mask(editNewTablename.Text)+ ' '+
-      ImplodeStr(', ', Fixes)
-      );
-  end;
-  Results.Free;
-  FreeAndNil(Fixes);
-
-  Mainform.actRefresh.Execute;
-  close;
-
 end;
 
 procedure TCopyTableForm.CheckListBoxFieldsClickCheck(Sender: TObject);
