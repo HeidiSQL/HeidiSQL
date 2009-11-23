@@ -2036,14 +2036,19 @@ end;
 }
 function FormatTimeNumber( Seconds: Cardinal ): String;
 var
-  h, m, s : Integer;
+  d, h, m, s : Integer;
 begin
-  s := Seconds mod (60*60*24);
+  s := Seconds;
+  d := s div (60*60*24);
+  s := s mod (60*60*24);
   h := s div (60*60);
   s := s mod (60*60);
   m := s div 60;
   s := s mod 60;
-  Result := Format('%.2d:%.2d:%.2d', [h, m, s]);
+  if d > 0 then
+    Result := Format('%d days, %.2d:%.2d:%.2d', [d, h, m, s])
+  else
+    Result := Format('%.2d:%.2d:%.2d', [h, m, s]);
 end;
 
 
