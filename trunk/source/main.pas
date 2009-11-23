@@ -4277,20 +4277,11 @@ end;
 
 
 procedure TMainForm.TimerHostUptimeTimer(Sender: TObject);
-var
-  ServerUptime, days, hours, minutes, seconds : Integer;
 begin
-  // Host-Uptime
-  if Assigned(Connection) then begin
-    ServerUptime := Connection.ServerUptime;
-    days:= ServerUptime div (60*60*24);
-    seconds := ServerUptime mod (60*60*24);
-    hours := seconds div (60*60);
-    seconds := seconds mod (60*60);
-    minutes  := seconds div 60;
-    seconds := seconds mod 60;
-    showstatus(Format('Uptime: %d days, %.2d:%.2d:%.2d', [days,hours,minutes,seconds]), 4);
-  end else
+  // Display server uptime
+  if Assigned(Connection) then
+    showstatus('Uptime: '+FormatTimeNumber(Connection.ServerUptime), 4)
+  else
     showstatus('', 4);
 end;
 
