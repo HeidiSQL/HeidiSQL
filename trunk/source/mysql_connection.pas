@@ -66,7 +66,8 @@ type
     private
       FHandle: PMYSQL;
       FActive: Boolean;
-      FConnectionStarted: Cardinal;
+      FConnectionStarted: Integer;
+      FServerStarted: Integer;
       FHostname: String;
       FSocketname: String;
       FPort: Integer;
@@ -99,6 +100,8 @@ type
       function GetTableEngines: TStringList;
       function GetCollationTable: TMySQLQuery;
       function GetCollationList: TStringList;
+      function GetConnectionUptime: Integer;
+      function GetServerUptime: Integer;
       procedure Log(Category: TMySQLLogCategory; Msg: WideString);
       procedure DetectCapabilities;
       procedure ClearCache;
@@ -116,7 +119,8 @@ type
       function GetVar(SQL: WideString; Column: WideString): WideString; overload;
       function Ping: Boolean;
       property ThreadId: Cardinal read GetThreadId;
-      property ConnectionStarted: Cardinal read FConnectionStarted;
+      property ConnectionUptime: Integer read GetConnectionUptime;
+      property ServerUptime: Integer read GetServerUptime;
       property CharacterSet: String read GetCharacterSet write SetCharacterSet;
       property LastError: WideString read GetLastError;
       property ServerVersionUntouched: String read FServerVersionUntouched;
@@ -281,7 +285,8 @@ begin
       CurCharset := CharacterSet;
       Log(lcInfo, 'Characterset: '+CurCharset);
       FIsUnicode := CurCharset = 'utf8';
-      FConnectionStarted := GetTickCount;
+      FConnectionStarted := GetTickCount div 1000;
+      FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), 1);
       FServerVersionUntouched := mysql_get_server_info(FHandle);
       DetectCapabilities;
       tmpdb := FDatabase;
@@ -706,6 +711,23 @@ begin
     Result.Add(c.Col('Collation'));
     c.Next;
   end;
+end;
+
+
+function TMySQLConnection.GetConnectionUptime: Integer;
+begin
+  // Return seconds since last connect
+  if not FActive then
+    Result := 0
+  else
+    Result := Integer(GetTickCount div 1000) - FConnectionStarted;
+end;
+
+
+function TMySQLConnection.GetServerUptime: Integer;
+begin
+  // Return server uptime in seconds
+  Result := Integer(GetTickCount div 1000) - FServerStarted;
 end;
 
 
