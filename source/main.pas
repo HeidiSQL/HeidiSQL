@@ -538,7 +538,6 @@ type
     procedure DiscardNodeData(Sender: TVirtualStringTree; Node: PVirtualNode);
     procedure viewdata(Sender: TObject);
     procedure LogSQL(Msg: WideString; Category: TMySQLLogCategory=lcInfo);
-    procedure CheckUptime;
     procedure KillProcess(Sender: TObject);
     procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false;
       CurrentLine: Boolean=false);
@@ -702,7 +701,6 @@ type
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
-    ServerUptime               : Integer;
     viewingdata                : Boolean;
     CachedTableLists           : TWideStringList;
     EditVariableForm           : TfrmEditVariable;
@@ -1562,8 +1560,6 @@ begin
 
   DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
 
-  CheckUptime;
-
   // Reselect last used database
   if GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) then begin
     lastUsedDB := Utf8Decode(GetRegValue(REGNAME_LASTUSEDDB, '', SessionName));
@@ -1678,8 +1674,6 @@ begin
   ListCommandstats.Tag := VTREE_NOTLOADED;
 
   Application.Title := APPNAME;
-
-  TimerHostUptime.Enabled := False;
 end;
 
 
@@ -3880,15 +3874,6 @@ begin
 end;
 
 
-procedure TMainForm.CheckUptime;
-begin
-  ServerUptime := MakeInt(Connection.GetVar('SHOW STATUS LIKE ''Uptime''', 1));
-  // Avoid division by zero
-  ServerUptime := Max(ServerUptime, 1);
-  TimerHostUptime.Enabled := true;
-end;
-
-
 procedure TMainForm.KillProcess(Sender: TObject);
 var t : Boolean;
   ProcessIDs : TWideStringList;
@@ -4293,22 +4278,20 @@ end;
 
 procedure TMainForm.TimerHostUptimeTimer(Sender: TObject);
 var
-  days, hours, minutes, seconds : Integer;
-  msg: string;
+  ServerUptime, days, hours, minutes, seconds : Integer;
 begin
   // Host-Uptime
-  days:= ServerUptime div (60*60*24);
-  seconds := ServerUptime mod (60*60*24);
-  hours := seconds div (60*60);
-  seconds := seconds mod (60*60);
-  minutes  := seconds div 60;
-  seconds := seconds mod 60;
-
-  inc(ServerUptime);
-  msg := Format('%d days, %.2d:%.2d:%.2d', [days,hours,minutes,seconds]);
-  if TimerHostUptime.Enabled then msg := Format('Uptime: %s', [msg])
-  else msg := '';
-  showstatus(msg, 4);
+  if Assigned(Connection) then begin
+    ServerUptime := Connection.ServerUptime;
+    days:= ServerUptime div (60*60*24);
+    seconds := ServerUptime mod (60*60*24);
+    hours := seconds div (60*60);
+    seconds := seconds mod (60*60);
+    minutes  := seconds div 60;
+    seconds := seconds mod 60;
+    showstatus(Format('Uptime: %d days, %.2d:%.2d:%.2d', [days,hours,minutes,seconds]), 4);
+  end else
+    showstatus('', 4);
 end;
 
 
@@ -4366,7 +4349,7 @@ procedure TMainForm.TimerConnectedTimer(Sender: TObject);
 begin
   if Assigned(Connection) and Connection.Active then begin
     // calculate and display connection-time
-    showstatus('Connected: ' + FormatTimeNumber((GetTickCount-Connection.ConnectionStarted) Div 1000), 2 );
+    showstatus('Connected: ' + FormatTimeNumber(Connection.ConnectionUptime), 2);
   end else begin
     showstatus('Disconnected.', 2);
   end;
@@ -7702,11 +7685,11 @@ begin
       if valIsNumber then begin
         valCount := MakeInt(val);
         // ... per hour
-        tmpval := valCount / ( ServerUptime / 60 / 60 );
+        tmpval := valCount / ( Connection.ServerUptime / 60 / 60 );
         if valIsBytes then avg_perhour := FormatByteNumber( Trunc(tmpval) )
         else avg_perhour := FormatNumber( tmpval, 1 );
         // ... per second
-        tmpval := valCount / ServerUptime;
+        tmpval := valCount / Connection.ServerUptime;
         if valIsBytes then avg_persec := FormatByteNumber( Trunc(tmpval) )
         else avg_persec := FormatNumber( tmpval, 1 );
       end;
@@ -7802,10 +7785,10 @@ procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; Target
     // Total Frequency
     VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( commandCount ) );
     // Average per hour
-    tmpval := commandCount / ( ServerUptime / 60 / 60 );
+    tmpval := commandCount / ( Connection.ServerUptime / 60 / 60 );
     VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Average per second
-    tmpval := commandCount / ServerUptime;
+    tmpval := commandCount / Connection.ServerUptime;
     VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Percentage. Take care of division by zero errors and Int64's
     if commandCount < 1 then
