@@ -87,7 +87,6 @@ type
       FTableEngineDefault: String;
       FCollationTable: TMySQLQuery;
       FCollationsUnavailable: Boolean;
-      function GetActive: Boolean;
       procedure SetActive(Value: Boolean);
       procedure SetDatabase(Value: WideString);
       function GetThreadId: Cardinal;
@@ -115,6 +114,7 @@ type
       function GetCol(SQL: WideString; Column: Integer=0): TWideStringList;
       function GetVar(SQL: WideString; Column: Integer=0): WideString; overload;
       function GetVar(SQL: WideString; Column: WideString): WideString; overload;
+      function Ping: Boolean;
       property ThreadId: Cardinal read GetThreadId;
       property ConnectionStarted: Cardinal read FConnectionStarted;
       property CharacterSet: String read GetCharacterSet write SetCharacterSet;
@@ -132,7 +132,7 @@ type
       property CollationTable: TMySQLQuery read GetCollationTable;
       property CollationList: TStringList read GetCollationList;
     published
-      property Active: Boolean read GetActive write SetActive default False;
+      property Active: Boolean read FActive write SetActive default False;
       property Hostname: String read FHostname write FHostname;
       property Socketname: String read FSocketname write FSocketname;
       property Port: Integer read FPort write FPort default MYSQL_PORT;
@@ -301,7 +301,7 @@ begin
 end;
 
 
-function TMySQLConnection.GetActive: Boolean;
+function TMySQLConnection.Ping: Boolean;
 begin
   if FActive and (mysql_ping(FHandle) <> 0) then begin
     Active := False;
@@ -319,7 +319,7 @@ var
   querystatus: Integer;
   NativeSQL: String;
 begin
-  if not Active then
+  if not Ping then
     Active := True;
   Log(lcSQL, SQL);
   NativeSQL := UTF8Encode(SQL);
