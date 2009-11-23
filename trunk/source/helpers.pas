@@ -133,7 +133,6 @@ type
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
   function MakeFloat( Str: String ): Extended;
-  function FloatStr(Val: String): String;
   function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
   function ScanNulChar(Text: WideString): Boolean;
   function ScanLineBreaks(Text: WideString): TLineBreaks;
@@ -144,6 +143,7 @@ type
   function getFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
   function goodfilename( str: String ): String;
   function FormatNumber( str: String ): String; Overload;
+  function UnformatNumber(Val: String): String;
   function FormatNumber( int: Int64 ): String; Overload;
   function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
   procedure setLocales;
@@ -953,7 +953,7 @@ begin
       // Remove 0x.
       if GridData.Columns[i].DatatypeCat = dtcBinary then Delete(Data, 1, 2);
       // Unformat float values
-      if GridData.Columns[i].DatatypeCat = dtcReal then Data := FloatStr(Data);
+      if GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then Data := UnformatNumber(Data);
       // Escape encloser characters inside data per de-facto CSV.
       Data := WideStringReplace(Data, Encloser, Encloser + Encloser, [rfReplaceAll]);
       // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
@@ -1031,7 +1031,7 @@ begin
         // Remove 0x.
         if GridData.Columns[i].DatatypeCat = dtcBinary then Delete(Data, 1, 2);
         // Unformat float values
-        if GridData.Columns[i].DatatypeCat = dtcReal then Data := FloatStr(Data);
+        if GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then Data := UnformatNumber(Data);
         // Escape XML control characters in data.
         Data := htmlentities(Data);
         // Add data and cell end tag.
@@ -1109,7 +1109,7 @@ begin
         // Remove 0x.
         if GridData.Columns[i].DatatypeCat = dtcBinary then Delete(Data, 1, 2);
         // Unformat float values
-        if GridData.Columns[i].DatatypeCat = dtcReal then Data := FloatStr(Data);
+        if GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then Data := UnformatNumber(Data);
         // Add data and cell end tag.
         tmp := tmp + esc(Data);
       end;
@@ -1506,18 +1506,6 @@ begin
 end;
 
 
-{**
-  Unformat a formatted float value. Used for CSV export and composing WHERE clauses for grid editing.
-}
-function FloatStr(Val: String): String;
-begin
-  Result := Val;
-  if ThousandSeparator <> DecimalSeparator then
-    Result := StringReplace(Val, ThousandSeparator, '', [rfReplaceAll]);
-  Result := StringReplace(Val, DecimalSeparator, '.', [rfReplaceAll]);
-end;
-
-
 {***
  Attempt to do string replacement faster than StringReplace and WideStringReplace.
 }
@@ -1834,19 +1822,35 @@ end;
 
 
 
-{***
-  Return a formatted number from a string
-  by first converting it to a float and then to the desired format
+{**
+  Unformat a formatted integer or float. Used for CSV export and composing WHERE clauses for grid editing.
+}
+function UnformatNumber(Val: String): String;
+begin
+  Result := Val;
+  if ThousandSeparator <> DecimalSeparator then
+    Result := StringReplace(Result, ThousandSeparator, '', [rfReplaceAll]);
+  Result := StringReplace(Result, DecimalSeparator, '.', [rfReplaceAll]);
+end;
 
+
+{***
+  Return a formatted integer or float from a string
   @param string Text containing a number
   @return string
 }
 function FormatNumber( str: String ): String; Overload;
+var
+  i, p: Integer;
 begin
-  if str <> '' then
-    result := FormatNumber( StrToFloat( str ) )
-  else
-    result := FormatNumber( 0 );
+  Result := str;
+  Result := StringReplace(Result, '.', DecimalSeparator, [rfReplaceAll]);
+  p := Pos(DecimalSeparator, Result);
+  if p = 0 then p := Length(Result)+1;
+  if p > 0 then for i:=p-1 downto 2 do begin
+    if (p-i) mod 3 = 0 then
+      Insert(ThousandSeparator, Result, i);
+  end;
 end;
 
 
