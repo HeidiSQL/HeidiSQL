@@ -4030,10 +4030,11 @@ begin
       ActiveGridResult.Rows[i].Loaded := True;
       SetLength(ActiveGridResult.Rows[i].Cells, Results.ColumnCount);
       for j:=0 to Results.ColumnCount-1 do begin
-        if ActiveGridResult.Columns[j].DatatypeCat = dtcBinary then
-          ActiveGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j))
-        else
-          ActiveGridResult.Rows[i].Cells[j].Text := Results.Col(j);
+        case ActiveGridResult.Columns[j].DatatypeCat of
+          dtcInteger, dtcReal: ActiveGridResult.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j));
+          dtcBinary: ActiveGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j));
+          else ActiveGridResult.Rows[i].Cells[j].Text := Results.Col(j);
+        end;
         ActiveGridResult.Rows[i].Cells[j].IsNull := Results.IsNull(j);
       end;
       Results.Next;
@@ -6443,10 +6444,11 @@ begin
       SetLength(res.Rows[Node.Index].Cells, Results.ColumnCount);
       i := Node.Index;
       for j := 0 to Results.ColumnCount - 1 do begin
-        if res.Columns[j].DatatypeCat = dtcBinary then
-          res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j))
-        else
-          res.Rows[i].Cells[j].Text := Results.Col(j);
+        case res.Columns[j].DatatypeCat of
+          dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j));
+          dtcBinary: res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j));
+          else res.Rows[i].Cells[j].Text := Results.Col(j);
+        end;
         res.Rows[i].Cells[j].IsNull := Results.IsNull(j);
       end;
       res.Rows[Node.Index].Loaded := True;
@@ -6524,10 +6526,11 @@ begin
     for i:=start to start+limit-1 do begin
       SetLength(res.Rows[i].Cells, Results.ColumnCount);
       for j:=0 to Results.ColumnCount-1 do begin
-        if res.Columns[j].DatatypeCat = dtcBinary then
-          res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j))
-        else
-          res.Rows[i].Cells[j].Text := Results.Col(j);
+        case res.Columns[j].DatatypeCat of
+          dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j));
+          dtcBinary: res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j));
+          else res.Rows[i].Cells[j].Text := Results.Col(j);
+        end;
         res.Rows[i].Cells[j].IsNull := Results.IsNull(j);
       end;
       res.Rows[i].Loaded := True;
@@ -6809,13 +6812,14 @@ begin
   for i := 0 to Length(DataGridResult.Columns) - 1 do begin
     if Row.Cells[i].Modified then begin
       Val := Row.Cells[i].NewText;
-      if DataGridResult.Columns[i].DatatypeCat = dtcReal then
-        Val := FloatStr(Val)
-      else if DataGridResult.Columns[i].DatatypeCat = dtcBinary then begin
-        CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + DataGridResult.Columns[i].Name + '".');
-        if Val = '0x' then Val := esc('');
-      end else
-        Val := esc(Val);
+      case DataGridResult.Columns[i].DatatypeCat of
+        dtcInteger, dtcReal: Val := UnformatNumber(Val);
+        dtcBinary: begin
+          CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + DataGridResult.Columns[i].Name + '".');
+          if Val = '0x' then Val := esc('');
+        end;
+        else Val := esc(Val);
+      end;
       if Row.Cells[i].NewIsNull then Val := 'NULL';
       sql := sql + ' ' + mask(DataGridResult.Columns[i].Name) + '=' + Val + ', ';
     end;
@@ -6898,13 +6902,11 @@ begin
     // Find old value of key column
     KeyVal := Row.Cells[j].Text;
     // Quote if needed
-    if DataGridResult.Columns[j].DatatypeCat = dtcReal then
-      KeyVal := FloatStr(KeyVal)
-    else if DataGridResult.Columns[j].DatatypeCat = dtcBinary then begin
-      if KeyVal = '0x' then
-        KeyVal := esc('');
-    end else
-      KeyVal := esc(KeyVal);
+    case DataGridResult.Columns[j].DatatypeCat of
+      dtcInteger, dtcReal: KeyVal := UnformatNumber(KeyVal);
+      dtcBinary: if KeyVal = '0x' then KeyVal := esc('');
+      else KeyVal := esc(KeyVal);
+    end;
 
     if Row.Cells[j].IsNull then KeyVal := ' IS NULL'
     else KeyVal := '=' + KeyVal;
@@ -7018,14 +7020,15 @@ begin
     if Row.Cells[i].Modified then begin
       Cols := Cols + mask(DataGridResult.Columns[i].Name) + ', ';
       Val := Row.Cells[i].NewText;
-      if DataGridResult.Columns[i].DatatypeCat = dtcReal then
-        Val := FloatStr(Val)
-      else if DataGridResult.Columns[i].DatatypeCat = dtcBinary then begin
-        CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + DataGridResult.Columns[i].Name + '".');
-        if Val = '0x' then
-          Val := esc('');
-      end else
-        Val := esc(Val);
+      case DataGridResult.Columns[i].DatatypeCat of
+        dtcInteger, dtcReal: Val := UnformatNumber(Val);
+        dtcBinary: begin
+          CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + DataGridResult.Columns[i].Name + '".');
+          if Val = '0x' then
+            Val := esc('');
+        end;
+        else Val := esc(Val);
+      end;
       if Row.Cells[i].NewIsNull then Val := 'NULL';
       Vals := Vals + Val + ', ';
     end;
@@ -7202,8 +7205,11 @@ begin
         ' WHERE ' + GetWhereClause(Row, @DataGridResult.Columns)
       ;
       Results := Connection.GetResults(sql);
-      if Col.DatatypeCat = dtcBinary then Cell.Text := '0x' + BinToWideHex(Results.Col(0))
-      else Cell.Text := Results.Col(0);
+      case Col.DatatypeCat of
+        dtcInteger, dtcReal: Cell.Text := FormatNumber(Results.Col(0));
+        dtcBinary: Cell.Text := '0x' + BinToWideHex(Results.Col(0));
+        else Cell.Text := Results.Col(0);
+      end;
       Cell.IsNull := Results.IsNull(0);
     end else
       Result := False;
