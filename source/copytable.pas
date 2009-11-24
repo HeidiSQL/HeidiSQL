@@ -256,6 +256,7 @@ begin
         strquery := strquery + ' COLLATE ' + Results.Col(DBO_COLLATION);
       if Results.ColExists(DBO_ENGINE) and (Results.Col(DBO_ENGINE) <> '') then
         strquery := strquery + ' ENGINE=' + Results.Col(DBO_ENGINE);
+      strquery := strquery + ' COMMENT=' + esc(Results.Col(DBO_COMMENT));
       break;
     end;
     Results.Next;
