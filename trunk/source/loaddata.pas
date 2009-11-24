@@ -256,7 +256,7 @@ begin
   query := query + 'INTO TABLE ' + Mainform.Mask(comboDatabase.Text) + '.' +  Mainform.Mask(comboTable.Text) + ' ';
 
   if comboCharset.ItemIndex > 0 then begin
-    dsCharsets.RecNo := comboCharset.ItemIndex;
+    dsCharsets.RecNo := comboCharset.ItemIndex-1;
     query := query + 'CHARACTER SET '+dsCharsets.Col(0)+' ';
   end;
 
