@@ -115,6 +115,9 @@ type
     lblShortcutHint: TLabel;
     Shortcut2: TSynHotKey;
     lblShortcut2: TLabel;
+    grpSQLTabWidth: TGroupBox;
+    editSQLTabWidth: TEdit;
+    updownSQLTabWidth: TUpDown;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -204,6 +207,7 @@ begin
   MainReg.WriteBool(REGNAME_RESTORELASTUSEDDB, chkRestoreLastDB.Checked);
   MainReg.WriteString(REGNAME_FONTNAME, comboSQLFontName.Text);
   MainReg.WriteInteger(REGNAME_FONTSIZE, updownSQLFontSize.Position);
+  MainReg.WriteInteger(REGNAME_TABWIDTH, updownSQLTabWidth.Position);
   MainReg.WriteInteger(REGNAME_LOGSQLNUM, updownLogLines.Position);
   MainReg.WriteInteger(REGNAME_LOGSQLWIDTH, updownLogSnip.Position);
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
@@ -332,12 +336,12 @@ begin
   InheritFont(Font);
   EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, LPARAM(Pointer(comboSQLFontName.Items)));
   SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
-    '  ''String literal'' AS lit' + CRLF +
+    #9'''String literal'' AS lit' + CRLF +
     'FROM tableA AS ta -- A comment' + CRLF +
     'WHERE `columnA` IS NULL; # More comment' + CRLF +
     CRLF +
     'CREATE TABLE /*!32312 IF NOT EXISTS*/ tableB' + CRLF +
-    '  (id INT, name VARCHAR(30) DEFAULT "standard")';
+    #9'(id INT, name VARCHAR(30) DEFAULT "standard")';
   SynSQLSynSQLSample.TableNames.CommaText := 'tableA,tableB';
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do
     comboSQLColElement.Items.Add(SynSQLSynSQLSample.Attribute[i].FriendlyName);
@@ -390,6 +394,7 @@ begin
   Mainform.SetupSynEditors;
   comboSQLFontName.ItemIndex := comboSQLFontName.Items.IndexOf(SynMemoSQLSample.Font.Name);
   updownSQLFontSize.Position := SynMemoSQLSample.Font.Size;
+  updownSQLTabWidth.Position := SynMemoSQLSample.TabWidth;
   comboSQLColElementChange(Sender);
 
   // Data-Appearance:
@@ -430,6 +435,7 @@ var
 begin
   SynMemoSQLSample.Font.Name := comboSQLFontName.Items[comboSQLFontName.ItemIndex];
   SynMemoSQLSample.Font.Size := updownSQLFontSize.Position;
+  SynMemoSQLSample.TabWidth := updownSQLTabWidth.Position;
   AttriIdx := comboSQLColElement.ItemIndex;
   Foreground := cboxSQLColForeground.Selected;
   Background := cboxSQLColBackground.Selected;

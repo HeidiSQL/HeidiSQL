@@ -206,22 +206,22 @@ object optionsform: Toptionsform
       object grpSQLFont: TGroupBox
         Left = 1
         Top = 1
-        Width = 397
+        Width = 288
         Height = 56
         Anchors = [akLeft, akTop, akRight, akBottom]
         Caption = 'Editor font'
         TabOrder = 0
         object lblSQLFontSize: TLabel
-          Left = 248
+          Left = 263
           Top = 26
-          Width = 23
+          Width = 10
           Height = 13
-          Caption = 'Size:'
+          Caption = 'pt'
         end
         object comboSQLFontName: TComboBox
           Left = 16
           Top = 23
-          Width = 193
+          Width = 181
           Height = 21
           Style = csDropDownList
           ItemHeight = 13
@@ -229,7 +229,7 @@ object optionsform: Toptionsform
           OnChange = SQLFontChange
         end
         object editSQLFontSize: TEdit
-          Left = 294
+          Left = 200
           Top = 23
           Width = 41
           Height = 21
@@ -238,7 +238,7 @@ object optionsform: Toptionsform
           OnExit = SQLFontChange
         end
         object updownSQLFontSize: TUpDown
-          Left = 335
+          Left = 241
           Top = 23
           Width = 16
           Height = 21
@@ -364,6 +364,32 @@ object optionsform: Toptionsform
           TabWidth = 2
           WordWrap = True
           OnChange = SQLFontChange
+        end
+      end
+      object grpSQLTabWidth: TGroupBox
+        Left = 295
+        Top = 1
+        Width = 102
+        Height = 56
+        Caption = 'Tab width'
+        TabOrder = 3
+        object editSQLTabWidth: TEdit
+          Left = 14
+          Top = 23
+          Width = 43
+          Height = 21
+          TabOrder = 0
+          Text = '0'
+          OnExit = SQLFontChange
+        end
+        object updownSQLTabWidth: TUpDown
+          Left = 57
+          Top = 23
+          Width = 16
+          Height = 21
+          Associate = editSQLTabWidth
+          TabOrder = 1
+          OnClick = updownSQLFontSizeClick
         end
       end
     end
