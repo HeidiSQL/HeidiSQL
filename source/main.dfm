@@ -251,7 +251,7 @@ object MainForm: TMainForm
     object ToolBarQuery: TToolBar
       Left = 494
       Top = 2
-      Width = 268
+      Width = 222
       Height = 22
       Align = alNone
       AutoSize = True
@@ -266,55 +266,45 @@ object MainForm: TMainForm
         Top = 0
         Action = actExecuteQuery
       end
-      object btnExecuteSelection: TToolButton
-        Left = 23
-        Top = 0
-        Action = actExecuteSelection
-      end
-      object btnExecuteLine: TToolButton
-        Left = 46
-        Top = 0
-        Action = actExecuteLine
-      end
       object btnLoadSQL: TToolButton
-        Left = 69
+        Left = 23
         Top = 0
         Action = actLoadSQL
         DropdownMenu = PopupQueryLoad
         Style = tbsDropDown
       end
       object btnSaveSQL: TToolButton
-        Left = 107
+        Left = 61
         Top = 0
         Action = actSaveSQL
       end
       object btnSaveSQLSnippet: TToolButton
-        Left = 130
+        Left = 84
         Top = 0
         Action = actSaveSQLSnippet
       end
       object btnQueryFind: TToolButton
-        Left = 153
+        Left = 107
         Top = 0
         Action = actQueryFind
       end
       object btnQueryReplace: TToolButton
-        Left = 176
+        Left = 130
         Top = 0
         Action = actQueryReplace
       end
       object btnStopOnErrors: TToolButton
-        Left = 199
+        Left = 153
         Top = 0
         Action = actQueryStopOnErrors
       end
       object btnQueryWordwrap: TToolButton
-        Left = 222
+        Left = 176
         Top = 0
         Action = actQueryWordWrap
       end
       object btnSetDelimiter: TToolButton
-        Left = 245
+        Left = 199
         Top = 0
         Action = actSetDelimiter
       end
