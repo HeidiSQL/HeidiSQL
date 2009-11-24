@@ -8812,7 +8812,7 @@ var
   Editors: TObjectList;
   BaseEditor, Editor: TSynMemo;
   FontName: String;
-  FontSize: Integer;
+  FontSize, TabWidth: Integer;
   KeyStroke: TSynEditKeyStroke;
   ActiveLineColor: TColor;
   Attri: TSynHighlighterAttributes;
@@ -8844,6 +8844,7 @@ begin
 
   FontName := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
   FontSize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
+  TabWidth := GetRegValue(REGNAME_TABWIDTH, DEFAULT_TABWIDTH);
   ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
   for i:=0 to Editors.Count-1 do begin
     Editor := Editors[i] as TSynMemo;
@@ -8853,7 +8854,7 @@ begin
     Editor.Gutter.Font.Size := FontSize;
     Editor.ActiveLineColor := ActiveLineColor;
     Editor.Options := BaseEditor.Options;
-    Editor.TabWidth := BaseEditor.TabWidth;
+    Editor.TabWidth := TabWidth;
     Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
     // Shortcuts
     if Editor = BaseEditor then for j:=0 to Editor.Keystrokes.Count-1 do begin
