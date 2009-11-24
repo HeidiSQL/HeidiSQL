@@ -1192,7 +1192,7 @@ begin
           if c = 'Y' then PrivValues.Add(p.PrivNames[k]);
       end;
       // Insert new privilege definition.
-      sql := 'INSERT INTO ' + db + '.' + TableName;
+      sql := 'INSERT IGNORE INTO ' + db + '.' + TableName;
       if SetFieldName <> '' then
         PrivUpdates.Add(mask(SetFieldName) + '=' + esc(Delim(PrivValues, False)));
       sql := sql + ' SET ' + PrivWhere + ', ' + Delim(PrivUpdates);
@@ -1208,11 +1208,11 @@ begin
           PrivValues.Add(mask('x509_subject') + '=' + esc(''));
         if PrivValues.Count > 0 then
           sql := sql + ', ' + Delim(PrivValues);
-        sql := sql + ' ON DUPLICATE KEY UPDATE';
-        sql := sql + ' ' + Delim(PrivUpdates);
       end;
       try
         Mainform.Connection.Query(sql);
+        if Mainform.Connection.RowsAffected = 0 then
+          Mainform.Connection.Query('UPDATE ' + db + '.' + TableName + ' SET ' +Delim(PrivUpdates) + AcctWhere);
       except
         on E:Exception do begin
           MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -1236,8 +1236,6 @@ begin
         sql := 'INSERT INTO ' + db + '.' + PRIVTABLE_TABLES;
         sql := sql + ' SET ' + PrivWhere;
         sql := sql + ', ' + mask('column_priv') + '=' + esc(Delim(PrivValues, False));
-        sql := sql + ' ON DUPLICATE KEY UPDATE';
-        sql := sql + ' ' + mask('column_priv') + '=' + esc(Delim(PrivValues, False));
         try
           Mainform.Connection.Query(sql);
         except
