@@ -732,7 +732,7 @@ type
     procedure PlaceObjectEditor(Which: TListNodeType);
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
-    procedure SaveQueryMemo(Filename: String; OnlySelection: Boolean);
+    procedure SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
     procedure UpdateFilterPanel(Sender: TObject);
     procedure DatabaseChanged(Database: WideString);
   public
@@ -2598,22 +2598,22 @@ begin
   if SaveDialogSQLFile.Execute then begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
-    SaveQueryMemo(SaveDialogSQLFile.FileName, (Sender as TAction).Tag = 1);
+    SaveQueryMemo(ActiveQueryTab, SaveDialogSQLFile.FileName, (Sender as TAction).Tag = 1);
   end;
 end;
 
 
-procedure TMainForm.SaveQueryMemo(Filename: String; OnlySelection: Boolean);
+procedure TMainForm.SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
 var
   Text, LB: WideString;
 begin
   Screen.Cursor := crHourGlass;
   if OnlySelection then
-    Text := ActiveQueryMemo.SelText
+    Text := Tab.Memo.SelText
   else
-    Text := ActiveQueryMemo.Text;
+    Text := Tab.Memo.Text;
   LB := '';
-  case ActiveQueryTab.MemoLineBreaks of
+  case Tab.MemoLineBreaks of
     lbsUnix: LB := LB_UNIX;
     lbsMac: LB := LB_MAC;
     lbsWide: LB := LB_WIDE;
@@ -2621,9 +2621,9 @@ begin
   if LB <> '' then
     Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
   SaveUnicodeFile( Filename, Text );
-  SetTabCaption(PageControlMain.ActivePageIndex, ExtractFilename(Filename));
-  ActiveQueryTab.MemoFilename := Filename;
-  ActiveQueryTab.Memo.Modified := False;
+  SetTabCaption(Tab.Number+tabData.PageIndex, ExtractFilename(Filename));
+  Tab.MemoFilename := Filename;
+  Tab.Memo.Modified := False;
   Screen.Cursor := crDefault;
 end;
 
@@ -8665,9 +8665,9 @@ begin
       mrNo: Result := True;
       mrYes: begin
         if Tab.MemoFilename <> '' then
-          SaveQueryMemo(Tab.MemoFilename, False)
-        else
-          actSaveSQLExecute(actSaveSQL);
+          SaveQueryMemo(Tab, Tab.MemoFilename, False)
+        else if SaveDialogSQLFile.Execute then
+          SaveQueryMemo(Tab, SaveDialogSQLFile.FileName, False);
         // The save dialog can be cancelled.
         Result := not Tab.Memo.Modified;
       end;
