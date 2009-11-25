@@ -2263,9 +2263,16 @@ end;
 
 // Load SQL-file, make sure that SheetQuery is activated
 procedure TMainForm.actLoadSQLExecute(Sender: TObject);
+var
+  i: Integer;
 begin
-  if OpenDialogSQLfile.Execute then
-    QueryLoad( OpenDialogSQLfile.FileName );
+  if OpenDialogSQLfile.Execute then begin
+    for i:=0 to OpenDialogSQLfile.Files.Count-1 do begin
+      if i > 0 then
+        actNewQueryTabExecute(Sender);
+      QueryLoad(OpenDialogSQLfile.Files[i]);
+    end;
+  end;
 end;
 
 
