@@ -189,7 +189,6 @@ type
     ReplaceDialogQuery: TReplaceDialog;
     ToolBarQuery: TToolBar;
     btnExecuteQuery: TToolButton;
-    btnExecuteSelection: TToolButton;
     btnLoadSQL: TToolButton;
     btnSaveSQL: TToolButton;
     btnSaveSQLSnippet: TToolButton;
@@ -198,7 +197,6 @@ type
     btnStopOnErrors: TToolButton;
     btnQueryWordwrap: TToolButton;
     PopupQueryLoad: TPopupMenu;
-    btnExecuteLine: TToolButton;
     actSetDelimiter: TAction;
     btnSetDelimiter: TToolButton;
     actDataCancelChanges: TAction;
