@@ -1840,24 +1840,8 @@ end;
   @return string
 }
 function FormatNumber( str: String ): String; Overload;
-var
-  i, p, Left: Integer;
 begin
-  Result := str;
-  Result := StringReplace(Result, '.', DecimalSeparator, [rfReplaceAll]);
-  // Do not add thousand separators to zerofilled numbers
-  if ((Length(Result) >= 1) and (Result[1] = '0'))
-    or ((Length(Result) >= 1) and (Result[1] = '-') and (Result[1] = '0')) then
-    Exit;
-  p := Pos(DecimalSeparator, Result);
-  if p = 0 then p := Length(Result)+1;
-  Left := 2;
-  if (Length(Result) >= 1) and (Result[1] = '-') then
-    Left := 3;
-  if p > 0 then for i:=p-1 downto Left do begin
-    if (p-i) mod 3 = 0 then
-      Insert(ThousandSeparator, Result, i);
-  end;
+  Result := StringReplace(str, '.', DecimalSeparator, [rfReplaceAll]);
 end;
 
 
