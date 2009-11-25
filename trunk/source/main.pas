@@ -7279,10 +7279,8 @@ function TMainForm.GetSelectedTableColumns: TMySQLQuery;
 begin
   if not Assigned(FSelectedTableColumns) then begin
     // Avoid SQL error on routines
-    if GetFocusedTreeNodeType in [lntTable, lntView] then begin
-      ShowStatus('Reading table columns ...');
+    if GetFocusedTreeNodeType in [lntTable, lntView] then
       FSelectedTableColumns := Connection.GetResults('SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable.Text));
-    end;
   end;
   Result := FSelectedTableColumns;
 end;
