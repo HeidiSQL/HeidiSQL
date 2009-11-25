@@ -142,10 +142,10 @@ type
   function GetShellFolder(CSIDL: integer): string;
   function getFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
   function goodfilename( str: String ): String;
-  function FormatNumber( str: String ): String; Overload;
+  function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
   function UnformatNumber(Val: String): String;
-  function FormatNumber( int: Int64 ): String; Overload;
-  function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
+  function FormatNumber( int: Int64; Thousands: Boolean=True): String; Overload;
+  function FormatNumber( flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
   procedure setLocales;
   procedure ShellExec(cmd: String; path: String=''; params: String='');
   function getFirstWord( text: String ): String;
@@ -1839,9 +1839,27 @@ end;
   @param string Text containing a number
   @return string
 }
-function FormatNumber( str: String ): String; Overload;
+function FormatNumber(str: String; Thousands: Boolean=True): String; Overload;
+var
+  i, p, Left: Integer;
 begin
   Result := StringReplace(str, '.', DecimalSeparator, [rfReplaceAll]);
+  if Thousands then begin
+    // Do not add thousand separators to zerofilled numbers
+    if ((Length(Result) >= 1) and (Result[1] = '0'))
+      or ((Length(Result) >= 2) and (Result[1] = '-') and (Result[2] = '0'))
+    then
+      Exit;
+    p := Pos(DecimalSeparator, Result);
+    if p = 0 then p := Length(Result)+1;
+    Left := 2;
+    if (Length(Result) >= 1) and (Result[1] = '-') then
+      Left := 3;
+    if p > 0 then for i:=p-1 downto Left do begin
+      if (p-i) mod 3 = 0 then
+        Insert(ThousandSeparator, Result, i);
+    end;
+  end;
 end;
 
 
@@ -1852,9 +1870,9 @@ end;
   @param int64 Number to format
   @return string
 }
-function FormatNumber( int: Int64 ): String; Overload;
+function FormatNumber(int: Int64; Thousands: Boolean=True): String; Overload;
 begin
-  result := FormatNumber( int, 0 );
+  result := FormatNumber(IntToStr(int), Thousands);
 end;
 
 
@@ -1867,9 +1885,11 @@ end;
   @param integer Number of decimals
   @return string
 }
-function FormatNumber( flt: Double; decimals: Integer = 0 ): String; Overload;
+function FormatNumber(flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
 begin
-  result := trim( format( '%10.'+IntToStr(decimals)+'n', [flt] ) );
+  Result := Format('%10.'+IntToStr(decimals)+'f', [flt]);
+  Result := Trim(Result);
+  Result := FormatNumber(Result, Thousands);
 end;
 
 

@@ -4025,7 +4025,7 @@ begin
       SetLength(ActiveGridResult.Rows[i].Cells, Results.ColumnCount);
       for j:=0 to Results.ColumnCount-1 do begin
         case ActiveGridResult.Columns[j].DatatypeCat of
-          dtcInteger, dtcReal: ActiveGridResult.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j));
+          dtcInteger, dtcReal: ActiveGridResult.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
           dtcBinary: ActiveGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j));
           else ActiveGridResult.Rows[i].Cells[j].Text := Results.Col(j);
         end;
@@ -6428,7 +6428,7 @@ begin
       i := Node.Index;
       for j := 0 to Results.ColumnCount - 1 do begin
         case res.Columns[j].DatatypeCat of
-          dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j));
+          dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
           dtcBinary: res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j));
           else res.Rows[i].Cells[j].Text := Results.Col(j);
         end;
@@ -6510,7 +6510,7 @@ begin
       SetLength(res.Rows[i].Cells, Results.ColumnCount);
       for j:=0 to Results.ColumnCount-1 do begin
         case res.Columns[j].DatatypeCat of
-          dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j));
+          dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
           dtcBinary: res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j));
           else res.Rows[i].Cells[j].Text := Results.Col(j);
         end;
@@ -7189,7 +7189,7 @@ begin
       ;
       Results := Connection.GetResults(sql);
       case Col.DatatypeCat of
-        dtcInteger, dtcReal: Cell.Text := FormatNumber(Results.Col(0));
+        dtcInteger, dtcReal: Cell.Text := FormatNumber(Results.Col(0), False);
         dtcBinary: Cell.Text := '0x' + BinToWideHex(Results.Col(0));
         else Cell.Text := Results.Col(0);
       end;
