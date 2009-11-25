@@ -82,7 +82,7 @@ type
       FRowsFound: Int64;
       FRowsAffected: Int64;
       FServerVersionUntouched: String;
-      FLastQueryStart, FLastQueryEnd: Cardinal;
+      FLastQueryDuration, FLastQueryNetworkDuration: Cardinal;
       FIsUnicode: Boolean;
       FTableEngines: TStringList;
       FTableEngineDefault: String;
@@ -96,7 +96,6 @@ type
       function GetLastError: WideString;
       function GetServerVersionStr: String;
       function GetServerVersionInt: Integer;
-      function GetLastQueryDuration: Cardinal;
       function GetTableEngines: TStringList;
       function GetCollationTable: TMySQLQuery;
       function GetCollationList: TStringList;
@@ -129,7 +128,8 @@ type
       property Capabilities: TMySQLServerCapabilities read FCapabilities;
       property RowsFound: Int64 read FRowsFound;
       property RowsAffected: Int64 read FRowsAffected;
-      property LastQueryDuration: Cardinal read GetLastQueryDuration;
+      property LastQueryDuration: Cardinal read FLastQueryDuration;
+      property LastQueryNetworkDuration: Cardinal read FLastQueryNetworkDuration;
       property IsUnicode: Boolean read FIsUnicode;
       property TableEngines: TStringList read GetTableEngines;
       property TableEngineDefault: String read FTableEngineDefault;
@@ -202,8 +202,8 @@ begin
   FRowsFound := 0;
   FRowsAffected := 0;
   FConnectionStarted := 0;
-  FLastQueryStart := 0;
-  FLastQueryEnd := 0;
+  FLastQueryDuration := 0;
+  FLastQueryNetworkDuration := 0;
   FLogPrefix := '';
   FIsUnicode := False;
 end;
@@ -323,14 +323,16 @@ function TMySQLConnection.Query(SQL: WideString; DoStoreResult: Boolean=False): 
 var
   querystatus: Integer;
   NativeSQL: String;
+  TimerStart: Cardinal;
 begin
   if not Ping then
     Active := True;
   Log(lcSQL, SQL);
   NativeSQL := UTF8Encode(SQL);
-  FLastQueryStart := GetTickCount;
+  TimerStart := GetTickCount;
   querystatus := mysql_real_query(FHandle, PChar(NativeSQL), Length(NativeSQL));
-  FLastQueryEnd := GetTickCount;
+  FLastQueryDuration := GetTickCount - TimerStart;
+  FLastQueryNetworkDuration := 0;
   if querystatus <> 0 then begin
     Log(lcError, GetLastError);
     raise Exception.Create(GetLastError);
@@ -338,7 +340,9 @@ begin
     // We must call mysql_store_result() + mysql_free_result() to unblock the connection
     // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html 
     FRowsAffected := mysql_affected_rows(FHandle);
+    TimerStart := GetTickCount;
     Result := mysql_store_result(FHandle);
+    FLastQueryNetworkDuration := GetTickCount - TimerStart;
     if Result <> nil then begin
       FRowsFound := mysql_num_rows(Result);
       FRowsAffected := 0;
@@ -581,12 +585,6 @@ begin
   addCap(cpTruncateTable, ver >= 50003);
   addCap(cpAlterDatabase, ver >= 50002);
   addCap(cpRenameDatabase, ver >= 50107);
-end;
-
-
-function TMySQLConnection.GetLastQueryDuration: Cardinal;
-begin
-  Result := FLastQueryEnd - FLastQueryStart;
 end;
 
 

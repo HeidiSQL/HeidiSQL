@@ -3912,7 +3912,7 @@ procedure TMainForm.ExecSQLClick(Sender: TObject; Selection: Boolean=false; Curr
 var
   SQL: TWideStringList;
   i, j, QueryCount: Integer;
-  SQLTime: Cardinal;
+  SQLTime, SQLNetTime: Cardinal;
   Results: TMySQLQuery;
   ColName, Text, LB: WideString;
   col: TVirtualTreeColumn;
@@ -3946,6 +3946,7 @@ begin
   EnableProgressBar(SQL.Count);
   showstatus('Executing SQL...');
   SQLtime := 0;
+  SQLNetTime := 0;
   QueryCount := 0;
   for i:=0 to SQL.Count-1 do begin
     ProgressBarStatus.StepIt;
@@ -3957,6 +3958,7 @@ begin
       else
         Results := Connection.GetResults(SQL[i]);
       Inc(SQLtime, Connection.LastQueryDuration);
+      Inc(SQLNetTime, Connection.LastQueryNetworkDuration);
       Inc(QueryCount);
       if Assigned(Results) and Results.HasResult then
         ResultLabel.Caption := FormatNumber(Results.ColumnCount) +' column(s) x '+FormatNumber(Results.RecordCount) +' row(s) in last result set.'
@@ -3983,6 +3985,8 @@ begin
     else
       cap := cap + ' queries';
     cap := cap + ': '+FormatNumber(SQLTime/1000, 3) +' sec.';
+    if SQLNetTime > 0 then
+      cap := cap + ' (+ '+FormatNumber(SQLNetTime/1000, 3) +' sec. network)';
     ResultLabel.Caption := ResultLabel.Caption + cap;
   end;
 
