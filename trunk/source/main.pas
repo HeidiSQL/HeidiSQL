@@ -6209,9 +6209,8 @@ begin
   if Column <> 1 then
     Exit;
   case Sender.GetNodeLevel(Node) of
-    0: TargetCanvas.Font.Color := clWindowText;
-    1: TargetCanvas.Font.Color := $008f8f8f;
-    2: TargetCanvas.Font.Color := $00cfcfcf;
+    0, 1: TargetCanvas.Font.Color := clWindowText;
+    2: TargetCanvas.Font.Color := $00444444;
   end;
 end;
 
