@@ -48,8 +48,6 @@ uses main, helpers;
   Fetch list with character sets and collations from the server
 }
 procedure TCreateDatabaseForm.FormCreate(Sender: TObject);
-var
-  charset: String;
 begin
   InheritFont(Font);
   // Setup SynMemoPreview
