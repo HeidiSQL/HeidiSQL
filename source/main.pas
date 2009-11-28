@@ -439,6 +439,8 @@ type
     actFindTextOnServer: TAction;
     actFindTextOnServer1: TMenuItem;
     Findtextonserver1: TMenuItem;
+    actBulkTableEdit: TAction;
+    menuBulkTableEdit: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -1798,7 +1800,9 @@ begin
   else if Sender = actFindTextOnServer then
     TableToolsDialog.ToolMode := tmFind
   else if Sender = actExportTables then
-    TableToolsDialog.ToolMode := tmSQLExport;
+    TableToolsDialog.ToolMode := tmSQLExport
+  else if Sender = actBulkTableEdit then
+    TableToolsDialog.ToolMode := tmBulkTableEdit;
   TableToolsDialog.ShowModal;
 end;
 

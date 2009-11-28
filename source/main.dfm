@@ -2231,6 +2231,12 @@ object MainForm: TMainForm
       ShortCut = 16454
       OnExecute = actFilterPanelExecute
     end
+    object actBulkTableEdit: TAction
+      Category = 'Tools'
+      Caption = 'Bulk table editor'
+      ImageIndex = 19
+      OnExecute = actTableToolsExecute
+    end
   end
   object SaveDialog2: TSaveDialog
     DefaultExt = 'reg'
@@ -6092,6 +6098,9 @@ object MainForm: TMainForm
     end
     object Findtextonserver1: TMenuItem
       Action = actFindTextOnServer
+    end
+    object menuBulkTableEdit: TMenuItem
+      Action = actBulkTableEdit
     end
     object menuEmptyTables: TMenuItem
       Action = actEmptyTables

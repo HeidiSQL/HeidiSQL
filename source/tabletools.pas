@@ -14,7 +14,7 @@ uses
   PngSpeedButton, helpers;
 
 type
-  TToolMode = (tmMaintenance, tmFind, tmSQLExport);
+  TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
   TfrmTableTools = class(TForm)
     btnClose: TButton;
     pnlTop: TPanel;
@@ -58,6 +58,16 @@ type
     lblSkipLargeTablesMB: TLabel;
     lblSkipLargeTables: TLabel;
     btnExportOutputTargetSelect: TPngSpeedButton;
+    tabBulkTableEdit: TTabSheet;
+    chkBulkTableEditDatabase: TCheckBox;
+    comboBulkTableEditDatabase: TTntComboBox;
+    chkBulkTableEditResetAutoinc: TCheckBox;
+    chkBulkTableEditCollation: TCheckBox;
+    comboBulkTableEditCollation: TComboBox;
+    chkBulkTableEditEngine: TCheckBox;
+    comboBulkTableEditEngine: TComboBox;
+    chkBulkTableEditCharset: TCheckBox;
+    comboBulkTableEditCharset: TComboBox;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -89,6 +99,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure TreeObjectsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType);
+    procedure chkBulkTableEditCheckComboClick(Sender: TObject);
   private
     { Private declarations }
     FResults: TObjectList;
@@ -105,6 +116,7 @@ type
     procedure DoMaintenance(db, obj: WideString; NodeType: TListNodeType);
     procedure DoFind(db, obj: WideString; NodeType: TListNodeType; RowsInTable: Int64);
     procedure DoExport(db, obj: WideString; NodeType: TListNodeType; RowsInTable, AvgRowLen: Int64);
+    procedure DoBulkTableEdit(db, obj: WideString; NodeType: TListNodeType);
   public
     { Public declarations }
     SelectedTables: TWideStringList;
@@ -251,6 +263,22 @@ begin
     comboOperation.Items[comboOperation.Items.IndexOf('Checksum')] := 'Checksum ('+STR_NOTSUPPORTED+')';
   comboOperation.OnChange(Sender);
   comboExportOutputType.OnChange(Sender);
+
+  comboBulkTableEditDatabase.Items.Text := Mainform.Databases.Text;
+  if comboBulkTableEditDatabase.Items.Count > 0 then
+    comboBulkTableEditDatabase.ItemIndex := 0;
+
+  comboBulkTableEditEngine.Items := Mainform.Connection.TableEngines;
+  if comboBulkTableEditEngine.Items.Count > 0 then
+    comboBulkTableEditEngine.ItemIndex := comboBulkTableEditEngine.Items.IndexOf(Mainform.Connection.TableEngineDefault);
+
+  comboBulkTableEditCollation.Items := Mainform.Connection.CollationList;
+  if comboBulkTableEditCollation.Items.Count > 0 then
+    comboBulkTableEditCollation.ItemIndex := 0;
+
+  comboBulkTableEditCharset.Items := Mainform.Connection.CharsetList;
+  if comboBulkTableEditCharset.Items.Count > 0 then
+    comboBulkTableEditCharset.ItemIndex := 0;
 end;
 
 
@@ -264,7 +292,7 @@ end;
 
 procedure TfrmTableTools.ValidateControls(Sender: TObject);
 var
-  SomeChecked: Boolean;
+  SomeChecked, OptionChecked: Boolean;
   op: String;
 begin
   SomeChecked := TreeObjects.CheckedCount > 0;
@@ -290,6 +318,13 @@ begin
   end else if tabsTools.ActivePage = tabSQLExport then begin
     btnExecute.Caption := 'Export';
     btnExecute.Enabled := SomeChecked;
+  end else if tabsTools.ActivePage = tabBulkTableEdit then begin
+    btnExecute.Caption := 'Update';
+    chkBulkTableEditCollation.Enabled := Mainform.Connection.IsUnicode;
+    chkBulkTableEditCharset.Enabled := Mainform.Connection.IsUnicode;
+    OptionChecked := chkBulkTableEditDatabase.Checked or chkBulkTableEditEngine.Checked or chkBulkTableEditCollation.Checked
+      or chkBulkTableEditCharset.Checked or chkBulkTableEditResetAutoinc.Checked;
+    btnExecute.Enabled := SomeChecked and OptionChecked;
   end;
 end;
 
@@ -372,7 +407,9 @@ begin
   else if tabsTools.ActivePage = tabFind then
     FToolMode := tmFind
   else if tabsTools.ActivePage = tabSQLExport then
-    FToolMode := tmSQLExport;
+    FToolMode := tmSQLExport
+  else if tabsTools.ActivePage = tabBulkTableEdit then
+    FToolMode := tmBulkTableEdit;
   ResultGrid.Clear;
   FResults.Clear;
   TreeObjects.SetFocus;
@@ -393,8 +430,8 @@ begin
           AvgRowLen := MakeInt(Results.Col(DBO_AVGROWLEN));
           if (udSkipLargeTables.Position = 0) or ((TableSize div SIZE_MB) < udSkipLargeTables.Position) then try
             case FToolMode of
-              tmMaintenance:  DoMaintenance(db, table, NodeType);
-              tmFind:         DoFind(db, table, NodeType, RowsInTable);
+              tmMaintenance:    DoMaintenance(db, table, NodeType);
+              tmFind:           DoFind(db, table, NodeType, RowsInTable);
               tmSQLExport: begin
                 // Views have to be exported at the very end so at least all needed tables are ready when a view gets imported
                 if NodeType = lntView then begin
@@ -403,6 +440,7 @@ begin
                 end else
                   DoExport(db, table, NodeType, RowsInTable, AvgRowLen);
               end;
+              tmBulkTableEdit:  DoBulkTableEdit(db, table, NodeType);
             end;
           except
             // The above SQL can easily throw an exception, e.g. if a table is corrupted.
@@ -747,6 +785,7 @@ begin
     chkExportTablesDrop.Checked := False;
 end;
 
+
 procedure TfrmTableTools.btnExportOutputTargetSelectClick(Sender: TObject);
 var
   SaveDialog: TSaveDialog;
@@ -783,6 +822,7 @@ begin
     tmMaintenance: tabsTools.ActivePage := tabMaintenance;
     tmFind: tabsTools.ActivePage := tabFind;
     tmSQLExport: tabsTools.ActivePage := tabSQLExport;
+    tmBulkTableEdit: tabsTools.ActivePage := tabBulkTableEdit;
   end;
 end;
 
@@ -1028,6 +1068,55 @@ begin
   end;
 
   ExportLastDatabase := FinalDbName;
+end;
+
+
+procedure TfrmTableTools.chkBulkTableEditCheckComboClick(Sender: TObject);
+var
+  chk: TCheckBox;
+  combo: TWinControl;
+begin
+  chk := TCheckBox(Sender);
+  if chk = chkBulkTableEditDatabase then combo := comboBulkTableEditDatabase
+  else if chk = chkBulkTableEditEngine then combo := comboBulkTableEditEngine
+  else if chk = chkBulkTableEditCollation then combo := comboBulkTableEditCollation
+  else combo := comboBulkTableEditCharset;
+  combo.Enabled := chk.Checked;
+  ValidateControls(Sender);
+end;
+
+
+procedure TfrmTableTools.DoBulkTableEdit(db, obj: WideString; NodeType: TListNodeType);
+var
+  Specs, LogRow: TWideStringList;
+begin
+  Specs := TWideStringlist.Create;
+  if chkBulkTableEditDatabase.Checked and (comboBulkTableEditDatabase.Text <> db) then
+    Specs.Add('RENAME ' + Mainform.mask(comboBulkTableEditDatabase.Text)+'.'+Mainform.mask(obj));
+  if chkBulkTableEditEngine.Checked then begin
+    if Mainform.Connection.ServerVersionInt < 40018 then
+      Specs.Add('TYPE '+comboBulkTableEditEngine.Text)
+    else
+      Specs.Add('ENGINE '+comboBulkTableEditEngine.Text);
+  end;
+  if chkBulkTableEditCollation.Checked and (comboBulkTableEditCollation.ItemIndex > -1) then
+    Specs.Add('COLLATE '+comboBulkTableEditCollation.Text);
+  if chkBulkTableEditCharset.Checked and (comboBulkTableEditCharset.ItemIndex > -1) then begin
+    Mainform.Connection.CharsetTable.RecNo := comboBulkTableEditCharset.ItemIndex;
+    Specs.Add('CONVERT TO CHARSET '+Mainform.Connection.CharsetTable.Col('Charset'));
+  end;
+  if chkBulkTableEditResetAutoinc.Checked then
+    Specs.Add('AUTO_INCREMENT=0');
+  AddResults('SELECT '+esc(db)+' AS '+Mainform.mask('Database')+', ' +
+    esc(obj)+' AS '+Mainform.mask('Table')+', ' +
+    esc('Updating...')+' AS '+Mainform.mask('Operation')+', '+
+    ''''' AS '+Mainform.mask('Result')
+    );
+  Mainform.Connection.Query('ALTER TABLE ' + Mainform.mask(db) + '.' + Mainform.mask(obj) + ' ' + ImplodeStr(', ', Specs));
+  LogRow := TWideStringList(FResults.Last);
+  LogRow[2] := 'Done';
+  LogRow[3] := 'Success';
+  UpdateResultGrid;
 end;
 
 

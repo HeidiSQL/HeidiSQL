@@ -117,9 +117,9 @@ object frmTableTools: TfrmTableTools
       TabOrder = 1
       object ResultGrid: TVirtualStringTree
         Left = 0
-        Top = 137
+        Top = 145
         Width = 380
-        Height = 199
+        Height = 191
         Align = alClient
         Header.AutoSizeIndex = -1
         Header.DefaultHeight = 17
@@ -148,7 +148,7 @@ object frmTableTools: TfrmTableTools
         Left = 0
         Top = 0
         Width = 380
-        Height = 137
+        Height = 145
         ActivePage = tabSQLexport
         Align = alTop
         Images = MainForm.PngImageListMain
@@ -159,7 +159,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 39
           DesignSize = (
             372
-            108)
+            116)
           object lblOperation: TLabel
             Left = 3
             Top = 14
@@ -263,7 +263,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 30
           DesignSize = (
             372
-            108)
+            116)
           object lblFindText: TLabel
             Left = 3
             Top = 14
@@ -273,16 +273,17 @@ object frmTableTools: TfrmTableTools
           end
           object lblDataTypes: TLabel
             Left = 80
-            Top = 77
+            Top = 93
             Width = 151
             Height = 13
+            Anchors = [akLeft, akBottom]
             Caption = 'Restrict search to column types'
           end
           object memoFindText: TTntMemo
             Left = 80
             Top = 11
             Width = 289
-            Height = 53
+            Height = 73
             Anchors = [akLeft, akTop, akRight, akBottom]
             ScrollBars = ssVertical
             TabOrder = 0
@@ -290,11 +291,11 @@ object frmTableTools: TfrmTableTools
           end
           object comboDataTypes: TComboBox
             Left = 264
-            Top = 74
+            Top = 90
             Width = 105
             Height = 21
             Style = csDropDownList
-            Anchors = [akLeft, akTop, akRight]
+            Anchors = [akLeft, akRight, akBottom]
             ItemHeight = 13
             TabOrder = 1
           end
@@ -304,7 +305,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 9
           DesignSize = (
             372
-            108)
+            116)
           object lblExportData: TLabel
             Left = 224
             Top = 4
@@ -417,6 +418,101 @@ object frmTableTools: TfrmTableTools
             TabOrder = 6
             Text = 'comboExportOutputTarget'
             OnExit = comboExportOutputTargetExit
+          end
+        end
+        object tabBulkTableEdit: TTabSheet
+          Caption = 'Bulk table editor'
+          ImageIndex = 19
+          DesignSize = (
+            372
+            116)
+          object chkBulkTableEditDatabase: TCheckBox
+            Left = 3
+            Top = 5
+            Width = 135
+            Height = 17
+            Caption = 'Move to database:'
+            TabOrder = 0
+            OnClick = chkBulkTableEditCheckComboClick
+          end
+          object comboBulkTableEditDatabase: TTntComboBox
+            Left = 168
+            Top = 3
+            Width = 200
+            Height = 21
+            Style = csDropDownList
+            Anchors = [akLeft, akTop, akRight]
+            Enabled = False
+            ItemHeight = 13
+            TabOrder = 1
+          end
+          object chkBulkTableEditResetAutoinc: TCheckBox
+            Left = 3
+            Top = 97
+            Width = 166
+            Height = 17
+            Caption = 'Reset auto increment value'
+            TabOrder = 2
+          end
+          object chkBulkTableEditCollation: TCheckBox
+            Left = 3
+            Top = 51
+            Width = 150
+            Height = 17
+            Caption = 'Change default collation:'
+            TabOrder = 3
+            OnClick = chkBulkTableEditCheckComboClick
+          end
+          object comboBulkTableEditCollation: TComboBox
+            Left = 168
+            Top = 49
+            Width = 200
+            Height = 21
+            Style = csDropDownList
+            Anchors = [akLeft, akTop, akRight]
+            Enabled = False
+            ItemHeight = 13
+            TabOrder = 4
+          end
+          object chkBulkTableEditEngine: TCheckBox
+            Left = 3
+            Top = 28
+            Width = 150
+            Height = 17
+            Caption = 'Change table engine:'
+            TabOrder = 5
+            OnClick = chkBulkTableEditCheckComboClick
+          end
+          object comboBulkTableEditEngine: TComboBox
+            Left = 168
+            Top = 26
+            Width = 200
+            Height = 21
+            Style = csDropDownList
+            Anchors = [akLeft, akTop, akRight]
+            Enabled = False
+            ItemHeight = 13
+            TabOrder = 6
+          end
+          object chkBulkTableEditCharset: TCheckBox
+            Left = 3
+            Top = 74
+            Width = 150
+            Height = 17
+            Caption = 'Convert to charset:'
+            TabOrder = 7
+            OnClick = chkBulkTableEditCheckComboClick
+          end
+          object comboBulkTableEditCharset: TComboBox
+            Left = 168
+            Top = 72
+            Width = 200
+            Height = 21
+            Style = csDropDownList
+            Anchors = [akLeft, akTop, akRight]
+            Enabled = False
+            ItemHeight = 13
+            TabOrder = 8
           end
         end
       end

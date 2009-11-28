@@ -87,7 +87,7 @@ type
       FTableEngines: TStringList;
       FTableEngineDefault: String;
       FCollationTable: TMySQLQuery;
-      FCollationsUnavailable: Boolean;
+      FCharsetTable: TMySQLQuery;
       procedure SetActive(Value: Boolean);
       procedure SetDatabase(Value: WideString);
       function GetThreadId: Cardinal;
@@ -99,6 +99,8 @@ type
       function GetTableEngines: TStringList;
       function GetCollationTable: TMySQLQuery;
       function GetCollationList: TStringList;
+      function GetCharsetTable: TMySQLQuery;
+      function GetCharsetList: TStringList;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
       procedure Log(Category: TMySQLLogCategory; Msg: WideString);
@@ -135,6 +137,8 @@ type
       property TableEngineDefault: String read FTableEngineDefault;
       property CollationTable: TMySQLQuery read GetCollationTable;
       property CollationList: TStringList read GetCollationList;
+      property CharsetTable: TMySQLQuery read GetCharsetTable;
+      property CharsetList: TStringList read GetCharsetList;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Hostname: String read FHostname write FHostname;
@@ -687,12 +691,8 @@ end;
 
 function TMySQLConnection.GetCollationTable: TMySQLQuery;
 begin
-  if (not Assigned(FCollationTable)) and (not FCollationsUnavailable) then try
+  if (not Assigned(FCollationTable)) and (ServerVersionInt >= 40100) then
     FCollationTable := GetResults('SHOW COLLATION');
-  except
-    // Ignore errors on old servers
-    FCollationsUnavailable := True;
-  end;
   if Assigned(FCollationTable) then
     FCollationTable.First;
   Result := FCollationTable;
@@ -705,8 +705,31 @@ var
 begin
   c := CollationTable;
   Result := TStringList.Create;
-  if not FCollationsUnavailable then while not c.Eof do begin
+  if Assigned(c) then while not c.Eof do begin
     Result.Add(c.Col('Collation'));
+    c.Next;
+  end;
+end;
+
+
+function TMySQLConnection.GetCharsetTable: TMySQLQuery;
+begin
+  if (not Assigned(FCharsetTable)) and (ServerVersionInt >= 40100) then
+    FCharsetTable := GetResults('SHOW CHARSET');
+  if Assigned(FCharsetTable) then
+    FCharsetTable.First;
+  Result := FCharsetTable;
+end;
+
+
+function TMySQLConnection.GetCharsetList: TStringList;
+var
+  c: TMySQLQuery;
+begin
+  c := CharsetTable;
+  Result := TStringList.Create;
+  if Assigned(c) then while not c.Eof do begin
+    Result.Add(c.Col('Description') + ' (' + c.Col('Charset') + ')');
     c.Next;
   end;
 end;
@@ -733,7 +756,7 @@ procedure TMySQLConnection.ClearCache;
 begin
   // Free cached lists and results. Called when the connection was closed and/or destroyed
   FreeAndNil(FCollationTable);
-  FCollationsUnavailable := False;
+  FreeAndNil(FCharsetTable);
   FreeAndNil(FTableEngines);
   FTableEngineDefault := '';
 end;
