@@ -7058,7 +7058,7 @@ end;
 }
 function TMainForm.GridPostDelete(Sender: TBaseVirtualTree): Boolean;
 var
-  Node: PVirtualNode;
+  Node, FocusAfterDelete: PVirtualNode;
   Nodes: TNodeArray;
   sql: WideString;
   Affected: Int64;
@@ -7066,14 +7066,18 @@ var
   msg: String;
 begin
   Node := Sender.GetFirstSelected;
+  FocusAfterDelete := nil;
   sql := 'DELETE FROM '+mask(SelectedTable.Text)+' WHERE';
   while Assigned(Node) do begin
     EnsureChunkLoaded(Sender, Node);
     sql := sql + ' (' +
       GetWhereClause(@DataGridResult.Rows[Node.Index], @DataGridResult.Columns) +
       ') OR';
+    FocusAfterDelete := Node;
     Node := Sender.GetNextSelected(Node);
   end;
+  if Assigned(FocusAfterDelete) then
+    FocusAfterDelete := Sender.GetNext(FocusAfterDelete);
   sql := Copy(sql, 1, Length(sql)-3);
 
   try
@@ -7104,6 +7108,10 @@ begin
       end;
       SetLength(DataGridResult.Rows, Length(DataGridResult.Rows) - Selected);
       Sender.DeleteSelectedNodes;
+      if not Assigned(FocusAfterDelete) then
+        FocusAfterDelete := Sender.GetLast;
+      if Assigned(FocusAfterDelete) then
+        SelectNode(Sender as TVirtualStringTree, FocusAfterDelete);
       Sender.EndUpdate;
     end else begin
       // Should never get called as we block DELETEs on tables without a unique key
