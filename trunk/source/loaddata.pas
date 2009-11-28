@@ -68,7 +68,6 @@ type
     procedure btnColDownClick(Sender: TObject);
   private
     { Private declarations }
-    dsCharsets: TMySQLQuery;
   public
     { Public declarations }
   end;
@@ -142,6 +141,7 @@ var
   seldb, seltable, dbcreate: WideString;
   rx: TRegExpr;
   DefCharset: String;
+  CharsetTable: TMySQLQuery;
 begin
   // read tables from db
   comboTable.Items.Clear;
@@ -166,8 +166,6 @@ begin
   comboCharset.Clear;
   v := Mainform.Connection.ServerVersionInt;
   if ((v >= 50038) and (v < 50100)) or (v >= 50117) then begin
-    if dsCharsets = nil then
-      dsCharsets := Mainform.Connection.GetResults('SHOW CHARSET');
     comboCharset.Enabled := True;
     // Detect db charset
     DefCharset := 'Let server/database decide';
@@ -178,16 +176,17 @@ begin
     if rx.Exec(dbcreate) then
       DefCharset := DefCharset + ' ('+rx.Match[1]+')';
     comboCharset.Items.Add(DefCharset);
-    dsCharsets.First;
-    while not dsCharsets.Eof do begin
-      comboCharset.Items.Add(dsCharsets.Col(1) + ' ('+dsCharsets.Col(0)+')');
-      if dsCharsets.Col(0) = 'utf8' then begin
+    CharsetTable := Mainform.Connection.CharsetTable;
+    CharsetTable.First;
+    while not CharsetTable.Eof do begin
+      comboCharset.Items.Add(CharsetTable.Col(1) + ' ('+CharsetTable.Col(0)+')');
+      if CharsetTable.Col(0) = 'utf8' then begin
         i := comboCharset.Items.Count-1;
         comboCharset.Items[i] := comboCharset.Items[i] + ' - '+APPNAME+' output';
         if selCharsetIndex = -1 then
           selCharsetIndex := i;
       end;
-      dsCharsets.Next;
+      CharsetTable.Next;
     end;
     comboCharset.ItemIndex := selCharsetIndex;
   end else begin
@@ -256,8 +255,8 @@ begin
   query := query + 'INTO TABLE ' + Mainform.Mask(comboDatabase.Text) + '.' +  Mainform.Mask(comboTable.Text) + ' ';
 
   if comboCharset.ItemIndex > 0 then begin
-    dsCharsets.RecNo := comboCharset.ItemIndex-1;
-    query := query + 'CHARACTER SET '+dsCharsets.Col(0)+' ';
+    Mainform.Connection.CharsetTable.RecNo := comboCharset.ItemIndex-1;
+    query := query + 'CHARACTER SET '+Mainform.Connection.CharsetTable.Col(0)+' ';
   end;
 
   // Fields:
