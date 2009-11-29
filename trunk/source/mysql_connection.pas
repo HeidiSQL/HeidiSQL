@@ -88,6 +88,7 @@ type
       FTableEngineDefault: String;
       FCollationTable: TMySQLQuery;
       FCharsetTable: TMySQLQuery;
+      FInformationSchemaObjects: TWideStringlist;
       procedure SetActive(Value: Boolean);
       procedure SetDatabase(Value: WideString);
       function GetThreadId: Cardinal;
@@ -101,6 +102,7 @@ type
       function GetCollationList: TStringList;
       function GetCharsetTable: TMySQLQuery;
       function GetCharsetList: TStringList;
+      function GetInformationSchemaObjects: TWideStringlist;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
       procedure Log(Category: TMySQLLogCategory; Msg: WideString);
@@ -139,6 +141,7 @@ type
       property CollationList: TStringList read GetCollationList;
       property CharsetTable: TMySQLQuery read GetCharsetTable;
       property CharsetList: TStringList read GetCharsetList;
+      property InformationSchemaObjects: TWideStringlist read GetInformationSchemaObjects;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Hostname: String read FHostname write FHostname;
@@ -735,6 +738,18 @@ begin
 end;
 
 
+function TMySQLConnection.GetInformationSchemaObjects: TWideStringList;
+begin
+  if not Assigned(FInformationSchemaObjects) then try
+    FInformationSchemaObjects := GetCol('SHOW TABLES FROM '+QuoteIdent('information_schema'));
+  except
+    // Gracefully return an empty list on old servers
+    FInformationSchemaObjects := TWideStringlist.Create;
+  end;
+  Result := FInformationSchemaObjects;
+end;
+
+
 function TMySQLConnection.GetConnectionUptime: Integer;
 begin
   // Return seconds since last connect
@@ -758,6 +773,7 @@ begin
   FreeAndNil(FCollationTable);
   FreeAndNil(FCharsetTable);
   FreeAndNil(FTableEngines);
+  FreeAndNil(FInformationSchemaObjects);
   FTableEngineDefault := '';
 end;
 

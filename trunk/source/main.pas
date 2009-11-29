@@ -749,7 +749,7 @@ type
     RoutineEditor: TfrmRoutineEditor;
     OptionsForm: Toptionsform;
     SessionManager: TConnForm;
-    AllDatabases, Databases, InformationSchemaTables: TWideStringList;
+    AllDatabases, Databases: TWideStringList;
     TemporaryDatabase          : WideString;
     dataselected               : Boolean;
     editing                    : Boolean;
@@ -1654,7 +1654,6 @@ begin
   DBtree.FocusedNode := nil;
   ClearAllTableLists;
   FreeAndNil(AllDatabases);
-  FreeAndNil(InformationSchemaTables);
   FreeAndNil(FDataGridSelect);
   ResetSelectedTableStuff;
   SynMemoFilter.Clear;
@@ -3552,72 +3551,62 @@ begin
     OldCursor := Screen.Cursor;
     Screen.Cursor := crHourGlass;
     ShowStatus('Fetching tables from "' + db + '" ...');
+    Unions := TWideStringlist.Create;
+    if Connection.InformationSchemaObjects.IndexOf('TABLES') > -1 then begin
+      // Tables and (system) views
+      Unions.Add('SELECT TABLE_NAME AS '+mask(DBO_NAME)+
+        ', TABLE_TYPE AS '+mask(DBO_TYPE)+
+        ', ENGINE AS '+mask(DBO_ENGINE)+
+        ', VERSION AS '+mask(DBO_VERSION)+
+        ', ROW_FORMAT AS '+mask(DBO_ROWFORMAT)+
+        ', TABLE_ROWS AS '+mask(DBO_ROWS)+
+        ', AVG_ROW_LENGTH AS '+mask(DBO_AVGROWLEN)+
+        ', DATA_LENGTH AS '+mask(DBO_DATALEN)+
+        ', MAX_DATA_LENGTH AS '+mask(DBO_MAXDATALEN)+
+        ', INDEX_LENGTH AS '+mask(DBO_INDEXLEN)+
+        ', DATA_FREE AS '+mask(DBO_DATAFREE)+
+        ', AUTO_INCREMENT AS '+mask(DBO_AUTOINC)+
+        ', CREATE_TIME AS '+mask(DBO_CREATED)+
+        ', UPDATE_TIME AS '+mask(DBO_UPDATED)+
+        ', CHECK_TIME AS '+mask(DBO_CHECKED)+
+        ', TABLE_COLLATION AS '+mask(DBO_COLLATION)+
+        ', CHECKSUM AS '+mask(DBO_CHECKSUM)+
+        ', CREATE_OPTIONS AS '+mask(DBO_CROPTIONS)+
+        ', TABLE_COMMENT AS '+mask(DBO_COMMENT)+
+        ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.TABLES ' +
+        'WHERE TABLE_SCHEMA = '+esc(db));
+    end;
+    if Connection.InformationSchemaObjects.IndexOf('ROUTINES') > -1 then begin
+      // Stored routines
+      Unions.Add('SELECT ROUTINE_NAME AS '+mask(DBO_NAME)+
+        ', ROUTINE_TYPE AS '+mask(DBO_TYPE)+
+        ', NULL AS '+mask(DBO_ENGINE)+
+        ', NULL AS '+mask(DBO_VERSION)+
+        ', NULL AS '+mask(DBO_ROWFORMAT)+
+        ', NULL AS '+mask(DBO_ROWS)+
+        ', NULL AS '+mask(DBO_AVGROWLEN)+
+        ', NULL AS '+mask(DBO_DATALEN)+
+        ', NULL AS '+mask(DBO_MAXDATALEN)+
+        ', NULL AS '+mask(DBO_INDEXLEN)+
+        ', NULL AS '+mask(DBO_DATAFREE)+
+        ', NULL AS '+mask(DBO_AUTOINC)+
+        ', CREATED AS '+mask(DBO_CREATED)+
+        ', LAST_ALTERED AS '+mask(DBO_UPDATED)+
+        ', NULL AS '+mask(DBO_CHECKED)+
+        ', NULL AS '+mask(DBO_COLLATION)+
+        ', NULL AS '+mask(DBO_CHECKSUM)+
+        ', NULL AS '+mask(DBO_CROPTIONS)+
+        ', ROUTINE_COMMENT AS '+mask(DBO_COMMENT)+
+        ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.ROUTINES ' +
+        'WHERE ROUTINE_SCHEMA = '+esc(db));
+    end;
+    case Unions.Count of
+      0: ListObjectsSQL := 'SHOW TABLE STATUS FROM ' + mask(db);
+      1: ListObjectsSQL := Unions[0] + ' ORDER BY `Name`';
+      else ListObjectsSQL := '(' + implodestr(') UNION (', Unions) + ') ORDER BY `Name`';
+    end;
+    FreeAndNil(Unions);
     try
-      if not Assigned(InformationSchemaTables) then try
-        InformationSchemaTables := Connection.GetCol('SHOW TABLES FROM '+mask(DBNAME_INFORMATION_SCHEMA));
-      except
-        InformationSchemaTables := TWideStringlist.Create;
-      end;
-      if InformationSchemaTables.IndexOf('TABLES') > -1 then begin
-        Unions := TWideStringlist.Create;
-
-        // Tables and (system) views
-        Unions.Add('SELECT TABLE_NAME AS '+mask(DBO_NAME)+
-            ', TABLE_TYPE AS '+mask(DBO_TYPE)+
-            ', ENGINE AS '+mask(DBO_ENGINE)+
-            ', VERSION AS '+mask(DBO_VERSION)+
-            ', ROW_FORMAT AS '+mask(DBO_ROWFORMAT)+
-            ', TABLE_ROWS AS '+mask(DBO_ROWS)+
-            ', AVG_ROW_LENGTH AS '+mask(DBO_AVGROWLEN)+
-            ', DATA_LENGTH AS '+mask(DBO_DATALEN)+
-            ', MAX_DATA_LENGTH AS '+mask(DBO_MAXDATALEN)+
-            ', INDEX_LENGTH AS '+mask(DBO_INDEXLEN)+
-            ', DATA_FREE AS '+mask(DBO_DATAFREE)+
-            ', AUTO_INCREMENT AS '+mask(DBO_AUTOINC)+
-            ', CREATE_TIME AS '+mask(DBO_CREATED)+
-            ', UPDATE_TIME AS '+mask(DBO_UPDATED)+
-            ', CHECK_TIME AS '+mask(DBO_CHECKED)+
-            ', TABLE_COLLATION AS '+mask(DBO_COLLATION)+
-            ', CHECKSUM AS '+mask(DBO_CHECKSUM)+
-            ', CREATE_OPTIONS AS '+mask(DBO_CROPTIONS)+
-            ', TABLE_COMMENT AS '+mask(DBO_COMMENT)+
-          ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.TABLES ' +
-          'WHERE TABLE_SCHEMA = '+esc(db));
-
-        // Stored routines
-        if InformationSchemaTables.IndexOf('ROUTINES') > -1 then begin
-          Unions.Add('SELECT ROUTINE_NAME AS '+mask(DBO_NAME)+
-            ', ROUTINE_TYPE AS '+mask(DBO_TYPE)+
-            ', NULL AS '+mask(DBO_ENGINE)+
-            ', NULL AS '+mask(DBO_VERSION)+
-            ', NULL AS '+mask(DBO_ROWFORMAT)+
-            ', NULL AS '+mask(DBO_ROWS)+
-            ', NULL AS '+mask(DBO_AVGROWLEN)+
-            ', NULL AS '+mask(DBO_DATALEN)+
-            ', NULL AS '+mask(DBO_MAXDATALEN)+
-            ', NULL AS '+mask(DBO_INDEXLEN)+
-            ', NULL AS '+mask(DBO_DATAFREE)+
-            ', NULL AS '+mask(DBO_AUTOINC)+
-            ', CREATED AS '+mask(DBO_CREATED)+
-            ', LAST_ALTERED AS '+mask(DBO_UPDATED)+
-            ', NULL AS '+mask(DBO_CHECKED)+
-            ', NULL AS '+mask(DBO_COLLATION)+
-            ', NULL AS '+mask(DBO_CHECKSUM)+
-            ', NULL AS '+mask(DBO_CROPTIONS)+
-            ', ROUTINE_COMMENT AS '+mask(DBO_COMMENT)+
-            ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.ROUTINES ' +
-            'WHERE ROUTINE_SCHEMA = '+esc(db));
-        end;
-        if Unions.Count = 1 then
-          ListObjectsSQL := Unions[0]
-        else
-          ListObjectsSQL := '(' + implodestr(') UNION (', Unions) + ')';
-        ListObjectsSQL := ListObjectsSQL + ' ORDER BY `Name`';
-        FreeAndNil(Unions);
-      end else begin
-        // For servers lacking the INFORMATION_SCHEMA or the TABLES table
-        ListObjectsSQL := 'SHOW TABLE STATUS FROM ' + mask(db);
-      end;
       Results := Connection.GetResults(ListObjectsSQL);
       CachedTableLists.AddObject(db, Results);
       // Add table names to SQL highlighter
