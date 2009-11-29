@@ -2828,7 +2828,7 @@ begin
   VT.ClearSelection;
   VT.FocusedNode := Node;
   VT.Selected[Node] := True;
-  VT.ScrollIntoView(Node, True);
+  VT.ScrollIntoView(Node, False);
 end;
 
 
