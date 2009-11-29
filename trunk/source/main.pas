@@ -2390,6 +2390,9 @@ begin
       // Save "refused" counter
       OpenRegistry(parSession);
       MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, parSession)+1);
+      // Save last session name in root folder
+      OpenRegistry;
+      MainReg.WriteString(REGNAME_LASTSESSION, parSession);
     end;
 
     Result := True;

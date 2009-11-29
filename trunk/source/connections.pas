@@ -183,15 +183,9 @@ var
   Host, Socket: String;
 begin
   // Connect to selected session
-
   Screen.Cursor := crHourglass;
-  // Save last connection name to registry
-  OpenRegistry;
-  MainReg.WriteString(REGNAME_LASTSESSION, SelectedSession);
-
   if radioTypeTCPIP.Checked then ConType := NETTYPE_TCPIP
   else ConType := NETTYPE_NAMEDPIPE;
-
   Host := editHost.Text;
   if ConType = NETTYPE_TCPIP then begin
     Socket := '';
@@ -213,7 +207,6 @@ begin
     TimerStatistics.OnTimer(Sender);
     ModalResult := mrNone;
   end;
-
   Screen.Cursor := crDefault;
 end;
 
