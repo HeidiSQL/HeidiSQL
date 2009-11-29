@@ -133,6 +133,7 @@ type
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
   function MakeFloat( Str: String ): Extended;
+  function CleanupNumber(Str: String): String;
   function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
   function ScanNulChar(Text: WideString): Boolean;
   function ScanLineBreaks(Text: WideString): TLineBreaks;
@@ -1449,24 +1450,18 @@ begin
 end;
 
 
-{***
-  Convert a string-number to an floatingpoint-number
-
-  @param String text representation of a number
-  @return Extended
-}
-function MakeFloat( Str: String ): Extended;
+function CleanupNumber(Str: String): String;
 var
-  i : Integer;
-  StrNumber : String;
-  p_kb, p_mb, p_gb, p_tb, p_pb : Integer;
+  i: Integer;
   HasDecimalSep: Boolean;
 begin
-  StrNumber := '';
+  // Ensure the passed string contains a valid number, which is convertable by StrToFloat afterwards
+  // Return it as string again, as there are callers which need to handle unsigned bigint's somehow -
+  // there is no unsigned 64 bit integer type in Delphi.
+  Result := '';
   HasDecimalSep := False;
-  for i:=1 to Length(Str) do
-  begin
-    if (Str[i] in ['0'..'9', DecimalSeparator]) or ((Str[i] = '-') and (StrNumber='')) then
+  for i:=1 to Length(Str) do begin
+    if (Str[i] in ['0'..'9', DecimalSeparator]) or ((Str[i] = '-') and (Result='')) then
     begin
       // Avoid confusion and AV in StrToFloat()
       if (ThousandSeparator = DecimalSeparator) and (Str[i] = DecimalSeparator) then
@@ -1476,14 +1471,27 @@ begin
         continue;
       if Str[i] = DecimalSeparator then
         HasDecimalSep := True;
-      StrNumber := StrNumber + Str[i];
+      Result := Result + Str[i];
     end;
   end;
+  if (Result = '') or (Result = '-') then
+    Result := '0';
+end;
 
+
+{***
+  Convert a string-number to an floatingpoint-number
+
+  @param String text representation of a number
+  @return Extended
+}
+function MakeFloat( Str: String ): Extended;
+var
+  p_kb, p_mb, p_gb, p_tb, p_pb : Integer;
+begin
   // Convert result to a floating point value to ensure
   // we don't discard decimal digits for the next step
-  if (StrNumber = '') or (StrNumber = '-') then Result := 0
-  else Result := StrToFloat( StrNumber );
+  Result := StrToFloat(CleanupNumber(Str));
 
   // Detect if the string was previously formatted by FormatByteNumber
   // and convert it back by multiplying it with its byte unit
