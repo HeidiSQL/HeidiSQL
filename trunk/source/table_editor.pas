@@ -1446,7 +1446,7 @@ begin
   // Only numbers allowed in this TEdit
   Modification(Sender);
   ed := Sender as TEdit;
-  ShouldBe := IntToStr(Makeint(ed.Text));
+  ShouldBe := CleanupNumber(ed.Text);
   if (ed.Text = ShouldBe) or (ed.Text = '') then Exit;
   MessageBeep(MB_ICONEXCLAMATION);
   CursorPos := ed.SelStart;
