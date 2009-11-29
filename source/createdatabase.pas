@@ -278,20 +278,18 @@ begin
       Mainform.ClearDbTableList(editDBName.Text);
       // Last step for renaming: drop source database
       ObjectsLeft := TWideStringList.Create;
-      if Assigned(Mainform.InformationSchemaTables) then begin
-        // Last check if old db is really empty, before we drop it. Especially triggers need to be checked.
-        Unions := TWideStringList.Create;
-        if Mainform.InformationSchemaTables.IndexOf('TABLES') > -1 then
-          Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.TABLES WHERE TABLE_SCHEMA='+esc(modifyDB));
-        if Mainform.InformationSchemaTables.IndexOf('ROUTINES') > -1 then
-          Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.ROUTINES WHERE ROUTINE_SCHEMA='+esc(modifyDB));
-        if Mainform.InformationSchemaTables.IndexOf('TRIGGERS') > -1 then
-          Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.TRIGGERS WHERE TRIGGER_SCHEMA='+esc(modifyDB));
-        if Unions.Count = 1 then
-          ObjectsLeft := Mainform.Connection.GetCol(Unions[0])
-        else if Unions.Count > 1 then
-          ObjectsLeft := Mainform.Connection.GetCol('(' + implodestr(') UNION (', Unions) + ')');
-      end;
+      // Last check if old db is really empty, before we drop it. Especially triggers need to be checked.
+      Unions := TWideStringList.Create;
+      if Mainform.Connection.InformationSchemaObjects.IndexOf('TABLES') > -1 then
+        Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.TABLES WHERE TABLE_SCHEMA='+esc(modifyDB));
+      if Mainform.Connection.InformationSchemaObjects.IndexOf('ROUTINES') > -1 then
+        Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.ROUTINES WHERE ROUTINE_SCHEMA='+esc(modifyDB));
+      if Mainform.Connection.InformationSchemaObjects.IndexOf('TRIGGERS') > -1 then
+        Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.TRIGGERS WHERE TRIGGER_SCHEMA='+esc(modifyDB));
+      if Unions.Count = 1 then
+        ObjectsLeft := Mainform.Connection.GetCol(Unions[0])
+      else if Unions.Count > 1 then
+        ObjectsLeft := Mainform.Connection.GetCol('(' + implodestr(') UNION (', Unions) + ')');
       if ObjectsLeft.Count = 0 then begin
         Mainform.Connection.Query('DROP DATABASE '+modifyDB);
       end;
