@@ -8,7 +8,7 @@ object AboutBox: TAboutBox
   ClientWidth = 531
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
-  Font.Color = clBlack
+  Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
@@ -1475,7 +1475,7 @@ object AboutBox: TAboutBox
       Height = 23
       Caption = 'HeidiSQL'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
+      Font.Color = clWindowText
       Font.Height = -19
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
