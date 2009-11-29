@@ -1087,7 +1087,7 @@ begin
     for j := 0 to u.Privileges.Count - 1 do begin
       p := u.Privileges[j];
       // Apply only a collection of privilege values if it has modifications.
-      if not p.Modified then Continue;
+      if (not p.Modified) and (not p.Deleted) then Continue;
       // Go.
       LogSQL('Applying privilege to account ' + u.Name + '@' + u.Host + ' for ' + p.DBOPrettyKey + '.');
       case p.DBOType of
@@ -1153,6 +1153,8 @@ begin
             Exit;
           end;
         end;
+        if p.Deleted then
+          Continue;
       end else begin
         // Special case: avoid removing old definition when dealing with
         //               server-level privileges, since they're entangled with
