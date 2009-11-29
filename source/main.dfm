@@ -5,7 +5,7 @@ object MainForm: TMainForm
   ClientWidth = 756
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
-  Font.Color = clBlack
+  Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Default'
   Font.Style = []
