@@ -778,7 +778,8 @@ end;
 destructor TMySQLQuery.Destroy;
 begin
   FreeAndNil(FColumnNames);
-  mysql_free_result(FLastResult);
+  if HasResult then
+    mysql_free_result(FLastResult);
   inherited Destroy;
 end;
 
