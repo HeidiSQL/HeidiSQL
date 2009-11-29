@@ -7725,6 +7725,9 @@ var
   Results: TMySQLQuery;
   vt: TVirtualStringTree;
   Sel: TWideStringList;
+  Text: WideString;
+const
+  InfoLen = SIZE_KB;
 begin
   // Display client threads
   vt := Sender as TVirtualStringTree;
@@ -7734,11 +7737,17 @@ begin
   DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
-    Results := Connection.GetResults('SHOW FULL PROCESSLIST');
+    if Connection.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
+      // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
+      Results := Connection.GetResults('SELECT '+mask('ID')+', '+mask('USER')+', '+mask('HOST')+', '+mask('DB')+', '
+        + mask('COMMAND')+', '+mask('TIME')+', '+mask('STATE')+', LEFT('+mask('INFO')+', '+IntToStr(InfoLen)+') AS '+mask('Info')
+        + ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.'+mask('PROCESSLIST'));
+    end else begin
+      // Older servers fetch the whole query length, but at least we cut them off below, so a high memory usage is just a peak
+      Results := Connection.GetResults('SHOW FULL PROCESSLIST');
+    end;
     SetLength(VTRowDataListProcesses, Results.RecordCount);
     for i:=0 to Results.RecordCount-1 do begin
-      VTRowDataListProcesses[i].Captions := TWideStringList.Create;
-      VTRowDataListProcesses[i].Captions.Add(Results.Col(0));
       if AnsiCompareText(Results.Col(4), 'Killed') = 0 then
         VTRowDataListProcesses[i].ImageIndex := 26  // killed
       else begin
@@ -7747,8 +7756,13 @@ begin
         else
           VTRowDataListProcesses[i].ImageIndex := 57 // running query
       end;
-      for j := 1 to 7 do
-        VTRowDataListProcesses[i].Captions.Add(Results.Col(j));
+      VTRowDataListProcesses[i].Captions := TWideStringList.Create;
+      for j:=0 to Results.ColumnCount-1 do begin
+        Text := Results.Col(j);
+        if Results.ColumnNames[j] = 'Info' then
+          Text := sstr(Text, InfoLen);
+        VTRowDataListProcesses[i].Captions.Add(Text);
+      end;
       Results.Next;
     end;
     FreeAndNil(Results);
