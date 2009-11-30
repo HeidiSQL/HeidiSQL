@@ -6768,6 +6768,8 @@ end;
 function TMainForm.DataGridPostUpdateOrInsert(Node: PVirtualNode): Boolean;
 begin
   Result := True;
+  if not Assigned(Node) then
+    Exit;
   if Cardinal(High(DataGridResult.Rows)) >= Node.Index then
     case DataGridResult.Rows[Node.Index].State of
       grsModified: Result := GridPostUpdate(DataGrid);
