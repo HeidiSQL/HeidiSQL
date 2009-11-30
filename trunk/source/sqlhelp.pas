@@ -44,9 +44,11 @@ type
 
   private
     { Private declarations }
+    FKeyword: String;
+    procedure SetKeyword(Value: String);
   public
     { Public declarations }
-    Keyword: String;
+    property Keyword: String read FKeyword write SetKeyword;
   end;
 
   const
@@ -92,9 +94,6 @@ begin
 
   // Gather help contents for treeview with SQL: HELP "CONTENTS"
   fillTreeLevel( nil );
-
-  if ShowHelpItem then
-    findKeywordInTree;
 end;
 
 
@@ -157,7 +156,7 @@ begin
   begin
     tnode := treeTopics.Items[i];
     inc(i);
-    if tnode.Text = Keyword then
+    if tnode.Text = FKeyword then
     begin
       tnode.MakeVisible;
       treeTopics.Selected := tnode;
@@ -192,10 +191,7 @@ var
 begin
   // 1. Show corresponding help-text
   if Node.ImageIndex = ICONINDEX_HELPITEM then
-  begin
     Keyword := Node.Text;
-    ShowHelpItem;
-  end;
 
   // 2. Ensure the icons in the preceding tree-path of the selected item
   // show opened folders on each level
@@ -250,7 +246,7 @@ begin
     if Results.RecordCount = 1 then begin
       // We found exactly one matching help item
       lblKeyword.Caption := Results.Col('name');
-      Keyword := lblKeyword.Caption;
+      FKeyword := lblKeyword.Caption;
       if lblKeyword.Caption = '&' then
         lblKeyword.Caption := '&&'; // Avoid displaying "_" as alt-hotkey
       Caption := Caption + ' - ' + Keyword;
@@ -321,6 +317,13 @@ begin
     ButtonCloseClick(self);
 end;
 
+
+procedure TfrmSQLhelp.SetKeyword(Value: string);
+begin
+  FKeyword := Value;
+  if ShowHelpItem then
+    findKeywordInTree;
+end;
 
 
 end.
