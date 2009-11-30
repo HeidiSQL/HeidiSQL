@@ -2600,8 +2600,8 @@ procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
 begin
   if SQLHelpForm = nil then
     SQLHelpForm := TfrmSQLhelp.Create(Self);
+  SQLHelpForm.Show;
   SQLHelpForm.Keyword := keyword;
-  SQLHelpForm.ShowModal;
 end;
 
 
