@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
   WideStrings, WideStrUtils, VirtualTrees, ExtCtrls, mysql_connection, Contnrs, Graphics, TntStdCtrls,
-  PngSpeedButton, helpers;
+  PngSpeedButton, SynRegExpr, helpers;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
@@ -836,6 +836,7 @@ var
   RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;
   Data: TMySQLQuery;
+  rx: TRegExpr;
 
   // Short version of Mainform.Mask()
   function m(s: WideString): WideString;
@@ -960,6 +961,12 @@ begin
       try
         Struc := Mainform.Connection.GetVar('SHOW CREATE TABLE '+m(db)+'.'+m(obj), 1);
         Struc := fixNewlines(Struc);
+        // Remove AUTO_INCREMENT clause
+        rx := TRegExpr.Create;
+        rx.ModifierI := True;
+        rx.Expression := '\sAUTO_INCREMENT\s*\=\s*\d+\s';
+        Struc := rx.Replace(Struc, ' ');
+        rx.Free;
         if NodeType = lntTable then
           Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
         if ToDb then begin
