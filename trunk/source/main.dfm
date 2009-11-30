@@ -478,6 +478,7 @@ object MainForm: TMainForm
         TabHeight = 22
         TabOrder = 1
         OnChange = PageControlMainChange
+        OnContextPopup = PageControlMainContextPopup
         OnMouseUp = PageControlMainMouseUp
         object tabHost: TTabSheet
           Caption = 'Host'
@@ -6735,6 +6736,7 @@ object MainForm: TMainForm
     end
   end
   object popupMainTabs: TPopupMenu
+    AutoPopup = False
     Images = PngImageListMain
     OnPopup = popupMainTabsPopup
     Left = 72

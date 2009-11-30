@@ -698,6 +698,7 @@ type
     procedure comboOnlyDBsKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure actFilterPanelExecute(Sender: TObject);
     procedure TimerFilterVTTimer(Sender: TObject);
+    procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -8899,6 +8900,22 @@ begin
     if Assigned(OptionsForm) then
       OptionsForm.SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(Attri);
   end;
+end;
+
+
+procedure TMainForm.PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+var
+  ClickPoint: TPoint;
+  TabsHeight: Integer;
+begin
+  // Activate tab popup menu only when clicked on tabs area.
+  TabsHeight := PageControlMain.TabHeight * PageControlMain.RowCount;
+  if MousePos.Y <= TabsHeight then begin
+    ClickPoint := PageControlMain.ClientToScreen(MousePos);
+    popupMainTabs.Popup(ClickPoint.X, ClickPoint.Y);
+    Handled := True;
+  end else
+    Handled := False;
 end;
 
 
