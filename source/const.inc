@@ -196,7 +196,8 @@ const
   DEFAULT_FIELDCOLOR_DATETIME = $00000080; // clMaroon
   DEFAULT_FIELDCOLOR_ENUM = $00008080; // clOlive
   DEFAULT_FIELDCOLOR_SET = $00808000; // clTeal
-  COLORSHIFT_NULLFIELDS = 45; // Percentage of brightness to add to normal field colors for NULL values
+  COLORSHIFT_NULLFIELDS = 70; // Shift brightness to add to normal field colors for NULL values
+  COLORSHIFT_SORTCOLUMNS = 12; // Shift brightness to add to normal field colors for NULL values
 
   REGNAME_FIELDEDITOR_BINARY = 'FieldEditor_Binary';
   REGNAME_FIELDEDITOR_DATETIME = 'FieldEditor_Datetime';
@@ -261,8 +262,6 @@ const
   {PetaByte} NAME_PB = ' PB';
 
   // Used by ListViews and Grids
-  COLOR_SORTCOLUMN_ASC = $00F7F7F7; // light grey
-  COLOR_SORTCOLUMN_DESC = $00EEEEEE; // medium grey
   ORDER_ASC = 0;            // Used for tag-value of "Direction"-button
   ORDER_DESC = 1;           // dito
   TXT_ASC = 'ASC';          // Used for caption of "Direction"-button

@@ -3178,9 +3178,10 @@ begin
   // Sorting color and title image
   for k:=0 to Length(FDataGridSort)-1 do begin
     if FDataGridSort[k].ColumnName = name then begin
+      col.Color := ColorAdjustBrightness(col.Color, COLORSHIFT_SORTCOLUMNS, True);
       case FDataGridSort[k].SortDirection of
-        ORDER_ASC:  begin col.Color := COLOR_SORTCOLUMN_ASC;  col.ImageIndex := 109; end;
-        ORDER_DESC: begin col.Color := COLOR_SORTCOLUMN_DESC; col.ImageIndex := 110; end;
+        ORDER_ASC:  col.ImageIndex := 109;
+        ORDER_DESC: col.ImageIndex := 110;
       end;
     end;
   end;
@@ -5387,18 +5388,16 @@ end;
 procedure TMainForm.vstAfterPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas);
 var
-  i : Integer;
-  h : TVTHeader;
+  i: Integer;
+  h: TVTHeader;
+  NewColor: TColor;
 begin
   h := (Sender as TVirtualStringTree).Header;
-  for i := 0 to h.Columns.Count - 1 do
-  begin
+  for i:=0 to h.Columns.Count-1 do begin
+    NewColor := clWindow;
     if h.SortColumn = i then
-    case h.SortDirection of
-      sdAscending: h.Columns[i].Color := COLOR_SORTCOLUMN_ASC;
-      sdDescending: h.Columns[i].Color := COLOR_SORTCOLUMN_DESC;
-    end else
-      h.Columns[i].Color := clWindow;
+      NewColor := ColorAdjustBrightness(NewColor, COLORSHIFT_SORTCOLUMNS, True);
+    h.Columns[i].Color := NewColor;
   end;
 end;
 
@@ -6578,7 +6577,7 @@ var
   i: Integer;
 begin
   for i:=Low(DatatypeCategories) to High(DatatypeCategories) do
-    DatatypeCategories[i].NullColor := ColorAdjustBrightness(DatatypeCategories[i].Color, COLORSHIFT_NULLFIELDS);
+    DatatypeCategories[i].NullColor := ColorAdjustBrightness(DatatypeCategories[i].Color, COLORSHIFT_NULLFIELDS, False);
 end;
 
 

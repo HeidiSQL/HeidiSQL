@@ -8,7 +8,7 @@ unit helpers;
 
 interface
 
-uses Classes, SysUtils, Graphics, db, clipbrd, dialogs,
+uses Classes, SysUtils, Graphics, GraphUtil, db, clipbrd, dialogs,
   forms, controls, ShellApi, checklst, windows,
   shlobj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
   TntCheckLst, Registry, SynEditHighlighter, mysql_connection, mysql_structures, DateUtils;
@@ -172,7 +172,7 @@ type
   function BinToWideHex(bin: string): WideString;
   procedure CheckHex(text: WideString; errorMessage: string);
   procedure FixVT(VT: TVirtualStringTree);
-  function ColorAdjustBrightness(Col: TColor; ShiftPercent: ShortInt): TColor;
+  function ColorAdjustBrightness(Col: TColor; Shift: SmallInt; BestFit: Boolean): TColor;
   function ComposeOrderClause(Cols: TOrderColArray): WideString;
   procedure OpenRegistry(Session: String = '');
   function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
@@ -187,6 +187,8 @@ type
   function DateBackFriendlyCaption(d: TDateTime): String;
   procedure InheritFont(AFont: TFont);
   function GetTableSize(Results: TMySQLQuery): Int64;
+  function GetLightness(AColor: TColor): Byte;
+
 var
   MainReg                    : TRegistry;
 
@@ -2641,26 +2643,20 @@ begin
 end;
 
 
-function ColorAdjustBrightness(Col: TColor; ShiftPercent: ShortInt): TColor;
+function ColorAdjustBrightness(Col: TColor; Shift: SmallInt; BestFit: Boolean): TColor;
 var
-  r, g, b, ShiftBytes: SmallInt;
+  Lightness: Byte;
 begin
-  // Split colors
-  r := GetRValue(Col);
-  g := GetGValue(Col);
-  b := GetBValue(Col);
-  // Convert percent value to bytes
-  ShiftBytes := Round(ShiftPercent * 255 / 100);
-  // Adjust single colors
-  r := r + ShiftBytes;
-  g := g + ShiftBytes;
-  b := b + ShiftBytes;
-  // Fix exceeded bounds
-  if r > 255 then r := 255 else if r < 0 then r := 0;
-  if g > 255 then g := 255 else if g < 0 then g := 0;
-  if b > 255 then b := 255 else if b < 0 then b := 0;
-  // Merge result
-  Result := RGB(r, g, b);
+  if BestFit then begin
+    // If base color is bright, make bg color darker (grey), and vice versa, so that
+    // colors work with high contrast mode for accessibility
+    Lightness := GetLightness(Col);
+    if (Lightness < 128) and (Shift < 0) then
+      Shift := Abs(Shift)
+    else if (Lightness > 128) and (Shift > 0) then
+      Shift := 0 - Abs(Shift);
+  end;
+  Result := ColorAdjustLuma(Col, Shift, true);
 end;
 
 
@@ -2900,6 +2896,21 @@ begin
   else Result := MakeInt(d) + MakeInt(i);
 end;
 
+
+function GetLightness(AColor: TColor): Byte;
+var
+  R, G, B: Byte;
+  MaxValue, MinValue: Double;
+  Lightness: Double;
+begin
+  R := GetRValue(ColorToRGB(AColor));
+  G := GetGValue(ColorToRGB(AColor));
+  B := GetBValue(ColorToRGB(AColor));
+  MaxValue := Max(Max(R,G),B);
+  MinValue := Min(Min(R,G),B);
+  Lightness := (((MaxValue + MinValue) * 240) + 255 ) / 510;
+  Result := Round(Lightness);
+end;
 
 end.
 
