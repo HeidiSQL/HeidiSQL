@@ -7411,6 +7411,7 @@ begin
     Exit;
   gr := GridResult(Sender);
   EnsureChunkLoaded(Sender, Node);
+  if Node.Index >= Cardinal(Length(gr.Rows)) then Exit;
   if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
     if not Sender.IsEditing then begin
       // Editors may not cover the whole cell rectangle, so any colored area looks broken then
