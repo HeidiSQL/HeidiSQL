@@ -7732,7 +7732,7 @@ var
   Sel: TWideStringList;
   Text: WideString;
 const
-  InfoLen = SIZE_KB;
+  InfoLen = SIZE_KB*10;
 begin
   // Display client threads
   vt := Sender as TVirtualStringTree;
