@@ -196,8 +196,8 @@ const
   DEFAULT_FIELDCOLOR_DATETIME = $00000080; // clMaroon
   DEFAULT_FIELDCOLOR_ENUM = $00008080; // clOlive
   DEFAULT_FIELDCOLOR_SET = $00808000; // clTeal
-  COLORSHIFT_NULLFIELDS = 70; // Shift brightness to add to normal field colors for NULL values
-  COLORSHIFT_SORTCOLUMNS = 12; // Shift brightness to add to normal field colors for NULL values
+  COLORSHIFT_NULLFIELDS = 70; // Brightness adjustment to add to normal field colors for NULL values
+  COLORSHIFT_SORTCOLUMNS = 12; // Brightness adjustment to add to sorted column backgrounds
 
   REGNAME_FIELDEDITOR_BINARY = 'FieldEditor_Binary';
   REGNAME_FIELDEDITOR_DATETIME = 'FieldEditor_Datetime';
