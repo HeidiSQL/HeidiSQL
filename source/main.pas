@@ -6090,7 +6090,7 @@ begin
         end;
         // Auto resize "Size" column in dbtree when needed
         // See also OnResize
-        if (VT = DBtree) and (coVisible in VT.Header.Columns[1].Options) then
+        if coVisible in VT.Header.Columns[1].Options then
           VT.Header.AutoFitColumns(False, smaUseColumnOption, 1, 1);
       end;
     else Exit;
