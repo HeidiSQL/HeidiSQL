@@ -103,6 +103,7 @@ object frmTableTools: TfrmTableTools
           WideText = 'Dummy, keeps compatibility to mainform.dbtree'
         end
         item
+          Alignment = taRightJustify
           Position = 1
           WideText = 'Size'
         end>
