@@ -1174,6 +1174,7 @@ object MainForm: TMainForm
             Width = 575
             Height = 228
             Align = alClient
+            AutoScrollDelay = 50
             EditDelay = 0
             Header.AutoSizeIndex = -1
             Header.DefaultHeight = 17
@@ -1186,6 +1187,7 @@ object MainForm: TMainForm
             LineStyle = lsSolid
             PopupMenu = popupDataGrid
             TabOrder = 2
+            TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
             TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
             TreeOptions.PaintOptions = [toHideFocusRect, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
             TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
@@ -1381,6 +1383,7 @@ object MainForm: TMainForm
             Width = 575
             Height = 206
             Align = alClient
+            AutoScrollDelay = 50
             EditDelay = 0
             Header.AutoSizeIndex = -1
             Header.DefaultHeight = 17
@@ -1392,6 +1395,7 @@ object MainForm: TMainForm
             LineStyle = lsSolid
             PopupMenu = popupResultGrid
             TabOrder = 1
+            TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
             TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
             TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
             TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
