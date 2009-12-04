@@ -455,7 +455,7 @@ object MainForm: TMainForm
           Flat = True
           OnClick = actFilterPanelExecute
         end
-        object editFilterVT: TTNTEdit
+        object editFilterVT: TTntEdit
           Left = 70
           Top = 3
           Width = 154
