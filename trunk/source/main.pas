@@ -707,8 +707,9 @@ type
     EditVariableForm           : TfrmEditVariable;
     FileNameSessionLog         : String;
     FileHandleSessionLog       : Textfile;
-    FSelectedTableColumns,
-    FSelectedTableKeys         : TMySQLQuery;
+    SelectedTableColumns,
+    SelectedTableKeys,
+    SelectedTableForeignKeys   : TObjectList;
     FilterPanelManuallyOpened  : Boolean;
     DataGridDB, DataGridTable  : WideString;
     PrevTableColWidths         : TWideStringList;
@@ -729,8 +730,6 @@ type
     procedure SetSelectedDatabase(db: WideString);
     procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TWideStringList );
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
-    function GetSelectedTableColumns: TMySQLQuery;
-    function GetSelectedTableKeys: TMySQLQuery;
     procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: TWideStringlist = nil);
     procedure PlaceObjectEditor(Which: TListNodeType);
     procedure SetTabCaption(PageIndex: Integer; Text: String);
@@ -790,6 +789,7 @@ type
     DataGridCurrentSort        : WideString;
     btnAddTab                  : TPngSpeedButton;
     QueryTabs                  : TObjectList;
+    SelectedTableCreateStatement: WideString;
 
     property Delimiter: String read FDelimiter write SetDelimiter;
     procedure CallSQLHelpWithKeyword( keyword: String );
@@ -835,8 +835,6 @@ type
     function CheckUniqueKeyClause: Boolean;
     procedure DataGridInsertRow;
     procedure DataGridCancel(Sender: TObject);
-    property SelectedTableColumns: TMySQLQuery read GetSelectedTableColumns write FSelectedTableColumns;
-    property SelectedTableKeys: TMySQLQuery read GetSelectedTableKeys write FSelectedTableKeys;
     procedure CalcNullColors;
     procedure FillDataViewPopup;
     procedure GetDataViews(List: TStrings);
@@ -846,7 +844,6 @@ type
     procedure SaveListSetup( List: TVirtualStringTree );
     procedure RestoreListSetup( List: TVirtualStringTree );
     procedure SetEditorTabCaption(Editor: TFrame; ObjName: WideString);
-    procedure ResetSelectedTableStuff;
     procedure SetWindowCaption;
     procedure OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
     function MaskMulti(str: WideString): WideString;
@@ -1332,6 +1329,10 @@ begin
   if GetRegValue(REGNAME_FILTERACTIVE, DEFAULT_FILTERACTIVE) then
     actFilterPanelExecute(nil);
   lblFilterVTInfo.Caption := '';
+
+  SelectedTableColumns := TObjectList.Create;
+  SelectedTableKeys := TObjectList.Create;
+  SelectedTableForeignKeys := TObjectList.Create;
 end;
 
 
@@ -1656,7 +1657,6 @@ begin
   ClearAllTableLists;
   FreeAndNil(AllDatabases);
   FreeAndNil(FDataGridSelect);
-  ResetSelectedTableStuff;
   SynMemoFilter.Clear;
   SetLength(FDataGridSort, 0);
 
@@ -2555,7 +2555,7 @@ end;
 procedure TMainForm.actSQLhelpExecute(Sender: TObject);
 var
   keyword : String;
-  Results: TMySQLQuery;
+  Col: TTableColumn;
 begin
   // Call SQL Help from various places
   if Connection.ServerVersionInt < 40100 then
@@ -2568,9 +2568,8 @@ begin
   // Data-Tab
   else if (PageControlMain.ActivePage = tabData)
     and Assigned(DataGrid.FocusedNode) then begin
-    Results := SelectedTableColumns;
-    Results.RecNo := DataGrid.FocusedColumn;
-    keyword := Results.Col('Type');
+    Col := TTableColumn(SelectedTableColumns[DataGrid.FocusedColumn]);
+    keyword := Col.DataType.Name;
   end
   else if QueryTabActive and ActiveQueryHelpers.Focused then
   begin
@@ -3149,35 +3148,35 @@ end;
 
 procedure TMainForm.viewdata(Sender: TObject);
 var
-  i                    : Integer;
+  i, j                 : Integer;
   select_base,
   select_base_full,
   select_from          : WideString;
   sl_query             : TWideStringList;
   KeyCols              : TWideStringList;
-  ColName              : WideString;
   col                  : TVirtualTreeColumn;
   rx                   : TRegExpr;
-  ColType              : String;
   ColExists, ShowIt    : Boolean;
   OldOffsetXY          : TPoint;
   RefreshingData       : Boolean;
+  TblCol               : TTableColumn;
 
-procedure InitColumn(name: WideString; ColType: String; Visible: Boolean);
+procedure InitColumn(Column: TTableColumn; Visible: Boolean);
 var
   k: Integer;
   idx: Integer;
+  Key: TTableKey;
 begin
   idx := Length(DataGridResult.Columns);
   SetLength(DataGridResult.Columns, idx+1);
-  DataGridResult.Columns[idx].Name := name;
+  DataGridResult.Columns[idx].Name := Column.Name;
   col := DataGrid.Header.Columns.Add;
-  col.Text := name;
+  col.Text := Column.Name;
   col.Options := col.Options + [coSmartResize];
   if not visible then col.Options := col.Options - [coVisible];
   // Sorting color and title image
   for k:=0 to Length(FDataGridSort)-1 do begin
-    if FDataGridSort[k].ColumnName = name then begin
+    if FDataGridSort[k].ColumnName = Column.Name then begin
       col.Color := ColorAdjustBrightness(col.Color, COLORSHIFT_SORTCOLUMNS, True);
       case FDataGridSort[k].SortDirection of
         ORDER_ASC:  col.ImageIndex := 109;
@@ -3185,72 +3184,48 @@ begin
       end;
     end;
   end;
-  // Detect data type
-  rx.Expression := '^(tiny|small|medium|big)?int\b';
-  if rx.Exec(ColType) then begin
-    col.Alignment := taRightJustify;
-    DataGridResult.Columns[idx].DatatypeCat := dtcInteger;
-  end;
-  rx.Expression := '^(float|double|decimal)\b';
-  if rx.Exec(ColType) then begin
-    col.Alignment := taRightJustify;
-    DataGridResult.Columns[idx].DatatypeCat := dtcReal;
-  end;
-  rx.Expression := '^(date|datetime|time(stamp)?)\b';
-  if rx.Exec(ColType) then begin
-    DataGridResult.Columns[idx].DatatypeCat := dtcTemporal;
-    if rx.Match[1] = 'date' then DataGridResult.Columns[idx].Datatype := dtDate
-    else if rx.Match[1] = 'time' then DataGridResult.Columns[idx].Datatype := dtTime
-    else if rx.Match[1] = 'timestamp' then DataGridResult.Columns[idx].Datatype := dtTimestamp
-    else DataGridResult.Columns[idx].Datatype := dtDatetime;
-  end;
-  rx.Expression := '^((tiny|medium|long)?text|(var)?char)\b(\(\d+\))?';
-  if rx.Exec(ColType) then begin
-    DataGridResult.Columns[idx].DatatypeCat := dtcText;
-    if rx.Match[4] <> '' then
-      DataGridResult.Columns[idx].MaxLength := MakeInt(rx.Match[4])
-    else if ColType = 'tinytext' then
-      // 255 is the width in bytes. If characters that use multiple bytes are
-      // contained, the width in characters is decreased below this number.
-      DataGridResult.Columns[idx].MaxLength := 255
-    else if ColType = 'text' then
-      DataGridResult.Columns[idx].MaxLength := 65535
-    else if ColType = 'mediumtext' then
-      DataGridResult.Columns[idx].MaxLength := 16777215
-    else if ColType = 'longtext' then
-      DataGridResult.Columns[idx].MaxLength := 4294967295
-    else
-      // Fallback for unknown column types
-      DataGridResult.Columns[idx].MaxLength := MaxInt;
-  end;
-  rx.Expression := '^((tiny|medium|long)?blob|(var)?binary|bit)\b';
-  if rx.Exec(ColType) then
-    DataGridResult.Columns[idx].DatatypeCat := dtcBinary;
-  if Copy(ColType, 1, 5) = 'enum(' then begin
-    DataGridResult.Columns[idx].Datatype := dtEnum;
-    DataGridResult.Columns[idx].DatatypeCat := dtcIntegerNamed;
-    DataGridResult.Columns[idx].ValueList := TWideStringList.Create;
-    DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
-    DataGridResult.Columns[idx].ValueList.Delimiter := ',';
-    DataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
-  end;
-  if Copy(ColType, 1, 4) = 'set(' then begin
-    DataGridResult.Columns[idx].Datatype := dtSet;
-    DataGridResult.Columns[idx].DatatypeCat := dtcSetNamed;
-    DataGridResult.Columns[idx].ValueList := TWideStringList.Create;
-    DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
-    DataGridResult.Columns[idx].ValueList.Delimiter := ',';
-    DataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(ColType);
+  // Data type
+  DataGridResult.Columns[idx].DatatypeCat := Column.DataType.Category;
+  case DataGridResult.Columns[idx].DatatypeCat of
+    dtcInteger, dtcReal: col.Alignment := taRightJustify;
+    dtcText: begin
+      if Column.LengthSet <> '' then
+        DataGridResult.Columns[idx].MaxLength := MakeInt(Column.LengthSet)
+      else case Column.DataType.Index of
+        // 255 is the width in bytes. If characters that use multiple bytes are
+        // contained, the width in characters is decreased below this number.
+        dtTinyText: DataGridResult.Columns[idx].MaxLength := 255;
+        dtText: DataGridResult.Columns[idx].MaxLength := 65535;
+        dtMediumText: DataGridResult.Columns[idx].MaxLength := 16777215;
+        dtLongText: DataGridResult.Columns[idx].MaxLength := 4294967295;
+      end;
+    end;
+    dtcIntegerNamed: begin
+      DataGridResult.Columns[idx].Datatype := dtEnum;
+      DataGridResult.Columns[idx].DatatypeCat := dtcIntegerNamed;
+      DataGridResult.Columns[idx].ValueList := TWideStringList.Create;
+      DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
+      DataGridResult.Columns[idx].ValueList.Delimiter := ',';
+      DataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(Column.LengthSet);
+    end;
+    dtcSet: begin
+      DataGridResult.Columns[idx].Datatype := dtSet;
+      DataGridResult.Columns[idx].DatatypeCat := dtcSetNamed;
+      DataGridResult.Columns[idx].ValueList := TWideStringList.Create;
+      DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
+      DataGridResult.Columns[idx].ValueList.Delimiter := ',';
+      DataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(Column.LengthSet);
+    end;
+    else DataGridResult.Columns[idx].MaxLength := MaxInt; // Fallback for unknown column types
   end;
 
-  SelectedTableKeys.First;
-  for k := 0 to SelectedTableKeys.RecordCount - 1 do begin
-    if (SelectedTableKeys.Col('Key_name') = 'PRIMARY')
-      and (SelectedTableKeys.Col('Column_name') = name) then begin
+  for k:=0 to SelectedTableKeys.Count-1 do begin
+    Key := TTableKey(SelectedTableKeys[k]);
+    if (Key.IndexType = 'PRIMARY')
+      and (Key.Columns.IndexOf(Column.Name) > -1) then begin
       DataGridResult.Columns[idx].IsPriPart := True;
       break;
     end;
-    SelectedTableKeys.Next;
   end;
 end;
 
@@ -3280,7 +3255,6 @@ begin
         FDataGridSelect := TWideStringlist.Create;
       if not RefreshingData then begin
         FDataGridSelect.Clear;
-        ResetSelectedTableStuff;
         SynMemoFilter.Clear;
         SetLength(FDataGridSort, 0);
         // Load default view settings
@@ -3315,7 +3289,7 @@ begin
       DataGrid.Header.Columns.Clear;
 
       // No data for routines
-      if SelectedTableColumns = nil then begin
+      if SelectedTableColumns.Count = 0 then begin
         DataGrid.Enabled := False;
         pnlDataTop.Enabled := False;
         pnlFilter.Enabled := False;
@@ -3332,18 +3306,17 @@ begin
       select_base := 'SELECT ';
       select_base_full := select_base;
       // Selected columns
-      if (FDataGridSelect.Count = 0) or (FDataGridSelect.Count = SelectedTableColumns.RecordCount) then begin
+      if (FDataGridSelect.Count = 0) or (FDataGridSelect.Count = SelectedTableColumns.Count) then begin
         tbtnDataColumns.ImageIndex := 107;
       end else begin
         for i := FDataGridSelect.Count - 1 downto 0 do begin
           ColExists := False;
-          SelectedTableColumns.First;
-          while not SelectedTableColumns.Eof do begin
-            if FDataGridSelect[i] = SelectedTableColumns.Col('Field') then begin
+          for j:=0 to SelectedTableColumns.Count-1 do begin
+            TblCol := TTableColumn(SelectedTableColumns[j]);
+            if FDataGridSelect[i] = TblCol.Name then begin
               ColExists := True;
               break;
             end;
-            SelectedTableColumns.Next;
           end;
           if not ColExists then
             FDataGridSelect.Delete(i);
@@ -3356,22 +3329,19 @@ begin
       // Truncate column array.
       SetLength(DataGridResult.Columns, 0);
       debug('mem: initializing browse columns.');
-      SelectedTableColumns.First;
-      while not SelectedTableColumns.Eof do begin
-        ColName := SelectedTableColumns.Col('Field');
-        ShowIt := (FDataGridSelect.Count=0) or (FDataGridSelect.IndexOf(ColName)>-1);
-        if ShowIt or (KeyCols.IndexOf(ColName)>-1) then begin
-          ColType := SelectedTableColumns.Col('Type');
+      for i:=0 to SelectedTableColumns.Count-1 do begin
+        TblCol := TTableColumn(SelectedTableColumns[i]);
+        ShowIt := (FDataGridSelect.Count=0) or (FDataGridSelect.IndexOf(TblCol.Name)>-1);
+        if ShowIt or (KeyCols.IndexOf(TblCol.Name)>-1) then begin
           rx.Expression := '^((tiny|medium|long)?(text|blob)|(var)?(char|binary))\b(\(\d+\))?';
-          if rx.Exec(ColType) then begin
-            select_base := select_base + ' ' + 'LEFT(' + Mask(ColName) + ', ' + IntToStr(GridMaxData) + ')' + ',';
+          if rx.Exec(TblCol.DataType.Name) then begin
+            select_base := select_base + ' ' + 'LEFT(' + Mask(TblCol.Name) + ', ' + IntToStr(GridMaxData) + ')' + ',';
           end else begin
-            select_base := select_base + ' ' + Mask(ColName) + ',';
+            select_base := select_base + ' ' + Mask(TblCol.Name) + ',';
           end;
-          select_base_full := select_base_full + ' ' + Mask(ColName) + ',';
-          InitColumn(ColName, SelectedTableColumns.Col('Type'), ShowIt);
+          select_base_full := select_base_full + ' ' + Mask(TblCol.Name) + ',';
+          InitColumn(TblCol, ShowIt);
         end;
-        SelectedTableColumns.Next;
       end;
       debug('mem: browse column initialization complete.');
       // Cut last comma
@@ -4996,6 +4966,7 @@ var
   i, idx : Integer;
   SnippetsAccessible : Boolean;
   Files: TStringList;
+  Col: TTableColumn;
 begin
   ActiveQueryHelpers.Items.BeginUpdate;
   ActiveQueryHelpers.Items.Clear;
@@ -5015,10 +4986,9 @@ begin
       // Keep native order of columns
       ActiveQueryHelpers.Sorted := False;
       if (SelectedTable.Text <> '') and Assigned(SelectedTableColumns) then begin
-        SelectedTableColumns.First;
-        while not SelectedTableColumns.Eof do begin
-          ActiveQueryHelpers.Items.Add(SelectedTableColumns.Col(0));
-          SelectedTableColumns.Next;
+        for i:=0 to SelectedTableColumns.Count-1 do begin
+          Col := TTableColumn(SelectedTableColumns[i]);
+          ActiveQueryHelpers.Items.Add(Col.Name);
         end;
       end;
     end;
@@ -6125,6 +6095,7 @@ var
   newDb, newDbObject: WideString;
 begin
   debug('DBtreeFocusChanged()');
+  SelectedTableCreateStatement := '';
   if not Assigned(Node) then
     Exit;
   // Post pending UPDATE
@@ -6143,6 +6114,9 @@ begin
         newDbObject := SelectedTable.Text;
         tabEditor.TabVisible := True;
         tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntCrashedTable, lntView];
+        if SelectedTable.NodeType in [lntTable, lntCrashedTable, lntView] then
+          SelectedTableCreateStatement := Connection.GetVar('SHOW CREATE TABLE '+Mainform.mask(SelectedTable.Text), 1);
+        ParseTableStructure(SelectedTableCreateStatement, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
         if tabEditor.TabVisible then begin
           actEditObjectExecute(Sender);
           // When a table is clicked in the tree, and the current
@@ -6155,13 +6129,8 @@ begin
             ViewData(Sender);
           // When a table is clicked in the tree, and the query
           // tab is active, update the list of columns
-          if QueryTabActive then begin
-            // Don't know why this next line is necessary, couldn't find
-            // documented in the code how the refresh mechanism for it is
-            // supposed to work.  It is necessary, though.
-            ResetSelectedTableStuff;
+          if QueryTabActive then
             RefreshQueryHelpers;
-          end;
         end;
       end;
   end;
@@ -6327,21 +6296,21 @@ var
   Add, Clause: WideString;
   i: Integer;
   ed: TEdit;
+  Col: TTableColumn;
 begin
   ed := TEdit(Sender);
   Clause := '';
   Add := '';
   if ed.Text <> '' then begin
-    SelectedTableColumns.First;
-    for i := 0 to SelectedTableColumns.RecordCount - 1 do begin
+    for i:=0 to SelectedTableColumns.Count-1 do begin
+      Col := TTableColumn(SelectedTableColumns[i]);
       if i > 0 then
         Add := Add + ' OR ';
-      Add := Add + mask(SelectedTableColumns.Col(0)) + ' LIKE ' + esc('%'+ed.Text+'%');
+      Add := Add + mask(Col.Name) + ' LIKE ' + esc('%'+ed.Text+'%');
       if Length(Add) > 45 then begin
         Clause := Clause + Add + CRLF;
         Add := '';
       end;
-      SelectedTableColumns.Next;
     end;
     if Add <> '' then
       Clause := Clause + Add;
@@ -6902,54 +6871,42 @@ end;
 }
 function TMainForm.GetKeyColumns: TWideStringlist;
 var
-  i: Integer;
+  i, j, k: Integer;
   AllowsNull: Boolean;
-
-  procedure FindColumns(const KeyName: WideString);
-  begin
-    // Find relevant key column names
-    Result.Clear;
-    SelectedTableKeys.First;
-    while not SelectedTableKeys.Eof do begin
-      if SelectedTableKeys.Col('Key_name') = KeyName then
-        Result.Add(SelectedTableKeys.Col('Column_name'));
-      SelectedTableKeys.Next;
-    end;
-  end;
-
+  Key: TTableKey;
+  Col: TTableColumn;
 begin
   Result := TWideStringlist.Create;
   // Find best key for updates
-  SelectedTableKeys.First;
   // 1. round: find a primary key
-  while not SelectedTableKeys.Eof do begin
-    if SelectedTableKeys.Col('Key_name') = 'PRIMARY' then begin
-      FindColumns(SelectedTableKeys.Col('Key_name'));
+  for i:=0 to SelectedTableKeys.Count-1 do begin
+    Key := TTableKey(SelectedTableKeys[i]);
+    if Key.Name = 'PRIMARY' then begin
+      Result := Key.Columns;
       Exit;
     end;
-    SelectedTableKeys.Next;
   end;
   // no primary key available -> 2. round: find a unique key
-  SelectedTableKeys.First;
-  while not SelectedTableKeys.Eof do begin
-    if MakeInt(SelectedTableKeys.Col('Non_unique')) = 0 then begin
+  for i:=0 to SelectedTableKeys.Count-1 do begin
+    Key := TTableKey(SelectedTableKeys[i]);
+    if Key.IndexType = UKEY then begin
       // We found a UNIQUE key - better than nothing. Check if one of the key
       // columns allows NULLs which makes it dangerous to use in UPDATES + DELETES.
-      FindColumns(SelectedTableKeys.Col('Key_name'));
-      SelectedTableColumns.First;
       AllowsNull := False;
-      for i:=0 to Result.Count-1 do begin
-        while (not SelectedTableColumns.Eof) and (not AllowsNull) do begin
-          if SelectedTableColumns.Col('Field') = Result[i] then
-            AllowsNull := UpperCase(SelectedTableColumns.Col('Null')) = 'YES';
-          SelectedTableColumns.Next;
+      for j:=0 to Key.Columns.Count-1 do begin
+        for k:=0 to SelectedTableColumns.Count-1 do begin
+          Col := TTableColumn(SelectedTableColumns[k]);
+          if Col.Name = Key.Columns[j] then
+            AllowsNull := Col.AllowNull;
+          if AllowsNull then break;
         end;
         if AllowsNull then break;
       end;
-      if AllowsNull then Result.Clear
-      else break;
+      if not AllowsNull then begin
+        Result := Key.Columns;
+        break;
+      end;
     end;
-    SelectedTableKeys.Next;
   end;
 end;
 
@@ -6996,7 +6953,6 @@ begin
   Cols := '';
   Vals := '';
   for i := 0 to Length(DataGridResult.Columns) - 1 do begin
-    SelectedTableColumns.RecNo := i;
     if Row.Cells[i].Modified then begin
       Cols := Cols + mask(DataGridResult.Columns[i].Name) + ', ';
       Val := Row.Cells[i].NewText;
@@ -7284,29 +7240,6 @@ begin
 end;
 
 
-function TMainForm.GetSelectedTableColumns: TMySQLQuery;
-begin
-  if not Assigned(FSelectedTableColumns) then begin
-    // Avoid SQL error on routines
-    if GetFocusedTreeNodeType in [lntTable, lntView] then
-      FSelectedTableColumns := Connection.GetResults('SHOW /*!32332 FULL */ COLUMNS FROM ' + mask(SelectedTable.Text));
-  end;
-  Result := FSelectedTableColumns;
-end;
-
-function TMainForm.GetSelectedTableKeys: TMySQLQuery;
-begin
-  if not Assigned(FSelectedTableKeys) then begin
-    // Avoid SQL error on routines
-    if GetFocusedTreeNodeType in [lntTable, lntView] then begin
-      ShowStatus('Reading table keys ...');
-      FSelectedTableKeys := Connection.GetResults('SHOW KEYS FROM ' + mask(SelectedTable.Text));
-    end;
-  end;
-  Result := FSelectedTableKeys;
-end;
-
-
 procedure TMainForm.menuShowSizeColumnClick(Sender: TObject);
 var
   NewVal: Boolean;
@@ -7524,8 +7457,8 @@ end;
 procedure TMainForm.LoadDataView(ViewName: String);
 var
   rx: TRegExpr;
-  idx: Integer;
-  Col: WideString;
+  idx, i: Integer;
+  Col: TTableColumn;
   HiddenCols: TWideStringList;
 begin
   OpenRegistry;
@@ -7535,13 +7468,11 @@ begin
     HiddenCols.Delimiter := REGDELIM;
     HiddenCols.StrictDelimiter := True;
     HiddenCols.DelimitedText := Utf8Decode(MainReg.ReadString(REGNAME_HIDDENCOLUMNS));
-    SelectedTableColumns.First;
     FDataGridSelect.Clear;
-    while not SelectedTableColumns.Eof do begin
-      Col := SelectedTableColumns.Col(0);
-      if HiddenCols.IndexOf(Col) = -1 then
-        FDataGridSelect.Add(Col);
-      SelectedTableColumns.Next;
+    for i:=0 to SelectedTableColumns.Count-1 do begin
+      Col := TTableColumn(SelectedTableColumns[i]);
+      if HiddenCols.IndexOf(Col.Name) = -1 then
+        FDataGridSelect.Add(Col.Name);
     end;
     FreeAndNil(HiddenCols);
     // Filter
@@ -8258,14 +8189,6 @@ begin
     SelectDBObject(ListTables.Text[ListTables.FocusedNode, ListTables.FocusedColumn], NodeData.NodeType);
     PageControlMainChange(Sender);
   end;
-end;
-
-
-procedure TMainform.ResetSelectedTableStuff;
-begin
-  // Free selected table's cached column and key list
-  FreeAndNil(FSelectedTableColumns);
-  FreeAndNil(FSelectedTableKeys);
 end;
 
 

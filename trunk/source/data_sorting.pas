@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons,
-  WideStrings, TntStdCtrls, helpers, mysql_connection;
+  WideStrings, TntStdCtrls, helpers, mysql_connection, Contnrs;
 
 
 type
@@ -33,6 +33,7 @@ type
     procedure Modified;
   public
     { Public declarations }
+    Columns: TObjectList;
   end;
 
 
@@ -52,6 +53,7 @@ procedure TDataSortingForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
   ColumnNames := TWideStringlist.Create;
+  Columns := TObjectList.Create;
 end;
 
 
@@ -60,15 +62,15 @@ end;
 }
 procedure TDataSortingForm.FormShow(Sender: TObject);
 var
-  Results: TMySQLQuery;
+  Col: TTableColumn;
+  i: Integer;
 begin
   // Take column names from listColumns and add here
+  ParseTableStructure(Mainform.SelectedTableCreateStatement, Columns);
   ColumnNames.Clear;
-  Results := Mainform.SelectedTableColumns;
-  Results.First;
-  while not Results.Eof do begin
-    ColumnNames.Add(Results.Col(0));
-    Results.Next;
+  for i:=0 to Columns.Count-1 do begin
+    Col := TTableColumn(Columns[i]);
+    ColumnNames.Add(Col.Name);
   end;
 
   OrderColumns := Mainform.FDataGridSort;

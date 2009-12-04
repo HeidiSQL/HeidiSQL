@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, WideStrings;
+  Dialogs, StdCtrls, WideStrings, Contnrs;
 
 type
   TFrmDataViewSave = class(TForm)
@@ -18,6 +18,7 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
+    Columns: TObjectList;
   public
     { Public declarations }
   end;
@@ -35,6 +36,7 @@ procedure TFrmDataViewSave.FormCreate(Sender: TObject);
 begin
   Screen.Cursor := crHourglass;
   InheritFont(Font);
+  Columns := TObjectList.Create;
   // Load all view names into combobox
   Mainform.GetDataViews(comboSave.Items);
   comboSaveChange(comboSave);
@@ -54,7 +56,7 @@ var
   viewName, basekey: String;
   Sort: WideString;
   i: Integer;
-  Col: WideString;
+  Col: TTableColumn;
   HiddenCols: TWideStringList;
 begin
   // Save current view stuff to registry
@@ -65,12 +67,11 @@ begin
     HiddenCols := TWideStringlist.Create;
     HiddenCols.Delimiter := REGDELIM;
     HiddenCols.StrictDelimiter := True;
-    Mainform.SelectedTableColumns.First;
-    for i := 0 to Mainform.SelectedTableColumns.RecordCount - 1 do begin
-      Col := Mainform.SelectedTableColumns.Col(0);
-      if Mainform.FDataGridSelect.IndexOf(Col) = -1 then
-        HiddenCols.Add(Col);
-      Mainform.SelectedTableColumns.Next;
+    ParseTableStructure(Mainform.SelectedTableCreateStatement, Columns);
+    for i:=0 to Columns.Count-1 do begin
+      Col := TTableColumn(Columns[i]);
+      if Mainform.FDataGridSelect.IndexOf(Col.Name) = -1 then
+        HiddenCols.Add(Col.Name);
     end;
     MainReg.WriteString(REGNAME_HIDDENCOLUMNS, Utf8Encode(HiddenCols.DelimitedText));
     FreeAndNil(HiddenCols);

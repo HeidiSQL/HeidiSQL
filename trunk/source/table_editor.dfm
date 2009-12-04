@@ -429,7 +429,7 @@ object frmTableEditor: TfrmTableEditor
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 1
             Width = 100
-            WideText = 'Type'
+            WideText = 'Type / Length'
           end>
       end
       object tlbIndexes: TToolBar
