@@ -302,3 +302,9 @@ const
   DBO_CROPTIONS = 'Create_options';
   DBO_COMMENT = 'Comment';
 
+  PKEY = 'PRIMARY';
+  KEY = 'KEY';
+  UKEY = 'UNIQUE';
+  FKEY = 'FULLTEXT';
+  SKEY = 'SPATIAL';
+

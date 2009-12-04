@@ -129,7 +129,6 @@ type
     property MaxLength: Integer read FMaxLength write FMaxLength;
   end;
 
-  TColumnDefaultType = (cdtNothing, cdtText, cdtTextUpdateTS, cdtNull, cdtNullUpdateTS, cdtCurTS, cdtCurTSUpdateTS, cdtAutoInc);
   TColumnDefaultEditorLink = class(TBaseGridEditorLink)
   private
     FPanel: TPanel;

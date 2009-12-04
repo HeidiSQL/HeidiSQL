@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, CheckLst, ExtCtrls, TntCheckLst, WideStrings, mysql_connection;
+  Dialogs, StdCtrls, CheckLst, ExtCtrls, TntCheckLst, WideStrings, mysql_connection,
+  Contnrs;
 
 type
   TColumnSelectionForm = class(TForm)
@@ -25,6 +26,7 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
+    Columns: TObjectList;
   public
     { Public declarations }
   end;
@@ -44,6 +46,7 @@ uses MAIN, helpers;
 procedure TColumnSelectionForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  Columns := TObjectList.Create;
 end;
 
 
@@ -52,13 +55,13 @@ end;
 }
 procedure TColumnSelectionForm.FormShow(Sender: TObject);
 var
-  Results: TMySQLQuery;
+  i: Integer;
+  Col: TTableColumn;
 begin
-  Results := Mainform.SelectedTableColumns;
-  Results.First;
-  while not Results.Eof do begin
-    chklistColumns.Items.Add(Results.Col(0));
-    Results.Next;
+  ParseTableStructure(Mainform.SelectedTableCreateStatement, Columns);
+  for i:=0 to Columns.Count-1 do begin
+    Col := TTableColumn(Columns[i]);
+    chklistColumns.Items.Add(Col.Name);
   end;
 
   // Check items!
@@ -153,7 +156,7 @@ procedure TColumnSelectionForm.chkSortClick(Sender: TObject);
 var
   checkedfields : TStringList;
   i: Integer;
-  Results: TMySQLQuery;
+  Col: TTableColumn;
 begin
   // Memorize checked items in a list
   checkedfields := TStringList.Create;
@@ -170,11 +173,9 @@ begin
     // Add all fieldnames again
     chklistColumns.Items.BeginUpdate;
     chklistColumns.Clear;
-    Results := Mainform.SelectedTableColumns;
-    Results.First;
-    while not Results.Eof do begin
-      chklistColumns.Items.Add(Results.Col(0));
-      Results.Next;
+    for i:=0 to Columns.Count-1 do begin
+      Col := TTableColumn(Columns[i]);
+      chklistColumns.Items.Add(Col.Name);
     end;
     chklistColumns.Items.EndUpdate;
   end;

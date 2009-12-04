@@ -9,7 +9,7 @@ unit helpers;
 interface
 
 uses Classes, SysUtils, Graphics, GraphUtil, db, clipbrd, dialogs,
-  forms, controls, ShellApi, checklst, windows,
+  forms, controls, ShellApi, checklst, windows, Contnrs,
   shlobj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
   TntCheckLst, Registry, SynEditHighlighter, mysql_connection, mysql_structures, DateUtils;
 
@@ -103,6 +103,47 @@ type
   // General purpose editing status flag
   TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
 
+  TColumnDefaultType = (cdtNothing, cdtText, cdtTextUpdateTS, cdtNull, cdtNullUpdateTS, cdtCurTS, cdtCurTSUpdateTS, cdtAutoInc);
+
+  // Column object, many of them in a TObjectList
+  TTableColumn = class(TObject)
+    Name, OldName: WideString;
+    DataType: TDatatype;
+    LengthSet: WideString;
+    Unsigned, AllowNull: Boolean;
+    DefaultType: TColumnDefaultType;
+    DefaultText: WideString;
+    Comment, Collation: WideString;
+    FStatus: TEditingStatus;
+    constructor Create;
+    destructor Destroy; override;
+    private
+      procedure SetStatus(Value: TEditingStatus);
+    public
+      property Status: TEditingStatus read FStatus write SetStatus;
+  end;
+  PTableColumn = ^TTableColumn;
+
+  TTableKey = class(TObject)
+    Name, OldName: WideString;
+    IndexType: String;
+    Columns, SubParts: TWideStringlist;
+    Modified, Added: Boolean;
+    constructor Create;
+    destructor Destroy; override;
+    procedure Modification(Sender: TObject);
+  end;
+
+  // Helper object to manage foreign keys in a TObjectList
+  TForeignKey = class(TObject)
+    KeyName, ReferenceTable, OnUpdate, OnDelete: WideString;
+    Columns, ForeignColumns: TWideStringList;
+    Modified, Added: Boolean;
+    constructor Create;
+    destructor Destroy; override;
+  end;
+
+
 {$I const.inc}
 
   function implodestr(seperator: WideString; a: TWideStringList) :WideString;
@@ -188,6 +229,7 @@ type
   procedure InheritFont(AFont: TFont);
   function GetTableSize(Results: TMySQLQuery): Int64;
   function GetLightness(AColor: TColor): Byte;
+  procedure ParseTableStructure(CreateTable: WideString; Columns: TObjectList=nil; Keys: TObjectList=nil; ForeignKeys: TObjectList=nil);
 
 var
   MainReg                    : TRegistry;
@@ -2911,6 +2953,265 @@ begin
   Lightness := (((MaxValue + MinValue) * 240) + 255 ) / 510;
   Result := Round(Lightness);
 end;
+
+
+procedure ParseTableStructure(CreateTable: WideString; Columns: TObjectList=nil; Keys: TObjectList=nil; ForeignKeys: TObjectList=nil);
+var
+  ColSpec: WideString;
+  rx, rxCol: TRegExpr;
+  i: Integer;
+  InLiteral: Boolean;
+  Col: TTableColumn;
+  Key: TTableKey;
+  ForeignKey: TForeignKey;
+begin
+  if Assigned(Columns) then Columns.Clear;
+  if Assigned(Keys) then Keys.Clear;
+  if Assigned(ForeignKeys) then ForeignKeys.Clear;
+  if CreateTable = '' then
+    Exit;
+  rx := TRegExpr.Create;
+  rx.ModifierS := False;
+  rx.ModifierM := True;
+  rx.Expression := '^\s+[`"]([^`"]+)[`"]\s(\w+)(.*)';
+  rxCol := TRegExpr.Create;
+  rxCol.ModifierI := True;
+  if rx.Exec(CreateTable) then while true do begin
+    if not Assigned(Columns) then
+      break;
+    ColSpec := rx.Match[3];
+
+    // Strip trailing comma
+    if (ColSpec <> '') and (ColSpec[Length(ColSpec)] = ',') then
+      Delete(ColSpec, Length(ColSpec), 1);
+
+    Col := TTableColumn.Create;
+    Columns.Add(Col);
+    Col.Name := rx.Match[1];
+    Col.Status := esUntouched;
+
+    // Datatype
+    Col.DataType := GetDatatypeByName(UpperCase(rx.Match[2]));
+
+    // Length / Set
+    // Various datatypes, e.g. BLOBs, don't have any length property
+    InLiteral := False;
+    if (ColSpec <> '') and (ColSpec[1] = '(') then begin
+      for i:=2 to Length(ColSpec) do begin
+        if (ColSpec[i] = ')') and (not InLiteral) then
+          break;
+        if ColSpec[i] = '''' then
+          InLiteral := not InLiteral;
+      end;
+      Col.LengthSet := Copy(ColSpec, 2, i-2);
+      Delete(ColSpec, 1, i);
+    end;
+    ColSpec := Trim(ColSpec);
+
+    // Unsigned
+    if UpperCase(Copy(ColSpec, 1, 8)) = 'UNSIGNED' then begin
+      Col.Unsigned := True;
+      Delete(ColSpec, 1, 9);
+    end else
+      Col.Unsigned := False;
+
+    // Collation
+    rxCol.Expression := '^(CHARACTER SET \w+\s+)?COLLATE (\w+)\b';
+    if rxCol.Exec(ColSpec) then begin
+      Col.Collation := rxCol.Match[2];
+      Delete(ColSpec, 1, rxCol.MatchLen[0]+1);
+    end;
+
+    // Allow NULL
+    if UpperCase(Copy(ColSpec, 1, 8)) = 'NOT NULL' then begin
+      Col.AllowNull := False;
+      Delete(ColSpec, 1, 9);
+    end else begin
+      Col.AllowNull := True;
+      // Sporadically there is a "NULL" found at this position.
+      if UpperCase(Copy(ColSpec, 1, 4)) = 'NULL' then
+        Delete(ColSpec, 1, 5);
+    end;
+
+    // Default value
+    Col.DefaultType := cdtNothing;
+    Col.DefaultText := '';
+    if UpperCase(Copy(ColSpec, 1, 14)) = 'AUTO_INCREMENT' then begin
+      Col.DefaultType := cdtAutoInc;
+      Col.DefaultText := 'AUTO_INCREMENT';
+      Delete(ColSpec, 1, 15);
+    end else if UpperCase(Copy(ColSpec, 1, 8)) = 'DEFAULT ' then begin
+      Delete(ColSpec, 1, 8);
+      if UpperCase(Copy(ColSpec, 1, 4)) = 'NULL' then begin
+        Col.DefaultType := cdtNull;
+        Col.DefaultText := 'NULL';
+        Delete(ColSpec, 1, 5);
+      end else if UpperCase(Copy(ColSpec, 1, 17)) = 'CURRENT_TIMESTAMP' then begin
+        Col.DefaultType := cdtCurTS;
+        Col.DefaultText := 'CURRENT_TIMESTAMP';
+        Delete(ColSpec, 1, 18);
+      end else if ColSpec[1] = '''' then begin
+        InLiteral := True;
+        for i:=2 to Length(ColSpec) do begin
+          if ColSpec[i] = '''' then
+            InLiteral := not InLiteral
+          else if not InLiteral then
+            break;
+        end;
+        Col.DefaultType := cdtText;
+        Col.DefaultText := Copy(ColSpec, 2, i-3);
+        // A single quote gets escaped by single quote - remove the escape char - escaping is done in Save action afterwards
+        Col.DefaultText := WideStringReplace(Col.DefaultText, '''''', '''', [rfReplaceAll]);
+        Delete(ColSpec, 1, i);
+      end;
+    end;
+    if UpperCase(Copy(ColSpec, 1, 27)) = 'ON UPDATE CURRENT_TIMESTAMP' then begin
+      // Adjust default type
+      case Col.DefaultType of
+        cdtText: Col.DefaultType := cdtTextUpdateTS;
+        cdtNull: Col.DefaultType := cdtNullUpdateTS;
+        cdtCurTS: Col.DefaultType := cdtCurTSUpdateTS;
+      end;
+      Delete(ColSpec, 1, 28);
+    end;
+
+    // Comment
+    if UpperCase(Copy(ColSpec, 1, 9)) = 'COMMENT ''' then begin
+      InLiteral := True;
+      for i:=10 to Length(ColSpec) do begin
+        if ColSpec[i] = '''' then
+          InLiteral := not InLiteral
+        else if not InLiteral then
+          break;
+      end;
+      Col.Comment := Copy(ColSpec, 10, i-11);
+      Col.Comment := WideStringReplace(Col.Comment, '''''', '''', [rfReplaceAll]);
+      Delete(ColSpec, 1, i);
+    end;
+
+    if not rx.ExecNext then
+      break;
+  end;
+
+  // Detect keys
+  // PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), KEY `id_2` (`id`),
+  // KEY `Text` (`Text`(100)), FULLTEXT KEY `Email` (`Email`,`Text`)
+  rx.Expression := '^\s+((\w+)\s+)?KEY\s+([`"]?([^`"]+)[`"]?\s+)?\((.+)\),?$';
+  if rx.Exec(CreateTable) then while true do begin
+    if not Assigned(Keys) then
+      break;
+    Key := TTableKey.Create;
+    Keys.Add(Key);
+    Key.Name := rx.Match[4];
+    Key.IndexType := rx.Match[2];
+    if Key.Name = '' then Key.Name := rx.Match[2]; // PRIMARY
+    if Key.IndexType = '' then Key.IndexType := 'KEY'; // KEY
+    Key.Columns := Explode(',', rx.Match[5]);
+    for i:=0 to Key.Columns.Count-1 do begin
+      rxCol.Expression := '^[`"]?([^`"]+)[`"]?(\((\d+)\))?$';
+      if rxCol.Exec(Key.Columns[i]) then begin
+        Key.Columns[i] := rxCol.Match[1];
+        Key.SubParts.Add(rxCol.Match[3]);
+      end;
+    end;
+    if not rx.ExecNext then
+      break;
+  end;
+
+  // Detect foreign keys
+  // CONSTRAINT `FK1` FOREIGN KEY (`which`) REFERENCES `fk1` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+  rx.Expression := '\s+CONSTRAINT\s+[`"]([^`"]+)[`"]\sFOREIGN KEY\s+\(([^\)]+)\)\s+REFERENCES\s+[`"]([^\(]+)[`"]\s\(([^\)]+)\)(\s+ON DELETE (RESTRICT|CASCADE|SET NULL|NO ACTION))?(\s+ON UPDATE (RESTRICT|CASCADE|SET NULL|NO ACTION))?';
+  if rx.Exec(CreateTable) then while true do begin
+    if not Assigned(ForeignKeys) then
+      break;
+    ForeignKey := TForeignKey.Create;
+    ForeignKeys.Add(ForeignKey);
+    ForeignKey.KeyName := rx.Match[1];
+    ForeignKey.ReferenceTable := WideStringReplace(rx.Match[3], '`', '', [rfReplaceAll]);
+    ForeignKey.ReferenceTable := WideStringReplace(ForeignKey.ReferenceTable, '"', '', [rfReplaceAll]);
+    ExplodeQuotedList(rx.Match[2], ForeignKey.Columns);
+    ExplodeQuotedList(rx.Match[4], ForeignKey.ForeignColumns);
+    if rx.Match[6] <> '' then
+      ForeignKey.OnDelete := rx.Match[6];
+    if rx.Match[8] <> '' then
+      ForeignKey.OnUpdate := rx.Match[8];
+    if not rx.ExecNext then
+      break;
+  end;
+
+  FreeAndNil(rxCol);
+  FreeAndNil(rx);
+end;
+
+
+
+{ *** TTableColumn }
+
+constructor TTableColumn.Create;
+begin
+  inherited Create;
+end;
+
+destructor TTableColumn.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TTableColumn.SetStatus(Value: TEditingStatus);
+begin
+  // Set editing flag and enable "Save" button
+  if (FStatus in [esAddedUntouched, esAddedModified]) and (Value = esModified) then
+    Value := esAddedModified
+  else if (FStatus in [esAddedUntouched, esAddedModified]) and (Value = esDeleted) then
+    Value := esAddedDeleted;
+  FStatus := Value;
+  if Value <> esUntouched then
+    Mainform.TableEditor.Modification(Self);
+end;
+
+
+
+{ *** TTableKey }
+
+constructor TTableKey.Create;
+begin
+  inherited Create;
+  Columns := TWideStringlist.Create;
+  SubParts := TWideStringlist.Create;
+  Columns.OnChange := Modification;
+  Subparts.OnChange := Modification;
+end;
+
+destructor TTableKey.Destroy;
+begin
+  FreeAndNil(Columns);
+  FreeAndNil(SubParts);
+  inherited Destroy;
+end;
+
+procedure TTableKey.Modification(Sender: TObject);
+begin
+  if not Added then
+    Modified := True;
+end;
+
+
+{ *** TForeignKey }
+
+constructor TForeignKey.Create;
+begin
+  inherited Create;
+  Columns := TWideStringlist.Create;
+  ForeignColumns := TWideStringlist.Create;
+end;
+
+destructor TForeignKey.Destroy;
+begin
+  FreeAndNil(Columns);
+  FreeAndNil(ForeignColumns);
+  inherited Destroy;
+end;
+
 
 end.
 
