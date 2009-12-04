@@ -8305,6 +8305,7 @@ begin
   QueryTab.Grid.Font.Assign(QueryGrid.Font);
   QueryTab.Grid.Header.ParentFont := QueryGrid.Header.ParentFont;
   QueryTab.Grid.WantTabs := QueryGrid.WantTabs;
+  QueryTab.Grid.AutoScrollDelay := QueryGrid.AutoScrollDelay;
   QueryTab.Grid.OnBeforeCellPaint := QueryGrid.OnBeforeCellPaint;
   QueryTab.Grid.OnFocusChanged := QueryGrid.OnFocusChanged;
   QueryTab.Grid.OnGetText := QueryGrid.OnGetText;
