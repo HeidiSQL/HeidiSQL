@@ -3210,7 +3210,7 @@ begin
       DataGridResult.Columns[idx].ValueList := TWideStringList.Create;
       DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
       DataGridResult.Columns[idx].ValueList.Delimiter := ',';
-      DataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(Column.LengthSet);
+      DataGridResult.Columns[idx].ValueList.DelimitedText := Column.LengthSet;
     end;
     dtcSet: begin
       DataGridResult.Columns[idx].Datatype := dtSet;
@@ -3218,7 +3218,7 @@ begin
       DataGridResult.Columns[idx].ValueList := TWideStringList.Create;
       DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
       DataGridResult.Columns[idx].ValueList.Delimiter := ',';
-      DataGridResult.Columns[idx].ValueList.DelimitedText := GetEnumValues(Column.LengthSet);
+      DataGridResult.Columns[idx].ValueList.DelimitedText := Column.LengthSet;
     end;
     else DataGridResult.Columns[idx].MaxLength := MaxInt; // Fallback for unknown column types
   end;
