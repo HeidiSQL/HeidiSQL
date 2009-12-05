@@ -719,8 +719,6 @@ function TMySQLConnection.GetCharsetTable: TMySQLQuery;
 begin
   if (not Assigned(FCharsetTable)) and (ServerVersionInt >= 40100) then
     FCharsetTable := GetResults('SHOW CHARSET');
-  if Assigned(FCharsetTable) then
-    FCharsetTable.First;
   Result := FCharsetTable;
 end;
 
