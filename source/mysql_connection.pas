@@ -729,9 +729,12 @@ var
 begin
   c := CharsetTable;
   Result := TStringList.Create;
-  if Assigned(c) then while not c.Eof do begin
-    Result.Add(c.Col('Description') + ' (' + c.Col('Charset') + ')');
-    c.Next;
+  if Assigned(c) then begin
+    c.First;
+    while not c.Eof do begin
+      Result.Add(c.Col('Description') + ' (' + c.Col('Charset') + ')');
+      c.Next;
+    end;
   end;
 end;
 
