@@ -6676,6 +6676,24 @@ object MainForm: TMainForm
     object menuHelp: TMenuItem
       Action = actSQLhelp
     end
+    object menuQueryHelpersGenerateInsert: TMenuItem
+      Caption = 'Generate INSERT ...'
+      Enabled = False
+      ImageIndex = 114
+      OnClick = menuQueryHelpersGenerateStatementClick
+    end
+    object menuQueryHelpersGenerateUpdate: TMenuItem
+      Caption = 'Generate UPDATE ...'
+      Enabled = False
+      ImageIndex = 114
+      OnClick = menuQueryHelpersGenerateStatementClick
+    end
+    object menuQueryHelpersGenerateDelete: TMenuItem
+      Caption = 'Generate DELETE ...'
+      Enabled = False
+      ImageIndex = 114
+      OnClick = menuQueryHelpersGenerateStatementClick
+    end
   end
   object popupFilter: TPopupMenu
     Images = PngImageListMain

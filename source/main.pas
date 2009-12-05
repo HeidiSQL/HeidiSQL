@@ -441,6 +441,9 @@ type
     Findtextonserver1: TMenuItem;
     actBulkTableEdit: TAction;
     menuBulkTableEdit: TMenuItem;
+    menuQueryHelpersGenerateInsert: TMenuItem;
+    menuQueryHelpersGenerateUpdate: TMenuItem;
+    menuQueryHelpersGenerateDelete: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -699,6 +702,7 @@ type
     procedure actFilterPanelExecute(Sender: TObject);
     procedure TimerFilterVTTimer(Sender: TObject);
     procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+    procedure menuQueryHelpersGenerateStatementClick(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -4973,6 +4977,9 @@ begin
   // By default sorted alpabetically
   ActiveQueryHelpers.Sorted := True;
   // By default disable all items in popupmenu, enable them when needed
+  menuQueryHelpersGenerateInsert.Enabled := False;
+  menuQueryHelpersGenerateUpdate.Enabled := False;
+  menuQueryHelpersGenerateDelete.Enabled := False;
   menuInsertSnippetAtCursor.Enabled := False;
   menuLoadSnippet.Enabled := False;
   menuDeleteSnippet.Enabled := False;
@@ -4985,11 +4992,12 @@ begin
     begin
       // Keep native order of columns
       ActiveQueryHelpers.Sorted := False;
-      if (SelectedTable.Text <> '') and Assigned(SelectedTableColumns) then begin
-        for i:=0 to SelectedTableColumns.Count-1 do begin
-          Col := TTableColumn(SelectedTableColumns[i]);
-          ActiveQueryHelpers.Items.Add(Col.Name);
-        end;
+      menuQueryHelpersGenerateInsert.Enabled := True;
+      menuQueryHelpersGenerateUpdate.Enabled := True;
+      menuQueryHelpersGenerateDelete.Enabled := True;
+      for i:=0 to SelectedTableColumns.Count-1 do begin
+        Col := TTableColumn(SelectedTableColumns[i]);
+        ActiveQueryHelpers.Items.Add(Col.Name);
       end;
     end;
 
@@ -8840,6 +8848,76 @@ begin
     Handled := True;
   end else
     Handled := False;
+end;
+
+
+procedure TMainForm.menuQueryHelpersGenerateStatementClick(Sender: TObject);
+var
+  MenuItem: TMenuItem;
+  sql, Val, WhereClause: WideString;
+  i, idx: Integer;
+  ColumnNames, DefaultValues, KeyColumns: TWideStringlist;
+  Column: TTableColumn;
+begin
+  // Generate INSERT, UPDATE or DELETE query using selected columns
+  MenuItem := (Sender as TMenuItem);
+  ColumnNames := TWideStringlist.Create;
+  DefaultValues := TWideStringlist.Create;
+  for i:=0 to ActiveQueryHelpers.Items.Count-1 do begin
+    if ActiveQueryHelpers.Selected[i] then begin
+      ColumnNames.Add(mask(ActiveQueryHelpers.Items[i]));
+      Column := SelectedTableColumns[i] as TTableColumn;
+      case Column.DataType.Category of
+        dtcInteger, dtcReal: Val := '0';
+        dtcText, dtcIntegerNamed, dtcSetNamed: begin
+          Val := esc(Column.DefaultText);
+          if Column.DefaultType in [cdtNull, cdtNullUpdateTS] then
+            Val := esc('')
+          else
+            Val := esc(Column.DefaultText);
+        end;
+        dtcTemporal: Val := 'NOW()';
+        else Val := 'NULL';
+      end;
+      if Column.DefaultType = cdtAutoInc then
+        Val := 'NULL';
+      DefaultValues.Add(Val);
+    end;
+  end;
+  KeyColumns := GetKeyColumns;
+  if KeyColumns.Count > 0 then begin
+    WhereClause := '';
+    for i:=0 to KeyColumns.Count-1 do begin
+      idx := ColumnNames.IndexOf(mask(KeyColumns[i]));
+      if idx > -1 then
+        WhereClause := WhereClause + mask(KeyColumns[i])+'='+DefaultValues[idx] + ' AND ';
+    end;
+    Delete(WhereClause, Length(sql)-3, 4);
+  end else
+    WhereClause := '??? # No primary or unique key available!';
+
+  if MenuItem = menuQueryHelpersGenerateInsert then begin
+    sql := 'INSERT INTO '+mask(SelectedTable.Text)+CRLF+
+      #9'('+ImplodeStr(', ', ColumnNames)+')'+CRLF+
+      #9'VALUES ('+ImplodeStr(', ', DefaultValues)+')';
+
+  end else if MenuItem = menuQueryHelpersGenerateUpdate then begin
+    sql := 'UPDATE '+mask(SelectedTable.Text)+CRLF+#9'SET'+CRLF;
+    if ColumnNames.Count > 0 then begin
+      for i:=0 to ColumnNames.Count-1 do begin
+        sql := sql + #9#9 + ColumnNames[i] + '=' + DefaultValues[i] + ',' + CRLF;
+      end;
+      Delete(sql, Length(sql)-2, 1);
+    end else
+      sql := sql + #9#9'??? # No column names selected!'+CRLF;
+    sql := sql + #9'WHERE ' + WhereClause;
+
+  end else if MenuItem = menuQueryHelpersGenerateDelete then begin
+    sql := 'DELETE FROM '+mask(SelectedTable.Text)+' WHERE ' + WhereClause;
+
+  end;
+  ActiveQueryMemo.UndoList.AddGroupBreak;
+  ActiveQueryMemo.SelText := sql;
 end;
 
 
