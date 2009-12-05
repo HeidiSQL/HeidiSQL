@@ -811,33 +811,29 @@ procedure TMySQLQuery.Execute;
 var
   i, j, NumFields: Integer;
   Field: PMYSQL_FIELD;
-  IsBinary, Bug10491: Boolean;
+  IsBinary: Boolean;
 begin
   FLastResult := Connection.Query(FSQL, True);
   FRecordCount := Connection.RowsFound;
   if HasResult then begin
     NumFields := mysql_num_fields(FLastResult);
     SetLength(FDatatypes, NumFields);
-    // Workaround for bug 10491 and friends, see http://bugs.mysql.com/10491
-    Bug10491 := (Connection.ServerVersionInt < 50046) and
-      (Connection.ServerVersionInt >= 40100) and
-      (UpperCase(Copy(Trim(FSQL), 1, 4)) = 'SHOW');
     for i:=0 to NumFields-1 do begin
       Field := mysql_fetch_field_direct(FLastResult, i);
       FColumnNames.Add(Utf8Decode(Field.name));
 
       FDatatypes[i] := Datatypes[Low(Datatypes)];
-      if Bug10491 then
-        FDatatypes[i] := Datatypes[Integer(dtText)]
-      else if (Field.flags and ENUM_FLAG) = ENUM_FLAG then
+      if (Field.flags and ENUM_FLAG) = ENUM_FLAG then
         FDatatypes[i] := Datatypes[Integer(dtEnum)]
       else if (Field.flags and SET_FLAG) = SET_FLAG then
         FDatatypes[i] := Datatypes[Integer(dtSet)]
       else for j:=Low(Datatypes) to High(Datatypes) do begin
         if Field._type = Datatypes[j].NativeType then begin
           // Text and Blob types share the same constants (see FIELD_TYPEs in mysql_api)
+          // Function results return binary collation on servers below 5.0.46. Work around
+          // that by checking if this field is a real table field
           if Connection.IsUnicode then
-            IsBinary := Field.charsetnr = COLLATION_BINARY
+            IsBinary := (Field.charsetnr = COLLATION_BINARY) and ((Field.org_table <> '') or (Connection.ServerVersionInt > 50046))
           else
             IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
           if IsBinary and (Datatypes[j].Category = dtcText) then
