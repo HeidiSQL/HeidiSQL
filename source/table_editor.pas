@@ -981,7 +981,7 @@ begin
     3: CellText := Col.LengthSet;
     4, 5: CellText := ''; // Checkbox
     6: case Col.DefaultType of
-      cdtNothing:                 CellText := '';
+      cdtNothing:                 CellText := 'No default';
       cdtText, cdtTextUpdateTS:   CellText := Col.DefaultText;
       cdtNull, cdtNullUpdateTS:   CellText := 'NULL';
       cdtCurTS, cdtCurTSUpdateTS: CellText := 'CURRENT_TIMESTAMP';
@@ -1067,7 +1067,7 @@ begin
     2: TextColor := DatatypeCategories[Integer(Col.DataType.Category)].Color;
 
     6: case Col.DefaultType of
-      cdtNull, cdtNullUpdateTS:
+      cdtNothing, cdtNull, cdtNullUpdateTS:
         TextColor := clGray;
       cdtCurTS, cdtCurTSUpdateTS:
         TextColor := DatatypeCategories[Integer(dtcTemporal)].Color;
