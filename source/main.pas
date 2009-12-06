@@ -4173,12 +4173,16 @@ begin
     for i := 0 to Tables.Count - 1 do begin
       // If the just typed word equals the alias of this table or the
       // tablename itself, set tablename var and break loop
-      if rx.Exec(Tables[i]) then begin
+      if rx.Exec(Tables[i]) then while true do begin
         if PrevShortToken = WideDequotedStr(rx.Match[3],'`') then begin
           tablename := rx.Match[1];
           break;
         end;
+        if not rx.ExecNext then
+          break;
       end;
+      if tablename <> '' then
+        break;
     end;
   end;
   rx.Free;
