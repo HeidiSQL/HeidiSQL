@@ -761,6 +761,8 @@ var
   idx: Integer;
 begin
   // Add new column after selected one
+  if listColumns.IsEditing then
+    listColumns.EndEditNode;
   fn := listColumns.FocusedNode;
   NewCol := TTableColumn.Create;
   if Assigned(fn) then begin
