@@ -2111,7 +2111,6 @@ object MainForm: TMainForm
       AutoCheck = True
       Caption = 'Stop on errors in batch mode'
       Checked = True
-      Enabled = False
       Hint = 'Stop on errors in batch mode'
       ImageIndex = 63
       OnExecute = actQueryStopOnErrorsExecute
