@@ -97,6 +97,8 @@ const
   REGNAME_DBTREEWIDTH = 'dbtreewidth';
   REGNAME_SQLOUTHEIGHT = 'sqloutheight';
   REGNAME_QUERYHELPERSWIDTH = 'queryhelperswidth';
+  REGNAME_STOPONERRORSINBATCH = 'StopOnErrorsInBatchMode';
+  DEFAULT_STOPONERRORSINBATCH = True;
   REGNAME_EDITOR_WIDTH = 'MemoEditorWidth';
   DEFAULT_EDITOR_WIDTH = 100;
   REGNAME_EDITOR_HEIGHT = 'MemoEditorHeight';

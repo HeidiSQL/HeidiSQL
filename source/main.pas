@@ -1064,6 +1064,7 @@ begin
   MainReg.WriteInteger(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
   MainReg.WriteInteger(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
   MainReg.WriteInteger(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
+  MainReg.WriteBool(REGNAME_STOPONERRORSINBATCH, actQueryStopOnErrors.Checked);
 
   // Save delimiter
   MainReg.WriteString( REGNAME_DELIMITER, Delimiter );
@@ -1205,6 +1206,7 @@ begin
   ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
   ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
   ToolBarQuery.Top := GetRegValue(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
+  actQueryStopOnErrors.Checked := GetRegValue(REGNAME_STOPONERRORSINBATCH, DEFAULT_STOPONERRORSINBATCH);
 
   pnlQueryMemo.Height := GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   pnlQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
@@ -3843,7 +3845,8 @@ begin
   actSaveSQLSelectionSnippet.Enabled := QueryTabActive and HasSelection;
   actQueryFind.Enabled := QueryTabActive and NotEmpty;
   actQueryReplace.Enabled := QueryTabActive and NotEmpty;
-  actQueryStopOnErrors.Enabled := QueryTabActive;
+  // We need a pressed button which somehow does not work in conjunction with Enabled=False
+  // actQueryStopOnErrors.Enabled := QueryTabActive;
   actQueryWordWrap.Enabled := QueryTabActive;
   actClearQueryEditor.Enabled := QueryTabActive and NotEmpty;
   actSetDelimiter.Enabled := QueryTabActive;
