@@ -902,6 +902,9 @@ begin
       Data := Grid.Text[Node, i];
       // Handle nulls.
       if GridData.Rows[Node.Index].Cells[i].IsNull then Data := TEXT_NULL;
+      // Unformat numeric values
+      if (GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
+        Data := UnformatNumber(Data);
       // Escape HTML control characters in data.
       Data := htmlentities(Data);
       tmp := tmp + '          <td class="col' + IntToStr(i) + '">' + Data + '</td>' + CRLF;
@@ -997,8 +1000,9 @@ begin
       Data := Grid.Text[Node, i];
       // Remove 0x.
       if GridData.Columns[i].DatatypeCat = dtcBinary then Delete(Data, 1, 2);
-      // Unformat float values
-      if GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then Data := UnformatNumber(Data);
+      // Unformat numeric values
+      if (GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
+        Data := UnformatNumber(Data);
       // Escape encloser characters inside data per de-facto CSV.
       Data := WideStringReplace(Data, Encloser, Encloser + Encloser, [rfReplaceAll]);
       // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
@@ -1075,8 +1079,9 @@ begin
         Data := Grid.Text[Node, i];
         // Remove 0x.
         if GridData.Columns[i].DatatypeCat = dtcBinary then Delete(Data, 1, 2);
-        // Unformat float values
-        if GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then Data := UnformatNumber(Data);
+        // Unformat numeric values
+        if (GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
+          Data := UnformatNumber(Data);
         // Escape XML control characters in data.
         Data := htmlentities(Data);
         // Add data and cell end tag.
@@ -1153,7 +1158,7 @@ begin
         Data := Grid.Text[Node, i];
         // Remove 0x.
         if GridData.Columns[i].DatatypeCat = dtcBinary then Delete(Data, 1, 2);
-        // Unformat float values
+        // Unformat numeric values
         if GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then Data := UnformatNumber(Data);
         // Add data and cell end tag.
         tmp := tmp + esc(Data);

@@ -118,6 +118,7 @@ type
     grpSQLTabWidth: TGroupBox;
     editSQLTabWidth: TEdit;
     updownSQLTabWidth: TUpDown;
+    chkExportLocaleNumbers: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -222,6 +223,7 @@ begin
   MainReg.WriteString(REGNAME_CSV_ENCLOSER, editCSVEncloser.Text);
   MainReg.WriteString(REGNAME_CSV_TERMINATOR, editCSVTerminator.Text);
   MainReg.WriteInteger(REGNAME_COPYMAXSIZE, updownCopyDataMaxSize.Position);
+  MainReg.WriteBool(REGNAME_EXPORT_LOCALENUMBERS, chkExportLocaleNumbers.Checked);
 
   MainReg.WriteInteger(REGNAME_MAXCOLWIDTH, updownMaxColWidth.Position);
   maxrows := StrToIntDef(editMaxTotalRows.Text, DEFAULT_MAXTOTALROWS);
@@ -297,6 +299,7 @@ begin
   Mainform.prefCSVSeparator := editCSVSeparator.Text;
   Mainform.prefCSVEncloser := editCSVEncloser.Text;
   Mainform.prefCSVTerminator := editCSVTerminator.Text;
+  Mainform.prefExportLocaleNumbers := chkExportLocaleNumbers.Checked;
   DatatypeCategories[Integer(dtcInteger)].Color := cboxNumeric.Selected;
   DatatypeCategories[Integer(dtcReal)].Color := cboxNumeric.Selected;
   DatatypeCategories[Integer(dtcText)].Color := cboxText.Selected;
@@ -385,6 +388,7 @@ begin
   editCSVEncloser.Text := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
   editCSVTerminator.Text := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   updownCopyDataMaxSize.Position := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE);
+  chkExportLocaleNumbers.Checked := GetRegValue(REGNAME_EXPORT_LOCALENUMBERS, DEFAULT_EXPORT_LOCALENUMBERS);
 
   // Log to file
   chkLogToFile.Checked := GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE);
