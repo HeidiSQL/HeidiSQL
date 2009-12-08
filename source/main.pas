@@ -2083,7 +2083,7 @@ begin
 
   if Dialog.Execute and (Dialog.FileName <> '') then try
     Screen.Cursor := crHourGlass;
-    FS := openfs(Dialog.FileName);
+    FS := TFileStream.Create(Dialog.FileName, fmCreate or fmOpenWrite);
     case Dialog.FilterIndex of
       1: GridToCsv(ActiveGrid, prefCSVSeparator, prefCSVEncloser, prefCSVTerminator, FS);
       2: GridToHtml(ActiveGrid, Title, FS);
