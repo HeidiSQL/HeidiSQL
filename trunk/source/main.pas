@@ -4137,6 +4137,23 @@ begin
   else
     PrevLongToken := '';
 
+  // Display list of variables
+  rx.Expression := '^@@(SESSION|GLOBAL)$';
+  rx.ModifierI := True;
+  if rx.Exec(PrevLongToken) then begin
+    try
+      Results := Connection.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
+      while not Results.Eof do begin
+        Proposal.InsertList.Add(Results.Col(0));
+        Proposal.ItemList.Add(WideFormat(ItemPattern, [ICONINDEX_PRIMARYKEY, 'variable', Results.Col(0)+'   \color{clSilver}= '+WideStringReplace(Results.Col(1), '\', '\\', [rfReplaceAll])] ) );
+        Results.Next;
+      end;
+    except
+      // Just log error in sql log, do not disturb user while typing
+    end;
+    Exit;
+  end;
+
   // Get column-names into the proposal pulldown
   // when we write sql like "SELECT t.|col FROM table [AS] t"
   // Current limitation: Identifiers (masked or not) containing
@@ -4162,7 +4179,6 @@ begin
 
   // 2. Parse FROM clause to detect relevant table/view, probably aliased
   rx.ModifierG := True;
-  rx.ModifierI := True;
   rx.Expression := '\b(FROM|INTO|UPDATE)\s+(.+)(WHERE|HAVING|ORDER|GROUP)?';
   if rx.Exec(sql) then begin
     TableClauses := rx.Match[2];
