@@ -893,10 +893,10 @@ begin
       FreeAndNil(ExportStream);
       if not DirectoryExists(comboExportOutputTarget.Text) then
         ForceDirectories(comboExportOutputTarget.Text);
-      ExportStream := openfs(comboExportOutputTarget.Text+'\'+GoodFileName(obj)+'.sql');
+      ExportStream := TFileStream.Create(comboExportOutputTarget.Text+'\'+GoodFileName(obj)+'.sql', fmCreate or fmOpenWrite);
     end;
     if ToFile and (not Assigned(ExportStream)) then
-      ExportStream := openfs(comboExportOutputTarget.Text);
+      ExportStream := TFileStream.Create(comboExportOutputTarget.Text, fmCreate or fmOpenWrite);
     if ToDb or ToServer then
       ExportStream := TMemoryStream.Create;
     if (db<>ExportLastDatabase) or ToDir then begin

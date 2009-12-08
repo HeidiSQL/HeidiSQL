@@ -165,7 +165,6 @@ type
   function Max(A, B: Integer): Integer; assembler;
   function Min(A, B: Integer): Integer; assembler;
   function urlencode(url: String): String;
-  function openfs(filename: String): TFileStream;
   procedure StreamWrite(S: TStream; Text: WideString = '');
   function fixSQL( sql: WideString; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): WideString;
   procedure ToggleCheckListBox(list: TTNTCheckListBox; state: Boolean); Overload;
@@ -201,7 +200,6 @@ type
   function GetDBObjectType(TableStatus: TMySQLQuery): TListNodeType;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
   procedure SaveUnicodeFile(Filename: String; Text: WideString);
-  function CreateUnicodeFileStream(Filename: String): TFileStream;
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; out FileCharset: TFileCharset);
   function GetFileCharset(Stream: TFileStream): TFileCharset;
   function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): WideString;
@@ -1265,16 +1263,6 @@ end;
 function urlencode(url: String): String;
 begin
   result := stringreplace(url, ' ', '+', [rfReplaceAll]);
-end;
-
-
-{***
-  Create UTF-8 text file
-}
-function openfs(filename: String): TFileStream;
-begin
-    Result := TFileStream.Create(filename, fmCreate);
-    Result.WriteBuffer(sUTF8BOMString, 3);
 end;
 
 
@@ -2364,20 +2352,9 @@ procedure SaveUnicodeFile(Filename: String; Text: WideString);
 var
   f: TFileStream;
 begin
-  f := CreateUnicodeFileStream(Filename);
-  f.WriteBuffer(Pointer(Text)^, Length(Text) * 2);
+  f := TFileStream.Create(Filename, fmCreate or fmOpenWrite);
+  StreamWrite(f, Text);
   f.Free;
-end;
-
-
-function CreateUnicodeFileStream(Filename: String): TFileStream;
-var
-  header: array[0..1] of Byte;
-begin
-  header[0] := $FF;
-  header[1] := $FE;
-  Result := TFileStream.Create(Filename, fmCreate or fmOpenWrite);
-  Result.WriteBuffer(header, 2);
 end;
 
 
