@@ -830,10 +830,11 @@ begin
       else for j:=Low(Datatypes) to High(Datatypes) do begin
         if Field._type = Datatypes[j].NativeType then begin
           // Text and Blob types share the same constants (see FIELD_TYPEs in mysql_api)
-          // Function results return binary collation on servers below 5.0.46. Work around
+          // Some function results return binary collation up to the latest versions. Work around
           // that by checking if this field is a real table field
+          // See http://bugs.mysql.com/bug.php?id=10201
           if Connection.IsUnicode then
-            IsBinary := (Field.charsetnr = COLLATION_BINARY) and ((Field.org_table <> '') or (Connection.ServerVersionInt > 50046))
+            IsBinary := (Field.charsetnr = COLLATION_BINARY) and (Field.org_table <> '')
           else
             IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
           if IsBinary and (Datatypes[j].Category = dtcText) then
