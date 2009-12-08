@@ -785,6 +785,17 @@ object optionsform: Toptionsform
         Wrap = True
         OnChanging = anyUpDownLimitChanging
       end
+      object chkExportLocaleNumbers: TCheckBox
+        Left = 8
+        Top = 232
+        Width = 385
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 
+          'Use locale number format in grid exports (MS Excel paste compati' +
+          'bility)'
+        TabOrder = 3
+      end
     end
     object tabShortcuts: TTabSheet
       Caption = 'Shortcuts'

@@ -140,6 +140,8 @@ const
   REGNAME_CSV_TERMINATOR = 'CSVTerminator';
   DEFAULT_CSV_TERMINATOR = '\r\n';
   REGNAME_CSV_ESCAPER = 'CSVImportFieldEscaperV2';
+  REGNAME_EXPORT_LOCALENUMBERS = 'ExportLocaleNumberFormats';
+  DEFAULT_EXPORT_LOCALENUMBERS = False;
   REGNAME_CSV_FILENAME = 'loadfilename';
   REGNAME_CSV_ENCLOPTION = 'CSVImportFieldsEnclosedOptionallyV2';
   REGNAME_CSV_IGNORELINES = 'CSVImportIgnoreLines';
