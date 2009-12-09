@@ -184,6 +184,7 @@ type
       function Col(ColumnName: WideString; IgnoreErrors: Boolean=False): WideString; overload;
       function DataType(Column: Integer): TDataType;
       function ColExists(Column: WideString): Boolean;
+      function ColIsPrimaryKeyPart(Column: Integer): Boolean;
       function IsNull(Column: Integer): Boolean;
       function HasResult: Boolean;
       property RecNo: Int64 read FRecNo write SetRecNo;
@@ -929,6 +930,18 @@ end;
 function TMySQLQuery.ColExists(Column: WideString): Boolean;
 begin
   Result := (ColumnNames <> nil) and (ColumnNames.IndexOf(Column) > -1);
+end;
+
+
+function TMySQLQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
+var
+  Field: PMYSQL_FIELD;
+begin
+  if HasResult and (Column < ColumnCount) then begin
+    Field := mysql_fetch_field_direct(FLastResult, Column);
+    Result := (Field.flags and PRI_KEY_FLAG) = PRI_KEY_FLAG;
+  end else
+    Result := False;
 end;
 
 

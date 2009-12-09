@@ -3988,6 +3988,7 @@ begin
       ActiveGridResult.Columns[i].DatatypeCat := Results.DataType(i).Category;
       if ActiveGridResult.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then
         col.Alignment := taRightJustify;
+      ActiveGridResult.Columns[i].IsPriPart := Results.ColIsPrimaryKeyPart(i);
     end;
     debug('mem: query column initialization complete.');
     debug('mem: clearing and initializing query rows (internal data).');
