@@ -7,7 +7,7 @@ unit mysql_structures;
 interface
 
 uses
-  Classes, Widestrings, Graphics, mysql_api;
+  Classes, Widestrings, Graphics, Windows, SysUtils, mysql_api;
 
 {$I const.inc}
 
@@ -4341,7 +4341,7 @@ var
   i: Integer;
 begin
   for i:=Low(Datatypes) to High(Datatypes) do begin
-    if Datatypes[i].Name = Datatype then begin
+    if AnsiCompareText(Datatypes[i].Name, Datatype) = 0 then begin
       Result := Datatypes[i];
       break;
     end;
