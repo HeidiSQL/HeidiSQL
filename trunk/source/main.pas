@@ -6145,9 +6145,16 @@ begin
         newDbObject := SelectedTable.Text;
         tabEditor.TabVisible := True;
         tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntCrashedTable, lntView];
-        if SelectedTable.NodeType in [lntTable, lntCrashedTable, lntView] then
-          SelectedTableCreateStatement := Connection.GetVar('SHOW CREATE TABLE '+Mainform.mask(SelectedTable.Text), 1);
-        ParseTableStructure(SelectedTableCreateStatement, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
+        SelectedTableColumns.Clear;
+        SelectedTableKeys.Clear;
+        SelectedTableForeignKeys.Clear;
+        case SelectedTable.NodeType of
+          lntTable, lntCrashedTable: begin
+            SelectedTableCreateStatement := Connection.GetVar('SHOW CREATE TABLE '+Mainform.mask(SelectedTable.Text), 1);
+            ParseTableStructure(SelectedTableCreateStatement, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
+          end;
+          lntView: ParseViewStructure(SelectedTable.Text, SelectedTableColumns);
+        end;
         if tabEditor.TabVisible then begin
           actEditObjectExecute(Sender);
           // When a table is clicked in the tree, and the current

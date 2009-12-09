@@ -228,6 +228,7 @@ type
   function GetTableSize(Results: TMySQLQuery): Int64;
   function GetLightness(AColor: TColor): Byte;
   procedure ParseTableStructure(CreateTable: WideString; Columns: TObjectList=nil; Keys: TObjectList=nil; ForeignKeys: TObjectList=nil);
+  procedure ParseViewStructure(ViewName: WideString; Columns: TObjectList);
 
 var
   MainReg                    : TRegistry;
@@ -3123,6 +3124,33 @@ begin
 
   FreeAndNil(rxCol);
   FreeAndNil(rx);
+end;
+
+
+procedure ParseViewStructure(ViewName: WideString; Columns: TObjectList);
+var
+  rx: TRegExpr;
+  Col: TTableColumn;
+  Results: TMySQLQuery;
+begin
+  // Views reveal their columns only with a SHOW COLUMNS query.
+  // No keys available in views - SHOW KEYS always returns an empty result
+  Columns.Clear;
+  rx := TRegExpr.Create;
+  rx.Expression := '^(\w+)(\((.+)\))?';
+  Results := Mainform.Connection.GetResults('SHOW COLUMNS FROM '+Mainform.mask(ViewName));
+  while not Results.Eof do begin
+    Col := TTableColumn.Create;
+    Columns.Add(Col);
+    Col.Name := Results.Col('Field');
+    Col.AllowNull := Results.Col('Null') = 'YES';
+    if rx.Exec(Results.Col('Type')) then begin
+      Col.DataType := GetDatatypeByName(rx.Match[1]);
+      Col.LengthSet := rx.Match[2];
+    end;
+    Results.Next;
+  end;
+  rx.Free;
 end;
 
 
