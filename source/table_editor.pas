@@ -471,8 +471,12 @@ begin
     Specs.Add('COMMENT=' + esc(memoComment.Text));
   if (comboCollation.Tag = ModifiedFlag) or (chkCharsetConvert.Checked) then
     Specs.Add('COLLATE=' + comboCollation.Text);
-  if comboEngine.Tag = ModifiedFlag then
-    Specs.Add('ENGINE=' + comboEngine.Text);
+  if comboEngine.Tag = ModifiedFlag then begin
+    if Mainform.Connection.ServerVersionInt < 40018 then
+      Specs.Add('TYPE=' + comboEngine.Text)
+    else
+      Specs.Add('ENGINE=' + comboEngine.Text);
+  end;
   if comboRowFormat.Tag = ModifiedFlag then
     Specs.Add('ROW_FORMAT=' + comboRowFormat.Text);
   if chkChecksum.Tag = ModifiedFlag then
@@ -651,8 +655,12 @@ begin
     Result := Result + 'COMMENT='+esc(memoComment.Text) + CRLF;
   if comboCollation.Text <> '' then
     Result := Result + 'COLLATE='+comboCollation.Text + CRLF;
-  if comboEngine.Text <> '' then
-    Result := Result + 'ENGINE='+comboEngine.Text + CRLF;
+  if comboEngine.Text <> '' then begin
+    if Mainform.Connection.ServerVersionInt < 40018 then
+      Result := Result + 'TYPE='+comboEngine.Text + CRLF
+    else
+      Result := Result + 'ENGINE='+comboEngine.Text + CRLF;
+  end;
   if comboRowFormat.Text <> '' then
     Result := Result + 'ROW_FORMAT='+comboRowFormat.Text + CRLF;
   if chkChecksum.Checked then
