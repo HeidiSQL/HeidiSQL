@@ -3163,7 +3163,6 @@ var
   sl_query             : TWideStringList;
   KeyCols              : TWideStringList;
   col                  : TVirtualTreeColumn;
-  rx                   : TRegExpr;
   ColExists, ShowIt    : Boolean;
   OldOffsetXY          : TPoint;
   RefreshingData       : Boolean;
@@ -3284,7 +3283,6 @@ begin
       FillDataViewPopup;
 
       SynMemoFilter.Color := clWindow;
-      rx := TRegExpr.Create;
       ShowStatus('Freeing data...');
       DataGrid.BeginUpdate;
       OldOffsetXY := DataGrid.OffsetXY;
@@ -3341,8 +3339,7 @@ begin
         TblCol := TTableColumn(SelectedTableColumns[i]);
         ShowIt := (FDataGridSelect.Count=0) or (FDataGridSelect.IndexOf(TblCol.Name)>-1);
         if ShowIt or (KeyCols.IndexOf(TblCol.Name)>-1) then begin
-          rx.Expression := '^((tiny|medium|long)?(text|blob)|(var)?(char|binary))\b(\(\d+\))?';
-          if rx.Exec(TblCol.DataType.Name) then begin
+          if TblCol.DataType.Category in [dtcText, dtcBinary] then begin
             select_base := select_base + ' ' + 'LEFT(' + Mask(TblCol.Name) + ', ' + IntToStr(GridMaxData) + ')' + ',';
           end else begin
             select_base := select_base + ' ' + Mask(TblCol.Name) + ',';
