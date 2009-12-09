@@ -464,7 +464,7 @@ object MainForm: TMainForm
           OnChange = editFilterVTChange
         end
       end
-      object PageControlMain: TPageControl
+      object PageControlMain: TTntPageControl
         Left = 0
         Top = 0
         Width = 583
@@ -480,7 +480,7 @@ object MainForm: TMainForm
         OnChange = PageControlMainChange
         OnContextPopup = PageControlMainContextPopup
         OnMouseUp = PageControlMainMouseUp
-        object tabHost: TTabSheet
+        object tabHost: TTntTabSheet
           Caption = 'Host'
           ImageIndex = 1
           object PageControlHost: TPageControl
@@ -813,7 +813,7 @@ object MainForm: TMainForm
             end
           end
         end
-        object tabDatabase: TTabSheet
+        object tabDatabase: TTntTabSheet
           Caption = 'Database'
           ImageIndex = 5
           object ListTables: TVirtualStringTree
@@ -969,11 +969,11 @@ object MainForm: TMainForm
               end>
           end
         end
-        object tabEditor: TTabSheet
+        object tabEditor: TTntTabSheet
           Caption = 'Table'
           ImageIndex = 14
         end
-        object tabData: TTabSheet
+        object tabData: TTntTabSheet
           Caption = 'Data'
           ImageIndex = 41
           object lblSorryNoData: TLabel
@@ -1213,7 +1213,7 @@ object MainForm: TMainForm
             Columns = <>
           end
         end
-        object tabQuery: TTabSheet
+        object tabQuery: TTntTabSheet
           Caption = 'Query'
           ImageIndex = 57
           object spltQuery: TSplitter

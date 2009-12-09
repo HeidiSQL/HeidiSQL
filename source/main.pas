@@ -22,7 +22,7 @@ uses
   createdatabase, table_editor, SynRegExpr,
   WideStrUtils, ExtActns, CommCtrl, routine_editor, options,
   Contnrs, PngSpeedButton, connections, SynEditKeyCmds,
-  mysql_connection, mysql_api, insertfiles;
+  mysql_connection, mysql_api, insertfiles, TntComCtrls;
 
 
 type
@@ -41,7 +41,7 @@ type
     spltQuery: TSplitter;
     LabelResultInfo: TLabel;
     Grid: TVirtualStringTree;
-    TabSheet: TTabSheet;
+    TabSheet: TTntTabSheet;
     GridResult: TGridResult;
     FilterText: WideString;
   end;
@@ -209,14 +209,14 @@ type
     DBtree: TVirtualStringTree;
     comboOnlyDBs: TTntComboBox;
     Splitter1: TSplitter;
-    PageControlMain: TPageControl;
-    tabData: TTabSheet;
-    tabDatabase: TTabSheet;
+    PageControlMain: TTntPageControl;
+    tabData: TTntTabSheet;
+    tabDatabase: TTntTabSheet;
     splitterTopBottom: TSplitter;
-    tabQuery: TTabSheet;
+    tabQuery: TTntTabSheet;
     popupDB: TPopupMenu;
     menuRefreshDB: TMenuItem;
-    tabHost: TTabSheet;
+    tabHost: TTntTabSheet;
     PageControlHost: TPageControl;
     tabVariables: TTabSheet;
     tabProcessList: TTabSheet;
@@ -420,7 +420,7 @@ type
     menuCreateTableCopy: TMenuItem;
     menuCreateView: TMenuItem;
     menuCreateRoutine: TMenuItem;
-    tabEditor: TTabSheet;
+    tabEditor: TTntTabSheet;
     popupRefresh: TPopupMenu;
     menuAutoRefreshSetInterval: TMenuItem;
     menuAutoRefresh: TMenuItem;
@@ -736,7 +736,7 @@ type
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: TWideStringlist = nil);
     procedure PlaceObjectEditor(Which: TListNodeType);
-    procedure SetTabCaption(PageIndex: Integer; Text: String);
+    procedure SetTabCaption(PageIndex: Integer; Text: WideString);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
     procedure SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
     procedure UpdateFilterPanel(Sender: TObject);
@@ -8237,7 +8237,7 @@ begin
   QueryTab.Number := i;
   QueryTab.GridResult := TGridResult.Create;
 
-  QueryTab.TabSheet := TTabSheet.Create(PageControlMain);
+  QueryTab.TabSheet := TTntTabSheet.Create(PageControlMain);
   QueryTab.TabSheet.PageControl := PageControlMain;
   QueryTab.TabSheet.ImageIndex := tabQuery.ImageIndex;
 
@@ -8618,9 +8618,9 @@ begin
 end;
 
 
-procedure TMainForm.SetTabCaption(PageIndex: Integer; Text: String);
+procedure TMainForm.SetTabCaption(PageIndex: Integer; Text: WideString);
 begin
-  // Special case if passed text is empty: Reset query tab caption to "Query #123" 
+  // Special case if passed text is empty: Reset query tab caption to "Query #123"
   if (PageIndex = tabQuery.PageIndex) and (Text = '') then
     Text := 'Query';
   if IsQueryTab(PageIndex, False) then begin
@@ -8629,7 +8629,7 @@ begin
     // Leave space for close button on closable query tabs
     Text := Text + '      ';
   end;
-  PageControlMain.Pages[PageIndex].Caption := Text;
+  TTntTabSheet(PageControlMain.Pages[PageIndex]).Caption := Text;
   FixQueryTabCloseButtons;
 end;
 
