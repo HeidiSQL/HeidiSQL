@@ -8648,6 +8648,8 @@ begin
   if not Tab.Memo.Modified then
     Result := True
   else begin
+    // Unhide tabsheet so the user sees the memo content
+    Tab.TabSheet.PageControl.ActivePage := Tab.TabSheet;
     if Tab.MemoFilename <> '' then
       msg := 'Save changes to file '+CRLF+CRLF+Tab.MemoFilename+' ?'
     else
