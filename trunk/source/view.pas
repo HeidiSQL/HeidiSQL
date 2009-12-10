@@ -46,6 +46,7 @@ begin
   inherited Create(AOwner);
   Align := alClient;
   SynMemoSelect.Highlighter := Mainform.SynSQLSyn1;
+  Mainform.SynCompletionProposal.AddEditor(SynMemoSelect);
   InheritFont(Font);
 end;
 
