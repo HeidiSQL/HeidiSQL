@@ -30,6 +30,7 @@ type
     { Private declarations }
     CheckfileDownload : TDownLoadURL2;
     ReleaseURL, BuildURL : String;
+    FLastStatusUpdate: Cardinal;
     procedure Status(txt: String);
     procedure ReadCheckFile;
     procedure URLOnDownloadProgress(Sender: TDownLoadURL; Progress, ProgressMax: Cardinal;
@@ -84,7 +85,7 @@ end;
 procedure TfrmUpdateCheck.Status(txt: String);
 begin
   lblStatus.Caption := txt;
-  Repaint;
+  lblStatus.Repaint;
 end;
 
 
@@ -302,7 +303,10 @@ end;
 }
 procedure TfrmUpdateCheck.URLOnDownloadProgress;
 begin
+  if FLastStatusUpdate > GetTickCount-200 then
+    Exit;
   Status('Downloading: '+FormatByteNumber(Progress)+' / '+FormatByteNumber(BuildSize) + ' ...');
+  FLastStatusUpdate := GetTickCount;
 end;
 
 
