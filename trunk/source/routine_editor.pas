@@ -109,6 +109,7 @@ begin
     comboReturns.Items.Add(Datatypes[i].Name);
   SetWindowSizeGrip(Handle, True);
   InheritFont(Font);
+  Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   FixVT(listParameters);
   Parameters := TWideStringList.Create;
 end;
