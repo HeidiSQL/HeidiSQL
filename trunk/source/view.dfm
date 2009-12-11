@@ -49,6 +49,7 @@ object frmView: TfrmView
       'Merge'
       'Temptable')
     TabOrder = 1
+    OnClick = Modification
   end
   object SynMemoSelect: TSynMemo
     Left = 3
@@ -76,6 +77,7 @@ object frmView: TfrmView
     Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoShowScrollHint]
     RightEdge = 0
     WantTabs = True
+    OnChange = Modification
     RemovedKeystrokes = <
       item
         Command = ecDeleteLine
@@ -122,6 +124,7 @@ object frmView: TfrmView
       'Cascaded'
       'Local')
     TabOrder = 5
+    OnClick = Modification
   end
   object btnHelp: TButton
     Left = 3

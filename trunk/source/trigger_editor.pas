@@ -5,10 +5,10 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, TntStdCtrls, SynEdit, SynMemo, ExtCtrls, mysql_connection, mysql_api,
-  SynCompletionProposal, VirtualTrees;
+  SynCompletionProposal, VirtualTrees, helpers;
 
 type
-  TfrmTriggerEditor = class(TFrame)
+  TfrmTriggerEditor = class(TDBObjectEditor)
     lblName: TLabel;
     editName: TTntEdit;
     SynMemoStatement: TSynMemo;
@@ -39,7 +39,7 @@ type
 
 implementation
 
-uses main, helpers;
+uses main;
 
 {$R *.dfm}
 
@@ -108,8 +108,9 @@ begin
     Mainform.SetEditorTabCaption(Self, '');
     editName.Text := 'Enter trigger name';
   end;
-  btnSave.Enabled := False;
-  btnDiscard.Enabled := False;
+  Modified := False;
+  btnSave.Enabled := Modified;
+  btnDiscard.Enabled := Modified;
 end;
 
 
@@ -120,6 +121,7 @@ begin
     and (comboTiming.ItemIndex > -1) and (comboEvent.ItemIndex > -1)
     and (SynMemoStatement.Text <> '');
   btnDiscard.Enabled := True;
+  Modified := True;
 end;
 
 

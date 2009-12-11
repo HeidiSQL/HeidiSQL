@@ -9,7 +9,7 @@ uses
   Contnrs, grideditlinks, mysql_structures, mysql_connection, helpers;
 
 type
-  TfrmTableEditor = class(TFrame)
+  TfrmTableEditor = class(TDBObjectEditor)
     btnSave: TButton;
     btnDiscard: TButton;
     btnHelp: TButton;
@@ -168,7 +168,6 @@ type
     procedure listColumnsNodeMoved(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     { Private declarations }
-    FModified: Boolean;
     FLoaded: Boolean;
     FAlterTableName: WideString;
     CreateCodeValid, AlterCodeValid: Boolean;
@@ -177,13 +176,11 @@ type
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
-    procedure SetModified(Value: Boolean);
     procedure ResetModificationFlags;
     function ComposeCreateStatement: WideString;
     function ComposeAlterStatement: WideString;
     function GetIndexSQL(idx: Integer): WideString;
     function GetForeignKeySQL(idx: Integer): WideString;
-    property Modified: Boolean read FModified write SetModified;
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
     function GetIndexIcon(idx: Integer): Integer;
@@ -446,6 +443,8 @@ begin
     ForeignKey.Modified := False;
   end;
   Modified := False;
+  btnSave.Enabled := Modified;
+  btnDiscard.Enabled := Modified;
 end;
 
 
@@ -757,6 +756,11 @@ begin
     if Sender is TComponent then
       TComponent(Sender).Tag := ModifiedFlag;
     Modified := True;
+    btnSave.Enabled := Modified;
+    btnDiscard.Enabled := Modified;
+    CreateCodeValid := False;
+    AlterCodeValid := False;
+    UpdateSQLcode;
   end;
 end;
 
@@ -1212,18 +1216,6 @@ begin
     else
       EditLink := TInplaceEditorLink.Create(VT);
   end;
-end;
-
-
-procedure TfrmTableEditor.SetModified(Value: Boolean);
-begin
-  // Some value has changed
-  FModified := Value;
-  btnSave.Enabled := FModified;
-  btnDiscard.Enabled := FModified;
-  CreateCodeValid := False;
-  AlterCodeValid := False;
-  UpdateSQLcode;
 end;
 
 

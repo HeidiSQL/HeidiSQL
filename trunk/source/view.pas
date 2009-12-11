@@ -4,10 +4,11 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, SynEdit, SynMemo, ExtCtrls, mysql_connection, SynRegExpr;
+  Dialogs, StdCtrls, ComCtrls, SynEdit, SynMemo, ExtCtrls, mysql_connection, SynRegExpr,
+  helpers;
 
 type
-  TfrmView = class(TFrame)
+  TfrmView = class(TDBObjectEditor)
     editName: TEdit;
     lblName: TLabel;
     rgAlgorithm: TRadioGroup;
@@ -21,6 +22,7 @@ type
     procedure btnSaveClick(Sender: TObject);
     procedure editNameChange(Sender: TObject);
     procedure btnDiscardClick(Sender: TObject);
+    procedure Modification(Sender: TObject);
   private
     { Private declarations }
     FEditViewName: WideString;
@@ -33,7 +35,7 @@ type
   
 implementation
 
-uses main, helpers;
+uses main;
 
 {$R *.dfm}
 
@@ -95,6 +97,9 @@ begin
   // Ensure name is validated
   editNameChange(Self);
   MainForm.SetupSynEditors;
+  Modified := False;
+  btnSave.Enabled := Modified;
+  btnDiscard.Enabled := Modified;
 end;
 
 
@@ -103,16 +108,15 @@ end;
 }
 procedure TfrmView.editNameChange(Sender: TObject);
 begin
-  btnSave.Enabled := False;
   try
     ensureValidIdentifier( editName.Text );
     editName.Font.Color := clWindowText;
     editName.Color := clWindow;
-    btnSave.Enabled := True;
   except
     editName.Font.Color := clRed;
     editName.Color := clYellow;
   end;
+  Modification(Sender);
 end;
 
 
@@ -172,6 +176,14 @@ begin
     on E:Exception do
       MessageDlg(E.Message, mtError, [mbOk], 0);
   end;
+end;
+
+
+procedure TfrmView.Modification(Sender: TObject);
+begin
+  Modified := True;
+  btnSave.Enabled := Modified;
+  btnDiscard.Enabled := Modified;
 end;
 
 
