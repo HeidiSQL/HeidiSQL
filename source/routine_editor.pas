@@ -5,10 +5,10 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, SynEdit, SynMemo, StdCtrls, TntStdCtrls, ComCtrls, ToolWin,
-  VirtualTrees, WideStrings, mysql_connection, SynRegExpr, WideStrUtils;
+  VirtualTrees, WideStrings, mysql_connection, SynRegExpr, WideStrUtils, helpers;
 
 type
-  TfrmRoutineEditor = class(TFrame)
+  TfrmRoutineEditor = class(TDBObjectEditor)
     btnSave: TButton;
     btnDiscard: TButton;
     btnHelp: TButton;
@@ -67,11 +67,8 @@ type
   private
     { Private declarations }
     Parameters: TWideStringList;
-    FModified: Boolean;
     FAlterRoutineName: WideString;
     FAlterRoutineType: String;
-    procedure SetModified(Value: Boolean);
-    property Modified: Boolean read FModified write SetModified;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -81,7 +78,7 @@ type
 
 implementation
 
-uses main, helpers, mysql_structures, grideditlinks;
+uses main, mysql_structures, grideditlinks;
 
 {$R *.dfm}
 
@@ -188,6 +185,8 @@ begin
   comboTypeSelect(comboType);
   btnRemoveParam.Enabled := Assigned(listParameters.FocusedNode);
   Modified := False;
+  btnSave.Enabled := Modified;
+  btnDiscard.Enabled := Modified;
 end;
 
 
@@ -204,13 +203,15 @@ begin
       editName.Color := clYellow;
     end;
   end;
-  Modified := True;
+  Modification(Sender);
 end;
 
 
 procedure TfrmRoutineEditor.Modification(Sender: TObject);
 begin
   Modified := True;
+  btnSave.Enabled := Modified;
+  btnDiscard.Enabled := Modified;
 end;
 
 
@@ -221,7 +222,7 @@ begin
   isfunc := (Sender as TTNTComboBox).ItemIndex = 1;
   lblReturns.Enabled := isfunc;
   comboReturns.Enabled := isfunc;
-  Modified := True;
+  Modification(Sender);
   listParameters.Repaint;
 end;
 
@@ -231,7 +232,7 @@ begin
   Parameters.Add('Param'+IntToStr(Parameters.Count+1)+DELIM+'INT'+DELIM+'IN');
   // See List.OnPaint:
   listParameters.Repaint;
-  Modified := True;
+  Modification(Sender);
 end;
 
 
@@ -239,7 +240,7 @@ procedure TfrmRoutineEditor.btnRemoveParamClick(Sender: TObject);
 begin
   Parameters.Delete(ListParameters.FocusedNode.Index);
   listParameters.Repaint;
-  Modified := True;
+  Modification(Sender);
 end;
 
 
@@ -247,7 +248,7 @@ procedure TfrmRoutineEditor.btnClearParamsClick(Sender: TObject);
 begin
   Parameters.Clear;
   listParameters.Repaint;
-  Modified := True;
+  Modification(Sender);
 end;
 
 
@@ -327,7 +328,7 @@ begin
     3: new := OldValues[0] + DELIM + OldValues[1] + DELIM + NewText;
   end;
   Parameters[Node.Index] := new;
-  Modified := True;
+  Modification(Sender);
 end;
 
 
@@ -481,18 +482,12 @@ begin
     Mainform.SetEditorTabCaption(Self, FAlterRoutineName);
     Mainform.actRefresh.Execute;
     Modified := False;
+    btnSave.Enabled := Modified;
+    btnDiscard.Enabled := Modified;
   except
     on E:Exception do
       MessageDlg(E.Message, mtError, [mbOk], 0);
   end;
-end;
-
-
-procedure TfrmRoutineEditor.SetModified(Value: Boolean);
-begin
-  FModified := Value;
-  btnSave.Enabled := FModified;
-  btnDiscard.Enabled := FModified;
 end;
 
 

@@ -143,6 +143,14 @@ type
     destructor Destroy; override;
   end;
 
+  TDBObjectEditor = class(TFrame)
+    private
+      FModified: Boolean;
+      procedure SetModified(Value: Boolean);
+    public
+      property Modified: Boolean read FModified write SetModified;
+  end;
+
 
 {$I const.inc}
 
@@ -3222,6 +3230,14 @@ begin
   FreeAndNil(Columns);
   FreeAndNil(ForeignColumns);
   inherited Destroy;
+end;
+
+
+{ *** TDBObjectEditor }
+
+procedure TDBObjectEditor.SetModified(Value: Boolean);
+begin
+  FModified := Value;
 end;
 
 
