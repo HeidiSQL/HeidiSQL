@@ -4683,6 +4683,7 @@ begin
   end;
   actCreateView.Enabled := actCreateView.Enabled and (Connection.ServerVersionInt >= 50001);
   actCreateRoutine.Enabled := actCreateRoutine.Enabled and (Connection.ServerVersionInt >= 50003);
+  actCreateTrigger.Enabled := actCreateTrigger.Enabled and (Connection.ServerVersionInt >= 50002);
 end;
 
 
