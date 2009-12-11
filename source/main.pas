@@ -3607,7 +3607,7 @@ begin
         ', CREATED AS '+mask(DBO_CREATED)+
         ', NULL AS '+mask(DBO_UPDATED)+
         ', NULL AS '+mask(DBO_CHECKED)+
-        ', DATABASE_COLLATION AS '+mask(DBO_COLLATION)+
+        ', NULL AS '+mask(DBO_COLLATION)+
         ', NULL AS '+mask(DBO_CHECKSUM)+
         ', NULL AS '+mask(DBO_CROPTIONS)+
         ', NULL AS '+mask(DBO_COMMENT)+
