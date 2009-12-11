@@ -15,7 +15,7 @@ uses Classes, SysUtils, Graphics, GraphUtil, db, clipbrd, dialogs,
 
 type
 
-  TListNodeType = (lntNone, lntDb, lntTable, lntCrashedTable, lntView, lntFunction, lntProcedure, lntColumn);
+  TListNodeType = (lntNone, lntDb, lntTable, lntCrashedTable, lntView, lntFunction, lntProcedure, lntTrigger, lntColumn);
   TListNodeTypes = Set of TListNodeType;
   TListNode = record
     Text: WideString;
@@ -2194,7 +2194,9 @@ begin
     else if t = 'FUNCTION' then
       Result := lntFunction
     else if t = 'PROCEDURE' then
-      Result := lntProcedure;
+      Result := lntProcedure
+    else if t = 'TRIGGER' then
+      Result := lntTrigger;
   end else begin
     if
       TableStatus.IsNull(1) and  // Engine column is NULL for views

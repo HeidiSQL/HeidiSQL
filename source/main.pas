@@ -20,7 +20,7 @@ uses
   SynCompletionProposal, SynEditHighlighter, SynHighlighterSQL,
   TntStdCtrls, Tabs, SynUnicode, EditVar, helpers,
   createdatabase, table_editor, SynRegExpr,
-  WideStrUtils, ExtActns, CommCtrl, routine_editor, options,
+  WideStrUtils, ExtActns, CommCtrl, routine_editor, trigger_editor, options,
   Contnrs, PngSpeedButton, connections, SynEditKeyCmds,
   mysql_connection, mysql_api, insertfiles, TntComCtrls;
 
@@ -444,6 +444,8 @@ type
     menuQueryHelpersGenerateInsert: TMenuItem;
     menuQueryHelpersGenerateUpdate: TMenuItem;
     menuQueryHelpersGenerateDelete: TMenuItem;
+    actCreateTrigger: TAction;
+    menuCreateTrigger: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -703,6 +705,7 @@ type
     procedure TimerFilterVTTimer(Sender: TObject);
     procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure menuQueryHelpersGenerateStatementClick(Sender: TObject);
+    procedure actCreateTriggerExecute(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -751,6 +754,7 @@ type
     SelectDBObjectForm: TfrmSelectDBObject;
     SQLHelpForm: TfrmSQLhelp;
     RoutineEditor: TfrmRoutineEditor;
+    TriggerEditor: TfrmTriggerEditor;
     OptionsForm: Toptionsform;
     SessionManager: TConnForm;
     AllDatabases, Databases: TWideStringList;
@@ -1094,6 +1098,7 @@ begin
   FreeAndNil(OptionsForm);
   FreeAndNil(SessionManager);
   FreeAndNil(TableEditor);
+  FreeAndNil(TriggerEditor);
   FreeAndNil(CreateDatabaseForm);
 
   debug('mem: clearing query and browse data.');
@@ -2166,7 +2171,7 @@ end;
 procedure TMainForm.actDropObjectsExecute(Sender: TObject);
 var
   AllCount : Integer;
-  Tables, Views, Functions, Procedures: TWideStringList;
+  Tables, Views, Functions, Procedures, Triggers: TWideStringList;
   msg, activeDB : WideString;
   InDBTree: Boolean;
   Act: TAction;
@@ -2203,6 +2208,7 @@ begin
   Views := TWideStringlist.Create;
   Procedures := TWideStringlist.Create;
   Functions := TWideStringlist.Create;
+  Triggers := TWideStringlist.Create;
 
   Act := Sender as TAction;
   InDBTree := (Act.ActionComponent is TMenuItem)
@@ -2229,6 +2235,7 @@ begin
       lntView: Views.Add(SelectedTable.Text);
       lntProcedure: Procedures.Add(SelectedTable.Text);
       lntFunction: Functions.Add(SelectedTable.Text);
+      lntTrigger: Triggers.Add(SelectedTable.Text);
     end;
   end else begin
     // Invoked from database tab
@@ -2237,12 +2244,13 @@ begin
     Views := GetVTCaptions(ListTables, True, 0, [lntView]);
     Procedures := GetVTCaptions(ListTables, True, 0, [lntProcedure]);
     Functions := GetVTCaptions(ListTables, True, 0, [lntFunction]);
+    Triggers := GetVTCaptions(ListTables, True, 0, [lntTrigger]);
   end;
 
   // Fix actions temporarily enabled for popup menu.
   ValidateControls(Sender);
 
-  AllCount := Tables.Count + Views.Count + Procedures.Count + Functions.Count;
+  AllCount := Tables.Count + Views.Count + Procedures.Count + Functions.Count + Triggers.Count;
 
   // Safety stop to avoid firing DROP TABLE without tablenames
   if (AllCount = 0) then
@@ -2255,6 +2263,7 @@ begin
   if Views.Count > 0 then msg := msg + CRLF + 'View(s): ' + ImplodeStr(', ', Views);
   if Procedures.Count > 0 then msg := msg + CRLF + 'Procedure(s): ' + ImplodeStr(', ', Procedures);
   if Functions.Count > 0 then msg := msg + CRLF + 'Function(s): ' + ImplodeStr(', ', Functions);
+  if Triggers.Count > 0 then msg := msg + CRLF + 'Trigger(s): ' + ImplodeStr(', ', Triggers);
   if MessageDlg(msg, mtConfirmation, [mbok,mbcancel], 0) <> mrok then
     Exit;
 
@@ -2264,6 +2273,7 @@ begin
     DoDrop('VIEW', Views, True);
     DoDrop('PROCEDURE', Procedures, False);
     DoDrop('FUNCTION', Functions, False);
+    DoDrop('TRIGGER', Triggers, False);
     // Refresh ListTables + dbtree so the dropped tables are gone:
     actRefresh.Execute;
   except
@@ -3580,6 +3590,30 @@ begin
         ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.ROUTINES ' +
         'WHERE ROUTINE_SCHEMA = '+esc(db));
     end;
+    if Connection.InformationSchemaObjects.IndexOf('TRIGGERS') > -1 then begin
+      // Stored routines
+      Unions.Add('SELECT TRIGGER_NAME AS '+mask(DBO_NAME)+
+        ', ''TRIGGER'' AS '+mask(DBO_TYPE)+
+        ', NULL AS '+mask(DBO_ENGINE)+
+        ', NULL AS '+mask(DBO_VERSION)+
+        ', NULL AS '+mask(DBO_ROWFORMAT)+
+        ', NULL AS '+mask(DBO_ROWS)+
+        ', NULL AS '+mask(DBO_AVGROWLEN)+
+        ', NULL AS '+mask(DBO_DATALEN)+
+        ', NULL AS '+mask(DBO_MAXDATALEN)+
+        ', NULL AS '+mask(DBO_INDEXLEN)+
+        ', NULL AS '+mask(DBO_DATAFREE)+
+        ', NULL AS '+mask(DBO_AUTOINC)+
+        ', CREATED AS '+mask(DBO_CREATED)+
+        ', NULL AS '+mask(DBO_UPDATED)+
+        ', NULL AS '+mask(DBO_CHECKED)+
+        ', DATABASE_COLLATION AS '+mask(DBO_COLLATION)+
+        ', NULL AS '+mask(DBO_CHECKSUM)+
+        ', NULL AS '+mask(DBO_CROPTIONS)+
+        ', NULL AS '+mask(DBO_COMMENT)+
+        ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.TRIGGERS ' +
+        'WHERE TRIGGER_SCHEMA = '+esc(db));
+    end;
     case Unions.Count of
       0: ListObjectsSQL := 'SHOW TABLE STATUS FROM ' + mask(db);
       1: ListObjectsSQL := Unions[0] + ' ORDER BY `Name`';
@@ -3722,6 +3756,7 @@ begin
       lntView:          img := ICONINDEX_VIEW;
       lntProcedure:     img := ICONINDEX_STOREDPROCEDURE;
       lntFunction:      img := ICONINDEX_STOREDFUNCTION;
+      lntTrigger:       img := ICONINDEX_TRIGGER;
       else              img := -1;
     end;
     VTRowDataListTables[i].ImageIndex := img;
@@ -4061,8 +4096,6 @@ var
   Proposal         : TSynCompletionProposal;
   Editor           : TCustomSynEdit;
   Queries          : TWideStringList;
-const
-  ItemPattern: WideString = '\image{%d}\hspace{5}\color{clSilver}%s\column{}\color{clWindowText}%s';
 
   procedure addTable(Results: TMySQLQuery);
   var ObjName, ObjType: WideString; Icon: Integer;
@@ -4077,10 +4110,11 @@ const
       lntFunction: Icon := ICONINDEX_STOREDFUNCTION;
       lntProcedure: Icon := ICONINDEX_STOREDPROCEDURE;
       lntView: Icon := ICONINDEX_VIEW;
+      lntTrigger: Icon := ICONINDEX_TRIGGER;
       else Icon := -1;
     end;
     Proposal.InsertList.Add( ObjName );
-    Proposal.ItemList.Add( WideFormat(ItemPattern, [Icon, ObjType, ObjName]) );
+    Proposal.ItemList.Add( WideFormat(SYNCOMPLETION_PATTERN, [Icon, ObjType, ObjName]) );
   end;
 
   procedure addColumns( tablename: WideString );
@@ -4105,7 +4139,7 @@ const
     end;
     while not Columns.Eof do begin
       Proposal.InsertList.Add(Columns.Col('Field'));
-      Proposal.ItemList.Add(WideFormat(ItemPattern, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );
+      Proposal.ItemList.Add(WideFormat(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );
       Columns.Next;
     end;
     FreeAndNil(Columns);
@@ -4143,7 +4177,7 @@ begin
       Results := Connection.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
         Proposal.InsertList.Add(Results.Col(0));
-        Proposal.ItemList.Add(WideFormat(ItemPattern, [ICONINDEX_PRIMARYKEY, 'variable', Results.Col(0)+'   \color{clSilver}= '+WideStringReplace(Results.Col(1), '\', '\\', [rfReplaceAll])] ) );
+        Proposal.ItemList.Add(WideFormat(SYNCOMPLETION_PATTERN, [ICONINDEX_PRIMARYKEY, 'variable', Results.Col(0)+'   \color{clSilver}= '+WideStringReplace(Results.Col(1), '\', '\\', [rfReplaceAll])] ) );
         Results.Next;
       end;
     except
@@ -4234,7 +4268,7 @@ begin
     // Add databases
     for i := 0 to Databases.Count - 1 do begin
       Proposal.InsertList.Add(Databases[i]);
-      Proposal.ItemList.Add(WideFormat(ItemPattern, [ICONINDEX_DB, 'database', Databases[i]]));
+      Proposal.ItemList.Add(WideFormat(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', Databases[i]]));
     end;
 
     if ActiveDatabase <> '' then begin
@@ -4254,13 +4288,13 @@ begin
       if MySqlFunctions[i].Version > Connection.ServerVersionInt then
         continue;
       Proposal.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
-      Proposal.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clSilver}' + MySQLFunctions[i].Declaration] ) );
+      Proposal.ItemList.Add( WideFormat(SYNCOMPLETION_PATTERN, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clSilver}' + MySQLFunctions[i].Declaration] ) );
     end;
 
     // Add keywords
     for i := 0 to MySQLKeywords.Count - 1 do begin
       Proposal.InsertList.Add( MySQLKeywords[i] );
-      Proposal.ItemList.Add( WideFormat(ItemPattern, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i]] ) );
+      Proposal.ItemList.Add( WideFormat(SYNCOMPLETION_PATTERN, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i]] ) );
     end;
 
   end;
@@ -6007,6 +6041,8 @@ begin
             ImageIndex := ICONINDEX_STOREDPROCEDURE;
           lntFunction:
             ImageIndex := ICONINDEX_STOREDFUNCTION;
+          lntTrigger:
+            ImageIndex := ICONINDEX_TRIGGER;
         end;
       end;
   end;
@@ -8049,6 +8085,15 @@ begin
 end;
 
 
+procedure TMainForm.actCreateTriggerExecute(Sender: TObject);
+begin
+  tabEditor.TabVisible := True;
+  PagecontrolMain.ActivePage := tabEditor;
+  PlaceObjectEditor(lntTrigger);
+  TriggerEditor.Init;
+end;
+
+
 procedure TMainForm.DataGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
 var
   query: String;
@@ -8117,6 +8162,8 @@ begin
     FreeAndNil(ViewEditor);
   if (not (Which in [lntProcedure, lntFunction])) and Assigned(RoutineEditor) then
     FreeAndNil(RoutineEditor);
+  if (Which <> lntTrigger) and Assigned(TriggerEditor) then
+    FreeAndNil(TriggerEditor);
   if Which in [lntTable, lntCrashedTable] then begin
     if not Assigned(TableEditor) then
       TableEditor := TfrmTableEditor.Create(tabEditor);
@@ -8129,6 +8176,10 @@ begin
     if not Assigned(RoutineEditor) then
       RoutineEditor := TfrmRoutineEditor.Create(tabEditor);
     frm := RoutineEditor;
+  end else if Which = lntTrigger then begin
+    if not Assigned(TriggerEditor) then
+      TriggerEditor := TfrmTriggerEditor.Create(tabEditor);
+    frm := TriggerEditor;
   end else
     Exit;
   frm.Parent := tabEditor;
@@ -8149,6 +8200,9 @@ begin
   end else if Editor = RoutineEditor then begin
     ObjType := 'Routine';
     IconIndex := ICONINDEX_STOREDPROCEDURE;
+  end else if Editor = TriggerEditor then begin
+    ObjType := 'Trigger';
+    IconIndex := ICONINDEX_Trigger;
   end else
     Exit;
   tabEditor.ImageIndex := IconIndex;
@@ -8210,6 +8264,11 @@ begin
       else
         RoutineType := 'PROCEDURE';
       RoutineEditor.Init(SelectedTable.Text, RoutineType);
+    end;
+
+    lntTrigger: begin
+      PlaceObjectEditor(SelectedTable.NodeType);
+      TriggerEditor.Init(SelectedTable.Text);
     end;
 
   end;
@@ -8824,6 +8883,8 @@ begin
     Editors.Add(ViewEditor.SynMemoSelect);
   if Assigned(RoutineEditor) then
     Editors.Add(RoutineEditor.SynMemoBody);
+  if Assigned(TriggerEditor) then
+    Editors.Add(TriggerEditor.SynMemoStatement);
   if Assigned(CreateDatabaseForm) then
     Editors.Add(CreateDatabaseForm.SynMemoPreview);
   if Assigned(OptionsForm) then
@@ -8843,10 +8904,16 @@ begin
     Editor.Font.Size := FontSize;
     Editor.Gutter.Font.Name := FontName;
     Editor.Gutter.Font.Size := FontSize;
+    Editor.Gutter.AutoSize := BaseEditor.Gutter.AutoSize;
+    Editor.Gutter.DigitCount := BaseEditor.Gutter.DigitCount;
+    Editor.Gutter.LeftOffset := BaseEditor.Gutter.LeftOffset;
+    Editor.Gutter.RightOffset := BaseEditor.Gutter.RightOffset;
+    Editor.Gutter.ShowLineNumbers := BaseEditor.Gutter.ShowLineNumbers;
     Editor.ActiveLineColor := ActiveLineColor;
     Editor.Options := BaseEditor.Options;
     Editor.TabWidth := TabWidth;
     Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
+    Editor.WantTabs := BaseEditor.WantTabs;
     // Shortcuts
     if Editor = BaseEditor then for j:=0 to Editor.Keystrokes.Count-1 do begin
       KeyStroke := Editor.Keystrokes[j];

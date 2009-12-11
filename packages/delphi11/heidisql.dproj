@@ -180,6 +180,9 @@
     <DCCReference Include="..\..\source\texteditor.pas">
       <Form>frmTextEditor</Form>
     </DCCReference>
+    <DCCReference Include="..\..\source\trigger_editor.pas">
+      <Form>frmTriggerEditor</Form>
+    </DCCReference>
     <DCCReference Include="..\..\source\updatecheck.pas">
       <Form>frmUpdateCheck</Form>
     </DCCReference>

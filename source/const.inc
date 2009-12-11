@@ -247,6 +247,7 @@ const
   ICONINDEX_CRASHED_TABLE = -1;
   ICONINDEX_STOREDPROCEDURE = 119;
   ICONINDEX_STOREDFUNCTION = 35;
+  ICONINDEX_TRIGGER = 137;
   ICONINDEX_FUNCTION = 13;
   ICONINDEX_KEYWORD = 25;
 
@@ -311,4 +312,6 @@ const
   UKEY = 'UNIQUE';
   FKEY = 'FULLTEXT';
   SKEY = 'SPATIAL';
+
+  SYNCOMPLETION_PATTERN: WideString = '\image{%d}\hspace{5}\color{clSilver}%s\column{}\color{clWindowText}%s';
 
