@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, TntStdCtrls, ComCtrls, ToolWin, VirtualTrees, WideStrings,
   SynRegExpr, ActiveX, ExtCtrls, ImgList, SynEdit, SynMemo, Menus, WideStrUtils,
-  Contnrs, grideditlinks, mysql_structures, mysql_connection, helpers;
+  Contnrs, grideditlinks, mysql_structures, mysql_connection, helpers, mysql_api;
 
 type
   TfrmTableEditor = class(TDBObjectEditor)
@@ -230,6 +230,7 @@ begin
   FForeignKeys := TObjectList.Create;
   DeletedKeys := TWideStringList.Create;
   DeletedForeignKeys := TWideStringList.Create;
+  editName.MaxLength := NAME_LEN;
 end;
 
 
@@ -279,7 +280,7 @@ begin
 
   if FAlterTableName = '' then begin
     // Creating new table
-    editName.Clear;
+    editName.Text := 'Enter table name';
     Mainform.SetEditorTabCaption(Self, '');
     comboCollation.ItemIndex := comboCollation.Items.IndexOf(Mainform.Connection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
     PageControlMain.ActivePage := tabBasic;

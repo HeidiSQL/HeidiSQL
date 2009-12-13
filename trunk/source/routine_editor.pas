@@ -5,7 +5,8 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, SynEdit, SynMemo, StdCtrls, TntStdCtrls, ComCtrls, ToolWin,
-  VirtualTrees, WideStrings, mysql_connection, SynRegExpr, WideStrUtils, helpers;
+  VirtualTrees, WideStrings, mysql_connection, SynRegExpr, WideStrUtils, helpers,
+  mysql_api;
 
 type
   TfrmRoutineEditor = class(TDBObjectEditor)
@@ -109,6 +110,7 @@ begin
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   FixVT(listParameters);
   Parameters := TWideStringList.Create;
+  editName.MaxLength := NAME_LEN;
 end;
 
 
@@ -180,8 +182,10 @@ begin
         break;
     end;
     FreeAndNil(Results);
-  end else
+  end else begin
+    editName.Text := 'Enter routine name';
     Mainform.SetEditorTabCaption(Self, '');
+  end;
   editNameChange(Self);
   comboTypeSelect(comboType);
   btnRemoveParam.Enabled := Assigned(listParameters.FocusedNode);

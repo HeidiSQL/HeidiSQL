@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, SynEdit, SynMemo, ExtCtrls, mysql_connection, SynRegExpr,
-  helpers;
+  helpers, mysql_api;
 
 type
   TfrmView = class(TDBObjectEditor)
@@ -50,6 +50,7 @@ begin
   SynMemoSelect.Highlighter := Mainform.SynSQLSyn1;
   Mainform.SynCompletionProposal.AddEditor(SynMemoSelect);
   InheritFont(Font);
+  editName.MaxLength := NAME_LEN;
 end;
 
 
@@ -87,7 +88,7 @@ begin
   end else begin
     // Create mode
     Mainform.SetEditorTabCaption(Self, '');
-    editName.Text := 'myview';
+    editName.Text := 'Enter view name';
     rgAlgorithm.Enabled := True;
     rgAlgorithm.ItemIndex := 0;
     rgCheck.Enabled := True;
