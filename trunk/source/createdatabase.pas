@@ -266,16 +266,19 @@ begin
       end;
       // Move all tables, views and procedures to target db
       ObjectsInOldDb.First;
-      sql := 'RENAME TABLE ';
+      sql := '';
       while not ObjectsInOldDb.Eof do begin
         sql := sql + Mainform.mask(modifyDb)+'.'+Mainform.mask(ObjectsInOldDb.Col(DBO_NAME))+' TO '+
           Mainform.mask(editDBName.Text)+'.'+Mainform.mask(ObjectsInOldDb.Col(DBO_NAME))+', ';
         ObjectsInOldDb.Next;
       end;
-      Delete(sql, Length(sql)-1, 2);
-      Mainform.Connection.Query(sql);
-      Mainform.ClearDbTableList(modifyDB);
-      Mainform.ClearDbTableList(editDBName.Text);
+      if sql <> '' then begin
+        Delete(sql, Length(sql)-1, 2);
+        sql := 'RENAME TABLE '+sql;
+        Mainform.Connection.Query(sql);
+        Mainform.ClearDbTableList(modifyDB);
+        Mainform.ClearDbTableList(editDBName.Text);
+      end;
       // Last step for renaming: drop source database
       ObjectsLeft := TWideStringList.Create;
       // Last check if old db is really empty, before we drop it. Especially triggers need to be checked.
