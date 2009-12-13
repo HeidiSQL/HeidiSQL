@@ -450,8 +450,7 @@ type
     procedure loadWindowConfig;
     procedure saveWindowConfig;
     procedure setDefaultWindowConfig;
-    procedure actCreateTableExecute(Sender: TObject);
-    procedure actCreateViewExecute(Sender: TObject);
+    procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
     procedure DisplayChange(var msg: TMessage); message WM_DISPLAYCHANGE;
@@ -671,7 +670,6 @@ type
     procedure actSelectAllExecute(Sender: TObject);
     procedure EnumerateRecentFilters;
     procedure LoadRecentFilter(Sender: TObject);
-    procedure actCreateRoutineExecute(Sender: TObject);
     procedure DataGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
     procedure ListTablesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; var Allowed: Boolean);
@@ -705,7 +703,6 @@ type
     procedure TimerFilterVTTimer(Sender: TObject);
     procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure menuQueryHelpersGenerateStatementClick(Sender: TObject);
-    procedure actCreateTriggerExecute(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -738,7 +735,7 @@ type
     procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TWideStringList );
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: TWideStringlist = nil);
-    procedure PlaceObjectEditor(Which: TListNodeType);
+    function PlaceObjectEditor(Which: TListNodeType): TDBObjectEditor;
     procedure SetTabCaption(PageIndex: Integer; Text: WideString);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
     procedure SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
@@ -852,7 +849,7 @@ type
     function GetRegKeyTable: String;
     procedure SaveListSetup( List: TVirtualStringTree );
     procedure RestoreListSetup( List: TVirtualStringTree );
-    procedure SetEditorTabCaption(Editor: TFrame; ObjName: WideString);
+    procedure SetEditorTabCaption(Editor: TDBObjectEditor; ObjName: WideString);
     procedure SetWindowCaption;
     procedure OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
     function MaskMulti(str: WideString): WideString;
@@ -1821,18 +1818,6 @@ end;
 
 
 {**
-  Create a view
-}
-procedure TMainForm.actCreateViewExecute(Sender: TObject);
-begin
-  tabEditor.TabVisible := True;
-  PagecontrolMain.ActivePage := tabEditor;
-  PlaceObjectEditor(lntView);
-  ViewEditor.Init;
-end;
-
-
-{**
   Edit view
 }
 procedure TMainForm.actPrintListExecute(Sender: TObject);
@@ -2456,12 +2441,23 @@ begin
 end;
 
 
-procedure TMainForm.actCreateTableExecute(Sender: TObject);
+procedure TMainForm.actCreateDBObjectExecute(Sender: TObject);
+var
+  Editor: TDBObjectEditor;
+  ObjType: TListNodeType;
+  a: TAction;
 begin
+  // Create a new table, view, etc.
   tabEditor.TabVisible := True;
   PagecontrolMain.ActivePage := tabEditor;
-  PlaceObjectEditor(lntTable);
-  TableEditor.Init;
+  a := Sender as TAction;
+  ObjType := lntNone;
+  if a = actCreateTable then ObjType := lntTable
+  else if a = actCreateView then ObjType := lntView
+  else if a = actCreateRoutine then ObjType := lntProcedure
+  else if a = actCreateTrigger then ObjType := lntTrigger;
+  Editor := PlaceObjectEditor(ObjType);
+  Editor.Init;
 end;
 
 
@@ -8077,24 +8073,6 @@ begin
 end;
 
 
-procedure TMainForm.actCreateRoutineExecute(Sender: TObject);
-begin
-  tabEditor.TabVisible := True;
-  PagecontrolMain.ActivePage := tabEditor;
-  PlaceObjectEditor(lntProcedure);
-  RoutineEditor.Init;
-end;
-
-
-procedure TMainForm.actCreateTriggerExecute(Sender: TObject);
-begin
-  tabEditor.TabVisible := True;
-  PagecontrolMain.ActivePage := tabEditor;
-  PlaceObjectEditor(lntTrigger);
-  TriggerEditor.Init;
-end;
-
-
 procedure TMainForm.DataGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
 var
   query: String;
@@ -8152,11 +8130,10 @@ begin
 end;
 
 
-procedure TMainForm.PlaceObjectEditor(Which: TListNodeType);
-var
-  frm: TFrame;
+function TMainForm.PlaceObjectEditor(Which: TListNodeType): TDBObjectEditor;
 begin
   // Place the relevant editor frame onto the editor tab, hide all others
+  Result := nil;
   if (not (Which in [lntTable, lntCrashedTable])) and Assigned(TableEditor) then
     FreeAndNil(TableEditor);
   if (Which <> lntView) and Assigned(ViewEditor) then
@@ -8168,26 +8145,26 @@ begin
   if Which in [lntTable, lntCrashedTable] then begin
     if not Assigned(TableEditor) then
       TableEditor := TfrmTableEditor.Create(tabEditor);
-    frm := TableEditor;
+    Result := TableEditor;
   end else if Which = lntView then begin
     if not Assigned(ViewEditor) then
       ViewEditor := TfrmView.Create(tabEditor);
-    frm := ViewEditor;
+    Result := ViewEditor;
   end else if Which in [lntProcedure, lntFunction] then begin
     if not Assigned(RoutineEditor) then
       RoutineEditor := TfrmRoutineEditor.Create(tabEditor);
-    frm := RoutineEditor;
+    Result := RoutineEditor;
   end else if Which = lntTrigger then begin
     if not Assigned(TriggerEditor) then
       TriggerEditor := TfrmTriggerEditor.Create(tabEditor);
-    frm := TriggerEditor;
+    Result := TriggerEditor;
   end else
     Exit;
-  frm.Parent := tabEditor;
+  Result.Parent := tabEditor;
 end;
 
 
-procedure TMainForm.SetEditorTabCaption(Editor: TFrame; ObjName: WideString);
+procedure TMainForm.SetEditorTabCaption(Editor: TDBObjectEditor; ObjName: WideString);
 var
   ObjType, Cap: WideString;
   IconIndex: Integer;
@@ -8219,7 +8196,7 @@ end;
 procedure TMainForm.actEditObjectExecute(Sender: TObject);
 var
   NodeData: PVTreeData;
-  RoutineType: String;
+  RoutineType: TListNodeType;
   db: WideString;
 begin
   debug('actEditObjectExecute()');
@@ -8260,11 +8237,7 @@ begin
 
     lntFunction, lntProcedure: begin
       PlaceObjectEditor(SelectedTable.NodeType);
-      if SelectedTable.NodeType = lntFunction then
-        RoutineType := 'FUNCTION'
-      else
-        RoutineType := 'PROCEDURE';
-      RoutineEditor.Init(SelectedTable.Text, RoutineType);
+      RoutineEditor.Init(SelectedTable.Text, SelectedTable.NodeType);
     end;
 
     lntTrigger: begin

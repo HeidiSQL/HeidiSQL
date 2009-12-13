@@ -188,7 +188,7 @@ type
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Init(AlterTableName: WideString='');
+    procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); override;
   end;
 
 
@@ -245,7 +245,7 @@ begin
 end;
 
 
-procedure TfrmTableEditor.Init(AlterTableName: WideString='');
+procedure TfrmTableEditor.Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone);
 var
   CreateTable, AttrName, AttrValue: WideString;
   rx: TRegExpr;
@@ -254,12 +254,12 @@ begin
   Screen.Cursor := crHourglass;
   FLoaded := False;
   // Start with "basic" tab activated when just called
-  if FAlterTableName <> AlterTableName then
+  if FAlterTableName <> ObjectName then
     PageControlMain.ActivePage := tabBasic;
   comboEngine.Items := Mainform.Connection.TableEngines;
   comboEngine.ItemIndex := comboEngine.Items.IndexOf(Mainform.Connection.TableEngineDefault);
   comboCollation.Items := Mainform.Connection.CollationList;
-  FAlterTableName := AlterTableName;
+  FAlterTableName := ObjectName;
   listColumns.BeginUpdate;
   FColumns.Clear;
   btnClearIndexesClick(Self);

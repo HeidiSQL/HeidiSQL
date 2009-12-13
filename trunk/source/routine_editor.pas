@@ -72,7 +72,7 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
-    procedure Init(AlterRoutineName: WideString=''; AlterRoutineType: String='');
+    procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); override;
   end;
 
 
@@ -112,7 +112,7 @@ begin
 end;
 
 
-procedure TfrmRoutineEditor.Init(AlterRoutineName: WideString=''; AlterRoutineType: String='');
+procedure TfrmRoutineEditor.Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone);
 var
   Results: TMySQLQuery;
   Create, Params: WideString;
@@ -122,8 +122,9 @@ var
   i: Integer;
 begin
   MainForm.SetupSynEditors;
-  FAlterRoutineName := AlterRoutineName;
-  FAlterRoutineType := AlterRoutineType;
+  FAlterRoutineName := ObjectName;
+  if ObjectType = lntProcedure then FAlterRoutineType := 'PROCEDURE'
+  else FAlterRoutineType := 'FUNCTION';
   editName.Text := FAlterRoutineName;
   comboType.ItemIndex := 0;
   comboReturns.Text := '';
@@ -492,8 +493,12 @@ end;
 
 
 procedure TfrmRoutineEditor.btnDiscardClick(Sender: TObject);
+var
+  t: TListNodeType;
 begin
-  Init(FAlterRoutineName, FAlterRoutineType);
+  if FAlterRoutineType = 'PROCEDURE' then t := lntProcedure
+  else t := lntFunction;
+  Init(FAlterRoutineName, t);
 end;
 
 
