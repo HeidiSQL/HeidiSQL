@@ -8,7 +8,8 @@ uses
   helpers, mysql_api;
 
 type
-  TfrmView = class(TDBObjectEditor)
+  TFrame = TDBObjectEditor;
+  TfrmView = class(TFrame)
     editName: TEdit;
     lblName: TLabel;
     rgAlgorithm: TRadioGroup;

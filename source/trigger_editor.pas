@@ -8,7 +8,8 @@ uses
   SynCompletionProposal, VirtualTrees, helpers;
 
 type
-  TfrmTriggerEditor = class(TDBObjectEditor)
+  TFrame = TDBObjectEditor;
+  TfrmTriggerEditor = class(TFrame)
     lblName: TLabel;
     editName: TTntEdit;
     SynMemoStatement: TSynMemo;

@@ -9,7 +9,8 @@ uses
   mysql_api;
 
 type
-  TfrmRoutineEditor = class(TDBObjectEditor)
+  TFrame = TDBObjectEditor;
+  TfrmRoutineEditor = class(TFrame)
     btnSave: TButton;
     btnDiscard: TButton;
     btnHelp: TButton;
