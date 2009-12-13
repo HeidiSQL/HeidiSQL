@@ -318,14 +318,14 @@ begin
 
     rx.Expression := '\bUNION=\((.+)\)';
     if rx.Exec(CreateTable) then
-      memoUnionTables.Text := rx.Match[1]
+      memoUnionTables.Lines.Text := rx.Match[1]
     else
-      memoUnionTables.Clear;
+      memoUnionTables.Lines.Clear;
     rx.Expression := '\bCOMMENT=''((.+)[^''])''';
     if rx.Exec(CreateTable) then
-      memoComment.Text := WideStringReplace(rx.Match[1], '''''', '''', [rfReplaceAll])
+      memoComment.Lines.Text := WideStringReplace(rx.Match[1], '''''', '''', [rfReplaceAll])
     else
-      memoComment.Clear;
+      memoComment.Lines.Clear;
     ParseTableStructure(CreateTable, FColumns, FKeys, FForeignKeys);
   end;
   listColumns.RootNodeCount := FColumns.Count;
