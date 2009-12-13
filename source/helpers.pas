@@ -148,6 +148,7 @@ type
       FModified: Boolean;
       procedure SetModified(Value: Boolean);
     public
+      procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); Virtual; Abstract;
       property Modified: Boolean read FModified write SetModified;
   end;
 

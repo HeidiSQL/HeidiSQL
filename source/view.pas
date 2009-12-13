@@ -29,7 +29,7 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
-    procedure Init(EditViewName: WideString='');
+    procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); override;
   end;
 
   
@@ -56,13 +56,13 @@ end;
 {**
   FormShow: Fill controls with content in edit mode
 }
-procedure TfrmView.Init(EditViewName: WideString='');
+procedure TfrmView.Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone);
 var
   Results: TMySQLQuery;
   db: WideString;
   rx: TRegExpr;
 begin
-	FEditViewName := EditViewName;
+	FEditViewName := ObjectName;
   if FEditViewName <> '' then begin
     // Edit mode
     editName.Text := FEditViewName;

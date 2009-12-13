@@ -34,7 +34,7 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
-    procedure Init(EditTriggerName: WideString='');
+    procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); override;
   end;
 
 implementation
@@ -73,12 +73,12 @@ begin
 end;
 
 
-procedure TfrmTriggerEditor.Init(EditTriggerName: WideString='');
+procedure TfrmTriggerEditor.Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone);
 var
   Definition, TableList: TMySQLQuery;
 begin
   Mainform.SetupSynEditors;
-	FEditTriggerName := EditTriggerName;
+	FEditTriggerName := ObjectName;
   editName.Text := '';
   SynMemoStatement.Text := '';
   comboEvent.ItemIndex := 0;

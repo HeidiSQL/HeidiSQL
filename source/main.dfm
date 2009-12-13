@@ -1849,7 +1849,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Create view ...'
       ImageIndex = 81
-      OnExecute = actCreateViewExecute
+      OnExecute = actCreateDBObjectExecute
     end
     object actDataFirst: TAction
       Category = 'Data'
@@ -1909,7 +1909,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Create new table in selected database'
       ImageIndex = 14
-      OnExecute = actCreateTableExecute
+      OnExecute = actCreateDBObjectExecute
     end
     object actEmptyTables: TAction
       Category = 'Database'
@@ -2201,7 +2201,7 @@ object MainForm: TMainForm
       Caption = 'Stored routine'
       Hint = 'Create stored routine|Create stored procedure or function'
       ImageIndex = 119
-      OnExecute = actCreateRoutineExecute
+      OnExecute = actCreateDBObjectExecute
     end
     object actEditObject: TAction
       Category = 'Database'
@@ -2246,7 +2246,7 @@ object MainForm: TMainForm
       Caption = 'Trigger'
       Hint = 'Create a trigger'
       ImageIndex = 137
-      OnExecute = actCreateTriggerExecute
+      OnExecute = actCreateDBObjectExecute
     end
   end
   object SaveDialog2: TSaveDialog
