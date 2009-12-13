@@ -9,7 +9,8 @@ uses
   Contnrs, grideditlinks, mysql_structures, mysql_connection, helpers, mysql_api;
 
 type
-  TfrmTableEditor = class(TDBObjectEditor)
+  TFrame = TDBObjectEditor;
+  TfrmTableEditor = class(TFrame)
     btnSave: TButton;
     btnDiscard: TButton;
     btnHelp: TButton;
