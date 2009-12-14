@@ -36,7 +36,7 @@ type
     lblSQLcode: TLabel;
     SynMemoBody: TSynMemo;
     procedure comboTypeSelect(Sender: TObject);
-    procedure PostChanges(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
     procedure editNameChange(Sender: TObject);
     procedure btnAddParamClick(Sender: TObject);
@@ -69,12 +69,12 @@ type
   private
     { Private declarations }
     Parameters: TWideStringList;
-    FAlterRoutineName: WideString;
     FAlterRoutineType: String;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
     procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); override;
+    procedure ApplyModifications; override;
   end;
 
 
@@ -92,8 +92,7 @@ constructor TfrmRoutineEditor.Create(AOwner: TComponent);
 var
   i: Integer;
 begin
-  inherited Create(AOwner);
-  Align := alClient;
+  inherited;
   // Combo items in a .dfm are sporadically lost after an IDE restart,
   // so we set them here to avoid developer annoyance
   comboType.Items.Add('Procedure (doesn''t return a result)');
@@ -106,8 +105,6 @@ begin
   comboSecurity.Items.Add('Invoker');
   for i := Low(Datatypes) to High(Datatypes) do
     comboReturns.Items.Add(Datatypes[i].Name);
-  SetWindowSizeGrip(Handle, True);
-  InheritFont(Font);
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   FixVT(listParameters);
   Parameters := TWideStringList.Create;
@@ -124,11 +121,10 @@ var
   rx: TRegExpr;
   i: Integer;
 begin
-  MainForm.SetupSynEditors;
-  FAlterRoutineName := ObjectName;
+  inherited;
   if ObjectType = lntProcedure then FAlterRoutineType := 'PROCEDURE'
   else FAlterRoutineType := 'FUNCTION';
-  editName.Text := FAlterRoutineName;
+  editName.Text := FEditObjectName;
   comboType.ItemIndex := 0;
   comboReturns.Text := '';
   listParameters.Clear;
@@ -137,16 +133,15 @@ begin
   comboSecurity.ItemIndex := 0;
   editComment.Clear;
   SynMemoBody.Text := 'BEGIN'+CRLF+CRLF+'END';
-  if FAlterRoutineName <> '' then begin
+  if FEditObjectName <> '' then begin
     // Editing existing routine
-    Mainform.SetEditorTabCaption(Self, FAlterRoutineName);
     Results := Mainform.Connection.GetResults('SELECT * FROM '+DBNAME_INFORMATION_SCHEMA+'.ROUTINES'+
       ' WHERE ROUTINE_SCHEMA='+esc(Mainform.ActiveDatabase)+
-      ' AND ROUTINE_NAME='+esc(FAlterRoutineName)+
+      ' AND ROUTINE_NAME='+esc(FEditObjectName)+
       ' AND ROUTINE_TYPE='+esc(FAlterRoutineType)
       );
     if Results.RecordCount <> 1 then
-      Exception.Create('Cannot find properties of stored routine '+FAlterRoutineName);
+      Exception.Create('Cannot find properties of stored routine '+FEditObjectName);
     comboType.ItemIndex := ListIndexByRegExpr(comboType.Items, '^'+FAlterRoutineType+'\b');
     chkDeterministic.Checked := Results.Col('IS_DETERMINISTIC') = 'YES';
     comboReturns.Text := Results.Col('DTD_IDENTIFIER');
@@ -185,7 +180,6 @@ begin
     FreeAndNil(Results);
   end else begin
     editName.Text := 'Enter routine name';
-    Mainform.SetEditorTabCaption(Self, '');
   end;
   editNameChange(Self);
   comboTypeSelect(comboType);
@@ -403,7 +397,14 @@ begin
 end;
 
 
-procedure TfrmRoutineEditor.PostChanges(Sender: TObject);
+procedure TfrmRoutineEditor.btnSaveClick(Sender: TObject);
+begin
+  // Apply or OK button clicked
+  ApplyModifications;
+end;
+
+
+procedure TfrmRoutineEditor.ApplyModifications;
 var
   BaseSQL, TempSQL, FinalSQL, TempName: WideString;
   i: Integer;
@@ -411,18 +412,8 @@ var
   ProcOrFunc: String;
   TargetExists: Boolean;
 begin
-  // Apply or OK button clicked
+  // Save changes
   ProcOrFunc := UpperCase(GetFirstWord(comboType.Text));
-  if editName.Text = '' then begin
-    MessageDlg('Please specify the routine''s name.', mtError, [mbOK], 0);
-    editName.SetFocus;
-    Exit;
-  end else if (ProcOrFunc = 'FUNCTION') and (comboReturns.Text = '') then begin
-    MessageDlg('Please specify the function''s returning datatype.', mtError, [mbOK], 0);
-    comboReturns.SetFocus;
-    Exit;
-  end;
-
   BaseSQL := '';
   for i := 0 to Parameters.Count - 1 do begin
     par := explode(DELIM, Parameters[i]);
@@ -448,18 +439,18 @@ begin
   // Create a temp routine, check for syntax errors, then drop the old routine and create it.
   // See also: http://dev.mysql.com/doc/refman/5.0/en/alter-procedure.html
   try
-    if FAlterRoutineName <> '' then begin
+    if FEditObjectName <> '' then begin
       // Create temp name
       i := 0;
       allRoutineNames := Mainform.Connection.GetCol('SELECT ROUTINE_NAME FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.'+Mainform.mask('ROUTINES')+
         ' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase)+
         ' AND ROUTINE_TYPE = '+esc(ProcOrFunc)
         );
-      TargetExists := ((editName.Text <> FAlterRoutineName) or (ProcOrFunc <> FAlterRoutineType)) and
+      TargetExists := ((editName.Text <> FEditObjectName) or (ProcOrFunc <> FAlterRoutineType)) and
         (allRoutineNames.IndexOf(editName.Text) > -1);
       if TargetExists then begin
         if MessageDlg('Routine "'+editName.Text+'" already exists. Overwrite it?',
-          mtConfirmation, [mbOk, mbCancel], 0) = mrCancel then begin
+          mtConfirmation, [mbYes, mbNo], 0) = mrNo then begin
           Exit;
         end;
       end;
@@ -474,7 +465,7 @@ begin
       // Drop temporary routine, used for syntax checking
       Mainform.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(TempName));
       // Drop edited routine
-      Mainform.Connection.Query('DROP '+FAlterRoutineType+' IF EXISTS '+Mainform.mask(FAlterRoutineName));
+      Mainform.Connection.Query('DROP '+FAlterRoutineType+' IF EXISTS '+Mainform.mask(FEditObjectName));
       if TargetExists then begin
         // Drop target routine - overwriting has been confirmed, see above
         Mainform.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(editName.Text));
@@ -483,10 +474,10 @@ begin
     FinalSQL := 'CREATE '+ProcOrFunc+' '+Mainform.mask(editName.Text)+'(' + BaseSQL;
     Mainform.Connection.Query(FinalSQL);
     // Set editing name if create/alter query was successful
-    FAlterRoutineName := editName.Text;
-    FAlterRoutineType := ProcOrFunc;
-    Mainform.SetEditorTabCaption(Self, FAlterRoutineName);
-    Mainform.actRefresh.Execute;
+    FEditObjectName := editName.Text;
+    FAlterRoutineType := UpperCase(GetFirstWord(comboType.Text));
+    Mainform.SetEditorTabCaption(Self, FEditObjectName);
+    Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
@@ -501,9 +492,10 @@ procedure TfrmRoutineEditor.btnDiscardClick(Sender: TObject);
 var
   t: TListNodeType;
 begin
+  Modified := False;
   if FAlterRoutineType = 'PROCEDURE' then t := lntProcedure
   else t := lntFunction;
-  Init(FAlterRoutineName, t);
+  Init(FEditObjectName, t);
 end;
 
 

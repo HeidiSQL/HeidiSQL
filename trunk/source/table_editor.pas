@@ -170,7 +170,6 @@ type
   private
     { Private declarations }
     FLoaded: Boolean;
-    FAlterTableName: WideString;
     CreateCodeValid, AlterCodeValid: Boolean;
     FColumns, FKeys, FForeignKeys: TObjectList;
     DeletedKeys, DeletedForeignKeys: TWideStringList;
@@ -190,6 +189,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); override;
+    procedure ApplyModifications; override;
   end;
 
 
@@ -207,12 +207,8 @@ const
 
 constructor TfrmTableEditor.Create(AOwner: TComponent);
 begin
-  inherited Create(AOwner);
-  // Do not set alClient via DFM! In conjunction with ExplicitXXX properties that
-  // repeatedly breaks the GUI layout when you reload the project
-  Align := alClient;
+  inherited;
   PageControlMain.Height := GetRegValue(REGNAME_TABLEEDITOR_TABSHEIGHT, PageControlMain.Height);
-  InheritFont(Font);
   FixVT(listColumns);
   FixVT(treeIndexes);
   FixVT(listForeignKeys);
@@ -243,7 +239,7 @@ begin
   Mainform.SaveListSetup(listColumns);
   Mainform.SaveListSetup(treeIndexes);
   Mainform.SaveListSetup(listForeignKeys);
-  Inherited;
+  inherited;
 end;
 
 
@@ -252,22 +248,16 @@ var
   CreateTable, AttrName, AttrValue: WideString;
   rx: TRegExpr;
 begin
-  Mainform.showstatus('Initializing editor ...');
-  Screen.Cursor := crHourglass;
+  inherited;
   FLoaded := False;
-  // Start with "basic" tab activated when just called
-  if FAlterTableName <> ObjectName then
-    PageControlMain.ActivePage := tabBasic;
   comboEngine.Items := Mainform.Connection.TableEngines;
   comboEngine.ItemIndex := comboEngine.Items.IndexOf(Mainform.Connection.TableEngineDefault);
   comboCollation.Items := Mainform.Connection.CollationList;
-  FAlterTableName := ObjectName;
   listColumns.BeginUpdate;
   FColumns.Clear;
   btnClearIndexesClick(Self);
   btnClearForeignKeysClick(Self);
-  tabALTERcode.TabVisible := FAlterTableName <> '';
-  MainForm.SetupSynEditors;
+  tabALTERcode.TabVisible := FEditObjectName <> '';
   // Clear value editors
   memoComment.Text := '';
   editAutoInc.Text := '';
@@ -279,16 +269,14 @@ begin
   memoUnionTables.Clear;
   comboInsertMethod.ItemIndex := -1;
 
-  if FAlterTableName = '' then begin
+  if FEditObjectName = '' then begin
     // Creating new table
     editName.Text := 'Enter table name';
-    Mainform.SetEditorTabCaption(Self, '');
     comboCollation.ItemIndex := comboCollation.Items.IndexOf(Mainform.Connection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
     PageControlMain.ActivePage := tabBasic;
   end else begin
     // Editing existing table
-    editName.Text := FAlterTableName;
-    Mainform.SetEditorTabCaption(Self, FAlterTableName);
+    editName.Text := FEditObjectName;
     CreateTable := Mainform.SelectedTableCreateStatement;
     rx := TRegExpr.Create;
     rx.ModifierI := True;
@@ -347,43 +335,47 @@ end;
 procedure TfrmTableEditor.btnDiscardClick(Sender: TObject);
 begin
   // Reinit GUI, discarding changes
-  Init(FAlterTableName);
+  Modified := False;
+  Init(FEditObjectName);
 end;
 
 
 procedure TfrmTableEditor.btnSaveClick(Sender: TObject);
+begin
+  ApplyModifications;
+end;
+
+
+procedure TfrmTableEditor.ApplyModifications;
 var
   sql: WideString;
   i: Integer;
   Specs: TWideStringlist;
   Key: TForeignKey;
   Col: TTableColumn;
-  FocusChangeEvent: procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex) of object;
 begin
   // Create or alter table
-  try
-    if FAlterTableName = '' then
-      sql := ComposeCreateStatement
-    else begin
-      sql := ComposeAlterStatement;
-      // Special case for altered foreign keys: These have to be dropped in a seperate query
-      // otherwise the server would return error 121 "Duplicate key on write or update"
-      // See also http://dev.mysql.com/doc/refman/5.1/en/innodb-foreign-key-constraints.html :
-      //   "You cannot add a foreign key and drop a foreign key in separate clauses of a single
-      //   ALTER TABLE  statement. Separate statements are required."
-      Specs := TWideStringList.Create;
-      for i:=0 to FForeignKeys.Count-1 do begin
-        Key := FForeignKeys[i] as TForeignKey;
-        if Key.Modified and (not Key.Added) then
-          Specs.Add('DROP FOREIGN KEY '+Mainform.mask(Key.KeyName));
-      end;
-      if Specs.Count > 0 then
-        Mainform.Connection.Query('ALTER TABLE '+Mainform.mask(FAlterTableName)+' '+ImplodeStr(', ', Specs));
+  Specs := TWideStringList.Create;
+  if FEditObjectName = '' then
+    sql := ComposeCreateStatement
+  else begin
+    sql := ComposeAlterStatement;
+    // Special case for altered foreign keys: These have to be dropped in a seperate query
+    // otherwise the server would return error 121 "Duplicate key on write or update"
+    // See also http://dev.mysql.com/doc/refman/5.1/en/innodb-foreign-key-constraints.html :
+    //   "You cannot add a foreign key and drop a foreign key in separate clauses of a single
+    //   ALTER TABLE  statement. Separate statements are required."
+    for i:=0 to FForeignKeys.Count-1 do begin
+      Key := FForeignKeys[i] as TForeignKey;
+      if Key.Modified and (not Key.Added) then
+        Specs.Add('DROP FOREIGN KEY '+Mainform.mask(Key.KeyName));
     end;
+  end;
+  try
+    if Specs.Count > 0 then
+      Mainform.Connection.Query('ALTER TABLE '+Mainform.mask(FEditObjectName)+' '+ImplodeStr(', ', Specs));
     Mainform.Connection.Query(sql);
-    // Set table name for altering if Apply was clicked
-    FAlterTableName := editName.Text;
-    tabALTERcode.TabVisible := FAlterTableName <> '';
+    tabALTERcode.TabVisible := FEditObjectName <> '';
     if chkCharsetConvert.Checked then begin
       // Autoadjust column collations
       for i:=0 to FColumns.Count-1 do begin
@@ -392,15 +384,12 @@ begin
           Col.Collation := comboCollation.Text;
       end;
     end;
-    ResetModificationFlags;
-
-    // Refresh db tree and reselect edited table node.
-    // Supress tab jumping, implicitely invoked by RefreshTreeDB.
-    FocusChangeEvent := Mainform.DBtree.OnFocusChanged;
-    Mainform.DBtree.OnFocusChanged := nil;
+    // Set table name for altering if Apply was clicked
+    FEditObjectName := editName.Text;
+    tabALTERcode.TabVisible := FEditObjectName <> '';
+    Mainform.SetEditorTabCaption(Self, FEditObjectName);
     Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
-    Mainform.DBtree.OnFocusChanged := FocusChangeEvent;
-    Mainform.SelectDBObject(FAlterTableName, lntTable);
+    ResetModificationFlags;
   except
     on E:Exception do
       MessageDlg(E.Message, mtError, [mbOk], 0);
@@ -466,7 +455,7 @@ begin
   Mainform.showstatus('Composing ALTER statement ...');
   Screen.Cursor := crHourglass;
   Specs := TWideStringlist.Create;
-  if editName.Text <> FAlterTableName then
+  if editName.Text <> FEditObjectName then
     Specs.Add('RENAME TO ' + Mainform.mask(editName.Text));
   if memoComment.Tag = ModifiedFlag then
     Specs.Add('COMMENT=' + esc(memoComment.Text));
@@ -595,7 +584,7 @@ begin
       Specs.Add('ADD '+GetForeignKeySQL(i));
   end;
 
-  Result := 'ALTER TABLE '+Mainform.mask(FAlterTableName) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
+  Result := 'ALTER TABLE '+Mainform.mask(FEditObjectName) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
   Result := Trim(Result);
   FreeAndNil(Specs);
   Mainform.showstatus;
@@ -1731,7 +1720,7 @@ end;
 
 procedure TfrmTableEditor.chkCharsetConvertClick(Sender: TObject);
 begin
-  chkCharsetConvert.Enabled := (FAlterTablename <> '') and (comboCollation.ItemIndex > -1);
+  chkCharsetConvert.Enabled := (FEditObjectName <> '') and (comboCollation.ItemIndex > -1);
   listColumns.Repaint;
   Modification(Sender);
 end;

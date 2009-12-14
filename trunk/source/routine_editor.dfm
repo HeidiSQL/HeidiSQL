@@ -85,7 +85,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Caption = 'Save'
     Default = True
     TabOrder = 12
-    OnClick = PostChanges
+    OnClick = btnSaveClick
   end
   object btnDiscard: TButton
     Left = 84
