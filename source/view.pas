@@ -26,11 +26,11 @@ type
     procedure Modification(Sender: TObject);
   private
     { Private declarations }
-    FEditViewName: WideString;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
     procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); override;
+    procedure ApplyModifications; override;
   end;
 
   
@@ -46,11 +46,9 @@ uses main;
 }
 constructor TfrmView.Create(AOwner: TComponent);
 begin
-  inherited Create(AOwner);
-  Align := alClient;
+  inherited;
   SynMemoSelect.Highlighter := Mainform.SynSQLSyn1;
   Mainform.SynCompletionProposal.AddEditor(SynMemoSelect);
-  InheritFont(Font);
   editName.MaxLength := NAME_LEN;
 end;
 
@@ -64,16 +62,15 @@ var
   db: WideString;
   rx: TRegExpr;
 begin
-	FEditViewName := ObjectName;
-  if FEditViewName <> '' then begin
+  inherited;
+  if FEditObjectName <> '' then begin
     // Edit mode
-    editName.Text := FEditViewName;
-    Mainform.SetEditorTabCaption(Self, FEditViewName);
+    editName.Text := FEditObjectName;
     db := Mainform.ActiveDatabase;
     Results := Mainform.Connection.GetResults('SELECT * FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.VIEWS ' +
-      'WHERE TABLE_SCHEMA = '+esc(db)+' AND TABLE_NAME = '+esc(FEditViewName));
+      'WHERE TABLE_SCHEMA = '+esc(db)+' AND TABLE_NAME = '+esc(FEditObjectName));
     if Results.RecordCount = 0 then
-      raise Exception.Create('Can''t find view definition for "'+FEditViewName+'" in '+DBNAME_INFORMATION_SCHEMA);
+      raise Exception.Create('Can''t find view definition for "'+FEditObjectName+'" in '+DBNAME_INFORMATION_SCHEMA);
     // Algorithm is not changeable as we cannot look up its current state!
     rgAlgorithm.Enabled := False;
     rgAlgorithm.ItemIndex := 0;
@@ -88,7 +85,6 @@ begin
     rx.Free;
   end else begin
     // Create mode
-    Mainform.SetEditorTabCaption(Self, '');
     editName.Text := 'Enter view name';
     rgAlgorithm.Enabled := True;
     rgAlgorithm.ItemIndex := 0;
@@ -98,7 +94,6 @@ begin
   end;
   // Ensure name is validated
   editNameChange(Self);
-  MainForm.SetupSynEditors;
   Modified := False;
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
@@ -129,7 +124,7 @@ procedure TfrmView.btnHelpClick(Sender: TObject);
 var
   keyword: String;
 begin
-  if FEditViewName = '' then
+  if FEditObjectName = '' then
     keyword := 'CREATE VIEW'
   else
     keyword := 'ALTER VIEW';
@@ -140,24 +135,31 @@ end;
 procedure TfrmView.btnDiscardClick(Sender: TObject);
 begin
   // Reinit editor, discarding changes
-  Init(FEditViewName);
+  Modified := False;
+  Init(FEditObjectName);
 end;
 
 
 {**
-  Apply changes: Compose and execute SQL
+  Apply changes
 }
 procedure TfrmView.btnSaveClick(Sender: TObject);
+begin
+  ApplyModifications;
+end;
+
+
+procedure TfrmView.ApplyModifications;
 var
   sql, viewname, renamed: String;
 begin
-  // Compose CREATE or ALTER statement
-  if FEditViewName = '' then begin
+  // Save changes
+  if FEditObjectName = '' then begin
     sql := 'CREATE ';
     viewname := editName.Text;
   end else begin
     sql := 'ALTER ';
-    viewname := FEditViewName;
+    viewname := FEditObjectName;
   end;
   viewname := Mainform.mask(viewname);
   if rgAlgorithm.Enabled and (rgAlgorithm.ItemIndex > -1) then
@@ -169,11 +171,16 @@ begin
   try
     Mainform.Connection.Query(sql);
     // Probably rename view
-    if (FEditViewName <> '') and (FEditViewName <> editName.Text) then begin
+    if (FEditObjectName <> '') and (FEditObjectName <> editName.Text) then begin
       renamed := Mainform.mask(editName.Text);
       Mainform.Connection.Query('RENAME TABLE '+viewname + ' TO '+renamed);
     end;
+    FEditObjectName := editName.Text;
+    Mainform.SetEditorTabCaption(Self, FEditObjectName);
     Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
+    Modified := False;
+    btnSave.Enabled := Modified;
+    btnDiscard.Enabled := Modified;
   except
     on E:Exception do
       MessageDlg(E.Message, mtError, [mbOk], 0);

@@ -147,9 +147,15 @@ type
     private
       FModified: Boolean;
       procedure SetModified(Value: Boolean);
+    protected
+      FEditObjectName: WideString;
     public
-      procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); Virtual; Abstract;
+      constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
+      procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); virtual;
+      procedure DeInit;
       property Modified: Boolean read FModified write SetModified;
+      procedure ApplyModifications; virtual; abstract;
   end;
 
 
@@ -245,7 +251,7 @@ var
 
 implementation
 
-uses main, uVistaFuncs;
+uses main, uVistaFuncs, table_editor, view, routine_editor, trigger_editor;
 
 type
   CharacterSet = record
@@ -3236,9 +3242,54 @@ end;
 
 { *** TDBObjectEditor }
 
+constructor TDBObjectEditor.Create(AOwner: TComponent);
+begin
+  inherited;
+  // Do not set alClient via DFM! In conjunction with ExplicitXXX properties that
+  // repeatedly breaks the GUI layout when you reload the project
+  Align := alClient;
+  InheritFont(Font);
+end;
+
+destructor TDBObjectEditor.Destroy;
+begin
+  DeInit;
+  inherited;
+end;
+
 procedure TDBObjectEditor.SetModified(Value: Boolean);
 begin
   FModified := Value;
+end;
+
+procedure TDBObjectEditor.Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone);
+begin
+  DeInit;
+  Mainform.showstatus('Initializing editor ...');
+  FEditObjectName := ObjectName;
+  Mainform.SetEditorTabCaption(Self, FEditObjectName);
+  Screen.Cursor := crHourglass;
+  MainForm.SetupSynEditors;
+end;
+
+procedure TDBObjectEditor.DeInit;
+var
+  Msg, ObjType: WideString;
+begin
+  // Ask for saving modifications
+  if Modified then begin
+    if Self is TfrmTableEditor then ObjType := 'table'
+    else if Self is TfrmView then ObjType := 'view'
+    else if Self is TfrmRoutineEditor then ObjType := 'routine'
+    else if Self is TfrmTriggerEditor then ObjType := 'trigger'
+    else ObjType := '<Unknown Type - should never appear>';
+    if FEditObjectName <> '' then
+      Msg := 'Save modified '+ObjType+' "'+FEditObjectName+'"?'
+    else
+      Msg := 'Save new '+ObjType+'?';
+    if MessageDlg(Msg, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
+      ApplyModifications;
+  end;
 end;
 
 

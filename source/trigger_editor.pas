@@ -31,11 +31,11 @@ type
       var CurrentInput: WideString; var x, y: Integer; var CanExecute: Boolean);
   private
     { Private declarations }
-    FEditTriggerName: WideString;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
     procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); override;
+    procedure ApplyModifications; override;
   end;
 
 implementation
@@ -53,10 +53,8 @@ var
   col: TProposalColumn;
   i: Integer;
 begin
-  inherited Create(AOwner);
-  Align := alClient;
+  inherited;
   SynMemoStatement.Highlighter := Mainform.SynSQLSyn1;
-  InheritFont(Font);
   editName.MaxLength := NAME_LEN;
   comboTiming.Items.Text := 'BEFORE'+CRLF+'AFTER';
   comboEvent.Items.Text := 'INSERT'+CRLF+'UPDATE'+CRLF+'DELETE';
@@ -78,8 +76,7 @@ procedure TfrmTriggerEditor.Init(ObjectName: WideString=''; ObjectType: TListNod
 var
   Definition, TableList: TMySQLQuery;
 begin
-  Mainform.SetupSynEditors;
-	FEditTriggerName := ObjectName;
+  inherited;
   editName.Text := '';
   SynMemoStatement.Text := '';
   comboEvent.ItemIndex := 0;
@@ -93,20 +90,18 @@ begin
   end;
   if comboTable.Items.Count > 0 then
     comboTable.ItemIndex := 0;
-  if FEditTriggerName <> '' then begin
+  if FEditObjectName <> '' then begin
     // Edit mode
-    Mainform.SetEditorTabCaption(Self, FEditTriggerName);
-    editName.Text := FEditTriggerName;
+    editName.Text := FEditObjectName;
     Definition := Mainform.Connection.GetResults('SELECT '+
       'EVENT_MANIPULATION, EVENT_OBJECT_TABLE, ACTION_STATEMENT, ACTION_TIMING '+
       'FROM information_schema.TRIGGERS '+
-      'WHERE TRIGGER_SCHEMA='+esc(Mainform.ActiveDatabase)+' AND TRIGGER_NAME='+esc(FEditTriggerName));
+      'WHERE TRIGGER_SCHEMA='+esc(Mainform.ActiveDatabase)+' AND TRIGGER_NAME='+esc(FEditObjectName));
     comboTable.ItemIndex := comboTable.Items.IndexOf(Definition.Col('EVENT_OBJECT_TABLE'));
     comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(Definition.Col('ACTION_TIMING')));
     comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(Definition.Col('EVENT_MANIPULATION')));
     SynMemoStatement.Text := Definition.Col('ACTION_STATEMENT');
   end else begin
-    Mainform.SetEditorTabCaption(Self, '');
     editName.Text := 'Enter trigger name';
   end;
   Modified := False;
@@ -129,19 +124,25 @@ end;
 procedure TfrmTriggerEditor.btnDiscardClick(Sender: TObject);
 begin
   // Reinit editor, discarding changes
-  Init(FEditTriggerName);
+  Modified := False;
+  Init(FEditObjectName);
 end;
 
 
 procedure TfrmTriggerEditor.btnSaveClick(Sender: TObject);
+begin
+  ApplyModifications;
+end;
+
+
+procedure TfrmTriggerEditor.ApplyModifications;
 var
   sql: WideString;
-  FocusChangeEvent: procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex) of object;
 begin
   // Edit mode means we drop the trigger and recreate it, as there is no ALTER TRIGGER.
   try
-    if FEditTriggerName <> '' then
-      Mainform.Connection.Query('DROP TRIGGER '+Mainform.mask(FEditTriggerName));
+    if FEditObjectName <> '' then
+      Mainform.Connection.Query('DROP TRIGGER '+Mainform.mask(FEditObjectName));
     // CREATE
     //   [DEFINER = { user | CURRENT_USER }]
     //   TRIGGER trigger_name trigger_time trigger_event
@@ -151,12 +152,12 @@ begin
       ' ON '+Mainform.mask(comboTable.Text)+
       ' FOR EACH ROW '+SynMemoStatement.Text;
     Mainform.Connection.Query(sql);
-    FocusChangeEvent := Mainform.DBtree.OnFocusChanged;
-    Mainform.DBtree.OnFocusChanged := nil;
+    FEditObjectName := editName.Text;
+    Mainform.SetEditorTabCaption(Self, FEditObjectName);
     Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
-    Mainform.DBtree.OnFocusChanged := FocusChangeEvent;
-    Mainform.SelectDBObject(editName.Text, lntTrigger);
-    Init(editName.Text);
+    Modified := False;
+    btnSave.Enabled := Modified;
+    btnDiscard.Enabled := Modified;
   except on E:Exception do
     MessageDlg(E.Message, mtError, [mbOK], 0);
   end;

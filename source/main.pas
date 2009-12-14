@@ -1056,6 +1056,20 @@ procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   filename : String;
 begin
+  // Destroy editors and dialogs. Must be done before connection gets closed, as some destructors do SQL stuff. 
+  FreeAndNil(RoutineEditor);
+  FreeAndNil(TableToolsDialog);
+  FreeAndNil(UserManagerForm);
+  FreeAndNil(ViewEditor);
+  FreeAndNil(SelectDBObjectForm);
+  FreeAndNil(SQLHelpForm);
+  FreeAndNil(OptionsForm);
+  FreeAndNil(SessionManager);
+  FreeAndNil(TableEditor);
+  FreeAndNil(TriggerEditor);
+  FreeAndNil(CreateDatabaseForm);
+
+  // Close database connection
   DoDisconnect;
 
   OpenRegistry;
@@ -1085,18 +1099,6 @@ begin
   SaveListSetup(ListProcesses);
   SaveListSetup(ListCommandStats);
   SaveListSetup(ListTables);
-
-  FreeAndNil(RoutineEditor);
-  FreeAndNil(TableToolsDialog);
-  FreeAndNil(UserManagerForm);
-  FreeAndNil(ViewEditor);
-  FreeAndNil(SelectDBObjectForm);
-  FreeAndNil(SQLHelpForm);
-  FreeAndNil(OptionsForm);
-  FreeAndNil(SessionManager);
-  FreeAndNil(TableEditor);
-  FreeAndNil(TriggerEditor);
-  FreeAndNil(CreateDatabaseForm);
 
   debug('mem: clearing query and browse data.');
   SetLength(DataGridResult.Rows, 0);
@@ -6286,15 +6288,39 @@ end;
 procedure TMainForm.RefreshTreeDB(db: WideString);
 var
   oldActiveDatabase: WideString;
-  dbnode: PVirtualNode;
+  DBNode, FNode: PVirtualNode;
+  oldSelectedTable: TListNode;
+  TableHereHadFocus: Boolean;
+  Results: TMySQLQuery;
+  FocusChangeEvent: procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex) of object;
 begin
   oldActiveDatabase := ActiveDatabase;
-  DBtree.ClearSelection;
+  oldSelectedTable := SelectedTable;
   DBNode := FindDBNode(db);
+  FNode := DBtree.FocusedNode;
+  TableHereHadFocus := FNode.Parent = DBNode;
+  // Suspend focus changing event, to avoid tab jumping
+  FocusChangeEvent := DBtree.OnFocusChanged;
+  DBtree.OnFocusChanged := nil;
+  // Refresh db node
   RefreshDbTableList(db);
-  DBTree.ReinitNode(dbnode, true);
-  DBtree.InvalidateChildren(dbnode, false);
-  ActiveDatabase := oldActiveDatabase;
+  DBTree.ReinitNode(DBNode, true);
+  DBtree.InvalidateChildren(DBNode, false);
+  // Set focus on previously focused table node
+  if TableHereHadFocus then begin
+    Results := FetchDbTableList(db);
+    while not Results.Eof do begin
+      // Need to check if table was renamed, in which case oldSelectedTable is no longer available
+      if (Results.Col(DBO_NAME) = oldSelectedTable.Text)
+        and (GetDBObjectType(Results) = oldSelectedTable.NodeType) then begin
+        SelectDBObject(oldSelectedTable.Text, oldSelectedTable.NodeType);
+        break;
+      end;
+      Results.Next;
+    end;
+  end;
+  // Reactivate focus changing event
+  DBtree.OnFocusChanged := FocusChangeEvent;
 end;
 
 
