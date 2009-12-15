@@ -3202,6 +3202,7 @@ begin
   end;
   // Data type
   DataGridResult.Columns[idx].DatatypeCat := Column.DataType.Category;
+  DataGridResult.Columns[idx].Datatype := Column.DataType.Index;
   case DataGridResult.Columns[idx].DatatypeCat of
     dtcInteger, dtcReal: col.Alignment := taRightJustify;
     dtcText: begin
@@ -3217,16 +3218,12 @@ begin
       end;
     end;
     dtcIntegerNamed: begin
-      DataGridResult.Columns[idx].Datatype := dtEnum;
-      DataGridResult.Columns[idx].DatatypeCat := dtcIntegerNamed;
       DataGridResult.Columns[idx].ValueList := TWideStringList.Create;
       DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
       DataGridResult.Columns[idx].ValueList.Delimiter := ',';
       DataGridResult.Columns[idx].ValueList.DelimitedText := Column.LengthSet;
     end;
     dtcSet: begin
-      DataGridResult.Columns[idx].Datatype := dtSet;
-      DataGridResult.Columns[idx].DatatypeCat := dtcSetNamed;
       DataGridResult.Columns[idx].ValueList := TWideStringList.Create;
       DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
       DataGridResult.Columns[idx].ValueList.Delimiter := ',';
