@@ -175,6 +175,7 @@ type
     actWebFeaturetracker: TAction;
     actReadme: TAction;
     actSaveSQL: TAction;
+    actSaveSQLAs: TAction;
     actSaveSQLselection: TAction;
     actSaveSQLSnippet: TAction;
     actSaveSQLSelectionSnippet: TAction;
@@ -325,6 +326,7 @@ type
     menupaste: TMenuItem;
     menuload: TMenuItem;
     menusave: TMenuItem;
+    menuSaveSQL: TMenuItem;
     menuclear: TMenuItem;
     MenuFind: TMenuItem;
     MenuReplace: TMenuItem;
@@ -503,6 +505,7 @@ type
     procedure actRefreshExecute(Sender: TObject);
     procedure actRemoveFilterExecute(Sender: TObject);
     procedure actSaveSQLExecute(Sender: TObject);
+    procedure actSaveSQLAsExecute(Sender: TObject);
     procedure actSaveSQLSnippetExecute(Sender: TObject);
     procedure actSetDelimiterExecute(Sender: TObject);
     procedure actSQLhelpExecute(Sender: TObject);
@@ -2621,7 +2624,7 @@ begin
 end;
 
 
-procedure TMainForm.actSaveSQLExecute(Sender: TObject);
+procedure TMainForm.actSaveSQLAsExecute(Sender: TObject);
 begin
   // Save SQL
   if SaveDialogSQLFile.Execute then begin
@@ -2629,6 +2632,15 @@ begin
     // depending on the tag of calling control
     SaveQueryMemo(ActiveQueryTab, SaveDialogSQLFile.FileName, (Sender as TAction).Tag = 1);
   end;
+end;
+
+
+procedure TMainForm.actSaveSQLExecute(Sender: TObject);
+begin
+  if ActiveQueryTab.MemoFilename <> '' then
+    SaveQueryMemo(ActiveQueryTab, ActiveQueryTab.MemoFilename, False)
+  else
+    actSaveSQLAsExecute(Sender);
 end;
 
 
@@ -3858,39 +3870,40 @@ end;
 procedure TMainForm.ValidateQueryControls(Sender: TObject);
 var
   NotEmpty, HasSelection: Boolean;
-  Memo: TSynMemo;
-  tab: TQueryTab;
+  Tab: TQueryTab;
   cap: WideString;
+  InQueryTab: Boolean;
 begin
-  if QueryTabActive then
-    Memo := ActiveQueryMemo
+  InQueryTab := QueryTabActive;
+  if InQueryTab then
+    Tab := ActiveQueryTab
   else
-    Memo := nil;
-  NotEmpty := QueryTabActive and (Memo.GetTextLen > 0);
-  HasSelection := QueryTabActive and Memo.SelAvail;
-  actExecuteQuery.Enabled := QueryTabActive and NotEmpty;
-  actExecuteSelection.Enabled := QueryTabActive and HasSelection;
-  actExecuteLine.Enabled := QueryTabActive and (Memo.LineText <> '');
-  actSaveSQL.Enabled := QueryTabActive and NotEmpty;
-  actSaveSQLselection.Enabled := QueryTabActive and HasSelection;
-  actSaveSQLSnippet.Enabled := QueryTabActive and NotEmpty;
-  actSaveSQLSelectionSnippet.Enabled := QueryTabActive and HasSelection;
-  actQueryFind.Enabled := QueryTabActive and NotEmpty;
-  actQueryReplace.Enabled := QueryTabActive and NotEmpty;
+    Tab := nil;
+  NotEmpty := InQueryTab and (Tab.Memo.GetTextLen > 0);
+  HasSelection := InQueryTab and Tab.Memo.SelAvail;
+  actExecuteQuery.Enabled := InQueryTab and NotEmpty;
+  actExecuteSelection.Enabled := InQueryTab and HasSelection;
+  actExecuteLine.Enabled := InQueryTab and (Tab.Memo.LineText <> '');
+  actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
+  actSaveSQL.Enabled := actSaveSQLAs.Enabled and (Tab.MemoFilename <> '') and Tab.Memo.Modified;
+  actSaveSQLselection.Enabled := InQueryTab and HasSelection;
+  actSaveSQLSnippet.Enabled := InQueryTab and NotEmpty;
+  actSaveSQLSelectionSnippet.Enabled := InQueryTab and HasSelection;
+  actQueryFind.Enabled := InQueryTab and NotEmpty;
+  actQueryReplace.Enabled := InQueryTab and NotEmpty;
   // We need a pressed button which somehow does not work in conjunction with Enabled=False
   // actQueryStopOnErrors.Enabled := QueryTabActive;
-  actQueryWordWrap.Enabled := QueryTabActive;
-  actClearQueryEditor.Enabled := QueryTabActive and NotEmpty;
-  actSetDelimiter.Enabled := QueryTabActive;
+  actQueryWordWrap.Enabled := InQueryTab;
+  actClearQueryEditor.Enabled := InQueryTab and NotEmpty;
+  actSetDelimiter.Enabled := InQueryTab;
   actCloseQueryTab.Enabled := IsQueryTab(PageControlMain.ActivePageIndex, False);
-  if Assigned(Memo) then begin
-    tab := ActiveQueryTab;
-    cap := trim(tab.TabSheet.Caption);
+  if Assigned(Tab) then begin
+    cap := trim(Tab.TabSheet.Caption);
     if cap[Length(cap)] = '*' then
       cap := copy(cap, 1, Length(cap)-1);
-    if Memo.Modified then
+    if Tab.Memo.Modified then
       cap := cap + '*';
-    SetTabCaption(tab.TabSheet.PageIndex, cap);
+    SetTabCaption(Tab.TabSheet.PageIndex, cap);
   end;
 end;
 
