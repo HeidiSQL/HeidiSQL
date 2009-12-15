@@ -3103,6 +3103,7 @@ begin
     Key := TTableKey.Create;
     Keys.Add(Key);
     Key.Name := rx.Match[4];
+    Key.OldName := Key.Name;
     Key.IndexType := rx.Match[2];
     if Key.Name = '' then Key.Name := rx.Match[2]; // PRIMARY
     if Key.IndexType = '' then Key.IndexType := 'KEY'; // KEY

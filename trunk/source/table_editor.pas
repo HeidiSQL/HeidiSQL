@@ -568,11 +568,11 @@ begin
   for i:=0 to FKeys.Count-1 do begin
     Mainform.ProgressBarStatus.StepIt;
     TblKey := FKeys[i] as TTableKey;
-    if TblKey.Modified then begin
+    if TblKey.Modified and (not TblKey.Added) then begin
       if TblKey.IndexType = PKEY then
         IndexSQL := 'PRIMARY KEY'
       else
-        IndexSQL := 'INDEX ' + Mainform.Mask(TblKey.Name);
+        IndexSQL := 'INDEX ' + Mainform.Mask(TblKey.OldName);
       Specs.Add('DROP '+IndexSQL);
     end;
     if TblKey.Added or TblKey.Modified then
@@ -1252,6 +1252,7 @@ begin
   // Add new index
   TblKey := TTableKey.Create;
   TblKey.Name := 'Index '+IntToStr(FKeys.Count+1);
+  TblKey.OldName := TblKey.Name;
   TblKey.IndexType := KEY;
   TblKey.Added := True;
   FKeys.Add(TblKey);
@@ -1317,7 +1318,8 @@ begin
     0: begin
       idx := treeIndexes.FocusedNode.Index;
       TblKey := FKeys[idx] as TTableKey;
-      DeletedKeys.Add(TblKey.Name);
+      if not TblKey.Added then
+        DeletedKeys.Add(TblKey.OldName);
       FKeys.Delete(idx);
     end;
     1: begin
@@ -1339,13 +1341,17 @@ end;
 procedure TfrmTableEditor.btnClearIndexesClick(Sender: TObject);
 var
   i: Integer;
+  TblKey: TTableKey;
 begin
   // Clear all indexes
   // Column data gets freed below - end any editor which could cause AV's
   if treeIndexes.IsEditing then
     treeIndexes.CancelEditNode;
-  for i:=0 to FKeys.Count-1 do
-    DeletedKeys.Add(TTableKey(FKeys[i]).Name);
+  for i:=0 to FKeys.Count-1 do begin
+    TblKey := TTableKey(FKeys[i]);
+    if not TblKey.Added then
+      DeletedKeys.Add(TblKey.OldName);
+  end;
   FKeys.Clear;
   Modification(Sender);
   treeIndexes.Clear;
