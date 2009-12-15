@@ -276,7 +276,7 @@ object MainForm: TMainForm
       object btnSaveSQL: TToolButton
         Left = 61
         Top = 0
-        Action = actSaveSQL
+        Action = actSaveSQLAs
       end
       object btnSaveSQLSnippet: TToolButton
         Left = 84
@@ -2053,14 +2053,14 @@ object MainForm: TMainForm
       ImageIndex = 68
       OnExecute = actReadmeExecute
     end
-    object actSaveSQL: TAction
+    object actSaveSQLAs: TAction
       Category = 'SQL'
-      Caption = 'Save to file ...'
+      Caption = 'Save as ...'
       Enabled = False
       Hint = 'Save SQL to a textfile'
       ImageIndex = 10
-      ShortCut = 16467
-      OnExecute = actSaveSQLExecute
+      ShortCut = 123
+      OnExecute = actSaveSQLAsExecute
     end
     object actSaveSQLselection: TAction
       Tag = 1
@@ -2070,7 +2070,7 @@ object MainForm: TMainForm
       Hint = 'Save selected text to a file'
       ImageIndex = 10
       ShortCut = 24659
-      OnExecute = actSaveSQLExecute
+      OnExecute = actSaveSQLAsExecute
     end
     object actSaveSQLSnippet: TAction
       Category = 'SQL'
@@ -2247,6 +2247,14 @@ object MainForm: TMainForm
       Hint = 'Create a trigger'
       ImageIndex = 137
       OnExecute = actCreateDBObjectExecute
+    end
+    object actSaveSQL: TAction
+      Category = 'SQL'
+      Caption = 'Save'
+      Enabled = False
+      ImageIndex = 10
+      ShortCut = 16467
+      OnExecute = actSaveSQLExecute
     end
   end
   object SaveDialog2: TSaveDialog
@@ -6651,8 +6659,11 @@ object MainForm: TMainForm
     object menuload: TMenuItem
       Action = actLoadSQL
     end
-    object menusave: TMenuItem
+    object menuSaveSQL: TMenuItem
       Action = actSaveSQL
+    end
+    object menusave: TMenuItem
+      Action = actSaveSQLAs
     end
     object menuSaveSelectionToFile: TMenuItem
       Tag = 1
