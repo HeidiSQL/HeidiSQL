@@ -6181,12 +6181,16 @@ begin
         SelectedTableColumns.Clear;
         SelectedTableKeys.Clear;
         SelectedTableForeignKeys.Clear;
-        case SelectedTable.NodeType of
-          lntTable, lntCrashedTable: begin
-            SelectedTableCreateStatement := Connection.GetVar('SHOW CREATE TABLE '+Mainform.mask(SelectedTable.Text), 1);
-            ParseTableStructure(SelectedTableCreateStatement, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
+        try
+          case SelectedTable.NodeType of
+            lntTable, lntCrashedTable: begin
+              SelectedTableCreateStatement := Connection.GetVar('SHOW CREATE TABLE '+Mainform.mask(SelectedTable.Text), 1);
+              ParseTableStructure(SelectedTableCreateStatement, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
+            end;
+            lntView: ParseViewStructure(SelectedTable.Text, SelectedTableColumns);
           end;
-          lntView: ParseViewStructure(SelectedTable.Text, SelectedTableColumns);
+        except on E:Exception do
+          MessageDlg(E.Message, mtError, [mbOK], 0);
         end;
         if tabEditor.TabVisible then begin
           actEditObjectExecute(Sender);
