@@ -3187,6 +3187,7 @@ begin
   DataGridResult.Columns[idx].Name := Column.Name;
   col := DataGrid.Header.Columns.Add;
   col.Text := Column.Name;
+  col.Hint := Column.Comment;
   col.Options := col.Options + [coSmartResize];
   if not visible then col.Options := col.Options - [coVisible];
   // Sorting color and title image
