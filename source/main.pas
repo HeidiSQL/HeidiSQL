@@ -3859,6 +3859,8 @@ procedure TMainForm.ValidateQueryControls(Sender: TObject);
 var
   NotEmpty, HasSelection: Boolean;
   Memo: TSynMemo;
+  tab: TQueryTab;
+  cap: WideString;
 begin
   if QueryTabActive then
     Memo := ActiveQueryMemo
@@ -3881,6 +3883,15 @@ begin
   actClearQueryEditor.Enabled := QueryTabActive and NotEmpty;
   actSetDelimiter.Enabled := QueryTabActive;
   actCloseQueryTab.Enabled := IsQueryTab(PageControlMain.ActivePageIndex, False);
+  if Assigned(Memo) then begin
+    tab := ActiveQueryTab;
+    cap := trim(tab.TabSheet.Caption);
+    if cap[Length(cap)] = '*' then
+      cap := copy(cap, 1, Length(cap)-1);
+    if Memo.Modified then
+      cap := cap + '*';
+    SetTabCaption(tab.TabSheet.PageIndex, cap);
+  end;
 end;
 
 
