@@ -8223,7 +8223,6 @@ end;
 procedure TMainForm.actEditObjectExecute(Sender: TObject);
 var
   NodeData: PVTreeData;
-  RoutineType: TListNodeType;
   db: WideString;
 begin
   debug('actEditObjectExecute()');
