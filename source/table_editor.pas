@@ -2084,12 +2084,12 @@ end;
 
 
 procedure TfrmTableEditor.popupSQLmemoPopup(Sender: TObject);
-var
-  m: TPopupMenu;
 begin
   // Ensure SynMemo's have focus, otherwise Select-All and Copy actions may fail
-  m := Sender as TPopupMenu;
-  TWinControl(m.PopupComponent).SetFocus;
+  if PageControlMain.ActivePage = tabCREATEcode then
+    SynMemoCreateCode.SetFocus
+  else if PageControlMain.ActivePage = tabALTERcode then
+    SynMemoAlterCode.SetFocus;
 end;
 
 
