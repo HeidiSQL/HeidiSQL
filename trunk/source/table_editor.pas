@@ -324,6 +324,9 @@ begin
   ValidateColumnControls;
   ValidateIndexControls;
   ResetModificationFlags;
+  CreateCodeValid := False;
+  AlterCodeValid := False;
+  UpdateSQLCode;
   // Indicate change mechanisms can call their events now. See Modification().
   FLoaded := True;
   // Empty status panel
