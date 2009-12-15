@@ -84,6 +84,9 @@ type
     lblNoForeignKeys: TLabel;
     menuCopyColumnCell: TMenuItem;
     N2: TMenuItem;
+    popupSQLmemo: TPopupMenu;
+    menuSQLCopy: TMenuItem;
+    menuSQLSelectAll: TMenuItem;
     procedure editNameChange(Sender: TObject);
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
@@ -167,6 +170,7 @@ type
       var InitialStates: TVirtualNodeInitStates);
     procedure listColumnsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure listColumnsNodeMoved(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure popupSQLmemoPopup(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -2076,6 +2080,16 @@ procedure TfrmTableEditor.btnHelpClick(Sender: TObject);
 begin
   // Help button
   Mainform.CallSQLHelpWithKeyword('CREATE TABLE');
+end;
+
+
+procedure TfrmTableEditor.popupSQLmemoPopup(Sender: TObject);
+var
+  m: TPopupMenu;
+begin
+  // Ensure SynMemo's have focus, otherwise Select-All and Copy actions may fail
+  m := Sender as TPopupMenu;
+  TWinControl(m.PopupComponent).SetFocus;
 end;
 
 
