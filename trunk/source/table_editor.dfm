@@ -644,6 +644,7 @@ object frmTableEditor: TfrmTableEditor
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
+        PopupMenu = popupSQLmemo
         TabOrder = 0
         Gutter.AutoSize = True
         Gutter.DigitCount = 2
@@ -675,6 +676,7 @@ object frmTableEditor: TfrmTableEditor
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
+        PopupMenu = popupSQLmemo
         TabOrder = 0
         Gutter.AutoSize = True
         Gutter.DigitCount = 2
@@ -838,6 +840,18 @@ object frmTableEditor: TfrmTableEditor
     object menuAddToIndex: TMenuItem
       Caption = 'Add to index'
       ImageIndex = 13
+    end
+  end
+  object popupSQLmemo: TPopupMenu
+    Images = MainForm.PngImageListMain
+    OnPopup = popupSQLmemoPopup
+    Left = 376
+    Top = 360
+    object menuSQLSelectAll: TMenuItem
+      Action = MainForm.actSelectAll
+    end
+    object menuSQLCopy: TMenuItem
+      Action = MainForm.actCopy
     end
   end
 end
