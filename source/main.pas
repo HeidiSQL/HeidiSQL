@@ -3235,7 +3235,7 @@ begin
       DataGridResult.Columns[idx].ValueList.Delimiter := ',';
       DataGridResult.Columns[idx].ValueList.DelimitedText := Column.LengthSet;
     end;
-    dtcSet: begin
+    dtcSetNamed: begin
       DataGridResult.Columns[idx].ValueList := TWideStringList.Create;
       DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
       DataGridResult.Columns[idx].ValueList.Delimiter := ',';
