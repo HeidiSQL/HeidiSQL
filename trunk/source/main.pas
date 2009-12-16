@@ -676,7 +676,7 @@ type
     procedure DataGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
     procedure ListTablesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; var Allowed: Boolean);
-    procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure DBtreeChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actEditObjectExecute(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
     procedure panelTopDblClick(Sender: TObject);
@@ -6146,10 +6146,6 @@ begin
           ShowStatus( STATUS_MSG_READY );
           Screen.Cursor := crDefault;
         end;
-        // Auto resize "Size" column in dbtree when needed
-        // See also OnResize
-        if coVisible in VT.Header.Columns[1].Options then
-          VT.Header.AutoFitColumns(False, smaUseColumnOption, 1, 1);
       end;
     else Exit;
   end;
@@ -8172,16 +8168,6 @@ begin
 end;
 
 
-procedure TMainForm.DBtreeExpanded(Sender: TBaseVirtualTree;
-  Node: PVirtualNode);
-begin
-  // Auto resize "Size" column in dbtree when needed
-  // See also OnInitChildren
-  if coVisible in DBtree.Header.Columns[1].Options then
-    DBtree.Header.AutoFitColumns(False, smaUseColumnOption, 1, 1);
-end;
-
-
 function TMainForm.PlaceObjectEditor(Which: TListNodeType): TDBObjectEditor;
 begin
   // Place the relevant editor frame onto the editor tab, hide all others
@@ -9042,6 +9028,17 @@ begin
   end;
   ActiveQueryMemo.UndoList.AddGroupBreak;
   ActiveQueryMemo.SelText := sql;
+end;
+
+
+procedure TMainForm.DBtreeChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+  VT: TVirtualStringTree;
+begin
+  // Resize "Size" column in dbtree to hold widest possible byte numbers without cutting text
+  VT := Sender as TVirtualStringTree;
+  if coVisible in VT.Header.Columns[1].Options then
+    VT.Header.Columns[1].Width := TextWidth(VT.Canvas, FormatByteNumber(SIZE_MB-1))+VT.TextMargin*2;
 end;
 
 
