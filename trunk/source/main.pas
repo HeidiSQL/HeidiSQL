@@ -7301,7 +7301,6 @@ begin
     actDataCancelChanges.ShortCut := TextToShortcut('Esc');
     actDataPostChanges.ShortCut := TextToShortcut('Ctrl+Enter');
   end;
-  AutoCalcColWidths(DataGrid, PrevTableColWidths);
 end;
 
 procedure TMainForm.DataGridEditCancelled(Sender: TBaseVirtualTree; Column:
