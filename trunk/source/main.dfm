@@ -6635,11 +6635,17 @@ object MainForm: TMainForm
     object MenuItem1: TMenuItem
       Caption = '-'
     end
+    object menuQueryCut: TMenuItem
+      Action = actCut
+    end
     object menucopy: TMenuItem
       Action = actCopy
     end
     object menupaste: TMenuItem
       Action = actPaste
+    end
+    object menuQuerySelectall: TMenuItem
+      Action = actSelectAll
     end
     object menuclear: TMenuItem
       Action = actClearQueryEditor

@@ -448,6 +448,8 @@ type
     menuQueryHelpersGenerateDelete: TMenuItem;
     actCreateTrigger: TAction;
     menuCreateTrigger: TMenuItem;
+    menuQueryCut: TMenuItem;
+    menuQuerySelectall: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
