@@ -1571,11 +1571,9 @@ begin
     comboOnlyDBs.ItemIndex := 0
   else
     comboOnlyDBs.Text := '';
-  // All db nodes must get collapsed to avoid auto initialization of table caches (along with AVs)
-  menuTreeCollapseAllClick(Self);
-  // Forces Tree.ReInitChildren to refetch database names
-  FreeAndNil(AllDatabases);
-  RefreshTree(False);
+
+  // Remove db and table nodes, force host node to initialize again
+  DBtree.ResetNode(DBTree.GetFirst);
 
   DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
 
