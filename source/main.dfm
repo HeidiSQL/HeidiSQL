@@ -366,8 +366,8 @@ object MainForm: TMainForm
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
         TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toRightClickSelect]
+        OnChange = DBtreeChange
         OnDblClick = DBtreeDblClick
-        OnExpanded = DBtreeExpanded
         OnFocusChanged = DBtreeFocusChanged
         OnGetText = DBtreeGetText
         OnPaintText = DBtreePaintText

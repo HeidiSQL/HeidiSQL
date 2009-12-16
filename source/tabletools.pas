@@ -100,6 +100,7 @@ type
     procedure TreeObjectsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType);
     procedure chkBulkTableEditCheckComboClick(Sender: TObject);
+    procedure TreeObjectsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     { Private declarations }
     FResults: TObjectList;
@@ -326,6 +327,12 @@ begin
       or chkBulkTableEditCharset.Checked or chkBulkTableEditResetAutoinc.Checked;
     btnExecute.Enabled := SomeChecked and OptionChecked;
   end;
+end;
+
+
+procedure TfrmTableTools.TreeObjectsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+begin
+  Mainform.DBtreeChange(Sender, Node);
 end;
 
 
