@@ -92,6 +92,7 @@ object frmTableTools: TfrmTableTools
       TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
       OnChange = TreeObjectsChange
       OnChecked = TreeObjectsChecked
+      OnChecking = TreeObjectsChecking
       OnGetText = TreeObjectsGetText
       OnPaintText = TreeObjectsPaintText
       OnGetImageIndex = TreeObjectsGetImageIndex

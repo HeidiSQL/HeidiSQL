@@ -101,6 +101,8 @@ type
       Column: TColumnIndex; TextType: TVSTTextType);
     procedure chkBulkTableEditCheckComboClick(Sender: TObject);
     procedure TreeObjectsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure TreeObjectsChecking(Sender: TBaseVirtualTree; Node: PVirtualNode; var NewState: TCheckState;
+      var Allowed: Boolean);
   private
     { Private declarations }
     FResults: TObjectList;
@@ -339,6 +341,16 @@ end;
 procedure TfrmTableTools.TreeObjectsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
 begin
   ValidateControls(Sender);
+end;
+
+
+procedure TfrmTableTools.TreeObjectsChecking(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  var NewState: TCheckState; var Allowed: Boolean);
+begin
+  // Ensure to also toggle check state of not yet initialized nodes 
+  if Sender.GetNodeLevel(Node) = 1 then
+    Sender.ReinitChildren(Node, false);
+  Allowed := True;
 end;
 
 
