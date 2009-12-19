@@ -1964,10 +1964,11 @@ var
   VT: TVirtualStringTree;
   EnumEditor: TEnumEditorLink;
   SetEditor: TSetEditorLink;
-  Results: TMySQLQuery;
+  DBObjects: TDBObjectList;
   Key: TForeignKey;
   ColNode: PVirtualNode;
   Col: PTableColumn;
+  i: Integer;
 begin
   // Init grid editor in foreign key list
   VT := Sender as TVirtualStringTree;
@@ -1986,11 +1987,9 @@ begin
     2: begin
         EnumEditor := TEnumEditorLink.Create(VT);
         EnumEditor.AllowCustomText := True;
-        Results := Mainform.FetchActiveDbTableList;
-        while not Results.Eof do begin
-          EnumEditor.ValueList.Add(Results.Col(DBO_NAME));
-          Results.Next;
-        end;
+        DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);
+        for i:=0 to DBObjects.Count-1 do
+          EnumEditor.ValueList.Add(DBObjects[i].Name);
         EditLink := EnumEditor;
       end;
     3: begin

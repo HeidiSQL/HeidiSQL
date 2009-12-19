@@ -89,15 +89,15 @@ end;
 { Read tables from selected DB }
 procedure TfrmInsertFiles.ComboBoxDBsChange(Sender: TObject);
 var
-  Results: TMySQLQuery;
+  DBObjects: TDBObjectList;
+  i: Integer;
 begin
   // read tables from db
   ComboBoxTables.Items.Clear;
-  Results := Mainform.FetchDbTableList(ComboBoxDBs.Text);
-  while not Results.Eof do begin
-    if GetDBObjectType(Results) in [lntTable, lntView] then
-      ComboBoxTables.Items.Add(Results.Col(DBO_NAME));
-    Results.Next;
+  DBObjects := Mainform.Connection.GetDBObjects(ComboBoxDBs.Text);
+  for i:=0 to DBObjects.Count-1 do begin
+    if DBObjects[i].NodeType in [lntTable, lntView] then
+      ComboBoxTables.Items.Add(DBObjects[i].Name);
   end;
   if ComboBoxTables.Items.Count > 0 then
     ComboBoxTables.ItemIndex := 0;

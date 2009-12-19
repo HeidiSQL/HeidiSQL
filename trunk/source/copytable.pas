@@ -169,6 +169,7 @@ var
   isFulltext   : Boolean;
   struc_data   : Byte;
   Fixes        : TWideStringlist;
+  DBObjects    : TDBObjectList;
 begin
   // copy table!
 
@@ -249,17 +250,16 @@ begin
   // < keys
 
   // Add collation and engine clauses
-  Results := Mainform.FetchActiveDbTableList;
-  while not Results.Eof do begin
-    if Results.Col(DBO_NAME) = oldTableName then begin
-      if Results.ColExists(DBO_COLLATION) and (Results.Col(DBO_COLLATION) <> '') then
-        strquery := strquery + ' COLLATE ' + Results.Col(DBO_COLLATION);
-      if Results.ColExists(DBO_ENGINE) and (Results.Col(DBO_ENGINE) <> '') then
-        strquery := strquery + ' ENGINE=' + Results.Col(DBO_ENGINE);
-      strquery := strquery + ' COMMENT=' + esc(Results.Col(DBO_COMMENT));
+  DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);
+  for i:=0 to DBObjects.Count-1 do begin
+    if DBObjects[i].Name = oldTableName then begin
+      if DBObjects[i].Collation <> '' then
+        strquery := strquery + ' COLLATE ' + DBObjects[i].Collation;
+      if DBObjects[i].Engine <> '' then
+        strquery := strquery + ' ENGINE=' + DBObjects[i].Engine;
+      strquery := strquery + ' COMMENT=' + esc(DBObjects[i].Comment);
       break;
     end;
-    Results.Next;
   end;
 
   strquery := strquery + ' SELECT';

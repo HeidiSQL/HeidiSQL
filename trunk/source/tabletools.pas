@@ -116,10 +116,10 @@ type
     procedure AddResults(SQL: WideString);
     procedure AddNotes(Col1, Col2, Col3, Col4: WideString);
     procedure UpdateResultGrid;
-    procedure DoMaintenance(db, obj: WideString; NodeType: TListNodeType);
-    procedure DoFind(db, obj: WideString; NodeType: TListNodeType; RowsInTable: Int64);
-    procedure DoExport(db, obj: WideString; NodeType: TListNodeType; RowsInTable, AvgRowLen: Int64);
-    procedure DoBulkTableEdit(db, obj: WideString; NodeType: TListNodeType);
+    procedure DoMaintenance(DBObj: TDBObject);
+    procedure DoFind(DBObj: TDBObject);
+    procedure DoExport(DBObj: TDBObject);
+    procedure DoBulkTableEdit(DBObj: TDBObject);
   public
     { Public declarations }
     SelectedTables: TWideStringList;
@@ -378,7 +378,7 @@ end;
 procedure TfrmTableTools.TreeObjectsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
   var InitialStates: TVirtualNodeInitStates);
 var
-  Results: TMySQLQuery;
+  DBObjects: TDBObjectList;
 begin
   // Attach a checkbox to all nodes
   Mainform.DBtreeInitNode(Sender, ParentNode, Node, InitialStates);
@@ -386,10 +386,9 @@ begin
   Node.CheckState := csUncheckedNormal;
   case Sender.GetNodeLevel(Node) of
     2: begin
-      Results := Mainform.FetchDbTableList(Mainform.Databases[ParentNode.Index]);
-      Results.RecNo := Node.Index;
+      DBObjects := Mainform.Connection.GetDBObjects(Mainform.Databases[ParentNode.Index]);
       // No checkbox for stored routines
-      if not (GetDBObjectType(Results) in [lntTable, lntCrashedTable, lntView]) then
+      if not (DBObjects[Node.Index].NodeType in [lntTable, lntCrashedTable, lntView]) then
         Node.CheckType := ctNone
     end;
   end;
@@ -413,12 +412,9 @@ end;
 procedure TfrmTableTools.Execute(Sender: TObject);
 var
   DBNode, TableNode: PVirtualNode;
-  Results: TMySQLQuery;
-  NodeType: TListNodeType;
-  db, table: WideString;
-  TableSize, RowsInTable, AvgRowLen: Int64;
+  DBObjects, Views: TDBObjectList;
+  DBObj: TDBObject;
   i: Integer;
-  ViewNodes: TNodeArray;
 begin
   Screen.Cursor := crHourGlass;
   if tabsTools.ActivePage = tabMaintenance then
@@ -431,6 +427,8 @@ begin
     FToolMode := tmBulkTableEdit;
   ResultGrid.Clear;
   FResults.Clear;
+  Views := TDBObjectList.Create;
+  Views.OwnsObjects := False; // So we can .Free that object afterwards without loosing the contained objects
   TreeObjects.SetFocus;
   DBNode := TreeObjects.GetFirstChild(TreeObjects.GetFirst);
   while Assigned(DBNode) do begin
@@ -438,36 +436,29 @@ begin
       TableNode := TreeObjects.GetFirstChild(DBNode);
       while Assigned(TableNode) do begin
         if (csCheckedNormal in [TableNode.CheckState, DBNode.CheckState]) and (TableNode.CheckType <> ctNone) then begin
-          Results := Mainform.FetchDbTableList(TreeObjects.Text[DBNode, 0]);
-          Results.RecNo := TableNode.Index;
-          NodeType := GetDBObjectType(Results);
-          db := TreeObjects.Text[DBNode, 0];
-          table := TreeObjects.Text[TableNode, 0];
+          DBObjects := Mainform.Connection.GetDBObjects(TreeObjects.Text[DBNode, 0]);
+          DBObj := DBObjects[TableNode.Index];
           // Find table in cashed dataset and check its size - perhaps it has to be skipped
-          TableSize := GetTableSize(Results);
-          RowsInTable := MakeInt(Results.Col(DBO_ROWS));
-          AvgRowLen := MakeInt(Results.Col(DBO_AVGROWLEN));
-          if (udSkipLargeTables.Position = 0) or ((TableSize div SIZE_MB) < udSkipLargeTables.Position) then try
+          if (udSkipLargeTables.Position = 0) or ((DBObj.Size div SIZE_MB) < udSkipLargeTables.Position) then try
             case FToolMode of
-              tmMaintenance:    DoMaintenance(db, table, NodeType);
-              tmFind:           DoFind(db, table, NodeType, RowsInTable);
+              tmMaintenance:    DoMaintenance(DBObj);
+              tmFind:           DoFind(DBObj);
               tmSQLExport: begin
                 // Views have to be exported at the very end so at least all needed tables are ready when a view gets imported
-                if NodeType = lntView then begin
-                  SetLength(ViewNodes, Length(ViewNodes)+1);
-                  ViewNodes[Length(ViewNodes)-1] := TableNode;
-                end else
-                  DoExport(db, table, NodeType, RowsInTable, AvgRowLen);
+                if DBObj.NodeType = lntView then
+                  Views.Add(DBObj)
+                else
+                  DoExport(DBObj);
               end;
-              tmBulkTableEdit:  DoBulkTableEdit(db, table, NodeType);
+              tmBulkTableEdit:  DoBulkTableEdit(DBObj);
             end;
           except
             // The above SQL can easily throw an exception, e.g. if a table is corrupted.
             // In such cases we create a dummy row, including the error message
             on E:Exception do
-              AddNotes(db, table, 'error', E.Message);
+              AddNotes(DBObj.Database, DBObj.Name, 'error', E.Message);
           end else begin
-            AddNotes(db, table, STRSKIPPED+FormatByteNumber(TableSize), '');
+            AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+FormatByteNumber(DBObj.Size), '');
           end;
         end;
         TableNode := TreeObjects.GetNextSibling(TableNode);
@@ -477,13 +468,11 @@ begin
   end;
 
   // Special block for late created views in export mode
-  if FToolMode = tmSQLExport then for i:=Low(ViewNodes) to High(ViewNodes) do begin
-    db := TreeObjects.Text[ViewNodes[i].Parent, 0];
-    table := TreeObjects.Text[ViewNodes[i], 0];
+  if FToolMode = tmSQLExport then for i:=0 to Views.Count-1 do begin
     try
-      DoExport(db, table, lntView, 0, 0);
+      DoExport(Views[i]);
     except on E:Exception do
-      AddNotes(db, table, 'error', E.Message);
+      AddNotes(Views[i].Database, Views[i].Name, 'error', E.Message);
     end;
   end;
 
@@ -497,11 +486,11 @@ begin
 end;
 
 
-procedure TfrmTableTools.DoMaintenance(db, obj: WideString; NodeType: TListNodeType);
+procedure TfrmTableTools.DoMaintenance(DBObj: TDBObject);
 var
   SQL: WideString;
 begin
-  SQL := UpperCase(comboOperation.Text) + ' TABLE ' + Mainform.mask(db) + '.' + Mainform.mask(obj);
+  SQL := UpperCase(comboOperation.Text) + ' TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name);
   if chkQuick.Enabled and chkQuick.Checked then SQL := SQL + ' QUICK';
   if chkFast.Enabled and chkFast.Checked then SQL := SQL + ' FAST';
   if chkMedium.Enabled and chkMedium.Checked then SQL := SQL + ' MEDIUM';
@@ -512,14 +501,14 @@ begin
 end;
 
 
-procedure TfrmTableTools.DoFind(db, obj: WideString; NodeType: TListNodeType; RowsInTable: Int64);
+procedure TfrmTableTools.DoFind(DBObj: TDBObject);
 var
   Results: TMySQLQuery;
   SQL: WideString;
   HasSelectedDatatype: Boolean;
   i: Integer;
 begin
-  Results := Mainform.Connection.GetResults('SHOW COLUMNS FROM '+Mainform.mask(db)+'.'+Mainform.mask(obj));
+  Results := Mainform.Connection.GetResults('SHOW COLUMNS FROM '+Mainform.mask(DBObj.Database)+'.'+Mainform.mask(DBObj.Name));
   SQL := '';
   while not Results.Eof do begin
     HasSelectedDatatype := comboDatatypes.ItemIndex = 0;
@@ -535,12 +524,12 @@ begin
   end;
   if SQL <> '' then begin
     Delete(SQL, Length(SQL)-3, 3);
-    SQL := 'SELECT '''+db+''' AS `Database`, '''+obj+''' AS `Table`, COUNT(*) AS `Found rows`, '
-      + 'CONCAT(ROUND(100 / '+IntToStr(Max(RowsInTable,1))+' * COUNT(*), 1), ''%'') AS `Relevance` FROM '+Mainform.mask(db)+'.'+Mainform.mask(obj)+' WHERE '
+    SQL := 'SELECT '''+DBObj.Database+''' AS `Database`, '''+DBObj.Name+''' AS `Table`, COUNT(*) AS `Found rows`, '
+      + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS `Relevance` FROM '+Mainform.mask(DBObj.Database)+'.'+Mainform.mask(DBObj.Name)+' WHERE '
       + SQL;
     AddResults(SQL);
   end else
-    AddNotes(db, obj, STRSKIPPED+'table doesn''t have columns of selected type ('+comboDatatypes.Text+').', '');
+    AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+'table doesn''t have columns of selected type ('+comboDatatypes.Text+').', '');
 end;
 
 
@@ -846,10 +835,10 @@ begin
 end;
 
 
-procedure TfrmTableTools.DoExport(db, obj: WideString; NodeType: TListNodeType; RowsInTable, AvgRowLen: Int64);
+procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
   ToFile, ToDir, ToDb, ToServer, IsLastRowInChunk, NeedsDBStructure: Boolean;
-  Struc, Header, FinalDbName, BaseInsert, Row, TargetDbAndObject, objtype: WideString;
+  Struc, Header, FinalDbName, BaseInsert, Row, TargetDbAndObject: WideString;
   LogRow: TWideStringlist;
   i: Integer;
   RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset, ResultCount: Int64;
@@ -863,7 +852,7 @@ var
     Result := Mainform.mask(s);
   end;
 
-  // Pass output to file or query, and append semicolon if needed 
+  // Pass output to file or query, and append semicolon if needed
   procedure Output(SQL: WideString; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
   var
     SA: AnsiString;
@@ -892,36 +881,31 @@ var
   end;
 begin
   // Handle one table, view or routine in SQL export mode
-  AddResults('SELECT '+esc(db)+' AS '+Mainform.mask('Database')+', ' +
-    esc(obj)+' AS '+Mainform.mask('Table')+', ' +
-    IntToStr(RowsInTable)+' AS '+Mainform.mask('Rows')+', '+
+  AddResults('SELECT '+esc(DBObj.Database)+' AS '+Mainform.mask('Database')+', ' +
+    esc(DBObj.Name)+' AS '+Mainform.mask('Table')+', ' +
+    IntToStr(DBObj.Rows)+' AS '+Mainform.mask('Rows')+', '+
     '0 AS '+Mainform.mask('Duration')
     );
   ToFile := comboExportOutputType.Text = OUTPUT_FILE;
   ToDir := comboExportOutputType.Text = OUTPUT_DIR;
   ToDb := comboExportOutputType.Text = OUTPUT_DB;
   ToServer := Copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER;
-  case NodeType of
-    lntTable, lntCrashedTable: objtype := 'table';
-    lntView: objtype := 'view';
-    else 'unknown object type';
-  end;
   StartTime := GetTickCount;
   try
     if ToDir then begin
       FreeAndNil(ExportStream);
       if not DirectoryExists(comboExportOutputTarget.Text) then
         ForceDirectories(comboExportOutputTarget.Text);
-      ExportStream := TFileStream.Create(comboExportOutputTarget.Text+'\'+GoodFileName(obj)+'.sql', fmCreate or fmOpenWrite);
+      ExportStream := TFileStream.Create(comboExportOutputTarget.Text+'\'+GoodFileName(DBObj.Name)+'.sql', fmCreate or fmOpenWrite);
     end;
     if ToFile and (not Assigned(ExportStream)) then
       ExportStream := TFileStream.Create(comboExportOutputTarget.Text, fmCreate or fmOpenWrite);
     if ToDb or ToServer then
       ExportStream := TMemoryStream.Create;
-    if (db<>ExportLastDatabase) or ToDir then begin
+    if (DBObj.Database<>ExportLastDatabase) or ToDir then begin
       Header := '# --------------------------------------------------------' + CRLF +
         WideFormat('# %-30s%s', ['Host:', Mainform.Connection.HostName]) + CRLF +
-        WideFormat('# %-30s%s', ['Database:', db]) + CRLF +
+        WideFormat('# %-30s%s', ['Database:', DBObj.Database]) + CRLF +
         WideFormat('# %-30s%s', ['Server version:', Mainform.Connection.ServerVersionUntouched]) + CRLF +
         WideFormat('# %-30s%s', ['Server OS:', Mainform.Connection.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]) + CRLF +
         WideFormat('# %-30s%s', [APPNAME + ' version:', FullAppVersion]) + CRLF +
@@ -930,7 +914,7 @@ begin
         '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
         '/*!40101 SET NAMES '+Mainform.Connection.CharacterSet+' */;' + CRLF +
         '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF;
-      Output(Header, False, db<>ExportLastDatabase, True, False, False);
+      Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
     end;
   except
     on E:Exception do begin
@@ -940,21 +924,21 @@ begin
   end;
 
   // Database structure. Do that only in single-file and server mode. drop/create/use in directory or database mode makes no sense
-  FinalDbName := db;
+  FinalDbName := DBObj.Database;
   if ToDb or (ToServer and (comboExportOutputTarget.ItemIndex > 0)) then
     FinalDbName := comboExportOutputTarget.Text;
   NeedsDBStructure := FinalDbName <> ExportLastDatabase;
   if chkExportDatabasesDrop.Checked or chkExportDatabasesCreate.Checked then begin
-    Output(CRLF+'# Dumping database structure for '+db+CRLF, False, NeedsDBStructure, False, False, False);
+    Output(CRLF+'# Dumping database structure for '+DBObj.Database+CRLF, False, NeedsDBStructure, False, False, False);
     if chkExportDatabasesDrop.Checked and chkExportDatabasesDrop.Enabled then
       Output('DROP DATABASE IF EXISTS '+m(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     if chkExportDatabasesCreate.Checked and chkExportDatabasesCreate.Enabled then begin
       if Mainform.Connection.ServerVersionInt >= 40100 then begin
-        Struc := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+m(db), 1);
+        Struc := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+m(DBObj.Database), 1);
         // Gracefully ignore it when target database exists, important in server mode
         Insert('IF NOT EXISTS ', Struc, Pos('DATABASE', Struc) + 9);
         // Create the right dbname
-        Struc := WideStringReplace(Struc, db, FinalDbName, []);
+        Struc := WideStringReplace(Struc, DBObj.Database, FinalDbName, []);
       end else
         Struc := 'CREATE DATABASE IF NOT EXISTS '+m(FinalDbName);
       Output(Struc, True, NeedsDBStructure, False, False, NeedsDBStructure);
@@ -968,17 +952,17 @@ begin
 
   // Table structure
   if chkExportTablesDrop.Checked or chkExportTablesCreate.Checked then begin
-    Output(CRLF+CRLF+'# Dumping structure for '+objtype+' '+db+'.'+obj+CRLF, False, True, True, False, False);
+    Output(CRLF+CRLF+'# Dumping structure for '+LowerCase(DBObj.ObjType)+' '+DBObj.Database+'.'+DBObj.Name+CRLF, False, True, True, False, False);
     if chkExportTablesDrop.Checked then begin
       Struc := 'DROP TABLE IF EXISTS ';
       if ToDb then
         Struc := Struc + m(FinalDbName)+'.';
-      Struc := Struc + m(obj);
+      Struc := Struc + m(DBObj.Name);
       Output(Struc, True, True, True, True, True);
     end;
     if chkExportTablesCreate.Checked then begin
       try
-        Struc := Mainform.Connection.GetVar('SHOW CREATE TABLE '+m(db)+'.'+m(obj), 1);
+        Struc := Mainform.Connection.GetVar('SHOW CREATE TABLE '+m(DBObj.Database)+'.'+m(DBObj.Name), 1);
         Struc := fixNewlines(Struc);
         // Remove AUTO_INCREMENT clause
         rx := TRegExpr.Create;
@@ -986,12 +970,12 @@ begin
         rx.Expression := '\sAUTO_INCREMENT\s*\=\s*\d+\s';
         Struc := rx.Replace(Struc, ' ');
         rx.Free;
-        if NodeType = lntTable then
+        if DBObj.NodeType = lntTable then
           Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
         if ToDb then begin
-          if NodeType = lntTable then
+          if DBObj.NodeType = lntTable then
             Insert(m(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
-          else if NodeType = lntView then
+          else if DBObj.NodeType = lntView then
             Insert(m(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
         end;
         Output(Struc, True, True, True, True, True);
@@ -1005,24 +989,24 @@ begin
     end;
   end;
 
-  case NodeType of
+  case DBObj.NodeType of
     lntTable, lntCrashedTable: begin
       // Table data
       if comboExportData.Text = DATA_NO then begin
         Output(CRLF+'# Data exporting was unselected.'+CRLF, False, True, True, False, False);
-      end else if RowsInTable = 0 then begin
-        Output(CRLF+'# No rows in table '+db+'.'+obj+CRLF, False, True, True, False, False);
+      end else if DBObj.Rows = 0 then begin
+        Output(CRLF+'# No rows in table '+DBObj.Database+'.'+DBObj.Name+CRLF, False, True, True, False, False);
       end else begin
-        Output(CRLF+'# Dumping data for table '+db+'.'+obj+': '+FormatNumber(RowsInTable)+' rows'+CRLF, False, True, True, False, False);
-        TargetDbAndObject := m(obj);
+        Output(CRLF+'# Dumping data for table '+DBObj.Database+'.'+DBObj.Name+': '+FormatNumber(DBObj.Rows)+' rows'+CRLF, False, True, True, False, False);
+        TargetDbAndObject := m(DBObj.Name);
         if ToDb then
           TargetDbAndObject := m(FinalDbName) + '.' + TargetDbAndObject;
         Offset := 0;
         RowCount := 0;
         // Calculate limit so we select ~100MB per loop
-        Limit := Round(100 * SIZE_MB / Max(AvgRowLen,1));
+        Limit := Round(100 * SIZE_MB / Max(DBObj.AvgRowLen,1));
         // Calculate max rows per INSERT, so we always get ~800KB
-        MaxRowsInChunk := Round(SIZE_MB * 0.6 / Max(AvgRowLen,1));
+        MaxRowsInChunk := Round(SIZE_MB * 0.6 / Max(DBObj.AvgRowLen,1));
         if comboExportData.Text = DATA_REPLACE then
           Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
         Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
@@ -1033,7 +1017,7 @@ begin
           BaseInsert := 'REPLACE INTO ';
         BaseInsert := BaseInsert + TargetDbAndObject + ' (';
         while true do begin
-          Data := Mainform.Connection.GetResults('SELECT * FROM '+m(db)+'.'+m(obj)+' LIMIT '+IntToStr(Offset)+', '+IntToStr(Limit));
+          Data := Mainform.Connection.GetResults('SELECT * FROM '+m(DBObj.Database)+'.'+m(DBObj.Name)+' LIMIT '+IntToStr(Offset)+', '+IntToStr(Limit));
           Inc(Offset, Limit);
           if Data.RecordCount = 0 then
             break;
@@ -1071,7 +1055,7 @@ begin
             end;
             Output('', True, True, True, True, True);
             LogRow := TWideStringList(FResults.Last);
-            LogRow[2] := FormatNumber(RowCount) + ' / ' + FormatNumber(100/Max(RowsInTable,1)*RowCount, 0)+'%';
+            LogRow[2] := FormatNumber(RowCount) + ' / ' + FormatNumber(100/Max(DBObj.Rows,1)*RowCount, 0)+'%';
             LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000);
             UpdateResultGrid;
             if Data.Eof then
@@ -1112,13 +1096,13 @@ begin
 end;
 
 
-procedure TfrmTableTools.DoBulkTableEdit(db, obj: WideString; NodeType: TListNodeType);
+procedure TfrmTableTools.DoBulkTableEdit(DBObj: TDBObject);
 var
   Specs, LogRow: TWideStringList;
 begin
   Specs := TWideStringlist.Create;
-  if chkBulkTableEditDatabase.Checked and (comboBulkTableEditDatabase.Text <> db) then
-    Specs.Add('RENAME ' + Mainform.mask(comboBulkTableEditDatabase.Text)+'.'+Mainform.mask(obj));
+  if chkBulkTableEditDatabase.Checked and (comboBulkTableEditDatabase.Text <> DBObj.Database) then
+    Specs.Add('RENAME ' + Mainform.mask(comboBulkTableEditDatabase.Text)+'.'+Mainform.mask(DBObj.Name));
   if chkBulkTableEditEngine.Checked then begin
     if Mainform.Connection.ServerVersionInt < 40018 then
       Specs.Add('TYPE '+comboBulkTableEditEngine.Text)
@@ -1133,12 +1117,12 @@ begin
   end;
   if chkBulkTableEditResetAutoinc.Checked then
     Specs.Add('AUTO_INCREMENT=0');
-  AddResults('SELECT '+esc(db)+' AS '+Mainform.mask('Database')+', ' +
-    esc(obj)+' AS '+Mainform.mask('Table')+', ' +
+  AddResults('SELECT '+esc(DBObj.Database)+' AS '+Mainform.mask('Database')+', ' +
+    esc(DBObj.Name)+' AS '+Mainform.mask('Table')+', ' +
     esc('Updating...')+' AS '+Mainform.mask('Operation')+', '+
     ''''' AS '+Mainform.mask('Result')
     );
-  Mainform.Connection.Query('ALTER TABLE ' + Mainform.mask(db) + '.' + Mainform.mask(obj) + ' ' + ImplodeStr(', ', Specs));
+  Mainform.Connection.Query('ALTER TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name) + ' ' + ImplodeStr(', ', Specs));
   LogRow := TWideStringList(FResults.Last);
   LogRow[2] := 'Done';
   LogRow[3] := 'Success';

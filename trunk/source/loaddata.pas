@@ -137,7 +137,7 @@ end;
 procedure Tloaddataform.comboDatabaseChange(Sender: TObject);
 var
   count, i, selCharsetIndex, v: Integer;
-  ds: TMySQLQuery;
+  DBObjects: TDBObjectList;
   seldb, seltable, dbcreate: WideString;
   rx: TRegExpr;
   DefCharset: String;
@@ -147,14 +147,13 @@ begin
   comboTable.Items.Clear;
   seldb := Mainform.ActiveDatabase;
   seltable := Mainform.SelectedTable.Text;
-  ds := Mainform.FetchDbTableList(comboDatabase.Text);
-  while not ds.Eof do begin
-    if GetDBObjectType(ds) in [lntTable, lntView] then
-      comboTable.Items.Add(ds.Col(DBO_NAME));
+  DBObjects := Mainform.Connection.GetDBObjects(comboDatabase.Text);
+  for i:=0 to DBObjects.Count-1 do begin
+    if DBObjects[i].NodeType in [lntTable, lntView] then
+      comboTable.Items.Add(DBObjects[i].Name);
     count := comboTable.Items.Count-1;
     if (comboDatabase.Text = seldb) and (comboTable.Items[count] = seltable) then
       comboTable.ItemIndex := count;
-    ds.Next;
   end;
   if comboTable.ItemIndex = -1 then
     comboTable.ItemIndex := 0;

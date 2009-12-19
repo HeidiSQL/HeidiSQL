@@ -163,14 +163,13 @@ procedure TfrmSelectDBObject.TreeDBOGetImageIndex(Sender: TBaseVirtualTree;
     Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
     Boolean; var ImageIndex: Integer);
 var
-  Results: TMySQLQuery;
+  DBObjects: TDBObjectList;
 begin
   case Sender.GetNodeLevel(Node) of
     0: ImageIndex := ICONINDEX_DB;
     1: begin
-        Results := Mainform.FetchDbTableList(Mainform.Databases[Node.Parent.Index]);
-        Results.RecNo := Node.Index;
-        case GetDBObjectType(Results) of
+        DBObjects := Mainform.Connection.GetDBObjects(Mainform.Databases[Node.Parent.Index]);
+        case DBObjects[Node.Index].NodeType of
           lntCrashedTable: ImageIndex := ICONINDEX_CRASHED_TABLE;
           lntTable: ImageIndex := ICONINDEX_TABLE;
           lntView: ImageIndex := ICONINDEX_VIEW;
@@ -191,22 +190,21 @@ end;
 procedure TfrmSelectDBObject.TreeDBOInitChildren(Sender: TBaseVirtualTree;
     Node: PVirtualNode; var ChildCount: Cardinal);
 var
-  Results: TMySQLQuery;
+  DBObjects: TDBObjectList;
   cols: TWideStringList;
 begin
   // Fetch sub nodes
   case Sender.GetNodeLevel(Node) of
     0: begin // DB expanding
-        Results := Mainform.FetchDbTableList(Mainform.Databases[Node.Index]);
-        ChildCount := Results.RecordCount;
-        SetLength(FColumns[Node.Index], Results.RecordCount);
+        DBObjects := Mainform.Connection.GetDBObjects(Mainform.Databases[Node.Index]);
+        ChildCount := DBObjects.Count;
+        SetLength(FColumns[Node.Index], DBObjects.Count);
       end;
     1: begin // Table expanding
-        Results := Mainform.FetchDbTableList(Mainform.Databases[Node.Parent.Index]);
-        Results.RecNo := Node.Index;
+        DBObjects := Mainform.Connection.GetDBObjects(Mainform.Databases[Node.Parent.Index]);
         cols := Mainform.Connection.GetCol('SHOW COLUMNS FROM '
           + Mainform.mask(Mainform.Databases[Node.Parent.Index])+'.'
-          + Mainform.Mask(Results.Col(DBO_NAME)));
+          + Mainform.Mask(DBObjects[Node.Index].Name));
         FColumns[Node.Parent.Index][Node.Index] := cols;
         ChildCount := cols.Count;
       end;
@@ -219,14 +217,13 @@ procedure TfrmSelectDBObject.TreeDBOGetText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText:
     WideString);
 var
-  Results: TMySQLQuery;
+  DBObjects: TDBObjectList;
 begin
   case Sender.GetNodeLevel(Node) of
     0: CellText := Mainform.Databases[Node.Index];
     1: begin
-        Results := Mainform.FetchDbTableList(Mainform.Databases[Node.Parent.Index]);
-        Results.RecNo := Node.Index;
-        CellText := Results.Col(DBO_NAME);
+        DBObjects := Mainform.Connection.GetDBObjects(Mainform.Databases[Node.Parent.Index]);
+        CellText := DBObjects[Node.Index].Name
       end;
     2: CellText := FColumns[Node.Parent.Parent.Index][Node.Parent.Index][Node.Index];
   end;

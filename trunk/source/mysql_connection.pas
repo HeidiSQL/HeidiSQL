@@ -1,13 +1,32 @@
 unit mysql_connection;
 
-{$M+} // Needed to add published properties
-
 interface
 
 uses
-  Classes, SysUtils, windows, mysql_api, mysql_structures, WideStrings, WideStrUtils, cUnicodeCodecs, SynRegExpr;
+  Classes, SysUtils, windows, mysql_api, mysql_structures, WideStrings, WideStrUtils, cUnicodeCodecs, SynRegExpr,
+  Contnrs;
 
 type
+  { TDBObjectList and friends }
+
+  TListNodeType = (lntNone, lntDb, lntTable, lntCrashedTable, lntView, lntFunction, lntProcedure, lntTrigger, lntColumn);
+  TListNodeTypes = Set of TListNodeType;
+  TDBObject = class
+    Name, Database, Engine, Comment, RowFormat, CreateOptions, Collation, ObjType: WideString;
+    Created, Updated, LastChecked: TDateTime;
+    Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
+    NodeType: TListNodeType;
+  end;
+  TDBObjectList = class(TObjectList)
+  protected
+    function getItem(AIndex: Integer): TDBObject; virtual;
+    procedure setItem(AIndex: Integer; AObject: TDBObject); virtual;
+  public
+    function Add(AObject: TDBObject): Integer; virtual;
+    procedure Insert(AIndex: Integer; AObject: TDBObject); virtual;
+    function First: TDBObject; virtual;
+    property Items[Index: Integer]: TDBObject read getItem write setItem; default;
+  end;
 
   { TMySQLConnection }
 
@@ -60,6 +79,8 @@ type
 const
   DEFAULT_MYSQLOPTIONS = [opCompress, opLocalFiles, opInteractive, opProtocol41, opMultiStatements];
 
+{$M+} // Needed to add published properties
+
 type
   TMySQLQuery = class;
   TMySQLConnection = class(TComponent)
@@ -89,6 +110,7 @@ type
       FCollationTable: TMySQLQuery;
       FCharsetTable: TMySQLQuery;
       FInformationSchemaObjects: TWideStringlist;
+      FDBObjectLists: TWideStringList;
       procedure SetActive(Value: Boolean);
       procedure SetDatabase(Value: WideString);
       function GetThreadId: Cardinal;
@@ -121,6 +143,9 @@ type
       function GetVar(SQL: WideString; Column: Integer=0): WideString; overload;
       function GetVar(SQL: WideString; Column: WideString): WideString; overload;
       function Ping: Boolean;
+      function GetDBObjects(db: WideString; Refresh: Boolean=False): TDBObjectList;
+      function DbObjectsCached(db: WideString): Boolean;
+      procedure ClearDbObjects(db: WideString='');
       property ThreadId: Cardinal read GetThreadId;
       property ConnectionUptime: Integer read GetConnectionUptime;
       property ServerUptime: Integer read GetServerUptime;
@@ -185,7 +210,8 @@ type
       function DataType(Column: Integer): TDataType;
       function ColExists(Column: WideString): Boolean;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean;
-      function IsNull(Column: Integer): Boolean;
+      function IsNull(Column: Integer): Boolean; overload;
+      function IsNull(Column: WideString): Boolean; overload;
       function HasResult: Boolean;
       property RecNo: Int64 read FRecNo write SetRecNo;
       property Eof: Boolean read FEof;
@@ -776,7 +802,236 @@ begin
   FreeAndNil(FCharsetTable);
   FreeAndNil(FTableEngines);
   FreeAndNil(FInformationSchemaObjects);
+  ClearDbObjects;
   FTableEngineDefault := '';
+end;
+
+
+procedure TMySQLConnection.ClearDbObjects(db: WideString='');
+var
+  i: Integer;
+begin
+  // Free all cached database object lists, or, if db is passed, only that one
+  if not Assigned(FDBObjectLists) then
+    Exit;
+  if db <> '' then begin
+    i := FDBObjectLists.IndexOf(db);
+    if i = -1 then
+      Exit;
+    TDBObjectList(FDBObjectLists.Objects[i]).Free;
+    FDBObjectLists.Delete(i);
+  end else begin
+    for i:=0 to FDBObjectLists.Count-1 do
+      TDBObjectList(FDBObjectLists.Objects[i]).Free;
+    FreeAndNil(FDBObjectLists);
+  end;
+end;
+
+
+function TMySQLConnection.DbObjectsCached(db: WideString): Boolean;
+begin
+  // Check if a table list is stored in cache
+  Result := Assigned(FDBObjectLists) and (FDBObjectLists.IndexOf(db) > -1);
+end;
+
+
+function TMySQLConnection.GetDbObjects(db: WideString; Refresh: Boolean=False): TDBObjectList;
+var
+  obj: TDBObject;
+  Results: TMySQLQuery;
+begin
+  // Cache and return a db's table list
+  if Refresh then
+    ClearDbObjects(db);
+  if DbObjectsCached(db) then
+    Result := FDBObjectLists.Objects[FDBObjectLists.IndexOf(db)] as TDBObjectList
+  else begin
+    if not Assigned(FDBObjectLists) then
+      FDBObjectLists := TWideStringList.Create;
+    Result := TDBObjectList.Create;
+    Results := nil;
+
+    // Tables and views
+    try
+      Results := GetResults('SHOW TABLE STATUS FROM '+QuoteIdent(db));
+    except
+    end;
+    if Assigned(Results) then begin
+      while not Results.Eof do begin
+        obj := TDBObject.Create;
+        Result.Add(obj);
+        obj.Name := Results.Col('Name');
+        obj.Database := db;
+        obj.Rows := StrToInt64Def(Results.Col('Rows'), -1);
+        if Results.IsNull('Data_length') or Results.IsNull('Index_length') then
+          Obj.Size := -1
+        else
+          Obj.Size := StrToInt64Def(Results.Col('Data_length'), 0) + StrToInt64Def(Results.Col('Index_length'), 0);
+        Obj.ObjType := 'BASE TABLE';
+        Obj.NodeType := lntTable;
+        if Results.IsNull(1) and Results.IsNull(2) // Engine column is NULL for views
+          and (Results.Col('Comment') = 'VIEW') then begin
+          Obj.NodeType := lntView;
+          Obj.ObjType := 'VIEW';
+        end;
+        if not Results.IsNull('Create_time') then
+          Obj.Created := StrToDateTime(Results.Col('Create_time'))
+        else
+          Obj.Created := 0;
+        if not Results.IsNull('Update_time') then
+          Obj.Updated := StrToDateTime(Results.Col('Update_time'))
+        else
+          Obj.Updated := 0;
+        if Results.ColExists('Type') then
+          Obj.Engine := Results.Col('Type')
+        else
+          Obj.Engine := Results.Col('Engine');
+        Obj.Comment := Results.Col('Comment');
+        Obj.Version := StrToInt64Def(Results.Col('Version'), -1);
+        Obj.AutoInc := StrToInt64Def(Results.Col('Auto_increment'), -1);
+        Obj.RowFormat := Results.Col('Row_format');
+        Obj.AvgRowLen := StrToInt64Def(Results.Col('Avg_row_length'), -1);
+        Obj.MaxDataLen := StrToInt64Def(Results.Col('Max_data_length'), -1);
+        Obj.IndexLen := StrToInt64Def(Results.Col('Index_length'), -1);
+        Obj.DataLen := StrToInt64Def(Results.Col('Data_length'), -1);
+        Obj.DataFree := StrToInt64Def(Results.Col('Data_free'), -1);
+        if not Results.IsNull('Check_time') then
+          Obj.LastChecked := StrToDateTime(Results.Col('Check_time'))
+        else
+          Obj.LastChecked := 0;
+        Obj.Collation := Results.Col('Collation');
+        Obj.CheckSum := StrToInt64Def(Results.Col('Checksum'), -1);
+        Obj.CreateOptions := Results.Col('Create_options');
+        Results.Next;
+      end;
+      FreeAndNil(Results);
+    end;
+
+    // Stored functions
+    if ServerVersionInt >= 50000 then try
+      Results := GetResults('SHOW FUNCTION STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
+    except
+    end;
+    if Assigned(Results) then begin
+      while not Results.Eof do begin
+        obj := TDBObject.Create;
+        Result.Add(obj);
+        obj.Name := Results.Col('Name');
+        obj.Database := db;
+        obj.Rows := -1;
+        Obj.Size := -1;
+        Obj.ObjType := 'FUNCTION';
+        Obj.NodeType := lntFunction;
+        if not Results.IsNull('Created') then
+          Obj.Created := StrToDateTime(Results.Col('Created'))
+        else
+          Obj.Created := 0;
+        if not Results.IsNull('Modified') then
+          Obj.Updated := StrToDateTime(Results.Col('Modified'))
+        else
+          Obj.Updated := 0;
+        Obj.Engine := '';
+        Obj.Comment := Results.Col('Comment');
+        Obj.Version := -1;
+        Obj.AutoInc := -1;
+        Obj.RowFormat := '';
+        Obj.AvgRowLen := -1;
+        Obj.MaxDataLen := -1;
+        Obj.IndexLen := -1;
+        Obj.DataLen := -1;
+        Obj.DataFree := -1;
+        Obj.LastChecked := 0;
+        Obj.Collation := '';
+        Obj.CheckSum := -1;
+        Obj.CreateOptions := '';
+        Results.Next;
+      end;
+      FreeAndNil(Results);
+    end;
+
+    // Stored procedures
+    if ServerVersionInt >= 50000 then try
+      Results := GetResults('SHOW PROCEDURE STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
+    except
+    end;
+    if Assigned(Results) then begin
+      while not Results.Eof do begin
+        obj := TDBObject.Create;
+        Result.Add(obj);
+        obj.Name := Results.Col('Name');
+        obj.Database := db;
+        obj.Rows := -1;
+        Obj.Size := -1;
+        Obj.ObjType := 'PROCEDURE';
+        Obj.NodeType := lntProcedure;
+        if not Results.IsNull('Created') then
+          Obj.Created := StrToDateTime(Results.Col('Created'))
+        else
+          Obj.Created := 0;
+        if not Results.IsNull('Modified') then
+          Obj.Updated := StrToDateTime(Results.Col('Modified'))
+        else
+          Obj.Updated := 0;
+        Obj.Engine := '';
+        Obj.Comment := Results.Col('Comment');
+        Obj.Version := -1;
+        Obj.AutoInc := -1;
+        Obj.RowFormat := '';
+        Obj.AvgRowLen := -1;
+        Obj.MaxDataLen := -1;
+        Obj.IndexLen := -1;
+        Obj.DataLen := -1;
+        Obj.DataFree := -1;
+        Obj.LastChecked := 0;
+        Obj.Collation := '';
+        Obj.CheckSum := -1;
+        Obj.CreateOptions := '';
+        Results.Next;
+      end;
+      FreeAndNil(Results);
+    end;
+
+    // Triggers
+    if ServerVersionInt >= 50010 then try
+      Results := GetResults('SHOW TRIGGERS FROM '+QuoteIdent(db));
+    except
+    end;
+    if Assigned(Results) then begin
+      while not Results.Eof do begin
+        obj := TDBObject.Create;
+        Result.Add(obj);
+        obj.Name := Results.Col('Trigger');
+        obj.Database := db;
+        obj.Rows := -1;
+        Obj.Size := -1;
+        Obj.ObjType := 'TRIGGER';
+        Obj.NodeType := lntTrigger;
+        if not Results.IsNull('Created') then
+          Obj.Created := StrToDateTime(Results.Col('Created'))
+        else
+          Obj.Created := 0;
+        Obj.Updated := 0;
+        Obj.Engine := '';
+        Obj.Comment := Results.Col('Timing')+' '+Results.Col('Event')+' in table '+QuoteIdent(Results.Col('Table'));
+        Obj.Version := -1;
+        Obj.AutoInc := -1;
+        Obj.RowFormat := '';
+        Obj.AvgRowLen := -1;
+        Obj.MaxDataLen := -1;
+        Obj.IndexLen := -1;
+        Obj.DataLen := -1;
+        Obj.DataFree := -1;
+        Obj.LastChecked := 0;
+        Obj.Collation := '';
+        Obj.CheckSum := -1;
+        Obj.CreateOptions := '';
+        Results.Next;
+      end;
+      FreeAndNil(Results);
+    end;
+
+    FDBObjectLists.AddObject(db, Result);
+  end;
 end;
 
 
@@ -951,9 +1206,44 @@ begin
 end;
 
 
+function TMySQLQuery.IsNull(Column: WideString): Boolean;
+begin
+  Result := IsNull(FColumnNames.IndexOf(Column));
+end;
+
+
 function TMySQLQuery.HasResult: Boolean;
 begin
   Result := FLastResult <> nil;
+end;
+
+
+
+{ TDBObjectList }
+
+function TDBObjectList.Add(AObject: TDBObject): Integer;
+begin
+   Result := inherited Add(AObject);
+end;
+
+function TDBObjectList.First: TDBObject;
+begin
+   Result := inherited First as TDBObject;
+end;
+
+function TDBObjectList.getItem(AIndex: Integer): TDBObject;
+begin
+   Result := inherited GetItem(AIndex) as TDBObject;
+end;
+
+procedure TDBObjectList.Insert(AIndex: Integer; AObject: TDBObject);
+begin
+   inherited Insert(AIndex, AObject);
+end;
+
+procedure TDBObjectList.setItem(AIndex: Integer; AObject: TDBObject);
+begin
+   inherited setItem(AIndex, AObject);
 end;
 
 
