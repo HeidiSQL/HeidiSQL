@@ -9,7 +9,7 @@ uses
 type
   { TDBObjectList and friends }
 
-  TListNodeType = (lntNone, lntDb, lntTable, lntCrashedTable, lntView, lntFunction, lntProcedure, lntTrigger, lntColumn);
+  TListNodeType = (lntNone, lntDb, lntTable, lntView, lntFunction, lntProcedure, lntTrigger, lntColumn);
   TListNodeTypes = Set of TListNodeType;
   TDBObject = class
     Name, Database, Engine, Comment, RowFormat, CreateOptions, Collation, ObjType: WideString;

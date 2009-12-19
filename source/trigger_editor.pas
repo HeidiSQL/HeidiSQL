@@ -87,7 +87,7 @@ begin
   DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);
   comboTable.Items.Clear;
   for i:=0 to DBObjects.Count-1 do begin
-    if DBObjects[i].NodeType in [lntTable, lntCrashedTable] then
+    if DBObjects[i].NodeType in [lntTable] then
       comboTable.Items.Add(DBObjects[i].Name);
   end;
   if comboTable.Items.Count > 0 then
