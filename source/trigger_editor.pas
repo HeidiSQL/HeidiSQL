@@ -74,9 +74,10 @@ end;
 
 procedure TfrmTriggerEditor.Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone);
 var
-  Definition: TMySQLQuery;
+  Definitions: TMySQLQuery;
   DBObjects: TDBObjectList;
   i: Integer;
+  Found: Boolean;
 begin
   inherited;
   editName.Text := '';
@@ -94,14 +95,22 @@ begin
   if FEditObjectName <> '' then begin
     // Edit mode
     editName.Text := FEditObjectName;
-    Definition := Mainform.Connection.GetResults('SELECT '+
-      'EVENT_MANIPULATION, EVENT_OBJECT_TABLE, ACTION_STATEMENT, ACTION_TIMING '+
-      'FROM information_schema.TRIGGERS '+
-      'WHERE TRIGGER_SCHEMA='+esc(Mainform.ActiveDatabase)+' AND TRIGGER_NAME='+esc(FEditObjectName));
-    comboTable.ItemIndex := comboTable.Items.IndexOf(Definition.Col('EVENT_OBJECT_TABLE'));
-    comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(Definition.Col('ACTION_TIMING')));
-    comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(Definition.Col('EVENT_MANIPULATION')));
-    SynMemoStatement.Text := Definition.Col('ACTION_STATEMENT');
+    Definitions := Mainform.Connection.GetResults('SHOW TRIGGERS FROM '+Mainform.mask(Mainform.ActiveDatabase));
+    Found := False;
+    while not Definitions.Eof do begin
+      if Definitions.Col('Trigger') = FEditObjectName then begin
+        comboTable.ItemIndex := comboTable.Items.IndexOf(Definitions.Col('Table'));
+        comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(Definitions.Col('Timing')));
+        comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(Definitions.Col('Event')));
+        SynMemoStatement.Text := Definitions.Col('Statement');
+        Found := True;
+        break;
+      end;
+      Definitions.Next;
+    end;
+    FreeAndNil(Definitions);
+    if not Found then
+      Raise Exception.Create('Trigger definition not found!');
   end else begin
     editName.Text := 'Enter trigger name';
   end;
