@@ -204,8 +204,8 @@ procedure TCreateDatabaseForm.btnOKClick(Sender: TObject);
 var
   sql : WideString;
   AllDatabases, Unions, ObjectsLeft: TWideStringList;
-  ObjectsInNewDb, ObjectsInOldDb: TMySQLQuery;
-  OldObjType, NewObjType: TListNodeType;
+  ObjectsInNewDb, ObjectsInOldDb: TDBObjectList;
+  i, j: Integer;
 begin
   if modifyDB = '' then try
     sql := GetCreateStatement;
@@ -229,30 +229,25 @@ begin
       Mainform.Connection.Query(sql);
     end else begin
       // Rename database
-      ObjectsInOldDb := MainForm.RefreshDbTableList(modifyDB);
+      ObjectsInOldDb := MainForm.Connection.GetDBObjects(modifyDB, True);
       AllDatabases := Mainform.Connection.GetCol('SHOW DATABASES');
       if AllDatabases.IndexOf(editDBName.Text) > -1 then
-        ObjectsInNewDb := MainForm.RefreshDbTableList(editDBName.Text)
+        ObjectsInNewDb := MainForm.Connection.GetDBObjects(editDBName.Text, True)
       else
         ObjectsInNewDb := nil; // Silence compiler warning
       // Warn if there are tables with same names in new db
-      while not ObjectsInOldDb.Eof do begin
-        OldObjType := GetDBObjectType(ObjectsInOldDb);
-        if not (OldObjType in [lntTable, lntCrashedTable, lntView]) then
+      for i:=0 to ObjectsInOldDb.Count-1 do begin
+        if not (ObjectsInOldDb[i].NodeType in [lntTable, lntCrashedTable, lntView]) then
           Raise Exception.Create('Database "'+modifyDB+'" contains stored routine(s), which cannot be moved.');
         if Assigned(ObjectsInNewDb) then begin
-          ObjectsInNewDb.First;
-          while not ObjectsInNewDb.Eof do begin
-            NewObjType := GetDBObjectType(ObjectsInNewDb);
-            if (ObjectsInOldDb.Col(DBO_NAME) = ObjectsInNewDb.Col(DBO_NAME))
-              and (OldObjType = NewObjType) then begin
+          for j:=0 to ObjectsInNewDb.Count-1 do begin
+            if (ObjectsInOldDb[i].Name = ObjectsInNewDb[j].Name)
+              and (ObjectsInOldDb[i].NodeType = ObjectsInNewDb[j].NodeType) then begin
               // One or more objects have a naming conflict
               Raise Exception.Create('Database "'+editDBName.Text+'" exists and has objects with same names as in "'+modifyDB+'"');
             end;
-            ObjectsInNewDb.Next;
           end;
         end;
-        ObjectsInOldDb.Next;
       end;
 
       if AllDatabases.IndexOf(editDBName.Text) = -1 then begin
@@ -265,19 +260,17 @@ begin
           Exit;
       end;
       // Move all tables, views and procedures to target db
-      ObjectsInOldDb.First;
       sql := '';
-      while not ObjectsInOldDb.Eof do begin
-        sql := sql + Mainform.mask(modifyDb)+'.'+Mainform.mask(ObjectsInOldDb.Col(DBO_NAME))+' TO '+
-          Mainform.mask(editDBName.Text)+'.'+Mainform.mask(ObjectsInOldDb.Col(DBO_NAME))+', ';
-        ObjectsInOldDb.Next;
+      for i:=0 to ObjectsInOldDb.Count-1 do begin
+        sql := sql + Mainform.mask(modifyDb)+'.'+Mainform.mask(ObjectsInOldDb[i].Name)+' TO '+
+          Mainform.mask(editDBName.Text)+'.'+Mainform.mask(ObjectsInOldDb[i].Name)+', ';
       end;
       if sql <> '' then begin
         Delete(sql, Length(sql)-1, 2);
         sql := 'RENAME TABLE '+sql;
         Mainform.Connection.Query(sql);
-        Mainform.ClearDbTableList(modifyDB);
-        Mainform.ClearDbTableList(editDBName.Text);
+        Mainform.Connection.ClearDbObjects(modifyDB);
+        Mainform.Connection.ClearDbObjects(editDBName.Text);
       end;
       // Last step for renaming: drop source database
       ObjectsLeft := TWideStringList.Create;

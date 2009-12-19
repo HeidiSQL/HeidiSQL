@@ -74,19 +74,20 @@ end;
 
 procedure TfrmTriggerEditor.Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone);
 var
-  Definition, TableList: TMySQLQuery;
+  Definition: TMySQLQuery;
+  DBObjects: TDBObjectList;
+  i: Integer;
 begin
   inherited;
   editName.Text := '';
   SynMemoStatement.Text := '';
   comboEvent.ItemIndex := 0;
   comboTiming.ItemIndex := 0;
-  TableList := Mainform.FetchActiveDbTableList;
+  DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);
   comboTable.Items.Clear;
-  while not TableList.Eof do begin
-    if GetDBObjectType(TableList) in [lntTable, lntCrashedTable] then
-      comboTable.Items.Add(TableList.Col(DBO_NAME));
-    TableList.Next;
+  for i:=0 to DBObjects.Count-1 do begin
+    if DBObjects[i].NodeType in [lntTable, lntCrashedTable] then
+      comboTable.Items.Add(DBObjects[i].Name);
   end;
   if comboTable.Items.Count > 0 then
     comboTable.ItemIndex := 0;

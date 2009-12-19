@@ -287,26 +287,6 @@ const
   SContainsNulCharFile = 'This file contains NUL characters. They have been converted to ASCII spaces (SP).';
   SContainsNulCharGrid = 'This cell contains NUL characters. They have been converted to ASCII spaces (SP). Press ESC to cancel editing.';
 
-  DBO_NAME = 'Name';
-  DBO_TYPE = 'Type';
-  DBO_ENGINE = 'Engine';
-  DBO_VERSION = 'Version';
-  DBO_ROWFORMAT = 'Row_format';
-  DBO_ROWS = 'Rows';
-  DBO_AVGROWLEN = 'Avg_row_length';
-  DBO_DATALEN = 'Data_length';
-  DBO_MAXDATALEN = 'Max_data_length';
-  DBO_INDEXLEN = 'Index_length';
-  DBO_DATAFREE = 'Data_free';
-  DBO_AUTOINC = 'Auto_increment';
-  DBO_CREATED = 'Create_time';
-  DBO_UPDATED = 'Update_time';
-  DBO_CHECKED = 'Check_time';
-  DBO_COLLATION = 'Collation';
-  DBO_CHECKSUM = 'Checksum';
-  DBO_CROPTIONS = 'Create_options';
-  DBO_COMMENT = 'Comment';
-
   PKEY = 'PRIMARY';
   KEY = 'KEY';
   UKEY = 'UNIQUE';

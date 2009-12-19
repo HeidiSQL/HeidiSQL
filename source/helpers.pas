@@ -15,8 +15,6 @@ uses Classes, SysUtils, Graphics, GraphUtil, db, clipbrd, dialogs,
 
 type
 
-  TListNodeType = (lntNone, lntDb, lntTable, lntCrashedTable, lntView, lntFunction, lntProcedure, lntTrigger, lntColumn);
-  TListNodeTypes = Set of TListNodeType;
   TListNode = record
     Text: WideString;
     NodeType: TListNodeType;
@@ -212,7 +210,6 @@ type
   function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeTypes: TListNodeTypes = [lntNone] ): TWideStringList;
   procedure SetVTSelection( VT: TVirtualStringTree; Selected: TWideStringList );
   function GetTempDir: String;
-  function GetDBObjectType(TableStatus: TMySQLQuery): TListNodeType;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
   procedure SaveUnicodeFile(Filename: String; Text: WideString);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; out FileCharset: TFileCharset);
@@ -240,7 +237,6 @@ type
   procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
   function DateBackFriendlyCaption(d: TDateTime): String;
   procedure InheritFont(AFont: TFont);
-  function GetTableSize(Results: TMySQLQuery): Int64;
   function GetLightness(AColor: TColor): Byte;
   procedure ParseTableStructure(CreateTable: WideString; Columns: TObjectList=nil; Keys: TObjectList=nil; ForeignKeys: TObjectList=nil);
   procedure ParseViewStructure(ViewName: WideString; Columns: TObjectList);
@@ -2186,47 +2182,6 @@ begin
 end;
 
 
-// Tell type of db object (table|view) by a given row from a SHOW TABLE STATUS result
-function GetDBObjectType(TableStatus: TMySQLQuery): TListNodeType;
-var
-  t: String;
-begin
-  {**
-    @see http://dev.mysql.com/doc/refman/5.1/en/show-table-status.html
-      For views, all the fields displayed by SHOW TABLE STATUS are NULL except
-      that Name indicates the view name and Comment says view.
-    @note The "Comment" column can contain different content, normally "VIEW"
-      but for views which is missing its tables, it says
-      "Views bla references invalid..."
-  }
-  Result := lntTable;
-  if TableStatus.ColExists('Type') then begin
-    t := TableStatus.Col('Type');
-    if t = 'BASE TABLE' then
-      Result := lntTable
-    else if t = 'VIEW' then
-      Result := lntView
-    else if t = 'FUNCTION' then
-      Result := lntFunction
-    else if t = 'PROCEDURE' then
-      Result := lntProcedure
-    else if t = 'TRIGGER' then
-      Result := lntTrigger;
-  end else begin
-    if
-      TableStatus.IsNull(1) and  // Engine column is NULL for views
-      TableStatus.IsNull(2) and
-      (Pos('VIEW', UpperCase(TableStatus.Col(DBO_COMMENT))) > 0)
-      then Result := lntView;
-    if
-      TableStatus.IsNull(1) and
-      TableStatus.IsNull(2) and
-      (Pos('MARKED AS CRASHED', UpperCase(TableStatus.Col(DBO_COMMENT))) > 0)
-      then Result := lntCrashedTable;
-  end;
-end;
-
-
 {
   Code taken from SizeGripHWND.pas:
   Copyright (C) 2005, 2006 Volker Siebert <flocke@vssd.de>
@@ -2925,17 +2880,6 @@ procedure InheritFont(AFont: TFont);
 begin
   AFont.Name := Mainform.Font.Name;
   AFont.Size := Mainform.Font.Size;
-end;
-
-
-function GetTableSize(Results: TMySQLQuery): Int64;
-var
-  d, i: String;
-begin
-  d := Results.Col('Data_length', True);
-  i := Results.Col('Index_length', True);
-  if (d = '') or (i = '') then Result := -1
-  else Result := MakeInt(d) + MakeInt(i);
 end;
 
 

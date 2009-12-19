@@ -712,7 +712,6 @@ type
     ReachedEOT                 : Boolean;
     FDelimiter: String;
     viewingdata                : Boolean;
-    CachedTableLists           : TWideStringList;
     EditVariableForm           : TfrmEditVariable;
     FileNameSessionLog         : String;
     FileHandleSessionLog       : Textfile;
@@ -819,13 +818,6 @@ type
     property ActiveDatabase : WideString read GetActiveDatabase write SetSelectedDatabase;
     property SelectedTable : TListNode read GetSelectedTable;
 
-    function FetchActiveDbTableList: TMySQLQuery;
-    function RefreshActiveDbTableList: TMySQLQuery;
-    function FetchDbTableList(db: WideString): TMySQLQuery;
-    function RefreshDbTableList(db: WideString): TMySQLQuery;
-    procedure ClearDbTableList(db: WideString);
-    function DbTableListCachedAndValid(db: WideString): Boolean;
-    procedure ClearAllTableLists;
     procedure TestVTreeDataArray( P: PVTreeDataArray );
     function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
     procedure ActivateFileLogging;
@@ -1187,8 +1179,6 @@ begin
 
   // SQLFiles-History
   FillPopupQueryLoad;
-
-  CachedTableLists := TWideStringList.Create;
 
   Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
 
@@ -1669,7 +1659,6 @@ begin
   // Clear database and table lists
   DBtree.ClearSelection;
   DBtree.FocusedNode := nil;
-  ClearAllTableLists;
   FreeAndNil(AllDatabases);
   FreeAndNil(FDataGridSelect);
   SynMemoFilter.Clear;
@@ -2213,7 +2202,7 @@ begin
           Connection.Query('DROP DATABASE ' + mask(activeDB));
           DBtree.FocusedNode := DBtree.GetFirst;
           DBTree.Selected[DBtree.FocusedNode] := True;
-          ClearDbTableList(activeDB);
+          Connection.ClearDbObjects(activeDB);
           RefreshTree(False);
         except
           on E:Exception do
@@ -3439,22 +3428,21 @@ procedure TMainForm.DisplayRowCountStats(MatchingRows: Int64);
 var
   rows_total       : Int64; // total rowcount
   IsFiltered, IsInnodb: Boolean;
-  Results: TMySQLQuery;
-  s: WideString;
+  DBObjects: TDBObjectList;
+  i: Integer;
 begin
   lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable.Text;
 
   IsFiltered := self.DataGridCurrentFilter <> '';
   if GetFocusedTreeNodeType = lntTable then begin
     // Get rowcount from table
-    Results := FetchActiveDbTableList;
+    DBObjects := Connection.GetDBObjects(ActiveDatabase);
     rows_total := -1;
     IsInnodb := False;
-    while not Results.Eof do begin
-      if Results.Col(DBO_NAME) = SelectedTable.Text then begin
-        s := Results.Col(DBO_ROWS);
-        if s <> '' then rows_total := MakeInt(s);
-        IsInnodb := Results.Col(1) = 'InnoDB';
+    for i:=0 to DBObjects.Count-1 do begin
+      if DBObjects[i].Name = SelectedTable.Text then begin
+        rows_total := DBObjects[i].Rows;
+        IsInnodb := DBObjects[i].Engine = 'InnoDB';
         break;
       end;
     end;
@@ -3527,178 +3515,12 @@ begin
 end;
 
 
-{***
-  Look for list of tables for current database in cache.
-  Retrieve from server if necessary.
-  @return TMySQLQuery The cached list of tables for the active database.
-}
-function TMainForm.FetchActiveDbTableList: TMySQLQuery;
-begin
-  Result := FetchDbTableList(ActiveDatabase);
-end;
-
-function TMainForm.FetchDbTableList(db: WideString): TMySQLQuery;
-var
-  Results: TMySQLQuery;
-  OldCursor: TCursor;
-  Unions: TWideStringlist;
-  ListObjectsSQL, Tables: WideString;
-begin
-  if not DbTableListCachedAndValid(db) then begin
-    // Not in cache, load table list.
-    OldCursor := Screen.Cursor;
-    Screen.Cursor := crHourGlass;
-    ShowStatus('Fetching tables from "' + db + '" ...');
-    Unions := TWideStringlist.Create;
-    if Connection.InformationSchemaObjects.IndexOf('TABLES') > -1 then begin
-      // Tables and (system) views
-      Unions.Add('SELECT TABLE_NAME AS '+mask(DBO_NAME)+
-        ', TABLE_TYPE AS '+mask(DBO_TYPE)+
-        ', ENGINE AS '+mask(DBO_ENGINE)+
-        ', VERSION AS '+mask(DBO_VERSION)+
-        ', ROW_FORMAT AS '+mask(DBO_ROWFORMAT)+
-        ', TABLE_ROWS AS '+mask(DBO_ROWS)+
-        ', AVG_ROW_LENGTH AS '+mask(DBO_AVGROWLEN)+
-        ', DATA_LENGTH AS '+mask(DBO_DATALEN)+
-        ', MAX_DATA_LENGTH AS '+mask(DBO_MAXDATALEN)+
-        ', INDEX_LENGTH AS '+mask(DBO_INDEXLEN)+
-        ', DATA_FREE AS '+mask(DBO_DATAFREE)+
-        ', AUTO_INCREMENT AS '+mask(DBO_AUTOINC)+
-        ', CREATE_TIME AS '+mask(DBO_CREATED)+
-        ', UPDATE_TIME AS '+mask(DBO_UPDATED)+
-        ', CHECK_TIME AS '+mask(DBO_CHECKED)+
-        ', TABLE_COLLATION AS '+mask(DBO_COLLATION)+
-        ', CHECKSUM AS '+mask(DBO_CHECKSUM)+
-        ', CREATE_OPTIONS AS '+mask(DBO_CROPTIONS)+
-        ', TABLE_COMMENT AS '+mask(DBO_COMMENT)+
-        ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.TABLES ' +
-        'WHERE TABLE_SCHEMA = '+esc(db));
-    end;
-    if Connection.InformationSchemaObjects.IndexOf('ROUTINES') > -1 then begin
-      // Stored routines
-      Unions.Add('SELECT ROUTINE_NAME AS '+mask(DBO_NAME)+
-        ', ROUTINE_TYPE AS '+mask(DBO_TYPE)+
-        ', NULL AS '+mask(DBO_ENGINE)+
-        ', NULL AS '+mask(DBO_VERSION)+
-        ', NULL AS '+mask(DBO_ROWFORMAT)+
-        ', NULL AS '+mask(DBO_ROWS)+
-        ', NULL AS '+mask(DBO_AVGROWLEN)+
-        ', NULL AS '+mask(DBO_DATALEN)+
-        ', NULL AS '+mask(DBO_MAXDATALEN)+
-        ', NULL AS '+mask(DBO_INDEXLEN)+
-        ', NULL AS '+mask(DBO_DATAFREE)+
-        ', NULL AS '+mask(DBO_AUTOINC)+
-        ', CREATED AS '+mask(DBO_CREATED)+
-        ', LAST_ALTERED AS '+mask(DBO_UPDATED)+
-        ', NULL AS '+mask(DBO_CHECKED)+
-        ', NULL AS '+mask(DBO_COLLATION)+
-        ', NULL AS '+mask(DBO_CHECKSUM)+
-        ', NULL AS '+mask(DBO_CROPTIONS)+
-        ', ROUTINE_COMMENT AS '+mask(DBO_COMMENT)+
-        ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.ROUTINES ' +
-        'WHERE ROUTINE_SCHEMA = '+esc(db));
-    end;
-    if Connection.InformationSchemaObjects.IndexOf('TRIGGERS') > -1 then begin
-      // Stored routines
-      Unions.Add('SELECT TRIGGER_NAME AS '+mask(DBO_NAME)+
-        ', ''TRIGGER'' AS '+mask(DBO_TYPE)+
-        ', NULL AS '+mask(DBO_ENGINE)+
-        ', NULL AS '+mask(DBO_VERSION)+
-        ', NULL AS '+mask(DBO_ROWFORMAT)+
-        ', NULL AS '+mask(DBO_ROWS)+
-        ', NULL AS '+mask(DBO_AVGROWLEN)+
-        ', NULL AS '+mask(DBO_DATALEN)+
-        ', NULL AS '+mask(DBO_MAXDATALEN)+
-        ', NULL AS '+mask(DBO_INDEXLEN)+
-        ', NULL AS '+mask(DBO_DATAFREE)+
-        ', NULL AS '+mask(DBO_AUTOINC)+
-        ', CREATED AS '+mask(DBO_CREATED)+
-        ', NULL AS '+mask(DBO_UPDATED)+
-        ', NULL AS '+mask(DBO_CHECKED)+
-        ', NULL AS '+mask(DBO_COLLATION)+
-        ', NULL AS '+mask(DBO_CHECKSUM)+
-        ', NULL AS '+mask(DBO_CROPTIONS)+
-        ', NULL AS '+mask(DBO_COMMENT)+
-        ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.TRIGGERS ' +
-        'WHERE TRIGGER_SCHEMA = '+esc(db));
-    end;
-    case Unions.Count of
-      0: ListObjectsSQL := 'SHOW TABLE STATUS FROM ' + mask(db);
-      1: ListObjectsSQL := Unions[0] + ' ORDER BY `Name`';
-      else ListObjectsSQL := '(' + implodestr(') UNION (', Unions) + ') ORDER BY `Name`';
-    end;
-    FreeAndNil(Unions);
-    try
-      Results := Connection.GetResults(ListObjectsSQL);
-      CachedTableLists.AddObject(db, Results);
-      // Add table names to SQL highlighter
-      while not Results.Eof do begin
-        Tables := Tables + Results.Col(DBO_NAME) + CRLF;
-        Results.Next;
-      end;
-      SynSQLSyn1.TableNames.Text := Trim(Tables);
-    finally
-      ShowStatus(STATUS_MSG_READY);
-      Screen.Cursor := OldCursor;
-    end;
-  end;
-  Result := TMySQLQuery(CachedTableLists.Objects[CachedTableLists.IndexOf(db)]);
-  Result.First;
-end;
-
-
-{***
-  Nukes cached table list for active database, then refreshes it.
-  @return TMySQLQuery The newly cached list of tables for the active database.
-}
-function TMainForm.RefreshActiveDbTableList: TMySQLQuery;
-begin
-  Result := RefreshDbTableList(ActiveDatabase);
-end;
-
-function TMainForm.RefreshDbTableList(db: WideString): TMySQLQuery;
-begin
-  ClearDbTableList(db);
-  Result := FetchDbTableList(db);
-end;
-
-procedure TMainForm.ClearDbTableList(db: WideString);
-var
-  idx: Integer;
-  o: TObject;
-begin
-  idx := CachedTableLists.IndexOf(db);
-  if idx > -1 then begin
-    o := CachedTableLists.Objects[idx];
-    FreeAndNil(o);
-    CachedTableLists.Delete(idx);
-  end;
-end;
-
-
-{***
-  Nukes the table list cache.
-}
-procedure TMainForm.ClearAllTableLists;
-var
-  idx: Integer;
-  Results: TMySQLQuery;
-begin
-  for idx := 0 to CachedTableLists.Count - 1 do begin
-    Results := TMySQLQuery(CachedTableLists.Objects[idx]);
-    FreeAndNil(Results);
-  end;
-  CachedTableLists.Clear;
-end;
-
-
 procedure TMainForm.LoadDatabaseProperties(db: WideString);
 var
   i, img          : Integer;
-  bytes           : Int64;
-  Results         : TMySQLQuery;
-  Cap,
-  SelectedCaptions: TWideStringList;
+  Obj: TDBObject;
+  Objects: TDBObjectList;
+  Cap, SelectedCaptions: TWideStringList;
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
@@ -3706,59 +3528,26 @@ begin
   // Remember selected nodes
   SelectedCaptions := GetVTCaptions(ListTables, True);
 
-  Results := FetchDbTableList(db);
+  Objects := Connection.GetDBObjects(db);
   ShowStatus( 'Displaying tables from "' + db + '" ...' );
 
   ListTables.BeginUpdate;
   ListTables.Clear;
 
-  SetLength(VTRowDataListTables, Results.RecordCount);
-  i := 0;
-  while not Results.Eof do begin
+  SetLength(VTRowDataListTables, Objects.Count);
+  for i:=0 to Objects.Count-1 do begin
+    Obj := Objects[i];
     VTRowDataListTables[i].Captions := TWideStringList.Create;
     Cap := VTRowDataListTables[i].Captions;
     // Object name
-    Cap.Add(Results.Col(DBO_NAME));
-    if Results.Col(DBO_ROWS, True) <> '' then
-      Cap.Add( FormatNumber(Results.Col(DBO_ROWS) ) )
+    Cap.Add(Obj.Name);
+    if Obj.Rows > -1 then Cap.Add(FormatNumber(Obj.Rows))
     else Cap.Add('');
-    // Size: Data_length + Index_length
-    bytes := GetTableSize(Results);
-    if bytes >= 0 then Cap.Add(FormatByteNumber(bytes))
+    if Obj.Size > -1 then Cap.Add(FormatByteNumber(Obj.Size))
     else Cap.Add('');
-    Cap.Add(Results.Col(DBO_CREATED, True));
-    Cap.Add(Results.Col(DBO_UPDATED, True));
-    Cap.Add(Results.Col(DBO_ENGINE, True));
-    Cap.Add(Results.Col(DBO_COMMENT, True));
-    Cap.Add(Results.Col(DBO_VERSION, True));
-    Cap.Add(Results.Col(DBO_ROWFORMAT, True));
-    if Results.Col(DBO_AVGROWLEN, True) <> '' then
-      Cap.Add( FormatByteNumber(Results.Col(DBO_AVGROWLEN)) )
-    else Cap.Add('');
-    if Results.Col(DBO_MAXDATALEN, True) <> '' then
-      Cap.Add( FormatByteNumber(Results.Col(DBO_MAXDATALEN)) )
-    else Cap.Add('');
-    if Results.Col(DBO_INDEXLEN, True) <> '' then
-      Cap.Add( FormatByteNumber(Results.Col(DBO_INDEXLEN, True)) )
-    else Cap.Add('');
-    if Results.Col(DBO_DATAFREE, True) <> '' then
-      Cap.Add( FormatByteNumber(Results.Col(DBO_DATAFREE)) )
-    else Cap.Add('');
-    if Results.Col(DBO_AUTOINC, True) <> '' then
-      Cap.Add( FormatNumber(Results.Col(DBO_AUTOINC)) )
-    else Cap.Add('');
-    Cap.Add(Results.Col(DBO_AUTOINC));
-    Cap.Add(Results.Col(DBO_COLLATION, True));
-    Cap.Add(Results.Col(DBO_CHECKSUM, True));
-    Cap.Add(Results.Col(DBO_CROPTIONS));
-    if Results.ColExists(DBO_TYPE) then
-      Cap.Add(Results.Col(DBO_TYPE))
-    else
-      Cap.Add('BASE TABLE');
-
-    VTRowDataListTables[i].NodeType := GetDBObjectType(Results);
+    VTRowDataListTables[i].NodeType := Obj.NodeType;
     // Find icon
-    case VTRowDataListTables[i].NodeType of
+    case Obj.NodeType of
       lntTable:         img := ICONINDEX_TABLE;
       lntCrashedTable:  img := ICONINDEX_CRASHED_TABLE;
       lntView:          img := ICONINDEX_VIEW;
@@ -3768,9 +3557,32 @@ begin
       else              img := -1;
     end;
     VTRowDataListTables[i].ImageIndex := img;
-
-    Results.Next;
-    Inc(i);
+    if Obj.Created = 0 then Cap.Add('')
+    else Cap.Add(DateTimeToStr(Obj.Created));
+    if Obj.Updated = 0 then Cap.Add('')
+    else Cap.Add(DateTimeToStr(Obj.Updated));
+    Cap.Add(Obj.Engine);
+    Cap.Add(Obj.Comment);
+    if Obj.Version > -1 then Cap.Add(IntToStr(Obj.Version))
+    else Cap.Add('');
+    Cap.Add(Obj.RowFormat);
+    if Obj.AvgRowLen > -1 then Cap.Add(FormatByteNumber(Obj.AvgRowLen))
+    else Cap.Add('');
+    if Obj.MaxDataLen > -1 then Cap.Add(FormatByteNumber(Obj.MaxDataLen))
+    else Cap.Add('');
+    if Obj.IndexLen > -1 then Cap.Add(FormatByteNumber(Obj.IndexLen))
+    else Cap.Add('');
+    if Obj.DataFree > -1 then Cap.Add(FormatByteNumber(Obj.DataFree))
+    else Cap.Add('');
+    if Obj.AutoInc > -1 then Cap.Add(FormatNumber(Obj.AutoInc))
+    else Cap.Add('');
+    if Obj.LastChecked = 0 then Cap.Add('')
+    else Cap.Add(DateTimeToStr(Obj.LastChecked));
+    Cap.Add(Obj.Collation);
+    if Obj.Checksum > -1 then Cap.Add(IntToStr(Obj.Checksum))
+    else Cap.Add('');
+    Cap.Add(Obj.CreateOptions);
+    Cap.Add(Obj.ObjType);
   end;
   ListTables.RootNodeCount := Length(VTRowDataListTables);
   ListTables.EndUpdate;
@@ -4103,6 +3915,7 @@ procedure TMainForm.SynCompletionProposalExecute(Kind: SynCompletionType;
 var
   i,j              : Integer;
   Results          : TMySQLQuery;
+  DBObjects        : TDBObjectList;
   sql, TableClauses: WideString;
   Tables           : TStringList;
   tablename        : WideString;
@@ -4117,14 +3930,10 @@ var
   Editor           : TCustomSynEdit;
   Queries          : TWideStringList;
 
-  procedure addTable(Results: TMySQLQuery);
-  var ObjName, ObjType: WideString; Icon: Integer;
+  procedure addTable(Obj: TDBObject);
+  var Icon: Integer;
   begin
-    ObjName := Results.Col(0);
-    ObjType := '';
-    if Results.ColExists(DBO_TYPE) then
-      ObjType := LowerCase(Results.Col(DBO_TYPE));
-    case GetDBObjectType(Results) of
+    case Obj.NodeType of
       lntTable: Icon := ICONINDEX_TABLE;
       lntCrashedTable: Icon := ICONINDEX_CRASHED_TABLE;
       lntFunction: Icon := ICONINDEX_STOREDFUNCTION;
@@ -4133,8 +3942,8 @@ var
       lntTrigger: Icon := ICONINDEX_TRIGGER;
       else Icon := -1;
     end;
-    Proposal.InsertList.Add( ObjName );
-    Proposal.ItemList.Add( WideFormat(SYNCOMPLETION_PATTERN, [Icon, ObjType, ObjName]) );
+    Proposal.InsertList.Add(Obj.Name);
+    Proposal.ItemList.Add( WideFormat(SYNCOMPLETION_PATTERN, [Icon, LowerCase(Obj.ObjType), Obj.Name]) );
   end;
 
   procedure addColumns( tablename: WideString );
@@ -4275,11 +4084,9 @@ begin
     if i > -1 then begin
       // Only display tables from specified db
       Screen.Cursor := crHourGlass;
-      Results := FetchDbTableList(Databases[i]);
-      while not Results.Eof do begin
-        addTable(Results);
-        Results.Next;
-      end;
+      DBObjects := Connection.GetDBObjects(Databases[i]);
+      for j:=0 to DBObjects.Count-1 do
+        addTable(DBObjects[j]);
       Screen.Cursor := crDefault;
     end;
   end;
@@ -4293,11 +4100,9 @@ begin
 
     if ActiveDatabase <> '' then begin
       // Display tables from current db
-      Results := FetchActiveDbTableList;
-      while not Results.Eof do begin
-        addTable(Results);
-        Results.Next;
-      end;
+      DBObjects := Connection.GetDBObjects(ActiveDatabase);
+      for j:=0 to DBObjects.Count-1 do
+        addTable(DBObjects[j]);
       if Length(CurrentInput) = 0 then // assume that we have already a dbname in memo
         Proposal.Position := Databases.Count;
     end;
@@ -4385,7 +4190,7 @@ begin
     NodeData.Captions[0] := NewText;
     // Now the active tree db has to be updated. But calling RefreshTreeDB here causes an AV
     // so we do it manually here
-    RefreshActiveDbTableList;
+    Connection.ClearDbObjects(ActiveDatabase);
     DBTree.InvalidateChildren(FindDBNode(ActiveDatabase), True);
   except
     on E:Exception do
@@ -4923,15 +4728,14 @@ end;
 
 function TMainForm.GetTreeNodeType(Tree: TBaseVirtualTree; Node: PVirtualNode): TListNodeType;
 var
-  Results: TMySQLQuery;
+  DBObjects: TDBObjectList;
 begin
   Result := lntNone;
   if Assigned(Node) then case Tree.GetNodeLevel(Node) of
     1: Result := lntDb;
     2: begin
-      Results := FetchDbTableList((Tree as TVirtualStringTree).Text[Node.Parent, 0]);
-      Results.RecNo := Node.Index;
-      Result := GetDBObjectType(Results);
+      DBObjects := Connection.GetDBObjects((Tree as TVirtualStringTree).Text[Node.Parent, 0]);
+      Result := DBObjects[Node.Index].NodeType;
     end;
   end;
 end;
@@ -5953,9 +5757,9 @@ procedure TMainForm.DBtreeGetText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText:
     WideString);
 var
-  Results: TMySQLQuery;
-  db, eng: WideString;
-  i: Integer;
+  DBObjects: TDBObjectList;
+  db: WideString;
+  i, j: Integer;
   Bytes: Int64;
   AllListsCached: Boolean;
 begin
@@ -5964,9 +5768,8 @@ begin
         0: CellText := Connection.Username + '@' + Connection.Hostname;
         1: CellText := Databases[Node.Index];
         2: begin
-            Results := FetchDbTableList(Databases[Node.Parent.Index]);
-            Results.RecNo := Node.Index;
-            CellText := Results.Col(DBO_NAME);
+            DBObjects := Connection.GetDBObjects(Databases[Node.Parent.Index]);
+            CellText := DBObjects[Node.Index].Name;
           end;
       end;
     1: case GetTreeNodeType(Sender, Node) of
@@ -5974,7 +5777,7 @@ begin
         lntNone: begin
             AllListsCached := true;
             for i := 0 to Databases.Count - 1 do begin
-              if not DbTableListCachedAndValid(Databases[i]) then begin
+              if not Connection.DbObjectsCached(Databases[i]) then begin
                 AllListsCached := false;
                 break;
               end;
@@ -5984,11 +5787,9 @@ begin
             if AllListsCached then begin
               Bytes := 0;
               for i := 0 to Databases.Count - 1 do begin
-                Results := FetchDbTableList(Databases[i]);
-                while not Results.Eof do begin
-                  Bytes := Bytes + GetTableSize(Results);
-                  Results.Next;
-                end;
+                DBObjects := Connection.GetDBObjects(Databases[i]);
+                for j:=0 to DBObjects.Count-1 do
+                  Bytes := Bytes + DBObjects[j].Size;
               end;
             end;
             if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
@@ -5997,28 +5798,21 @@ begin
         // Calculate and display the sum of all table sizes in ONE db, if the list is already cached.
         lntDb: begin
             db := (Sender as TVirtualStringTree).Text[Node, 0];
-            if not DbTableListCachedAndValid(db) then
+            if not Connection.DbObjectsCached(db) then
               CellText := ''
             else begin
               Bytes := 0;
-              Results := FetchDbTableList(db);
-              while not Results.Eof do begin
-                if Results.ColExists(DBO_TYPE) then eng := Results.Col(DBO_TYPE)
-                else eng := Results.Col('Engine');
-                if UpperCase(eng) <> 'MRG_MYISAM' then
-                  Bytes := Bytes + GetTableSize(Results);
-                Results.Next;
-              end;
+              DBObjects := Connection.GetDBObjects(db);
+              for i:=0 to DBObjects.Count-1 do
+                Bytes := Bytes + DBObjects[i].Size;
               if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
               else CellText := '';
             end;
           end;
         lntTable: begin
           db := (Sender as TVirtualStringTree).Text[Node.Parent, 0];
-          Results := FetchDbTableList(db);
-          Results.RecNo := Node.Index;
-          Bytes := GetTableSize(Results);
-          CellText := FormatByteNumber(Bytes);
+          DBObjects := Connection.GetDBObjects(db);
+          CellText := FormatByteNumber(DBObjects[Node.Index].Size);
         end
         else CellText := ''; // Applies for views and crashed tables
       end;
@@ -6033,7 +5827,7 @@ procedure TMainForm.DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
     Boolean; var ImageIndex: Integer);
 var
-  Results: TMySQLQuery;
+  DBObjects: TDBObjectList;
 begin
   if Column > 0 then
     Exit;
@@ -6043,9 +5837,8 @@ begin
          ImageIndex := ICONINDEX_DB_HIGHLIGHT
          else ImageIndex := ICONINDEX_DB;
     2: begin
-        Results := FetchDbTableList(Databases[Node.Parent.Index]);
-        Results.RecNo := Node.Index;
-        case GetDBObjectType(Results) of
+        DBObjects := Connection.GetDBObjects(Databases[Node.Parent.Index]);
+        case DBObjects[Node.Index].NodeType of
           lntTable:
             if Kind = ikSelected then
               ImageIndex := ICONINDEX_TABLE_HIGHLIGHT
@@ -6077,7 +5870,6 @@ procedure TMainForm.DBtreeInitChildren(Sender: TBaseVirtualTree; Node:
     PVirtualNode; var ChildCount: Cardinal);
 var
   VT: TVirtualStringTree;
-  Results: TMySQLQuery;
   i, j: Integer;
   DatabasesWanted: TWideStringList;
   rx: TRegExpr;
@@ -6140,8 +5932,7 @@ begin
         Screen.Cursor := crHourglass;
         Showstatus( 'Reading Tables...' );
         try
-          Results := FetchDbTableList(Databases[Node.Index]);
-          ChildCount := Results.RecordCount;
+          ChildCount := Connection.GetDBObjects(Databases[Node.Index]).Count;
         finally
           ShowStatus( STATUS_MSG_READY );
           Screen.Cursor := crDefault;
@@ -6286,7 +6077,7 @@ begin
 
   // ReInit tree population
   if DoResetTableCache then begin
-    ClearAllTableLists;
+    Connection.ClearDbObjects;
     FreeAndNil(AllDatabases);
   end;
   DBtree.ReinitChildren(DBTree.GetFirst, False);
@@ -6313,7 +6104,8 @@ var
   DBNode, FNode: PVirtualNode;
   oldSelectedTable: TListNode;
   TableHereHadFocus: Boolean;
-  Results: TMySQLQuery;
+  DBObjects: TDBObjectList;
+  i: Integer;
   FocusChangeEvent: procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex) of object;
 begin
   oldActiveDatabase := ActiveDatabase;
@@ -6325,20 +6117,19 @@ begin
   FocusChangeEvent := DBtree.OnFocusChanged;
   DBtree.OnFocusChanged := nil;
   // Refresh db node
-  RefreshDbTableList(db);
+  Connection.ClearDbObjects(db);
   DBTree.ReinitNode(DBNode, true);
   DBtree.InvalidateChildren(DBNode, false);
   // Set focus on previously focused table node
   if TableHereHadFocus then begin
-    Results := FetchDbTableList(db);
-    while not Results.Eof do begin
+    DBObjects := Connection.GetDBObjects(db);
+    for i:=0 to DBObjects.Count-1 do begin
       // Need to check if table was renamed, in which case oldSelectedTable is no longer available
-      if (Results.Col(DBO_NAME) = oldSelectedTable.Text)
-        and (GetDBObjectType(Results) = oldSelectedTable.NodeType) then begin
+      if (DBObjects[i].Name = oldSelectedTable.Text)
+        and (DBObjects[i].NodeType = oldSelectedTable.NodeType) then begin
         SelectDBObject(oldSelectedTable.Text, oldSelectedTable.NodeType);
         break;
       end;
-      Results.Next;
     end;
   end;
   // Reactivate focus changing event
@@ -6404,11 +6195,6 @@ begin
   DBtree.ScrollIntoView(DBtree.GetFirstSelected, False);
 end;
 
-
-function TMainForm.DbTableListCachedAndValid(db: WideString): Boolean;
-begin
-  Result := CachedTableLists.IndexOf(db) > -1;
-end;
 
 procedure TMainForm.editFilterSearchChange(Sender: TObject);
 var
