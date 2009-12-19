@@ -237,7 +237,7 @@ begin
         ObjectsInNewDb := nil; // Silence compiler warning
       // Warn if there are tables with same names in new db
       for i:=0 to ObjectsInOldDb.Count-1 do begin
-        if not (ObjectsInOldDb[i].NodeType in [lntTable, lntCrashedTable, lntView]) then
+        if not (ObjectsInOldDb[i].NodeType in [lntTable, lntView]) then
           Raise Exception.Create('Database "'+modifyDB+'" contains stored routine(s), which cannot be moved.');
         if Assigned(ObjectsInNewDb) then begin
           for j:=0 to ObjectsInNewDb.Count-1 do begin

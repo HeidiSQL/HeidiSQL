@@ -1793,10 +1793,10 @@ begin
   Act := Sender as TAction;
   InDBTree := (Act.ActionComponent is TMenuItem)
     and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
-  if InDBTree and (SelectedTable.NodeType in [lntTable, lntCrashedTable, lntView]) then
+  if InDBTree and (SelectedTable.NodeType in [lntTable, lntView]) then
     TableToolsDialog.SelectedTables.Text := SelectedTable.Text
   else if not InDBTree then
-    TableToolsDialog.SelectedTables := GetVTCaptions(ListTables, True, 0, [lntTable, lntCrashedTable, lntView])
+    TableToolsDialog.SelectedTables := GetVTCaptions(ListTables, True, 0, [lntTable, lntView])
   else
     TableToolsDialog.SelectedTables.Clear;
   if Sender = actMaintenance then
@@ -2210,7 +2210,7 @@ begin
         end;
         Exit;
       end;
-      lntTable, lntCrashedTable: Tables.Add(SelectedTable.Text);
+      lntTable: Tables.Add(SelectedTable.Text);
       lntView: Views.Add(SelectedTable.Text);
       lntProcedure: Procedures.Add(SelectedTable.Text);
       lntFunction: Functions.Add(SelectedTable.Text);
@@ -2219,7 +2219,6 @@ begin
   end else begin
     // Invoked from database tab
     Tables := GetVTCaptions(ListTables, True, 0, [lntTable]);
-    Tables.AddStrings(GetVTCaptions(ListTables, True, 0, [lntCrashedTable]));
     Views := GetVTCaptions(ListTables, True, 0, [lntView]);
     Procedures := GetVTCaptions(ListTables, True, 0, [lntProcedure]);
     Functions := GetVTCaptions(ListTables, True, 0, [lntFunction]);
@@ -3549,7 +3548,6 @@ begin
     // Find icon
     case Obj.NodeType of
       lntTable:         img := ICONINDEX_TABLE;
-      lntCrashedTable:  img := ICONINDEX_CRASHED_TABLE;
       lntView:          img := ICONINDEX_VIEW;
       lntProcedure:     img := ICONINDEX_STOREDPROCEDURE;
       lntFunction:      img := ICONINDEX_STOREDFUNCTION;
@@ -3935,7 +3933,6 @@ var
   begin
     case Obj.NodeType of
       lntTable: Icon := ICONINDEX_TABLE;
-      lntCrashedTable: Icon := ICONINDEX_CRASHED_TABLE;
       lntFunction: Icon := ICONINDEX_STOREDFUNCTION;
       lntProcedure: Icon := ICONINDEX_STOREDPROCEDURE;
       lntView: Icon := ICONINDEX_VIEW;
@@ -4478,8 +4475,8 @@ begin
     actCreateView.Enabled := L in [1,2];
     actCreateRoutine.Enabled := L in [1,2];
     actDropObjects.Enabled := L in [1,2];
-    actCopyTable.Enabled := HasFocus and (GetFocusedTreeNodeType in [lntTable, lntCrashedTable, lntView]);
-    actEmptyTables.Enabled := HasFocus and (GetFocusedTreeNodeType in [lntTable, lntCrashedTable, lntView]);
+    actCopyTable.Enabled := HasFocus and (GetFocusedTreeNodeType in [lntTable, lntView]);
+    actEmptyTables.Enabled := HasFocus and (GetFocusedTreeNodeType in [lntTable, lntView]);
     actEditObject.Enabled := L > 0;
     // Show certain items which are valid only here
     menuTreeExpandAll.Visible := True;
@@ -4496,7 +4493,7 @@ begin
     actEmptyTables.Enabled := False;
     if HasFocus then begin
       NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-      actEmptyTables.Enabled := NodeData.NodeType in [lntTable, lntCrashedTable, lntView];
+      actEmptyTables.Enabled := NodeData.NodeType in [lntTable, lntView];
     end;
     actEditObject.Enabled := HasFocus;
     // Show certain items which are valid only here
@@ -5847,10 +5844,6 @@ begin
             if Kind = ikSelected then
               ImageIndex := ICONINDEX_VIEW_HIGHLIGHT
               else ImageIndex := ICONINDEX_VIEW;
-          lntCrashedTable:
-            if Kind = ikSelected then
-              ImageIndex := ICONINDEX_CRASHED_TABLE_HIGHLIGHT
-              else ImageIndex := ICONINDEX_CRASHED_TABLE;
           lntProcedure:
             ImageIndex := ICONINDEX_STOREDPROCEDURE;
           lntFunction:
@@ -5988,13 +5981,13 @@ begin
         Connection.Database := newDb;
         newDbObject := SelectedTable.Text;
         tabEditor.TabVisible := True;
-        tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntCrashedTable, lntView];
+        tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntView];
         SelectedTableColumns.Clear;
         SelectedTableKeys.Clear;
         SelectedTableForeignKeys.Clear;
         try
           case SelectedTable.NodeType of
-            lntTable, lntCrashedTable: begin
+            lntTable: begin
               SelectedTableCreateStatement := Connection.GetVar('SHOW CREATE TABLE '+Mainform.mask(SelectedTable.Text), 1);
               ParseTableStructure(SelectedTableCreateStatement, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
             end;
@@ -7957,7 +7950,7 @@ function TMainForm.PlaceObjectEditor(Which: TListNodeType): TDBObjectEditor;
 begin
   // Place the relevant editor frame onto the editor tab, hide all others
   Result := nil;
-  if (not (Which in [lntTable, lntCrashedTable])) and Assigned(TableEditor) then
+  if (not (Which in [lntTable])) and Assigned(TableEditor) then
     FreeAndNil(TableEditor);
   if (Which <> lntView) and Assigned(ViewEditor) then
     FreeAndNil(ViewEditor);
@@ -7965,7 +7958,7 @@ begin
     FreeAndNil(RoutineEditor);
   if (Which <> lntTrigger) and Assigned(TriggerEditor) then
     FreeAndNil(TriggerEditor);
-  if Which in [lntTable, lntCrashedTable] then begin
+  if Which in [lntTable] then begin
     if not Assigned(TableEditor) then
       TableEditor := TfrmTableEditor.Create(tabEditor);
     Result := TableEditor;
@@ -8047,7 +8040,7 @@ begin
       end;
     end;
 
-    lntTable, lntCrashedTable: begin
+    lntTable: begin
       PlaceObjectEditor(SelectedTable.NodeType);
       TableEditor.Init(SelectedTable.Text);
     end;

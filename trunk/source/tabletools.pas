@@ -388,7 +388,7 @@ begin
     2: begin
       DBObjects := Mainform.Connection.GetDBObjects(Mainform.Databases[ParentNode.Index]);
       // No checkbox for stored routines
-      if not (DBObjects[Node.Index].NodeType in [lntTable, lntCrashedTable, lntView]) then
+      if not (DBObjects[Node.Index].NodeType in [lntTable, lntView]) then
         Node.CheckType := ctNone
     end;
   end;
@@ -990,7 +990,7 @@ begin
   end;
 
   case DBObj.NodeType of
-    lntTable, lntCrashedTable: begin
+    lntTable: begin
       // Table data
       if comboExportData.Text = DATA_NO then begin
         Output(CRLF+'# Data exporting was unselected.'+CRLF, False, True, True, False, False);
