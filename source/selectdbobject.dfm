@@ -68,27 +68,36 @@ object frmSelectDBObject: TfrmSelectDBObject
     Width = 216
     Height = 184
     Anchors = [akLeft, akTop, akRight, akBottom]
-    Header.AutoSizeIndex = -1
+    Header.AutoSizeIndex = 0
     Header.DefaultHeight = 17
     Header.Font.Charset = DEFAULT_CHARSET
     Header.Font.Color = clWindowText
     Header.Font.Height = -11
     Header.Font.Name = 'Tahoma'
     Header.Font.Style = []
-    Header.MainColumn = -1
-    Header.Options = [hoColumnResize, hoDrag]
+    Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
     Images = MainForm.PngImageListMain
     Indent = 16
     Margin = 2
     TabOrder = 0
-    TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+    TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
     OnFocusChanged = TreeDBOFocusChanged
     OnGetText = TreeDBOGetText
     OnGetImageIndex = TreeDBOGetImageIndex
     OnGetNodeDataSize = TreeDBOGetNodeDataSize
     OnInitChildren = TreeDBOInitChildren
     OnInitNode = TreeDBOInitNode
-    Columns = <>
+    Columns = <
+      item
+        Position = 0
+        Width = 212
+        WideText = 'Name'
+      end
+      item
+        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+        Position = 1
+        WideText = 'Size'
+      end>
   end
   object btnOK: TButton
     Left = 68
