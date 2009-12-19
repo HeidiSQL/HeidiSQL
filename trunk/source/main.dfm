@@ -6110,6 +6110,9 @@ object MainForm: TMainForm
     object menuDeleteObject: TMenuItem
       Action = actDropObjects
     end
+    object menuEmptyTables: TMenuItem
+      Action = actEmptyTables
+    end
     object menuCreateObject: TMenuItem
       Caption = 'Create new'
       ImageIndex = 130
@@ -6146,9 +6149,6 @@ object MainForm: TMainForm
     end
     object menuBulkTableEdit: TMenuItem
       Action = actBulkTableEdit
-    end
-    object menuEmptyTables: TMenuItem
-      Action = actEmptyTables
     end
     object N5a: TMenuItem
       Caption = '-'
