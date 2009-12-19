@@ -214,7 +214,7 @@ procedure TfrmSelectDBObject.TreeDBOInitNode(Sender: TBaseVirtualTree;
 begin
   // Ensure plus sign is visible for dbs and tables
   Mainform.DBtreeInitNode(Sender, ParentNode, Node, InitialStates);
-  if Sender.GetNodeLevel(Node) = 2 then
+  if (Sender.GetNodeLevel(Node) = 2) and (Mainform.GetTreeNodeType(Sender, Node) in [lntTable, lntView]) then
     InitialStates := InitialStates + [ivsHasChildren];
 end;
 
