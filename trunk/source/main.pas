@@ -2154,6 +2154,7 @@ var
   msg, activeDB : WideString;
   InDBTree: Boolean;
   Act: TAction;
+  Node: PVirtualNode;
 
   procedure DoDrop(Kind: String; List: TWideStringlist; MultiDrops: Boolean);
   var
@@ -2200,9 +2201,11 @@ begin
           Abort;
         try
           Connection.Query('DROP DATABASE ' + mask(activeDB));
-          DBtree.FocusedNode := DBtree.GetFirst;
-          DBTree.Selected[DBtree.FocusedNode] := True;
+          Node := DBTree.FocusedNode;
+          SelectNode(DBTree, DBtree.GetFirst);
           Connection.ClearDbObjects(activeDB);
+          FreeAndNil(AllDatabases);
+          DBTree.DeleteNode(Node);
           RefreshTree(False);
         except
           on E:Exception do
