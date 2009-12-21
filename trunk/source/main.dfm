@@ -1666,9 +1666,8 @@ object MainForm: TMainForm
     end
     object actCopyAsSQL: TAction
       Category = 'Export/Import'
-      Caption = 'Copy grid data as SQL'
+      Caption = 'Copy selected rows as SQL'
       Enabled = False
-      Hint = 'Copy grid data as SQL'
       ImageIndex = 114
       OnExecute = actCopyAsSQLExecute
     end
@@ -1731,26 +1730,23 @@ object MainForm: TMainForm
     object actCopyAsHTML: TAction
       Tag = 49
       Category = 'Export/Import'
-      Caption = 'Copy grid data as HTML'
+      Caption = 'Copy selected rows as HTML'
       Enabled = False
-      Hint = 'Copy grid data as HTML'
       ImageIndex = 32
       OnExecute = actCopyAsHTMLExecute
     end
     object actCopyAsCSV: TAction
       Tag = 48
       Category = 'Export/Import'
-      Caption = 'Copy grid data as CSV'
+      Caption = 'Copy selected rows as CSV'
       Enabled = False
-      Hint = 'Copy grid contents as CSV data'
       ImageIndex = 49
       OnExecute = actCopyAsCSVExecute
     end
     object actCopyAsXML: TAction
       Category = 'Export/Import'
-      Caption = 'Copy grid data as XML'
+      Caption = 'Copy selected rows as XML'
       Enabled = False
-      Hint = 'Copy grid data as XML'
       ImageIndex = 48
       OnExecute = actCopyAsXMLExecute
     end
