@@ -187,7 +187,7 @@ type
   function MakeInt( Str: String ) : Int64;
   function MakeFloat( Str: String ): Extended;
   function CleanupNumber(Str: String): String;
-  function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
+  function esc(Text: WideString; ProcessJokerChars: Boolean=false): WideString;
   function ScanNulChar(Text: WideString): Boolean;
   function ScanLineBreaks(Text: WideString): TLineBreaks;
   function RemoveNulChars(Text: WideString): WideString;
@@ -1563,107 +1563,10 @@ begin
 end;
 
 
-{***
- Attempt to do string replacement faster than StringReplace and WideStringReplace.
-}
-function escChars(const Text: WideString; EscChar, Char1, Char2, Char3, Char4: WideChar): WideString;
-const
-  // Attempt to match whatever the CPU cache will hold.
-  block: Cardinal = 65536;
-var
-  bstart, bend, matches, i: Cardinal;
-  // These could be bumped to uint64 if necessary.
-  len, respos: Cardinal;
-  next: WideChar;
+function esc(Text: WideString; ProcessJokerChars: Boolean=false): WideString;
 begin
-  len := Length(Text);
-  Result := '';
-  bend := 0;
-  respos := 0;
-  repeat
-    bstart := bend + 1;
-    bend := bstart + block - 1;
-    if bend > len then bend := len;
-    matches := 0;
-    for i := bstart to bend do if
-      (Text[i] = Char1) or
-      (Text[i] = Char2) or
-      (Text[i] = Char3) or
-      (Text[i] = Char4)
-    then Inc(matches);
-    SetLength(Result, bend + 1 - bstart + matches + respos);
-    for i := bstart to bend do begin
-      next := Text[i];
-      if
-        (next = Char1) or
-        (next = Char2) or
-        (next = Char3) or
-        (next = Char4)
-      then begin
-        Inc(respos);
-        Result[respos] := EscChar;
-        // Special values for MySQL escape.
-        if next = #13 then next := 'r';
-        if next = #10 then next := 'n';
-        if next = #0 then next := '0';
-      end;
-      Inc(respos);
-      Result[respos] := next;
-    end;
-  until bend = len;
+  Mainform.Connection.EscapeString(Text, ProcessJokerChars);
 end;
-
-
-{***
-  Escape all kinds of characters:
-  - single-backslashes which represent normal parts of the text and not escape-sequences
-  - characters which MySQL doesn't strictly care about, but which might confuse editors etc.
-  - single and double quotes in a text string
-  - joker-chars for LIKE-comparisons
-  Finally, surround the text by single quotes.
-
-  @param string Text to escape
-  @param boolean Escape text so it can be used in a LIKE-comparison
-  @return string
-}
-function esc(Text: WideString; ProcessJokerChars: Boolean = false; sql_version: integer = 50000): WideString;
-var
-  c1, c2, c3, c4, EscChar: WideChar;
-begin
-  c1 := '''';
-  c2 := '\';
-  c3 := '%';
-  c4 := '_';
-  EscChar := '\';
-  if (not ProcessJokerChars) or (sql_version = SQL_VERSION_ANSI) then begin
-    // Do not escape joker-chars which are used in a LIKE-clause
-    c4 := '''';
-    c3 := '''';
-  end;
-  if sql_version = SQL_VERSION_ANSI then begin
-    c2 := '''';
-    EscChar := '''';
-  end;
-  Result := escChars(Text, EscChar, c1, c2, c3, c4);
-  if sql_version <> SQL_VERSION_ANSI then begin
-    // Remove characters that SynEdit chokes on, so that
-    // the SQL file can be non-corruptedly loaded again.
-    c1 := #13;
-    c2 := #10;
-    c3 := #0;
-    c4 := #0;
-    // TODO: SynEdit also chokes on WideChar($2028) and possibly WideChar($2029).
-    Result := escChars(Result, EscChar, c1, c2, c3, c4);
-  end;
-  if not ProcessJokerChars then begin
-    // Add surrounding single quotes only for non-LIKE-values
-    // because in all cases we're using ProcessLIKEChars we
-    // need to add leading and/or trailing joker-chars by hand
-    // without being escaped
-    Result := WideChar(#39) + Result + WideChar(#39);
-  end;
-end;
-
 
 
 {***
