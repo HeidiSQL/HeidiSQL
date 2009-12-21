@@ -6088,6 +6088,9 @@ begin
       SelectDBObject(oldSelectedTable.Text, oldSelectedTable.NodeType);
   except
   end;
+  // Select "host" node if database was deleted outside and node is gone
+  if not Assigned(DBtree.FocusedNode) then
+    SelectNode(DBtree, DBtree.GetFirst);
 end;
 
 
