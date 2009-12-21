@@ -992,12 +992,16 @@ begin
     2: CellText := Col.DataType.Name;
     3: CellText := Col.LengthSet;
     4, 5: CellText := ''; // Checkbox
-    6: case Col.DefaultType of
-      cdtNothing:                 CellText := 'No default';
-      cdtText, cdtTextUpdateTS:   CellText := Col.DefaultText;
-      cdtNull, cdtNullUpdateTS:   CellText := 'NULL';
-      cdtCurTS, cdtCurTSUpdateTS: CellText := 'CURRENT_TIMESTAMP';
-      cdtAutoInc:                 CellText := 'AUTO_INCREMENT';
+    6: begin
+      case Col.DefaultType of
+        cdtNothing:                 CellText := 'No default';
+        cdtText, cdtTextUpdateTS:   CellText := esc(Col.DefaultText);
+        cdtNull, cdtNullUpdateTS:   CellText := 'NULL';
+        cdtCurTS, cdtCurTSUpdateTS: CellText := 'CURRENT_TIMESTAMP';
+        cdtAutoInc:                 CellText := 'AUTO_INCREMENT';
+      end;
+      if Col.DefaultType in [cdtTextUpdateTS, cdtNullUpdateTS, cdtCurTSUpdateTS] then
+        CellText := CellText + ' ON UPDATE CURRENT_TIMESTAMP';
     end;
     7: CellText := Col.Comment;
     8: begin
