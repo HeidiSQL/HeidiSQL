@@ -287,7 +287,7 @@ begin
       else if Unions.Count > 1 then
         ObjectsLeft := Mainform.Connection.GetCol('(' + implodestr(') UNION (', Unions) + ')');
       if ObjectsLeft.Count = 0 then begin
-        Mainform.Connection.Query('DROP DATABASE '+modifyDB);
+        Mainform.Connection.Query('DROP DATABASE '+Mainform.mask(modifyDB));
       end;
       FreeAndNil(ObjectsLeft);
     end;
