@@ -1597,7 +1597,7 @@ end;
 
 function esc(Text: WideString; ProcessJokerChars: Boolean=false): WideString;
 begin
-  Mainform.Connection.EscapeString(Text, ProcessJokerChars);
+  Result := Mainform.Connection.EscapeString(Text, ProcessJokerChars);
 end;
 
 
