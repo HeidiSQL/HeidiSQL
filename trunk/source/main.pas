@@ -725,9 +725,10 @@ type
     FLastMouseUpOnPageControl  : Cardinal;
     FLastTabNumberOnMouseUp    : Integer;
     DataGridResult             : TGridResult;
-    // Filter text per tab for filter panel 
+    // Filter text per tab for filter panel
     FilterTextVariables, FilterTextStatus, FilterTextProcessList, FilterTextCommandStats,
     FilterTextDatabase, FilterTextData: WideString;
+    PreviousFocusedNode: PVirtualNode;
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
     procedure SetDelimiter(Value: String);
@@ -4799,11 +4800,13 @@ procedure TMainForm.SetSelectedDatabase(db: WideString);
 var
   n: PVirtualNode;
 begin
-  n := FindDBNode(db);
-  if Assigned(n) then begin
-    DBtree.Selected[n] := true;
-    DBtree.FocusedNode := n;
-  end else
+  if db = '' then
+    n := DBtree.GetFirst
+  else
+    n := FindDBNode(db);
+  if Assigned(n) then
+    SelectNode(DBtree, n)
+  else
     raise Exception.Create('Database node ' + db + ' not found in tree.');
 end;
 
@@ -5976,12 +5979,27 @@ begin
     0: ShowHost;
     1: begin
         newDb := Databases[Node.Index];
-        Connection.Database := newDb;
-        ShowDatabase( newDb );
+        // Selecting a database can cause an SQL error if the db was deleted from outside. Select previous node in that case.
+        try
+          Connection.Database := newDb;
+        except on E:Exception do begin
+            MessageDlg(E.Message, mtError, [mbOK], 0);
+            SelectNode(DBtree, PreviousFocusedNode);
+            Exit;
+          end;
+        end;
+        ShowDatabase(newDb);
       end;
     2: begin
         newDb := Databases[Node.Parent.Index];
-        Connection.Database := newDb;
+        try
+          Connection.Database := newDb;
+        except on E:Exception do begin
+            MessageDlg(E.Message, mtError, [mbOK], 0);
+            SelectNode(DBtree, PreviousFocusedNode);
+            Exit;
+          end;
+        end;
         newDbObject := SelectedTable.Text;
         tabEditor.TabVisible := True;
         tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntView];
@@ -6016,6 +6034,7 @@ begin
         end;
       end;
   end;
+  PreviousFocusedNode := DBTree.FocusedNode;
   if newDb <> '' then
     LoadDatabaseProperties(newDb);
   FixQueryTabCloseButtons;
@@ -6025,7 +6044,7 @@ end;
 
 procedure TMainForm.DatabaseChanged(Database: WideString);
 begin
-  if (Database <> ActiveDatabase) and (Databases.IndexOf(Database) > -1) then
+  if (Database='') or (Databases.IndexOf(Database) > -1) then
     ActiveDatabase := Database;
 end;
 

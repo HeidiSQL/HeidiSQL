@@ -323,9 +323,17 @@ begin
       FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), 1);
       FServerVersionUntouched := mysql_get_server_info(FHandle);
       DetectCapabilities;
-      tmpdb := FDatabase;
-      FDatabase := '';
-      SetDatabase(tmpdb);
+      if FDatabase <> '' then begin
+        tmpdb := FDatabase;
+        FDatabase := '';
+        try
+          Database := tmpdb;
+        except
+          // Trigger OnDatabaseChange event for <no db> if wanted db is not available
+          FDatabase := tmpdb;
+          Database := '';
+        end;
+      end;
     end;
   end
 
@@ -372,7 +380,7 @@ begin
     raise Exception.Create(GetLastError);
   end else begin
     // We must call mysql_store_result() + mysql_free_result() to unblock the connection
-    // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html 
+    // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html
     FRowsAffected := mysql_affected_rows(FHandle);
     TimerStart := GetTickCount;
     Result := mysql_store_result(FHandle);
@@ -404,9 +412,14 @@ end;
 }
 procedure TMySQLConnection.SetDatabase(Value: WideString);
 begin
-  if (Value = '') or (Value = FDatabase) then
-    Exit;
-  Query('USE '+QuoteIdent(Value), False);
+  if Value <> FDatabase then begin
+    if Value = '' then begin
+      FDatabase := Value;
+      if Assigned(FOnDatabaseChanged) then
+        FOnDatabaseChanged(Value);
+    end else
+      Query('USE '+QuoteIdent(Value), False);
+  end;
 end;
 
 
