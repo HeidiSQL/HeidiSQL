@@ -900,7 +900,7 @@ begin
         else
           Obj.Engine := Results.Col('Engine');
         Obj.Comment := Results.Col('Comment');
-        Obj.Version := StrToInt64Def(Results.Col('Version'), -1);
+        Obj.Version := StrToInt64Def(Results.Col('Version', True), -1);
         Obj.AutoInc := StrToInt64Def(Results.Col('Auto_increment'), -1);
         Obj.RowFormat := Results.Col('Row_format');
         Obj.AvgRowLen := StrToInt64Def(Results.Col('Avg_row_length'), -1);
@@ -912,8 +912,8 @@ begin
           Obj.LastChecked := StrToDateTime(Results.Col('Check_time'))
         else
           Obj.LastChecked := 0;
-        Obj.Collation := Results.Col('Collation');
-        Obj.CheckSum := StrToInt64Def(Results.Col('Checksum'), -1);
+        Obj.Collation := Results.Col('Collation', True);
+        Obj.CheckSum := StrToInt64Def(Results.Col('Checksum', True), -1);
         Obj.CreateOptions := Results.Col('Create_options');
         Results.Next;
       end;
