@@ -21,6 +21,7 @@ type
     FMainControl: TWinControl;        // The editor's most important component
     FStopping: Boolean;               // Set to True when the edit link requests stopping the edit action.
     FLastKeyDown: Integer;            // Set in OnKeyDown on the editor's main control
+    FLastShiftState: TShiftState;
     FOldWindowProc: TWndMethod;       // Temporary switched to TempWindowProc to be able to catch Tab key
     procedure TempWindowProc(var Message: TMessage);
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -201,11 +202,41 @@ begin
 end;
 
 destructor TBaseGridEditorLink.Destroy;
+var
+  NewColumn, FirstCol, LastCol: TColumnIndex;
+  NewNode: PVirtualNode;
+  DoPrev: Boolean;
 begin
   inherited;
   if FLastKeyDown = VK_TAB then begin
-    SendMessage(FTree.Handle, WM_KEYDOWN, FLastKeyDown, 0);
-    SendMessage(FTree.Handle, WM_KEYDOWN, VK_F2, 0);
+    DoPrev := ssShift in FLastShiftState;
+    // Advance to next/previous visible column/node.
+    NewNode := FNode;
+    NewColumn := FColumn;
+    FirstCol := FTree.Header.Columns.GetFirstVisibleColumn;
+    LastCol := FTree.Header.Columns.GetLastVisibleColumn;
+    while true do begin
+      // Find a column for the current node which can be focused.
+      if DoPrev then begin
+        if NewColumn = FirstCol then begin
+          NewColumn := LastCol;
+          NewNode := FTree.GetPreviousVisible(NewNode);
+        end else
+          NewColumn := FTree.Header.Columns.GetPreviousColumn(NewColumn);
+      end else begin
+        if NewColumn = LastCol then begin
+          NewColumn := FirstCol;
+          NewNode := FTree.GetNextVisible(NewNode);
+        end else
+          NewColumn := FTree.Header.Columns.GetNextColumn(NewColumn);
+      end;
+      if not Assigned(NewNode) then
+        Break;
+      FTree.FocusedNode := NewNode;
+      FTree.FocusedColumn := NewColumn;
+      if FTree.EditNode(NewNode, NewColumn) then
+        Break;
+    end;
   end;
 end;
 
@@ -332,6 +363,7 @@ end;
 procedure TBaseGridEditorLink.DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   FLastKeyDown := Key;
+  FLastShiftState := Shift;
   case Key of
     // Cancel by Escape
     VK_ESCAPE: FTree.CancelEditNode;
