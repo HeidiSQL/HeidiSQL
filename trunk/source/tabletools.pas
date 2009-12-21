@@ -112,6 +112,7 @@ type
     ExportLastDatabase: Widestring;
     FTargetConnection: TMySQLConnection;
     FLastOutputSelectedIndex: Integer;
+    FModifiedDbs: TWideStringList;
     procedure SetToolMode(Value: TToolMode);
     procedure AddResults(SQL: WideString);
     procedure AddNotes(Col1, Col2, Col3, Col4: WideString);
@@ -195,6 +196,8 @@ begin
   FixVT(ResultGrid);
   FResults := TObjectList.Create;
   SelectedTables := TWideStringList.Create;
+  FModifiedDbs := TWideStringList.Create;
+  FModifiedDbs.Duplicates := dupIgnore;
 end;
 
 
@@ -482,6 +485,14 @@ begin
     FreeAndNil(ExportStream);
   end;
   ExportLastDatabase := '';
+
+  if FModifiedDbs.Count > 0 then begin
+    for i:=0 to FModifiedDbs.Count-1 do
+      Mainform.Connection.ClearDbObjects(FModifiedDbs[i]);
+    TreeObjects.ResetNode(TreeObjects.GetFirst);
+    Mainform.DBtree.ResetNode(Mainform.DBtree.GetFirst);
+    FModifiedDbs.Clear;
+  end;
   Screen.Cursor := crDefault;
 end;
 
@@ -1101,8 +1112,11 @@ var
   Specs, LogRow: TWideStringList;
 begin
   Specs := TWideStringlist.Create;
-  if chkBulkTableEditDatabase.Checked and (comboBulkTableEditDatabase.Text <> DBObj.Database) then
+  if chkBulkTableEditDatabase.Checked and (comboBulkTableEditDatabase.Text <> DBObj.Database) then begin
     Specs.Add('RENAME ' + Mainform.mask(comboBulkTableEditDatabase.Text)+'.'+Mainform.mask(DBObj.Name));
+    FModifiedDbs.Add(DBObj.Database);
+    FModifiedDbs.Add(comboBulkTableEditDatabase.Text);
+  end;
   if chkBulkTableEditEngine.Checked then begin
     if Mainform.Connection.ServerVersionInt < 40018 then
       Specs.Add('TYPE '+comboBulkTableEditEngine.Text)
