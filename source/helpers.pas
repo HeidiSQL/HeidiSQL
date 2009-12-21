@@ -834,6 +834,8 @@ var
   tmp, Data, Generator: WideString;
   Node: PVirtualNode;
   GridData: TGridResult;
+  SelectionOnly: Boolean;
+  NodeCount: Cardinal;
 begin
   GridData := Mainform.GridResult(Grid);
   if Grid = Mainform.DataGrid then begin
@@ -844,7 +846,13 @@ begin
   end;
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-  EnableProgressBar(Grid.RootNodeCount);
+  // Only process selected nodes for "Copy as ..." actions
+  SelectionOnly := S is TMemoryStream;
+  if SelectionOnly then
+    NodeCount := Grid.SelectedCount
+  else
+    NodeCount := Grid.RootNodeCount;
+  EnableProgressBar(NodeCount);
   Generator := APPNAME+' '+FullAppVersion;
   tmp :=
     '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
@@ -879,7 +887,7 @@ begin
     '    </style>' + CRLF +
     '  </head>' + CRLF + CRLF +
     '  <body>' + CRLF + CRLF +
-    '    <table caption="' + Title + ' (' + inttostr(Grid.RootNodeCount) + ' rows)">' + CRLF +
+    '    <table caption="' + Title + ' (' + inttostr(NodeCount) + ' rows)">' + CRLF +
     '      <thead>' + CRLF +
     '        <tr>' + CRLF;
   for i:=0 to Length(GridData.Columns) - 1 do begin
@@ -897,11 +905,11 @@ begin
   StreamWrite(S, tmp);
 
   Grid.Visible := false;
-  Node := Grid.GetFirst;
+  if SelectionOnly then Node := Grid.GetFirstSelected else Node := Grid.GetFirst;
   while Assigned(Node) do begin
     // Update status once in a while.
     if (Node.Index+1) mod 100 = 0 then
-      ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
+      ExportStatusMsg(Node, NodeCount, S.Size);
     tmp := '        <tr>' + CRLF;
     // Ensure basic data is loaded
     Mainform.EnsureChunkLoaded(Grid, Node, True);
@@ -923,10 +931,10 @@ begin
     StreamWrite(S, tmp);
     // Release some memory.
     Mainform.DiscardNodeData(Grid, Node);
-    Node := Grid.GetNext(Node);
+    if SelectionOnly then Node := Grid.GetNextSelected(Node) else Node := Grid.GetNext(Node);
     if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
       MessageDlg(
-        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(Grid.RootNodeCount)]),
+        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(NodeCount)]),
         mtWarning, [mbOK], 0);
       break;
     end;
@@ -962,6 +970,8 @@ var
   tmp, Data: WideString;
   Node: PVirtualNode;
   GridData: TGridResult;
+  SelectionOnly: Boolean;
+  NodeCount: Cardinal;
 begin
   GridData := Mainform.GridResult(Grid);
   if Grid = Mainform.DataGrid then begin
@@ -975,7 +985,13 @@ begin
   encloser := esc2ascii(encloser);
   terminator := esc2ascii(terminator);
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-  EnableProgressBar(Grid.RootNodeCount);
+  // Only process selected nodes for "Copy as ..." actions
+  SelectionOnly := S is TMemoryStream;
+  if SelectionOnly then
+    NodeCount := Grid.SelectedCount
+  else
+    NodeCount := Grid.RootNodeCount;
+  EnableProgressBar(NodeCount);
 
   tmp := '';
   // Columns
@@ -996,10 +1012,10 @@ begin
   Grid.Visible := false;
 
   // Data:
-  Node := Grid.GetFirst;
+  if SelectionOnly then Node := Grid.GetFirstSelected else Node := Grid.GetFirst;
   while Assigned(Node) do begin
     if (Node.Index+1) mod 100 = 0 then
-      ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
+      ExportStatusMsg(Node, NodeCount, S.Size);
     tmp := '';
     // Ensure basic data is loaded
     Mainform.EnsureChunkLoaded(Grid, Node, True);
@@ -1026,10 +1042,10 @@ begin
     StreamWrite(S, tmp);
     // Release some memory.
     Mainform.DiscardNodeData(Grid, Node);
-    Node := Grid.GetNext(Node);
+    if SelectionOnly then Node := Grid.GetNextSelected(Node) else Node := Grid.GetNext(Node);
     if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
       MessageDlg(
-        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(Grid.RootNodeCount)]),
+        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(NodeCount)]),
         mtWarning, [mbOK], 0);
       break;
     end;
@@ -1052,6 +1068,8 @@ var
   tmp, Data: WideString;
   Node: PVirtualNode;
   GridData: TGridResult;
+  SelectionOnly: Boolean;
+  NodeCount: Cardinal;
 begin
   GridData := Mainform.GridResult(Grid);
   if Grid = Mainform.DataGrid then begin
@@ -1062,17 +1080,23 @@ begin
   end;
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-  EnableProgressBar(Grid.RootNodeCount);
+  // Only process selected nodes for "Copy as ..." actions
+  SelectionOnly := S is TMemoryStream;
+  if SelectionOnly then
+    NodeCount := Grid.SelectedCount
+  else
+    NodeCount := Grid.RootNodeCount;
+  EnableProgressBar(NodeCount);
   tmp := '<?xml version="1.0"?>' + CRLF + CRLF +
       '<table name="'+root+'">' + CRLF;
   StreamWrite(S, tmp);
 
   // Avoid reloading discarded data before the end.
   Grid.Visible := false;
-  Node := Grid.GetFirst;
+  if SelectionOnly then Node := Grid.GetFirstSelected else Node := Grid.GetFirst;
   while Assigned(Node) do begin
     if (Node.Index+1) mod 100 = 0 then
-     ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
+     ExportStatusMsg(Node, NodeCount, S.Size);
     tmp := #9'<row>' + CRLF;
     // Ensure basic data is loaded.
     Mainform.EnsureChunkLoaded(Grid, Node, True);
@@ -1102,10 +1126,10 @@ begin
     StreamWrite(S, tmp);
     // Release some memory.
     Mainform.DiscardNodeData(Grid, Node);
-    Node := Grid.GetNext(Node);
+    if SelectionOnly then Node := Grid.GetNextSelected(Node) else Node := Grid.GetNext(Node);
     if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
       MessageDlg(
-        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(Grid.RootNodeCount)]),
+        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(NodeCount)]),
         mtWarning, [mbOK], 0);
       break;
     end;
@@ -1130,6 +1154,8 @@ var
   tmp, Data: WideString;
   Node: PVirtualNode;
   GridData: TGridResult;
+  SelectionOnly: Boolean;
+  NodeCount: Cardinal;
 begin
   GridData := Mainform.GridResult(Grid);
   if Grid = Mainform.DataGrid then begin
@@ -1140,13 +1166,19 @@ begin
   end;
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-  EnableProgressBar(Grid.RootNodeCount);
+  // Only process selected nodes for "Copy as ..." actions
+  SelectionOnly := S is TMemoryStream;
+  if SelectionOnly then
+    NodeCount := Grid.SelectedCount
+  else
+    NodeCount := Grid.RootNodeCount;
+  EnableProgressBar(NodeCount);
   // Avoid reloading discarded data before the end.
   Grid.Visible := false;
-  Node := Grid.GetFirst;
+  if SelectionOnly then Node := Grid.GetFirstSelected else Node := Grid.GetFirst;
   while Assigned(Node) do begin
     if (Node.Index+1) mod 100 = 0 then
-     ExportStatusMsg(Node, Grid.RootNodeCount, S.Size);
+     ExportStatusMsg(Node, NodeCount, S.Size);
     tmp := 'INSERT INTO '+Mainform.Mask(Tablename)+' (';
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
@@ -1180,10 +1212,10 @@ begin
     StreamWrite(S, tmp);
     // Release some memory.
     Mainform.DiscardNodeData(Grid, Node);
-    Node := Grid.GetNext(Node);
+    if SelectionOnly then Node := Grid.GetNextSelected(Node) else Node := Grid.GetNext(Node);
     if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
       MessageDlg(
-        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(Grid.RootNodeCount)]),
+        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(NodeCount)]),
         mtWarning, [mbOK], 0);
       break;
     end;
