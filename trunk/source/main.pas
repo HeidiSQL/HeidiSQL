@@ -4798,15 +4798,18 @@ end;
 
 procedure TMainForm.SetSelectedDatabase(db: WideString);
 var
-  n: PVirtualNode;
+  n, f: PVirtualNode;
 begin
   if db = '' then
     n := DBtree.GetFirst
   else
     n := FindDBNode(db);
-  if Assigned(n) then
-    SelectNode(DBtree, n)
-  else
+  if Assigned(n) then begin
+    // Set focus to db node, if current focus is outside 
+    f := DBtree.FocusedNode;
+    if (not Assigned(f)) or (f.Parent <> n) then
+      SelectNode(DBtree, n);
+  end else
     raise Exception.Create('Database node ' + db + ' not found in tree.');
 end;
 
