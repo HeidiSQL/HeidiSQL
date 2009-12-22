@@ -396,6 +396,7 @@ begin
     tabALTERcode.TabVisible := FEditObjectName <> '';
     Mainform.SetEditorTabCaption(Self, FEditObjectName);
     Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
+    Mainform.ParseSelectedTableStructure;
     ResetModificationFlags;
   except
     on E:Exception do

@@ -849,6 +849,7 @@ type
     function MaskMulti(str: WideString): WideString;
     procedure SelectDBObject(Text: WideString; NodeType: TListNodeType);
     procedure SetupSynEditors;
+    procedure ParseSelectedTableStructure;
 end;
 
 
@@ -6001,20 +6002,7 @@ begin
         newDbObject := SelectedTable.Text;
         tabEditor.TabVisible := True;
         tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntView];
-        SelectedTableColumns.Clear;
-        SelectedTableKeys.Clear;
-        SelectedTableForeignKeys.Clear;
-        try
-          case SelectedTable.NodeType of
-            lntTable: begin
-              SelectedTableCreateStatement := Connection.GetVar('SHOW CREATE TABLE '+Mainform.mask(SelectedTable.Text), 1);
-              ParseTableStructure(SelectedTableCreateStatement, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
-            end;
-            lntView: ParseViewStructure(SelectedTable.Text, SelectedTableColumns);
-          end;
-        except on E:Exception do
-          MessageDlg(E.Message, mtError, [mbOK], 0);
-        end;
+        ParseSelectedTableStructure;
         if tabEditor.TabVisible then begin
           actEditObjectExecute(Sender);
           // When a table is clicked in the tree, and the current
@@ -6037,6 +6025,25 @@ begin
     LoadDatabaseProperties(newDb);
   FixQueryTabCloseButtons;
   SetWindowCaption;
+end;
+
+
+procedure TMainForm.ParseSelectedTableStructure;
+begin
+  SelectedTableColumns.Clear;
+  SelectedTableKeys.Clear;
+  SelectedTableForeignKeys.Clear;
+  try
+    case SelectedTable.NodeType of
+      lntTable: begin
+        SelectedTableCreateStatement := Connection.GetVar('SHOW CREATE TABLE '+Mainform.mask(SelectedTable.Text), 1);
+        ParseTableStructure(SelectedTableCreateStatement, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
+      end;
+      lntView: ParseViewStructure(SelectedTable.Text, SelectedTableColumns);
+    end;
+  except on E:Exception do
+    MessageDlg(E.Message, mtError, [mbOK], 0);
+  end;
 end;
 
 
