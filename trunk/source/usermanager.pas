@@ -1735,7 +1735,13 @@ begin
   end;
   if Fields.ColExists('Db') then begin
     DBOType := lntDb;
-    DBONames.Add(Fields.Col('Db'));
+    try
+      DBONames.Add(Fields.Col('Db'));
+    except
+      on E:Exception do begin
+        raise Exception.Create(E.Message+CRLF+CRLF+'Fields.ColumnNames: '+Fields.ColumnNames.CommaText);
+      end;
+    end;
   end;
   if Fields.ColExists('Table_name') then begin
     DBOType := lntTable;
