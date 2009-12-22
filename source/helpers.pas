@@ -8,10 +8,11 @@ unit helpers;
 
 interface
 
-uses Classes, SysUtils, Graphics, GraphUtil, db, clipbrd, dialogs,
-  forms, controls, ShellApi, checklst, windows, Contnrs,
-  shlobj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
-  TntCheckLst, Registry, SynEditHighlighter, mysql_connection, mysql_structures, DateUtils;
+uses
+  Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi, CheckLst,
+  Windows, Contnrs, ShlObj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
+  TntCheckLst, Registry, SynEditHighlighter, DateUtils,
+  mysql_connection, mysql_structures;
 
 type
 

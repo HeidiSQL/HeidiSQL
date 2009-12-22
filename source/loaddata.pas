@@ -9,9 +9,9 @@ unit loaddata;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ExtCtrls, comctrls, Buttons, CheckLst, PngSpeedButton,
-  WideStrings, TntCheckLst, TntStdCtrls, mysql_connection, SynRegExpr;
+  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst, PngSpeedButton,
+  WideStrings, TntCheckLst, TntStdCtrls, SynRegExpr, Buttons,
+  mysql_connection;
 
 type
   Tloaddataform = class(TForm)

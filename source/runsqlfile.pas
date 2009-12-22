@@ -3,8 +3,7 @@ unit runsqlfile;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, StdCtrls, TntStdCtrls;
+  Windows, SysUtils, Classes, Controls, Forms, Dialogs, ComCtrls, StdCtrls, TntStdCtrls;
 
 type
   TRunSQLFileForm = class(TForm)

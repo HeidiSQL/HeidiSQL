@@ -4,9 +4,10 @@ unit grideditlinks;
 
 interface
 
-uses Windows, Forms, Graphics, messages, VirtualTrees, texteditor, bineditor, ComCtrls, SysUtils, Classes,
-  mysql_structures, helpers, TntStdCtrls, WideStrings, StdCtrls, ExtCtrls, TntCheckLst,
-  Buttons, Controls, Types, Dialogs, Mask, MaskUtils, DateUtils ;
+uses
+  Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes, TntStdCtrls, WideStrings,
+  StdCtrls, ExtCtrls, TntCheckLst, Controls, Types, Dialogs, Mask, DateUtils,
+  mysql_structures, helpers, texteditor, bineditor;
 
 type
   TBaseGridEditorLink = class(TInterfacedObject, IVTEditLink)

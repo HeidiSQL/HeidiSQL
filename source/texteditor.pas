@@ -3,8 +3,9 @@ unit texteditor;
 interface
 
 uses
-  Windows, Classes, Graphics, Forms, Controls, helpers, StdCtrls, TntStdCtrls, VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils, Menus, WideStrUtils;
+  Windows, Classes, Graphics, Forms, Controls, StdCtrls, TntStdCtrls, VirtualTrees,
+  ComCtrls, ToolWin, Dialogs, SysUtils, Menus, WideStrUtils,
+  helpers;
 
 {$I const.inc}
 

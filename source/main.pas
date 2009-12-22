@@ -10,19 +10,15 @@ unit Main;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus,
-  StdCtrls, Dialogs, Buttons, Messages, ExtCtrls, ComCtrls, StdActns,
-  ActnList, ImgList, ShellApi, ToolWin, Clipbrd,
-  SynMemo, synedit, SynEditTypes,
-  sqlhelp, VirtualTrees,
-  DateUtils, PngImageList, TableTools, View, Usermanager,
-  SelectDBObject, Widestrings, ShlObj, SynEditMiscClasses, SynEditSearch,
-  SynCompletionProposal, SynEditHighlighter, SynHighlighterSQL,
-  TntStdCtrls, Tabs, SynUnicode, EditVar, helpers,
-  createdatabase, table_editor, SynRegExpr,
-  WideStrUtils, ExtActns, CommCtrl, routine_editor, trigger_editor, options,
-  Contnrs, PngSpeedButton, connections, SynEditKeyCmds,
-  mysql_connection, mysql_api, insertfiles, TntComCtrls;
+  Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
+  Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
+  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, PngImageList, Widestrings,
+  ShlObj, SynEditMiscClasses, SynEditSearch, SynCompletionProposal, SynEditHighlighter,
+  SynHighlighterSQL, TntStdCtrls, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
+  CommCtrl, Contnrs, PngSpeedButton, TntComCtrls,
+  routine_editor, trigger_editor, options, EditVar, helpers, createdatabase, table_editor,
+  TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
+  mysql_api, insertfiles;
 
 
 type
@@ -888,9 +884,8 @@ const
 implementation
 
 uses
-  About, loaddata, printlist, copytable,
-  mysql_structures, UpdateCheck, uVistaFuncs, runsqlfile, column_selection,
-  data_sorting, grideditlinks, dataviewsave;
+  About, loaddata, printlist, copytable, mysql_structures, UpdateCheck, uVistaFuncs, runsqlfile,
+  column_selection, data_sorting, grideditlinks, dataviewsave;
 
 
 {$R *.DFM}

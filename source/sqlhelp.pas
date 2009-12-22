@@ -3,10 +3,10 @@ unit sqlhelp;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, ExtCtrls, ShellApi, Buttons,
-  PngSpeedButton, SynMemo, SynEditHighlighter, SynHighlighterURI,
-  SynURIOpener, SynEdit, mysql_connection;
+  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, ExtCtrls,
+  Buttons, PngSpeedButton, SynMemo, SynEditHighlighter, SynHighlighterURI,
+  SynURIOpener, SynEdit,
+  mysql_connection;
 
 type
   TfrmSQLhelp = class(TForm)
@@ -59,7 +59,7 @@ type
 
 implementation
 
-uses helpers, main, db;
+uses helpers, main;
 
 {$I const.inc}
 

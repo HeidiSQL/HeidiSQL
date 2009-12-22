@@ -3,9 +3,9 @@ unit data_sorting;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, ComCtrls, Buttons,
-  WideStrings, TntStdCtrls, helpers, mysql_connection, Contnrs;
+  Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ExtCtrls, ComCtrls, Buttons,
+  WideStrings, TntStdCtrls, Contnrs,
+  helpers;
 
 
 type

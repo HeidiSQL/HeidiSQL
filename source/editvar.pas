@@ -3,8 +3,7 @@ unit editvar;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, TntStdCtrls;
+  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, TntStdCtrls;
 
 type
   TfrmEditVariable = class(TForm)

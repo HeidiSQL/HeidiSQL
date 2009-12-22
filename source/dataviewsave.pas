@@ -3,8 +3,7 @@ unit dataviewsave;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, WideStrings, Contnrs;
+  Windows, SysUtils, Classes, Controls, Forms, StdCtrls, WideStrings, Contnrs;
 
 type
   TFrmDataViewSave = class(TForm)

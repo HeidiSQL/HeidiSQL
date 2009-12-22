@@ -3,9 +3,9 @@ unit trigger_editor;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, TntStdCtrls, SynEdit, SynMemo, ExtCtrls, mysql_connection, mysql_api,
-  SynCompletionProposal, VirtualTrees, helpers;
+  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, TntStdCtrls, SynEdit, SynMemo,
+  SynCompletionProposal, VirtualTrees,
+  mysql_connection, mysql_api, helpers;
 
 type
   TFrame = TDBObjectEditor;

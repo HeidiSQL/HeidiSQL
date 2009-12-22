@@ -3,10 +3,9 @@ unit routine_editor;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, SynEdit, SynMemo, StdCtrls, TntStdCtrls, ComCtrls, ToolWin,
-  VirtualTrees, WideStrings, mysql_connection, SynRegExpr, WideStrUtils, helpers,
-  mysql_api;
+  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, SynEdit, SynMemo, StdCtrls,
+  TntStdCtrls, ComCtrls, ToolWin, VirtualTrees, WideStrings, SynRegExpr, WideStrUtils,
+  mysql_connection, helpers, mysql_api;
 
 type
   TFrame = TDBObjectEditor;

@@ -3,8 +3,9 @@ unit bineditor;
 interface
 
 uses
-  Windows, Classes, Graphics, Forms, Controls, helpers, StdCtrls, TntStdCtrls, VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils;
+  Windows, Classes, Graphics, Forms, Controls, StdCtrls, TntStdCtrls, VirtualTrees,
+  ComCtrls, ToolWin, Dialogs,
+  helpers;
 
 {$I const.inc}
 
@@ -43,7 +44,6 @@ type
 
 implementation
 
-uses main;
 
 {$R *.dfm}
 

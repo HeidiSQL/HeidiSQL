@@ -3,9 +3,8 @@ unit selectdbobject;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, VirtualTrees, mysql_connection, WideStrings,
-  TntStdCtrls;
+  Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees, WideStrings, TntStdCtrls,
+  mysql_connection;
 
 type
   TfrmSelectDBObject = class(TForm)
