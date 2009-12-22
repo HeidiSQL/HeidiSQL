@@ -168,7 +168,7 @@ begin
       if Create[i] = '(' then
         Inc(ParenthesesCount);
     end;
-    rx.Expression := '(^|,)\s*((IN|OUT|INOUT)\s+)?(\S+)\s+([^,]+)';
+    rx.Expression := '(^|,)\s*((IN|OUT|INOUT)\s+)?(\S+)\s+([^\s,\(]+(\([^\)]*\))?[^,]*)';
     if rx.Exec(Params) then while true do begin
       Context := UpperCase(rx.Match[3]);
       if Context = '' then
