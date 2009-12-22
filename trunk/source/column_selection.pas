@@ -3,13 +3,11 @@ unit column_selection;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, CheckLst, ExtCtrls, TntCheckLst, WideStrings, mysql_connection,
-  Contnrs;
+  Windows, Classes, Controls, Forms, StdCtrls, CheckLst, ExtCtrls, TntCheckLst, WideStrings, Contnrs;
 
 type
   TColumnSelectionForm = class(TForm)
-    pnlBevel: TPanel; // This panel has the only duty to display a normal border at the edges of the form 
+    pnlBevel: TPanel; // This panel has the only duty to display a normal border at the edges of the form
     btnCancel: TButton;
     btnOK: TButton;
     chkSelectAll: TCheckBox;
@@ -36,7 +34,7 @@ var
 
 implementation
 
-uses MAIN, helpers;
+uses main, helpers;
 
 
 {$R *.dfm}

@@ -3,10 +3,10 @@
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, TntStdCtrls, ComCtrls, ToolWin, VirtualTrees, WideStrings,
-  SynRegExpr, ActiveX, ExtCtrls, ImgList, SynEdit, SynMemo, Menus, WideStrUtils,
-  Contnrs, grideditlinks, mysql_structures, mysql_connection, helpers, mysql_api;
+  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, TntStdCtrls,
+  ComCtrls, ToolWin, VirtualTrees, WideStrings, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
+  SynMemo, Menus, WideStrUtils, Contnrs,
+  grideditlinks, mysql_structures, mysql_connection, helpers, mysql_api;
 
 type
   TFrame = TDBObjectEditor;

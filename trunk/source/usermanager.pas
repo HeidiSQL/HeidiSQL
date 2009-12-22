@@ -4,9 +4,9 @@ unit usermanager;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  ComCtrls, StdCtrls, CheckLst, ExtCtrls, Buttons, mysql_connection,
-  ToolWin, TntCheckLst, WideStrings, WideStrUtils, helpers;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
+  CheckLst, ExtCtrls, ToolWin, TntCheckLst, WideStrings, WideStrUtils,
+  mysql_connection, helpers;
 
 {$I const.inc}
 

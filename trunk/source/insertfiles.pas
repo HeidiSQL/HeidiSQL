@@ -3,8 +3,9 @@ unit insertfiles;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ImgList, Buttons, ShellApi, Math, mysql_connection;
+  Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, ImgList,
+  ShellApi, Math,
+  mysql_connection;
 
 type TCol = record
   Name   : String;   // for displaying in lists
@@ -68,7 +69,7 @@ type
 
 implementation
 
-uses main, helpers, db;
+uses main, helpers;
 
 {$R *.DFM}
 

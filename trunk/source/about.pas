@@ -9,8 +9,7 @@ unit About;
 interface
 
 uses
-  Windows, Menus, Classes, Graphics, Forms, Controls, StdCtrls,
-  Buttons, ExtCtrls, ShellApi, SysUtils, dialogs, ComCtrls, GIFImg;
+  Windows, Classes, Graphics, Forms, Controls, StdCtrls, ExtCtrls, SysUtils, ComCtrls, GIFImg;
 
 
 type

@@ -10,8 +10,9 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
-  WideStrings, WideStrUtils, VirtualTrees, ExtCtrls, mysql_connection, Contnrs, Graphics, TntStdCtrls,
-  PngSpeedButton, SynRegExpr, helpers;
+  WideStrings, WideStrUtils, VirtualTrees, ExtCtrls, Contnrs, Graphics, TntStdCtrls,
+  PngSpeedButton, SynRegExpr,
+  mysql_connection, helpers;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);

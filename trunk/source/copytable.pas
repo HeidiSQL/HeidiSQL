@@ -9,9 +9,9 @@ unit copytable;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, CheckLst, ComCtrls, WideStrings,
-  TntStdCtrls, TntCheckLst, mysql_connection;
+  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, CheckLst, WideStrings,
+  TntStdCtrls, TntCheckLst,
+  mysql_connection;
 
 type
   TCopyTableForm = class(TForm)
@@ -48,7 +48,7 @@ type
 
 implementation
 
-uses helpers, main, db;
+uses helpers, main;
 
 {$R *.DFM}
 

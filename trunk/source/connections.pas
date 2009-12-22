@@ -9,9 +9,8 @@ unit connections;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, ExtCtrls, ComCtrls, WideStrings,
-  TntStdCtrls, VirtualTrees, Menus, mysql_api;
+  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
+  TntStdCtrls, VirtualTrees, Menus;
 
 type
   Tconnform = class(TForm)
@@ -101,7 +100,8 @@ type
 
 
 implementation
- uses Main, helpers, grideditlinks;
+
+uses Main, helpers, grideditlinks;
 
 {$I const.inc}
 

@@ -3,8 +3,7 @@ unit updatecheck;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Forms,
-  Dialogs, StdCtrls, ExtActns, IniFiles, Controls, Graphics;
+  Windows, Messages, SysUtils, Classes, Forms, StdCtrls, ExtActns, IniFiles, Controls, Graphics;
 
 type
   TUrlMonUrlMkSetSessionOption = function(dwOption: Cardinal; pBuffer: PChar; dwBufferLength: Cardinal; dwReserved: Cardinal): HRESULT; stdcall;

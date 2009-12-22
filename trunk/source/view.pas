@@ -3,9 +3,9 @@ unit view;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, SynEdit, SynMemo, ExtCtrls, mysql_connection, SynRegExpr,
-  helpers, mysql_api;
+  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
+  ExtCtrls, SynRegExpr,
+  mysql_connection, helpers, mysql_api;
 
 type
   TFrame = TDBObjectEditor;

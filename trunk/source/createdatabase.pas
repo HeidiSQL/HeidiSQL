@@ -3,8 +3,9 @@ unit createdatabase;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, mysql_connection, SynEdit, SynMemo, TntStdCtrls, WideStrings;
+  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
+  TntStdCtrls, WideStrings,
+  mysql_connection;
 
 type
   TCreateDatabaseForm = class(TForm)
