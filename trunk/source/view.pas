@@ -180,6 +180,7 @@ begin
     FEditObjectName := editName.Text;
     Mainform.SetEditorTabCaption(Self, FEditObjectName);
     Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
+    Mainform.ParseSelectedTableStructure;
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
