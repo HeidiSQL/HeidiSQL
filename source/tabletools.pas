@@ -349,11 +349,17 @@ end;
 
 procedure TfrmTableTools.TreeObjectsChecking(Sender: TBaseVirtualTree; Node: PVirtualNode;
   var NewState: TCheckState; var Allowed: Boolean);
+var
+  n: PVirtualNode;
+  hello: Widestring;
 begin
-  // Ensure to also toggle check state of not yet initialized nodes 
-  if Sender.GetNodeLevel(Node) = 1 then
-    Sender.ReinitChildren(Node, false);
+  // Ensure to also toggle check state of not yet initialized nodes
   Allowed := True;
+  // Weird fix: Just iterate through all sub nodes for implicit initialization. Without this
+  // loop a checkbox click on a parent node would only auto-check its visible children.
+  n := Sender.GetFirstChild(Node);
+  while Assigned(n) do
+    n := Sender.GetNextSibling(n);
 end;
 
 
