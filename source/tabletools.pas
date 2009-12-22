@@ -352,7 +352,6 @@ procedure TfrmTableTools.TreeObjectsChecking(Sender: TBaseVirtualTree; Node: PVi
   var NewState: TCheckState; var Allowed: Boolean);
 var
   n: PVirtualNode;
-  hello: Widestring;
 begin
   // Ensure to also toggle check state of not yet initialized nodes
   Allowed := True;
