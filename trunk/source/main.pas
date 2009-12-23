@@ -446,6 +446,8 @@ type
     menuCreateTrigger: TMenuItem;
     menuQueryCut: TMenuItem;
     menuQuerySelectall: TMenuItem;
+    actDataDuplicateRow: TAction;
+    Duplicaterow1: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -704,6 +706,7 @@ type
     procedure TimerFilterVTTimer(Sender: TObject);
     procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure menuQueryHelpersGenerateStatementClick(Sender: TObject);
+    procedure actDataDuplicateRowExecute(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -833,7 +836,7 @@ type
     function GetWhereClause(Row: PGridRow; Columns: PGridColumns): WideString;
     function GetKeyColumns: TWideStringlist;
     function CheckUniqueKeyClause: Boolean;
-    procedure DataGridInsertRow;
+    procedure DataGridInsertRow(CopyValuesFromNode: PVirtualNode);
     procedure DataGridCancel(Sender: TObject);
     procedure CalcNullColors;
     procedure FillDataViewPopup;
@@ -3018,8 +3021,15 @@ end;
 
 procedure TMainForm.actDataInsertExecute(Sender: TObject);
 begin
-  DataGridInsertRow;
+  DataGridInsertRow(nil);
 end;
+
+
+procedure TMainForm.actDataDuplicateRowExecute(Sender: TObject);
+begin
+  DataGridInsertRow(DataGrid.FocusedNode);
+end;
+
 
 procedure TMainForm.actDataLastExecute(Sender: TObject);
 var
@@ -3642,6 +3652,7 @@ begin
   // Data tab - if query results are made editable, these will need
   //            to be changed to look at which tab is focused.
   actDataInsert.Enabled := inDataGrid;
+  actDataDuplicateRow.Enabled := inDataGrid and Assigned(ActiveGrid.FocusedNode);
   actDataDelete.Enabled := inDataGrid and (DataGrid.SelectedCount > 0);
   actDataFirst.Enabled := inDataGrid;
   actDataLast.Enabled := inDataGrid;
@@ -6842,9 +6853,10 @@ end;
 {**
   DataGrid: compose and fire UPDATE query
 }
-procedure TMainForm.DataGridInsertRow;
+procedure TMainForm.DataGridInsertRow(CopyValuesFromNode: PVirtualNode);
 var
   i, j: Integer;
+  Val: WideString;
 begin
   // Scroll to the bottom to ensure we append the new row at the very last DataGridResult chunk
   DataGrid.FocusedNode := DataGrid.GetLast;
@@ -6859,6 +6871,13 @@ begin
     DataGridResult.Rows[i].Cells[j].Text := '';
   end;
   DataGrid.FocusedNode := DataGrid.AddChild(nil);
+  if Assigned(CopyValuesFromNode) then begin
+    for j:=0 to DataGrid.Header.Columns.Count-1 do begin
+      Val := DataGrid.Text[CopyValuesFromNode, j];
+      if (coVisible in DataGrid.Header.Columns[j].Options) and (Val <> '') then
+        DataGrid.Text[DataGrid.FocusedNode, j] := Val;
+    end;
+  end;
   DataGrid.ClearSelection;
   DataGrid.Selected[DataGrid.FocusedNode] := True;
   DataGridHasChanges := True;
