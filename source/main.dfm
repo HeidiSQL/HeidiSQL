@@ -1872,6 +1872,14 @@ object MainForm: TMainForm
       ShortCut = 45
       OnExecute = actDataInsertExecute
     end
+    object actDataDuplicateRow: TAction
+      Category = 'Data'
+      Caption = 'Duplicate row'
+      Enabled = False
+      ImageIndex = 45
+      ShortCut = 16429
+      OnExecute = actDataDuplicateRowExecute
+    end
     object actDataDelete: TAction
       Category = 'Data'
       Caption = '&Delete selected row(s)'
@@ -6259,6 +6267,9 @@ object MainForm: TMainForm
     end
     object Insert1: TMenuItem
       Action = actDataInsert
+    end
+    object Duplicaterow1: TMenuItem
+      Action = actDataDuplicateRow
     end
     object DataPost1: TMenuItem
       Action = actDataPostChanges
