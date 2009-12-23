@@ -958,8 +958,7 @@ begin
           Obj.Size := StrToInt64Def(Results.Col('Data_length'), 0) + StrToInt64Def(Results.Col('Index_length'), 0);
         Obj.ObjType := 'BASE TABLE';
         Obj.NodeType := lntTable;
-        if Results.IsNull(1) and Results.IsNull(2) // Engine column is NULL for views
-          and (Results.Col('Comment') = 'VIEW') then begin
+        if Results.IsNull(1) and Results.IsNull(2) then begin // Engine column is NULL for views
           Obj.NodeType := lntView;
           Obj.ObjType := 'VIEW';
         end;
