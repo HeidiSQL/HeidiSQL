@@ -6119,7 +6119,7 @@ begin
     Connection.ClearDbObjects;
     FreeAndNil(AllDatabases);
   end;
-  DBtree.ReinitChildren(DBTree.GetFirst, False);
+  DBtree.ResetNode(DBTree.GetFirst);
 
   // Reselect active or new database if present. Could have been deleted or renamed.
   try
