@@ -153,8 +153,13 @@ var
 begin
   // Edit mode means we drop the trigger and recreate it, as there is no ALTER TRIGGER.
   try
+    // In edit mode we could create a temporary trigger, but that would only cause an error a la
+    // "This version of MySQL doesn't yet support multiple triggers with the same action time and event for one table"
+    // So, we take the risk of loosing the trigger for cases in which the user has SQL errors in
+    // his statement. The user must fix such errors and re-press "Save" while we have them in memory,
+    // otherwise the trigger attributes are lost forever.
     if FEditObjectName <> '' then
-      Mainform.Connection.Query('DROP TRIGGER '+Mainform.mask(FEditObjectName));
+      Mainform.Connection.Query('DROP TRIGGER IF EXISTS '+Mainform.mask(FEditObjectName));
     // CREATE
     //   [DEFINER = { user | CURRENT_USER }]
     //   TRIGGER trigger_name trigger_time trigger_event
