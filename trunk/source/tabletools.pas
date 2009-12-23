@@ -1148,25 +1148,30 @@ begin
     FModifiedDbs.Add(DBObj.Database);
     FModifiedDbs.Add(comboBulkTableEditDatabase.Text);
   end;
-  if chkBulkTableEditEngine.Checked then begin
+  if (DBObj.NodeType = lntTable) and chkBulkTableEditEngine.Checked then begin
     if Mainform.Connection.ServerVersionInt < 40018 then
       Specs.Add('TYPE '+comboBulkTableEditEngine.Text)
     else
       Specs.Add('ENGINE '+comboBulkTableEditEngine.Text);
   end;
-  if chkBulkTableEditCollation.Checked and (comboBulkTableEditCollation.ItemIndex > -1) then
+  if (DBObj.NodeType = lntTable) and chkBulkTableEditCollation.Checked and (comboBulkTableEditCollation.ItemIndex > -1) then
     Specs.Add('COLLATE '+comboBulkTableEditCollation.Text);
-  if chkBulkTableEditCharset.Checked and (comboBulkTableEditCharset.ItemIndex > -1) then begin
+  if (DBObj.NodeType = lntTable) and chkBulkTableEditCharset.Checked and (comboBulkTableEditCharset.ItemIndex > -1) then begin
     Mainform.Connection.CharsetTable.RecNo := comboBulkTableEditCharset.ItemIndex;
     Specs.Add('CONVERT TO CHARSET '+Mainform.Connection.CharsetTable.Col('Charset'));
   end;
-  if chkBulkTableEditResetAutoinc.Checked then
+  if (DBObj.NodeType = lntTable) and chkBulkTableEditResetAutoinc.Checked then
     Specs.Add('AUTO_INCREMENT=0');
-  if Specs.Count > 0 then
-    Mainform.Connection.Query('ALTER TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name) + ' ' + ImplodeStr(', ', Specs));
+
   LogRow := TWideStringList(FResults.Last);
-  LogRow[2] := 'Done';
-  LogRow[3] := 'Success';
+  if Specs.Count > 0 then begin
+    Mainform.Connection.Query('ALTER TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name) + ' ' + ImplodeStr(', ', Specs));
+    LogRow[2] := 'Done';
+    LogRow[3] := 'Success';
+  end else begin
+    LogRow[2] := 'Nothing to do';
+    LogRow[3] := 'Selected operations cannot be applied to a '+LowerCase(DBObj.ObjType);
+  end;
   UpdateResultGrid;
 end;
 
