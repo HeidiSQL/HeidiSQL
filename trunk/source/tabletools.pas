@@ -424,6 +424,7 @@ var
   DBObjects, Views: TDBObjectList;
   DBObj: TDBObject;
   i: Integer;
+  ProcessNodeFunc: procedure(DBObj: TDBObject) of Object;
 begin
   Screen.Cursor := crHourGlass;
   if tabsTools.ActivePage = tabMaintenance then
@@ -450,17 +451,16 @@ begin
           // Find table in cashed dataset and check its size - perhaps it has to be skipped
           if (udSkipLargeTables.Position = 0) or ((DBObj.Size div SIZE_MB) < udSkipLargeTables.Position) then try
             case FToolMode of
-              tmMaintenance:    DoMaintenance(DBObj);
-              tmFind:           DoFind(DBObj);
-              tmSQLExport: begin
-                // Views have to be exported at the very end so at least all needed tables are ready when a view gets imported
-                if DBObj.NodeType = lntView then
-                  Views.Add(DBObj)
-                else
-                  DoExport(DBObj);
-              end;
-              tmBulkTableEdit:  DoBulkTableEdit(DBObj);
+              tmMaintenance: ProcessNodeFunc := DoMaintenance;
+              tmFind: ProcessNodeFunc := DoFind;
+              tmSQLExport: ProcessNodeFunc := DoExport;
+              tmBulkTableEdit: ProcessNodeFunc := DoBulkTableEdit;
             end;
+            // Views have to be exported at the very end so at least all needed tables are ready when a view gets imported
+            if DBObj.NodeType = lntView then
+              Views.Add(DBObj)
+            else
+              ProcessNodeFunc(DBObj);
           except
             // The above SQL can easily throw an exception, e.g. if a table is corrupted.
             // In such cases we create a dummy row, including the error message
@@ -477,9 +477,9 @@ begin
   end;
 
   // Special block for late created views in export mode
-  if FToolMode = tmSQLExport then for i:=0 to Views.Count-1 do begin
+  for i:=0 to Views.Count-1 do begin
     try
-      DoExport(Views[i]);
+      ProcessNodeFunc(Views[i]);
     except on E:Exception do
       AddNotes(Views[i].Database, Views[i].Name, 'error', E.Message);
     end;
@@ -1116,10 +1116,35 @@ end;
 procedure TfrmTableTools.DoBulkTableEdit(DBObj: TDBObject);
 var
   Specs, LogRow: TWideStringList;
+  CreateView: WideString;
+  rx: TRegExpr;
 begin
+  AddResults('SELECT '+esc(DBObj.Database)+' AS '+Mainform.mask('Database')+', ' +
+    esc(DBObj.Name)+' AS '+Mainform.mask('Table')+', ' +
+    esc('Updating...')+' AS '+Mainform.mask('Operation')+', '+
+    ''''' AS '+Mainform.mask('Result')
+    );
   Specs := TWideStringlist.Create;
   if chkBulkTableEditDatabase.Checked and (comboBulkTableEditDatabase.Text <> DBObj.Database) then begin
-    Specs.Add('RENAME ' + Mainform.mask(comboBulkTableEditDatabase.Text)+'.'+Mainform.mask(DBObj.Name));
+    case DBObj.NodeType of
+      lntTable: Specs.Add('RENAME ' + Mainform.mask(comboBulkTableEditDatabase.Text)+'.'+Mainform.mask(DBObj.Name));
+      lntView: begin
+        // Although RENAME works for views, that does not work for moving to another database without getting
+        // a "Changing schema from x to y is not allowed". Instead, recreate them manually
+        CreateView := Mainform.Connection.GetVar('SHOW CREATE VIEW '+Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name), 1);
+        rx := TRegExpr.Create;
+        rx.ModifierI := True;
+        // Replace old database references in VIEW body
+        rx.Expression := '(["`])'+QuoteRegExprMetaChars(DBObj.Database)+'(["`])';
+        CreateView := rx.Replace(CreateView, Mainform.mask(comboBulkTableEditDatabase.Text));
+        rx.Free;
+        // Temporarily switch to new database for VIEW creation, so the database references are correct
+        Mainform.Connection.Database := comboBulkTableEditDatabase.Text;
+        Mainform.Connection.Query(CreateView);
+        Mainform.Connection.Database := DBObj.Database;
+        Mainform.Connection.Query('DROP VIEW '+Mainform.mask(DBObj.Name));
+      end;
+    end;
     FModifiedDbs.Add(DBObj.Database);
     FModifiedDbs.Add(comboBulkTableEditDatabase.Text);
   end;
@@ -1137,12 +1162,8 @@ begin
   end;
   if chkBulkTableEditResetAutoinc.Checked then
     Specs.Add('AUTO_INCREMENT=0');
-  AddResults('SELECT '+esc(DBObj.Database)+' AS '+Mainform.mask('Database')+', ' +
-    esc(DBObj.Name)+' AS '+Mainform.mask('Table')+', ' +
-    esc('Updating...')+' AS '+Mainform.mask('Operation')+', '+
-    ''''' AS '+Mainform.mask('Result')
-    );
-  Mainform.Connection.Query('ALTER TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name) + ' ' + ImplodeStr(', ', Specs));
+  if Specs.Count > 0 then
+    Mainform.Connection.Query('ALTER TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name) + ' ' + ImplodeStr(', ', Specs));
   LogRow := TWideStringList(FResults.Last);
   LogRow[2] := 'Done';
   LogRow[3] := 'Success';
