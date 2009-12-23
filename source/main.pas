@@ -4806,16 +4806,24 @@ end;
 procedure TMainForm.SetSelectedDatabase(db: WideString);
 var
   n, f: PVirtualNode;
+  i: Integer;
+  DBObjects: TDBObjectList;
+  Tables: WideString;
 begin
   if db = '' then
     n := DBtree.GetFirst
   else
     n := FindDBNode(db);
   if Assigned(n) then begin
-    // Set focus to db node, if current focus is outside 
+    // Set focus to db node, if current focus is outside
     f := DBtree.FocusedNode;
     if (not Assigned(f)) or (f.Parent <> n) then
       SelectNode(DBtree, n);
+    // Add object names to highlighter
+    DBObjects := Connection.GetDBObjects(db);
+    for i:=0 to DBObjects.Count-1 do
+      Tables := Tables + DBObjects[i].Name + CRLF;
+    SynSQLSyn1.TableNames.Text := Trim(Tables);
   end else
     raise Exception.Create('Database node ' + db + ' not found in tree.');
 end;
