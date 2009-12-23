@@ -6146,7 +6146,7 @@ begin
   oldSelectedTable := SelectedTable;
   DBNode := FindDBNode(db);
   FNode := DBtree.FocusedNode;
-  TableHereHadFocus := Assigned(FNode.Parent) and (FNode.Parent = DBNode);
+  TableHereHadFocus := Assigned(FNode) and (FNode.Parent = DBNode);
   // Suspend focus changing event, to avoid tab jumping
   FocusChangeEvent := DBtree.OnFocusChanged;
   DBtree.OnFocusChanged := nil;
