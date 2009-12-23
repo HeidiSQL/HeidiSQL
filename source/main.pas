@@ -6387,13 +6387,16 @@ begin
     try
       Results := Connection.GetResults(query);
     except
-      // if something bad happened, nuke cache, reset cursor and display error.
-      TVirtualStringTree(Sender).RootNodeCount := 0;
-      SetLength(res.Rows, 0);
-      ReachedEOT := true;
-      ShowStatus(STATUS_MSG_READY);
-      Screen.Cursor := crDefault;
-      raise;
+      on E:Exception do begin
+        // if something bad happened, nuke cache, reset cursor and display error.
+        TVirtualStringTree(Sender).RootNodeCount := 0;
+        SetLength(res.Rows, 0);
+        ReachedEOT := true;
+        ShowStatus(STATUS_MSG_READY);
+        Screen.Cursor := crDefault;
+        MessageDlg(E.Message, mtError, [mbOK], 0);
+        Exit;
+      end;
     end;
     if Cardinal(Results.RecordCount) < limit then begin
       limit := Results.RecordCount;
