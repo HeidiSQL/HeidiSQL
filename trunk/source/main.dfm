@@ -1073,10 +1073,10 @@ object MainForm: TMainForm
             object lblTableFilter: TLabel
               Left = 412
               Top = 0
-              Width = 114
+              Width = 123
               Height = 13
               Anchors = [akTop, akRight]
-              Caption = 'Create table wide filter:'
+              Caption = 'Create multi column filter:'
             end
             object lblRecentFilters: TLabel
               Left = 1
