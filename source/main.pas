@@ -3253,6 +3253,8 @@ begin
 end;
 
 begin
+  if (SelectedTable.Text = '') or (ActiveDatabase = '') then
+    Exit;
   Screen.Cursor := crHourglass;
   viewingdata := true;
   sl_query := TWideStringList.Create();
@@ -3273,141 +3275,139 @@ begin
   RefreshingData := (ActiveDatabase = DataGridDB) and (SelectedTable.Text = DataGridTable);
 
   try
-    if (SelectedTable.Text <> '') and (ActiveDatabase <> '') then begin
-      if FDataGridSelect = nil then
-        FDataGridSelect := TWideStringlist.Create;
-      if not RefreshingData then begin
-        FDataGridSelect.Clear;
-        SynMemoFilter.Clear;
-        SetLength(FDataGridSort, 0);
-        // Load default view settings
-        OpenRegistry;
-        if MainReg.OpenKey(GetRegKeyTable, False) then begin
-          if MainReg.ValueExists(REGNAME_DEFAULTVIEW) then begin
-            // Disable default if crash indicator on current table is found
-            if MainReg.ValueExists(REGPREFIX_CRASH_IN_DATA) then begin
-              MainReg.DeleteValue(REGNAME_DEFAULTVIEW);
-              LogSQL('A crash in the previous data loading for this table ('+SelectedTable.Text+') was detected. Filtering was automatically reset to avoid the same crash for now.');
-              // Reset crash indicator.
-              MainReg.DeleteValue(REGPREFIX_CRASH_IN_DATA);
-            end else begin
-              LoadDataView(MainReg.ReadString(REGNAME_DEFAULTVIEW));
-            end;
-          end;
-        end;
-      end;
-      FillDataViewPopup;
-
-      SynMemoFilter.Color := clWindow;
-      ShowStatus('Freeing data...');
-      DataGrid.BeginUpdate;
-      OldOffsetXY := DataGrid.OffsetXY;
-      debug('mem: clearing browse data.');
-      SetLength(DataGridResult.Columns, 0);
-      SetLength(DataGridResult.Rows, 0);
-      DataGrid.RootNodeCount := 0;
-      DataGrid.Header.Columns.BeginUpdate;
-      DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
-      DataGrid.Header.Columns.Clear;
-
-      // No data for routines
-      if SelectedTableColumns.Count = 0 then begin
-        DataGrid.Enabled := False;
-        pnlDataTop.Enabled := False;
-        pnlFilter.Enabled := False;
-        lblSorryNoData.Parent := DataGrid;
-        Exit; // Jump to *finally*
-      end else begin
-        DataGrid.Enabled := True;
-        pnlDataTop.Enabled := True;
-        pnlFilter.Enabled := True;
-        lblSorryNoData.Parent := tabData;
-      end;
-
-      // Prepare SELECT statement
-      select_base := 'SELECT ';
-      select_base_full := select_base;
-      // Selected columns
-      if (FDataGridSelect.Count = 0) or (FDataGridSelect.Count = SelectedTableColumns.Count) then begin
-        tbtnDataColumns.ImageIndex := 107;
-      end else begin
-        for i := FDataGridSelect.Count - 1 downto 0 do begin
-          ColExists := False;
-          for j:=0 to SelectedTableColumns.Count-1 do begin
-            TblCol := TTableColumn(SelectedTableColumns[j]);
-            if FDataGridSelect[i] = TblCol.Name then begin
-              ColExists := True;
-              break;
-            end;
-          end;
-          if not ColExists then
-            FDataGridSelect.Delete(i);
-        end;
-        // Signal for the user that we now hide some columns
-        tbtnDataColumns.ImageIndex := 108;
-      end;
-      // Ensure key columns are included to enable editing
-      KeyCols := GetKeyColumns;
-      // Truncate column array.
-      SetLength(DataGridResult.Columns, 0);
-      debug('mem: initializing browse columns.');
-      for i:=0 to SelectedTableColumns.Count-1 do begin
-        TblCol := TTableColumn(SelectedTableColumns[i]);
-        ShowIt := (FDataGridSelect.Count=0) or (FDataGridSelect.IndexOf(TblCol.Name)>-1);
-        if ShowIt or (KeyCols.IndexOf(TblCol.Name)>-1) then begin
-          if TblCol.DataType.Category in [dtcText, dtcBinary] then begin
-            select_base := select_base + ' ' + 'LEFT(' + Mask(TblCol.Name) + ', ' + IntToStr(GridMaxData) + ')' + ',';
+    if FDataGridSelect = nil then
+      FDataGridSelect := TWideStringlist.Create;
+    if not RefreshingData then begin
+      FDataGridSelect.Clear;
+      SynMemoFilter.Clear;
+      SetLength(FDataGridSort, 0);
+      // Load default view settings
+      OpenRegistry;
+      if MainReg.OpenKey(GetRegKeyTable, False) then begin
+        if MainReg.ValueExists(REGNAME_DEFAULTVIEW) then begin
+          // Disable default if crash indicator on current table is found
+          if MainReg.ValueExists(REGPREFIX_CRASH_IN_DATA) then begin
+            MainReg.DeleteValue(REGNAME_DEFAULTVIEW);
+            LogSQL('A crash in the previous data loading for this table ('+SelectedTable.Text+') was detected. Filtering was automatically reset to avoid the same crash for now.');
+            // Reset crash indicator.
+            MainReg.DeleteValue(REGPREFIX_CRASH_IN_DATA);
           end else begin
-            select_base := select_base + ' ' + Mask(TblCol.Name) + ',';
+            LoadDataView(MainReg.ReadString(REGNAME_DEFAULTVIEW));
           end;
-          select_base_full := select_base_full + ' ' + Mask(TblCol.Name) + ',';
-          InitColumn(TblCol, ShowIt);
         end;
       end;
-      debug('mem: browse column initialization complete.');
-      // Cut last comma
-      select_base := copy( select_base, 1, Length(select_base)-1 );
-      select_base_full := copy( select_base_full, 1, Length(select_base_full)-1 );
-      // Include db name for cases in which dbtree is switching databases and pending updates are in process
-      select_from := ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedTable.Text);
-
-      // Final SELECT segments
-      DataGridCurrentSelect := select_base;
-      DataGridCurrentFullSelect := select_base_full;
-      DataGridCurrentFrom := select_from;
-      DataGridCurrentFilter := SynMemoFilter.Text;
-      if Length(FDataGridSort) > 0 then
-        DataGridCurrentSort := ComposeOrderClause(FDataGridSort)
-      else
-        DataGridCurrentSort := '';
-
-      // Set button icons
-      if DataGridCurrentFilter <> '' then tbtnDataFilter.ImageIndex := 108
-      else tbtnDataFilter.ImageIndex := 107;
-      if DataGridCurrentSort <> '' then tbtnDataSorting.ImageIndex := 108
-      else tbtnDataSorting.ImageIndex := 107;
-
-      debug('mem: initializing browse rows (internal data).');
-      try
-        ReachedEOT := False;
-        SetLength(DataGridResult.Rows, SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100);
-        for i := 0 to SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100 - 1 do begin
-          DataGridResult.Rows[i].Loaded := False;
-        end;
-        debug('mem: initializing browse rows (grid).');
-        DataGrid.RootNodeCount := SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100;
-      except
-        DataGrid.RootNodeCount := 0;
-        SetLength(DataGridResult.Rows, 0);
-        PageControlMain.ActivePage := tabDatabase;
-        raise;
-      end;
-      debug('mem: browse row initialization complete.');
-
-      dataselected := true;
-
-      PageControlMainChange(Self);
     end;
+    FillDataViewPopup;
+
+    SynMemoFilter.Color := clWindow;
+    ShowStatus('Freeing data...');
+    DataGrid.BeginUpdate;
+    OldOffsetXY := DataGrid.OffsetXY;
+    debug('mem: clearing browse data.');
+    SetLength(DataGridResult.Columns, 0);
+    SetLength(DataGridResult.Rows, 0);
+    DataGrid.RootNodeCount := 0;
+    DataGrid.Header.Columns.BeginUpdate;
+    DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
+    DataGrid.Header.Columns.Clear;
+
+    // No data for routines
+    if SelectedTableColumns.Count = 0 then begin
+      DataGrid.Enabled := False;
+      pnlDataTop.Enabled := False;
+      pnlFilter.Enabled := False;
+      lblSorryNoData.Parent := DataGrid;
+      Exit; // Jump to *finally*
+    end else begin
+      DataGrid.Enabled := True;
+      pnlDataTop.Enabled := True;
+      pnlFilter.Enabled := True;
+      lblSorryNoData.Parent := tabData;
+    end;
+
+    // Prepare SELECT statement
+    select_base := 'SELECT ';
+    select_base_full := select_base;
+    // Selected columns
+    if (FDataGridSelect.Count = 0) or (FDataGridSelect.Count = SelectedTableColumns.Count) then begin
+      tbtnDataColumns.ImageIndex := 107;
+    end else begin
+      for i := FDataGridSelect.Count - 1 downto 0 do begin
+        ColExists := False;
+        for j:=0 to SelectedTableColumns.Count-1 do begin
+          TblCol := TTableColumn(SelectedTableColumns[j]);
+          if FDataGridSelect[i] = TblCol.Name then begin
+            ColExists := True;
+            break;
+          end;
+        end;
+        if not ColExists then
+          FDataGridSelect.Delete(i);
+      end;
+      // Signal for the user that we now hide some columns
+      tbtnDataColumns.ImageIndex := 108;
+    end;
+    // Ensure key columns are included to enable editing
+    KeyCols := GetKeyColumns;
+    // Truncate column array.
+    SetLength(DataGridResult.Columns, 0);
+    debug('mem: initializing browse columns.');
+    for i:=0 to SelectedTableColumns.Count-1 do begin
+      TblCol := TTableColumn(SelectedTableColumns[i]);
+      ShowIt := (FDataGridSelect.Count=0) or (FDataGridSelect.IndexOf(TblCol.Name)>-1);
+      if ShowIt or (KeyCols.IndexOf(TblCol.Name)>-1) then begin
+        if TblCol.DataType.Category in [dtcText, dtcBinary] then begin
+          select_base := select_base + ' ' + 'LEFT(' + Mask(TblCol.Name) + ', ' + IntToStr(GridMaxData) + ')' + ',';
+        end else begin
+          select_base := select_base + ' ' + Mask(TblCol.Name) + ',';
+        end;
+        select_base_full := select_base_full + ' ' + Mask(TblCol.Name) + ',';
+        InitColumn(TblCol, ShowIt);
+      end;
+    end;
+    debug('mem: browse column initialization complete.');
+    // Cut last comma
+    select_base := copy( select_base, 1, Length(select_base)-1 );
+    select_base_full := copy( select_base_full, 1, Length(select_base_full)-1 );
+    // Include db name for cases in which dbtree is switching databases and pending updates are in process
+    select_from := ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedTable.Text);
+
+    // Final SELECT segments
+    DataGridCurrentSelect := select_base;
+    DataGridCurrentFullSelect := select_base_full;
+    DataGridCurrentFrom := select_from;
+    DataGridCurrentFilter := SynMemoFilter.Text;
+    if Length(FDataGridSort) > 0 then
+      DataGridCurrentSort := ComposeOrderClause(FDataGridSort)
+    else
+      DataGridCurrentSort := '';
+
+    // Set button icons
+    if DataGridCurrentFilter <> '' then tbtnDataFilter.ImageIndex := 108
+    else tbtnDataFilter.ImageIndex := 107;
+    if DataGridCurrentSort <> '' then tbtnDataSorting.ImageIndex := 108
+    else tbtnDataSorting.ImageIndex := 107;
+
+    debug('mem: initializing browse rows (internal data).');
+    try
+      ReachedEOT := False;
+      SetLength(DataGridResult.Rows, SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100);
+      for i := 0 to SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100 - 1 do begin
+        DataGridResult.Rows[i].Loaded := False;
+      end;
+      debug('mem: initializing browse rows (grid).');
+      DataGrid.RootNodeCount := SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100;
+    except
+      DataGrid.RootNodeCount := 0;
+      SetLength(DataGridResult.Rows, 0);
+      PageControlMain.ActivePage := tabDatabase;
+      raise;
+    end;
+    debug('mem: browse row initialization complete.');
+
+    dataselected := true;
+
+    PageControlMainChange(Self);
   finally
     DataGrid.Header.Columns.EndUpdate;
     DataGrid.EndUpdate;
