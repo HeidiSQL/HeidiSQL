@@ -175,7 +175,6 @@ const
   DEFAULT_COPYTABLE_STRUCDATA = REGVAL_COPYTABLE_STRUCTURE_AND_DATA;
   REGNAME_COPYTABLE_INDEXES = 'CopyTable_Option_WithIndexes';
   REGNAME_COPYTABLE_ALLFIELDS = 'CopyTable_Option_WithAllFields';
-  REGNAME_DEFAULTVIEW = 'DefaultView';
   REGNAME_FILTERS = 'RecentFilters';
   REGNAME_SERVERVERSION = 'ServerVersion';
   REGNAME_LASTCONNECT = 'LastConnect';
@@ -223,8 +222,6 @@ const
   REGPREFIX_COLWIDTHS = 'ColWidths_';
   REGPREFIX_COLSVISIBLE = 'ColsVisible_';
   REGPREFIX_COLPOS = 'ColPositions_';
-  REGPREFIX_CRASH_IN_DATA = 'DataCrashIndicator_';
-  REGPREFIX_DATAVIEW = 'View_';
   REGPREFIX_DATEEDITOR_CURSOR = 'DateTimeEditor_CursorPos_Type';
   REGPREFIX_SHORTCUT1 = 'Shortcut1_';
   REGPREFIX_SHORTCUT2 = 'Shortcut2_';

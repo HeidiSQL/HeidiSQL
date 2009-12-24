@@ -379,11 +379,6 @@ type
     Cancelediting1: TMenuItem;
     DataPost1: TMenuItem;
     menuShowSizeColumn: TMenuItem;
-    tbtnDataView: TToolButton;
-    popupDataView: TPopupMenu;
-    menuViewSave: TMenuItem;
-    N25: TMenuItem;
-    menuViewDefault: TMenuItem;
     CopygriddataasSQL1: TMenuItem;
     CopygriddataasSQL2: TMenuItem;
     menuSelectBGColor: TMenuItem;
@@ -652,9 +647,6 @@ type
     procedure GridBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
-    procedure popupDataViewPopup(Sender: TObject);
-    procedure menuViewDefaultClick(Sender: TObject);
-    procedure menuViewSaveClick(Sender: TObject);
     procedure QueryGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure pnlQueryHelpersCanResize(Sender: TObject; var NewWidth,
       NewHeight: Integer; var Resize: Boolean);
@@ -839,10 +831,7 @@ type
     procedure DataGridInsertRow(CopyValuesFromNode: PVirtualNode);
     procedure DataGridCancel(Sender: TObject);
     procedure CalcNullColors;
-    procedure FillDataViewPopup;
-    procedure GetDataViews(List: TStrings);
-    procedure DataViewClick(Sender: TObject);
-    procedure LoadDataView(ViewName: String);
+    procedure HandleDataGridAttributes(RefreshingData: Boolean);
     function GetRegKeyTable: String;
     procedure SaveListSetup( List: TVirtualStringTree );
     procedure RestoreListSetup( List: TVirtualStringTree );
@@ -889,7 +878,7 @@ implementation
 
 uses
   About, loaddata, printlist, copytable, mysql_structures, UpdateCheck, uVistaFuncs, runsqlfile,
-  column_selection, data_sorting, grideditlinks, dataviewsave;
+  column_selection, data_sorting, grideditlinks;
 
 
 {$R *.DFM}
@@ -3275,31 +3264,9 @@ begin
   RefreshingData := (ActiveDatabase = DataGridDB) and (SelectedTable.Text = DataGridTable);
 
   try
-    if FDataGridSelect = nil then
-      FDataGridSelect := TWideStringlist.Create;
-    if not RefreshingData then begin
-      FDataGridSelect.Clear;
-      SynMemoFilter.Clear;
-      SetLength(FDataGridSort, 0);
-      // Load default view settings
-      OpenRegistry;
-      if MainReg.OpenKey(GetRegKeyTable, False) then begin
-        if MainReg.ValueExists(REGNAME_DEFAULTVIEW) then begin
-          // Disable default if crash indicator on current table is found
-          if MainReg.ValueExists(REGPREFIX_CRASH_IN_DATA) then begin
-            MainReg.DeleteValue(REGNAME_DEFAULTVIEW);
-            LogSQL('A crash in the previous data loading for this table ('+SelectedTable.Text+') was detected. Filtering was automatically reset to avoid the same crash for now.');
-            // Reset crash indicator.
-            MainReg.DeleteValue(REGPREFIX_CRASH_IN_DATA);
-          end else begin
-            LoadDataView(MainReg.ReadString(REGNAME_DEFAULTVIEW));
-          end;
-        end;
-      end;
-    end;
-    FillDataViewPopup;
+    // Load last view settings
+    HandleDataGridAttributes(RefreshingData);
 
-    SynMemoFilter.Color := clWindow;
     ShowStatus('Freeing data...');
     DataGrid.BeginUpdate;
     OldOffsetXY := DataGrid.OffsetXY;
@@ -6361,7 +6328,6 @@ var
   Results: TMySQLQuery;
   i, j: LongInt;
   hi: LongInt;
-  regCrashIndicName: String;
 begin
   res := GridResult(Sender);
   if (not res.Rows[Node.Index].Loaded) and (res.Rows[Node.Index].State <> grsInserted) then begin
@@ -6375,11 +6341,6 @@ begin
     if DataGridCurrentFilter <> '' then query := query + ' WHERE ' + DataGridCurrentFilter;
     if DataGridCurrentSort <> '' then query := query + ' ORDER BY ' + DataGridCurrentSort;
     query := query + WideFormat(' LIMIT %d, %d', [start, limit]);
-
-    // Set indicator for possibly crashing query
-    OpenRegistry(SessionName);
-    regCrashIndicName := Utf8Encode(REGPREFIX_CRASH_IN_DATA + ActiveDatabase + '.' + SelectedTable.Text);
-    MainReg.WriteBool(regCrashIndicName, True);
 
     // start query
     ShowStatus('Retrieving data...');
@@ -6414,9 +6375,6 @@ begin
       Sender.EndUpdate;
     end;
     debug(Format('mem: loaded data chunk from row %d to %d', [start, limit]));
-
-    // Query was completed successfully. Reset crash indicator.
-    MainReg.DeleteValue(regCrashIndicName);
 
     // fill in data
     ShowStatus('Filling grid with record-data...');
@@ -7318,109 +7276,65 @@ begin
 end;
 
 
-procedure TMainForm.FillDataViewPopup;
-var
-  i: Integer;
-  DataViews: TStringList;
-  mi: TMenuItem;
-begin
-  // Load all view names into popupmenu
-  for i := popupDataView.Items.Count-1 downto 0 do begin
-    if popupDataView.Items[i].Caption = '-' then
-      break;
-    popupDataView.Items.Delete(i);
-  end;
-  // Unhide "Load xyz by default" item if default is set
-  menuViewDefault.Visible := False;
-  OpenRegistry;
-  if MainReg.OpenKey(GetRegKeyTable, False) then begin
-    if MainReg.ValueExists(REGNAME_DEFAULTVIEW) then begin
-      menuViewDefault.Caption := 'Load view "'+MainReg.ReadString(REGNAME_DEFAULTVIEW)+'" by default';
-      menuViewDefault.Visible := True;
-    end;
-  end;
-  // Add views
-  DataViews := TStringList.Create;
-  GetDataViews(DataViews);
-  for i := 0 to DataViews.Count - 1 do begin
-    mi := TMenuItem.Create(popupDataView);
-    mi.Caption := DataViews[i];
-    mi.OnClick := DataViewClick;
-    popupDataView.Items.Add(mi);
-  end;
-  // Highlight drop down button if views are available
-  if DataViews.Count = 0 then
-    tbtnDataView.ImageIndex := 113
-  else
-    tbtnDataView.ImageIndex := 112;
-end;
-
-
-procedure TMainForm.popupDataViewPopup(Sender: TObject);
-begin
-  // Only enable "Save view" menu if any view part is set
-  menuViewSave.Enabled := (FDataGridSelect.Count > 0) or
-    (Length(FDataGridSort)>0) or (SynMemoFilter.GetTextLen > 0);
-end;
-
-
-procedure TMainForm.GetDataViews(List: TStrings);
-var
-  i: Integer;
-begin
-  // Load all view names into popupmenu
-  OpenRegistry;
-  if MainReg.OpenKey(GetRegKeyTable, False) then begin
-    MainReg.GetKeyNames(List);
-    for i := List.Count - 1 downto 0 do begin
-      if Copy(List[i], 0, Length(REGPREFIX_DATAVIEW)) <> REGPREFIX_DATAVIEW then
-        List.Delete(i)
-      else
-        List[i] := Copy(List[i], Length(REGPREFIX_DATAVIEW)+1, Length(List[i]));
-    end;
-  end;
-end;
-
-
-procedure TMainForm.menuViewSaveClick(Sender: TObject);
-var
-  frm: TFrmDataViewSave;
-begin
-  frm := TFrmDataViewSave.Create(Self);
-  if frm.ShowModal = mrOK then
-    FillDataViewPopup;
-  frm.Free;
-end;
-
-
-procedure TMainForm.menuViewDefaultClick(Sender: TObject);
-begin
-  menuViewDefault.Visible := False;
-  OpenRegistry;
-  if MainReg.OpenKey(GetRegKeyTable, False) then begin
-    if MainReg.ValueExists(REGNAME_DEFAULTVIEW) then
-      MainReg.DeleteValue(REGNAME_DEFAULTVIEW)
-  end;
-end;
-
-
-procedure TMainForm.DataViewClick(Sender: TObject);
-begin
-  LoadDataView((Sender as TMenuItem).Caption);
-  ViewData(tbtnDataView);
-end;
-
-
-procedure TMainForm.LoadDataView(ViewName: String);
+procedure TMainForm.HandleDataGridAttributes(RefreshingData: Boolean);
 var
   rx: TRegExpr;
   idx, i: Integer;
   Col: TTableColumn;
   HiddenCols: TWideStringList;
+  TestList: TStringList;
+  Sort: WideString;
 begin
   OpenRegistry;
-  if MainReg.OpenKey(GetRegKeyTable + '\' + REGPREFIX_DATAVIEW + ViewName, False) then begin
-    // Columns
+  MainReg.OpenKey(GetRegKeyTable, True);
+  // Clear filter, column names and sort structure if gr
+  if not Assigned(FDataGridSelect) then
+    FDataGridSelect := TWideStringlist.Create;
+  if not RefreshingData then begin
+    FDataGridSelect.Clear;
+    SynMemoFilter.Clear;
+    SetLength(FDataGridSort, 0);
+  end else begin
+    // Save current attributes if grid gets refreshed
+    HiddenCols := TWideStringlist.Create;
+    HiddenCols.Delimiter := REGDELIM;
+    HiddenCols.StrictDelimiter := True;
+    if FDataGridSelect.Count > 0 then for i:=0 to SelectedTableColumns.Count-1 do begin
+      Col := TTableColumn(SelectedTableColumns[i]);
+      if FDataGridSelect.IndexOf(Col.Name) = -1 then
+        HiddenCols.Add(Col.Name);
+    end;
+    if HiddenCols.Count > 0 then
+      MainReg.WriteString(REGNAME_HIDDENCOLUMNS, Utf8Encode(HiddenCols.DelimitedText))
+    else if MainReg.ValueExists(REGNAME_HIDDENCOLUMNS) then
+      MainReg.DeleteValue(REGNAME_HIDDENCOLUMNS);
+    FreeAndNil(HiddenCols);
+
+    if SynMemoFilter.GetTextLen > 0 then
+      MainReg.WriteString(REGNAME_FILTER, Utf8Encode(SynMemoFilter.Text))
+    else if MainReg.ValueExists(REGNAME_FILTER) then
+      MainReg.DeleteValue(REGNAME_FILTER);
+
+    for i := 0 to High(FDataGridSort) do
+      Sort := Sort + IntToStr(FDataGridSort[i].SortDirection) + '_' + FDataGridSort[i].ColumnName + REGDELIM;
+    if Sort <> '' then
+      MainReg.WriteString(REGNAME_SORT, Utf8Encode(Sort))
+    else if MainReg.ValueExists(REGNAME_SORT) then
+      MainReg.DeleteValue(REGNAME_SORT);
+  end;
+
+  // Auto remove registry spam if table folder is empty
+  TestList := TStringList.Create;
+  MainReg.GetValueNames(TestList);
+  if (not MainReg.HasSubKeys) and (TestList.Count = 0) then
+    MainReg.DeleteKey(GetRegKeyTable);
+
+  // Do nothing if table was not filtered yet
+  if not MainReg.OpenKey(GetRegKeyTable, False) then
+    Exit;
+
+  // Columns
+  if MainReg.ValueExists(REGNAME_HIDDENCOLUMNS) then begin
     HiddenCols := TWideStringlist.Create;
     HiddenCols.Delimiter := REGDELIM;
     HiddenCols.StrictDelimiter := True;
@@ -7432,11 +7346,17 @@ begin
         FDataGridSelect.Add(Col.Name);
     end;
     FreeAndNil(HiddenCols);
-    // Filter
+  end;
+
+  // Filter
+  if MainReg.ValueExists(REGNAME_FILTER) then begin
     SynMemoFilter.Text := Utf8Decode(MainReg.ReadString(REGNAME_FILTER));
     if SynMemoFilter.GetTextLen > 0 then
       ToggleFilterPanel(True);
-    // Sort
+  end;
+
+  // Sort
+  if MainReg.ValueExists(REGNAME_SORT) then begin
     SetLength(FDataGridSort, 0);
     rx := TRegExpr.Create;
     rx.Expression := '\b(\d)_(.+)\'+REGDELIM;
