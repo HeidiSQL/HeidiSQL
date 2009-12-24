@@ -1010,13 +1010,13 @@ object MainForm: TMainForm
               WordWrap = True
             end
             object tlbDataButtons: TToolBar
-              Left = 242
+              Left = 349
               Top = 1
-              Width = 332
+              Width = 225
               Height = 23
               Align = alRight
               AutoSize = True
-              ButtonWidth = 83
+              ButtonWidth = 75
               Caption = 'tlbDataButtons'
               Images = PngImageListMain
               List = True
@@ -1033,7 +1033,7 @@ object MainForm: TMainForm
                 OnClick = btnDataClick
               end
               object tbtnDataColumns: TToolButton
-                Left = 83
+                Left = 75
                 Top = 0
                 AllowAllUp = True
                 Caption = 'Columns'
@@ -1042,19 +1042,12 @@ object MainForm: TMainForm
                 OnClick = btnDataClick
               end
               object tbtnDataFilter: TToolButton
-                Left = 166
+                Left = 150
                 Top = 0
                 AllowAllUp = True
                 Caption = 'Filter'
                 ImageIndex = 107
                 OnClick = btnDataClick
-              end
-              object tbtnDataView: TToolButton
-                Left = 249
-                Top = 0
-                Caption = 'Perspective'
-                DropdownMenu = popupDataView
-                ImageIndex = 112
               end
             end
           end
@@ -6776,27 +6769,6 @@ object MainForm: TMainForm
       ImageIndex = 53
     end
     object N20: TMenuItem
-      Caption = '-'
-    end
-  end
-  object popupDataView: TPopupMenu
-    AutoHotkeys = maManual
-    OnPopup = popupDataViewPopup
-    Left = 8
-    Top = 160
-    object menuViewSave: TMenuItem
-      Caption = 'Save perspective ...'
-      Hint = 'Save current view details (columns, filter, sorting) permanently'
-      ImageIndex = 10
-      OnClick = menuViewSaveClick
-    end
-    object menuViewDefault: TMenuItem
-      Caption = 'Load xyz by default'
-      Checked = True
-      Visible = False
-      OnClick = menuViewDefaultClick
-    end
-    object N25: TMenuItem
       Caption = '-'
     end
   end
