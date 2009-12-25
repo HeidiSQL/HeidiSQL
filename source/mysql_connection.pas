@@ -928,6 +928,7 @@ function TMySQLConnection.GetDbObjects(db: WideString; Refresh: Boolean=False): 
 var
   obj: TDBObject;
   Results: TMySQLQuery;
+  rx: TRegExpr;
 begin
   // Cache and return a db's table list
   if Refresh then
@@ -939,6 +940,8 @@ begin
       FDBObjectLists := TWideStringList.Create;
     Result := TDBObjectList.Create;
     Results := nil;
+    rx := TRegExpr.Create;
+    rx.ModifierI := True;
 
     // Tables and views
     try
@@ -975,6 +978,8 @@ begin
         else
           Obj.Engine := Results.Col('Engine');
         Obj.Comment := Results.Col('Comment');
+        rx.Expression := '(;\s*)?InnoDB\s*free\:.*$';
+        Obj.Comment := rx.Replace(Obj.Comment, '', False);
         Obj.Version := StrToInt64Def(Results.Col('Version', True), -1);
         Obj.AutoInc := StrToInt64Def(Results.Col('Auto_increment'), -1);
         Obj.RowFormat := Results.Col('Row_format');
