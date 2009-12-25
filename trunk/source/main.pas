@@ -4453,6 +4453,7 @@ begin
     actCreateTable.Enabled := L in [1,2];
     actCreateView.Enabled := L in [1,2];
     actCreateRoutine.Enabled := L in [1,2];
+    actCreateTrigger.Enabled := L in [1,2];
     actDropObjects.Enabled := L in [1,2];
     actCopyTable.Enabled := HasFocus and (GetFocusedTreeNodeType in [lntTable, lntView]);
     actEmptyTables.Enabled := HasFocus and (GetFocusedTreeNodeType in [lntTable, lntView]);
