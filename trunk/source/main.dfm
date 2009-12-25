@@ -1532,6 +1532,9 @@ object MainForm: TMainForm
       object actFindTextOnServer1: TMenuItem
         Action = actFindTextOnServer
       end
+      object Bulktableeditor1: TMenuItem
+        Action = actBulkTableEdit
+      end
       object N7: TMenuItem
         Caption = '-'
       end
