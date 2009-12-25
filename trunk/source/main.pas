@@ -730,7 +730,7 @@ type
     procedure DisplayRowCountStats(MatchingRows: Int64 = -1);
     procedure insertFunction(Sender: TObject);
     function GetActiveDatabase: WideString;
-    function GetSelectedTable: TListNode;
+    function GetSelectedTable: TDBObject;
     procedure SetSelectedDatabase(db: WideString);
     procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TWideStringList );
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
@@ -812,7 +812,7 @@ type
     function GridResult(PageIndex: Integer): TGridResult; overload;
 
     property ActiveDatabase : WideString read GetActiveDatabase write SetSelectedDatabase;
-    property SelectedTable : TListNode read GetSelectedTable;
+    property SelectedTable : TDBObject read GetSelectedTable;
 
     procedure TestVTreeDataArray( P: PVTreeDataArray );
     function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
@@ -1787,7 +1787,7 @@ begin
   InDBTree := (Act.ActionComponent is TMenuItem)
     and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
   if InDBTree and (SelectedTable.NodeType in [lntTable, lntView]) then
-    TableToolsDialog.SelectedTables.Text := SelectedTable.Text
+    TableToolsDialog.SelectedTables.Text := SelectedTable.Name
   else if not InDBTree then
     TableToolsDialog.SelectedTables := GetVTCaptions(ListTables, True, 0, [lntTable, lntView])
   else
@@ -1983,7 +1983,7 @@ begin
   // Copy data in focused grid as HTML table
   Screen.Cursor := crHourglass;
   S := TMemoryStream.Create;
-  if ActiveGrid = DataGrid then Title := SelectedTable.Text
+  if ActiveGrid = DataGrid then Title := SelectedTable.Name
   else Title := 'SQL query';
   try
     GridToHtml(ActiveGrid, Title, S);
@@ -2005,7 +2005,7 @@ begin
   // Copy data in focused grid as XML
   Screen.Cursor := crHourglass;
   S := TMemoryStream.Create;
-  if ActiveGrid = DataGrid then Root := SelectedTable.Text
+  if ActiveGrid = DataGrid then Root := SelectedTable.Name
   else Root := 'SQL query';
   try
     GridToXml(ActiveGrid, Root, S);
@@ -2027,7 +2027,7 @@ begin
   // Copy data in focused grid as SQL
   Screen.Cursor := crHourglass;
   S := TMemoryStream.Create;
-  if ActiveGrid = DataGrid then Tablename := SelectedTable.Text
+  if ActiveGrid = DataGrid then Tablename := SelectedTable.Name
   else Tablename := 'unknown';
   try
     GridToSql(ActiveGrid, Tablename, S);
@@ -2051,7 +2051,7 @@ begin
   Dialog := SaveDialogExportData;
 
   if ActiveGrid = DataGrid then
-    Title := SelectedTable.Text
+    Title := SelectedTable.Name
   else
     Title := 'SQL query';
 
@@ -2206,11 +2206,11 @@ begin
         end;
         Exit;
       end;
-      lntTable: Tables.Add(SelectedTable.Text);
-      lntView: Views.Add(SelectedTable.Text);
-      lntProcedure: Procedures.Add(SelectedTable.Text);
-      lntFunction: Functions.Add(SelectedTable.Text);
-      lntTrigger: Triggers.Add(SelectedTable.Text);
+      lntTable: Tables.Add(SelectedTable.Name);
+      lntView: Views.Add(SelectedTable.Name);
+      lntProcedure: Procedures.Add(SelectedTable.Name);
+      lntFunction: Functions.Add(SelectedTable.Name);
+      lntTrigger: Triggers.Add(SelectedTable.Name);
     end;
   end else begin
     // Invoked from database tab
@@ -2461,7 +2461,7 @@ begin
     t := GetVTCaptions(ListTables, True)
   else if DBTree.Focused then begin
     t := TWideStringList.Create;
-    t.Add(SelectedTable.Text);
+    t.Add(SelectedTable.Name);
   end else
     Exit;
   if t.Count = 0 then
@@ -3246,7 +3246,7 @@ begin
 end;
 
 begin
-  if (SelectedTable.Text = '') or (ActiveDatabase = '') then
+  if (SelectedTable.Name = '') or (ActiveDatabase = '') then
     Exit;
   Screen.Cursor := crHourglass;
   viewingdata := true;
@@ -3265,7 +3265,7 @@ begin
   PageControlMain.ActivePage := tabData;
 
   // Indicates whether the current table data is just refreshed or if we're in another table
-  RefreshingData := (ActiveDatabase = DataGridDB) and (SelectedTable.Text = DataGridTable);
+  RefreshingData := (ActiveDatabase = DataGridDB) and (SelectedTable.Name = DataGridTable);
 
   try
     // Load last view settings
@@ -3341,7 +3341,7 @@ begin
     select_base := copy( select_base, 1, Length(select_base)-1 );
     select_base_full := copy( select_base_full, 1, Length(select_base_full)-1 );
     // Include db name for cases in which dbtree is switching databases and pending updates are in process
-    select_from := ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedTable.Text);
+    select_from := ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedTable.Name);
 
     // Final SELECT segments
     DataGridCurrentSelect := select_base;
@@ -3395,7 +3395,7 @@ begin
     Screen.Cursor := crDefault;
   end;
   DataGridDB := ActiveDatabase;
-  DataGridTable := SelectedTable.Text;
+  DataGridTable := SelectedTable.Name;
   AutoCalcColWidths(DataGrid, PrevTableColWidths);
 end;
 
@@ -3406,42 +3406,30 @@ end;
 }
 procedure TMainForm.DisplayRowCountStats(MatchingRows: Int64);
 var
-  rows_total       : Int64; // total rowcount
-  IsFiltered, IsInnodb: Boolean;
-  DBObjects: TDBObjectList;
-  i: Integer;
+  DBObject: TDBObject;
+  IsFiltered: Boolean;
+  cap: WideString;
 begin
-  lblDataTop.Caption := ActiveDatabase + '.' + SelectedTable.Text;
-
-  IsFiltered := self.DataGridCurrentFilter <> '';
-  if GetFocusedTreeNodeType = lntTable then begin
-    // Get rowcount from table
-    DBObjects := Connection.GetDBObjects(ActiveDatabase);
-    rows_total := -1;
-    IsInnodb := False;
-    for i:=0 to DBObjects.Count-1 do begin
-      if DBObjects[i].Name = SelectedTable.Text then begin
-        rows_total := DBObjects[i].Rows;
-        IsInnodb := DBObjects[i].Engine = 'InnoDB';
-        break;
-      end;
-    end;
-
-    if rows_total > -1 then begin
-      lblDataTop.Caption := lblDataTop.Caption + ': ' + FormatNumber(rows_total) + ' rows total';
-      if IsInnodb then lblDataTop.Caption := lblDataTop.Caption + ' (approximately)';
-
+  DBObject := SelectedTable;
+  cap := ActiveDatabase + '.' + DBObject.Name;
+  IsFiltered := DataGridCurrentFilter <> '';
+  if DBObject.NodeType = lntTable then begin
+    if DBObject.Rows > -1 then begin
+      cap := cap + ': ' + FormatNumber(DBObject.Rows) + ' rows total';
+      if DBObject.Engine = 'InnoDB' then
+        cap := cap + ' (approximately)';
       if MatchingRows = prefMaxTotalRows then begin
-        lblDataTop.Caption := lblDataTop.Caption + ', limited to ' + FormatNumber(prefMaxTotalRows);
+        cap := cap + ', limited to ' + FormatNumber(prefMaxTotalRows);
       end else if IsFiltered then begin
-        if MatchingRows = rows_total then begin
-          lblDataTop.Caption := lblDataTop.Caption + ', filter matches all rows';
+        if MatchingRows = DBObject.Rows then begin
+          cap := cap + ', filter matches all rows';
         end else if IsFiltered and (MatchingRows > -1) then begin
-          lblDataTop.Caption := lblDataTop.Caption + ', ' + FormatNumber(MatchingRows) + ' matches filter';
+          cap := cap + ', ' + FormatNumber(MatchingRows) + ' matches filter';
         end;
       end;
     end;
   end;
+  lblDataTop.Caption := cap;
 end;
 
 
@@ -4694,13 +4682,17 @@ begin
 end;
 
 
-function TMainForm.GetSelectedTable: TListNode;
+function TMainForm.GetSelectedTable: TDBObject;
+var
+  Node: PVirtualNode;
+  DBObjects: TDBObjectList;
 begin
-  if Assigned(DBtree.FocusedNode) and (DBtree.GetNodeLevel(DBtree.FocusedNode)=2) then begin
-    Result.Text := DBtree.Text[DBtree.FocusedNode, 0];
-    Result.NodeType := GetFocusedTreeNodeType;
+  Node := DBtree.FocusedNode;
+  if Assigned(Node) and (DBtree.GetNodeLevel(Node)=2) then begin
+    DBObjects := Connection.GetDBObjects(ActiveDatabase);
+    Result := DBObjects[Node.Index];
   end else begin
-    Result.Text := '';
+    Result := TDBObject.Create;
     Result.NodeType := lntNone;
   end;
 end;
@@ -5990,7 +5982,7 @@ begin
             Exit;
           end;
         end;
-        newDbObject := SelectedTable.Text;
+        newDbObject := SelectedTable.Name;
         tabEditor.TabVisible := True;
         tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntView];
         ParseSelectedTableStructure;
@@ -6027,10 +6019,10 @@ begin
   try
     case SelectedTable.NodeType of
       lntTable: begin
-        SelectedTableCreateStatement := Connection.GetVar('SHOW CREATE TABLE '+Mainform.mask(SelectedTable.Text), 1);
+        SelectedTableCreateStatement := Connection.GetVar('SHOW CREATE TABLE '+Mainform.mask(SelectedTable.Name), 1);
         ParseTableStructure(SelectedTableCreateStatement, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
       end;
-      lntView: ParseViewStructure(SelectedTable.Text, SelectedTableColumns);
+      lntView: ParseViewStructure(SelectedTable.Name, SelectedTableColumns);
     end;
   except on E:Exception do
     MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -6079,7 +6071,7 @@ end;
 procedure TMainForm.RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
 var
   oldActiveDatabase: WideString;
-  oldSelectedTable: TListNode;
+  oldSelectedTable: TDBObject;
 begin
   // Remember currently active database and table
   oldActiveDatabase := ActiveDatabase;
@@ -6099,8 +6091,8 @@ begin
       ActiveDatabase := SelectDatabase
     else if oldActiveDatabase <> '' then
       ActiveDatabase := oldActiveDatabase;
-    if oldSelectedTable.Text <> '' then
-      SelectDBObject(oldSelectedTable.Text, oldSelectedTable.NodeType);
+    if oldSelectedTable.Name <> '' then
+      SelectDBObject(oldSelectedTable.Name, oldSelectedTable.NodeType);
   except
   end;
   // Select "host" node if database was deleted outside and node is gone
@@ -6116,7 +6108,7 @@ procedure TMainForm.RefreshTreeDB(db: WideString);
 var
   oldActiveDatabase: WideString;
   DBNode, FNode: PVirtualNode;
-  oldSelectedTable: TListNode;
+  oldSelectedTable: TDBObject;
   TableHereHadFocus: Boolean;
   DBObjects: TDBObjectList;
   i: Integer;
@@ -6139,9 +6131,9 @@ begin
     DBObjects := Connection.GetDBObjects(db);
     for i:=0 to DBObjects.Count-1 do begin
       // Need to check if table was renamed, in which case oldSelectedTable is no longer available
-      if (DBObjects[i].Name = oldSelectedTable.Text)
+      if (DBObjects[i].Name = oldSelectedTable.Name)
         and (DBObjects[i].NodeType = oldSelectedTable.NodeType) then begin
-        SelectDBObject(oldSelectedTable.Text, oldSelectedTable.NodeType);
+        SelectDBObject(oldSelectedTable.Name, oldSelectedTable.NodeType);
         break;
       end;
     end;
@@ -6937,7 +6929,7 @@ var
 begin
   Node := Sender.GetFirstSelected;
   FocusAfterDelete := nil;
-  sql := 'DELETE FROM '+mask(SelectedTable.Text)+' WHERE';
+  sql := 'DELETE FROM '+mask(SelectedTable.Name)+' WHERE';
   while Assigned(Node) do begin
     EnsureChunkLoaded(Sender, Node);
     sql := sql + ' (' +
@@ -7066,7 +7058,7 @@ begin
     if CheckUniqueKeyClause then begin
       sql :=
         'SELECT ' + mask(Col.Name) +
-        ' FROM ' + mask(SelectedTable.Text) +
+        ' FROM ' + mask(SelectedTable.Name) +
         ' WHERE ' + GetWhereClause(Row, @DataGridResult.Columns)
       ;
       Results := Connection.GetResults(sql);
@@ -7383,7 +7375,7 @@ function TMainForm.GetRegKeyTable: String;
 begin
   // Return the slightly complex registry path to \Servers\ThisServer\curdb|curtable
   Result := REGPATH + REGKEY_SESSIONS + SessionName + '\' +
-    Utf8Encode(ActiveDatabase) + REGDELIM + Utf8Encode(SelectedTable.Text);
+    Utf8Encode(ActiveDatabase) + REGDELIM + Utf8Encode(SelectedTable.Name);
 end;
 
 
@@ -8035,7 +8027,7 @@ begin
   if ListTables.Focused then begin
     // Got here from ListTables.OnDblClick or ListTables's context menu item "Edit"
     NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    if (NodeData.Captions[0] <> SelectedTable.Text) or (NodeData.NodeType <> SelectedTable.NodeType) then
+    if (NodeData.Captions[0] <> SelectedTable.Name) or (NodeData.NodeType <> SelectedTable.NodeType) then
       SelectDBObject(NodeData.Captions[0], NodeData.NodeType);
   end;
 
@@ -8059,22 +8051,22 @@ begin
 
     lntTable: begin
       PlaceObjectEditor(SelectedTable.NodeType);
-      TableEditor.Init(SelectedTable.Text);
+      TableEditor.Init(SelectedTable.Name);
     end;
 
     lntView: begin
       PlaceObjectEditor(SelectedTable.NodeType);
-      ViewEditor.Init(SelectedTable.Text);
+      ViewEditor.Init(SelectedTable.Name);
     end;
 
     lntFunction, lntProcedure: begin
       PlaceObjectEditor(SelectedTable.NodeType);
-      RoutineEditor.Init(SelectedTable.Text, SelectedTable.NodeType);
+      RoutineEditor.Init(SelectedTable.Name, SelectedTable.NodeType);
     end;
 
     lntTrigger: begin
       PlaceObjectEditor(SelectedTable.NodeType);
-      TriggerEditor.Init(SelectedTable.Text);
+      TriggerEditor.Init(SelectedTable.Name);
     end;
 
   end;
@@ -8466,8 +8458,8 @@ begin
     Cap := Cap + Format( ' (%d)', [WindowNumber] );
   if ActiveDatabase <> '' then
     Cap := Cap + ' /' + ActiveDatabase;
-  if SelectedTable.Text <> '' then
-    Cap := Cap + '/' + SelectedTable.Text;
+  if SelectedTable.Name <> '' then
+    Cap := Cap + '/' + SelectedTable.Name;
   Cap := Cap + ' - ' + APPNAME + ' ' + FullAppVersion;
   Caption := Cap;
   Application.Title := Cap;
@@ -8802,12 +8794,12 @@ begin
     WhereClause := '??? # No primary or unique key available!';
 
   if MenuItem = menuQueryHelpersGenerateInsert then begin
-    sql := 'INSERT INTO '+mask(SelectedTable.Text)+CRLF+
+    sql := 'INSERT INTO '+mask(SelectedTable.Name)+CRLF+
       #9'('+ImplodeStr(', ', ColumnNames)+')'+CRLF+
       #9'VALUES ('+ImplodeStr(', ', DefaultValues)+')';
 
   end else if MenuItem = menuQueryHelpersGenerateUpdate then begin
-    sql := 'UPDATE '+mask(SelectedTable.Text)+CRLF+#9'SET'+CRLF;
+    sql := 'UPDATE '+mask(SelectedTable.Name)+CRLF+#9'SET'+CRLF;
     if ColumnNames.Count > 0 then begin
       for i:=0 to ColumnNames.Count-1 do begin
         sql := sql + #9#9 + ColumnNames[i] + '=' + DefaultValues[i] + ',' + CRLF;
@@ -8818,7 +8810,7 @@ begin
     sql := sql + #9'WHERE ' + WhereClause;
 
   end else if MenuItem = menuQueryHelpersGenerateDelete then begin
-    sql := 'DELETE FROM '+mask(SelectedTable.Text)+' WHERE ' + WhereClause;
+    sql := 'DELETE FROM '+mask(SelectedTable.Name)+' WHERE ' + WhereClause;
 
   end;
   ActiveQueryMemo.UndoList.AddGroupBreak;

@@ -16,11 +16,6 @@ uses
 
 type
 
-  TListNode = record
-    Text: WideString;
-    NodeType: TListNodeType;
-  end;
-
   // Define a record which can hold everything we need for one row / node in a VirtualStringTree
   TVTreeData = record
     Captions: TWideStringList;
