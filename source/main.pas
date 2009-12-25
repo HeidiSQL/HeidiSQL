@@ -6904,6 +6904,8 @@ begin
         MessageBox(Self.Handle, 'Server failed to insert row.', 'Error', 0);
       Result := True;
       Row.Loaded := false;
+      Inc(SelectedTable.Rows, Connection.RowsAffected);
+      DisplayRowCountStats;
       EnsureNodeLoaded(Sender, Node, GetWhereClause(Row, @DataGridResult.Columns));
       GridFinalizeEditing(Sender);
     except
@@ -6924,7 +6926,7 @@ var
   Node, FocusAfterDelete: PVirtualNode;
   Nodes: TNodeArray;
   sql: WideString;
-  Affected: Int64;
+  Affected, Matching: Int64;
   Selected, i, j: Integer;
   msg: String;
 begin
@@ -6958,6 +6960,7 @@ begin
     // Remove deleted row nodes out of the grid
     Affected := Connection.RowsAffected;
     Selected := Sender.SelectedCount;
+    Dec(SelectedTable.Rows, Affected);
     if Affected = Selected then begin
       // Fine. Number of deleted rows equals the selected node count.
       // In this case, just remove the selected nodes, avoid a full reload
@@ -6986,6 +6989,10 @@ begin
       LogSQL( msg );
       MessageDlg( msg, mtWarning, [mbOK], 0);
     end;
+    Matching := -1;
+    if ReachedEOT then
+      Matching := DataGrid.RootNodeCount;
+    DisplayRowCountStats(Matching);
   end;
 end;
 
