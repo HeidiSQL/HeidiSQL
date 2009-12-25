@@ -443,6 +443,7 @@ type
     menuQuerySelectall: TMenuItem;
     actDataDuplicateRow: TAction;
     Duplicaterow1: TMenuItem;
+    Bulktableeditor1: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
