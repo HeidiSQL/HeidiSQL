@@ -6070,12 +6070,13 @@ end;
 }
 procedure TMainForm.RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
 var
-  oldActiveDatabase: WideString;
-  oldSelectedTable: TDBObject;
+  oldActiveDatabase, oldSelectedTableName: WideString;
+  oldSelectedTableType: TListNodeType;
 begin
   // Remember currently active database and table
   oldActiveDatabase := ActiveDatabase;
-  oldSelectedTable := SelectedTable;
+  oldSelectedTableName := SelectedTable.Name;
+  oldSelectedTableType := SelectedTable.NodeType;
   DBtree.FocusedNode := nil;
 
   // ReInit tree population
@@ -6091,8 +6092,8 @@ begin
       ActiveDatabase := SelectDatabase
     else if oldActiveDatabase <> '' then
       ActiveDatabase := oldActiveDatabase;
-    if oldSelectedTable.Name <> '' then
-      SelectDBObject(oldSelectedTable.Name, oldSelectedTable.NodeType);
+    if oldSelectedTableName <> '' then
+      SelectDBObject(oldSelectedTableName, oldSelectedTableType);
   except
   end;
   // Select "host" node if database was deleted outside and node is gone
@@ -6106,16 +6107,17 @@ end;
 }
 procedure TMainForm.RefreshTreeDB(db: WideString);
 var
-  oldActiveDatabase: WideString;
+  oldActiveDatabase, oldSelectedTableName: WideString;
+  oldSelectedTableType: TListNodeType;
   DBNode, FNode: PVirtualNode;
-  oldSelectedTable: TDBObject;
   TableHereHadFocus: Boolean;
   DBObjects: TDBObjectList;
   i: Integer;
   FocusChangeEvent: procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex) of object;
 begin
   oldActiveDatabase := ActiveDatabase;
-  oldSelectedTable := SelectedTable;
+  oldSelectedTableName := SelectedTable.Name;
+  oldSelectedTableType := SelectedTable.NodeType;
   DBNode := FindDBNode(db);
   FNode := DBtree.FocusedNode;
   TableHereHadFocus := Assigned(FNode) and (FNode.Parent = DBNode);
@@ -6131,9 +6133,9 @@ begin
     DBObjects := Connection.GetDBObjects(db);
     for i:=0 to DBObjects.Count-1 do begin
       // Need to check if table was renamed, in which case oldSelectedTable is no longer available
-      if (DBObjects[i].Name = oldSelectedTable.Name)
-        and (DBObjects[i].NodeType = oldSelectedTable.NodeType) then begin
-        SelectDBObject(oldSelectedTable.Name, oldSelectedTable.NodeType);
+      if (DBObjects[i].Name = oldSelectedTableName)
+        and (DBObjects[i].NodeType = oldSelectedTableType) then begin
+        SelectDBObject(oldSelectedTableName, oldSelectedTableType);
         break;
       end;
     end;
