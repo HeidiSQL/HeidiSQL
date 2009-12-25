@@ -444,6 +444,8 @@ type
     actDataDuplicateRow: TAction;
     Duplicaterow1: TMenuItem;
     Bulktableeditor1: TMenuItem;
+    actSelectInverse: TAction;
+    Inverseselection1: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -700,6 +702,7 @@ type
     procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure menuQueryHelpersGenerateStatementClick(Sender: TObject);
     procedure actDataDuplicateRowExecute(Sender: TObject);
+    procedure actSelectInverseExecute(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -7807,6 +7810,38 @@ begin
     ListBox := TTNTListBox(Control);
     if ListBox.MultiSelect then begin
       ListBox.SelectAll;
+      Success := True;
+    end;
+  end;
+  if not Success then
+    MessageBeep(MB_ICONASTERISK);
+end;
+
+
+procedure TMainForm.actSelectInverseExecute(Sender: TObject);
+var
+  Control: TWinControl;
+  Grid: TVirtualStringTree;
+  ListBox: TTNTListBox;
+  Success: Boolean;
+  i: Integer;
+begin
+  // Invert selection in grids or listboxes
+  Success := False;
+  Control := Screen.ActiveControl;
+  // Do not handle Search/replace dialog
+  if not Control.Focused then Exit;
+  if Control is TVirtualStringTree then begin
+    Grid := TVirtualStringTree(Control);
+    if toMultiSelect in Grid.TreeOptions.SelectionOptions then begin
+      Grid.InvertSelection(False);
+      Success := True;
+    end;
+  end else if Control is TTNTListBox then begin
+    ListBox := TTNTListBox(Control);
+    if ListBox.MultiSelect then begin
+      for i:=0 to ListBox.Count-1 do
+        ListBox.Selected[i] := not ListBox.Selected[i];
       Success := True;
     end;
   end;
