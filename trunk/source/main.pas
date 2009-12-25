@@ -4720,37 +4720,36 @@ end;
 
 procedure TMainForm.SelectDBObject(Text: WideString; NodeType: TListNodeType);
 var
-  i: integer;
   dbnode, tnode, snode: PVirtualNode;
 begin
   debug('SelectDBObject()');
   // Detect db node
-  case DBtree.GetNodeLevel( DBtree.GetFirstSelected ) of
-    1: dbnode := DBtree.GetFirstSelected;
-    2: dbnode := DBtree.GetFirstSelected.Parent;
+  case DBtree.GetNodeLevel(DBtree.FocusedNode) of
+    1: dbnode := DBtree.FocusedNode;
+    2: dbnode := DBtree.FocusedNode.Parent;
     else raise Exception.Create('No selection in tree, could not determine active db.');
   end;
   snode := nil;
   // 1st search, case sensitive for lower-case-tablenames=0 servers
   tnode := DBtree.GetFirstChild(dbnode);
-  for i := 0 to dbnode.ChildCount - 1 do begin
+  while Assigned(tnode) do begin
     // Select table node if it has the wanted caption
     if (DBtree.Text[tnode, 0] = Text) and (GetTreeNodeType(DBTree, tnode) = NodeType) then begin
       snode := tnode;
       break;
     end;
-    tnode := DBtree.GetNext(tnode);
+    tnode := DBtree.GetNextSibling(tnode);
   end;
   // 2nd search, case insensitive now
   if not Assigned(snode) then begin
     tnode := DBtree.GetFirstChild(dbnode);
-    for i := 0 to dbnode.ChildCount - 1 do begin
+    while Assigned(tnode) do begin
       // Select table node if it has the wanted caption
       if (AnsiCompareText(DBtree.Text[tnode, 0], Text) = 0) and (GetTreeNodeType(DBtree, tnode) = NodeType) then begin
         snode := tnode;
         break;
       end;
-      tnode := DBtree.GetNext(tnode);
+      tnode := DBtree.GetNextSibling(tnode);
     end;
   end;
   if Assigned(snode) then begin
