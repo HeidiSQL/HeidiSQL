@@ -146,7 +146,7 @@ begin
   // read tables from db
   comboTable.Items.Clear;
   seldb := Mainform.ActiveDatabase;
-  seltable := Mainform.SelectedTable.Text;
+  seltable := Mainform.SelectedTable.Name;
   DBObjects := Mainform.Connection.GetDBObjects(comboDatabase.Text);
   for i:=0 to DBObjects.Count-1 do begin
     if DBObjects[i].NodeType in [lntTable, lntView] then

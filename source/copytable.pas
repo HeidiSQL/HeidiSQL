@@ -114,7 +114,7 @@ var
   NodeData: PVTreeData;
 begin
   if Mainform.DBtree.Focused then
-    oldTableName := Mainform.SelectedTable.Text
+    oldTableName := Mainform.SelectedTable.Name
   else begin
     NodeData := Mainform.ListTables.GetNodeData(Mainform.ListTables.FocusedNode);
     oldTableName := NodeData.Captions[0];
