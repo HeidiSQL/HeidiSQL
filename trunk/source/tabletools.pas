@@ -1021,92 +1021,88 @@ begin
     end;
   end;
 
-  case DBObj.NodeType of
-    lntTable: begin
-      // Table data
-      if comboExportData.Text = DATA_NO then begin
-        Output(CRLF+'# Data exporting was unselected.'+CRLF, False, True, True, False, False);
-      end else if DBObj.Rows = 0 then begin
-        Output(CRLF+'# No rows in table '+DBObj.Database+'.'+DBObj.Name+CRLF, False, True, True, False, False);
-      end else begin
-        Output(CRLF+'# Dumping data for table '+DBObj.Database+'.'+DBObj.Name+': '+FormatNumber(DBObj.Rows)+' rows'+CRLF, False, True, True, False, False);
-        TargetDbAndObject := m(DBObj.Name);
-        if ToDb then
-          TargetDbAndObject := m(FinalDbName) + '.' + TargetDbAndObject;
-        Offset := 0;
-        RowCount := 0;
-        // Calculate limit so we select ~100MB per loop
-        Limit := Round(100 * SIZE_MB / Max(DBObj.AvgRowLen,1));
-        // Calculate max rows per INSERT, so we always get ~800KB
-        MaxRowsInChunk := Round(SIZE_MB * 0.6 / Max(DBObj.AvgRowLen,1));
-        if comboExportData.Text = DATA_REPLACE then
-          Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
-        Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
-        BaseInsert := 'INSERT INTO ';
-        if comboExportData.Text = DATA_INSERTNEW then
-          BaseInsert := 'INSERT IGNORE INTO '
-        else if comboExportData.Text = DATA_UPDATE then
-          BaseInsert := 'REPLACE INTO ';
-        BaseInsert := BaseInsert + TargetDbAndObject + ' (';
+  if DBObj.NodeType = lntTable then begin
+    // Table data
+    if comboExportData.Text = DATA_NO then begin
+      Output(CRLF+'# Data exporting was unselected.'+CRLF, False, True, True, False, False);
+    end else if DBObj.Rows = 0 then begin
+      Output(CRLF+'# No rows in table '+DBObj.Database+'.'+DBObj.Name+CRLF, False, True, True, False, False);
+    end else begin
+      Output(CRLF+'# Dumping data for table '+DBObj.Database+'.'+DBObj.Name+': '+FormatNumber(DBObj.Rows)+' rows'+CRLF, False, True, True, False, False);
+      TargetDbAndObject := m(DBObj.Name);
+      if ToDb then
+        TargetDbAndObject := m(FinalDbName) + '.' + TargetDbAndObject;
+      Offset := 0;
+      RowCount := 0;
+      // Calculate limit so we select ~100MB per loop
+      Limit := Round(100 * SIZE_MB / Max(DBObj.AvgRowLen,1));
+      // Calculate max rows per INSERT, so we always get ~800KB
+      MaxRowsInChunk := Round(SIZE_MB * 0.6 / Max(DBObj.AvgRowLen,1));
+      if comboExportData.Text = DATA_REPLACE then
+        Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
+      Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
+      BaseInsert := 'INSERT INTO ';
+      if comboExportData.Text = DATA_INSERTNEW then
+        BaseInsert := 'INSERT IGNORE INTO '
+      else if comboExportData.Text = DATA_UPDATE then
+        BaseInsert := 'REPLACE INTO ';
+      BaseInsert := BaseInsert + TargetDbAndObject + ' (';
+      while true do begin
+        Data := Mainform.Connection.GetResults('SELECT * FROM '+m(DBObj.Database)+'.'+m(DBObj.Name)+' LIMIT '+IntToStr(Offset)+', '+IntToStr(Limit));
+        Inc(Offset, Limit);
+        if Data.RecordCount = 0 then
+          break;
+        for i:=0 to Data.ColumnCount-1 do
+          BaseInsert := BaseInsert + m(Data.ColumnNames[i]) + ', ';
+        Delete(BaseInsert, Length(BaseInsert)-1, 2);
+        BaseInsert := BaseInsert + ') VALUES (';
         while true do begin
-          Data := Mainform.Connection.GetResults('SELECT * FROM '+m(DBObj.Database)+'.'+m(DBObj.Name)+' LIMIT '+IntToStr(Offset)+', '+IntToStr(Limit));
-          Inc(Offset, Limit);
-          if Data.RecordCount = 0 then
-            break;
-          for i:=0 to Data.ColumnCount-1 do
-            BaseInsert := BaseInsert + m(Data.ColumnNames[i]) + ', ';
-          Delete(BaseInsert, Length(BaseInsert)-1, 2);
-          BaseInsert := BaseInsert + ') VALUES (';
-          while true do begin
-            RowsInChunk := 0;
-            Output(BaseInsert, False, True, True, True, True);
+          RowsInChunk := 0;
+          Output(BaseInsert, False, True, True, True, True);
 
-            while not Data.Eof do begin
-              Inc(RowCount);
-              Inc(RowsInChunk);
-              Row := '';
-              for i:=0 to Data.ColumnCount-1 do begin
-                if Data.IsNull(i) then
-                  Row := Row + 'NULL'
-                else case Data.DataType(i).Category of
-                  dtcInteger, dtcReal: Row := Row + Data.Col(i);
-                  dtcBinary: Row := Row + '_binary 0x' + BinToWideHex(Data.Col(i));
-                  else Row := Row + esc(Data.Col(i));
-                end;
-                if i<Data.ColumnCount-1 then
-                  Row := Row + ', ';
+          while not Data.Eof do begin
+            Inc(RowCount);
+            Inc(RowsInChunk);
+            Row := '';
+            for i:=0 to Data.ColumnCount-1 do begin
+              if Data.IsNull(i) then
+                Row := Row + 'NULL'
+              else case Data.DataType(i).Category of
+                dtcInteger, dtcReal: Row := Row + Data.Col(i);
+                dtcBinary: Row := Row + '_binary 0x' + BinToWideHex(Data.Col(i));
+                else Row := Row + esc(Data.Col(i));
               end;
-              Row := Row + ')';
-              Data.Next;
-              IsLastRowInChunk := (RowsInChunk = MaxRowsInChunk) or Data.Eof;
-              if not IsLastRowInChunk then
-                Row := Row + ', (';
-              Output(Row, False, True, True, True, True);
-              if IsLastRowInChunk then
-                break;
+              if i<Data.ColumnCount-1 then
+                Row := Row + ', ';
             end;
-            Output('', True, True, True, True, True);
-            LogRow := TWideStringList(FResults.Last);
-            LogRow[2] := FormatNumber(RowCount) + ' / ' + FormatNumber(100/Max(DBObj.Rows,1)*RowCount, 0)+'%';
-            LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000);
-            UpdateResultGrid;
-            if Data.Eof then
+            Row := Row + ')';
+            Data.Next;
+            IsLastRowInChunk := (RowsInChunk = MaxRowsInChunk) or Data.Eof;
+            if not IsLastRowInChunk then
+              Row := Row + ', (';
+            Output(Row, False, True, True, True, True);
+            if IsLastRowInChunk then
               break;
-
           end;
-          ResultCount := Data.RecordCount;
-          FreeAndNil(Data);
-          // Break if end of table data, avoid one last empty/useless SELECT in next loop
-          if ResultCount < Limit then
+          Output('', True, True, True, True, True);
+          LogRow := TWideStringList(FResults.Last);
+          LogRow[2] := FormatNumber(RowCount) + ' / ' + FormatNumber(100/Max(DBObj.Rows,1)*RowCount, 0)+'%';
+          LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000);
+          UpdateResultGrid;
+          if Data.Eof then
             break;
 
         end;
-        Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True, True);
-        Output(EXPORT_FILE_FOOTER, False, False, True, False, False);
-      end;
-    end;
+        ResultCount := Data.RecordCount;
+        FreeAndNil(Data);
+        // Break if end of table data, avoid one last empty/useless SELECT in next loop
+        if ResultCount < Limit then
+          break;
 
-    lntView: // Do not export data for views
+      end;
+      Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True, True);
+      Output(EXPORT_FILE_FOOTER, False, False, True, False, False);
+    end;
   end;
 
   ExportLastDatabase := FinalDbName;
