@@ -978,6 +978,7 @@ begin
         else
           Obj.Engine := Results.Col('Engine');
         Obj.Comment := Results.Col('Comment');
+        // Sanitize comment from automatically appendage
         rx.Expression := '(;\s*)?InnoDB\s*free\:.*$';
         Obj.Comment := rx.Replace(Obj.Comment, '', False);
         Obj.Version := StrToInt64Def(Results.Col('Version', True), -1);
