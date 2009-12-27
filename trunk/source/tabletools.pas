@@ -432,6 +432,7 @@ begin
   Views := TDBObjectList.Create;
   Views.OwnsObjects := False; // So we can .Free that object afterwards without loosing the contained objects
   TreeObjects.SetFocus;
+  ProcessNodeFunc := nil;
   DBNode := TreeObjects.GetFirstChild(TreeObjects.GetFirst);
   while Assigned(DBNode) do begin
     if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
