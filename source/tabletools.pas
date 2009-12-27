@@ -144,7 +144,9 @@ const
   DATA_INSERT = 'Insert';
   DATA_INSERTNEW = 'Insert new data (do not update existing)';
   DATA_UPDATE = 'Update existing data';
-  EXPORT_FILE_FOOTER = '/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;'+CRLF+'/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;'+CRLF;
+  EXPORT_FILE_FOOTER = '/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;'+CRLF+
+    '/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;'+CRLF+
+    '/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;'+CRLF;
 
 {$R *.DFM}
 
@@ -397,7 +399,7 @@ begin
     2: begin
       DBObjects := Mainform.Connection.GetDBObjects(Mainform.Databases[ParentNode.Index]);
       // No checkbox for stored routines
-      if not (DBObjects[Node.Index].NodeType in [lntTable, lntView]) then
+      if not (DBObjects[Node.Index].NodeType in [lntTable, lntView, lntTrigger]) then
         Node.CheckType := ctNone
     end;
   end;
@@ -860,7 +862,7 @@ var
   i: Integer;
   RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;
-  Data: TMySQLQuery;
+  StrucResult, Data: TMySQLQuery;
   rx: TRegExpr;
 
   // Short version of Mainform.Mask()
@@ -930,7 +932,8 @@ begin
         '# --------------------------------------------------------' + CRLF + CRLF +
         '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
         '/*!40101 SET NAMES '+Mainform.Connection.CharacterSet+' */;' + CRLF +
-        '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF;
+        '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF +
+        '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;';
       Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
     end;
   except
@@ -971,7 +974,7 @@ begin
   if chkExportTablesDrop.Checked or chkExportTablesCreate.Checked then begin
     Output(CRLF+CRLF+'# Dumping structure for '+LowerCase(DBObj.ObjType)+' '+DBObj.Database+'.'+DBObj.Name+CRLF, False, True, True, False, False);
     if chkExportTablesDrop.Checked then begin
-      Struc := 'DROP TABLE IF EXISTS ';
+      Struc := 'DROP '+DBObj.ObjType+' IF EXISTS ';
       if ToDb then
         Struc := Struc + m(FinalDbName)+'.';
       Struc := Struc + m(DBObj.Name);
@@ -979,23 +982,36 @@ begin
     end;
     if chkExportTablesCreate.Checked then begin
       try
-        Struc := Mainform.Connection.GetVar('SHOW CREATE TABLE '+m(DBObj.Database)+'.'+m(DBObj.Name), 1);
-        Struc := fixNewlines(Struc);
-        // Remove AUTO_INCREMENT clause
-        rx := TRegExpr.Create;
-        rx.ModifierI := True;
-        rx.Expression := '\sAUTO_INCREMENT\s*\=\s*\d+\s';
-        Struc := rx.Replace(Struc, ' ');
-        rx.Free;
-        if DBObj.NodeType = lntTable then
-          Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
-        if ToDb then begin
-          if DBObj.NodeType = lntTable then
-            Insert(m(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
-          else if DBObj.NodeType = lntView then
-            Insert(m(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
+        case DBObj.NodeType of
+          lntTable, lntView: begin
+            Struc := Mainform.Connection.GetVar('SHOW CREATE TABLE '+m(DBObj.Database)+'.'+m(DBObj.Name), 1);
+            Struc := fixNewlines(Struc);
+            // Remove AUTO_INCREMENT clause
+            rx := TRegExpr.Create;
+            rx.ModifierI := True;
+            rx.Expression := '\sAUTO_INCREMENT\s*\=\s*\d+\s';
+            Struc := rx.Replace(Struc, ' ');
+            rx.Free;
+            if DBObj.NodeType = lntTable then
+              Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
+            if ToDb then begin
+              if DBObj.NodeType = lntTable then
+                Insert(m(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
+              else if DBObj.NodeType = lntView then
+                Insert(m(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
+            end;
+            Output(Struc, True, True, True, True, True);
+          end;
+
+          lntTrigger: begin
+            StrucResult := Mainform.Connection.GetResults('SHOW TRIGGERS WHERE `Trigger`='+esc(DBObj.Name));
+            Output('SET SESSION SQL_MODE='+esc(StrucResult.Col('sql_mode')), True, True, True, True, True);
+            Struc := 'CREATE '+m(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
+              ' ON '+m(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement');
+            Output(Struc, True, True, True, True, True);
+            Output('SET SESSION SQL_MODE=@OLD_SQL_MODE', True, True, True, True, True);
+          end;
         end;
-        Output(Struc, True, True, True, True, True);
       except
         On E:Exception do begin
           // Catch the exception message and dump it into the export file for debugging reasons

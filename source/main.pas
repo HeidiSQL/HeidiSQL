@@ -1788,12 +1788,10 @@ begin
   Act := Sender as TAction;
   InDBTree := (Act.ActionComponent is TMenuItem)
     and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
-  if InDBTree and (SelectedTable.NodeType in [lntTable, lntView]) then
+  if InDBTree then
     TableToolsDialog.SelectedTables.Text := SelectedTable.Name
-  else if not InDBTree then
-    TableToolsDialog.SelectedTables := GetVTCaptions(ListTables, True, 0, [lntTable, lntView])
   else
-    TableToolsDialog.SelectedTables.Clear;
+    TableToolsDialog.SelectedTables := GetVTCaptions(ListTables, True);
   if Sender = actMaintenance then
     TableToolsDialog.ToolMode := tmMaintenance
   else if Sender = actFindTextOnServer then
