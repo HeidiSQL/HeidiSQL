@@ -388,21 +388,11 @@ end;
 
 procedure TfrmTableTools.TreeObjectsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
   var InitialStates: TVirtualNodeInitStates);
-var
-  DBObjects: TDBObjectList;
 begin
   // Attach a checkbox to all nodes
   Mainform.DBtreeInitNode(Sender, ParentNode, Node, InitialStates);
   Node.CheckType := ctTriStateCheckBox;
   Node.CheckState := csUncheckedNormal;
-  case Sender.GetNodeLevel(Node) of
-    2: begin
-      DBObjects := Mainform.Connection.GetDBObjects(Mainform.Databases[ParentNode.Index]);
-      // No checkbox for stored routines
-      if not (DBObjects[Node.Index].NodeType in [lntTable, lntView, lntTrigger]) then
-        Node.CheckType := ctNone
-    end;
-  end;
   ValidateControls(Sender);
 end;
 
@@ -858,12 +848,14 @@ procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
   ToFile, ToDir, ToDb, ToServer, IsLastRowInChunk, NeedsDBStructure: Boolean;
   Struc, Header, FinalDbName, BaseInsert, Row, TargetDbAndObject: WideString;
-  LogRow: TWideStringlist;
+  LogRow, MultiSQL: TWideStringlist;
   i: Integer;
   RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;
   StrucResult, Data: TMySQLQuery;
   rx: TRegExpr;
+const
+  TempDelim = '//';
 
   // Short version of Mainform.Mask()
   function m(s: WideString): WideString;
@@ -985,7 +977,6 @@ begin
         case DBObj.NodeType of
           lntTable, lntView: begin
             Struc := Mainform.Connection.GetVar('SHOW CREATE TABLE '+m(DBObj.Database)+'.'+m(DBObj.Name), 1);
-            Struc := fixNewlines(Struc);
             // Remove AUTO_INCREMENT clause
             rx := TRegExpr.Create;
             rx.ModifierI := True;
@@ -1000,18 +991,26 @@ begin
               else if DBObj.NodeType = lntView then
                 Insert(m(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
             end;
-            Output(Struc, True, True, True, True, True);
           end;
 
           lntTrigger: begin
             StrucResult := Mainform.Connection.GetResults('SHOW TRIGGERS WHERE `Trigger`='+esc(DBObj.Name));
-            Output('SET SESSION SQL_MODE='+esc(StrucResult.Col('sql_mode')), True, True, True, True, True);
-            Struc := 'CREATE '+m(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
-              ' ON '+m(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement');
-            Output(Struc, True, True, True, True, True);
-            Output('SET SESSION SQL_MODE=@OLD_SQL_MODE', True, True, True, True, True);
+            Struc := 'SET SESSION SQL_MODE='+esc(StrucResult.Col('sql_mode'))+';'+CRLF+
+              'CREATE '+DBObj.ObjType+' '+m(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
+                ' ON '+m(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement')+';'+CRLF+
+              'SET SESSION SQL_MODE=@OLD_SQL_MODE';
+          end;
+
+          lntFunction, lntProcedure: begin
+            Struc := Mainform.Connection.GetVar('SHOW CREATE '+DBObj.ObjType+' '+m(DBObj.Database)+'.'+m(DBObj.Name), 2);
+            MultiSQL := Explode(';', Struc);
+            Struc := 'DELIMITER ' + TempDelim + CRLF +
+              ImplodeStr(';'+CRLF, MultiSQL) + TempDelim + CRLF +
+              'DELIMITER ';
           end;
         end;
+        Struc := fixNewlines(Struc);
+        Output(Struc, True, True, True, True, True);
       except
         On E:Exception do begin
           // Catch the exception message and dump it into the export file for debugging reasons
