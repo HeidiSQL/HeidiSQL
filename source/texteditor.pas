@@ -194,6 +194,7 @@ begin
     VK_ESCAPE: btnCancelClick(Sender);
     // Apply changes and end editing by Ctrl + Enter
     VK_RETURN: if ssCtrl in Shift then btnApplyClick(Sender);
+    Ord('a'), Ord('A'): if ssCtrl in Shift then Mainform.actSelectAllExecute(Sender);
   end;
 end;
 
