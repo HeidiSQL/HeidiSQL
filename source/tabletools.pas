@@ -117,6 +117,7 @@ type
     procedure SetToolMode(Value: TToolMode);
     procedure AddResults(SQL: WideString);
     procedure AddNotes(Col1, Col2, Col3, Col4: WideString);
+    procedure SetupResultGrid(Results: TMySQLQuery=nil);
     procedure UpdateResultGrid;
     procedure DoMaintenance(DBObj: TDBObject);
     procedure DoFind(DBObj: TDBObject);
@@ -546,7 +547,6 @@ end;
 procedure TfrmTableTools.AddResults(SQL: WideString);
 var
   i: Integer;
-  Col: TVirtualTreeColumn;
   Row: TWideStringlist;
   Results: TMySQLQuery;
 begin
@@ -555,23 +555,7 @@ begin
   if Results = nil then
     Exit;
 
-  // Add missing columns
-  for i:=ResultGrid.Header.Columns.Count to Results.ColumnCount-1 do begin
-    Col := ResultGrid.Header.Columns.Add;
-    Col.Width := 130;
-  end;
-  // Remove superfluous columns
-  for i:=ResultGrid.Header.Columns.Count-1 downto Results.ColumnCount do
-    ResultGrid.Header.Columns[i].Free;
-  // Set column header names
-  for i:=0 to Results.ColumnCount-1 do begin
-    Col := ResultGrid.Header.Columns[i];
-    Col.Text := Results.ColumnNames[i];
-    if Results.DataType(i).Category in [dtcInteger, dtcIntegerNamed, dtcReal] then
-      Col.Alignment := taRightJustify
-    else
-      Col.Alignment := taLeftJustify;
-  end;
+  SetupResultGrid(Results);
   Results.First;
   while not Results.Eof do begin
     Row := TWideStringlist.Create;
@@ -595,6 +579,7 @@ var
   Row: TWideStringlist;
 begin
   // Adds a row with non SQL results
+  SetupResultGrid;
   Row := TWideStringlist.Create;
   Row.Add(Col1);
   Row.Add(Col2);
@@ -602,6 +587,42 @@ begin
   Row.Add(Col4);
   FResults.Add(Row);
   UpdateResultGrid;
+end;
+
+
+procedure TfrmTableTools.SetupResultGrid(Results: TMySQLQuery=nil);
+var
+  ColCount, i: Integer;
+  Col: TVirtualTreeColumn;
+begin
+  if Assigned(Results) then begin
+    ColCount := Results.ColumnCount;
+    ResultGrid.Header.Options := ResultGrid.Header.Options + [hoVisible];
+  end else begin
+    ColCount := 4;
+    ResultGrid.Header.Options := ResultGrid.Header.Options - [hoVisible];
+  end;
+
+  // Add missing columns
+  for i:=ResultGrid.Header.Columns.Count to ColCount-1 do begin
+    Col := ResultGrid.Header.Columns.Add;
+    Col.Width := 130;
+  end;
+  // Remove superfluous columns
+  for i:=ResultGrid.Header.Columns.Count-1 downto ColCount do
+    ResultGrid.Header.Columns[i].Free;
+
+  // Set column header names
+  for i:=0 to ResultGrid.Header.Columns.Count-1 do begin
+    Col := ResultGrid.Header.Columns[i];
+    if Assigned(Results) then begin
+      Col.Text := Results.ColumnNames[i];
+      if Results.DataType(i).Category in [dtcInteger, dtcIntegerNamed, dtcReal] then
+        Col.Alignment := taRightJustify
+      else
+        Col.Alignment := taLeftJustify;
+    end;
+  end;
 end;
 
 
