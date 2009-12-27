@@ -1277,8 +1277,7 @@ object MainForm: TMainForm
               Gutter.RightOffset = 0
               Gutter.ShowLineNumbers = True
               Highlighter = SynSQLSyn1
-              MaxScrollWidth = 10240
-              Options = [eoAutoIndent, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
+              Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
               RightEdge = 0
               SearchEngine = SynEditSearch1
               TabWidth = 3
