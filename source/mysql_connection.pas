@@ -377,6 +377,7 @@ begin
   FLastQueryDuration := GetTickCount - TimerStart;
   FLastQueryNetworkDuration := 0;
   if querystatus <> 0 then begin
+    // Most errors will show up here, some others slightly later, after mysql_store_result()
     Log(lcError, GetLastError);
     raise Exception.Create(GetLastError);
   end else begin
@@ -386,6 +387,12 @@ begin
     TimerStart := GetTickCount;
     Result := mysql_store_result(FHandle);
     FLastQueryNetworkDuration := GetTickCount - TimerStart;
+    if (Result = nil) and (FRowsAffected = -1) then begin
+      // Indicates a late error, e.g. triggered by mysql_store_result(), after selecting a stored
+      // function with invalid SQL body. Also SHOW TABLE STATUS on older servers.
+      Log(lcError, GetLastError);
+      raise Exception.Create(GetLastError);
+    end;
     if Result <> nil then begin
       FRowsFound := mysql_num_rows(Result);
       FRowsAffected := 0;
