@@ -703,6 +703,8 @@ type
     procedure menuQueryHelpersGenerateStatementClick(Sender: TObject);
     procedure actDataDuplicateRowExecute(Sender: TObject);
     procedure actSelectInverseExecute(Sender: TObject);
+    procedure FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
+      var Handled: Boolean);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -8834,6 +8836,27 @@ begin
   VT := Sender as TVirtualStringTree;
   if coVisible in VT.Header.Columns[1].Options then
     VT.Header.Columns[1].Width := TextWidth(VT.Canvas, FormatByteNumber(SIZE_MB-1))+VT.TextMargin*2;
+end;
+
+
+procedure TMainForm.FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
+  var Handled: Boolean);
+var
+  Control: TWinControl;
+  VT: TBaseVirtualTree;
+begin
+  // Wheel scrolling only works in component which has focus. Help out by doing that by hand at least for any VirtualTree.
+  // See http://www.delphipraxis.net/viewtopic.php?p=1113607
+  // TODO: Does not work when a SynMemo has focus, probably related to the broken solution of this issue:
+  // http://sourceforge.net/tracker/index.php?func=detail&aid=1574059&group_id=3221&atid=103221
+  Control := FindVCLWindow(MousePos);
+  if (Control is TBaseVirtualTree) and (not Control.Focused) and PtInRect(Control.ClientRect, Control.ScreenToClient(MousePos)) then begin
+    VT := Control as TBaseVirtualTree;
+    VT.OffsetY := VT.OffsetY + (WheelDelta div 2); // Don't know why, but WheelDelta is twice as big as it normally appears
+    VT.UpdateScrollBars(True);
+    Handled := True;
+  end else
+    Handled := False;
 end;
 
 
