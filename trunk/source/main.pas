@@ -3509,8 +3509,10 @@ begin
     Cap := VTRowDataListTables[i].Captions;
     // Object name
     Cap.Add(Obj.Name);
-    if Obj.Rows > -1 then Cap.Add(FormatNumber(Obj.Rows))
-    else Cap.Add('');
+    if Obj.Rows > -1 then begin
+      if (Obj.Engine = 'InnoDB') and (Obj.Rows > 0) then Cap.Add(FormatNumber(Obj.Rows)+' (approx.)')
+      else Cap.Add(FormatNumber(Obj.Rows))
+    end else Cap.Add('');
     if Obj.Size > -1 then Cap.Add(FormatByteNumber(Obj.Size))
     else Cap.Add('');
     VTRowDataListTables[i].NodeType := Obj.NodeType;
