@@ -501,6 +501,10 @@ procedure TfrmTableTools.DoMaintenance(DBObj: TDBObject);
 var
   SQL: WideString;
 begin
+  if not (DBObj.NodeType in [lntTable, lntView]) then begin
+    AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' cannot be maintained.', '');
+    Exit;
+  end;
   SQL := UpperCase(comboOperation.Text) + ' TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name);
   if chkQuick.Enabled and chkQuick.Checked then SQL := SQL + ' QUICK';
   if chkFast.Enabled and chkFast.Checked then SQL := SQL + ' FAST';
@@ -519,6 +523,10 @@ var
   HasSelectedDatatype: Boolean;
   i: Integer;
 begin
+  if not (DBObj.NodeType in [lntTable, lntView]) then begin
+    AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' does not contain rows.', '');
+    Exit;
+  end;
   Results := Mainform.Connection.GetResults('SHOW COLUMNS FROM '+Mainform.mask(DBObj.Database)+'.'+Mainform.mask(DBObj.Name));
   SQL := '';
   while not Results.Eof do begin
