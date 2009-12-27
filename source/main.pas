@@ -446,6 +446,8 @@ type
     Bulktableeditor1: TMenuItem;
     actSelectInverse: TAction;
     Inverseselection1: TMenuItem;
+    actDataResetSorting: TAction;
+    Resetsorting1: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -705,6 +707,7 @@ type
     procedure actSelectInverseExecute(Sender: TObject);
     procedure FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
       var Handled: Boolean);
+    procedure actDataResetSortingExecute(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -7294,6 +7297,7 @@ var
 begin
   OpenRegistry;
   MainReg.OpenKey(GetRegKeyTable, True);
+  actDataResetSorting.Enabled := False;
   // Clear filter, column names and sort structure if gr
   if not Assigned(FDataGridSelect) then
     FDataGridSelect := TWideStringlist.Create;
@@ -7377,6 +7381,7 @@ begin
       if not rx.ExecNext then
         break;
     end;
+    actDataResetSorting.Enabled := Length(FDataGridSort) > 0;
   end;
 end;
 
@@ -8857,6 +8862,13 @@ begin
     Handled := True;
   end else
     Handled := False;
+end;
+
+
+procedure TMainForm.actDataResetSortingExecute(Sender: TObject);
+begin
+  SetLength(FDataGridSort, 0);
+  viewdata(Sender);
 end;
 
 

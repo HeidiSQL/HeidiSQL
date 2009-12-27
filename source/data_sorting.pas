@@ -14,6 +14,7 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     btnAddCol: TButton;
+    btnReset: TButton;
     procedure btnAddColClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
@@ -21,6 +22,7 @@ type
     procedure FormDeactivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure btnResetClick(Sender: TObject);
   private
     { Private declarations }
     ColumnNames : TWideStringList;
@@ -178,7 +180,7 @@ begin
   Height := (pnlBevel.BorderWidth * 2) + // Top + Bottom border
     (MARGIN_BIG * 2) + // Separator spaces
     (Length(OrderColumns) * (LINE_HEIGHT + MARGIN)) + // Height of created controls
-    (btnOK.Height + MARGIN); // Height of buttons
+    (btnOK.Height + MARGIN + btnReset.Height + Margin); // Height of buttons
   Width := xPosition + pnlBevel.BorderWidth;
 
   // Auto-adjust width and position of main buttons at bottom
@@ -190,6 +192,9 @@ begin
   btnCancel.Left := btnOK.Left + btnWidth + MARGIN;
   btnAddCol.Width := btnWidth;
   btnAddCol.Left := btnCancel.Left + btnWidth + MARGIN;
+  btnReset.Left := btnCancel.Left;
+  btnReset.Width := 2*btnWidth + MARGIN;
+  btnReset.Enabled := Mainform.actDataResetSorting.Enabled;
 end;
 
 
@@ -342,6 +347,13 @@ end;
 }
 procedure TDataSortingForm.FormDeactivate(Sender: TObject);
 begin
+  btnCancel.OnClick(Sender);
+end;
+
+
+procedure TDataSortingForm.btnResetClick(Sender: TObject);
+begin
+  Mainform.actDataResetSortingExecute(Sender);
   btnCancel.OnClick(Sender);
 end;
 
