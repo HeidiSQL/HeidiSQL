@@ -448,6 +448,9 @@ type
     Inverseselection1: TMenuItem;
     actDataResetSorting: TAction;
     Resetsorting1: TMenuItem;
+    actReformatSQL: TAction;
+    ReformatSQL1: TMenuItem;
+    btnReformatSQL: TToolButton;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -708,6 +711,7 @@ type
     procedure FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
       var Handled: Boolean);
     procedure actDataResetSortingExecute(Sender: TObject);
+    procedure actReformatSQLExecute(Sender: TObject);
   private
     ReachedEOT                 : Boolean;
     FDelimiter: String;
@@ -8743,6 +8747,44 @@ begin
     Attri.IntegerStyle := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Attri.IntegerStyle);
     if Assigned(OptionsForm) then
       OptionsForm.SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(Attri);
+  end;
+end;
+
+
+procedure TMainForm.actReformatSQLExecute(Sender: TObject);
+var
+  m: TSynMemo;
+  CursorPosStart, CursorPosEnd: Integer;
+  NewSQL: WideString;
+  Comp: TComponent;
+begin
+  // Reformat SQL query
+  Comp := (Sender as TAction).ActionComponent;
+  if Comp is TMenuItem then
+    m := TPopupMenu((Comp as TMenuItem).GetParentMenu).PopupComponent as TSynMemo
+  else if QueryTabActive then
+    m := ActiveQueryMemo
+  else begin
+    MessageDlg('Please select a query editor tab first.', mtError, [mbOK], 0);
+    Exit;
+  end;
+  CursorPosStart := m.SelStart;
+  CursorPosEnd := m.SelEnd;
+  if not m.SelAvail then
+    m.SelectAll;
+  NewSQL := m.SelText;
+  if Length(NewSQL) = 0 then
+    MessageDlg('Cannot reformat anything - your editor is empty.', mtError, [mbOK], 0)
+  else begin
+    Screen.Cursor := crHourglass;
+    m.UndoList.AddGroupBreak;
+    NewSQL := ReformatSQL(NewSQL);
+    m.SelText := NewSQL;
+    m.SelStart := CursorPosStart;
+    if CursorPosEnd > CursorPosStart then
+      m.SelEnd := CursorPosStart + Length(NewSQL);
+    m.UndoList.AddGroupBreak;
+    Screen.Cursor := crDefault;
   end;
 end;
 
