@@ -252,7 +252,7 @@ object MainForm: TMainForm
     object ToolBarQuery: TToolBar
       Left = 494
       Top = 2
-      Width = 222
+      Width = 245
       Height = 22
       Align = alNone
       AutoSize = True
@@ -294,18 +294,23 @@ object MainForm: TMainForm
         Top = 0
         Action = actQueryReplace
       end
-      object btnStopOnErrors: TToolButton
+      object btnReformatSQL: TToolButton
         Left = 153
+        Top = 0
+        Action = actReformatSQL
+      end
+      object btnStopOnErrors: TToolButton
+        Left = 176
         Top = 0
         Action = actQueryStopOnErrors
       end
       object btnQueryWordwrap: TToolButton
-        Left = 176
+        Left = 199
         Top = 0
         Action = actQueryWordWrap
       end
       object btnSetDelimiter: TToolButton
-        Left = 199
+        Left = 222
         Top = 0
         Action = actSetDelimiter
       end
@@ -2272,6 +2277,12 @@ object MainForm: TMainForm
       ImageIndex = 139
       ShortCut = 32851
       OnExecute = actDataResetSortingExecute
+    end
+    object actReformatSQL: TAction
+      Category = 'SQL'
+      Caption = 'Reformat SQL'
+      ImageIndex = 140
+      OnExecute = actReformatSQLExecute
     end
   end
   object SaveDialog2: TSaveDialog
@@ -6150,6 +6161,22 @@ object MainForm: TMainForm
           F61B7C1AB23D0419EE3D0000000049454E44AE426082}
         Name = 'PngImage139'
         Background = clWindow
+      end
+      item
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001974455874536F6674776172650041646F626520496D616765526561
+          647971C9653C000000F04944415478DA63FCFFFF3F03258071F018505656F6FF
+          DFBF7F0C7FFEFC81E3DFBF7FC3F1AF5FBFE03408EFDBB78F91BA2EE8D8FCEE4A
+          85AF900E4C222626E63AB28DE8F8ECD9B39A280634AC7B7DE5C5E79F8CB76E7F
+          0DD9D7A27E3D2C2CEC072ECD207CE5CA150EB801CD9B5EFC17E16663F8F4FD37
+          C3E93B5FCF3CBCF525EEF434BDEB2479217BD18B2BAFDE7F67BA7BF553F0B959
+          FAD73D3C3CAEC06CFBF9F327DC6698B71E3D7AA4836240E2EC6757E6A74AC1C3
+          C0C1C101C30BC8B1F1E2C50B0E1403288E052F2FAFFFF8020D961E60E9E3F3E7
+          CF544E07363636FFB10516B2CD1F3E7C60C46900C52E2017000067F426F037CF
+          17CF0000000049454E44AE426082}
+        Name = 'PngImage140'
+        Background = clWindow
       end>
     PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
     Left = 104
@@ -6710,6 +6737,9 @@ object MainForm: TMainForm
     end
     object MenuRunLine: TMenuItem
       Action = actExecuteLine
+    end
+    object ReformatSQL1: TMenuItem
+      Action = actReformatSQL
     end
     object MenuItem1: TMenuItem
       Caption = '-'

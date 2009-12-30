@@ -160,6 +160,9 @@ type
   procedure ExplodeQuotedList(Text: WideString; var List: TWideStringList);
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: WideString): WideString;
+  function IsWhitespace(const c: WideChar): Boolean;
+  function IsLetter(const c: WideChar): Boolean;
+  function IsNumber(const c: WideChar): Boolean;
   function parsesql(sql: WideString) : TWideStringList;
   function sstr(str: WideString; len: Integer) : WideString;
   function encrypt(str: String): String;
@@ -236,6 +239,7 @@ type
   function GetLightness(AColor: TColor): Byte;
   procedure ParseTableStructure(CreateTable: WideString; Columns: TObjectList=nil; Keys: TObjectList=nil; ForeignKeys: TObjectList=nil);
   procedure ParseViewStructure(ViewName: WideString; Columns: TObjectList);
+  function ReformatSQL(SQL: WideString): WideString;
 
 var
   MainReg                    : TRegistry;
@@ -474,16 +478,19 @@ end;
   Limitations: only recognizes ANSI whitespace.
   Eligible for inlining, hope the compiler does this automatically.
 }
-function isWhitespace(const c: WideChar): boolean;
+function IsWhitespace(const c: WideChar): Boolean;
 begin
-  result :=
-    (c = #9) or
-    (c = #10) or
-    (c = #13) or
-    (c = #32)
-  ;
+  Result := (c = #9) or (c = #10) or (c = #13) or (c = #32);
 end;
 
+
+function IsLetter(const c: WideChar): Boolean;
+var
+  o: Integer;
+begin
+  o := Ord(c);
+  Result := ((o >= 65) and (o <= 90)) or ((o >= 97) and (o <= 122));
+end;
 
 
 {***
@@ -491,15 +498,12 @@ end;
   Limitations: only recognizes ANSI numerals.
   Eligible for inlining, hope the compiler does this automatically.
 }
-function isNumber(const c: WideChar): boolean;
+function IsNumber(const c: WideChar): Boolean;
 var
   b: word;
 begin
   b := ord(c);
-  result :=
-    (b >= 48) and
-    (b <= 57)
-  ;
+  Result := (b >= 48) and (b <= 57);
 end;
 
 
@@ -608,7 +612,7 @@ begin
     end;
 
     // Skip whitespace immediately if at start of sentence.
-    if (start = i) and isWhitespace(sql[i]) then begin
+    if (start = i) and IsWhitespace(sql[i]) then begin
       start := start + 1;
       if i < len then continue;
     end;
@@ -635,7 +639,7 @@ begin
     if (not instring) and (not incomment) and (not inconditional) and (not indelimiter) and (start + 8 = i) and scanReverse(sql, i, 'delimiter', 9, true) then begin
       // The allowed DELIMITER format is:
       //   <delimiter> <whitespace(s)> <character(s)> <whitespace(s)> <newline>
-      if isWhitespace(secchar) then begin
+      if IsWhitespace(secchar) then begin
         indelimiter := true;
         i := i + 1;
         if i < len then continue;
@@ -667,7 +671,7 @@ begin
     end;
 
     if inconditional and (conditional = '') then begin
-      if not isNumber(sql[i]) then begin
+      if not IsNumber(sql[i]) then begin
         conditional := tmp;
         // note:
         // we do not trim the start of the SQL inside conditional
@@ -3044,6 +3048,104 @@ begin
     Results.Next;
   end;
   rx.Free;
+end;
+
+
+function ReformatSQL(SQL: WideString): WideString;
+var
+  AllKeywords, ImportantKeywords: TWideStringlist;
+  i, Run, KeywordMaxLen: Integer;
+  IsEsc, IsQuote, InComment, InBigComment, InString, InKeyword, InIdent, LastWasComment: Boolean;
+  c, p: WideChar;
+  Keyword, PreviousKeyword, TestPair: WideString;
+begin
+  // Known SQL keywords, get converted to UPPERCASE
+  AllKeywords := TWideStringlist.Create;
+  AllKeywords.Text := MySQLKeywords.Text;
+  for i:=Low(MySQLFunctions) to High(MySQLFunctions) do begin
+    if MySQLFunctions[i].Declaration <> '' then
+      AllKeywords.Add(MySQLFunctions[i].Name);
+  end;
+  for i:=Low(Datatypes) to High(Datatypes) do
+    AllKeywords.Add(Datatypes[i].Name);
+  KeywordMaxLen := 0;
+  for i:=0 to AllKeywords.Count-1 do
+    KeywordMaxLen := Max(KeywordMaxLen, Length(AllKeywords[i]));
+
+  // A subset of the above list, each of them will get a linebreak left to it
+  ImportantKeywords := Explode(',', 'SELECT,FROM,LEFT,RIGHT,STRAIGHT,NATURAL,INNER,JOIN,WHERE,GROUP,ORDER,HAVING,LIMIT,CREATE,DROP,UPDATE,INSERT,REPLACE,TRUNCATE,DELETE');
+
+  IsEsc := False;
+  InComment := False;
+  InBigComment := False;
+  LastWasComment := False;
+  InString := False;
+  InIdent := False;
+  Run := 1;
+  Result := '';
+  SQL := SQL + ' ';
+  SetLength(Result, Length(SQL)*2);
+  Keyword := '';
+  PreviousKeyword := '';
+  for i:=1 to Length(SQL) do begin
+    c := SQL[i]; // Current char
+    if i > 1 then p := SQL[i-1] else p := #0; // Previous char
+
+    // Detection logic - where are we?
+    if c = '\' then IsEsc := not IsEsc
+    else IsEsc := False;
+    IsQuote := (c = '''') or (c = '"');
+    if SQL[i] = '`' then InIdent := not InIdent;
+    if (not IsEsc) and IsQuote then InString := not InString;
+    if (c = '#') or ((c = '-') and (p = '-')) then InComment := True;
+    if ((c = #10) or (c = #13)) and InComment then begin
+      LastWasComment := True;
+      InComment := False;
+    end;
+    if (c = '*') and (p = '/') and (not InComment) and (not InString) then InBigComment := True;
+    if (c = '/') and (p = '*') and (not InComment) and (not InString) then InBigComment := False;
+    InKeyword := (not InComment) and (not InBigComment) and (not InString) and (not InIdent) and IsLetter(c);
+
+    // Creation of returning text
+    if InKeyword then begin
+      Keyword := Keyword + c;
+    end else begin
+      if Keyword <> '' then begin
+        if AllKeywords.IndexOf(KeyWord) > -1 then begin
+          while (Run > 1) and IsWhitespace(Result[Run-1]) do
+            Dec(Run);
+          Keyword := UpperCase(Keyword);
+          if Run > 1 then begin
+            // SELECT, WHERE, JOIN etc. get a new line, but don't separate LEFT JOIN with linebreaks
+            if LastWasComment or ((ImportantKeywords.IndexOf(Keyword) > -1) and (ImportantKeywords.IndexOf(PreviousKeyword) = -1)) then
+              Keyword := CRLF + Keyword
+            else if (Result[Run-1] <> '(') then
+              Keyword := ' ' + Keyword;
+          end;
+          LastWasComment := False;
+        end;
+        PreviousKeyword := Trim(Keyword);
+        Insert(Keyword, Result, Run);
+        Inc(Run, Length(Keyword));
+        Keyword := '';
+      end;
+      if (not InComment) and (not InBigComment) and (not InString) and (not InIdent) then begin
+        TestPair := Result[Run-1] + c;
+        if (TestPair = '  ') or (TestPair = '( ') then begin
+          c := Result[Run-1];
+          Dec(Run);
+        end;
+        if (TestPair = ' )') or (TestPair = ' ,') then
+          Dec(Run);
+      end;
+      Result[Run] := c;
+      Inc(Run);
+    end;
+
+  end;
+
+  // Cut overlength
+  SetLength(Result, Run-2);
 end;
 
 
