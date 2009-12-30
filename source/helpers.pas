@@ -489,7 +489,7 @@ var
   o: Integer;
 begin
   o := Ord(c);
-  Result := ((o >= 65) and (o <= 90)) or ((o >= 97) and (o <= 122));
+  Result := ((o >= 65) and (o <= 90)) or ((o >= 97) and (o <= 122)) or (o = 95);
 end;
 
 
