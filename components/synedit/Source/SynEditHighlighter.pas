@@ -18,7 +18,7 @@ All Rights Reserved.
 Contributors to the SynEdit and mwEdit projects are listed in the
 Contributors.txt file.
 
-$Id: SynEditHighlighter.pas,v 1.36.2.18 2008/09/14 16:24:58 maelh Exp $
+$Id: SynEditHighlighter.pas,v 1.36.2.19 2009/09/28 17:54:20 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -129,7 +129,13 @@ type
     fAttrChangeHooks: TSynNotifyEventChain;
     fUpdateCount: Integer;
     fEnabled: Boolean;
+    FAdditionalWordBreakChars: TSysCharSet;
+    FAdditionalIdentChars: TSysCharSet;
+    FExportName: string;
+    function GetExportName: string;
     procedure SetEnabled(const Value: Boolean);
+    procedure SetAdditionalIdentChars(const Value: TSysCharSet);
+    procedure SetAdditionalWordBreakChars(const Value: TSysCharSet);
   protected
     fCasedLine: PWideChar;
     fCasedLineStr: UnicodeString;
@@ -205,7 +211,7 @@ type
 {$IFNDEF SYN_CLX}
     function LoadFromRegistry(RootKey: HKEY; Key: string): Boolean; virtual;
     function SaveToRegistry(RootKey: HKEY; Key: string): Boolean; virtual;
-    function LoadFromFile(AFileName: string): Boolean;                          
+    function LoadFromFile(AFileName: string): Boolean;
     function SaveToFile(AFileName: string): Boolean;
 {$ENDIF}
     procedure HookAttrChangeEvent(ANotifyEvent: TNotifyEvent);
@@ -216,6 +222,8 @@ type
     property FriendlyLanguageName: UnicodeString read GetFriendlyLanguageNameProp;
     property LanguageName: string read GetLanguageNameProp;
   public
+    property AdditionalIdentChars: TSysCharSet read FAdditionalIdentChars write SetAdditionalIdentChars;
+    property AdditionalWordBreakChars: TSysCharSet read FAdditionalWordBreakChars write SetAdditionalWordBreakChars;
     property AttrCount: Integer read GetAttribCount;
     property Attribute[Index: Integer]: TSynHighlighterAttributes
       read GetAttribute;
@@ -233,6 +241,7 @@ type
       index SYN_ATTR_SYMBOL read GetDefaultAttribute;
     property WhitespaceAttribute: TSynHighlighterAttributes
       index SYN_ATTR_WHITESPACE read GetDefaultAttribute;
+    property ExportName: string read GetExportName;
   published
     property DefaultFilter: string read GetDefaultFilter write SetDefaultFilter
       stored IsFilterStored;
@@ -265,6 +274,7 @@ type
 implementation
 
 uses
+  SynEditMiscProcs,
 {$IFDEF UNICODE}
   WideStrUtils,
 {$ENDIF}
@@ -978,6 +988,13 @@ begin
     Result := fExpandedTokenPos;
 end;
 
+function TSynCustomHighlighter.GetExportName: string;
+begin
+  if FExportName = '' then
+    FExportName := SynEditMiscProcs.DeleteTypePrefixAndSynSuffix(ClassName);
+  Result := FExportName;
+end;
+
 function TSynCustomHighlighter.GetExpandedToken: UnicodeString;
 var
   Len: Integer;
@@ -1152,6 +1169,18 @@ end;
 
 procedure TSynCustomHighlighter.ResetRange;
 begin
+end;
+
+procedure TSynCustomHighlighter.SetAdditionalIdentChars(
+  const Value: TSysCharSet);
+begin
+  FAdditionalIdentChars := Value;
+end;
+
+procedure TSynCustomHighlighter.SetAdditionalWordBreakChars(
+  const Value: TSysCharSet);
+begin
+  FAdditionalWordBreakChars := Value;
 end;
 
 procedure TSynCustomHighlighter.SetAttributesOnChange(AEvent: TNotifyEvent);

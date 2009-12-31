@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynUnicode.pas,v 1.1.2.43 2008/10/03 18:50:12 maelh Exp $
+$Id: SynUnicode.pas,v 1.1.2.46 2009/09/28 17:54:20 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -855,15 +855,11 @@ procedure TUnicodeStrings.LoadFromFile(const FileName: TFileName);
 var
   Stream: TStream;
 begin
+  Stream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
   try
-    Stream := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
-    try
-      LoadFromStream(Stream);
-    finally
-      Stream.Free;
-    end;
-  except
-    RaiseLastOSError;
+    LoadFromStream(Stream);
+  finally
+    Stream.Free;
   end;
 end;
 
@@ -2571,7 +2567,7 @@ var
   ErrorMessage: UnicodeString;
 {$ENDIF}
 begin
-  if Mode = fmCreate then
+  if ((Mode and fmCreate) = fmCreate) then
   begin
     inherited Create(WideFileCreate(FileName, Rights));
     if Handle < 0 then
@@ -3150,7 +3146,7 @@ begin
           UnicodeStrings.Text := UTF8ToUnicodeString(UTF8Str);
 {$ELSE}
           UnicodeStrings.Text := UTF8Decode(UTF8Str);
-          UnicodeStrings.SaveUnicode := True;
+          UnicodeStrings.SaveFormat := sfUTF8;
 {$ENDIF}
         end;
       seUTF16LE:
@@ -3159,7 +3155,7 @@ begin
           Stream.ReadBuffer(WideStr[1], Size);
           UnicodeStrings.Text := WideStr;
 {$IFNDEF UNICODE}
-          UnicodeStrings.SaveUnicode := True;
+          UnicodeStrings.SaveFormat := sfUTF16LSB;
 {$ENDIF}
         end;
       seUTF16BE:
@@ -3169,7 +3165,7 @@ begin
           StrSwapByteOrder(PWideChar(WideStr));
           UnicodeStrings.Text := WideStr;
 {$IFNDEF UNICODE}
-          UnicodeStrings.SaveUnicode := True;
+          UnicodeStrings.SaveFormat := sfUTF16MSB;
 {$ENDIF}
         end;
       seAnsi:
@@ -3178,7 +3174,7 @@ begin
           Stream.ReadBuffer(AnsiStr[1], Size);
           UnicodeStrings.Text := UnicodeString(AnsiStr);
 {$IFNDEF UNICODE}
-          UnicodeStrings.SaveUnicode := False;
+          UnicodeStrings.SaveFormat := sfAnsi;
 {$ENDIF}
         end;
     end;

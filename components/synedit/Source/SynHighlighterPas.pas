@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterPas.pas,v 1.27.2.9 2008/09/14 16:25:01 maelh Exp $
+$Id: SynHighlighterPas.pas,v 1.27.2.10 2009/02/23 15:43:50 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -87,6 +87,7 @@ type
 
 const
   LastDelphiVersion = dvDelphi2005;
+  BDSVersionPrefix = 'BDS';
 
 type
   TSynPasSyn = class(TSynCustomHighlighter)
@@ -1085,25 +1086,44 @@ begin
 end;
 
 procedure TSynPasSyn.EnumUserSettings(DelphiVersions: TStrings);
+
+  procedure LoadKeyVersions(const Key, Prefix: string);
+  var
+    Versions: TStringList;
+    i: Integer;
+  begin
+    with TBetterRegistry.Create do
+    begin
+      try
+        RootKey := HKEY_LOCAL_MACHINE;
+        if OpenKeyReadOnly(Key) then
+        begin
+          try
+            Versions := TStringList.Create;
+            try
+              GetKeyNames(Versions);
+              for i := 0 to Versions.Count - 1 do
+                DelphiVersions.Add(Prefix + Versions[i]);
+            finally
+              FreeAndNil(Versions);
+            end;
+          finally
+            CloseKey;
+          end;
+        end;
+      finally
+        Free;
+      end;
+    end;
+  end;
+
 begin
   { returns the user settings that exist in the registry }
 {$IFNDEF SYN_CLX}
-  with TBetterRegistry.Create do
-  begin
-    try
-      RootKey := HKEY_LOCAL_MACHINE;
-      if OpenKeyReadOnly('\SOFTWARE\Borland\Delphi') then
-      begin
-        try
-          GetKeyNames(DelphiVersions);
-        finally
-          CloseKey;
-        end;
-      end;
-    finally
-      Free;
-    end;
-  end;
+  // See UseUserSettings below where these strings are used
+  LoadKeyVersions('\SOFTWARE\Borland\Delphi', '');
+  LoadKeyVersions('\SOFTWARE\Borland\BDS', BDSVersionPrefix);
+  LoadKeyVersions('\SOFTWARE\CodeGear\BDS', BDSVersionPrefix);
 {$ENDIF}
 end;
 
@@ -1115,10 +1135,13 @@ function TSynPasSyn.UseUserSettings(VersionIndex: Integer): Boolean;
 //   False: problem reading settings or invalid version specified - old settings
 //          were preserved
 
-{$IFNDEF SYN_CLX} 
+{$IFNDEF SYN_CLX}
   function ReadDelphiSettings(settingIndex: Integer): Boolean;
 
     function ReadDelphiSetting(settingTag: string; attri: TSynHighlighterAttributes; key: string): Boolean;
+    var
+      Version: Currency;
+      VersionStr: string;
 
       function ReadDelphi2Or3(settingTag: string; attri: TSynHighlighterAttributes; name: string): Boolean;
       var
@@ -1136,11 +1159,39 @@ function TSynPasSyn.UseUserSettings(VersionIndex: Integer): Boolean;
                '\Software\Borland\Delphi\'+settingTag+'\Editor\Highlight',key,False);
       end; { ReadDelphi4OrMore }
 
+      function ReadDelphi8To2007(settingTag: string; attri: TSynHighlighterAttributes; key: string): Boolean;
+      begin
+        Result := attri.LoadFromBorlandRegistry(HKEY_CURRENT_USER,
+               '\Software\Borland\BDS\'+settingTag+'\Editor\Highlight',key,False);
+      end; { ReadDelphi8OrMore }
+
+      function ReadDelphi2009OrMore(settingTag: string; attri: TSynHighlighterAttributes; key: string): Boolean;
+      begin
+        Result := attri.LoadFromBorlandRegistry(HKEY_CURRENT_USER,
+               '\Software\CodeGear\BDS\'+settingTag+'\Editor\Highlight',key,False);
+      end; { ReadDelphi2009OrMore }
+
     begin { ReadDelphiSetting }
       try
-        if (settingTag[1] = '2') or (settingTag[1] = '3')
-          then Result := ReadDelphi2Or3(settingTag, attri, key)
-          else Result := ReadDelphi4OrMore(settingTag, attri, key);
+        if Pos('BDS', settingTag) = 1 then // BDS product
+        begin
+          VersionStr := Copy(settingTag, Length(BDSVersionPrefix) + 1, 999);
+          Version := 0;
+          if not TryStrToCurr(StringReplace(VersionStr, '.', DecimalSeparator, []), Version) then
+          begin
+            Result := False;
+            Exit;
+          end;
+          if Version >= 6 then
+            Result := ReadDelphi2009OrMore(VersionStr, attri, key)
+          else
+            Result := ReadDelphi8To2007(VersionStr, attri, key);
+        end
+        else begin // Borland Delphi 7 or earlier
+          if (settingTag[1] = '2') or (settingTag[1] = '3')
+            then Result := ReadDelphi2Or3(settingTag, attri, key)
+            else Result := ReadDelphi4OrMore(settingTag, attri, key);
+        end;
       except Result := False; end;
     end; { ReadDelphiSetting }
 
@@ -1152,7 +1203,7 @@ function TSynPasSyn.UseUserSettings(VersionIndex: Integer): Boolean;
   begin { ReadDelphiSettings }
     {$IFDEF SYN_COMPILER_7_UP}
     {$IFNDEF SYN_COMPILER_9_UP}
-    Result := False; // Silence the compiler warning 
+    Result := False; // Silence the compiler warning
     {$ENDIF}
     {$ENDIF}
     iVersions := TStringList.Create;

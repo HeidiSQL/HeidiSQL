@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterProgress.pas,v 1.16.2.5 2008/09/14 16:25:02 maelh Exp $
+$Id: SynHighlighterProgress.pas,v 1.16.2.7 2009/09/28 17:54:20 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -224,10 +224,10 @@ const
                     'last-key last-of lastkey ldbname leave ' +
                     'library like line-count line-counter line-number ' +
                     'listing locked long lookup machine-class ' +
-                    'map member memptr message ' +
+                    'map max-button member memptr message ' +
                     'message-lines mouse mpe new next ' +
                     'next-prompt no no-attr-space no-error no-fill ' +
-                    'no-help no-hide no-label no-labels no-lock ' +
+                    'no-help no-hide no-label no-labels no-lobs no-lock ' +
                     'no-map no-message no-pause no-prefetch no-undo ' +
                     'no-validate no-wait not null num-aliases ' +
                     'num-dbs num-entries of off old ' +
@@ -250,7 +250,7 @@ const
                     'set setuserid share share-lock shared ' +
                     'short show-stats skip some space ' +
                     'status stream stream-io string-xref system-dialog ' +
-                    'table term terminal text text-cursor ' +
+                    'table tab-stop term terminal text text-cursor ' +
                     'text-height text-seg-growth then this-procedure ' +
                     'time title to top-only trans ' +
                     'transaction trigger triggers trim true ' +
@@ -259,7 +259,7 @@ const
                     'update use-index use-revvideo use-underline user ' +
                     'userid using v6frame value values ' +
                     'view view-as vms wait-for web-context ' +
-                    'when where while window window-maximized ' +
+                    'when where while widget-id window window-maximized ' +
                     'window-minimized window-normal with work-table workfile ' +
                     'write xcode xref yes _actailog ' +
                     '_actbilog _actbuffer _actindex _actiofile _actiotype ' +
@@ -275,7 +275,7 @@ const
 
   DefaultNonReservedKeywords: UnicodeString =
                                'abs absolute accelerator across add-events-procedure ' +
-                               'add-first add-last advise alert-box allow-replication ' +
+                               'add-first add-interval add-last advise alert-box allow-replication ' +
                                'ansi-only anywhere append appl-alert appl-alert-boxes ' +
                                'application as-cursor ask-overwrite attachment auto-endkey ' +
                                'auto-end-key auto-go auto-indent auto-resize auto-zap ' +
@@ -309,7 +309,7 @@ const
                                'default-extension defined delete-current-row delete-selected-row delete-selected-rows ' +
                                'deselect-focused-row deselect-rows deselect-selected-row design-mode dialog-box ' +
                                'dialog-help dir disabled display-message display-type ' +
-                               'drag-enabled drop-down drop-down-list dump dynamic ' +
+                               'drag-enabled drop-down drop-down-list dump dynamic dynamic-function ' +
                                'echo edge edge-chars edge-pixels edit-can-undo ' +
                                'editor edit-undo empty end-key entered ' +
                                'eq error error-col error-column error-row ' +
@@ -336,7 +336,7 @@ const
                                'image image-down image-insensitive image-size image-size-chars ' +
                                'image-size-pixels image-up immediate-display indexed-reposition index-hint ' +
                                'info information init initial initial-dir ' +
-                               'initial-filter initiate inner inner-chars inner-lines ' +
+                               'initial-filter initiate inner inner-chars inner-lines input-value ' +
                                'insert-backtab insert-file insert-row insert-string insert-tab ' +
                                'internal-entries is-lead-byte is-row-selected is-selected item ' +
                                'items-per-row join-by-sqldb keep-frame-z-order keep-messages keep-tab-order ' +
@@ -345,7 +345,7 @@ const
                                'label-pfcolor labels languages large large-to-small ' +
                                'last-child last-proc last-procedure last-server last-tab-item ' +
                                'lc le leading left-aligned left-trim ' +
-                               'length line list-events list-items list-query-attrs ' +
+                               'length line list-events list-items list-item-pairs list-query-attrs ' +
                                'list-set-attrs list-widgets load load-control loadcontrols ' +
                                'load-icon load-image load-image-down load-image-insensitive load-image-up ' +
                                'load-mouse-pointer load-small-icon log-id lookahead lower ' +
@@ -377,11 +377,11 @@ const
                                'orientation os-drives os-error ' +
                                'os-getenv outer outer-join override owner ' +
                                'paged page-size page-width parent partial-key ' +
-                               'pascal pathname pfc pfcolor pinnable ' +
+                               'pascal password-field pathname pfc pfcolor pinnable ' +
                                'pixels-per-col pixels-per-column pixels-per-row popup-menu popup-only ' +
                                'position precision preselect prev prev-column ' +
                                'prev-sibling prev-tab-item primary printer-control-handle printer-name ' +
-                               'printer-port printer-setup private-data prn procedure ' +
+                               'printer-port printer-setup private private-data prn procedure ' +
                                'progress-source proxy put-double put-float put-long ' +
                                'put-short put-string put-unsigned-short query-off-end question ' +
                                'radio-buttons radio-set random raw-transfer read-file ' +
@@ -476,9 +476,9 @@ const
                     'white window-close window-resized window-restored';
 
   DefaultDataTypes: UnicodeString =
-    'char character com-handle date dec ' +
+    'char character com-handle component-handle date datetime datetime-tz dec ' +
     'decimal double float handle int ' +
-    'integer log logical raw rowid ' +
+    'integer int64 log logical longchar raw rowid ' +
     'widget widget-handle';
 
 implementation

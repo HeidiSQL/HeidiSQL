@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditTextBuffer.pas,v 1.63.2.13 2008/09/14 16:24:59 maelh Exp $
+$Id: SynEditTextBuffer.pas,v 1.63.2.15 2009/06/14 13:41:44 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -601,16 +601,29 @@ begin
 end;
 
 function TSynEditStringList.GetTextStr: UnicodeString;
+
+  procedure RemoveTrailingUnicodeLineBreak;
+  begin // The Delphi 2009+ RTL forces a trailing line break when getting the text, so we remove it
+  {$IFDEF UNICODE}
+    if Copy(Result, Length(Result) - Length(LineBreak) + 1, Length(LineBreak)) = LineBreak then
+      SetLength(Result, Length(Result) - Length(LineBreak));
+  {$ENDIF}
+  end;
+
 var
   SLineBreak: UnicodeString;
 begin
   if not FStreaming then
-    Result := inherited GetTextStr
+  begin
+    Result := inherited GetTextStr;
+    RemoveTrailingUnicodeLineBreak;
+  end
   else
   begin
 {$IFDEF UNICODE}
     SLineBreak := LineBreak;
     Result := inherited GetTextStr;
+    RemoveTrailingUnicodeLineBreak;
 {$ELSE}
     case FileFormat of
       sffDos:
