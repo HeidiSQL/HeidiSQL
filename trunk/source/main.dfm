@@ -6817,8 +6817,9 @@ object MainForm: TMainForm
     object menuSQLhelp2: TMenuItem
       Action = actSQLhelp
     end
-    object N24: TMenuItem
-      Caption = '-'
+    object menuQueryInsertFunction: TMenuItem
+      Caption = 'Insert function'
+      ImageIndex = 13
     end
   end
   object popupQueryHelpers: TPopupMenu
@@ -6897,8 +6898,9 @@ object MainForm: TMainForm
       Enabled = False
       ImageIndex = 53
     end
-    object N20: TMenuItem
-      Caption = '-'
+    object menuFilterInsertFunction: TMenuItem
+      Caption = 'Insert function'
+      ImageIndex = 13
     end
   end
   object popupRefresh: TPopupMenu
