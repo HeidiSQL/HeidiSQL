@@ -1725,6 +1725,8 @@ end;
 
 
 procedure GetPrivilegeRowKey(Fields: TMySQLQuery; SimulateDbField: Boolean; out DBOType: TListNodeType; out DBONames: TWideStringList);
+var
+  RowsExist: Boolean;
 begin
   DBOType := lntNone;
   DBONames := TWideStringList.Create;
@@ -1733,23 +1735,21 @@ begin
     DBOType := lntDb;
     DBONames.Add('%');
   end;
+  RowsExist := Fields.RecordCount > 0;
   if Fields.ColExists('Db') then begin
     DBOType := lntDb;
-    try
+    if RowsExist then
       DBONames.Add(Fields.Col('Db'));
-    except
-      on E:Exception do begin
-        raise Exception.Create(E.Message+CRLF+CRLF+'Fields.ColumnNames: '+Fields.ColumnNames.CommaText);
-      end;
-    end;
   end;
   if Fields.ColExists('Table_name') then begin
     DBOType := lntTable;
-    DBONames.Add(Fields.Col('Table_name'));
+    if RowsExist then
+      DBONames.Add(Fields.Col('Table_name'));
   end;
   if Fields.ColExists('Column_name') then begin
     DBOType := lntColumn;
-    DBONames.Add(Fields.Col('Column_name'));
+    if RowsExist then
+      DBONames.Add(Fields.Col('Column_name'));
   end;
 end;
 
