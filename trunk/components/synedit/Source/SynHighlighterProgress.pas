@@ -27,7 +27,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterProgress.pas,v 1.16.2.7 2009/09/28 17:54:20 maelh Exp $
+$Id: SynHighlighterProgress.pas,v 1.16.2.8 2009/09/28 19:16:08 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -298,7 +298,7 @@ const
                                'com8 com9 combo-box command complete ' +
                                'com-self con connect connected ' +
                                'constrained contains contents context context-popup ' +
-                               'control-container convert convert-3d-colors convert-to-offset count ' +
+                               'control-container convert convert-3d-colors convert-to-offset count copy-lob ' +
                                'cpcase cpcoll cpinternal cplog cpprint ' +
                                'cprcodein cprcodeout cpterm crc-value create-control ' +
                                'create-result-list-entry create-test-file current_date current-column ' +
@@ -315,8 +315,8 @@ const
                                'eq error error-col error-column error-row ' +
                                'events event-type exp expand extended ' +
                                'extent external extract fetch-selected-row fgc ' +
-                               'fgcolor file filename file-name ' +
-                               'file-offset file-type filled fill-in filters ' +
+                               'fgcolor file filename file-create-date file-create-time file-mod-date file-mod-time file-name ' +
+                               'file-offset file-size file-type filled fill-in filters ' +
                                'first-child first-column first-proc first-procedure first-server ' +
                                'first-tab-item fixed-only focused-row font-table force-file ' +
                                'foreground forwards frame-spacing frame-x frame-y ' +
@@ -337,7 +337,7 @@ const
                                'image-size-pixels image-up immediate-display indexed-reposition index-hint ' +
                                'info information init initial initial-dir ' +
                                'initial-filter initiate inner inner-chars inner-lines input-value ' +
-                               'insert-backtab insert-file insert-row insert-string insert-tab ' +
+                               'insert-backtab insert-file insert-row insert-string insert-tab instantiating-procedure ' +
                                'internal-entries is-lead-byte is-row-selected is-selected item ' +
                                'items-per-row join-by-sqldb keep-frame-z-order keep-messages keep-tab-order ' +
                                'key keyword-all label-bgc label-bgcolor label-dc ' +
