@@ -7448,7 +7448,9 @@ begin
                       CommandProcessor(ecTab, #0, nil)
                     else
                       CommandProcessor(ecChar, SpaceBuffer[i], nil);
-                end;
+                end
+                else
+                 InternalCaretXY := BufferCoord(1, CaretY +1);
               end;
               fUndoList.AddChange(crLineBreak, Caret, Caret, '', smNormal);
             end;
