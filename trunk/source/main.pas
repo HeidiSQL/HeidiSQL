@@ -341,7 +341,6 @@ type
     menuInsertSnippetAtCursor: TMenuItem;
     menuExplore: TMenuItem;
     menuSQLhelp2: TMenuItem;
-    N24: TMenuItem;
     menuSQLhelpData: TMenuItem;
     menuLogToFile: TMenuItem;
     menuOpenLogFolder: TMenuItem;
@@ -451,6 +450,8 @@ type
     actReformatSQL: TAction;
     ReformatSQL1: TMenuItem;
     btnReformatSQL: TToolButton;
+    ReformatSQL2: TMenuItem;
+    Insertfunction1: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -8751,19 +8752,24 @@ end;
 
 procedure TMainForm.actReformatSQLExecute(Sender: TObject);
 var
-  m: TSynMemo;
+  Control: TWinControl;
+  m: TCustomSynEdit;
   CursorPosStart, CursorPosEnd: Integer;
   NewSQL: WideString;
-  Comp: TComponent;
 begin
   // Reformat SQL query
-  Comp := (Sender as TAction).ActionComponent;
-  if Comp is TMenuItem then
-    m := TPopupMenu((Comp as TMenuItem).GetParentMenu).PopupComponent as TSynMemo
-  else if QueryTabActive then
-    m := ActiveQueryMemo
-  else begin
-    MessageDlg('Please select a query editor tab first.', mtError, [mbOK], 0);
+  m := nil;
+  Control := Screen.ActiveControl;
+  if Control is TCustomSynEdit then begin
+    m := Control as TCustomSynEdit;
+    // We have a few readonly-SynMemos which we'll ignore here
+    if m.ReadOnly then
+      m := nil;
+  end;
+  if (not Assigned(m)) and QueryTabActive then
+    m := ActiveQueryMemo;
+  if not Assigned(m) then begin
+    MessageDlg('Please select a non-readonly SQL editor first.', mtError, [mbOK], 0);
     Exit;
   end;
   CursorPosStart := m.SelStart;
