@@ -394,11 +394,8 @@ procedure TSynWordWrapPlugin.Reset;
 begin
   Assert(Editor.CharsInWindow >= 0);
 
-  if Editor.CharsInWindow > 255 then fMaxRowLength := 255
-  else fMaxRowLength := Editor.CharsInWindow;
-
-  if Editor.CharsInWindow > 382 then fMinRowLength := 255
-  else fMinRowLength := Editor.CharsInWindow - (Editor.CharsInWindow div 3);
+  fMaxRowLength := Editor.CharsInWindow;
+  fMinRowLength := Editor.CharsInWindow - (Editor.CharsInWindow div 3);
 
   if fMinRowLength <= 0 then
     fMinRowLength := 1;

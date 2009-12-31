@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEdit.pas,v 1.386.2.75 2008/09/17 13:59:11 maelh Exp $
+$Id: SynEdit.pas,v 1.386.2.76 2009/09/28 17:54:20 maelh Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -486,6 +486,9 @@ type
     fChainUndoAdded: TNotifyEvent;
     fChainRedoAdded: TNotifyEvent;
 
+    FAdditionalWordBreakChars: TSysCharSet;
+    FAdditionalIdentChars: TSysCharSet;
+
 {$IFDEF SYN_COMPILER_6_UP}
     fSearchNotFound: TCustomSynEditSearchNotFoundEvent;
     OnFindBeforeSearch: TNotifyEvent;
@@ -610,6 +613,8 @@ type
     procedure UpdateScrollBars;
     procedure WriteAddedKeystrokes(Writer: TWriter);
     procedure WriteRemovedKeystrokes(Writer: TWriter);
+    procedure SetAdditionalIdentChars(const Value: TSysCharSet);
+    procedure SetAdditionalWordBreakChars(const Value: TSysCharSet);
 
 {$IFDEF SYN_COMPILER_6_UP}
     procedure DoSearchFindFirstExecute(Action: TSearchFindFirst);
@@ -877,6 +882,8 @@ type
       aUndo, aRedo: TSynEditUndoList);
     procedure UnHookTextBuffer;
   public
+    property AdditionalIdentChars: TSysCharSet read FAdditionalIdentChars write SetAdditionalIdentChars;
+    property AdditionalWordBreakChars: TSysCharSet read FAdditionalWordBreakChars write SetAdditionalWordBreakChars;
     property BlockBegin: TBufferCoord read GetBlockBegin write SetBlockBegin;
     property BlockEnd: TBufferCoord read GetBlockEnd write SetBlockEnd;
     property CanPaste: Boolean read GetCanPaste;
@@ -7435,10 +7442,13 @@ begin
                 if SpaceCount2 > 0 then
                 begin
                   SpaceBuffer := Copy(Lines[BackCounter], 1, SpaceCount2);
+                  InternalCaretXY := BufferCoord(1, CaretY +1);
                   for i := 1 to Length(SpaceBuffer) do
-                    CommandProcessor(ecChar, SpaceBuffer[i], nil);
+                    if SpaceBuffer[i] = #9 then
+                      CommandProcessor(ecTab, #0, nil)
+                    else
+                      CommandProcessor(ecChar, SpaceBuffer[i], nil);
                 end;
-                InternalCaretXY := BufferCoord(SpaceCount2 +1, CaretY +1);
               end;
               fUndoList.AddChange(crLineBreak, Caret, Caret, '', smNormal);
             end;
@@ -7963,6 +7973,16 @@ begin
       InvalidateSelection;
     StatusChanged([scSelection]);
   end;
+end;
+
+procedure TCustomSynEdit.SetAdditionalIdentChars(const Value: TSysCharSet);
+begin
+  FAdditionalIdentChars := Value;
+end;
+
+procedure TCustomSynEdit.SetAdditionalWordBreakChars(const Value: TSysCharSet);
+begin
+  FAdditionalWordBreakChars := Value;
 end;
 
 procedure TCustomSynEdit.BeginUndoBlock;
@@ -10300,6 +10320,11 @@ begin
   else
     Result := AChar >= #33;
 
+  if Assigned(Highlighter) then
+    Result := Result or CharInSet(AChar, Highlighter.AdditionalIdentChars)
+  else
+    Result := Result or CharInSet(AChar, Self.AdditionalIdentChars);
+
   Result := Result and not IsWordBreakChar(AChar);
 end;
 
@@ -10329,6 +10354,17 @@ begin
       else
         Result := False;
     end;
+
+  if Assigned(Highlighter) then
+  begin
+    Result := Result or CharInSet(AChar, Highlighter.AdditionalWordBreakChars);
+    Result := Result and not CharInSet(AChar, Highlighter.AdditionalIdentChars);
+  end
+  else
+  begin
+    Result := Result or CharInSet(AChar, Self.AdditionalWordBreakChars);
+    Result := Result and not CharInSet(AChar, Self.AdditionalIdentChars);
+  end;
 end;
 
 procedure TCustomSynEdit.SetSearchEngine(Value: TSynEditSearchCustom);
