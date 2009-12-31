@@ -372,7 +372,6 @@ type
     N8: TMenuItem;
     menuFilterApply: TMenuItem;
     menuFilterClear: TMenuItem;
-    N20: TMenuItem;
     SynMemoSQLLog: TSynMemo;
     Insert1: TMenuItem;
     Cancelediting1: TMenuItem;
@@ -451,7 +450,8 @@ type
     ReformatSQL1: TMenuItem;
     btnReformatSQL: TToolButton;
     ReformatSQL2: TMenuItem;
-    Insertfunction1: TMenuItem;
+    menuQueryInsertFunction: TMenuItem;
+    menuFilterInsertFunction: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -1588,25 +1588,17 @@ begin
   end;
 
   // Create function menu items in popupQuery and popupFilter
-  for i:=popupQuery.Items.Count-1 downto 0 do begin
-    if popupQuery.Items[i].Caption = '-' then
-      break;
-    popupQuery.Items.Delete(i);
-  end;
-  for i:=popupFilter.Items.Count-1 downto 0 do begin
-    if popupFilter.Items[i].Caption = '-' then
-      break;
-    popupFilter.Items.Delete(i);
-  end;
+  menuQueryInsertFunction.Clear;
+  menuFilterInsertFunction.Clear;
   functioncats := GetFunctionCategories;
   for i:=0 to functioncats.Count-1 do begin
     // Create a menu item which gets subitems later
     miGroup := TMenuItem.Create(popupQuery);
     miGroup.Caption := functioncats[i];
-    popupQuery.Items.add(miGroup);
+    menuQueryInsertFunction.Add(miGroup);
     miFilterGroup := TMenuItem.Create(popupFilter);
     miFilterGroup.Caption := miGroup.Caption;
-    popupFilter.Items.add(miFilterGroup);
+    menuFilterInsertFunction.Add(miFilterGroup);
     for j:=0 to Length(MySqlFunctions)-1 do begin
       if MySqlFunctions[j].Category <> functioncats[i] then
         continue;
