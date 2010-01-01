@@ -686,6 +686,7 @@ type
     procedure actCloseQueryTabExecute(Sender: TObject);
     procedure menuCloseQueryTab(Sender: TObject);
     procedure CloseQueryTab(PageIndex: Integer);
+    procedure CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     function GetMainTabAt(X, Y: Integer): Integer;
     procedure FixQueryTabCloseButtons;
@@ -729,6 +730,7 @@ type
     DataGridHasChanges         : Boolean;
     FLastMouseUpOnPageControl  : Cardinal;
     FLastTabNumberOnMouseUp    : Integer;
+    FLastMouseDownCloseButton  : TObject;
     DataGridResult             : TGridResult;
     // Filter text per tab for filter panel
     FilterTextVariables, FilterTextStatus, FilterTextProcessList, FilterTextCommandStats,
@@ -8119,6 +8121,7 @@ begin
   QueryTab.CloseButton.Height := 16;
   QueryTab.CloseButton.Flat := True;
   QueryTab.CloseButton.PngImage := PngImageListMain.PngImages[134].PngImage;
+  QueryTab.CloseButton.OnMouseDown := CloseButtonOnMouseDown;
   QueryTab.CloseButton.OnMouseUp := CloseButtonOnMouseUp;
   SetTabCaption(QueryTab.TabSheet.PageIndex, '');
 
@@ -8299,12 +8302,22 @@ begin
 end;
 
 
+procedure TMainForm.CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  FLastMouseDownCloseButton := Sender;
+end;
+
+
 procedure TMainForm.CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   aPoint: TPoint;
 begin
   // Click on "Close" button of Query tab
   if Button <> mbLeft then
+    Exit;
+  // Between MousDown and MouseUp it is possible that the focused tab has switched. As we simulate a mouse-click
+  // here, we must check if also the MouseDown event was fired on this particular button. See issue #1469.
+  if Sender <> FLastMouseDownCloseButton) then
     Exit;
   aPoint := PageControlMain.ScreenToClient((Sender as TPngSpeedButton).ClientToScreen(Point(X,Y)));
   CloseQueryTab(GetMainTabAt(aPoint.X, aPoint.Y));
