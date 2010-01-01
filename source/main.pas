@@ -5982,7 +5982,7 @@ begin
           end;
         end;
         newDbObject := SelectedTable.Name;
-        tabEditor.TabVisible := True;
+        tabEditor.TabVisible := SelectedTable.NodeType in [lntTable, lntView, lntProcedure, lntFunction, lntTrigger];
         tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntView];
         ParseSelectedTableStructure;
         if tabEditor.TabVisible then begin
