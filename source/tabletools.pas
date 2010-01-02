@@ -823,7 +823,6 @@ end;
 procedure TfrmTableTools.chkExportOptionClick(Sender: TObject);
   procedure WarnIfChecked(chk: TCheckBox; LabelText: String);
   begin
-    chk.ParentFont := chk.Checked;
     if chk.Checked then begin
       chk.Caption := LabelText + '!!';
       chk.Font.Style := chk.Font.Style + [fsBold];
