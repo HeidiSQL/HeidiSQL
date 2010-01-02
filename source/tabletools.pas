@@ -158,6 +158,7 @@ var
   SessionNames: TStringList;
 begin
   // Restore GUI setup
+  InheritFont(Font);
   Width := GetRegValue(REGNAME_TOOLSWINWIDTH, Width);
   Height := GetRegValue(REGNAME_TOOLSWINHEIGHT, Height);
   TreeObjects.Width := GetRegValue(REGNAME_TOOLSTREEWIDTH, TreeObjects.Width);
@@ -195,7 +196,6 @@ begin
   // Various
   udSkipLargeTables.Position := GetRegValue(REGNAME_TOOLSSKIPMB, udSkipLargeTables.Position);
   SetWindowSizeGrip( Self.Handle, True );
-  InheritFont(Font);
   FixVT(TreeObjects);
   FixVT(ResultGrid);
   FResults := TObjectList.Create;
@@ -821,6 +821,17 @@ end;
 
 
 procedure TfrmTableTools.chkExportOptionClick(Sender: TObject);
+  procedure WarnIfChecked(chk: TCheckBox; LabelText: String);
+  begin
+    chk.ParentFont := chk.Checked;
+    if chk.Checked then begin
+      chk.Caption := LabelText + '!!';
+      chk.Font.Style := chk.Font.Style + [fsBold];
+    end else begin
+      chk.Caption := LabelText;
+      chk.Font.Style := Font.Style;
+    end;
+  end;
 begin
   if (Sender = chkExportDatabasesDrop) and chkExportDatabasesDrop.Checked then
     chkExportDatabasesCreate.Checked := True
@@ -830,6 +841,8 @@ begin
     chkExportTablesCreate.Checked := True
   else if (Sender = chkExportTablesCreate) and (not chkExportTablesCreate.Checked) then
     chkExportTablesDrop.Checked := False;
+  WarnIfChecked(chkExportDatabasesDrop, 'Drop');
+  WarnIfChecked(chkExportTablesDrop, 'Drop');
 end;
 
 
