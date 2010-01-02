@@ -8317,7 +8317,7 @@ begin
     Exit;
   // Between MousDown and MouseUp it is possible that the focused tab has switched. As we simulate a mouse-click
   // here, we must check if also the MouseDown event was fired on this particular button. See issue #1469.
-  if Sender <> FLastMouseDownCloseButton) then
+  if (Sender <> FLastMouseDownCloseButton) then
     Exit;
   aPoint := PageControlMain.ScreenToClient((Sender as TPngSpeedButton).ClientToScreen(Point(X,Y)));
   CloseQueryTab(GetMainTabAt(aPoint.X, aPoint.Y));
