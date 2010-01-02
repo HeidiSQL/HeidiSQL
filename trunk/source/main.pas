@@ -800,6 +800,8 @@ type
     InsertFiles                : TfrmInsertFiles;
     FDataGridSelect            : TWideStringList;
     FDataGridSort              : TOrderColArray;
+    FDataGridFocusedNodeIndex  : Cardinal;
+    FDataGridFocusedColumnIndex: TColumnIndex;
     DataGridCurrentSelect,
     DataGridCurrentFullSelect,
     DataGridCurrentFrom,
@@ -3392,6 +3394,11 @@ begin
       DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
       FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
     end;
+    // Set focus on the previous selected row, or at least on row #0, so the user sees the grid has focus
+    if DataGrid.RootNodeCount > FDataGridFocusedNodeIndex then
+      SelectNode(DataGrid, FDataGridFocusedNodeIndex);
+    if DataGrid.Header.Columns.Count > FDataGridFocusedColumnIndex then
+      DataGrid.FocusedColumn := FDataGridFocusedColumnIndex;
     viewingdata := false;
     EnumerateRecentFilters;
     Screen.Cursor := crDefault;
@@ -7295,6 +7302,8 @@ begin
   OpenRegistry;
   MainReg.OpenKey(GetRegKeyTable, True);
   actDataResetSorting.Enabled := False;
+  FDataGridFocusedNodeIndex := 0;
+  FDataGridFocusedColumnIndex := 0;
   // Clear filter, column names and sort structure if gr
   if not Assigned(FDataGridSelect) then
     FDataGridSelect := TWideStringlist.Create;
@@ -7329,6 +7338,13 @@ begin
       MainReg.WriteString(REGNAME_SORT, Utf8Encode(Sort))
     else if MainReg.ValueExists(REGNAME_SORT) then
       MainReg.DeleteValue(REGNAME_SORT);
+
+    // Remember last selected node and column so we can refocus that in the end.
+    // These both attributes doesn't get stored to avoid registry spam
+    if Assigned(DataGrid.FocusedNode) then begin
+      FDataGridFocusedNodeIndex := DataGrid.FocusedNode.Index;
+      FDataGridFocusedColumnIndex := DataGrid.FocusedColumn;
+    end;
   end;
 
   // Auto remove registry spam if table folder is empty
