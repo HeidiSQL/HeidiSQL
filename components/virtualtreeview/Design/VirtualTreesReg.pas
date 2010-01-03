@@ -610,6 +610,7 @@ begin
        'OnFocus*',
        'OnCreateEditor',
        'OnScroll',
+       'OnNodeHeightTracking',
        'OnHotChange']);
 
     RegisterPropertiesInCategory({$ifdef COMPILER_5} TVTHeaderCategory, {$endif} {$ifdef COMPILER_6_UP} sVTHeaderCategoryName, {$endif COMPILER_6_UP}

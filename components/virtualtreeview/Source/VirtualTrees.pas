@@ -1,4 +1,4 @@
-unit VirtualTrees;
+﻿unit VirtualTrees;
 
 // Version 5.0.0
 //
@@ -24,6 +24,14 @@ unit VirtualTrees;
 // (C) 1999-2001 digital publishing AG. All Rights Reserved.
 //----------------------------------------------------------------------------------------------------------------------
 //
+//  November 2009
+//   - Bug fix: TBaseVirtualTree.AdjustTotalHeight didn't change the height of invisible nodes which caused some trouble
+//              when making those nodes visible again
+//   - Improvement: a column is no longer painted 'down' if its check box was clicked
+//   - Bug fix: one can no longer toggle the check state of a column with the right mouse button
+//   - Bug fix: one can no longer toggle the check state of a node with the right mouse button
+//   - Bug fix: TCustomVirtualTreeOptions.SetPaintOptions no longer accidentally removed the the explorer theme
+//   - Bug fix: Fixed a potential Integer overflow in TBaseVirtualTree.CalculateVerticalAlignments
 //  October 2009
 //   - Bug fix: enabling checkbox support for a column is now possible without assigning a dummy imagelist  
 //   - Bug fix: checkboxes in the header are now correctly aligned
@@ -1336,8 +1344,9 @@ type
     FHeaderBitmap: TBitmap;               // backbuffer for drawing
     FHoverIndex,                          // currently "hot" column
     FDownIndex,                           // Column on which a mouse button is held down.
-    FTrackIndex: TColumnIndex;            // Index of column which is currently being resized
-    FClickIndex: TColumnIndex;            // last clicked column
+    FTrackIndex: TColumnIndex;            // Index of column which is currently being resized.
+    FClickIndex: TColumnIndex;            // Index of the last clicked column.
+    FCheckBoxHit: Boolean;                // True if the last click was on a header checkbox.
     FPositionToIndex: TIndexArray;
     FDefaultWidth: Integer;               // the width columns are created with
     FNeedPositionsFix: Boolean;           // True if FixPositions must still be called after DFM loading or Bidi mode change.
@@ -3386,6 +3395,7 @@ type
     procedure WriteText(Writer: TWriter);
 
     procedure WMSetFont(var Msg: TWMSetFont); message WM_SETFONT;
+    procedure GetDataFromGrid(const AStrings : TStringList; const IncludeHeading : Boolean=True);
   protected
     procedure AdjustPaintCellRect(var PaintInfo: TVTPaintInfo; var NextNonEmpty: TColumnIndex); override;
     function CanExportNode(Node: PVirtualNode): Boolean;
@@ -3445,6 +3455,7 @@ type
     function Path(Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; Delimiter: WideChar): UnicodeString;
     procedure ReinitNode(Node: PVirtualNode; Recursive: Boolean); override;
 
+    function SaveToCSVFile(const FileNameWithPath : TFileName; const IncludeHeading : Boolean) : Boolean;
     property ImageText[Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex]: UnicodeString read GetImageText;
     property Text[Node: PVirtualNode; Column: TColumnIndex]: UnicodeString read GetText write SetText;
   end;
@@ -6360,17 +6371,20 @@ begin
     with FOwner do
       if HandleAllocated then
       begin
-        if (tsUseThemes in FStates) or ((toThemeAware in ToBeSet) and ThemeServices.ThemesEnabled) then
-          if (toUseExplorerTheme in ToBeSet) and IsWinVistaOrAbove then
+        if IsWinVistaOrAbove and ((tsUseThemes in FStates) or
+           ((toThemeAware in ToBeSet) and ThemeServices.ThemesEnabled)) and
+           (toUseExplorerTheme in (ToBeSet + ToBeCleared)) then
+          if toUseExplorerTheme in ToBeSet then
           begin
             SetWindowTheme(Handle, 'explorer', nil);
             DoStateChange([tsUseExplorerTheme]);
           end
           else
-          begin
-            SetWindowTheme(Handle, '', nil);
-            DoStateChange([], [tsUseExplorerTheme]);
-          end;
+            if toUseExplorerTheme in ToBeCleared then
+            begin
+              SetWindowTheme(Handle, '', nil);
+              DoStateChange([], [tsUseExplorerTheme]);
+            end;
 
         if not (csLoading in ComponentState) then
         begin
@@ -9657,6 +9671,7 @@ begin
     if FDownIndex > NoColumn then
       FHeader.Invalidate(Items[FDownIndex]);
     FDownIndex := Result;
+    FCheckBoxHit := Items[Result].FHasImage and PtInRect(Items[Result].FImageRect, P) and Items[Result].CheckBox;
     FHeader.Invalidate(Items[FDownIndex]);
   end;
 end;
@@ -9701,6 +9716,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 function TVirtualTreeColumns.CanSplitterResize(P: TPoint; Column: TColumnIndex): Boolean;
+
 begin
   Result := (Column > NoColumn) and ([coResizable, coVisible] * Items[Column].FOptions = [coResizable, coVisible]);
   DoCanSplitterResize(P, Column, Result);
@@ -9709,6 +9725,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TVirtualTreeColumns.DoCanSplitterResize(P: TPoint; Column: TColumnIndex; var Allowed: Boolean);
+
 begin
   if Assigned(FHeader.Treeview.FOnCanSplitterResizeColumn) then
     FHeader.Treeview.FOnCanSplitterResizeColumn(FHeader, P, Column, Allowed);
@@ -10012,7 +10029,8 @@ begin
       Include(HitInfo.HitPosition, hhiOnIcon);
       if Items[NewClickIndex].CheckBox then
       begin
-        FHeader.Treeview.UpdateColumnCheckState(Items[NewClickIndex]);
+        if Button = mbLeft then
+          FHeader.Treeview.UpdateColumnCheckState(Items[NewClickIndex]);
         Include(HitInfo.HitPosition, hhiOnCheckbox);
       end;
     end;
@@ -10343,6 +10361,7 @@ begin
     FDownIndex := NoColumn;
     FTrackIndex := NoColumn;
     FClickIndex := NoColumn;
+    FCheckBoxHit := False;
 
     with Header do
       if not (hsLoading in FStates) then
@@ -10893,7 +10912,7 @@ begin
 
             IsHoverIndex := (Integer(FPositionToIndex[I]) = FHoverIndex) and (hoHotTrack in FHeader.FOptions) and
               (coEnabled in FOptions);
-            IsDownIndex := Integer(FPositionToIndex[I]) = FDownIndex;
+            IsDownIndex := (Integer(FPositionToIndex[I]) = FDownIndex) and not FCheckBoxHit;
             if (coShowDropMark in FOptions) and (Integer(FPositionToIndex[I]) = FDropTarget) and
               (Integer(FPositionToIndex[I]) <> FDragIndex) then
             begin
@@ -12108,6 +12127,7 @@ begin
           FColumns.HandleClick(P, mbMiddle, True, False);
           FOwner.DoHeaderMouseUp(mbMiddle, GetShiftState, P.X, P.Y + Integer(FHeight));
           FColumns.FDownIndex := NoColumn;
+          FColumns.FCheckBoxHit := False;
         end;
       end;
     WM_LBUTTONDBLCLK,
@@ -12244,6 +12264,7 @@ begin
             FOwner.DoHeaderMouseUp(mbRight, GetShiftState, P.X, P.Y + Integer(FHeight));
             FColumns.FDownIndex := NoColumn;
             FColumns.FTrackIndex := NoColumn;
+            FColumns.FCheckBoxHit := False;
 
             Menu := FPopupMenu;
             if not Assigned(Menu) then
@@ -12384,6 +12405,7 @@ begin
             FHoverIndex := NoColumn;
             FClickIndex := NoColumn;
             FDownIndex := NoColumn;
+            FCheckBoxHit := False;
             Result := True;
             Message.Result := 0;
             Invalidate(nil);
@@ -13778,8 +13800,7 @@ begin
   begin
     Run := Node;
     repeat
-      if vsVisible in Run.States then
-        Inc(Integer(Run.TotalHeight), Difference);
+      Inc(Integer(Run.TotalHeight), Difference);
       // If the node is not visible or the parent node is not expanded or we are already at the top
       // then nothing more remains to do.
       if not (vsVisible in Run.States) or (Run = FRoot) or
@@ -13818,7 +13839,7 @@ begin
     naFromTop:
       VAlign := Node.Align;
     naFromBottom:
-      VAlign := NodeHeight[Node] - Node.Align;
+      VAlign := Integer(NodeHeight[Node]) - Node.Align;
   else // naProportional
     // Consider button and line alignment, but make sure neither the image nor the button (whichever is taller)
     // go out of the entire node height (100% means bottom alignment to the node's bounds).
@@ -13834,7 +13855,7 @@ begin
       if toShowButtons in FOptions.FPaintOptions then
         VAlign := MulDiv((Integer(NodeHeight[Node]) - FPlusBM.Height), Node.Align, 100) + FPlusBM.Height div 2
       else
-        VAlign := MulDiv(Node.NodeHeight, Node.Align, 100);
+        VAlign := MulDiv(Integer(Node.NodeHeight), Node.Align, 100);
   end;
 
   VButtonAlign := VAlign - FPlusBM.Height div 2;
@@ -14642,7 +14663,7 @@ var
   TargetX: Integer;
 
 begin
-  HalfWidth := Integer(FIndent) div 2;
+  HalfWidth := Round(FIndent / 2);
   if Reverse then
     TargetX := 0
   else
@@ -17462,6 +17483,7 @@ begin
 
   Header.FColumns.FDownIndex := NoColumn;
   Header.FColumns.FHoverIndex := NoColumn;
+  Header.FColumns.FCheckBoxHit := False;
 
   inherited;
 end;
@@ -23193,7 +23215,7 @@ begin
         begin
           with HitInfo.HitNode^ do
             NewCheckState := DetermineNextCheckState(CheckType, CheckState);
-          if DoChecking(HitInfo.HitNode, NewCheckState) then
+          if (ssLeft in KeysToShiftState(Message.Keys)) and DoChecking(HitInfo.HitNode, NewCheckState) then
           begin
             DoStateChange([tsMouseCheckPending]);
             FCheckNode := HitInfo.HitNode;
@@ -23385,7 +23407,7 @@ begin
       begin
         with HitInfo.HitNode^ do
           NewCheckState := DetermineNextCheckState(CheckType, CheckState);
-        if DoChecking(HitInfo.HitNode, NewCheckState) then
+        if (ssLeft in KeysToShiftState(Message.Keys)) and DoChecking(HitInfo.HitNode, NewCheckState) then
         begin
           DoStateChange([tsMouseCheckPending]);
           FCheckNode := HitInfo.HitNode;
@@ -24351,7 +24373,8 @@ begin
         end;
         DoStateChange([tsDrawSelecting], [tsDrawSelPending]);
 
-        // Reset to main column for multiselection.        FocusedColumn := FHeader.MainColumn;
+        // Reset to main column for multiselection.
+        FocusedColumn := FHeader.MainColumn;
 
         // The current rectangle may already include some node captions. Handle this.
         if HandleDrawSelection(X, Y) then
@@ -33374,6 +33397,53 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
+procedure TCustomVirtualStringTree.GetDataFromGrid(const AStrings: TStringList;
+  const IncludeHeading: Boolean);
+var
+  LColIndex   : Integer;
+  LStartIndex : Integer;
+  LAddString  : String;
+  LCellText   : String;
+  LChildNode  : PVirtualNode;
+begin
+  { Start from the First column. }
+  LStartIndex := 0;
+
+  { Do it for Header first }
+  if IncludeHeading then
+  begin
+    LAddString := EmptyStr;
+    for LColIndex := LStartIndex to Pred(Header.Columns.Count) do
+    begin
+      if (LColIndex > LStartIndex) then
+        LAddString  := LAddString + ',';
+      LAddString := LAddString + AnsiQuotedStr(Header.Columns.Items[LColIndex].Text, '"');
+    end;//for
+    AStrings.Add(LAddString);
+  end;//if
+
+  { Loop thru the virtual tree for Data }
+  LChildNode := GetFirst;
+  while Assigned(LChildNode) do
+  begin
+    LAddString := EmptyStr;
+
+    { Read for each column and then populate the text }
+    for LColIndex := LStartIndex to Pred(Header.Columns.Count) do
+    begin
+      LCellText     := Text[LChildNode, LColIndex];
+      if (LCellText = EmptyStr) then
+        LCellText   := ' ';
+      if (LColIndex > LStartIndex) then
+        LAddString  := LAddString + ',';
+      LAddString    := LAddString + AnsiQuotedStr(LCellText, '"');
+    end;//for - Header.Columns.Count
+
+    AStrings.Add(LAddString);
+    LChildNode := LChildNode.NextSibling;
+  end;//while Assigned(LChildNode);
+end;
+
 function TCustomVirtualStringTree.GetImageText(Node: PVirtualNode;
   Kind: TVTImageKind; Column: TColumnIndex): UnicodeString;
 begin
@@ -33609,6 +33679,26 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
+function TCustomVirtualStringTree.SaveToCSVFile(
+  const FileNameWithPath: TFileName; const IncludeHeading: Boolean): Boolean;
+var
+  LResultList : TStringList;
+begin
+  Result := False;
+  if (FileNameWithPath = '') then Exit;
+
+  LResultList := TStringList.Create;
+  try
+    { Get the data from grid. }
+    GetDataFromGrid(LResultList, IncludeHeading);
+    { Save File to Disk }
+    LResultList.SaveToFile(FileNameWithPath);
+    Result := True;
+  finally
+    FreeAndNil(LResultList);
+  end;//try-finally
+end;
 
 procedure TCustomVirtualStringTree.SetDefaultText(const Value: UnicodeString);
 
