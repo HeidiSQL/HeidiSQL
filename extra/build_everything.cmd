@@ -90,11 +90,11 @@ pause >NUL:
 goto :eof
 
 :init
-set mad_dir=%base_dir%\..\madCollection
 set start_time=%DATE% %TIME%
 set start_dir=%CD%
 cd ..
 set base_dir=%CD%
+set mad_dir=%base_dir%\..\madCollection
 
 set compiler=dcc32.exe
 set params=--no-config
