@@ -1,9 +1,9 @@
-﻿unit table_editor;
+unit table_editor;
 
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, TntStdCtrls,
+  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, WideStrings, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
   SynMemo, Menus, WideStrUtils, Contnrs,
   grideditlinks, mysql_structures, mysql_connection, helpers, mysql_api;
@@ -20,8 +20,8 @@ type
     tabIndexes: TTabSheet;
     tabOptions: TTabSheet;
     lblName: TLabel;
-    editName: TTntEdit;
-    memoComment: TTntMemo;
+    editName: TEdit;
+    memoComment: TMemo;
     lblComment: TLabel;
     lblAutoinc: TLabel;
     lblAvgRowLen: TLabel;
@@ -34,7 +34,7 @@ type
     editMaxRows: TEdit;
     chkChecksum: TCheckBox;
     comboRowFormat: TComboBox;
-    memoUnionTables: TTntMemo;
+    memoUnionTables: TMemo;
     comboInsertMethod: TComboBox;
     lblCollation: TLabel;
     comboCollation: TComboBox;
@@ -94,9 +94,9 @@ type
     procedure listColumnsFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure btnHelpClick(Sender: TObject);
     procedure listColumnsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
     procedure listColumnsEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
-    procedure listColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
+    procedure listColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: String);
     procedure btnMoveUpColumnClick(Sender: TObject);
     procedure btnMoveDownColumnClick(Sender: TObject);
     procedure listColumnsDragOver(Sender: TBaseVirtualTree; Source: TObject; Shift: TShiftState; State: TDragState;
@@ -108,7 +108,7 @@ type
     procedure listColumnsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
     procedure treeIndexesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure treeIndexesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-		  var CellText: WideString);
+		  var CellText: String);
     procedure treeIndexesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure treeIndexesInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
     procedure treeIndexesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
@@ -131,7 +131,7 @@ type
     procedure treeIndexesDragDrop(Sender: TBaseVirtualTree; Source: TObject;
       DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
       Pt: TPoint; var Effect: Integer; Mode: TDropMode);
-    procedure treeIndexesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
+    procedure treeIndexesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: String);
     procedure treeIndexesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
     procedure treeIndexesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure treeIndexesCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
@@ -158,9 +158,9 @@ type
       var Ghosted: Boolean; var ImageIndex: Integer);
     procedure listForeignKeysGetText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-      var CellText: WideString);
+      var CellText: String);
     procedure listForeignKeysNewText(Sender: TBaseVirtualTree;
-      Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
+      Node: PVirtualNode; Column: TColumnIndex; NewText: String);
     procedure btnClearForeignKeysClick(Sender: TObject);
     procedure btnAddForeignKeyClick(Sender: TObject);
     procedure btnRemoveForeignKeyClick(Sender: TObject);
@@ -981,7 +981,7 @@ end;
 
 procedure TfrmTableEditor.listColumnsGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-  var CellText: WideString);
+  var CellText: String);
 var
   Col: PTableColumn;
 begin
@@ -1097,7 +1097,7 @@ end;
 
 
 procedure TfrmTableEditor.listColumnsNewText(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
+  Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   i: Integer;
   Col: PTableColumn;
@@ -1390,7 +1390,7 @@ end;
 
 procedure TfrmTableEditor.treeIndexesGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-  var CellText: WideString);
+  var CellText: String);
 var
   TblKey: TTableKey;
 begin
@@ -1545,7 +1545,7 @@ end;
 
 
 procedure TfrmTableEditor.treeIndexesNewText(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
+  Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   VT: TVirtualStringtree;
   TblKey: TTableKey;
@@ -2034,7 +2034,7 @@ end;
 
 procedure TfrmTableEditor.listForeignKeysGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-  var CellText: WideString);
+  var CellText: String);
 var
   Key: TForeignKey;
 begin
@@ -2061,7 +2061,7 @@ end;
 
 
 procedure TfrmTableEditor.listForeignKeysNewText(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
+  Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   Key: TForeignKey;
 begin

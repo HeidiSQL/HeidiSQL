@@ -14,8 +14,8 @@ uses
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, PngImageList, Widestrings,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynCompletionProposal, SynEditHighlighter,
-  SynHighlighterSQL, TntStdCtrls, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
-  CommCtrl, Contnrs, PngSpeedButton, TntComCtrls,
+  SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
+  CommCtrl, Contnrs, PngSpeedButton,
   routine_editor, trigger_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
   mysql_api, insertfiles;
@@ -27,7 +27,7 @@ type
     CloseButton: TPngSpeedButton;
     pnlMemo: TPanel;
     pnlHelpers: TPanel;
-    lboxHelpers: TTntListBox;
+    lboxHelpers: TListBox;
     HelperListSelectedItems: Array[0..3] of Array of Integer;
     tabsetHelpers: TTabSet;
     Memo: TSynMemo;
@@ -37,7 +37,7 @@ type
     spltQuery: TSplitter;
     LabelResultInfo: TLabel;
     Grid: TVirtualStringTree;
-    TabSheet: TTntTabSheet;
+    TabSheet: TTabSheet;
     GridResult: TGridResult;
     FilterText: WideString;
   end;
@@ -204,16 +204,16 @@ type
     panelTop: TPanel;
     pnlLeft: TPanel;
     DBtree: TVirtualStringTree;
-    comboOnlyDBs: TTntComboBox;
+    comboOnlyDBs: TComboBox;
     Splitter1: TSplitter;
-    PageControlMain: TTntPageControl;
-    tabData: TTntTabSheet;
-    tabDatabase: TTntTabSheet;
+    PageControlMain: TPageControl;
+    tabData: TTabSheet;
+    tabDatabase: TTabSheet;
     splitterTopBottom: TSplitter;
-    tabQuery: TTntTabSheet;
+    tabQuery: TTabSheet;
     popupDB: TPopupMenu;
     menuRefreshDB: TMenuItem;
-    tabHost: TTntTabSheet;
+    tabHost: TTabSheet;
     PageControlHost: TPageControl;
     tabVariables: TTabSheet;
     tabProcessList: TTabSheet;
@@ -312,7 +312,7 @@ type
     N21: TMenuItem;
     pnlQueryHelpers: TPanel;
     tabsetQueryHelpers: TTabSet;
-    lboxQueryHelpers: TTnTListBox;
+    lboxQueryHelpers: TListBox;
     popupQuery: TPopupMenu;
     MenuRun: TMenuItem;
     MenuRunSelection: TMenuItem;
@@ -327,7 +327,7 @@ type
     MenuFind: TMenuItem;
     MenuReplace: TMenuItem;
     MenuItem2: TMenuItem;
-    lblDataTop: TTNTLabel;
+    lblDataTop: TLabel;
     spltQueryHelpers: TSplitter;
     N22: TMenuItem;
     N23: TMenuItem;
@@ -351,7 +351,7 @@ type
     pnlProcessView: TPanel;
     SynMemoProcessView: TSynMemo;
     pnlFilterVT: TPanel;
-    editFilterVT: TTNTEdit;
+    editFilterVT: TEdit;
     lblFilterVT: TLabel;
     lblFilterVTInfo: TLabel;
     menuEditVariable: TMenuItem;
@@ -390,7 +390,7 @@ type
     N13: TMenuItem;
     ProgressBarStatus: TProgressBar;
     menuRecentFilters: TMenuItem;
-    comboRecentFilters: TTntComboBox;
+    comboRecentFilters: TComboBox;
     lblRecentFilters: TLabel;
     Copy2: TMenuItem;
     N26: TMenuItem;
@@ -411,7 +411,7 @@ type
     menuCreateTableCopy: TMenuItem;
     menuCreateView: TMenuItem;
     menuCreateRoutine: TMenuItem;
-    tabEditor: TTntTabSheet;
+    tabEditor: TTabSheet;
     popupRefresh: TPopupMenu;
     menuAutoRefreshSetInterval: TMenuItem;
     menuAutoRefresh: TMenuItem;
@@ -528,11 +528,11 @@ type
     procedure btnDataClick(Sender: TObject);
     procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure SynCompletionProposalAfterCodeCompletion(Sender: TObject;
-      const Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
+      const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure SynCompletionProposalCodeCompletion(Sender: TObject;
-      var Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
+      var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
     procedure SynCompletionProposalExecute(Kind: SynCompletionType;
-      Sender: TObject; var CurrentInput: WideString; var x, y: Integer;
+      Sender: TObject; var CurrentInput: String; var x, y: Integer;
       var CanExecute: Boolean);
     procedure PageControlMainChange(Sender: TObject);
     procedure PageControlHostChange(Sender: TObject);
@@ -556,7 +556,7 @@ type
     procedure TimerHostUptimeTimer(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-        Column: TColumnIndex; NewText: WideString);
+        Column: TColumnIndex; NewText: String);
     procedure TimerConnectedTimer(Sender: TObject);
     procedure Clear2Click(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
@@ -566,8 +566,7 @@ type
     procedure SynMemoQueryDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
     procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
-    procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
-      AFiles: TUnicodeStrings);
+    procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer; AFiles: TStrings);
     procedure popupHostPopup(Sender: TObject);
     procedure Saveastextfile1Click(Sender: TObject);
     procedure popupDBPopup(Sender: TObject);
@@ -588,11 +587,11 @@ type
     procedure DataGridFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
         PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
     procedure GridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
-        TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+        TColumnIndex; TextType: TVSTTextType; var CellText: String);
     procedure DataGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
     procedure GridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DataGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
-        TColumnIndex; NewText: WideString);
+        TColumnIndex; NewText: String);
     procedure GridPaintText(Sender: TBaseVirtualTree; const TargetCanvas:
         TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure menuDeleteSnippetClick(Sender: TObject);
@@ -605,7 +604,7 @@ type
         PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure vstFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure vstGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-        Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+        Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
     procedure vstGetImageIndex(Sender: TBaseVirtualTree; Node:
         PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
         Boolean; var ImageIndex: Integer);
@@ -623,7 +622,7 @@ type
     procedure DBtreeGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize:
         Integer);
     procedure DBtreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
-        TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+        TColumnIndex; TextType: TVSTTextType; var CellText: String);
     procedure DBtreeInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var
         ChildCount: Cardinal);
     procedure DBtreeInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
@@ -637,7 +636,7 @@ type
     procedure menuOpenLogFolderClick(Sender: TObject);
     procedure vstGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; var LineBreakStyle: TVTTooltipLineBreakStyle; var
-        HintText: WideString);
+        HintText: String);
     procedure ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
@@ -692,7 +691,7 @@ type
     procedure FixQueryTabCloseButtons;
     function ActiveQueryTab: TQueryTab;
     function ActiveQueryMemo: TSynMemo;
-    function ActiveQueryHelpers: TTntListBox;
+    function ActiveQueryHelpers: TListBox;
     function ActiveQueryTabset: TTabset;
     function QueryTabActive: Boolean;
     function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
@@ -3872,14 +3871,14 @@ end;
 
 { Proposal about to insert a String into synmemo }
 procedure TMainForm.SynCompletionProposalCodeCompletion(Sender: TObject;
-  var Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
+  var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
 begin
   (Sender as TSynCompletionProposal).Form.CurrentEditor.UndoList.AddGroupBreak;
 end;
 
 
 procedure TMainForm.SynCompletionProposalAfterCodeCompletion(Sender: TObject;
-  const Value: WideString; Shift: TShiftState; Index: Integer; EndToken: WideChar);
+  const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
 begin
   (Sender as TSynCompletionProposal).Form.CurrentEditor.UndoList.AddGroupBreak;
 end;
@@ -3887,7 +3886,7 @@ end;
 
 { Proposal-Combobox pops up }
 procedure TMainForm.SynCompletionProposalExecute(Kind: SynCompletionType;
-  Sender: TObject; var CurrentInput: WideString; var x, y: Integer;
+  Sender: TObject; var CurrentInput: String; var x, y: Integer;
   var CanExecute: Boolean);
 var
   i,j              : Integer;
@@ -3899,7 +3898,7 @@ var
   rx               : TRegExpr;
   PrevShortToken,
   PrevLongToken,
-  Token            : WideString;
+  Token            : UnicodeString;
   Start,
   TokenTypeInt     : Integer;
   Attri            : TSynHighlighterAttributes;
@@ -4146,7 +4145,7 @@ end;
   Rename table after checking the new name for invalid characters
 }
 procedure TMainForm.ListTablesNewText(Sender: TBaseVirtualTree; Node:
-    PVirtualNode; Column: TColumnIndex; NewText: WideString);
+    PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   NodeData : PVTreeData;
 begin
@@ -5130,8 +5129,7 @@ end;
   A node in a VirtualStringTree gets visible and asks which text it shall display
 }
 procedure TMainForm.vstGetText(Sender: TBaseVirtualTree; Node:
-    PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText:
-    WideString);
+    PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
 var
   NodeData : PVTreeData;
   i : Integer;
@@ -5500,7 +5498,7 @@ end;
 }
 procedure TMainForm.vstGetHint(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var LineBreakStyle:
-    TVTTooltipLineBreakStyle; var HintText: WideString);
+    TVTTooltipLineBreakStyle; var HintText: String);
 var
   r : TRect;
   DisplayedWidth,
@@ -5682,7 +5680,7 @@ begin
     Exit;
   // Loop through all nodes and hide non matching
   Node := VT.GetFirst;
-  search := LowerCase( editFilterVT.Text );
+  search := WideLowerCase( editFilterVT.Text );
   VisibleCount := 0;
   while Assigned(Node) do begin
     // Don't filter anything if the filter text is empty
@@ -5690,7 +5688,7 @@ begin
     // Search for given text in node's captions
     if not match then for i := 0 to VT.Header.Columns.Count - 1 do begin
       CellText := VT.Text[Node, i];
-      if Pos( search, LowerCase(CellText) ) > 0 then begin
+      if Pos( search, WideLowerCase(CellText)) > 0 then begin
         match := True;
         break;
       end;
@@ -5747,8 +5745,7 @@ end;
   Set text of a treenode before it gets displayed or fetched in any way
 }
 procedure TMainForm.DBtreeGetText(Sender: TBaseVirtualTree; Node:
-    PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText:
-    WideString);
+    PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
 var
   DBObjects: TDBObjectList;
   db: WideString;
@@ -6424,8 +6421,7 @@ end;
   A grid cell fetches its text content
 }
 procedure TMainForm.GridGetText(Sender: TBaseVirtualTree; Node:
-    PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText:
-    WideString);
+    PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
 var
   c: PGridCell;
   gr: TGridResult;
@@ -6586,7 +6582,7 @@ end;
   Content of a grid cell was modified
 }
 procedure TMainForm.DataGridNewText(Sender: TBaseVirtualTree; Node:
-    PVirtualNode; Column: TColumnIndex; NewText: WideString);
+    PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   Row: PGridRow;
 begin
@@ -7752,7 +7748,6 @@ var
   Control: TWinControl;
   Edit: TCustomEdit;
   Combo: TComboBox;
-  TNTCombo: TTNTComboBox;
   Grid: TVirtualStringTree;
   SynMemo: TSynMemo;
   Success: Boolean;
@@ -7778,12 +7773,6 @@ begin
       Combo.SelText := CB.AsWideString;
       Success := True;
     end;
-  end else if Control is TTNTComboBox then begin
-    TNTCombo := TTNTComboBox(Control);
-    if TNTCombo.Style = csDropDown then begin
-      TNTCombo.SelText := CB.AsWideString;
-      Success := True;
-    end;
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
     if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
@@ -7806,7 +7795,7 @@ procedure TMainForm.actSelectAllExecute(Sender: TObject);
 var
   Control: TWinControl;
   Grid: TVirtualStringTree;
-  ListBox: TTNTListBox;
+  ListBox: TListBox;
   Success: Boolean;
 begin
   // Select all items, text or whatever
@@ -7826,8 +7815,8 @@ begin
   end else if Control is TSynMemo then begin
     TSynMemo(Control).SelectAll;
     Success := True;
-  end else if Control is TTNTListBox then begin
-    ListBox := TTNTListBox(Control);
+  end else if Control is TListBox then begin
+    ListBox := TListBox(Control);
     if ListBox.MultiSelect then begin
       ListBox.SelectAll;
       Success := True;
@@ -7842,7 +7831,7 @@ procedure TMainForm.actSelectInverseExecute(Sender: TObject);
 var
   Control: TWinControl;
   Grid: TVirtualStringTree;
-  ListBox: TTNTListBox;
+  ListBox: TListBox;
   Success: Boolean;
   i: Integer;
 begin
@@ -7857,8 +7846,8 @@ begin
       Grid.InvertSelection(False);
       Success := True;
     end;
-  end else if Control is TTNTListBox then begin
-    ListBox := TTNTListBox(Control);
+  end else if Control is TListBox then begin
+    ListBox := TListBox(Control);
     if ListBox.MultiSelect then begin
       for i:=0 to ListBox.Count-1 do
         ListBox.Selected[i] := not ListBox.Selected[i];
@@ -7925,7 +7914,7 @@ begin
   if Sender is TMenuItem then
     key := (Sender as TMenuItem).Tag
   else
-    key := (Sender as TTNTComboBox).ItemIndex+1;
+    key := (Sender as TComboBox).ItemIndex+1;
   if MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, False) then begin
     SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.BeginUpdate;
@@ -8127,7 +8116,7 @@ begin
   QueryTab.Number := i;
   QueryTab.GridResult := TGridResult.Create;
 
-  QueryTab.TabSheet := TTntTabSheet.Create(PageControlMain);
+  QueryTab.TabSheet := TTabSheet.Create(PageControlMain);
   QueryTab.TabSheet.PageControl := PageControlMain;
   QueryTab.TabSheet.ImageIndex := tabQuery.ImageIndex;
 
@@ -8182,7 +8171,7 @@ begin
   QueryTab.pnlHelpers.BevelOuter := pnlQueryHelpers.BevelOuter;
   QueryTab.pnlHelpers.Align := pnlQueryHelpers.Align;
 
-  QueryTab.lboxHelpers := TTntListBox.Create(QueryTab.pnlHelpers);
+  QueryTab.lboxHelpers := TListBox.Create(QueryTab.pnlHelpers);
   QueryTab.lboxHelpers.Parent := QueryTab.pnlHelpers;
   QueryTab.lboxHelpers.Tag := lboxQueryHelpers.Tag;
   QueryTab.lboxHelpers.Align := lboxQueryHelpers.Align;
@@ -8427,7 +8416,7 @@ begin
 end;
 
 
-function TMainForm.ActiveQueryHelpers: TTntListBox;
+function TMainForm.ActiveQueryHelpers: TListBox;
 begin
   // Return current query helpers listbox
   Result := ActiveQueryTab.lboxHelpers;
@@ -8530,7 +8519,7 @@ begin
     // Leave space for close button on closable query tabs
     Text := Text + '      ';
   end;
-  TTntTabSheet(PageControlMain.Pages[PageIndex]).Caption := Text;
+  TTabSheet(PageControlMain.Pages[PageIndex]).Caption := Text;
   FixQueryTabCloseButtons;
 end;
 

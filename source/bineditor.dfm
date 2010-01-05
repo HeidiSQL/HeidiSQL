@@ -34,7 +34,7 @@ object frmBinEditor: TfrmBinEditor
     Caption = 'lblTextLength'
     ParentBiDiMode = False
   end
-  object memoText: TTntMemo
+  object memoText: TMemo
     Left = 0
     Top = 0
     Width = 215

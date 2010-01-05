@@ -2962,7 +2962,7 @@ end;
 procedure TCustomSingleByteCodec.Decode(const Buf: Pointer; const BufSize: Integer;
     const DestBuf: Pointer; const DestSize: Integer;
     out ProcessedBytes, DestLength: Integer);
-var P       : PChar;
+var P       : PAnsiChar;
     Q       : PWideChar;
     I, L, C : Integer;
 begin
@@ -3020,7 +3020,7 @@ end;
 
 function TCustomSingleByteCodec.Encode(const S: PWideChar; const Length: Integer;
     out ProcessedChars: Integer): String;
-var P       : PChar;
+var P       : PAnsiChar;
     Q       : PWideChar;
     I, L, M : Integer;
 begin
@@ -3056,7 +3056,7 @@ begin
             end;
           eaIgnore :
             begin
-              P^ := Char(Q^);
+              P^ := AnsiChar(Q^);
               Inc(P);
               Inc(Q);
               Inc(L);
@@ -3103,7 +3103,7 @@ end;
 
 procedure TCustomSingleByteCodec.InternalWriteUCS4Char(const C: UCS4Char;
     out ByteCount: Integer);
-var E : Char;
+var E : AnsiChar;
 begin
   E := EncodeUCS4Char(C);
   WriteBuffer(E, 1);

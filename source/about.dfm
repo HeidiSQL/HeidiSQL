@@ -1578,8 +1578,6 @@ object AboutBox: TAboutBox
         Lines.Strings = (
           'Mike Lischke for VirtualTreeView (GNU Lesser Public License)'
           'SynEdit under LGPL - http://synedit.sourceforge.net'
-          'TNT Unicode Controls - '
-          'http://www.mh-nexus.de/tntunicodecontrols.htm'
           'Mark James for his Silk icon set'
           'Inno Setup - http://www.jrsoftware.org/'
           'MySQL for great database software')

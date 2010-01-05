@@ -3,7 +3,7 @@ unit texteditor;
 interface
 
 uses
-  Windows, Classes, Graphics, Forms, Controls, StdCtrls, TntStdCtrls, VirtualTrees,
+  Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
   ComCtrls, ToolWin, Dialogs, SysUtils, Menus, WideStrUtils,
   helpers;
 
@@ -11,7 +11,7 @@ uses
 
 type
   TfrmTextEditor = class(TForm)
-    memoText: TTntMemo;
+    memoText: TMemo;
     tlbStandard: TToolBar;
     btnWrap: TToolButton;
     btnLoadText: TToolButton;

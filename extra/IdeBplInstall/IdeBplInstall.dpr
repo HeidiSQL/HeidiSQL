@@ -9,7 +9,7 @@ uses
   SysUtils;
 
 const
-  baseKey = '\Software\Borland';
+  baseKey = '\Software\CodeGear';
   pkgKey = 'Known Packages';
   envKey = 'Environment Variables';
 

@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
-  WideStrings, WideStrUtils, VirtualTrees, ExtCtrls, Contnrs, Graphics, TntStdCtrls,
+  WideStrings, WideStrUtils, VirtualTrees, ExtCtrls, Contnrs, Graphics,
   PngSpeedButton, SynRegExpr,
   mysql_connection, helpers;
 
@@ -37,7 +37,7 @@ type
     btnHelp: TButton;
     tabFind: TTabSheet;
     lblFindText: TLabel;
-    memoFindText: TTntMemo;
+    memoFindText: TMemo;
     comboDataTypes: TComboBox;
     lblDataTypes: TLabel;
     tabSQLexport: TTabSheet;
@@ -49,7 +49,7 @@ type
     comboExportData: TComboBox;
     lblExportOutputType: TLabel;
     comboExportOutputType: TComboBox;
-    comboExportOutputTarget: TTntComboBox;
+    comboExportOutputTarget: TComboBox;
     lblExportDatabases: TLabel;
     lblExportTables: TLabel;
     lblExportOutputTarget: TLabel;
@@ -61,7 +61,7 @@ type
     btnExportOutputTargetSelect: TPngSpeedButton;
     tabBulkTableEdit: TTabSheet;
     chkBulkTableEditDatabase: TCheckBox;
-    comboBulkTableEditDatabase: TTntComboBox;
+    comboBulkTableEditDatabase: TComboBox;
     chkBulkTableEditResetAutoinc: TCheckBox;
     chkBulkTableEditCollation: TCheckBox;
     comboBulkTableEditCollation: TComboBox;
@@ -74,7 +74,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
     procedure TreeObjectsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      TextType: TVSTTextType; var CellText: WideString);
+      TextType: TVSTTextType; var CellText: String);
     procedure TreeObjectsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
     procedure TreeObjectsGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
@@ -85,7 +85,7 @@ type
       var InitialStates: TVirtualNodeInitStates);
     procedure ResultGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure ResultGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      TextType: TVSTTextType; var CellText: WideString);
+      TextType: TVSTTextType; var CellText: String);
     procedure TreeObjectsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure ResultGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
     procedure ResultGridCompareNodes(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode;
@@ -135,7 +135,7 @@ implementation
 uses main, mysql_structures;
 
 const
-  STRSKIPPED = 'Skipped - ';
+  STRSKIPPED: WideString = 'Skipped - ';
   OUTPUT_FILE = 'One big file';
   OUTPUT_DIR = 'Directory - one file per object';
   OUTPUT_DB = 'Database';
@@ -374,7 +374,7 @@ end;
 
 
 procedure TfrmTableTools.TreeObjectsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
 begin
   Mainform.DBtreeGetText(Sender, Node, Column, TextType, CellText);
 end;
@@ -686,7 +686,7 @@ begin
 end;
 
 procedure TfrmTableTools.ResultGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType; var CellText: WideString);
+  TextType: TVSTTextType; var CellText: String);
 var
   Data: ^TWideStringList;
 begin
@@ -990,7 +990,7 @@ begin
       if Mainform.Connection.ServerVersionInt >= 40100 then begin
         Struc := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+m(DBObj.Database), 1);
         // Gracefully ignore it when target database exists, important in server mode
-        Insert('IF NOT EXISTS ', Struc, Pos('DATABASE', Struc) + 9);
+        Insert('IF NOT EXISTS ', Struc, Pos(WideString('DATABASE'), Struc) + 9);
         // Create the right dbname
         Struc := WideStringReplace(Struc, DBObj.Database, FinalDbName, []);
       end else
@@ -1023,15 +1023,15 @@ begin
             rx := TRegExpr.Create;
             rx.ModifierI := True;
             rx.Expression := '\sAUTO_INCREMENT\s*\=\s*\d+\s';
-            Struc := rx.Replace(Struc, ' ');
+            Struc := rx.Replace(Struc, ' ', false);
             rx.Free;
             if DBObj.NodeType = lntTable then
-              Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
+              Insert('IF NOT EXISTS ', Struc, Pos(WideString('TABLE'), Struc) + 6);
             if ToDb then begin
               if DBObj.NodeType = lntTable then
-                Insert(m(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
+                Insert(m(FinalDbName)+'.', Struc, Pos(WideString('EXISTS'), Struc) + 7 )
               else if DBObj.NodeType = lntView then
-                Insert(m(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
+                Insert(m(FinalDbName)+'.', Struc, Pos(WideString('VIEW'), Struc) + 5 );
             end;
           end;
 
@@ -1189,7 +1189,7 @@ begin
         rx.ModifierI := True;
         // Replace old database references in VIEW body
         rx.Expression := '(["`])'+QuoteRegExprMetaChars(DBObj.Database)+'(["`])';
-        CreateView := rx.Replace(CreateView, Mainform.mask(comboBulkTableEditDatabase.Text));
+        CreateView := rx.Replace(CreateView, Mainform.mask(comboBulkTableEditDatabase.Text), false);
         rx.Free;
         // Temporarily switch to new database for VIEW creation, so the database references are correct
         Mainform.Connection.Database := comboBulkTableEditDatabase.Text;

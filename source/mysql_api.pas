@@ -241,22 +241,22 @@ type
     port:                     Cardinal;
     protocol:                 Cardinal;
     client_flag:              LongInt;
-    host:                     PChar;
-    user:                     PChar;
-    password:                 PChar;
-    unix_socket:              PChar;
-    db:                       PChar;
+    host:                     PAnsiChar;
+    user:                     PAnsiChar;
+    password:                 PAnsiChar;
+    unix_socket:              PAnsiChar;
+    db:                       PAnsiChar;
     init_commands:            Pointer;
-    my_cnf_file:              PChar;
-    my_cnf_group:             PChar;
-    charset_dir:              PChar;
-    charset_name:             PChar;
-    ssl_key:                  PChar;
-    ssl_cert:                 PChar;
-    ssl_ca:                   PChar;
-    ssl_capath:               PChar;
-    ssl_cipher:               PChar;
-    shared_memory_base_name:  PChar;
+    my_cnf_file:              PAnsiChar;
+    my_cnf_group:             PAnsiChar;
+    charset_dir:              PAnsiChar;
+    charset_name:             PAnsiChar;
+    ssl_key:                  PAnsiChar;
+    ssl_cert:                 PAnsiChar;
+    ssl_ca:                   PAnsiChar;
+    ssl_capath:               PAnsiChar;
+    ssl_cipher:               PAnsiChar;
+    shared_memory_base_name:  PAnsiChar;
     max_allowed_packet:       LongInt;
     use_ssl:                  Byte;
     compress:                 Byte;
@@ -266,7 +266,7 @@ type
     no_master_reads:          Byte;
     separate_thread:          Byte;
     methods_to_use:           Byte;
-    client_ip:                PChar;
+    client_ip:                PAnsiChar;
     secure_auth:              Byte;
     local_infile_init:        Pointer;
     local_infile_read:        Pointer;
@@ -286,10 +286,10 @@ type
 
   NET = record
     vio:              Pointer;
-    buff:             PChar;
-    buff_end:         PChar;
-    write_pos:        PChar;
-    read_pos:         PChar;
+    buff:             PAnsiChar;
+    buff_end:         PAnsiChar;
+    write_pos:        PAnsiChar;
+    read_pos:         PAnsiChar;
     fd:               Integer;
     max_packet:       Cardinal;
     max_packet_size:  Cardinal;
@@ -319,13 +319,13 @@ type
 
   PMYSQL_FIELD = ^MYSQL_FIELD;
   MYSQL_FIELD = record
-    name:             PChar;   // Name of column
-    org_name:         PChar;   // Original column name, if an alias
-    table:            PChar;   // Table of column if column was a field
-    org_table:        PChar;   // Org table name if table was an alias
-    db:               PChar;   // Database for table
-    catalog:	      PChar;   // Catalog for table
-    def:              PChar;   // Default value (set by mysql_list_fields)
+    name:             PAnsiChar;   // Name of column
+    org_name:         PAnsiChar;   // Original column name, if an alias
+    table:            PAnsiChar;   // Table of column if column was a field
+    org_table:        PAnsiChar;   // Org table name if table was an alias
+    db:               PAnsiChar;   // Database for table
+    catalog:	      PAnsiChar;   // Catalog for table
+    def:              PAnsiChar;   // Default value (set by mysql_list_fields)
     length:           LongInt; // Width of column
     max_length:       LongInt; // Max width of selected set
     name_length:      Cardinal;
@@ -341,7 +341,7 @@ type
     _type:            Cardinal; // Type of field. Se mysql_com.h for types
   end;
 
-  MYSQL_ROW = array[0..$ffff] of PChar;
+  MYSQL_ROW = array[0..$ffff] of PAnsiChar;
   PMYSQL_ROW = ^MYSQL_ROW;
 
   PMYSQL_ROWS = ^MYSQL_ROWS;
@@ -364,10 +364,10 @@ type
   MY_CHARSET_INFO = record
     number:         Cardinal;
     state:          Cardinal;
-    csname:         PChar;
-    name:           PChar;
-    comment:        PChar;
-    dir:            PChar;
+    csname:         PAnsiChar;
+    name:           PAnsiChar;
+    comment:        PAnsiChar;
+    dir:            PAnsiChar;
     mbminlen:       Cardinal;
     mbmaxlen:       Cardinal;
   end;
@@ -376,15 +376,15 @@ type
   MYSQL = record
     _net:            NET;
     connector_fd:    Pointer;
-    host:            PChar;
-    user:            PChar;
-    passwd:          PChar;
-    unix_socket:     PChar;
-    server_version:  PChar;
-    host_info:       PChar;
-    info:            PChar;
-    db:              PChar;
-    charset:         PChar;
+    host:            PAnsiChar;
+    user:            PAnsiChar;
+    passwd:          PAnsiChar;
+    unix_socket:     PAnsiChar;
+    server_version:  PAnsiChar;
+    host_info:       PAnsiChar;
+    info:            PAnsiChar;
+    db:              PAnsiChar;
+    charset:         PAnsiChar;
     fields:          PMYSQL_FIELD;
     field_alloc:     MEM_ROOT;
     affected_rows:   Int64;
@@ -430,7 +430,7 @@ type
     current_row:     PMYSQL_ROW;
     eof:             Byte;
     unbuffered_fetch_cancelled: Byte;
-    methods:         PChar;
+    methods:         PAnsiChar;
   end;
   PMYSQL_RES = ^MYSQL_RES;
 
@@ -443,7 +443,7 @@ type
   MYSQL_BIND = record
     length:           PLongInt;
     is_null:          PByte;
-    buffer:           PChar;
+    buffer:           PAnsiChar;
     buffer_type:      Cardinal;
     buffer_length:    LongInt;
     inter_buffer:     PByte;
@@ -468,7 +468,7 @@ type
     list:                 LIST;
     current_row:          PByte;
     last_fetched_buffer:  PByte;
-    query:                PChar;
+    query:                PAnsiChar;
     mem_root:             MEM_ROOT;
     last_fetched_column:  Int64;
     stmt_id:              LongInt;
@@ -488,17 +488,17 @@ type
   PMYSQL_MANAGER = ^MYSQL_MANAGER;
   MYSQL_MANAGER = record
     _net:               NET;
-    host:               PChar;
-    user:               PChar;
-    passwd:             PChar;
+    host:               PAnsiChar;
+    user:               PAnsiChar;
+    passwd:             PAnsiChar;
     port:               Cardinal;
     free_me:            Byte;
     eof:                Byte;
     cmd_status:         Integer;
     last_errno:         Integer;
-    net_buf:            PChar;
-    net_buf_pos:        PChar;
-    net_data_end:       PChar;
+    net_buf:            PAnsiChar;
+    net_buf_pos:        PAnsiChar;
+    net_data_end:       PAnsiChar;
     net_buf_size:       Integer;
     last_error:         array[1..MAX_MYSQL_MANAGER_ERR] of Char;
   end;
@@ -512,18 +512,18 @@ type
 
 var
   mysql_affected_rows          : function(Handle: PMYSQL): Int64; stdcall;
-  mysql_character_set_name     : function(Handle: PMYSQL): PChar; stdcall;
+  mysql_character_set_name     : function(Handle: PMYSQL): PAnsiChar; stdcall;
   mysql_close                  : procedure(Handle: PMYSQL); stdcall;
-  mysql_connect                : function(Handle: PMYSQL; const Host, User, Passwd: PChar): PMYSQL; stdcall;
-  mysql_create_db              : function(Handle: PMYSQL; const Db: PChar): Integer; stdcall;
+  mysql_connect                : function(Handle: PMYSQL; const Host, User, Passwd: PAnsiChar): PMYSQL; stdcall;
+  mysql_create_db              : function(Handle: PMYSQL; const Db: PAnsiChar): Integer; stdcall;
   mysql_data_seek              : procedure(Result: PMYSQL_RES; Offset: Int64); stdcall;
-  mysql_debug                  : procedure(Debug: PChar); stdcall;
-  mysql_drop_db                : function(Handle: PMYSQL; const Db: PChar): Integer; stdcall;
+  mysql_debug                  : procedure(Debug: PAnsiChar); stdcall;
+  mysql_drop_db                : function(Handle: PMYSQL; const Db: PAnsiChar): Integer; stdcall;
   mysql_dump_debug_info        : function(Handle: PMYSQL): Integer; stdcall;
   mysql_eof                    : function(Result: PMYSQL_RES): Byte; stdcall;
   mysql_errno                  : function(Handle: PMYSQL): Cardinal; stdcall;
-  mysql_error                  : function(Handle: PMYSQL): PChar; stdcall;
-  mysql_escape_string          : function(PTo, PFrom: PChar; Len: Cardinal): Cardinal; stdcall;
+  mysql_error                  : function(Handle: PMYSQL): PAnsiChar; stdcall;
+  mysql_escape_string          : function(PTo, PFrom: PAnsiChar; Len: Cardinal): Cardinal; stdcall;
   mysql_fetch_field            : function(Result: PMYSQL_RES): PMYSQL_FIELD; stdcall;
   mysql_fetch_field_direct     : function(Result: PMYSQL_RES; FieldNo: Cardinal): PMYSQL_FIELD; stdcall;
   mysql_fetch_fields           : function(Result: PMYSQL_RES): PMYSQL_FIELD; stdcall;
@@ -532,34 +532,34 @@ var
   mysql_field_seek             : function(Result: PMYSQL_RES; Offset: MYSQL_FIELD_OFFSET): MYSQL_FIELD_OFFSET; stdcall;
   mysql_field_tell             : function(Result: PMYSQL_RES): MYSQL_FIELD_OFFSET; stdcall;
   mysql_free_result            : procedure(Result: PMYSQL_RES); stdcall;
-  mysql_get_client_info        : function: PChar; stdcall;
-  mysql_get_host_info          : function(Handle: PMYSQL): PChar; stdcall;
+  mysql_get_client_info        : function: PAnsiChar; stdcall;
+  mysql_get_host_info          : function(Handle: PMYSQL): PAnsiChar; stdcall;
   mysql_get_proto_info         : function(Handle: PMYSQL): Cardinal; stdcall;
-  mysql_get_server_info        : function(Handle: PMYSQL): PChar; stdcall;
-  mysql_info                   : function(Handle: PMYSQL): PChar; stdcall;
+  mysql_get_server_info        : function(Handle: PMYSQL): PAnsiChar; stdcall;
+  mysql_info                   : function(Handle: PMYSQL): PAnsiChar; stdcall;
   mysql_init                   : function(Handle: PMYSQL): PMYSQL; stdcall;
   mysql_insert_id              : function(Handle: PMYSQL): Int64; stdcall;
   mysql_kill                   : function(Handle: PMYSQL; Pid: LongInt): Integer; stdcall;
-  mysql_list_dbs               : function(Handle: PMYSQL; Wild: PChar): PMYSQL_RES; stdcall;
-  mysql_list_fields            : function(Handle: PMYSQL; const Table, Wild: PChar): PMYSQL_RES; stdcall;
+  mysql_list_dbs               : function(Handle: PMYSQL; Wild: PAnsiChar): PMYSQL_RES; stdcall;
+  mysql_list_fields            : function(Handle: PMYSQL; const Table, Wild: PAnsiChar): PMYSQL_RES; stdcall;
   mysql_list_processes         : function(Handle: PMYSQL): PMYSQL_RES; stdcall;
-  mysql_list_tables            : function(Handle: PMYSQL; const Wild: PChar): PMYSQL_RES; stdcall;
+  mysql_list_tables            : function(Handle: PMYSQL; const Wild: PAnsiChar): PMYSQL_RES; stdcall;
   mysql_num_fields             : function(Result: PMYSQL_RES): Integer; stdcall;
   mysql_num_rows               : function(Result: PMYSQL_RES): Int64; stdcall;
-  mysql_options                : function(Handle: PMYSQL; Option: TMySQLOption; const Arg: PChar): Integer; stdcall;
+  mysql_options                : function(Handle: PMYSQL; Option: TMySQLOption; const Arg: PAnsiChar): Integer; stdcall;
   mysql_ping                   : function(Handle: PMYSQL): Integer; stdcall;
-  mysql_query                  : function(Handle: PMYSQL; const Query: PChar): Integer; stdcall;
-  mysql_real_connect           : function(Handle: PMYSQL; const Host, User, Passwd, Db: PChar;
-                                          Port: Cardinal; const UnixSocket: PChar; ClientFlag: Cardinal): PMYSQL; stdcall;
-  mysql_real_escape_string     : function(Handle: PMYSQL; PTo: PChar; const PFrom: PChar; length: Cardinal): Cardinal; stdcall;
-  mysql_real_query             : function(Handle: PMYSQL; const Query: PChar; Length: Cardinal): Integer; stdcall;
+  mysql_query                  : function(Handle: PMYSQL; const Query: PAnsiChar): Integer; stdcall;
+  mysql_real_connect           : function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar;
+                                          Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
+  mysql_real_escape_string     : function(Handle: PMYSQL; PTo: PAnsiChar; const PFrom: PAnsiChar; length: Cardinal): Cardinal; stdcall;
+  mysql_real_query             : function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
   mysql_refresh                : function(Handle: PMYSQL; Options: Cardinal): Integer; stdcall;
   mysql_row_seek               : function(Result: PMYSQL_RES; Offset: PMYSQL_ROWS): PMYSQL_ROWS; stdcall;
   mysql_row_tell               : function(Result: PMYSQL_RES): PMYSQL_ROWS; stdcall;
-  mysql_select_db              : function(Handle: PMYSQL; const Db: PChar): Integer; stdcall;
+  mysql_select_db              : function(Handle: PMYSQL; const Db: PAnsiChar): Integer; stdcall;
   mysql_ssl_set                : function(Handle: PMYSQL; const key, cert, CA, CApath, cipher:
-                                          PChar): Byte; stdcall;
-  mysql_stat                   : function(Handle: PMYSQL): PChar; stdcall;
+                                          PAnsiChar): Byte; stdcall;
+  mysql_stat                   : function(Handle: PMYSQL): PAnsiChar; stdcall;
   mysql_store_result           : function(Handle: PMYSQL): PMYSQL_RES; stdcall;
   mysql_thread_id              : function(Handle: PMYSQL): Cardinal; stdcall;
   mysql_use_result             : function(Handle: PMYSQL): PMYSQL_RES; stdcall;
@@ -576,19 +576,19 @@ var
   mysql_server_init            : function(Argc: Integer; Argv, Groups: Pointer): Integer; stdcall;
   mysql_server_end             : procedure; stdcall;
 
-  mysql_change_user            : function(mysql: PMYSQL; const user: PChar; const passwd: PChar; const db: PChar): Byte;
+  mysql_change_user            : function(mysql: PMYSQL; const user: PAnsiChar; const passwd: PAnsiChar; const db: PAnsiChar): Byte;
   mysql_field_count            : function(Handle: PMYSQL): Cardinal; stdcall;
   mysql_get_client_version     : function: Cardinal; stdcall;
-  mysql_send_query             : function(mysql: PMYSQL; const query: PChar; length: Cardinal): Integer; stdcall;
+  mysql_send_query             : function(mysql: PMYSQL; const query: PAnsiChar; length: Cardinal): Integer; stdcall;
   mysql_read_query_result      : function(mysql: PMYSQL): Integer; stdcall;
 
   { Perform query on master }
-  mysql_master_query           : function(mysql: PMYSQL; const query: PChar; length: Cardinal): Byte; stdcall;
-  mysql_master_send_query      : function(mysql: PMYSQL; const query: PChar; length: Cardinal): Byte; stdcall;
+  mysql_master_query           : function(mysql: PMYSQL; const query: PAnsiChar; length: Cardinal): Byte; stdcall;
+  mysql_master_send_query      : function(mysql: PMYSQL; const query: PAnsiChar; length: Cardinal): Byte; stdcall;
 
   { Perform query on slave }
-  mysql_slave_query            : function(mysql: PMYSQL; const query: PChar; length: Cardinal): Byte; stdcall;
-  mysql_slave_send_query       : function(mysql: PMYSQL; const query: PChar; length: Cardinal): Byte; stdcall;
+  mysql_slave_query            : function(mysql: PMYSQL; const query: PAnsiChar; length: Cardinal): Byte; stdcall;
+  mysql_slave_send_query       : function(mysql: PMYSQL; const query: PAnsiChar; length: Cardinal): Byte; stdcall;
 
   { Enable/disable parsing of all queries to decide
     if they go on master or slave }
@@ -605,47 +605,47 @@ var
   { Get the value of the master read flag }
   mysql_reads_from_master_enabled : function(mysql: PMYSQL): Byte; stdcall;
 
-  mysql_rpl_query_type         : function(const query: PChar; len: Integer): TMySqlRplType; stdcall;
+  mysql_rpl_query_type         : function(const query: PAnsiChar; len: Integer): TMySqlRplType; stdcall;
 
   { Discover the master and its slaves }
   mysql_rpl_probe              : function(mysql: PMYSQL): Byte; stdcall;
 
   { Set the master, close/free the old one, if it is not a pivot }
-  mysql_set_master             : function(mysql: PMYSQL; const host: PChar; port: Cardinal;
-                                          const user: PChar; const passwd: PChar): Integer; stdcall;
-  mysql_add_slave              : function(mysql: PMYSQL; const host: PChar; port: Cardinal;
-                                          const user: PChar; const passwd: PChar): Integer; stdcall;
+  mysql_set_master             : function(mysql: PMYSQL; const host: PAnsiChar; port: Cardinal;
+                                          const user: PAnsiChar; const passwd: PAnsiChar): Integer; stdcall;
+  mysql_add_slave              : function(mysql: PMYSQL; const host: PAnsiChar; port: Cardinal;
+                                          const user: PAnsiChar; const passwd: PAnsiChar): Integer; stdcall;
 
   mysql_manager_init           : function(con: PMYSQL_MANAGER): PMYSQL_MANAGER; stdcall;
-  mysql_manager_connect        : function(con: PMYSQL_MANAGER; const host: PChar; const user: PChar;
-                                          const passwd: PChar; port: Cardinal): PMYSQL_MANAGER; stdcall;
+  mysql_manager_connect        : function(con: PMYSQL_MANAGER; const host: PAnsiChar; const user: PAnsiChar;
+                                          const passwd: PAnsiChar; port: Cardinal): PMYSQL_MANAGER; stdcall;
   mysql_manager_close          : procedure(con: PMYSQL_MANAGER); stdcall;
-  mysql_manager_command        : function(con: PMYSQL_MANAGER; const cmd: PChar; cmd_len: Integer): Integer; stdcall;
-  mysql_manager_fetch_line     : function(con: PMYSQL_MANAGER; res_buf: PChar; res_buf_size: Integer): Integer; stdcall;
+  mysql_manager_command        : function(con: PMYSQL_MANAGER; const cmd: PAnsiChar; cmd_len: Integer): Integer; stdcall;
+  mysql_manager_fetch_line     : function(con: PMYSQL_MANAGER; res_buf: PAnsiChar; res_buf_size: Integer): Integer; stdcall;
 
   mysql_autocommit             : function(Handle: PMYSQL; const mode: Byte): Byte; stdcall;
   mysql_commit                 : function(Handle: PMYSQL): Byte; stdcall;
   mysql_get_server_version     : function(Handle: PMYSQL): Cardinal; stdcall;
-  mysql_hex_string             : function(PTo, PFrom: Pchar; Len: Cardinal): Cardinal; stdcall;
+  mysql_hex_string             : function(PTo, PFrom: PAnsiChar; Len: Cardinal): Cardinal; stdcall;
   mysql_more_results           : function(Handle: PMYSQL): Byte; stdcall;
   mysql_next_result            : function(Handle: PMYSQL): Integer; stdcall;
   mysql_rollback               : function(Handle: PMYSQL): Byte; stdcall;
-  mysql_set_character_set      : function(Handle: PMYSQL; csname: PChar): Integer; stdcall;
+  mysql_set_character_set      : function(Handle: PMYSQL; csname: PAnsiChar): Integer; stdcall;
   mysql_set_server_option      : function(Handle: PMYSQL; Option: TMysqlSetOption): Integer; stdcall;
   mysql_shutdown               : function(Handle: PMYSQL; shutdown_level: TMysqlShutdownLevel): Integer;
-  mysql_sqlstate               : function(Handle: PMYSQL): PChar; stdcall;
+  mysql_sqlstate               : function(Handle: PMYSQL): PAnsiChar; stdcall;
   mysql_warning_count          : function(Handle: PMYSQL): Cardinal; stdcall;
 
   mysql_stmt_affected_rows     : function(stmt: PMYSQL_STMT): Int64; stdcall;
-  mysql_stmt_attr_get          : function(stmt: PMYSQL_STMT; option: TMysqlStmtAttrType;arg: PChar): Integer; stdcall;
+  mysql_stmt_attr_get          : function(stmt: PMYSQL_STMT; option: TMysqlStmtAttrType;arg: PAnsiChar): Integer; stdcall;
   mysql_stmt_attr_set          : function(stmt: PMYSQL_STMT; option: TMysqlStmtAttrType;
-                                          const arg: PChar): Integer; stdcall;
+                                          const arg: PAnsiChar): Integer; stdcall;
   mysql_stmt_bind_param        : function(stmt: PMYSQL_STMT; bind: PMYSQL_BIND): Byte; stdcall;
   mysql_stmt_bind_result       : function(stmt: PMYSQL_STMT; bind: PMYSQL_BIND): Byte; stdcall;
   mysql_stmt_close             : function(stmt: PMYSQL_STMT): Byte; stdcall;
   mysql_stmt_data_seek         : procedure(stmt: PMYSQL_STMT; offset: Int64); stdcall;
   mysql_stmt_errno             : function(stmt: PMYSQL_STMT): Cardinal; stdcall;
-  mysql_stmt_error             : function(stmt: PMYSQL_STMT): PChar; stdcall;
+  mysql_stmt_error             : function(stmt: PMYSQL_STMT): PAnsiChar; stdcall;
   mysql_stmt_execute           : function(stmt: PMYSQL_STMT): Integer; stdcall;
   mysql_stmt_fetch             : function(stmt: PMYSQL_STMT): Integer; stdcall;
   mysql_stmt_fetch_column      : function(stmt: PMYSQL_STMT; bind: PMYSQL_BIND; column: Cardinal;
@@ -657,14 +657,14 @@ var
   mysql_stmt_num_rows          : function(stmt: PMYSQL_STMT): Int64; stdcall;
   mysql_stmt_param_count       : function(stmt: PMYSQL_STMT): Cardinal; stdcall;
   mysql_stmt_param_metadata    : function(stmt: PMYSQL_STMT): PMYSQL_RES; stdcall;
-  mysql_stmt_prepare           : function(stmt: PMYSQL_STMT; const query: PChar; length: Cardinal): Integer; stdcall;
+  mysql_stmt_prepare           : function(stmt: PMYSQL_STMT; const query: PAnsiChar; length: Cardinal): Integer; stdcall;
   mysql_stmt_reset             : function(stmt: PMYSQL_STMT): Byte; stdcall;
   mysql_stmt_result_metadata   : function(stmt: PMYSQL_STMT): PMYSQL_RES; stdcall;
   mysql_stmt_row_seek          : function(stmt: PMYSQL_STMT; offset: PMYSQL_ROWS): PMYSQL_ROWS; stdcall;
   mysql_stmt_row_tell          : function(stmt: PMYSQL_STMT): PMYSQL_ROWS; stdcall;
   mysql_stmt_send_long_data    : function(stmt: PMYSQL_STMT; parameter_number: Cardinal; const
-                                  data: PChar; length: Cardinal): Byte; stdcall;
-  mysql_stmt_sqlstate          : function(stmt: PMYSQL_STMT): PChar; stdcall;
+                                  data: PAnsiChar; length: Cardinal): Byte; stdcall;
+  mysql_stmt_sqlstate          : function(stmt: PMYSQL_STMT): PAnsiChar; stdcall;
   mysql_stmt_store_result      : function(stmt: PMYSQL_STMT): Integer; stdcall;
 
   mysql_get_character_set_info : procedure(Handle: PMYSQL; cs: PMY_CHARSET_INFO); stdcall;
@@ -695,7 +695,7 @@ implementation
 }
 function libmysql_load: Byte;
 
-  procedure assign_proc(var proc: FARPROC; name: pChar);
+  procedure assign_proc(var proc: FARPROC; name: PAnsiChar);
   begin
     proc := GetProcAddress(libmysql_handle, name);
     if proc = nil then libmysql_status := LIBMYSQL_INCOMPATIBLE;

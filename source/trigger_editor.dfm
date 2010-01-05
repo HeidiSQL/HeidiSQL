@@ -36,7 +36,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Height = 13
     Caption = 'Event:'
   end
-  object editName: TTntEdit
+  object editName: TEdit
     Left = 96
     Top = 3
     Width = 378
@@ -64,7 +64,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Gutter.Font.Height = -11
     Gutter.Font.Name = 'Courier New'
     Gutter.Font.Style = []
-    Lines.UnicodeStrings = 'SynMemoStatement'
+    Lines.Strings = ('SynMemoStatement')
     OnChange = Modification
   end
   object btnHelp: TButton
@@ -98,7 +98,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     TabOrder = 5
     OnClick = btnSaveClick
   end
-  object comboTable: TTntComboBox
+  object comboTable: TComboBox
     Left = 96
     Top = 30
     Width = 378

@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  TntStdCtrls, VirtualTrees, Menus;
+  VirtualTrees, Menus;
 
 type
   Tconnform = class(TForm)
@@ -58,14 +58,14 @@ type
     procedure Modification(Sender: TObject);
     procedure radioNetTypeClick(Sender: TObject);
     procedure ListSessionsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
     procedure ListSessionsFocusChanged(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex);
     procedure ListSessionsGetImageIndex(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
       var Ghosted: Boolean; var ImageIndex: Integer);
     procedure ListSessionsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex; NewText: WideString);
+      Column: TColumnIndex; NewText: String);
     procedure ListSessionsFocusChanging(Sender: TBaseVirtualTree; OldNode,
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
       var Allowed: Boolean);
@@ -139,8 +139,8 @@ begin
   // Add own menu items to system menu
   hSysMenu := GetSystemMenu(Handle, False);
   AppendMenu(hSysMenu, MF_SEPARATOR, 0, #0);
-  AppendMenu(hSysMenu, MF_STRING, MSG_UPDATECHECK, PAnsiChar(Mainform.actUpdateCheck.Caption));
-  AppendMenu(hSysMenu, MF_STRING, MSG_ABOUT, PAnsiChar(Mainform.actAboutBox.Caption));
+  AppendMenu(hSysMenu, MF_STRING, MSG_UPDATECHECK, PChar(Mainform.actUpdateCheck.Caption));
+  AppendMenu(hSysMenu, MF_STRING, MSG_ABOUT, PChar(Mainform.actAboutBox.Caption));
 end;
 
 
@@ -344,7 +344,7 @@ end;
 
 procedure Tconnform.ListSessionsGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-  var CellText: WideString);
+  var CellText: String);
 begin
   // Display session name cell
   CellText := FSessionNames[Node.Index];
@@ -469,7 +469,7 @@ end;
 
 
 procedure Tconnform.ListSessionsNewText(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
+  Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   SessionKey: String;
 begin

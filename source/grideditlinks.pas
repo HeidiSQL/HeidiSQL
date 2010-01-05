@@ -5,8 +5,8 @@ unit grideditlinks;
 interface
 
 uses
-  Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes, TntStdCtrls, WideStrings,
-  StdCtrls, ExtCtrls, TntCheckLst, Controls, Types, Dialogs, Mask, DateUtils,
+  Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes, WideStrings,
+  StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Mask, DateUtils,
   mysql_structures, helpers, texteditor, bineditor;
 
 type
@@ -16,7 +16,7 @@ type
     FTree: TVirtualStringTree;        // A back reference to the tree calling.
     FNode: PVirtualNode;              // The node to be edited.
     FColumn: TColumnIndex;            // The column of the node.
-    FCellText: WideString;            // Original cell text value
+    FCellText: String;            // Original cell text value
     FCellFont: TFont;                 // Cosmetic
     FCellBackground: TColor;
     FMainControl: TWinControl;        // The editor's most important component
@@ -82,7 +82,7 @@ type
 
   TEnumEditorLink = class(TBaseGridEditorLink)
   private
-    FCombo: TTnTComboBox;
+    FCombo: TComboBox;
   public
     ValueList: TWideStringList;
     AllowCustomText: Boolean;
@@ -97,7 +97,7 @@ type
   TSetEditorLink = class(TBaseGridEditorLink)
   private
     FPanel: TPanel;
-    FCheckList: TTNTCheckListBox;
+    FCheckList: TCheckListBox;
     FBtnOK, FBtnCancel: TButton;
   public
     ValueList: TWideStringList;
@@ -113,7 +113,7 @@ type
   TInplaceEditorLink = class(TBaseGridEditorLink)
   private
     FPanel: TPanel;
-    FEdit: TTntEdit;
+    FEdit: TEdit;
     FButton: TButton;
     FTextEditor: TfrmTextEditor;
     FMaxLength: Integer;
@@ -136,7 +136,7 @@ type
     FPanel: TPanel;
     FRadioNothing, FRadioText, FRadioNULL, FRadioCurTS, FRadioAutoInc: TRadioButton;
     FCheckCurTS: TCheckbox;
-    FMemoText: TTNTMemo;
+    FMemoText: TMemo;
     FBtnOK, FBtnCancel: TButton;
     procedure RadioClick(Sender: TObject);
     procedure TextChange(Sender: TObject);
@@ -156,7 +156,7 @@ type
     FTreeSelect: TVirtualStringTree;
     FMemoHelp: TMemo;
     procedure DoTreeSelectGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
     procedure DoTreeSelectInitNode(Sender: TBaseVirtualTree;
       ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure DoTreeSelectInitChildren(Sender: TBaseVirtualTree;
@@ -317,7 +317,7 @@ end;
 
 function TBaseGridEditorLink.GetCellRect(InnerTextBounds: Boolean): TRect;
 var
-  Text: WideString;
+  Text: String;
   CellBounds, TextBounds: TRect;
   Ghosted: Boolean;
   ImageIndex: Integer;
@@ -678,7 +678,7 @@ constructor TEnumEditorLink.Create(Tree: TVirtualStringTree);
 begin
   inherited Create(Tree);
   AllowCustomText := False;
-  FCombo := TTnTComboBox.Create(FParentForm);
+  FCombo := TComboBox.Create(FParentForm);
   FCombo.Hide;
   FCombo.Parent := FParentForm;
   FCombo.OnKeyDown := DoKeyDown;
@@ -752,7 +752,7 @@ begin
   FPanel.ParentBackground := False;
   FPanel.OnExit := DoEndEdit;
 
-  FCheckList := TTNTCheckListBox.Create(FPanel);
+  FCheckList := TCheckListBox.Create(FPanel);
   FCheckList.Parent := FPanel;
   FCheckList.OnKeyDown := DoKeyDown;
   FMainControl := FCheckList;
@@ -861,7 +861,7 @@ begin
   FPanel.BevelOuter := bvNone;
   FPanel.OnExit := DoEndEdit;
 
-  FEdit := TTntEdit.Create(FPanel);
+  FEdit := TEdit.Create(FPanel);
   FEdit.Parent := FPanel;
   FEdit.ParentColor := True;
   FEdit.BorderStyle := bsNone;
@@ -1008,7 +1008,7 @@ begin
   FRadioText.OnClick := RadioClick;
   FRadioText.Caption := 'Custom:';
 
-  FMemoText := TTNTMemo.Create(FPanel);
+  FMemoText := TMemo.Create(FPanel);
   FMemoText.Parent := FPanel;
   FMemoText.Top := FRadioText.Top + FRadioText.Height + m;
   FMemoText.Left := 2*m;
@@ -1354,7 +1354,7 @@ end;
 
 
 procedure TDataTypeEditorLink.DoTreeSelectGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Column: TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
 var
   i: Integer;
   Counter: Cardinal;

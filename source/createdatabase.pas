@@ -4,12 +4,12 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
-  TntStdCtrls, WideStrings,
+  WideStrings,
   mysql_connection;
 
 type
   TCreateDatabaseForm = class(TForm)
-    editDBName: TTNTEdit;
+    editDBName: TEdit;
     lblDBName: TLabel;
     comboCharset: TComboBox;
     lblCharset: TLabel;
@@ -101,14 +101,14 @@ begin
     
     // Detect current charset and collation to be able to preselect them in the pulldowns
     sql_create := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+Mainform.mask(modifyDB), 1);
-    currentCharset := Copy( sql_create, pos('CHARACTER SET', sql_create)+14, Length(sql_create));
+    currentCharset := Copy( sql_create, pos(WideString('CHARACTER SET'), sql_create)+14, Length(sql_create));
     currentCharset := GetFirstWord( currentCharset );
     if currentCharset <> '' then
       selectCharset := currentCharset
     else
       selectCharset := defaultCharset;
     currentCollation := '';
-    colpos := pos('COLLATE', sql_create);
+    colpos := pos(WideString('COLLATE'), sql_create);
     if colpos > 0 then begin
       currentCollation := Copy( sql_create, colpos+8, Length(sql_create));
       currentCollation := GetFirstWord( currentCollation );

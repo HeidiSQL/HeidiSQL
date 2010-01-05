@@ -224,7 +224,6 @@ object optionsform: Toptionsform
           Width = 181
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
           TabOrder = 0
           OnChange = SQLFontChange
         end
@@ -283,7 +282,6 @@ object optionsform: Toptionsform
           Width = 130
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
           TabOrder = 0
           OnChange = comboSQLColElementChange
         end
@@ -293,7 +291,6 @@ object optionsform: Toptionsform
           Width = 110
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-          ItemHeight = 16
           TabOrder = 1
           OnChange = SQLFontChange
         end
@@ -321,7 +318,6 @@ object optionsform: Toptionsform
           Width = 110
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-          ItemHeight = 16
           TabOrder = 4
           OnChange = SQLFontChange
         end
@@ -357,7 +353,8 @@ object optionsform: Toptionsform
           Gutter.Visible = False
           Gutter.Width = 0
           Highlighter = SynSQLSynSQLSample
-          Lines.UnicodeStrings = 'SynMemoSQLSample'
+          Lines.Strings = (
+            'SynMemoSQLSample')
           Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoNoCaret, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
           ReadOnly = True
           RightEdge = 0
@@ -453,7 +450,6 @@ object optionsform: Toptionsform
         Width = 193
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
         TabOrder = 2
         OnChange = DataFontsChange
       end
@@ -543,7 +539,6 @@ object optionsform: Toptionsform
           Width = 120
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          ItemHeight = 16
           TabOrder = 1
           OnChange = Modified
         end
@@ -553,7 +548,6 @@ object optionsform: Toptionsform
           Width = 120
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          ItemHeight = 16
           TabOrder = 2
           OnChange = Modified
         end
@@ -563,7 +557,6 @@ object optionsform: Toptionsform
           Width = 120
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          ItemHeight = 16
           TabOrder = 4
           OnChange = Modified
         end
@@ -573,7 +566,6 @@ object optionsform: Toptionsform
           Width = 120
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          ItemHeight = 16
           TabOrder = 0
           OnChange = Modified
         end
@@ -583,7 +575,6 @@ object optionsform: Toptionsform
           Width = 120
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          ItemHeight = 16
           TabOrder = 6
           OnChange = Modified
         end
@@ -620,7 +611,6 @@ object optionsform: Toptionsform
           Width = 120
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          ItemHeight = 16
           TabOrder = 8
           OnChange = Modified
         end
@@ -649,7 +639,6 @@ object optionsform: Toptionsform
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
           Enabled = False
-          ItemHeight = 16
           TabOrder = 10
           OnChange = Modified
         end

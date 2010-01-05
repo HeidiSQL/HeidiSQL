@@ -140,7 +140,7 @@ type
     procedure TreeShortcutItemsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
     procedure TreeShortcutItemsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      TextType: TVSTTextType; var CellText: WideString);
+      TextType: TVSTTextType; var CellText: String);
     procedure TreeShortcutItemsInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
     procedure TreeShortcutItemsGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
       Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
@@ -538,7 +538,7 @@ end;
 }
 procedure Toptionsform.SynMemoSQLSampleClick(Sender: TObject);
 var
-  Token: WideString;
+  Token: UnicodeString;
   Attri: TSynHighlighterAttributes;
   AttriIdx: Integer;
   sm: TSynMemo;
@@ -623,7 +623,7 @@ end;
 
 
 procedure Toptionsform.TreeShortcutItemsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType; var CellText: WideString);
+  TextType: TVSTTextType; var CellText: String);
 var
   Data: PShortcutItemData;
   i: Integer;

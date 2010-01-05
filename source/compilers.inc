@@ -102,6 +102,18 @@
 {$endif}
 
 {$ifdef Win32}
+  {$ifdef VER210}
+    {$define COMPILER_14}
+    {$define DELPHI}
+    {$define DELPHI_14}
+  {$endif}
+
+  {$ifdef VER200}
+    {$define COMPILER_12}
+    {$define DELPHI}
+    {$define DELPHI_12}
+  {$endif}
+
   {$ifdef VER190}
     {$define COMPILER_11}
     {$define DELPHI}
@@ -281,6 +293,35 @@
     {$define DELPHI_11_UP}
   {$endif}
 
+  {$ifdef DELPHI_12}
+    {$define DELPHI_2_UP}
+    {$define DELPHI_3_UP}
+    {$define DELPHI_4_UP}
+    {$define DELPHI_5_UP}
+    {$define DELPHI_6_UP}
+    {$define DELPHI_7_UP}
+    {$define DELPHI_8_UP}
+    {$define DELPHI_9_UP}
+    {$define DELPHI_10_UP}
+    {$define DELPHI_11_UP}
+    {$define DELPHI_12_UP}
+  {$endif}
+
+  {$ifdef DELPHI_14}
+    {$define DELPHI_2_UP}
+    {$define DELPHI_3_UP}
+    {$define DELPHI_4_UP}
+    {$define DELPHI_5_UP}
+    {$define DELPHI_6_UP}
+    {$define DELPHI_7_UP}
+    {$define DELPHI_8_UP}
+    {$define DELPHI_9_UP}
+    {$define DELPHI_10_UP}
+    {$define DELPHI_11_UP}
+    {$define DELPHI_12_UP}
+    {$define DELPHI_14_UP}
+  {$endif}
+
   {$ifdef CPPB_3}
     {$define CPPB_3_UP}
   {$endif}
@@ -457,6 +498,37 @@
   {$define COMPILER_9_UP}
   {$define COMPILER_10_UP}
   {$define COMPILER_11_UP}
+{$endif}
+
+{$ifdef COMPILER_12}
+  {$define COMPILER_1_UP}
+  {$define COMPILER_2_UP}
+  {$define COMPILER_3_UP}
+  {$define COMPILER_4_UP}
+  {$define COMPILER_5_UP}
+  {$define COMPILER_6_UP}
+  {$define COMPILER_7_UP}
+  {$define COMPILER_8_UP}
+  {$define COMPILER_9_UP}
+  {$define COMPILER_10_UP}
+  {$define COMPILER_11_UP}
+  {$define COMPILER_12_UP}
+{$endif}
+
+{$ifdef COMPILER_14}
+  {$define COMPILER_1_UP}
+  {$define COMPILER_2_UP}
+  {$define COMPILER_3_UP}
+  {$define COMPILER_4_UP}
+  {$define COMPILER_5_UP}
+  {$define COMPILER_6_UP}
+  {$define COMPILER_7_UP}
+  {$define COMPILER_8_UP}
+  {$define COMPILER_9_UP}
+  {$define COMPILER_10_UP}
+  {$define COMPILER_11_UP}
+  {$define COMPILER_12_UP}
+  {$define COMPILER_14_UP}
 {$endif}
 
 {$ifndef COMPILER_1_UP}

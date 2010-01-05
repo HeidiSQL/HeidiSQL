@@ -282,7 +282,7 @@ object frmTableTools: TfrmTableTools
             Anchors = [akLeft, akBottom]
             Caption = 'Restrict search to column types'
           end
-          object memoFindText: TTntMemo
+          object memoFindText: TMemo
             Left = 80
             Top = 11
             Width = 289
@@ -411,7 +411,7 @@ object frmTableTools: TfrmTableTools
             TabOrder = 5
             OnChange = comboExportOutputTypeChange
           end
-          object comboExportOutputTarget: TTntComboBox
+          object comboExportOutputTarget: TComboBox
             Left = 80
             Top = 74
             Width = 263
@@ -438,7 +438,7 @@ object frmTableTools: TfrmTableTools
             TabOrder = 0
             OnClick = chkBulkTableEditCheckComboClick
           end
-          object comboBulkTableEditDatabase: TTntComboBox
+          object comboBulkTableEditDatabase: TComboBox
             Left = 168
             Top = 3
             Width = 200

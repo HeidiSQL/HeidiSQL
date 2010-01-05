@@ -3,7 +3,7 @@ unit column_selection;
 interface
 
 uses
-  Windows, Classes, Controls, Forms, StdCtrls, CheckLst, ExtCtrls, TntCheckLst, WideStrings, Contnrs;
+  Windows, Classes, Controls, Forms, StdCtrls, CheckLst, ExtCtrls, WideStrings, Contnrs;
 
 type
   TColumnSelectionForm = class(TForm)
@@ -11,7 +11,7 @@ type
     btnCancel: TButton;
     btnOK: TButton;
     chkSelectAll: TCheckBox;
-    chklistColumns: TTNTCheckListBox;
+    chklistColumns: TCheckListBox;
     chkSort: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);

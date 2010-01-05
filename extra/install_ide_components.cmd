@@ -51,29 +51,8 @@ goto :eof
 :test_libs
 SET compiler_dir=none
 for %%p in ("%PATH:;=" "%") do call :locate_dcc32 %%p
-if "%compiler_dir%" == "none" (goto dcc32_not_found) else (goto test_packages)
+if "%compiler_dir%" == "none" (goto dcc32_not_found) else (goto init)
 
-:test_packages
-set package_suffix=none
-dcc32.exe --version | find "18.0" >NUL:
-if %errorlevel% == 0 set package_suffix=100
-dcc32.exe --version | find "18.5" >NUL:
-if %errorlevel% == 0 set package_suffix=110
-if "%package_suffix%" == "none" (goto unknown_version) else (goto init)
-
-:unknown_version
-echo Error: Unknown version of Delphi compiler 'dcc32.exe'!
-echo.
-echo At present, only Delphi 10 (Borland Developer Studio 2006)
-echo and Delphi 11 (CodeGear Delphi 2007).
-echo.
-echo Please install one of those...
-echo.
-echo If you think you are receiving this message in error,
-echo please inform the developers at heidisql-devel@sourceforge.net.
-echo.
-pause >NUL:
-goto :eof
 
 :init
 set start_dir=%CD%
@@ -81,19 +60,18 @@ cd ..
 set base_dir=%CD%
 
 echo Base directory:          %base_dir%
-echo Package suffix:          %package_suffix%
 goto :start
 
 :install
-echo Installing component %1, package %2%package_suffix%.bpl.
+echo Installing component %1, package %2.bpl.
 rem
 rem    There is a workaround for bug #23225 in IdeBplInstall.exe.
 rem    (technically a regression since Delphi 7 worked OK.)
 rem
 rem    see: http://qc.borland.com/wc/qcmain.aspx?d=23225
 rem
-del /f /q "%USERPROFILE%\My Documents\Borland Studio Projects\Bpl\%2%package_suffix%.bpl" 2>NUL:
-"%start_dir%\IdeBplInstall\IdeBplInstall.exe" "%base_dir%\components\%1\build" "%2%package_suffix%.bpl" "%1"
+del /f /q "%USERPROFILE%\My Documents\Borland Studio Projects\Bpl\%2.bpl" 2>NUL:
+"%start_dir%\IdeBplInstall\IdeBplInstall.exe" "%base_dir%\components\%1\build" "%2.bpl" "%1"
 set err=%errorlevel%
 echo.
 goto :eof
@@ -103,11 +81,6 @@ echo.
 
 rem Install SynEdit
 call :install synedit SynEditD
-if not %err% == 0 goto end
-
-
-rem Install TNTUnicodeControls
-call :install tntunictrls TntUnicodeVcl_Design
 if not %err% == 0 goto end
 
 

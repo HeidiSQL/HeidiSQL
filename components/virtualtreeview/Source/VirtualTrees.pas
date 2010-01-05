@@ -23040,18 +23040,6 @@ var
     Result := StrToIntDef(Buf, GetACP);
   end;
 
-  //---------------------------------------------------------------------------
-
-  function KeyUnicode(C: Char): WideChar;
-
-  // Converts the given character into its corresponding Unicode character
-  // depending on the active keyboard layout.
-
-  begin
-    MultiByteToWideChar(CodePageFromLocale(GetKeyboardLayout(0) and $FFFF),
-      MB_USEGLYPHCHARS, @C, 1, @Result, 1);
-  end;
-
   //--------------- end local functions ---------------------------------------
 
 var
@@ -23068,7 +23056,7 @@ begin
       DoStateChange([tsIncrementalSearching]);
 
       // Convert the given virtual key code into a Unicode character based on the current locale.
-      NewChar := KeyUnicode(Char(CharCode));
+      NewChar := Char(CharCode);
       PreviousSearch := NewChar = WideChar(VK_BACK);
       // We cannot do a search with an empty search buffer.
       if not PreviousSearch or (FSearchBuffer <> '') then

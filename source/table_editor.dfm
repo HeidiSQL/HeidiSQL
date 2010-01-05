@@ -191,7 +191,7 @@ object frmTableEditor: TfrmTableEditor
         Height = 13
         Caption = 'Comment:'
       end
-      object editName: TTntEdit
+      object editName: TEdit
         Left = 72
         Top = 3
         Width = 520
@@ -201,7 +201,7 @@ object frmTableEditor: TfrmTableEditor
         Text = 'editName'
         OnChange = editNameChange
       end
-      object memoComment: TTntMemo
+      object memoComment: TMemo
         Left = 72
         Top = 30
         Width = 520
@@ -308,11 +308,10 @@ object frmTableEditor: TfrmTableEditor
         Width = 110
         Height = 21
         Style = csDropDownList
-        ItemHeight = 0
         TabOrder = 4
         OnChange = Modification
       end
-      object memoUnionTables: TTntMemo
+      object memoUnionTables: TMemo
         Left = 354
         Top = 49
         Width = 238
@@ -330,7 +329,6 @@ object frmTableEditor: TfrmTableEditor
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 0
         TabOrder = 8
         OnClick = Modification
       end
@@ -349,7 +347,6 @@ object frmTableEditor: TfrmTableEditor
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 0
         Sorted = True
         TabOrder = 5
         OnChange = chkCharsetConvertClick
@@ -361,7 +358,6 @@ object frmTableEditor: TfrmTableEditor
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 0
         TabOrder = 6
         OnSelect = comboEngineSelect
       end
@@ -656,7 +652,8 @@ object frmTableEditor: TfrmTableEditor
         Gutter.LeftOffset = 2
         Gutter.ShowLineNumbers = True
         Highlighter = MainForm.SynSQLSyn1
-        Lines.UnicodeStrings = 'SynMemoALTERcode'
+        Lines.Strings = (
+          'SynMemoALTERcode')
         Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
         ReadOnly = True
       end
@@ -688,7 +685,8 @@ object frmTableEditor: TfrmTableEditor
         Gutter.LeftOffset = 2
         Gutter.ShowLineNumbers = True
         Highlighter = MainForm.SynSQLSyn1
-        Lines.UnicodeStrings = 'SynMemoALTERcode'
+        Lines.Strings = (
+          'SynMemoALTERcode')
         Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
         ReadOnly = True
       end

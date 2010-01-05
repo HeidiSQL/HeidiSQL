@@ -103,7 +103,7 @@ object MainForm: TMainForm
     object ToolBarStandard: TToolBar
       Left = 11
       Top = 2
-      Width = 319
+      Width = 315
       Height = 22
       Align = alNone
       AutoSize = True
@@ -122,12 +122,12 @@ object MainForm: TMainForm
         Style = tbsDropDown
       end
       object btnExit: TToolButton
-        Left = 44
+        Left = 42
         Top = 0
         Action = actExitApplication
       end
       object tlbSep1: TToolButton
-        Left = 67
+        Left = 65
         Top = 0
         Width = 8
         Caption = 'tlbSep1'
@@ -135,30 +135,30 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ToolButton5: TToolButton
-        Left = 75
+        Left = 73
         Top = 0
         Action = actCopy
         AutoSize = True
       end
       object ToolButton6: TToolButton
-        Left = 98
+        Left = 96
         Top = 0
         Action = actPaste
         AutoSize = True
       end
       object ToolButton14: TToolButton
-        Left = 121
+        Left = 119
         Top = 0
         Hint = 'Undo'
         Action = actUndo
       end
       object ToolButton12: TToolButton
-        Left = 144
+        Left = 142
         Top = 0
         Action = actPrintList
       end
       object tlbSep2: TToolButton
-        Left = 167
+        Left = 165
         Top = 0
         Width = 8
         Caption = 'tlbSep2'
@@ -166,7 +166,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonRefresh: TToolButton
-        Left = 175
+        Left = 173
         Top = 0
         Action = actRefresh
         AutoSize = True
@@ -174,25 +174,25 @@ object MainForm: TMainForm
         Style = tbsDropDown
       end
       object ButtonUserManager: TToolButton
-        Left = 219
+        Left = 215
         Top = 0
         Action = actUserManager
         AutoSize = True
       end
       object ButtonImportTextfile: TToolButton
-        Left = 242
+        Left = 238
         Top = 0
         Action = actImportCSV
         AutoSize = True
       end
       object ButtonExport: TToolButton
-        Left = 265
+        Left = 261
         Top = 0
         Action = actExportTables
         AutoSize = True
       end
       object tlbSep6: TToolButton
-        Left = 288
+        Left = 284
         Top = 0
         Width = 8
         Caption = 'tlbSep6'
@@ -200,7 +200,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object btnSQLHelp: TToolButton
-        Left = 296
+        Left = 292
         Top = 0
         Action = actSQLhelp
       end
@@ -252,7 +252,7 @@ object MainForm: TMainForm
     object ToolBarQuery: TToolBar
       Left = 494
       Top = 2
-      Width = 245
+      Width = 243
       Height = 22
       Align = alNone
       AutoSize = True
@@ -275,42 +275,42 @@ object MainForm: TMainForm
         Style = tbsDropDown
       end
       object btnSaveSQL: TToolButton
-        Left = 61
+        Left = 59
         Top = 0
         Action = actSaveSQLAs
       end
       object btnSaveSQLSnippet: TToolButton
-        Left = 84
+        Left = 82
         Top = 0
         Action = actSaveSQLSnippet
       end
       object btnQueryFind: TToolButton
-        Left = 107
+        Left = 105
         Top = 0
         Action = actQueryFind
       end
       object btnQueryReplace: TToolButton
-        Left = 130
+        Left = 128
         Top = 0
         Action = actQueryReplace
       end
       object btnReformatSQL: TToolButton
-        Left = 153
+        Left = 151
         Top = 0
         Action = actReformatSQL
       end
       object btnStopOnErrors: TToolButton
-        Left = 176
+        Left = 174
         Top = 0
         Action = actQueryStopOnErrors
       end
       object btnQueryWordwrap: TToolButton
-        Left = 199
+        Left = 197
         Top = 0
         Action = actQueryWordWrap
       end
       object btnSetDelimiter: TToolButton
-        Left = 222
+        Left = 220
         Top = 0
         Action = actSetDelimiter
       end
@@ -396,7 +396,7 @@ object MainForm: TMainForm
             WideText = 'Size'
           end>
       end
-      object comboOnlyDBs: TTntComboBox
+      object comboOnlyDBs: TComboBox
         AlignWithMargins = True
         Left = 0
         Top = 356
@@ -410,7 +410,6 @@ object MainForm: TMainForm
         Margins.Right = 0
         Margins.Bottom = 0
         Align = alBottom
-        ItemHeight = 13
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
@@ -461,7 +460,7 @@ object MainForm: TMainForm
           Flat = True
           OnClick = actFilterPanelExecute
         end
-        object editFilterVT: TTntEdit
+        object editFilterVT: TEdit
           Left = 70
           Top = 3
           Width = 154
@@ -470,7 +469,7 @@ object MainForm: TMainForm
           OnChange = editFilterVTChange
         end
       end
-      object PageControlMain: TTntPageControl
+      object PageControlMain: TPageControl
         Left = 0
         Top = 0
         Width = 583
@@ -486,7 +485,7 @@ object MainForm: TMainForm
         OnChange = PageControlMainChange
         OnContextPopup = PageControlMainContextPopup
         OnMouseUp = PageControlMainMouseUp
-        object tabHost: TTntTabSheet
+        object tabHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 1
           object PageControlHost: TPageControl
@@ -819,7 +818,7 @@ object MainForm: TMainForm
             end
           end
         end
-        object tabDatabase: TTntTabSheet
+        object tabDatabase: TTabSheet
           Caption = 'Database'
           ImageIndex = 5
           object ListTables: TVirtualStringTree
@@ -975,11 +974,11 @@ object MainForm: TMainForm
               end>
           end
         end
-        object tabEditor: TTntTabSheet
+        object tabEditor: TTabSheet
           Caption = 'Table'
           ImageIndex = 14
         end
-        object tabData: TTntTabSheet
+        object tabData: TTabSheet
           Caption = 'Data'
           ImageIndex = 41
           object lblSorryNoData: TLabel
@@ -1003,7 +1002,7 @@ object MainForm: TMainForm
             BevelOuter = bvNone
             BorderWidth = 1
             TabOrder = 0
-            object lblDataTop: TTntLabel
+            object lblDataTop: TLabel
               Left = 1
               Top = 1
               Width = 293
@@ -1016,13 +1015,13 @@ object MainForm: TMainForm
               WordWrap = True
             end
             object tlbDataButtons: TToolBar
-              Left = 349
+              Left = 373
               Top = 1
-              Width = 225
+              Width = 201
               Height = 23
               Align = alRight
               AutoSize = True
-              ButtonWidth = 75
+              ButtonWidth = 67
               Caption = 'tlbDataButtons'
               Images = PngImageListMain
               List = True
@@ -1039,7 +1038,7 @@ object MainForm: TMainForm
                 OnClick = btnDataClick
               end
               object tbtnDataColumns: TToolButton
-                Left = 75
+                Left = 67
                 Top = 0
                 AllowAllUp = True
                 Caption = 'Columns'
@@ -1048,7 +1047,7 @@ object MainForm: TMainForm
                 OnClick = btnDataClick
               end
               object tbtnDataFilter: TToolButton
-                Left = 150
+                Left = 134
                 Top = 0
                 AllowAllUp = True
                 Caption = 'Filter'
@@ -1155,14 +1154,13 @@ object MainForm: TMainForm
               OnEnter = editFilterSearchEnter
               OnExit = editFilterSearchExit
             end
-            object comboRecentFilters: TTntComboBox
+            object comboRecentFilters: TComboBox
               Left = 75
               Top = 0
               Width = 334
               Height = 21
               Style = csDropDownList
               Anchors = [akLeft, akTop, akRight]
-              ItemHeight = 13
               TabOrder = 4
               OnSelect = LoadRecentFilter
             end
@@ -1212,7 +1210,7 @@ object MainForm: TMainForm
             Columns = <>
           end
         end
-        object tabQuery: TTntTabSheet
+        object tabQuery: TTabSheet
           Caption = 'Query'
           ImageIndex = 57
           object spltQuery: TSplitter
@@ -1357,7 +1355,7 @@ object MainForm: TMainForm
                 TabIndex = 0
                 OnChange = tabsetQueryHelpersChange
               end
-              object lboxQueryHelpers: TTntListBox
+              object lboxQueryHelpers: TListBox
                 Tag = 3
                 Left = 0
                 Top = 0
@@ -2317,6 +2315,8 @@ object MainForm: TMainForm
   object PngImageListMain: TPngImageList
     PngImages = <
       item
+        Background = clWindow
+        Name = 'PngImage0'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2341,10 +2341,10 @@ object MainForm: TMainForm
           5B4A0B78715A5419EA9AC8E8BAC65D71B59148205E1C713B8EFA73D4E7115AFA
           7DC1CBB4BDD5D88E2A6FEAB3BC2B8045D6BC0445970C5214AE0E2F4ED362047F
           01BF2299BDF1621A240000000049454E44AE426082}
-        Name = 'PngImage0'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage1'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2371,10 +2371,10 @@ object MainForm: TMainForm
           01D0DCDC2C4B92F4CBED3E0E9D5E4F1712489334047A2F4AC0BAED7AB301D0D4
           D42411FD0F94A122A5FF7F193FB6B5B5B9B603F80B10F37EDA972DDD14000000
           0049454E44AE426082}
-        Name = 'PngImage1'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage2'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2399,10 +2399,10 @@ object MainForm: TMainForm
           7DB7ECCBBFBFB365840BECF575FB9FBE7A734F584850E9FA83074BC36F3E8E21
           980E10D1CACC2525293955454232E2E9BBB787EE3E7C945CF2E9CF1364350013
           7833F03519402B0000000049454E44AE426082}
-        Name = 'PngImage2'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage12'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2426,10 +2426,10 @@ object MainForm: TMainForm
           01962D1CCDB7A60B03EC1D5E99CF4D16B0C31846CB9DAF2808A8BB36BE3AE2B2
           6DCE7593892F4D85BE6F73CF64B220A0D6F1F1ADA2637BA8741B3959CBBA5907
           304A358F96971415FF069DF9921C980053860000000049454E44AE426082}
-        Name = 'PngImage12'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage13'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2453,10 +2453,10 @@ object MainForm: TMainForm
           320153F49E241D696CD2D187B2F318AE261F4196E59E7FA1718CC1607045E03D
           6E1D5913E9922C9206AD0BD39471895A94DB01E2AE726CADF7CA7A0000000049
           454E44AE426082}
-        Name = 'PngImage13'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage3'
         PngImage.Data = {
           89504E470D0A1A0A0000000D4948445200000010000000100804000000B5FA37
           EA0000000467414D410000AFC837058AE90000001974455874536F6674776172
@@ -2473,10 +2473,10 @@ object MainForm: TMainForm
           B8E75B16389E9731BF7B8002347AA84911693C664530FAD0FAAC43AFDC96215B
           AF8B66C8A1921507B59D286BFBCDC6DAED1143429AE9CDEAEFD90F714CA40171
           C73EFC0000000049454E44AE426082}
-        Name = 'PngImage3'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage4'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2502,10 +2502,10 @@ object MainForm: TMainForm
           78906A5DC6B1AEE3E8D877189F363E6071690189F58C53F6B7DFD9E572B5B262
           035395B5B1F26ADD79876D8F31B53265991EBD9BD8B8FE1D5FA69F9C7154F3A1
           0000000049454E44AE426082}
-        Name = 'PngImage4'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage5'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2531,10 +2531,10 @@ object MainForm: TMainForm
           6C85B73878600F1A550625A989CDAC5A6ED4DA3785BF3DE7C9C9C97DACD8C9A2
           C5DA583BF9EADE4439FFF5AA5A16ECB2BA9D6155F7CF269AB77F00C983A9A032
           4E43BE0000000049454E44AE426082}
-        Name = 'PngImage5'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage6'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2562,10 +2562,10 @@ object MainForm: TMainForm
           EF1133BFE967DAA887D70F25EE5EBBA1415612D3237D585CF8251AD9C253671E
           7DFFB6D515DF04B8585E28D9CA388DFDA009696DDC25F1C295FAC733F3F887FE
           0095EFBA08CBF72DB80000000049454E44AE426082}
-        Name = 'PngImage6'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage7'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2594,10 +2594,10 @@ object MainForm: TMainForm
           C4D31C1ACB4FA3BB3F0FFFF4ECDF805F567FE9C9F3EA0A655399BC9C965C4ADB
           C882500D8840B52049BC5DFC086E2D8B1FCF1E95A402AAA15F0000000049454E
           44AE426082}
-        Name = 'PngImage7'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage8'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2623,10 +2623,10 @@ object MainForm: TMainForm
           45C7B004585734C1B9EA1E6C604073FB2889E49C96B10B471377480F0FA445AD
           E806571D6E756067E7B73FF288956C551C5F7D374322D83C651DA465A4FF9741
           8BB6AA02E483300CFE058C4769232FDE7CCE0000000049454E44AE426082}
-        Name = 'PngImage8'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage9'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2653,10 +2653,10 @@ object MainForm: TMainForm
           EBF170D818AE4F2BC03D6665DA7A47E03F5B018DA2199E57DE6D06FACBD22307
           4766A3F37A12C298038A7857A9B363198EBFB2DB694C741A46B38E7CD69D0934
           19BCD35E956F04FE02AF7A54F136CCCBE90000000049454E44AE426082}
-        Name = 'PngImage9'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage10'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2686,10 +2686,10 @@ object MainForm: TMainForm
           41B56EEB779D38BC6D559066D32E553F3B3DBD6A64C26B4C4B94B1B1210AE182
           F06050D1582B3B30989352DED933D139FF00B0986008DCC8D9BB000000004945
           4E44AE426082}
-        Name = 'PngImage10'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage11'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2711,10 +2711,10 @@ object MainForm: TMainForm
           1D0E0D7C79F0D7AD9C87A3E5FED059CE70E769F10D743D85B00AFBD41F0208FB
           80BB32760ED4244F4377138F0E749896C74E7EC6360551A01961FDC0A75179D5
           126EBEBDF8F65FC042ED00F1D977F04CCE67F20000000049454E44AE426082}
-        Name = 'PngImage11'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage14'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2737,10 +2737,10 @@ object MainForm: TMainForm
           F4081AFBA15C8A039CCA1077176D88D7FD4CEDF3D9BF305FBBEE0B32AF2B6F89
           0EA8A81DEC222ADDF59BB2449550689D1226CA5703A9F30222BF62FE57370B1D
           D262BFF31F245748F06A3AB2700000000049454E44AE426082}
-        Name = 'PngImage14'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage15'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2765,10 +2765,10 @@ object MainForm: TMainForm
           DE9187D0E095FE0A8A1B86AD8417B62F0A62184F04482610918DAF04E2E19EB7
           2042D185A4F864A8946A8C4C0FE0E55B2BA6C6E7E41E04B23485CA6B4C0A9885
           339B6756F3BA7AFAC24F6D84699C023FE9B60000000049454E44AE426082}
-        Name = 'PngImage15'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage16'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2794,10 +2794,10 @@ object MainForm: TMainForm
           62EC3588F3BC40A8668E5DAA0D53E30416BB8A128F58C02DF63B9BD2D75E9E9E
           FC7ADA57E042055F6A63BBCA0E3491E29F738A71A00824EE120000000049454E
           44AE426082}
-        Name = 'PngImage16'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage17'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2825,10 +2825,10 @@ object MainForm: TMainForm
           DCFB31E8573660FCD3145AA525D00B7C7E2A2AC38AB9B1A5F45822F5EB773E1B
           E36E0A0F94D847EC9381386CA84CF30B19A74A0735BFABCEAF48937D08DD0BD1
           F90000000049454E44AE426082}
-        Name = 'PngImage17'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage18'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2856,10 +2856,10 @@ object MainForm: TMainForm
           3EFA44454770A62E289B7ECEF52A26B34F978D56ADDCF74F82EEDBE1B7364ABC
           33E7A72C0BEACF86CBE90F46EA56DBF70B1C24721A65B8F1E10000000049454E
           44AE426082}
-        Name = 'PngImage18'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage19'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2883,10 +2883,10 @@ object MainForm: TMainForm
           C860A045D32AC9DF31D2333BD56D30C11577A010B0C4446326986874641A2452
           AAFEFEEFBA3612242501D4C4474D76663031AB08433C91A620B5E89E1C573C7F
           00C06D6C79705B8DEE0000000049454E44AE426082}
-        Name = 'PngImage19'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage20'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2914,10 +2914,10 @@ object MainForm: TMainForm
           21493901ADB51132B755521393B36388F5CBC4F95A1EAD5ADDBF09220F3D7A1A
           ACF08C93B9FBB1967DD9180E10B60342D92EC834DE0D19306673E0072BD575A4
           9F7968B30000000049454E44AE426082}
-        Name = 'PngImage20'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage21'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -2944,10 +2944,10 @@ object MainForm: TMainForm
           BB5BD67D082CA19AA9384E6AEB0CC28641A4B07379443685F648B66F8984B73C
           089FC7FAF0AABF0BA3C3DA72F2AFEB1C962D2F5B5C54E632E6B3CCABDE548E9D
           FB01011A4D9CE12FC5C40000000049454E44AE426082}
-        Name = 'PngImage21'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage23'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E33
@@ -2964,10 +2964,10 @@ object MainForm: TMainForm
           FE32BCE7B8FDE5D59BCB590F57152FC617D52806E8A66D6915E4E249F9F6F7FB
           F7376FEF963D5896B38A810018E4798118000000CD8C116BFFE2750000000049
           454E44AE426082}
-        Name = 'PngImage23'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage24'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E33
@@ -2984,10 +2984,10 @@ object MainForm: TMainForm
           FDF6FB2FAF2FBFCA5A5EFC7031BEA84631206B8B6E2B178F60CADFEFDFBEBFBD
           FBA66C51CE83550C04C020CF0BC40000F61A8C1171CBB5050000000049454E44
           AE426082}
-        Name = 'PngImage24'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage26'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E33
@@ -3003,10 +3003,10 @@ object MainForm: TMainForm
           9A83E13783D8A73D9FF146E36F0DC993CC490E660C47B633BC3ACEF4E5E24F9E
           2CF74F8F16E38B6A14039EF2F1B57209F3A6FCFCF4E7FBADDF1C65769F1EAE62
           200006795E2006000095827E1184AB478A0000000049454E44AE426082}
-        Name = 'PngImage26'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage25'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3023,10 +3023,10 @@ object MainForm: TMainForm
           A4988D9DD99F0FC719AEEF78FBE5C2F95759C9F3EF2C263A219DEA3569E51112
           4CF9F6EEEBF79BB75E9745CFBCBD8A810018E47981180000BE43C2E179B4B8A1
           0000000049454E44AE426082}
-        Name = 'PngImage25'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage27'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3050,10 +3050,10 @@ object MainForm: TMainForm
           EA7271F009AD63C751122938ED16C58A0A863594B6BE775FF09F8CA9AAD08747
           426C1C3A3C83F0FCC4F7AF43707F55737B98E460B6BA52DC728CDB5D7F01E142
           7068B693C6920000000049454E44AE426082}
-        Name = 'PngImage27'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage28'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3080,10 +3080,10 @@ object MainForm: TMainForm
           67819E062DCB9B79205D38D5AE5AF812D9298B928388370E4DE341F37ABD7544
           6C212E92A35C7F9E1BC908E2115D51149A985169F3CFBEDF40BCC217C87334FE
           0000000049454E44AE426082}
-        Name = 'PngImage28'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage29'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3112,10 +3112,10 @@ object MainForm: TMainForm
           0B434B1318F0B7F5F7F757A1CD1AE402921EB2AC0C7A91F43DD34F671B776BF3
           7F003BADE19AAE1465B5CCF645CEED36FF0B846DD8A9AC4A7566000000004945
           4E44AE426082}
-        Name = 'PngImage29'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage30'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3142,10 +3142,10 @@ object MainForm: TMainForm
           34C048624009CDCD39AFFE3970076D0BA869ECED2ECA952F104420185CA75433
           1A3861B3DC20ABE2EC25E1F8B277A08EED9456E9CCAD4F0A43B45D04A59A2162
           FBDE7695C07FD46FB5CDC52402304EE90000000049454E44AE426082}
-        Name = 'PngImage30'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage31'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3171,10 +3171,10 @@ object MainForm: TMainForm
           D8402CB5C59137F1B6AAFA42264DD3183519A5B3FBB71A110C067F02B4053A31
           A43047BC0FA92CA9CDB26059663B17E046C8BE4A1078C92122A86435C9A37EF9
           94FFFB6FFC012DD473F0AA3A62EA0000000049454E44AE426082}
-        Name = 'PngImage31'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage32'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3203,10 +3203,10 @@ object MainForm: TMainForm
           B4D4EA79DD3732957FDD056BEC2B50FA537974994816751B5D26DEEA0B1DED45
           0D3DD7F5DE3EBEFE32FD4BFC02BC68A6F0E552D6EB0000000049454E44AE4260
           82}
-        Name = 'PngImage32'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage33'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3229,10 +3229,10 @@ object MainForm: TMainForm
           93BCA9C6438524D2ADE1D14CFF7322839B229DD6E811596D203FBCEF0608B0A5
           ED13CFD24471DAD550747055E4544439548A6238C43DC140E2FFEF67FA093B34
           5E6A57699F620000000049454E44AE426082}
-        Name = 'PngImage33'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage34'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3263,10 +3263,10 @@ object MainForm: TMainForm
           4D430687CA64E4A07ACCC4739E993BCB9DCD77B2523580B8AF72BF1CA61B0921
           7358EE987FA3A87B82FE1D4FFD921445F9C001A50DB7B36EFD017239AC084E0A
           BBC10000000049454E44AE426082}
-        Name = 'PngImage34'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage35'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3293,10 +3293,10 @@ object MainForm: TMainForm
           A9070441BA130204D6486732D5687DBC087F7F83544D884D79F6DB5DB83D3427
           A429150A1CBB0ED49F2361ED9D4C8AE213BB497918FF010A84544AA258ABE500
           00000049454E44AE426082}
-        Name = 'PngImage35'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage36'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3327,10 +3327,10 @@ object MainForm: TMainForm
           26E3655B13D86FB9FBDF9D2B2FD5269590775CED4109299A3472589661998D06
           8E331A39B8ADC5D40B09E6CE9D4EBD18B1AAF15A49830AF803CC786FC8223523
           300000000049454E44AE426082}
-        Name = 'PngImage36'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage37'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3353,10 +3353,10 @@ object MainForm: TMainForm
           0DFAD79FE8F5FAEB97CD5720083AE50ECC72C48BCB08851E21954ACD07CC2C14
           0AAD937093DC3ABB4C3C72A7FFE16B3A9DBEFA57C0BFD82FA83A8AF084C76A9E
           0000000049454E44AE426082}
-        Name = 'PngImage37'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage38'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3383,10 +3383,10 @@ object MainForm: TMainForm
           66500DCD4F9F641BE97A8115C03061518C71E76441FA207342481284605375A4
           148A70991497AD5D262D6B41CEC3045573F2619AC48ABD12CBEF925821C3DD73
           4CF897EBFC1DCC5BB4DA1BF6ECEC0000000049454E44AE426082}
-        Name = 'PngImage38'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage39'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3412,10 +3412,10 @@ object MainForm: TMainForm
           2F38CB71B8382FA2A9085E2D845649EC59E963F3658FA9B7B7D74BA0FB648E9D
           C7A4FA887D10CE236E841726B282A2893FEFF91AFFB51A7A743F65659FBEA4C8
           5CBE8F2577CE7F0165A4CF1731C9CE6F0000000049454E44AE426082}
-        Name = 'PngImage39'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage41'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3438,10 +3438,10 @@ object MainForm: TMainForm
           9E419FA02ECCF0AFF799868E59F66F83D2015EF26B2809CDF4537F7F78E312CF
           074AEF5A322C2D3291917E16180CD6E20770933A74CA760DAD0000000049454E
           44AE426082}
-        Name = 'PngImage41'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage40'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3464,10 +3464,10 @@ object MainForm: TMainForm
           670E92E76A4740D86C3F89C98574A6B242250758F3D48832A1519C2C981C7DBF
           3ECA15A5C710D8F2F4EC8B66A8F29808760DB658B14B7FFC9C7CB15A825FD1E4
           94F06357F04D0000000049454E44AE426082}
-        Name = 'PngImage40'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage41'
         PngImage.Data = {
           89504E470D0A1A0A0000000D4948445200000010000000100804000000B5FA37
           EA0000000467414D410000AFC837058AE90000001974455874536F6674776172
@@ -3477,10 +3477,10 @@ object MainForm: TMainForm
           C14DB845B40991703DFB817AF4A1BEF8CDF09C6813BCE1269C05EA51FCFF1BEA
           A7CF449B60FBFF2758FF6F86DB403DA2401320E1FA876813F00100085D5801C5
           46697F0000000049454E44AE426082}
-        Name = 'PngImage41'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage42'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -3492,10 +3492,10 @@ object MainForm: TMainForm
           90A00CB409ACE9F3E7CF601780F820FCEEDDBB6F376FDEBCF7FFFFFF28A02197
           A9EB028AC3802AB1409574409594886408F97981580000C8CCD011BD717B9300
           00000049454E44AE426082}
-        Name = 'PngImage42'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage43'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3522,10 +3522,10 @@ object MainForm: TMainForm
           6C1B8994B78F279CA766532623530483888F4110BD70F3BCC02FDA64C1AAB707
           A287734F6B669D1B725A17BCFEC67F891FCDC250F0BA2A75D70000000049454E
           44AE426082}
-        Name = 'PngImage43'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage44'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3550,10 +3550,10 @@ object MainForm: TMainForm
           370C790706E479B1DABF56DD5E7810BD235D781E6D7D27C5DBC6EA28A52CF437
           AEBBADC6B6AED8EF6F8FB6450C819D526CFCA9C2425AC10D25C6459A5F133C3D
           56476C6EFD376EC494DFFFCB76EC0000000049454E44AE426082}
-        Name = 'PngImage44'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage45'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3580,10 +3580,10 @@ object MainForm: TMainForm
           5D248A7F1B69BBF2EBCFE4897EAFA5FE2452A739096558E4D6E598FB390BF397
           5ED89DECA2282EDD16EF18A65C63965A841472BE3011314CD41326CA93668B61
           7CF730FD4BFD0276F996F0D72273FA0000000049454E44AE426082}
-        Name = 'PngImage45'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage46'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3609,10 +3609,10 @@ object MainForm: TMainForm
           941AD4448C8B4FC992D7660CBEF35E379C6303E0897F41365BB7CD218F69B0EC
           42129302155218AD6494C4CA0705B95E94EB662A492D25DD5FF73EA67FD12FCA
           BE71F0E82977BB0000000049454E44AE426082}
-        Name = 'PngImage46'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage47'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3638,10 +3638,10 @@ object MainForm: TMainForm
           7C99C1D3D6BBBC367F60452AA1D328466FA00105AC07CABF7B607182F6BB2E65
           A4F0173603CE550C0881D241F0CDC1C63E11B4AD1D79514101B9B78784405916
           FFD5BAF60BA3F2E6FADA5FFEA232A23E0F4AED0000000049454E44AE426082}
-        Name = 'PngImage47'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage48'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3670,10 +3670,10 @@ object MainForm: TMainForm
           F76C0601B9575E4F77371DB26EF81413CD71F8476E944117FC05839E23A74236
           84716B5967BB7F070179577BAE893EE524636C2FD53686AE6240FED6F5F4BFDC
           E4C64F1CD0F1177A4C92825D50BA970000000049454E44AE426082}
-        Name = 'PngImage48'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage49'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3703,10 +3703,10 @@ object MainForm: TMainForm
           895943FC1AEF476B215C0B3DBA799068EEBB54A245A02341176384DF69EBEF7F
           7D5B9E9B6A001C5BDC5B831A5FC2189B42658AFD77150D8DDE8EC89A44A1696C
           12808A9797732FFD054DC492F05A96D8690000000049454E44AE426082}
-        Name = 'PngImage49'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage50'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -3727,10 +3727,10 @@ object MainForm: TMainForm
           F09E96C94F9AB1CB947F7E1727835FCE25E2A761BF78D89825ED270DB83C5CE7
           B1626D3796AE3F952742759EECE678B549FBE337F4FC4D72BE47841E00000000
           49454E44AE426082}
-        Name = 'PngImage50'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage51'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -3756,10 +3756,10 @@ object MainForm: TMainForm
           135439304EF667F9496CFA6D647A62B88D6CF631755FAB3DEB743A6E66B976DA
           27BC2F56370DD0E2D1F9A226675EF93D559553FE09B0317E035C7D448FD2E97A
           180000000049454E44AE426082}
-        Name = 'PngImage51'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage52'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000097048597300000B1300000B1301009A9C1800000A4F694343505068
@@ -3873,10 +3873,10 @@ object MainForm: TMainForm
           FAD3DEC05FC32FFFF7193B3B3A0A789ECF217FA3BE82E717DFC762F12CB50A27
           5A4E826FEAA8DB11F517349270F5F5BC7B49A9FF0FF8D2935990210E17000000
           0049454E44AE426082}
-        Name = 'PngImage52'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage53'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000097048597300000B1300000B1301009A9C1800000A4F694343505068
@@ -3991,10 +3991,10 @@ object MainForm: TMainForm
           9AC6C559991DA5E5A5AFDAED971CD45515BD8B3D06D8BFFF3398AC6649F0BFF6
           418948F7E1039D4EDBD0EF727F332F08272820F928E03E8E9190AAD5122B2200
           00000049454E44AE426082}
-        Name = 'PngImage53'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage54'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4025,10 +4025,10 @@ object MainForm: TMainForm
           82847BF58D6033B38F7B3CC8278590C68DC8AC1A3525745AC858ADC9CF4C2D8F
           A16B0860E40193C90B3688CF6D5FD13D20E00F61EB66554FF244350000000049
           454E44AE426082}
-        Name = 'PngImage54'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage55'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4048,10 +4048,10 @@ object MainForm: TMainForm
           7C307C1A120E3989B9FDD91C26C41F548288BD39D63172FAFCDD8C841CA4ACAE
           4C8E25E3C3D1B36FE12F05BF592F295C195A0BA58B2F0000000049454E44AE42
           6082}
-        Name = 'PngImage55'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage56'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000097048597300000B1300000B1301009A9C1800000A4F694343505068
@@ -4154,10 +4154,10 @@ object MainForm: TMainForm
           249D10A20994C6B01B19761B5EAD3BF23CEF8631F6C2EAF57F6C6D6D5A95A363
           B9D3E990CFFBA64B16784C22462C72802145A5C0F08330C4C665CE2202CF7F8D
           CF19B7028B0A6228AD1E400000000049454E44AE426082}
-        Name = 'PngImage56'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage57'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000024A4944415478DA95935D48536118C79FF36E3B9EB98F064B37C3CAA1
@@ -4180,10 +4180,10 @@ object MainForm: TMainForm
           65BF50F65F50389E91C3B546FC2EED0F27B79B4EC7AEE827A0848A4FE87AEDD6
           6A8CAA74036F0F77562D975ACEEB1711B60AF0391528540000000049454E44AE
           426082}
-        Name = 'PngImage57'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage58'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000097048597300000B1200000B1201D2DD7EFC00000A4F694343505068
@@ -4280,10 +4280,10 @@ object MainForm: TMainForm
           FB3EC230C46AB5BA0B383260C4817B0607A2283AB58D341C0E75D603A2200837
           1DE65D5B1445B5DFEF439ACD66E3F3F93CCDF3FCAE565655152C70D2FD337505
           3E017D28BD4672B4937B0000000049454E44AE426082}
-        Name = 'PngImage58'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage59'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4309,10 +4309,10 @@ object MainForm: TMainForm
           0DFE828003DD5117ADB3AFCDA4832F3101BEF33950D38EB2060D34D66861258D
           6086172091949C0501FBB808430BE3C108BB6879807624483B324CBF7CBE451C
           D04C08E0FCDAFD17FC436734AC8073EA0000000049454E44AE426082}
-        Name = 'PngImage59'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage60'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4328,10 +4328,10 @@ object MainForm: TMainForm
           BC39E04E9A01202062B96581AC9A40FCE35B9F19DE1CF724DD00101032D8309B
           919925E5ED591FF20CC0072836000012139BE17CCC00550000000049454E44AE
           426082}
-        Name = 'PngImage60'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage61'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4347,10 +4347,10 @@ object MainForm: TMainForm
           8A311C0769BEF676F1AB6DCE712445A344E491FFCA12C07470E5CDC2D7BBDD13
           1808000C03C4FC0EFCFFF7F9FB9C37FB3D530969C66A00A9806203003187C0E1
           8827483F0000000049454E44AE426082}
-        Name = 'PngImage61'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage62'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000017352474200AECE1CE90000001874455874536F6674776172650050
@@ -4362,10 +4362,10 @@ object MainForm: TMainForm
           1883D7FD470424033420BFA106624D4D0DD805A0300085C5DAB56B315DC0C0C8
           F07F6D144698101F064043FEAF8DC66E406B6B2B3C16906363EFDEBD8C040D1F
           BC49996E060000AC71B1E153B456B50000000049454E44AE426082}
-        Name = 'PngImage62'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage63'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4392,10 +4392,10 @@ object MainForm: TMainForm
           32E2A22C3A2010F04C705A0318B5F059FF2C57B52AC07C7496CACEB91DE6137C
           9691B37CCE44559AA2D6C0B5DF04FA65C0D8A404910000000049454E44AE4260
           82}
-        Name = 'PngImage63'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage64'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000017352474200AECE1CE90000001874455874536F6674776172650050
@@ -4406,10 +4406,10 @@ object MainForm: TMainForm
           2AD880BCC967F0063223A1580019802F9019FFFFC7A91F0C4006E00B64A20CC0
           17C84479015F20134C482003F00532C18444542C0CEE84449401F8FC48C80000
           19440DF071A774310000000049454E44AE426082}
-        Name = 'PngImage64'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage65'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000017352474200AECE1CE90000001874455874536F6674776172650050
@@ -4420,10 +4420,10 @@ object MainForm: TMainForm
           8A057C810C36808100C017C8441B802B9089F602AE40861B802F21E10B64B801
           F8121251B130B813125106E08B054206000003A83DF06CB332CB000000004945
           4E44AE426082}
-        Name = 'PngImage65'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage67'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4450,10 +4450,10 @@ object MainForm: TMainForm
           5078FA9650529EC71B8D2150384EF528C9ECE4695659ED46BF5FC2F0C010E6C6
           3A1FCEBC6FAF0D020A4EDD6C2653A79DBC35FD0FF538EA4E263DED434FAE1EC4
           EAF50F19ADFEF0ED58420E0000000049454E44AE426082}
-        Name = 'PngImage67'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage68'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4477,10 +4477,10 @@ object MainForm: TMainForm
           B636EDF3B7EF9675C72AFCBECEA6E7CFE6E6211CB8FC90FD8FDC48B065B39947
           8AC7BF3725A09617D67A8DBB4F8C4FE7F3B983E4289BCC9FBFCC8E75AFF91AD7
           33FE0004129944E573617C0000000049454E44AE426082}
-        Name = 'PngImage68'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage66'
         PngImage.Data = {
           89504E470D0A1A0A0000000D4948445200000010000000100804000000B5FA37
           EA0000000467414D410000AFC837058AE90000001974455874536F6674776172
@@ -4494,10 +4494,10 @@ object MainForm: TMainForm
           E3416BFD1AF05E3F7DC910F863B71B1EA9917001BE20705B26EED81FF7178DC3
           67F408792DEB5DAE67E70EA8D277CB3B091A1BBB3E012E688B13C4F22AE80000
           000049454E44AE426082}
-        Name = 'PngImage66'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage69'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4530,10 +4530,10 @@ object MainForm: TMainForm
           CEED904C12DC050A0E74BC844ADF6A84462E4CE5F240C5F58391D8FFB671FEAC
           FD64D576B1712D94B22A4659E17FDFE949F30D376190671895C73FE564DEFE5F
           67A6B969C4CDA1940000000049454E44AE426082}
-        Name = 'PngImage69'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage71'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -4558,10 +4558,10 @@ object MainForm: TMainForm
           77B7F6F1D4631A1E669709728FEA26259EA3FF9536D325021DAD100E27127848
           62E5CCD77872F4F7B37324B0512563317CEFE8202B678C3F3ADA7DF021D33179
           0000000049454E44AE426082}
-        Name = 'PngImage71'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage70'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -4585,10 +4585,10 @@ object MainForm: TMainForm
           4CCF336D06D45998CC1C353145895418354091BBFB99949657FD2174565A2210
           B953911F1707F1C999BC9BBEA742EC6DD55661BAE3FC17255D45F09208A98F00
           00000049454E44AE426082}
-        Name = 'PngImage70'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage72'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4614,10 +4614,10 @@ object MainForm: TMainForm
           FBE9ECECAC26612F99696B99C29979EC2E8EE2D4D1D328D11FC3C2F2077866A7
           1009AEF6A9FE759D4FB6EA7BC8B590E59109640FA607963B7E0270DBAE9CA9CB
           A1C30000000049454E44AE426082}
-        Name = 'PngImage72'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage73'
         PngImage.Data = {
           89504E470D0A1A0A0000000D4948445200000010000000100804000000B5FA37
           EA0000000467414D410000AFC837058AE90000001974455874536F6674776172
@@ -4626,10 +4626,10 @@ object MainForm: TMainForm
           C5CAF00B085F323CBED06088A1608DC4F73B6CDC9C0C2F181E7EFFAEDD771F8B
           1BA6487CBBCFCDF1E8FB778D498F7038B25AE2FBE51FC6D390A4075940E10200
           4C6934019470C4260000000049454E44AE426082}
-        Name = 'PngImage73'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage75'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -4644,10 +4644,10 @@ object MainForm: TMainForm
           F0E5FB7F868FDF7F317CF8F69BE1D3E73F0CEFBEFF66F8FEE50FC33FA0D8BFAF
           7F185E6D7260A47D3A181A0600008212BEE1A428F7270000000049454E44AE42
           6082}
-        Name = 'PngImage75'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage74'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -4661,10 +4661,10 @@ object MainForm: TMainForm
           61F6444D2976A0F3FF31EC3BFF8EE1C6B537AB5E6E700E273A16748ACE2D9117
           E38CFEF1FD2FC3D52B6FD6BE58EB104272344A251D7BF4FF3BC3C53F6F3E06BE
           DEEDF987B6E960041B0000CAD0BEE161DA12680000000049454E44AE426082}
-        Name = 'PngImage74'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage79'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4680,10 +4680,10 @@ object MainForm: TMainForm
           BC39E04E9A01202062B96581AC9A40FCE35B9F19DE1CF724DD00101032D8309B
           919925E5ED591FF20CC0072836000012139BE17CCC00550000000049454E44AE
           426082}
-        Name = 'PngImage79'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage76'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4699,10 +4699,10 @@ object MainForm: TMainForm
           8A311C0769BEF676F1AB6DCE712445A344E491FFCA12C07470E5CDC2D7BBDD13
           1808000C03C4FC0EFCFFF7F9FB9C37FB3D530969C66A00A9806203003187C0E1
           8827483F0000000049454E44AE426082}
-        Name = 'PngImage76'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage77'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -4719,10 +4719,10 @@ object MainForm: TMainForm
           ADBEC7C0C4C5B21899FFF6A0077E034040D862F302593581F8C7B73E33BC3DE1
           C588CE272A290BEAAF9FCDC8CC92F2EE9C2F23363E41038801141B00002368B2
           11A3306C600000000049454E44AE426082}
-        Name = 'PngImage77'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage78'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -4739,10 +4739,10 @@ object MainForm: TMainForm
           40944C3CF93FDA518CE13848F1B5B78B5924786391F9AFB7BBC4E18D46F188C3
           FF952580F17EE5CDC2377B3C12D0F9041392A8EFFEFFFF3E7F9FF3F680572A36
           3E4103C801141B00005934EC113B30569C0000000049454E44AE426082}
-        Name = 'PngImage78'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage80'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4767,10 +4767,10 @@ object MainForm: TMainForm
           0486CC0434DCF1C15A1D01D45847686DC1BAC8DCCFCD3EFD7317165A973A8644
           9B292F4A0618DBFCFD024FB6B24A31BC4020191144565D02F10B02823F7F399F
           5CD969E0167B9D7F03EBEF86F007A58FFC0000000049454E44AE426082}
-        Name = 'PngImage80'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage81'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -4795,10 +4795,10 @@ object MainForm: TMainForm
           FDE033F8863D0E498AB21DB9F26255F33240DBD1F84B311A6D7330E077701E65
           3B7173684DF3324058576D5A83F8617C67EC9F83FF628E00FC8F7E01EC32D911
           8AC559EE0000000049454E44AE426082}
-        Name = 'PngImage81'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage82'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -4823,10 +4823,10 @@ object MainForm: TMainForm
           0EE87492B852555E04E7E81B4C4E2DF4C844B2DC1BF36C3BBC09509A20D83521
           528BDFA7F45049B43C7EE7DB71781320A013F18825A230DF3DB5E2FF97E120C0
           FFE817C6E7D911F90566F20000000049454E44AE426082}
-        Name = 'PngImage82'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage83'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4853,10 +4853,10 @@ object MainForm: TMainForm
           9120D7964FD1B7A9D994CAC814DE20D2631029D4F21744EDFF8E0DF3E5C0BAE8
           B164E0313DC7088E157A93FCEB77EECF0CBE6E9D9FC96704122230542F55359C
           D2F2953F01332057A0274B93790000000049454E44AE426082}
-        Name = 'PngImage83'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage84'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4885,10 +4885,10 @@ object MainForm: TMainForm
           8204FFF6AEA1C0D496085FCD7A9770A6310C22C61C9B5C19F442809C8FDED243
           8E0DB9BBDD156DB6F1854F96027F00878B3EF0E6507EDA0000000049454E44AE
           426082}
-        Name = 'PngImage84'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage85'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4917,10 +4917,10 @@ object MainForm: TMainForm
           2D181E349512BD557971FD83E349C53D69D1BC7F88D6532E9979A0989995D3C9
           61F86DDFE7E31B1F5576502DEA5EB369B358F414F7F4CC5769D78F9EFE057D5D
           68D5293A9D4C0000000049454E44AE426082}
-        Name = 'PngImage85'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage86'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4949,10 +4949,10 @@ object MainForm: TMainForm
           127956CA263A8A52223BCD83D1399FE2C3C565DA5D6E2A97890F8A89AE9C4E01
           3DCD5FBFA5AF7F5918C9BED30E77B4455022E1275252AF1C7D41EC4BE1D21F0B
           486EE742C9B8830000000049454E44AE426082}
-        Name = 'PngImage86'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage87'
         PngImage.Data = {
           89504E470D0A1A0A0000000D4948445200000010000000100804000000B5FA37
           EA0000000467414D410000AFC837058AE90000001974455874536F6674776172
@@ -4962,10 +4962,10 @@ object MainForm: TMainForm
           284305A68225FFE5E126EC6568C05430FBBF06DC0D5B183A31154C5CF72B10E2
           87DF0CBFD74F081A8890245B01004AB13601E90325CA0000000049454E44AE42
           6082}
-        Name = 'PngImage87'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage88'
         PngImage.Data = {
           89504E470D0A1A0A0000000D4948445200000010000000100804000000B5FA37
           EA0000000467414D410000AFC837058AE90000001974455874536F6674776172
@@ -4974,10 +4974,10 @@ object MainForm: TMainForm
           21951143C1D6FF7C0CAFC12C5186730CF9980AD6FE1763B005B30E331C65A8C0
           54B0E4BF3CDC84BD0C0D980A66FFD780BB610B4327A68289EB7E0542FCF09BE1
           F7FA0941031192642B0000194B34014AEFE10F0000000049454E44AE426082}
-        Name = 'PngImage88'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage90'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -4999,10 +4999,10 @@ object MainForm: TMainForm
           F26D331DB09C0B91F63D26C4D99F1809F28C927579914C7BFD7D569BE1E4F4E7
           34926387E8C0BA33E384E425909C0C22898C92F58F55366E7FE14591FA2C1F70
           D381151FD3BFD42F23AE17F064CBF3E20000000049454E44AE426082}
-        Name = 'PngImage90'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage89'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5024,10 +5024,10 @@ object MainForm: TMainForm
           E7CB6D1260E2625E7BF75B9889390888B0316C5B718FE1CD114FEC0648259DFC
           FFEFF3F7392F563BA422276511C7DDFB19FEFE7360F8F38F01A4FEED712FEC06
           509C99C801005B260DF0DF9EE51F0000000049454E44AE426082}
-        Name = 'PngImage89'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage92'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -5045,10 +5045,10 @@ object MainForm: TMainForm
           0B883120A53EF4FF7BDECB0C567A360CAA92860CB79F9F673876E908C393FB1F
           7B89320004CCB3253B80541610F302F167209E7672EAF30A003B6D369CE30A69
           6F0000000049454E44AE426082}
-        Name = 'PngImage92'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage91'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -5066,10 +5066,10 @@ object MainForm: TMainForm
           D7EF323C25CA803565E1FF65DF5F609013FAC5C0C2F494E1F3EB3F0CF75F32FF
           FDFDE37F1D510680C09170D98AAFEF9EA733FF6594FFCBFCFF2950D7748FDD7F
           DA001A5942A001F668F20000000049454E44AE426082}
-        Name = 'PngImage91'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage95'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -5091,10 +5091,10 @@ object MainForm: TMainForm
           B1908163D77E484BFCCF6FF6C8F468EAFA99F6821D8289B1BD4A6AF4AC15961F
           609E3C4421FF45189EFCEE844974084E45B748C15ED21AD94341B5AD648E2667
           0F619DF8058CAA2D08015B55F90000000049454E44AE426082}
-        Name = 'PngImage95'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage93'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5123,10 +5123,10 @@ object MainForm: TMainForm
           66CBF3ED959595D9717DDCEBF576D5D4D464FD5300E14C84EB30B916E1F2F589
           050505D71445C95055F546636363D7A60276BBBD1EE147083F844D466E6EEE11
           42B04F019EB6B6B6FA22FC02E86CFCA1C124C2C80000000049454E44AE426082}
-        Name = 'PngImage93'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage94'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5147,10 +5147,10 @@ object MainForm: TMainForm
           1A7213182E6AC070F909E45A02359CC74848785CC003A49E02311B2850819ACF
           615387CF0019203509EAD42BB85C89D70BC40000F78E35C339D06BB400000000
           49454E44AE426082}
-        Name = 'PngImage94'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage97'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5178,10 +5178,10 @@ object MainForm: TMainForm
           74C9EF3167E1CE5A3922F85DB565B4441BBBD9C031FF9A465BF8647AAEB698CA
           77ACFCBBE6BF01B6F0CCD863A133B23CFE54E7F8F7BF5FE18295A4AA20FEE700
           00000049454E44AE426082}
-        Name = 'PngImage97'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage97'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5208,10 +5208,10 @@ object MainForm: TMainForm
           7853337203EA1022D7BFDE9CDB14EF007CBB97E3A19D30F9AB35DB536779B74C
           B1582423940828CFF3F366EBBC944CD694C4B7DD0EF0918C6DDC5FA95B09FC02
           3B6F461332CB79570000000049454E44AE426082}
-        Name = 'PngImage97'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage98'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5233,10 +5233,10 @@ object MainForm: TMainForm
           21F06D0A06C5A87393EF70ECCC0446EC747132F0F92525137C7FCD10DEBBC4C0
           F82748BBE720ED807682BFF7056BF50B37AA1B74E330623B0000000049454E44
           AE426082}
-        Name = 'PngImage98'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage99'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5264,10 +5264,10 @@ object MainForm: TMainForm
           9BB920CE3A75B442B1774F24027DBDC4B4A7171C78DDD98FB13ECB24C3B81519
           F565BABFCE82CB920F36A809E1F3A868F9101CC12EF11886A1C3846606EC9D6E
           FD858D87E95FEC27BCCF85F03B2A06720000000049454E44AE426082}
-        Name = 'PngImage99'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage101'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -5292,10 +5292,10 @@ object MainForm: TMainForm
           32D59D7ACE5874563215F5213B3D0F1D1E9B3070219A3870BEAB9C3B52785AC2
           093C588E45A7E7BAF0AC219C3850DF7D48607906CBFF41B3344896167A6B0389
           031BE53739023420C4A2369B0000000049454E44AE426082}
-        Name = 'PngImage101'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage100'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -5320,10 +5320,10 @@ object MainForm: TMainForm
           92C9424F531828CD2FCD34649931E273626A7E54646845CAF373337CDC4E8C83
           142824C49C6BDEE50DB84505C5A40E5E5C5C49D8CAF1A2667180A1E1565044BA
           A731CA6DF917FE373F00C2620920F80B9D7D0000000049454E44AE426082}
-        Name = 'PngImage100'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage103'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -5352,10 +5352,10 @@ object MainForm: TMainForm
           AD5C4FCE3AA81F13B56197FB6E386DF644F7CF66BC6D6DC040EF44FEBA31FE4B
           BEE9923C52D28945C453865337150E65FE02346013BD19FD8F92000000004945
           4E44AE426082}
-        Name = 'PngImage103'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage102'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -5383,10 +5383,10 @@ object MainForm: TMainForm
           91D9BC65DFAE9F2FE6805A80A9ED3906CD7D33A7EE5B845B4EE35A9D3824B647
           2B259C38B5028B5CA731E56AFB91ADC6F937C62B0A5B8A5A038F000000004945
           4E44AE426082}
-        Name = 'PngImage102'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage104'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -5403,10 +5403,10 @@ object MainForm: TMainForm
           BB4B1C49E9403CE2F07F6509603AB8F266E19B3D1E09E8F2040D10F5DDFFFFDF
           E7EF73DE1EF04AC5264FFBCC4408000047A4A511D43B843E0000000049454E44
           AE426082}
-        Name = 'PngImage104'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage105'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -5423,10 +5423,10 @@ object MainForm: TMainForm
           7ABB4B1C49E9403CE2F07F6509603AB8F266E19B3D1E09E8F2040D10F5DDFFFF
           DFE7EF73DE1EF04AC5264FFBCC44080000116EA4116339DE180000000049454E
           44AE426082}
-        Name = 'PngImage105'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage106'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000017352474200AECE1CE90000001874455874536F6674776172650050
@@ -5436,10 +5436,10 @@ object MainForm: TMainForm
           BD0035640E904A066213A00167C931009C9C819AD570A9C1E785C3404A1C884B
           80066C22C700504A9C0FD4FC1C9F2B294E480072902F11D735460A0000000049
           454E44AE426082}
-        Name = 'PngImage106'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage108'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -5452,10 +5452,10 @@ object MainForm: TMainForm
           AEAE9E077445A2ACAC2CD80090E69B376FAEDABA756B38D1B1909E9EBE445C5C
           3C1AE485EBD7AFAFDDBC797308C9D1181E1EFE081870173F7EFC1808F4F71FDA
           A683116C00007FC9C1E16F55BF0D0000000049454E44AE426082}
-        Name = 'PngImage108'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage107'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E31
@@ -5469,10 +5469,10 @@ object MainForm: TMainForm
           61F6444D2976A0F3FF31EC3BFF8EE1C6B537AB5E6E700E273A16748ACE2D9117
           E38CFEF1FD2FC3D52B6FD6BE58EB104272344A251D7BF4FF3BC3C53F6F3E06BE
           DEEDF987B6E960041B0000CAD0BEE161DA12680000000049454E44AE426082}
-        Name = 'PngImage107'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage109'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000017352474200AECE1CE90000001874455874536F6674776172650050
@@ -5480,10 +5480,10 @@ object MainForm: TMainForm
           3F03258071D4001A1B307BF6ECFFA9A9A98C641900D20C63E33304AB01C89A09
           1982610036CDF80C4131009F665C860CF2681C1A06000066E343E1676FA2A300
           00000049454E44AE426082}
-        Name = 'PngImage109'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage110'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000017352474200AECE1CE90000001874455874536F6674776172650050
@@ -5491,10 +5491,10 @@ object MainForm: TMainForm
           3F03258071D4002A1B307BF66C82A6A5A6A632E275013E43D035E3F4023643B0
           69C61B06C886E0D24C30104186E0D34CD00062C0A8010C0C0066E343E141CDA7
           F50000000049454E44AE426082}
-        Name = 'PngImage110'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage111'
         PngImage.Data = {
           89504E470D0A1A0A0000000D4948445200000010000000100403000000EDDDE2
           5200000030504C5445000000800000008000808000000080800080008080C0C0
@@ -5503,10 +5503,10 @@ object MainForm: TMainForm
           5478DA639CC9C0C09006C48C40065B029401120031C00220065800C880080019
           100106C6F90950C67F06AA3000B0FC1001C5BAA2EF0000000049454E44AE4260
           82}
-        Name = 'PngImage111'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage112'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5531,10 +5531,10 @@ object MainForm: TMainForm
           440FE4D1C10BB337FE7D71D30F43D7C8D03BDC62F57D77F3AE8A80E858C748FB
           B99927D8667CBA553D2C188F1C7F6039FFE20F461E81FFCAFB3AB60000000049
           454E44AE426082}
-        Name = 'PngImage112'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage113'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E33
@@ -5556,10 +5556,10 @@ object MainForm: TMainForm
           615611904C2687D82F141D7BBDDEF7D7F7E2F1F83B50F311E261241279A00848
           2412FB1E8FE733593362B1D81E7E81D16894FE17E70A015B0D98808536000000
           0049454E44AE426082}
-        Name = 'PngImage113'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage114'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5592,10 +5592,10 @@ object MainForm: TMainForm
           28029F7F7F05677FE98FF41EDFDA6A0A2C7DF563C3830811200AEEE1BB87C76E
           1504BB5D407E1E89E73BF1C7E0C875E3ED5DFB2AD26308FC0FDF3573A18B3D62
           A30000000049454E44AE426082}
-        Name = 'PngImage114'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage115'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5604,10 +5604,10 @@ object MainForm: TMainForm
           26E98BF831069CCD85F337184F664CD8F006CE5F1020C238080DA0380C22AA36
           C04D5AD116C0786BF63D385F2D558991A17C23C2A64E7FC6416800C561306006
           0000763095E15A4C85FC0000000049454E44AE426082}
-        Name = 'PngImage115'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage116'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5627,10 +5627,10 @@ object MainForm: TMainForm
           5C4C139A2666A021417494D8CAE4DAA72FB1B2B78CF9CDD935013F8FF4F3E49D
           9F7279AFAC563F69B22D6C06BF690CF502D6EEF5178A7B2495328BED9CD10CB5
           5F5CCFE5FA039136FC0376C1E82D0000000049454E44AE426082}
-        Name = 'PngImage116'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage117'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E33
@@ -5650,10 +5650,10 @@ object MainForm: TMainForm
           2B8613F77631DC7D73ED1F070B2B300CD81838D8D81836643D60C69B948186B0
           B131311C735073323EF368FF9B6B75FF4549CE0B22150C2C9C4CCCBF9999FEBE
           79D0C24094010063E4D2BD2D7ABAAB0000000049454E44AE426082}
-        Name = 'PngImage117'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage118'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E33
@@ -5669,10 +5669,10 @@ object MainForm: TMainForm
           867F40033F7FFAC2C0C7C7C3A0A9A9CE60676B813D16D0415C42EE7F5F1F5786
           D0103FC6A6E6DEFF16E6060CA74E5F62A8A92E24CE006470E9D2B5FFAB566F60
           50555366888F0D87EB0300ABBCD31120BDDC3E0000000049454E44AE426082}
-        Name = 'PngImage118'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage119'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5703,10 +5703,10 @@ object MainForm: TMainForm
           6F9EA1A6FA31F61758F1EE6D133C1E0FFAE438743BEAE4402050575A5ABA8A99
           957B5EA981954824C68DA21F45A78EE079B59A47BAA60D3D3D3DF828CF6957DE
           DE87BB56BB92E91FC57C618DF121CA350000000049454E44AE426082}
-        Name = 'PngImage119'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage122'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E33
@@ -5721,10 +5721,10 @@ object MainForm: TMainForm
           1D63D87B6BF7A5472D0CFA24C5825613E36B1339479103B7F69D7DD4C6604272
           342AD430BCFEFB8F59E471DB5FF2D2012130F00600002C1881115D33879F0000
           000049454E44AE426082}
-        Name = 'PngImage122'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage121'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E33
@@ -5739,10 +5739,10 @@ object MainForm: TMainForm
           AC07CC046341AE8AE18C839A93F19947FBDF5CABFB2F4A563A90AD62FECFCCF4
           F7CD831606F20C20160CBC0100DB5A4E11E73E07AB0000000049454E44AE4260
           82}
-        Name = 'PngImage121'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage120'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E33
@@ -5761,10 +5761,10 @@ object MainForm: TMainForm
           110B72550C671CD49C8CCF3CDAFFE65ADD7F516439AD26C6D726728E22076EED
           3BFBA88DC104673A90AD62FECFCCF4F70DD079280600BDF9FAEF3F6691C76D7F
           71A703AAA444BA1B0000092995BA9A525B530000000049454E44AE426082}
-        Name = 'PngImage120'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage125'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000017352474200AECE1CE90000001874455874536F6674776172650050
@@ -5794,10 +5794,10 @@ object MainForm: TMainForm
           D887D7E20924D44647DBC656F2DB32CDACD7AF5EF0D9E8BD6EB369C24F976850
           3433A62917A12B9604DD6E77F71FB7F15FEA1BE8C34624405029730000000049
           454E44AE426082}
-        Name = 'PngImage125'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage123'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000017352474200AECE1CE90000001874455874536F6674776172650050
@@ -5825,10 +5825,10 @@ object MainForm: TMainForm
           DDBBDAD2B0EFAF6FA1B6EEB85990E85BB12B4C5BB41A784BA968C02F04242180
           4A684653841FD5433DC71C6839DFE49DD7FC023B9B41206F39112F0000000049
           454E44AE426082}
-        Name = 'PngImage123'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage124'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           61000000017352474200AECE1CE90000001874455874536F6674776172650050
@@ -5854,10 +5854,10 @@ object MainForm: TMainForm
           556C0CBF7F33327CF92DB6F1CB6FE922DDF043F7E0067C79759C79F3EC72D3DF
           1F1FB8FDFFF321F8EC8DBF9766EDFBDB088C892FECEC1C2C61962CE1AE86FFF3
           D97825A78735DC6A478E7A004A4F0720512A80D90000000049454E44AE426082}
-        Name = 'PngImage124'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage126'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E33
@@ -5873,10 +5873,10 @@ object MainForm: TMainForm
           4356F233DE68E45EF1F3A4CB4766B34D77181898F45F7EF9FBE95C164396EF62
           7C318DEA85A58F5A7999B9527E30FFFCFEFBF38D328624E7550C04C060CF0B44
           000083BF7A11E54F777F0000000049454E44AE426082}
-        Name = 'PngImage126'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage128'
         PngImage.Data = {
           89504E470D0A1A0A0000000D4948445200000010000000100403000000EDDDE2
           5200000030504C5445000000FFFFFFFF00FFC0C0C0808080800080008080C0C0
@@ -5884,10 +5884,10 @@ object MainForm: TMainForm
           0374524E53FFFF00D7CA0D41000000214944415478DA6354628000461505307D
           8F51E52D8866E6A325036617DC761803009A750F3173B7ECEC0000000049454E
           44AE426082}
-        Name = 'PngImage128'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage127'
         PngImage.Data = {
           89504E470D0A1A0A0000000D4948445200000010000000100403000000EDDDE2
           5200000030504C5445000000FFFFFFFF00FFC0C0C0808080800080008080C0C0
@@ -5896,10 +5896,10 @@ object MainForm: TMainForm
           8F51E52D8866E643637C108630FE7F04333E08BC670433DE0B7C1004AB79CFC0
           280066FCFF2008D5F54100D31C30036617DC76180300EED91A312793655E0000
           000049454E44AE426082}
-        Name = 'PngImage127'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage129'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5925,10 +5925,10 @@ object MainForm: TMainForm
           2D3C7BC10712177A3FBCC3F8D8D0B22224283EE9769FF047376E2438A509B2C6
           45297D0EC54682F9DA75D699D933C965DF46FF36D2BF001FB12E08B619789100
           00000049454E44AE426082}
-        Name = 'PngImage129'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage130'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5951,10 +5951,10 @@ object MainForm: TMainForm
           5BB2454691BFDA4ACF864155D290E1F6F3F30CC72E1D617872FF632F5106400D
           E900C51E10F302F167209E7672EAF30A0014A4029CA878604C0000000049454E
           44AE426082}
-        Name = 'PngImage130'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage131'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5977,10 +5977,10 @@ object MainForm: TMainForm
           A46825D318705A4E159B8C3EEBBABCC15094C2DC741E136949C97D6327574420
           62D8696D9B9FF9D82C2964532496E2B7AEEE7A9A3FF313796C0BA07E0D8F0600
           00000049454E44AE426082}
-        Name = 'PngImage131'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage132'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -5998,10 +5998,10 @@ object MainForm: TMainForm
           67020307333BC38AF59B7E10658079B6648B8C227FB5959E0D83AAA421C3EDE7
           E7198E5D3AC2F0E4FEC75EA2F302D0900E209505C4BC40FC1988A79D9CFABC02
           001E0BB99292493F4C0000000049454E44AE426082}
-        Name = 'PngImage132'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage133'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -6019,20 +6019,20 @@ object MainForm: TMainForm
           19BE01C53E7F6266B87E97E12951061C0E976A60E7E5AE9615FEC3C2C2F494E1
           F3EB3F0CF75F32FFFDFDE37F1DD179E148B86CC5D777CFD399FF32CAFF65FEFF
           14A86BBAC7EE3F6D0006ACC5DB721214F10000000049454E44AE426082}
-        Name = 'PngImage133'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage134'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001874455874536F667477617265005061696E742E4E45542076332E33
           36A9E7E225000000304944415478DA6364A010308E1A80D380FF68F2FF71A9C7
           E782FFC4A825E485FF84D4D1CC05540903A2C0A801543000004E31071126B308
           260000000049454E44AE426082}
-        Name = 'PngImage134'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage135'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -6059,10 +6059,10 @@ object MainForm: TMainForm
           743A7706FC1A776F1E4ADFB9712B1B5922FC9EE7F81C0CE2BDF238224995D40F
           D3BDBDBDD5FF04386C2509C6ACCFA9AB3681E426D9C4F2CAF5C68EC92F7FFB9D
           BF036CF1AC08344E5E1D0000000049454E44AE426082}
-        Name = 'PngImage135'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage136'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -6087,10 +6087,10 @@ object MainForm: TMainForm
           DD86BDDB37A0C5CC180C8C5ABD46F956B559D41567FA7AFA8BB403549917C376
           80B229A48BFB430EDF6CF302B0FEB6377EB8BB4FE6E92F2CEF6FE73921C92188
           411C2FC06964B5EBFC0F200C40D1D6D566E00000000049454E44AE426082}
-        Name = 'PngImage136'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage137'
         PngImage.Data = {
           89504E470D0A1A0A0000000D4948445200000010000000100804000000B5FA37
           EA0000000467414D410000AFC837058AE90000001974455874536F6674776172
@@ -6110,10 +6110,10 @@ object MainForm: TMainForm
           872D5299BD21518EDB970A835C2153F2ECA0504FC8853723A7663DE992BB576B
           91D2FD5681E58AE646ECB07DAD78CECDE3783C5C4936C096B2E7ECFE0748C2CE
           3B74ACC3980000000049454E44AE426082}
-        Name = 'PngImage137'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage138'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -6137,10 +6137,10 @@ object MainForm: TMainForm
           D90F1ECCAE65370729CB55ABD58A6A573516E6168CE658BA6FA526AF512EF5DA
           EB28EA7E9AD2E452DF8ABA650AFF5AB6C67D3D9C495F666035FF9FE96FEB27B1
           2189F0361D408C0000000049454E44AE426082}
-        Name = 'PngImage138'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage139'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000001974455874536F6674776172650041646F626520496D616765526561
@@ -6166,10 +6166,10 @@ object MainForm: TMainForm
           84502884FEFEFE451B799E6F264BAD51C3EBF566B303A5F210596A7272725A6C
           361BFC7E3F82C1A08BD5A2B230CBCFCB0AA4466D6D6D3123F5B02C63937FBEB4
           F61B7C1AB23D0419EE3D0000000049454E44AE426082}
-        Name = 'PngImage139'
-        Background = clWindow
       end
       item
+        Background = clWindow
+        Name = 'PngImage140'
         PngImage.Data = {
           89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
           610000000774494D45000000000000000973942E000000097048597300001EC1
@@ -6195,8 +6195,6 @@ object MainForm: TMainForm
           D071B9192663E11631D90D5EAFD79F208009C672CFAAF24282114419A248F75E
           2627C13AF8E0CC1BFB6BEBD07FAE35DDF92001CCFD01229E70157CD3A2DA0000
           000049454E44AE426082}
-        Name = 'PngImage140'
-        Background = clWindow
       end>
     PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
     Left = 104
@@ -6706,11 +6704,9 @@ object MainForm: TMainForm
     Columns = <
       item
         BiggestWord = 'databasemoremore'
-        BiggestWordW = 'databasemoremore'
       end
       item
         BiggestWord = 'IHAVENOCLUEWHICHLENGTH'
-        BiggestWordW = 'IHAVENOCLUEWHICHLENGTH'
       end>
     ItemHeight = 18
     Images = PngImageListMain
@@ -6723,8 +6719,6 @@ object MainForm: TMainForm
     OnCodeCompletion = SynCompletionProposalCodeCompletion
     Left = 40
     Top = 304
-    EndOfTokenChrW = ',()[]. ='#9
-    TriggerCharsW = '.'
   end
   object OpenDialogSQLFile: TOpenDialog
     DefaultExt = 'sql'

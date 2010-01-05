@@ -282,7 +282,7 @@ object loaddataform: Tloaddataform
         Flat = True
         OnClick = btnColDownClick
       end
-      object comboDatabase: TTntComboBox
+      object comboDatabase: TComboBox
         Left = 10
         Top = 26
         Width = 164
@@ -293,7 +293,7 @@ object loaddataform: Tloaddataform
         TabOrder = 0
         OnChange = comboDatabaseChange
       end
-      object comboTable: TTntComboBox
+      object comboTable: TComboBox
         Left = 10
         Top = 69
         Width = 164
@@ -304,7 +304,7 @@ object loaddataform: Tloaddataform
         TabOrder = 1
         OnChange = comboTableChange
       end
-      object chklistColumns: TTntCheckListBox
+      object chklistColumns: TCheckListBox
         Left = 10
         Top = 117
         Width = 133

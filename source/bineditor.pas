@@ -3,7 +3,7 @@ unit bineditor;
 interface
 
 uses
-  Windows, Classes, Graphics, Forms, Controls, StdCtrls, TntStdCtrls, VirtualTrees,
+  Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
   ComCtrls, ToolWin, Dialogs,
   helpers;
 
@@ -11,7 +11,7 @@ uses
 
 type
   TfrmBinEditor = class(TForm)
-    memoText: TTntMemo;
+    memoText: TMemo;
     tlbStandard: TToolBar;
     btnWrap: TToolButton;
     btnLoadBinary: TToolButton;
