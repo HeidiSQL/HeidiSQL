@@ -71,10 +71,8 @@ if "%compiler_dir%" == "none" (goto dcc32_not_found) else (goto test_packages)
 
 :test_packages
 set package_dir=none
-dcc32.exe --version | find "18.0" >NUL:
-if %errorlevel% == 0 set package_dir=delphi10
-dcc32.exe --version | find "18.5" >NUL:
-if %errorlevel% == 0 set package_dir=delphi11
+dcc32.exe --version | find "21.0" >NUL:
+if %errorlevel% == 0 set package_dir=delphi2010
 if "%package_dir%" == "none" (goto unknown_version) else (goto init)
 
 :unknown_version
@@ -92,7 +90,7 @@ pause >NUL:
 goto :eof
 
 :init
-set mad_dir="%compiler_dir%\..\madCollection"
+set mad_dir=%base_dir%\..\madCollection
 set start_time=%DATE% %TIME%
 set start_dir=%CD%
 cd ..
@@ -105,7 +103,7 @@ set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BD
 set params=%params% -B
 set params=%params% -i"%base_dir%\source"
 set params=%params% -r"%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources"
-set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\tntunictrls\build;%base_dir%\components\pngcomponents\build;%mad_dir%\madExcept\BDS4;%mad_dir%\madDisAsm\BDS4;%mad_dir%\madBasic\BDS4"
+set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\pngcomponents\build;%mad_dir%\madExcept\BDS7;%mad_dir%\madDisAsm\BDS7;%mad_dir%\madBasic\BDS7"
 set params=%params% -N0"..\..\build" 
 set params=%params% -LE"..\..\build"
 set params=%params% -LN"..\..\build"
@@ -180,13 +178,6 @@ rem Build SynEdit
 call :compile synedit SynEditR
 if not %err% == 0 goto end
 call :compile synedit SynEditD
-if not %err% == 0 goto end
-
-
-rem Build TNT Unicode Controls
-call :compile tntunictrls TntUnicodeVcl
-if not %err% == 0 goto end
-call :compile tntunictrls TntUnicodeVcl_Design
 if not %err% == 0 goto end
 
 

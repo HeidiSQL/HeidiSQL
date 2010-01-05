@@ -1,10 +1,10 @@
 object PngImageListEditorDlg: TPngImageListEditorDlg
   Left = 202
   Top = 128
-  Width = 469
-  Height = 313
   BorderIcons = [biSystemMenu]
   Caption = 'Editing PngImageList'
+  ClientHeight = 288
+  ClientWidth = 461
   Color = clBtnFace
   Font.Charset = ANSI_CHARSET
   Font.Color = clWindowText
@@ -26,6 +26,9 @@ object PngImageListEditorDlg: TPngImageListEditorDlg
     Height = 249
     BevelOuter = bvNone
     TabOrder = 0
+    DesignSize = (
+      461
+      249)
     object gbxProperties: TGroupBox
       Left = 8
       Top = 4
@@ -63,7 +66,7 @@ object PngImageListEditorDlg: TPngImageListEditorDlg
         Top = 79
         Width = 140
         Height = 21
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 2
         OnChange = cmbBackgroundColorChange
         OnDblClick = cmbBackgroundColorDblClick
@@ -460,6 +463,9 @@ object PngImageListEditorDlg: TPngImageListEditorDlg
     Height = 37
     BevelOuter = bvNone
     TabOrder = 1
+    DesignSize = (
+      461
+      37)
     object pnlModalButtons: TPanel
       Left = 152
       Top = 4
@@ -534,6 +540,17 @@ object PngImageListEditorDlg: TPngImageListEditorDlg
           4D201887BF0E089370290F0CAB6298048051DE659DC699A15B96B17C7D7CAF03
           44D1A75E05D8A1168889F55F525F839E0094AAF50000000049454E44AE426082}
       end
+    end
+    object chkUseFilenames: TCheckBox
+      Left = 341
+      Top = 7
+      Width = 112
+      Height = 17
+      Anchors = [akTop, akRight]
+      Caption = 'Use Filenames'
+      Checked = True
+      State = cbChecked
+      TabOrder = 1
     end
   end
   object dlgOpenPicture: TOpenPictureDialog

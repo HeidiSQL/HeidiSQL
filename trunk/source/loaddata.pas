@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst, PngSpeedButton,
-  WideStrings, TntCheckLst, TntStdCtrls, SynRegExpr, Buttons,
+  WideStrings, SynRegExpr, Buttons,
   mysql_connection;
 
 type
@@ -22,11 +22,11 @@ type
     tabSource: TTabSheet;
     tabDestination: TTabSheet;
     lblDatabase: TLabel;
-    comboDatabase: TTNTComboBox;
+    comboDatabase: TComboBox;
     lblTable: TLabel;
-    comboTable: TTNTComboBox;
+    comboTable: TComboBox;
     lblColumns: TLabel;
-    chklistColumns: TTNTCheckListBox;
+    chklistColumns: TCheckListBox;
     btnColUp: TPngSpeedButton;
     btnColDown: TPngSpeedButton;
     grpOptions: TGroupBox;

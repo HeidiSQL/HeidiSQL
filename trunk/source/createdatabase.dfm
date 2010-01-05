@@ -53,7 +53,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'SQL &preview for CREATE DATABASE:'
   end
-  object editDBName: TTntEdit
+  object editDBName: TEdit
     Left = 88
     Top = 16
     Width = 221

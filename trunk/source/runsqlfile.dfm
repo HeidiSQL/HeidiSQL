@@ -121,7 +121,7 @@ object RunSQLFileForm: TRunSQLFileForm
     Step = 1
     TabOrder = 1
   end
-  object memoQueryValue: TTntMemo
+  object memoQueryValue: TMemo
     Left = 104
     Top = 117
     Width = 272

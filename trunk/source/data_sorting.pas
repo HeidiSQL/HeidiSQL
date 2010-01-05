@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ExtCtrls, ComCtrls, Buttons,
-  WideStrings, TntStdCtrls, Contnrs,
+  WideStrings, Contnrs,
   helpers;
 
 
@@ -91,7 +91,7 @@ procedure TDataSortingForm.DisplaySortingControls;
 var
   labelNumber: TLabel;
   buttonDelete: TButton;
-  dropdownCols: TTNTComboBox;
+  dropdownCols: TComboBox;
   buttonOrder: TSpeedButton;
   i, xPosition, topPosition, btnWidth : Integer;
 begin
@@ -128,7 +128,7 @@ begin
     Inc( xPosition, labelNumber.Width + MARGIN );
 
     // 2. Dropdown with columnnames
-    dropdownCols := TTNTComboBox.Create(self);
+    dropdownCols := TComboBox.Create(self);
     dropdownCols.Parent := pnlBevel;
     dropdownCols.Width := 120;
     dropdownCols.Height := LINE_HEIGHT;
@@ -203,9 +203,9 @@ end;
 }
 procedure TDataSortingForm.dropdownColsChange( Sender: TObject );
 var
-  combo : TTnTComboBox;
+  combo : TComboBox;
 begin
-  combo := Sender as TTnTComboBox;
+  combo := Sender as TComboBox;
   OrderColumns[combo.Tag-1].ColumnName := combo.Text;
 
   // Enables OK button

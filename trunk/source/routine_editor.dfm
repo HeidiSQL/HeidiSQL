@@ -115,23 +115,21 @@ object frmRoutineEditor: TfrmRoutineEditor
     Width = 377
     Height = 21
     Anchors = [akLeft, akTop, akRight]
-    ItemHeight = 13
     TabOrder = 2
     Text = 'comboReturns'
     OnChange = Modification
   end
-  object comboType: TTntComboBox
+  object comboType: TComboBox
     Left = 95
     Top = 33
     Width = 377
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
-    ItemHeight = 13
     TabOrder = 1
     OnSelect = comboTypeSelect
   end
-  object editName: TTntEdit
+  object editName: TEdit
     Left = 95
     Top = 8
     Width = 377
@@ -216,7 +214,7 @@ object frmRoutineEditor: TfrmRoutineEditor
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 1
-        Width = 188
+        Width = 192
         WideText = 'Name'
       end
       item
@@ -239,7 +237,6 @@ object frmRoutineEditor: TfrmRoutineEditor
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
-    ItemHeight = 13
     TabOrder = 3
     OnChange = Modification
   end
@@ -250,11 +247,10 @@ object frmRoutineEditor: TfrmRoutineEditor
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
-    ItemHeight = 13
     TabOrder = 4
     OnChange = Modification
   end
-  object editComment: TTntEdit
+  object editComment: TEdit
     Left = 95
     Top = 134
     Width = 377
@@ -299,7 +295,8 @@ object frmRoutineEditor: TfrmRoutineEditor
     Gutter.LeftOffset = 2
     Gutter.ShowLineNumbers = True
     Highlighter = MainForm.SynSQLSyn1
-    Lines.UnicodeStrings = 'SynMemoBody'
+    Lines.Strings = (
+      'SynMemoBody')
     RightEdge = 0
     TabWidth = 3
     WantTabs = True

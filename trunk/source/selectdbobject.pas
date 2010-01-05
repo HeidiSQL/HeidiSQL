@@ -3,7 +3,7 @@ unit selectdbobject;
 interface
 
 uses
-  Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees, WideStrings, TntStdCtrls,
+  Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees, WideStrings,
   mysql_connection;
 
 type
@@ -12,9 +12,9 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     lblSelect: TLabel;
-    editDB: TTnTEdit;
-    editTable: TTnTEdit;
-    editCol: TTnTEdit;
+    editDB: TEdit;
+    editTable: TEdit;
+    editCol: TEdit;
     lblDB: TLabel;
     lblTable: TLabel;
     lblCol: TLabel;
@@ -32,7 +32,7 @@ type
     procedure TreeDBOGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize:
         Integer);
     procedure TreeDBOGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
-        TColumnIndex; TextType: TVSTTextType; var CellText: WideString);
+        TColumnIndex; TextType: TVSTTextType; var CellText: String);
     procedure TreeDBOInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var
         ChildCount: Cardinal);
     procedure TreeDBOInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
@@ -200,7 +200,7 @@ end;
 
 procedure TfrmSelectDBObject.TreeDBOGetText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText:
-    WideString);
+    String);
 begin
   Mainform.DBtreeGetText(Sender, Node, Column, TextType, CellText);
   if Sender.GetNodeLevel(Node) = 3 then

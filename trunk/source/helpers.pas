@@ -11,7 +11,7 @@ interface
 uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi, CheckLst,
   Windows, Contnrs, ShlObj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
-  TntCheckLst, Registry, SynEditHighlighter, DateUtils,
+  Registry, SynEditHighlighter, DateUtils,
   mysql_connection, mysql_structures;
 
 type
@@ -179,8 +179,8 @@ type
   function urlencode(url: String): String;
   procedure StreamWrite(S: TStream; Text: WideString = '');
   function fixSQL( sql: WideString; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): WideString;
-  procedure ToggleCheckListBox(list: TTNTCheckListBox; state: Boolean); Overload;
-  procedure ToggleCheckListBox(list: TTNTCheckListBox; state: Boolean; list_toggle: TWideStringList); Overload;
+  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
+  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TWideStringList); Overload;
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
@@ -218,8 +218,8 @@ type
   function ReadBinaryFile(Filename: String; MaxBytes: Int64): string;
   procedure CopyToClipboard(Value: WideString);
   procedure StreamToClipboard(S: TMemoryStream);
-  function WideHexToBin(text: WideString): string;
-  function BinToWideHex(bin: string): WideString;
+  function WideHexToBin(text: WideString): AnsiString;
+  function BinToWideHex(bin: AnsiString): WideString;
   procedure CheckHex(text: WideString; errorMessage: string);
   procedure FixVT(VT: TVirtualStringTree);
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt; BestFit: Boolean): TColor;
@@ -231,7 +231,7 @@ type
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   procedure EnableProgressBar(MaxValue: Integer);
   function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
-  function ListIndexByRegExpr(List: TWideStrings; Expression: WideString): Integer;
+  function ListIndexByRegExpr(List: TStrings; Expression: WideString): Integer;
   procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
   procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
   function DateBackFriendlyCaption(d: TDateTime): String;
@@ -273,21 +273,21 @@ var
 
 
 
-function WideHexToBin(text: WideString): string;
+function WideHexToBin(text: WideString): AnsiString;
 var
-  buf: string;
+  buf: AnsiString;
 begin
-  buf := text;
+  buf := AnsiString(text);
   Result := StringOfChar(' ', Length(text) div 2);
-  HexToBin(@buf[1], @Result[1], Length(Result));
+  HexToBin(PAnsiChar(buf), @Result[1], Length(Result));
 end;
 
-function BinToWideHex(bin: string): WideString;
+function BinToWideHex(bin: AnsiString): WideString;
 var
-  buf: string;
+  buf: AnsiString;
 begin
   buf := StringOfChar(' ', Length(bin) * 2);
-  BinToHex(@bin[1], @buf[1], Length(bin));
+  BinToHex(@bin[1], PAnsiChar(buf), Length(bin));
   Result := buf;
 end;
 
@@ -1363,10 +1363,10 @@ begin
       // Strip charset definition
       // see issue #1685835
       rx.Expression := '\s+(DEFAULT\s+)?(CHARSET|CHARACTER SET)=\w+';
-      result := rx.Replace(result, '' );
+      result := rx.Replace(result, '', false);
       // Strip collation part
       rx.Expression := '\s+COLLATE=\w+';
-      result := rx.Replace(result, '' );
+      result := rx.Replace(result, '', false);
     end;
 
     if sql_version = SQL_VERSION_ANSI then begin
@@ -1374,7 +1374,7 @@ begin
       result := StringReplace(result, '`', '"', [rfReplaceAll]);
       // Strip ENGINE|TYPE
       rx.Expression := '\s+(ENGINE|TYPE)=\w+';
-      result := rx.Replace(result, '' );
+      result := rx.Replace(result, '', false);
     end;
 
     // Turn ENGINE to TYPE
@@ -1400,7 +1400,7 @@ end;
   @param boolean Check them?
   @return void
 }
-procedure ToggleCheckListBox(list: TTNTCheckListBox; state: Boolean);
+procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
 var
   i : Integer;
 begin
@@ -1418,7 +1418,7 @@ end;
   @param TStringList Second list with items to change
   @return void
 }
-procedure ToggleCheckListBox(list: TTNTCheckListBox; state: Boolean; list_toggle: TWideStringList);
+procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TWideStringList);
 var
   i : Integer;
 begin
@@ -2112,7 +2112,7 @@ function GetTempDir: String;
 var
   TempPath: array[0..MAX_PATH] of Char;
 begin
-  GetTempPath(MAX_PATH, PAnsiChar(@TempPath));
+  GetTempPath(MAX_PATH, PChar(@TempPath));
   Result := StrPas(TempPath);
 end;
 
@@ -2711,7 +2711,7 @@ begin
 end;
 
 
-function ListIndexByRegExpr(List: TWideStrings; Expression: WideString): Integer;
+function ListIndexByRegExpr(List: TStrings; Expression: WideString): Integer;
 var
   rx: TRegExpr;
   i: Integer;

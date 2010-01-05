@@ -3,11 +3,11 @@ unit editvar;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, TntStdCtrls;
+  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls;
 
 type
   TfrmEditVariable = class(TForm)
-    editValue: TTnTEdit;
+    editValue: TEdit;
     rgScope: TRadioGroup;
     lblValue: TLabel;
     btnOK: TButton;

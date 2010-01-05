@@ -3,7 +3,7 @@ unit runsqlfile;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, Dialogs, ComCtrls, StdCtrls, TntStdCtrls;
+  Windows, SysUtils, Classes, Controls, Forms, Dialogs, ComCtrls, StdCtrls;
 
 type
   TRunSQLFileForm = class(TForm)
@@ -14,7 +14,7 @@ type
     lblPositionName: TLabel;
     lblPositionValue: TLabel;
     prbarRun: TProgressBar;
-    memoQueryValue: TTNTMemo;
+    memoQueryValue: TMemo;
     lblQueryCountName: TLabel;
     lblQueryCountValue: TLabel;
     lblTimeName: TLabel;

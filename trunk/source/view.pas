@@ -81,7 +81,7 @@ begin
     rx.ModifierG := True;
     rx.ModifierI := True;
     rx.Expression := '\s+WITH\s+\w+\s+CHECK\s+OPTION$';
-    SynMemoSelect.Text := rx.Replace(Results.Col('VIEW_DEFINITION'), '');
+    SynMemoSelect.Text := rx.Replace(Results.Col('VIEW_DEFINITION'), '', false);
     rx.Free;
   end else begin
     // Create mode

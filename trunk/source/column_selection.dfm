@@ -56,7 +56,7 @@ object ColumnSelectionForm: TColumnSelectionForm
       TabOrder = 1
       OnClick = chkSelectAllClick
     end
-    object chklistColumns: TTntCheckListBox
+    object chklistColumns: TCheckListBox
       Left = 4
       Top = 4
       Width = 158

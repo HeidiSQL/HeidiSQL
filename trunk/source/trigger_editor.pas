@@ -3,7 +3,7 @@ unit trigger_editor;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, TntStdCtrls, SynEdit, SynMemo,
+  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
   SynCompletionProposal, VirtualTrees,
   mysql_connection, mysql_api, helpers;
 
@@ -11,12 +11,12 @@ type
   TFrame = TDBObjectEditor;
   TfrmTriggerEditor = class(TFrame)
     lblName: TLabel;
-    editName: TTntEdit;
+    editName: TEdit;
     SynMemoStatement: TSynMemo;
     btnHelp: TButton;
     btnDiscard: TButton;
     btnSave: TButton;
-    comboTable: TTntComboBox;
+    comboTable: TComboBox;
     lblTable: TLabel;
     lblBody: TLabel;
     SynCompletionProposalStatement: TSynCompletionProposal;
@@ -28,7 +28,7 @@ type
     procedure Modification(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure SynCompletionProposalStatementExecute(Kind: SynCompletionType; Sender: TObject;
-      var CurrentInput: WideString; var x, y: Integer; var CanExecute: Boolean);
+      var CurrentInput: String; var x, y: Integer; var CanExecute: Boolean);
   private
     { Private declarations }
   public
@@ -182,7 +182,7 @@ end;
 
 
 procedure TfrmTriggerEditor.SynCompletionProposalStatementExecute(Kind: SynCompletionType; Sender: TObject;
-  var CurrentInput: WideString; var x, y: Integer; var CanExecute: Boolean);
+  var CurrentInput: String; var x, y: Integer; var CanExecute: Boolean);
 var
   Proposal: TSynCompletionProposal;
   Token: WideString;

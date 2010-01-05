@@ -10,21 +10,20 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, CheckLst, WideStrings,
-  TntStdCtrls, TntCheckLst,
   mysql_connection;
 
 type
   TCopyTableForm = class(TForm)
-    editNewTablename: TTntEdit;
+    editNewTablename: TEdit;
     lblNewTablename: TLabel;
     radioStructure: TRadioButton;
     radioStructureAndData: TRadioButton;
-    CheckListBoxFields: TTntCheckListBox;
+    CheckListBoxFields: TCheckListBox;
     CheckBoxWithAllFields: TCheckBox;
     ButtonCancel: TButton;
     CheckBoxWithIndexes: TCheckBox;
     lblTargetDB: TLabel;
-    ComboSelectDatabase: TTntComboBox;
+    ComboSelectDatabase: TComboBox;
     ButtonOK: TButton;
     chkSelectAll: TCheckBox;
     procedure radioStructureClick(Sender: TObject);

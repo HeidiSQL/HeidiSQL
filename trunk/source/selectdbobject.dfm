@@ -121,7 +121,7 @@ object frmSelectDBObject: TfrmSelectDBObject
     ModalResult = 2
     TabOrder = 2
   end
-  object editDB: TTntEdit
+  object editDB: TEdit
     Left = 8
     Top = 233
     Width = 57
@@ -131,7 +131,7 @@ object frmSelectDBObject: TfrmSelectDBObject
     Text = 'editDB'
     OnChange = editChange
   end
-  object editTable: TTntEdit
+  object editTable: TEdit
     Left = 69
     Top = 233
     Width = 58
@@ -141,7 +141,7 @@ object frmSelectDBObject: TfrmSelectDBObject
     Text = 'editTable'
     OnChange = editChange
   end
-  object editCol: TTntEdit
+  object editCol: TEdit
     Left = 131
     Top = 233
     Width = 53

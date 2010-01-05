@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, SynEdit, SynMemo, StdCtrls,
-  TntStdCtrls, ComCtrls, ToolWin, VirtualTrees, WideStrings, SynRegExpr, WideStrUtils,
+  ComCtrls, ToolWin, VirtualTrees, WideStrings, SynRegExpr, WideStrUtils,
   mysql_connection, helpers, mysql_api;
 
 type
@@ -17,8 +17,8 @@ type
     lblType: TLabel;
     lblReturns: TLabel;
     comboReturns: TComboBox;
-    comboType: TTNTComboBox;
-    editName: TTntEdit;
+    comboType: TComboBox;
+    editName: TEdit;
     lblParameters: TLabel;
     tlbParameters: TToolBar;
     btnAddParam: TToolButton;
@@ -30,7 +30,7 @@ type
     lblSecurity: TLabel;
     comboSecurity: TComboBox;
     lblComment: TLabel;
-    editComment: TTntEdit;
+    editComment: TEdit;
     chkDeterministic: TCheckBox;
     lblSQLcode: TLabel;
     SynMemoBody: TSynMemo;
@@ -41,7 +41,7 @@ type
     procedure btnAddParamClick(Sender: TObject);
     procedure listParametersGetText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-      var CellText: WideString);
+      var CellText: String);
     procedure listParametersGetImageIndex(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
       var Ghosted: Boolean; var ImageIndex: Integer);
@@ -220,7 +220,7 @@ procedure TfrmRoutineEditor.comboTypeSelect(Sender: TObject);
 var
   isfunc: Boolean;
 begin
-  isfunc := (Sender as TTNTComboBox).ItemIndex = 1;
+  isfunc := (Sender as TComboBox).ItemIndex = 1;
   lblReturns.Enabled := isfunc;
   comboReturns.Enabled := isfunc;
   Modification(Sender);
@@ -282,7 +282,7 @@ end;
 
 procedure TfrmRoutineEditor.listParametersGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-  var CellText: WideString);
+  var CellText: String);
 var
   Values: TWideStringList;
 begin

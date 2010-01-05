@@ -5,7 +5,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
-  CheckLst, ExtCtrls, ToolWin, TntCheckLst, WideStrings, WideStrUtils,
+  CheckLst, ExtCtrls, ToolWin, WideStrings, WideStrUtils,
   mysql_connection, helpers;
 
 {$I const.inc}
@@ -124,7 +124,7 @@ type
     btnCancel: TButton;
     btnOK: TButton;
     comboObjects: TComboBoxEx;
-    boxPrivs: TTNTCheckListBox;
+    boxPrivs: TCheckListBox;
     tlbObjects: TToolBar;
     btnAddObject: TToolButton;
     btnDeleteObject: TToolButton;
