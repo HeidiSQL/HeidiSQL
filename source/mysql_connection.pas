@@ -3,7 +3,7 @@ unit mysql_connection;
 interface
 
 uses
-  Classes, SysUtils, windows, mysql_api, mysql_structures, WideStrings, WideStrUtils, cUnicodeCodecs, SynRegExpr,
+  Classes, SysUtils, windows, mysql_api, mysql_structures, WideStrings, WideStrUtils, SynRegExpr,
   Contnrs;
 
 type
@@ -1256,7 +1256,7 @@ begin
       end;
     end else begin
       if Connection.IsUnicode then
-        Result := UTF8StringToWideString(FCurrentRow[Column])
+        Result := UTF8ToWideString(FCurrentRow[Column])
       else
         Result := FCurrentRow[Column];
     end;
