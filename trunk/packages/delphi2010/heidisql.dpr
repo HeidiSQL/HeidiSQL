@@ -34,7 +34,6 @@ uses
   table_editor in '..\..\source\table_editor.pas' {frmTableEditor},
   mysql_api in '..\..\source\mysql_api.pas',
   mysql_connection in '..\..\source\mysql_connection.pas',
-  cUnicodeCodecs in '..\..\source\cUnicodeCodecs.pas',
   trigger_editor in '..\..\source\trigger_editor.pas' {frmTriggerEditor: TFrame};
 
 {$R ..\..\res\icon.RES}
