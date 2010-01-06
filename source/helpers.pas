@@ -1315,7 +1315,7 @@ end;
 }
 procedure StreamWrite(S: TStream; Text: WideString = '');
 var
-  utf8: string;
+  utf8: AnsiString;
 begin
   utf8 := Utf8Encode(Text);
   S.Write(utf8[1], Length(utf8));
