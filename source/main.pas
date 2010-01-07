@@ -3847,7 +3847,7 @@ begin
       for j:=0 to Results.ColumnCount-1 do begin
         case ActiveGridResult.Columns[j].DatatypeCat of
           dtcInteger, dtcReal: ActiveGridResult.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
-          dtcBinary: ActiveGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.ColAsAnsi(j));
+          dtcBinary: ActiveGridResult.Rows[i].Cells[j].Text := '0x' + Results.BinColAsHex(j);
           else ActiveGridResult.Rows[i].Cells[j].Text := Results.Col(j);
         end;
         ActiveGridResult.Rows[i].Cells[j].IsNull := Results.IsNull(j);
@@ -6314,7 +6314,7 @@ begin
       for j := 0 to Results.ColumnCount - 1 do begin
         case res.Columns[j].DatatypeCat of
           dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
-          dtcBinary: res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.ColAsAnsi(j));
+          dtcBinary: res.Rows[i].Cells[j].Text := '0x' + Results.BinColAsHex(j);
           else res.Rows[i].Cells[j].Text := Results.Col(j);
         end;
         res.Rows[i].Cells[j].IsNull := Results.IsNull(j);
@@ -6390,7 +6390,7 @@ begin
       for j:=0 to Results.ColumnCount-1 do begin
         case res.Columns[j].DatatypeCat of
           dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
-          dtcBinary: res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.ColAsAnsi(j));
+          dtcBinary: res.Rows[i].Cells[j].Text := '0x' + Results.BinColAsHex(j);
           else res.Rows[i].Cells[j].Text := Results.Col(j);
         end;
         res.Rows[i].Cells[j].IsNull := Results.IsNull(j);
@@ -7080,7 +7080,7 @@ begin
       Results := Connection.GetResults(sql);
       case Col.DatatypeCat of
         dtcInteger, dtcReal: Cell.Text := FormatNumber(Results.Col(0), False);
-        dtcBinary: Cell.Text := '0x' + BinToWideHex(Results.ColAsAnsi(0));
+        dtcBinary: Cell.Text := '0x' + Results.BinColAsHex(0);
         else Cell.Text := Results.Col(0);
       end;
       Cell.IsNull := Results.IsNull(0);

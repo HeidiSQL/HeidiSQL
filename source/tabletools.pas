@@ -1111,7 +1111,7 @@ begin
                 Row := Row + 'NULL'
               else case Data.DataType(i).Category of
                 dtcInteger, dtcReal: Row := Row + Data.Col(i);
-                dtcBinary: Row := Row + '_binary 0x' + BinToWideHex(Data.ColAsAnsi(i));
+                dtcBinary: Row := Row + '_binary 0x' + Data.BinColAsHex(i);
                 else Row := Row + esc(Data.Col(i));
               end;
               if i<Data.ColumnCount-1 then

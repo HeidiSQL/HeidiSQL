@@ -208,7 +208,7 @@ type
       function ColumnCount: Integer;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
-      function ColAsAnsi(Column: Integer; IgnoreErrors: Boolean=False): AnsiString;
+      function BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): AnsiString;
       function DataType(Column: Integer): TDataType;
       function ColExists(Column: String): Boolean;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean;
@@ -1245,7 +1245,7 @@ function TMySQLQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 begin
   if (Column > -1) and (Column < ColumnCount) then begin
     if FDatatypes[Column].Category = dtcBinary then
-      Raise Exception.CreateFmt('Column "%s" has binary collation. Please use ColAsAnsi() instead Col().', [FColumnNames[Column]])
+      Raise Exception.CreateFmt('Column "%s" has binary collation. Please use BinColAsHex() instead Col().', [FColumnNames[Column]])
     else begin
       if Connection.IsUnicode then
         Result := UTF8ToString(FCurrentRow[Column])
@@ -1269,21 +1269,19 @@ begin
 end;
 
 
-function TMySQLQuery.ColAsAnsi(Column: Integer; IgnoreErrors: Boolean=False): AnsiString;
+function TMySQLQuery.BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): AnsiString;
 var
   LengthPointer: PLongInt;
-  BinLen: LongInt;
+  BinLen: Integer;
 begin
-  // Return column value, explicitely as AnsiString. Should be used for binary columns.
+  // Return a binary column value as hex AnsiString
   if (Column > -1) and (Column < ColumnCount) then begin
-    if FDatatypes[Column].Category = dtcBinary then begin
-      LengthPointer := mysql_fetch_lengths(FLastResult);
-      if LengthPointer <> nil then begin
-        BinLen := PLongInt(LongInt(LengthPointer) + Column * SizeOf(LongInt))^;
-        SetString(Result, FCurrentRow[Column], BinLen);
-      end;
-    end else
-      Result := FCurrentRow[Column];
+    LengthPointer := mysql_fetch_lengths(FLastResult);
+    if LengthPointer <> nil then begin
+      BinLen := PInteger(Integer(LengthPointer) + Column * SizeOf(Integer))^;
+      SetLength(Result, BinLen*2);
+      BinToHex(FCurrentRow[Column], PAnsiChar(Result), BinLen);
+    end;
   end else if not IgnoreErrors then
     Raise Exception.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
 end;
