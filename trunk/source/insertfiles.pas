@@ -354,9 +354,9 @@ var
   dt: TDateTime;
   y, m, d, h, mi, s, ms: Word;
   FileStream: TFileStream;
-  readBuf: String;
+  readBuf: AnsiString;
   bytesRead: Integer;
-  sql, data: WideString;
+  sql, data: String;
 begin
   Screen.Cursor := crHourglass;
   EnableProgressBar(ListViewFiles.Items.Count);
@@ -389,7 +389,7 @@ begin
           // TODO: Indicate this character set on the GUI.
           //
           SetLength(readBuf, ChunkSize div SizeOf(Char));
-          bytesRead := FileStream.Read(PChar(readBuf)^, ChunkSize);
+          bytesRead := FileStream.Read(PAnsiChar(readBuf)^, ChunkSize);
           SetLength(readBuf, bytesRead div SizeOf(Char));
           data := data + BinToWideHex(readBuf);
         end;

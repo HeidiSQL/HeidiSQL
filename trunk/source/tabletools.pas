@@ -110,13 +110,13 @@ type
     FToolMode: TToolMode;
     OutputFiles, OutputDirs: TWideStringList;
     ExportStream: TStream;
-    ExportLastDatabase: Widestring;
+    ExportLastDatabase: String;
     FTargetConnection: TMySQLConnection;
     FLastOutputSelectedIndex: Integer;
     FModifiedDbs: TWideStringList;
     procedure SetToolMode(Value: TToolMode);
-    procedure AddResults(SQL: WideString);
-    procedure AddNotes(Col1, Col2, Col3, Col4: WideString);
+    procedure AddResults(SQL: String);
+    procedure AddNotes(Col1, Col2, Col3, Col4: String);
     procedure SetupResultGrid(Results: TMySQLQuery=nil);
     procedure UpdateResultGrid;
     procedure DoMaintenance(DBObj: TDBObject);
@@ -135,7 +135,7 @@ implementation
 uses main, mysql_structures;
 
 const
-  STRSKIPPED: WideString = 'Skipped - ';
+  STRSKIPPED: String = 'Skipped - ';
   OUTPUT_FILE = 'One big file';
   OUTPUT_DIR = 'Directory - one file per object';
   OUTPUT_DB = 'Database';
@@ -164,7 +164,7 @@ begin
   TreeObjects.Width := GetRegValue(REGNAME_TOOLSTREEWIDTH, TreeObjects.Width);
 
   // Find text tab
-  memoFindText.Text := Utf8Decode(GetRegValue(REGNAME_TOOLSFINDTEXT, ''));
+  memoFindText.Text := GetRegValue(REGNAME_TOOLSFINDTEXT, '');
   comboDatatypes.Items.Add('All data types');
   for i:=Low(DatatypeCategories) to High(DatatypeCategories) do
     comboDatatypes.Items.Add(DatatypeCategories[i].Name);
@@ -215,7 +215,7 @@ begin
   MainReg.WriteInteger( REGNAME_TOOLSWINHEIGHT, Height );
   MainReg.WriteInteger( REGNAME_TOOLSTREEWIDTH, TreeObjects.Width);
 
-  MainReg.WriteString( REGNAME_TOOLSFINDTEXT, Utf8Encode(memoFindText.Text));
+  MainReg.WriteString( REGNAME_TOOLSFINDTEXT, memoFindText.Text);
   MainReg.WriteInteger( REGNAME_TOOLSDATATYPE, comboDatatypes.ItemIndex);
 
   MainReg.WriteBool(REGNAME_EXP_CREATEDB, chkExportDatabasesCreate.Checked);
@@ -499,7 +499,7 @@ end;
 
 procedure TfrmTableTools.DoMaintenance(DBObj: TDBObject);
 var
-  SQL: WideString;
+  SQL: String;
 begin
   if not (DBObj.NodeType in [lntTable, lntView]) then begin
     AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' cannot be maintained.', '');
@@ -519,7 +519,7 @@ end;
 procedure TfrmTableTools.DoFind(DBObj: TDBObject);
 var
   Results: TMySQLQuery;
-  SQL: WideString;
+  SQL: String;
   HasSelectedDatatype: Boolean;
   i: Integer;
 begin
@@ -552,7 +552,7 @@ begin
 end;
 
 
-procedure TfrmTableTools.AddResults(SQL: WideString);
+procedure TfrmTableTools.AddResults(SQL: String);
 var
   i: Integer;
   Row: TWideStringlist;
@@ -582,7 +582,7 @@ begin
 end;
 
 
-procedure TfrmTableTools.AddNotes(Col1, Col2, Col3, Col4: WideString);
+procedure TfrmTableTools.AddNotes(Col1, Col2, Col3, Col4: String);
 var
   Row: TWideStringlist;
 begin
@@ -670,7 +670,7 @@ procedure TfrmTableTools.ResultGridPaintText(Sender: TBaseVirtualTree; const Tar
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
 var
   VT: TVirtualStringTree;
-  Msg: WideString;
+  Msg: String;
 begin
   // Red text color for errors, purple for notes, grey for skipped tables
   if not (vsSelected in Node.States) then begin
@@ -709,7 +709,7 @@ end;
 
 procedure TfrmTableTools.comboExportOutputTypeChange(Sender: TObject);
 var
-  OldItem: WideString;
+  OldItem: String;
   NewIdx, NetType: Integer;
   DBNode: PVirtualNode;
   SessionName: String;
@@ -889,7 +889,7 @@ end;
 procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
   ToFile, ToDir, ToDb, ToServer, IsLastRowInChunk, NeedsDBStructure: Boolean;
-  Struc, Header, FinalDbName, BaseInsert, Row, TargetDbAndObject: WideString;
+  Struc, Header, FinalDbName, BaseInsert, Row, TargetDbAndObject: String;
   LogRow, MultiSQL: TWideStringlist;
   i: Integer;
   RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset, ResultCount: Int64;
@@ -900,13 +900,13 @@ const
   TempDelim = '//';
 
   // Short version of Mainform.Mask()
-  function m(s: WideString): WideString;
+  function m(s: String): String;
   begin
     Result := Mainform.mask(s);
   end;
 
   // Pass output to file or query, and append semicolon if needed
-  procedure Output(SQL: WideString; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
+  procedure Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
   var
     SA: AnsiString;
     ChunkSize: Integer;
@@ -924,7 +924,7 @@ const
         SetLength(SA, ChunkSize div SizeOf(AnsiChar));
         ExportStream.Read(PAnsiChar(SA)^, ChunkSize);
         ExportStream.Size := 0;
-        SQL := UTF8Decode(SA);
+        SQL := UTF8ToString(SA);
         if ToDB then Mainform.Connection.Query(SQL)
         else if ToServer then FTargetConnection.Query(SQL);
         SQL := '';
@@ -990,7 +990,7 @@ begin
       if Mainform.Connection.ServerVersionInt >= 40100 then begin
         Struc := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+m(DBObj.Database), 1);
         // Gracefully ignore it when target database exists, important in server mode
-        Insert('IF NOT EXISTS ', Struc, Pos(WideString('DATABASE'), Struc) + 9);
+        Insert('IF NOT EXISTS ', Struc, Pos('DATABASE', Struc) + 9);
         // Create the right dbname
         Struc := WideStringReplace(Struc, DBObj.Database, FinalDbName, []);
       end else
@@ -1026,12 +1026,12 @@ begin
             Struc := rx.Replace(Struc, ' ', false);
             rx.Free;
             if DBObj.NodeType = lntTable then
-              Insert('IF NOT EXISTS ', Struc, Pos(WideString('TABLE'), Struc) + 6);
+              Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
             if ToDb then begin
               if DBObj.NodeType = lntTable then
-                Insert(m(FinalDbName)+'.', Struc, Pos(WideString('EXISTS'), Struc) + 7 )
+                Insert(m(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
               else if DBObj.NodeType = lntView then
-                Insert(m(FinalDbName)+'.', Struc, Pos(WideString('VIEW'), Struc) + 5 );
+                Insert(m(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
             end;
           end;
 
@@ -1111,7 +1111,7 @@ begin
                 Row := Row + 'NULL'
               else case Data.DataType(i).Category of
                 dtcInteger, dtcReal: Row := Row + Data.Col(i);
-                dtcBinary: Row := Row + '_binary 0x' + BinToWideHex(Data.Col(i));
+                dtcBinary: Row := Row + '_binary 0x' + BinToWideHex(Data.ColAsAnsi(i));
                 else Row := Row + esc(Data.Col(i));
               end;
               if i<Data.ColumnCount-1 then
@@ -1169,7 +1169,7 @@ end;
 procedure TfrmTableTools.DoBulkTableEdit(DBObj: TDBObject);
 var
   Specs, LogRow: TWideStringList;
-  CreateView: WideString;
+  CreateView: String;
   rx: TRegExpr;
 begin
   AddResults('SELECT '+esc(DBObj.Database)+' AS '+Mainform.mask('Database')+', ' +

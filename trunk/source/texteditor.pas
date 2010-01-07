@@ -44,8 +44,8 @@ type
     SelectedLineBreaks: TLineBreaks;
     procedure SetModified(NewVal: Boolean);
   public
-    function GetText: WideString;
-    procedure SetText(text: WideString);
+    function GetText: String;
+    procedure SetText(text: String);
     procedure SetMaxLength(len: integer);
     procedure SetFont(font: TFont);
     property Modified: Boolean read FModified write SetModified;
@@ -59,9 +59,9 @@ uses main;
 {$R *.dfm}
 
 
-function TfrmTextEditor.GetText: WideString;
+function TfrmTextEditor.GetText: String;
 var
-  LB: WideString;
+  LB: String;
 begin
   Result := memoText.Text;
   // Convert linebreaks back to selected
@@ -76,9 +76,9 @@ begin
 end;
 
 
-procedure TfrmTextEditor.SetText(text: WideString);
+procedure TfrmTextEditor.SetText(text: String);
 var
-  LB: WideString;
+  LB: String;
   Detected: TMenuItem;
 begin
   DetectedLineBreaks := ScanLineBreaks(text);

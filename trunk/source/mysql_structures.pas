@@ -29,7 +29,7 @@ type
   TDatatype = record
     Index:           TDatatypeIndex;
     NativeType:      Cardinal; // See field types in mysql_api.pas
-    Name:            String[18];
+    Name:            String;
     Description:     String;
     HasLength:       Boolean; // Can have Length- or Set-attribute?
     RequiresLength:  Boolean; // Must have a Length- or Set-attribute?
@@ -44,7 +44,7 @@ type
   // MySQL data type category structure
   TDatatypeCategory = record
     Index:           TDatatypeCategoryIndex;
-    Name:            String[32];
+    Name:            String;
     Color:           TColor;
     NullColor:       TColor;
   end;

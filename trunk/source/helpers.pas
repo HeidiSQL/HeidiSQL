@@ -31,25 +31,17 @@ type
 
   TFileCharset = (fcsAnsi, fcsUnicode, fcsUnicodeSwapped, fcsUtf8);
 
-  TUniClipboard = class(TClipboard)
-  private
-    procedure SetAsWideString(Value: WideString);
-    function GetAsWideString:WideString;
-  public
-    property AsWideString: WideString read GetAsWideString write SetAsWideString;
-  end;
-
   // Structures for result grids, mapped from a TMySQLQuery to some handy VirtualTree structure
   TGridCell = record
-    Text: WideString;
-    NewText: WideString; // Used to create UPDATE clauses with needed columns
+    Text: String;
+    NewText: String; // Used to create UPDATE clauses with needed columns
     IsNull: Boolean;
     NewIsNull: Boolean;
     Modified: Boolean;
   end;
   PGridCell = ^TGridCell;
   TGridColumn = record
-    Name: WideString;
+    Name: String;
     Datatype: TDatatypeIndex; // @see mysql_structures.pas
     DatatypeCat: TDatatypeCategoryIndex;
     MaxLength: Cardinal;
@@ -80,7 +72,7 @@ type
   end;
 
   TOrderCol = class(TObject)
-    ColumnName: WideString;
+    ColumnName: String;
     SortDirection: Byte;
   end;
   TOrderColArray = Array of TOrderCol;
@@ -101,13 +93,13 @@ type
 
   // Column object, many of them in a TObjectList
   TTableColumn = class(TObject)
-    Name, OldName: WideString;
+    Name, OldName: String;
     DataType: TDatatype;
-    LengthSet: WideString;
+    LengthSet: String;
     Unsigned, AllowNull: Boolean;
     DefaultType: TColumnDefaultType;
-    DefaultText: WideString;
-    Comment, Collation: WideString;
+    DefaultText: String;
+    Comment, Collation: String;
     FStatus: TEditingStatus;
     constructor Create;
     destructor Destroy; override;
@@ -119,7 +111,7 @@ type
   PTableColumn = ^TTableColumn;
 
   TTableKey = class(TObject)
-    Name, OldName: WideString;
+    Name, OldName: String;
     IndexType: String;
     Columns, SubParts: TWideStringlist;
     Modified, Added: Boolean;
@@ -130,7 +122,7 @@ type
 
   // Helper object to manage foreign keys in a TObjectList
   TForeignKey = class(TObject)
-    KeyName, ReferenceTable, OnUpdate, OnDelete: WideString;
+    KeyName, ReferenceTable, OnUpdate, OnDelete: String;
     Columns, ForeignColumns: TWideStringList;
     Modified, Added: Boolean;
     constructor Create;
@@ -142,11 +134,11 @@ type
       FModified: Boolean;
       procedure SetModified(Value: Boolean);
     protected
-      FEditObjectName: WideString;
+      FEditObjectName: String;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); virtual;
+      procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); virtual;
       procedure DeInit;
       property Modified: Boolean read FModified write SetModified;
       procedure ApplyModifications; virtual; abstract;
@@ -155,30 +147,29 @@ type
 
 {$I const.inc}
 
-  function implodestr(seperator: WideString; a: TWideStringList) :WideString;
-  function explode(separator, a: WideString) :TWideStringList;
-  procedure ExplodeQuotedList(Text: WideString; var List: TWideStringList);
+  function implodestr(seperator: String; a: TWideStringList) :String;
+  function explode(separator, a: String) :TWideStringList;
+  procedure ExplodeQuotedList(Text: String; var List: TWideStringList);
   procedure ensureValidIdentifier(name: String);
-  function getEnumValues(str: WideString): WideString;
+  function getEnumValues(str: String): String;
   function IsWhitespace(const c: WideChar): Boolean;
   function IsLetter(const c: WideChar): Boolean;
   function IsNumber(const c: WideChar): Boolean;
-  function parsesql(sql: WideString) : TWideStringList;
-  function sstr(str: WideString; len: Integer) : WideString;
+  function parsesql(sql: String) : TWideStringList;
+  function sstr(str: String; len: Integer) : String;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
-  function htmlentities(str: WideString): WideString;
-  procedure GridToHtml(Grid: TVirtualStringTree; Title: WideString; S: TStream);
+  function htmlentities(str: String): String;
+  procedure GridToHtml(Grid: TVirtualStringTree; Title: String; S: TStream);
   procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: String; S: TStream);
-  procedure GridToXml(Grid: TVirtualStringTree; root: WideString; S: TStream);
-  procedure GridToSql(Grid: TVirtualStringTree; Tablename: WideString; S: TStream);
+  procedure GridToXml(Grid: TVirtualStringTree; root: String; S: TStream);
+  procedure GridToSql(Grid: TVirtualStringTree; Tablename: String; S: TStream);
   function esc2ascii(str: String): String;
-  function StrCmpBegin(Str1, Str2: string): Boolean;
   function Max(A, B: Integer): Integer; assembler;
   function Min(A, B: Integer): Integer; assembler;
   function urlencode(url: String): String;
-  procedure StreamWrite(S: TStream; Text: WideString = '');
-  function fixSQL( sql: WideString; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): WideString;
+  procedure StreamWrite(S: TStream; Text: String = '');
+  function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): String;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TWideStringList); Overload;
   function _GetFileSize(filename: String): Int64;
@@ -186,12 +177,12 @@ type
   function MakeInt( Str: String ) : Int64;
   function MakeFloat( Str: String ): Extended;
   function CleanupNumber(Str: String): String;
-  function esc(Text: WideString; ProcessJokerChars: Boolean=false): WideString;
-  function ScanNulChar(Text: WideString): Boolean;
-  function ScanLineBreaks(Text: WideString): TLineBreaks;
-  function RemoveNulChars(Text: WideString): WideString;
+  function esc(Text: String; ProcessJokerChars: Boolean=false): String;
+  function ScanNulChar(Text: String): Boolean;
+  function ScanLineBreaks(Text: String): TLineBreaks;
+  function RemoveNulChars(Text: String): String;
   procedure debug(txt: String);
-  function fixNewlines(txt: Widestring): Widestring;
+  function fixNewlines(txt: String): String;
   function GetShellFolder(CSIDL: integer): string;
   function getFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
   function goodfilename( str: String ): String;
@@ -202,7 +193,7 @@ type
   procedure setLocales;
   procedure ShellExec(cmd: String; path: String=''; params: String='');
   function getFirstWord( text: String ): String;
-  function LastPos(needle: WideChar; haystack: WideString): Integer;
+  function LastPos(needle: WideChar; haystack: String): Integer;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber( Seconds: Cardinal ): String;
@@ -210,20 +201,19 @@ type
   procedure SetVTSelection( VT: TVirtualStringTree; Selected: TWideStringList );
   function GetTempDir: String;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
-  procedure SaveUnicodeFile(Filename: String; Text: WideString);
+  procedure SaveUnicodeFile(Filename: String; Text: String);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; out FileCharset: TFileCharset);
   function GetFileCharset(Stream: TFileStream): TFileCharset;
-  function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): WideString;
-  function ReadTextfile(Filename: String): WideString;
-  function ReadBinaryFile(Filename: String; MaxBytes: Int64): string;
-  procedure CopyToClipboard(Value: WideString);
+  function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): String;
+  function ReadTextfile(Filename: String): String;
+  function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
   procedure StreamToClipboard(S: TMemoryStream);
-  function WideHexToBin(text: WideString): AnsiString;
-  function BinToWideHex(bin: AnsiString): WideString;
-  procedure CheckHex(text: WideString; errorMessage: string);
+  function WideHexToBin(text: String): AnsiString;
+  function BinToWideHex(bin: AnsiString): String;
+  procedure CheckHex(text: String; errorMessage: string);
   procedure FixVT(VT: TVirtualStringTree);
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt; BestFit: Boolean): TColor;
-  function ComposeOrderClause(Cols: TOrderColArray): WideString;
+  function ComposeOrderClause(Cols: TOrderColArray): String;
   procedure OpenRegistry(Session: String = '');
   function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
   function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
@@ -231,15 +221,15 @@ type
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   procedure EnableProgressBar(MaxValue: Integer);
   function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
-  function ListIndexByRegExpr(List: TStrings; Expression: WideString): Integer;
+  function ListIndexByRegExpr(List: TStrings; Expression: String): Integer;
   procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
   procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
   function DateBackFriendlyCaption(d: TDateTime): String;
   procedure InheritFont(AFont: TFont);
   function GetLightness(AColor: TColor): Byte;
-  procedure ParseTableStructure(CreateTable: WideString; Columns: TObjectList=nil; Keys: TObjectList=nil; ForeignKeys: TObjectList=nil);
-  procedure ParseViewStructure(ViewName: WideString; Columns: TObjectList);
-  function ReformatSQL(SQL: WideString): WideString;
+  procedure ParseTableStructure(CreateTable: String; Columns: TObjectList=nil; Keys: TObjectList=nil; ForeignKeys: TObjectList=nil);
+  procedure ParseViewStructure(ViewName: String; Columns: TObjectList);
+  function ReformatSQL(SQL: String): String;
 
 var
   MainReg                    : TRegistry;
@@ -273,25 +263,25 @@ var
 
 
 
-function WideHexToBin(text: WideString): AnsiString;
+function WideHexToBin(text: String): AnsiString;
 var
   buf: AnsiString;
 begin
   buf := AnsiString(text);
-  Result := StringOfChar(' ', Length(text) div 2);
+  SetLength(Result, Length(text) div 2);
   HexToBin(PAnsiChar(buf), @Result[1], Length(Result));
 end;
 
-function BinToWideHex(bin: AnsiString): WideString;
+function BinToWideHex(bin: AnsiString): String;
 var
   buf: AnsiString;
 begin
-  buf := StringOfChar(' ', Length(bin) * 2);
+  SetLength(buf, Length(bin) * 2);
   BinToHex(@bin[1], PAnsiChar(buf), Length(bin));
-  Result := buf;
+  Result := String(buf);
 end;
 
-procedure CheckHex(text: WideString; errorMessage: string);
+procedure CheckHex(text: String; errorMessage: string);
 const
   allowed: string = '0123456789abcdefABCDEF';
 var
@@ -313,7 +303,7 @@ end;
   @param a TStringList Containing strings
   @return string
 }
-function implodestr(seperator: WideString; a: TWideStringList) :WideString;
+function implodestr(seperator: String; a: TWideStringList) :String;
 var
   i : Integer;
 begin
@@ -334,10 +324,10 @@ end;
   @param string Separator
   @return TStringList
 }
-function explode(separator, a: WideString) :TWideStringList;
+function explode(separator, a: String) :TWideStringList;
 var
   i : Integer;
-  item : WideString;
+  item : String;
 begin
   result := TWideStringList.Create;
 
@@ -435,7 +425,7 @@ end;
   @param string Type definition, fx: enum('Y','N')
   @return string Content of brackets
 }
-function getEnumValues(str: WideString): WideString;
+function getEnumValues(str: String): String;
 var
   p1,p2        : Integer;
 begin
@@ -460,7 +450,7 @@ end;
   @param string to enclose added string in (use %s)
   @return void
 }
-procedure addResult(list: TWideStringList; s: WideString; enclose: WideString = '');
+procedure addResult(list: TWideStringList; s: String; enclose: String = '');
 begin
   s := trim(s);
   if length(s) > 0 then begin
@@ -513,7 +503,7 @@ end;
   Limitations: in case insensitive mode, input must be ANSI and lower case (for speed).
   Eligible for inlining, hope the compiler does this automatically.
 }
-function scanReverse(const haystack: WideString; hayIndex: integer; const needle: WideString; needleEnd: integer; insensitive: boolean): boolean;
+function scanReverse(const haystack: String; hayIndex: integer; const needle: String; needleEnd: integer; insensitive: boolean): boolean;
 var
   b: word;
   c: widechar;
@@ -544,16 +534,16 @@ end;
   @param String SQL start delimiter
   @return TStringList Separated statements
 }
-function parsesql(sql: WideString) : TWideStringList;
+function parsesql(sql: String) : TWideStringList;
 var
   i, j, start, len                  : Integer;
-  tmp                               : WideString;
+  tmp                               : String;
   instring, backslash, incomment    : Boolean;
   inconditional, condterminated     : Boolean;
   inbigcomment, indelimiter         : Boolean;
   delimiter_length                  : Integer;
   encloser, secchar, thdchar        : WideChar;
-  conditional                       : WideString;
+  conditional                       : String;
 begin
   result := TWideStringList.Create;
   sql := trim(sql);
@@ -596,7 +586,7 @@ begin
       if start = i then start := start + 1;
       i := i + 1;
     end;
-    if incomment and (not inbigcomment) and (sql[i] in [WideChar(#13), WideChar(#10)]) then begin
+    if incomment and (not inbigcomment) and CharInSet(sql[i], [#13, #10]) then begin
       incomment := false;
     end;
     if inbigcomment and (sql[i] + secchar = '*/') then begin
@@ -618,7 +608,7 @@ begin
     end;
 
     // Avoid parsing stuff inside string literals.
-    if (sql[i] in [WideChar(''''), WideChar('"'), WideChar('`')]) and (not (backslash and instring)) and (not incomment) and (not indelimiter) then begin
+    if CharInSet(sql[i], ['''', '"', '`']) and (not (backslash and instring)) and (not incomment) and (not indelimiter) then begin
       if instring and (sql[i] = encloser) then begin
         if secchar = encloser then
           i := i + 1                            // encoded encloser-char
@@ -647,7 +637,7 @@ begin
     end;
 
     if indelimiter then begin
-      if (sql[i] in [WideChar(#13), WideChar(#10)]) or (i = len) then begin
+      if CharInSet(sql[i], [#13, #10]) or (i = len) then begin
         if (i = len) then j := 1 else j := 0;
         try
           Mainform.Delimiter := copy(sql, start + 10, i + j - (start + 10));
@@ -734,7 +724,7 @@ end;
   @param integer Wished Length of string
   @return string
 }
-function sstr(str: WideString; len: Integer) : WideString;
+function sstr(str: String; len: Integer) : String;
 begin
   if length(str) > len then
   begin
@@ -806,7 +796,7 @@ end;
   @param string Text used for search+replace
   @return string Text with entities
 }
-function htmlentities(str: WideString) : WideString;
+function htmlentities(str: String) : String;
 begin
   result := WideStringReplace(str, '&', '&amp;', [rfReplaceAll]);
   result := WideStringReplace(result, '<', '&lt;', [rfReplaceAll]);
@@ -828,10 +818,10 @@ end;
   @param Grid Object which holds data to export
   @param string Text used in <title>
 }
-procedure GridToHtml(Grid: TVirtualStringTree; Title: WideString; S: TStream);
+procedure GridToHtml(Grid: TVirtualStringTree; Title: String; S: TStream);
 var
   i, MaxSize: Integer;
-  tmp, Data, Generator: WideString;
+  tmp, Data, Generator: String;
   Node: PVirtualNode;
   GridData: TGridResult;
   SelectionOnly: Boolean;
@@ -967,7 +957,7 @@ end;
 procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: String; S: TStream);
 var
   i, MaxSize: Integer;
-  tmp, Data: WideString;
+  tmp, Data: String;
   Node: PVirtualNode;
   GridData: TGridResult;
   SelectionOnly: Boolean;
@@ -1062,10 +1052,10 @@ end;
   @param Grid Object which holds data to export
   @param string Text used as root-element
 }
-procedure GridToXml(Grid: TVirtualStringTree; root: WideString; S: TStream);
+procedure GridToXml(Grid: TVirtualStringTree; root: String; S: TStream);
 var
   i, MaxSize: Integer;
-  tmp, Data: WideString;
+  tmp, Data: String;
   Node: PVirtualNode;
   GridData: TGridResult;
   SelectionOnly: Boolean;
@@ -1148,10 +1138,10 @@ end;
   @param Grid Object which holds data to export
   @param string Text used as tablename in INSERTs
 }
-procedure GridToSql(Grid: TVirtualStringTree; Tablename: WideString; S: TStream);
+procedure GridToSql(Grid: TVirtualStringTree; Tablename: String; S: TStream);
 var
   i, MaxSize: Integer;
-  tmp, Data: WideString;
+  tmp, Data: String;
   Node: PVirtualNode;
   GridData: TGridResult;
   SelectionOnly: Boolean;
@@ -1279,25 +1269,6 @@ asm
 end;
 
 
-
-{***
-  Left hand string-comparison
-
-  @param string Text 1 to compare
-  @param string Text 2 to compare
-  @return boolean Does the longer string of both contain the shorter string at the beginning?
-}
-function StrCmpBegin(Str1, Str2: string): Boolean;
-begin
-  if ((Str1 = '') or (Str2 = '')) and (Str1 <> Str2) then
-    Result := False
-  else
-    Result := (StrLComp(PChar(Str1), PChar(Str2),
-      Min(Length(Str1), Length(Str2))) = 0);
-end;
-
-
-
 {***
   Encode spaces (and more to come) in URLs
 
@@ -1313,7 +1284,7 @@ end;
 {**
   Write some UTF8 text to a file- or memorystream
 }
-procedure StreamWrite(S: TStream; Text: WideString = '');
+procedure StreamWrite(S: TStream; Text: String = '');
 var
   utf8: AnsiString;
 begin
@@ -1338,7 +1309,7 @@ end;
   @param integer MySQL-version or SQL_VERSION_ANSI
   @return string SQL
 }
-function fixSQL( sql: WideString; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): WideString;
+function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): String;
 var
   rx : TRegExpr;
 begin
@@ -1542,7 +1513,7 @@ begin
   Result := '';
   HasDecimalSep := False;
   for i:=1 to Length(Str) do begin
-    if (Str[i] in ['0'..'9', DecimalSeparator]) or ((Str[i] = '-') and (Result='')) then
+    if CharInSet(Str[i], ['0'..'9', DecimalSeparator]) or ((Str[i] = '-') and (Result='')) then
     begin
       // Avoid confusion and AV in StrToFloat()
       if (ThousandSeparator = DecimalSeparator) and (Str[i] = DecimalSeparator) then
@@ -1595,7 +1566,7 @@ begin
 end;
 
 
-function esc(Text: WideString; ProcessJokerChars: Boolean=false): WideString;
+function esc(Text: String; ProcessJokerChars: Boolean=false): String;
 begin
   Result := Mainform.Connection.EscapeString(Text, ProcessJokerChars);
 end;
@@ -1605,7 +1576,7 @@ end;
   Detect NUL character in a text.
   Useful because fx SynEdit cuts of all text after it encounters a NUL.
 }
-function ScanNulChar(Text: WideString): boolean;
+function ScanNulChar(Text: String): boolean;
 var
   i: integer;
 begin
@@ -1630,7 +1601,7 @@ end;
   @param string Text to test
   @return TLineBreaks
 }
-function ScanLineBreaks(Text: WideString): TLineBreaks;
+function ScanLineBreaks(Text: String): TLineBreaks;
 var
   i: integer;
   c: WideChar;
@@ -1675,7 +1646,7 @@ end;
   @param string Text to test
   @return Boolean
 }
-function RemoveNulChars(Text: WideString): WideString;
+function RemoveNulChars(Text: String): String;
 var
   i: integer;
   c: WideChar;
@@ -1716,7 +1687,7 @@ end;
   @param string Text to fix
   @return string
 }
-function fixNewlines(txt: Widestring): WideString;
+function fixNewlines(txt: String): String;
 begin
   txt := WidestringReplace(txt, CRLF, #10, [rfReplaceAll]);
   txt := WidestringReplace(txt, #13, #10, [rfReplaceAll]);
@@ -1927,7 +1898,7 @@ end;
 function getFirstWord( text: String ): String;
 var
   i : Integer;
-  wordChars, wordCharsFirst : Set of Char;
+  wordChars, wordCharsFirst : TSysCharSet;
 begin
   result := '';
   text := trim( text );
@@ -1943,7 +1914,7 @@ begin
   // @see bug #1692828
   while i < Length(text) do
   begin
-    if (text[i] in wordCharsFirst) then
+    if CharInSet(text[i], wordCharsFirst) then
     begin
       // Found beginning of word!
       break;
@@ -1961,7 +1932,7 @@ begin
   // Add chars as long as they're alpha-numeric
   while i <= Length(text) do
   begin
-    if ((result = '') and (text[i] in wordCharsFirst)) or (text[i] in wordChars) then
+    if ((result = '') and CharInSet(text[i], wordCharsFirst)) or CharInSet(text[i], wordChars) then
     begin
       result := result + text[i];
     end
@@ -1982,9 +1953,9 @@ end;
   @param string Text
   @return Integer Last position
 }
-function LastPos(needle: WideChar; haystack: WideString): Integer;
+function LastPos(needle: WideChar; haystack: String): Integer;
 var
-  reverse: WideString;
+  reverse: String;
   i, len, w: Integer;
 begin
   // Reverse string.
@@ -2256,7 +2227,7 @@ end;
 {**
   Save a textfile with unicode
 }
-procedure SaveUnicodeFile(Filename: String; Text: WideString);
+procedure SaveUnicodeFile(Filename: String; Text: String);
 var
   f: TFileStream;
 begin
@@ -2432,7 +2403,7 @@ end;
 {**
   Read a chunk out of a textfile unicode safe by passing a stream and its charset
 }
-function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): WideString;
+function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): String;
 var
   SA: AnsiString;
   P: PWord;
@@ -2460,19 +2431,19 @@ begin
     // BOM indicates UTF-8 text stream
     SetLength(SA, ChunkSize div SizeOf(AnsiChar));
     Stream.Read(PAnsiChar(SA)^, ChunkSize);
-    Result := UTF8Decode(SA);
+    Result := UTF8ToString(SA);
   end else begin
     // without byte order mark it is assumed that we are loading ANSI text
     SetLength(SA, ChunkSize div SizeOf(AnsiChar));
     Stream.Read(PAnsiChar(SA)^, ChunkSize);
-    Result := SA;
+    Result := String(SA);
   end;
 end;
 
 {**
   Read a unicode or ansi file into memory
 }
-function ReadTextfile(Filename: String): WideString;
+function ReadTextfile(Filename: String): String;
 var
   Stream: TFileStream;
   FileCharset: TFileCharset;
@@ -2482,7 +2453,7 @@ begin
   Stream.Free;
 end;
 
-function ReadBinaryFile(Filename: String; MaxBytes: Int64): string;
+function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
 var
   Stream: TFileStream;
 begin
@@ -2490,50 +2461,19 @@ begin
   Stream.Position := 0;
   if (MaxBytes < 1) or (MaxBytes > Stream.Size) then MaxBytes := Stream.Size;
   SetLength(Result, MaxBytes);
-  Stream.Read(PChar(Result)^, Length(Result));
+  Stream.Read(PAnsiChar(Result)^, Length(Result));
   Stream.Free;
-end;
-
-{ TUniClipboard }
-
-function TUniClipboard.GetAsWideString: WideString;
-var Data: THandle;
-begin
-  Open;
-  Data := GetClipboardData(CF_UNICODETEXT);
-  try
-    if Data <> 0 then
-      Result := PWideChar(GlobalLock(Data))
-    else
-      Result := '';
-  finally
-    if Data <> 0 then GlobalUnlock(Data);
-    Close;
-  end;
-end;
-
-procedure TUniClipboard.SetAsWideString(Value: WideString);
-begin
-  SetBuffer(CF_UNICODETEXT, PWideChar(Value)^, 2 * (Length(Value) + 1));
-end;
-
-procedure CopyToClipboard(Value: WideString);
-var
-  CB: TUniClipboard;
-begin
-  CB := TUniClipboard.Create;
-  CB.AsWideString := Value;
 end;
 
 
 procedure StreamToClipboard(S: TMemoryStream);
 var
-  Content: String;
+  Content: AnsiString;
 begin
   SetLength(Content, S.Size);
   S.Position := 0;
-  S.Read(Pointer(Content)^, S.Size);
-  CopyToClipboard(Utf8Decode(Content));
+  S.Read(PAnsiChar(Content)^, S.Size);
+  Clipboard.AsText := Utf8ToString(Content);
   // Free memory
   SetString(Content, nil, 0);
 end;
@@ -2595,7 +2535,7 @@ end;
 {**
   Concat all sort options to a ORDER clause
 }
-function ComposeOrderClause(Cols: TOrderColArray): WideString;
+function ComposeOrderClause(Cols: TOrderColArray): String;
 var
   i : Integer;
   sort : String;
@@ -2711,7 +2651,7 @@ begin
 end;
 
 
-function ListIndexByRegExpr(List: TStrings; Expression: WideString): Integer;
+function ListIndexByRegExpr(List: TStrings; Expression: String): Integer;
 var
   rx: TRegExpr;
   i: Integer;
@@ -2780,12 +2720,12 @@ begin
 end;
 
 
-procedure ExplodeQuotedList(Text: WideString; var List: TWideStringList);
+procedure ExplodeQuotedList(Text: String; var List: TWideStringList);
 var
   i: Integer;
   Quote: WideChar;
   Opened, Closed: Boolean;
-  Item: WideString;
+  Item: String;
 begin
   Text := Trim(Text);
   if Length(Text) > 0 then
@@ -2834,9 +2774,9 @@ begin
 end;
 
 
-procedure ParseTableStructure(CreateTable: WideString; Columns: TObjectList=nil; Keys: TObjectList=nil; ForeignKeys: TObjectList=nil);
+procedure ParseTableStructure(CreateTable: String; Columns: TObjectList=nil; Keys: TObjectList=nil; ForeignKeys: TObjectList=nil);
 var
-  ColSpec: WideString;
+  ColSpec: String;
   rx, rxCol: TRegExpr;
   i: Integer;
   InLiteral: Boolean;
@@ -3024,7 +2964,7 @@ begin
 end;
 
 
-procedure ParseViewStructure(ViewName: WideString; Columns: TObjectList);
+procedure ParseViewStructure(ViewName: String; Columns: TObjectList);
 var
   rx: TRegExpr;
   Col: TTableColumn;
@@ -3051,13 +2991,13 @@ begin
 end;
 
 
-function ReformatSQL(SQL: WideString): WideString;
+function ReformatSQL(SQL: String): String;
 var
   AllKeywords, ImportantKeywords: TWideStringlist;
   i, Run, KeywordMaxLen: Integer;
   IsEsc, IsQuote, InComment, InBigComment, InString, InKeyword, InIdent, LastWasComment: Boolean;
   c, p: WideChar;
-  Keyword, PreviousKeyword, TestPair: WideString;
+  Keyword, PreviousKeyword, TestPair: String;
 begin
   // Known SQL keywords, get converted to UPPERCASE
   AllKeywords := TWideStringlist.Create;
@@ -3240,7 +3180,7 @@ begin
   FModified := Value;
 end;
 
-procedure TDBObjectEditor.Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone);
+procedure TDBObjectEditor.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
 begin
   DeInit;
   Mainform.showstatus('Initializing editor ...');
@@ -3252,7 +3192,7 @@ end;
 
 procedure TDBObjectEditor.DeInit;
 var
-  Msg, ObjType: WideString;
+  Msg, ObjType: String;
 begin
   // Ask for saving modifications
   if Modified then begin

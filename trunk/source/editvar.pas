@@ -20,7 +20,7 @@ type
     { Private declarations }
   public
     { Public declarations }
-    VarName, VarValue: WideString;
+    VarName, VarValue: String;
   end;
 
 implementation
@@ -50,7 +50,7 @@ end;
 }
 procedure TfrmEditVariable.btnOKClick(Sender: TObject);
 var
-  sql: WideString;
+  sql: String;
 begin
   // Syntax taken from http://dev.mysql.com/doc/refman/4.1/en/using-system-variables.html
   sql := 'SET @@';

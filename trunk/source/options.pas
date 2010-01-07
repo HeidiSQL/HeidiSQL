@@ -627,7 +627,7 @@ procedure Toptionsform.TreeShortcutItemsGetText(Sender: TBaseVirtualTree; Node: 
 var
   Data: PShortcutItemData;
   i: Integer;
-  t: WideString;
+  t: String;
 begin
   // Fetch text of shortcut item
   case Sender.GetNodeLevel(Node) of
@@ -657,7 +657,7 @@ procedure Toptionsform.TreeShortcutItemsInitChildren(Sender: TBaseVirtualTree; N
   var ChildCount: Cardinal);
 var
   i: Integer;
-  Category: WideString;
+  Category: String;
 begin
   // First initialization of shortcut items
   if Sender.GetNodeLevel(Node) = 0 then begin
@@ -680,7 +680,7 @@ procedure Toptionsform.TreeShortcutItemsInitNode(Sender: TBaseVirtualTree; Paren
 var
   Data: PShortcutItemData;
   ItemIndex, i: Integer;
-  Category: WideString;
+  Category: String;
 begin
   if Sender.GetNodeLevel(Node) = 0 then
     Include(InitialStates, ivsHasChildren);

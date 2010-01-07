@@ -37,7 +37,7 @@ type
     procedure chkSelectAllClick(Sender: TObject);
   private
     { Private declarations }
-    oldTableName : WideString;
+    oldTableName : String;
   public
     { Public declarations }
   end;
@@ -158,12 +158,12 @@ end;
 
 procedure TCopyTableForm.ButtonOKClick(Sender: TObject);
 var
-  strquery     : WideString;
+  strquery     : String;
   i,which,k    : Integer;
   keylist      : Array of TMyKey;
-  keystr       : WideString;
+  keystr       : String;
   notnull,
-  default      : WideString;
+  default      : String;
   Results      : TMySQLQuery;
   isFulltext   : Boolean;
   struc_data   : Byte;

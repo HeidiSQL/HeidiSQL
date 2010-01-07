@@ -34,7 +34,7 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
-    procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); override;
+    procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
     procedure ApplyModifications; override;
   end;
 
@@ -72,7 +72,7 @@ begin
 end;
 
 
-procedure TfrmTriggerEditor.Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone);
+procedure TfrmTriggerEditor.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
 var
   Definitions: TMySQLQuery;
   DBObjects: TDBObjectList;
@@ -149,7 +149,7 @@ end;
 
 procedure TfrmTriggerEditor.ApplyModifications;
 var
-  sql: WideString;
+  sql: String;
 begin
   // Edit mode means we drop the trigger and recreate it, as there is no ALTER TRIGGER.
   try
@@ -185,7 +185,7 @@ procedure TfrmTriggerEditor.SynCompletionProposalStatementExecute(Kind: SynCompl
   var CurrentInput: String; var x, y: Integer; var CanExecute: Boolean);
 var
   Proposal: TSynCompletionProposal;
-  Token: WideString;
+  Token: String;
   Columns: TMySQLQuery;
 begin
   // Propose column names from referencing table

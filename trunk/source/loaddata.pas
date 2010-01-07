@@ -138,7 +138,7 @@ procedure Tloaddataform.comboDatabaseChange(Sender: TObject);
 var
   count, i, selCharsetIndex, v: Integer;
   DBObjects: TDBObjectList;
-  seldb, seltable, dbcreate: WideString;
+  seldb, seltable, dbcreate: String;
   rx: TRegExpr;
   DefCharset: String;
   CharsetTable: TMySQLQuery;
@@ -212,7 +212,7 @@ end;
 
 procedure Tloaddataform.btnImportClick(Sender: TObject);
 var
-  query : WideString;
+  query : String;
   col   : TWideStringList;
   i     : Integer;
 

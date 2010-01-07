@@ -54,7 +54,7 @@ type
     procedure listParametersCreateEditor(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
     procedure listParametersNewText(Sender: TBaseVirtualTree;
-      Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
+      Node: PVirtualNode; Column: TColumnIndex; NewText: String);
     procedure listParametersEditing(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
     procedure Modification(Sender: TObject);
@@ -72,7 +72,7 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
-    procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); override;
+    procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
     procedure ApplyModifications; override;
   end;
 
@@ -111,10 +111,10 @@ begin
 end;
 
 
-procedure TfrmRoutineEditor.Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone);
+procedure TfrmRoutineEditor.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
 var
   Results: TMySQLQuery;
-  Create, Params: WideString;
+  Create, Params: String;
   ParenthesesCount: Integer;
   Context: String;
   rx: TRegExpr;
@@ -317,10 +317,10 @@ end;
 
 
 procedure TfrmRoutineEditor.listParametersNewText(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; Column: TColumnIndex; NewText: WideString);
+  Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   OldValues: TWideStringList;
-  new: WideString;
+  new: String;
 begin
   OldValues := explode(DELIM, Parameters[Node.Index]);
   case Column of
@@ -407,7 +407,7 @@ end;
 
 procedure TfrmRoutineEditor.ApplyModifications;
 var
-  BaseSQL, TempSQL, FinalSQL, TempName: WideString;
+  BaseSQL, TempSQL, FinalSQL, TempName: String;
   i: Integer;
   par, allRoutineNames: TWideStringList;
   ProcOrFunc: String;

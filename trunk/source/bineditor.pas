@@ -35,8 +35,8 @@ type
     procedure SetModified(NewVal: Boolean);
     property Modified: Boolean read FModified write SetModified;
   public
-    function GetText: WideString;
-    procedure SetText(text: WideString);
+    function GetText: String;
+    procedure SetText(text: String);
     procedure SetMaxLength(len: integer);
     procedure SetFont(font: TFont);
   end;
@@ -48,12 +48,12 @@ implementation
 {$R *.dfm}
 
 
-function TfrmBinEditor.GetText: WideString;
+function TfrmBinEditor.GetText: String;
 begin
   Result := '0x' + memoText.Text;
 end;
 
-procedure TfrmBinEditor.SetText(text: WideString);
+procedure TfrmBinEditor.SetText(text: String);
 begin
   // Skip '0x'.
   memoText.Text := Copy(text, 3);

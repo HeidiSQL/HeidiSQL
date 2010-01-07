@@ -85,7 +85,7 @@ type
     FSessionNames: TStringlist;
     FSessionModified, FSessionAdded: Boolean;
     FOrgNetType: Byte;
-    FOrgHost, FOrgUser, FOrgPassword: WideString;
+    FOrgHost, FOrgUser, FOrgPassword: String;
     FOrgCompressed: Boolean;
     FOrgPort: Integer;
     FWidthListSessions: Byte; // Percentage values

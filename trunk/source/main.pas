@@ -39,7 +39,7 @@ type
     Grid: TVirtualStringTree;
     TabSheet: TTabSheet;
     GridResult: TGridResult;
-    FilterText: WideString;
+    FilterText: String;
   end;
 
   TMainForm = class(TForm)
@@ -476,7 +476,7 @@ type
     procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
     procedure showstatus(msg: string=''; panel: Integer=6);
-    function mask(str: WideString) : WideString;
+    function mask(str: String) : String;
     procedure actExecuteQueryExecute(Sender: TObject);
     procedure actExecuteSelectionExecute(Sender: TObject);
     procedure actCopyAsXMLExecute(Sender: TObject);
@@ -539,16 +539,16 @@ type
     procedure ValidateControls(Sender: TObject);
     procedure ValidateQueryControls(Sender: TObject);
     procedure RefreshQueryHelpers;
-    procedure LoadDatabaseProperties(db: WideString);
+    procedure LoadDatabaseProperties(db: String);
     procedure ShowHost;
-    procedure ShowDatabase(db: WideString);
-    procedure ShowDBProperties(db: WideString);
+    procedure ShowDatabase(db: String);
+    procedure ShowDBProperties(db: String);
     function EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode): Boolean;
-    procedure EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: WideString);
+    procedure EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: String);
     procedure EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; FullWidth: Boolean = False);
     procedure DiscardNodeData(Sender: TVirtualStringTree; Node: PVirtualNode);
     procedure viewdata(Sender: TObject);
-    procedure LogSQL(Msg: WideString; Category: TMySQLLogCategory=lcInfo);
+    procedure LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo);
     procedure KillProcess(Sender: TObject);
     procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false;
       CurrentLine: Boolean=false);
@@ -724,7 +724,7 @@ type
     SelectedTableKeys,
     SelectedTableForeignKeys   : TObjectList;
     FilterPanelManuallyOpened  : Boolean;
-    DataGridDB, DataGridTable  : WideString;
+    DataGridDB, DataGridTable  : String;
     PrevTableColWidths         : TWideStringList;
     DataGridHasChanges         : Boolean;
     FLastMouseUpOnPageControl  : Cardinal;
@@ -733,25 +733,25 @@ type
     DataGridResult             : TGridResult;
     // Filter text per tab for filter panel
     FilterTextVariables, FilterTextStatus, FilterTextProcessList, FilterTextCommandStats,
-    FilterTextDatabase, FilterTextData: WideString;
+    FilterTextDatabase, FilterTextData: String;
     PreviousFocusedNode: PVirtualNode;
     function GetParamValue(const paramChar: Char; const paramName:
       string; var curIdx: Byte; out paramValue: string): Boolean;
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(MatchingRows: Int64 = -1);
     procedure insertFunction(Sender: TObject);
-    function GetActiveDatabase: WideString;
+    function GetActiveDatabase: String;
     function GetSelectedTable: TDBObject;
-    procedure SetSelectedDatabase(db: WideString);
+    procedure SetSelectedDatabase(db: String);
     procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TWideStringList );
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: TWideStringlist = nil);
     function PlaceObjectEditor(Which: TListNodeType): TDBObjectEditor;
-    procedure SetTabCaption(PageIndex: Integer; Text: WideString);
+    procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
     procedure SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
     procedure UpdateFilterPanel(Sender: TObject);
-    procedure DatabaseChanged(Database: WideString);
+    procedure DatabaseChanged(Database: String);
   public
     Connection: TMySQLConnection;
     cancelling: Boolean;
@@ -766,7 +766,7 @@ type
     OptionsForm: Toptionsform;
     SessionManager: TConnForm;
     AllDatabases, Databases: TWideStringList;
-    TemporaryDatabase          : WideString;
+    TemporaryDatabase          : String;
     dataselected               : Boolean;
     editing                    : Boolean;
     WindowNumber               : Integer;
@@ -784,7 +784,7 @@ type
     prefMaxTotalRows           : Integer;
     prefCSVSeparator,
     prefCSVEncloser,
-    prefCSVTerminator          : String[10];
+    prefCSVTerminator          : String;
     prefLogToFile,
     prefEnableBinaryEditor,
     prefEnableDatetimeEditor,
@@ -805,10 +805,10 @@ type
     DataGridCurrentFullSelect,
     DataGridCurrentFrom,
     DataGridCurrentFilter,
-    DataGridCurrentSort        : WideString;
+    DataGridCurrentSort        : String;
     btnAddTab                  : TPngSpeedButton;
     QueryTabs                  : TObjectList;
-    SelectedTableCreateStatement: WideString;
+    SelectedTableCreateStatement: String;
 
     property Delimiter: String read FDelimiter write SetDelimiter;
     procedure CallSQLHelpWithKeyword( keyword: String );
@@ -818,13 +818,13 @@ type
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
     procedure SessionConnect(Sender: TObject);
-    function InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, parSession: WideString): Boolean;
+    function InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, parSession: String): Boolean;
 
     function ActiveGrid: TVirtualStringTree;
     function GridResult(Grid: TBaseVirtualTree): TGridResult; overload;
     function GridResult(PageIndex: Integer): TGridResult; overload;
 
-    property ActiveDatabase : WideString read GetActiveDatabase write SetSelectedDatabase;
+    property ActiveDatabase : String read GetActiveDatabase write SetSelectedDatabase;
     property SelectedTable : TDBObject read GetSelectedTable;
 
     procedure TestVTreeDataArray( P: PVTreeDataArray );
@@ -834,15 +834,15 @@ type
     procedure TrimSQLLog;
     function GetTreeNodeType(Tree: TBaseVirtualTree; Node: PVirtualNode): TListNodeType;
     function GetFocusedTreeNodeType: TListNodeType;
-    procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
-    procedure RefreshTreeDB(db: WideString);
-    function FindDBNode(db: WideString): PVirtualNode;
+    procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: String = '');
+    procedure RefreshTreeDB(db: String);
+    function FindDBNode(db: String): PVirtualNode;
     function GridPostUpdate(Sender: TBaseVirtualTree): Boolean;
     function GridPostInsert(Sender: TBaseVirtualTree): Boolean;
     function GridPostDelete(Sender: TBaseVirtualTree): Boolean;
     function DataGridPostUpdateOrInsert(Node: PVirtualNode): Boolean;
     procedure GridFinalizeEditing(Sender: TBaseVirtualTree);
-    function GetWhereClause(Row: PGridRow; Columns: PGridColumns): WideString;
+    function GetWhereClause(Row: PGridRow; Columns: PGridColumns): String;
     function GetKeyColumns: TWideStringlist;
     function CheckUniqueKeyClause: Boolean;
     procedure DataGridInsertRow(CopyValuesFromNode: PVirtualNode);
@@ -852,11 +852,11 @@ type
     function GetRegKeyTable: String;
     procedure SaveListSetup( List: TVirtualStringTree );
     procedure RestoreListSetup( List: TVirtualStringTree );
-    procedure SetEditorTabCaption(Editor: TDBObjectEditor; ObjName: WideString);
+    procedure SetEditorTabCaption(Editor: TDBObjectEditor; ObjName: String);
     procedure SetWindowCaption;
     procedure OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
-    function MaskMulti(str: WideString): WideString;
-    procedure SelectDBObject(Text: WideString; NodeType: TListNodeType);
+    function MaskMulti(str: String): String;
+    procedure SelectDBObject(Text: String; NodeType: TListNodeType);
     procedure SetupSynEditors;
     procedure ParseSelectedTableStructure;
 end;
@@ -1541,7 +1541,7 @@ end;
 procedure TMainForm.DoAfterConnect;
 var
   i, j: Integer;
-  lastUsedDB: WideString;
+  lastUsedDB: String;
   functioncats : TStringList;
   miGroup,
   miFilterGroup,
@@ -1562,7 +1562,7 @@ begin
   Mainreg.WriteInteger(REGNAME_SERVERVERSION, Connection.ServerVersionInt);
   Mainreg.WriteString(REGNAME_LASTCONNECT, DateTimeToStr(Now));
 
-  comboOnlyDBs.Items.Text := Utf8Decode(GetRegValue(REGNAME_ONLYDBS, '', SessionName));
+  comboOnlyDBs.Items.Text := GetRegValue(REGNAME_ONLYDBS, '', SessionName);
   if comboOnlyDBs.Items.Count > 0 then
     comboOnlyDBs.ItemIndex := 0
   else
@@ -1575,7 +1575,7 @@ begin
 
   // Reselect last used database
   if GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) then begin
-    lastUsedDB := Utf8Decode(GetRegValue(REGNAME_LASTUSEDDB, '', SessionName));
+    lastUsedDB := GetRegValue(REGNAME_LASTUSEDDB, '', SessionName);
     if lastUsedDB <> '' then try
       ActiveDatabase := lastUsedDB;
     except
@@ -1647,8 +1647,8 @@ begin
   // Open server-specific registry-folder.
   // relative from already opened folder!
   OpenRegistry(SessionName);
-  MainReg.WriteString( REGNAME_LASTUSEDDB, Utf8Encode(ActiveDatabase) );
-  MainReg.WriteString( REGNAME_ONLYDBS, Utf8Encode(comboOnlyDBs.Items.Text) );
+  MainReg.WriteString( REGNAME_LASTUSEDDB, ActiveDatabase );
+  MainReg.WriteString( REGNAME_ONLYDBS, comboOnlyDBs.Items.Text );
 
   // Post pending UPDATE
   if DataGridHasChanges then
@@ -1908,14 +1908,14 @@ end;
 
 
 // Escape database, table, field, index or key name.
-function TMainform.mask(str: WideString) : WideString;
+function TMainform.mask(str: String) : String;
 begin
   result := Connection.QuoteIdent(str);
 end;
 
 
 // Quote identifier, probably with multiple segments, e.g. db.table.column
-function TMainform.MaskMulti(str: WideString): WideString;
+function TMainform.MaskMulti(str: String): String;
 var
   Segments: TWideStringlist;
   i: Integer;
@@ -1981,7 +1981,7 @@ end;
 procedure TMainForm.actCopyAsHTMLExecute(Sender: TObject);
 var
   S: TMemoryStream;
-  Title: WideString;
+  Title: String;
 begin
   // Copy data in focused grid as HTML table
   Screen.Cursor := crHourglass;
@@ -2003,7 +2003,7 @@ end;
 procedure TMainForm.actCopyAsXMLExecute(Sender: TObject);
 var
   S: TMemoryStream;
-  Root: WideString;
+  Root: String;
 begin
   // Copy data in focused grid as XML
   Screen.Cursor := crHourglass;
@@ -2025,7 +2025,7 @@ end;
 procedure TMainForm.actCopyAsSQLExecute(Sender: TObject);
 var
   S: TMemoryStream;
-  Tablename: WideString;
+  Tablename: String;
 begin
   // Copy data in focused grid as SQL
   Screen.Cursor := crHourglass;
@@ -2048,7 +2048,7 @@ procedure TMainForm.actExportDataExecute(Sender: TObject);
 var
   Dialog: TSaveDialog;
   FS: TFileStream;
-  Title: WideString;
+  Title: String;
 begin
   // Save data in current dataset as CSV, HTML or XML
   Dialog := SaveDialogExportData;
@@ -2089,7 +2089,7 @@ var
   g               : TVirtualStringTree;
   filename        : String;
   f               : Textfile;
-  Header, Content : String;
+  Header, Content : AnsiString;
   IsBinary        : Boolean;
   SaveBinary      : Boolean;
 begin
@@ -2108,10 +2108,10 @@ begin
   end else if IsBinary and (Copy(Header, 2, 3) = 'PNG') then begin
     SaveBinary := true;
     filename := filename + 'png';
-  end else if IsBinary and StrCmpBegin('GIF', Header) then begin
+  end else if IsBinary and (Copy(Header, 1, 3) = 'GIF') then begin
     SaveBinary := true;
     filename := filename + 'gif';
-  end else if IsBinary and StrCmpBegin('BM', Header) then begin
+  end else if IsBinary and (Copy(Header, 1, 2) = 'BM') then begin
     SaveBinary := true;
     filename := filename + 'bmp';
   end;
@@ -2147,7 +2147,7 @@ procedure TMainForm.actDropObjectsExecute(Sender: TObject);
 var
   AllCount : Integer;
   Tables, Views, Functions, Procedures, Triggers: TWideStringList;
-  msg, activeDB : WideString;
+  msg, activeDB : String;
   InDBTree: Boolean;
   Act: TAction;
   Node: PVirtualNode;
@@ -2155,7 +2155,7 @@ var
   procedure DoDrop(Kind: String; List: TWideStringlist; MultiDrops: Boolean);
   var
     i: Integer;
-    baseSql, sql: WideString;
+    baseSql, sql: String;
   begin
     if List.Count > 0 then begin
       baseSql := 'DROP '+Kind+' ';
@@ -2326,7 +2326,7 @@ procedure TMainForm.SessionConnect(Sender: TObject);
 var
   Session: String;
   NetType: Integer;
-  parHost, parSocketname, parPort, parUser, parPass, parCompress: WideString;
+  parHost, parSocketname, parPort, parUser, parPass, parCompress: String;
 begin
   Session := (Sender as TMenuItem).Caption;
   NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, Session);
@@ -2350,7 +2350,7 @@ end;
   Receive connection parameters and create the mdi-window
   Paremeters are either sent by connection-form or by commandline.
 }
-function TMainform.InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, parSession: WideString): Boolean;
+function TMainform.InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, parSession: String): Boolean;
 var
   ConnectionAttempt: TMySQLConnection;
   SessionExists: Boolean;
@@ -2633,7 +2633,7 @@ end;
 
 procedure TMainForm.SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
 var
-  Text, LB: WideString;
+  Text, LB: String;
 begin
   Screen.Cursor := crHourGlass;
   if OnlySelection then
@@ -2660,7 +2660,7 @@ procedure TMainForm.actSaveSQLSnippetExecute(Sender: TObject);
 var
   snippetname : String;
   mayChange   : Boolean;
-  Text, LB: WideString;
+  Text, LB: String;
 begin
   // Save snippet
   if InputQuery( 'Save snippet', 'Snippet name:', snippetname) then
@@ -2978,7 +2978,7 @@ begin
     // Recreate recent filters list
     Filters := TStringList.Create;
     OldNumbers := TStringList.Create;
-    Filters.Add(Trim(Utf8Encode(SynMemoFilter.Text)));
+    Filters.Add(Trim(SynMemoFilter.Text));
     MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, True);
     MainReg.GetValueNames(OldNumbers);
     OldNumbers.CustomSort(CompareNumbers);
@@ -3075,7 +3075,7 @@ end;
 {**
   Add a SQL-command or comment to SynMemoSQLLog
 }
-procedure TMainForm.LogSQL(Msg: WideString; Category: TMySQLLogCategory=lcInfo);
+procedure TMainForm.LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo);
 var
   snip, IsSQL: Boolean;
 begin
@@ -3152,7 +3152,7 @@ begin
 end;
 
 
-procedure TMainForm.ShowDatabase(db: WideString);
+procedure TMainForm.ShowDatabase(db: String);
 begin
   if (not DBtree.Dragging) and (
    (PageControlMain.ActivePage = tabHost) or
@@ -3173,7 +3173,7 @@ var
   i, j                 : Integer;
   select_base,
   select_base_full,
-  select_from          : WideString;
+  select_from          : String;
   sl_query             : TWideStringList;
   KeyCols              : TWideStringList;
   col                  : TVirtualTreeColumn;
@@ -3416,7 +3416,7 @@ procedure TMainForm.DisplayRowCountStats(MatchingRows: Int64);
 var
   DBObject: TDBObject;
   IsFiltered: Boolean;
-  cap: WideString;
+  cap: String;
 begin
   DBObject := SelectedTable;
   cap := ActiveDatabase + '.' + DBObject.Name;
@@ -3491,7 +3491,7 @@ begin
 end;
 
 
-procedure TMainForm.LoadDatabaseProperties(db: WideString);
+procedure TMainForm.LoadDatabaseProperties(db: String);
 var
   i, img          : Integer;
   Obj: TDBObject;
@@ -3573,7 +3573,7 @@ end;
 
 
 { Show tables and their properties on the tabsheet "Database" }
-procedure TMainForm.ShowDBProperties(db: WideString);
+procedure TMainForm.ShowDBProperties(db: String);
 begin
   Screen.Cursor := crHourglass;
   PageControlMainChange(Self);
@@ -3659,7 +3659,7 @@ procedure TMainForm.ValidateQueryControls(Sender: TObject);
 var
   NotEmpty, HasSelection: Boolean;
   Tab: TQueryTab;
-  cap: WideString;
+  cap: String;
   InQueryTab: Boolean;
 begin
   InQueryTab := QueryTabActive;
@@ -3731,7 +3731,7 @@ var
   i, j, QueryCount: Integer;
   SQLTime, SQLNetTime: Cardinal;
   Results: TMySQLQuery;
-  ColName, Text, LB: WideString;
+  ColName, Text, LB: String;
   col: TVirtualTreeColumn;
   ResultLabel: TLabel;
   ActiveGridResult: TGridResult;
@@ -3844,7 +3844,7 @@ begin
       for j:=0 to Results.ColumnCount-1 do begin
         case ActiveGridResult.Columns[j].DatatypeCat of
           dtcInteger, dtcReal: ActiveGridResult.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
-          dtcBinary: ActiveGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j));
+          dtcBinary: ActiveGridResult.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.ColAsAnsi(j));
           else ActiveGridResult.Rows[i].Cells[j].Text := Results.Col(j);
         end;
         ActiveGridResult.Rows[i].Cells[j].IsNull := Results.IsNull(j);
@@ -3892,9 +3892,9 @@ var
   i,j              : Integer;
   Results          : TMySQLQuery;
   DBObjects        : TDBObjectList;
-  sql, TableClauses: WideString;
+  sql, TableClauses: String;
   Tables           : TStringList;
-  tablename        : WideString;
+  tablename        : String;
   rx               : TRegExpr;
   PrevShortToken,
   PrevLongToken,
@@ -3921,9 +3921,9 @@ var
     Proposal.ItemList.Add( WideFormat(SYNCOMPLETION_PATTERN, [Icon, LowerCase(Obj.ObjType), Obj.Name]) );
   end;
 
-  procedure addColumns( tablename: WideString );
+  procedure addColumns( tablename: String );
   var
-    dbname : WideString;
+    dbname : String;
     Columns: TMySQLQuery;
   begin
     dbname := ActiveDatabase;
@@ -4200,7 +4200,7 @@ end;
 }
 procedure TMainForm.QuickFilterClick(Sender: TObject);
 var
-  filter,value,column : WideString;
+  filter,value,column : String;
   menuitem : TMenuItem;
   IsNull: Boolean;
 begin
@@ -4350,7 +4350,7 @@ procedure TMainForm.SynMemoQueryDragDrop(Sender, Source: TObject; X,
   Y: Integer);
 var
   src : TControl;
-  Text : WideString;
+  Text : String;
   LoadText : Boolean;
   i: Integer;
 begin
@@ -4493,7 +4493,7 @@ end;
 procedure TMainForm.QueryLoad( filename: String; ReplaceContent: Boolean = true );
 
 var
-  filecontent      : WideString;
+  filecontent      : String;
   msgtext          : String;
   LineBreaks       : TLineBreaks;
 begin
@@ -4674,7 +4674,7 @@ begin
 end;
 
 
-function TMainForm.GetActiveDatabase: WideString;
+function TMainForm.GetActiveDatabase: String;
 var
   s: PVirtualNode;
 begin
@@ -4726,7 +4726,7 @@ begin
 end;
 
 
-procedure TMainForm.SelectDBObject(Text: WideString; NodeType: TListNodeType);
+procedure TMainForm.SelectDBObject(Text: String; NodeType: TListNodeType);
 var
   dbnode, tnode, snode: PVirtualNode;
 begin
@@ -4774,12 +4774,12 @@ begin
 end;
 
 
-procedure TMainForm.SetSelectedDatabase(db: WideString);
+procedure TMainForm.SetSelectedDatabase(db: String);
 var
   n, f: PVirtualNode;
   i: Integer;
   DBObjects: TDBObjectList;
-  Tables: WideString;
+  Tables: String;
 begin
   if db = '' then
     n := DBtree.GetFirst
@@ -4931,7 +4931,7 @@ end;
 }
 procedure TMainForm.lboxQueryHelpersDblClick(Sender: TObject);
 var
-  text: WideString;
+  text: String;
   i: Integer;
 begin
   if ActiveQueryTabset.TabIndex = 3 then begin
@@ -5366,7 +5366,7 @@ procedure TMainForm.RestoreListSetup( List: TVirtualStringTree );
 var
   i : Byte;
   colwidth, colpos : Integer;
-  Value : WideString;
+  Value : String;
   ValueList : TWideStringList;
   Regname: String;
   frm: TCustomForm;
@@ -5642,10 +5642,10 @@ var
   VT : TVirtualStringTree;
   i : Integer;
   match : Boolean;
-  search : WideString;
+  search : String;
   tab: TTabSheet;
   VisibleCount: Cardinal;
-  CellText: WideString;
+  CellText: String;
 begin
   // Disable timer to avoid filtering in a loop
   TimerFilterVT.Enabled := False;
@@ -5680,7 +5680,7 @@ begin
     Exit;
   // Loop through all nodes and hide non matching
   Node := VT.GetFirst;
-  search := WideLowerCase( editFilterVT.Text );
+  search := LowerCase( editFilterVT.Text );
   VisibleCount := 0;
   while Assigned(Node) do begin
     // Don't filter anything if the filter text is empty
@@ -5688,7 +5688,7 @@ begin
     // Search for given text in node's captions
     if not match then for i := 0 to VT.Header.Columns.Count - 1 do begin
       CellText := VT.Text[Node, i];
-      if Pos( search, WideLowerCase(CellText)) > 0 then begin
+      if Pos( search, LowerCase(CellText)) > 0 then begin
         match := True;
         break;
       end;
@@ -5748,7 +5748,7 @@ procedure TMainForm.DBtreeGetText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
 var
   DBObjects: TDBObjectList;
-  db: WideString;
+  db: String;
   i, j: Integer;
   Bytes: Int64;
   AllListsCached: Boolean;
@@ -5953,7 +5953,7 @@ end;
 procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
-  newDb, newDbObject: WideString;
+  newDb, newDbObject: String;
 begin
   debug('DBtreeFocusChanged()');
   SelectedTableCreateStatement := '';
@@ -6035,7 +6035,7 @@ begin
 end;
 
 
-procedure TMainForm.DatabaseChanged(Database: WideString);
+procedure TMainForm.DatabaseChanged(Database: String);
 begin
   if (Database='') or (Databases.IndexOf(Database) > -1) then
     ActiveDatabase := Database;
@@ -6073,9 +6073,9 @@ end;
 {**
   Refresh the whole tree
 }
-procedure TMainForm.RefreshTree(DoResetTableCache: Boolean; SelectDatabase: WideString = '');
+procedure TMainForm.RefreshTree(DoResetTableCache: Boolean; SelectDatabase: String = '');
 var
-  oldActiveDatabase, oldSelectedTableName: WideString;
+  oldActiveDatabase, oldSelectedTableName: String;
   oldSelectedTableType: TListNodeType;
 begin
   // Remember currently active database and table
@@ -6110,9 +6110,9 @@ end;
 {**
   Refresh one database node in the db tree
 }
-procedure TMainForm.RefreshTreeDB(db: WideString);
+procedure TMainForm.RefreshTreeDB(db: String);
 var
-  oldActiveDatabase, oldSelectedTableName: WideString;
+  oldActiveDatabase, oldSelectedTableName: String;
   oldSelectedTableType: TListNodeType;
   DBNode, FNode: PVirtualNode;
   TableHereHadFocus: Boolean;
@@ -6153,7 +6153,7 @@ end;
 {**
   Find a database node in the tree by passing its name
 }
-function TMainForm.FindDBNode(db: WideString): PVirtualNode;
+function TMainForm.FindDBNode(db: String): PVirtualNode;
 var
   i, s: Integer;
   n: PVirtualNode;
@@ -6211,7 +6211,7 @@ end;
 
 procedure TMainForm.editFilterSearchChange(Sender: TObject);
 var
-  Add, Clause: WideString;
+  Add, Clause: String;
   i: Integer;
   ed: TEdit;
   Col: TTableColumn;
@@ -6272,10 +6272,10 @@ begin
 end;
 
 
-procedure TMainForm.EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: WideString);
+procedure TMainForm.EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: String);
 var
   res: TGridResult;
-  query: WideString;
+  query: String;
   Results: TMySQLQuery;
   i, j: LongInt;
 begin
@@ -6311,7 +6311,7 @@ begin
       for j := 0 to Results.ColumnCount - 1 do begin
         case res.Columns[j].DatatypeCat of
           dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
-          dtcBinary: res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j));
+          dtcBinary: res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.ColAsAnsi(j));
           else res.Rows[i].Cells[j].Text := Results.Col(j);
         end;
         res.Rows[i].Cells[j].IsNull := Results.IsNull(j);
@@ -6328,7 +6328,7 @@ procedure TMainForm.EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNo
 var
   res: TGridResult;
   start, limit: Cardinal;
-  query: WideString;
+  query: String;
   Results: TMySQLQuery;
   i, j: LongInt;
   hi: LongInt;
@@ -6387,7 +6387,7 @@ begin
       for j:=0 to Results.ColumnCount-1 do begin
         case res.Columns[j].DatatypeCat of
           dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
-          dtcBinary: res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.Col(j));
+          dtcBinary: res.Rows[i].Cells[j].Text := '0x' + BinToWideHex(Results.ColAsAnsi(j));
           else res.Rows[i].Cells[j].Text := Results.Col(j);
         end;
         res.Rows[i].Cells[j].IsNull := Results.IsNull(j);
@@ -6518,7 +6518,7 @@ var
   frm: TForm;
   i, j : Integer;
   columnexists : Boolean;
-  ColName: WideString;
+  ColName: String;
 begin
   if HitInfo.Column = NoColumn then
     Exit;
@@ -6664,7 +6664,7 @@ end;
 function TMainForm.GridPostUpdate(Sender: TBaseVirtualTree): Boolean;
 var
   i: Integer;
-  sql, Val: WideString;
+  sql, Val: String;
   Row: PGridRow;
 begin
   sql := 'UPDATE '+mask(DataGridDB)+'.'+mask(DataGridTable)+' SET';
@@ -6746,10 +6746,10 @@ end;
 {**
   Compose a WHERE clause used for UPDATEs and DELETEs
 }
-function TMainForm.GetWhereClause(Row: PGridRow; Columns: PGridColumns): WideString;
+function TMainForm.GetWhereClause(Row: PGridRow; Columns: PGridColumns): String;
 var
   i, j: Integer;
-  KeyVal: WideString;
+  KeyVal: String;
   KeyCols: TWideStringlist;
 begin
   Result := '';
@@ -6828,7 +6828,7 @@ end;
 procedure TMainForm.DataGridInsertRow(CopyValuesFromNode: PVirtualNode);
 var
   i, j: Integer;
-  Val: WideString;
+  Val: String;
 begin
   // Scroll to the bottom to ensure we append the new row at the very last DataGridResult chunk
   DataGrid.FocusedNode := DataGrid.GetLast;
@@ -6863,7 +6863,7 @@ end;
 function TMainForm.GridPostInsert(Sender: TBaseVirtualTree): Boolean;
 var
   Row: PGridRow;
-  sql, Cols, Val, Vals: WideString;
+  sql, Cols, Val, Vals: String;
   i: Integer;
   Node: PVirtualNode;
 begin
@@ -6930,7 +6930,7 @@ function TMainForm.GridPostDelete(Sender: TBaseVirtualTree): Boolean;
 var
   Node, FocusAfterDelete: PVirtualNode;
   Nodes: TNodeArray;
-  sql: WideString;
+  sql: String;
   Affected, Matching: Int64;
   Selected, i, j: Integer;
   msg: String;
@@ -7050,7 +7050,7 @@ var
   Cell: PGridCell;
   Row: PGridRow;
   Col: PGridColumn;
-  sql: WideString;
+  sql: String;
   len: Int64;
   Results: TMySQLQuery;
 begin
@@ -7077,7 +7077,7 @@ begin
       Results := Connection.GetResults(sql);
       case Col.DatatypeCat of
         dtcInteger, dtcReal: Cell.Text := FormatNumber(Results.Col(0), False);
-        dtcBinary: Cell.Text := '0x' + BinToWideHex(Results.Col(0));
+        dtcBinary: Cell.Text := '0x' + BinToWideHex(Results.ColAsAnsi(0));
         else Cell.Text := Results.Col(0);
       end;
       Cell.IsNull := Results.IsNull(0);
@@ -7293,7 +7293,7 @@ var
   Col: TTableColumn;
   HiddenCols: TWideStringList;
   TestList: TStringList;
-  Sort: WideString;
+  Sort: String;
 begin
   OpenRegistry;
   MainReg.OpenKey(GetRegKeyTable, True);
@@ -7318,20 +7318,20 @@ begin
         HiddenCols.Add(Col.Name);
     end;
     if HiddenCols.Count > 0 then
-      MainReg.WriteString(REGNAME_HIDDENCOLUMNS, Utf8Encode(HiddenCols.DelimitedText))
+      MainReg.WriteString(REGNAME_HIDDENCOLUMNS, HiddenCols.DelimitedText)
     else if MainReg.ValueExists(REGNAME_HIDDENCOLUMNS) then
       MainReg.DeleteValue(REGNAME_HIDDENCOLUMNS);
     FreeAndNil(HiddenCols);
 
     if SynMemoFilter.GetTextLen > 0 then
-      MainReg.WriteString(REGNAME_FILTER, Utf8Encode(SynMemoFilter.Text))
+      MainReg.WriteString(REGNAME_FILTER, SynMemoFilter.Text)
     else if MainReg.ValueExists(REGNAME_FILTER) then
       MainReg.DeleteValue(REGNAME_FILTER);
 
     for i := 0 to High(FDataGridSort) do
       Sort := Sort + IntToStr(FDataGridSort[i].SortDirection) + '_' + FDataGridSort[i].ColumnName + REGDELIM;
     if Sort <> '' then
-      MainReg.WriteString(REGNAME_SORT, Utf8Encode(Sort))
+      MainReg.WriteString(REGNAME_SORT, Sort)
     else if MainReg.ValueExists(REGNAME_SORT) then
       MainReg.DeleteValue(REGNAME_SORT);
 
@@ -7358,7 +7358,7 @@ begin
     HiddenCols := TWideStringlist.Create;
     HiddenCols.Delimiter := REGDELIM;
     HiddenCols.StrictDelimiter := True;
-    HiddenCols.DelimitedText := Utf8Decode(MainReg.ReadString(REGNAME_HIDDENCOLUMNS));
+    HiddenCols.DelimitedText := MainReg.ReadString(REGNAME_HIDDENCOLUMNS);
     FDataGridSelect.Clear;
     for i:=0 to SelectedTableColumns.Count-1 do begin
       Col := TTableColumn(SelectedTableColumns[i]);
@@ -7370,7 +7370,7 @@ begin
 
   // Filter
   if MainReg.ValueExists(REGNAME_FILTER) then begin
-    SynMemoFilter.Text := Utf8Decode(MainReg.ReadString(REGNAME_FILTER));
+    SynMemoFilter.Text := MainReg.ReadString(REGNAME_FILTER);
     if SynMemoFilter.GetTextLen > 0 then
       ToggleFilterPanel(True);
   end;
@@ -7381,7 +7381,7 @@ begin
     rx := TRegExpr.Create;
     rx.Expression := '\b(\d)_(.+)\'+REGDELIM;
     rx.ModifierG := False;
-    if rx.Exec(Utf8Decode(MainReg.ReadString(REGNAME_SORT))) then while true do begin
+    if rx.Exec(MainReg.ReadString(REGNAME_SORT)) then while true do begin
       idx := Length(FDataGridSort);
       SetLength(FDataGridSort, idx+1);
       FDataGridSort[idx] := TOrderCol.Create;
@@ -7399,7 +7399,7 @@ function TMainForm.GetRegKeyTable: String;
 begin
   // Return the slightly complex registry path to \Servers\ThisServer\curdb|curtable
   Result := REGPATH + REGKEY_SESSIONS + SessionName + '\' +
-    Utf8Encode(ActiveDatabase) + REGDELIM + Utf8Encode(SelectedTable.Name);
+    ActiveDatabase + REGDELIM + SelectedTable.Name;
 end;
 
 
@@ -7487,7 +7487,7 @@ var
   valcount: Int64;
   tmpval: Double;
   Results: TMySQLQuery;
-  val, avg_perhour, avg_persec: WideString;
+  val, avg_perhour, avg_persec: String;
   valIsBytes, valIsNumber: Boolean;
   vt: TVirtualStringTree;
   Sel: TWideStringList;
@@ -7560,7 +7560,7 @@ var
   Results: TMySQLQuery;
   vt: TVirtualStringTree;
   Sel: TWideStringList;
-  Text: WideString;
+  Text: String;
 const
   InfoLen = SIZE_KB*10;
 begin
@@ -7620,7 +7620,7 @@ end;
 
 
 procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-  procedure addLVitem( idx: Integer; caption: WideString; commandCount: Int64; totalCount: Int64 );
+  procedure addLVitem( idx: Integer; caption: String; commandCount: Int64; totalCount: Int64 );
   var
     tmpval : Double;
   begin
@@ -7716,7 +7716,7 @@ begin
   end else if Control is TCustomComboBox then begin
     Combo := TCustomComboBox(Control);
     if Combo.SelLength > 0 then begin
-      CopyToClipboard(Combo.SelText);
+      Clipboard.AsText := Combo.SelText;
       if DoCut then Combo.SelText := '';
       Success := True;
     end;
@@ -7725,7 +7725,7 @@ begin
     if Assigned(Grid.FocusedNode) then begin
       if Grid = ActiveGrid then
         EnsureFullWidth(Grid, Grid.FocusedColumn, Grid.FocusedNode);
-      CopyToClipboard(Grid.Text[Grid.FocusedNode, Grid.FocusedColumn]);
+      Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
       if (Grid = ActiveGrid) and DoCut then
         Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
       Success := True;
@@ -7751,12 +7751,10 @@ var
   Grid: TVirtualStringTree;
   SynMemo: TSynMemo;
   Success: Boolean;
-  CB: TUniClipboard;
 begin
   // Paste text into the focused control
   Success := False;
   Control := Screen.ActiveControl;
-  CB := TUniClipboard.Create;
   // Do not handle Search/replace dialog
   if not Control.Focused then Exit;
   if not Clipboard.HasFormat(CF_TEXT) then begin
@@ -7770,13 +7768,13 @@ begin
   end else if Control is TComboBox then begin
     Combo := TComboBox(Control);
     if Combo.Style = csDropDown then begin
-      Combo.SelText := CB.AsWideString;
+      Combo.SelText := ClipBoard.AsText;
       Success := True;
     end;
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
     if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
-      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := CB.AsWideString;
+      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := ClipBoard.AsText;
       Success := True;
     end;
   end else if Control is TSynMemo then begin
@@ -7887,7 +7885,6 @@ begin
       item.Tag := MakeInt(flt[i]);
       item.OnClick := LoadRecentFilter;
       menuRecentFilters.Add(item);
-      capt := Utf8Decode(capt);
       comboRecentFilters.Items.Add(sstr(capt, 100));
     end;
     FreeAndNil(rx);
@@ -7919,7 +7916,7 @@ begin
     SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.BeginUpdate;
     SynMemoFilter.SelectAll;
-    SynMemoFilter.SelText := Utf8Decode( MainReg.ReadString(IntToStr(key)) );
+    SynMemoFilter.SelText := MainReg.ReadString(IntToStr(key));
     SynMemoFilter.EndUpdate;
   end;
 end;
@@ -8006,9 +8003,9 @@ begin
 end;
 
 
-procedure TMainForm.SetEditorTabCaption(Editor: TDBObjectEditor; ObjName: WideString);
+procedure TMainForm.SetEditorTabCaption(Editor: TDBObjectEditor; ObjName: String);
 var
-  ObjType, Cap: WideString;
+  ObjType, Cap: String;
   IconIndex: Integer;
 begin
   if Editor = TableEditor then begin
@@ -8038,7 +8035,7 @@ end;
 procedure TMainForm.actEditObjectExecute(Sender: TObject);
 var
   NodeData: PVTreeData;
-  db: WideString;
+  db: String;
 begin
   debug('actEditObjectExecute()');
   if ListTables.Focused then begin
@@ -8508,7 +8505,7 @@ begin
 end;
 
 
-procedure TMainForm.SetTabCaption(PageIndex: Integer; Text: WideString);
+procedure TMainForm.SetTabCaption(PageIndex: Integer; Text: String);
 begin
   // Special case if passed text is empty: Reset query tab caption to "Query #123"
   if (PageIndex = tabQuery.PageIndex) and (Text = '') then
@@ -8565,7 +8562,7 @@ end;
 procedure TMainForm.comboOnlyDBsExit(Sender: TObject);
 var
   i, idx: Integer;
-  FilterText: WideString;
+  FilterText: String;
 begin
   // Add (move) custom filter text to (in) drop down history, if not empty
   FilterText := comboOnlyDBs.Text;
@@ -8595,7 +8592,7 @@ end;
 procedure TMainForm.comboOnlyDBsDragDrop(Sender, Source: TObject; X, Y: Integer);
 var
   dbs: TWideStringList;
-  newdb: WideString;
+  newdb: String;
 begin
   // DBtree node dropped on DB filter dropdown
   dbs := Explode(';', comboOnlyDBs.Text);
@@ -8645,7 +8642,7 @@ end;
 procedure TMainForm.UpdateFilterPanel(Sender: TObject);
 var
   tab: TTabSheet;
-  f: WideString;
+  f: String;
   FilterPanelVisible: Boolean;
 begin
   // Called when active tab changes
@@ -8765,7 +8762,7 @@ var
   Control: TWinControl;
   m: TCustomSynEdit;
   CursorPosStart, CursorPosEnd: Integer;
-  NewSQL: WideString;
+  NewSQL: String;
 begin
   // Reformat SQL query
   m := nil;
@@ -8822,7 +8819,7 @@ end;
 procedure TMainForm.menuQueryHelpersGenerateStatementClick(Sender: TObject);
 var
   MenuItem: TMenuItem;
-  sql, Val, WhereClause: WideString;
+  sql, Val, WhereClause: String;
   i, idx: Integer;
   ColumnNames, DefaultValues, KeyColumns: TWideStringlist;
   Column: TTableColumn;
