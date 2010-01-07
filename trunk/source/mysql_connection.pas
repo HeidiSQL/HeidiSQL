@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, windows, mysql_api, mysql_structures, WideStrings, WideStrUtils, SynRegExpr,
-  Contnrs;
+  Contnrs, Generics.Collections;
 
 type
   { TDBObjectList and friends }
@@ -17,16 +17,7 @@ type
     Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
     NodeType: TListNodeType;
   end;
-  TDBObjectList = class(TObjectList)
-  protected
-    function getItem(AIndex: Integer): TDBObject; virtual;
-    procedure setItem(AIndex: Integer; AObject: TDBObject); virtual;
-  public
-    function Add(AObject: TDBObject): Integer; virtual;
-    procedure Insert(AIndex: Integer; AObject: TDBObject); virtual;
-    function First: TDBObject; virtual;
-    property Items[Index: Integer]: TDBObject read getItem write setItem; default;
-  end;
+  TDBObjectList = TObjectList<TDBObject>;
 
   { TMySQLConnection }
 
@@ -1328,34 +1319,6 @@ begin
   Result := FLastResult <> nil;
 end;
 
-
-
-{ TDBObjectList }
-
-function TDBObjectList.Add(AObject: TDBObject): Integer;
-begin
-   Result := inherited Add(AObject);
-end;
-
-function TDBObjectList.First: TDBObject;
-begin
-   Result := inherited First as TDBObject;
-end;
-
-function TDBObjectList.getItem(AIndex: Integer): TDBObject;
-begin
-   Result := inherited GetItem(AIndex) as TDBObject;
-end;
-
-procedure TDBObjectList.Insert(AIndex: Integer; AObject: TDBObject);
-begin
-   inherited Insert(AIndex, AObject);
-end;
-
-procedure TDBObjectList.setItem(AIndex: Integer; AObject: TDBObject);
-begin
-   inherited setItem(AIndex, AObject);
-end;
 
 
 end.
