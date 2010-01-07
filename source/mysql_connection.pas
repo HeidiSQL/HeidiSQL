@@ -208,7 +208,7 @@ type
       function ColumnCount: Integer;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
-      function BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): AnsiString;
+      function BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String;
       function DataType(Column: Integer): TDataType;
       function ColExists(Column: String): Boolean;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean;
@@ -1269,7 +1269,7 @@ begin
 end;
 
 
-function TMySQLQuery.BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): AnsiString;
+function TMySQLQuery.BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String;
 var
   LengthPointer: PLongInt;
   BinLen: Integer;
@@ -1280,7 +1280,7 @@ begin
     if LengthPointer <> nil then begin
       BinLen := PInteger(Integer(LengthPointer) + Column * SizeOf(Integer))^;
       SetLength(Result, BinLen*2);
-      BinToHex(FCurrentRow[Column], PAnsiChar(Result), BinLen);
+      BinToHex(FCurrentRow[Column], PChar(Result), BinLen);
     end;
   end else if not IgnoreErrors then
     Raise Exception.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
