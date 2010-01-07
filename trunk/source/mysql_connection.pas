@@ -352,7 +352,7 @@ end;
 
 function TMySQLConnection.Ping: Boolean;
 begin
-  if FActive and (mysql_ping(FHandle) <> 0) then begin
+  if FActive and ((FHandle=nil) or (mysql_ping(FHandle) <> 0)) then begin
     Active := False;
     ClearCache;
   end;
