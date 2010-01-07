@@ -12,7 +12,7 @@ type
   TListNodeType = (lntNone, lntDb, lntTable, lntView, lntFunction, lntProcedure, lntTrigger, lntColumn);
   TListNodeTypes = Set of TListNodeType;
   TDBObject = class
-    Name, Database, Engine, Comment, RowFormat, CreateOptions, Collation, ObjType: WideString;
+    Name, Database, Engine, Comment, RowFormat, CreateOptions, Collation, ObjType: String;
     Created, Updated, LastChecked: TDateTime;
     Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
     NodeType: TListNodeType;
@@ -31,8 +31,8 @@ type
   { TMySQLConnection }
 
   TMySQLLogCategory = (lcInfo, lcSQL, lcError, lcWarning, lcDebug);
-  TMySQLLogEvent = procedure(Msg: WideString; Category: TMySQLLogCategory=lcInfo) of object;
-  TMySQLDatabaseChangedEvent = procedure(Database: WideString) of object;
+  TMySQLLogEvent = procedure(Msg: String; Category: TMySQLLogCategory=lcInfo) of object;
+  TMySQLDatabaseChangedEvent = procedure(Database: String) of object;
 
   TMySQLServerCapability = (
     cpShowEngines,          // SHOW ENGINES
@@ -89,35 +89,35 @@ type
       FActive: Boolean;
       FConnectionStarted: Integer;
       FServerStarted: Integer;
-      FHostname: AnsiString;
-      FSocketname: AnsiString;
+      FHostname: String;
+      FSocketname: String;
       FPort: Integer;
-      FUsername: AnsiString;
-      FPassword: AnsiString;
-      FDatabase: WideString;
-      FLogPrefix: WideString;
+      FUsername: String;
+      FPassword: String;
+      FDatabase: String;
+      FLogPrefix: String;
       FOnLog: TMySQLLogEvent;
       FOnDatabaseChanged: TMySQLDatabaseChangedEvent;
       FOptions: TMySQLClientOptions;
       FCapabilities: TMySQLServerCapabilities;
       FRowsFound: Int64;
       FRowsAffected: Int64;
-      FServerVersionUntouched: AnsiString;
+      FServerVersionUntouched: String;
       FLastQueryDuration, FLastQueryNetworkDuration: Cardinal;
       FIsUnicode: Boolean;
       FTableEngines: TStringList;
-      FTableEngineDefault: AnsiString;
+      FTableEngineDefault: String;
       FCollationTable: TMySQLQuery;
       FCharsetTable: TMySQLQuery;
       FInformationSchemaObjects: TWideStringlist;
       FDBObjectLists: TWideStringList;
       procedure SetActive(Value: Boolean);
-      procedure SetDatabase(Value: WideString);
+      procedure SetDatabase(Value: String);
       function GetThreadId: Cardinal;
-      function GetCharacterSet: AnsiString;
-      procedure SetCharacterSet(CharsetName: AnsiString);
-      function GetLastError: WideString;
-      function GetServerVersionStr: AnsiString;
+      function GetCharacterSet: String;
+      procedure SetCharacterSet(CharsetName: String);
+      function GetLastError: String;
+      function GetServerVersionStr: String;
       function GetServerVersionInt: Integer;
       function GetTableEngines: TStringList;
       function GetCollationTable: TMySQLQuery;
@@ -127,33 +127,33 @@ type
       function GetInformationSchemaObjects: TWideStringlist;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
-      procedure Log(Category: TMySQLLogCategory; Msg: WideString);
+      procedure Log(Category: TMySQLLogCategory; Msg: String);
       procedure DetectCapabilities;
       procedure ClearCache;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      function Query(SQL: WideString; DoStoreResult: Boolean=False): PMYSQL_RES;
-      function EscapeString(Text: WideString; ProcessJokerChars: Boolean=False): WideString;
-      function escChars(const Text: WideString; EscChar, Char1, Char2, Char3, Char4: WideChar): WideString;
-      function QuoteIdent(Identifier: WideString): WideString;
-      function DeQuoteIdent(Identifier: WideString): WideString;
-      function ConvertServerVersion(Version: Integer): AnsiString;
-      function GetResults(SQL: WideString): TMySQLQuery;
-      function GetCol(SQL: WideString; Column: Integer=0): TWideStringList;
-      function GetVar(SQL: WideString; Column: Integer=0): WideString; overload;
-      function GetVar(SQL: WideString; Column: WideString): WideString; overload;
+      function Query(SQL: String; DoStoreResult: Boolean=False): PMYSQL_RES;
+      function EscapeString(Text: String; ProcessJokerChars: Boolean=False): String;
+      function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: WideChar): String;
+      function QuoteIdent(Identifier: String): String;
+      function DeQuoteIdent(Identifier: String): String;
+      function ConvertServerVersion(Version: Integer): String;
+      function GetResults(SQL: String): TMySQLQuery;
+      function GetCol(SQL: String; Column: Integer=0): TWideStringList;
+      function GetVar(SQL: String; Column: Integer=0): String; overload;
+      function GetVar(SQL: String; Column: String): String; overload;
       function Ping: Boolean;
-      function GetDBObjects(db: WideString; Refresh: Boolean=False): TDBObjectList;
-      function DbObjectsCached(db: WideString): Boolean;
-      procedure ClearDbObjects(db: WideString='');
+      function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList;
+      function DbObjectsCached(db: String): Boolean;
+      procedure ClearDbObjects(db: String='');
       property ThreadId: Cardinal read GetThreadId;
       property ConnectionUptime: Integer read GetConnectionUptime;
       property ServerUptime: Integer read GetServerUptime;
-      property CharacterSet: AnsiString read GetCharacterSet write SetCharacterSet;
-      property LastError: WideString read GetLastError;
-      property ServerVersionUntouched: AnsiString read FServerVersionUntouched;
-      property ServerVersionStr: AnsiString read GetServerVersionStr;
+      property CharacterSet: String read GetCharacterSet write SetCharacterSet;
+      property LastError: String read GetLastError;
+      property ServerVersionUntouched: String read FServerVersionUntouched;
+      property ServerVersionStr: String read GetServerVersionStr;
       property ServerVersionInt: Integer read GetServerVersionInt;
       property Capabilities: TMySQLServerCapabilities read FCapabilities;
       property RowsFound: Int64 read FRowsFound;
@@ -162,7 +162,7 @@ type
       property LastQueryNetworkDuration: Cardinal read FLastQueryNetworkDuration;
       property IsUnicode: Boolean read FIsUnicode;
       property TableEngines: TStringList read GetTableEngines;
-      property TableEngineDefault: AnsiString read FTableEngineDefault;
+      property TableEngineDefault: String read FTableEngineDefault;
       property CollationTable: TMySQLQuery read GetCollationTable;
       property CollationList: TStringList read GetCollationList;
       property CharsetTable: TMySQLQuery read GetCharsetTable;
@@ -170,14 +170,14 @@ type
       property InformationSchemaObjects: TWideStringlist read GetInformationSchemaObjects;
     published
       property Active: Boolean read FActive write SetActive default False;
-      property Hostname: AnsiString read FHostname write FHostname;
-      property Socketname: AnsiString read FSocketname write FSocketname;
+      property Hostname: String read FHostname write FHostname;
+      property Socketname: String read FSocketname write FSocketname;
       property Port: Integer read FPort write FPort default MYSQL_PORT;
-      property Username: AnsiString read FUsername write FUsername;
-      property Password: AnsiString read FPassword write FPassword;
-      property Database: WideString read FDatabase write SetDatabase;
+      property Username: String read FUsername write FUsername;
+      property Password: String read FPassword write FPassword;
+      property Database: String read FDatabase write SetDatabase;
       property Options: TMySQLClientOptions read FOptions write FOptions default [opCompress, opLocalFiles, opInteractive, opProtocol41];
-      property LogPrefix: WideString read FLogPrefix write FLogPrefix;
+      property LogPrefix: String read FLogPrefix write FLogPrefix;
       // Events
       property OnLog: TMySQLLogEvent read FOnLog write FOnLog;
       property OnDatabaseChanged: TMySQLDatabaseChangedEvent read FOnDatabaseChanged write FOnDatabaseChanged;
@@ -188,7 +188,7 @@ type
 
   TMySQLQuery = class(TComponent)
     private
-      FSQL: WideString;
+      FSQL: String;
       FConnection: TMySQLConnection;
       FRecNo,
       FRecordCount: Int64;
@@ -197,7 +197,7 @@ type
       FCurrentRow: PMYSQL_ROW;
       FEof: Boolean;
       FDatatypes: Array of TDatatype;
-      procedure SetSQL(Value: WideString);
+      procedure SetSQL(Value: String);
       procedure SetRecNo(Value: Int64);
     public
       constructor Create(AOwner: TComponent); override;
@@ -206,20 +206,21 @@ type
       procedure First;
       procedure Next;
       function ColumnCount: Integer;
-      function Col(Column: Integer; IgnoreErrors: Boolean=False): WideString; overload;
-      function Col(ColumnName: WideString; IgnoreErrors: Boolean=False): WideString; overload;
+      function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload;
+      function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
+      function ColAsAnsi(Column: Integer; IgnoreErrors: Boolean=False): AnsiString;
       function DataType(Column: Integer): TDataType;
-      function ColExists(Column: WideString): Boolean;
+      function ColExists(Column: String): Boolean;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean;
       function IsNull(Column: Integer): Boolean; overload;
-      function IsNull(Column: WideString): Boolean; overload;
+      function IsNull(Column: String): Boolean; overload;
       function HasResult: Boolean;
       property RecNo: Int64 read FRecNo write SetRecNo;
       property Eof: Boolean read FEof;
       property RecordCount: Int64 read FRecordCount;
       property ColumnNames: TWideStringList read FColumnNames;
     published
-      property SQL: WideString read FSQL write SetSQL;
+      property SQL: String read FSQL write SetSQL;
       property Connection: TMySQLConnection read FConnection write FConnection;
   end;
 
@@ -259,8 +260,8 @@ procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
   ClientFlags: Integer;
-  Error, tmpdb: WideString;
-  UsingPass, Protocol, CurCharset: AnsiString;
+  Error, tmpdb: String;
+  UsingPass, Protocol, CurCharset: String;
 begin
   FActive := Value;
 
@@ -299,12 +300,12 @@ begin
       ', using password: '+UsingPass+' ...');
     Connected := mysql_real_connect(
       FHandle,
-      PAnsiChar(FHostname),
-      PAnsiChar(FUsername),
-      PAnsiChar(FPassword),
+      PAnsiChar(Utf8Encode(FHostname)),
+      PAnsiChar(Utf8Encode(FUsername)),
+      PAnsiChar(Utf8Encode(FPassword)),
       nil,
       FPort,
-      PAnsiChar(FSocketname),
+      PAnsiChar(Utf8Encode(FSocketname)),
       ClientFlags
       );
     if Connected = nil then begin
@@ -322,7 +323,7 @@ begin
       FIsUnicode := CurCharset = 'utf8';
       FConnectionStarted := GetTickCount div 1000;
       FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), 1);
-      FServerVersionUntouched := mysql_get_server_info(FHandle);
+      FServerVersionUntouched := Utf8ToString(mysql_get_server_info(FHandle));
       DetectCapabilities;
       if FDatabase <> '' then begin
         tmpdb := FDatabase;
@@ -362,7 +363,7 @@ end;
 {**
    Executes a query
 }
-function TMySQLConnection.Query(SQL: WideString; DoStoreResult: Boolean=False): PMYSQL_RES;
+function TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False): PMYSQL_RES;
 var
   querystatus: Integer;
   NativeSQL: AnsiString;
@@ -418,7 +419,7 @@ end;
 {**
   Set "Database" property and select that db if connected
 }
-procedure TMySQLConnection.SetDatabase(Value: WideString);
+procedure TMySQLConnection.SetDatabase(Value: String);
 begin
   if Value <> FDatabase then begin
     if Value = '' then begin
@@ -443,30 +444,30 @@ end;
 {**
   Return currently used character set
 }
-function TMySQLConnection.GetCharacterSet: AnsiString;
+function TMySQLConnection.GetCharacterSet: String;
 begin
-  Result := mysql_character_set_name(FHandle);
+  Result := Utf8ToString(mysql_character_set_name(FHandle));
 end;
 
 
 {**
   Switch character set
 }
-procedure TMySQLConnection.SetCharacterSet(CharsetName: AnsiString);
+procedure TMySQLConnection.SetCharacterSet(CharsetName: String);
 begin
-  mysql_set_character_set(FHandle, PAnsiChar(CharsetName));
+  mysql_set_character_set(FHandle, PAnsiChar(Utf8Encode(CharsetName)));
 end;
 
 
 {**
   Return the last error nicely formatted
 }
-function TMySQLConnection.GetLastError: WideString;
+function TMySQLConnection.GetLastError: String;
 var
-  Msg, Additional: WideString;
+  Msg, Additional: String;
   rx: TRegExpr;
 begin
-  Msg := Utf8Decode(mysql_error(FHandle));
+  Msg := Utf8ToString(mysql_error(FHandle));
   // Find "(errno: 123)" in message and add more meaningful message from perror.exe
   rx := TRegExpr.Create;
   rx.Expression := '.+\(errno\:\s+(\d+)\)';
@@ -487,7 +488,7 @@ end;
 function TMySQLConnection.GetServerVersionInt: Integer;
 var
   i, dots: Byte;
-  v1, v2, v3: AnsiString;
+  v1, v2, v3: String;
 begin
   Result := -1;
 
@@ -501,7 +502,7 @@ begin
       // We expect exactly 2 dots.
       if dots > 2 then
         break;
-    end else if FServerVersionUntouched[i] in ['0'..'9'] then begin
+    end else if CharInSet(FServerVersionUntouched[i], ['0'..'9']) then begin
       if dots = 0 then
         v1 := v1 + FServerVersionUntouched[i]
       else if dots = 1 then
@@ -522,7 +523,7 @@ begin
 end;
 
 
-function TMySQLConnection.GetServerVersionStr: AnsiString;
+function TMySQLConnection.GetServerVersionStr: String;
 begin
   Result := ConvertServerVersion(ServerVersionInt);
 end;
@@ -531,9 +532,9 @@ end;
 {**
   Convert integer version to real version string
 }
-function TMySQLConnection.ConvertServerVersion(Version: Integer): AnsiString;
+function TMySQLConnection.ConvertServerVersion(Version: Integer): String;
 var
-  v : AnsiString;
+  v : String;
   v1, v2 : Byte;
 begin
   v := IntToStr( Version );
@@ -543,7 +544,7 @@ begin
 end;
 
 
-function TMySQLConnection.GetResults(SQL: WideString): TMySQLQuery;
+function TMySQLConnection.GetResults(SQL: String): TMySQLQuery;
 begin
   Result := TMySQLQuery.Create(Self);
   Result.Connection := Self;
@@ -560,7 +561,7 @@ end;
 {**
   Call log event if assigned to object
 }
-procedure TMySQLConnection.Log(Category: TMySQLLogCategory; Msg: WideString);
+procedure TMySQLConnection.Log(Category: TMySQLLogCategory; Msg: String);
 begin
   if Assigned(FOnLog) then
     FOnLog(FLogPrefix+Msg, Category);
@@ -579,7 +580,7 @@ end;
   @param boolean Escape text so it can be used in a LIKE-comparison
   @return string
 }
-function TMySQLConnection.EscapeString(Text: WideString; ProcessJokerChars: Boolean=false): WideString;
+function TMySQLConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false): String;
 var
   c1, c2, c3, c4, EscChar: WideChar;
 begin
@@ -615,7 +616,7 @@ end;
 {***
  Attempt to do string replacement faster than StringReplace and WideStringReplace.
 }
-function TMySQLConnection.escChars(const Text: WideString; EscChar, Char1, Char2, Char3, Char4: WideChar): WideString;
+function TMySQLConnection.escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: WideChar): String;
 const
   // Attempt to match whatever the CPU cache will hold.
   block: Cardinal = 65536;
@@ -667,14 +668,14 @@ end;
   Add backticks to identifier
   Todo: Support ANSI style
 }
-function TMySQLConnection.QuoteIdent(Identifier: WideString): WideString;
+function TMySQLConnection.QuoteIdent(Identifier: String): String;
 begin
   Result := WideStringReplace(Identifier, '`', '``', [rfReplaceAll]);
   Result := '`' + Result + '`';
 end;
 
 
-function TMySQLConnection.DeQuoteIdent(Identifier: WideString): WideString;
+function TMySQLConnection.DeQuoteIdent(Identifier: String): String;
 begin
   Result := Identifier;
   if (Result[1] = '`') and (Result[Length(Identifier)] = '`') then
@@ -718,7 +719,7 @@ begin
 end;
 
 
-function TMySQLConnection.GetCol(SQL: WideString; Column: Integer=0): TWideStringList;
+function TMySQLConnection.GetCol(SQL: String; Column: Integer=0): TWideStringList;
 var
   Results: TMySQLQuery;
 begin
@@ -735,7 +736,7 @@ end;
 {**
   Get single cell value via SQL query, identified by column number
 }
-function TMySQLConnection.GetVar(SQL: WideString; Column: Integer=0): WideString;
+function TMySQLConnection.GetVar(SQL: String; Column: Integer=0): String;
 var
   Results: TMySQLQuery;
 begin
@@ -751,7 +752,7 @@ end;
 {**
   Get single cell value via SQL query, identified by column name
 }
-function TMySQLConnection.GetVar(SQL: WideString; Column: WideString): WideString;
+function TMySQLConnection.GetVar(SQL: String; Column: String): String;
 var
   Results: TMySQLQuery;
 begin
@@ -767,7 +768,7 @@ end;
 function TMySQLConnection.GetTableEngines: TStringList;
 var
   ShowEngines, HaveEngines: TMySQLQuery;
-  engineName, engineSupport: AnsiString;
+  engineName, engineSupport: String;
   PossibleEngines: TStringList;
 begin
   if not Assigned(FTableEngines) then begin
@@ -903,7 +904,7 @@ begin
 end;
 
 
-procedure TMySQLConnection.ClearDbObjects(db: WideString='');
+procedure TMySQLConnection.ClearDbObjects(db: String='');
 var
   i: Integer;
 begin
@@ -924,14 +925,14 @@ begin
 end;
 
 
-function TMySQLConnection.DbObjectsCached(db: WideString): Boolean;
+function TMySQLConnection.DbObjectsCached(db: String): Boolean;
 begin
   // Check if a table list is stored in cache
   Result := Assigned(FDBObjectLists) and (FDBObjectLists.IndexOf(db) > -1);
 end;
 
 
-function TMySQLConnection.GetDbObjects(db: WideString; Refresh: Boolean=False): TDBObjectList;
+function TMySQLConnection.GetDbObjects(db: String; Refresh: Boolean=False): TDBObjectList;
 var
   obj: TDBObject;
   Results: TMySQLQuery;
@@ -1158,7 +1159,7 @@ begin
 end;
 
 
-procedure TMySQLQuery.SetSQL(Value: WideString);
+procedure TMySQLQuery.SetSQL(Value: String);
 begin
   FSQL := Value;
 end;
@@ -1177,7 +1178,7 @@ begin
     SetLength(FDatatypes, NumFields);
     for i:=0 to NumFields-1 do begin
       Field := mysql_fetch_field_direct(FLastResult, i);
-      FColumnNames.Add(Utf8Decode(Field.name));
+      FColumnNames.Add(Utf8ToString(Field.name));
 
       FDatatypes[i] := Datatypes[Low(Datatypes)];
       if (Field.flags and ENUM_FLAG) = ENUM_FLAG then
@@ -1240,32 +1241,23 @@ begin
 end;
 
 
-function TMySQLQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): WideString;
-var
-  LengthPointer: PLongInt;
-  BinLen: LongInt;
-  Bin: AnsiString;
+function TMySQLQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 begin
   if (Column > -1) and (Column < ColumnCount) then begin
-    if FDatatypes[Column].Category = dtcBinary then begin
-      LengthPointer := mysql_fetch_lengths(FLastResult);
-      if LengthPointer <> nil then begin
-        BinLen := PLongInt(LongInt(LengthPointer) + Column * SizeOf(LongInt))^;
-        SetString(Bin, FCurrentRow[Column], BinLen);
-        Result := WideString(Bin);
-      end;
-    end else begin
+    if FDatatypes[Column].Category = dtcBinary then
+      Raise Exception.CreateFmt('Column "%s" has binary collation. Please use ColAsAnsi() instead Col().', [FColumnNames[Column]])
+    else begin
       if Connection.IsUnicode then
-        Result := UTF8ToWideString(FCurrentRow[Column])
+        Result := UTF8ToString(FCurrentRow[Column])
       else
-        Result := FCurrentRow[Column];
+        Result := String(FCurrentRow[Column]);
     end;
   end else if not IgnoreErrors then
     Raise Exception.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
 end;
 
 
-function TMySQLQuery.Col(ColumnName: WideString; IgnoreErrors: Boolean=False): WideString;
+function TMySQLQuery.Col(ColumnName: String; IgnoreErrors: Boolean=False): String;
 var
   idx: Integer;
 begin
@@ -1277,13 +1269,33 @@ begin
 end;
 
 
+function TMySQLQuery.ColAsAnsi(Column: Integer; IgnoreErrors: Boolean=False): AnsiString;
+var
+  LengthPointer: PLongInt;
+  BinLen: LongInt;
+begin
+  // Return column value, explicitely as AnsiString. Should be used for binary columns.
+  if (Column > -1) and (Column < ColumnCount) then begin
+    if FDatatypes[Column].Category = dtcBinary then begin
+      LengthPointer := mysql_fetch_lengths(FLastResult);
+      if LengthPointer <> nil then begin
+        BinLen := PLongInt(LongInt(LengthPointer) + Column * SizeOf(LongInt))^;
+        SetString(Result, FCurrentRow[Column], BinLen);
+      end;
+    end else
+      Result := FCurrentRow[Column];
+  end else if not IgnoreErrors then
+    Raise Exception.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
+end;
+
+
 function TMySQLQuery.DataType(Column: Integer): TDataType;
 begin
   Result := FDatatypes[Column];
 end;
 
 
-function TMySQLQuery.ColExists(Column: WideString): Boolean;
+function TMySQLQuery.ColExists(Column: String): Boolean;
 begin
   Result := (ColumnNames <> nil) and (ColumnNames.IndexOf(Column) > -1);
 end;
@@ -1307,7 +1319,7 @@ begin
 end;
 
 
-function TMySQLQuery.IsNull(Column: WideString): Boolean;
+function TMySQLQuery.IsNull(Column: String): Boolean;
 begin
   Result := IsNull(FColumnNames.IndexOf(Column));
 end;

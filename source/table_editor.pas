@@ -181,10 +181,10 @@ type
     procedure ValidateIndexControls;
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
     procedure ResetModificationFlags;
-    function ComposeCreateStatement: WideString;
-    function ComposeAlterStatement: WideString;
-    function GetIndexSQL(idx: Integer): WideString;
-    function GetForeignKeySQL(idx: Integer): WideString;
+    function ComposeCreateStatement: String;
+    function ComposeAlterStatement: String;
+    function GetIndexSQL(idx: Integer): String;
+    function GetForeignKeySQL(idx: Integer): String;
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
     function GetIndexIcon(idx: Integer): Integer;
@@ -192,7 +192,7 @@ type
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); override;
+    procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
     procedure ApplyModifications; override;
   end;
 
@@ -247,9 +247,9 @@ begin
 end;
 
 
-procedure TfrmTableEditor.Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone);
+procedure TfrmTableEditor.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
 var
-  CreateTable, AttrName, AttrValue: WideString;
+  CreateTable, AttrName, AttrValue: String;
   rx: TRegExpr;
 begin
   inherited;
@@ -355,7 +355,7 @@ end;
 
 procedure TfrmTableEditor.ApplyModifications;
 var
-  sql: WideString;
+  sql: String;
   i: Integer;
   Specs: TWideStringlist;
   Key: TForeignKey;
@@ -447,10 +447,10 @@ begin
 end;
 
 
-function TfrmTableEditor.ComposeAlterStatement: WideString;
+function TfrmTableEditor.ComposeAlterStatement: String;
 var
   Specs: TWideStringlist;
-  ColSpec, OldColName, IndexSQL: WideString;
+  ColSpec, OldColName, IndexSQL: String;
   i: Integer;
   Results: TMySQLQuery;
   TblKey: TTableKey;
@@ -601,12 +601,12 @@ begin
 end;
 
 
-function TfrmTableEditor.ComposeCreateStatement: WideString;
+function TfrmTableEditor.ComposeCreateStatement: String;
 var
   i, IndexCount: Integer;
   Col: PTableColumn;
   Node: PVirtualNode;
-  tmp: WideString;
+  tmp: String;
 begin
   // Compose CREATE query, called by buttons and for SQL code tab
   Result := 'CREATE TABLE '+Mainform.mask(editName.Text)+' ('+CRLF;
@@ -677,7 +677,7 @@ begin
 end;
 
 
-function TfrmTableEditor.GetIndexSQL(idx: Integer): WideString;
+function TfrmTableEditor.GetIndexSQL(idx: Integer): String;
 var
   TblKey: TTableKey;
   i: Integer;
@@ -708,7 +708,7 @@ begin
 end;
 
 
-function TfrmTableEditor.GetForeignKeySQL(idx: Integer): WideString;
+function TfrmTableEditor.GetForeignKeySQL(idx: Integer): String;
 var
   Key: TForeignKey;
   i: Integer;
@@ -1275,7 +1275,7 @@ procedure TfrmTableEditor.menuAddIndexColumnClick(Sender: TObject);
 var
   Node: PVirtualNode;
   i, j: Integer;
-  NewCol, PartLength: WideString;
+  NewCol, PartLength: String;
   ColExists: Boolean;
   Column: TTableColumn;
   TblKey: TTableKey;
@@ -1486,7 +1486,7 @@ procedure TfrmTableEditor.treeIndexesEditing(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 var
   VT: TVirtualStringtree;
-  IndexedColName: WideString;
+  IndexedColName: String;
   Col: TTableColumn;
   i: Integer;
 begin
@@ -1617,7 +1617,7 @@ procedure TfrmTableEditor.treeIndexesDragDrop(Sender: TBaseVirtualTree;
   Shift: TShiftState; Pt: TPoint; var Effect: Integer; Mode: TDropMode);
 var
   Node: PVirtualNode;
-  ColName, PartLength: WideString;
+  ColName, PartLength: String;
   ColPos: Integer;
   VT, SourceVT: TVirtualStringtree;
   Col: PTableColumn;
@@ -1758,7 +1758,7 @@ var
   Item: TMenuItem;
   PrimaryKeyExists,
   ColumnsSelected: Boolean;
-  IndexName: WideString;
+  IndexName: String;
   Node: PVirtualNode;
   Col: PTableColumn;
   TblKey: TTableKey;
@@ -1810,7 +1810,7 @@ procedure TfrmTableEditor.AddIndexByColumn(Sender: TObject);
 var
   Item: TMenuItem;
   i: Integer;
-  NewType: WideString;
+  NewType: String;
   NewParts: TWideStringlist;
   TblKey: TTableKey;
 begin

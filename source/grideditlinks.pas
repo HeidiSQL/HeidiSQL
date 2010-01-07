@@ -38,7 +38,7 @@ type
     function BeginEdit: Boolean; virtual; stdcall;
     function CancelEdit: Boolean; virtual; stdcall;
     function EndEdit: Boolean; virtual; stdcall; abstract;
-    function EndEditHelper(NewText: WideString): Boolean;
+    function EndEditHelper(NewText: String): Boolean;
     function GetBounds: TRect; virtual; stdcall;     // Normally useless and unused
     procedure ProcessMessage(var Message: TMessage); stdcall;
     procedure SetBounds(R: TRect); virtual; stdcall; abstract;
@@ -142,7 +142,7 @@ type
     procedure TextChange(Sender: TObject);
   public
     DefaultType: TColumnDefaultType;
-    DefaultText: WideString;
+    DefaultText: String;
     constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
@@ -176,8 +176,8 @@ type
     procedure SetBounds(R: TRect); override;
   end;
 
-function GetColumnDefaultType(var Text: WideString): TColumnDefaultType;
-function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: WideString): WideString;
+function GetColumnDefaultType(var Text: String): TColumnDefaultType;
+function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: String): String;
 
 
 implementation
@@ -279,7 +279,7 @@ begin
   end;
 end;
 
-function TBaseGridEditorLink.EndEditHelper(NewText: WideString): Boolean;
+function TBaseGridEditorLink.EndEditHelper(NewText: String): Boolean;
 begin
   Result := not FStopping;
   if FStopping then Exit;
@@ -501,7 +501,7 @@ end;
 function TDateTimeEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
   MinColWidth: Integer;
-  CellText: WideString;
+  CellText: String;
 begin
   Result := inherited PrepareEdit(Tree, Node, Column);
   if not Result then
@@ -788,7 +788,7 @@ end;
 
 function TSetEditorLink.EndEdit: Boolean; stdcall;
 var
-  newtext: WideString;
+  newtext: String;
   i: Integer;
 begin
   Result := not FStopping;
@@ -908,7 +908,7 @@ end;
 
 function TInplaceEditorLink.EndEdit: Boolean;
 var
-  NewText: WideString;
+  NewText: String;
 begin
   Result := not FStopping;
   if FStopping then Exit;
@@ -1133,7 +1133,7 @@ end;
 
 function TColumnDefaultEditorLink.EndEdit: Boolean; stdcall;
 var
-  newText: WideString;
+  newText: String;
   newDefaultType: TColumnDefaultType;
 begin
   Result := not FStopping;
@@ -1190,14 +1190,14 @@ begin
 end;
 
 
-function GetColumnDefaultType(var Text: WideString): TColumnDefaultType;
+function GetColumnDefaultType(var Text: String): TColumnDefaultType;
 begin
   Result := TColumnDefaultType(MakeInt(Copy(Text, 1, 1)));
   Text := Copy(Text, 2, Length(Text)-1);
 end;
 
 
-function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: WideString): WideString;
+function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: String): String;
 begin
   case DefaultType of
     cdtNothing:        Result := '';
@@ -1381,7 +1381,7 @@ end;
 procedure TDataTypeEditorLink.DoTreeSelectHotChange(Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode);
 var
   R: TRect;
-  NodeText: WideString;
+  NodeText: String;
   bmp: TBitMap;
 begin
   // Display help box for hovered datatype

@@ -401,7 +401,7 @@ var
   u: TUser;
   OneSelected, Enable: Boolean;
   t: TNotifyEvent;
-  pname: WideString;
+  pname: String;
 begin
   lblWarning.Visible := False;
   uid := comboUsers.ItemIndex;
@@ -1267,7 +1267,7 @@ constructor TUsers.Create;
 var
   u: TUser;
   i: Integer;
-  user, host: WideString;
+  user, host: String;
 begin
   dsUser := Mainform.Connection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS) + ' ORDER BY '
     + Mainform.Mask('User')+', '
@@ -1711,7 +1711,7 @@ end;
 function TPrivilege.GetPrettyPrivNames: TWideStringList;
 var
   i: Integer;
-  p: WideString;
+  p: String;
 begin
   Result := TWideStringList.Create;
   for i := 0 to PrivNames.Count - 1 do begin

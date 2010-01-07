@@ -26,7 +26,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    function GetCreateStatement: WideString;
+    function GetCreateStatement: String;
   private
     { Private declarations }
     CollationTable: TMySQLQuery;
@@ -34,7 +34,7 @@ type
     currentCollation : String;
   public
     { Public declarations }
-    modifyDB : WideString;
+    modifyDB : String;
   end;
 
 
@@ -63,7 +63,7 @@ procedure TCreateDatabaseForm.FormShow(Sender: TObject);
 var
   selectCharset,
   currentCharset,
-  sql_create : WideString;
+  sql_create : String;
   Charset: String;
   colpos: Integer;
 begin
@@ -101,14 +101,14 @@ begin
     
     // Detect current charset and collation to be able to preselect them in the pulldowns
     sql_create := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+Mainform.mask(modifyDB), 1);
-    currentCharset := Copy( sql_create, pos(WideString('CHARACTER SET'), sql_create)+14, Length(sql_create));
+    currentCharset := Copy( sql_create, pos('CHARACTER SET', sql_create)+14, Length(sql_create));
     currentCharset := GetFirstWord( currentCharset );
     if currentCharset <> '' then
       selectCharset := currentCharset
     else
       selectCharset := defaultCharset;
     currentCollation := '';
-    colpos := pos(WideString('COLLATE'), sql_create);
+    colpos := pos('COLLATE', sql_create);
     if colpos > 0 then begin
       currentCollation := Copy( sql_create, colpos+8, Length(sql_create));
       currentCollation := GetFirstWord( currentCollation );
@@ -203,7 +203,7 @@ end;
 }
 procedure TCreateDatabaseForm.btnOKClick(Sender: TObject);
 var
-  sql : WideString;
+  sql : String;
   AllDatabases, Unions, ObjectsLeft: TWideStringList;
   ObjectsInNewDb, ObjectsInOldDb: TDBObjectList;
   i, j: Integer;
@@ -315,7 +315,7 @@ end;
 {**
   Generate CREATE DATABASE statement, used for preview and execution
 }
-function TCreateDatabaseForm.GetCreateStatement: WideString;
+function TCreateDatabaseForm.GetCreateStatement: String;
 begin
   Result := 'CREATE DATABASE ' + Mainform.mask( editDBName.Text );
   if comboCharset.Enabled and (comboCharset.Text <> '') then

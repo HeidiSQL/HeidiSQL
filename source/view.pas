@@ -29,7 +29,7 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
-    procedure Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone); override;
+    procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
     procedure ApplyModifications; override;
   end;
 
@@ -56,10 +56,10 @@ end;
 {**
   FormShow: Fill controls with content in edit mode
 }
-procedure TfrmView.Init(ObjectName: WideString=''; ObjectType: TListNodeType=lntNone);
+procedure TfrmView.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
 var
   Results: TMySQLQuery;
-  db: WideString;
+  db: String;
   rx: TRegExpr;
 begin
   inherited;

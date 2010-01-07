@@ -66,14 +66,14 @@ procedure TRunSQLFileForm.FormActivate(Sender: TObject);
 var
   Stream              : TFileStream;
   FileCharset         : TFileCharset;
-  lines               : WideString;
+  lines               : String;
   filesize,
   querycount,
   rowsaffected        : Int64;
   starttime           : Cardinal;
   SQL                 : TWideStringList;
   i                   : Integer;
-  lines_remaining     : WideString;
+  lines_remaining     : String;
 begin
   if Running then
     abort;
