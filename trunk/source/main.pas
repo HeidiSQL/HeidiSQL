@@ -8637,7 +8637,7 @@ begin
   pnlFilterVT.Visible := MakeVisible;
   pnlFilterVT.Tag := Integer(MakeVisible);
   // On startup, we cannot SetFocus, throws exceptons. Call with nil in that special case - see FormCreate
-  if Assigned(Sender) and MakeVisible then
+  if Assigned(Sender) and MakeVisible and editFilterVT.CanFocus then
     editFilterVT.SetFocus;
 end;
 
