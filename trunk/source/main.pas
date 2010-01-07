@@ -2114,6 +2114,9 @@ begin
   end else if IsBinary and (Copy(Header, 1, 2) = 'BM') then begin
     SaveBinary := true;
     filename := filename + 'bmp';
+  end else if IsBinary and (Copy(Header, 3, 2) = #42#0) then begin
+    SaveBinary := true;
+    filename := filename + 'tif';
   end;
 
   if not IsBinary then begin
