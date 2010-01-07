@@ -388,9 +388,9 @@ begin
           //
           // TODO: Indicate this character set on the GUI.
           //
-          SetLength(readBuf, ChunkSize div SizeOf(Char));
+          SetLength(readBuf, ChunkSize);
           bytesRead := FileStream.Read(PAnsiChar(readBuf)^, ChunkSize);
-          SetLength(readBuf, bytesRead div SizeOf(Char));
+          SetLength(readBuf, bytesRead);
           data := data + BinToWideHex(readBuf);
         end;
       finally
