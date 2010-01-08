@@ -146,7 +146,6 @@ object frmTriggerEditor: TfrmTriggerEditor
     Columns = <
       item
         BiggestWord = 'CONSTRUCTOR'
-        BiggestWordW = 'CONSTRUCTOR'
       end>
     Images = MainForm.PngImageListMain
     OnExecute = SynCompletionProposalStatementExecute
@@ -154,7 +153,5 @@ object frmTriggerEditor: TfrmTriggerEditor
     Editor = SynMemoStatement
     Left = 264
     Top = 304
-    EndOfTokenChrW = '()[]. '
-    TriggerCharsW = '.'
   end
 end
