@@ -11,7 +11,7 @@ interface
 uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi, CheckLst,
   Windows, Contnrs, ShlObj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
-  Registry, SynEditHighlighter, DateUtils,
+  Registry, SynEditHighlighter, DateUtils, Generics.Collections,
   mysql_connection, mysql_structures;
 
 type
@@ -109,6 +109,7 @@ type
       property Status: TEditingStatus read FStatus write SetStatus;
   end;
   PTableColumn = ^TTableColumn;
+  TTableColumnList = TObjectList<TTableColumn>;
 
   TTableKey = class(TObject)
     Name, OldName: String;
@@ -119,6 +120,7 @@ type
     destructor Destroy; override;
     procedure Modification(Sender: TObject);
   end;
+  TTableKeyList = TObjectList<TTableKey>;
 
   // Helper object to manage foreign keys in a TObjectList
   TForeignKey = class(TObject)
@@ -128,6 +130,7 @@ type
     constructor Create;
     destructor Destroy; override;
   end;
+  TForeignKeyList = TObjectList<TForeignKey>;
 
   TDBObjectEditor = class(TFrame)
     private
@@ -227,8 +230,8 @@ type
   function DateBackFriendlyCaption(d: TDateTime): String;
   procedure InheritFont(AFont: TFont);
   function GetLightness(AColor: TColor): Byte;
-  procedure ParseTableStructure(CreateTable: String; Columns: TObjectList=nil; Keys: TObjectList=nil; ForeignKeys: TObjectList=nil);
-  procedure ParseViewStructure(ViewName: String; Columns: TObjectList);
+  procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
+  procedure ParseViewStructure(ViewName: String; Columns: TTableColumnList);
   function ReformatSQL(SQL: String): String;
 
 var
@@ -2774,7 +2777,7 @@ begin
 end;
 
 
-procedure ParseTableStructure(CreateTable: String; Columns: TObjectList=nil; Keys: TObjectList=nil; ForeignKeys: TObjectList=nil);
+procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
 var
   ColSpec: String;
   rx, rxCol: TRegExpr;
@@ -2964,7 +2967,7 @@ begin
 end;
 
 
-procedure ParseViewStructure(ViewName: String; Columns: TObjectList);
+procedure ParseViewStructure(ViewName: String; Columns: TTableColumnList);
 var
   rx: TRegExpr;
   Col: TTableColumn;
