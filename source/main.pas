@@ -720,9 +720,9 @@ type
     EditVariableForm           : TfrmEditVariable;
     FileNameSessionLog         : String;
     FileHandleSessionLog       : Textfile;
-    SelectedTableColumns,
-    SelectedTableKeys,
-    SelectedTableForeignKeys   : TObjectList;
+    SelectedTableColumns       : TTableColumnList;
+    SelectedTableKeys          : TTableKeyList;
+    SelectedTableForeignKeys   : TForeignKeyList;
     FilterPanelManuallyOpened  : Boolean;
     DataGridDB, DataGridTable  : String;
     PrevTableColWidths         : TWideStringList;
@@ -1343,9 +1343,9 @@ begin
     actFilterPanelExecute(nil);
   lblFilterVTInfo.Caption := '';
 
-  SelectedTableColumns := TObjectList.Create;
-  SelectedTableKeys := TObjectList.Create;
-  SelectedTableForeignKeys := TObjectList.Create;
+  SelectedTableColumns := TTableColumnList.Create;
+  SelectedTableKeys := TTableKeyList.Create;
+  SelectedTableForeignKeys := TForeignKeyList.Create;
 end;
 
 

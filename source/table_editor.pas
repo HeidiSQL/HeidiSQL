@@ -175,7 +175,9 @@ type
     { Private declarations }
     FLoaded: Boolean;
     CreateCodeValid, AlterCodeValid: Boolean;
-    FColumns, FKeys, FForeignKeys: TObjectList;
+    FColumns: TTableColumnList;
+    FKeys: TTableKeyList;
+    FForeignKeys: TForeignKeyList;
     DeletedKeys, DeletedForeignKeys: TWideStringList;
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
@@ -226,9 +228,9 @@ begin
   Mainform.RestoreListSetup(listForeignKeys);
   comboRowFormat.Items.CommaText := 'DEFAULT,DYNAMIC,FIXED,COMPRESSED,REDUNDANT,COMPACT';
   comboInsertMethod.Items.CommaText := 'NO,FIRST,LAST';
-  FColumns := TObjectList.Create;
-  FKeys := TObjectList.Create;
-  FForeignKeys := TObjectList.Create;
+  FColumns := TTableColumnList.Create;
+  FKeys := TTableKeyList.Create;
+  FForeignKeys := TForeignKeyList.Create;
   DeletedKeys := TWideStringList.Create;
   DeletedForeignKeys := TWideStringList.Create;
   editName.MaxLength := NAME_LEN;
@@ -358,8 +360,6 @@ var
   sql: String;
   i: Integer;
   Specs: TWideStringlist;
-  Key: TForeignKey;
-  Col: TTableColumn;
 begin
   // Create or alter table
   Specs := TWideStringList.Create;
@@ -373,9 +373,8 @@ begin
     //   "You cannot add a foreign key and drop a foreign key in separate clauses of a single
     //   ALTER TABLE  statement. Separate statements are required."
     for i:=0 to FForeignKeys.Count-1 do begin
-      Key := FForeignKeys[i] as TForeignKey;
-      if Key.Modified and (not Key.Added) then
-        Specs.Add('DROP FOREIGN KEY '+Mainform.mask(Key.KeyName));
+      if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
+        Specs.Add('DROP FOREIGN KEY '+Mainform.mask(FForeignKeys[i].KeyName));
     end;
   end;
   try
@@ -386,9 +385,8 @@ begin
     if chkCharsetConvert.Checked then begin
       // Autoadjust column collations
       for i:=0 to FColumns.Count-1 do begin
-        Col := FColumns[i] as TTableColumn;
-        if Col.Collation <> '' then
-          Col.Collation := comboCollation.Text;
+        if FColumns[i].Collation <> '' then
+          FColumns[i].Collation := comboCollation.Text;
       end;
     end;
     // Set table name for altering if Apply was clicked
@@ -408,9 +406,6 @@ end;
 procedure TfrmTableEditor.ResetModificationFlags;
 var
   i: Integer;
-  Col: TTableColumn;
-  TblKey: TTableKey;
-  ForeignKey: TForeignKey;
 begin
   // Enable converting data for an existing table
   chkCharsetConvertClick(comboCollation);
@@ -421,25 +416,22 @@ begin
     Components[i].Tag := NotModifiedFlag;
   // Reset column changes
   for i:=FColumns.Count-1 downto 0 do begin
-    Col := FColumns[i] as TTableColumn;
-    if Col.Status = esDeleted then
+    if FColumns[i].Status = esDeleted then
       FColumns.Delete(i)
     else begin
-      Col.Status := esUntouched;
-      Col.OldName := '';
+      FColumns[i].Status := esUntouched;
+      FColumns[i].OldName := '';
     end;
   end;
   DeletedKeys.Clear;
   for i:=0 to FKeys.Count-1 do begin
-    TblKey := FKeys[i] as TTableKey;
-    TblKey.Added := False;
-    TblKey.Modified := False;
+    FKeys[i].Added := False;
+    FKeys[i].Modified := False;
   end;
   DeletedForeignKeys.Clear;
   for i:=0 to FForeignKeys.Count-1 do begin
-    ForeignKey := FForeignKeys[i] as TForeignKey;
-    ForeignKey.Added := False;
-    ForeignKey.Modified := False;
+    FForeignKeys[i].Added := False;
+    FForeignKeys[i].Modified := False;
   end;
   Modified := False;
   btnSave.Enabled := Modified;
@@ -453,10 +445,7 @@ var
   ColSpec, OldColName, IndexSQL: String;
   i: Integer;
   Results: TMySQLQuery;
-  TblKey: TTableKey;
-  ForeignKey: TForeignKey;
   Col, PreviousCol: PTableColumn;
-  ColObj: TTableColumn;
   Node: PVirtualNode;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
@@ -551,11 +540,10 @@ begin
 
   // Deleted columns, not available as Node in above loop
   for i:=0 to FColumns.Count-1 do begin
-    ColObj := FColumns[i] as TTableColumn;
-    if ColObj.Status = esDeleted then begin
-      OldColName := ColObj.OldName;
+    if FColumns[i].Status = esDeleted then begin
+      OldColName := FColumns[i].OldName;
       if OldColName = '' then
-        OldColName := ColObj.Name;
+        OldColName := FColumns[i].Name;
       Specs.Add('DROP COLUMN '+Mainform.mask(OldColName));
     end;
   end;
@@ -572,23 +560,21 @@ begin
   // Add changed or added indexes
   for i:=0 to FKeys.Count-1 do begin
     Mainform.ProgressBarStatus.StepIt;
-    TblKey := FKeys[i] as TTableKey;
-    if TblKey.Modified and (not TblKey.Added) then begin
-      if TblKey.IndexType = PKEY then
+    if FKeys[i].Modified and (not FKeys[i].Added) then begin
+      if FKeys[i].IndexType = PKEY then
         IndexSQL := 'PRIMARY KEY'
       else
-        IndexSQL := 'INDEX ' + Mainform.Mask(TblKey.OldName);
+        IndexSQL := 'INDEX ' + Mainform.Mask(FKeys[i].OldName);
       Specs.Add('DROP '+IndexSQL);
     end;
-    if TblKey.Added or TblKey.Modified then
+    if FKeys[i].Added or FKeys[i].Modified then
       Specs.Add('ADD '+GetIndexSQL(i));
   end;
 
   for i:=0 to DeletedForeignKeys.Count-1 do
     Specs.Add('DROP FOREIGN KEY '+Mainform.mask(DeletedForeignKeys[i]));
   for i:=0 to FForeignKeys.Count-1 do begin
-    ForeignKey := FForeignKeys[i] as TForeignKey;
-    if ForeignKey.Added or ForeignKey.Modified then
+    if FForeignKeys[i].Added or FForeignKeys[i].Modified then
       Specs.Add('ADD '+GetForeignKeySQL(i));
   end;
 
@@ -679,29 +665,27 @@ end;
 
 function TfrmTableEditor.GetIndexSQL(idx: Integer): String;
 var
-  TblKey: TTableKey;
   i: Integer;
 begin
   Result := '';
-  TblKey := FKeys[idx] as TTableKey;
   // Supress SQL error  trying index creation with 0 column
-  if TblKey.Columns.Count = 0 then
+  if FKeys[idx].Columns.Count = 0 then
     Exit;
-  if TblKey.IndexType = PKEY then
+  if FKeys[idx].IndexType = PKEY then
     Result := Result + 'PRIMARY KEY '
   else begin
-    if TblKey.IndexType <> KEY then
-      Result := Result + TblKey.IndexType + ' ';
-    Result := Result + 'INDEX ' + Mainform.Mask(TblKey.Name) + ' ';
+    if FKeys[idx].IndexType <> KEY then
+      Result := Result + FKeys[idx].IndexType + ' ';
+    Result := Result + 'INDEX ' + Mainform.Mask(FKeys[idx].Name) + ' ';
   end;
   Result := Result + '(';
-  for i:=0 to TblKey.Columns.Count-1 do begin
-    Result := Result + Mainform.Mask(TblKey.Columns[i]);
-    if TblKey.SubParts[i] <> '' then
-      Result := Result + '(' + TblKey.SubParts[i] + ')';
+  for i:=0 to FKeys[idx].Columns.Count-1 do begin
+    Result := Result + Mainform.Mask(FKeys[idx].Columns[i]);
+    if FKeys[idx].SubParts[i] <> '' then
+      Result := Result + '(' + FKeys[idx].SubParts[i] + ')';
     Result := Result + ', ';
   end;
-  if TblKey.Columns.Count > 0 then
+  if FKeys[idx].Columns.Count > 0 then
     Delete(Result, Length(Result)-1, 2);
 
   Result := Result + ')';
@@ -713,7 +697,7 @@ var
   Key: TForeignKey;
   i: Integer;
 begin
-  Key := FForeignKeys[idx] as TForeignKey;
+  Key := FForeignKeys[idx];
   Result := 'CONSTRAINT '+Mainform.mask(Key.KeyName)+' FOREIGN KEY (';
   for i:=0 to Key.Columns.Count-1 do
     Result := Result + Mainform.mask(Key.Columns[i]) + ', ';
@@ -1026,7 +1010,7 @@ var
 begin
   // Bind data to node
   Col := Sender.GetNodeData(Node);
-  Col^ := FColumns[Node.Index] as TTableColumn;
+  Col^ := FColumns[Node.Index];
 end;
 
 
@@ -1036,15 +1020,13 @@ procedure TfrmTableEditor.listColumnsGetImageIndex(Sender: TBaseVirtualTree;
 var
   i: Integer;
   Col: PTableColumn;
-  TblKey: TTableKey;
 begin
   // Primary key icon
   if Column <> 0 then Exit;
   Col := Sender.GetNodeData(Node);
 
   for i:=0 to FKeys.Count-1 do begin
-    TblKey := FKeys[i] as TTableKey;
-    if TblKey.Columns.IndexOf(Col.Name) > -1 then
+    if FKeys[i].Columns.IndexOf(Col.Name) > -1 then
       ImageIndex := GetIndexIcon(i);
     // Priority for PK columns. We cannot display more than one icon anyway.
     if ImageIndex > -1 then
@@ -1066,13 +1048,11 @@ var
   TextColor: TColor;
   i: Integer;
   Col: PTableColumn;
-  TblKey: TTableKey;
 begin
   Col := Sender.GetNodeData(Node);
   // Bold font for primary key columns
   for i:=0 to FKeys.Count-1 do begin
-    TblKey := FKeys[i] as TTableKey;
-    if (TblKey.IndexType = PKEY) and (TblKey.Columns.IndexOf(Col.Name) > -1) then begin
+    if (FKeys[i].IndexType = PKEY) and (FKeys[i].Columns.IndexOf(Col.Name) > -1) then begin
       TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
       break;
     end;
@@ -1291,13 +1271,13 @@ begin
     Exit;
   if treeIndexes.GetNodeLevel(Node) = 1 then
     Node := Node.Parent;
-  TblKey := FKeys[Node.Index] as TTableKey;
+  TblKey := FKeys[Node.Index];
   // Find the first unused column for that index as default
   ColExists := False;
   NewCol := '';
   PartLength := '';
   for i:=0 to FColumns.Count-1 do begin
-    Column := FColumns[i] as TTableColumn;
+    Column := FColumns[i];
     if Column.Status = esDeleted then
       Continue;
     for j:=0 to TblKey.Columns.Count - 1 do begin
@@ -1325,22 +1305,19 @@ procedure TfrmTableEditor.btnRemoveIndexClick(Sender: TObject);
 var
   idx: Integer;
   NewSelectNode: PVirtualNode;
-  TblKey: TTableKey;
 begin
   // Remove index or part
   case treeIndexes.GetNodeLevel(treeIndexes.FocusedNode) of
     0: begin
       idx := treeIndexes.FocusedNode.Index;
-      TblKey := FKeys[idx] as TTableKey;
-      if not TblKey.Added then
-        DeletedKeys.Add(TblKey.OldName);
+      if not FKeys[idx].Added then
+        DeletedKeys.Add(FKeys[idx].OldName);
       FKeys.Delete(idx);
     end;
     1: begin
       idx := treeIndexes.FocusedNode.Parent.Index;
-      TblKey := FKeys[idx] as TTableKey;
-      TblKey.Columns.Delete(treeIndexes.FocusedNode.Index);
-      TblKey.SubParts.Delete(treeIndexes.FocusedNode.Index);
+      FKeys[idx].Columns.Delete(treeIndexes.FocusedNode.Index);
+      FKeys[idx].SubParts.Delete(treeIndexes.FocusedNode.Index);
       treeIndexes.DeleteNode(treeIndexes.FocusedNode);
     end;
   end;
@@ -1402,7 +1379,7 @@ begin
   // Index tree showing cell text
   case Sender.GetNodeLevel(Node) of
     0: begin
-      TblKey := FKeys[Node.Index] as TTableKey;
+      TblKey := FKeys[Node.Index];
       case Column of
         0: if TblKey.IndexType = PKEY then
              CellText := TblKey.IndexType + ' KEY' // Fixed name "PRIMARY KEY", cannot be changed
@@ -1412,7 +1389,7 @@ begin
       end;
     end;
     1: begin
-      TblKey := FKeys[Node.Parent.Index] as TTableKey;
+      TblKey := FKeys[Node.Parent.Index];
       case Column of
         0: CellText := TblKey.Columns[Node.Index];
         1: CellText := TblKey.SubParts[Node.Index];
@@ -1424,12 +1401,9 @@ end;
 
 procedure TfrmTableEditor.treeIndexesInitChildren(Sender: TBaseVirtualTree;
   Node: PVirtualNode; var ChildCount: Cardinal);
-var
-  TblKey: TTableKey;
 begin
   // Tell number of columns contained in index
-  TblKey := FKeys[Node.Index] as TTableKey;
-  ChildCount := TblKey.Columns.Count;
+  ChildCount := FKeys[Node.Index].Columns.Count;
 end;
 
 
@@ -1492,7 +1466,6 @@ procedure TfrmTableEditor.treeIndexesEditing(Sender: TBaseVirtualTree;
 var
   VT: TVirtualStringtree;
   IndexedColName: String;
-  Col: TTableColumn;
   i: Integer;
 begin
   VT := Sender as TVirtualStringtree;
@@ -1505,9 +1478,8 @@ begin
     // Column length is allowed for (var)char/text types only, even mandantory for text and blobs
     IndexedColName := VT.Text[Node, 0];
     for i:=0 to FColumns.Count-1 do begin
-      Col := FColumns[i] as TTableColumn;
-      if Col.Name = IndexedColName then begin
-        Allowed := Col.DataType.Category = dtcText;
+      if FColumns[i].Name = IndexedColName then begin
+        Allowed := FColumns[i].DataType.Category = dtcText;
         break;
       end;
     end;
@@ -1560,7 +1532,7 @@ begin
   VT := Sender as TVirtualStringtree;
   case VT.GetNodeLevel(Node) of
     0: begin
-       TblKey := FKeys[Node.Index] as TTableKey;
+       TblKey := FKeys[Node.Index];
        case Column of
          0: TblKey.Name := NewText;
          1: TblKey.IndexType := NewText;
@@ -1569,7 +1541,7 @@ begin
        TblKey.Modification(Sender);
     end;
     1: begin
-       TblKey := FKeys[Node.Parent.Index] as TTableKey;
+       TblKey := FKeys[Node.Parent.Index];
        case Column of
          0: begin
            // Detect input of "col(123)" and move "123" into subpart
@@ -1646,7 +1618,7 @@ begin
   if Source = Sender then
     MoveFocusedIndexPart(ColPos)
   else begin
-    TblKey := FKeys[Node.Index] as TTableKey;
+    TblKey := FKeys[Node.Index];
     Col := SourceVT.GetNodeData(SourceVT.FocusedNode);
     ColName := Col.Name;
     if TblKey.Columns.IndexOf(ColName) > -1 then begin
@@ -1689,7 +1661,7 @@ begin
   // Move focused index or index part
   if treeIndexes.IsEditing then
     treeIndexes.EndEditNode;
-  TblKey := FKeys[treeIndexes.FocusedNode.Parent.Index] as TTableKey;
+  TblKey := FKeys[treeIndexes.FocusedNode.Parent.Index];
   TblKey.Columns.Move(treeIndexes.FocusedNode.Index, NewIdx);
   TblKey.SubParts.Move(treeIndexes.FocusedNode.Index, NewIdx);
   Modification(treeIndexes);
@@ -1766,7 +1738,6 @@ var
   IndexName: String;
   Node: PVirtualNode;
   Col: PTableColumn;
-  TblKey: TTableKey;
 begin
   ColumnsSelected := ListColumns.SelectedCount > 0;
   menuAddToIndex.Clear;
@@ -1779,12 +1750,11 @@ begin
   // Auto create submenu items for "Add to index" ...
   PrimaryKeyExists := False;
   for i:=0 to FKeys.Count-1 do begin
-    TblKey := FKeys[i] as TTableKey;
-    if TblKey.IndexType = PKEY then begin
+    if FKeys[i].IndexType = PKEY then begin
       PrimaryKeyExists := True;
-      IndexName := TblKey.Name;
+      IndexName := FKeys[i].Name;
     end else
-      IndexName := TblKey.Name + ' ('+TblKey.IndexType+')';
+      IndexName := FKeys[i].Name + ' ('+FKeys[i].IndexType+')';
     Item := AddItem(menuAddToIndex, IndexName, GetIndexIcon(i));
     // Disable menuitem if all selected columns are already part of this index,
     // enable it if one or more selected columns are not.
@@ -1792,7 +1762,7 @@ begin
     Node := listColumns.GetFirstSelected;
     while Assigned(Node) do begin
       Col := listColumns.GetNodeData(Node);
-      if TblKey.Columns.IndexOf(Col.Name) = -1 then begin
+      if FKeys[i].Columns.IndexOf(Col.Name) = -1 then begin
         Item.Enabled := True;
         Break;
       end;
@@ -1827,7 +1797,7 @@ begin
     NewType := StringReplace(Item.Caption, '&', '', [rfReplaceAll]);
     // Avoid creating a second key with the same columns
     for i:=0 to FKeys.Count-1 do begin
-      TblKey := FKeys[i] as TTableKey;
+      TblKey := FKeys[i];
       if (TblKey.IndexType = NewType) and (TblKey.Columns.Text = NewParts.Text) then begin
         if MessageDlg('Key already exists. Really create another identical one?'+CRLF+CRLF+
           'This will increase disk usage and probably slow down queries on this table.',
@@ -1850,7 +1820,7 @@ begin
     SelectNode(treeIndexes, 0, treeIndexes.FocusedNode);
   end else begin
     PageControlMain.ActivePage := tabIndexes;
-    TblKey := FKeys[Item.MenuIndex] as TTableKey;
+    TblKey := FKeys[Item.MenuIndex];
     for i:=0 to NewParts.Count-1 do begin
       if TblKey.Columns.IndexOf(NewParts[i]) = -1 then begin
         TblKey.Columns.Add(NewParts[i]);
@@ -1866,16 +1836,13 @@ end;
 
 
 function TfrmTableEditor.GetIndexIcon(idx: Integer): Integer;
-var
-  TblKey: TTableKey;
 begin
   // Detect key icon index for specified index
-  TblKey := FKeys[idx] as TTableKey;
-  if TblKey.IndexType = PKEY then Result := ICONINDEX_PRIMARYKEY
-  else if TblKey.IndexType = KEY then Result := ICONINDEX_INDEXKEY
-  else if TblKey.IndexType = UKEY then Result := ICONINDEX_UNIQUEKEY
-  else if TblKey.IndexType = FKEY then Result := ICONINDEX_FULLTEXTKEY
-  else if TblKey.IndexType = SKEY then Result := ICONINDEX_SPATIALKEY
+  if FKeys[idx].IndexType = PKEY then Result := ICONINDEX_PRIMARYKEY
+  else if FKeys[idx].IndexType = KEY then Result := ICONINDEX_INDEXKEY
+  else if FKeys[idx].IndexType = UKEY then Result := ICONINDEX_UNIQUEKEY
+  else if FKeys[idx].IndexType = FKEY then Result := ICONINDEX_FULLTEXTKEY
+  else if FKeys[idx].IndexType = SKEY then Result := ICONINDEX_SPATIALKEY
   else Result := -1;
 end;
 
@@ -1904,7 +1871,7 @@ var
   Key: TForeignKey;
 begin
   // Remove a foreign key
-  Key := FForeignKeys[listForeignKeys.FocusedNode.Index] as TForeignKey;
+  Key := FForeignKeys[listForeignKeys.FocusedNode.Index];
   if not Key.Added then
     DeletedForeignKeys.Add(Key.KeyName);
   FForeignKeys.Delete(listForeignKeys.FocusedNode.Index);
@@ -1916,13 +1883,11 @@ end;
 procedure TfrmTableEditor.btnClearForeignKeysClick(Sender: TObject);
 var
   i: Integer;
-  Key: TForeignKey;
 begin
   // Clear all foreign keys
   for i:=FForeignKeys.Count-1 downto 0 do begin
-    Key := FForeignKeys[i] as TForeignKey;
-    if not Key.Added then
-      DeletedForeignKeys.Add(Key.KeyName);
+    if not FForeignKeys[i].Added then
+      DeletedForeignKeys.Add(FForeignKeys[i].KeyName);
     FForeignKeys.Delete(i);
   end;
   Modification(Sender);
@@ -1949,7 +1914,7 @@ begin
   // Disallow editing foreign columns when no reference table was selected.
   // Also, check for existance of reference table and warn if it's missing.
   if Column = 3 then begin
-    Key := FForeignKeys[Node.Index] as TForeignKey;
+    Key := FForeignKeys[Node.Index];
     Allowed := False;
     if Key.ReferenceTable = '' then
       MessageDlg('Please select a reference table before selecting foreign columns.', mtError, [mbOk], 0)
@@ -2003,7 +1968,7 @@ begin
         EditLink := EnumEditor;
       end;
     3: begin
-        Key := FForeignKeys[Node.Index] as TForeignKey;
+        Key := FForeignKeys[Node.Index];
         SetEditor := TSetEditorLink.Create(VT);
         SetEditor.ValueList := Mainform.Connection.GetCol('SHOW COLUMNS FROM '+Mainform.MaskMulti(Key.ReferenceTable));
         EditLink := SetEditor;
@@ -2044,7 +2009,7 @@ var
   Key: TForeignKey;
 begin
   // Return cell text in foreign key list
-  Key := FForeignKeys[Node.Index] as TForeignKey;
+  Key := FForeignKeys[Node.Index];
   case Column of
     0: CellText := Key.KeyName;
     1: CellText := ImplodeStr(',', Key.Columns);
@@ -2071,7 +2036,7 @@ var
   Key: TForeignKey;
 begin
   // Cell text in foreign key list edited
-  Key := FForeignKeys[Node.Index] as TForeignKey;
+  Key := FForeignKeys[Node.Index];
   Key.Modified := True;
   Modification(Sender);
   case Column of

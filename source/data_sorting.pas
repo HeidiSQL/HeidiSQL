@@ -35,7 +35,7 @@ type
     procedure Modified;
   public
     { Public declarations }
-    Columns: TObjectList;
+    FColumns: TTableColumnList;
   end;
 
 
@@ -55,7 +55,7 @@ procedure TDataSortingForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
   ColumnNames := TWideStringlist.Create;
-  Columns := TObjectList.Create;
+  FColumns := TTableColumnList.Create;
 end;
 
 
@@ -64,16 +64,17 @@ end;
 }
 procedure TDataSortingForm.FormShow(Sender: TObject);
 var
-  Col: TTableColumn;
   i: Integer;
+  KeysDummy: TTableKeyList;
+  ForeignKeysDummy: TForeignKeyList;
 begin
   // Take column names from listColumns and add here
-  ParseTableStructure(Mainform.SelectedTableCreateStatement, Columns);
+  KeysDummy := nil;
+  ForeignKeysDummy := nil;
+  ParseTableStructure(Mainform.SelectedTableCreateStatement, FColumns, KeysDummy, ForeignKeysDummy);
   ColumnNames.Clear;
-  for i:=0 to Columns.Count-1 do begin
-    Col := TTableColumn(Columns[i]);
-    ColumnNames.Add(Col.Name);
-  end;
+  for i:=0 to FColumns.Count-1 do
+    ColumnNames.Add(FColumns[i].Name);
 
   OrderColumns := Mainform.FDataGridSort;
   OldOrderClause := ComposeOrderClause(OrderColumns);

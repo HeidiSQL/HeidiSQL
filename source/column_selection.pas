@@ -3,7 +3,8 @@ unit column_selection;
 interface
 
 uses
-  Windows, Classes, Controls, Forms, StdCtrls, CheckLst, ExtCtrls, WideStrings, Contnrs;
+  Windows, Classes, Controls, Forms, StdCtrls, CheckLst, ExtCtrls, WideStrings, Contnrs,
+  helpers;
 
 type
   TColumnSelectionForm = class(TForm)
@@ -24,7 +25,7 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
-    Columns: TObjectList;
+    FColumns: TTableColumnList;
   public
     { Public declarations }
   end;
@@ -34,7 +35,7 @@ var
 
 implementation
 
-uses main, helpers;
+uses main;
 
 
 {$R *.dfm}
@@ -44,7 +45,7 @@ uses main, helpers;
 procedure TColumnSelectionForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
-  Columns := TObjectList.Create;
+  FColumns := TTableColumnList.Create;
 end;
 
 
@@ -54,13 +55,14 @@ end;
 procedure TColumnSelectionForm.FormShow(Sender: TObject);
 var
   i: Integer;
-  Col: TTableColumn;
+  KeysDummy: TTableKeyList;
+  ForeignKeysDummy: TForeignKeyList;
 begin
-  ParseTableStructure(Mainform.SelectedTableCreateStatement, Columns);
-  for i:=0 to Columns.Count-1 do begin
-    Col := TTableColumn(Columns[i]);
-    chklistColumns.Items.Add(Col.Name);
-  end;
+  KeysDummy := nil;
+  ForeignKeysDummy := nil;
+  ParseTableStructure(Mainform.SelectedTableCreateStatement, FColumns, KeysDummy, ForeignKeysDummy);
+  for i:=0 to FColumns.Count-1 do
+    chklistColumns.Items.Add(FColumns[i].Name);
 
   // Check items!
   if Mainform.FDataGridSelect.Count = 0 then // Simply check all items
@@ -154,7 +156,6 @@ procedure TColumnSelectionForm.chkSortClick(Sender: TObject);
 var
   checkedfields : TStringList;
   i: Integer;
-  Col: TTableColumn;
 begin
   // Memorize checked items in a list
   checkedfields := TStringList.Create;
@@ -171,10 +172,8 @@ begin
     // Add all fieldnames again
     chklistColumns.Items.BeginUpdate;
     chklistColumns.Clear;
-    for i:=0 to Columns.Count-1 do begin
-      Col := TTableColumn(Columns[i]);
-      chklistColumns.Items.Add(Col.Name);
-    end;
+    for i:=0 to FColumns.Count-1 do
+      chklistColumns.Items.Add(FColumns[i].Name);
     chklistColumns.Items.EndUpdate;
   end;
 
