@@ -864,9 +864,8 @@ end;
 
 var
   MainForm            : TMainForm;
-  AppVersion          : String = '4.0';
-  AppRevision         : String = '$Rev$';
-  FullAppVersion      : String;
+  AppVerMajor, AppVerMinor, AppVerRelease, AppVerRevision: Integer;
+  AppVersion          : String;
   DirnameCommonAppData,
   DirnameUserAppData,
   DirnameSnippets,
@@ -1143,6 +1142,11 @@ var
   DisableProcessWindowsGhostingProc: procedure;
   QueryTab: TQueryTab;
   Action: TAction;
+  dwInfoSize,           // Size of VERSIONINFO structure
+  dwVerSize,            // Size of Version Info Data
+  dwWnd: DWORD;         // Handle for the size call.
+  FI: PVSFixedFileInfo; // Delphi structure; see WINDOWS.PAS
+  ptrVerBuf: Pointer;   // pointer to a version buffer
 begin
   caption := APPNAME;
   setLocales;
@@ -1156,16 +1160,17 @@ begin
   refreshMonitorConfig;
   loadWindowConfig;
 
-  // Beautify AppRevision
-  if Pos('$Rev: WC', AppRevision) < 1 then
-    AppRevision := 'unknown'
-  else begin
-    AppRevision := StringReplace( AppRevision, '$Rev: WC', '', [rfIgnoreCase] );
-    AppRevision := StringReplace( AppRevision, '$', '', [] );
-    AppRevision := Trim( AppRevision );
-  end;
-  // Compose full version string
-  FullAppVersion := 'Version ' + AppVersion + ', Revision ' + AppRevision;
+  // Detect version
+  dwInfoSize := GetFileVersionInfoSize(PChar(Application.ExeName), dwWnd);
+  GetMem(ptrVerBuf, dwInfoSize);
+  GetFileVersionInfo(PChar(Application.ExeName), dwWnd, dwInfoSize, ptrVerBuf);
+  VerQueryValue(ptrVerBuf, '\', Pointer(FI), dwVerSize );
+  AppVerMajor := HiWord(FI.dwFileVersionMS);
+  AppVerMinor := LoWord(FI.dwFileVersionMS);
+  AppVerRelease := HiWord(FI.dwFileVersionLS);
+  AppVerRevision := LoWord(FI.dwFileVersionLS);
+  FreeMem(ptrVerBuf);
+  AppVersion := Format('%d.%d.%d.%d', [AppVerMajor, AppVerMinor, AppVerRelease, AppVerRevision]);
 
   // "All users" folder for HeidiSQL's data (All Users\Application Data)
   DirnameCommonAppData := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\';
@@ -1394,7 +1399,7 @@ begin
     end;
     if DaysBetween(Now, LastStatsCall) >= 30 then begin
       // Report used SVN revision
-      StatsURL := APPDOMAIN + 'savestats.php?c=' + AppRevision;
+      StatsURL := APPDOMAIN + 'savestats.php?c=' + IntToStr(AppVerRevision);
       // Enumerate actively used server versions
       SessionNames := TStringlist.Create;
       if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, true) then
@@ -1411,7 +1416,7 @@ begin
       end;
       StatsCall := TDownloadUrl2.Create(Self);
       StatsCall.URL := StatsURL;
-      StatsCall.SetUserAgent(APPNAME + ' ' + FullAppVersion);
+      StatsCall.SetUserAgent(APPNAME + ' ' + AppVersion);
       try
         StatsCall.ExecuteTarget(nil);
         OpenRegistry;
@@ -8488,7 +8493,7 @@ begin
     Cap := Cap + ' /' + ActiveDatabase;
   if SelectedTable.Name <> '' then
     Cap := Cap + '/' + SelectedTable.Name;
-  Cap := Cap + ' - ' + APPNAME + ' ' + FullAppVersion;
+  Cap := Cap + ' - ' + APPNAME + ' ' + AppVersion;
   Caption := Cap;
   Application.Title := Cap;
 end;

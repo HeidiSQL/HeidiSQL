@@ -37,7 +37,7 @@ type
   public
     { Public declarations }
     AutoClose: Boolean; // Automatically close dialog after detecting no available downloads
-    CurrentRevision, BuildRevision: Integer;
+    BuildRevision: Integer;
     CheckForBuildsInAutoMode: Boolean;
     BuildSize: Integer;
   end;
@@ -95,7 +95,6 @@ procedure TfrmUpdateCheck.FormShow(Sender: TObject);
 begin
   Status('Initiating ... ');
   Caption := 'Check for '+APPNAME+' updates ...';
-  CurrentRevision := StrToIntDef(AppRevision, 0);
 
   // Init GUI controls
   btnRelease.Enabled := False;
@@ -105,8 +104,8 @@ begin
 
   // Prepare download
   CheckfileDownload := TDownLoadURL2.Create(Self);
-  CheckfileDownload.SetUserAgent(APPNAME + ' ' + APPVERSION + ' ' + APPREVISION + ' update checker tool');
-  CheckfileDownload.URL := APPDOMAIN + 'updatecheck.php?r='+APPREVISION;
+  CheckfileDownload.SetUserAgent(APPNAME + ' ' + AppVersion + ' update checker tool');
+  CheckfileDownload.URL := APPDOMAIN + 'updatecheck.php?r='+IntToStr(AppVerRevision);
   CheckfileDownload.Filename := GetTempDir + APPNAME + '_updatecheck.ini';
 
   // Download the check file
@@ -118,9 +117,9 @@ begin
     ReadCheckFile;
     // Developer versions probably have "unknown" (0) as revision,
     // which makes it impossible to compare the revisions.
-    if CurrentRevision = 0 then
+    if AppVerRevision = 0 then
       Status('Error: Cannot determine current revision. Using a developer version?')
-    else if CurrentRevision = BuildRevision then
+    else if AppVerRevision = BuildRevision then
       Status('Your '+APPNAME+' is up-to-date (no update available).')
     else if groupRelease.Enabled or btnBuild.Enabled then
       Status('Updates available.');
@@ -174,7 +173,7 @@ begin
       memoRelease.Lines.Add( 'Note: ' + Note );
     btnRelease.Caption := 'Download version ' + ReleaseVersion;
     // Enable the download button if the current version is outdated
-    groupRelease.Enabled := ReleaseRevision > CurrentRevision;
+    groupRelease.Enabled := ReleaseRevision > AppVerRevision;
     btnRelease.Enabled := groupRelease.Enabled;
     memoRelease.Enabled := groupRelease.Enabled;
     if not memoRelease.Enabled then
@@ -188,7 +187,7 @@ begin
     BuildRevision := Ini.ReadInteger(INISECT_BUILD, 'Revision', 0);
     BuildURL := Ini.ReadString(INISECT_BUILD, 'URL', '');
     BuildSize := Ini.ReadInteger(INISECT_BUILD, 'Size', 0);
-    memoBuild.Lines.Add( 'Revision ' + IntToStr(BuildRevision) + ' (yours: '+AppRevision+')' );
+    memoBuild.Lines.Add( 'Revision ' + IntToStr(BuildRevision) + ' (yours: '+IntToStr(AppVerRevision)+')' );
     FileAge(ParamStr(0), Compiled);
     memoBuild.Lines.Add( 'Compiled: ' + Ini.ReadString(INISECT_BUILD, 'Date', '') + ' (yours: '+DateToStr(Compiled)+')' );
     Note := Ini.ReadString(INISECT_BUILD, 'Note', '');
@@ -198,7 +197,7 @@ begin
     // A new release should have priority over a new nightly build.
     // So the user should not be able to download a newer build here
     // before having installed the new release.
-    btnBuild.Enabled := (CurrentRevision = 0) or ((BuildRevision > CurrentRevision) and (not btnRelease.Enabled));
+    btnBuild.Enabled := (AppVerRevision = 0) or ((BuildRevision > AppVerRevision) and (not btnRelease.Enabled));
   end;
 end;
 

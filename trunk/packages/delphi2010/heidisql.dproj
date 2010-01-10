@@ -47,6 +47,7 @@
 			<DCC_AssertionsAtRuntime>False</DCC_AssertionsAtRuntime>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2)'!=''">
+			<BRCC_OutputDir>..\..\res</BRCC_OutputDir>
 			<DCC_MapFile>3</DCC_MapFile>
 			<DCC_DependencyCheckOutputName>..\..\out\heidisql.exe</DCC_DependencyCheckOutputName>
 			<Version>7.0</Version>
