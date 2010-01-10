@@ -846,7 +846,7 @@ begin
   else
     NodeCount := Grid.RootNodeCount;
   EnableProgressBar(NodeCount);
-  Generator := APPNAME+' '+AppVersion;
+  Generator := APPNAME+' '+Mainform.AppVersion;
   tmp :=
     '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
     '  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + CRLF + CRLF +

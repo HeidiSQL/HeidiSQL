@@ -70,8 +70,8 @@ begin
   // Assign text
   Caption := 'About '+AppName;
   lblAppName.Caption := AppName;
-  lblAppDescription.Caption := AppDescription;
-  lblAppVersion.Caption := 'Version '+AppVersion;
+  lblAppDescription.Caption := Mainform.AppDescription;
+  lblAppVersion.Caption := 'Version '+Mainform.AppVersion;
   FileAge(ParamStr(0), Compiled);
   lblAppCompiled.Caption := 'Compiled on: ' + DateTimeToStr(Compiled);
   lblAppWebpage.Caption := AppDomain;
