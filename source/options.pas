@@ -293,7 +293,7 @@ begin
     Mainform.ActivateFileLogging
   else if Mainform.prefLogToFile then
     Mainform.DeactivateFileLogging;
-  btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
+  btnOpenLogFolder.Enabled := DirectoryExists(Mainform.DirnameSessionLogs);
   Mainform.prefMaxColWidth := updownMaxColWidth.Position;
   Mainform.prefMaxTotalRows := maxrows;
   Mainform.prefCSVSeparator := editCSVSeparator.Text;
@@ -392,7 +392,7 @@ begin
 
   // Log to file
   chkLogToFile.Checked := GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE);
-  btnOpenLogFolder.Enabled := DirectoryExists(DirnameSessionLogs);
+  btnOpenLogFolder.Enabled := DirectoryExists(Mainform.DirnameSessionLogs);
 
   // SQL:
   Mainform.SetupSynEditors;
@@ -475,7 +475,7 @@ end;
 }
 procedure Toptionsform.btnOpenLogFolderClick(Sender: TObject);
 begin
-  ShellExec( '', DirnameSessionLogs );
+  ShellExec( '', Mainform.DirnameSessionLogs );
 end;
 
 {**

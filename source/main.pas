@@ -714,29 +714,22 @@ type
     procedure actDataResetSortingExecute(Sender: TObject);
     procedure actReformatSQLExecute(Sender: TObject);
   private
-    ReachedEOT                 : Boolean;
+    ReachedEOT: Boolean;
     FDelimiter: String;
-    viewingdata                : Boolean;
-    EditVariableForm           : TfrmEditVariable;
-    FileNameSessionLog         : String;
-    FileHandleSessionLog       : Textfile;
-    SelectedTableColumns       : TTableColumnList;
-    SelectedTableKeys          : TTableKeyList;
-    SelectedTableForeignKeys   : TForeignKeyList;
-    FilterPanelManuallyOpened  : Boolean;
-    DataGridDB, DataGridTable  : String;
-    PrevTableColWidths         : TWideStringList;
-    DataGridHasChanges         : Boolean;
-    FLastMouseUpOnPageControl  : Cardinal;
-    FLastTabNumberOnMouseUp    : Integer;
-    FLastMouseDownCloseButton  : TObject;
-    DataGridResult             : TGridResult;
+    FileNameSessionLog: String;
+    FileHandleSessionLog: Textfile;
+    FLastMouseUpOnPageControl: Cardinal;
+    FLastTabNumberOnMouseUp: Integer;
+    FLastMouseDownCloseButton: TObject;
     // Filter text per tab for filter panel
-    FilterTextVariables, FilterTextStatus, FilterTextProcessList, FilterTextCommandStats,
-    FilterTextDatabase, FilterTextData: String;
+    FilterTextVariables: String;
+    FilterTextStatus: String;
+    FilterTextProcessList: String;
+    FilterTextCommandStats: String;
+    FilterTextDatabase: String;
+    FilterTextData: String;
     PreviousFocusedNode: PVirtualNode;
-    function GetParamValue(const paramChar: Char; const paramName:
-      string; var curIdx: Byte; out paramValue: string): Boolean;
+    function GetParamValue(const paramChar: Char; const paramName: string; var curIdx: Byte; out paramValue: string): Boolean;
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(MatchingRows: Int64 = -1);
     procedure insertFunction(Sender: TObject);
@@ -754,8 +747,14 @@ type
     procedure DatabaseChanged(Database: String);
   public
     Connection: TMySQLConnection;
-    cancelling: Boolean;
+    SessionName: String;
     virtualDesktopName: string;
+    AllDatabases: TWideStringList;
+    Databases: TWideStringList;
+    btnAddTab: TPngSpeedButton;
+    QueryTabs: TObjectList;
+
+    // Cached forms
     TableToolsDialog: TfrmTableTools;
     ViewEditor: TfrmView;
     UserManagerForm: TUserManagerForm;
@@ -765,50 +764,71 @@ type
     TriggerEditor: TfrmTriggerEditor;
     OptionsForm: Toptionsform;
     SessionManager: TConnForm;
-    AllDatabases, Databases: TWideStringList;
-    TemporaryDatabase          : String;
-    dataselected               : Boolean;
-    editing                    : Boolean;
-    WindowNumber               : Integer;
-    SessionName                : String;
+    CreateDatabaseForm: TCreateDatabaseForm;
+    TableEditor: TfrmTableEditor;
+    InsertFiles: TfrmInsertFiles;
+    EditVariableForm: TfrmEditVariable;
+
+    // Virtual Tree data arrays
     VTRowDataListVariables,
     VTRowDataListStatus,
     VTRowDataListProcesses,
     VTRowDataListCommandStats,
-    VTRowDataListTables        : TVTreeDataArray;
+    VTRowDataListTables: TVTreeDataArray;
+
     // Variables set by preferences dialog
-    prefRememberFilters        : Boolean;
-    prefLogsqlnum,
-    prefLogSqlWidth,
-    prefMaxColWidth,
-    prefMaxTotalRows           : Integer;
-    prefCSVSeparator,
-    prefCSVEncloser,
-    prefCSVTerminator          : String;
-    prefLogToFile,
-    prefEnableBinaryEditor,
-    prefEnableDatetimeEditor,
-    prefEnableEnumEditor,
-    prefEnableSetEditor,
-    prefEnableNullBG,
-    prefExportLocaleNumbers    : Boolean;
-    prefNullColorDefault,
-    prefNullBG                 : TColor;
-    CreateDatabaseForm         : TCreateDatabaseForm;
-    TableEditor                : TfrmTableEditor;
-    InsertFiles                : TfrmInsertFiles;
-    FDataGridSelect            : TWideStringList;
-    FDataGridSort              : TOrderColArray;
-    FDataGridFocusedNodeIndex  : Cardinal;
+    prefRememberFilters: Boolean;
+    prefLogsqlnum: Integer;
+    prefLogSqlWidth: Integer;
+    prefMaxColWidth: Integer;
+    prefMaxTotalRows: Integer;
+    prefCSVSeparator: String;
+    prefCSVEncloser: String;
+    prefCSVTerminator: String;
+    prefLogToFile: Boolean;
+    prefEnableBinaryEditor: Boolean;
+    prefEnableDatetimeEditor: Boolean;
+    prefEnableEnumEditor: Boolean;
+    prefEnableSetEditor: Boolean;
+    prefEnableNullBG: Boolean;
+    prefExportLocaleNumbers: Boolean;
+    prefNullColorDefault: TColor;
+    prefNullBG: TColor;
+
+    // Data grid related stuff
+    FDataGridSelect: TWideStringList;
+    FDataGridSort: TOrderColArray;
+    FDataGridFocusedNodeIndex: Cardinal;
     FDataGridFocusedColumnIndex: TColumnIndex;
-    DataGridCurrentSelect,
-    DataGridCurrentFullSelect,
-    DataGridCurrentFrom,
-    DataGridCurrentFilter,
-    DataGridCurrentSort        : String;
-    btnAddTab                  : TPngSpeedButton;
-    QueryTabs                  : TObjectList;
+    DataGridCurrentSelect: String;
+    DataGridCurrentFullSelect: String;
+    DataGridCurrentFrom: String;
+    DataGridCurrentFilter: String;
+    DataGridCurrentSort: String;
+    DataGridDB: String;
+    DataGridTable: String;
+    DataGridHasChanges: Boolean;
+    DataGridResult: TGridResult;
     SelectedTableCreateStatement: String;
+    SelectedTableColumns: TTableColumnList;
+    SelectedTableKeys: TTableKeyList;
+    SelectedTableForeignKeys: TForeignKeyList;
+    FilterPanelManuallyOpened: Boolean;
+    PrevTableColWidths: TWideStringList;
+
+    // Executable file details
+    AppVerMajor: Integer;
+    AppVerMinor: Integer;
+    AppVerRelease: Integer;
+    AppVerRevision: Integer;
+    AppVersion: String;
+    AppDescription: String;
+
+    // Common directories
+    DirnameCommonAppData: String;
+    DirnameUserAppData: String;
+    DirnameSnippets: String;
+    DirnameSessionLogs: String;
 
     property Delimiter: String read FDelimiter write SetDelimiter;
     procedure CallSQLHelpWithKeyword( keyword: String );
@@ -819,14 +839,11 @@ type
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
     procedure SessionConnect(Sender: TObject);
     function InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, parSession: String): Boolean;
-
     function ActiveGrid: TVirtualStringTree;
     function GridResult(Grid: TBaseVirtualTree): TGridResult; overload;
     function GridResult(PageIndex: Integer): TGridResult; overload;
-
     property ActiveDatabase : String read GetActiveDatabase write SetSelectedDatabase;
     property SelectedTable : TDBObject read GetSelectedTable;
-
     procedure TestVTreeDataArray( P: PVTreeDataArray );
     function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
     procedure ActivateFileLogging;
@@ -863,27 +880,10 @@ end;
 
 
 var
-  MainForm            : TMainForm;
-  AppVerMajor, AppVerMinor, AppVerRelease, AppVerRevision: Integer;
-  AppVersion, AppDescription: String;
-  DirnameCommonAppData,
-  DirnameUserAppData,
-  DirnameSnippets,
-  DirnameSessionLogs  : String;
+  MainForm: TMainForm;
 
 const
-  discname = 'not connected';
-  ICON_MYSELF_CONNECTED = 38;
-  ICON_MYSELF_DISCONNECTED = -1;
-  ICON_OTHER_CONNECTED = 36;
-  ICON_OTHER_DISCONNECTED = -1;
-  // The InnoDB folks are raging over the lack of count(*) support
-  // in the storage engine.  To avoid count(*), the first of these
-  // constants decide how many rows the data area should estimate
-  // in any table.  The second value decides how many percent above the
-  // number of seen (or simulated) rows the scrollbar should project.
-  SIMULATE_INITIAL_ROWS = 10000;
-  SIMULATE_MORE_ROWS = 20;
+  // Customized messages
   MSG_UPDATECHECK = WM_USER + 1;
   MSG_ABOUT = WM_USER + 2;
 
@@ -1193,8 +1193,6 @@ begin
 
   // Folder for session logfiles
   DirnameSessionLogs := DirnameUserAppData + 'Sessionlogs\';
-
-  TemporaryDatabase := '';
 
   // SQLFiles-History
   FillPopupQueryLoad;
@@ -2554,7 +2552,6 @@ var
 begin
   // Refresh
   // Force data tab update when appropriate.
-  dataselected := false;
   tab1 := PageControlMain.ActivePage;
   if ActiveControl = DBtree then
     RefreshTree(True)
@@ -3272,7 +3269,6 @@ begin
   if (SelectedTable.Name = '') or (ActiveDatabase = '') then
     Exit;
   Screen.Cursor := crHourglass;
-  viewingdata := true;
   sl_query := TWideStringList.Create();
 
   // Ensure grid has left editing mode so DataGrid.OnNewText applies its changes
@@ -3399,8 +3395,6 @@ begin
     end;
     debug('mem: browse row initialization complete.');
 
-    dataselected := true;
-
     PageControlMainChange(Self);
   finally
     DataGrid.Header.Columns.EndUpdate;
@@ -3418,7 +3412,6 @@ begin
       SelectNode(DataGrid, FDataGridFocusedNodeIndex);
     if DataGrid.Header.Columns.Count > FDataGridFocusedColumnIndex then
       DataGrid.FocusedColumn := FDataGridFocusedColumnIndex;
-    viewingdata := false;
     EnumerateRecentFilters;
     Screen.Cursor := crDefault;
   end;
@@ -3828,7 +3821,6 @@ begin
   end;
 
   // Avoid excessive GridHighlightChanged() when flicking controls.
-  viewingdata := true;
   ProgressBarStatus.Hide;
 
   if Assigned(Results) and Results.HasResult then begin
@@ -3883,7 +3875,6 @@ begin
   end;
   // Ensure controls are in a valid state
   ValidateControls(Sender);
-  viewingdata := false;
   Screen.Cursor := crDefault;
   ShowStatus( STATUS_MSG_READY );
 end;
@@ -8499,8 +8490,6 @@ var
 begin
   // Set window caption and taskbar text
   Cap := SessionName;
-  if WindowNumber <> 0 then
-    Cap := Cap + Format( ' (%d)', [WindowNumber] );
   if ActiveDatabase <> '' then
     Cap := Cap + ' /' + ActiveDatabase;
   if SelectedTable.Name <> '' then

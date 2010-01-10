@@ -961,7 +961,7 @@ begin
         WideFormat('# %-30s%s', ['Database:', DBObj.Database]) + CRLF +
         WideFormat('# %-30s%s', ['Server version:', Mainform.Connection.ServerVersionUntouched]) + CRLF +
         WideFormat('# %-30s%s', ['Server OS:', Mainform.Connection.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]) + CRLF +
-        WideFormat('# %-30s%s', [APPNAME + ' version:', AppVersion]) + CRLF +
+        WideFormat('# %-30s%s', [APPNAME + ' version:', Mainform.AppVersion]) + CRLF +
         WideFormat('# %-30s%s', ['Date/time:', DateTimeToStr(Now)]) + CRLF +
         '# --------------------------------------------------------' + CRLF + CRLF +
         '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
