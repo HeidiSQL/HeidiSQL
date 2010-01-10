@@ -25,7 +25,7 @@ echo.
 
 :test_dcc32
 dcc32.exe --version >NUL: 2>NUL:
-if %errorlevel% == 0 goto test_svn
+if %errorlevel% == 0 goto test_libs
 
 :dcc32_not_found
 echo Error: Delphi compiler 'dcc32.exe' was not found in PATH.
@@ -35,22 +35,6 @@ echo your system path to include the location of this file.
 echo.
 echo See also:
 echo http://www.codegear.com/downloads/free/delphi
-echo.
-pause > NUL:
-goto :eof
-
-:test_svn
-svnversion.exe --version >NUL: 2>NUL:
-if %errorlevel% == 0 goto test_libs
-
-:svn_not_found
-echo Error: Subversion executable 'svnversion.exe' was not found in PATH.
-echo.
-echo Please install Subversion.  When installing, Subversion should modify
-echo your system path to include the location of this file.
-echo.
-echo See also:
-echo http://subversion.tigris.org/servlets/ProjectDocumentList?folderID=91^&filter=setup.exe
 echo.
 pause > NUL:
 goto :eof
@@ -124,33 +108,7 @@ goto param_loop
 :param_done
 echo Base directory:          %base_dir%
 echo Compiler directory:      %compiler_dir%
-
-:find_wcver
-rem Unix tool, may not handle Windows paths well, so go to base directory and use dot.
-cd /d "%base_dir%"
-for /f "usebackq" %%s in (`svnversion.exe . ^|^| ECHO unknown`) DO SET wcver=WC %%s
-if "%wcver%" == "WC unknown" (set wcver=unknown) else (goto insert_wcver)
-
-:svnversion_failure
-rem Non-fatal, continue if this happens.
-echo.
-echo Error: svnversion failed - run this step manually to see what went wrong?
-echo.
-
-:insert_wcver
-echo Version:                 %WCVER%
-echo.
-rem Put WC version or "unknown" into main.pas
-"%base_dir%\extra\sed\sed.exe" "s/\$Revision.*\$/\$Revision: %WCVER% \$/g" -i "%base_dir%\source\main.pas"
-if not %errorlevel% == 0 goto sedfail
-"%base_dir%\extra\sed\sed.exe" "s/\$Rev[^i].*\$/\$Rev: %WCVER% \$/g" -i "%base_dir%\source\main.pas"
-if not %errorlevel% == 0 goto sedfail
 goto start
-
-:sedfail
-echo Error: SED failure - run this step manually to see what went wrong?
-echo.
-goto end
 
 :start
 rem Delete old binaries
@@ -198,6 +156,7 @@ if not %err% == 0 goto end
 rem Build main executable
 echo Compiling main project.
 cd /d "%base_dir%\packages\%package_dir%\"
+..\..\extra\SetVersion\SetVersion.exe ..\..\res\version.rc
 brcc32 ..\..\res\version.rc
 brcc32 ..\..\res\icon.rc
 brcc32 ..\..\res\manifest.rc

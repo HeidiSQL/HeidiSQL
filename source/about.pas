@@ -100,7 +100,7 @@ begin
   MemoAuthors.Text := TrimRight(MemoAuthors.Text);
 
   // App-Version
-  LabelVersion.Caption := FullAppVersion;
+  LabelVersion.Caption := 'Version '+AppVersion;
 
   // Compile-date
   FileAge(ParamStr(0), Compiled);
