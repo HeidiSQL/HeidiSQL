@@ -865,7 +865,7 @@ end;
 var
   MainForm            : TMainForm;
   AppVerMajor, AppVerMinor, AppVerRelease, AppVerRevision: Integer;
-  AppVersion          : String;
+  AppVersion, AppDescription: String;
   DirnameCommonAppData,
   DirnameUserAppData,
   DirnameSnippets,
@@ -1146,7 +1146,7 @@ var
   dwVerSize,            // Size of Version Info Data
   dwWnd: DWORD;         // Handle for the size call.
   FI: PVSFixedFileInfo; // Delphi structure; see WINDOWS.PAS
-  ptrVerBuf: Pointer;   // pointer to a version buffer
+  ptrVerBuf, Translation, Info: Pointer;
 begin
   caption := APPNAME;
   setLocales;
@@ -1169,8 +1169,16 @@ begin
   AppVerMinor := LoWord(FI.dwFileVersionMS);
   AppVerRelease := HiWord(FI.dwFileVersionLS);
   AppVerRevision := LoWord(FI.dwFileVersionLS);
-  FreeMem(ptrVerBuf);
   AppVersion := Format('%d.%d.%d.%d', [AppVerMajor, AppVerMinor, AppVerRelease, AppVerRevision]);
+  // Fetch language code and file description
+  VerQueryValue(ptrVerBuf,'\\VarFileInfo\\Translation', Translation, dwInfoSize);
+  VerQueryValue(ptrVerBuf,
+    PChar(Format('\\StringFileInfo\\%.4x%.4x\\%s',
+      [LoWord(Longint(translation^)), HiWord(Longint(Translation^)), 'FileDescription'])),
+    Info,
+    dwInfoSize);
+  SetString(AppDescription, PChar(Info), dwInfoSize-1);
+  FreeMem(ptrVerBuf);
 
   // "All users" folder for HeidiSQL's data (All Users\Application Data)
   DirnameCommonAppData := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\';
@@ -1759,9 +1767,13 @@ begin
 end;
 
 procedure TMainForm.actAboutBoxExecute(Sender: TObject);
+var
+  Box: TAboutBox;
 begin
   // Info-Box
-  AboutWindow (Self);
+  Box := TAboutBox.Create(Self);
+  Box.ShowModal;
+  Box.Free;
 end;
 
 procedure TMainForm.actClearEditorExecute(Sender: TObject);
