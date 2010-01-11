@@ -3686,7 +3686,7 @@ begin
   actExecuteSelection.Enabled := InQueryTab and HasSelection;
   actExecuteLine.Enabled := InQueryTab and (Tab.Memo.LineText <> '');
   actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
-  actSaveSQL.Enabled := actSaveSQLAs.Enabled and (Tab.MemoFilename <> '') and Tab.Memo.Modified;
+  actSaveSQL.Enabled := actSaveSQLAs.Enabled and Tab.Memo.Modified;
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;
   actSaveSQLSnippet.Enabled := InQueryTab and NotEmpty;
   actSaveSQLSelectionSnippet.Enabled := InQueryTab and HasSelection;
