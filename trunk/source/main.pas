@@ -8516,6 +8516,10 @@ end;
 
 procedure TMainForm.SetTabCaption(PageIndex: Integer; Text: String);
 begin
+  if PageIndex >= PageControlMain.PageCount then begin
+    // The current tab can be closed already if we're here after CloseQueryTab()
+    Exit;
+  end;
   // Special case if passed text is empty: Reset query tab caption to "Query #123"
   if (PageIndex = tabQuery.PageIndex) and (Text = '') then
     Text := 'Query';
