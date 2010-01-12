@@ -363,7 +363,10 @@ begin
   if not Ping then
     Active := True;
   Log(lcSQL, SQL);
-  NativeSQL := UTF8Encode(SQL);
+  if IsUnicode then
+    NativeSQL := UTF8Encode(SQL)
+  else
+    NativeSQL := AnsiString(SQL);
   TimerStart := GetTickCount;
   querystatus := mysql_real_query(FHandle, PAnsiChar(NativeSQL), Length(NativeSQL));
   FLastQueryDuration := GetTickCount - TimerStart;
