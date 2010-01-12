@@ -185,16 +185,8 @@ object frmTableTools: TfrmTableTools
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             ItemHeight = 13
-            ItemIndex = 0
             TabOrder = 0
-            Text = 'Check'
             OnChange = ValidateControls
-            Items.Strings = (
-              'Check'
-              'Analyze'
-              'Checksum'
-              'Optimize'
-              'Repair')
           end
           object chkQuick: TCheckBox
             Left = 81
