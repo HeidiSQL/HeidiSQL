@@ -1083,17 +1083,17 @@ begin
       if comboExportData.Text = DATA_REPLACE then
         Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
       Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
-      BaseInsert := 'INSERT INTO ';
-      if comboExportData.Text = DATA_INSERTNEW then
-        BaseInsert := 'INSERT IGNORE INTO '
-      else if comboExportData.Text = DATA_UPDATE then
-        BaseInsert := 'REPLACE INTO ';
-      BaseInsert := BaseInsert + TargetDbAndObject + ' (';
       while true do begin
         Data := Mainform.Connection.GetResults('SELECT * FROM '+m(DBObj.Database)+'.'+m(DBObj.Name)+' LIMIT '+IntToStr(Offset)+', '+IntToStr(Limit));
         Inc(Offset, Limit);
         if Data.RecordCount = 0 then
           break;
+        BaseInsert := 'INSERT INTO ';
+        if comboExportData.Text = DATA_INSERTNEW then
+          BaseInsert := 'INSERT IGNORE INTO '
+        else if comboExportData.Text = DATA_UPDATE then
+          BaseInsert := 'REPLACE INTO ';
+        BaseInsert := BaseInsert + TargetDbAndObject + ' (';
         for i:=0 to Data.ColumnCount-1 do
           BaseInsert := BaseInsert + m(Data.ColumnNames[i]) + ', ';
         Delete(BaseInsert, Length(BaseInsert)-1, 2);
