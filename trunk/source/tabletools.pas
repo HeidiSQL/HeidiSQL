@@ -238,6 +238,7 @@ end;
 procedure TfrmTableTools.FormShow(Sender: TObject);
 var
   DBNode, TableNode, FirstChecked: PVirtualNode;
+  idx: Integer;
 begin
   // When this form is displayed the second time, databases may be deleted or filtered.
   // Also, checked nodes must be unchecked and unchecked nodes may need to be checked.
@@ -269,8 +270,12 @@ begin
   if Assigned(FirstChecked) then
     TreeObjects.ScrollIntoView(FirstChecked, True);
   // CHECKSUM available since MySQL 4.1.1
+  idx := comboOperation.ItemIndex;
+  if idx = -1 then idx := 0;
+  comboOperation.Items.CommaText := 'Check,Analyze,Checksum,Optimize,Repair';
   if Mainform.Connection.ServerVersionInt < 40101 then
-    comboOperation.Items[comboOperation.Items.IndexOf('Checksum')] := 'Checksum ('+STR_NOTSUPPORTED+')';
+    comboOperation.Items.Text := StringReplace(comboOperation.Items.Text, 'Checksum', 'Checksum ('+STR_NOTSUPPORTED+')', [rfReplaceAll]);
+  comboOperation.ItemIndex := idx;
   comboOperation.OnChange(Sender);
   comboExportOutputType.OnChange(Sender);
 
