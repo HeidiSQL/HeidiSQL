@@ -10,7 +10,7 @@ unit Main;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
+  Windows, SysUtils, Classes, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, PngImageList, Widestrings,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynCompletionProposal, SynEditHighlighter,
@@ -3218,7 +3218,7 @@ begin
   // Sorting color and title image
   for k:=0 to Length(FDataGridSort)-1 do begin
     if FDataGridSort[k].ColumnName = Column.Name then begin
-      col.Color := ColorAdjustBrightness(col.Color, COLORSHIFT_SORTCOLUMNS, True);
+      col.Color := ColorAdjustBrightness(col.Color, COLORSHIFT_SORTCOLUMNS);
       case FDataGridSort[k].SortDirection of
         ORDER_ASC:  col.ImageIndex := 109;
         ORDER_DESC: col.ImageIndex := 110;
@@ -5284,7 +5284,7 @@ begin
   for i:=0 to h.Columns.Count-1 do begin
     NewColor := clWindow;
     if h.SortColumn = i then
-      NewColor := ColorAdjustBrightness(NewColor, COLORSHIFT_SORTCOLUMNS, True);
+      NewColor := ColorAdjustBrightness(NewColor, COLORSHIFT_SORTCOLUMNS);
     h.Columns[i].Color := NewColor;
   end;
 end;
@@ -6492,9 +6492,14 @@ end;
 procedure TMainForm.CalcNullColors;
 var
   i: Integer;
+  h, l, s: Word;
 begin
-  for i:=Low(DatatypeCategories) to High(DatatypeCategories) do
-    DatatypeCategories[i].NullColor := ColorAdjustBrightness(DatatypeCategories[i].Color, COLORSHIFT_NULLFIELDS, False);
+  for i:=Low(DatatypeCategories) to High(DatatypeCategories) do begin
+    ColorRGBToHLS(DatatypeCategories[i].Color, h, l, s);
+    Inc(l, COLORSHIFT_NULLFIELDS);
+    s := Max(0, s-2*COLORSHIFT_NULLFIELDS);
+    DatatypeCategories[i].NullColor := ColorHLSToRGB(h, l, s);
+  end;
 end;
 
 
