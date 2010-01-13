@@ -3508,10 +3508,11 @@ end;
 
 procedure TMainForm.LoadDatabaseProperties(db: String);
 var
-  i, img          : Integer;
+  i, img, NumObj: Integer;
   Obj: TDBObject;
   Objects: TDBObjectList;
-  Cap, SelectedCaptions: TWideStringList;
+  Cap, SelectedCaptions, NumObjects: TWideStringList;
+  Msg: String;
 begin
   // DB-Properties
   Screen.Cursor := crHourGlass;
@@ -3520,6 +3521,7 @@ begin
   SelectedCaptions := GetVTCaptions(ListTables, True);
 
   Objects := Connection.GetDBObjects(db);
+  NumObjects := TWideStringList.Create;
   ShowStatus( 'Displaying objects from "' + db + '" ...' );
 
   ListTables.BeginUpdate;
@@ -3546,6 +3548,9 @@ begin
       lntTrigger:       img := ICONINDEX_TRIGGER;
       else              img := -1;
     end;
+    NumObj := StrToIntDef(NumObjects.Values[Obj.ObjType], 0);
+    Inc(NumObj);
+    NumObjects.Values[Obj.ObjType] := IntToStr(NumObj);
     VTRowDataListTables[i].ImageIndex := img;
     if Obj.Created = 0 then Cap.Add('')
     else Cap.Add(DateTimeToStr(Obj.Created));
@@ -3577,7 +3582,26 @@ begin
   ListTables.RootNodeCount := Length(VTRowDataListTables);
   ListTables.EndUpdate;
   SetVTSelection(ListTables, SelectedCaptions);
-  showstatus(db + ': ' + IntToStr(ListTables.RootNodeCount) +' object(s)', 0);
+  Msg := db + ': ' + FormatNumber(Objects.Count) + ' ';
+  if NumObjects.Count = 1 then
+    Msg := Msg + LowerCase(NumObjects.Names[0])
+  else
+    Msg := Msg + 'object';
+  if Objects.Count <> 1 then Msg := Msg + 's';
+  if (NumObjects.Count > 1) and (Objects.Count > 0) then begin
+    Msg := Msg + ' (';
+    for i:=0 to NumObjects.Count-1 do begin
+      NumObj := StrToIntDef(NumObjects.ValueFromIndex[i], 0);
+      if NumObj = 0 then
+        Continue;
+      Msg := Msg + FormatNumber(NumObj) + ' ' + LowerCase(NumObjects.Names[i]);
+      if NumObj <> 1 then Msg := Msg + 's';
+      Msg := Msg + ', ';
+    end;
+    Delete(Msg, Length(Msg)-1, 2);
+    Msg := Msg + ')';
+  end;
+  showstatus(Msg, 0);
   tabDatabase.Caption := sstr('Database: ' + db, 30);
   ShowStatus(STATUS_MSG_READY);
   Screen.Cursor := crDefault;
