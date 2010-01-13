@@ -215,7 +215,7 @@ type
   function BinToWideHex(bin: AnsiString): String;
   procedure CheckHex(text: String; errorMessage: string);
   procedure FixVT(VT: TVirtualStringTree);
-  function ColorAdjustBrightness(Col: TColor; Shift: SmallInt; BestFit: Boolean): TColor;
+  function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   function ComposeOrderClause(Cols: TOrderColArray): String;
   procedure OpenRegistry(Session: String = '');
   function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
@@ -2518,19 +2518,17 @@ begin
 end;
 
 
-function ColorAdjustBrightness(Col: TColor; Shift: SmallInt; BestFit: Boolean): TColor;
+function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
 var
   Lightness: Byte;
 begin
-  if BestFit then begin
-    // If base color is bright, make bg color darker (grey), and vice versa, so that
-    // colors work with high contrast mode for accessibility
-    Lightness := GetLightness(Col);
-    if (Lightness < 128) and (Shift < 0) then
-      Shift := Abs(Shift)
-    else if (Lightness > 128) and (Shift > 0) then
-      Shift := 0 - Abs(Shift);
-  end;
+  // If base color is bright, make bg color darker (grey), and vice versa, so that
+  // colors work with high contrast mode for accessibility
+  Lightness := GetLightness(Col);
+  if (Lightness < 128) and (Shift < 0) then
+    Shift := Abs(Shift)
+  else if (Lightness > 128) and (Shift > 0) then
+    Shift := 0 - Abs(Shift);
   Result := ColorAdjustLuma(Col, Shift, true);
 end;
 
