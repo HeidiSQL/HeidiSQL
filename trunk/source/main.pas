@@ -2211,7 +2211,7 @@ begin
     // drop table selected in tree view.
     case GetFocusedTreeNodeType of
       lntDb: begin
-        if MessageDlg('Drop Database "'+activeDB+'"?' + crlf + crlf + 'WARNING: You will lose all tables in database '+activeDB+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
+        if MessageDlg('Drop Database "'+activeDB+'"?' + crlf + crlf + 'WARNING: You will lose all objects in database '+activeDB+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
           Abort;
         try
           Connection.Query('DROP DATABASE ' + mask(activeDB));
@@ -3518,7 +3518,7 @@ begin
   SelectedCaptions := GetVTCaptions(ListTables, True);
 
   Objects := Connection.GetDBObjects(db);
-  ShowStatus( 'Displaying tables from "' + db + '" ...' );
+  ShowStatus( 'Displaying objects from "' + db + '" ...' );
 
   ListTables.BeginUpdate;
   ListTables.Clear;
@@ -3575,7 +3575,7 @@ begin
   ListTables.RootNodeCount := Length(VTRowDataListTables);
   ListTables.EndUpdate;
   SetVTSelection(ListTables, SelectedCaptions);
-  showstatus(db + ': ' + IntToStr(ListTables.RootNodeCount) +' table(s)', 0);
+  showstatus(db + ': ' + IntToStr(ListTables.RootNodeCount) +' object(s)', 0);
   tabDatabase.Caption := sstr('Database: ' + db, 30);
   ShowStatus(STATUS_MSG_READY);
   Screen.Cursor := crDefault;
@@ -5927,7 +5927,7 @@ begin
     // DB node expanding
     1: begin
         Screen.Cursor := crHourglass;
-        Showstatus( 'Reading Tables...' );
+        Showstatus( 'Reading objects ...' );
         try
           ChildCount := Connection.GetDBObjects(Databases[Node.Index]).Count;
         finally
