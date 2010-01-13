@@ -1793,6 +1793,8 @@ begin
     ActiveQueryTab.MemoFilename := '';
     ActiveQueryTab.Memo.Modified := False;
   end;
+  if m = SynMemoFilter then
+    ViewData(Sender);
 end;
 
 procedure TMainForm.actTableToolsExecute(Sender: TObject);
