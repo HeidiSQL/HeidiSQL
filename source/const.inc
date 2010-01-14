@@ -294,5 +294,5 @@ const
   FKEY = 'FULLTEXT';
   SKEY = 'SPATIAL';
 
-  SYNCOMPLETION_PATTERN: WideString = '\image{%d}\hspace{5}\color{clSilver}%s\column{}\color{clWindowText}%s';
+  SYNCOMPLETION_PATTERN = '\image{%d}\hspace{5}\color{clSilver}%s\column{}\color{clWindowText}%s';
 
