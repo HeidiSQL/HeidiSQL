@@ -914,7 +914,7 @@ begin
   end else begin
     for i:=0 to FDBObjectLists.Count-1 do
       TDBObjectList(FDBObjectLists.Objects[i]).Free;
-    FreeAndNil(FDBObjectLists);
+    FDBObjectLists.Clear;
   end;
 end;
 
@@ -938,8 +938,6 @@ begin
   if DbObjectsCached(db) then
     Result := FDBObjectLists.Objects[FDBObjectLists.IndexOf(db)] as TDBObjectList
   else begin
-    if not Assigned(FDBObjectLists) then
-      FDBObjectLists := TWideStringList.Create;
     Result := TDBObjectList.Create;
     Results := nil;
     rx := TRegExpr.Create;
@@ -1126,6 +1124,9 @@ begin
       FreeAndNil(Results);
     end;
 
+    // Add list of objects in this database to cached list of all databases
+    if not Assigned(FDBObjectLists) then
+      FDBObjectLists := TWideStringList.Create;
     FDBObjectLists.AddObject(db, Result);
   end;
 end;
