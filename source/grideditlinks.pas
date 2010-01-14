@@ -84,7 +84,7 @@ type
   private
     FCombo: TComboBox;
   public
-    ValueList: TWideStringList;
+    ValueList: TStringList;
     AllowCustomText: Boolean;
     constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
@@ -100,7 +100,7 @@ type
     FCheckList: TCheckListBox;
     FBtnOK, FBtnCancel: TButton;
   public
-    ValueList: TWideStringList;
+    ValueList: TStringList;
     constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
@@ -683,7 +683,7 @@ begin
   FCombo.Parent := FParentForm;
   FCombo.OnKeyDown := DoKeyDown;
   FCombo.OnExit := DoEndEdit;
-  ValueList := TWideStringList.Create;
+  ValueList := TStringList.Create;
   FMainControl := FCombo;
 end;
 
@@ -744,7 +744,7 @@ end;
 constructor TSetEditorLink.Create(Tree: TVirtualStringTree);
 begin
   inherited Create(Tree);
-  ValueList := TWideStringList.Create;
+  ValueList := TStringList.Create;
 
   FPanel := TPanel.Create(FParentForm);
   FPanel.Hide;
@@ -803,7 +803,7 @@ end;
 
 function TSetEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
-  SelValues: TWideStringlist;
+  SelValues: TStringList;
 begin
   Result := inherited PrepareEdit(Tree, Node, Column);
   if not Result then
@@ -811,7 +811,7 @@ begin
 
   FCheckList.Font.Assign(FCellFont);
   FCheckList.Items.Assign(ValueList);
-  SelValues := TWideStringList.Create;
+  SelValues := TStringList.Create;
   SelValues.Delimiter := ',';
   SelValues.StrictDelimiter := True;
   SelValues.DelimitedText := FCellText;

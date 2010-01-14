@@ -178,7 +178,7 @@ type
     FColumns: TTableColumnList;
     FKeys: TTableKeyList;
     FForeignKeys: TForeignKeyList;
-    DeletedKeys, DeletedForeignKeys: TWideStringList;
+    DeletedKeys, DeletedForeignKeys: TStringList;
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
@@ -231,8 +231,8 @@ begin
   FColumns := TTableColumnList.Create;
   FKeys := TTableKeyList.Create;
   FForeignKeys := TForeignKeyList.Create;
-  DeletedKeys := TWideStringList.Create;
-  DeletedForeignKeys := TWideStringList.Create;
+  DeletedKeys := TStringList.Create;
+  DeletedForeignKeys := TStringList.Create;
   editName.MaxLength := NAME_LEN;
 end;
 
@@ -359,10 +359,10 @@ procedure TfrmTableEditor.ApplyModifications;
 var
   sql: String;
   i: Integer;
-  Specs: TWideStringlist;
+  Specs: TStringList;
 begin
   // Create or alter table
-  Specs := TWideStringList.Create;
+  Specs := TStringList.Create;
   if FEditObjectName = '' then
     sql := ComposeCreateStatement
   else begin
@@ -441,7 +441,7 @@ end;
 
 function TfrmTableEditor.ComposeAlterStatement: String;
 var
-  Specs: TWideStringlist;
+  Specs: TStringList;
   ColSpec, OldColName, IndexSQL: String;
   i: Integer;
   Results: TMySQLQuery;
@@ -451,7 +451,7 @@ begin
   // Compose ALTER query, called by buttons and for SQL code tab
   Mainform.showstatus('Composing ALTER statement ...');
   Screen.Cursor := crHourglass;
-  Specs := TWideStringlist.Create;
+  Specs := TStringList.Create;
   if editName.Text <> FEditObjectName then
     Specs.Add('RENAME TO ' + Mainform.mask(editName.Text));
   if memoComment.Tag = ModifiedFlag then
@@ -1190,7 +1190,7 @@ begin
       end;
     8: begin // Collation pulldown
       EnumEditor := TEnumEditorLink.Create(VT);
-      EnumEditor.ValueList := TWideStringList.Create;
+      EnumEditor.ValueList := TStringList.Create;
       EnumEditor.ValueList.Text := Mainform.Connection.CollationList.Text;
       EnumEditor.ValueList.Insert(0, '');
       EditLink := EnumEditor;
@@ -1502,7 +1502,7 @@ begin
   if (Level = 0) and (Column = 1) then begin
     // Index type pulldown
     EnumEditor := TEnumEditorLink.Create(VT);
-    EnumEditor.ValueList := TWideStringList.Create;
+    EnumEditor.ValueList := TStringList.Create;
     EnumEditor.ValueList.CommaText := PKEY +','+ KEY +','+ UKEY +','+ FKEY +','+ SKEY;
     EditLink := EnumEditor;
   end else if (Level = 1) and (Column = 0) then begin
@@ -1786,7 +1786,7 @@ var
   Item: TMenuItem;
   i: Integer;
   NewType: String;
-  NewParts: TWideStringlist;
+  NewParts: TStringList;
   TblKey: TTableKey;
 begin
   // Auto create index or add columns to existing one by rightclicking a column

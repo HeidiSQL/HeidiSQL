@@ -100,8 +100,8 @@ type
       FTableEngineDefault: String;
       FCollationTable: TMySQLQuery;
       FCharsetTable: TMySQLQuery;
-      FInformationSchemaObjects: TWideStringlist;
-      FDBObjectLists: TWideStringList;
+      FInformationSchemaObjects: TStringList;
+      FDBObjectLists: TStringList;
       procedure SetActive(Value: Boolean);
       procedure SetDatabase(Value: String);
       function GetThreadId: Cardinal;
@@ -115,7 +115,7 @@ type
       function GetCollationList: TStringList;
       function GetCharsetTable: TMySQLQuery;
       function GetCharsetList: TStringList;
-      function GetInformationSchemaObjects: TWideStringlist;
+      function GetInformationSchemaObjects: TStringList;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
       procedure Log(Category: TMySQLLogCategory; Msg: String);
@@ -131,7 +131,7 @@ type
       function DeQuoteIdent(Identifier: String): String;
       function ConvertServerVersion(Version: Integer): String;
       function GetResults(SQL: String): TMySQLQuery;
-      function GetCol(SQL: String; Column: Integer=0): TWideStringList;
+      function GetCol(SQL: String; Column: Integer=0): TStringList;
       function GetVar(SQL: String; Column: Integer=0): String; overload;
       function GetVar(SQL: String; Column: String): String; overload;
       function Ping: Boolean;
@@ -158,7 +158,7 @@ type
       property CollationList: TStringList read GetCollationList;
       property CharsetTable: TMySQLQuery read GetCharsetTable;
       property CharsetList: TStringList read GetCharsetList;
-      property InformationSchemaObjects: TWideStringlist read GetInformationSchemaObjects;
+      property InformationSchemaObjects: TStringList read GetInformationSchemaObjects;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Hostname: String read FHostname write FHostname;
@@ -183,7 +183,7 @@ type
       FConnection: TMySQLConnection;
       FRecNo,
       FRecordCount: Int64;
-      FColumnNames: TWideStringList;
+      FColumnNames: TStringList;
       FLastResult: PMYSQL_RES;
       FCurrentRow: PMYSQL_ROW;
       FEof: Boolean;
@@ -209,7 +209,7 @@ type
       property RecNo: Int64 read FRecNo write SetRecNo;
       property Eof: Boolean read FEof;
       property RecordCount: Int64 read FRecordCount;
-      property ColumnNames: TWideStringList read FColumnNames;
+      property ColumnNames: TStringList read FColumnNames;
     published
       property SQL: String read FSQL write SetSQL;
       property Connection: TMySQLConnection read FConnection write FConnection;
@@ -713,12 +713,12 @@ begin
 end;
 
 
-function TMySQLConnection.GetCol(SQL: String; Column: Integer=0): TWideStringList;
+function TMySQLConnection.GetCol(SQL: String; Column: Integer=0): TStringList;
 var
   Results: TMySQLQuery;
 begin
   Results := GetResults(SQL);
-  Result := TWideStringList.Create;
+  Result := TStringList.Create;
   if Results.RecordCount > 0 then while not Results.Eof do begin
     Result.Add(Results.Col(Column));
     Results.Next;
@@ -857,13 +857,13 @@ begin
 end;
 
 
-function TMySQLConnection.GetInformationSchemaObjects: TWideStringList;
+function TMySQLConnection.GetInformationSchemaObjects: TStringList;
 begin
   if not Assigned(FInformationSchemaObjects) then try
     FInformationSchemaObjects := GetCol('SHOW TABLES FROM '+QuoteIdent('information_schema'));
   except
     // Gracefully return an empty list on old servers
-    FInformationSchemaObjects := TWideStringlist.Create;
+    FInformationSchemaObjects := TStringList.Create;
   end;
   Result := FInformationSchemaObjects;
 end;
@@ -1126,7 +1126,7 @@ begin
 
     // Add list of objects in this database to cached list of all databases
     if not Assigned(FDBObjectLists) then
-      FDBObjectLists := TWideStringList.Create;
+      FDBObjectLists := TStringList.Create;
     FDBObjectLists.AddObject(db, Result);
   end;
 end;
@@ -1140,7 +1140,7 @@ begin
   inherited Create(AOwner);
   FRecNo := -1;
   FRecordCount := 0;
-  FColumnNames := TWideStringlist.Create;
+  FColumnNames := TStringList.Create;
   FColumnNames.CaseSensitive := True;
 end;
 

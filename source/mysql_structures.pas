@@ -60,7 +60,7 @@ type
 
 var
   MySQLKeywords: TStringList;
-  MySQLErrorCodes: TWideStringList;
+  MySQLErrorCodes: TStringList;
 
   // MySQL data type categories
   DatatypeCategories: array[0..8] of TDatatypeCategory = (

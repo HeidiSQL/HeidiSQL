@@ -71,7 +71,7 @@ var
   querycount,
   rowsaffected        : Int64;
   starttime           : Cardinal;
-  SQL                 : TWideStringList;
+  SQL                 : TStringList;
   i                   : Integer;
   lines_remaining     : String;
 begin

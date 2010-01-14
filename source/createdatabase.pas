@@ -204,7 +204,7 @@ end;
 procedure TCreateDatabaseForm.btnOKClick(Sender: TObject);
 var
   sql : String;
-  AllDatabases, Unions, ObjectsLeft: TWideStringList;
+  AllDatabases, Unions, ObjectsLeft: TStringList;
   ObjectsInNewDb, ObjectsInOldDb: TDBObjectList;
   i, j: Integer;
 begin
@@ -274,9 +274,9 @@ begin
         Mainform.Connection.ClearDbObjects(editDBName.Text);
       end;
       // Last step for renaming: drop source database
-      ObjectsLeft := TWideStringList.Create;
+      ObjectsLeft := TStringList.Create;
       // Last check if old db is really empty, before we drop it. Especially triggers need to be checked.
-      Unions := TWideStringList.Create;
+      Unions := TStringList.Create;
       if Mainform.Connection.InformationSchemaObjects.IndexOf('TABLES') > -1 then
         Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.TABLES WHERE TABLE_SCHEMA='+esc(modifyDB));
       if Mainform.Connection.InformationSchemaObjects.IndexOf('ROUTINES') > -1 then
