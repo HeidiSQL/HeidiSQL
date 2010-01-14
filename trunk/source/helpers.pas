@@ -18,7 +18,7 @@ type
 
   // Define a record which can hold everything we need for one row / node in a VirtualStringTree
   TVTreeData = record
-    Captions: TWideStringList;
+    Captions: TStringList;
     ImageIndex: Integer;
     NodeType: TListNodeType;
   end;
@@ -46,7 +46,7 @@ type
     DatatypeCat: TDatatypeCategoryIndex;
     MaxLength: Cardinal;
     IsPriPart: Boolean;
-    ValueList: TWideStringList;
+    ValueList: TStringList;
   end;
   PGridColumn = ^TGridColumn;
   TGridColumns = Array of TGridColumn;
@@ -82,8 +82,8 @@ type
   TMyKey = record
     Name     : String;
     _type    : String;
-    Columns  : TWideStringList;
-    SubParts : TWideStringList;
+    Columns  : TStringList;
+    SubParts : TStringList;
   end;
 
   // General purpose editing status flag
@@ -114,7 +114,7 @@ type
   TTableKey = class(TObject)
     Name, OldName: String;
     IndexType: String;
-    Columns, SubParts: TWideStringlist;
+    Columns, SubParts: TStringList;
     Modified, Added: Boolean;
     constructor Create;
     destructor Destroy; override;
@@ -125,7 +125,7 @@ type
   // Helper object to manage foreign keys in a TObjectList
   TForeignKey = class(TObject)
     KeyName, ReferenceTable, OnUpdate, OnDelete: String;
-    Columns, ForeignColumns: TWideStringList;
+    Columns, ForeignColumns: TStringList;
     Modified, Added: Boolean;
     constructor Create;
     destructor Destroy; override;
@@ -150,15 +150,15 @@ type
 
 {$I const.inc}
 
-  function implodestr(seperator: String; a: TWideStringList) :String;
-  function explode(separator, a: String) :TWideStringList;
-  procedure ExplodeQuotedList(Text: String; var List: TWideStringList);
+  function implodestr(seperator: String; a: TStringList) :String;
+  function explode(separator, a: String) :TStringList;
+  procedure ExplodeQuotedList(Text: String; var List: TStringList);
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: String): String;
   function IsWhitespace(const c: WideChar): Boolean;
   function IsLetter(const c: WideChar): Boolean;
   function IsNumber(const c: WideChar): Boolean;
-  function parsesql(sql: String) : TWideStringList;
+  function parsesql(sql: String) : TStringList;
   function sstr(str: String; len: Integer) : String;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
@@ -174,7 +174,7 @@ type
   procedure StreamWrite(S: TStream; Text: String = '');
   function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): String;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
-  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TWideStringList); Overload;
+  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList); Overload;
   function _GetFileSize(filename: String): Int64;
   function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
@@ -200,8 +200,8 @@ type
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber( Seconds: Cardinal ): String;
-  function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeTypes: TListNodeTypes = [lntNone] ): TWideStringList;
-  procedure SetVTSelection( VT: TVirtualStringTree; Selected: TWideStringList );
+  function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeTypes: TListNodeTypes = [lntNone] ): TStringList;
+  procedure SetVTSelection( VT: TVirtualStringTree; Selected: TStringList );
   function GetTempDir: String;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
   procedure SaveUnicodeFile(Filename: String; Text: String);
@@ -306,7 +306,7 @@ end;
   @param a TStringList Containing strings
   @return string
 }
-function implodestr(seperator: String; a: TWideStringList) :String;
+function implodestr(seperator: String; a: TStringList) :String;
 var
   i : Integer;
 begin
@@ -327,12 +327,12 @@ end;
   @param string Separator
   @return TStringList
 }
-function explode(separator, a: String) :TWideStringList;
+function explode(separator, a: String) :TStringList;
 var
   i : Integer;
   item : String;
 begin
-  result := TWideStringList.Create;
+  result := TStringList.Create;
 
   i := pos(separator, a);
   while i > 0 do begin
@@ -453,7 +453,7 @@ end;
   @param string to enclose added string in (use %s)
   @return void
 }
-procedure addResult(list: TWideStringList; s: String; enclose: String = '');
+procedure addResult(list: TStringList; s: String; enclose: String = '');
 begin
   s := trim(s);
   if length(s) > 0 then begin
@@ -537,7 +537,7 @@ end;
   @param String SQL start delimiter
   @return TStringList Separated statements
 }
-function parsesql(sql: String) : TWideStringList;
+function parsesql(sql: String) : TStringList;
 var
   i, j, start, len                  : Integer;
   tmp                               : String;
@@ -548,7 +548,7 @@ var
   encloser, secchar, thdchar        : WideChar;
   conditional                       : String;
 begin
-  result := TWideStringList.Create;
+  result := TStringList.Create;
   sql := trim(sql);
   instring := false;
   start := 1;
@@ -1392,7 +1392,7 @@ end;
   @param TStringList Second list with items to change
   @return void
 }
-procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TWideStringList);
+procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList);
 var
   i : Integer;
 begin
@@ -2033,12 +2033,12 @@ end;
   Return a TStringList with captions from all selected nodes in a VirtualTree
   Especially helpful when toMultiSelect is True
 }
-function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeTypes: TListNodeTypes = [lntNone] ): TWideStringList;
+function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeTypes: TListNodeTypes = [lntNone] ): TStringList;
 var
   Node: PVirtualNode;
   NodeData: PVTreeData;
 begin
-  Result := TWideStringList.Create;
+  Result := TStringList.Create;
   if OnlySelected then Node := VT.GetFirstSelected
   else Node := VT.GetFirst;
   while Assigned(Node) do begin
@@ -2059,7 +2059,7 @@ end;
   The opposite of GetVTCaptions in "OnlySelected"-Mode:
   Set selected nodes in a VirtualTree
 }
-procedure SetVTSelection( VT: TVirtualStringTree; Selected: TWideStringList );
+procedure SetVTSelection( VT: TVirtualStringTree; Selected: TStringList );
 var
   Node: PVirtualNode;
   NodeData: PVTreeData;
@@ -2721,7 +2721,7 @@ begin
 end;
 
 
-procedure ExplodeQuotedList(Text: String; var List: TWideStringList);
+procedure ExplodeQuotedList(Text: String; var List: TStringList);
 var
   i: Integer;
   Quote: WideChar;
@@ -2994,14 +2994,14 @@ end;
 
 function ReformatSQL(SQL: String): String;
 var
-  AllKeywords, ImportantKeywords: TWideStringlist;
+  AllKeywords, ImportantKeywords: TStringList;
   i, Run, KeywordMaxLen: Integer;
   IsEsc, IsQuote, InComment, InBigComment, InString, InKeyword, InIdent, LastWasComment: Boolean;
   c, p: WideChar;
   Keyword, PreviousKeyword, TestPair: String;
 begin
   // Known SQL keywords, get converted to UPPERCASE
-  AllKeywords := TWideStringlist.Create;
+  AllKeywords := TStringList.Create;
   AllKeywords.Text := MySQLKeywords.Text;
   for i:=Low(MySQLFunctions) to High(MySQLFunctions) do begin
     if MySQLFunctions[i].Declaration <> '' then
@@ -3122,8 +3122,8 @@ end;
 constructor TTableKey.Create;
 begin
   inherited Create;
-  Columns := TWideStringlist.Create;
-  SubParts := TWideStringlist.Create;
+  Columns := TStringList.Create;
+  SubParts := TStringList.Create;
   Columns.OnChange := Modification;
   Subparts.OnChange := Modification;
 end;
@@ -3147,8 +3147,8 @@ end;
 constructor TForeignKey.Create;
 begin
   inherited Create;
-  Columns := TWideStringlist.Create;
-  ForeignColumns := TWideStringlist.Create;
+  Columns := TStringList.Create;
+  ForeignColumns := TStringList.Create;
 end;
 
 destructor TForeignKey.Destroy;

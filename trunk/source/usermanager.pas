@@ -21,17 +21,17 @@ type
       FModified: Boolean;
       function GetDBOKey: String;
       function GetDBOPrettyKey: String;
-      function GetPrettyPrivNames: TWideStringList;
+      function GetPrettyPrivNames: TStringList;
     public
-      DBONames: TWideStringList;
-      PrivNames: TWideStringList;
-      SelectedPrivNames: TWideStringList;
+      DBONames: TStringList;
+      PrivNames: TStringList;
+      SelectedPrivNames: TStringList;
       constructor Create(Fields: TMySQLQuery; FieldDefs: TMySQLQuery=nil; AvoidFieldDefs: TMySQLQuery=nil; CropFieldDefs: TMySQLQuery=nil; SimulateDbField: Boolean = False);
       procedure Merge(Fields: TMySQLQuery);
       property DBOType: TListNodeType read FDBOType;
       property DBOKey: String read GetDBOKey;
       property DBOPrettyKey: String read GetDBOPrettyKey;
-      property PrettyPrivNames: TWideStringList read GetPrettyPrivNames;
+      property PrettyPrivNames: TStringList read GetPrettyPrivNames;
       property Added: Boolean read FAdded write FAdded;
       property Modified: Boolean read FModified write FModified;
       property Deleted: Boolean read FDeleted write FDeleted;
@@ -202,7 +202,7 @@ type
     { Public declarations }
   end;
 
-procedure GetPrivilegeRowKey(Fields: TMySQLQuery; SimulateDbField: Boolean; out DBOType: TListNodeType; out DBONames: TWideStringList);
+procedure GetPrivilegeRowKey(Fields: TMySQLQuery; SimulateDbField: Boolean; out DBOType: TListNodeType; out DBONames: TStringList);
 
 implementation
 
@@ -609,7 +609,7 @@ end;
 
 procedure TUserManagerForm.btnAddObjectClick(Sender: TObject);
 var
-  NewObj: TWideStringList;
+  NewObj: TStringList;
   ds, FieldDefs: TMySQLQuery;
   NewPriv: TPrivilege;
   u: TUser;
@@ -890,7 +890,7 @@ var
   sql, TableName, SetFieldName: String;
   TableSet: TMySQLQuery;
   AcctWhere, AcctValues, PrivWhere: String;
-  AcctUpdates, PrivValues, PrivUpdates: TWideStringList;
+  AcctUpdates, PrivValues, PrivUpdates: TStringList;
   procedure LogSQL(sql: String);
   begin
     Mainform.LogSQL(sql);
@@ -899,7 +899,7 @@ var
   begin
     Result := Mainform.Mask(sql);
   end;
-  function Delim(list: TWideStringList; spacing: Boolean = True): String;
+  function Delim(list: TStringList; spacing: Boolean = True): String;
   var
     i: Integer;
   begin
@@ -947,7 +947,7 @@ begin
     end;
   end;
 
-  AcctUpdates := TWideStringList.Create;
+  AcctUpdates := TStringList.Create;
   AcctUpdates.Delimiter := ',';
   LogSQL('Propagating key changes for renamed and redesignated accounts...');
   for i := 0 to Users.Count - 1 do begin
@@ -1075,9 +1075,9 @@ begin
   end;
 
   LogSQL('Applying privilege changes...');
-  PrivUpdates := TWideStringList.Create;
+  PrivUpdates := TStringList.Create;
   PrivUpdates.Delimiter := ',';
-  PrivValues := TWideStringList.Create;
+  PrivValues := TStringList.Create;
   PrivValues.Delimiter := ',';
   for i := 0 to Users.Count - 1 do begin
     u := Users[i];
@@ -1541,7 +1541,7 @@ function TPrivileges.FindPrivilege(Fields: TMySQLQuery; SimulateDbField: Boolean
 var
   i : Integer;
   DBOType: TListNodeType;
-  DBONames: TWideStringList;
+  DBONames: TStringList;
 begin
   Result := nil;
   GetPrivilegeRowKey(Fields, SimulateDbField, DBOType, DBONames);
@@ -1592,10 +1592,10 @@ var
   i: Integer;
   tables_col_ignore: Boolean;
   // Find possible values for the given SET column
-  function GetSETValues(FieldName: String): TWideStringList;
+  function GetSETValues(FieldName: String): TStringList;
   begin
     FieldDefs.First;
-    Result := TWideStringList.Create;
+    Result := TStringList.Create;
     while not FieldDefs.Eof do begin
       if FieldDefs.Col('Field') = FieldName + '_priv' then begin
         Result.QuoteChar := '''';
@@ -1609,9 +1609,9 @@ begin
   FDeleted := False;
   FAdded := False;
   FModified := False;
-  DBONames := TWideStringList.Create;
-  PrivNames := TWideStringList.Create;
-  SelectedPrivNames := TWideStringList.Create;
+  DBONames := TStringList.Create;
+  PrivNames := TStringList.Create;
+  SelectedPrivNames := TStringList.Create;
   // Find out what xxxx_priv privilege columns this server/version has.
   PrivNames.Text := Fields.ColumnNames.Text;
   for i := PrivNames.Count - 1 downto 0 do begin
@@ -1708,12 +1708,12 @@ begin
   Result := DBONames.DelimitedText;
 end;
 
-function TPrivilege.GetPrettyPrivNames: TWideStringList;
+function TPrivilege.GetPrettyPrivNames: TStringList;
 var
   i: Integer;
   p: String;
 begin
-  Result := TWideStringList.Create;
+  Result := TStringList.Create;
   for i := 0 to PrivNames.Count - 1 do begin
     // Fetch original name
     p := PrivNames[i];
@@ -1724,12 +1724,12 @@ begin
 end;
 
 
-procedure GetPrivilegeRowKey(Fields: TMySQLQuery; SimulateDbField: Boolean; out DBOType: TListNodeType; out DBONames: TWideStringList);
+procedure GetPrivilegeRowKey(Fields: TMySQLQuery; SimulateDbField: Boolean; out DBOType: TListNodeType; out DBONames: TStringList);
 var
   RowsExist: Boolean;
 begin
   DBOType := lntNone;
-  DBONames := TWideStringList.Create;
+  DBONames := TStringList.Create;
   DBONames.Delimiter := '.';
   if SimulateDbField then begin
     DBOType := lntDb;

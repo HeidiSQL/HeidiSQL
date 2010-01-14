@@ -213,7 +213,7 @@ end;
 procedure Tloaddataform.btnImportClick(Sender: TObject);
 var
   query : String;
-  col   : TWideStringList;
+  col   : TStringList;
   i     : Integer;
 
   // Correctly escape field-terminator, line-terminator or encloser
@@ -278,7 +278,7 @@ begin
   if updownIgnoreLines.Position > 0 then
     query := query + 'IGNORE ' + inttostr(updownIgnoreLines.Position) + ' LINES ';
 
-  col := TWideStringList.Create;
+  col := TStringList.Create;
   for i:=0 to chklistColumns.Items.Count - 1 do
   begin
     if chklistColumns.checked[i] then

@@ -167,7 +167,7 @@ var
   Results      : TMySQLQuery;
   isFulltext   : Boolean;
   struc_data   : Byte;
-  Fixes        : TWideStringlist;
+  Fixes        : TStringList;
   DBObjects    : TDBObjectList;
 begin
   // copy table!
@@ -202,8 +202,8 @@ begin
       begin
         setlength(keylist, length(keylist)+1);
         which := high(keylist);
-        keylist[which].Columns := TWideStringList.Create;
-        keylist[which].SubParts := TWideStringList.Create;
+        keylist[which].Columns := TStringList.Create;
+        keylist[which].SubParts := TStringList.Create;
         // set properties for new key
         if Mainform.Connection.ServerVersionInt < 40002 then
           isFulltext := Results.Col('Comment') = 'FULLTEXT'
@@ -284,7 +284,7 @@ begin
 
     // Fix missing auto_increment property and CURRENT_TIMESTAMP defaults in new table
     Results := Mainform.Connection.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
-    Fixes := TWideStringlist.Create;
+    Fixes := TStringList.Create;
     while not Results.Eof do begin
       notnull := '';
       if Results.Col('Null') = '' then

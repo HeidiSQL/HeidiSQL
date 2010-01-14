@@ -108,12 +108,12 @@ type
     { Private declarations }
     FResults: TObjectList;
     FToolMode: TToolMode;
-    OutputFiles, OutputDirs: TWideStringList;
+    OutputFiles, OutputDirs: TStringList;
     ExportStream: TStream;
     ExportLastDatabase: String;
     FTargetConnection: TMySQLConnection;
     FLastOutputSelectedIndex: Integer;
-    FModifiedDbs: TWideStringList;
+    FModifiedDbs: TStringList;
     procedure SetToolMode(Value: TToolMode);
     procedure AddResults(SQL: String);
     procedure AddNotes(Col1, Col2, Col3, Col4: String);
@@ -125,7 +125,7 @@ type
     procedure DoBulkTableEdit(DBObj: TDBObject);
   public
     { Public declarations }
-    SelectedTables: TWideStringList;
+    SelectedTables: TStringList;
     property ToolMode: TToolMode read FToolMode write SetToolMode;
   end;
 
@@ -177,8 +177,8 @@ begin
   chkExportTablesDrop.Checked := GetRegValue(REGNAME_EXP_DROPTABLE, chkExportTablesDrop.Checked);
   comboExportData.Items.Text := DATA_NO+CRLF +DATA_REPLACE+CRLF +DATA_INSERT+CRLF +DATA_INSERTNEW+CRLF +DATA_UPDATE;
   comboExportData.ItemIndex := GetRegValue(REGNAME_EXP_DATAHOW, 0);
-  OutputFiles := TWideStringList.Create;
-  OutputDirs := TWideStringList.Create;
+  OutputFiles := TStringList.Create;
+  OutputDirs := TStringList.Create;
   OutputFiles.Text := GetRegValue(REGNAME_EXP_OUTFILES, '');
   OutputDirs.Text := GetRegValue(REGNAME_EXP_OUTDIRS, '');
   comboExportOutputType.Items.Text := OUTPUT_FILE+CRLF +OUTPUT_DIR+CRLF +OUTPUT_DB;
@@ -199,8 +199,8 @@ begin
   FixVT(TreeObjects);
   FixVT(ResultGrid);
   FResults := TObjectList.Create;
-  SelectedTables := TWideStringList.Create;
-  FModifiedDbs := TWideStringList.Create;
+  SelectedTables := TStringList.Create;
+  FModifiedDbs := TStringList.Create;
   FModifiedDbs.Duplicates := dupIgnore;
 end;
 
@@ -560,7 +560,7 @@ end;
 procedure TfrmTableTools.AddResults(SQL: String);
 var
   i: Integer;
-  Row: TWideStringlist;
+  Row: TStringList;
   Results: TMySQLQuery;
 begin
   // Execute query and append results into grid
@@ -571,7 +571,7 @@ begin
   SetupResultGrid(Results);
   Results.First;
   while not Results.Eof do begin
-    Row := TWideStringlist.Create;
+    Row := TStringList.Create;
     for i:=0 to Results.ColumnCount-1 do begin
       if Results.DataType(i).Category = dtcInteger then
         Row.Add(FormatNumber(Results.Col(i)))
@@ -589,11 +589,11 @@ end;
 
 procedure TfrmTableTools.AddNotes(Col1, Col2, Col3, Col4: String);
 var
-  Row: TWideStringlist;
+  Row: TStringList;
 begin
   // Adds a row with non SQL results
   SetupResultGrid;
-  Row := TWideStringlist.Create;
+  Row := TStringList.Create;
   Row.Add(Col1);
   Row.Add(Col2);
   Row.Add(Col3);
@@ -656,18 +656,18 @@ end;
 
 procedure TfrmTableTools.ResultGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
 begin
-  NodeDataSize := SizeOf(TWideStringList);
+  NodeDataSize := SizeOf(TStringList);
 end;
 
 
 procedure TfrmTableTools.ResultGridInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
   var InitialStates: TVirtualNodeInitStates);
 var
-  Data: ^TWideStringList;
+  Data: ^TStringList;
 begin
   // Bind string list to node
   Data := Sender.GetNodeData(Node);
-  Data^ := FResults[Node.Index] as TWideStringList;
+  Data^ := FResults[Node.Index] as TStringList;
 end;
 
 
@@ -693,7 +693,7 @@ end;
 procedure TfrmTableTools.ResultGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType; var CellText: String);
 var
-  Data: ^TWideStringList;
+  Data: ^TStringList;
 begin
   if Column > NoColumn then begin
     Data := Sender.GetNodeData(Node);
@@ -718,7 +718,7 @@ var
   NewIdx, NetType: Integer;
   DBNode: PVirtualNode;
   SessionName: String;
-  Databases: TWideStringlist;
+  Databases: TStringList;
 begin
   // Target type (file, directory, ...) selected
   OldItem := comboExportOutputTarget.Text;
@@ -805,7 +805,7 @@ end;
 
 procedure TfrmTableTools.comboExportOutputTargetExit(Sender: TObject);
 var
-  ItemList: TWideStringList;
+  ItemList: TStringList;
   idx: Integer;
 begin
   // Add typed text to recent items
@@ -895,7 +895,7 @@ procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
   ToFile, ToDir, ToDb, ToServer, IsLastRowInChunk, NeedsDBStructure: Boolean;
   Struc, Header, FinalDbName, BaseInsert, Row, TargetDbAndObject: String;
-  LogRow, MultiSQL: TWideStringlist;
+  LogRow, MultiSQL: TStringList;
   i: Integer;
   RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;
@@ -1132,7 +1132,7 @@ begin
               break;
           end;
           Output('', True, True, True, True, True);
-          LogRow := TWideStringList(FResults.Last);
+          LogRow := TStringList(FResults.Last);
           LogRow[2] := FormatNumber(RowCount) + ' / ' + FormatNumber(100/Max(DBObj.Rows,1)*RowCount, 0)+'%';
           LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000);
           UpdateResultGrid;
@@ -1173,7 +1173,7 @@ end;
 
 procedure TfrmTableTools.DoBulkTableEdit(DBObj: TDBObject);
 var
-  Specs, LogRow: TWideStringList;
+  Specs, LogRow: TStringList;
   CreateView: String;
   rx: TRegExpr;
 begin
@@ -1182,7 +1182,7 @@ begin
     esc('Updating...')+' AS '+Mainform.mask('Operation')+', '+
     ''''' AS '+Mainform.mask('Result')
     );
-  Specs := TWideStringlist.Create;
+  Specs := TStringList.Create;
   if chkBulkTableEditDatabase.Checked and (comboBulkTableEditDatabase.Text <> DBObj.Database) then begin
     case DBObj.NodeType of
       lntTable: Specs.Add('RENAME ' + Mainform.mask(comboBulkTableEditDatabase.Text)+'.'+Mainform.mask(DBObj.Name));
@@ -1221,7 +1221,7 @@ begin
   if (DBObj.NodeType = lntTable) and chkBulkTableEditResetAutoinc.Checked then
     Specs.Add('AUTO_INCREMENT=0');
 
-  LogRow := TWideStringList(FResults.Last);
+  LogRow := TStringList(FResults.Last);
   if Specs.Count > 0 then begin
     Mainform.Connection.Query('ALTER TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name) + ' ' + ImplodeStr(', ', Specs));
     LogRow[2] := 'Done';

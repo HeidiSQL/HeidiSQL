@@ -25,7 +25,7 @@ type
     procedure btnResetClick(Sender: TObject);
   private
     { Private declarations }
-    ColumnNames : TWideStringList;
+    ColumnNames : TStringList;
     OrderColumns : TOrderColArray;
     OldOrderClause : String;
     procedure DisplaySortingControls;
@@ -54,7 +54,7 @@ uses main;
 procedure TDataSortingForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
-  ColumnNames := TWideStringlist.Create;
+  ColumnNames := TStringList.Create;
   FColumns := TTableColumnList.Create;
 end;
 
@@ -273,14 +273,14 @@ end;
 procedure TDataSortingForm.btnAddColClick(Sender: TObject);
 var
   i, new : Integer;
-  UnusedColumns : TWideStringList;
+  UnusedColumns : TStringList;
 begin
   SetLength( OrderColumns, Length(OrderColumns)+1 );
   new := Length(OrderColumns)-1;
   OrderColumns[new] := TOrderCol.Create;
 
   // Take first unused column as default for new sort column
-  UnusedColumns := TWideStringList.Create;
+  UnusedColumns := TStringList.Create;
   UnusedColumns.AddStrings( ColumnNames );
   for i := 0 to Length(OrderColumns) - 1 do
   begin

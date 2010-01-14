@@ -67,7 +67,7 @@ type
     procedure btnDiscardClick(Sender: TObject);
   private
     { Private declarations }
-    Parameters: TWideStringList;
+    Parameters: TStringList;
     FAlterRoutineType: String;
   public
     { Public declarations }
@@ -106,7 +106,7 @@ begin
     comboReturns.Items.Add(Datatypes[i].Name);
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   FixVT(listParameters);
-  Parameters := TWideStringList.Create;
+  Parameters := TStringList.Create;
   editName.MaxLength := NAME_LEN;
 end;
 
@@ -284,7 +284,7 @@ procedure TfrmRoutineEditor.listParametersGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
   var CellText: String);
 var
-  Values: TWideStringList;
+  Values: TStringList;
 begin
   if Column = 0 then
     CellText := IntToStr(Node.Index+1)
@@ -319,7 +319,7 @@ end;
 procedure TfrmRoutineEditor.listParametersNewText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
-  OldValues: TWideStringList;
+  OldValues: TStringList;
   new: String;
 begin
   OldValues := explode(DELIM, Parameters[Node.Index]);
@@ -346,13 +346,13 @@ begin
   else if Column = 2 then begin
     EnumEditor := TEnumEditorLink.Create(VT);
     EnumEditor.AllowCustomText := True;
-    EnumEditor.ValueList := TWideStringList.Create;
+    EnumEditor.ValueList := TStringList.Create;
     for i:=Low(Datatypes) to High(Datatypes) do
       EnumEditor.ValueList.Add(Datatypes[i].Name);
     EditLink := EnumEditor;
   end else if Column = 3 then begin
     EnumEditor := TEnumEditorLink.Create(VT);
-    EnumEditor.ValueList := TWideStringList.Create;
+    EnumEditor.ValueList := TStringList.Create;
     EnumEditor.ValueList.Add('IN');
     EnumEditor.ValueList.Add('OUT');
     EnumEditor.ValueList.Add('INOUT');
@@ -409,7 +409,7 @@ procedure TfrmRoutineEditor.ApplyModifications;
 var
   BaseSQL, TempSQL, FinalSQL, TempName: String;
   i: Integer;
-  par, allRoutineNames: TWideStringList;
+  par, allRoutineNames: TStringList;
   ProcOrFunc: String;
   TargetExists: Boolean;
 begin

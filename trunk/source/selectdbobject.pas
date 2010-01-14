@@ -39,14 +39,14 @@ type
         PVirtualNode; var InitialStates: TVirtualNodeInitStates);
   private
     { Private declarations }
-    FColumns: Array of Array of TWideStringList;
-    function GetSelectedObject: TWideStringList;
+    FColumns: Array of Array of TStringList;
+    function GetSelectedObject: TStringList;
   public
     { Public declarations }
-    property SelectedObject: TWideStringList read GetSelectedObject;
+    property SelectedObject: TStringList read GetSelectedObject;
   end;
 
-function SelectDBO: TWideStringList;
+function SelectDBO: TStringList;
 
 implementation
 
@@ -54,7 +54,7 @@ uses main, helpers;
 
 {$R *.dfm}
 
-function SelectDBO: TWideStringList;
+function SelectDBO: TStringList;
 begin
   if Mainform.SelectDBObjectForm = nil then
     Mainform.SelectDBObjectForm := TfrmSelectDBObject.Create(Mainform);
@@ -115,11 +115,11 @@ begin
 end;
 
 
-function TfrmSelectDBObject.GetSelectedObject: TWideStringList;
+function TfrmSelectDBObject.GetSelectedObject: TStringList;
 begin
   Result := nil;
   if editDb.Text <> '' then begin
-    Result := TWideStringList.Create;
+    Result := TStringList.Create;
     Result.Add(editDb.Text);
     if editTable.Text <> '' then Result.Add(editTable.Text);
     if editCol.Text <> '' then Result.Add(editCol.Text);
@@ -179,7 +179,7 @@ procedure TfrmSelectDBObject.TreeDBOInitChildren(Sender: TBaseVirtualTree;
     Node: PVirtualNode; var ChildCount: Cardinal);
 var
   DBObjects: TDBObjectList;
-  cols: TWideStringList;
+  cols: TStringList;
 begin
   // Fetch sub nodes
   Mainform.DBtreeInitChildren(Sender, Node, ChildCount);
