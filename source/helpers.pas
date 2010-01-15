@@ -10,7 +10,7 @@ interface
 
 uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi, CheckLst,
-  Windows, Contnrs, ShlObj, ActiveX, WideStrUtils, VirtualTrees, SynRegExpr, Messages, WideStrings,
+  Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages,
   Registry, SynEditHighlighter, DateUtils, Generics.Collections,
   mysql_connection, mysql_structures;
 
@@ -155,9 +155,9 @@ type
   procedure ExplodeQuotedList(Text: String; var List: TStringList);
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: String): String;
-  function IsWhitespace(const c: WideChar): Boolean;
-  function IsLetter(const c: WideChar): Boolean;
-  function IsNumber(const c: WideChar): Boolean;
+  function IsWhitespace(const c: Char): Boolean;
+  function IsLetter(const c: Char): Boolean;
+  function IsNumber(const c: Char): Boolean;
   function parsesql(sql: String) : TStringList;
   function sstr(str: String; len: Integer) : String;
   function encrypt(str: String): String;
@@ -196,7 +196,7 @@ type
   procedure setLocales;
   procedure ShellExec(cmd: String; path: String=''; params: String='');
   function getFirstWord( text: String ): String;
-  function LastPos(needle: WideChar; haystack: String): Integer;
+  function LastPos(needle: Char; haystack: String): Integer;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber( Seconds: Cardinal ): String;
@@ -457,7 +457,7 @@ procedure addResult(list: TStringList; s: String; enclose: String = '');
 begin
   s := trim(s);
   if length(s) > 0 then begin
-    if enclose <> '' then s := WideFormat(enclose, [s]);
+    if enclose <> '' then s := Format(enclose, [s]);
     list.Add(s);
   end;
   // Avoid memory leak
@@ -471,13 +471,13 @@ end;
   Limitations: only recognizes ANSI whitespace.
   Eligible for inlining, hope the compiler does this automatically.
 }
-function IsWhitespace(const c: WideChar): Boolean;
+function IsWhitespace(const c: Char): Boolean;
 begin
   Result := (c = #9) or (c = #10) or (c = #13) or (c = #32);
 end;
 
 
-function IsLetter(const c: WideChar): Boolean;
+function IsLetter(const c: Char): Boolean;
 var
   o: Integer;
 begin
@@ -491,7 +491,7 @@ end;
   Limitations: only recognizes ANSI numerals.
   Eligible for inlining, hope the compiler does this automatically.
 }
-function IsNumber(const c: WideChar): Boolean;
+function IsNumber(const c: Char): Boolean;
 var
   b: word;
 begin
@@ -509,14 +509,14 @@ end;
 function scanReverse(const haystack: String; hayIndex: integer; const needle: String; needleEnd: integer; insensitive: boolean): boolean;
 var
   b: word;
-  c: widechar;
+  c: Char;
 begin
   while (hayIndex > 0) and (needleEnd > 0) do begin
     // Lowercase ANSI A-Z if requested.
     if insensitive then begin
       b := Ord(haystack[hayIndex]);
       if (b > 64) and (b < 91) then b := b - 65 + 97;
-      c := WideChar(b);
+      c := Char(b);
     end else c := haystack[hayIndex];
     if c <> needle[needleEnd] then begin
       result := false;
@@ -545,7 +545,7 @@ var
   inconditional, condterminated     : Boolean;
   inbigcomment, indelimiter         : Boolean;
   delimiter_length                  : Integer;
-  encloser, secchar, thdchar        : WideChar;
+  encloser, secchar, thdchar        : Char;
   conditional                       : String;
 begin
   result := TStringList.Create;
@@ -801,9 +801,9 @@ end;
 }
 function htmlentities(str: String) : String;
 begin
-  result := WideStringReplace(str, '&', '&amp;', [rfReplaceAll]);
-  result := WideStringReplace(result, '<', '&lt;', [rfReplaceAll]);
-  result := WideStringReplace(result, '>', '&gt;', [rfReplaceAll]);
+  result := StringReplace(str, '&', '&amp;', [rfReplaceAll]);
+  result := StringReplace(result, '<', '&lt;', [rfReplaceAll]);
+  result := StringReplace(result, '>', '&gt;', [rfReplaceAll]);
 end;
 
 
@@ -1023,7 +1023,7 @@ begin
       if (GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
         Data := UnformatNumber(Data);
       // Escape encloser characters inside data per de-facto CSV.
-      Data := WideStringReplace(Data, Encloser, Encloser + Encloser, [rfReplaceAll]);
+      Data := StringReplace(Data, Encloser, Encloser + Encloser, [rfReplaceAll]);
       // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
       if GridData.Rows[Node.Index].Cells[i].IsNull then Data := 'NULL'
       else Data := Encloser + Data + Encloser;
@@ -1321,7 +1321,7 @@ begin
   // For mysqldump and mysql.exe CLI compatibility
   if cli_workarounds then
   begin
-    result := WideStringReplace(result, ';*/', '*/;', [rfReplaceAll]);
+    result := StringReplace(result, ';*/', '*/;', [rfReplaceAll]);
   end;
 
   // Detect if SQL is a CREATE TABLE statement
@@ -1353,9 +1353,9 @@ begin
 
     // Turn ENGINE to TYPE
     if sql_version < 40102 then
-      result := WideStringReplace(result, 'ENGINE=', 'TYPE=', [rfReplaceAll])
+      result := StringReplace(result, 'ENGINE=', 'TYPE=', [rfReplaceAll])
     else
-      result := WideStringReplace(result, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
+      result := StringReplace(result, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
 
     // Mask USING {BTREE,HASH,RTREE} from older servers.
     rx.Expression := '\s(USING\s+\w+)';
@@ -1607,7 +1607,7 @@ end;
 function ScanLineBreaks(Text: String): TLineBreaks;
 var
   i: integer;
-  c: WideChar;
+  c: Char;
   procedure SetResult(Style: TLineBreaks);
   begin
     // Note: Prefer "(foo <> a) and (foo <> b)" over "not (foo in [a, b])" in excessive loops
@@ -1652,7 +1652,7 @@ end;
 function RemoveNulChars(Text: String): String;
 var
   i: integer;
-  c: WideChar;
+  c: Char;
 begin
   SetLength(Result, Length(Text));
   if Length(Text) = 0 then Exit;
@@ -1692,9 +1692,9 @@ end;
 }
 function fixNewlines(txt: String): String;
 begin
-  txt := WidestringReplace(txt, CRLF, #10, [rfReplaceAll]);
-  txt := WidestringReplace(txt, #13, #10, [rfReplaceAll]);
-  txt := WidestringReplace(txt, #10, CRLF, [rfReplaceAll]);
+  txt := StringReplace(txt, CRLF, #10, [rfReplaceAll]);
+  txt := StringReplace(txt, #13, #10, [rfReplaceAll]);
+  txt := StringReplace(txt, #10, CRLF, [rfReplaceAll]);
   result := txt;
 end;
 
@@ -1956,7 +1956,7 @@ end;
   @param string Text
   @return Integer Last position
 }
-function LastPos(needle: WideChar; haystack: String): Integer;
+function LastPos(needle: Char; haystack: String): Integer;
 var
   reverse: String;
   i, len, w: Integer;
@@ -2261,14 +2261,14 @@ end;
 }
 function GetFileCharset(Stream: TFileStream): TFileCharset;
 var
-  ByteOrderMark: WideChar;
+  ByteOrderMark: Char;
   BytesRead: Integer;
   Utf8Test: array[0..2] of AnsiChar;
   Buffer: array of Byte;
   BufferSize, i, FoundUTF8Strings: Integer;
 const
-  UNICODE_BOM = WideChar($FEFF);
-  UNICODE_BOM_SWAPPED = WideChar($FFFE);
+  UNICODE_BOM = Char($FEFF);
+  UNICODE_BOM_SWAPPED = Char($FFFE);
   UTF8_BOM = AnsiString(#$EF#$BB#$BF);
   MinimumCountOfUTF8Strings = 1;
   MaxBufferSize = $4000;
@@ -2417,13 +2417,13 @@ begin
     ChunkSize := DataLeft;
   if (FileCharset in [fcsUnicode, fcsUnicodeSwapped]) then begin
     // BOM indicates Unicode text stream
-    if ChunkSize < SizeOf(WideChar) then
+    if ChunkSize < SizeOf(Char) then
       Result := ''
     else begin
-      SetLength(Result, ChunkSize div SizeOf(WideChar));
-      Stream.Read(PWideChar(Result)^, ChunkSize);
+      SetLength(Result, ChunkSize div SizeOf(Char));
+      Stream.Read(PChar(Result)^, ChunkSize);
       if FileCharset = fcsUnicodeSwapped then begin
-        P := PWord(PWideChar(Result));
+        P := PWord(PChar(Result));
         While (P^ <> 0) do begin
           P^ := MakeWord(HiByte(P^), LoByte(P^));
           Inc(P);
@@ -2724,7 +2724,7 @@ end;
 procedure ExplodeQuotedList(Text: String; var List: TStringList);
 var
   i: Integer;
-  Quote: WideChar;
+  Quote: Char;
   Opened, Closed: Boolean;
   Item: String;
 begin
@@ -2881,7 +2881,7 @@ begin
         Col.DefaultType := cdtText;
         Col.DefaultText := Copy(ColSpec, 2, i-3);
         // A single quote gets escaped by single quote - remove the escape char - escaping is done in Save action afterwards
-        Col.DefaultText := WideStringReplace(Col.DefaultText, '''''', '''', [rfReplaceAll]);
+        Col.DefaultText := StringReplace(Col.DefaultText, '''''', '''', [rfReplaceAll]);
         Delete(ColSpec, 1, i);
       end;
     end;
@@ -2905,7 +2905,7 @@ begin
           break;
       end;
       Col.Comment := Copy(ColSpec, 10, i-11);
-      Col.Comment := WideStringReplace(Col.Comment, '''''', '''', [rfReplaceAll]);
+      Col.Comment := StringReplace(Col.Comment, '''''', '''', [rfReplaceAll]);
       Delete(ColSpec, 1, i);
     end;
 
@@ -2948,8 +2948,8 @@ begin
     ForeignKey := TForeignKey.Create;
     ForeignKeys.Add(ForeignKey);
     ForeignKey.KeyName := rx.Match[1];
-    ForeignKey.ReferenceTable := WideStringReplace(rx.Match[3], '`', '', [rfReplaceAll]);
-    ForeignKey.ReferenceTable := WideStringReplace(ForeignKey.ReferenceTable, '"', '', [rfReplaceAll]);
+    ForeignKey.ReferenceTable := StringReplace(rx.Match[3], '`', '', [rfReplaceAll]);
+    ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, '"', '', [rfReplaceAll]);
     ExplodeQuotedList(rx.Match[2], ForeignKey.Columns);
     ExplodeQuotedList(rx.Match[4], ForeignKey.ForeignColumns);
     if rx.Match[6] <> '' then
@@ -2997,7 +2997,7 @@ var
   AllKeywords, ImportantKeywords: TStringList;
   i, Run, KeywordMaxLen: Integer;
   IsEsc, IsQuote, InComment, InBigComment, InString, InKeyword, InIdent, LastWasComment: Boolean;
-  c, p: WideChar;
+  c, p: Char;
   Keyword, PreviousKeyword, TestPair: String;
 begin
   // Known SQL keywords, get converted to UPPERCASE

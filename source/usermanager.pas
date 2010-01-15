@@ -5,7 +5,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
-  CheckLst, ExtCtrls, ToolWin, WideStrings, WideStrUtils,
+  CheckLst, ExtCtrls, ToolWin,
   mysql_connection, helpers;
 
 {$I const.inc}
@@ -1717,7 +1717,7 @@ begin
   for i := 0 to PrivNames.Count - 1 do begin
     // Fetch original name
     p := PrivNames[i];
-    p := WideStringReplace(p, '_', ' ', [rfReplaceAll]);
+    p := StringReplace(p, '_', ' ', [rfReplaceAll]);
     p := Trim(p);
     Result.Add(p);
   end;

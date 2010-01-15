@@ -4,8 +4,8 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
-  ComCtrls, ToolWin, VirtualTrees, WideStrings, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
-  SynMemo, Menus, WideStrUtils, Contnrs,
+  ComCtrls, ToolWin, VirtualTrees, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
+  SynMemo, Menus, Contnrs,
   grideditlinks, mysql_structures, mysql_connection, helpers, mysql_api;
 
 type
@@ -317,7 +317,7 @@ begin
       memoUnionTables.Lines.Clear;
     rx.Expression := '\bCOMMENT=''((.+)[^''])''';
     if rx.Exec(CreateTable) then
-      memoComment.Lines.Text := WideStringReplace(rx.Match[1], '''''', '''', [rfReplaceAll])
+      memoComment.Lines.Text := StringReplace(rx.Match[1], '''''', '''', [rfReplaceAll])
     else
       memoComment.Lines.Clear;
     ParseTableStructure(CreateTable, FColumns, FKeys, FForeignKeys);

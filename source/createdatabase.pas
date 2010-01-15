@@ -4,7 +4,6 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
-  WideStrings,
   mysql_connection;
 
 type

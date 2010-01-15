@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst, PngSpeedButton,
-  WideStrings, SynRegExpr, Buttons,
+  SynRegExpr, Buttons,
   mysql_connection;
 
 type

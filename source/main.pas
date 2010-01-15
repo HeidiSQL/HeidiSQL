@@ -12,7 +12,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
-  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, PngImageList, Widestrings,
+  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, PngImageList,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
   CommCtrl, Contnrs, PngSpeedButton,
@@ -2675,7 +2675,7 @@ begin
     lbsWide: LB := LB_WIDE;
   end;
   if LB <> '' then
-    Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
+    Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
   SaveUnicodeFile( Filename, Text );
   SetTabCaption(Tab.Number+tabData.PageIndex, ExtractFilename(Filename));
   Tab.MemoFilename := Filename;
@@ -2716,7 +2716,7 @@ begin
       lbsWide: LB := LB_WIDE;
     end;
     if LB <> '' then
-      Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
+      Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
     if not DirectoryExists(DirnameSnippets) then
       ForceDirectories(DirnameSnippets);
     SaveUnicodeFile( snippetname, Text );
@@ -3123,10 +3123,10 @@ begin
   if not IsSQL then
     Msg := '/* ' + Msg + ' */';
 
-  Msg := WideStringReplace(Msg, #9, ' ', [rfReplaceAll]);
-  Msg := WideStringReplace(Msg, #10, ' ', [rfReplaceAll]);
-  Msg := WideStringReplace(Msg, #13, ' ', [rfReplaceAll]);
-  Msg := WideStringReplace(Msg, '  ', ' ', [rfReplaceAll]);
+  Msg := StringReplace(Msg, #9, ' ', [rfReplaceAll]);
+  Msg := StringReplace(Msg, #10, ' ', [rfReplaceAll]);
+  Msg := StringReplace(Msg, #13, ' ', [rfReplaceAll]);
+  Msg := StringReplace(Msg, '  ', ' ', [rfReplaceAll]);
   SynMemoSQLLog.Lines.Add(Msg);
   TrimSQLLog;
 
@@ -3796,7 +3796,7 @@ begin
     lbsWide: LB := LB_WIDE;
   end;
   if LB <> '' then
-    Text := WideStringReplace(Text, CRLF, LB, [rfReplaceAll]);
+    Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
   showstatus('Initializing SQL...');
   SQL := parseSQL(Text);
   if SQL.Count = 0 then begin
@@ -3964,7 +3964,7 @@ var
       else Icon := -1;
     end;
     Proposal.InsertList.Add(Obj.Name);
-    Proposal.ItemList.Add( WideFormat(SYNCOMPLETION_PATTERN, [Icon, LowerCase(Obj.ObjType), Obj.Name]) );
+    Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [Icon, LowerCase(Obj.ObjType), Obj.Name]) );
   end;
 
   procedure addColumns( tablename: String );
@@ -3989,7 +3989,7 @@ var
     end;
     while not Columns.Eof do begin
       Proposal.InsertList.Add(Columns.Col('Field'));
-      Proposal.ItemList.Add(WideFormat(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );
+      Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );
       Columns.Next;
     end;
     FreeAndNil(Columns);
@@ -4027,7 +4027,7 @@ begin
       Results := Connection.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
         Proposal.InsertList.Add(Results.Col(0));
-        Proposal.ItemList.Add(WideFormat(SYNCOMPLETION_PATTERN, [ICONINDEX_PRIMARYKEY, 'variable', Results.Col(0)+'   \color{clSilver}= '+WideStringReplace(Results.Col(1), '\', '\\', [rfReplaceAll])] ) );
+        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_PRIMARYKEY, 'variable', Results.Col(0)+'   \color{clSilver}= '+StringReplace(Results.Col(1), '\', '\\', [rfReplaceAll])] ) );
         Results.Next;
       end;
     except
@@ -4065,7 +4065,7 @@ begin
   if rx.Exec(sql) then begin
     TableClauses := rx.Match[2];
     // Ensure tables in JOIN clause(s) are splitted by comma
-    TableClauses := WideStringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
+    TableClauses := StringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
     // Split table clauses by commas
     Tables := TStringList.Create;
     Tables.Delimiter := ',';
@@ -4116,7 +4116,7 @@ begin
     // Add databases
     for i := 0 to Databases.Count - 1 do begin
       Proposal.InsertList.Add(Databases[i]);
-      Proposal.ItemList.Add(WideFormat(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', Databases[i]]));
+      Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', Databases[i]]));
     end;
 
     if ActiveDatabase <> '' then begin
@@ -4134,13 +4134,13 @@ begin
       if MySqlFunctions[i].Version > Connection.ServerVersionInt then
         continue;
       Proposal.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
-      Proposal.ItemList.Add( WideFormat(SYNCOMPLETION_PATTERN, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clSilver}' + MySQLFunctions[i].Declaration] ) );
+      Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clSilver}' + MySQLFunctions[i].Declaration] ) );
     end;
 
     // Add keywords
     for i := 0 to MySQLKeywords.Count - 1 do begin
       Proposal.InsertList.Add( MySQLKeywords[i] );
-      Proposal.ItemList.Add( WideFormat(SYNCOMPLETION_PATTERN, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i]] ) );
+      Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i]] ) );
     end;
 
   end;
@@ -6411,7 +6411,7 @@ begin
       query := DataGridCurrentSelect + DataGridCurrentFrom;
     if DataGridCurrentFilter <> '' then query := query + ' WHERE ' + DataGridCurrentFilter;
     if DataGridCurrentSort <> '' then query := query + ' ORDER BY ' + DataGridCurrentSort;
-    query := query + WideFormat(' LIMIT %d, %d', [start, limit]);
+    query := query + Format(' LIMIT %d, %d', [start, limit]);
 
     // start query
     ShowStatus('Retrieving data...');
@@ -7699,7 +7699,7 @@ procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; Target
     VTRowDataListCommandStats[idx].ImageIndex := 25;
     VTRowDataListCommandStats[idx].Captions := TStringList.Create;
     caption := Copy( caption, 5, Length(caption) );
-    caption := WideStringReplace( caption, '_', ' ', [rfReplaceAll] );
+    caption := StringReplace( caption, '_', ' ', [rfReplaceAll] );
     VTRowDataListCommandStats[idx].Captions.Add( caption );
     // Total Frequency
     VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( commandCount ) );

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils, Menus, WideStrUtils,
+  ComCtrls, ToolWin, Dialogs, SysUtils, Menus,
   helpers;
 
 {$I const.inc}
@@ -72,7 +72,7 @@ begin
     lbsWide: LB := LB_WIDE;
   end;
   if LB <> '' then
-    Result := WideStringReplace(Result, CRLF, LB, [rfReplaceAll]);
+    Result := StringReplace(Result, CRLF, LB, [rfReplaceAll]);
 end;
 
 
@@ -101,7 +101,7 @@ begin
     lbsWide: LB := LB_WIDE;
   end;
   if LB <> '' then
-    text := WideStringReplace(text, LB, CRLF, [rfReplaceAll]);
+    text := StringReplace(text, LB, CRLF, [rfReplaceAll]);
 
   if ScanNulChar(text) then begin
     MessageDlg(SContainsNulCharGrid, mtInformation, [mbOK], 0);

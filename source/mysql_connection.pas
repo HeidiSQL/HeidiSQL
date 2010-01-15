@@ -3,8 +3,7 @@ unit mysql_connection;
 interface
 
 uses
-  Classes, SysUtils, windows, mysql_api, mysql_structures, WideStrings, WideStrUtils, SynRegExpr,
-  Contnrs, Generics.Collections;
+  Classes, SysUtils, windows, mysql_api, mysql_structures, SynRegExpr, Contnrs, Generics.Collections;
 
 type
   { TDBObjectList and friends }
@@ -126,7 +125,7 @@ type
       destructor Destroy; override;
       function Query(SQL: String; DoStoreResult: Boolean=False): PMYSQL_RES;
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False): String;
-      function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: WideChar): String;
+      function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
       function QuoteIdent(Identifier: String): String;
       function DeQuoteIdent(Identifier: String): String;
       function ConvertServerVersion(Version: Integer): String;
@@ -471,7 +470,7 @@ begin
       Msg := Msg + CRLF + CRLF + Additional;
   end;
   rx.Free;
-  Result := WideFormat('SQL Error (%d): %s', [mysql_errno(FHandle), Msg]);
+  Result := Format('SQL Error (%d): %s', [mysql_errno(FHandle), Msg]);
 end;
 
 
@@ -576,7 +575,7 @@ end;
 }
 function TMySQLConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false): String;
 var
-  c1, c2, c3, c4, EscChar: WideChar;
+  c1, c2, c3, c4, EscChar: Char;
 begin
   c1 := '''';
   c2 := '\';
@@ -595,22 +594,22 @@ begin
   c2 := #10;
   c3 := #0;
   c4 := #0;
-  // TODO: SynEdit also chokes on WideChar($2028) and possibly WideChar($2029).
+  // TODO: SynEdit also chokes on Char($2028) and possibly Char($2029).
   Result := escChars(Result, EscChar, c1, c2, c3, c4);
   if not ProcessJokerChars then begin
     // Add surrounding single quotes only for non-LIKE-values
     // because in all cases we're using ProcessLIKEChars we
     // need to add leading and/or trailing joker-chars by hand
     // without being escaped
-    Result := WideChar(#39) + Result + WideChar(#39);
+    Result := Char(#39) + Result + Char(#39);
   end;
 end;
 
 
 {***
- Attempt to do string replacement faster than StringReplace and WideStringReplace.
+ Attempt to do string replacement faster than StringReplace
 }
-function TMySQLConnection.escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: WideChar): String;
+function TMySQLConnection.escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
 const
   // Attempt to match whatever the CPU cache will hold.
   block: Cardinal = 65536;
@@ -618,7 +617,7 @@ var
   bstart, bend, matches, i: Cardinal;
   // These could be bumped to uint64 if necessary.
   len, respos: Cardinal;
-  next: WideChar;
+  next: Char;
 begin
   len := Length(Text);
   Result := '';
@@ -664,7 +663,7 @@ end;
 }
 function TMySQLConnection.QuoteIdent(Identifier: String): String;
 begin
-  Result := WideStringReplace(Identifier, '`', '``', [rfReplaceAll]);
+  Result := StringReplace(Identifier, '`', '``', [rfReplaceAll]);
   Result := '`' + Result + '`';
 end;
 

@@ -37,8 +37,7 @@ implementation
 
 uses
   helpers,
-  main,
-  WideStrings;
+  main;
 
 {$R *.dfm}
 

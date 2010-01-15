@@ -9,7 +9,7 @@ unit copytable;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, CheckLst, WideStrings,
+  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, CheckLst,
   mysql_connection;
 
 type
