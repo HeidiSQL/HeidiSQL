@@ -3198,17 +3198,14 @@ end;
 
 procedure TMainForm.viewdata(Sender: TObject);
 var
-  i, j                 : Integer;
-  select_base,
-  select_base_full,
-  select_from          : String;
-  sl_query             : TStringList;
-  KeyCols              : TStringList;
-  col                  : TVirtualTreeColumn;
-  ColExists, ShowIt    : Boolean;
-  OldOffsetXY          : TPoint;
-  RefreshingData       : Boolean;
-  TblCol               : TTableColumn;
+  i, j: Integer;
+  select_base, select_base_full, select_from: String;
+  sl_query, KeyCols: TStringList;
+  col: TVirtualTreeColumn;
+  ColExists, ShowIt, RefreshingData, IsKeyColumn: Boolean;
+  OldOffsetXY: TPoint;
+  TblCol: TTableColumn;
+  ColLen: Int64;
 
 procedure InitColumn(Column: TTableColumn; Visible: Boolean);
 var
@@ -3356,8 +3353,13 @@ begin
     for i:=0 to SelectedTableColumns.Count-1 do begin
       TblCol := TTableColumn(SelectedTableColumns[i]);
       ShowIt := (FDataGridSelect.Count=0) or (FDataGridSelect.IndexOf(TblCol.Name)>-1);
-      if ShowIt or (KeyCols.IndexOf(TblCol.Name)>-1) then begin
-        if TblCol.DataType.Category in [dtcText, dtcBinary] then begin
+      IsKeyColumn := KeyCols.IndexOf(TblCol.Name)>-1;
+      ColLen := MakeInt(TblCol.LengthSet);
+      if ShowIt or IsKeyColumn then begin
+        if (TblCol.DataType.Category in [dtcText, dtcBinary])
+          and (not IsKeyColumn) // We need full length of any key column, so EnsureFullWidth() has the chance to fetch the right row
+          and ((ColLen > GridMaxData) or (ColLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
+          then begin
           select_base := select_base + ' ' + 'LEFT(' + Mask(TblCol.Name) + ', ' + IntToStr(GridMaxData) + ')' + ',';
         end else begin
           select_base := select_base + ' ' + Mask(TblCol.Name) + ',';
