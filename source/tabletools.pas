@@ -1042,18 +1042,31 @@ begin
 
           lntTrigger: begin
             StrucResult := Mainform.Connection.GetResults('SHOW TRIGGERS WHERE `Trigger`='+esc(DBObj.Name));
-            Struc := 'SET SESSION SQL_MODE='+esc(StrucResult.Col('sql_mode'))+';'+CRLF+
-              'CREATE '+DBObj.ObjType+' '+m(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
-                ' ON '+m(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement')+';'+CRLF+
-              'SET SESSION SQL_MODE=@OLD_SQL_MODE';
+            Struc := 'CREATE '+DBObj.ObjType+' '+m(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
+                ' ON '+m(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement');
+            if ToDb then
+              Insert(m(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
+            if ToFile or ToDir then begin
+              Struc := 'SET SESSION SQL_MODE='+esc(StrucResult.Col('sql_mode'))+';'+CRLF+
+                Struc+';'+CRLF+
+                'SET SESSION SQL_MODE=@OLD_SQL_MODE';
+            end;
           end;
 
           lntFunction, lntProcedure: begin
             Struc := Mainform.Connection.GetVar('SHOW CREATE '+DBObj.ObjType+' '+m(DBObj.Database)+'.'+m(DBObj.Name), 2);
+            // Todo: Why exploding?
             MultiSQL := Explode(';', Struc);
-            Struc := 'DELIMITER ' + TempDelim + CRLF +
-              ImplodeStr(';'+CRLF, MultiSQL) + TempDelim + CRLF +
-              'DELIMITER ';
+            Struc := ImplodeStr(';'+CRLF, MultiSQL);
+            if ToDb then begin
+              if DBObj.NodeType = lntProcedure then
+                Insert(m(FinalDbName)+'.', Struc, Pos('PROCEDURE', Struc) + 10 )
+              else if DBObj.NodeType = lntFunction then
+                Insert(m(FinalDbName)+'.', Struc, Pos('FUNCTION', Struc) + 9 );
+            end;
+            // Change delimiter for file output, so readers split queries at the right string position
+            if ToFile or ToDir then
+              Struc := 'DELIMITER ' + TempDelim + CRLF + Struc + TempDelim + CRLF + 'DELIMITER ';
           end;
         end;
         Struc := fixNewlines(Struc);
