@@ -713,6 +713,9 @@ type
       var Handled: Boolean);
     procedure actDataResetSortingExecute(Sender: TObject);
     procedure actReformatSQLExecute(Sender: TObject);
+    procedure DBtreeFocusChanging(Sender: TBaseVirtualTree; OldNode,
+      NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
+      var Allowed: Boolean);
   private
     ReachedEOT: Boolean;
     FDelimiter: String;
@@ -729,6 +732,7 @@ type
     FilterTextDatabase: String;
     FilterTextData: String;
     PreviousFocusedNode: PVirtualNode;
+    FActiveObjectEditor: TDBObjectEditor;
     function GetParamValue(const paramChar: Char; const paramName: string; var curIdx: Byte; out paramValue: string): Boolean;
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(MatchingRows: Int64 = -1);
@@ -1046,12 +1050,17 @@ procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 var
   i: Integer;
 begin
-  // Ask if SQL should be saved
+  // Prompt on modified changes
+  CanClose := True;
+  // Unsaved changes in some query tab?
   for i:=0 to QueryTabs.Count-1 do begin
     CanClose := ConfirmTabClose(i+tabQuery.PageIndex);
     if not CanClose then
-      break;
+      Exit;
   end;
+  // Unsaved modified table, trigger, view or routine?
+  if Assigned(FActiveObjectEditor) then
+    CanClose := not (FActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
 end;
 
 procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -6053,6 +6062,20 @@ begin
 end;
 
 
+procedure TMainForm.DBtreeFocusChanging(Sender: TBaseVirtualTree; OldNode,
+  NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
+  var Allowed: Boolean);
+begin
+  debug('DBtreeFocusChanging');
+  // Check if some editor has unsaved changes
+  if Assigned(FActiveObjectEditor) and Assigned(NewNode) then begin
+    Allowed := not (FActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
+    DBTree.Selected[DBTree.FocusedNode] := not Allowed;
+  end else
+    Allowed := True;
+end;
+
+
 procedure TMainForm.ParseSelectedTableStructure;
 begin
   SelectedTableColumns.Clear;
@@ -6116,6 +6139,7 @@ var
   oldSelectedTableType: TListNodeType;
 begin
   // Remember currently active database and table
+  debug('RefreshTree()');
   oldActiveDatabase := ActiveDatabase;
   oldSelectedTableName := SelectedTable.Name;
   oldSelectedTableType := SelectedTable.NodeType;
@@ -6156,7 +6180,10 @@ var
   DBObjects: TDBObjectList;
   i: Integer;
   FocusChangeEvent: procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex) of object;
+  FocusChangingEvent: procedure(Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode; OldColumn,
+    NewColumn: TColumnIndex; var Allowed: Boolean) of object;
 begin
+  debug('RefreshTreeDB()');
   oldActiveDatabase := ActiveDatabase;
   oldSelectedTableName := SelectedTable.Name;
   oldSelectedTableType := SelectedTable.NodeType;
@@ -6164,7 +6191,9 @@ begin
   FNode := DBtree.FocusedNode;
   TableHereHadFocus := Assigned(FNode) and (FNode.Parent = DBNode);
   // Suspend focus changing event, to avoid tab jumping
+  FocusChangingEvent := DBtree.OnFocusChanging;
   FocusChangeEvent := DBtree.OnFocusChanged;
+  DBtree.OnFocusChanging := nil;
   DBtree.OnFocusChanged := nil;
   // Refresh db node
   Connection.ClearDbObjects(db);
@@ -6183,6 +6212,7 @@ begin
     end;
   end;
   // Reactivate focus changing event
+  DBtree.OnFocusChanging := FocusChangingEvent;
   DBtree.OnFocusChanged := FocusChangeEvent;
 end;
 
@@ -8015,6 +8045,7 @@ function TMainForm.PlaceObjectEditor(Which: TListNodeType): TDBObjectEditor;
 begin
   // Place the relevant editor frame onto the editor tab, hide all others
   Result := nil;
+  FActiveObjectEditor := nil;
   if (not (Which in [lntTable])) and Assigned(TableEditor) then
     FreeAndNil(TableEditor);
   if (Which <> lntView) and Assigned(ViewEditor) then
@@ -8042,6 +8073,7 @@ begin
   end else
     Exit;
   Result.Parent := tabEditor;
+  FActiveObjectEditor := Result;
 end;
 
 

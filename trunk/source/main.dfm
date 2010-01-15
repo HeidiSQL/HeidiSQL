@@ -375,6 +375,7 @@ object MainForm: TMainForm
         OnChange = DBtreeChange
         OnDblClick = DBtreeDblClick
         OnFocusChanged = DBtreeFocusChanged
+        OnFocusChanging = DBtreeFocusChanging
         OnGetText = DBtreeGetText
         OnPaintText = DBtreePaintText
         OnGetImageIndex = DBtreeGetImageIndex

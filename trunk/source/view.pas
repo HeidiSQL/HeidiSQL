@@ -30,7 +30,7 @@ type
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
     procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
-    procedure ApplyModifications; override;
+    function ApplyModifications: TModalResult; override;
   end;
 
   
@@ -151,11 +151,12 @@ begin
 end;
 
 
-procedure TfrmView.ApplyModifications;
+function TfrmView.ApplyModifications: TModalResult;
 var
   sql, viewname, renamed: String;
 begin
   // Save changes
+  Result := mrOk;
   if FEditObjectName = '' then begin
     sql := 'CREATE ';
     viewname := editName.Text;
@@ -185,8 +186,10 @@ begin
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
   except
-    on E:Exception do
+    on E:Exception do begin
       MessageDlg(E.Message, mtError, [mbOk], 0);
+      Result := mrAbort;
+    end;
   end;
 end;
 

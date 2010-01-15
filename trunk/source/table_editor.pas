@@ -195,7 +195,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
-    procedure ApplyModifications; override;
+    function ApplyModifications: TModalResult; override;
   end;
 
 
@@ -355,13 +355,14 @@ begin
 end;
 
 
-procedure TfrmTableEditor.ApplyModifications;
+function TfrmTableEditor.ApplyModifications: TModalResult;
 var
   sql: String;
   i: Integer;
   Specs: TStringList;
 begin
   // Create or alter table
+  Result := mrOk;
   Specs := TStringList.Create;
   if FEditObjectName = '' then
     sql := ComposeCreateStatement
@@ -397,8 +398,10 @@ begin
     Mainform.ParseSelectedTableStructure;
     ResetModificationFlags;
   except
-    on E:Exception do
+    on E:Exception do begin
       MessageDlg(E.Message, mtError, [mbOk], 0);
+      Result := mrAbort;
+    end;
   end;
 end;
 
