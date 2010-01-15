@@ -142,9 +142,9 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); virtual;
-      procedure DeInit;
+      function DeInit: TModalResult;
       property Modified: Boolean read FModified write SetModified;
-      procedure ApplyModifications; virtual; abstract;
+      function ApplyModifications: TModalResult; virtual; abstract;
   end;
 
 
@@ -3172,7 +3172,6 @@ end;
 
 destructor TDBObjectEditor.Destroy;
 begin
-  DeInit;
   inherited;
 end;
 
@@ -3183,7 +3182,6 @@ end;
 
 procedure TDBObjectEditor.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
 begin
-  DeInit;
   Mainform.showstatus('Initializing editor ...');
   FEditObjectName := ObjectName;
   Mainform.SetEditorTabCaption(Self, FEditObjectName);
@@ -3191,11 +3189,12 @@ begin
   MainForm.SetupSynEditors;
 end;
 
-procedure TDBObjectEditor.DeInit;
+function TDBObjectEditor.DeInit: TModalResult;
 var
   Msg, ObjType: String;
 begin
   // Ask for saving modifications
+  Result := mrOk;
   if Modified then begin
     if Self is TfrmTableEditor then ObjType := 'table'
     else if Self is TfrmView then ObjType := 'view'
@@ -3206,8 +3205,9 @@ begin
       Msg := 'Save modified '+ObjType+' "'+FEditObjectName+'"?'
     else
       Msg := 'Save new '+ObjType+'?';
-    if MessageDlg(Msg, mtConfirmation, [mbYes, mbNo], 0) = mrYes then
-      ApplyModifications;
+    Result := MessageDlg(Msg, mtConfirmation, [mbYes, mbNo, mbCancel], 0);
+    if Result = mrYes then
+      Result := ApplyModifications;
   end;
 end;
 

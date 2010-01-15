@@ -73,7 +73,7 @@ type
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
     procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
-    procedure ApplyModifications; override;
+    function ApplyModifications: TModalResult; override;
   end;
 
 
@@ -405,7 +405,7 @@ begin
 end;
 
 
-procedure TfrmRoutineEditor.ApplyModifications;
+function TfrmRoutineEditor.ApplyModifications: TModalResult;
 var
   BaseSQL, TempSQL, FinalSQL, TempName: String;
   i: Integer;
@@ -414,6 +414,7 @@ var
   TargetExists: Boolean;
 begin
   // Save changes
+  Result := mrOk;
   ProcOrFunc := UpperCase(GetFirstWord(comboType.Text));
   BaseSQL := '';
   for i := 0 to Parameters.Count - 1 do begin
@@ -450,10 +451,10 @@ begin
       TargetExists := ((editName.Text <> FEditObjectName) or (ProcOrFunc <> FAlterRoutineType)) and
         (allRoutineNames.IndexOf(editName.Text) > -1);
       if TargetExists then begin
-        if MessageDlg('Routine "'+editName.Text+'" already exists. Overwrite it?',
-          mtConfirmation, [mbYes, mbNo], 0) = mrNo then begin
+        Result := MessageDlg('Routine "'+editName.Text+'" already exists. Overwrite it?',
+          mtConfirmation, [mbYes, mbNo, mbCancel], 0);
+        if Result = mrNo then
           Exit;
-        end;
       end;
       while True do begin
         inc(i);
@@ -483,8 +484,10 @@ begin
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
   except
-    on E:Exception do
+    on E:Exception do begin
       MessageDlg(E.Message, mtError, [mbOk], 0);
+      Result := mrAbort;
+    end;
   end;
 end;
 

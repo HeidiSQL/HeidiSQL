@@ -35,7 +35,7 @@ type
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
     procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
-    procedure ApplyModifications; override;
+    function ApplyModifications: TModalResult; override;
   end;
 
 implementation
@@ -147,11 +147,12 @@ begin
 end;
 
 
-procedure TfrmTriggerEditor.ApplyModifications;
+function TfrmTriggerEditor.ApplyModifications: TModalResult;
 var
   sql: String;
 begin
   // Edit mode means we drop the trigger and recreate it, as there is no ALTER TRIGGER.
+  Result := mrOk;
   try
     // In edit mode we could create a temporary trigger, but that would only cause an error a la
     // "This version of MySQL doesn't yet support multiple triggers with the same action time and event for one table"
@@ -175,8 +176,11 @@ begin
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
-  except on E:Exception do
-    MessageDlg(E.Message, mtError, [mbOK], 0);
+  except
+    on E:Exception do begin
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+      Result := mrAbort;
+    end;
   end;
 end;
 
