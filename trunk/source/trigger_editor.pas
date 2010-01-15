@@ -204,7 +204,7 @@ begin
       Columns := Mainform.Connection.GetResults('SHOW COLUMNS FROM '+Mainform.mask(comboTable.Text));
       while not Columns.Eof do begin
         Proposal.InsertList.Add(Columns.Col('Field'));
-        Proposal.ItemList.Add(WideFormat(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );
+        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );
         Columns.Next;
       end;
     except

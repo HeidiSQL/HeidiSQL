@@ -10,8 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
-  WideStrings, WideStrUtils, VirtualTrees, ExtCtrls, Contnrs, Graphics,
-  PngSpeedButton, SynRegExpr,
+  VirtualTrees, ExtCtrls, Contnrs, Graphics, PngSpeedButton, SynRegExpr,
   mysql_connection, helpers;
 
 type
@@ -962,12 +961,12 @@ begin
       ExportStream := TMemoryStream.Create;
     if (DBObj.Database<>ExportLastDatabase) or ToDir then begin
       Header := '# --------------------------------------------------------' + CRLF +
-        WideFormat('# %-30s%s', ['Host:', Mainform.Connection.HostName]) + CRLF +
-        WideFormat('# %-30s%s', ['Database:', DBObj.Database]) + CRLF +
-        WideFormat('# %-30s%s', ['Server version:', Mainform.Connection.ServerVersionUntouched]) + CRLF +
-        WideFormat('# %-30s%s', ['Server OS:', Mainform.Connection.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]) + CRLF +
-        WideFormat('# %-30s%s', [APPNAME + ' version:', Mainform.AppVersion]) + CRLF +
-        WideFormat('# %-30s%s', ['Date/time:', DateTimeToStr(Now)]) + CRLF +
+        Format('# %-30s%s', ['Host:', Mainform.Connection.HostName]) + CRLF +
+        Format('# %-30s%s', ['Database:', DBObj.Database]) + CRLF +
+        Format('# %-30s%s', ['Server version:', Mainform.Connection.ServerVersionUntouched]) + CRLF +
+        Format('# %-30s%s', ['Server OS:', Mainform.Connection.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]) + CRLF +
+        Format('# %-30s%s', [APPNAME + ' version:', Mainform.AppVersion]) + CRLF +
+        Format('# %-30s%s', ['Date/time:', DateTimeToStr(Now)]) + CRLF +
         '# --------------------------------------------------------' + CRLF + CRLF +
         '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
         '/*!40101 SET NAMES '+Mainform.Connection.CharacterSet+' */;' + CRLF +
@@ -997,7 +996,7 @@ begin
         // Gracefully ignore it when target database exists, important in server mode
         Insert('IF NOT EXISTS ', Struc, Pos('DATABASE', Struc) + 9);
         // Create the right dbname
-        Struc := WideStringReplace(Struc, DBObj.Database, FinalDbName, []);
+        Struc := StringReplace(Struc, DBObj.Database, FinalDbName, []);
       end else
         Struc := 'CREATE DATABASE IF NOT EXISTS '+m(FinalDbName);
       Output(Struc, True, NeedsDBStructure, False, False, NeedsDBStructure);

@@ -5,7 +5,7 @@ unit grideditlinks;
 interface
 
 uses
-  Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes, WideStrings,
+  Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Mask, DateUtils,
   mysql_structures, helpers, texteditor, bineditor;
 

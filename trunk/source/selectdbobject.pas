@@ -3,7 +3,7 @@ unit selectdbobject;
 interface
 
 uses
-  Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees, WideStrings,
+  Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees,
   mysql_connection;
 
 type

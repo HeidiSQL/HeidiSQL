@@ -7,7 +7,7 @@ unit mysql_structures;
 interface
 
 uses
-  Classes, Widestrings, Graphics, Windows, SysUtils, mysql_api;
+  Classes, Graphics, Windows, SysUtils, mysql_api;
 
 {$I const.inc}
 
