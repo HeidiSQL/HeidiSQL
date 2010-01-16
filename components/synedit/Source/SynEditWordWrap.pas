@@ -394,8 +394,10 @@ procedure TSynWordWrapPlugin.Reset;
 begin
   Assert(Editor.CharsInWindow >= 0);
 
-  fMaxRowLength := Editor.CharsInWindow;
-  fMinRowLength := Editor.CharsInWindow - (Editor.CharsInWindow div 3);
+  // Work around AV when editor is wider than 255 chars
+  // Editor.CharsInWindow is Integer and can exceed TRowLength, which is Byte.
+  fMaxRowLength := Min(High(TRowLength), Editor.CharsInWindow);
+  fMinRowLength := Min(High(TRowLength), Editor.CharsInWindow - (Editor.CharsInWindow div 3));
 
   if fMinRowLength <= 0 then
     fMinRowLength := 1;
