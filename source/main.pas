@@ -7486,10 +7486,16 @@ begin
     rx.ModifierG := False;
     if rx.Exec(MainReg.ReadString(REGNAME_SORT)) then while true do begin
       idx := Length(FDataGridSort);
-      SetLength(FDataGridSort, idx+1);
-      FDataGridSort[idx] := TOrderCol.Create;
-      FDataGridSort[idx].ColumnName := rx.Match[2];
-      FDataGridSort[idx].SortDirection := StrToIntDef(rx.Match[1], ORDER_ASC);
+      // Check if column exists, could be renamed or deleted
+      for i:=0 to SelectedTableColumns.Count-1 do begin
+        if SelectedTableColumns[i].Name = rx.Match[2] then begin
+          SetLength(FDataGridSort, idx+1);
+          FDataGridSort[idx] := TOrderCol.Create;
+          FDataGridSort[idx].ColumnName := rx.Match[2];
+          FDataGridSort[idx].SortDirection := StrToIntDef(rx.Match[1], ORDER_ASC);
+          break;
+        end;
+      end;
       if not rx.ExecNext then
         break;
     end;
