@@ -6931,8 +6931,7 @@ end;
 procedure TMainForm.DataGridInsertRow(CopyValuesFromNode: PVirtualNode);
 var
   i, j: Integer;
-  Val: String;
-  OldRow, NewRow: TGridRow;
+  OldRow: TGridRow;
 begin
   // Scroll to the bottom to ensure we append the new row at the very last DataGridResult chunk
   DataGrid.FocusedNode := DataGrid.GetLast;
@@ -6943,23 +6942,24 @@ begin
   SetLength(DataGridResult.Rows, i+1);
   SetLength(DataGridResult.Rows[i].Cells, Length(DataGridResult.Columns));
   DataGridResult.Rows[i].State := grsInserted;
-  for j := 0 to Length(DataGridResult.Rows[i].Cells) - 1 do begin
+  for j:=0 to Length(DataGridResult.Rows[i].Cells)-1 do begin
     DataGridResult.Rows[i].Cells[j].Text := '';
   end;
-  DataGrid.FocusedNode := DataGrid.AddChild(nil);
   if Assigned(CopyValuesFromNode) then begin
+    // Copy values from source row
     OldRow := DataGridResult.Rows[CopyValuesFromNode.Index];
-    NewRow := DataGridResult.Rows[DataGrid.FocusedNode.Index];
     for j:=0 to DataGrid.Header.Columns.Count-1 do begin
       if not (coVisible in DataGrid.Header.Columns[j].Options) then
         continue; // Ignore invisible key column
       if SelectedTableColumns[j].DefaultType = cdtAutoInc then
         continue; // Empty value for auto-increment column
-      NewRow.Cells[j].NewText := OldRow.Cells[j].Text;
-      NewRow.Cells[j].NewIsNull := OldRow.Cells[j].IsNull;
-      NewRow.Cells[j].Modified := True;
+      DataGridResult.Rows[i].Cells[j].NewText := OldRow.Cells[j].Text;
+      DataGridResult.Rows[i].Cells[j].NewIsNull := OldRow.Cells[j].IsNull;
+      DataGridResult.Rows[i].Cells[j].Modified := (DataGridResult.Rows[i].Cells[j].NewText <> DataGridResult.Rows[i].Cells[j].Text)
+        or (DataGridResult.Rows[i].Cells[j].NewIsNull <> DataGridResult.Rows[i].Cells[j].IsNull);
     end;
   end;
+  DataGrid.FocusedNode := DataGrid.AddChild(nil);
   DataGrid.ClearSelection;
   DataGrid.Selected[DataGrid.FocusedNode] := True;
   DataGridHasChanges := True;
