@@ -15,7 +15,7 @@ uses
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, PngImageList,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
-  CommCtrl, Contnrs, PngSpeedButton,
+  CommCtrl, Contnrs, PngSpeedButton, Generics.Collections,
   routine_editor, trigger_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
   mysql_api, insertfiles;
@@ -756,7 +756,7 @@ type
     AllDatabases: TStringList;
     Databases: TStringList;
     btnAddTab: TPngSpeedButton;
-    QueryTabs: TObjectList;
+    QueryTabs: TObjectList<TQueryTab>;
 
     // Cached forms
     TableToolsDialog: TfrmTableTools;
@@ -1340,7 +1340,7 @@ begin
   QueryTab.Grid := QueryGrid;
   QueryTab.GridResult := TGridResult.Create;
 
-  QueryTabs := TObjectList.Create;
+  QueryTabs := TObjectList<TQueryTab>.Create;
   QueryTabs.Add(QueryTab);
 
   // SynMemo font, hightlighting and shortcuts
@@ -2640,21 +2640,51 @@ end;
 
 
 procedure TMainForm.actSaveSQLAsExecute(Sender: TObject);
+var
+  i: Integer;
+  CanSave: TModalResult;
 begin
   // Save SQL
-  if SaveDialogSQLFile.Execute then begin
+  CanSave := mrNo;
+  while (CanSave = mrNo) and SaveDialogSQLFile.Execute do begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
+    CanSave := mrYes;
+    for i:=0 to QueryTabs.Count-1 do begin
+      if QueryTabs[i].MemoFilename = SaveDialogSQLFile.FileName then begin
+        CanSave := MessageDlg('File '+CRLF+'"'+SaveDialogSQLFile.FileName+'"'+CRLF+'is already open in query tab #'+IntToStr(QueryTabs[i].Number)+'. Overwrite it?',
+          mtWarning, [mbYes, mbNo, mbCancel], 0);
+        break;
+      end;
+    end;
+  end;
+  if CanSave = mrYes then begin
     SaveQueryMemo(ActiveQueryTab, SaveDialogSQLFile.FileName, (Sender as TAction).Tag = 1);
+    for i:=0 to QueryTabs.Count-1 do begin
+      if QueryTabs[i] = ActiveQueryTab then
+        continue;
+      if QueryTabs[i].MemoFilename = SaveDialogSQLFile.FileName then
+        QueryTabs[i].Memo.Modified := True;
+    end;
+    ValidateQueryControls(Sender);
   end;
 end;
 
 
 procedure TMainForm.actSaveSQLExecute(Sender: TObject);
+var
+  i: Integer;
 begin
-  if ActiveQueryTab.MemoFilename <> '' then
-    SaveQueryMemo(ActiveQueryTab, ActiveQueryTab.MemoFilename, False)
-  else
+  if ActiveQueryTab.MemoFilename <> '' then begin
+    SaveQueryMemo(ActiveQueryTab, ActiveQueryTab.MemoFilename, False);
+    for i:=0 to QueryTabs.Count-1 do begin
+      if QueryTabs[i] = ActiveQueryTab then
+        continue;
+      if QueryTabs[i].MemoFilename = ActiveQueryTab.MemoFilename then
+        QueryTabs[i].Memo.Modified := True;
+    end;
+    ValidateQueryControls(Sender);
+  end else
     actSaveSQLAsExecute(Sender);
 end;
 
@@ -3711,12 +3741,10 @@ var
   Tab: TQueryTab;
   cap: String;
   InQueryTab: Boolean;
+  i: Integer;
 begin
   InQueryTab := QueryTabActive;
-  if InQueryTab then
-    Tab := ActiveQueryTab
-  else
-    Tab := nil;
+  Tab := ActiveQueryTab;
   NotEmpty := InQueryTab and (Tab.Memo.GetTextLen > 0);
   HasSelection := InQueryTab and Tab.Memo.SelAvail;
   actExecuteQuery.Enabled := InQueryTab and NotEmpty;
@@ -3735,13 +3763,14 @@ begin
   actClearQueryEditor.Enabled := InQueryTab and NotEmpty;
   actSetDelimiter.Enabled := InQueryTab;
   actCloseQueryTab.Enabled := IsQueryTab(PageControlMain.ActivePageIndex, False);
-  if Assigned(Tab) then begin
-    cap := trim(Tab.TabSheet.Caption);
+  for i:=0 to QueryTabs.Count-1 do begin
+    cap := trim(QueryTabs[i].TabSheet.Caption);
     if cap[Length(cap)] = '*' then
       cap := copy(cap, 1, Length(cap)-1);
-    if Tab.Memo.Modified then
+    if QueryTabs[i].Memo.Modified then
       cap := cap + '*';
-    SetTabCaption(Tab.TabSheet.PageIndex, cap);
+    if QueryTabs[i].TabSheet.Caption <> cap then
+      SetTabCaption(QueryTabs[i].TabSheet.PageIndex, cap);
   end;
 end;
 
@@ -8182,10 +8211,10 @@ var
   i: Integer;
   QueryTab: TQueryTab;
 begin
-  i := TQueryTab(QueryTabs[QueryTabs.Count-1]).Number + 1;
+  i := QueryTabs[QueryTabs.Count-1].Number + 1;
 
   QueryTabs.Add(TQueryTab.Create);
-  QueryTab := QueryTabs[QueryTabs.Count-1] as TQueryTab;
+  QueryTab := QueryTabs[QueryTabs.Count-1];
   QueryTab.Number := i;
   QueryTab.GridResult := TGridResult.Create;
 
@@ -8452,7 +8481,7 @@ begin
         Dec(VisiblePageIndex);
     end;
     Rect := PageControlMain.TabRect(VisiblePageIndex);
-    btn := TQueryTab(QueryTabs[PageIndex-tabQuery.PageIndex]).CloseButton;
+    btn := QueryTabs[PageIndex-tabQuery.PageIndex].CloseButton;
     btn.Top := Rect.Top + 2;
     btn.Left := Rect.Right - 19;
   end;
@@ -8476,7 +8505,7 @@ var
 begin
   idx := PageControlMain.ActivePageIndex-tabQuery.PageIndex;
   if (idx >= 0) and (idx < QueryTabs.Count) then
-    Result := QueryTabs[idx] as TQueryTab
+    Result := QueryTabs[idx]
   else
     Result := nil;
 end;
@@ -8527,7 +8556,7 @@ begin
   if PageIndex < 0 then
     Result := DataGridResult
   else if PageIndex < QueryTabs.Count then
-    Result := TQueryTab(QueryTabs[PageIndex]).GridResult
+    Result := QueryTabs[PageIndex].GridResult
   else
     Result := nil;
 end;
@@ -8604,7 +8633,7 @@ var
   msg: String;
   Tab: TQueryTab;
 begin
-  Tab := QueryTabs[PageIndex-tabQuery.PageIndex] as TQueryTab;
+  Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
   if not Tab.Memo.Modified then
     Result := True
   else begin
@@ -8772,7 +8801,7 @@ begin
   Editors := TObjectList.Create;
   BaseEditor := SynMemoQuery;
   for i:=0 to QueryTabs.Count-1 do
-    Editors.Add(TQueryTab(QueryTabs[i]).Memo);
+    Editors.Add(QueryTabs[i].Memo);
   Editors.Add(SynMemoFilter);
   Editors.Add(SynMemoProcessView);
   Editors.Add(SynMemoSQLLog);
