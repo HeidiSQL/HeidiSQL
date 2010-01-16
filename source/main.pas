@@ -6932,6 +6932,7 @@ procedure TMainForm.DataGridInsertRow(CopyValuesFromNode: PVirtualNode);
 var
   i, j: Integer;
   Val: String;
+  OldRow, NewRow: TGridRow;
 begin
   // Scroll to the bottom to ensure we append the new row at the very last DataGridResult chunk
   DataGrid.FocusedNode := DataGrid.GetLast;
@@ -6947,10 +6948,16 @@ begin
   end;
   DataGrid.FocusedNode := DataGrid.AddChild(nil);
   if Assigned(CopyValuesFromNode) then begin
+    OldRow := DataGridResult.Rows[CopyValuesFromNode.Index];
+    NewRow := DataGridResult.Rows[DataGrid.FocusedNode.Index];
     for j:=0 to DataGrid.Header.Columns.Count-1 do begin
-      Val := DataGrid.Text[CopyValuesFromNode, j];
-      if (coVisible in DataGrid.Header.Columns[j].Options) and (Val <> '') then
-        DataGrid.Text[DataGrid.FocusedNode, j] := Val;
+      if not (coVisible in DataGrid.Header.Columns[j].Options) then
+        continue; // Ignore invisible key column
+      if SelectedTableColumns[j].DefaultType = cdtAutoInc then
+        continue; // Empty value for auto-increment column
+      NewRow.Cells[j].NewText := OldRow.Cells[j].Text;
+      NewRow.Cells[j].NewIsNull := OldRow.Cells[j].IsNull;
+      NewRow.Cells[j].Modified := True;
     end;
   end;
   DataGrid.ClearSelection;
