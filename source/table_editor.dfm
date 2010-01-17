@@ -95,6 +95,7 @@ object frmTableEditor: TfrmTableEditor
     OnGetImageIndex = listColumnsGetImageIndex
     OnGetNodeDataSize = listColumnsGetNodeDataSize
     OnInitNode = listColumnsInitNode
+    OnKeyPress = listColumnsKeyPress
     OnNewText = listColumnsNewText
     OnNodeMoved = listColumnsNodeMoved
     Columns = <
