@@ -10,6 +10,15 @@ uses
   mysql_structures, helpers, texteditor, bineditor;
 
 type
+  // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
+  // so a OnKeyDown event using <Enter> has the chance to end editing.
+  TAllKeysRadioButton = class(TRadioButton)
+    procedure WMGetDlgCode(var Msg: TMessage); message WM_GETDLGCODE;
+  end;
+  TAllKeysCheckBox = class(TCheckBox)
+    procedure WMGetDlgCode(var Msg: TMessage); message WM_GETDLGCODE;
+  end;
+
   TBaseGridEditorLink = class(TInterfacedObject, IVTEditLink)
   private
     FParentForm: TWinControl;      // A back reference to the main form
@@ -134,8 +143,8 @@ type
   TColumnDefaultEditorLink = class(TBaseGridEditorLink)
   private
     FPanel: TPanel;
-    FRadioNothing, FRadioText, FRadioNULL, FRadioCurTS, FRadioAutoInc: TRadioButton;
-    FCheckCurTS: TCheckbox;
+    FRadioNothing, FRadioText, FRadioNULL, FRadioCurTS, FRadioAutoInc: TAllKeysRadioButton;
+    FCheckCurTS: TAllKeysCheckbox;
     FMemoText: TMemo;
     FBtnOK, FBtnCancel: TButton;
     procedure RadioClick(Sender: TObject);
@@ -182,6 +191,19 @@ function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: String): 
 
 implementation
 
+
+procedure TAllKeysRadioButton.WMGetDlgCode(var Msg: TMessage);
+begin
+  inherited;
+  Msg.Result := Msg.Result or DLGC_WANTALLKEYS;
+end;
+
+
+procedure TAllKeysCheckBox.WMGetDlgCode(var Msg: TMessage);
+begin
+  inherited;
+  Msg.Result := Msg.Result or DLGC_WANTALLKEYS;
+end;
 
 
 constructor TBaseGridEditorLink.Create;
@@ -992,20 +1014,22 @@ begin
   FPanel.BevelOuter := bvNone;
   FMainControl := FPanel;
 
-  FRadioNothing := TRadioButton.Create(FPanel);
+  FRadioNothing := TAllKeysRadioButton.Create(FPanel);
   FRadioNothing.Parent := FPanel;
   FRadioNothing.Top := m;
   FRadioNothing.Left := m;
   FRadioNothing.Width := FRadioNothing.Parent.Width - 2 * FRadioNothing.Left;
   FRadioNothing.OnClick := RadioClick;
+  FRadioNothing.OnKeyDown := DoKeyDown;
   FRadioNothing.Caption := 'No default value';
 
-  FRadioText := TRadioButton.Create(FPanel);
+  FRadioText := TAllKeysRadioButton.Create(FPanel);
   FRadioText.Parent := FPanel;
   FRadioText.Top := FRadioNothing.Top + FRadioNothing.Height + m;;
   FRadioText.Left := m;
   FRadioText.Width := FRadioText.Parent.Width - 2 * FRadioText.Left;
   FRadioText.OnClick := RadioClick;
+  FRadioText.OnKeyDown := DoKeyDown;
   FRadioText.Caption := 'Custom:';
 
   FMemoText := TMemo.Create(FPanel);
@@ -1017,36 +1041,40 @@ begin
   FMemoText.ScrollBars := ssVertical;
   FMemoText.OnChange := TextChange;
 
-  FRadioNull := TRadioButton.Create(FPanel);
+  FRadioNull := TAllKeysRadioButton.Create(FPanel);
   FRadioNull.Parent := FPanel;
   FRadioNull.Top := FMemoText.Top + FMemoText.Height + m;
   FRadioNull.Left := m;
   FRadioNull.Width := FRadioNull.Parent.Width - 2 * FRadioNull.Left;
   FRadioNull.OnClick := RadioClick;
+  FRadioNull.OnKeyDown := DoKeyDown;
   FRadioNull.Caption := 'NULL';
 
-  FRadioCurTS := TRadioButton.Create(FPanel);
+  FRadioCurTS := TAllKeysRadioButton.Create(FPanel);
   FRadioCurTS.Parent := FPanel;
   FRadioCurTS.Top := FRadioNull.Top + FRadioNull.Height + m;
   FRadioCurTS.Left := m;
   FRadioCurTS.Width := FRadioCurTS.Parent.Width - 2 * FRadioCurTS.Left;
   FRadioCurTS.OnClick := RadioClick;
+  FRadioCurTS.OnKeyDown := DoKeyDown;
   FRadioCurTS.Caption := 'CURRENT_TIMESTAMP';
 
-  FCheckCurTS := TCheckbox.Create(FPanel);
+  FCheckCurTS := TAllKeysCheckbox.Create(FPanel);
   FCheckCurTS.Parent := FPanel;
   FCheckCurTS.Top := FRadioCurTS.Top + FRadioCurTS.Height + m;
   FCheckCurTS.Left := m;
   FCheckCurTS.Width := FCheckCurTS.Parent.Width - 2 * FCheckCurTS.Left;
   FCheckCurTS.OnClick := RadioClick;
+  FCheckCurTS.OnKeyDown := DoKeyDown;
   FCheckCurTS.Caption := 'ON UPDATE CURRENT_TIMESTAMP';
 
-  FRadioAutoInc := TRadioButton.Create(FPanel);
+  FRadioAutoInc := TAllKeysRadioButton.Create(FPanel);
   FRadioAutoInc.Parent := FPanel;
   FRadioAutoInc.Top := FCheckCurTS.Top + FCheckCurTS.Height + m;
   FRadioAutoInc.Left := m;
   FRadioAutoInc.Width := FRadioAutoInc.Parent.Width - 2 * FRadioAutoInc.Left;
   FRadioAutoInc.OnClick := RadioClick;
+  FRadioAutoInc.OnKeyDown := DoKeyDown;
   FRadioAutoInc.Caption := 'AUTO_INCREMENT';
 
   FBtnOk := TButton.Create(FPanel);
