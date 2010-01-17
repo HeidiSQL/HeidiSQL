@@ -1204,8 +1204,10 @@ begin
       5: begin
         Col.AllowNull := not Col.AllowNull;
         // Switch default value from NULL to Text if Allow Null is off
-        if (not Col.AllowNull) and (Col.DefaultType in [cdtNull, cdtNullUpdateTS]) then
-          Col.DefaultType := cdtText;
+        if (not Col.AllowNull) and (Col.DefaultType in [cdtNull, cdtNullUpdateTS]) then begin
+          Col.DefaultType := cdtNothing;
+          Col.DefaultText := '';
+        end;
         Col.Status := esModified;
         VT.InvalidateNode(Node);
       end;
