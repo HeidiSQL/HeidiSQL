@@ -2515,6 +2515,9 @@ begin
   VT.OnGetHint := MainForm.vstGetHint;
   VT.ShowHint := True;
   VT.HintMode := hmToolTip;
+  // Apply case insensitive incremental search event
+  if VT.IncrementalSearch <> isNone then
+    VT.OnIncrementalSearch := Mainform.vstIncrementalSearch;
 end;
 
 
