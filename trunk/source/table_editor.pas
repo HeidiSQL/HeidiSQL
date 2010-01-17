@@ -1250,6 +1250,7 @@ begin
       DefaultEditor := TColumnDefaultEditorLink.Create(VT);
       DefaultEditor.DefaultText := Col.DefaultText;
       DefaultEditor.DefaultType := Col.DefaultType;
+      DefaultEditor.DataType := Col.DataType.Index;
       EditLink := DefaultEditor;
     end
     else
