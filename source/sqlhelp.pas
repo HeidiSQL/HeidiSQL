@@ -151,6 +151,10 @@ var
   i : Integer;
   tmp : Boolean;
 begin
+  if Assigned(treeTopics.Selected) and (treeTopics.Selected.Text = FKeyword) then begin
+    // We've come here after user selected a tree node via mouse. No need to search for it.
+    Exit;
+  end;
   i := 0;
   while i < treeTopics.Items.Count do
   begin
