@@ -171,6 +171,9 @@ type
     procedure listColumnsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure listColumnsNodeMoved(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure popupSQLmemoPopup(Sender: TObject);
+    procedure listColumnsKeyPress(Sender: TObject; var Key: Char);
+    procedure vtHandleClickOrKeyPress(Sender: TVirtualStringTree;
+      Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -1159,22 +1162,44 @@ end;
 procedure TfrmTableEditor.listColumnsClick(Sender: TObject);
 var
   VT: TVirtualStringTree;
-  Col: PTableColumn;
   Click: THitInfo;
 begin
   // Handle click event
   VT := Sender as TVirtualStringTree;
   VT.GetHitTestInfoAt(Mouse.CursorPos.X-VT.ClientOrigin.X, Mouse.CursorPos.Y-VT.ClientOrigin.Y, True, Click);
-  if not Assigned(Click.HitNode) then
+  vtHandleClickOrKeyPress(VT, Click.HitNode, Click.HitColumn, Click.HitPositions);
+end;
+
+
+
+procedure TfrmTableEditor.listColumnsKeyPress(Sender: TObject; var Key: Char);
+var
+  VT: TVirtualStringTree;
+begin
+  // Space/click on checkbox column
+  VT := Sender as TVirtualStringTree;
+  if (Ord(Key) = VK_SPACE) and (VT.FocusedColumn in [4, 5]) then
+    vtHandleClickOrKeyPress(VT, VT.FocusedNode, VT.FocusedColumn, []);
+end;
+
+
+procedure TfrmTableEditor.vtHandleClickOrKeyPress(Sender: TVirtualStringTree;
+  Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
+var
+  Col: PTableColumn;
+  VT: TVirtualStringTree;
+begin
+  if (not Assigned(Node)) or (Column = NoColumn) then
     Exit;
+  VT := Sender as TVirtualStringTree;
   // For checkboxes, cell editors are disabled, instead toggle their state
-  if CellEditingAllowed(Click.HitNode, Click.HitColumn) then begin
-    Col := VT.GetNodeData(Click.HitNode);
-    case Click.HitColumn of
+  if CellEditingAllowed(Node, Column) then begin
+    Col := VT.GetNodeData(Node);
+    case Column of
       4: begin
         Col.Unsigned := not Col.Unsigned;
         Col.Status := esModified;
-        VT.InvalidateNode(Click.HitNode);
+        VT.InvalidateNode(Node);
       end;
       5: begin
         Col.AllowNull := not Col.AllowNull;
@@ -1182,18 +1207,17 @@ begin
         if (not Col.AllowNull) and (Col.DefaultType in [cdtNull, cdtNullUpdateTS]) then
           Col.DefaultType := cdtText;
         Col.Status := esModified;
-        VT.InvalidateNode(Click.HitNode);
+        VT.InvalidateNode(Node);
       end;
       else begin
         // All other cells go into edit mode please
         // Explicitely done on OnClick, not in OnFocusChanged which seemed annoying for keyboard users
-        if Assigned(Click.HitNode) and (Click.HitColumn > NoColumn) and (hiOnItemLabel in Click.HitPositions) then
-          VT.EditNode(Click.HitNode, Click.HitColumn);
+        if hiOnItemLabel in HitPositions then
+          VT.EditNode(Node, Column);
       end;
     end;
   end;
 end;
-
 
 procedure TfrmTableEditor.listColumnsCreateEditor(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
