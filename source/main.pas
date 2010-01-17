@@ -613,6 +613,8 @@ type
         PVirtualNode; Column: TColumnIndex; var Result: Integer);
     procedure vstHeaderDraggedOut(Sender: TVTHeader; Column: TColumnIndex;
         DropPosition: TPoint);
+    procedure vstIncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode; const SearchText: String;
+      var Result: Integer);
     procedure DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex);
     procedure DBtreeDblClick(Sender: TObject);
@@ -5645,6 +5647,21 @@ begin
   end;
   // Hide the draggedout column
   Sender.Columns[Column].Options := Sender.Columns[Column].Options - [coVisible];
+end;
+
+
+procedure TMainForm.vstIncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  const SearchText: String; var Result: Integer);
+var
+  CellText: String;
+  VT: TVirtualStringTree;
+begin
+  // Override VT's default incremental search behaviour. Make it case insensitive.
+  VT := Sender as TVirtualStringTree;
+  if VT.FocusedColumn = NoColumn then
+    Exit;
+  CellText := VT.Text[Node, VT.FocusedColumn];
+  Result := StrLIComp(PChar(CellText), PChar(SearchText), Length(SearchText));
 end;
 
 

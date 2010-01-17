@@ -75,6 +75,7 @@ object frmTableEditor: TfrmTableEditor
     Header.Font.Style = []
     Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
     Images = MainForm.PngImageListMain
+    IncrementalSearch = isAll
     PopupMenu = popupColumns
     TabOrder = 2
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking]

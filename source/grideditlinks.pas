@@ -1240,6 +1240,7 @@ begin
   FTreeSelect.OnHotChange := DoTreeSelectHotChange;
   FTreeSelect.OnPaintText := DoTreeSelectPaintText;
   FTreeSelect.OnExit := DoEndEdit;
+  FixVT(FTreeSelect);
   FMainControl := FTreeSelect;
 
   FMemoHelp := TMemo.Create(FParentForm);
