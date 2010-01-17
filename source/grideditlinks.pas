@@ -1117,20 +1117,29 @@ end;
 
 
 function TColumnDefaultEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
+var
+  DataTypeCategory: TDataTypeCategoryIndex;
 begin
   inherited PrepareEdit(Tree, Node, Column);
 
-  case DefaultType of
-    cdtNothing: FRadioNothing.Checked := True;
-    cdtText, cdtTextUpdateTS: begin
-      FRadioText.Checked := True;
-      FMemoText.Text := DefaultText;
-    end;
-    cdtNull, cdtNullUpdateTS: FRadioNull.Checked := True;
-    cdtCurTS, cdtCurTSUpdateTS: FRadioCurTS.Checked := True;
-    cdtAutoInc: FRadioAutoInc.Checked := True;
-  end;
+  // Check relevant radio button
+  FRadioNothing.Checked := DefaultType = cdtNothing;
+  FRadioText.Checked := DefaultType in [cdtText, cdtTextUpdateTS];
+  FRadioNull.Checked := DefaultType in [cdtNull, cdtNullUpdateTS];
+  FRadioCurTS.Checked := DefaultType in [cdtCurTS, cdtCurTSUpdateTS];
   FCheckCurTS.Checked := DefaultType in [cdtTextUpdateTS, cdtNullUpdateTS, cdtCurTSUpdateTS];
+  FRadioAutoInc.Checked := DefaultType = cdtAutoInc;
+
+  if FRadioText.Checked then
+    FMemoText.Text := DefaultText;
+
+  // Disable non working default options per data type
+  // But leave checked option enabled, regardless of if that is a valid default option or not
+  DataTypeCategory := Datatypes[Integer(Datatype)].Category;
+  FRadioCurTS.Enabled := FRadioCurTS.Checked or (DataType = dtTimestamp);
+  FCheckCurTS.Enabled := FCheckCurTS.Checked or FRadioCurTS.Enabled;
+  FRadioAutoInc.Enabled := FRadioAutoInc.Checked or (DataTypeCategory = dtcInteger);
+
   Result := True;
 end;
 
