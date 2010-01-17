@@ -1093,9 +1093,9 @@ begin
   // Column property edited
   Col := Sender.GetNodeData(Node);
   case Column of
-    1: begin
+    1: begin // Name of column
       for i:=0 to FColumns.Count-1 do begin
-        if TTableColumn(FColumns[i]).Name = NewText then begin
+        if FColumns[i].Name = NewText then begin
           MessageDlg('Column "'+NewText+'" already exists.', mtError, [mbOk], 0);
           Exit;
         end;
@@ -1103,7 +1103,7 @@ begin
       Col.OldName := Col.Name;
       Col.Name := NewText;
     end;
-    2: begin
+    2: begin // Data type
       Col.DataType := GetDatatypeByName(NewText);
       // Reset length/set for column types which don't support that
       if not Col.DataType.HasLength then
@@ -1111,10 +1111,32 @@ begin
       // Suggest length/set if required
       if Col.DataType.RequiresLength and (Col.LengthSet = '') then
         Col.LengthSet := Col.DataType.DefLengthSet;
-    end;
+      // Auto-fix user selected default type which can be invalid now
+      case Col.DataType.Category of
+        dtcInteger, dtcReal: begin
+          if Col.DefaultType in [cdtCurTS, cdtCurTSUpdateTS] then
+            Col.DefaultType := cdtNothing;
+          if Col.DefaultType = cdtTextUpdateTS then
+            Col.DefaultType := cdtText;
+          if Col.DefaultType = cdtNullUpdateTS then
+            Col.DefaultType := cdtNull;
+        end;
+        dtcText, dtcIntegerNamed, dtcBinary, dtcSpatial, dtcSet, dtcSetNamed: begin
+          if Col.DefaultType in [cdtCurTS, cdtCurTSUpdateTS, cdtAutoInc] then
+            Col.DefaultType := cdtNothing;
+          if Col.DefaultType = cdtNullUpdateTS then
+            Col.DefaultType := cdtNull;
+        end;
+        dtcTemporal: begin
+          if Col.DefaultType = cdtAutoinc then
+            Col.DefaultType := cdtNothing;
+        end;
+      end;
+
+    end; // Length / Set
     3: Col.LengthSet := NewText;
     // 4 + 5 are checkboxes - handled in OnClick
-    6: begin
+    6: begin // Default value
       Col.DefaultText := NewText;
       Col.DefaultType := GetColumnDefaultType(Col.DefaultText);
     end;
