@@ -99,6 +99,7 @@ object frmTableEditor: TfrmTableEditor
     OnKeyPress = listColumnsKeyPress
     OnNewText = listColumnsNewText
     OnNodeMoved = listColumnsNodeMoved
+    OnStructureChange = listColumnsStructureChange
     Columns = <
       item
         Alignment = taRightJustify
