@@ -174,6 +174,8 @@ type
     procedure listColumnsKeyPress(Sender: TObject; var Key: Char);
     procedure vtHandleClickOrKeyPress(Sender: TVirtualStringTree;
       Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
+    procedure listColumnsStructureChange(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Reason: TChangeReason);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -1084,6 +1086,14 @@ begin
     end;
   end;
   TargetCanvas.Font.Color := TextColor;
+end;
+
+
+procedure TfrmTableEditor.listColumnsStructureChange(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Reason: TChangeReason);
+begin
+  // Auto resize first column to optimal width
+  listColumns.Header.AutoFitColumns(False, smaUseColumnOption, 0, 0);
 end;
 
 
