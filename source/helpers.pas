@@ -2472,7 +2472,6 @@ end;
 procedure StreamToClipboard(S: TMemoryStream; AsHTML: Boolean=False);
 var
   OrgContent, HTMLContent: AnsiString;
-  UniContent: String;
   GlobalMem: HGLOBAL;
   lp: PChar;
   ClpLen: Integer;
@@ -2482,23 +2481,15 @@ begin
   S.Position := 0;
   S.Read(PAnsiChar(OrgContent)^, S.Size);
 
-  OpenClipBoard(0);
-  EmptyClipBoard;
-
   // By default, we only copy unicode text to clipboard
-  UniContent := Utf8ToString(OrgContent);
-  ClpLen := Length(UniContent) * SizeOf(String) + 1;
-  GlobalMem := GlobalAlloc(GMEM_DDESHARE + GMEM_MOVEABLE, ClpLen);
-  lp := GlobalLock(GlobalMem);
-  Move(PChar(UniContent)^, lp[0], ClpLen);
-  GlobalUnlock(GlobalMem);
-  SetClipboardData(CF_UNICODETEXT, GlobalMem);
+  Clipboard.AsText := Utf8ToString(OrgContent);
 
   if AsHTML then begin
     // If wanted, add a HTML portion, so formatted text can be pasted in WYSIWYG
     // editors (mostly MS applications).
     // Note that the content is UTF8 encoded ANSI. Using unicode variables results in raw
     // text pasted in editors. TODO: Find out why and optimize redundant code away by a loop.
+    OpenClipBoard(0);
     CF_HTML := RegisterClipboardFormat('HTML Format');
     HTMLContent := 'Version:0.9' + CRLF +
       'StartHTML:-1' + CRLF +
@@ -2510,15 +2501,15 @@ begin
       HTMLContent, '°°°°°°',
       AnsiStrings.Format('%.6d', [Length(HTMLContent)]),
       []);
-    ClpLen := Length(HTMLContent) * SizeOf(AnsiString) + 1;
+    ClpLen := Length(HTMLContent) + 1;
     GlobalMem := GlobalAlloc(GMEM_DDESHARE + GMEM_MOVEABLE, ClpLen);
     lp := GlobalLock(GlobalMem);
     Move(PAnsiChar(HTMLContent)^, lp[0], ClpLen);
     GlobalUnlock(GlobalMem);
     SetClipboardData(CF_HTML, GlobalMem);
+    CloseClipboard;
   end;
 
-  CloseClipboard;
   SetString(OrgContent, nil, 0);
 end;
 
