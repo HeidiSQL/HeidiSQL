@@ -11,7 +11,7 @@ interface
 uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi, CheckLst,
   Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages,
-  Registry, SynEditHighlighter, DateUtils, Generics.Collections,
+  Registry, SynEditHighlighter, DateUtils, Generics.Collections, AnsiStrings,
   mysql_connection, mysql_structures;
 
 type
@@ -210,7 +210,7 @@ type
   function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): String;
   function ReadTextfile(Filename: String): String;
   function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
-  procedure StreamToClipboard(S: TMemoryStream);
+  procedure StreamToClipboard(S: TMemoryStream; AsHTML: Boolean=False);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
   procedure CheckHex(text: String; errorMessage: string);
@@ -2469,16 +2469,57 @@ begin
 end;
 
 
-procedure StreamToClipboard(S: TMemoryStream);
+procedure StreamToClipboard(S: TMemoryStream; AsHTML: Boolean=False);
 var
-  Content: AnsiString;
+  OrgContent, HTMLContent: AnsiString;
+  UniContent: String;
+  GlobalMem: HGLOBAL;
+  lp: PChar;
+  ClpLen: Integer;
+  CF_HTML: Word;
 begin
-  SetLength(Content, S.Size);
+  SetLength(OrgContent, S.Size);
   S.Position := 0;
-  S.Read(PAnsiChar(Content)^, S.Size);
-  Clipboard.AsText := Utf8ToString(Content);
-  // Free memory
-  SetString(Content, nil, 0);
+  S.Read(PAnsiChar(OrgContent)^, S.Size);
+
+  OpenClipBoard(0);
+  EmptyClipBoard;
+
+  // By default, we only copy unicode text to clipboard
+  UniContent := Utf8ToString(OrgContent);
+  ClpLen := Length(UniContent) * SizeOf(String) + 1;
+  GlobalMem := GlobalAlloc(GMEM_DDESHARE + GMEM_MOVEABLE, ClpLen);
+  lp := GlobalLock(GlobalMem);
+  Move(PChar(UniContent)^, lp[0], ClpLen);
+  GlobalUnlock(GlobalMem);
+  SetClipboardData(CF_UNICODETEXT, GlobalMem);
+
+  if AsHTML then begin
+    // If wanted, add a HTML portion, so formatted text can be pasted in WYSIWYG
+    // editors (mostly MS applications).
+    // Note that the content is UTF8 encoded ANSI. Using unicode variables results in raw
+    // text pasted in editors. TODO: Find out why and optimize redundant code away by a loop.
+    CF_HTML := RegisterClipboardFormat('HTML Format');
+    HTMLContent := 'Version:0.9' + CRLF +
+      'StartHTML:-1' + CRLF +
+      'EndHTML:-1' + CRLF +
+      'StartFragment:000081' + CRLF +
+      'EndFragment:같같같' + CRLF +
+      OrgContent + CRLF;
+    HTMLContent := AnsiStrings.StringReplace(
+      HTMLContent, '같같같',
+      AnsiStrings.Format('%.6d', [Length(HTMLContent)]),
+      []);
+    ClpLen := Length(HTMLContent) * SizeOf(AnsiString) + 1;
+    GlobalMem := GlobalAlloc(GMEM_DDESHARE + GMEM_MOVEABLE, ClpLen);
+    lp := GlobalLock(GlobalMem);
+    Move(PAnsiChar(HTMLContent)^, lp[0], ClpLen);
+    GlobalUnlock(GlobalMem);
+    SetClipboardData(CF_HTML, GlobalMem);
+  end;
+
+  CloseClipboard;
+  SetString(OrgContent, nil, 0);
 end;
 
 
