@@ -3,7 +3,7 @@ unit mysql_connection;
 interface
 
 uses
-  Classes, SysUtils, windows, mysql_api, mysql_structures, SynRegExpr, Contnrs, Generics.Collections;
+  Classes, SysUtils, windows, mysql_api, mysql_structures, SynRegExpr, Contnrs, Generics.Collections, DateUtils;
 
 type
   { TDBObjectList and friends }
@@ -117,6 +117,7 @@ type
       function GetInformationSchemaObjects: TStringList;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
+      function ParseDateTime(Str: String): TDateTime;
       procedure Log(Category: TMySQLLogCategory; Msg: String);
       procedure DetectCapabilities;
       procedure ClearCache;
@@ -925,6 +926,30 @@ begin
 end;
 
 
+function TMySQLConnection.ParseDateTime(Str: String): TDateTime;
+var
+  rx: TRegExpr;
+begin
+  // Parse a MySQL date / time string value into a TDateTime
+  Result := 0;
+  rx := TRegExpr.Create;
+  rx.Expression := '^(\d{4})\-(\d{2})\-(\d{2}) (\d{2})\:(\d{2})\:(\d{2})$';
+  if rx.Exec(Str) then try
+    Result := EncodeDateTime(
+      StrToIntDef(rx.Match[1], 0),
+      StrToIntDef(rx.Match[2], 1),
+      StrToIntDef(rx.Match[3], 1),
+      StrToIntDef(rx.Match[4], 0),
+      StrToIntDef(rx.Match[5], 0),
+      StrToIntDef(rx.Match[6], 0),
+      0 // milliseconds, unused
+      );
+  except
+    Result := 0;
+  end;
+end;
+
+
 function TMySQLConnection.GetDbObjects(db: String; Refresh: Boolean=False): TDBObjectList;
 var
   obj: TDBObject;
@@ -964,14 +989,8 @@ begin
           Obj.NodeType := lntView;
           Obj.ObjType := 'VIEW';
         end;
-        if not Results.IsNull('Create_time') then
-          Obj.Created := StrToDateTime(Results.Col('Create_time'))
-        else
-          Obj.Created := 0;
-        if not Results.IsNull('Update_time') then
-          Obj.Updated := StrToDateTime(Results.Col('Update_time'))
-        else
-          Obj.Updated := 0;
+        Obj.Created := ParseDateTime(Results.Col('Create_time'));
+        Obj.Updated := ParseDateTime(Results.Col('Update_time'));
         if Results.ColExists('Type') then
           Obj.Engine := Results.Col('Type')
         else
@@ -988,10 +1007,7 @@ begin
         Obj.IndexLen := StrToInt64Def(Results.Col('Index_length'), -1);
         Obj.DataLen := StrToInt64Def(Results.Col('Data_length'), -1);
         Obj.DataFree := StrToInt64Def(Results.Col('Data_free'), -1);
-        if not Results.IsNull('Check_time') then
-          Obj.LastChecked := StrToDateTime(Results.Col('Check_time'))
-        else
-          Obj.LastChecked := 0;
+        Obj.LastChecked := ParseDateTime(Results.Col('Check_time'));
         Obj.Collation := Results.Col('Collation', True);
         Obj.CheckSum := StrToInt64Def(Results.Col('Checksum', True), -1);
         Obj.CreateOptions := Results.Col('Create_options');
@@ -1015,14 +1031,8 @@ begin
         Obj.Size := -1;
         Obj.ObjType := 'FUNCTION';
         Obj.NodeType := lntFunction;
-        if not Results.IsNull('Created') then
-          Obj.Created := StrToDateTime(Results.Col('Created'))
-        else
-          Obj.Created := 0;
-        if not Results.IsNull('Modified') then
-          Obj.Updated := StrToDateTime(Results.Col('Modified'))
-        else
-          Obj.Updated := 0;
+        Obj.Created := ParseDateTime(Results.Col('Created'));
+        Obj.Updated := ParseDateTime(Results.Col('Modified'));
         Obj.Engine := '';
         Obj.Comment := Results.Col('Comment');
         Obj.Version := -1;
@@ -1057,14 +1067,8 @@ begin
         Obj.Size := -1;
         Obj.ObjType := 'PROCEDURE';
         Obj.NodeType := lntProcedure;
-        if not Results.IsNull('Created') then
-          Obj.Created := StrToDateTime(Results.Col('Created'))
-        else
-          Obj.Created := 0;
-        if not Results.IsNull('Modified') then
-          Obj.Updated := StrToDateTime(Results.Col('Modified'))
-        else
-          Obj.Updated := 0;
+        Obj.Created := ParseDateTime(Results.Col('Created'));
+        Obj.Updated := ParseDateTime(Results.Col('Modified'));
         Obj.Engine := '';
         Obj.Comment := Results.Col('Comment');
         Obj.Version := -1;
@@ -1099,10 +1103,7 @@ begin
         Obj.Size := -1;
         Obj.ObjType := 'TRIGGER';
         Obj.NodeType := lntTrigger;
-        if not Results.IsNull('Created') then
-          Obj.Created := StrToDateTime(Results.Col('Created'))
-        else
-          Obj.Created := 0;
+        Obj.Created := ParseDateTime(Results.Col('Created'));
         Obj.Updated := 0;
         Obj.Engine := '';
         Obj.Comment := Results.Col('Timing')+' '+Results.Col('Event')+' in table '+QuoteIdent(Results.Col('Table'));
