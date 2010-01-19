@@ -140,10 +140,10 @@ const
   OUTPUT_DB = 'Database';
   OUTPUT_SERVER = 'Server: ';
   DATA_NO = 'No data';
-  DATA_REPLACE = 'Replace (truncate existing data)';
-  DATA_INSERT = 'Insert';
-  DATA_INSERTNEW = 'Insert new data (do not update existing)';
-  DATA_UPDATE = 'Update existing data';
+  DATA_REPLACE = 'DELETE + INSERT (truncate existing data)';
+  DATA_INSERT = 'INSERT';
+  DATA_INSERTNEW = 'INSERT IGNORE (do not update existing)';
+  DATA_UPDATE = 'REPLACE existing data';
   EXPORT_FILE_FOOTER = '/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;'+CRLF+
     '/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;'+CRLF+
     '/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;'+CRLF;
