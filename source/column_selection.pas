@@ -25,7 +25,6 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
-    FColumns: TTableColumnList;
   public
     { Public declarations }
   end;
@@ -45,7 +44,6 @@ uses main;
 procedure TColumnSelectionForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
-  FColumns := TTableColumnList.Create;
 end;
 
 
@@ -55,14 +53,9 @@ end;
 procedure TColumnSelectionForm.FormShow(Sender: TObject);
 var
   i: Integer;
-  KeysDummy: TTableKeyList;
-  ForeignKeysDummy: TForeignKeyList;
 begin
-  KeysDummy := nil;
-  ForeignKeysDummy := nil;
-  ParseTableStructure(Mainform.SelectedTableCreateStatement, FColumns, KeysDummy, ForeignKeysDummy);
-  for i:=0 to FColumns.Count-1 do
-    chklistColumns.Items.Add(FColumns[i].Name);
+  for i:=0 to Mainform.SelectedTableColumns.Count-1 do
+    chklistColumns.Items.Add(Mainform.SelectedTableColumns[i].Name);
 
   // Check items!
   if Mainform.FDataGridSelect.Count = 0 then // Simply check all items
@@ -172,8 +165,8 @@ begin
     // Add all fieldnames again
     chklistColumns.Items.BeginUpdate;
     chklistColumns.Clear;
-    for i:=0 to FColumns.Count-1 do
-      chklistColumns.Items.Add(FColumns[i].Name);
+    for i:=0 to Mainform.SelectedTableColumns.Count-1 do
+      chklistColumns.Items.Add(Mainform.SelectedTableColumns[i].Name);
     chklistColumns.Items.EndUpdate;
   end;
 
