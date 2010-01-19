@@ -2018,7 +2018,7 @@ begin
   else Title := 'SQL query';
   try
     GridToHtml(ActiveGrid, Title, S);
-    StreamToClipboard(S);
+    StreamToClipboard(S, True);
   finally
     ShowStatus('Freeing data...');
     S.Free;
