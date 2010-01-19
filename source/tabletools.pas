@@ -893,7 +893,7 @@ end;
 procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
   ToFile, ToDir, ToDb, ToServer, IsLastRowInChunk, NeedsDBStructure: Boolean;
-  Struc, Header, FinalDbName, BaseInsert, Row, TargetDbAndObject: String;
+  Struc, Header, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent: String;
   LogRow, MultiSQL: TStringList;
   i: Integer;
   RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset, ResultCount: Int64;
@@ -1128,7 +1128,13 @@ begin
                 Row := Row + 'NULL'
               else case Data.DataType(i).Category of
                 dtcInteger, dtcReal: Row := Row + Data.Col(i);
-                dtcBinary: Row := Row + '_binary 0x' + Data.BinColAsHex(i);
+                dtcBinary: begin
+                  BinContent := Data.BinColAsHex(i);
+                  if Length(BinContent) > 0 then
+                    Row := Row + '_binary 0x' + BinContent
+                  else
+                    Row := Row + esc('');
+                end;
                 else Row := Row + esc(Data.Col(i));
               end;
               if i<Data.ColumnCount-1 then
