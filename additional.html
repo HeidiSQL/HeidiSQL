@@ -77,10 +77,6 @@
 			<th>Action</th>
 		</tr>
 		<tr>
-			<td>components/tntunictrls/packages/delphi11/TntUnicodeVcl.groupproj</td>
-			<td>Build All + Install "TntUnicodeVcl_Design"</td>
-		</tr>
-		<tr>
 			<td>components/synedit/packages/delphi11/SynEdit.groupproj</td>
 			<td>Build All + Install "SynEditD"</td>
 		</tr>
@@ -190,10 +186,8 @@
 					<li>Choose "Packages".  Highlight the following packages one by one and
 						click the "Remove" button after highlighting each one:
 						<ul>
-							<li>EDBImage</li>
-							<li>HeidiSQL helper components</li>
-							<li>TNTWare Unicode Controls</li>
 							<li>SynEdit component suite</li>
+							<li>VirtualTreeview</li>
 						</ul>
 					</li>
 				</ul>
@@ -518,11 +512,6 @@
 	</p>
 	<p>
 		Note: Order is important!
-	</p>
-	<p>
-		Todo:
-		Extract the sed code that alters %WCVER% from build_everything.cmd and put it in a separate file.
-		Run this file in a post-compile step whenever the HeidiSQL project is compiled.
 	</p>
 	<ol>
 		<li>
