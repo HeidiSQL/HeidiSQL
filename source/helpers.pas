@@ -113,7 +113,7 @@ type
 
   TTableKey = class(TObject)
     Name, OldName: String;
-    IndexType: String;
+    IndexType, Algorithm: String;
     Columns, SubParts: TStringList;
     Modified, Added: Boolean;
     constructor Create;
@@ -2950,9 +2950,9 @@ begin
   end;
 
   // Detect keys
-  // PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), KEY `id_2` (`id`),
+  // PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), KEY `id_2` (`id`) USING BTREE,
   // KEY `Text` (`Text`(100)), FULLTEXT KEY `Email` (`Email`,`Text`)
-  rx.Expression := '^\s+((\w+)\s+)?KEY\s+([`"]?([^`"]+)[`"]?\s+)?\((.+)\),?$';
+  rx.Expression := '^\s+((\w+)\s+)?KEY\s+([`"]?([^`"]+)[`"]?\s+)?\((.+)\)(\s+USING\s+(\w+))?,?$';
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(Keys) then
       break;
@@ -2961,6 +2961,7 @@ begin
     Key.Name := rx.Match[4];
     Key.OldName := Key.Name;
     Key.IndexType := rx.Match[2];
+    Key.Algorithm := rx.Match[7];
     if Key.Name = '' then Key.Name := rx.Match[2]; // PRIMARY
     if Key.IndexType = '' then Key.IndexType := 'KEY'; // KEY
     Key.Columns := Explode(',', rx.Match[5]);

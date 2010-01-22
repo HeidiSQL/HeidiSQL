@@ -697,6 +697,9 @@ begin
     Delete(Result, Length(Result)-1, 2);
 
   Result := Result + ')';
+
+  if FKeys[idx].Algorithm <> '' then
+    Result := Result + ' USING ' + FKeys[idx].Algorithm;
 end;
 
 
@@ -1448,6 +1451,7 @@ begin
            else
              CellText := TblKey.Name;
         1: CellText := TblKey.IndexType;
+        2: CellText := TblKey.Algorithm;
       end;
     end;
     1: begin
@@ -1455,6 +1459,7 @@ begin
       case Column of
         0: CellText := TblKey.Columns[Node.Index];
         1: CellText := TblKey.SubParts[Node.Index];
+        2: CellText := '';
       end;
     end;
   end;
@@ -1567,6 +1572,11 @@ begin
     EnumEditor.ValueList := TStringList.Create;
     EnumEditor.ValueList.CommaText := PKEY +','+ KEY +','+ UKEY +','+ FKEY +','+ SKEY;
     EditLink := EnumEditor;
+  end else if (Level = 0) and (Column = 2) then begin
+    // Algorithm pulldown
+    EnumEditor := TEnumEditorLink.Create(VT);
+    EnumEditor.ValueList := Explode(',', ',BTREE,HASH,RTREE');
+    EditLink := EnumEditor;
   end else if (Level = 1) and (Column = 0) then begin
     // Column names pulldown
     EnumEditor := TEnumEditorLink.Create(VT);
@@ -1598,6 +1608,7 @@ begin
        case Column of
          0: TblKey.Name := NewText;
          1: TblKey.IndexType := NewText;
+         2: TblKey.Algorithm := NewText;
        end;
        // Needs to be called manually for Name and IndexType properties:
        TblKey.Modification(Sender);
