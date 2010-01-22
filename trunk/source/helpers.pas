@@ -1194,9 +1194,10 @@ begin
         // Remove 0x.
         if GridData.Columns[i].DatatypeCat = dtcBinary then Delete(Data, 1, 2);
         // Unformat numeric values
-        if GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then Data := UnformatNumber(Data);
-        // Add data and cell end tag.
-        tmp := tmp + esc(Data);
+        if GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then
+          tmp := tmp + UnformatNumber(Data)
+        else
+          tmp := tmp + esc(Data);
       end;
       tmp := tmp + ', ';
     end;
