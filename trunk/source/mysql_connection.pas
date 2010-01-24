@@ -47,12 +47,8 @@ type
     );
   TMySQLClientOptions = set of TMySQLClientOption;
 
-const
-  DEFAULT_MYSQLOPTIONS = [opCompress, opLocalFiles, opInteractive, opProtocol41, opMultiStatements];
+  {$M+} // Needed to add published properties
 
-{$M+} // Needed to add published properties
-
-type
   TMySQLQuery = class;
   TMySQLConnection = class(TComponent)
     private
@@ -202,7 +198,7 @@ implementation
 constructor TMySQLConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FOptions := DEFAULT_MYSQLOPTIONS;
+  FOptions := [opCompress, opLocalFiles, opInteractive, opProtocol41, opMultiStatements];
   FPort := MYSQL_PORT;
   FRowsFound := 0;
   FRowsAffected := 0;
