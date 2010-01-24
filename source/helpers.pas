@@ -241,9 +241,13 @@ type
   procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
   procedure ParseViewStructure(ViewName: String; Columns: TTableColumnList);
   function ReformatSQL(SQL: String): String;
+  function ParamBlobToStr(lpData: Pointer): TStringlist;
+  function ParamStrToBlob(out cbData: DWORD): Pointer;
+  function CheckForSecondInstance: Boolean;
 
 var
   MainReg: TRegistry;
+  MutexHandle: THandle = 0;
   dbgCounter: Integer = 0;
   DecimalSeparatorSystemdefault: Char;
 
@@ -3233,6 +3237,143 @@ begin
     Result := MessageDlg(Msg, mtConfirmation, [mbYes, mbNo, mbCancel], 0);
     if Result = mrYes then
       Result := ApplyModifications;
+  end;
+end;
+
+
+
+// Following code taken from OneInst.pas, http://assarbad.net/de/stuff/!import/nico.old/
+// Slightly modified to better integrate that into our code, comments translated from german.
+
+// Fetch and separate command line parameters into strings
+function ParamBlobToStr(lpData: Pointer): TStringlist;
+var
+  pStr: PChar;
+begin
+  Result := TStringlist.Create;
+  pStr := lpData;
+  while pStr[0] <> #0 do
+  begin
+    Result.Add(string(pStr));
+    pStr := @pStr[lstrlen(pStr) + 1];
+  end;
+end;
+
+// Pack current command line parameters
+function ParamStrToBlob(out cbData: DWORD): Pointer;
+var
+  Loop: Integer;
+  pStr: PChar;
+begin
+  for Loop := 1 to ParamCount do
+    cbData := cbData + DWORD(Length(ParamStr(Loop))*2 + 1);
+  cbData := cbData + 2; // include appending #0#0
+  Result := GetMemory(cbData);
+  ZeroMemory(Result, cbData);
+  pStr := Result;
+  for Loop := 1 to ParamCount do
+  begin
+    debug(ParamStr(Loop));
+    lstrcpy(pStr, PChar(ParamStr(Loop)));
+    pStr := @pStr[lstrlen(pStr) + 1];
+  end;
+end;
+
+procedure HandleSecondInstance;
+var
+  Run: DWORD;
+  Now: DWORD;
+  Msg: TMsg;
+  Wnd: HWND;
+  Dat: TCopyDataStruct;
+begin
+  // MessageBox(0, 'already running', nil, MB_ICONINFORMATION);
+  // Send a message to all main windows (HWND_BROADCAST) with the identical,
+  // previously registered message id. We should only get reply from 0 or 1
+  // instances.
+  // (Broadcast should only be called with registered message ids!)
+
+  SendMessage(HWND_BROADCAST, SecondInstMsgId, GetCurrentThreadId, 0);
+
+  // Waiting for reply by first instance. For those of you which didn't knew:
+  // Threads have message queues too ;o)
+  Wnd := 0;
+  Run := GetTickCount;
+  while True do
+  begin
+    if PeekMessage(Msg, 0, SecondInstMsgId, SecondInstMsgId, PM_NOREMOVE) then
+    begin
+      GetMessage(Msg, 0, SecondInstMsgId, SecondInstMsgId);
+      if Msg.message = SecondInstMsgId then
+      begin
+        Wnd := Msg.wParam;
+        Break;
+      end;
+    end;
+    Now := GetTickCount;
+    if Now < Run then
+      Run := Now;  // Avoid overflow, each 48 days.
+    if Now - Run > 5000 then
+      Break;
+  end;
+
+  if (Wnd <> 0) and IsWindow(Wnd) then
+  begin
+    // As a reply we got a handle to which we now send current parameters
+    Dat.dwData := SecondInstMsgId;
+    Dat.lpData := ParamStrToBlob(Dat.cbData);
+    SendMessage(Wnd, WM_COPYDATA, 0, LPARAM(@Dat));
+    FreeMemory(Dat.lpData);
+
+    // Bring first instance to front
+    if not IsWindowVisible(Wnd) then
+      ShowWindow(Wnd, SW_RESTORE);
+    BringWindowToTop(Wnd);
+    SetForegroundWindow(Wnd);
+  end;
+end;
+
+function CheckForSecondInstance: Boolean;
+var
+  Loop: Integer;
+  MutexName: PChar;
+begin
+  // Try to create a system wide named kernel object (mutex). And check if that
+  // already exists.
+  // The name of such a mutex must not be longer than MAX_PATH (260) chars and
+  // can contain all chars but not '\'
+
+  Result := False;
+  MutexName := PChar(APPNAME);
+  for Loop := lstrlen(MutexName) to MAX_PATH - 1 do
+  begin
+    MutexHandle := CreateMutex(nil, False, MutexName);
+    if (MutexHandle = 0) and (GetLastError = INVALID_HANDLE_VALUE) then
+      // Looks like there is already a mutex using this name
+      // Try to solve that by appending an underscore
+      lstrcat(MutexName, '_')
+    else
+      // At least no naming conflict
+      Break;
+  end;
+
+  case GetLastError of
+    0: begin
+        // We created the mutex, so this is the first instance
+      end;
+    ERROR_ALREADY_EXISTS:
+      begin
+        // There is already one instance
+        try
+          HandleSecondInstance;
+        finally
+          // Terminating is done in .dpr file, before Application.Initialize
+          Result := True;
+        end;
+      end;
+  else
+    // No clue why we should get here. Oh, maybe Microsoft has changed rules, again.
+    // However, we return false and let the application start
   end;
 end;
 

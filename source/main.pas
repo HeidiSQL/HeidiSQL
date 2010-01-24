@@ -460,6 +460,7 @@ type
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
     procedure DisplayChange(var msg: TMessage); message WM_DISPLAYCHANGE;
+    procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure Startup;
@@ -575,7 +576,7 @@ type
     procedure InsertDate(Sender: TObject);
     procedure setNULL1Click(Sender: TObject);
     procedure MenuTablelistColumnsClick(Sender: TObject);
-    procedure QueryLoad( filename: String; ReplaceContent: Boolean = true );
+    function QueryLoad( filename: String; ReplaceContent: Boolean = true ): Boolean;
     procedure DataGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure DataGridCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; out EditLink: IVTEditLink);
@@ -878,6 +879,7 @@ type
     procedure SetEditorTabCaption(Editor: TDBObjectEditor; ObjName: String);
     procedure SetWindowCaption;
     procedure OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
+    procedure DefaultHandler(var Message); override;
     function MaskMulti(str: String): String;
     procedure SelectDBObject(Text: String; NodeType: TListNodeType);
     procedure SetupSynEditors;
@@ -887,6 +889,7 @@ end;
 
 var
   MainForm: TMainForm;
+  SecondInstMsgId: UINT = 0;
 
 const
   // Customized messages
@@ -4569,13 +4572,14 @@ end;
 
 
 
-procedure TMainForm.QueryLoad( filename: String; ReplaceContent: Boolean = true );
+function TMainForm.QueryLoad( filename: String; ReplaceContent: Boolean = true ): Boolean;
 
 var
   filecontent      : String;
   msgtext          : String;
   LineBreaks       : TLineBreaks;
 begin
+  Result := False;
   // Ask for action when loading a big file
   if FileExists(filename) and (_GetFileSize( filename ) > 5*SIZE_MB) then
   begin
@@ -4642,6 +4646,7 @@ begin
     SetTabCaption(PageControlMain.ActivePageIndex, sstr(ExtractFilename(filename), 70));
     ActiveQueryMemo.Modified := False;
     ActiveQueryTab.MemoFilename := filename;
+    Result := True;
   except on E:Exception do
     // File does not exist, is locked or broken
     MessageDlg(E.message, mtError, [mbOK], 0);
@@ -9059,6 +9064,35 @@ procedure TMainForm.actDataResetSortingExecute(Sender: TObject);
 begin
   SetLength(FDataGridSort, 0);
   viewdata(Sender);
+end;
+
+
+procedure TMainForm.WMCopyData(var Msg: TWMCopyData);
+var
+  Params: TStringlist;
+begin
+  // Probably a second instance is posting its command line parameters here
+  if (Msg.CopyDataStruct.dwData = SecondInstMsgId) and (SecondInstMsgId <> 0) then begin
+    Params := ParamBlobToStr(Msg.CopyDataStruct.lpData);
+    if Params.Count = 1 then begin
+      actNewQueryTabExecute(self);
+      if not QueryLoad(Params[0]) then
+        actCloseQueryTabExecute(Self);
+    end;
+  end else
+    // Not the right message id
+    inherited;
+end;
+
+
+procedure TMainForm.DefaultHandler(var Message);
+begin
+  if TMessage(Message).Msg = SecondInstMsgId then begin
+    // A second instance asked for our handle. Post that into its message queue.
+    PostThreadMessage(TMessage(Message).WParam, SecondInstMsgId, Handle, 0);
+  end else
+    // Otherwise do what would happen without this overridden procedure
+    inherited;
 end;
 
 

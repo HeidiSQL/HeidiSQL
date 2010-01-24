@@ -186,6 +186,8 @@ const
   REGNAME_LAST_STATSCALL = 'LastUsageStatisticCall';
   REGNAME_FILTERACTIVE = 'FilterPanel';
   DEFAULT_FILTERACTIVE = False;
+  REGNAME_MULTI_INSTANCES = 'AllowMultipleInstances';
+  DEFAULT_MULTI_INSTANCES = True;
 
   REGNAME_FIELDCOLOR_NUMERIC = 'FieldColor_Numeric';
   REGNAME_FIELDCOLOR_TEXT = 'FieldColor_Text';
