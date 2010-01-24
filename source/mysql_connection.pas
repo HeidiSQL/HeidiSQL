@@ -24,25 +24,6 @@ type
   TMySQLLogEvent = procedure(Msg: String; Category: TMySQLLogCategory=lcInfo) of object;
   TMySQLDatabaseChangedEvent = procedure(Database: String) of object;
 
-  TMySQLServerCapability = (
-    cpShowEngines,          // SHOW ENGINES
-    cpShowTableStatus,      // SHOW TABLE STATUS
-    cpShowFullTables,       // SHOW FULL TABLES
-    cpShowCreateTable,      // SHOW CREATE TABLE foo
-    cpShowCreateDatabase,   // SHOW CREATE DATABASE foo
-    cpHelpSystem,           // HELP "foo"
-    cpSetNames,             // SET NAMES
-    cpCalcFoundRows,        // SELECT SQL_CALC_FOUND_ROWS ...
-    cpLoadFile,             // LOAD DATA LOCAL INFILE ...
-    cpTableComment,         // CREATE TABLE ... COMMENT = "foo"
-    cpFieldComment,         // ALTER TABLE ADD ... COMMENT = "foo"
-    cpColumnMoving,         // ALTER TABLE CHANGE ... FIRST|AFTER foo
-    cpTruncateTable,        // TRUNCATE TABLE foo
-    cpAlterDatabase,        // ALTER DATABASE
-    cpRenameDatabase        // RENAME DATABASE
-    );
-  TMySQLServerCapabilities = set of TMySQLServerCapability;
-
   TMySQLClientOption = (
     opCompress,             // CLIENT_COMPRESS
     opConnectWithDb,        // CLIENT_CONNECT_WITH_DB
@@ -89,7 +70,6 @@ type
       FOnLog: TMySQLLogEvent;
       FOnDatabaseChanged: TMySQLDatabaseChangedEvent;
       FOptions: TMySQLClientOptions;
-      FCapabilities: TMySQLServerCapabilities;
       FRowsFound: Int64;
       FRowsAffected: Int64;
       FServerVersionUntouched: String;
@@ -119,7 +99,6 @@ type
       function GetServerUptime: Integer;
       function ParseDateTime(Str: String): TDateTime;
       procedure Log(Category: TMySQLLogCategory; Msg: String);
-      procedure DetectCapabilities;
       procedure ClearCache;
     public
       constructor Create(AOwner: TComponent); override;
@@ -146,7 +125,6 @@ type
       property ServerVersionUntouched: String read FServerVersionUntouched;
       property ServerVersionStr: String read GetServerVersionStr;
       property ServerVersionInt: Integer read GetServerVersionInt;
-      property Capabilities: TMySQLServerCapabilities read FCapabilities;
       property RowsFound: Int64 read FRowsFound;
       property RowsAffected: Int64 read FRowsAffected;
       property LastQueryDuration: Cardinal read FLastQueryDuration;
@@ -315,7 +293,6 @@ begin
       FConnectionStarted := GetTickCount div 1000;
       FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), 1);
       FServerVersionUntouched := Utf8ToString(mysql_get_server_info(FHandle));
-      DetectCapabilities;
       if FDatabase <> '' then begin
         tmpdb := FDatabase;
         FDatabase := '';
@@ -334,7 +311,6 @@ begin
     mysql_close(FHandle);
     FConnectionStarted := 0;
     FHandle := nil;
-    FCapabilities := [];
     Log(lcInfo, 'Connection to '+FHostname+' closed at '+DateTimeToStr(Now));
   end;
 
@@ -674,42 +650,6 @@ begin
   Result := Identifier;
   if (Result[1] = '`') and (Result[Length(Identifier)] = '`') then
     Result := Copy(Result, 2, Length(Result)-2);
-end;
-
-
-{**
-  Detect various capabilities of the server
-  for easy feature-checks in client-applications.
-}
-procedure TMySQLConnection.DetectCapabilities;
-var
-  ver: Integer;
-  procedure addCap(c: TMySQLServerCapability; addit: Boolean);
-  begin
-    if addit then
-      Include(FCapabilities, c)
-    else
-      Exclude(FCapabilities, c);
-  end;
-begin
-  // Avoid calling GetServerVersionInt too often
-  ver := ServerVersionInt;
-
-  addCap(cpShowEngines, ver >= 40102);
-  addCap(cpShowTableStatus, ver >= 32300);
-  addCap(cpShowFullTables, ver >= 50002);
-  addCap(cpShowCreateTable, ver >= 32320);
-  addCap(cpShowCreateDatabase, ver >= 50002);
-  addCap(cpHelpSystem, ver >= 40100);
-  addCap(cpSetNames, ver >= 40100);
-  addCap(cpCalcFoundRows, ver >= 40000);
-  addCap(cpLoadFile, ver >= 32206);
-  addCap(cpTableComment, ver >= 32300);
-  addCap(cpFieldComment, ver >= 40100);
-  addCap(cpColumnMoving, ver >= 40001);
-  addCap(cpTruncateTable, ver >= 50003);
-  addCap(cpAlterDatabase, ver >= 50002);
-  addCap(cpRenameDatabase, ver >= 50107);
 end;
 
 
