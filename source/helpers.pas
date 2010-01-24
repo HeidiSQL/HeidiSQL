@@ -147,6 +147,14 @@ type
       function ApplyModifications: TModalResult; virtual; abstract;
   end;
 
+  TWndProc = function (hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
+  PGripInfo = ^TGripInfo;
+  TGripInfo = record
+    OldWndProc: TWndProc;
+    Enabled: boolean;
+    GripRect: TRect;
+  end;
+
 
 {$I const.inc}
 
@@ -235,34 +243,14 @@ type
   function ReformatSQL(SQL: String): String;
 
 var
-  MainReg                    : TRegistry;
+  MainReg: TRegistry;
+  dbgCounter: Integer = 0;
+  DecimalSeparatorSystemdefault: Char;
 
 
 implementation
 
 uses main, uVistaFuncs, table_editor, view, routine_editor, trigger_editor;
-
-type
-  CharacterSet = record
-    codepage: Cardinal;
-    charset: string;
-  end;
-
-  TWndProc = function (hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
-
-  PGripInfo = ^TGripInfo;
-  TGripInfo = record
-    OldWndProc: TWndProc;
-    Enabled: boolean;
-    GripRect: TRect;
-  end;
-
-const
-  SizeGripProp = 'SizeGrip';
-
-var
-  dbgCounter: Integer = 0;
-  DecimalSeparatorSystemdefault: Char;
 
 
 
