@@ -296,3 +296,5 @@ const
 
   SYNCOMPLETION_PATTERN = '\image{%d}\hspace{5}\color{clSilver}%s\column{}\color{clWindowText}%s';
 
+  SizeGripProp = 'SizeGrip';
+
