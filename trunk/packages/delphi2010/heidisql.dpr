@@ -5,6 +5,7 @@ uses
   Forms,
   SysUtils,
   Dialogs,
+  Windows,
   main in '..\..\source\main.pas' {MainForm},
   about in '..\..\source\about.pas' {AboutBox},
   connections in '..\..\source\connections.pas' {connform},
@@ -40,14 +41,26 @@ uses
 {$R ..\..\res\version.RES}
 {$R ..\..\res\manifest.RES}
 
+var
+  DoStop, prefAllowMultipleInstances: Boolean;
 begin
   debug('perf: All modules loaded.');
-  Application.Initialize;
-  Application.Title := APPNAME;
-  Application.UpdateFormatSettings := False;
-  Application.CreateForm(TMainForm, MainForm);
-  Application.OnMessage := Mainform.OnMessageHandler;
-  debug('perf: Main created.');
-  MainForm.Startup;
-  Application.Run;
+
+  prefAllowMultipleInstances := GetRegValue(REGNAME_MULTI_INSTANCES, DEFAULT_MULTI_INSTANCES);
+  SecondInstMsgId := RegisterWindowMessage(APPNAME);
+  DoStop := False;
+  if not prefAllowMultipleInstances then
+    DoStop := CheckForSecondInstance;
+  if DoStop then
+    Application.Terminate
+  else begin
+    Application.Initialize;
+    Application.Title := APPNAME;
+    Application.UpdateFormatSettings := False;
+    Application.CreateForm(TMainForm, MainForm);
+    Application.OnMessage := Mainform.OnMessageHandler;
+    debug('perf: Main created.');
+    MainForm.Startup;
+    Application.Run;
+  end;
  end.

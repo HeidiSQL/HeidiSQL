@@ -119,6 +119,7 @@ type
     editSQLTabWidth: TEdit;
     updownSQLTabWidth: TUpDown;
     chkExportLocaleNumbers: TCheckBox;
+    chkAllowMultiInstances: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -205,6 +206,7 @@ begin
 
   // Save values
   MainReg.WriteBool(REGNAME_AUTORECONNECT, chkAutoReconnect.Checked);
+  MainReg.WriteBool(REGNAME_MULTI_INSTANCES, chkAllowMultiInstances.Checked);
   MainReg.WriteBool(REGNAME_RESTORELASTUSEDDB, chkRestoreLastDB.Checked);
   MainReg.WriteString(REGNAME_FONTNAME, comboSQLFontName.Text);
   MainReg.WriteInteger(REGNAME_FONTSIZE, updownSQLFontSize.Position);
@@ -370,6 +372,7 @@ begin
   datafontname := GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
   datafontsize := GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
   chkAutoReconnect.Checked := GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
+  chkAllowMultiInstances.Checked := GetRegValue(REGNAME_MULTI_INSTANCES, DEFAULT_MULTI_INSTANCES);
   chkRestoreLastDB.Checked := GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
   updownLogLines.Position := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   updownLogSnip.Position := GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);

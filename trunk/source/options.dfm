@@ -62,7 +62,7 @@ object optionsform: Toptionsform
       end
       object chkAutoReconnect: TCheckBox
         Left = 16
-        Top = 16
+        Top = 32
         Width = 334
         Height = 17
         Caption = 'Automatically reconnect to last session-account on startup'
@@ -93,7 +93,7 @@ object optionsform: Toptionsform
       end
       object chkRestoreLastDB: TCheckBox
         Left = 16
-        Top = 40
+        Top = 56
         Width = 297
         Height = 17
         Caption = 'Restore last used database on startup'
@@ -197,6 +197,16 @@ object optionsform: Toptionsform
         TabOrder = 12
         WordWrap = True
         OnClick = Modified
+      end
+      object chkAllowMultiInstances: TCheckBox
+        Left = 16
+        Top = 9
+        Width = 379
+        Height = 17
+        Caption = 'Allow multiple application instances'
+        Checked = True
+        State = cbChecked
+        TabOrder = 13
       end
     end
     object tabSQL: TTabSheet
