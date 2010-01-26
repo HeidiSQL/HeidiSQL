@@ -5927,6 +5927,10 @@ begin
          else ImageIndex := ICONINDEX_DB;
     2: begin
         DBObjects := Connection.GetDBObjects(Databases[Node.Parent.Index]);
+        // Various bug reports refer to this location where we reference a db object which is outside the range
+        // of DBObjects. Probably a timing issue. Work around that by doing a safety check here.
+        if Node.Index >= DBObjects.Count then
+          Exit;
         case DBObjects[Node.Index].NodeType of
           lntTable:
             if Kind = ikSelected then
