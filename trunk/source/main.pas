@@ -736,7 +736,10 @@ type
     FilterTextData: String;
     PreviousFocusedNode: PVirtualNode;
     FActiveObjectEditor: TDBObjectEditor;
-    function GetParamValue(const paramChar: Char; const paramName: string; var curIdx: Byte; out paramValue: string): Boolean;
+    FCmdlineFilenames: TStringlist;
+    FCmdlineConnectionParams: TConnectionParameters;
+    FCmdlineSessionName: String;
+    procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(MatchingRows: Int64 = -1);
     procedure insertFunction(Sender: TObject);
@@ -845,7 +848,7 @@ type
     procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
     procedure SessionConnect(Sender: TObject);
-    function InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, parSession: String): Boolean;
+    function InitConnection(Params: TConnectionParameters; Session: String): Boolean;
     function ActiveGrid: TVirtualStringTree;
     function GridResult(Grid: TBaseVirtualTree): TGridResult; overload;
     function GridResult(PageIndex: Integer): TGridResult; overload;
@@ -1379,15 +1382,14 @@ end;
 }
 procedure TMainForm.Startup;
 var
-  curParam, NetType: Byte;
-  sValue,
-  parHost, parSocketname, parPort, parUser, parPass,
-  parCompress, parSession: String;
+  NetType: Byte;
+  CmdlineParameters: TStringlist;
+  LoadedParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
   DefaultLastrunDate, LastSession, StatsURL: String;
   frm : TfrmUpdateCheck;
-  Connected, CommandLineMode, DecideForStatistic: Boolean;
+  Connected, DecideForStatistic: Boolean;
   StatsCall: TDownloadUrl2;
   SessionNames: TStringlist;
 begin
@@ -1460,77 +1462,35 @@ begin
 
   Connected := False;
 
-  // Check commandline if parameters were passed. Otherwise show connections windows
-  curParam := 1;
-  while curParam <= ParamCount do begin
-    // -M and -d are choosen not to conflict with mysql.exe
-    // http://dev.mysql.com/doc/refman/5.0/en/mysql-command-options.html
-    //
-    // To test all supported variants, set Run > Parameters > Parameters option to:
-    // --host=192.168.0.1 --user=root --password -d "My session name" -D"test db" -C -P 2200
-    if GetParamValue('h', 'host', curParam, sValue) then
-      parHost := sValue
-    else if GetParamValue('P', 'port', curParam, sValue) then
-      parPort := sValue
-    else if GetParamValue('s', 'socket', curParam, sValue) then
-      parSocketname := sValue
-    else if GetParamValue('C', 'compress', curParam, sValue) then
-      parCompress := sValue
-    else if GetParamValue('u', 'user', curParam, sValue) then
-      parUser := sValue
-    else if GetParamValue('p', 'password', curParam, sValue) then
-      parPass := sValue
-    else if GetParamValue('d', 'description', curParam, sValue) then
-      parSession := sValue;
-    Inc(curParam);
-  end;
-
-  // Find stored session if -dSessionName was passed
-  if (parSession <> '') and MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + parSession) then begin
-    NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, parSession);
-    parHost := GetRegValue(REGNAME_HOST, DEFAULT_HOST, parSession);
-    if NetType = NETTYPE_TCPIP then
-      parSocketname := ''
-    else begin
-      parSocketname := parHost;
-      parHost := '.';
-    end;
-    parUser := GetRegValue(REGNAME_USER, DEFAULT_USER, parSession);
-    parPass := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, parSession));
-    parPort := GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), parSession);
-    parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, parSession)));
-  end;
-
-  // Minimal parameter for command line mode is hostname
-  CommandLineMode := parHost <> '';
-  if CommandLineMode then begin
-    if parSession = '' then
-      parSession := parHost;
-    Connected := InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, parSession);
-  end;
-
-  // Auto connection via preference setting
-  // Do not autoconnect if we're in commandline mode and the connection was not successful
-  if (not CommandLineMode) and (not Connected) and GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT) then begin
+  CmdlineParameters := TStringList.Create;
+  for i:=1 to ParamCount do
+    CmdlineParameters.Add(ParamStr(i));
+  ParseCommandLineParameters(CmdlineParameters);
+  if FCmdlineConnectionParams.Hostname <> '' then begin
+    // Minimal parameter for command line mode is hostname
+    Connected := InitConnection(FCmdlineConnectionParams, FCmdlineSessionName);
+  end else if GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT) then begin
+    // Auto connection via preference setting
+    // Do not autoconnect if we're in commandline mode and the connection was not successful
     LastSession := GetRegValue(REGNAME_LASTSESSION, '');
     if LastSession <> '' then begin
-      parHost := GetRegValue(REGNAME_HOST, '', LastSession);
+      LoadedParams := TConnectionParameters.Create;
       NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, LastSession);
+      LoadedParams.Hostname := GetRegValue(REGNAME_HOST, DEFAULT_HOST, LastSession);
       if NetType = NETTYPE_TCPIP then
-        parSocketname := ''
+        LoadedParams.Socketname := ''
       else begin
-        parSocketname := parHost;
-        parHost := '.';
+        LoadedParams.Socketname := LoadedParams.Hostname;
+        LoadedParams.Hostname := '.';
       end;
-      Connected := InitConnection(
-        parHost,
-        parSocketname,
-        GetRegValue(REGNAME_PORT, '', LastSession),
-        GetRegValue(REGNAME_USER, '', LastSession),
-        decrypt(GetRegValue(REGNAME_PASSWORD, '', LastSession)),
-        IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, LastSession))),
-        LastSession
-        );
+      LoadedParams.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, LastSession);
+      LoadedParams.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, LastSession));
+      LoadedParams.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', LastSession), DEFAULT_PORT);
+      if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, LastSession) then
+        LoadedParams.Options := LoadedParams.Options + [opCompress]
+      else
+        LoadedParams.Options := LoadedParams.Options - [opCompress];
+      Connected := InitConnection(LoadedParams, LastSession);
     end;
   end;
 
@@ -1547,9 +1507,95 @@ begin
 
   DoAfterConnect;
 
-  if (not CommandLineMode) and (ParamStr(1) <> '') then begin
-    // Loading SQL file by command line. Mutually exclusive to connect by command line.
-    QueryLoad(ParamStr(1));
+  // Load SQL file(s) by command line
+  for i:=0 to FCmdlineFilenames.Count-1 do begin
+    if i>0 then
+      actNewQueryTabExecute(Self);
+    if not QueryLoad(FCmdlineFilenames[i]) then
+      actCloseQueryTabExecute(Self);
+  end;
+end;
+
+
+procedure TMainForm.ParseCommandLineParameters(Parameters: TStringlist);
+var
+  rx: TRegExpr;
+  AllParams, Host, User, Pass, Socket: String;
+  NetType: Byte;
+  i, Port: Integer;
+
+  function GetParamValue(ShortName, LongName: String): String;
+  begin
+    Result := '';
+    rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')\s*\=?\s*([^\-]\S*)';
+    if rx.Exec(AllParams) then
+      Result := rx.Match[2];
+  end;
+
+begin
+  // Initialize and clear variables
+  if not Assigned(FCmdlineFilenames) then
+    FCmdlineFilenames := TStringlist.Create;
+  if not Assigned(FCmdlineConnectionParams) then
+    FCmdlineConnectionParams := TConnectionParameters.Create;
+  FCmdlineConnectionParams.Hostname := '';
+  FCmdlineConnectionParams.Username := '';
+  FCmdlineConnectionParams.Password := '';
+  FCmdlineConnectionParams.Port := 0;
+  FCmdlineConnectionParams.Socketname := '';
+  FCmdlineFilenames.Clear;
+  FCmdlineSessionName := '';
+
+  // Prepend a space, so the regular expression can request a mandantory space
+  // before each param name including the first one
+  AllParams := ' ' + ImplodeStr(' ', Parameters);
+  rx := TRegExpr.Create;
+  FCmdlineSessionName := GetParamValue('d', 'description');
+  if FCmdlineSessionName <> '' then begin
+    if Mainreg.KeyExists(REGPATH + REGKEY_SESSIONS + FCmdlineSessionName) then begin
+      // Session params named -dXYZ found in registry
+      NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, FCmdlineSessionName);
+      FCmdlineConnectionParams.Hostname := GetRegValue(REGNAME_HOST, DEFAULT_HOST, FCmdlineSessionName);
+      if NetType = NETTYPE_TCPIP then
+        FCmdlineConnectionParams.Socketname := ''
+      else begin
+        FCmdlineConnectionParams.Socketname := FCmdlineConnectionParams.Hostname;
+        FCmdlineConnectionParams.Hostname := '.';
+      end;
+      FCmdlineConnectionParams.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, FCmdlineSessionName);
+      FCmdlineConnectionParams.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, FCmdlineSessionName));
+      FCmdlineConnectionParams.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', FCmdlineSessionName), DEFAULT_PORT);
+      if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, FCmdlineSessionName) then
+        FCmdlineConnectionParams.Options := FCmdlineConnectionParams.Options + [opCompress]
+      else
+        FCmdlineConnectionParams.Options := FCmdlineConnectionParams.Options - [opCompress];
+    end else begin
+      // Session params not found in registry
+      LogSQL('Error: Session "'+FCmdlineSessionName+'" not found in registry.');
+      FCmdlineSessionName := '';
+    end;
+  end;
+
+  // Test if params were passed. If given, override previous values loaded from registry.
+  // Enables the user to log into a session with a different, non-stored user: -dSession -uSomeOther
+  Host := GetParamValue('h', 'host');
+  User := GetParamValue('u', 'user');
+  Pass := GetParamValue('p', 'password');
+  Socket := GetParamValue('S', 'socket');
+  Port := StrToIntDef(GetParamValue('P', 'port'), 0);
+  if Host <> '' then FCmdlineConnectionParams.Hostname := Host;
+  if User <> '' then FCmdlineConnectionParams.Username := User;
+  if Pass <> '' then FCmdlineConnectionParams.Password := Pass;
+  if Port <> 0 then FCmdlineConnectionParams.Port := Port;
+  if Socket <> '' then FCmdlineConnectionParams.Socketname := Socket;
+  // Ensure we have a session name to pass to InitConnection
+  if (FCmdlineSessionName = '') and (FCmdlineConnectionParams.Hostname <> '') then
+    FCmdlineSessionName := FCmdlineConnectionParams.Hostname;
+
+  // Check for valid filename(s) in parameters
+  for i:=0 to Parameters.Count-1 do begin
+    if FileExists(Parameters[i]) then
+      FCmdlineFilenames.Add(Parameters[i]);
   end;
 end;
 
@@ -1579,7 +1625,7 @@ begin
   if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
     ActivateFileLogging;
 
-  tabHost.Caption := 'Host: '+Connection.HostName;
+  tabHost.Caption := 'Host: '+Connection.Parameters.HostName;
   showstatus('MySQL '+Connection.ServerVersionStr, 3);
 
   // Save server version
@@ -2310,72 +2356,30 @@ end;
 
 
 
-{**
-  Parse commandline for a specific name=value pair
-  @return Boolean True if parameter was found, False if not
-}
-function TMainForm.GetParamValue(const paramChar: Char; const paramName:
-  string; var curIdx: Byte; out paramValue: string): Boolean;
-var
-  i, nextIdx: Integer;
-  param, nextParam: string;
-begin
-  paramValue := '';
-  param := ParamStr(curIdx);
-  // Example: --user=root --session="My session name" --password
-  if Pos('--' + paramName, param) = 1 then
-  begin
-    i := Length('--' + paramName) + 1;
-    if param[i] = '=' then
-      paramValue := Copy(param, i + 1, Length(param) - i);
-      if (Copy(paramValue, 1, 1) = '"') and (Copy(paramValue, Length(paramValue), 1) = '"') then
-        paramValue := Copy(paramValue, 2, Length(paramValue) - 2);
-    result := True;
-
-  end else if Pos('-' + paramChar, param) = 1 then
-  begin
-    if Length(param) > 2 then
-    begin
-      // Example: -uroot -s"My session name"
-      paramValue := Copy(param, 3, Length(param) - 2);
-      if (Copy(paramValue, 1, 1) = '"') and (Copy(paramValue, Length(paramValue), 1) = '"') then
-        paramValue := Copy(paramValue, 2, Length(paramValue) - 2);
-    end else
-    begin
-      // Example: -u root -s "My session name" -p
-      nextIdx := curIdx + 1;
-      if nextIdx <= ParamCount then begin
-        nextParam := ParamStr(nextIdx);
-        if not Pos('-', nextParam) = 1 then
-          paramValue := nextParam;
-      end;
-    end;
-    result := True;
-  end else
-    result := False;
-end;
-
-
 procedure TMainForm.SessionConnect(Sender: TObject);
 var
   Session: String;
+  Params: TConnectionParameters;
   NetType: Integer;
-  parHost, parSocketname, parPort, parUser, parPass, parCompress: String;
 begin
   Session := (Sender as TMenuItem).Caption;
+  Params := TConnectionParameters.Create;
   NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, Session);
-  parHost := GetRegValue(REGNAME_HOST, '', Session);
+  Params.Hostname := GetRegValue(REGNAME_HOST, '', Session);
   if NetType = NETTYPE_TCPIP then
-    parSocketname := ''
+    Params.Socketname := ''
   else begin
-    parSocketname := parHost;
-    parHost := '.';
+    Params.Socketname := Params.Hostname;
+    Params.Hostname := '.';
   end;
-  parUser := GetRegValue(REGNAME_USER, '', Session);
-  parPass := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
-  parPort := GetRegValue(REGNAME_PORT, '', Session);
-  parCompress := IntToStr(Integer(GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session)));
-  if InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, Session) then
+  Params.Username := GetRegValue(REGNAME_USER, '', Session);
+  Params.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
+  Params.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', Session), DEFAULT_PORT);
+  if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session) then
+    Params.Options := Params.Options + [opCompress]
+  else
+    Params.Options := Params.Options - [opCompress];
+  if InitConnection(Params, Session) then
     DoAfterConnect;
 end;
 
@@ -2384,7 +2388,7 @@ end;
   Receive connection parameters and create the mdi-window
   Paremeters are either sent by connection-form or by commandline.
 }
-function TMainform.InitConnection(parHost, parSocketname, parPort, parUser, parPass, parCompress, parSession: String): Boolean;
+function TMainform.InitConnection(Params: TConnectionParameters; Session: String): Boolean;
 var
   ConnectionAttempt: TMySQLConnection;
   SessionExists: Boolean;
@@ -2392,11 +2396,7 @@ begin
   ConnectionAttempt := TMySQLConnection.Create(Self);
   ConnectionAttempt.OnLog := LogSQL;
   ConnectionAttempt.OnDatabaseChanged := DatabaseChanged;
-  ConnectionAttempt.Hostname := parHost;
-  ConnectionAttempt.Socketname := parSocketname;
-  ConnectionAttempt.Username := parUser;
-  ConnectionAttempt.Password := parPass;
-  ConnectionAttempt.Port := StrToIntDef(parPort, MYSQL_PORT);
+  ConnectionAttempt.Parameters := Params;
   try
     ConnectionAttempt.Active := True;
   except
@@ -2405,31 +2405,31 @@ begin
   end;
 
   // attempt to establish connection
-  SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + parSession);
+  SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + Session);
   if not ConnectionAttempt.Active then begin
     // attempt failed
     if SessionExists then begin
       // Save "refused" counter
-      OpenRegistry(parSession);
-      MainReg.WriteInteger(REGNAME_REFUSEDCOUNT, GetRegValue(REGNAME_REFUSEDCOUNT, 0, parSession)+1);
+      OpenRegistry(Session);
+      MainReg.WriteInteger(REGNAME_REFUSEDCOUNT, GetRegValue(REGNAME_REFUSEDCOUNT, 0, Session)+1);
     end;
     Result := False;
     FreeAndNil(ConnectionAttempt);
   end else begin
     if SessionExists then begin
       // Save "refused" counter
-      OpenRegistry(parSession);
-      MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, parSession)+1);
+      OpenRegistry(Session);
+      MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, Session)+1);
       // Save last session name in root folder
       OpenRegistry;
-      MainReg.WriteString(REGNAME_LASTSESSION, parSession);
+      MainReg.WriteString(REGNAME_LASTSESSION, Session);
     end;
 
     Result := True;
     if Assigned(Connection) then
       DoDisconnect;
     Connection := ConnectionAttempt;
-    SessionName := parSession;
+    SessionName := Session;
   end;
   ShowStatus( STATUS_MSG_READY );
 end;
@@ -5854,7 +5854,7 @@ var
 begin
   case Column of
     0: case Sender.GetNodeLevel(Node) of
-        0: CellText := Connection.Username + '@' + Connection.Hostname;
+        0: CellText := Connection.Parameters.Username + '@' + Connection.Parameters.Hostname;
         1: CellText := Databases[Node.Index];
         2: begin
             DBObjects := Connection.GetDBObjects(Databases[Node.Parent.Index]);
@@ -9073,16 +9073,19 @@ end;
 
 procedure TMainForm.WMCopyData(var Msg: TWMCopyData);
 var
-  Params: TStringlist;
+  i: Integer;
 begin
   // Probably a second instance is posting its command line parameters here
   if (Msg.CopyDataStruct.dwData = SecondInstMsgId) and (SecondInstMsgId <> 0) then begin
-    Params := ParamBlobToStr(Msg.CopyDataStruct.lpData);
-    if Params.Count = 1 then begin
+    ParseCommandLineParameters(ParamBlobToStr(Msg.CopyDataStruct.lpData));
+    for i:=0 to FCmdlineFilenames.Count-1 do begin
       actNewQueryTabExecute(self);
-      if not QueryLoad(Params[0]) then
+      if not QueryLoad(FCmdlineFilenames[i]) then
         actCloseQueryTabExecute(Self);
     end;
+    if FCmdlineConnectionParams.Hostname <> '' then
+      if InitConnection(FCmdlineConnectionParams, FCmdlineSessionName) then
+        DoAfterConnect;
   end else
     // Not the right message id
     inherited;

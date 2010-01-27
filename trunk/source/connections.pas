@@ -10,7 +10,8 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  VirtualTrees, Menus;
+  VirtualTrees, Menus,
+  mysql_connection;
 
 type
   Tconnform = class(TForm)
@@ -180,28 +181,29 @@ end;
 procedure Tconnform.btnOpenClick(Sender: TObject);
 var
   ConType: Byte;
-  Host, Socket: String;
+  Params: TConnectionParameters;
 begin
   // Connect to selected session
   Screen.Cursor := crHourglass;
   if radioTypeTCPIP.Checked then ConType := NETTYPE_TCPIP
   else ConType := NETTYPE_NAMEDPIPE;
-  Host := editHost.Text;
+  Params := TConnectionParameters.Create;
+  Params.Hostname := editHost.Text;
   if ConType = NETTYPE_TCPIP then begin
-    Socket := '';
-    Host := editHost.Text;
+    Params.Socketname := '';
+    Params.Hostname := editHost.Text;
   end else begin
-    Socket := editHost.Text;
-    Host := '.';
+    Params.Socketname := editHost.Text;
+    Params.Hostname := '.';
   end;
-  if Mainform.InitConnection(
-    Host,
-    Socket,
-    editPort.Text,
-    editUsername.Text,
-    editPassword.Text,
-    IntToStr(Integer(chkCompressed.Checked)),
-    SelectedSession) then begin
+  Params.Username := editUsername.Text;
+  Params.Password := editPassword.Text;
+  Params.Port := MakeInt(editPort.Text);
+  if chkCompressed.Checked then
+    Params.Options := Params.Options + [opCompress]
+  else
+    Params.Options := Params.Options - [opCompress];
+  if Mainform.InitConnection(Params, SelectedSession) then begin
     ModalResult := mrOK;
   end else begin
     TimerStatistics.OnTimer(Sender);

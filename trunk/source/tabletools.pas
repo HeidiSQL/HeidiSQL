@@ -757,20 +757,20 @@ begin
     SessionName := Copy(comboExportOutputType.Text, Length(OUTPUT_SERVER)+1, Length(comboExportOutputType.Text));
     FreeAndNil(FTargetConnection);
     FTargetConnection := TMySQLConnection.Create(Self);
-    FTargetConnection.Hostname := GetRegValue(REGNAME_HOST, DEFAULT_HOST, SessionName);
-    FTargetConnection.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, SessionName);
-    FTargetConnection.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, SessionName));
-    FTargetConnection.Port := StrToInt(GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), SessionName));
+    FTargetConnection.Parameters.Hostname := GetRegValue(REGNAME_HOST, DEFAULT_HOST, SessionName);
+    FTargetConnection.Parameters.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, SessionName);
+    FTargetConnection.Parameters.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, SessionName));
+    FTargetConnection.Parameters.Port := StrToInt(GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), SessionName));
     if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SessionName) then
-      FTargetConnection.Options := FTargetConnection.Options + [opCompress]
+      FTargetConnection.Parameters.Options := FTargetConnection.Parameters.Options + [opCompress]
     else
-      FTargetConnection.Options := FTargetConnection.Options - [opCompress];
+      FTargetConnection.Parameters.Options := FTargetConnection.Parameters.Options - [opCompress];
     NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, SessionName);
     if NetType = NETTYPE_TCPIP then
-      FTargetConnection.Socketname := ''
+      FTargetConnection.Parameters.Socketname := ''
     else begin
-      FTargetConnection.Socketname := FTargetConnection.Hostname;
-      FTargetConnection.Hostname := '.';
+      FTargetConnection.Parameters.Socketname := FTargetConnection.Parameters.Hostname;
+      FTargetConnection.Parameters.Hostname := '.';
     end;
     FTargetConnection.LogPrefix := '['+SessionName+'] ';
     FTargetConnection.OnLog := Mainform.LogSQL;
@@ -961,7 +961,7 @@ begin
       ExportStream := TMemoryStream.Create;
     if (DBObj.Database<>ExportLastDatabase) or ToDir then begin
       Header := '# --------------------------------------------------------' + CRLF +
-        Format('# %-30s%s', ['Host:', Mainform.Connection.HostName]) + CRLF +
+        Format('# %-30s%s', ['Host:', Mainform.Connection.Parameters.HostName]) + CRLF +
         Format('# %-30s%s', ['Database:', DBObj.Database]) + CRLF +
         Format('# %-30s%s', ['Server version:', Mainform.Connection.ServerVersionUntouched]) + CRLF +
         Format('# %-30s%s', ['Server OS:', Mainform.Connection.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]) + CRLF +
