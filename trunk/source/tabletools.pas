@@ -717,7 +717,6 @@ var
   NewIdx, NetType: Integer;
   DBNode: PVirtualNode;
   SessionName: String;
-  Databases: TStringList;
 begin
   // Target type (file, directory, ...) selected
   OldItem := comboExportOutputTarget.Text;
@@ -777,8 +776,7 @@ begin
     Screen.Cursor := crHourglass;
     try
       FTargetConnection.Active := True;
-      Databases := FTargetConnection.GetCol('SHOW DATABASES');
-      comboExportOutputTarget.Items.Text := Databases.Text;
+      comboExportOutputTarget.Items := FTargetConnection.GetCol('SHOW DATABASES');
       comboExportOutputTarget.Items.Insert(0, '[Same as on source server]');
       comboExportOutputTarget.ItemIndex := 0;
       Screen.Cursor := crDefault;
