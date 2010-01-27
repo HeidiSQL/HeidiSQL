@@ -441,8 +441,7 @@ object AboutBox: TAboutBox
         'Ansgar Becker (project lead and development), David Dindorp (dev' +
         'elopment), Francisco Ernesto Teixeira (development), Martijn Nij' +
         'enhof (development), Sven Lorenz (graphics), Mikkel M. Gerhardt-' +
-        'Pedersen (additional bugfixes), Tony Peng (additional bugfixes),' +
-        ' Nemanja Corlija (commandline parser)'
+        'Pedersen (additional bugfixes), Tony Peng (additional bugfixes)'
       ''
       '1000 thanks go to:'
       

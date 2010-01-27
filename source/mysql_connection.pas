@@ -18,11 +18,9 @@ type
   end;
   TDBObjectList = TObjectList<TDBObject>;
 
-  { TMySQLConnection }
+  {$M+} // Needed to add published properties
 
-  TMySQLLogCategory = (lcInfo, lcSQL, lcError, lcWarning, lcDebug);
-  TMySQLLogEvent = procedure(Msg: String; Category: TMySQLLogCategory=lcInfo) of object;
-  TMySQLDatabaseChangedEvent = procedure(Database: String) of object;
+  { TConnectionParameters }
 
   TMySQLClientOption = (
     opCompress,             // CLIENT_COMPRESS
@@ -47,7 +45,28 @@ type
     );
   TMySQLClientOptions = set of TMySQLClientOption;
 
-  {$M+} // Needed to add published properties
+  TConnectionParameters = class(TObject)
+    strict private
+      FHostname, FSocketname, FUsername, FPassword: String;
+      FPort: Integer;
+      FOptions: TMySQLClientOptions;
+    public
+      constructor Create;
+    published
+      property Hostname: String read FHostname write FHostname;
+      property Socketname: String read FSocketname write FSocketname;
+      property Port: Integer read FPort write FPort;
+      property Username: String read FUsername write FUsername;
+      property Password: String read FPassword write FPassword;
+      property Options: TMySQLClientOptions read FOptions write FOptions;
+  end;
+
+
+  { TMySQLConnection }
+
+  TMySQLLogCategory = (lcInfo, lcSQL, lcError, lcWarning, lcDebug);
+  TMySQLLogEvent = procedure(Msg: String; Category: TMySQLLogCategory=lcInfo) of object;
+  TMySQLDatabaseChangedEvent = procedure(Database: String) of object;
 
   TMySQLQuery = class;
   TMySQLConnection = class(TComponent)
@@ -56,16 +75,11 @@ type
       FActive: Boolean;
       FConnectionStarted: Integer;
       FServerStarted: Integer;
-      FHostname: String;
-      FSocketname: String;
-      FPort: Integer;
-      FUsername: String;
-      FPassword: String;
+      FParameters: TConnectionParameters;
       FDatabase: String;
       FLogPrefix: String;
       FOnLog: TMySQLLogEvent;
       FOnDatabaseChanged: TMySQLDatabaseChangedEvent;
-      FOptions: TMySQLClientOptions;
       FRowsFound: Int64;
       FRowsAffected: Int64;
       FServerVersionUntouched: String;
@@ -113,6 +127,7 @@ type
       function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList;
       function DbObjectsCached(db: String): Boolean;
       procedure ClearDbObjects(db: String='');
+      property Parameters: TConnectionParameters read FParameters write FParameters;
       property ThreadId: Cardinal read GetThreadId;
       property ConnectionUptime: Integer read GetConnectionUptime;
       property ServerUptime: Integer read GetServerUptime;
@@ -135,13 +150,7 @@ type
       property InformationSchemaObjects: TStringList read GetInformationSchemaObjects;
     published
       property Active: Boolean read FActive write SetActive default False;
-      property Hostname: String read FHostname write FHostname;
-      property Socketname: String read FSocketname write FSocketname;
-      property Port: Integer read FPort write FPort default MYSQL_PORT;
-      property Username: String read FUsername write FUsername;
-      property Password: String read FPassword write FPassword;
       property Database: String read FDatabase write SetDatabase;
-      property Options: TMySQLClientOptions read FOptions write FOptions default [opCompress, opLocalFiles, opInteractive, opProtocol41];
       property LogPrefix: String read FLogPrefix write FLogPrefix;
       // Events
       property OnLog: TMySQLLogEvent read FOnLog write FOnLog;
@@ -193,13 +202,26 @@ type
 implementation
 
 
+{ TConnectionParameters }
+
+constructor TConnectionParameters.Create;
+begin
+  FHostname := DEFAULT_HOST;
+  FSocketname := '';
+  FUsername := DEFAULT_USER;
+  FPassword := '';
+  FPort := DEFAULT_PORT;
+  FOptions := [opCompress, opLocalFiles, opInteractive, opProtocol41, opMultiStatements];
+end;
+
+
+
 { TMySQLConnection }
 
 constructor TMySQLConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FOptions := [opCompress, opLocalFiles, opInteractive, opProtocol41, opMultiStatements];
-  FPort := MYSQL_PORT;
+  FParameters := TConnectionParameters.Create;
   FRowsFound := 0;
   FRowsAffected := 0;
   FConnectionStarted := 0;
@@ -236,41 +258,41 @@ begin
 
     // Gather client options
     ClientFlags := 0;
-    if opRememberOptions   in FOptions then ClientFlags := ClientFlags or CLIENT_REMEMBER_OPTIONS;
-    if opLongPassword      in FOptions then ClientFlags := ClientFlags or CLIENT_LONG_PASSWORD;
-    if opFoundRows         in FOptions then ClientFlags := ClientFlags or CLIENT_FOUND_ROWS;
-    if opLongFlag          in FOptions then ClientFlags := ClientFlags or CLIENT_LONG_FLAG;
-    if opConnectWithDb     in FOptions then ClientFlags := ClientFlags or CLIENT_CONNECT_WITH_DB;
-    if opNoSchema          in FOptions then ClientFlags := ClientFlags or CLIENT_NO_SCHEMA;
-    if opCompress          in FOptions then ClientFlags := ClientFlags or CLIENT_COMPRESS;
-    if opODBC              in FOptions then ClientFlags := ClientFlags or CLIENT_ODBC;
-    if opLocalFiles        in FOptions then ClientFlags := ClientFlags or CLIENT_LOCAL_FILES;
-    if opIgnoreSpace       in FOptions then ClientFlags := ClientFlags or CLIENT_IGNORE_SPACE;
-    if opProtocol41        in FOptions then ClientFlags := ClientFlags or CLIENT_PROTOCOL_41;
-    if opInteractive       in FOptions then ClientFlags := ClientFlags or CLIENT_INTERACTIVE;
-    if opSSL               in FOptions then ClientFlags := ClientFlags or CLIENT_SSL;
-    if opIgnoreSigpipe     in FOptions then ClientFlags := ClientFlags or CLIENT_IGNORE_SIGPIPE;
-    if opTransactions      in FOptions then ClientFlags := ClientFlags or CLIENT_TRANSACTIONS;
-    if opReserved          in FOptions then ClientFlags := ClientFlags or CLIENT_RESERVED;
-    if opSecureConnection  in FOptions then ClientFlags := ClientFlags or CLIENT_SECURE_CONNECTION;
-    if opMultiStatements   in FOptions then ClientFlags := ClientFlags or CLIENT_MULTI_STATEMENTS;
-    if opMultiResults      in FOptions then ClientFlags := ClientFlags or CLIENT_MULTI_RESULTS;
-    if opRememberOptions   in FOptions then ClientFlags := ClientFlags or CLIENT_REMEMBER_OPTIONS;
+    if opRememberOptions   in FParameters.Options then ClientFlags := ClientFlags or CLIENT_REMEMBER_OPTIONS;
+    if opLongPassword      in FParameters.Options then ClientFlags := ClientFlags or CLIENT_LONG_PASSWORD;
+    if opFoundRows         in FParameters.Options then ClientFlags := ClientFlags or CLIENT_FOUND_ROWS;
+    if opLongFlag          in FParameters.Options then ClientFlags := ClientFlags or CLIENT_LONG_FLAG;
+    if opConnectWithDb     in FParameters.Options then ClientFlags := ClientFlags or CLIENT_CONNECT_WITH_DB;
+    if opNoSchema          in FParameters.Options then ClientFlags := ClientFlags or CLIENT_NO_SCHEMA;
+    if opCompress          in FParameters.Options then ClientFlags := ClientFlags or CLIENT_COMPRESS;
+    if opODBC              in FParameters.Options then ClientFlags := ClientFlags or CLIENT_ODBC;
+    if opLocalFiles        in FParameters.Options then ClientFlags := ClientFlags or CLIENT_LOCAL_FILES;
+    if opIgnoreSpace       in FParameters.Options then ClientFlags := ClientFlags or CLIENT_IGNORE_SPACE;
+    if opProtocol41        in FParameters.Options then ClientFlags := ClientFlags or CLIENT_PROTOCOL_41;
+    if opInteractive       in FParameters.Options then ClientFlags := ClientFlags or CLIENT_INTERACTIVE;
+    if opSSL               in FParameters.Options then ClientFlags := ClientFlags or CLIENT_SSL;
+    if opIgnoreSigpipe     in FParameters.Options then ClientFlags := ClientFlags or CLIENT_IGNORE_SIGPIPE;
+    if opTransactions      in FParameters.Options then ClientFlags := ClientFlags or CLIENT_TRANSACTIONS;
+    if opReserved          in FParameters.Options then ClientFlags := ClientFlags or CLIENT_RESERVED;
+    if opSecureConnection  in FParameters.Options then ClientFlags := ClientFlags or CLIENT_SECURE_CONNECTION;
+    if opMultiStatements   in FParameters.Options then ClientFlags := ClientFlags or CLIENT_MULTI_STATEMENTS;
+    if opMultiResults      in FParameters.Options then ClientFlags := ClientFlags or CLIENT_MULTI_RESULTS;
+    if opRememberOptions   in FParameters.Options then ClientFlags := ClientFlags or CLIENT_REMEMBER_OPTIONS;
 
     // Prepare connection
-    if FHostname = '.' then Protocol := 'named pipe' else Protocol := 'TCP/IP';
-    if Password <> '' then UsingPass := 'Yes' else UsingPass := 'No';
-    Log(lcInfo, 'Connecting to '+Hostname+' via '+Protocol+
-      ', username '+Username+
+    if FParameters.Hostname = '.' then Protocol := 'named pipe' else Protocol := 'TCP/IP';
+    if FParameters.Password <> '' then UsingPass := 'Yes' else UsingPass := 'No';
+    Log(lcInfo, 'Connecting to '+FParameters.Hostname+' via '+Protocol+
+      ', username '+FParameters.Username+
       ', using password: '+UsingPass+' ...');
     Connected := mysql_real_connect(
       FHandle,
-      PAnsiChar(Utf8Encode(FHostname)),
-      PAnsiChar(Utf8Encode(FUsername)),
-      PAnsiChar(Utf8Encode(FPassword)),
+      PAnsiChar(Utf8Encode(FParameters.Hostname)),
+      PAnsiChar(Utf8Encode(FParameters.Username)),
+      PAnsiChar(Utf8Encode(FParameters.Password)),
       nil,
-      FPort,
-      PAnsiChar(Utf8Encode(FSocketname)),
+      FParameters.Port,
+      PAnsiChar(Utf8Encode(FParameters.Socketname)),
       ClientFlags
       );
     if Connected = nil then begin
@@ -307,7 +329,7 @@ begin
     mysql_close(FHandle);
     FConnectionStarted := 0;
     FHandle := nil;
-    Log(lcInfo, 'Connection to '+FHostname+' closed at '+DateTimeToStr(Now));
+    Log(lcInfo, 'Connection to '+FParameters.Hostname+' closed at '+DateTimeToStr(Now));
   end;
 
 end;
