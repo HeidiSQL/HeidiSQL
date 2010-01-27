@@ -48,7 +48,6 @@ type
     lblCounterLeft: TLabel;
     lblCounterRight: TLabel;
     lblHelp: TLabel;
-    procedure CreateParams(var Params: TCreateParams); override;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -107,14 +106,6 @@ uses Main, helpers, grideditlinks;
 {$I const.inc}
 
 {$R *.DFM}
-
-
-procedure Tconnform.CreateParams(var Params: TCreateParams);
-begin
-  inherited;
-  Params.ExStyle := Params.ExStyle OR WS_EX_APPWINDOW;
-  Params.WndParent := GetDesktopWindow;
-end;
 
 
 procedure Tconnform.FormCreate(Sender: TObject);
