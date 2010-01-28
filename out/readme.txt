@@ -1,52 +1,79 @@
-﻿========================================
- Information-File for HeidiSQL
-========================================
+﻿Some infos around HeidiSQL
+
+Project website: http://www.heidisql.com/
+Google Code: http://code.google.com/p/heidisql/
 
 
-----------------------------------------
- ** General Information:
-----------------------------------------
+*** What is HeidiSQL?
+
 HeidiSQL is an easy-to-use interface and a "working-horse" for web-developers
 using the popular MySQL-Database. It allows you to manage and browse your
-databases and tables from an intuitive Windows® interface. 
+databases and tables from an intuitive Windows® interface.
 
 With HeidiSQL you will also be able to 
-- generate nice SQL-exports 
-- synchronize tables between two databases 
-- manage user-privileges 
-- import text-files 
-- export table-data as CSV, HTML and XML 
-- browse and edit table-data using a comfortable grid 
-- batch-insert ascii or binary files into tables 
-- write queries with syntax-highlighting
-- monitor and kill client-processes
-- connect to servers via commandline
-- and much more :)
+* Generate nice SQL-exports
+* Synchronize tables between two databases
+* Manage user-privileges
+* Import text-files
+* Export table-data as CSV, HTML, XML and SQL
+* Browse and edit table-data using a comfortable grid
+* Create and edit tables, views, stored routines and triggers
+* Bulk edit tables (move to db, change engine, collation etc.)
+* Batch-insert ascii or binary files into tables
+* Write queries with customizable syntax-highlighting and code-completion
+* Pretty reformat disordered SQL
+* Monitor and kill client-processes
+* Connect to servers via commandline
+* Find specific text in all tables of all databases of one server
+* Optimize and repair tables in a batch manner
+* And much more 
 
 
-----------------------------------------
- ** Links for more information:
-----------------------------------------
-Website:            http://www.heidisql.com/
-User-Forum:         http://www.heidisql.com/forum/
-Bugtracker:         http://bugs.heidisql.com/
-Featuretracker:     http://rfe.heidisql.com/
-Changelog:          http://www.heidisql.com/changes.php
-Developer-Readme:   http://www.heidisql.com/svn/readme.html
-This file:          http://www.heidisql.com/svn/out/readme.txt
+*** Requirements:
+
+HeidiSQL runs fine on Windows 2000, XP, Vista and 7.
+
+HeidiSQL does not run on Windows 95/98 or ME, as the Unicode extensions are not
+available on these systems.
+
+To use the update check and download latest builds, you need a Windows Scripting
+Host (cscript.exe), which is available on most Windows versions by default. However,
+if it is missing on your Windows, you can download it here:
+http://www.microsoft.com/downloads/en/results.aspx?freetext=Windows%20Script%205.7
 
 
-----------------------------------------
- ** Requirements:
-----------------------------------------
-- libmysql.dll (Client-library for MySQL-Server) 
-- msvcrt.dll (Microsoft (R) C Runtime Library) 
-- TCP/IP-Protocol 
+*** Command line switches
+
+Although HeidiSQL is a pure GUI application, it can be automated for connecting
+and opening files via command line parameters. Parameter names are case sensitive
+and are based on those used by the MySQL command line applications, e.g. mysqldump.
+
+-d, -description    Session name
+-h, -host           Host name
+-u, -user           User name
+-p, -password       Password
+-P, -port           Port (defaults to 3306 if not given)
+-S, -socket         Socket name (for connecting via named pipe)
+
+Examples:
+
+* Start over using stored settings from session "xyz":
+    c:\path\to\heidisql.exe -d=xyz
+    c:\path\to\heidisql.exe -description=xyz
+
+* Connect with different username or port:
+    c:\path\to\heidisql.exe -d=xyz -u=OtherUser
+    c:\path\to\heidisql.exe -d=xyz -P=3307
+
+* Connect to a non-stored session:
+    c:\path\to\heidisql.exe -h=localhost -u=root -p=Mypass -P=3307
+
+* Open multiple .sql files in query tabs:
+    c:\path\to\heidisql.exe fileA.sql path\to\fileB.sql fileC.sql ...
 
 
-----------------------------------------
- ** License:
-----------------------------------------
+*** License:
+
 HeidiSQL is OpenSource and released under GPL (GNU GENERAL PUBLIC LICENSE).
 
 Maybe it saved you a lot of time and therefore you like it. In this case
@@ -55,28 +82,11 @@ to the following URL:
 http://www.heidisql.com/donate.php
 
 
-----------------------------------------
- ** The authors:
-----------------------------------------
-- Ansgar Becker (project lead and development)
-- David Dindorp (development)
-- Martijn Nijenhof (development)
-- Francisco Ernesto Teixeira (development)
-- Sven Lorenz (graphics)
-- Mikkel M. Gerhardt-Pedersen (additional bugfixes)
-- Tony Peng (additional bugfixes)
-- Nemanja Čorlija (commandline parser)
+*** Credits:
 
+Ansgar Becker (project lead and development), David Dindorp (development),
+Francisco Ernesto Teixeira (development), Sven Lorenz (graphics), Mikkel M.
+Gerhardt-Pedersen (additional bugfixes), Mike Lischke (VirtualTreeView, GLPL),
+SynEdit (LGPL), Mark James (Silk icon set), Inno Setup 
 
-----------------------------------------
- ** Very special thanks go to:
-----------------------------------------
-- SynEdit under LGPL - http://synedit.sourceforge.net
-- TNT Unicode Controls with unicode exceptions - http://www.mh-nexus.de/tntunicodecontrols.htm
-- Inno Setup - http://www.jrsoftware.org/
-- Sebastián Mayorá for EDBImage
-- Daniel Hahler for the name "HeidiSQL" - http://daniel.hahler.de/
-- MySQL for great database software
-
-
-EOF
+1000 thanks to MySQL for great database software
