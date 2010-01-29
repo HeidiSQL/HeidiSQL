@@ -1392,6 +1392,7 @@ var
   Connected, DecideForStatistic: Boolean;
   StatsCall: TDownloadUrl2;
   SessionNames: TStringlist;
+  DlgResult: TModalResult;
 begin
   DefaultLastrunDate := '2000-01-01';
 
@@ -1499,7 +1500,14 @@ begin
     // Cannot be done in OnCreate because we need ready forms here:
     if not Assigned(SessionManager) then
       SessionManager := TConnForm.Create(Self);
-    if SessionManager.ShowModal = mrCancel then begin
+    DlgResult := mrCancel;
+    try
+      DlgResult := SessionManager.ShowModal;
+    except
+      // Work around VCL bug: Suppress access violation in TCustomForm.IsFormSizeStored
+      // when closing dialog via Alt+F4
+    end;
+    if DlgResult = mrCancel then begin
       Free;
       Exit;
     end;
