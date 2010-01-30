@@ -47,7 +47,6 @@ object UserManagerForm: TUserManagerForm
     ItemsEx = <>
     Style = csExDropDownList
     Anchors = [akLeft, akTop, akRight]
-    ItemHeight = 16
     TabOrder = 0
     OnChange = comboUsersChange
     Images = MainForm.PngImageListMain
@@ -82,7 +81,6 @@ object UserManagerForm: TUserManagerForm
     ItemsEx = <>
     Style = csExDropDownList
     Anchors = [akLeft, akTop, akRight]
-    ItemHeight = 16
     TabOrder = 3
     OnChange = comboObjectsChange
     Images = MainForm.PngImageListMain

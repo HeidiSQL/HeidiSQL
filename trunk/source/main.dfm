@@ -103,7 +103,7 @@ object MainForm: TMainForm
     object ToolBarStandard: TToolBar
       Left = 11
       Top = 2
-      Width = 315
+      Width = 319
       Height = 22
       Align = alNone
       AutoSize = True
@@ -122,12 +122,12 @@ object MainForm: TMainForm
         Style = tbsDropDown
       end
       object btnExit: TToolButton
-        Left = 42
+        Left = 44
         Top = 0
         Action = actExitApplication
       end
       object tlbSep1: TToolButton
-        Left = 65
+        Left = 67
         Top = 0
         Width = 8
         Caption = 'tlbSep1'
@@ -135,30 +135,30 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ToolButton5: TToolButton
-        Left = 73
+        Left = 75
         Top = 0
         Action = actCopy
         AutoSize = True
       end
       object ToolButton6: TToolButton
-        Left = 96
+        Left = 98
         Top = 0
         Action = actPaste
         AutoSize = True
       end
       object ToolButton14: TToolButton
-        Left = 119
+        Left = 121
         Top = 0
         Hint = 'Undo'
         Action = actUndo
       end
       object ToolButton12: TToolButton
-        Left = 142
+        Left = 144
         Top = 0
         Action = actPrintList
       end
       object tlbSep2: TToolButton
-        Left = 165
+        Left = 167
         Top = 0
         Width = 8
         Caption = 'tlbSep2'
@@ -166,7 +166,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonRefresh: TToolButton
-        Left = 173
+        Left = 175
         Top = 0
         Action = actRefresh
         AutoSize = True
@@ -174,25 +174,25 @@ object MainForm: TMainForm
         Style = tbsDropDown
       end
       object ButtonUserManager: TToolButton
-        Left = 215
+        Left = 219
         Top = 0
         Action = actUserManager
         AutoSize = True
       end
       object ButtonImportTextfile: TToolButton
-        Left = 238
+        Left = 242
         Top = 0
         Action = actImportCSV
         AutoSize = True
       end
       object ButtonExport: TToolButton
-        Left = 261
+        Left = 265
         Top = 0
         Action = actExportTables
         AutoSize = True
       end
       object tlbSep6: TToolButton
-        Left = 284
+        Left = 288
         Top = 0
         Width = 8
         Caption = 'tlbSep6'
@@ -200,7 +200,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object btnSQLHelp: TToolButton
-        Left = 292
+        Left = 296
         Top = 0
         Action = actSQLhelp
       end
@@ -275,32 +275,32 @@ object MainForm: TMainForm
         Style = tbsDropDown
       end
       object btnSaveSQL: TToolButton
-        Left = 59
+        Left = 61
         Top = 0
         Action = actSaveSQLAs
       end
       object btnSaveSQLSnippet: TToolButton
-        Left = 82
+        Left = 84
         Top = 0
         Action = actSaveSQLSnippet
       end
       object btnQueryFind: TToolButton
-        Left = 105
+        Left = 107
         Top = 0
         Action = actQueryFind
       end
       object btnQueryReplace: TToolButton
-        Left = 128
+        Left = 130
         Top = 0
         Action = actQueryReplace
       end
       object btnReformatSQL: TToolButton
-        Left = 151
+        Left = 153
         Top = 0
         Action = actReformatSQL
       end
       object btnStopOnErrors: TToolButton
-        Left = 174
+        Left = 176
         Top = 0
         Action = actQueryStopOnErrors
       end
@@ -343,7 +343,7 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 169
-      Height = 377
+      Height = 357
       Align = alLeft
       BevelOuter = bvNone
       TabOrder = 0
@@ -351,7 +351,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 169
-        Height = 356
+        Height = 336
         Align = alClient
         Constraints.MinWidth = 40
         DragMode = dmAutomatic
@@ -405,7 +405,7 @@ object MainForm: TMainForm
       object comboOnlyDBs: TComboBox
         AlignWithMargins = True
         Left = 0
-        Top = 356
+        Top = 336
         Width = 169
         Height = 21
         Hint = 
@@ -430,13 +430,13 @@ object MainForm: TMainForm
       Left = 173
       Top = 0
       Width = 583
-      Height = 377
+      Height = 357
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
       object pnlFilterVT: TPanel
         Left = 0
-        Top = 351
+        Top = 331
         Width = 583
         Height = 26
         Align = alBottom
@@ -479,7 +479,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 583
-        Height = 351
+        Height = 331
         ActivePage = tabHost
         Align = alClient
         HotTrack = True
@@ -498,7 +498,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 575
-            Height = 319
+            Height = 299
             ActivePage = tabVariables
             Align = alClient
             HotTrack = True
@@ -510,7 +510,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 567
-                Height = 291
+                Height = 271
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
@@ -560,7 +560,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 567
-                Height = 291
+                Height = 271
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
@@ -621,7 +621,7 @@ object MainForm: TMainForm
               ImageIndex = 1
               object Splitter3: TSplitter
                 Left = 0
-                Top = 218
+                Top = 198
                 Width = 567
                 Height = 4
                 Cursor = crSizeNS
@@ -632,7 +632,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 567
-                Height = 218
+                Height = 198
                 Align = alClient
                 Header.AutoSizeIndex = 7
                 Header.DefaultHeight = 17
@@ -706,7 +706,7 @@ object MainForm: TMainForm
               end
               object pnlProcessViewBox: TPanel
                 Left = 0
-                Top = 222
+                Top = 202
                 Width = 567
                 Height = 69
                 Align = alBottom
@@ -760,7 +760,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 567
-                Height = 291
+                Height = 271
                 Align = alClient
                 Header.AutoSizeIndex = 4
                 Header.DefaultHeight = 17
@@ -831,7 +831,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 575
-            Height = 319
+            Height = 299
             Align = alClient
             EditDelay = 500
             Header.AutoSizeIndex = -1
@@ -991,7 +991,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 91
             Width = 575
-            Height = 228
+            Height = 208
             Align = alClient
             Alignment = taCenter
             Caption = 'Stored routines don'#39't provide any data you could edit here.'
@@ -1175,7 +1175,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 91
             Width = 575
-            Height = 228
+            Height = 208
             Align = alClient
             AutoScrollDelay = 50
             EditDelay = 0
@@ -1383,7 +1383,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 113
             Width = 575
-            Height = 206
+            Height = 186
             Align = alClient
             AutoScrollDelay = 50
             EditDelay = 0

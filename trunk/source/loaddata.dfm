@@ -112,7 +112,6 @@ object loaddataform: Tloaddataform
           Width = 252
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
           TabOrder = 1
         end
       end
@@ -289,7 +288,6 @@ object loaddataform: Tloaddataform
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 13
         TabOrder = 0
         OnChange = comboDatabaseChange
       end
@@ -300,7 +298,6 @@ object loaddataform: Tloaddataform
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        ItemHeight = 13
         TabOrder = 1
         OnChange = comboTableChange
       end

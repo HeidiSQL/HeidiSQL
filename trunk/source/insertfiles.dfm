@@ -110,7 +110,6 @@ object frmInsertFiles: TfrmInsertFiles
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akRight, akBottom]
-    ItemHeight = 13
     TabOrder = 4
     OnChange = ComboBoxDBsChange
   end
@@ -121,7 +120,6 @@ object frmInsertFiles: TfrmInsertFiles
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akRight, akBottom]
-    ItemHeight = 13
     TabOrder = 5
     OnChange = ComboBoxTablesChange
   end
@@ -132,7 +130,6 @@ object frmInsertFiles: TfrmInsertFiles
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akRight, akBottom]
-    ItemHeight = 13
     TabOrder = 6
     OnChange = ComboBoxColumnsChange
   end
@@ -238,7 +235,6 @@ object frmInsertFiles: TfrmInsertFiles
       Width = 316
       Height = 21
       Anchors = [akLeft, akTop, akRight]
-      ItemHeight = 13
       TabOrder = 1
       Text = 'NULL'
       OnChange = FieldChange

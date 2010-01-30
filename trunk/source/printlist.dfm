@@ -31,7 +31,6 @@ object printlistForm: TprintlistForm
     Width = 206
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     TabOrder = 0
     OnChange = comboPrintersChange
   end

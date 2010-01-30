@@ -184,7 +184,6 @@ object frmTableTools: TfrmTableTools
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 13
             TabOrder = 0
             OnChange = ValidateControls
           end
@@ -291,7 +290,6 @@ object frmTableTools: TfrmTableTools
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akRight, akBottom]
-            ItemHeight = 13
             TabOrder = 1
           end
         end
@@ -389,7 +387,6 @@ object frmTableTools: TfrmTableTools
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 13
             TabOrder = 4
           end
           object comboExportOutputType: TComboBox
@@ -399,7 +396,6 @@ object frmTableTools: TfrmTableTools
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 13
             TabOrder = 5
             OnChange = comboExportOutputTypeChange
           end
@@ -409,7 +405,6 @@ object frmTableTools: TfrmTableTools
             Width = 263
             Height = 21
             Anchors = [akLeft, akTop, akRight]
-            ItemHeight = 13
             TabOrder = 6
             Text = 'comboExportOutputTarget'
             OnExit = comboExportOutputTargetExit
@@ -438,7 +433,6 @@ object frmTableTools: TfrmTableTools
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             Enabled = False
-            ItemHeight = 13
             TabOrder = 1
           end
           object chkBulkTableEditResetAutoinc: TCheckBox
@@ -466,7 +460,6 @@ object frmTableTools: TfrmTableTools
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             Enabled = False
-            ItemHeight = 13
             TabOrder = 4
           end
           object chkBulkTableEditEngine: TCheckBox
@@ -486,7 +479,6 @@ object frmTableTools: TfrmTableTools
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             Enabled = False
-            ItemHeight = 13
             TabOrder = 6
           end
           object chkBulkTableEditCharset: TCheckBox
@@ -506,7 +498,6 @@ object frmTableTools: TfrmTableTools
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             Enabled = False
-            ItemHeight = 13
             TabOrder = 8
           end
         end
