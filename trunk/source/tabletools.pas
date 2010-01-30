@@ -906,6 +906,7 @@ var
   StartTime: Cardinal;
   StrucResult, Data: TMySQLQuery;
   rx: TRegExpr;
+  Percent: Double;
 const
   TempDelim = '//';
 
@@ -1150,7 +1151,9 @@ begin
           end;
           Output('', True, True, True, True, True);
           LogRow := TStringList(FResults.Last);
-          LogRow[2] := FormatNumber(RowCount) + ' / ' + FormatNumber(100/Max(DBObj.Rows,1)*RowCount, 0)+'%';
+          Percent := 100 / Max(DBObj.Rows,1) * RowCount;
+          if Data.Eof then Percent := 100; // Cosmetic fix for estimated InnoDB rowcount
+          LogRow[2] := FormatNumber(RowCount) + ' / ' + FormatNumber(Percent, 0)+'%';
           LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000);
           UpdateResultGrid;
           if Data.Eof then
