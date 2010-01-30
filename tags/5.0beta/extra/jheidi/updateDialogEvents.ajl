@@ -1,0 +1,33 @@
+  
+  String event = arg("source");
+  WindowContext context = argObj("windowContext");
+  AutoUpdater updater = (AutoUpdater)env("updater");
+  
+  if ( event == "Install" )
+  {
+    updater.update(true, true);
+  }
+  else
+  {
+    ((Dialog)context.get("/")).dispose();
+  }
+
+  
+  
+  
+
+ 
+  
+  
+  
+
+
+    
+  
+  
+
+  
+
+
+
+    

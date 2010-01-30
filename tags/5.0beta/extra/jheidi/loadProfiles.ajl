@@ -1,0 +1,54 @@
+  import javax.swing.*;
+  import java.util.*;
+
+  WindowContext context = argObj("windowContext");
+  String vendor = arg("vendor");
+  
+  log.debug("loading profiles for vendor: " + vendor);
+
+  Combo connProfiles = context.get("/connProfiles");
+  connProfiles.requestFocus();
+  HashObject profiles = new HashObject();
+  connProfiles.setProperty("profiles", profiles);
+  String[] names = null;
+  
+  try 
+  {
+    List<String> connections = (List<String>)FileUtil.toList(".profiles-" + vendor );
+    log.debug("connection profiles exist: " + connections.size());
+    names = new String[connections.size()];
+    int count = 0;
+    for (String profileString : connections )
+    {
+      String[] profileAttrs = profileString.split(":");
+      HashObject profile = new HashObject();
+      for (String attr : profileAttrs )
+      {
+         String[] keyValue = attr.split("=");
+         String value = "";
+         if ( keyValue.length == 2 )
+         {
+            value = keyValue[1];
+         }
+         if ( "name".equals(keyValue[0]) )
+         {
+            names[count] = value;
+         }
+         profile.put(keyValue[0], value);
+      }
+      if ( names[count] != null )
+      {
+        profiles.put(names[count++], profile);
+      }
+    }
+    
+  }
+  catch (Exception e)  { e.printStackTrace();/*no profiles i guess*/ }
+  
+  log.info("profiles.size(): " + profiles.size());
+  
+  if ( profiles.size() > 0 )
+  {
+      connProfiles.setModel(new DefaultComboBoxModel(names));
+      connProfiles.select(names[0]);
+  }

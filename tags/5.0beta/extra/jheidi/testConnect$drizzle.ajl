@@ -1,0 +1,56 @@
+import org.drizzle.jdbc.*;
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+
+DB db = null;
+
+WindowContext context = argObj("windowContext");
+Frame f = context.get("/");
+final HashObject profile = argObj("profile");
+
+try 
+{
+  
+  DataSource ds = new DataSourceAdapter()
+  {
+    /*public Connection getConnection() throws SQLException
+    {
+      String url = String.format("jdbc:drizzle//%s:%s@%s:%s/?zeroDateTimeBehavior=convertToNull&useOldAliasMetadataBehavior=true&useCompression=%s", 
+        profile.get("user"), profile.get("password"), profile.get("host"), profile.get("port"), profile.get("compress"));
+      
+      Connection connection = DriverManager.getConnection(url);
+    }*/
+    
+    
+    
+    public Connection getConnection() throws SQLException
+    {
+      DrizzleDatasource dds = new DrizzleDatasource(profile.get("host"), Integer.parseInt(profile.get("port")), null);
+      
+      dds.setLoginTimeout(Integer.parseInt(profile.get("timeout")));
+      
+      return dds.getConnection(profile.get("user"), profile.get("password"));
+      
+    }
+    
+    
+    
+  };
+ 
+  
+  db = new DB((DataSource)ds);
+  db.execute("select 'abcdefg'");
+}
+catch (Exception e)
+{
+  log.info(e.getMessage());
+  Throwable cause = ExceptionUtil.getRootCause(e);
+  String message = cause.getMessage();
+
+  f.popupMessage("Connection Failed!", message);
+  db = null;
+}
+
+return db;
+

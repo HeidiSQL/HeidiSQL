@@ -1,0 +1,39 @@
+import oracle.jdbc.pool.OracleDataSource;
+import javax.sql.DataSource;
+
+DB db = null;
+
+WindowContext context = argObj("windowContext");
+Frame f = context.get("/");
+HashObject profile = argObj("profile");
+
+try 
+{
+  OracleDataSource ds = new OracleDataSource();
+  String host = profile.get("host");
+  if ( !host.contains("@")) 
+  {
+    host+="@localhost";
+  }
+  String[] serviceHost = host.split("@");
+  String url = String.format("jdbc:oracle:thin:@%s:%s:%s", serviceHost[1], profile.get("port"), serviceHost[0]);
+
+  ds.setURL(url);
+  ds.setUser(profile.get("user"));
+  ds.setPassword(profile.get("password"));
+  ds.setLoginTimeout(Integer.parseInt(profile.get("timeout")));
+
+  db = new DB((DataSource)ds);
+  db.execute("select 'abcdefg' from dual");
+}
+catch (Exception e)
+{
+  Throwable cause = e.getCause();
+  String message = cause.getMessage();
+
+  f.popupMessage("Connection Failed!", message);
+  db = null;
+}
+
+return db;
+

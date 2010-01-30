@@ -1,0 +1,42 @@
+import java.util.*;
+
+WindowContext context = argObj("windowContext");
+HashObject profile = context.get("profile");
+String profileName = profile.get("name");
+Frame thisFrame = context.get("/");
+
+// dont confuse Context (global context) with the variable context (the window context)
+HashObject windowList = Context.get("windowList");
+
+windowList.remove(thisFrame);
+
+//now rebuild all the window menus on all open frames
+for (Object o : windowList)
+{
+  Frame f = (Frame)o;
+  Menu windowMenu = f.get("Window");
+  windowMenu.removeAll();
+  
+  for (Object o2 : windowList)
+  {
+    windowMenu.item(((String)((Frame)o2).getProperty("windowId")));
+  }
+}
+
+
+
+
+
+
+
+
+    
+    
+     
+
+
+
+
+
+
+

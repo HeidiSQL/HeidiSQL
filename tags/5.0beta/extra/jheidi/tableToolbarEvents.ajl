@@ -1,0 +1,92 @@
+
+String event = arg("source");
+
+WindowContext context = argObj("windowContext");
+Table table = context.get("/mainTabs/Table/table");
+boolean refreshTableTab = false;
+
+log.debug("Event received: " + event);
+
+String tableName = context.get("currentTable");
+if ( tableName  == null )
+{
+  return;
+}
+
+
+if (event == "Delete Field" )
+{
+  if ( table.getSelectedRow() != -1 )
+  {
+     Frame frame = context.get("/");
+     String fieldName =  (String)table.getValueAt(table.getSelectedRow(), 0);
+     if (frame.popupConfirm("Confirm Delete!", "Are you sure you want to drop field '" + tableName + "." + fieldName + "'?", "images/deletefield.gif"))
+     {
+        args().put("fieldToDrop", fieldName);
+        script("dropField$" + context.get("vendor"), args());
+        refreshTableTab = true;
+     }
+  }
+  
+}
+else if (event == "New Field")
+{
+  args().put("fieldMode", "Add");
+  if ( script("fieldDialog$" + context.get("vendor"), args()) != null )
+  {
+      refreshTableTab = true;
+  }
+  
+}
+else if (event == "Edit Field")
+{
+  if ( table.getSelectedRow() != -1 )
+  {
+    String fieldName =  (String)table.getValueAt(table.getSelectedRow(), 0);
+    args().put("fieldMode", "Edit");
+    args().put("fieldToEdit", fieldName);
+    if ( script("fieldDialog$" + context.get("vendor"), args()) != null )
+    {
+       refreshTableTab = true;
+    }
+  }
+}
+else if (event == "Manage Indexes")
+{
+  if ( script("indexDialog$" + context.get("vendor"), args()) != null )
+  {
+      refreshTableTab = true;
+  }
+}
+else
+{
+  ((Frame)context.get("/")).popupMessage("Feature Unimplemented!");
+}
+
+if ( refreshTableTab )
+{
+  DB db = context.get("db");
+  String sql = null;
+  if ( ((String)context.get("vendor")).equals("mysql"))
+  {
+    sql = String.format("show full columns from `%s`.`%s`", context.get("currentDB"), context.get("currentTable"));
+  }
+  else if ( ((String)context.get("vendor")).equals("drizzle"))
+  {
+    sql = "select column_name, column_type, collation_name, is_nullable, column_key, column_default, extra, privileges, column_comment from information_schema.columns where table_schema='" + 
+      (String)context.get("currentDB") + "' and table_name='"  + (String) context.get("currentTable") + "'";
+  }
+  else
+  {
+    sql = String.format("select lower(column_name) column_name, data_type, data_length, nullable, data_precision, data_scale, data_default, default_length, data_type_mod, data_type_owner, num_distinct, low_value, high_value, density, num_nulls, num_buckets, last_analyzed, sample_size, character_set_name, char_col_decl_length, global_stats,user_stats, avg_col_len, char_length, char_used, histogram from all_tab_columns where table_name=upper('%s') and owner=upper('%s') order by column_id", 
+        context.get("currentTable"), context.get("currentDB"));
+  }
+
+  db.flushStatement(sql);
+  
+  Panel tab = context.get("/mainTabs/Table");
+  String script = tab.getProperty("refreshScript");
+  worker(script, (HashObject)tab.getProperty("refreshArgs"));
+}
+
+  

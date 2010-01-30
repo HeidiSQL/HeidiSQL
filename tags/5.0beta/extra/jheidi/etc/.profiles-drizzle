@@ -1,0 +1,1 @@
+name=Default Local (Drizzle):host=localhost:user=root:password=:port=4427:timeout=30:compress=false:sort=true:dbs=

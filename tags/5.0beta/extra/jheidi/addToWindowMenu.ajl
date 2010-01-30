@@ -1,0 +1,66 @@
+import java.util.*;
+
+WindowContext context = argObj("windowContext");
+HashObject profile = context.get("profile");
+String profileName = profile.get("name");
+Frame thisFrame = context.get("/");
+
+// dont confuse Context (global context) with the variable context (the window context)
+HashObject windowList = Context.get("windowList");
+HashObject windowCounts = Context.get("windowCounts");
+if ( windowList == null )
+{
+  windowList = new HashObject();
+  windowCounts = new HashObject();
+  Context.putEnv("windowList", windowList);
+  Context.putEnv("windowCounts", windowCounts);
+}
+
+List<Menu> windowMenus = new ArrayList<Menu>();
+String windowCount = windowCounts.get(profileName);
+int count = windowCount == null ? 0 : Integer.valueOf(windowCount);
+
+String windowId = profileName + " (" + Integer.toString(++count) + ")";
+thisFrame.setProperty("windowId", windowId);
+windowList.put(windowId, thisFrame);
+windowCounts.put(profileName, Integer.toString(count));
+
+Collections.sort(windowList, new Comparator<Object>() {
+    public int compare(Object o1, Object o2) {
+        return ((String)((Frame)o1).getProperty("windowId"))
+          .compareToIgnoreCase(((String)((Frame)o2).getProperty("windowId")));
+    }});
+    
+//now rebuild all the window menus on all open frames
+for (Object o : windowList)
+{
+  Frame f = (Frame)o;
+  Menu windowMenu = f.get("Window");
+  windowMenu.removeAll();
+  
+  for (Object o2 : windowList)
+  {
+    windowMenu.item(((String)((Frame)o2).getProperty("windowId")));
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+     
+
+
+
+
+
+
+

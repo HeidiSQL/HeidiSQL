@@ -1,0 +1,47 @@
+package PngComponentsD;
+
+{$R '..\..\source\PngComponents.dcr'}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS ON}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Png components designtime'}
+{$LIBSUFFIX '110'}
+{$DESIGNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  designide;
+
+contains
+  PngSpeedButton in '..\..\source\PngSpeedButton.pas',
+  PngCheckListBox in '..\..\source\PngCheckListBox.pas',
+  PngButtonFunctions in '..\..\source\PngButtonFunctions.pas',
+  PngBitBtn in '..\..\source\PngBitBtn.pas',
+  pngzlib in '..\..\source\pngzlib.pas',
+  pnglang in '..\..\source\pnglang.pas',
+  PngFunctions in '..\..\source\PngFunctions.pas',
+  PngImageList in '..\..\source\PngImageList.pas',
+  pngimage in '..\..\source\pngimage.pas',
+  PngComponentsRegister in '..\..\source\PngComponentsRegister.pas',
+  PngComponentEditors in '..\..\source\PngComponentEditors.pas',
+  PngImageListEditor in '..\..\source\PngImageListEditor.pas' {PngImageListEditorDlg};
+
+end.

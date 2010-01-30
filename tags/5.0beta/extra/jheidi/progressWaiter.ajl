@@ -1,0 +1,171 @@
+  import java.awt.BorderLayout;
+  import java.awt.Dimension;
+  import java.awt.Insets;
+  import java.awt.event.*;
+  
+  import javax.swing.*;
+  import javax.swing.border.*;
+  
+  log.debug("task is long running!");
+  
+  final WindowContext context = argObj("windowContext");
+  final StatusBar statusBar = context.get("/statusBar");
+  final Text text = statusBar.get("Ready");
+  final Worker worker = argObj("worker");
+  final String message = arg("waitOperation") == null ? (String)worker.getProperty("waitOperation") : (String)arg("waitOperation");
+  
+  if ( worker.isDone() )
+    return;
+
+  synchronized (this.getClass())
+  {
+    Stack messages = statusBar.getProperty("messages");
+    Stack workers = statusBar.getProperty("workers");
+    ProgressBar pbar = statusBar.get("pbar");
+       
+    if ( messages == null )
+    {
+       messages = new Stack();
+       statusBar.setProperty("messages", messages);
+    }
+    
+    if ( workers == null )
+    {
+       workers = new Stack();
+       statusBar.setProperty("workers", workers);
+    }
+      
+    try
+    {
+      if ( worker.isDone() ) 
+        return;
+
+      SwingUtilities.invokeAndWait( new Runnable() {
+        public void run()
+        {
+          Button btn = statusBar.get("stop");
+          ProgressBar pbar = statusBar.get("pbar");
+          
+          if ( pbar == null )
+          {
+            pbar = new ProgressBar();
+            pbar.setIndeterminate(true);
+            pbar.setPreferredSize(new Dimension(100, 17));
+            pbar.setName("pbar");
+            pbar.setBorder(new EmptyBorder(LF.isWin?3:1,0,0,0));
+            btn = new Button("", new ImageIcon("images/stop.gif"));
+            btn.setName("stop");
+            btn.setToolTipText("Cancel All Pending Operations");
+            btn.setContentAreaFilled(false);
+            btn.setPreferredSize(new Dimension(22, 19)); 
+            statusBar.add(btn);
+            statusBar.add(pbar);
+            statusBar.updateUI();
+          }
+          else if ( pbar.getParent() == null )
+          {
+            statusBar.add(btn);
+            statusBar.add(pbar);
+            statusBar.updateUI();
+          }
+          
+          final Button myButton = btn;
+          
+          btn.addActionListener( new ActionListener() {
+            Button btn = myButton;
+            public void actionPerformed(ActionEvent e)
+            {
+              if ( !worker.isDone() )
+              {
+                worker.cancel();
+              }
+              btn.removeActionListener(this);
+            }
+          });
+        }
+      });
+    } catch (Exception e) { log.error("SWIW", e); }
+
+    messages.push(message);
+    workers.push(worker);
+
+    if ( statusBar.getProperty("progressReaper") == null )
+    {
+      final Stack myWorkers = workers;
+      final Stack myMessages = messages;
+      final Button btn = statusBar.get("stop");
+      final ProgressBar mypbar = statusBar.get("pbar");
+      final Class myClass = this.getClass();
+      final Runnable progressReaper = new Runnable() {
+        public void run()
+        {
+          while(true)
+          {
+            try
+            {
+              Thread.sleep(50);
+            } catch (Exception e) {}
+
+            synchronized(myClass)
+            {
+              if ( myWorkers.size() > 0 )
+              {
+                Worker myWorker = (Worker)myWorkers.peek();
+                if (myWorker.isDone())
+                {
+                   myWorkers.pop();
+                   myMessages.pop();
+                }
+                else
+                {
+                  try
+                  {
+                    SwingUtilities.invokeAndWait( new Runnable() {
+                      public void run() {
+                        text.setText("Waiting for " + myMessages.peek());
+                      }
+                    });
+                  } catch (Exception e) { log.error("SWIW threw", e); }
+                }
+              }
+              else
+              {
+                try
+                {
+                  SwingUtilities.invokeAndWait( new Runnable() {
+                    public void run() {
+                      
+                      text.setText("Ready");
+                      statusBar.remove(mypbar);
+                      statusBar.remove(btn);
+                      statusBar.updateUI();
+                      for (ActionListener listener: btn.getActionListeners())
+                      {
+                        try
+                        {
+                          btn.removeActionListener(listener);
+                        }
+                        catch (Exception e) {}
+                      }
+                    }
+                  });
+                } catch (Exception e) { log.error("SWIW threw", e); }
+
+                statusBar.setProperty("progressReaper", null);
+                break;
+              }
+            }
+          }
+        }
+      };
+
+      Thread t = new Thread(progressReaper);
+      statusBar.setProperty("progressReaper", t);
+      t.setDaemon(true);
+      t.setName("Progress Bar Task Reaper");
+      t.start();
+    }
+  }
+
+
+ 

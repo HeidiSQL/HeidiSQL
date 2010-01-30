@@ -1,0 +1,233 @@
+import javax.swing.*;
+import java.util.*;
+
+String event = arg("source");
+
+log.debug("event received: " + event);
+WindowContext context = argObj("windowContext");
+Frame dialog = context.get("/");
+
+Combo connProfiles = context.get("/connProfiles");
+HashObject profiles = connProfiles.getProperty("profiles");
+
+
+if ( "Delete" == event )
+{
+  if ( dialog.popupConfirm("Confirm Delete!", "Are you sure you want to delete this profile?") )
+  {
+     String profileToDelete = connProfiles.getText();
+     connProfiles.setProperty("lastProfile", null);
+     ((DefaultComboBoxModel)connProfiles.getModel()).removeElement( profileToDelete );
+     profiles.remove(profiles.getObject(profileToDelete));
+     profiles.keySet().remove(profileToDelete);
+
+  }
+  
+}
+else if ("Rename" == event )
+{
+  String newName = dialog.popupQuestion("Rename Connection", "Enter a new name for the connection profile:");
+  if ( newName != null )
+  {
+     DefaultComboBoxModel model = (DefaultComboBoxModel)connProfiles.getModel();
+     newName = newName.trim();
+     
+     for (int i=0; i < model.getSize(); i++)
+     {
+        if (newName.equalsIgnoreCase((String)model.getElementAt(i)))
+        {
+          dialog.popupMessage("Cant Create!", "A profile with that name already exists!");
+          return;
+        }
+     }
+     
+     String profileToRename = connProfiles.getText();
+     HashObject profile = (HashObject)profiles.getObject(profileToRename);
+     profile.put("name", newName);
+     profiles.remove(profiles.getObject(profileToRename));
+     profiles.keySet().remove(profileToRename);
+     profiles.put(newName, profile);
+     connProfiles.setProperty("lastProfile", newName );
+     int pos = model.getIndexOf(profileToRename);
+     model.insertElementAt(newName, pos);
+     model.removeElementAt(pos+1);
+
+  }
+}
+else if ("New" == event )
+{
+  String newName = dialog.popupQuestion("New Connection", "Enter a name for the new connection profile:");
+  if ( newName != null )
+  {
+     
+     DefaultComboBoxModel model = (DefaultComboBoxModel)connProfiles.getModel();
+     newName = newName.trim();
+     
+     for (int i=0; i < model.getSize(); i++)
+     {
+        if (newName.equalsIgnoreCase((String)model.getElementAt(i)))
+        {
+          dialog.popupMessage("Cant Create!", "A profile with that name already exists!");
+          return;
+        }
+     }
+    
+     HashObject profile = ((HashObject)profiles.get(0)).copy();
+     profile.put("name", newName);
+     profiles.put(newName, profile);
+     model.addElement(newName);
+     model.setSelectedItem(newName);
+
+  }
+     
+}
+else if ("Save" == event || "Save/Connect" == event || "Connect" == event)
+{
+  String curVendor = dialog.getProperty("currentVendor");
+
+  try
+  {
+    String value = ((Field)context.get("/timeout")).getText();
+    int timeout = Integer.parseInt(value);
+  }
+  catch(Exception e)
+  {
+    dialog.popupMessage("Invalid Entry", "Please enter a valid timeout value in seconds");
+    return;
+  }
+    
+  args().put("stateCmd", "flush");
+  args().put("profileKey", connProfiles.getText());
+  script("connectDialogState", args());
+ 
+  if ( event.startsWith("Save") )
+  {
+    StringBuilder buffer = new StringBuilder(1000);
+    for (HashObject h : (List<HashObject>) profiles)
+    {
+       buffer.append("name=").append(h.get("name")).append(":");
+       buffer.append("host=").append(h.get("host")).append(":");
+       buffer.append("user=").append(h.get("user")).append(":");
+       buffer.append("password=").append(h.get("password")).append(":");
+       buffer.append("port=").append(h.get("port")).append(":");
+       buffer.append("timeout=").append(h.get("timeout")).append(":");
+       buffer.append("sort=").append(h.get("sort")).append(":");
+       buffer.append("dbs=").append(h.get("dbs")).append("\n");
+    }
+    
+    FileUtil.fromString(".profiles-" + curVendor, buffer.toString());
+  }
+    
+  if ( event.endsWith("Connect"))
+  {
+    HashObject profile = (HashObject)profiles.getObject(connProfiles.getText());
+    
+    args().put("profile", profile);
+    DB db = script(String.format("testConnect$%s", curVendor), args());  
+    if (db != null)
+    {
+      dialog.dispose();
+      args().put("db", db);
+      args().put("vendor", curVendor);
+      script("showMainWindow$" + curVendor, args());
+    }
+  }
+  
+}
+else if ("connProfiles" == event)
+{
+   String lastProfileKey = connProfiles.getProperty("lastProfile");
+  
+   if ( !connProfiles.getText().equals(lastProfileKey) ) 
+   {
+     if ( lastProfileKey != null  && profiles.getObject(lastProfileKey) != null )
+     {
+        args().put("stateCmd", "flush");
+        args().put("profileKey", lastProfileKey);
+        script("connectDialogState", args());
+     }
+     
+     HashObject profile = (HashObject) profiles.getObject(connProfiles.getText());
+     
+     ((Field)context.get("/host")).setText(profile.get("host"));
+     ((Field)context.get("/user")).setText(profile.get("user"));
+     ((Password)context.get("/password")).setText(profile.get("password"));
+     ((Field)context.get("/port")).setText(profile.get("port"));
+     ((Field)context.get("/timeout")).setText(profile.get("timeout"));
+     ((Field)context.get("/port")).setText(profile.get("port"));
+     ((Field)context.get("/dbs")).setText(profile.get("dbs"));
+     
+     boolean compress =  "true".equals(profile.get("compress"));
+    // ((CheckBox)context.get("/compress")).setSelected(compress);
+     boolean sort =  "true".equals(profile.get("sort"));
+     ((CheckBox)context.get("/sort")).setSelected(sort);
+     
+     boolean enabled = !"Default Local (MySQL)".equals(connProfiles.getText())
+         && !"Default Local (Oracle)".equals(connProfiles.getText()) 
+         &&!"Default Local (Drizzle)".equals(connProfiles.getText());
+     ((Button)context.get("/Delete")).setEnabled(enabled);
+     ((Button)context.get("/Rename")).setEnabled(enabled);
+     
+     connProfiles.setProperty("lastProfile", connProfiles.getText());
+   }
+
+}
+else if ("Vendor" == event)
+{
+  Slider vendorSlider = context.get("/Vendor");
+  HashObject vendors = env("vendors");
+  String newVendor = (String)vendors.get(vendorSlider.getValue());
+  String curVendor = dialog.getProperty("currentVendor");
+  
+  if ( newVendor != curVendor )
+  {
+    log.info("vendor changed");
+    
+    Text hostLabel = context.get("/Host:");
+    CheckBox compressBox = context.get("/compress");
+    Text dbsLabel = context.get("/<html>Database(s):<br>(separated by<br> semicolon)</html>");
+    CheckBox sortBox = context.get("/sort");
+    
+    dialog.setProperty("currentVendor", newVendor);
+    
+    Text logoImage = context.get("/logo");
+    logoImage.setIcon(new ImageIcon("images/logo-" + newVendor + ".gif"));
+    
+    if ( newVendor == "mysql")
+    {
+      dialog.setTitle("New Connection - MySQL");
+      hostLabel.setText("Host:");
+      compressBox.setText("Use compressed protocol");
+      compressBox.setEnabled(true);
+      dbsLabel.setText(dbsLabel.getText().replaceAll("Schema", "Database"));
+      sortBox.setText(sortBox.getText().replaceAll("schema", "database"));
+    }
+    else if ( newVendor == "drizzle")
+    {
+      dialog.setTitle("New Connection - Drizzle");
+      hostLabel.setText("Host:");
+      compressBox.setText("Use compressed protocol");
+      compressBox.setEnabled(false);
+      dbsLabel.setText(dbsLabel.getText().replaceAll("Schema", "Database"));
+      sortBox.setText(sortBox.getText().replaceAll("schema", "database"));
+    }
+    else if ( newVendor == "oracle" )
+    {
+      dialog.setTitle("New Connection - Oracle");
+      hostLabel.setText("Service@Host:");
+      compressBox.setText("Connect as sysdba");
+      compressBox.setEnabled(true);
+      dbsLabel.setText(dbsLabel.getText().replaceAll("Database", "Schema"));
+      sortBox.setText(sortBox.getText().replaceAll("database", "schema"));
+    }
+    
+    args().put("vendor", newVendor);
+    script("loadProfiles", args());
+  }
+}
+else if ("Cancel" == event )
+{
+  dialog.disposeOrExit(0);
+}
+
+

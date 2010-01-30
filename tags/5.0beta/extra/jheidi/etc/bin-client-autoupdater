@@ -1,0 +1,9 @@
+app=jHeidi
+version=Alpha 4r2
+timestamp=20081229000000
+url=http://heidisql.com/jheidi/files/autoupdater/bin/jheidi-bin-autoupdater
+processKey=jheidi
+libPath=lib
+propPath=.
+releaseNotes=jHeidi Alpha 4r2 Release Notes\n=====================================\n\nAdd support for Drizzle\n\n
+jar=autoupdater.jar

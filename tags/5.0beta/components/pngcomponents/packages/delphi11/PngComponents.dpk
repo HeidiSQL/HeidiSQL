@@ -1,0 +1,43 @@
+package PngComponents;
+
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS ON}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DESCRIPTION 'Png components'}
+{$LIBSUFFIX '110'}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  vclactnband,
+  vcl,
+  rtl,
+  PNG;
+
+contains
+  PngSpeedButton in '..\..\source\PngSpeedButton.pas',
+  PngFunctions in '..\..\source\PngFunctions.pas',
+  PngImageList in '..\..\source\PngImageList.pas',
+  PngBitBtn in '..\..\source\PngBitBtn.pas',
+  PngButtonFunctions in '..\..\source\PngButtonFunctions.pas',
+  PngCheckListBox in '..\..\source\PngCheckListBox.pas';
+
+end.

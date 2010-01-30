@@ -1,0 +1,49 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{02633fc8-2f46-4d55-a3cf-c9c04bee06a7}</ProjectGuid>
+  </PropertyGroup>
+  <ItemGroup />
+  <ItemGroup />
+  <ProjectExtensions>
+    <Borland.Personality>Default.Personality</Borland.Personality>
+    <Borland.ProjectType />
+    <BorlandProject>
+  <BorlandProject xmlns=""> <Default.Personality> </Default.Personality> </BorlandProject></BorlandProject>
+  </ProjectExtensions>
+  <Target Name="PNG">
+    <MSBuild Projects="PNG.dproj" Targets="" />
+  </Target>
+  <Target Name="PNG:Clean">
+    <MSBuild Projects="PNG.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PNG:Make">
+    <MSBuild Projects="PNG.dproj" Targets="Make" />
+  </Target>
+  <Target Name="PngComponents" DependsOnTargets="PNG">
+    <MSBuild Projects="PngComponents.dproj" Targets="" />
+  </Target>
+  <Target Name="PngComponents:Clean" DependsOnTargets="PNG:Clean">
+    <MSBuild Projects="PngComponents.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PngComponents:Make" DependsOnTargets="PNG:Make">
+    <MSBuild Projects="PngComponents.dproj" Targets="Make" />
+  </Target>
+  <Target Name="PngComponentsD" DependsOnTargets="PNG;PngComponents">
+    <MSBuild Projects="PngComponentsD.dproj" Targets="" />
+  </Target>
+  <Target Name="PngComponentsD:Clean" DependsOnTargets="PNG:Clean;PngComponents:Clean">
+    <MSBuild Projects="PngComponentsD.dproj" Targets="Clean" />
+  </Target>
+  <Target Name="PngComponentsD:Make" DependsOnTargets="PNG:Make;PngComponents:Make">
+    <MSBuild Projects="PngComponentsD.dproj" Targets="Make" />
+  </Target>
+  <Target Name="Build">
+    <CallTarget Targets="PNG;PngComponents;PngComponentsD" />
+  </Target>
+  <Target Name="Clean">
+    <CallTarget Targets="PNG:Clean;PngComponents:Clean;PngComponentsD:Clean" />
+  </Target>
+  <Target Name="Make">
+    <CallTarget Targets="PNG:Make;PngComponents:Make;PngComponentsD:Make" />
+  </Target>
+</Project>

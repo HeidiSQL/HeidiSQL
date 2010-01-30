@@ -1,0 +1,11 @@
+
+WindowContext context = argObj("windowContext");
+String table = arg("tableToDrop");
+
+DB db = context.get("db");
+
+db.execute("drop table " + context.get("currentDB") + "." + table);
+db.flushStatement("select * from all_tables where owner=upper('" + context.get("currentDB") + "')");
+
+
+
