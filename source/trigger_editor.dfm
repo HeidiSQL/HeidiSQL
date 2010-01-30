@@ -64,7 +64,8 @@ object frmTriggerEditor: TfrmTriggerEditor
     Gutter.Font.Height = -11
     Gutter.Font.Name = 'Courier New'
     Gutter.Font.Style = []
-    Lines.Strings = ('SynMemoStatement')
+    Lines.Strings = (
+      'SynMemoStatement')
     OnChange = Modification
   end
   object btnHelp: TButton
@@ -105,7 +106,6 @@ object frmTriggerEditor: TfrmTriggerEditor
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
-    ItemHeight = 13
     TabOrder = 1
     OnChange = Modification
   end
@@ -115,7 +115,6 @@ object frmTriggerEditor: TfrmTriggerEditor
     Width = 145
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     TabOrder = 6
     OnChange = Modification
   end
@@ -125,7 +124,6 @@ object frmTriggerEditor: TfrmTriggerEditor
     Width = 145
     Height = 21
     Style = csDropDownList
-    ItemHeight = 13
     TabOrder = 7
     OnChange = Modification
   end

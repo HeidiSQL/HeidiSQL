@@ -113,7 +113,6 @@ object CopyTableForm: TCopyTableForm
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
-    ItemHeight = 13
     TabOrder = 7
   end
   object ButtonOK: TButton
