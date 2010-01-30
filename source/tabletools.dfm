@@ -407,6 +407,7 @@ object frmTableTools: TfrmTableTools
             Anchors = [akLeft, akTop, akRight]
             TabOrder = 6
             Text = 'comboExportOutputTarget'
+            OnChange = comboExportOutputTargetChange
             OnExit = comboExportOutputTargetExit
           end
         end

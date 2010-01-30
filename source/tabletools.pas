@@ -94,6 +94,7 @@ type
     procedure ValidateControls(Sender: TObject);
     procedure chkExportOptionClick(Sender: TObject);
     procedure btnExportOutputTargetSelectClick(Sender: TObject);
+    procedure comboExportOutputTargetChange(Sender: TObject);
     procedure comboExportOutputTargetExit(Sender: TObject);
     procedure comboExportOutputTypeChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -293,6 +294,8 @@ begin
   comboBulkTableEditCharset.Items := Mainform.Connection.CharsetList;
   if comboBulkTableEditCharset.Items.Count > 0 then
     comboBulkTableEditCharset.ItemIndex := 0;
+
+  ValidateControls(Sender);
 end;
 
 
@@ -331,7 +334,7 @@ begin
     btnExecute.Enabled := SomeChecked and (memoFindText.Text <> '');
   end else if tabsTools.ActivePage = tabSQLExport then begin
     btnExecute.Caption := 'Export';
-    btnExecute.Enabled := SomeChecked;
+    btnExecute.Enabled := SomeChecked and (comboExportOutputTarget.Text <> '');
   end else if tabsTools.ActivePage = tabBulkTableEdit then begin
     btnExecute.Caption := 'Update';
     chkBulkTableEditCollation.Enabled := Mainform.Connection.IsUnicode;
@@ -398,7 +401,6 @@ begin
   Mainform.DBtreeInitNode(Sender, ParentNode, Node, InitialStates);
   Node.CheckType := ctTriStateCheckBox;
   Node.CheckState := csUncheckedNormal;
-  ValidateControls(Sender);
 end;
 
 
@@ -800,6 +802,12 @@ begin
 end;
 
 
+procedure TfrmTableTools.comboExportOutputTargetChange(Sender: TObject);
+begin
+  ValidateControls(Sender);
+end;
+
+
 procedure TfrmTableTools.comboExportOutputTargetExit(Sender: TObject);
 var
   ItemList: TStringList;
@@ -946,37 +954,30 @@ begin
   ToDb := comboExportOutputType.Text = OUTPUT_DB;
   ToServer := Copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER;
   StartTime := GetTickCount;
-  try
-    if ToDir then begin
-      FreeAndNil(ExportStream);
-      if not DirectoryExists(comboExportOutputTarget.Text) then
-        ForceDirectories(comboExportOutputTarget.Text);
-      ExportStream := TFileStream.Create(comboExportOutputTarget.Text+'\'+GoodFileName(DBObj.Name)+'.sql', fmCreate or fmOpenWrite);
-    end;
-    if ToFile and (not Assigned(ExportStream)) then
-      ExportStream := TFileStream.Create(comboExportOutputTarget.Text, fmCreate or fmOpenWrite);
-    if ToDb or ToServer then
-      ExportStream := TMemoryStream.Create;
-    if (DBObj.Database<>ExportLastDatabase) or ToDir then begin
-      Header := '# --------------------------------------------------------' + CRLF +
-        Format('# %-30s%s', ['Host:', Mainform.Connection.Parameters.HostName]) + CRLF +
-        Format('# %-30s%s', ['Database:', DBObj.Database]) + CRLF +
-        Format('# %-30s%s', ['Server version:', Mainform.Connection.ServerVersionUntouched]) + CRLF +
-        Format('# %-30s%s', ['Server OS:', Mainform.Connection.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]) + CRLF +
-        Format('# %-30s%s', [APPNAME + ' version:', Mainform.AppVersion]) + CRLF +
-        Format('# %-30s%s', ['Date/time:', DateTimeToStr(Now)]) + CRLF +
-        '# --------------------------------------------------------' + CRLF + CRLF +
-        '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
-        '/*!40101 SET NAMES '+Mainform.Connection.CharacterSet+' */;' + CRLF +
-        '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF +
-        '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;';
-      Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
-    end;
-  except
-    on E:Exception do begin
-      MessageDlg(E.Message, mterror, [mbOK], 0);
-      Exit;
-    end;
+  if ToDir then begin
+    FreeAndNil(ExportStream);
+    if not DirectoryExists(comboExportOutputTarget.Text) then
+      ForceDirectories(comboExportOutputTarget.Text);
+    ExportStream := TFileStream.Create(comboExportOutputTarget.Text+'\'+GoodFileName(DBObj.Name)+'.sql', fmCreate or fmOpenWrite);
+  end;
+  if ToFile and (not Assigned(ExportStream)) then
+    ExportStream := TFileStream.Create(comboExportOutputTarget.Text, fmCreate or fmOpenWrite);
+  if ToDb or ToServer then
+    ExportStream := TMemoryStream.Create;
+  if (DBObj.Database<>ExportLastDatabase) or ToDir then begin
+    Header := '# --------------------------------------------------------' + CRLF +
+      Format('# %-30s%s', ['Host:', Mainform.Connection.Parameters.HostName]) + CRLF +
+      Format('# %-30s%s', ['Database:', DBObj.Database]) + CRLF +
+      Format('# %-30s%s', ['Server version:', Mainform.Connection.ServerVersionUntouched]) + CRLF +
+      Format('# %-30s%s', ['Server OS:', Mainform.Connection.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]) + CRLF +
+      Format('# %-30s%s', [APPNAME + ' version:', Mainform.AppVersion]) + CRLF +
+      Format('# %-30s%s', ['Date/time:', DateTimeToStr(Now)]) + CRLF +
+      '# --------------------------------------------------------' + CRLF + CRLF +
+      '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
+      '/*!40101 SET NAMES '+Mainform.Connection.CharacterSet+' */;' + CRLF +
+      '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF +
+      '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;';
+    Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
   end;
 
   // Database structure. Do that only in single-file and server mode. drop/create/use in directory or database mode makes no sense
