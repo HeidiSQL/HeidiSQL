@@ -36,6 +36,7 @@
 			<DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
+			<DCC_UnitSearchPath>..\..\..\..\source;..\..\resources;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<DCC_DependencyCheckOutputName>..\..\build\VirtualTreesR.bpl</DCC_DependencyCheckOutputName>
 			<Version>7.0</Version>
 			<DCC_AssertionsAtRuntime>False</DCC_AssertionsAtRuntime>

@@ -34,6 +34,7 @@
 			<DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
+			<DCC_UnitSearchPath>..\..\..\..\source;..\..\build;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<Version>7.0</Version>
 			<DCC_DebugInformation>False</DCC_DebugInformation>
 			<DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
