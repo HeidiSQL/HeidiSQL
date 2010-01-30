@@ -452,6 +452,8 @@ type
     ReformatSQL2: TMenuItem;
     menuQueryInsertFunction: TMenuItem;
     menuFilterInsertFunction: TMenuItem;
+    actBlobAsText: TAction;
+    btnBlobAsText: TToolButton;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -719,6 +721,7 @@ type
     procedure DBtreeFocusChanging(Sender: TBaseVirtualTree; OldNode,
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
       var Allowed: Boolean);
+    procedure actBlobAsTextExecute(Sender: TObject);
   private
     ReachedEOT: Boolean;
     FDelimiter: String;
@@ -755,6 +758,7 @@ type
     procedure SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
     procedure UpdateFilterPanel(Sender: TObject);
     procedure DatabaseChanged(Database: String);
+    function GetBlobContent(Results: TMySQLQuery; Column: Integer): String;
   public
     Connection: TMySQLConnection;
     SessionName: String;
@@ -1100,6 +1104,7 @@ begin
   MainReg.WriteInteger(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
   MainReg.WriteInteger(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
   MainReg.WriteBool(REGNAME_STOPONERRORSINBATCH, actQueryStopOnErrors.Checked);
+  MainReg.WriteBool(REGNAME_BLOBASTEXT, actBlobAsText.Checked);
 
   // Save delimiter
   MainReg.WriteString( REGNAME_DELIMITER, Delimiter );
@@ -1241,6 +1246,7 @@ begin
   ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
   ToolBarQuery.Top := GetRegValue(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
   actQueryStopOnErrors.Checked := GetRegValue(REGNAME_STOPONERRORSINBATCH, DEFAULT_STOPONERRORSINBATCH);
+  actBlobAsText.Checked := GetRegValue(REGNAME_BLOBASTEXT, DEFAULT_BLOBASTEXT);
 
   pnlQueryMemo.Height := GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   pnlQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
@@ -3935,7 +3941,7 @@ begin
       for j:=0 to Results.ColumnCount-1 do begin
         case ActiveGridResult.Columns[j].DatatypeCat of
           dtcInteger, dtcReal: ActiveGridResult.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
-          dtcBinary: ActiveGridResult.Rows[i].Cells[j].Text := '0x' + Results.BinColAsHex(j);
+          dtcBinary: ActiveGridResult.Rows[i].Cells[j].Text := GetBlobContent(Results, j);
           else ActiveGridResult.Rows[i].Cells[j].Text := Results.Col(j);
         end;
         ActiveGridResult.Rows[i].Cells[j].IsNull := Results.IsNull(j);
@@ -6443,7 +6449,7 @@ begin
       for j := 0 to Results.ColumnCount - 1 do begin
         case res.Columns[j].DatatypeCat of
           dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
-          dtcBinary: res.Rows[i].Cells[j].Text := '0x' + Results.BinColAsHex(j);
+          dtcBinary: res.Rows[i].Cells[j].Text := GetBlobContent(Results, j);
           else res.Rows[i].Cells[j].Text := Results.Col(j);
         end;
         res.Rows[i].Cells[j].IsNull := Results.IsNull(j);
@@ -6519,7 +6525,7 @@ begin
       for j:=0 to Results.ColumnCount-1 do begin
         case res.Columns[j].DatatypeCat of
           dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
-          dtcBinary: res.Rows[i].Cells[j].Text := '0x' + Results.BinColAsHex(j);
+          dtcBinary: res.Rows[i].Cells[j].Text := GetBlobContent(Results, j);
           else res.Rows[i].Cells[j].Text := Results.Col(j);
         end;
         res.Rows[i].Cells[j].IsNull := Results.IsNull(j);
@@ -6812,8 +6818,13 @@ begin
       case DataGridResult.Columns[i].DatatypeCat of
         dtcInteger, dtcReal: Val := UnformatNumber(Val);
         dtcBinary: begin
-          CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + DataGridResult.Columns[i].Name + '".');
-          if Val = '0x' then Val := esc('');
+          if actBlobAsText.Checked then
+            Val := esc(Val)
+          else begin
+            CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + DataGridResult.Columns[i].Name + '".');
+            if Val = '0x' then
+              Val := esc('');
+          end;
         end;
         else Val := esc(Val);
       end;
@@ -6901,7 +6912,12 @@ begin
     // Quote if needed
     case DataGridResult.Columns[j].DatatypeCat of
       dtcInteger, dtcReal: KeyVal := UnformatNumber(KeyVal);
-      dtcBinary: if KeyVal = '0x' then KeyVal := esc('');
+      dtcBinary: begin
+        if actBlobAsText.Checked then
+          KeyVal := esc(KeyVal)
+        else if KeyVal = '0x' then
+          KeyVal := esc('');
+      end
       else KeyVal := esc(KeyVal);
     end;
 
@@ -7022,9 +7038,13 @@ begin
       case DataGridResult.Columns[i].DatatypeCat of
         dtcInteger, dtcReal: Val := UnformatNumber(Val);
         dtcBinary: begin
-          CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + DataGridResult.Columns[i].Name + '".');
-          if Val = '0x' then
-            Val := esc('');
+          if actBlobAsText.Checked then
+            Val := esc(Val)
+          else begin
+            CheckHex(Copy(Val, 3), 'Invalid hexadecimal string given in field "' + DataGridResult.Columns[i].Name + '".');
+            if Val = '0x' then
+              Val := esc('');
+          end;
         end;
         else Val := esc(Val);
       end;
@@ -7209,7 +7229,7 @@ begin
   Cell := @DataGridResult.Rows[Node.Index].Cells[Column];
   len := Length(Cell.Text);
   // Recalculate due to textual formatting of raw binary data.
-  if (Col.DatatypeCat = dtcBinary) and (len > 2) then len := (len - 2) div 2;
+  if (Col.DatatypeCat = dtcBinary) and (not actBlobAsText.Checked) and (len > 2) then len := (len - 2) div 2;
   // Assume width limit in effect if data exactly at limit threshold.
   if len = GridMaxData then begin
     if CheckUniqueKeyClause then begin
@@ -7221,7 +7241,7 @@ begin
       Results := Connection.GetResults(sql);
       case Col.DatatypeCat of
         dtcInteger, dtcReal: Cell.Text := FormatNumber(Results.Col(0), False);
-        dtcBinary: Cell.Text := '0x' + Results.BinColAsHex(0);
+        dtcBinary: Cell.Text := GetBlobContent(Results, 0);
         else Cell.Text := Results.Col(0);
       end;
       Cell.IsNull := Results.IsNull(0);
@@ -7275,7 +7295,7 @@ var
 begin
   VT := Sender as TVirtualStringTree;
   TypeCat := DataGridResult.Columns[Column].DatatypeCat;
-  if TypeCat = dtcText then begin
+  if (TypeCat = dtcText) or ((TypeCat = dtcBinary) and actBlobAsText.Checked) then begin
     InplaceEditor := TInplaceEditorLink.Create(VT);
     InplaceEditor.DataType := DataGridResult.Columns[Column].Datatype;
     InplaceEditor.MaxLength := DataGridResult.Columns[Column].MaxLength;
@@ -9110,6 +9130,22 @@ begin
     inherited;
 end;
 
+
+procedure TMainForm.actBlobAsTextExecute(Sender: TObject);
+begin
+  // Activate displaying BLOBs as text data, ignoring possible weird effects in grid updates/inserts
+  if PageControlMain.ActivePage = tabData then
+    viewdata(Sender);
+end;
+
+
+function TMainForm.GetBlobContent(Results: TMySQLQuery; Column: Integer): String;
+begin
+  if actBlobAsText.Checked then
+    Result := Results.Col(Column)
+  else
+    Result := '0x' + Results.BinColAsHex(Column);
+end;
 
 end.
 

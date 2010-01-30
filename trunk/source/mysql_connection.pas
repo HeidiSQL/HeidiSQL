@@ -1199,14 +1199,10 @@ end;
 function TMySQLQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 begin
   if (Column > -1) and (Column < ColumnCount) then begin
-    if FDatatypes[Column].Category = dtcBinary then
-      Raise Exception.CreateFmt('Column "%s" has binary collation. Please use BinColAsHex() instead Col().', [FColumnNames[Column]])
-    else begin
-      if Connection.IsUnicode then
-        Result := UTF8ToString(FCurrentRow[Column])
-      else
-        Result := String(FCurrentRow[Column]);
-    end;
+    if Connection.IsUnicode then
+      Result := UTF8ToString(FCurrentRow[Column])
+    else
+      Result := String(FCurrentRow[Column]);
   end else if not IgnoreErrors then
     Raise Exception.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
 end;

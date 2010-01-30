@@ -252,7 +252,7 @@ object MainForm: TMainForm
     object ToolBarQuery: TToolBar
       Left = 494
       Top = 2
-      Width = 243
+      Width = 268
       Height = 22
       Align = alNone
       AutoSize = True
@@ -304,13 +304,18 @@ object MainForm: TMainForm
         Top = 0
         Action = actQueryStopOnErrors
       end
+      object btnBlobAsText: TToolButton
+        Left = 199
+        Top = 0
+        Action = actBlobAsText
+      end
       object btnQueryWordwrap: TToolButton
-        Left = 197
+        Left = 222
         Top = 0
         Action = actQueryWordWrap
       end
       object btnSetDelimiter: TToolButton
-        Left = 220
+        Left = 245
         Top = 0
         Action = actSetDelimiter
       end
@@ -2289,6 +2294,14 @@ object MainForm: TMainForm
       ImageIndex = 140
       ShortCut = 16503
       OnExecute = actReformatSQLExecute
+    end
+    object actBlobAsText: TAction
+      Category = 'Data'
+      AutoCheck = True
+      Caption = 'View binary data as text (instead of HEX)'
+      Hint = 'View binary data as text (instead of HEX)'
+      ImageIndex = 141
+      OnExecute = actBlobAsTextExecute
     end
   end
   object SaveDialog2: TSaveDialog
@@ -6196,6 +6209,28 @@ object MainForm: TMainForm
           D071B9192663E11631D90D5EAFD79F208009C672CFAAF24282114419A248F75E
           2627C13AF8E0CC1BFB6BEBD07FAE35DDF92001CCFD01229E70157CD3A2DA0000
           000049454E44AE426082}
+      end
+      item
+        Background = clWindow
+        Name = 'page_white_text_hex'
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001974455874536F667477617265005061696E742E4E45542076332E35
+          2E32D7EE6943000001BF4944415478DA85934D48025110C7673F72430841C12E
+          75EA5474CABE5B254FD1AD4B089E8A0E520A1174EAE35479953C75B08B201481
+          509708F2D0E75A128174C953D62DEFA1BBBAF6E6B56F59C1B5816186B7F3FFCD
+          BCDD1D0EFEAC8F782F71013ADB37F14FE23A3BE08CE8AB56AB3941107A388EE3
+          DB29EBF53AA452A9642C164B58210C30AE699A52ABD578026811E9BA0EAAAA82
+          C7E3814AA502D96C36198D464D086740C648F1138100CFF354C4008D468302DC
+          6E378DF82C93C924239108423E5A0058AC280A2D444720F35028D47225511427
+          4828B4009ACD26B02B608E40749C0421D81D73AFD7DB1E80C242A1408BB110A7
+          60D740474030180497CB650F60B627CED0B8A3DD9B628C3899D3E9B407148B45
+          381F5985B9C704155CFB3721908B53214264590687C3D17902ECBE5B7F30739C
+          62BF4B86ADDA2DC4A5007D660B28954A703AB40C0BAF47B4E3856F0DE6F38770
+          39B94EA7BA9ADEE80CB07645C3CEDBEA1DCD0F1C7E9AE3BF620B2897CB901E08
+          43F83D4D2738195C82C5B763381B5E31A3DD0479CBAF6D7E05EBBBC0DC883A01
+          4C91E3672618257B704396A99BE46D97C9623AF93A3F9224CD92FC8501FA8D75
+          FE4FCCAC61ACF6D72F62B02F294EFE3B9F0000000049454E44AE426082}
       end>
     PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
     Left = 104
