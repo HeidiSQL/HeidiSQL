@@ -190,6 +190,8 @@ const
   DEFAULT_FILTERACTIVE = False;
   REGNAME_MULTI_INSTANCES = 'AllowMultipleInstances';
   DEFAULT_MULTI_INSTANCES = True;
+  REGNAME_SEARCHTEXT = 'FindDialogSearchHistory';
+  REGNAME_REPLACETEXT = 'FindDialogReplaceHistory';
 
   REGNAME_FIELDCOLOR_NUMERIC = 'FieldColor_Numeric';
   REGNAME_FIELDCOLOR_TEXT = 'FieldColor_Text';

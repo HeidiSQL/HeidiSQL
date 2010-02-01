@@ -1263,6 +1263,7 @@ object MainForm: TMainForm
               Top = 0
               Width = 411
               Height = 96
+              OnSearchNotFound = SynMemoQuerySearchNotFound
               SingleLineMode = False
               Align = alClient
               ActiveLineColor = clWindow
@@ -1292,6 +1293,7 @@ object MainForm: TMainForm
               TabWidth = 3
               WantTabs = True
               OnDropFiles = SynMemoQueryDropFiles
+              OnReplaceText = SynMemoQueryReplaceText
               OnStatusChange = SynMemoQueryStatusChange
               RemovedKeystrokes = <
                 item
@@ -1496,6 +1498,18 @@ object MainForm: TMainForm
       end
       object ReformatSQL2: TMenuItem
         Action = actReformatSQL
+      end
+    end
+    object Search1: TMenuItem
+      Caption = 'Search'
+      object Findtext1: TMenuItem
+        Action = actQueryFind
+      end
+      object actQueryFindAgain1: TMenuItem
+        Action = actQueryFindAgain
+      end
+      object Replacetext1: TMenuItem
+        Action = actQueryReplace
       end
     end
     object Extra1: TMenuItem
@@ -2146,7 +2160,7 @@ object MainForm: TMainForm
       Hint = 'Find text ...'
       ImageIndex = 30
       ShortCut = 16454
-      OnExecute = actQueryFindExecute
+      OnExecute = actQueryFindReplaceExecute
     end
     object actQueryReplace: TAction
       Category = 'SQL'
@@ -2155,7 +2169,14 @@ object MainForm: TMainForm
       Hint = 'Replace text ...'
       ImageIndex = 59
       ShortCut = 16466
-      OnExecute = actQueryReplaceExecute
+      OnExecute = actQueryFindReplaceExecute
+    end
+    object actQueryFindAgain: TAction
+      Category = 'SQL'
+      Caption = 'Find or replace again'
+      ImageIndex = 142
+      ShortCut = 114
+      OnExecute = actQueryFindAgainExecute
     end
     object actSetDelimiter: TAction
       Category = 'SQL'
@@ -6231,22 +6252,41 @@ object MainForm: TMainForm
           43F83D4D2738195C82C5B763381B5E31A3DD0479CBAF6D7E05EBBBC0DC883A01
           4C91E3672618257B704396A99BE46D97C9623AF93A3F9224CD92FC8501FA8D75
           FE4FCCAC61ACF6D72F62B02F294EFE3B9F0000000049454E44AE426082}
+      end
+      item
+        Background = clWindow
+        Name = 'find_again'
+        PngImage.Data = {
+          89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF
+          610000001974455874536F667477617265005061696E742E4E45542076332E35
+          2E32D7EE6943000002C24944415478DAAD934B48547114C6BF3BB719535354A6
+          4143255F93AF468D5132CD3470229D5AD4226813650FA3400B1795B98841DB55
+          D426B0D08A30717415F9487BA838D6989A9889927847677CA6F3721EF7D99D11
+          DA45481D38FC17E7FFFDCEE17C1C02FF18C47F07E8EE3F31C5C5ED8EA1280AD5
+          1565C4A3C636C16E5BC7E8D0E074CB8B7AE55F013774F74C39D9D9314D2F9F43
+          1410E5D76F0BCA94746C389DE69A6BE7A3FF083877A54A484ECF84C36E436060
+          10DA9A1A3064E8250A355A2155B50F325900FADF77FADE5796B9D90B36BBD5B5
+          BEBAC2138DFACEED635F870BC3C2E5ED2429C1EAF212BE8F8F826568F88036EB
+          1A18991C494989703BD6306EEC455FF79B6A8665EED25EAF403C78DAB24D8C1F
+          A121C1B1C64F83FE69427725234A11069AE31887C32B655DEB98999D07EB5A83
+          529988BAEA0A8A63D904F12B47D43D6C900A024F8747C8F16D6C181CC789DD19
+          B85D1B301A7A119F948CC43DA9605916C16A03ECDE35D49F1D11447180980C71
+          B1F2A674D13CE75C5EB4C822E40A2C2D98E171BB60B7592D6E97B3542A0BA815
+          BB95040505437B27123BC36230611E4673F924290278FF12B5274EF71D282CCE
+          5767ED85D5E604356F41F3B3C7CD795785531058D0BC982C87A8F004A8A2F3F1
+          79F61DC6CD4674545A083F40A33DC9A6A46792A5A547A16F6D85D7E3C1887160
+          E26025528BD3CE801378703C071E02166DF3080F56C030D38D91B9FE4D1B8B8E
+          1C13545939F0015AF47A4824243E76BDA6F3AA24B2125519A89FD360C429589E
+          01C331625D06454834FA673A370179451A213BF7100A0A0AD0D5D5099224D1DB
+          D30ED565078E675C12859C3F7D932CD84C88D81129761FC0DBC98E493F409D5B
+          20F836CF88DED3B4D7EF82E831726E11BCDBE395D03C0D0F4B2351918EFDF11A
+          0C9906D033D53546E990B1A5634AD3112BEAD8C3F20F533D5FA85AA8B77C8D71
+          3558E178526EAAE57EEB7E01DE445494B226E2DE0000000049454E44AE426082}
       end>
     PngOptions = [pngBlendOnDisabled, pngGrayscaleOnDisabled]
     Left = 104
     Top = 232
     Bitmap = {}
-  end
-  object FindDialogQuery: TFindDialog
-    OnFind = FindDialogQueryFind
-    Left = 104
-    Top = 200
-  end
-  object ReplaceDialogQuery: TReplaceDialog
-    OnFind = ReplaceDialogQueryFind
-    OnReplace = ReplaceDialogQueryReplace
-    Left = 136
-    Top = 200
   end
   object PopupQueryLoad: TPopupMenu
     Left = 104
@@ -6967,5 +7007,9 @@ object MainForm: TMainForm
     OnTimer = TimerFilterVTTimer
     Left = 40
     Top = 269
+  end
+  object SynEditRegexSearch1: TSynEditRegexSearch
+    Left = 104
+    Top = 304
   end
 end

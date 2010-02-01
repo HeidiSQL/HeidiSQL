@@ -13,12 +13,12 @@ uses
   Windows, SysUtils, Classes, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, PngImageList,
-  ShlObj, SynEditMiscClasses, SynEditSearch, SynCompletionProposal, SynEditHighlighter,
+  ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
   CommCtrl, Contnrs, PngSpeedButton, Generics.Collections,
   routine_editor, trigger_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
-  mysql_api, insertfiles;
+  mysql_api, insertfiles, searchreplace;
 
 
 type
@@ -182,8 +182,6 @@ type
     actQueryWordWrap: TAction;
     actQueryFind: TAction;
     actQueryReplace: TAction;
-    FindDialogQuery: TFindDialog;
-    ReplaceDialogQuery: TReplaceDialog;
     ToolBarQuery: TToolBar;
     btnExecuteQuery: TToolButton;
     btnLoadSQL: TToolButton;
@@ -300,6 +298,7 @@ type
     OpenDialogSQLFile: TOpenDialog;
     SaveDialogSQLFile: TSaveDialog;
     SynEditSearch1: TSynEditSearch;
+    SynEditRegexSearch1: TSynEditRegexSearch;
     tabCommandStats: TTabSheet;
     ListCommandStats: TVirtualStringTree;
     QF13: TMenuItem;
@@ -454,6 +453,11 @@ type
     menuFilterInsertFunction: TMenuItem;
     actBlobAsText: TAction;
     btnBlobAsText: TToolButton;
+    actQueryFindAgain: TAction;
+    Search1: TMenuItem;
+    Findtext1: TMenuItem;
+    actQueryFindAgain1: TMenuItem;
+    Replacetext1: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -504,8 +508,7 @@ type
     procedure actNewWindowExecute(Sender: TObject);
     procedure actSessionManagerExecute(Sender: TObject);
     procedure actPreferencesExecute(Sender: TObject);
-    procedure actQueryFindExecute(Sender: TObject);
-    procedure actQueryReplaceExecute(Sender: TObject);
+    procedure actQueryFindReplaceExecute(Sender: TObject);
     procedure actQueryStopOnErrorsExecute(Sender: TObject);
     procedure actQueryWordWrapExecute(Sender: TObject);
     procedure actReadmeExecute(Sender: TObject);
@@ -518,9 +521,6 @@ type
     procedure actSQLhelpExecute(Sender: TObject);
     procedure actUpdateCheckExecute(Sender: TObject);
     procedure actWebbrowse(Sender: TObject);
-    procedure FindDialogQueryFind(Sender: TObject);
-    procedure ReplaceDialogQueryFind(Sender: TObject);
-    procedure ReplaceDialogQueryReplace(Sender: TObject);
     procedure actCopyAsSQLExecute(Sender: TObject);
     procedure actSelectTreeBackgroundExecute(Sender: TObject);
     procedure popupQueryPopup(Sender: TObject);
@@ -722,6 +722,10 @@ type
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
       var Allowed: Boolean);
     procedure actBlobAsTextExecute(Sender: TObject);
+    procedure SynMemoQuerySearchNotFound(Sender: TObject; FindText: string);
+    procedure SynMemoQueryReplaceText(Sender: TObject; const ASearch,
+      AReplace: string; Line, Column: Integer; var Action: TSynReplaceAction);
+    procedure actQueryFindAgainExecute(Sender: TObject);
   private
     ReachedEOT: Boolean;
     FDelimiter: String;
@@ -742,6 +746,7 @@ type
     FCmdlineFilenames: TStringlist;
     FCmdlineConnectionParams: TConnectionParameters;
     FCmdlineSessionName: String;
+    FSearchReplaceExecuted: Boolean;
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(MatchingRows: Int64 = -1);
@@ -782,6 +787,7 @@ type
     TableEditor: TfrmTableEditor;
     InsertFiles: TfrmInsertFiles;
     EditVariableForm: TfrmEditVariable;
+    SearchReplaceDialog: TfrmSearchReplace;
 
     // Virtual Tree data arrays
     VTRowDataListVariables,
@@ -1091,6 +1097,7 @@ begin
   FreeAndNil(TableEditor);
   FreeAndNil(TriggerEditor);
   FreeAndNil(CreateDatabaseForm);
+  FreeAndNil(SearchReplaceDialog);
 
   // Close database connection
   DoDisconnect;
@@ -2553,25 +2560,78 @@ begin
 end;
 
 
-procedure TMainForm.actQueryFindExecute(Sender: TObject);
+procedure TMainForm.actQueryFindReplaceExecute(Sender: TObject);
+var
+  DlgResult: TModalResult;
+  Occurences: Integer;
 begin
-  // if something is selected search for that text
-  if ActiveQueryMemo.SelAvail then
-    FindDialogQuery.FindText := ActiveQueryMemo.SelText
+  // Display search + replace dialog
+  if not Assigned(SearchReplaceDialog) then
+    SearchReplaceDialog := TfrmSearchReplace.Create(Self);
+  SearchReplaceDialog.Editor := ActiveQueryMemo;
+  SearchReplaceDialog.chkReplace.Checked := Sender = actQueryReplace;
+  DlgResult := SearchReplaceDialog.ShowModal;
+  if SearchReplaceDialog.chkRegularExpression.Checked then
+    SearchReplaceDialog.Editor.SearchEngine := SynEditRegexSearch1
   else
-    FindDialogQuery.FindText := ActiveQueryMemo.WordAtCursor;
-  FindDialogQuery.Execute;
+    SearchReplaceDialog.Editor.SearchEngine := SynEditSearch1;
+  ShowStatus('Searching ...');
+  case DlgResult of
+    mrOK, mrAll: begin
+      Occurences := SearchReplaceDialog.Editor.SearchReplace(
+        SearchReplaceDialog.comboSearch.Text,
+        SearchReplaceDialog.comboReplace.Text,
+        SearchReplaceDialog.Options
+        );
+      FSearchReplaceExecuted := True; // Helper for later F3 hits
+      if DlgResult = mrAll then
+        ShowStatus('Text "'+SearchReplaceDialog.comboSearch.Text+'" '+FormatNumber(Occurences)+' times replaced.', 0);
+    end;
+    mrCancel: Exit;
+  end;
+  ShowStatus(STATUS_MSG_READY);
 end;
 
 
-procedure TMainForm.actQueryReplaceExecute(Sender: TObject);
+procedure TMainForm.actQueryFindAgainExecute(Sender: TObject);
 begin
-  // if something is selected search for that text
-  if ActiveQueryMemo.SelAvail then
-    ReplaceDialogQuery.FindText := ActiveQueryMemo.SelText
-  else
-    ReplaceDialogQuery.FindText := ActiveQueryMemo.WordAtCursor;
-  ReplaceDialogQuery.Execute;
+  // F3 - search or replace again, using previous settings
+  if not FSearchReplaceExecuted then begin
+    // Display dialog if not done yet
+    actQueryFindReplaceExecute(Sender)
+  end else begin
+    SearchReplaceDialog.Editor := ActiveQueryMemo;
+    if SearchReplaceDialog.chkRegularExpression.Checked then
+      SearchReplaceDialog.Editor.SearchEngine := SynEditRegexSearch1
+    else
+      SearchReplaceDialog.Editor.SearchEngine := SynEditSearch1;
+    SearchReplaceDialog.Editor.SearchReplace(
+      SearchReplaceDialog.comboSearch.Text,
+      SearchReplaceDialog.comboReplace.Text,
+      SearchReplaceDialog.Options
+      );
+  end;
+end;
+
+
+procedure TMainForm.SynMemoQuerySearchNotFound(Sender: TObject; FindText: string);
+begin
+  // No text found
+  ShowStatus('Text "'+sstr(FindText,50)+'" not found.', 0);
+  MessageBeep(MB_ICONASTERISK);
+end;
+
+
+procedure TMainForm.SynMemoQueryReplaceText(Sender: TObject; const ASearch,
+  AReplace: string; Line, Column: Integer; var Action: TSynReplaceAction);
+begin
+  // Fires when "Replace all" in search dialog was pressed with activated "Prompt on replace"
+  case MessageDlg('Replace this occurrence of "'+sstr(ASearch, 100)+'"?', mtConfirmation, [mbYes, mbYesToAll, mbNo, mbCancel], 0) of
+    mrYes: Action := raReplace;
+    mrYesToAll: Action := raReplaceAll;
+    mrNo: Action := raSkip;
+    mrCancel: Action := raCancel;
+  end;
 end;
 
 
@@ -2789,68 +2849,6 @@ end;
 procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
 begin
   ActiveQueryMemo.WordWrap := TAction(Sender).Checked;
-end;
-
-
-procedure TMainForm.FindDialogQueryFind(Sender: TObject);
-var
-  Options: TSynSearchOptions;
-  Search: String;
-begin
-  Search := FindDialogQuery.FindText;
-  Options := [];
-  if Sender is TReplaceDialog then
-    Include(Options, ssoEntireScope);
-  if not (frDown in FindDialogQuery.Options) then
-    Include(Options, ssoBackwards);
-  if frMatchCase in FindDialogQuery.Options then
-    Include(Options, ssoMatchCase);
-  if frWholeWord in FindDialogQuery.Options then
-    Include(Options, ssoWholeWord);
-  if ActiveQueryMemo.SearchReplace(Search, '', Options) = 0 then
-  begin
-    MessageBeep(MB_ICONASTERISK);
-    ShowStatus( 'SearchText ''' + Search + ''' not found!', 0);
-  end;
-end;
-
-
-procedure TMainForm.ReplaceDialogQueryFind(Sender: TObject);
-begin
-  FindDialogQuery.FindText := ReplaceDialogQuery.FindText;
-  FindDialogQueryFind( ReplaceDialogQuery );
-end;
-
-
-procedure TMainForm.ReplaceDialogQueryReplace(Sender: TObject);
-var
-  Options: TSynSearchOptions;
-  Search: String;
-begin
-  Search := ReplaceDialogQuery.FindText;
-  Options := [ssoEntireScope];  // Do replaces always on entire scope, because the standard-dialog lacks of a down/up-option
-  if frReplaceAll in ReplaceDialogQuery.Options then
-    Include( Options, ssoReplaceAll );
-  if not (frDown in ReplaceDialogQuery.Options) then
-    Include(Options, ssoBackwards);
-  if frMatchCase in ReplaceDialogQuery.Options then
-    Include(Options, ssoMatchCase);
-  if frWholeWord in ReplaceDialogQuery.Options then
-    Include(Options, ssoWholeWord);
-  if frReplace in ReplaceDialogQuery.Options then // Replace instead of ReplaceAll is pressed
-    Include(Options, ssoReplace)
-  else
-    Include(Options, ssoReplaceAll);
-  if ActiveQueryMemo.SearchReplace( Search, ReplaceDialogQuery.ReplaceText, Options) = 0 then
-  begin
-    MessageBeep(MB_ICONASTERISK);
-    ShowStatus( 'SearchText ''' + Search + ''' not found!', 0);
-    if ssoBackwards in Options then
-      ActiveQueryMemo.BlockEnd := ActiveQueryMemo.BlockBegin
-    else
-      ActiveQueryMemo.BlockBegin := ActiveQueryMemo.BlockEnd;
-    ActiveQueryMemo.CaretXY := ActiveQueryMemo.BlockBegin;
-  end;
 end;
 
 
@@ -3774,8 +3772,9 @@ begin
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;
   actSaveSQLSnippet.Enabled := InQueryTab and NotEmpty;
   actSaveSQLSelectionSnippet.Enabled := InQueryTab and HasSelection;
-  actQueryFind.Enabled := InQueryTab and NotEmpty;
-  actQueryReplace.Enabled := InQueryTab and NotEmpty;
+  actQueryFind.Enabled := InQueryTab;
+  actQueryReplace.Enabled := InQueryTab;
+  actQueryFindAgain.Enabled := InQueryTab;
   // We need a pressed button which somehow does not work in conjunction with Enabled=False
   // actQueryStopOnErrors.Enabled := QueryTabActive;
   actQueryWordWrap.Enabled := InQueryTab;
@@ -7873,8 +7872,6 @@ begin
   // Copy text from a focused control to clipboard
   Success := False;
   Control := Screen.ActiveControl;
-  // Do not handle Search/replace dialog
-  if not Control.Focused then Exit;
   DoCut := Sender = actCut;
   if Control is TCustomEdit then begin
     Edit := TCustomEdit(Control);
@@ -7925,8 +7922,6 @@ begin
   // Paste text into the focused control
   Success := False;
   Control := Screen.ActiveControl;
-  // Do not handle Search/replace dialog
-  if not Control.Focused then Exit;
   if not Clipboard.HasFormat(CF_TEXT) then begin
     // Do nothing, we cannot paste a picture or so
   end else if Control is TCustomEdit then begin
@@ -7969,8 +7964,6 @@ begin
   // Select all items, text or whatever
   Success := False;
   Control := Screen.ActiveControl;
-  // Do not handle Search/replace dialog
-  if not Control.Focused then Exit;
   if Control is TCustomEdit then begin
     TCustomEdit(Control).SelectAll;
     Success := True;
@@ -8006,8 +7999,6 @@ begin
   // Invert selection in grids or listboxes
   Success := False;
   Control := Screen.ActiveControl;
-  // Do not handle Search/replace dialog
-  if not Control.Focused then Exit;
   if Control is TVirtualStringTree then begin
     Grid := TVirtualStringTree(Control);
     if toMultiSelect in Grid.TreeOptions.SelectionOptions then begin
@@ -8316,13 +8307,14 @@ begin
   QueryTab.Memo.RightEdge := SynMemoQuery.RightEdge;
   QueryTab.Memo.WantTabs := SynMemoQuery.WantTabs;
   QueryTab.Memo.Highlighter := SynMemoQuery.Highlighter;
-  QueryTab.Memo.SearchEngine := SynMemoQuery.SearchEngine;
   QueryTab.Memo.Gutter.Assign(SynMemoQuery.Gutter);
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
   QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
+  QueryTab.Memo.OnSearchNotFound := SynMemoQuery.OnSearchNotFound;
+  QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
   SynCompletionProposal.AddEditor(QueryTab.Memo);
 
