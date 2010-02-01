@@ -195,6 +195,9 @@
 				<Form>frmTriggerEditor</Form>
 				<DesignClass>TFrame</DesignClass>
 			</DCCReference>
+			<DCCReference Include="..\..\source\searchreplace.pas">
+				<Form>frmSearchReplace</Form>
+			</DCCReference>
 			<RcCompile Include="..\..\res\icon.rc">
 				<Form>icon.res</Form>
 			</RcCompile>

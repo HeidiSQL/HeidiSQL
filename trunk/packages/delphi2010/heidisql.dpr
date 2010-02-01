@@ -35,7 +35,8 @@ uses
   table_editor in '..\..\source\table_editor.pas' {frmTableEditor},
   mysql_api in '..\..\source\mysql_api.pas',
   mysql_connection in '..\..\source\mysql_connection.pas',
-  trigger_editor in '..\..\source\trigger_editor.pas' {frmTriggerEditor: TFrame};
+  trigger_editor in '..\..\source\trigger_editor.pas' {frmTriggerEditor: TFrame},
+  searchreplace in '..\..\source\searchreplace.pas' {frmSearchReplace};
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\version.RES}
