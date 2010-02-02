@@ -764,6 +764,7 @@ type
     procedure UpdateFilterPanel(Sender: TObject);
     procedure DatabaseChanged(Database: String);
     function GetBlobContent(Results: TMySQLQuery; Column: Integer): String;
+    procedure DoSearchReplace;
   public
     Connection: TMySQLConnection;
     SessionName: String;
@@ -2563,7 +2564,6 @@ end;
 procedure TMainForm.actQueryFindReplaceExecute(Sender: TObject);
 var
   DlgResult: TModalResult;
-  Occurences: Integer;
 begin
   // Display search + replace dialog
   if not Assigned(SearchReplaceDialog) then
@@ -2571,46 +2571,48 @@ begin
   SearchReplaceDialog.Editor := ActiveQueryMemo;
   SearchReplaceDialog.chkReplace.Checked := Sender = actQueryReplace;
   DlgResult := SearchReplaceDialog.ShowModal;
-  if SearchReplaceDialog.chkRegularExpression.Checked then
-    SearchReplaceDialog.Editor.SearchEngine := SynEditRegexSearch1
-  else
-    SearchReplaceDialog.Editor.SearchEngine := SynEditSearch1;
-  ShowStatus('Searching ...');
   case DlgResult of
     mrOK, mrAll: begin
-      Occurences := SearchReplaceDialog.Editor.SearchReplace(
-        SearchReplaceDialog.comboSearch.Text,
-        SearchReplaceDialog.comboReplace.Text,
-        SearchReplaceDialog.Options
-        );
+      DoSearchReplace;
       FSearchReplaceExecuted := True; // Helper for later F3 hits
-      if DlgResult = mrAll then
-        ShowStatus('Text "'+SearchReplaceDialog.comboSearch.Text+'" '+FormatNumber(Occurences)+' times replaced.', 0);
     end;
     mrCancel: Exit;
   end;
-  ShowStatus(STATUS_MSG_READY);
 end;
 
 
 procedure TMainForm.actQueryFindAgainExecute(Sender: TObject);
 begin
   // F3 - search or replace again, using previous settings
-  if not FSearchReplaceExecuted then begin
-    // Display dialog if not done yet
+  if not FSearchReplaceExecuted then
     actQueryFindReplaceExecute(Sender)
-  end else begin
+  else begin
     SearchReplaceDialog.Editor := ActiveQueryMemo;
-    if SearchReplaceDialog.chkRegularExpression.Checked then
-      SearchReplaceDialog.Editor.SearchEngine := SynEditRegexSearch1
-    else
-      SearchReplaceDialog.Editor.SearchEngine := SynEditSearch1;
-    SearchReplaceDialog.Editor.SearchReplace(
-      SearchReplaceDialog.comboSearch.Text,
-      SearchReplaceDialog.comboReplace.Text,
-      SearchReplaceDialog.Options
-      );
+    DoSearchReplace;
   end;
+end;
+
+
+procedure TMainForm.DoSearchReplace;
+var
+  Occurences: Integer;
+begin
+  if SearchReplaceDialog.chkRegularExpression.Checked then
+    SearchReplaceDialog.Editor.SearchEngine := SynEditRegexSearch1
+  else
+    SearchReplaceDialog.Editor.SearchEngine := SynEditSearch1;
+  SearchReplaceDialog.Editor.BeginUpdate;
+  ShowStatus('Searching ...');
+  Occurences := SearchReplaceDialog.Editor.SearchReplace(
+    SearchReplaceDialog.comboSearch.Text,
+    SearchReplaceDialog.comboReplace.Text,
+    SearchReplaceDialog.Options
+    );
+  SearchReplaceDialog.Editor.EndUpdate;
+  if ssoReplaceAll in SearchReplaceDialog.Options then
+    ShowStatus('Text "'+SearchReplaceDialog.comboSearch.Text+'" '+FormatNumber(Occurences)+' times replaced.', 0)
+  else
+    ShowStatus(STATUS_MSG_READY);
 end;
 
 
