@@ -901,13 +901,12 @@ procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
   ToFile, ToDir, ToDb, ToServer, IsLastRowInChunk, NeedsDBStructure: Boolean;
   Struc, Header, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent: String;
-  LogRow, MultiSQL: TStringList;
+  MultiSQL: TStringList;
   i: Integer;
   RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;
   StrucResult, Data: TMySQLQuery;
   rx: TRegExpr;
-  Percent: Double;
 const
   TempDelim = '//';
 
@@ -942,8 +941,20 @@ const
         SQL := '';
       end;
     end;
-
   end;
+
+  procedure LogStatistic(RowsDone: Int64);
+  var
+    LogRow: TStringlist;
+    Percent: Double;
+  begin
+    LogRow := TStringList(FResults.Last);
+    Percent := 100 / Max(DBObj.Rows,1) * RowsDone;
+    LogRow[2] := FormatNumber(RowsDone) + ' / ' + FormatNumber(Percent, 0)+'%';
+    LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000);
+    UpdateResultGrid;
+  end;
+
 begin
   // Handle one table, view or routine in SQL export mode
   AddResults('SELECT '+esc(DBObj.Database)+' AS '+Mainform.mask('Database')+', ' +
@@ -1151,12 +1162,7 @@ begin
               break;
           end;
           Output('', True, True, True, True, True);
-          LogRow := TStringList(FResults.Last);
-          Percent := 100 / Max(DBObj.Rows,1) * RowCount;
-          if Data.Eof then Percent := 100; // Cosmetic fix for estimated InnoDB rowcount
-          LogRow[2] := FormatNumber(RowCount) + ' / ' + FormatNumber(Percent, 0)+'%';
-          LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000);
-          UpdateResultGrid;
+          LogStatistic(RowCount);
           if Data.Eof then
             break;
 
@@ -1170,6 +1176,7 @@ begin
       end;
       Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True, True);
       Output(EXPORT_FILE_FOOTER, False, False, True, False, False);
+      LogStatistic(DbObj.Rows); // Cosmetic fix for estimated InnoDB row count
     end;
   end;
 
