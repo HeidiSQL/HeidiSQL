@@ -419,6 +419,7 @@ object MainForm: TMainForm
         ParentShowHint = False
         ShowHint = True
         TabOrder = 1
+        TextHint = 'Database filter'
         OnChange = comboOnlyDBsChange
         OnDragDrop = comboOnlyDBsDragDrop
         OnDragOver = comboOnlyDBsDragOver
