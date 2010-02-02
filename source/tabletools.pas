@@ -882,6 +882,7 @@ begin
       Browse.Free;
     end;
   end;
+  ValidateControls(Sender);
 end;
 
 procedure TfrmTableTools.SetToolMode(Value: TToolMode);
