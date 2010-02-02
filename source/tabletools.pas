@@ -614,7 +614,9 @@ begin
     ResultGrid.Header.Options := ResultGrid.Header.Options + [hoVisible];
   end else begin
     ColCount := 4;
-    ResultGrid.Header.Options := ResultGrid.Header.Options - [hoVisible];
+    // Remove column headers if this is the first row
+    if FResults.Count = 0 then
+      ResultGrid.Header.Options := ResultGrid.Header.Options - [hoVisible];
   end;
 
   // Add missing columns
