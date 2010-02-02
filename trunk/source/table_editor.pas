@@ -337,6 +337,7 @@ begin
   ResetModificationFlags;
   CreateCodeValid := False;
   AlterCodeValid := False;
+  PageControlMainChange(Self); // Foreign key editor needs a hit
   UpdateSQLCode;
   // Indicate change mechanisms can call their events now. See Modification().
   FLoaded := True;
