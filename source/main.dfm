@@ -1295,6 +1295,7 @@ object MainForm: TMainForm
               OnDropFiles = SynMemoQueryDropFiles
               OnReplaceText = SynMemoQueryReplaceText
               OnStatusChange = SynMemoQueryStatusChange
+              OnPaintTransient = SynMemoQueryPaintTransient
               RemovedKeystrokes = <
                 item
                   Command = ecDeleteWord

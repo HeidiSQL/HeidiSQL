@@ -725,6 +725,8 @@ type
     procedure SynMemoQuerySearchNotFound(Sender: TObject; FindText: string);
     procedure SynMemoQueryReplaceText(Sender: TObject; const ASearch,
       AReplace: string; Line, Column: Integer; var Action: TSynReplaceAction);
+    procedure SynMemoQueryPaintTransient(Sender: TObject; Canvas: TCanvas;
+      TransientType: TTransientType);
     procedure actQueryFindAgainExecute(Sender: TObject);
   private
     ReachedEOT: Boolean;
@@ -4496,6 +4498,110 @@ begin
       actNewQueryTab.Execute;
       QueryLoad(AFiles[i], false);
     end;
+  end;
+end;
+
+
+procedure TMainForm.SynMemoQueryPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
+var
+  Editor : TSynEdit;
+  OpenChars: array of Char;
+  CloseChars: array of Char;
+  P: TBufferCoord;
+  Pix: TPoint;
+  D: TDisplayCoord;
+  S: String;
+  I: Integer;
+  Attri: TSynHighlighterAttributes;
+  ArrayLength: Integer;
+  start: Integer;
+  TmpCharA, TmpCharB: Char;
+
+  function IsCharBracket(AChar: Char): Boolean;
+  begin
+    Result := CharInSet(AChar, ['{','[','(','<','}',']',')','>']);
+  end;
+
+  function CharToPixels(P: TBufferCoord): TPoint;
+  begin
+    Result := Editor.RowColumnToPixels(Editor.BufferToDisplayPos(P));
+  end;
+begin
+  // Highlight matching brackets
+  Editor := TSynEdit(Sender);
+  if Editor.SelAvail then exit;
+  ArrayLength := 3;
+
+  SetLength(OpenChars, ArrayLength);
+  SetLength(CloseChars, ArrayLength);
+  for i := 0 to ArrayLength - 1 do
+    Case i of
+      0: begin OpenChars[i] := '('; CloseChars[i] := ')'; end;
+      1: begin OpenChars[i] := '{'; CloseChars[i] := '}'; end;
+      2: begin OpenChars[i] := '['; CloseChars[i] := ']'; end;
+      3: begin OpenChars[i] := '<'; CloseChars[i] := '>'; end;
+    end;
+
+  P := Editor.CaretXY;
+  D := Editor.DisplayXY;
+
+  Start := Editor.SelStart;
+
+  if (Start > 0) and (Start <= length(Editor.Text)) then
+    TmpCharA := Editor.Text[Start]
+  else
+    TmpCharA := #0;
+
+  if (Start < length(Editor.Text)) then
+    TmpCharB := Editor.Text[Start + 1]
+  else
+    TmpCharB := #0;
+
+  if not IsCharBracket(TmpCharA) and not IsCharBracket(TmpCharB) then
+    Exit;
+  S := TmpCharB;
+  if not IsCharBracket(TmpCharB) then begin
+    P.Char := P.Char - 1;
+    S := TmpCharA;
+  end;
+  Editor.GetHighlighterAttriAtRowCol(P, S, Attri);
+
+  if (Editor.Highlighter.SymbolAttribute = Attri) then begin
+    for i:=Low(OpenChars) to High(OpenChars) do begin
+      if (S = OpenChars[i]) or (S = CloseChars[i]) then begin
+        Pix := CharToPixels(P);
+
+        Editor.Canvas.Brush.Style := bsSolid;
+        Editor.Canvas.Font.Assign(Editor.Font);
+        Editor.Canvas.Font.Style := Attri.Style;
+
+        if (TransientType = ttAfter) then begin
+          Editor.Canvas.Font.Color := clBlack;
+          Editor.Canvas.Brush.Color := clAqua;
+        end else begin
+          Editor.Canvas.Font.Color := Attri.Foreground;
+          Editor.Canvas.Brush.Color := Attri.Background;
+        end;
+        if Editor.Canvas.Font.Color = clNone then
+          Editor.Canvas.Font.Color := Editor.Font.Color;
+        if Editor.Canvas.Brush.Color = clNone then
+          Editor.Canvas.Brush.Color := Editor.Color;
+
+        Editor.Canvas.TextOut(Pix.X, Pix.Y, S);
+        P := Editor.GetMatchingBracketEx(P);
+
+        if (P.Char > 0) and (P.Line > 0) then begin
+          Pix := CharToPixels(P);
+          if Pix.X > Editor.Gutter.Width then begin
+            if S = OpenChars[i] then
+              Editor.Canvas.TextOut(Pix.X, Pix.Y, CloseChars[i])
+            else Editor.Canvas.TextOut(Pix.X, Pix.Y, OpenChars[i]);
+          end;
+        end;
+
+      end;
+    end;
+    Editor.Canvas.Brush.Style := bsSolid;
   end;
 end;
 
@@ -8318,6 +8424,7 @@ begin
   QueryTab.Memo.OnSearchNotFound := SynMemoQuery.OnSearchNotFound;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
+  QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
   SynCompletionProposal.AddEditor(QueryTab.Memo);
 
   QueryTab.spltHelpers := TSplitter.Create(QueryTab.pnlMemo);
@@ -8905,6 +9012,7 @@ begin
     Editor.TabWidth := TabWidth;
     Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
     Editor.WantTabs := BaseEditor.WantTabs;
+    Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
     // Shortcuts
     if Editor = BaseEditor then for j:=0 to Editor.Keystrokes.Count-1 do begin
       KeyStroke := Editor.Keystrokes[j];
