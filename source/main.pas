@@ -722,7 +722,6 @@ type
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
       var Allowed: Boolean);
     procedure actBlobAsTextExecute(Sender: TObject);
-    procedure SynMemoQuerySearchNotFound(Sender: TObject; FindText: string);
     procedure SynMemoQueryReplaceText(Sender: TObject; const ASearch,
       AReplace: string; Line, Column: Integer; var Action: TSynReplaceAction);
     procedure SynMemoQueryPaintTransient(Sender: TObject; Canvas: TCanvas;
@@ -2598,11 +2597,13 @@ end;
 procedure TMainForm.DoSearchReplace;
 var
   Occurences: Integer;
+  OldCaretXY: TBufferCoord;
 begin
   if SearchReplaceDialog.chkRegularExpression.Checked then
     SearchReplaceDialog.Editor.SearchEngine := SynEditRegexSearch1
   else
     SearchReplaceDialog.Editor.SearchEngine := SynEditSearch1;
+  OldCaretXY := SearchReplaceDialog.Editor.CaretXY;
   SearchReplaceDialog.Editor.BeginUpdate;
   ShowStatus('Searching ...');
   Occurences := SearchReplaceDialog.Editor.SearchReplace(
@@ -2611,18 +2612,14 @@ begin
     SearchReplaceDialog.Options
     );
   SearchReplaceDialog.Editor.EndUpdate;
+  ShowStatus(STATUS_MSG_READY);
   if ssoReplaceAll in SearchReplaceDialog.Options then
     ShowStatus('Text "'+SearchReplaceDialog.comboSearch.Text+'" '+FormatNumber(Occurences)+' times replaced.', 0)
-  else
-    ShowStatus(STATUS_MSG_READY);
-end;
-
-
-procedure TMainForm.SynMemoQuerySearchNotFound(Sender: TObject; FindText: string);
-begin
-  // No text found
-  ShowStatus('Text "'+sstr(FindText,50)+'" not found.', 0);
-  MessageBeep(MB_ICONASTERISK);
+  else begin
+    if (OldCaretXY.Char = SearchReplaceDialog.Editor.CaretXY.Char) and
+      (OldCaretXY.Line = SearchReplaceDialog.Editor.CaretXY.Line) then
+      MessageDlg('Text "'+SearchReplaceDialog.comboSearch.Text+'" not found.', mtInformation, [mbOk], 0);
+  end;
 end;
 
 
@@ -8423,7 +8420,6 @@ begin
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
-  QueryTab.Memo.OnSearchNotFound := SynMemoQuery.OnSearchNotFound;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
   QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
