@@ -5712,6 +5712,8 @@ var
 begin
   Tree := TVirtualStringTree(Sender);
   HintText := Tree.Text[Node, Column];
+  HintText := sstr(HintText, SIZE_KB);
+  LineBreakStyle := hlbForceMultiLine;
   // Check if the list has shortened the text
   r := Tree.GetDisplayRect(Node, Column, True);
   DisplayedWidth := r.Right-r.Left;
