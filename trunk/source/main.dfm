@@ -1264,7 +1264,6 @@ object MainForm: TMainForm
               Top = 0
               Width = 411
               Height = 96
-              OnSearchNotFound = SynMemoQuerySearchNotFound
               SingleLineMode = False
               Align = alClient
               ActiveLineColor = clWindow
