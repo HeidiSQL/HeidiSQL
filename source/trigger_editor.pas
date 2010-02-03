@@ -81,7 +81,7 @@ var
 begin
   inherited;
   editName.Text := '';
-  SynMemoStatement.Text := '';
+  SynMemoStatement.Text := 'BEGIN'+CRLF+CRLF+'END';
   comboEvent.ItemIndex := 0;
   comboTiming.ItemIndex := 0;
   DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);
