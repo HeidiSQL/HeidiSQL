@@ -137,6 +137,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     Text = 'editName'
+    TextHint = 'Enter routine name'
     OnChange = editNameChange
   end
   object tlbParameters: TToolBar

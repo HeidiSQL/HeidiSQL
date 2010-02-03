@@ -85,7 +85,7 @@ begin
     rx.Free;
   end else begin
     // Create mode
-    editName.Text := 'Enter view name';
+    editName.Text := '';
     rgAlgorithm.Enabled := True;
     rgAlgorithm.ItemIndex := 0;
     rgCheck.Enabled := True;

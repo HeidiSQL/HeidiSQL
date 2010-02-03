@@ -60,6 +60,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
+    TextHint = 'Enter database name'
     OnChange = editDBNameChange
   end
   object comboCharset: TComboBox

@@ -112,7 +112,7 @@ begin
     if not Found then
       Raise Exception.Create('Trigger definition not found!');
   end else begin
-    editName.Text := 'Enter trigger name';
+    editName.Text := '';
   end;
   Modified := False;
   btnSave.Enabled := Modified;

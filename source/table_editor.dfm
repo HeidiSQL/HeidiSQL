@@ -202,6 +202,7 @@ object frmTableEditor: TfrmTableEditor
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
         Text = 'editName'
+        TextHint = 'Enter table name'
         OnChange = editNameChange
       end
       object memoComment: TMemo
