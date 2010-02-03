@@ -44,6 +44,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     Text = 'editName'
+    TextHint = 'Enter trigger name'
     OnChange = Modification
   end
   object SynMemoStatement: TSynMemo

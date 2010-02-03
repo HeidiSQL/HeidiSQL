@@ -282,7 +282,7 @@ begin
 
   if FEditObjectName = '' then begin
     // Creating new table
-    editName.Text := 'Enter table name';
+    editName.Text := '';
     comboCollation.ItemIndex := comboCollation.Items.IndexOf(Mainform.Connection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
     PageControlMain.ActivePage := tabBasic;
   end else begin

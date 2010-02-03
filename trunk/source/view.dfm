@@ -35,6 +35,7 @@ object frmView: TfrmView
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     Text = 'editName'
+    TextHint = 'Enter view name'
     OnChange = editNameChange
   end
   object rgAlgorithm: TRadioGroup

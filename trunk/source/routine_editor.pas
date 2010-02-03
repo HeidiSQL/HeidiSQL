@@ -178,7 +178,7 @@ begin
     end;
     FreeAndNil(Results);
   end else begin
-    editName.Text := 'Enter routine name';
+    editName.Text := '';
   end;
   editNameChange(Self);
   comboTypeSelect(comboType);
