@@ -193,6 +193,18 @@ const
   REGNAME_SEARCHTEXT = 'FindDialogSearchHistory';
   REGNAME_REPLACETEXT = 'FindDialogReplaceHistory';
 
+  // Log events
+  REGNAME_LOG_ERRORS = 'LogErrors';
+  DEFAULT_LOG_ERRORS = True;
+  REGNAME_LOG_USERSQL = 'LogUserSQL';
+  DEFAULT_LOG_USERSQL = True;
+  REGNAME_LOG_SQL = 'LogSQL';
+  DEFAULT_LOG_SQL = True;
+  REGNAME_LOG_INFOS = 'LogInfos';
+  DEFAULT_LOG_INFOS = True;
+  REGNAME_LOG_DEBUG = 'LogDebug';
+  DEFAULT_LOG_DEBUG = False;
+
   REGNAME_FIELDCOLOR_NUMERIC = 'FieldColor_Numeric';
   REGNAME_FIELDCOLOR_TEXT = 'FieldColor_Text';
   REGNAME_FIELDCOLOR_BINARY = 'FieldColor_Binary';

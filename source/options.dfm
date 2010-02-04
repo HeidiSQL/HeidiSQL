@@ -32,64 +32,14 @@ object optionsform: Toptionsform
     OnChanging = pagecontrolMainChanging
     object tabMisc: TTabSheet
       Caption = 'Miscellaneous'
-      object Label4: TLabel
-        Left = 16
-        Top = 82
-        Width = 37
-        Height = 13
-        Caption = 'Log last'
-      end
-      object lblLogLinesHint: TLabel
-        Left = 240
-        Top = 82
-        Width = 71
-        Height = 13
-        Caption = 'lines in SQL log'
-      end
-      object lblLogSnip: TLabel
-        Left = 16
-        Top = 109
-        Width = 96
-        Height = 13
-        Caption = 'Snip SQL log lines to'
-      end
-      object lblLogSnipHint: TLabel
-        Left = 238
-        Top = 109
-        Width = 139
-        Height = 13
-        Caption = 'characters  (0 = no snipping)'
-      end
       object chkAutoReconnect: TCheckBox
         Left = 16
         Top = 32
         Width = 334
         Height = 17
         Caption = 'Automatically reconnect to last session-account on startup'
-        TabOrder = 0
+        TabOrder = 1
         OnClick = Modified
-      end
-      object updownLogLines: TUpDown
-        Left = 212
-        Top = 79
-        Width = 17
-        Height = 21
-        Associate = editLogLines
-        Min = 1
-        Max = 32767
-        Position = 1
-        TabOrder = 3
-        Wrap = True
-        OnChanging = anyUpDownLimitChanging
-      end
-      object editLogLines: TEdit
-        Left = 159
-        Top = 79
-        Width = 53
-        Height = 21
-        TabOrder = 2
-        Text = '1'
-        OnChange = Modified
       end
       object chkRestoreLastDB: TCheckBox
         Left = 16
@@ -99,102 +49,63 @@ object optionsform: Toptionsform
         Caption = 'Restore last used database on startup'
         Checked = True
         State = cbChecked
-        TabOrder = 1
+        TabOrder = 2
         OnClick = Modified
-      end
-      object chkLogToFile: TCheckBox
-        Left = 16
-        Top = 135
-        Width = 141
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Write SQL log to file'
-        TabOrder = 6
-        OnClick = Modified
-      end
-      object btnOpenLogFolder: TButton
-        Left = 159
-        Top = 132
-        Width = 106
-        Height = 20
-        Caption = 'Open log folder ...'
-        TabOrder = 7
-        OnClick = btnOpenLogFolderClick
-      end
-      object editLogSnip: TEdit
-        Left = 159
-        Top = 106
-        Width = 53
-        Height = 21
-        TabOrder = 4
-        Text = '2000'
-        OnChange = Modified
-      end
-      object updownLogSnip: TUpDown
-        Left = 212
-        Top = 106
-        Width = 17
-        Height = 21
-        Associate = editLogSnip
-        Max = 32767
-        Position = 2000
-        TabOrder = 5
-        OnChanging = anyUpDownLimitChanging
       end
       object chkUpdatecheck: TCheckBox
         Left = 16
-        Top = 176
+        Top = 78
         Width = 281
         Height = 28
         Caption = 
           'Automatically check for updates / Interval [days]:'#13#10'(0 = each ti' +
           'me the application is started)'
-        TabOrder = 8
+        TabOrder = 3
         WordWrap = True
         OnClick = chkUpdatecheckClick
       end
       object editUpdatecheckInterval: TEdit
         Left = 316
-        Top = 176
+        Top = 78
         Width = 43
         Height = 21
         Enabled = False
-        TabOrder = 9
+        TabOrder = 4
         Text = '1'
         OnChange = Modified
       end
       object updownUpdatecheckInterval: TUpDown
         Left = 359
-        Top = 176
+        Top = 78
         Width = 16
         Height = 21
         Associate = editUpdatecheckInterval
         Enabled = False
         Max = 999
         Position = 1
-        TabOrder = 10
+        TabOrder = 5
         OnChanging = anyUpDownLimitChanging
       end
       object chkUpdateCheckBuilds: TCheckBox
         Left = 34
-        Top = 210
+        Top = 112
         Width = 247
         Height = 17
         Caption = 'Also check for updated nightly builds'
         Enabled = False
-        TabOrder = 11
+        TabOrder = 6
         OnClick = Modified
       end
       object chkDoStatistics: TCheckBox
         Left = 16
-        Top = 233
+        Top = 135
         Width = 379
         Height = 48
         Caption = 
           'Count in usage statistics. This option, if enabled, will cause H' +
           'eidiSQL to ping heidisql.com at most once every month.  This is ' +
           'used to count the used HeidiSQL and MySQL versions.'
-        TabOrder = 12
+        TabOrder = 7
         WordWrap = True
         OnClick = Modified
       end
@@ -206,7 +117,152 @@ object optionsform: Toptionsform
         Caption = 'Allow multiple application instances'
         Checked = True
         State = cbChecked
-        TabOrder = 13
+        TabOrder = 0
+      end
+    end
+    object tabLogging: TTabSheet
+      Caption = 'Logging'
+      ImageIndex = 5
+      object Label4: TLabel
+        Left = 16
+        Top = 18
+        Width = 37
+        Height = 13
+        Caption = 'Log last'
+      end
+      object lblLogLinesHint: TLabel
+        Left = 240
+        Top = 18
+        Width = 71
+        Height = 13
+        Caption = 'lines in SQL log'
+      end
+      object lblLogSnipHint: TLabel
+        Left = 238
+        Top = 45
+        Width = 139
+        Height = 13
+        Caption = 'characters  (0 = no snipping)'
+      end
+      object lblLogSnip: TLabel
+        Left = 16
+        Top = 45
+        Width = 96
+        Height = 13
+        Caption = 'Snip SQL log lines to'
+      end
+      object lblLogLevel: TLabel
+        Left = 16
+        Top = 102
+        Width = 57
+        Height = 13
+        Caption = 'Log events:'
+      end
+      object editLogLines: TEdit
+        Left = 159
+        Top = 15
+        Width = 53
+        Height = 21
+        TabOrder = 0
+        Text = '1'
+        OnChange = Modified
+      end
+      object updownLogLines: TUpDown
+        Left = 212
+        Top = 15
+        Width = 16
+        Height = 21
+        Associate = editLogLines
+        Min = 1
+        Max = 32767
+        Position = 1
+        TabOrder = 1
+        Wrap = True
+        OnChanging = anyUpDownLimitChanging
+      end
+      object updownLogSnip: TUpDown
+        Left = 212
+        Top = 42
+        Width = 16
+        Height = 21
+        Associate = editLogSnip
+        Max = 32767
+        Position = 2000
+        TabOrder = 3
+        OnChanging = anyUpDownLimitChanging
+      end
+      object editLogSnip: TEdit
+        Left = 159
+        Top = 42
+        Width = 53
+        Height = 21
+        TabOrder = 2
+        Text = '2000'
+        OnChange = Modified
+      end
+      object chkLogToFile: TCheckBox
+        Left = 16
+        Top = 71
+        Width = 141
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Write SQL log to file'
+        TabOrder = 4
+        OnClick = Modified
+      end
+      object btnOpenLogFolder: TButton
+        Left = 159
+        Top = 68
+        Width = 106
+        Height = 20
+        Caption = 'Open log folder ...'
+        TabOrder = 5
+        OnClick = btnOpenLogFolderClick
+      end
+      object chkLogEventErrors: TCheckBox
+        Left = 159
+        Top = 101
+        Width = 150
+        Height = 17
+        Caption = 'Errors'
+        TabOrder = 6
+        OnClick = Modified
+      end
+      object chkLogEventUserFiredSQL: TCheckBox
+        Left = 159
+        Top = 120
+        Width = 150
+        Height = 17
+        Caption = 'User fired SQL queries'
+        TabOrder = 7
+        OnClick = Modified
+      end
+      object chkLogEventSQL: TCheckBox
+        Left = 159
+        Top = 139
+        Width = 150
+        Height = 17
+        Caption = 'Internal SQL queries'
+        TabOrder = 8
+        OnClick = Modified
+      end
+      object chkLogEventInfo: TCheckBox
+        Left = 159
+        Top = 158
+        Width = 150
+        Height = 17
+        Caption = 'Information messages'
+        TabOrder = 9
+        OnClick = Modified
+      end
+      object chkLogEventDebug: TCheckBox
+        Left = 159
+        Top = 177
+        Width = 150
+        Height = 17
+        Caption = 'Debug messages'
+        TabOrder = 10
+        OnClick = Modified
       end
     end
     object tabSQL: TTabSheet
