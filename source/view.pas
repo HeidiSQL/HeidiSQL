@@ -47,6 +47,7 @@ uses main;
 constructor TfrmView.Create(AOwner: TComponent);
 begin
   inherited;
+  ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
   SynMemoSelect.Highlighter := Mainform.SynSQLSyn1;
   Mainform.SynCompletionProposal.AddEditor(SynMemoSelect);
   editName.MaxLength := NAME_LEN;

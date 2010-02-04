@@ -487,7 +487,6 @@ object MainForm: TMainForm
         Images = PngImageListMain
         MultiLine = True
         PopupMenu = popupMainTabs
-        TabHeight = 22
         TabOrder = 1
         OnChange = PageControlMainChange
         OnContextPopup = PageControlMainContextPopup
@@ -499,7 +498,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 575
-            Height = 299
+            Height = 302
             ActivePage = tabVariables
             Align = alClient
             HotTrack = True
@@ -511,7 +510,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 567
-                Height = 271
+                Height = 274
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
@@ -561,7 +560,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 567
-                Height = 271
+                Height = 274
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
@@ -622,7 +621,7 @@ object MainForm: TMainForm
               ImageIndex = 1
               object Splitter3: TSplitter
                 Left = 0
-                Top = 198
+                Top = 201
                 Width = 567
                 Height = 4
                 Cursor = crSizeNS
@@ -633,7 +632,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 567
-                Height = 198
+                Height = 201
                 Align = alClient
                 Header.AutoSizeIndex = 7
                 Header.DefaultHeight = 17
@@ -707,7 +706,7 @@ object MainForm: TMainForm
               end
               object pnlProcessViewBox: TPanel
                 Left = 0
-                Top = 202
+                Top = 205
                 Width = 567
                 Height = 69
                 Align = alBottom
@@ -761,7 +760,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 567
-                Height = 271
+                Height = 274
                 Align = alClient
                 Header.AutoSizeIndex = 4
                 Header.DefaultHeight = 17
@@ -832,7 +831,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 575
-            Height = 299
+            Height = 302
             Align = alClient
             EditDelay = 500
             Header.AutoSizeIndex = -1
@@ -992,7 +991,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 91
             Width = 575
-            Height = 208
+            Height = 211
             Align = alClient
             Alignment = taCenter
             Caption = 'Stored routines don'#39't provide any data you could edit here.'
@@ -1176,7 +1175,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 91
             Width = 575
-            Height = 208
+            Height = 211
             Align = alClient
             AutoScrollDelay = 50
             EditDelay = 0
@@ -1386,7 +1385,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 113
             Width = 575
-            Height = 186
+            Height = 189
             Align = alClient
             AutoScrollDelay = 50
             EditDelay = 0

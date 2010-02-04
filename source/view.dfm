@@ -3,12 +3,6 @@ object frmView: TfrmView
   Top = 0
   Width = 451
   Height = 304
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
-  Font.Style = []
-  ParentFont = False
   TabOrder = 0
   DesignSize = (
     451

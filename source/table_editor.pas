@@ -47,7 +47,6 @@ type
     btnClearIndexes: TToolButton;
     btnMoveUpIndex: TToolButton;
     btnMoveDownIndex: TToolButton;
-    StaticText1: TStaticText;
     pnlColumnsTop: TPanel;
     tlbColumns: TToolBar;
     btnAddColumn: TToolButton;
@@ -80,13 +79,13 @@ type
     btnAddForeignKey: TToolButton;
     btnRemoveForeignKey: TToolButton;
     btnClearForeignKeys: TToolButton;
-    listForeignKeys: TVirtualStringTree;
-    lblNoForeignKeys: TLabel;
     menuCopyColumnCell: TMenuItem;
     N2: TMenuItem;
     popupSQLmemo: TPopupMenu;
     menuSQLCopy: TMenuItem;
     menuSQLSelectAll: TMenuItem;
+    pnlNoForeignKeys: TPanel;
+    listForeignKeys: TVirtualStringTree;
     procedure editNameChange(Sender: TObject);
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
@@ -219,6 +218,7 @@ const
 constructor TfrmTableEditor.Create(AOwner: TComponent);
 begin
   inherited;
+  ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
   PageControlMain.Height := GetRegValue(REGNAME_TABLEEDITOR_TABSHEIGHT, PageControlMain.Height);
   FixVT(listColumns);
   FixVT(treeIndexes);
@@ -1753,13 +1753,11 @@ begin
     SupportsForeignKeys := LowerCase(comboEngine.Text) = 'innodb';
     ListForeignKeys.Enabled := SupportsForeignKeys;
     tlbForeignKeys.Enabled := SupportsForeignKeys;
-    lblNoForeignKeys.Caption := 'The selected table engine ('+comboEngine.Text+') does not support foreign keys. '+
-      'To enable foreign keys you have to change the table engine in the "Options" tab to "InnoDB".';
+    pnlNoForeignKeys.Caption := 'The selected table engine ('+comboEngine.Text+') does not support foreign keys.';
     if SupportsForeignKeys then
-      ListForeignKeys.Height := lblNoForeignKeys.Top - ListForeignKeys.Top + lblNoForeignKeys.Height
+      ListForeignKeys.Margins.Bottom := 0
     else
-      ListForeignKeys.Height := lblNoForeignKeys.Top - ListForeignKeys.Top - 4;
-    lblNoForeignKeys.Visible := not SupportsForeignKeys;
+      ListForeignKeys.Margins.Bottom := GetTextHeight(pnlNoForeignKeys.Font)+4;
   end;
   UpdateSQLcode;
 end;

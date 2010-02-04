@@ -316,3 +316,6 @@ const
 
   SizeGripProp = 'SizeGrip';
 
+  // Forms are designed at 96 dpi. Use that to scale TFrames, which obviously do not auto-scale.
+  FORMS_DPI = 96;
+

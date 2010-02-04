@@ -54,6 +54,7 @@ var
   i: Integer;
 begin
   inherited;
+  ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
   SynMemoStatement.Highlighter := Mainform.SynSQLSyn1;
   editName.MaxLength := NAME_LEN;
   comboTiming.Items.Text := 'BEFORE'+CRLF+'AFTER';
