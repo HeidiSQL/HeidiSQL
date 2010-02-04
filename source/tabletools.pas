@@ -1037,12 +1037,14 @@ begin
         case DBObj.NodeType of
           lntTable, lntView: begin
             Struc := Mainform.Connection.GetVar('SHOW CREATE TABLE '+m(DBObj.Database)+'.'+m(DBObj.Name), 1);
-            // Remove AUTO_INCREMENT clause
-            rx := TRegExpr.Create;
-            rx.ModifierI := True;
-            rx.Expression := '\sAUTO_INCREMENT\s*\=\s*\d+\s';
-            Struc := rx.Replace(Struc, ' ', false);
-            rx.Free;
+            // Remove AUTO_INCREMENT clause if no data gets exported
+            if comboExportData.Text = DATA_NO then begin
+              rx := TRegExpr.Create;
+              rx.ModifierI := True;
+              rx.Expression := '\sAUTO_INCREMENT\s*\=\s*\d+\s';
+              Struc := rx.Replace(Struc, ' ', false);
+              rx.Free;
+            end;
             if DBObj.NodeType = lntTable then
               Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
             if ToDb then begin
