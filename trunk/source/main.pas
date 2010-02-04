@@ -1240,6 +1240,7 @@ begin
   InheritFont(Font);
   InheritFont(tabsetQueryHelpers.Font);
   InheritFont(SynCompletionProposal.Font);
+  StatusBar.Height := GetTextHeight(StatusBar.Font)+4;
 
   // Enable auto completion in data tab, filter editor
   SynCompletionProposal.AddEditor(SynMemoFilter);

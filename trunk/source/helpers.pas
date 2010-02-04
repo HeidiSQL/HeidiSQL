@@ -223,6 +223,7 @@ type
   function BinToWideHex(bin: AnsiString): String;
   procedure CheckHex(text: String; errorMessage: string);
   procedure FixVT(VT: TVirtualStringTree);
+  function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   function ComposeOrderClause(Cols: TOrderColArray): String;
   procedure OpenRegistry(Session: String = '');
@@ -2515,29 +2516,17 @@ end;
 procedure FixVT(VT: TVirtualStringTree);
 var
   ReadOnlyNodeHeight: Integer;
-  DC: HDC;
-  SaveFont: HFont;
-  I: Integer;
-  SysMetrics, Metrics: TTextMetric;
 begin
   // Resize hardcoded node height to work with different DPI settings
   ReadOnlyNodeHeight := VT.Canvas.TextHeight('A') + 6;
   if toEditable in VT.TreeOptions.MiscOptions then begin
     // Editable nodes must have enough height for a TEdit, including its cursor
-    // Code taken from StdCtrls.TCustomEdit.AdjustHeight
-    DC := GetDC(0);
-    GetTextMetrics(DC, SysMetrics);
-    SaveFont := SelectObject(DC, VT.Font.Handle);
-    GetTextMetrics(DC, Metrics);
-    SelectObject(DC, SaveFont);
-    ReleaseDC(0, DC);
-    I := GetSystemMetrics(SM_CYBORDER) * 6;
-    VT.DefaultNodeHeight := Metrics.tmHeight + I;
+    VT.DefaultNodeHeight := GetTextHeight(VT.Font) + GetSystemMetrics(SM_CYBORDER) * 6;
   end else
     VT.DefaultNodeHeight := ReadOnlyNodeHeight;
   // The header needs slightly more height than the normal nodes
   VT.Header.Height := Trunc(ReadOnlyNodeHeight * 1.2);
-  // Disable hottracking in non-Vista mode, looks ugly in XP, but nice in Vista 
+  // Disable hottracking in non-Vista mode, looks ugly in XP, but nice in Vista
   if (toUseExplorerTheme in VT.TreeOptions.PaintOptions) and IsWindowsVista then
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
   else
@@ -2548,6 +2537,23 @@ begin
   // Apply case insensitive incremental search event
   if VT.IncrementalSearch <> isNone then
     VT.OnIncrementalSearch := Mainform.vstIncrementalSearch;
+end;
+
+
+function GetTextHeight(Font: TFont): Integer;
+var
+  DC: HDC;
+  SaveFont: HFont;
+  SysMetrics, Metrics: TTextMetric;
+begin
+  // Code taken from StdCtrls.TCustomEdit.AdjustHeight
+  DC := GetDC(0);
+  GetTextMetrics(DC, SysMetrics);
+  SaveFont := SelectObject(DC, Font.Handle);
+  GetTextMetrics(DC, Metrics);
+  SelectObject(DC, SaveFont);
+  ReleaseDC(0, DC);
+  Result := Metrics.tmHeight;
 end;
 
 

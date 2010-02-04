@@ -92,6 +92,7 @@ var
   i: Integer;
 begin
   inherited;
+  ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
   // Combo items in a .dfm are sporadically lost after an IDE restart,
   // so we set them here to avoid developer annoyance
   comboType.Items.Add('Procedure (doesn''t return a result)');
