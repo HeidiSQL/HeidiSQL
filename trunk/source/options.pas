@@ -29,7 +29,6 @@ type
     btnApply: TButton;
     tabSQL: TTabSheet;
     chkAutoReconnect: TCheckBox;
-    lblLogLinesHint: TLabel;
     tabCSV: TTabSheet;
     grpCSV: TGroupBox;
     lblCSVSeparator: TLabel;
@@ -49,17 +48,9 @@ type
     updownDataFontSize: TUpDown;
     lblDataFontHint: TLabel;
     lblMaxColWidth: TLabel;
-    updownLogLines: TUpDown;
-    editLogLines: TEdit;
     editMaxColWidth: TEdit;
     updownMaxColWidth: TUpDown;
     chkRestoreLastDB: TCheckBox;
-    chkLogToFile: TCheckBox;
-    btnOpenLogFolder: TButton;
-    lblLogSnip: TLabel;
-    editLogSnip: TEdit;
-    updownLogSnip: TUpDown;
-    lblLogSnipHint: TLabel;
     chkUpdatecheck: TCheckBox;
     editUpdatecheckInterval: TEdit;
     updownUpdatecheckInterval: TUpDown;
@@ -120,6 +111,23 @@ type
     updownSQLTabWidth: TUpDown;
     chkExportLocaleNumbers: TCheckBox;
     chkAllowMultiInstances: TCheckBox;
+    tabLogging: TTabSheet;
+    Label4: TLabel;
+    editLogLines: TEdit;
+    updownLogLines: TUpDown;
+    lblLogLinesHint: TLabel;
+    lblLogSnipHint: TLabel;
+    updownLogSnip: TUpDown;
+    editLogSnip: TEdit;
+    lblLogSnip: TLabel;
+    chkLogToFile: TCheckBox;
+    btnOpenLogFolder: TButton;
+    lblLogLevel: TLabel;
+    chkLogEventErrors: TCheckBox;
+    chkLogEventUserFiredSQL: TCheckBox;
+    chkLogEventSQL: TCheckBox;
+    chkLogEventInfo: TCheckBox;
+    chkLogEventDebug: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -213,6 +221,11 @@ begin
   MainReg.WriteInteger(REGNAME_TABWIDTH, updownSQLTabWidth.Position);
   MainReg.WriteInteger(REGNAME_LOGSQLNUM, updownLogLines.Position);
   MainReg.WriteInteger(REGNAME_LOGSQLWIDTH, updownLogSnip.Position);
+  MainReg.WriteBool(REGNAME_LOG_ERRORS, chkLogEventErrors.Checked);
+  MainReg.WriteBool(REGNAME_LOG_USERSQL, chkLogEventUserFiredSQL.Checked);
+  MainReg.WriteBool(REGNAME_LOG_SQL, chkLogEventSQL.Checked);
+  MainReg.WriteBool(REGNAME_LOG_INFOS, chkLogEventInfo.Checked);
+  MainReg.WriteBool(REGNAME_LOG_DEBUG, chkLogEventDebug.Checked);
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
     Attri := SynSQLSynSQLSample.Attribute[i];
     MainReg.WriteInteger(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_FG, Attri.Foreground);
@@ -290,6 +303,11 @@ begin
 
   Mainform.prefLogsqlnum := updownLogLines.Position;
   Mainform.prefLogSqlWidth := updownLogSnip.Position;
+  Mainform.prefLogErrors := chkLogEventErrors.Checked;
+  Mainform.prefLogUserSQL := chkLogEventUserFiredSQL.Checked;
+  Mainform.prefLogSQL := chkLogEventSQL.Checked;
+  Mainform.prefLogInfos := chkLogEventInfo.Checked;
+  Mainform.prefLogDebug := chkLogEventDebug.Checked;
   Mainform.TrimSQLLog;
   if chkLogToFile.Checked then
     Mainform.ActivateFileLogging
@@ -374,13 +392,22 @@ begin
   chkAutoReconnect.Checked := GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
   chkAllowMultiInstances.Checked := GetRegValue(REGNAME_MULTI_INSTANCES, DEFAULT_MULTI_INSTANCES);
   chkRestoreLastDB.Checked := GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
-  updownLogLines.Position := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
-  updownLogSnip.Position := GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
   chkUpdatecheck.Checked := GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK);
   chkUpdatecheckBuilds.Checked := GetRegValue(REGNAME_DO_UPDATECHECK_BUILDS, DEFAULT_DO_UPDATECHECK_BUILDS);
   updownUpdatecheckInterval.Position := GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
   chkUpdatecheckClick(Sender);
   chkDoStatistics.Checked := GetRegValue(REGNAME_DO_STATISTICS, DEFAULT_DO_STATISTICS);
+
+  // Logging
+  updownLogLines.Position := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
+  updownLogSnip.Position := GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
+  chkLogToFile.Checked := GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE);
+  chkLogEventErrors.Checked := GetRegValue(REGNAME_LOG_ERRORS, DEFAULT_LOG_ERRORS);
+  chkLogEventUserFiredSQL.Checked := GetRegValue(REGNAME_LOG_USERSQL, DEFAULT_LOG_USERSQL);
+  chkLogEventSQL.Checked := GetRegValue(REGNAME_LOG_SQL, DEFAULT_LOG_SQL);
+  chkLogEventInfo.Checked := GetRegValue(REGNAME_LOG_INFOS, DEFAULT_LOG_INFOS);
+  chkLogEventDebug.Checked := GetRegValue(REGNAME_LOG_DEBUG, DEFAULT_LOG_DEBUG);
+  btnOpenLogFolder.Enabled := DirectoryExists(Mainform.DirnameSessionLogs);
 
   // Default Column-Width in DBGrids:
   updownMaxColWidth.Position := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
@@ -392,10 +419,6 @@ begin
   editCSVTerminator.Text := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   updownCopyDataMaxSize.Position := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE);
   chkExportLocaleNumbers.Checked := GetRegValue(REGNAME_EXPORT_LOCALENUMBERS, DEFAULT_EXPORT_LOCALENUMBERS);
-
-  // Log to file
-  chkLogToFile.Checked := GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE);
-  btnOpenLogFolder.Enabled := DirectoryExists(Mainform.DirnameSessionLogs);
 
   // SQL:
   Mainform.SetupSynEditors;

@@ -64,7 +64,7 @@ type
 
   { TMySQLConnection }
 
-  TMySQLLogCategory = (lcInfo, lcSQL, lcError, lcWarning, lcDebug);
+  TMySQLLogCategory = (lcInfo, lcSQL, lcUserFiredSQL, lcError, lcDebug);
   TMySQLLogEvent = procedure(Msg: String; Category: TMySQLLogCategory=lcInfo) of object;
   TMySQLDatabaseChangedEvent = procedure(Database: String) of object;
 
@@ -113,7 +113,7 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      function Query(SQL: String; DoStoreResult: Boolean=False): PMYSQL_RES;
+      function Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TMySQLLogCategory=lcSQL): PMYSQL_RES;
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False): String;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
       function QuoteIdent(Identifier: String): String;
@@ -171,6 +171,8 @@ type
       FCurrentRow: PMYSQL_ROW;
       FEof: Boolean;
       FDatatypes: Array of TDatatype;
+      FLogCategory: TMySQLLogCategory;
+      FStoreResult: Boolean;
       procedure SetSQL(Value: String);
       procedure SetRecNo(Value: Int64);
     public
@@ -193,6 +195,8 @@ type
       property Eof: Boolean read FEof;
       property RecordCount: Int64 read FRecordCount;
       property ColumnNames: TStringList read FColumnNames;
+      property LogCategory: TMySQLLogCategory read FLogCategory write FLogCategory;
+      property StoreResult: Boolean read FStoreResult write FStoreResult;
     published
       property SQL: String read FSQL write SetSQL;
       property Connection: TMySQLConnection read FConnection write FConnection;
@@ -348,7 +352,7 @@ end;
 {**
    Executes a query
 }
-function TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False): PMYSQL_RES;
+function TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TMySQLLogCategory=lcSQL): PMYSQL_RES;
 var
   querystatus: Integer;
   NativeSQL: AnsiString;
@@ -356,7 +360,7 @@ var
 begin
   if not Ping then
     Active := True;
-  Log(lcSQL, SQL);
+  Log(LogCategory, SQL);
   if IsUnicode then
     NativeSQL := UTF8Encode(SQL)
   else
@@ -1100,6 +1104,8 @@ begin
   FRecordCount := 0;
   FColumnNames := TStringList.Create;
   FColumnNames.CaseSensitive := True;
+  FStoreResult := True;
+  FLogCategory := lcSQL;
 end;
 
 
@@ -1124,11 +1130,12 @@ var
   Field: PMYSQL_FIELD;
   IsBinary: Boolean;
 begin
-  FLastResult := Connection.Query(FSQL, True);
+  FLastResult := Connection.Query(FSQL, FStoreResult, FLogCategory);
   FRecordCount := Connection.RowsFound;
   if HasResult then begin
     NumFields := mysql_num_fields(FLastResult);
     SetLength(FDatatypes, NumFields);
+    FColumnNames.Clear;
     for i:=0 to NumFields-1 do begin
       Field := mysql_fetch_field_direct(FLastResult, i);
       FColumnNames.Add(Utf8ToString(Field.name));

@@ -808,6 +808,11 @@ type
     prefCSVEncloser: String;
     prefCSVTerminator: String;
     prefLogToFile: Boolean;
+    prefLogErrors: Boolean;
+    prefLogUserSQL: Boolean;
+    prefLogSQL: Boolean;
+    prefLogInfos: Boolean;
+    prefLogDebug: Boolean;
     prefEnableBinaryEditor: Boolean;
     prefEnableDatetimeEditor: Boolean;
     prefEnableEnumEditor: Boolean;
@@ -1276,6 +1281,11 @@ begin
   prefCSVTerminator := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   prefExportLocaleNumbers := GetRegValue(REGNAME_EXPORT_LOCALENUMBERS, DEFAULT_EXPORT_LOCALENUMBERS);
   prefRememberFilters := GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
+  prefLogErrors := GetRegValue(REGNAME_LOG_ERRORS, DEFAULT_LOG_ERRORS);
+  prefLogUserSQL := GetRegValue(REGNAME_LOG_USERSQL, DEFAULT_LOG_USERSQL);
+  prefLogSQL := GetRegValue(REGNAME_LOG_SQL, DEFAULT_LOG_SQL);
+  prefLogInfos := GetRegValue(REGNAME_LOG_INFOS, DEFAULT_LOG_INFOS);
+  prefLogDebug := GetRegValue(REGNAME_LOG_DEBUG, DEFAULT_LOG_DEBUG);
 
   // Data-Font:
   datafontname := GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
@@ -3155,11 +3165,21 @@ procedure TMainForm.LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo);
 var
   snip, IsSQL: Boolean;
 begin
-  if (Category = lcDebug) or (csDestroying in ComponentState) then
+  if csDestroying in ComponentState then
     Exit;
+
+  // Log only wanted events
+  case Category of
+    lcError: if not prefLogErrors then Exit;
+    lcUserFiredSQL: if not prefLogUserSQL then Exit;
+    lcSQL: if not prefLogSQL then Exit;
+    lcInfo: if not prefLogInfos then Exit;
+    lcDebug: if not prefLogDebug then Exit;
+  end;
+
   // Shorten very long messages
   snip := (prefLogSqlWidth > 0) and (Length(Msg) > prefLogSqlWidth);
-  IsSQL := Category = lcSQL;
+  IsSQL := Category in [lcSQL, lcUserFiredSQL];
   if snip then begin
     Msg :=
       Copy(Msg, 0, prefLogSqlWidth) +
@@ -3863,15 +3883,17 @@ begin
   SQLtime := 0;
   SQLNetTime := 0;
   QueryCount := 0;
+  Results := TMySQLQuery.Create(Self);
+  Results.Connection := Connection;
+  Results.LogCategory := lcUserFiredSQL;
   for i:=0 to SQL.Count-1 do begin
     ProgressBarStatus.StepIt;
     ProgressBarStatus.Repaint;
     try
       // Immediately free results for all but last query
-      if i < SQL.Count-1 then
-        Connection.Query(SQL[i])
-      else
-        Results := Connection.GetResults(SQL[i]);
+      Results.SQL := SQL[i];
+      Results.StoreResult := i = SQL.Count-1;
+      Results.Execute;
       Inc(SQLtime, Connection.LastQueryDuration);
       Inc(SQLNetTime, Connection.LastQueryNetworkDuration);
       Inc(QueryCount);
