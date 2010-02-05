@@ -1183,6 +1183,7 @@ var
   dwWnd: DWORD;         // Handle for the size call.
   FI: PVSFixedFileInfo; // Delphi structure; see WINDOWS.PAS
   ptrVerBuf, Translation, Info: Pointer;
+  DpiScaleFactor: Double;
 begin
   caption := APPNAME;
   setLocales;
@@ -1241,6 +1242,10 @@ begin
   InheritFont(tabsetQueryHelpers.Font);
   InheritFont(SynCompletionProposal.Font);
   StatusBar.Height := GetTextHeight(StatusBar.Font)+4;
+  // Upscale panels in non-96-DPI mode
+  DpiScaleFactor := Screen.PixelsPerInch / FORMS_DPI;
+  for i:=StatusBar.Panels.Count-1 downto 1 do
+    StatusBar.Panels[i].Width := Round(StatusBar.Panels[i].Width * DpiScaleFactor);
 
   // Enable auto completion in data tab, filter editor
   SynCompletionProposal.AddEditor(SynMemoFilter);
