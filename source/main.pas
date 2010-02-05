@@ -1385,7 +1385,7 @@ begin
   btnAddTab := TPngSpeedButton.Create(PageControlMain);
   btnAddTab.Parent := PageControlMain;
   btnAddTab.PngImage := PngImageListMain.PngImages[actNewQueryTab.ImageIndex].PngImage;
-  btnAddTab.Height := PageControlMain.TabHeight - 2;
+  btnAddTab.Height := PageControlMain.TabRect(0).Bottom - PageControlMain.TabRect(0).Top - 2;
   btnAddTab.Width := btnAddTab.Height;
   btnAddTab.Flat := True;
   btnAddTab.Hint := actNewQueryTab.Hint;
@@ -9103,7 +9103,7 @@ var
   TabsHeight: Integer;
 begin
   // Activate tab popup menu only when clicked on tabs area.
-  TabsHeight := PageControlMain.TabHeight * PageControlMain.RowCount;
+  TabsHeight := (btnAddTab.Height+2) * PageControlMain.RowCount;
   if MousePos.Y <= TabsHeight then begin
     ClickPoint := PageControlMain.ClientToScreen(MousePos);
     popupMainTabs.Popup(ClickPoint.X, ClickPoint.Y);
