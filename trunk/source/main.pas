@@ -8587,13 +8587,10 @@ begin
   NewPageIndex := PageControlMain.ActivePageIndex;
   if NewPageIndex >= PageIndex then
     Dec(NewPageIndex);
-  // Avoid excessive flicker:
-  LockWindowUpdate(PageControlMain.Handle);
   PageControlMain.Pages[PageIndex].Free;
   QueryTabs.Delete(PageIndex-tabQuery.PageIndex);
   PageControlMain.ActivePageIndex := NewPageIndex;
   FixQueryTabCloseButtons;
-  LockWindowUpdate(0);
   PageControlMain.OnChange(PageControlMain);
 end;
 
@@ -8662,7 +8659,6 @@ begin
   // Avoid AV on Startup, when Mainform.OnResize is called once or twice implicitely.
   if not Assigned(btnAddTab) then
     Exit;
-  LockWindowUpdate(PageControlMain.Handle);
   for PageIndex:=tabQuery.PageIndex+1 to PageControlMain.PageCount-1 do begin
     VisiblePageIndex := PageIndex;
     for i:=0 to PageControlMain.PageCount-1 do begin
@@ -8683,8 +8679,6 @@ begin
   Rect := PageControlMain.TabRect(VisiblePageIndex);
   btnAddTab.Top := Rect.Top;
   btnAddTab.Left := Rect.Right + 5;
-
-  LockWindowUpdate(0);
 end;
 
 
