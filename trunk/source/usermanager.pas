@@ -183,8 +183,6 @@ type
     procedure comboUsersChange(Sender: TObject);
     procedure editFromHostChange(Sender: TObject);
     procedure editLimitations(Sender: TObject);
-    procedure editPasswordChange(Sender: TObject);
-    procedure editPasswordEnter(Sender: TObject);
     procedure editPasswordExit(Sender: TObject);
     procedure editUsernameChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -421,6 +419,8 @@ begin
     if u.Name = '' then editUsername.Text := '%';
     editUsername.OnChange := t;
 
+    editPassword.Text := '';
+    editPassword.TextHint := u.OldPasswordHashed;
     editPasswordExit(Sender);
 
     t := editFromHost.OnChange;
@@ -490,6 +490,7 @@ begin
   editUsername.Enabled := Enable;
   lblPassword.Enabled := Enable;
   editPassword.Enabled := Enable;
+  editPassword.Modified := False;
   lblFromHost.Enabled := Enable;
   editFromHost.Enabled := Enable;
   lblHostHints.Enabled := Enable;
@@ -769,29 +770,15 @@ end;
 
 
 {**
-  Password field focused: Clear password if it's hashed
+  Password field is unfocused: Apply change pw to user object
 }
-procedure TUserManagerForm.editPasswordEnter(Sender: TObject);
-var
-  e: TNotifyEvent;
-begin
-  e := editPassword.OnChange;
-  editPassword.OnChange := nil;
-  editPassword.Text := Users[comboUsers.ItemIndex].Password;
-  editPassword.PasswordChar := '*';
-  editPassword.Font.Color := clWindowText;
-  editPassword.OnChange := e;
-end;
-
-
-{**
-  Password edited
-}
-procedure TUserManagerForm.editPasswordChange(Sender: TObject);
+procedure TUserManagerForm.editPasswordExit(Sender: TObject);
 var
   u: TUser;
   t: TNotifyEvent;
 begin
+  if not editPassword.Modified then
+    Exit;
   u := Users[comboUsers.ItemIndex];
   u.Password := editPassword.Text;
   if u.PasswordModified then begin
@@ -800,41 +787,15 @@ begin
     chkDisabled.OnClick := nil;
     chkDisabled.Checked := False;
     chkDisabled.OnClick := t;
+    editPassword.TextHint := '';
   end;
-  RefreshUserPulldown;
-end;
-
-
-{**
-  Password field is unfocused: Apply change pw to user object
-}
-procedure TUserManagerForm.editPasswordExit(Sender: TObject);
-var
-  e: TNotifyEvent;
-  u: TUser;
-begin
-  u := Users[comboUsers.ItemIndex];
-  e := editPassword.OnChange;
-  editPassword.OnChange := nil;
-  editPassword.PasswordChar := #0;
-  if u.Disabled then begin
-    editPassword.Font.Color := clSilver;
-    editPassword.Text := '!'
-  end else if not u.PasswordModified then begin
-    editPassword.Font.Color := clSilver;
-    editPassword.Text := u.OldPasswordHashed
-  end else begin
-    editPassword.Font.Color := clWindowText;
-    editPassword.PasswordChar := '*';
-    editPassword.Text := u.Password;
-  end;
-  editPassword.OnChange := e;
   // Show security warning for empty password if user is not disabled
   lblWarning.Visible := (not u.Disabled) and (
     (u.PasswordModified and (u.Password = '')) or
     ((not u.PasswordModified) and (u.OldPasswordHashed = ''))
-  );
+    );
   lblWarning.Caption := 'This user has a blank password.';
+  RefreshUserPulldown;
 end;
 
 

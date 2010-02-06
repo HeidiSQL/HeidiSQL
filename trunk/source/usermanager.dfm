@@ -178,10 +178,9 @@ object UserManagerForm: TUserManagerForm
         Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
+        PasswordChar = '*'
         TabOrder = 1
         Text = 'editPassword'
-        OnChange = editPasswordChange
-        OnEnter = editPasswordEnter
         OnExit = editPasswordExit
       end
       object editFromHost: TEdit
