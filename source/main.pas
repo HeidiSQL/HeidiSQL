@@ -727,6 +727,7 @@ type
     procedure SynMemoQueryPaintTransient(Sender: TObject; Canvas: TCanvas;
       TransientType: TTransientType);
     procedure actQueryFindAgainExecute(Sender: TObject);
+    procedure vstScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
   private
     ReachedEOT: Boolean;
     FDelimiter: String;
@@ -9283,6 +9284,17 @@ begin
   else
     Result := '0x' + Results.BinColAsHex(Column);
 end;
+
+
+procedure TMainForm.vstScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
+begin
+  // A tree gets scrolled only when the mouse is over it - see FormMouseWheel
+  // Our home brewn cell editors do not reposition when the underlying tree scrolls.
+  // To avoid confusion, terminate editors then.
+  if Sender.IsEditing then
+    Sender.EndEditNode;
+end;
+
 
 end.
 
