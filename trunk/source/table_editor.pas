@@ -1044,6 +1044,13 @@ begin
     if ImageIndex > -1 then
       break;
   end;
+
+  for i:=0 to FForeignKeys.Count-1 do begin
+    if FForeignKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
+      ImageIndex := ICONINDEX_FOREIGNKEY;
+      break;
+    end;
+  end;
 end;
 
 
