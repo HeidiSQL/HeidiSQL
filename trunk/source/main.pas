@@ -4474,7 +4474,7 @@ procedure TMainForm.SynMemoQueryDragDrop(Sender, Source: TObject; X,
   Y: Integer);
 var
   src : TControl;
-  Text : String;
+  Text, ItemText: String;
   LoadText : Boolean;
   i: Integer;
   TreeNode: PVirtualNode;
@@ -4500,8 +4500,12 @@ begin
     end else begin
       Text := '';
       for i := 0 to ActiveQueryHelpers.Items.Count - 1 do begin
-        if ActiveQueryHelpers.Selected[i] then
-          Text := Text + ActiveQueryHelpers.Items[i] + ', ';
+        if ActiveQueryHelpers.Selected[i] then begin
+          ItemText := ActiveQueryHelpers.Items[i];
+          if tabsetQueryHelpers.TabIndex = 0 then
+            ItemText := mask(ItemText); // Quote column names
+          Text := Text + ItemText + ', ';
+        end;
       end;
       Delete(Text, Length(Text)-1, 2);
     end;
@@ -5165,7 +5169,7 @@ end;
 }
 procedure TMainForm.lboxQueryHelpersDblClick(Sender: TObject);
 var
-  text: String;
+  Text, ItemText: String;
   i: Integer;
 begin
   if ActiveQueryTabset.TabIndex = 3 then begin
@@ -5175,11 +5179,15 @@ begin
   end else begin
     // For all other tabs just insert selected list item(s)
     for i := 0 to ActiveQueryHelpers.Items.Count - 1 do begin
-      if ActiveQueryHelpers.Selected[i] then
-        text := text + ActiveQueryHelpers.Items[i] + ', ';
+      if not ActiveQueryHelpers.Selected[i] then
+        continue;
+      ItemText := ActiveQueryHelpers.Items[i];
+      if tabsetQueryHelpers.TabIndex = 0 then
+        ItemText := mask(ItemText); // Quote column names
+      Text := Text + ItemText + ', ';
     end;
-    Delete(text, Length(text)-1, 2);
-    ActiveQueryMemo.SelText := text;
+    Delete(text, Length(Text)-1, 2);
+    ActiveQueryMemo.SelText := Text;
   end;
   ActiveQueryMemo.SetFocus;
 end;
