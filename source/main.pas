@@ -6320,7 +6320,10 @@ begin
   if not Assigned(Node) then Exit;
   if DBtree.GetNodeLevel(Node) = 0 then Exit;
   if not QueryTabActive then Exit;
-  ActiveQueryMemo.SelText := DBtree.Text[Node, 0];
+  Text := mask(DBtree.Text[Node, 0]);
+  if DBtree.GetNodeLevel(Node) = 2 then
+    Text := mask(DBtree.Text[Node.Parent, 0]) + '.' + Text;
+  ActiveQueryMemo.SelText := Text;
   ActiveQueryMemo.SetFocus;
 end;
 
