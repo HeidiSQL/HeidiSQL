@@ -2115,9 +2115,16 @@ begin
   Key.Modified := True;
   Modification(Sender);
   case Column of
-    0: Key.KeyName := NewText;
+    0: begin
+      Key.KeyName := NewText;
+      Key.KeyNameWasCustomized := True;
+    end;
     1: Key.Columns := Explode(',', NewText);
-    2: Key.ReferenceTable := NewText;
+    2: begin
+      Key.ReferenceTable := NewText;
+      if not Key.KeyNameWasCustomized then
+        Key.KeyName := 'FK_'+FEditObjectName+'_'+Key.ReferenceTable;
+    end;
     3: Key.ForeignColumns := Explode(',', NewText);
     4: Key.OnUpdate := NewText;
     5: Key.OnDelete := NewText;

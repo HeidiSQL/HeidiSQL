@@ -126,7 +126,7 @@ type
   TForeignKey = class(TObject)
     KeyName, ReferenceTable, OnUpdate, OnDelete: String;
     Columns, ForeignColumns: TStringList;
-    Modified, Added: Boolean;
+    Modified, Added, KeyNameWasCustomized: Boolean;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -2989,6 +2989,7 @@ begin
     ForeignKey := TForeignKey.Create;
     ForeignKeys.Add(ForeignKey);
     ForeignKey.KeyName := rx.Match[1];
+    ForeignKey.KeyNameWasCustomized := True;
     ForeignKey.ReferenceTable := StringReplace(rx.Match[3], '`', '', [rfReplaceAll]);
     ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, '"', '', [rfReplaceAll]);
     ExplodeQuotedList(rx.Match[2], ForeignKey.Columns);
