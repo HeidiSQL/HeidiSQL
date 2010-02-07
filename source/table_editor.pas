@@ -1758,6 +1758,7 @@ begin
       ListForeignKeys.Margins.Bottom := 0
     else
       ListForeignKeys.Margins.Bottom := GetTextHeight(pnlNoForeignKeys.Font)+4;
+    ListForeignKeys.Repaint;
   end;
   UpdateSQLcode;
 end;
