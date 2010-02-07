@@ -1062,8 +1062,10 @@ begin
             if ToDb then
               Insert(m(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
             if ToFile or ToDir then begin
-              Struc := 'SET SESSION SQL_MODE='+esc(StrucResult.Col('sql_mode'))+';'+CRLF+
-                Struc+';'+CRLF+
+              Struc := 'SET SESSION SQL_MODE=' + esc(StrucResult.Col('sql_mode')) + ';' + CRLF +
+                'DELIMITER ' + TempDelim + CRLF +
+                Struc + TempDelim + CRLF +
+                'DELIMITER ;' + CRLF +
                 'SET SESSION SQL_MODE=@OLD_SQL_MODE';
             end;
           end;
