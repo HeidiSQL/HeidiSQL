@@ -2036,8 +2036,10 @@ begin
         EnumEditor := TEnumEditorLink.Create(VT);
         EnumEditor.AllowCustomText := True;
         DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);
-        for i:=0 to DBObjects.Count-1 do
-          EnumEditor.ValueList.Add(DBObjects[i].Name);
+        for i:=0 to DBObjects.Count-1 do begin
+          if DBObjects[i].NodeType = lntTable then
+            EnumEditor.ValueList.Add(DBObjects[i].Name);
+        end;
         EditLink := EnumEditor;
       end;
     3: begin
