@@ -4488,7 +4488,7 @@ begin
   // Check for allowed controls as source has already
   // been performed in OnDragOver. So, only do typecasting here.
   if src = DBtree then begin
-    TreeNode := DBtree.GetFirstSelected;
+    TreeNode := DBtree.FocusedNode;
     Text := mask(DBtree.Text[TreeNode, 0]);
     if DBtree.GetNodeLevel(TreeNode) = 2 then
       Text := mask(DBtree.Text[TreeNode.Parent, 0]) + '.' + Text;
@@ -6087,7 +6087,7 @@ begin
   if not (Kind in [ikNormal, ikSelected]) then Exit;
   case Sender.GetNodeLevel(Node) of
     0: ImageIndex := ICONINDEX_SERVER;
-    1: if (Kind = ikSelected) or ((Sender.GetFirstSelected<>nil) and (Node=Sender.GetFirstSelected.Parent)) then
+    1: if (Kind = ikSelected) or ((Sender.FocusedNode<>nil) and (Node=Sender.FocusedNode.Parent)) then
          ImageIndex := ICONINDEX_DB_HIGHLIGHT
          else ImageIndex := ICONINDEX_DB;
     2: begin
@@ -6329,7 +6329,7 @@ var
   Node: PVirtualNode;
 begin
   // Paste DB or table name into query window on treeview double click.
-  Node := DBtree.GetFirstSelected;
+  Node := DBtree.FocusedNode;
   if not Assigned(Node) then Exit;
   if DBtree.GetNodeLevel(Node) = 0 then Exit;
   if not QueryTabActive then Exit;
@@ -6481,7 +6481,7 @@ end;
 procedure TMainForm.menuTreeExpandAllClick(Sender: TObject);
 begin
   DBtree.FullExpand;
-  DBtree.ScrollIntoView(DBtree.GetFirstSelected, False);
+  DBtree.ScrollIntoView(DBtree.FocusedNode, False);
 end;
 
 {**
@@ -6497,7 +6497,7 @@ begin
     DBtree.FullCollapse(n);
     n := DBtree.GetNextSibling(n);
   end;
-  DBtree.ScrollIntoView(DBtree.GetFirstSelected, False);
+  DBtree.ScrollIntoView(DBtree.FocusedNode, False);
 end;
 
 
