@@ -3518,19 +3518,21 @@ var
   DBObject: TDBObject;
   IsFiltered: Boolean;
   cap: String;
+  RowsTotal: Int64;
 begin
   DBObject := SelectedTable;
   cap := ActiveDatabase + '.' + DBObject.Name;
   IsFiltered := DataGridCurrentFilter <> '';
   if DBObject.NodeType = lntTable then begin
-    if DBObject.Rows > -1 then begin
-      cap := cap + ': ' + FormatNumber(DBObject.Rows) + ' rows total';
+    RowsTotal := MakeInt(Connection.GetVar('SHOW TABLE STATUS LIKE '+esc(DBObject.Name), 'Rows'));
+    if RowsTotal > -1 then begin
+      cap := cap + ': ' + FormatNumber(RowsTotal) + ' rows total';
       if DBObject.Engine = 'InnoDB' then
         cap := cap + ' (approximately)';
       if MatchingRows = prefMaxTotalRows then begin
         cap := cap + ', limited to ' + FormatNumber(prefMaxTotalRows);
       end else if IsFiltered then begin
-        if MatchingRows = DBObject.Rows then begin
+        if MatchingRows = RowsTotal then begin
           cap := cap + ', filter matches all rows';
         end else if IsFiltered and (MatchingRows > -1) then begin
           cap := cap + ', ' + FormatNumber(MatchingRows) + ' matches filter';
