@@ -146,7 +146,7 @@ object frmTriggerEditor: TfrmTriggerEditor
       item
         BiggestWord = 'CONSTRUCTOR'
       end>
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     OnExecute = SynCompletionProposalStatementExecute
     ShortCut = 16416
     Editor = SynMemoStatement

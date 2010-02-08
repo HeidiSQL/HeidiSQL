@@ -70,7 +70,7 @@ object loaddataform: Tloaddataform
         DesignSize = (
           403
           90)
-        object btnOpenFile: TPngSpeedButton
+        object btnOpenFile: TSpeedButton
           Left = 362
           Top = 24
           Width = 22
@@ -263,7 +263,7 @@ object loaddataform: Tloaddataform
         Height = 13
         Caption = 'Use Columns:'
       end
-      object btnColUp: TPngSpeedButton
+      object btnColUp: TSpeedButton
         Left = 150
         Top = 117
         Width = 25
@@ -272,7 +272,7 @@ object loaddataform: Tloaddataform
         Flat = True
         OnClick = btnColUpClick
       end
-      object btnColDown: TPngSpeedButton
+      object btnColDown: TSpeedButton
         Left = 150
         Top = 142
         Width = 25

@@ -76,7 +76,7 @@ object frmSelectDBObject: TfrmSelectDBObject
     Header.Font.Name = 'Tahoma'
     Header.Font.Style = []
     Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     Indent = 16
     Margin = 2
     TabOrder = 0

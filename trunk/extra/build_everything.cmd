@@ -87,7 +87,7 @@ set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BD
 set params=%params% -B
 set params=%params% -i"%base_dir%\source"
 set params=%params% -r"%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources"
-set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\pngcomponents\build;%mad_dir%\madExcept\BDS7;%mad_dir%\madDisAsm\BDS7;%mad_dir%\madBasic\BDS7"
+set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%mad_dir%\madExcept\BDS7;%mad_dir%\madDisAsm\BDS7;%mad_dir%\madBasic\BDS7"
 set params=%params% -N0"..\..\build" 
 set params=%params% -LE"..\..\build"
 set params=%params% -LN"..\..\build"
@@ -143,13 +143,6 @@ rem Build VirtualTreeView
 call :compile virtualtreeview VirtualTreesR
 if not %err% == 0 goto end
 call :compile virtualtreeview VirtualTreesD
-if not %err% == 0 goto end
-
-
-rem Build PNGComponents
-call :compile pngcomponents PngComponents
-if not %err% == 0 goto end
-call :compile pngcomponents PngComponentsD
 if not %err% == 0 goto end
 
 

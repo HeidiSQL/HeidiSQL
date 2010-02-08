@@ -142,7 +142,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Align = alNone
     ButtonWidth = 66
     Caption = 'tlbParameters'
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     List = True
     ShowCaptions = True
     TabOrder = 7
@@ -185,7 +185,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Header.MainColumn = 1
     Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
     Header.ParentFont = True
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     NodeDataSize = 0
     TabOrder = 8
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]

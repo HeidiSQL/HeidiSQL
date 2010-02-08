@@ -49,7 +49,7 @@ object UserManagerForm: TUserManagerForm
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     OnChange = comboUsersChange
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
   end
   object btnCancel: TButton
     Left = 269
@@ -83,7 +83,7 @@ object UserManagerForm: TUserManagerForm
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 3
     OnChange = comboObjectsChange
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
   end
   object boxPrivs: TCheckListBox
     Left = 8
@@ -469,7 +469,7 @@ object UserManagerForm: TUserManagerForm
       Anchors = [akTop, akRight]
       AutoSize = True
       Caption = 'tlbUsers'
-      Images = MainForm.PngImageListMain
+      Images = MainForm.ImageListMain
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
@@ -509,7 +509,7 @@ object UserManagerForm: TUserManagerForm
       Anchors = [akTop, akRight]
       AutoSize = True
       Caption = 'tlbObjects'
-      Images = MainForm.PngImageListMain
+      Images = MainForm.ImageListMain
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0

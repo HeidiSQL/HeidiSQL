@@ -64,7 +64,7 @@ object frmTableEditor: TfrmTableEditor
     Header.DefaultHeight = 17
     Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
     Header.ParentFont = True
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     IncrementalSearch = isAll
     PopupMenu = popupColumns
     TabOrder = 2
@@ -161,7 +161,7 @@ object frmTableEditor: TfrmTableEditor
     Margins.Bottom = 0
     ActivePage = tabBasic
     Align = alTop
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     TabOrder = 0
     OnChange = PageControlMainChange
     object tabBasic: TTabSheet
@@ -384,7 +384,7 @@ object frmTableEditor: TfrmTableEditor
         Header.DefaultHeight = 17
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
         Header.ParentFont = True
-        Images = MainForm.PngImageListMain
+        Images = MainForm.ImageListMain
         PopupMenu = popupIndexes
         TabOrder = 1
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking]
@@ -431,7 +431,7 @@ object frmTableEditor: TfrmTableEditor
         AutoSize = True
         ButtonWidth = 66
         Caption = 'tlbIndexes'
-        Images = MainForm.PngImageListMain
+        Images = MainForm.ImageListMain
         List = True
         ShowCaptions = True
         TabOrder = 0
@@ -493,7 +493,7 @@ object frmTableEditor: TfrmTableEditor
         AutoSize = True
         ButtonWidth = 66
         Caption = 'tlbForeignKeys'
-        Images = MainForm.PngImageListMain
+        Images = MainForm.ImageListMain
         List = True
         ShowCaptions = True
         TabOrder = 0
@@ -547,7 +547,7 @@ object frmTableEditor: TfrmTableEditor
           Header.DefaultHeight = 17
           Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
           Header.ParentFont = True
-          Images = MainForm.PngImageListMain
+          Images = MainForm.ImageListMain
           TabOrder = 0
           TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
           TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
@@ -694,7 +694,7 @@ object frmTableEditor: TfrmTableEditor
       Align = alClient
       ButtonWidth = 66
       Caption = 'Columns:'
-      Images = MainForm.PngImageListMain
+      Images = MainForm.ImageListMain
       List = True
       ShowCaptions = True
       TabOrder = 0
@@ -733,7 +733,7 @@ object frmTableEditor: TfrmTableEditor
     end
   end
   object popupIndexes: TPopupMenu
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     Left = 344
     Top = 360
     object menuAddIndex: TMenuItem
@@ -774,7 +774,7 @@ object frmTableEditor: TfrmTableEditor
     end
   end
   object popupColumns: TPopupMenu
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     OnPopup = popupColumnsPopup
     Left = 312
     Top = 360
@@ -821,7 +821,7 @@ object frmTableEditor: TfrmTableEditor
     end
   end
   object popupSQLmemo: TPopupMenu
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     OnPopup = popupSQLmemoPopup
     Left = 376
     Top = 360

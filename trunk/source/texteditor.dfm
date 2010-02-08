@@ -57,7 +57,7 @@ object frmTextEditor: TfrmTextEditor
     Align = alNone
     Anchors = [akLeft, akBottom]
     Caption = 'tlbStandard'
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     ParentShowHint = False
     ShowHint = True
     TabOrder = 1
@@ -103,7 +103,7 @@ object frmTextEditor: TfrmTextEditor
     end
   end
   object popupLinebreaks: TPopupMenu
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     Left = 8
     Top = 16
     object menuWindowsLB: TMenuItem
