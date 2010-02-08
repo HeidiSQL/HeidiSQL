@@ -1035,6 +1035,7 @@ var
 begin
   // Primary key icon
   if Column <> 0 then Exit;
+  if not (Kind in [ikNormal, ikSelected]) then Exit;
   Col := Sender.GetNodeData(Node);
 
   for i:=0 to FKeys.Count-1 do begin
@@ -1431,8 +1432,8 @@ var
 begin
   // Icon image showing type of index
   VT := Sender as TVirtualStringTree;
-  if Column <> 0 then
-    Exit;
+  if Column <> 0 then Exit;
+  if not (Kind in [ikNormal, ikSelected]) then Exit;
   case VT.GetNodeLevel(Node) of
     0: begin
       IndexType := VT.Text[Node, 1];
@@ -2077,6 +2078,7 @@ procedure TfrmTableEditor.listForeignKeysGetImageIndex(Sender: TBaseVirtualTree;
   var Ghosted: Boolean; var ImageIndex: Integer);
 begin
   // Return image index for node cell in foreign key list
+  if not (Kind in [ikNormal, ikSelected]) then Exit;
   case Column of
     0: ImageIndex := 136;
     else ImageIndex := -1;

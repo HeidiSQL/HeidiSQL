@@ -57,7 +57,7 @@ object frmBinEditor: TfrmBinEditor
     Align = alNone
     Anchors = [akLeft, akBottom]
     Caption = 'tlbStandard'
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     ParentShowHint = False
     ShowHint = True
     TabOrder = 1

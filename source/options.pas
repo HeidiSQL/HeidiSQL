@@ -632,6 +632,7 @@ var
   Data: PShortcutItemData;
 begin
   // Fetch icon number of shortcut item
+  if not (Kind in [ikNormal, ikSelected]) then Exit;
   if Sender.GetNodeLevel(Node) = 1 then begin
     Data := Sender.GetNodeData(Node);
     if Assigned(Data.KeyStroke) then

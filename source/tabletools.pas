@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
-  VirtualTrees, ExtCtrls, Contnrs, Graphics, PngSpeedButton, SynRegExpr,
+  VirtualTrees, ExtCtrls, Contnrs, Graphics, SynRegExpr,
   mysql_connection, helpers;
 
 type
@@ -57,7 +57,7 @@ type
     udSkipLargeTables: TUpDown;
     lblSkipLargeTablesMB: TLabel;
     lblSkipLargeTables: TLabel;
-    btnExportOutputTargetSelect: TPngSpeedButton;
+    btnExportOutputTargetSelect: TButton;
     tabBulkTableEdit: TTabSheet;
     chkBulkTableEditDatabase: TCheckBox;
     comboBulkTableEditDatabase: TComboBox;
@@ -731,18 +731,18 @@ begin
     comboExportOutputTarget.Items.Text := OutputFiles.Text;
     lblExportOutputTarget.Caption := 'Filename:';
     btnExportOutputTargetSelect.Enabled := True;
-    btnExportOutputTargetSelect.PngImage := Mainform.PngImageListMain.PngImages[10].PngImage;
+    btnExportOutputTargetSelect.ImageIndex := 10;
   end else if comboExportOutputType.Text = OUTPUT_DIR then begin
     comboExportOutputTarget.Style := csDropDown;
     comboExportOutputTarget.Items.Text := OutputDirs.Text;
     lblExportOutputTarget.Caption := 'Directory:';
     btnExportOutputTargetSelect.Enabled := True;
-    btnExportOutputTargetSelect.PngImage := Mainform.PngImageListMain.PngImages[51].PngImage;
+    btnExportOutputTargetSelect.ImageIndex := 51;
   end else if comboExportOutputType.Text = OUTPUT_DB then begin
     comboExportOutputTarget.Style := csDropDownList;
     lblExportOutputTarget.Caption := 'Database:';
     btnExportOutputTargetSelect.Enabled := False;
-    btnExportOutputTargetSelect.PngImage := Mainform.PngImageListMain.PngImages[27].PngImage;
+    btnExportOutputTargetSelect.ImageIndex := 27;
     // Add unchecked databases
     comboExportOutputTarget.Items.Clear;
     DBNode := TreeObjects.GetFirstChild(TreeObjects.GetFirst);
@@ -756,7 +756,7 @@ begin
     comboExportOutputTarget.Style := csDropDownList;
     lblExportOutputTarget.Caption := 'Database:';
     btnExportOutputTargetSelect.Enabled := False;
-    btnExportOutputTargetSelect.PngImage := Mainform.PngImageListMain.PngImages[27].PngImage;
+    btnExportOutputTargetSelect.ImageIndex := 27;
     SessionName := Copy(comboExportOutputType.Text, Length(OUTPUT_SERVER)+1, Length(comboExportOutputType.Text));
     FreeAndNil(FTargetConnection);
     FTargetConnection := TMySQLConnection.Create(Self);

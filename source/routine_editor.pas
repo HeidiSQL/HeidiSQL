@@ -269,6 +269,7 @@ var
   Context: String;
 begin
   // Draw arrow icon to indicate in/out context
+  if not (Kind in [ikNormal, ikSelected]) then Exit;
   List := Sender as TVirtualStringTree;
   if Column <> 3 then
     ImageIndex := -1

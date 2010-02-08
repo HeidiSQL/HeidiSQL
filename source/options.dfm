@@ -895,7 +895,7 @@ object optionsform: Toptionsform
         Header.Font.Name = 'Tahoma'
         Header.Font.Style = []
         Header.MainColumn = -1
-        Images = MainForm.PngImageListMain
+        Images = MainForm.ImageListMain
         TabOrder = 0
         OnFocusChanged = TreeShortcutItemsFocusChanged
         OnGetText = TreeShortcutItemsGetText

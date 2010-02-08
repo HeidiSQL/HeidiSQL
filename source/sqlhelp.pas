@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, ExtCtrls,
-  Buttons, PngSpeedButton, SynMemo, SynEditHighlighter, SynHighlighterURI,
+  Buttons, SynMemo, SynEditHighlighter, SynHighlighterURI,
   SynURIOpener, SynEdit,
   mysql_connection;
 
@@ -25,7 +25,7 @@ type
     lblExample: TLabel;
     MemoExample: TSynMemo;
     ButtonClose: TButton;
-    btnSearchOnline: TPngSpeedButton;
+    btnSearchOnline: TButton;
     URIOpenerDescription: TSynURIOpener;
     URIHighlighter: TSynURISyn;
     URIOpenerExample: TSynURIOpener;
@@ -71,8 +71,6 @@ uses helpers, main;
 }
 procedure TfrmSQLhelp.FormCreate(Sender: TObject);
 begin
-  // Assign images from main imagelist to speedbuttons
-  btnSearchOnline.PngImage := Mainform.PngImageListMain.PngImages[69].PngImage;
   InheritFont(Font);
 end;
 

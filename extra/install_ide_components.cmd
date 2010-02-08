@@ -89,11 +89,6 @@ call :install virtualtreeview VirtualTreesD
 if not %err% == 0 goto end
 
 
-rem Install PNGComponents
-call :install pngcomponents PngComponentsD
-if not %err% == 0 goto end
-
-
 echo.
 echo Finished.
 echo.

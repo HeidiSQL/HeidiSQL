@@ -85,7 +85,7 @@ object frmTableTools: TfrmTableTools
       Header.Font.Name = 'Tahoma'
       Header.Font.Style = []
       Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-      Images = MainForm.PngImageListMain
+      Images = MainForm.ImageListMain
       NodeDataSize = 0
       TabOrder = 0
       TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
@@ -126,7 +126,7 @@ object frmTableTools: TfrmTableTools
         Align = alClient
         Header.AutoSizeIndex = -1
         Header.DefaultHeight = 17
-        Header.Images = MainForm.PngImageListMain
+        Header.Images = MainForm.ImageListMain
         Header.MainColumn = -1
         Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
         Header.ParentFont = True
@@ -150,7 +150,7 @@ object frmTableTools: TfrmTableTools
         Height = 145
         ActivePage = tabSQLexport
         Align = alTop
-        Images = MainForm.PngImageListMain
+        Images = MainForm.ImageListMain
         TabOrder = 1
         OnChange = ValidateControls
         object tabMaintenance: TTabSheet
@@ -330,14 +330,16 @@ object frmTableTools: TfrmTableTools
             Height = 13
             Caption = 'Filename:'
           end
-          object btnExportOutputTargetSelect: TPngSpeedButton
+          object btnExportOutputTargetSelect: TButton
             Left = 346
             Top = 74
             Width = 23
             Height = 21
             Hint = 'Browse filesystem'
             Anchors = [akTop, akRight]
-            Flat = True
+            ImageIndex = 10
+            Images = MainForm.ImageListMain
+            TabOrder = 7
             OnClick = btnExportOutputTargetSelectClick
           end
           object chkExportDatabasesCreate: TCheckBox

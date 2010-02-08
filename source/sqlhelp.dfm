@@ -49,7 +49,7 @@ object frmSQLhelp: TfrmSQLhelp
       Align = alBottom
       Anchors = [akLeft, akTop, akRight, akBottom]
       ChangeDelay = 50
-      Images = MainForm.PngImageListMain
+      Images = MainForm.ImageListMain
       Indent = 19
       ReadOnly = True
       ShowLines = False
@@ -183,13 +183,16 @@ object frmSQLhelp: TfrmSQLhelp
         Align = alTop
         Caption = 'Example:'
       end
-      object btnSearchOnline: TPngSpeedButton
+      object btnSearchOnline: TButton
         Left = 207
         Top = 128
         Width = 103
         Height = 25
         Anchors = [akRight, akBottom]
         Caption = 'Search online'
+        ImageIndex = 69
+        Images = MainForm.ImageListMain
+        TabOrder = 2
         OnClick = ButtonOnlinehelpClick
       end
       object MemoExample: TSynMemo

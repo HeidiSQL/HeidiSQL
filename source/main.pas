@@ -12,10 +12,10 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
-  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, PngImageList,
+  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
-  CommCtrl, Contnrs, PngSpeedButton, Generics.Collections,
+  CommCtrl, Contnrs, Generics.Collections,
   routine_editor, trigger_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
   mysql_api, insertfiles, searchreplace;
@@ -24,7 +24,7 @@ uses
 type
   TQueryTab = class(TObject)
     Number: Integer;
-    CloseButton: TPngSpeedButton;
+    CloseButton: TSpeedButton;
     pnlMemo: TPanel;
     pnlHelpers: TPanel;
     lboxHelpers: TListBox;
@@ -133,7 +133,7 @@ type
     Import1: TMenuItem;
     tlbSep6: TToolButton;
     menuUpdateCheck: TMenuItem;
-    PngImageListMain: TPngImageList;
+    ImageListMain: TImageList;
     actCreateView: TAction;
     ToolButton3: TToolButton;
     actDataFirst: TAction;
@@ -422,7 +422,7 @@ type
     Newquerytab1: TMenuItem;
     Closetab1: TMenuItem;
     pnlRight: TPanel;
-    btnCloseFilterPanel: TPngSpeedButton;
+    btnCloseFilterPanel: TSpeedButton;
     actFilterPanel: TAction;
     actFindInVT1: TMenuItem;
     TimerFilterVT: TTimer;
@@ -773,7 +773,7 @@ type
     virtualDesktopName: string;
     AllDatabases: TStringList;
     Databases: TStringList;
-    btnAddTab: TPngSpeedButton;
+    btnAddTab: TSpeedButton;
     QueryTabs: TObjectList<TQueryTab>;
 
     // Cached forms
@@ -1388,9 +1388,9 @@ begin
 
   DataGridResult := TGridResult.Create;
 
-  btnAddTab := TPngSpeedButton.Create(PageControlMain);
+  btnAddTab := TSpeedButton.Create(PageControlMain);
   btnAddTab.Parent := PageControlMain;
-  btnAddTab.PngImage := PngImageListMain.PngImages[actNewQueryTab.ImageIndex].PngImage;
+  ImageListMain.GetBitmap(actNewQueryTab.ImageIndex, btnAddTab.Glyph);
   btnAddTab.Height := PageControlMain.TabRect(0).Bottom - PageControlMain.TabRect(0).Top - 2;
   btnAddTab.Width := btnAddTab.Height;
   btnAddTab.Flat := True;
@@ -1398,7 +1398,7 @@ begin
   btnAddTab.OnClick := actNewQueryTab.OnExecute;
 
   // Filter panel
-  btnCloseFilterPanel.PngImage := PngImageListMain.PngImages[134].PngImage;
+  ImageListMain.GetBitmap(134, btnCloseFilterPanel.Glyph);
   if GetRegValue(REGNAME_FILTERACTIVE, DEFAULT_FILTERACTIVE) then
     actFilterPanelExecute(nil);
   lblFilterVTInfo.Caption := '';
@@ -5404,6 +5404,8 @@ begin
   // Display icon only for leftmost cell (0) or for tree nodes (-1)
   if Column > 0 then
     exit;
+  // Prevent state images, overlaying the normal image
+  if not (Kind in [ikNormal, ikSelected]) then Exit;
   // Get pointer to node which gets displayed
   NodeData := Sender.GetNodeData(Node);
   ImageIndex := NodeData.ImageIndex;
@@ -6081,6 +6083,8 @@ var
 begin
   if Column > 0 then
     Exit;
+  // Prevent state images, overlaying the normal image
+  if not (Kind in [ikNormal, ikSelected]) then Exit;
   case Sender.GetNodeLevel(Node) of
     0: ImageIndex := ICONINDEX_SERVER;
     1: if (Kind = ikSelected) or ((Sender.GetFirstSelected<>nil) and (Node=Sender.GetFirstSelected.Parent)) then
@@ -6797,7 +6801,7 @@ begin
   if Node.Index >= Cardinal(Length(DataGridResult.Rows)) then Exit;
   // Paint a red triangle at the top left corner of the cell
   if DataGridResult.Rows[Node.Index].Cells[Column].Modified then
-    PngImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 111);
+    ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 111);
 end;
 
 
@@ -8431,12 +8435,12 @@ begin
   QueryTab.TabSheet.PageControl := PageControlMain;
   QueryTab.TabSheet.ImageIndex := tabQuery.ImageIndex;
 
-  QueryTab.CloseButton := TPngSpeedButton.Create(QueryTab.TabSheet);
+  QueryTab.CloseButton := TSpeedButton.Create(QueryTab.TabSheet);
   QueryTab.CloseButton.Parent := PageControlMain;
   QueryTab.CloseButton.Width := 16;
   QueryTab.CloseButton.Height := 16;
   QueryTab.CloseButton.Flat := True;
-  QueryTab.CloseButton.PngImage := PngImageListMain.PngImages[134].PngImage;
+  ImageListMain.GetBitmap(134, QueryTab.CloseButton.Glyph);
   QueryTab.CloseButton.OnMouseDown := CloseButtonOnMouseDown;
   QueryTab.CloseButton.OnMouseUp := CloseButtonOnMouseUp;
   SetTabCaption(QueryTab.TabSheet.PageIndex, '');
@@ -8633,7 +8637,7 @@ begin
   // here, we must check if also the MouseDown event was fired on this particular button. See issue #1469.
   if (Sender <> FLastMouseDownCloseButton) then
     Exit;
-  aPoint := PageControlMain.ScreenToClient((Sender as TPngSpeedButton).ClientToScreen(Point(X,Y)));
+  aPoint := PageControlMain.ScreenToClient((Sender as TSpeedButton).ClientToScreen(Point(X,Y)));
   CloseQueryTab(GetMainTabAt(aPoint.X, aPoint.Y));
 end;
 
@@ -8674,7 +8678,7 @@ procedure TMainForm.FixQueryTabCloseButtons;
 var
   i, PageIndex, VisiblePageIndex: Integer;
   Rect: TRect;
-  btn: TPngSpeedButton;
+  btn: TSpeedButton;
 begin
   // Fix positions of "Close" buttons on Query tabs
   // Avoid AV on Startup, when Mainform.OnResize is called once or twice implicitely.

@@ -98,7 +98,7 @@ object connform: Tconnform
     Header.Font.Style = []
     Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
     HintMode = hmTooltip
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     IncrementalSearch = isAll
     PopupMenu = popupSessions
     TabOrder = 0
@@ -316,7 +316,7 @@ object connform: Tconnform
     end
   end
   object popupSessions: TPopupMenu
-    Images = MainForm.PngImageListMain
+    Images = MainForm.ImageListMain
     Left = 176
     Top = 240
     object Save1: TMenuItem

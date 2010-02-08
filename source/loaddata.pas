@@ -9,7 +9,7 @@ unit loaddata;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst, PngSpeedButton,
+  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst,
   SynRegExpr, Buttons,
   mysql_connection;
 
@@ -27,8 +27,8 @@ type
     comboTable: TComboBox;
     lblColumns: TLabel;
     chklistColumns: TCheckListBox;
-    btnColUp: TPngSpeedButton;
-    btnColDown: TPngSpeedButton;
+    btnColUp: TSpeedButton;
+    btnColDown: TSpeedButton;
     grpOptions: TGroupBox;
     chkLowPriority: TCheckBox;
     chkReplace: TCheckBox;
@@ -36,7 +36,7 @@ type
     lblDuplicates: TLabel;
     grpFilename: TGroupBox;
     editFilename: TEdit;
-    btnOpenFile: TPngSpeedButton;
+    btnOpenFile: TSpeedButton;
     grpFields: TGroupBox;
     lblFieldTerminater: TLabel;
     lblFieldEncloser: TLabel;
@@ -102,9 +102,9 @@ end;
 procedure Tloaddataform.FormCreate(Sender: TObject);
 begin
   // Assign images from main imagelist to speedbuttons
-  btnOpenFile.PngImage := Mainform.PngImageListMain.PngImages[52].PngImage;
-  btnColUp.PngImage := Mainform.PngImageListMain.PngImages[74].PngImage;
-  btnColDown.PngImage := Mainform.PngImageListMain.PngImages[75].PngImage;
+  Mainform.ImageListMain.GetBitmap(52, btnOpenFile.Glyph);
+  Mainform.ImageListMain.GetBitmap(74, btnColUp.Glyph);
+  Mainform.ImageListMain.GetBitmap(75, btnColDown.Glyph);
   InheritFont(Font);
 end;
 

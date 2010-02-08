@@ -327,6 +327,7 @@ procedure Tconnform.ListSessionsGetImageIndex(Sender: TBaseVirtualTree;
   var Ghosted: Boolean; var ImageIndex: Integer);
 begin
   // A new session gets an additional plus symbol, editing gets a pencil
+  if not (Kind in [ikNormal, ikSelected]) then Exit;
   ImageIndex := 36;
   if Node = Sender.FocusedNode then begin
     if FSessionAdded then ImageIndex := 72
