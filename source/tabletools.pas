@@ -1210,6 +1210,7 @@ var
   Specs, LogRow: TStringList;
   CreateView: String;
   rx: TRegExpr;
+  HasCharsetClause: Boolean;
 begin
   AddResults('SELECT '+esc(DBObj.Database)+' AS '+Mainform.mask('Database')+', ' +
     esc(DBObj.Name)+' AS '+Mainform.mask('Table')+', ' +
@@ -1246,14 +1247,22 @@ begin
     else
       Specs.Add('ENGINE '+comboBulkTableEditEngine.Text);
   end;
-  if (DBObj.NodeType = lntTable) and chkBulkTableEditCollation.Checked and (comboBulkTableEditCollation.ItemIndex > -1) then
-    Specs.Add('COLLATE '+comboBulkTableEditCollation.Text);
-  if (DBObj.NodeType = lntTable) and chkBulkTableEditCharset.Checked and (comboBulkTableEditCharset.ItemIndex > -1) then begin
-    Mainform.Connection.CharsetTable.RecNo := comboBulkTableEditCharset.ItemIndex;
-    Specs.Add('CONVERT TO CHARSET '+Mainform.Connection.CharsetTable.Col('Charset'));
+  if DBObj.NodeType = lntTable then begin
+    HasCharsetClause := False;
+    if chkBulkTableEditCharset.Checked and (comboBulkTableEditCharset.ItemIndex > -1) then begin
+      Mainform.Connection.CharsetTable.RecNo := comboBulkTableEditCharset.ItemIndex;
+      Specs.Add('CONVERT TO CHARSET '+Mainform.Connection.CharsetTable.Col('Charset'));
+      HasCharsetClause := True;
+    end;
+    if chkBulkTableEditCollation.Checked and (comboBulkTableEditCollation.ItemIndex > -1) then begin
+      if HasCharsetClause then // No comma between charset + collation clause
+        Specs[Specs.Count-1] := Specs[Specs.Count-1] + ' COLLATE '+comboBulkTableEditCollation.Text
+      else
+        Specs.Add('COLLATE '+comboBulkTableEditCollation.Text);
+    end;
+    if chkBulkTableEditResetAutoinc.Checked then
+      Specs.Add('AUTO_INCREMENT=0');
   end;
-  if (DBObj.NodeType = lntTable) and chkBulkTableEditResetAutoinc.Checked then
-    Specs.Add('AUTO_INCREMENT=0');
 
   LogRow := TStringList(FResults.Last);
   if Specs.Count > 0 then begin
