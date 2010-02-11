@@ -7152,7 +7152,9 @@ begin
     DataGridResult.Rows[i].Cells[j].Text := '';
   end;
   if Assigned(CopyValuesFromNode) then begin
-    // Copy values from source row
+    // Copy values from source row, ensure we have whole cell data
+    for j:=0 to DataGrid.Header.Columns.Count-1 do
+      EnsureFullWidth(DataGrid, j, CopyValuesFromNode);
     OldRow := DataGridResult.Rows[CopyValuesFromNode.Index];
     for j:=0 to DataGrid.Header.Columns.Count-1 do begin
       if not (coVisible in DataGrid.Header.Columns[j].Options) then
