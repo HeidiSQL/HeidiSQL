@@ -76,10 +76,12 @@ begin
       else list := Mainform.ListCommandStats;
       end;
     1: list := Mainform.ListTables;
-    2: list := Mainform.DataGrid;
-    else list := Mainform.QueryGrid;
+    2: if Assigned(Mainform.TableEditor) and Mainform.TableEditor.Visible then
+      list := Mainform.TableEditor.listColumns;
+    else list := Mainform.ActiveGrid;
   end;
-  list.Print(Printer, chkPrintHeader.Checked);
+  if Assigned(list) then
+    list.Print(Printer, chkPrintHeader.Checked);
   Screen.Cursor := crDefault;
 end;
 
