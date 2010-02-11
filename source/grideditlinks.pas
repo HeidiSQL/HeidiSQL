@@ -257,8 +257,9 @@ begin
         Break;
       FTree.FocusedNode := NewNode;
       FTree.FocusedColumn := NewColumn;
-      if FTree.EditNode(NewNode, NewColumn) then
-        Break;
+      if not FTree.EditNode(FTree.FocusedNode, FTree.FocusedColumn) then
+        FTree.SetFocus;
+      Break;
     end;
   end;
 end;
