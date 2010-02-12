@@ -9008,6 +9008,7 @@ var
   KeyStroke: TSynEditKeyStroke;
   ActiveLineColor: TColor;
   Attri: TSynHighlighterAttributes;
+  Shortcut1, Shortcut2: TShortcut;
 begin
   // Restore font, highlighter and shortcuts for each instantiated TSynMemo
   Editors := TObjectList.Create;
@@ -9060,8 +9061,18 @@ begin
     // Shortcuts
     if Editor = BaseEditor then for j:=0 to Editor.Keystrokes.Count-1 do begin
       KeyStroke := Editor.Keystrokes[j];
-      Keystroke.ShortCut := GetRegValue(REGPREFIX_SHORTCUT1+EditorCommandToCodeString(Keystroke.Command), KeyStroke.ShortCut);
-      Keystroke.ShortCut2 := GetRegValue(REGPREFIX_SHORTCUT2+EditorCommandToCodeString(Keystroke.Command), KeyStroke.ShortCut2);
+      Shortcut1 := GetRegValue(REGPREFIX_SHORTCUT1+EditorCommandToCodeString(Keystroke.Command), KeyStroke.ShortCut);
+      Shortcut2 := GetRegValue(REGPREFIX_SHORTCUT2+EditorCommandToCodeString(Keystroke.Command), KeyStroke.ShortCut2);
+      try
+        Keystroke.ShortCut := Shortcut1;
+        Keystroke.ShortCut2 := Shortcut2;
+      except
+        on E:ESynKeyError do begin
+          LogSQL('Could not apply SynEdit keystroke shortcut "'+ShortCutToText(Shortcut1)+'"' +
+            ' (or secondary: "'+ShortCutToText(Shortcut2)+'") to '+EditorCommandToCodeString(Keystroke.Command)+'. '+
+            E.Message + '. Please go to Tools > Preferences > Shortcuts to change this settings.', lcError);
+        end;
+      end;
     end else
       Editor.Keystrokes := BaseEditor.KeyStrokes;
   end;
