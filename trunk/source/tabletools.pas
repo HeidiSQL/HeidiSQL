@@ -1113,8 +1113,8 @@ begin
       RowCount := 0;
       // Calculate limit so we select ~100MB per loop
       Limit := Round(100 * SIZE_MB / Max(DBObj.AvgRowLen,1));
-      // Calculate max rows per INSERT, so we always get ~800KB
-      MaxRowsInChunk := Round(SIZE_MB * 0.6 / Max(DBObj.AvgRowLen,1));
+      // Calculate max rows per INSERT, so we should never exceed 1MB per INSERT
+      MaxRowsInChunk := Round(SIZE_MB * 0.4 / Max(DBObj.AvgRowLen,1));
       if comboExportData.Text = DATA_REPLACE then
         Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
       Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
