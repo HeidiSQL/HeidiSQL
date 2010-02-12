@@ -2963,10 +2963,10 @@ begin
     Key := TTableKey.Create;
     Keys.Add(Key);
     Key.Name := rx.Match[4];
+    if Key.Name = '' then Key.Name := rx.Match[2]; // PRIMARY
     Key.OldName := Key.Name;
     Key.IndexType := rx.Match[2];
     Key.Algorithm := rx.Match[7];
-    if Key.Name = '' then Key.Name := rx.Match[2]; // PRIMARY
     if Key.IndexType = '' then Key.IndexType := 'KEY'; // KEY
     Key.Columns := Explode(',', rx.Match[5]);
     for i:=0 to Key.Columns.Count-1 do begin
