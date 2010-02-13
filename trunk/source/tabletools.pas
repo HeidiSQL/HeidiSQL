@@ -971,10 +971,13 @@ begin
   StartTime := GetTickCount;
   if ToDir then begin
     FreeAndNil(ExportStream);
-    DbDir := comboExportOutputTarget.Text + '\' + DBObj.Database;
+    DbDir := comboExportOutputTarget.Text;
+    if DbDir[Length(DbDir)] <> '\' then
+      DbDir := DbDir + '\';
+    DbDir := DbDir + DBObj.Database + '\';
     if not DirectoryExists(DbDir) then
       ForceDirectories(DbDir);
-    ExportStream := TFileStream.Create(DbDir+'\'+DBObj.Name+'.sql', fmCreate or fmOpenWrite);
+    ExportStream := TFileStream.Create(DbDir + DBObj.Name+'.sql', fmCreate or fmOpenWrite);
   end;
   if ToFile and (not Assigned(ExportStream)) then
     ExportStream := TFileStream.Create(comboExportOutputTarget.Text, fmCreate or fmOpenWrite);
