@@ -67,6 +67,7 @@ var
 begin
   // print!
   Screen.Cursor := crHourglass;
+  list := nil;
   // which ListView to print?
   case Mainform.PageControlMain.ActivePageIndex of
     0: case Mainform.PageControlHost.ActivePageIndex of
