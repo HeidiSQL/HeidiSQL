@@ -137,7 +137,7 @@ uses main, mysql_structures;
 const
   STRSKIPPED: String = 'Skipped - ';
   OUTPUT_FILE = 'One big file';
-  OUTPUT_DIR = 'Directory - one file per object';
+  OUTPUT_DIR = 'Directory - one file per object in database subdirectories';
   OUTPUT_DB = 'Database';
   OUTPUT_SERVER = 'Server: ';
   DATA_NO = 'No data';
@@ -902,7 +902,7 @@ end;
 procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
   ToFile, ToDir, ToDb, ToServer, IsLastRowInChunk, NeedsDBStructure: Boolean;
-  Struc, Header, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent: String;
+  Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent: String;
   MultiSQL: TStringList;
   i: Integer;
   RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset, ResultCount: Int64;
@@ -971,9 +971,10 @@ begin
   StartTime := GetTickCount;
   if ToDir then begin
     FreeAndNil(ExportStream);
-    if not DirectoryExists(comboExportOutputTarget.Text) then
-      ForceDirectories(comboExportOutputTarget.Text);
-    ExportStream := TFileStream.Create(comboExportOutputTarget.Text+'\'+GoodFileName(DBObj.Name)+'.sql', fmCreate or fmOpenWrite);
+    DbDir := comboExportOutputTarget.Text + '\' + DBObj.Database;
+    if not DirectoryExists(DbDir) then
+      ForceDirectories(DbDir);
+    ExportStream := TFileStream.Create(DbDir+'\'+DBObj.Name+'.sql', fmCreate or fmOpenWrite);
   end;
   if ToFile and (not Assigned(ExportStream)) then
     ExportStream := TFileStream.Create(comboExportOutputTarget.Text, fmCreate or fmOpenWrite);
