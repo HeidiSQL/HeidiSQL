@@ -5883,9 +5883,14 @@ begin
   pnlProcessView.Enabled := enableSQLView;
   if enableSQLView then begin
     NodeData := ListProcesses.GetNodeData(Node);
+    SynMemoProcessView.Highlighter := SynSQLSyn1;
     SynMemoProcessView.Text := NodeData.Captions[7];
-  end
-  else SynMemoProcessView.Clear;
+    SynMemoProcessView.Color := clWindow;
+  end else begin
+    SynMemoProcessView.Highlighter := nil;
+    SynMemoProcessView.Text := 'Please select a process in the above list.';
+    SynMemoProcessView.Color := clBtnFace;
+  end;
 end;
 
 
@@ -7931,6 +7936,9 @@ begin
     FreeAndNil(Results);
     vt.RootNodeCount := Length(VTRowDataListProcesses);
     vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
+    // Reset focused node and column, so OnFocusChange will fire, and update the SQL viewer
+    vt.FocusedNode := nil;
+    vt.FocusedColumn := NoColumn;
     SetVTSelection(vt, Sel);
     // Apply or reset filter
     editFilterVTChange(Sender);
