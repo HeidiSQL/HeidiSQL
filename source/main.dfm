@@ -56,6 +56,7 @@ object MainForm: TMainForm
     Options = [eoAutoIndent, eoDragDropEditing, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
     ReadOnly = True
     RightEdge = 0
+    ScrollBars = ssVertical
   end
   object StatusBar: TStatusBar
     Left = 0
