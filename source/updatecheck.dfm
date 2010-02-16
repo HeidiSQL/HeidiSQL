@@ -61,6 +61,7 @@ object frmUpdateCheck: TfrmUpdateCheck
       Height = 25
       Anchors = [akLeft, akRight, akBottom]
       Caption = 'Download nightly build'
+      ElevationRequired = True
       ModalResult = 1
       TabOrder = 0
       OnClick = btnBuildClick

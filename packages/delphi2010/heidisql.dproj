@@ -23,6 +23,7 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<BRCC_OutputDir>..\..\res</BRCC_OutputDir>
 			<DCC_DependencyCheckOutputName>heidisql.exe</DCC_DependencyCheckOutputName>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
@@ -45,7 +46,6 @@
 			<DCC_Description>HeidiSQL</DCC_Description>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2)'!=''">
-			<BRCC_OutputDir>..\..\res</BRCC_OutputDir>
 			<DCC_MapFile>3</DCC_MapFile>
 			<DCC_DependencyCheckOutputName>..\..\out\heidisql.exe</DCC_DependencyCheckOutputName>
 			<Version>7.0</Version>
@@ -198,6 +198,9 @@
 			<DCCReference Include="..\..\source\searchreplace.pas">
 				<Form>frmSearchReplace</Form>
 			</DCCReference>
+			<RcCompile Include="..\..\res\updater.rc">
+				<Form>updater.res</Form>
+			</RcCompile>
 			<RcCompile Include="..\..\res\icon.rc">
 				<Form>icon.res</Form>
 			</RcCompile>
