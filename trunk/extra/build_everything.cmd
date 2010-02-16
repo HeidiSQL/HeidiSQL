@@ -153,6 +153,7 @@ cd /d "%base_dir%\packages\%package_dir%\"
 brcc32 ..\..\res\version.rc
 brcc32 ..\..\res\icon.rc
 brcc32 ..\..\res\manifest.rc
+brcc32 ..\..\res\updater.rc
 "%compiler%" %params% -e"%base_dir%\out" heidisql.dpr
 if not %errorlevel% == 0 goto end
 

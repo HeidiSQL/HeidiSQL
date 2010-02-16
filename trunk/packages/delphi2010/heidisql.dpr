@@ -41,6 +41,7 @@ uses
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\version.RES}
 {$R ..\..\res\manifest.RES}
+{$R ..\..\res\updater.RES}
 
 var
   DoStop, prefAllowMultipleInstances: Boolean;

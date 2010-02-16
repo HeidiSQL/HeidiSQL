@@ -217,8 +217,11 @@ end;
 procedure TfrmUpdateCheck.btnBuildClick(Sender: TObject);
 var
   Download: TDownLoadURL;
-  ScriptFile: Textfile;
-  ExeName, ScriptFilename, ScriptContent: String;
+  ExeName, UpdaterFilename: String;
+  ResInfoblockHandle: HRSRC;
+  ResHandle: THandle;
+  ResPointer: PChar;
+  Stream: TMemoryStream;
 begin
   Download := TDownLoadURL.Create(Self);
   Download.URL := BuildURL;
@@ -239,60 +242,25 @@ begin
   if not FileExists(Download.Filename) then
     Raise Exception.Create('Downloaded file not found: '+Download.Filename);
 
-  // The Visual Basic Script code which kills this exe and moves the
-  // downloaded file to the application directory.
-  // This file moving can fail due to several reasons. Especially in Vista
-  // where users are normally not admins, they'll get a "Permission denied".
-  // However, the script does several write attempts and quits with a clear
-  // error message if it couldn't move the file.
-  // TODO: move this code to a seperate file for easier debugging
   Status('Update in progress ...');
-  ScriptContent := ''' This is a temporary script which shall update your ' + APPNAME + CRLF +
-    ''' with a nightly build.' + CRLF +
-    CRLF +
-    'ExeName = "'+ExeName+'"' + CRLF +
-    'DownloadFileName = "'+Download.Filename+'"' + CRLF +
-    'TargetFileName = "'+Application.ExeName+'"' + CRLF +
-    CRLF +
-    'WScript.Echo "Terminating """&ExeName&""" ..."' + CRLF +
-    'Set Shell = WScript.CreateObject("WScript.Shell")' + CRLF +
-    'Shell.Run("taskkill /im """&ExeName&""" /f")' + CRLF +
-    CRLF +
-    'Set FileSystem = CreateObject("Scripting.FileSystemObject")' + CRLF +
-    'Set DownloadFile = FileSystem.GetFile(DownloadFileName)' + CRLF +
-    'Set TargetFile = FileSystem.GetFile(TargetFileName)' + CRLF +
-    'On Error Resume Next' + CRLF +
-    'MaxAttempts = 10' + CRLF +
-    'for x = 1 to MaxAttempts' + CRLF +
-    '  WScript.Echo "Deleting "&ExeName&" (attempt "&x&" of "&MaxAttempts&") ..."' + CRLF +
-    '  TargetFile.Delete' + CRLF +
-    '  If Err.Number = 0 Then' + CRLF +
-    '    Err.Clear' + CRLF +
-    '    Exit For' + CRLF +
-    '  End If' + CRLF +
-    '  Err.Clear' + CRLF +
-    '  WScript.Sleep(2000)' + CRLF +
-    'Next' + CRLF +
-    'If Err.Number <> 0 Then' + CRLF +
-    '  WScript.Echo "Error: Cannot delete file "&TargetFileName' + CRLF +
-    '  WScript.Sleep(10000)' + CRLF +
-    '  Wscript.Quit' + CRLF +
-    'End If' + CRLF +
-    'Err.Clear' + CRLF +
-    CRLF +
-    'WScript.Echo "Installing new build ..."' + CRLF +
-    'DownloadFile.Move TargetFileName' + CRLF +
-    CRLF +
-    'WScript.Echo "Restarting ..."' + CRLF +
-    'Shell.Run(""""&TargetFileName&"""")';
-  // Write script file to disk
-  ScriptFilename := GetTempDir + APPNAME + '_Update.vbs';
-  AssignFile(ScriptFile, ScriptFilename);
-  Rewrite(ScriptFile);
-  Write(Scriptfile, ScriptContent);
-  CloseFile(ScriptFile);
-  // Calling the script will now terminate the running exe...
-  ShellExec('cscript.exe', '', '"'+ScriptFilename+'"');
+  ResInfoblockHandle := FindResource(HInstance, 'UPDATER', 'EXE');
+  ResHandle := LoadResource(HInstance, ResInfoblockHandle);
+  if ResHandle <> 0 then begin
+    Stream := TMemoryStream.Create;
+    try
+      ResPointer := LockResource(ResHandle);
+      Stream.WriteBuffer(ResPointer[0], SizeOfResource(HInstance, ResInfoblockHandle));
+      Stream.Position := 0;
+      UpdaterFilename := GetTempDir + AppName+'_updater.exe';
+      Stream.SaveToFile(UpdaterFilename);
+      // Calling the script will now post a WM_CLOSE this running exe...
+      ShellExec(UpdaterFilename, '', '"'+ParamStr(0)+'" "'+Download.Filename+'"');
+    finally
+      UnlockResource(ResHandle);
+      FreeResource(ResHandle);
+      Stream.Free;
+    end;
+  end;
 end;
 
 
