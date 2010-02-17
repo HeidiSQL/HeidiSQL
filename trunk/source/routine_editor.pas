@@ -67,10 +67,10 @@ type
     procedure btnDiscardClick(Sender: TObject);
   private
     { Private declarations }
-    Parameters: TStringList;
     FAlterRoutineType: String;
   public
     { Public declarations }
+    Parameters: TStringList;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
@@ -83,9 +83,6 @@ implementation
 uses main, mysql_structures, grideditlinks;
 
 {$R *.dfm}
-
-const
-  DELIM = '|';
 
 
 constructor TfrmRoutineEditor.Create(AOwner: TComponent);
