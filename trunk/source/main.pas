@@ -9181,7 +9181,7 @@ begin
   for i:=0 to ActiveQueryHelpers.Items.Count-1 do begin
     if ActiveQueryHelpers.Selected[i] then begin
       ColumnNames.Add(mask(ActiveQueryHelpers.Items[i]));
-      Column := SelectedTableColumns[i] as TTableColumn;
+      Column := SelectedTableColumns[i];
       case Column.DataType.Category of
         dtcInteger, dtcReal: Val := '0';
         dtcText, dtcIntegerNamed, dtcSetNamed: begin
