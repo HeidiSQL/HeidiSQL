@@ -5563,7 +5563,7 @@ procedure TMainForm.SaveListSetup( List: TVirtualStringTree );
 var
   i : Byte;
   ColWidths, ColsVisible, ColPos, Regname: String;
-  OwnerForm: TCustomForm;
+  OwnerForm: TWinControl;
 begin
   ColWidths := '';
   ColsVisible := '';
@@ -5589,17 +5589,18 @@ begin
     ColPos := ColPos + IntToStr(List.Header.Columns[i].Position);
 
   end;
+
+  // Lists can have the same name over different forms or frames. Find parent form or frame,
+  // so we can prepend its name into the registry value name.
+  OwnerForm := GetParentFormOrFrame(List);
+  // On a windows shutdown, GetParentForm() seems sporadically unable to find the owner form
+  // In that case we would cause an exception when accessing it. Emergency break in that case.
+  // See issue #1462
+  // TODO: Test this, probably fixed by implementing GetParentFormOrFrame, and then again, probably not.
+  if not Assigned(OwnerForm) then
+    Exit;
+  Regname := OwnerForm.Name + '.' + List.Name;
   OpenRegistry;
-  Regname := List.Name;
-  OwnerForm := GetParentForm(List);
-  if OwnerForm <> Self then begin
-    // On a windows shutdown, GetParentForm() seems sporadically unable to find the owner form
-    // In that case we would cause an exception when accessing it. Emergency break in that case.
-    // See issue #1462
-    if not Assigned(OwnerForm) then
-      Exit;
-    Regname := OwnerForm.Name + '.' + Regname;
-  end;
   MainReg.WriteString( REGPREFIX_COLWIDTHS + Regname, ColWidths );
   MainReg.WriteString( REGPREFIX_COLSVISIBLE + Regname, ColsVisible );
   MainReg.WriteString( REGPREFIX_COLPOS + Regname, ColPos );
@@ -5616,15 +5617,13 @@ var
   Value : String;
   ValueList : TStringList;
   Regname: String;
-  frm: TCustomForm;
+  OwnerForm: TWinControl;
 begin
   ValueList := TStringList.Create;
 
   // Column widths
-  Regname := List.Name;
-  frm := GetParentForm(List);
-  if (frm <> Self) and (Assigned(frm)) then
-    Regname := frm.Name + '.' + Regname;
+  OwnerForm := GetParentFormOrFrame(List);
+  Regname := OwnerForm.Name + '.' + List.Name;
   Value := GetRegValue(REGPREFIX_COLWIDTHS + Regname, '');
   if Value <> '' then begin
     ValueList := Explode( ',', Value );

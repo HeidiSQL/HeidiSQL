@@ -245,6 +245,7 @@ type
   function ParamBlobToStr(lpData: Pointer): TStringlist;
   function ParamStrToBlob(out cbData: DWORD): Pointer;
   function CheckForSecondInstance: Boolean;
+  function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
 
 var
   MainReg: TRegistry;
@@ -3387,6 +3388,20 @@ begin
   else
     // No clue why we should get here. Oh, maybe Microsoft has changed rules, again.
     // However, we return false and let the application start
+  end;
+end;
+
+
+function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
+begin
+  Result := Comp;
+  while True do begin
+    Result := Result.Parent;
+    // On a windows shutdown, GetParentForm() seems sporadically unable to find the owner form
+    // In that case we would cause an exception when accessing it. Emergency break in that case.
+    // See issue #1462
+    if (not Assigned(Result)) or (Result is TCustomForm) or (Result is TFrame) then
+      break;
   end;
 end;
 
