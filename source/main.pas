@@ -5087,6 +5087,7 @@ var
   SnippetsAccessible : Boolean;
   Files: TStringList;
   Col: TTableColumn;
+  Param: String;
 begin
   ActiveQueryHelpers.Items.BeginUpdate;
   ActiveQueryHelpers.Items.Clear;
@@ -5108,12 +5109,22 @@ begin
     begin
       // Keep native order of columns
       ActiveQueryHelpers.Sorted := False;
-      menuQueryHelpersGenerateInsert.Enabled := True;
-      menuQueryHelpersGenerateUpdate.Enabled := True;
-      menuQueryHelpersGenerateDelete.Enabled := True;
-      for i:=0 to SelectedTableColumns.Count-1 do begin
-        Col := TTableColumn(SelectedTableColumns[i]);
-        ActiveQueryHelpers.Items.Add(Col.Name);
+      case SelectedTable.NodeType of
+        lntTable: begin
+          menuQueryHelpersGenerateInsert.Enabled := True;
+          menuQueryHelpersGenerateUpdate.Enabled := True;
+          menuQueryHelpersGenerateDelete.Enabled := True;
+          for i:=0 to SelectedTableColumns.Count-1 do begin
+            Col := TTableColumn(SelectedTableColumns[i]);
+            ActiveQueryHelpers.Items.Add(Col.Name);
+          end;
+        end;
+        lntFunction, lntProcedure: if Assigned(RoutineEditor) then begin
+          for i:=0 to RoutineEditor.Parameters.Count-1 do begin
+            Param := Copy(RoutineEditor.Parameters[i], 1, Pos(DELIM, RoutineEditor.Parameters[i])-1);
+            ActiveQueryHelpers.Items.Add(Param);
+          end;
+        end;
       end;
     end;
 
@@ -7637,7 +7648,7 @@ begin
   end else begin
     // Save current attributes if grid gets refreshed
     HiddenCols := TStringList.Create;
-    HiddenCols.Delimiter := REGDELIM;
+    HiddenCols.Delimiter := DELIM;
     HiddenCols.StrictDelimiter := True;
     if FDataGridSelect.Count > 0 then for i:=0 to SelectedTableColumns.Count-1 do begin
       Col := TTableColumn(SelectedTableColumns[i]);
@@ -7656,7 +7667,7 @@ begin
       MainReg.DeleteValue(REGNAME_FILTER);
 
     for i := 0 to High(FDataGridSort) do
-      Sort := Sort + IntToStr(FDataGridSort[i].SortDirection) + '_' + FDataGridSort[i].ColumnName + REGDELIM;
+      Sort := Sort + IntToStr(FDataGridSort[i].SortDirection) + '_' + FDataGridSort[i].ColumnName + DELIM;
     if Sort <> '' then
       MainReg.WriteString(REGNAME_SORT, Sort)
     else if MainReg.ValueExists(REGNAME_SORT) then
@@ -7683,7 +7694,7 @@ begin
   // Columns
   if MainReg.ValueExists(REGNAME_HIDDENCOLUMNS) then begin
     HiddenCols := TStringList.Create;
-    HiddenCols.Delimiter := REGDELIM;
+    HiddenCols.Delimiter := DELIM;
     HiddenCols.StrictDelimiter := True;
     HiddenCols.DelimitedText := MainReg.ReadString(REGNAME_HIDDENCOLUMNS);
     FDataGridSelect.Clear;
@@ -7706,7 +7717,7 @@ begin
   if MainReg.ValueExists(REGNAME_SORT) then begin
     SetLength(FDataGridSort, 0);
     rx := TRegExpr.Create;
-    rx.Expression := '\b(\d)_(.+)\'+REGDELIM;
+    rx.Expression := '\b(\d)_(.+)\'+DELIM;
     rx.ModifierG := False;
     if rx.Exec(MainReg.ReadString(REGNAME_SORT)) then while true do begin
       idx := Length(FDataGridSort);
@@ -7732,7 +7743,7 @@ function TMainForm.GetRegKeyTable: String;
 begin
   // Return the slightly complex registry path to \Servers\ThisServer\curdb|curtable
   Result := REGPATH + REGKEY_SESSIONS + SessionName + '\' +
-    ActiveDatabase + REGDELIM + SelectedTable.Name;
+    ActiveDatabase + DELIM + SelectedTable.Name;
 end;
 
 

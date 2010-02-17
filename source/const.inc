@@ -24,7 +24,7 @@ const
   REGPATH          = '\Software\' + APPNAME + '\';
   REGKEY_SESSIONS  = 'Servers\';
   // Some unique char, used to separate e.g. selected columns in registry
-  REGDELIM = '|';
+  DELIM = '|';
   STATUS_MSG_READY = 'Ready.';
   STR_NOTSUPPORTED = 'Not supported by this server';
 
