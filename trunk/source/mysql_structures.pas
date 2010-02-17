@@ -234,6 +234,7 @@ var
       HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
+      DefLengthSet:    '10,0';
       Category:        dtcReal;
     ),
     (
