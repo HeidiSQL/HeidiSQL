@@ -763,7 +763,7 @@ begin
     FTargetConnection.Parameters.Hostname := GetRegValue(REGNAME_HOST, DEFAULT_HOST, SessionName);
     FTargetConnection.Parameters.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, SessionName);
     FTargetConnection.Parameters.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, SessionName));
-    FTargetConnection.Parameters.Port := StrToInt(GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), SessionName));
+    FTargetConnection.Parameters.Port := StrToIntDef(GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), SessionName), DEFAULT_PORT);
     if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SessionName) then
       FTargetConnection.Parameters.Options := FTargetConnection.Parameters.Options + [opCompress]
     else
