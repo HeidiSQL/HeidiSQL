@@ -4,7 +4,7 @@ program updater;
   its desired directory. Avoids to use any VCL unit, to keep the executable small. }
 
 uses
-  Windows, Messages;
+  Windows, Messages, Tlhelp32, psapi;
 
 var
   WClass: TWndClass;
@@ -73,6 +73,58 @@ begin
 end;
 
 
+function GetEXEFromHandle(const wnd: HWND) : string;
+var
+  pid: dword;
+  wv: TOSVersionInfo;
+  hProcess, hp: THandle;
+  ContinueLoop: Boolean;
+  aProcessEntry32: TProcessEntry32;
+  buf: array[0..MAX_PATH] of char;
+begin
+  Result := '';
+
+  // R U kiddin', man?
+  if wnd = 0 then
+    Exit;
+
+  // Get running OS
+  ZeroMemory(@wv, SizeOf(TOSVersionInfo));
+  wv.dwOSVersionInfoSize := SizeOf(TOSVersionInfo);
+  GetVersionEx(wv);
+
+  // Get process ID
+  GetWindowThreadProcessID(wnd, @pid);
+
+  hProcess := CreateToolHelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+  if hProcess <> INVALID_HANDLE_VALUE then try
+    aProcessEntry32.dwSize := SizeOf(aProcessEntry32);
+    ContinueLoop := Process32First(hProcess, aProcessEntry32);
+
+    while ContinueLoop do begin
+      if aProcessEntry32.th32ProcessID = pid then begin
+        ZeroMemory(@buf, SizeOf(buf));
+        LStrCpy(buf, aProcessEntry32.szExeFile);
+        if wv.dwPlatformId = VER_PLATFORM_WIN32_NT then begin
+          hp := OpenProcess(PROCESS_QUERY_INFORMATION or PROCESS_VM_READ, False, pid);
+          if hProcess <> INVALID_HANDLE_VALUE then try
+            ZeroMemory(@buf, SizeOf(buf));
+            GetModuleFileNameEx(hp, 0, buf, SizeOf(buf));
+          finally
+            CloseHandle(hp);
+          end;
+        end;
+        break;
+      end;
+      ContinueLoop := Process32Next(hProcess,aProcessEntry32);
+    end;
+  finally
+    CloseHandle(hProcess);
+  end;
+
+  Result := String(buf);
+end;
+
 
 procedure Status(Text: String; IsError: Boolean=False);
 begin
@@ -88,40 +140,34 @@ end;
 
 function EnumAllInstances(Wnd: HWND; LParam: LPARAM): Bool; stdcall;
 var
-  WndTitle, Hint: String;
-  i, p, MajorVer, Code, WaitTime: Integer;
+  WndTitle, WndPath, Hint: String;
+  i, WaitTime: Integer;
 begin
   // Callback function which passes one window handle
   // EnumWindows will stop processing if we return false
   Result := True;
-  if IsWindowVisible(Wnd) and
-    ((GetWindowLong(Wnd, GWL_HWNDPARENT) = 0) or
-    (HWND(GetWindowLong(Wnd, GWL_HWNDPARENT)) = GetDesktopWindow)) then begin
-    SetLength(WndTitle, 256);
-    for i:=1 to 256 do
-      WndTitle[i] := ' ';
-    GetWindowText(Wnd, PChar(WndTitle), 256);
-    // Check if this is a HeidiSQL window, must contain "HeidiSQL 1.2.3.4"
-    p := Pos(AppName, WndTitle);
-    Val(WndTitle[p+Length(AppName)+1], MajorVer, Code);
-    if Code <> 0 then MajorVer := 0;
-    if (p > 0) and (MajorVer <> 0) then begin
-      Hint := 'Closing "'+WndTitle+'"';
-      Status(Hint);
-      PostMessage(Wnd, WM_CLOSE, 0, 0);
-      WaitTime := 0;
-      while WaitTime < QuitTimeout do begin
-        Sleep(TerminatedCheck);
-        Inc(WaitTime, TerminatedCheck);
-        Status(Hint + ', wait time left: '+IntToStr((QuitTimeout - WaitTime) div 1000)+' seconds.');
-        if not IsWindow(Wnd) then
-          break;
-      end;
-      if IsWindow(Wnd) then begin
-        Status('Error: Could not terminate session '+WndTitle, true);
-        Result := False;
-      end;
-    end;
+  WndPath := GetEXEFromHandle(Wnd);
+  if (WndPath <> AppPath) and (WndPath <> ExtractFilename(AppPath)) then
+    Exit;
+
+  SetLength(WndTitle, 256);
+  for i:=1 to 256 do
+    WndTitle[i] := ' ';
+  GetWindowText(Wnd, PChar(WndTitle), 256);
+  Hint := 'Closing "'+WndTitle+'"';
+  Status(Hint);
+  PostMessage(Wnd, WM_CLOSE, 0, 0);
+  WaitTime := 0;
+  while WaitTime < QuitTimeout do begin
+    Sleep(TerminatedCheck);
+    Inc(WaitTime, TerminatedCheck);
+    Status(Hint + ', wait time left: '+IntToStr((QuitTimeout - WaitTime) div 1000)+' seconds.');
+    if not IsWindow(Wnd) then
+      break;
+  end;
+  if IsWindow(Wnd) then begin
+    Status('Error: Could not terminate session '+WndTitle, true);
+    Result := False;
   end;
 end;
 
