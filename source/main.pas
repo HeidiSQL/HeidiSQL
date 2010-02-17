@@ -5110,7 +5110,7 @@ begin
       // Keep native order of columns
       ActiveQueryHelpers.Sorted := False;
       case SelectedTable.NodeType of
-        lntTable: begin
+        lntTable, lntView: begin
           menuQueryHelpersGenerateInsert.Enabled := True;
           menuQueryHelpersGenerateUpdate.Enabled := True;
           menuQueryHelpersGenerateDelete.Enabled := True;
