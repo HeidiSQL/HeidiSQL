@@ -4332,6 +4332,7 @@ var
   IsNull: Boolean;
 begin
   // Set filter for "where..."-clause
+  EnsureFullWidth(DataGrid, DataGrid.FocusedColumn, DataGrid.FocusedNode);
   value := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
   menuitem := (Sender as TMenuItem);
   column := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
