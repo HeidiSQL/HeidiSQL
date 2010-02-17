@@ -341,6 +341,7 @@ var
   VT: TVirtualStringTree;
   EnumEditor: TEnumEditorLink;
   i: Integer;
+  Datatype: String;
 begin
   VT := Sender as TVirtualStringTree;
   if Column = 1 then
@@ -349,8 +350,12 @@ begin
     EnumEditor := TEnumEditorLink.Create(VT);
     EnumEditor.AllowCustomText := True;
     EnumEditor.ValueList := TStringList.Create;
-    for i:=Low(Datatypes) to High(Datatypes) do
-      EnumEditor.ValueList.Add(Datatypes[i].Name);
+    for i:=Low(Datatypes) to High(Datatypes) do begin
+      Datatype := Datatypes[i].Name;
+      if Datatypes[i].RequiresLength then
+        Datatype := Datatype + '(' + Datatypes[i].DefLengthSet + ')';
+      EnumEditor.ValueList.Add(Datatype);
+    end;
     EditLink := EnumEditor;
   end else if Column = 3 then begin
     EnumEditor := TEnumEditorLink.Create(VT);
