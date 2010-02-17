@@ -993,7 +993,7 @@ begin
       case Col.DefaultType of
         cdtNothing:                 CellText := 'No default';
         cdtText, cdtTextUpdateTS: begin
-          if Col.DataType.Category = dtcInteger then
+          if Col.DataType.Category in [dtcInteger, dtcReal] then
             CellText := Col.DefaultText
           else
             CellText := esc(Col.DefaultText);
