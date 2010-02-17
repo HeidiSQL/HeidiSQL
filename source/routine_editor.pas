@@ -72,6 +72,7 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
     function ApplyModifications: TModalResult; override;
   end;
@@ -107,8 +108,18 @@ begin
     comboReturns.Items.Add(Datatypes[i].Name);
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   FixVT(listParameters);
+  Mainform.RestoreListSetup(listParameters);
   Parameters := TStringList.Create;
   editName.MaxLength := NAME_LEN;
+end;
+
+
+destructor TfrmRoutineEditor.Destroy;
+begin
+  // Store GUI setup
+  OpenRegistry;
+  Mainform.SaveListSetup(listParameters);
+  inherited;
 end;
 
 
