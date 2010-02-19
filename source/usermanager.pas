@@ -231,6 +231,8 @@ begin
   db := Mainform.Mask(DBNAME_MYSQL);
   SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
+  FixComboboxEx(comboUsers);
+  FixComboboxEx(comboObjects);
 end;
 
 
