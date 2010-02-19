@@ -9,7 +9,7 @@ unit helpers;
 interface
 
 uses
-  Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi, CheckLst,
+  Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ComCtrls, ShellApi, CheckLst,
   Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages,
   Registry, SynEditHighlighter, DateUtils, Generics.Collections, AnsiStrings,
   mysql_connection, mysql_structures;
@@ -223,6 +223,7 @@ type
   function BinToWideHex(bin: AnsiString): String;
   procedure CheckHex(text: String; errorMessage: string);
   procedure FixVT(VT: TVirtualStringTree);
+  procedure FixComboboxEx(Combo: TComboBoxEx);
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   function ComposeOrderClause(Cols: TOrderColArray): String;
@@ -2539,6 +2540,16 @@ begin
   // Apply case insensitive incremental search event
   if VT.IncrementalSearch <> isNone then
     VT.OnIncrementalSearch := Mainform.vstIncrementalSearch;
+end;
+
+
+procedure FixComboboxEx(Combo: TComboBoxEx);
+begin
+  Combo.DropDownCount := Round(
+    Combo.DropDownCount
+    * (Screen.PixelsPerInch / FORMS_DPI) // DPI scale factor, not automatically applied by VCL
+    * ((Combo.ItemHeight+GetSystemMetrics(SM_CYBORDER) * 2) / Combo.ItemHeight ) // ItemHeight is always 16, wrong in all DPI modes
+    );
 end;
 
 
