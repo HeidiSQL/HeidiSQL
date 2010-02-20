@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
   CheckLst, ExtCtrls, ToolWin,
-  mysql_connection, helpers;
+  mysql_connection, helpers, VirtualTrees;
 
 {$I const.inc}
 
@@ -119,27 +119,25 @@ type
   end;
 
   TUserManagerForm = class(TForm)
-    lblUser: TLabel;
-    comboUsers: TComboBoxEx;
-    btnCancel: TButton;
-    btnOK: TButton;
-    comboObjects: TComboBoxEx;
-    boxPrivs: TCheckListBox;
-    tlbObjects: TToolBar;
-    btnAddObject: TToolButton;
-    btnDeleteObject: TToolButton;
-    chkTogglePrivs: TCheckBox;
+    pnlTop: TPanel;
+    pnlRight: TPanel;
     PageControlUser: TPageControl;
     tabSettings: TTabSheet;
     lblFromHost: TLabel;
     lblPassword: TLabel;
+    lblUsername: TLabel;
+    lblWarning: TLabel;
+    lblHostHints: TLabel;
     editPassword: TEdit;
     editFromHost: TEdit;
+    editUsername: TEdit;
+    chkDisabled: TCheckBox;
     tabLimitations: TTabSheet;
     lblMaxQuestions: TLabel;
     lblMaxUpdates: TLabel;
     lblMaxConnections: TLabel;
     lblMaxUserConnections: TLabel;
+    lblLimitHint: TLabel;
     editMaxUserConnections: TEdit;
     editMaxConnections: TEdit;
     editMaxUpdates: TEdit;
@@ -150,27 +148,27 @@ type
     udMaxUserConnections: TUpDown;
     tabUserInfo: TTabSheet;
     lblFullName: TLabel;
-    editFullName: TEdit;
-    chkDisabled: TCheckBox;
     lblDescription: TLabel;
-    editDescription: TEdit;
     lblEmail: TLabel;
-    editEmail: TEdit;
     lblContactInfo: TLabel;
+    editFullName: TEdit;
+    editDescription: TEdit;
+    editEmail: TEdit;
     memoContactInfo: TMemo;
-    lblUsername: TLabel;
-    editUsername: TEdit;
-    lblLimitHint: TLabel;
-    lblWarning: TLabel;
-    lblHostHints: TLabel;
-    panelVista1: TPanel;
+    tabHints: TTabSheet;
+    lblHints: TLabel;
+    pnlLeft: TPanel;
+    listUsers: TVirtualStringTree;
     tlbUsers: TToolBar;
     btnAddUser: TToolButton;
     btnDeleteUser: TToolButton;
-    panelVista2: TPanel;
-    tabHints: TTabSheet;
-    lblHints: TLabel;
-    procedure boxPrivsClickCheck(Sender: TObject);
+    tlbObjects: TToolBar;
+    btnAddObject: TToolButton;
+    btnDeleteObject: TToolButton;
+    treeObjects: TVirtualStringTree;
+    Splitter1: TSplitter;
+    btnOK: TButton;
+    btnCancel: TButton;
     procedure btnAddObjectClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnAddUserClick(Sender: TObject);
@@ -178,23 +176,42 @@ type
     procedure btnDeleteUserClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure chkDisabledClick(Sender: TObject);
-    procedure chkTogglePrivsClick(Sender: TObject);
-    procedure comboObjectsChange(Sender: TObject);
-    procedure comboUsersChange(Sender: TObject);
     procedure editFromHostChange(Sender: TObject);
     procedure editLimitations(Sender: TObject);
     procedure editPasswordExit(Sender: TObject);
     procedure editUsernameChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
-    procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure listUsersGetText(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+      var CellText: string);
+    procedure listUsersGetImageIndex(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+      var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure listUsersBeforePaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas);
+    procedure treeObjectsInitNode(Sender: TBaseVirtualTree; ParentNode,
+      Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+    procedure treeObjectsBeforePaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas);
+    procedure listUsersFocusChanged(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex);
+    procedure treeObjectsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure treeObjectsGetImageIndex(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+      var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure treeObjectsInitChildren(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; var ChildCount: Cardinal);
+    procedure treeObjectsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure treeObjectsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure treeObjectsFocusChanged(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex);
   private
     { Private declarations }
     Users: TUsers;
     procedure RefreshGUI;
-    procedure RefreshUserPulldown;
-    procedure SetChkToggleStatus;
   public
     function TestUserAdmin: Boolean;
     { Public declarations }
@@ -228,11 +245,12 @@ procedure TUserManagerForm.FormCreate(Sender: TObject);
 begin
   Width := GetRegValue(REGNAME_USERMNGR_WINWIDTH, Width);
   Height := GetRegValue(REGNAME_USERMNGR_WINHEIGHT, Height);
+  pnlLeft.Width := GetRegValue(REGNAME_USERMNGR_LISTWIDTH, pnlLeft.Width);
   db := Mainform.Mask(DBNAME_MYSQL);
   SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
-  FixComboboxEx(comboUsers);
-  FixComboboxEx(comboObjects);
+  FixVT(listUsers);
+  FixVT(treeObjects);
 end;
 
 
@@ -244,15 +262,7 @@ begin
   OpenRegistry;
   MainReg.WriteInteger( REGNAME_USERMNGR_WINWIDTH, Width );
   MainReg.WriteInteger( REGNAME_USERMNGR_WINHEIGHT, Height );
-end;
-
-
-{**
-  FormResize: Adjust columns of boxPriv
-}
-procedure TUserManagerForm.FormResize(Sender: TObject);
-begin
-  boxPrivs.Columns := Trunc(Width / 110);
+  MainReg.WriteInteger( REGNAME_USERMNGR_LISTWIDTH, pnlLeft.Width );
 end;
 
 
@@ -342,77 +352,454 @@ end;
 }
 procedure TUserManagerForm.RefreshGUI;
 begin
-  RefreshUserPulldown;
-  // Manually invoke change-event of pulldown to verify valid state of GUI
-  comboUsersChange(Self);
+  listUsers.Clear;
+  listUsers.Repaint;
+  listUsersFocusChanged(listUsers, listUsers.FocusedNode, listUsers.FocusedColumn);
+  treeObjects.Repaint;
+  treeObjectsFocusChanged(treeObjects, treeObjects.FocusedNode, treeObjects.FocusedColumn);
 end;
 
 
-{**
-  Set correct image index of users in pulldown, corresponding
-  to their modified / added / deleted state
-}
-procedure TUserManagerForm.RefreshUserPulldown;
-var
-  i, Selected, IconIndex: Integer;
-  Username: String;
-  NoUser: Boolean;
+procedure TUserManagerForm.listUsersBeforePaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas);
 begin
-  Selected := comboUsers.ItemIndex;
-  comboUsers.ItemsEx.Clear;
-  for i:=0 to Users.Count-1 do begin
-    NoUser := Users[i].Name = '';
+  (Sender as TVirtualStringTree).RootNodeCount := Users.Count;
+end;
 
-    // Compose displayed username
-    Username := Users[i].Name;
-    if NoUser then Username := 'Everybody';
-    if (Users[i].Host <> '%') then
-      Username := Username + '@' + Users[i].Host;
 
-    // Detect modified status of the user object itself
-    if NoUser then begin
-      if Users[i].Deleted then IconIndex := 86
-      else if Users[i].Added then IconIndex := 85
-      else if Users[i].Modified then IconIndex := 84
-      else IconIndex := 11;
-    end else begin
-      if Users[i].Deleted then IconIndex := 83
-      else if Users[i].Added then IconIndex := 21
-      else if Users[i].Modified then IconIndex := 12
-      else IconIndex := 43;
-    end;
-
-    comboUsers.ItemsEx.AddItem(Username, IconIndex, IconIndex, -1, 0, nil);
-  end;
-  if Users.Count > 0 then begin
-    if (Selected > -1) and (Selected < Users.Count) then
-      comboUsers.ItemIndex := Selected
-    else
-      comboUsers.ItemIndex := 0; // Relevant at first time loading
+procedure TUserManagerForm.listUsersGetImageIndex(
+  Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
+  Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+var
+  u: TUser;
+begin
+  if not (Kind in [ikNormal, ikSelected]) then Exit;
+  u := Users[Node.Index];
+  // Detect modified status of the user object itself
+  if u.Name = '' then begin
+    if u.Deleted then ImageIndex := 86
+    else if u.Added then ImageIndex := 85
+    else if u.Modified then ImageIndex := 84
+    else ImageIndex := 11;
+  end else begin
+    if u.Deleted then ImageIndex := 83
+    else if u.Added then ImageIndex := 21
+    else if u.Modified then ImageIndex := 12
+    else ImageIndex := 43;
   end;
 end;
 
-{**
-  A user was selected from the pulldown
-}
-procedure TUserManagerForm.comboUsersChange(Sender: TObject);
+
+procedure TUserManagerForm.listUsersGetText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+  var CellText: string);
 var
-  uid, i, Icon, PrevSelObject: Integer;
   u: TUser;
-  OneSelected, Enable: Boolean;
+begin
+  // Compose displayed username
+  u := Users[Node.Index];
+  CellText := u.Name;
+  if u.Name = '' then
+    CellText := 'Everybody';
+  if u.Host <> '%' then
+    CellText := CellText + '@' + u.Host;
+end;
+
+
+{**
+  Create new user
+}
+procedure TUserManagerForm.btnAddUserClick(Sender: TObject);
+const
+  name: String = 'New User';
+var
+  u: TUser;
+begin
+  PageControlUser.ActivePage := tabSettings;
+  // Avoid duplicates.
+  u := Users.FindUser(name, '%');
+  if u <> nil then begin
+    MessageDlg('User/host combination "'+name+'@%" already exists.'+CRLF+CRLF+'Please chose a different username.', mtError, [mbOK], 0);
+    Exit;
+  end;
+  Users.AddUser(TUser.Create(name, '%'));
+  RefreshGUI;
+  // Select newly added item.
+  SelectNode(listUsers, listUsers.RootNodeCount - 1);
+  // Focus the user name entry box.
+  editUserName.SetFocus;
+end;
+
+
+{**
+  Delete user
+}
+procedure TUserManagerForm.btnDeleteUserClick(Sender: TObject);
+begin
+  if MessageDlg('Delete user "'+listUsers.Text[listUsers.FocusedNode, listUsers.FocusedColumn]+'"?', mtConfirmation, [mbYes, mbCancel], 0 ) <> mrYes then
+    Exit;
+  Users.DeleteUser(listUsers.FocusedNode.Index);
+  RefreshGUI;
+end;
+
+
+{**
+  Disable a user
+}
+procedure TUserManagerForm.chkDisabledClick(Sender: TObject);
+var
+  disabled: Boolean;
+  u: TUser;
+begin
+  disabled := TCheckbox(Sender).Checked;
+  u := Users[listUsers.FocusedNode.Index];
+  u.Disabled := disabled;
+  // Reset password from "!" to empty string. Avoids again disabling it
+  // by just leaving and saving the exclamation mark
+  if u.Password = '!' then u.Password := '';
+  u.Modified := True;
+  listUsers.Invalidate;
+end;
+
+
+procedure TUserManagerForm.btnAddObjectClick(Sender: TObject);
+var
+  NewObj: TStringList;
+  ds, FieldDefs: TMySQLQuery;
+  NewPriv: TPrivilege;
+  u: TUser;
+  i: Integer;
+begin
+  NewObj := SelectDBO;
+  if NewObj <> nil then begin
+    u := Users[listUsers.FocusedNode.Index];
+    for i := 0 to u.Privileges.Count - 1 do begin
+      NewObj.Delimiter := u.Privileges[i].DBONames.Delimiter;
+      if (u.Privileges[i].DBOKey = NewObj.DelimitedText) and (not u.Privileges[i].Deleted) then begin
+        MessageDlg(NewObj.DelimitedText+' already exists.', mtError, [mbOK], 0);
+        Exit;
+      end;
+    end;
+    ds := nil;
+    FieldDefs := nil;
+    case NewObj.Count of
+      1: ds := dsDb;
+      2: begin ds := dsTables; FieldDefs := dsTablesFields; end;
+      3: begin ds := dsColumns; FieldDefs := dsColumnsFields; end;
+      else
+        Exception.Create('Added privilege object has an invalid number of segments ('+IntToStr(NewObj.Count)+')');
+    end;
+    NewPriv := u.Privileges.AddPrivilege(ds, FieldDefs);
+    NewPriv.Added := True;
+    NewPriv.DBONames := NewObj;
+    u.Modified := True;
+    listUsers.Invalidate;
+    treeObjects.ReinitChildren(treeObjects.RootNode, false);
+    treeObjects.Repaint;
+    SelectNode(treeObjects, treeObjects.GetLastChild(treeObjects.RootNode));
+    treeObjects.Expanded[treeObjects.FocusedNode] := True;
+  end;
+end;
+
+
+{**
+  Revoke access to an object
+}
+procedure TUserManagerForm.btnDeleteObjectClick(Sender: TObject);
+var
+  Node: PVirtualNode;
+begin
+  case treeObjects.GetNodeLevel(treeObjects.FocusedNode) of
+    0: Node := treeObjects.FocusedNode;
+    1: Node := treeObjects.FocusedNode.Parent;
+    else Raise Exception.Create(SUnhandledTreeLevel);
+  end;
+  Users[listUsers.FocusedNode.Index].Privileges.DeletePrivilege(Node.Index);
+  treeObjects.ReInitNode(Node, True);
+end;
+
+
+{**
+  Username edited
+}
+procedure TUserManagerForm.editUsernameChange(Sender: TObject);
+var
+  u, f: TUser;
   t: TNotifyEvent;
-  pname: String;
+begin
+  // User edit probably has to be reset to the previous value
+  t := editUsername.OnChange;
+  editUsername.OnChange := nil;
+  // In case the user field contains '%', it's sort of a visual hoax.
+  // The TUser.Name and mysql database contents of a match-all user is ''.
+  // Allow entering '%' too, changing it to '' automatically.
+  if editUsername.Text = '%' then editUsername.Text := '';
+  u := Users[listUsers.FocusedNode.Index];
+  // Check if user/host combination already exists
+  f := Users.FindUser(editUsername.Text, u.Host);
+  if (f = nil) or (f = u) then
+    u.Name := editUsername.Text
+  else
+    MessageDlg('User/host combination "'+editUsername.Text+'@'+u.Host+'" already exists.'+CRLF+CRLF+'Please chose a different username.', mtError, [mbOK], 0);
+  // Blank user field means:
+  // - this user is used for authentication failures
+  // - privileges for this user applies to everyone
+  // In effect, User='' means the same as User='%', except
+  // that the latter syntax is not allowed (in the database).
+  if u.Name = '' then editUserName.Text := '%'
+  else editUsername.Text := u.Name;
+  editUsername.OnChange := t;
+  listUsers.Invalidate;
+end;
+
+
+{**
+  "From Host" edited
+}
+procedure TUserManagerForm.editFromHostChange(Sender: TObject);
+var
+  u, f: TUser;
+  t: TNotifyEvent;
+begin
+  u := Users[listUsers.FocusedNode.Index];
+  // Check if user/host combination already exists
+  f := Users.FindUser(u.Name, editFromHost.Text);
+  if (f = nil) or (f = u) then
+    u.Host := editFromHost.Text
+  else
+    MessageDlg('User/host combination "'+u.Name+'@'+editFromHost.Text+'" already exists.'+CRLF+CRLF+'Please choose a different hostname.', mtError, [mbOK], 0);
+  // Host edit probably has to be reset to the previous value
+  t := editFromHost.OnChange;
+  editFromHost.OnChange := nil;
+  editFromHost.Text := u.Host;
+  editFromHost.OnChange := t;
+  listUsers.Invalidate;
+end;
+
+
+{**
+  Password field is unfocused: Apply change pw to user object
+}
+procedure TUserManagerForm.editPasswordExit(Sender: TObject);
+var
+  u: TUser;
+  t: TNotifyEvent;
+begin
+  if not editPassword.Modified then
+    Exit;
+  u := Users[listUsers.FocusedNode.Index];
+  u.Password := editPassword.Text;
+  if u.PasswordModified then begin
+    u.Disabled := False;
+    t := chkDisabled.OnClick;
+    chkDisabled.OnClick := nil;
+    chkDisabled.Checked := False;
+    chkDisabled.OnClick := t;
+    editPassword.TextHint := '';
+  end;
+  // Show security warning for empty password if user is not disabled
+  lblWarning.Visible := (not u.Disabled) and (
+    (u.PasswordModified and (u.Password = '')) or
+    ((not u.PasswordModified) and (u.OldPasswordHashed = ''))
+    );
+  lblWarning.Caption := 'This user has a blank password.';
+  listUsers.Invalidate;
+end;
+
+
+
+procedure TUserManagerForm.editLimitations(Sender: TObject);
+var
+  u: TUser;
+  isModified: Boolean;
+begin
+  // OnChange is called during form construction, avoid that.
+  if not Assigned(listUsers.FocusedNode) then Exit;
+  u := Users[listUsers.FocusedNode.Index];
+  isModified :=
+    Cardinal(u.MaxQuestions) +
+    Cardinal(u.MaxUpdates) +
+    Cardinal(u.MaxConnections) +
+    Cardinal(u.MaxUserConnections) <>
+    Cardinal(udMaxQuestions.Position) +
+    Cardinal(udMaxUpdates.Position) +
+    Cardinal(udMaxConnections.Position) +
+    Cardinal(udMaxUserConnections.Position);
+  u.MaxQuestions := udMaxQuestions.Position;
+  u.MaxUpdates := udMaxUpdates.Position;
+  u.MaxConnections := udMaxConnections.Position;
+  u.MaxUserConnections := udMaxUserConnections.Position;
+  if isModified then begin
+    u.Modified := True;
+    listUsers.Invalidate;
+  end;
+end;
+
+
+procedure TUserManagerForm.treeObjectsBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+var
+  VT: TVirtualStringTree;
+begin
+  VT := Sender as TVirtualStringTree;
+  if not Assigned(listUsers.FocusedNode) then
+    VT.RootNodeCount := 0
+  else
+    VT.RootNodeCount := Users[listUsers.FocusedNode.Index].Privileges.Count;
+end;
+
+
+procedure TUserManagerForm.treeObjectsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+  u: TUser;
+  p: TPrivilege;
+  i: Integer;
+begin
+  case Sender.GetNodeLevel(Node) of
+    0: Sender.Expanded[Node] := True;
+    1: begin
+      u := Users[listUsers.FocusedNode.Index];
+      p := u.Privileges[Node.Parent.Index];
+      case Node.CheckState of
+        csCheckedNormal: p.SelectedPrivNames.Add(p.PrivNames[Node.Index]);
+        csUncheckedNormal: begin
+          i := p.SelectedPrivNames.IndexOf(p.PrivNames[Node.Index]);
+          p.SelectedPrivNames.Delete(i);
+        end;
+      end;
+      p.Modified := True;
+      u.Modified := True;
+      listUsers.Invalidate;
+    end;
+  end;
+end;
+
+
+procedure TUserManagerForm.treeObjectsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+  n: PVirtualNode;
+begin
+  // Collapse all uninvolved tree nodes, keeping the tree usable
+  n := Sender.GetFirstChild(Node.Parent);
+  while Assigned(n) do begin
+    Sender.Expanded[n] := n = Node;
+    n := Sender.GetNextSibling(n);
+  end;
+end;
+
+
+procedure TUserManagerForm.treeObjectsFocusChanged(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex);
+var
+  EnableDelete: Boolean;
+  i: Integer;
+  priv: TPrivilege;
+begin
+  EnableDelete := False;
+  if Assigned(Sender.FocusedNode) then begin
+    case Sender.GetNodeLevel(Node) of
+      0: i := Node.Index;
+      1: i := Node.Parent.Index;
+      else Raise Exception.Create(SUnhandledTreeLevel);
+    end;
+    priv := Users[listUsers.FocusedNode.Index].Privileges[i];
+    EnableDelete := (priv.DBOType <> lntNone) and
+      (priv.DBOKey <> '%') and (not priv.Deleted);
+  end;
+  if Assigned(listUsers.FocusedNode) then
+    EnableDelete := EnableDelete and (not Users[listUsers.FocusedNode.Index].Deleted);
+  btnDeleteObject.Enabled := EnableDelete;
+end;
+
+
+procedure TUserManagerForm.treeObjectsGetImageIndex(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+  var Ghosted: Boolean; var ImageIndex: Integer);
+var
+  u: TUser;
+begin
+  if not (Kind in [ikNormal, ikSelected]) then Exit;
+  case Sender.GetNodeLevel(Node) of
+    0: begin
+      u := Users[listUsers.FocusedNode.Index];
+      case u.Privileges[Node.Index].DBOType of
+        lntNone:      ImageIndex := ICONINDEX_SERVER;
+        lntDb:        ImageIndex := ICONINDEX_DB;
+        lntTable:     ImageIndex := ICONINDEX_TABLE;
+        lntView:      ImageIndex := ICONINDEX_VIEW;
+        lntColumn:    ImageIndex := ICONINDEX_FIELD;
+      end;
+      if u.Privileges[Node.Index].Deleted then
+        ImageIndex := 46;
+    end;
+  end;
+end;
+
+
+procedure TUserManagerForm.treeObjectsGetText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+  var CellText: string);
+var
+  u: TUser;
+begin
+  case Sender.GetNodeLevel(Node) of
+    0: begin
+      u := Users[listUsers.FocusedNode.Index];
+      CellText := u.Privileges[Node.Index].DBOPrettyKey;
+      if u.Privileges[Node.Index].Deleted then
+        CellText := CellText + ' (deleted)';
+    end;
+    1: CellText := Users[listUsers.FocusedNode.Index].Privileges[Node.Parent.Index].PrivNames[Node.Index];
+  end;
+end;
+
+
+procedure TUserManagerForm.treeObjectsInitChildren(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; var ChildCount: Cardinal);
+begin
+  // Only first level nodes have child nodes
+  case Sender.GetNodeLevel(Node) of
+    0: ChildCount := Users[listUsers.FocusedNode.Index].Privileges[Node.Index].PrivNames.Count;
+    1: ChildCount := 0;
+  end;
+end;
+
+
+procedure TUserManagerForm.treeObjectsInitNode(Sender: TBaseVirtualTree;
+  ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+var
+  p: TPrivilege;
+begin
+  Node.CheckType := ctTriStateCheckBox;
+  case Sender.GetNodeLevel(Node) of
+    0: begin
+      // Display plus/minus button
+      Include(InitialStates, ivsHasChildren);
+      p := Users[listUsers.FocusedNode.Index].Privileges[Node.Index];
+    end;
+    1: begin
+      p := Users[listUsers.FocusedNode.Index].Privileges[Node.Parent.Index];
+      case p.SelectedPrivNames.IndexOf(p.PrivNames[Node.Index]) of
+        -1: Node.CheckState := csUncheckedNormal;
+        else Node.CheckState := csCheckedNormal;
+      end;
+    end;
+    else Raise Exception.Create(SUnhandledTreeLevel);
+  end;
+  if p.Deleted then
+    Include(Node.States, vsDisabled);
+end;
+
+procedure TUserManagerForm.listUsersFocusChanged(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex);
+var
+  u: TUser;
+  Enable: Boolean;
+  t: TNotifyEvent;
 begin
   lblWarning.Visible := False;
-  uid := comboUsers.ItemIndex;
-  PrevSelObject := comboObjects.ItemIndex;
-  if PrevSelObject = -1 then
-    PrevSelObject := 0;
-  comboObjects.ItemsEx.Clear;
-  OneSelected := uid > -1;
-  Enable := OneSelected;
-  if OneSelected then begin
-    u := Users[uid];
+  Enable := False;
+  if Assigned(Sender.FocusedNode) then begin
+    u := Users[Sender.FocusedNode.Index];
     Enable := not u.Deleted;
 
     t := editUsername.OnChange;
@@ -455,36 +842,8 @@ begin
     editMaxUpdates.OnChange := t;
     editMaxConnections.OnChange := t;
     editMaxUserConnections.OnChange := t;
-
-    // Display priv objects
-    for i := 0 to u.Privileges.Count - 1 do begin
-      Icon := -1;
-      case u.Privileges[i].DBOType of
-        lntNone:      Icon := ICONINDEX_SERVER;
-        lntDb:        Icon := ICONINDEX_DB;
-        lntTable:     Icon := ICONINDEX_TABLE;
-        lntView:      Icon := ICONINDEX_VIEW;
-        lntColumn:    Icon := ICONINDEX_FIELD;
-      end;
-      pname := u.Privileges[i].DBOPrettyKey;
-      if u.Privileges[i].Deleted then begin
-        pname := pname + ' (deleted)';
-        Icon := 46;
-      end;
-      comboObjects.ItemsEx.AddItem(pname, Icon, Icon, -1, 0, nil);
-    end;
-    if comboObjects.ItemsEx.Count > PrevSelObject then
-      comboObjects.ItemIndex := PrevSelObject;
-    comboObjectsChange(Sender);
-  end else begin
-    editUsername.Text := '';
-    editPassword.Text := '';
-    editFromHost.Text := '';
-    udMaxQuestions.Position := 0;
-    udMaxUpdates.Position := 0;
-    udMaxConnections.Position := 0;
-    udMaxUserConnections.Position := 0;
   end;
+
   // Update top buttons
   btnDeleteUser.Enabled := Enable;
   // Update control in Settings tab
@@ -511,333 +870,9 @@ begin
   editMaxUserConnections.Enabled := Enable;
   udMaxUserConnections.Enabled := Enable;
   // Update controls for privileges
-  comboObjects.Enabled := Enable;
   btnAddObject.Enabled := Enable;
-  boxPrivs.Enabled := Enable;
-  chkTogglePrivs.Enabled := Enable;
-end;
-
-
-{**
-  Create new user
-}
-procedure TUserManagerForm.btnAddUserClick(Sender: TObject);
-const
-  name: String = 'New User';
-var
-  u: TUser;
-begin
-  PageControlUser.ActivePage := tabSettings;
-  // Avoid duplicates.
-  u := Users.FindUser(name, '%');
-  if u <> nil then begin
-    comboUsers.ItemIndex := comboUsers.Items.IndexOf(name);
-    comboUsersChange(Self);
-    editUserName.SetFocus;
-    MessageDlg('User/host combination "'+name+'@%" already exists.'+CRLF+CRLF+'Please chose a different username.', mtError, [mbOK], 0);
-    Exit;
-  end;
-  Users.AddUser(TUser.Create(name, '%'));
-  RefreshGUI;
-  // Select newly added item.
-  comboUsers.ItemIndex := comboUsers.ItemsEx.Count - 1;
-  comboUsersChange(Self);
-  // Focus the user name entry box.
-  editUserName.SetFocus;
-end;
-
-
-{**
-  Delete user
-}
-procedure TUserManagerForm.btnDeleteUserClick(Sender: TObject);
-begin
-  if MessageDlg('Delete user "'+comboUsers.ItemsEx[comboUsers.ItemIndex].Caption+'"?', mtConfirmation, [mbYes, mbCancel], 0 ) <> mrYes then
-    Exit;
-  Users.DeleteUser(comboUsers.ItemIndex);
-  RefreshGUI;
-end;
-
-
-{**
-  Disable a user
-}
-procedure TUserManagerForm.chkDisabledClick(Sender: TObject);
-var
-  disabled: Boolean;
-  u: TUser;
-begin
-  disabled := TCheckbox(Sender).Checked;
-  u := Users[comboUsers.ItemIndex];
-  u.Disabled := disabled;
-  // Reset password from "!" to empty string. Avoids again disabling it
-  // by just leaving and saving the exclamation mark
-  if u.Password = '!' then u.Password := '';
-  u.Modified := True;
-  comboUsersChange(self);
-end;
-
-
-{**
-  Database object selected
-}
-procedure TUserManagerForm.comboObjectsChange(Sender: TObject);
-var
-  priv: TPrivilege;
-  EnableDelete: Boolean;
-  i: Integer;
-begin
-  boxPrivs.OnClickCheck := nil;
-  boxPrivs.Items.BeginUpdate;
-  boxPrivs.Items.Clear;
-  EnableDelete := False;
-  if comboObjects.ItemIndex > -1 then begin
-    priv := Users[comboUsers.ItemIndex].Privileges[comboObjects.ItemIndex];
-    boxPrivs.Items.Text := priv.PrettyPrivNames.Text;
-    // Check selected privs
-    for i := 0 to priv.PrivNames.Count - 1 do begin
-      boxPrivs.Checked[i] := priv.SelectedPrivNames.IndexOf(priv.PrivNames[i]) > -1;
-    end;
-    EnableDelete := (priv.DBOType <> lntNone) and
-      (priv.DBOKey <> '%') and (not priv.Deleted);
-  end;
-  if comboUsers.ItemIndex > -1 then
-    EnableDelete := EnableDelete and (not Users[comboUsers.ItemIndex].Deleted);
-  boxPrivs.Items.EndUpdate;
-  btnDeleteObject.Enabled := EnableDelete;
-  SetChkToggleStatus;
-  boxPrivs.OnClickCheck := boxPrivsClickCheck;
-end;
-
-
-procedure TUserManagerForm.btnAddObjectClick(Sender: TObject);
-var
-  NewObj: TStringList;
-  ds, FieldDefs: TMySQLQuery;
-  NewPriv: TPrivilege;
-  u: TUser;
-  i: Integer;
-begin
-  NewObj := SelectDBO;
-  if NewObj <> nil then begin
-    u := Users[comboUsers.ItemIndex];
-    for i := 0 to u.Privileges.Count - 1 do begin
-      NewObj.Delimiter := u.Privileges[i].DBONames.Delimiter;
-      if (u.Privileges[i].DBOKey = NewObj.DelimitedText) and (not u.Privileges[i].Deleted) then begin
-        MessageDlg(NewObj.DelimitedText+' already exists.', mtError, [mbOK], 0);
-        comboObjects.ItemIndex := i;
-        comboObjectsChange(Sender);
-        Exit;
-      end;
-    end;
-    ds := nil;
-    FieldDefs := nil;
-    case NewObj.Count of
-      1: ds := dsDb;
-      2: begin ds := dsTables; FieldDefs := dsTablesFields; end;
-      3: begin ds := dsColumns; FieldDefs := dsColumnsFields; end;
-      else
-        Exception.Create('Added privilege object has an invalid number of segments ('+IntToStr(NewObj.Count)+')');
-    end;
-    NewPriv := u.Privileges.AddPrivilege(ds, FieldDefs);
-    NewPriv.Added := True;
-    NewPriv.DBONames := NewObj;
-    u.Modified := True;
-    RefreshUserPulldown;
-    // Display new priv:
-    comboUsersChange(Sender);
-    comboObjects.ItemIndex := comboObjects.ItemsEx.Count-1;
-    comboObjectsChange(Sender);
-  end;
-end;
-
-
-{**
-  Revoke access to an object
-}
-procedure TUserManagerForm.btnDeleteObjectClick(Sender: TObject);
-begin
-  Users[comboUsers.ItemIndex].Privileges.DeletePrivilege(comboObjects.ItemIndex);
-  RefreshGUI;
-end;
-
-
-{**
-  Manual click within boxPrivs
-}
-procedure TUserManagerForm.boxPrivsClickCheck(Sender: TObject);
-var
-  p: TPrivilege;
-  i: Integer;
-begin
-  p := Users[comboUsers.ItemIndex].Privileges[comboObjects.ItemIndex];
-  p.SelectedPrivNames.Clear;
-  for i := 0 to boxPrivs.Count - 1 do begin
-    if boxPrivs.Checked[i] then
-      p.SelectedPrivNames.Add(p.PrivNames[i]);
-  end;
-  p.Modified := True;
-  Users[comboUsers.ItemIndex].Modified := True;
-  // Update users icons in pulldown
-  RefreshUserPulldown;
-  SetChkToggleStatus;
-end;
-
-
-{**
-  Set the correct state of the tristate checkbox "Select / Deselect all"
-}
-procedure TUserManagerForm.SetChkToggleStatus;
-var
-  i : Integer;
-  allSelected, noneSelected : Boolean;
-begin
-  allselected := True;
-  noneSelected := True;
-  for i := 0 to boxPrivs.Items.Count - 1 do begin
-    if boxPrivs.Checked[i] then
-      noneSelected := False
-    else
-      allSelected := False;
-  end;
-  // Disable clickevent handling
-  chkTogglePrivs.OnClick := nil;
-  if noneSelected then
-    chkTogglePrivs.State := cbUnchecked
-  else if allSelected then
-    chkTogglePrivs.State := cbChecked
-  else
-    chkTogglePrivs.State := cbGrayed;
-  // Enable clickevent handling
-  chkTogglePrivs.OnClick := chkTogglePrivsClick;
-end;
-
-
-{**
-  Username edited
-}
-procedure TUserManagerForm.editUsernameChange(Sender: TObject);
-var
-  u, f: TUser;
-  t: TNotifyEvent;
-begin
-  // User edit probably has to be reset to the previous value
-  t := editUsername.OnChange;
-  editUsername.OnChange := nil;
-  // In case the user field contains '%', it's sort of a visual hoax.
-  // The TUser.Name and mysql database contents of a match-all user is ''.
-  // Allow entering '%' too, changing it to '' automatically.
-  if editUsername.Text = '%' then editUsername.Text := '';
-  u := Users[comboUsers.ItemIndex];
-  // Check if user/host combination already exists
-  f := Users.FindUser(editUsername.Text, u.Host);
-  if (f = nil) or (f = u) then
-    u.Name := editUsername.Text
-  else
-    MessageDlg('User/host combination "'+editUsername.Text+'@'+u.Host+'" already exists.'+CRLF+CRLF+'Please chose a different username.', mtError, [mbOK], 0);
-  // Blank user field means:
-  // - this user is used for authentication failures
-  // - privileges for this user applies to everyone
-  // In effect, User='' means the same as User='%', except
-  // that the latter syntax is not allowed (in the database).
-  if u.Name = '' then editUserName.Text := '%'
-  else editUsername.Text := u.Name;
-  editUsername.OnChange := t;
-  RefreshUserPulldown;
-end;
-
-
-{**
-  "From Host" edited
-}
-procedure TUserManagerForm.editFromHostChange(Sender: TObject);
-var
-  u, f: TUser;
-  t: TNotifyEvent;
-begin
-  u := Users[comboUsers.ItemIndex];
-  // Check if user/host combination already exists
-  f := Users.FindUser(u.Name, editFromHost.Text);
-  if (f = nil) or (f = u) then
-    u.Host := editFromHost.Text
-  else
-    MessageDlg('User/host combination "'+u.Name+'@'+editFromHost.Text+'" already exists.'+CRLF+CRLF+'Please choose a different hostname.', mtError, [mbOK], 0);
-  // Host edit probably has to be reset to the previous value
-  t := editFromHost.OnChange;
-  editFromHost.OnChange := nil;
-  editFromHost.Text := u.Host;
-  editFromHost.OnChange := t;
-  RefreshUserPulldown;
-end;
-
-
-{**
-  Password field is unfocused: Apply change pw to user object
-}
-procedure TUserManagerForm.editPasswordExit(Sender: TObject);
-var
-  u: TUser;
-  t: TNotifyEvent;
-begin
-  if not editPassword.Modified then
-    Exit;
-  u := Users[comboUsers.ItemIndex];
-  u.Password := editPassword.Text;
-  if u.PasswordModified then begin
-    u.Disabled := False;
-    t := chkDisabled.OnClick;
-    chkDisabled.OnClick := nil;
-    chkDisabled.Checked := False;
-    chkDisabled.OnClick := t;
-    editPassword.TextHint := '';
-  end;
-  // Show security warning for empty password if user is not disabled
-  lblWarning.Visible := (not u.Disabled) and (
-    (u.PasswordModified and (u.Password = '')) or
-    ((not u.PasswordModified) and (u.OldPasswordHashed = ''))
-    );
-  lblWarning.Caption := 'This user has a blank password.';
-  RefreshUserPulldown;
-end;
-
-
-
-{**
-  Select/Deselect all privileges
-}
-procedure TUserManagerForm.chkTogglePrivsClick(Sender: TObject);
-begin
-  ToggleCheckListBox(boxPrivs, (Sender as TCheckbox).Checked);
-  // Ensure user gets marked as modified
-  boxPrivsClickCheck(Sender);
-end;
-
-
-procedure TUserManagerForm.editLimitations(Sender: TObject);
-var
-  u: TUser;
-  isModified: Boolean;
-begin
-  // OnChange is called during form construction, avoid that.
-  if comboUsers.ItemIndex = -1 then Exit;
-  u := Users[comboUsers.ItemIndex];
-  isModified :=
-    Cardinal(u.MaxQuestions) +
-    Cardinal(u.MaxUpdates) +
-    Cardinal(u.MaxConnections) +
-    Cardinal(u.MaxUserConnections) <>
-    Cardinal(udMaxQuestions.Position) +
-    Cardinal(udMaxUpdates.Position) +
-    Cardinal(udMaxConnections.Position) +
-    Cardinal(udMaxUserConnections.Position);
-  u.MaxQuestions := udMaxQuestions.Position;
-  u.MaxUpdates := udMaxUpdates.Position;
-  u.MaxConnections := udMaxConnections.Position;
-  u.MaxUserConnections := udMaxUserConnections.Position;
-  if isModified then begin
-    u.Modified := True;
-    RefreshUserPulldown;
-  end;
+  treeObjects.Clear;
+  treeObjects.Invalidate;
 end;
 
 
