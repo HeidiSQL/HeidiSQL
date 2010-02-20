@@ -9043,8 +9043,10 @@ begin
   end;
   if Assigned(ViewEditor) then
     Editors.Add(ViewEditor.SynMemoSelect);
-  if Assigned(RoutineEditor) then
+  if Assigned(RoutineEditor) then begin
     Editors.Add(RoutineEditor.SynMemoBody);
+    Editors.Add(RoutineEditor.SynMemoCREATEcode);
+  end;
   if Assigned(TriggerEditor) then
     Editors.Add(TriggerEditor.SynMemoStatement);
   if Assigned(CreateDatabaseForm) then
