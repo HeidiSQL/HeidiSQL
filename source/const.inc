@@ -167,6 +167,7 @@ const
   REGNAME_TOOLSDATATYPE = 'TableTools_Datatype';
   REGNAME_USERMNGR_WINWIDTH = 'Usermanager_WindowWidth';
   REGNAME_USERMNGR_WINHEIGHT = 'Usermanager_WindowHeight';
+  REGNAME_USERMNGR_LISTWIDTH = 'Usermanager_ListWidth';
   REGNAME_SELECTDBO_WINWIDTH = 'SelectDBO_WindowWidth';
   REGNAME_SELECTDBO_WINHEIGHT = 'SelectDBO_WindowHeight';
   REGNAME_SESSMNGR_WINWIDTH = 'SessionManager_WindowWidth';
@@ -306,6 +307,7 @@ const
         + 'Increase the value in Tools > Preferences > Export if you need more.';
   SContainsNulCharFile = 'This file contains NUL characters. They have been converted to ASCII spaces (SP).';
   SContainsNulCharGrid = 'This cell contains NUL characters. They have been converted to ASCII spaces (SP). Press ESC to cancel editing.';
+  SUnhandledTreeLevel = 'Unhandled tree node level.';
 
   PKEY = 'PRIMARY';
   KEY = 'KEY';
