@@ -13,27 +13,31 @@ type
     btnSave: TButton;
     btnDiscard: TButton;
     btnHelp: TButton;
-    lblName: TLabel;
-    lblType: TLabel;
-    lblReturns: TLabel;
+    lblSQLcode: TLabel;
+    SynMemoBody: TSynMemo;
+    PageControlMain: TPageControl;
+    tabOptions: TTabSheet;
+    tabParameters: TTabSheet;
+    tabCreateCode: TTabSheet;
+    chkDeterministic: TCheckBox;
+    editComment: TEdit;
+    comboSecurity: TComboBox;
+    comboDataAccess: TComboBox;
     comboReturns: TComboBox;
     comboType: TComboBox;
     editName: TEdit;
-    lblParameters: TLabel;
+    lblName: TLabel;
+    lblType: TLabel;
+    lblReturns: TLabel;
+    lblSQL: TLabel;
+    lblSecurity: TLabel;
+    lblComment: TLabel;
+    listParameters: TVirtualStringTree;
     tlbParameters: TToolBar;
     btnAddParam: TToolButton;
     btnRemoveParam: TToolButton;
     btnClearParams: TToolButton;
-    listParameters: TVirtualStringTree;
-    lblSQL: TLabel;
-    comboDataAccess: TComboBox;
-    lblSecurity: TLabel;
-    comboSecurity: TComboBox;
-    lblComment: TLabel;
-    editComment: TEdit;
-    chkDeterministic: TCheckBox;
-    lblSQLcode: TLabel;
-    SynMemoBody: TSynMemo;
+    SynMemoCREATEcode: TSynMemo;
     procedure comboTypeSelect(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -68,6 +72,7 @@ type
   private
     { Private declarations }
     FAlterRoutineType: String;
+    function ComposeCreateStatement(NameOfObject: String): String;
   public
     { Public declarations }
     Parameters: TStringList;
@@ -222,6 +227,7 @@ begin
   Modified := True;
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
+  SynMemoCreateCode.Text := ComposeCreateStatement(editName.Text);
 end;
 
 
@@ -422,35 +428,15 @@ end;
 
 function TfrmRoutineEditor.ApplyModifications: TModalResult;
 var
-  BaseSQL, TempSQL, FinalSQL, TempName: String;
+  TempName: String;
   i: Integer;
-  par, allRoutineNames: TStringList;
+  allRoutineNames: TStringList;
   ProcOrFunc: String;
   TargetExists: Boolean;
 begin
   // Save changes
   Result := mrOk;
   ProcOrFunc := UpperCase(GetFirstWord(comboType.Text));
-  BaseSQL := '';
-  for i := 0 to Parameters.Count - 1 do begin
-    par := explode(DELIM, Parameters[i]);
-    if ProcOrFunc = 'PROCEDURE' then
-      BaseSQL := BaseSQL + par[2] + ' ';
-    BaseSQL := BaseSQL + Mainform.Mask(par[0]) + ' ' + par[1];
-    if i < Parameters.Count-1 then
-      BaseSQL := BaseSQL + ', ';
-  end;
-  BaseSQL := BaseSQL + ') ';
-  if comboReturns.Enabled then
-    BaseSQL := BaseSQL + 'RETURNS '+comboReturns.Text+' ';
-  BaseSQL := BaseSQL + 'LANGUAGE SQL ';
-  if not chkDeterministic.Checked then
-    BaseSQL := BaseSQL + 'NOT ';
-  BaseSQL := BaseSQL + 'DETERMINISTIC ';
-  BaseSQL := BaseSQL + UpperCase(comboDataAccess.Text)+' ';
-  BaseSQL := BaseSQL + 'SQL SECURITY ' + UpperCase(comboSecurity.Text)+' ';
-  BaseSQL := BaseSQL + 'COMMENT ' + esc(editComment.Text)+' ';
-  BaseSQL := BaseSQL + SynMemoBody.Text;
 
   // There is no way to ALTER parameters or the name of it.
   // Create a temp routine, check for syntax errors, then drop the old routine and create it.
@@ -477,8 +463,7 @@ begin
         if allRoutineNames.IndexOf(TempName) = -1 then
           break;
       end;
-      TempSQL := 'CREATE '+ProcOrFunc+' '+Mainform.mask(tempName)+'(' + BaseSQL;
-      Mainform.Connection.Query(TempSQL);
+      Mainform.Connection.Query(ComposeCreateStatement(tempName));
       // Drop temporary routine, used for syntax checking
       Mainform.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(TempName));
       // Drop edited routine
@@ -488,8 +473,7 @@ begin
         Mainform.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(editName.Text));
       end;
     end;
-    FinalSQL := 'CREATE '+ProcOrFunc+' '+Mainform.mask(editName.Text)+'(' + BaseSQL;
-    Mainform.Connection.Query(FinalSQL);
+    Mainform.Connection.Query(ComposeCreateStatement(editName.Text));
     // Set editing name if create/alter query was successful
     FEditObjectName := editName.Text;
     FAlterRoutineType := UpperCase(GetFirstWord(comboType.Text));
@@ -504,6 +488,36 @@ begin
       Result := mrAbort;
     end;
   end;
+end;
+
+
+function TfrmRoutineEditor.ComposeCreateStatement(NameOfObject: String): String;
+var
+  ProcOrFunc: String;
+  par: TStringList;
+  i: Integer;
+begin
+  ProcOrFunc := UpperCase(GetFirstWord(comboType.Text));
+  Result := 'CREATE '+ProcOrFunc+' '+Mainform.mask(NameOfObject)+'(';
+  for i:=0 to Parameters.Count-1 do begin
+    par := explode(DELIM, Parameters[i]);
+    if ProcOrFunc = 'PROCEDURE' then
+      Result := Result + par[2] + ' ';
+    Result := Result + Mainform.Mask(par[0]) + ' ' + par[1];
+    if i < Parameters.Count-1 then
+      Result := Result + ', ';
+  end;
+  Result := Result + ')'+CRLF;
+  if comboReturns.Enabled then
+    Result := Result + #9 + 'RETURNS '+comboReturns.Text+CRLF;
+  Result := Result + #9 + 'LANGUAGE SQL'+CRLF + #9;
+  if not chkDeterministic.Checked then
+    Result := Result + 'NOT ';
+  Result := Result + 'DETERMINISTIC'+CRLF
+    + #9 + UpperCase(comboDataAccess.Text)+CRLF
+    + #9 + 'SQL SECURITY ' + UpperCase(comboSecurity.Text)+CRLF
+    + #9 + 'COMMENT ' + esc(editComment.Text)+CRLF
+    + SynMemoBody.Text;
 end;
 
 
