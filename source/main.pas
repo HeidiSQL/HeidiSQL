@@ -18,7 +18,7 @@ uses
   CommCtrl, Contnrs, Generics.Collections,
   routine_editor, trigger_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
-  mysql_api, insertfiles, searchreplace;
+  mysql_api, insertfiles, searchreplace, loaddata, copytable;
 
 
 type
@@ -791,6 +791,8 @@ type
     InsertFiles: TfrmInsertFiles;
     EditVariableForm: TfrmEditVariable;
     SearchReplaceDialog: TfrmSearchReplace;
+    ImportTextfileDialog: Tloaddataform;
+    CopyTableDialog: TCopyTableForm;
 
     // Virtual Tree data arrays
     VTRowDataListVariables,
@@ -923,7 +925,7 @@ const
 implementation
 
 uses
-  About, loaddata, printlist, copytable, mysql_structures, UpdateCheck, uVistaFuncs, runsqlfile,
+  About, printlist, mysql_structures, UpdateCheck, uVistaFuncs, runsqlfile,
   column_selection, data_sorting, grideditlinks;
 
 
@@ -1818,7 +1820,9 @@ end;
 procedure TMainForm.actImportCSVExecute(Sender: TObject);
 begin
   // Import Textfile
-  loaddataWindow(self);
+  if not Assigned(ImportTextfileDialog) then
+    ImportTextfileDialog := Tloaddataform.Create(Self);
+  ImportTextfileDialog.ShowModal;
 end;
 
 procedure TMainForm.actPreferencesExecute(Sender: TObject);
@@ -1941,7 +1945,9 @@ end;
 procedure TMainForm.actCopyTableExecute(Sender: TObject);
 begin
   // copy table
-  CopyTableWindow(self);
+  if not Assigned(CopyTableDialog) then
+    CopyTableDialog := TCopyTableForm.Create(Self);
+  CopyTableDialog.ShowModal;
 end;
 
 
