@@ -72,7 +72,6 @@ type
     { Public declarations }
   end;
 
-  function loaddataWindow(AOwner: TComponent): Boolean;
 
 implementation
 
@@ -80,20 +79,6 @@ uses Main, helpers;
 
 {$R *.DFM}
 
-
-{**
-  Create form on demand
-  @param TComponent Owner of form (should be calling form)
-  @return Boolean Form closed using modalresult mrOK
-}
-function loaddataWindow(AOwner: TComponent): Boolean;
-var
-  f : Tloaddataform;
-begin
-  f := Tloaddataform.Create(AOwner);
-  Result := (f.ShowModal=mrOK);
-  FreeAndNil(f);
-end;
 
 
 {**
