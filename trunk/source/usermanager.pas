@@ -516,6 +516,7 @@ begin
   end;
   Users[listUsers.FocusedNode.Index].Privileges.DeletePrivilege(Node.Index);
   treeObjects.ReInitNode(Node, True);
+  treeObjects.Invalidate;
 end;
 
 
