@@ -243,12 +243,12 @@ var
 }
 procedure TUserManagerForm.FormCreate(Sender: TObject);
 begin
+  InheritFont(Font);
   Width := GetRegValue(REGNAME_USERMNGR_WINWIDTH, Width);
   Height := GetRegValue(REGNAME_USERMNGR_WINHEIGHT, Height);
   pnlLeft.Width := GetRegValue(REGNAME_USERMNGR_LISTWIDTH, pnlLeft.Width);
   db := Mainform.Mask(DBNAME_MYSQL);
   SetWindowSizeGrip( Self.Handle, True );
-  InheritFont(Font);
   FixVT(listUsers);
   FixVT(treeObjects);
 end;
