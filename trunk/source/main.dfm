@@ -1654,10 +1654,10 @@ object MainForm: TMainForm
         Action = actWebForum
       end
       object menuBugtracker: TMenuItem
-        Action = actWebBugtracker
+        Action = actWebIssuetracker
       end
       object menuFeaturetracker: TMenuItem
-        Action = actWebFeaturetracker
+        Action = actWebChangelog
       end
       object N9: TMenuItem
         Caption = '-'
@@ -2073,23 +2073,23 @@ object MainForm: TMainForm
     end
     object actWebForum: TAction
       Category = 'Various'
-      Caption = 'User to user forum'
-      Hint = 'http://www.heidisql.com/forum/'
+      Caption = 'Support forum'
+      Hint = 'http://www.heidisql.com/forum.php'
       ImageIndex = 95
       OnExecute = actWebbrowse
     end
-    object actWebBugtracker: TAction
+    object actWebIssuetracker: TAction
       Category = 'Various'
-      Caption = 'Bug tracker'
-      Hint = 'http://bugs.heidisql.com/'
+      Caption = 'Issue tracker'
+      Hint = 'http://code.google.com/p/heidisql/issues/list'
       ImageIndex = 96
       OnExecute = actWebbrowse
     end
-    object actWebFeaturetracker: TAction
+    object actWebChangelog: TAction
       Category = 'Various'
-      Caption = 'Feature tracker'
-      Hint = 'http://rfe.heidisql.com/'
-      ImageIndex = 97
+      Caption = 'Changelog'
+      Hint = 'http://code.google.com/p/heidisql/source/list'
+      ImageIndex = 68
       OnExecute = actWebbrowse
     end
     object actReadme: TAction

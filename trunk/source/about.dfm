@@ -421,11 +421,9 @@ object AboutBox: TAboutBox
     Top = 321
     Width = 100
     Height = 25
-    Hint = 'http://www.heidisql.com/forum/'
+    Action = MainForm.actWebForum
     Anchors = [akRight, akBottom]
-    Caption = 'Support forum'
     TabOrder = 2
-    OnClick = OpenURL
   end
   object MemoAuthors: TMemo
     Left = 8
