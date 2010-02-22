@@ -723,6 +723,22 @@ object MainForm: TMainForm
                   BevelOuter = bvNone
                   Caption = 'Process SQL:'
                   TabOrder = 0
+                  object lblExplainProcess: TLabel
+                    Left = 87
+                    Top = 1
+                    Width = 41
+                    Height = 13
+                    Cursor = crHandPoint
+                    Hint = 'Analyze this query'
+                    Caption = 'EXPLAIN'
+                    Font.Charset = DEFAULT_CHARSET
+                    Font.Color = clBlue
+                    Font.Height = -11
+                    Font.Name = 'Default'
+                    Font.Style = []
+                    ParentFont = False
+                    OnClick = lblExplainProcessClick
+                  end
                 end
                 object SynMemoProcessView: TSynMemo
                   Left = 0

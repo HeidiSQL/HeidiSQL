@@ -458,6 +458,7 @@ type
     Findtext1: TMenuItem;
     actQueryFindAgain1: TMenuItem;
     Replacetext1: TMenuItem;
+    lblExplainProcess: TLabel;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -728,6 +729,7 @@ type
       TransientType: TTransientType);
     procedure actQueryFindAgainExecute(Sender: TObject);
     procedure vstScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
+    procedure lblExplainProcessClick(Sender: TObject);
   private
     ReachedEOT: Boolean;
     FDelimiter: String;
@@ -1244,6 +1246,9 @@ begin
   InheritFont(Font);
   InheritFont(tabsetQueryHelpers.Font);
   InheritFont(SynCompletionProposal.Font);
+  // Simulated link label, has non inherited blue font color
+  InheritFont(lblExplainProcess.Font);
+
   StatusBar.Height := GetTextHeight(StatusBar.Font)+4;
   // Upscale panels in non-96-DPI mode
   DpiScaleFactor := Screen.PixelsPerInch / FORMS_DPI;
@@ -5898,6 +5903,7 @@ begin
   enableSQLView := Assigned(Node);
   SynMemoProcessView.Enabled := enableSQLView;
   pnlProcessView.Enabled := enableSQLView;
+  lblExplainProcess.Enabled := enableSQLView;
   if enableSQLView then begin
     NodeData := ListProcesses.GetNodeData(Node);
     SynMemoProcessView.Highlighter := SynSQLSyn1;
@@ -9339,6 +9345,19 @@ begin
   // To avoid confusion, terminate editors then.
   if Sender.IsEditing then
     Sender.EndEditNode;
+end;
+
+
+procedure TMainForm.lblExplainProcessClick(Sender: TObject);
+var
+  Tab: TQueryTab;
+begin
+  // Click on "Explain" link label, in process viewer
+  actNewQueryTabExecute(Sender);
+  Tab := QueryTabs[QueryTabs.Count-1];
+  Tab.Memo.Text := 'EXPLAIN'+CRLF+SynMemoProcessView.Text;
+  Tab.TabSheet.Show;
+  actExecuteQueryExecute(Sender);
 end;
 
 
