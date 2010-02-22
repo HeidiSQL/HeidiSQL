@@ -167,8 +167,8 @@ type
     actWebMainsite: TAction;
     actWebDownloadpage: TAction;
     actWebForum: TAction;
-    actWebBugtracker: TAction;
-    actWebFeaturetracker: TAction;
+    actWebIssuetracker: TAction;
+    actWebChangelog: TAction;
     actReadme: TAction;
     actSaveSQL: TAction;
     actSaveSQLAs: TAction;
