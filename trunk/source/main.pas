@@ -7918,7 +7918,7 @@ var
   Sel: TStringList;
   Text: String;
 const
-  InfoLen = SIZE_KB*10;
+  InfoLen = SIZE_KB*50;
 begin
   // Display client threads
   vt := Sender as TVirtualStringTree;
