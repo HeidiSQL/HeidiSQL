@@ -127,12 +127,12 @@ end;
 
 procedure TfrmRoutineEditor.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
 var
-  Results: TMySQLQuery;
   Create, Params: String;
   ParenthesesCount: Integer;
   Context: String;
   rx: TRegExpr;
   i: Integer;
+  IsEsc: Boolean;
 begin
   inherited;
   if ObjectType = lntProcedure then FAlterRoutineType := 'PROCEDURE'
@@ -140,6 +140,7 @@ begin
   editName.Text := FEditObjectName;
   comboType.ItemIndex := 0;
   comboReturns.Text := '';
+  chkDeterministic.Checked := False;
   listParameters.Clear;
   Parameters.Clear;
   comboDataAccess.ItemIndex := 0;
@@ -148,20 +149,8 @@ begin
   SynMemoBody.Text := 'BEGIN'+CRLF+CRLF+'END';
   if FEditObjectName <> '' then begin
     // Editing existing routine
-    Results := Mainform.Connection.GetResults('SELECT * FROM '+DBNAME_INFORMATION_SCHEMA+'.ROUTINES'+
-      ' WHERE ROUTINE_SCHEMA='+esc(Mainform.ActiveDatabase)+
-      ' AND ROUTINE_NAME='+esc(FEditObjectName)+
-      ' AND ROUTINE_TYPE='+esc(FAlterRoutineType)
-      );
-    if Results.RecordCount <> 1 then
-      Exception.Create('Cannot find properties of stored routine '+FEditObjectName);
     comboType.ItemIndex := ListIndexByRegExpr(comboType.Items, '^'+FAlterRoutineType+'\b');
-    chkDeterministic.Checked := Results.Col('IS_DETERMINISTIC') = 'YES';
-    comboReturns.Text := Results.Col('DTD_IDENTIFIER');
-    comboDataAccess.ItemIndex := comboDataAccess.Items.IndexOf(Results.Col('SQL_DATA_ACCESS'));
-    comboSecurity.ItemIndex := comboSecurity.Items.IndexOf(Results.Col('SECURITY_TYPE'));
-    editComment.Text := Results.Col('ROUTINE_COMMENT');
-    SynMemoBody.Text := Results.Col('ROUTINE_DEFINITION');
+
     Create := Mainform.Connection.GetVar('SHOW CREATE '+FAlterRoutineType+' '+Mainform.mask(editName.Text), 2);
     rx := TRegExpr.Create;
     rx.ModifierI := True;
@@ -190,7 +179,57 @@ begin
       if not rx.ExecNext then
         break;
     end;
-    FreeAndNil(Results);
+
+    // Cut left part including parameters, so it's easier to parse the rest
+    Create := Copy(Create, i+1, MaxInt);
+    // CREATE PROCEDURE sp_name ([proc_parameter[,...]]) [characteristic ...] routine_body
+    // CREATE FUNCTION sp_name ([func_parameter[,...]]) RETURNS type [characteristic ...] routine_body
+    // LANGUAGE SQL
+    //  | [NOT] DETERMINISTIC                                              // IS_DETERMINISTIC
+    //  | { CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }   // DATA_ACCESS
+    //  | SQL SECURITY { DEFINER | INVOKER }                               // SECURITY_TYPE
+    //  | COMMENT 'string'                                                 // COMMENT
+
+    rx.Expression := '\bLANGUAGE SQL\b';
+    if rx.Exec(Create) then
+      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]);
+    rx.Expression := '\bRETURNS\s+(\w+(\([^\)]*\))?)';
+    if rx.Exec(Create) then begin
+      comboReturns.Text := rx.Match[1];
+      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]);
+    end;
+    rx.Expression := '\b(NOT\s+)?DETERMINISTIC\b';
+    if rx.Exec(Create) then begin
+      chkDeterministic.Checked := rx.MatchLen[1] = -1;
+      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]);
+    end;
+    rx.Expression := '\b('+UpperCase(ImplodeStr('|', comboDataAccess.Items))+')\b';
+    if rx.Exec(Create) then begin
+      comboDataAccess.ItemIndex := comboDataAccess.Items.IndexOf(rx.Match[1]);
+      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]);
+    end;
+    rx.Expression := '\bSQL\s+SECURITY\s+(DEFINER|INVOKER)\b';
+    if rx.Exec(Create) then begin
+      comboSecurity.ItemIndex := comboSecurity.Items.IndexOf(rx.Match[1]);
+      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]);
+    end;
+    rx.Expression := '\bCOMMENT\s+''';
+    if rx.Exec(Create) then begin
+      IsEsc := False;
+      for i:=rx.MatchPos[0]+rx.MatchLen[0] to Length(Create) do begin
+        if (Create[i]='''') and (not IsEsc) then
+          break;
+        editComment.Text := editComment.Text + Create[i];
+        IsEsc := Create[i] = '\';
+      end;
+      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]+Length(editComment.Text)+1);
+    end;
+    // Tata, remaining code is the routine body
+    Create := TrimLeft(Create);
+    SynMemoBody.Text := Create;
+
+    rx.Free;
+
   end else begin
     editName.Text := '';
   end;
