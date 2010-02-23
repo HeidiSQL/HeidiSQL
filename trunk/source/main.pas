@@ -9355,7 +9355,8 @@ begin
   // Click on "Explain" link label, in process viewer
   actNewQueryTabExecute(Sender);
   Tab := QueryTabs[QueryTabs.Count-1];
-  Tab.Memo.Text := 'EXPLAIN'+CRLF+SynMemoProcessView.Text;
+  Tab.Memo.Text := 'USE '+mask(listProcesses.Text[listProcesses.FocusedNode, 3])+';'+CRLF+
+    'EXPLAIN'+CRLF+SynMemoProcessView.Text;
   Tab.TabSheet.Show;
   actExecuteQueryExecute(Sender);
 end;
