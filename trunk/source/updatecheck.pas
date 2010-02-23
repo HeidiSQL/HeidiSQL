@@ -252,7 +252,11 @@ begin
       Stream.WriteBuffer(ResPointer[0], SizeOfResource(HInstance, ResInfoblockHandle));
       Stream.Position := 0;
       UpdaterFilename := GetTempDir + AppName+'_updater.exe';
-      Stream.SaveToFile(UpdaterFilename);
+      if FileExists(UpdaterFilename) and (Stream.Size = _GetFileSize(UpdaterFilename)) then
+        // Do not replace old updater if it's still valid. Avoids annoyance for cases in which
+        // user has whitelisted this .exe in his antivirus or whatever software.
+      else
+        Stream.SaveToFile(UpdaterFilename);
       // Calling the script will now post a WM_CLOSE this running exe...
       ShellExec(UpdaterFilename, '', '"'+ParamStr(0)+'" "'+Download.Filename+'"');
     finally
