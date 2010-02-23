@@ -7924,6 +7924,7 @@ begin
   vt := Sender as TVirtualStringTree;
   if vt.Tag <> VTREE_NOTLOADED then
     Exit;
+  vt.OnFocusChanged(vt, vt.FocusedNode, vt.FocusedColumn);
   Sel := GetVTCaptions(vt, True);
   DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
