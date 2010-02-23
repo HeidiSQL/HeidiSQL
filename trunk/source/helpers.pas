@@ -158,7 +158,7 @@ type
 
 {$I const.inc}
 
-  function implodestr(seperator: String; a: TStringList) :String;
+  function implodestr(seperator: String; a: TStrings) :String;
   function explode(separator, a: String) :TStringList;
   procedure ExplodeQuotedList(Text: String; var List: TStringList);
   procedure ensureValidIdentifier(name: String);
@@ -300,7 +300,7 @@ end;
   @param a TStringList Containing strings
   @return string
 }
-function implodestr(seperator: String; a: TStringList) :String;
+function implodestr(seperator: String; a: TStrings) :String;
 var
   i : Integer;
 begin
