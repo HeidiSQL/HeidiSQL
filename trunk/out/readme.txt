@@ -31,15 +31,12 @@ With HeidiSQL you will also be able to
 
 *** Requirements:
 
-HeidiSQL runs fine on Windows 2000, XP, Vista and 7.
+HeidiSQL runs fine on Windows 2000, XP, Vista and 7. Running HeidiSQL on Wine/Linux
+also works fine, apart from some minor graphical glitches, e.g. the transparent
+areas of all icons are displayed with black color. 
 
 HeidiSQL does not run on Windows 95/98 or ME, as the Unicode extensions are not
 available on these systems.
-
-To use the update check and download latest builds, you need a Windows Scripting
-Host (cscript.exe), which is available on most Windows versions by default. However,
-if it is missing on your Windows, you can download it here:
-http://www.microsoft.com/downloads/en/results.aspx?freetext=Windows%20Script%205.7
 
 
 *** Command line switches
