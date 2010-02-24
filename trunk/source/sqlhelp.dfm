@@ -16,101 +16,132 @@ object frmSQLhelp: TfrmSQLhelp
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object Splitter1: TSplitter
-    Left = 153
-    Top = 0
-    Width = 8
-    Height = 336
-    Cursor = crSizeWE
-    ResizeStyle = rsUpdate
-  end
-  object pnlLeft: TPanel
-    Left = 0
-    Top = 0
-    Width = 153
-    Height = 336
-    Align = alLeft
-    BevelOuter = bvNone
+  object btnSearchOnline: TButton
+    Left = 363
+    Top = 322
+    Width = 103
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Caption = 'Search online'
+    ImageIndex = 69
+    Images = MainForm.ImageListMain
     TabOrder = 0
-    object treeTopics: TTreeView
-      AlignWithMargins = True
-      Left = 3
-      Top = 27
-      Width = 147
-      Height = 309
-      Margins.Bottom = 0
-      Align = alClient
-      ChangeDelay = 50
-      Images = MainForm.ImageListMain
-      Indent = 19
-      ReadOnly = True
-      ShowLines = False
-      TabOrder = 1
-      OnChange = treeTopicsChange
-      OnExpanding = treeTopicsExpanding
-    end
-    object editFilter: TButtonedEdit
-      AlignWithMargins = True
-      Left = 3
-      Top = 3
-      Width = 147
-      Height = 21
-      Margins.Bottom = 0
-      Align = alTop
-      Images = MainForm.ImageListMain
-      LeftButton.Hint = 'Search'
-      LeftButton.ImageIndex = 53
-      LeftButton.Visible = True
-      TabOrder = 0
-      OnChange = editFilterChange
-    end
+    OnClick = ButtonOnlinehelpClick
   end
-  object StatusBar1: TStatusBar
-    Left = 0
-    Top = 336
-    Width = 582
-    Height = 19
-    Panels = <>
+  object ButtonClose: TButton
+    Left = 472
+    Top = 322
+    Width = 102
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Cancel = True
+    Caption = 'Close'
+    Default = True
+    ModalResult = 1
+    TabOrder = 1
+    OnClick = ButtonCloseClick
   end
-  object pnlRight: TPanel
-    Left = 161
-    Top = 0
-    Width = 421
-    Height = 336
+  object pnlMain: TPanel
+    AlignWithMargins = True
+    Left = 8
+    Top = 8
+    Width = 566
+    Height = 307
+    Margins.Left = 8
+    Margins.Top = 8
+    Margins.Right = 8
+    Margins.Bottom = 40
     Align = alClient
     BevelOuter = bvNone
-    Padding.Top = 3
-    Padding.Right = 3
-    Padding.Bottom = 3
     TabOrder = 2
-    object Splitter2: TSplitter
-      Left = 0
-      Top = 171
-      Width = 418
-      Height = 8
-      Cursor = crSizeNS
-      Align = alTop
+    object Splitter1: TSplitter
+      Left = 153
+      Top = 0
+      Width = 8
+      Height = 307
+      Cursor = crSizeWE
       ResizeStyle = rsUpdate
     end
-    object pnlRightTop: TPanel
+    object pnlLeft: TPanel
       Left = 0
-      Top = 3
-      Width = 418
-      Height = 168
-      Align = alTop
-      Anchors = [akLeft, akTop, akRight, akBottom]
+      Top = 0
+      Width = 153
+      Height = 307
+      Align = alLeft
       BevelOuter = bvNone
       TabOrder = 0
-      object lblKeyword: TLabel
+      object treeTopics: TTreeView
         AlignWithMargins = True
         Left = 0
-        Top = 5
-        Width = 418
-        Height = 16
+        Top = 24
+        Width = 153
+        Height = 283
+        Margins.Left = 0
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alClient
+        ChangeDelay = 50
+        Images = MainForm.ImageListMain
+        Indent = 19
+        ReadOnly = True
+        ShowLines = False
+        TabOrder = 1
+        OnChange = treeTopicsChange
+        OnExpanding = treeTopicsExpanding
+      end
+      object editFilter: TButtonedEdit
+        AlignWithMargins = True
+        Left = 0
+        Top = 0
+        Width = 153
+        Height = 21
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alTop
+        Images = MainForm.ImageListMain
+        LeftButton.Hint = 'Search'
+        LeftButton.ImageIndex = 53
+        LeftButton.Visible = True
+        TabOrder = 0
+        OnChange = editFilterChange
+      end
+    end
+    object pnlRight: TPanel
+      Left = 161
+      Top = 0
+      Width = 405
+      Height = 307
+      Align = alClient
+      BevelOuter = bvNone
+      TabOrder = 1
+      object Splitter2: TSplitter
+        Left = 0
+        Top = 182
+        Width = 405
+        Height = 8
+        Cursor = crSizeNS
+        Align = alTop
+        ResizeStyle = rsUpdate
+      end
+      object lblDescription: TLabel
+        Left = 0
+        Top = 16
+        Width = 405
+        Height = 13
         Margins.Left = 0
         Margins.Top = 5
         Margins.Right = 0
         Margins.Bottom = 0
+        Align = alTop
+        Caption = 'Description:'
+      end
+      object lblKeyword: TLabel
+        Left = 0
+        Top = 0
+        Width = 405
+        Height = 16
         Align = alTop
         Caption = 'lblKeyword'
         Font.Charset = DEFAULT_CHARSET
@@ -120,68 +151,10 @@ object frmSQLhelp: TfrmSQLhelp
         Font.Style = [fsBold]
         ParentFont = False
       end
-      object lblDescription: TLabel
-        AlignWithMargins = True
-        Left = 0
-        Top = 26
-        Width = 418
-        Height = 13
-        Margins.Left = 0
-        Margins.Top = 5
-        Margins.Right = 0
-        Margins.Bottom = 0
-        Align = alTop
-        Caption = 'Description:'
-      end
-      object memoDescription: TSynMemo
-        AlignWithMargins = True
-        Left = 0
-        Top = 44
-        Width = 418
-        Height = 124
-        Margins.Left = 0
-        Margins.Top = 5
-        Margins.Right = 0
-        Margins.Bottom = 0
-        SingleLineMode = False
-        Align = alClient
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clWindowText
-        Font.Height = -13
-        Font.Name = 'Courier New'
-        Font.Style = []
-        TabOrder = 0
-        OnKeyDown = memosKeyDown
-        Gutter.Font.Charset = DEFAULT_CHARSET
-        Gutter.Font.Color = clWindowText
-        Gutter.Font.Height = -11
-        Gutter.Font.Name = 'Courier New'
-        Gutter.Font.Style = []
-        Gutter.Visible = False
-        Gutter.Width = 0
-        Highlighter = URIHighlighter
-        Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
-        ReadOnly = True
-        RightEdge = 0
-        WordWrap = True
-      end
-    end
-    object pnlRightBottom: TPanel
-      Left = 0
-      Top = 179
-      Width = 418
-      Height = 154
-      Align = alClient
-      BevelOuter = bvNone
-      TabOrder = 1
-      DesignSize = (
-        418
-        154)
       object lblExample: TLabel
-        AlignWithMargins = True
         Left = 0
-        Top = 5
-        Width = 418
+        Top = 190
+        Width = 405
         Height = 13
         Margins.Left = 0
         Margins.Top = 5
@@ -190,31 +163,13 @@ object frmSQLhelp: TfrmSQLhelp
         Align = alTop
         Caption = 'Example:'
       end
-      object btnSearchOnline: TButton
-        Left = 207
-        Top = 128
-        Width = 103
-        Height = 25
-        Anchors = [akRight, akBottom]
-        Caption = 'Search online'
-        ImageIndex = 69
-        Images = MainForm.ImageListMain
-        TabOrder = 2
-        OnClick = ButtonOnlinehelpClick
-      end
-      object MemoExample: TSynMemo
-        AlignWithMargins = True
+      object memoDescription: TSynMemo
         Left = 0
-        Top = 23
-        Width = 418
-        Height = 90
-        Margins.Left = 0
-        Margins.Top = 5
-        Margins.Right = 0
-        Margins.Bottom = 0
+        Top = 29
+        Width = 405
+        Height = 153
         SingleLineMode = False
         Align = alTop
-        Anchors = [akLeft, akTop, akRight, akBottom]
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
@@ -235,18 +190,32 @@ object frmSQLhelp: TfrmSQLhelp
         RightEdge = 0
         WordWrap = True
       end
-      object ButtonClose: TButton
-        Left = 316
-        Top = 128
-        Width = 102
-        Height = 25
-        Anchors = [akRight, akBottom]
-        Cancel = True
-        Caption = 'Close'
-        Default = True
-        ModalResult = 1
+      object MemoExample: TSynMemo
+        Left = 0
+        Top = 203
+        Width = 405
+        Height = 104
+        SingleLineMode = False
+        Align = alClient
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = []
         TabOrder = 1
-        OnClick = ButtonCloseClick
+        OnKeyDown = memosKeyDown
+        Gutter.Font.Charset = DEFAULT_CHARSET
+        Gutter.Font.Color = clWindowText
+        Gutter.Font.Height = -11
+        Gutter.Font.Name = 'Courier New'
+        Gutter.Font.Style = []
+        Gutter.Visible = False
+        Gutter.Width = 0
+        Highlighter = URIHighlighter
+        Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
+        ReadOnly = True
+        RightEdge = 0
+        WordWrap = True
       end
     end
   end
