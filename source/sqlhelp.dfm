@@ -32,30 +32,37 @@ object frmSQLhelp: TfrmSQLhelp
     Align = alLeft
     BevelOuter = bvNone
     TabOrder = 0
-    object lblTopics: TLabel
+    object treeTopics: TTreeView
       AlignWithMargins = True
       Left = 3
-      Top = 8
+      Top = 27
       Width = 147
-      Height = 13
-      Align = alBottom
-      Caption = 'Topics:'
-    end
-    object treeTopics: TTreeView
-      Left = 0
-      Top = 24
-      Width = 153
-      Height = 312
-      Align = alBottom
-      Anchors = [akLeft, akTop, akRight, akBottom]
+      Height = 309
+      Margins.Bottom = 0
+      Align = alClient
       ChangeDelay = 50
       Images = MainForm.ImageListMain
       Indent = 19
       ReadOnly = True
       ShowLines = False
-      TabOrder = 0
+      TabOrder = 1
       OnChange = treeTopicsChange
       OnExpanding = treeTopicsExpanding
+    end
+    object editFilter: TButtonedEdit
+      AlignWithMargins = True
+      Left = 3
+      Top = 3
+      Width = 147
+      Height = 21
+      Margins.Bottom = 0
+      Align = alTop
+      Images = MainForm.ImageListMain
+      LeftButton.Hint = 'Search'
+      LeftButton.ImageIndex = 53
+      LeftButton.Visible = True
+      TabOrder = 0
+      OnChange = editFilterChange
     end
   end
   object StatusBar1: TStatusBar
