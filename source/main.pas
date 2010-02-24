@@ -459,6 +459,7 @@ type
     actQueryFindAgain1: TMenuItem;
     Replacetext1: TMenuItem;
     lblExplainProcess: TLabel;
+    menuExplainProcess: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -5916,6 +5917,7 @@ begin
   lblExplainProcess.Enabled := enableSQLView
     and (UpperCase(GetFirstWord(SynMemoProcessView.Text)) <> 'SHOW')
     and (SynMemoProcessView.GetTextLen > 0);
+  menuExplainProcess.Enabled := lblExplainProcess.Enabled;
 end;
 
 
