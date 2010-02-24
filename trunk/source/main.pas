@@ -5903,7 +5903,6 @@ begin
   enableSQLView := Assigned(Node);
   SynMemoProcessView.Enabled := enableSQLView;
   pnlProcessView.Enabled := enableSQLView;
-  lblExplainProcess.Enabled := enableSQLView;
   if enableSQLView then begin
     NodeData := ListProcesses.GetNodeData(Node);
     SynMemoProcessView.Highlighter := SynSQLSyn1;
@@ -5914,6 +5913,9 @@ begin
     SynMemoProcessView.Text := 'Please select a process in the above list.';
     SynMemoProcessView.Color := clBtnFace;
   end;
+  lblExplainProcess.Enabled := enableSQLView
+    and (UpperCase(GetFirstWord(SynMemoProcessView.Text)) <> 'SHOW')
+    and (SynMemoProcessView.GetTextLen > 0);
 end;
 
 
