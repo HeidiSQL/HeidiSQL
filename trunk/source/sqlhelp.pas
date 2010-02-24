@@ -15,7 +15,6 @@ type
     Splitter1: TSplitter;
     treeTopics: TTreeView;
     pnlRight: TPanel;
-    lblTopics: TLabel;
     pnlRightTop: TPanel;
     lblKeyword: TLabel;
     lblDescription: TLabel;
@@ -29,6 +28,7 @@ type
     URIOpenerDescription: TSynURIOpener;
     URIHighlighter: TSynURISyn;
     URIOpenerExample: TSynURIOpener;
+    editFilter: TButtonedEdit;
     procedure FormCreate(Sender: TObject);
     procedure treeTopicsExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
@@ -41,6 +41,7 @@ type
     function ShowHelpItem: Boolean;
     procedure fillTreeLevel( ParentNode: TTreeNode );
     procedure findKeywordInTree;
+    procedure editFilterChange(Sender: TObject);
 
   private
     { Private declarations }
@@ -325,6 +326,46 @@ begin
   FKeyword := Value;
   if ShowHelpItem then
     findKeywordInTree;
+end;
+
+
+procedure TfrmSQLhelp.editFilterChange(Sender: TObject);
+var
+  tnode: TTreeNode;
+  Results: TMySQLQuery;
+  topic: String;
+begin
+  // Apply filter text
+  if Trim(editFilter.Text) = '' then begin
+    fillTreeLevel(nil);
+    Exit;
+  end;
+
+  Keyword := editFilter.Text;
+  treeTopics.Items.Clear;
+  topic := Keyword;
+  try
+    Screen.Cursor := crHourglass;
+    Results := Mainform.Connection.GetResults('HELP "%'+topic+'%"');
+    while not Results.Eof do begin
+      tnode := treeTopics.Items.AddChild(nil, Results.Col('name'));
+      if Results.ColExists('is_it_category') and (Results.Col('is_it_category') = 'Y') then begin
+        tnode.ImageIndex := ICONINDEX_CATEGORY_CLOSED;
+        tnode.SelectedIndex := ICONINDEX_CATEGORY_OPENED;
+        // Add a dummy item to show the plus-button so the user sees that there this
+        // is a category. When the plus-button is clicked, fetch the content of the category
+        treeTopics.Items.AddChild(tnode, DUMMY_NODE_TEXT);
+      end else begin
+        tnode.ImageIndex := ICONINDEX_HELPITEM;
+        tnode.SelectedIndex := tnode.ImageIndex;
+      end;
+      Results.Next;
+    end;
+  finally
+    FreeAndNil(Results);
+    Screen.Cursor := crDefault;
+  end;
+  editFilter.SetFocus;
 end;
 
 
