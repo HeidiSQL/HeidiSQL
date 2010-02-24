@@ -10,25 +10,23 @@ uses
 
 type
   TfrmSQLhelp = class(TForm)
-    pnlLeft: TPanel;
-    StatusBar1: TStatusBar;
-    Splitter1: TSplitter;
-    treeTopics: TTreeView;
-    pnlRight: TPanel;
-    pnlRightTop: TPanel;
-    lblKeyword: TLabel;
-    lblDescription: TLabel;
-    memoDescription: TSynMemo;
-    Splitter2: TSplitter;
-    pnlRightBottom: TPanel;
-    lblExample: TLabel;
-    MemoExample: TSynMemo;
-    ButtonClose: TButton;
-    btnSearchOnline: TButton;
     URIOpenerDescription: TSynURIOpener;
     URIHighlighter: TSynURISyn;
     URIOpenerExample: TSynURIOpener;
+    btnSearchOnline: TButton;
+    ButtonClose: TButton;
+    pnlMain: TPanel;
+    pnlLeft: TPanel;
+    treeTopics: TTreeView;
     editFilter: TButtonedEdit;
+    pnlRight: TPanel;
+    Splitter2: TSplitter;
+    Splitter1: TSplitter;
+    lblDescription: TLabel;
+    lblKeyword: TLabel;
+    memoDescription: TSynMemo;
+    lblExample: TLabel;
+    MemoExample: TSynMemo;
     procedure FormCreate(Sender: TObject);
     procedure treeTopicsExpanding(Sender: TObject; Node: TTreeNode;
       var AllowExpansion: Boolean);
@@ -73,6 +71,7 @@ uses helpers, main;
 procedure TfrmSQLhelp.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  SetWindowSizeGrip(Handle, True);
 end;
 
 
@@ -87,7 +86,7 @@ begin
   Width := GetRegValue( REGNAME_SQLHELPWINWIDTH, Width );
   Height := GetRegValue( REGNAME_SQLHELPWINHEIGHT, Height );
   pnlLeft.Width := GetRegValue( REGNAME_SQLHELPPLWIDTH, pnlLeft.Width );
-  pnlRightTop.Height := GetRegValue( REGNAME_SQLHELPPRHEIGHT, pnlRightTop.Height );
+  memoDescription.Height := GetRegValue( REGNAME_SQLHELPPRHEIGHT, memoDescription.Height );
   Caption := DEFAULT_WINDOW_CAPTION;
   MainForm.SetupSynEditors;
 
@@ -263,19 +262,10 @@ begin
   end;
 
   // Show the user if topic is (not) available
-  with MemoDescription do
-  begin
-    Enabled := Text <> '';
-    if not Enabled then
-      Text := 'No help available for this keyword or no keyword was selected.';
-  end;
-  with MemoExample do
-  begin
-    Enabled := Text <> '';
-    if not Enabled then
-      Text := 'No example available or no keyword was selected.';
-  end;
-
+  if memoDescription.Text = '' then
+    memoDescription.Text := 'No help available for this keyword or no keyword was selected.';
+  if memoExample.Text = '' then
+    memoExample.Text := 'No example available or no keyword was selected.';
 end;
 
 
@@ -291,7 +281,7 @@ begin
   MainReg.WriteInteger( REGNAME_SQLHELPWINWIDTH, Width );
   MainReg.WriteInteger( REGNAME_SQLHELPWINHEIGHT, Height );
   MainReg.WriteInteger( REGNAME_SQLHELPPLWIDTH, pnlLeft.Width );
-  MainReg.WriteInteger( REGNAME_SQLHELPPRHEIGHT, PnlRightTop.Height );
+  MainReg.WriteInteger( REGNAME_SQLHELPPRHEIGHT, memoDescription.Height );
   Close;
 end;
 
