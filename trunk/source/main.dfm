@@ -717,7 +717,7 @@ object MainForm: TMainForm
                   Left = 0
                   Top = 0
                   Width = 567
-                  Height = 15
+                  Height = 18
                   Align = alTop
                   Alignment = taLeftJustify
                   BevelOuter = bvNone
@@ -725,7 +725,7 @@ object MainForm: TMainForm
                   TabOrder = 0
                   object lblExplainProcess: TLabel
                     Left = 87
-                    Top = 1
+                    Top = 2
                     Width = 41
                     Height = 13
                     Cursor = crHandPoint
@@ -735,16 +735,16 @@ object MainForm: TMainForm
                     Font.Color = clBlue
                     Font.Height = -11
                     Font.Name = 'Default'
-                    Font.Style = []
+                    Font.Style = [fsUnderline]
                     ParentFont = False
                     OnClick = lblExplainProcessClick
                   end
                 end
                 object SynMemoProcessView: TSynMemo
                   Left = 0
-                  Top = 15
+                  Top = 18
                   Width = 567
-                  Height = 54
+                  Height = 51
                   SingleLineMode = False
                   Align = alClient
                   Font.Charset = DEFAULT_CHARSET
@@ -7236,6 +7236,13 @@ object MainForm: TMainForm
       ImageIndex = 33
       ShortCut = 13
       OnClick = menuEditVariableClick
+    end
+    object menuExplainProcess: TMenuItem
+      Caption = 'EXPLAIN query'
+      Enabled = False
+      Hint = 'Analyze selected process SQL'
+      ImageIndex = 39
+      OnClick = lblExplainProcessClick
     end
     object N1a: TMenuItem
       Caption = '-'
