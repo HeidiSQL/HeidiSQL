@@ -3249,8 +3249,10 @@ begin
     else
       Msg := 'Save new '+ObjType+'?';
     Result := MessageDlg(Msg, mtConfirmation, [mbYes, mbNo, mbCancel], 0);
-    if Result = mrYes then
-      Result := ApplyModifications;
+    case Result of
+      mrYes: Result := ApplyModifications;
+      mrNo: Modified := False;
+    end;
   end;
 end;
 
