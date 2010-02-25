@@ -48,6 +48,8 @@ type
     lblCounterLeft: TLabel;
     lblCounterRight: TLabel;
     lblHelp: TLabel;
+    lblStartupScript: TLabel;
+    editStartupScript: TButtonedEdit;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -79,13 +81,14 @@ type
       Direction: TUpDownDirection);
     procedure editPortChange(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure editStartupScriptRightButtonClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
     FSessionNames: TStringlist;
     FSessionModified, FSessionAdded: Boolean;
     FOrgNetType: Byte;
-    FOrgHost, FOrgUser, FOrgPassword: String;
+    FOrgHost, FOrgUser, FOrgPassword, FOrgStartupScript: String;
     FOrgCompressed: Boolean;
     FOrgPort: Integer;
     FWidthListSessions: Byte; // Percentage values
@@ -190,6 +193,7 @@ begin
   Params.Username := editUsername.Text;
   Params.Password := editPassword.Text;
   Params.Port := MakeInt(editPort.Text);
+  Params.StartupScriptFilename := editStartupScript.Text;
   if chkCompressed.Checked then
     Params.Options := Params.Options + [opCompress]
   else
@@ -216,6 +220,7 @@ begin
   else
     MainReg.WriteInteger(REGNAME_NETTYPE, NETTYPE_NAMEDPIPE);
   MainReg.WriteBool(REGNAME_COMPRESSED, chkCompressed.Checked);
+  MainReg.WriteString(REGNAME_STARTUPSCRIPT, editStartupScript.Text);
   if IsNew then
     MainReg.WriteString(REGNAME_SESSIONCREATED, DateTimeToStr(Now));
   FSessionModified := False;
@@ -375,6 +380,7 @@ begin
       FOrgPassword := decrypt(GetRegValue(REGNAME_PASSWORD, '', SelectedSession));
       FOrgPort := StrToIntDef(GetRegValue(REGNAME_PORT, '', SelectedSession), DEFAULT_PORT);
       FOrgCompressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SelectedSession);
+      FOrgStartupScript := GetRegValue(REGNAME_STARTUPSCRIPT, '', SelectedSession);
     end else begin
       // Editing a new session, not saved yet
       FOrgNetType := NETTYPE_TCPIP;
@@ -383,6 +389,7 @@ begin
       FOrgPassword := '';
       FOrgPort := DEFAULT_PORT;
       FOrgCompressed := DEFAULT_COMPRESSED;
+      FOrgStartupScript := DEFAULT_STARTUPSCRIPT;
     end;
 
     FLoaded := False;
@@ -396,6 +403,7 @@ begin
     editPassword.Text := FOrgPassword;
     editPort.Text := IntToStr(FOrgPort);
     chkCompressed.Checked := FOrgCompressed;
+    editStartupScript.Text := FOrgStartupScript;
     FLoaded := True;
   end;
 
@@ -525,7 +533,8 @@ begin
     FSessionModified := (FOrgHost <> editHost.Text) or (FOrgUser <> editUsername.Text)
       or (FOrgPassword <> editPassword.Text) or (FOrgPort <> updownPort.Tag)
       or (FOrgCompressed <> chkCompressed.Checked)
-      or (FOrgNetType <> NetType);
+      or (FOrgNetType <> NetType)
+      or (FOrgStartupScript <> editStartupScript.Text);
     ListSessions.Repaint;
     ValidateControls;
   end;
@@ -611,6 +620,22 @@ begin
   btnNew.Left := ListSessions.Left;
   btnSave.Left := btnNew.Left + btnNew.Width + Margin;
   btnDelete.Left := btnSave.Left + btnSave.Width + Margin;
+end;
+
+
+procedure Tconnform.editStartupScriptRightButtonClick(Sender: TObject);
+var
+  Selector: TOpenDialog;
+begin
+  // Select startup SQL file
+  Selector := TOpenDialog.Create(Self);
+  Selector.FileName := editStartupScript.Text;
+  Selector.Filter := 'SQL-files (*.sql)|*.sql|All files (*.*)|*.*';
+  if Selector.Execute then begin
+    editStartupScript.Text := Selector.FileName;
+    Modification(Selector);
+  end;
+  Selector.Free;
 end;
 
 

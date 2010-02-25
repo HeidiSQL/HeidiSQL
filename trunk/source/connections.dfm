@@ -4,7 +4,7 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu]
   Caption = 'Session manager'
-  ClientHeight = 274
+  ClientHeight = 303
   ClientWidth = 494
   Color = clBtnFace
   Constraints.MinHeight = 310
@@ -25,7 +25,7 @@ object connform: Tconnform
   OnShow = FormShow
   DesignSize = (
     494
-    274)
+    303)
   PixelsPerInch = 96
   TextHeight = 13
   object lblSession: TLabel
@@ -49,7 +49,7 @@ object connform: Tconnform
   end
   object btnSave: TButton
     Left = 64
-    Top = 241
+    Top = 270
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -60,7 +60,7 @@ object connform: Tconnform
   object btnOpen: TButton
     Tag = 15
     Left = 320
-    Top = 241
+    Top = 270
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -73,7 +73,7 @@ object connform: Tconnform
   object btnCancel: TButton
     Tag = 16
     Left = 406
-    Top = 241
+    Top = 270
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -86,7 +86,7 @@ object connform: Tconnform
     Left = 9
     Top = 27
     Width = 162
-    Height = 206
+    Height = 235
     Anchors = [akLeft, akTop, akBottom]
     EditDelay = 250
     Header.AutoSizeIndex = 0
@@ -121,7 +121,7 @@ object connform: Tconnform
   end
   object btnNew: TButton
     Left = 8
-    Top = 241
+    Top = 270
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -131,7 +131,7 @@ object connform: Tconnform
   end
   object btnDelete: TButton
     Left = 120
-    Top = 241
+    Top = 270
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -143,14 +143,14 @@ object connform: Tconnform
     Left = 177
     Top = 10
     Width = 309
-    Height = 225
+    Height = 254
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Details'
     TabOrder = 1
     Visible = False
     DesignSize = (
       309
-      225)
+      254)
     object lblHost: TLabel
       Tag = 6
       Left = 8
@@ -189,28 +189,28 @@ object connform: Tconnform
     end
     object lblLastConnectLeft: TLabel
       Left = 8
-      Top = 167
+      Top = 191
       Width = 65
       Height = 13
       Caption = 'Last connect:'
     end
     object lblLastConnectRight: TLabel
       Left = 99
-      Top = 167
+      Top = 191
       Width = 5
       Height = 13
       Caption = '?'
     end
     object lblCreatedLeft: TLabel
       Left = 8
-      Top = 203
+      Top = 227
       Width = 43
       Height = 13
       Caption = 'Created:'
     end
     object lblCreatedRight: TLabel
       Left = 99
-      Top = 203
+      Top = 227
       Width = 5
       Height = 13
       Caption = '?'
@@ -224,17 +224,25 @@ object connform: Tconnform
     end
     object lblCounterLeft: TLabel
       Left = 8
-      Top = 185
+      Top = 209
       Width = 43
       Height = 13
       Caption = 'Counter:'
     end
     object lblCounterRight: TLabel
       Left = 99
-      Top = 185
+      Top = 209
       Width = 5
       Height = 13
       Caption = '?'
+    end
+    object lblStartupScript: TLabel
+      Left = 8
+      Top = 168
+      Width = 69
+      Height = 13
+      Caption = 'Startup script:'
+      FocusControl = editStartupScript
     end
     object editHost: TEdit
       Left = 99
@@ -314,11 +322,26 @@ object connform: Tconnform
       Thousands = False
       OnChangingEx = updownPortChangingEx
     end
+    object editStartupScript: TButtonedEdit
+      Left = 99
+      Top = 165
+      Width = 205
+      Height = 21
+      Anchors = [akLeft, akTop, akRight]
+      Images = MainForm.ImageListMain
+      RightButton.ImageIndex = 52
+      RightButton.Visible = True
+      TabOrder = 8
+      TextHint = 'Select SQL file ...'
+      OnChange = Modification
+      OnDblClick = editStartupScriptRightButtonClick
+      OnRightButtonClick = editStartupScriptRightButtonClick
+    end
   end
   object popupSessions: TPopupMenu
     Images = MainForm.ImageListMain
     Left = 176
-    Top = 240
+    Top = 267
     object Save1: TMenuItem
       Caption = 'Save'
       ImageIndex = 10
@@ -342,6 +365,6 @@ object connform: Tconnform
     Interval = 60000
     OnTimer = TimerStatisticsTimer
     Left = 208
-    Top = 240
+    Top = 267
   end
 end

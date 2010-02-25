@@ -1527,6 +1527,7 @@ begin
       LoadedParams.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, LastSession);
       LoadedParams.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, LastSession));
       LoadedParams.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', LastSession), DEFAULT_PORT);
+      LoadedParams.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, DEFAULT_STARTUPSCRIPT, LastSession);
       if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, LastSession) then
         LoadedParams.Options := LoadedParams.Options + [opCompress]
       else
@@ -1613,6 +1614,7 @@ begin
       FCmdlineConnectionParams.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, FCmdlineSessionName);
       FCmdlineConnectionParams.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, FCmdlineSessionName));
       FCmdlineConnectionParams.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', FCmdlineSessionName), DEFAULT_PORT);
+      FCmdlineConnectionParams.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, DEFAULT_STARTUPSCRIPT, FCmdlineSessionName);
       if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, FCmdlineSessionName) then
         FCmdlineConnectionParams.Options := FCmdlineConnectionParams.Options + [opCompress]
       else
@@ -1631,6 +1633,7 @@ begin
   Pass := GetParamValue('p', 'password');
   Socket := GetParamValue('S', 'socket');
   Port := StrToIntDef(GetParamValue('P', 'port'), 0);
+  // Leave out support for startup script, seems reasonable for command line connecting
   if Host <> '' then FCmdlineConnectionParams.Hostname := Host;
   if User <> '' then FCmdlineConnectionParams.Username := User;
   if Pass <> '' then FCmdlineConnectionParams.Password := Pass;
@@ -1660,8 +1663,8 @@ end;
 procedure TMainForm.DoAfterConnect;
 var
   i, j: Integer;
-  lastUsedDB: String;
-  functioncats : TStringList;
+  lastUsedDB, StartupScript, StartupSQL: String;
+  functioncats, StartupBatch: TStringList;
   miGroup,
   miFilterGroup,
   miFunction,
@@ -1691,6 +1694,23 @@ begin
   DBtree.ResetNode(DBTree.GetFirst);
 
   DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
+
+  // Process startup script
+  StartupScript := Trim(Connection.Parameters.StartupScriptFilename);
+  if StartupScript <> '' then begin
+    if not FileExists(StartupScript) then
+      MessageDlg('Error: Startup script file not found: '+StartupScript, mtError, [mbOK], 0)
+    else begin
+      StartupSQL := ReadTextfile(StartupScript);
+      StartupBatch := ParseSQL(StartupSQL);
+      for i:=0 to StartupBatch.Count-1 do try
+        Connection.Query(StartupBatch[i]);
+      except
+        // Suppress popup, errors get logged into SQL log
+      end;
+      StartupBatch.Free;
+    end;
+  end;
 
   // Reselect last used database
   if GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) then begin
@@ -2427,6 +2447,7 @@ begin
   Params.Username := GetRegValue(REGNAME_USER, '', Session);
   Params.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
   Params.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', Session), DEFAULT_PORT);
+  Params.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, '', Session);
   if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session) then
     Params.Options := Params.Options + [opCompress]
   else

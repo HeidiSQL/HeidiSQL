@@ -47,7 +47,7 @@ type
 
   TConnectionParameters = class(TObject)
     strict private
-      FHostname, FSocketname, FUsername, FPassword: String;
+      FHostname, FSocketname, FUsername, FPassword, FStartupScriptFilename: String;
       FPort: Integer;
       FOptions: TMySQLClientOptions;
     public
@@ -58,6 +58,7 @@ type
       property Port: Integer read FPort write FPort;
       property Username: String read FUsername write FUsername;
       property Password: String read FPassword write FPassword;
+      property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property Options: TMySQLClientOptions read FOptions write FOptions;
   end;
 
@@ -215,6 +216,7 @@ begin
   FUsername := DEFAULT_USER;
   FPassword := '';
   FPort := DEFAULT_PORT;
+  FStartupScriptFilename := DEFAULT_STARTUPSCRIPT;
   FOptions := [opCompress, opLocalFiles, opInteractive, opProtocol41, opMultiStatements];
 end;
 

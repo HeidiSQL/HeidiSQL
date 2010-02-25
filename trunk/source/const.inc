@@ -126,6 +126,8 @@ const
   DEFAULT_NETTYPE = NETTYPE_TCPIP;
   REGNAME_COMPRESSED = 'Compressed';
   DEFAULT_COMPRESSED = False;
+  REGNAME_STARTUPSCRIPT = 'StartupScriptFilename';
+  DEFAULT_STARTUPSCRIPT = '';
   REGNAME_ONLYDBS = 'OnlyDBs';
   REGNAME_EXP_CREATEDB = 'ExportSQL_CreateDatabases';
   REGNAME_EXP_DROPDB = 'ExportSQL_DropDatabases';
