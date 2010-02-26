@@ -4,10 +4,10 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu]
   Caption = 'Session manager'
-  ClientHeight = 303
+  ClientHeight = 378
   ClientWidth = 494
   Color = clBtnFace
-  Constraints.MinHeight = 310
+  Constraints.MinHeight = 360
   Constraints.MinWidth = 510
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -25,7 +25,7 @@ object connform: Tconnform
   OnShow = FormShow
   DesignSize = (
     494
-    303)
+    378)
   PixelsPerInch = 96
   TextHeight = 13
   object lblSession: TLabel
@@ -49,7 +49,7 @@ object connform: Tconnform
   end
   object btnSave: TButton
     Left = 64
-    Top = 270
+    Top = 345
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -60,7 +60,7 @@ object connform: Tconnform
   object btnOpen: TButton
     Tag = 15
     Left = 320
-    Top = 270
+    Top = 345
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -73,7 +73,7 @@ object connform: Tconnform
   object btnCancel: TButton
     Tag = 16
     Left = 406
-    Top = 270
+    Top = 345
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -86,7 +86,7 @@ object connform: Tconnform
     Left = 9
     Top = 27
     Width = 162
-    Height = 235
+    Height = 310
     Anchors = [akLeft, akTop, akBottom]
     EditDelay = 250
     Header.AutoSizeIndex = 0
@@ -121,7 +121,7 @@ object connform: Tconnform
   end
   object btnNew: TButton
     Left = 8
-    Top = 270
+    Top = 345
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -131,7 +131,7 @@ object connform: Tconnform
   end
   object btnDelete: TButton
     Left = 120
-    Top = 270
+    Top = 345
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -143,14 +143,14 @@ object connform: Tconnform
     Left = 177
     Top = 10
     Width = 309
-    Height = 254
+    Height = 329
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Details'
     TabOrder = 1
     Visible = False
     DesignSize = (
       309
-      254)
+      329)
     object lblHost: TLabel
       Tag = 6
       Left = 8
@@ -189,28 +189,28 @@ object connform: Tconnform
     end
     object lblLastConnectLeft: TLabel
       Left = 8
-      Top = 191
+      Top = 271
       Width = 65
       Height = 13
       Caption = 'Last connect:'
     end
     object lblLastConnectRight: TLabel
-      Left = 99
-      Top = 191
+      Left = 110
+      Top = 271
       Width = 5
       Height = 13
       Caption = '?'
     end
     object lblCreatedLeft: TLabel
       Left = 8
-      Top = 227
+      Top = 307
       Width = 43
       Height = 13
       Caption = 'Created:'
     end
     object lblCreatedRight: TLabel
-      Left = 99
-      Top = 227
+      Left = 110
+      Top = 307
       Width = 5
       Height = 13
       Caption = '?'
@@ -224,48 +224,75 @@ object connform: Tconnform
     end
     object lblCounterLeft: TLabel
       Left = 8
-      Top = 209
+      Top = 289
       Width = 43
       Height = 13
       Caption = 'Counter:'
     end
     object lblCounterRight: TLabel
-      Left = 99
-      Top = 209
+      Left = 110
+      Top = 289
       Width = 5
       Height = 13
       Caption = '?'
     end
     object lblStartupScript: TLabel
       Left = 8
-      Top = 168
+      Top = 243
       Width = 69
       Height = 13
       Caption = 'Startup script:'
       FocusControl = editStartupScript
     end
+    object lblSSLPrivateKey: TLabel
+      Tag = 6
+      Left = 8
+      Top = 168
+      Width = 78
+      Height = 13
+      Caption = 'SSL private key:'
+      FocusControl = editSSLPrivateKey
+    end
+    object lblSSLCACertificate: TLabel
+      Tag = 6
+      Left = 8
+      Top = 193
+      Width = 89
+      Height = 13
+      Caption = 'SSL CA certificate:'
+      FocusControl = editSSLCACertificate
+    end
+    object lblSSLCertificate: TLabel
+      Tag = 6
+      Left = 8
+      Top = 218
+      Width = 72
+      Height = 13
+      Caption = 'SSL certificate:'
+      FocusControl = editSSLCertificate
+    end
     object editHost: TEdit
-      Left = 99
+      Left = 110
       Top = 42
-      Width = 205
+      Width = 194
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 2
       OnChange = Modification
     end
     object editUsername: TEdit
-      Left = 99
+      Left = 110
       Top = 67
-      Width = 205
+      Width = 194
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 3
       OnChange = Modification
     end
     object editPassword: TEdit
-      Left = 99
+      Left = 110
       Top = 92
-      Width = 205
+      Width = 194
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       PasswordChar = '*'
@@ -273,7 +300,7 @@ object connform: Tconnform
       OnChange = Modification
     end
     object editPort: TEdit
-      Left = 99
+      Left = 110
       Top = 117
       Width = 60
       Height = 21
@@ -283,9 +310,9 @@ object connform: Tconnform
     end
     object chkCompressed: TCheckBox
       Tag = 12
-      Left = 99
+      Left = 110
       Top = 142
-      Width = 205
+      Width = 194
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Compressed client/server protocol'
@@ -293,7 +320,7 @@ object connform: Tconnform
       OnClick = Modification
     end
     object radioTypeTCPIP: TRadioButton
-      Left = 99
+      Left = 110
       Top = 19
       Width = 67
       Height = 17
@@ -304,7 +331,7 @@ object connform: Tconnform
       OnClick = radioNetTypeClick
     end
     object radioTypeNamedPipe: TRadioButton
-      Left = 172
+      Left = 183
       Top = 19
       Width = 113
       Height = 17
@@ -313,7 +340,7 @@ object connform: Tconnform
       OnClick = radioNetTypeClick
     end
     object updownPort: TUpDown
-      Left = 159
+      Left = 170
       Top = 117
       Width = 17
       Height = 21
@@ -323,25 +350,66 @@ object connform: Tconnform
       OnChangingEx = updownPortChangingEx
     end
     object editStartupScript: TButtonedEdit
-      Left = 99
+      Left = 110
+      Top = 240
+      Width = 194
+      Height = 21
+      Anchors = [akLeft, akTop, akRight]
+      Images = MainForm.ImageListMain
+      RightButton.ImageIndex = 52
+      RightButton.Visible = True
+      TabOrder = 11
+      OnChange = Modification
+      OnDblClick = PickFile
+      OnRightButtonClick = PickFile
+    end
+    object editSSLPrivateKey: TButtonedEdit
+      Left = 110
       Top = 165
-      Width = 205
+      Width = 194
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.ImageListMain
       RightButton.ImageIndex = 52
       RightButton.Visible = True
       TabOrder = 8
-      TextHint = 'Select SQL file ...'
       OnChange = Modification
-      OnDblClick = editStartupScriptRightButtonClick
-      OnRightButtonClick = editStartupScriptRightButtonClick
+      OnDblClick = PickFile
+      OnRightButtonClick = PickFile
+    end
+    object editSSLCACertificate: TButtonedEdit
+      Left = 110
+      Top = 190
+      Width = 194
+      Height = 21
+      Anchors = [akLeft, akTop, akRight]
+      Images = MainForm.ImageListMain
+      RightButton.ImageIndex = 52
+      RightButton.Visible = True
+      TabOrder = 9
+      OnChange = Modification
+      OnDblClick = PickFile
+      OnRightButtonClick = PickFile
+    end
+    object editSSLCertificate: TButtonedEdit
+      Left = 110
+      Top = 215
+      Width = 194
+      Height = 21
+      Anchors = [akLeft, akTop, akRight]
+      Images = MainForm.ImageListMain
+      RightButton.ImageIndex = 52
+      RightButton.Visible = True
+      TabOrder = 10
+      OnChange = Modification
+      OnDblClick = PickFile
+      OnRightButtonClick = PickFile
     end
   end
   object popupSessions: TPopupMenu
     Images = MainForm.ImageListMain
     Left = 176
-    Top = 267
+    Top = 347
     object Save1: TMenuItem
       Caption = 'Save'
       ImageIndex = 10
@@ -365,6 +433,6 @@ object connform: Tconnform
     Interval = 60000
     OnTimer = TimerStatisticsTimer
     Left = 208
-    Top = 267
+    Top = 347
   end
 end
