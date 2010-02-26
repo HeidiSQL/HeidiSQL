@@ -132,7 +132,6 @@ var
   Context: String;
   rx: TRegExpr;
   i: Integer;
-  IsEsc: Boolean;
 begin
   inherited;
   if ObjectType = lntProcedure then FAlterRoutineType := 'PROCEDURE'
@@ -213,16 +212,11 @@ begin
       comboSecurity.ItemIndex := comboSecurity.Items.IndexOf(rx.Match[1]);
       Delete(Create, rx.MatchPos[0], rx.MatchLen[0]);
     end;
-    rx.Expression := '\bCOMMENT\s+''';
+    rx.ModifierG := False;
+    rx.Expression := '\bCOMMENT\s+''((.+)[^''])''[^'']';
     if rx.Exec(Create) then begin
-      IsEsc := False;
-      for i:=rx.MatchPos[0]+rx.MatchLen[0] to Length(Create) do begin
-        if (Create[i]='''') and (not IsEsc) then
-          break;
-        editComment.Text := editComment.Text + Create[i];
-        IsEsc := Create[i] = '\';
-      end;
-      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]+Length(editComment.Text)+1);
+      editComment.Text := StringReplace(rx.Match[1], '''''', '''', [rfReplaceAll]);
+      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]-1);
     end;
     // Tata, remaining code is the routine body
     Create := TrimLeft(Create);
