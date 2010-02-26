@@ -7028,7 +7028,7 @@ var
   sql, Val: String;
   Row: PGridRow;
 begin
-  sql := 'UPDATE '+mask(DataGridDB)+'.'+mask(DataGridTable)+' SET';
+  sql := 'UPDATE '+mask(DataGridTable)+' SET';
   Row := @DataGridResult.Rows[Sender.FocusedNode.Index];
   for i := 0 to Length(DataGridResult.Columns) - 1 do begin
     if Row.Cells[i].Modified then begin
@@ -7285,7 +7285,7 @@ begin
     // At least one field was modified, assume this INSERT should be posted
     Vals := Copy(Vals, 1, Length(Vals)-2);
     Cols := Copy(Cols, 1, Length(Cols)-2);
-    sql := 'INSERT INTO '+mask(DataGridDB)+'.'+mask(DataGridTable)+' ('+Cols+') VALUES ('+Vals+')';
+    sql := 'INSERT INTO '+mask(DataGridTable)+' ('+Cols+') VALUES ('+Vals+')';
     // Send INSERT query
     try
       Connection.Query(sql);
