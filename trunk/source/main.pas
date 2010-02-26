@@ -1527,6 +1527,9 @@ begin
       LoadedParams.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, LastSession);
       LoadedParams.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, LastSession));
       LoadedParams.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', LastSession), DEFAULT_PORT);
+      LoadedParams.SSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', LastSession);
+      LoadedParams.SSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', LastSession);
+      LoadedParams.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', LastSession);
       LoadedParams.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, DEFAULT_STARTUPSCRIPT, LastSession);
       if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, LastSession) then
         LoadedParams.Options := LoadedParams.Options + [opCompress]
@@ -1614,6 +1617,9 @@ begin
       FCmdlineConnectionParams.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, FCmdlineSessionName);
       FCmdlineConnectionParams.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, FCmdlineSessionName));
       FCmdlineConnectionParams.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', FCmdlineSessionName), DEFAULT_PORT);
+      FCmdlineConnectionParams.SSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', FCmdlineSessionName);
+      FCmdlineConnectionParams.SSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', FCmdlineSessionName);
+      FCmdlineConnectionParams.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', FCmdlineSessionName);
       FCmdlineConnectionParams.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, DEFAULT_STARTUPSCRIPT, FCmdlineSessionName);
       if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, FCmdlineSessionName) then
         FCmdlineConnectionParams.Options := FCmdlineConnectionParams.Options + [opCompress]
@@ -2447,6 +2453,9 @@ begin
   Params.Username := GetRegValue(REGNAME_USER, '', Session);
   Params.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
   Params.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', Session), DEFAULT_PORT);
+  Params.SSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', Session);
+  Params.SSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', Session);
+  Params.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', Session);
   Params.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, '', Session);
   if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session) then
     Params.Options := Params.Options + [opCompress]

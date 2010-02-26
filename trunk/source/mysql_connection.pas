@@ -47,7 +47,8 @@ type
 
   TConnectionParameters = class(TObject)
     strict private
-      FHostname, FSocketname, FUsername, FPassword, FStartupScriptFilename: String;
+      FHostname, FSocketname, FUsername, FPassword, FStartupScriptFilename,
+      FSSLPrivateKey, FSSLCertificate, FSSLCACertificate: String;
       FPort: Integer;
       FOptions: TMySQLClientOptions;
     public
@@ -60,6 +61,9 @@ type
       property Password: String read FPassword write FPassword;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property Options: TMySQLClientOptions read FOptions write FOptions;
+      property SSLPrivateKey: String read FSSLPrivateKey write FSSLPrivateKey;
+      property SSLCertificate: String read FSSLCertificate write FSSLCertificate;
+      property SSLCACertificate: String read FSSLCACertificate write FSSLCACertificate;
   end;
 
 
@@ -216,6 +220,9 @@ begin
   FUsername := DEFAULT_USER;
   FPassword := '';
   FPort := DEFAULT_PORT;
+  FSSLPrivateKey := '';
+  FSSLCertificate := '';
+  FSSLCACertificate := '';
   FStartupScriptFilename := DEFAULT_STARTUPSCRIPT;
   FOptions := [opCompress, opLocalFiles, opInteractive, opProtocol41, opMultiStatements];
 end;
@@ -254,13 +261,41 @@ var
   Connected: PMYSQL;
   ClientFlags: Integer;
   Error, tmpdb: String;
+  SSLResult: Byte;
   UsingPass, Protocol, CurCharset: String;
+  IsNamedPipe: Boolean;
 begin
   FActive := Value;
 
   if Value and (FHandle = nil) then begin
     // Get handle
     FHandle := mysql_init(nil);
+
+    // Prepare connection
+    IsNamedPipe := FParameters.Hostname = '.';
+    if IsNamedPipe then Protocol := 'named pipe' else Protocol := 'TCP/IP';
+    if FParameters.Password <> '' then UsingPass := 'Yes' else UsingPass := 'No';
+    Log(lcInfo, 'Connecting to '+FParameters.Hostname+' via '+Protocol+
+      ', username '+FParameters.Username+
+      ', using password: '+UsingPass+' ...');
+
+    // Be sure we don't pass mutually exclusive options
+    if not IsNamedPipe and
+      (FParameters.SSLPrivateKey <> '') and
+      (FParameters.SSLCertificate <> '') and
+      (FParameters.SSLCACertificate <> '') then begin
+      FParameters.Options := FParameters.Options + [opSSL];
+      { TODO : Use Cipher and CAPath parameters }
+      SSLResult := mysql_ssl_set(
+        FHandle,
+        PansiChar(AnsiString(FParameters.SSLPrivateKey)),
+        PansiChar(AnsiString(FParameters.SSLCertificate)),
+        PansiChar(AnsiString(FParameters.SSLCACertificate)),
+        {PansiChar(AnsiString(FParameters.CApath))}nil,
+        {PansiChar(AnsiString(FParameters.Cipher))}nil);
+      if SSLresult <> 0 then
+        raise Exception.CreateFmt('Could not connect using SSL (Error %d)', [SSLresult]);
+    end;
 
     // Gather client options
     ClientFlags := 0;
@@ -285,12 +320,6 @@ begin
     if opMultiResults      in FParameters.Options then ClientFlags := ClientFlags or CLIENT_MULTI_RESULTS;
     if opRememberOptions   in FParameters.Options then ClientFlags := ClientFlags or CLIENT_REMEMBER_OPTIONS;
 
-    // Prepare connection
-    if FParameters.Hostname = '.' then Protocol := 'named pipe' else Protocol := 'TCP/IP';
-    if FParameters.Password <> '' then UsingPass := 'Yes' else UsingPass := 'No';
-    Log(lcInfo, 'Connecting to '+FParameters.Hostname+' via '+Protocol+
-      ', username '+FParameters.Username+
-      ', using password: '+UsingPass+' ...');
     Connected := mysql_real_connect(
       FHandle,
       PAnsiChar(Utf8Encode(FParameters.Hostname)),

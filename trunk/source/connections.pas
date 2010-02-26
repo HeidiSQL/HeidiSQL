@@ -50,6 +50,12 @@ type
     lblHelp: TLabel;
     lblStartupScript: TLabel;
     editStartupScript: TButtonedEdit;
+    lblSSLPrivateKey: TLabel;
+    editSSLPrivateKey: TButtonedEdit;
+    lblSSLCACertificate: TLabel;
+    editSSLCACertificate: TButtonedEdit;
+    editSSLCertificate: TButtonedEdit;
+    lblSSLCertificate: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -81,13 +87,14 @@ type
       Direction: TUpDownDirection);
     procedure editPortChange(Sender: TObject);
     procedure FormResize(Sender: TObject);
-    procedure editStartupScriptRightButtonClick(Sender: TObject);
+    procedure PickFile(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
     FSessionNames: TStringlist;
     FSessionModified, FSessionAdded: Boolean;
     FOrgNetType: Byte;
+    FOrgSSL_Key, FOrgSSL_Cert, FOrgSSL_CA,
     FOrgHost, FOrgUser, FOrgPassword, FOrgStartupScript: String;
     FOrgCompressed: Boolean;
     FOrgPort: Integer;
@@ -193,6 +200,9 @@ begin
   Params.Username := editUsername.Text;
   Params.Password := editPassword.Text;
   Params.Port := MakeInt(editPort.Text);
+  Params.SSLPrivateKey := editSSLPrivateKey.Text;
+  Params.SSLCertificate := editSSLCertificate.Text;
+  Params.SSLCACertificate := editSSLCACertificate.Text;
   Params.StartupScriptFilename := editStartupScript.Text;
   if chkCompressed.Checked then
     Params.Options := Params.Options + [opCompress]
@@ -223,6 +233,9 @@ begin
   MainReg.WriteString(REGNAME_STARTUPSCRIPT, editStartupScript.Text);
   if IsNew then
     MainReg.WriteString(REGNAME_SESSIONCREATED, DateTimeToStr(Now));
+  MainReg.WriteString(REGNAME_SSL_KEY, editSSLPrivateKey.Text);
+  MainReg.WriteString(REGNAME_SSL_CERT, editSSLCertificate.Text);
+  MainReg.WriteString(REGNAME_SSL_CA, editSSLCACertificate.Text);
   FSessionModified := False;
   FSessionAdded := False;
   RefreshSessionList(True);
@@ -381,6 +394,9 @@ begin
       FOrgPort := StrToIntDef(GetRegValue(REGNAME_PORT, '', SelectedSession), DEFAULT_PORT);
       FOrgCompressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SelectedSession);
       FOrgStartupScript := GetRegValue(REGNAME_STARTUPSCRIPT, '', SelectedSession);
+      FOrgSSL_Key := GetRegValue(REGNAME_SSL_KEY, '', SelectedSession);
+      FOrgSSL_Cert := GetRegValue(REGNAME_SSL_CERT, '', SelectedSession);
+      FOrgSSL_CA := GetRegValue(REGNAME_SSL_CA, '', SelectedSession);
     end else begin
       // Editing a new session, not saved yet
       FOrgNetType := NETTYPE_TCPIP;
@@ -390,6 +406,9 @@ begin
       FOrgPort := DEFAULT_PORT;
       FOrgCompressed := DEFAULT_COMPRESSED;
       FOrgStartupScript := DEFAULT_STARTUPSCRIPT;
+      FOrgSSL_Key := '';
+      FOrgSSL_Cert := '';
+      FOrgSSL_CA := '';
     end;
 
     FLoaded := False;
@@ -402,6 +421,9 @@ begin
     editUsername.Text := FOrgUser;
     editPassword.Text := FOrgPassword;
     editPort.Text := IntToStr(FOrgPort);
+    editSSLPrivateKey.Text := FOrgSSL_Key;
+    editSSLCertificate.Text := FOrgSSL_Cert;
+    editSSLCACertificate.Text := FOrgSSL_CA;
     chkCompressed.Checked := FOrgCompressed;
     editStartupScript.Text := FOrgStartupScript;
     FLoaded := True;
@@ -530,11 +552,17 @@ begin
   if FLoaded then begin
     if radioTypeTCPIP.Checked then NetType := NETTYPE_TCPIP
     else NetType := NETTYPE_NAMEDPIPE;
-    FSessionModified := (FOrgHost <> editHost.Text) or (FOrgUser <> editUsername.Text)
-      or (FOrgPassword <> editPassword.Text) or (FOrgPort <> updownPort.Tag)
+
+    FSessionModified := (FOrgHost <> editHost.Text)
+      or (FOrgUser <> editUsername.Text)
+      or (FOrgPassword <> editPassword.Text)
+      or (FOrgPort <> updownPort.Tag)
       or (FOrgCompressed <> chkCompressed.Checked)
       or (FOrgNetType <> NetType)
-      or (FOrgStartupScript <> editStartupScript.Text);
+      or (FOrgStartupScript <> editStartupScript.Text)
+      or (FOrgSSL_Key <> editSSLPrivateKey.Text)
+      or (FOrgSSL_Cert <> editSSLCertificate.Text)
+      or (FOrgSSL_CA <> editSSLCACertificate.Text);
     ListSessions.Repaint;
     ValidateControls;
   end;
@@ -542,15 +570,24 @@ end;
 
 
 procedure Tconnform.radioNetTypeClick(Sender: TObject);
+var
+  IsTCP: Boolean;
 begin
   // Toggle between TCP/IP and named pipes mode
-  if radioTypeTCPIP.Checked then
+  IsTCP := radioTypeTCPIP.Checked;
+  if IsTCP then
     lblHost.Caption := 'Hostname / IP:'
   else
     lblHost.Caption := 'Socket name:';
-  editPort.Enabled := radioTypeTCPIP.Checked;
-  lblPort.Enabled := editPort.Enabled;
-  updownPort.Enabled := editPort.Enabled;
+  lblPort.Enabled := IsTCP;
+  editPort.Enabled := lblPort.Enabled;
+  updownPort.Enabled := lblPort.Enabled;
+  lblSSLPrivateKey.Enabled := IsTCP;
+  editSSLPrivateKey.Enabled := lblSSLPrivateKey.Enabled;
+  lblSSLCACertificate.Enabled := IsTCP;
+  editSSLCACertificate.Enabled := lblSSLCACertificate.Enabled;
+  lblSSLCertificate.Enabled := IsTCP;
+  editSSLCertificate.Enabled := lblSSLCertificate.Enabled;
   Modification(Sender);
 end;
 
@@ -623,16 +660,32 @@ begin
 end;
 
 
-procedure Tconnform.editStartupScriptRightButtonClick(Sender: TObject);
+procedure Tconnform.PickFile(Sender: TObject);
 var
   Selector: TOpenDialog;
+  Edit: TButtonedEdit;
+  i: Integer;
+  Control: TControl;
 begin
-  // Select startup SQL file
+  // Select startup SQL file, SSL file or whatever button clicked
+  Edit := Sender as TButtonedEdit;
   Selector := TOpenDialog.Create(Self);
   Selector.FileName := editStartupScript.Text;
-  Selector.Filter := 'SQL-files (*.sql)|*.sql|All files (*.*)|*.*';
+  if Edit = editStartupScript then
+    Selector.Filter := 'SQL-files (*.sql)|*.sql|All files (*.*)|*.*'
+  else
+    Selector.Filter := 'Privacy Enhanced Mail certificates (*.pem)|*.pem|Certificates (*.crt)|*.crt|All files (*.*)|*.*';
+  // Find relevant label and set open dialog's title
+  for i:=0 to Edit.Parent.ControlCount - 1 do begin
+    Control := Edit.Parent.Controls[i];
+    if (Control is TLabel) and ((Control as TLabel).FocusControl = Edit) then begin
+      Selector.Title := 'Select ' + (Control as TLabel).Caption;
+      break;
+    end;
+  end;
+
   if Selector.Execute then begin
-    editStartupScript.Text := Selector.FileName;
+    Edit.Text := Selector.FileName;
     Modification(Selector);
   end;
   Selector.Free;
