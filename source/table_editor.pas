@@ -1833,7 +1833,7 @@ begin
   for i:=0 to FKeys.Count-1 do begin
     if FKeys[i].IndexType = PKEY then begin
       PrimaryKeyExists := True;
-      IndexName := FKeys[i].Name;
+      IndexName := PKEY;
     end else
       IndexName := FKeys[i].Name + ' ('+FKeys[i].IndexType+')';
     Item := AddItem(menuAddToIndex, IndexName, GetIndexIcon(i));
