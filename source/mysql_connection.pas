@@ -3,7 +3,7 @@ unit mysql_connection;
 interface
 
 uses
-  Classes, SysUtils, windows, mysql_api, mysql_structures, SynRegExpr, Contnrs, Generics.Collections, DateUtils;
+  Classes, SysUtils, windows, mysql_api, mysql_structures, SynRegExpr, Contnrs, Generics.Collections, DateUtils, Types;
 
 type
   { TDBObjectList and friends }
@@ -172,6 +172,7 @@ type
       FRecNo,
       FRecordCount: Int64;
       FColumnNames: TStringList;
+      FColumnLengths: TIntegerDynArray;
       FLastResult: PMYSQL_RES;
       FCurrentRow: PMYSQL_ROW;
       FEof: Boolean;
@@ -1166,6 +1167,7 @@ begin
   if HasResult then begin
     NumFields := mysql_num_fields(FLastResult);
     SetLength(FDatatypes, NumFields);
+    SetLength(FColumnLengths, NumFields);
     FColumnNames.Clear;
     for i:=0 to NumFields-1 do begin
       Field := mysql_fetch_field_direct(FLastResult, i);
@@ -1196,8 +1198,10 @@ begin
       end;
     end;
     RecNo := 0;
-  end else
+  end else begin
     SetLength(FDatatypes, 0);
+    SetLength(FColumnLengths, 0);
+  end;
 end;
 
 
@@ -1214,6 +1218,9 @@ end;
 
 
 procedure TMySQLQuery.SetRecNo(Value: Int64);
+var
+  LengthPointer: PLongInt;
+  i: Integer;
 begin
   if Value >= RecordCount then begin
     FRecNo := RecordCount;
@@ -1224,6 +1231,10 @@ begin
     FRecNo := Value;
     FEof := False;
     FCurrentRow := mysql_fetch_row(FLastResult);
+    // Remember length of column contents. Important for Col() so contents of cells with #0 chars are not cut off
+    LengthPointer := mysql_fetch_lengths(FLastResult);
+    for i:=Low(FColumnLengths) to High(FColumnLengths) do
+      FColumnLengths[i] := PInteger(Integer(LengthPointer) + i * SizeOf(Integer))^;
   end;
 end;
 
@@ -1235,12 +1246,15 @@ end;
 
 
 function TMySQLQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
+var
+  AnsiStr: AnsiString;
 begin
   if (Column > -1) and (Column < ColumnCount) then begin
+    SetString(AnsiStr, FCurrentRow[Column], FColumnLengths[Column]);
     if Connection.IsUnicode then
-      Result := UTF8ToString(FCurrentRow[Column])
+      Result := UTF8ToString(AnsiStr)
     else
-      Result := String(FCurrentRow[Column]);
+      Result := String(AnsiStr);
   end else if not IgnoreErrors then
     Raise Exception.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
 end;
