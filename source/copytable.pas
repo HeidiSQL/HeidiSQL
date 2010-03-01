@@ -239,8 +239,12 @@ begin
     if DBObjects[i].Name = oldTableName then begin
       if DBObjects[i].Collation <> '' then
         strquery := strquery + ' COLLATE ' + DBObjects[i].Collation;
-      if DBObjects[i].Engine <> '' then
-        strquery := strquery + ' ENGINE=' + DBObjects[i].Engine;
+      if DBObjects[i].Engine <> '' then begin
+        if Mainform.Connection.ServerVersionInt < 40018 then
+          strquery := strquery + ' TYPE=' + DBObjects[i].Engine
+        else
+          strquery := strquery + ' ENGINE=' + DBObjects[i].Engine;
+      end;
       strquery := strquery + ' COMMENT=' + esc(DBObjects[i].Comment);
       break;
     end;
