@@ -4,10 +4,10 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu]
   Caption = 'Session manager'
-  ClientHeight = 378
+  ClientHeight = 274
   ClientWidth = 494
   Color = clBtnFace
-  Constraints.MinHeight = 360
+  Constraints.MinHeight = 310
   Constraints.MinWidth = 510
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -25,7 +25,7 @@ object connform: Tconnform
   OnShow = FormShow
   DesignSize = (
     494
-    378)
+    274)
   PixelsPerInch = 96
   TextHeight = 13
   object lblSession: TLabel
@@ -49,18 +49,18 @@ object connform: Tconnform
   end
   object btnSave: TButton
     Left = 64
-    Top = 345
+    Top = 241
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Save'
-    TabOrder = 3
+    TabOrder = 2
     OnClick = btnSaveClick
   end
   object btnOpen: TButton
     Tag = 15
     Left = 320
-    Top = 345
+    Top = 241
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -73,7 +73,7 @@ object connform: Tconnform
   object btnCancel: TButton
     Tag = 16
     Left = 406
-    Top = 345
+    Top = 241
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -86,7 +86,7 @@ object connform: Tconnform
     Left = 9
     Top = 27
     Width = 162
-    Height = 310
+    Height = 206
     Anchors = [akLeft, akTop, akBottom]
     EditDelay = 250
     Header.AutoSizeIndex = 0
@@ -121,295 +121,316 @@ object connform: Tconnform
   end
   object btnNew: TButton
     Left = 8
-    Top = 345
+    Top = 241
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'New'
-    TabOrder = 2
+    TabOrder = 1
     OnClick = btnNewClick
   end
   object btnDelete: TButton
     Left = 120
-    Top = 345
+    Top = 241
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Delete'
-    TabOrder = 4
+    TabOrder = 3
     OnClick = btnDeleteClick
   end
-  object grpDetails: TGroupBox
+  object PageControlDetails: TPageControl
     Left = 177
-    Top = 10
+    Top = 8
     Width = 309
-    Height = 329
+    Height = 226
+    ActivePage = tabSettings
     Anchors = [akLeft, akTop, akRight, akBottom]
-    Caption = 'Details'
-    TabOrder = 1
-    Visible = False
-    DesignSize = (
-      309
-      329)
-    object lblHost: TLabel
-      Tag = 6
-      Left = 8
-      Top = 45
-      Width = 72
-      Height = 13
-      Caption = 'Hostname / IP:'
-      FocusControl = editHost
+    Images = MainForm.ImageListMain
+    TabOrder = 4
+    object tabSettings: TTabSheet
+      Caption = 'Settings'
+      ImageIndex = 39
+      DesignSize = (
+        301
+        197)
+      object lblStartupScript: TLabel
+        Left = 3
+        Top = 168
+        Width = 69
+        Height = 13
+        Caption = 'Startup script:'
+        FocusControl = editStartupScript
+      end
+      object lblPort: TLabel
+        Tag = 9
+        Left = 3
+        Top = 120
+        Width = 24
+        Height = 13
+        Caption = 'Port:'
+        FocusControl = editPort
+      end
+      object lblPassword: TLabel
+        Tag = 8
+        Left = 3
+        Top = 95
+        Width = 50
+        Height = 13
+        Caption = 'Password:'
+        FocusControl = editPassword
+      end
+      object lblHost: TLabel
+        Tag = 6
+        Left = 3
+        Top = 45
+        Width = 72
+        Height = 13
+        Caption = 'Hostname / IP:'
+        FocusControl = editHost
+      end
+      object lblUsername: TLabel
+        Tag = 7
+        Left = 3
+        Top = 70
+        Width = 26
+        Height = 13
+        Caption = 'User:'
+        FocusControl = editUsername
+      end
+      object lblNetworkType: TLabel
+        Left = 3
+        Top = 12
+        Width = 69
+        Height = 13
+        Caption = 'Network type:'
+      end
+      object editStartupScript: TButtonedEdit
+        Left = 101
+        Top = 165
+        Width = 197
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.ImageListMain
+        RightButton.ImageIndex = 52
+        RightButton.Visible = True
+        TabOrder = 8
+        OnChange = Modification
+        OnDblClick = PickFile
+        OnRightButtonClick = PickFile
+      end
+      object chkCompressed: TCheckBox
+        Tag = 12
+        Left = 101
+        Top = 142
+        Width = 197
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Compressed client/server protocol'
+        TabOrder = 7
+        OnClick = Modification
+      end
+      object editPort: TEdit
+        Left = 101
+        Top = 117
+        Width = 60
+        Height = 21
+        TabOrder = 5
+        Text = '0'
+        OnChange = editPortChange
+      end
+      object updownPort: TUpDown
+        Left = 161
+        Top = 117
+        Width = 17
+        Height = 21
+        Max = 32767
+        TabOrder = 6
+        Thousands = False
+        OnChangingEx = updownPortChangingEx
+      end
+      object editPassword: TEdit
+        Left = 101
+        Top = 92
+        Width = 197
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        PasswordChar = '*'
+        TabOrder = 4
+        OnChange = Modification
+      end
+      object editUsername: TEdit
+        Left = 101
+        Top = 67
+        Width = 197
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 3
+        OnChange = Modification
+      end
+      object editHost: TEdit
+        Left = 101
+        Top = 42
+        Width = 197
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 2
+        OnChange = Modification
+      end
+      object radioTypeTCPIP: TRadioButton
+        Left = 101
+        Top = 11
+        Width = 67
+        Height = 17
+        Caption = 'TCP/IP'
+        Checked = True
+        TabOrder = 0
+        TabStop = True
+        OnClick = radioNetTypeClick
+      end
+      object radioTypeNamedPipe: TRadioButton
+        Left = 174
+        Top = 11
+        Width = 113
+        Height = 17
+        Caption = 'Named pipe'
+        TabOrder = 1
+        OnClick = radioNetTypeClick
+      end
     end
-    object lblUsername: TLabel
-      Tag = 7
-      Left = 8
-      Top = 70
-      Width = 26
-      Height = 13
-      Caption = 'User:'
-      FocusControl = editUsername
+    object tabSSLOptions: TTabSheet
+      Caption = 'SSL options'
+      ImageIndex = 144
+      DesignSize = (
+        301
+        197)
+      object lblSSLPrivateKey: TLabel
+        Tag = 6
+        Left = 3
+        Top = 12
+        Width = 78
+        Height = 13
+        Caption = 'SSL private key:'
+        FocusControl = editSSLPrivateKey
+      end
+      object lblSSLCACertificate: TLabel
+        Tag = 6
+        Left = 3
+        Top = 41
+        Width = 89
+        Height = 13
+        Caption = 'SSL CA certificate:'
+        FocusControl = editSSLCACertificate
+      end
+      object lblSSLCertificate: TLabel
+        Tag = 6
+        Left = 3
+        Top = 68
+        Width = 72
+        Height = 13
+        Caption = 'SSL certificate:'
+        FocusControl = editSSLCertificate
+      end
+      object editSSLPrivateKey: TButtonedEdit
+        Left = 101
+        Top = 9
+        Width = 197
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.ImageListMain
+        RightButton.ImageIndex = 52
+        RightButton.Visible = True
+        TabOrder = 0
+        OnChange = Modification
+        OnDblClick = PickFile
+        OnRightButtonClick = PickFile
+      end
+      object editSSLCACertificate: TButtonedEdit
+        Left = 101
+        Top = 38
+        Width = 197
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.ImageListMain
+        RightButton.ImageIndex = 52
+        RightButton.Visible = True
+        TabOrder = 1
+        OnChange = Modification
+        OnDblClick = PickFile
+        OnRightButtonClick = PickFile
+      end
+      object editSSLCertificate: TButtonedEdit
+        Left = 101
+        Top = 65
+        Width = 197
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.ImageListMain
+        RightButton.ImageIndex = 52
+        RightButton.Visible = True
+        TabOrder = 2
+        OnChange = Modification
+        OnDblClick = PickFile
+        OnRightButtonClick = PickFile
+      end
     end
-    object lblPassword: TLabel
-      Tag = 8
-      Left = 8
-      Top = 95
-      Width = 50
-      Height = 13
-      Caption = 'Password:'
-      FocusControl = editPassword
-    end
-    object lblPort: TLabel
-      Tag = 9
-      Left = 8
-      Top = 120
-      Width = 24
-      Height = 13
-      Caption = 'Port:'
-      FocusControl = editPort
-    end
-    object lblLastConnectLeft: TLabel
-      Left = 8
-      Top = 271
-      Width = 65
-      Height = 13
-      Caption = 'Last connect:'
-    end
-    object lblLastConnectRight: TLabel
-      Left = 110
-      Top = 271
-      Width = 5
-      Height = 13
-      Caption = '?'
-    end
-    object lblCreatedLeft: TLabel
-      Left = 8
-      Top = 307
-      Width = 43
-      Height = 13
-      Caption = 'Created:'
-    end
-    object lblCreatedRight: TLabel
-      Left = 110
-      Top = 307
-      Width = 5
-      Height = 13
-      Caption = '?'
-    end
-    object lblNetworkType: TLabel
-      Left = 8
-      Top = 20
-      Width = 69
-      Height = 13
-      Caption = 'Network type:'
-    end
-    object lblCounterLeft: TLabel
-      Left = 8
-      Top = 289
-      Width = 43
-      Height = 13
-      Caption = 'Counter:'
-    end
-    object lblCounterRight: TLabel
-      Left = 110
-      Top = 289
-      Width = 5
-      Height = 13
-      Caption = '?'
-    end
-    object lblStartupScript: TLabel
-      Left = 8
-      Top = 243
-      Width = 69
-      Height = 13
-      Caption = 'Startup script:'
-      FocusControl = editStartupScript
-    end
-    object lblSSLPrivateKey: TLabel
-      Tag = 6
-      Left = 8
-      Top = 168
-      Width = 78
-      Height = 13
-      Caption = 'SSL private key:'
-      FocusControl = editSSLPrivateKey
-    end
-    object lblSSLCACertificate: TLabel
-      Tag = 6
-      Left = 8
-      Top = 193
-      Width = 89
-      Height = 13
-      Caption = 'SSL CA certificate:'
-      FocusControl = editSSLCACertificate
-    end
-    object lblSSLCertificate: TLabel
-      Tag = 6
-      Left = 8
-      Top = 218
-      Width = 72
-      Height = 13
-      Caption = 'SSL certificate:'
-      FocusControl = editSSLCertificate
-    end
-    object editHost: TEdit
-      Left = 110
-      Top = 42
-      Width = 194
-      Height = 21
-      Anchors = [akLeft, akTop, akRight]
-      TabOrder = 2
-      OnChange = Modification
-    end
-    object editUsername: TEdit
-      Left = 110
-      Top = 67
-      Width = 194
-      Height = 21
-      Anchors = [akLeft, akTop, akRight]
-      TabOrder = 3
-      OnChange = Modification
-    end
-    object editPassword: TEdit
-      Left = 110
-      Top = 92
-      Width = 194
-      Height = 21
-      Anchors = [akLeft, akTop, akRight]
-      PasswordChar = '*'
-      TabOrder = 4
-      OnChange = Modification
-    end
-    object editPort: TEdit
-      Left = 110
-      Top = 117
-      Width = 60
-      Height = 21
-      TabOrder = 5
-      Text = '0'
-      OnChange = editPortChange
-    end
-    object chkCompressed: TCheckBox
-      Tag = 12
-      Left = 110
-      Top = 142
-      Width = 194
-      Height = 17
-      Anchors = [akLeft, akTop, akRight]
-      Caption = 'Compressed client/server protocol'
-      TabOrder = 7
-      OnClick = Modification
-    end
-    object radioTypeTCPIP: TRadioButton
-      Left = 110
-      Top = 19
-      Width = 67
-      Height = 17
-      Caption = 'TCP/IP'
-      Checked = True
-      TabOrder = 0
-      TabStop = True
-      OnClick = radioNetTypeClick
-    end
-    object radioTypeNamedPipe: TRadioButton
-      Left = 183
-      Top = 19
-      Width = 113
-      Height = 17
-      Caption = 'Named pipe'
-      TabOrder = 1
-      OnClick = radioNetTypeClick
-    end
-    object updownPort: TUpDown
-      Left = 170
-      Top = 117
-      Width = 17
-      Height = 21
-      Max = 32767
-      TabOrder = 6
-      Thousands = False
-      OnChangingEx = updownPortChangingEx
-    end
-    object editStartupScript: TButtonedEdit
-      Left = 110
-      Top = 240
-      Width = 194
-      Height = 21
-      Anchors = [akLeft, akTop, akRight]
-      Images = MainForm.ImageListMain
-      RightButton.ImageIndex = 52
-      RightButton.Visible = True
-      TabOrder = 11
-      OnChange = Modification
-      OnDblClick = PickFile
-      OnRightButtonClick = PickFile
-    end
-    object editSSLPrivateKey: TButtonedEdit
-      Left = 110
-      Top = 165
-      Width = 194
-      Height = 21
-      Anchors = [akLeft, akTop, akRight]
-      Images = MainForm.ImageListMain
-      RightButton.ImageIndex = 52
-      RightButton.Visible = True
-      TabOrder = 8
-      OnChange = Modification
-      OnDblClick = PickFile
-      OnRightButtonClick = PickFile
-    end
-    object editSSLCACertificate: TButtonedEdit
-      Left = 110
-      Top = 190
-      Width = 194
-      Height = 21
-      Anchors = [akLeft, akTop, akRight]
-      Images = MainForm.ImageListMain
-      RightButton.ImageIndex = 52
-      RightButton.Visible = True
-      TabOrder = 9
-      OnChange = Modification
-      OnDblClick = PickFile
-      OnRightButtonClick = PickFile
-    end
-    object editSSLCertificate: TButtonedEdit
-      Left = 110
-      Top = 215
-      Width = 194
-      Height = 21
-      Anchors = [akLeft, akTop, akRight]
-      Images = MainForm.ImageListMain
-      RightButton.ImageIndex = 52
-      RightButton.Visible = True
-      TabOrder = 10
-      OnChange = Modification
-      OnDblClick = PickFile
-      OnRightButtonClick = PickFile
+    object tabStatistics: TTabSheet
+      Caption = 'Statistics'
+      ImageIndex = 145
+      DesignSize = (
+        301
+        197)
+      object lblLastConnectLeft: TLabel
+        Left = 3
+        Top = 31
+        Width = 65
+        Height = 13
+        Caption = 'Last connect:'
+      end
+      object lblCounterLeft: TLabel
+        Left = 3
+        Top = 50
+        Width = 43
+        Height = 13
+        Caption = 'Counter:'
+      end
+      object lblCreatedLeft: TLabel
+        Left = 3
+        Top = 12
+        Width = 43
+        Height = 13
+        Caption = 'Created:'
+      end
+      object lblCreatedRight: TLabel
+        Left = 101
+        Top = 12
+        Width = 5
+        Height = 13
+        Caption = '?'
+      end
+      object lblCounterRight: TLabel
+        Left = 101
+        Top = 50
+        Width = 197
+        Height = 39
+        Anchors = [akLeft, akTop, akRight]
+        AutoSize = False
+        Caption = '?'
+        WordWrap = True
+      end
+      object lblLastConnectRight: TLabel
+        Left = 101
+        Top = 31
+        Width = 5
+        Height = 13
+        Caption = '?'
+      end
     end
   end
   object popupSessions: TPopupMenu
     Images = MainForm.ImageListMain
-    Left = 176
-    Top = 347
+    Left = 16
+    Top = 35
     object Save1: TMenuItem
       Caption = 'Save'
       ImageIndex = 10
@@ -432,7 +453,7 @@ object connform: Tconnform
   object TimerStatistics: TTimer
     Interval = 60000
     OnTimer = TimerStatisticsTimer
-    Left = 208
-    Top = 347
+    Left = 48
+    Top = 35
   end
 end
