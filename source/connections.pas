@@ -22,40 +22,43 @@ type
     ListSessions: TVirtualStringTree;
     btnNew: TButton;
     btnDelete: TButton;
-    grpDetails: TGroupBox;
-    lblHost: TLabel;
-    lblUsername: TLabel;
-    lblPassword: TLabel;
-    lblPort: TLabel;
-    editHost: TEdit;
-    editUsername: TEdit;
-    editPassword: TEdit;
-    editPort: TEdit;
-    chkCompressed: TCheckBox;
-    radioTypeTCPIP: TRadioButton;
-    radioTypeNamedPipe: TRadioButton;
-    updownPort: TUpDown;
-    lblLastConnectLeft: TLabel;
-    lblLastConnectRight: TLabel;
-    lblCreatedLeft: TLabel;
-    lblCreatedRight: TLabel;
-    lblNetworkType: TLabel;
     popupSessions: TPopupMenu;
     Save1: TMenuItem;
     Delete1: TMenuItem;
     Saveas1: TMenuItem;
     TimerStatistics: TTimer;
-    lblCounterLeft: TLabel;
-    lblCounterRight: TLabel;
     lblHelp: TLabel;
+    PageControlDetails: TPageControl;
+    tabSettings: TTabSheet;
     lblStartupScript: TLabel;
+    lblPort: TLabel;
+    lblPassword: TLabel;
+    lblHost: TLabel;
+    lblUsername: TLabel;
+    lblNetworkType: TLabel;
     editStartupScript: TButtonedEdit;
+    chkCompressed: TCheckBox;
+    editPort: TEdit;
+    updownPort: TUpDown;
+    editPassword: TEdit;
+    editUsername: TEdit;
+    editHost: TEdit;
+    radioTypeTCPIP: TRadioButton;
+    radioTypeNamedPipe: TRadioButton;
+    tabSSLOptions: TTabSheet;
     lblSSLPrivateKey: TLabel;
-    editSSLPrivateKey: TButtonedEdit;
     lblSSLCACertificate: TLabel;
+    lblSSLCertificate: TLabel;
+    editSSLPrivateKey: TButtonedEdit;
     editSSLCACertificate: TButtonedEdit;
     editSSLCertificate: TButtonedEdit;
-    lblSSLCertificate: TLabel;
+    tabStatistics: TTabSheet;
+    lblLastConnectLeft: TLabel;
+    lblCounterLeft: TLabel;
+    lblCreatedLeft: TLabel;
+    lblCreatedRight: TLabel;
+    lblCounterRight: TLabel;
+    lblLastConnectRight: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -624,7 +627,7 @@ begin
   btnOpen.Enabled := SessionFocused;
 
   if not SessionFocused then begin
-    grpDetails.Visible := False;
+    PageControlDetails.Visible := False;
     lblHelp.Visible := True;
     if FSessionNames.Count = 0 then
       lblHelp.Caption := 'New here? In order to connect to a MySQL server, you have to create a so called '+
@@ -634,7 +637,7 @@ begin
       lblHelp.Caption := 'Please click a session on the left list to edit parameters, doubleclick to open it.';
   end else begin
     lblHelp.Visible := False;
-    grpDetails.Visible := True;
+    PageControlDetails.Visible := True;
   end;
 end;
 
@@ -647,9 +650,9 @@ const
 begin
   // Resize form - adjust width of both main components
   ListSessions.Width := Round(ClientWidth / 100 * FWidthListSessions);
-  grpDetails.Left := 2 * ListSessions.Left + ListSessions.Width;
-  grpDetails.Width := ClientWidth - grpDetails.Left - Margin;
-  lblHelp.Left := grpDetails.Left;
+  PageControlDetails.Left := 2 * ListSessions.Left + ListSessions.Width;
+  PageControlDetails.Width := ClientWidth - PageControlDetails.Left - Margin;
+  lblHelp.Left := PageControlDetails.Left;
   ButtonWidth := Round((ListSessions.Width - 2 * Margin) / 3);
   btnNew.Width := ButtonWidth;
   btnSave.Width := ButtonWidth;
