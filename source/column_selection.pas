@@ -58,10 +58,10 @@ begin
     chklistColumns.Items.Add(Mainform.SelectedTableColumns[i].Name);
 
   // Check items!
-  if Mainform.FDataGridSelect.Count = 0 then // Simply check all items
+  if Mainform.DataGridHiddenColumns.Count = 0 then // Simply check all items
     ToggleCheckListBox( chklistColumns, True )
   else // Only check selected items
-    ToggleCheckListBox( chklistColumns, True, Mainform.FDataGridSelect );
+    ToggleCheckListBox( chklistColumns, False, Mainform.DataGridHiddenColumns );
 
   // Call check-event to update state of "Select / Deselect all" checkbox
   chklistColumnsClickCheck( Sender );
@@ -81,20 +81,14 @@ begin
   // Prepare string for storing in registry.
   // Use quote-character as separator to ensure columnnames can
   // be extracted safely later
-  Mainform.FDataGridSelect.Clear;
+  Mainform.DataGridHiddenColumns.Clear;
   for i := 0 to chklistColumns.Items.Count - 1 do
   begin
-    if chklistColumns.Checked[i] then
-      Mainform.FDataGridSelect.Add(chklistColumns.Items[i]);
+    if not chklistColumns.Checked[i] then
+      Mainform.DataGridHiddenColumns.Add(chklistColumns.Items[i]);
   end;
-
-  // If all columns were selected, delete existing superflous reg-value
-  // Otherwise, save value
-  if Mainform.FDataGridSelect.Count = chklistColumns.Items.Count then
-    Mainform.FDataGridSelect.Clear;
-
-  Mainform.viewdata(Sender);
-
+  Mainform.DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
+  Mainform.DataGrid.Invalidate;
   btnCancel.OnClick(Sender);
 end;
 

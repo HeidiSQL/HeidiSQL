@@ -78,6 +78,8 @@ const
   DEFAULT_MAXCOLWIDTH = 300;
   REGNAME_MAXTOTALROWS = 'DatagridMaximumRows';
   DEFAULT_MAXTOTALROWS = 100000;
+  REGNAME_ROWSPERSTEP = 'DatagridRowsPerStep';
+  DEFAULT_ROWSPERSTEP = 1000;
   REGNAME_REMEMBERFILTERS = 'RememberFilters';
   DEFAULT_REMEMBERFILTERS = True;
   REGNAME_LOGTOFILE = 'LogToFile';
@@ -292,20 +294,9 @@ const
   TXT_ASC = 'ASC';          // Used for caption of "Direction"-button
   TXT_DESC = 'DESC';        // dito
 
-  // Data grid: How many bytes to fetch from data fields that are potentially large.
-  GRIDMAXDATA: Integer = 256;
-  // Data grid: How many rows to fetch at a time.
-  GRIDMAXROWS: Cardinal = 1000;
-  // The InnoDB folks are raging over the lack of count(*) support
-  // in the storage engine.  To avoid count(*), the first of these
-  // constants decide how many rows the data area should estimate
-  // in any table.  The second value decides how many percent above the
-  // number of seen (or simulated) rows the scrollbar should project.
-  SIMULATE_INITIAL_ROWS = 10000;
-  SIMULATE_MORE_ROWS = 20;
-
   VTREE_NOTLOADED = 0;
-  VTREE_LOADED = 1;
+  VTREE_NOTLOADED_PURGECACHE = 1;
+  VTREE_LOADED = 2;
 
   MSG_COPYMAXSIZE = 'Copying data is limited to %s but more data is available. '
         + 'Only %s out of %s rows were copied.' + CRLF + CRLF

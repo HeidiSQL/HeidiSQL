@@ -460,6 +460,11 @@ type
     Replacetext1: TMenuItem;
     lblExplainProcess: TLabel;
     menuExplainProcess: TMenuItem;
+    ToolButton2: TToolButton;
+    tbtnDataShowAll: TToolButton;
+    tbtnDataNext: TToolButton;
+    actDataShowNext: TAction;
+    actDataShowAll: TAction;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -548,11 +553,8 @@ type
     procedure ShowHost;
     procedure ShowDatabase(db: String);
     procedure ShowDBProperties(db: String);
-    function EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode): Boolean;
-    procedure EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: String);
-    procedure EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; FullWidth: Boolean = False);
-    procedure DiscardNodeData(Sender: TVirtualStringTree; Node: PVirtualNode);
-    procedure viewdata(Sender: TObject);
+    procedure DataGridBeforePaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas);
     procedure LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo);
     procedure KillProcess(Sender: TObject);
     procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false;
@@ -658,7 +660,6 @@ type
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
     procedure menuShowSizeColumnClick(Sender: TObject);
-    procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
     procedure GridBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
@@ -680,7 +681,6 @@ type
     procedure actSelectAllExecute(Sender: TObject);
     procedure EnumerateRecentFilters;
     procedure LoadRecentFilter(Sender: TObject);
-    procedure DataGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
     procedure ListTablesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; var Allowed: Boolean);
     procedure DBtreeChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
@@ -731,8 +731,9 @@ type
     procedure actQueryFindAgainExecute(Sender: TObject);
     procedure vstScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
     procedure lblExplainProcessClick(Sender: TObject);
+    procedure actDataShowNextExecute(Sender: TObject);
+    procedure actDataShowAllExecute(Sender: TObject);
   private
-    ReachedEOT: Boolean;
     FDelimiter: String;
     FileNameSessionLog: String;
     FileHandleSessionLog: Textfile;
@@ -754,14 +755,14 @@ type
     FSearchReplaceExecuted: Boolean;
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
-    procedure DisplayRowCountStats(MatchingRows: Int64 = -1);
+    procedure DisplayRowCountStats;
     procedure insertFunction(Sender: TObject);
     function GetActiveDatabase: String;
     function GetSelectedTable: TDBObject;
     procedure SetSelectedDatabase(db: String);
     procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
-    procedure AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: TStringList = nil);
+    procedure AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
     function PlaceObjectEditor(Which: TListNodeType): TDBObjectEditor;
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
@@ -809,7 +810,8 @@ type
     prefLogsqlnum: Integer;
     prefLogSqlWidth: Integer;
     prefMaxColWidth: Integer;
-    prefMaxTotalRows: Integer;
+    prefGridRowcountStep: Integer;
+    prefGridRowcountMax: Integer;
     prefCSVSeparator: String;
     prefCSVEncloser: String;
     prefCSVTerminator: String;
@@ -829,15 +831,9 @@ type
     prefNullBG: TColor;
 
     // Data grid related stuff
-    FDataGridSelect: TStringList;
-    FDataGridSort: TOrderColArray;
-    FDataGridFocusedNodeIndex: Cardinal;
-    FDataGridFocusedColumnIndex: TColumnIndex;
-    DataGridCurrentSelect: String;
-    DataGridCurrentFullSelect: String;
-    DataGridCurrentFrom: String;
-    DataGridCurrentFilter: String;
-    DataGridCurrentSort: String;
+    DataGridHiddenColumns: TStringList;
+    DataGridSortColumns: TOrderColArray;
+    DataGridWantedRowCount: Int64;
     DataGridDB: String;
     DataGridTable: String;
     DataGridHasChanges: Boolean;
@@ -847,7 +843,6 @@ type
     SelectedTableKeys: TTableKeyList;
     SelectedTableForeignKeys: TForeignKeyList;
     FilterPanelManuallyOpened: Boolean;
-    PrevTableColWidths: TStringList;
 
     // Executable file details
     AppVerMajor: Integer;
@@ -1284,7 +1279,9 @@ begin
   // Force status bar position to below log memo 
   StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
   prefMaxColWidth := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
-  prefMaxTotalRows := GetRegValue(REGNAME_MAXTOTALROWS, DEFAULT_MAXTOTALROWS);
+  prefGridRowcountMax := GetRegValue(REGNAME_MAXTOTALROWS, DEFAULT_MAXTOTALROWS);
+  prefGridRowcountStep := GetRegValue(REGNAME_ROWSPERSTEP, DEFAULT_ROWSPERSTEP);
+  actDataShowNext.Hint := 'Show next '+FormatNumber(prefGridRowcountStep)+' rows ...';
   // Fix registry entry from older versions which can have 0 here which makes no sense
   // since the autosetting was removed
   if prefMaxColWidth <= 0 then
@@ -1803,9 +1800,9 @@ begin
   DBtree.ClearSelection;
   DBtree.FocusedNode := nil;
   FreeAndNil(AllDatabases);
-  FreeAndNil(FDataGridSelect);
+  FreeAndNil(DataGridHiddenColumns);
   SynMemoFilter.Clear;
-  SetLength(FDataGridSort, 0);
+  SetLength(DataGridSortColumns, 0);
 
   // Closing connection
   if Assigned(Connection) then
@@ -1929,8 +1926,10 @@ begin
     ActiveQueryTab.MemoFilename := '';
     ActiveQueryTab.Memo.Modified := False;
   end;
-  if m = SynMemoFilter then
-    ViewData(Sender);
+  if m = SynMemoFilter then begin
+    DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
+    DataGrid.Invalidate;
+  end;
 end;
 
 procedure TMainForm.actTableToolsExecute(Sender: TObject);
@@ -2281,7 +2280,6 @@ begin
   end;
 
   if SaveBinary then begin
-    if not EnsureFullWidth(g, g.FocusedColumn, g.FocusedNode) then Exit;
     Content := WideHexToBin(Copy(g.Text[g.FocusedNode, g.FocusedColumn], 3, High(Integer)));
     AssignFile(f, filename);
     Rewrite(f);
@@ -2720,8 +2718,10 @@ begin
   end else if tab1 = tabDatabase then begin
     RefreshTreeDB(ActiveDatabase);
     LoadDatabaseProperties(ActiveDatabase);
-  end else if tab1 = tabData then
-    viewdata(Sender);
+  end else if tab1 = tabData then begin
+    DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
+    DataGrid.Invalidate;
+  end;
 end;
 
 
@@ -3134,7 +3134,8 @@ begin
     FreeAndNil(OldNumbers);
     FreeAndNil(Filters);
   end;
-  viewdata(Sender);
+  DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
+  DataGrid.Invalidate;
 end;
 
 
@@ -3182,7 +3183,8 @@ end;
 procedure TMainForm.actRemoveFilterExecute(Sender: TObject);
 begin
   actClearFilterEditor.Execute;
-  viewdata(Sender);
+  DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
+  DataGrid.Invalidate;
 end;
 
 
@@ -3312,242 +3314,246 @@ begin
 end;
 
 
-
-procedure TMainForm.viewdata(Sender: TObject);
-var
-  i, j: Integer;
-  select_base, select_base_full, select_from: String;
-  sl_query, KeyCols: TStringList;
-  col: TVirtualTreeColumn;
-  ColExists, ShowIt, RefreshingData, IsKeyColumn: Boolean;
-  OldOffsetXY: TPoint;
-  TblCol: TTableColumn;
-  ColLen: Int64;
-
-procedure InitColumn(Column: TTableColumn; Visible: Boolean);
-var
-  k: Integer;
-  idx: Integer;
-  Key: TTableKey;
+procedure TMainForm.actDataShowNextExecute(Sender: TObject);
 begin
-  idx := Length(DataGridResult.Columns);
-  SetLength(DataGridResult.Columns, idx+1);
-  DataGridResult.Columns[idx].Name := Column.Name;
-  col := DataGrid.Header.Columns.Add;
-  col.Text := Column.Name;
-  col.Hint := Column.Comment;
-  col.Options := col.Options + [coSmartResize];
-  if not visible then col.Options := col.Options - [coVisible];
-  // Sorting color and title image
-  for k:=0 to Length(FDataGridSort)-1 do begin
-    if FDataGridSort[k].ColumnName = Column.Name then begin
-      col.Color := ColorAdjustBrightness(col.Color, COLORSHIFT_SORTCOLUMNS);
-      case FDataGridSort[k].SortDirection of
-        ORDER_ASC:  col.ImageIndex := 109;
-        ORDER_DESC: col.ImageIndex := 110;
-      end;
-    end;
-  end;
-  // Data type
-  DataGridResult.Columns[idx].DatatypeCat := Column.DataType.Category;
-  DataGridResult.Columns[idx].Datatype := Column.DataType.Index;
-  case DataGridResult.Columns[idx].DatatypeCat of
-    dtcInteger, dtcReal: col.Alignment := taRightJustify;
-    dtcText: begin
-      if Column.LengthSet <> '' then
-        DataGridResult.Columns[idx].MaxLength := MakeInt(Column.LengthSet)
-      else case Column.DataType.Index of
-        // 255 is the width in bytes. If characters that use multiple bytes are
-        // contained, the width in characters is decreased below this number.
-        dtTinyText: DataGridResult.Columns[idx].MaxLength := 255;
-        dtText: DataGridResult.Columns[idx].MaxLength := 65535;
-        dtMediumText: DataGridResult.Columns[idx].MaxLength := 16777215;
-        dtLongText: DataGridResult.Columns[idx].MaxLength := 4294967295;
-      end;
-    end;
-    dtcIntegerNamed: begin
-      DataGridResult.Columns[idx].ValueList := TStringList.Create;
-      DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
-      DataGridResult.Columns[idx].ValueList.Delimiter := ',';
-      DataGridResult.Columns[idx].ValueList.DelimitedText := Column.LengthSet;
-    end;
-    dtcSetNamed: begin
-      DataGridResult.Columns[idx].ValueList := TStringList.Create;
-      DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
-      DataGridResult.Columns[idx].ValueList.Delimiter := ',';
-      DataGridResult.Columns[idx].ValueList.DelimitedText := Column.LengthSet;
-    end;
-    else DataGridResult.Columns[idx].MaxLength := MaxInt; // Fallback for unknown column types
-  end;
-
-  for k:=0 to SelectedTableKeys.Count-1 do begin
-    Key := TTableKey(SelectedTableKeys[k]);
-    if (Key.IndexType = 'PRIMARY')
-      and (Key.Columns.IndexOf(Column.Name) > -1) then begin
-      DataGridResult.Columns[idx].IsPriPart := True;
-      break;
-    end;
-  end;
+  // Show next X rows in datagrid
+  Inc(DatagridWantedRowCount, prefGridRowcountStep);
+  DataGridWantedRowCount := Min(DataGridWantedRowCount, prefGridRowcountMax);
+  DataGrid.Tag := VTREE_NOTLOADED;
+  DataGrid.Invalidate;
 end;
 
+
+procedure TMainForm.actDataShowAllExecute(Sender: TObject);
 begin
-  if (SelectedTable.Name = '') or (ActiveDatabase = '') then
+  // Remove LIMIT clause
+  DatagridWantedRowCount := prefGridRowcountMax;
+  DataGrid.Tag := VTREE_NOTLOADED;
+  DataGrid.Invalidate;
+end;
+
+
+procedure TMainForm.DataGridBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+var
+  vt: TVirtualStringTree;
+  Data: TMySQLQuery;
+  Select: String;
+  RefreshingData: Boolean;
+  i, j, Offset, LastExistingColIndex: Integer;
+  KeyCols, WantedCols: TStringList;
+  Cell: PGridCell;
+
+  procedure InitColumn(idx: Integer);
+  var
+    k: Integer;
+    Col: TVirtualTreeColumn;
+    TblCol: TTableColumn;
+  begin
+    TblCol := nil;
+    for k:=0 to SelectedTableColumns.Count-1 do begin
+      TblCol := SelectedTableColumns[k];
+      if TblCol.Name = Data.ColumnNames[idx] then
+        break;
+    end;
+
+    SetLength(DataGridResult.Columns, idx+1);
+    DataGridResult.Columns[idx].Name := TblCol.Name;
+    if vt.Header.Columns.Count <= idx then
+      col := vt.Header.Columns.Add
+    else
+      col := vt.Header.Columns[idx];
+    col.Text := TblCol.Name;
+    col.Hint := TblCol.Comment;
+    col.Options := col.Options + [coSmartResize];
+    if DatagridHiddenColumns.IndexOf(TblCol.Name) > -1 then
+      col.Options := col.Options - [coVisible];
+    // Sorting color and title image
+    col.Color := clWindow;
+    col.ImageIndex := -1;
+    for k:=0 to Length(DataGridSortColumns)-1 do begin
+      if DataGridSortColumns[k].ColumnName = TblCol.Name then begin
+        col.Color := ColorAdjustBrightness(col.Color, COLORSHIFT_SORTCOLUMNS);
+        case DataGridSortColumns[k].SortDirection of
+          ORDER_ASC:  col.ImageIndex := 109;
+          ORDER_DESC: col.ImageIndex := 110;
+        end;
+      end;
+    end;
+    // Data type
+    DataGridResult.Columns[idx].DatatypeCat := Data.DataType(idx).Category;
+    DataGridResult.Columns[idx].Datatype := Data.DataType(idx).Index;
+    col.Alignment := taLeftJustify;
+    case DataGridResult.Columns[idx].DatatypeCat of
+      dtcInteger, dtcReal: col.Alignment := taRightJustify;
+      dtcText: begin
+        if TblCol.LengthSet <> '' then
+          DataGridResult.Columns[idx].MaxLength := MakeInt(TblCol.LengthSet)
+        else case Data.DataType(idx).Index of
+          // 255 is the width in bytes. If characters that use multiple bytes are
+          // contained, the width in characters is decreased below this number.
+          dtTinyText: DataGridResult.Columns[idx].MaxLength := 255;
+          dtText: DataGridResult.Columns[idx].MaxLength := 65535;
+          dtMediumText: DataGridResult.Columns[idx].MaxLength := 16777215;
+          dtLongText: DataGridResult.Columns[idx].MaxLength := 4294967295;
+        end;
+      end;
+      dtcIntegerNamed: begin
+        DataGridResult.Columns[idx].ValueList := TStringList.Create;
+        DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
+        DataGridResult.Columns[idx].ValueList.Delimiter := ',';
+        DataGridResult.Columns[idx].ValueList.DelimitedText := TblCol.LengthSet;
+      end;
+      dtcSetNamed: begin
+        DataGridResult.Columns[idx].ValueList := TStringList.Create;
+        DataGridResult.Columns[idx].ValueList.QuoteChar := '''';
+        DataGridResult.Columns[idx].ValueList.Delimiter := ',';
+        DataGridResult.Columns[idx].ValueList.DelimitedText := TblCol.LengthSet;
+      end;
+      else DataGridResult.Columns[idx].MaxLength := MaxInt; // Fallback for unknown column types
+    end;
+    DataGridResult.Columns[idx].IsPriPart := Data.ColIsPrimaryKeyPart(idx);
+  end;
+
+begin
+  // Load data into data tab grid
+  vt := Sender as TVirtualStringTree;
+  if vt.Tag = VTREE_LOADED then
     Exit;
   Screen.Cursor := crHourglass;
-  sl_query := TStringList.Create();
 
-  // Ensure grid has left editing mode so DataGrid.OnNewText applies its changes
-  // to the old data, not to the new or some non referenced data
-  if DataGrid.IsEditing then
-    DataGrid.EndEditNode;
+  // No data for routines
+  if SelectedTableColumns.Count = 0 then begin
+    vt.Enabled := False;
+    pnlDataTop.Enabled := False;
+    pnlFilter.Enabled := False;
+    lblSorryNoData.Parent := DataGrid;
+  end else begin
+    vt.Enabled := True;
+    pnlDataTop.Enabled := True;
+    pnlFilter.Enabled := True;
+    lblSorryNoData.Parent := tabData;
 
-  // Post pending update and set post + cancel buttons to valid state
-  if DataGridHasChanges then
-    actDataPostChangesExecute(Sender);
+    // Indicates whether the current table data is just refreshed or if we're in another table
+    RefreshingData := (ActiveDatabase = DataGridDB) and (SelectedTable.Name = DataGridTable);
+    DataGridDB := ActiveDatabase;
+    DataGridTable := SelectedTable.Name;
 
-  // Switch to <Data>
-  PageControlMain.ActivePage := tabData;
-
-  // Indicates whether the current table data is just refreshed or if we're in another table
-  RefreshingData := (ActiveDatabase = DataGridDB) and (SelectedTable.Name = DataGridTable);
-
-  try
     // Load last view settings
     HandleDataGridAttributes(RefreshingData);
 
-    ShowStatus('Freeing data...');
-    DataGrid.BeginUpdate;
-    OldOffsetXY := DataGrid.OffsetXY;
-    debug('mem: clearing browse data.');
-    SetLength(DataGridResult.Columns, 0);
-    SetLength(DataGridResult.Rows, 0);
-    DataGrid.RootNodeCount := 0;
-    DataGrid.Header.Columns.BeginUpdate;
-    DataGrid.Header.Options := DataGrid.Header.Options + [hoVisible];
-    DataGrid.Header.Columns.Clear;
-
-    // No data for routines
-    if SelectedTableColumns.Count = 0 then begin
-      DataGrid.Enabled := False;
-      pnlDataTop.Enabled := False;
-      pnlFilter.Enabled := False;
-      lblSorryNoData.Parent := DataGrid;
-      Exit; // Jump to *finally*
-    end else begin
-      DataGrid.Enabled := True;
-      pnlDataTop.Enabled := True;
-      pnlFilter.Enabled := True;
-      lblSorryNoData.Parent := tabData;
-    end;
-
-    // Prepare SELECT statement
-    select_base := 'SELECT ';
-    select_base_full := select_base;
-    // Selected columns
-    if (FDataGridSelect.Count = 0) or (FDataGridSelect.Count = SelectedTableColumns.Count) then begin
-      tbtnDataColumns.ImageIndex := 107;
-    end else begin
-      for i := FDataGridSelect.Count - 1 downto 0 do begin
-        ColExists := False;
-        for j:=0 to SelectedTableColumns.Count-1 do begin
-          TblCol := TTableColumn(SelectedTableColumns[j]);
-          if FDataGridSelect[i] = TblCol.Name then begin
-            ColExists := True;
-            break;
-          end;
-        end;
-        if not ColExists then
-          FDataGridSelect.Delete(i);
-      end;
-      // Signal for the user that we now hide some columns
-      tbtnDataColumns.ImageIndex := 108;
-    end;
     // Ensure key columns are included to enable editing
     KeyCols := GetKeyColumns;
-    // Truncate column array.
-    SetLength(DataGridResult.Columns, 0);
-    debug('mem: initializing browse columns.');
+    WantedCols := TStringlist.Create;
     for i:=0 to SelectedTableColumns.Count-1 do begin
-      TblCol := TTableColumn(SelectedTableColumns[i]);
-      ShowIt := (FDataGridSelect.Count=0) or (FDataGridSelect.IndexOf(TblCol.Name)>-1);
-      IsKeyColumn := KeyCols.IndexOf(TblCol.Name)>-1;
-      ColLen := MakeInt(TblCol.LengthSet);
-      if ShowIt or IsKeyColumn then begin
-        if (TblCol.DataType.Category in [dtcText, dtcBinary])
-          and (not IsKeyColumn) // We need full length of any key column, so EnsureFullWidth() has the chance to fetch the right row
-          and ((ColLen > GridMaxData) or (ColLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
-          then begin
-          select_base := select_base + ' ' + 'LEFT(' + Mask(TblCol.Name) + ', ' + IntToStr(GridMaxData) + ')' + ',';
-        end else begin
-          select_base := select_base + ' ' + Mask(TblCol.Name) + ',';
-        end;
-        select_base_full := select_base_full + ' ' + Mask(TblCol.Name) + ',';
-        InitColumn(TblCol, ShowIt);
-      end;
+      if (DatagridHiddenColumns.IndexOf(SelectedTableColumns[i].Name) = -1)
+        or (KeyCols.IndexOf(SelectedTableColumns[i].Name) > -1) then
+        WantedCols.Add(SelectedTableColumns[i].Name);
     end;
-    debug('mem: browse column initialization complete.');
-    // Cut last comma
-    select_base := copy( select_base, 1, Length(select_base)-1 );
-    select_base_full := copy( select_base_full, 1, Length(select_base_full)-1 );
+
+    Select := 'SELECT ';
+    if WantedCols.Count = SelectedTableColumns.Count then begin
+      Select := Select + ' *';
+      tbtnDataColumns.ImageIndex := 107;
+    end else begin
+      for i:=0 to WantedCols.Count-1 do
+        Select := Select + ' ' + Mask(WantedCols[i]) + ',';
+      // Cut last comma
+      Delete(Select, Length(Select), 1);
+      // Signal for the user if we hide some columns
+      tbtnDataColumns.ImageIndex := 108;
+    end;
     // Include db name for cases in which dbtree is switching databases and pending updates are in process
-    select_from := ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedTable.Name);
+    Select := Select + ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedTable.Name);
 
-    // Final SELECT segments
-    DataGridCurrentSelect := select_base;
-    DataGridCurrentFullSelect := select_base_full;
-    DataGridCurrentFrom := select_from;
-    DataGridCurrentFilter := SynMemoFilter.Text;
-    if Length(FDataGridSort) > 0 then
-      DataGridCurrentSort := ComposeOrderClause(FDataGridSort)
+    // Append WHERE clause
+    if SynMemoFilter.GetTextLen > 0 then begin
+      Select := Select + ' WHERE ' + SynMemoFilter.Text;
+      tbtnDataFilter.ImageIndex := 108;
+    end else
+      tbtnDataFilter.ImageIndex := 107;
+
+    // Append ORDER clause
+    if Length(DataGridSortColumns) > 0 then begin
+      Select := Select + ' ORDER BY ' + ComposeOrderClause(DataGridSortColumns);
+      tbtnDataSorting.ImageIndex := 108;
+    end else
+      tbtnDataSorting.ImageIndex := 107;
+
+    // Append LIMIT clause
+    if RefreshingData and (vt.Tag <> VTREE_NOTLOADED_PURGECACHE) then
+      Offset := Length(DataGridResult.Rows)
     else
-      DataGridCurrentSort := '';
+      Offset := 0;
+    Select := Select + ' LIMIT '+IntToStr(Offset)+', '+IntToStr(DatagridWantedRowCount-Offset);
 
-    // Set button icons
-    if DataGridCurrentFilter <> '' then tbtnDataFilter.ImageIndex := 108
-    else tbtnDataFilter.ImageIndex := 107;
-    if DataGridCurrentSort <> '' then tbtnDataSorting.ImageIndex := 108
-    else tbtnDataSorting.ImageIndex := 107;
-
-    debug('mem: initializing browse rows (internal data).');
     try
-      ReachedEOT := False;
-      SetLength(DataGridResult.Rows, SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100);
-      for i := 0 to SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100 - 1 do begin
-        DataGridResult.Rows[i].Loaded := False;
-      end;
-      debug('mem: initializing browse rows (grid).');
-      DataGrid.RootNodeCount := SIMULATE_INITIAL_ROWS * (100 + SIMULATE_MORE_ROWS) div 100;
+      ShowStatus('Fetching rows ...');
+      Data := Connection.GetResults(Select);
     except
-      DataGrid.RootNodeCount := 0;
-      SetLength(DataGridResult.Rows, 0);
-      PageControlMain.ActivePage := tabDatabase;
-      raise;
+      // Wrong WHERE clause in most cases
+      On E:Exception do
+        MessageDlg(E.Message, mtError, [mbOK], 0);
     end;
-    debug('mem: browse row initialization complete.');
 
-    PageControlMainChange(Self);
-  finally
-    DataGrid.Header.Columns.EndUpdate;
-    DataGrid.EndUpdate;
-    FreeAndNil(sl_query);
-    if RefreshingData then
-      DataGrid.OffsetXY := OldOffsetXY
-    else begin
-      // Switched to another table
-      DataGrid.OffsetXY := Point(0, 0); // Scroll to top left
-      FreeAndNil(PrevTableColWidths); // Throw away remembered, manually resized column widths
+    if Assigned(Data) then begin
+      ShowStatus('Copying rows to internal structure ...');
+      // Set up grid column headers
+      SetLength(DataGridResult.Columns, Data.ColumnCount);
+      vt.Header.Columns.BeginUpdate;
+      if not RefreshingData then
+        vt.Header.Columns.Clear
+      else begin
+        // Remove superfluous columns
+        for i:=vt.Header.Columns.Count-1 downto Data.ColumnCount do
+          vt.Header.Columns[i].Destroy;
+      end;
+      LastExistingColIndex := vt.Header.Columns.Count-1;
+      for i:=0 to Data.ColumnCount-1 do
+        InitColumn(i);
+      vt.Header.Columns.EndUpdate;
+
+      // Set up grid rows and data array
+      vt.BeginUpdate;
+      SetLength(DataGridResult.Rows, Offset+Data.RecordCount);
+      for i:=Offset to Offset+Data.RecordCount-1 do begin
+        for j:=0 to Length(DataGridResult.Columns)-1 do begin
+          SetLength(DataGridResult.Rows[i].Cells, Data.ColumnCount);
+          Cell := @DataGridResult.Rows[i].Cells[j];
+          case Data.DataType(j).Category of
+            dtcInteger, dtcReal: Cell.Text := FormatNumber(Data.Col(j), False);
+            dtcBinary: Cell.Text := GetBlobContent(Data, j);
+            else Cell.Text := Data.Col(j);
+          end;
+          Cell.IsNull := Data.IsNull(j);
+        end;
+        Data.Next;
+      end;
+      ShowStatus('Freeing memory ...');
+      FreeAndNil(Data);
+      vt.RootNodeCount := Length(DataGridResult.Rows);
+
+      for i:=LastExistingColIndex+1 to vt.Header.Columns.Count-1 do
+        AutoCalcColWidth(vt, i);
+      if not RefreshingData then begin
+        // Scroll to top left if switched to another table
+        vt.OffsetXY := Point(0, 0);
+        if vt.RootNodeCount > 0 then
+          SelectNode(vt, 0);
+      end;
+
+      vt.EndUpdate;
+      vt.SetFocus;
+      DisplayRowCountStats;
+      actDataShowNext.Enabled := (vt.RootNodeCount = DatagridWantedRowCount) and (DatagridWantedRowCount < prefGridRowcountMax);
+      actDataShowAll.Enabled := actDataShowNext.Enabled;
+      EnumerateRecentFilters;
+      if Integer(vt.RootNodeCount) = prefGridRowcountMax then
+        LogSQL('Browsing is currently limited to a maximum of '+FormatNumber(prefGridRowcountMax)+' rows. To see more rows, decrease this maximum in Tools > Preferences > Data .', lcInfo);
     end;
-    // Set focus on the previous selected row, or at least on row #0, so the user sees the grid has focus
-    if DataGrid.RootNodeCount > FDataGridFocusedNodeIndex then
-      SelectNode(DataGrid, FDataGridFocusedNodeIndex);
-    if DataGrid.Header.Columns.Count > FDataGridFocusedColumnIndex then
-      DataGrid.FocusedColumn := FDataGridFocusedColumnIndex;
-    EnumerateRecentFilters;
-    Screen.Cursor := crDefault;
   end;
-  DataGridDB := ActiveDatabase;
-  DataGridTable := SelectedTable.Name;
-  AutoCalcColWidths(DataGrid, PrevTableColWidths);
+  vt.Tag := VTREE_LOADED;
+  Screen.Cursor := crDefault;
+  ShowStatus(STATUS_MSG_READY);
 end;
 
 
@@ -3555,30 +3561,34 @@ end;
   Calculate + display total rowcount and found rows matching to filter
   in data-tab
 }
-procedure TMainForm.DisplayRowCountStats(MatchingRows: Int64);
+procedure TMainForm.DisplayRowCountStats;
 var
   DBObject: TDBObject;
-  IsFiltered: Boolean;
+  IsFiltered, IsLimited: Boolean;
   cap: String;
   RowsTotal: Int64;
 begin
   DBObject := SelectedTable;
   cap := ActiveDatabase + '.' + DBObject.Name;
-  IsFiltered := DataGridCurrentFilter <> '';
+  IsLimited := DataGridWantedRowCount <= Datagrid.RootNodeCount;
+  IsFiltered := SynMemoFilter.GetTextLen > 0;
   if DBObject.NodeType = lntTable then begin
-    RowsTotal := MakeInt(Connection.GetVar('SHOW TABLE STATUS LIKE '+esc(DBObject.Name), 'Rows'));
+    if (not IsLimited) and (not IsFiltered) then
+      RowsTotal := DataGrid.RootNodeCount // No need to fetch via SHOW TABLE STATUS
+    else
+      RowsTotal := MakeInt(Connection.GetVar('SHOW TABLE STATUS LIKE '+esc(DBObject.Name), 'Rows'));
     if RowsTotal > -1 then begin
       cap := cap + ': ' + FormatNumber(RowsTotal) + ' rows total';
       if DBObject.Engine = 'InnoDB' then
         cap := cap + ' (approximately)';
-      if MatchingRows = prefMaxTotalRows then begin
-        cap := cap + ', limited to ' + FormatNumber(prefMaxTotalRows);
-      end else if IsFiltered then begin
-        if MatchingRows = RowsTotal then begin
-          cap := cap + ', filter matches all rows';
-        end else if IsFiltered and (MatchingRows > -1) then begin
-          cap := cap + ', ' + FormatNumber(MatchingRows) + ' matches filter';
-        end;
+      // Display either LIMIT or WHERE effect, not both at the same time
+      if IsLimited then
+        cap := cap + ', limited to ' + FormatNumber(Datagrid.RootNodeCount)
+      else if IsFiltered then begin
+        if Datagrid.RootNodeCount = RowsTotal then
+          cap := cap + ', all rows match to filter'
+        else
+          cap := cap + ', ' + FormatNumber(Datagrid.RootNodeCount) + ' rows match to filter';
       end;
     end;
   end;
@@ -3601,7 +3611,6 @@ begin
     if tab = tabHost then PageControlHostChange(Sender)
     else if tab = tabDatabase then ListTables.SetFocus
     else if tab = tabData then begin
-      viewdata(Sender);
       if DataGrid.CanFocus then
         DataGrid.SetFocus;
     end else if IsQueryTab(tab.PageIndex, True) then begin
@@ -4009,7 +4018,6 @@ begin
     SetLength(ActiveGridResult.Rows, Results.RecordCount);
     Results.First;
     for i:=0 to Results.RecordCount-1 do begin
-      ActiveGridResult.Rows[i].Loaded := True;
       SetLength(ActiveGridResult.Rows[i].Cells, Results.ColumnCount);
       for j:=0 to Results.ColumnCount-1 do begin
         case ActiveGridResult.Columns[j].DatatypeCat of
@@ -4028,8 +4036,9 @@ begin
     ActiveGrid.Header.Columns.EndUpdate;
     ActiveGrid.ClearSelection;
     ActiveGrid.OffsetXY := Point(0, 0);
+    for i:=0 to ActiveGrid.Header.Columns.Count-1 do
+      AutoCalcColWidth(ActiveGrid, i);
     ActiveGrid.EndUpdate;
-    AutoCalcColWidths(ActiveGrid);
   end;
   // Ensure controls are in a valid state
   ValidateControls(Sender);
@@ -4166,8 +4175,8 @@ begin
 
   // 1. find the currently edited sql-statement around the cursor position in synmemo
   if Editor = SynMemoFilter then begin
-    // Concat query segments, set in viewdata(), so the below regular expressions can find structure
-    sql := DataGridCurrentFullSelect + DataGridCurrentFrom + ' WHERE ' + Editor.Text;
+    // Concat query segments, so the below regular expressions can find structure
+    sql := 'SELECT * FROM `'+SelectedTable.Name+'` WHERE ' + Editor.Text;
   end else begin
     // Proposal in one of the query tabs
     Queries := parsesql(Editor.Text);
@@ -4374,7 +4383,6 @@ var
   IsNull: Boolean;
 begin
   // Set filter for "where..."-clause
-  EnsureFullWidth(DataGrid, DataGrid.FocusedColumn, DataGrid.FocusedNode);
   value := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
   menuitem := (Sender as TMenuItem);
   column := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
@@ -6329,10 +6337,8 @@ begin
           // tab is a Host or Database tab, switch to showing table columns.
           if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
             PagecontrolMain.ActivePage := tabEditor;
-          // When a table is clicked in the tree, and the data
-          // tab is active, update the data tab
-          if PagecontrolMain.ActivePage = tabData then
-            ViewData(Sender);
+          DataGrid.Tag := VTREE_NOTLOADED;
+          DataGrid.Invalidate;
           // When a table is clicked in the tree, and the query
           // tab is active, update the list of columns
           if QueryTabActive then
@@ -6367,6 +6373,8 @@ begin
   SelectedTableColumns.Clear;
   SelectedTableKeys.Clear;
   SelectedTableForeignKeys.Clear;
+  DataGrid.Tag := VTREE_NOTLOADED;
+  DataGrid.Invalidate;
   try
     case SelectedTable.NodeType of
       lntTable: begin
@@ -6628,150 +6636,6 @@ begin
 end;
 
 
-procedure TMainForm.EnsureNodeLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; WhereClause: String);
-var
-  res: TGridResult;
-  query: String;
-  Results: TMySQLQuery;
-  i, j: LongInt;
-begin
-  res := GridResult(Sender);
-  if (not res.Rows[Node.Index].Loaded) and (res.Rows[Node.Index].State <> grsInserted) then begin
-    query := DataGridCurrentSelect + DataGridCurrentFrom;
-    // Passed WhereClause has prio over current filter, fixes bug #754
-    if WhereClause <> '' then begin
-      query := query + ' WHERE ' + WhereClause;
-    end else if DataGridCurrentFilter <> '' then begin
-      query := query + ' WHERE ' + DataGridCurrentFilter;
-    end;
-
-    // start query
-    ShowStatus('Retrieving data...');
-    Results := Connection.GetResults(query);
-    // If new data does not match current filter, remove from tree.
-    if Results.RecordCount < 1 then begin
-      // Remove entry from dynamic array.
-      for i := Node.Index to Length(res.Rows) - 1 do begin
-        if i < Length(res.Rows) - 1 then res.Rows[i] := res.Rows[i + 1];
-      end;
-      SetLength(res.Rows, Length(res.Rows) - 1);
-      // Remove entry from node list.
-      Sender.DeleteNode(Node);
-    end;
-
-    // fill in data
-    ShowStatus('Filling grid with record-data...');
-    if Results.RecordCount > 0 then begin
-      SetLength(res.Rows[Node.Index].Cells, Results.ColumnCount);
-      i := Node.Index;
-      for j := 0 to Results.ColumnCount - 1 do begin
-        case res.Columns[j].DatatypeCat of
-          dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
-          dtcBinary: res.Rows[i].Cells[j].Text := GetBlobContent(Results, j);
-          else res.Rows[i].Cells[j].Text := Results.Col(j);
-        end;
-        res.Rows[i].Cells[j].IsNull := Results.IsNull(j);
-      end;
-      res.Rows[Node.Index].Loaded := True;
-    end;
-
-    ShowStatus( STATUS_MSG_READY );
-    FreeAndNil(Results);
-  end;
-end;
-
-procedure TMainForm.EnsureChunkLoaded(Sender: TBaseVirtualTree; Node: PVirtualNode; FullWidth: Boolean = False);
-var
-  res: TGridResult;
-  start, limit: Cardinal;
-  query: String;
-  Results: TMySQLQuery;
-  i, j: LongInt;
-  hi: LongInt;
-begin
-  res := GridResult(Sender);
-  if (not res.Rows[Node.Index].Loaded) and (res.Rows[Node.Index].State <> grsInserted) then begin
-    start := Node.Index - (Node.Index mod GridMaxRows);
-    limit := TVirtualStringTree(Sender).RootNodeCount - start;
-    if limit > GridMaxRows then limit := GridMaxRows;
-    if FullWidth then
-      query := DataGridCurrentFullSelect + DataGridCurrentFrom
-    else
-      query := DataGridCurrentSelect + DataGridCurrentFrom;
-    if DataGridCurrentFilter <> '' then query := query + ' WHERE ' + DataGridCurrentFilter;
-    if DataGridCurrentSort <> '' then query := query + ' ORDER BY ' + DataGridCurrentSort;
-    query := query + Format(' LIMIT %d, %d', [start, limit]);
-
-    // start query
-    ShowStatus('Retrieving data...');
-    debug(Format('mem: loading data chunk from row %d to %d', [start, limit]));
-    try
-      Results := Connection.GetResults(query);
-    except
-      on E:Exception do begin
-        // if something bad happened, nuke cache, reset cursor and display error.
-        TVirtualStringTree(Sender).RootNodeCount := 0;
-        SetLength(res.Rows, 0);
-        ReachedEOT := true;
-        ShowStatus(STATUS_MSG_READY);
-        Screen.Cursor := crDefault;
-        MessageDlg(E.Message, mtError, [mbOK], 0);
-        Exit;
-      end;
-    end;
-    if Cardinal(Results.RecordCount) < limit then begin
-      limit := Results.RecordCount;
-      TVirtualStringTree(Sender).RootNodeCount := start + limit;
-      SetLength(res.Rows, start + limit);
-      ReachedEOT := true;
-    end;
-    if not ReachedEOT then begin
-      hi := start + limit;
-      if hi < SIMULATE_INITIAL_ROWS then hi := SIMULATE_INITIAL_ROWS;
-      hi := hi * (100 + SIMULATE_MORE_ROWS) div 100;
-      Sender.BeginUpdate;
-      TVirtualStringTree(Sender).RootNodeCount := Cardinal(hi);
-      SetLength(res.Rows, hi);
-      Sender.EndUpdate;
-    end;
-    debug(Format('mem: loaded data chunk from row %d to %d', [start, limit]));
-
-    // fill in data
-    ShowStatus('Filling grid with record-data...');
-    for i:=start to start+limit-1 do begin
-      SetLength(res.Rows[i].Cells, Results.ColumnCount);
-      for j:=0 to Results.ColumnCount-1 do begin
-        case res.Columns[j].DatatypeCat of
-          dtcInteger, dtcReal: res.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
-          dtcBinary: res.Rows[i].Cells[j].Text := GetBlobContent(Results, j);
-          else res.Rows[i].Cells[j].Text := Results.Col(j);
-        end;
-        res.Rows[i].Cells[j].IsNull := Results.IsNull(j);
-      end;
-      res.Rows[i].Loaded := True;
-      Results.Next;
-    end;
-
-    if res = DataGridResult then begin
-      if ReachedEOT then DisplayRowCountStats(Length(res.Rows))
-      else DisplayRowCountStats(-1);
-    end;
-
-    ShowStatus( STATUS_MSG_READY );
-    FreeAndNil(Results);
-  end;
-end;
-
-procedure TMainForm.DiscardNodeData(Sender: TVirtualStringTree; Node: PVirtualNode);
-begin
-  // Avoid discarding query data as it will never be reloaded.
-  if Sender <> DataGrid then Exit;
-  // Avoid rows being edited.
-  if DataGridResult.Rows[Node.Index].State = grsDefault then begin
-    DataGridResult.Rows[Node.Index].Loaded := false;
-    SetLength(DataGridResult.Rows[Node.Index].Cells, 0);
-  end;
-end;
 
 {**
   A grid cell fetches its text content
@@ -6786,9 +6650,7 @@ begin
   if Column = -1 then
     Exit;
   gr := GridResult(Sender);
-  if Node.Index >= Cardinal(Length(gr.Rows)) then Exit;
-  EnsureChunkLoaded(Sender, Node);
-  if Node.Index >= Cardinal(Length(gr.Rows)) then Exit;
+
   c := @gr.Rows[Node.Index].Cells[Column];
   EditingCell := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
   if c.Modified then begin
@@ -6800,10 +6662,8 @@ begin
     if c.IsNull then begin
       if EditingCell then CellText := ''
       else CellText := TEXT_NULL;
-    end else begin
+    end else
       CellText := c.Text;
-      if Length(c.Text) = GridMaxData then CellText := CellText + ' [...]';
-    end;
   end;
 end;
 
@@ -6838,9 +6698,6 @@ begin
 
   r := GridResult(Sender);
 
-  if Node.Index >= Cardinal(Length(r.Rows)) then
-    Exit;
-    
   // Make primary key columns bold
   if r.Columns[Column].IsPriPart then
     TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
@@ -6861,8 +6718,7 @@ procedure TMainForm.DataGridAfterCellPaint(Sender: TBaseVirtualTree;
   CellRect: TRect);
 begin
   // Don't waist time
-  if Column = -1 then Exit;
-  if Node.Index >= Cardinal(Length(DataGridResult.Rows)) then Exit;
+  if Column = NoColumn then Exit;
   // Paint a red triangle at the top left corner of the cell
   if DataGridResult.Rows[Node.Index].Cells[Column].Modified then
     ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 111);
@@ -6888,18 +6744,18 @@ begin
     // Add a new order column after a columns title has been clicked
     // Check if order column is already existant
     columnexists := False;
-    for i := Low(FDataGridSort) to High(FDataGridSort) do begin
-      if FDataGridSort[i].ColumnName = ColName then begin
+    for i := Low(DataGridSortColumns) to High(DataGridSortColumns) do begin
+      if DataGridSortColumns[i].ColumnName = ColName then begin
         // AddOrderCol is already in the list. Switch its direction:
         // ASC > DESC > [delete col]
         columnexists := True;
-        if FDataGridSort[i].SortDirection = ORDER_ASC then
-          FDataGridSort[i].SortDirection := ORDER_DESC
+        if DataGridSortColumns[i].SortDirection = ORDER_ASC then
+          DataGridSortColumns[i].SortDirection := ORDER_DESC
         else begin
           // Delete order col
-          for j := i to High(FDataGridSort) - 1 do
-            FDataGridSort[j] := FDataGridSort[j+1];
-          SetLength(FDataGridSort, Length(FDataGridSort)-1);
+          for j := i to High(DataGridSortColumns) - 1 do
+            DataGridSortColumns[j] := DataGridSortColumns[j+1];
+          SetLength(DataGridSortColumns, Length(DataGridSortColumns)-1);
         end;
         // We found the matching column, no need to loop further
         break;
@@ -6907,13 +6763,14 @@ begin
     end;
 
     if not columnexists then begin
-      i := Length(FDataGridSort);
-      SetLength(FDataGridSort, i+1);
-      FDataGridSort[i] := TOrderCol.Create;
-      FDataGridSort[i].ColumnName := ColName;
-      FDataGridSort[i].SortDirection := ORDER_ASC;
+      i := Length(DataGridSortColumns);
+      SetLength(DataGridSortColumns, i+1);
+      DataGridSortColumns[i] := TOrderCol.Create;
+      DataGridSortColumns[i].ColumnName := ColName;
+      DataGridSortColumns[i].SortDirection := ORDER_ASC;
     end;
-    ViewData(Sender);
+    DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
+    DataGrid.Invalidate;
   end else begin
     frm := TColumnSelectionForm.Create(self);
     // Position new form relative to btn's position
@@ -7084,8 +6941,6 @@ begin
       Row.Cells[i].IsNull := Row.Cells[i].NewIsNull;
     end;
     GridFinalizeEditing(Sender);
-    Row.Loaded := false;
-    EnsureNodeLoaded(Sender, Sender.FocusedNode, GetWhereClause(Row, @DataGridResult.Columns));
   end;
 end;
 
@@ -7215,8 +7070,6 @@ begin
   end;
   if Assigned(CopyValuesFromNode) then begin
     // Copy values from source row, ensure we have whole cell data
-    for j:=0 to DataGrid.Header.Columns.Count-1 do
-      EnsureFullWidth(DataGrid, j, CopyValuesFromNode);
     OldRow := DataGridResult.Rows[CopyValuesFromNode.Index];
     for j:=0 to DataGrid.Header.Columns.Count-1 do begin
       if not (coVisible in DataGrid.Header.Columns[j].Options) then
@@ -7290,13 +7143,11 @@ begin
     try
       Connection.Query(sql);
       if Connection.RowsAffected = 0 then
-        MessageBox(Self.Handle, 'Server failed to insert row.', 'Error', 0);
+        Raise Exception.Create('Server failed to insert row.');
       Result := True;
-      Row.Loaded := false;
-      Inc(SelectedTable.Rows, Connection.RowsAffected);
-      DisplayRowCountStats;
-      EnsureNodeLoaded(Sender, Node, GetWhereClause(Row, @DataGridResult.Columns));
       GridFinalizeEditing(Sender);
+      DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
+      DataGrid.Invalidate;
     except
       on E:Exception do begin
         MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -7315,7 +7166,7 @@ var
   Node, FocusAfterDelete: PVirtualNode;
   Nodes: TNodeArray;
   sql: String;
-  Affected, Matching: Int64;
+  Affected: Int64;
   Selected, i, j: Integer;
   msg: String;
 begin
@@ -7323,7 +7174,6 @@ begin
   FocusAfterDelete := nil;
   sql := 'DELETE FROM '+mask(SelectedTable.Name)+' WHERE';
   while Assigned(Node) do begin
-    EnsureChunkLoaded(Sender, Node);
     sql := sql + ' (' +
       GetWhereClause(@DataGridResult.Rows[Node.Index], @DataGridResult.Columns) +
       ') OR';
@@ -7349,7 +7199,6 @@ begin
     // Remove deleted row nodes out of the grid
     Affected := Connection.RowsAffected;
     Selected := Sender.SelectedCount;
-    Dec(SelectedTable.Rows, Affected);
     if Affected = Selected then begin
       // Fine. Number of deleted rows equals the selected node count.
       // In this case, just remove the selected nodes, avoid a full reload
@@ -7370,7 +7219,8 @@ begin
       Sender.EndUpdate;
     end else begin
       // Should never get called as we block DELETEs on tables without a unique key
-      ViewData(Sender);
+      DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
+      DataGrid.Invalidate;
       msg := 'Warning: Consistency problem detected.' + CRLF + CRLF
         + 'The last DELETE query affected ' + FormatNumber(Affected) + ' rows, when it should have touched '+FormatNumber(Selected)+' row(s)!'
         + CRLF + CRLF
@@ -7378,10 +7228,7 @@ begin
       LogSQL( msg );
       MessageDlg( msg, mtWarning, [mbOK], 0);
     end;
-    Matching := -1;
-    if ReachedEOT then
-      Matching := DataGrid.RootNodeCount;
-    DisplayRowCountStats(Matching);
+    DisplayRowCountStats;
   end;
 end;
 
@@ -7421,54 +7268,11 @@ begin
     VK_RETURN: if Assigned(g.FocusedNode) then g.EditNode(g.FocusedNode, g.FocusedColumn);
     VK_DOWN: if (g = DataGrid) and Assigned(g.FocusedNode) and (g.FocusedNode.Index = g.RootNodeCount-1) then
       actDataInsertExecute(Sender);
+    VK_NEXT: if (g = DataGrid) and Assigned(g.FocusedNode) and (g.FocusedNode.Index = g.RootNodeCount-1) then
+      actDataShowNext.Execute;
   end;
 end;
 
-
-// TODO: Version of EnsureFullWidth() that fetches all width limited columns
-//       for a row, and fetches 500 rows at a time, for use with GridTo{Xml,Csv,Html}.
-//       Would reduce number of database roundtrips; also the per-query overhead
-//       right now is horrendous for some reason (thinking mysqlquerythread).
-function TMainForm.EnsureFullWidth(Grid: TBaseVirtualTree; Column: TColumnIndex; Node: PVirtualNode): Boolean;
-var
-  Cell: PGridCell;
-  Row: PGridRow;
-  Col: PGridColumn;
-  sql: String;
-  len: Int64;
-  Results: TMySQLQuery;
-begin
-  Result := True;
-
-  // Only the data grid uses delayed loading of full-width data.
-  if Grid <> DataGrid then Exit;
-
-  // Load entire data for field.
-  Col := @DataGridResult.Columns[Column];
-  Row := @DataGridResult.Rows[Node.Index];
-  Cell := @DataGridResult.Rows[Node.Index].Cells[Column];
-  len := Length(Cell.Text);
-  // Recalculate due to textual formatting of raw binary data.
-  if (Col.DatatypeCat = dtcBinary) and (not actBlobAsText.Checked) and (len > 2) then len := (len - 2) div 2;
-  // Assume width limit in effect if data exactly at limit threshold.
-  if len = GridMaxData then begin
-    if CheckUniqueKeyClause then begin
-      sql :=
-        'SELECT ' + mask(Col.Name) +
-        ' FROM ' + mask(SelectedTable.Name) +
-        ' WHERE ' + GetWhereClause(Row, @DataGridResult.Columns)
-      ;
-      Results := Connection.GetResults(sql);
-      case Col.DatatypeCat of
-        dtcInteger, dtcReal: Cell.Text := FormatNumber(Results.Col(0), False);
-        dtcBinary: Cell.Text := GetBlobContent(Results, 0);
-        else Cell.Text := Results.Col(0);
-      end;
-      Cell.IsNull := Results.IsNull(0);
-    end else
-      Result := False;
-  end;
-end;
 
 procedure TMainForm.DataGridEditing(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
@@ -7480,7 +7284,6 @@ begin
     // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
     actDataCancelChanges.ShortCut := 0;
     actDataPostChanges.ShortCut := 0;
-    EnsureFullWidth(Sender, Column, Node);
   end;
 end;
 
@@ -7564,82 +7367,53 @@ begin
 end;
 
 
-procedure TMainForm.AutoCalcColWidths(Tree: TVirtualStringTree; PrevLayout: TStringList = nil);
+procedure TMainForm.AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
 var
   Node: PVirtualNode;
-  i, j, ColTextWidth: Integer;
+  i, ColTextWidth: Integer;
   Rect: TRect;
   Col: TVirtualTreeColumn;
 begin
   // Find optimal default width for columns. Needs to be done late, after the SQL
   // composing to enable text width calculation based on actual table content
-  Tree.BeginUpdate;
-  try
-    // Weird: Fixes first time calculation always based on Tahoma/8pt font
-    Tree.Canvas.Font := Tree.Font;
-    for i := 0 to Tree.Header.Columns.Count - 1 do begin
-      Col := Tree.Header.Columns[i];
-      if not (coVisible in Col.Options) then
-        continue;
-      if (PrevLayout <> nil) and (PrevLayout.IndexOfName(Col.Text) > -1) then begin
-        Col.Width := MakeInt(PrevLayout.Values[Col.Text]);
-        continue;
-      end;
-      ColTextWidth := Tree.Canvas.TextWidth(Tree.Header.Columns[i].Text);
-      // Add space for sort glyph
-      if Col.ImageIndex > -1 then
-        ColTextWidth := ColTextWidth + 20;
-      Node := Tree.GetFirstVisible;
-      // Go backwards 50 nodes from focused one if tree was scrolled
-      j := 0;
-      if Assigned(Tree.FocusedNode) then begin
-        Node := Tree.FocusedNode;
-        while Assigned(Node) do begin
-          inc(j);
-          if (Node = Tree.GetFirst) or (j > 50) then
-            break;
-          Node := Tree.GetPreviousVisible(Node);
-        end;
-      end;
-      j := 0;
-      while Assigned(Node) do begin
-        // Note: this causes the node to load, an exception can propagate
-        //       here if the query or connection dies.
-        Rect := Tree.GetDisplayRect(Node, i, True, True);
-        ColTextWidth := Max(ColTextWidth, Rect.Right - Rect.Left);
-        inc(j);
-        if j > 100 then break;
-        // GetDisplayRect may have implicitely taken the node away.
-        // Strange that Node keeps being assigned though, probably a timing issue.
-        if Tree.RootNodeCount = 0 then break;
-        Node := Tree.GetNextVisible(Node);
-      end;
-      // text margins and minimal extra space
-      ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 5;
-      ColTextWidth := Min(ColTextWidth, prefMaxColWidth);
-      Col.Width := ColTextWidth;
+  // Weird: Fixes first time calculation always based on Tahoma/8pt font
+  Tree.Canvas.Font := Tree.Font;
+  Col := Tree.Header.Columns[Column];
+  if not (coVisible in Col.Options) then
+    Exit;
+  ColTextWidth := Tree.Canvas.TextWidth(Col.Text);
+  // Add space for sort glyph
+  if Col.ImageIndex > -1 then
+    ColTextWidth := ColTextWidth + 20;
+  Node := Tree.GetFirstVisible;
+  // Go backwards 50 nodes from focused one if tree was scrolled
+  i := 0;
+  if Assigned(Tree.FocusedNode) then begin
+    Node := Tree.FocusedNode;
+    while Assigned(Node) do begin
+      inc(i);
+      if (Node = Tree.GetFirst) or (i > 50) then
+        break;
+      Node := Tree.GetPreviousVisible(Node);
     end;
-  finally
-    Tree.EndUpdate;
   end;
-end;
-
-
-procedure TMainForm.DataGridColumnResize(Sender: TVTHeader;
-  Column: TColumnIndex);
-var
-  col: TVirtualTreeColumn;
-begin
-  // Avoid AVs
-  if Column < 0 then
-    Exit;
-  // Don't waste time storing changes while a column is automatically resized
-  if tsUpdating in Sender.Treeview.TreeStates then
-    Exit;
-  if PrevTableColWidths = nil then
-    PrevTableColWidths := TStringList.Create;
-  col := Sender.Columns[Column];
-  PrevTableColWidths.Values[col.Text] := inttostr(col.Width);
+  i := 0;
+  while Assigned(Node) do begin
+    // Note: this causes the node to load, an exception can propagate
+    //       here if the query or connection dies.
+    Rect := Tree.GetDisplayRect(Node, Column, True, True);
+    ColTextWidth := Max(ColTextWidth, Rect.Right - Rect.Left);
+    inc(i);
+    if i > 100 then break;
+    // GetDisplayRect may have implicitely taken the node away.
+    // Strange that Node keeps being assigned though, probably a timing issue.
+    if Tree.RootNodeCount = 0 then break;
+    Node := Tree.GetNextVisible(Node);
+  end;
+  // text margins and minimal extra space
+  ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 5;
+  ColTextWidth := Min(ColTextWidth, prefMaxColWidth);
+  Col.Width := ColTextWidth;
 end;
 
 
@@ -7652,8 +7426,6 @@ begin
   if Column = -1 then
     Exit;
   gr := GridResult(Sender);
-  EnsureChunkLoaded(Sender, Node);
-  if Node.Index >= Cardinal(Length(gr.Rows)) then Exit;
   if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
     if not Sender.IsEditing then begin
       // Editors may not cover the whole cell rectangle, so any colored area looks broken then
@@ -7674,57 +7446,41 @@ procedure TMainForm.HandleDataGridAttributes(RefreshingData: Boolean);
 var
   rx: TRegExpr;
   idx, i: Integer;
-  Col: TTableColumn;
-  HiddenCols: TStringList;
   TestList: TStringList;
   Sort: String;
 begin
   OpenRegistry;
   MainReg.OpenKey(GetRegKeyTable, True);
   actDataResetSorting.Enabled := False;
-  FDataGridFocusedNodeIndex := 0;
-  FDataGridFocusedColumnIndex := 0;
   // Clear filter, column names and sort structure if gr
-  if not Assigned(FDataGridSelect) then
-    FDataGridSelect := TStringList.Create;
+  if not Assigned(DataGridHiddenColumns) then begin
+    DataGridHiddenColumns := TStringList.Create;
+    DataGridHiddenColumns.Delimiter := DELIM;
+    DataGridHiddenColumns.StrictDelimiter := True;
+  end;
   if not RefreshingData then begin
-    FDataGridSelect.Clear;
+    DataGridHiddenColumns.Clear;
     SynMemoFilter.Clear;
-    SetLength(FDataGridSort, 0);
+    SetLength(DataGridSortColumns, 0);
+    DataGridWantedRowCount := prefGridRowcountStep;
   end else begin
     // Save current attributes if grid gets refreshed
-    HiddenCols := TStringList.Create;
-    HiddenCols.Delimiter := DELIM;
-    HiddenCols.StrictDelimiter := True;
-    if FDataGridSelect.Count > 0 then for i:=0 to SelectedTableColumns.Count-1 do begin
-      Col := TTableColumn(SelectedTableColumns[i]);
-      if FDataGridSelect.IndexOf(Col.Name) = -1 then
-        HiddenCols.Add(Col.Name);
-    end;
-    if HiddenCols.Count > 0 then
-      MainReg.WriteString(REGNAME_HIDDENCOLUMNS, HiddenCols.DelimitedText)
+    if DataGridHiddenColumns.Count > 0 then
+      MainReg.WriteString(REGNAME_HIDDENCOLUMNS, DataGridHiddenColumns.DelimitedText)
     else if MainReg.ValueExists(REGNAME_HIDDENCOLUMNS) then
       MainReg.DeleteValue(REGNAME_HIDDENCOLUMNS);
-    FreeAndNil(HiddenCols);
 
     if SynMemoFilter.GetTextLen > 0 then
       MainReg.WriteString(REGNAME_FILTER, SynMemoFilter.Text)
     else if MainReg.ValueExists(REGNAME_FILTER) then
       MainReg.DeleteValue(REGNAME_FILTER);
 
-    for i := 0 to High(FDataGridSort) do
-      Sort := Sort + IntToStr(FDataGridSort[i].SortDirection) + '_' + FDataGridSort[i].ColumnName + DELIM;
+    for i := 0 to High(DataGridSortColumns) do
+      Sort := Sort + IntToStr(DataGridSortColumns[i].SortDirection) + '_' + DataGridSortColumns[i].ColumnName + DELIM;
     if Sort <> '' then
       MainReg.WriteString(REGNAME_SORT, Sort)
     else if MainReg.ValueExists(REGNAME_SORT) then
       MainReg.DeleteValue(REGNAME_SORT);
-
-    // Remember last selected node and column so we can refocus that in the end.
-    // These both attributes doesn't get stored to avoid registry spam
-    if Assigned(DataGrid.FocusedNode) then begin
-      FDataGridFocusedNodeIndex := DataGrid.FocusedNode.Index;
-      FDataGridFocusedColumnIndex := DataGrid.FocusedColumn;
-    end;
   end;
 
   // Auto remove registry spam if table folder is empty
@@ -7738,19 +7494,8 @@ begin
     Exit;
 
   // Columns
-  if MainReg.ValueExists(REGNAME_HIDDENCOLUMNS) then begin
-    HiddenCols := TStringList.Create;
-    HiddenCols.Delimiter := DELIM;
-    HiddenCols.StrictDelimiter := True;
-    HiddenCols.DelimitedText := MainReg.ReadString(REGNAME_HIDDENCOLUMNS);
-    FDataGridSelect.Clear;
-    for i:=0 to SelectedTableColumns.Count-1 do begin
-      Col := TTableColumn(SelectedTableColumns[i]);
-      if HiddenCols.IndexOf(Col.Name) = -1 then
-        FDataGridSelect.Add(Col.Name);
-    end;
-    FreeAndNil(HiddenCols);
-  end;
+  if MainReg.ValueExists(REGNAME_HIDDENCOLUMNS) then
+    DataGridHiddenColumns.DelimitedText := MainReg.ReadString(REGNAME_HIDDENCOLUMNS);
 
   // Filter
   if MainReg.ValueExists(REGNAME_FILTER) then begin
@@ -7761,26 +7506,26 @@ begin
 
   // Sort
   if MainReg.ValueExists(REGNAME_SORT) then begin
-    SetLength(FDataGridSort, 0);
+    SetLength(DataGridSortColumns, 0);
     rx := TRegExpr.Create;
     rx.Expression := '\b(\d)_(.+)\'+DELIM;
     rx.ModifierG := False;
     if rx.Exec(MainReg.ReadString(REGNAME_SORT)) then while true do begin
-      idx := Length(FDataGridSort);
+      idx := Length(DataGridSortColumns);
       // Check if column exists, could be renamed or deleted
       for i:=0 to SelectedTableColumns.Count-1 do begin
         if SelectedTableColumns[i].Name = rx.Match[2] then begin
-          SetLength(FDataGridSort, idx+1);
-          FDataGridSort[idx] := TOrderCol.Create;
-          FDataGridSort[idx].ColumnName := rx.Match[2];
-          FDataGridSort[idx].SortDirection := StrToIntDef(rx.Match[1], ORDER_ASC);
+          SetLength(DataGridSortColumns, idx+1);
+          DataGridSortColumns[idx] := TOrderCol.Create;
+          DataGridSortColumns[idx].ColumnName := rx.Match[2];
+          DataGridSortColumns[idx].SortDirection := StrToIntDef(rx.Match[1], ORDER_ASC);
           break;
         end;
       end;
       if not rx.ExecNext then
         break;
     end;
-    actDataResetSorting.Enabled := Length(FDataGridSort) > 0;
+    actDataResetSorting.Enabled := Length(DataGridSortColumns) > 0;
   end;
 end;
 
@@ -8115,8 +7860,6 @@ begin
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
     if Assigned(Grid.FocusedNode) then begin
-      if Grid = ActiveGrid then
-        EnsureFullWidth(Grid, Grid.FocusedColumn, Grid.FocusedNode);
       Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
       if (Grid = ActiveGrid) and DoCut then
         Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
@@ -8305,53 +8048,6 @@ begin
     SynMemoFilter.SelText := MainReg.ReadString(IntToStr(key));
     SynMemoFilter.EndUpdate;
   end;
-end;
-
-
-procedure TMainForm.DataGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
-var
-  query: String;
-  count: Int64;
-begin
-  // If the user moves the scrollbar all the way to the bottom of the data grid,
-  // for example by pressing CTRL+END, jump to the bottom of table data.
-  if ReachedEOT then Exit;
-  if tsThumbTracking in Sender.TreeStates then Exit;
-  if Int64(- Sender.OffsetY - DeltaY) < Int64(Sender.RootNode.TotalHeight) then Exit;
-
-  // First, figure out how many rows the table contains.
-  ShowStatus('Counting rows...');
-  query := 'SELECT COUNT(*)' + DataGridCurrentFrom;
-  if DataGridCurrentFilter <> '' then query := query + ' WHERE ' + DataGridCurrentFilter;
-  try
-    count := MakeInt(Connection.GetVar(query));
-    // Work around a memory allocation bug in VirtualTree.
-    if count > prefMaxTotalRows then count := prefMaxTotalRows;
-  except
-    on E: Exception do begin
-      MessageDlg(E.Message, mtError, [mbOK], 0);
-      Exit;
-    end;
-  end;
-  ShowStatus(STATUS_MSG_READY);
-
-  // Then, adjust the data grid and data containers.
-  debug('mem: initializing browse rows (internal data).');
-  try
-    SetLength(DataGridResult.Rows, count);
-    debug('mem: initializing browse rows (grid).');
-    DataGrid.RootNodeCount := count;
-    ReachedEOT := True;
-    DisplayRowCountStats(count);
-  except
-    DataGrid.RootNodeCount := 0;
-    SetLength(DataGridResult.Rows, 0);
-    PageControlMain.ActivePage := tabDatabase;
-    raise;
-  end;
-
-  // Finally, jump to the last row.
-  Sender.ScrollIntoView(Sender.GetLast, False);
 end;
 
 
@@ -9319,8 +9015,9 @@ end;
 
 procedure TMainForm.actDataResetSortingExecute(Sender: TObject);
 begin
-  SetLength(FDataGridSort, 0);
-  viewdata(Sender);
+  SetLength(DataGridSortColumns, 0);
+  DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
+  DataGrid.Invalidate;
 end;
 
 
@@ -9359,8 +9056,8 @@ end;
 procedure TMainForm.actBlobAsTextExecute(Sender: TObject);
 begin
   // Activate displaying BLOBs as text data, ignoring possible weird effects in grid updates/inserts
-  if PageControlMain.ActivePage = tabData then
-    viewdata(Sender);
+  DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
+  DataGrid.Invalidate;
 end;
 
 
