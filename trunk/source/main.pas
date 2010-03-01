@@ -3380,15 +3380,15 @@ var
       end;
     end;
     // Data type
-    DataGridResult.Columns[idx].DatatypeCat := Data.DataType(idx).Category;
-    DataGridResult.Columns[idx].Datatype := Data.DataType(idx).Index;
+    DataGridResult.Columns[idx].DatatypeCat := TblCol.DataType.Category;
+    DataGridResult.Columns[idx].Datatype := TblCol.DataType.Index;
     col.Alignment := taLeftJustify;
     case DataGridResult.Columns[idx].DatatypeCat of
       dtcInteger, dtcReal: col.Alignment := taRightJustify;
       dtcText: begin
         if TblCol.LengthSet <> '' then
           DataGridResult.Columns[idx].MaxLength := MakeInt(TblCol.LengthSet)
-        else case Data.DataType(idx).Index of
+        else case TblCol.DataType.Index of
           // 255 is the width in bytes. If characters that use multiple bytes are
           // contained, the width in characters is decreased below this number.
           dtTinyText: DataGridResult.Columns[idx].MaxLength := 255;
