@@ -212,7 +212,7 @@ object connform: Tconnform
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 52
+        RightButton.ImageIndex = 51
         RightButton.Visible = True
         TabOrder = 8
         OnChange = Modification
@@ -338,7 +338,7 @@ object connform: Tconnform
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 52
+        RightButton.ImageIndex = 51
         RightButton.Visible = True
         TabOrder = 0
         OnChange = Modification
@@ -352,7 +352,7 @@ object connform: Tconnform
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 52
+        RightButton.ImageIndex = 51
         RightButton.Visible = True
         TabOrder = 1
         OnChange = Modification
@@ -366,7 +366,7 @@ object connform: Tconnform
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 52
+        RightButton.ImageIndex = 51
         RightButton.Visible = True
         TabOrder = 2
         OnChange = Modification

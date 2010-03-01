@@ -1888,7 +1888,7 @@ object MainForm: TMainForm
       Category = 'SQL'
       Caption = 'Load SQL file...'
       Hint = 'Load SQL file...'
-      ImageIndex = 52
+      ImageIndex = 51
       ShortCut = 16463
       OnExecute = actLoadSQLExecute
     end
