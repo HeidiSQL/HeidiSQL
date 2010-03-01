@@ -62,7 +62,6 @@ type
   TGridRow = packed record
     Cells: Array of TGridCell;
     State: TGridRowState;
-    Loaded: Boolean;
   end;
   PGridRow = ^TGridRow;
   TGridRows = Array of TGridRow;
@@ -825,12 +824,6 @@ var
   NodeCount: Cardinal;
 begin
   GridData := Mainform.GridResult(Grid);
-  if Grid = Mainform.DataGrid then begin
-    // Discard all loaded data so EnsureChunkLoaded refetches it with full content lengths.
-    // This makes it superflous to call EnsureFullWidth and to have a unique key
-    for i := 0 to Length(GridData.Rows) - 1 do
-      GridData.Rows[i].Loaded := False;
-  end;
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
   // Only process selected nodes for "Copy as ..." actions
@@ -898,8 +891,6 @@ begin
     if (Node.Index+1) mod 100 = 0 then
       ExportStatusMsg(Node, NodeCount, S.Size);
     tmp := '        <tr>' + CRLF;
-    // Ensure basic data is loaded
-    Mainform.EnsureChunkLoaded(Grid, Node, True);
     for i:=0 to Length(GridData.Columns) - 1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
@@ -916,8 +907,6 @@ begin
     end;
     tmp := tmp + '        </tr>' + CRLF;
     StreamWrite(S, tmp);
-    // Release some memory.
-    Mainform.DiscardNodeData(Grid, Node);
     if SelectionOnly then Node := Grid.GetNextSelected(Node) else Node := Grid.GetNext(Node);
     if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
       MessageDlg(
@@ -961,12 +950,6 @@ var
   NodeCount: Cardinal;
 begin
   GridData := Mainform.GridResult(Grid);
-  if Grid = Mainform.DataGrid then begin
-    // Discard all loaded data so EnsureChunkLoaded refetches it with full content lengths.
-    // This makes it superflous to call EnsureFullWidth and to have a unique key
-    for i := 0 to Length(GridData.Rows) - 1 do
-      GridData.Rows[i].Loaded := False;
-  end;
 
   separator := esc2ascii(separator);
   encloser := esc2ascii(encloser);
@@ -1005,8 +988,6 @@ begin
     if (Node.Index+1) mod 100 = 0 then
       ExportStatusMsg(Node, NodeCount, S.Size);
     tmp := '';
-    // Ensure basic data is loaded
-    Mainform.EnsureChunkLoaded(Grid, Node, True);
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
@@ -1029,8 +1010,6 @@ begin
     end;
     tmp := tmp + Terminator;
     StreamWrite(S, tmp);
-    // Release some memory.
-    Mainform.DiscardNodeData(Grid, Node);
     if SelectionOnly then Node := Grid.GetNextSelected(Node) else Node := Grid.GetNext(Node);
     if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
       MessageDlg(
@@ -1061,12 +1040,6 @@ var
   NodeCount: Cardinal;
 begin
   GridData := Mainform.GridResult(Grid);
-  if Grid = Mainform.DataGrid then begin
-    // Discard all loaded data so EnsureChunkLoaded refetches it with full content lengths.
-    // This makes it superflous to call EnsureFullWidth and to have a unique key
-    for i := 0 to Length(GridData.Rows) - 1 do
-      GridData.Rows[i].Loaded := False;
-  end;
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
   // Only process selected nodes for "Copy as ..." actions
@@ -1087,8 +1060,6 @@ begin
     if (Node.Index+1) mod 100 = 0 then
      ExportStatusMsg(Node, NodeCount, S.Size);
     tmp := #9'<row>' + CRLF;
-    // Ensure basic data is loaded.
-    Mainform.EnsureChunkLoaded(Grid, Node, True);
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
@@ -1115,8 +1086,6 @@ begin
     end;
     tmp := tmp + #9'</row>' + CRLF;
     StreamWrite(S, tmp);
-    // Release some memory.
-    Mainform.DiscardNodeData(Grid, Node);
     if SelectionOnly then Node := Grid.GetNextSelected(Node) else Node := Grid.GetNext(Node);
     if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
       MessageDlg(
@@ -1149,12 +1118,6 @@ var
   NodeCount: Cardinal;
 begin
   GridData := Mainform.GridResult(Grid);
-  if Grid = Mainform.DataGrid then begin
-    // Discard all loaded data so EnsureChunkLoaded refetches it with full content lengths.
-    // This makes it superflous to call EnsureFullWidth and to have a unique key
-    for i := 0 to Length(GridData.Rows) - 1 do
-      GridData.Rows[i].Loaded := False;
-  end;
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
   // Only process selected nodes for "Copy as ..." actions
@@ -1179,8 +1142,6 @@ begin
     end;
     Delete(tmp, Length(tmp)-1, 2);
     tmp := tmp + ') VALUES (';
-    // Ensure basic data is loaded.
-    Mainform.EnsureChunkLoaded(Grid, Node, True);
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
@@ -1203,8 +1164,6 @@ begin
     Delete(tmp, Length(tmp)-1, 2);
     tmp := tmp + ');' + CRLF;
     StreamWrite(S, tmp);
-    // Release some memory.
-    Mainform.DiscardNodeData(Grid, Node);
     if SelectionOnly then Node := Grid.GetNextSelected(Node) else Node := Grid.GetNext(Node);
     if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
       MessageDlg(

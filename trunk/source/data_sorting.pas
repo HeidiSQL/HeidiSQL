@@ -69,7 +69,7 @@ begin
   for i:=0 to Mainform.SelectedTableColumns.Count-1 do
     ColumnNames.Add(Mainform.SelectedTableColumns[i].Name);
 
-  OrderColumns := Mainform.FDataGridSort;
+  OrderColumns := Mainform.DataGridSortColumns;
   OldOrderClause := ComposeOrderClause(OrderColumns);
 
   // First creation of controls
@@ -314,8 +314,9 @@ end;
 procedure TDataSortingForm.btnOKClick(Sender: TObject);
 begin
   // TODO: apply ordering
-  Mainform.FDataGridSort := OrderColumns;
-  Mainform.viewdata(Sender);
+  Mainform.DataGridSortColumns := OrderColumns;
+  Mainform.DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
+  Mainform.DataGrid.Invalidate;
   btnCancel.OnClick(Sender);
 end;
 
