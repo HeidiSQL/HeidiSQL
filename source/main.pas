@@ -593,13 +593,13 @@ type
         TColumnIndex; var Allowed: Boolean);
     procedure DataGridFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
         PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
-    procedure GridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
+    procedure AnyGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
         TColumnIndex; TextType: TVSTTextType; var CellText: String);
     procedure DataGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
-    procedure GridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure AnyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DataGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
         TColumnIndex; NewText: String);
-    procedure GridPaintText(Sender: TBaseVirtualTree; const TargetCanvas:
+    procedure AnyGridPaintText(Sender: TBaseVirtualTree; const TargetCanvas:
         TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure menuDeleteSnippetClick(Sender: TObject);
     procedure menuExploreClick(Sender: TObject);
@@ -660,7 +660,7 @@ type
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
     procedure menuShowSizeColumnClick(Sender: TObject);
-    procedure GridBeforeCellPaint(Sender: TBaseVirtualTree;
+    procedure AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure QueryGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
@@ -733,6 +733,8 @@ type
     procedure lblExplainProcessClick(Sender: TObject);
     procedure actDataShowNextExecute(Sender: TObject);
     procedure actDataShowAllExecute(Sender: TObject);
+    procedure AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode,
+      Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
   private
     FDelimiter: String;
     FileNameSessionLog: String;
@@ -812,6 +814,7 @@ type
     prefMaxColWidth: Integer;
     prefGridRowcountStep: Integer;
     prefGridRowcountMax: Integer;
+    prefGridRowsLineCount: Word;
     prefCSVSeparator: String;
     prefCSVEncloser: String;
     prefCSVTerminator: String;
@@ -1281,6 +1284,7 @@ begin
   prefMaxColWidth := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
   prefGridRowcountMax := GetRegValue(REGNAME_MAXTOTALROWS, DEFAULT_MAXTOTALROWS);
   prefGridRowcountStep := GetRegValue(REGNAME_ROWSPERSTEP, DEFAULT_ROWSPERSTEP);
+  prefGridRowsLineCount := GetRegValue(REGNAME_GRIDROWSLINECOUNT, DEFAULT_GRIDROWSLINECOUNT);
   actDataShowNext.Hint := 'Show next '+FormatNumber(prefGridRowcountStep)+' rows ...';
   // Fix registry entry from older versions which can have 0 here which makes no sense
   // since the autosetting was removed
@@ -3593,6 +3597,23 @@ begin
     end;
   end;
   lblDataTop.Caption := cap;
+end;
+
+
+procedure TMainForm.AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode,
+  Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+var
+  vt: TVirtualStringTree;
+begin
+  // Display multiline grid rows
+  vt := Sender as TVirtualStringTree;
+  if prefGridRowsLineCount = DEFAULT_GRIDROWSLINECOUNT then begin
+    Node.NodeHeight := vt.DefaultNodeHeight;
+    Exclude(Node.States, vsMultiLine);
+  end else begin
+    Node.NodeHeight := prefGridRowsLineCount * (Integer(vt.DefaultNodeHeight) - 2*vt.TextMargin) + 2*vt.TextMargin;
+    Include(Node.States, vsMultiLine);
+  end;
 end;
 
 
@@ -6640,7 +6661,7 @@ end;
 {**
   A grid cell fetches its text content
 }
-procedure TMainForm.GridGetText(Sender: TBaseVirtualTree; Node:
+procedure TMainForm.AnyGridGetText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
 var
   c: PGridCell;
@@ -6686,7 +6707,7 @@ end;
   Cell in data- or query grid gets painted. Colorize font. This procedure is
   called extremely often for repainting the grid cells. Keep it highly optimized.
 }
-procedure TMainForm.GridPaintText(Sender: TBaseVirtualTree; const
+procedure TMainForm.AnyGridPaintText(Sender: TBaseVirtualTree; const
     TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType:
     TVSTTextType);
 var
@@ -7256,7 +7277,7 @@ end;
 
 
 
-procedure TMainForm.GridKeyDown(Sender: TObject; var Key: Word; Shift:
+procedure TMainForm.AnyGridKeyDown(Sender: TObject; var Key: Word; Shift:
     TShiftState);
 var
   g: TVirtualStringTree;
@@ -7370,7 +7391,7 @@ end;
 procedure TMainForm.AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
 var
   Node: PVirtualNode;
-  i, ColTextWidth: Integer;
+  i, ColTextWidth, ContentTextWidth: Integer;
   Rect: TRect;
   Col: TVirtualTreeColumn;
 begin
@@ -7402,7 +7423,10 @@ begin
     // Note: this causes the node to load, an exception can propagate
     //       here if the query or connection dies.
     Rect := Tree.GetDisplayRect(Node, Column, True, True);
-    ColTextWidth := Max(ColTextWidth, Rect.Right - Rect.Left);
+    ContentTextWidth := Rect.Right - Rect.Left;
+    if vsMultiLine in Node.States then
+      ContentTextWidth := Max(ContentTextWidth, Tree.Canvas.TextWidth(Tree.Text[Node, Column]));
+    ColTextWidth := Max(ColTextWidth, ContentTextWidth);
     inc(i);
     if i > 100 then break;
     // GetDisplayRect may have implicitely taken the node away.
@@ -7417,7 +7441,7 @@ begin
 end;
 
 
-procedure TMainForm.GridBeforeCellPaint(Sender: TBaseVirtualTree;
+procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
@@ -8304,6 +8328,7 @@ begin
   QueryTab.Grid.OnBeforeCellPaint := QueryGrid.OnBeforeCellPaint;
   QueryTab.Grid.OnFocusChanged := QueryGrid.OnFocusChanged;
   QueryTab.Grid.OnGetText := QueryGrid.OnGetText;
+  QueryTab.Grid.OnInitNode := QueryGrid.OnInitNode;
   QueryTab.Grid.OnKeyDown := QueryGrid.OnKeyDown;
   QueryTab.Grid.OnPaintText := QueryGrid.OnPaintText;
   FixVT(QueryTab.Grid);
