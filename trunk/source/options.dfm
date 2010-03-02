@@ -3,7 +3,7 @@ object optionsform: Toptionsform
   Top = 163
   BorderStyle = bsDialog
   Caption = 'Preferences'
-  ClientHeight = 369
+  ClientHeight = 395
   ClientWidth = 472
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,14 +17,14 @@ object optionsform: Toptionsform
   OnShow = FormShow
   DesignSize = (
     472
-    369)
+    395)
   PixelsPerInch = 96
   TextHeight = 13
   object pagecontrolMain: TPageControl
     Left = 8
     Top = 8
     Width = 458
-    Height = 326
+    Height = 352
     ActivePage = tabMisc
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 3
@@ -410,7 +410,7 @@ object optionsform: Toptionsform
         Left = 0
         Top = 132
         Width = 438
-        Height = 153
+        Height = 179
         Anchors = [akLeft, akTop, akRight, akBottom]
         Caption = 'Sample'
         TabOrder = 2
@@ -419,7 +419,7 @@ object optionsform: Toptionsform
           Left = 5
           Top = 18
           Width = 428
-          Height = 130
+          Height = 156
           Cursor = crHandPoint
           SingleLineMode = False
           Align = alClient
@@ -489,7 +489,7 @@ object optionsform: Toptionsform
       end
       object lblDataFontHint: TLabel
         Left = 362
-        Top = 59
+        Top = 84
         Width = 29
         Height = 13
         Anchors = [akTop, akRight]
@@ -497,7 +497,7 @@ object optionsform: Toptionsform
       end
       object lblDataFont: TLabel
         Left = 4
-        Top = 59
+        Top = 84
         Width = 26
         Height = 13
         Caption = '&Font:'
@@ -509,6 +509,13 @@ object optionsform: Toptionsform
         Width = 267
         Height = 13
         Caption = 'Number of rows displayed in data tab (Step, Maximum):'
+      end
+      object lblGridRowsLinecount: TLabel
+        Left = 4
+        Top = 58
+        Width = 122
+        Height = 13
+        Caption = 'Lines of text in grid rows:'
       end
       object editMaxColWidth: TEdit
         Left = 299
@@ -534,8 +541,8 @@ object optionsform: Toptionsform
         OnChanging = anyUpDownLimitChanging
       end
       object comboDataFontName: TComboBox
-        Left = 60
-        Top = 55
+        Left = 59
+        Top = 80
         Width = 234
         Height = 21
         Style = csDropDownList
@@ -545,7 +552,7 @@ object optionsform: Toptionsform
       end
       object editDataFontSize: TEdit
         Left = 299
-        Top = 55
+        Top = 80
         Width = 42
         Height = 21
         Anchors = [akTop, akRight]
@@ -555,7 +562,7 @@ object optionsform: Toptionsform
       end
       object updownDataFontSize: TUpDown
         Left = 341
-        Top = 55
+        Top = 80
         Width = 16
         Height = 21
         Anchors = [akTop, akRight]
@@ -565,9 +572,9 @@ object optionsform: Toptionsform
       end
       object grpFieldLayout: TGroupBox
         Left = 4
-        Top = 81
+        Top = 112
         Width = 433
-        Height = 200
+        Height = 195
         Anchors = [akLeft, akTop, akRight, akBottom]
         Caption = 'Field colors and editors'
         TabOrder = 5
@@ -754,6 +761,28 @@ object optionsform: Toptionsform
         NumbersOnly = True
         TabOrder = 7
       end
+      object editGridRowsLineCount: TEdit
+        Left = 299
+        Top = 55
+        Width = 42
+        Height = 21
+        Anchors = [akTop, akRight]
+        TabOrder = 8
+        Text = '1'
+        OnChange = Modified
+      end
+      object updownGridRowsLineCount: TUpDown
+        Left = 341
+        Top = 55
+        Width = 16
+        Height = 21
+        Anchors = [akTop, akRight]
+        Associate = editGridRowsLineCount
+        Min = 1
+        Position = 1
+        TabOrder = 9
+        OnChanging = anyUpDownLimitChanging
+      end
     end
     object tabCSV: TTabSheet
       BorderWidth = 5
@@ -894,7 +923,7 @@ object optionsform: Toptionsform
       ImageIndex = 4
       DesignSize = (
         450
-        298)
+        324)
       object lblShortcut1: TLabel
         Left = 199
         Top = 62
@@ -907,7 +936,7 @@ object optionsform: Toptionsform
         Left = 199
         Top = 3
         Width = 211
-        Height = 46
+        Height = 72
         Anchors = [akLeft, akTop, akBottom]
         AutoSize = False
         Caption = 'Please select a shortcut item in the tree.'
@@ -970,7 +999,7 @@ object optionsform: Toptionsform
   end
   object btnCancel: TButton
     Left = 311
-    Top = 338
+    Top = 364
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -981,7 +1010,7 @@ object optionsform: Toptionsform
   end
   object btnOK: TButton
     Left = 231
-    Top = 338
+    Top = 364
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -993,7 +1022,7 @@ object optionsform: Toptionsform
   end
   object btnApply: TButton
     Left = 391
-    Top = 338
+    Top = 364
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1004,7 +1033,7 @@ object optionsform: Toptionsform
   end
   object btnRestoreDefaults: TButton
     Left = 8
-    Top = 338
+    Top = 364
     Width = 97
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -1014,7 +1043,7 @@ object optionsform: Toptionsform
   end
   object SynSQLSynSQLSample: TSynSQLSyn
     SQLDialect = sqlMySQL
-    Left = 144
-    Top = 336
+    Left = 112
+    Top = 360
   end
 end

@@ -1228,12 +1228,12 @@ object MainForm: TMainForm
             PopupMenu = popupDataGrid
             TabOrder = 2
             TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
-            TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+            TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toVariableNodeHeight, toEditOnClick]
             TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
             TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
             WantTabs = True
             OnAfterCellPaint = DataGridAfterCellPaint
-            OnBeforeCellPaint = GridBeforeCellPaint
+            OnBeforeCellPaint = AnyGridBeforeCellPaint
             OnBeforePaint = DataGridBeforePaint
             OnChange = DataGridChange
             OnCreateEditor = DataGridCreateEditor
@@ -1243,10 +1243,11 @@ object MainForm: TMainForm
             OnEnter = ValidateControls
             OnExit = ValidateControls
             OnFocusChanging = DataGridFocusChanging
-            OnGetText = GridGetText
-            OnPaintText = GridPaintText
+            OnGetText = AnyGridGetText
+            OnPaintText = AnyGridPaintText
             OnHeaderClick = DataGridHeaderClick
-            OnKeyDown = GridKeyDown
+            OnInitNode = AnyGridInitNode
+            OnKeyDown = AnyGridKeyDown
             OnMouseUp = DataGridMouseUp
             OnNewText = DataGridNewText
             Columns = <>
@@ -1436,15 +1437,16 @@ object MainForm: TMainForm
             PopupMenu = popupResultGrid
             TabOrder = 1
             TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
-            TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+            TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toVariableNodeHeight, toEditOnClick]
             TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
             TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
             WantTabs = True
-            OnBeforeCellPaint = GridBeforeCellPaint
+            OnBeforeCellPaint = AnyGridBeforeCellPaint
             OnFocusChanged = QueryGridFocusChanged
-            OnGetText = GridGetText
-            OnPaintText = GridPaintText
-            OnKeyDown = GridKeyDown
+            OnGetText = AnyGridGetText
+            OnPaintText = AnyGridPaintText
+            OnInitNode = AnyGridInitNode
+            OnKeyDown = AnyGridKeyDown
             Columns = <>
           end
         end

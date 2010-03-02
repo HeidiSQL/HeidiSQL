@@ -129,6 +129,9 @@ type
     chkLogEventInfo: TCheckBox;
     chkLogEventDebug: TCheckBox;
     editGridRowCountStep: TEdit;
+    lblGridRowsLinecount: TLabel;
+    editGridRowsLineCount: TEdit;
+    updownGridRowsLineCount: TUpDown;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -246,6 +249,7 @@ begin
   Mainform.prefGridRowcountMax := StrToIntDef(editGridRowCountMax.Text, DEFAULT_MAXTOTALROWS);
   MainReg.WriteInteger(REGNAME_ROWSPERSTEP, Mainform.prefGridRowcountStep);
   MainReg.WriteInteger(REGNAME_MAXTOTALROWS, Mainform.prefGridRowcountMax);
+  MainReg.WriteInteger(REGNAME_GRIDROWSLINECOUNT, updownGridRowsLineCount.Position);
   MainReg.WriteString(REGNAME_DATAFONTNAME, comboDataFontName.Text);
   MainReg.WriteInteger(REGNAME_DATAFONTSIZE, updownDataFontSize.Position);
   MainReg.WriteBool(REGNAME_LOGTOFILE, chkLogToFile.Checked);
@@ -296,12 +300,15 @@ begin
   // Set relevant properties in mainform
   Mainform.DataGrid.Font.Name := comboDataFontName.Text;
   Mainform.DataGrid.Font.Size := updownDataFontSize.Position;
+  Mainform.prefGridRowsLineCount := updownGridRowsLineCount.Position;
   FixVT(Mainform.DataGrid);
+  Mainform.DataGrid.ReinitChildren(nil, False);
   for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
     Grid := TQueryTab(Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex]).Grid;
     Grid.Font.Name := comboDataFontName.Text;
     Grid.Font.Size := updownDataFontSize.Position;
     FixVT(Grid);
+    Grid.ReinitChildren(nil, False);
   end;
 
   Mainform.prefLogsqlnum := updownLogLines.Position;
@@ -415,6 +422,7 @@ begin
   updownMaxColWidth.Position := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
   editGridRowCountStep.Text := IntToStr(GetRegValue(REGNAME_ROWSPERSTEP, DEFAULT_ROWSPERSTEP));
   editGridRowCountMax.Text := IntToStr(GetRegValue(REGNAME_MAXTOTALROWS, DEFAULT_MAXTOTALROWS));
+  updownGridRowsLineCount.Position := GetRegValue(REGNAME_GRIDROWSLINECOUNT, DEFAULT_GRIDROWSLINECOUNT);
 
   // Export-Options:
   editCSVSeparator.Text := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
