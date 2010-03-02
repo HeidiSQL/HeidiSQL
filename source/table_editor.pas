@@ -1381,6 +1381,8 @@ var
   NewSelectNode: PVirtualNode;
 begin
   // Remove index or part
+  if treeIndexes.IsEditing then
+    treeIndexes.CancelEditNode;
   case treeIndexes.GetNodeLevel(treeIndexes.FocusedNode) of
     0: begin
       idx := treeIndexes.FocusedNode.Index;
@@ -1952,6 +1954,8 @@ var
   Key: TForeignKey;
 begin
   // Remove a foreign key
+  if listForeignKeys.IsEditing then
+    listForeignKeys.CancelEditNode;
   Key := FForeignKeys[listForeignKeys.FocusedNode.Index];
   if not Key.Added then
     DeletedForeignKeys.Add(Key.KeyName);
@@ -1966,6 +1970,8 @@ var
   i: Integer;
 begin
   // Clear all foreign keys
+  if listForeignKeys.IsEditing then
+    listForeignKeys.CancelEditNode;
   for i:=FForeignKeys.Count-1 downto 0 do begin
     if not FForeignKeys[i].Added then
       DeletedForeignKeys.Add(FForeignKeys[i].KeyName);
