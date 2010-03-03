@@ -2626,10 +2626,10 @@ var
 begin
   // Forces a VirtualTree to (re-)initialize its nodes.
   // I wonder why this is not implemented in VirtualTree.
-  Node := Sender.GetFirst;
+  Node := Sender.GetFirstInitialized;
   while Assigned(Node) do begin
     Node.States := Node.States - [vsInitialized];
-    Node := Sender.GetNext(Node);
+    Node := Sender.GetNextInitialized(Node);
   end;
 end;
 
