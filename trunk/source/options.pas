@@ -301,14 +301,12 @@ begin
   Mainform.DataGrid.Font.Name := comboDataFontName.Text;
   Mainform.DataGrid.Font.Size := updownDataFontSize.Position;
   Mainform.prefGridRowsLineCount := updownGridRowsLineCount.Position;
-  FixVT(Mainform.DataGrid);
-  Mainform.DataGrid.ReinitChildren(nil, False);
+  FixVT(Mainform.DataGrid, Mainform.prefGridRowsLineCount);
   for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
     Grid := TQueryTab(Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex]).Grid;
     Grid.Font.Name := comboDataFontName.Text;
     Grid.Font.Size := updownDataFontSize.Position;
-    FixVT(Grid);
-    Grid.ReinitChildren(nil, False);
+    FixVT(Grid, Mainform.prefGridRowsLineCount);
   end;
 
   Mainform.prefLogsqlnum := updownLogLines.Position;
