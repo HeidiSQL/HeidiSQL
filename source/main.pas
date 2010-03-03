@@ -1310,8 +1310,8 @@ begin
   QueryGrid.Font.Name := datafontname;
   DataGrid.Font.Size := datafontsize;
   QueryGrid.Font.Size := datafontsize;
-  FixVT(DataGrid);
-  FixVT(QueryGrid);
+  FixVT(DataGrid, prefGridRowsLineCount);
+  FixVT(QueryGrid, prefGridRowsLineCount);
   // Load color settings
   DatatypeCategories[Integer(dtcInteger)].Color := GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
   DatatypeCategories[Integer(dtcReal)].Color := GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
@@ -3602,18 +3602,12 @@ end;
 
 procedure TMainForm.AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode,
   Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
-var
-  vt: TVirtualStringTree;
 begin
   // Display multiline grid rows
-  vt := Sender as TVirtualStringTree;
-  if prefGridRowsLineCount = DEFAULT_GRIDROWSLINECOUNT then begin
-    Node.NodeHeight := vt.DefaultNodeHeight;
-    Exclude(Node.States, vsMultiLine);
-  end else begin
-    Node.NodeHeight := prefGridRowsLineCount * (Integer(vt.DefaultNodeHeight) - 2*vt.TextMargin) + 2*vt.TextMargin;
+  if prefGridRowsLineCount = DEFAULT_GRIDROWSLINECOUNT then
+    Exclude(Node.States, vsMultiLine)
+  else
     Include(Node.States, vsMultiLine);
-  end;
 end;
 
 
@@ -8331,7 +8325,7 @@ begin
   QueryTab.Grid.OnInitNode := QueryGrid.OnInitNode;
   QueryTab.Grid.OnKeyDown := QueryGrid.OnKeyDown;
   QueryTab.Grid.OnPaintText := QueryGrid.OnPaintText;
-  FixVT(QueryTab.Grid);
+  FixVT(QueryTab.Grid, prefGridRowsLineCount);
   SetupSynEditors;
 
   // Set splitter positions

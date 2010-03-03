@@ -221,7 +221,7 @@ type
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
   procedure CheckHex(text: String; errorMessage: string);
-  procedure FixVT(VT: TVirtualStringTree);
+  procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   function ComposeOrderClause(Cols: TOrderColArray): String;
@@ -2473,19 +2473,25 @@ begin
 end;
 
 
-procedure FixVT(VT: TVirtualStringTree);
+procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
 var
-  ReadOnlyNodeHeight: Integer;
+  SingleLineHeight: Integer;
+  Node: PVirtualNode;
 begin
   // Resize hardcoded node height to work with different DPI settings
-  ReadOnlyNodeHeight := VT.Canvas.TextHeight('A') + 6;
-  if toEditable in VT.TreeOptions.MiscOptions then begin
-    // Editable nodes must have enough height for a TEdit, including its cursor
-    VT.DefaultNodeHeight := GetTextHeight(VT.Font) + GetSystemMetrics(SM_CYBORDER) * 6;
-  end else
-    VT.DefaultNodeHeight := ReadOnlyNodeHeight;
+  VT.BeginUpdate;
+  SingleLineHeight := GetTextHeight(VT.Font);
+  VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount + 6;
   // The header needs slightly more height than the normal nodes
-  VT.Header.Height := Trunc(ReadOnlyNodeHeight * 1.2);
+  VT.Header.Height := Trunc(SingleLineHeight * 1.5);
+  // Apply new height to multi line grid nodes
+  Node := VT.GetFirstInitialized;
+  while Assigned(Node) do begin
+    VT.NodeHeight[Node] := VT.DefaultNodeHeight;
+    VT.MultiLine[Node] := MultiLineCount > 1;
+    Node := VT.GetNextInitialized(Node);
+  end;
+  VT.EndUpdate;
   // Disable hottracking in non-Vista mode, looks ugly in XP, but nice in Vista
   if (toUseExplorerTheme in VT.TreeOptions.PaintOptions) and IsWindowsVista then
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
