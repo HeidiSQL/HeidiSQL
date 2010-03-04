@@ -468,13 +468,19 @@ object MainForm: TMainForm
           Flat = True
           OnClick = actFilterPanelExecute
         end
-        object editFilterVT: TEdit
+        object editFilterVT: TButtonedEdit
           Left = 70
           Top = 3
           Width = 154
           Height = 21
+          Images = ImageListMain
+          RightButton.Enabled = False
+          RightButton.Hint = 'Clear filter'
+          RightButton.ImageIndex = 26
+          RightButton.Visible = True
           TabOrder = 0
           OnChange = editFilterVTChange
+          OnRightButtonClick = editFilterVTRightButtonClick
         end
       end
       object PageControlMain: TPageControl

@@ -350,7 +350,7 @@ type
     pnlProcessView: TPanel;
     SynMemoProcessView: TSynMemo;
     pnlFilterVT: TPanel;
-    editFilterVT: TEdit;
+    editFilterVT: TButtonedEdit;
     lblFilterVT: TLabel;
     lblFilterVTInfo: TLabel;
     menuEditVariable: TMenuItem;
@@ -735,6 +735,7 @@ type
     procedure actDataShowAllExecute(Sender: TObject);
     procedure AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode,
       Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+    procedure editFilterVTRightButtonClick(Sender: TObject);
   private
     FDelimiter: String;
     FileNameSessionLog: String;
@@ -5982,6 +5983,13 @@ begin
   // Reset typing timer
   TimerFilterVT.Enabled := False;
   TimerFilterVT.Enabled := True;
+  editFilterVT.RightButton.Enabled := editFilterVT.Text <> '';
+end;
+
+
+procedure TMainForm.editFilterVTRightButtonClick(Sender: TObject);
+begin
+  (Sender as TButtonedEdit).Clear;
 end;
 
 
