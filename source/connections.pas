@@ -103,7 +103,8 @@ type
     FOrgPort: Integer;
     FWidthListSessions: Byte; // Percentage values
     function SelectedSession: String;
-    procedure RefreshSessionList(RefetchRegistry: Boolean);
+    procedure SessionNamesChange(Sender: TObject);
+    procedure RefreshSessionList;
     procedure FinalizeModifications(var CanProceed: Boolean);
     procedure SaveCurrentValues(Session: String; IsNew: Boolean);
     procedure ValidateControls;
@@ -136,7 +137,8 @@ begin
   ListSessions.OnGetHint := Mainform.vstGetHint;
   FLoaded := False;
   FSessionNames := TStringList.Create;
-  RefreshSessionList(True);
+  FSessionNames.OnChange := SessionNamesChange;
+  RefreshSessionList;
   // Focus last session
   LastSession := GetRegValue(REGNAME_LASTSESSION, '');
   SelectNode(ListSessions, FSessionNames.IndexOf(LastSession));
@@ -241,9 +243,8 @@ begin
   MainReg.WriteString(REGNAME_SSL_CA, editSSLCACertificate.Text);
   FSessionModified := False;
   FSessionAdded := False;
-  RefreshSessionList(True);
-  ListSessions.FocusedNode := nil;
-  SelectNode(ListSessions, FSessionNames.IndexOf(Session));
+  ListSessions.Invalidate;
+  ValidateControls;
 end;
 
 
@@ -282,8 +283,13 @@ procedure Tconnform.btnNewClick(Sender: TObject);
 var
   i, NewIdx: Integer;
   NewName: String;
+  CanProceed: Boolean;
 begin
   // Create new session
+  FinalizeModifications(CanProceed);
+  if not CanProceed then
+    Exit;
+
   i := 0;
   NewName := 'Unnamed';
   while MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + NewName) do begin
@@ -294,7 +300,6 @@ begin
   FSessionNames.Sort;
   NewIdx := FSessionNames.IndexOf(NewName);
   // Select it
-  RefreshSessionList(False);
   SelectNode(ListSessions, NewIdx);
   FSessionAdded := True;
   ValidateControls;
@@ -313,7 +318,6 @@ begin
     if MainReg.KeyExists(SessionKey) then
       MainReg.DeleteKey(SessionKey);
     FSessionNames.Delete(FSessionNames.IndexOf(SelectedSession));
-    RefreshSessionList(False);
     if (not Assigned(ListSessions.FocusedNode)) and (ListSessions.RootNodeCount > 0) then
       SelectNode(ListSessions, ListSessions.RootNodeCount-1)
     else begin
@@ -331,15 +335,22 @@ begin
 end;
 
 
-procedure Tconnform.RefreshSessionList(RefetchRegistry: Boolean);
+procedure Tconnform.SessionNamesChange(Sender: TObject);
+begin
+  ListSessions.RootNodeCount := (Sender as TStringlist).Count;
+  ListSessions.Invalidate;
+end;
+
+
+procedure Tconnform.RefreshSessionList;
 begin
   // Refresh list of session names
-  if RefetchRegistry then begin
-    MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, True);
-    MainReg.GetKeyNames(FSessionNames);
-  end;
-  ListSessions.RootNodeCount := FSessionNames.Count;
-  ListSessions.Repaint;
+  MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, True);
+  FSessionNames.BeginUpdate;
+  MainReg.GetKeyNames(FSessionNames);
+  FSessionNames.EndUpdate;
+  FSessionModified := False;
+  FSessionAdded := False;
 end;
 
 
@@ -515,7 +526,6 @@ begin
       Mainform.SetWindowCaption;
     end;
     FSessionNames[FSessionNames.IndexOf(SelectedSession)] := NewText;
-    RefreshSessionList(False);
   end;
 end;
 
@@ -604,7 +614,7 @@ begin
           CanProceed := True;
         end;
       mrNo: begin
-          RefreshSessionList(True);
+          RefreshSessionList;
           CanProceed := True;
         end;
       mrCancel: CanProceed := False;
