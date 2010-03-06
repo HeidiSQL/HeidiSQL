@@ -217,7 +217,7 @@ type
   function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): String;
   function ReadTextfile(Filename: String): String;
   function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
-  procedure StreamToClipboard(S: TMemoryStream; AsHTML: Boolean=False);
+  procedure StreamToClipboard(Text, HTML: TMemoryStream; CreateHTMLHeader: Boolean);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
   procedure CheckHex(text: String; errorMessage: string);
@@ -2428,48 +2428,54 @@ begin
 end;
 
 
-procedure StreamToClipboard(S: TMemoryStream; AsHTML: Boolean=False);
+procedure StreamToClipboard(Text, HTML: TMemoryStream; CreateHTMLHeader: Boolean);
 var
-  OrgContent, HTMLContent: AnsiString;
+  TextContent, HTMLContent: AnsiString;
   GlobalMem: HGLOBAL;
   lp: PChar;
   ClpLen: Integer;
   CF_HTML: Word;
 begin
-  SetLength(OrgContent, S.Size);
-  S.Position := 0;
-  S.Read(PAnsiChar(OrgContent)^, S.Size);
+  // Copy unicode text to clipboard
+  if Assigned(Text) then begin
+    SetLength(TextContent, Text.Size);
+    Text.Position := 0;
+    Text.Read(PAnsiChar(TextContent)^, Text.Size);
+    Clipboard.AsText := Utf8ToString(TextContent);
+    SetString(TextContent, nil, 0);
+  end;
 
-  // By default, we only copy unicode text to clipboard
-  Clipboard.AsText := Utf8ToString(OrgContent);
-
-  if AsHTML then begin
+  if Assigned(HTML) then begin
     // If wanted, add a HTML portion, so formatted text can be pasted in WYSIWYG
     // editors (mostly MS applications).
     // Note that the content is UTF8 encoded ANSI. Using unicode variables results in raw
     // text pasted in editors. TODO: Find out why and optimize redundant code away by a loop.
     OpenClipBoard(0);
     CF_HTML := RegisterClipboardFormat('HTML Format');
-    HTMLContent := 'Version:0.9' + CRLF +
-      'StartHTML:-1' + CRLF +
-      'EndHTML:-1' + CRLF +
-      'StartFragment:000081' + CRLF +
-      'EndFragment:같같같' + CRLF +
-      OrgContent + CRLF;
-    HTMLContent := AnsiStrings.StringReplace(
-      HTMLContent, '같같같',
-      AnsiStrings.Format('%.6d', [Length(HTMLContent)]),
-      []);
+    SetLength(HTMLContent, HTML.Size);
+    HTML.Position := 0;
+    HTML.Read(PAnsiChar(HTMLContent)^, HTML.Size);
+    if CreateHTMLHeader then begin
+      HTMLContent := 'Version:0.9' + CRLF +
+        'StartHTML:-1' + CRLF +
+        'EndHTML:-1' + CRLF +
+        'StartFragment:000081' + CRLF +
+        'EndFragment:같같같' + CRLF +
+        HTMLContent + CRLF;
+      HTMLContent := AnsiStrings.StringReplace(
+        HTMLContent, '같같같',
+        AnsiStrings.Format('%.6d', [Length(HTMLContent)]),
+        []);
+    end;
     ClpLen := Length(HTMLContent) + 1;
     GlobalMem := GlobalAlloc(GMEM_DDESHARE + GMEM_MOVEABLE, ClpLen);
     lp := GlobalLock(GlobalMem);
     Move(PAnsiChar(HTMLContent)^, lp[0], ClpLen);
+    SetString(HTMLContent, nil, 0);
     GlobalUnlock(GlobalMem);
     SetClipboardData(CF_HTML, GlobalMem);
     CloseClipboard;
   end;
-
-  SetString(OrgContent, nil, 0);
 end;
 
 

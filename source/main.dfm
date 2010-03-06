@@ -8038,5 +8038,18 @@ object MainForm: TMainForm
     Left = 104
     Top = 304
   end
-
+  object SynExporterHTML1: TSynExporterHTML
+    Color = clWindow
+    DefaultFilter = 'HTML Documents (*.htm;*.html)|*.htm;*.html'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Courier New'
+    Font.Style = []
+    Highlighter = SynSQLSyn1
+    Title = 'Untitled'
+    UseBackground = False
+    Left = 136
+    Top = 304
+  end
 end
