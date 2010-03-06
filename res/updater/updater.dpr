@@ -18,7 +18,8 @@ const
   WindowWidth = 600;
   WindowHeight = 80;
   QuitTimeout = 20000; // We long we're gracefully waiting for a window to be gone, in milliseconds
-  TerminatedCheck = 200; // Interval between WM_CLOSE posts to a window, in milliseconds
+  ClosePostInterval = 2000; // Interval between WM_CLOSE posts to a window, in milliseconds
+  TerminatedCheck = 200; // Interval between checks if host application is gone
   PathDelim = '\';
 
 
@@ -156,9 +157,10 @@ begin
   GetWindowText(Wnd, PChar(WndTitle), 256);
   Hint := 'Closing "'+WndTitle+'"';
   Status(Hint);
-  PostMessage(Wnd, WM_CLOSE, 0, 0);
   WaitTime := 0;
   while WaitTime < QuitTimeout do begin
+    if WaitTime mod ClosePostInterval = 0 then
+      PostMessage(Wnd, WM_CLOSE, 0, 0);
     Sleep(TerminatedCheck);
     Inc(WaitTime, TerminatedCheck);
     Status(Hint + ', wait time left: '+IntToStr((QuitTimeout - WaitTime) div 1000)+' seconds.');
