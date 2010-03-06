@@ -841,6 +841,9 @@ type
     DataGridWantedRowCount: Int64;
     DataGridDB: String;
     DataGridTable: String;
+    DataGridFocusedCell: TStringList;
+    DataGridFocusedNodeIndex: Int64;
+    DataGridFocusedColumnIndex: TColumnIndex;
     DataGridHasChanges: Boolean;
     DataGridResult: TGridResult;
     SelectedTableCreateStatement: String;
@@ -3448,11 +3451,12 @@ begin
 
     // Indicates whether the current table data is just refreshed or if we're in another table
     RefreshingData := (ActiveDatabase = DataGridDB) and (SelectedTable.Name = DataGridTable);
-    DataGridDB := ActiveDatabase;
-    DataGridTable := SelectedTable.Name;
 
     // Load last view settings
     HandleDataGridAttributes(RefreshingData);
+
+    DataGridDB := SelectedTable.Database;
+    DataGridTable := SelectedTable.Name;
 
     // Ensure key columns are included to enable editing
     KeyCols := GetKeyColumns;
@@ -3547,15 +3551,19 @@ begin
 
       for i:=LastExistingColIndex+1 to vt.Header.Columns.Count-1 do
         AutoCalcColWidth(vt, i);
-      if not RefreshingData then begin
-        // Scroll to top left if switched to another table
-        vt.OffsetXY := Point(0, 0);
-        if vt.RootNodeCount > 0 then
-          SelectNode(vt, 0);
-      end;
 
       vt.EndUpdate;
       vt.SetFocus;
+
+      if not RefreshingData then begin
+        // Scroll to top left if switched to another table
+        vt.OffsetXY := Point(0, 0);
+        if vt.RootNodeCount > DataGridFocusedNodeIndex then begin
+          SelectNode(vt, DataGridFocusedNodeIndex);
+          vt.FocusedColumn := DataGridFocusedColumnIndex;
+        end;
+      end;
+
       DisplayRowCountStats;
       actDataShowNext.Enabled := (vt.RootNodeCount = DatagridWantedRowCount) and (DatagridWantedRowCount < prefGridRowcountMax);
       actDataShowAll.Enabled := actDataShowNext.Enabled;
@@ -7481,7 +7489,7 @@ var
   rx: TRegExpr;
   idx, i: Integer;
   TestList: TStringList;
-  Sort: String;
+  Sort, KeyName, CellFocus: String;
 begin
   OpenRegistry;
   MainReg.OpenKey(GetRegKeyTable, True);
@@ -7492,11 +7500,28 @@ begin
     DataGridHiddenColumns.Delimiter := DELIM;
     DataGridHiddenColumns.StrictDelimiter := True;
   end;
+  if not Assigned(DataGridFocusedCell) then
+    DataGridFocusedCell := TStringList.Create;
   if not RefreshingData then begin
+    // Remember focused node and column for previously selected table
+    if Assigned(DataGrid.FocusedNode) then begin
+      KeyName := Mask(DataGridDB)+'.'+Mask(DataGridTable);
+      DataGridFocusedCell.Values[KeyName] := IntToStr(DataGrid.FocusedNode.Index) + DELIM + IntToStr(DataGrid.FocusedColumn);
+    end;
     DataGridHiddenColumns.Clear;
     SynMemoFilter.Clear;
     SetLength(DataGridSortColumns, 0);
-    DataGridWantedRowCount := prefGridRowcountStep;
+    DataGridFocusedNodeIndex := 0;
+    DataGridFocusedColumnIndex := 0;
+    KeyName := Mask(SelectedTable.Database)+'.'+Mask(SelectedTable.Name);
+    CellFocus := DataGridFocusedCell.Values[KeyName];
+    if CellFocus <> '' then begin
+      DataGridFocusedNodeIndex := MakeInt(Explode(DELIM, CellFocus)[0]);
+      DataGridFocusedColumnIndex := MakeInt(Explode(DELIM, CellFocus)[1]);
+    end;
+    DataGridWantedRowCount := 0;
+    while DataGridFocusedNodeIndex >= DataGridWantedRowCount do
+      Inc(DataGridWantedRowCount, prefGridRowcountStep);
   end else begin
     // Save current attributes if grid gets refreshed
     if DataGridHiddenColumns.Count > 0 then
