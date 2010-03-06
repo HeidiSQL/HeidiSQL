@@ -15,7 +15,7 @@ uses
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
-  CommCtrl, Contnrs, Generics.Collections,
+  CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML,
   routine_editor, trigger_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
   mysql_api, insertfiles, searchreplace, loaddata, copytable;
@@ -465,6 +465,7 @@ type
     tbtnDataNext: TToolButton;
     actDataShowNext: TAction;
     actDataShowAll: TAction;
+    SynExporterHTML1: TSynExporterHTML;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -2127,7 +2128,7 @@ begin
   S := TMemoryStream.Create;
   try
     GridToCsv(ActiveGrid, prefCSVSeparator, prefCSVEncloser, prefCSVTerminator, S);
-    StreamToClipboard(S);
+    StreamToClipboard(S, nil, False);
   finally
     ShowStatus('Freeing data...');
     S.Free;
@@ -2149,7 +2150,7 @@ begin
   else Title := 'SQL query';
   try
     GridToHtml(ActiveGrid, Title, S);
-    StreamToClipboard(S, True);
+    StreamToClipboard(S, S, True);
   finally
     ShowStatus('Freeing data...');
     S.Free;
@@ -2171,7 +2172,7 @@ begin
   else Root := 'SQL query';
   try
     GridToXml(ActiveGrid, Root, S);
-    StreamToClipboard(S);
+    StreamToClipboard(S, nil, False);
   finally
     ShowStatus('Freeing data...');
     S.Free;
@@ -2183,8 +2184,9 @@ end;
 
 procedure TMainForm.actCopyAsSQLExecute(Sender: TObject);
 var
-  S: TMemoryStream;
+  S, HTML: TMemoryStream;
   Tablename: String;
+  Content: AnsiString;
 begin
   // Copy data in focused grid as SQL
   Screen.Cursor := crHourglass;
@@ -2193,7 +2195,13 @@ begin
   else Tablename := 'unknown';
   try
     GridToSql(ActiveGrid, Tablename, S);
-    StreamToClipboard(S);
+    SetLength(Content, S.Size);
+    S.Position := 0;
+    S.Read(PAnsiChar(Content)^, S.Size);
+    SynExporterHTML1.ExportAll(Explode(CRLF, UTF8ToString(Content)));
+    HTML := TMemoryStream.Create;
+    SynExporterHTML1.SaveToStream(HTML);
+    StreamToClipboard(S, HTML, False);
   finally
     ShowStatus('Freeing data...');
     S.Free;
@@ -7864,6 +7872,7 @@ var
   Grid: TVirtualStringTree;
   SynMemo: TSynMemo;
   Success, DoCut: Boolean;
+  SQLStream: TMemoryStream;
 begin
   // Copy text from a focused control to clipboard
   Success := False;
@@ -7894,8 +7903,13 @@ begin
   end else if Control is TSynMemo then begin
     SynMemo := Control as TSynMemo;
     if SynMemo.SelAvail then begin
+      // Create both text and HTML clipboard format, so rich text applications can paste highlighted SQL
+      SynExporterHTML1.ExportAll(Explode(CRLF, SynMemo.SelText));
       if DoCut then SynMemo.CutToClipboard
       else SynMemo.CopyToClipboard;
+      SQLStream := TMemoryStream.Create;
+      SynExporterHTML1.SaveToStream(SQLStream);
+      StreamToClipboard(nil, SQLStream, False);
       Success := True;
     end;
   end;
