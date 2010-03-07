@@ -1141,10 +1141,13 @@ var
   ObjNames: String;
 begin
   // Add object names to additional stringlist
-  if Assigned(FObjectNamesInSelectedDB) and DbObjectsCached(FDatabase) then begin
-    Objects := GetDbObjects(FDatabase);
-    for i:=0 to Objects.Count-1 do
-      ObjNames := ObjNames + Objects[i].Name + CRLF;
+  if Assigned(FObjectNamesInSelectedDB) then begin
+    if DbObjectsCached(FDatabase) then begin
+      Objects := GetDbObjects(FDatabase);
+      for i:=0 to Objects.Count-1 do
+        ObjNames := ObjNames + Objects[i].Name + CRLF;
+    end else
+      ObjNames := '';
     if FObjectNamesInSelectedDB.Text <> ObjNames then
       FObjectNamesInSelectedDB.Text := ObjNames;
   end;
