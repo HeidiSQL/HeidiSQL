@@ -550,10 +550,7 @@ type
     procedure ValidateControls(Sender: TObject);
     procedure ValidateQueryControls(Sender: TObject);
     procedure RefreshQueryHelpers;
-    procedure LoadDatabaseProperties(db: String);
     procedure ShowHost;
-    procedure ShowDatabase(db: String);
-    procedure ShowDBProperties(db: String);
     procedure DataGridBeforePaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas);
     procedure LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo);
@@ -676,6 +673,14 @@ type
     procedure ListStatusBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure ListProcessesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure ListTablesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure ListTablesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
+      Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure ListTablesGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure ListTablesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure ListTablesInitNode(Sender: TBaseVirtualTree; ParentNode,
+      Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure vstAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure actCopyOrCutExecute(Sender: TObject);
     procedure actPasteExecute(Sender: TObject);
@@ -806,8 +811,7 @@ type
     VTRowDataListVariables,
     VTRowDataListStatus,
     VTRowDataListProcesses,
-    VTRowDataListCommandStats,
-    VTRowDataListTables: TVTreeDataArray;
+    VTRowDataListCommandStats: TVTreeDataArray;
 
     // Variables set by preferences dialog
     prefRememberFilters: Boolean;
@@ -1945,6 +1949,7 @@ procedure TMainForm.actTableToolsExecute(Sender: TObject);
 var
   Act: TAction;
   InDBTree: Boolean;
+  Node: PVirtualNode;
 begin
   // Show table tools dialog
   if TableToolsDialog = nil then
@@ -1954,8 +1959,13 @@ begin
     and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
   if InDBTree then
     TableToolsDialog.SelectedTables.Text := SelectedTable.Name
-  else
-    TableToolsDialog.SelectedTables := GetVTCaptions(ListTables, True);
+  else begin
+    Node := ListTables.GetFirstSelected;
+    while Assigned(Node) do begin
+      TableToolsDialog.SelectedTables.Add(ListTables.Text[Node, 0]);
+      Node := ListTables.GetNextSelected(Node);
+    end;
+  end;
   if Sender = actMaintenance then
     TableToolsDialog.ToolMode := tmMaintenance
   else if Sender = actFindTextOnServer then
@@ -2318,11 +2328,12 @@ end;
 procedure TMainForm.actDropObjectsExecute(Sender: TObject);
 var
   AllCount : Integer;
-  Tables, Views, Functions, Procedures, Triggers: TStringList;
+  Tables, Views, Functions, Procedures, Triggers, List: TStringList;
   msg, activeDB : String;
   InDBTree: Boolean;
   Act: TAction;
   Node: PVirtualNode;
+  Obj: PDBObject;
 
   procedure DoDrop(Kind: String; List: TStringList; MultiDrops: Boolean);
   var
@@ -2389,11 +2400,19 @@ begin
     end;
   end else begin
     // Invoked from database tab
-    Tables := GetVTCaptions(ListTables, True, 0, [lntTable]);
-    Views := GetVTCaptions(ListTables, True, 0, [lntView]);
-    Procedures := GetVTCaptions(ListTables, True, 0, [lntProcedure]);
-    Functions := GetVTCaptions(ListTables, True, 0, [lntFunction]);
-    Triggers := GetVTCaptions(ListTables, True, 0, [lntTrigger]);
+    Node := ListTables.GetFirstSelected;
+    while Assigned(Node) do begin
+      Obj := ListTables.GetNodeData(Node);
+      case Obj.NodeType of
+        lntView: List := Views;
+        lntProcedure: List := Procedures;
+        lntFunction: List := Functions;
+        lntTrigger: List := Triggers;
+        else List := Tables;
+      end;
+      List.Add(Obj.Name);
+      Node := ListTables.GetNextSelected(Node);
+    end;
   end;
 
   // Fix actions temporarily enabled for popup menu.
@@ -2492,6 +2511,7 @@ begin
   ConnectionAttempt := TMySQLConnection.Create(Self);
   ConnectionAttempt.OnLog := LogSQL;
   ConnectionAttempt.OnDatabaseChanged := DatabaseChanged;
+  ConnectionAttempt.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
   ConnectionAttempt.Parameters := Params;
   try
     ConnectionAttempt.Active := True;
@@ -2732,8 +2752,8 @@ begin
     List.Tag := VTREE_NOTLOADED;
     List.Repaint;
   end else if tab1 = tabDatabase then begin
-    RefreshTreeDB(ActiveDatabase);
-    LoadDatabaseProperties(ActiveDatabase);
+    ListTables.Tag := VTREE_NOTLOADED_PURGECACHE;
+    ListTables.Invalidate;
   end else if tab1 = tabData then begin
     DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
     DataGrid.Invalidate;
@@ -3315,21 +3335,6 @@ begin
 end;
 
 
-procedure TMainForm.ShowDatabase(db: String);
-begin
-  if (not DBtree.Dragging) and (
-   (PageControlMain.ActivePage = tabHost) or
-   (PageControlMain.ActivePage = tabData)
-  ) then PageControlMain.ActivePage := tabDatabase;
-
-  tabDatabase.TabVisible := true;
-  tabEditor.TabVisible := false;
-  tabData.TabVisible := false;
-
-  ShowDBProperties( db );
-end;
-
-
 procedure TMainForm.actDataShowNextExecute(Sender: TObject);
 begin
   // Show next X rows in datagrid
@@ -3677,83 +3682,38 @@ begin
 end;
 
 
-procedure TMainForm.LoadDatabaseProperties(db: String);
+procedure TMainForm.ListTablesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
-  i, img, NumObj: Integer;
+  i, NumObj: Integer;
   Obj: TDBObject;
   Objects: TDBObjectList;
-  Cap, SelectedCaptions, NumObjects: TStringList;
+  NumObjects: TStringList;
   Msg: String;
+  vt: TVirtualStringTree;
 begin
   // DB-Properties
+  vt := Sender as TVirtualStringTree;
+  if vt.Tag = VTREE_LOADED then
+    Exit;
+
   Screen.Cursor := crHourGlass;
 
-  // Remember selected nodes
-  SelectedCaptions := GetVTCaptions(ListTables, True);
-
-  Objects := Connection.GetDBObjects(db);
-  NumObjects := TStringList.Create;
-  ShowStatus( 'Displaying objects from "' + db + '" ...' );
-
+  ShowStatus( 'Displaying objects from "' + ActiveDatabase + '" ...' );
+  Objects := Connection.GetDBObjects(ActiveDatabase, vt.Tag = VTREE_NOTLOADED_PURGECACHE);
   ListTables.BeginUpdate;
-  ListTables.Clear;
+  ListTables.RootNodeCount := Objects.Count;
+  ListTables.ReinitChildren(nil, false);
+  ListTables.EndUpdate;
+  vt.Tag := VTREE_LOADED;
 
-  SetLength(VTRowDataListTables, Objects.Count);
+  NumObjects := TStringList.Create;
   for i:=0 to Objects.Count-1 do begin
     Obj := Objects[i];
-    VTRowDataListTables[i].Captions := TStringList.Create;
-    Cap := VTRowDataListTables[i].Captions;
-    // Object name
-    Cap.Add(Obj.Name);
-    if Obj.Rows > -1 then Cap.Add(FormatNumber(Obj.Rows))
-    else Cap.Add('');
-    if Obj.Size > -1 then Cap.Add(FormatByteNumber(Obj.Size))
-    else Cap.Add('');
-    VTRowDataListTables[i].NodeType := Obj.NodeType;
-    // Find icon
-    case Obj.NodeType of
-      lntTable:         img := ICONINDEX_TABLE;
-      lntView:          img := ICONINDEX_VIEW;
-      lntProcedure:     img := ICONINDEX_STOREDPROCEDURE;
-      lntFunction:      img := ICONINDEX_STOREDFUNCTION;
-      lntTrigger:       img := ICONINDEX_TRIGGER;
-      else              img := -1;
-    end;
     NumObj := StrToIntDef(NumObjects.Values[Obj.ObjType], 0);
     Inc(NumObj);
     NumObjects.Values[Obj.ObjType] := IntToStr(NumObj);
-    VTRowDataListTables[i].ImageIndex := img;
-    if Obj.Created = 0 then Cap.Add('')
-    else Cap.Add(DateTimeToStr(Obj.Created));
-    if Obj.Updated = 0 then Cap.Add('')
-    else Cap.Add(DateTimeToStr(Obj.Updated));
-    Cap.Add(Obj.Engine);
-    Cap.Add(Obj.Comment);
-    if Obj.Version > -1 then Cap.Add(IntToStr(Obj.Version))
-    else Cap.Add('');
-    Cap.Add(Obj.RowFormat);
-    if Obj.AvgRowLen > -1 then Cap.Add(FormatByteNumber(Obj.AvgRowLen))
-    else Cap.Add('');
-    if Obj.MaxDataLen > -1 then Cap.Add(FormatByteNumber(Obj.MaxDataLen))
-    else Cap.Add('');
-    if Obj.IndexLen > -1 then Cap.Add(FormatByteNumber(Obj.IndexLen))
-    else Cap.Add('');
-    if Obj.DataFree > -1 then Cap.Add(FormatByteNumber(Obj.DataFree))
-    else Cap.Add('');
-    if Obj.AutoInc > -1 then Cap.Add(FormatNumber(Obj.AutoInc))
-    else Cap.Add('');
-    if Obj.LastChecked = 0 then Cap.Add('')
-    else Cap.Add(DateTimeToStr(Obj.LastChecked));
-    Cap.Add(Obj.Collation);
-    if Obj.Checksum > -1 then Cap.Add(IntToStr(Obj.Checksum))
-    else Cap.Add('');
-    Cap.Add(Obj.CreateOptions);
-    Cap.Add(Obj.ObjType);
   end;
-  ListTables.RootNodeCount := Length(VTRowDataListTables);
-  ListTables.EndUpdate;
-  SetVTSelection(ListTables, SelectedCaptions);
-  Msg := db + ': ' + FormatNumber(Objects.Count) + ' ';
+  Msg := ActiveDatabase + ': ' + FormatNumber(Objects.Count) + ' ';
   if NumObjects.Count = 1 then
     Msg := Msg + LowerCase(NumObjects.Names[0])
   else
@@ -3772,23 +3732,84 @@ begin
     Delete(Msg, Length(Msg)-1, 2);
     Msg := Msg + ')';
   end;
-  showstatus(Msg, 0);
-  tabDatabase.Caption := sstr('Database: ' + db, 30);
+  ShowStatus(Msg, 0);
   ShowStatus(STATUS_MSG_READY);
   Screen.Cursor := crDefault;
   // Ensure tree db node displays its chidren initialized
-  DBtree.ReinitChildren(FindDBNode(db), False);
+  DBtree.ReinitChildren(FindDBNode(ActiveDatabase), False);
   ValidateControls(Self);
 end;
 
 
-{ Show tables and their properties on the tabsheet "Database" }
-procedure TMainForm.ShowDBProperties(db: String);
+procedure TMainForm.ListTablesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+var
+  Obj: PDBObject;
 begin
-  Screen.Cursor := crHourglass;
-  PageControlMainChange(Self);
-  ShowStatus( STATUS_MSG_READY );
-  Screen.Cursor := crDefault;
+  if not (Kind in [ikNormal, ikSelected]) then
+    Exit;
+  if Column <> (Sender as TVirtualStringTree).Header.MainColumn then
+    Exit;
+  Obj := Sender.GetNodeData(Node);
+  case Obj.NodeType of
+    lntTable:         ImageIndex := ICONINDEX_TABLE;
+    lntView:          ImageIndex := ICONINDEX_VIEW;
+    lntProcedure:     ImageIndex := ICONINDEX_STOREDPROCEDURE;
+    lntFunction:      ImageIndex := ICONINDEX_STOREDFUNCTION;
+    lntTrigger:       ImageIndex := ICONINDEX_TRIGGER;
+    else              ImageIndex := -1;
+  end;
+end;
+
+
+procedure TMainForm.ListTablesGetNodeDataSize(Sender: TBaseVirtualTree;
+  var NodeDataSize: Integer);
+begin
+  NodeDataSize := SizeOf(TDBObject);
+end;
+
+
+procedure TMainForm.ListTablesGetText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+  var CellText: string);
+var
+  Obj: PDBObject;
+begin
+  Obj := Sender.GetNodeData(Node);
+  CellText := '';
+  case Column of
+    0: CellText := Obj.Name;
+    1: if Obj.Rows > -1 then CellText := FormatNumber(Obj.Rows);
+    2: if Obj.Size > -1 then CellText := FormatByteNumber(Obj.Size);
+    3: if Obj.Created <> 0 then CellText := DateTimeToStr(Obj.Created);
+    4: if Obj.Updated <> 0 then CellText := DateTimeToStr(Obj.Updated);
+    5: CellText := Obj.Engine;
+    6: CellText := Obj.Comment;
+    7: if Obj.Version > -1 then CellText := IntToStr(Obj.Version);
+    8: CellText := Obj.RowFormat;
+    9: if Obj.AvgRowLen > -1 then CellText := FormatByteNumber(Obj.AvgRowLen);
+    10: if Obj.MaxDataLen > -1 then CellText := FormatByteNumber(Obj.MaxDataLen);
+    11: if Obj.IndexLen > -1 then CellText := FormatByteNumber(Obj.IndexLen);
+    12: if Obj.DataFree > -1 then CellText := FormatByteNumber(Obj.DataFree);
+    13: if Obj.AutoInc > -1 then CellText := FormatNumber(Obj.AutoInc);
+    14: if Obj.LastChecked <> 0 then CellText := DateTimeToStr(Obj.LastChecked);
+    15: CellText := Obj.Collation;
+    16: if Obj.Checksum > -1 then CellText := IntToStr(Obj.Checksum);
+    17: CellText := Obj.CreateOptions;
+    18: CellText := Obj.ObjType;
+  end;
+end;
+
+
+procedure TMainForm.ListTablesInitNode(Sender: TBaseVirtualTree; ParentNode,
+  Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+var
+  Obj: PDBObject;
+  Objects: TDBObjectList;
+begin
+  Obj := Sender.GetNodeData(Node);
+  Objects := Connection.GetDBObjects(ActiveDatabase);
+  Obj^ := Objects[Node.Index];
 end;
 
 
@@ -4343,11 +4364,11 @@ end;
 procedure TMainForm.ListTablesEditing(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 var
-  NodeData: PVTreeData;
+  Obj: PDBObject;
 begin
   // Tables and views can be renamed, routines cannot
-  NodeData := Sender.GetNodeData(Node);
-  Allowed := NodeData.NodeType in [lntTable, lntView];
+  Obj := Sender.GetNodeData(Node);
+  Allowed := Obj.NodeType in [lntTable, lntView];
 end;
 
 
@@ -4357,22 +4378,22 @@ end;
 procedure TMainForm.ListTablesNewText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; NewText: String);
 var
-  NodeData : PVTreeData;
+  Obj: PDBObject;
 begin
   // Fetch data from node
-  NodeData := Sender.GetNodeData(Node);
+  Obj := Sender.GetNodeData(Node);
 
   // Try to rename, on any error abort and don't rename ListItem
   try
     ensureValidIdentifier( NewText );
     // rename table
-    Connection.Query('RENAME TABLE ' + mask(NodeData.Captions[0]) + ' TO ' + mask(NewText));
+    Connection.Query('RENAME TABLE ' + mask(Obj.Name) + ' TO ' + mask(NewText));
 
     if SynSQLSyn1.TableNames.IndexOf( NewText ) = -1 then begin
       SynSQLSyn1.TableNames.Add(NewText);
     end;
     // Update nodedata
-    NodeData.Captions[0] := NewText;
+    Obj.Name := NewText;
     // Now the active tree db has to be updated. But calling RefreshTreeDB here causes an AV
     // so we do it manually here
     Connection.ClearDbObjects(ActiveDatabase);
@@ -4754,7 +4775,7 @@ procedure TMainForm.popupDBPopup(Sender: TObject);
 var
   L: Cardinal;
   HasFocus, InDBTree: Boolean;
-  NodeData: PVTreeData;
+  Obj: PDBObject;
 begin
   // DBtree and ListTables both use popupDB as menu. Find out which of them was rightclicked.
   if Sender is TPopupMenu then
@@ -4793,8 +4814,8 @@ begin
     actDropObjects.Enabled := ListTables.SelectedCount > 0;
     actEmptyTables.Enabled := False;
     if HasFocus then begin
-      NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-      actEmptyTables.Enabled := NodeData.NodeType in [lntTable, lntView];
+      Obj := ListTables.GetNodeData(ListTables.FocusedNode);
+      actEmptyTables.Enabled := Obj.NodeType in [lntTable, lntView];
     end;
     actEditObject.Enabled := HasFocus;
     // Show certain items which are valid only here
@@ -5101,9 +5122,6 @@ end;
 procedure TMainForm.SetSelectedDatabase(db: String);
 var
   n, f: PVirtualNode;
-  i: Integer;
-  DBObjects: TDBObjectList;
-  Tables: String;
 begin
   if db = '' then
     n := DBtree.GetFirst
@@ -5114,11 +5132,6 @@ begin
     f := DBtree.FocusedNode;
     if (not Assigned(f)) or (f.Parent <> n) then
       SelectNode(DBtree, n);
-    // Add object names to highlighter
-    DBObjects := Connection.GetDBObjects(db);
-    for i:=0 to DBObjects.Count-1 do
-      Tables := Tables + DBObjects[i].Name + CRLF;
-    SynSQLSyn1.TableNames.Text := Trim(Tables);
   end else
     raise Exception.Create('Database node ' + db + ' not found in tree.');
 end;
@@ -5607,8 +5620,6 @@ begin
     Result := @VTRowDataListCommandStats
   else if VT = ListProcesses then
     Result := @VTRowDataListProcesses
-  else if VT = ListTables then
-    Result := @VTRowDataListTables
   else begin
     raise Exception.Create( VT.ClassName + ' "' + VT.Name + '" doesn''t have an assigned array with data.' );
   end;
@@ -5624,7 +5635,6 @@ begin
   if P = @VTRowDataListStatus then Exit;
   if P = @VTRowDataListCommandStats then Exit;
   if P = @VTRowDataListProcesses then Exit;
-  if P = @VTRowDataListTables then Exit;
   raise Exception.Create('Assertion failed: Invalid global VT array.');
 end;
 
@@ -6332,7 +6342,7 @@ end;
 procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
-  newDb, newDbObject: String;
+  newDb, oldDb, newDbObject: String;
 begin
   debug('DBtreeFocusChanged()');
   SelectedTableCreateStatement := '';
@@ -6354,7 +6364,12 @@ begin
             Exit;
           end;
         end;
-        ShowDatabase(newDb);
+        if (not DBtree.Dragging)
+          and ((PageControlMain.ActivePage = tabHost) or(PageControlMain.ActivePage = tabData)) then
+          PageControlMain.ActivePage := tabDatabase;
+        tabDatabase.TabVisible := true;
+        tabEditor.TabVisible := false;
+        tabData.TabVisible := false;
       end;
     2: begin
         newDb := Databases[Node.Parent.Index];
@@ -6385,9 +6400,19 @@ begin
         end;
       end;
   end;
+  if Assigned(PreviousFocusedNode) then case DBTree.GetNodeLevel(PreviousFocusedNode) of
+    0: oldDb := '';
+    1: oldDb := DBTree.Text[PreviousFocusedNode, 0];
+    2: oldDb := DBTree.Text[PreviousFocusedNode.Parent, 0];
+  end;
+  if newDb <> oldDb then begin
+    tabDatabase.Caption := sstr('Database: ' + newDb, 30);
+    ListTables.ClearSelection;
+    ListTables.FocusedNode := nil;
+    ListTables.Tag := VTREE_NOTLOADED;
+    ListTables.Invalidate;
+  end;
   PreviousFocusedNode := DBTree.FocusedNode;
-  if newDb <> '' then
-    LoadDatabaseProperties(newDb);
   FixQueryTabCloseButtons;
   SetWindowCaption;
 end;
@@ -8183,15 +8208,15 @@ end;
 
 procedure TMainForm.actEditObjectExecute(Sender: TObject);
 var
-  NodeData: PVTreeData;
+  Obj: PDBObject;
   db: String;
 begin
   debug('actEditObjectExecute()');
   if ListTables.Focused then begin
     // Got here from ListTables.OnDblClick or ListTables's context menu item "Edit"
-    NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    if (NodeData.Captions[0] <> SelectedTable.Name) or (NodeData.NodeType <> SelectedTable.NodeType) then
-      SelectDBObject(NodeData.Captions[0], NodeData.NodeType);
+    Obj := ListTables.GetNodeData(ListTables.FocusedNode);
+    if (Obj.Name <> SelectedTable.Name) or (Obj.NodeType <> SelectedTable.NodeType) then
+      SelectDBObject(Obj.Name, Obj.NodeType);
   end;
 
   case GetFocusedTreeNodeType of
@@ -8238,13 +8263,15 @@ end;
 
 procedure TMainForm.ListTablesDblClick(Sender: TObject);
 var
-  NodeData: PVTreeData;
+  Obj: PDBObject;
+  vt: TVirtualStringTree;
 begin
   // DoubleClick: Display editor
   debug('ListTablesDblClick()');
-  if Assigned(ListTables.FocusedNode) then begin
-    NodeData := ListTables.GetNodeData(ListTables.FocusedNode);
-    SelectDBObject(ListTables.Text[ListTables.FocusedNode, ListTables.FocusedColumn], NodeData.NodeType);
+  vt := Sender as TVirtualStringTree;
+  if Assigned(vt.FocusedNode) then begin
+    Obj := vt.GetNodeData(vt.FocusedNode);
+    SelectDBObject(vt.Text[vt.FocusedNode, vt.FocusedColumn], Obj.NodeType);
     PageControlMainChange(Sender);
   end;
 end;

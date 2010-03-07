@@ -16,6 +16,7 @@ type
     Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
     NodeType: TListNodeType;
   end;
+  PDBObject = ^TDBObject;
   TDBObjectList = TObjectList<TDBObject>;
 
   {$M+} // Needed to add published properties
@@ -96,6 +97,7 @@ type
       FCharsetTable: TMySQLQuery;
       FInformationSchemaObjects: TStringList;
       FDBObjectLists: TStringList;
+      FObjectNamesInSelectedDB: TStrings;
       procedure SetActive(Value: Boolean);
       procedure SetDatabase(Value: String);
       function GetThreadId: Cardinal;
@@ -115,6 +117,7 @@ type
       function ParseDateTime(Str: String): TDateTime;
       procedure Log(Category: TMySQLLogCategory; Msg: String);
       procedure ClearCache;
+      procedure SetObjectNamesInSelectedDB;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -153,6 +156,7 @@ type
       property CharsetTable: TMySQLQuery read GetCharsetTable;
       property CharsetList: TStringList read GetCharsetList;
       property InformationSchemaObjects: TStringList read GetInformationSchemaObjects;
+      property ObjectNamesInSelectedDB: TStrings read FObjectNamesInSelectedDB write FObjectNamesInSelectedDB;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -452,6 +456,7 @@ begin
         FOnDatabaseChanged(Value);
     end else
       Query('USE '+QuoteIdent(Value), False);
+    SetObjectNamesInSelectedDB;
   end;
 end;
 
@@ -1122,6 +1127,26 @@ begin
     if not Assigned(FDBObjectLists) then
       FDBObjectLists := TStringList.Create;
     FDBObjectLists.AddObject(db, Result);
+
+    SetObjectNamesInSelectedDB;
+  end;
+
+end;
+
+
+procedure TMySQLConnection.SetObjectNamesInSelectedDB;
+var
+  i: Integer;
+  Objects: TDBObjectList;
+  ObjNames: String;
+begin
+  // Add object names to additional stringlist
+  if Assigned(FObjectNamesInSelectedDB) and DbObjectsCached(FDatabase) then begin
+    Objects := GetDbObjects(FDatabase);
+    for i:=0 to Objects.Count-1 do
+      ObjNames := ObjNames + Objects[i].Name + CRLF;
+    if FObjectNamesInSelectedDB.Text <> ObjNames then
+      FObjectNamesInSelectedDB.Text := ObjNames;
   end;
 end;
 

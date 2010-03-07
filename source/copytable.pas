@@ -95,14 +95,11 @@ procedure TCopyTableForm.FormShow(Sender: TObject);
 var
   i : Integer;
   struc_data : Byte;
-  NodeData: PVTreeData;
 begin
   if Mainform.DBtree.Focused then
     oldTableName := Mainform.SelectedTable.Name
-  else begin
-    NodeData := Mainform.ListTables.GetNodeData(Mainform.ListTables.FocusedNode);
-    oldTableName := NodeData.Captions[0];
-  end;
+  else
+    oldTableName := Mainform.ListTables.Text[Mainform.ListTables.FocusedNode, 0];
   editNewTablename.Text := oldTableName + '_copy';
   editNewTablename.SetFocus;
   lblNewTablename.Caption := 'Copy ''' + oldTableName + ''' to new table:';

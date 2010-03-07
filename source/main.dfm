@@ -876,18 +876,18 @@ object MainForm: TMainForm
             TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
             TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
             OnAfterPaint = vstAfterPaint
+            OnBeforePaint = ListTablesBeforePaint
             OnChange = ListTablesChange
             OnCompareNodes = vstCompareNodes
             OnDblClick = ListTablesDblClick
             OnEditing = ListTablesEditing
-            OnFreeNode = vstFreeNode
-            OnGetText = vstGetText
-            OnGetImageIndex = vstGetImageIndex
+            OnGetText = ListTablesGetText
+            OnGetImageIndex = ListTablesGetImageIndex
             OnGetHint = vstGetHint
-            OnGetNodeDataSize = vstGetNodeDataSize
+            OnGetNodeDataSize = ListTablesGetNodeDataSize
             OnHeaderClick = vstHeaderClick
             OnHeaderDraggedOut = vstHeaderDraggedOut
-            OnInitNode = vstInitNode
+            OnInitNode = ListTablesInitNode
             OnNewText = ListTablesNewText
             Columns = <
               item
