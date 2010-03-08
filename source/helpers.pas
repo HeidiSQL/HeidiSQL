@@ -2695,10 +2695,9 @@ begin
     Node := VT.GetFirst;
   while Assigned(Node) do begin
     if Node.Index = idx then begin
-      VT.FocusedNode := Node;
-      VT.Selected[Node] := True;
-    end else
-      VT.Selected[Node] := False;
+      SelectNode(VT, Node);
+      break;
+    end;
     Node := VT.GetNextSibling(Node);
   end;
 end;
