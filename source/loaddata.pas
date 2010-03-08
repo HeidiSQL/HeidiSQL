@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst,
-  SynRegExpr, Buttons,
+  SynRegExpr, Buttons, ExtCtrls, ToolWin,
   mysql_connection;
 
 type
@@ -27,16 +27,16 @@ type
     comboTable: TComboBox;
     lblColumns: TLabel;
     chklistColumns: TCheckListBox;
-    btnColUp: TSpeedButton;
-    btnColDown: TSpeedButton;
+    ToolBarColMove: TToolBar;
+    btnColUp: TToolButton;
+    btnColDown: TToolButton;
     grpOptions: TGroupBox;
     chkLowPriority: TCheckBox;
     chkReplace: TCheckBox;
     chkIgnore: TCheckBox;
     lblDuplicates: TLabel;
     grpFilename: TGroupBox;
-    editFilename: TEdit;
-    btnOpenFile: TSpeedButton;
+    editFilename: TButtonedEdit;
     grpFields: TGroupBox;
     lblFieldTerminater: TLabel;
     lblFieldEncloser: TLabel;
@@ -56,6 +56,7 @@ type
     comboCharset: TComboBox;
     lblCharset: TLabel;
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure comboDatabaseChange(Sender: TObject);
@@ -81,17 +82,39 @@ uses Main, helpers;
 
 
 
-{**
-  FormCreat
-}
 procedure Tloaddataform.FormCreate(Sender: TObject);
 begin
-  // Assign images from main imagelist to speedbuttons
-  Mainform.ImageListMain.GetBitmap(52, btnOpenFile.Glyph);
-  Mainform.ImageListMain.GetBitmap(74, btnColUp.Glyph);
-  Mainform.ImageListMain.GetBitmap(75, btnColDown.Glyph);
   InheritFont(Font);
+  // Restore settings
+  editFilename.Text := GetRegValue(REGNAME_CSV_FILENAME, '');
+  editFieldTerminator.Text := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
+  editFieldEncloser.Text := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
+  editLineTerminator.Text := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
+  chkFieldsEnclosedOptionally.Checked :=  GetRegValue(REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked);
+  editFieldEscaper.Text := GetRegValue(REGNAME_CSV_ESCAPER, editFieldEscaper.Text);
+  updownIgnoreLines.Position := GetRegValue(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
+  chkLowPriority.Checked := GetRegValue(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
+  chkReplace.Checked := GetRegValue(REGNAME_CSV_REPLACE, chkReplace.Checked);
+  chkIgnore.Checked := GetRegValue(REGNAME_CSV_IGNORE, chkIgnore.Checked);
 end;
+
+
+procedure Tloaddataform.FormDestroy(Sender: TObject);
+begin
+  // Save settings
+  OpenRegistry;
+  MainReg.WriteString(REGNAME_CSV_FILENAME, editFilename.Text);
+  MainReg.WriteString(REGNAME_CSV_SEPARATOR, editFieldTerminator.Text);
+  MainReg.WriteString(REGNAME_CSV_ENCLOSER, editFieldEncloser.Text);
+  MainReg.WriteString(REGNAME_CSV_TERMINATOR, editLineTerminator.Text);
+  MainReg.WriteBool(REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked);
+  MainReg.WriteString(REGNAME_CSV_ESCAPER, editFieldEscaper.Text);
+  MainReg.WriteInteger(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
+  MainReg.WriteBool(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
+  MainReg.WriteBool(REGNAME_CSV_REPLACE, chkReplace.Checked);
+  MainReg.WriteBool(REGNAME_CSV_IGNORE, chkIgnore.Checked);
+end;
+
 
 procedure Tloaddataform.FormShow(Sender: TObject);
 begin
@@ -101,21 +124,7 @@ begin
   comboDatabase.ItemIndex := comboDatabase.Items.IndexOf( Mainform.ActiveDatabase );
   if comboDatabase.ItemIndex = -1 then
     comboDatabase.ItemIndex := 0;
-
   comboDatabaseChange(self);
-  // filename
-  editFilename.Text := GetRegValue(REGNAME_CSV_FILENAME, '');
-  // Use options from CSV export
-  editFieldTerminator.Text := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
-  editFieldEncloser.Text := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
-  editLineTerminator.Text := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
-  // Other options
-  chkFieldsEnclosedOptionally.Checked :=  GetRegValue(REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked);
-  editFieldEscaper.Text := GetRegValue(REGNAME_CSV_ESCAPER, editFieldEscaper.Text);
-  updownIgnoreLines.Position := GetRegValue(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
-  chkLowPriority.Checked := GetRegValue(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
-  chkReplace.Checked := GetRegValue(REGNAME_CSV_REPLACE, chkReplace.Checked);
-  chkIgnore.Checked := GetRegValue(REGNAME_CSV_IGNORE, chkIgnore.Checked);
 end;
 
 
@@ -209,22 +218,6 @@ var
     Result := '''' + StringReplace(str, '''', '\''', [rfReplaceAll]) + '''';
   end;
 begin
-
-  // Save settings
-  OpenRegistry;
-  // filename
-  MainReg.WriteString( REGNAME_CSV_FILENAME, editFilename.Text );
-  // Use options from CSV export
-  MainReg.WriteString( REGNAME_CSV_SEPARATOR, editFieldTerminator.Text );
-  MainReg.WriteString( REGNAME_CSV_ENCLOSER, editFieldEncloser.Text );
-  MainReg.WriteString( REGNAME_CSV_TERMINATOR, editLineTerminator.Text );
-  // Other options
-  MainReg.WriteBool( REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked );
-  MainReg.WriteString( REGNAME_CSV_ESCAPER, editFieldEscaper.Text );
-  MainReg.WriteInteger( REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position );
-  MainReg.WriteBool( REGNAME_CSV_LOWPRIO, chkLowPriority.Checked );
-  MainReg.WriteBool( REGNAME_CSV_REPLACE, chkReplace.Checked );
-  MainReg.WriteBool( REGNAME_CSV_IGNORE, chkIgnore.Checked );
 
   query := 'LOAD DATA ';
 

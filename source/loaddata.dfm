@@ -15,6 +15,7 @@ object loaddataform: Tloaddataform
   OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
     423
@@ -70,15 +71,6 @@ object loaddataform: Tloaddataform
         DesignSize = (
           403
           90)
-        object btnOpenFile: TSpeedButton
-          Left = 362
-          Top = 24
-          Width = 22
-          Height = 22
-          Anchors = [akTop, akRight]
-          Flat = True
-          OnClick = btnOpenFileClick
-        end
         object lblFilename: TLabel
           Left = 10
           Top = 27
@@ -95,23 +87,29 @@ object loaddataform: Tloaddataform
           Caption = '&Character set:'
           FocusControl = comboCharset
         end
-        object editFilename: TEdit
+        object editFilename: TButtonedEdit
           Left = 104
           Top = 24
-          Width = 252
+          Width = 289
           Height = 21
           Anchors = [akLeft, akTop, akRight]
+          Images = MainForm.ImageListMain
+          RightButton.ImageIndex = 51
+          RightButton.Visible = True
           TabOrder = 0
           Text = 'editFilename'
           OnChange = editFilenameChange
           OnDblClick = btnOpenFileClick
+          OnRightButtonClick = btnOpenFileClick
         end
         object comboCharset: TComboBox
           Left = 104
           Top = 51
-          Width = 252
+          Width = 289
           Height = 21
           Style = csDropDownList
+          Anchors = [akLeft, akTop, akRight]
+          DropDownCount = 16
           TabOrder = 1
         end
       end
@@ -263,24 +261,6 @@ object loaddataform: Tloaddataform
         Height = 13
         Caption = 'Use Columns:'
       end
-      object btnColUp: TSpeedButton
-        Left = 150
-        Top = 117
-        Width = 25
-        Height = 25
-        Anchors = [akTop, akRight]
-        Flat = True
-        OnClick = btnColUpClick
-      end
-      object btnColDown: TSpeedButton
-        Left = 150
-        Top = 142
-        Width = 25
-        Height = 25
-        Anchors = [akTop, akRight]
-        Flat = True
-        OnClick = btnColDownClick
-      end
       object comboDatabase: TComboBox
         Left = 10
         Top = 26
@@ -350,6 +330,32 @@ object loaddataform: Tloaddataform
           Caption = 'Ignore'
           TabOrder = 2
           OnClick = chkIgnoreClick
+        end
+      end
+      object ToolBarColMove: TToolBar
+        Left = 149
+        Top = 117
+        Width = 23
+        Height = 44
+        Align = alNone
+        AutoSize = True
+        Caption = 'ToolBarColMove'
+        Images = MainForm.ImageListMain
+        TabOrder = 4
+        object btnColUp: TToolButton
+          Left = 0
+          Top = 0
+          Caption = 'btnColUp'
+          ImageIndex = 74
+          Wrap = True
+          OnClick = btnColUpClick
+        end
+        object btnColDown: TToolButton
+          Left = 0
+          Top = 22
+          Caption = 'btnColDown'
+          ImageIndex = 75
+          OnClick = btnColDownClick
         end
       end
     end
