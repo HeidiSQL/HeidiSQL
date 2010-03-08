@@ -118,7 +118,7 @@ begin
   Modified := False;
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
-  Mainform.showstatus;
+  Mainform.ShowStatusMsg;
   Screen.Cursor := crDefault;
 end;
 

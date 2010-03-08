@@ -490,7 +490,7 @@ type
     procedure actCopyAsCSVExecute(Sender: TObject);
     procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
-    procedure showstatus(msg: string=''; panel: Integer=6);
+    procedure ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
     function mask(str: String) : String;
     procedure actExecuteQueryExecute(Sender: TObject);
     procedure actExecuteSelectionExecute(Sender: TObject);
@@ -945,10 +945,10 @@ uses
 {$R *.DFM}
 
 
-procedure TMainForm.showstatus(msg: string=''; panel: Integer=6);
+procedure TMainForm.ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
 begin
-  // show Message in statusbar
-  StatusBar.Panels[panel].Text := msg;
+  // Show message in some statusbar panel
+  StatusBar.Panels[PanelNr].Text := Msg;
   StatusBar.Repaint;
 end;
 
@@ -1696,7 +1696,7 @@ begin
     ActivateFileLogging;
 
   tabHost.Caption := 'Host: '+Connection.Parameters.HostName;
-  showstatus('MySQL '+Connection.ServerVersionStr, 3);
+  ShowStatusMsg('MySQL '+Connection.ServerVersionStr, 3);
 
   // Save server version
   OpenRegistry(SessionName);
@@ -2148,9 +2148,9 @@ begin
     GridToCsv(ActiveGrid, prefCSVSeparator, prefCSVEncloser, prefCSVTerminator, S);
     StreamToClipboard(S, nil, False);
   finally
-    ShowStatus('Freeing data...');
+    ShowStatusMsg('Freeing data...');
     S.Free;
-    ShowStatus(STATUS_MSG_READY);
+    ShowStatusMsg(STATUS_MSG_READY);
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2170,9 +2170,9 @@ begin
     GridToHtml(ActiveGrid, Title, S);
     StreamToClipboard(S, S, True);
   finally
-    ShowStatus('Freeing data...');
+    ShowStatusMsg('Freeing data...');
     S.Free;
-    ShowStatus(STATUS_MSG_READY);
+    ShowStatusMsg(STATUS_MSG_READY);
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2192,9 +2192,9 @@ begin
     GridToXml(ActiveGrid, Root, S);
     StreamToClipboard(S, nil, False);
   finally
-    ShowStatus('Freeing data...');
+    ShowStatusMsg('Freeing data...');
     S.Free;
-    ShowStatus(STATUS_MSG_READY);
+    ShowStatusMsg(STATUS_MSG_READY);
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2221,9 +2221,9 @@ begin
     SynExporterHTML1.SaveToStream(HTML);
     StreamToClipboard(S, HTML, False);
   finally
-    ShowStatus('Freeing data...');
+    ShowStatusMsg('Freeing data...');
     S.Free;
-    ShowStatus(STATUS_MSG_READY);
+    ShowStatusMsg(STATUS_MSG_READY);
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2255,10 +2255,10 @@ begin
       3: GridToXml(ActiveGrid, Title, FS);
       4: GridToSql(ActiveGrid, Title, FS);
     end;
-    ShowStatus('Freeing data...');
+    ShowStatusMsg('Freeing data...');
     FS.Free;
   finally
-    ShowStatus(STATUS_MSG_READY);
+    ShowStatusMsg(STATUS_MSG_READY);
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2281,7 +2281,7 @@ begin
   g := ActiveGrid;
   if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
   Screen.Cursor := crHourGlass;
-  showstatus('Saving contents to file...');
+  ShowStatusMsg('Saving contents to file...');
   IsBinary := GridResult(ActiveGrid).Columns[g.FocusedColumn].DatatypeCat = dtcBinary;
 
   Header := WideHexToBin(Copy(g.Text[g.FocusedNode, g.FocusedColumn], 3, 20));
@@ -2317,7 +2317,7 @@ begin
     Write(f, Content);
     CloseFile(f);
   end;
-  ShowStatus( STATUS_MSG_READY );
+  ShowStatusMsg( STATUS_MSG_READY );
   Screen.Cursor := crDefault;
   ShellExec( filename );
 end;
@@ -2552,7 +2552,7 @@ begin
     Connection := ConnectionAttempt;
     SessionName := Session;
   end;
-  ShowStatus( STATUS_MSG_READY );
+  ShowStatusMsg( STATUS_MSG_READY );
 end;
 
 
@@ -2703,16 +2703,16 @@ begin
     SearchReplaceDialog.Editor.SearchEngine := SynEditSearch1;
   OldCaretXY := SearchReplaceDialog.Editor.CaretXY;
   SearchReplaceDialog.Editor.BeginUpdate;
-  ShowStatus('Searching ...');
+  ShowStatusMsg('Searching ...');
   Occurences := SearchReplaceDialog.Editor.SearchReplace(
     SearchReplaceDialog.comboSearch.Text,
     SearchReplaceDialog.comboReplace.Text,
     SearchReplaceDialog.Options
     );
   SearchReplaceDialog.Editor.EndUpdate;
-  ShowStatus(STATUS_MSG_READY);
+  ShowStatusMsg(STATUS_MSG_READY);
   if ssoReplaceAll in SearchReplaceDialog.Options then
-    ShowStatus('Text "'+SearchReplaceDialog.comboSearch.Text+'" '+FormatNumber(Occurences)+' times replaced.', 0)
+    ShowStatusMsg('Text "'+SearchReplaceDialog.comboSearch.Text+'" '+FormatNumber(Occurences)+' times replaced.', 0)
   else begin
     if (OldCaretXY.Char = SearchReplaceDialog.Editor.CaretXY.Char) and
       (OldCaretXY.Line = SearchReplaceDialog.Editor.CaretXY.Line) then
@@ -3514,7 +3514,7 @@ begin
     Select := Select + ' LIMIT '+IntToStr(Offset)+', '+IntToStr(DatagridWantedRowCount-Offset);
 
     try
-      ShowStatus('Fetching rows ...');
+      ShowStatusMsg('Fetching rows ...');
       Data := Connection.GetResults(Select);
     except
       // Wrong WHERE clause in most cases
@@ -3523,7 +3523,7 @@ begin
     end;
 
     if Assigned(Data) then begin
-      ShowStatus('Copying rows to internal structure ...');
+      ShowStatusMsg('Copying rows to internal structure ...');
       // Set up grid column headers
       SetLength(DataGridResult.Columns, Data.ColumnCount);
       vt.Header.Columns.BeginUpdate;
@@ -3555,7 +3555,7 @@ begin
         end;
         Data.Next;
       end;
-      ShowStatus('Freeing memory ...');
+      ShowStatusMsg('Freeing memory ...');
       FreeAndNil(Data);
       vt.RootNodeCount := Length(DataGridResult.Rows);
 
@@ -3584,7 +3584,7 @@ begin
   end;
   vt.Tag := VTREE_LOADED;
   Screen.Cursor := crDefault;
-  ShowStatus(STATUS_MSG_READY);
+  ShowStatusMsg(STATUS_MSG_READY);
 end;
 
 
@@ -3703,7 +3703,7 @@ begin
 
   Screen.Cursor := crHourGlass;
 
-  ShowStatus( 'Displaying objects from "' + ActiveDatabase + '" ...' );
+  ShowStatusMsg( 'Displaying objects from "' + ActiveDatabase + '" ...' );
   Objects := Connection.GetDBObjects(ActiveDatabase, vt.Tag = VTREE_NOTLOADED_PURGECACHE);
   ListTables.BeginUpdate;
   ListTables.RootNodeCount := Objects.Count;
@@ -3737,8 +3737,8 @@ begin
     Delete(Msg, Length(Msg)-1, 2);
     Msg := Msg + ')';
   end;
-  ShowStatus(Msg, 0);
-  ShowStatus(STATUS_MSG_READY);
+  ShowStatusMsg(Msg, 0);
+  ShowStatusMsg(STATUS_MSG_READY);
   Screen.Cursor := crDefault;
   // Ensure tree db node displays its chidren initialized
   DBtree.ReinitChildren(FindDBNode(ActiveDatabase), False);
@@ -3983,7 +3983,7 @@ begin
   end;
   if LB <> '' then
     Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
-  showstatus('Initializing SQL...');
+  ShowStatusMsg('Initializing SQL...');
   SQL := parseSQL(Text);
   if SQL.Count = 0 then begin
     ResultLabel.Caption := '(nothing to do)';
@@ -3995,7 +3995,7 @@ begin
   actExecuteQuery.Enabled := false;
   actExecuteSelection.Enabled := false;
   EnableProgressBar(SQL.Count);
-  showstatus('Executing SQL...');
+  ShowStatusMsg('Executing SQL...');
   SQLtime := 0;
   SQLNetTime := 0;
   QueryCount := 0;
@@ -4099,7 +4099,7 @@ begin
   // Ensure controls are in a valid state
   ValidateControls(Sender);
   Screen.Cursor := crDefault;
-  ShowStatus( STATUS_MSG_READY );
+  ShowStatusMsg( STATUS_MSG_READY );
 end;
 
 
@@ -4349,9 +4349,9 @@ procedure TMainForm.TimerHostUptimeTimer(Sender: TObject);
 begin
   // Display server uptime
   if Assigned(Connection) then
-    showstatus('Uptime: '+FormatTimeNumber(Connection.ServerUptime), 4)
+    ShowStatusMsg('Uptime: '+FormatTimeNumber(Connection.ServerUptime), 4)
   else
-    showstatus('', 4);
+    ShowStatusMsg('', 4);
 end;
 
 
@@ -4409,9 +4409,9 @@ procedure TMainForm.TimerConnectedTimer(Sender: TObject);
 begin
   if Assigned(Connection) and Connection.Active then begin
     // calculate and display connection-time
-    showstatus('Connected: ' + FormatTimeNumber(Connection.ConnectionUptime), 2);
+    ShowStatusMsg('Connected: ' + FormatTimeNumber(Connection.ConnectionUptime), 2);
   end else begin
-    showstatus('Disconnected.', 2);
+    ShowStatusMsg('Disconnected.', 2);
   end;
 end;
 
@@ -6257,7 +6257,7 @@ begin
         Screen.Cursor := crHourglass;
         try
           if not Assigned(AllDatabases) then begin
-            Showstatus( 'Reading Databases...' );
+            ShowStatusMsg( 'Reading Databases...' );
             AllDatabases := Connection.GetCol('SHOW DATABASES');
           end;
           if not Assigned(Databases) then
@@ -6295,21 +6295,21 @@ begin
           if i > -1 then
             Databases.Move(i, 0);
 
-          showstatus( IntToStr( Databases.Count ) + ' Databases', 0 );
+          ShowStatusMsg( IntToStr( Databases.Count ) + ' Databases', 0 );
           ChildCount := Databases.Count;
         finally
-          ShowStatus( STATUS_MSG_READY );
+          ShowStatusMsg( STATUS_MSG_READY );
           Screen.Cursor := crDefault;
         end;
       end;
     // DB node expanding
     1: begin
         Screen.Cursor := crHourglass;
-        Showstatus( 'Reading objects ...' );
+        ShowStatusMsg( 'Reading objects ...' );
         try
           ChildCount := Connection.GetDBObjects(Databases[Node.Index]).Count;
         finally
-          ShowStatus( STATUS_MSG_READY );
+          ShowStatusMsg( STATUS_MSG_READY );
           Screen.Cursor := crDefault;
         end;
       end;
@@ -9212,9 +9212,9 @@ begin
     y := ActiveQueryMemo.CaretY;
   end;
   if (x > -1) and (y > -1) then
-    ShowStatus(FormatNumber(y)+' : '+FormatNumber(x), 1)
+    ShowStatusMsg(FormatNumber(y)+' : '+FormatNumber(x), 1)
   else
-    ShowStatus('', 1);
+    ShowStatusMsg('', 1);
 end;
 
 end.
