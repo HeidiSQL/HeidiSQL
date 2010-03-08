@@ -1815,6 +1815,7 @@ begin
   // Clear database and table lists
   DBtree.ClearSelection;
   DBtree.FocusedNode := nil;
+  PreviousFocusedNode := nil;
   FreeAndNil(AllDatabases);
   FreeAndNil(DataGridHiddenColumns);
   SynMemoFilter.Clear;
@@ -1832,6 +1833,7 @@ begin
   ListStatus.Tag := VTREE_NOTLOADED;
   ListProcesses.Tag := VTREE_NOTLOADED;
   ListCommandstats.Tag := VTREE_NOTLOADED;
+  ListTables.Tag := VTREE_NOTLOADED;
 
   Application.Title := APPNAME;
 end;
