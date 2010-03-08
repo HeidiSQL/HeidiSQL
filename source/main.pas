@@ -1298,6 +1298,7 @@ begin
   prefGridRowcountStep := GetRegValue(REGNAME_ROWSPERSTEP, DEFAULT_ROWSPERSTEP);
   prefGridRowsLineCount := GetRegValue(REGNAME_GRIDROWSLINECOUNT, DEFAULT_GRIDROWSLINECOUNT);
   actDataShowNext.Hint := 'Show next '+FormatNumber(prefGridRowcountStep)+' rows ...';
+  actAboutBox.Caption := 'About '+APPNAME+' '+AppVersion;
   // Fix registry entry from older versions which can have 0 here which makes no sense
   // since the autosetting was removed
   if prefMaxColWidth <= 0 then
