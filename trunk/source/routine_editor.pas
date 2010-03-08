@@ -218,6 +218,9 @@ begin
       editComment.Text := StringReplace(rx.Match[1], '''''', '''', [rfReplaceAll]);
       Delete(Create, rx.MatchPos[0], rx.MatchLen[0]-1);
     end;
+    rx.Expression := '^\s*CHARSET\s+[\w\d]+\s';
+    if rx.Exec(Create) then
+      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]-1);
     // Tata, remaining code is the routine body
     Create := TrimLeft(Create);
     SynMemoBody.Text := Create;
