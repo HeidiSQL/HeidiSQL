@@ -742,6 +742,8 @@ type
     procedure AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode,
       Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure editFilterVTRightButtonClick(Sender: TObject);
+    procedure DataGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex);
   private
     FDelimiter: String;
     FileNameSessionLog: String;
