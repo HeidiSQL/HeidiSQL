@@ -342,7 +342,7 @@ begin
   // Indicate change mechanisms can call their events now. See Modification().
   FLoaded := True;
   // Empty status panel
-  Mainform.showstatus;
+  Mainform.ShowStatusMsg;
   Screen.Cursor := crDefault;
 end;
 
@@ -458,7 +458,7 @@ var
   Node: PVirtualNode;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
-  Mainform.showstatus('Composing ALTER statement ...');
+  Mainform.ShowStatusMsg('Composing ALTER statement ...');
   Screen.Cursor := crHourglass;
   Specs := TStringList.Create;
   if editName.Text <> FEditObjectName then
@@ -590,7 +590,7 @@ begin
   Result := 'ALTER TABLE '+Mainform.mask(FEditObjectName) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
   Result := Trim(Result);
   FreeAndNil(Specs);
-  Mainform.showstatus;
+  Mainform.ShowStatusMsg;
   Mainform.ProgressBarStatus.Hide;
   Screen.Cursor := crDefault;
 end;

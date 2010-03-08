@@ -802,7 +802,7 @@ end;
 
 procedure ExportStatusMsg(Node: PVirtualNode; RootNodeCount: Cardinal; StreamSize: Int64);
 begin
-  Mainform.Showstatus('Exporting row '+FormatNumber(Node.Index+1)+' of '+FormatNumber(RootNodeCount)+
+  Mainform.ShowStatusMsg('Exporting row '+FormatNumber(Node.Index+1)+' of '+FormatNumber(RootNodeCount)+
     ' ('+IntToStr(Trunc((Node.Index+1) / RootNodeCount *100))+'%, '+FormatByteNumber(StreamSize)+')'
     );
   Mainform.ProgressBarStatus.Position := Node.Index+1;
@@ -928,7 +928,7 @@ begin
   StreamWrite(S, tmp);
   Grid.Visible := true;
   Mainform.ProgressBarStatus.Visible := False;
-  Mainform.Showstatus(STATUS_MSG_READY);
+  Mainform.ShowStatusMsg(STATUS_MSG_READY);
 end;
 
 
@@ -1020,7 +1020,7 @@ begin
   end;
   Grid.Visible := true;
   Mainform.ProgressBarStatus.Visible := False;
-  Mainform.showstatus(STATUS_MSG_READY);
+  Mainform.ShowStatusMsg(STATUS_MSG_READY);
 end;
 
 
@@ -1099,7 +1099,7 @@ begin
   StreamWrite(S, tmp);
   Grid.Visible := true;
   Mainform.ProgressBarStatus.Visible := False;
-  Mainform.showstatus(STATUS_MSG_READY);
+  Mainform.ShowStatusMsg(STATUS_MSG_READY);
 end;
 
 
@@ -1177,7 +1177,7 @@ begin
   StreamWrite(S, tmp);
   Grid.Visible := true;
   Mainform.ProgressBarStatus.Visible := False;
-  Mainform.showstatus(STATUS_MSG_READY);
+  Mainform.ShowStatusMsg(STATUS_MSG_READY);
 end;
 
 
@@ -3196,7 +3196,7 @@ end;
 
 procedure TDBObjectEditor.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
 begin
-  Mainform.showstatus('Initializing editor ...');
+  Mainform.ShowStatusMsg('Initializing editor ...');
   FEditObjectName := ObjectName;
   Mainform.SetEditorTabCaption(Self, FEditObjectName);
   Screen.Cursor := crHourglass;
