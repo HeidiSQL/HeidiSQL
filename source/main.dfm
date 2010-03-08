@@ -1248,6 +1248,7 @@ object MainForm: TMainForm
             OnEditing = DataGridEditing
             OnEnter = ValidateControls
             OnExit = ValidateControls
+            OnFocusChanged = DataGridFocusChanged
             OnFocusChanging = DataGridFocusChanging
             OnGetText = AnyGridGetText
             OnPaintText = AnyGridPaintText

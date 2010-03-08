@@ -780,6 +780,7 @@ type
     procedure DatabaseChanged(Database: String);
     function GetBlobContent(Results: TMySQLQuery; Column: Integer): String;
     procedure DoSearchReplace;
+    procedure UpdateLineCharPanel;
   public
     Connection: TMySQLConnection;
     SessionName: String;
@@ -3873,9 +3874,7 @@ begin
   if QueryTabActive then RefreshQueryHelpers;
 
   ValidateQueryControls(Sender);
-
-  if not QueryTabActive then // Empty panel with "Line:Char"
-    showstatus('', 1);
+  UpdateLineCharPanel;
 end;
 
 procedure TMainForm.RefreshQueryHelpers;
@@ -4335,12 +4334,9 @@ end;
 
 procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes:
     TSynStatusChanges);
-var
-  sm: TSynMemo;
 begin
-  sm := Sender as TSynMemo;
   ValidateQueryControls(Sender);
-  showstatus(FormatNumber(sm.CaretY)+' : '+FormatNumber(sm.CaretX), 1);
+  UpdateLineCharPanel;
 end;
 
 
@@ -6924,6 +6920,13 @@ begin
 end;
 
 
+procedure TMainForm.DataGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex);
+begin
+  UpdateLineCharPanel;
+end;
+
+
 {**
   DataGrid: invoke update or insert routine
 }
@@ -9186,6 +9189,29 @@ begin
   actExecuteQueryExecute(Sender);
 end;
 
+
+procedure TMainForm.UpdateLineCharPanel;
+var
+  x, y: Int64;
+  Grid: TVirtualStringTree;
+begin
+  // Fill panel with "Line:Char"
+  x := -1;
+  y := -1;
+  Grid := ActiveGrid;
+  if Assigned(Grid) and Grid.Focused then begin
+    if Assigned(Grid.FocusedNode) then
+      y := Grid.FocusedNode.Index+1;
+    x := Grid.FocusedColumn+1;
+  end else if QueryTabActive and ActiveQueryMemo.Focused then begin
+    x := ActiveQueryMemo.CaretX;
+    y := ActiveQueryMemo.CaretY;
+  end;
+  if (x > -1) and (y > -1) then
+    ShowStatus(FormatNumber(y)+' : '+FormatNumber(x), 1)
+  else
+    ShowStatus('', 1);
+end;
 
 end.
 
