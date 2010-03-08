@@ -6,8 +6,8 @@ object UserManagerForm: TUserManagerForm
   ClientHeight = 394
   ClientWidth = 560
   Color = clBtnFace
-  Constraints.MinHeight = 430
-  Constraints.MinWidth = 360
+  Constraints.MinHeight = 400
+  Constraints.MinWidth = 500
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
