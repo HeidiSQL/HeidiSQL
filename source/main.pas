@@ -647,6 +647,12 @@ type
     procedure ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+    procedure ListTablesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+      var ContentRect: TRect);
+    procedure ListProcessesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+      var ContentRect: TRect);
     procedure ListProcessesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure editFilterVTChange(Sender: TObject);
     procedure ListVariablesDblClick(Sender: TObject);
@@ -783,6 +789,7 @@ type
     function GetBlobContent(Results: TMySQLQuery; Column: Integer): String;
     procedure DoSearchReplace;
     procedure UpdateLineCharPanel;
+    procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
   public
     Connection: TMySQLConnection;
     SessionName: String;
@@ -791,6 +798,9 @@ type
     Databases: TStringList;
     btnAddTab: TSpeedButton;
     QueryTabs: TObjectList<TQueryTab>;
+    DBObjectsMaxSize: Int64;
+    DBObjectsMaxRows: Int64;
+    ProcessListMaxTime: Int64;
 
     // Cached forms
     TableToolsDialog: TfrmTableTools;
@@ -841,6 +851,8 @@ type
     prefExportLocaleNumbers: Boolean;
     prefNullColorDefault: TColor;
     prefNullBG: TColor;
+    prefDisplayBars: Boolean;
+    prefBarColor: TColor;
 
     // Data grid related stuff
     DataGridHiddenColumns: TStringList;
@@ -1315,6 +1327,8 @@ begin
   prefLogSQL := GetRegValue(REGNAME_LOG_SQL, DEFAULT_LOG_SQL);
   prefLogInfos := GetRegValue(REGNAME_LOG_INFOS, DEFAULT_LOG_INFOS);
   prefLogDebug := GetRegValue(REGNAME_LOG_DEBUG, DEFAULT_LOG_DEBUG);
+  prefDisplayBars := GetRegValue(REGNAME_DISPLAYBARS, DEFAULT_DISPLAYBARS);
+  prefBarColor := GetRegValue(REGNAME_BARCOLOR, DEFAULT_BARCOLOR);
 
   // Data-Font:
   datafontname := GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
@@ -3713,11 +3727,15 @@ begin
   vt.Tag := VTREE_LOADED;
 
   NumObjects := TStringList.Create;
+  DBObjectsMaxSize := 1;
+  DBObjectsMaxRows := 1;
   for i:=0 to Objects.Count-1 do begin
     Obj := Objects[i];
     NumObj := StrToIntDef(NumObjects.Values[Obj.ObjType], 0);
     Inc(NumObj);
     NumObjects.Values[Obj.ObjType] := IntToStr(NumObj);
+    DBObjectsMaxSize := Max(DBObjectsMaxSize, Obj.Size);
+    DBObjectsMaxRows := Max(DBObjectsMaxRows, Obj.Rows);
   end;
   Msg := ActiveDatabase + ': ' + FormatNumber(Objects.Count) + ' ';
   if NumObjects.Count = 1 then
@@ -5947,28 +5965,62 @@ procedure TMainForm.ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
-  percent : Extended;
-  barwidth, cellwidth: Integer;
   NodeData: PVTreeData;
 begin
   // Only paint bar in percentage column
-  if Column <> 4 then
+  if Column = 4 then begin
+    NodeData := Sender.GetNodeData(Node);
+    PaintColorBar(MakeFloat(NodeData.Captions[Column]), 100, TargetCanvas, CellRect);
+  end;
+end;
+
+
+procedure TMainForm.ListTablesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+  var ContentRect: TRect);
+var
+  Obj: PDBObject;
+begin
+  // Only paint bar in rows + size column
+  if Column in [1, 2] then begin
+    Obj := Sender.GetNodeData(Node);
+    case Column of
+      1: PaintColorBar(Obj.Rows, DBObjectsMaxRows, TargetCanvas, CellRect);
+      2: PaintColorBar(Obj.Size, DBObjectsMaxSize, TargetCanvas, CellRect);
+    end;
+  end;
+end;
+
+procedure TMainForm.ListProcessesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+  var ContentRect: TRect);
+var
+  NodeData: PVTreeData;
+begin
+  if Column = 5 then begin
+    NodeData := Sender.GetNodeData(Node);
+    PaintColorBar(MakeFloat(NodeData.Captions[Column]), ProcessListMaxTime, TargetCanvas, CellRect);
+  end;
+end;
+
+
+procedure TMainForm.PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
+var
+  BarWidth, CellWidth: Integer;
+begin
+  if not prefDisplayBars then
     Exit;
 
   // Add minimal margin to cell edges
   InflateRect(CellRect, -1, -1);
-  cellwidth := CellRect.Right - CellRect.Left;
+  CellWidth := CellRect.Right - CellRect.Left;
+  BarWidth := Round(CellWidth*1 / Max * Value);
 
-  // Calculate value to display
-  NodeData := Sender.GetNodeData(Node);
-  percent := MakeFloat(NodeData.Captions[Column]);
-  barwidth := Round(cellwidth / 100 * percent);
-
-  // Adjust width of rect and paint the bar
-  CellRect.Right := CellRect.Right - cellwidth + barwidth;
-  TargetCanvas.Pen.Color := clGray;
-  TargetCanvas.Brush.Color := clInfoBk;
-  TargetCanvas.Rectangle(CellRect);
+  if BarWidth > 0 then begin
+    TargetCanvas.Brush.Color := prefBarColor;
+    TargetCanvas.Pen.Color := ColorAdjustBrightness(TargetCanvas.Brush.Color, -40);
+    TargetCanvas.RoundRect(CellRect.Left, CellRect.Top, CellRect.Left+BarWidth, CellRect.Bottom, 2, 2);
+  end;
 end;
 
 
@@ -7810,6 +7862,7 @@ begin
       Results := Connection.GetResults('SHOW FULL PROCESSLIST');
     end;
     SetLength(VTRowDataListProcesses, Results.RecordCount);
+    ProcessListMaxTime := 1;
     for i:=0 to Results.RecordCount-1 do begin
       if AnsiCompareText(Results.Col(4), 'Killed') = 0 then
         VTRowDataListProcesses[i].ImageIndex := 26  // killed
@@ -7826,6 +7879,7 @@ begin
           Text := sstr(Text, InfoLen);
         VTRowDataListProcesses[i].Captions.Add(Text);
       end;
+      ProcessListMaxTime := Max(ProcessListMaxTime, MakeInt(Results.Col(5)));
       Results.Next;
     end;
     FreeAndNil(Results);
