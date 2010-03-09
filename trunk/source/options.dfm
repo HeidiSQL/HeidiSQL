@@ -127,6 +127,25 @@ object optionsform: Toptionsform
         State = cbChecked
         TabOrder = 0
       end
+      object chkColorBars: TCheckBox
+        Left = 16
+        Top = 189
+        Width = 201
+        Height = 17
+        Caption = 'Display bars in various list columns'
+        TabOrder = 8
+        OnClick = chkColorBarsClick
+      end
+      object cboxColorBars: TColorBox
+        Left = 249
+        Top = 187
+        Width = 145
+        Height = 22
+        Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
+        Anchors = [akTop, akRight]
+        TabOrder = 9
+        OnClick = Modified
+      end
     end
     object tabLogging: TTabSheet
       Caption = 'Logging'

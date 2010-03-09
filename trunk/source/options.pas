@@ -132,6 +132,8 @@ type
     lblGridRowsLinecount: TLabel;
     editGridRowsLineCount: TEdit;
     updownGridRowsLineCount: TUpDown;
+    chkColorBars: TCheckBox;
+    cboxColorBars: TColorBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -163,6 +165,7 @@ type
     procedure Shortcut2Change(Sender: TObject);
     procedure ShortcutEnter(Sender: TObject);
     procedure ShortcutExit(Sender: TObject);
+    procedure chkColorBarsClick(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -257,6 +260,8 @@ begin
   MainReg.WriteBool(REGNAME_DO_UPDATECHECK_BUILDS, chkUpdatecheckBuilds.Checked);
   MainReg.WriteInteger(REGNAME_UPDATECHECK_INTERVAL, updownUpdatecheckInterval.Position);
   MainReg.WriteBool(REGNAME_DO_STATISTICS, chkDoStatistics.Checked);
+  MainReg.WriteBool(REGNAME_DISPLAYBARS, chkColorBars.Checked);
+  MainReg.WriteInteger(REGNAME_BARCOLOR, cboxColorBars.Selected);
   // Save color settings
   MainReg.WriteInteger(REGNAME_FIELDCOLOR_NUMERIC, cboxNumeric.Selected);
   MainReg.WriteInteger(REGNAME_FIELDCOLOR_TEXT, cboxText.Selected);
@@ -344,6 +349,11 @@ begin
   Mainform.prefEnableEnumEditor := chkEditorEnum.Checked;
   Mainform.prefEnableSetEditor := chkEditorSet.Checked;
   Mainform.prefEnableNullBG := chkNullBg.Checked;
+  Mainform.prefDisplayBars := chkColorBars.Checked;
+  Mainform.prefBarColor := cboxColorBars.Selected;
+  Mainform.ListTables.Invalidate;
+  Mainform.ListProcesses.Invalidate;
+  Mainform.ListCommandStats.Invalidate;
 
   // Settings have been applied, send a signal to the user
   btnApply.Enabled := False;
@@ -404,6 +414,8 @@ begin
   updownUpdatecheckInterval.Position := GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
   chkUpdatecheckClick(Sender);
   chkDoStatistics.Checked := GetRegValue(REGNAME_DO_STATISTICS, DEFAULT_DO_STATISTICS);
+  chkColorBars.Checked := GetRegValue(REGNAME_DISPLAYBARS, DEFAULT_DISPLAYBARS);
+  cboxColorBars.Selected := GetRegValue(REGNAME_BARCOLOR, DEFAULT_BARCOLOR);
 
   // Logging
   updownLogLines.Position := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
@@ -523,6 +535,14 @@ begin
   chkUpdatecheckBuilds.Enabled := chkUpdatecheck.Checked;
   Modified(Sender);
 end;
+
+
+procedure Toptionsform.chkColorBarsClick(Sender: TObject);
+begin
+  cboxColorBars.Enabled := (Sender as TCheckbox).Checked;
+  Modified(Sender);
+end;
+
 
 procedure Toptionsform.chkNullBGClick(Sender: TObject);
 begin

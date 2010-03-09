@@ -660,6 +660,7 @@ object MainForm: TMainForm
                 TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
                 TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
                 OnAfterPaint = vstAfterPaint
+                OnBeforeCellPaint = ListProcessesBeforeCellPaint
                 OnBeforePaint = ListProcessesBeforePaint
                 OnCompareNodes = vstCompareNodes
                 OnFocusChanged = ListProcessesFocusChanged
@@ -876,6 +877,7 @@ object MainForm: TMainForm
             TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
             TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
             OnAfterPaint = vstAfterPaint
+            OnBeforeCellPaint = ListTablesBeforeCellPaint
             OnBeforePaint = ListTablesBeforePaint
             OnChange = ListTablesChange
             OnCompareNodes = vstCompareNodes
