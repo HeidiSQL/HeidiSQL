@@ -6417,8 +6417,7 @@ begin
             Exit;
           end;
         end;
-        if (not DBtree.Dragging)
-          and ((PageControlMain.ActivePage = tabHost) or(PageControlMain.ActivePage = tabData)) then
+        if (not DBtree.Dragging) and (not QueryTabActive) then
           PageControlMain.ActivePage := tabDatabase;
         tabDatabase.TabVisible := true;
         tabEditor.TabVisible := false;
