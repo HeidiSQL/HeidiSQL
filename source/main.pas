@@ -6819,7 +6819,9 @@ begin
     TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
 
   // Do not apply any color on a selected, highlighted cell to keep readability
-  if vsSelected in Node.States then
+  if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
+    cl := clHighlightText
+  else if vsSelected in Node.States then
     cl := clBlack
   else if r.Rows[Node.Index].Cells[Column].IsNull then
     cl := DatatypeCategories[Integer(r.Columns[Column].DatatypeCat)].NullColor
@@ -7548,21 +7550,20 @@ procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
   gr: TGridResult;
+  cl: TColor;
 begin
   if Column = -1 then
     Exit;
   gr := GridResult(Sender);
-  if (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
-    if not Sender.IsEditing then begin
-      // Editors may not cover the whole cell rectangle, so any colored area looks broken then
-      TargetCanvas.Brush.Color := $00FFCCCC;
-      TargetCanvas.FillRect(CellRect);
-    end;
-  end else if vsSelected in Node.States then begin
-    TargetCanvas.Brush.Color := $00EEEEEE;
-    TargetCanvas.FillRect(CellRect);
-  end else if prefEnableNullBG and gr.Rows[Node.Index].Cells[Column].IsNull then begin
-    TargetCanvas.Brush.Color := prefNullBG;
+  cl := clNone;
+  if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
+    cl := clHighlight
+  else if vsSelected in Node.States then
+    cl := $00EEEEEE
+  else if prefEnableNullBG and gr.Rows[Node.Index].Cells[Column].IsNull then
+    cl := prefNullBG;
+  if cl <> clNone then begin
+    TargetCanvas.Brush.Color := cl;
     TargetCanvas.FillRect(CellRect);
   end;
 end;
