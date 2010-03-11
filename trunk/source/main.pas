@@ -1848,7 +1848,6 @@ begin
   ListStatus.Tag := VTREE_NOTLOADED;
   ListProcesses.Tag := VTREE_NOTLOADED;
   ListCommandstats.Tag := VTREE_NOTLOADED;
-  ListTables.Tag := VTREE_NOTLOADED;
 
   Application.Title := APPNAME;
 end;
@@ -3713,6 +3712,8 @@ var
 begin
   // DB-Properties
   vt := Sender as TVirtualStringTree;
+  if not Connection.DbObjectsCached(ActiveDatabase) then
+    vt.Tag := VTREE_NOTLOADED;
   if vt.Tag = VTREE_LOADED then
     Exit;
 
@@ -4415,7 +4416,6 @@ begin
     Obj.Name := NewText;
     // Now the active tree db has to be updated. But calling RefreshTreeDB here causes an AV
     // so we do it manually here
-    Connection.ClearDbObjects(ActiveDatabase);
     DBTree.InvalidateChildren(FindDBNode(ActiveDatabase), True);
   except
     on E:Exception do
