@@ -7559,7 +7559,7 @@ begin
   if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
     cl := clHighlight
   else if vsSelected in Node.States then
-    cl := $00EEEEEE
+    cl := $00DDDDDD
   else if prefEnableNullBG and gr.Rows[Node.Index].Cells[Column].IsNull then
     cl := prefNullBG;
   if cl <> clNone then begin
