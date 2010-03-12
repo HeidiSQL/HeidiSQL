@@ -72,7 +72,7 @@ type
 
   TMySQLLogCategory = (lcInfo, lcSQL, lcUserFiredSQL, lcError, lcDebug);
   TMySQLLogEvent = procedure(Msg: String; Category: TMySQLLogCategory=lcInfo) of object;
-  TMySQLDatabaseChangedEvent = procedure(Database: String) of object;
+  TMySQLDatabaseEvent = procedure(Database: String) of object;
 
   TMySQLQuery = class;
   TMySQLConnection = class(TComponent)
@@ -85,7 +85,8 @@ type
       FDatabase: String;
       FLogPrefix: String;
       FOnLog: TMySQLLogEvent;
-      FOnDatabaseChanged: TMySQLDatabaseChangedEvent;
+      FOnDatabaseChanged: TMySQLDatabaseEvent;
+      FOnAfterClearDBObjects: TMySQLDatabaseEvent;
       FRowsFound: Int64;
       FRowsAffected: Int64;
       FServerVersionUntouched: String;
@@ -163,7 +164,8 @@ type
       property LogPrefix: String read FLogPrefix write FLogPrefix;
       // Events
       property OnLog: TMySQLLogEvent read FOnLog write FOnLog;
-      property OnDatabaseChanged: TMySQLDatabaseChangedEvent read FOnDatabaseChanged write FOnDatabaseChanged;
+      property OnDatabaseChanged: TMySQLDatabaseEvent read FOnDatabaseChanged write FOnDatabaseChanged;
+      property OnAfterClearDBObjects: TMySQLDatabaseEvent read FOnAfterClearDBObjects write FOnAfterClearDBObjects;
   end;
 
 
@@ -915,6 +917,8 @@ begin
       TDBObjectList(FDBObjectLists.Objects[i]).Free;
     FDBObjectLists.Clear;
   end;
+  if Assigned(FOnAfterClearDBObjects) then
+    FOnAfterClearDBObjects(db);
 end;
 
 

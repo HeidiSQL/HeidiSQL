@@ -786,6 +786,7 @@ type
     procedure SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
     procedure UpdateFilterPanel(Sender: TObject);
     procedure DatabaseChanged(Database: String);
+    procedure AfterClearDBObjects(Database: String);
     function GetBlobContent(Results: TMySQLQuery; Column: Integer): String;
     procedure DoSearchReplace;
     procedure UpdateLineCharPanel;
@@ -1852,6 +1853,7 @@ begin
   ListStatus.Tag := VTREE_NOTLOADED;
   ListProcesses.Tag := VTREE_NOTLOADED;
   ListCommandstats.Tag := VTREE_NOTLOADED;
+  ListTables.Tag := VTREE_NOTLOADED;
 
   Application.Title := APPNAME;
 end;
@@ -2535,6 +2537,7 @@ begin
   ConnectionAttempt := TMySQLConnection.Create(Self);
   ConnectionAttempt.OnLog := LogSQL;
   ConnectionAttempt.OnDatabaseChanged := DatabaseChanged;
+  ConnectionAttempt.OnAfterClearDBObjects := AfterClearDBObjects;
   ConnectionAttempt.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
   ConnectionAttempt.Parameters := Params;
   try
@@ -3814,8 +3817,6 @@ var
 begin
   // DB-Properties
   vt := Sender as TVirtualStringTree;
-  if not Connection.DbObjectsCached(ActiveDatabase) then
-    vt.Tag := VTREE_NOTLOADED;
   if vt.Tag = VTREE_LOADED then
     Exit;
 
@@ -6612,6 +6613,15 @@ procedure TMainForm.DatabaseChanged(Database: String);
 begin
   if (Database='') or (Databases.IndexOf(Database) > -1) then
     ActiveDatabase := Database;
+end;
+
+
+procedure TMainForm.AfterClearDBObjects(Database: String);
+begin
+  if (Database='') or (ActiveDatabase=Database) then begin
+    ListTables.Tag := VTREE_NOTLOADED;
+    ListTables.Invalidate;
+  end;
 end;
 
 
