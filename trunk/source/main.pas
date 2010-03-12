@@ -3661,7 +3661,7 @@ begin
         for j:=0 to Length(DataGridResult.Columns)-1 do begin
           SetLength(DataGridResult.Rows[i].Cells, Data.ColumnCount);
           Cell := @DataGridResult.Rows[i].Cells[j];
-          case Data.DataType(j).Category of
+          case DataGridResult.Columns[j].DatatypeCat of
             dtcInteger, dtcReal: Cell.Text := FormatNumber(Data.Col(j), False);
             dtcBinary: Cell.Text := GetBlobContent(Data, j);
             else Cell.Text := Data.Col(j);
