@@ -898,13 +898,11 @@ object MainForm: TMainForm
                 WideText = 'Name'
               end
               item
-                Alignment = taRightJustify
                 Position = 1
                 Width = 70
                 WideText = 'Rows'
               end
               item
-                Alignment = taRightJustify
                 Position = 2
                 Width = 70
                 WideText = 'Size'
