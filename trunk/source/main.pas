@@ -865,6 +865,7 @@ type
     DataGridFocusedColumnIndex: TColumnIndex;
     DataGridHasChanges: Boolean;
     DataGridResult: TGridResult;
+    DataGridFullRowMode: Boolean;
     SelectedTableCreateStatement: String;
     SelectedTableColumns: TTableColumnList;
     SelectedTableKeys: TTableKeyList;
@@ -932,6 +933,9 @@ type
     procedure SelectDBObject(Text: String; NodeType: TListNodeType);
     procedure SetupSynEditors;
     procedure ParseSelectedTableStructure;
+    function DataGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
+    procedure DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
+    function DataGridRowHasFullData(Node: PVirtualNode): Boolean;
 end;
 
 
@@ -2298,6 +2302,7 @@ begin
   ShowStatusMsg('Saving contents to file...');
   IsBinary := GridResult(ActiveGrid).Columns[g.FocusedColumn].DatatypeCat = dtcBinary;
 
+  DataGridEnsureFullRow(g, g.FocusedNode);
   Header := WideHexToBin(Copy(g.Text[g.FocusedNode, g.FocusedColumn], 3, 20));
   SaveBinary := false;
   filename := GetTempDir+'\'+APPNAME+'-preview.';
@@ -3214,6 +3219,7 @@ end;
 
 procedure TMainForm.actDataDuplicateRowExecute(Sender: TObject);
 begin
+  DataGridEnsureFullRow(DataGrid, DataGrid.FocusedNode);
   DataGridInsertRow(DataGrid.FocusedNode);
 end;
 
@@ -3373,29 +3379,116 @@ begin
 end;
 
 
+function TMainForm.DataGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
+var
+  i, j: Integer;
+  Row: PGridRow;
+  Select: String;
+  KeyColumns: TStringList;
+  Data: TMySQLQuery;
+begin
+  // Load remaining data on a partially loaded row in data grid
+  if Grid <> DataGrid then begin
+    Result := True;
+    Exit;
+  end;
+  Row := @DataGridResult.Rows[Node.Index];
+  if not DataGridRowHasFullData(Node) then begin
+    Select := 'SELECT ';
+    for i:=0 to Length(DataGridResult.Columns)-1 do
+      Select := Select + mask(DataGridResult.Columns[i].Name) + ', ';
+    Delete(Select, Length(Select)-1, 2);
+    Select := Select + ' FROM '+mask(SelectedTable.Name)+' WHERE ';
+    KeyColumns := GetKeyColumns;
+    for i:=0 to KeyColumns.Count-1 do begin
+      for j:=0 to Length(DataGridResult.Columns)-1 do begin
+        if DataGridResult.Columns[j].Name = KeyColumns[i] then begin
+          Select := Select + mask(KeyColumns[i]) + '=' + esc(Row.Cells[j].Text) + ' AND ';
+          break;
+        end;
+      end;
+    end;
+    Delete(Select, Length(Select)-4, 5);
+    try
+      Data := Connection.GetResults(Select);
+      if Data.RecordCount = 0 then
+        raise Exception.Create('Unable to find row.');
+      for i:=0 to Length(DataGridResult.Columns)-1 do begin
+        Row.Cells[i].Text := Data.Col(i);
+        Row.Cells[i].IsNull := Data.IsNull(i);
+      end;
+      Row.HasFullData := True;
+    except On E:Exception do
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+    end;
+  end;
+  Result := Row.HasFullData;
+end;
+
+
+procedure TMainForm.DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
+var
+  Node: PVirtualNode;
+begin
+  // Load remaining data of all grid rows
+  if Grid <> DataGrid then
+    Exit;
+  if SelectedOnly then
+    Node := Grid.GetFirstSelected
+  else
+    Node := Grid.GetFirst;
+  while Assigned(Node) do begin
+    if not DataGridRowHasFullData(Node) then begin
+      DataGridFullRowMode := True;
+      Grid.Tag := VTREE_NOTLOADED_PURGECACHE;
+      Grid.Repaint;
+      break;
+    end;
+    if SelectedOnly then
+      Node := Grid.GetNextSelected(Node)
+    else
+      Node := Grid.GetNext(Node);
+  end;
+end;
+
+
+function TMainForm.DataGridRowHasFullData(Node: PVirtualNode): Boolean;
+var
+  i: Integer;
+  HasFullData: Boolean;
+  Row: PGridRow;
+begin
+  Row := @DataGridResult.Rows[Node.Index];
+  if not Row.HasFullData then begin
+    HasFullData := True;
+    for i:=0 to Length(DataGridResult.Columns)-1 do begin
+      HasFullData := Length(Row.Cells[i].Text) < GRIDMAXDATA;
+      if not HasFullData then
+        break;
+    end;
+    Row.HasFullData := HasFullData;
+  end;
+  Result := Row.HasFullData;
+end;
+
+
 procedure TMainForm.DataGridBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   vt: TVirtualStringTree;
   Data: TMySQLQuery;
   Select: String;
-  RefreshingData: Boolean;
-  i, j, Offset, LastExistingColIndex: Integer;
-  KeyCols, WantedCols: TStringList;
+  RefreshingData, IsKeyColumn: Boolean;
+  i, j, Offset, LastExistingColIndex, ColLen: Integer;
+  KeyCols: TStringList;
+  WantedColumns: TTableColumnList;
   Cell: PGridCell;
+  c: TTableColumn;
 
-  procedure InitColumn(idx: Integer);
+  procedure InitColumn(idx: Integer; TblCol: TTableColumn);
   var
     k: Integer;
     Col: TVirtualTreeColumn;
-    TblCol: TTableColumn;
   begin
-    TblCol := nil;
-    for k:=0 to SelectedTableColumns.Count-1 do begin
-      TblCol := SelectedTableColumns[k];
-      if TblCol.Name = Data.ColumnNames[idx] then
-        break;
-    end;
-
     SetLength(DataGridResult.Columns, idx+1);
     DataGridResult.Columns[idx].Name := TblCol.Name;
     if vt.Header.Columns.Count <= idx then
@@ -3482,29 +3575,36 @@ begin
     DataGridDB := SelectedTable.Database;
     DataGridTable := SelectedTable.Name;
 
+    Select := 'SELECT ';
     // Ensure key columns are included to enable editing
     KeyCols := GetKeyColumns;
-    WantedCols := TStringlist.Create;
+    WantedColumns := TTableColumnList.Create(False);
     for i:=0 to SelectedTableColumns.Count-1 do begin
-      if (DatagridHiddenColumns.IndexOf(SelectedTableColumns[i].Name) = -1)
-        or (KeyCols.IndexOf(SelectedTableColumns[i].Name) > -1) then
-        WantedCols.Add(SelectedTableColumns[i].Name);
+      c := SelectedTableColumns[i];
+      IsKeyColumn := KeyCols.IndexOf(c.Name) > -1;
+      ColLen := MakeInt(c.LengthSet);
+      if (DatagridHiddenColumns.IndexOf(c.Name) = -1) or (IsKeyColumn) then begin
+        if not DataGridFullRowMode
+          and (c.DataType.Category in [dtcText, dtcBinary])
+          and (not IsKeyColumn) // We need full length of any key column, so DataGridLoadFullRow() has the chance to fetch the right row
+          and ((ColLen > GRIDMAXDATA) or (ColLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
+          then
+            Select := Select + ' LEFT(' + Mask(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), '
+          else
+            Select := Select + ' ' + Mask(c.Name) + ', ';
+        WantedColumns.Add(c);
+      end;
     end;
-
-    Select := 'SELECT ';
-    if WantedCols.Count = SelectedTableColumns.Count then begin
-      Select := Select + ' *';
-      tbtnDataColumns.ImageIndex := 107;
-    end else begin
-      for i:=0 to WantedCols.Count-1 do
-        Select := Select + ' ' + Mask(WantedCols[i]) + ',';
-      // Cut last comma
-      Delete(Select, Length(Select), 1);
-      // Signal for the user if we hide some columns
-      tbtnDataColumns.ImageIndex := 108;
-    end;
+    // Cut last comma
+    Delete(Select, Length(Select)-1, 2);
     // Include db name for cases in which dbtree is switching databases and pending updates are in process
     Select := Select + ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedTable.Name);
+
+    // Signal for the user if we hide some columns
+    if WantedColumns.Count = SelectedTableColumns.Count then
+      tbtnDataColumns.ImageIndex := 107
+    else
+      tbtnDataColumns.ImageIndex := 108;
 
     // Append WHERE clause
     if SynMemoFilter.GetTextLen > 0 then begin
@@ -3549,14 +3649,15 @@ begin
           vt.Header.Columns[i].Destroy;
       end;
       LastExistingColIndex := vt.Header.Columns.Count-1;
-      for i:=0 to Data.ColumnCount-1 do
-        InitColumn(i);
+      for i:=0 to WantedColumns.Count-1 do
+        InitColumn(i, WantedColumns[i]);
       vt.Header.Columns.EndUpdate;
 
       // Set up grid rows and data array
       vt.BeginUpdate;
       SetLength(DataGridResult.Rows, Offset+Data.RecordCount);
       for i:=Offset to Offset+Data.RecordCount-1 do begin
+        DataGridResult.Rows[i].HasFullData := DataGridFullRowMode;
         for j:=0 to Length(DataGridResult.Columns)-1 do begin
           SetLength(DataGridResult.Rows[i].Cells, Data.ColumnCount);
           Cell := @DataGridResult.Rows[i].Cells[j];
@@ -3597,6 +3698,7 @@ begin
     end;
   end;
   vt.Tag := VTREE_LOADED;
+  DataGridFullRowMode := False;
   Screen.Cursor := crDefault;
   ShowStatusMsg(STATUS_MSG_READY);
 end;
@@ -4455,6 +4557,7 @@ var
   IsNull: Boolean;
 begin
   // Set filter for "where..."-clause
+  DataGridEnsureFullRow(DataGrid, DataGrid.FocusedNode);
   value := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
   menuitem := (Sender as TMenuItem);
   column := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
@@ -6778,8 +6881,11 @@ begin
     if c.IsNull then begin
       if EditingCell then CellText := ''
       else CellText := TEXT_NULL;
-    end else
+    end else begin
       CellText := c.Text;
+      if (Sender = DataGrid) and (not DataGridRowHasFullData(Node)) and (Length(c.Text) = GRIDMAXDATA) then
+        CellText := CellText + ' [...]';
+    end;
   end;
 end;
 
@@ -7405,6 +7511,8 @@ begin
   Allowed := True;
   if DataGridResult.Rows[Node.Index].State = grsDefault then
     Allowed := CheckUniqueKeyClause;
+  if Allowed then
+    Allowed := DataGridEnsureFullRow(Sender as TVirtualStringTree, Node);
   if Allowed then begin
     // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
     actDataCancelChanges.ShortCut := 0;
@@ -8007,6 +8115,7 @@ begin
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
     if Assigned(Grid.FocusedNode) then begin
+      DataGridEnsureFullRow(Grid, Grid.FocusedNode);
       Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
       if (Grid = ActiveGrid) and DoCut then
         Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';

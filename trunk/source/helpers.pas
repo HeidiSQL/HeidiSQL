@@ -62,6 +62,7 @@ type
   TGridRow = packed record
     Cells: Array of TGridCell;
     State: TGridRowState;
+    HasFullData: Boolean;
   end;
   PGridRow = ^TGridRow;
   TGridRows = Array of TGridRow;
@@ -823,11 +824,14 @@ var
   SelectionOnly: Boolean;
   NodeCount: Cardinal;
 begin
+  // Only process selected nodes for "Copy as ..." actions
+  SelectionOnly := S is TMemoryStream;
+
+  Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
   GridData := Mainform.GridResult(Grid);
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-  // Only process selected nodes for "Copy as ..." actions
-  SelectionOnly := S is TMemoryStream;
+
   if SelectionOnly then
     NodeCount := Grid.SelectedCount
   else
@@ -949,14 +953,17 @@ var
   SelectionOnly: Boolean;
   NodeCount: Cardinal;
 begin
+  // Only process selected nodes for "Copy as ..." actions
+  SelectionOnly := S is TMemoryStream;
+
+  Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
   GridData := Mainform.GridResult(Grid);
 
   separator := esc2ascii(separator);
   encloser := esc2ascii(encloser);
   terminator := esc2ascii(terminator);
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-  // Only process selected nodes for "Copy as ..." actions
-  SelectionOnly := S is TMemoryStream;
+
   if SelectionOnly then
     NodeCount := Grid.SelectedCount
   else
@@ -1039,11 +1046,14 @@ var
   SelectionOnly: Boolean;
   NodeCount: Cardinal;
 begin
+  // Only process selected nodes for "Copy as ..." actions
+  SelectionOnly := S is TMemoryStream;
+
+  Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
   GridData := Mainform.GridResult(Grid);
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-  // Only process selected nodes for "Copy as ..." actions
-  SelectionOnly := S is TMemoryStream;
+
   if SelectionOnly then
     NodeCount := Grid.SelectedCount
   else
@@ -1117,11 +1127,14 @@ var
   SelectionOnly: Boolean;
   NodeCount: Cardinal;
 begin
+  // Only process selected nodes for "Copy as ..." actions
+  SelectionOnly := S is TMemoryStream;
+
+  Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
   GridData := Mainform.GridResult(Grid);
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-  // Only process selected nodes for "Copy as ..." actions
-  SelectionOnly := S is TMemoryStream;
+
   if SelectionOnly then
     NodeCount := Grid.SelectedCount
   else

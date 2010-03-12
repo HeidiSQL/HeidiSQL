@@ -300,6 +300,9 @@ const
   TXT_ASC = 'ASC';          // Used for caption of "Direction"-button
   TXT_DESC = 'DESC';        // dito
 
+  // Data grid: How many bytes to fetch from data fields that are potentially large.
+  GRIDMAXDATA: Integer = 256;
+
   VTREE_NOTLOADED = 0;
   VTREE_NOTLOADED_PURGECACHE = 1;
   VTREE_LOADED = 2;
