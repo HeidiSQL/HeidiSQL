@@ -3364,12 +3364,16 @@ end;
 
 
 procedure TMainForm.actDataShowNextExecute(Sender: TObject);
+var
+  OldRowCount: Int64;
 begin
   // Show next X rows in datagrid
+  OldRowCount := DatagridWantedRowCount;
   Inc(DatagridWantedRowCount, prefGridRowcountStep);
   DataGridWantedRowCount := Min(DataGridWantedRowCount, prefGridRowcountMax);
   DataGrid.Tag := VTREE_NOTLOADED;
   DataGrid.Repaint;
+  SelectNode(DataGrid, OldRowCount);
 end;
 
 
