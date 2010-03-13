@@ -3388,10 +3388,9 @@ end;
 
 function TMainForm.DataGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
 var
-  i, j: Integer;
+  i: Integer;
   Row: PGridRow;
   Select: String;
-  KeyColumns: TStringList;
   Data: TMySQLQuery;
 begin
   // Load remaining data on a partially loaded row in data grid
@@ -3405,17 +3404,10 @@ begin
     for i:=0 to Length(DataGridResult.Columns)-1 do
       Select := Select + mask(DataGridResult.Columns[i].Name) + ', ';
     Delete(Select, Length(Select)-1, 2);
-    Select := Select + ' FROM '+mask(SelectedTable.Name)+' WHERE ';
-    KeyColumns := GetKeyColumns;
-    for i:=0 to KeyColumns.Count-1 do begin
-      for j:=0 to Length(DataGridResult.Columns)-1 do begin
-        if DataGridResult.Columns[j].Name = KeyColumns[i] then begin
-          Select := Select + mask(KeyColumns[i]) + '=' + esc(Row.Cells[j].Text) + ' AND ';
-          break;
-        end;
-      end;
-    end;
-    Delete(Select, Length(Select)-4, 5);
+    Select := Select +
+      ' FROM '+mask(SelectedTable.Name) +
+      ' WHERE '+GetWhereClause(Row, @DataGridResult.Columns) +
+      ' LIMIT 1';
     try
       Data := Connection.GetResults(Select);
       if Data.RecordCount = 0 then
