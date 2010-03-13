@@ -4761,11 +4761,9 @@ begin
   // One or more files from explorer or somewhere else was dropped onto the
   // query-memo - load their contents into seperate tabs
   for i:=0 to AFiles.Count-1 do begin
-    if fileExists(AFiles[i]) then begin
-      if i > 0 then
-        actNewQueryTab.Execute;
-      QueryLoad(AFiles[i], false);
-    end;
+    if i > 0 then
+      actNewQueryTab.Execute;
+    QueryLoad(AFiles[i], false);
   end;
 end;
 
@@ -4969,8 +4967,14 @@ var
   LineBreaks       : TLineBreaks;
 begin
   Result := False;
+
+  if not FileExists(filename) then begin
+    MessageDlg('File not found: "'+filename+'"', mtError, [mbOK], 0);
+    Exit;
+  end;
+
   // Ask for action when loading a big file
-  if FileExists(filename) and (_GetFileSize( filename ) > 5*SIZE_MB) then
+  if _GetFileSize( filename ) > 5*SIZE_MB then
   begin
     msgtext := 'The file you are about to load is bigger than '+FormatByteNumber(5*SIZE_MB, 0)+'.' + CRLF + CRLF +
       'Do you want to just run the file to avoid loading it completely into the query-editor ( = memory ) ?' + CRLF + CRLF +
@@ -5001,6 +5005,7 @@ begin
   // this would prevent SynEdit from adding this step to the undo-history
   // so we have to do it by replacing the SelText property
   Screen.Cursor := crHourGlass;
+  LogSQL('Loading file "'+filename+'" into query tab #'+IntToStr(ActiveQueryTab.Number)+' ...', lcInfo);
   try
     filecontent := ReadTextfile(filename);
     if Pos( DirnameSnippets, filename ) = 0 then
