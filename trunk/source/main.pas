@@ -3231,12 +3231,12 @@ procedure TMainForm.actDataLastExecute(Sender: TObject);
 var
   Node: PVirtualNode;
 begin
+  // Be sure to have all rows
+  if DatagridWantedRowCount < prefGridRowcountMax then
+    actDataShowAll.Execute;
   Node := DataGrid.GetLast;
-  if Assigned(Node) then begin
-    DataGrid.ClearSelection;
-    DataGrid.FocusedNode := Node;
-    DataGrid.Selected[Node] := True;
-  end;
+  if Assigned(Node) then
+    SelectNode(DataGrid, Node);
 end;
 
 procedure TMainForm.actDataPostChangesExecute(Sender: TObject);
@@ -3369,7 +3369,7 @@ begin
   Inc(DatagridWantedRowCount, prefGridRowcountStep);
   DataGridWantedRowCount := Min(DataGridWantedRowCount, prefGridRowcountMax);
   DataGrid.Tag := VTREE_NOTLOADED;
-  DataGrid.Invalidate;
+  DataGrid.Repaint;
 end;
 
 
@@ -3378,7 +3378,7 @@ begin
   // Remove LIMIT clause
   DatagridWantedRowCount := prefGridRowcountMax;
   DataGrid.Tag := VTREE_NOTLOADED;
-  DataGrid.Invalidate;
+  DataGrid.Repaint;
 end;
 
 
