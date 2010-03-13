@@ -4762,7 +4762,8 @@ begin
   // query-memo - load their contents into seperate tabs
   for i:=0 to AFiles.Count-1 do begin
     if fileExists(AFiles[i]) then begin
-      actNewQueryTab.Execute;
+      if i > 0 then
+        actNewQueryTab.Execute;
       QueryLoad(AFiles[i], false);
     end;
   end;
