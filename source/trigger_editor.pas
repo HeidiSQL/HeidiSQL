@@ -161,7 +161,7 @@ begin
     // his statement. The user must fix such errors and re-press "Save" while we have them in memory,
     // otherwise the trigger attributes are lost forever.
     if FEditObjectName <> '' then
-      Mainform.Connection.Query('DROP TRIGGER IF EXISTS '+Mainform.mask(FEditObjectName));
+      Mainform.Connection.Query('DROP TRIGGER '+Mainform.mask(FEditObjectName));
     // CREATE
     //   [DEFINER = { user | CURRENT_USER }]
     //   TRIGGER trigger_name trigger_time trigger_event
