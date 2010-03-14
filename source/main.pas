@@ -750,6 +750,7 @@ type
     procedure editFilterVTRightButtonClick(Sender: TObject);
     procedure DataGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex);
+    procedure ListTablesKeyPress(Sender: TObject; var Key: Char);
   private
     FDelimiter: String;
     FileNameSessionLog: String;
@@ -8429,6 +8430,14 @@ begin
     end;
 
   end;
+end;
+
+
+procedure TMainForm.ListTablesKeyPress(Sender: TObject; var Key: Char);
+begin
+  // Open object editor on pressing Enter
+  if Ord(Key) = VK_RETURN then
+    ListTables.OnDblClick(Sender);
 end;
 
 
