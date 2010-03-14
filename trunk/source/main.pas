@@ -3495,7 +3495,9 @@ var
     col.Hint := TblCol.Comment;
     col.Options := col.Options + [coSmartResize];
     if DatagridHiddenColumns.IndexOf(TblCol.Name) > -1 then
-      col.Options := col.Options - [coVisible];
+      col.Options := col.Options - [coVisible]
+    else
+      col.Options := col.Options + [coVisible];
     // Sorting color and title image
     col.Color := clWindow;
     col.ImageIndex := -1;
