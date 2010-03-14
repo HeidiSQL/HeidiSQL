@@ -4703,7 +4703,6 @@ var
   Text, ItemText: String;
   LoadText : Boolean;
   i: Integer;
-  TreeNode: PVirtualNode;
 begin
   // dropping a tree node or listbox item into the query-memo
   ActiveQueryMemo.UndoList.AddGroupBreak;
@@ -4712,12 +4711,9 @@ begin
   LoadText := True;
   // Check for allowed controls as source has already
   // been performed in OnDragOver. So, only do typecasting here.
-  if src = DBtree then begin
-    TreeNode := DBtree.FocusedNode;
-    Text := mask(DBtree.Text[TreeNode, 0]);
-    if DBtree.GetNodeLevel(TreeNode) = 2 then
-      Text := mask(DBtree.Text[TreeNode.Parent, 0]) + '.' + Text;
-  end else if (src = ActiveQueryHelpers) and (ActiveQueryHelpers.ItemIndex > -1) then begin
+  if src = DBtree then
+    Text := mask(DBtree.Text[DBtree.FocusedNode, 0])
+  else if (src = ActiveQueryHelpers) and (ActiveQueryHelpers.ItemIndex > -1) then begin
     // Snippets tab
     if tabsetQueryHelpers.TabIndex = 3 then begin
       QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
