@@ -918,7 +918,6 @@ type
     procedure GridFinalizeEditing(Sender: TBaseVirtualTree);
     function GetWhereClause(Row: PGridRow; Columns: PGridColumns): String;
     function GetKeyColumns: TStringList;
-    function CheckUniqueKeyClause: Boolean;
     procedure DataGridInsertRow(CopyValuesFromNode: PVirtualNode);
     procedure DataGridCancel(Sender: TObject);
     procedure CalcNullColors;
@@ -2588,8 +2587,6 @@ begin
     actDataCancelChanges.Execute;
   end else begin
     // The "normal" case: Delete existing rows
-    if not CheckUniqueKeyClause then
-      Exit;
     if DataGrid.SelectedCount = 0 then
       MessageDLG('Please select one or more rows to delete them.', mtError, [mbOK], 0)
     else if MessageDLG('Delete '+inttostr(DataGrid.SelectedCount)+' row(s)?',
@@ -3582,8 +3579,12 @@ begin
       c := SelectedTableColumns[i];
       IsKeyColumn := KeyCols.IndexOf(c.Name) > -1;
       ColLen := MakeInt(c.LengthSet);
-      if (DatagridHiddenColumns.IndexOf(c.Name) = -1) or (IsKeyColumn) then begin
+      if (DatagridHiddenColumns.IndexOf(c.Name) = -1)
+        or (IsKeyColumn)
+        or (KeyCols.Count = 0)
+        then begin
         if not DataGridFullRowMode
+          and (KeyCols.Count > 0) // We need a sufficient key to be able to load remaining row data
           and (c.DataType.Category in [dtcText, dtcBinary])
           and (not IsKeyColumn) // We need full length of any key column, so DataGridLoadFullRow() has the chance to fetch the right row
           and ((ColLen > GRIDMAXDATA) or (ColLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
@@ -3656,7 +3657,7 @@ begin
       vt.BeginUpdate;
       SetLength(DataGridResult.Rows, Offset+Data.RecordCount);
       for i:=Offset to Offset+Data.RecordCount-1 do begin
-        DataGridResult.Rows[i].HasFullData := DataGridFullRowMode;
+        DataGridResult.Rows[i].HasFullData := DataGridFullRowMode or (KeyCols.Count = 0);
         for j:=0 to Length(DataGridResult.Columns)-1 do begin
           SetLength(DataGridResult.Rows[i].Cells, Data.ColumnCount);
           Cell := @DataGridResult.Rows[i].Cells[j];
@@ -7016,8 +7017,6 @@ end;
 }
 procedure TMainForm.setNULL1Click(Sender: TObject);
 begin
-  if not CheckUniqueKeyClause then
-    Exit;
   // Internally calls OnNewText event:
   DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn] := '';
   DataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].NewIsNull := True;
@@ -7043,24 +7042,6 @@ begin
     DataGridResult.Rows[Node.Index].State := grsModified;
   DataGridHasChanges := True;
   ValidateControls(Sender);
-end;
-
-
-{**
-  Checks if there is a unique key available which can be used for UPDATEs and INSERTs
-}
-function TMainForm.CheckUniqueKeyClause: Boolean;
-begin
-  Result := GetKeyColumns.Count > 0;
-  if not Result then begin
-    Screen.Cursor := crDefault;
-    MessageDlg('Grid editing and selective row operations are blocked because this table either'+CRLF+
-      '* has no primary or unique key'+CRLF+
-      '* or it only contains a unique key which allows NULLs (which turns that '+
-      'key to be non unique again.)'+CRLF+CRLF+
-      'You should create a primary key on the "Table" tab.',
-      mtWarning, [mbOK], 0);
-  end;
 end;
 
 
@@ -7145,7 +7126,7 @@ begin
   end;
   // Cut trailing comma
   sql := Copy(sql, 1, Length(sql)-2);
-  sql := sql + ' WHERE ' + GetWhereClause(Row, @DataGridResult.Columns);
+  sql := sql + ' WHERE ' + GetWhereClause(Row, @DataGridResult.Columns) + ' LIMIT 1';
   try
     // Send UPDATE query
     Connection.Query(sql);
@@ -7211,6 +7192,13 @@ var
 begin
   Result := '';
   KeyCols := GetKeyColumns;
+
+  if KeyCols.Count = 0 then begin
+    // No key present - use all columns in that case
+    for i:=0 to SelectedTableColumns.Count-1 do
+      KeyCols.Add(SelectedTableColumns[i].Name);
+  end;
+
   for i := 0 to KeyCols.Count - 1 do begin
     for j := 0 to Length(Columns^) - 1 do begin
       if Columns^[j].Name = KeyCols[i] then
@@ -7403,7 +7391,7 @@ var
   Nodes: TNodeArray;
   sql: String;
   Affected: Int64;
-  Selected, i, j: Integer;
+  i, j: Integer;
   msg: String;
 begin
   Node := Sender.GetFirstSelected;
@@ -7419,6 +7407,7 @@ begin
   if Assigned(FocusAfterDelete) then
     FocusAfterDelete := Sender.GetNext(FocusAfterDelete);
   sql := Copy(sql, 1, Length(sql)-3);
+  sql := sql + ' LIMIT ' + IntToStr(Sender.SelectedCount);
 
   try
     // Send DELETE query
@@ -7434,8 +7423,7 @@ begin
   if Result then begin
     // Remove deleted row nodes out of the grid
     Affected := Connection.RowsAffected;
-    Selected := Sender.SelectedCount;
-    if Affected = Selected then begin
+    if Affected = Sender.SelectedCount then begin
       // Fine. Number of deleted rows equals the selected node count.
       // In this case, just remove the selected nodes, avoid a full reload
       Sender.BeginUpdate;
@@ -7446,7 +7434,7 @@ begin
           DataGridResult.Rows[j] := DataGridResult.Rows[j+1];
         end;
       end;
-      SetLength(DataGridResult.Rows, Length(DataGridResult.Rows) - Selected);
+      SetLength(DataGridResult.Rows, Length(DataGridResult.Rows) - Sender.SelectedCount);
       Sender.DeleteSelectedNodes;
       if not Assigned(FocusAfterDelete) then
         FocusAfterDelete := Sender.GetLast;
@@ -7458,7 +7446,7 @@ begin
       DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
       DataGrid.Invalidate;
       msg := 'Warning: Consistency problem detected.' + CRLF + CRLF
-        + 'The last DELETE query affected ' + FormatNumber(Affected) + ' rows, when it should have touched '+FormatNumber(Selected)+' row(s)!'
+        + 'The last DELETE query affected ' + FormatNumber(Affected) + ' rows, when it should have touched '+FormatNumber(Sender.SelectedCount)+' row(s)!'
         + CRLF + CRLF
         + 'This is most likely caused by not having a primary key in the table''s definition.';
       LogSQL( msg );
@@ -7513,11 +7501,7 @@ end;
 procedure TMainForm.DataGridEditing(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 begin
-  Allowed := True;
-  if DataGridResult.Rows[Node.Index].State = grsDefault then
-    Allowed := CheckUniqueKeyClause;
-  if Allowed then
-    Allowed := DataGridEnsureFullRow(Sender as TVirtualStringTree, Node);
+  Allowed := DataGridEnsureFullRow(Sender as TVirtualStringTree, Node);
   if Allowed then begin
     // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
     actDataCancelChanges.ShortCut := 0;
