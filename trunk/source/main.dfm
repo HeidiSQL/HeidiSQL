@@ -890,6 +890,7 @@ object MainForm: TMainForm
             OnHeaderClick = vstHeaderClick
             OnHeaderDraggedOut = vstHeaderDraggedOut
             OnInitNode = ListTablesInitNode
+            OnKeyPress = ListTablesKeyPress
             OnNewText = ListTablesNewText
             Columns = <
               item
