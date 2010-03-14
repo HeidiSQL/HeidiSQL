@@ -193,7 +193,6 @@ type
     function GetForeignKeySQL(idx: Integer): String;
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
-    function GetIndexIcon(idx: Integer): Integer;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -1040,7 +1039,7 @@ begin
 
   for i:=0 to FKeys.Count-1 do begin
     if FKeys[i].Columns.IndexOf(Col.Name) > -1 then
-      ImageIndex := GetIndexIcon(i);
+      ImageIndex := GetIndexIcon(FKeys[i].IndexType);
     // Priority for PK columns. We cannot display more than one icon anyway.
     if ImageIndex > -1 then
       break;
@@ -1429,7 +1428,6 @@ procedure TfrmTableEditor.treeIndexesGetImageIndex(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
   var Ghosted: Boolean; var ImageIndex: Integer);
 var
-  IndexType: String;
   VT: TVirtualStringTree;
 begin
   // Icon image showing type of index
@@ -1437,10 +1435,7 @@ begin
   if Column <> 0 then Exit;
   if not (Kind in [ikNormal, ikSelected]) then Exit;
   case VT.GetNodeLevel(Node) of
-    0: begin
-      IndexType := VT.Text[Node, 1];
-      ImageIndex := GetIndexIcon(Node.Index);
-    end;
+    0: ImageIndex := GetIndexIcon(VT.Text[Node, 1]);
     1: ImageIndex := 42;
   end;
 end;
@@ -1838,7 +1833,7 @@ begin
       IndexName := PKEY;
     end else
       IndexName := FKeys[i].Name + ' ('+FKeys[i].IndexType+')';
-    Item := AddItem(menuAddToIndex, IndexName, GetIndexIcon(i));
+    Item := AddItem(menuAddToIndex, IndexName, GetIndexIcon(FKeys[i].IndexType));
     // Disable menuitem if all selected columns are already part of this index,
     // enable it if one or more selected columns are not.
     Item.Enabled := False;
@@ -1915,18 +1910,6 @@ begin
     SelectNode(treeIndexes, TblKey.Columns.Count-1, treeIndexes.FocusedNode);
   end;
   Modification(Sender);
-end;
-
-
-function TfrmTableEditor.GetIndexIcon(idx: Integer): Integer;
-begin
-  // Detect key icon index for specified index
-  if FKeys[idx].IndexType = PKEY then Result := ICONINDEX_PRIMARYKEY
-  else if FKeys[idx].IndexType = KEY then Result := ICONINDEX_INDEXKEY
-  else if FKeys[idx].IndexType = UKEY then Result := ICONINDEX_UNIQUEKEY
-  else if FKeys[idx].IndexType = FKEY then Result := ICONINDEX_FULLTEXTKEY
-  else if FKeys[idx].IndexType = SKEY then Result := ICONINDEX_SPATIALKEY
-  else Result := -1;
 end;
 
 
