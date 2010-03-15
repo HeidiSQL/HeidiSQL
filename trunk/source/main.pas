@@ -4725,9 +4725,12 @@ begin
   LoadText := True;
   // Check for allowed controls as source has already
   // been performed in OnDragOver. So, only do typecasting here.
-  if src = DBtree then
-    Text := mask(DBtree.Text[DBtree.FocusedNode, 0])
-  else if (src = ActiveQueryHelpers) and (ActiveQueryHelpers.ItemIndex > -1) then begin
+  if src = DBtree then begin
+    // Insert table or database name. If a table is dropped and Shift is pressed, prepend the db name.
+    Text := mask(DBtree.Text[DBtree.FocusedNode, 0]);
+    if (DBtree.GetNodeLevel(DBtree.FocusedNode)=2) and KeyPressed(VK_SHIFT) then
+      Text := mask(DBtree.Text[DBtree.FocusedNode.Parent, 0]) + '.' + Text;
+  end else if (src = ActiveQueryHelpers) and (ActiveQueryHelpers.ItemIndex > -1) then begin
     // Snippets tab
     if tabsetQueryHelpers.TabIndex = 3 then begin
       QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
