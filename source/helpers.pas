@@ -247,6 +247,7 @@ type
   function CheckForSecondInstance: Boolean;
   function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
   function GetIndexIcon(IndexType: String): Integer;
+  function KeyPressed(Code: Integer): Boolean;
 
 var
   MainReg: TRegistry;
@@ -3401,6 +3402,16 @@ begin
   else if IndexType = FKEY then Result := ICONINDEX_FULLTEXTKEY
   else if IndexType = SKEY then Result := ICONINDEX_SPATIALKEY
   else Result := -1;
+end;
+
+
+function KeyPressed(Code: Integer): Boolean;
+var
+  State: TKeyboardState;
+begin
+  // Checks whether a key is pressed, defined by virtual key code
+  GetKeyboardState(State);
+  Result := (State[Code] and 128) <> 0;
 end;
 
 
