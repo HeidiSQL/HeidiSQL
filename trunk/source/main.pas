@@ -751,6 +751,7 @@ type
     procedure DataGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex);
     procedure ListTablesKeyPress(Sender: TObject; var Key: Char);
+    procedure DBtreeFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     FDelimiter: String;
     FileNameSessionLog: String;
@@ -6596,6 +6597,14 @@ begin
     DBTree.Selected[DBTree.FocusedNode] := not Allowed;
   end else
     Allowed := True;
+end;
+
+
+procedure TMainForm.DBtreeFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+begin
+  // Keep track of the previously selected tree node's state, to avoid AVs in OnFocusChanged()
+  if Node = PreviousFocusedNode then
+    PreviousFocusedNode := nil;
 end;
 
 
