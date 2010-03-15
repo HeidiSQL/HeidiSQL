@@ -436,6 +436,7 @@ object UserManagerForm: TUserManagerForm
         Header.MainColumn = -1
         Header.ParentFont = True
         Images = MainForm.ImageListMain
+        IncrementalSearch = isAll
         TabOrder = 2
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
@@ -470,6 +471,7 @@ object UserManagerForm: TUserManagerForm
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
         Header.ParentFont = True
         Images = MainForm.ImageListMain
+        IncrementalSearch = isAll
         NodeDataSize = 0
         TabOrder = 1
         TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]

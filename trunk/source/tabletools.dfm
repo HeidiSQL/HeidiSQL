@@ -86,6 +86,7 @@ object frmTableTools: TfrmTableTools
       Header.Font.Style = []
       Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
       Images = MainForm.ImageListMain
+      IncrementalSearch = isInitializedOnly
       NodeDataSize = 0
       TabOrder = 0
       TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
@@ -130,6 +131,7 @@ object frmTableTools: TfrmTableTools
         Header.MainColumn = -1
         Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
         Header.ParentFont = True
+        IncrementalSearch = isAll
         TabOrder = 0
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
