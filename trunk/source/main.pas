@@ -5006,14 +5006,14 @@ begin
   // this would prevent SynEdit from adding this step to the undo-history
   // so we have to do it by replacing the SelText property
   Screen.Cursor := crHourGlass;
+  if not QueryTabActive then
+    PagecontrolMain.ActivePage := tabQuery;
   LogSQL('Loading file "'+filename+'" into query tab #'+IntToStr(ActiveQueryTab.Number)+' ...', lcInfo);
   try
     filecontent := ReadTextfile(filename);
     if Pos( DirnameSnippets, filename ) = 0 then
       AddOrRemoveFromQueryLoadHistory( filename, true );
     FillPopupQueryLoad;
-    if not QueryTabActive then
-      PagecontrolMain.ActivePage := tabQuery;
     ActiveQueryMemo.UndoList.AddGroupBreak;
 
     if ScanNulChar(filecontent) then begin
