@@ -382,6 +382,7 @@ object MainForm: TMainForm
         OnDblClick = DBtreeDblClick
         OnFocusChanged = DBtreeFocusChanged
         OnFocusChanging = DBtreeFocusChanging
+        OnFreeNode = DBtreeFreeNode
         OnGetText = DBtreeGetText
         OnPaintText = DBtreePaintText
         OnGetImageIndex = DBtreeGetImageIndex
