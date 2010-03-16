@@ -3032,7 +3032,8 @@ begin
   AllKeywords := TStringList.Create;
   AllKeywords.Text := MySQLKeywords.Text;
   for i:=Low(MySQLFunctions) to High(MySQLFunctions) do begin
-    if MySQLFunctions[i].Declaration <> '' then
+    // Leave out operator functions like ">>", and the "X()" function so hex values don't get touched
+    if (MySQLFunctions[i].Declaration <> '') and (MySQLFunctions[i].Name <> 'X') then
       AllKeywords.Add(MySQLFunctions[i].Name);
   end;
   for i:=Low(Datatypes) to High(Datatypes) do
