@@ -5,7 +5,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
-  CheckLst, ExtCtrls, ToolWin,
+  CheckLst, ExtCtrls, ToolWin, ClipBrd,
   mysql_connection, helpers, VirtualTrees;
 
 {$I const.inc}
@@ -128,7 +128,7 @@ type
     lblUsername: TLabel;
     lblWarning: TLabel;
     lblHostHints: TLabel;
-    editPassword: TEdit;
+    editPassword: TButtonedEdit;
     editFromHost: TEdit;
     editUsername: TEdit;
     chkDisabled: TCheckBox;
@@ -208,6 +208,7 @@ type
     procedure treeObjectsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure treeObjectsFocusChanged(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex);
+    procedure editPasswordRightButtonClick(Sender: TObject);
   private
     { Private declarations }
     Users: TUsers;
@@ -607,6 +608,19 @@ begin
   listUsers.Invalidate;
 end;
 
+
+procedure TUserManagerForm.editPasswordRightButtonClick(Sender: TObject);
+begin
+  // Auto generate a random password, display it for a second and copy it to clipboard
+  Screen.Cursor := crHourglass;
+  editPassword.Text := GeneratePassword(8);
+  editPassword.PasswordChar := #0;
+  editPassword.Repaint;
+  Sleep(1000);
+  editPassword.PasswordChar := '*';
+  Clipboard.AsText := editPassword.Text;
+  Screen.Cursor := crDefault;
+end;
 
 
 procedure TUserManagerForm.editLimitations(Sender: TObject);

@@ -248,6 +248,7 @@ type
   function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
   function GetIndexIcon(IndexType: String): Integer;
   function KeyPressed(Code: Integer): Boolean;
+  function GeneratePassword(Len: Integer): String;
 
 var
   MainReg: TRegistry;
@@ -3413,6 +3414,26 @@ begin
   // Checks whether a key is pressed, defined by virtual key code
   GetKeyboardState(State);
   Result := (State[Code] and 128) <> 0;
+end;
+
+
+function GeneratePassword(Len: Integer): String;
+var
+  i: Integer;
+  CharTable: String;
+const
+  Consos = 'bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ';
+  Vocals = 'aeiouAEIOU';
+begin
+  // Create a random, mnemonic password
+  SetLength(Result, Len);
+  for i:=1 to Len do begin
+    if i mod 2 = 0 then
+      CharTable := Vocals
+    else
+      CharTable := Consos;
+    Result[i] := CharTable[Random(Length(CharTable)-1)+1];
+  end;
 end;
 
 
