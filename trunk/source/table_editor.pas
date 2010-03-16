@@ -1477,6 +1477,7 @@ procedure TfrmTableEditor.treeIndexesInitChildren(Sender: TBaseVirtualTree;
 begin
   // Tell number of columns contained in index
   ChildCount := FKeys[Node.Index].Columns.Count;
+  ListColumns.Invalidate;
 end;
 
 
