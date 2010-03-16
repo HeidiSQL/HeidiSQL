@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
-  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses;
+  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns;
 
 type
   TShortcutItemData = record
@@ -121,7 +121,7 @@ type
     editLogSnip: TEdit;
     lblLogSnip: TLabel;
     chkLogToFile: TCheckBox;
-    btnOpenLogFolder: TButton;
+    editLogDir: TButtonedEdit;
     lblLogLevel: TLabel;
     chkLogEventErrors: TCheckBox;
     chkLogEventUserFiredSQL: TCheckBox;
@@ -141,7 +141,8 @@ type
     procedure DataFontsChange(Sender: TObject);
     procedure anyUpDownLimitChanging(Sender: TObject;
       var AllowChange: Boolean);
-    procedure btnOpenLogFolderClick(Sender: TObject);
+    procedure editLogDirRightButtonClick(Sender: TObject);
+    procedure chkLogToFileClick(Sender: TObject);
     procedure chkUpdatecheckClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure chkNullBGClick(Sender: TObject);
@@ -228,6 +229,7 @@ begin
   MainReg.WriteInteger(REGNAME_TABWIDTH, updownSQLTabWidth.Position);
   MainReg.WriteInteger(REGNAME_LOGSQLNUM, updownLogLines.Position);
   MainReg.WriteInteger(REGNAME_LOGSQLWIDTH, updownLogSnip.Position);
+  MainReg.WriteString(REGNAME_LOGDIR, editLogDir.Text);
   MainReg.WriteBool(REGNAME_LOG_ERRORS, chkLogEventErrors.Checked);
   MainReg.WriteBool(REGNAME_LOG_USERSQL, chkLogEventUserFiredSQL.Checked);
   MainReg.WriteBool(REGNAME_LOG_SQL, chkLogEventSQL.Checked);
@@ -321,12 +323,12 @@ begin
   Mainform.prefLogSQL := chkLogEventSQL.Checked;
   Mainform.prefLogInfos := chkLogEventInfo.Checked;
   Mainform.prefLogDebug := chkLogEventDebug.Checked;
+  Mainform.prefDirnameSessionLogs := editLogDir.Text;
   Mainform.TrimSQLLog;
   if chkLogToFile.Checked then
     Mainform.ActivateFileLogging
   else if Mainform.prefLogToFile then
     Mainform.DeactivateFileLogging;
-  btnOpenLogFolder.Enabled := DirectoryExists(Mainform.DirnameSessionLogs);
   Mainform.prefMaxColWidth := updownMaxColWidth.Position;
   Mainform.prefCSVSeparator := editCSVSeparator.Text;
   Mainform.prefCSVEncloser := editCSVEncloser.Text;
@@ -421,12 +423,12 @@ begin
   updownLogLines.Position := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   updownLogSnip.Position := GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
   chkLogToFile.Checked := GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE);
+  editLogDir.Text := GetRegValue(REGNAME_LOGDIR, Mainform.prefDirnameSessionLogs);
   chkLogEventErrors.Checked := GetRegValue(REGNAME_LOG_ERRORS, DEFAULT_LOG_ERRORS);
   chkLogEventUserFiredSQL.Checked := GetRegValue(REGNAME_LOG_USERSQL, DEFAULT_LOG_USERSQL);
   chkLogEventSQL.Checked := GetRegValue(REGNAME_LOG_SQL, DEFAULT_LOG_SQL);
   chkLogEventInfo.Checked := GetRegValue(REGNAME_LOG_INFOS, DEFAULT_LOG_INFOS);
   chkLogEventDebug.Checked := GetRegValue(REGNAME_LOG_DEBUG, DEFAULT_LOG_DEBUG);
-  btnOpenLogFolder.Enabled := DirectoryExists(Mainform.DirnameSessionLogs);
 
   // Default Column-Width in DBGrids:
   updownMaxColWidth.Position := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
@@ -517,12 +519,21 @@ begin
 end;
 
 
-{**
-  Open folder with session logs
-}
-procedure Toptionsform.btnOpenLogFolderClick(Sender: TObject);
+procedure Toptionsform.editLogDirRightButtonClick(Sender: TObject);
+var
+  Browse: TBrowseForFolder;
 begin
-  ShellExec( '', Mainform.DirnameSessionLogs );
+  // Select folder for session logs
+  Browse := TBrowseForFolder.Create(Self);
+  Browse.Folder := (Sender as TButtonedEdit).Text;
+  Browse.DialogCaption := 'Select output directory';
+  // Enable "Create new folder" button
+  Browse.BrowseOptions := Browse.BrowseOptions - [bifNoNewFolderButton] + [bifNewDialogStyle];
+  if Browse.Execute then begin
+    (Sender as TButtonedEdit).Text := Browse.Folder;
+    Modified(Sender);
+  end;
+  Browse.Free;
 end;
 
 {**
@@ -540,6 +551,13 @@ end;
 procedure Toptionsform.chkColorBarsClick(Sender: TObject);
 begin
   cboxColorBars.Enabled := (Sender as TCheckbox).Checked;
+  Modified(Sender);
+end;
+
+
+procedure Toptionsform.chkLogToFileClick(Sender: TObject);
+begin
+  editLogDir.Enabled := TCheckBox(Sender).Checked;
   Modified(Sender);
 end;
 
