@@ -833,6 +833,7 @@ type
     prefRememberFilters: Boolean;
     prefLogsqlnum: Integer;
     prefLogSqlWidth: Integer;
+    prefDirnameSessionLogs: String;
     prefMaxColWidth: Integer;
     prefGridRowcountStep: Integer;
     prefGridRowcountMax: Integer;
@@ -887,7 +888,6 @@ type
     DirnameCommonAppData: String;
     DirnameUserAppData: String;
     DirnameSnippets: String;
-    DirnameSessionLogs: String;
 
     property Delimiter: String read FDelimiter write SetDelimiter;
     procedure CallSQLHelpWithKeyword( keyword: String );
@@ -1262,9 +1262,6 @@ begin
   // Folder which contains snippet-files
   DirnameSnippets := DirnameCommonAppData + 'Snippets\';
 
-  // Folder for session logfiles
-  DirnameSessionLogs := DirnameUserAppData + 'Sessionlogs\';
-
   // SQLFiles-History
   FillPopupQueryLoad;
 
@@ -1323,6 +1320,7 @@ begin
     prefMaxColWidth := DEFAULT_MAXCOLWIDTH;
   prefLogsqlnum := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   prefLogSqlWidth := GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
+  prefDirnameSessionLogs := GetRegValue(REGNAME_LOGDIR, DirnameUserAppData + 'Sessionlogs\');
   prefCSVSeparator := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
   prefCSVEncloser := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
   prefCSVTerminator := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
@@ -5931,16 +5929,18 @@ var
   i : Integer;
 begin
   // Ensure directory exists
-  ForceDirectories( DirnameSessionLogs );
+  if prefDirnameSessionLogs[Length(prefDirnameSessionLogs)] <> '\' then
+    prefDirnameSessionLogs := prefDirnameSessionLogs + '\';
+  ForceDirectories(prefDirnameSessionLogs);
 
   // Determine free filename
   LogfilePattern := '%s %.6u.log';
   i := 1;
-  FileNameSessionLog := DirnameSessionLogs + goodfilename(Format(LogfilePattern, [SessionName, i]));
+  FileNameSessionLog := prefDirnameSessionLogs + goodfilename(Format(LogfilePattern, [SessionName, i]));
   while FileExists( FileNameSessionLog ) do
   begin
     inc(i);
-    FileNameSessionLog := DirnameSessionLogs + goodfilename(Format(LogfilePattern, [SessionName, i]));
+    FileNameSessionLog := prefDirnameSessionLogs + goodfilename(Format(LogfilePattern, [SessionName, i]));
   end;
 
   // Create file handle for writing
@@ -6035,7 +6035,7 @@ end;
 }
 procedure TMainForm.menuOpenLogFolderClick(Sender: TObject);
 begin
-  ShellExec( '', DirnameSessionLogs );
+  ShellExec('', prefDirnameSessionLogs);
 end;
 
 

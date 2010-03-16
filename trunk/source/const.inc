@@ -68,6 +68,7 @@ const
   DEFAULT_LOGSQLNUM = 300;
   REGNAME_LOGSQLWIDTH = 'logsqlwidth';
   DEFAULT_LOGSQLWIDTH = 2000;
+  REGNAME_LOGDIR = 'SessionLogsDirectory';
   REGPREFIX_SQLATTRI = 'SQL Attr ';
   REGPOSTFIX_SQL_FG = ' Foreground';
   REGPOSTFIX_SQL_BG = ' Background';

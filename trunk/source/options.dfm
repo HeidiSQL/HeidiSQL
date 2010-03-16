@@ -235,16 +235,7 @@ object optionsform: Toptionsform
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Write SQL log to file'
         TabOrder = 4
-        OnClick = Modified
-      end
-      object btnOpenLogFolder: TButton
-        Left = 159
-        Top = 68
-        Width = 106
-        Height = 20
-        Caption = 'Open log folder ...'
-        TabOrder = 5
-        OnClick = btnOpenLogFolderClick
+        OnClick = chkLogToFileClick
       end
       object chkLogEventErrors: TCheckBox
         Left = 159
@@ -290,6 +281,22 @@ object optionsform: Toptionsform
         Caption = 'Debug messages'
         TabOrder = 10
         OnClick = Modified
+      end
+      object editLogDir: TButtonedEdit
+        Left = 159
+        Top = 69
+        Width = 282
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Enabled = False
+        Images = MainForm.ImageListMain
+        RightButton.ImageIndex = 51
+        RightButton.Visible = True
+        TabOrder = 5
+        Text = 'editLogDir'
+        OnChange = Modified
+        OnDblClick = editLogDirRightButtonClick
+        OnRightButtonClick = editLogDirRightButtonClick
       end
     end
     object tabSQL: TTabSheet
