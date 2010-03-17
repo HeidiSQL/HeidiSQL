@@ -4713,7 +4713,7 @@ procedure TMainForm.SynMemoQueryDragDrop(Sender, Source: TObject; X,
 var
   src : TControl;
   Text, ItemText: String;
-  LoadText : Boolean;
+  LoadText, ShiftPressed: Boolean;
   i: Integer;
 begin
   // dropping a tree node or listbox item into the query-memo
@@ -4721,12 +4721,13 @@ begin
   src := Source as TControl;
   Text := 'Error: Unspecified source control in drag''n drop operation!';
   LoadText := True;
+  ShiftPressed := KeyPressed(VK_SHIFT);
   // Check for allowed controls as source has already
   // been performed in OnDragOver. So, only do typecasting here.
   if src = DBtree then begin
     // Insert table or database name. If a table is dropped and Shift is pressed, prepend the db name.
     Text := mask(DBtree.Text[DBtree.FocusedNode, 0]);
-    if (DBtree.GetNodeLevel(DBtree.FocusedNode)=2) and KeyPressed(VK_SHIFT) then
+    if (DBtree.GetNodeLevel(DBtree.FocusedNode)=2) and ShiftPressed then
       Text := mask(DBtree.Text[DBtree.FocusedNode.Parent, 0]) + '.' + Text;
   end else if (src = ActiveQueryHelpers) and (ActiveQueryHelpers.ItemIndex > -1) then begin
     // Snippets tab
@@ -4741,7 +4742,10 @@ begin
           ItemText := ActiveQueryHelpers.Items[i];
           if tabsetQueryHelpers.TabIndex = 0 then
             ItemText := mask(ItemText); // Quote column names
-          Text := Text + ItemText + ', ';
+          if ShiftPressed then
+            Text := Text + ItemText + ',' + CRLF
+          else
+            Text := Text + ItemText + ', ';
         end;
       end;
       Delete(Text, Length(Text)-1, 2);
