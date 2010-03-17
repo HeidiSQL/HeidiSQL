@@ -95,7 +95,7 @@ type
     { Private declarations }
     FLoaded: Boolean;
     FSessionNames: TStringlist;
-    FSessionModified, FSessionAdded: Boolean;
+    FSessionModified, FOnlyPasswordModified, FSessionAdded: Boolean;
     FOrgNetType: Byte;
     FOrgSSL_Key, FOrgSSL_Cert, FOrgSSL_CA,
     FOrgHost, FOrgUser, FOrgPassword, FOrgStartupScript: String;
@@ -560,6 +560,7 @@ end;
 procedure Tconnform.Modification(Sender: TObject);
 var
   NetType: Byte;
+  PasswordModified: Boolean;
 begin
   // Some modification -
   if FLoaded then begin
@@ -568,7 +569,6 @@ begin
 
     FSessionModified := (FOrgHost <> editHost.Text)
       or (FOrgUser <> editUsername.Text)
-      or (FOrgPassword <> editPassword.Text)
       or (FOrgPort <> updownPort.Tag)
       or (FOrgCompressed <> chkCompressed.Checked)
       or (FOrgNetType <> NetType)
@@ -576,6 +576,10 @@ begin
       or (FOrgSSL_Key <> editSSLPrivateKey.Text)
       or (FOrgSSL_Cert <> editSSLCertificate.Text)
       or (FOrgSSL_CA <> editSSLCACertificate.Text);
+    PasswordModified := FOrgPassword <> editPassword.Text;
+    FOnlyPasswordModified := PasswordModified and (not FSessionModified);
+    FSessionModified := FSessionModified or PasswordModified;
+
     ListSessions.Repaint;
     ValidateControls;
   end;
@@ -607,7 +611,7 @@ end;
 
 procedure Tconnform.FinalizeModifications(var CanProceed: Boolean);
 begin
-  if FSessionModified or FSessionAdded then begin
+  if (FSessionModified and (not FOnlyPasswordModified)) or FSessionAdded then begin
     case MessageDlg('Save settings for "'+SelectedSession+'"?', mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
       mrYes: begin
           btnSave.OnClick(Self);
