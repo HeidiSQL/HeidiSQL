@@ -119,15 +119,19 @@ object UserManagerForm: TUserManagerForm
             Enabled = False
             WordWrap = True
           end
-          object editPassword: TEdit
+          object editPassword: TButtonedEdit
             Left = 100
             Top = 33
             Width = 247
             Height = 21
             Anchors = [akLeft, akTop, akRight]
+            Images = MainForm.ImageListMain
             PasswordChar = '*'
+            RightButton.ImageIndex = 0
+            RightButton.Visible = True
             TabOrder = 1
             OnExit = editPasswordExit
+            OnRightButtonClick = editPasswordRightButtonClick
           end
           object editFromHost: TEdit
             Left = 100
