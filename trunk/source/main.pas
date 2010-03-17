@@ -5419,27 +5419,10 @@ end;
 }
 procedure TMainForm.lboxQueryHelpersDblClick(Sender: TObject);
 var
-  Text, ItemText: String;
-  i: Integer;
+  m: TSynMemo;
 begin
-  if ActiveQueryTabset.TabIndex = 3 then begin
-    // Load snippet file into query-memo
-    if ActiveQueryHelpers.ItemIndex > -1 then
-      QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
-  end else begin
-    // For all other tabs just insert selected list item(s)
-    for i := 0 to ActiveQueryHelpers.Items.Count - 1 do begin
-      if not ActiveQueryHelpers.Selected[i] then
-        continue;
-      ItemText := ActiveQueryHelpers.Items[i];
-      if tabsetQueryHelpers.TabIndex = 0 then
-        ItemText := mask(ItemText); // Quote column names
-      Text := Text + ItemText + ', ';
-    end;
-    Delete(text, Length(Text)-1, 2);
-    ActiveQueryMemo.SelText := Text;
-  end;
-  ActiveQueryMemo.SetFocus;
+  m := ActiveQueryMemo;
+  m.DragDrop(Sender, m.CaretX, m.CaretY);
 end;
 
 
@@ -6655,14 +6638,15 @@ end;
 procedure TMainForm.DBtreeDblClick(Sender: TObject);
 var
   Node: PVirtualNode;
+  m: TSynMemo;
 begin
   // Paste DB or table name into query window on treeview double click.
   Node := DBtree.FocusedNode;
   if not Assigned(Node) then Exit;
   if DBtree.GetNodeLevel(Node) = 0 then Exit;
   if not QueryTabActive then Exit;
-  ActiveQueryMemo.SelText := mask(DBtree.Text[Node, 0]);
-  ActiveQueryMemo.SetFocus;
+  m := ActiveQueryMemo;
+  m.DragDrop(Sender, m.CaretX, m.CaretY);
 end;
 
 
