@@ -127,6 +127,7 @@ object UserManagerForm: TUserManagerForm
             Anchors = [akLeft, akTop, akRight]
             Images = MainForm.ImageListMain
             PasswordChar = '*'
+            RightButton.Hint = 'Generate random password and copy to clipboard'
             RightButton.ImageIndex = 0
             RightButton.Visible = True
             TabOrder = 1
