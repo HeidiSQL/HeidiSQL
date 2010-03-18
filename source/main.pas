@@ -866,7 +866,7 @@ type
     DataGridTable: String;
     DataGridFocusedCell: TStringList;
     DataGridFocusedNodeIndex: Int64;
-    DataGridFocusedColumnIndex: TColumnIndex;
+    DataGridFocusedColumnName: String;
     DataGridHasChanges: Boolean;
     DataGridResult: TGridResult;
     DataGridFullRowMode: Boolean;
@@ -3474,8 +3474,8 @@ var
   Data: TMySQLQuery;
   Select: String;
   RefreshingData, IsKeyColumn: Boolean;
-  i, j, Offset, LastExistingColIndex, ColLen: Integer;
-  KeyCols: TStringList;
+  i, j, Offset, ColLen, ColWidth: Integer;
+  KeyCols, ColWidths: TStringList;
   WantedColumns: TTableColumnList;
   Cell: PGridCell;
   c: TTableColumn;
@@ -3487,20 +3487,13 @@ var
   begin
     SetLength(DataGridResult.Columns, idx+1);
     DataGridResult.Columns[idx].Name := TblCol.Name;
-    if vt.Header.Columns.Count <= idx then
-      col := vt.Header.Columns.Add
-    else
-      col := vt.Header.Columns[idx];
+    col := vt.Header.Columns.Add;
     col.Text := TblCol.Name;
     col.Hint := TblCol.Comment;
     col.Options := col.Options + [coSmartResize];
     if DatagridHiddenColumns.IndexOf(TblCol.Name) > -1 then
-      col.Options := col.Options - [coVisible]
-    else
-      col.Options := col.Options + [coVisible];
+      col.Options := col.Options - [coVisible];
     // Sorting color and title image
-    col.Color := clWindow;
-    col.ImageIndex := -1;
     for k:=0 to Length(DataGridSortColumns)-1 do begin
       if DataGridSortColumns[k].ColumnName = TblCol.Name then begin
         col.Color := ColorAdjustBrightness(col.Color, COLORSHIFT_SORTCOLUMNS);
@@ -3648,23 +3641,20 @@ begin
     end;
 
     if Assigned(Data) then begin
-      ShowStatusMsg('Copying rows to internal structure ...');
+
       // Set up grid column headers
+      ShowStatusMsg('Setting up columns ...');
+      ColWidths := TStringList.Create;
+      for i:=0 to vt.Header.Columns.Count-1 do
+        ColWidths.Values[vt.Header.Columns[i].Text] := IntToStr(vt.Header.Columns[i].Width);
       SetLength(DataGridResult.Columns, Data.ColumnCount);
       vt.Header.Columns.BeginUpdate;
-      if not RefreshingData then
-        vt.Header.Columns.Clear
-      else begin
-        // Remove superfluous columns
-        for i:=vt.Header.Columns.Count-1 downto Data.ColumnCount do
-          vt.Header.Columns[i].Destroy;
-      end;
-      LastExistingColIndex := vt.Header.Columns.Count-1;
+      vt.Header.Columns.Clear;
       for i:=0 to WantedColumns.Count-1 do
         InitColumn(i, WantedColumns[i]);
-      vt.Header.Columns.EndUpdate;
 
       // Set up grid rows and data array
+      ShowStatusMsg('Copying rows to internal structure ...');
       vt.BeginUpdate;
       SetLength(DataGridResult.Rows, Offset+Data.RecordCount);
       for i:=Offset to Offset+Data.RecordCount-1 do begin
@@ -3685,18 +3675,32 @@ begin
       FreeAndNil(Data);
       vt.RootNodeCount := Length(DataGridResult.Rows);
 
-      for i:=LastExistingColIndex+1 to vt.Header.Columns.Count-1 do
-        AutoCalcColWidth(vt, i);
+      // Autoset or restore column width
+      for i:=0 to vt.Header.Columns.Count-1 do begin
+        ColWidth := 0;
+        if RefreshingData then
+          ColWidth := StrToIntDef(ColWidths.Values[vt.Header.Columns[i].Text], ColWidth);
+        if ColWidth > 0 then
+          vt.Header.Columns[i].Width := ColWidth
+        else
+          AutoCalcColWidth(vt, i);
+      end;
 
+      vt.Header.Columns.EndUpdate;
       vt.EndUpdate;
       vt.SetFocus;
 
       if not RefreshingData then begin
         // Scroll to top left if switched to another table
         vt.OffsetXY := Point(0, 0);
-        if vt.RootNodeCount > DataGridFocusedNodeIndex then begin
-          SelectNode(vt, DataGridFocusedNodeIndex);
-          vt.FocusedColumn := DataGridFocusedColumnIndex;
+      end;
+      if vt.RootNodeCount > DataGridFocusedNodeIndex then begin
+        SelectNode(vt, DataGridFocusedNodeIndex);
+        for i:=0 to vt.Header.Columns.Count-1 do begin
+          if vt.Header.Columns[i].Text = DataGridFocusedColumnName then begin
+            vt.FocusedColumn := i;
+            break;
+          end;
         end;
       end;
 
@@ -7683,7 +7687,7 @@ var
   rx: TRegExpr;
   idx, i: Integer;
   TestList: TStringList;
-  Sort, KeyName, CellFocus: String;
+  Sort, KeyName, FocusedCol, CellFocus: String;
 begin
   OpenRegistry;
   MainReg.OpenKey(GetRegKeyTable, True);
@@ -7696,23 +7700,26 @@ begin
   end;
   if not Assigned(DataGridFocusedCell) then
     DataGridFocusedCell := TStringList.Create;
+  // Remember focused node and column for selected table
+  if Assigned(DataGrid.FocusedNode) then begin
+    KeyName := Mask(DataGridDB)+'.'+Mask(DataGridTable);
+    FocusedCol := '';
+    if DataGrid.FocusedColumn <> NoColumn then
+      FocusedCol := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
+    DataGridFocusedCell.Values[KeyName] := IntToStr(DataGrid.FocusedNode.Index) + DELIM + FocusedCol;
+  end;
+  DataGridFocusedNodeIndex := 0;
+  DataGridFocusedColumnName := '';
+  KeyName := Mask(SelectedTable.Database)+'.'+Mask(SelectedTable.Name);
+  CellFocus := DataGridFocusedCell.Values[KeyName];
+  if CellFocus <> '' then begin
+    DataGridFocusedNodeIndex := MakeInt(Explode(DELIM, CellFocus)[0]);
+    DataGridFocusedColumnName := Explode(DELIM, CellFocus)[1];
+  end;
   if not RefreshingData then begin
-    // Remember focused node and column for previously selected table
-    if Assigned(DataGrid.FocusedNode) then begin
-      KeyName := Mask(DataGridDB)+'.'+Mask(DataGridTable);
-      DataGridFocusedCell.Values[KeyName] := IntToStr(DataGrid.FocusedNode.Index) + DELIM + IntToStr(DataGrid.FocusedColumn);
-    end;
     DataGridHiddenColumns.Clear;
     SynMemoFilter.Clear;
     SetLength(DataGridSortColumns, 0);
-    DataGridFocusedNodeIndex := 0;
-    DataGridFocusedColumnIndex := 0;
-    KeyName := Mask(SelectedTable.Database)+'.'+Mask(SelectedTable.Name);
-    CellFocus := DataGridFocusedCell.Values[KeyName];
-    if CellFocus <> '' then begin
-      DataGridFocusedNodeIndex := MakeInt(Explode(DELIM, CellFocus)[0]);
-      DataGridFocusedColumnIndex := MakeInt(Explode(DELIM, CellFocus)[1]);
-    end;
     DataGridWantedRowCount := 0;
     while DataGridFocusedNodeIndex >= DataGridWantedRowCount do
       Inc(DataGridWantedRowCount, prefGridRowcountStep);
