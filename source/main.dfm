@@ -1182,7 +1182,7 @@ object MainForm: TMainForm
               ScrollBars = ssVertical
               WantTabs = True
               WordWrap = True
-              OnChange = SynMemoFilterChange
+              OnStatusChange = SynMemoFilterStatusChange
               RemovedKeystrokes = <
                 item
                   Command = ecDeleteLine
