@@ -6607,7 +6607,7 @@ begin
   SelectedTableColumns.Clear;
   SelectedTableKeys.Clear;
   SelectedTableForeignKeys.Clear;
-  DataGrid.Tag := VTREE_NOTLOADED;
+  DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
   DataGrid.Invalidate;
   try
     case SelectedTable.NodeType of
