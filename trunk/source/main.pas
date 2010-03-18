@@ -3685,6 +3685,7 @@ begin
         else
           AutoCalcColWidth(vt, i);
       end;
+      ColWidths.Free;
 
       vt.Header.Columns.EndUpdate;
       vt.EndUpdate;
