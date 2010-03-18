@@ -659,7 +659,7 @@ type
     procedure menuEditVariableClick(Sender: TObject);
     procedure menuTreeCollapseAllClick(Sender: TObject);
     procedure menuTreeExpandAllClick(Sender: TObject);
-    procedure SynMemoFilterChange(Sender: TObject);
+    procedure SynMemoFilterStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     procedure DataGridAfterCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
@@ -6844,16 +6844,12 @@ begin
   SynMemoFilter.UndoList.AddGroupBreak;
   SynMemoFilter.SelectAll;
   SynMemoFilter.SelText := Clause;
-  SynMemoFilterChange(Sender);
 end;
 
 
-procedure TMainForm.SynMemoFilterChange(Sender: TObject);
-var
-  SomeText: Boolean;
+procedure TMainForm.SynMemoFilterStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 begin
-  SomeText := (SynMemoFilter.GetTextLen > 0) or (editFilterSearch.Text <> '');
-  actClearFilterEditor.Enabled := SomeText;
+  actClearFilterEditor.Enabled := (Sender as TSynMemo).GetTextLen > 0;
 end;
 
 
