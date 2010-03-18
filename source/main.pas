@@ -3689,7 +3689,9 @@ begin
 
       vt.Header.Columns.EndUpdate;
       vt.EndUpdate;
-      vt.SetFocus;
+      // Do not steel filter while writing filters
+      if not SynMemoFilter.Focused then
+        vt.SetFocus;
 
       if not RefreshingData then begin
         // Scroll to top left if switched to another table
@@ -7688,7 +7690,7 @@ var
   rx: TRegExpr;
   idx, i: Integer;
   TestList: TStringList;
-  Sort, KeyName, FocusedCol, CellFocus: String;
+  Sort, KeyName, FocusedCol, CellFocus, Filter: String;
 begin
   OpenRegistry;
   MainReg.OpenKey(GetRegKeyTable, True);
@@ -7758,9 +7760,11 @@ begin
   if MainReg.ValueExists(REGNAME_HIDDENCOLUMNS) then
     DataGridHiddenColumns.DelimitedText := MainReg.ReadString(REGNAME_HIDDENCOLUMNS);
 
-  // Filter
+  // Set filter, without changing cursor position
   if MainReg.ValueExists(REGNAME_FILTER) then begin
-    SynMemoFilter.Text := MainReg.ReadString(REGNAME_FILTER);
+    Filter := MainReg.ReadString(REGNAME_FILTER);
+    if SynMemoFilter.Text <> Filter then
+      SynMemoFilter.Text := Filter;
     if SynMemoFilter.GetTextLen > 0 then
       ToggleFilterPanel(True);
   end;
