@@ -7503,7 +7503,7 @@ object MainForm: TMainForm
     object Resetsorting1: TMenuItem
       Action = actDataResetSorting
     end
-    object QuickFilter1: TMenuItem
+    object menuQuickFilter: TMenuItem
       Caption = 'Quick Filter'
       ImageIndex = 53
       object QF1: TMenuItem
@@ -7545,30 +7545,42 @@ object MainForm: TMainForm
         ImageIndex = 61
         OnClick = QuickFilterClick
       end
+      object QFvalues: TMenuItem
+        Caption = 'More values ...'
+        ImageIndex = 61
+        OnClick = QFvaluesClick
+        object TMenuItem
+        end
+      end
       object N11a: TMenuItem
         Caption = '-'
       end
       object QF8: TMenuItem
+        Tag = 1
         Caption = 'Column = ...'
         ImageIndex = 58
         OnClick = QuickFilterClick
       end
       object QF9: TMenuItem
+        Tag = 1
         Caption = 'Column != ...'
         ImageIndex = 58
         OnClick = QuickFilterClick
       end
       object QF10: TMenuItem
+        Tag = 1
         Caption = 'Column > ...'
         ImageIndex = 58
         OnClick = QuickFilterClick
       end
       object QF11: TMenuItem
+        Tag = 1
         Caption = 'Column < ...'
         ImageIndex = 58
         OnClick = QuickFilterClick
       end
       object QF12: TMenuItem
+        Tag = 1
         Caption = 'Column like ...'
         ImageIndex = 58
         OnClick = QuickFilterClick

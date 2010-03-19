@@ -255,7 +255,7 @@ type
     N6a: TMenuItem;
     QF1: TMenuItem;
     QF2: TMenuItem;
-    QuickFilter1: TMenuItem;
+    menuQuickFilter: TMenuItem;
     QF3: TMenuItem;
     QF4: TMenuItem;
     N7: TMenuItem;
@@ -466,6 +466,7 @@ type
     actDataShowNext: TAction;
     actDataShowAll: TAction;
     SynExporterHTML1: TSynExporterHTML;
+    QFvalues: TMenuItem;
     procedure refreshMonitorConfig;
     procedure loadWindowConfig;
     procedure saveWindowConfig;
@@ -577,6 +578,7 @@ type
     procedure popupDBPopup(Sender: TObject);
     procedure SaveDialogExportDataTypeChange(Sender: TObject);
     procedure popupDataGridPopup(Sender: TObject);
+    procedure QFvaluesClick(Sender: TObject);
     procedure InsertDate(Sender: TObject);
     procedure setNULL1Click(Sender: TObject);
     procedure MenuTablelistColumnsClick(Sender: TObject);
@@ -4563,97 +4565,41 @@ begin
 end;
 
 
-{**
-  Column-title clicked -> generate "ORDER BY"
-}
 procedure TMainForm.QuickFilterClick(Sender: TObject);
 var
-  filter,value,column : String;
-  menuitem : TMenuItem;
-  IsNull: Boolean;
+  Filter, Val, Col: String;
+  Item : TMenuItem;
 begin
   // Set filter for "where..."-clause
-  DataGridEnsureFullRow(DataGrid, DataGrid.FocusedNode);
-  value := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
-  menuitem := (Sender as TMenuItem);
-  column := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
-  IsNull := DataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].IsNull;
-  if (menuitem = QF1) and IsNull then
-    filter := column + ' IS NULL'
-  else if menuitem = QF1 then
-    filter := column + ' =' + ' ' + esc( value )
-  else if (menuitem = QF2) and IsNull then
-    filter := column + ' IS NOT NULL'
-  else if menuitem = QF2 then
-    filter := column + ' !=' + ' ' + esc( value )
-  else if menuitem = QF3 then
-    filter := column + ' >' + ' ' + esc( value )
-  else if menuitem = QF4 then
-    filter := column + ' <' + ' ' + esc( value )
-  else if menuitem = QF5 then
-    filter := column + ' LIKE' + ' ''' + esc( value, true ) + '%'''
-  else if menuitem = QF6 then
-    filter := column + ' LIKE' + ' ''%' + esc( value, true ) + ''''
-  else if menuitem = QF7 then
-    filter := column + ' LIKE' + ' ''%' + esc( value, true ) + '%'''
+  Item := Sender as TMenuItem;
+  Col := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
+  Filter := '';
 
-  else if menuitem = QF8 then
-  begin
-    filter := InputBox('Specify filter-value...', column+' = ', 'Value');
-    if filter = 'Value' then
-      abort;
-    filter := column + ' = ''' + filter + '''';
-  end
+  if Item.Tag = 1 then begin
+    // Item needs prompt
+    Val := InputBox('Specify filter-value...', Item.Caption, 'Value');
+    if Val = 'Value' then
+      Filter := ''
+    else if Item = QF8 then
+      Filter := mask(Col) + ' = ''' + Val + ''''
+    else if Item = QF9 then
+      Filter := mask(Col) + ' != ''' + Val + ''''
+    else if Item = QF10 then
+      Filter := mask(Col) + ' > ''' + Val + ''''
+    else if Item = QF11 then
+      Filter := mask(Col) + ' < ''' + Val + ''''
+    else if Item = QF12 then
+      Filter := mask(Col) + ' LIKE ''%' + Val + '%''';
+  end else
+    Filter := Item.Hint;
 
-  else if menuitem = QF9 then
-  begin
-    filter := InputBox('Specify filter-value...', column+' != ', 'Value');
-    if filter = 'Value' then
-      abort;
-    filter := column + ' != ''' + filter + '''';
-  end
-
-  else if menuitem = QF10 then
-  begin
-    filter := InputBox('Specify filter-value...', column+' > ', 'Value');
-    if filter = 'Value' then
-      abort;
-    filter := column + ' > ''' + filter + '''';
-  end
-
-  else if menuitem = QF11 then
-  begin
-    filter := InputBox('Specify filter-value...', column+' < ', 'Value');
-    if filter = 'Value' then
-      abort;
-    filter := column + ' < ''' + filter + '''';
-  end
-
-  else if menuitem = QF12 then
-  begin
-    filter := InputBox('Specify filter-value...', column+' LIKE ', 'Value');
-    if filter = 'Value' then
-      abort;
-    filter := column + ' LIKE ''%' + filter + '%''';
-  end
-
-  else if menuitem = QF13 then
-    filter := column + ' IS NULL'
-
-  else if menuitem = QF14 then
-    filter := column + ' IS NOT NULL'
-
-  // Filters with text from clipboard
-  else if (menuitem = QF15) or (menuitem = QF16) or (menuitem = QF17) or (menuitem = QF18) or (menuitem = QF19) then
-  begin
-    filter := menuitem.Caption;
+  if Filter <> '' then begin
+    SynMemoFilter.UndoList.AddGroupBreak;
+    SynMemoFilter.SelectAll;
+    SynmemoFilter.SelText := filter;
+    ToggleFilterPanel(True);
+    actApplyFilterExecute(Sender);
   end;
-
-  SynMemoFilter.UndoList.AddGroupBreak;
-  SynMemoFilter.SelectAll;
-  SynmemoFilter.SelText := filter;
-  ToggleFilterPanel(True);
-  actApplyFilterExecute(Sender);
 end;
 
 
@@ -5079,19 +5025,17 @@ begin
 end;
 
 
-{**
-  A cell in a DBGrid is painted. Sets custom background color NULL fields.
-}
 procedure TMainForm.popupDataGridPopup(Sender: TObject);
 var
   y,m,d,h,i,s,ms : Word;
-  cpText, selectedColumn, value : String;
+  cpText, Col, value : String;
   CellFocused: Boolean;
 const
   CLPBRD : String = 'CLIPBOARD';
 begin
   CellFocused := Assigned(DataGrid.FocusedNode) and (DataGrid.FocusedColumn > NoColumn);
   DataInsertDateTime.Enabled := CellFocused;
+  QFvalues.Enabled := CellFocused;
   if not CellFocused then
     Exit;
 
@@ -5104,25 +5048,26 @@ begin
   DataYear.Caption := Format('%.4d', [y]);
 
   // Manipulate the Quick-filter menuitems
-  selectedColumn := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
+  DataGridEnsureFullRow(DataGrid, DataGrid.FocusedNode);
+  Col := mask(DataGrid.Header.Columns[DataGrid.FocusedColumn].Text);
   // 1. block: include selected columnname and value from datagrid in caption
   if DataGridResult.Rows[DataGrid.FocusedNode.Index].Cells[DataGrid.FocusedColumn].IsNull then begin
-    QF1.Caption := selectedColumn + ' IS NULL';
-    QF2.Caption := selectedColumn + ' IS NOT NULL';
+    QF1.Hint := Col + ' IS NULL';
+    QF2.Hint := Col + ' IS NOT NULL';
     QF3.Visible := False;
     QF4.Visible := False;
     QF5.Visible := False;
     QF6.Visible := False;
     QF7.Visible := False;
   end else begin
-    value := sstr(DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn], 100);
-    QF1.Caption := selectedColumn + ' = ' + esc( value );
-    QF2.Caption := selectedColumn + ' != ' + esc( value );
-    QF3.Caption := selectedColumn + ' > ' + esc( value );
-    QF4.Caption := selectedColumn + ' < ' + esc( value );
-    QF5.Caption := selectedColumn + ' LIKE ''' + esc( value, true ) + '%''';
-    QF6.Caption := selectedColumn + ' LIKE ''%' + esc( value, true ) + '''';
-    QF7.Caption := selectedColumn + ' LIKE ''%' + esc( value, true ) + '%''';
+    value := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
+    QF1.Hint := Col + ' = ' + esc( value );
+    QF2.Hint := Col + ' != ' + esc( value );
+    QF3.Hint := Col + ' > ' + esc( value );
+    QF4.Hint := Col + ' < ' + esc( value );
+    QF5.Hint := Col + ' LIKE ''' + esc( value, true ) + '%''';
+    QF6.Hint := Col + ' LIKE ''%' + esc( value, true ) + '''';
+    QF7.Hint := Col + ' LIKE ''%' + esc( value, true ) + '%''';
     QF3.Visible := True;
     QF4.Visible := True;
     QF5.Visible := True;
@@ -5131,30 +5076,75 @@ begin
   end;
 
   // 2. block: include only selected columnname in caption
-  QF8.Caption := selectedColumn + ' = "..."';
-  QF9.Caption := selectedColumn + ' != "..."';
-  QF10.Caption := selectedColumn + ' > "..."';
-  QF11.Caption := selectedColumn + ' < "..."';
-  QF12.Caption := selectedColumn + ' LIKE "%...%"';
-  QF13.Caption := selectedColumn + ' IS NULL';
-  QF14.Caption := selectedColumn + ' IS NOT NULL';
+  QF8.Hint := Col + ' = "..."';
+  QF9.Hint := Col + ' != "..."';
+  QF10.Hint := Col + ' > "..."';
+  QF11.Hint := Col + ' < "..."';
+  QF12.Hint := Col + ' LIKE "%...%"';
+  QF13.Hint := Col + ' IS NULL';
+  QF14.Hint := Col + ' IS NOT NULL';
 
   // 3. block: include selected columnname and clipboard-content in caption for one-click-filtering
   cpText := Clipboard.AsText;
-  if Length(cpText) < 100 then begin
-    QF15.Enabled := true; QF15.Caption := selectedColumn + ' = ' + esc( cpText );
-    QF16.Enabled := true; QF16.Caption := selectedColumn + ' != ' + esc( cpText );
-    QF17.Enabled := true; QF17.Caption := selectedColumn + ' > ' + esc( cpText );
-    QF18.Enabled := true; QF18.Caption := selectedColumn + ' < ' + esc( cpText );
-    QF19.Enabled := true; QF19.Caption := selectedColumn + ' LIKE ''%' + esc( cpText, true ) + '%''';
+  if Length(cpText) < SIZE_KB then begin
+    QF15.Enabled := true; QF15.Hint := Col + ' = ' + esc( cpText );
+    QF16.Enabled := true; QF16.Hint := Col + ' != ' + esc( cpText );
+    QF17.Enabled := true; QF17.Hint := Col + ' > ' + esc( cpText );
+    QF18.Enabled := true; QF18.Hint := Col + ' < ' + esc( cpText );
+    QF19.Enabled := true; QF19.Hint := Col + ' LIKE ''%' + esc( cpText, true ) + '%''';
   end else begin
-    QF15.Enabled := false; QF15.Caption := selectedColumn + ' = ' + CLPBRD;
-    QF16.Enabled := false; QF16.Caption := selectedColumn + ' != ' + CLPBRD;
-    QF17.Enabled := false; QF17.Caption := selectedColumn + ' > ' + CLPBRD;
-    QF18.Enabled := false; QF18.Caption := selectedColumn + ' < ' + CLPBRD;
-    QF19.Enabled := false; QF19.Caption := selectedColumn + ' LIKE %' + CLPBRD + '%';
+    QF15.Enabled := false; QF15.Hint := Col + ' = ' + CLPBRD;
+    QF16.Enabled := false; QF16.Hint := Col + ' != ' + CLPBRD;
+    QF17.Enabled := false; QF17.Hint := Col + ' > ' + CLPBRD;
+    QF18.Enabled := false; QF18.Hint := Col + ' < ' + CLPBRD;
+    QF19.Enabled := false; QF19.Hint := Col + ' LIKE %' + CLPBRD + '%';
   end;
+
+  for i:=0 to menuQuickFilter.Count-1 do begin
+    if (menuQuickFilter[i].Caption <> '-') // Not a separator
+      and (menuQuickFilter[i].Count = 0) // Not a menu with subitems
+      and (menuQuickFilter[i].Action = nil) // Not some special item
+      then
+      menuQuickFilter[i].Caption := sstr(menuQuickFilter[i].Hint, 100);
+  end;
+
 end;
+
+
+procedure TMainForm.QFvaluesClick(Sender: TObject);
+var
+  Data: TMySQLQuery;
+  Col: String;
+  Item: TMenuItem;
+  i: Integer;
+begin
+  // Create a list of distinct column values in selected table
+  for i:=QFvalues.Count-1 downto 1 do
+    QFvalues.Delete(i);
+  QFvalues[0].Caption := '';
+  QFvalues[0].Hint := '';
+  QFvalues[0].OnClick := nil;
+  if DataGrid.FocusedColumn = NoColumn then
+    Exit;
+  Col := SelectedTableColumns[DataGrid.FocusedColumn].Name;
+  ShowStatusMsg('Fetching distinct values ...');
+  Data := Connection.GetResults('SELECT '+mask(Col)+', COUNT(*) AS c FROM '+mask(SelectedTable.Name)+
+    ' GROUP BY '+mask(Col)+' ORDER BY c DESC, '+mask(Col)+' LIMIT 30');
+  for i:=0 to Data.RecordCount-1 do begin
+    if QFvalues.Count > i then
+      Item := QFvalues[i]
+    else begin
+      Item := TMenuItem.Create(QFvalues);
+      QFvalues.Add(Item);
+    end;
+    Item.Hint := mask(Col)+'='+esc(Data.Col(Col));
+    Item.Caption := sstr(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
+    Item.OnClick := QuickFilterClick;
+    Data.Next;
+  end;
+  ShowStatusMsg(STATUS_MSG_READY);
+end;
+
 
 procedure TMainForm.InsertDate(Sender: TObject);
 var d : String;
