@@ -5119,7 +5119,7 @@ begin
   QFvalues[0].OnClick := nil;
   if DataGrid.FocusedColumn = NoColumn then
     Exit;
-  Col := SelectedTableColumns[DataGrid.FocusedColumn].Name;
+  Col := DataGridResult.Columns[DataGrid.FocusedColumn].Name;
   ShowStatusMsg('Fetching distinct values ...');
   Data := Connection.GetResults('SELECT '+mask(Col)+', COUNT(*) AS c FROM '+mask(SelectedTable.Name)+
     ' GROUP BY '+mask(Col)+' ORDER BY c DESC, '+mask(Col)+' LIMIT 30');
