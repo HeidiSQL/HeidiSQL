@@ -7711,7 +7711,6 @@ object MainForm: TMainForm
   end
   object popupResultGrid: TPopupMenu
     Images = ImageListMain
-    OnPopup = popupResultGridPopup
     Left = 136
     Top = 96
     object Copy4: TMenuItem

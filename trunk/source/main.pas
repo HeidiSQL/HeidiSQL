@@ -566,7 +566,6 @@ type
     procedure TimerConnectedTimer(Sender: TObject);
     procedure Clear2Click(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
-    procedure popupResultGridPopup(Sender: TObject);
     procedure AutoRefreshSetInterval(Sender: TObject);
     procedure AutoRefreshToggle(Sender: TObject);
     procedure SynMemoQueryDragOver(Sender, Source: TObject; X, Y: Integer;
@@ -4607,12 +4606,6 @@ procedure TMainForm.popupQueryPopup(Sender: TObject);
 begin
   // Sets cursor into memo and activates TAction(s) like paste
   ActiveQueryMemo.SetFocus;
-end;
-
-procedure TMainForm.popupResultGridPopup(Sender: TObject);
-begin
-  // data available?
-  // Save2CSV.enabled :=
 end;
 
 procedure TMainForm.AutoRefreshSetInterval(Sender: TObject);
