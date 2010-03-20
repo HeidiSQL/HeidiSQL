@@ -11,7 +11,7 @@ interface
 uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ComCtrls, ShellApi, CheckLst,
   Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages,
-  Registry, SynEditHighlighter, DateUtils, Generics.Collections, AnsiStrings,
+  Registry, SynEditHighlighter, DateUtils, Generics.Collections, StrUtils, AnsiStrings,
   mysql_connection, mysql_structures;
 
 type
@@ -2820,13 +2820,18 @@ begin
   rx := TRegExpr.Create;
   rx.ModifierS := False;
   rx.ModifierM := True;
-  rx.Expression := '^\s+[`"]([^`"]+)[`"]\s(\w+)(.*)';
+  rx.Expression := '^\s+[`"]([^`"]+)[`"]\s(\w+)';
   rxCol := TRegExpr.Create;
   rxCol.ModifierI := True;
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(Columns) then
       break;
-    ColSpec := rx.Match[3];
+    ColSpec := '';
+    for i:=rx.MatchPos[2]+rx.MatchLen[2] to Length(CreateTable) do begin
+      if CharInSet(CreateTable[i], [#13, #10]) then
+        break;
+      ColSpec := ColSpec + CreateTable[i];
+    end;
 
     // Strip trailing comma
     if (ColSpec <> '') and (ColSpec[Length(ColSpec)] = ',') then
