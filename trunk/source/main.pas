@@ -1141,9 +1141,6 @@ begin
   FreeAndNil(CreateDatabaseForm);
   FreeAndNil(SearchReplaceDialog);
 
-  // Close database connection
-  DoDisconnect;
-
   OpenRegistry;
   // Position of Toolbars
   MainReg.WriteInteger(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
@@ -1194,6 +1191,10 @@ begin
     MainReg.CloseKey;
     MainReg.Free;
   end;
+
+  // Close database connection at the very end, otherwise above stuff can implicitely
+  // trigger some database query, e.g. DBtree.GetText
+  DoDisconnect;
 end;
 
 
