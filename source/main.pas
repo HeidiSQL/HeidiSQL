@@ -476,7 +476,7 @@ type
     procedure actExitApplicationExecute(Sender: TObject);
     procedure DisplayChange(var msg: TMessage); message WM_DISPLAYCHANGE;
     procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Startup;
     procedure DoAfterConnect;
@@ -1005,21 +1005,18 @@ var
   ws: String;
 begin
   OpenRegistry;
-  with MainReg do begin
-    if OpenKey(REGPATH + virtualDesktopName + '\', True) then begin
-      // Convert set to string.
-      if WindowState = wsNormal then ws := 'Normal' else
-      if WindowState = wsMinimized then ws := 'Minimized' else
-      if WindowState = wsMaximized then ws := 'Maximized';
-      // Set WindowState to normal to put the correct restore bounds in
-      // Left, Top, Width and Height; the call is processed immediately.
-      WindowState := wsNormal;
-      // Write out the results.
-      WriteString(REGNAME_WINDOWSTATE, ws);
-      WriteInteger(REGNAME_WINDOWLEFT, Left);
-      WriteInteger(REGNAME_WINDOWTOP, Top);
-      WriteInteger(REGNAME_WINDOWWIDTH, Width);
-      WriteInteger(REGNAME_WINDOWHEIGHT, Height);
+  if MainReg.OpenKey(REGPATH + virtualDesktopName + '\', True) then begin
+    // Convert set to string.
+    if WindowState = wsNormal then ws := 'Normal' else
+    if WindowState = wsMinimized then ws := 'Minimized' else
+    if WindowState = wsMaximized then ws := 'Maximized';
+    MainReg.WriteString(REGNAME_WINDOWSTATE, ws);
+    // Window dimensions are only valid when WindowState is normal.
+    if WindowState = wsNormal then begin
+      MainReg.WriteInteger(REGNAME_WINDOWLEFT, Left);
+      MainReg.WriteInteger(REGNAME_WINDOWTOP, Top);
+      MainReg.WriteInteger(REGNAME_WINDOWWIDTH, Width);
+      MainReg.WriteInteger(REGNAME_WINDOWHEIGHT, Height);
     end;
   end;
 end;
@@ -1030,21 +1027,19 @@ var
 begin
   // Called on application start or when monitor configuration has changed.
   OpenRegistry;
-  with MainReg do begin
-    if not OpenKey(REGPATH + virtualDesktopName + '\', False) then begin
-      // Switch to default configuration if nothing was stored.
-      setDefaultWindowConfig;
-    end else begin
-      // If found, load stored configuration for MainForm.
-      Left := ReadInteger(REGNAME_WINDOWLEFT);
-      Top := ReadInteger(REGNAME_WINDOWTOP);
-      Width := ReadInteger(REGNAME_WINDOWWIDTH);
-      Height := ReadInteger(REGNAME_WINDOWHEIGHT);
-      ws := ReadString(REGNAME_WINDOWSTATE);
-      if ws = 'Normal' then WindowState := wsNormal else
-      if ws = 'Minimized' then WindowState := wsMinimized else
-      if ws = 'Maximized' then WindowState := wsMaximized;
-    end;
+  if not MainReg.OpenKey(REGPATH + virtualDesktopName + '\', False) then begin
+    // Switch to default configuration if nothing was stored.
+    setDefaultWindowConfig;
+  end else begin
+    // If found, load stored configuration for MainForm.
+    Left := MainReg.ReadInteger(REGNAME_WINDOWLEFT);
+    Top := MainReg.ReadInteger(REGNAME_WINDOWTOP);
+    Width := MainReg.ReadInteger(REGNAME_WINDOWWIDTH);
+    Height := MainReg.ReadInteger(REGNAME_WINDOWHEIGHT);
+    ws := MainReg.ReadString(REGNAME_WINDOWSTATE);
+    if ws = 'Normal' then WindowState := wsNormal else
+    if ws = 'Minimized' then WindowState := wsMinimized else
+    if ws = 'Maximized' then WindowState := wsMaximized;
   end;
 end;
 
@@ -1123,7 +1118,7 @@ begin
     CanClose := not (FActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
 end;
 
-procedure TMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TMainForm.FormDestroy(Sender: TObject);
 var
   filename : String;
 begin
@@ -1174,8 +1169,6 @@ begin
   SetLength(DataGridResult.Rows, 0);
   SetLength(DataGridResult.Columns, 0);
 
-  Action := caFree;
-
   saveWindowConfig;
 
   filename := GetTempDir+'\'+APPNAME+'-preview.';
@@ -1192,8 +1185,8 @@ begin
     MainReg.Free;
   end;
 
-  // Close database connection at the very end, otherwise above stuff can implicitely
-  // trigger some database query, e.g. DBtree.GetText
+  // Close database connection at the very end, as above stuff can easily
+  // trigger some database query
   DoDisconnect;
 end;
 
