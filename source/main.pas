@@ -560,7 +560,6 @@ type
       CurrentLine: Boolean=false);
     procedure SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     procedure TimerHostUptimeTimer(Sender: TObject);
-    procedure FormActivate(Sender: TObject);
     procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: String);
     procedure TimerConnectedTimer(Sender: TObject);
@@ -4489,12 +4488,6 @@ begin
     ShowStatusMsg('Uptime: '+FormatTimeNumber(Connection.ServerUptime), 4)
   else
     ShowStatusMsg('', 4);
-end;
-
-
-procedure TMainForm.FormActivate(Sender: TObject);
-begin
-  TimerConnected.OnTimer(self);
 end;
 
 
