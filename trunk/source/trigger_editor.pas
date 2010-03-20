@@ -160,8 +160,10 @@ begin
     // So, we take the risk of loosing the trigger for cases in which the user has SQL errors in
     // his statement. The user must fix such errors and re-press "Save" while we have them in memory,
     // otherwise the trigger attributes are lost forever.
-    if FEditObjectName <> '' then
+    if FEditObjectName <> '' then try
       Mainform.Connection.Query('DROP TRIGGER '+Mainform.mask(FEditObjectName));
+    except
+    end;
     // CREATE
     //   [DEFINER = { user | CURRENT_USER }]
     //   TRIGGER trigger_name trigger_time trigger_event
