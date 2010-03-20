@@ -915,7 +915,7 @@ begin
   end else begin
     for i:=0 to FDBObjectLists.Count-1 do
       TDBObjectList(FDBObjectLists.Objects[i]).Free;
-    FDBObjectLists.Clear;
+    FreeAndNil(FDBObjectLists);
   end;
   if Assigned(FOnAfterClearDBObjects) then
     FOnAfterClearDBObjects(db);
