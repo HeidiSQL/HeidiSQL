@@ -12,9 +12,9 @@ object MainForm: TMainForm
   Menu = MainMenu1
   OldCreateOrder = True
   OnActivate = FormActivate
-  OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnMouseWheel = FormMouseWheel
   OnResize = FormResize
   PixelsPerInch = 96
