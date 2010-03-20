@@ -3411,7 +3411,11 @@ begin
       if Data.RecordCount = 0 then
         raise Exception.Create('Unable to find row.');
       for i:=0 to Length(DataGridResult.Columns)-1 do begin
-        Row.Cells[i].Text := Data.Col(i);
+        case DataGridResult.Columns[i].DatatypeCat of
+          dtcInteger, dtcReal: Row.Cells[i].Text := FormatNumber(Data.Col(i), False);
+          dtcBinary: Row.Cells[i].Text := GetBlobContent(Data, i);
+          else Row.Cells[i].Text := Data.Col(i);
+        end;
         Row.Cells[i].IsNull := Data.IsNull(i);
       end;
       Row.HasFullData := True;
