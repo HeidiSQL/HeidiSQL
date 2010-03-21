@@ -315,8 +315,7 @@ procedure TDataSortingForm.btnOKClick(Sender: TObject);
 begin
   // TODO: apply ordering
   Mainform.DataGridSortColumns := OrderColumns;
-  Mainform.DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
-  Mainform.DataGrid.Invalidate;
+  InvalidateVT(Mainform.DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
   btnCancel.OnClick(Sender);
 end;
 

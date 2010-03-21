@@ -87,8 +87,7 @@ begin
     if not chklistColumns.Checked[i] then
       Mainform.DataGridHiddenColumns.Add(chklistColumns.Items[i]);
   end;
-  Mainform.DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
-  Mainform.DataGrid.Invalidate;
+  InvalidateVT(Mainform.DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
   btnCancel.OnClick(Sender);
 end;
 

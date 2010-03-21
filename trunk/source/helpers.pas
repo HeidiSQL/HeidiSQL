@@ -249,6 +249,7 @@ type
   function GetIndexIcon(IndexType: String): Integer;
   function KeyPressed(Code: Integer): Boolean;
   function GeneratePassword(Len: Integer): String;
+  procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
 
 var
   MainReg: TRegistry;
@@ -3439,6 +3440,19 @@ begin
       CharTable := Consos;
     Result[i] := CharTable[Random(Length(CharTable)-1)+1];
   end;
+end;
+
+
+procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
+begin
+  // Avoid AVs in OnDestroy events
+  if not Assigned(VT) then
+    Exit;
+  VT.Tag := RefreshTag;
+  if ImmediateRepaint then
+    VT.Repaint
+  else
+    VT.Invalidate;
 end;
 
 

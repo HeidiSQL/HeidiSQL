@@ -1121,7 +1121,7 @@ procedure TMainForm.FormDestroy(Sender: TObject);
 var
   filename : String;
 begin
-  // Destroy editors and dialogs. Must be done before connection gets closed, as some destructors do SQL stuff. 
+  // Destroy editors and dialogs. Must be done before connection gets closed, as some destructors do SQL stuff.
   FreeAndNil(RoutineEditor);
   FreeAndNil(TableToolsDialog);
   FreeAndNil(UserManagerForm);
@@ -1135,8 +1135,15 @@ begin
   FreeAndNil(CreateDatabaseForm);
   FreeAndNil(SearchReplaceDialog);
 
+  // Clearing query and browse data.
+  SetLength(DataGridResult.Rows, 0);
+  SetLength(DataGridResult.Columns, 0);
+
+  // Close database connection
+  DoDisconnect;
+
+  // Save various settings
   OpenRegistry;
-  // Position of Toolbars
   MainReg.WriteInteger(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
   MainReg.WriteInteger(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
   MainReg.WriteInteger(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
@@ -1145,29 +1152,17 @@ begin
   MainReg.WriteInteger(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
   MainReg.WriteBool(REGNAME_STOPONERRORSINBATCH, actQueryStopOnErrors.Checked);
   MainReg.WriteBool(REGNAME_BLOBASTEXT, actBlobAsText.Checked);
-
-  // Save delimiter
   MainReg.WriteString( REGNAME_DELIMITER, Delimiter );
-
   MainReg.WriteInteger( REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height );
   MainReg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width );
   MainReg.WriteInteger( REGNAME_DBTREEWIDTH, pnlLeft.width );
   MainReg.WriteInteger( REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height );
-
-  // Filter panel
   MainReg.WriteBool(REGNAME_FILTERACTIVE, pnlFilterVT.Tag=Integer(True));
-
-  // Save width of probably resized columns of all VirtualTrees
   SaveListSetup(ListVariables);
   SaveListSetup(ListStatus);
   SaveListSetup(ListProcesses);
   SaveListSetup(ListCommandStats);
   SaveListSetup(ListTables);
-
-  debug('mem: clearing query and browse data.');
-  SetLength(DataGridResult.Rows, 0);
-  SetLength(DataGridResult.Columns, 0);
-
   saveWindowConfig;
 
   filename := GetTempDir+'\'+APPNAME+'-preview.';
@@ -1183,10 +1178,6 @@ begin
     MainReg.CloseKey;
     MainReg.Free;
   end;
-
-  // Close database connection at the very end, as above stuff can easily
-  // trigger some database query
-  DoDisconnect;
 end;
 
 
@@ -1815,6 +1806,10 @@ end;
 
 procedure TMainForm.DoDisconnect;
 begin
+  // Do nothing in case user clicked Cancel on session manager
+  if (not Assigned(Connection)) or (not Connection.Active) then
+    Exit;
+
   // Open server-specific registry-folder.
   // relative from already opened folder!
   OpenRegistry(SessionName);
@@ -1835,18 +1830,17 @@ begin
   SetLength(DataGridSortColumns, 0);
 
   // Closing connection
-  if Assigned(Connection) then
-    FreeAndNil(Connection);
+  Connection.Active := False;
 
   if prefLogToFile then
     DeactivateFileLogging;
 
   // Invalidate list contents
-  ListVariables.Tag := VTREE_NOTLOADED;
-  ListStatus.Tag := VTREE_NOTLOADED;
-  ListProcesses.Tag := VTREE_NOTLOADED;
-  ListCommandstats.Tag := VTREE_NOTLOADED;
-  ListTables.Tag := VTREE_NOTLOADED;
+  InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
+  InvalidateVT(ListStatus, VTREE_NOTLOADED, False);
+  InvalidateVT(ListProcesses, VTREE_NOTLOADED, False);
+  InvalidateVT(ListCommandstats, VTREE_NOTLOADED, False);
+  InvalidateVT(ListTables, VTREE_NOTLOADED, False);
 
   Application.Title := APPNAME;
 end;
@@ -1957,10 +1951,8 @@ begin
     ActiveQueryTab.MemoFilename := '';
     ActiveQueryTab.Memo.Modified := False;
   end;
-  if m = SynMemoFilter then begin
-    DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
-    DataGrid.Invalidate;
-  end;
+  if m = SynMemoFilter then
+    InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 
 procedure TMainForm.actTableToolsExecute(Sender: TObject);
@@ -2562,8 +2554,8 @@ begin
     end;
 
     Result := True;
-    if Assigned(Connection) then
-      DoDisconnect;
+    DoDisconnect;
+    FreeAndNil(Connection);
     Connection := ConnectionAttempt;
     SessionName := Session;
   end;
@@ -2767,15 +2759,11 @@ begin
       List := ListProcesses
     else
       List := ListCommandStats;
-    List.Tag := VTREE_NOTLOADED;
-    List.Repaint;
-  end else if tab1 = tabDatabase then begin
-    ListTables.Tag := VTREE_NOTLOADED_PURGECACHE;
-    ListTables.Invalidate;
-  end else if tab1 = tabData then begin
-    DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
-    DataGrid.Invalidate;
-  end;
+    InvalidateVT(List, VTREE_NOTLOADED, True);
+  end else if tab1 = tabDatabase then
+    InvalidateVT(ListTables, VTREE_NOTLOADED_PURGECACHE, False)
+  else if tab1 = tabData then
+    InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 
 
@@ -3188,8 +3176,7 @@ begin
     FreeAndNil(OldNumbers);
     FreeAndNil(Filters);
   end;
-  DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
-  DataGrid.Invalidate;
+  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 
 
@@ -3238,8 +3225,7 @@ end;
 procedure TMainForm.actRemoveFilterExecute(Sender: TObject);
 begin
   actClearFilterEditor.Execute;
-  DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
-  DataGrid.Invalidate;
+  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 
 
@@ -3362,8 +3348,7 @@ begin
   OldRowCount := DatagridWantedRowCount;
   Inc(DatagridWantedRowCount, prefGridRowcountStep);
   DataGridWantedRowCount := Min(DataGridWantedRowCount, prefGridRowcountMax);
-  DataGrid.Tag := VTREE_NOTLOADED;
-  DataGrid.Repaint;
+  InvalidateVT(DataGrid, VTREE_NOTLOADED, True);
   SelectNode(DataGrid, OldRowCount);
 end;
 
@@ -3372,8 +3357,7 @@ procedure TMainForm.actDataShowAllExecute(Sender: TObject);
 begin
   // Remove LIMIT clause
   DatagridWantedRowCount := prefGridRowcountMax;
-  DataGrid.Tag := VTREE_NOTLOADED;
-  DataGrid.Repaint;
+  InvalidateVT(DataGrid, VTREE_NOTLOADED, True);
 end;
 
 
@@ -3434,8 +3418,7 @@ begin
   while Assigned(Node) do begin
     if not DataGridRowHasFullData(Node) then begin
       DataGridFullRowMode := True;
-      Grid.Tag := VTREE_NOTLOADED_PURGECACHE;
-      Grid.Repaint;
+      InvalidateVT(Grid, VTREE_NOTLOADED_PURGECACHE, True);
       break;
     end;
     if SelectedOnly then
@@ -4088,8 +4071,7 @@ begin
       on E:Exception do
         MessageDlg(E.Message, mtError, [mbOK], 0);
     end;
-    ListProcesses.Tag := VTREE_NOTLOADED;
-    ListProcesses.Repaint;
+    InvalidateVT(ListProcesses, VTREE_NOTLOADED, True);
   end;
   TimerRefresh.Enabled := t; // re-enable autorefresh timer
 end;
@@ -6530,8 +6512,7 @@ begin
           // tab is a Host or Database tab, switch to showing table columns.
           if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
             PagecontrolMain.ActivePage := tabEditor;
-          DataGrid.Tag := VTREE_NOTLOADED;
-          DataGrid.Invalidate;
+          InvalidateVT(DataGrid, VTREE_NOTLOADED, False);
           // When a table is clicked in the tree, and the query
           // tab is active, update the list of columns
           if QueryTabActive then
@@ -6548,8 +6529,7 @@ begin
     tabDatabase.Caption := sstr('Database: ' + newDb, 30);
     ListTables.ClearSelection;
     ListTables.FocusedNode := nil;
-    ListTables.Tag := VTREE_NOTLOADED;
-    ListTables.Invalidate;
+    InvalidateVT(ListTables, VTREE_NOTLOADED, False);
   end;
   PreviousFocusedNode := DBTree.FocusedNode;
   FixQueryTabCloseButtons;
@@ -6584,8 +6564,7 @@ begin
   SelectedTableColumns.Clear;
   SelectedTableKeys.Clear;
   SelectedTableForeignKeys.Clear;
-  DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
-  DataGrid.Invalidate;
+  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
   try
     case SelectedTable.NodeType of
       lntTable: begin
@@ -6609,10 +6588,8 @@ end;
 
 procedure TMainForm.AfterClearDBObjects(Database: String);
 begin
-  if (Database='') or (ActiveDatabase=Database) then begin
-    ListTables.Tag := VTREE_NOTLOADED;
-    ListTables.Invalidate;
-  end;
+  if (Database='') or (ActiveDatabase=Database) then
+    InvalidateVT(ListTables, VTREE_NOTLOADED, False);
 end;
 
 
@@ -6988,8 +6965,7 @@ begin
       DataGridSortColumns[i].ColumnName := ColName;
       DataGridSortColumns[i].SortDirection := ORDER_ASC;
     end;
-    DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
-    DataGrid.Invalidate;
+    InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
   end else begin
     frm := TColumnSelectionForm.Create(self);
     // Position new form relative to btn's position
@@ -7359,8 +7335,7 @@ begin
         Raise Exception.Create('Server failed to insert row.');
       Result := True;
       GridFinalizeEditing(Sender);
-      DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
-      DataGrid.Invalidate;
+      InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
     except
       on E:Exception do begin
         MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -7432,8 +7407,7 @@ begin
       Sender.EndUpdate;
     end else begin
       // Should never get called as we block DELETEs on tables without a unique key
-      DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
-      DataGrid.Invalidate;
+      InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
       msg := 'Warning: Consistency problem detected.' + CRLF + CRLF
         + 'The last DELETE query affected ' + FormatNumber(Affected) + ' rows, when it should have touched '+FormatNumber(Sender.SelectedCount)+' row(s)!'
         + CRLF + CRLF
@@ -9271,8 +9245,7 @@ end;
 procedure TMainForm.actDataResetSortingExecute(Sender: TObject);
 begin
   SetLength(DataGridSortColumns, 0);
-  DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
-  DataGrid.Invalidate;
+  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 
 
@@ -9311,8 +9284,7 @@ end;
 procedure TMainForm.actBlobAsTextExecute(Sender: TObject);
 begin
   // Activate displaying BLOBs as text data, ignoring possible weird effects in grid updates/inserts
-  DataGrid.Tag := VTREE_NOTLOADED_PURGECACHE;
-  DataGrid.Invalidate;
+  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 
 
