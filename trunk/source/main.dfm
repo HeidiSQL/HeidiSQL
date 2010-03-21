@@ -63,6 +63,7 @@ object MainForm: TMainForm
     Width = 756
     Height = 19
     AutoHint = True
+    DoubleBuffered = True
     Panels = <
       item
         Width = 170
@@ -85,6 +86,7 @@ object MainForm: TMainForm
       item
         Width = 250
       end>
+    ParentDoubleBuffered = False
   end
   object ControlBar1: TControlBar
     Left = 0
