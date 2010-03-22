@@ -21,7 +21,6 @@ const
   // General things
   APPNAME          = 'HeidiSQL';
   APPDOMAIN        = 'http://www.heidisql.com/';
-  REGPATH          = '\Software\' + APPNAME + '\';
   REGKEY_SESSIONS  = 'Servers\';
   // Some unique char, used to separate e.g. selected columns in registry
   DELIM = '|';

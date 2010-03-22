@@ -292,7 +292,7 @@ begin
 
   i := 0;
   NewName := 'Unnamed';
-  while MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + NewName) do begin
+  while MainReg.KeyExists(RegPath + REGKEY_SESSIONS + NewName) do begin
     inc(i);
     NewName := 'Unnamed-' + IntToStr(i);
   end;
@@ -314,7 +314,7 @@ var
 begin
   if MessageDlg('Delete session "' + SelectedSession + '" ?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes then
   begin
-    SessionKey := REGPATH + REGKEY_SESSIONS + SelectedSession;
+    SessionKey := RegPath + REGKEY_SESSIONS + SelectedSession;
     if MainReg.KeyExists(SessionKey) then
       MainReg.DeleteKey(SessionKey);
     FSessionNames.Delete(FSessionNames.IndexOf(SelectedSession));
@@ -345,7 +345,7 @@ end;
 procedure Tconnform.RefreshSessionList;
 begin
   // Refresh list of session names
-  MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, True);
+  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
   FSessionNames.BeginUpdate;
   MainReg.GetKeyNames(FSessionNames);
   FSessionNames.EndUpdate;
@@ -398,7 +398,7 @@ begin
   OpenRegistry;
   SessionFocused := Assigned(Node);
   if SessionFocused then begin
-    SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + SelectedSession);
+    SessionExists := MainReg.KeyExists(RegPath + REGKEY_SESSIONS + SelectedSession);
     if SessionExists then begin
       OpenRegistry(SelectedSession);
       FOrgNetType := GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, SelectedSession);
@@ -470,7 +470,7 @@ begin
   lblCounterRight.Enabled := False;
 
   if (not Assigned(ListSessions.FocusedNode))
-    or (not MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + SelectedSession)) then
+    or (not MainReg.KeyExists(RegPath + REGKEY_SESSIONS + SelectedSession)) then
     Exit;
 
   DummyDate := StrToDateTime('2000-01-01');
@@ -517,9 +517,9 @@ begin
     MessageDLG('Session "'+NewText+'" already exists!', mtError, [mbCancel], 0);
     NewText := SelectedSession;
   end else begin
-    SessionKey := REGPATH + REGKEY_SESSIONS + SelectedSession;
+    SessionKey := RegPath + REGKEY_SESSIONS + SelectedSession;
     if MainReg.KeyExists(SessionKey) then
-      MainReg.MoveKey(SessionKey, REGPATH + REGKEY_SESSIONS + NewText, true);
+      MainReg.MoveKey(SessionKey, RegPath + REGKEY_SESSIONS + NewText, true);
     // Also fix internal session name in main form, which gets used to store e.g. "lastuseddb" later
     if Mainform.SessionName = SelectedSession then begin
       Mainform.SessionName := NewText;
