@@ -1176,6 +1176,8 @@ begin
     deletefile(filename+'bmp');
   if MainReg <> nil then begin
     MainReg.CloseKey;
+    // Export settings into textfile in portable mode.
+    HandlePortableSettings(False);
     MainReg.Free;
   end;
 end;

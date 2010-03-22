@@ -250,9 +250,11 @@ type
   function KeyPressed(Code: Integer): Boolean;
   function GeneratePassword(Len: Integer): String;
   procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
+  procedure HandlePortableSettings(StartupMode: Boolean);
 
 var
   MainReg: TRegistry;
+  RegPath: String = '\Software\' + APPNAME + '\';
   MutexHandle: THandle = 0;
   dbgCounter: Integer = 0;
   DecimalSeparatorSystemdefault: Char;
@@ -2593,9 +2595,11 @@ procedure OpenRegistry(Session: String = '');
 var
   folder : String;
 begin
-  if MainReg = nil then
+  if MainReg = nil then begin
     MainReg := TRegistry.Create;
-  folder := REGPATH;
+    HandlePortableSettings(True);
+  end;
+  folder := RegPath;
   if Session <> '' then
     folder := folder + REGKEY_SESSIONS + Session;
   if MainReg.CurrentPath <> folder then
@@ -2619,7 +2623,7 @@ end;
   Read a boolean preference value from registry
   @param string Name of the value
   @param boolean Default-value to return if valueName was not found
-  @param string Subkey of REGPATH where to search for the value
+  @param string Subkey of RegPath where to search for the value
 }
 function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean;
 begin
@@ -3453,6 +3457,108 @@ begin
     VT.Repaint
   else
     VT.Invalidate;
+end;
+
+
+procedure HandlePortableSettings(StartupMode: Boolean);
+var
+  Content, FileName, Name, Value, KeyPath: String;
+  Lines, Segments: TStringList;
+  i: Integer;
+  DataType: TRegDataType;
+const
+  Chr10Replacement = '<}}}>';
+  Chr13Replacement = '<{{{>';
+  Delimiter = '<|||>';
+
+  procedure ReadKeyToContent(Path: String);
+  var
+    Names: TStringList;
+    i: Integer;
+    SubPath: String;
+  begin
+    MainReg.OpenKeyReadOnly(Path);
+    SubPath := Copy(Path, Length(RegPath)+1, MaxInt);
+    Names := TStringList.Create;
+    MainReg.GetValueNames(Names);
+    for i:=0 to Names.Count-1 do begin
+      DataType := MainReg.GetDataType(Names[i]);
+      Content := Content +
+        SubPath + Names[i] + Delimiter +
+        IntToStr(Integer(DataType)) + Delimiter;
+      case DataType of
+        rdString: begin
+          Value := MainReg.ReadString(Names[i]);
+          Value := StringReplace(Value, #13, Chr13Replacement, [rfReplaceAll]);
+          Value := StringReplace(Value, #10, Chr10Replacement, [rfReplaceAll]);
+        end;
+        rdInteger:
+          Value := IntToStr(MainReg.ReadInteger(Names[i]));
+        rdBinary, rdUnknown, rdExpandString:
+          MessageDlg(Names[i]+' has an unsupported data type.', mtError, [mbOK], 0);
+      end;
+      Content := Content + Value + CRLF;
+    end;
+    Names.Clear;
+    MainReg.GetKeyNames(Names);
+    for i:=0 to Names.Count-1 do
+      ReadKeyToContent(Path + Names[i] + '\');
+    Names.Free;
+  end;
+begin
+  // Export registry keys and values into textfile, for portable reasons
+  FileName := ExtractFilePath(ParamStr(0)) + 'portable_settings.txt';
+  if not FileExists(FileName) then
+    Exit;
+
+  // Open the right key
+  if StartupMode then
+    RegPath := '\Software\' + APPNAME + ' Portable '+IntToStr(GetCurrentThreadId)+'\';
+
+  Screen.Cursor := crHourGlass;
+  try
+    if StartupMode then begin
+      Content := ReadTextfile(FileName);
+      Lines := Explode(CRLF, Content);
+      for i:=0 to Lines.Count-1 do begin
+        // Each line has 3 segments: reg path | data type | value
+        Segments := Explode(Delimiter, Lines[i]);
+        KeyPath := RegPath + ExtractFilePath(Segments[0]);
+        Name := ExtractFileName(Segments[0]);
+        DataType := TRegDataType(StrToInt(Segments[1]));
+        MainReg.OpenKey(KeyPath, True);
+        if MainReg.ValueExists(Name) then
+          Continue; // Don't touch value if already there
+        Value := '';
+        if Segments.Count >= 3 then
+          Value := Segments[2];
+        case DataType of
+          rdString: begin
+            Value := StringReplace(Value, Chr13Replacement, #13, [rfReplaceAll]);
+            Value := StringReplace(Value, Chr10Replacement, #10, [rfReplaceAll]);
+            MainReg.WriteString(Name, Value);
+          end;
+          rdInteger:
+            MainReg.WriteInteger(Name, MakeInt(Value));
+          rdBinary, rdUnknown, rdExpandString:
+            MessageDlg(Name+' has an unsupported data type.', mtError, [mbOK], 0);
+        end;
+        Segments.Free;
+      end;
+      Lines.Free;
+    end else begin
+      // Application closes: Recursively read values in keys and their subkeys into textfile
+      ReadKeyToContent(RegPath);
+      SaveUnicodeFile(FileName, Content);
+      MainReg.CloseKey;
+      MainReg.DeleteKey(RegPath);
+    end;
+  except
+    On E:Exception do
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+  end;
+  Screen.Cursor := crDefault;
+
 end;
 
 

@@ -186,7 +186,7 @@ begin
   comboExportOutputTarget.Text := '';
   // Add session names from registry
   SessionNames := TStringList.Create;
-  MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, True);
+  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
   MainReg.GetKeyNames(SessionNames);
   for i:=0 to SessionNames.Count-1 do begin
     if SessionNames[i] <> Mainform.SessionName then
