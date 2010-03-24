@@ -1135,12 +1135,12 @@ begin
   FreeAndNil(CreateDatabaseForm);
   FreeAndNil(SearchReplaceDialog);
 
+  // Close database connection
+  DoDisconnect;
+
   // Clearing query and browse data.
   SetLength(DataGridResult.Rows, 0);
   SetLength(DataGridResult.Columns, 0);
-
-  // Close database connection
-  DoDisconnect;
 
   // Save various settings
   OpenRegistry;
