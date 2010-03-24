@@ -141,7 +141,7 @@ object UserManagerForm: TUserManagerForm
             Height = 21
             Anchors = [akLeft, akTop, akRight]
             TabOrder = 2
-            OnChange = editFromHostChange
+            OnExit = editUsernameHostExit
           end
           object editUsername: TEdit
             Left = 100
@@ -150,7 +150,7 @@ object UserManagerForm: TUserManagerForm
             Height = 21
             Anchors = [akLeft, akTop, akRight]
             TabOrder = 0
-            OnChange = editUsernameChange
+            OnExit = editUsernameHostExit
           end
           object chkDisabled: TCheckBox
             Left = 8
