@@ -137,6 +137,7 @@ uses main, mysql_structures;
 const
   STRSKIPPED: String = 'Skipped - ';
   OUTPUT_FILE = 'One big file';
+  OUTPUT_CLIPBOARD = 'Clipboard';
   OUTPUT_DIR = 'Directory - one file per object in database subdirectories';
   OUTPUT_DB = 'Database';
   OUTPUT_SERVER = 'Server: ';
@@ -181,7 +182,7 @@ begin
   OutputDirs := TStringList.Create;
   OutputFiles.Text := GetRegValue(REGNAME_EXP_OUTFILES, '');
   OutputDirs.Text := GetRegValue(REGNAME_EXP_OUTDIRS, '');
-  comboExportOutputType.Items.Text := OUTPUT_FILE+CRLF +OUTPUT_DIR+CRLF +OUTPUT_DB;
+  comboExportOutputType.Items.Text := OUTPUT_FILE+CRLF +OUTPUT_DIR+CRLF +OUTPUT_CLIPBOARD+CRLF +OUTPUT_DB;
   comboExportOutputType.ItemIndex := GetRegValue(REGNAME_EXP_OUTPUT, 0);
   comboExportOutputTarget.Text := '';
   // Add session names from registry
@@ -334,7 +335,7 @@ begin
     btnExecute.Enabled := SomeChecked and (memoFindText.Text <> '');
   end else if tabsTools.ActivePage = tabSQLExport then begin
     btnExecute.Caption := 'Export';
-    btnExecute.Enabled := SomeChecked and (comboExportOutputTarget.Text <> '');
+    btnExecute.Enabled := SomeChecked and ((comboExportOutputTarget.Text <> '') or (not comboExportOutputTarget.Enabled));
   end else if tabsTools.ActivePage = tabBulkTableEdit then begin
     btnExecute.Caption := 'Update';
     chkBulkTableEditCollation.Enabled := Mainform.Connection.IsUnicode;
@@ -486,8 +487,10 @@ begin
   end;
 
   if Assigned(ExportStream) then begin
-    if comboExportOutputType.Text = OUTPUT_FILE then
+    if (comboExportOutputType.Text = OUTPUT_FILE) or (comboExportOutputType.Text = OUTPUT_CLIPBOARD) then
       StreamWrite(ExportStream, EXPORT_FILE_FOOTER);
+    if comboExportOutputType.Text = OUTPUT_CLIPBOARD then
+      StreamToClipboard(ExportStream, nil, false);
     FreeAndNil(ExportStream);
   end;
   ExportLastDatabase := '';
@@ -738,6 +741,12 @@ begin
     lblExportOutputTarget.Caption := 'Directory:';
     btnExportOutputTargetSelect.Enabled := True;
     btnExportOutputTargetSelect.ImageIndex := 51;
+  end else if comboExportOutputType.Text = OUTPUT_CLIPBOARD then begin
+    comboExportOutputTarget.Enabled := False;
+    comboExportOutputTarget.Items.Clear;
+    lblExportOutputTarget.Caption := '';
+    btnExportOutputTargetSelect.Enabled := False;
+    btnExportOutputTargetSelect.ImageIndex := 4;
   end else if comboExportOutputType.Text = OUTPUT_DB then begin
     comboExportOutputTarget.Style := csDropDownList;
     lblExportOutputTarget.Caption := 'Database:';
@@ -795,6 +804,7 @@ begin
 
   FLastOutputSelectedIndex := comboExportOutputType.ItemIndex;
   chkExportDatabasesCreate.Enabled := (comboExportOutputType.Text = OUTPUT_FILE)
+    or (comboExportOutputType.Text = OUTPUT_CLIPBOARD)
     or (Copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER);
   chkExportDatabasesDrop.Enabled := chkExportDatabasesCreate.Enabled;
   NewIdx := comboExportOutputTarget.Items.IndexOf(OldItem);
@@ -901,7 +911,7 @@ end;
 
 procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
-  ToFile, ToDir, ToDb, ToServer, IsLastRowInChunk, NeedsDBStructure: Boolean;
+  ToFile, ToDir, ToClipboard, ToDb, ToServer, IsLastRowInChunk, NeedsDBStructure: Boolean;
   Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent: String;
   MultiSQL: TStringList;
   i: Integer;
@@ -924,7 +934,7 @@ const
     SA: AnsiString;
     ChunkSize: Integer;
   begin
-    if (ToFile and ForFile) or (ToDir and ForDir) then begin
+    if (ToFile and ForFile) or (ToDir and ForDir) or (ToClipboard and ForFile) then begin
       if IsEndOfQuery then
         SQL := SQL + ';'+CRLF;
       StreamWrite(ExportStream, SQL);
@@ -966,6 +976,7 @@ begin
     );
   ToFile := comboExportOutputType.Text = OUTPUT_FILE;
   ToDir := comboExportOutputType.Text = OUTPUT_DIR;
+  ToClipboard := comboExportOutputType.Text = OUTPUT_CLIPBOARD;
   ToDb := comboExportOutputType.Text = OUTPUT_DB;
   ToServer := Copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER;
   StartTime := GetTickCount;
@@ -981,6 +992,8 @@ begin
   end;
   if ToFile and (not Assigned(ExportStream)) then
     ExportStream := TFileStream.Create(comboExportOutputTarget.Text, fmCreate or fmOpenWrite);
+  if ToClipboard and (not Assigned(ExportStream)) then
+    ExportStream := TMemoryStream.Create;
   if ToDb or ToServer then
     ExportStream := TMemoryStream.Create;
   if (DBObj.Database<>ExportLastDatabase) or ToDir then begin
@@ -1065,7 +1078,7 @@ begin
                 ' ON '+m(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement');
             if ToDb then
               Insert(m(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
-            if ToFile or ToDir then begin
+            if ToFile or ToClipboard or ToDir then begin
               Struc := 'SET SESSION SQL_MODE=' + esc(StrucResult.Col('sql_mode')) + ';' + CRLF +
                 'DELIMITER ' + TempDelim + CRLF +
                 Struc + TempDelim + CRLF +
@@ -1086,7 +1099,7 @@ begin
                 Insert(m(FinalDbName)+'.', Struc, Pos('FUNCTION', Struc) + 9 );
             end;
             // Change delimiter for file output, so readers split queries at the right string position
-            if ToFile or ToDir then
+            if ToFile or ToDir or ToClipboard then
               Struc := 'DELIMITER ' + TempDelim + CRLF + Struc + TempDelim + CRLF + 'DELIMITER ';
           end;
         end;

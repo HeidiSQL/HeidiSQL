@@ -218,7 +218,7 @@ type
   function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): String;
   function ReadTextfile(Filename: String): String;
   function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
-  procedure StreamToClipboard(Text, HTML: TMemoryStream; CreateHTMLHeader: Boolean);
+  procedure StreamToClipboard(Text, HTML: TStream; CreateHTMLHeader: Boolean);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
   procedure CheckHex(text: String; errorMessage: string);
@@ -2447,7 +2447,7 @@ begin
 end;
 
 
-procedure StreamToClipboard(Text, HTML: TMemoryStream; CreateHTMLHeader: Boolean);
+procedure StreamToClipboard(Text, HTML: TStream; CreateHTMLHeader: Boolean);
 var
   TextContent, HTMLContent: AnsiString;
   GlobalMem: HGLOBAL;
