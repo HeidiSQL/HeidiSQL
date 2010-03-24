@@ -176,10 +176,9 @@ type
     procedure btnDeleteUserClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure chkDisabledClick(Sender: TObject);
-    procedure editFromHostChange(Sender: TObject);
+    procedure editUsernameHostExit(Sender: TObject);
     procedure editLimitations(Sender: TObject);
     procedure editPasswordExit(Sender: TObject);
-    procedure editUsernameChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -524,58 +523,34 @@ end;
 {**
   Username edited
 }
-procedure TUserManagerForm.editUsernameChange(Sender: TObject);
+procedure TUserManagerForm.editUsernameHostExit(Sender: TObject);
 var
   u, f: TUser;
-  t: TNotifyEvent;
 begin
-  // User edit probably has to be reset to the previous value
-  t := editUsername.OnChange;
-  editUsername.OnChange := nil;
-  // In case the user field contains '%', it's sort of a visual hoax.
-  // The TUser.Name and mysql database contents of a match-all user is ''.
-  // Allow entering '%' too, changing it to '' automatically.
-  if editUsername.Text = '%' then editUsername.Text := '';
-  u := Users[listUsers.FocusedNode.Index];
-  // Check if user/host combination already exists
-  f := Users.FindUser(editUsername.Text, u.Host);
-  if (f = nil) or (f = u) then
-    u.Name := editUsername.Text
-  else
-    MessageDlg('User/host combination "'+editUsername.Text+'@'+u.Host+'" already exists.'+CRLF+CRLF+'Please chose a different username.', mtError, [mbOK], 0);
-  // Blank user field means:
-  // - this user is used for authentication failures
-  // - privileges for this user applies to everyone
-  // In effect, User='' means the same as User='%', except
-  // that the latter syntax is not allowed (in the database).
-  if u.Name = '' then editUserName.Text := '%'
-  else editUsername.Text := u.Name;
-  editUsername.OnChange := t;
-  listUsers.Invalidate;
-end;
-
-
-{**
-  "From Host" edited
-}
-procedure TUserManagerForm.editFromHostChange(Sender: TObject);
-var
-  u, f: TUser;
-  t: TNotifyEvent;
-begin
-  u := Users[listUsers.FocusedNode.Index];
-  // Check if user/host combination already exists
-  f := Users.FindUser(u.Name, editFromHost.Text);
-  if (f = nil) or (f = u) then
-    u.Host := editFromHost.Text
-  else
-    MessageDlg('User/host combination "'+u.Name+'@'+editFromHost.Text+'" already exists.'+CRLF+CRLF+'Please choose a different hostname.', mtError, [mbOK], 0);
-  // Host edit probably has to be reset to the previous value
-  t := editFromHost.OnChange;
-  editFromHost.OnChange := nil;
-  editFromHost.Text := u.Host;
-  editFromHost.OnChange := t;
-  listUsers.Invalidate;
+  if TEdit(Sender).Modified then begin
+    // In case the user field contains '%', it's sort of a visual hoax.
+    // The TUser.Name and mysql database contents of a match-all user is ''.
+    // Allow entering '%' too, changing it to '' automatically.
+    if editUsername.Text = '%' then editUsername.Text := '';
+    u := Users[listUsers.FocusedNode.Index];
+    // Check if user/host combination already exists
+    f := Users.FindUser(editUsername.Text, editFromHost.Text);
+    if (f = nil) or (f = u) then begin
+      u.Name := editUsername.Text;
+      u.Host := editFromHost.Text;
+    end else
+      MessageDlg('User/host combination "'+editUsername.Text+'@'+editFromHost.Text+'" already exists.'+CRLF+CRLF+'Please chose a different username and/or hostname.', mtError, [mbOK], 0);
+    // Blank user field means:
+    // - this user is used for authentication failures
+    // - privileges for this user applies to everyone
+    // In effect, User='' means the same as User='%', except
+    // that the latter syntax is not allowed (in the database).
+    if u.Name = '' then editUserName.Text := '%'
+    else editUsername.Text := u.Name;
+    editFromHost.Text := u.Host;
+    editUsername.Modified := False;
+    listUsers.Invalidate;
+  end;
 end;
 
 
