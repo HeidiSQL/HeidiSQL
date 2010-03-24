@@ -4677,6 +4677,8 @@ begin
   if LoadText then
     ActiveQueryMemo.SelText := Text;
   ActiveQueryMemo.UndoList.AddGroupBreak;
+  // Requires to set focus, as doubleclick actions also call this procedure
+  ActiveQueryMemo.SetFocus;
 end;
 
 
