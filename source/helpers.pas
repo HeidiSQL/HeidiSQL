@@ -2845,6 +2845,7 @@ begin
     Col := TTableColumn.Create;
     Columns.Add(Col);
     Col.Name := rx.Match[1];
+    Col.OldName := Col.Name;
     Col.Status := esUntouched;
 
     // Datatype

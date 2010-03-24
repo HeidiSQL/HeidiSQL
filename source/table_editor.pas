@@ -426,10 +426,8 @@ begin
   for i:=FColumns.Count-1 downto 0 do begin
     if FColumns[i].Status = esDeleted then
       FColumns.Delete(i)
-    else begin
+    else
       FColumns[i].Status := esUntouched;
-      FColumns[i].OldName := '';
-    end;
   end;
   DeletedKeys.Clear;
   for i:=0 to FKeys.Count-1 do begin
@@ -450,7 +448,7 @@ end;
 function TfrmTableEditor.ComposeAlterStatement: String;
 var
   Specs: TStringList;
-  ColSpec, OldColName, IndexSQL: String;
+  ColSpec, IndexSQL: String;
   i: Integer;
   Results: TMySQLQuery;
   Col, PreviousCol: PTableColumn;
@@ -534,12 +532,9 @@ begin
         else
           ColSpec := ColSpec + ' AFTER '+Mainform.mask(PreviousCol.Name);
       end;
-      if Col.Status = esModified then begin
-        OldColName := Col.OldName;
-        if OldColName = '' then
-          OldColName := Col.Name;
-        Specs.Add('CHANGE COLUMN '+Mainform.mask(OldColName) + ' ' + ColSpec);
-      end else if Col.Status in [esAddedUntouched, esAddedModified] then
+      if Col.Status = esModified then
+        Specs.Add('CHANGE COLUMN '+Mainform.mask(Col.OldName) + ' ' + ColSpec)
+      else if Col.Status in [esAddedUntouched, esAddedModified] then
         Specs.Add('ADD COLUMN ' + ColSpec);
     end;
     PreviousCol := Col;
@@ -548,12 +543,8 @@ begin
 
   // Deleted columns, not available as Node in above loop
   for i:=0 to FColumns.Count-1 do begin
-    if FColumns[i].Status = esDeleted then begin
-      OldColName := FColumns[i].OldName;
-      if OldColName = '' then
-        OldColName := FColumns[i].Name;
-      Specs.Add('DROP COLUMN '+Mainform.mask(OldColName));
-    end;
+    if FColumns[i].Status = esDeleted then
+      Specs.Add('DROP COLUMN '+Mainform.mask(FColumns[i].OldName));
   end;
 
   // Drop indexes, also changed indexes, which will be readded below
@@ -819,10 +810,7 @@ begin
   Node := listColumns.GetFirstSelected;
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
-    if Col.OldName <> '' then begin
-      Col.Name := Col.OldName;
-      Col.OldName := '';
-    end;
+    Col.Name := Col.OldName;
     Col.Status := esDeleted;
     Node := listColumns.GetNextSelected(Node);
   end;
@@ -1124,7 +1112,6 @@ begin
           Exit;
         end;
       end;
-      Col.OldName := Col.Name;
       Col.Name := NewText;
     end;
     2: begin // Data type
