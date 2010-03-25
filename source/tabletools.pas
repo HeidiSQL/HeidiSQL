@@ -226,7 +226,7 @@ begin
   MainReg.WriteInteger(REGNAME_EXP_DATAHOW, comboExportData.ItemIndex);
   // Do not remember a selected session name for the next time
   OutputItem := comboExportOutputType.ItemIndex;
-  if OutputItem > 2 then
+  if OutputItem > 3 then
     OutputItem := 0;
   MainReg.WriteInteger(REGNAME_EXP_OUTPUT, OutputItem);
   MainReg.WriteString(REGNAME_EXP_OUTFILES, OutputFiles.Text);
@@ -727,6 +727,7 @@ var
 begin
   // Target type (file, directory, ...) selected
   OldItem := comboExportOutputTarget.Text;
+  comboExportOutputTarget.Enabled := True;
   if Assigned(FTargetConnection) then
     FreeAndNil(FTargetConnection);
   if comboExportOutputType.Text = OUTPUT_FILE then begin
