@@ -3,7 +3,8 @@ unit mysql_connection;
 interface
 
 uses
-  Classes, SysUtils, windows, mysql_api, mysql_structures, SynRegExpr, Contnrs, Generics.Collections, DateUtils, Types;
+  Classes, SysUtils, windows, mysql_api, mysql_structures, SynRegExpr, Contnrs, Generics.Collections, Generics.Defaults,
+  DateUtils, Types;
 
 type
   { TDBObjectList and friends }
@@ -18,6 +19,10 @@ type
   end;
   PDBObject = ^TDBObject;
   TDBObjectList = TObjectList<TDBObject>;
+
+  TDBObjectComparer = class(TComparer<TDBObject>)
+    function Compare(const Left, Right: TDBObject): Integer; override;
+  end;
 
   {$M+} // Needed to add published properties
 
@@ -965,7 +970,7 @@ begin
   if DbObjectsCached(db) then
     Result := FDBObjectLists.Objects[FDBObjectLists.IndexOf(db)] as TDBObjectList
   else begin
-    Result := TDBObjectList.Create;
+    Result := TDBObjectList.Create(TDBObjectComparer.Create);
     Results := nil;
     rx := TRegExpr.Create;
     rx.ModifierI := True;
@@ -1126,6 +1131,9 @@ begin
       end;
       FreeAndNil(Results);
     end;
+
+    // Sort list like it get sorted in MainForm.vstCompareNodes
+    Result.Sort;
 
     // Add list of objects in this database to cached list of all databases
     if not Assigned(FDBObjectLists) then
@@ -1363,6 +1371,15 @@ begin
   Result := FLastResult <> nil;
 end;
 
+
+
+{ TDBObjectComparer }
+
+function TDBObjectComparer.Compare(const Left, Right: TDBObject): Integer;
+begin
+  // Simple sort method for a TDBObjectList
+  Result := CompareText(Left.Name, Right.Name);
+end;
 
 
 end.
