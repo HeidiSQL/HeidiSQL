@@ -5672,7 +5672,7 @@ begin
   end
   else begin
     // Compare Strings
-    Result := AnsiCompareText( CellText1, CellText2 );
+    Result := CompareText( CellText1, CellText2 );
   end;
 end;
 
