@@ -8799,7 +8799,10 @@ begin
     Cap := Cap + ' /' + ActiveDatabase;
   if SelectedTable.Name <> '' then
     Cap := Cap + '/' + SelectedTable.Name;
-  Cap := Cap + ' - ' + APPNAME + ' ' + AppVersion;
+  Cap := Cap + ' - ' + APPNAME;
+  if PortableMode then
+    Cap := Cap + ' Portable';
+  Cap := Cap + ' ' + AppVersion;
   Caption := Cap;
   Application.Title := Cap;
 end;
