@@ -255,6 +255,7 @@ type
 var
   MainReg: TRegistry;
   RegPath: String = '\Software\' + APPNAME + '\';
+  PortableMode: Boolean = False;
   MutexHandle: THandle = 0;
   dbgCounter: Integer = 0;
   DecimalSeparatorSystemdefault: Char;
@@ -3513,8 +3514,14 @@ begin
     Exit;
 
   // Open the right key
-  if StartupMode then
+  if StartupMode then begin
     RegPath := '\Software\' + APPNAME + ' Portable '+IntToStr(GetCurrentThreadId)+'\';
+    PortableMode := True;
+  end else begin
+    // Do not work like a portable on exit, if at application start we didn't either
+    if not PortableMode then
+      Exit;
+  end;
 
   Screen.Cursor := crHourGlass;
   try
