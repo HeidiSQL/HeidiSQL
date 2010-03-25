@@ -4892,9 +4892,10 @@ end;
 function TMainForm.QueryLoad( filename: String; ReplaceContent: Boolean = true ): Boolean;
 
 var
-  filecontent      : String;
-  msgtext          : String;
-  LineBreaks       : TLineBreaks;
+  filecontent: String;
+  msgtext: String;
+  LineBreaks: TLineBreaks;
+  RunFileDialog: TRunSQLFileForm;
 begin
   Result := False;
 
@@ -4916,7 +4917,10 @@ begin
       // Run the file, don't load it into the editor
       mrYes:
         begin
-          RunSQLFileWindow( Self, filename );
+          RunFileDialog := TRunSQLFileForm.Create(Self);
+          RunFileDialog.SQLFileName := filename;
+          RunFileDialog.ShowModal;
+          RunFileDialog.Free;
           // Add filename to history menu
           if Pos( DirnameSnippets, filename ) = 0 then
             AddOrRemoveFromQueryLoadHistory( filename, true );

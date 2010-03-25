@@ -25,13 +25,12 @@ type
     procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
-    SQLFileName : String;
     Running : Boolean;
   public
     { Public declarations }
+    SQLFileName : String;
   end;
 
-  function RunSQLFileWindow(AOwner: TComponent; SQLFileName: String): Boolean;
 
 implementation
 
@@ -41,21 +40,6 @@ uses
 
 {$R *.dfm}
 
-
-{**
-  Create form on demand
-  @param TComponent Owner of form (should be calling form)
-  @return Boolean Form closed using modalresult mrOK
-}
-function RunSQLFileWindow(AOwner: TComponent; SQLFileName: String): Boolean;
-var
-  f : TRunSQLFileForm;
-begin
-  f := TRunSQLFileForm.Create(AOwner);
-  f.SQLFileName := SQLFileName;
-  Result := (f.ShowModal=mrOK);
-  FreeAndNil(f);
-end;
 
 
 {**
