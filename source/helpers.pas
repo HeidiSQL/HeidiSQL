@@ -3515,7 +3515,7 @@ begin
 
   // Open the right key
   if StartupMode then begin
-    RegPath := '\Software\' + APPNAME + ' Portable '+IntToStr(GetCurrentThreadId)+'\';
+    RegPath := '\Software\' + APPNAME + ' Portable '+IntToStr(GetCurrentProcessId)+'\';
     PortableMode := True;
   end else begin
     // Do not work like a portable on exit, if at application start we didn't either
