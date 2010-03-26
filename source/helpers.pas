@@ -11,7 +11,7 @@ interface
 uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ComCtrls, ShellApi, CheckLst,
   Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages,
-  Registry, SynEditHighlighter, DateUtils, Generics.Collections, StrUtils, AnsiStrings,
+  Registry, SynEditHighlighter, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   mysql_connection, mysql_structures;
 
 type
@@ -3465,9 +3465,13 @@ end;
 procedure HandlePortableSettings(StartupMode: Boolean);
 var
   Content, FileName, Name, Value, KeyPath: String;
-  Lines, Segments: TStringList;
+  Lines, Segments, AllKeys: TStringList;
   i: Integer;
   DataType: TRegDataType;
+  Proc: TProcessEntry32;
+  ProcRuns: Boolean;
+  SnapShot: THandle;
+  rx: TRegExpr;
 const
   Chr10Replacement = '<}}}>';
   Chr13Replacement = '<{{{>';
@@ -3560,6 +3564,31 @@ begin
       SaveUnicodeFile(FileName, Content);
       MainReg.CloseKey;
       MainReg.DeleteKey(RegPath);
+
+      // Remove dead keys from instances which didn't close clean, e.g. because of an AV
+      SnapShot := CreateToolhelp32Snapshot(TH32CS_SnapProcess, 0);
+      Proc.dwSize := Sizeof(Proc);
+      MainReg.OpenKeyReadOnly('\Software\');
+      AllKeys := TStringList.Create;
+      MainReg.GetKeyNames(AllKeys);
+      rx := TRegExpr.Create;
+      rx.Expression := '^' + QuoteRegExprMetaChars(APPNAME) + ' Portable (\d+)$';
+      for i:=0 to AllKeys.Count-1 do begin
+        if not rx.Exec(AllKeys[i]) then
+          Continue;
+        ProcRuns := False;
+        if Process32First(SnapShot, Proc) then while True do begin
+          ProcRuns := rx.Match[1] = IntToStr(Proc.th32ProcessID);
+          if ProcRuns or (not Process32Next(SnapShot, Proc)) then
+            break;
+        end;
+        if not ProcRuns then
+          MainReg.DeleteKey(AllKeys[i]);
+      end;
+      MainReg.CloseKey;
+      CloseHandle(SnapShot);
+      AllKeys.Free;
+      rx.Free;
     end;
   except
     On E:Exception do
