@@ -812,6 +812,7 @@ begin
   if (NewIdx = -1) and (comboExportOutputTarget.Items.Count > 0) then
     NewIdx := 0;
   comboExportOutputTarget.ItemIndex := NewIdx;
+  ValidateControls(Sender);
 end;
 
 
