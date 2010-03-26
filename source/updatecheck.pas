@@ -105,7 +105,7 @@ begin
   // Prepare download
   CheckfileDownload := TDownLoadURL2.Create(Self);
   CheckfileDownload.SetUserAgent(APPNAME + ' ' + Mainform.AppVersion + ' update checker tool');
-  CheckfileDownload.URL := APPDOMAIN + 'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision);
+  CheckfileDownload.URL := APPDOMAIN + 'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision)+'&t='+DateTimeToStr(Now);
   CheckfileDownload.Filename := GetTempDir + APPNAME + '_updatecheck.ini';
 
   // Download the check file
