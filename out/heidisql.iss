@@ -7,13 +7,17 @@
 AppId=HeidiSQL
 AppName=HeidiSQL
 AppVerName=HeidiSQL 5.0 Beta
-AppVersion=5.0
 VersionInfoVersion=5.0
+
+; Displayed on the "Support" dialog of the Add/Remove Programs Control Panel applet:
+AppVersion=5.0
 AppPublisher=Ansgar Becker
 AppPublisherURL=http://www.heidisql.com/
 AppSupportURL=http://forum.heidisql.com/
 AppUpdatesURL=http://download.heidisql.com/
 AppContact=heidisql@anse.de
+AppReadmeFile={app}\readme.txt
+
 DefaultDirName={pf}\HeidiSQL
 DefaultGroupName=HeidiSQL
 LicenseFile=license.txt
@@ -48,7 +52,7 @@ Type: files; Name: "{app}\heidisql.exe.manifest"
 
 [Files]
 Source: "heidisql.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "readme.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "readme.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "libmysql.dll"; DestDir: "{app}"; Flags: ignoreversion
