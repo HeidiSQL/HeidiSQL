@@ -6090,8 +6090,8 @@ begin
 
   // Add minimal margin to cell edges
   InflateRect(CellRect, -1, -1);
-  CellWidth := CellRect.Right - CellRect.Left;
-  BarWidth := Round(CellWidth*1 / Max * Value);
+  CellWidth := CellRect.Right - CellRect.Left - 4;
+  BarWidth := Round(CellWidth / Max * Value);
 
   if BarWidth > 0 then begin
     TargetCanvas.Brush.Color := prefBarColor;
