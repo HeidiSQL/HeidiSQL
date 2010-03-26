@@ -1,0 +1,150 @@
+unit searchreplace;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
+  ExtCtrls, SynMemo, SynEditSearch, SynEditTypes, SynEditMiscClasses;
+
+type
+  TfrmSearchReplace = class(TForm)
+    btnCancel: TButton;
+    btnReplaceAll: TButton;
+    lblSearch: TLabel;
+    chkReplace: TCheckBox;
+    comboSearch: TComboBox;
+    comboReplace: TComboBox;
+    grpOptions: TGroupBox;
+    chkCaseSensitive: TCheckBox;
+    chkWholeWords: TCheckBox;
+    chkRegularExpression: TCheckBox;
+    chkPromptOnReplace: TCheckBox;
+    grpDirection: TRadioGroup;
+    grpOrigin: TRadioGroup;
+    grpScope: TRadioGroup;
+    btnOK: TButton;
+    procedure ValidateControls(Sender: TObject);
+    procedure chkReplaceClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure comboSearchReplaceExit(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+    Editor: TSynMemo;
+    Options: TSynSearchOptions;
+  end;
+
+
+implementation
+
+{$R *.dfm}
+
+uses main, helpers;
+
+
+procedure TfrmSearchReplace.FormCreate(Sender: TObject);
+begin
+  comboSearch.Items.Text := GetRegValue(REGNAME_SEARCHTEXT, '');
+  comboReplace.Items.Text := GetRegValue(REGNAME_REPLACETEXT, '');
+  comboSearch.Text := '';
+  comboReplace.Text := '';
+  if comboSearch.Items.Count > 0 then comboSearch.Text := comboSearch.Items[0];
+  if comboReplace.Items.Count > 0 then comboReplace.Text := comboReplace.Items[0];
+
+  chkRegularExpression.Hint := 'Search patterns:'+CRLF+
+    ' ^ Start of line'+CRLF+
+    ' $ End of line'+CRLF+
+    ' \w Any word character'+CRLF+
+    ' \d Digit (0-9)'+CRLF+
+    ' \s Whitespace'+CRLF+
+    'Replacement patterns:'+CRLF+
+    ' $0 .. $n Callback parentheses'
+    ;
+end;
+
+
+procedure TfrmSearchReplace.FormShow(Sender: TObject);
+var
+  SearchText: String;
+begin
+  // Prefill search editor with selected text
+  if Editor.SelAvail then
+    SearchText := Editor.SelText
+  else
+    SearchText := Editor.WordAtCursor;
+  if SearchText <> '' then
+    comboSearch.Text := SearchText;
+  ValidateControls(Sender);
+  comboSearch.SetFocus;
+end;
+
+
+procedure TfrmSearchReplace.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  // Set SynEditSearch options, which the caller can use in Editor.SearchReplace()
+  Options := [];
+  if chkReplace.Checked then Include(Options, ssoReplace);
+  if chkCaseSensitive.Checked then Include(Options, ssoMatchCase);
+  if chkWholeWords.Checked then Include(Options, ssoWholeWord);
+  if chkPromptOnReplace.Checked and chkPromptOnReplace.Enabled then Include(Options, ssoPrompt);
+  if grpDirection.ItemIndex = 1 then Include(Options, ssoBackwards);
+  if grpOrigin.ItemIndex = 1 then Include(Options, ssoEntireScope);
+  if grpScope.ItemIndex = 1 then Include(Options, ssoSelectedOnly);
+  if ModalResult = mrAll then Include(Options, ssoReplaceAll);
+
+end;
+
+
+procedure TfrmSearchReplace.FormDestroy(Sender: TObject);
+begin
+  OpenRegistry;
+  Mainreg.WriteString(REGNAME_SEARCHTEXT, comboSearch.Items.Text);
+  Mainreg.WriteString(REGNAME_REPLACETEXT, comboReplace.Items.Text);
+end;
+
+
+procedure TfrmSearchReplace.chkReplaceClick(Sender: TObject);
+begin
+  // Jump to replace editor
+  ValidateControls(Sender);
+  if comboReplace.Enabled then
+    ActiveControl := comboReplace;
+end;
+
+
+procedure TfrmSearchReplace.ValidateControls(Sender: TObject);
+begin
+  // Enable or disable various controls
+  comboReplace.Enabled := chkReplace.Checked;
+  chkPromptOnReplace.Enabled := chkReplace.Checked;
+  btnReplaceAll.Enabled := chkReplace.Checked;
+  if chkReplace.Checked then
+    btnOK.Caption := 'Replace'
+  else
+    btnOK.Caption := 'Find';
+end;
+
+
+procedure TfrmSearchReplace.comboSearchReplaceExit(Sender: TObject);
+var
+  Combo: TComboBox;
+  idx: Integer;
+begin
+  // Store search or replace text history
+  Combo := Sender as TComboBox;
+  if Combo.Text = '' then
+    Exit;
+  idx := Combo.Items.IndexOf(Combo.Text);
+  if idx > -1 then
+    Combo.Items.Move(idx, 0)
+  else
+    Combo.Items.Insert(0, Combo.Text);
+  Combo.Text := Combo.Items[0];
+end;
+
+
+end.
