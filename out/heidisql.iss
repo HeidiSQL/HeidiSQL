@@ -13,8 +13,8 @@ VersionInfoVersion=5.0
 AppVersion=5.0
 AppPublisher=Ansgar Becker
 AppPublisherURL=http://www.heidisql.com/
-AppSupportURL=http://forum.heidisql.com/
-AppUpdatesURL=http://download.heidisql.com/
+AppSupportURL=http://www.heidisql.com/forum.php
+AppUpdatesURL=http://www.heidisql.com/download.php
 AppContact=heidisql@anse.de
 AppReadmeFile={app}\readme.txt
 
