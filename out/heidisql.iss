@@ -6,7 +6,7 @@
 [Setup]
 AppId=HeidiSQL
 AppName=HeidiSQL
-AppVerName=HeidiSQL 5.0 Beta
+AppVerName=HeidiSQL 5.0
 VersionInfoVersion=5.0
 
 ; Displayed on the "Support" dialog of the Add/Remove Programs Control Panel applet:
@@ -26,7 +26,7 @@ WizardImageFile=.\..\res\installer-logo.bmp
 WizardImageBackColor=$ffffff
 WizardSmallImageFile=.\..\res\installer-small-logo.bmp
 OutputDir=.
-OutputBaseFilename=HeidiSQL_5.0Beta_Setup
+OutputBaseFilename=HeidiSQL_5.0_Setup
 UninstallDisplayIcon={app}\heidisql.exe
 SetupIconFile=.\..\res\mainicon.ico
 ; uncomment the following line if you want your installation to run on NT 3.51 too.
