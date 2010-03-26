@@ -1121,8 +1121,6 @@ begin
     // Table data
     if comboExportData.Text = DATA_NO then begin
       Output(CRLF+'# Data exporting was unselected.'+CRLF, False, True, True, False, False);
-    end else if DBObj.Rows = 0 then begin
-      Output(CRLF+'# No rows in table '+DBObj.Database+'.'+DBObj.Name+CRLF, False, True, True, False, False);
     end else begin
       Output(CRLF+'# Dumping data for table '+DBObj.Database+'.'+DBObj.Name+': '+FormatNumber(DBObj.Rows)+' rows'+CRLF, False, True, True, False, False);
       TargetDbAndObject := m(DBObj.Name);
