@@ -357,6 +357,7 @@ end;
 procedure TfrmTableEditor.btnSaveClick(Sender: TObject);
 begin
   ApplyModifications;
+  UpdateSQLcode;
 end;
 
 
@@ -402,6 +403,8 @@ begin
     Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
     Mainform.ParseSelectedTableStructure;
     ResetModificationFlags;
+    AlterCodeValid := False;
+    CreateCodeValid := False;
   except
     on E:Exception do begin
       MessageDlg(E.Message, mtError, [mbOk], 0);
@@ -426,8 +429,10 @@ begin
   for i:=FColumns.Count-1 downto 0 do begin
     if FColumns[i].Status = esDeleted then
       FColumns.Delete(i)
-    else
+    else begin
+      FColumns[i].OldName := FColumns[i].Name;
       FColumns[i].Status := esUntouched;
+    end;
   end;
   DeletedKeys.Clear;
   for i:=0 to FKeys.Count-1 do begin
