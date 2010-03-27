@@ -3237,6 +3237,7 @@ procedure TMainForm.ShowHost;
 begin
   if (not DBTree.Dragging) and (
    (PageControlMain.ActivePage = tabDatabase) or
+   (PageControlMain.ActivePage = tabEditor) or
    (PageControlMain.ActivePage = tabData)
   ) then PageControlMain.ActivePage := tabHost;
 
