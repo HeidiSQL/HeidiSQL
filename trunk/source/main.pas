@@ -3742,8 +3742,8 @@ begin
     NumObj := StrToIntDef(NumObjects.Values[Obj.ObjType], 0);
     Inc(NumObj);
     NumObjects.Values[Obj.ObjType] := IntToStr(NumObj);
-    DBObjectsMaxSize := Max(DBObjectsMaxSize, Obj.Size);
-    DBObjectsMaxRows := Max(DBObjectsMaxRows, Obj.Rows);
+    if Obj.Size > DBObjectsMaxSize then DBObjectsMaxSize := Obj.Size;
+    if Obj.Rows > DBObjectsMaxRows then DBObjectsMaxRows := Obj.Rows;
   end;
   Msg := ActiveDatabase + ': ' + FormatNumber(Objects.Count) + ' ';
   if NumObjects.Count = 1 then
@@ -5996,7 +5996,7 @@ begin
 
   // Add minimal margin to cell edges
   InflateRect(CellRect, -1, -1);
-  CellWidth := CellRect.Right - CellRect.Left - 4;
+  CellWidth := CellRect.Right - CellRect.Left;
   BarWidth := Round(CellWidth / Max * Value);
 
   if BarWidth > 0 then begin
