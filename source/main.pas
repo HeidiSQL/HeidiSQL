@@ -546,7 +546,6 @@ type
     procedure ValidateControls(Sender: TObject);
     procedure ValidateQueryControls(Sender: TObject);
     procedure RefreshQueryHelpers;
-    procedure ShowHost;
     procedure DataGridBeforePaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas);
     procedure LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo);
@@ -3230,22 +3229,6 @@ begin
   // Increase first displayed number in gutter so it doesn't lie about the log entries
   if i > 0 then
     SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + i;
-end;
-
-
-procedure TMainForm.ShowHost;
-begin
-  if (not DBTree.Dragging) and (
-   (PageControlMain.ActivePage = tabDatabase) or
-   (PageControlMain.ActivePage = tabEditor) or
-   (PageControlMain.ActivePage = tabData)
-  ) then PageControlMain.ActivePage := tabHost;
-
-  tabDatabase.TabVisible := false;
-  tabEditor.TabVisible := false;
-  tabData.TabVisible := false;
-
-  PageControlMainChange( Self );
 end;
 
 
@@ -6389,7 +6372,15 @@ begin
   if DataGridHasChanges then
     actDataPostChangesExecute(Sender);
   case Sender.GetNodeLevel(Node) of
-    0: ShowHost;
+    0: begin
+      if (not DBtree.Dragging) and (not QueryTabActive) then begin
+        PageControlMain.ActivePage := tabHost;
+        PageControlMain.OnChange(Sender);
+      end;
+      tabDatabase.TabVisible := False;
+      tabEditor.TabVisible := False;
+      tabData.TabVisible := False;
+    end;
     1: begin
         newDb := Databases[Node.Index];
         // Selecting a database can cause an SQL error if the db was deleted from outside. Select previous node in that case.
@@ -6401,8 +6392,10 @@ begin
             Exit;
           end;
         end;
-        if (not DBtree.Dragging) and (not QueryTabActive) then
+        if (not DBtree.Dragging) and (not QueryTabActive) then begin
           PageControlMain.ActivePage := tabDatabase;
+          PageControlMain.OnChange(Sender);
+        end;
         tabDatabase.TabVisible := true;
         tabEditor.TabVisible := false;
         tabData.TabVisible := false;
@@ -6425,8 +6418,10 @@ begin
           actEditObjectExecute(Sender);
           // When a table is clicked in the tree, and the current
           // tab is a Host or Database tab, switch to showing table columns.
-          if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
+          if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then begin
             PagecontrolMain.ActivePage := tabEditor;
+            PageControlMain.OnChange(Sender);
+          end;
           InvalidateVT(DataGrid, VTREE_NOTLOADED, False);
           // When a table is clicked in the tree, and the query
           // tab is active, update the list of columns
