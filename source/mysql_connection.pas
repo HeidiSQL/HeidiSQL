@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, windows, mysql_api, mysql_structures, SynRegExpr, Contnrs, Generics.Collections, Generics.Defaults,
-  DateUtils, Types;
+  DateUtils, Types, ShellApi;
 
 type
   { TDBObjectList and friends }
@@ -26,7 +26,9 @@ type
 
   {$M+} // Needed to add published properties
 
-  { TConnectionParameters }
+  { TConnectionParameters and friends }
+
+  TNetType = (ntTCPIP, ntNamedPipe, ntSSHtunnel);
 
   TMySQLClientOption = (
     opCompress,             // CLIENT_COMPRESS
@@ -53,20 +55,26 @@ type
 
   TConnectionParameters = class(TObject)
     strict private
-      FHostname, FSocketname, FUsername, FPassword, FStartupScriptFilename,
-      FSSLPrivateKey, FSSLCertificate, FSSLCACertificate: String;
-      FPort: Integer;
+      FNetType: TNetType;
+      FHostname, FUsername, FPassword, FStartupScriptFilename,
+      FSSLPrivateKey, FSSLCertificate, FSSLCACertificate,
+      FSSHUser, FSSHPassword, FSSHPlinkExe: String;
+      FPort, FSSHPort: Integer;
       FOptions: TMySQLClientOptions;
     public
       constructor Create;
     published
+      property NetType: TNetType read FNetType write FNetType;
       property Hostname: String read FHostname write FHostname;
-      property Socketname: String read FSocketname write FSocketname;
       property Port: Integer read FPort write FPort;
       property Username: String read FUsername write FUsername;
       property Password: String read FPassword write FPassword;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property Options: TMySQLClientOptions read FOptions write FOptions;
+      property SSHUser: String read FSSHUser write FSSHUser;
+      property SSHPassword: String read FSSHPassword write FSSHPassword;
+      property SSHPort: Integer read FSSHPort write FSSHPort;
+      property SSHPlinkExe: String read FSSHPlinkExe write FSSHPlinkExe;
       property SSLPrivateKey: String read FSSLPrivateKey write FSSLPrivateKey;
       property SSLCertificate: String read FSSLCertificate write FSSLCertificate;
       property SSLCACertificate: String read FSSLCACertificate write FSSLCACertificate;
@@ -104,6 +112,7 @@ type
       FInformationSchemaObjects: TStringList;
       FDBObjectLists: TStringList;
       FObjectNamesInSelectedDB: TStrings;
+      FPlinkProcInfo: TProcessInformation;
       procedure SetActive(Value: Boolean);
       procedure SetDatabase(Value: String);
       function GetThreadId: Cardinal;
@@ -227,15 +236,15 @@ implementation
 
 constructor TConnectionParameters.Create;
 begin
+  FNetType := ntTCPIP;
   FHostname := DEFAULT_HOST;
-  FSocketname := '';
   FUsername := DEFAULT_USER;
   FPassword := '';
   FPort := DEFAULT_PORT;
   FSSLPrivateKey := '';
   FSSLCertificate := '';
   FSSLCACertificate := '';
-  FStartupScriptFilename := DEFAULT_STARTUPSCRIPT;
+  FStartupScriptFilename := '';
   FOptions := [opCompress, opLocalFiles, opInteractive, opProtocol41, opMultiStatements];
 end;
 
@@ -271,42 +280,78 @@ end;
 procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
-  ClientFlags: Integer;
-  Error, tmpdb: String;
+  ClientFlags, FinalPort: Integer;
+  Error, tmpdb, FinalHost, FinalSocket, PlinkCmd: String;
   SSLResult: Byte;
   UsingPass, Protocol, CurCharset: String;
-  IsNamedPipe: Boolean;
+  StartupInfo: TStartupInfo;
+  ExitCode: LongWord;
 begin
-  FActive := Value;
-
   if Value and (FHandle = nil) then begin
     // Get handle
     FHandle := mysql_init(nil);
 
     // Prepare connection
-    IsNamedPipe := FParameters.Hostname = '.';
-    if IsNamedPipe then Protocol := 'named pipe' else Protocol := 'TCP/IP';
+    case FParameters.NetType of
+      ntTCPIP: Protocol := 'TCP/IP';
+      ntNamedPipe: Protocol := 'named pipe';
+      ntSSHtunnel: Protocol := 'SSH tunnel';
+    end;
     if FParameters.Password <> '' then UsingPass := 'Yes' else UsingPass := 'No';
     Log(lcInfo, 'Connecting to '+FParameters.Hostname+' via '+Protocol+
       ', username '+FParameters.Username+
       ', using password: '+UsingPass+' ...');
 
-    // Be sure we don't pass mutually exclusive options
-    if not IsNamedPipe and
-      (FParameters.SSLPrivateKey <> '') and
-      (FParameters.SSLCertificate <> '') and
-      (FParameters.SSLCACertificate <> '') then begin
-      FParameters.Options := FParameters.Options + [opSSL];
-      { TODO : Use Cipher and CAPath parameters }
-      SSLResult := mysql_ssl_set(
-        FHandle,
-        PansiChar(AnsiString(FParameters.SSLPrivateKey)),
-        PansiChar(AnsiString(FParameters.SSLCertificate)),
-        PansiChar(AnsiString(FParameters.SSLCACertificate)),
-        {PansiChar(AnsiString(FParameters.CApath))}nil,
-        {PansiChar(AnsiString(FParameters.Cipher))}nil);
-      if SSLresult <> 0 then
-        raise Exception.CreateFmt('Could not connect using SSL (Error %d)', [SSLresult]);
+    // Prepare special stuff for SSL and SSH tunnel
+    FinalHost := FParameters.Hostname;
+    FinalSocket := '';
+    FinalPort := FParameters.Port;
+    case FParameters.NetType of
+      ntTCPIP: begin
+        if (FParameters.SSLPrivateKey <> '') and
+        (FParameters.SSLCertificate <> '') and
+        (FParameters.SSLCACertificate <> '') then begin
+          FParameters.Options := FParameters.Options + [opSSL];
+          { TODO : Use Cipher and CAPath parameters }
+          SSLResult := mysql_ssl_set(
+            FHandle,
+            PansiChar(AnsiString(FParameters.SSLPrivateKey)),
+            PansiChar(AnsiString(FParameters.SSLCertificate)),
+            PansiChar(AnsiString(FParameters.SSLCACertificate)),
+            {PansiChar(AnsiString(FParameters.CApath))}nil,
+            {PansiChar(AnsiString(FParameters.Cipher))}nil);
+          if SSLresult <> 0 then
+            raise Exception.CreateFmt('Could not connect using SSL (Error %d)', [SSLresult]);
+        end;
+      end;
+
+      ntNamedPipe: begin
+        FinalHost := '.';
+        FinalSocket := FParameters.Hostname;
+      end;
+
+      ntSSHtunnel: begin
+        // Call plink.exe
+        // plink bob@domain.com -pw myPassw0rd1 -L 55555:localhost:3306
+        PlinkCmd := FParameters.SSHPlinkExe + ' ' + FParameters.SSHUser + '@' + FParameters.Hostname +
+          ' -pw ' + FParameters.SSHPassword +
+          ' -L ' + IntToStr(FParameters.SSHPort) + ':localhost:' + IntToStr(FParameters.Port);
+        FillChar(FPlinkProcInfo, SizeOf(TProcessInformation), 0);
+        FillChar(StartupInfo, SizeOf(TStartupInfo), 0);
+        StartupInfo.cb := SizeOf(TStartupInfo);
+        if CreateProcess(nil, PChar(PlinkCmd), nil, nil, false, CREATE_DEFAULT_ERROR_MODE + NORMAL_PRIORITY_CLASS,
+          nil, nil, StartupInfo, FPlinkProcInfo) then begin
+          WaitForSingleObject(FPlinkProcInfo.hProcess, 1000);
+          GetExitCodeProcess(FPlinkProcInfo.hProcess, ExitCode);
+          if ExitCode <> STILL_ACTIVE then
+            raise Exception.Create('PLink exited unexpected. Command line was:'+CRLF+PlinkCmd);
+        end else begin
+          CloseHandle(FPlinkProcInfo.hProcess);
+          raise Exception.Create('Couldn''t execute PLink: '+CRLF+PlinkCmd);
+        end;
+        FinalHost := 'localhost';
+        FinalPort := FParameters.SSHPort;
+      end;
     end;
 
     // Gather client options
@@ -334,23 +379,23 @@ begin
 
     Connected := mysql_real_connect(
       FHandle,
-      PAnsiChar(Utf8Encode(FParameters.Hostname)),
+      PAnsiChar(Utf8Encode(FinalHost)),
       PAnsiChar(Utf8Encode(FParameters.Username)),
       PAnsiChar(Utf8Encode(FParameters.Password)),
       nil,
-      FParameters.Port,
-      PAnsiChar(Utf8Encode(FParameters.Socketname)),
+      FinalPort,
+      PAnsiChar(Utf8Encode(FinalSocket)),
       ClientFlags
       );
     if Connected = nil then begin
       Error := LastError;
       Log(lcError, Error);
-      FActive := False;
       FConnectionStarted := 0;
       FHandle := nil;
       raise Exception.Create(Error);
     end else begin
       Log(lcInfo, 'Connected. Thread-ID: '+IntToStr(ThreadId));
+      FActive := True;
       CharacterSet := 'utf8';
       CurCharset := CharacterSet;
       Log(lcInfo, 'Characterset: '+CurCharset);
@@ -374,8 +419,13 @@ begin
 
   else if (not Value) and (FHandle <> nil) then begin
     mysql_close(FHandle);
+    FActive := False;
     FConnectionStarted := 0;
     FHandle := nil;
+    if FPlinkProcInfo.hProcess <> 0 then begin
+      TerminateProcess(FPlinkProcInfo.hProcess, 0);
+      CloseHandle(FPlinkProcInfo.hProcess);
+    end;
     Log(lcInfo, 'Connection to '+FParameters.Hostname+' closed at '+DateTimeToStr(Now));
   end;
 

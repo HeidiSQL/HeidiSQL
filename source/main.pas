@@ -1346,7 +1346,6 @@ end;
 }
 procedure TMainForm.Startup;
 var
-  NetType: Byte;
   CmdlineParameters: TStringlist;
   LoadedParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
@@ -1431,7 +1430,7 @@ begin
   for i:=1 to ParamCount do
     CmdlineParameters.Add(ParamStr(i));
   ParseCommandLineParameters(CmdlineParameters);
-  if FCmdlineConnectionParams.Hostname <> '' then begin
+  if Assigned(FCmdlineConnectionParams) then begin
     // Minimal parameter for command line mode is hostname
     Connected := InitConnection(FCmdlineConnectionParams, FCmdlineSessionName);
   end else if GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT) then begin
@@ -1439,26 +1438,7 @@ begin
     // Do not autoconnect if we're in commandline mode and the connection was not successful
     LastSession := GetRegValue(REGNAME_LASTSESSION, '');
     if LastSession <> '' then begin
-      LoadedParams := TConnectionParameters.Create;
-      NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, LastSession);
-      LoadedParams.Hostname := GetRegValue(REGNAME_HOST, DEFAULT_HOST, LastSession);
-      if NetType = NETTYPE_TCPIP then
-        LoadedParams.Socketname := ''
-      else begin
-        LoadedParams.Socketname := LoadedParams.Hostname;
-        LoadedParams.Hostname := '.';
-      end;
-      LoadedParams.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, LastSession);
-      LoadedParams.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, LastSession));
-      LoadedParams.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', LastSession), DEFAULT_PORT);
-      LoadedParams.SSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', LastSession);
-      LoadedParams.SSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', LastSession);
-      LoadedParams.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', LastSession);
-      LoadedParams.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, DEFAULT_STARTUPSCRIPT, LastSession);
-      if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, LastSession) then
-        LoadedParams.Options := LoadedParams.Options + [opCompress]
-      else
-        LoadedParams.Options := LoadedParams.Options - [opCompress];
+      LoadedParams := LoadConnectionParams(LastSession);
       Connected := InitConnection(LoadedParams, LastSession);
     end;
   end;
@@ -1497,7 +1477,6 @@ procedure TMainForm.ParseCommandLineParameters(Parameters: TStringlist);
 var
   rx: TRegExpr;
   AllParams, Host, User, Pass, Socket: String;
-  NetType: Byte;
   i, Port: Integer;
 
   function GetParamValue(ShortName, LongName: String): String;
@@ -1512,15 +1491,9 @@ begin
   // Initialize and clear variables
   if not Assigned(FCmdlineFilenames) then
     FCmdlineFilenames := TStringlist.Create;
-  if not Assigned(FCmdlineConnectionParams) then
-    FCmdlineConnectionParams := TConnectionParameters.Create;
-  FCmdlineConnectionParams.Hostname := '';
-  FCmdlineConnectionParams.Username := '';
-  FCmdlineConnectionParams.Password := '';
-  FCmdlineConnectionParams.Port := 0;
-  FCmdlineConnectionParams.Socketname := '';
   FCmdlineFilenames.Clear;
   FCmdlineSessionName := '';
+  FreeAndNil(FCmdlineConnectionParams);
 
   // Prepend a space, so the regular expression can request a mandantory space
   // before each param name including the first one
@@ -1528,32 +1501,16 @@ begin
   rx := TRegExpr.Create;
   FCmdlineSessionName := GetParamValue('d', 'description');
   if FCmdlineSessionName <> '' then begin
-    if Mainreg.KeyExists(REGPATH + REGKEY_SESSIONS + FCmdlineSessionName) then begin
-      // Session params named -dXYZ found in registry
-      NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, FCmdlineSessionName);
-      FCmdlineConnectionParams.Hostname := GetRegValue(REGNAME_HOST, DEFAULT_HOST, FCmdlineSessionName);
-      if NetType = NETTYPE_TCPIP then
-        FCmdlineConnectionParams.Socketname := ''
-      else begin
-        FCmdlineConnectionParams.Socketname := FCmdlineConnectionParams.Hostname;
-        FCmdlineConnectionParams.Hostname := '.';
+    try
+      FCmdlineConnectionParams := LoadConnectionParams(FCmdlineSessionName);
+    except
+      on E:Exception do begin
+        // Session params not found in registry
+        LogSQL(E.Message);
+        FCmdlineSessionName := '';
       end;
-      FCmdlineConnectionParams.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, FCmdlineSessionName);
-      FCmdlineConnectionParams.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, FCmdlineSessionName));
-      FCmdlineConnectionParams.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', FCmdlineSessionName), DEFAULT_PORT);
-      FCmdlineConnectionParams.SSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', FCmdlineSessionName);
-      FCmdlineConnectionParams.SSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', FCmdlineSessionName);
-      FCmdlineConnectionParams.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', FCmdlineSessionName);
-      FCmdlineConnectionParams.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, DEFAULT_STARTUPSCRIPT, FCmdlineSessionName);
-      if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, FCmdlineSessionName) then
-        FCmdlineConnectionParams.Options := FCmdlineConnectionParams.Options + [opCompress]
-      else
-        FCmdlineConnectionParams.Options := FCmdlineConnectionParams.Options - [opCompress];
-    end else begin
-      // Session params not found in registry
-      LogSQL('Error: Session "'+FCmdlineSessionName+'" not found in registry.');
-      FCmdlineSessionName := '';
     end;
+
   end;
 
   // Test if params were passed. If given, override previous values loaded from registry.
@@ -1564,14 +1521,22 @@ begin
   Socket := GetParamValue('S', 'socket');
   Port := StrToIntDef(GetParamValue('P', 'port'), 0);
   // Leave out support for startup script, seems reasonable for command line connecting
-  if Host <> '' then FCmdlineConnectionParams.Hostname := Host;
-  if User <> '' then FCmdlineConnectionParams.Username := User;
-  if Pass <> '' then FCmdlineConnectionParams.Password := Pass;
-  if Port <> 0 then FCmdlineConnectionParams.Port := Port;
-  if Socket <> '' then FCmdlineConnectionParams.Socketname := Socket;
-  // Ensure we have a session name to pass to InitConnection
-  if (FCmdlineSessionName = '') and (FCmdlineConnectionParams.Hostname <> '') then
-    FCmdlineSessionName := FCmdlineConnectionParams.Hostname;
+
+  if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> 0) or (Socket <> '') then begin
+    if not Assigned(FCmdlineConnectionParams) then
+      FCmdlineConnectionParams := TConnectionParameters.Create;
+    if Host <> '' then FCmdlineConnectionParams.Hostname := Host;
+    if User <> '' then FCmdlineConnectionParams.Username := User;
+    if Pass <> '' then FCmdlineConnectionParams.Password := Pass;
+    if Port <> 0 then FCmdlineConnectionParams.Port := Port;
+    if Socket <> '' then begin
+      FCmdlineConnectionParams.Hostname := Socket;
+      FCmdlineConnectionParams.NetType := ntNamedPipe;
+    end;
+    // Ensure we have a session name to pass to InitConnection
+    if (FCmdlineSessionName = '') and (FCmdlineConnectionParams.Hostname <> '') then
+      FCmdlineSessionName := FCmdlineConnectionParams.Hostname;
+  end;
 
   // Check for valid filename(s) in parameters
   for i:=0 to Parameters.Count-1 do begin
@@ -2389,29 +2354,9 @@ procedure TMainForm.SessionConnect(Sender: TObject);
 var
   Session: String;
   Params: TConnectionParameters;
-  NetType: Integer;
 begin
   Session := (Sender as TMenuItem).Caption;
-  Params := TConnectionParameters.Create;
-  NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, Session);
-  Params.Hostname := GetRegValue(REGNAME_HOST, '', Session);
-  if NetType = NETTYPE_TCPIP then
-    Params.Socketname := ''
-  else begin
-    Params.Socketname := Params.Hostname;
-    Params.Hostname := '.';
-  end;
-  Params.Username := GetRegValue(REGNAME_USER, '', Session);
-  Params.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
-  Params.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', Session), DEFAULT_PORT);
-  Params.SSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', Session);
-  Params.SSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', Session);
-  Params.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', Session);
-  Params.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, '', Session);
-  if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session) then
-    Params.Options := Params.Options + [opCompress]
-  else
-    Params.Options := Params.Options - [opCompress];
+  Params := LoadConnectionParams(Session);
   if InitConnection(Params, Session) then
     DoAfterConnect;
 end;
@@ -9174,7 +9119,7 @@ begin
       if not QueryLoad(FCmdlineFilenames[i]) then
         actCloseQueryTabExecute(Self);
     end;
-    if FCmdlineConnectionParams.Hostname <> '' then
+    if Assigned(FCmdlineConnectionParams) then
       if InitConnection(FCmdlineConnectionParams, FCmdlineSessionName) then
         DoAfterConnect;
   end else
