@@ -33,10 +33,6 @@ const
   // Used for simulating a TTreeNode which has subnodes
   DUMMY_NODE_TEXT : String = 'Dummy node, should never be visible';
 
-  // Connection types, used on session dialog
-  NETTYPE_TCPIP = 0;
-  NETTYPE_NAMEDPIPE = 1;
-
   // Various names of registry variables
   // User-changable variables have a default value
   // Note: Color values are in HEX format: $00BBGGRR
@@ -126,15 +122,17 @@ const
   DEFAULT_PASSWORD = '';
   REGNAME_PORT = 'Port';
   DEFAULT_PORT = 3306;
+  REGNAME_PLINKEXE = 'PlinkExecutable';
+  REGNAME_SSHPORT = 'SSHtunnelPort';
+  REGNAME_SSHUSER = 'SSHtunnelUser';
+  REGNAME_SSHPASSWORD = 'SSHtunnelPassword';
   REGNAME_SSL_KEY = 'SSL_Key';
   REGNAME_SSL_CERT = 'SSL_Cert';
   REGNAME_SSL_CA = 'SSL_CA';
   REGNAME_NETTYPE = 'NetType';
-  DEFAULT_NETTYPE = NETTYPE_TCPIP;
   REGNAME_COMPRESSED = 'Compressed';
   DEFAULT_COMPRESSED = False;
   REGNAME_STARTUPSCRIPT = 'StartupScriptFilename';
-  DEFAULT_STARTUPSCRIPT = '';
   REGNAME_ONLYDBS = 'OnlyDBs';
   REGNAME_EXP_CREATEDB = 'ExportSQL_CreateDatabases';
   REGNAME_EXP_DROPDB = 'ExportSQL_DropDatabases';

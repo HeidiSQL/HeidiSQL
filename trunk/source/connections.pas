@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  VirtualTrees, Menus,
+  VirtualTrees, Menus, Graphics,
   mysql_connection;
 
 type
@@ -43,8 +43,6 @@ type
     editPassword: TEdit;
     editUsername: TEdit;
     editHost: TEdit;
-    radioTypeTCPIP: TRadioButton;
-    radioTypeNamedPipe: TRadioButton;
     tabSSLOptions: TTabSheet;
     lblSSLPrivateKey: TLabel;
     lblSSLCACertificate: TLabel;
@@ -59,6 +57,16 @@ type
     lblCreatedRight: TLabel;
     lblCounterRight: TLabel;
     lblLastConnectRight: TLabel;
+    tabSSHtunnel: TTabSheet;
+    editSSHPort: TEdit;
+    editSSHUser: TEdit;
+    editSSHPassword: TEdit;
+    lblSSHPort: TLabel;
+    lblSSHUser: TLabel;
+    lblSSHPassword: TLabel;
+    editSSHPlinkExe: TButtonedEdit;
+    lblSSHPlinkExe: TLabel;
+    comboNetType: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -67,7 +75,6 @@ type
     procedure btnNewClick(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);
     procedure Modification(Sender: TObject);
-    procedure radioNetTypeClick(Sender: TObject);
     procedure ListSessionsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
     procedure ListSessionsFocusChanged(Sender: TBaseVirtualTree;
@@ -91,16 +98,13 @@ type
     procedure editPortChange(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure PickFile(Sender: TObject);
+    procedure editSSHPlinkExeChange(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
     FSessionNames: TStringlist;
     FSessionModified, FOnlyPasswordModified, FSessionAdded: Boolean;
-    FOrgNetType: Byte;
-    FOrgSSL_Key, FOrgSSL_Cert, FOrgSSL_CA,
-    FOrgHost, FOrgUser, FOrgPassword, FOrgStartupScript: String;
-    FOrgCompressed: Boolean;
-    FOrgPort: Integer;
+    FOrgParams: TConnectionParameters;
     FWidthListSessions: Byte; // Percentage values
     function SelectedSession: String;
     procedure SessionNamesChange(Sender: TObject);
@@ -186,25 +190,20 @@ end;
 
 procedure Tconnform.btnOpenClick(Sender: TObject);
 var
-  ConType: Byte;
   Params: TConnectionParameters;
 begin
   // Connect to selected session
   Screen.Cursor := crHourglass;
-  if radioTypeTCPIP.Checked then ConType := NETTYPE_TCPIP
-  else ConType := NETTYPE_NAMEDPIPE;
   Params := TConnectionParameters.Create;
+  Params.NetType := TNetType(comboNetType.ItemIndex);
   Params.Hostname := editHost.Text;
-  if ConType = NETTYPE_TCPIP then begin
-    Params.Socketname := '';
-    Params.Hostname := editHost.Text;
-  end else begin
-    Params.Socketname := editHost.Text;
-    Params.Hostname := '.';
-  end;
   Params.Username := editUsername.Text;
   Params.Password := editPassword.Text;
   Params.Port := MakeInt(editPort.Text);
+  Params.SSHUser := editSSHuser.Text;
+  Params.SSHPassword := editSSHpassword.Text;
+  Params.SSHPort := MakeInt(editSSHport.Text);
+  Params.SSHPlinkExe := editSSHplinkexe.Text;
   Params.SSLPrivateKey := editSSLPrivateKey.Text;
   Params.SSLCertificate := editSSLCertificate.Text;
   Params.SSLCACertificate := editSSLCACertificate.Text;
@@ -230,17 +229,19 @@ begin
   MainReg.WriteString(REGNAME_USER, editUsername.Text);
   MainReg.WriteString(REGNAME_PASSWORD, encrypt(editPassword.Text));
   MainReg.WriteString(REGNAME_PORT, editPort.Text);
-  if radioTypeTCPIP.Checked then
-    MainReg.WriteInteger(REGNAME_NETTYPE, NETTYPE_TCPIP)
-  else
-    MainReg.WriteInteger(REGNAME_NETTYPE, NETTYPE_NAMEDPIPE);
+  MainReg.WriteInteger(REGNAME_NETTYPE, comboNetType.ItemIndex);
   MainReg.WriteBool(REGNAME_COMPRESSED, chkCompressed.Checked);
   MainReg.WriteString(REGNAME_STARTUPSCRIPT, editStartupScript.Text);
-  if IsNew then
-    MainReg.WriteString(REGNAME_SESSIONCREATED, DateTimeToStr(Now));
+  MainReg.WriteInteger(REGNAME_SSHPORT, MakeInt(editSSHPort.Text));
+  MainReg.WriteString(REGNAME_SSHUSER, editSSHUser.Text);
+  MainReg.WriteString(REGNAME_SSHPASSWORD, encrypt(editSSHPassword.Text));
   MainReg.WriteString(REGNAME_SSL_KEY, editSSLPrivateKey.Text);
   MainReg.WriteString(REGNAME_SSL_CERT, editSSLCertificate.Text);
   MainReg.WriteString(REGNAME_SSL_CA, editSSLCACertificate.Text);
+  if IsNew then
+    MainReg.WriteString(REGNAME_SESSIONCREATED, DateTimeToStr(Now));
+  OpenRegistry;
+  MainReg.WriteString(REGNAME_PLINKEXE, editSSHPlinkExe.Text);
   FSessionModified := False;
   FSessionAdded := False;
   ListSessions.Invalidate;
@@ -390,7 +391,7 @@ end;
 procedure Tconnform.ListSessionsFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
-  SessionFocused, SessionExists: Boolean;
+  SessionFocused: Boolean;
 begin
   // select one connection!
   Screen.Cursor := crHourglass;
@@ -398,48 +399,28 @@ begin
   OpenRegistry;
   SessionFocused := Assigned(Node);
   if SessionFocused then begin
-    SessionExists := MainReg.KeyExists(RegPath + REGKEY_SESSIONS + SelectedSession);
-    if SessionExists then begin
-      OpenRegistry(SelectedSession);
-      FOrgNetType := GetRegValue(REGNAME_NETTYPE, DEFAULT_NETTYPE, SelectedSession);
-      FOrgHost := GetRegValue(REGNAME_HOST, '', SelectedSession);
-      FOrgUser := GetRegValue(REGNAME_USER, '', SelectedSession);
-      FOrgPassword := decrypt(GetRegValue(REGNAME_PASSWORD, '', SelectedSession));
-      FOrgPort := StrToIntDef(GetRegValue(REGNAME_PORT, '', SelectedSession), DEFAULT_PORT);
-      FOrgCompressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SelectedSession);
-      FOrgStartupScript := GetRegValue(REGNAME_STARTUPSCRIPT, '', SelectedSession);
-      FOrgSSL_Key := GetRegValue(REGNAME_SSL_KEY, '', SelectedSession);
-      FOrgSSL_Cert := GetRegValue(REGNAME_SSL_CERT, '', SelectedSession);
-      FOrgSSL_CA := GetRegValue(REGNAME_SSL_CA, '', SelectedSession);
-    end else begin
+    try
+      FOrgParams := LoadConnectionParams(SelectedSession);
+    except
       // Editing a new session, not saved yet
-      FOrgNetType := NETTYPE_TCPIP;
-      FOrgHost := DEFAULT_HOST;
-      FOrgUser := DEFAULT_USER;
-      FOrgPassword := '';
-      FOrgPort := DEFAULT_PORT;
-      FOrgCompressed := DEFAULT_COMPRESSED;
-      FOrgStartupScript := DEFAULT_STARTUPSCRIPT;
-      FOrgSSL_Key := '';
-      FOrgSSL_Cert := '';
-      FOrgSSL_CA := '';
+      FOrgParams := TConnectionParameters.Create;
     end;
 
     FLoaded := False;
-    case FOrgNetType of
-      NETTYPE_NAMEDPIPE: radioTypeNamedPipe.Checked := True;
-      else radioTypeTCPIP.Checked := True;
-    end;
-    radioNetTypeClick(Sender);
-    editHost.Text := FOrgHost;
-    editUsername.Text := FOrgUser;
-    editPassword.Text := FOrgPassword;
-    editPort.Text := IntToStr(FOrgPort);
-    editSSLPrivateKey.Text := FOrgSSL_Key;
-    editSSLCertificate.Text := FOrgSSL_Cert;
-    editSSLCACertificate.Text := FOrgSSL_CA;
-    chkCompressed.Checked := FOrgCompressed;
-    editStartupScript.Text := FOrgStartupScript;
+    comboNetType.ItemIndex := Integer(FOrgParams.NetType);
+    editHost.Text := FOrgParams.Hostname;
+    editUsername.Text := FOrgParams.Username;
+    editPassword.Text := FOrgParams.Password;
+    editPort.Text := IntToStr(FOrgParams.Port);
+    chkCompressed.Checked := opCompress in FOrgParams.Options;
+    editStartupScript.Text := FOrgParams.StartupScriptFilename;
+    editSSHPlinkExe.Text := FOrgParams.SSHPlinkExe;
+    editSSHPort.Text := IntToStr(FOrgParams.SSHPort);
+    editSSHUser.Text := FOrgParams.SSHUser;
+    editSSHPassword.Text := FOrgParams.SSHPassword;
+    editSSLPrivateKey.Text := FOrgParams.SSLPrivateKey;
+    editSSLCertificate.Text := FOrgParams.SSLCertificate;
+    editSSLCACertificate.Text := FOrgParams.SSLCACertificate;
     FLoaded := True;
   end;
 
@@ -559,53 +540,30 @@ end;
 
 procedure Tconnform.Modification(Sender: TObject);
 var
-  NetType: Byte;
   PasswordModified: Boolean;
 begin
   // Some modification -
   if FLoaded then begin
-    if radioTypeTCPIP.Checked then NetType := NETTYPE_TCPIP
-    else NetType := NETTYPE_NAMEDPIPE;
-
-    FSessionModified := (FOrgHost <> editHost.Text)
-      or (FOrgUser <> editUsername.Text)
-      or (FOrgPort <> updownPort.Tag)
-      or (FOrgCompressed <> chkCompressed.Checked)
-      or (FOrgNetType <> NetType)
-      or (FOrgStartupScript <> editStartupScript.Text)
-      or (FOrgSSL_Key <> editSSLPrivateKey.Text)
-      or (FOrgSSL_Cert <> editSSLCertificate.Text)
-      or (FOrgSSL_CA <> editSSLCACertificate.Text);
-    PasswordModified := FOrgPassword <> editPassword.Text;
+    FSessionModified := (FOrgParams.Hostname <> editHost.Text)
+      or (FOrgParams.Username <> editUsername.Text)
+      or (FOrgParams.Port <> updownPort.Tag)
+      or ((opCompress in FOrgParams.Options) <> chkCompressed.Checked)
+      or (FOrgParams.NetType <> TNetType(comboNetType.ItemIndex))
+      or (FOrgParams.StartupScriptFilename <> editStartupScript.Text)
+      or (FOrgParams.SSHPlinkExe <> editSSHPlinkExe.Text)
+      or (IntToStr(FOrgParams.SSHPort) <> editSSHPort.Text)
+      or (FOrgParams.SSHUser <> editSSHUser.Text)
+      or (FOrgParams.SSHPassword <> editSSHPassword.Text)
+      or (FOrgParams.SSLPrivateKey <> editSSLPrivateKey.Text)
+      or (FOrgParams.SSLCertificate <> editSSLCertificate.Text)
+      or (FOrgParams.SSLCACertificate <> editSSLCACertificate.Text);
+    PasswordModified := FOrgParams.Password <> editPassword.Text;
     FOnlyPasswordModified := PasswordModified and (not FSessionModified);
     FSessionModified := FSessionModified or PasswordModified;
 
     ListSessions.Repaint;
     ValidateControls;
   end;
-end;
-
-
-procedure Tconnform.radioNetTypeClick(Sender: TObject);
-var
-  IsTCP: Boolean;
-begin
-  // Toggle between TCP/IP and named pipes mode
-  IsTCP := radioTypeTCPIP.Checked;
-  if IsTCP then
-    lblHost.Caption := 'Hostname / IP:'
-  else
-    lblHost.Caption := 'Socket name:';
-  lblPort.Enabled := IsTCP;
-  editPort.Enabled := lblPort.Enabled;
-  updownPort.Enabled := lblPort.Enabled;
-  lblSSLPrivateKey.Enabled := IsTCP;
-  editSSLPrivateKey.Enabled := lblSSLPrivateKey.Enabled;
-  lblSSLCACertificate.Enabled := IsTCP;
-  editSSLCACertificate.Enabled := lblSSLCACertificate.Enabled;
-  lblSSLCertificate.Enabled := IsTCP;
-  editSSLCertificate.Enabled := lblSSLCertificate.Enabled;
-  Modification(Sender);
 end;
 
 
@@ -631,6 +589,7 @@ end;
 procedure Tconnform.ValidateControls;
 var
   SessionFocused: Boolean;
+  NetType: TNetType;
 begin
   SessionFocused := Assigned(ListSessions.FocusedNode);
 
@@ -652,6 +611,18 @@ begin
   end else begin
     lblHelp.Visible := False;
     PageControlDetails.Visible := True;
+
+    // Validate session GUI stuff
+    NetType := TNetType(comboNetType.ItemIndex);
+    if NetType = ntNamedPipe then
+      lblHost.Caption := 'Socket name:'
+    else
+      lblHost.Caption := 'Hostname / IP:';
+    lblPort.Enabled := NetType in [ntTCPIP, ntSSHtunnel];
+    editPort.Enabled := lblPort.Enabled;
+    updownPort.Enabled := lblPort.Enabled;
+    tabSSLoptions.TabVisible := NetType = ntTCPIP;
+    tabSSHtunnel.TabVisible := NetType = ntSSHtunnel;
   end;
 end;
 
@@ -690,6 +661,8 @@ begin
   Selector.FileName := editStartupScript.Text;
   if Edit = editStartupScript then
     Selector.Filter := 'SQL-files (*.sql)|*.sql|All files (*.*)|*.*'
+  else if Edit = editSSHPlinkExe then
+    Selector.Filter := 'Executables (*.exe)|*.exe|All files (*.*)|*.*'
   else
     Selector.Filter := 'Privacy Enhanced Mail certificates (*.pem)|*.pem|Certificates (*.crt)|*.crt|All files (*.*)|*.*';
   // Find relevant label and set open dialog's title
@@ -706,6 +679,16 @@ begin
     Modification(Selector);
   end;
   Selector.Free;
+end;
+
+
+procedure Tconnform.editSSHPlinkExeChange(Sender: TObject);
+begin
+  if not FileExists(editSSHPlinkExe.Text) then
+    editSSHPlinkExe.Font.Color := clRed
+  else
+    editSSHPlinkExe.Font.Color := clWindowText;
+  Modification(Sender);
 end;
 
 

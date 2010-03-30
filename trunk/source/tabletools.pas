@@ -721,7 +721,7 @@ end;
 procedure TfrmTableTools.comboExportOutputTypeChange(Sender: TObject);
 var
   OldItem: String;
-  NewIdx, NetType: Integer;
+  NewIdx: Integer;
   DBNode: PVirtualNode;
   SessionName: String;
 begin
@@ -770,21 +770,7 @@ begin
     SessionName := Copy(comboExportOutputType.Text, Length(OUTPUT_SERVER)+1, Length(comboExportOutputType.Text));
     FreeAndNil(FTargetConnection);
     FTargetConnection := TMySQLConnection.Create(Self);
-    FTargetConnection.Parameters.Hostname := GetRegValue(REGNAME_HOST, DEFAULT_HOST, SessionName);
-    FTargetConnection.Parameters.Username := GetRegValue(REGNAME_USER, DEFAULT_USER, SessionName);
-    FTargetConnection.Parameters.Password := decrypt(GetRegValue(REGNAME_PASSWORD, DEFAULT_PASSWORD, SessionName));
-    FTargetConnection.Parameters.Port := StrToIntDef(GetRegValue(REGNAME_PORT, IntToStr(DEFAULT_PORT), SessionName), DEFAULT_PORT);
-    if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SessionName) then
-      FTargetConnection.Parameters.Options := FTargetConnection.Parameters.Options + [opCompress]
-    else
-      FTargetConnection.Parameters.Options := FTargetConnection.Parameters.Options - [opCompress];
-    NetType := GetRegValue(REGNAME_NETTYPE, NETTYPE_TCPIP, SessionName);
-    if NetType = NETTYPE_TCPIP then
-      FTargetConnection.Parameters.Socketname := ''
-    else begin
-      FTargetConnection.Parameters.Socketname := FTargetConnection.Parameters.Hostname;
-      FTargetConnection.Parameters.Hostname := '.';
-    end;
+    FTargetConnection.Parameters := LoadConnectionParams(SessionName);
     FTargetConnection.LogPrefix := '['+SessionName+'] ';
     FTargetConnection.OnLog := Mainform.LogSQL;
     Screen.Cursor := crHourglass;

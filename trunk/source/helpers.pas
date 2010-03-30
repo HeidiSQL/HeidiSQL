@@ -251,6 +251,7 @@ type
   function GeneratePassword(Len: Integer): String;
   procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
   procedure HandlePortableSettings(StartupMode: Boolean);
+  function LoadConnectionParams(Session: String): TConnectionParameters;
 
 var
   MainReg: TRegistry;
@@ -3596,6 +3597,33 @@ begin
   end;
   Screen.Cursor := crDefault;
 
+end;
+
+
+function LoadConnectionParams(Session: String): TConnectionParameters;
+begin
+  if not Mainreg.KeyExists(REGPATH + REGKEY_SESSIONS + Session) then
+    raise Exception.Create('Error: Session "'+Session+'" not found in registry.')
+  else begin
+    Result := TConnectionParameters.Create;
+    Result.NetType := TNetType(GetRegValue(REGNAME_NETTYPE, Integer(ntTCPIP), Session));
+    Result.Hostname := GetRegValue(REGNAME_HOST, '', Session);
+    Result.Username := GetRegValue(REGNAME_USER, '', Session);
+    Result.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
+    Result.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', Session), DEFAULT_PORT);
+    Result.SSHUser := GetRegValue(REGNAME_SSHUSER, '', Session);
+    Result.SSHPassword := decrypt(GetRegValue(REGNAME_SSHPASSWORD, '', Session));
+    Result.SSHPort := GetRegValue(REGNAME_SSHPORT, 0, Session);
+    Result.SSHPlinkExe := GetRegValue(REGNAME_PLINKEXE, '');
+    Result.SSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', Session);
+    Result.SSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', Session);
+    Result.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', Session);
+    Result.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, '', Session);
+    if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session) then
+      Result.Options := Result.Options + [opCompress]
+    else
+      Result.Options := Result.Options - [opCompress];
+  end;
 end;
 
 

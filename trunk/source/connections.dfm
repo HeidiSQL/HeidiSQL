@@ -214,7 +214,7 @@ object connform: Tconnform
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
-        TabOrder = 8
+        TabOrder = 6
         OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
@@ -227,7 +227,7 @@ object connform: Tconnform
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Compressed client/server protocol'
-        TabOrder = 7
+        TabOrder = 5
         OnClick = Modification
       end
       object editPort: TEdit
@@ -235,7 +235,7 @@ object connform: Tconnform
         Top = 117
         Width = 60
         Height = 21
-        TabOrder = 5
+        TabOrder = 3
         Text = '0'
         OnChange = editPortChange
       end
@@ -245,7 +245,7 @@ object connform: Tconnform
         Width = 17
         Height = 21
         Max = 32767
-        TabOrder = 6
+        TabOrder = 4
         Thousands = False
         OnChangingEx = updownPortChangingEx
       end
@@ -256,7 +256,7 @@ object connform: Tconnform
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
-        TabOrder = 4
+        TabOrder = 2
         OnChange = Modification
       end
       object editUsername: TEdit
@@ -265,7 +265,7 @@ object connform: Tconnform
         Width = 197
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 3
+        TabOrder = 1
         OnChange = Modification
       end
       object editHost: TEdit
@@ -274,28 +274,109 @@ object connform: Tconnform
         Width = 197
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 2
+        TabOrder = 0
         OnChange = Modification
       end
-      object radioTypeTCPIP: TRadioButton
+      object comboNetType: TComboBox
         Left = 101
-        Top = 11
-        Width = 67
-        Height = 17
-        Caption = 'TCP/IP'
-        Checked = True
-        TabOrder = 0
-        TabStop = True
-        OnClick = radioNetTypeClick
+        Top = 9
+        Width = 197
+        Height = 21
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        ItemIndex = 0
+        TabOrder = 7
+        Text = 'TCP/IP'
+        OnChange = Modification
+        Items.Strings = (
+          'TCP/IP'
+          'Named pipe'
+          'SSH tunnel')
       end
-      object radioTypeNamedPipe: TRadioButton
-        Left = 174
-        Top = 11
-        Width = 113
-        Height = 17
-        Caption = 'Named pipe'
+    end
+    object tabSSHtunnel: TTabSheet
+      Caption = 'SSH tunnel'
+      ImageIndex = 147
+      DesignSize = (
+        301
+        197)
+      object lblSSHPort: TLabel
+        Left = 3
+        Top = 39
+        Width = 51
+        Height = 13
+        Caption = 'Local port:'
+        FocusControl = editSSHPort
+      end
+      object lblSSHUser: TLabel
+        Left = 3
+        Top = 66
+        Width = 76
+        Height = 13
+        Caption = 'Shell username:'
+        FocusControl = editSSHUser
+      end
+      object lblSSHPassword: TLabel
+        Left = 3
+        Top = 93
+        Width = 75
+        Height = 13
+        Caption = 'Shell password:'
+        FocusControl = editSSHPassword
+      end
+      object lblSSHPlinkExe: TLabel
+        Left = 3
+        Top = 12
+        Width = 87
+        Height = 13
+        Caption = 'plink.exe location:'
+      end
+      object editSSHPort: TEdit
+        Left = 101
+        Top = 36
+        Width = 188
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        NumbersOnly = True
+        TabOrder = 0
+        Text = 'editSSHPort'
+        OnChange = Modification
+      end
+      object editSSHUser: TEdit
+        Left = 101
+        Top = 63
+        Width = 188
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
-        OnClick = radioNetTypeClick
+        Text = 'editSSHUser'
+        OnChange = Modification
+      end
+      object editSSHPassword: TEdit
+        Left = 101
+        Top = 90
+        Width = 188
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        PasswordChar = '*'
+        TabOrder = 2
+        Text = 'editSSHPassword'
+        OnChange = Modification
+      end
+      object editSSHPlinkExe: TButtonedEdit
+        Left = 101
+        Top = 9
+        Width = 188
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.ImageListMain
+        RightButton.ImageIndex = 51
+        RightButton.Visible = True
+        TabOrder = 3
+        Text = 'editSSHPlinkExe'
+        OnChange = editSSHPlinkExeChange
+        OnDblClick = PickFile
+        OnRightButtonClick = PickFile
       end
     end
     object tabSSLOptions: TTabSheet
