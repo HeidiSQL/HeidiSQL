@@ -159,7 +159,7 @@ type
 {$I const.inc}
 
   function implodestr(seperator: String; a: TStrings) :String;
-  function explode(separator, a: String) :TStringList;
+  function Explode(Separator, Text: String) :TStringList;
   procedure ExplodeQuotedList(Text: String; var List: TStringList);
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: String): String;
@@ -323,29 +323,26 @@ end;
 
 
 
-{***
-  Explode a string by separator into a TStringList
-
-  @param string Separator
-  @return TStringList
-}
-function explode(separator, a: String) :TStringList;
+function Explode(Separator, Text: String): TStringList;
 var
-  i : Integer;
-  item : String;
+  i: Integer;
+  Item: String;
 begin
-  result := TStringList.Create;
-
-  i := pos(separator, a);
-  while i > 0 do begin
-    item := copy(a, 0, i-1);
-    item := trim(item);
-    result.Add(item);
-    a := copy(a, i+length(separator), length(a));
-    i := pos(separator, a);
+  // Explode a string by separator into a TStringList
+  Result := TStringList.Create;
+  while true do begin
+    i := Pos(Separator, Text);
+    if i = 0 then begin
+      // Last or only segment: Add to list if it's the last. Add also if it's not empty and list is empty.
+      // Do not add if list is empty and text is also empty.
+      if (Result.Count > 0) or (Text <> '') then
+        Result.Add(Text);
+      break;
+    end;
+    Item := Trim(Copy(Text, 1, i-1));
+    Result.Add(Item);
+    Delete(Text, 1, i-1+Length(Separator));
   end;
-  if a <> '' then
-    result.Add(trim(a));
 end;
 
 
