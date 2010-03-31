@@ -7705,7 +7705,7 @@ var
   LoopNode: PVirtualNode;
 begin
   // Display color bars
-  if Column in [1, 2] then begin
+  if Column in [1..7] then begin
     vt := Sender as TVirtualStringTree;
     // Find out maximum value in column
     LoopNode := vt.GetFirst;
@@ -7809,6 +7809,24 @@ var
   Objects: TDBObjectList;
   DBname: String;
   Size: Int64;
+
+  function GetItemCount(ItemType: TListNodeType): String;
+  var
+    c: Integer;
+    o: TDBObject;
+  begin
+    if Connection.DbObjectsCached(DBname) then begin
+      Objects := Connection.GetDBObjects(DBname);
+      c := 0;
+      for o in Objects do begin
+        if (ItemType = lntNone) or (o.NodeType = ItemType) then
+          Inc(c);
+      end;
+      Result := FormatNumber(c);
+    end else
+      Result := '';
+  end;
+
 begin
   // Return text for database columns
   Idx := Sender.GetNodeData(Node);
@@ -7816,20 +7834,19 @@ begin
   case Column of
     0: CellText := DBname;
     1: begin
-      if Connection.DbObjectsCached(DBname) then begin
-        Objects := Connection.GetDBObjects(DBname);
-        CellText := FormatNumber(Objects.Count);
-      end else
-        CellText := '';
-    end;
-    2: begin
       Size := Connection.GetDBSize(DBname);
       if Size > -1 then
         CellText := FormatByteNumber(Size)
       else
         CellText := '';
     end;
-    3: begin
+    2: CellText := GetItemCount(lntNone);
+    3: CellText := GetItemCount(lntTable);
+    4: CellText := GetItemCount(lntView);
+    5: CellText := GetItemCount(lntFunction);
+    6: CellText := GetItemCount(lntProcedure);
+    7: CellText := GetItemCount(lntTrigger);
+    8: begin
       CellText := '';
       if Assigned(AllDatabasesDetails) then begin
         AllDatabasesDetails.First;

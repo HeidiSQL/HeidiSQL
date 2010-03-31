@@ -551,16 +551,35 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 1
-                    Width = 100
-                    WideText = 'Items'
-                  end
-                  item
-                    Position = 2
-                    Width = 100
+                    Width = 80
                     WideText = 'Size'
                   end
                   item
+                    Position = 2
+                    WideText = 'Items'
+                  end
+                  item
                     Position = 3
+                    WideText = 'Tables'
+                  end
+                  item
+                    Position = 4
+                    WideText = 'Views'
+                  end
+                  item
+                    Position = 5
+                    WideText = 'Functions'
+                  end
+                  item
+                    Position = 6
+                    WideText = 'Procedures'
+                  end
+                  item
+                    Position = 7
+                    WideText = 'Triggers'
+                  end
+                  item
+                    Position = 8
                     Width = 120
                     WideText = 'Default collation'
                   end>
