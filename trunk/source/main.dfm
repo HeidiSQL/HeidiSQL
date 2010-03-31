@@ -523,7 +523,7 @@ object MainForm: TMainForm
                 Align = alClient
                 Header.AutoSizeIndex = 0
                 Header.DefaultHeight = 17
-                Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoShowSortGlyphs, hoVisible]
+                Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.ParentFont = True
                 Header.SortColumn = 0
                 Images = ImageListMain
