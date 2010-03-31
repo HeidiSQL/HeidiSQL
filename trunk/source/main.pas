@@ -467,6 +467,9 @@ type
     actDataShowAll: TAction;
     SynExporterHTML1: TSynExporterHTML;
     QFvalues: TMenuItem;
+    tabDatabases: TTabSheet;
+    ListDatabases: TVirtualStringTree;
+    menuFetchDBitems: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -746,6 +749,19 @@ type
       Column: TColumnIndex);
     procedure ListTablesKeyPress(Sender: TObject; var Key: Char);
     procedure DBtreeFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure ListDatabasesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure ListDatabasesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure ListDatabasesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+      var InitialStates: TVirtualNodeInitStates);
+    procedure ListDatabasesGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure ListDatabasesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+      var ContentRect: TRect);
+    procedure menuFetchDBitemsClick(Sender: TObject);
+    procedure ListDatabasesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure ListDatabasesDblClick(Sender: TObject);
   private
     FDelimiter: String;
     FileNameSessionLog: String;
@@ -754,11 +770,12 @@ type
     FLastTabNumberOnMouseUp: Integer;
     FLastMouseDownCloseButton: TObject;
     // Filter text per tab for filter panel
-    FilterTextVariables: String;
-    FilterTextStatus: String;
-    FilterTextProcessList: String;
-    FilterTextCommandStats: String;
-    FilterTextDatabase: String;
+    FilterTextDatabases,
+    FilterTextVariables,
+    FilterTextStatus,
+    FilterTextProcessList,
+    FilterTextCommandStats,
+    FilterTextDatabase,
     FilterTextData: String;
     PreviousFocusedNode: PVirtualNode;
     FActiveObjectEditor: TDBObjectEditor;
@@ -791,6 +808,7 @@ type
     Connection: TMySQLConnection;
     SessionName: String;
     AllDatabases: TStringList;
+    AllDatabasesDetails: TMySQLQuery;
     Databases: TStringList;
     btnAddTab: TSpeedButton;
     QueryTabs: TObjectList<TQueryTab>;
@@ -1063,6 +1081,7 @@ begin
     MainReg.WriteInteger(REGNAME_WINDOWWIDTH, Width);
     MainReg.WriteInteger(REGNAME_WINDOWHEIGHT, Height);
   end;
+  SaveListSetup(ListDatabases);
   SaveListSetup(ListVariables);
   SaveListSetup(ListStatus);
   SaveListSetup(ListProcesses);
@@ -1168,6 +1187,7 @@ begin
 
   // Fix node height on Virtual Trees for current DPI settings
   FixVT(DBTree);
+  FixVT(ListDatabases);
   FixVT(ListVariables);
   FixVT(ListStatus);
   FixVT(ListProcesses);
@@ -1261,6 +1281,7 @@ begin
     DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options - [coVisible];
 
   // Restore width of columns of all VirtualTrees
+  RestoreListSetup(ListDatabases);
   RestoreListSetup(ListVariables);
   RestoreListSetup(ListStatus);
   RestoreListSetup(ListProcesses);
@@ -1697,6 +1718,7 @@ begin
   DBtree.FocusedNode := nil;
   PreviousFocusedNode := nil;
   FreeAndNil(AllDatabases);
+  FreeAndNil(AllDatabasesDetails);
   FreeAndNil(DataGridHiddenColumns);
   SynMemoFilter.Clear;
   SetLength(DataGridSortColumns, 0);
@@ -1708,6 +1730,7 @@ begin
     DeactivateFileLogging;
 
   // Invalidate list contents
+  InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
   InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
   InvalidateVT(ListStatus, VTREE_NOTLOADED, False);
   InvalidateVT(ListProcesses, VTREE_NOTLOADED, False);
@@ -2603,7 +2626,9 @@ begin
     RefreshTree(True)
   else if tab1 = tabHost then begin
     tab2 := PageControlHost.ActivePage;
-    if tab2 = tabVariables then
+    if tab2 = tabDatabases then
+      List := ListDatabases
+    else if tab2 = tabVariables then
       List := ListVariables
     else if tab2 = tabStatus then
       List := ListStatus
@@ -2611,7 +2636,7 @@ begin
       List := ListProcesses
     else
       List := ListCommandStats;
-    InvalidateVT(List, VTREE_NOTLOADED, True);
+    InvalidateVT(List, VTREE_NOTLOADED_PURGECACHE, True);
   end else if tab1 = tabDatabase then
     InvalidateVT(ListTables, VTREE_NOTLOADED_PURGECACHE, False)
   else if tab1 = tabData then
@@ -3629,7 +3654,8 @@ var
   list: TBaseVirtualTree;
 begin
   tab := PageControlHost.ActivePage;
-  if tab = tabVariables then list := ListVariables
+  if tab = tabDatabases then list := ListDatabases
+  else if tab = tabVariables then list := ListVariables
   else if tab = tabStatus then list := ListStatus
   else if tab = tabProcesslist then list := ListProcesses
   else if tab = tabCommandStats then list := ListCommandStats
@@ -4639,7 +4665,8 @@ end;
 
 procedure TMainForm.popupHostPopup(Sender: TObject);
 begin
-  Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and Assigned(ListProcesses.FocusedNode);
+  menuFetchDBitems.Enabled := (PageControlHost.ActivePage = tabDatabases) and (ListDatabases.SelectedCount > 0);
+  Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and (ListProcesses.SelectedCount > 0);
   menuEditVariable.Enabled := False;
   if Connection.ServerVersionInt >= 40003 then
     menuEditVariable.Enabled := (PageControlHost.ActivePage = tabVariables) and Assigned(ListVariables.FocusedNode)
@@ -5346,6 +5373,28 @@ begin
 end;
 
 
+procedure TMainForm.menuFetchDBitemsClick(Sender: TObject);
+var
+  Node: PVirtualNode;
+  db: String;
+begin
+  // Fill db object cache of selected databases
+  try
+    Screen.Cursor := crHourglass;
+    Node := ListDatabases.GetFirstSelected;
+    while Assigned(Node) do begin
+      db := ListDatabases.Text[Node, 0];
+      Connection.GetDBObjects(db, True);
+      ListDatabases.RepaintNode(Node);
+      DBtree.RepaintNode(FindDBNode(db));
+      Node := ListDatabases.GetNextSelected(Node);
+    end;
+  finally
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+
 {**
   Tell a VirtualStringTree the mem size to allocate per node
 }
@@ -6002,7 +6051,10 @@ begin
   if tab = tabHost then
     tab := PageControlHost.ActivePage;
   VT := nil;
-  if tab = tabVariables then begin
+  if tab = tabDatabases then begin
+    VT := ListDatabases;
+    FilterTextDatabases := editFilterVT.Text;
+  end else if tab = tabVariables then begin
     VT := ListVariables;
     FilterTextVariables := editFilterVT.Text;
   end else if tab = tabStatus then begin
@@ -6097,7 +6149,7 @@ procedure TMainForm.DBtreeGetText(Sender: TBaseVirtualTree; Node:
 var
   DBObjects: TDBObjectList;
   db: String;
-  i, j: Integer;
+  i: Integer;
   Bytes: Int64;
   AllListsCached: Boolean;
 begin
@@ -6124,11 +6176,8 @@ begin
             Bytes := -1;
             if AllListsCached then begin
               Bytes := 0;
-              for i := 0 to Databases.Count - 1 do begin
-                DBObjects := Connection.GetDBObjects(Databases[i]);
-                for j:=0 to DBObjects.Count-1 do
-                  Bytes := Bytes + DBObjects[j].Size;
-              end;
+              for i:=0 to Databases.Count-1 do
+                Inc(Bytes, Connection.GetDBSize(Databases[i]));
             end;
             if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
             else CellText := '';
@@ -6139,10 +6188,7 @@ begin
             if not Connection.DbObjectsCached(db) then
               CellText := ''
             else begin
-              Bytes := 0;
-              DBObjects := Connection.GetDBObjects(db);
-              for i:=0 to DBObjects.Count-1 do
-                Bytes := Bytes + DBObjects[i].Size;
+              Bytes := Connection.GetDBSize(db);
               if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
               else CellText := '';
             end;
@@ -6166,16 +6212,24 @@ procedure TMainForm.DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node:
     Boolean; var ImageIndex: Integer);
 var
   DBObjects: TDBObjectList;
+  vt: TVirtualStringTree;
+  db: String;
 begin
   if Column > 0 then
     Exit;
   // Prevent state images, overlaying the normal image
   if not (Kind in [ikNormal, ikSelected]) then Exit;
+  vt := Sender as TVirtualStringTree;
   case Sender.GetNodeLevel(Node) of
     0: ImageIndex := ICONINDEX_SERVER;
-    1: if (Kind = ikSelected) or ((Sender.FocusedNode<>nil) and (Node=Sender.FocusedNode.Parent)) then
-         ImageIndex := ICONINDEX_DB_HIGHLIGHT
-         else ImageIndex := ICONINDEX_DB;
+    1: begin
+      db := vt.Text[Node, 0];
+      if ActiveDatabase = db then
+        ImageIndex := ICONINDEX_DB_HIGHLIGHT
+      else
+        ImageIndex := ICONINDEX_DB;
+      Ghosted := not Connection.DbObjectsCached(db);
+    end;
     2: begin
         DBObjects := Connection.GetDBObjects(Databases[Node.Parent.Index]);
         // Various bug reports refer to this location where we reference a db object which is outside the range
@@ -6224,6 +6278,7 @@ begin
           if not Assigned(AllDatabases) then begin
             ShowStatusMsg( 'Reading Databases...' );
             AllDatabases := Connection.GetCol('SHOW DATABASES');
+            InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
           end;
           if not Assigned(Databases) then
             Databases := TStringList.Create;
@@ -6321,6 +6376,7 @@ begin
       if (not DBtree.Dragging) and (not QueryTabActive) then begin
         PageControlMain.ActivePage := tabHost;
         PageControlMain.OnChange(Sender);
+        PageControlHost.ActivePage := tabDatabases;
       end;
       tabDatabase.TabVisible := False;
       tabEditor.TabVisible := False;
@@ -7640,6 +7696,157 @@ begin
 end;
 
 
+procedure TMainForm.ListDatabasesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+  var ContentRect: TRect);
+var
+  vt: TVirtualStringTree;
+  Val, Max: Extended;
+  LoopNode: PVirtualNode;
+begin
+  // Display color bars
+  if Column in [1, 2] then begin
+    vt := Sender as TVirtualStringTree;
+    // Find out maximum value in column
+    LoopNode := vt.GetFirst;
+    Max := 1;
+    while Assigned(LoopNode) do begin
+      Val := MakeFloat(vt.Text[LoopNode, Column]);
+      if Val > Max then
+        Max := Val;
+      LoopNode := vt.GetNext(LoopNode);
+    end;
+    PaintColorBar(MakeFloat(vt.Text[Node, Column]), Max, TargetCanvas, CellRect);
+  end;
+end;
+
+
+procedure TMainForm.ListDatabasesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+var
+  vt: TVirtualStringTree;
+  i: Integer;
+begin
+  // Invalidate list of databases, before (re)painting
+  vt := Sender as TVirtualStringTree;
+  if vt.Tag = VTREE_LOADED then
+    Exit;
+  Screen.Cursor := crHourglass;
+  FreeAndNil(AllDatabasesDetails);
+  vt.Clear;
+  try
+    if Connection.InformationSchemaObjects.IndexOf('SCHEMATA') > -1 then
+      AllDatabasesDetails := Connection.GetResults('SELECT * FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.'+mask('SCHEMATA'));
+  except
+    on E:Exception do
+      LogSQL(E.Message, lcError);
+  end;
+  if vt.Tag = VTREE_NOTLOADED_PURGECACHE then begin
+    for i:=0 to AllDatabases.Count-1 do begin
+      if Connection.DbObjectsCached(AllDatabases[i]) then
+        Connection.GetDBObjects(AllDatabases[i], True);
+    end;
+  end;
+  vt.RootNodeCount := AllDatabases.Count;
+  tabDatabases.Caption := 'Databases ('+FormatNumber(vt.RootNodeCount)+')';
+  vt.Tag := VTREE_LOADED;
+  Screen.Cursor := crDefault;
+end;
+
+
+procedure TMainForm.ListDatabasesDblClick(Sender: TObject);
+begin
+  // Select database on doubleclick
+  if Assigned(ListDatabases.FocusedNode) then try
+    ActiveDatabase := ListDatabases.Text[ListDatabases.FocusedNode, 0];
+  except
+    on E:Exception do LogSQL(E.Message, lcError);
+  end;
+end;
+
+
+procedure TMainForm.ListDatabasesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+var
+  db: String;
+begin
+  // Return icon index for databases. Ghosted if db objects not yet in cache.
+  if not (Kind in [ikNormal, ikSelected]) then
+    Exit;
+  if Column <> (Sender as TVirtualStringTree).Header.MainColumn then
+    Exit;
+  db := ListDatabases.Text[Node, 0];
+  if db = ActiveDatabase then
+    ImageIndex := ICONINDEX_DB_HIGHLIGHT
+  else
+    ImageIndex := ICONINDEX_DB;
+  Ghosted := not Connection.DbObjectsCached(db);
+end;
+
+
+procedure TMainForm.ListDatabasesGetNodeDataSize(Sender: TBaseVirtualTree;
+  var NodeDataSize: Integer);
+begin
+  // Tell VirtualTree we're using a simple integer as data
+  NodeDataSize := SizeOf(Int64);
+end;
+
+
+procedure TMainForm.ListDatabasesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+  var InitialStates: TVirtualNodeInitStates);
+var
+  Idx: PInt;
+begin
+  // Integers mapped to the node's index so nodes can be sorted without losing their database name
+  Idx := Sender.GetNodeData(Node);
+  Idx^ := Node.Index;
+end;
+
+
+procedure TMainForm.ListDatabasesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+var
+  Idx: PInt;
+  Objects: TDBObjectList;
+  DBname: String;
+  Size: Int64;
+begin
+  // Return text for database columns
+  Idx := Sender.GetNodeData(Node);
+  DBname := AllDatabases[Idx^];
+  case Column of
+    0: CellText := DBname;
+    1: begin
+      if Connection.DbObjectsCached(DBname) then begin
+        Objects := Connection.GetDBObjects(DBname);
+        CellText := FormatNumber(Objects.Count);
+      end else
+        CellText := '';
+    end;
+    2: begin
+      Size := Connection.GetDBSize(DBname);
+      if Size > -1 then
+        CellText := FormatByteNumber(Size)
+      else
+        CellText := '';
+    end;
+    3: begin
+      CellText := '';
+      if Assigned(AllDatabasesDetails) then begin
+        AllDatabasesDetails.First;
+        while not AllDatabasesDetails.Eof do begin
+          if AllDatabasesDetails.Col('SCHEMA_NAME', True) = DBname then begin
+            CellText := AllDatabasesDetails.Col('DEFAULT_COLLATION_NAME', True);
+            break;
+          end;
+          AllDatabasesDetails.Next;
+        end;
+      end;
+    end;
+  end;
+
+end;
+
+
 procedure TMainForm.ListVariablesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   i : Integer;
@@ -7649,7 +7856,7 @@ var
 begin
   // Display server variables
   vt := Sender as TVirtualStringTree;
-  if vt.Tag <> VTREE_NOTLOADED then
+  if vt.Tag = VTREE_LOADED then
     Exit;
   Sel := GetVTCaptions(vt, True);
   DeInitializeVTNodes(vt);
@@ -7693,7 +7900,7 @@ var
 begin
   // Display server status key/value pairs
   vt := Sender as TVirtualStringTree;
-  if vt.Tag <> VTREE_NOTLOADED then
+  if vt.Tag = VTREE_LOADED then
     Exit;
   Sel := GetVTCaptions(vt, True);
   DeInitializeVTNodes(vt);
@@ -7765,7 +7972,7 @@ const
 begin
   // Display client threads
   vt := Sender as TVirtualStringTree;
-  if vt.Tag <> VTREE_NOTLOADED then
+  if vt.Tag = VTREE_LOADED then
     Exit;
   vt.OnFocusChanged(vt, vt.FocusedNode, vt.FocusedColumn);
   Sel := GetVTCaptions(vt, True);
@@ -7860,7 +8067,7 @@ var
 begin
   // Display command statistics
   vt := Sender as TVirtualStringTree;
-  if vt.Tag <> VTREE_NOTLOADED then
+  if vt.Tag = VTREE_LOADED then
     Exit;
 
   Sel := GetVTCaptions(vt, True);

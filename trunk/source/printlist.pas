@@ -71,9 +71,10 @@ begin
   // which ListView to print?
   case Mainform.PageControlMain.ActivePageIndex of
     0: case Mainform.PageControlHost.ActivePageIndex of
-      0: list := Mainform.ListVariables;
-      1: list := Mainform.ListStatus;
-      2: list := Mainform.ListProcesses;
+      0: list := Mainform.ListDatabases;
+      1: list := Mainform.ListVariables;
+      2: list := Mainform.ListStatus;
+      3: list := Mainform.ListProcesses;
       else list := Mainform.ListCommandStats;
       end;
     1: list := Mainform.ListTables;

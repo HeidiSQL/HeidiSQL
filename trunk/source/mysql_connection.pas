@@ -111,6 +111,7 @@ type
       FCharsetTable: TMySQLQuery;
       FInformationSchemaObjects: TStringList;
       FDBObjectLists: TStringList;
+      FDBSizes: TStringList;
       FObjectNamesInSelectedDB: TStrings;
       FPlinkProcInfo: TProcessInformation;
       procedure SetActive(Value: Boolean);
@@ -148,6 +149,7 @@ type
       function GetVar(SQL: String; Column: String): String; overload;
       function Ping: Boolean;
       function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList;
+      function GetDBSize(db: String): Int64;
       function DbObjectsCached(db: String): Boolean;
       procedure ClearDbObjects(db: String='');
       property Parameters: TConnectionParameters read FParameters write FParameters;
@@ -263,6 +265,7 @@ begin
   FLastQueryNetworkDuration := 0;
   FLogPrefix := '';
   FIsUnicode := False;
+  FDBSizes := TStringList.Create;
 end;
 
 
@@ -957,7 +960,7 @@ end;
 
 procedure TMySQLConnection.ClearDbObjects(db: String='');
 var
-  i: Integer;
+  i, idx: Integer;
 begin
   // Free all cached database object lists, or, if db is passed, only that one
   if not Assigned(FDBObjectLists) then
@@ -968,10 +971,14 @@ begin
       Exit;
     TDBObjectList(FDBObjectLists.Objects[i]).Free;
     FDBObjectLists.Delete(i);
+    idx := FDBSizes.IndexOfName(db);
+    if idx > -1 then
+      FDBSizes.Delete(idx);
   end else begin
     for i:=0 to FDBObjectLists.Count-1 do
       TDBObjectList(FDBObjectLists.Objects[i]).Free;
     FreeAndNil(FDBObjectLists);
+    FDBSizes.Clear;
   end;
   if Assigned(FOnAfterClearDBObjects) then
     FOnAfterClearDBObjects(db);
@@ -1014,6 +1021,7 @@ var
   obj: TDBObject;
   Results: TMySQLQuery;
   rx: TRegExpr;
+  DBSize: Integer;
 begin
   // Cache and return a db's table list
   if Refresh then
@@ -1025,6 +1033,7 @@ begin
     Results := nil;
     rx := TRegExpr.Create;
     rx.ModifierI := True;
+    DBSize := 0;
 
     // Tables and views
     try
@@ -1040,8 +1049,10 @@ begin
         obj.Rows := StrToInt64Def(Results.Col('Rows'), -1);
         if Results.IsNull('Data_length') or Results.IsNull('Index_length') then
           Obj.Size := -1
-        else
+        else begin
           Obj.Size := StrToInt64Def(Results.Col('Data_length'), 0) + StrToInt64Def(Results.Col('Index_length'), 0);
+          Inc(DBSize, Obj.Size);
+        end;
         Obj.ObjType := 'TABLE';
         Obj.NodeType := lntTable;
         if Results.IsNull(1) and Results.IsNull(2) then begin // Engine column is NULL for views
@@ -1191,9 +1202,17 @@ begin
       FDBObjectLists := TStringList.Create;
     FDBObjectLists.AddObject(db, Result);
 
+    FDBSizes.Values[db] := IntToStr(DBSize);
+
     SetObjectNamesInSelectedDB;
   end;
 
+end;
+
+
+function TMySQLConnection.GetDBSize(db: String): Int64;
+begin
+  Result := StrToInt64Def(FDBSizes.Values[db], -1);
 end;
 
 
