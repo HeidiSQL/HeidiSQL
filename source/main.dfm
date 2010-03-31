@@ -377,7 +377,7 @@ object MainForm: TMainForm
         ShowHint = True
         TabOrder = 0
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
-        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toRightClickSelect]
         OnChange = DBtreeChange
         OnDblClick = DBtreeDblClick
@@ -508,11 +508,64 @@ object MainForm: TMainForm
             Top = 0
             Width = 575
             Height = 302
-            ActivePage = tabVariables
+            ActivePage = tabDatabases
             Align = alClient
             HotTrack = True
             TabOrder = 0
             OnChange = PageControlHostChange
+            object tabDatabases: TTabSheet
+              Caption = 'Databases'
+              object ListDatabases: TVirtualStringTree
+                Left = 0
+                Top = 0
+                Width = 567
+                Height = 274
+                Align = alClient
+                Header.AutoSizeIndex = 0
+                Header.DefaultHeight = 17
+                Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoShowSortGlyphs, hoVisible]
+                Header.ParentFont = True
+                Header.SortColumn = 0
+                Images = ImageListMain
+                PopupMenu = popupHost
+                TabOrder = 0
+                TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
+                TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+                OnAfterPaint = vstAfterPaint
+                OnBeforeCellPaint = ListDatabasesBeforeCellPaint
+                OnBeforePaint = ListDatabasesBeforePaint
+                OnCompareNodes = vstCompareNodes
+                OnDblClick = ListDatabasesDblClick
+                OnGetText = ListDatabasesGetText
+                OnGetImageIndex = ListDatabasesGetImageIndex
+                OnGetHint = vstGetHint
+                OnGetNodeDataSize = ListDatabasesGetNodeDataSize
+                OnHeaderClick = vstHeaderClick
+                OnInitNode = ListDatabasesInitNode
+                Columns = <
+                  item
+                    Position = 0
+                    Width = 150
+                    WideText = 'Database'
+                  end
+                  item
+                    Position = 1
+                    Width = 100
+                    WideText = 'Items'
+                  end
+                  item
+                    Position = 2
+                    Width = 100
+                    WideText = 'Size'
+                  end
+                  item
+                    Position = 3
+                    Width = 120
+                    WideText = 'Default collation'
+                  end>
+              end
+            end
             object tabVariables: TTabSheet
               Caption = 'Variables'
               object ListVariables: TVirtualStringTree
@@ -7535,6 +7588,11 @@ object MainForm: TMainForm
     end
     object N26: TMenuItem
       Caption = '-'
+    end
+    object menuFetchDBitems: TMenuItem
+      Caption = 'Fetch database items'
+      Enabled = False
+      OnClick = menuFetchDBitemsClick
     end
     object Kill1: TMenuItem
       Caption = 'Kill Process(es)...'
