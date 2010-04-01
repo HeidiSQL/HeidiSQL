@@ -123,9 +123,13 @@ const
   REGNAME_PORT = 'Port';
   DEFAULT_PORT = 3306;
   REGNAME_PLINKEXE = 'PlinkExecutable';
-  REGNAME_SSHPORT = 'SSHtunnelPort';
+  REGNAME_SSHHOST = 'SSHtunnelHost';
+  REGNAME_SSHPORT = 'SSHtunnelHostPort';
+  DEFAULT_SSHPORT = 22;
+  REGNAME_SSHLOCALPORT = 'SSHtunnelPort';
   REGNAME_SSHUSER = 'SSHtunnelUser';
   REGNAME_SSHPASSWORD = 'SSHtunnelPassword';
+  REGNAME_SSHKEY = 'SSHtunnelPrivateKey';
   REGNAME_SSL_KEY = 'SSL_Key';
   REGNAME_SSL_CERT = 'SSL_Cert';
   REGNAME_SSL_CA = 'SSL_CA';

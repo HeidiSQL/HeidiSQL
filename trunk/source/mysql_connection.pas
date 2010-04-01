@@ -58,8 +58,8 @@ type
       FNetType: TNetType;
       FHostname, FUsername, FPassword, FStartupScriptFilename,
       FSSLPrivateKey, FSSLCertificate, FSSLCACertificate,
-      FSSHUser, FSSHPassword, FSSHPlinkExe: String;
-      FPort, FSSHPort: Integer;
+      FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
+      FPort, FSSHPort, FSSHLocalPort: Integer;
       FOptions: TMySQLClientOptions;
     public
       constructor Create;
@@ -71,9 +71,12 @@ type
       property Password: String read FPassword write FPassword;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property Options: TMySQLClientOptions read FOptions write FOptions;
+      property SSHHost: String read FSSHHost write FSSHHost;
+      property SSHPort: Integer read FSSHPort write FSSHPort;
       property SSHUser: String read FSSHUser write FSSHUser;
       property SSHPassword: String read FSSHPassword write FSSHPassword;
-      property SSHPort: Integer read FSSHPort write FSSHPort;
+      property SSHPrivateKey: String read FSSHPrivateKey write FSSHPrivateKey;
+      property SSHLocalPort: Integer read FSSHLocalPort write FSSHLocalPort;
       property SSHPlinkExe: String read FSSHPlinkExe write FSSHPlinkExe;
       property SSLPrivateKey: String read FSSLPrivateKey write FSSLPrivateKey;
       property SSLCertificate: String read FSSLCertificate write FSSLCertificate;
@@ -243,6 +246,8 @@ begin
   FUsername := DEFAULT_USER;
   FPassword := '';
   FPort := DEFAULT_PORT;
+  FSSHPort := DEFAULT_SSHPORT;
+  FSSHLocalPort := FPort + 1;
   FSSLPrivateKey := '';
   FSSLCertificate := '';
   FSSLCACertificate := '';
@@ -334,11 +339,23 @@ begin
       end;
 
       ntSSHtunnel: begin
-        // Call plink.exe
-        // plink bob@domain.com -pw myPassw0rd1 -L 55555:localhost:3306
-        PlinkCmd := FParameters.SSHPlinkExe + ' ' + FParameters.SSHUser + '@' + FParameters.Hostname +
-          ' -pw ' + FParameters.SSHPassword +
-          ' -L ' + IntToStr(FParameters.SSHPort) + ':localhost:' + IntToStr(FParameters.Port);
+        // Build plink.exe command line
+        // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
+        PlinkCmd := FParameters.SSHPlinkExe + ' ';
+        if FParameters.SSHUser <> '' then
+          PlinkCmd := PlinkCmd + FParameters.SSHUser + '@';
+        if FParameters.SSHHost <> '' then
+          PlinkCmd := PlinkCmd + FParameters.SSHHost
+        else
+          PlinkCmd := PlinkCmd + FParameters.Hostname;
+        if FParameters.SSHPassword <> '' then
+          PlinkCmd := PlinkCmd + ' -pw ' + FParameters.SSHPassword;
+        PlinkCmd := PlinkCmd + ' -P ' + IntToStr(FParameters.SSHPort);
+        if FParameters.SSHPrivateKey <> '' then
+          PlinkCmd := PlinkCmd + ' -i "' + FParameters.SSHPrivateKey + '"';
+        PlinkCmd := PlinkCmd + ' -L ' + IntToStr(FParameters.SSHLocalPort) + ':' + FParameters.Hostname + ':' + IntToStr(FParameters.Port);
+        log(lcInfo, PlinkCmd);
+        // Create plink.exe process
         FillChar(FPlinkProcInfo, SizeOf(TProcessInformation), 0);
         FillChar(StartupInfo, SizeOf(TStartupInfo), 0);
         StartupInfo.cb := SizeOf(TStartupInfo);
@@ -354,7 +371,7 @@ begin
           raise Exception.Create('Couldn''t execute PLink: '+CRLF+PlinkCmd);
         end;
         FinalHost := 'localhost';
-        FinalPort := FParameters.SSHPort;
+        FinalPort := FParameters.SSHLocalPort;
       end;
     end;
 
