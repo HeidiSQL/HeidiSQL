@@ -275,7 +275,7 @@ object connform: Tconnform
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
-        OnChange = Modification
+        OnChange = editHostChange
       end
       object comboNetType: TComboBox
         Left = 101
@@ -300,28 +300,28 @@ object connform: Tconnform
       DesignSize = (
         301
         197)
-      object lblSSHPort: TLabel
+      object lblSSHLocalPort: TLabel
         Left = 3
-        Top = 39
+        Top = 163
         Width = 51
         Height = 13
         Caption = 'Local port:'
-        FocusControl = editSSHPort
+        FocusControl = editSSHlocalport
       end
       object lblSSHUser: TLabel
         Left = 3
-        Top = 66
-        Width = 76
+        Top = 82
+        Width = 52
         Height = 13
-        Caption = 'Shell username:'
+        Caption = 'Username:'
         FocusControl = editSSHUser
       end
       object lblSSHPassword: TLabel
         Left = 3
-        Top = 93
-        Width = 75
+        Top = 109
+        Width = 50
         Height = 13
-        Caption = 'Shell password:'
+        Caption = 'Password:'
         FocusControl = editSSHPassword
       end
       object lblSSHPlinkExe: TLabel
@@ -331,35 +331,67 @@ object connform: Tconnform
         Height = 13
         Caption = 'plink.exe location:'
       end
-      object editSSHPort: TEdit
+      object lblSSHhost: TLabel
+        Left = 3
+        Top = 55
+        Width = 81
+        Height = 13
+        Caption = 'SSH host + port:'
+        FocusControl = editSSHhost
+      end
+      object lblSSHkeyfile: TLabel
+        Left = 3
+        Top = 136
+        Width = 75
+        Height = 13
+        Caption = 'Private key file:'
+        FocusControl = editSSHPrivateKey
+      end
+      object lblDownloadPlink: TLabel
         Left = 101
-        Top = 36
+        Top = 33
+        Width = 93
+        Height = 13
+        Cursor = crHandPoint
+        Hint = 'http://putty.very.rulez.org/latest/x86/plink.exe'
+        Caption = 'Download plink.exe'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = [fsUnderline]
+        ParentFont = False
+        OnClick = lblDownloadPlinkClick
+      end
+      object editSSHlocalport: TEdit
+        Left = 101
+        Top = 160
         Width = 188
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         NumbersOnly = True
-        TabOrder = 0
-        Text = 'editSSHPort'
+        TabOrder = 6
+        Text = 'editSSHlocalport'
         OnChange = Modification
       end
       object editSSHUser: TEdit
         Left = 101
-        Top = 63
+        Top = 79
         Width = 188
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 1
+        TabOrder = 3
         Text = 'editSSHUser'
         OnChange = Modification
       end
       object editSSHPassword: TEdit
         Left = 101
-        Top = 90
+        Top = 106
         Width = 188
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
-        TabOrder = 2
+        TabOrder = 4
         Text = 'editSSHPassword'
         OnChange = Modification
       end
@@ -372,9 +404,45 @@ object connform: Tconnform
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
-        TabOrder = 3
+        TabOrder = 0
         Text = 'editSSHPlinkExe'
         OnChange = editSSHPlinkExeChange
+        OnDblClick = PickFile
+        OnRightButtonClick = PickFile
+      end
+      object editSSHhost: TEdit
+        Left = 101
+        Top = 52
+        Width = 133
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 1
+        Text = 'editSSHhost'
+        OnChange = Modification
+      end
+      object editSSHport: TEdit
+        Left = 240
+        Top = 52
+        Width = 49
+        Height = 21
+        Anchors = [akTop, akRight]
+        NumbersOnly = True
+        TabOrder = 2
+        Text = 'editSSHport'
+        OnChange = Modification
+      end
+      object editSSHPrivateKey: TButtonedEdit
+        Left = 101
+        Top = 133
+        Width = 188
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.ImageListMain
+        RightButton.ImageIndex = 51
+        RightButton.Visible = True
+        TabOrder = 5
+        Text = 'editSSHPrivateKey'
+        OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
       end

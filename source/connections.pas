@@ -58,15 +58,21 @@ type
     lblCounterRight: TLabel;
     lblLastConnectRight: TLabel;
     tabSSHtunnel: TTabSheet;
-    editSSHPort: TEdit;
+    editSSHlocalport: TEdit;
     editSSHUser: TEdit;
     editSSHPassword: TEdit;
-    lblSSHPort: TLabel;
+    lblSSHLocalPort: TLabel;
     lblSSHUser: TLabel;
     lblSSHPassword: TLabel;
     editSSHPlinkExe: TButtonedEdit;
     lblSSHPlinkExe: TLabel;
     comboNetType: TComboBox;
+    lblSSHhost: TLabel;
+    editSSHhost: TEdit;
+    editSSHport: TEdit;
+    editSSHPrivateKey: TButtonedEdit;
+    lblSSHkeyfile: TLabel;
+    lblDownloadPlink: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -99,6 +105,8 @@ type
     procedure FormResize(Sender: TObject);
     procedure PickFile(Sender: TObject);
     procedure editSSHPlinkExeChange(Sender: TObject);
+    procedure editHostChange(Sender: TObject);
+    procedure lblDownloadPlinkClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -200,9 +208,12 @@ begin
   Params.Username := editUsername.Text;
   Params.Password := editPassword.Text;
   Params.Port := MakeInt(editPort.Text);
+  Params.SSHHost := editSSHHost.Text;
+  Params.SSHPort := MakeInt(editSSHPort.Text);
   Params.SSHUser := editSSHuser.Text;
   Params.SSHPassword := editSSHpassword.Text;
-  Params.SSHPort := MakeInt(editSSHport.Text);
+  Params.SSHPrivateKey := editSSHPrivateKey.Text;
+  Params.SSHLocalPort := MakeInt(editSSHlocalport.Text);
   Params.SSHPlinkExe := editSSHplinkexe.Text;
   Params.SSLPrivateKey := editSSLPrivateKey.Text;
   Params.SSLCertificate := editSSLCertificate.Text;
@@ -232,9 +243,12 @@ begin
   MainReg.WriteInteger(REGNAME_NETTYPE, comboNetType.ItemIndex);
   MainReg.WriteBool(REGNAME_COMPRESSED, chkCompressed.Checked);
   MainReg.WriteString(REGNAME_STARTUPSCRIPT, editStartupScript.Text);
-  MainReg.WriteInteger(REGNAME_SSHPORT, MakeInt(editSSHPort.Text));
+  MainReg.WriteString(REGNAME_SSHHOST, editSSHHost.Text);
+  MainReg.WriteInteger(REGNAME_SSHPORT, MakeInt(editSSHport.Text));
   MainReg.WriteString(REGNAME_SSHUSER, editSSHUser.Text);
   MainReg.WriteString(REGNAME_SSHPASSWORD, encrypt(editSSHPassword.Text));
+  MainReg.WriteString(REGNAME_SSHKEY, editSSHPrivateKey.Text);
+  MainReg.WriteInteger(REGNAME_SSHLOCALPORT, MakeInt(editSSHlocalport.Text));
   MainReg.WriteString(REGNAME_SSL_KEY, editSSLPrivateKey.Text);
   MainReg.WriteString(REGNAME_SSL_CERT, editSSLCertificate.Text);
   MainReg.WriteString(REGNAME_SSL_CA, editSSLCACertificate.Text);
@@ -415,9 +429,12 @@ begin
     chkCompressed.Checked := opCompress in FOrgParams.Options;
     editStartupScript.Text := FOrgParams.StartupScriptFilename;
     editSSHPlinkExe.Text := FOrgParams.SSHPlinkExe;
-    editSSHPort.Text := IntToStr(FOrgParams.SSHPort);
+    editSSHHost.Text := FOrgParams.SSHHost;
+    editSSHport.Text := IntToStr(FOrgParams.SSHPort);
     editSSHUser.Text := FOrgParams.SSHUser;
     editSSHPassword.Text := FOrgParams.SSHPassword;
+    editSSHPrivateKey.Text := FOrgParams.SSHPrivateKey;
+    editSSHlocalport.Text := IntToStr(FOrgParams.SSHLocalPort);
     editSSLPrivateKey.Text := FOrgParams.SSLPrivateKey;
     editSSLCertificate.Text := FOrgParams.SSLCertificate;
     editSSLCACertificate.Text := FOrgParams.SSLCACertificate;
@@ -530,6 +547,12 @@ begin
 end;
 
 
+procedure Tconnform.editHostChange(Sender: TObject);
+begin
+  editSSHhost.TextHint := TEdit(Sender).Text;
+  Modification(Sender);
+end;
+
 procedure Tconnform.editPortChange(Sender: TObject);
 begin
   // Work around smallint values of TUpDown, allow integer values
@@ -551,7 +574,7 @@ begin
       or (FOrgParams.NetType <> TNetType(comboNetType.ItemIndex))
       or (FOrgParams.StartupScriptFilename <> editStartupScript.Text)
       or (FOrgParams.SSHPlinkExe <> editSSHPlinkExe.Text)
-      or (IntToStr(FOrgParams.SSHPort) <> editSSHPort.Text)
+      or (IntToStr(FOrgParams.SSHLocalPort) <> editSSHlocalport.Text)
       or (FOrgParams.SSHUser <> editSSHUser.Text)
       or (FOrgParams.SSHPassword <> editSSHPassword.Text)
       or (FOrgParams.SSLPrivateKey <> editSSLPrivateKey.Text)
@@ -689,6 +712,12 @@ begin
   else
     editSSHPlinkExe.Font.Color := clWindowText;
   Modification(Sender);
+end;
+
+
+procedure Tconnform.lblDownloadPlinkClick(Sender: TObject);
+begin
+  ShellExec(TLabel(Sender).Hint);
 end;
 
 

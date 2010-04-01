@@ -3608,9 +3608,12 @@ begin
     Result.Username := GetRegValue(REGNAME_USER, '', Session);
     Result.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
     Result.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', Session), DEFAULT_PORT);
+    Result.SSHHost := GetRegValue(REGNAME_SSHHOST, '', Session);
+    Result.SSHPort := GetRegValue(REGNAME_SSHPORT, DEFAULT_SSHPORT, Session);
     Result.SSHUser := GetRegValue(REGNAME_SSHUSER, '', Session);
     Result.SSHPassword := decrypt(GetRegValue(REGNAME_SSHPASSWORD, '', Session));
-    Result.SSHPort := GetRegValue(REGNAME_SSHPORT, 0, Session);
+    Result.SSHPrivateKey := GetRegValue(REGNAME_SSHKEY, '', Session);
+    Result.SSHLocalPort := GetRegValue(REGNAME_SSHLOCALPORT, 0, Session);
     Result.SSHPlinkExe := GetRegValue(REGNAME_PLINKEXE, '');
     Result.SSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', Session);
     Result.SSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', Session);
