@@ -256,6 +256,7 @@ begin
     MainReg.WriteString(REGNAME_SESSIONCREATED, DateTimeToStr(Now));
   OpenRegistry;
   MainReg.WriteString(REGNAME_PLINKEXE, editSSHPlinkExe.Text);
+  FOrgParams := LoadConnectionParams(Session);
   FSessionModified := False;
   FSessionAdded := False;
   ListSessions.Invalidate;
