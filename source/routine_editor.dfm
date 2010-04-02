@@ -34,7 +34,6 @@ object frmRoutineEditor: TfrmRoutineEditor
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
-    Cancel = True
     Caption = 'Discard'
     ModalResult = 2
     TabOrder = 2

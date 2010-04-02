@@ -90,7 +90,6 @@ object frmView: TfrmView
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
-    Cancel = True
     Caption = 'Discard'
     TabOrder = 3
     OnClick = btnDiscardClick
