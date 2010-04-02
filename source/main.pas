@@ -1029,6 +1029,7 @@ end;
 procedure TMainForm.FormDestroy(Sender: TObject);
 var
   filename, WinState: String;
+  i: Integer;
 begin
   // Destroy editors and dialogs. Must be done before connection gets closed, as some destructors do SQL stuff.
   FreeAndNil(RoutineEditor);
@@ -1080,6 +1081,14 @@ begin
     MainReg.WriteInteger(REGNAME_WINDOWTOP, Top);
     MainReg.WriteInteger(REGNAME_WINDOWWIDTH, Width);
     MainReg.WriteInteger(REGNAME_WINDOWHEIGHT, Height);
+  end else begin
+    // Ensure Left + Top values are at least set to the right monitor area for the next start
+    i := GetRegValue(REGNAME_WINDOWLEFT, Left);
+    if (i < Monitor.Left) or (i > Monitor.Left+Monitor.Width) then
+      MainReg.WriteInteger(REGNAME_WINDOWLEFT, Monitor.Left);
+    i := GetRegValue(REGNAME_WINDOWTOP, Top);
+    if (i < Monitor.Top) or (i > Monitor.Top+Monitor.Height) then
+      MainReg.WriteInteger(REGNAME_WINDOWTOP, Monitor.Top);
   end;
   SaveListSetup(ListDatabases);
   SaveListSetup(ListVariables);
@@ -1199,6 +1208,11 @@ begin
   Top := GetRegValue(REGNAME_WINDOWTOP, Top);
   Width := GetRegValue(REGNAME_WINDOWWIDTH, Width);
   Height := GetRegValue(REGNAME_WINDOWHEIGHT, Height);
+  // Move window to left and/or top edge of monitor, if screen resolution has been decreased
+  if Left > Monitor.Left+Monitor.Width-100 then
+    Left := 0;
+  if Top > Monitor.Top+Monitor.Height-100 then
+    Top := 0;
   WinState := GetRegValue(REGNAME_WINDOWSTATE, '');
   if WinState = 'Minimized' then WindowState := wsMinimized else
   if WinState = 'Maximized' then WindowState := wsMaximized else
