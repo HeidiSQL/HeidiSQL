@@ -350,7 +350,8 @@ begin
           PlinkCmd := PlinkCmd + FParameters.Hostname;
         if FParameters.SSHPassword <> '' then
           PlinkCmd := PlinkCmd + ' -pw ' + FParameters.SSHPassword;
-        PlinkCmd := PlinkCmd + ' -P ' + IntToStr(FParameters.SSHPort);
+        if FParameters.SSHPort > 0 then
+          PlinkCmd := PlinkCmd + ' -P ' + IntToStr(FParameters.SSHPort);
         if FParameters.SSHPrivateKey <> '' then
           PlinkCmd := PlinkCmd + ' -i "' + FParameters.SSHPrivateKey + '"';
         PlinkCmd := PlinkCmd + ' -L ' + IntToStr(FParameters.SSHLocalPort) + ':' + FParameters.Hostname + ':' + IntToStr(FParameters.Port);

@@ -573,10 +573,13 @@ begin
       or ((opCompress in FOrgParams.Options) <> chkCompressed.Checked)
       or (FOrgParams.NetType <> TNetType(comboNetType.ItemIndex))
       or (FOrgParams.StartupScriptFilename <> editStartupScript.Text)
+      or (FOrgParams.SSHHost <> editSSHHost.Text)
+      or (IntToStr(FOrgParams.SSHPort) <> editSSHPort.Text)
       or (FOrgParams.SSHPlinkExe <> editSSHPlinkExe.Text)
       or (IntToStr(FOrgParams.SSHLocalPort) <> editSSHlocalport.Text)
       or (FOrgParams.SSHUser <> editSSHUser.Text)
       or (FOrgParams.SSHPassword <> editSSHPassword.Text)
+      or (FOrgParams.SSHPrivateKey <> editSSHPrivateKey.Text)
       or (FOrgParams.SSLPrivateKey <> editSSLPrivateKey.Text)
       or (FOrgParams.SSLCertificate <> editSSLCertificate.Text)
       or (FOrgParams.SSLCACertificate <> editSSLCACertificate.Text);
@@ -686,6 +689,8 @@ begin
     Selector.Filter := 'SQL-files (*.sql)|*.sql|All files (*.*)|*.*'
   else if Edit = editSSHPlinkExe then
     Selector.Filter := 'Executables (*.exe)|*.exe|All files (*.*)|*.*'
+  else if Edit = editSSHPrivateKey then
+    Selector.Filter := 'PuTTY private key (*.ppk)|*.ppk|All files (*.*)|*.*'
   else
     Selector.Filter := 'Privacy Enhanced Mail certificates (*.pem)|*.pem|Certificates (*.crt)|*.crt|All files (*.*)|*.*';
   // Find relevant label and set open dialog's title

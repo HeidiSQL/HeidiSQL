@@ -382,6 +382,7 @@ object connform: Tconnform
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 3
         Text = 'editSSHUser'
+        TextHint = 'Your secure shell username'
         OnChange = Modification
       end
       object editSSHPassword: TEdit
@@ -393,6 +394,7 @@ object connform: Tconnform
         PasswordChar = '*'
         TabOrder = 4
         Text = 'editSSHPassword'
+        TextHint = 'Your secure shell password'
         OnChange = Modification
       end
       object editSSHPlinkExe: TButtonedEdit
@@ -406,6 +408,7 @@ object connform: Tconnform
         RightButton.Visible = True
         TabOrder = 0
         Text = 'editSSHPlinkExe'
+        TextHint = 'Doubleclick to select plink.exe ...'
         OnChange = editSSHPlinkExeChange
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
@@ -442,6 +445,7 @@ object connform: Tconnform
         RightButton.Visible = True
         TabOrder = 5
         Text = 'editSSHPrivateKey'
+        TextHint = 'PuTTY private key (*.ppk)'
         OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
