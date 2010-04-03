@@ -417,13 +417,15 @@ object AboutBox: TAboutBox
     TabOrder = 4
   end
   object btnForum: TButton
-    Left = 162
-    Top = 321
-    Width = 100
-    Height = 25
+    Left = 8
+    Top = 312
+    Width = 77
+    Height = 34
     Action = MainForm.actWebForum
     Anchors = [akRight, akBottom]
+    Images = MainForm.ImageListMain
     TabOrder = 2
+    WordWrap = True
   end
   object MemoAuthors: TMemo
     Left = 8
@@ -452,22 +454,25 @@ object AboutBox: TAboutBox
     WordWrap = False
   end
   object btnUpdateCheck: TButton
-    Left = 352
+    Left = 336
     Top = 83
-    Width = 122
+    Width = 138
     Height = 25
     Action = MainForm.actUpdateCheck
     Anchors = [akTop, akRight]
+    Images = MainForm.ImageListMain
     TabOrder = 0
   end
   object btnDonate: TButton
-    Left = 268
-    Top = 321
-    Width = 100
-    Height = 25
+    Left = 91
+    Top = 312
+    Width = 77
+    Height = 34
     Hint = 'http://www.heidisql.com/donate.php'
     Anchors = [akRight, akBottom]
     Caption = 'Donate'
+    ImageIndex = 148
+    Images = MainForm.ImageListMain
     TabOrder = 3
     OnClick = OpenURL
   end
