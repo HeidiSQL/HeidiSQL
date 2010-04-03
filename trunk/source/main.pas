@@ -6514,7 +6514,7 @@ end;
 procedure TMainForm.AfterClearDBObjects(Database: String);
 begin
   if (Database='') or (ActiveDatabase=Database) then
-    InvalidateVT(ListTables, VTREE_NOTLOADED, False);
+    InvalidateVT(ListTables, VTREE_NOTLOADED, True);
 end;
 
 
