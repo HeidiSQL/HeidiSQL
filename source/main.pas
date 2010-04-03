@@ -799,7 +799,6 @@ type
     procedure SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
     procedure UpdateFilterPanel(Sender: TObject);
     procedure DatabaseChanged(Database: String);
-    procedure AfterClearDBObjects(Database: String);
     function GetBlobContent(Results: TMySQLQuery; Column: Integer): String;
     procedure DoSearchReplace;
     procedure UpdateLineCharPanel;
@@ -2411,7 +2410,6 @@ begin
   ConnectionAttempt := TMySQLConnection.Create(Self);
   ConnectionAttempt.OnLog := LogSQL;
   ConnectionAttempt.OnDatabaseChanged := DatabaseChanged;
-  ConnectionAttempt.OnAfterClearDBObjects := AfterClearDBObjects;
   ConnectionAttempt.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
   ConnectionAttempt.Parameters := Params;
   try
@@ -6508,13 +6506,6 @@ procedure TMainForm.DatabaseChanged(Database: String);
 begin
   if (Database='') or (Databases.IndexOf(Database) > -1) then
     ActiveDatabase := Database;
-end;
-
-
-procedure TMainForm.AfterClearDBObjects(Database: String);
-begin
-  if (Database='') or (ActiveDatabase=Database) then
-    InvalidateVT(ListTables, VTREE_NOTLOADED, True);
 end;
 
 

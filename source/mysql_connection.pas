@@ -102,7 +102,6 @@ type
       FLogPrefix: String;
       FOnLog: TMySQLLogEvent;
       FOnDatabaseChanged: TMySQLDatabaseEvent;
-      FOnAfterClearDBObjects: TMySQLDatabaseEvent;
       FRowsFound: Int64;
       FRowsAffected: Int64;
       FServerVersionUntouched: String;
@@ -184,7 +183,6 @@ type
       // Events
       property OnLog: TMySQLLogEvent read FOnLog write FOnLog;
       property OnDatabaseChanged: TMySQLDatabaseEvent read FOnDatabaseChanged write FOnDatabaseChanged;
-      property OnAfterClearDBObjects: TMySQLDatabaseEvent read FOnAfterClearDBObjects write FOnAfterClearDBObjects;
   end;
 
 
@@ -456,10 +454,8 @@ end;
 
 function TMySQLConnection.Ping: Boolean;
 begin
-  if FActive and ((FHandle=nil) or (mysql_ping(FHandle) <> 0)) then begin
+  if FActive and ((FHandle=nil) or (mysql_ping(FHandle) <> 0)) then
     Active := False;
-    ClearCache;
-  end;
   Result := FActive;
 end;
 
@@ -998,8 +994,6 @@ begin
     FreeAndNil(FDBObjectLists);
     FDBSizes.Clear;
   end;
-  if Assigned(FOnAfterClearDBObjects) then
-    FOnAfterClearDBObjects(db);
 end;
 
 
