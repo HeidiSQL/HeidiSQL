@@ -102,6 +102,7 @@ type
       FLogPrefix: String;
       FOnLog: TMySQLLogEvent;
       FOnDatabaseChanged: TMySQLDatabaseEvent;
+      FOnDBObjectsCleared: TMySQLDatabaseEvent;
       FRowsFound: Int64;
       FRowsAffected: Int64;
       FServerVersionUntouched: String;
@@ -153,7 +154,8 @@ type
       function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList;
       function GetDBSize(db: String): Int64;
       function DbObjectsCached(db: String): Boolean;
-      procedure ClearDbObjects(db: String='');
+      procedure ClearDbObjects(db: String);
+      procedure ClearAllDbObjects;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property ThreadId: Cardinal read GetThreadId;
       property ConnectionUptime: Integer read GetConnectionUptime;
@@ -183,6 +185,7 @@ type
       // Events
       property OnLog: TMySQLLogEvent read FOnLog write FOnLog;
       property OnDatabaseChanged: TMySQLDatabaseEvent read FOnDatabaseChanged write FOnDatabaseChanged;
+      property OnDBObjectsCleared: TMySQLDatabaseEvent read FOnDBObjectsCleared write FOnDBObjectsCleared;
   end;
 
 
@@ -268,6 +271,7 @@ begin
   FLastQueryNetworkDuration := 0;
   FLogPrefix := '';
   FIsUnicode := False;
+  FDBObjectLists := TStringList.Create;
   FDBSizes := TStringList.Create;
 end;
 
@@ -967,40 +971,42 @@ begin
   FreeAndNil(FCharsetTable);
   FreeAndNil(FTableEngines);
   FreeAndNil(FInformationSchemaObjects);
-  ClearDbObjects;
+  ClearAllDbObjects;
   FTableEngineDefault := '';
 end;
 
 
-procedure TMySQLConnection.ClearDbObjects(db: String='');
+procedure TMySQLConnection.ClearDbObjects(db: String);
 var
   i, idx: Integer;
 begin
-  // Free all cached database object lists, or, if db is passed, only that one
-  if not Assigned(FDBObjectLists) then
+  // Free cached database object list
+  i := FDBObjectLists.IndexOf(db);
+  if i = -1 then
     Exit;
-  if db <> '' then begin
-    i := FDBObjectLists.IndexOf(db);
-    if i = -1 then
-      Exit;
-    TDBObjectList(FDBObjectLists.Objects[i]).Free;
-    FDBObjectLists.Delete(i);
-    idx := FDBSizes.IndexOfName(db);
-    if idx > -1 then
-      FDBSizes.Delete(idx);
-  end else begin
-    for i:=0 to FDBObjectLists.Count-1 do
-      TDBObjectList(FDBObjectLists.Objects[i]).Free;
-    FreeAndNil(FDBObjectLists);
-    FDBSizes.Clear;
-  end;
+  TDBObjectList(FDBObjectLists.Objects[i]).Free;
+  FDBObjectLists.Delete(i);
+  idx := FDBSizes.IndexOfName(db);
+  if idx > -1 then
+    FDBSizes.Delete(idx);
+  if Assigned(FOnDBObjectsCleared) then
+    FOnDBObjectsCleared(db);
+end;
+
+
+procedure TMySQLConnection.ClearAllDbObjects;
+var
+  i: Integer;
+begin
+  for i:=FDBObjectLists.Count-1 downto 0 do
+    ClearDbObjects(FDBObjectLists[i]);
 end;
 
 
 function TMySQLConnection.DbObjectsCached(db: String): Boolean;
 begin
   // Check if a table list is stored in cache
-  Result := Assigned(FDBObjectLists) and (FDBObjectLists.IndexOf(db) > -1);
+  Result := FDBObjectLists.IndexOf(db) > -1;
 end;
 
 
@@ -1210,8 +1216,6 @@ begin
     Result.Sort;
 
     // Add list of objects in this database to cached list of all databases
-    if not Assigned(FDBObjectLists) then
-      FDBObjectLists := TStringList.Create;
     FDBObjectLists.AddObject(db, Result);
 
     FDBSizes.Values[db] := IntToStr(DBSize);
