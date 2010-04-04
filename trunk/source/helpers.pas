@@ -10,7 +10,7 @@ interface
 
 uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ComCtrls, ShellApi, CheckLst,
-  Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages,
+  Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, WideStrUtils,
   Registry, SynEditHighlighter, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   mysql_connection, mysql_structures;
 
@@ -132,6 +132,11 @@ type
   end;
   TForeignKeyList = TObjectList<TForeignKey>;
 
+  TRoutineParam = class(TObject)
+    Name, Context, Datatype: String;
+  end;
+  TRoutineParamList = TObjectList<TRoutineParam>;
+
   TDBObjectEditor = class(TFrame)
     private
       FModified: Boolean;
@@ -241,6 +246,8 @@ type
   function GetLightness(AColor: TColor): Byte;
   procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
   procedure ParseViewStructure(ViewName: String; Columns: TTableColumnList);
+  procedure ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
+    var Deterministic: Boolean; var Returns, DataAccess, Security, Comment, Body: String);
   function ReformatSQL(SQL: String): String;
   function ParamBlobToStr(lpData: Pointer): TStringlist;
   function ParamStrToBlob(out cbData: DWORD): Pointer;
@@ -3027,6 +3034,97 @@ begin
     end;
     Results.Next;
   end;
+  rx.Free;
+end;
+
+
+procedure ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
+  var Deterministic: Boolean; var Returns, DataAccess, Security, Comment, Body: String);
+var
+  Params: String;
+  ParenthesesCount: Integer;
+  rx: TRegExpr;
+  i: Integer;
+  Param: TRoutineParam;
+begin
+  // Parse CREATE code of stored function or procedure to detect parameters
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  rx.ModifierG := True;
+  // CREATE DEFINER=`root`@`localhost` PROCEDURE `bla2`(IN p1 INT, p2 VARCHAR(20))
+  // CREATE DEFINER=`root`@`localhost` FUNCTION `test3`(`?b` varchar(20)) RETURNS tinyint(4)
+  // CREATE DEFINER=`root`@`localhost` PROCEDURE `test3`(IN `Param1` int(1) unsigned)
+  ParenthesesCount := 0;
+  Params := '';
+  for i:=1 to Length(CreateCode) do begin
+    if CreateCode[i] = ')' then begin
+      Dec(ParenthesesCount);
+      if ParenthesesCount = 0 then
+        break;
+    end;
+    if ParenthesesCount >= 1 then
+      Params := Params + CreateCode[i];
+    if CreateCode[i] = '(' then
+      Inc(ParenthesesCount);
+  end;
+  rx.Expression := '(^|,)\s*((IN|OUT|INOUT)\s+)?(\S+)\s+([^\s,\(]+(\([^\)]*\))?[^,]*)';
+  if rx.Exec(Params) then while true do begin
+    Param := TRoutineParam.Create;
+    Param.Context := UpperCase(rx.Match[3]);
+    if Param.Context = '' then
+      Param.Context := 'IN';
+    Param.Name := WideDequotedStr(rx.Match[4], '`');
+    Param.Datatype := rx.Match[5];
+    Parameters.Add(Param);
+    if not rx.ExecNext then
+      break;
+  end;
+
+  // Cut left part including parameters, so it's easier to parse the rest
+  CreateCode := Copy(CreateCode, i+1, MaxInt);
+  // CREATE PROCEDURE sp_name ([proc_parameter[,...]]) [characteristic ...] routine_body
+  // CREATE FUNCTION sp_name ([func_parameter[,...]]) RETURNS type [characteristic ...] routine_body
+  // LANGUAGE SQL
+  //  | [NOT] DETERMINISTIC                                              // IS_DETERMINISTIC
+  //  | { CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }   // DATA_ACCESS
+  //  | SQL SECURITY { DEFINER | INVOKER }                               // SECURITY_TYPE
+  //  | COMMENT 'string'                                                 // COMMENT
+
+  rx.Expression := '\bLANGUAGE SQL\b';
+  if rx.Exec(CreateCode) then
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
+  rx.Expression := '\bRETURNS\s+(\w+(\([^\)]*\))?)';
+  if rx.Exec(CreateCode) then begin
+    Returns := rx.Match[1];
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
+  end;
+  rx.Expression := '\b(NOT\s+)?DETERMINISTIC\b';
+  if rx.Exec(CreateCode) then begin
+    Deterministic := rx.MatchLen[1] = -1;
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
+  end;
+  rx.Expression := '\b(CONTAINS SQL|NO SQL|READS SQL DATA|MODIFIES SQL DATA)\b';
+  if rx.Exec(CreateCode) then begin
+    DataAccess := rx.Match[1];
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
+  end;
+  rx.Expression := '\bSQL\s+SECURITY\s+(DEFINER|INVOKER)\b';
+  if rx.Exec(CreateCode) then begin
+    Security := rx.Match[1];
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
+  end;
+  rx.ModifierG := False;
+  rx.Expression := '\bCOMMENT\s+''((.+)[^''])''[^'']';
+  if rx.Exec(CreateCode) then begin
+    Comment := StringReplace(rx.Match[1], '''''', '''', [rfReplaceAll]);
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]-1);
+  end;
+  rx.Expression := '^\s*CHARSET\s+[\w\d]+\s';
+  if rx.Exec(CreateCode) then
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]-1);
+  // Tata, remaining code is the routine body
+  Body := TrimLeft(CreateCode);
+
   rx.Free;
 end;
 

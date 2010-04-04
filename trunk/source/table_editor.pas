@@ -400,7 +400,7 @@ begin
     FEditObjectName := editName.Text;
     tabALTERcode.TabVisible := FEditObjectName <> '';
     Mainform.SetEditorTabCaption(Self, FEditObjectName);
-    Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
+    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, FEditObjectName, lntTable);
     Mainform.ParseSelectedTableStructure;
     ResetModificationFlags;
     AlterCodeValid := False;

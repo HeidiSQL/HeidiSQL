@@ -470,6 +470,8 @@ type
     tabDatabases: TTabSheet;
     ListDatabases: TVirtualStringTree;
     menuFetchDBitems: TMenuItem;
+    actRunRoutines: TAction;
+    Runroutines1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -762,6 +764,7 @@ type
     procedure ListDatabasesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
     procedure ListDatabasesDblClick(Sender: TObject);
+    procedure actRunRoutinesExecute(Sender: TObject);
   private
     FDelimiter: String;
     FileNameSessionLog: String;
@@ -921,7 +924,7 @@ type
     function GetTreeNodeType(Tree: TBaseVirtualTree; Node: PVirtualNode): TListNodeType;
     function GetFocusedTreeNodeType: TListNodeType;
     procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: String = '');
-    procedure RefreshTreeDB(db: String);
+    procedure RefreshTreeDB(db: String; FocusObjectName: String=''; FocusObjectType: TListNodeType=lntNone);
     function FindDBNode(db: String): PVirtualNode;
     function GridPostUpdate(Sender: TBaseVirtualTree): Boolean;
     function GridPostInsert(Sender: TBaseVirtualTree): Boolean;
@@ -2542,6 +2545,68 @@ begin
   end;
   t.Free;
   Screen.Cursor := crDefault;
+end;
+
+
+procedure TMainForm.actRunRoutinesExecute(Sender: TObject);
+var
+  Tab: TQueryTab;
+  Query, ParamInput, ProcOrFunc,
+  Returns, DataAccess, Security, Comment, Body: String;
+  Deterministic: Boolean;
+  i: Integer;
+  pObj: PDBObject;
+  Obj: TDBObject;
+  Objects: TDBObjectList;
+  Node: PVirtualNode;
+  Parameters: TRoutineParamList;
+begin
+  // Run stored function(s) or procedure(s)
+  Objects := TDBObjectList.Create(False);
+  if ListTables.Focused then begin
+    Node := ListTables.GetFirstSelected;
+    while Assigned(Node) do begin
+      pObj := ListTables.GetNodeData(Node);
+      if pObj.NodeType in [lntProcedure, lntFunction] then
+        Objects.Add(pObj^);
+      Node := ListTables.GetNextSelected(Node);
+    end;
+  end else
+    Objects.Add(SelectedTable);
+
+  if Objects.Count = 0 then
+    MessageDlg('Please select one or more stored function(s) or routine(s).', mtError, [mbOK], 0);
+
+  for Obj in Objects do begin
+    actNewQueryTab.Execute;
+    Tab := QueryTabs[MainForm.QueryTabs.Count-1];
+    case Obj.NodeType of
+      lntProcedure: begin
+        Query := 'CALL ';
+        ProcOrFunc := 'PROCEDURE';
+      end;
+      lntFunction: begin
+        Query := 'SELECT ';
+        ProcOrFunc := 'FUNCTION';
+      end;
+    end;
+    Parameters := TRoutineParamList.Create;
+    ParseRoutineStructure(Connection.GetVar('SHOW CREATE '+ProcOrFunc+' '+mask(Obj.Name), 2),
+      Parameters,
+      Deterministic, Returns, DataAccess, Security, Comment, Body
+      );
+    Query := Query + mask(Obj.Name);
+    ParamInput := '';
+    for i:=0 to Parameters.Count-1 do begin
+      if ParamInput <> '' then
+        ParamInput := ParamInput + ', ';
+      ParamInput := ParamInput + '''' + InputBox(Obj.Name, 'Parameter #'+IntToStr(i+1)+': '+Parameters[i].Name+' ('+Parameters[i].Datatype+')', '') + '''';
+    end;
+    Parameters.Free;
+    Query := Query + '('+ParamInput+')';
+    Tab.Memo.Text := Query;
+    actExecuteQueryExecute(Sender);
+  end;
 end;
 
 
@@ -4706,6 +4771,7 @@ var
   L: Cardinal;
   HasFocus, InDBTree: Boolean;
   Obj: PDBObject;
+  NodeType: TListNodeType;
 begin
   // DBtree and ListTables both use popupDB as menu. Find out which of them was rightclicked.
   if Sender is TPopupMenu then
@@ -4721,14 +4787,16 @@ begin
       L := DBtree.GetNodeLevel(DBtree.FocusedNode)
     else
       L := 0;
+    NodeType := GetFocusedTreeNodeType;
     actCreateDatabase.Enabled := L = 0;
     actCreateTable.Enabled := L in [1,2];
     actCreateView.Enabled := L in [1,2];
     actCreateRoutine.Enabled := L in [1,2];
     actCreateTrigger.Enabled := L in [1,2];
     actDropObjects.Enabled := L in [1,2];
-    actCopyTable.Enabled := HasFocus and (GetFocusedTreeNodeType in [lntTable, lntView]);
-    actEmptyTables.Enabled := HasFocus and (GetFocusedTreeNodeType in [lntTable, lntView]);
+    actCopyTable.Enabled := HasFocus and (NodeType in [lntTable, lntView]);
+    actEmptyTables.Enabled := HasFocus and (NodeType in [lntTable, lntView]);
+    actRunRoutines.Enabled := HasFocus and (NodeType in [lntProcedure, lntFunction]);
     actEditObject.Enabled := L > 0;
     // Show certain items which are valid only here
     menuTreeExpandAll.Visible := True;
@@ -4743,6 +4811,7 @@ begin
     actCreateRoutine.Enabled := True;
     actDropObjects.Enabled := ListTables.SelectedCount > 0;
     actEmptyTables.Enabled := False;
+    actRunRoutines.Enabled := True;
     if HasFocus then begin
       Obj := ListTables.GetNodeData(ListTables.FocusedNode);
       actEmptyTables.Enabled := Obj.NodeType in [lntTable, lntView];
@@ -5167,7 +5236,6 @@ var
   SnippetsAccessible : Boolean;
   Files: TStringList;
   Col: TTableColumn;
-  Param: String;
 begin
   ActiveQueryHelpers.Items.BeginUpdate;
   ActiveQueryHelpers.Items.Clear;
@@ -5200,10 +5268,8 @@ begin
           end;
         end;
         lntFunction, lntProcedure: if Assigned(RoutineEditor) then begin
-          for i:=0 to RoutineEditor.Parameters.Count-1 do begin
-            Param := Copy(RoutineEditor.Parameters[i], 1, Pos(DELIM, RoutineEditor.Parameters[i])-1);
-            ActiveQueryHelpers.Items.Add(Param);
-          end;
+          for i:=0 to RoutineEditor.Parameters.Count-1 do
+            ActiveQueryHelpers.Items.Add(RoutineEditor.Parameters[i].Name);
         end;
       end;
     end;
@@ -6579,10 +6645,9 @@ end;
 {**
   Refresh one database node in the db tree
 }
-procedure TMainForm.RefreshTreeDB(db: String);
+procedure TMainForm.RefreshTreeDB(db: String; FocusObjectName: String=''; FocusObjectType: TListNodeType=lntNone);
 var
-  oldActiveDatabase, oldSelectedTableName: String;
-  oldSelectedTableType: TListNodeType;
+  oldActiveDatabase: String;
   DBNode, FNode: PVirtualNode;
   TableHereHadFocus: Boolean;
   DBObjects: TDBObjectList;
@@ -6592,12 +6657,15 @@ var
     NewColumn: TColumnIndex; var Allowed: Boolean) of object;
 begin
   debug('RefreshTreeDB()');
-  oldActiveDatabase := ActiveDatabase;
-  oldSelectedTableName := SelectedTable.Name;
-  oldSelectedTableType := SelectedTable.NodeType;
   DBNode := FindDBNode(db);
   FNode := DBtree.FocusedNode;
-  TableHereHadFocus := Assigned(FNode) and (FNode.Parent = DBNode);
+  TableHereHadFocus := Assigned(FNode) and ((FNode.Parent = DBNode) or (FocusObjectName <> ''));
+  oldActiveDatabase := ActiveDatabase;
+  if FocusObjectName = '' then begin
+    // Most cases just go here and focus the old table afterwards
+    FocusObjectName := SelectedTable.Name;
+    FocusObjectType := SelectedTable.NodeType;
+  end;
   // Suspend focus changing event, to avoid tab jumping
   FocusChangingEvent := DBtree.OnFocusChanging;
   FocusChangeEvent := DBtree.OnFocusChanged;
@@ -6612,9 +6680,9 @@ begin
     DBObjects := Connection.GetDBObjects(db);
     for i:=0 to DBObjects.Count-1 do begin
       // Need to check if table was renamed, in which case oldSelectedTable is no longer available
-      if (DBObjects[i].Name = oldSelectedTableName)
-        and (DBObjects[i].NodeType = oldSelectedTableType) then begin
-        SelectDBObject(oldSelectedTableName, oldSelectedTableType);
+      if (DBObjects[i].Name = FocusObjectName)
+        and (DBObjects[i].NodeType = FocusObjectType) then begin
+        SelectDBObject(FocusObjectName, FocusObjectType);
         break;
       end;
     end;
