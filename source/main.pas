@@ -802,6 +802,7 @@ type
     procedure SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
     procedure UpdateFilterPanel(Sender: TObject);
     procedure DatabaseChanged(Database: String);
+    procedure DBObjectsCleared(Database: String);
     function GetBlobContent(Results: TMySQLQuery; Column: Integer): String;
     procedure DoSearchReplace;
     procedure UpdateLineCharPanel;
@@ -2413,6 +2414,7 @@ begin
   ConnectionAttempt := TMySQLConnection.Create(Self);
   ConnectionAttempt.OnLog := LogSQL;
   ConnectionAttempt.OnDatabaseChanged := DatabaseChanged;
+  ConnectionAttempt.OnDBObjectsCleared := DBObjectsCleared;
   ConnectionAttempt.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
   ConnectionAttempt.Parameters := Params;
   try
@@ -5079,6 +5081,8 @@ var
 begin
   // Find currently selected database node in database tree,
   // or the parent if a table is currently selected.
+  if csDestroying in ComponentState then
+    Exit;
   s := DBtree.FocusedNode;
   if not Assigned(s) then Result := ''
   else case DBtree.GetNodeLevel(s) of
@@ -6575,6 +6579,13 @@ begin
 end;
 
 
+procedure TMainForm.DBObjectsCleared(Database: String);
+begin
+  if (Database='') or (ActiveDatabase=Database) then
+    InvalidateVT(ListTables, VTREE_NOTLOADED, False);
+end;
+
+
 procedure TMainForm.DBtreeDblClick(Sender: TObject);
 var
   Node: PVirtualNode;
@@ -6621,7 +6632,7 @@ begin
 
   // ReInit tree population
   if DoResetTableCache then begin
-    Connection.ClearDbObjects;
+    Connection.ClearAllDbObjects;
     FreeAndNil(AllDatabases);
   end;
   DBtree.ResetNode(DBTree.GetFirst);
