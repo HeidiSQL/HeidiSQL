@@ -175,7 +175,7 @@ begin
     Mainform.Connection.Query(sql);
     FEditObjectName := editName.Text;
     Mainform.SetEditorTabCaption(Self, FEditObjectName);
-    Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
+    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, FEditObjectName, lntTrigger);
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;

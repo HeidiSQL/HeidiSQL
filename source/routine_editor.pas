@@ -38,6 +38,7 @@ type
     btnRemoveParam: TToolButton;
     btnClearParams: TToolButton;
     SynMemoCREATEcode: TSynMemo;
+    btnRunProc: TButton;
     procedure comboTypeSelect(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -75,7 +76,7 @@ type
     function ComposeCreateStatement(NameOfObject: String): String;
   public
     { Public declarations }
-    Parameters: TStringList;
+    Parameters: TRoutineParamList;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
@@ -111,7 +112,7 @@ begin
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   FixVT(listParameters);
   Mainform.RestoreListSetup(listParameters);
-  Parameters := TStringList.Create;
+  Parameters := TRoutineParamList.Create;
   editName.MaxLength := NAME_LEN;
 end;
 
@@ -127,11 +128,8 @@ end;
 
 procedure TfrmRoutineEditor.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
 var
-  Create, Params: String;
-  ParenthesesCount: Integer;
-  Context: String;
-  rx: TRegExpr;
-  i: Integer;
+  Create, Returns, DataAccess, Security, Comment, Body: String;
+  Deterministic: Boolean;
 begin
   inherited;
   if ObjectType = lntProcedure then FAlterRoutineType := 'PROCEDURE'
@@ -149,84 +147,16 @@ begin
   if FEditObjectName <> '' then begin
     // Editing existing routine
     comboType.ItemIndex := ListIndexByRegExpr(comboType.Items, '^'+FAlterRoutineType+'\b');
-
     Create := Mainform.Connection.GetVar('SHOW CREATE '+FAlterRoutineType+' '+Mainform.mask(editName.Text), 2);
-    rx := TRegExpr.Create;
-    rx.ModifierI := True;
-    rx.ModifierG := True;
-    // CREATE DEFINER=`root`@`localhost` PROCEDURE `bla2`(IN p1 INT, p2 VARCHAR(20))
-    // CREATE DEFINER=`root`@`localhost` FUNCTION `test3`(`?b` varchar(20)) RETURNS tinyint(4)
-    // CREATE DEFINER=`root`@`localhost` PROCEDURE `test3`(IN `Param1` int(1) unsigned)
-    ParenthesesCount := 0;
-    for i:=1 to Length(Create) do begin
-      if Create[i] = ')' then begin
-        Dec(ParenthesesCount);
-        if ParenthesesCount = 0 then
-          break;
-      end;
-      if ParenthesesCount >= 1 then
-        Params := Params + Create[i];
-      if Create[i] = '(' then
-        Inc(ParenthesesCount);
-    end;
-    rx.Expression := '(^|,)\s*((IN|OUT|INOUT)\s+)?(\S+)\s+([^\s,\(]+(\([^\)]*\))?[^,]*)';
-    if rx.Exec(Params) then while true do begin
-      Context := UpperCase(rx.Match[3]);
-      if Context = '' then
-        Context := 'IN';
-      Parameters.Add(WideDequotedStr(rx.Match[4], '`') + DELIM + rx.Match[5] + DELIM + Context);
-      if not rx.ExecNext then
-        break;
-    end;
-
-    // Cut left part including parameters, so it's easier to parse the rest
-    Create := Copy(Create, i+1, MaxInt);
-    // CREATE PROCEDURE sp_name ([proc_parameter[,...]]) [characteristic ...] routine_body
-    // CREATE FUNCTION sp_name ([func_parameter[,...]]) RETURNS type [characteristic ...] routine_body
-    // LANGUAGE SQL
-    //  | [NOT] DETERMINISTIC                                              // IS_DETERMINISTIC
-    //  | { CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }   // DATA_ACCESS
-    //  | SQL SECURITY { DEFINER | INVOKER }                               // SECURITY_TYPE
-    //  | COMMENT 'string'                                                 // COMMENT
-
-    rx.Expression := '\bLANGUAGE SQL\b';
-    if rx.Exec(Create) then
-      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]);
-    rx.Expression := '\bRETURNS\s+(\w+(\([^\)]*\))?)';
-    if rx.Exec(Create) then begin
-      comboReturns.Text := rx.Match[1];
-      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]);
-    end;
-    rx.Expression := '\b(NOT\s+)?DETERMINISTIC\b';
-    if rx.Exec(Create) then begin
-      chkDeterministic.Checked := rx.MatchLen[1] = -1;
-      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]);
-    end;
-    rx.Expression := '\b('+UpperCase(ImplodeStr('|', comboDataAccess.Items))+')\b';
-    if rx.Exec(Create) then begin
-      comboDataAccess.ItemIndex := comboDataAccess.Items.IndexOf(rx.Match[1]);
-      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]);
-    end;
-    rx.Expression := '\bSQL\s+SECURITY\s+(DEFINER|INVOKER)\b';
-    if rx.Exec(Create) then begin
-      comboSecurity.ItemIndex := comboSecurity.Items.IndexOf(rx.Match[1]);
-      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]);
-    end;
-    rx.ModifierG := False;
-    rx.Expression := '\bCOMMENT\s+''((.+)[^''])''[^'']';
-    if rx.Exec(Create) then begin
-      editComment.Text := StringReplace(rx.Match[1], '''''', '''', [rfReplaceAll]);
-      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]-1);
-    end;
-    rx.Expression := '^\s*CHARSET\s+[\w\d]+\s';
-    if rx.Exec(Create) then
-      Delete(Create, rx.MatchPos[0], rx.MatchLen[0]-1);
-    // Tata, remaining code is the routine body
-    Create := TrimLeft(Create);
-    SynMemoBody.Text := Create;
-
-    rx.Free;
-
+    ParseRoutineStructure(Create, Parameters, Deterministic, Returns, DataAccess, Security, Comment, Body);
+    comboReturns.Text := Returns;
+    chkDeterministic.Checked := Deterministic;
+    if DataAccess <> '' then
+      comboDataAccess.ItemIndex := comboDataAccess.Items.IndexOf(DataAccess);
+    if Security <> '' then
+      comboSecurity.ItemIndex := comboSecurity.Items.IndexOf(Security);
+    editComment.Text := Comment;
+    SynMemoBody.Text := Body;
   end else begin
     editName.Text := '';
   end;
@@ -236,6 +166,7 @@ begin
   Modified := False;
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
+  Mainform.actRunRoutines.Enabled := FEditObjectName <> '';
   Mainform.ShowStatusMsg;
   Screen.Cursor := crDefault;
 end;
@@ -280,8 +211,14 @@ end;
 
 
 procedure TfrmRoutineEditor.btnAddParamClick(Sender: TObject);
+var
+  Param: TRoutineParam;
 begin
-  Parameters.Add('Param'+IntToStr(Parameters.Count+1)+DELIM+'INT'+DELIM+'IN');
+  Param := TRoutineParam.Create;
+  Param.Name := 'Param'+IntToStr(Parameters.Count+1);
+  Param.Datatype := 'INT';
+  Param.Context := 'IN';
+  Parameters.Add(Param);
   // See List.OnPaint:
   listParameters.Repaint;
   Modification(Sender);
@@ -336,16 +273,19 @@ procedure TfrmRoutineEditor.listParametersGetText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
   var CellText: String);
 var
-  Values: TStringList;
+  Param: TRoutineParam;
 begin
-  if Column = 0 then
-    CellText := IntToStr(Node.Index+1)
-  else if (Column = 3) and (comboType.ItemIndex = 1) then
-    CellText := 'IN' // A function can only have IN parameters
-  else begin
-    Values := explode(DELIM, Parameters[Node.Index]);
-    CellText := Values[Column-1];
-    FreeAndNil(Values);
+  Param := Parameters[Node.Index];
+  case Column of
+    0: CellText := IntToStr(Node.Index+1);
+    1: CellText := Param.Name;
+    2: CellText := Param.Datatype;
+    3: begin
+      if comboType.ItemIndex = 1 then
+        CellText := 'IN' // A function can only have IN parameters
+      else
+        CellText := Param.Context;
+    end;
   end;
 end;
 
@@ -371,16 +311,14 @@ end;
 procedure TfrmRoutineEditor.listParametersNewText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
-  OldValues: TStringList;
-  new: String;
+  Param: TRoutineParam;
 begin
-  OldValues := explode(DELIM, Parameters[Node.Index]);
+  Param := Parameters[Node.Index];
   case Column of
-    1: new := NewText + DELIM + OldValues[1] + DELIM + OldValues[2];
-    2: new := OldValues[0] + DELIM + NewText + DELIM + OldValues[2];
-    3: new := OldValues[0] + DELIM + OldValues[1] + DELIM + NewText;
+    1: Param.Name := NewText;
+    2: Param.Datatype := NewText;
+    3: Param.Context := NewText;
   end;
-  Parameters[Node.Index] := new;
   Modification(Sender);
 end;
 
@@ -469,6 +407,7 @@ var
   allRoutineNames: TStringList;
   ProcOrFunc: String;
   TargetExists: Boolean;
+  t: TListNodeType;
 begin
   // Save changes
   Result := mrOk;
@@ -514,10 +453,13 @@ begin
     FEditObjectName := editName.Text;
     FAlterRoutineType := UpperCase(GetFirstWord(comboType.Text));
     Mainform.SetEditorTabCaption(Self, FEditObjectName);
-    Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
+    if FAlterRoutineType = 'PROCEDURE' then t := lntProcedure
+    else t := lntFunction;
+    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, FEditObjectName, t);
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
+    Mainform.actRunRoutines.Enabled := True;
   except
     on E:Exception do begin
       MessageDlg(E.Message, mtError, [mbOk], 0);
@@ -530,16 +472,14 @@ end;
 function TfrmRoutineEditor.ComposeCreateStatement(NameOfObject: String): String;
 var
   ProcOrFunc: String;
-  par: TStringList;
   i: Integer;
 begin
   ProcOrFunc := UpperCase(GetFirstWord(comboType.Text));
   Result := 'CREATE '+ProcOrFunc+' '+Mainform.mask(NameOfObject)+'(';
   for i:=0 to Parameters.Count-1 do begin
-    par := explode(DELIM, Parameters[i]);
     if ProcOrFunc = 'PROCEDURE' then
-      Result := Result + par[2] + ' ';
-    Result := Result + Mainform.Mask(par[0]) + ' ' + par[1];
+      Result := Result + Parameters[i].Context + ' ';
+    Result := Result + Mainform.Mask(Parameters[i].Name) + ' ' + Parameters[i].Datatype;
     if i < Parameters.Count-1 then
       Result := Result + ', ';
   end;

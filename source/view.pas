@@ -181,7 +181,7 @@ begin
     end;
     FEditObjectName := editName.Text;
     Mainform.SetEditorTabCaption(Self, FEditObjectName);
-    Mainform.RefreshTreeDB(Mainform.ActiveDatabase);
+    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, FEditObjectName, lntView);
     Mainform.ParseSelectedTableStructure;
     Modified := False;
     btnSave.Enabled := Modified;

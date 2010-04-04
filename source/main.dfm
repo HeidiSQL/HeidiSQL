@@ -2461,6 +2461,12 @@ object MainForm: TMainForm
       ShortCut = 49187
       OnExecute = actDataShowAllExecute
     end
+    object actRunRoutines: TAction
+      Category = 'Database'
+      Caption = 'Run routine(s) ...'
+      ImageIndex = 35
+      OnExecute = actRunRoutinesExecute
+    end
   end
   object SaveDialog2: TSaveDialog
     DefaultExt = 'reg'
@@ -7532,6 +7538,9 @@ object MainForm: TMainForm
     end
     object menuEmptyTables: TMenuItem
       Action = actEmptyTables
+    end
+    object Runroutines1: TMenuItem
+      Action = actRunRoutines
     end
     object menuCreateObject: TMenuItem
       Caption = 'Create new'

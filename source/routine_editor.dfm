@@ -351,4 +351,14 @@ object frmRoutineEditor: TfrmRoutineEditor
       end
     end
   end
+  object btnRunProc: TButton
+    Left = 480
+    Top = 455
+    Width = 123
+    Height = 25
+    Action = MainForm.actRunRoutines
+    Anchors = [akRight, akBottom]
+    Images = MainForm.ImageListMain
+    TabOrder = 5
+  end
 end
