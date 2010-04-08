@@ -3627,8 +3627,10 @@ begin
       Content := ReadTextfile(FileName);
       Lines := Explode(CRLF, Content);
       for i:=0 to Lines.Count-1 do begin
-        // Each line has 3 segments: reg path | data type | value
+        // Each line has 3 segments: reg path | data type | value. Continue if explode finds less or more than 3.
         Segments := Explode(Delimiter, Lines[i]);
+        if Segments.Count <> 3 then
+          continue;
         KeyPath := RegPath + ExtractFilePath(Segments[0]);
         Name := ExtractFileName(Segments[0]);
         DataType := TRegDataType(StrToInt(Segments[1]));
