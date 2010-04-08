@@ -29,7 +29,7 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
-    procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
+    procedure Init(Obj: TDBObject); override;
     function ApplyModifications: TModalResult; override;
   end;
 
@@ -47,7 +47,6 @@ uses main;
 constructor TfrmView.Create(AOwner: TComponent);
 begin
   inherited;
-  ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
   SynMemoSelect.Highlighter := Mainform.SynSQLSyn1;
   Mainform.SynCompletionProposal.AddEditor(SynMemoSelect);
   editName.MaxLength := NAME_LEN;
@@ -57,21 +56,21 @@ end;
 {**
   FormShow: Fill controls with content in edit mode
 }
-procedure TfrmView.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
+procedure TfrmView.Init(Obj: TDBObject);
 var
   Results: TMySQLQuery;
   db: String;
   rx: TRegExpr;
 begin
   inherited;
-  if FEditObjectName <> '' then begin
+  if Obj.Name <> '' then begin
     // Edit mode
-    editName.Text := FEditObjectName;
+    editName.Text := Obj.Name;
     db := Mainform.ActiveDatabase;
     Results := Mainform.Connection.GetResults('SELECT * FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.VIEWS ' +
-      'WHERE TABLE_SCHEMA = '+esc(db)+' AND TABLE_NAME = '+esc(FEditObjectName));
+      'WHERE TABLE_SCHEMA = '+esc(db)+' AND TABLE_NAME = '+esc(Obj.Name));
     if Results.RecordCount = 0 then
-      raise Exception.Create('Can''t find view definition for "'+FEditObjectName+'" in '+DBNAME_INFORMATION_SCHEMA);
+      raise Exception.Create('Can''t find view definition for "'+Obj.Name+'" in '+DBNAME_INFORMATION_SCHEMA);
     // Algorithm is not changeable as we cannot look up its current state!
     rgAlgorithm.Enabled := False;
     rgAlgorithm.ItemIndex := 0;
@@ -127,7 +126,7 @@ procedure TfrmView.btnHelpClick(Sender: TObject);
 var
   keyword: String;
 begin
-  if FEditObjectName = '' then
+  if DBObject.Name = '' then
     keyword := 'CREATE VIEW'
   else
     keyword := 'ALTER VIEW';
@@ -139,7 +138,7 @@ procedure TfrmView.btnDiscardClick(Sender: TObject);
 begin
   // Reinit editor, discarding changes
   Modified := False;
-  Init(FEditObjectName);
+  Init(DBObject);
 end;
 
 
@@ -158,12 +157,12 @@ var
 begin
   // Save changes
   Result := mrOk;
-  if FEditObjectName = '' then begin
+  if DBObject.Name = '' then begin
     sql := 'CREATE ';
     viewname := editName.Text;
   end else begin
     sql := 'ALTER ';
-    viewname := FEditObjectName;
+    viewname := DBObject.Name;
   end;
   viewname := Mainform.mask(viewname);
   if rgAlgorithm.Enabled and (rgAlgorithm.ItemIndex > -1) then
@@ -175,13 +174,13 @@ begin
   try
     Mainform.Connection.Query(sql);
     // Probably rename view
-    if (FEditObjectName <> '') and (FEditObjectName <> editName.Text) then begin
+    if (DBObject.Name <> '') and (DBObject.Name <> editName.Text) then begin
       renamed := Mainform.mask(editName.Text);
       Mainform.Connection.Query('RENAME TABLE '+viewname + ' TO '+renamed);
     end;
-    FEditObjectName := editName.Text;
-    Mainform.SetEditorTabCaption(Self, FEditObjectName);
-    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, FEditObjectName, lntView);
+    DBObject.Name := editName.Text;
+    Mainform.UpdateEditorTab;
+    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, DBObject.Name, DBObject.NodeType);
     Mainform.ParseSelectedTableStructure;
     Modified := False;
     btnSave.Enabled := Modified;

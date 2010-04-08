@@ -198,6 +198,10 @@
 			<DCCReference Include="..\..\source\searchreplace.pas">
 				<Form>frmSearchReplace</Form>
 			</DCCReference>
+			<DCCReference Include="..\..\source\event_editor.pas">
+				<Form>frmEventEditor</Form>
+				<DesignClass>TFrame</DesignClass>
+			</DCCReference>
 			<RcCompile Include="..\..\res\updater.rc">
 				<Form>updater.res</Form>
 			</RcCompile>

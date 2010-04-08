@@ -2467,6 +2467,14 @@ object MainForm: TMainForm
       ImageIndex = 35
       OnExecute = actRunRoutinesExecute
     end
+    object actCreateEvent: TAction
+      Category = 'Database'
+      Caption = 'Event'
+      Enabled = False
+      Hint = 'Create new event in selected database'
+      ImageIndex = 80
+      OnExecute = actCreateDBObjectExecute
+    end
   end
   object SaveDialog2: TSaveDialog
     DefaultExt = 'reg'
@@ -7562,6 +7570,9 @@ object MainForm: TMainForm
       end
       object menuCreateTrigger: TMenuItem
         Action = actCreateTrigger
+      end
+      object Event1: TMenuItem
+        Action = actCreateEvent
       end
     end
     object N17: TMenuItem

@@ -1031,7 +1031,7 @@ begin
   if chkExportTablesDrop.Checked or chkExportTablesCreate.Checked then begin
     Output(CRLF+CRLF+'# Dumping structure for '+LowerCase(DBObj.ObjType)+' '+DBObj.Database+'.'+DBObj.Name+CRLF, False, True, True, False, False);
     if chkExportTablesDrop.Checked then begin
-      Struc := 'DROP '+DBObj.ObjType+' IF EXISTS ';
+      Struc := 'DROP '+UpperCase(DBObj.ObjType)+' IF EXISTS ';
       if ToDb then
         Struc := Struc + m(FinalDbName)+'.';
       Struc := Struc + m(DBObj.Name);
@@ -1062,7 +1062,7 @@ begin
 
           lntTrigger: begin
             StrucResult := Mainform.Connection.GetResults('SHOW TRIGGERS WHERE `Trigger`='+esc(DBObj.Name));
-            Struc := 'CREATE '+DBObj.ObjType+' '+m(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
+            Struc := 'CREATE '+UpperCase(DBObj.ObjType)+' '+m(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
                 ' ON '+m(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement');
             if ToDb then
               Insert(m(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
@@ -1076,7 +1076,7 @@ begin
           end;
 
           lntFunction, lntProcedure: begin
-            Struc := Mainform.Connection.GetVar('SHOW CREATE '+DBObj.ObjType+' '+m(DBObj.Database)+'.'+m(DBObj.Name), 2);
+            Struc := Mainform.Connection.GetVar('SHOW CREATE '+UpperCase(DBObj.ObjType)+' '+m(DBObj.Database)+'.'+m(DBObj.Name), 2);
             // Todo: Why exploding?
             MultiSQL := Explode(';', Struc);
             Struc := ImplodeStr(';'+CRLF, MultiSQL);

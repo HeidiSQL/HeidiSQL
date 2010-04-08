@@ -16,7 +16,7 @@ uses
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
   CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML,
-  routine_editor, trigger_editor, options, EditVar, helpers, createdatabase, table_editor,
+  routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
   mysql_api, insertfiles, searchreplace, loaddata, copytable;
 
@@ -472,6 +472,8 @@ type
     menuFetchDBitems: TMenuItem;
     actRunRoutines: TAction;
     Runroutines1: TMenuItem;
+    actCreateEvent: TAction;
+    Event1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -781,7 +783,6 @@ type
     FilterTextDatabase,
     FilterTextData: String;
     PreviousFocusedNode: PVirtualNode;
-    FActiveObjectEditor: TDBObjectEditor;
     FCmdlineFilenames: TStringlist;
     FCmdlineConnectionParams: TConnectionParameters;
     FCmdlineSessionName: String;
@@ -796,7 +797,7 @@ type
     procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     procedure AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
-    function PlaceObjectEditor(Which: TListNodeType): TDBObjectEditor;
+    procedure PlaceObjectEditor(Obj: TDBObject);
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
     procedure SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
@@ -818,19 +819,16 @@ type
     DBObjectsMaxSize: Int64;
     DBObjectsMaxRows: Int64;
     ProcessListMaxTime: Int64;
+    ActiveObjectEditor: TDBObjectEditor;
 
     // Cached forms
     TableToolsDialog: TfrmTableTools;
-    ViewEditor: TfrmView;
     UserManagerForm: TUserManagerForm;
     SelectDBObjectForm: TfrmSelectDBObject;
     SQLHelpForm: TfrmSQLhelp;
-    RoutineEditor: TfrmRoutineEditor;
-    TriggerEditor: TfrmTriggerEditor;
     OptionsForm: Toptionsform;
     SessionManager: TConnForm;
     CreateDatabaseForm: TCreateDatabaseForm;
-    TableEditor: TfrmTableEditor;
     InsertFiles: TfrmInsertFiles;
     EditVariableForm: TfrmEditVariable;
     SearchReplaceDialog: TfrmSearchReplace;
@@ -941,7 +939,7 @@ type
     function GetRegKeyTable: String;
     procedure SaveListSetup( List: TVirtualStringTree );
     procedure RestoreListSetup( List: TVirtualStringTree );
-    procedure SetEditorTabCaption(Editor: TDBObjectEditor; ObjName: String);
+    procedure UpdateEditorTab;
     procedure SetWindowCaption;
     procedure OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
     procedure DefaultHandler(var Message); override;
@@ -1025,8 +1023,8 @@ begin
       Exit;
   end;
   // Unsaved modified table, trigger, view or routine?
-  if Assigned(FActiveObjectEditor) then
-    CanClose := not (FActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
+  if Assigned(ActiveObjectEditor) then
+    CanClose := not (ActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -1035,16 +1033,13 @@ var
   i: Integer;
 begin
   // Destroy editors and dialogs. Must be done before connection gets closed, as some destructors do SQL stuff.
-  FreeAndNil(RoutineEditor);
+  FreeAndNil(ActiveObjectEditor);
   FreeAndNil(TableToolsDialog);
   FreeAndNil(UserManagerForm);
-  FreeAndNil(ViewEditor);
   FreeAndNil(SelectDBObjectForm);
   FreeAndNil(SQLHelpForm);
   FreeAndNil(OptionsForm);
   FreeAndNil(SessionManager);
-  FreeAndNil(TableEditor);
-  FreeAndNil(TriggerEditor);
   FreeAndNil(CreateDatabaseForm);
   FreeAndNil(SearchReplaceDialog);
 
@@ -2487,21 +2482,20 @@ end;
 
 procedure TMainForm.actCreateDBObjectExecute(Sender: TObject);
 var
-  Editor: TDBObjectEditor;
-  ObjType: TListNodeType;
+  Obj: TDBObject;
   a: TAction;
 begin
   // Create a new table, view, etc.
   tabEditor.TabVisible := True;
   PagecontrolMain.ActivePage := tabEditor;
   a := Sender as TAction;
-  ObjType := lntNone;
-  if a = actCreateTable then ObjType := lntTable
-  else if a = actCreateView then ObjType := lntView
-  else if a = actCreateRoutine then ObjType := lntProcedure
-  else if a = actCreateTrigger then ObjType := lntTrigger;
-  Editor := PlaceObjectEditor(ObjType);
-  Editor.Init;
+  Obj := TDBObject.Create;
+  if a = actCreateTable then Obj.NodeType := lntTable
+  else if a = actCreateView then Obj.NodeType := lntView
+  else if a = actCreateRoutine then Obj.NodeType := lntProcedure
+  else if a = actCreateTrigger then Obj.NodeType := lntTrigger
+  else if a = actCreateEvent then Obj.NodeType := lntEvent;
+  PlaceObjectEditor(Obj);
 end;
 
 
@@ -3817,14 +3811,7 @@ begin
   if Column <> (Sender as TVirtualStringTree).Header.MainColumn then
     Exit;
   Obj := Sender.GetNodeData(Node);
-  case Obj.NodeType of
-    lntTable:         ImageIndex := ICONINDEX_TABLE;
-    lntView:          ImageIndex := ICONINDEX_VIEW;
-    lntProcedure:     ImageIndex := ICONINDEX_STOREDPROCEDURE;
-    lntFunction:      ImageIndex := ICONINDEX_STOREDFUNCTION;
-    lntTrigger:       ImageIndex := ICONINDEX_TRIGGER;
-    else              ImageIndex := -1;
-  end;
+  ImageIndex := Obj.ImageIndex;
 end;
 
 
@@ -4201,18 +4188,9 @@ var
   Queries          : TStringList;
 
   procedure addTable(Obj: TDBObject);
-  var Icon: Integer;
   begin
-    case Obj.NodeType of
-      lntTable: Icon := ICONINDEX_TABLE;
-      lntFunction: Icon := ICONINDEX_STOREDFUNCTION;
-      lntProcedure: Icon := ICONINDEX_STOREDPROCEDURE;
-      lntView: Icon := ICONINDEX_VIEW;
-      lntTrigger: Icon := ICONINDEX_TRIGGER;
-      else Icon := -1;
-    end;
     Proposal.InsertList.Add(Obj.Name);
-    Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [Icon, LowerCase(Obj.ObjType), Obj.Name]) );
+    Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [Obj.ImageIndex, LowerCase(Obj.ObjType), Obj.Name]) );
   end;
 
   procedure addColumns( tablename: String );
@@ -4795,6 +4773,7 @@ begin
     actCreateView.Enabled := L in [1,2];
     actCreateRoutine.Enabled := L in [1,2];
     actCreateTrigger.Enabled := L in [1,2];
+    actCreateEvent.Enabled := L in [1,2];
     actDropObjects.Enabled := L in [1,2];
     actCopyTable.Enabled := HasFocus and (NodeType in [lntTable, lntView]);
     actEmptyTables.Enabled := HasFocus and (NodeType in [lntTable, lntView]);
@@ -4811,6 +4790,8 @@ begin
     actCreateTable.Enabled := True;
     actCreateView.Enabled := True;
     actCreateRoutine.Enabled := True;
+    actCreateTrigger.Enabled := True;
+    actCreateEvent.Enabled := True;
     actDropObjects.Enabled := ListTables.SelectedCount > 0;
     actEmptyTables.Enabled := False;
     actRunRoutines.Enabled := True;
@@ -4829,6 +4810,7 @@ begin
   actCreateView.Enabled := actCreateView.Enabled and (Connection.ServerVersionInt >= 50001);
   actCreateRoutine.Enabled := actCreateRoutine.Enabled and (Connection.ServerVersionInt >= 50003);
   actCreateTrigger.Enabled := actCreateTrigger.Enabled and (Connection.ServerVersionInt >= 50002);
+  actCreateEvent.Enabled := actCreateEvent.Enabled and (Connection.ServerVersionInt >= 50100);
 end;
 
 
@@ -5271,9 +5253,9 @@ begin
             ActiveQueryHelpers.Items.Add(Col.Name);
           end;
         end;
-        lntFunction, lntProcedure: if Assigned(RoutineEditor) then begin
-          for i:=0 to RoutineEditor.Parameters.Count-1 do
-            ActiveQueryHelpers.Items.Add(RoutineEditor.Parameters[i].Name);
+        lntFunction, lntProcedure: if Assigned(ActiveObjectEditor) then begin
+          for i:=0 to TfrmRoutineEditor(ActiveObjectEditor).Parameters.Count-1 do
+            ActiveQueryHelpers.Items.Add(TfrmRoutineEditor(ActiveObjectEditor).Parameters[i].Name);
         end;
       end;
     end;
@@ -6318,22 +6300,7 @@ begin
         // of DBObjects. Probably a timing issue. Work around that by doing a safety check here.
         if Node.Index >= Cardinal(DBObjects.Count) then
           Exit;
-        case DBObjects[Node.Index].NodeType of
-          lntTable:
-            if Kind = ikSelected then
-              ImageIndex := ICONINDEX_TABLE_HIGHLIGHT
-              else ImageIndex := ICONINDEX_TABLE;
-          lntView:
-            if Kind = ikSelected then
-              ImageIndex := ICONINDEX_VIEW_HIGHLIGHT
-              else ImageIndex := ICONINDEX_VIEW;
-          lntProcedure:
-            ImageIndex := ICONINDEX_STOREDPROCEDURE;
-          lntFunction:
-            ImageIndex := ICONINDEX_STOREDFUNCTION;
-          lntTrigger:
-            ImageIndex := ICONINDEX_TRIGGER;
-        end;
+        ImageIndex := DBObjects[Node.Index].ImageIndex;
       end;
   end;
 end;
@@ -6494,7 +6461,7 @@ begin
           end;
         end;
         newDbObject := SelectedTable.Name;
-        tabEditor.TabVisible := SelectedTable.NodeType in [lntTable, lntView, lntProcedure, lntFunction, lntTrigger];
+        tabEditor.TabVisible := SelectedTable.NodeType in [lntTable, lntView, lntProcedure, lntFunction, lntTrigger, lntEvent];
         tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntView];
         ParseSelectedTableStructure;
         if tabEditor.TabVisible then begin
@@ -6536,8 +6503,8 @@ procedure TMainForm.DBtreeFocusChanging(Sender: TBaseVirtualTree; OldNode,
 begin
   debug('DBtreeFocusChanging');
   // Check if some editor has unsaved changes
-  if Assigned(FActiveObjectEditor) and Assigned(NewNode) then begin
-    Allowed := not (FActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
+  if Assigned(ActiveObjectEditor) and Assigned(NewNode) then begin
+    Allowed := not (ActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
     DBTree.Selected[DBTree.FocusedNode] := not Allowed;
   end else
     Allowed := True;
@@ -8432,67 +8399,39 @@ begin
 end;
 
 
-function TMainForm.PlaceObjectEditor(Which: TListNodeType): TDBObjectEditor;
+procedure TMainForm.PlaceObjectEditor(Obj: TDBObject);
+var
+  EditorClass: TDBObjectEditorClass;
 begin
   // Place the relevant editor frame onto the editor tab, hide all others
-  Result := nil;
-  FActiveObjectEditor := nil;
-  if (not (Which in [lntTable])) and Assigned(TableEditor) then
-    FreeAndNil(TableEditor);
-  if (Which <> lntView) and Assigned(ViewEditor) then
-    FreeAndNil(ViewEditor);
-  if (not (Which in [lntProcedure, lntFunction])) and Assigned(RoutineEditor) then
-    FreeAndNil(RoutineEditor);
-  if (Which <> lntTrigger) and Assigned(TriggerEditor) then
-    FreeAndNil(TriggerEditor);
-  if Which in [lntTable] then begin
-    if not Assigned(TableEditor) then
-      TableEditor := TfrmTableEditor.Create(tabEditor);
-    Result := TableEditor;
-  end else if Which = lntView then begin
-    if not Assigned(ViewEditor) then
-      ViewEditor := TfrmView.Create(tabEditor);
-    Result := ViewEditor;
-  end else if Which in [lntProcedure, lntFunction] then begin
-    if not Assigned(RoutineEditor) then
-      RoutineEditor := TfrmRoutineEditor.Create(tabEditor);
-    Result := RoutineEditor;
-  end else if Which = lntTrigger then begin
-    if not Assigned(TriggerEditor) then
-      TriggerEditor := TfrmTriggerEditor.Create(tabEditor);
-    Result := TriggerEditor;
-  end else
-    Exit;
-  Result.Parent := tabEditor;
-  FActiveObjectEditor := Result;
+  if Assigned(ActiveObjectEditor) and (Obj.NodeType <> ActiveObjectEditor.DBObject.NodeType) then
+    FreeAndNil(ActiveObjectEditor);
+  case Obj.NodeType of
+    lntTable: EditorClass := TfrmTableEditor;
+    lntView: EditorClass := TfrmView;
+    lntProcedure, lntFunction: EditorClass := TfrmRoutineEditor;
+    lntTrigger: EditorClass := TfrmTriggerEditor;
+    lntEvent: EditorClass := TfrmEventEditor;
+    else Exit;
+  end;
+  if not Assigned(ActiveObjectEditor) then begin
+    ActiveObjectEditor := EditorClass.Create(tabEditor);
+    ActiveObjectEditor.Parent := tabEditor;
+  end;
+  ActiveObjectEditor.Init(Obj);
 end;
 
 
-procedure TMainForm.SetEditorTabCaption(Editor: TDBObjectEditor; ObjName: String);
+procedure TMainForm.UpdateEditorTab;
 var
-  ObjType, Cap: String;
-  IconIndex: Integer;
+  Cap: String;
 begin
-  if Editor = TableEditor then begin
-    ObjType := 'Table';
-    IconIndex := ICONINDEX_TABLE;
-  end else if Editor = ViewEditor then begin
-    ObjType := 'View';
-    IconIndex := ICONINDEX_VIEW;
-  end else if Editor = RoutineEditor then begin
-    ObjType := 'Routine';
-    IconIndex := ICONINDEX_STOREDPROCEDURE;
-  end else if Editor = TriggerEditor then begin
-    ObjType := 'Trigger';
-    IconIndex := ICONINDEX_Trigger;
-  end else
-    Exit;
-  tabEditor.ImageIndex := IconIndex;
-  Cap := ObjType+': ';
-  if ObjName = '' then
+  tabEditor.ImageIndex := ActiveObjectEditor.DBObject.ImageIndex;
+  Cap := ActiveObjectEditor.DBObject.ObjType+': ';
+  if ActiveObjectEditor.DBObject.Name = '' then
     Cap := Cap + '[Untitled]'
   else
-    Cap := sstr(Cap + ObjName, 30);
+    Cap := sstr(Cap + ActiveObjectEditor.DBObject.Name, 30);
   SetTabCaption(tabEditor.PageIndex, Cap);
 end;
 
@@ -8510,8 +8449,8 @@ begin
       SelectDBObject(Obj.Name, Obj.NodeType);
   end;
 
-  case GetFocusedTreeNodeType of
-    lntDb: begin
+  case DBtree.GetNodeLevel(DBtree.FocusedNode) of
+    1: begin
       if CreateDatabaseForm = nil then
         CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
       CreateDatabaseForm.modifyDB := ActiveDatabase;
@@ -8528,27 +8467,9 @@ begin
       end;
     end;
 
-    lntTable: begin
-      PlaceObjectEditor(SelectedTable.NodeType);
-      TableEditor.Init(SelectedTable.Name);
-    end;
-
-    lntView: begin
-      PlaceObjectEditor(SelectedTable.NodeType);
-      ViewEditor.Init(SelectedTable.Name);
-    end;
-
-    lntFunction, lntProcedure: begin
-      PlaceObjectEditor(SelectedTable.NodeType);
-      RoutineEditor.Init(SelectedTable.Name, SelectedTable.NodeType);
-    end;
-
-    lntTrigger: begin
-      PlaceObjectEditor(SelectedTable.NodeType);
-      TriggerEditor.Init(SelectedTable.Name);
-    end;
-
+    2: PlaceObjectEditor(SelectedTable);
   end;
+
 end;
 
 
@@ -9166,6 +9087,17 @@ var
   ActiveLineColor: TColor;
   Attri: TSynHighlighterAttributes;
   Shortcut1, Shortcut2: TShortcut;
+
+  procedure FindEditors(Comp: TComponent);
+  var i: Integer;
+  begin
+    for i:=0 to Comp.ComponentCount-1 do begin
+      if Comp.Components[i] is TSynMemo then
+        Editors.Add(Comp.Components[i]);
+      FindEditors(Comp.Components[i]);
+    end;
+  end;
+
 begin
   // Restore font, highlighter and shortcuts for each instantiated TSynMemo
   Editors := TObjectList.Create;
@@ -9175,18 +9107,8 @@ begin
   Editors.Add(SynMemoFilter);
   Editors.Add(SynMemoProcessView);
   Editors.Add(SynMemoSQLLog);
-  if Assigned(TableEditor) then begin
-    Editors.Add(TableEditor.SynMemoCREATEcode);
-    Editors.Add(TableEditor.SynMemoALTERcode);
-  end;
-  if Assigned(ViewEditor) then
-    Editors.Add(ViewEditor.SynMemoSelect);
-  if Assigned(RoutineEditor) then begin
-    Editors.Add(RoutineEditor.SynMemoBody);
-    Editors.Add(RoutineEditor.SynMemoCREATEcode);
-  end;
-  if Assigned(TriggerEditor) then
-    Editors.Add(TriggerEditor.SynMemoStatement);
+  if Assigned(ActiveObjectEditor) then
+    FindEditors(ActiveObjectEditor);
   if Assigned(CreateDatabaseForm) then
     Editors.Add(CreateDatabaseForm.SynMemoPreview);
   if Assigned(OptionsForm) then
