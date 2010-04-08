@@ -1718,7 +1718,7 @@ begin
   // Open server-specific registry-folder.
   // relative from already opened folder!
   OpenRegistry(SessionName);
-  MainReg.WriteString( REGNAME_LASTUSEDDB, ActiveDatabase );
+  MainReg.WriteString( REGNAME_LASTUSEDDB, Connection.Database );
   MainReg.WriteString( REGNAME_ONLYDBS, comboOnlyDBs.Items.Text );
 
   // Post pending UPDATE
