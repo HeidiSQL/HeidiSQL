@@ -156,7 +156,6 @@ const
 procedure TfrmTableTools.FormCreate(Sender: TObject);
 var
   i: Integer;
-  SessionNames: TStringList;
 begin
   // Restore GUI setup
   InheritFont(Font);
@@ -185,14 +184,6 @@ begin
   comboExportOutputType.Items.Text := OUTPUT_FILE+CRLF +OUTPUT_DIR+CRLF +OUTPUT_CLIPBOARD+CRLF +OUTPUT_DB;
   comboExportOutputType.ItemIndex := GetRegValue(REGNAME_EXP_OUTPUT, 0);
   comboExportOutputTarget.Text := '';
-  // Add session names from registry
-  SessionNames := TStringList.Create;
-  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
-  MainReg.GetKeyNames(SessionNames);
-  for i:=0 to SessionNames.Count-1 do begin
-    if SessionNames[i] <> Mainform.SessionName then
-      comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionNames[i]);
-  end;
 
   // Various
   udSkipLargeTables.Position := GetRegValue(REGNAME_TOOLSSKIPMB, udSkipLargeTables.Position);
@@ -239,7 +230,8 @@ end;
 procedure TfrmTableTools.FormShow(Sender: TObject);
 var
   DBNode, TableNode, FirstChecked: PVirtualNode;
-  idx: Integer;
+  idx, i: Integer;
+  SessionNames: TStringList;
 begin
   // When this form is displayed the second time, databases may be deleted or filtered.
   // Also, checked nodes must be unchecked and unchecked nodes may need to be checked.
@@ -278,6 +270,19 @@ begin
     comboOperation.Items.Text := StringReplace(comboOperation.Items.Text, 'Checksum', 'Checksum ('+STR_NOTSUPPORTED+')', [rfReplaceAll]);
   comboOperation.ItemIndex := idx;
   comboOperation.OnChange(Sender);
+
+  // Add session names from registry
+  for i:=comboExportOutputType.Items.Count-1 downto 0 do begin
+    if Pos(OUTPUT_SERVER, comboExportOutputType.Items[i]) = 1 then
+      comboExportOutputType.Items.Delete(i);
+  end;
+  SessionNames := TStringList.Create;
+  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
+  MainReg.GetKeyNames(SessionNames);
+  for i:=0 to SessionNames.Count-1 do begin
+    if SessionNames[i] <> Mainform.SessionName then
+      comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionNames[i]);
+  end;
   comboExportOutputType.OnChange(Sender);
 
   comboBulkTableEditDatabase.Items.Text := Mainform.Databases.Text;
