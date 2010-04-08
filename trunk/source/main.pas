@@ -1877,6 +1877,7 @@ begin
   if InDBTree then
     TableToolsDialog.SelectedTables.Text := SelectedTable.Name
   else begin
+    TableToolsDialog.SelectedTables.Clear;
     Node := ListTables.GetFirstSelected;
     while Assigned(Node) do begin
       TableToolsDialog.SelectedTables.Add(ListTables.Text[Node, 0]);
