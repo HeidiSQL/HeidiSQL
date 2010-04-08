@@ -197,7 +197,7 @@ type
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
+    procedure Init(Obj: TDBObject); override;
     function ApplyModifications: TModalResult; override;
   end;
 
@@ -217,7 +217,6 @@ const
 constructor TfrmTableEditor.Create(AOwner: TComponent);
 begin
   inherited;
-  ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
   PageControlMain.Height := GetRegValue(REGNAME_TABLEEDITOR_TABSHEIGHT, PageControlMain.Height);
   FixVT(listColumns);
   FixVT(treeIndexes);
@@ -253,7 +252,7 @@ begin
 end;
 
 
-procedure TfrmTableEditor.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
+procedure TfrmTableEditor.Init(Obj: TDBObject);
 var
   CreateTable, AttrName, AttrValue: String;
   rx: TRegExpr;
@@ -267,7 +266,7 @@ begin
   FColumns.Clear;
   btnClearIndexesClick(Self);
   btnClearForeignKeysClick(Self);
-  tabALTERcode.TabVisible := FEditObjectName <> '';
+  tabALTERcode.TabVisible := DBObject.Name <> '';
   // Clear value editors
   memoComment.Text := '';
   editAutoInc.Text := '';
@@ -279,14 +278,14 @@ begin
   memoUnionTables.Clear;
   comboInsertMethod.ItemIndex := -1;
 
-  if FEditObjectName = '' then begin
+  if DBObject.Name = '' then begin
     // Creating new table
     editName.Text := '';
     comboCollation.ItemIndex := comboCollation.Items.IndexOf(Mainform.Connection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
     PageControlMain.ActivePage := tabBasic;
   end else begin
     // Editing existing table
-    editName.Text := FEditObjectName;
+    editName.Text := DBObject.Name;
     CreateTable := Mainform.SelectedTableCreateStatement;
     rx := TRegExpr.Create;
     rx.ModifierI := True;
@@ -350,7 +349,7 @@ procedure TfrmTableEditor.btnDiscardClick(Sender: TObject);
 begin
   // Reinit GUI, discarding changes
   Modified := False;
-  Init(FEditObjectName);
+  Init(DBObject);
 end;
 
 
@@ -370,7 +369,7 @@ begin
   // Create or alter table
   Result := mrOk;
   Specs := TStringList.Create;
-  if FEditObjectName = '' then
+  if DBObject.Name = '' then
     sql := ComposeCreateStatement
   else begin
     sql := ComposeAlterStatement;
@@ -386,9 +385,9 @@ begin
   end;
   try
     if Specs.Count > 0 then
-      Mainform.Connection.Query('ALTER TABLE '+Mainform.mask(FEditObjectName)+' '+ImplodeStr(', ', Specs));
+      Mainform.Connection.Query('ALTER TABLE '+Mainform.mask(DBObject.Name)+' '+ImplodeStr(', ', Specs));
     Mainform.Connection.Query(sql);
-    tabALTERcode.TabVisible := FEditObjectName <> '';
+    tabALTERcode.TabVisible := DBObject.Name <> '';
     if chkCharsetConvert.Checked then begin
       // Autoadjust column collations
       for i:=0 to FColumns.Count-1 do begin
@@ -397,10 +396,10 @@ begin
       end;
     end;
     // Set table name for altering if Apply was clicked
-    FEditObjectName := editName.Text;
-    tabALTERcode.TabVisible := FEditObjectName <> '';
-    Mainform.SetEditorTabCaption(Self, FEditObjectName);
-    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, FEditObjectName, lntTable);
+    DBObject.Name := editName.Text;
+    tabALTERcode.TabVisible := DBObject.Name <> '';
+    Mainform.UpdateEditorTab;
+    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, DBObject.Name, DBObject.NodeType);
     Mainform.ParseSelectedTableStructure;
     ResetModificationFlags;
     AlterCodeValid := False;
@@ -463,7 +462,7 @@ begin
   Mainform.ShowStatusMsg('Composing ALTER statement ...');
   Screen.Cursor := crHourglass;
   Specs := TStringList.Create;
-  if editName.Text <> FEditObjectName then
+  if editName.Text <> DBObject.Name then
     Specs.Add('RENAME TO ' + Mainform.mask(editName.Text));
   if memoComment.Tag = ModifiedFlag then
     Specs.Add('COMMENT=' + esc(memoComment.Text));
@@ -582,7 +581,7 @@ begin
       Specs.Add('ADD '+GetForeignKeySQL(i));
   end;
 
-  Result := 'ALTER TABLE '+Mainform.mask(FEditObjectName) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
+  Result := 'ALTER TABLE '+Mainform.mask(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
   Result := Trim(Result);
   FreeAndNil(Specs);
   Mainform.ShowStatusMsg;
@@ -1786,7 +1785,7 @@ end;
 
 procedure TfrmTableEditor.chkCharsetConvertClick(Sender: TObject);
 begin
-  chkCharsetConvert.Enabled := (FEditObjectName <> '') and (comboCollation.ItemIndex > -1);
+  chkCharsetConvert.Enabled := (DBObject.Name <> '') and (comboCollation.ItemIndex > -1);
   listColumns.Repaint;
   Modification(Sender);
 end;
@@ -2114,7 +2113,7 @@ begin
     2: begin
       Key.ReferenceTable := NewText;
       if not Key.KeyNameWasCustomized then
-        Key.KeyName := 'FK_'+FEditObjectName+'_'+Key.ReferenceTable;
+        Key.KeyName := 'FK_'+DBObject.Name+'_'+Key.ReferenceTable;
     end;
     3: Key.ForeignColumns := Explode(',', NewText);
     4: Key.OnUpdate := NewText;

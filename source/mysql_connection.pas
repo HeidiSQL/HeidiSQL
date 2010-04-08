@@ -9,13 +9,20 @@ uses
 type
   { TDBObjectList and friends }
 
-  TListNodeType = (lntNone, lntDb, lntTable, lntView, lntFunction, lntProcedure, lntTrigger, lntColumn);
+  TListNodeType = (lntNone, lntDb, lntTable, lntView, lntFunction, lntProcedure, lntTrigger, lntEvent, lntColumn);
   TListNodeTypes = Set of TListNodeType;
-  TDBObject = class
-    Name, Database, Engine, Comment, RowFormat, CreateOptions, Collation, ObjType: String;
+  TDBObject = class(TObject)
+    Name, Database, Engine, Comment, RowFormat, CreateOptions, Collation: String;
     Created, Updated, LastChecked: TDateTime;
     Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
     NodeType: TListNodeType;
+    private
+      function GetObjType: String;
+      function GetImageIndex: Integer;
+    public
+      constructor Create;
+      property ObjType: String read GetObjType;
+      property ImageIndex: Integer read GetImageIndex;
   end;
   PDBObject = ^TDBObject;
   TDBObjectList = TObjectList<TDBObject>;
@@ -133,7 +140,6 @@ type
       function GetInformationSchemaObjects: TStringList;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
-      function ParseDateTime(Str: String): TDateTime;
       procedure Log(Category: TMySQLLogCategory; Msg: String);
       procedure ClearCache;
       procedure SetObjectNamesInSelectedDB;
@@ -154,6 +160,7 @@ type
       function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList;
       function GetDBSize(db: String): Int64;
       function DbObjectsCached(db: String): Boolean;
+      function ParseDateTime(Str: String): TDateTime;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
       property Parameters: TConnectionParameters read FParameters write FParameters;
@@ -1071,12 +1078,9 @@ begin
           Obj.Size := StrToInt64Def(Results.Col('Data_length'), 0) + StrToInt64Def(Results.Col('Index_length'), 0);
           Inc(DBSize, Obj.Size);
         end;
-        Obj.ObjType := 'TABLE';
         Obj.NodeType := lntTable;
-        if Results.IsNull(1) and Results.IsNull(2) then begin // Engine column is NULL for views
+        if Results.IsNull(1) and Results.IsNull(2) then // Engine column is NULL for views
           Obj.NodeType := lntView;
-          Obj.ObjType := 'VIEW';
-        end;
         Obj.Created := ParseDateTime(Results.Col('Create_time'));
         Obj.Updated := ParseDateTime(Results.Col('Update_time'));
         if Results.ColExists('Type') then
@@ -1117,7 +1121,6 @@ begin
         obj.Database := db;
         obj.Rows := -1;
         Obj.Size := -1;
-        Obj.ObjType := 'FUNCTION';
         Obj.NodeType := lntFunction;
         Obj.Created := ParseDateTime(Results.Col('Created'));
         Obj.Updated := ParseDateTime(Results.Col('Modified'));
@@ -1153,7 +1156,6 @@ begin
         obj.Database := db;
         obj.Rows := -1;
         Obj.Size := -1;
-        Obj.ObjType := 'PROCEDURE';
         Obj.NodeType := lntProcedure;
         Obj.Created := ParseDateTime(Results.Col('Created'));
         Obj.Updated := ParseDateTime(Results.Col('Modified'));
@@ -1189,12 +1191,46 @@ begin
         obj.Database := db;
         obj.Rows := -1;
         Obj.Size := -1;
-        Obj.ObjType := 'TRIGGER';
         Obj.NodeType := lntTrigger;
         Obj.Created := ParseDateTime(Results.Col('Created'));
         Obj.Updated := 0;
         Obj.Engine := '';
         Obj.Comment := Results.Col('Timing')+' '+Results.Col('Event')+' in table '+QuoteIdent(Results.Col('Table'));
+        Obj.Version := -1;
+        Obj.AutoInc := -1;
+        Obj.RowFormat := '';
+        Obj.AvgRowLen := -1;
+        Obj.MaxDataLen := -1;
+        Obj.IndexLen := -1;
+        Obj.DataLen := -1;
+        Obj.DataFree := -1;
+        Obj.LastChecked := 0;
+        Obj.Collation := '';
+        Obj.CheckSum := -1;
+        Obj.CreateOptions := '';
+        Results.Next;
+      end;
+      FreeAndNil(Results);
+    end;
+
+    // Events
+    if ServerVersionInt >= 50100 then try
+      Results := GetResults('SHOW EVENTS FROM '+QuoteIdent(db));
+    except
+    end;
+    if Assigned(Results) then begin
+      while not Results.Eof do begin
+        obj := TDBObject.Create;
+        Result.Add(obj);
+        obj.Name := Results.Col('Name');
+        obj.Database := db;
+        obj.Rows := -1;
+        Obj.Size := -1;
+        Obj.NodeType := lntEvent;
+        Obj.Created := 0;
+        Obj.Updated := 0;
+        Obj.Engine := '';
+        Obj.Comment := '';
         Obj.Version := -1;
         Obj.AutoInc := -1;
         Obj.RowFormat := '';
@@ -1465,6 +1501,42 @@ function TDBObjectComparer.Compare(const Left, Right: TDBObject): Integer;
 begin
   // Simple sort method for a TDBObjectList
   Result := CompareText(Left.Name, Right.Name);
+end;
+
+
+{ TDBObject }
+
+constructor TDBObject.Create;
+begin
+  NodeType := lntNone;
+end;
+
+
+function TDBObject.GetObjType: String;
+begin
+  case NodeType of
+    lntTable: Result := 'Table';
+    lntView: Result := 'View';
+    lntFunction: Result := 'Function';
+    lntProcedure: Result := 'Procedure';
+    lntTrigger: Result := 'Trigger';
+    lntEvent: Result := 'Event';
+    else Result := 'Unknown, should never appear';
+  end;
+end;
+
+function TDBObject.GetImageIndex: Integer;
+begin
+  // Detect key icon index for specified db object (table, trigger, ...)
+  case NodeType of
+    lntTable: Result := ICONINDEX_TABLE;
+    lntFunction: Result := ICONINDEX_STOREDFUNCTION;
+    lntProcedure: Result := ICONINDEX_STOREDPROCEDURE;
+    lntView: Result := ICONINDEX_VIEW;
+    lntTrigger: Result := ICONINDEX_TRIGGER;
+    lntEvent: Result := ICONINDEX_EVENT;
+    else Result := -1;
+  end;
 end;
 
 

@@ -79,7 +79,7 @@ type
     Parameters: TRoutineParamList;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
+    procedure Init(Obj: TDBObject); override;
     function ApplyModifications: TModalResult; override;
   end;
 
@@ -126,15 +126,15 @@ begin
 end;
 
 
-procedure TfrmRoutineEditor.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
+procedure TfrmRoutineEditor.Init(Obj: TDBObject);
 var
   Create, Returns, DataAccess, Security, Comment, Body: String;
   Deterministic: Boolean;
 begin
   inherited;
-  if ObjectType = lntProcedure then FAlterRoutineType := 'PROCEDURE'
+  if Obj.NodeType = lntProcedure then FAlterRoutineType := 'PROCEDURE'
   else FAlterRoutineType := 'FUNCTION';
-  editName.Text := FEditObjectName;
+  editName.Text := DBObject.Name;
   comboType.ItemIndex := 0;
   comboReturns.Text := '';
   chkDeterministic.Checked := False;
@@ -144,7 +144,7 @@ begin
   comboSecurity.ItemIndex := 0;
   editComment.Clear;
   SynMemoBody.Text := 'BEGIN'+CRLF+CRLF+'END';
-  if FEditObjectName <> '' then begin
+  if DBObject.Name <> '' then begin
     // Editing existing routine
     comboType.ItemIndex := ListIndexByRegExpr(comboType.Items, '^'+FAlterRoutineType+'\b');
     Create := Mainform.Connection.GetVar('SHOW CREATE '+FAlterRoutineType+' '+Mainform.mask(editName.Text), 2);
@@ -166,7 +166,7 @@ begin
   Modified := False;
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
-  Mainform.actRunRoutines.Enabled := FEditObjectName <> '';
+  Mainform.actRunRoutines.Enabled := DBObject.Name <> '';
   Mainform.ShowStatusMsg;
   Screen.Cursor := crDefault;
 end;
@@ -407,7 +407,6 @@ var
   allRoutineNames: TStringList;
   ProcOrFunc: String;
   TargetExists: Boolean;
-  t: TListNodeType;
 begin
   // Save changes
   Result := mrOk;
@@ -417,14 +416,14 @@ begin
   // Create a temp routine, check for syntax errors, then drop the old routine and create it.
   // See also: http://dev.mysql.com/doc/refman/5.0/en/alter-procedure.html
   try
-    if FEditObjectName <> '' then begin
+    if DBObject.Name <> '' then begin
       // Create temp name
       i := 0;
       allRoutineNames := Mainform.Connection.GetCol('SELECT ROUTINE_NAME FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.'+Mainform.mask('ROUTINES')+
         ' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase)+
         ' AND ROUTINE_TYPE = '+esc(ProcOrFunc)
         );
-      TargetExists := ((editName.Text <> FEditObjectName) or (ProcOrFunc <> FAlterRoutineType)) and
+      TargetExists := ((editName.Text <> DBObject.Name) or (ProcOrFunc <> FAlterRoutineType)) and
         (allRoutineNames.IndexOf(editName.Text) > -1);
       if TargetExists then begin
         Result := MessageDlg('Routine "'+editName.Text+'" already exists. Overwrite it?',
@@ -442,7 +441,7 @@ begin
       // Drop temporary routine, used for syntax checking
       Mainform.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(TempName));
       // Drop edited routine
-      Mainform.Connection.Query('DROP '+FAlterRoutineType+' IF EXISTS '+Mainform.mask(FEditObjectName));
+      Mainform.Connection.Query('DROP '+FAlterRoutineType+' IF EXISTS '+Mainform.mask(DBObject.Name));
       if TargetExists then begin
         // Drop target routine - overwriting has been confirmed, see above
         Mainform.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(editName.Text));
@@ -450,12 +449,12 @@ begin
     end;
     Mainform.Connection.Query(ComposeCreateStatement(editName.Text));
     // Set editing name if create/alter query was successful
-    FEditObjectName := editName.Text;
+    DBObject.Name := editName.Text;
     FAlterRoutineType := UpperCase(GetFirstWord(comboType.Text));
-    Mainform.SetEditorTabCaption(Self, FEditObjectName);
-    if FAlterRoutineType = 'PROCEDURE' then t := lntProcedure
-    else t := lntFunction;
-    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, FEditObjectName, t);
+    if FAlterRoutineType = 'PROCEDURE' then DBObject.NodeType := lntProcedure
+    else DBObject.NodeType := lntFunction;
+    Mainform.UpdateEditorTab;
+    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, DBObject.Name, DBObject.NodeType);
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
@@ -498,13 +497,9 @@ end;
 
 
 procedure TfrmRoutineEditor.btnDiscardClick(Sender: TObject);
-var
-  t: TListNodeType;
 begin
   Modified := False;
-  if FAlterRoutineType = 'PROCEDURE' then t := lntProcedure
-  else t := lntFunction;
-  Init(FEditObjectName, t);
+  Init(DBObject);
 end;
 
 

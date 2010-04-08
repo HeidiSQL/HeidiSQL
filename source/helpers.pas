@@ -142,15 +142,16 @@ type
       FModified: Boolean;
       procedure SetModified(Value: Boolean);
     protected
-      FEditObjectName: String;
     public
+      DBObject: TDBObject;
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); virtual;
+      procedure Init(Obj: TDBObject); virtual;
       function DeInit: TModalResult;
       property Modified: Boolean read FModified write SetModified;
       function ApplyModifications: TModalResult; virtual; abstract;
   end;
+  TDBObjectEditorClass = class of TDBObjectEditor;
 
   TWndProc = function (hWnd: HWND; Msg: UINT; wParam: WPARAM; lParam: LPARAM): LRESULT; stdcall;
   PGripInfo = ^TGripInfo;
@@ -271,7 +272,7 @@ var
 
 implementation
 
-uses main, uVistaFuncs, table_editor, view, routine_editor, trigger_editor;
+uses main, uVistaFuncs, table_editor, view, routine_editor, trigger_editor, event_editor;
 
 
 
@@ -3250,7 +3251,7 @@ begin
     Value := esAddedDeleted;
   FStatus := Value;
   if Value <> esUntouched then
-    Mainform.TableEditor.Modification(Self);
+    TfrmTableEditor(Mainform.ActiveObjectEditor).Modification(Self);
 end;
 
 
@@ -3318,11 +3319,12 @@ begin
   FModified := Value;
 end;
 
-procedure TDBObjectEditor.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
+procedure TDBObjectEditor.Init(Obj: TDBObject);
 begin
   Mainform.ShowStatusMsg('Initializing editor ...');
-  FEditObjectName := ObjectName;
-  Mainform.SetEditorTabCaption(Self, FEditObjectName);
+  ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
+  DBObject := Obj;
+  Mainform.UpdateEditorTab;
   Screen.Cursor := crHourglass;
   MainForm.SetupSynEditors;
 end;
@@ -3334,13 +3336,9 @@ begin
   // Ask for saving modifications
   Result := mrOk;
   if Modified then begin
-    if Self is TfrmTableEditor then ObjType := 'table'
-    else if Self is TfrmView then ObjType := 'view'
-    else if Self is TfrmRoutineEditor then ObjType := 'routine'
-    else if Self is TfrmTriggerEditor then ObjType := 'trigger'
-    else ObjType := '<Unknown Type - should never appear>';
-    if FEditObjectName <> '' then
-      Msg := 'Save modified '+ObjType+' "'+FEditObjectName+'"?'
+    ObjType := LowerCase(DBObject.ObjType);
+    if DBObject.Name <> '' then
+      Msg := 'Save modified '+ObjType+' "'+DBObject.Name+'"?'
     else
       Msg := 'Save new '+ObjType+'?';
     Result := MessageDlg(Msg, mtConfirmation, [mbYes, mbNo, mbCancel], 0);

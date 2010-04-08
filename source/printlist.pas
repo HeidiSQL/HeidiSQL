@@ -34,7 +34,7 @@ type
 
 implementation
 
-uses main, helpers;
+uses main, helpers, table_editor, mysql_connection;
 
 {$R *.DFM}
 
@@ -78,8 +78,12 @@ begin
       else list := Mainform.ListCommandStats;
       end;
     1: list := Mainform.ListTables;
-    2: if Assigned(Mainform.TableEditor) and Mainform.TableEditor.Visible then
-      list := Mainform.TableEditor.listColumns;
+    2: begin
+      if Assigned(Mainform.ActiveObjectEditor)
+        and (Mainform.ActiveObjectEditor.DBObject.NodeType = lntTable)
+        and Mainform.ActiveObjectEditor.Visible then
+      list := (Mainform.ActiveObjectEditor as TfrmTableEditor).listColumns;
+    end;
     else list := Mainform.ActiveGrid;
   end;
   if Assigned(list) then

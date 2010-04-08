@@ -34,7 +34,7 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
-    procedure Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone); override;
+    procedure Init(Obj: TDBObject); override;
     function ApplyModifications: TModalResult; override;
   end;
 
@@ -54,7 +54,6 @@ var
   i: Integer;
 begin
   inherited;
-  ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
   SynMemoStatement.Highlighter := Mainform.SynSQLSyn1;
   editName.MaxLength := NAME_LEN;
   comboTiming.Items.Text := 'BEFORE'+CRLF+'AFTER';
@@ -73,7 +72,7 @@ begin
 end;
 
 
-procedure TfrmTriggerEditor.Init(ObjectName: String=''; ObjectType: TListNodeType=lntNone);
+procedure TfrmTriggerEditor.Init(Obj: TDBObject);
 var
   Definitions: TMySQLQuery;
   DBObjects: TDBObjectList;
@@ -93,13 +92,13 @@ begin
   end;
   if comboTable.Items.Count > 0 then
     comboTable.ItemIndex := 0;
-  if FEditObjectName <> '' then begin
+  if DBObject.Name <> '' then begin
     // Edit mode
-    editName.Text := FEditObjectName;
+    editName.Text := DBObject.Name;
     Definitions := Mainform.Connection.GetResults('SHOW TRIGGERS FROM '+Mainform.mask(Mainform.ActiveDatabase));
     Found := False;
     while not Definitions.Eof do begin
-      if Definitions.Col('Trigger') = FEditObjectName then begin
+      if Definitions.Col('Trigger') = DBObject.Name then begin
         comboTable.ItemIndex := comboTable.Items.IndexOf(Definitions.Col('Table'));
         comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(Definitions.Col('Timing')));
         comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(Definitions.Col('Event')));
@@ -138,7 +137,7 @@ procedure TfrmTriggerEditor.btnDiscardClick(Sender: TObject);
 begin
   // Reinit editor, discarding changes
   Modified := False;
-  Init(FEditObjectName);
+  Init(DBObject);
 end;
 
 
@@ -160,8 +159,8 @@ begin
     // So, we take the risk of loosing the trigger for cases in which the user has SQL errors in
     // his statement. The user must fix such errors and re-press "Save" while we have them in memory,
     // otherwise the trigger attributes are lost forever.
-    if FEditObjectName <> '' then try
-      Mainform.Connection.Query('DROP TRIGGER '+Mainform.mask(FEditObjectName));
+    if DBObject.Name <> '' then try
+      Mainform.Connection.Query('DROP TRIGGER '+Mainform.mask(DBObject.Name));
     except
     end;
     // CREATE
@@ -173,9 +172,9 @@ begin
       ' ON '+Mainform.mask(comboTable.Text)+
       ' FOR EACH ROW '+SynMemoStatement.Text;
     Mainform.Connection.Query(sql);
-    FEditObjectName := editName.Text;
-    Mainform.SetEditorTabCaption(Self, FEditObjectName);
-    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, FEditObjectName, lntTrigger);
+    DBObject.Name := editName.Text;
+    Mainform.UpdateEditorTab;
+    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, DBObject.Name, DBObject.NodeType);
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
