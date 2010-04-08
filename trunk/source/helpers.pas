@@ -3031,7 +3031,7 @@ begin
     Col.AllowNull := Results.Col('Null') = 'YES';
     if rx.Exec(Results.Col('Type')) then begin
       Col.DataType := GetDatatypeByName(rx.Match[1]);
-      Col.LengthSet := rx.Match[2];
+      Col.LengthSet := rx.Match[3];
     end;
     Results.Next;
   end;
