@@ -2246,47 +2246,20 @@ end;
 // Drop Table(s)
 procedure TMainForm.actDropObjectsExecute(Sender: TObject);
 var
-  AllCount : Integer;
-  Tables, Views, Functions, Procedures, Triggers, List: TStringList;
   msg, activeDB : String;
   InDBTree: Boolean;
   Act: TAction;
   Node: PVirtualNode;
   Obj: PDBObject;
-
-  procedure DoDrop(Kind: String; List: TStringList; MultiDrops: Boolean);
-  var
-    i: Integer;
-    baseSql, sql: String;
-  begin
-    if List.Count > 0 then begin
-      baseSql := 'DROP '+Kind+' ';
-      sql := '';
-      for i := 0 to List.Count - 1 do begin
-        if (i > 0) and MultiDrops then sql := sql + ', ';
-        sql := sql + mask(List[i]);
-        if not MultiDrops then begin
-          Connection.Query(baseSql + sql);
-          sql := '';
-        end;
-      end;
-      if MultiDrops then
-        Connection.Query(baseSql + sql);
-    end;
-    FreeAndNil(List);
-  end;
-
+  DBObject: TDBObject;
+  ObjectList: TDBObjectList;
 begin
   debug('drop objects activated');
   // Set default database name to to ActiveDatabase.
   // Can be overwritten when someone selects a table in dbtree from different database
   activeDB := ActiveDatabase;
 
-  Tables := TStringList.Create;
-  Views := TStringList.Create;
-  Procedures := TStringList.Create;
-  Functions := TStringList.Create;
-  Triggers := TStringList.Create;
+  ObjectList := TDBobjectList.Create(False);
 
   Act := Sender as TAction;
   InDBTree := (Act.ActionComponent is TMenuItem)
@@ -2311,25 +2284,14 @@ begin
         end;
         Exit;
       end;
-      lntTable: Tables.Add(SelectedTable.Name);
-      lntView: Views.Add(SelectedTable.Name);
-      lntProcedure: Procedures.Add(SelectedTable.Name);
-      lntFunction: Functions.Add(SelectedTable.Name);
-      lntTrigger: Triggers.Add(SelectedTable.Name);
+      else ObjectList.Add(SelectedTable);
     end;
   end else begin
     // Invoked from database tab
     Node := ListTables.GetFirstSelected;
     while Assigned(Node) do begin
       Obj := ListTables.GetNodeData(Node);
-      case Obj.NodeType of
-        lntView: List := Views;
-        lntProcedure: List := Procedures;
-        lntFunction: List := Functions;
-        lntTrigger: List := Triggers;
-        else List := Tables;
-      end;
-      List.Add(Obj.Name);
+      ObjectList.Add(Obj^);
       Node := ListTables.GetNextSelected(Node);
     end;
   end;
@@ -2337,36 +2299,29 @@ begin
   // Fix actions temporarily enabled for popup menu.
   ValidateControls(Sender);
 
-  AllCount := Tables.Count + Views.Count + Procedures.Count + Functions.Count + Triggers.Count;
-
   // Safety stop to avoid firing DROP TABLE without tablenames
-  if (AllCount = 0) then
+  if ObjectList.Count = 0 then
     Exit;
 
   // Ask user for confirmation to drop selected objects
-  msg := 'Drop ' + IntToStr(AllCount) + ' object(s) in database "'+activeDB+'"?'
-    + CRLF;
-  if Tables.Count > 0 then msg := msg + CRLF + 'Table(s): ' + ImplodeStr(', ', Tables);
-  if Views.Count > 0 then msg := msg + CRLF + 'View(s): ' + ImplodeStr(', ', Views);
-  if Procedures.Count > 0 then msg := msg + CRLF + 'Procedure(s): ' + ImplodeStr(', ', Procedures);
-  if Functions.Count > 0 then msg := msg + CRLF + 'Function(s): ' + ImplodeStr(', ', Functions);
-  if Triggers.Count > 0 then msg := msg + CRLF + 'Trigger(s): ' + ImplodeStr(', ', Triggers);
+  msg := 'Drop ' + IntToStr(ObjectList.Count) + ' object(s) in database "'+activeDB+'"?' + CRLF + CRLF;
+  for DBObject in ObjectList do
+    msg := msg + DBObject.Name + ', ';
+  Delete(msg, Length(msg)-1, 2);
   if MessageDlg(msg, mtConfirmation, [mbok,mbcancel], 0) <> mrok then
     Exit;
 
   try
     // Compose and run DROP [TABLE|VIEW|...] queries
-    DoDrop('TABLE', Tables, True);
-    DoDrop('VIEW', Views, True);
-    DoDrop('PROCEDURE', Procedures, False);
-    DoDrop('FUNCTION', Functions, False);
-    DoDrop('TRIGGER', Triggers, False);
+    for DBObject in ObjectList do
+      Connection.Query('DROP '+UpperCase(DBObject.ObjType)+' '+Mask(DBObject.Name));
     // Refresh ListTables + dbtree so the dropped tables are gone:
     actRefresh.Execute;
   except
     on E:Exception do
       MessageDlg(E.Message, mtError, [mbOK], 0);
   end;
+  ObjectList.Free;
 end;
 
 
