@@ -290,6 +290,7 @@ begin
       // Create the key and save its values
       OpenRegistry(newName);
       SaveCurrentValues(newName, True);
+      RefreshSessionList;
     end;
   end;
 end;
