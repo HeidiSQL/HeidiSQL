@@ -6459,7 +6459,7 @@ procedure TMainForm.DBtreeFocusChanging(Sender: TBaseVirtualTree; OldNode,
 begin
   debug('DBtreeFocusChanging');
   // Check if some editor has unsaved changes
-  if Assigned(ActiveObjectEditor) and Assigned(NewNode) then begin
+  if Assigned(ActiveObjectEditor) and Assigned(NewNode) and (NewNode <> OldNode) then begin
     Allowed := not (ActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
     DBTree.Selected[DBTree.FocusedNode] := not Allowed;
   end else
