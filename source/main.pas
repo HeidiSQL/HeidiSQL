@@ -6847,7 +6847,7 @@ end;
 procedure TMainForm.DataGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
 var
   frm: TForm;
-  i, j : Integer;
+  i, j, LeftColPos: Integer;
   columnexists : Boolean;
   ColName: String;
 begin
@@ -6883,7 +6883,10 @@ begin
       DataGridSortColumns[i].ColumnName := ColName;
       DataGridSortColumns[i].SortDirection := ORDER_ASC;
     end;
-    InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
+    // Refresh grid, and restore X scroll offset, so the just clicked column is still at the same place.
+    LeftColPos := Sender.Columns[HitInfo.Column].Left;
+    InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, True);
+    Sender.Treeview.OffsetX := -(Sender.Columns[HitInfo.Column].Left - Sender.Treeview.OffsetX - LeftColPos);
   end else begin
     frm := TColumnSelectionForm.Create(self);
     // Position new form relative to btn's position
