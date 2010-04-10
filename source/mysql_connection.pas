@@ -125,6 +125,7 @@ type
       FObjectNamesInSelectedDB: TStrings;
       FPlinkProcInfo: TProcessInformation;
       procedure SetActive(Value: Boolean);
+      procedure ClosePlink;
       procedure SetDatabase(Value: String);
       function GetThreadId: Cardinal;
       function GetCharacterSet: String;
@@ -364,7 +365,7 @@ begin
         if FParameters.SSHPrivateKey <> '' then
           PlinkCmd := PlinkCmd + ' -i "' + FParameters.SSHPrivateKey + '"';
         PlinkCmd := PlinkCmd + ' -L ' + IntToStr(FParameters.SSHLocalPort) + ':' + FParameters.Hostname + ':' + IntToStr(FParameters.Port);
-        log(lcInfo, PlinkCmd);
+        Log(lcInfo, 'Attempt to create plink.exe process ...');
         // Create plink.exe process
         FillChar(FPlinkProcInfo, SizeOf(TProcessInformation), 0);
         FillChar(StartupInfo, SizeOf(TStartupInfo), 0);
@@ -377,7 +378,7 @@ begin
           if ExitCode <> STILL_ACTIVE then
             raise Exception.Create('PLink exited unexpected. Command line was:'+CRLF+PlinkCmd);
         end else begin
-          CloseHandle(FPlinkProcInfo.hProcess);
+          ClosePlink;
           raise Exception.Create('Couldn''t execute PLink: '+CRLF+PlinkCmd);
         end;
         FinalHost := 'localhost';
@@ -423,6 +424,7 @@ begin
       Log(lcError, Error);
       FConnectionStarted := 0;
       FHandle := nil;
+      ClosePlink;
       raise Exception.Create(Error);
     end else begin
       Log(lcInfo, 'Connected. Thread-ID: '+IntToStr(ThreadId));
@@ -453,10 +455,7 @@ begin
     FActive := False;
     FConnectionStarted := 0;
     FHandle := nil;
-    if FPlinkProcInfo.hProcess <> 0 then begin
-      TerminateProcess(FPlinkProcInfo.hProcess, 0);
-      CloseHandle(FPlinkProcInfo.hProcess);
-    end;
+    ClosePlink;
     Log(lcInfo, 'Connection to '+FParameters.Hostname+' closed at '+DateTimeToStr(Now));
   end;
 
@@ -468,6 +467,16 @@ begin
   if FActive and ((FHandle=nil) or (mysql_ping(FHandle) <> 0)) then
     Active := False;
   Result := FActive;
+end;
+
+
+procedure TMySQLConnection.ClosePlink;
+begin
+  if FPlinkProcInfo.hProcess <> 0 then begin
+    Log(lcInfo, 'Closing plink.exe process #'+IntToStr(FPlinkProcInfo.dwProcessId)+' ...');
+    TerminateProcess(FPlinkProcInfo.hProcess, 0);
+    CloseHandle(FPlinkProcInfo.hProcess);
+  end;
 end;
 
 
