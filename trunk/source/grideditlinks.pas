@@ -6,7 +6,7 @@ interface
 
 uses
   Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
-  StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Mask, DateUtils,
+  StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Mask, DateUtils, Math,
   mysql_structures, helpers, texteditor, bineditor;
 
 type

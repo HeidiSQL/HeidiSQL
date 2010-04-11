@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
-  VirtualTrees, ExtCtrls, Contnrs, Graphics, SynRegExpr,
+  VirtualTrees, ExtCtrls, Contnrs, Graphics, SynRegExpr, Math,
   mysql_connection, helpers;
 
 type

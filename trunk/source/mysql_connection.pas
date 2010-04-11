@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, windows, mysql_api, mysql_structures, SynRegExpr, Contnrs, Generics.Collections, Generics.Defaults,
-  DateUtils, Types, ShellApi;
+  DateUtils, Types, ShellApi, Math;
 
 type
   { TDBObjectList and friends }
@@ -25,8 +25,17 @@ type
       property ImageIndex: Integer read GetImageIndex;
   end;
   PDBObject = ^TDBObject;
-  TDBObjectList = TObjectList<TDBObject>;
-
+  TDBObjectList = class(TObjectList<TDBObject>)
+    private
+      FDatabase: String;
+      FDataSize: Int64;
+      FLastUpdate: TDateTime;
+    public
+      property Database: String read FDatabase;
+      property DataSize: Int64 read FDataSize;
+      property LastUpdate: TDateTime read FLastUpdate;
+  end;
+  TDatabaseList = TObjectList<TDBObjectList>; // A list of db object lists, used for caching
   TDBObjectComparer = class(TComparer<TDBObject>)
     function Compare(const Left, Right: TDBObject): Integer; override;
   end;
@@ -120,8 +129,7 @@ type
       FCollationTable: TMySQLQuery;
       FCharsetTable: TMySQLQuery;
       FInformationSchemaObjects: TStringList;
-      FDBObjectLists: TStringList;
-      FDBSizes: TStringList;
+      FDatabases: TDatabaseList;
       FObjectNamesInSelectedDB: TStrings;
       FPlinkProcInfo: TProcessInformation;
       procedure SetActive(Value: Boolean);
@@ -159,7 +167,6 @@ type
       function GetVar(SQL: String; Column: String): String; overload;
       function Ping: Boolean;
       function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList;
-      function GetDBSize(db: String): Int64;
       function DbObjectsCached(db: String): Boolean;
       function ParseDateTime(Str: String): TDateTime;
       procedure ClearDbObjects(db: String);
@@ -279,8 +286,7 @@ begin
   FLastQueryNetworkDuration := 0;
   FLogPrefix := '';
   FIsUnicode := False;
-  FDBObjectLists := TStringList.Create;
-  FDBSizes := TStringList.Create;
+  FDatabases := TDatabaseList.Create(True);
 end;
 
 
@@ -994,19 +1000,17 @@ end;
 
 procedure TMySQLConnection.ClearDbObjects(db: String);
 var
-  i, idx: Integer;
+  i: Integer;
 begin
   // Free cached database object list
-  i := FDBObjectLists.IndexOf(db);
-  if i = -1 then
-    Exit;
-  TDBObjectList(FDBObjectLists.Objects[i]).Free;
-  FDBObjectLists.Delete(i);
-  idx := FDBSizes.IndexOfName(db);
-  if idx > -1 then
-    FDBSizes.Delete(idx);
-  if Assigned(FOnDBObjectsCleared) then
-    FOnDBObjectsCleared(db);
+  for i:=0 to FDatabases.Count-1 do begin
+    if FDatabases[i].Database = db then begin
+      FDatabases.Delete(i);
+      if Assigned(FOnDBObjectsCleared) then
+        FOnDBObjectsCleared(db);
+      break;
+    end;
+  end;
 end;
 
 
@@ -1014,15 +1018,23 @@ procedure TMySQLConnection.ClearAllDbObjects;
 var
   i: Integer;
 begin
-  for i:=FDBObjectLists.Count-1 downto 0 do
-    ClearDbObjects(FDBObjectLists[i]);
+  for i:=FDatabases.Count-1 downto 0 do
+    ClearDbObjects(FDatabases[i].Database);
 end;
 
 
 function TMySQLConnection.DbObjectsCached(db: String): Boolean;
+var
+  i: Integer;
 begin
   // Check if a table list is stored in cache
-  Result := FDBObjectLists.IndexOf(db) > -1;
+  Result := False;
+  for i:=0 to FDatabases.Count-1 do begin
+    if FDatabases[i].Database = db then begin
+      Result := True;
+      break;
+    end;
+  end;
 end;
 
 
@@ -1055,19 +1067,29 @@ var
   obj: TDBObject;
   Results: TMySQLQuery;
   rx: TRegExpr;
-  DBSize: Integer;
+  i: Integer;
 begin
   // Cache and return a db's table list
   if Refresh then
     ClearDbObjects(db);
-  if DbObjectsCached(db) then
-    Result := FDBObjectLists.Objects[FDBObjectLists.IndexOf(db)] as TDBObjectList
-  else begin
+
+  // Find list in cache
+  Result := nil;
+  for i:=0 to FDatabases.Count-1 do begin
+    if FDatabases[i].Database = db then begin
+      Result := FDatabases[i];
+      break;
+    end;
+  end;
+
+  if not Assigned(Result) then begin
     Result := TDBObjectList.Create(TDBObjectComparer.Create);
+    Result.FLastUpdate := 0;
+    Result.FDataSize := 0;
+    Result.FDatabase := db;
     Results := nil;
     rx := TRegExpr.Create;
     rx.ModifierI := True;
-    DBSize := 0;
 
     // Tables and views
     try
@@ -1085,7 +1107,7 @@ begin
           Obj.Size := -1
         else begin
           Obj.Size := StrToInt64Def(Results.Col('Data_length'), 0) + StrToInt64Def(Results.Col('Index_length'), 0);
-          Inc(DBSize, Obj.Size);
+          Inc(Result.FDataSize, Obj.Size);
         end;
         Obj.NodeType := lntTable;
         if Results.IsNull(1) and Results.IsNull(2) then // Engine column is NULL for views
@@ -1257,23 +1279,16 @@ begin
       FreeAndNil(Results);
     end;
 
+    // Find youngest last update
+    for i:=0 to Result.Count-1 do
+      Result.FLastUpdate := Max(Result.FLastUpdate, Max(Result[i].Updated, Result[i].Created));
     // Sort list like it get sorted in MainForm.vstCompareNodes
     Result.Sort;
-
     // Add list of objects in this database to cached list of all databases
-    FDBObjectLists.AddObject(db, Result);
-
-    FDBSizes.Values[db] := IntToStr(DBSize);
-
+    FDatabases.Add(Result);
     SetObjectNamesInSelectedDB;
   end;
 
-end;
-
-
-function TMySQLConnection.GetDBSize(db: String): Int64;
-begin
-  Result := StrToInt64Def(FDBSizes.Values[db], -1);
 end;
 
 
