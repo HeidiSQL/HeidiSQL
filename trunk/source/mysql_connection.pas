@@ -11,16 +11,17 @@ type
 
   TListNodeType = (lntNone, lntDb, lntTable, lntView, lntFunction, lntProcedure, lntTrigger, lntEvent, lntColumn);
   TListNodeTypes = Set of TListNodeType;
-  TDBObject = class(TObject)
-    Name, Database, Engine, Comment, RowFormat, CreateOptions, Collation: String;
-    Created, Updated, LastChecked: TDateTime;
-    Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
-    NodeType: TListNodeType;
+  TDBObject = class(TPersistent)
     private
       function GetObjType: String;
       function GetImageIndex: Integer;
     public
+      Name, Database, Engine, Comment, RowFormat, CreateOptions, Collation: String;
+      Created, Updated, LastChecked: TDateTime;
+      Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
+      NodeType: TListNodeType;
       constructor Create;
+      procedure Assign(Source: TPersistent); override;
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
   end;
@@ -1533,6 +1534,25 @@ end;
 constructor TDBObject.Create;
 begin
   NodeType := lntNone;
+end;
+
+
+procedure TDBObject.Assign(Source: TPersistent);
+var
+  s: TDBObject;
+begin
+  if Source is TDBObject then begin
+    s := Source as TDBObject;
+    Name := s.Name;
+    Database := s.Database;
+    NodeType := s.NodeType;
+    Created := s.Created;
+    Updated := s.Updated;
+    Comment := s.Comment;
+    Rows := s.Rows;
+    Size := s.Size;
+  end else
+    inherited;
 end;
 
 
