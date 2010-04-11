@@ -27,7 +27,7 @@ object optionsform: Toptionsform
     Height = 352
     ActivePage = tabMisc
     Anchors = [akLeft, akTop, akRight, akBottom]
-    TabOrder = 3
+    TabOrder = 4
     OnChange = pagecontrolMainChange
     OnChanging = pagecontrolMainChanging
     object tabMisc: TTabSheet
@@ -320,9 +320,9 @@ object optionsform: Toptionsform
           Caption = 'pt'
         end
         object comboSQLFontName: TComboBox
-          Left = 16
+          Left = 3
           Top = 23
-          Width = 225
+          Width = 238
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
@@ -353,21 +353,21 @@ object optionsform: Toptionsform
       end
       object grpSQLColors: TGroupBox
         Left = 1
-        Top = 61
+        Top = 86
         Width = 438
-        Height = 68
+        Height = 225
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Syntax'
         TabOrder = 1
         object lblSQLColElement: TLabel
-          Left = 15
+          Left = 3
           Top = 17
           Width = 42
           Height = 13
           Caption = 'Element:'
         end
         object lblSQLColForeground: TLabel
-          Left = 247
+          Left = 234
           Top = 16
           Width = 60
           Height = 13
@@ -375,7 +375,7 @@ object optionsform: Toptionsform
           Caption = 'Foreground:'
         end
         object lblSQLColBackground: TLabel
-          Left = 247
+          Left = 234
           Top = 42
           Width = 60
           Height = 13
@@ -383,7 +383,7 @@ object optionsform: Toptionsform
           Caption = 'Background:'
         end
         object comboSQLColElement: TComboBox
-          Left = 67
+          Left = 55
           Top = 13
           Width = 164
           Height = 21
@@ -393,9 +393,9 @@ object optionsform: Toptionsform
           OnChange = comboSQLColElementChange
         end
         object cboxSQLColForeground: TColorBox
-          Left = 318
+          Left = 305
           Top = 13
-          Width = 110
+          Width = 130
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
           Anchors = [akTop, akRight]
@@ -403,7 +403,7 @@ object optionsform: Toptionsform
           OnChange = SQLFontChange
         end
         object chkSQLBold: TCheckBox
-          Left = 67
+          Left = 55
           Top = 41
           Width = 57
           Height = 17
@@ -412,7 +412,7 @@ object optionsform: Toptionsform
           OnClick = SQLFontChange
         end
         object chkSQLItalic: TCheckBox
-          Left = 130
+          Left = 118
           Top = 41
           Width = 91
           Height = 17
@@ -422,39 +422,30 @@ object optionsform: Toptionsform
           OnClick = SQLFontChange
         end
         object cboxSQLColBackground: TColorBox
-          Left = 318
+          Left = 305
           Top = 39
-          Width = 110
+          Width = 130
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
           Anchors = [akTop, akRight]
           TabOrder = 4
           OnChange = SQLFontChange
         end
-      end
-      object grpSQLSample: TGroupBox
-        Left = 0
-        Top = 132
-        Width = 438
-        Height = 179
-        Anchors = [akLeft, akTop, akRight, akBottom]
-        Caption = 'Sample'
-        TabOrder = 2
         object SynMemoSQLSample: TSynMemo
           AlignWithMargins = True
-          Left = 5
-          Top = 18
-          Width = 428
-          Height = 156
+          Left = 3
+          Top = 67
+          Width = 432
+          Height = 155
           Cursor = crHandPoint
           SingleLineMode = False
-          Align = alClient
+          Anchors = [akLeft, akTop, akRight, akBottom]
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
           Font.Name = 'Courier New'
           Font.Style = []
-          TabOrder = 0
+          TabOrder = 5
           OnClick = SynMemoSQLSampleClick
           Gutter.Font.Charset = DEFAULT_CHARSET
           Gutter.Font.Color = clWindowText
@@ -481,7 +472,7 @@ object optionsform: Toptionsform
         Height = 56
         Anchors = [akTop, akRight]
         Caption = 'Tab width'
-        TabOrder = 3
+        TabOrder = 1
         object editSQLTabWidth: TEdit
           Left = 14
           Top = 23
@@ -500,6 +491,15 @@ object optionsform: Toptionsform
           TabOrder = 1
           OnClick = updownSQLFontSizeClick
         end
+      end
+      object chkCompletionProposal: TCheckBox
+        Left = 3
+        Top = 63
+        Width = 434
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Enable SQL completion proposal'
+        TabOrder = 2
       end
     end
     object tabData: TTabSheet
@@ -1032,7 +1032,7 @@ object optionsform: Toptionsform
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 1
+    TabOrder = 2
   end
   object btnOK: TButton
     Left = 231
@@ -1043,7 +1043,7 @@ object optionsform: Toptionsform
     Caption = 'OK'
     Default = True
     ModalResult = 1
-    TabOrder = 0
+    TabOrder = 1
     OnClick = Apply
   end
   object btnApply: TButton
@@ -1054,7 +1054,7 @@ object optionsform: Toptionsform
     Anchors = [akRight, akBottom]
     Caption = 'Apply'
     Enabled = False
-    TabOrder = 2
+    TabOrder = 3
     OnClick = Apply
   end
   object btnRestoreDefaults: TButton
@@ -1064,7 +1064,7 @@ object optionsform: Toptionsform
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Factory defaults'
-    TabOrder = 4
+    TabOrder = 0
     OnClick = btnRestoreDefaultsClick
   end
   object SynSQLSynSQLSample: TSynSQLSyn
