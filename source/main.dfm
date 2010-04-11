@@ -560,26 +560,34 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 3
-                    WideText = 'Tables'
+                    WideText = 'Last modification'
                   end
                   item
                     Position = 4
-                    WideText = 'Views'
+                    WideText = 'Tables'
                   end
                   item
                     Position = 5
-                    WideText = 'Functions'
+                    WideText = 'Views'
                   end
                   item
                     Position = 6
-                    WideText = 'Procedures'
+                    WideText = 'Functions'
                   end
                   item
                     Position = 7
-                    WideText = 'Triggers'
+                    WideText = 'Procedures'
                   end
                   item
                     Position = 8
+                    WideText = 'Triggers'
+                  end
+                  item
+                    Position = 9
+                    WideText = 'Events'
+                  end
+                  item
+                    Position = 10
                     Width = 120
                     WideText = 'Default collation'
                   end>

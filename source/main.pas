@@ -15,7 +15,7 @@ uses
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
-  CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML,
+  CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
   mysql_api, insertfiles, searchreplace, loaddata, copytable;
@@ -6196,8 +6196,10 @@ begin
             Bytes := -1;
             if AllListsCached then begin
               Bytes := 0;
-              for i:=0 to Databases.Count-1 do
-                Inc(Bytes, Connection.GetDBSize(Databases[i]));
+              for i:=0 to Databases.Count-1 do begin
+                DBObjects := Connection.GetDBObjects(Databases[i]);
+                Inc(Bytes, DBObjects.DataSize);
+              end;
             end;
             if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
             else CellText := '';
@@ -6208,9 +6210,8 @@ begin
             if not Connection.DbObjectsCached(db) then
               CellText := ''
             else begin
-              Bytes := Connection.GetDBSize(db);
-              if Bytes >= 0 then CellText := FormatByteNumber(Bytes)
-              else CellText := '';
+              DBObjects := Connection.GetDBObjects(db);
+              CellText := FormatByteNumber(DBObjects.DataSize);
             end;
           end;
         lntTable: begin
@@ -7715,7 +7716,7 @@ var
   LoopNode: PVirtualNode;
 begin
   // Display color bars
-  if Column in [1..7] then begin
+  if Column in [1,2,4..9] then begin
     vt := Sender as TVirtualStringTree;
     // Find out maximum value in column
     LoopNode := vt.GetFirst;
@@ -7818,15 +7819,13 @@ var
   Idx: PInt;
   Objects: TDBObjectList;
   DBname: String;
-  Size: Int64;
 
   function GetItemCount(ItemType: TListNodeType): String;
   var
     c: Integer;
     o: TDBObject;
   begin
-    if Connection.DbObjectsCached(DBname) then begin
-      Objects := Connection.GetDBObjects(DBname);
+    if Objects <> nil then begin
       c := 0;
       for o in Objects do begin
         if (ItemType = lntNone) or (o.NodeType = ItemType) then
@@ -7841,22 +7840,22 @@ begin
   // Return text for database columns
   Idx := Sender.GetNodeData(Node);
   DBname := AllDatabases[Idx^];
+  if Connection.DbObjectsCached(DBname) then
+    Objects := Connection.GetDBObjects(DBname);
   case Column of
     0: CellText := DBname;
-    1: begin
-      Size := Connection.GetDBSize(DBname);
-      if Size > -1 then
-        CellText := FormatByteNumber(Size)
-      else
-        CellText := '';
-    end;
+    1: if Assigned(Objects) then CellText := FormatByteNumber(Objects.DataSize)
+      else CellText := '';
     2: CellText := GetItemCount(lntNone);
-    3: CellText := GetItemCount(lntTable);
-    4: CellText := GetItemCount(lntView);
-    5: CellText := GetItemCount(lntFunction);
-    6: CellText := GetItemCount(lntProcedure);
-    7: CellText := GetItemCount(lntTrigger);
-    8: begin
+    3: if Assigned(Objects) and (Objects.LastUpdate > 0) then CellText := DateTimeToStr(Objects.LastUpdate)
+      else CellText := '';
+    4: CellText := GetItemCount(lntTable);
+    5: CellText := GetItemCount(lntView);
+    6: CellText := GetItemCount(lntFunction);
+    7: CellText := GetItemCount(lntProcedure);
+    8: CellText := GetItemCount(lntTrigger);
+    9: CellText := GetItemCount(lntEvent);
+    10: begin
       CellText := '';
       if Assigned(AllDatabasesDetails) then begin
         AllDatabasesDetails.First;

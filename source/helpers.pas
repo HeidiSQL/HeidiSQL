@@ -10,7 +10,7 @@ interface
 
 uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ComCtrls, ShellApi, CheckLst,
-  Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, WideStrUtils,
+  Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, WideStrUtils, Math,
   Registry, SynEditHighlighter, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   mysql_connection, mysql_structures;
 
@@ -182,8 +182,6 @@ type
   procedure GridToXml(Grid: TVirtualStringTree; root: String; S: TStream);
   procedure GridToSql(Grid: TVirtualStringTree; Tablename: String; S: TStream);
   function esc2ascii(str: String): String;
-  function Max(A, B: Integer): Integer; assembler;
-  function Min(A, B: Integer): Integer; assembler;
   function urlencode(url: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
   function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): String;
@@ -1220,40 +1218,6 @@ begin
   str := stringreplace(str, '\n', #10, [rfReplaceAll]);
   str := stringreplace(str, '\t', #9, [rfReplaceAll]);
   result := str;
-end;
-
-
-
-{***
-  Get higher value of two integers
-
-  @param integer Number 1 to compare
-  @param integer Number 2 to compare
-  @return integer Higher value
-}
-function Max(A, B: Integer): Integer; assembler;
-asm
-  CMP EAX,EDX
-  JG  @Exit
-  MOV EAX,EDX
-@Exit:
-end;
-
-
-
-{***
-  Get lower value of two integers
-
-  @param integer Number 1 to compare
-  @param integer Number 2 to compare
-  @return integer Lower value of both parameters
-}
-function Min(A, B: Integer): Integer; assembler;
-asm
-  CMP EAX,EDX
-  JL  @Exit
-  MOV EAX,EDX
-@Exit:
 end;
 
 
