@@ -961,7 +961,7 @@ const
   end;
 
 begin
-  // Handle one table, view or routine in SQL export mode
+  // Handle one table, view or whatever in SQL export mode
   AddResults('SELECT '+esc(DBObj.Database)+' AS '+Mainform.mask('Database')+', ' +
     esc(DBObj.Name)+' AS '+Mainform.mask('Table')+', ' +
     IntToStr(DBObj.Rows)+' AS '+Mainform.mask('Rows')+', '+
@@ -1092,6 +1092,16 @@ begin
                 Insert(m(FinalDbName)+'.', Struc, Pos('FUNCTION', Struc) + 9 );
             end;
             // Change delimiter for file output, so readers split queries at the right string position
+            if ToFile or ToDir or ToClipboard then
+              Struc := 'DELIMITER ' + TempDelim + CRLF + Struc + TempDelim + CRLF + 'DELIMITER ';
+          end;
+
+          lntEvent: begin
+            Struc := Mainform.Connection.GetVar('SHOW CREATE '+UpperCase(DBObj.ObjType)+' '+m(DBObj.Database)+'.'+m(DBObj.Name), 'Create Event');
+            MultiSQL := Explode(';', Struc);
+            Struc := ImplodeStr(';'+CRLF, MultiSQL);
+            if ToDb then
+              Insert(m(FinalDbName)+'.', Struc, Pos('EVENT', Struc) + 6 );
             if ToFile or ToDir or ToClipboard then
               Struc := 'DELIMITER ' + TempDelim + CRLF + Struc + TempDelim + CRLF + 'DELIMITER ';
           end;
