@@ -869,6 +869,7 @@ type
     prefNullBG: TColor;
     prefDisplayBars: Boolean;
     prefBarColor: TColor;
+    prefCompletionProposal: Boolean;
 
     // Data grid related stuff
     DataGridHiddenColumns: TStringList;
@@ -1257,6 +1258,7 @@ begin
   prefLogDebug := GetRegValue(REGNAME_LOG_DEBUG, DEFAULT_LOG_DEBUG);
   prefDisplayBars := GetRegValue(REGNAME_DISPLAYBARS, DEFAULT_DISPLAYBARS);
   prefBarColor := GetRegValue(REGNAME_BARCOLOR, DEFAULT_BARCOLOR);
+  prefCompletionProposal := GetRegValue(REGNAME_COMPLETIONPROPOSAL, DEFAULT_COMPLETIONPROPOSAL);
 
   // Data-Font:
   datafontname := GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
@@ -4178,6 +4180,11 @@ var
   end;
 
 begin
+  if not prefCompletionProposal then begin
+    CanExecute := False;
+    Exit;
+  end;
+
   Proposal := Sender as TSynCompletionProposal;
   Editor := Proposal.Form.CurrentEditor;
   Editor.GetHighlighterAttriAtRowColEx(Editor.CaretXY, Token, TokenTypeInt, Start, Attri);
