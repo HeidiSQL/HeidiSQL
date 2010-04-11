@@ -18,7 +18,7 @@ uses
   CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
-  mysql_api, insertfiles, searchreplace, loaddata, copytable;
+  mysql_api, insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup;
 
 
 type
@@ -293,7 +293,7 @@ type
     N19: TMenuItem;
     setNULL1: TMenuItem;
     menuExporttables: TMenuItem;
-    popupDbGridHeader: TPopupMenu;
+    popupListHeader: TVTHeaderPopupMenu;
     SynCompletionProposal: TSynCompletionProposal;
     OpenDialogSQLFile: TOpenDialog;
     SaveDialogSQLFile: TSaveDialog;
@@ -580,7 +580,6 @@ type
     procedure QFvaluesClick(Sender: TObject);
     procedure InsertDate(Sender: TObject);
     procedure setNULL1Click(Sender: TObject);
-    procedure MenuTablelistColumnsClick(Sender: TObject);
     function QueryLoad( filename: String; ReplaceContent: Boolean = true ): Boolean;
     procedure DataGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure DataGridCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -794,7 +793,6 @@ type
     function GetActiveDatabase: String;
     function GetSelectedTable: TDBObject;
     procedure SetSelectedDatabase(db: String);
-    procedure SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     procedure AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
     procedure PlaceObjectEditor(Obj: TDBObject);
@@ -1124,7 +1122,6 @@ end;
 procedure TMainForm.FormCreate(Sender: TObject);
 var
   i: Integer;
-  menuitem : TMenuItem;
   datafontname, WinState: String;
   datafontsize : Integer;
   DisableProcessWindowsGhostingProc: procedure;
@@ -1306,19 +1303,6 @@ begin
   for i:=0 to ActionList1.ActionCount-1 do begin
     Action := TAction(ActionList1.Actions[i]);
     Action.ShortCut := GetRegValue(REGPREFIX_SHORTCUT1+Action.Name, Action.ShortCut);
-  end;
-
-  // Generate menuitems for popupDbGridHeader (column selection for ListTables)
-  popupDBGridHeader.Items.Clear;
-  for i:=0 to ListTables.Header.Columns.Count-1 do
-  begin
-    menuitem := TMenuItem.Create( popupDBGridHeader );
-    menuitem.Caption := ListTables.Header.Columns[i].Text;
-    menuitem.OnClick := MenuTablelistColumnsClick;
-    // Disable hiding first column
-    menuitem.Enabled := i>0;
-    menuitem.Checked := coVisible in ListTables.Header.Columns[i].Options;
-    popupDbGridHeader.Items.Add( menuitem );
   end;
 
   // Place progressbar on the statusbar
@@ -5641,27 +5625,6 @@ begin
   raise Exception.Create('Assertion failed: Invalid global VT array.');
 end;
 
-{**
-  Click on popupDBGridHeader
-}
-procedure TMainForm.MenuTablelistColumnsClick(Sender: TObject);
-var
-  menuitem : TMenuItem;
-  VisibleColumns : TStringList;
-  i : Integer;
-begin
-  VisibleColumns := TStringList.Create;
-  menuitem := TMenuItem( Sender );
-  menuitem.Checked := not menuitem.Checked;
-  for i := 0 to ListTables.Header.Columns.Count - 1 do
-  begin
-    menuitem := popupDbGridHeader.Items[i];
-    if menuitem.Checked then
-      VisibleColumns.Add(IntToStr(i));
-  end;
-  SetVisibleListColumns( ListTables, VisibleColumns );
-end;
-
 
 {**
   Save setup of a VirtualStringTree to registry
@@ -5747,7 +5710,12 @@ begin
   Value := GetRegValue(REGPREFIX_COLSVISIBLE + Regname, '');
   if Value <> '' then begin
     ValueList := Explode( ',', Value );
-    SetVisibleListColumns( List, ValueList );
+    for i:=0 to List.Header.Columns.Count-1 do begin
+      if ValueList.IndexOf( IntToStr(i) ) > -1 then
+        List.Header.Columns[i].Options := List.Header.Columns[i].Options + [coVisible]
+      else
+        List.Header.Columns[i].Options := List.Header.Columns[i].Options - [coVisible];
+    end;
   end;
 
   // Column position
@@ -5764,25 +5732,6 @@ begin
   end;
 
   ValueList.Free;
-end;
-
-
-{**
-  (Un)hide columns in a VirtualStringTree.
-}
-procedure TMainForm.SetVisibleListColumns( List: TVirtualStringTree; Columns: TStringList );
-var
-  i : Integer;
-begin
-  for i := 0 to List.Header.Columns.Count - 1 do
-  begin
-    // Only ListTables' column visibility is currently customizable
-    // so, make sure to unhide the newer "Comment" column in ListColumns for some users 
-    if (Columns.IndexOf( IntToStr(i) ) > -1) or (List <> ListTables) then
-      List.Header.Columns[i].Options := List.Header.Columns[i].Options + [coVisible]
-    else
-      List.Header.Columns[i].Options := List.Header.Columns[i].Options - [coVisible];
-  end;
 end;
 
 
@@ -5915,14 +5864,6 @@ end;
 procedure TMainForm.vstHeaderDraggedOut(Sender: TVTHeader; Column:
     TColumnIndex; DropPosition: TPoint);
 begin
-  if Sender.Treeview = ListTables then
-  begin
-    // Keep "Tables" column
-    if Column = 0 then
-      Exit;
-    // Uncheck menuitem in header's contextmenu
-    popupDBGridHeader.Items[Column].Checked := False;
-  end;
   // Hide the draggedout column
   Sender.Columns[Column].Options := Sender.Columns[Column].Options - [coVisible];
 end;

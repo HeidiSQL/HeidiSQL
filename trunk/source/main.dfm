@@ -525,6 +525,7 @@ object MainForm: TMainForm
                 Header.DefaultHeight = 17
                 Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.ParentFont = True
+                Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
                 Images = ImageListMain
                 PopupMenu = popupHost
@@ -542,6 +543,7 @@ object MainForm: TMainForm
                 OnGetHint = vstGetHint
                 OnGetNodeDataSize = ListDatabasesGetNodeDataSize
                 OnHeaderClick = vstHeaderClick
+                OnHeaderDraggedOut = vstHeaderDraggedOut
                 OnInitNode = ListDatabasesInitNode
                 Columns = <
                   item
@@ -607,6 +609,7 @@ object MainForm: TMainForm
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.ParentFont = True
+                Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
                 HintMode = hmTooltip
                 Images = ImageListMain
@@ -629,6 +632,7 @@ object MainForm: TMainForm
                 OnGetHint = vstGetHint
                 OnGetNodeDataSize = vstGetNodeDataSize
                 OnHeaderClick = vstHeaderClick
+                OnHeaderDraggedOut = vstHeaderDraggedOut
                 OnInitNode = vstInitNode
                 Columns = <
                   item
@@ -657,6 +661,7 @@ object MainForm: TMainForm
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.ParentFont = True
+                Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
                 HintMode = hmTooltip
                 Images = ImageListMain
@@ -678,6 +683,7 @@ object MainForm: TMainForm
                 OnGetHint = vstGetHint
                 OnGetNodeDataSize = vstGetNodeDataSize
                 OnHeaderClick = vstHeaderClick
+                OnHeaderDraggedOut = vstHeaderDraggedOut
                 OnInitNode = vstInitNode
                 Columns = <
                   item
@@ -728,6 +734,7 @@ object MainForm: TMainForm
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.ParentFont = True
+                Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
                 Header.SortDirection = sdDescending
                 HintMode = hmTooltip
@@ -752,6 +759,7 @@ object MainForm: TMainForm
                 OnGetHint = vstGetHint
                 OnGetNodeDataSize = vstGetNodeDataSize
                 OnHeaderClick = vstHeaderClick
+                OnHeaderDraggedOut = vstHeaderDraggedOut
                 OnInitNode = vstInitNode
                 Columns = <
                   item
@@ -873,6 +881,7 @@ object MainForm: TMainForm
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.ParentFont = True
+                Header.PopupMenu = popupListHeader
                 Header.SortColumn = 1
                 Header.SortDirection = sdDescending
                 HintMode = hmTooltip
@@ -896,6 +905,7 @@ object MainForm: TMainForm
                 OnGetHint = vstGetHint
                 OnGetNodeDataSize = vstGetNodeDataSize
                 OnHeaderClick = vstHeaderClick
+                OnHeaderDraggedOut = vstHeaderDraggedOut
                 OnInitNode = vstInitNode
                 Columns = <
                   item
@@ -945,7 +955,7 @@ object MainForm: TMainForm
             Header.Height = 20
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
             Header.ParentFont = True
-            Header.PopupMenu = popupDbGridHeader
+            Header.PopupMenu = popupListHeader
             Header.SortColumn = 0
             HintMode = hmTooltip
             Images = ImageListMain
@@ -8032,9 +8042,7 @@ object MainForm: TMainForm
     Left = 40
     Top = 200
   end
-  object popupDbGridHeader: TPopupMenu
-    AutoHotkeys = maManual
-    AutoLineReduction = maManual
+  object popupListHeader: TVTHeaderPopupMenu
     Images = ImageListMain
     Left = 40
     Top = 128
