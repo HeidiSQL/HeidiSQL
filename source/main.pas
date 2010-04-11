@@ -5037,12 +5037,10 @@ var
   DBObjects: TDBObjectList;
 begin
   Node := DBtree.FocusedNode;
+  Result := TDBObject.Create;
   if Assigned(Node) and (DBtree.GetNodeLevel(Node)=2) then begin
     DBObjects := Connection.GetDBObjects(ActiveDatabase);
-    Result := DBObjects[Node.Index];
-  end else begin
-    Result := TDBObject.Create;
-    Result.NodeType := lntNone;
+    Result.Assign(DBObjects[Node.Index]);
   end;
 end;
 
