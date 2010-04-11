@@ -2316,7 +2316,7 @@ begin
     for DBObject in ObjectList do
       Connection.Query('DROP '+UpperCase(DBObject.ObjType)+' '+Mask(DBObject.Name));
     // Refresh ListTables + dbtree so the dropped tables are gone:
-    actRefresh.Execute;
+    RefreshTreeDB(ActiveDatabase);
   except
     on E:Exception do
       MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -6585,6 +6585,7 @@ var
   TableHereHadFocus: Boolean;
   DBObjects: TDBObjectList;
   i: Integer;
+  FocusFound: Boolean;
   FocusChangeEvent: procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex) of object;
   FocusChangingEvent: procedure(Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode; OldColumn,
     NewColumn: TColumnIndex; var Allowed: Boolean) of object;
@@ -6609,12 +6610,14 @@ begin
   DBTree.ReinitNode(DBNode, true);
   DBtree.InvalidateChildren(DBNode, false);
   // Set focus on previously focused table node
+  FocusFound := False;
   if TableHereHadFocus then begin
     DBObjects := Connection.GetDBObjects(db);
     for i:=0 to DBObjects.Count-1 do begin
       // Need to check if table was renamed, in which case oldSelectedTable is no longer available
       if (DBObjects[i].Name = FocusObjectName)
         and (DBObjects[i].NodeType = FocusObjectType) then begin
+        FocusFound := True;
         SelectDBObject(FocusObjectName, FocusObjectType);
         break;
       end;
@@ -6623,6 +6626,9 @@ begin
   // Reactivate focus changing event
   DBtree.OnFocusChanging := FocusChangingEvent;
   DBtree.OnFocusChanged := FocusChangeEvent;
+  // If old table was deleted, set focus on parent database node
+  if TableHereHadFocus and (not FocusFound) and (Databases.IndexOf(oldActiveDatabase) > -1) then
+    SelectNode(DBtree, FindDBNode(oldActiveDatabase));
 end;
 
 
