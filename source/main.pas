@@ -7374,10 +7374,32 @@ var
   SetEditor: TSetEditorLink;
   InplaceEditor: TInplaceEditorLink;
   TypeCat: TDatatypeCategoryIndex;
+  ForeignKey: TForeignKey;
+  idx: Integer;
+  Col: String;
+  ForeignValues: TStringList;
 begin
   VT := Sender as TVirtualStringTree;
+
+  // Find foreign key values on InnoDB table cells
+  ForeignValues := nil;
+  for ForeignKey in SelectedTableForeignKeys do begin
+    idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
+    if idx > -1 then begin
+      Col := Mask(ForeignKey.ForeignColumns[idx]);
+      ForeignValues := Connection.GetCol('SELECT '+Col+' FROM '+MaskMulti(ForeignKey.ReferenceTable)+' GROUP BY '+Col+' ORDER BY '+Col);
+      break;
+    end;
+  end;
+
   TypeCat := DataGridResult.Columns[Column].DatatypeCat;
-  if (TypeCat = dtcText) or ((TypeCat = dtcBinary) and actBlobAsText.Checked) then begin
+  if Assigned(ForeignValues) then begin
+    EnumEditor := TEnumEditorLink.Create(VT);
+    EnumEditor.AllowCustomText := True;
+    EnumEditor.DataType := DataGridResult.Columns[Column].Datatype;
+    EnumEditor.ValueList := ForeignValues;
+    EditLink := EnumEditor;
+  end else if (TypeCat = dtcText) or ((TypeCat = dtcBinary) and actBlobAsText.Checked) then begin
     InplaceEditor := TInplaceEditorLink.Create(VT);
     InplaceEditor.DataType := DataGridResult.Columns[Column].Datatype;
     InplaceEditor.MaxLength := DataGridResult.Columns[Column].MaxLength;
