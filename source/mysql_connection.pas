@@ -492,9 +492,10 @@ end;
 }
 function TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TMySQLLogCategory=lcSQL): PMYSQL_RES;
 var
-  querystatus: Integer;
+  querystatus, i: Integer;
   NativeSQL: AnsiString;
   TimerStart: Cardinal;
+  NextResult: PMYSQL_RES;
 begin
   if not Ping then
     Active := True;
@@ -530,6 +531,17 @@ begin
       Log(lcDebug, IntToStr(RowsFound)+' rows found.');
       if not DoStoreResult then
         mysql_free_result(Result);
+
+      // No support for real multi results yet, throw them away, so mysql_ping() does not crash on the *next* query.
+      i := 1;
+      while mysql_next_result(FHandle) = 0 do begin
+        Inc(i);
+        Log(lcDebug, 'Storing and freeing result #'+IntToStr(i)+' from multiple result set ...');
+        NextResult := mysql_store_result(FHandle);
+        if NextResult <> nil then
+          mysql_free_result(NextResult);
+      end;
+
     end else begin
       // Query did not return a result
       FRowsFound := 0;
