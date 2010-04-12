@@ -3570,7 +3570,7 @@ begin
       actDataShowAll.Enabled := actDataShowNext.Enabled;
       EnumerateRecentFilters;
       if Integer(vt.RootNodeCount) = prefGridRowcountMax then
-        LogSQL('Browsing is currently limited to a maximum of '+FormatNumber(prefGridRowcountMax)+' rows. To see more rows, decrease this maximum in Tools > Preferences > Data .', lcInfo);
+        LogSQL('Browsing is currently limited to a maximum of '+FormatNumber(prefGridRowcountMax)+' rows. To see more rows, increase this maximum in Tools > Preferences > Data .', lcInfo);
     end;
   end;
   vt.Tag := VTREE_LOADED;
