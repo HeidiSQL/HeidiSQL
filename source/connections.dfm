@@ -15,7 +15,7 @@ object connform: Tconnform
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  Position = poScreenCenter
+  Position = poMainFormCenter
   ShowHint = True
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
