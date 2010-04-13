@@ -467,7 +467,7 @@ begin
   if memoComment.Tag = ModifiedFlag then
     Specs.Add('COMMENT=' + esc(memoComment.Text));
   if (comboCollation.Tag = ModifiedFlag) or (chkCharsetConvert.Checked) then
-    Specs.Add('COLLATE=' + comboCollation.Text);
+    Specs.Add('COLLATE=' + esc(comboCollation.Text));
   if comboEngine.Tag = ModifiedFlag then begin
     if Mainform.Connection.ServerVersionInt < 40018 then
       Specs.Add('TYPE=' + comboEngine.Text)
@@ -525,9 +525,9 @@ begin
       if Col.Collation <> '' then begin
         ColSpec := ColSpec + ' COLLATE ';
         if chkCharsetConvert.Checked then
-          ColSpec := ColSpec + comboCollation.Text
+          ColSpec := ColSpec + esc(comboCollation.Text)
         else
-          ColSpec := ColSpec + Col.Collation;
+          ColSpec := ColSpec + esc(Col.Collation);
       end;
       // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
       if Mainform.Connection.ServerVersionInt >= 40001 then begin
@@ -617,7 +617,7 @@ begin
     if Col.Comment <> '' then
       Result := Result + ' COMMENT '+esc(Col.Comment);
     if Col.Collation <> '' then
-      Result := Result + ' COLLATE '+Col.Collation;
+      Result := Result + ' COLLATE '+esc(Col.Collation);
     Result := Result + ','+CRLF;
     Node := listColumns.GetNextSibling(Node);
   end;
@@ -641,7 +641,7 @@ begin
   if memoComment.Text <> '' then
     Result := Result + 'COMMENT='+esc(memoComment.Text) + CRLF;
   if comboCollation.Text <> '' then
-    Result := Result + 'COLLATE='+comboCollation.Text + CRLF;
+    Result := Result + 'COLLATE='+esc(comboCollation.Text) + CRLF;
   if comboEngine.Text <> '' then begin
     if Mainform.Connection.ServerVersionInt < 40018 then
       Result := Result + 'TYPE='+comboEngine.Text + CRLF
