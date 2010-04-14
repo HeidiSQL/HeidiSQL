@@ -7375,31 +7375,62 @@ var
   InplaceEditor: TInplaceEditorLink;
   TypeCat: TDatatypeCategoryIndex;
   ForeignKey: TForeignKey;
+  TblColumn: TTableColumn;
   idx: Integer;
-  Col: String;
-  ForeignValues: TStringList;
+  KeyCol, TextCol, SQL, CreateTable: String;
+  Columns: TTableColumnList;
+  Keys: TTableKeyList;
+  ForeignKeys: TForeignKeyList;
+  ForeignResults: TMySQLQuery;
 begin
   VT := Sender as TVirtualStringTree;
 
   // Find foreign key values on InnoDB table cells
-  ForeignValues := nil;
   for ForeignKey in SelectedTableForeignKeys do begin
     idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
     if idx > -1 then begin
-      Col := Mask(ForeignKey.ForeignColumns[idx]);
-      ForeignValues := Connection.GetCol('SELECT '+Col+' FROM '+MaskMulti(ForeignKey.ReferenceTable)+' GROUP BY '+Col+' ORDER BY '+Col);
+      // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
+      CreateTable := Connection.GetVar('SHOW CREATE TABLE '+MaskMulti(ForeignKey.ReferenceTable), 1);
+      Columns := TTableColumnList.Create;
+      Keys := nil;
+      ForeignKeys := nil;
+      ParseTableStructure(CreateTable, Columns, Keys, ForeignKeys);
+      TextCol := '';
+      for TblColumn in Columns do begin
+        if (TblColumn.DataType.Category = dtcText) and (TblColumn.Name <> ForeignKey.ForeignColumns[idx]) then begin
+          TextCol := TblColumn.Name;
+          break;
+        end;
+      end;
+
+      KeyCol := Mask(ForeignKey.ForeignColumns[idx]);
+      SQL := 'SELECT '+KeyCol;
+      if TextCol <> '' then SQL := SQL + ', LEFT(' + Mask(TextCol) + ', 256)';
+      SQL := SQL + ' FROM '+MaskMulti(ForeignKey.ReferenceTable)+' GROUP BY '+KeyCol+' ORDER BY ';
+      if TextCol <> '' then SQL := SQL + Mask(TextCol) else SQL := SQL + KeyCol;
+      SQL := SQL + ' LIMIT 1000';
+
+      EnumEditor := TEnumEditorLink.Create(VT);
+      EnumEditor.DataType := DataGridResult.Columns[Column].Datatype;
+      EditLink := EnumEditor;
+      if TextCol = '' then
+        EnumEditor.ValueList := Connection.GetCol(SQL)
+      else begin
+        ForeignResults := Connection.GetResults(SQL);
+        while not ForeignResults.Eof do begin
+          EnumEditor.ValueList.Add(ForeignResults.Col(0));
+          EnumEditor.DisplayList.Add(ForeignResults.Col(0)+': '+ForeignResults.Col(1));
+          ForeignResults.Next;
+        end;
+      end;
       break;
     end;
   end;
 
   TypeCat := DataGridResult.Columns[Column].DatatypeCat;
-  if Assigned(ForeignValues) then begin
-    EnumEditor := TEnumEditorLink.Create(VT);
-    EnumEditor.AllowCustomText := True;
-    EnumEditor.DataType := DataGridResult.Columns[Column].Datatype;
-    EnumEditor.ValueList := ForeignValues;
-    EditLink := EnumEditor;
-  end else if (TypeCat = dtcText) or ((TypeCat in [dtcBinary, dtcSpatial]) and actBlobAsText.Checked) then begin
+  if Assigned(EditLink) then
+    // Editor was created above, do nothing now
+  else if (TypeCat = dtcText) or ((TypeCat in [dtcBinary, dtcSpatial]) and actBlobAsText.Checked) then begin
     InplaceEditor := TInplaceEditorLink.Create(VT);
     InplaceEditor.DataType := DataGridResult.Columns[Column].Datatype;
     InplaceEditor.MaxLength := DataGridResult.Columns[Column].MaxLength;
