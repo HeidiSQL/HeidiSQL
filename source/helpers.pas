@@ -989,7 +989,7 @@ begin
       Continue;
     Data := GridData.Columns[i].Name;
     // Alter column name in header if data is not raw.
-    if (GridData.Columns[i].DatatypeCat = dtcBinary) and (not Mainform.actBlobAsText.Checked) then
+    if (GridData.Columns[i].DatatypeCat in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
       Data := 'HEX(' + Data + ')';
     // Add header item.
     if tmp <> '' then tmp := tmp + Separator;
@@ -1012,7 +1012,7 @@ begin
         Continue;
       Data := Grid.Text[Node, i];
       // Remove 0x.
-      if (GridData.Columns[i].DatatypeCat = dtcBinary) and (not Mainform.actBlobAsText.Checked) then
+      if (GridData.Columns[i].DatatypeCat in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
         Delete(Data, 1, 2);
       // Unformat numeric values
       if (GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
@@ -1089,12 +1089,12 @@ begin
       tmp := tmp + #9#9'<' + Grid.Header.Columns[i].Text;
       if GridData.Rows[Node.Index].Cells[i].IsNull then tmp := tmp + ' isnull="true" />' + CRLF
       else begin
-        if (GridData.Columns[i].DatatypeCat = dtcBinary) and (not Mainform.actBlobAsText.Checked) then
+        if (GridData.Columns[i].DatatypeCat in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
           tmp := tmp + ' format="hex"';
         tmp := tmp + '>';
         Data := Grid.Text[Node, i];
         // Remove 0x.
-        if (GridData.Columns[i].DatatypeCat = dtcBinary) and (not Mainform.actBlobAsText.Checked) then
+        if (GridData.Columns[i].DatatypeCat in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
           Delete(Data, 1, 2);
         // Unformat numeric values
         if (GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
@@ -1175,7 +1175,7 @@ begin
       else begin             
         Data := Grid.Text[Node, i];
         // Remove 0x.
-        if (GridData.Columns[i].DatatypeCat = dtcBinary) and (not Mainform.actBlobAsText.Checked) then
+        if (GridData.Columns[i].DatatypeCat in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
           Delete(Data, 1, 2);
         // Unformat numeric values
         if GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then

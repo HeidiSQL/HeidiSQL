@@ -1164,7 +1164,7 @@ begin
                 Row := Row + 'NULL'
               else case Data.DataType(i).Category of
                 dtcInteger, dtcReal: Row := Row + Data.Col(i);
-                dtcBinary: begin
+                dtcBinary, dtcSpatial: begin
                   BinContent := Data.BinColAsHex(i);
                   if Length(BinContent) > 0 then
                     Row := Row + '_binary 0x' + BinContent

@@ -3267,7 +3267,7 @@ begin
       for i:=0 to Length(DataGridResult.Columns)-1 do begin
         case DataGridResult.Columns[i].DatatypeCat of
           dtcInteger, dtcReal: Row.Cells[i].Text := FormatNumber(Data.Col(i), False);
-          dtcBinary: Row.Cells[i].Text := GetBlobContent(Data, i);
+          dtcBinary, dtcSpatial: Row.Cells[i].Text := GetBlobContent(Data, i);
           else Row.Cells[i].Text := Data.Col(i);
         end;
         Row.Cells[i].IsNull := Data.IsNull(i);
@@ -3522,7 +3522,7 @@ begin
           Cell := @DataGridResult.Rows[i].Cells[j];
           case DataGridResult.Columns[j].DatatypeCat of
             dtcInteger, dtcReal: Cell.Text := FormatNumber(Data.Col(j), False);
-            dtcBinary: Cell.Text := GetBlobContent(Data, j);
+            dtcBinary, dtcSpatial: Cell.Text := GetBlobContent(Data, j);
             else Cell.Text := Data.Col(j);
           end;
           Cell.IsNull := Data.IsNull(j);
@@ -4067,7 +4067,7 @@ begin
       for j:=0 to Results.ColumnCount-1 do begin
         case ActiveGridResult.Columns[j].DatatypeCat of
           dtcInteger, dtcReal: ActiveGridResult.Rows[i].Cells[j].Text := FormatNumber(Results.Col(j), False);
-          dtcBinary: ActiveGridResult.Rows[i].Cells[j].Text := GetBlobContent(Results, j);
+          dtcBinary, dtcSpatial: ActiveGridResult.Rows[i].Cells[j].Text := GetBlobContent(Results, j);
           else ActiveGridResult.Rows[i].Cells[j].Text := Results.Col(j);
         end;
         ActiveGridResult.Rows[i].Cells[j].IsNull := Results.IsNull(j);
@@ -6948,7 +6948,7 @@ begin
       Val := Row.Cells[i].NewText;
       case DataGridResult.Columns[i].DatatypeCat of
         dtcInteger, dtcReal: Val := UnformatNumber(Val);
-        dtcBinary: begin
+        dtcBinary, dtcSpatial: begin
           if actBlobAsText.Checked then
             Val := esc(Val)
           else begin
@@ -7048,7 +7048,7 @@ begin
     // Quote if needed
     case DataGridResult.Columns[j].DatatypeCat of
       dtcInteger, dtcReal: KeyVal := UnformatNumber(KeyVal);
-      dtcBinary: begin
+      dtcBinary, dtcSpatial: begin
         if actBlobAsText.Checked then
           KeyVal := esc(KeyVal)
         else if KeyVal = '0x' then
@@ -7173,7 +7173,7 @@ begin
       Val := Row.Cells[i].NewText;
       case DataGridResult.Columns[i].DatatypeCat of
         dtcInteger, dtcReal: Val := UnformatNumber(Val);
-        dtcBinary: begin
+        dtcBinary, dtcSpatial: begin
           if actBlobAsText.Checked then
             Val := esc(Val)
           else begin
@@ -7399,13 +7399,13 @@ begin
     EnumEditor.DataType := DataGridResult.Columns[Column].Datatype;
     EnumEditor.ValueList := ForeignValues;
     EditLink := EnumEditor;
-  end else if (TypeCat = dtcText) or ((TypeCat = dtcBinary) and actBlobAsText.Checked) then begin
+  end else if (TypeCat = dtcText) or ((TypeCat in [dtcBinary, dtcSpatial]) and actBlobAsText.Checked) then begin
     InplaceEditor := TInplaceEditorLink.Create(VT);
     InplaceEditor.DataType := DataGridResult.Columns[Column].Datatype;
     InplaceEditor.MaxLength := DataGridResult.Columns[Column].MaxLength;
     InplaceEditor.ButtonVisible := True;
     EditLink := InplaceEditor;
-  end else if (TypeCat = dtcBinary) and prefEnableBinaryEditor then begin
+  end else if (TypeCat in [dtcBinary, dtcSpatial]) and prefEnableBinaryEditor then begin
     HexEditor := THexEditorLink.Create(VT);
     HexEditor.DataType := DataGridResult.Columns[Column].Datatype;
     HexEditor.MaxLength := DataGridResult.Columns[Column].MaxLength;
