@@ -4517,7 +4517,7 @@ begin
       Text := mask(DBtree.Text[DBtree.FocusedNode.Parent, 0]) + '.' + Text;
   end else if (src = ActiveQueryHelpers) and (ActiveQueryHelpers.ItemIndex > -1) then begin
     // Snippets tab
-    if tabsetQueryHelpers.TabIndex = 3 then begin
+    if ActiveQueryTabset.TabIndex = 3 then begin
       QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
       LoadText := False;
     // All other tabs
