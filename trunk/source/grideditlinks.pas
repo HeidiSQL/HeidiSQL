@@ -93,7 +93,7 @@ type
   private
     FCombo: TComboBox;
   public
-    ValueList: TStringList;
+    ValueList, DisplayList: TStringList;
     AllowCustomText: Boolean;
     constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
@@ -707,6 +707,7 @@ begin
   FCombo.OnKeyDown := DoKeyDown;
   FCombo.OnExit := DoEndEdit;
   ValueList := TStringList.Create;
+  DisplayList := TStringList.Create;
   FMainControl := FCombo;
 end;
 
@@ -729,26 +730,39 @@ end;
 
 
 function TEnumEditorLink.EndEdit: Boolean; stdcall;
+var
+  NewText: String;
 begin
-  Result := EndEditHelper(FCombo.Text);
+  if AllowCustomText then
+    NewText := FCombo.Text
+  else if ValueList.Count > 0 then
+    NewText := ValueList[FCombo.ItemIndex]
+  else
+    NewText := '';
+  Result := EndEditHelper(NewText);
 end;
 
 
 function TEnumEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
   i: Integer;
+  Items: TStringList;
 begin
   Result := inherited PrepareEdit(Tree, Node, Column);
   if Result then begin
-    for i := 0 to ValueList.Count - 1 do
-      FCombo.Items.Add(ValueList[i]);
+    if DisplayList.Count = ValueList.Count then
+      Items := DisplayList
+    else
+      Items := ValueList;
+    for i:=0 to Items.Count - 1 do
+      FCombo.Items.Add(Items[i]);
     if AllowCustomText then begin
       FCombo.Style := csDropDown;
       FCombo.Text := FCellText;
     end else begin
       // Set style to OwnerDraw, otherwise we wouldn't be able to adjust the combo's height
       FCombo.Style := csOwnerDrawFixed;
-      FCombo.ItemIndex := FCombo.Items.IndexOf(FCellText);
+      FCombo.ItemIndex := ValueList.IndexOf(FCellText);
     end;
   end;
 end;
