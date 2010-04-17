@@ -3499,6 +3499,8 @@ begin
     end;
 
     if Assigned(Data) then begin
+      editFilterVT.Clear;
+      TimerFilterVT.OnTimer(Sender);
 
       // Set up grid column headers
       ShowStatusMsg('Setting up columns ...');
@@ -4036,6 +4038,8 @@ begin
   ProgressBarStatus.Hide;
 
   if Assigned(Results) and Results.HasResult then begin
+    editFilterVT.Clear;
+    TimerFilterVT.OnTimer(Sender);
     ActiveGrid.BeginUpdate;
     // Reset filter if filter panel was disabled
     UpdateFilterPanel(Sender);
