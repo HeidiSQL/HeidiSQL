@@ -61,6 +61,7 @@ type
     constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
+    function CancelEdit: Boolean; override;
     function EndEdit: Boolean; override;
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
     procedure SetBounds(R: TRect); override;
@@ -444,8 +445,17 @@ begin
 end;
 
 
+function THexEditorLink.CancelEdit: Boolean;
+begin
+  Result := inherited CancelEdit;
+  if Result then
+    FForm.Close;
+end;
+
+
 function THexEditorLink.EndEdit: Boolean; stdcall;
 begin
+  FForm.Close;
   Result := EndEditHelper(FForm.GetText);
 end;
 
