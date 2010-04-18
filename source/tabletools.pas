@@ -1150,7 +1150,7 @@ begin
         for i:=0 to Data.ColumnCount-1 do
           BaseInsert := BaseInsert + m(Data.ColumnNames[i]) + ', ';
         Delete(BaseInsert, Length(BaseInsert)-1, 2);
-        BaseInsert := BaseInsert + ') VALUES (';
+        BaseInsert := BaseInsert + ') VALUES'+CRLF+#9+'(';
         while true do begin
           RowsInChunk := 0;
           Output(BaseInsert, False, True, True, True, True);
@@ -1180,7 +1180,7 @@ begin
             Data.Next;
             IsLastRowInChunk := (RowsInChunk = MaxRowsInChunk) or Data.Eof;
             if not IsLastRowInChunk then
-              Row := Row + ', (';
+              Row := Row + ','+CRLF+#9+'(';
             Output(Row, False, True, True, True, True);
             if IsLastRowInChunk then
               break;
