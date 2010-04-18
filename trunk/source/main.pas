@@ -2302,7 +2302,7 @@ begin
     for DBObject in ObjectList do
       Connection.Query('DROP '+UpperCase(DBObject.ObjType)+' '+Mask(DBObject.Name));
     // Refresh ListTables + dbtree so the dropped tables are gone:
-    RefreshTreeDB(ActiveDatabase);
+    Connection.ClearDbObjects(ActiveDatabase);
   except
     on E:Exception do
       MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -5035,7 +5035,8 @@ begin
   Result := TDBObject.Create;
   if Assigned(Node) and (DBtree.GetNodeLevel(Node)=2) then begin
     DBObjects := Connection.GetDBObjects(ActiveDatabase);
-    Result.Assign(DBObjects[Node.Index]);
+    if Node.Index < DBObjects.Count then
+      Result.Assign(DBObjects[Node.Index]);
   end;
 end;
 
@@ -6454,9 +6455,25 @@ end;
 
 
 procedure TMainForm.DBObjectsCleared(Database: String);
+var
+  Node: PVirtualNode;
 begin
-  if (Database='') or (ActiveDatabase=Database) then
+  // Avoid AVs while processing FormDestroy
+  if csDestroying in ComponentState then
+    Exit;
+  // Reload objects in ListTables
+  if ActiveDatabase=Database then
     InvalidateVT(ListTables, VTREE_NOTLOADED, False);
+  // Reload objects for database tree
+  Node := DBtree.GetFirstChild(DBtree.GetFirst);
+  while Assigned(Node) do begin
+    if Database = DBtree.Text[Node, 0] then begin
+      Node.States := Node.States - [vsInitialized];
+      DBtree.InvalidateChildren(Node, False);
+    end;
+    Node := DBtree.GetNextSibling(Node);
+  end;
+  ActiveDatabase := Database;
 end;
 
 
@@ -6559,8 +6576,6 @@ begin
   DBtree.OnFocusChanged := nil;
   // Refresh db node
   Connection.ClearDbObjects(db);
-  DBTree.ReinitNode(DBNode, true);
-  DBtree.InvalidateChildren(DBNode, false);
   // Set focus on previously focused table node
   FocusFound := False;
   if TableHereHadFocus then begin
