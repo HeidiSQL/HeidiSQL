@@ -3271,6 +3271,7 @@ begin
   // repeatedly breaks the GUI layout when you reload the project
   Align := alClient;
   InheritFont(Font);
+  ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
 end;
 
 destructor TDBObjectEditor.Destroy;
@@ -3286,7 +3287,6 @@ end;
 procedure TDBObjectEditor.Init(Obj: TDBObject);
 begin
   Mainform.ShowStatusMsg('Initializing editor ...');
-  ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
   DBObject := Obj;
   Mainform.UpdateEditorTab;
   Screen.Cursor := crHourglass;
