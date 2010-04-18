@@ -223,7 +223,7 @@ begin
     DBObject.Name := editName.Text;
     tabALTERcode.TabVisible := DBObject.Name <> '';
     Mainform.UpdateEditorTab;
-    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, DBObject.Name, DBObject.NodeType);
+    Mainform.RefreshActiveTreeDB(DBObject);
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
