@@ -782,6 +782,7 @@ type
     FilterTextDatabase,
     FilterTextData: String;
     PreviousFocusedNode: PVirtualNode;
+    FProcessDBtreeFocusChanges: Boolean;
     FCmdlineFilenames: TStringlist;
     FCmdlineConnectionParams: TConnectionParameters;
     FCmdlineSessionName: String;
@@ -922,7 +923,7 @@ type
     function GetTreeNodeType(Tree: TBaseVirtualTree; Node: PVirtualNode): TListNodeType;
     function GetFocusedTreeNodeType: TListNodeType;
     procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: String = '');
-    procedure RefreshTreeDB(db: String; FocusObjectName: String=''; FocusObjectType: TListNodeType=lntNone);
+    procedure RefreshActiveTreeDB(FocusObject: TDBObject);
     function FindDBNode(db: String): PVirtualNode;
     function GridPostUpdate(Sender: TBaseVirtualTree): Boolean;
     function GridPostInsert(Sender: TBaseVirtualTree): Boolean;
@@ -1357,6 +1358,8 @@ begin
   SelectedTableColumns := TTableColumnList.Create;
   SelectedTableKeys := TTableKeyList.Create;
   SelectedTableForeignKeys := TForeignKeyList.Create;
+
+  FProcessDBtreeFocusChanges := True;
 end;
 
 
@@ -6325,6 +6328,8 @@ begin
   SelectedTableCreateStatement := '';
   if not Assigned(Node) then
     Exit;
+  if not FProcessDBtreeFocusChanges then
+    Exit;
   // Post pending UPDATE
   if DataGridHasChanges then
     actDataPostChangesExecute(Sender);
@@ -6411,7 +6416,7 @@ procedure TMainForm.DBtreeFocusChanging(Sender: TBaseVirtualTree; OldNode,
 begin
   debug('DBtreeFocusChanging');
   // Check if some editor has unsaved changes
-  if Assigned(ActiveObjectEditor) and Assigned(NewNode) and (NewNode <> OldNode) then begin
+  if Assigned(ActiveObjectEditor) and Assigned(NewNode) and (NewNode <> OldNode) and FProcessDBtreeFocusChanges then begin
     Allowed := not (ActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
     DBTree.Selected[DBTree.FocusedNode] := not Allowed;
   end else
@@ -6457,6 +6462,7 @@ end;
 procedure TMainForm.DBObjectsCleared(Database: String);
 var
   Node: PVirtualNode;
+  WasExpanded: Boolean;
 begin
   // Avoid AVs while processing FormDestroy
   if csDestroying in ComponentState then
@@ -6468,8 +6474,10 @@ begin
   Node := DBtree.GetFirstChild(DBtree.GetFirst);
   while Assigned(Node) do begin
     if Database = DBtree.Text[Node, 0] then begin
-      Node.States := Node.States - [vsInitialized];
-      DBtree.InvalidateChildren(Node, False);
+      WasExpanded := DBtree.Expanded[Node];
+      DBtree.ResetNode(Node);
+      DBtree.Expanded[Node] := WasExpanded;
+      break;
     end;
     Node := DBtree.GetNextSibling(Node);
   end;
@@ -6547,55 +6555,26 @@ end;
 {**
   Refresh one database node in the db tree
 }
-procedure TMainForm.RefreshTreeDB(db: String; FocusObjectName: String=''; FocusObjectType: TListNodeType=lntNone);
+procedure TMainForm.RefreshActiveTreeDB(FocusObject: TDBObject);
 var
-  oldActiveDatabase: String;
-  DBNode, FNode: PVirtualNode;
-  TableHereHadFocus: Boolean;
-  DBObjects: TDBObjectList;
-  i: Integer;
-  FocusFound: Boolean;
-  FocusChangeEvent: procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex) of object;
-  FocusChangingEvent: procedure(Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode; OldColumn,
-    NewColumn: TColumnIndex; var Allowed: Boolean) of object;
+  ObjNode: PVirtualNode;
+  Objects: TDBObjectList;
 begin
-  debug('RefreshTreeDB()');
-  DBNode := FindDBNode(db);
-  FNode := DBtree.FocusedNode;
-  TableHereHadFocus := Assigned(FNode) and ((FNode.Parent = DBNode) or (FocusObjectName <> ''));
-  oldActiveDatabase := ActiveDatabase;
-  if FocusObjectName = '' then begin
-    // Most cases just go here and focus the old table afterwards
-    FocusObjectName := SelectedTable.Name;
-    FocusObjectType := SelectedTable.NodeType;
-  end;
-  // Suspend focus changing event, to avoid tab jumping
-  FocusChangingEvent := DBtree.OnFocusChanging;
-  FocusChangeEvent := DBtree.OnFocusChanged;
-  DBtree.OnFocusChanging := nil;
-  DBtree.OnFocusChanged := nil;
-  // Refresh db node
-  Connection.ClearDbObjects(db);
-  // Set focus on previously focused table node
-  FocusFound := False;
-  if TableHereHadFocus then begin
-    DBObjects := Connection.GetDBObjects(db);
-    for i:=0 to DBObjects.Count-1 do begin
-      // Need to check if table was renamed, in which case oldSelectedTable is no longer available
-      if (DBObjects[i].Name = FocusObjectName)
-        and (DBObjects[i].NodeType = FocusObjectType) then begin
-        FocusFound := True;
-        SelectDBObject(FocusObjectName, FocusObjectType);
-        break;
+  FProcessDBtreeFocusChanges := False;
+  Connection.ClearDbObjects(ActiveDatabase);
+  // Set focused node
+  if FocusObject.NodeType <> lntNone then begin
+    Objects := Connection.GetDBObjects(ActiveDatabase);
+    ObjNode := DBtree.GetFirstChild(FindDBNode(ActiveDatabase));
+    while Assigned(ObjNode) do begin
+      if (Objects[ObjNode.Index].Name = FocusObject.Name)
+        and (Objects[ObjNode.Index].NodeType = FocusObject.NodeType) then begin
+        SelectNode(DBtree, ObjNode);
       end;
+      ObjNode := DBtree.GetNextSibling(ObjNode);
     end;
   end;
-  // Reactivate focus changing event
-  DBtree.OnFocusChanging := FocusChangingEvent;
-  DBtree.OnFocusChanged := FocusChangeEvent;
-  // If old table was deleted, set focus on parent database node
-  if TableHereHadFocus and (not FocusFound) and (Databases.IndexOf(oldActiveDatabase) > -1) then
-    SelectNode(DBtree, FindDBNode(oldActiveDatabase));
+  FProcessDBtreeFocusChanges := True;
 end;
 
 

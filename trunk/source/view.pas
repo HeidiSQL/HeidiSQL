@@ -180,7 +180,7 @@ begin
     end;
     DBObject.Name := editName.Text;
     Mainform.UpdateEditorTab;
-    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, DBObject.Name, DBObject.NodeType);
+    Mainform.RefreshActiveTreeDB(DBObject);
     Mainform.ParseSelectedTableStructure;
     Modified := False;
     btnSave.Enabled := Modified;

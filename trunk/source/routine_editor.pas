@@ -454,7 +454,7 @@ begin
     if FAlterRoutineType = 'PROCEDURE' then DBObject.NodeType := lntProcedure
     else DBObject.NodeType := lntFunction;
     Mainform.UpdateEditorTab;
-    Mainform.RefreshTreeDB(Mainform.ActiveDatabase, DBObject.Name, DBObject.NodeType);
+    Mainform.RefreshActiveTreeDB(DBObject);
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
