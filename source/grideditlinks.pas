@@ -1383,13 +1383,16 @@ end;
 procedure TDataTypeEditorLink.SetBounds(R: TRect);
 var
   CellRect: TRect;
+  TreeHeight: Integer;
 begin
   // Set position of tree. As the tree's parent is mainform, not listcolumns, add listcolumn's x + y positions
   CellRect := GetCellRect(False);
+  // Do not exceed lower edge of mainform, as that portion would be hidden
+  TreeHeight := Min(250, FParentForm.ClientHeight-CellRect.Top-10);
   FTreeSelect.SetBounds(CellRect.Left,
     CellRect.Top,
     FTreeSelect.Header.Columns[0].Width + GetSystemMetrics(SM_CXVSCROLL) + 5,
-    250);
+    TreeHeight);
 end;
 
 
