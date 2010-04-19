@@ -6561,20 +6561,23 @@ var
   Objects: TDBObjectList;
 begin
   FProcessDBtreeFocusChanges := False;
-  Connection.ClearDbObjects(ActiveDatabase);
-  // Set focused node
-  if FocusObject.NodeType <> lntNone then begin
-    Objects := Connection.GetDBObjects(ActiveDatabase);
-    ObjNode := DBtree.GetFirstChild(FindDBNode(ActiveDatabase));
-    while Assigned(ObjNode) do begin
-      if (Objects[ObjNode.Index].Name = FocusObject.Name)
-        and (Objects[ObjNode.Index].NodeType = FocusObject.NodeType) then begin
-        SelectNode(DBtree, ObjNode);
+  try
+    Connection.ClearDbObjects(ActiveDatabase);
+    // Set focused node
+    if FocusObject <> nil then begin
+      Objects := Connection.GetDBObjects(ActiveDatabase);
+      ObjNode := DBtree.GetFirstChild(FindDBNode(ActiveDatabase));
+      while Assigned(ObjNode) do begin
+        if (Objects[ObjNode.Index].Name = FocusObject.Name)
+          and (Objects[ObjNode.Index].NodeType = FocusObject.NodeType) then begin
+          SelectNode(DBtree, ObjNode);
+        end;
+        ObjNode := DBtree.GetNextSibling(ObjNode);
       end;
-      ObjNode := DBtree.GetNextSibling(ObjNode);
     end;
+  finally
+    FProcessDBtreeFocusChanges := True;
   end;
-  FProcessDBtreeFocusChanges := True;
 end;
 
 
