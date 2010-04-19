@@ -294,6 +294,7 @@ end;
 destructor TMySQLConnection.Destroy;
 begin
   if Active then Active := False;
+  FOnDBObjectsCleared := nil;
   ClearCache;
   inherited Destroy;
 end;
