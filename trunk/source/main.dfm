@@ -1086,7 +1086,7 @@ object MainForm: TMainForm
             Height = 211
             Align = alClient
             Alignment = taCenter
-            Caption = 'Stored routines don'#39't provide any data you could edit here.'
+            Caption = 'No data available for this item.'
             Layout = tlCenter
             WordWrap = True
           end
