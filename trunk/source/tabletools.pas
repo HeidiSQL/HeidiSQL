@@ -285,7 +285,7 @@ begin
   end;
   comboExportOutputType.OnChange(Sender);
 
-  comboBulkTableEditDatabase.Items.Text := Mainform.Databases.Text;
+  comboBulkTableEditDatabase.Items.Text := Mainform.AllDatabases.Text;
   if comboBulkTableEditDatabase.Items.Count > 0 then
     comboBulkTableEditDatabase.ItemIndex := 0;
 
@@ -504,7 +504,7 @@ begin
     for i:=0 to FModifiedDbs.Count-1 do
       Mainform.Connection.ClearDbObjects(FModifiedDbs[i]);
     TreeObjects.ResetNode(TreeObjects.GetFirst);
-    Mainform.DBtree.ResetNode(Mainform.DBtree.GetFirst);
+    InvalidateVT(Mainform.DBtree, VTREE_NOTLOADED_PURGECACHE, False);
     FModifiedDbs.Clear;
   end;
   Screen.Cursor := crDefault;

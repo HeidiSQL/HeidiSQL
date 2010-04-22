@@ -106,7 +106,7 @@ begin
 
 	// Select TargetDatabase
   ComboSelectDatabase.Items.Clear;
-  ComboSelectDatabase.Items.Assign(Mainform.Databases);
+  ComboSelectDatabase.Items.Assign(Mainform.AllDatabases);
   ComboSelectDatabase.ItemIndex := ComboSelectDatabase.Items.IndexOf( Mainform.ActiveDatabase );
   if comboSelectDatabase.ItemIndex = -1 then
     comboSelectDatabase.ItemIndex := 0;

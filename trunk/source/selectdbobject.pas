@@ -106,7 +106,7 @@ procedure TfrmSelectDBObject.FormShow(Sender: TObject);
 begin
   TreeDBO.Clear;
   TreeDBO.RootNodeCount := Mainform.DBtree.RootNodeCount;
-  SetLength(FColumns, Mainform.Databases.Count);
+  SetLength(FColumns, Mainform.AllDatabases.Count);
 //  TreeDBO.OnFocusChanged(TreeDBO, TreeDBO.FocusedNode, 0);
   editDB.Clear;
   editTable.Clear;
@@ -186,9 +186,9 @@ begin
   case Sender.GetNodeLevel(Node) of
     1: SetLength(FColumns[Node.Index], ChildCount);
     2: begin // Table expanding
-        DBObjects := Mainform.Connection.GetDBObjects(Mainform.Databases[Node.Parent.Index]);
+        DBObjects := Mainform.Connection.GetDBObjects(Mainform.AllDatabases[Node.Parent.Index]);
         cols := Mainform.Connection.GetCol('SHOW COLUMNS FROM '
-          + Mainform.mask(Mainform.Databases[Node.Parent.Index])+'.'
+          + Mainform.mask(Mainform.AllDatabases[Node.Parent.Index])+'.'
           + Mainform.Mask(DBObjects[Node.Index].Name));
         FColumns[Node.Parent.Index][Node.Index] := cols;
         ChildCount := cols.Count;

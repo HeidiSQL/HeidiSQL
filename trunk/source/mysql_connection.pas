@@ -73,7 +73,7 @@ type
   TConnectionParameters = class(TObject)
     strict private
       FNetType: TNetType;
-      FHostname, FUsername, FPassword, FStartupScriptFilename,
+      FHostname, FUsername, FPassword, FAllDatabases, FStartupScriptFilename,
       FSSLPrivateKey, FSSLCertificate, FSSLCACertificate,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort: Integer;
@@ -86,6 +86,7 @@ type
       property Port: Integer read FPort write FPort;
       property Username: String read FUsername write FUsername;
       property Password: String read FPassword write FPassword;
+      property AllDatabases: String read FAllDatabases write FAllDatabases;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property Options: TMySQLClientOptions read FOptions write FOptions;
       property SSHHost: String read FSSHHost write FSSHHost;
@@ -142,6 +143,7 @@ type
       function GetLastError: String;
       function GetServerVersionStr: String;
       function GetServerVersionInt: Integer;
+      function GetAllDatabases: TStringList;
       function GetTableEngines: TStringList;
       function GetCollationTable: TMySQLQuery;
       function GetCollationList: TStringList;
@@ -186,6 +188,7 @@ type
       property LastQueryDuration: Cardinal read FLastQueryDuration;
       property LastQueryNetworkDuration: Cardinal read FLastQueryNetworkDuration;
       property IsUnicode: Boolean read FIsUnicode;
+      property AllDatabases: TStringList read GetAllDatabases;
       property TableEngines: TStringList read GetTableEngines;
       property TableEngineDefault: String read FTableEngineDefault;
       property CollationTable: TMySQLQuery read GetCollationTable;
@@ -670,6 +673,18 @@ end;
 function TMySQLConnection.GetServerVersionStr: String;
 begin
   Result := ConvertServerVersion(ServerVersionInt);
+end;
+
+
+function TMySQLConnection.GetAllDatabases: TStringList;
+begin
+  if FParameters.AllDatabases <> '' then begin
+    Result := TStringList.Create;
+    Result.Delimiter := ';';
+    Result.StrictDelimiter := True;
+    Result.DelimitedText := FParameters.AllDatabases;
+  end else
+    Result := GetCol('SHOW DATABASES');
 end;
 
 

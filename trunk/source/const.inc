@@ -137,7 +137,7 @@ const
   REGNAME_COMPRESSED = 'Compressed';
   DEFAULT_COMPRESSED = False;
   REGNAME_STARTUPSCRIPT = 'StartupScriptFilename';
-  REGNAME_ONLYDBS = 'OnlyDBs';
+  REGNAME_DATABASES = 'Databases';
   REGNAME_EXP_CREATEDB = 'ExportSQL_CreateDatabases';
   REGNAME_EXP_DROPDB = 'ExportSQL_DropDatabases';
   REGNAME_EXP_CREATETABLE = 'ExportSQL_CreateTables';

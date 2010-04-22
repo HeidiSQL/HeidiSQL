@@ -120,7 +120,7 @@ procedure Tloaddataform.FormShow(Sender: TObject);
 begin
   // read dbs and Tables from treeview
   comboDatabase.Items.Clear;
-  comboDatabase.Items.Assign(Mainform.Databases);
+  comboDatabase.Items.Assign(Mainform.AllDatabases);
   comboDatabase.ItemIndex := comboDatabase.Items.IndexOf( Mainform.ActiveDatabase );
   if comboDatabase.ItemIndex = -1 then
     comboDatabase.ItemIndex := 0;

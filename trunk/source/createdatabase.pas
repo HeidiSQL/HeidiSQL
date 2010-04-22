@@ -203,7 +203,8 @@ end;
 procedure TCreateDatabaseForm.btnOKClick(Sender: TObject);
 var
   sql : String;
-  AllDatabases, Unions, ObjectsLeft: TStringList;
+  AllDatabases: TStringList;
+  ObjectsLeft: TDBObjectList;
   ObjectsInNewDb, ObjectsInOldDb: TDBObjectList;
   i, j: Integer;
 begin
@@ -272,24 +273,13 @@ begin
         Mainform.Connection.ClearDbObjects(modifyDB);
         Mainform.Connection.ClearDbObjects(editDBName.Text);
       end;
-      // Last step for renaming: drop source database
-      ObjectsLeft := TStringList.Create;
-      // Last check if old db is really empty, before we drop it. Especially triggers need to be checked.
-      Unions := TStringList.Create;
-      if Mainform.Connection.InformationSchemaObjects.IndexOf('TABLES') > -1 then
-        Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.TABLES WHERE TABLE_SCHEMA='+esc(modifyDB));
-      if Mainform.Connection.InformationSchemaObjects.IndexOf('ROUTINES') > -1 then
-        Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.ROUTINES WHERE ROUTINE_SCHEMA='+esc(modifyDB));
-      if Mainform.Connection.InformationSchemaObjects.IndexOf('TRIGGERS') > -1 then
-        Unions.Add('SELECT 1 FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.TRIGGERS WHERE TRIGGER_SCHEMA='+esc(modifyDB));
-      if Unions.Count = 1 then
-        ObjectsLeft := Mainform.Connection.GetCol(Unions[0])
-      else if Unions.Count > 1 then
-        ObjectsLeft := Mainform.Connection.GetCol('(' + implodestr(') UNION (', Unions) + ')');
+      // Last check if old db is really empty, before we drop it.
+      ObjectsLeft := Mainform.Connection.GetDBObjects(modifyDB);
       if ObjectsLeft.Count = 0 then begin
         Mainform.Connection.Query('DROP DATABASE '+Mainform.mask(modifyDB));
+        InvalidateVT(Mainform.DBtree, VTREE_NOTLOADED_PURGECACHE, False);
+        Mainform.ActiveDatabase := '';
       end;
-      FreeAndNil(ObjectsLeft);
     end;
     // Close form
     ModalResult := mrOK;
@@ -297,6 +287,19 @@ begin
     On E:Exception do
       MessageDlg( 'Altering database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
     // Keep form open
+  end;
+
+  // Save new db name to registry
+  AllDatabases := Explode(';', Mainform.Connection.Parameters.AllDatabases);
+  if AllDatabases.Count > 0 then begin
+    i := AllDatabases.IndexOf(modifyDB);
+    if i > -1 then
+      AllDatabases[i] := editDBname.Text
+    else
+      AllDatabases.Add(editDBname.Text);
+    OpenRegistry(Mainform.SessionName);
+    Mainform.Connection.Parameters.AllDatabases := ImplodeStr(';', AllDatabases);
+    MainReg.WriteString(REGNAME_DATABASES, Mainform.Connection.Parameters.AllDatabases);
   end;
 end;
 

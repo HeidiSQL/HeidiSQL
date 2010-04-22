@@ -73,6 +73,8 @@ type
     editSSHPrivateKey: TButtonedEdit;
     lblSSHkeyfile: TLabel;
     lblDownloadPlink: TLabel;
+    comboDatabases: TComboBox;
+    lblDatabase: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -107,6 +109,7 @@ type
     procedure editSSHPlinkExeChange(Sender: TObject);
     procedure editHostChange(Sender: TObject);
     procedure lblDownloadPlinkClick(Sender: TObject);
+    procedure comboDatabasesDropDown(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -115,6 +118,7 @@ type
     FOrgParams: TConnectionParameters;
     FWidthListSessions: Byte; // Percentage values
     function SelectedSession: String;
+    function CurrentParams: TConnectionParameters;
     procedure SessionNamesChange(Sender: TObject);
     procedure RefreshSessionList;
     procedure FinalizeModifications(var CanProceed: Boolean);
@@ -197,35 +201,12 @@ end;
 
 
 procedure Tconnform.btnOpenClick(Sender: TObject);
-var
-  Params: TConnectionParameters;
 begin
   // Connect to selected session
   Screen.Cursor := crHourglass;
-  Params := TConnectionParameters.Create;
-  Params.NetType := TNetType(comboNetType.ItemIndex);
-  Params.Hostname := editHost.Text;
-  Params.Username := editUsername.Text;
-  Params.Password := editPassword.Text;
-  Params.Port := MakeInt(editPort.Text);
-  Params.SSHHost := editSSHHost.Text;
-  Params.SSHPort := MakeInt(editSSHPort.Text);
-  Params.SSHUser := editSSHuser.Text;
-  Params.SSHPassword := editSSHpassword.Text;
-  Params.SSHPrivateKey := editSSHPrivateKey.Text;
-  Params.SSHLocalPort := MakeInt(editSSHlocalport.Text);
-  Params.SSHPlinkExe := editSSHplinkexe.Text;
-  Params.SSLPrivateKey := editSSLPrivateKey.Text;
-  Params.SSLCertificate := editSSLCertificate.Text;
-  Params.SSLCACertificate := editSSLCACertificate.Text;
-  Params.StartupScriptFilename := editStartupScript.Text;
-  if chkCompressed.Checked then
-    Params.Options := Params.Options + [opCompress]
-  else
-    Params.Options := Params.Options - [opCompress];
-  if Mainform.InitConnection(Params, SelectedSession) then begin
-    ModalResult := mrOK;
-  end else begin
+  if Mainform.InitConnection(CurrentParams, SelectedSession) then
+    ModalResult := mrOK
+  else begin
     TimerStatistics.OnTimer(Sender);
     ModalResult := mrNone;
   end;
@@ -242,6 +223,7 @@ begin
   MainReg.WriteString(REGNAME_PORT, editPort.Text);
   MainReg.WriteInteger(REGNAME_NETTYPE, comboNetType.ItemIndex);
   MainReg.WriteBool(REGNAME_COMPRESSED, chkCompressed.Checked);
+  MainReg.WriteString(REGNAME_DATABASES, comboDatabases.Text);
   MainReg.WriteString(REGNAME_STARTUPSCRIPT, editStartupScript.Text);
   MainReg.WriteString(REGNAME_SSHHOST, editSSHHost.Text);
   MainReg.WriteInteger(REGNAME_SSHPORT, MakeInt(editSSHport.Text));
@@ -352,6 +334,34 @@ begin
 end;
 
 
+function Tconnform.CurrentParams: TConnectionParameters;
+begin
+  // Return non-stored parameters
+  Result := TConnectionParameters.Create;
+  Result.NetType := TNetType(comboNetType.ItemIndex);
+  Result.Hostname := editHost.Text;
+  Result.Username := editUsername.Text;
+  Result.Password := editPassword.Text;
+  Result.Port := MakeInt(editPort.Text);
+  Result.AllDatabases := comboDatabases.Text;
+  Result.SSHHost := editSSHHost.Text;
+  Result.SSHPort := MakeInt(editSSHPort.Text);
+  Result.SSHUser := editSSHuser.Text;
+  Result.SSHPassword := editSSHpassword.Text;
+  Result.SSHPrivateKey := editSSHPrivateKey.Text;
+  Result.SSHLocalPort := MakeInt(editSSHlocalport.Text);
+  Result.SSHPlinkExe := editSSHplinkexe.Text;
+  Result.SSLPrivateKey := editSSLPrivateKey.Text;
+  Result.SSLCertificate := editSSLCertificate.Text;
+  Result.SSLCACertificate := editSSLCACertificate.Text;
+  Result.StartupScriptFilename := editStartupScript.Text;
+  if chkCompressed.Checked then
+    Result.Options := Result.Options + [opCompress]
+  else
+    Result.Options := Result.Options - [opCompress];
+end;
+
+
 procedure Tconnform.SessionNamesChange(Sender: TObject);
 begin
   ListSessions.RootNodeCount := (Sender as TStringlist).Count;
@@ -429,6 +439,7 @@ begin
     editPassword.Text := FOrgParams.Password;
     editPort.Text := IntToStr(FOrgParams.Port);
     chkCompressed.Checked := opCompress in FOrgParams.Options;
+    comboDatabases.Text := FOrgParams.AllDatabases;
     editStartupScript.Text := FOrgParams.StartupScriptFilename;
     editSSHPlinkExe.Text := FOrgParams.SSHPlinkExe;
     editSSHHost.Text := FOrgParams.SSHHost;
@@ -564,6 +575,28 @@ begin
 end;
 
 
+procedure Tconnform.comboDatabasesDropDown(Sender: TObject);
+var
+  Connection: TMySQLConnection;
+begin
+  // Try to connect and lookup database names
+  Connection := TMySQLConnection.Create(Self);
+  Connection.Parameters := CurrentParams;
+  Connection.LogPrefix := '['+SelectedSession+'] ';
+  Connection.OnLog := Mainform.LogSQL;
+  comboDatabases.Items.Clear;
+  Screen.Cursor := crHourglass;
+  try
+    Connection.Active := True;
+    comboDatabases.Items := Connection.GetCol('SHOW DATABASES');
+  except
+    // Silence connection errors here - should be sufficient to log them
+  end;
+  FreeAndNil(Connection);
+  Screen.Cursor := crDefault;
+end;
+
+
 procedure Tconnform.Modification(Sender: TObject);
 var
   PasswordModified: Boolean;
@@ -576,6 +609,7 @@ begin
       or ((opCompress in FOrgParams.Options) <> chkCompressed.Checked)
       or (FOrgParams.NetType <> TNetType(comboNetType.ItemIndex))
       or (FOrgParams.StartupScriptFilename <> editStartupScript.Text)
+      or (FOrgParams.AllDatabases <> comboDatabases.Text)
       or (FOrgParams.SSHHost <> editSSHHost.Text)
       or (IntToStr(FOrgParams.SSHPort) <> editSSHPort.Text)
       or (FOrgParams.SSHPlinkExe <> editSSHPlinkExe.Text)
