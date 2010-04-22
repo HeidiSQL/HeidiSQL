@@ -3513,10 +3513,16 @@ begin
   if not Assigned(VT) then
     Exit;
   VT.Tag := RefreshTag;
-  if ImmediateRepaint then
-    VT.Repaint
-  else
-    VT.Invalidate;
+  if VT = Mainform.DBtree then begin
+    VT.ResetNode(VT.GetFirst);
+    if ImmediateRepaint then
+      VT.ReinitNode(VT.GetFirst, False);
+  end else begin
+    if ImmediateRepaint then
+      VT.Repaint
+    else
+      VT.Invalidate;
+  end;
 end;
 
 
@@ -3670,6 +3676,7 @@ begin
     Result.Username := GetRegValue(REGNAME_USER, '', Session);
     Result.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
     Result.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', Session), DEFAULT_PORT);
+    Result.AllDatabases := GetRegValue(REGNAME_DATABASES, '', Session);
     Result.SSHHost := GetRegValue(REGNAME_SSHHOST, '', Session);
     Result.SSHPort := GetRegValue(REGNAME_SSHPORT, DEFAULT_SSHPORT, Session);
     Result.SSHUser := GetRegValue(REGNAME_SSHUSER, '', Session);

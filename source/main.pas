@@ -202,7 +202,6 @@ type
     panelTop: TPanel;
     pnlLeft: TPanel;
     DBtree: TVirtualStringTree;
-    comboOnlyDBs: TComboBox;
     Splitter1: TSplitter;
     PageControlMain: TPageControl;
     tabData: TTabSheet;
@@ -716,12 +715,6 @@ type
     function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
     procedure popupMainTabsPopup(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure comboOnlyDBsChange(Sender: TObject);
-    procedure comboOnlyDBsExit(Sender: TObject);
-    procedure comboOnlyDBsDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
-      var Accept: Boolean);
-    procedure comboOnlyDBsDragDrop(Sender, Source: TObject; X, Y: Integer);
-    procedure comboOnlyDBsKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure actFilterPanelExecute(Sender: TObject);
     procedure TimerFilterVTTimer(Sender: TObject);
     procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
@@ -812,7 +805,6 @@ type
     SessionName: String;
     AllDatabases: TStringList;
     AllDatabasesDetails: TMySQLQuery;
-    Databases: TStringList;
     btnAddTab: TSpeedButton;
     QueryTabs: TObjectList<TQueryTab>;
     DBObjectsMaxSize: Int64;
@@ -1338,6 +1330,7 @@ begin
   // SynMemo font, hightlighting and shortcuts
   SetupSynEditors;
 
+  AllDatabases := TStringList.Create;
   DataGridResult := TGridResult.Create;
 
   btnAddTab := TSpeedButton.Create(PageControlMain);
@@ -1601,17 +1594,6 @@ begin
   Mainreg.WriteInteger(REGNAME_SERVERVERSION, Connection.ServerVersionInt);
   Mainreg.WriteString(REGNAME_LASTCONNECT, DateTimeToStr(Now));
 
-  comboOnlyDBs.Items.Text := GetRegValue(REGNAME_ONLYDBS, '', SessionName);
-  if comboOnlyDBs.Items.Count > 0 then
-    comboOnlyDBs.ItemIndex := 0
-  else
-    comboOnlyDBs.Text := '';
-
-  // Remove db and table nodes, force host node to initialize again
-  DBtree.ResetNode(DBTree.GetFirst);
-
-  DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
-
   // Process startup script
   StartupScript := Trim(Connection.Parameters.StartupScriptFilename);
   if StartupScript <> '' then begin
@@ -1628,6 +1610,10 @@ begin
       StartupBatch.Free;
     end;
   end;
+
+  // Remove db and table nodes, force host node to initialize again
+  InvalidateVT(DBtree, VTREE_NOTLOADED_PURGECACHE, False);
+  DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
 
   // Reselect last used database
   if GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) then begin
@@ -1708,7 +1694,6 @@ begin
   // relative from already opened folder!
   OpenRegistry(SessionName);
   MainReg.WriteString( REGNAME_LASTUSEDDB, Connection.Database );
-  MainReg.WriteString( REGNAME_ONLYDBS, comboOnlyDBs.Items.Text );
 
   // Post pending UPDATE
   if DataGridHasChanges then
@@ -1718,7 +1703,6 @@ begin
   DBtree.ClearSelection;
   DBtree.FocusedNode := nil;
   PreviousFocusedNode := nil;
-  FreeAndNil(AllDatabases);
   FreeAndNil(AllDatabasesDetails);
   FreeAndNil(DataGridHiddenColumns);
   SynMemoFilter.Clear;
@@ -1743,8 +1727,6 @@ end;
 
 
 procedure TMainForm.actCreateDatabaseExecute(Sender: TObject);
-var
-  newdb: String;
 begin
   // Create database:
   // Create modal form once on demand
@@ -1753,17 +1735,7 @@ begin
 
   // Rely on the modalresult being set correctly
   if CreateDatabaseForm.ShowModal = mrOK then
-  begin
-    newdb := CreateDatabaseForm.editDBName.Text;
-    // Add new DB to database filter if it's not empty
-    if comboOnlyDBs.Text <> '' then begin
-      comboOnlyDBs.Text := comboOnlyDBs.Text + ';' + newdb;
-      comboOnlyDBs.Items.Insert(0, comboOnlyDBs.Text);
-    end;
-	FreeAndNil(AllDatabases);
-    // reload db nodes and switch to new one
-    RefreshTree(False, newdb);
-  end;
+    InvalidateVT(DBtree, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 
 
@@ -2261,12 +2233,9 @@ begin
           Abort;
         try
           Connection.Query('DROP DATABASE ' + mask(activeDB));
-          Node := DBTree.FocusedNode;
-          SelectNode(DBTree, DBtree.GetFirst);
           Connection.ClearDbObjects(activeDB);
-          FreeAndNil(AllDatabases);
-          DBTree.DeleteNode(Node);
-          RefreshTree(False);
+          InvalidateVT(DBtree, VTREE_NOTLOADED_PURGECACHE, False);
+          ActiveDatabase := '';
         except
           on E:Exception do
             MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -4281,11 +4250,11 @@ begin
 
   if Length(CurrentInput) = 0 then // makes only sense if the user has typed "database."
   begin
-    i := Databases.IndexOf(PrevShortToken);
+    i := AllDatabases.IndexOf(PrevShortToken);
     if i > -1 then begin
       // Only display tables from specified db
       Screen.Cursor := crHourGlass;
-      DBObjects := Connection.GetDBObjects(Databases[i]);
+      DBObjects := Connection.GetDBObjects(AllDatabases[i]);
       for j:=0 to DBObjects.Count-1 do
         addTable(DBObjects[j]);
       Screen.Cursor := crDefault;
@@ -4294,9 +4263,9 @@ begin
 
   if Proposal.ItemList.count = 0 then begin
     // Add databases
-    for i := 0 to Databases.Count - 1 do begin
-      Proposal.InsertList.Add(Databases[i]);
-      Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', Databases[i]]));
+    for i := 0 to AllDatabases.Count - 1 do begin
+      Proposal.InsertList.Add(AllDatabases[i]);
+      Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', AllDatabases[i]]));
     end;
 
     if ActiveDatabase <> '' then begin
@@ -4305,7 +4274,7 @@ begin
       for j:=0 to DBObjects.Count-1 do
         addTable(DBObjects[j]);
       if Length(CurrentInput) = 0 then // assume that we have already a dbname in memo
-        Proposal.Position := Databases.Count;
+        Proposal.Position := AllDatabases.Count;
     end;
 
     // Add functions
@@ -5022,8 +4991,8 @@ begin
   s := DBtree.FocusedNode;
   if not Assigned(s) then Result := ''
   else case DBtree.GetNodeLevel(s) of
-    2: Result := Databases[s.Parent.Index];
-    1: Result := Databases[s.Index];
+    2: Result := AllDatabases[s.Parent.Index];
+    1: Result := AllDatabases[s.Index];
     else Result := '';
   end;
 end;
@@ -6130,9 +6099,9 @@ begin
   case Column of
     0: case Sender.GetNodeLevel(Node) of
         0: CellText := Connection.Parameters.Username + '@' + Connection.Parameters.Hostname;
-        1: CellText := Databases[Node.Index];
+        1: CellText := AllDatabases[Node.Index];
         2: begin
-            DBObjects := Connection.GetDBObjects(Databases[Node.Parent.Index]);
+            DBObjects := Connection.GetDBObjects(AllDatabases[Node.Parent.Index]);
             CellText := DBObjects[Node.Index].Name;
           end;
       end;
@@ -6140,8 +6109,8 @@ begin
         // Calculate and display the sum of all table sizes in ALL dbs if all table lists are cached
         lntNone: begin
             AllListsCached := true;
-            for i := 0 to Databases.Count - 1 do begin
-              if not Connection.DbObjectsCached(Databases[i]) then begin
+            for i:=0 to AllDatabases.Count-1 do begin
+              if not Connection.DbObjectsCached(AllDatabases[i]) then begin
                 AllListsCached := false;
                 break;
               end;
@@ -6150,8 +6119,8 @@ begin
             Bytes := -1;
             if AllListsCached then begin
               Bytes := 0;
-              for i:=0 to Databases.Count-1 do begin
-                DBObjects := Connection.GetDBObjects(Databases[i]);
+              for i:=0 to AllDatabases.Count-1 do begin
+                DBObjects := Connection.GetDBObjects(AllDatabases[i]);
                 Inc(Bytes, DBObjects.DataSize);
               end;
             end;
@@ -6206,7 +6175,7 @@ begin
       Ghosted := not Connection.DbObjectsCached(db);
     end;
     2: begin
-        DBObjects := Connection.GetDBObjects(Databases[Node.Parent.Index]);
+        DBObjects := Connection.GetDBObjects(AllDatabases[Node.Parent.Index]);
         // Various bug reports refer to this location where we reference a db object which is outside the range
         // of DBObjects. Probably a timing issue. Work around that by doing a safety check here.
         if Node.Index >= Cardinal(DBObjects.Count) then
@@ -6220,74 +6189,36 @@ end;
 {**
   Set childcount of an expanding treenode
 }
-procedure TMainForm.DBtreeInitChildren(Sender: TBaseVirtualTree; Node:
-    PVirtualNode; var ChildCount: Cardinal);
+procedure TMainForm.DBtreeInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
 var
   VT: TVirtualStringTree;
-  i, j: Integer;
-  DatabasesWanted: TStringList;
-  rx: TRegExpr;
-  FilterError: Boolean;
 begin
   VT := Sender as TVirtualStringTree;
   case VT.GetNodeLevel(Node) of
     // Root node has only one single child (user@host)
     0: begin
         Screen.Cursor := crHourglass;
-        try
-          if not Assigned(AllDatabases) then begin
-            ShowStatusMsg( 'Reading Databases...' );
-            AllDatabases := Connection.GetCol('SHOW DATABASES');
-            InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
+        ShowStatusMsg('Reading Databases...');
+        if VT.Tag = VTREE_NOTLOADED_PURGECACHE then try
+          AllDatabases := Connection.AllDatabases;
+        except
+          on E:Exception do begin
+            AllDatabases.Clear;
+            MessageDlg(E.Message+CRLF+CRLF+'You have no privilege to execute SHOW DATABASES. Please specify one or more databases in your session settings, if you want to see any.', mtError, [mbOK], 0);
           end;
-          if not Assigned(Databases) then
-            Databases := TStringList.Create;
-          Databases.Clear;
-          DatabasesWanted := Explode(';', comboOnlyDBs.Text);
-          FilterError := False;
-          if DatabasesWanted.Count > 0 then begin
-            // Add dbs by regular expression, avoiding duplicates
-            rx := TRegExpr.Create;
-            rx.Expression := '('+ImplodeStr('|', DatabasesWanted)+')';
-            for j:=0 to AllDatabases.Count-1 do try
-              // The regular expression can have syntax errors which lead to an AV
-              if rx.Exec(AllDatabases[j]) then
-                Databases.Add(AllDatabases[j]);
-            except
-              FilterError := True;
-              break;
-            end;
-            rx.Free;
-            if Databases.Count = 0 then
-              FilterError := True;
-          end;
-          if FilterError then
-            comboOnlyDBs.Color := clWebPink
-          else
-            comboOnlyDBs.Color := clWindow;
-          FreeAndNil(DatabasesWanted);
-          if Databases.Count = 0 then
-            Databases.Assign(AllDatabases);
-          Databases.Sort;
-
-          // Prioritised position of virtual system database
-          i := Databases.IndexOf(DBNAME_INFORMATION_SCHEMA);
-          if i > -1 then
-            Databases.Move(i, 0);
-
-          ShowStatusMsg( IntToStr( Databases.Count ) + ' Databases', 0 );
-          ChildCount := Databases.Count;
-        finally
-          ShowStatusMsg( STATUS_MSG_READY );
-          Screen.Cursor := crDefault;
         end;
+        ShowStatusMsg(STATUS_MSG_READY);
+        VT.Tag := VTREE_LOADED;
+        InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
+        ChildCount := AllDatabases.Count;
+        Screen.Cursor := crDefault;
       end;
     // DB node expanding
     1: begin
         Screen.Cursor := crHourglass;
         ShowStatusMsg( 'Reading objects ...' );
         try
-          ChildCount := Connection.GetDBObjects(Databases[Node.Index]).Count;
+          ChildCount := Connection.GetDBObjects(AllDatabases[Node.Index]).Count;
         finally
           ShowStatusMsg( STATUS_MSG_READY );
           Screen.Cursor := crDefault;
@@ -6345,7 +6276,7 @@ begin
       tabData.TabVisible := False;
     end;
     1: begin
-        newDb := Databases[Node.Index];
+        newDb := AllDatabases[Node.Index];
         // Selecting a database can cause an SQL error if the db was deleted from outside. Select previous node in that case.
         try
           Connection.Database := newDb;
@@ -6364,7 +6295,7 @@ begin
         tabData.TabVisible := false;
       end;
     2: begin
-        newDb := Databases[Node.Parent.Index];
+        newDb := AllDatabases[Node.Parent.Index];
         try
           Connection.Database := newDb;
         except on E:Exception do begin
@@ -6454,7 +6385,7 @@ end;
 
 procedure TMainForm.DatabaseChanged(Database: String);
 begin
-  if (Database='') or (Databases.IndexOf(Database) > -1) then
+  if (Database='') or (AllDatabases.IndexOf(Database) > -1) then
     ActiveDatabase := Database;
 end;
 
@@ -6530,11 +6461,9 @@ begin
   DBtree.FocusedNode := nil;
 
   // ReInit tree population
-  if DoResetTableCache then begin
+  if DoResetTableCache then
     Connection.ClearAllDbObjects;
-    FreeAndNil(AllDatabases);
-  end;
-  DBtree.ResetNode(DBTree.GetFirst);
+  InvalidateVT(DBtree, VTREE_NOTLOADED_PURGECACHE, True);
 
   // Reselect active or new database if present. Could have been deleted or renamed.
   try
@@ -6590,16 +6519,13 @@ var
   n: PVirtualNode;
 begin
   Result := nil;
-  // Ensure Databases list is instantiated (by DBtree.InitChildren)
-  if Databases = nil then
-    DBtree.ReinitNode(DBtree.GetFirst, False);
   // TStringList.CaseSensitive= True|False is only used in .IndexOf and .Sort procs,
   // it does not avoid or remove duplicate items
-  Databases.CaseSensitive := True;
-  s := Databases.IndexOf(db);
+  AllDatabases.CaseSensitive := True;
+  s := AllDatabases.IndexOf(db);
   if s = -1 then begin
-    Databases.CaseSensitive := False;
-    s := Databases.IndexOf(db);
+    AllDatabases.CaseSensitive := False;
+    s := AllDatabases.IndexOf(db);
   end;
   if s > -1 then begin
     n := DBtree.GetFirstChild(DBtree.GetFirst);
@@ -8403,7 +8329,6 @@ end;
 procedure TMainForm.actEditObjectExecute(Sender: TObject);
 var
   Obj: PDBObject;
-  db: String;
 begin
   debug('actEditObjectExecute()');
   if ListTables.Focused then begin
@@ -8418,17 +8343,8 @@ begin
       if CreateDatabaseForm = nil then
         CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
       CreateDatabaseForm.modifyDB := ActiveDatabase;
-      if CreateDatabaseForm.ShowModal = mrOk then begin
-        db := CreateDatabaseForm.editDBName.Text;
-        // Add new DB to database filter if it's not empty
-        if comboOnlyDBs.Text <> '' then begin
-          comboOnlyDBs.Text := comboOnlyDBs.Text + ';' + db;
-          comboOnlyDBs.Items.Insert(0, comboOnlyDBs.Text);
-        end;
-        FreeAndNil(AllDatabases);
-        // reload db nodes and switch to new one
-        RefreshTree(False, db);
-      end;
+      if CreateDatabaseForm.ShowModal = mrOk then
+        InvalidateVT(DBtree, VTREE_NOTLOADED_PURGECACHE, True);
     end;
 
     2: PlaceObjectEditor(SelectedTable);
@@ -8909,79 +8825,6 @@ begin
       end;
       else Result := False;
     end;
-  end;
-end;
-
-
-procedure TMainForm.comboOnlyDBsChange(Sender: TObject);
-begin
-  // Immediately apply database filter
-  RefreshTree(False);
-end;
-
-
-procedure TMainForm.comboOnlyDBsExit(Sender: TObject);
-var
-  i, idx: Integer;
-  FilterText: String;
-begin
-  // Add (move) custom filter text to (in) drop down history, if not empty
-  FilterText := comboOnlyDBs.Text;
-  idx := -1;
-  for i:=0 to comboOnlyDBs.Items.Count-1 do begin
-    if comboOnlyDBs.Items[i] = FilterText then begin
-      idx := i;
-      break;
-    end;
-  end;
-  if idx > -1 then
-    comboOnlyDBs.Items.Move(idx, 0)
-  else
-    comboOnlyDBs.Items.Insert(0, FilterText);
-  comboOnlyDBs.Text := FilterText;
-end;
-
-
-procedure TMainForm.comboOnlyDBsDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
-  var Accept: Boolean);
-begin
-  // DBtree dragging node over DB filter dropdown
-  Accept := (Source = DBtree) and (DBtree.GetNodeLevel(DBtree.FocusedNode) = 1);
-end;
-
-
-procedure TMainForm.comboOnlyDBsDragDrop(Sender, Source: TObject; X, Y: Integer);
-var
-  dbs: TStringList;
-  newdb: String;
-begin
-  // DBtree node dropped on DB filter dropdown
-  dbs := Explode(';', comboOnlyDBs.Text);
-  newdb := DBtree.Text[DBtree.FocusedNode, DBtree.FocusedColumn];
-  if dbs.IndexOf(newdb) = -1 then begin
-    if (comboOnlyDBs.Text <> '') and (comboOnlyDBs.Text[Length(comboOnlyDBs.Text)-1] <> ';') then
-      comboOnlyDBs.Text := comboOnlyDBs.Text + ';';
-    comboOnlyDBs.Text := comboOnlyDBs.Text + newdb;
-    comboOnlyDBs.Items.Insert(0, comboOnlyDBs.Text);
-    comboOnlyDBs.OnChange(Sender);
-  end;
-end;
-
-
-procedure TMainForm.comboOnlyDBsKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-var
-  i: Integer;
-begin
-  // Pressing Delete key while filters are dropped down, deletes the filter from the list
-  i := comboOnlyDBs.ItemIndex;
-  if comboOnlyDBs.DroppedDown and (Key=VK_DELETE) and (i > -1) then begin
-    Key := 0;
-    comboOnlyDBs.Items.Delete(i);
-    if comboOnlyDBs.Items.Count > i then
-      comboOnlyDBs.ItemIndex := i
-    else
-      comboOnlyDBs.ItemIndex := i-1;
-    comboOnlyDBs.OnChange(Sender);
   end;
 end;
 

@@ -4,10 +4,10 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu]
   Caption = 'Session manager'
-  ClientHeight = 274
+  ClientHeight = 294
   ClientWidth = 494
   Color = clBtnFace
-  Constraints.MinHeight = 310
+  Constraints.MinHeight = 330
   Constraints.MinWidth = 510
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -25,7 +25,7 @@ object connform: Tconnform
   OnShow = FormShow
   DesignSize = (
     494
-    274)
+    294)
   PixelsPerInch = 96
   TextHeight = 13
   object lblSession: TLabel
@@ -49,7 +49,7 @@ object connform: Tconnform
   end
   object btnSave: TButton
     Left = 64
-    Top = 241
+    Top = 261
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -60,7 +60,7 @@ object connform: Tconnform
   object btnOpen: TButton
     Tag = 15
     Left = 320
-    Top = 241
+    Top = 261
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -73,7 +73,7 @@ object connform: Tconnform
   object btnCancel: TButton
     Tag = 16
     Left = 406
-    Top = 241
+    Top = 261
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -86,7 +86,7 @@ object connform: Tconnform
     Left = 9
     Top = 27
     Width = 162
-    Height = 206
+    Height = 226
     Anchors = [akLeft, akTop, akBottom]
     EditDelay = 250
     Header.AutoSizeIndex = 0
@@ -121,7 +121,7 @@ object connform: Tconnform
   end
   object btnNew: TButton
     Left = 8
-    Top = 241
+    Top = 261
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -131,7 +131,7 @@ object connform: Tconnform
   end
   object btnDelete: TButton
     Left = 120
-    Top = 241
+    Top = 261
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -143,7 +143,7 @@ object connform: Tconnform
     Left = 177
     Top = 8
     Width = 309
-    Height = 226
+    Height = 246
     ActivePage = tabSettings
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = MainForm.ImageListMain
@@ -153,10 +153,10 @@ object connform: Tconnform
       ImageIndex = 39
       DesignSize = (
         301
-        197)
+        217)
       object lblStartupScript: TLabel
         Left = 3
-        Top = 168
+        Top = 193
         Width = 69
         Height = 13
         Caption = 'Startup script:'
@@ -205,16 +205,23 @@ object connform: Tconnform
         Height = 13
         Caption = 'Network type:'
       end
+      object lblDatabase: TLabel
+        Left = 3
+        Top = 168
+        Width = 55
+        Height = 13
+        Caption = 'Databases:'
+      end
       object editStartupScript: TButtonedEdit
         Left = 101
-        Top = 165
+        Top = 190
         Width = 197
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
-        TabOrder = 6
+        TabOrder = 8
         OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
@@ -227,7 +234,7 @@ object connform: Tconnform
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Compressed client/server protocol'
-        TabOrder = 5
+        TabOrder = 6
         OnClick = Modification
       end
       object editPort: TEdit
@@ -235,7 +242,7 @@ object connform: Tconnform
         Top = 117
         Width = 60
         Height = 21
-        TabOrder = 3
+        TabOrder = 4
         Text = '0'
         OnChange = editPortChange
       end
@@ -245,7 +252,7 @@ object connform: Tconnform
         Width = 17
         Height = 21
         Max = 32767
-        TabOrder = 4
+        TabOrder = 5
         Thousands = False
         OnChangingEx = updownPortChangingEx
       end
@@ -256,7 +263,7 @@ object connform: Tconnform
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
-        TabOrder = 2
+        TabOrder = 3
         OnChange = Modification
       end
       object editUsername: TEdit
@@ -265,7 +272,7 @@ object connform: Tconnform
         Width = 197
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 1
+        TabOrder = 2
         OnChange = Modification
       end
       object editHost: TEdit
@@ -274,7 +281,7 @@ object connform: Tconnform
         Width = 197
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 0
+        TabOrder = 1
         OnChange = editHostChange
       end
       object comboNetType: TComboBox
@@ -285,7 +292,7 @@ object connform: Tconnform
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         ItemIndex = 0
-        TabOrder = 7
+        TabOrder = 0
         Text = 'TCP/IP'
         OnChange = Modification
         Items.Strings = (
@@ -293,13 +300,24 @@ object connform: Tconnform
           'Named pipe'
           'SSH tunnel')
       end
+      object comboDatabases: TComboBox
+        Left = 101
+        Top = 165
+        Width = 197
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 7
+        TextHint = 'Separated by semicolon'
+        OnChange = Modification
+        OnDropDown = comboDatabasesDropDown
+      end
     end
     object tabSSHtunnel: TTabSheet
       Caption = 'SSH tunnel'
       ImageIndex = 147
       DesignSize = (
         301
-        197)
+        217)
       object lblSSHLocalPort: TLabel
         Left = 3
         Top = 163
@@ -456,7 +474,7 @@ object connform: Tconnform
       ImageIndex = 144
       DesignSize = (
         301
-        197)
+        217)
       object lblSSLPrivateKey: TLabel
         Tag = 6
         Left = 3
@@ -532,7 +550,7 @@ object connform: Tconnform
       ImageIndex = 145
       DesignSize = (
         301
-        197)
+        217)
       object lblLastConnectLeft: TLabel
         Left = 3
         Top = 31

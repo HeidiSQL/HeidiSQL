@@ -405,30 +405,6 @@ object MainForm: TMainForm
             WideText = 'Size'
           end>
       end
-      object comboOnlyDBs: TComboBox
-        AlignWithMargins = True
-        Left = 0
-        Top = 336
-        Width = 169
-        Height = 21
-        Hint = 
-          'Database filter|A list of databases, separated by semicolon. Can' +
-          ' contain regular expressions, e.g. "mydb;test.*;project\d+".'
-        Margins.Left = 0
-        Margins.Top = 0
-        Margins.Right = 0
-        Margins.Bottom = 0
-        Align = alBottom
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 1
-        TextHint = 'Database filter'
-        OnChange = comboOnlyDBsChange
-        OnDragDrop = comboOnlyDBsDragDrop
-        OnDragOver = comboOnlyDBsDragOver
-        OnExit = comboOnlyDBsExit
-        OnKeyDown = comboOnlyDBsKeyDown
-      end
     end
     object pnlRight: TPanel
       Left = 173

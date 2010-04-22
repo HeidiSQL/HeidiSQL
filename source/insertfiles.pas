@@ -79,7 +79,7 @@ procedure TfrmInsertFiles.FormShow(Sender: TObject);
 begin
   Caption := Mainform.SessionName + ' - Insert files into table ...';
   ComboBoxDBs.Items.Clear;
-  ComboBoxDBs.Items.Assign(Mainform.Databases);
+  ComboBoxDBs.Items.Assign(Mainform.AllDatabases);
   ComboBoxDBs.ItemIndex := ComboBoxDBs.Items.IndexOf( Mainform.ActiveDatabase );
   if ComboBoxDBs.ItemIndex = -1 then
     ComboBoxDBs.ItemIndex := 0;
