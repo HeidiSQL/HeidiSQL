@@ -244,17 +244,18 @@ object connform: Tconnform
         Height = 21
         TabOrder = 4
         Text = '0'
-        OnChange = editPortChange
+        OnChange = Modification
       end
       object updownPort: TUpDown
         Left = 161
         Top = 117
         Width = 17
         Height = 21
-        Max = 32767
+        Associate = editPort
+        Max = 65535
         TabOrder = 5
         Thousands = False
-        OnChangingEx = updownPortChangingEx
+        Wrap = True
       end
       object editPassword: TEdit
         Left = 101
