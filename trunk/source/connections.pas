@@ -101,9 +101,6 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       out EditLink: IVTEditLink);
-    procedure updownPortChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint;
-      Direction: TUpDownDirection);
-    procedure editPortChange(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure PickFile(Sender: TObject);
     procedure editSSHPlinkExeChange(Sender: TObject);
@@ -220,7 +217,7 @@ begin
   MainReg.WriteString(REGNAME_HOST, editHost.Text);
   MainReg.WriteString(REGNAME_USER, editUsername.Text);
   MainReg.WriteString(REGNAME_PASSWORD, encrypt(editPassword.Text));
-  MainReg.WriteString(REGNAME_PORT, editPort.Text);
+  MainReg.WriteString(REGNAME_PORT, IntToStr(updownPort.Position));
   MainReg.WriteInteger(REGNAME_NETTYPE, comboNetType.ItemIndex);
   MainReg.WriteBool(REGNAME_COMPRESSED, chkCompressed.Checked);
   MainReg.WriteString(REGNAME_DATABASES, comboDatabases.Text);
@@ -342,7 +339,7 @@ begin
   Result.Hostname := editHost.Text;
   Result.Username := editUsername.Text;
   Result.Password := editPassword.Text;
-  Result.Port := MakeInt(editPort.Text);
+  Result.Port := updownPort.Position;
   Result.AllDatabases := comboDatabases.Text;
   Result.SSHHost := editSSHHost.Text;
   Result.SSHPort := MakeInt(editSSHPort.Text);
@@ -437,7 +434,7 @@ begin
     editHost.Text := FOrgParams.Hostname;
     editUsername.Text := FOrgParams.Username;
     editPassword.Text := FOrgParams.Password;
-    editPort.Text := IntToStr(FOrgParams.Port);
+    updownPort.Position := FOrgParams.Port;
     chkCompressed.Checked := opCompress in FOrgParams.Options;
     comboDatabases.Text := FOrgParams.AllDatabases;
     editStartupScript.Text := FOrgParams.StartupScriptFilename;
@@ -542,38 +539,11 @@ begin
 end;
 
 
-procedure Tconnform.updownPortChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: Smallint;
-  Direction: TUpDownDirection);
-var
-  ud: TUpDown;
-  NewVal: Integer;
-begin
-  // Work around smallint values of TUpDown, allow integer values
-  ud := Sender as TUpDown;
-  NewVal := ud.Tag;
-  case Direction of
-    updUp: Inc(NewVal);
-    // "updNone" is fired when down arrow is pressed. VCL bug?
-    updDown, updNone: Dec(NewVal);
-  end;
-  editPort.Text := IntToStr(NewVal);
-  AllowChange := False;
-end;
-
-
 procedure Tconnform.editHostChange(Sender: TObject);
 begin
   editSSHhost.TextHint := TEdit(Sender).Text;
   Modification(Sender);
 end;
-
-procedure Tconnform.editPortChange(Sender: TObject);
-begin
-  // Work around smallint values of TUpDown, allow integer values
-  updownPort.Tag := MakeInt(TEdit(Sender).Text);
-  Modification(Sender);
-end;
-
 
 procedure Tconnform.comboDatabasesDropDown(Sender: TObject);
 var
@@ -605,7 +575,7 @@ begin
   if FLoaded then begin
     FSessionModified := (FOrgParams.Hostname <> editHost.Text)
       or (FOrgParams.Username <> editUsername.Text)
-      or (FOrgParams.Port <> updownPort.Tag)
+      or (FOrgParams.Port <> updownPort.Position)
       or ((opCompress in FOrgParams.Options) <> chkCompressed.Checked)
       or (FOrgParams.NetType <> TNetType(comboNetType.ItemIndex))
       or (FOrgParams.StartupScriptFilename <> editStartupScript.Text)
