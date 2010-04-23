@@ -182,7 +182,6 @@ begin
   OutputFiles.Text := GetRegValue(REGNAME_EXP_OUTFILES, '');
   OutputDirs.Text := GetRegValue(REGNAME_EXP_OUTDIRS, '');
   comboExportOutputType.Items.Text := OUTPUT_FILE+CRLF +OUTPUT_DIR+CRLF +OUTPUT_CLIPBOARD+CRLF +OUTPUT_DB;
-  comboExportOutputType.ItemIndex := GetRegValue(REGNAME_EXP_OUTPUT, 0);
   comboExportOutputTarget.Text := '';
 
   // Various
@@ -272,6 +271,7 @@ begin
   comboOperation.OnChange(Sender);
 
   // Add session names from registry
+  idx := comboExportOutputType.ItemIndex;
   for i:=comboExportOutputType.Items.Count-1 downto 0 do begin
     if Pos(OUTPUT_SERVER, comboExportOutputType.Items[i]) = 1 then
       comboExportOutputType.Items.Delete(i);
@@ -283,6 +283,10 @@ begin
     if SessionNames[i] <> Mainform.SessionName then
       comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionNames[i]);
   end;
+  if (idx > -1) and (idx < comboExportOutputType.Items.Count) then
+    comboExportOutputType.ItemIndex := idx
+  else
+    comboExportOutputType.ItemIndex := GetRegValue(REGNAME_EXP_OUTPUT, 0);
   comboExportOutputType.OnChange(Sender);
 
   comboBulkTableEditDatabase.Items.Text := Mainform.AllDatabases.Text;
@@ -790,6 +794,7 @@ begin
         Screen.Cursor := crDefault;
         MessageDlg(E.Message, mtError, [mbOK], 0);
         comboExportOutputType.ItemIndex := FLastOutputSelectedIndex;
+        comboExportOutputType.OnChange(Sender);
       end;
     end;
   end;
