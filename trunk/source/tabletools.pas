@@ -477,8 +477,12 @@ begin
           except
             // The above SQL can easily throw an exception, e.g. if a table is corrupted.
             // In such cases we create a dummy row, including the error message
-            on E:Exception do
-              AddNotes(DBObj.Database, DBObj.Name, 'error', E.Message);
+            on E:Exception do begin
+              if E.ClassType = EAccessViolation then
+                Raise
+              else
+                AddNotes(DBObj.Database, DBObj.Name, 'error', E.Message);
+            end;
           end else begin
             AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+FormatByteNumber(DBObj.Size), '');
           end;
