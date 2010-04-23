@@ -455,6 +455,7 @@ begin
   DBNode := TreeObjects.GetFirstChild(TreeObjects.GetFirst);
   while Assigned(DBNode) do begin
     if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
+      Views.Clear;
       TableNode := TreeObjects.GetFirstChild(DBNode);
       while Assigned(TableNode) do begin
         if (csCheckedNormal in [TableNode.CheckState, DBNode.CheckState]) and (TableNode.CheckType <> ctNone) then begin
@@ -483,19 +484,20 @@ begin
           end;
         end;
         TableNode := TreeObjects.GetNextSibling(TableNode);
+      end; // End of db object node loop in db
+
+      // Special block for late created views in export mode
+      for i:=0 to Views.Count-1 do begin
+        try
+          ProcessNodeFunc(Views[i]);
+        except on E:Exception do
+          AddNotes(Views[i].Database, Views[i].Name, 'error', E.Message);
+        end;
       end;
+
     end;
     DBNode := TreeObjects.GetNextSibling(DBNode);
-  end;
-
-  // Special block for late created views in export mode
-  for i:=0 to Views.Count-1 do begin
-    try
-      ProcessNodeFunc(Views[i]);
-    except on E:Exception do
-      AddNotes(Views[i].Database, Views[i].Name, 'error', E.Message);
-    end;
-  end;
+  end; // End of db item loop
 
   if Assigned(ExportStream) then begin
     if (comboExportOutputType.Text = OUTPUT_FILE) or (comboExportOutputType.Text = OUTPUT_CLIPBOARD) then
