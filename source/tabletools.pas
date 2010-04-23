@@ -114,6 +114,7 @@ type
     FTargetConnection: TMySQLConnection;
     FLastOutputSelectedIndex: Integer;
     FModifiedDbs: TStringList;
+    FHeaderCreated: Boolean;
     procedure SetToolMode(Value: TToolMode);
     procedure AddResults(SQL: String);
     procedure AddNotes(Col1, Col2, Col3, Col4: String);
@@ -450,6 +451,7 @@ begin
   Views.OwnsObjects := False; // So we can .Free that object afterwards without loosing the contained objects
   TreeObjects.SetFocus;
   ProcessNodeFunc := nil;
+  FHeaderCreated := False;
   DBNode := TreeObjects.GetFirstChild(TreeObjects.GetFirst);
   while Assigned(DBNode) do begin
     if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
@@ -987,6 +989,7 @@ begin
     if not DirectoryExists(DbDir) then
       ForceDirectories(DbDir);
     ExportStream := TFileStream.Create(DbDir + DBObj.Name+'.sql', fmCreate or fmOpenWrite);
+    FHeaderCreated := False;
   end;
   if ToFile and (not Assigned(ExportStream)) then
     ExportStream := TFileStream.Create(comboExportOutputTarget.Text, fmCreate or fmOpenWrite);
@@ -994,10 +997,9 @@ begin
     ExportStream := TMemoryStream.Create;
   if ToDb or ToServer then
     ExportStream := TMemoryStream.Create;
-  if (DBObj.Database<>ExportLastDatabase) or ToDir then begin
+  if not FHeaderCreated then begin
     Header := '# --------------------------------------------------------' + CRLF +
       Format('# %-30s%s', ['Host:', Mainform.Connection.Parameters.HostName]) + CRLF +
-      Format('# %-30s%s', ['Database:', DBObj.Database]) + CRLF +
       Format('# %-30s%s', ['Server version:', Mainform.Connection.ServerVersionUntouched]) + CRLF +
       Format('# %-30s%s', ['Server OS:', Mainform.Connection.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]) + CRLF +
       Format('# %-30s%s', [APPNAME + ' version:', Mainform.AppVersion]) + CRLF +
@@ -1008,6 +1010,7 @@ begin
       '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF +
       '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;';
     Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
+    FHeaderCreated := True;
   end;
 
   // Database structure. Do that only in single-file and server mode. drop/create/use in directory or database mode makes no sense
@@ -1016,7 +1019,7 @@ begin
     FinalDbName := comboExportOutputTarget.Text;
   NeedsDBStructure := FinalDbName <> ExportLastDatabase;
   if chkExportDatabasesDrop.Checked or chkExportDatabasesCreate.Checked then begin
-    Output(CRLF+'# Dumping database structure for '+DBObj.Database+CRLF, False, NeedsDBStructure, False, False, False);
+    Output(CRLF+CRLF+'# Dumping database structure for '+DBObj.Database+CRLF, False, NeedsDBStructure, False, False, False);
     if chkExportDatabasesDrop.Checked and chkExportDatabasesDrop.Enabled then
       Output('DROP DATABASE IF EXISTS '+m(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     if chkExportDatabasesCreate.Checked and chkExportDatabasesCreate.Enabled then begin
@@ -1204,10 +1207,12 @@ begin
 
       end;
       Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True, True);
-      Output(EXPORT_FILE_FOOTER, False, False, True, False, False);
       LogStatistic(DbObj.Rows); // Cosmetic fix for estimated InnoDB row count
     end;
   end;
+
+  // Add footer in directory mode after each item
+  Output(EXPORT_FILE_FOOTER, False, False, True, False, False);
 
   ExportLastDatabase := FinalDbName;
 end;
