@@ -3,7 +3,8 @@ unit editvar;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls;
+  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
+  mysql_connection;
 
 type
   TfrmEditVariable = class(TForm)
@@ -71,7 +72,7 @@ begin
   try
     Mainform.Connection.Query(sql);
   except
-    on E:Exception do begin
+    on E:EDatabaseError do begin
       ModalResult := mrNone;
       MessageDlg(E.Message, mtError, [mbOK], 0);
     end;

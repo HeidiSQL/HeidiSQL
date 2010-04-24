@@ -997,7 +997,7 @@ begin
       Connection.Query('UNLOCK TABLES');
     end;
   except
-    on E:Exception do
+    on E:EDatabaseError do
       MessageDlg(E.Message, mtError, [mbOK], 0);
   end;
 end;
@@ -2237,7 +2237,7 @@ begin
           InvalidateVT(DBtree, VTREE_NOTLOADED_PURGECACHE, False);
           ActiveDatabase := '';
         except
-          on E:Exception do
+          on E:EDatabaseError do
             MessageDlg(E.Message, mtError, [mbOK], 0);
         end;
         Exit;
@@ -2276,7 +2276,7 @@ begin
     // Refresh ListTables + dbtree so the dropped tables are gone:
     Connection.ClearDbObjects(ActiveDatabase);
   except
-    on E:Exception do
+    on E:EDatabaseError do
       MessageDlg(E.Message, mtError, [mbOK], 0);
   end;
   ObjectList.Free;
@@ -2329,7 +2329,7 @@ begin
   try
     ConnectionAttempt.Active := True;
   except
-    on E:Exception do
+    on E:EDatabaseError do
       MessageDlg(E.Message, mtError, [mbOK], 0);
   end;
 
@@ -2450,7 +2450,7 @@ begin
       Connection.Query( sql_pattern + mask(t[i]) );
     actRefresh.Execute;
   except
-    on E:Exception do
+    on E:EDatabaseError do
       MessageDlg(E.Message, mtError, [mbOK], 0);
   end;
   t.Free;
@@ -3245,7 +3245,7 @@ begin
         Row.Cells[i].IsNull := Data.IsNull(i);
       end;
       Row.HasFullData := True;
-    except On E:Exception do
+    except On E:EDatabaseError do
       MessageDlg(E.Message, mtError, [mbOK], 0);
     end;
   end;
@@ -3466,7 +3466,7 @@ begin
       Data := Connection.GetResults(Select);
     except
       // Wrong WHERE clause in most cases
-      On E:Exception do
+      On E:EDatabaseError do
         MessageDlg(E.Message, mtError, [mbOK], 0);
     end;
 
@@ -3913,7 +3913,7 @@ begin
           Connection.Query('KILL '+ProcessIDs[i]);
       end;
     except
-      on E:Exception do
+      on E:EDatabaseError do
         MessageDlg(E.Message, mtError, [mbOK], 0);
     end;
     InvalidateVT(ListProcesses, VTREE_NOTLOADED, True);
@@ -3981,7 +3981,7 @@ begin
       else
         ResultLabel.Caption := FormatNumber(Connection.RowsAffected) +' row(s) affected by last query.';
     except
-      on E:Exception do begin
+      on E:EDatabaseError do begin
         if actQueryStopOnErrors.Checked or (i = SQL.Count - 1) then begin
           Screen.Cursor := crDefault;
           MessageDlg( E.Message, mtError, [mbOK], 0 );
@@ -4353,7 +4353,7 @@ begin
     // so we do it manually here
     DBTree.InvalidateChildren(FindDBNode(ActiveDatabase), True);
   except
-    on E:Exception do
+    on E:EDatabaseError do
       MessageDlg(E.Message, mtError, [mbOK], 0);
   end;
 end;
@@ -6202,7 +6202,7 @@ begin
         if VT.Tag = VTREE_NOTLOADED_PURGECACHE then try
           AllDatabases := Connection.AllDatabases;
         except
-          on E:Exception do begin
+          on E:EDatabaseError do begin
             AllDatabases.Clear;
             MessageDlg(E.Message+CRLF+CRLF+'You have no privilege to execute SHOW DATABASES. Please specify one or more databases in your session settings, if you want to see any.', mtError, [mbOK], 0);
           end;
@@ -6280,7 +6280,7 @@ begin
         // Selecting a database can cause an SQL error if the db was deleted from outside. Select previous node in that case.
         try
           Connection.Database := newDb;
-        except on E:Exception do begin
+        except on E:EDatabaseError do begin
             MessageDlg(E.Message, mtError, [mbOK], 0);
             SelectNode(DBtree, PreviousFocusedNode);
             Exit;
@@ -6298,7 +6298,7 @@ begin
         newDb := AllDatabases[Node.Parent.Index];
         try
           Connection.Database := newDb;
-        except on E:Exception do begin
+        except on E:EDatabaseError do begin
             MessageDlg(E.Message, mtError, [mbOK], 0);
             SelectNode(DBtree, PreviousFocusedNode);
             Exit;
@@ -6377,7 +6377,7 @@ begin
       end;
       lntView: ParseViewStructure(SelectedTable.Name, SelectedTableColumns);
     end;
-  except on E:Exception do
+  except on E:EDatabaseError do
     MessageDlg(E.Message, mtError, [mbOK], 0);
   end;
 end;
@@ -6908,7 +6908,7 @@ begin
     end;
     Result := True;
   except
-    on E:Exception do begin
+    on E:EDatabaseError do begin
       MessageDlg(E.Message, mtError, [mbOK], 0);
       Result := False;
     end;
@@ -7138,7 +7138,7 @@ begin
       GridFinalizeEditing(Sender);
       InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
     except
-      on E:Exception do begin
+      on E:EDatabaseError do begin
         MessageDlg(E.Message, mtError, [mbOK], 0);
         Result := False;
       end;
@@ -7179,7 +7179,7 @@ begin
     Connection.Query(sql);
     Result := True;
   except
-    on E:Exception do begin
+    on E:EDatabaseError do begin
       MessageDlg(E.Message, mtError, [mbOK], 0);
       Result := False;
     end;
@@ -7680,7 +7680,7 @@ begin
     if Connection.InformationSchemaObjects.IndexOf('SCHEMATA') > -1 then
       AllDatabasesDetails := Connection.GetResults('SELECT * FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.'+mask('SCHEMATA'));
   except
-    on E:Exception do
+    on E:EDatabaseError do
       LogSQL(E.Message, lcError);
   end;
   if vt.Tag = VTREE_NOTLOADED_PURGECACHE then begin
@@ -7702,7 +7702,7 @@ begin
   if Assigned(ListDatabases.FocusedNode) then try
     ActiveDatabase := ListDatabases.Text[ListDatabases.FocusedNode, 0];
   except
-    on E:Exception do LogSQL(E.Message, lcError);
+    on E:EDatabaseError do LogSQL(E.Message, lcError);
   end;
 end;
 

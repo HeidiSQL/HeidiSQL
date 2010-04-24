@@ -214,7 +214,7 @@ begin
     // Close form
     ModalResult := mrOK;
   except
-    On E:Exception do
+    on E:EDatabaseError do
       MessageDlg( 'Creating database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
     // Keep form open
   end else try
@@ -284,7 +284,7 @@ begin
     // Close form
     ModalResult := mrOK;
   except
-    On E:Exception do
+    on E:EDatabaseError do
       MessageDlg( 'Altering database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
     // Keep form open
   end;

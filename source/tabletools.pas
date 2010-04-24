@@ -474,15 +474,10 @@ begin
               Views.Add(DBObj)
             else
               ProcessNodeFunc(DBObj);
-          except
+          except on E:EDatabaseError do
             // The above SQL can easily throw an exception, e.g. if a table is corrupted.
             // In such cases we create a dummy row, including the error message
-            on E:Exception do begin
-              if E.ClassType = EAccessViolation then
-                Raise
-              else
-                AddNotes(DBObj.Database, DBObj.Name, 'error', E.Message);
-            end;
+            AddNotes(DBObj.Database, DBObj.Name, 'error', E.Message)
           end else begin
             AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+FormatByteNumber(DBObj.Size), '');
           end;
@@ -494,7 +489,7 @@ begin
       for i:=0 to Views.Count-1 do begin
         try
           ProcessNodeFunc(Views[i]);
-        except on E:Exception do
+        except on E:EDatabaseError do
           AddNotes(Views[i].Database, Views[i].Name, 'error', E.Message);
         end;
       end;
@@ -798,7 +793,7 @@ begin
       comboExportOutputTarget.ItemIndex := 0;
       Screen.Cursor := crDefault;
     except
-      on E:Exception do begin
+      on E:EDatabaseError do begin
         Screen.Cursor := crDefault;
         MessageDlg(E.Message, mtError, [mbOK], 0);
         comboExportOutputType.ItemIndex := FLastOutputSelectedIndex;
@@ -1123,7 +1118,7 @@ begin
         Struc := fixNewlines(Struc);
         Output(Struc, True, True, True, True, True);
       except
-        On E:Exception do begin
+        on E:EDatabaseError do begin
           // Catch the exception message and dump it into the export file for debugging reasons
           Output('/* '+E.Message+' */', False, True, True, False, False);
           Raise;

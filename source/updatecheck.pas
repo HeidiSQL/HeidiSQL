@@ -128,7 +128,7 @@ begin
     MainReg.WriteString(REGNAME_LAST_UPDATECHECK, DateTimeToStr(Now));
   except
     // Do not popup errors, just display them in the status label
-    On E:Exception do
+    on E:Exception do
       Status(E.Message);
   end;
   if FileExists(CheckfileDownload.Filename) then

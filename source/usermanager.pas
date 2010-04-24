@@ -311,7 +311,7 @@ begin
   except
     // At least one priv table is missing or non-accessible when we get an exception.
     // Proceeding would result in follow up errors, so cancel the whole dialog in that case.
-    on E:Exception do begin
+    on E:EDatabaseError do begin
       MessageDlg(E.Message+CRLF+CRLF+'The user manager cannot proceed with this error.', mtError, [mbOK], 0);
       PostMessage(Handle, WM_CLOSE, 0, 0); 
       Exit;
@@ -928,7 +928,7 @@ begin
       Mainform.Connection.Query(sql + mask(PRIVTABLE_DB) + AcctWhere);
       Mainform.Connection.Query(sql + mask(PRIVTABLE_USERS) + AcctWhere);
     except
-      on E:Exception do begin
+      on E:EDatabaseError do begin
         MessageDlg(E.Message, mtError, [mbOK], 0);
         Exit;
       end;
@@ -965,7 +965,7 @@ begin
       Mainform.Connection.Query(sql + mask(PRIVTABLE_TABLES) + AcctValues + AcctWhere);
       Mainform.Connection.Query(sql + mask(PRIVTABLE_COLUMNS) + AcctValues + AcctWhere);
     except
-      on E:Exception do begin
+      on E:EDatabaseError do begin
         MessageDlg(E.Message, mtError, [mbOK], 0);
         Exit;
       end;
@@ -1010,7 +1010,7 @@ begin
     try
       Mainform.Connection.Query(sql + mask(PRIVTABLE_USERS) + AcctValues + AcctWhere);
     except
-      on E:Exception do begin
+      on E:EDatabaseError do begin
         MessageDlg(E.Message, mtError, [mbOK], 0);
         Exit;
       end;
@@ -1055,7 +1055,7 @@ begin
       // Todo: Allow concurrency by skipping this account and removing from Users array if inserting key in mysql.user fails.
       Mainform.Connection.Query(sql);
     except
-      on E:Exception do begin
+      on E:EDatabaseError do begin
         MessageDlg(E.Message, mtError, [mbOK], 0);
         Exit;
       end;
@@ -1124,7 +1124,7 @@ begin
         try
           Mainform.Connection.Query(sql + AcctWhere);
         except
-          on E:Exception do begin
+          on E:EDatabaseError do begin
             MessageDlg(E.Message, mtError, [mbOK], 0);
             Exit;
           end;
@@ -1136,7 +1136,7 @@ begin
         try
           Mainform.Connection.Query(sql + AcctWhere + PrivWhere);
         except
-          on E:Exception do begin
+          on E:EDatabaseError do begin
             MessageDlg(E.Message, mtError, [mbOK], 0);
             Exit;
           end;
@@ -1204,7 +1204,7 @@ begin
         if Mainform.Connection.RowsAffected = 0 then
           Mainform.Connection.Query('UPDATE ' + db + '.' + TableName + ' SET ' +Delim(PrivUpdates) + AcctWhere);
       except
-        on E:Exception do begin
+        on E:EDatabaseError do begin
           MessageDlg(E.Message, mtError, [mbOK], 0);
           Exit;
         end;
@@ -1229,7 +1229,7 @@ begin
         try
           Mainform.Connection.Query(sql);
         except
-          on E:Exception do begin
+          on E:EDatabaseError do begin
             MessageDlg(E.Message, mtError, [mbOK], 0);
             Exit;
           end;
@@ -1241,7 +1241,7 @@ begin
     Mainform.Connection.Query('FLUSH PRIVILEGES');
     ModalResult := mrOK;
   except
-    on E:Exception do begin
+    on E:EDatabaseError do begin
       MessageDlg(E.Message, mtError, [mbOK], 0);
       Exit;
     end;
