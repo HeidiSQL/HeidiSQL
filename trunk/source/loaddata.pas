@@ -269,7 +269,7 @@ begin
   try
     Mainform.Connection.Query(query);
   except
-    on E:Exception do begin
+    on E:EDatabaseError do begin
       MessageDlg(E.Message, mtError, [mbOk], 0);
       ModalResult := mrNone;
     end;

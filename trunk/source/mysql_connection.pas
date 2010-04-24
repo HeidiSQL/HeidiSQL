@@ -41,6 +41,9 @@ type
     function Compare(const Left, Right: TDBObject): Integer; override;
   end;
 
+  // Custom exception class for any connection or database related error
+  EDatabaseError = class(Exception);
+
   {$M+} // Needed to add published properties
 
   { TConnectionParameters and friends }
@@ -350,7 +353,7 @@ begin
             {PansiChar(AnsiString(FParameters.CApath))}nil,
             {PansiChar(AnsiString(FParameters.Cipher))}nil);
           if SSLresult <> 0 then
-            raise Exception.CreateFmt('Could not connect using SSL (Error %d)', [SSLresult]);
+            raise EDatabaseError.CreateFmt('Could not connect using SSL (Error %d)', [SSLresult]);
         end;
       end;
 
@@ -387,10 +390,10 @@ begin
           WaitForSingleObject(FPlinkProcInfo.hProcess, 1000);
           GetExitCodeProcess(FPlinkProcInfo.hProcess, ExitCode);
           if ExitCode <> STILL_ACTIVE then
-            raise Exception.Create('PLink exited unexpected. Command line was:'+CRLF+PlinkCmd);
+            raise EDatabaseError.Create('PLink exited unexpected. Command line was:'+CRLF+PlinkCmd);
         end else begin
           ClosePlink;
-          raise Exception.Create('Couldn''t execute PLink: '+CRLF+PlinkCmd);
+          raise EDatabaseError.Create('Couldn''t execute PLink: '+CRLF+PlinkCmd);
         end;
         FinalHost := 'localhost';
         FinalPort := FParameters.SSHLocalPort;
@@ -436,7 +439,7 @@ begin
       FConnectionStarted := 0;
       FHandle := nil;
       ClosePlink;
-      raise Exception.Create(Error);
+      raise EDatabaseError.Create(Error);
     end else begin
       Log(lcInfo, 'Connected. Thread-ID: '+IntToStr(ThreadId));
       FActive := True;
@@ -515,7 +518,7 @@ begin
   if querystatus <> 0 then begin
     // Most errors will show up here, some others slightly later, after mysql_store_result()
     Log(lcError, GetLastError);
-    raise Exception.Create(GetLastError);
+    raise EDatabaseError.Create(GetLastError);
   end else begin
     // We must call mysql_store_result() + mysql_free_result() to unblock the connection
     // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html
@@ -527,7 +530,7 @@ begin
       // Indicates a late error, e.g. triggered by mysql_store_result(), after selecting a stored
       // function with invalid SQL body. Also SHOW TABLE STATUS on older servers.
       Log(lcError, GetLastError);
-      raise Exception.Create(GetLastError);
+      raise EDatabaseError.Create(GetLastError);
     end;
     if Result <> nil then begin
       FRowsFound := mysql_num_rows(Result);
@@ -1473,7 +1476,7 @@ begin
     else
       Result := String(AnsiStr);
   end else if not IgnoreErrors then
-    Raise Exception.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
+    Raise EDatabaseError.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
 end;
 
 
@@ -1485,7 +1488,7 @@ begin
   if idx > -1 then
     Result := Col(idx)
   else if not IgnoreErrors then
-    Raise Exception.CreateFmt('Column "%s" not available.', [ColumnName]);
+    Raise EDatabaseError.CreateFmt('Column "%s" not available.', [ColumnName]);
 end;
 
 
@@ -1503,7 +1506,7 @@ begin
       BinToHex(FCurrentRow[Column], PChar(Result), BinLen);
     end;
   end else if not IgnoreErrors then
-    Raise Exception.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
+    Raise EDatabaseError.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
 end;
 
 

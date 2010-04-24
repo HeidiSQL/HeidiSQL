@@ -460,7 +460,7 @@ begin
     btnDiscard.Enabled := Modified;
     Mainform.actRunRoutines.Enabled := True;
   except
-    on E:Exception do begin
+    on E:EDatabaseError do begin
       MessageDlg(E.Message, mtError, [mbOk], 0);
       Result := mrAbort;
     end;
