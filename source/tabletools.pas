@@ -1075,7 +1075,7 @@ begin
           end;
 
           lntTrigger: begin
-            StrucResult := Mainform.Connection.GetResults('SHOW TRIGGERS WHERE `Trigger`='+esc(DBObj.Name));
+            StrucResult := Mainform.Connection.GetResults('SHOW TRIGGERS FROM '+m(DBObj.Database)+' WHERE `Trigger`='+esc(DBObj.Name));
             Struc := 'CREATE '+UpperCase(DBObj.ObjType)+' '+m(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
                 ' ON '+m(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement');
             if ToDb then
