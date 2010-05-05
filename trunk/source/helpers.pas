@@ -31,46 +31,6 @@ type
 
   TFileCharset = (fcsAnsi, fcsUnicode, fcsUnicodeSwapped, fcsUtf8);
 
-  // Structures for result grids, mapped from a TMySQLQuery to some handy VirtualTree structure
-  TGridCell = record
-    Text: String;
-    NewText: String; // Used to create UPDATE clauses with needed columns
-    IsNull: Boolean;
-    NewIsNull: Boolean;
-    Modified: Boolean;
-  end;
-  PGridCell = ^TGridCell;
-  TGridColumn = record
-    Name: String;
-    Datatype: TDatatypeIndex; // @see mysql_structures.pas
-    DatatypeCat: TDatatypeCategoryIndex;
-    MaxLength: Cardinal;
-    IsPriPart: Boolean;
-    ValueList: TStringList;
-  end;
-  PGridColumn = ^TGridColumn;
-  TGridColumns = Array of TGridColumn;
-  // Delphi reminder, from Rudy Velthuis (usenet):
-  // Records and arrays are passed as pointers, but in the preamble of the
-  // called function the pointed-to data is copied onto the stack.  So either
-  // use "const x: TBlah" to pass by reference, or create a pointer type.
-  // Objects are passed as pointers.
-  // (Orthogonal to this, when specifying "var", a pointer (possibly to a pointer)
-  // is passed, allowing the called function to alter the caller's reference.)
-  PGridColumns = ^TGridColumns;
-  TGridRowState = (grsDefault, grsDeleted, grsModified, grsInserted);
-  TGridRow = packed record
-    Cells: Array of TGridCell;
-    State: TGridRowState;
-    HasFullData: Boolean;
-  end;
-  PGridRow = ^TGridRow;
-  TGridRows = Array of TGridRow;
-  TGridResult = class(TObject)
-    Rows: TGridRows;
-    Columns: TGridColumns;
-  end;
-
   TOrderCol = class(TObject)
     ColumnName: String;
     SortDirection: Byte;
@@ -85,57 +45,6 @@ type
     Columns  : TStringList;
     SubParts : TStringList;
   end;
-
-  // General purpose editing status flag
-  TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
-
-  TColumnDefaultType = (cdtNothing, cdtText, cdtTextUpdateTS, cdtNull, cdtNullUpdateTS, cdtCurTS, cdtCurTSUpdateTS, cdtAutoInc);
-
-  // Column object, many of them in a TObjectList
-  TTableColumn = class(TObject)
-    Name, OldName: String;
-    DataType: TDatatype;
-    LengthSet: String;
-    Unsigned, AllowNull: Boolean;
-    DefaultType: TColumnDefaultType;
-    DefaultText: String;
-    Comment, Collation: String;
-    FStatus: TEditingStatus;
-    constructor Create;
-    destructor Destroy; override;
-    private
-      procedure SetStatus(Value: TEditingStatus);
-    public
-      property Status: TEditingStatus read FStatus write SetStatus;
-  end;
-  PTableColumn = ^TTableColumn;
-  TTableColumnList = TObjectList<TTableColumn>;
-
-  TTableKey = class(TObject)
-    Name, OldName: String;
-    IndexType, Algorithm: String;
-    Columns, SubParts: TStringList;
-    Modified, Added: Boolean;
-    constructor Create;
-    destructor Destroy; override;
-    procedure Modification(Sender: TObject);
-  end;
-  TTableKeyList = TObjectList<TTableKey>;
-
-  // Helper object to manage foreign keys in a TObjectList
-  TForeignKey = class(TObject)
-    KeyName, ReferenceTable, OnUpdate, OnDelete: String;
-    Columns, ForeignColumns: TStringList;
-    Modified, Added, KeyNameWasCustomized: Boolean;
-    constructor Create;
-    destructor Destroy; override;
-  end;
-  TForeignKeyList = TObjectList<TForeignKey>;
-
-  TRoutineParam = class(TObject)
-    Name, Context, Datatype: String;
-  end;
-  TRoutineParamList = TObjectList<TRoutineParam>;
 
   TDBObjectEditor = class(TFrame)
     private
@@ -831,9 +740,10 @@ var
   i, MaxSize: Integer;
   tmp, Data, Generator: String;
   Node: PVirtualNode;
-  GridData: TGridResult;
+  GridData: TMySQLQuery;
   SelectionOnly: Boolean;
   NodeCount: Cardinal;
+  RowNum: PCardinal;
 begin
   // Only process selected nodes for "Copy as ..." actions
   SelectionOnly := S is TMemoryStream;
@@ -861,7 +771,7 @@ begin
     '      th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'"; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
     '      table, td {border: 1px solid silver;}' + CRLF +
     '      table {border-collapse: collapse;}' + CRLF;
-  for i:=0 to Length(GridData.Columns) - 1 do begin
+  for i:=0 to Grid.Header.Columns.Count-1 do begin
     // Skip hidden key columns.
     if not (coVisible in Grid.Header.Columns[i].Options) then
       Continue;
@@ -885,13 +795,12 @@ begin
     '    <table caption="' + Title + ' (' + inttostr(NodeCount) + ' rows)">' + CRLF +
     '      <thead>' + CRLF +
     '        <tr>' + CRLF;
-  for i:=0 to Length(GridData.Columns) - 1 do begin
+  for i:=0 to Grid.Header.Columns.Count-1 do begin
     // Skip hidden key columns.
     if not (coVisible in Grid.Header.Columns[i].Options) then
       Continue;
     // Add header item.
-    Data := GridData.Columns[i].Name;
-    tmp := tmp + '          <th class="col' + IntToStr(i) + '">' + Data + '</th>' + CRLF;
+    tmp := tmp + '          <th class="col' + IntToStr(i) + '">' + Grid.Header.Columns[i].Text + '</th>' + CRLF;
   end;
   tmp := tmp +
     '        </tr>' + CRLF +
@@ -899,22 +808,23 @@ begin
     '      <tbody>' + CRLF;
   StreamWrite(S, tmp);
 
-  Grid.Visible := false;
   if SelectionOnly then Node := Grid.GetFirstSelected else Node := Grid.GetFirst;
   while Assigned(Node) do begin
     // Update status once in a while.
     if (Node.Index+1) mod 100 = 0 then
       ExportStatusMsg(Node, NodeCount, S.Size);
+    RowNum := Grid.GetNodeData(Node);
+    GridData.RecNo := RowNum^;
     tmp := '        <tr>' + CRLF;
-    for i:=0 to Length(GridData.Columns) - 1 do begin
+    for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
       Data := Grid.Text[Node, i];
       // Handle nulls.
-      if GridData.Rows[Node.Index].Cells[i].IsNull then Data := TEXT_NULL;
+      if GridData.IsNull(i) then Data := TEXT_NULL;
       // Unformat numeric values
-      if (GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
+      if (GridData.DataType(i).Category in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
         Data := UnformatNumber(Data);
       // Escape HTML control characters in data.
       Data := htmlentities(Data);
@@ -941,7 +851,6 @@ begin
     '  </body>' + CRLF +
     '</html>' + CRLF;
   StreamWrite(S, tmp);
-  Grid.Visible := true;
   Mainform.ProgressBarStatus.Visible := False;
   Mainform.ShowStatusMsg(STATUS_MSG_READY);
 end;
@@ -960,9 +869,10 @@ var
   i, MaxSize: Integer;
   tmp, Data: String;
   Node: PVirtualNode;
-  GridData: TGridResult;
+  GridData: TMySQLQuery;
   SelectionOnly: Boolean;
   NodeCount: Cardinal;
+  RowNum: PCardinal;
 begin
   // Only process selected nodes for "Copy as ..." actions
   SelectionOnly := S is TMemoryStream;
@@ -987,9 +897,9 @@ begin
     // Skip hidden key columns
     if not (coVisible in Grid.Header.Columns[i].Options) then
       Continue;
-    Data := GridData.Columns[i].Name;
+    Data := Grid.Header.Columns[i].Text;
     // Alter column name in header if data is not raw.
-    if (GridData.Columns[i].DatatypeCat in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+    if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
       Data := 'HEX(' + Data + ')';
     // Add header item.
     if tmp <> '' then tmp := tmp + Separator;
@@ -998,13 +908,13 @@ begin
   tmp := tmp + Terminator;
   StreamWrite(S, tmp);
 
-  Grid.Visible := false;
-
   // Data:
   if SelectionOnly then Node := Grid.GetFirstSelected else Node := Grid.GetFirst;
   while Assigned(Node) do begin
     if (Node.Index+1) mod 100 = 0 then
       ExportStatusMsg(Node, NodeCount, S.Size);
+    RowNum := Grid.GetNodeData(Node);
+    GridData.RecNo := RowNum^;
     tmp := '';
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
@@ -1012,15 +922,15 @@ begin
         Continue;
       Data := Grid.Text[Node, i];
       // Remove 0x.
-      if (GridData.Columns[i].DatatypeCat in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+      if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
         Delete(Data, 1, 2);
       // Unformat numeric values
-      if (GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
+      if (GridData.DataType(i).Category in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
         Data := UnformatNumber(Data);
       // Escape encloser characters inside data per de-facto CSV.
       Data := StringReplace(Data, Encloser, Encloser + Encloser, [rfReplaceAll]);
       // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
-      if GridData.Rows[Node.Index].Cells[i].IsNull then Data := 'NULL'
+      if GridData.IsNull(i) then Data := 'NULL'
       else Data := Encloser + Data + Encloser;
       // Add cell.
       if tmp <> '' then tmp := tmp + Separator;
@@ -1036,7 +946,6 @@ begin
       break;
     end;
   end;
-  Grid.Visible := true;
   Mainform.ProgressBarStatus.Visible := False;
   Mainform.ShowStatusMsg(STATUS_MSG_READY);
 end;
@@ -1053,9 +962,10 @@ var
   i, MaxSize: Integer;
   tmp, Data: String;
   Node: PVirtualNode;
-  GridData: TGridResult;
+  GridData: TMySQLQuery;
   SelectionOnly: Boolean;
   NodeCount: Cardinal;
+  RowNum: PCardinal;
 begin
   // Only process selected nodes for "Copy as ..." actions
   SelectionOnly := S is TMemoryStream;
@@ -1074,12 +984,12 @@ begin
       '<table name="'+root+'">' + CRLF;
   StreamWrite(S, tmp);
 
-  // Avoid reloading discarded data before the end.
-  Grid.Visible := false;
   if SelectionOnly then Node := Grid.GetFirstSelected else Node := Grid.GetFirst;
   while Assigned(Node) do begin
     if (Node.Index+1) mod 100 = 0 then
      ExportStatusMsg(Node, NodeCount, S.Size);
+    RowNum := Grid.GetNodeData(Node);
+    GridData.RecNo := RowNum^;
     tmp := #9'<row>' + CRLF;
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
@@ -1087,17 +997,17 @@ begin
         Continue;
       // Print cell start tag.
       tmp := tmp + #9#9'<' + Grid.Header.Columns[i].Text;
-      if GridData.Rows[Node.Index].Cells[i].IsNull then tmp := tmp + ' isnull="true" />' + CRLF
+      if GridData.IsNull(i) then tmp := tmp + ' isnull="true" />' + CRLF
       else begin
-        if (GridData.Columns[i].DatatypeCat in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+        if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
           tmp := tmp + ' format="hex"';
         tmp := tmp + '>';
         Data := Grid.Text[Node, i];
         // Remove 0x.
-        if (GridData.Columns[i].DatatypeCat in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+        if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
           Delete(Data, 1, 2);
         // Unformat numeric values
-        if (GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
+        if (GridData.DataType(i).Category in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
           Data := UnformatNumber(Data);
         // Escape XML control characters in data.
         Data := htmlentities(Data);
@@ -1118,7 +1028,6 @@ begin
   // footer:
   tmp := '</table>' + CRLF;
   StreamWrite(S, tmp);
-  Grid.Visible := true;
   Mainform.ProgressBarStatus.Visible := False;
   Mainform.ShowStatusMsg(STATUS_MSG_READY);
 end;
@@ -1134,9 +1043,10 @@ var
   i, MaxSize: Integer;
   tmp, Data: String;
   Node: PVirtualNode;
-  GridData: TGridResult;
+  GridData: TMySQLQuery;
   SelectionOnly: Boolean;
   NodeCount: Cardinal;
+  RowNum: PCardinal;
 begin
   // Only process selected nodes for "Copy as ..." actions
   SelectionOnly := S is TMemoryStream;
@@ -1151,12 +1061,13 @@ begin
   else
     NodeCount := Grid.RootNodeCount;
   EnableProgressBar(NodeCount);
-  // Avoid reloading discarded data before the end.
-  Grid.Visible := false;
+
   if SelectionOnly then Node := Grid.GetFirstSelected else Node := Grid.GetFirst;
   while Assigned(Node) do begin
     if (Node.Index+1) mod 100 = 0 then
-     ExportStatusMsg(Node, NodeCount, S.Size);
+      ExportStatusMsg(Node, NodeCount, S.Size);
+    RowNum := Grid.GetNodeData(Node);
+    GridData.RecNo := RowNum^;
     tmp := 'INSERT INTO '+Mainform.Mask(Tablename)+' (';
     for i:=0 to Grid.Header.Columns.Count-1 do begin
       // Skip hidden key columns
@@ -1170,15 +1081,15 @@ begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
-      if GridData.Rows[Node.Index].Cells[i].IsNull then
+      if GridData.IsNull(i) then
         tmp := tmp + 'NULL'
       else begin             
         Data := Grid.Text[Node, i];
         // Remove 0x.
-        if (GridData.Columns[i].DatatypeCat in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+        if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
           Delete(Data, 1, 2);
         // Unformat numeric values
-        if GridData.Columns[i].DatatypeCat in [dtcInteger, dtcReal] then
+        if GridData.DataType(i).Category in [dtcInteger, dtcReal] then
           tmp := tmp + UnformatNumber(Data)
         else
           tmp := tmp + esc(Data);
@@ -1199,7 +1110,6 @@ begin
   // footer:
   tmp := CRLF;
   StreamWrite(S, tmp);
-  Grid.Visible := true;
   Mainform.ProgressBarStatus.Visible := False;
   Mainform.ShowStatusMsg(STATUS_MSG_READY);
 end;
@@ -3192,74 +3102,6 @@ begin
   SetLength(Result, Run-2);
 end;
 
-
-
-{ *** TTableColumn }
-
-constructor TTableColumn.Create;
-begin
-  inherited Create;
-end;
-
-destructor TTableColumn.Destroy;
-begin
-  inherited Destroy;
-end;
-
-procedure TTableColumn.SetStatus(Value: TEditingStatus);
-begin
-  // Set editing flag and enable "Save" button
-  if (FStatus in [esAddedUntouched, esAddedModified]) and (Value = esModified) then
-    Value := esAddedModified
-  else if (FStatus in [esAddedUntouched, esAddedModified]) and (Value = esDeleted) then
-    Value := esAddedDeleted;
-  FStatus := Value;
-  if Value <> esUntouched then
-    TfrmTableEditor(Mainform.ActiveObjectEditor).Modification(Self);
-end;
-
-
-
-{ *** TTableKey }
-
-constructor TTableKey.Create;
-begin
-  inherited Create;
-  Columns := TStringList.Create;
-  SubParts := TStringList.Create;
-  Columns.OnChange := Modification;
-  Subparts.OnChange := Modification;
-end;
-
-destructor TTableKey.Destroy;
-begin
-  FreeAndNil(Columns);
-  FreeAndNil(SubParts);
-  inherited Destroy;
-end;
-
-procedure TTableKey.Modification(Sender: TObject);
-begin
-  if not Added then
-    Modified := True;
-end;
-
-
-{ *** TForeignKey }
-
-constructor TForeignKey.Create;
-begin
-  inherited Create;
-  Columns := TStringList.Create;
-  ForeignColumns := TStringList.Create;
-end;
-
-destructor TForeignKey.Destroy;
-begin
-  FreeAndNil(Columns);
-  FreeAndNil(ForeignColumns);
-  inherited Destroy;
-end;
 
 
 { *** TDBObjectEditor }

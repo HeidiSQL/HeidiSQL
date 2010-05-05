@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, windows, mysql_api, mysql_structures, SynRegExpr, Contnrs, Generics.Collections, Generics.Defaults,
-  DateUtils, Types, ShellApi, Math;
+  DateUtils, Types, ShellApi, Math, Dialogs;
 
 type
   { TDBObjectList and friends }
@@ -40,6 +40,72 @@ type
   TDBObjectComparer = class(TComparer<TDBObject>)
     function Compare(const Left, Right: TDBObject): Integer; override;
   end;
+
+  // General purpose editing status flag
+  TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
+
+  TColumnDefaultType = (cdtNothing, cdtText, cdtTextUpdateTS, cdtNull, cdtNullUpdateTS, cdtCurTS, cdtCurTSUpdateTS, cdtAutoInc);
+
+  // Column object, many of them in a TObjectList
+  TTableColumn = class(TObject)
+    private
+      procedure SetStatus(Value: TEditingStatus);
+    public
+      Name, OldName: String;
+      DataType: TDatatype;
+      LengthSet: String;
+      Unsigned, AllowNull: Boolean;
+      DefaultType: TColumnDefaultType;
+      DefaultText: String;
+      Comment, Collation: String;
+      FStatus: TEditingStatus;
+      constructor Create;
+      destructor Destroy; override;
+      property Status: TEditingStatus read FStatus write SetStatus;
+  end;
+  PTableColumn = ^TTableColumn;
+  TTableColumnList = TObjectList<TTableColumn>;
+
+  TTableKey = class(TObject)
+    public
+      Name, OldName: String;
+      IndexType, Algorithm: String;
+      Columns, SubParts: TStringList;
+      Modified, Added: Boolean;
+      constructor Create;
+      destructor Destroy; override;
+      procedure Modification(Sender: TObject);
+  end;
+  TTableKeyList = TObjectList<TTableKey>;
+
+  // Helper object to manage foreign keys in a TObjectList
+  TForeignKey = class(TObject)
+    public
+      KeyName, ReferenceTable, OnUpdate, OnDelete: String;
+      Columns, ForeignColumns: TStringList;
+      Modified, Added, KeyNameWasCustomized: Boolean;
+      constructor Create;
+      destructor Destroy; override;
+  end;
+  TForeignKeyList = TObjectList<TForeignKey>;
+
+  TRoutineParam = class(TObject)
+    public
+      Name, Context, Datatype: String;
+  end;
+  TRoutineParamList = TObjectList<TRoutineParam>;
+
+  // Structures for in-memory changes of a TMySQLQuery
+  TCellData = class(TObject)
+    NewText, OldText: String;
+    NewIsNull, OldIsNull: Boolean;
+    Modified: Boolean;
+  end;
+  TRowData = class(TObjectList<TCellData>)
+    OldRecNo, RecNo: Int64;
+    Inserted: Boolean;
+  end;
+  TUpdateData = TObjectList<TRowData>;
 
   // Custom exception class for any connection or database related error
   EDatabaseError = class(Exception);
@@ -175,6 +241,7 @@ type
       function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList;
       function DbObjectsCached(db: String): Boolean;
       function ParseDateTime(Str: String): TDateTime;
+      function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
       property Parameters: TConnectionParameters read FParameters write FParameters;
@@ -220,19 +287,37 @@ type
       FRecNo,
       FRecordCount: Int64;
       FColumnNames: TStringList;
+      FColumnOrgNames: TStringList;
+      FColumnTypes: Array of TDatatype;
       FColumnLengths: TIntegerDynArray;
-      FLastResult: PMYSQL_RES;
+      FColumnFlags: TCardinalDynArray;
+      FResultList: Array of PMYSQL_RES;
+      FCurrentResults: PMYSQL_RES;
       FCurrentRow: PMYSQL_ROW;
+      FCurrentUpdateRow: TRowData;
       FEof: Boolean;
-      FDatatypes: Array of TDatatype;
       FLogCategory: TMySQLLogCategory;
       FStoreResult: Boolean;
+      FColumns: TTableColumnList;
+      FKeys: TTableKeyList;
+      FForeignKeys: TForeignKeyList;
+      FEditingPrepared: Boolean;
+      FUpdateData: TUpdateData;
       procedure SetSQL(Value: String);
       procedure SetRecNo(Value: Int64);
+      procedure SetColumnOrgNames(Value: TStringList);
+      procedure PrepareEditing;
+      procedure CreateUpdateRow;
+      function DatabaseName: String;
+      function TableName: String;
+      function QuotedDbAndTableName: String;
+      function GetKeyColumns: TStringList;
+      function GetWhereClause: String;
+      function ColAttributes(Column: Integer): TTableColumn;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      procedure Execute;
+      procedure Execute(AddResult: Boolean=False);
       procedure First;
       procedure Next;
       function ColumnCount: Integer;
@@ -240,17 +325,33 @@ type
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
       function BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String;
       function DataType(Column: Integer): TDataType;
+      function MaxLength(Column: Integer): Int64;
+      function ValueList(Column: Integer): TStringList;
       function ColExists(Column: String): Boolean;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean;
+      function ColIsUniqueKeyPart(Column: Integer): Boolean;
+      function ColIsKeyPart(Column: Integer): Boolean;
       function IsNull(Column: Integer): Boolean; overload;
       function IsNull(Column: String): Boolean; overload;
       function HasResult: Boolean;
+      procedure CheckEditable;
+      function DeleteRow: Boolean;
+      function InsertRow: Cardinal;
+      procedure SetCol(Column: Integer; NewText: String; Null: Boolean);
+      function EnsureFullRow: Boolean;
+      function HasFullData: Boolean;
+      function Modified(Column: Integer): Boolean; overload;
+      function Modified: Boolean; overload;
+      function Inserted: Boolean;
+      function SaveModifications: Boolean;
+      procedure DiscardModifications;
       property RecNo: Int64 read FRecNo write SetRecNo;
       property Eof: Boolean read FEof;
       property RecordCount: Int64 read FRecordCount;
       property ColumnNames: TStringList read FColumnNames;
       property LogCategory: TMySQLLogCategory read FLogCategory write FLogCategory;
       property StoreResult: Boolean read FStoreResult write FStoreResult;
+      property ColumnOrgNames: TStringList read FColumnOrgNames write SetColumnOrgNames;
     published
       property SQL: String read FSQL write SetSQL;
       property Connection: TMySQLConnection read FConnection write FConnection;
@@ -258,6 +359,9 @@ type
 
 
 implementation
+
+uses helpers;
+
 
 
 { TConnectionParameters }
@@ -1346,6 +1450,45 @@ begin
 end;
 
 
+function TMySQLConnection.GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
+var
+  i: Integer;
+  AllowsNull: Boolean;
+  Key: TTableKey;
+  Col: TTableColumn;
+begin
+  Result := TStringList.Create;
+  // Find best key for updates
+  // 1. round: find a primary key
+  for Key in Keys do begin
+    if Key.Name = 'PRIMARY' then
+      Result.Assign(Key.Columns);
+  end;
+  if Result.Count = 0 then begin
+    // no primary key available -> 2. round: find a unique key
+    for Key in Keys do begin
+      if Key.IndexType = UKEY then begin
+        // We found a UNIQUE key - better than nothing. Check if one of the key
+        // columns allows NULLs which makes it dangerous to use in UPDATES + DELETES.
+        AllowsNull := False;
+        for i:=0 to Key.Columns.Count-1 do begin
+          for Col in Columns do begin
+            if Col.Name = Key.Columns[i] then
+              AllowsNull := Col.AllowNull;
+            if AllowsNull then break;
+          end;
+          if AllowsNull then break;
+        end;
+        if not AllowsNull then begin
+          Result.Assign(Key.Columns);
+          break;
+        end;
+      end;
+    end;
+  end;
+end;
+
+
 
 { TMySQLQuery }
 
@@ -1356,16 +1499,26 @@ begin
   FRecordCount := 0;
   FColumnNames := TStringList.Create;
   FColumnNames.CaseSensitive := True;
+  FColumnOrgNames := TStringList.Create;
+  FColumnOrgNames.CaseSensitive := True;
   FStoreResult := True;
   FLogCategory := lcSQL;
 end;
 
 
 destructor TMySQLQuery.Destroy;
+var
+  i: Integer;
 begin
   FreeAndNil(FColumnNames);
-  if HasResult then
-    mysql_free_result(FLastResult);
+  FreeAndNil(FColumnOrgNames);
+  FreeAndNil(FColumns);
+  FreeAndNil(FKeys);
+  SetLength(FColumnFlags, 0);
+  SetLength(FColumnLengths, 0);
+  if HasResult then for i:=Low(FResultList) to High(FResultList) do
+    mysql_free_result(FResultList[i]);
+  SetLength(FResultList, 0);
   inherited Destroy;
 end;
 
@@ -1376,52 +1529,83 @@ begin
 end;
 
 
-procedure TMySQLQuery.Execute;
+procedure TMySQLQuery.Execute(AddResult: Boolean=False);
 var
   i, j, NumFields: Integer;
+  NumResults: Int64;
   Field: PMYSQL_FIELD;
   IsBinary: Boolean;
+  FLastResult: PMYSQL_RES;
 begin
   FLastResult := Connection.Query(FSQL, FStoreResult, FLogCategory);
-  FRecordCount := Connection.RowsFound;
-  if HasResult then begin
-    NumFields := mysql_num_fields(FLastResult);
-    SetLength(FDatatypes, NumFields);
-    SetLength(FColumnLengths, NumFields);
-    FColumnNames.Clear;
-    for i:=0 to NumFields-1 do begin
-      Field := mysql_fetch_field_direct(FLastResult, i);
-      FColumnNames.Add(Utf8ToString(Field.name));
-
-      FDatatypes[i] := Datatypes[Low(Datatypes)];
-      if (Field.flags and ENUM_FLAG) = ENUM_FLAG then
-        FDatatypes[i] := Datatypes[Integer(dtEnum)]
-      else if (Field.flags and SET_FLAG) = SET_FLAG then
-        FDatatypes[i] := Datatypes[Integer(dtSet)]
-      else for j:=Low(Datatypes) to High(Datatypes) do begin
-        if Field._type = Datatypes[j].NativeType then begin
-          if Datatypes[j].Index in [dtTinytext, dtText, dtMediumtext, dtLongtext] then begin
-            // Text and Blob types share the same constants (see FIELD_TYPEs in mysql_api)
-            // Some function results return binary collation up to the latest versions. Work around
-            // that by checking if this field is a real table field
-            // See http://bugs.mysql.com/bug.php?id=10201
-            if Connection.IsUnicode then
-              IsBinary := (Field.charsetnr = COLLATION_BINARY) and (Field.org_table <> '')
-            else
-              IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
-            if IsBinary then
-              continue;
+  if AddResult and (Length(FResultList) = 0) then
+    AddResult := False;
+  if AddResult then
+    NumResults := Length(FResultList)+1
+  else begin
+    for i:=Low(FResultList) to High(FResultList) do
+      mysql_free_result(FResultList[i]);
+    NumResults := 1;
+    FRecordCount := 0;
+    FEditingPrepared := False;
+  end;
+  if FLastResult <> nil then begin
+    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    SetLength(FResultList, NumResults);
+    FResultList[NumResults-1] := FLastResult;
+    FRecordCount := FRecordCount + FLastResult.row_count;
+  end;
+  if not AddResult then begin
+    if HasResult then begin
+      NumFields := mysql_num_fields(FLastResult);
+      SetLength(FColumnTypes, NumFields);
+      SetLength(FColumnLengths, NumFields);
+      SetLength(FColumnFlags, NumFields);
+      FColumnNames.Clear;
+      FColumnOrgNames.Clear;
+      for i:=0 to NumFields-1 do begin
+        Field := mysql_fetch_field_direct(FLastResult, i);
+        FColumnNames.Add(Utf8ToString(Field.name));
+        FColumnOrgNames.Add(Utf8ToString(Field.org_name));
+        FColumnFlags[i] := Field.flags;
+        FColumnTypes[i] := Datatypes[Low(Datatypes)];
+        if (Field.flags and ENUM_FLAG) = ENUM_FLAG then
+          FColumnTypes[i] := Datatypes[Integer(dtEnum)]
+        else if (Field.flags and SET_FLAG) = SET_FLAG then
+          FColumnTypes[i] := Datatypes[Integer(dtSet)]
+        else for j:=Low(Datatypes) to High(Datatypes) do begin
+          if Field._type = Datatypes[j].NativeType then begin
+            if Datatypes[j].Index in [dtTinytext, dtText, dtMediumtext, dtLongtext] then begin
+              // Text and Blob types share the same constants (see FIELD_TYPEs in mysql_api)
+              // Some function results return binary collation up to the latest versions. Work around
+              // that by checking if this field is a real table field
+              // See http://bugs.mysql.com/bug.php?id=10201
+              if Connection.IsUnicode then
+                IsBinary := (Field.charsetnr = COLLATION_BINARY) and (Field.org_table <> '')
+              else
+                IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
+              if IsBinary then
+                continue;
+            end;
+            FColumnTypes[i] := Datatypes[j];
+            break;
           end;
-          FDatatypes[i] := Datatypes[j];
-          break;
         end;
       end;
+      RecNo := 0;
+    end else begin
+      SetLength(FColumnTypes, 0);
+      SetLength(FColumnLengths, 0);
+      SetLength(FColumnFlags, 0);
     end;
-    RecNo := 0;
-  end else begin
-    SetLength(FDatatypes, 0);
-    SetLength(FColumnLengths, 0);
   end;
+end;
+
+
+procedure TMySQLQuery.SetColumnOrgNames(Value: TStringList);
+begin
+  // Retrieve original column names from caller
+  FColumnOrgNames.Text := Value.Text;
 end;
 
 
@@ -1440,21 +1624,51 @@ end;
 procedure TMySQLQuery.SetRecNo(Value: Int64);
 var
   LengthPointer: PLongInt;
-  i: Integer;
+  i, j: Integer;
+  NumRows: Int64;
+  Row: TRowData;
+  RowFound: Boolean;
 begin
-  if Value >= RecordCount then begin
+  if (not FEditingPrepared) and (Value >= RecordCount) then begin
     FRecNo := RecordCount;
     FEof := True;
   end else begin
-    if FRecNo+1 <> Value then
-      mysql_data_seek(FLastResult, Value);
+
+    // Find row in edited data
+    RowFound := False;
+    if FEditingPrepared then begin
+      for Row in FUpdateData do begin
+        if Row.RecNo = Value then begin
+          FCurrentRow := nil;
+          FCurrentUpdateRow := Row;
+          RowFound := True;
+          break;
+        end;
+      end;
+    end;
+
+    // Row not edited data - find it in normal result
+    if not RowFound then begin
+      NumRows := 0;
+      for i:=Low(FResultList) to High(FResultList) do begin
+        Inc(NumRows, FResultList[i].row_count);
+        if NumRows > Value then begin
+          FCurrentResults := FResultList[i];
+          if FRecNo+1 <> Value then
+            mysql_data_seek(FCurrentResults, FCurrentResults.row_count-(NumRows-Value));
+          FCurrentRow := mysql_fetch_row(FCurrentResults);
+          FCurrentUpdateRow := nil;
+          // Remember length of column contents. Important for Col() so contents of cells with #0 chars are not cut off
+          LengthPointer := mysql_fetch_lengths(FCurrentResults);
+          for j:=Low(FColumnLengths) to High(FColumnLengths) do
+            FColumnLengths[j] := PInteger(Integer(LengthPointer) + j * SizeOf(Integer))^;
+          break;
+        end;
+      end;
+    end;
+
     FRecNo := Value;
     FEof := False;
-    FCurrentRow := mysql_fetch_row(FLastResult);
-    // Remember length of column contents. Important for Col() so contents of cells with #0 chars are not cut off
-    LengthPointer := mysql_fetch_lengths(FLastResult);
-    for i:=Low(FColumnLengths) to High(FColumnLengths) do
-      FColumnLengths[i] := PInteger(Integer(LengthPointer) + i * SizeOf(Integer))^;
   end;
 end;
 
@@ -1470,11 +1684,17 @@ var
   AnsiStr: AnsiString;
 begin
   if (Column > -1) and (Column < ColumnCount) then begin
-    SetString(AnsiStr, FCurrentRow[Column], FColumnLengths[Column]);
-    if Connection.IsUnicode then
-      Result := UTF8ToString(AnsiStr)
-    else
-      Result := String(AnsiStr);
+    if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
+      // Row was edited and only valid in a TRowData
+      Result := FCurrentUpdateRow[Column].NewText;
+    end else begin
+      // The normal case: Fetch cell from mysql result
+      SetString(AnsiStr, FCurrentRow[Column], FColumnLengths[Column]);
+      if Connection.IsUnicode then
+        Result := UTF8ToString(AnsiStr)
+      else
+        Result := String(AnsiStr);
+    end;
   end else if not IgnoreErrors then
     Raise EDatabaseError.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
 end;
@@ -1494,25 +1714,70 @@ end;
 
 function TMySQLQuery.BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String;
 var
-  LengthPointer: PLongInt;
   BinLen: Integer;
+  Ansi: AnsiString;
 begin
   // Return a binary column value as hex AnsiString
-  if (Column > -1) and (Column < ColumnCount) then begin
-    LengthPointer := mysql_fetch_lengths(FLastResult);
-    if LengthPointer <> nil then begin
-      BinLen := PInteger(Integer(LengthPointer) + Column * SizeOf(Integer))^;
-      SetLength(Result, BinLen*2);
-      BinToHex(FCurrentRow[Column], PChar(Result), BinLen);
-    end;
-  end else if not IgnoreErrors then
-    Raise EDatabaseError.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
+  Result := Col(Column, IgnoreErrors);
+  Ansi := AnsiString(Result);
+  BinLen := FColumnLengths[Column];
+  SetLength(Result, BinLen*2);
+  BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
 end;
 
 
 function TMySQLQuery.DataType(Column: Integer): TDataType;
 begin
-  Result := FDatatypes[Column];
+  Result := FColumnTypes[Column];
+end;
+
+
+function TMySQLQuery.MaxLength(Column: Integer): Int64;
+var
+  ColAttr: TTableColumn;
+begin
+  // Return maximum posible length of values in given columns
+  // Note: PMYSQL_FIELD.max_length holds the maximum existing value in that column, which is useless here
+  Result := MaxInt;
+  ColAttr := ColAttributes(Column);
+  if Assigned(ColAttr) then begin
+    case ColAttr.DataType.Index of
+      dtChar, dtVarchar, dtBinary, dtVarBinary: Result := MakeInt(ColAttr.LengthSet);
+      dtTinyText, dtTinyBlob: Result := 255;
+      dtText, dtBlob: Result := 65535;
+      dtMediumText, dtMediumBlob: Result := 16777215;
+      dtLongText, dtLongBlob: Result := 4294967295;
+    end;
+  end;
+end;
+
+
+function TMySQLQuery.ValueList(Column: Integer): TStringList;
+var
+  ColAttr: TTableColumn;
+begin
+  Result := TStringList.Create;
+  Result.QuoteChar := '''';
+  Result.Delimiter := ',';
+  ColAttr := ColAttributes(Column);
+  if Assigned(ColAttr) and (ColAttr.DataType.Index in [dtEnum, dtSet]) then
+    Result.DelimitedText := ColAttr.LengthSet;
+end;
+
+
+function TMySQLQuery.ColAttributes(Column: Integer): TTableColumn;
+var
+  i: Integer;
+begin
+  Result := nil;
+  if FEditingPrepared then begin
+    for i:=0 to FColumns.Count do begin
+      if FColumns[i].Name = FColumnNames[Column] then begin
+        Result := FColumns[i];
+        break;
+      end;
+    end;
+  end;
 end;
 
 
@@ -1523,20 +1788,29 @@ end;
 
 
 function TMySQLQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
-var
-  Field: PMYSQL_FIELD;
 begin
-  if HasResult and (Column < ColumnCount) then begin
-    Field := mysql_fetch_field_direct(FLastResult, Column);
-    Result := (Field.flags and PRI_KEY_FLAG) = PRI_KEY_FLAG;
-  end else
-    Result := False;
+  Result := (FColumnFlags[Column] and PRI_KEY_FLAG) = PRI_KEY_FLAG;
+end;
+
+
+function TMySQLQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
+begin
+  Result := (FColumnFlags[Column] and UNIQUE_KEY_FLAG) = UNIQUE_KEY_FLAG;
+end;
+
+
+function TMySQLQuery.ColIsKeyPart(Column: Integer): Boolean;
+begin
+  Result := (FColumnFlags[Column] and MULTIPLE_KEY_FLAG) = MULTIPLE_KEY_FLAG;
 end;
 
 
 function TMySQLQuery.IsNull(Column: Integer): Boolean;
 begin
-  Result := FCurrentRow[Column] = nil;
+  if FEditingPrepared and Assigned(FCurrentUpdateRow) then
+    Result := FCurrentUpdateRow[Column].NewIsNull
+  else
+    Result := FCurrentRow[Column] = nil;
 end;
 
 
@@ -1548,7 +1822,433 @@ end;
 
 function TMySQLQuery.HasResult: Boolean;
 begin
-  Result := FLastResult <> nil;
+  Result := Length(FResultList) > 0;
+end;
+
+
+procedure TMySQLQuery.PrepareEditing;
+var
+  CreateTable: String;
+begin
+  // Try to fetch column names and keys
+  if FEditingPrepared then
+    Exit;
+  CreateTable := Connection.GetVar('SHOW CREATE TABLE ' + QuotedDbAndTableName, 1);
+  FColumns := TTableColumnList.Create;
+  FKeys := TTableKeyList.Create;
+  FForeignKeys := TForeignKeyList.Create;
+  ParseTableStructure(CreateTable, FColumns, FKeys, FForeignKeys);
+  FUpdateData := TUpdateData.Create(True);
+  FEditingPrepared := True;
+end;
+
+
+function TMySQLQuery.DeleteRow: Boolean;
+var
+  sql: String;
+  IsVirtual: Boolean;
+begin
+  // Delete current row from result
+  PrepareEditing;
+  IsVirtual := Assigned(FCurrentUpdateRow) and FCurrentUpdateRow.Inserted;
+  if not IsVirtual then begin
+    sql := 'DELETE FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause + ' LIMIT 1';
+    Connection.Query(sql);
+  end;
+  if Assigned(FCurrentUpdateRow) then begin
+    FUpdateData.Remove(FCurrentUpdateRow);
+    FCurrentUpdateRow := nil;
+  end;
+  Result := True;
+end;
+
+
+function TMySQLQuery.InsertRow: Cardinal;
+var
+  Row, OtherRow: TRowData;
+  c: TCellData;
+  i: Integer;
+  ColAttr: TTableColumn;
+  InUse: Boolean;
+begin
+  // Add new row and return row number
+  PrepareEditing;
+  Row := TRowData.Create(True);
+  for i:=0 to ColumnCount-1 do begin
+    c := TCellData.Create;
+    Row.Add(c);
+    c.OldText := '';
+    c.OldIsNull := False;
+    ColAttr := ColAttributes(i);
+    if Assigned(ColAttr) then begin
+      c.OldIsNull := ColAttr.DefaultType in [cdtNull, cdtNullUpdateTS, cdtAutoInc];
+      if ColAttr.DefaultType in [cdtText, cdtTextUpdateTS] then
+        c.OldText := ColAttr.DefaultText;
+    end;
+    c.NewText := c.OldText;
+    c.NewIsNull := c.OldIsNull;
+    c.Modified := False;
+  end;
+  Row.Inserted := True;
+  // Find highest unused recno of inserted rows and use that for this row
+  Result := High(Cardinal);
+  while True do begin
+    InUse := False;
+    for OtherRow in FUpdateData do begin
+      InUse := OtherRow.RecNo = Result;
+      if InUse then break;
+    end;
+    if not InUse then break;
+    Dec(Result);
+  end;
+  Row.RecNo := Result;
+  FUpdateData.Add(Row);
+end;
+
+
+procedure TMySQLQuery.SetCol(Column: Integer; NewText: String; Null: Boolean);
+begin
+  PrepareEditing;
+  if not Assigned(FCurrentUpdateRow) then begin
+    CreateUpdateRow;
+    EnsureFullRow;
+  end;
+  FCurrentUpdateRow[Column].NewText := NewText;
+  FCurrentUpdateRow[Column].NewIsNull := Null;
+  FCurrentUpdateRow[Column].Modified := True;
+end;
+
+
+procedure TMySQLQuery.CreateUpdateRow;
+var
+  i: Integer;
+  c: TCellData;
+  Row: TRowData;
+begin
+  Row := TRowData.Create(True);
+  for i:=0 to ColumnCount-1 do begin
+    c := TCellData.Create;
+    Row.Add(c);
+    c.OldText := Col(i);
+    c.NewText := c.OldText;
+    c.OldIsNull := IsNull(i);
+    c.NewIsNull := c.OldIsNull;
+    c.Modified := False;
+  end;
+  Row.Inserted := False;
+  Row.RecNo := RecNo;
+  FCurrentUpdateRow := Row;
+  FUpdateData.Add(FCurrentUpdateRow);
+end;
+
+
+function TMySQLQuery.EnsureFullRow: Boolean;
+var
+  i: Integer;
+  sql: String;
+  Data: TMySQLQuery;
+begin
+  // Load full column values
+  Result := True;
+  if not HasFullData then try
+    PrepareEditing;
+    for i:=0 to FColumnOrgNames.Count-1 do begin
+      if sql <> '' then
+        sql := sql + ', ';
+      sql := sql + Connection.QuoteIdent(FColumnOrgNames[i]);
+    end;
+    Data := Connection.GetResults('SELECT '+sql+' FROM '+QuotedDbAndTableName+' WHERE '+GetWhereClause);
+    if not Assigned(FCurrentUpdateRow) then
+      CreateUpdateRow;
+    for i:=0 to Data.ColumnCount-1 do begin
+      FCurrentUpdateRow[i].OldText := Data.Col(i);
+      FCurrentUpdateRow[i].NewText := FCurrentUpdateRow[i].OldText;
+      FCurrentUpdateRow[i].OldIsNull := Data.IsNull(i);
+      FCurrentUpdateRow[i].NewIsNull := FCurrentUpdateRow[i].OldIsNull;
+    end;
+    Data.Free;
+  except on E:EDatabaseError do
+    Result := False;
+  end;
+end;
+
+
+function TMySQLQuery.HasFullData: Boolean;
+var
+  Val: String;
+  i: Integer;
+begin
+  Result := True;
+  for i:=0 to ColumnCount-1 do begin
+    if not (Datatype(i).Category in [dtcText, dtcBinary]) then
+      continue;
+    Val := Col(i);
+    if Length(Val) = GRIDMAXDATA then begin
+      Result := False;
+      break;
+    end;
+  end;
+end;
+
+
+function TMySQLQuery.SaveModifications: Boolean;
+var
+  i: Integer;
+  Row: TRowData;
+  Cell: TCellData;
+  sqlUpdate, sqlInsertColumns, sqlInsertValues, Val: String;
+  RowModified: Boolean;
+  ColAttr: TTableColumn;
+begin
+  Result := True;
+  if not FEditingPrepared then
+    raise EDatabaseError.Create('Internal error: Cannot post modifications before editing was prepared.');
+
+  for Row in FUpdateData do begin
+    // Prepare update and insert queries
+    RecNo := Row.RecNo;
+    sqlUpdate := '';
+    sqlInsertColumns := '';
+    sqlInsertValues := '';
+    RowModified := False;
+    for i:=0 to ColumnCount-1 do begin
+      Cell := Row[i];
+      if not Cell.Modified then
+        continue;
+      RowModified := True;
+      if sqlUpdate <> '' then begin
+        sqlUpdate := sqlUpdate + ', ';
+        sqlInsertColumns := sqlInsertColumns + ', ';
+        sqlInsertValues := sqlInsertValues + ', ';
+      end;
+      if Cell.NewIsNull then
+        Val := 'NULL'
+      else case Datatype(i).Category of
+        dtcInteger, dtcReal: Val := UnformatNumber(Cell.NewText);
+        else Val := Connection.EscapeString(Cell.NewText);
+      end;
+      sqlUpdate := sqlUpdate + Connection.QuoteIdent(FColumnOrgNames[i]) + '=' + Val;
+      sqlInsertColumns := sqlInsertColumns + Connection.QuoteIdent(FColumnOrgNames[i]);
+      sqlInsertValues := sqlInsertValues + Val;
+    end;
+
+    // Post query and fetch just inserted auto-increment id if applicable
+    if RowModified then try
+      if Row.Inserted then begin
+        Connection.Query('INSERT INTO '+QuotedDbAndTableName+' ('+sqlInsertColumns+') VALUES ('+sqlInsertValues+')');
+        for i:=0 to ColumnCount-1 do begin
+          ColAttr := ColAttributes(i);
+          if Assigned(ColAttr) and (ColAttr.DefaultType = cdtAutoInc) then begin
+            Row[i].NewText := Connection.GetVar('SELECT LAST_INSERT_ID()');
+            Row[i].NewIsNull := False;
+            break;
+          end;
+        end;
+      end else
+        Connection.Query('UPDATE '+QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause);
+      // TODO: Reload real row data from server if keys allow that???
+    except
+      on E:EDatabaseError do begin
+        Result := False;
+        MessageDlg(E.Message, mtError, [mbOK], 0);
+      end;
+    end;
+
+    // Reset modification flags
+    if Result then begin
+      for i:=0 to ColumnCount-1 do begin
+        Cell := Row[i];
+        Cell.OldText := Cell.NewText;
+        Cell.OldIsNull := Cell.NewIsNull;
+        Cell.Modified := False;
+      end;
+      Row.Inserted := False;
+    end;
+
+  end;
+end;
+
+
+procedure TMySQLQuery.DiscardModifications;
+var
+  x: Integer;
+  c: TCellData;
+begin
+  if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
+    if FCurrentUpdateRow.Inserted then
+      FUpdateData.Remove(FCurrentUpdateRow)
+    else for x:=0 to FCurrentUpdateRow.Count-1 do begin
+      c := FCurrentUpdateRow[x];
+      c.NewText := c.OldText;
+      c.NewIsNull := c.OldIsNull;
+      c.Modified := False;
+    end;
+  end;
+end;
+
+
+function TMySQLQuery.Modified(Column: Integer): Boolean;
+begin
+  Result := False;
+  if FEditingPrepared and Assigned(FCurrentUpdateRow) then try
+    Result := FCurrentUpdateRow[Column].Modified;
+  except
+    connection.Log(lcdebug, inttostr(column));
+    raise;
+  end;
+end;
+
+
+function TMySQLQuery.Modified: Boolean;
+var
+  x, y: Integer;
+begin
+  Result := False;
+  if FEditingPrepared then for y:=0 to FUpdateData.Count-1 do begin
+    for x:=0 to FUpdateData[y].Count-1 do begin
+      Result := FUpdateData[y][x].Modified;
+      if Result then
+        break;
+    end;
+    if Result then
+      break;
+  end;
+end;
+
+
+function TMySQLQuery.Inserted: Boolean;
+begin
+  // Check if current row was inserted and not yet posted to the server
+  Result := False;
+  if FEditingPrepared and Assigned(FCurrentUpdateRow) then
+    Result := FCurrentUpdateRow.Inserted;
+end;
+
+
+function TMySQLQuery.DatabaseName: String;
+var
+  Field: PMYSQL_FIELD;
+  i: Integer;
+begin
+  for i:=0 to ColumnCount-1 do begin
+    Field := mysql_fetch_field_direct(FCurrentResults, i);
+    if Field.db <> '' then begin
+      if Connection.IsUnicode then
+        Result := UTF8ToString(Field.db)
+      else
+        Result := String(Field.db);
+      break;
+    end;
+  end;
+end;
+
+
+function TMySQLQuery.TableName: String;
+var
+  Field: PMYSQL_FIELD;
+  i: Integer;
+  tbl, db: AnsiString;
+begin
+  for i:=0 to ColumnCount-1 do begin
+    Field := mysql_fetch_field_direct(FCurrentResults, i);
+    if (Field.org_table <> '') and (tbl <> '') and ((tbl <> Field.org_table) or (db <> Field.db)) then
+      raise EDatabaseError.Create('More than one table involved.');
+    if Field.org_table <> '' then begin
+      tbl := Field.org_table;
+      db := Field.db;
+    end;
+  end;
+  if tbl = '' then
+    raise EDatabaseError.Create('Could not determine name of table.')
+  else begin
+    if Connection.IsUnicode then
+      Result := UTF8ToString(tbl)
+    else
+      Result := String(tbl);
+  end;
+end;
+
+
+function TMySQLQuery.QuotedDbAndTableName: String;
+begin
+  // Return `db`.`table` if necessairy, otherwise `table`
+  if Connection.Database <> DatabaseName then
+    Result := Connection.QuoteIdent(DatabaseName)+'.';
+  Result := Result + Connection.QuoteIdent(TableName);
+end;
+
+
+function TMySQLQuery.GetKeyColumns: TStringList;
+var
+  NeededCols: TStringList;
+  i: Integer;
+begin
+  PrepareEditing;
+  NeededCols := Connection.GetKeyColumns(FColumns, FKeys);
+  if NeededCols.Count = 0 then begin
+    // No good key found. Just expect all columns to be present.
+    for i:=0 to FColumns.Count-1 do
+      NeededCols.Add(FColumns[i].Name);
+  end;
+
+  Result := TStringList.Create;
+  for i:=0 to NeededCols.Count-1 do begin
+    if FColumnOrgNames.IndexOf(NeededCols[i]) > -1 then begin
+      Result.Add(NeededCols[i]);
+      continue;
+    end;
+  end;
+end;
+
+
+procedure TMySQLQuery.CheckEditable;
+var
+  i: Integer;
+begin
+  if GetKeyColumns.Count = 0 then
+    raise EDatabaseError.Create(MSG_NOGRIDEDITING);
+  // All column names must be present in order to send valid INSERT/UPDATE/DELETE queries
+  for i:=0 to FColumnOrgNames.Count-1 do begin
+    if FColumnOrgNames[i] = '' then
+      raise EDatabaseError.Create('Column #'+IntToStr(i)+' has an undefined origin: '+ColumnNames[i]);
+  end;
+end;
+
+
+function TMySQLQuery.GetWhereClause: String;
+var
+  i, j: Integer;
+  NeededCols: TStringList;
+  ColVal: String;
+  ColIsNull: Boolean;
+begin
+  // Compose WHERE clause including values from best key for editing
+  NeededCols := GetKeyColumns;
+
+  for i:=0 to NeededCols.Count-1 do begin
+    j := FColumnOrgNames.IndexOf(NeededCols[i]);
+    if j = -1 then
+      raise EDatabaseError.Create('Cannot compose WHERE clause - column missing: '+NeededCols[i]);
+    if Result <> '' then
+      Result := Result + ' AND';
+    Result := Result + ' ' + Connection.QuoteIdent(FColumnOrgNames[j]);
+    if Modified(j) then begin
+      ColVal := FCurrentUpdateRow[j].OldText;
+      ColIsNull := FCurrentUpdateRow[j].OldIsNull;
+    end else begin
+      ColVal := Col(j);
+      ColIsNull := IsNull(j);
+    end;
+
+    if ColIsNull then
+      Result := Result + ' IS NULL'
+    else begin
+      case DataType(j).Category of
+        dtcInteger, dtcReal: Result := Result + '=' + UnformatNumber(ColVal);
+        else Result := Result + '=' + Connection.EscapeString(ColVal);
+      end;
+    end;
+  end;
 end;
 
 
@@ -1615,6 +2315,74 @@ begin
     else Result := -1;
   end;
 end;
+
+
+
+{ *** TTableColumn }
+
+constructor TTableColumn.Create;
+begin
+  inherited Create;
+end;
+
+destructor TTableColumn.Destroy;
+begin
+  inherited Destroy;
+end;
+
+procedure TTableColumn.SetStatus(Value: TEditingStatus);
+begin
+  // Set editing flag and enable "Save" button
+  if (FStatus in [esAddedUntouched, esAddedModified]) and (Value = esModified) then
+    Value := esAddedModified
+  else if (FStatus in [esAddedUntouched, esAddedModified]) and (Value = esDeleted) then
+    Value := esAddedDeleted;
+  FStatus := Value;
+end;
+
+
+
+{ *** TTableKey }
+
+constructor TTableKey.Create;
+begin
+  inherited Create;
+  Columns := TStringList.Create;
+  SubParts := TStringList.Create;
+  Columns.OnChange := Modification;
+  Subparts.OnChange := Modification;
+end;
+
+destructor TTableKey.Destroy;
+begin
+  FreeAndNil(Columns);
+  FreeAndNil(SubParts);
+  inherited Destroy;
+end;
+
+procedure TTableKey.Modification(Sender: TObject);
+begin
+  if not Added then
+    Modified := True;
+end;
+
+
+{ *** TForeignKey }
+
+constructor TForeignKey.Create;
+begin
+  inherited Create;
+  Columns := TStringList.Create;
+  ForeignColumns := TStringList.Create;
+end;
+
+destructor TForeignKey.Destroy;
+begin
+  FreeAndNil(Columns);
+  FreeAndNil(ForeignColumns);
+  inherited Destroy;
+end;
+
 
 
 end.

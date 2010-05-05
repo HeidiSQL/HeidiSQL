@@ -1307,25 +1307,25 @@ object MainForm: TMainForm
             TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
             TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
             WantTabs = True
-            OnAfterCellPaint = DataGridAfterCellPaint
+            OnAfterCellPaint = AnyGridAfterCellPaint
             OnBeforeCellPaint = AnyGridBeforeCellPaint
             OnBeforePaint = DataGridBeforePaint
-            OnChange = DataGridChange
-            OnCreateEditor = DataGridCreateEditor
-            OnEditCancelled = DataGridEditCancelled
-            OnEdited = DataGridEdited
-            OnEditing = DataGridEditing
+            OnCreateEditor = AnyGridCreateEditor
+            OnEditCancelled = AnyGridEditCancelled
+            OnEdited = AnyGridEdited
+            OnEditing = AnyGridEditing
             OnEnter = ValidateControls
             OnExit = ValidateControls
-            OnFocusChanged = DataGridFocusChanged
-            OnFocusChanging = DataGridFocusChanging
+            OnFocusChanged = AnyGridFocusChanged
+            OnFocusChanging = AnyGridFocusChanging
             OnGetText = AnyGridGetText
             OnPaintText = AnyGridPaintText
+            OnGetNodeDataSize = AnyGridGetNodeDataSize
             OnHeaderClick = DataGridHeaderClick
             OnInitNode = AnyGridInitNode
             OnKeyDown = AnyGridKeyDown
-            OnMouseUp = DataGridMouseUp
-            OnNewText = DataGridNewText
+            OnMouseUp = AnyGridMouseUp
+            OnNewText = AnyGridNewText
             Columns = <>
           end
         end
@@ -1505,8 +1505,9 @@ object MainForm: TMainForm
             Header.AutoSizeIndex = -1
             Header.DefaultHeight = 17
             Header.Height = 20
+            Header.Images = ImageListMain
             Header.MainColumn = -1
-            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoShowHint]
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages, hoShowSortGlyphs]
             Header.ParentFont = True
             IncrementalSearch = isAll
             LineStyle = lsSolid
@@ -1517,12 +1518,24 @@ object MainForm: TMainForm
             TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
             TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
             WantTabs = True
+            OnAfterCellPaint = AnyGridAfterCellPaint
+            OnAfterPaint = vstAfterPaint
             OnBeforeCellPaint = AnyGridBeforeCellPaint
-            OnFocusChanged = QueryGridFocusChanged
+            OnCompareNodes = vstCompareNodes
+            OnCreateEditor = AnyGridCreateEditor
+            OnEditCancelled = AnyGridEditCancelled
+            OnEdited = AnyGridEdited
+            OnEditing = AnyGridEditing
+            OnFocusChanged = AnyGridFocusChanged
+            OnFocusChanging = AnyGridFocusChanging
             OnGetText = AnyGridGetText
             OnPaintText = AnyGridPaintText
+            OnGetNodeDataSize = AnyGridGetNodeDataSize
+            OnHeaderClick = vstHeaderClick
             OnInitNode = AnyGridInitNode
             OnKeyDown = AnyGridKeyDown
+            OnMouseUp = AnyGridMouseUp
+            OnNewText = AnyGridNewText
             Columns = <>
           end
         end
@@ -2018,7 +2031,7 @@ object MainForm: TMainForm
       Enabled = False
       ImageIndex = 45
       ShortCut = 16429
-      OnExecute = actDataDuplicateRowExecute
+      OnExecute = actDataInsertExecute
     end
     object actDataDelete: TAction
       Category = 'Data'
@@ -7943,6 +7956,24 @@ object MainForm: TMainForm
     end
     object HTMLview1: TMenuItem
       Action = actHTMLview
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object Insertrow1: TMenuItem
+      Action = actDataInsert
+    end
+    object Duplicaterow2: TMenuItem
+      Action = actDataDuplicateRow
+    end
+    object Cancelediting2: TMenuItem
+      Action = actDataCancelChanges
+    end
+    object Post1: TMenuItem
+      Action = actDataPostChanges
+    end
+    object Deleteselectedrows1: TMenuItem
+      Action = actDataDelete
     end
     object N14: TMenuItem
       Caption = '-'

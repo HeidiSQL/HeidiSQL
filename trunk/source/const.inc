@@ -318,6 +318,7 @@ const
   SContainsNulCharFile = 'This file contains NUL characters. They have been converted to ASCII spaces (SP).';
   SContainsNulCharGrid = 'This cell contains NUL characters. They have been converted to ASCII spaces (SP). Press ESC to cancel editing.';
   SUnhandledTreeLevel = 'Unhandled tree node level.';
+  MSG_NOGRIDEDITING = 'Selected columns don''t contain a sufficient set of key columns to allow editing. Please select primary or unique key columns, or just all columns.';
 
   PKEY = 'PRIMARY';
   KEY = 'KEY';
