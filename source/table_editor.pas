@@ -800,6 +800,7 @@ begin
   NewNode := listColumns.InsertNode(fn, amInsertAfter, @NewCol);
   NewCol.Status := esAddedUntouched;
   SelectNode(listColumns, NewNode);
+  Modification(Sender);
   ValidateColumnControls;
   listColumns.EditNode(NewNode, 1);
 end;
@@ -835,6 +836,7 @@ begin
     NodeFocus := listColumns.GetLast;
   if Assigned(NodeFocus) then
     SelectNode(listColumns, NodeFocus.Index);
+  Modification(Sender);
   ValidateColumnControls;
 end;
 
@@ -1159,6 +1161,7 @@ begin
     8: Col.Collation := NewText;
   end;
   Col.Status := esModified;
+  Modification(Sender);
 end;
 
 
@@ -1168,6 +1171,7 @@ var
 begin
   Col := Sender.GetNodeData(Node);
   Col.Status := esModified;
+  Modification(Sender);
 end;
 
 
@@ -1211,6 +1215,7 @@ begin
       4: begin
         Col.Unsigned := not Col.Unsigned;
         Col.Status := esModified;
+        Modification(Sender);
         VT.InvalidateNode(Node);
       end;
       5: begin
@@ -1221,6 +1226,7 @@ begin
           Col.DefaultText := '';
         end;
         Col.Status := esModified;
+        Modification(Sender);
         VT.InvalidateNode(Node);
       end;
       else begin
