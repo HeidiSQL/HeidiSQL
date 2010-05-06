@@ -121,8 +121,6 @@ type
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber( Seconds: Cardinal ): String;
-  function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeTypes: TListNodeTypes = [lntNone] ): TStringList;
-  procedure SetVTSelection( VT: TVirtualStringTree; Selected: TStringList );
   function GetTempDir: String;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
   procedure SaveUnicodeFile(Filename: String; Text: String);
@@ -167,6 +165,7 @@ type
   procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
   procedure HandlePortableSettings(StartupMode: Boolean);
   function LoadConnectionParams(Session: String): TConnectionParameters;
+  function CompareAnyNode(Text1, Text2: String): Integer;
 
 var
   MainReg: TRegistry;
@@ -1888,59 +1887,6 @@ begin
 end;
 
 
-{**
-  Return a TStringList with captions from all selected nodes in a VirtualTree
-  Especially helpful when toMultiSelect is True
-}
-function GetVTCaptions( VT: TVirtualStringTree; OnlySelected: Boolean = False; Column: Integer = 0; OnlyNodeTypes: TListNodeTypes = [lntNone] ): TStringList;
-var
-  Node: PVirtualNode;
-  NodeData: PVTreeData;
-begin
-  Result := TStringList.Create;
-  if OnlySelected then Node := VT.GetFirstSelected
-  else Node := VT.GetFirst;
-  while Assigned(Node) do begin
-    if OnlyNodeTypes = [lntNone] then // Add all nodes, regardless of their types
-      Result.Add( VT.Text[Node, Column] )
-    else begin
-      NodeData := VT.GetNodeData(Node);
-      if (NodeData.NodeType in OnlyNodeTypes) then // Node in loop is of specified type
-        Result.Add(NodeData.Captions[Column]);
-    end;
-    if OnlySelected then Node := VT.GetNextSelected(Node)
-    else Node := VT.GetNext(Node);
-  end;
-end;
-
-
-{**
-  The opposite of GetVTCaptions in "OnlySelected"-Mode:
-  Set selected nodes in a VirtualTree
-}
-procedure SetVTSelection( VT: TVirtualStringTree; Selected: TStringList );
-var
-  Node: PVirtualNode;
-  NodeData: PVTreeData;
-  IsSel, FoundFocus: Boolean;
-begin
-  Node := VT.GetFirst;
-  FoundFocus := False;
-  while Assigned(Node) do begin
-    NodeData := VT.GetNodeData(Node);
-    IsSel := Selected.IndexOf(NodeData.Captions[0]) > -1;
-    VT.Selected[Node] := IsSel;
-    if IsSel and not FoundFocus then begin
-      VT.FocusedNode := Node;
-      FoundFocus := True;
-    end;
-    if IsSel and not (toMultiSelect in VT.TreeOptions.SelectionOptions) then
-      break;
-    Node := VT.GetNext(Node);
-  end;
-end;
-
-
 function GetTempDir: String;
 var
   TempPath: array[0..MAX_PATH] of Char;
@@ -3537,6 +3483,28 @@ begin
   end;
 end;
 
+
+function CompareAnyNode(Text1, Text2: String): Integer;
+var
+  Number1, Number2 : Extended;
+begin
+  Result := 0;
+  // Apply different comparisons for numbers and text
+  if (StrToIntDef(Copy(Text1, 0, 1), -1) <> -1) and (StrToIntDef(Copy(Text2, 0, 1), -1) <> -1) then begin
+    // Assuming numeric values
+    Number1 := MakeFloat(Text1);
+    Number2 := MakeFloat(Text2);
+    if Number1 > Number2 then
+      Result := 1
+    else if Number1 = Number2 then
+      Result := 0
+    else if Number1 < Number2 then
+      Result := -1;
+  end else begin
+    // Compare Strings
+    Result := CompareText(Text1, Text2);
+  end;
+end;
 
 end.
 

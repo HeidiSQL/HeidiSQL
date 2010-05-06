@@ -1864,10 +1864,16 @@ var
   NewType: String;
   NewParts: TStringList;
   TblKey: TTableKey;
+  Node: PVirtualNode;
 begin
   // Auto create index or add columns to existing one by rightclicking a column
   Item := (Sender as TMenuItem);
-  NewParts := GetVTCaptions(listColumns, True, 1);
+  NewParts := TStringList.Create;
+  Node := listColumns.GetFirstSelected;
+  while Assigned(Node) do begin
+    NewParts.Add(listColumns.Text[Node, 1]);
+    Node := listColumns.GetNextSelected(Node);
+  end;
   if Item.Parent = menuCreateIndex then begin
     // Remove auto hotkeys
     NewType := StringReplace(Item.Caption, '&', '', [rfReplaceAll]);
