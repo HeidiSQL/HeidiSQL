@@ -1771,7 +1771,7 @@ var
 begin
   Result := nil;
   if FEditingPrepared then begin
-    for i:=0 to FColumns.Count do begin
+    for i:=0 to FColumns.Count-1 do begin
       if FColumns[i].Name = FColumnNames[Column] then begin
         Result := FColumns[i];
         break;
