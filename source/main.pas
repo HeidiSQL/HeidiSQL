@@ -2436,14 +2436,19 @@ var
   t: TStringList;
   i: Integer;
   sql_pattern: String;
+  Node: PVirtualNode;
 begin
   // Add selected items/tables to helper list
-  if ListTables.Focused then
-    t := GetVTCaptions(ListTables, True)
-  else if DBTree.Focused then begin
-    t := TStringList.Create;
-    t.Add(SelectedTable.Name);
-  end else
+  t := TStringList.Create;
+  if ListTables.Focused then begin
+    Node := ListTables.GetFirstSelected;
+    while Assigned(Node) do begin
+      t.Add(ListTables.Text[Node, ListTables.Header.MainColumn]);
+      Node := ListTables.GetNextSelected(Node);
+    end;
+  end else if DBTree.Focused then
+    t.Add(SelectedTable.Name)
+  else
     Exit;
   if t.Count = 0 then
     Exit;
@@ -3681,8 +3686,8 @@ begin
   ShowStatusMsg( 'Displaying objects from "' + ActiveDatabase + '" ...' );
   Objects := Connection.GetDBObjects(ActiveDatabase, vt.Tag = VTREE_NOTLOADED_PURGECACHE);
   ListTables.BeginUpdate;
+  ListTables.Clear;
   ListTables.RootNodeCount := Objects.Count;
-  ListTables.ReinitChildren(nil, false);
   ListTables.EndUpdate;
   vt.Tag := VTREE_LOADED;
 
@@ -3909,22 +3914,25 @@ end;
 
 
 procedure TMainForm.KillProcess(Sender: TObject);
-var t : Boolean;
-  ProcessIDs : TStringList;
-  i : Integer;
+var
+  t: Boolean;
+  pid: String;
+  Node: PVirtualNode;
 begin
   t := TimerRefresh.Enabled;
   TimerRefresh.Enabled := false; // prevent av (ListProcesses.selected...)
-  ProcessIDs := GetVTCaptions( ListProcesses, True );
-  if MessageDlg('Kill '+inttostr(ProcessIDs.count)+' Process(es)?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
+  if MessageDlg('Kill '+IntToStr(ListProcesses.SelectedCount)+' Process(es)?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
   begin
     try
-      for i:=0 to ProcessIDs.Count-1 do begin
+      Node := ListProcesses.GetFirstSelected;
+      while Assigned(Node) do begin
+        pid := ListProcesses.Text[Node, ListProcesses.Header.MainColumn];
         // Don't kill own process
-        if ProcessIDs[i] = IntToStr(Connection.ThreadId) then
-          LogSQL('Ignoring own process id '+ProcessIDs[i]+' when trying to kill it.')
+        if pid = IntToStr(Connection.ThreadId) then
+          LogSQL('Ignoring own process id #'+pid+' when trying to kill it.')
         else
-          Connection.Query('KILL '+ProcessIDs[i]);
+          Connection.Query('KILL '+pid);
+        Node := ListProcesses.GetNextSelected(Node);
       end;
     except
       on E:EDatabaseError do
@@ -5522,36 +5530,9 @@ procedure TMainForm.vstCompareNodes(Sender: TBaseVirtualTree; Node1,
     Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 var
   VT: TVirtualStringTree;
-  CellText1, CellText2 : String;
-  Number1, Number2 : Extended;
 begin
   VT := Sender as TVirtualStringTree;
-  CellText1 := VT.Text[Node1, Column];
-  CellText2 := VT.Text[Node2, Column];
-
-  // Map value "0" to "N/A" strings
-  if CellText1 = '' then
-    CellText1 := '0';
-  if CellText2 = '' then
-    CellText2 := '0';
-
-  // Apply different comparisons for numbers and text
-  if StrToIntDef( copy(CellText1,0,1), -1 ) <> -1 then
-  begin
-    // Assuming numeric values
-    Number1 := MakeFloat( CellText1 );
-    Number2 := MakeFloat( CellText2 );
-    if Number1 > Number2 then
-      Result := 1
-    else if Number1 = Number2 then
-      Result := 0
-    else if Number1 < Number2 then
-      Result := -1;
-  end
-  else begin
-    // Compare Strings
-    Result := CompareText( CellText1, CellText2 );
-  end;
+  Result := CompareAnyNode(VT.Text[Node1, Column], VT.Text[Node2, Column]);
 end;
 
 
@@ -7443,16 +7424,17 @@ var
   i : Integer;
   vt: TVirtualStringTree;
   Results: TMySQLQuery;
-  Sel: TStringList;
+  OldOffset: TPoint;
 begin
   // Display server variables
   vt := Sender as TVirtualStringTree;
   if vt.Tag = VTREE_LOADED then
     Exit;
-  Sel := GetVTCaptions(vt, True);
-  DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
+    vt.BeginUpdate;
+    OldOffset := vt.OffsetXY;
+    vt.Clear;
     Results := Connection.GetResults('SHOW VARIABLES');
     SetLength(VTRowDataListVariables, Results.RecordCount);
     for i:=0 to Results.RecordCount-1 do begin
@@ -7464,14 +7446,14 @@ begin
     end;
     FreeAndNil(Results);
     vt.RootNodeCount := Length(VTRowDataListVariables);
-    vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
-    SetVTSelection(vt, Sel);
+    vt.OffsetXY := OldOffset;
     // Apply or reset filter
     editFilterVTChange(Sender);
     // Display number of listed values on tab
     tabVariables.Caption := 'Variables (' + IntToStr(vt.RootNodeCount) + ')';
   finally
     // Important to flag the tree as "loaded", otherwise OnPaint will cause an endless loop
+    vt.EndUpdate;
     vt.Tag := VTREE_LOADED;
     Screen.Cursor := crDefault;
   end;
@@ -7487,16 +7469,17 @@ var
   val, avg_perhour, avg_persec: String;
   valIsBytes, valIsNumber: Boolean;
   vt: TVirtualStringTree;
-  Sel: TStringList;
+  OldOffset: TPoint;
 begin
   // Display server status key/value pairs
   vt := Sender as TVirtualStringTree;
   if vt.Tag = VTREE_LOADED then
     Exit;
-  Sel := GetVTCaptions(vt, True);
-  DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
+    vt.BeginUpdate;
+    OldOffset := vt.OffsetXY;
+    vt.Clear;
     Results := Connection.GetResults('SHOW /*!50002 GLOBAL */ STATUS');
     SetLength(VTRowDataListStatus, Results.RecordCount);
     for i:=0 to Results.RecordCount-1 do begin
@@ -7538,13 +7521,13 @@ begin
     FreeAndNil(Results);
     // Tell VirtualTree the number of nodes it will display
     vt.RootNodeCount := Length(VTRowDataListStatus);
-    vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
-    SetVTSelection(vt, Sel);
+    vt.OffsetXY := OldOffset;
     // Apply or reset filter
     editFilterVTChange(Sender);
     // Display number of listed values on tab
     tabStatus.Caption := 'Status (' + IntToStr(vt.RootNodeCount) + ')';
   finally
+    vt.EndUpdate;
     vt.Tag := VTREE_LOADED;
     Screen.Cursor := crDefault;
   end;
@@ -7556,8 +7539,8 @@ var
   i, j: Integer;
   Results: TMySQLQuery;
   vt: TVirtualStringTree;
-  Sel: TStringList;
   Text: String;
+  OldOffset: TPoint;
 const
   InfoLen = SIZE_KB*50;
 begin
@@ -7566,10 +7549,12 @@ begin
   if vt.Tag = VTREE_LOADED then
     Exit;
   vt.OnFocusChanged(vt, vt.FocusedNode, vt.FocusedColumn);
-  Sel := GetVTCaptions(vt, True);
-  DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
+    vt.BeginUpdate;
+    OldOffset := vt.OffsetXY;
+    vt.FocusedNode := nil;
+    vt.Clear;
     if Connection.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
       // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
       Results := Connection.GetResults('SELECT '+mask('ID')+', '+mask('USER')+', '+mask('HOST')+', '+mask('DB')+', '
@@ -7602,11 +7587,7 @@ begin
     end;
     FreeAndNil(Results);
     vt.RootNodeCount := Length(VTRowDataListProcesses);
-    vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
-    // Reset focused node and column, so OnFocusChange will fire, and update the SQL viewer
-    vt.FocusedNode := nil;
-    vt.FocusedColumn := NoColumn;
-    SetVTSelection(vt, Sel);
+    vt.OffsetXY := OldOffset;
     // Apply or reset filter
     editFilterVTChange(Sender);
     // Display number of listed values on tab
@@ -7617,6 +7598,7 @@ begin
       TimerRefresh.Enabled := false;
     end;
   end;
+  vt.EndUpdate;
   vt.Tag := VTREE_LOADED;
   Screen.Cursor := crDefault;
 end;
@@ -7654,17 +7636,18 @@ var
   questions: Int64;
   Results: TMySQLQuery;
   vt: TVirtualStringTree;
-  Sel: TStringList;
+  OldOffset: TPoint;
 begin
   // Display command statistics
   vt := Sender as TVirtualStringTree;
   if vt.Tag = VTREE_LOADED then
     Exit;
 
-  Sel := GetVTCaptions(vt, True);
-  DeInitializeVTNodes(vt);
   Screen.Cursor := crHourglass;
   try
+    vt.BeginUpdate;
+    OldOffset := vt.OffsetXY;
+    vt.Clear;
     Results := Connection.GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
     questions := 0;
     while not Results.Eof do begin
@@ -7681,13 +7664,13 @@ begin
     FreeAndNil(Results);
     // Tell VirtualTree the number of nodes it will display
     vt.RootNodeCount := Length(VTRowDataListCommandStats);
-    vt.SortTree(vt.Header.SortColumn, vt.Header.SortDirection);
-    SetVTSelection(vt, Sel);
+    vt.OffsetXY := OldOffset;
     // Apply or reset filter
     editFilterVTChange(Sender);
     // Display number of listed values on tab
     tabCommandStats.Caption := 'Command-Statistics (' + IntToStr(vt.RootNodeCount) + ')';
   finally
+    vt.EndUpdate;
     vt.Tag := VTREE_LOADED;
     Screen.Cursor := crDefault;
   end;
