@@ -1574,7 +1574,6 @@ begin
     ActivateFileLogging;
 
   tabHost.Caption := 'Host: '+Connection.Parameters.HostName;
-  ShowStatusMsg('MySQL '+Connection.ServerVersionStr, 3);
 
   // Save server version
   OpenRegistry(SessionName);
@@ -4355,10 +4354,15 @@ end;
 
 
 procedure TMainForm.TimerConnectedTimer(Sender: TObject);
+var
+  ConnectedTime: Integer;
 begin
   if Assigned(Connection) and Connection.Active then begin
-    // calculate and display connection-time
-    ShowStatusMsg('Connected: ' + FormatTimeNumber(Connection.ConnectionUptime), 2);
+    // Calculate and display connection-time. Also, on any connect or reconnect, update server version panel.
+    ConnectedTime := Connection.ConnectionUptime;
+    ShowStatusMsg('Connected: ' + FormatTimeNumber(ConnectedTime), 2);
+    if ConnectedTime < 10 then
+      ShowStatusMsg('MySQL '+Connection.ServerVersionStr, 3);
   end else begin
     ShowStatusMsg('Disconnected.', 2);
   end;
