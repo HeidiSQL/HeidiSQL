@@ -1957,16 +1957,19 @@ begin
         sql := sql + ', ';
       sql := sql + Connection.QuoteIdent(FColumnOrgNames[i]);
     end;
-    Data := Connection.GetResults('SELECT '+sql+' FROM '+QuotedDbAndTableName+' WHERE '+GetWhereClause);
-    if not Assigned(FCurrentUpdateRow) then
-      CreateUpdateRow;
-    for i:=0 to Data.ColumnCount-1 do begin
-      FCurrentUpdateRow[i].OldText := Data.Col(i);
-      FCurrentUpdateRow[i].NewText := FCurrentUpdateRow[i].OldText;
-      FCurrentUpdateRow[i].OldIsNull := Data.IsNull(i);
-      FCurrentUpdateRow[i].NewIsNull := FCurrentUpdateRow[i].OldIsNull;
+    Data := Connection.GetResults('SELECT '+sql+' FROM '+QuotedDbAndTableName+' WHERE '+GetWhereClause+' LIMIT 1');
+    Result := Data.RecordCount = 1;
+    if Result then begin
+      if not Assigned(FCurrentUpdateRow) then
+        CreateUpdateRow;
+      for i:=0 to Data.ColumnCount-1 do begin
+        FCurrentUpdateRow[i].OldText := Data.Col(i);
+        FCurrentUpdateRow[i].NewText := FCurrentUpdateRow[i].OldText;
+        FCurrentUpdateRow[i].OldIsNull := Data.IsNull(i);
+        FCurrentUpdateRow[i].NewIsNull := FCurrentUpdateRow[i].OldIsNull;
+      end;
+      Data.Free;
     end;
-    Data.Free;
   except on E:EDatabaseError do
     Result := False;
   end;
