@@ -284,7 +284,7 @@ begin
     // Close form
     ModalResult := mrOK;
   except
-    on E:EDatabaseError do
+    on E:Exception do
       MessageDlg( 'Altering database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
     // Keep form open
   end;
