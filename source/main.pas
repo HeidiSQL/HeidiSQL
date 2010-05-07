@@ -3527,6 +3527,7 @@ begin
         end;
       end;
 
+      ValidateControls(Sender);
       DisplayRowCountStats;
       actDataShowNext.Enabled := (vt.RootNodeCount = DatagridWantedRowCount) and (DatagridWantedRowCount < prefGridRowcountMax);
       actDataShowAll.Enabled := actDataShowNext.Enabled;
