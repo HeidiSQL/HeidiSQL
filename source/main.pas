@@ -8128,6 +8128,8 @@ begin
   QueryTab.Grid.OnEditCancelled := QueryGrid.OnEditCancelled;
   QueryTab.Grid.OnEdited := QueryGrid.OnEdited;
   QueryTab.Grid.OnEditing := QueryGrid.OnEditing;
+  QueryTab.Grid.OnEnter := QueryGrid.OnEnter;
+  QueryTab.Grid.OnExit := QueryGrid.OnExit;
   QueryTab.Grid.OnFocusChanged := QueryGrid.OnFocusChanged;
   QueryTab.Grid.OnFocusChanging := QueryGrid.OnFocusChanging;
   QueryTab.Grid.OnGetNodeDataSize := QueryGrid.OnGetNodeDataSize;

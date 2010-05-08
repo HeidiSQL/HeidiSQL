@@ -1526,6 +1526,8 @@ object MainForm: TMainForm
             OnEditCancelled = AnyGridEditCancelled
             OnEdited = AnyGridEdited
             OnEditing = AnyGridEditing
+            OnEnter = ValidateControls
+            OnExit = ValidateControls
             OnFocusChanged = AnyGridFocusChanged
             OnFocusChanging = AnyGridFocusChanging
             OnGetText = AnyGridGetText
