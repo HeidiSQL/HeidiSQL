@@ -1731,8 +1731,14 @@ end;
 
 
 function TMySQLQuery.DataType(Column: Integer): TDataType;
+var
+  Col: TTableColumn;
 begin
-  Result := FColumnTypes[Column];
+  Col := ColAttributes(Column);
+  if Assigned(Col) then
+    Result := Col.DataType
+  else
+    Result := FColumnTypes[Column];
 end;
 
 
@@ -1776,7 +1782,7 @@ begin
   Result := nil;
   if FEditingPrepared then begin
     for i:=0 to FColumns.Count-1 do begin
-      if FColumns[i].Name = FColumnNames[Column] then begin
+      if FColumns[i].Name = FColumnOrgNames[Column] then begin
         Result := FColumns[i];
         break;
       end;
