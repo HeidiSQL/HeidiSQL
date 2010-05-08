@@ -2049,16 +2049,7 @@ begin
         end;
       end else
         Connection.Query('UPDATE '+QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause);
-      // TODO: Reload real row data from server if keys allow that???
-    except
-      on E:EDatabaseError do begin
-        Result := False;
-        MessageDlg(E.Message, mtError, [mbOK], 0);
-      end;
-    end;
-
-    // Reset modification flags
-    if Result then begin
+      // Reset modification flags
       for i:=0 to ColumnCount-1 do begin
         Cell := Row[i];
         Cell.OldText := Cell.NewText;
@@ -2066,6 +2057,12 @@ begin
         Cell.Modified := False;
       end;
       Row.Inserted := False;
+      // TODO: Reload real row data from server if keys allow that???
+    except
+      on E:EDatabaseError do begin
+        Result := False;
+        MessageDlg(E.Message, mtError, [mbOK], 0);
+      end;
     end;
 
   end;
