@@ -6923,14 +6923,17 @@ var
   ForeignKey: TForeignKey;
   TblColumn: TTableColumn;
   idx: Integer;
-  KeyCol, TextCol, SQL, CreateTable: String;
+  KeyCol, TextCol, SQL, CreateTable, NowText: String;
   Columns: TTableColumnList;
   Keys: TTableKeyList;
   ForeignKeys: TForeignKeyList;
   ForeignResults, Results: TMySQLQuery;
+  RowNum: PCardinal;
 begin
   VT := Sender as TVirtualStringTree;
   Results := GridResult(VT);
+  RowNum := VT.GetNodeData(Node);
+  Results.RecNo := RowNum^;
 
   // Find foreign key values on InnoDB table cells
   if Sender = DataGrid then for ForeignKey in SelectedTableForeignKeys do begin
@@ -6989,6 +6992,15 @@ begin
     HexEditor.MaxLength := Results.MaxLength(Column);
     EditLink := HexEditor;
   end else if (TypeCat = dtcTemporal) and prefEnableDatetimeEditor then begin
+    // Ensure date/time editor starts with a non-empty text value
+    if Results.Col(Column) = '' then begin
+      NowText := Connection.GetVar('SELECT NOW()');
+      case Results.DataType(Column).Index of
+        dtDate: NowText := Copy(NowText, 1, 10);
+        dtTime: NowText := Copy(NowText, 12, 8);
+      end;
+      VT.Text[Node, Column] := NowText;
+    end;
     DateTimeEditor := TDateTimeEditorLink.Create(VT);
     DateTimeEditor.DataType := Results.DataType(Column).Index;
     EditLink := DateTimeEditor;

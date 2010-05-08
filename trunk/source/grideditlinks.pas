@@ -534,7 +534,6 @@ end;
 function TDateTimeEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
   MinColWidth: Integer;
-  CellText: String;
 begin
   Result := inherited PrepareEdit(Tree, Node, Column);
   if not Result then
@@ -545,17 +544,11 @@ begin
     dtTime: FMaskEdit.EditMask := '00\:00\:00;1; ';
     //dtYear??
   end;
-  CellText := FCellText;
-  if CellText = '' then case Datatype of
-    dtDate: CellText := DateToStr(Now);
-    dtDatetime, dtTimestamp: CellText := DateTimeToStr(Now);
-    dtTime: CellText := TimeToStr(Now);
-  end;
-  FMaskEdit.Text := CellText;
+  FMaskEdit.Text := FCellText;
   FMaskEdit.Font.Assign(FCellFont);
   FPanel.Color := FCellBackground;
   // Auto-enlarge current tree column so the text in the edit is not cut
-  MinColWidth := FTree.Canvas.TextWidth(CellText) + FTree.TextMargin + FUpDown.Width + 5;
+  MinColWidth := FTree.Canvas.TextWidth(FCellText) + FTree.TextMargin + FUpDown.Width + 5;
   if FTree.Header.Columns[FColumn].Width < MinColWidth then
     FTree.Header.Columns[FColumn].Width := MinColWidth;
 end;
