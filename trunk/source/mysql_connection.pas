@@ -640,8 +640,10 @@ begin
       FRowsFound := mysql_num_rows(Result);
       FRowsAffected := 0;
       Log(lcDebug, IntToStr(RowsFound)+' rows found.');
-      if not DoStoreResult then
+      if not DoStoreResult then begin
         mysql_free_result(Result);
+        Result := nil;
+      end;
 
       // No support for real multi results yet, throw them away, so mysql_ping() does not crash on the *next* query.
       i := 1;
