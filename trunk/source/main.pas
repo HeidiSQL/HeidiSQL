@@ -116,7 +116,7 @@ type
     Exportdata1: TMenuItem;
     CopyasXMLdata1: TMenuItem;
     actExecuteLine: TAction;
-    actHTMLview: TAction;
+    actImageView: TAction;
     actInsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
     actExportTables: TAction;
@@ -507,7 +507,7 @@ type
     procedure actDataCancelChangesExecute(Sender: TObject);
     procedure actExportDataExecute(Sender: TObject);
     procedure actExecuteLineExecute(Sender: TObject);
-    procedure actHTMLviewExecute(Sender: TObject);
+    procedure actImageViewExecute(Sender: TObject);
     procedure actInsertFilesExecute(Sender: TObject);
     procedure actDataDeleteExecute(Sender: TObject);
     procedure actDataFirstExecute(Sender: TObject);
@@ -2133,61 +2133,58 @@ end;
 
 
 // view HTML
-procedure TMainForm.actHTMLviewExecute(Sender: TObject);
-const
-  msgNotBinary = 'Non-binary field selected. Only binary fields containing JPEG, PNG, GIF and BMP images are supported.';
-  msgNotImage = 'Unrecognized image format.  Only JPEG, PNG, GIF and BMP are supported.';
+procedure TMainForm.actImageViewExecute(Sender: TObject);
 var
-  g               : TVirtualStringTree;
-  filename        : String;
-  f               : Textfile;
-  Header, Content : AnsiString;
-  IsBinary        : Boolean;
-  SaveBinary      : Boolean;
+  Grid: TVirtualStringTree;
+  Results: TMySQLQuery;
+  RowNum: PCardinal;
+  Filename, Suffix: String;
+  Content, Header: AnsiString;
+  f: Textfile;
 begin
-  g := ActiveGrid;
-  if g = nil then begin messagebeep(MB_ICONASTERISK); exit; end;
+  Grid := ActiveGrid;
+  if Grid = nil then begin
+    MessageDlg('Please select a grid cell first.', mtError, [mbOk], 0);
+    Exit;
+  end;
+  Results := GridResult(Grid);
+  if Results.DataType(Grid.FocusedColumn).Category <> dtcBinary then begin
+    MessageDlg('Non-binary field selected. Only binary fields containing JPEG, PNG, GIF and BMP images are supported.', mtError, [mbOk], 0);
+    Exit;
+  end;
+
   Screen.Cursor := crHourGlass;
   ShowStatusMsg('Saving contents to file...');
-  IsBinary := GridResult(ActiveGrid).DataType(g.FocusedColumn).Category = dtcBinary;
+  AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
+  RowNum := Grid.GetNodeData(Grid.FocusedNode);
+  Results.RecNo := RowNum^;
+  Content := AnsiString(Results.Col(Grid.FocusedColumn));
+  Header := Copy(Content, 1, 50);
+  Suffix := '';
+  if Copy(Header, 7, 4) = 'JFIF' then
+    Suffix := 'jpeg'
+  else if Copy(Header, 2, 3) = 'PNG' then
+    Suffix := 'png'
+  else if Copy(Header, 1, 3) = 'GIF' then
+    Suffix := 'gif'
+  else if Copy(Header, 1, 2) = 'BM' then
+    Suffix := 'bmp'
+  else if Copy(Header, 3, 2) = #42#0 then
+    Suffix := 'tif';
 
-  AnyGridEnsureFullRow(g, g.FocusedNode);
-  Header := WideHexToBin(Copy(g.Text[g.FocusedNode, g.FocusedColumn], 3, 20));
-  SaveBinary := false;
-  filename := GetTempDir+'\'+APPNAME+'-preview.';
-  if IsBinary and (Copy(Header, 7, 4) = 'JFIF') then begin
-    SaveBinary := true;
-    filename := filename + 'jpeg';
-  end else if IsBinary and (Copy(Header, 2, 3) = 'PNG') then begin
-    SaveBinary := true;
-    filename := filename + 'png';
-  end else if IsBinary and (Copy(Header, 1, 3) = 'GIF') then begin
-    SaveBinary := true;
-    filename := filename + 'gif';
-  end else if IsBinary and (Copy(Header, 1, 2) = 'BM') then begin
-    SaveBinary := true;
-    filename := filename + 'bmp';
-  end else if IsBinary and (Copy(Header, 3, 2) = #42#0) then begin
-    SaveBinary := true;
-    filename := filename + 'tif';
-  end;
-
-  if not IsBinary then begin
-    MessageDlg(msgNotBinary, mtWarning, [mbOk], 0);
-  end else if not SaveBinary then begin
-    MessageDlg(msgNotImage, mtWarning, [mbOk], 0);
-  end;
-
-  if SaveBinary then begin
-    Content := WideHexToBin(Copy(g.Text[g.FocusedNode, g.FocusedColumn], 3, High(Integer)));
-    AssignFile(f, filename);
+  if Suffix = '' then
+    MessageDlg('Unrecognized image format. Only JPEG, PNG, GIF and BMP are supported.', mtError, [mbOk], 0)
+  else begin
+    Filename := GetTempDir+'\'+APPNAME+'-preview.' + Suffix;
+    AssignFile(f, Filename);
     Rewrite(f);
     Write(f, Content);
     CloseFile(f);
+    ShellExec(Filename);
   end;
+
   ShowStatusMsg( STATUS_MSG_READY );
   Screen.Cursor := crDefault;
-  ShellExec( filename );
 end;
 
 procedure TMainForm.actInsertFilesExecute(Sender: TObject);
@@ -3864,7 +3861,7 @@ begin
   actCopyAsXML.Enabled := inDataOrQueryTabNotEmpty;
   actCopyAsSQL.Enabled := inDataOrQueryTabNotEmpty;
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
-  actHTMLView.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
+  actImageView.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   setNull1.Enabled := inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
   // Manually invoke OnChange event of tabset to fill helper list with data

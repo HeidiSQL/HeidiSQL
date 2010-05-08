@@ -1958,12 +1958,12 @@ object MainForm: TMainForm
       ShortCut = 24696
       OnExecute = actExecuteLineExecute
     end
-    object actHTMLview: TAction
+    object actImageView: TAction
       Category = 'Export/Import'
       Caption = 'Image view'
       Hint = 'View image contents'
       ImageIndex = 32
-      OnExecute = actHTMLviewExecute
+      OnExecute = actImageViewExecute
     end
     object actInsertFiles: TAction
       Category = 'Export/Import'
@@ -7933,7 +7933,7 @@ object MainForm: TMainForm
       end
     end
     object ViewasHTML1: TMenuItem
-      Action = actHTMLview
+      Action = actImageView
     end
     object InsertfilesintoBLOBfields3: TMenuItem
       Action = actInsertFiles
@@ -7957,7 +7957,7 @@ object MainForm: TMainForm
       Action = actCopy
     end
     object HTMLview1: TMenuItem
-      Action = actHTMLview
+      Action = actImageView
     end
     object N2: TMenuItem
       Caption = '-'
