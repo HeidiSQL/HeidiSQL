@@ -555,11 +555,7 @@ begin
     if indelimiter then begin
       if CharInSet(sql[i], [#13, #10]) or (i = len) then begin
         if (i = len) then j := 1 else j := 0;
-        try
-          Mainform.Delimiter := copy(sql, start + 10, i + j - (start + 10));
-        except on E:Exception do if Mainform.actQueryStopOnErrors.Checked then
-          raise Exception.Create(E.Message);
-        end;
+        Mainform.Delimiter := copy(sql, start + 10, i + j - (start + 10));
         indelimiter := false;
         start := i + 1;
       end;
