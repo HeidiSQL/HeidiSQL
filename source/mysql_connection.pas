@@ -1643,6 +1643,8 @@ begin
         if Row.RecNo = Value then begin
           FCurrentRow := nil;
           FCurrentUpdateRow := Row;
+          for i:=Low(FColumnLengths) to High(FColumnLengths) do
+            FColumnLengths[i] := Length(FCurrentUpdateRow[i].NewText);
           RowFound := True;
           break;
         end;
@@ -1692,7 +1694,7 @@ begin
     end else begin
       // The normal case: Fetch cell from mysql result
       SetString(AnsiStr, FCurrentRow[Column], FColumnLengths[Column]);
-      if Connection.IsUnicode then
+      if Connection.IsUnicode and (not (Datatype(Column).Category in [dtcBinary, dtcSpatial])) then
         Result := UTF8ToString(AnsiStr)
       else
         Result := String(AnsiStr);
