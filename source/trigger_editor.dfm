@@ -27,7 +27,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Top = 87
     Width = 327
     Height = 13
-    Caption = 'Trigger statement: (e.g. "SET NEW.columnA = TRIM(OLD.columnA")'
+    Caption = 'Trigger statement: (e.g. "SET NEW.columnA = TRIM(OLD.columnA)"'
   end
   object lblEvent: TLabel
     Left = 3
