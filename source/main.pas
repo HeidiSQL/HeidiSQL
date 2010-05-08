@@ -2984,45 +2984,30 @@ end;
 
 
 {**
-  Validates and sets the Delimiter property plus updates the hint on actSetDelimiter
+  Sets the Delimiter property plus updates the hint on actSetDelimiter
 }
 procedure TMainForm.SetDelimiter(Value: String);
 var
-  ErrMsg: String;
+  rx: TRegExpr;
+  Msg: String;
 begin
-  ErrMsg := '';
   Value := Trim(Value);
-  // Test for empty delimiter.
-  if Value = '' then ErrMsg := 'DELIMITER must be followed by a non-comment character or string';
-  // Disallow backslash, because the MySQL CLI does so for some reason.
-  // Then again, is there any reason to be bug-per-bug compatible with some random SQL parser?
-  if Pos('\', Value) > 0 then ErrMsg := 'Backslash disallowed in DELIMITER (because the MySQL CLI does not accept it)';
-  // Disallow stuff which would be negated by the comment parsing logic.
-  if
-    (Pos('/*', Value) > 0) or
-    (Pos('--', Value) > 0) or
-    (Pos('#', Value) > 0)
-  then ErrMsg := 'Start-of-comment tokens disallowed in DELIMITER (because it would be ignored)';
-  // Disallow stuff which would be negated by the SQL parser (and could slightly confuse it, if at end-of-string).
-  if
-    (Pos('''', Value) > 0) or
-    (Pos('`', Value) > 0) or
-    (Pos('"', Value) > 0)
-  then ErrMsg := 'String literal markers disallowed in DELIMITER (because it would be ignored)';
-
-  // Reset an invalid delimiter loaded from registry at startup to the default value
-  if (ErrMsg <> '') and (Delimiter = '') then begin
-    Value := DEFAULT_DELIMITER;
-    ErrMsg := '';
+  Msg := '';
+  if Value = '' then
+    Msg := 'Empty value.'
+  else begin
+    rx := TRegExpr.Create;
+    rx.Expression := '(/\*|--|#|\''|\"|`)';
+    if rx.Exec(Value) then
+      Msg := 'Start-of-comment tokens or string literal markers are not allowed.'
   end;
-  // Raise or set it
-  if ErrMsg <> '' then begin
-    ErrMsg := Format('Invalid delimiter %s: %s.', [Value, ErrMsg]);
-    LogSQL(ErrMsg);
-    Raise Exception.Create(ErrMsg);
+  if Msg <> '' then begin
+    Msg := 'Error setting delimiter to "'+Value+'": '+Msg;
+    LogSQL(Msg, lcError);
+    MessageDlg(Msg, mtError, [mbOK], 0);
   end else begin
     FDelimiter := Value;
-    LogSQL(Format('Delimiter changed to %s.', [Delimiter]));
+    LogSQL('Delimiter changed to '+FDelimiter, lcInfo);
     actSetDelimiter.Hint := actSetDelimiter.Caption + ' (current value: '+Delimiter+')';
   end;
 end;
@@ -3961,7 +3946,9 @@ var
   col: TVirtualTreeColumn;
   ResultLabel: TLabel;
   cap: String;
+  Grid: TVirtualStringTree;
 begin
+  Screen.Cursor := crHourglass;
   ResultLabel := ActiveQueryTab.LabelResultInfo;
   if CurrentLine then Text := ActiveQueryMemo.LineText
   else if Selection then Text := ActiveQueryMemo.SelText
@@ -3974,19 +3961,13 @@ begin
   end;
   if LB <> '' then
     Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
-  ShowStatusMsg('Initializing SQL...');
-  SQL := parseSQL(Text);
-  if SQL.Count = 0 then begin
-    ResultLabel.Caption := '(nothing to do)';
-    Exit;
-  end;
 
   ResultLabel.Caption := '';
-  FreeAndNil(Results);
+  ShowStatusMsg('Splitting SQL queries ...');
+  SQL := parseSQL(Text);
   actExecuteQuery.Enabled := false;
   actExecuteSelection.Enabled := false;
   EnableProgressBar(SQL.Count);
-  ShowStatusMsg('Executing SQL...');
   SQLtime := 0;
   SQLNetTime := 0;
   QueryCount := 0;
@@ -3994,17 +3975,18 @@ begin
   Results.Connection := Connection;
   Results.LogCategory := lcUserFiredSQL;
   for i:=0 to SQL.Count-1 do begin
+    ShowStatusMsg('Executing query #'+FormatNumber(i)+' of '+FormatNumber(SQL.Count)+' ...');
     ProgressBarStatus.StepIt;
     ProgressBarStatus.Repaint;
+    Results.SQL := SQL[i];
+    // Immediately free results for all but last query
+    Results.StoreResult := i = SQL.Count-1;
     try
-      // Immediately free results for all but last query
-      Results.SQL := SQL[i];
-      Results.StoreResult := i = SQL.Count-1;
       Results.Execute;
       Inc(SQLtime, Connection.LastQueryDuration);
       Inc(SQLNetTime, Connection.LastQueryNetworkDuration);
       Inc(QueryCount);
-      if Assigned(Results) and Results.HasResult then
+      if Results.StoreResult and Results.HasResult then
         ResultLabel.Caption := FormatNumber(Results.ColumnCount) +' column(s) x '+FormatNumber(Results.RecordCount) +' row(s) in last result set.'
       else
         ResultLabel.Caption := FormatNumber(Connection.RowsAffected) +' row(s) affected by last query.';
@@ -4018,8 +4000,9 @@ begin
       end;
     end;
   end;
+  ProgressBarStatus.Hide;
 
-  if ResultLabel.Caption <> '' then begin
+  if QueryCount > 0 then begin
     cap := ' Duration for ';
     cap := cap + IntToStr(QueryCount);
     if QueryCount < SQL.Count then
@@ -4034,23 +4017,20 @@ begin
     ResultLabel.Caption := ResultLabel.Caption + cap;
   end;
 
-  // Avoid excessive GridHighlightChanged() when flicking controls.
-  ProgressBarStatus.Hide;
-
   if Assigned(Results) and Results.HasResult then begin
     editFilterVT.Clear;
     TimerFilterVT.OnTimer(Sender);
-    ActiveGrid.BeginUpdate;
     // Reset filter if filter panel was disabled
     UpdateFilterPanel(Sender);
-    ActiveGrid.Header.Options := ActiveGrid.Header.Options + [hoVisible];
-    ActiveGrid.Header.Columns.BeginUpdate;
-    ActiveGrid.Header.Columns.Clear;
-    ActiveQueryTab.Results := Results;
 
+    ShowStatusMsg('Setting up result grid ...');
+    Grid := ActiveGrid;
+    Grid.Header.Options := Grid.Header.Options + [hoVisible];
+    Grid.Header.Columns.BeginUpdate;
+    Grid.Header.Columns.Clear;
     for i:=0 to Results.ColumnCount-1 do begin
       ColName := Results.ColumnNames[i];
-      col := ActiveGrid.Header.Columns.Add;
+      col := Grid.Header.Columns.Add;
       col.Text := ColName;
       if Results.DataType(i).Category in [dtcInteger, dtcReal] then
         col.Alignment := taRightJustify;
@@ -4061,14 +4041,17 @@ begin
       else if Results.ColIsKeyPart(i) then
         col.ImageIndex := ICONINDEX_INDEXKEY;
     end;
-    // Remove all nodes
-    ActiveGrid.Clear;
-    ActiveGrid.RootNodeCount := Results.RecordCount;
-    ActiveGrid.Header.Columns.EndUpdate;
-    ActiveGrid.OffsetXY := Point(0, 0);
-    for i:=0 to ActiveGrid.Header.Columns.Count-1 do
-      AutoCalcColWidth(ActiveGrid, i);
-    ActiveGrid.EndUpdate;
+    Grid.Header.Columns.EndUpdate;
+
+    Grid.BeginUpdate;
+    Grid.Clear;
+    FreeAndNil(ActiveQueryTab.Results);
+    ActiveQueryTab.Results := Results;
+    Grid.RootNodeCount := Results.RecordCount;
+    Grid.OffsetXY := Point(0, 0);
+    for i:=0 to Grid.Header.Columns.Count-1 do
+      AutoCalcColWidth(Grid, i);
+    Grid.EndUpdate;
   end;
   // Ensure controls are in a valid state
   ValidateControls(Sender);
