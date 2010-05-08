@@ -1557,6 +1557,8 @@ begin
   end;
   if not AddResult then begin
     if HasResult then begin
+      // FCurrentResults is normally done in SetRecNo, but never if result has no rows
+      FCurrentResults := FLastResult;
       NumFields := mysql_num_fields(FLastResult);
       SetLength(FColumnTypes, NumFields);
       SetLength(FColumnLengths, NumFields);
