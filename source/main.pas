@@ -3090,10 +3090,15 @@ var
   DupeNum: PCardinal;
   i: Integer;
   Value: String;
-  IsNull: Boolean;
+  IsNull, AllowNewNode: Boolean;
 begin
   Grid := ActiveGrid;
   Results := GridResult(Grid);
+  // Pre-test if changing node focus is allowed, in cases where current row modifications throw some SQL error when posting
+  AllowNewNode := False;
+  Grid.OnFocusChanging(Grid, Grid.FocusedNode, nil, Grid.FocusedColumn, Grid.FocusedColumn, AllowNewNode);
+  if not AllowNewNode then
+    exit;
   try
     Results.CheckEditable;
     DupeNode := nil;
