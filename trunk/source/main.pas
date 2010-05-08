@@ -1711,6 +1711,10 @@ begin
   InvalidateVT(ListCommandstats, VTREE_NOTLOADED, False);
   InvalidateVT(ListTables, VTREE_NOTLOADED, False);
 
+  // Reset indicators of currently loaded db.table in DataGrid
+  DataGridDB := '';
+  DataGridTable := '';
+
   Application.Title := APPNAME;
 end;
 
