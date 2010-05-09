@@ -5007,7 +5007,7 @@ begin
   Result := TDBObject.Create;
   if Assigned(Node) and (DBtree.GetNodeLevel(Node)=2) then begin
     DBObjects := Connection.GetDBObjects(ActiveDatabase);
-    if Node.Index < DBObjects.Count then
+    if Integer(Node.Index) < DBObjects.Count then
       Result.Assign(DBObjects[Node.Index]);
   end;
 end;
