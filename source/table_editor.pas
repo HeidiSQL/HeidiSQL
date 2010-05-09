@@ -2110,7 +2110,9 @@ end;
 procedure TfrmTableEditor.listForeignKeysNewText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
-  Key: TForeignKey;
+  Key, OtherKey: TForeignKey;
+  i: Integer;
+  NameInUse: Boolean;
 begin
   // Cell text in foreign key list edited
   Key := FForeignKeys[Node.Index];
@@ -2124,8 +2126,22 @@ begin
     1: Key.Columns := Explode(',', NewText);
     2: begin
       Key.ReferenceTable := NewText;
-      if not Key.KeyNameWasCustomized then
+      if not Key.KeyNameWasCustomized then begin
         Key.KeyName := 'FK_'+DBObject.Name+'_'+Key.ReferenceTable;
+        i := 1;
+        NameInUse := True;
+        while NameInUse do begin
+          for OtherKey in FForeignKeys do begin
+            NameInUse := (Key <> OtherKey) and (Key.KeyName = OtherKey.KeyName);
+            if NameInUse then break;
+          end;
+          if NameInUse then begin
+            Inc(i);
+            Key.KeyName := 'FK_'+DBObject.Name+'_'+Key.ReferenceTable+'_'+IntToStr(i);
+          end;
+        end;
+
+      end;
     end;
     3: Key.ForeignColumns := Explode(',', NewText);
     4: Key.OnUpdate := NewText;
