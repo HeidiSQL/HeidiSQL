@@ -102,7 +102,7 @@ type
     Modified: Boolean;
   end;
   TRowData = class(TObjectList<TCellData>)
-    OldRecNo, RecNo: Int64;
+    RecNo: Int64;
     Inserted: Boolean;
   end;
   TUpdateData = TObjectList<TRowData>;
