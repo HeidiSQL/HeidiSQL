@@ -7688,6 +7688,7 @@ var
   SynMemo: TSynMemo;
   Success, DoCut: Boolean;
   SQLStream: TMemoryStream;
+  IsResultGrid: Boolean;
 begin
   // Copy text from a focused control to clipboard
   Success := False;
@@ -7710,9 +7711,11 @@ begin
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
     if Assigned(Grid.FocusedNode) then begin
-      AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
+      IsResultGrid := Grid = ActiveGrid;
+      if IsResultGrid then
+        AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
       Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
-      if (Grid = ActiveGrid) and DoCut then
+      if IsResultGrid and DoCut then
         Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
       Success := True;
     end;
