@@ -1646,11 +1646,27 @@ end;
   Unformat a formatted integer or float. Used for CSV export and composing WHERE clauses for grid editing.
 }
 function UnformatNumber(Val: String): String;
+var
+  i: Integer;
+  HasDecim: Boolean;
+  c: Char;
+const
+  Numbers = ['0'..'9'];
 begin
-  Result := Val;
-  if ThousandSeparator <> DecimalSeparator then
-    Result := StringReplace(Result, ThousandSeparator, '', [rfReplaceAll]);
-  Result := StringReplace(Result, DecimalSeparator, '.', [rfReplaceAll]);
+  Result := '';
+  HasDecim := False;
+  for i:=1 to Length(Val) do begin
+    c := Val[i];
+    if CharInSet(c, Numbers) then
+      Result := Result + c
+    else if (c = DecimalSeparator) and (not HasDecim) then begin
+      Result := Result + '.';
+      HasDecim := True;
+    end else if c <> ThousandSeparator then
+      break;
+  end;
+  if Result = '' then
+    Result := '0';
 end;
 
 
