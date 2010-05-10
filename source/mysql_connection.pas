@@ -1926,6 +1926,8 @@ begin
     EnsureFullRow;
   end;
   FCurrentUpdateRow[Column].NewText := NewText;
+  if DataType(Column).Category in [dtcInteger, dtcReal] then
+    FCurrentUpdateRow[Column].NewText := UnformatNumber(FCurrentUpdateRow[Column].NewText);
   FCurrentUpdateRow[Column].NewIsNull := Null;
   FCurrentUpdateRow[Column].Modified := True;
 end;
@@ -2039,7 +2041,7 @@ begin
       if Cell.NewIsNull then
         Val := 'NULL'
       else case Datatype(i).Category of
-        dtcInteger, dtcReal: Val := UnformatNumber(Cell.NewText);
+        dtcInteger, dtcReal: Val := Cell.NewText;
         else Val := Connection.EscapeString(Cell.NewText);
       end;
       sqlUpdate := sqlUpdate + Connection.QuoteIdent(FColumnOrgNames[i]) + '=' + Val;
@@ -2054,7 +2056,9 @@ begin
         for i:=0 to ColumnCount-1 do begin
           ColAttr := ColAttributes(i);
           if Assigned(ColAttr) and (ColAttr.DefaultType = cdtAutoInc) then begin
-            Row[i].NewText := Connection.GetVar('SELECT LAST_INSERT_ID()');
+            Row[i].NewText := UnformatNumber(Row[i].NewText);
+            if Row[i].NewText = '0' then
+              Row[i].NewText := Connection.GetVar('SELECT LAST_INSERT_ID()');
             Row[i].NewIsNull := False;
             break;
           end;
@@ -2256,7 +2260,7 @@ begin
       Result := Result + ' IS NULL'
     else begin
       case DataType(j).Category of
-        dtcInteger, dtcReal: Result := Result + '=' + UnformatNumber(ColVal);
+        dtcInteger, dtcReal: Result := Result + '=' + ColVal;
         else Result := Result + '=' + Connection.EscapeString(ColVal);
       end;
     end;
