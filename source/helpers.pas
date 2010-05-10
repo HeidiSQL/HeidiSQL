@@ -2810,6 +2810,7 @@ begin
     ForeignKey := TForeignKey.Create;
     ForeignKeys.Add(ForeignKey);
     ForeignKey.KeyName := rx.Match[1];
+    ForeignKey.OldKeyName := ForeignKey.KeyName;
     ForeignKey.KeyNameWasCustomized := True;
     ForeignKey.ReferenceTable := StringReplace(rx.Match[3], '`', '', [rfReplaceAll]);
     ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, '"', '', [rfReplaceAll]);

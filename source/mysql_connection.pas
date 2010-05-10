@@ -81,7 +81,7 @@ type
   // Helper object to manage foreign keys in a TObjectList
   TForeignKey = class(TObject)
     public
-      KeyName, ReferenceTable, OnUpdate, OnDelete: String;
+      KeyName, OldKeyName, ReferenceTable, OnUpdate, OnDelete: String;
       Columns, ForeignColumns: TStringList;
       Modified, Added, KeyNameWasCustomized: Boolean;
       constructor Create;

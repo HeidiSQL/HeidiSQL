@@ -380,7 +380,7 @@ begin
     //   ALTER TABLE  statement. Separate statements are required."
     for i:=0 to FForeignKeys.Count-1 do begin
       if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
-        Specs.Add('DROP FOREIGN KEY '+Mainform.mask(FForeignKeys[i].KeyName));
+        Specs.Add('DROP FOREIGN KEY '+Mainform.mask(FForeignKeys[i].OldKeyName));
     end;
   end;
   try
@@ -440,6 +440,7 @@ begin
   end;
   DeletedForeignKeys.Clear;
   for i:=0 to FForeignKeys.Count-1 do begin
+    FForeignKeys[i].OldKeyName := FForeignKeys[i].KeyName;
     FForeignKeys[i].Added := False;
     FForeignKeys[i].Modified := False;
   end;
@@ -1945,7 +1946,7 @@ begin
     listForeignKeys.CancelEditNode;
   Key := FForeignKeys[listForeignKeys.FocusedNode.Index];
   if not Key.Added then
-    DeletedForeignKeys.Add(Key.KeyName);
+    DeletedForeignKeys.Add(Key.OldKeyName);
   FForeignKeys.Delete(listForeignKeys.FocusedNode.Index);
   Modification(Sender);
   listForeignKeys.Repaint;
@@ -1961,7 +1962,7 @@ begin
     listForeignKeys.CancelEditNode;
   for i:=FForeignKeys.Count-1 downto 0 do begin
     if not FForeignKeys[i].Added then
-      DeletedForeignKeys.Add(FForeignKeys[i].KeyName);
+      DeletedForeignKeys.Add(FForeignKeys[i].OldKeyName);
     FForeignKeys.Delete(i);
   end;
   Modification(Sender);
