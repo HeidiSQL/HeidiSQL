@@ -1926,11 +1926,16 @@ begin
     CreateUpdateRow;
     EnsureFullRow;
   end;
-  FCurrentUpdateRow[Column].NewText := NewText;
-  if DataType(Column).Category in [dtcInteger, dtcReal] then
-    FCurrentUpdateRow[Column].NewText := UnformatNumber(FCurrentUpdateRow[Column].NewText);
   FCurrentUpdateRow[Column].NewIsNull := Null;
-  FCurrentUpdateRow[Column].Modified := True;
+  if Null then
+    FCurrentUpdateRow[Column].NewText := ''
+  else begin
+    FCurrentUpdateRow[Column].NewText := NewText;
+    if DataType(Column).Category in [dtcInteger, dtcReal] then
+      FCurrentUpdateRow[Column].NewText := UnformatNumber(FCurrentUpdateRow[Column].NewText);
+  end;
+  FCurrentUpdateRow[Column].Modified := (FCurrentUpdateRow[Column].NewText <> FCurrentUpdateRow[Column].OldText) or
+    (FCurrentUpdateRow[Column].NewIsNull <> FCurrentUpdateRow[Column].OldIsNull);
 end;
 
 
