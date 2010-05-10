@@ -1660,7 +1660,8 @@ begin
         Inc(NumRows, FResultList[i].row_count);
         if NumRows > Value then begin
           FCurrentResults := FResultList[i];
-          if FRecNo+1 <> Value then
+          // Do not seek if FCurrentRow points to the previous row of the wanted row
+          if (FRecNo+1 <> Value) or (FCurrentRow = nil) then
             mysql_data_seek(FCurrentResults, FCurrentResults.row_count-(NumRows-Value));
           FCurrentRow := mysql_fetch_row(FCurrentResults);
           FCurrentUpdateRow := nil;
