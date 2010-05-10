@@ -738,7 +738,7 @@ var
 begin
   if AllowCustomText then
     NewText := FCombo.Text
-  else if ValueList.Count > 0 then
+  else if (ValueList.Count > 0) and (FCombo.ItemIndex > -1) then
     NewText := ValueList[FCombo.ItemIndex]
   else
     NewText := '';
