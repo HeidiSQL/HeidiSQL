@@ -1570,7 +1570,10 @@ begin
       for i:=0 to NumFields-1 do begin
         Field := mysql_fetch_field_direct(FLastResult, i);
         FColumnNames.Add(Utf8ToString(Field.name));
-        FColumnOrgNames.Add(Utf8ToString(Field.org_name));
+        if Connection.ServerVersionInt >= 40100 then
+          FColumnOrgNames.Add(Utf8ToString(Field.org_name))
+        else
+          FColumnOrgNames.Add(String(Field.name));
         FColumnFlags[i] := Field.flags;
         FColumnTypes[i] := Datatypes[Low(Datatypes)];
         if (Field.flags and ENUM_FLAG) = ENUM_FLAG then
@@ -2192,10 +2195,13 @@ end;
 
 
 function TMySQLQuery.QuotedDbAndTableName: String;
+var
+  db: String;
 begin
   // Return `db`.`table` if necessairy, otherwise `table`
-  if Connection.Database <> DatabaseName then
-    Result := Connection.QuoteIdent(DatabaseName)+'.';
+  db := DatabaseName;
+  if (Connection.Database <> db) and (db <> '') then
+    Result := Connection.QuoteIdent(db)+'.';
   Result := Result + Connection.QuoteIdent(TableName);
 end;
 
@@ -2215,10 +2221,8 @@ begin
 
   Result := TStringList.Create;
   for i:=0 to NeededCols.Count-1 do begin
-    if FColumnOrgNames.IndexOf(NeededCols[i]) > -1 then begin
+    if FColumnOrgNames.IndexOf(NeededCols[i]) > -1 then
       Result.Add(NeededCols[i]);
-      continue;
-    end;
   end;
 end;
 
