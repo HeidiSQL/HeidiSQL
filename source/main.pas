@@ -6374,8 +6374,7 @@ begin
   if csDestroying in ComponentState then
     Exit;
   // Reload objects in ListTables
-  if ActiveDatabase=Database then
-    InvalidateVT(ListTables, VTREE_NOTLOADED, False);
+  InvalidateVT(ListTables, VTREE_NOTLOADED, False);
   // Reload objects for database tree
   Node := DBtree.GetFirstChild(DBtree.GetFirst);
   while Assigned(Node) do begin
