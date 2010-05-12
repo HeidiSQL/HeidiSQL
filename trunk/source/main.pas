@@ -6797,6 +6797,8 @@ begin
   RowNum := Sender.GetNodeData(Node);
   Results.RecNo := RowNum^;
   try
+    if Results.DataType(Column).Category in [dtcInteger, dtcReal] then
+      NewText := UnformatNumber(NewText);
     Results.SetCol(Column, NewText, False);
   except
     on E:EDatabaseError do MessageDlg(E.Message, mtError, [mbOK], 0);
