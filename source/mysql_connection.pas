@@ -1932,11 +1932,8 @@ begin
   FCurrentUpdateRow[Column].NewIsNull := Null;
   if Null then
     FCurrentUpdateRow[Column].NewText := ''
-  else begin
+  else
     FCurrentUpdateRow[Column].NewText := NewText;
-    if DataType(Column).Category in [dtcInteger, dtcReal] then
-      FCurrentUpdateRow[Column].NewText := UnformatNumber(FCurrentUpdateRow[Column].NewText);
-  end;
   FCurrentUpdateRow[Column].Modified := (FCurrentUpdateRow[Column].NewText <> FCurrentUpdateRow[Column].OldText) or
     (FCurrentUpdateRow[Column].NewIsNull <> FCurrentUpdateRow[Column].OldIsNull);
 end;
