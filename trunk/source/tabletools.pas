@@ -115,7 +115,9 @@ type
     FLastOutputSelectedIndex: Integer;
     FModifiedDbs: TStringList;
     FHeaderCreated: Boolean;
+    ToFile, ToDir, ToClipboard, ToDb, ToServer: Boolean;
     procedure SetToolMode(Value: TToolMode);
+    procedure Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
     procedure AddResults(SQL: String);
     procedure AddNotes(Col1, Col2, Col3, Col4: String);
     procedure SetupResultGrid(Results: TMySQLQuery=nil);
@@ -499,8 +501,8 @@ begin
   end; // End of db item loop
 
   if Assigned(ExportStream) then begin
-    if (comboExportOutputType.Text = OUTPUT_FILE) or (comboExportOutputType.Text = OUTPUT_CLIPBOARD) then
-      StreamWrite(ExportStream, EXPORT_FILE_FOOTER);
+    Output(EXPORT_FILE_FOOTER, False, True, False, False, False);
+    Output('/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */', True, False, False, True, True);
     if comboExportOutputType.Text = OUTPUT_CLIPBOARD then
       StreamToClipboard(ExportStream, nil, false);
     FreeAndNil(ExportStream);
@@ -910,9 +912,37 @@ begin
 end;
 
 
+// Pass output to file or query, and append semicolon if needed
+procedure TfrmTableTools.Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
+var
+  SA: AnsiString;
+  ChunkSize: Integer;
+begin
+  if (ToFile and ForFile) or (ToDir and ForDir) or (ToClipboard and ForFile) then begin
+    if IsEndOfQuery then
+      SQL := SQL + ';'+CRLF;
+    StreamWrite(ExportStream, SQL);
+  end;
+  if (ToDb and ForDb) or (ToServer and ForServer) then begin
+    StreamWrite(ExportStream, SQL);
+    if IsEndOfQuery then begin
+      ExportStream.Position := 0;
+      ChunkSize := ExportStream.Size;
+      SetLength(SA, ChunkSize div SizeOf(AnsiChar));
+      ExportStream.Read(PAnsiChar(SA)^, ChunkSize);
+      ExportStream.Size := 0;
+      SQL := UTF8ToString(SA);
+      if ToDB then Mainform.Connection.Query(SQL)
+      else if ToServer then FTargetConnection.Query(SQL);
+      SQL := '';
+    end;
+  end;
+end;
+
+
 procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
-  ToFile, ToDir, ToClipboard, ToDb, ToServer, IsLastRowInChunk, NeedsDBStructure: Boolean;
+  IsLastRowInChunk, NeedsDBStructure: Boolean;
   Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent: String;
   MultiSQL: TStringList;
   i: Integer;
@@ -927,33 +957,6 @@ const
   function m(s: String): String;
   begin
     Result := Mainform.mask(s);
-  end;
-
-  // Pass output to file or query, and append semicolon if needed
-  procedure Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
-  var
-    SA: AnsiString;
-    ChunkSize: Integer;
-  begin
-    if (ToFile and ForFile) or (ToDir and ForDir) or (ToClipboard and ForFile) then begin
-      if IsEndOfQuery then
-        SQL := SQL + ';'+CRLF;
-      StreamWrite(ExportStream, SQL);
-    end;
-    if (ToDb and ForDb) or (ToServer and ForServer) then begin
-      StreamWrite(ExportStream, SQL);
-      if IsEndOfQuery then begin
-        ExportStream.Position := 0;
-        ChunkSize := ExportStream.Size;
-        SetLength(SA, ChunkSize div SizeOf(AnsiChar));
-        ExportStream.Read(PAnsiChar(SA)^, ChunkSize);
-        ExportStream.Size := 0;
-        SQL := UTF8ToString(SA);
-        if ToDB then Mainform.Connection.Query(SQL)
-        else if ToServer then FTargetConnection.Query(SQL);
-        SQL := '';
-      end;
-    end;
   end;
 
   procedure LogStatistic(RowsDone: Int64);
@@ -1011,6 +1014,7 @@ begin
       '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF +
       '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;';
     Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
+    Output('/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */', True, False, False, True, True);
     FHeaderCreated := True;
   end;
 
