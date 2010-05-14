@@ -588,7 +588,9 @@ procedure TUserManagerForm.editPasswordRightButtonClick(Sender: TObject);
 begin
   // Auto generate a random password, display it for a second and copy it to clipboard
   Screen.Cursor := crHourglass;
+  editPassword.SetFocus;
   editPassword.Text := GeneratePassword(8);
+  editPassword.Modified := True;
   editPassword.PasswordChar := #0;
   editPassword.Repaint;
   Sleep(1000);
