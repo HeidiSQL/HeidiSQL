@@ -2965,7 +2965,7 @@ end;
 
 function ReformatSQL(SQL: String): String;
 var
-  AllKeywords, ImportantKeywords: TStringList;
+  AllKeywords, ImportantKeywords, PairKeywords: TStringList;
   i, Run, KeywordMaxLen: Integer;
   IsEsc, IsQuote, InComment, InBigComment, InString, InKeyword, InIdent, LastWasComment: Boolean;
   c, p: Char;
@@ -2987,6 +2987,8 @@ begin
 
   // A subset of the above list, each of them will get a linebreak left to it
   ImportantKeywords := Explode(',', 'SELECT,FROM,LEFT,RIGHT,STRAIGHT,NATURAL,INNER,JOIN,WHERE,GROUP,ORDER,HAVING,LIMIT,CREATE,DROP,UPDATE,INSERT,REPLACE,TRUNCATE,DELETE');
+  // Keywords which followers should not get separated into a new line
+  PairKeywords := Explode(',', 'LEFT,RIGHT,STRAIGHT,NATURAL,INNER,ORDER,GROUP');
 
   IsEsc := False;
   InComment := False;
@@ -3008,7 +3010,7 @@ begin
     if c = '\' then IsEsc := not IsEsc
     else IsEsc := False;
     IsQuote := (c = '''') or (c = '"');
-    if SQL[i] = '`' then InIdent := not InIdent;
+    if c = '`' then InIdent := not InIdent;
     if (not IsEsc) and IsQuote then InString := not InString;
     if (c = '#') or ((c = '-') and (p = '-')) then InComment := True;
     if ((c = #10) or (c = #13)) and InComment then begin
@@ -3030,7 +3032,7 @@ begin
           Keyword := UpperCase(Keyword);
           if Run > 1 then begin
             // SELECT, WHERE, JOIN etc. get a new line, but don't separate LEFT JOIN with linebreaks
-            if LastWasComment or ((ImportantKeywords.IndexOf(Keyword) > -1) and (ImportantKeywords.IndexOf(PreviousKeyword) = -1)) then
+            if LastWasComment or ((ImportantKeywords.IndexOf(Keyword) > -1) and (PairKeywords.IndexOf(PreviousKeyword) = -1)) then
               Keyword := CRLF + Keyword
             else if (Result[Run-1] <> '(') then
               Keyword := ' ' + Keyword;
