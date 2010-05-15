@@ -221,6 +221,7 @@ type
       function GetInformationSchemaObjects: TStringList;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
+      function DecodeAPIString(a: AnsiString): String;
       procedure Log(Category: TMySQLLogCategory; Msg: String);
       procedure ClearCache;
       procedure SetObjectNamesInSelectedDB;
@@ -553,7 +554,7 @@ begin
       FIsUnicode := CurCharset = 'utf8';
       FConnectionStarted := GetTickCount div 1000;
       FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), 1);
-      FServerVersionUntouched := Utf8ToString(mysql_get_server_info(FHandle));
+      FServerVersionUntouched := DecodeAPIString(mysql_get_server_info(FHandle));
       if FDatabase <> '' then begin
         tmpdb := FDatabase;
         FDatabase := '';
@@ -702,7 +703,7 @@ end;
 }
 function TMySQLConnection.GetCharacterSet: String;
 begin
-  Result := Utf8ToString(mysql_character_set_name(FHandle));
+  Result := DecodeAPIString(mysql_character_set_name(FHandle));
 end;
 
 
@@ -723,7 +724,7 @@ var
   Msg, Additional: String;
   rx: TRegExpr;
 begin
-  Msg := Utf8ToString(mysql_error(FHandle));
+  Msg := DecodeAPIString(mysql_error(FHandle));
   // Find "(errno: 123)" in message and add more meaningful message from perror.exe
   rx := TRegExpr.Create;
   rx.Expression := '.+\(errno\:\s+(\d+)\)';
@@ -1491,6 +1492,15 @@ begin
 end;
 
 
+function TMySQLConnection.DecodeAPIString(a: AnsiString): String;
+begin
+  if IsUnicode then
+    Result := Utf8ToString(a)
+  else
+    Result := String(a);
+end;
+
+
 
 { TMySQLQuery }
 
@@ -1569,11 +1579,11 @@ begin
       FColumnOrgNames.Clear;
       for i:=0 to NumFields-1 do begin
         Field := mysql_fetch_field_direct(FLastResult, i);
-        FColumnNames.Add(Utf8ToString(Field.name));
+        FColumnNames.Add(Connection.DecodeAPIString(Field.name));
         if Connection.ServerVersionInt >= 40100 then
-          FColumnOrgNames.Add(Utf8ToString(Field.org_name))
+          FColumnOrgNames.Add(Connection.DecodeAPIString(Field.org_name))
         else
-          FColumnOrgNames.Add(String(Field.name));
+          FColumnOrgNames.Add(Connection.DecodeAPIString(Field.name));
         FColumnFlags[i] := Field.flags;
         FColumnTypes[i] := Datatypes[Low(Datatypes)];
         if (Field.flags and ENUM_FLAG) = ENUM_FLAG then
@@ -1700,10 +1710,10 @@ begin
     end else begin
       // The normal case: Fetch cell from mysql result
       SetString(AnsiStr, FCurrentRow[Column], FColumnLengths[Column]);
-      if Connection.IsUnicode and (not (Datatype(Column).Category in [dtcBinary, dtcSpatial])) then
-        Result := UTF8ToString(AnsiStr)
+      if Datatype(Column).Category in [dtcBinary, dtcSpatial] then
+        Result := String(AnsiStr)
       else
-        Result := String(AnsiStr);
+        Result := Connection.DecodeAPIString(AnsiStr);
     end;
   end else if not IgnoreErrors then
     Raise EDatabaseError.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
@@ -2155,10 +2165,7 @@ begin
   for i:=0 to ColumnCount-1 do begin
     Field := mysql_fetch_field_direct(FCurrentResults, i);
     if Field.db <> '' then begin
-      if Connection.IsUnicode then
-        Result := UTF8ToString(Field.db)
-      else
-        Result := String(Field.db);
+      Result := Connection.DecodeAPIString(Field.db);
       break;
     end;
   end;
@@ -2182,12 +2189,8 @@ begin
   end;
   if tbl = '' then
     raise EDatabaseError.Create('Could not determine name of table.')
-  else begin
-    if Connection.IsUnicode then
-      Result := UTF8ToString(tbl)
-    else
-      Result := String(tbl);
-  end;
+  else
+    Result := Connection.DecodeAPIString(tbl)
 end;
 
 
