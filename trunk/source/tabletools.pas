@@ -943,7 +943,7 @@ end;
 procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
   IsLastRowInChunk, NeedsDBStructure: Boolean;
-  Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent: String;
+  Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent, tmp: String;
   MultiSQL: TStringList;
   i: Integer;
   RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset, ResultCount: Int64;
@@ -1136,7 +1136,10 @@ begin
     if comboExportData.Text = DATA_NO then begin
       Output(CRLF+'# Data exporting was unselected.'+CRLF, False, True, True, False, False);
     end else begin
-      Output(CRLF+'# Dumping data for table '+DBObj.Database+'.'+DBObj.Name+': '+FormatNumber(DBObj.Rows)+' rows'+CRLF, False, True, True, False, False);
+      tmp := FormatNumber(DBObj.Rows)+' rows';
+      if LowerCase(DBObj.Engine) = 'innodb' then
+        tmp := '~'+tmp+' (approximately)';
+      Output(CRLF+'# Dumping data for table '+DBObj.Database+'.'+DBObj.Name+': '+tmp+CRLF, False, True, True, False, False);
       TargetDbAndObject := m(DBObj.Name);
       if ToDb then
         TargetDbAndObject := m(FinalDbName) + '.' + TargetDbAndObject;
