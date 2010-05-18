@@ -1657,7 +1657,7 @@ begin
   HasDecim := False;
   for i:=1 to Length(Val) do begin
     c := Val[i];
-    if CharInSet(c, Numbers) then
+    if CharInSet(c, Numbers) or ((c = '-') and (i = 1)) then
       Result := Result + c
     else if (c = DecimalSeparator) and (not HasDecim) then begin
       Result := Result + '.';
