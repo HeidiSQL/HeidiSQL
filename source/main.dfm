@@ -1947,16 +1947,16 @@ object MainForm: TMainForm
       Hint = 'Execute selected SQL...|Execute selected SQL-query/queries...'
       ImageIndex = 104
       ShortCut = 16504
-      OnExecute = actExecuteSelectionExecute
+      OnExecute = actExecuteQueryExecute
     end
-    object actExecuteLine: TAction
+    object actExecuteCurrentQuery: TAction
       Category = 'SQL'
-      Caption = 'Run current line'
+      Caption = 'Run current query'
       Enabled = False
-      Hint = 'Execute Line|Executes the current line of SQL'
+      Hint = 'Run current query|Run currently focused SQL query'
       ImageIndex = 105
       ShortCut = 24696
-      OnExecute = actExecuteLineExecute
+      OnExecute = actExecuteQueryExecute
     end
     object actImageView: TAction
       Category = 'Export/Import'
@@ -8121,7 +8121,7 @@ object MainForm: TMainForm
       Action = actExecuteSelection
     end
     object MenuRunLine: TMenuItem
-      Action = actExecuteLine
+      Action = actExecuteCurrentQuery
     end
     object MenuItem1: TMenuItem
       Caption = '-'

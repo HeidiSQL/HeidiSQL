@@ -54,7 +54,7 @@ var
   querycount,
   rowsaffected        : Int64;
   starttime           : Cardinal;
-  SQL                 : TStringList;
+  SQL                 : TSQLBatch;
   i                   : Integer;
   lines_remaining     : String;
 begin
@@ -100,7 +100,7 @@ begin
       Repaint;
 
       // Split buffer into single queries
-      SQL := parseSQL( lines_remaining + lines );
+      SQL := SplitSQL( lines_remaining + lines );
       lines := '';
       lines_remaining := '';
 
@@ -110,7 +110,7 @@ begin
         // Last line has to be processed in next loop if end of file is not reached
         if (i = SQL.Count-1) and (Stream.Position < Stream.Size) then
         begin
-          lines_remaining := SQL[i];
+          lines_remaining := SQL[i].SQL;
           break;
         end;
 
@@ -119,13 +119,13 @@ begin
         lblQueryCountValue.Caption := FormatNumber( querycount );
 
         // Display part of query
-        memoQueryValue.Text := sstr( SQL[i], 100 );
+        memoQueryValue.Text := sstr( SQL[i].SQL, 100 );
 
         // Time
         lblTimeValue.Caption := FormatTimeNumber( (GetTickCount - starttime) DIV 1000 );
 
         // Execute single query and display affected rows
-        Mainform.Connection.Query(SQL[i]);
+        Mainform.Connection.Query(SQL[i].SQL);
         rowsaffected := rowsaffected + Mainform.Connection.RowsAffected;
         lblAffectedRowsValue.Caption := FormatNumber( rowsaffected );
 
