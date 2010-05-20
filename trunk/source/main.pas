@@ -115,7 +115,7 @@ type
     actExportData: TAction;
     Exportdata1: TMenuItem;
     CopyasXMLdata1: TMenuItem;
-    actExecuteLine: TAction;
+    actExecuteCurrentQuery: TAction;
     actImageView: TAction;
     actInsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
@@ -501,12 +501,10 @@ type
     procedure ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
     function mask(str: String) : String;
     procedure actExecuteQueryExecute(Sender: TObject);
-    procedure actExecuteSelectionExecute(Sender: TObject);
     procedure actCopyAsXMLExecute(Sender: TObject);
     procedure actCreateDatabaseExecute(Sender: TObject);
     procedure actDataCancelChangesExecute(Sender: TObject);
     procedure actExportDataExecute(Sender: TObject);
-    procedure actExecuteLineExecute(Sender: TObject);
     procedure actImageViewExecute(Sender: TObject);
     procedure actInsertFilesExecute(Sender: TObject);
     procedure actDataDeleteExecute(Sender: TObject);
@@ -562,8 +560,6 @@ type
       TargetCanvas: TCanvas);
     procedure LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo);
     procedure KillProcess(Sender: TObject);
-    procedure ExecSQLClick(Sender: TObject; Selection: Boolean = false;
-      CurrentLine: Boolean=false);
     procedure SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     procedure TimerHostUptimeTimer(Sender: TObject);
     procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -1563,7 +1559,8 @@ procedure TMainForm.DoAfterConnect;
 var
   i, j: Integer;
   lastUsedDB, StartupScript, StartupSQL: String;
-  functioncats, StartupBatch: TStringList;
+  functioncats: TStringList;
+  StartupBatch: TSQLBatch;
   miGroup,
   miFilterGroup,
   miFunction,
@@ -1587,9 +1584,9 @@ begin
       MessageDlg('Error: Startup script file not found: '+StartupScript, mtError, [mbOK], 0)
     else begin
       StartupSQL := ReadTextfile(StartupScript);
-      StartupBatch := ParseSQL(StartupSQL);
+      StartupBatch := SplitSQL(StartupSQL);
       for i:=0 to StartupBatch.Count-1 do try
-        Connection.Query(StartupBatch[i]);
+        Connection.Query(StartupBatch[i].SQL);
       except
         // Suppress popup, errors get logged into SQL log
       end;
@@ -1989,18 +1986,137 @@ begin
 end;
 
 procedure TMainForm.actExecuteQueryExecute(Sender: TObject);
+var
+  SQLBatch: TSQLBatch;
+  Query: TSQLSentence;
+  i, QueryCount: Integer;
+  SQLTime, SQLNetTime: Cardinal;
+  Results: TMySQLQuery;
+  ColName, Text, LB: String;
+  col: TVirtualTreeColumn;
+  ResultLabel: TLabel;
+  cap: String;
+  Grid: TVirtualStringTree;
+  Memo: TSynMemo;
 begin
-  ExecSqlClick(sender, false);
-end;
+  Screen.Cursor := crHourglass;
+  ResultLabel := ActiveQueryTab.LabelResultInfo;
+  Memo := ActiveQueryMemo;
 
-procedure TMainForm.actExecuteSelectionExecute(Sender: TObject);
-begin
-  ExecSqlClick(sender, true);
-end;
+  ShowStatusMsg('Splitting SQL queries ...');
+  if Sender = actExecuteCurrentQuery then begin
+    SQLBatch := GetSQLSplitMarkers(Memo.Text);
+    for Query in SQLBatch do begin
+      if (Query.LeftOffset <= Memo.SelStart) and (Memo.SelStart <= Query.RightOffset) then begin
+        Text := Copy(Memo.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
+        break;
+      end;
+    end;
+  end else if Sender = actExecuteSelection then
+    Text := Memo.SelText
+  else
+    Text := Memo.Text;
+  // Give text back its original linebreaks if possible
+  case ActiveQueryTab.MemoLineBreaks of
+    lbsUnix: LB := LB_UNIX;
+    lbsMac: LB := LB_MAC;
+    lbsWide: LB := LB_WIDE;
+  end;
+  if LB <> '' then
+    Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
+  SQLBatch := SplitSQL(Text);
 
-procedure TMainForm.actExecuteLineExecute(Sender: TObject);
-begin
-  ExecSqlClick(sender, false, true);
+  ResultLabel.Caption := '';
+  EnableProgressBar(SQLBatch.Count);
+  SQLtime := 0;
+  SQLNetTime := 0;
+  QueryCount := 0;
+  Results := TMySQLQuery.Create(Self);
+  Results.Connection := Connection;
+  Results.LogCategory := lcUserFiredSQL;
+  for i:=0 to SQLBatch.Count-1 do begin
+    ShowStatusMsg('Executing query #'+FormatNumber(i)+' of '+FormatNumber(SQLBatch.Count)+' ...');
+    ProgressBarStatus.StepIt;
+    ProgressBarStatus.Repaint;
+    Results.SQL := SQLBatch[i].SQL;
+    // Immediately free results for all but last query
+    Results.StoreResult := i = SQLBatch.Count-1;
+    try
+      Results.Execute;
+      Inc(SQLtime, Connection.LastQueryDuration);
+      Inc(SQLNetTime, Connection.LastQueryNetworkDuration);
+      Inc(QueryCount);
+      if Results.StoreResult and Results.HasResult then
+        ResultLabel.Caption := FormatNumber(Results.ColumnCount) +' column(s) x '+FormatNumber(Results.RecordCount) +' row(s) in last result set.'
+      else
+        ResultLabel.Caption := FormatNumber(Connection.RowsAffected) +' row(s) affected by last query.';
+    except
+      on E:EDatabaseError do begin
+        if actQueryStopOnErrors.Checked or (i = SQLBatch.Count - 1) then begin
+          Screen.Cursor := crDefault;
+          MessageDlg( E.Message, mtError, [mbOK], 0 );
+          Break;
+        end;
+      end;
+    end;
+  end;
+  ProgressBarStatus.Hide;
+
+  if QueryCount > 0 then begin
+    cap := ' Duration for ';
+    cap := cap + IntToStr(QueryCount);
+    if QueryCount < SQLBatch.Count then
+      cap := cap + ' of ' + IntToStr(SQLBatch.Count);
+    if SQLBatch.Count = 1 then
+      cap := cap + ' query'
+    else
+      cap := cap + ' queries';
+    cap := cap + ': '+FormatNumber(SQLTime/1000, 3) +' sec.';
+    if SQLNetTime > 0 then
+      cap := cap + ' (+ '+FormatNumber(SQLNetTime/1000, 3) +' sec. network)';
+    ResultLabel.Caption := ResultLabel.Caption + cap;
+  end;
+
+  if Assigned(Results) and Results.HasResult then begin
+    editFilterVT.Clear;
+    TimerFilterVT.OnTimer(Sender);
+    // Reset filter if filter panel was disabled
+    UpdateFilterPanel(Sender);
+
+    ShowStatusMsg('Setting up result grid ...');
+    Grid := ActiveGrid;
+    Grid.Header.Options := Grid.Header.Options + [hoVisible];
+    Grid.Header.Columns.BeginUpdate;
+    Grid.Header.Columns.Clear;
+    for i:=0 to Results.ColumnCount-1 do begin
+      ColName := Results.ColumnNames[i];
+      col := Grid.Header.Columns.Add;
+      col.Text := ColName;
+      if Results.DataType(i).Category in [dtcInteger, dtcReal] then
+        col.Alignment := taRightJustify;
+      if Results.ColIsPrimaryKeyPart(i) then
+        col.ImageIndex := ICONINDEX_PRIMARYKEY
+      else if Results.ColIsUniqueKeyPart(i) then
+        col.ImageIndex := ICONINDEX_UNIQUEKEY
+      else if Results.ColIsKeyPart(i) then
+        col.ImageIndex := ICONINDEX_INDEXKEY;
+    end;
+    Grid.Header.Columns.EndUpdate;
+
+    Grid.BeginUpdate;
+    Grid.Clear;
+    FreeAndNil(ActiveQueryTab.Results);
+    ActiveQueryTab.Results := Results;
+    Grid.RootNodeCount := Results.RecordCount;
+    Grid.OffsetXY := Point(0, 0);
+    for i:=0 to Grid.Header.Columns.Count-1 do
+      AutoCalcColWidth(Grid, i);
+    Grid.EndUpdate;
+  end;
+  // Ensure controls are in a valid state
+  ValidateControls(Sender);
+  Screen.Cursor := crDefault;
+  ShowStatusMsg( STATUS_MSG_READY );
 end;
 
 
@@ -3878,7 +3994,7 @@ begin
   HasSelection := InQueryTab and Tab.Memo.SelAvail;
   actExecuteQuery.Enabled := InQueryTab and NotEmpty;
   actExecuteSelection.Enabled := InQueryTab and HasSelection;
-  actExecuteLine.Enabled := InQueryTab and (Tab.Memo.LineText <> '');
+  actExecuteCurrentQuery.Enabled := actExecuteQuery.Enabled;
   actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
   actSaveSQL.Enabled := actSaveSQLAs.Enabled and Tab.Memo.Modified;
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;
@@ -3936,130 +4052,6 @@ begin
 end;
 
 
-procedure TMainForm.ExecSQLClick(Sender: TObject; Selection: Boolean=false; CurrentLine: Boolean=false);
-var
-  SQL: TStringList;
-  i, QueryCount: Integer;
-  SQLTime, SQLNetTime: Cardinal;
-  Results: TMySQLQuery;
-  ColName, Text, LB: String;
-  col: TVirtualTreeColumn;
-  ResultLabel: TLabel;
-  cap: String;
-  Grid: TVirtualStringTree;
-begin
-  Screen.Cursor := crHourglass;
-  ResultLabel := ActiveQueryTab.LabelResultInfo;
-  if CurrentLine then Text := ActiveQueryMemo.LineText
-  else if Selection then Text := ActiveQueryMemo.SelText
-  else Text := ActiveQueryMemo.Text;
-  // Give text back its original linebreaks if possible
-  case ActiveQueryTab.MemoLineBreaks of
-    lbsUnix: LB := LB_UNIX;
-    lbsMac: LB := LB_MAC;
-    lbsWide: LB := LB_WIDE;
-  end;
-  if LB <> '' then
-    Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
-
-  ResultLabel.Caption := '';
-  ShowStatusMsg('Splitting SQL queries ...');
-  SQL := parseSQL(Text);
-  actExecuteQuery.Enabled := false;
-  actExecuteSelection.Enabled := false;
-  EnableProgressBar(SQL.Count);
-  SQLtime := 0;
-  SQLNetTime := 0;
-  QueryCount := 0;
-  Results := TMySQLQuery.Create(Self);
-  Results.Connection := Connection;
-  Results.LogCategory := lcUserFiredSQL;
-  for i:=0 to SQL.Count-1 do begin
-    ShowStatusMsg('Executing query #'+FormatNumber(i)+' of '+FormatNumber(SQL.Count)+' ...');
-    ProgressBarStatus.StepIt;
-    ProgressBarStatus.Repaint;
-    Results.SQL := SQL[i];
-    // Immediately free results for all but last query
-    Results.StoreResult := i = SQL.Count-1;
-    try
-      Results.Execute;
-      Inc(SQLtime, Connection.LastQueryDuration);
-      Inc(SQLNetTime, Connection.LastQueryNetworkDuration);
-      Inc(QueryCount);
-      if Results.StoreResult and Results.HasResult then
-        ResultLabel.Caption := FormatNumber(Results.ColumnCount) +' column(s) x '+FormatNumber(Results.RecordCount) +' row(s) in last result set.'
-      else
-        ResultLabel.Caption := FormatNumber(Connection.RowsAffected) +' row(s) affected by last query.';
-    except
-      on E:EDatabaseError do begin
-        if actQueryStopOnErrors.Checked or (i = SQL.Count - 1) then begin
-          Screen.Cursor := crDefault;
-          MessageDlg( E.Message, mtError, [mbOK], 0 );
-          Break;
-        end;
-      end;
-    end;
-  end;
-  ProgressBarStatus.Hide;
-
-  if QueryCount > 0 then begin
-    cap := ' Duration for ';
-    cap := cap + IntToStr(QueryCount);
-    if QueryCount < SQL.Count then
-      cap := cap + ' of ' + IntToStr(SQL.Count);
-    if SQL.Count = 1 then
-      cap := cap + ' query'
-    else
-      cap := cap + ' queries';
-    cap := cap + ': '+FormatNumber(SQLTime/1000, 3) +' sec.';
-    if SQLNetTime > 0 then
-      cap := cap + ' (+ '+FormatNumber(SQLNetTime/1000, 3) +' sec. network)';
-    ResultLabel.Caption := ResultLabel.Caption + cap;
-  end;
-
-  if Assigned(Results) and Results.HasResult then begin
-    editFilterVT.Clear;
-    TimerFilterVT.OnTimer(Sender);
-    // Reset filter if filter panel was disabled
-    UpdateFilterPanel(Sender);
-
-    ShowStatusMsg('Setting up result grid ...');
-    Grid := ActiveGrid;
-    Grid.Header.Options := Grid.Header.Options + [hoVisible];
-    Grid.Header.Columns.BeginUpdate;
-    Grid.Header.Columns.Clear;
-    for i:=0 to Results.ColumnCount-1 do begin
-      ColName := Results.ColumnNames[i];
-      col := Grid.Header.Columns.Add;
-      col.Text := ColName;
-      if Results.DataType(i).Category in [dtcInteger, dtcReal] then
-        col.Alignment := taRightJustify;
-      if Results.ColIsPrimaryKeyPart(i) then
-        col.ImageIndex := ICONINDEX_PRIMARYKEY
-      else if Results.ColIsUniqueKeyPart(i) then
-        col.ImageIndex := ICONINDEX_UNIQUEKEY
-      else if Results.ColIsKeyPart(i) then
-        col.ImageIndex := ICONINDEX_INDEXKEY;
-    end;
-    Grid.Header.Columns.EndUpdate;
-
-    Grid.BeginUpdate;
-    Grid.Clear;
-    FreeAndNil(ActiveQueryTab.Results);
-    ActiveQueryTab.Results := Results;
-    Grid.RootNodeCount := Results.RecordCount;
-    Grid.OffsetXY := Point(0, 0);
-    for i:=0 to Grid.Header.Columns.Count-1 do
-      AutoCalcColWidth(Grid, i);
-    Grid.EndUpdate;
-  end;
-  // Ensure controls are in a valid state
-  ValidateControls(Sender);
-  Screen.Cursor := crDefault;
-  ShowStatusMsg( STATUS_MSG_READY );
-end;
-
-
 { Proposal about to insert a String into synmemo }
 procedure TMainForm.SynCompletionProposalCodeCompletion(Sender: TObject;
   var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
@@ -4080,22 +4072,18 @@ procedure TMainForm.SynCompletionProposalExecute(Kind: SynCompletionType;
   Sender: TObject; var CurrentInput: String; var x, y: Integer;
   var CanExecute: Boolean);
 var
-  i,j              : Integer;
-  Results          : TMySQLQuery;
-  DBObjects        : TDBObjectList;
-  sql, TableClauses: String;
-  Tables           : TStringList;
-  tablename        : String;
-  rx               : TRegExpr;
-  PrevShortToken,
-  PrevLongToken,
-  Token            : UnicodeString;
-  Start,
-  TokenTypeInt     : Integer;
-  Attri            : TSynHighlighterAttributes;
-  Proposal         : TSynCompletionProposal;
-  Editor           : TCustomSynEdit;
-  Queries          : TStringList;
+  i,j: Integer;
+  Results: TMySQLQuery;
+  DBObjects: TDBObjectList;
+  sql, TableClauses, tablename, PrevShortToken, PrevLongToken, Token: String;
+  Tables: TStringList;
+  rx: TRegExpr;
+  Start, TokenTypeInt: Integer;
+  Attri: TSynHighlighterAttributes;
+  Proposal: TSynCompletionProposal;
+  Editor: TCustomSynEdit;
+  QueryMarkers: TSQLBatch;
+  Query: TSQLSentence;
 
   procedure addTable(Obj: TDBObject);
   begin
@@ -4188,16 +4176,14 @@ begin
     sql := 'SELECT * FROM `'+SelectedTable.Name+'` WHERE ' + Editor.Text;
   end else begin
     // Proposal in one of the query tabs
-    Queries := parsesql(Editor.Text);
-    j := 0;
-    for i:=0 to Queries.Count-1 do begin
-      Inc(j, Length(Queries[i])+1);
-      if (j >= Editor.SelStart) or (i = Queries.Count-1) then begin
-        sql := Queries[i];
+    QueryMarkers := GetSQLSplitMarkers(Editor.Text);
+    for Query in QueryMarkers do begin
+      if (Query.LeftOffset <= Editor.SelStart) and (Editor.SelStart <= Query.RightOffset) then begin
+        sql := Copy(Editor.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
         break;
       end;
     end;
-    FreeAndNil(Queries);
+    FreeAndNil(QueryMarkers);
   end;
 
   // 2. Parse FROM clause to detect relevant table/view, probably aliased

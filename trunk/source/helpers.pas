@@ -70,6 +70,12 @@ type
     GripRect: TRect;
   end;
 
+  TSQLSentence = class(TObject)
+    LeftOffset, RightOffset: Integer;
+    SQL: String;
+  end;
+  TSQLBatch = TObjectList<TSQLSentence>;
+
 
 {$I const.inc}
 
@@ -81,7 +87,8 @@ type
   function IsWhitespace(const c: Char): Boolean;
   function IsLetter(const c: Char): Boolean;
   function IsNumber(const c: Char): Boolean;
-  function parsesql(sql: String) : TStringList;
+  function GetSQLSplitMarkers(const SQL: String): TSQLBatch;
+  function SplitSQL(const SQL: String): TSQLBatch;
   function sstr(str: String; len: Integer) : String;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
@@ -357,28 +364,6 @@ begin
 end;
 
 
-
-{***
-  Add a non-empty value to a Stringlist
-
-  @param TStringList
-  @param string to add
-  @param string to enclose added string in (use %s)
-  @return void
-}
-procedure addResult(list: TStringList; s: String; enclose: String = '');
-begin
-  s := trim(s);
-  if length(s) > 0 then begin
-    if enclose <> '' then s := Format(enclose, [s]);
-    list.Add(s);
-  end;
-  // Avoid memory leak
-  s := '';
-end;
-
-
-
 {***
   Return true if given character represents whitespace.
   Limitations: only recognizes ANSI whitespace.
@@ -442,189 +427,92 @@ begin
 end;
 
 
-
-{***
-  Tokenize sql-script and return a TStringList with sql-statements
-
-  @param String (possibly large) bunch of SQL-statements, separated by semicolon
-  @param String SQL start delimiter
-  @return TStringList Separated statements
-}
-function parsesql(sql: String) : TStringList;
+function GetSQLSplitMarkers(const SQL: String): TSQLBatch;
 var
-  i, j, start, len                  : Integer;
-  tmp                               : String;
-  instring, backslash, incomment    : Boolean;
-  inconditional, condterminated     : Boolean;
-  inbigcomment, indelimiter         : Boolean;
-  delimiter_length                  : Integer;
-  encloser, secchar, thdchar        : Char;
-  conditional                       : String;
+  i, AllLen, DelimLen, DelimStart, LastLeftOffset, RightOffset, LastNewLineOffset: Integer;
+  c, n: Char;
+  Delim, DelimTest, QueryTest: String;
+  InString, InComment, InBigComment: Boolean;
+  Marker: TSQLSentence;
+  rx: TRegExpr;
+const
+  StringEnclosers = ['"', '''', '`'];
+  NewLines = [#13, #10];
 begin
-  result := TStringList.Create;
-  sql := trim(sql);
-  instring := false;
-  start := 1;
-  len := length(sql);
-  backslash := false;
-  incomment := false;
-  inbigcomment := false;
-  inconditional := false;
-  condterminated := false;
-  indelimiter := false;
-  encloser := ' ';
-  conditional := '';
-
+  // Scan SQL batch for delimiters and return a list with start + end offsets
+  AllLen := Length(SQL);
   i := 0;
-  while i < len do begin
-    i := i + 1;
+  LastLeftOffset := 1;
+  Delim := Mainform.Delimiter;
+  InString := False; // Loop in "enclosed string" or `identifier`
+  InComment := False; // Loop in one-line comment (# or --)
+  InBigComment := False; // Loop in /* multi-line */ or /*! condictional comment */
+  DelimLen := Length(Delim);
+  Result := TSQLBatch.Create;
+  rx := TRegExpr.Create;
+  rx.Expression := '^\s*DELIMITER\s+(\S+)\s*$';
+  rx.ModifierI := True;
+  rx.ModifierM := True;
+  while i < AllLen do begin
+    Inc(i);
+    // Current and next char
+    c := SQL[i];
+    if i < AllLen then n := SQL[i+1]
+    else n := #0;
 
-    // Helpers for multi-character tests, avoids testing for string length.
-    secchar := '+';
-    thdchar := '+';
-    if i < length(sql) then secchar := sql[i + 1];
-    if i + 1 < length(sql) then thdchar := sql[i + 2];
-
-    // Turn comments into whitespace.
-    if (sql[i] = '#') and (not instring) and (not inbigcomment) then begin
-      incomment := true;
-    end;
-    if (sql[i] + secchar = '--') and (not instring) and (not inbigcomment) then begin
-      incomment := true;
-      sql[i] := ' ';
-      if start = i then start := start + 1;
-      i := i + 1;
-    end;
-    if (sql[i] + secchar = '/*') and (not (thdchar = '!')) and (not instring) and (not incomment) then begin
-      inbigcomment := true;
-      incomment := true;
-      sql[i] := ' ';
-      if start = i then start := start + 1;
-      i := i + 1;
-    end;
-    if incomment and (not inbigcomment) and CharInSet(sql[i], [#13, #10]) then begin
-      incomment := false;
-    end;
-    if inbigcomment and (sql[i] + secchar = '*/') then begin
-      inbigcomment := false;
-      incomment := false;
-      sql[i] := ' ';
-      if start = i then start := start + 1;
-      i := i + 1;
-      sql[i] := ' ';
-    end;
-    if incomment or inbigcomment then begin
-      sql[i] := ' ';
-    end;
-
-    // Skip whitespace immediately if at start of sentence.
-    if (start = i) and IsWhitespace(sql[i]) then begin
-      start := start + 1;
-      if i < len then continue;
-    end;
-
-    // Avoid parsing stuff inside string literals.
-    if CharInSet(sql[i], ['''', '"', '`']) and (not (backslash and instring)) and (not incomment) and (not indelimiter) then begin
-      if instring and (sql[i] = encloser) then begin
-        if secchar = encloser then
-          i := i + 1                            // encoded encloser-char
-        else
-          instring := not instring              // string closed
-      end
-      else if not instring then begin           // string is following
-        instring := true;
-        encloser := sql[i];                     // remember enclosing-character
-      end;
-      if i < len then continue;
-    end;
-
-    if (instring and (sql[i] = '\')) or backslash then
-      backslash := not backslash;
-
-    // Allow a DELIMITER command in middle of SQL, like the MySQL CLI does.
-    if (not instring) and (not incomment) and (not inconditional) and (not indelimiter) and (start + 8 = i) and scanReverse(sql, i, 'delimiter', 9, true) then begin
-      // The allowed DELIMITER format is:
-      //   <delimiter> <whitespace(s)> <character(s)> <whitespace(s)> <newline>
-      if IsWhitespace(secchar) then begin
-        indelimiter := true;
-        i := i + 1;
-        if i < len then continue;
+    // Check for comment syntax and for enclosed literals, so a query delimiter can be ignored
+    if (not InComment) and (not InBigComment) and (not InString) and ((c + n = '--') or (c = '#')) then
+      InComment := True;
+    if (not InComment) and (not InBigComment) and (not InString) and (c + n = '/*') then
+      InBigComment := True;
+    if InBigComment and (not InComment) and (not InString) and (c + n = '*/') then
+      InBigComment := False;
+    if CharInSet(c, StringEnclosers) then
+      InString := not InString;
+    if (CharInSet(c, NewLines) and (not CharInSet(n, NewLines))) or (i = 1) then begin
+      InComment := False;
+      if (not InString) and (not InBigComment) and rx.Exec(copy(SQL, LastLeftOffset, 100)) then begin
+        Delim := rx.Match[1];
+        DelimLen := Length(Delim);
+        Inc(i, rx.MatchLen[0]);
+        LastLeftOffset := i;
+        continue;
       end;
     end;
 
-    if indelimiter then begin
-      if CharInSet(sql[i], [#13, #10]) or (i = len) then begin
-        if (i = len) then j := 1 else j := 0;
-        Mainform.Delimiter := copy(sql, start + 10, i + j - (start + 10));
-        indelimiter := false;
-        start := i + 1;
-      end;
-      if i < len then continue;
-    end;
+    // Prepare delimiter test string
+    if (not InComment) and (not InString) and (not InBigComment) then begin
+      DelimStart := Max(1, i+1-DelimLen);
+      DelimTest := Copy(SQL, DelimStart, i-Max(i-DelimLen, 0));
+    end else
+      DelimTest := '';
 
-    // Handle conditional comments.
-    if (not instring) and (not incomment) and (sql[i] + secchar + thdchar = '/*!') then begin
-      inconditional := true;
-      condterminated := false;
-      tmp := '';
-      conditional := '';
-      i := i + 2;
-      if i < len then continue;
-    end;
-
-    if inconditional and (conditional = '') then begin
-      if not IsNumber(sql[i]) then begin
-        conditional := tmp;
-        // note:
-        // we do not trim the start of the SQL inside conditional
-        // comments like we do on non-commented sql.
-        if i < len then continue;
-      end else tmp := tmp + sql[i];
-    end;
-
-    if inconditional and (not instring) and (not incomment) and (sql[i] + secchar = '*/') then begin
-      inconditional := false;
-      if condterminated then begin
-        // at least one statement was terminated inside the conditional.
-        // if the conditional had no more contents after that statement,
-        // clear the end marker.  otherwise, add a new start marker.
-        if trim(copy(sql, start, i - start)) = '' then begin
-          sql[i] := ' ';
-          i := i + 1;
-          sql[i] := ' ';
-          start := i + 1;
-        end else begin
-          tmp := '/*!' + conditional + ' ';
-          move(tmp[1], sql[start - length(tmp)], length(tmp));
-          start := start - length(tmp);
-        end;
-        condterminated := false;
-      end else begin
-        if start = i then start := start + 1;
-        i := i + 1;
+    // End of query or batch reached. Add query markers to result list if sentence is not empty.
+    if (DelimTest = Delim) or (i = AllLen) then begin
+      RightOffset := i+1;
+      if DelimTest = Delim then
+        Dec(RightOffset, DelimLen);
+      QueryTest := Trim(Copy(SQL, LastLeftOffset, RightOffset-LastLeftOffset));
+      if (QueryTest <> '') and (QueryTest <> Delim) then begin
+        Marker := TSQLSentence.Create;
+        Marker.LeftOffset := LastLeftOffset;
+        Marker.RightOffset := RightOffset;
+        Result.Add(Marker);
+        LastLeftOffset := i+1;
       end;
-      if i < len then continue;
-    end;
-
-    // Add sql sentence.
-    delimiter_length := Length(Mainform.Delimiter);
-    if ((not instring) and (scanReverse(sql, i, Mainform.Delimiter, delimiter_length, false)) or (i = len)) then begin
-      if (i < len) then j := delimiter_length else begin
-        // end of string, add sql sentence but only remove delimiter if it's there
-        if scanReverse(sql, i, Mainform.Delimiter, delimiter_length, false) then j := delimiter_length else j := 0;
-      end;
-      if inconditional then begin
-        addResult(result, copy(sql, start, i - start - j + 1), '%s */');
-        condterminated := true;
-      end else begin
-        addResult(result, copy(sql, start, i - start - j + 1));
-      end;
-      start := i + 1;
     end;
   end;
+end;
 
-  // Avoid memory leak
-  sql := '';
+
+function SplitSQL(const SQL: String): TSQLBatch;
+var
+  Query: TSQLSentence;
+begin
+  // Return a list of queries tokenized from a big string. Replaces earlier parseSQL() method.
+  Result := GetSQLSplitMarkers(SQL);
+  for Query in Result do
+    Query.SQL := Copy(SQL, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
 end;
 
 
