@@ -110,6 +110,7 @@ type
     FToolMode: TToolMode;
     OutputFiles, OutputDirs: TStringList;
     ExportStream: TStream;
+    ExportStreamStartOfQueryPos: Int64;
     ExportLastDatabase: String;
     FTargetConnection: TMySQLConnection;
     FLastOutputSelectedIndex: Integer;
@@ -919,8 +920,10 @@ var
   ChunkSize: Integer;
 begin
   if (ToFile and ForFile) or (ToDir and ForDir) or (ToClipboard and ForFile) then begin
-    if IsEndOfQuery then
+    if IsEndOfQuery then begin
       SQL := SQL + ';'+CRLF;
+      ExportStreamStartOfQueryPos := ExportStream.Size;
+    end;
     StreamWrite(ExportStream, SQL);
   end;
   if (ToDb and ForDb) or (ToServer and ForServer) then begin
@@ -931,6 +934,7 @@ begin
       SetLength(SA, ChunkSize div SizeOf(AnsiChar));
       ExportStream.Read(PAnsiChar(SA)^, ChunkSize);
       ExportStream.Size := 0;
+      ExportStreamStartOfQueryPos := 0;
       SQL := UTF8ToString(SA);
       if ToDB then Mainform.Connection.Query(SQL)
       else if ToServer then FTargetConnection.Query(SQL);
@@ -946,7 +950,7 @@ var
   Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent, tmp: String;
   MultiSQL: TStringList;
   i: Integer;
-  RowCount, MaxRowsInChunk, RowsInChunk, Limit, Offset, ResultCount: Int64;
+  RowCount, Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;
   StrucResult, Data: TMySQLQuery;
   rx: TRegExpr;
@@ -984,6 +988,7 @@ begin
   ToDb := comboExportOutputType.Text = OUTPUT_DB;
   ToServer := Copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER;
   StartTime := GetTickCount;
+  ExportStreamStartOfQueryPos := 0;
   if ToDir then begin
     FreeAndNil(ExportStream);
     DbDir := comboExportOutputTarget.Text;
@@ -1147,8 +1152,6 @@ begin
       RowCount := 0;
       // Calculate limit so we select ~100MB per loop
       Limit := Round(100 * SIZE_MB / Max(DBObj.AvgRowLen,1));
-      // Calculate max rows per INSERT, so we should never exceed 1MB per INSERT
-      MaxRowsInChunk := Round(SIZE_MB * 0.4 / Max(DBObj.AvgRowLen,1));
       if comboExportData.Text = DATA_REPLACE then
         Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
       Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
@@ -1168,12 +1171,10 @@ begin
         Delete(BaseInsert, Length(BaseInsert)-1, 2);
         BaseInsert := BaseInsert + ') VALUES'+CRLF+#9+'(';
         while true do begin
-          RowsInChunk := 0;
           Output(BaseInsert, False, True, True, True, True);
 
           while not Data.Eof do begin
             Inc(RowCount);
-            Inc(RowsInChunk);
             Row := '';
             for i:=0 to Data.ColumnCount-1 do begin
               if Data.IsNull(i) then
@@ -1194,7 +1195,8 @@ begin
             end;
             Row := Row + ')';
             Data.Next;
-            IsLastRowInChunk := (RowsInChunk = MaxRowsInChunk) or Data.Eof;
+            // Determine length of current INSERT and stop before it reaches the 1M barrier
+            IsLastRowInChunk := Data.Eof or (ExportStream.Size-ExportStreamStartOfQueryPos >= SIZE_MB*0.8);
             if not IsLastRowInChunk then
               Row := Row + ','+CRLF+#9+'(';
             Output(Row, False, True, True, True, True);
