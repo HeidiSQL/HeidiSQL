@@ -3311,6 +3311,7 @@ end;
 procedure TMainForm.LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo);
 var
   snip, IsSQL: Boolean;
+  Len: Integer;
 begin
   if csDestroying in ComponentState then
     Exit;
@@ -3325,12 +3326,13 @@ begin
   end;
 
   // Shorten very long messages
-  snip := (prefLogSqlWidth > 0) and (Length(Msg) > prefLogSqlWidth);
+  Len := Length(Msg);
+  snip := (prefLogSqlWidth > 0) and (Len > prefLogSqlWidth);
   IsSQL := Category in [lcSQL, lcUserFiredSQL];
   if snip then begin
     Msg :=
       Copy(Msg, 0, prefLogSqlWidth) +
-      '/* large SQL query, snipped at  ' +
+      '/* large SQL query ('+FormatNumber(Len)+' characters), snipped at ' +
       FormatNumber(prefLogSqlWidth) +
       ' characters */';
   end else if (not snip) and IsSQL then
