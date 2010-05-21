@@ -2035,7 +2035,7 @@ begin
   Results.Connection := Connection;
   Results.LogCategory := lcUserFiredSQL;
   for i:=0 to SQLBatch.Count-1 do begin
-    ShowStatusMsg('Executing query #'+FormatNumber(i)+' of '+FormatNumber(SQLBatch.Count)+' ...');
+    ShowStatusMsg('Executing query #'+FormatNumber(i+1)+' of '+FormatNumber(SQLBatch.Count)+' ...');
     ProgressBarStatus.StepIt;
     ProgressBarStatus.Repaint;
     Results.SQL := SQLBatch[i].SQL;
