@@ -2162,6 +2162,7 @@ var
   Field: PMYSQL_FIELD;
   i: Integer;
 begin
+  // Return first available Field.db property, or just the current database as fallback
   for i:=0 to ColumnCount-1 do begin
     Field := mysql_fetch_field_direct(FCurrentResults, i);
     if Field.db <> '' then begin
@@ -2169,6 +2170,8 @@ begin
       break;
     end;
   end;
+  if Result = '' then
+    Result := Connection.Database;
 end;
 
 
@@ -2200,7 +2203,7 @@ var
 begin
   // Return `db`.`table` if necessairy, otherwise `table`
   db := DatabaseName;
-  if (Connection.Database <> db) and (db <> '') then
+  if Connection.Database <> db then
     Result := Connection.QuoteIdent(db)+'.';
   Result := Result + Connection.QuoteIdent(TableName);
 end;
@@ -2211,6 +2214,7 @@ var
   NeededCols: TStringList;
   i: Integer;
 begin
+  // Return key column names, or all column names if no good key present
   PrepareEditing;
   NeededCols := Connection.GetKeyColumns(FColumns, FKeys);
   if NeededCols.Count = 0 then begin
