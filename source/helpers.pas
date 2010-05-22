@@ -1976,7 +1976,7 @@ const
   UNICODE_BOM_SWAPPED = Char($FFFE);
   UTF8_BOM = AnsiString(#$EF#$BB#$BF);
   MinimumCountOfUTF8Strings = 1;
-  MaxBufferSize = $4000;
+  MaxBufferSize = 100000;
 
   // 3 trailing bytes are the maximum in valid UTF-8 streams,
   // so a count of 4 trailing bytes is enough to detect invalid UTF-8 streams
