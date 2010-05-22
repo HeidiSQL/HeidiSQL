@@ -86,7 +86,6 @@ type
   function getEnumValues(str: String): String;
   function IsWhitespace(const c: Char): Boolean;
   function IsLetter(const c: Char): Boolean;
-  function IsNumber(const c: Char): Boolean;
   function GetSQLSplitMarkers(const SQL: String): TSQLBatch;
   function SplitSQL(const SQL: String): TSQLBatch;
   function sstr(str: String; len: Integer) : String;
@@ -381,49 +380,6 @@ var
 begin
   o := Ord(c);
   Result := ((o >= 65) and (o <= 90)) or ((o >= 97) and (o <= 122)) or (o = 95);
-end;
-
-
-{***
-  Return true if given character represents a number.
-  Limitations: only recognizes ANSI numerals.
-  Eligible for inlining, hope the compiler does this automatically.
-}
-function IsNumber(const c: Char): Boolean;
-var
-  b: word;
-begin
-  b := ord(c);
-  Result := (b >= 48) and (b <= 57);
-end;
-
-
-
-{***
-  Scan backwards, returning true if SQL matches the given string case sensitively.
-  Limitations: in case insensitive mode, input must be ANSI and lower case (for speed).
-  Eligible for inlining, hope the compiler does this automatically.
-}
-function scanReverse(const haystack: String; hayIndex: integer; const needle: String; needleEnd: integer; insensitive: boolean): boolean;
-var
-  b: word;
-  c: Char;
-begin
-  while (hayIndex > 0) and (needleEnd > 0) do begin
-    // Lowercase ANSI A-Z if requested.
-    if insensitive then begin
-      b := Ord(haystack[hayIndex]);
-      if (b > 64) and (b < 91) then b := b - 65 + 97;
-      c := Char(b);
-    end else c := haystack[hayIndex];
-    if c <> needle[needleEnd] then begin
-      result := false;
-      exit;
-    end;
-    needleEnd := needleEnd - 1;
-    hayIndex := hayIndex - 1;
-  end;
-  result := needleEnd = 0;
 end;
 
 
