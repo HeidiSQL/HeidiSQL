@@ -2007,7 +2007,7 @@ begin
   if Sender = actExecuteCurrentQuery then begin
     SQLBatch := GetSQLSplitMarkers(Memo.Text);
     for Query in SQLBatch do begin
-      if (Query.LeftOffset <= Memo.SelStart) and (Memo.SelStart <= Query.RightOffset) then begin
+      if (Query.LeftOffset <= Memo.SelStart) and (Memo.SelStart < Query.RightOffset) then begin
         Text := Copy(Memo.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
         break;
       end;
@@ -4180,7 +4180,7 @@ begin
     // Proposal in one of the query tabs
     QueryMarkers := GetSQLSplitMarkers(Editor.Text);
     for Query in QueryMarkers do begin
-      if (Query.LeftOffset <= Editor.SelStart) and (Editor.SelStart <= Query.RightOffset) then begin
+      if (Query.LeftOffset <= Editor.SelStart) and (Editor.SelStart < Query.RightOffset) then begin
         sql := Copy(Editor.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
         break;
       end;
