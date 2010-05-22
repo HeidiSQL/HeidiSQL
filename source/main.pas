@@ -4728,6 +4728,7 @@ function TMainForm.QueryLoad( filename: String; ReplaceContent: Boolean = true )
 
 var
   filecontent: String;
+  FileSize: Int64;
   msgtext: String;
   LineBreaks: TLineBreaks;
   RunFileDialog: TRunSQLFileForm;
@@ -4739,10 +4740,12 @@ begin
     Exit;
   end;
 
+  FileSize := _GetFileSize(filename);
+
   // Ask for action when loading a big file
-  if _GetFileSize( filename ) > 5*SIZE_MB then
+  if FileSize > 5*SIZE_MB then
   begin
-    msgtext := 'The file you are about to load is bigger than '+FormatByteNumber(5*SIZE_MB, 0)+'.' + CRLF + CRLF +
+    msgtext := 'The file you are about to load is '+FormatByteNumber(FileSize)+' (> '+FormatByteNumber(5*SIZE_MB, 0)+').' + CRLF + CRLF +
       'Do you want to just run the file to avoid loading it completely into the query-editor ( = memory ) ?' + CRLF + CRLF +
       'Press' + CRLF +
       '  [Yes] to run the file without loading it into the editor' + CRLF +
@@ -4776,7 +4779,7 @@ begin
   Screen.Cursor := crHourGlass;
   if not QueryTabActive then
     PagecontrolMain.ActivePage := tabQuery;
-  LogSQL('Loading file "'+filename+'" into query tab #'+IntToStr(ActiveQueryTab.Number)+' ...', lcInfo);
+  LogSQL('Loading file "'+filename+'" ('+FormatByteNumber(FileSize)+') into query tab #'+IntToStr(ActiveQueryTab.Number)+' ...', lcInfo);
   try
     filecontent := ReadTextfile(filename);
     if Pos( DirnameSnippets, filename ) = 0 then
