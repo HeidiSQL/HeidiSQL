@@ -84,8 +84,6 @@ type
   procedure ExplodeQuotedList(Text: String; var List: TStringList);
   procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: String): String;
-  function IsWhitespace(const c: Char): Boolean;
-  function IsLetter(const c: Char): Boolean;
   function GetSQLSplitMarkers(const SQL: String): TSQLBatch;
   function SplitSQL(const SQL: String): TSQLBatch;
   function sstr(str: String; len: Integer) : String;
@@ -360,26 +358,6 @@ begin
       if str[p2] = ')' then break;
     result := copy (str, p1+1, p2-p1-1);
   end;
-end;
-
-
-{***
-  Return true if given character represents whitespace.
-  Limitations: only recognizes ANSI whitespace.
-  Eligible for inlining, hope the compiler does this automatically.
-}
-function IsWhitespace(const c: Char): Boolean;
-begin
-  Result := (c = #9) or (c = #10) or (c = #13) or (c = #32);
-end;
-
-
-function IsLetter(const c: Char): Boolean;
-var
-  o: Integer;
-begin
-  o := Ord(c);
-  Result := ((o >= 65) and (o <= 90)) or ((o >= 97) and (o <= 122)) or (o = 95);
 end;
 
 
@@ -2814,6 +2792,9 @@ var
   IsEsc, IsQuote, InComment, InBigComment, InString, InKeyword, InIdent, LastWasComment: Boolean;
   c, p: Char;
   Keyword, PreviousKeyword, TestPair: String;
+const
+  WordChars = ['a'..'z', 'A'..'Z', '0'..'9', '_', '.'];
+  WhiteSpaces = [#9, #10, #13, #32];
 begin
   // Known SQL keywords, get converted to UPPERCASE
   AllKeywords := TStringList.Create;
@@ -2863,7 +2844,7 @@ begin
     end;
     if (c = '*') and (p = '/') and (not InComment) and (not InString) then InBigComment := True;
     if (c = '/') and (p = '*') and (not InComment) and (not InString) then InBigComment := False;
-    InKeyword := (not InComment) and (not InBigComment) and (not InString) and (not InIdent) and IsLetter(c);
+    InKeyword := (not InComment) and (not InBigComment) and (not InString) and (not InIdent) and CharInSet(c, WordChars);
 
     // Creation of returning text
     if InKeyword then begin
@@ -2871,7 +2852,7 @@ begin
     end else begin
       if Keyword <> '' then begin
         if AllKeywords.IndexOf(KeyWord) > -1 then begin
-          while (Run > 1) and IsWhitespace(Result[Run-1]) do
+          while (Run > 1) and CharInSet(Result[Run-1], WhiteSpaces) do
             Dec(Run);
           Keyword := UpperCase(Keyword);
           if Run > 1 then begin
