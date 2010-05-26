@@ -774,6 +774,7 @@ type
     procedure tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer; var ImageIndex: Integer);
     procedure tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure tabsetQueryMouseLeave(Sender: TObject);
+    procedure StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
   private
     LastResultTabMousepos: TPoint;
     LastResultTabNrHint: Integer;
@@ -978,6 +979,33 @@ begin
   StatusBar.Panels[PanelNr].Text := Msg;
   StatusBar.Repaint;
 end;
+
+
+procedure TMainForm.StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
+  const Rect: TRect);
+var
+  TextRect: TRect;
+  ImageIndex: Integer;
+begin
+  ImageIndex := -1;
+  case Panel.Index of
+    2: ImageIndex := 149;
+    3: ImageIndex := 1;
+    6: begin
+      if Panel.Text = STATUS_MSG_READY then
+        ImageIndex := 151
+      else
+        ImageIndex := 150;
+    end;
+  end;
+  if ImageIndex > -1 then begin
+    ImageListMain.Draw(StatusBar.Canvas, Rect.Left, Rect.Top, ImageIndex, true);
+    TextRect := Rect;
+    OffsetRect(TextRect, ImageListMain.Width+2, 0);
+    DrawText(StatusBar.Canvas.Handle, PChar(Panel.Text), -1, TextRect, dt_singleline or dt_vcenter);
+  end;
+end;
+
 
 procedure TMainForm.actExitApplicationExecute(Sender: TObject);
 begin
