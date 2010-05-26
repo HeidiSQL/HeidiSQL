@@ -210,6 +210,8 @@ const
   DEFAULT_MULTI_INSTANCES = True;
   REGNAME_SEARCHTEXT = 'FindDialogSearchHistory';
   REGNAME_REPLACETEXT = 'FindDialogReplaceHistory';
+  REGNAME_MAXQUERYRESULTS = 'MaxQueryResults';
+  DEFAULT_MAXQUERYRESULTS = 10;
 
   // Log events
   REGNAME_LOG_ERRORS = 'LogErrors';

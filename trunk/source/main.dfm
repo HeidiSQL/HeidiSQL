@@ -1343,13 +1343,6 @@ object MainForm: TMainForm
             AutoSnap = False
             ResizeStyle = rsUpdate
           end
-          object LabelResultinfo: TLabel
-            Left = 0
-            Top = 100
-            Width = 575
-            Height = 13
-            Align = alTop
-          end
           object pnlQueryMemo: TPanel
             Tag = 1
             Left = 0
@@ -1496,9 +1489,9 @@ object MainForm: TMainForm
           object QueryGrid: TVirtualStringTree
             Tag = 7
             Left = 0
-            Top = 113
+            Top = 124
             Width = 575
-            Height = 189
+            Height = 178
             Align = alClient
             AutoScrollDelay = 50
             EditDelay = 0
@@ -1517,6 +1510,7 @@ object MainForm: TMainForm
             TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toVariableNodeHeight, toEditOnClick]
             TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
             TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
+            Visible = False
             WantTabs = True
             OnAfterCellPaint = AnyGridAfterCellPaint
             OnAfterPaint = vstAfterPaint
@@ -1539,6 +1533,27 @@ object MainForm: TMainForm
             OnMouseUp = AnyGridMouseUp
             OnNewText = AnyGridNewText
             Columns = <>
+          end
+          object tabsetQuery: TTabSet
+            Left = 0
+            Top = 100
+            Width = 575
+            Height = 24
+            Align = alTop
+            DitherBackground = False
+            Font.Charset = DEFAULT_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -11
+            Font.Name = 'Tahoma'
+            Font.Style = []
+            Images = ImageListMain
+            SoftTop = True
+            Style = tsSoftTabs
+            TabPosition = tpTop
+            OnClick = tabsetQueryClick
+            OnGetImageIndex = tabsetQueryGetImageIndex
+            OnMouseLeave = tabsetQueryMouseLeave
+            OnMouseMove = tabsetQueryMouseMove
           end
         end
       end
@@ -8321,5 +8336,10 @@ object MainForm: TMainForm
     UseBackground = False
     Left = 136
     Top = 304
+  end
+  object BalloonHint1: TBalloonHint
+    Delay = 100
+    Left = 104
+    Top = 200
   end
 end

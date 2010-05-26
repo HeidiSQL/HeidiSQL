@@ -309,9 +309,6 @@ type
       procedure SetColumnOrgNames(Value: TStringList);
       procedure PrepareEditing;
       procedure CreateUpdateRow;
-      function DatabaseName: String;
-      function TableName: String;
-      function QuotedDbAndTableName: String;
       function GetKeyColumns: TStringList;
       function GetWhereClause: String;
       function ColAttributes(Column: Integer): TTableColumn;
@@ -345,6 +342,9 @@ type
       function Modified: Boolean; overload;
       function Inserted: Boolean;
       function SaveModifications: Boolean;
+      function DatabaseName: String;
+      function TableName: String;
+      function QuotedDbAndTableName: String;
       procedure DiscardModifications;
       property RecNo: Int64 read FRecNo write SetRecNo;
       property Eof: Boolean read FEof;

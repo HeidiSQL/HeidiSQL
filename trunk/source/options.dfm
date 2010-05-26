@@ -3,7 +3,7 @@ object optionsform: Toptionsform
   Top = 163
   BorderStyle = bsDialog
   Caption = 'Preferences'
-  ClientHeight = 395
+  ClientHeight = 424
   ClientWidth = 472
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -17,14 +17,14 @@ object optionsform: Toptionsform
   OnShow = FormShow
   DesignSize = (
     472
-    395)
+    424)
   PixelsPerInch = 96
   TextHeight = 13
   object pagecontrolMain: TPageControl
     Left = 8
     Top = 8
     Width = 458
-    Height = 352
+    Height = 381
     ActivePage = tabMisc
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 4
@@ -355,10 +355,10 @@ object optionsform: Toptionsform
         Left = 1
         Top = 86
         Width = 438
-        Height = 225
-        Anchors = [akLeft, akTop, akRight]
+        Height = 254
+        Anchors = [akLeft, akTop, akRight, akBottom]
         Caption = 'Syntax'
-        TabOrder = 1
+        TabOrder = 3
         object lblSQLColElement: TLabel
           Left = 3
           Top = 17
@@ -436,7 +436,7 @@ object optionsform: Toptionsform
           Left = 3
           Top = 67
           Width = 432
-          Height = 155
+          Height = 184
           Cursor = crHandPoint
           SingleLineMode = False
           Anchors = [akLeft, akTop, akRight, akBottom]
@@ -543,6 +543,13 @@ object optionsform: Toptionsform
         Height = 13
         Caption = 'Lines of text in grid rows:'
       end
+      object lblMaxQueryResults: TLabel
+        Left = 4
+        Top = 108
+        Width = 166
+        Height = 13
+        Caption = 'Maximum number of query results:'
+      end
       object editMaxColWidth: TEdit
         Left = 299
         Top = 5
@@ -598,9 +605,9 @@ object optionsform: Toptionsform
       end
       object grpFieldLayout: TGroupBox
         Left = 4
-        Top = 112
+        Top = 136
         Width = 433
-        Height = 195
+        Height = 200
         Anchors = [akLeft, akTop, akRight, akBottom]
         Caption = 'Field colors and editors'
         TabOrder = 5
@@ -809,6 +816,25 @@ object optionsform: Toptionsform
         TabOrder = 9
         OnChanging = anyUpDownLimitChanging
       end
+      object editMaxQueryResults: TEdit
+        Left = 299
+        Top = 105
+        Width = 42
+        Height = 21
+        TabOrder = 10
+        Text = '0'
+        OnChange = Modified
+      end
+      object updownMaxQueryResults: TUpDown
+        Left = 341
+        Top = 105
+        Width = 16
+        Height = 21
+        Associate = editMaxQueryResults
+        Min = 1
+        TabOrder = 11
+        OnChanging = anyUpDownLimitChanging
+      end
     end
     object tabCSV: TTabSheet
       BorderWidth = 5
@@ -949,7 +975,7 @@ object optionsform: Toptionsform
       ImageIndex = 4
       DesignSize = (
         450
-        324)
+        353)
       object lblShortcut1: TLabel
         Left = 199
         Top = 62
@@ -962,7 +988,7 @@ object optionsform: Toptionsform
         Left = 199
         Top = 3
         Width = 211
-        Height = 72
+        Height = 101
         Anchors = [akLeft, akTop, akBottom]
         AutoSize = False
         Caption = 'Please select a shortcut item in the tree.'
@@ -977,10 +1003,11 @@ object optionsform: Toptionsform
         Caption = 'Secondary shortcut:'
       end
       object TreeShortcutItems: TVirtualStringTree
-        Left = 3
-        Top = 3
+        Left = 0
+        Top = 0
         Width = 190
-        Height = 292
+        Height = 353
+        Align = alLeft
         Header.AutoSizeIndex = 0
         Header.DefaultHeight = 17
         Header.Font.Charset = DEFAULT_CHARSET
@@ -1025,7 +1052,7 @@ object optionsform: Toptionsform
   end
   object btnCancel: TButton
     Left = 311
-    Top = 364
+    Top = 393
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1036,7 +1063,7 @@ object optionsform: Toptionsform
   end
   object btnOK: TButton
     Left = 231
-    Top = 364
+    Top = 393
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1048,7 +1075,7 @@ object optionsform: Toptionsform
   end
   object btnApply: TButton
     Left = 391
-    Top = 364
+    Top = 393
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1059,7 +1086,7 @@ object optionsform: Toptionsform
   end
   object btnRestoreDefaults: TButton
     Left = 8
-    Top = 364
+    Top = 393
     Width = 97
     Height = 25
     Anchors = [akLeft, akBottom]

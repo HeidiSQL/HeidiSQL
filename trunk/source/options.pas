@@ -134,6 +134,9 @@ type
     chkColorBars: TCheckBox;
     cboxColorBars: TColorBox;
     chkCompletionProposal: TCheckBox;
+    lblMaxQueryResults: TLabel;
+    editMaxQueryResults: TEdit;
+    updownMaxQueryResults: TUpDown;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -209,11 +212,12 @@ end;
 }
 procedure Toptionsform.Apply(Sender: TObject);
 var
-  i: Integer;
+  i, j: Integer;
   Attri: TSynHighlighterAttributes;
   Grid: TVirtualStringTree;
   CatNode, ItemNode: PVirtualNode;
   Data: PShortcutItemData;
+  QueryTab: TQueryTab;
 begin
   Screen.Cursor := crHourGlass;
 
@@ -264,6 +268,7 @@ begin
   MainReg.WriteBool(REGNAME_DO_STATISTICS, chkDoStatistics.Checked);
   MainReg.WriteBool(REGNAME_DISPLAYBARS, chkColorBars.Checked);
   MainReg.WriteInteger(REGNAME_BARCOLOR, cboxColorBars.Selected);
+  MainReg.WriteInteger(REGNAME_MAXQUERYRESULTS, updownMaxQueryResults.Position);
   // Save color settings
   MainReg.WriteInteger(REGNAME_FIELDCOLOR_NUMERIC, cboxNumeric.Selected);
   MainReg.WriteInteger(REGNAME_FIELDCOLOR_TEXT, cboxText.Selected);
@@ -312,10 +317,13 @@ begin
   Mainform.prefGridRowsLineCount := updownGridRowsLineCount.Position;
   FixVT(Mainform.DataGrid, Mainform.prefGridRowsLineCount);
   for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
-    Grid := TQueryTab(Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex]).Grid;
-    Grid.Font.Name := comboDataFontName.Text;
-    Grid.Font.Size := updownDataFontSize.Position;
-    FixVT(Grid, Mainform.prefGridRowsLineCount);
+    QueryTab := Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex];
+    for j:=0 to QueryTab.ResultTabs.Count-1 do begin
+      Grid := QueryTab.ResultTabs[j].Grid;
+      Grid.Font.Name := comboDataFontName.Text;
+      Grid.Font.Size := updownDataFontSize.Position;
+      FixVT(Grid, Mainform.prefGridRowsLineCount);
+    end;
   end;
 
   Mainform.prefLogsqlnum := updownLogLines.Position;
@@ -356,6 +364,7 @@ begin
   Mainform.prefDisplayBars := chkColorBars.Checked;
   Mainform.prefBarColor := cboxColorBars.Selected;
   Mainform.prefCompletionProposal := chkCompletionProposal.Checked;
+  Mainform.prefMaxQueryResults := updownMaxQueryResults.Position;
   Mainform.ListTables.Invalidate;
   Mainform.ListProcesses.Invalidate;
   Mainform.ListCommandStats.Invalidate;
@@ -458,6 +467,7 @@ begin
   comboDataFontName.Items := Screen.Fonts;
   comboDataFontName.ItemIndex := comboDataFontName.Items.IndexOf(datafontname);
   updownDataFontSize.Position := datafontsize;
+  updownMaxQueryResults.Position := GetRegValue(REGNAME_MAXQUERYRESULTS, DEFAULT_MAXQUERYRESULTS);
   // Load color settings
   cboxNumeric.Selected := GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
   cboxText.Selected := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);

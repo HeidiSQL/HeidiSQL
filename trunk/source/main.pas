@@ -22,6 +22,15 @@ uses
 
 
 type
+  TResultTab = class(TObject)
+    Results: TMySQLQuery;
+    Grid: TVirtualStringTree;
+    FilterText: String;
+    public
+      constructor Create;
+      destructor Destroy; override;
+  end;
+  TResultTabs = TObjectList<TResultTab>;
   TQueryTab = class(TObject)
     Number: Integer;
     CloseButton: TSpeedButton;
@@ -35,11 +44,12 @@ type
     MemoLineBreaks: TLineBreaks;
     spltHelpers: TSplitter;
     spltQuery: TSplitter;
-    LabelResultInfo: TLabel;
-    Grid: TVirtualStringTree;
+    tabsetQuery: TTabSet;
     TabSheet: TTabSheet;
-    Results: TMySQLQuery;
-    FilterText: String;
+    ResultTabs: TResultTabs;
+    function GetActiveResultTab: TResultTab;
+    public
+      property ActiveResultTab: TResultTab read GetActiveResultTab;
   end;
 
   TMainForm = class(TForm)
@@ -234,7 +244,6 @@ type
     Copyrecords1: TMenuItem;
     CopyasCSVData1: TMenuItem;
     N9a: TMenuItem;
-    LabelResultinfo: TLabel;
     TimerConnected: TTimer;
     N12: TMenuItem;
     popupSqlLog: TPopupMenu;
@@ -479,6 +488,8 @@ type
     Post1: TMenuItem;
     Cancelediting2: TMenuItem;
     N2: TMenuItem;
+    tabsetQuery: TTabSet;
+    BalloonHint1: TBalloonHint;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -759,7 +770,13 @@ type
     procedure ListDatabasesDblClick(Sender: TObject);
     procedure actRunRoutinesExecute(Sender: TObject);
     procedure AnyGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure tabsetQueryClick(Sender: TObject);
+    procedure tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer; var ImageIndex: Integer);
+    procedure tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure tabsetQueryMouseLeave(Sender: TObject);
   private
+    LastResultTabMousepos: TPoint;
+    LastResultTabNrHint: Integer;
     FDelimiter: String;
     FileNameSessionLog: String;
     FileHandleSessionLog: Textfile;
@@ -860,6 +877,7 @@ type
     prefDisplayBars: Boolean;
     prefBarColor: TColor;
     prefCompletionProposal: Boolean;
+    prefMaxQueryResults: Integer;
 
     // Data grid related stuff
     DataGridHiddenColumns: TStringList;
@@ -901,8 +919,7 @@ type
     procedure SessionConnect(Sender: TObject);
     function InitConnection(Params: TConnectionParameters; Session: String): Boolean;
     function ActiveGrid: TVirtualStringTree;
-    function GridResult(Grid: TBaseVirtualTree): TMySQLQuery; overload;
-    function GridResult(PageIndex: Integer): TMySQLQuery; overload;
+    function GridResult(Grid: TBaseVirtualTree): TMySQLQuery;
     property ActiveDatabase : String read GetActiveDatabase write SetSelectedDatabase;
     property SelectedTable : TDBObject read GetSelectedTable;
     procedure TestVTreeDataArray( P: PVTreeDataArray );
@@ -1236,6 +1253,7 @@ begin
   prefDisplayBars := GetRegValue(REGNAME_DISPLAYBARS, DEFAULT_DISPLAYBARS);
   prefBarColor := GetRegValue(REGNAME_BARCOLOR, DEFAULT_BARCOLOR);
   prefCompletionProposal := GetRegValue(REGNAME_COMPLETIONPROPOSAL, DEFAULT_COMPLETIONPROPOSAL);
+  prefMaxQueryResults := GetRegValue(REGNAME_MAXQUERYRESULTS, DEFAULT_MAXQUERYRESULTS);
 
   // Data-Font:
   datafontname := GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
@@ -1307,8 +1325,8 @@ begin
   QueryTab.MemoLineBreaks := lbsNone;
   QueryTab.spltHelpers := spltQueryHelpers;
   QueryTab.spltQuery := spltQuery;
-  QueryTab.LabelResultInfo := LabelResultInfo;
-  QueryTab.Grid := QueryGrid;
+  QueryTab.tabsetQuery := tabsetQuery;
+  QueryTab.ResultTabs := TResultTabs.Create;
 
   QueryTabs := TObjectList<TQueryTab>.Create;
   QueryTabs.Add(QueryTab);
@@ -1989,35 +2007,33 @@ procedure TMainForm.actExecuteQueryExecute(Sender: TObject);
 var
   SQLBatch: TSQLBatch;
   Query: TSQLSentence;
-  i, QueryCount: Integer;
+  i, j, QueryCount: Integer;
   SQLTime, SQLNetTime: Cardinal;
+  RowsAffected, RowsFound: Int64;
   Results: TMySQLQuery;
-  ColName, Text, LB: String;
+  Text, LB, MetaInfo, TabCaption: String;
+  QueryTab: TQueryTab;
+  NewTab: TResultTab;
   col: TVirtualTreeColumn;
-  ResultLabel: TLabel;
-  cap: String;
-  Grid: TVirtualStringTree;
-  Memo: TSynMemo;
 begin
   Screen.Cursor := crHourglass;
-  ResultLabel := ActiveQueryTab.LabelResultInfo;
-  Memo := ActiveQueryMemo;
+  QueryTab := ActiveQueryTab;
 
   ShowStatusMsg('Splitting SQL queries ...');
   if Sender = actExecuteCurrentQuery then begin
-    SQLBatch := GetSQLSplitMarkers(Memo.Text);
+    SQLBatch := GetSQLSplitMarkers(QueryTab.Memo.Text);
     for Query in SQLBatch do begin
-      if (Query.LeftOffset <= Memo.SelStart) and (Memo.SelStart < Query.RightOffset) then begin
-        Text := Copy(Memo.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
+      if (Query.LeftOffset <= QueryTab.Memo.SelStart) and (QueryTab.Memo.SelStart < Query.RightOffset) then begin
+        Text := Copy(QueryTab.Memo.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
         break;
       end;
     end;
   end else if Sender = actExecuteSelection then
-    Text := Memo.SelText
+    Text := QueryTab.Memo.SelText
   else
-    Text := Memo.Text;
+    Text := QueryTab.Memo.Text;
   // Give text back its original linebreaks if possible
-  case ActiveQueryTab.MemoLineBreaks of
+  case QueryTab.MemoLineBreaks of
     lbsUnix: LB := LB_UNIX;
     lbsMac: LB := LB_MAC;
     lbsWide: LB := LB_WIDE;
@@ -2026,30 +2042,65 @@ begin
     Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
   SQLBatch := SplitSQL(Text);
 
-  ResultLabel.Caption := '';
   EnableProgressBar(SQLBatch.Count);
   SQLtime := 0;
   SQLNetTime := 0;
   QueryCount := 0;
-  Results := TMySQLQuery.Create(Self);
-  Results.Connection := Connection;
-  Results.LogCategory := lcUserFiredSQL;
+  RowsAffected := 0;
+  RowsFound := 0;
+  QueryTab.ResultTabs.Clear;
+  QueryTab.tabsetQuery.Tabs.Clear;
   for i:=0 to SQLBatch.Count-1 do begin
     ShowStatusMsg('Executing query #'+FormatNumber(i+1)+' of '+FormatNumber(SQLBatch.Count)+' ...');
     ProgressBarStatus.StepIt;
     ProgressBarStatus.Repaint;
+    Results := TMySQLQuery.Create(Self);
+    Results.Connection := Connection;
+    Results.LogCategory := lcUserFiredSQL;
     Results.SQL := SQLBatch[i].SQL;
-    // Immediately free results for all but last query
-    Results.StoreResult := i = SQLBatch.Count-1;
+    Results.StoreResult := QueryTab.ResultTabs.Count < prefMaxQueryResults;
     try
       Results.Execute;
+      Inc(QueryCount);
       Inc(SQLtime, Connection.LastQueryDuration);
       Inc(SQLNetTime, Connection.LastQueryNetworkDuration);
-      Inc(QueryCount);
-      if Results.StoreResult and Results.HasResult then
-        ResultLabel.Caption := FormatNumber(Results.ColumnCount) +' column(s) x '+FormatNumber(Results.RecordCount) +' row(s) in last result set.'
-      else
-        ResultLabel.Caption := FormatNumber(Connection.RowsAffected) +' row(s) affected by last query.';
+      Inc(RowsAffected, Connection.RowsAffected);
+      Inc(RowsFound, Connection.RowsFound);
+      if Results.StoreResult and Results.HasResult then begin
+        NewTab := TResultTab.Create;
+        QueryTab.ResultTabs.Add(NewTab);
+        NewTab.Results := Results;
+        try
+          TabCaption := Results.TableName;
+        except on E:EDatabaseError do
+          TabCaption := 'Result #'+IntToStr(QueryTab.ResultTabs.Count);
+        end;
+        QueryTab.tabsetQuery.Tabs.Add(TabCaption);
+
+        ShowStatusMsg('Setting up result grid ...');
+        NewTab.Grid.BeginUpdate;
+        NewTab.Grid.Header.Options := NewTab.Grid.Header.Options + [hoVisible];
+        NewTab.Grid.Header.Columns.BeginUpdate;
+        NewTab.Grid.Header.Columns.Clear;
+        for j:=0 to NewTab.Results.ColumnCount-1 do begin
+          col := NewTab.Grid.Header.Columns.Add;
+          col.Text := NewTab.Results.ColumnNames[j];
+          if NewTab.Results.DataType(j).Category in [dtcInteger, dtcReal] then
+            col.Alignment := taRightJustify;
+          if NewTab.Results.ColIsPrimaryKeyPart(j) then
+            col.ImageIndex := ICONINDEX_PRIMARYKEY
+          else if NewTab.Results.ColIsUniqueKeyPart(j) then
+            col.ImageIndex := ICONINDEX_UNIQUEKEY
+          else if NewTab.Results.ColIsKeyPart(j) then
+            col.ImageIndex := ICONINDEX_INDEXKEY;
+        end;
+        NewTab.Grid.Header.Columns.EndUpdate;
+        NewTab.Grid.RootNodeCount := NewTab.Results.RecordCount;
+        NewTab.Grid.EndUpdate;
+        for j:=0 to NewTab.Grid.Header.Columns.Count-1 do
+          AutoCalcColWidth(NewTab.Grid, j);
+      end else
+        FreeAndNil(Results);
     except
       on E:EDatabaseError do begin
         if actQueryStopOnErrors.Checked or (i = SQLBatch.Count - 1) then begin
@@ -2060,63 +2111,62 @@ begin
       end;
     end;
   end;
-  ProgressBarStatus.Hide;
 
   if QueryCount > 0 then begin
-    cap := ' Duration for ';
-    cap := cap + IntToStr(QueryCount);
+    MetaInfo := FormatNumber(RowsAffected) + ' rows affected, ' + FormatNumber(RowsFound) + ' rows found.';
+    MetaInfo := MetaInfo + ' Duration for ' + IntToStr(QueryCount);
     if QueryCount < SQLBatch.Count then
-      cap := cap + ' of ' + IntToStr(SQLBatch.Count);
+      MetaInfo := MetaInfo + ' of ' + IntToStr(SQLBatch.Count);
     if SQLBatch.Count = 1 then
-      cap := cap + ' query'
+      MetaInfo := MetaInfo + ' query'
     else
-      cap := cap + ' queries';
-    cap := cap + ': '+FormatNumber(SQLTime/1000, 3) +' sec.';
+      MetaInfo := MetaInfo + ' queries';
+    MetaInfo := MetaInfo + ': '+FormatNumber(SQLTime/1000, 3) +' sec.';
     if SQLNetTime > 0 then
-      cap := cap + ' (+ '+FormatNumber(SQLNetTime/1000, 3) +' sec. network)';
-    ResultLabel.Caption := ResultLabel.Caption + cap;
+      MetaInfo := MetaInfo + ' (+ '+FormatNumber(SQLNetTime/1000, 3) +' sec. network)';
+    LogSQL(MetaInfo);
   end;
 
-  if Assigned(Results) and Results.HasResult then begin
-    editFilterVT.Clear;
-    TimerFilterVT.OnTimer(Sender);
+  ProgressBarStatus.Hide;
+  if QueryTab.tabsetQuery.Tabs.Count > 0 then
+    QueryTab.tabsetQuery.TabIndex := 0;
+  Screen.Cursor := crDefault;
+  ShowStatusMsg( STATUS_MSG_READY );
+end;
+
+
+procedure TMainForm.tabsetQueryClick(Sender: TObject);
+var
+  QueryTab: TQueryTab;
+  i: Integer;
+begin
+  // Result tab clicked / changed
+  Screen.Cursor := crHourGlass;
+  QueryTab := ActiveQueryTab;
+  for i:=0 to QueryTab.ResultTabs.Count-1 do
+    QueryTab.ResultTabs[i].Grid.Hide;
+  if QueryTab.ActiveResultTab <> nil then begin
+    QueryTab.ActiveResultTab.Grid.Show;
     // Reset filter if filter panel was disabled
     UpdateFilterPanel(Sender);
-
-    ShowStatusMsg('Setting up result grid ...');
-    Grid := ActiveGrid;
-    Grid.Header.Options := Grid.Header.Options + [hoVisible];
-    Grid.Header.Columns.BeginUpdate;
-    Grid.Header.Columns.Clear;
-    for i:=0 to Results.ColumnCount-1 do begin
-      ColName := Results.ColumnNames[i];
-      col := Grid.Header.Columns.Add;
-      col.Text := ColName;
-      if Results.DataType(i).Category in [dtcInteger, dtcReal] then
-        col.Alignment := taRightJustify;
-      if Results.ColIsPrimaryKeyPart(i) then
-        col.ImageIndex := ICONINDEX_PRIMARYKEY
-      else if Results.ColIsUniqueKeyPart(i) then
-        col.ImageIndex := ICONINDEX_UNIQUEKEY
-      else if Results.ColIsKeyPart(i) then
-        col.ImageIndex := ICONINDEX_INDEXKEY;
-    end;
-    Grid.Header.Columns.EndUpdate;
-
-    Grid.BeginUpdate;
-    Grid.Clear;
-    FreeAndNil(ActiveQueryTab.Results);
-    ActiveQueryTab.Results := Results;
-    Grid.RootNodeCount := Results.RecordCount;
-    Grid.OffsetXY := Point(0, 0);
-    for i:=0 to Grid.Header.Columns.Count-1 do
-      AutoCalcColWidth(Grid, i);
-    Grid.EndUpdate;
   end;
   // Ensure controls are in a valid state
   ValidateControls(Sender);
   Screen.Cursor := crDefault;
   ShowStatusMsg( STATUS_MSG_READY );
+end;
+
+
+procedure TMainForm.tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer;
+  var ImageIndex: Integer);
+begin
+  // Give result tabs of editable results a table icon
+  try
+    ActiveQueryTab.ResultTabs[TabIndex].Results.TableName;
+    ImageIndex := 14;
+  except on E:EDatabaseError do
+    ImageIndex := -1;
+  end;
 end;
 
 
@@ -3944,8 +3994,8 @@ begin
   end;
   inDataTab := PageControlMain.ActivePage = tabData;
   inDataOrQueryTab := inDataTab or QueryTabActive;
-  inDataOrQueryTabNotEmpty := inDataOrQueryTab and (Grid.RootNodeCount > 0);
-  inGrid := inDataOrQueryTab and (ActiveControl = Grid);
+  inDataOrQueryTabNotEmpty := inDataOrQueryTab and Assigned(Grid) and (Grid.RootNodeCount > 0);
+  inGrid := Assigned(Grid) and (ActiveControl = Grid);
 
   actSQLhelp.Enabled := Connection.ServerVersionInt >= 40100;
   actImportCSV.Enabled := Connection.ServerVersionInt >= 32206;
@@ -5222,6 +5272,41 @@ begin
 end;
 
 
+procedure TMainForm.tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+var
+  idx: Integer;
+  Tabs: TTabSet;
+  Rect: TRect;
+  Org: TPoint;
+  ResultTab: TResultTab;
+begin
+  // Display some hint with row/col count + SQL when mouse hovers over result tab
+  if (LastResultTabMousepos.X = x) and (LastResultTabMousepos.Y = Y) then
+    Exit;
+  LastResultTabMousepos := Point(X, Y);
+  Tabs := Sender as TTabSet;
+  idx := Tabs.ItemAtPos(Point(X, Y), True);
+  if (idx = -1) or (idx = LastResultTabNrHint) then
+    Exit;
+  LastResultTabNrHint := idx;
+  ResultTab := ActiveQueryTab.ResultTabs[idx];
+  BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns x ' +
+    FormatNumber(ResultTab.Results.RecordCount) + ' rows' + CRLF +
+    Trim(sstr(ResultTab.Results.SQL, SIZE_KB));
+  Rect := Tabs.ItemRect(idx);
+  Org := Tabs.ClientOrigin;
+  OffsetRect(Rect, Org.X, Org.Y);
+  BalloonHint1.ShowHint(Rect);
+end;
+
+
+procedure TMainForm.tabsetQueryMouseLeave(Sender: TObject);
+begin
+  // BalloonHint.HideAfter is -1, so it will stay forever if we wouldn't hide it at some point
+  BalloonHint1.HideHint;
+  LastResultTabNrHint := -1;
+end;
+
 
 {**
   Insert string from listbox with query helpers into SQL
@@ -5981,9 +6066,9 @@ begin
   end else if tab = tabData then begin
     VT := DataGrid;
     FilterTextData := editFilterVT.Text;
-  end else if QueryTabActive and (tab = ActiveQueryTab.TabSheet) then begin
+  end else if QueryTabActive and (ActiveQueryTab.ActiveResultTab <> nil) then begin
     VT := ActiveGrid;
-    ActiveQueryTab.FilterText := editFilterVT.Text;
+    ActiveQueryTab.ActiveResultTab.FilterText := editFilterVT.Text;
   end;
   if not Assigned(VT) then
     Exit;
@@ -8087,47 +8172,23 @@ begin
   QueryTab.spltQuery.ResizeStyle := spltQuery.ResizeStyle;
   QueryTab.spltQuery.AutoSnap := spltQuery.AutoSnap;
 
-  QueryTab.LabelResultInfo := TLabel.Create(QueryTab.TabSheet);
-  QueryTab.LabelResultInfo.Parent := QueryTab.TabSheet;
-  QueryTab.LabelResultInfo.Tag := LabelResultInfo.Tag;
-  QueryTab.LabelResultInfo.Align := LabelResultInfo.Align;
-  QueryTab.LabelResultInfo.Font.Assign(LabelResultInfo.Font);
-  QueryTab.LabelResultInfo.Caption := '';
+  QueryTab.ResultTabs := TResultTabs.Create;
 
-  QueryTab.Grid := TVirtualStringTree.Create(QueryTab.TabSheet);
-  QueryTab.Grid.Parent := QueryTab.TabSheet;
-  QueryTab.Grid.Tag := QueryGrid.Tag;
-  QueryTab.Grid.Align := QueryGrid.Align;
-  QueryTab.Grid.TreeOptions := QueryGrid.TreeOptions;
-  QueryTab.Grid.PopupMenu := QueryGrid.PopupMenu;
-  QueryTab.Grid.LineStyle := QueryGrid.LineStyle;
-  QueryTab.Grid.Font.Assign(QueryGrid.Font);
-  QueryTab.Grid.Header.Options := QueryGrid.Header.Options;
-  QueryTab.Grid.Header.ParentFont := QueryGrid.Header.ParentFont;
-  QueryTab.Grid.Header.Images := QueryGrid.Header.Images;
-  QueryTab.Grid.WantTabs := QueryGrid.WantTabs;
-  QueryTab.Grid.AutoScrollDelay := QueryGrid.AutoScrollDelay;
-  QueryTab.Grid.OnAfterCellPaint := QueryGrid.OnAfterCellPaint;
-  QueryTab.Grid.OnAfterPaint := QueryGrid.OnAfterPaint;
-  QueryTab.Grid.OnBeforeCellPaint := QueryGrid.OnBeforeCellPaint;
-  QueryTab.Grid.OnCreateEditor := QueryGrid.OnCreateEditor;
-  QueryTab.Grid.OnCompareNodes := QueryGrid.OnCompareNodes;
-  QueryTab.Grid.OnEditCancelled := QueryGrid.OnEditCancelled;
-  QueryTab.Grid.OnEdited := QueryGrid.OnEdited;
-  QueryTab.Grid.OnEditing := QueryGrid.OnEditing;
-  QueryTab.Grid.OnEnter := QueryGrid.OnEnter;
-  QueryTab.Grid.OnExit := QueryGrid.OnExit;
-  QueryTab.Grid.OnFocusChanged := QueryGrid.OnFocusChanged;
-  QueryTab.Grid.OnFocusChanging := QueryGrid.OnFocusChanging;
-  QueryTab.Grid.OnGetNodeDataSize := QueryGrid.OnGetNodeDataSize;
-  QueryTab.Grid.OnGetText := QueryGrid.OnGetText;
-  QueryTab.Grid.OnHeaderClick := QueryGrid.OnHeaderClick;
-  QueryTab.Grid.OnInitNode := QueryGrid.OnInitNode;
-  QueryTab.Grid.OnKeyDown := QueryGrid.OnKeyDown;
-  QueryTab.Grid.OnMouseUp := QueryGrid.OnMouseUp;
-  QueryTab.Grid.OnNewText := QueryGrid.OnNewText;
-  QueryTab.Grid.OnPaintText := QueryGrid.OnPaintText;
-  FixVT(QueryTab.Grid, prefGridRowsLineCount);
+  QueryTab.tabsetQuery := TTabSet.Create(QueryTab.TabSheet);
+  QueryTab.tabsetQuery.Parent := QueryTab.TabSheet;
+  QueryTab.tabsetQuery.Align := tabsetQuery.Align;
+  QueryTab.tabsetQuery.Images := tabsetQuery.Images;
+  QueryTab.tabsetQuery.Style := tabsetQuery.Style;
+  QueryTab.tabsetQuery.TabHeight := tabsetQuery.TabHeight;
+  QueryTab.tabsetQuery.Height := tabsetQuery.Height;
+  QueryTab.tabsetQuery.TabPosition := tabsetQuery.TabPosition;
+  QueryTab.tabsetQuery.SoftTop := tabsetQuery.SoftTop;
+  QueryTab.tabsetQuery.DitherBackground := tabsetQuery.DitherBackground;
+  QueryTab.tabsetQuery.OnClick := tabsetQuery.OnClick;
+  QueryTab.tabsetQuery.OnGetImageIndex := tabsetQuery.OnGetImageIndex;
+  QueryTab.tabsetQuery.OnMouseMove := tabsetQuery.OnMouseMove;
+  QueryTab.tabsetQuery.OnMouseLeave := tabsetQuery.OnMouseLeave;
+
   SetupSynEditors;
 
   // Set splitter positions
@@ -8328,32 +8389,39 @@ end;
 
 
 function TMainForm.ActiveGrid: TVirtualStringTree;
+var
+  QueryTab: TQueryTab;
 begin
   Result := nil;
   if PageControlMain.ActivePage = tabData then Result := DataGrid
-  else if ActiveQueryTab <> nil then
-    Result := ActiveQueryTab.Grid;
+  else if (ActiveQueryTab <> nil) and (ActiveQueryTab.ActiveResultTab <> nil) then
+    Result := ActiveQueryTab.ActiveResultTab.Grid;
 end;
 
 
 function TMainForm.GridResult(Grid: TBaseVirtualTree): TMySQLQuery;
+var
+  QueryTab: TQueryTab;
+  CurrentTab: TTabSheet;
+  ResultTab: TResultTab;
 begin
   // All grids (data- and query-grids) are placed directly on a TTabSheet
-  Result := GridResult((Grid.Parent as TTabSheet).PageIndex)
-end;
-
-
-function TMainForm.GridResult(PageIndex: Integer): TMySQLQuery;
-begin
-  // Return the grid result for "Data" or one of the "Query" tabs.
-  // Results are enumerated like the tabs on which they get displayed, starting at tabData
-  Dec(PageIndex, tabQuery.PageIndex);
-  if PageIndex < 0 then
+  Result := nil;
+  if Grid = DataGrid then
     Result := DataGridResult
-  else if PageIndex < QueryTabs.Count then
-    Result := QueryTabs[PageIndex].Results
-  else
-    Result := nil;
+  else begin
+    CurrentTab := Grid.Parent as TTabSheet;
+    for QueryTab in QueryTabs do begin
+      if QueryTab.TabSheet = CurrentTab then begin
+        for ResultTab in QueryTab.ResultTabs do begin
+          if ResultTab.Grid = Grid then begin
+            Result := ResultTab.Results;
+            break;
+          end;
+        end;
+      end;
+    end;
+  end;
 end;
 
 
@@ -8503,11 +8571,12 @@ begin
     else if tab = tabCommandStats then f := FilterTextCommandStats
     else if tab = tabDatabase then f := FilterTextDatabase
     else if tab = tabData then f := FilterTextData
-    else if QueryTabActive and (tab = ActiveQueryTab.TabSheet) then f := ActiveQueryTab.FilterText;
+    else if QueryTabActive and (ActiveQueryTab.ActiveResultTab <> nil) then f := ActiveQueryTab.ActiveResultTab.FilterText;
     if editFilterVT.Text <> f then
       editFilterVT.Text := f
+    else
+      editFilterVTChange(Sender);
   end;
-
 end;
 
 
@@ -8856,6 +8925,75 @@ begin
   else
     ShowStatusMsg('', 1);
 end;
+
+
+{ TQueryTab }
+
+function TQueryTab.GetActiveResultTab: TResultTab;
+begin
+  Result := nil;
+  if tabsetQuery.TabIndex > -1 then
+    Result := ResultTabs[tabsetQuery.TabIndex];
+end;
+
+
+{ TResultTab }
+
+constructor TResultTab.Create;
+var
+  QueryTab: TQueryTab;
+  OrgGrid: TVirtualStringTree;
+begin
+  inherited;
+  QueryTab := Mainform.ActiveQueryTab;
+  Grid := TVirtualStringTree.Create(QueryTab.TabSheet);
+  Grid.Visible := False;
+  OrgGrid := Mainform.QueryGrid;
+  Grid.Parent := QueryTab.TabSheet;
+  Grid.Tag := OrgGrid.Tag;
+  Grid.BorderStyle := OrgGrid.BorderStyle;
+  Grid.Align := OrgGrid.Align;
+  Grid.TreeOptions := OrgGrid.TreeOptions;
+  Grid.PopupMenu := OrgGrid.PopupMenu;
+  Grid.LineStyle := OrgGrid.LineStyle;
+  Grid.EditDelay := OrgGrid.EditDelay;
+  Grid.Font.Assign(OrgGrid.Font);
+  Grid.Header.Options := OrgGrid.Header.Options;
+  Grid.Header.ParentFont := OrgGrid.Header.ParentFont;
+  Grid.Header.Images := OrgGrid.Header.Images;
+  Grid.WantTabs := OrgGrid.WantTabs;
+  Grid.AutoScrollDelay := OrgGrid.AutoScrollDelay;
+  Grid.OnAfterCellPaint := OrgGrid.OnAfterCellPaint;
+  Grid.OnAfterPaint := OrgGrid.OnAfterPaint;
+  Grid.OnBeforeCellPaint := OrgGrid.OnBeforeCellPaint;
+  Grid.OnCreateEditor := OrgGrid.OnCreateEditor;
+  Grid.OnCompareNodes := OrgGrid.OnCompareNodes;
+  Grid.OnEditCancelled := OrgGrid.OnEditCancelled;
+  Grid.OnEdited := OrgGrid.OnEdited;
+  Grid.OnEditing := OrgGrid.OnEditing;
+  Grid.OnEnter := OrgGrid.OnEnter;
+  Grid.OnExit := OrgGrid.OnExit;
+  Grid.OnFocusChanged := OrgGrid.OnFocusChanged;
+  Grid.OnFocusChanging := OrgGrid.OnFocusChanging;
+  Grid.OnGetNodeDataSize := OrgGrid.OnGetNodeDataSize;
+  Grid.OnGetText := OrgGrid.OnGetText;
+  Grid.OnHeaderClick := OrgGrid.OnHeaderClick;
+  Grid.OnInitNode := OrgGrid.OnInitNode;
+  Grid.OnKeyDown := OrgGrid.OnKeyDown;
+  Grid.OnMouseUp := OrgGrid.OnMouseUp;
+  Grid.OnNewText := OrgGrid.OnNewText;
+  Grid.OnPaintText := OrgGrid.OnPaintText;
+  FixVT(Grid, Mainform.prefGridRowsLineCount);
+end;
+
+destructor TResultTab.Destroy;
+begin
+  Results.Free;
+  Grid.Free;
+  inherited;
+end;
+
+
 
 end.
 
