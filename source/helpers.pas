@@ -366,7 +366,7 @@ var
   i, AllLen, DelimLen, DelimStart, LastLeftOffset, RightOffset, LastNewLineOffset: Integer;
   c, n: Char;
   Delim, DelimTest, QueryTest: String;
-  InString, InComment, InBigComment: Boolean;
+  InString, InComment, InBigComment, InEscape: Boolean;
   Marker: TSQLSentence;
   rx: TRegExpr;
 const
@@ -381,6 +381,7 @@ begin
   InString := False; // Loop in "enclosed string" or `identifier`
   InComment := False; // Loop in one-line comment (# or --)
   InBigComment := False; // Loop in /* multi-line */ or /*! condictional comment */
+  InEscape := False; // Previous char was backslash
   DelimLen := Length(Delim);
   Result := TSQLBatch.Create;
   rx := TRegExpr.Create;
@@ -401,7 +402,7 @@ begin
       InBigComment := True;
     if InBigComment and (not InComment) and (not InString) and (c + n = '*/') then
       InBigComment := False;
-    if CharInSet(c, StringEnclosers) then
+    if (not InEscape) and CharInSet(c, StringEnclosers) then
       InString := not InString;
     if (CharInSet(c, NewLines) and (not CharInSet(n, NewLines))) or (i = 1) then begin
       InComment := False;
@@ -413,6 +414,10 @@ begin
         continue;
       end;
     end;
+    if not InEscape then
+      InEscape := c = '\'
+    else
+      InEscape := False;
 
     // Prepare delimiter test string
     if (not InComment) and (not InString) and (not InBigComment) then begin
