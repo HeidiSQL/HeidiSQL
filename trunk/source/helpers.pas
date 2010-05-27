@@ -365,7 +365,7 @@ end;
 function GetSQLSplitMarkers(const SQL: String): TSQLBatch;
 var
   i, AllLen, DelimLen, DelimStart, LastLeftOffset, RightOffset, LastNewLineOffset: Integer;
-  c, n: Char;
+  c, n, LastStringEncloser: Char;
   Delim, DelimTest, QueryTest: String;
   InString, InComment, InBigComment, InEscape: Boolean;
   Marker: TSQLSentence;
@@ -383,6 +383,7 @@ begin
   InComment := False; // Loop in one-line comment (# or --)
   InBigComment := False; // Loop in /* multi-line */ or /*! condictional comment */
   InEscape := False; // Previous char was backslash
+  LastStringEncloser := #0;
   DelimLen := Length(Delim);
   Result := TSQLBatch.Create;
   rx := TRegExpr.Create;
@@ -403,8 +404,12 @@ begin
       InBigComment := True;
     if InBigComment and (not InComment) and (not InString) and (c + n = '*/') then
       InBigComment := False;
-    if (not InEscape) and CharInSet(c, StringEnclosers) then
-      InString := not InString;
+    if (not InEscape) and CharInSet(c, StringEnclosers) then begin
+      if (not InString) or (InString and (c = LastStringEncloser)) then begin
+        InString := not InString;
+        LastStringEncloser := c;
+      end;
+    end;
     if (CharInSet(c, NewLines) and (not CharInSet(n, NewLines))) or (i = 1) then begin
       InComment := False;
       if (not InString) and (not InBigComment) and rx.Exec(copy(SQL, LastLeftOffset, 100)) then begin
