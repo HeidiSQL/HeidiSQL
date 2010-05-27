@@ -2223,15 +2223,12 @@ end;
 procedure TMainForm.actCopyAsHTMLExecute(Sender: TObject);
 var
   S: TMemoryStream;
-  Title: String;
 begin
   // Copy data in focused grid as HTML table
   Screen.Cursor := crHourglass;
   S := TMemoryStream.Create;
-  if ActiveGrid = DataGrid then Title := SelectedTable.Name
-  else Title := 'SQL query';
   try
-    GridToHtml(ActiveGrid, Title, S);
+    GridToHtml(ActiveGrid, S);
     StreamToClipboard(S, S, True);
   finally
     ShowStatusMsg('Freeing data...');
@@ -2245,15 +2242,12 @@ end;
 procedure TMainForm.actCopyAsXMLExecute(Sender: TObject);
 var
   S: TMemoryStream;
-  Root: String;
 begin
   // Copy data in focused grid as XML
   Screen.Cursor := crHourglass;
   S := TMemoryStream.Create;
-  if ActiveGrid = DataGrid then Root := SelectedTable.Name
-  else Root := 'SQL query';
   try
-    GridToXml(ActiveGrid, Root, S);
+    GridToXml(ActiveGrid, S);
     StreamToClipboard(S, nil, False);
   finally
     ShowStatusMsg('Freeing data...');
@@ -2267,16 +2261,13 @@ end;
 procedure TMainForm.actCopyAsSQLExecute(Sender: TObject);
 var
   S, HTML: TMemoryStream;
-  Tablename: String;
   Content: AnsiString;
 begin
   // Copy data in focused grid as SQL
   Screen.Cursor := crHourglass;
   S := TMemoryStream.Create;
-  if ActiveGrid = DataGrid then Tablename := SelectedTable.Name
-  else Tablename := 'unknown';
   try
-    GridToSql(ActiveGrid, Tablename, S);
+    GridToSql(ActiveGrid, S);
     SetLength(Content, S.Size);
     S.Position := 0;
     S.Read(PAnsiChar(Content)^, S.Size);
@@ -2297,27 +2288,19 @@ procedure TMainForm.actExportDataExecute(Sender: TObject);
 var
   Dialog: TSaveDialog;
   FS: TFileStream;
-  Title: String;
 begin
   // Save data in current dataset as CSV, HTML or XML
   Dialog := SaveDialogExportData;
-
-  if ActiveGrid = DataGrid then
-    Title := SelectedTable.Name
-  else
-    Title := 'SQL query';
-
-  Dialog.FileName := Title;
+  Dialog.FileName := BestTableName(GridResult(ActiveGrid));
   Dialog.Title := 'Export result set from '+Dialog.Filename+'...';
-
   if Dialog.Execute and (Dialog.FileName <> '') then try
     Screen.Cursor := crHourGlass;
     FS := TFileStream.Create(Dialog.FileName, fmCreate or fmOpenWrite);
     case Dialog.FilterIndex of
       1: GridToCsv(ActiveGrid, prefCSVSeparator, prefCSVEncloser, prefCSVTerminator, FS);
-      2: GridToHtml(ActiveGrid, Title, FS);
-      3: GridToXml(ActiveGrid, Title, FS);
-      4: GridToSql(ActiveGrid, Title, FS);
+      2: GridToHtml(ActiveGrid, FS);
+      3: GridToXml(ActiveGrid, FS);
+      4: GridToSql(ActiveGrid, FS);
     end;
     ShowStatusMsg('Freeing data...');
     FS.Free;

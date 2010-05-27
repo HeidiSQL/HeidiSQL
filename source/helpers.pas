@@ -90,10 +90,11 @@ type
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function htmlentities(str: String): String;
-  procedure GridToHtml(Grid: TVirtualStringTree; Title: String; S: TStream);
+  procedure GridToHtml(Grid: TVirtualStringTree; S: TStream);
   procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: String; S: TStream);
-  procedure GridToXml(Grid: TVirtualStringTree; root: String; S: TStream);
-  procedure GridToSql(Grid: TVirtualStringTree; Tablename: String; S: TStream);
+  procedure GridToXml(Grid: TVirtualStringTree; S: TStream);
+  procedure GridToSql(Grid: TVirtualStringTree; S: TStream);
+  function BestTableName(Data: TMySQLQuery): String;
   function esc2ascii(str: String): String;
   function urlencode(url: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
@@ -557,10 +558,10 @@ end;
   @param Grid Object which holds data to export
   @param string Text used in <title>
 }
-procedure GridToHtml(Grid: TVirtualStringTree; Title: String; S: TStream);
+procedure GridToHtml(Grid: TVirtualStringTree; S: TStream);
 var
   i, MaxSize: Integer;
-  tmp, Data, Generator: String;
+  tmp, Data, Generator, Title: String;
   Node: PVirtualNode;
   GridData: TMySQLQuery;
   SelectionOnly: Boolean;
@@ -572,6 +573,7 @@ begin
 
   Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
   GridData := Mainform.GridResult(Grid);
+  Title := BestTableName(GridData);
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
 
@@ -779,10 +781,10 @@ end;
   @param Grid Object which holds data to export
   @param string Text used as root-element
 }
-procedure GridToXml(Grid: TVirtualStringTree; root: String; S: TStream);
+procedure GridToXml(Grid: TVirtualStringTree; S: TStream);
 var
   i, MaxSize: Integer;
-  tmp, Data: String;
+  tmp, Data, root: String;
   Node: PVirtualNode;
   GridData: TMySQLQuery;
   SelectionOnly: Boolean;
@@ -794,6 +796,7 @@ begin
 
   Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
   GridData := Mainform.GridResult(Grid);
+  root := BestTableName(GridData);
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
 
@@ -860,10 +863,10 @@ end;
   @param Grid Object which holds data to export
   @param string Text used as tablename in INSERTs
 }
-procedure GridToSql(Grid: TVirtualStringTree; Tablename: String; S: TStream);
+procedure GridToSql(Grid: TVirtualStringTree; S: TStream);
 var
   i, MaxSize: Integer;
-  tmp, Data: String;
+  tmp, Data, TableName: String;
   Node: PVirtualNode;
   GridData: TMySQLQuery;
   SelectionOnly: Boolean;
@@ -875,6 +878,7 @@ begin
 
   Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
   GridData := Mainform.GridResult(Grid);
+  TableName := BestTableName(GridData);
 
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
 
@@ -934,6 +938,17 @@ begin
   StreamWrite(S, tmp);
   Mainform.ProgressBarStatus.Visible := False;
   Mainform.ShowStatusMsg(STATUS_MSG_READY);
+end;
+
+
+function BestTableName(Data: TMySQLQuery): String;
+begin
+  // Get table name from result if possible. Used by GridToXYZ() functions.
+  try
+    Result := Data.TableName;
+  except
+    Result := 'UnknownTable';
+  end;
 end;
 
 
