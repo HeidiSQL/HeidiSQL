@@ -2329,6 +2329,7 @@ end;
 
 procedure EnableProgressBar(MaxValue: Integer);
 begin
+  Mainform.ProgressBarStatus.State := pbsNormal;
   Mainform.ProgressBarStatus.Visible := True;
   Mainform.ProgressBarStatus.Max := MaxValue;
   Mainform.ProgressBarStatus.Position := 0;
