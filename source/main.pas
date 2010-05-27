@@ -2133,6 +2133,7 @@ begin
       on E:EDatabaseError do begin
         if actQueryStopOnErrors.Checked or (i = SQLBatch.Count - 1) then begin
           Screen.Cursor := crDefault;
+          ProgressBarStatus.State := pbsError;
           MessageDlg( E.Message, mtError, [mbOK], 0 );
           Break;
         end;
