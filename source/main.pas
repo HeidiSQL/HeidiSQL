@@ -992,6 +992,8 @@ begin
     2: ImageIndex := 149;
     3: ImageIndex := 1;
     6: begin
+      if Panel.Text = '' then
+        Panel.Text := STATUS_MSG_READY;
       if Panel.Text = STATUS_MSG_READY then
         ImageIndex := 151
       else
