@@ -777,6 +777,8 @@ type
     procedure StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
     procedure StatusBarMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure StatusBarMouseLeave(Sender: TObject);
+    procedure AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
+    procedure AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -8988,6 +8990,23 @@ begin
 end;
 
 
+procedure TMainForm.AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
+begin
+  // Display status message on long running sort operations
+  if OperationKind = okSortTree then
+    ShowStatusMsg('Sorting grid nodes ...');
+end;
+
+
+procedure TMainForm.AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
+begin
+  // Reset status message after long running operations
+  if OperationKind = okSortTree then
+    ShowStatusMsg(STATUS_MSG_READY);
+end;
+
+
+
 { TQueryTab }
 
 function TQueryTab.GetActiveResultTab: TResultTab;
@@ -9027,6 +9046,7 @@ begin
   Grid.Header.Images := OrgGrid.Header.Images;
   Grid.WantTabs := OrgGrid.WantTabs;
   Grid.AutoScrollDelay := OrgGrid.AutoScrollDelay;
+  // Apply events - keep in alphabetical order for overview reasons
   Grid.OnAfterCellPaint := OrgGrid.OnAfterCellPaint;
   Grid.OnAfterPaint := OrgGrid.OnAfterPaint;
   Grid.OnBeforeCellPaint := OrgGrid.OnBeforeCellPaint;
@@ -9035,6 +9055,7 @@ begin
   Grid.OnEditCancelled := OrgGrid.OnEditCancelled;
   Grid.OnEdited := OrgGrid.OnEdited;
   Grid.OnEditing := OrgGrid.OnEditing;
+  Grid.OnEndOperation := OrgGrid.OnEndOperation;
   Grid.OnEnter := OrgGrid.OnEnter;
   Grid.OnExit := OrgGrid.OnExit;
   Grid.OnFocusChanged := OrgGrid.OnFocusChanged;
@@ -9047,6 +9068,7 @@ begin
   Grid.OnMouseUp := OrgGrid.OnMouseUp;
   Grid.OnNewText := OrgGrid.OnNewText;
   Grid.OnPaintText := OrgGrid.OnPaintText;
+  Grid.OnStartOperation := OrgGrid.OnStartOperation;
   FixVT(Grid, Mainform.prefGridRowsLineCount);
 end;
 
