@@ -8991,10 +8991,13 @@ end;
 { TQueryTab }
 
 function TQueryTab.GetActiveResultTab: TResultTab;
+var
+  idx: Integer;
 begin
   Result := nil;
-  if tabsetQuery.TabIndex > -1 then
-    Result := ResultTabs[tabsetQuery.TabIndex];
+  idx := tabsetQuery.TabIndex;
+  if (idx > -1) and (idx < ResultTabs.Count) then
+    Result := ResultTabs[idx];
 end;
 
 
@@ -9007,10 +9010,10 @@ var
 begin
   inherited;
   QueryTab := Mainform.ActiveQueryTab;
-  Grid := TVirtualStringTree.Create(QueryTab.TabSheet);
-  Grid.Visible := False;
   OrgGrid := Mainform.QueryGrid;
+  Grid := TVirtualStringTree.Create(QueryTab.TabSheet);
   Grid.Parent := QueryTab.TabSheet;
+  Grid.Visible := False;
   Grid.Tag := OrgGrid.Tag;
   Grid.BorderStyle := OrgGrid.BorderStyle;
   Grid.Align := OrgGrid.Align;
