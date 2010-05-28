@@ -8198,6 +8198,8 @@ begin
   QueryTab.tabsetQuery.TabPosition := tabsetQuery.TabPosition;
   QueryTab.tabsetQuery.SoftTop := tabsetQuery.SoftTop;
   QueryTab.tabsetQuery.DitherBackground := tabsetQuery.DitherBackground;
+  QueryTab.tabsetQuery.SelectedColor := tabsetQuery.SelectedColor;
+  QueryTab.tabsetQuery.UnselectedColor := tabsetQuery.UnselectedColor;
   QueryTab.tabsetQuery.OnClick := tabsetQuery.OnClick;
   QueryTab.tabsetQuery.OnGetImageIndex := tabsetQuery.OnGetImageIndex;
   QueryTab.tabsetQuery.OnMouseMove := tabsetQuery.OnMouseMove;

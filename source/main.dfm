@@ -1551,9 +1551,11 @@ object MainForm: TMainForm
             Font.Name = 'Tahoma'
             Font.Style = []
             Images = ImageListMain
+            SelectedColor = clWindow
             SoftTop = True
             Style = tsSoftTabs
             TabPosition = tpTop
+            UnselectedColor = clBtnFace
             OnClick = tabsetQueryClick
             OnGetImageIndex = tabsetQueryGetImageIndex
             OnMouseLeave = tabsetQueryMouseLeave
