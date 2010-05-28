@@ -270,7 +270,7 @@ begin
   if idx = -1 then idx := 0;
   comboOperation.Items.CommaText := 'Check,Analyze,Checksum,Optimize,Repair';
   if Mainform.Connection.ServerVersionInt < 40101 then
-    comboOperation.Items.Text := StringReplace(comboOperation.Items.Text, 'Checksum', 'Checksum ('+STR_NOTSUPPORTED+')', [rfReplaceAll]);
+    comboOperation.Items.Text := StringReplace(comboOperation.Items.Text, 'Checksum', 'Checksum ('+SUnsupported+')', [rfReplaceAll]);
   comboOperation.ItemIndex := idx;
   comboOperation.OnChange(Sender);
 
@@ -329,7 +329,7 @@ begin
   SomeChecked := TreeObjects.CheckedCount > 0;
   if tabsTools.ActivePage = tabMaintenance then begin
     btnExecute.Caption := 'Execute';
-    btnExecute.Enabled := (Pos(STR_NOTSUPPORTED, comboOperation.Text) = 0) and SomeChecked;
+    btnExecute.Enabled := (Pos(SUnsupported, comboOperation.Text) = 0) and SomeChecked;
     // Only enable available options
     op := LowerCase(comboOperation.Text);
     chkQuick.Enabled := (op = 'check') or (op = 'checksum') or (op = 'repair');

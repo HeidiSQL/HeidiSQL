@@ -981,7 +981,7 @@ procedure TMainForm.ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
 begin
   // Show message in some statusbar panel
   if (PanelNr = 6) and (Msg = '') then
-    Msg := STATUS_MSG_READY;
+    Msg := SIdle;
   StatusBar.Panels[PanelNr].Text := Msg;
   StatusBar.Repaint;
 end;
@@ -998,7 +998,7 @@ begin
     2: ImageIndex := 149;
     3: ImageIndex := 1;
     6: begin
-      if Panel.Text = STATUS_MSG_READY then
+      if Panel.Text = SIdle then
         ImageIndex := 151
       else
         ImageIndex := 150;
@@ -1742,7 +1742,7 @@ begin
         // Place menuitem on menu
         miFunction.OnClick := insertFunction;
       end else begin
-        miFunction.Hint := miFunction.Hint + ' - ('+STR_NOTSUPPORTED+', needs >= '+Connection.ConvertServerVersion(MySqlFunctions[j].Version)+')';
+        miFunction.Hint := miFunction.Hint + ' - ('+SUnsupported+', needs >= '+Connection.ConvertServerVersion(MySqlFunctions[j].Version)+')';
         miFunction.Enabled := False;
       end;
       // Prevent generating a seperator for ShortHint and LongHint
@@ -2209,7 +2209,7 @@ begin
   if QueryTab.tabsetQuery.Tabs.Count > 0 then
     QueryTab.tabsetQuery.TabIndex := 0;
   Screen.Cursor := crDefault;
-  ShowStatusMsg( STATUS_MSG_READY );
+  ShowStatusMsg;
 end;
 
 
@@ -2231,7 +2231,7 @@ begin
   // Ensure controls are in a valid state
   ValidateControls(Sender);
   Screen.Cursor := crDefault;
-  ShowStatusMsg( STATUS_MSG_READY );
+  ShowStatusMsg;
 end;
 
 
@@ -2261,7 +2261,7 @@ begin
   finally
     ShowStatusMsg('Freeing data...');
     S.Free;
-    ShowStatusMsg(STATUS_MSG_READY);
+    ShowStatusMsg;
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2280,7 +2280,7 @@ begin
   finally
     ShowStatusMsg('Freeing data...');
     S.Free;
-    ShowStatusMsg(STATUS_MSG_READY);
+    ShowStatusMsg;
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2299,7 +2299,7 @@ begin
   finally
     ShowStatusMsg('Freeing data...');
     S.Free;
-    ShowStatusMsg(STATUS_MSG_READY);
+    ShowStatusMsg;
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2325,7 +2325,7 @@ begin
   finally
     ShowStatusMsg('Freeing data...');
     S.Free;
-    ShowStatusMsg(STATUS_MSG_READY);
+    ShowStatusMsg;
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2352,7 +2352,7 @@ begin
     ShowStatusMsg('Freeing data...');
     FS.Free;
   finally
-    ShowStatusMsg(STATUS_MSG_READY);
+    ShowStatusMsg;
     Screen.Cursor := crDefault;
   end;
 end;
@@ -2410,7 +2410,7 @@ begin
     ShellExec(Filename);
   end;
 
-  ShowStatusMsg( STATUS_MSG_READY );
+  ShowStatusMsg;
   Screen.Cursor := crDefault;
 end;
 
@@ -2577,7 +2577,7 @@ begin
     Connection := ConnectionAttempt;
     SessionName := Session;
   end;
-  ShowStatusMsg( STATUS_MSG_READY );
+  ShowStatusMsg;
 end;
 
 
@@ -2828,7 +2828,7 @@ begin
     SearchReplaceDialog.Options
     );
   SearchReplaceDialog.Editor.EndUpdate;
-  ShowStatusMsg(STATUS_MSG_READY);
+  ShowStatusMsg;
   if ssoReplaceAll in SearchReplaceDialog.Options then
     ShowStatusMsg('Text "'+SearchReplaceDialog.comboSearch.Text+'" '+FormatNumber(Occurences)+' times replaced.', 0)
   else begin
@@ -3765,7 +3765,7 @@ begin
   vt.Tag := VTREE_LOADED;
   DataGridFullRowMode := False;
   Screen.Cursor := crDefault;
-  ShowStatusMsg(STATUS_MSG_READY);
+  ShowStatusMsg;
 end;
 
 
@@ -3943,7 +3943,7 @@ begin
     Msg := Msg + ')';
   end;
   ShowStatusMsg(Msg, 0);
-  ShowStatusMsg(STATUS_MSG_READY);
+  ShowStatusMsg;
   Screen.Cursor := crDefault;
   // Ensure tree db node displays its chidren initialized
   DBtree.ReinitChildren(FindDBNode(ActiveDatabase), False);
@@ -4747,7 +4747,7 @@ begin
   if Connection.ServerVersionInt >= 40003 then
     menuEditVariable.Enabled := (PageControlHost.ActivePage = tabVariables) and Assigned(ListVariables.FocusedNode)
   else
-    menuEditVariable.Hint := STR_NOTSUPPORTED;
+    menuEditVariable.Hint := SUnsupported;
 end;
 
 procedure TMainForm.Saveastextfile1Click(Sender: TObject);
@@ -5068,7 +5068,7 @@ begin
     Item.OnClick := QuickFilterClick;
     Data.Next;
   end;
-  ShowStatusMsg(STATUS_MSG_READY);
+  ShowStatusMsg;
 end;
 
 
@@ -6319,7 +6319,7 @@ begin
             MessageDlg(E.Message+CRLF+CRLF+'You have no privilege to execute SHOW DATABASES. Please specify one or more databases in your session settings, if you want to see any.', mtError, [mbOK], 0);
           end;
         end;
-        ShowStatusMsg(STATUS_MSG_READY);
+        ShowStatusMsg;
         VT.Tag := VTREE_LOADED;
         InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
         ChildCount := AllDatabases.Count;
@@ -6332,7 +6332,7 @@ begin
         try
           ChildCount := Connection.GetDBObjects(AllDatabases[Node.Index]).Count;
         finally
-          ShowStatusMsg( STATUS_MSG_READY );
+          ShowStatusMsg;
           Screen.Cursor := crDefault;
         end;
       end;
@@ -9002,7 +9002,7 @@ procedure TMainForm.AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind:
 begin
   // Reset status message after long running operations
   if OperationKind = okSortTree then
-    ShowStatusMsg(STATUS_MSG_READY);
+    ShowStatusMsg;
 end;
 
 
