@@ -1010,7 +1010,7 @@ begin
     Header := '# --------------------------------------------------------' + CRLF +
       Format('# %-30s%s', ['Host:', Mainform.Connection.Parameters.HostName]) + CRLF +
       Format('# %-30s%s', ['Server version:', Mainform.Connection.ServerVersionUntouched]) + CRLF +
-      Format('# %-30s%s', ['Server OS:', Mainform.Connection.GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1)]) + CRLF +
+      Format('# %-30s%s', ['Server OS:', Mainform.Connection.ServerOS]) + CRLF +
       Format('# %-30s%s', [APPNAME + ' version:', Mainform.AppVersion]) + CRLF +
       Format('# %-30s%s', ['Date/time:', DateTimeToStr(Now)]) + CRLF +
       '# --------------------------------------------------------' + CRLF + CRLF +

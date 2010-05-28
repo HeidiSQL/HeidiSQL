@@ -775,9 +775,11 @@ type
     procedure tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure tabsetQueryMouseLeave(Sender: TObject);
     procedure StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
+    procedure StatusBarMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure StatusBarMouseLeave(Sender: TObject);
   private
-    LastResultTabMousepos: TPoint;
-    LastResultTabNrHint: Integer;
+    LastHintMousepos: TPoint;
+    LastHintControlIndex: Integer;
     FDelimiter: String;
     FileNameSessionLog: String;
     FileHandleSessionLog: Textfile;
@@ -1006,6 +1008,49 @@ begin
     OffsetRect(TextRect, ImageListMain.Width+2, 0);
     DrawText(StatusBar.Canvas.Handle, PChar(Panel.Text), -1, TextRect, dt_singleline or dt_vcenter);
   end;
+end;
+
+procedure TMainForm.StatusBarMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+var
+  MouseP: TPoint;
+  Bar: TStatusBar;
+  PanelRect: TRect;
+  i: Integer;
+  Infos: TStringList;
+begin
+  // Display various server, client and connection related details in a hint
+  if (LastHintMousepos.X = X) and (LastHintMousepos.Y = Y) then
+    Exit;
+  LastHintMousepos := Point(X, Y);
+  MouseP := StatusBar.ClientOrigin;
+  Inc(MouseP.X, X);
+  Inc(MouseP.Y, Y);
+  Bar := Sender as TStatusBar;
+  for i:=0 to Bar.Panels.Count-1 do begin
+    SendMessage(Bar.Handle, SB_GETRECT, i, Integer(@PanelRect));
+    if PtInRect(PanelRect, LastHintMousepos) then
+      break;
+  end;
+  if i = LastHintControlIndex then
+    Exit;
+  LastHintControlIndex := i;
+  if LastHintControlIndex = 3 then begin
+    Infos := Connection.ConnectionInfo;
+    BalloonHint1.Description := '';
+    for i:=0 to Infos.Count-1 do
+      BalloonHint1.Description := BalloonHint1.Description + Infos.Names[i] + ': ' + Infos.ValueFromIndex[i] + CRLF;
+    BalloonHint1.Description := Trim(BalloonHint1.Description);
+    OffsetRect(PanelRect, Bar.ClientOrigin.X, Bar.ClientOrigin.Y);
+    BalloonHint1.ShowHint(PanelRect);
+  end else
+    Bar.OnMouseLeave(Sender);
+end;
+
+
+procedure TMainForm.StatusBarMouseLeave(Sender: TObject);
+begin
+  BalloonHint1.HideHint;
+  LastHintControlIndex := -1;
 end;
 
 
@@ -5295,14 +5340,14 @@ var
   ResultTab: TResultTab;
 begin
   // Display some hint with row/col count + SQL when mouse hovers over result tab
-  if (LastResultTabMousepos.X = x) and (LastResultTabMousepos.Y = Y) then
+  if (LastHintMousepos.X = x) and (LastHintMousepos.Y = Y) then
     Exit;
-  LastResultTabMousepos := Point(X, Y);
+  LastHintMousepos := Point(X, Y);
   Tabs := Sender as TTabSet;
   idx := Tabs.ItemAtPos(Point(X, Y), True);
-  if (idx = -1) or (idx = LastResultTabNrHint) then
+  if (idx = -1) or (idx = LastHintControlIndex) then
     Exit;
-  LastResultTabNrHint := idx;
+  LastHintControlIndex := idx;
   ResultTab := ActiveQueryTab.ResultTabs[idx];
   BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns x ' +
     FormatNumber(ResultTab.Results.RecordCount) + ' rows' + CRLF +
@@ -5318,7 +5363,7 @@ procedure TMainForm.tabsetQueryMouseLeave(Sender: TObject);
 begin
   // BalloonHint.HideAfter is -1, so it will stay forever if we wouldn't hide it at some point
   BalloonHint1.HideHint;
-  LastResultTabNrHint := -1;
+  LastHintControlIndex := -1;
 end;
 
 
