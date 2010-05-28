@@ -90,6 +90,8 @@ object MainForm: TMainForm
         Width = 250
       end>
     ParentDoubleBuffered = False
+    OnMouseLeave = StatusBarMouseLeave
+    OnMouseMove = StatusBarMouseMove
     OnDrawPanel = StatusBarDrawPanel
   end
   object ControlBar1: TControlBar

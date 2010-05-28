@@ -192,7 +192,9 @@ type
       FOnDBObjectsCleared: TMySQLDatabaseEvent;
       FRowsFound: Int64;
       FRowsAffected: Int64;
+      FServerOS: String;
       FServerVersionUntouched: String;
+      FRealHostname: String;
       FLastQueryDuration, FLastQueryNetworkDuration: Cardinal;
       FIsUnicode: Boolean;
       FTableEngines: TStringList;
@@ -243,6 +245,7 @@ type
       function DbObjectsCached(db: String): Boolean;
       function ParseDateTime(Str: String): TDateTime;
       function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
+      function ConnectionInfo: TStringList;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
       property Parameters: TConnectionParameters read FParameters write FParameters;
@@ -251,6 +254,7 @@ type
       property ServerUptime: Integer read GetServerUptime;
       property CharacterSet: String read GetCharacterSet write SetCharacterSet;
       property LastError: String read GetLastError;
+      property ServerOS: String read FServerOS;
       property ServerVersionUntouched: String read FServerVersionUntouched;
       property ServerVersionStr: String read GetServerVersionStr;
       property ServerVersionInt: Integer read GetServerVersionInt;
@@ -555,6 +559,8 @@ begin
       FConnectionStarted := GetTickCount div 1000;
       FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), 1);
       FServerVersionUntouched := DecodeAPIString(mysql_get_server_info(FHandle));
+      FServerOS := GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1);
+      FRealHostname := GetVar('SHOW VARIABLES LIKE ' + esc('hostname'), 1);;
       if FDatabase <> '' then begin
         tmpdb := FDatabase;
         FDatabase := '';
@@ -1498,6 +1504,48 @@ begin
     Result := Utf8ToString(a)
   else
     Result := String(a);
+end;
+
+
+function TMySQLConnection.ConnectionInfo: TStringList;
+var
+  Infos, Val: String;
+  rx: TRegExpr;
+
+  function EvalBool(B: Boolean): String;
+  begin
+    if B then Result := 'Yes' else Result := 'No';
+  end;
+begin
+  Result := TStringList.Create;
+  if Assigned(Parameters) then
+    Result.Values['Hostname'] := Parameters.Hostname;
+  Ping;
+  Result.Values['Connected'] := EvalBool(FActive);
+  if FActive then begin
+    Result.Values['Real Hostname'] := FRealHostname;
+    Result.Values['Server OS'] := ServerOS;
+    Result.Values['Server version'] := FServerVersionUntouched;
+    Result.Values['Client version (libmysql)'] := DecodeApiString(mysql_get_client_info);
+    Result.Values['Connection port'] := IntToStr(Parameters.Port);
+    Result.Values['Compressed protocol'] := EvalBool(opCompress in Parameters.Options);
+    Result.Values['Unicode enabled'] := EvalBool(IsUnicode);
+    Infos := DecodeApiString(mysql_stat(FHandle));
+    rx := TRegExpr.Create;
+    rx.ModifierG := False;
+    rx.Expression := '(\S.*)\:\s+(\S*)(\s+|$)';
+    if rx.Exec(Infos) then while True do begin
+      Val := rx.Match[2];
+      if LowerCase(rx.Match[1]) = 'uptime' then
+        Val := FormatTimeNumber(StrToIntDef(Val, 0))
+      else
+        Val := FormatNumber(Val);
+      Result.Values[rx.Match[1]] := Val;
+      if not rx.ExecNext then
+        break;
+    end;
+    rx.Free;
+  end;
 end;
 
 
