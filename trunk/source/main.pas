@@ -976,6 +976,8 @@ uses
 procedure TMainForm.ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
 begin
   // Show message in some statusbar panel
+  if (PanelNr = 6) and (Msg = '') then
+    Msg := STATUS_MSG_READY;
   StatusBar.Panels[PanelNr].Text := Msg;
   StatusBar.Repaint;
 end;
@@ -992,8 +994,6 @@ begin
     2: ImageIndex := 149;
     3: ImageIndex := 1;
     6: begin
-      if Panel.Text = '' then
-        Panel.Text := STATUS_MSG_READY;
       if Panel.Text = STATUS_MSG_READY then
         ImageIndex := 151
       else
