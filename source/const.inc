@@ -24,7 +24,7 @@ const
   REGKEY_SESSIONS  = 'Servers\';
   // Some unique char, used to separate e.g. selected columns in registry
   DELIM = '|';
-  STATUS_MSG_READY = 'Ready.';
+  STATUS_MSG_READY = 'Idle.';
   STR_NOTSUPPORTED = 'Not supported by this server';
 
   // Used by maskSQL and fixSQL:
