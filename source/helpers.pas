@@ -681,7 +681,7 @@ begin
     '</html>' + CRLF;
   StreamWrite(S, tmp);
   Mainform.ProgressBarStatus.Visible := False;
-  Mainform.ShowStatusMsg(STATUS_MSG_READY);
+  Mainform.ShowStatusMsg;
 end;
 
 
@@ -776,7 +776,7 @@ begin
     end;
   end;
   Mainform.ProgressBarStatus.Visible := False;
-  Mainform.ShowStatusMsg(STATUS_MSG_READY);
+  Mainform.ShowStatusMsg;
 end;
 
 
@@ -859,7 +859,7 @@ begin
   tmp := '</table>' + CRLF;
   StreamWrite(S, tmp);
   Mainform.ProgressBarStatus.Visible := False;
-  Mainform.ShowStatusMsg(STATUS_MSG_READY);
+  Mainform.ShowStatusMsg;
 end;
 
 
@@ -942,7 +942,7 @@ begin
   tmp := CRLF;
   StreamWrite(S, tmp);
   Mainform.ProgressBarStatus.Visible := False;
-  Mainform.ShowStatusMsg(STATUS_MSG_READY);
+  Mainform.ShowStatusMsg;
 end;
 
 

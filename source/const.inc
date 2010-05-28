@@ -24,8 +24,6 @@ const
   REGKEY_SESSIONS  = 'Servers\';
   // Some unique char, used to separate e.g. selected columns in registry
   DELIM = '|';
-  STATUS_MSG_READY = 'Idle.';
-  STR_NOTSUPPORTED = 'Not supported by this server';
 
   // Used by maskSQL and fixSQL:
   SQL_VERSION_ANSI = -1;
@@ -321,6 +319,8 @@ const
   SContainsNulCharGrid = 'This cell contains NUL characters. They have been converted to ASCII spaces (SP). Press ESC to cancel editing.';
   SUnhandledTreeLevel = 'Unhandled tree node level.';
   MSG_NOGRIDEDITING = 'Selected columns don''t contain a sufficient set of key columns to allow editing. Please select primary or unique key columns, or just all columns.';
+  SIdle = 'Idle.';
+  SUnsupported = 'Not supported by this server';
 
   PKEY = 'PRIMARY';
   KEY = 'KEY';
