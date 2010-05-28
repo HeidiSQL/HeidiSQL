@@ -2349,9 +2349,9 @@ begin
       3: GridToXml(ActiveGrid, FS);
       4: GridToSql(ActiveGrid, FS);
     end;
+  finally
     ShowStatusMsg('Freeing data...');
     FS.Free;
-  finally
     ShowStatusMsg;
     Screen.Cursor := crDefault;
   end;
