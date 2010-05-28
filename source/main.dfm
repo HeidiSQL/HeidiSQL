@@ -1526,6 +1526,7 @@ object MainForm: TMainForm
             OnEditCancelled = AnyGridEditCancelled
             OnEdited = AnyGridEdited
             OnEditing = AnyGridEditing
+            OnEndOperation = AnyGridEndOperation
             OnEnter = ValidateControls
             OnExit = ValidateControls
             OnFocusChanged = AnyGridFocusChanged
@@ -1538,6 +1539,7 @@ object MainForm: TMainForm
             OnKeyDown = AnyGridKeyDown
             OnMouseUp = AnyGridMouseUp
             OnNewText = AnyGridNewText
+            OnStartOperation = AnyGridStartOperation
             Columns = <>
           end
           object tabsetQuery: TTabSet
