@@ -649,7 +649,7 @@ begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
-      Data := Grid.Text[Node, i];
+      Data := GridData.Col(i);
       // Handle nulls.
       if GridData.IsNull(i) then Data := TEXT_NULL;
       // Unformat numeric values
@@ -749,10 +749,10 @@ begin
       // Skip hidden key columns
       if not (coVisible in Grid.Header.Columns[i].Options) then
         Continue;
-      Data := Grid.Text[Node, i];
-      // Remove 0x.
       if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-        Delete(Data, 1, 2);
+        Data := GridData.BinColAsHex(i)
+      else
+        Data := GridData.Col(i);
       // Unformat numeric values
       if (GridData.DataType(i).Category in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
         Data := UnformatNumber(Data);
@@ -832,10 +832,10 @@ begin
         if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
           tmp := tmp + ' format="hex"';
         tmp := tmp + '>';
-        Data := Grid.Text[Node, i];
-        // Remove 0x.
         if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-          Delete(Data, 1, 2);
+          Data := GridData.BinColAsHex(i)
+        else
+          Data := GridData.Col(i);
         // Unformat numeric values
         if (GridData.DataType(i).Category in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
           Data := UnformatNumber(Data);
@@ -914,11 +914,11 @@ begin
         Continue;
       if GridData.IsNull(i) then
         tmp := tmp + 'NULL'
-      else begin             
-        Data := Grid.Text[Node, i];
-        // Remove 0x.
+      else begin
         if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-          Delete(Data, 1, 2);
+          Data := GridData.BinColAsHex(i)
+        else
+          Data := GridData.Col(i);
         // Unformat numeric values
         if GridData.DataType(i).Category in [dtcInteger, dtcReal] then
           tmp := tmp + UnformatNumber(Data)
