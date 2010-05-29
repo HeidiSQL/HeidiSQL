@@ -1690,7 +1690,7 @@ procedure TMySQLQuery.SetRecNo(Value: Int64);
 var
   LengthPointer: PLongInt;
   i, j: Integer;
-  NumRows: Int64;
+  NumRows, WantedLocalRecNo: Int64;
   Row: TRowData;
   RowFound: Boolean;
 begin
@@ -1722,8 +1722,9 @@ begin
         if NumRows > Value then begin
           FCurrentResults := FResultList[i];
           // Do not seek if FCurrentRow points to the previous row of the wanted row
-          if (FRecNo+1 <> Value) or (FCurrentRow = nil) then
-            mysql_data_seek(FCurrentResults, FCurrentResults.row_count-(NumRows-Value));
+          WantedLocalRecNo := FCurrentResults.row_count-(NumRows-Value);
+          if (WantedLocalRecNo = 0) or (FRecNo+1 <> Value) or (FCurrentRow = nil) then
+            mysql_data_seek(FCurrentResults, WantedLocalRecNo);
           FCurrentRow := mysql_fetch_row(FCurrentResults);
           FCurrentUpdateRow := nil;
           // Remember length of column contents. Important for Col() so contents of cells with #0 chars are not cut off
