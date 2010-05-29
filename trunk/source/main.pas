@@ -2351,7 +2351,7 @@ begin
     end;
   finally
     ShowStatusMsg('Freeing data...');
-    FS.Free;
+    FreeAndNil(FS);
     ShowStatusMsg;
     Screen.Cursor := crDefault;
   end;
@@ -8452,8 +8452,6 @@ end;
 
 
 function TMainForm.ActiveGrid: TVirtualStringTree;
-var
-  QueryTab: TQueryTab;
 begin
   Result := nil;
   if PageControlMain.ActivePage = tabData then Result := DataGrid
