@@ -1989,6 +1989,7 @@ object MainForm: TMainForm
       Hint = 'View image contents'
       ImageIndex = 152
       OnExecute = actImageViewExecute
+      OnUpdate = actImageViewUpdate
     end
     object actInsertFiles: TAction
       Category = 'Export/Import'

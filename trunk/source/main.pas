@@ -779,6 +779,7 @@ type
     procedure StatusBarMouseLeave(Sender: TObject);
     procedure AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
     procedure AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
+    procedure actImageViewUpdate(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -2358,8 +2359,28 @@ begin
 end;
 
 
+procedure TMainForm.actImageViewUpdate(Sender: TObject);
+var
+  act: TAction;
+  Grid: TVirtualStringTree;
+  Results: TMySQLQuery;
+begin
+  // Enable or disable ImageView action
+  act := Sender as TAction;
+  Grid := ActiveGrid;
+  if Grid = nil then begin
+    act.Enabled := False;
+    Exit;
+  end;
+  Results := GridResult(Grid);
+  if Results.DataType(Grid.FocusedColumn).Category <> dtcBinary then begin
+    act.Enabled := False;
+    Exit;
+  end;
+  act.Enabled := True;
+end;
 
-// view HTML
+
 procedure TMainForm.actImageViewExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
@@ -2369,17 +2390,9 @@ var
   Content, Header: AnsiString;
   f: Textfile;
 begin
+  // Open BLOB as image in associated application
   Grid := ActiveGrid;
-  if Grid = nil then begin
-    MessageDlg('Please select a grid cell first.', mtError, [mbOk], 0);
-    Exit;
-  end;
   Results := GridResult(Grid);
-  if Results.DataType(Grid.FocusedColumn).Category <> dtcBinary then begin
-    MessageDlg('Non-binary field selected. Only binary fields containing JPEG, PNG, GIF and BMP images are supported.', mtError, [mbOk], 0);
-    Exit;
-  end;
-
   Screen.Cursor := crHourGlass;
   ShowStatusMsg('Saving contents to file...');
   AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
@@ -2413,6 +2426,7 @@ begin
   ShowStatusMsg;
   Screen.Cursor := crDefault;
 end;
+
 
 procedure TMainForm.actInsertFilesExecute(Sender: TObject);
 begin
