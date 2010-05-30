@@ -240,8 +240,6 @@ type
     N5a: TMenuItem;
     popupDataGrid: TPopupMenu;
     Refresh3: TMenuItem;
-    popupResultGrid: TPopupMenu;
-    Copyrecords1: TMenuItem;
     CopyasCSVData1: TMenuItem;
     N9a: TMenuItem;
     TimerConnected: TTimer;
@@ -252,7 +250,6 @@ type
     N15: TMenuItem;
     N17: TMenuItem;
     CopycontentsasHTML1: TMenuItem;
-    CopycontentsasHTML2: TMenuItem;
     Copy3: TMenuItem;
     Paste2: TMenuItem;
     N4a: TMenuItem;
@@ -282,13 +279,9 @@ type
     QF9: TMenuItem;
     QF12: TMenuItem;
     CopyasXMLdata3: TMenuItem;
-    CopyasXMLdata2: TMenuItem;
-    Exportdata3: TMenuItem;
     Exportdata2: TMenuItem;
     SaveDialogExportData: TSaveDialog;
     N11a: TMenuItem;
-    Copy4: TMenuItem;
-    N14: TMenuItem;
     DataInsertDateTime: TMenuItem;
     DataTimestamp: TMenuItem;
     DataDateTime: TMenuItem;
@@ -296,7 +289,6 @@ type
     DataDate: TMenuItem;
     DataYear: TMenuItem;
     ViewasHTML1: TMenuItem;
-    HTMLview1: TMenuItem;
     InsertfilesintoBLOBfields3: TMenuItem;
     N19: TMenuItem;
     setNULL1: TMenuItem;
@@ -384,7 +376,6 @@ type
     Cancelediting1: TMenuItem;
     DataPost1: TMenuItem;
     menuShowSizeColumn: TMenuItem;
-    CopygriddataasSQL1: TMenuItem;
     CopygriddataasSQL2: TMenuItem;
     menuSelectBGColor: TMenuItem;
     actPreviousTab: TPreviousTab;
@@ -482,14 +473,9 @@ type
     Runroutines1: TMenuItem;
     actCreateEvent: TAction;
     Event1: TMenuItem;
-    Deleteselectedrows1: TMenuItem;
-    Insertrow1: TMenuItem;
-    Duplicaterow2: TMenuItem;
-    Post1: TMenuItem;
-    Cancelediting2: TMenuItem;
-    N2: TMenuItem;
     tabsetQuery: TTabSet;
     BalloonHint1: TBalloonHint;
+    actDataSetNull: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -591,7 +577,7 @@ type
     procedure popupDataGridPopup(Sender: TObject);
     procedure QFvaluesClick(Sender: TObject);
     procedure InsertDate(Sender: TObject);
-    procedure setNULL1Click(Sender: TObject);
+    procedure actDataSetNullExecute(Sender: TObject);
     function QueryLoad( filename: String; ReplaceContent: Boolean = true ): Boolean;
     procedure AnyGridCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; out EditLink: IVTEditLink);
@@ -3534,10 +3520,14 @@ var
   Data: TMySQLQuery;
 begin
   // Load remaining data on a partially loaded row in data grid
-  RowNum := Grid.GetNodeData(Node);
-  Data := GridResult(Grid);
-  Data.RecNo := RowNum^;
-  Result := Data.EnsureFullRow;
+  if Grid <> DataGrid then
+    Result := True
+  else begin
+    RowNum := Grid.GetNodeData(Node);
+    Data := GridResult(Grid);
+    Data.RecNo := RowNum^;
+    Result := Data.EnsureFullRow;
+  end;
 end;
 
 
@@ -4090,7 +4080,7 @@ begin
   actCopyAsSQL.Enabled := inDataOrQueryTabNotEmpty;
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
   actImageView.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
-  setNull1.Enabled := inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
+  actDataSetNull.Enabled := inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
   // Manually invoke OnChange event of tabset to fill helper list with data
   if QueryTabActive then RefreshQueryHelpers;
@@ -4964,18 +4954,28 @@ end;
 
 procedure TMainForm.popupDataGridPopup(Sender: TObject);
 var
+  Grid: TVirtualStringTree;
+  Results: TMySQLQuery;
   y,m,d,h,i,s,ms : Word;
   cpText, Col, value : String;
-  CellFocused: Boolean;
+  CellFocused, InDataGrid: Boolean;
   RowNumber: PCardinal;
 const
   CLPBRD : String = 'CLIPBOARD';
 begin
-  CellFocused := Assigned(DataGrid.FocusedNode) and (DataGrid.FocusedColumn > NoColumn);
+  Grid := ActiveGrid;
+  CellFocused := Assigned(Grid.FocusedNode) and (Grid.FocusedColumn > NoColumn);
+  InDataGrid := Grid = DataGrid;
   DataInsertDateTime.Enabled := CellFocused;
   QFvalues.Enabled := CellFocused;
+  menuQuickFilter.Enabled := InDataGrid;
+  actDataResetSorting.Enabled := InDataGrid;
+  menuSQLHelpData.Enabled := InDataGrid;
+  Refresh3.Enabled := InDataGrid;
+
   if not CellFocused then
     Exit;
+  Results := GridResult(Grid);
 
   decodedate(now, y, m, d);
   decodetime(now, h, i, s, ms);
@@ -4986,12 +4986,12 @@ begin
   DataYear.Caption := Format('%.4d', [y]);
 
   // Manipulate the Quick-filter menuitems
-  AnyGridEnsureFullRow(DataGrid, DataGrid.FocusedNode);
-  RowNumber := DataGrid.GetNodeData(DataGrid.FocusedNode);
-  DatagridResult.RecNo := RowNumber^;
-  Col := mask(DatagridResult.ColumnNames[DataGrid.FocusedColumn]);
+  AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
+  RowNumber := Grid.GetNodeData(Grid.FocusedNode);
+  Results.RecNo := RowNumber^;
+  Col := mask(Results.ColumnNames[Grid.FocusedColumn]);
   // 1. block: include selected columnname and value from datagrid in caption
-  if DatagridResult.IsNull(DataGrid.FocusedColumn) then begin
+  if Results.IsNull(Grid.FocusedColumn) then begin
     QF1.Hint := Col + ' IS NULL';
     QF2.Hint := Col + ' IS NOT NULL';
     QF3.Visible := False;
@@ -5000,7 +5000,7 @@ begin
     QF6.Visible := False;
     QF7.Visible := False;
   end else begin
-    value := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
+    value := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
     QF1.Hint := Col + ' = ' + esc( value );
     QF2.Hint := Col + ' != ' + esc( value );
     QF3.Hint := Col + ' > ' + esc( value );
@@ -5087,12 +5087,18 @@ end;
 
 
 procedure TMainForm.InsertDate(Sender: TObject);
-var d : String;
+var
+  d: String;
+  Grid: TVirtualStringTree;
 begin
   // Insert date/time-value into table
-  d := (sender as TMenuItem).Caption;
-  delete(d, Pos('&', d), 1);
-  DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn] := d;
+  d := StripHotkey((Sender as TMenuItem).Caption);
+  Grid := ActiveGrid;
+  try
+    Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := d;
+  except on E:EDatabaseError do
+    MessageDlg(E.Message, mtError, [mbOK], 0);
+  end;
 end;
 
 
@@ -6913,16 +6919,13 @@ begin
 end;
 
 
-{**
-  Only allow grid editing if there is a good key available
-}
-procedure TMainForm.setNULL1Click(Sender: TObject);
+procedure TMainForm.actDataSetNullExecute(Sender: TObject);
 var
   RowNum: PCardinal;
   Grid: TVirtualStringTree;
   Results: TMySQLQuery;
 begin
-  // Internally calls OnNewText event:
+  // Set cell to NULL value
   Grid := ActiveGrid;
   RowNum := Grid.GetNodeData(Grid.FocusedNode);
   Results := GridResult(Grid);
