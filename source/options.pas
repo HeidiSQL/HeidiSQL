@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
-  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns;
+  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns, Menus;
 
 type
   TShortcutItemData = record
@@ -734,7 +734,7 @@ begin
         end;
       end else if Assigned(Data.Action) then begin
         CellText := Data.Action.Caption;
-        CellText := StringReplace(CellText, '&', '', [rfReplaceAll]);
+        CellText := StripHotkey(CellText);
       end;
     end;
   end;

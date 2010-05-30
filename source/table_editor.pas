@@ -1876,8 +1876,7 @@ begin
     Node := listColumns.GetNextSelected(Node);
   end;
   if Item.Parent = menuCreateIndex then begin
-    // Remove auto hotkeys
-    NewType := StringReplace(Item.Caption, '&', '', [rfReplaceAll]);
+    NewType := StripHotkey(Item.Caption);
     // Avoid creating a second key with the same columns
     for i:=0 to FKeys.Count-1 do begin
       TblKey := FKeys[i];
