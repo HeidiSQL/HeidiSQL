@@ -1053,7 +1053,7 @@ var
   flushwhat: String;
 begin
   flushwhat := UpperCase(TAction(Sender).Caption);
-  delete(flushwhat, pos('&', flushwhat), 1);
+  flushwhat := StripHotkey(flushwhat);
   try
     Connection.Query('FLUSH ' + flushwhat);
     if Sender = actFlushTableswithreadlock then begin
@@ -3129,22 +3129,19 @@ end;
 
 procedure TMainform.popupQueryLoadClick( sender: TObject );
 var
-  filename : String;
-  p        : Integer;
+  Filename: String;
+  p: Integer;
 begin
   // Click on the popupQueryLoad
-  filename := (Sender as TMenuItem).Caption;
-  if Pos( '\', filename ) = 0 then
-  begin // assuming we load a snippet
-    filename := DirnameSnippets + filename + '.sql';
-  end
-  else
-  begin // assuming we load a file from the recent-list
-    p := Pos( ' ', filename ) + 1;
-    filename := Copy(filename, p, Length(filename));
+  Filename := (Sender as TMenuItem).Caption;
+  Filename := StripHotkey(Filename);
+  if Pos('\', Filename) = 0 then // assuming we load a snippet
+    Filename := DirnameSnippets + Filename + '.sql'
+  else begin // assuming we load a file from the recent-list
+    p := Pos(' ', Filename) + 1;
+    filename := Copy(Filename, p, Length(Filename));
   end;
-  filename := Stringreplace(filename, '&', '', [rfReplaceAll]);
-  QueryLoad( filename );
+  QueryLoad(Filename);
 end;
 
 
