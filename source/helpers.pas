@@ -652,9 +652,9 @@ begin
       Data := GridData.Col(i);
       // Handle nulls.
       if GridData.IsNull(i) then Data := TEXT_NULL;
-      // Unformat numeric values
-      if (GridData.DataType(i).Category in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
-        Data := UnformatNumber(Data);
+      // Keep formatted numeric values
+      if Mainform.prefExportLocaleNumbers and (GridData.DataType(i).Category in [dtcInteger, dtcReal]) then
+        Data := FormatNumber(Data, False);
       // Escape HTML control characters in data.
       Data := htmlentities(Data);
       tmp := tmp + '          <td class="col' + IntToStr(i) + '">' + Data + '</td>' + CRLF;
@@ -754,8 +754,8 @@ begin
       else
         Data := GridData.Col(i);
       // Unformat numeric values
-      if (GridData.DataType(i).Category in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
-        Data := UnformatNumber(Data);
+      if Mainform.prefExportLocaleNumbers and (GridData.DataType(i).Category in [dtcInteger, dtcReal]) then
+        Data := FormatNumber(Data, False);
       // Escape encloser characters inside data per de-facto CSV.
       Data := StringReplace(Data, Encloser, Encloser + Encloser, [rfReplaceAll]);
       // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
@@ -836,9 +836,6 @@ begin
           Data := GridData.BinColAsHex(i)
         else
           Data := GridData.Col(i);
-        // Unformat numeric values
-        if (GridData.DataType(i).Category in [dtcInteger, dtcReal]) and (not Mainform.prefExportLocaleNumbers) then
-          Data := UnformatNumber(Data);
         // Escape XML control characters in data.
         Data := htmlentities(Data);
         // Add data and cell end tag.
@@ -919,11 +916,9 @@ begin
           Data := GridData.BinColAsHex(i)
         else
           Data := GridData.Col(i);
-        // Unformat numeric values
-        if GridData.DataType(i).Category in [dtcInteger, dtcReal] then
-          tmp := tmp + UnformatNumber(Data)
-        else
-          tmp := tmp + esc(Data);
+        if not (GridData.DataType(i).Category in [dtcInteger, dtcReal]) then
+          Data := esc(Data);
+        tmp := tmp + Data;
       end;
       tmp := tmp + ', ';
     end;
