@@ -1845,6 +1845,8 @@ var
   i: Integer;
 begin
   Result := nil;
+  if (Column = -1) or (Column >= FColumnOrgNames.Count) then
+    raise EDatabaseError.Create('Column #'+IntToStr(Column)+' not available.');
   if FEditingPrepared then begin
     for i:=0 to FColumns.Count-1 do begin
       if FColumns[i].Name = FColumnOrgNames[Column] then begin
