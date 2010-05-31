@@ -2347,23 +2347,13 @@ end;
 
 procedure TMainForm.actImageViewUpdate(Sender: TObject);
 var
-  act: TAction;
   Grid: TVirtualStringTree;
-  Results: TMySQLQuery;
 begin
   // Enable or disable ImageView action
-  act := Sender as TAction;
   Grid := ActiveGrid;
-  if Grid = nil then begin
-    act.Enabled := False;
-    Exit;
-  end;
-  Results := GridResult(Grid);
-  if Results.DataType(Grid.FocusedColumn).Category <> dtcBinary then begin
-    act.Enabled := False;
-    Exit;
-  end;
-  act.Enabled := True;
+  (Sender as TAction).Enabled := (Grid <> nil)
+    and (Grid.FocusedColumn <> NoColumn)
+    and (GridResult(Grid).DataType(Grid.FocusedColumn).Category = dtcBinary)
 end;
 
 
