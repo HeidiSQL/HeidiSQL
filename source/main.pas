@@ -7854,8 +7854,7 @@ begin
     Grid := Control as TVirtualStringTree;
     if Assigned(Grid.FocusedNode) then begin
       IsResultGrid := Grid = ActiveGrid;
-      if IsResultGrid then
-        AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
+      AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
       Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
       if IsResultGrid and DoCut then
         Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
