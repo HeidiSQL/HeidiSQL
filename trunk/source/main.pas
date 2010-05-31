@@ -4976,7 +4976,7 @@ begin
   AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
   RowNumber := Grid.GetNodeData(Grid.FocusedNode);
   Results.RecNo := RowNumber^;
-  Col := mask(Results.ColumnNames[Grid.FocusedColumn]);
+  Col := mask(Results.ColumnOrgNames[Grid.FocusedColumn]);
   // 1. block: include selected columnname and value from datagrid in caption
   if Results.IsNull(Grid.FocusedColumn) then begin
     QF1.Hint := Col + ' IS NULL';
@@ -5053,7 +5053,7 @@ begin
   QFvalues[0].OnClick := nil;
   if DataGrid.FocusedColumn = NoColumn then
     Exit;
-  Col := DataGridResult.ColumnNames[DataGrid.FocusedColumn];
+  Col := DataGridResult.ColumnOrgNames[DataGrid.FocusedColumn];
   ShowStatusMsg('Fetching distinct values ...');
   Data := Connection.GetResults('SELECT '+mask(Col)+', COUNT(*) AS c FROM '+mask(SelectedTable.Name)+
     ' GROUP BY '+mask(Col)+' ORDER BY c DESC, '+mask(Col)+' LIMIT 30');
