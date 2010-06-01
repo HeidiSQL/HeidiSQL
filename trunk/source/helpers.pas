@@ -404,14 +404,15 @@ begin
       InBigComment := True;
     if InBigComment and (not InComment) and (not InString) and (c + n = '*/') then
       InBigComment := False;
-    if (not InEscape) and CharInSet(c, StringEnclosers) then begin
+    if (not InEscape) and (not InComment) and (not InBigComment) and CharInSet(c, StringEnclosers) then begin
       if (not InString) or (InString and (c = LastStringEncloser)) then begin
         InString := not InString;
         LastStringEncloser := c;
       end;
     end;
     if (CharInSet(c, NewLines) and (not CharInSet(n, NewLines))) or (i = 1) then begin
-      InComment := False;
+      if i > 1 then
+        InComment := False;
       if (not InString) and (not InBigComment) and rx.Exec(copy(SQL, LastLeftOffset, 100)) then begin
         Delim := rx.Match[1];
         DelimLen := Length(Delim);
