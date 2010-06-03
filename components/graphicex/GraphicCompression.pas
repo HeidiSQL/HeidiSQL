@@ -1,5 +1,7 @@
 unit GraphicCompression;
 
+{$TYPEDADDRESS OFF}
+
 // The contents of this file are subject to the Mozilla Public License
 // Version 1.1 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/
@@ -1881,7 +1883,7 @@ begin
                               else Break;
     until (RunLength = G3_EOL) or (FPackedSize = 0);
     AdjustEOL;
-  until (FPackedSize = 0) or (FTarget - PChar(Dest) >= UnpackedSize);
+  until (FPackedSize = 0) or (integer(FTarget) - integer(Dest) >= UnpackedSize);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2046,13 +2048,15 @@ end;
 procedure Internaljpeg_output_message(cinfo: j_common_ptr);
 
 var
-  Buffer: array[0..JMSG_LENGTH_MAX] of Char;
+  Buffer: array[0..JMSG_LENGTH_MAX] of AnsiChar;
   State: PJPEGState;
+  Msg: string;
 
 begin
   State := Pointer(cinfo);
 	State.Error.format_message(@State.General.common, Buffer);
-  MessageBox(0, Buffer, PChar(gesWarning), MB_OK or MB_ICONWARNING);
+  Msg := Copy(String(PAnsiChar(@Buffer)), 1, JMSG_LENGTH_MAX);
+  MessageBox(0, PChar(Msg), PChar(gesWarning), MB_OK or MB_ICONWARNING);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2107,7 +2111,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure std_skip_input_data(cinfo: j_decompress_ptr; num_bytes: Integer); 
+procedure std_skip_input_data(cinfo: j_decompress_ptr; num_bytes: Integer);
 
 var
   State: PJPEGState;
@@ -2555,7 +2559,7 @@ type
 var
   Luma,
   Chroma1,
-  Chroma2: PChar; // hold the actual pointers, PChar to easy pointer maths
+  Chroma2: PByte; // hold the actual pointers, PChar to easy pointer maths
   Width,
   Height: Cardinal;
 
@@ -2564,7 +2568,7 @@ var
   R: PPCDTable;
   RangeLimit: PQuantumArray;
   P, Q,
-  Buffer: PChar;
+  Buffer: PByte;
   Accumulator,
   Bits,
   Length,
@@ -2605,7 +2609,7 @@ begin
   Chroma2 := PPointerArray(Source)[2];
   Width := PackedSize;
   Height := UnpackedSize;
-  
+
   // initialize Huffman tables
   ZeroMemory(@PCDTable, SizeOf(PCDTable));
   GetMem(Buffer, $800);
@@ -2687,15 +2691,15 @@ begin
           PCDGetBits(16);
           case Plane of
             0:
-              Q := Luma + Row * Width;
+              Q := @Luma[Row * Width];
             2:
               begin
-                Q := Chroma1 + (Row shr 1) * Width;
+                Q := @Chroma1[(Row shr 1) * Width];
                 Dec(Plane);
               end;
             3:
               begin
-                Q := Chroma2 + (Row shr 1) * Width;
+                Q := @Chroma2[(Row shr 1) * Width];
                 Dec(Plane);
               end;
           else
@@ -2714,7 +2718,7 @@ begin
           Inc(I);
           Inc(R);
         end;
-      
+
         if R = nil then
         begin
           // corrupt PCD image, skipping to sync byte
@@ -2723,11 +2727,11 @@ begin
           Continue;
         end;
 
-        if R.Key < 128 then Q^ := Char(RangeLimit[ClampByte(Byte(Q^) + R.Key)])
-                       else Q^ := Char(RangeLimit[ClampByte(Byte(Q^) + R.Key - 256)]);
+        if R.Key < 128 then Q^ := RangeLimit[ClampByte(Q^ + R.Key)]
+                       else Q^ := RangeLimit[ClampByte(Q^ + R.Key - 256)];
         Inc(Q);
         PCDGetBits(R.Length);
-      until False;                                     
+      until False;
     finally
       for I := 0 to 2 do
         if Assigned(PCDTable[I]) then FreeMem(PCDTable[I]);

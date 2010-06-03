@@ -1,5 +1,7 @@
 unit MZLib;
 
+{$TYPEDADDRESS OFF}
+
 // Original copyright of the creators:
 //
 // zlib.H -- interface of the 'zlib' general purpose compression library version 1.1.0, Feb 24th, 1998
@@ -325,7 +327,7 @@ const
   // preset dictionary flag in zlib header
   PRESET_DICT = $20;
 
-  ZLIB_VERSION: String[10] = '1.1.2';
+  ZLIB_VERSION: AnsiString = '1.1.2';
 
   ERROR_BASE = Z_NEED_DICT;
   ErrorMessages: array[0..9] of String = (
@@ -347,7 +349,7 @@ function CRC32(CRC: Cardinal; Buffer: PByte; Len: Cardinal): Cardinal;
 //----------------- deflation support ----------------------------------------------------------------------------------
 
 function DeflateInit(var ZState: TZState; Level: Integer): Integer;
-function DeflateInit_(ZState: PZState; Level: Integer; const Version: String; StreamSize: Integer): Integer;
+function DeflateInit_(ZState: PZState; Level: Integer; const Version: AnsiString; StreamSize: Integer): Integer;
 function Deflate(var ZState: TZState; Flush: Integer): Integer;
 function DeflateEnd(var ZState: TZState): Integer;
 
@@ -553,8 +555,8 @@ type
 //----------------- inflation support ----------------------------------------------------------------------------------
 
 function InflateInit(var Z: TZState): Integer;
-function InflateInit_(var Z: TZState; const Version: String; StreamSize: Integer): Integer;
-function InflateInit2_(var Z: TZState; W: Integer; const Version: String; StreamSize: Integer): Integer;
+function InflateInit_(var Z: TZState; const Version: AnsiString; StreamSize: Integer): Integer;
+function InflateInit2_(var Z: TZState; W: Integer; const Version: AnsiString; StreamSize: Integer): Integer;
 function InflateInit2(var Z: TZState; AWindowBits: Integer): Integer;
 function InflateEnd(var Z: TZState): Integer;
 function InflateReset(var Z: TZState): Integer;
@@ -1987,7 +1989,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 function DeflateInit2_(var ZState: TZState; Level: Integer; imMethod: Byte; AWindowBits: Integer; MemLevel:
-  Integer; Strategy: Integer; const Version: String; StreamSize: Integer): Integer;
+  Integer; Strategy: Integer; const Version: AnsiString; StreamSize: Integer): Integer;
 
 // initializes the hash table (Previous[] will be initialized on the fly)
 
@@ -2130,9 +2132,9 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function DeflateInit_(ZState: PZState; Level: Integer; const Version: String; StreamSize: Integer): Integer;
+function DeflateInit_(ZState: PZState; Level: Integer; const Version: AnsiString; StreamSize: Integer): Integer;
 
-// Initializes the internal stream state for compression. 
+// Initializes the internal stream state for compression.
 //
 // The compression level must be Z_DEFAULT_COMPRESSION or between 0 and 9:
 // 1 gives best speed, 9 gives best compression, 0 gives no compression at
@@ -5197,7 +5199,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function InflateInit2_(var Z: TZState; W: Integer; const Version: String; StreamSize: Integer): Integer;
+function InflateInit2_(var Z: TZState; W: Integer; const Version: AnsiString; StreamSize: Integer): Integer;
 
 begin
   if (Version = '') or
@@ -5277,7 +5279,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function InflateInit_(var Z: TZState; const Version: String; StreamSize: Integer): Integer;
+function InflateInit_(var Z: TZState; const Version: AnsiString; StreamSize: Integer): Integer;
 
 begin
   Result := InflateInit2_(Z, DEF_WBITS, Version, StreamSize);

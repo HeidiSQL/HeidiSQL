@@ -1,5 +1,7 @@
 unit GraphicEx;
 
+{$TYPEDADDRESS OFF}
+
 // The contents of this file are subject to the Mozilla Public License
 // Version 1.1 (the "License"); you may not use this file except in compliance
 // with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/
@@ -40,7 +42,15 @@ unit GraphicEx;
 // 15-AUG-2000 ml:
 //   workaround for TIF images without compression, but prediction scheme set (which is not really used in this case)
 // 12-AUG-2000 ml:
-//   small changes 
+//   small changes
+// 16-SEP-2008 sz:
+//   version for D2009
+// 28-SEP-2008 sz:
+//   fixed memoryleak in GetGraphicFilter
+// 02-NOV-2008 sz:
+//   restored PCD format for Delphi 2009
+//
+//
 //
 // For older history please look into the help file.
 //
@@ -148,7 +158,7 @@ type
     Channels: Byte;                    // up to 24 channels per image
 
     // PNG
-    FilterMode: Byte;                 
+    FilterMode: Byte;
   end;
 
   // This is the general base class for all image types implemented in GraphicEx.
@@ -166,7 +176,7 @@ type
 
     procedure Assign(Source: TPersistent); override;
     class function CanLoad(const FileName: String): Boolean; overload; virtual;
-    class function CanLoad(Stream: TStream): Boolean; overload; virtual; 
+    class function CanLoad(Stream: TStream): Boolean; overload; virtual;
     procedure LoadFromResourceName(Instance: THandle; const ResName: String);
     procedure LoadFromResourceID(Instance: THandle; ResID: Integer);
     function ReadImageProperties(Stream: TStream; ImageIndex: Cardinal): Boolean; virtual;
@@ -176,7 +186,7 @@ type
   end;
 
   TGraphicExGraphicClass = class of TGraphicExGraphic;
-   
+
   {$ifdef SGIGraphic}
   // *.bw, *.rgb, *.rgba, *.sgi images
   TSGIGraphic = class(TGraphicExGraphic)
@@ -273,12 +283,13 @@ type
 
   {$ifdef PCDGraphic}
   // *.pcd images
-  // Note: By default the BASE resolution of a PCD image is loaded with LoadFromStream. 
+  // Note: By default the BASE resolution of a PCD image is loaded with LoadFromStream.
   TPCDGraphic = class(TGraphicExGraphic)
   public
     class function CanLoad(Stream: TStream): Boolean; override;
     procedure LoadFromStream(Stream: TStream); override;
     function ReadImageProperties(Stream: TStream; ImageIndex: Cardinal): Boolean; override;
+    class var DefaultResolution: Integer; // 2 = default; 0: 128 × 192; 1: 256 × 384; 2: 512 × 768; 3: 1024 × 1536; 4: 2048 × 3072; 5: 4096 × 6144 optional
   end;
   {$endif}
 
@@ -286,12 +297,12 @@ type
   // *.ppm, *.pgm, *.pbm images
   TPPMGraphic = class(TGraphicExGraphic)
   private
-    FBuffer: array[0..4095] of Char;
+    FBuffer: array[0..4095] of AnsiChar;
     FIndex: Integer;
-    function CurrentChar: Char;
-    function GetChar: Char;
+    function CurrentChar: AnsiChar;
+    function GetChar: AnsiChar;
     function GetNumber: Cardinal;
-    function ReadLine: String;
+    function ReadLine: AnsiString;
   public
     class function CanLoad(Stream: TStream): Boolean; override;
     procedure LoadFromStream(Stream: TStream); override;
@@ -364,14 +375,16 @@ type
 
   {$ifdef PortableNetworkGraphic}
   // *.png images
-  TChunkType = array[0..3] of Char;
+  TChunkType = array[0..3] of AnsiChar;
 
   // This header is followed by a variable number of data bytes, which are followed by the CRC for this data.
   // The actual size of this data is given by field length in the chunk header.
   // CRC is Cardinal (4 byte unsigned integer).
   TPNGChunkHeader = packed record
     Length: Cardinal;  // size of data (entire chunk excluding itself, CRC and type)
-    ChunkType: TChunkType;
+    case integer of
+    0: (ChunkType: TChunkType);
+    1: (Mask: DWORD);
   end;
 
   TPNGGraphic = class(TGraphicExGraphic)
@@ -443,11 +456,11 @@ type
     FExtensionList: TList;
   protected
     function FindExtension(const Extension: String): Integer;
-    function FindGraphicClass(GraphicClass: TGraphicClass): Integer;
   public
     constructor Create;
     destructor Destroy; override;
 
+    function FindGraphicClass(GraphicClass: TGraphicClass): Integer;
     procedure Clear;
     function GetDescription(Graphic: TGraphicClass): String;
     procedure GetExtensionList(List: TStrings);
@@ -470,7 +483,7 @@ procedure Stretch(NewWidth, NewHeight: Cardinal; Filter: TResamplingFilter; Radi
 
 var
   FileFormatList: TFileFormatList;
-  
+
 //----------------------------------------------------------------------------------------------------------------------
 
 implementation
@@ -562,13 +575,14 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure Upsample(Width, Height, ScaledWidth: Cardinal; Pixels: PChar);
+// TODO : Pointer arithmetics
+procedure Upsample(Width, Height, ScaledWidth: Cardinal; Pixels: PByte);
 
 // Creates a new image that is a integral size greater than an existing one.
 
 var
   X, Y: Cardinal;
-  P, Q, R: PChar;
+  P, Q, R: PByte;
 
 begin
   for Y := 0 to Height - 1 do
@@ -582,9 +596,9 @@ begin
       Dec(P);
       Dec(Q, 2);
       Q^ := P^;
-      (Q + 1)^ := Char((Word(P^) + Word((P + 1)^) + 1) shr 1);
+      (Q + 1)^ := Byte((Word(P^) + Word((P + 1)^) + 1) shr 1);
     end;
-  end;            
+  end;
 
   for Y := 0 to Height - 2 do
   begin
@@ -593,16 +607,16 @@ begin
     R := Q + ScaledWidth;
     for X := 0 to Width - 2 do
     begin
-      Q^ := Char((Word(P^) + Word(R^) + 1) shr 1);
-      (Q + 1)^ := Char((Word(P^) + Word((P + 2)^) + Word(R^) + Word((R + 2)^) + 2) shr 2);
+      Q^ := Byte((Word(P^) + Word(R^) + 1) shr 1);
+      (Q + 1)^ := Byte((Word(P^) + Word((P + 2)^) + Word(R^) + Word((R + 2)^) + 2) shr 2);
       Inc(Q, 2);
       Inc(P, 2);
       Inc(R, 2);
     end;
-    Q^ := Char((Word(P^) + Word(R^) + 1) shr 1);
+    Q^ := Byte((Word(P^) + Word(R^) + 1) shr 1);
     Inc(P);
     Inc(Q);
-    Q^ := Char((Word(P^) + Word(R^) + 1) shr 1);
+    Q^ := Byte((Word(P^) + Word(R^) + 1) shr 1);
   end;
   P := Pixels + (2 * Height - 2) * ScaledWidth;
   Q := Pixels + (2 * Height - 1) * ScaledWidth;
@@ -785,7 +799,7 @@ var
   Weight: Integer;
   Pixel: Cardinal;
   Contr: ^TContributor;
-    
+
 begin
   RGB.R := 0;
   RGB.G := 0;
@@ -856,7 +870,7 @@ begin
 
   if (SourceHeight = 0) or (SourceWidth = 0) or
      (TargetHeight = 0) or (TargetWidth = 0) then Exit;
-     
+
   // create intermediate image to hold horizontal zoom
   Work := TBitmap.Create;
   try
@@ -1089,7 +1103,7 @@ end;
 
 //----------------- support functions for image loading ----------------------------------------------------------------
 
-procedure SwapShort(P: PWord; Count: Cardinal); 
+procedure SwapShort(P: PWord; Count: Cardinal);
 
 // swaps high and low byte of 16 bit values
 // EAX contains P, EDX contains Count
@@ -1148,7 +1162,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure Depredict3(P: Pointer; Count: Cardinal); 
+procedure Depredict3(P: Pointer; Count: Cardinal);
 
 // EAX contains P and EDX Count
 
@@ -1375,7 +1389,7 @@ begin
       for I := 0 to Height - 1 do
       begin
         Read(Scanline[I]^, FileHeader.Width);
-                                                        
+
         Progress(Self, psRunning, MulDiv(I, 100, Height), True, FProgressRect, '');
         OffsetRect(FProgressRect, 0, 1);
       end;
@@ -1444,7 +1458,7 @@ type
     PixMin,                  // Minimum pixel value
     PixMax: Cardinal;        // Maximum pixel value
     Dummy: Cardinal;         // ignored
-    ImageName: array[0..79] of Char;
+    ImageName: array[0..79] of AnsiChar;
     ColorMap: Integer;       // Colormap ID
                              //  0 - default, almost all images are stored with this flag
                              //  1 - dithered, only one channel of data (pixels are packed), obsolete
@@ -2598,7 +2612,7 @@ procedure TTIFFGraphic.LoadFromStream(Stream: TStream);
 var
   IFDCount: Word;
   Buffer: Pointer;
-  Run: PChar;
+  Run: PByte;
   Pixels,
   EncodedData,
   DataPointerCopy: Pointer;
@@ -2827,14 +2841,14 @@ begin
 
           Run := Buffer;
           // go for each line (row) in the strip
-          while (CurrentRow < Height) and ((Run - Buffer) < Integer(StripSize)) do
+          while (CurrentRow < Height) and ((integer(Run) - integer(Buffer)) < Integer(StripSize)) do
           begin
             Pixels := ScanLine[CurrentRow];
             // depredict strip if necessary
             if Assigned(Deprediction) then Deprediction(Run, Width - 1);
             // any color conversion comes last
             ColorManager.ConvertRow([Run], Pixels, Width, $FF);
-            Inc(PChar(Run), BytesPerLine);
+            Inc(Run, BytesPerLine);
             Inc(CurrentRow);
 
             Progress(Self, psRunning, MulDiv(CurrentRow, 100, Height), True, FProgressRect, '');
@@ -3278,7 +3292,7 @@ procedure TTargaGraphic.LoadFromStream(Stream: TStream);
 
 var
   Run,
-  RLEBuffer: PChar;
+  RLEBuffer: PByte;
   I: Integer;
   LineSize: Integer;
   LineBuffer: Pointer;
@@ -3814,9 +3828,9 @@ begin
           for I := 0 to Height - 1 do
           begin
             Plane1 := Run;
-            PChar(Plane2) := PChar(Run) + Increment div 4;
-            PChar(Plane3) := PChar(Run) + 2 * (Increment div 4);
-            PChar(Plane4) := PChar(Run) + 3 * (Increment div 4);
+            Plane2 := @Run[Increment div 4];
+            Plane3 := @Run[2 * (Increment div 4)];
+            Plane4 := @Run[3 * (Increment div 4)];
 
             Line := ScanLine[I];
             // number of bytes to write
@@ -3863,7 +3877,7 @@ begin
               end;
             end;
             Inc(Run, Increment);
-            
+
             Progress(Self, psRunning, MulDiv(I, 100, Height), True, FProgressRect, '');
             OffsetRect(FProgressRect, 0, 1);
           end;
@@ -3876,8 +3890,8 @@ begin
             begin
               Line := ScanLine[I];
               Plane1 := Run;
-              PChar(Plane2) := PChar(Run) + Increment div 3;
-              PChar(Plane3) := PChar(Run) + 2 * (Increment div 3);
+              Plane2 := @Run[Increment div 3];
+              Plane3 := @Run[2 * (Increment div 3)];
               ColorManager.ConvertRow([Plane1, Plane2, Plane3], Line, Width, $FF);
               Inc(Run, Increment);
 
@@ -3973,8 +3987,8 @@ begin
     begin
       SetLength(Header, $803);
       ReadBuffer(Header[0], Length(Header));
-      Result := (StrLComp(@Header[0], 'PCD_OPA', 7) = 0) or
-                (StrLComp(@Header[$800], 'PCD', 3) = 0);
+      Result := (StrLComp(PAnsiChar(@Header[0]), 'PCD_OPA', 7) = 0) or
+                (StrLComp(PAnsiChar(@Header[$800]), 'PCD', 3) = 0);
     end;
     Position := LastPosition;
   end;
@@ -3985,8 +3999,8 @@ end;
 procedure TPCDGraphic.LoadFromStream(Stream: TStream);
 
 var
-  C1, C2, YY: PChar;
-  YCbCrData: array[0..2] of PChar;
+  C1, C2, YY: PByte;
+  YCbCrData: array[0..2] of PByte;
   SourceDummy,
   DestDummy: Pointer;
 
@@ -4005,7 +4019,7 @@ var
 begin
   Handle := 0;
   FBasePosition := Stream.Position;
-  ImageIndex := 2; // third image is Base resolution
+  ImageIndex := TPCDGraphic.DefaultResolution; // third image is Base resolution //@@@ SZ
 
   if ReadImageProperties(Stream, ImageIndex) then
   begin
@@ -4014,7 +4028,7 @@ begin
       Position := FBasePosition;
 
       FProgressRect := Rect(0, 0, Width, 1);
-      Progress(Self, psStarting, 0, False, FProgressRect, gesPreparing); 
+      Progress(Self, psStarting, 0, False, FProgressRect, gesPreparing);
       Columns := 192 shl Min(ImageIndex, 2);
       Rows := 128 shl Min(ImageIndex, 2);
 
@@ -4029,7 +4043,7 @@ begin
         GetMem(YCbCrData[1], Width * Height);
         GetMem(YCbCrData[2], Width * Height);
 
-        // advance to image data 
+        // advance to image data
         Offset := 96;
         if Overview then Offset := 5
                     else
@@ -4151,7 +4165,7 @@ begin
             Self.Width := Height;
             Self.Height := Width;
             FProgressRect.Right := Height;
-            
+
             SetLength(ScanLines, Width);
             for Y := 0 to Width - 1 do ScanLines[Y] := ScanLine[Y];
             GetMem(LineBuffer, 3 * Width);
@@ -4166,7 +4180,7 @@ begin
 
           try
             case Rotate of
-              1: // rotate -90° 
+              1: // rotate -90°
                 begin
                   for Y := 0 to Height - 1 do
                   begin
@@ -4178,7 +4192,7 @@ begin
                     Run := LineBuffer;
                     for X := 0 to Width - 1 do
                     begin
-                      PChar(Line) := PChar(ScanLines[Width - X - 1]) + Y * 3;
+                      PByte(Line) := @(PByte(ScanLines[Width - X - 1])[Y * 3]);
                       Line^ := Run^;
                       Inc(Run);
                     end;
@@ -4199,7 +4213,7 @@ begin
                     Run := LineBuffer;
                     for X := 0 to Width - 1 do
                     begin
-                      PChar(Line) := PChar(ScanLines[X]) + (Height - Y - 1) * 3;
+                      PByte(Line) := @(PByte(ScanLines[X])[(Height - Y - 1) * 3]);
                       Line^ := Run^;
                       Inc(Run);
                     end;
@@ -4243,7 +4257,7 @@ function TPCDGraphic.ReadImageProperties(Stream: TStream; ImageIndex: Cardinal):
 var
   Header: array of Byte;
   Temp: Cardinal;
-  
+
 begin
   if ImageIndex > 5 then ImageIndex := 5;
   Result := inherited ReadImageProperties(Stream, ImageIndex) and
@@ -4253,9 +4267,9 @@ begin
     SetLength(Header, 3 * $800);
     ReadBuffer(Header[0], Length(Header));
     try
-      Overview := StrLComp(@Header[0], 'PCD_OPA', 7) = 0;
+      Overview := StrLComp(PAnsiChar(@Header[0]), 'PCD_OPA', 7) = 0;
       // determine if image is a PhotoCD image
-      if Overview or (StrLComp(@Header[$800], 'PCD', 3) = 0) then
+      if Overview or (StrLComp(PAnsiChar(@Header[$800]), 'PCD', 3) = 0) then
       begin
         Rotate := Header[$0E02] and 3;
 
@@ -4294,7 +4308,7 @@ end;
 class function TPPMGraphic.CanLoad(Stream: TStream): Boolean;
 
 var
-  Buffer: array[0..9] of Char;
+  Buffer: array[0..9] of Byte;
   LastPosition: Cardinal;
 
 begin
@@ -4305,7 +4319,7 @@ begin
     if Result then
     begin
       ReadBuffer(Buffer, SizeOf(Buffer));
-      Result := (Buffer[0] = 'P') and (Buffer[1] in ['1'..'6']);
+      Result := (Buffer[0] = ord('P')) and (Buffer[1] in [ord('1')..ord('6')]);
     end;
     Position := LastPosition;
   end;
@@ -4313,7 +4327,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function TPPMGraphic.CurrentChar: Char;
+function TPPMGraphic.CurrentChar: AnsiChar;
 
 begin
   if FIndex = SizeOf(FBuffer) then Result := #0
@@ -4322,7 +4336,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function TPPMGraphic.GetChar: Char;
+function TPPMGraphic.GetChar: AnsiChar;
 
 // buffered I/O
 
@@ -4344,7 +4358,7 @@ function TPPMGraphic.GetNumber: Cardinal;
 // reads the next number from the stream (and skips all characters which are not in 0..9)
 
 var
-  Ch: Char;
+  Ch: AnsiChar;
 
 begin
   // skip all non-numbers
@@ -4368,12 +4382,12 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function TPPMGraphic.ReadLine: String;
+function TPPMGraphic.ReadLine: AnsiString;
 
 // reads one text line from stream and skips comments
 
 var
-  Ch: Char;
+  Ch: AnsiChar;
   I: Integer;
 
 begin
@@ -4387,7 +4401,7 @@ begin
   if (Ch = #13) and (CurrentChar = #10) then GetChar;
 
   // delete comments
-  I := Pos('#', Result);
+  I := Pos(AnsiString('#'), Result);
   if I > 0 then Delete(Result, I, MaxInt);
 end;
 
@@ -4396,7 +4410,7 @@ end;
 procedure TPPMGraphic.LoadFromStream(Stream: TStream);
 
 var
-  Buffer: String;
+  Buffer: AnsiString;
   Line24: PBGR;
   Line8: PByte;
   X, Y: Integer;
@@ -4420,7 +4434,7 @@ begin
       with Stream do
       begin
         Buffer := ReadLine;
-        case StrToInt(Buffer[2]) of
+        case StrToInt(String(Buffer[2])) of
           1: // PBM ASCII format (black & white)
             begin
               PixelFormat := pf1Bit;
@@ -4588,7 +4602,7 @@ end;
 function TPPMGraphic.ReadImageProperties(Stream: TStream; ImageIndex: Cardinal): Boolean;
 
 var
-  Buffer: String;
+  Buffer: AnsiString;
 
 begin
   Result := inherited ReadImageProperties(Stream, ImageIndex);
@@ -4602,7 +4616,7 @@ begin
 
     if Buffer[1] = 'P' then
     begin
-      case StrToInt(Buffer[2]) of
+      case StrToInt(String(Buffer[2])) of
         1: // PBM ASCII format (black & white)
           begin
             Width := GetNumber;
@@ -4794,7 +4808,7 @@ type
   // image file's header, funny...
   PHaloPaletteHeader = ^THaloPaletteHeader;
   THaloPaletteHeader = packed record
-    ID: array[0..1] of Char;  // should be 'AH'
+    ID: array[0..1] of AnsiChar;  // should be 'AH'
     Version,
     Size: Word;
     FileType,
@@ -4805,7 +4819,7 @@ type
     MaxRed,
     MaxGreen,
     MaxBlue: Word; // colors = MaxIndex + 1
-    Signature: array[0..7] of Char; // 'Dr. Halo'
+    Signature: array[0..7] of AnsiChar; // 'Dr. Halo'
     Filler: array[0..11] of Byte;
   end;
 
@@ -4897,8 +4911,8 @@ const
   
 type
   TGIFHeader = packed record
-    Signature: array[0..2] of Char; // magic ID 'GIF'
-    Version: array[0..2] of Char;   // '87a' or '89a' 
+    Signature: array[0..2] of AnsiChar; // magic ID 'GIF'
+    Version: array[0..2] of AnsiChar;   // '87a' or '89a' 
   end;
 
   TLogicalScreenDescriptor = packed record
@@ -5280,31 +5294,31 @@ type
     Num_matte,                         // number of matte channels (usually only 1)
     Num_aux,                           // number of auxiliary channels, usually 0
     Revision: SmallInt;                // always $FFFE
-    Gamma: array[0..15] of Char;       // gamma single value used when writing the image
-    Red_pri: array[0..23] of Char;     // used chromaticity for red channel (typical format: "%7.4f %7.4f")
-    Green_pri: array[0..23] of Char;   // used chromaticity for green channel
-    Blue_pri: array[0..23] of Char;    // used chromaticity for blue channel
-    White_pt: array[0..23] of Char;    // used chromaticity for white point
+    Gamma: array[0..15] of AnsiChar;   // gamma single value used when writing the image
+    Red_pri: array[0..23] of AnsiChar; // used chromaticity for red channel (typical format: "%7.4f %7.4f")
+    Green_pri: array[0..23] of AnsiChar; // used chromaticity for green channel
+    Blue_pri: array[0..23] of AnsiChar;// used chromaticity for blue channel
+    White_pt: array[0..23] of AnsiChar;// used chromaticity for white point
     Job_num: Integer;                  // rendering speciifc
-    Name: array[0..127] of Char;       // original file name
-    Desc: array[0..127] of Char;       // a file description
-    ProgramName: array[0..63] of Char; // name of program which created the image
-    Machine: array[0..31] of Char;     // name of computer on which the image was rendered
-    User: array[0..31] of Char;        // user who ran the creation program of the image
-    Date: array[0..19] of Char;        // creation data of image (ex: Sep 30 12:29 1993)
-    Aspect: array[0..23] of Char;      // aspect format of the file (external resource)
-    Aspect_ratio: array[0..7] of Char; // float number Width /Height
-    Chan: array[0..31] of Char;        // color space (can be: rgb, xyz, sampled or raw)
+    Name: array[0..127] of AnsiChar;   // original file name
+    Desc: array[0..127] of AnsiChar;   // a file description
+    ProgramName: array[0..63] of AnsiChar; // name of program which created the image
+    Machine: array[0..31] of AnsiChar; // name of computer on which the image was rendered
+    User: array[0..31] of AnsiChar;    // user who ran the creation program of the image
+    Date: array[0..19] of AnsiChar;    // creation data of image (ex: Sep 30 12:29 1993)
+    Aspect: array[0..23] of AnsiChar;  // aspect format of the file (external resource)
+    Aspect_ratio: array[0..7] of AnsiChar; // float number Width /Height
+    Chan: array[0..31] of AnsiChar;    // color space (can be: rgb, xyz, sampled or raw)
     Field: SmallInt;                   // 0 - non-field rendered data, 1 - field rendered data
-    Time: array[0..11] of Char;        // time needed to create the image (used when rendering)
-    Filter: array[0..31] of Char;      // filter name to post-process image data
+    Time: array[0..11] of AnsiChar;    // time needed to create the image (used when rendering)
+    Filter: array[0..31] of AnsiChar;  // filter name to post-process image data
     Chan_bits,                         // bits per sample
     Matte_type,                        // type of matte channel (see aux_type)
     Matte_bits,                        // precision of a pixel's matte channel (1..32)
     Aux_type,                          // type of aux channel (0 - integer data; 4 - single (float) data
     Aux_bits: SmallInt;                // bits precision of the pixel's aux channel (1..32 bits)
-    Aux: array[0..31] of Char;         // auxiliary channel as either range or depth
-    Space: array[0..35] of Char;       // unused
+    Aux: array[0..31] of AnsiChar;     // auxiliary channel as either range or depth
+    Space: array[0..35] of Byte;       // unused
     Next: Integer;                     // offset for next header if multi-frame image
   end;
   
@@ -5325,8 +5339,8 @@ begin
     begin
       ReadBuffer(Header, SizeOf(Header));
       Result := (Swap(Word(Header.Revision)) = $FFFE) and
-                ((LowerCase(Header.Chan) = 'rgb') or
-                 (LowerCase(Header.Chan) = 'xyz'));
+                ((LowerCase(String(Header.Chan)) = 'rgb') or
+                 (LowerCase(String(Header.Chan)) = 'xyz'));
     end;
     Position := LastPosition;
   end;
@@ -5485,16 +5499,16 @@ begin
     BitsPerSample := Header.Chan_bits;
     BitsPerPixel := SamplesPerPixel * BitsPerSample;
 
-    if LowerCase(Header.Chan) = 'rgb' then
+    if LowerCase(String(Header.Chan)) = 'rgb' then
     begin
       if Header.num_matte > 0 then ColorScheme := csRGBA
                               else ColorScheme := csRGB;
     end
     else
-      if LowerCase(Header.Chan) = 'xyz' then Exit;
+      if LowerCase(String(Header.Chan)) = 'xyz' then Exit;
 
     try
-      FileGamma := StrToFloat(Header.Gamma);
+      FileGamma := StrToFloat(String(Header.Gamma));
     except
     end;
 
@@ -5559,7 +5573,7 @@ const
 
 type
   TPSDHeader = packed record
-    Signature: array[0..3] of Char; // always '8BPS'
+    Signature: array[0..3] of AnsiChar; // always '8BPS'
     Version: Word;                  // always 1
     Reserved: array[0..5] of Byte;  // reserved, always 0
     Channels: Word;                 // 1..24, number of channels in the image (including alpha)
@@ -5585,7 +5599,7 @@ begin
     if Result then
     begin
       ReadBuffer(Header, SizeOf(Header));
-      Result := (UpperCase(Header.Signature) = '8BPS') and
+      Result := (UpperCase(String(Header.Signature)) = '8BPS') and
                 (Swap(Header.Version) = 1);
     end;
     Position := LastPosition;
@@ -6164,14 +6178,14 @@ type
   // These block header structures are here for informational purposes only because the data of those
   // headers is read member by member to generalize code for the different file versions
   TPSPBlockHeader3 = packed record          // block header file version 3
-    HeaderIdentifier: array[0..3] of Char;  // i.e. "~BK" followed by a zero byte
+    HeaderIdentifier: array[0..3] of AnsiChar;  // i.e. "~BK" followed by a zero byte
     BlockIdentifier: Word;                  // one of the block identifiers
     InitialChunkLength,                     // length of the first sub chunk header or similar
     TotalBlockLength: Cardinal;             // length of this block excluding this header
   end;
 
   TPSPBlockHeader4 = packed record          // block header file version 4
-    HeaderIdentifier: array[0..3] of Char;  // i.e. "~BK" followed by a zero byte
+    HeaderIdentifier: array[0..3] of AnsiChar;  // i.e. "~BK" followed by a zero byte
     BlockIdentifier: Word;                  // one of the block identifiers
     TotalBlockLength: Cardinal;             // length of this block excluding this header
   end;
@@ -6193,7 +6207,7 @@ type
   // There is no sense to define this record type here.
 
   TPSPFileHeader = packed record
-    Signature: array[0..31] of Char;        // the string "Paint Shop Pro Image File\n\x1a", padded with zeroes
+    Signature: array[0..31] of AnsiChar;        // the string "Paint Shop Pro Image File\n\x1a", padded with zeroes
     MajorVersion,
     MinorVersion: Word;                
   end;
@@ -6217,7 +6231,7 @@ type
   end;
 
   TPSPLayerInfoChunk = packed record
-    //LayerName: array[0..255] of Char;     // Name of layer (in ASCII text). Has been replaced in version 4
+    //LayerName: array[0..255] of AnsiChar;     // Name of layer (in ASCII text). Has been replaced in version 4
                                             // by a Delphi like short string (length word and variable length string)
     LayerType: Byte;                        // Type of layer.
     ImageRectangle,                         // Rectangle defining image border.
@@ -6283,7 +6297,7 @@ var
   Image: TPSPImageAttributes;
   // to use the code below for file 3 and 4 I read the parts of the block header
   // separately instead as a structure
-  HeaderIdentifier: array[0..3] of Char;  // i.e. "~BK" followed by a zero byte
+  HeaderIdentifier: array[0..3] of AnsiChar;  // i.e. "~BK" followed by a zero byte
   BlockIdentifier: Word;                  // one of the block identifiers
   InitialChunkLength,                     // length of the first sub chunk header or similar
   TotalBlockLength: Cardinal;             // length of this block excluding this header
@@ -6292,7 +6306,7 @@ var
   ChunkSize: Cardinal;
   LayerInfo: TPSPLayerInfoChunk;
   ChannelInfo: TPSPChannelInfoChunk;
-  LayerName: String;
+  LayerName: AnsiString;
   NameLength: Word;
   NextLayerPosition,
   NextMainBlock: Integer;
@@ -6630,7 +6644,7 @@ var
   Image: TPSPImageAttributes;
   // to use the code below for file 3 and 4 I read the parts of the block header
   // separately instead as a structure
-  HeaderIdentifier: array[0..3] of Char;  // i.e. "~BK" followed by a zero byte
+  HeaderIdentifier: array[0..3] of AnsiChar;  // i.e. "~BK" followed by a zero byte
   BlockIdentifier: Word;                  // one of the block identifiers
   InitialChunkLength,                     // length of the first sub chunk header or similar
   TotalBlockLength: Cardinal;             // length of this block excluding this header
@@ -6726,13 +6740,13 @@ const
   PNGMagic: array[0..7] of Byte = (137, 80, 78, 71, 13, 10, 26, 10);
 
   // recognized and handled chunk types
-  IHDR = 'IHDR';
-  IDAT = 'IDAT';
-  IEND = 'IEND';
-  PLTE = 'PLTE';
-  gAMA = 'gAMA';
-  tRNS = 'tRNS';
-  bKGD = 'bKGD';
+  IHDR: TChunkType = 'IHDR';
+  IDAT: TChunkType = 'IDAT';
+  IEND: TChunkType = 'IEND';
+  PLTE: TChunkType = 'PLTE';
+  gAMA: TChunkType = 'gAMA';
+  tRNS: TChunkType = 'tRNS';
+  bKGD: TChunkType = 'bKGD';
 
   CHUNKMASK = $20; // used to check bit 5 in chunk types
 
@@ -6792,9 +6806,8 @@ function TPNGGraphic.IsChunk(ChunkType: TChunkType): Boolean;
 
 const
   Mask = not $20202020;
-
 begin
-  Result := (Cardinal(FHeader.ChunkType) and Mask) = (Cardinal(ChunkType) and Mask);
+  Result := (FHeader.Mask and Mask) = (PDWORD(@ChunkType)^ and Mask);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -7218,7 +7231,7 @@ const
 var
   Row: Integer;
   TargetBPP: Integer;
-  RowBuffer: array[Boolean] of PChar; // I use PChar here instead of simple pointer to ease pointer math below
+  RowBuffer: array[Boolean] of PAnsiChar; // I use PChar here instead of simple pointer to ease pointer math below
   EvenRow: Boolean; // distincts between the two rows we need to hold for filtering
   Pass: Integer;
   BytesPerRow,
@@ -7729,83 +7742,88 @@ begin
   if Formats = [] then Formats := [ftAnimation..ftVector];
   DL := TStringList.Create;
   DL.Sorted := SortType in [fstDescription, fstBoth];
+//  dl.Duplicates := dupAccept;
   EL := TStringList.Create;
   EL.Sorted := SortType in [fstExtension, fstBoth];
 
   // this string list is used to hold the (possibly sorted) list of all allowed extensions
   All := TStringList.Create;
   All.Sorted := SortType in [fstExtension, fstBoth];
+  try
 
-  // using an adjusted format string makes the code below easier for different options
-  DescriptionFormat := '%s';
-  if foIncludeExtension in Options then DescriptionFormat := DescriptionFormat + '%s';
+    // using an adjusted format string makes the code below easier for different options
+    DescriptionFormat := '%s';
+    if foIncludeExtension in Options then DescriptionFormat := DescriptionFormat + '%s';
 
-  if foCompact in Options then
-  begin
-    // all extension for a particular image class on one line
-    for I := 0 to FClassList.Count - 1 do
+    if foCompact in Options then
     begin
-      ClassEntry := FClassList[I];
-      if (GraphicClass = nil) or (GraphicClass = ClassEntry.GraphicClass) then
+      // all extension for a particular image class on one line
+      for I := 0 to FClassList.Count - 1 do
       begin
-        EL.Clear;
-        // collect allowed extensions for the current graphic class,
-        // this will automatically sort the entries if wanted
-        for J := 0 to FExtensionList.Count - 1 do
+        ClassEntry := FClassList[I];
+        if (GraphicClass = nil) or (GraphicClass = ClassEntry.GraphicClass) then
         begin
-          ExtEntry := FExtensionList[J];
-          if (ExtEntry.ClassReference = ClassEntry) and ((ExtEntry.FormatTypes * Formats) <> []) then
-            EL.Add(ExtEntry.Extension);
+          EL.Clear;
+          // collect allowed extensions for the current graphic class,
+          // this will automatically sort the entries if wanted
+          for J := 0 to FExtensionList.Count - 1 do
+          begin
+            ExtEntry := FExtensionList[J];
+            if (ExtEntry.ClassReference = ClassEntry) and ((ExtEntry.FormatTypes * Formats) <> []) then
+              EL.Add(ExtEntry.Extension);
+          end;
+
+          // build the extension list and an description entry
+          if foIncludeAll in Options then All.AddStrings(EL);
+          S := '';
+          for J := 0 to EL.Count - 1 do S := S + '*.' + EL[J] + '; ';
+          // remove last semicolon and space
+          SetLength(S, Length(S) - 2);
+          if S <> '' then DL.AddObject(ClassEntry.Description, Pointer(StrNew(PChar(S))));
         end;
-
-        // build the extension list and an description entry
-        if foIncludeAll in Options then All.AddStrings(EL);
-        S := '';
-        for J := 0 to EL.Count - 1 do S := S + '*.' + EL[J] + '; ';
-        // remove last semicolon and space
-        SetLength(S, Length(S) - 2);
-        if S <> '' then DL.AddObject(ClassEntry.Description, Pointer(StrNew(PChar(S))));
       end;
-    end;
-  end
-  else
-  begin
-    // list each extension separately
-    for I := 0 to FExtensionList.Count - 1 do
+    end
+    else
     begin
-      ExtEntry := FExtensionList[I];
-      if ((GraphicClass = nil) or (ExtEntry.ClassReference.GraphicClass = GraphicClass)) and
-         ((ExtEntry.FormatTypes * Formats) <> []) then
+      // list each extension separately
+      for I := 0 to FExtensionList.Count - 1 do
       begin
-        S := ExtEntry.Description;
-        if S = '' then S := ExtEntry.ClassReference.Description;
-        DL.AddObject(S, Pointer(StrNew(PChar('*.' + ExtEntry.Extension))));
-        if foIncludeAll in Options then All.Add(ExtEntry.Extension);
+        ExtEntry := FExtensionList[I];
+        if ((GraphicClass = nil) or (ExtEntry.ClassReference.GraphicClass = GraphicClass)) and
+           ((ExtEntry.FormatTypes * Formats) <> []) then
+        begin
+          S := ExtEntry.Description;
+          if S = '' then S := ExtEntry.ClassReference.Description;
+          if DL.IndexOf(S) = -1 then  //@@@ SZ Patched to avoid Memory Leak
+            DL.AddObject(S, Pointer(StrNew(PChar('*.' + ExtEntry.Extension))));
+          if foIncludeAll in Options then All.Add(ExtEntry.Extension);
+        end;
       end;
     end;
-  end;
 
-  // build final filter string out of the collected sub strings
-  if (foIncludeAll in Options) and (All.Count > 0) then
-  begin
-    // first include the general entry if wanted (this entry is never taken into sort order
-    S := '';
-    for J := 0 to All.Count - 1 do S := S + '*.' + All[J] + '; ';
-    SetLength(S, Length(S) - 2);
-    Result := gesAllImages + '|' + S + '|';
-  end;
+    // build final filter string out of the collected sub strings
+    if (foIncludeAll in Options) and (All.Count > 0) then
+    begin
+      // first include the general entry if wanted (this entry is never taken into sort order
+      S := '';
+      for J := 0 to All.Count - 1 do S := S + '*.' + All[J] + '; ';
+      SetLength(S, Length(S) - 2);
+      Result := gesAllImages + '|' + S + '|';
+    end;
 
-  for I := 0 to DL.Count - 1 do
-  begin
-    S := PChar(DL.Objects[I]);
-    StrDispose(PChar(DL.Objects[I]));
-    Result := Result + Format(DescriptionFormat, [DL[I], ' (' + S + ')']) + '|' + S + '|';
+    for I := 0 to DL.Count - 1 do
+    begin
+      S := PChar(DL.Objects[I]);
+      StrDispose(PChar(DL.Objects[I]));
+      Result := Result + Format(DescriptionFormat, [DL[I], ' (' + S + ')']) + '|' + S + '|';
+    end;
+    // remove last separator in string
+    if Length(Result) > 0 then SetLength(Result, Length(Result) - 1);
+  finally
+    All.Free;
+    EL.Free;
+    DL.Free;
   end;
-  // remove last separator in string
-  if Length(Result) > 0 then SetLength(Result, Length(Result) - 1);
-  All.Free;
-  EL.Free;
-  DL.Free;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -8101,6 +8119,7 @@ initialization
     {$endif}
 
     {$ifdef PCDGraphic}
+    TPCDGraphic.DefaultResolution := 2;
     RegisterFileFormat('pcd', gesKodakPhotoCD, '', [ftRaster], False, True, TPCDGraphic);
     {$endif}
 
