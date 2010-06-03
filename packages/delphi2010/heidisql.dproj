@@ -23,6 +23,7 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_UnitSearchPath>..\..\components\graphicex;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<BRCC_OutputDir>..\..\res</BRCC_OutputDir>
 			<DCC_DependencyCheckOutputName>heidisql.exe</DCC_DependencyCheckOutputName>
 		</PropertyGroup>
