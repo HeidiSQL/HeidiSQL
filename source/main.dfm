@@ -339,13 +339,14 @@ object MainForm: TMainForm
     BevelOuter = bvNone
     TabOrder = 0
     OnDblClick = panelTopDblClick
-    object Splitter1: TSplitter
+    object spltDBtree: TSplitter
       Left = 169
       Top = 0
       Width = 4
       Height = 357
       Cursor = crSizeWE
       ResizeStyle = rsUpdate
+      OnMoved = spltPreviewMoved
     end
     object pnlLeft: TPanel
       Left = 0
@@ -355,11 +356,22 @@ object MainForm: TMainForm
       Align = alLeft
       BevelOuter = bvNone
       TabOrder = 0
+      object spltPreview: TSplitter
+        Left = 0
+        Top = 253
+        Width = 169
+        Height = 4
+        Cursor = crSizeNS
+        Align = alBottom
+        ResizeStyle = rsUpdate
+        Visible = False
+        OnMoved = spltPreviewMoved
+      end
       object DBtree: TVirtualStringTree
         Left = 0
         Top = 0
         Width = 169
-        Height = 336
+        Height = 253
         Align = alClient
         Constraints.MinWidth = 40
         DragMode = dmAutomatic
@@ -410,6 +422,78 @@ object MainForm: TMainForm
             Width = 55
             WideText = 'Size'
           end>
+      end
+      object pnlPreview: TPanel
+        Left = 0
+        Top = 257
+        Width = 169
+        Height = 100
+        Align = alBottom
+        BevelOuter = bvNone
+        TabOrder = 1
+        Visible = False
+        DesignSize = (
+          169
+          100)
+        object imgPreview: TImage
+          AlignWithMargins = True
+          Left = 0
+          Top = 25
+          Width = 169
+          Height = 75
+          Margins.Left = 0
+          Margins.Top = 25
+          Margins.Right = 0
+          Margins.Bottom = 0
+          Align = alClient
+          Center = True
+          Proportional = True
+          Stretch = True
+        end
+        object lblPreviewTitle: TLabel
+          Left = 3
+          Top = 0
+          Width = 85
+          Height = 25
+          Anchors = [akLeft, akTop, akRight]
+          AutoSize = False
+          Caption = 'Preview ...'
+          EllipsisPosition = epEndEllipsis
+          ParentShowHint = False
+          ShowAccelChar = False
+          ShowHint = True
+          Layout = tlCenter
+        end
+        object ToolBarPreview: TToolBar
+          Left = 100
+          Top = 1
+          Width = 70
+          Height = 23
+          Align = alNone
+          Anchors = [akTop, akRight]
+          Caption = 'ToolBarPreview'
+          Images = ImageListMain
+          TabOrder = 0
+          Wrapable = False
+          object btnPreviewCopy: TToolButton
+            Left = 0
+            Top = 0
+            Action = actCopy
+          end
+          object btnPreviewSaveToFile: TToolButton
+            Left = 23
+            Top = 0
+            Action = actDataSaveBlobToFile
+          end
+          object btnPreviewClose: TToolButton
+            Left = 46
+            Top = 0
+            Hint = 'Close preview'
+            Caption = 'btnPreviewClose'
+            ImageIndex = 26
+            OnClick = actDataPreviewExecute
+          end
+        end
       end
     end
     object pnlRight: TPanel
@@ -1581,7 +1665,7 @@ object MainForm: TMainForm
     AutoHotkeys = maManual
     Images = ImageListMain
     Left = 40
-    Top = 64
+    Top = 32
     object File1: TMenuItem
       Tag = 17
       Caption = '&File'
@@ -1812,7 +1896,7 @@ object MainForm: TMainForm
   object ActionList1: TActionList
     Images = ImageListMain
     Left = 8
-    Top = 64
+    Top = 32
     object actSessionManager: TAction
       Category = 'File'
       Caption = 'Session manager'
@@ -1983,13 +2067,13 @@ object MainForm: TMainForm
       ShortCut = 24696
       OnExecute = actExecuteQueryExecute
     end
-    object actImageView: TAction
-      Category = 'Export/Import'
-      Caption = 'Image view'
-      Hint = 'View image contents'
+    object actDataPreview: TAction
+      Category = 'Data'
+      Caption = 'Image preview'
+      Hint = 'Preview image contents from BLOB cells'
       ImageIndex = 152
-      OnExecute = actImageViewExecute
-      OnUpdate = actImageViewUpdate
+      OnExecute = actDataPreviewExecute
+      OnUpdate = actDataPreviewUpdate
     end
     object actInsertFiles: TAction
       Category = 'Export/Import'
@@ -2519,6 +2603,13 @@ object MainForm: TMainForm
       ShortCut = 24654
       OnExecute = actDataSetNullExecute
     end
+    object actDataSaveBlobToFile: TAction
+      Category = 'Data'
+      Caption = 'Save BLOB to file ...'
+      Hint = 'Save contents to local file ...'
+      ImageIndex = 10
+      OnExecute = actDataSaveBlobToFileExecute
+    end
   end
   object SaveDialog2: TSaveDialog
     DefaultExt = 'reg'
@@ -2526,27 +2617,27 @@ object MainForm: TMainForm
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Title = 'Export settings from registry...'
     Left = 8
-    Top = 200
+    Top = 128
   end
   object OpenDialog2: TOpenDialog
     DefaultExt = 'reg'
     Filter = 'Registry-files (*.reg)|*.reg|All files (*.*)|*.*'
     Title = 'Import settings to registry...'
     Left = 72
-    Top = 232
+    Top = 160
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
     Images = ImageListMain
     OnPopup = menuConnectionsPopup
     Left = 72
-    Top = 64
+    Top = 32
   end
   object ImageListMain: TImageList
     ColorDepth = cd32Bit
     DrawingStyle = dsTransparent
     Left = 104
-    Top = 232
+    Top = 160
     Bitmap = {
       494C010199009C00040010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000007002000001002000000000000070
@@ -7706,13 +7797,13 @@ object MainForm: TMainForm
   object PopupQueryLoad: TPopupMenu
     Images = ImageListMain
     Left = 104
-    Top = 64
+    Top = 32
   end
   object popupDB: TPopupMenu
     Images = ImageListMain
     OnPopup = popupDBPopup
     Left = 136
-    Top = 64
+    Top = 32
     object menuEditObject: TMenuItem
       Action = actEditObject
       ShortCut = 32781
@@ -7797,7 +7888,7 @@ object MainForm: TMainForm
     Images = ImageListMain
     OnPopup = popupHostPopup
     Left = 9
-    Top = 96
+    Top = 64
     object Copy2: TMenuItem
       Action = actCopy
     end
@@ -7856,25 +7947,25 @@ object MainForm: TMainForm
     VariableAttri.Foreground = clPurple
     SQLDialect = sqlMySQL
     Left = 7
-    Top = 304
+    Top = 232
   end
   object OpenDialog1: TOpenDialog
     DefaultExt = 'sql'
     Filter = 'SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*'
     Left = 7
-    Top = 232
+    Top = 160
   end
   object TimerHostUptime: TTimer
     OnTimer = TimerHostUptimeTimer
     Left = 7
-    Top = 269
+    Top = 197
   end
   object popupDataGrid: TPopupMenu
     AutoHotkeys = maManual
     Images = ImageListMain
     OnPopup = popupDataGridPopup
     Left = 104
-    Top = 96
+    Top = 64
     object Copy3: TMenuItem
       Action = actCopy
     end
@@ -8098,7 +8189,10 @@ object MainForm: TMainForm
       end
     end
     object ViewasHTML1: TMenuItem
-      Action = actImageView
+      Action = actDataPreview
+    end
+    object SaveBLOBtofile1: TMenuItem
+      Action = actDataSaveBlobToFile
     end
     object InsertfilesintoBLOBfields3: TMenuItem
       Action = actInsertFiles
@@ -8117,12 +8211,12 @@ object MainForm: TMainForm
   object TimerConnected: TTimer
     OnTimer = TimerConnectedTimer
     Left = 103
-    Top = 269
+    Top = 197
   end
   object popupSqlLog: TPopupMenu
     Images = ImageListMain
     Left = 8
-    Top = 128
+    Top = 96
     object Copy1: TMenuItem
       Action = actCopy
     end
@@ -8155,7 +8249,7 @@ object MainForm: TMainForm
     Interval = 5000
     OnTimer = actRefreshExecute
     Left = 72
-    Top = 269
+    Top = 197
   end
   object SaveDialogExportData: TSaveDialog
     DefaultExt = 'csv'
@@ -8165,12 +8259,12 @@ object MainForm: TMainForm
     Options = [ofOverwritePrompt, ofEnableSizing]
     OnTypeChange = SaveDialogExportDataTypeChange
     Left = 40
-    Top = 200
+    Top = 128
   end
   object popupListHeader: TVTHeaderPopupMenu
     Images = ImageListMain
     Left = 40
-    Top = 128
+    Top = 96
   end
   object SynCompletionProposal: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
@@ -8205,31 +8299,31 @@ object MainForm: TMainForm
     OnAfterCodeCompletion = SynCompletionProposalAfterCodeCompletion
     OnCodeCompletion = SynCompletionProposalCodeCompletion
     Left = 40
-    Top = 304
+    Top = 232
   end
   object OpenDialogSQLFile: TOpenDialog
     DefaultExt = 'sql'
     Filter = 'SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*'
     Options = [ofHideReadOnly, ofAllowMultiSelect, ofEnableSizing]
     Left = 40
-    Top = 232
+    Top = 160
   end
   object SaveDialogSQLFile: TSaveDialog
     DefaultExt = 'sql'
     Filter = 'SQL-Scripts (*.sql)|*.sql|All Files (*.*)|*.*'
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Left = 72
-    Top = 200
+    Top = 128
   end
   object SynEditSearch1: TSynEditSearch
     Left = 72
-    Top = 304
+    Top = 232
   end
   object popupQuery: TPopupMenu
     Images = ImageListMain
     OnPopup = popupQueryPopup
     Left = 104
-    Top = 128
+    Top = 96
     object MenuRun: TMenuItem
       Action = actExecuteQuery
     end
@@ -8306,7 +8400,7 @@ object MainForm: TMainForm
   object popupQueryHelpers: TPopupMenu
     Images = ImageListMain
     Left = 136
-    Top = 128
+    Top = 96
     object menuInsertSnippetAtCursor: TMenuItem
       Caption = 'Insert at cursor'
       Default = True
@@ -8358,7 +8452,7 @@ object MainForm: TMainForm
   object popupFilter: TPopupMenu
     Images = ImageListMain
     Left = 72
-    Top = 128
+    Top = 96
     object menuFilterCopy: TMenuItem
       Action = actCopy
     end
@@ -8387,7 +8481,7 @@ object MainForm: TMainForm
   object popupRefresh: TPopupMenu
     Images = ImageListMain
     Left = 40
-    Top = 96
+    Top = 64
     object menuAutoRefresh: TMenuItem
       Caption = 'Auto refresh'
       ShortCut = 16500
@@ -8403,7 +8497,7 @@ object MainForm: TMainForm
     Images = ImageListMain
     OnPopup = popupMainTabsPopup
     Left = 72
-    Top = 96
+    Top = 64
     object menuNewQueryTab: TMenuItem
       Action = actNewQueryTab
     end
@@ -8418,11 +8512,11 @@ object MainForm: TMainForm
     Interval = 500
     OnTimer = TimerFilterVTTimer
     Left = 40
-    Top = 269
+    Top = 197
   end
   object SynEditRegexSearch1: TSynEditRegexSearch
     Left = 104
-    Top = 304
+    Top = 232
   end
   object SynExporterHTML1: TSynExporterHTML
     Color = clWindow
@@ -8436,11 +8530,11 @@ object MainForm: TMainForm
     Title = 'Untitled'
     UseBackground = False
     Left = 136
-    Top = 304
+    Top = 232
   end
   object BalloonHint1: TBalloonHint
     Delay = 100
     Left = 104
-    Top = 200
+    Top = 128
   end
 end

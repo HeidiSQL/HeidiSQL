@@ -93,6 +93,8 @@ const
   REGNAME_TOOLBARQUERYTOP = 'ToolBarQueryTop';
   REGNAME_QUERYMEMOHEIGHT = 'querymemoheight';
   REGNAME_DBTREEWIDTH = 'dbtreewidth';
+  REGNAME_PREVIEW_HEIGHT = 'DataPreviewHeight';
+  REGNAME_PREVIEW_ENABLED = 'DataPreviewEnabled';
   REGNAME_SQLOUTHEIGHT = 'sqloutheight';
   REGNAME_QUERYHELPERSWIDTH = 'queryhelperswidth';
   REGNAME_STOPONERRORSINBATCH = 'StopOnErrorsInBatchMode';
