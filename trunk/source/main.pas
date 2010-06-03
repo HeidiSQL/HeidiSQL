@@ -10,7 +10,7 @@ unit Main;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
+  Windows, SysUtils, Classes, GraphicEx, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
@@ -126,7 +126,7 @@ type
     Exportdata1: TMenuItem;
     CopyasXMLdata1: TMenuItem;
     actExecuteCurrentQuery: TAction;
-    actImageView: TAction;
+    actDataPreview: TAction;
     actInsertFiles: TAction;
     InsertfilesintoBLOBfields1: TMenuItem;
     actExportTables: TAction;
@@ -212,7 +212,7 @@ type
     panelTop: TPanel;
     pnlLeft: TPanel;
     DBtree: TVirtualStringTree;
-    Splitter1: TSplitter;
+    spltDBtree: TSplitter;
     PageControlMain: TPageControl;
     tabData: TTabSheet;
     tabDatabase: TTabSheet;
@@ -476,6 +476,16 @@ type
     tabsetQuery: TTabSet;
     BalloonHint1: TBalloonHint;
     actDataSetNull: TAction;
+    pnlPreview: TPanel;
+    spltPreview: TSplitter;
+    imgPreview: TImage;
+    lblPreviewTitle: TLabel;
+    ToolBarPreview: TToolBar;
+    btnPreviewCopy: TToolButton;
+    btnPreviewSaveToFile: TToolButton;
+    btnPreviewClose: TToolButton;
+    actDataSaveBlobToFile: TAction;
+    SaveBLOBtofile1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -502,7 +512,8 @@ type
     procedure actCreateDatabaseExecute(Sender: TObject);
     procedure actDataCancelChangesExecute(Sender: TObject);
     procedure actExportDataExecute(Sender: TObject);
-    procedure actImageViewExecute(Sender: TObject);
+    procedure actDataPreviewExecute(Sender: TObject);
+    procedure UpdatePreviewPanel;
     procedure actInsertFilesExecute(Sender: TObject);
     procedure actDataDeleteExecute(Sender: TObject);
     procedure actDataFirstExecute(Sender: TObject);
@@ -765,7 +776,9 @@ type
     procedure StatusBarMouseLeave(Sender: TObject);
     procedure AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
     procedure AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
-    procedure actImageViewUpdate(Sender: TObject);
+    procedure actDataPreviewUpdate(Sender: TObject);
+    procedure spltPreviewMoved(Sender: TObject);
+    procedure actDataSaveBlobToFileExecute(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -958,7 +971,8 @@ implementation
 
 uses
   About, printlist, mysql_structures, UpdateCheck, uVistaFuncs, runsqlfile,
-  column_selection, data_sorting, grideditlinks;
+  column_selection, data_sorting, grideditlinks, jpeg, GIFImg;
+
 
 
 {$R *.DFM}
@@ -1124,6 +1138,8 @@ begin
   MainReg.WriteInteger( REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height );
   MainReg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width );
   MainReg.WriteInteger( REGNAME_DBTREEWIDTH, pnlLeft.width );
+  MainReg.WriteInteger(REGNAME_PREVIEW_HEIGHT, pnlPreview.Height);
+  MainReg.WriteBool(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked);
   MainReg.WriteInteger( REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height );
   MainReg.WriteBool(REGNAME_FILTERACTIVE, pnlFilterVT.Tag=Integer(True));
   // Convert set to string.
@@ -1288,6 +1304,9 @@ begin
   pnlQueryMemo.Height := GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   pnlQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
   pnlLeft.Width := GetRegValue(REGNAME_DBTREEWIDTH, pnlLeft.Width);
+  pnlPreview.Height := GetRegValue(REGNAME_PREVIEW_HEIGHT, pnlPreview.Height);
+  if GetRegValue(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked) and (not actDataPreview.Checked) then
+    actDataPreviewExecute(actDataPreview);
   SynMemoSQLLog.Height := GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
   // Force status bar position to below log memo 
   StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
@@ -2345,7 +2364,7 @@ begin
 end;
 
 
-procedure TMainForm.actImageViewUpdate(Sender: TObject);
+procedure TMainForm.actDataPreviewUpdate(Sender: TObject);
 var
   Grid: TVirtualStringTree;
 begin
@@ -2357,50 +2376,160 @@ begin
 end;
 
 
-procedure TMainForm.actImageViewExecute(Sender: TObject);
+procedure TMainForm.actDataPreviewExecute(Sender: TObject);
+var
+  MakeVisible: Boolean;
+begin
+  // Show or hide preview area
+  actDataPreview.Checked := not actDataPreview.Checked;
+  MakeVisible := actDataPreview.Checked;
+  pnlPreview.Visible := MakeVisible;
+  spltPreview.Visible := MakeVisible;
+  if MakeVisible then
+    UpdatePreviewPanel;
+end;
+
+
+procedure TMainForm.UpdatePreviewPanel;
 var
   Grid: TVirtualStringTree;
   Results: TMySQLQuery;
   RowNum: PCardinal;
-  Filename, Suffix: String;
+  ImgType: String;
   Content, Header: AnsiString;
-  f: Textfile;
+  ContentStream: TMemoryStream;
+  StrLen: Integer;
+  GraphicClass: TGraphicExGraphicClass;
+  Graphic: TGraphic;
+  AllExtensions: TStringList;
+  i: Integer;
 begin
-  // Open BLOB as image in associated application
+  // Load BLOB contents into preview area
   Grid := ActiveGrid;
+  if not Assigned(Grid) then
+    Exit;
   Results := GridResult(Grid);
   Screen.Cursor := crHourGlass;
-  ShowStatusMsg('Saving contents to file...');
-  AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
-  RowNum := Grid.GetNodeData(Grid.FocusedNode);
-  Results.RecNo := RowNum^;
-  Content := AnsiString(Results.Col(Grid.FocusedColumn));
-  Header := Copy(Content, 1, 50);
-  Suffix := '';
-  if Copy(Header, 7, 4) = 'JFIF' then
-    Suffix := 'jpeg'
-  else if Copy(Header, 2, 3) = 'PNG' then
-    Suffix := 'png'
-  else if Copy(Header, 1, 3) = 'GIF' then
-    Suffix := 'gif'
-  else if Copy(Header, 1, 2) = 'BM' then
-    Suffix := 'bmp'
-  else if Copy(Header, 3, 2) = #42#0 then
-    Suffix := 'tif';
+  try
+    ShowStatusMsg('Loading contents into image viewer ...');
+    lblPreviewTitle.Caption := 'Loading ...';
+    lblPreviewTitle.Repaint;
+    imgPreview.Picture := nil;
+    AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
+    RowNum := Grid.GetNodeData(Grid.FocusedNode);
+    Results.RecNo := RowNum^;
 
-  if Suffix = '' then
-    MessageDlg('Unrecognized image format. Only JPEG, PNG, GIF and BMP are supported.', mtError, [mbOk], 0)
-  else begin
-    Filename := GetTempDir+'\'+APPNAME+'-preview.' + Suffix;
-    AssignFile(f, Filename);
-    Rewrite(f);
-    Write(f, Content);
-    CloseFile(f);
-    ShellExec(Filename);
+    Content := AnsiString(Results.Col(Grid.FocusedColumn));
+    StrLen := Length(Content);
+    ContentStream := TMemoryStream.Create;
+    ContentStream.Write(Content[1], StrLen);
+    ContentStream.Position := 0;
+    GraphicClass := FileFormatList.GraphicFromContent(ContentStream);
+    Graphic := nil;
+    ContentStream.Position := 0;
+    ImgType := 'UnknownType';
+    if GraphicClass <> nil then begin
+      AllExtensions := TStringList.Create;
+      FileFormatList.GetExtensionList(AllExtensions);
+      for i:=0 to AllExtensions.Count-1 do begin
+        if FileFormatList.GraphicFromExtension(AllExtensions[i]) = GraphicClass then begin
+          ImgType := UpperCase(AllExtensions[i]);
+          break;
+        end;
+      end;
+      Graphic := GraphicClass.Create;
+    end else begin
+      Header := Copy(Content, 1, 50);
+      if Copy(Header, 7, 4) = 'JFIF' then begin
+        ImgType := 'JPEG';
+        Graphic := TJPEGImage.Create;
+      end else if Copy(Header, 1, 3) = 'GIF' then begin
+        ImgType := 'GIF';
+        Graphic := TGIFImage.Create;
+      end else if Copy(Header, 1, 2) = 'BM' then begin
+        ImgType := 'BMP';
+        Graphic := TBitmap.Create;
+      end;
+    end;
+    if Assigned(Graphic) then begin
+      try
+        Graphic.LoadFromStream(ContentStream);
+        imgPreview.Picture.Graphic := Graphic;
+        lblPreviewTitle.Caption := ImgType+': '+
+          IntToStr(Graphic.Width)+' x '+IntToStr(Graphic.Height)+' pixels, 100%, '+
+          FormatByteNumber(StrLen);
+        spltPreview.OnMoved(spltPreview);
+      except on E:EInvalidGraphic do
+        lblPreviewTitle.Caption := ImgType+': ' + E.Message;
+      end;
+      FreeAndNil(ContentStream);
+    end else
+      lblPreviewTitle.Caption := 'No image detected.';
+  finally
+    lblPreviewTitle.Hint := lblPreviewTitle.Caption;
+    ShowStatusMsg;
+    Screen.Cursor := crDefault;
   end;
+end;
 
-  ShowStatusMsg;
-  Screen.Cursor := crDefault;
+
+procedure TMainForm.spltPreviewMoved(Sender: TObject);
+var
+  rx: TRegExpr;
+  ZoomFactorW, ZoomFactorH: Integer;
+begin
+  // Do not overscale image so it's never zoomed to more than 100%
+  if (imgPreview.Picture.Graphic = nil) or (imgPreview.Picture.Graphic.Empty) then
+    Exit;
+  imgPreview.Stretch := (imgPreview.Picture.Width > imgPreview.Width) or (imgPreview.Picture.Height > imgPreview.Height);
+  ZoomFactorW := Trunc(Min(imgPreview.Picture.Width, imgPreview.Width) / imgPreview.Picture.Width * 100);
+  ZoomFactorH := Trunc(Min(imgPreview.Picture.Height, imgPreview.Height) / imgPreview.Picture.Height * 100);
+  rx := TRegExpr.Create;
+  rx.Expression := '(\D)(\d+%)';
+  lblPreviewTitle.Caption := rx.Replace(lblPreviewTitle.Caption, '${1}'+IntToStr(Min(ZoomFactorH, ZoomFactorW))+'%', true);
+  lblPreviewTitle.Hint := lblPreviewTitle.Caption;
+  rx.Free;
+end;
+
+
+procedure TMainForm.actDataSaveBlobToFileExecute(Sender: TObject);
+var
+  Grid: TVirtualStringTree;
+  Results: TMySQLQuery;
+  RowNum: PCardinal;
+  Content: AnsiString;
+  FileStream: TFileStream;
+  StrLen: Integer;
+  Dialog: TSaveDialog;
+begin
+  // Save BLOB to local file
+  Grid := ActiveGrid;
+  Results := GridResult(Grid);
+  Dialog := TSaveDialog.Create(Self);
+  Dialog.Filter := 'All files (*.*)|*.*';
+  Dialog.FileName := Results.ColumnOrgNames[Grid.FocusedColumn];
+  if not (Results.DataType(Grid.FocusedColumn).Category in [dtcBinary, dtcSpatial]) then
+    Dialog.FileName := Dialog.FileName + '.txt';
+  if Dialog.Execute then begin
+    Screen.Cursor := crHourGlass;
+    AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
+    RowNum := Grid.GetNodeData(Grid.FocusedNode);
+    Results.RecNo := RowNum^;
+    if Results.DataType(Grid.FocusedColumn).Category in [dtcBinary, dtcSpatial] then
+      Content := AnsiString(Results.Col(Grid.FocusedColumn))
+    else
+      Content := Utf8Encode(Results.Col(Grid.FocusedColumn));
+    StrLen := Length(Content);
+    try
+      FileStream := TFileStream.Create(Dialog.FileName, fmCreate or fmOpenWrite);
+      FileStream.Write(Content[1], StrLen);
+    except on E:Exception do
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+    end;
+    FreeAndNil(FileStream);
+    Screen.Cursor := crDefault;
+  end;
+  Dialog.Free;
 end;
 
 
@@ -4059,6 +4188,8 @@ begin
   actDataLast.Enabled := inDataOrQueryTabNotEmpty and inGrid;
   actDataPostChanges.Enabled := GridHasChanges;
   actDataCancelChanges.Enabled := GridHasChanges;
+  actDataSaveBlobToFile.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
+  actDataPreview.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
 
   // Activate export-options if we're on Data- or Query-tab
   actCopyAsCSV.Enabled := inDataOrQueryTabNotEmpty;
@@ -4066,7 +4197,6 @@ begin
   actCopyAsXML.Enabled := inDataOrQueryTabNotEmpty;
   actCopyAsSQL.Enabled := inDataOrQueryTabNotEmpty;
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
-  actImageView.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actDataSetNull.Enabled := inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
   // Manually invoke OnChange event of tabset to fill helper list with data
@@ -6979,6 +7109,8 @@ procedure TMainForm.AnyGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtual
 begin
   ValidateControls(Sender);
   UpdateLineCharPanel;
+  if pnlPreview.Visible then
+    UpdatePreviewPanel;
 end;
 
 
@@ -7824,6 +7956,7 @@ end;
 procedure TMainForm.actCopyOrCutExecute(Sender: TObject);
 var
   Control: TWinControl;
+  SendingControl: TComponent;
   Edit: TCustomEdit;
   Combo: TCustomComboBox;
   Grid: TVirtualStringTree;
@@ -7831,50 +7964,63 @@ var
   Success, DoCut: Boolean;
   SQLStream: TMemoryStream;
   IsResultGrid: Boolean;
+  ClpFormat: Word;
+  ClpData: THandle;
+  APalette: HPalette;
 begin
   // Copy text from a focused control to clipboard
   Success := False;
   Control := Screen.ActiveControl;
   DoCut := Sender = actCut;
-  if Control is TCustomEdit then begin
-    Edit := TCustomEdit(Control);
-    if Edit.SelLength > 0 then begin
-      if DoCut then Edit.CutToClipboard
-      else Edit.CopyToClipboard;
+  SendingControl := (Sender as TAction).ActionComponent;
+  Screen.Cursor := crHourglass;
+  try
+    if SendingControl = btnPreviewCopy then begin
+      imgPreview.Picture.SaveToClipBoardFormat(ClpFormat, ClpData, APalette);
+      ClipBoard.SetAsHandle(ClpFormat, ClpData);
       Success := True;
+    end else if Control is TCustomEdit then begin
+      Edit := TCustomEdit(Control);
+      if Edit.SelLength > 0 then begin
+        if DoCut then Edit.CutToClipboard
+        else Edit.CopyToClipboard;
+        Success := True;
+      end;
+    end else if Control is TCustomComboBox then begin
+      Combo := TCustomComboBox(Control);
+      if Combo.SelLength > 0 then begin
+        Clipboard.AsText := Combo.SelText;
+        if DoCut then Combo.SelText := '';
+        Success := True;
+      end;
+    end else if Control is TVirtualStringTree then begin
+      Grid := Control as TVirtualStringTree;
+      if Assigned(Grid.FocusedNode) then begin
+        IsResultGrid := Grid = ActiveGrid;
+        AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
+        Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+        if IsResultGrid and DoCut then
+          Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
+        Success := True;
+      end;
+    end else if Control is TSynMemo then begin
+      SynMemo := Control as TSynMemo;
+      if SynMemo.SelAvail then begin
+        // Create both text and HTML clipboard format, so rich text applications can paste highlighted SQL
+        SynExporterHTML1.ExportAll(Explode(CRLF, SynMemo.SelText));
+        if DoCut then SynMemo.CutToClipboard
+        else SynMemo.CopyToClipboard;
+        SQLStream := TMemoryStream.Create;
+        SynExporterHTML1.SaveToStream(SQLStream);
+        StreamToClipboard(nil, SQLStream, False);
+        Success := True;
+      end;
     end;
-  end else if Control is TCustomComboBox then begin
-    Combo := TCustomComboBox(Control);
-    if Combo.SelLength > 0 then begin
-      Clipboard.AsText := Combo.SelText;
-      if DoCut then Combo.SelText := '';
-      Success := True;
-    end;
-  end else if Control is TVirtualStringTree then begin
-    Grid := Control as TVirtualStringTree;
-    if Assigned(Grid.FocusedNode) then begin
-      IsResultGrid := Grid = ActiveGrid;
-      AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
-      Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
-      if IsResultGrid and DoCut then
-        Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
-      Success := True;
-    end;
-  end else if Control is TSynMemo then begin
-    SynMemo := Control as TSynMemo;
-    if SynMemo.SelAvail then begin
-      // Create both text and HTML clipboard format, so rich text applications can paste highlighted SQL
-      SynExporterHTML1.ExportAll(Explode(CRLF, SynMemo.SelText));
-      if DoCut then SynMemo.CutToClipboard
-      else SynMemo.CopyToClipboard;
-      SQLStream := TMemoryStream.Create;
-      SynExporterHTML1.SaveToStream(SQLStream);
-      StreamToClipboard(nil, SQLStream, False);
-      Success := True;
-    end;
+  finally
+    if not Success then
+      MessageBeep(MB_ICONASTERISK);
+    Screen.Cursor := crDefault;
   end;
-  if not Success then
-    MessageBeep(MB_ICONASTERISK);
 end;
 
 
@@ -8989,7 +9135,6 @@ begin
   else
     ShowStatusMsg('', 1);
 end;
-
 
 procedure TMainForm.AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
 begin
