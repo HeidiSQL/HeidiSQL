@@ -3636,9 +3636,8 @@ var
   Data: TMySQLQuery;
 begin
   // Load remaining data on a partially loaded row in data grid
-  if Grid <> DataGrid then
-    Result := True
-  else begin
+  Result := True;
+  if (Grid = DataGrid) and Assigned(Node) then begin
     RowNum := Grid.GetNodeData(Node);
     Data := GridResult(Grid);
     Data.RecNo := RowNum^;
@@ -7109,7 +7108,7 @@ procedure TMainForm.AnyGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtual
 begin
   ValidateControls(Sender);
   UpdateLineCharPanel;
-  if pnlPreview.Visible then
+  if Assigned(Node) and pnlPreview.Visible then
     UpdatePreviewPanel;
 end;
 
