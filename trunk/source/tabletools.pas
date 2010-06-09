@@ -948,7 +948,6 @@ procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
   IsLastRowInChunk, NeedsDBStructure: Boolean;
   Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent, tmp: String;
-  MultiSQL: TStringList;
   i: Integer;
   RowCount, Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;
@@ -1100,9 +1099,6 @@ begin
 
           lntFunction, lntProcedure: begin
             Struc := Mainform.Connection.GetVar('SHOW CREATE '+UpperCase(DBObj.ObjType)+' '+m(DBObj.Database)+'.'+m(DBObj.Name), 2);
-            // Todo: Why exploding?
-            MultiSQL := Explode(';', Struc);
-            Struc := ImplodeStr(';'+CRLF, MultiSQL);
             if ToDb then begin
               if DBObj.NodeType = lntProcedure then
                 Insert(m(FinalDbName)+'.', Struc, Pos('PROCEDURE', Struc) + 10 )
@@ -1116,8 +1112,6 @@ begin
 
           lntEvent: begin
             Struc := Mainform.Connection.GetVar('SHOW CREATE '+UpperCase(DBObj.ObjType)+' '+m(DBObj.Database)+'.'+m(DBObj.Name), 'Create Event');
-            MultiSQL := Explode(';', Struc);
-            Struc := ImplodeStr(';'+CRLF, MultiSQL);
             if ToDb then
               Insert(m(FinalDbName)+'.', Struc, Pos('EVENT', Struc) + 6 );
             if ToFile or ToDir or ToClipboard then
