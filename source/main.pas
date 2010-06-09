@@ -2407,9 +2407,9 @@ var
 begin
   // Load BLOB contents into preview area
   Grid := ActiveGrid;
-  if not Assigned(Grid) then
-    Exit;
   Results := GridResult(Grid);
+  if not Assigned(Results) then
+    Exit;
   Screen.Cursor := crHourGlass;
   try
     ShowStatusMsg('Loading contents into image viewer ...');
