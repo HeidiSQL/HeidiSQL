@@ -416,7 +416,7 @@ begin
       if (not InString) and (not InBigComment) and rx.Exec(copy(SQL, LastLeftOffset, 100)) then begin
         Delim := rx.Match[1];
         DelimLen := Length(Delim);
-        Inc(i, rx.MatchLen[0]);
+        Inc(i, rx.MatchLen[0]+1);
         LastLeftOffset := i;
         continue;
       end;
