@@ -560,6 +560,7 @@ type
       Sender: TObject; var CurrentInput: String; var x, y: Integer;
       var CanExecute: Boolean);
     procedure PageControlMainChange(Sender: TObject);
+    procedure PageControlMainChanging(Sender: TObject; var AllowChange: Boolean);
     procedure PageControlHostChange(Sender: TObject);
     procedure ValidateControls(Sender: TObject);
     procedure ValidateQueryControls(Sender: TObject);
@@ -3957,7 +3958,6 @@ end;
 procedure TMainForm.PageControlMainChange(Sender: TObject);
 var
   tab: TTabSheet;
-  Grid: TVirtualStringTree;
 begin
   tab := PageControlMain.ActivePage;
 
@@ -3982,7 +3982,13 @@ begin
   // Ensure controls are in a valid state
   ValidateControls(Sender);
   FixQueryTabCloseButtons;
+end;
 
+
+procedure TMainForm.PageControlMainChanging(Sender: TObject; var AllowChange: Boolean);
+var
+  Grid: TVirtualStringTree;
+begin
   // Leave editing mode on tab changes so the editor does not stay somewhere
   Grid := ActiveGrid;
   if Assigned(Grid) and Grid.IsEditing then
