@@ -564,6 +564,7 @@ object MainForm: TMainForm
         PopupMenu = popupMainTabs
         TabOrder = 1
         OnChange = PageControlMainChange
+        OnChanging = PageControlMainChanging
         OnContextPopup = PageControlMainContextPopup
         OnMouseUp = PageControlMainMouseUp
         object tabHost: TTabSheet
