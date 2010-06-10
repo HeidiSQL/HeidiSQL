@@ -3680,6 +3680,7 @@ var
   KeyCols, ColWidths, WantedColumnOrgnames: TStringList;
   WantedColumns: TTableColumnList;
   c: TTableColumn;
+  OldScrollOffset: TPoint;
 
   procedure InitColumn(idx: Integer; TblCol: TTableColumn);
   var
@@ -3741,6 +3742,7 @@ begin
 
     // Load last view settings
     HandleDataGridAttributes(RefreshingData);
+    OldScrollOffset := DataGrid.OffsetXY;
 
     DataGridDB := SelectedTable.Database;
     DataGridTable := SelectedTable.Name;
@@ -3849,10 +3851,6 @@ begin
       if not SynMemoFilter.Focused then
         vt.SetFocus;
 
-      if not RefreshingData then begin
-        // Scroll to top left if switched to another table
-        vt.OffsetXY := Point(0, 0);
-      end;
       if vt.RootNodeCount > DataGridFocusedNodeIndex then begin
         SelectNode(vt, DataGridFocusedNodeIndex);
         for i:=0 to vt.Header.Columns.Count-1 do begin
@@ -3862,6 +3860,8 @@ begin
           end;
         end;
       end;
+      if RefreshingData then
+        vt.OffsetXY := OldScrollOffset;
 
       ValidateControls(Sender);
       DisplayRowCountStats;
