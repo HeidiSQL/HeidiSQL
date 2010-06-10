@@ -8624,7 +8624,7 @@ begin
   Result := nil;
   if Grid = DataGrid then
     Result := DataGridResult
-  else begin
+  else if Assigned(Grid) then begin
     CurrentTab := Grid.Parent as TTabSheet;
     for QueryTab in QueryTabs do begin
       if QueryTab.TabSheet = CurrentTab then begin
