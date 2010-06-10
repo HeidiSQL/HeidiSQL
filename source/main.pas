@@ -780,6 +780,7 @@ type
     procedure actDataPreviewUpdate(Sender: TObject);
     procedure spltPreviewMoved(Sender: TObject);
     procedure actDataSaveBlobToFileExecute(Sender: TObject);
+    procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -803,6 +804,7 @@ type
     FCmdlineConnectionParams: TConnectionParameters;
     FCmdlineSessionName: String;
     FSearchReplaceExecuted: Boolean;
+    FDataGridColumnWidthsCustomized: Boolean;
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats;
@@ -3825,8 +3827,12 @@ begin
       // Set up grid column headers
       ShowStatusMsg('Setting up columns ...');
       ColWidths := TStringList.Create;
-      for i:=0 to vt.Header.Columns.Count-1 do
-        ColWidths.Values[vt.Header.Columns[i].Text] := IntToStr(vt.Header.Columns[i].Width);
+      if not RefreshingData then
+        FDataGridColumnWidthsCustomized := False;
+      if FDataGridColumnWidthsCustomized then begin
+        for i:=0 to vt.Header.Columns.Count-1 do
+          ColWidths.Values[vt.Header.Columns[i].Text] := IntToStr(vt.Header.Columns[i].Width);
+      end;
       vt.Header.Columns.BeginUpdate;
       vt.Header.Columns.Clear;
       for i:=0 to WantedColumns.Count-1 do
@@ -3882,6 +3888,13 @@ begin
   DataGridFullRowMode := False;
   Screen.Cursor := crDefault;
   ShowStatusMsg;
+end;
+
+
+procedure TMainForm.DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
+begin
+  // Remember current table after last column resizing so we can auto size them as long as this did not happen
+  FDataGridColumnWidthsCustomized := True;
 end;
 
 
