@@ -1810,10 +1810,6 @@ begin
   InvalidateVT(ListCommandstats, VTREE_NOTLOADED, False);
   InvalidateVT(ListTables, VTREE_NOTLOADED, False);
 
-  // Reset indicators of currently loaded db.table in DataGrid
-  DataGridDB := '';
-  DataGridTable := '';
-
   Application.Title := APPNAME;
 end;
 
@@ -6511,6 +6507,8 @@ var
 begin
   debug('DBtreeFocusChanged()');
   SelectedTableCreateStatement := '';
+  DataGridDB := '';
+  DataGridTable := '';
   if not Assigned(Node) then
     Exit;
   if not FProcessDBtreeFocusChanges then
