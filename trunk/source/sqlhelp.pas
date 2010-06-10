@@ -120,7 +120,7 @@ begin
     Results := Mainform.Connection.GetResults( 'HELP "'+topic+'"' );
     while not Results.Eof do begin
       tnode := treeTopics.Items.AddChild( ParentNode, Results.Col('name'));
-      if Results.ColExists('is_it_category') and (Results.Col('is_it_category') = 'Y') then begin
+      if (Results.Col('is_it_category', True) = 'Y') and ((ParentNode = nil) or (ParentNode.Text <> tnode.Text)) then begin
         tnode.ImageIndex := ICONINDEX_CATEGORY_CLOSED;
         tnode.SelectedIndex := ICONINDEX_CATEGORY_OPENED;
         // Add a dummy item to show the plus-button so the user sees that there this
