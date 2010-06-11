@@ -217,7 +217,7 @@ const
 constructor TfrmTableEditor.Create(AOwner: TComponent);
 begin
   inherited;
-  PageControlMain.Height := GetRegValue(REGNAME_TABLEEDITOR_TABSHEIGHT, PageControlMain.Height);
+  PageControlMain.Height := GetRegValue(REGNAME_TABLEEDITOR_TABSHEIGHT, DEFAULT_TABLEEDITOR_TABSHEIGHT);
   FixVT(listColumns);
   FixVT(treeIndexes);
   FixVT(listForeignKeys);
