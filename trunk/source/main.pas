@@ -7233,19 +7233,19 @@ begin
       if TextCol <> '' then SQL := SQL + Mask(TextCol) else SQL := SQL + KeyCol;
       SQL := SQL + ' LIMIT 1000';
 
-      EnumEditor := TEnumEditorLink.Create(VT);
-      EnumEditor.DataType := DataGridResult.DataType(Column).Index;
-      EditLink := EnumEditor;
-      if TextCol = '' then
-        EnumEditor.ValueList := Connection.GetCol(SQL)
-      else begin
-        ForeignResults := Connection.GetResults(SQL);
+      ForeignResults := Connection.GetResults(SQL);
+      if ForeignResults.RecordCount < 1000 then begin
+        EnumEditor := TEnumEditorLink.Create(VT);
+        EnumEditor.DataType := DataGridResult.DataType(Column).Index;
+        EditLink := EnumEditor;
         while not ForeignResults.Eof do begin
           EnumEditor.ValueList.Add(ForeignResults.Col(0));
-          EnumEditor.DisplayList.Add(ForeignResults.Col(0)+': '+ForeignResults.Col(1));
+          if TextCol <> '' then
+            EnumEditor.DisplayList.Add(ForeignResults.Col(0)+': '+ForeignResults.Col(1));
           ForeignResults.Next;
         end;
       end;
+      ForeignResults.Free;
       break;
     end;
   end;
