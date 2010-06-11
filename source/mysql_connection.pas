@@ -311,7 +311,6 @@ type
       procedure SetSQL(Value: String);
       procedure SetRecNo(Value: Int64);
       procedure SetColumnOrgNames(Value: TStringList);
-      procedure PrepareEditing;
       procedure CreateUpdateRow;
       function GetKeyColumns: TStringList;
       function GetWhereClause: String;
@@ -350,6 +349,7 @@ type
       function TableName: String;
       function QuotedDbAndTableName: String;
       procedure DiscardModifications;
+      procedure PrepareEditing;
       property RecNo: Int64 read FRecNo write SetRecNo;
       property Eof: Boolean read FEof;
       property RecordCount: Int64 read FRecordCount;
