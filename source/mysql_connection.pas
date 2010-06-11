@@ -1694,6 +1694,8 @@ var
   Row: TRowData;
   RowFound: Boolean;
 begin
+  if Value = FRecNo then
+    Exit;
   if (not FEditingPrepared) and (Value >= RecordCount) then begin
     FRecNo := RecordCount;
     FEof := True;
