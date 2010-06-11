@@ -3815,6 +3815,7 @@ begin
       DataGridResult.SQL := Select;
       DataGridResult.Execute(Offset > 0);
       DataGridResult.ColumnOrgNames := WantedColumnOrgnames;
+      DataGridResult.PrepareEditing;
 
       editFilterVT.Clear;
       TimerFilterVT.OnTimer(Sender);
