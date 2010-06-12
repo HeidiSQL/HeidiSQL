@@ -6521,8 +6521,6 @@ var
 begin
   debug('DBtreeFocusChanged()');
   SelectedTableCreateStatement := '';
-  DataGridDB := '';
-  DataGridTable := '';
   if not Assigned(Node) then
     Exit;
   if not FProcessDBtreeFocusChanges then
@@ -6582,7 +6580,8 @@ begin
             PagecontrolMain.ActivePage := tabEditor;
             PageControlMain.OnChange(Sender);
           end;
-          InvalidateVT(DataGrid, VTREE_NOTLOADED, False);
+          if DataGrid.Tag = VTREE_LOADED then
+            InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
           // When a table is clicked in the tree, and the query
           // tab is active, update the list of columns
           if QueryTabActive then
