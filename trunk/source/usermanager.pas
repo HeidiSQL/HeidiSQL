@@ -508,14 +508,17 @@ end;
 procedure TUserManagerForm.btnDeleteObjectClick(Sender: TObject);
 var
   Node: PVirtualNode;
+  FocusIndex: Cardinal;
 begin
   case treeObjects.GetNodeLevel(treeObjects.FocusedNode) of
     0: Node := treeObjects.FocusedNode;
     1: Node := treeObjects.FocusedNode.Parent;
     else Raise Exception.Create(SUnhandledTreeLevel);
   end;
+  FocusIndex := Node.Index;
   Users[listUsers.FocusedNode.Index].Privileges.DeletePrivilege(Node.Index);
   treeObjects.ReInitNode(Node, True);
+  SelectNode(treeObjects, FocusIndex-1);
   treeObjects.Invalidate;
 end;
 
