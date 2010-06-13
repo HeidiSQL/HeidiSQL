@@ -3391,6 +3391,11 @@ begin
     FreeAndNil(OldNumbers);
     FreeAndNil(Filters);
   end;
+  // Keep current column widths on "Quick filter" clicks, don't keep them on "Apply filter" clicks
+  if (Sender is TMenuItem) and ((Sender as TMenuItem).GetParentMenu = popupDataGrid) then begin
+    FDataGridColumnWidthsCustomized := True;
+  end else
+    FDataGridColumnWidthsCustomized := False;
   InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 
