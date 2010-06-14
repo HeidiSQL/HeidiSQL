@@ -137,7 +137,7 @@ end;
 procedure TCopyTableForm.TreeElementsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
 begin
   // Disable WHERE memo if "Data" was unselected
-  if (Node.Index = nData) then begin
+  if (Sender.GetNodeLevel(Node) = 0) and (Node.Index = nData) then begin
     MemoWhereClause.Enabled := Node.CheckState = csCheckedNormal;
     if MemoWhereClause.Enabled then begin
       MemoWhereClause.Highlighter := MainForm.SynSQLSyn1;
