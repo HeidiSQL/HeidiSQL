@@ -128,7 +128,7 @@ begin
       nData:         Option := REGNAME_COPYTABLE_DATA;
       else raise Exception.Create(SUnhandledNodeIndex);
     end;
-    MainReg.WriteBool(Option, Node.CheckState in [csCheckedNormal, csCheckedPressed]);
+    MainReg.WriteBool(Option, Node.CheckState in [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed]);
     Node := TreeElements.GetNextSibling(Node);
   end;
 end;
