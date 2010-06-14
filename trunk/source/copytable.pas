@@ -254,13 +254,22 @@ end;
 
 procedure TCopyTableForm.btnOKClick(Sender: TObject);
 var
-  CreateCode, Clause, DataCols: String;
+  CreateCode, Clause, DataCols, TableExistance: String;
   ParentNode, Node: PVirtualNode;
   DBObjects: TDBObjectList;
   Obj: TDBObject;
   DoData: Boolean;
 begin
   // Compose and run CREATE query
+  TableExistance := MainForm.Connection.GetVar('SHOW TABLES FROM '+MainForm.mask(comboDatabase.Text)+' LIKE '+esc(editNewTablename.Text));
+  if TableExistance <> '' then begin
+    if MessageDlg('Target table exists. Drop it and overwrite?', mtConfirmation, [mbYes, mbCancel], 0) = mrCancel then begin
+      ModalResult := mrNone;
+      Exit;
+    end;
+    MainForm.Connection.Query('DROP TABLE '+MainForm.mask(comboDatabase.Text)+'.'+MainForm.mask(editNewTablename.Text));
+  end;
+
   Screen.Cursor := crHourglass;
   MainForm.ShowStatusMsg('Generating SQL code ...');
   DataCols := '';
