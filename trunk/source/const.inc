@@ -184,12 +184,12 @@ const
   REGNAME_SELECTDBO_WINHEIGHT = 'SelectDBO_WindowHeight';
   REGNAME_SESSMNGR_WINWIDTH = 'SessionManager_WindowWidth';
   REGNAME_SESSMNGR_WINHEIGHT = 'SessionManager_WindowHeight';
-  REGNAME_COPYTABLE_STRUCDATA = 'CopyTable_Option_StructureData';
-  REGVAL_COPYTABLE_STRUCTURE = 0;
-  REGVAL_COPYTABLE_STRUCTURE_AND_DATA = 1;
-  DEFAULT_COPYTABLE_STRUCDATA = REGVAL_COPYTABLE_STRUCTURE_AND_DATA;
-  REGNAME_COPYTABLE_INDEXES = 'CopyTable_Option_WithIndexes';
-  REGNAME_COPYTABLE_ALLFIELDS = 'CopyTable_Option_WithAllFields';
+  REGNAME_COPYTABLE_WINHEIGHT = 'CopyTable_WindowHeight';
+  REGNAME_COPYTABLE_WINWIDTH = 'CopyTable_WindowWidth';
+  REGNAME_COPYTABLE_COLUMNS = 'CopyTable_Columns';
+  REGNAME_COPYTABLE_KEYS = 'CopyTable_Keys';
+  REGNAME_COPYTABLE_FOREIGN = 'CopyTable_ForeignKeys';
+  REGNAME_COPYTABLE_DATA = 'CopyTable_Data';
   REGNAME_FILTERS = 'RecentFilters';
   REGNAME_SERVERVERSION = 'ServerVersion';
   REGNAME_LASTCONNECT = 'LastConnect';
@@ -321,6 +321,7 @@ const
   SContainsNulCharFile = 'This file contains NUL characters. They have been converted to ASCII spaces (SP).';
   SContainsNulCharGrid = 'This cell contains NUL characters. They have been converted to ASCII spaces (SP). Press ESC to cancel editing.';
   SUnhandledTreeLevel = 'Unhandled tree node level.';
+  SUnhandledNodeIndex = 'Unhandled tree node index';
   MSG_NOGRIDEDITING = 'Selected columns don''t contain a sufficient set of key columns to allow editing. Please select primary or unique key columns, or just all columns.';
   SIdle = 'Idle.';
   SUnsupported = 'Not supported by this server';

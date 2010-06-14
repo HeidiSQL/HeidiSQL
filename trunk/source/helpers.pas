@@ -39,13 +39,6 @@ type
 
   TLineBreaks = (lbsNone, lbsWindows, lbsUnix, lbsMac, lbsWide, lbsMixed);
 
-  TMyKey = record
-    Name     : String;
-    _type    : String;
-    Columns  : TStringList;
-    SubParts : TStringList;
-  end;
-
   TDBObjectEditor = class(TFrame)
     private
       FModified: Boolean;
@@ -171,6 +164,8 @@ type
   procedure HandlePortableSettings(StartupMode: Boolean);
   function LoadConnectionParams(Session: String): TConnectionParameters;
   function CompareAnyNode(Text1, Text2: String): Integer;
+  function GetColumnDefaultType(var Text: String): TColumnDefaultType;
+  function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: String): String;
 
 var
   MainReg: TRegistry;
@@ -3367,6 +3362,30 @@ begin
     Result := CompareText(Text1, Text2);
   end;
 end;
+
+
+function GetColumnDefaultType(var Text: String): TColumnDefaultType;
+begin
+  Result := TColumnDefaultType(MakeInt(Copy(Text, 1, 1)));
+  Text := Copy(Text, 2, Length(Text)-1);
+end;
+
+
+function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: String): String;
+begin
+  case DefaultType of
+    cdtNothing:        Result := '';
+    cdtText:           Result := 'DEFAULT '+esc(Text);
+    cdtTextUpdateTS:   Result := 'DEFAULT '+esc(Text)+' ON UPDATE CURRENT_TIMESTAMP';
+    cdtNull:           Result := 'DEFAULT NULL';
+    cdtNullUpdateTS:   Result := 'DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP';
+    cdtCurTS:          Result := 'DEFAULT CURRENT_TIMESTAMP';
+    cdtCurTSUpdateTS:  Result := 'DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
+    cdtAutoInc:        Result := 'AUTO_INCREMENT';
+  end;
+end;
+
+
 
 end.
 

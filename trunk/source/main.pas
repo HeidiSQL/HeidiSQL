@@ -949,7 +949,6 @@ type
     procedure SetWindowCaption;
     procedure OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
     procedure DefaultHandler(var Message); override;
-    function MaskMulti(str: String): String;
     procedure SelectDBObject(Text: String; NodeType: TListNodeType);
     procedure SetupSynEditors;
     procedure ParseSelectedTableStructure;
@@ -1120,6 +1119,7 @@ begin
   FreeAndNil(SessionManager);
   FreeAndNil(CreateDatabaseForm);
   FreeAndNil(SearchReplaceDialog);
+  FreeAndNil(CopyTableDialog);
 
   // Close database connection
   DoDisconnect;
@@ -2053,21 +2053,6 @@ end;
 function TMainform.mask(str: String) : String;
 begin
   result := Connection.QuoteIdent(str);
-end;
-
-
-// Quote identifier, probably with multiple segments, e.g. db.table.column
-function TMainform.MaskMulti(str: String): String;
-var
-  Segments: TStringList;
-  i: Integer;
-begin
-  Segments := Explode('.', str);
-  Result := '';
-  for i:=0 to Segments.Count-1 do
-    Result := Result + mask(Segments[i]) + '.';
-  FreeAndNil(Segments);
-  Delete(Result, Length(Result), 1);
 end;
 
 
@@ -7218,7 +7203,7 @@ begin
     idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
     if idx > -1 then begin
       // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
-      CreateTable := Connection.GetVar('SHOW CREATE TABLE '+MaskMulti(ForeignKey.ReferenceTable), 1);
+      CreateTable := Connection.GetVar('SHOW CREATE TABLE '+Mask(ForeignKey.ReferenceTable), 1);
       Columns := TTableColumnList.Create;
       Keys := nil;
       ForeignKeys := nil;
@@ -7234,7 +7219,7 @@ begin
       KeyCol := Mask(ForeignKey.ForeignColumns[idx]);
       SQL := 'SELECT '+KeyCol;
       if TextCol <> '' then SQL := SQL + ', LEFT(' + Mask(TextCol) + ', 256)';
-      SQL := SQL + ' FROM '+MaskMulti(ForeignKey.ReferenceTable)+' GROUP BY '+KeyCol+' ORDER BY ';
+      SQL := SQL + ' FROM '+Mask(ForeignKey.ReferenceTable)+' GROUP BY '+KeyCol+' ORDER BY ';
       if TextCol <> '' then SQL := SQL + Mask(TextCol) else SQL := SQL + KeyCol;
       SQL := SQL + ' LIMIT 1000';
 
@@ -8852,6 +8837,8 @@ begin
     Editors.Add(SQLHelpForm.memoDescription);
     Editors.Add(SQLHelpForm.MemoExample);
   end;
+  if Assigned(CopyTableDialog) then
+    Editors.Add(CopyTableDialog.MemoWhereClause);
 
   FontName := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
   FontSize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);

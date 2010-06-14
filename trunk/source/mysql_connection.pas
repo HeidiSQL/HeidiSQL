@@ -61,6 +61,7 @@ type
       FStatus: TEditingStatus;
       constructor Create;
       destructor Destroy; override;
+      function SQLCode: String;
       property Status: TEditingStatus read FStatus write SetStatus;
   end;
   PTableColumn = ^TTableColumn;
@@ -75,6 +76,7 @@ type
       constructor Create;
       destructor Destroy; override;
       procedure Modification(Sender: TObject);
+      function SQLCode: String;
   end;
   TTableKeyList = TObjectList<TTableKey>;
 
@@ -86,6 +88,7 @@ type
       Modified, Added, KeyNameWasCustomized: Boolean;
       constructor Create;
       destructor Destroy; override;
+      function SQLCode: String;
   end;
   TForeignKeyList = TObjectList<TForeignKey>;
 
@@ -233,7 +236,7 @@ type
       function Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TMySQLLogCategory=lcSQL): PMYSQL_RES;
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False): String;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
-      function QuoteIdent(Identifier: String): String;
+      class function QuoteIdent(Identifier: String): String;
       function DeQuoteIdent(Identifier: String): String;
       function ConvertServerVersion(Version: Integer): String;
       function GetResults(SQL: String): TMySQLQuery;
@@ -943,9 +946,11 @@ end;
   Add backticks to identifier
   Todo: Support ANSI style
 }
-function TMySQLConnection.QuoteIdent(Identifier: String): String;
+class function TMySQLConnection.QuoteIdent(Identifier: String): String;
 begin
-  Result := StringReplace(Identifier, '`', '``', [rfReplaceAll]);
+  Result := Identifier;
+  Result := StringReplace(Result, '`', '``', [rfReplaceAll]);
+  Result := StringReplace(Result, '.', '`.`', [rfReplaceAll]);
   Result := '`' + Result + '`';
 end;
 
@@ -2424,6 +2429,26 @@ begin
   FStatus := Value;
 end;
 
+function TTableColumn.SQLCode: String;
+begin
+  Result := TMySQLConnection.QuoteIdent(Name) + ' ' +DataType.Name;
+  if LengthSet <> '' then
+    Result := Result + '(' + LengthSet + ')';
+  if DataType.HasUnsigned and Unsigned then
+    Result := Result + ' UNSIGNED';
+  if not AllowNull then
+    Result := Result + ' NOT';
+  Result := Result + ' NULL';
+  if DefaultType <> cdtNothing then begin
+    Result := Result + ' ' + GetColumnDefaultClause(DefaultType, DefaultText);
+    Result := TrimRight(Result); // Remove whitespace for columns without default value
+  end;
+  if Comment <> '' then
+    Result := Result + ' COMMENT '+esc(Comment);
+  if Collation <> '' then
+    Result := Result + ' COLLATE '+esc(Collation);
+end;
+
 
 
 { *** TTableKey }
@@ -2450,6 +2475,39 @@ begin
     Modified := True;
 end;
 
+function TTableKey.SQLCode: String;
+var
+  i: Integer;
+begin
+  Result := '';
+  // Supress SQL error  trying index creation with 0 column
+  if Columns.Count = 0 then
+    Exit;
+  if IndexType = PKEY then
+    Result := Result + 'PRIMARY KEY '
+  else begin
+    if IndexType <> KEY then
+      Result := Result + IndexType + ' ';
+    Result := Result + 'INDEX ' + TMySQLConnection.QuoteIdent(Name) + ' ';
+  end;
+  Result := Result + '(';
+  for i:=0 to Columns.Count-1 do begin
+    Result := Result + TMySQLConnection.QuoteIdent(Columns[i]);
+    if SubParts[i] <> '' then
+      Result := Result + '(' + SubParts[i] + ')';
+    Result := Result + ', ';
+  end;
+  if Columns.Count > 0 then
+    Delete(Result, Length(Result)-1, 2);
+
+  Result := Result + ')';
+
+  if Algorithm <> '' then
+    Result := Result + ' USING ' + Algorithm;
+end;
+
+
+
 
 { *** TForeignKey }
 
@@ -2465,6 +2523,25 @@ begin
   FreeAndNil(Columns);
   FreeAndNil(ForeignColumns);
   inherited Destroy;
+end;
+
+function TForeignKey.SQLCode: String;
+var
+  i: Integer;
+begin
+  Result := 'CONSTRAINT '+TMySQLConnection.QuoteIdent(KeyName)+' FOREIGN KEY (';
+  for i:=0 to Columns.Count-1 do
+    Result := Result + TMySQLConnection.QuoteIdent(Columns[i]) + ', ';
+  if Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
+  Result := Result + ') REFERENCES ' + TMySQLConnection.QuoteIdent(ReferenceTable) + ' (';
+  for i:=0 to ForeignColumns.Count-1 do
+    Result := Result + TMySQLConnection.QuoteIdent(ForeignColumns[i]) + ', ';
+  if ForeignColumns.Count > 0 then Delete(Result, Length(Result)-1, 2);
+  Result := Result + ')';
+  if OnUpdate <> '' then
+    Result := Result + ' ON UPDATE ' + OnUpdate;
+  if OnDelete <> '' then
+    Result := Result + ' ON DELETE ' + OnDelete;
 end;
 
 

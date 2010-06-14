@@ -1,43 +1,44 @@
 unit copytable;
 
 
-// -------------------------------------
-// Copy table
-// -------------------------------------
-
-
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, CheckLst,
-  mysql_connection;
+  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
+  mysql_connection, VirtualTrees, SynEdit, SynMemo;
 
 type
   TCopyTableForm = class(TForm)
     editNewTablename: TEdit;
     lblNewTablename: TLabel;
-    radioStructure: TRadioButton;
-    radioStructureAndData: TRadioButton;
-    CheckListBoxFields: TCheckListBox;
-    CheckBoxWithAllFields: TCheckBox;
-    ButtonCancel: TButton;
-    CheckBoxWithIndexes: TCheckBox;
-    lblTargetDB: TLabel;
-    ComboSelectDatabase: TComboBox;
-    ButtonOK: TButton;
-    chkSelectAll: TCheckBox;
-    procedure radioStructureClick(Sender: TObject);
-    procedure radioStructureAndDataClick(Sender: TObject);
-    procedure CheckBoxWithAllFieldsClick(Sender: TObject);
+    btnCancel: TButton;
+    comboDatabase: TComboBox;
+    btnOK: TButton;
+    TreeElements: TVirtualStringTree;
+    MemoWhereClause: TSynMemo;
+    lblItems: TLabel;
+    lblWhere: TLabel;
     procedure editNewTablenameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure ButtonOKClick(Sender: TObject);
+    procedure btnOKClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure CheckListBoxFieldsClickCheck(Sender: TObject);
-    procedure chkSelectAllClick(Sender: TObject);
+    procedure TreeElementsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure TreeElementsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+      var InitialStates: TVirtualNodeInitStates);
+    procedure TreeElementsGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure TreeElementsInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      var ChildCount: Cardinal);
+    procedure FormDestroy(Sender: TObject);
+    procedure TreeElementsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
-    oldTableName : String;
+    FOrgTableName: String;
+    FColumns: TTableColumnList;
+    FKeys: TTableKeyList;
+    FForeignKeys: TForeignKeyList;
   public
     { Public declarations }
   end;
@@ -47,295 +48,288 @@ implementation
 
 uses helpers, main;
 
+const
+  nColumns = 0;
+  nKeys = 1;
+  nForeignKeys = 2;
+  nData = 3;
+
 {$R *.DFM}
+{$I const.inc}
 
-
-
-procedure TCopyTableForm.radioStructureClick(Sender: TObject);
-begin
-  radioStructureAndData.Checked := not radioStructure.Checked;
-end;
-
-procedure TCopyTableForm.radioStructureAndDataClick(Sender: TObject);
-begin
-  radioStructure.Checked := not radioStructureAndData.Checked;
-end;
-
-procedure TCopyTableForm.CheckBoxWithAllFieldsClick(Sender: TObject);
-begin
-  CheckListBoxFields.Enabled := not CheckBoxWithAllFields.Checked;
-  chkSelectAll.Enabled := CheckListBoxFields.Enabled;
-end;
-
-
-procedure TCopyTableForm.editNewTablenameChange(Sender: TObject);
-begin
-  // validate tablename
-  try
-    ensureValidIdentifier( editNewTablename.Text );
-    editNewTablename.Font.Color := clWindowText;
-    editNewTablename.Color := clWindow;
-    // Enable "OK"-Button if we have a valid name
-    ButtonOK.Enabled := True;
-  except
-    editNewTablename.Font.Color := clRed;
-    editNewTablename.Color := clYellow;
-    ButtonOK.Enabled := False;
-  end;
-end;
 
 
 procedure TCopyTableForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  Width := GetRegValue(REGNAME_COPYTABLE_WINWIDTH, Width);
+  Height := GetRegValue(REGNAME_COPYTABLE_WINHEIGHT, Height);
+  SetWindowSizeGrip(Handle, True);
+  MainForm.SetupSynEditors;
+  FixVT(TreeElements);
+  FColumns := TTableColumnList.Create;
+  FKeys := TTableKeyList.Create;
+  FForeignKeys := TForeignKeyList.Create;
+end;
+
+
+procedure TCopyTableForm.FormDestroy(Sender: TObject);
+begin
+  // Save GUI stuff
+  MainReg.WriteInteger(REGNAME_COPYTABLE_WINWIDTH, Width);
+  MainReg.WriteInteger(REGNAME_COPYTABLE_WINHEIGHT, Height);
 end;
 
 
 procedure TCopyTableForm.FormShow(Sender: TObject);
 var
-  i : Integer;
-  struc_data : Byte;
+  CreateCode: String;
 begin
   if Mainform.DBtree.Focused then
-    oldTableName := Mainform.SelectedTable.Name
+    FOrgTableName := Mainform.SelectedTable.Name
   else
-    oldTableName := Mainform.ListTables.Text[Mainform.ListTables.FocusedNode, 0];
-  editNewTablename.Text := oldTableName + '_copy';
+    FOrgTableName := Mainform.ListTables.Text[Mainform.ListTables.FocusedNode, 0];
+  editNewTablename.Text := FOrgTableName + '_copy';
   editNewTablename.SetFocus;
-  lblNewTablename.Caption := 'Copy ''' + oldTableName + ''' to new table:';
+  lblNewTablename.Caption := 'Copy ''' + FOrgTableName + ''' to new db.table:';
+  editNewTablename.SetFocus;
 
 	// Select TargetDatabase
-  ComboSelectDatabase.Items.Clear;
-  ComboSelectDatabase.Items.Assign(Mainform.AllDatabases);
-  ComboSelectDatabase.ItemIndex := ComboSelectDatabase.Items.IndexOf( Mainform.ActiveDatabase );
-  if comboSelectDatabase.ItemIndex = -1 then
-    comboSelectDatabase.ItemIndex := 0;
+  comboDatabase.Items.Clear;
+  comboDatabase.Items.Assign(Mainform.AllDatabases);
+  comboDatabase.ItemIndex := comboDatabase.Items.IndexOf(Mainform.ActiveDatabase);
+  if comboDatabase.ItemIndex = -1 then
+    comboDatabase.ItemIndex := 0;
 
-  // fill columns:
-  CheckListBoxFields.Items.Text := Mainform.Connection.GetCol('SHOW FIELDS FROM ' + mainform.mask(oldTableName)).Text;
+  CreateCode := MainForm.Connection.GetVar('SHOW CREATE TABLE '+MainForm.mask(FOrgTableName), 1);
+  FColumns.Clear;
+  FKeys.Clear;
+  FForeignKeys.Clear;
+  ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys);
 
-  // select all:
-  for i:=0 to CheckListBoxFields.Items.Count-1 do
-    CheckListBoxFields.checked[i] := true;
-
-  {***
-    restore last settings
-    @see feature #1647058
-  }
-  struc_data := GetRegValue( REGNAME_COPYTABLE_STRUCDATA, DEFAULT_COPYTABLE_STRUCDATA );
-  case struc_data of
-    REGVAL_COPYTABLE_STRUCTURE:
-      radioStructure.Checked := true;
-    REGVAL_COPYTABLE_STRUCTURE_AND_DATA:
-      radioStructureAndData.Checked := true;
-  end;
-  CheckBoxWithIndexes.Checked := GetRegValue( REGNAME_COPYTABLE_INDEXES, CheckBoxWithIndexes.Checked );
-  CheckBoxWithAllFields.Checked := GetRegValue( REGNAME_COPYTABLE_ALLFIELDS, CheckBoxWithAllFields.Checked );
-  // Ensure CheckListBoxFields + chkSelectAll are en/disabled
-  CheckBoxWithAllFieldsClick(Sender);
-  // Ensure chkSelectAll shows its correct state
-  CheckListBoxFieldsClickCheck(Sender);
+  TreeElements.Clear;
+  TreeElements.RootNodeCount := 4;
 end;
 
 
-procedure TCopyTableForm.ButtonOKClick(Sender: TObject);
+
+procedure TCopyTableForm.FormClose(Sender: TObject; var Action: TCloseAction);
 var
-  strquery     : String;
-  i,which,k    : Integer;
-  keylist      : Array of TMyKey;
-  keystr       : String;
-  notnull,
-  default      : String;
-  Results      : TMySQLQuery;
-  isFulltext   : Boolean;
-  struc_data   : Byte;
-  Fixes        : TStringList;
-  DBObjects    : TDBObjectList;
+  Node: PVirtualNode;
+  Option: String;
 begin
-  // copy table!
-
-  // store settings
-  if radioStructure.Checked then struc_data := REGVAL_COPYTABLE_STRUCTURE
-  else struc_data := REGVAL_COPYTABLE_STRUCTURE_AND_DATA;
-
-  OpenRegistry;
-  MainReg.WriteInteger( REGNAME_COPYTABLE_STRUCDATA, struc_data );
-  MainReg.WriteBool( REGNAME_COPYTABLE_INDEXES, CheckBoxWithIndexes.Checked );
-  MainReg.WriteBool( REGNAME_COPYTABLE_ALLFIELDS, CheckBoxWithAllFields.Checked );
-
-  strquery := 'CREATE TABLE ' + mainform.mask(ComboSelectDatabase.Text) + '.' + mainform.mask(editNewTablename.Text) + ' ';
-
-  // keys >
-  if CheckBoxWithIndexes.Checked then begin
-    Results := Mainform.Connection.GetResults('SHOW KEYS FROM ' + mainform.mask(oldtablename));
-    setLength(keylist, 0);
-    keystr := '';
-
-    for i:=1 to Results.RecordCount do
-    begin
-      which := -1;
-
-      for k:=0 to length(keylist)-1 do
-      begin
-        if keylist[k].Name = Results.Col(2) then // keyname exists!
-          which := k;
-      end;
-      if which = -1 then
-      begin
-        setlength(keylist, length(keylist)+1);
-        which := high(keylist);
-        keylist[which].Columns := TStringList.Create;
-        keylist[which].SubParts := TStringList.Create;
-        // set properties for new key
-        if Mainform.Connection.ServerVersionInt < 40002 then
-          isFulltext := Results.Col('Comment') = 'FULLTEXT'
-        else
-          isFulltext := Results.Col('Index_type') = 'FULLTEXT';
-        keylist[which].Name := Results.Col(2);
-        if Results.Col(2) = 'PRIMARY' then
-          keylist[which]._type := 'PRIMARY'
-        else if isFulltext then
-          keylist[which]._type := 'FULLTEXT'
-        else if Results.Col(1) = '1' then
-          keylist[which]._type := ''
-        else if Results.Col(1) = '0' then
-          keylist[which]._type := 'UNIQUE';
-      end;
-      // add column
-      keylist[which].Columns.add(Results.Col('Column_name'));
-      keylist[which].SubParts.add(Results.Col('Sub_part'));
-      Results.Next;
+  // Save first level node check options
+  Node := TreeElements.GetFirst;
+  while Assigned(Node) do begin
+    case Node.Index of
+      nColumns:      Option := REGNAME_COPYTABLE_COLUMNS;
+      nKeys:         Option := REGNAME_COPYTABLE_KEYS;
+      nForeignKeys:  Option := REGNAME_COPYTABLE_FOREIGN;
+      nData:         Option := REGNAME_COPYTABLE_DATA;
+      else raise Exception.Create(SUnhandledNodeIndex);
     end;
-    FreeAndNil(Results);
-    for k:=0 to high(keylist) do
-    begin
-      if k > 0 then
-        keystr := keystr + ',';
-      if keylist[k].Name = 'PRIMARY' then
-        keystr := keystr + '  PRIMARY KEY ('
-      else
-        keystr := keystr + '  ' + keylist[k]._type + ' KEY ' + Mainform.Mask(keylist[k].Name) + ' (';
-      for i := 0 to keylist[k].Columns.count - 1 do
-      begin
-        if i > 0 then
-          keystr := keystr + ', ';
-        keystr := keystr + mainform.mask(keylist[k].Columns[i]);
-        if keylist[k].SubParts[i] <> '' then
-          keystr := keystr + '(' + keylist[k].SubParts[i] + ')';
-      end;
-      keystr := keystr + ')';
-    end;
-    if keystr<> '' then
-      strquery := strquery + '(' + keystr + ')'
+    MainReg.WriteBool(Option, Node.CheckState in [csCheckedNormal, csCheckedPressed]);
+    Node := TreeElements.GetNextSibling(Node);
   end;
-  // < keys
+end;
+
+
+procedure TCopyTableForm.TreeElementsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
+begin
+  // Disable WHERE memo if "Data" was unselected
+  if (Node.Index = nData) then begin
+    MemoWhereClause.Enabled := Node.CheckState = csCheckedNormal;
+    if MemoWhereClause.Enabled then begin
+      MemoWhereClause.Highlighter := MainForm.SynSQLSyn1;
+      MemoWhereClause.Color := clWindow;
+    end else begin
+      MemoWhereClause.Highlighter := nil;
+      MemoWhereClause.Color := clBtnFace;
+    end;
+  end;
+end;
+
+
+procedure TCopyTableForm.TreeElementsGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+begin
+  // Get node index
+  if not (Kind in [ikNormal, ikSelected]) then Exit;
+  case Sender.GetNodeLevel(Node) of
+    0: case Node.Index of
+         nColumns:      ImageIndex := ICONINDEX_FIELD;
+         nKeys:         ImageIndex := 13;
+         nForeignKeys:  ImageIndex := ICONINDEX_FOREIGNKEY;
+         nData:         ImageIndex := 41;
+         else raise Exception.Create(SUnhandledNodeIndex);
+      end;
+    1: case Node.Parent.Index of
+         nColumns:      ImageIndex := ICONINDEX_FIELD;
+         nKeys:         ImageIndex := GetIndexIcon(FKeys[Node.Index].IndexType);
+         nForeignKeys:  ImageIndex := ICONINDEX_FOREIGNKEY;
+         else raise Exception.Create(SUnhandledNodeIndex);
+      end;
+  end;
+end;
+
+
+procedure TCopyTableForm.TreeElementsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+begin
+  // Get node text
+  case Sender.GetNodeLevel(Node) of
+    0: case Node.Index of
+         nColumns:      CellText := 'Columns';
+         nKeys:         CellText := 'Indexes';
+         nForeignKeys:  CellText := 'Foreign keys';
+         nData:         CellText := 'Data';
+         else raise Exception.Create(SUnhandledNodeIndex);
+       end;
+    1: case Node.Parent.Index of
+         nColumns:      CellText := FColumns[Node.Index].Name;
+         nKeys:         CellText := FKeys[Node.Index].Name;
+         nForeignKeys:  CellText := FForeignKeys[Node.Index].KeyName;
+         else raise Exception.Create(SUnhandledNodeIndex);
+      end;
+  end;
+end;
+
+
+procedure TCopyTableForm.TreeElementsInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  var ChildCount: Cardinal);
+begin
+  // Set child node count
+  case Sender.GetNodeLevel(Node) of
+    0: case Node.Index of
+        nColumns:      ChildCount := FColumns.Count;
+        nKeys:         ChildCount := FKeys.Count;
+        nForeignKeys:  ChildCount := FForeignKeys.Count;
+        nData:         ChildCount := 0;
+        else raise Exception.Create(SUnhandledNodeIndex);
+      end;
+    else ChildCount := 0;
+  end;
+end;
+
+
+procedure TCopyTableForm.TreeElementsInitNode(Sender: TBaseVirtualTree; ParentNode,
+  Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+var
+  Option: String;
+begin
+  // First three upper nodes mostly have child nodes
+  Node.CheckType := ctTriStateCheckBox;
+  case Sender.GetNodeLevel(Node) of
+    0: begin
+      if Node.Index in [nColumns, nKeys, nForeignKeys] then
+        Include(InitialStates, ivsHasChildren);
+      case Node.Index of
+        nColumns:      Option := REGNAME_COPYTABLE_COLUMNS;
+        nKeys:         Option := REGNAME_COPYTABLE_KEYS;
+        nForeignKeys:  Option := REGNAME_COPYTABLE_FOREIGN;
+        nData:         Option := REGNAME_COPYTABLE_DATA;
+        else raise Exception.Create(SUnhandledNodeIndex);
+      end;
+      if GetRegValue(Option, True) then
+        Node.CheckState := csCheckedNormal;
+      (Sender as TVirtualStringTree).OnChecked(Sender, Node);
+    end;
+
+    1: if Node.Parent.CheckState in [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed] then
+      Node.CheckState := csCheckedNormal;
+  end;
+end;
+
+
+procedure TCopyTableForm.editNewTablenameChange(Sender: TObject);
+begin
+  // Disable OK button as long as table name is empty
+  btnOK.Enabled := editNewTablename.Text <> '';
+end;
+
+
+procedure TCopyTableForm.btnOKClick(Sender: TObject);
+var
+  CreateCode, Clause, DataCols: String;
+  ParentNode, Node: PVirtualNode;
+  DBObjects: TDBObjectList;
+  Obj: TDBObject;
+  DoData: Boolean;
+begin
+  // Compose and run CREATE query
+  Screen.Cursor := crHourglass;
+  MainForm.ShowStatusMsg('Generating SQL code ...');
+  DataCols := '';
+  DoData := False;
+  ParentNode := TreeElements.GetFirst;
+  while Assigned(ParentNode) do begin
+    Node := TreeElements.GetFirstChild(ParentNode);
+    while Assigned(Node) do begin
+      if Node.CheckState in [csCheckedNormal, csCheckedPressed] then begin
+        case ParentNode.Index of
+          nColumns: begin
+            Clause := FColumns[Node.Index].SQLCode;
+            DataCols := DataCols + MainForm.mask(FColumns[Node.Index].Name) + ', ';
+          end;
+          nKeys:         Clause := FKeys[Node.Index].SQLCode;
+          nForeignkeys:  Clause := FForeignKeys[Node.Index].SQLCode;
+          else raise Exception.Create(SUnhandledNodeIndex);
+        end;
+        CreateCode := CreateCode + #9 + Clause + ',' + CRLF;
+      end;
+      Node := TreeElements.GetNextSibling(Node);
+    end;
+    if (ParentNode.Index = nData) then
+      DoData := ParentNode.CheckState in [csCheckedNormal, csCheckedPressed];
+    ParentNode := TreeElements.GetNextSibling(ParentNode);
+  end;
+  Delete(CreateCode, Length(CreateCode)-2, 3);
+  CreateCode := 'CREATE TABLE '+Mainform.mask(comboDatabase.Text)+'.'+Mainform.mask(editNewTablename.Text)+' ('+CRLF+CreateCode+CRLF+')'+CRLF;
 
   // Add collation and engine clauses
   DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);
-  for i:=0 to DBObjects.Count-1 do begin
-    if DBObjects[i].Name = oldTableName then begin
-      if DBObjects[i].Collation <> '' then
-        strquery := strquery + ' COLLATE ' + DBObjects[i].Collation;
-      if DBObjects[i].Engine <> '' then begin
+  for Obj in DBObjects do begin
+    if Obj.Name = FOrgTableName then begin
+      if Obj.Collation <> '' then
+        CreateCode := CreateCode + ' COLLATE ''' + Obj.Collation + '''';
+      if Obj.Engine <> '' then begin
         if Mainform.Connection.ServerVersionInt < 40018 then
-          strquery := strquery + ' TYPE=' + DBObjects[i].Engine
+          CreateCode := CreateCode + ' TYPE=' + Obj.Engine
         else
-          strquery := strquery + ' ENGINE=' + DBObjects[i].Engine;
+          CreateCode := CreateCode + ' ENGINE=' + Obj.Engine;
       end;
-      strquery := strquery + ' COMMENT=' + esc(DBObjects[i].Comment);
+      if Obj.RowFormat <> '' then
+        CreateCode := CreateCode + ' ROW_FORMAT=' + Obj.RowFormat;
+      if Obj.AutoInc > -1 then
+        CreateCode := CreateCode + ' AUTO_INCREMENT=' + IntToStr(Obj.AutoInc);
+      CreateCode := CreateCode + ' COMMENT=' + esc(Obj.Comment);
       break;
     end;
   end;
 
-  strquery := strquery + ' SELECT';
-
-  // which fields?
-  if CheckBoxWithAllFields.Checked then
-    strquery := strquery + ' *'
-  else begin
-    for i:=0 to CheckListBoxFields.Items.Count-1 do
-      if CheckListBoxFields.Checked[i] then
-        strquery := strquery + ' ' + mainform.mask(CheckListBoxFields.Items[i]) + ',';
-    delete(strquery, length(strquery), 1);
+  // Append SELECT .. FROM OrgTable clause
+  if DoData and (DataCols <> '') then begin
+    DataCols := Trim(DataCols);
+    Delete(DataCols, Length(DataCols), 1);
+    CreateCode := CreateCode + ' SELECT ' + DataCols + ' FROM ' + MainForm.mask(FOrgTableName);
+    if MemoWhereClause.GetTextLen > 0 then
+      CreateCode := CreateCode + ' WHERE ' + MemoWhereClause.Text;
   end;
 
-  strquery := strquery + ' FROM ' + mainform.mask(oldTableName);
-
-  // what?
-  if radioStructure.Checked then
-    strquery := strquery + ' WHERE 1 = 0';
-
+  // Run query and refresh list
   try
-    Mainform.Connection.Query(strquery, False);
-
-    // Fix missing auto_increment property and CURRENT_TIMESTAMP defaults in new table
-    Results := Mainform.Connection.GetResults('SHOW FIELDS FROM ' + mainform.mask(oldtablename));
-    Fixes := TStringList.Create;
-    while not Results.Eof do begin
-      notnull := '';
-      if Results.Col('Null') = '' then
-        notnull := 'NOT NULL';
-      default := '';
-      if Results.Col('Default') <> '' then begin
-        default := 'DEFAULT ';
-        if Results.Col('Default') = 'CURRENT_TIMESTAMP' then
-          default := default + Results.Col('Default')
-        else
-          default := default + esc(Results.Col('Default'));
-      end;
-
-      if (CheckBoxWithIndexes.Checked and (Results.Col('Extra') = 'auto_increment'))
-        or (Results.Col('Default') = 'CURRENT_TIMESTAMP') then begin
-        Fixes.Add('CHANGE '+Mainform.mask(Results.Col('Field'))+' '+
-          Mainform.mask(Results.Col('Field'))+' '+
-          Results.Col('Type')+' '+default+' '+notnull+' '+Results.Col('Extra'));
-      end;
-
-      Results.Next;
-    end;
-    if Fixes.Count > 0 then begin
-      Mainform.Connection.Query('ALTER TABLE '+Mainform.mask(ComboSelectDatabase.Text) + '.'+Mainform.mask(editNewTablename.Text)+ ' '+
-        ImplodeStr(', ', Fixes)
-        );
-    end;
-    Results.Free;
-    FreeAndNil(Fixes);
-    Mainform.actRefresh.Execute;
+    MainForm.ShowStatusMsg('Creating table ...');
+    MainForm.Connection.Query(CreateCode);
+    MainForm.actRefresh.Execute;
   except
     on E:EDatabaseError do begin
+      Screen.Cursor := crDefault;
       MessageDlg(E.Message, mtError, [mbOk], 0);
       ModalResult := mrNone;
     end;
   end;
-end;
-
-procedure TCopyTableForm.CheckListBoxFieldsClickCheck(Sender: TObject);
-var
-  i : Integer;
-  allSelected, noneSelected : Boolean;
-begin
-  allselected := True;
-  noneSelected := True;
-  for i := 0 to CheckListBoxFields.Items.Count - 1 do begin
-    if CheckListBoxFields.Checked[i] then
-      noneSelected := False
-    else
-      allSelected := False;
-  end;
-  if noneSelected then
-    chkSelectAll.State := cbUnchecked
-  else if allSelected then
-    chkSelectAll.State := cbChecked
-  else
-    chkSelectAll.State := cbGrayed;
-end;
-
-
-procedure TCopyTableForm.chkSelectAllClick(Sender: TObject);
-begin
-  // Avoid executing when checkbox was toggled by code (see proc below)
-  if (Sender as TCheckBox).Focused then
-    ToggleCheckListBox( CheckListBoxFields, (Sender as TCheckBox).Checked );
+  MainForm.ShowStatusMsg;
+  Screen.Cursor := crDefault;
 end;
 
 end.
