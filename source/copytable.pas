@@ -4,7 +4,7 @@ unit copytable;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
+  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, Contnrs,
   mysql_connection, VirtualTrees, SynEdit, SynMemo;
 
 type
@@ -35,7 +35,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
-    FOrgTableName: String;
+    FDBObj: TDBObject;
     FColumns: TTableColumnList;
     FKeys: TTableKeyList;
     FForeignKeys: TForeignKeyList;
@@ -53,6 +53,7 @@ const
   nKeys = 1;
   nForeignKeys = 2;
   nData = 3;
+  CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
 
 {$R *.DFM}
 {$I const.inc}
@@ -83,15 +84,27 @@ end;
 
 procedure TCopyTableForm.FormShow(Sender: TObject);
 var
-  CreateCode: String;
+  CreateCode, Table: String;
+  DBObjects: TDBObjectList;
+  Obj: TDBObject;
 begin
   if Mainform.DBtree.Focused then
-    FOrgTableName := Mainform.SelectedTable.Name
+    Table := Mainform.SelectedTable.Name
   else
-    FOrgTableName := Mainform.ListTables.Text[Mainform.ListTables.FocusedNode, 0];
-  editNewTablename.Text := FOrgTableName + '_copy';
+    Table := Mainform.ListTables.Text[Mainform.ListTables.FocusedNode, 0];
+  DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);
+  FDBObj := nil;
+  for Obj in DBObjects do begin
+    if Obj.Name = Table then begin
+      FDBObj := Obj;
+      break;
+    end;
+  end;
+  if FDBObj = nil then
+    Exception.Create('Database object "'+Table+'" not found.');
+  editNewTablename.Text := FDBObj.Name + '_copy';
   editNewTablename.SetFocus;
-  lblNewTablename.Caption := 'Copy ''' + FOrgTableName + ''' to new db.table:';
+  lblNewTablename.Caption := 'Copy ''' + FDBObj.Name + ''' to new db.table:';
   editNewTablename.SetFocus;
 
 	// Select TargetDatabase
@@ -101,7 +114,7 @@ begin
   if comboDatabase.ItemIndex = -1 then
     comboDatabase.ItemIndex := 0;
 
-  CreateCode := MainForm.Connection.GetVar('SHOW CREATE TABLE '+MainForm.mask(FOrgTableName), 1);
+  CreateCode := MainForm.Connection.GetVar('SHOW CREATE TABLE '+MainForm.mask(FDBObj.Name), 1);
   FColumns.Clear;
   FKeys.Clear;
   FForeignKeys.Clear;
@@ -128,7 +141,8 @@ begin
       nData:         Option := REGNAME_COPYTABLE_DATA;
       else raise Exception.Create(SUnhandledNodeIndex);
     end;
-    MainReg.WriteBool(Option, Node.CheckState in [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed]);
+    if not (vsDisabled in Node.States) then
+      MainReg.WriteBool(Option, Node.CheckState in CheckedStates);
     Node := TreeElements.GetNextSibling(Node);
   end;
 end;
@@ -175,16 +189,31 @@ end;
 
 procedure TCopyTableForm.TreeElementsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+var
+  CheckedCount: Integer;
+  Child: PVirtualNode;
 begin
   // Get node text
   case Sender.GetNodeLevel(Node) of
-    0: case Node.Index of
+    0: begin
+       case Node.Index of
          nColumns:      CellText := 'Columns';
          nKeys:         CellText := 'Indexes';
          nForeignKeys:  CellText := 'Foreign keys';
-         nData:         CellText := 'Data';
+         nData:         CellText := 'Data ('+FormatNumber(FDBObj.Rows)+' rows)';
          else raise Exception.Create(SUnhandledNodeIndex);
        end;
+       if Node.Index <> nData then begin
+         CheckedCount := 0;
+         Child := Sender.GetFirstChild(Node);
+         while Assigned(Child) do begin
+           if Child.CheckState in CheckedStates then
+             Inc(CheckedCount);
+           Child := Sender.GetNextSibling(Child);
+         end;
+         CellText := CellText + ' ('+FormatNumber(CheckedCount)+'/'+FormatNumber(Sender.ChildCount[Node])+')';
+       end;
+    end;
     1: case Node.Parent.Index of
          nColumns:      CellText := FColumns[Node.Index].Name;
          nKeys:         CellText := FKeys[Node.Index].Name;
@@ -216,30 +245,29 @@ procedure TCopyTableForm.TreeElementsInitNode(Sender: TBaseVirtualTree; ParentNo
   Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 var
   Option: String;
+  ChildCount: Integer;
 begin
   // First three upper nodes mostly have child nodes
   Node.CheckType := ctTriStateCheckBox;
   case Sender.GetNodeLevel(Node) of
     0: begin
-      if Node.Index in [nColumns, nKeys, nForeignKeys] then
-        Include(InitialStates, ivsHasChildren);
       case Node.Index of
-        nColumns:      Option := REGNAME_COPYTABLE_COLUMNS;
-        nKeys:         Option := REGNAME_COPYTABLE_KEYS;
-        nForeignKeys:  Option := REGNAME_COPYTABLE_FOREIGN;
-        nData:         Option := REGNAME_COPYTABLE_DATA;
+        nColumns:      begin Option := REGNAME_COPYTABLE_COLUMNS; ChildCount := FColumns.Count; end;
+        nKeys:         begin Option := REGNAME_COPYTABLE_KEYS; ChildCount := FKeys.Count; end;
+        nForeignKeys:  begin Option := REGNAME_COPYTABLE_FOREIGN; ChildCount := FForeignKeys.Count; end;
+        nData:         begin Option := REGNAME_COPYTABLE_DATA; ChildCount := -1; end;
         else raise Exception.Create(SUnhandledNodeIndex);
       end;
-      if GetRegValue(Option, True) then
+      if ChildCount > 0 then
+        Include(InitialStates, ivsHasChildren);
+      if (ChildCount = 0) or ((Node.Index = nData) and (FDBObj.Rows = 0)) then
+        Node.States := Node.States + [vsDisabled]
+      else if GetRegValue(Option, True) then
         Node.CheckState := csCheckedNormal;
       (Sender as TVirtualStringTree).OnChecked(Sender, Node);
-      // Disable node to indicate 0 children
-      if ((Node.Index = nKeys) and (FKeys.Count = 0))
-        or ((Node.Index = nForeignKeys) and (FForeignKeys.Count = 0)) then
-        Node.States := Node.States + [vsDisabled];
     end;
 
-    1: if Node.Parent.CheckState in [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed] then
+    1: if Node.Parent.CheckState in CheckedStates then
       Node.CheckState := csCheckedNormal;
   end;
 end;
@@ -256,8 +284,6 @@ procedure TCopyTableForm.btnOKClick(Sender: TObject);
 var
   CreateCode, Clause, DataCols, TableExistance: String;
   ParentNode, Node: PVirtualNode;
-  DBObjects: TDBObjectList;
-  Obj: TDBObject;
   DoData: Boolean;
 begin
   // Compose and run CREATE query
@@ -278,7 +304,7 @@ begin
   while Assigned(ParentNode) do begin
     Node := TreeElements.GetFirstChild(ParentNode);
     while Assigned(Node) do begin
-      if Node.CheckState in [csCheckedNormal, csCheckedPressed] then begin
+      if Node.CheckState in CheckedStates then begin
         case ParentNode.Index of
           nColumns: begin
             Clause := FColumns[Node.Index].SQLCode;
@@ -293,38 +319,32 @@ begin
       Node := TreeElements.GetNextSibling(Node);
     end;
     if (ParentNode.Index = nData) then
-      DoData := ParentNode.CheckState in [csCheckedNormal, csCheckedPressed];
+      DoData := ParentNode.CheckState in CheckedStates;
     ParentNode := TreeElements.GetNextSibling(ParentNode);
   end;
   Delete(CreateCode, Length(CreateCode)-2, 3);
   CreateCode := 'CREATE TABLE '+Mainform.mask(comboDatabase.Text)+'.'+Mainform.mask(editNewTablename.Text)+' ('+CRLF+CreateCode+CRLF+')'+CRLF;
 
   // Add collation and engine clauses
-  DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);
-  for Obj in DBObjects do begin
-    if Obj.Name = FOrgTableName then begin
-      if Obj.Collation <> '' then
-        CreateCode := CreateCode + ' COLLATE ''' + Obj.Collation + '''';
-      if Obj.Engine <> '' then begin
-        if Mainform.Connection.ServerVersionInt < 40018 then
-          CreateCode := CreateCode + ' TYPE=' + Obj.Engine
-        else
-          CreateCode := CreateCode + ' ENGINE=' + Obj.Engine;
-      end;
-      if Obj.RowFormat <> '' then
-        CreateCode := CreateCode + ' ROW_FORMAT=' + Obj.RowFormat;
-      if Obj.AutoInc > -1 then
-        CreateCode := CreateCode + ' AUTO_INCREMENT=' + IntToStr(Obj.AutoInc);
-      CreateCode := CreateCode + ' COMMENT=' + esc(Obj.Comment);
-      break;
-    end;
+  if FDBObj.Collation <> '' then
+    CreateCode := CreateCode + ' COLLATE ''' + FDBObj.Collation + '''';
+  if FDBObj.Engine <> '' then begin
+    if Mainform.Connection.ServerVersionInt < 40018 then
+      CreateCode := CreateCode + ' TYPE=' + FDBObj.Engine
+    else
+      CreateCode := CreateCode + ' ENGINE=' + FDBObj.Engine;
   end;
+  if FDBObj.RowFormat <> '' then
+    CreateCode := CreateCode + ' ROW_FORMAT=' + FDBObj.RowFormat;
+  if FDBObj.AutoInc > -1 then
+    CreateCode := CreateCode + ' AUTO_INCREMENT=' + IntToStr(FDBObj.AutoInc);
+  CreateCode := CreateCode + ' COMMENT=' + esc(FDBObj.Comment);
 
   // Append SELECT .. FROM OrgTable clause
   if DoData and (DataCols <> '') then begin
     DataCols := Trim(DataCols);
     Delete(DataCols, Length(DataCols), 1);
-    CreateCode := CreateCode + ' SELECT ' + DataCols + ' FROM ' + MainForm.mask(FOrgTableName);
+    CreateCode := CreateCode + ' SELECT ' + DataCols + ' FROM ' + MainForm.mask(FDBObj.Name);
     if MemoWhereClause.GetTextLen > 0 then
       CreateCode := CreateCode + ' WHERE ' + MemoWhereClause.Text;
   end;
