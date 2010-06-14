@@ -189,8 +189,6 @@ type
     procedure ResetModificationFlags;
     function ComposeCreateStatement: String;
     function ComposeAlterStatement: String;
-    function GetIndexSQL(idx: Integer): String;
-    function GetForeignKeySQL(idx: Integer): String;
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
   public
@@ -572,14 +570,14 @@ begin
       Specs.Add('DROP '+IndexSQL);
     end;
     if FKeys[i].Added or FKeys[i].Modified then
-      Specs.Add('ADD '+GetIndexSQL(i));
+      Specs.Add('ADD '+FKeys[i].SQLCode);
   end;
 
   for i:=0 to DeletedForeignKeys.Count-1 do
     Specs.Add('DROP FOREIGN KEY '+Mainform.mask(DeletedForeignKeys[i]));
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Added or FForeignKeys[i].Modified then
-      Specs.Add('ADD '+GetForeignKeySQL(i));
+      Specs.Add('ADD '+FForeignKeys[i].SQLCode);
   end;
 
   Result := 'ALTER TABLE '+Mainform.mask(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
@@ -603,29 +601,13 @@ begin
   Node := listColumns.GetFirst;
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
-    Result := Result + #9 + Mainform.mask(Col.Name) + ' ' +Col.DataType.Name;
-    if Col.LengthSet <> '' then
-      Result := Result + '(' + Col.LengthSet + ')';
-    if Col.DataType.HasUnsigned and Col.Unsigned then
-      Result := Result + ' UNSIGNED';
-    if not Col.AllowNull then
-      Result := Result + ' NOT';
-    Result := Result + ' NULL';
-    if Col.DefaultType <> cdtNothing then begin
-      Result := Result + ' ' + GetColumnDefaultClause(Col.DefaultType, Col.DefaultText);
-      Result := TrimRight(Result); // Remove whitespace for columns without default value
-    end;
-    if Col.Comment <> '' then
-      Result := Result + ' COMMENT '+esc(Col.Comment);
-    if Col.Collation <> '' then
-      Result := Result + ' COLLATE '+esc(Col.Collation);
-    Result := Result + ','+CRLF;
+    Result := Result + #9 + Col.SQLCode + ','+CRLF;
     Node := listColumns.GetNextSibling(Node);
   end;
 
   IndexCount := 0;
   for i:=0 to FKeys.Count-1 do begin
-    tmp := GetIndexSQL(i);
+    tmp := FKeys[i].SQLCode;
     if tmp <> '' then begin
       Result := Result + #9 + tmp + ','+CRLF;
       Inc(IndexCount);
@@ -633,7 +615,7 @@ begin
   end;
 
   for i:=0 to FForeignKeys.Count-1 do
-    Result := Result + #9 + GetForeignKeySQL(i) + ','+CRLF;
+    Result := Result + #9 + FForeignKeys[i].SQLCode + ','+CRLF;
 
   if Integer(listColumns.RootNodeCount) + IndexCount + FForeignKeys.Count > 0 then
     Delete(Result, Length(Result)-2, 3);
@@ -664,60 +646,6 @@ begin
   if comboInsertMethod.Enabled and (comboInsertMethod.Text <> '') then
     Result := Result + 'INSERT_METHOD='+comboInsertMethod.Text + CRLF;
   Result := Trim(Result);
-end;
-
-
-function TfrmTableEditor.GetIndexSQL(idx: Integer): String;
-var
-  i: Integer;
-begin
-  Result := '';
-  // Supress SQL error  trying index creation with 0 column
-  if FKeys[idx].Columns.Count = 0 then
-    Exit;
-  if FKeys[idx].IndexType = PKEY then
-    Result := Result + 'PRIMARY KEY '
-  else begin
-    if FKeys[idx].IndexType <> KEY then
-      Result := Result + FKeys[idx].IndexType + ' ';
-    Result := Result + 'INDEX ' + Mainform.Mask(FKeys[idx].Name) + ' ';
-  end;
-  Result := Result + '(';
-  for i:=0 to FKeys[idx].Columns.Count-1 do begin
-    Result := Result + Mainform.Mask(FKeys[idx].Columns[i]);
-    if FKeys[idx].SubParts[i] <> '' then
-      Result := Result + '(' + FKeys[idx].SubParts[i] + ')';
-    Result := Result + ', ';
-  end;
-  if FKeys[idx].Columns.Count > 0 then
-    Delete(Result, Length(Result)-1, 2);
-
-  Result := Result + ')';
-
-  if FKeys[idx].Algorithm <> '' then
-    Result := Result + ' USING ' + FKeys[idx].Algorithm;
-end;
-
-
-function TfrmTableEditor.GetForeignKeySQL(idx: Integer): String;
-var
-  Key: TForeignKey;
-  i: Integer;
-begin
-  Key := FForeignKeys[idx];
-  Result := 'CONSTRAINT '+Mainform.mask(Key.KeyName)+' FOREIGN KEY (';
-  for i:=0 to Key.Columns.Count-1 do
-    Result := Result + Mainform.mask(Key.Columns[i]) + ', ';
-  if Key.Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
-  Result := Result + ') REFERENCES ' + Mainform.MaskMulti(Key.ReferenceTable) + ' (';
-  for i:=0 to Key.ForeignColumns.Count-1 do
-    Result := Result + Mainform.mask(Key.ForeignColumns[i]) + ', ';
-  if Key.ForeignColumns.Count > 0 then Delete(Result, Length(Result)-1, 2);
-  Result := Result + ')';
-  if Key.OnUpdate <> '' then
-    Result := Result + ' ON UPDATE ' + Key.OnUpdate;
-  if Key.OnDelete <> '' then
-    Result := Result + ' ON DELETE ' + Key.OnDelete;
 end;
 
 
@@ -1994,7 +1922,7 @@ begin
       MessageDlg('Please select a reference table before selecting foreign columns.', mtError, [mbOk], 0)
     else begin
       try
-        Mainform.Connection.GetVar('SELECT 1 FROM '+Mainform.MaskMulti(Key.ReferenceTable));
+        Mainform.Connection.GetVar('SELECT 1 FROM '+Mainform.Mask(Key.ReferenceTable));
         Allowed := True;
       except
         // Leave Allowed = False
@@ -2046,7 +1974,7 @@ begin
     3: begin
         Key := FForeignKeys[Node.Index];
         SetEditor := TSetEditorLink.Create(VT);
-        SetEditor.ValueList := Mainform.Connection.GetCol('SHOW COLUMNS FROM '+Mainform.MaskMulti(Key.ReferenceTable));
+        SetEditor.ValueList := Mainform.Connection.GetCol('SHOW COLUMNS FROM '+Mainform.Mask(Key.ReferenceTable));
         EditLink := SetEditor;
       end;
     4, 5: begin
