@@ -1662,7 +1662,8 @@ begin
           end;
         end;
       end;
-      RecNo := 0;
+      FRecNo := -1;
+      First;
     end else begin
       SetLength(FColumnTypes, 0);
       SetLength(FColumnLengths, 0);
