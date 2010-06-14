@@ -233,6 +233,10 @@ begin
       if GetRegValue(Option, True) then
         Node.CheckState := csCheckedNormal;
       (Sender as TVirtualStringTree).OnChecked(Sender, Node);
+      // Disable node to indicate 0 children
+      if ((Node.Index = nKeys) and (FKeys.Count = 0))
+        or ((Node.Index = nForeignKeys) and (FForeignKeys.Count = 0)) then
+        Node.States := Node.States + [vsDisabled];
     end;
 
     1: if Node.Parent.CheckState in [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed] then
