@@ -39,7 +39,7 @@ object CopyTableForm: TCopyTableForm
   end
   object lblWhere: TLabel
     Left = 8
-    Top = 164
+    Top = 167
     Width = 155
     Height = 13
     Anchors = [akLeft, akBottom]
@@ -63,7 +63,7 @@ object CopyTableForm: TCopyTableForm
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 4
+    TabOrder = 5
   end
   object comboDatabase: TComboBox
     Left = 8
@@ -82,7 +82,7 @@ object CopyTableForm: TCopyTableForm
     Caption = 'OK'
     Default = True
     ModalResult = 1
-    TabOrder = 5
+    TabOrder = 6
     OnClick = btnOKClick
   end
   object TreeElements: TVirtualStringTree
@@ -111,11 +111,11 @@ object CopyTableForm: TCopyTableForm
     OnInitNode = TreeElementsInitNode
     Columns = <>
   end
-  object MemoWhereClause: TSynMemo
+  object MemoFilter: TSynMemo
     Left = 8
-    Top = 183
+    Top = 192
     Width = 348
-    Height = 82
+    Height = 73
     SingleLineMode = False
     Anchors = [akLeft, akRight, akBottom]
     Font.Charset = DEFAULT_CHARSET
@@ -123,7 +123,7 @@ object CopyTableForm: TCopyTableForm
     Font.Height = -13
     Font.Name = 'Courier New'
     Font.Style = []
-    TabOrder = 3
+    TabOrder = 4
     Gutter.AutoSize = True
     Gutter.DigitCount = 2
     Gutter.Font.Charset = DEFAULT_CHARSET
@@ -136,5 +136,22 @@ object CopyTableForm: TCopyTableForm
     Highlighter = MainForm.SynSQLSyn1
     Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabIndent]
     WantTabs = True
+  end
+  object btnRecentFilters: TButton
+    Left = 248
+    Top = 164
+    Width = 108
+    Height = 22
+    Anchors = [akRight, akBottom]
+    Caption = 'Recent filters'
+    DropDownMenu = popupRecentFilters
+    Style = bsSplitButton
+    TabOrder = 3
+    OnClick = btnRecentFiltersClick
+  end
+  object popupRecentFilters: TPopupMenu
+    AutoHotkeys = maManual
+    Left = 208
+    Top = 160
   end
 end
