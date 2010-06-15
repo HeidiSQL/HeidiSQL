@@ -5,7 +5,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, Contnrs,
-  mysql_connection, VirtualTrees, SynEdit, SynMemo;
+  mysql_connection, VirtualTrees, SynEdit, SynMemo, Menus;
 
 type
   TCopyTableForm = class(TForm)
@@ -15,9 +15,11 @@ type
     comboDatabase: TComboBox;
     btnOK: TButton;
     TreeElements: TVirtualStringTree;
-    MemoWhereClause: TSynMemo;
+    MemoFilter: TSynMemo;
     lblItems: TLabel;
     lblWhere: TLabel;
+    btnRecentFilters: TButton;
+    popupRecentFilters: TPopupMenu;
     procedure editNewTablenameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
@@ -33,6 +35,8 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure TreeElementsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnRecentFiltersClick(Sender: TObject);
+    procedure RecentFilterClick(Sender: TObject);
   private
     { Private declarations }
     FDBObj: TDBObject;
@@ -84,9 +88,12 @@ end;
 
 procedure TCopyTableForm.FormShow(Sender: TObject);
 var
-  CreateCode, Table: String;
+  CreateCode, Table, Filter: String;
   DBObjects: TDBObjectList;
   Obj: TDBObject;
+  Values: TStringList;
+  i, j: Integer;
+  Item: TMenuItem;
 begin
   if Mainform.DBtree.Focused then
     Table := Mainform.SelectedTable.Name
@@ -122,6 +129,24 @@ begin
 
   TreeElements.Clear;
   TreeElements.RootNodeCount := 4;
+
+  popupRecentFilters.Items.Clear;
+  OpenRegistry;
+  Values := TStringList.Create;
+  MainReg.GetValueNames(Values);
+  j := 0;
+  for i:=0 to Values.Count-1 do begin
+    if Pos(REGPREFIX_COPYTABLE_FILTERS, Values[i]) <> 1 then
+      continue;
+    Inc(j);
+    Filter := MainReg.ReadString(Values[i]);
+    Item := TMenuItem.Create(popupRecentFilters);
+    Item.Caption := IntToStr(j) + '  ' + sstr(Filter, 100);
+    Item.Hint := Filter;
+    Item.OnClick := RecentFilterClick;
+    popupRecentFilters.Items.Add(Item);
+  end;
+
 end;
 
 
@@ -129,7 +154,9 @@ end;
 procedure TCopyTableForm.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   Node: PVirtualNode;
-  Option: String;
+  Option, Filter: String;
+  Values, NewValues: TStringList;
+  i: Integer;
 begin
   // Save first level node check options
   Node := TreeElements.GetFirst;
@@ -145,6 +172,27 @@ begin
       MainReg.WriteBool(Option, Node.CheckState in CheckedStates);
     Node := TreeElements.GetNextSibling(Node);
   end;
+  // Store recent filters
+  if MemoFilter.Enabled and (MemoFilter.GetTextLen > 0) then begin
+    OpenRegistry;
+    Values := TStringList.Create;
+    NewValues := TStringList.Create;
+    NewValues.Add(MemoFilter.Text);
+    MainReg.GetValueNames(Values);
+    for i:=0 to Values.Count-1 do begin
+      if Pos(REGPREFIX_COPYTABLE_FILTERS, Values[i]) <> 1 then
+        continue;
+      Filter := MainReg.ReadString(Values[i]);
+      if NewValues.IndexOf(Filter) = -1 then
+        NewValues.Add(Filter);
+      MainReg.DeleteValue(Values[i]);
+    end;
+    for i:=0 to NewValues.Count-1 do begin
+      if i = 20 then
+        break;
+      MainReg.WriteString(REGPREFIX_COPYTABLE_FILTERS+IntToStr(i), NewValues[i]);
+    end;
+  end;
 end;
 
 
@@ -152,13 +200,14 @@ procedure TCopyTableForm.TreeElementsChecked(Sender: TBaseVirtualTree; Node: PVi
 begin
   // Disable WHERE memo if "Data" was unselected
   if (Sender.GetNodeLevel(Node) = 0) and (Node.Index = nData) then begin
-    MemoWhereClause.Enabled := Node.CheckState = csCheckedNormal;
-    if MemoWhereClause.Enabled then begin
-      MemoWhereClause.Highlighter := MainForm.SynSQLSyn1;
-      MemoWhereClause.Color := clWindow;
+    MemoFilter.Enabled := Node.CheckState = csCheckedNormal;
+    btnRecentFilters.Enabled := MemoFilter.Enabled;
+    if MemoFilter.Enabled then begin
+      MemoFilter.Highlighter := MainForm.SynSQLSyn1;
+      MemoFilter.Color := clWindow;
     end else begin
-      MemoWhereClause.Highlighter := nil;
-      MemoWhereClause.Color := clBtnFace;
+      MemoFilter.Highlighter := nil;
+      MemoFilter.Color := clBtnFace;
     end;
   end;
 end;
@@ -273,6 +322,27 @@ begin
 end;
 
 
+procedure TCopyTableForm.btnRecentFiltersClick(Sender: TObject);
+var
+  btn: TButton;
+begin
+  // A split button does not drop its menu down when the normal button area is clicked. Do that by hand.
+  btn := Sender as TButton;
+  btn.DropDownMenu.Popup(btn.ClientOrigin.X, btn.ClientOrigin.Y+btn.Height);
+end;
+
+
+procedure TCopyTableForm.RecentFilterClick(Sender: TObject);
+var
+  Item: TMenuItem;
+begin
+  // Load recent filter
+  Item := Sender as TMenuItem;
+  MemoFilter.SelectAll;
+  MemoFilter.SelText := Item.Hint;
+end;
+
+
 procedure TCopyTableForm.editNewTablenameChange(Sender: TObject);
 begin
   // Disable OK button as long as table name is empty
@@ -345,8 +415,8 @@ begin
     DataCols := Trim(DataCols);
     Delete(DataCols, Length(DataCols), 1);
     CreateCode := CreateCode + ' SELECT ' + DataCols + ' FROM ' + MainForm.mask(FDBObj.Name);
-    if MemoWhereClause.GetTextLen > 0 then
-      CreateCode := CreateCode + ' WHERE ' + MemoWhereClause.Text;
+    if MemoFilter.GetTextLen > 0 then
+      CreateCode := CreateCode + ' WHERE ' + MemoFilter.Text;
   end;
 
   // Run query and refresh list

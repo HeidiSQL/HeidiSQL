@@ -8838,7 +8838,7 @@ begin
     Editors.Add(SQLHelpForm.MemoExample);
   end;
   if Assigned(CopyTableDialog) then
-    Editors.Add(CopyTableDialog.MemoWhereClause);
+    Editors.Add(CopyTableDialog.MemoFilter);
 
   FontName := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
   FontSize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
