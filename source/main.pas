@@ -5495,7 +5495,7 @@ begin
   ResultTab := ActiveQueryTab.ResultTabs[idx];
   BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns x ' +
     FormatNumber(ResultTab.Results.RecordCount) + ' rows' + CRLF +
-    Trim(sstr(ResultTab.Results.SQL, SIZE_KB));
+    Trim(WrapText(sstr(ResultTab.Results.SQL, SIZE_KB), 100));
   Rect := Tabs.ItemRect(idx);
   Org := Tabs.ClientOrigin;
   OffsetRect(Rect, Org.X, Org.Y);
