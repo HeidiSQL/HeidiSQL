@@ -433,6 +433,8 @@ begin
   end;
   DeletedKeys.Clear;
   for i:=0 to FKeys.Count-1 do begin
+    FKeys[i].OldName := FKeys[i].Name;
+    FKeys[i].OldIndexType := FKeys[i].IndexType;
     FKeys[i].Added := False;
     FKeys[i].Modified := False;
   end;
@@ -563,7 +565,7 @@ begin
   for i:=0 to FKeys.Count-1 do begin
     Mainform.ProgressBarStatus.StepIt;
     if FKeys[i].Modified and (not FKeys[i].Added) then begin
-      if FKeys[i].IndexType = PKEY then
+      if FKeys[i].OldIndexType = PKEY then
         IndexSQL := 'PRIMARY KEY'
       else
         IndexSQL := 'INDEX ' + Mainform.Mask(FKeys[i].OldName);
@@ -1247,6 +1249,7 @@ begin
   TblKey.Name := 'Index '+IntToStr(FKeys.Count+1);
   TblKey.OldName := TblKey.Name;
   TblKey.IndexType := KEY;
+  TblKey.OldIndexType := TblKey.IndexType;
   TblKey.Added := True;
   FKeys.Add(TblKey);
   Modification(Sender);
