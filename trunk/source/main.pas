@@ -7124,15 +7124,18 @@ begin
 end;
 
 
-procedure TMainForm.AnyGridKeyDown(Sender: TObject; var Key: Word; Shift:
-    TShiftState);
+procedure TMainForm.AnyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   g: TVirtualStringTree;
 begin
   g := TVirtualStringTree(Sender);
   case Key of
     VK_HOME: g.FocusedColumn := 0;
-    VK_END: g.FocusedColumn := g.Header.Columns.Count-1;
+    VK_END: begin
+      if (ssCtrl in Shift) and (g = DataGrid) then
+        actDataShowAll.Execute;
+      g.FocusedColumn := g.Header.Columns.Count-1;
+    end;
     VK_RETURN: if Assigned(g.FocusedNode) then g.EditNode(g.FocusedNode, g.FocusedColumn);
     VK_DOWN: if g.FocusedNode = g.GetLast then actDataInsertExecute(Sender);
     VK_NEXT: if (g = DataGrid) and (g.FocusedNode = g.GetLast) then actDataShowNext.Execute;
