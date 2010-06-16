@@ -121,15 +121,24 @@ begin
   if comboDatabase.ItemIndex = -1 then
     comboDatabase.ItemIndex := 0;
 
-  CreateCode := MainForm.Connection.GetVar('SHOW CREATE TABLE '+MainForm.mask(FDBObj.Name), 1);
+  // Fetch columns and key structures from table or view
   FColumns.Clear;
   FKeys.Clear;
   FForeignKeys.Clear;
-  ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys);
+  case FDBObj.NodeType of
+    lntTable: begin
+      CreateCode := MainForm.Connection.GetVar('SHOW CREATE TABLE '+MainForm.mask(FDBObj.Name), 1);
+      ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys);
+    end;
+    lntView: ParseViewStructure(FDBObj.Name, FColumns);
+    else raise Exception.Create('Neither table nor view: '+FDBObj.Name);
+  end;
 
+  // Reset options tree
   TreeElements.Clear;
   TreeElements.RootNodeCount := 4;
 
+  // Load recent WHERE clauses from registry into dropdown menu
   popupRecentFilters.Items.Clear;
   OpenRegistry;
   Values := TStringList.Create;

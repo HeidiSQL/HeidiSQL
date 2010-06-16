@@ -2696,7 +2696,7 @@ begin
   Columns.Clear;
   rx := TRegExpr.Create;
   rx.Expression := '^(\w+)(\((.+)\))?';
-  Results := Mainform.Connection.GetResults('SHOW COLUMNS FROM '+Mainform.mask(ViewName));
+  Results := Mainform.Connection.GetResults('SHOW /*!32332 FULL */ COLUMNS FROM '+Mainform.mask(ViewName));
   while not Results.Eof do begin
     Col := TTableColumn.Create;
     Columns.Add(Col);
@@ -2706,6 +2706,20 @@ begin
       Col.DataType := GetDatatypeByName(rx.Match[1]);
       Col.LengthSet := rx.Match[3];
     end;
+    Col.Unsigned := (Col.DataType.Category = dtcInteger) and (Pos('unsigned', Results.Col('Type')) > 0);
+    Col.AllowNull := UpperCase(Results.Col('Null')) = 'YES';
+    Col.Collation := Results.Col('Collation', True);
+    Col.Comment := Results.Col('Comment', True);
+    if Col.DataType.Category <> dtcTemporal then
+      Col.DefaultText := Results.Col('Default');
+    if Results.IsNull('Default') and Col.AllowNull then
+      Col.DefaultType := cdtNull
+    else if Col.DataType.Index = dtTimestamp then
+      Col.DefaultType := cdtCurTSUpdateTS
+    else if (Col.DefaultText = '') and Col.AllowNull then
+      Col.DefaultType := cdtNothing
+    else
+      Col.DefaultType := cdtText;
     Results.Next;
   end;
   rx.Free;
