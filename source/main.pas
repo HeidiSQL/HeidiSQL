@@ -7909,8 +7909,8 @@ procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; Target
     tmpval := commandCount / Connection.ServerUptime;
     VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Percentage. Take care of division by zero errors and Int64's
-    if commandCount < 1 then
-      commandCount := 1;
+    if commandCount < 0 then
+      commandCount := 0;
     if totalCount < 1 then
       totalCount := 1;
     tmpval := 100 / totalCount * commandCount;
