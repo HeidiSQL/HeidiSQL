@@ -2517,7 +2517,7 @@ object MainForm: TMainForm
       Caption = 'Filter panel'
       Hint = 'Activates the filter panel'
       ImageIndex = 30
-      ShortCut = 16454
+      ShortCut = 49222
       OnExecute = actFilterPanelExecute
     end
     object actBulkTableEdit: TAction
