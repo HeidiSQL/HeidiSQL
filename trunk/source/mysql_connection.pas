@@ -70,7 +70,7 @@ type
   TTableKey = class(TObject)
     public
       Name, OldName: String;
-      IndexType, Algorithm: String;
+      IndexType, OldIndexType, Algorithm: String;
       Columns, SubParts: TStringList;
       Modified, Added: Boolean;
       constructor Create;

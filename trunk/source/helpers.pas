@@ -2642,6 +2642,7 @@ begin
     if Key.Name = '' then Key.Name := rx.Match[2]; // PRIMARY
     Key.OldName := Key.Name;
     Key.IndexType := rx.Match[2];
+    Key.OldIndexType := Key.IndexType;
     Key.Algorithm := rx.Match[7];
     if Key.IndexType = '' then Key.IndexType := 'KEY'; // KEY
     Key.Columns := Explode(',', rx.Match[5]);
