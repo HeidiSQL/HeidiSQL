@@ -5482,6 +5482,7 @@ var
   Rect: TRect;
   Org: TPoint;
   ResultTab: TResultTab;
+  HintSQL: String;
 begin
   // Display some hint with row/col count + SQL when mouse hovers over result tab
   if (LastHintMousepos.X = x) and (LastHintMousepos.Y = Y) then
@@ -5493,9 +5494,12 @@ begin
     Exit;
   LastHintControlIndex := idx;
   ResultTab := ActiveQueryTab.ResultTabs[idx];
+  HintSQL := sstr(ResultTab.Results.SQL, SIZE_KB);
+  HintSQL := WrapText(HintSQL, CRLF, ['.',' ',#9,'-',',',';'], 100);
+  HintSQL := Trim(HintSQL);
   BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns x ' +
     FormatNumber(ResultTab.Results.RecordCount) + ' rows' + CRLF +
-    Trim(WrapText(sstr(ResultTab.Results.SQL, SIZE_KB), 100));
+    HintSQL;
   Rect := Tabs.ItemRect(idx);
   Org := Tabs.ClientOrigin;
   OffsetRect(Rect, Org.X, Org.Y);
