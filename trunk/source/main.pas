@@ -509,7 +509,7 @@ type
     procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
     procedure ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
-    function mask(str: String) : String;
+    function mask(str: String; HasMultiSegments: Boolean=False) : String;
     procedure actExecuteQueryExecute(Sender: TObject);
     procedure actCopyAsXMLExecute(Sender: TObject);
     procedure actCreateDatabaseExecute(Sender: TObject);
@@ -2054,9 +2054,9 @@ end;
 
 
 // Escape database, table, field, index or key name.
-function TMainform.mask(str: String) : String;
+function TMainform.mask(str: String; HasMultiSegments: Boolean=False) : String;
 begin
-  result := Connection.QuoteIdent(str);
+  result := Connection.QuoteIdent(str, HasMultiSegments);
 end;
 
 
@@ -7237,7 +7237,7 @@ begin
     idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
     if idx > -1 then begin
       // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
-      CreateTable := Connection.GetVar('SHOW CREATE TABLE '+Mask(ForeignKey.ReferenceTable), 1);
+      CreateTable := Connection.GetVar('SHOW CREATE TABLE '+Mask(ForeignKey.ReferenceTable, True), 1);
       Columns := TTableColumnList.Create;
       Keys := nil;
       ForeignKeys := nil;
@@ -7253,7 +7253,7 @@ begin
       KeyCol := Mask(ForeignKey.ForeignColumns[idx]);
       SQL := 'SELECT '+KeyCol;
       if TextCol <> '' then SQL := SQL + ', LEFT(' + Mask(TextCol) + ', 256)';
-      SQL := SQL + ' FROM '+Mask(ForeignKey.ReferenceTable)+' GROUP BY '+KeyCol+' ORDER BY ';
+      SQL := SQL + ' FROM '+Mask(ForeignKey.ReferenceTable, True)+' GROUP BY '+KeyCol+' ORDER BY ';
       if TextCol <> '' then SQL := SQL + Mask(TextCol) else SQL := SQL + KeyCol;
       SQL := SQL + ' LIMIT 1000';
 

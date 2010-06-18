@@ -1925,7 +1925,7 @@ begin
       MessageDlg('Please select a reference table before selecting foreign columns.', mtError, [mbOk], 0)
     else begin
       try
-        Mainform.Connection.GetVar('SELECT 1 FROM '+Mainform.Mask(Key.ReferenceTable));
+        Mainform.Connection.GetVar('SELECT 1 FROM '+Mainform.Mask(Key.ReferenceTable, True));
         Allowed := True;
       except
         // Leave Allowed = False
@@ -1977,7 +1977,7 @@ begin
     3: begin
         Key := FForeignKeys[Node.Index];
         SetEditor := TSetEditorLink.Create(VT);
-        SetEditor.ValueList := Mainform.Connection.GetCol('SHOW COLUMNS FROM '+Mainform.Mask(Key.ReferenceTable));
+        SetEditor.ValueList := Mainform.Connection.GetCol('SHOW COLUMNS FROM '+Mainform.Mask(Key.ReferenceTable, True));
         EditLink := SetEditor;
       end;
     4, 5: begin
