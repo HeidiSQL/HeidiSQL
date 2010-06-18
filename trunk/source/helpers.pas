@@ -956,7 +956,7 @@ begin
     // Add header item.
     tmp := tmp + ' c ';
   end;
-  tmp := tmp + '}\r\n';
+  tmp := tmp + '}' + CRLF;
   StreamWrite(S, tmp);
   GridToCsv(Grid, ' & ', '', '\\ \r\n', s);
 	StreamWrite(S, '\end{tabular}'+CRLF);
