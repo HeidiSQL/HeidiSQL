@@ -1850,8 +1850,8 @@ object MainForm: TMainForm
       object CopyAsSQLdata: TMenuItem
         Action = actCopyAsSQL
       end
-      object CopyselectedrowsasLaTextable1: TMenuItem
-        Action = actCopyAsLaTex
+      object CopyselectedrowsasLaTeXtable1: TMenuItem
+        Action = actCopyAsLaTeX
       end
       object Exportdata1: TMenuItem
         Action = actExportData
@@ -2019,12 +2019,12 @@ object MainForm: TMainForm
       ImageIndex = 48
       OnExecute = actCopyAsXMLExecute
     end
-    object actCopyAsLaTex: TAction
+    object actCopyAsLaTeX: TAction
       Category = 'Export/Import'
-      Caption = 'Copy selected rows as LaTex table'
+      Caption = 'Copy selected rows as LaTeX table'
       Enabled = False
       ImageIndex = 153
-      OnExecute = actCopyAsLaTexExecute
+      OnExecute = actCopyAsLaTeXExecute
     end
     object actExportData: TAction
       Category = 'Export/Import'
@@ -8159,8 +8159,8 @@ object MainForm: TMainForm
       object CopygriddataasSQL2: TMenuItem
         Action = actCopyAsSQL
       end
-      object CopyselectedrowsasLaTextable2: TMenuItem
-        Action = actCopyAsLaTex
+      object CopyselectedrowsasLaTeXtable2: TMenuItem
+        Action = actCopyAsLaTeX
       end
     end
     object Exportdata2: TMenuItem
