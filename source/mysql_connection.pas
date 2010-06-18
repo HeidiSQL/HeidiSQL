@@ -236,7 +236,7 @@ type
       function Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TMySQLLogCategory=lcSQL): PMYSQL_RES;
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False): String;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
-      class function QuoteIdent(Identifier: String): String;
+      class function QuoteIdent(Identifier: String; HasMultiSegments: Boolean=False): String;
       function DeQuoteIdent(Identifier: String): String;
       function ConvertServerVersion(Version: Integer): String;
       function GetResults(SQL: String): TMySQLQuery;
@@ -946,11 +946,12 @@ end;
   Add backticks to identifier
   Todo: Support ANSI style
 }
-class function TMySQLConnection.QuoteIdent(Identifier: String): String;
+class function TMySQLConnection.QuoteIdent(Identifier: String; HasMultiSegments: Boolean=False): String;
 begin
   Result := Identifier;
   Result := StringReplace(Result, '`', '``', [rfReplaceAll]);
-  Result := StringReplace(Result, '.', '`.`', [rfReplaceAll]);
+  if HasMultiSegments then
+    Result := StringReplace(Result, '.', '`.`', [rfReplaceAll]);
   Result := '`' + Result + '`';
 end;
 
@@ -2534,7 +2535,7 @@ begin
   for i:=0 to Columns.Count-1 do
     Result := Result + TMySQLConnection.QuoteIdent(Columns[i]) + ', ';
   if Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
-  Result := Result + ') REFERENCES ' + TMySQLConnection.QuoteIdent(ReferenceTable) + ' (';
+  Result := Result + ') REFERENCES ' + TMySQLConnection.QuoteIdent(ReferenceTable, True) + ' (';
   for i:=0 to ForeignColumns.Count-1 do
     Result := Result + TMySQLConnection.QuoteIdent(ForeignColumns[i]) + ', ';
   if ForeignColumns.Count > 0 then Delete(Result, Length(Result)-1, 2);
