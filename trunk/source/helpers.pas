@@ -959,7 +959,7 @@ begin
   tmp := tmp + '}\r\n';
   StreamWrite(S, tmp);
   GridToCsv(Grid, ' & ', '', '\\ \r\n', s);
-	StreamWrite(S, '\end{tabular}\r\n');
+	StreamWrite(S, '\end{tabular}'+CRLF);
 end;
 
 
