@@ -486,6 +486,9 @@ type
     btnPreviewClose: TToolButton;
     actDataSaveBlobToFile: TAction;
     SaveBLOBtofile1: TMenuItem;
+    actCopyAsLaTex: TAction;
+    CopyselectedrowsasLaTextable1: TMenuItem;
+    CopyselectedrowsasLaTextable2: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -781,6 +784,7 @@ type
     procedure spltPreviewMoved(Sender: TObject);
     procedure actDataSaveBlobToFileExecute(Sender: TObject);
     procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
+    procedure actCopyAsLaTexExecute(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -2321,12 +2325,32 @@ begin
 end;
 
 
+
+procedure TMainForm.actCopyAsLaTexExecute(Sender: TObject);
+var
+  S: TMemoryStream;
+begin
+  // Copy data in focused grid as LaTex table
+  Screen.Cursor := crHourglass;
+  S := TMemoryStream.Create;
+  try
+    GridToLatex(ActiveGrid, S);
+    StreamToClipboard(S, S, True);
+  finally
+    ShowStatusMsg('Freeing data...');
+    S.Free;
+    ShowStatusMsg;
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+
 procedure TMainForm.actExportDataExecute(Sender: TObject);
 var
   Dialog: TSaveDialog;
   FS: TFileStream;
 begin
-  // Save data in current dataset as CSV, HTML or XML
+  // Save data in current dataset into various text file formats
   Dialog := SaveDialogExportData;
   Dialog.FileName := BestTableName(GridResult(ActiveGrid));
   Dialog.Title := 'Export result set from '+Dialog.Filename+'...';
@@ -2338,6 +2362,7 @@ begin
       2: GridToHtml(ActiveGrid, FS);
       3: GridToXml(ActiveGrid, FS);
       4: GridToSql(ActiveGrid, FS);
+      5: GridToLaTex(ActiveGrid, FS);
     end;
   finally
     ShowStatusMsg('Freeing data...');
@@ -4201,6 +4226,7 @@ begin
   actCopyAsHTML.Enabled := inDataOrQueryTabNotEmpty;
   actCopyAsXML.Enabled := inDataOrQueryTabNotEmpty;
   actCopyAsSQL.Enabled := inDataOrQueryTabNotEmpty;
+  actCopyAsLaTex.Enabled := inDataOrQueryTabNotEmpty;
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
   actDataSetNull.Enabled := inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
@@ -5069,6 +5095,7 @@ begin
       2: DefaultExt := 'html';
       3: DefaultExt := 'xml';
       4: DefaultExt := 'sql';
+      5: DefaultExt := 'latex';
     end;
   end;
 end;
