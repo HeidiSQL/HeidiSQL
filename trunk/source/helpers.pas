@@ -87,6 +87,7 @@ type
   procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: String; S: TStream);
   procedure GridToXml(Grid: TVirtualStringTree; S: TStream);
   procedure GridToSql(Grid: TVirtualStringTree; S: TStream);
+  procedure GridToLaTeX(Grid: TVirtualStringTree; S: TStream);
   function BestTableName(Data: TMySQLQuery): String;
   function esc2ascii(str: String): String;
   function urlencode(url: String): String;
@@ -934,6 +935,31 @@ begin
   StreamWrite(S, tmp);
   Mainform.ProgressBarStatus.Visible := False;
   Mainform.ShowStatusMsg;
+end;
+
+
+{***
+  Converts grid contents to LaTeX table.
+  @param Grid Object which holds data to export
+}
+procedure GridToLaTeX(Grid: TVirtualStringTree; S: TStream);
+var
+  i: Integer;
+  tmp: String;
+begin
+  tmp := '\begin{tabular}{';
+  // Columns
+  for i:=0 to Grid.Header.Columns.Count-1 do begin
+    // Skip hidden key columns
+    if not (coVisible in Grid.Header.Columns[i].Options) then
+      Continue;
+    // Add header item.
+    tmp := tmp + ' c ';
+  end;
+  tmp := tmp + '}\r\n';
+  StreamWrite(S, tmp);
+  GridToCsv(Grid, ' & ', '', '\\ \r\n', s);
+	StreamWrite(S, '\end{tabular}\r\n');
 end;
 
 
