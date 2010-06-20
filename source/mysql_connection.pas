@@ -1914,16 +1914,23 @@ end;
 
 procedure TMySQLQuery.PrepareEditing;
 var
+  Res: TMySQLQuery;
   CreateTable: String;
 begin
   // Try to fetch column names and keys
   if FEditingPrepared then
     Exit;
-  CreateTable := Connection.GetVar('SHOW CREATE TABLE ' + QuotedDbAndTableName, 1);
+  Res := Connection.GetResults('SHOW CREATE TABLE ' + QuotedDbAndTableName);
+  CreateTable := Res.Col(1);
   FColumns := TTableColumnList.Create;
   FKeys := TTableKeyList.Create;
   FForeignKeys := TForeignKeyList.Create;
-  ParseTableStructure(CreateTable, FColumns, FKeys, FForeignKeys);
+  // This is probably a VIEW, so column names need to be fetched differently
+  if UpperCase(Res.ColumnNames[0]) = 'TABLE' then
+    ParseTableStructure(CreateTable, FColumns, FKeys, FForeignKeys)
+  else
+    ParseViewStructure(Res.Col(0), FColumns);
+  FreeAndNil(Res);
   FUpdateData := TUpdateData.Create(True);
   FEditingPrepared := True;
 end;
@@ -2241,9 +2248,26 @@ var
   Field: PMYSQL_FIELD;
   i: Integer;
   tbl, db: AnsiString;
+  Objects: TDBObjectList;
+  Obj: TDBObject;
 begin
   for i:=0 to ColumnCount-1 do begin
     Field := mysql_fetch_field_direct(FCurrentResults, i);
+
+    if Field.table <> Field.org_table then begin
+      // Probably a VIEW, in which case we rely on the first column's table name.
+	  // TODO: This is unsafe when joining a view with a table/view.
+      Objects := Connection.GetDBObjects(Connection.DecodeAPIString(Field.db));
+      for Obj in Objects do begin
+        if (Obj.Name = Connection.DecodeAPIString(Field.table)) and (Obj.NodeType = lntView) then begin
+          tbl := Field.table;
+          break;
+        end;
+      end;
+      if tbl <> '' then
+        break;
+    end;
+
     if (Field.org_table <> '') and (tbl <> '') and ((tbl <> Field.org_table) or (db <> Field.db)) then
       raise EDatabaseError.Create('More than one table involved.');
     if Field.org_table <> '' then begin
