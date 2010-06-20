@@ -29,8 +29,6 @@ type
   TVTreeDataArray = Array of TVTreeData;
   PVTreeDataArray = ^TVTreeDataArray;
 
-  TFileCharset = (fcsAnsi, fcsUnicode, fcsUnicodeSwapped, fcsUtf8);
-
   TOrderCol = class(TObject)
     ColumnName: String;
     SortDirection: Byte;
@@ -123,10 +121,10 @@ type
   function GetTempDir: String;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
   procedure SaveUnicodeFile(Filename: String; Text: String);
-  procedure OpenTextFile(const Filename: String; out Stream: TFileStream; out FileCharset: TFileCharset);
-  function GetFileCharset(Stream: TFileStream): TFileCharset;
-  function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): String;
-  function ReadTextfile(Filename: String): String;
+  procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
+  function DetectEncoding(Stream: TStream): TEncoding;
+  function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
+  function ReadTextfile(Filename: String; Encoding: TEncoding): String;
   function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
   procedure StreamToClipboard(Text, HTML: TStream; CreateHTMLHeader: Boolean);
   function WideHexToBin(text: String): AnsiString;
@@ -1924,23 +1922,27 @@ end;
 {**
   Open a textfile unicode safe and return a stream + its charset
 }
-procedure OpenTextFile(const Filename: String; out Stream: TFileStream; out FileCharset: TFileCharset);
+procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
 begin
   Stream := TFileStream.Create(Filename, fmOpenRead or fmShareDenyNone);
   Stream.Position := 0;
-  FileCharset := GetFileCharset(Stream);
+  if Encoding = nil then
+    Encoding := DetectEncoding(Stream)
+  else
+    Stream.Position := Length(Encoding.GetPreamble);
 end;
 
 
 {**
-  Detect a file's character set which can be
-  UTF-16 BE with BOM
-  UTF-16 LE with BOM
-  UTF-8 with or without BOM
-  ANSI
+  Detect stream's content encoding by examing first 100k bytes (MaxBufferSize). Result can be:
+    UTF-16 BE with BOM
+    UTF-16 LE with BOM
+    UTF-8 with or without BOM
+    ANSI
+  Aimed to work better than WideStrUtils.IsUTF8String() which didn't work in any test case here.
   @see http://en.wikipedia.org/wiki/Byte_Order_Mark
 }
-function GetFileCharset(Stream: TFileStream): TFileCharset;
+function DetectEncoding(Stream: TStream): TEncoding;
 var
   ByteOrderMark: Char;
   BytesRead: Integer;
@@ -1968,6 +1970,7 @@ const
       inc(i);
     end;
   end;
+
 begin
   // Byte Order Mark
   ByteOrderMark := #0;
@@ -1985,11 +1988,11 @@ begin
   end;
   // Test Byte Order Mark
   if ByteOrderMark = UNICODE_BOM then
-    Result := fcsUnicode
+    Result := TEncoding.Unicode
   else if ByteOrderMark = UNICODE_BOM_SWAPPED then
-    Result := fcsUnicodeSwapped
+    Result := TEncoding.BigEndianUnicode
   else if Utf8Test = UTF8_BOM then
-    Result := fcsUtf8
+    Result := TEncoding.UTF8
   else begin
     { @note Taken from SynUnicode.pas }
     { If no BOM was found, check for leading/trailing byte sequences,
@@ -2002,10 +2005,7 @@ begin
             US-ASCII chars, like usual in European languages. }
 
     // if no special characteristics are found it is not UTF-8
-    Result := fcsAnsi;
-
-    // if Stream is nil, let Delphi raise the exception, by accessing Stream,
-    // to signal an invalid result
+    Result := TEncoding.Default;
 
     // start analysis at actual Stream.Position
     BufferSize := Min(MaxBufferSize, Stream.Size - Stream.Position);
@@ -2019,7 +2019,7 @@ begin
       i := 0;
       while i < BufferSize do begin
         if FoundUTF8Strings = MinimumCountOfUTF8Strings then begin
-          Result := fcsUtf8;
+          Result := TEncoding.UTF8;
           Break;
         end;
         case Buffer[i] of
@@ -2084,56 +2084,33 @@ begin
   end;
 end;
 
+
 {**
   Read a chunk out of a textfile unicode safe by passing a stream and its charset
 }
-function ReadTextfileChunk(Stream: TFileStream; FileCharset: TFileCharset; ChunkSize: Int64 = 0): String;
+function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
 var
-  SA: AnsiString;
-  P: PWord;
   DataLeft: Int64;
+  LBuffer: TBytes;
 begin
   DataLeft := Stream.Size - Stream.Position;
   if (ChunkSize = 0) or (ChunkSize > DataLeft) then
     ChunkSize := DataLeft;
-  if (FileCharset in [fcsUnicode, fcsUnicodeSwapped]) then begin
-    // BOM indicates Unicode text stream
-    if ChunkSize < SizeOf(Char) then
-      Result := ''
-    else begin
-      SetLength(Result, ChunkSize div SizeOf(Char));
-      Stream.Read(PChar(Result)^, ChunkSize);
-      if FileCharset = fcsUnicodeSwapped then begin
-        P := PWord(PChar(Result));
-        While (P^ <> 0) do begin
-          P^ := MakeWord(HiByte(P^), LoByte(P^));
-          Inc(P);
-        end;
-      end;
-    end;
-  end else if FileCharset = fcsUtf8 then begin
-    // BOM indicates UTF-8 text stream
-    SetLength(SA, ChunkSize div SizeOf(AnsiChar));
-    Stream.Read(PAnsiChar(SA)^, ChunkSize);
-    Result := UTF8ToString(SA);
-  end else begin
-    // without byte order mark it is assumed that we are loading ANSI text
-    SetLength(SA, ChunkSize div SizeOf(AnsiChar));
-    Stream.Read(PAnsiChar(SA)^, ChunkSize);
-    Result := String(SA);
-  end;
+  SetLength(LBuffer, ChunkSize);
+  Stream.ReadBuffer(Pointer(LBuffer)^, ChunkSize);
+  LBuffer := Encoding.Convert(Encoding, TEncoding.Unicode, LBuffer, 0, Length(LBuffer));
+  Result := TEncoding.Unicode.GetString(LBuffer);
 end;
 
 {**
   Read a unicode or ansi file into memory
 }
-function ReadTextfile(Filename: String): String;
+function ReadTextfile(Filename: String; Encoding: TEncoding): String;
 var
   Stream: TFileStream;
-  FileCharset: TFileCharset;
 begin
-  OpenTextfile(Filename, Stream, FileCharset);
-  Result := ReadTextfileChunk(Stream, FileCharset);
+  OpenTextfile(Filename, Stream, Encoding);
+  Result := ReadTextfileChunk(Stream, Encoding);
   Stream.Free;
 end;
 
@@ -3280,7 +3257,7 @@ begin
   Screen.Cursor := crHourGlass;
   try
     if StartupMode then begin
-      Content := ReadTextfile(FileName);
+      Content := ReadTextfile(FileName, nil);
       Lines := Explode(CRLF, Content);
       for i:=0 to Lines.Count-1 do begin
         // Each line has 3 segments: reg path | data type | value. Continue if explode finds less or more than 3.

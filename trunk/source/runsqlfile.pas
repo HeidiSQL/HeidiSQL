@@ -29,6 +29,7 @@ type
   public
     { Public declarations }
     SQLFileName : String;
+    FileEncoding: TEncoding;
   end;
 
 
@@ -48,7 +49,6 @@ uses
 procedure TRunSQLFileForm.FormActivate(Sender: TObject);
 var
   Stream              : TFileStream;
-  FileCharset         : TFileCharset;
   lines               : String;
   filesize,
   querycount,
@@ -78,7 +78,7 @@ begin
     // Start file operations
     filesize := _GetFileSize( SQLFileName );
 
-    OpenTextfile(SQLFileName, Stream, FileCharset );
+    OpenTextfile(SQLFileName, Stream, FileEncoding);
     lblPositionValue.Caption := FormatNumber( Stream.Position ) + ' / ' + FormatNumber( filesize );
     Repaint;
 
@@ -86,7 +86,7 @@ begin
     begin
       // Read lines from SQL file until buffer reaches a limit of some MB
       // This strategy performs vastly better than looping through each line
-      lines := ReadTextfileChunk(Stream, FileCharset, 5*SIZE_MB);
+      lines := ReadTextfileChunk(Stream, FileEncoding, 5*SIZE_MB);
 
       // Display position in file
       lblPositionValue.Caption := FormatByteNumber( Stream.Position ) + ' / ' + FormatByteNumber( filesize );
