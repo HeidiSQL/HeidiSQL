@@ -4,8 +4,7 @@ interface
 
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
-  ComCtrls, ToolWin, Dialogs,
-  helpers;
+  ComCtrls, ToolWin, Dialogs, SysUtils;
 
 {$I const.inc}
 
@@ -43,6 +42,8 @@ type
 
 
 implementation
+
+uses helpers, main;
 
 
 {$R *.dfm}
@@ -108,6 +109,7 @@ begin
     VK_ESCAPE: btnCancelClick(Sender);
     // Apply changes and end editing by Ctrl + Enter
     VK_RETURN: if ssCtrl in Shift then btnApplyClick(Sender);
+    Ord('a'), Ord('A'): if (ssCtrl in Shift) and (not (ssAlt in Shift)) then Mainform.actSelectAllExecute(Sender);
   end;
 end;
 
