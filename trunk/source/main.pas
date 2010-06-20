@@ -3845,7 +3845,11 @@ begin
       DataGridResult.SQL := Select;
       DataGridResult.Execute(Offset > 0);
       DataGridResult.ColumnOrgNames := WantedColumnOrgnames;
-      DataGridResult.PrepareEditing;
+      try
+        DataGridResult.PrepareEditing;
+      except on E:EDatabaseError do // Do not annoy user with popup when accessing tables in information_schema
+        LogSQL(E.Message + ' Data in this table will be read-only.');
+      end;
 
       editFilterVT.Clear;
       TimerFilterVT.OnTimer(Sender);
