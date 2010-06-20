@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils, Menus,
+  ComCtrls, ToolWin, Dialogs, SysUtils, Menus, ExtDlgs,
   helpers;
 
 {$I const.inc}
@@ -217,14 +217,16 @@ end;
 
 procedure TfrmTextEditor.btnLoadTextClick(Sender: TObject);
 var
-  d: TOpenDialog;
+  d: TOpenTextFileDialog;
 begin
-  d := TOpenDialog.Create(Self);
+  d := TOpenTextFileDialog.Create(Self);
   d.Filter := 'Textfiles (*.txt)|*.txt|All files (*.*)|*.*';
   d.FilterIndex := 0;
+  d.Encodings.Assign(MainForm.FileEncodings);
+  d.EncodingIndex := 0;
   if d.Execute then try
     Screen.Cursor := crHourglass;
-    memoText.Text := ReadTextFile(d.FileName);
+    memoText.Text := ReadTextFile(d.FileName, MainForm.GetEncodingByName(d.Encodings[d.EncodingIndex]));
     if (memoText.MaxLength > 0) and (Length(memoText.Text) > memoText.MaxLength) then
       memoText.Text := copy(memoText.Text, 0, memoText.MaxLength);
   finally

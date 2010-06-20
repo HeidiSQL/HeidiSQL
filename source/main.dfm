@@ -8317,13 +8317,6 @@ object MainForm: TMainForm
     Left = 40
     Top = 232
   end
-  object OpenDialogSQLFile: TOpenDialog
-    DefaultExt = 'sql'
-    Filter = 'SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*'
-    Options = [ofHideReadOnly, ofAllowMultiSelect, ofEnableSizing]
-    Left = 40
-    Top = 160
-  end
   object SaveDialogSQLFile: TSaveDialog
     DefaultExt = 'sql'
     Filter = 'SQL-Scripts (*.sql)|*.sql|All Files (*.*)|*.*'

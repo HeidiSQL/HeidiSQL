@@ -15,7 +15,7 @@ uses
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
-  CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math,
+  CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
   mysql_api, insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup;
@@ -295,7 +295,6 @@ type
     menuExporttables: TMenuItem;
     popupListHeader: TVTHeaderPopupMenu;
     SynCompletionProposal: TSynCompletionProposal;
-    OpenDialogSQLFile: TOpenDialog;
     SaveDialogSQLFile: TSaveDialog;
     SynEditSearch1: TSynEditSearch;
     SynEditRegexSearch1: TSynEditRegexSearch;
@@ -593,7 +592,7 @@ type
     procedure QFvaluesClick(Sender: TObject);
     procedure InsertDate(Sender: TObject);
     procedure actDataSetNullExecute(Sender: TObject);
-    function QueryLoad( filename: String; ReplaceContent: Boolean = true ): Boolean;
+    function QueryLoad(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
     procedure AnyGridCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; out EditLink: IVTEditLink);
     procedure AnyGridEditCancelled(Sender: TBaseVirtualTree; Column: TColumnIndex);
@@ -839,6 +838,7 @@ type
     DBObjectsMaxRows: Int64;
     ProcessListMaxTime: Int64;
     ActiveObjectEditor: TDBObjectEditor;
+    FileEncodings: TStringList;
 
     // Cached forms
     TableToolsDialog: TfrmTableTools;
@@ -958,6 +958,7 @@ type
     procedure ParseSelectedTableStructure;
     function AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
     procedure DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
+    function GetEncodingByName(Name: String): TEncoding;
 end;
 
 
@@ -1446,6 +1447,8 @@ begin
   SelectedTableForeignKeys := TForeignKeyList.Create;
 
   FProcessDBtreeFocusChanges := True;
+
+  FileEncodings := Explode(',', 'Auto detect (may fail),ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
 end;
 
 
@@ -1575,7 +1578,7 @@ begin
   for i:=0 to FCmdlineFilenames.Count-1 do begin
     if i>0 then
       actNewQueryTabExecute(Self);
-    if not QueryLoad(FCmdlineFilenames[i]) then
+    if not QueryLoad(FCmdlineFilenames[i], True, nil) then
       actCloseQueryTabExecute(Self);
   end;
 end;
@@ -1691,7 +1694,7 @@ begin
     if not FileExists(StartupScript) then
       MessageDlg('Error: Startup script file not found: '+StartupScript, mtError, [mbOK], 0)
     else begin
-      StartupSQL := ReadTextfile(StartupScript);
+      StartupSQL := ReadTextfile(StartupScript, nil);
       StartupBatch := SplitSQL(StartupSQL);
       for i:=0 to StartupBatch.Count-1 do try
         Connection.Query(StartupBatch[i].SQL);
@@ -2632,14 +2635,26 @@ end;
 procedure TMainForm.actLoadSQLExecute(Sender: TObject);
 var
   i: Integer;
+  Dialog: TOpenTextFileDialog;
+  Encoding: TEncoding;
 begin
-  if OpenDialogSQLfile.Execute then begin
-    for i:=0 to OpenDialogSQLfile.Files.Count-1 do begin
+  //  if IsWindowsVista then
+  //    Dialog := TFileOpenDialog.Create(Self);
+  Dialog := TOpenTextFileDialog.Create(Self);
+  Dialog.Options := Dialog.Options + [ofAllowMultiSelect];
+  Dialog.Filter := 'SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*';
+  Dialog.DefaultExt := 'sql';
+  Dialog.Encodings.Assign(FileEncodings);
+  Dialog.EncodingIndex := 0;
+  if Dialog.Execute then begin
+    Encoding := GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
+    for i:=0 to Dialog.Files.Count-1 do begin
       if i > 0 then
         actNewQueryTabExecute(Sender);
-      QueryLoad(OpenDialogSQLfile.Files[i]);
+      QueryLoad(Dialog.Files[i], True, Encoding);
     end;
   end;
+  Dialog.Free;
 end;
 
 
@@ -3269,7 +3284,7 @@ begin
     p := Pos(' ', Filename) + 1;
     filename := Copy(Filename, p, Length(Filename));
   end;
-  QueryLoad(Filename);
+  QueryLoad(Filename, True, nil);
 end;
 
 
@@ -4742,7 +4757,7 @@ begin
   end else if (src = ActiveQueryHelpers) and (ActiveQueryHelpers.ItemIndex > -1) then begin
     // Snippets tab
     if ActiveQueryTabset.TabIndex = 3 then begin
-      QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
+      QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False, nil);
       LoadText := False;
     // All other tabs
     end else begin
@@ -4782,7 +4797,7 @@ begin
   for i:=0 to AFiles.Count-1 do begin
     if i > 0 then
       actNewQueryTab.Execute;
-    QueryLoad(AFiles[i], false);
+    QueryLoad(AFiles[i], False, nil);
   end;
 end;
 
@@ -4987,7 +5002,7 @@ end;
 
 
 
-function TMainForm.QueryLoad( filename: String; ReplaceContent: Boolean = true ): Boolean;
+function TMainForm.QueryLoad(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
 
 var
   filecontent: String;
@@ -5019,7 +5034,8 @@ begin
       mrYes:
         begin
           RunFileDialog := TRunSQLFileForm.Create(Self);
-          RunFileDialog.SQLFileName := filename;
+          RunFileDialog.SQLFileName := Filename;
+          RunFileDialog.FileEncoding := Encoding;
           RunFileDialog.ShowModal;
           RunFileDialog.Free;
           // Add filename to history menu
@@ -5044,8 +5060,8 @@ begin
     PagecontrolMain.ActivePage := tabQuery;
   LogSQL('Loading file "'+filename+'" ('+FormatByteNumber(FileSize)+') into query tab #'+IntToStr(ActiveQueryTab.Number)+' ...', lcInfo);
   try
-    filecontent := ReadTextfile(filename);
-    if Pos( DirnameSnippets, filename ) = 0 then
+    filecontent := ReadTextfile(Filename, Encoding);
+    if Pos( DirnameSnippets, Filename ) = 0 then
       AddOrRemoveFromQueryLoadHistory( filename, true );
     FillPopupQueryLoad;
     ActiveQueryMemo.UndoList.AddGroupBreak;
@@ -5634,7 +5650,7 @@ end;
 }
 procedure TMainForm.menuInsertSnippetAtCursorClick(Sender: TObject);
 begin
-  QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False );
+  QueryLoad(DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False, nil);
 end;
 
 
@@ -5643,7 +5659,7 @@ end;
 }
 procedure TMainForm.menuLoadSnippetClick(Sender: TObject);
 begin
-  QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', True );
+  QueryLoad(DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', True, nil);
 end;
 
 
@@ -9101,7 +9117,7 @@ begin
     ParseCommandLineParameters(ParamBlobToStr(Msg.CopyDataStruct.lpData));
     for i:=0 to FCmdlineFilenames.Count-1 do begin
       actNewQueryTabExecute(self);
-      if not QueryLoad(FCmdlineFilenames[i]) then
+      if not QueryLoad(FCmdlineFilenames[i], True, nil) then
         actCloseQueryTabExecute(Self);
     end;
     if Assigned(FCmdlineConnectionParams) then
@@ -9191,6 +9207,20 @@ begin
   // Reset status message after long running operations
   if OperationKind = okSortTree then
     ShowStatusMsg;
+end;
+
+
+function TMainForm.GetEncodingByName(Name: String): TEncoding;
+begin
+  Result := nil;
+  case FileEncodings.IndexOf(Name) of
+    1: Result := TEncoding.Default;
+    2: Result := TEncoding.ASCII;
+    3: Result := TEncoding.Unicode;
+    4: Result := TEncoding.BigEndianUnicode;
+    5: Result := TEncoding.UTF8;
+    6: Result := TEncoding.UTF7;
+  end;
 end;
 
 
