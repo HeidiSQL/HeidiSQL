@@ -804,9 +804,12 @@ begin
     Result.Delimiter := ';';
     Result.StrictDelimiter := True;
     Result.DelimitedText := FParameters.AllDatabases;
-    // Remove empty items
-    for i:=Result.Count-1 downto 0 do
-      if Trim(Result[i]) = '' then Result.Delete(i);
+    // Trim all and remove empty items
+    for i:=Result.Count-1 downto 0 do begin
+      Result[i] := Trim(Result[i]);
+      if Result[i] = '' then
+        Result.Delete(i);
+    end;
   end else
     Result := GetCol('SHOW DATABASES');
 end;
