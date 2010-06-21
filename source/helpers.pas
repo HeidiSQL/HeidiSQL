@@ -1923,13 +1923,22 @@ end;
   Open a textfile unicode safe and return a stream + its charset
 }
 procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
+var
+  Header: TBytes;
+  BomLen: Integer;
 begin
   Stream := TFileStream.Create(Filename, fmOpenRead or fmShareDenyNone);
-  Stream.Position := 0;
   if Encoding = nil then
-    Encoding := DetectEncoding(Stream)
-  else
-    Stream.Position := Length(Encoding.GetPreamble);
+    Encoding := DetectEncoding(Stream);
+  // If the file contains a BOM, advance the stream's position
+  BomLen := 0;
+  if Length(Encoding.GetPreamble) > 0 then begin
+    SetLength(Header, Length(Encoding.GetPreamble));
+    Stream.ReadBuffer(Pointer(Header)^, Length(Header));
+    if CompareMem(Header, Encoding.GetPreamble, SizeOf(Header)) then
+      BomLen := Length(Encoding.GetPreamble);
+  end;
+  Stream.Position := BomLen;
 end;
 
 
