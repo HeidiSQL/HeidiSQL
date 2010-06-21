@@ -796,12 +796,17 @@ end;
 
 
 function TMySQLConnection.GetAllDatabases: TStringList;
+var
+  i: Integer;
 begin
   if FParameters.AllDatabases <> '' then begin
     Result := TStringList.Create;
     Result.Delimiter := ';';
     Result.StrictDelimiter := True;
     Result.DelimitedText := FParameters.AllDatabases;
+    // Remove empty items
+    for i:=Result.Count-1 downto 0 do
+      if Trim(Result[i]) = '' then Result.Delete(i);
   end else
     Result := GetCol('SHOW DATABASES');
 end;
