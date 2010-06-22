@@ -2183,9 +2183,10 @@ var
   c: TCellData;
 begin
   if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
-    if FCurrentUpdateRow.Inserted then
-      FUpdateData.Remove(FCurrentUpdateRow)
-    else for x:=0 to FCurrentUpdateRow.Count-1 do begin
+    if FCurrentUpdateRow.Inserted then begin
+      FUpdateData.Remove(FCurrentUpdateRow);
+      FRecNo := -1;
+    end else for x:=0 to FCurrentUpdateRow.Count-1 do begin
       c := FCurrentUpdateRow[x];
       c.NewText := c.OldText;
       c.NewIsNull := c.OldIsNull;
