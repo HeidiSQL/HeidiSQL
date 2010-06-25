@@ -128,7 +128,7 @@ begin
     if rx.Exec(CreateCode) then begin
       if UpperCase(rx.Match[1]) = 'AT' then begin
         radioOnce.Checked := True;
-        d := Mainform.Connection.ParseDateTime(rx.Match[9]);
+        d := Mainform.Connection.ParseDateTime(WideDequotedStr(rx.Match[3], ''''));
         dateOnce.DateTime := d;
         timeOnce.DateTime := d;
       end else begin
