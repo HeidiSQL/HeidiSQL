@@ -7402,7 +7402,7 @@ begin
     Node := Tree.GetNextVisible(Node);
   end;
   // text margins and minimal extra space
-  ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 5;
+  ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 20;
   ColTextWidth := Min(ColTextWidth, prefMaxColWidth);
   Col.Width := ColTextWidth;
 end;
