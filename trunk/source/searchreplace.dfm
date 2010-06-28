@@ -47,7 +47,7 @@ object frmSearchReplace: TfrmSearchReplace
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
-    Caption = 'Replace all'
+    Caption = 'Replace &all'
     ModalResult = 8
     TabOrder = 8
   end
@@ -56,7 +56,7 @@ object frmSearchReplace: TfrmSearchReplace
     Top = 35
     Width = 73
     Height = 17
-    Caption = 'Replace:'
+    Caption = '&Replace:'
     TabOrder = 1
     OnClick = chkReplaceClick
   end
@@ -89,7 +89,7 @@ object frmSearchReplace: TfrmSearchReplace
     Width = 372
     Height = 69
     Anchors = [akLeft, akTop, akRight]
-    Caption = 'Options'
+    Caption = '&Options'
     TabOrder = 3
     object chkCaseSensitive: TCheckBox
       Left = 12
@@ -133,7 +133,7 @@ object frmSearchReplace: TfrmSearchReplace
     Width = 120
     Height = 62
     Anchors = [akLeft, akTop, akBottom]
-    Caption = 'Direction'
+    Caption = '&Direction'
     ItemIndex = 0
     Items.Strings = (
       '&Forward'
@@ -146,7 +146,7 @@ object frmSearchReplace: TfrmSearchReplace
     Width = 120
     Height = 62
     Anchors = [akLeft, akTop, akBottom]
-    Caption = 'Origin'
+    Caption = 'Or&igin'
     ItemIndex = 0
     Items.Strings = (
       'From cursor'
@@ -159,7 +159,7 @@ object frmSearchReplace: TfrmSearchReplace
     Width = 120
     Height = 62
     Anchors = [akLeft, akTop, akRight, akBottom]
-    Caption = 'Scope'
+    Caption = '&Scope'
     ItemIndex = 0
     Items.Strings = (
       'Global'
