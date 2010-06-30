@@ -488,6 +488,9 @@ type
     actCopyAsLaTeX: TAction;
     CopyselectedrowsasLaTeXtable1: TMenuItem;
     CopyselectedrowsasLaTeXtable2: TMenuItem;
+    actCopyAsWiki: TAction;
+    CopyselectedrowsasWikitable1: TMenuItem;
+    CopyselectedrowsasWikitable2: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -2263,6 +2266,8 @@ begin
       ExportFormat := efSQL
     else if act = actCopyAsLaTeX then
       ExportFormat := efLaTeX
+    else if act = actCopyAsWiki then
+      ExportFormat := efWiki
     else
       ExportFormat := efUnknown;
     GridExport(ActiveGrid, S, ExportFormat);
@@ -4182,6 +4187,7 @@ begin
   actCopyAsXML.Enabled := inDataOrQueryTabNotEmpty;
   actCopyAsSQL.Enabled := inDataOrQueryTabNotEmpty;
   actCopyAsLaTeX.Enabled := inDataOrQueryTabNotEmpty;
+  actCopyAsWiki.Enabled := inDataOrQueryTabNotEmpty;
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
   actDataSetNull.Enabled := inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
