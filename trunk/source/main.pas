@@ -503,14 +503,12 @@ type
     procedure actApplyFilterExecute(Sender: TObject);
     procedure actClearEditorExecute(Sender: TObject);
     procedure actTableToolsExecute(Sender: TObject);
-    procedure actCopyAsHTMLExecute(Sender: TObject);
-    procedure actCopyAsCSVExecute(Sender: TObject);
+    procedure actCopyDataExecute(Sender: TObject);
     procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
     procedure ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
     function mask(str: String; HasMultiSegments: Boolean=False) : String;
     procedure actExecuteQueryExecute(Sender: TObject);
-    procedure actCopyAsXMLExecute(Sender: TObject);
     procedure actCreateDatabaseExecute(Sender: TObject);
     procedure actDataCancelChangesExecute(Sender: TObject);
     procedure actExportDataExecute(Sender: TObject);
@@ -545,7 +543,6 @@ type
     procedure actSQLhelpExecute(Sender: TObject);
     procedure actUpdateCheckExecute(Sender: TObject);
     procedure actWebbrowse(Sender: TObject);
-    procedure actCopyAsSQLExecute(Sender: TObject);
     procedure actSelectTreeBackgroundExecute(Sender: TObject);
     procedure popupQueryPopup(Sender: TObject);
     procedure lboxQueryHelpersClick(Sender: TObject);
@@ -783,7 +780,6 @@ type
     procedure spltPreviewMoved(Sender: TObject);
     procedure actDataSaveBlobToFileExecute(Sender: TObject);
     procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
-    procedure actCopyAsLaTeXExecute(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -2245,100 +2241,44 @@ begin
 end;
 
 
-procedure TMainForm.actCopyAsCSVExecute(Sender: TObject);
+procedure TMainForm.actCopyDataExecute(Sender: TObject);
 var
-  S: TMemoryStream;
+  S, HTML: TMemoryStream;
+  act: TAction;
+  Content: AnsiString;
+  ExportFormat: TGridExportFormat;
 begin
   // Copy data in focused grid as CSV
   Screen.Cursor := crHourglass;
   S := TMemoryStream.Create;
   try
-    GridToCsv(ActiveGrid, prefCSVSeparator, prefCSVEncloser, prefCSVTerminator, S);
-    StreamToClipboard(S, nil, False);
-  finally
-    ShowStatusMsg('Freeing data...');
-    S.Free;
-    ShowStatusMsg;
-    Screen.Cursor := crDefault;
-  end;
-end;
-
-
-procedure TMainForm.actCopyAsHTMLExecute(Sender: TObject);
-var
-  S: TMemoryStream;
-begin
-  // Copy data in focused grid as HTML table
-  Screen.Cursor := crHourglass;
-  S := TMemoryStream.Create;
-  try
-    GridToHtml(ActiveGrid, S);
-    StreamToClipboard(S, S, True);
-  finally
-    ShowStatusMsg('Freeing data...');
-    S.Free;
-    ShowStatusMsg;
-    Screen.Cursor := crDefault;
-  end;
-end;
-
-
-procedure TMainForm.actCopyAsXMLExecute(Sender: TObject);
-var
-  S: TMemoryStream;
-begin
-  // Copy data in focused grid as XML
-  Screen.Cursor := crHourglass;
-  S := TMemoryStream.Create;
-  try
-    GridToXml(ActiveGrid, S);
-    StreamToClipboard(S, nil, False);
-  finally
-    ShowStatusMsg('Freeing data...');
-    S.Free;
-    ShowStatusMsg;
-    Screen.Cursor := crDefault;
-  end;
-end;
-
-
-procedure TMainForm.actCopyAsSQLExecute(Sender: TObject);
-var
-  S, HTML: TMemoryStream;
-  Content: AnsiString;
-begin
-  // Copy data in focused grid as SQL
-  Screen.Cursor := crHourglass;
-  S := TMemoryStream.Create;
-  try
-    GridToSql(ActiveGrid, S);
-    SetLength(Content, S.Size);
-    S.Position := 0;
-    S.Read(PAnsiChar(Content)^, S.Size);
-    SynExporterHTML1.ExportAll(Explode(CRLF, UTF8ToString(Content)));
-    HTML := TMemoryStream.Create;
-    SynExporterHTML1.SaveToStream(HTML);
+    act := Sender as TAction;
+    if act = actCopyAsCSV then
+      ExportFormat := efCSV
+    else if act = actCopyAsHTML then
+      ExportFormat := efHTML
+    else if act = actCopyAsXML then
+      ExportFormat := efXML
+    else if act = actCopyAsSQL then
+      ExportFormat := efSQL
+    else if act = actCopyAsLaTeX then
+      ExportFormat := efLaTeX
+    else
+      ExportFormat := efUnknown;
+    GridExport(ActiveGrid, S, ExportFormat);
+    case ExportFormat of
+      efSQL: begin
+        SetLength(Content, S.Size);
+        S.Position := 0;
+        S.Read(PAnsiChar(Content)^, S.Size);
+        SynExporterHTML1.ExportAll(Explode(CRLF, UTF8ToString(Content)));
+        HTML := TMemoryStream.Create;
+        SynExporterHTML1.SaveToStream(HTML);
+      end;
+      efHTML: HTML := S;
+      else HTML := nil;
+    end;
     StreamToClipboard(S, HTML, False);
-  finally
-    ShowStatusMsg('Freeing data...');
-    S.Free;
-    ShowStatusMsg;
-    Screen.Cursor := crDefault;
-  end;
-end;
-
-
-
-procedure TMainForm.actCopyAsLaTeXExecute(Sender: TObject);
-var
-  S: TMemoryStream;
-begin
-  // Copy data in focused grid as LaTeX table
-  Screen.Cursor := crHourglass;
-  S := TMemoryStream.Create;
-  try
-    GridToLaTeX(ActiveGrid, S);
-    StreamToClipboard(S, S, True);
   finally
     ShowStatusMsg('Freeing data...');
     S.Free;
@@ -2352,6 +2292,7 @@ procedure TMainForm.actExportDataExecute(Sender: TObject);
 var
   Dialog: TSaveDialog;
   FS: TFileStream;
+  ExportFormat: TGridExportFormat;
 begin
   // Save data in current dataset into various text file formats
   Dialog := SaveDialogExportData;
@@ -2359,14 +2300,9 @@ begin
   Dialog.Title := 'Export result set from '+Dialog.Filename+'...';
   if Dialog.Execute and (Dialog.FileName <> '') then try
     Screen.Cursor := crHourGlass;
+    ExportFormat := TGridExportFormat(Dialog.FilterIndex);
     FS := TFileStream.Create(Dialog.FileName, fmCreate or fmOpenWrite);
-    case Dialog.FilterIndex of
-      1: GridToCsv(ActiveGrid, prefCSVSeparator, prefCSVEncloser, prefCSVTerminator, FS);
-      2: GridToHtml(ActiveGrid, FS);
-      3: GridToXml(ActiveGrid, FS);
-      4: GridToSql(ActiveGrid, FS);
-      5: GridToLaTeX(ActiveGrid, FS);
-    end;
+    GridExport(ActiveGrid, FS, ExportFormat);
   finally
     ShowStatusMsg('Freeing data...');
     FreeAndNil(FS);

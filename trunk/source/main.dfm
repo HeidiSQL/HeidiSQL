@@ -1938,7 +1938,7 @@ object MainForm: TMainForm
       Caption = 'Copy selected rows as SQL'
       Enabled = False
       ImageIndex = 114
-      OnExecute = actCopyAsSQLExecute
+      OnExecute = actCopyDataExecute
     end
     object actPaste: TAction
       Tag = 58
@@ -2002,7 +2002,7 @@ object MainForm: TMainForm
       Caption = 'Copy selected rows as HTML'
       Enabled = False
       ImageIndex = 32
-      OnExecute = actCopyAsHTMLExecute
+      OnExecute = actCopyDataExecute
     end
     object actCopyAsCSV: TAction
       Tag = 48
@@ -2010,21 +2010,21 @@ object MainForm: TMainForm
       Caption = 'Copy selected rows as CSV'
       Enabled = False
       ImageIndex = 49
-      OnExecute = actCopyAsCSVExecute
+      OnExecute = actCopyDataExecute
     end
     object actCopyAsXML: TAction
       Category = 'Export/Import'
       Caption = 'Copy selected rows as XML'
       Enabled = False
       ImageIndex = 48
-      OnExecute = actCopyAsXMLExecute
+      OnExecute = actCopyDataExecute
     end
     object actCopyAsLaTeX: TAction
       Category = 'Export/Import'
       Caption = 'Copy selected rows as LaTeX table'
       Enabled = False
       ImageIndex = 153
-      OnExecute = actCopyAsLaTeXExecute
+      OnExecute = actCopyDataExecute
     end
     object actExportData: TAction
       Category = 'Export/Import'

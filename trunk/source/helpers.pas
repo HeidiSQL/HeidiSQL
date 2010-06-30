@@ -67,6 +67,8 @@ type
   end;
   TSQLBatch = TObjectList<TSQLSentence>;
 
+  TGridExportFormat = (efUnknown, efCSV, efHTML, efXML, efSQL, efLaTeX);
+
 
 {$I const.inc}
 
@@ -81,11 +83,7 @@ type
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function htmlentities(str: String): String;
-  procedure GridToHtml(Grid: TVirtualStringTree; S: TStream);
-  procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: String; S: TStream);
-  procedure GridToXml(Grid: TVirtualStringTree; S: TStream);
-  procedure GridToSql(Grid: TVirtualStringTree; S: TStream);
-  procedure GridToLaTeX(Grid: TVirtualStringTree; S: TStream);
+  procedure GridExport(Grid: TVirtualStringTree; S: TStream; ExportFormat: TGridExportFormat);
   function BestTableName(Data: TMySQLQuery): String;
   function esc2ascii(str: String): String;
   function urlencode(url: String): String;
@@ -544,24 +542,11 @@ begin
 end;
 
 
-procedure ExportStatusMsg(Node: PVirtualNode; RootNodeCount: Cardinal; StreamSize: Int64);
-begin
-  Mainform.ShowStatusMsg('Exporting row '+FormatNumber(Node.Index+1)+' of '+FormatNumber(RootNodeCount)+
-    ' ('+IntToStr(Trunc((Node.Index+1) / RootNodeCount *100))+'%, '+FormatByteNumber(StreamSize)+')'
-    );
-  Mainform.ProgressBarStatus.Position := Node.Index+1;
-end;
-
-
-{***
-  Converts a Grid to a HTML-Table.
-  @param Grid Object which holds data to export
-  @param string Text used in <title>
-}
-procedure GridToHtml(Grid: TVirtualStringTree; S: TStream);
+procedure GridExport(Grid: TVirtualStringTree; S: TStream; ExportFormat: TGridExportFormat);
 var
-  i, MaxSize: Integer;
-  tmp, Data, Generator, Title: String;
+  MaxSize: Integer;
+  Col: TColumnIndex;
+  Header, Data, tmp, Encloser, Separator, Terminator, TableName: String;
   Node: PVirtualNode;
   GridData: TMySQLQuery;
   SelectionOnly: Boolean;
@@ -570,357 +555,212 @@ var
 begin
   // Only process selected nodes for "Copy as ..." actions
   SelectionOnly := S is TMemoryStream;
-
   Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
   GridData := Mainform.GridResult(Grid);
-  Title := BestTableName(GridData);
-
   MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-
   if SelectionOnly then
     NodeCount := Grid.SelectedCount
   else
     NodeCount := Grid.RootNodeCount;
   EnableProgressBar(NodeCount);
-  Generator := APPNAME+' '+Mainform.AppVersion;
-  tmp :=
-    '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
-    '  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + CRLF + CRLF +
-    '<html>' + CRLF +
-    '  <head>' + CRLF +
-    '    <title>' + Title + '</title>' + CRLF +
-    '    <meta name="GENERATOR" content="'+ Generator + '">' + CRLF +
-    '    <style type="text/css">' + CRLF +
-    '      thead tr {background-color: ActiveCaption; color: CaptionText;}' + CRLF +
-    '      th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'"; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
-    '      table, td {border: 1px solid silver;}' + CRLF +
-    '      table {border-collapse: collapse;}' + CRLF;
-  for i:=0 to Grid.Header.Columns.Count-1 do begin
-    // Skip hidden key columns.
-    if not (coVisible in Grid.Header.Columns[i].Options) then
-      Continue;
-    // Adjust preferred width of columns.
-    tmp := tmp +
-     '      thead .col' + IntToStr(i) + ' {width: ' + IntToStr(Grid.Header.Columns[i].Width) + 'px;}' + CRLF;
-    // Right-justify all cells to match the grid on screen.
-    if Grid.Header.Columns[i].Alignment = taRightJustify then
-      tmp := tmp +
-        '      .col' + IntToStr(i) + ' {text-align: right;}' + CRLF;
-  end;
-  // Note for above:
-  // Indentation seems to be a mess.  I think we should stick to putting long lines on one line,
-  // and just let the editor figure out how to break it if it doesn't fit on screen.  That way
-  // the editor can break, indent, and put a visual marker in the gutter to denote the wrap.
-
-  tmp := tmp +
-    '    </style>' + CRLF +
-    '  </head>' + CRLF + CRLF +
-    '  <body>' + CRLF + CRLF +
-    '    <table caption="' + Title + ' (' + inttostr(NodeCount) + ' rows)">' + CRLF +
-    '      <thead>' + CRLF +
-    '        <tr>' + CRLF;
-  for i:=0 to Grid.Header.Columns.Count-1 do begin
-    // Skip hidden key columns.
-    if not (coVisible in Grid.Header.Columns[i].Options) then
-      Continue;
-    // Add header item.
-    tmp := tmp + '          <th class="col' + IntToStr(i) + '">' + Grid.Header.Columns[i].Text + '</th>' + CRLF;
-  end;
-  tmp := tmp +
-    '        </tr>' + CRLF +
-    '      </thead>' + CRLF +
-    '      <tbody>' + CRLF;
-  StreamWrite(S, tmp);
-
-  if SelectionOnly then Node := Grid.GetFirstSelected else Node := Grid.GetFirst;
-  while Assigned(Node) do begin
-    // Update status once in a while.
-    if (Node.Index+1) mod 100 = 0 then
-      ExportStatusMsg(Node, NodeCount, S.Size);
-    RowNum := Grid.GetNodeData(Node);
-    GridData.RecNo := RowNum^;
-    tmp := '        <tr>' + CRLF;
-    for i:=0 to Grid.Header.Columns.Count-1 do begin
-      // Skip hidden key columns
-      if not (coVisible in Grid.Header.Columns[i].Options) then
-        Continue;
-      Data := GridData.Col(i);
-      // Handle nulls.
-      if GridData.IsNull(i) then Data := TEXT_NULL;
-      // Keep formatted numeric values
-      if Mainform.prefExportLocaleNumbers and (GridData.DataType(i).Category in [dtcInteger, dtcReal]) then
-        Data := FormatNumber(Data, False);
-      // Escape HTML control characters in data.
-      Data := htmlentities(Data);
-      tmp := tmp + '          <td class="col' + IntToStr(i) + '">' + Data + '</td>' + CRLF;
-    end;
-    tmp := tmp + '        </tr>' + CRLF;
-    StreamWrite(S, tmp);
-    if SelectionOnly then Node := Grid.GetNextSelected(Node) else Node := Grid.GetNext(Node);
-    if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
-      MessageDlg(
-        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(NodeCount)]),
-        mtWarning, [mbOK], 0);
-      break;
-    end;
-  end;
-  // footer:
-  tmp :=
-    '      </tbody>' + CRLF +
-    '    </table>' + CRLF + CRLF +
-    '    <p>' + CRLF +
-    '      <em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
-    '      by <a href="'+APPDOMAIN+'">' + Generator + '</a></em>' + CRLF +
-    '    </p>' + CRLF + CRLF +
-    '  </body>' + CRLF +
-    '</html>' + CRLF;
-  StreamWrite(S, tmp);
-  Mainform.ProgressBarStatus.Visible := False;
-  Mainform.ShowStatusMsg;
-end;
-
-
-
-{***
-  Converts grid contents to CSV-values.
-  @param Grid Object which holds data to export
-  @param string Field-separator
-  @param string Field-encloser
-  @param string Line-terminator
-}
-procedure GridToCsv(Grid: TVirtualStringTree; Separator, Encloser, Terminator: String; S: TStream);
-var
-  i, MaxSize: Integer;
-  tmp, Data: String;
-  Node: PVirtualNode;
-  GridData: TMySQLQuery;
-  SelectionOnly: Boolean;
-  NodeCount: Cardinal;
-  RowNum: PCardinal;
-begin
-  // Only process selected nodes for "Copy as ..." actions
-  SelectionOnly := S is TMemoryStream;
-
-  Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
-  GridData := Mainform.GridResult(Grid);
-
-  separator := esc2ascii(separator);
-  encloser := esc2ascii(encloser);
-  terminator := esc2ascii(terminator);
-  MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-
-  if SelectionOnly then
-    NodeCount := Grid.SelectedCount
-  else
-    NodeCount := Grid.RootNodeCount;
-  EnableProgressBar(NodeCount);
-
-  tmp := '';
-  // Columns
-  for i:=0 to Grid.Header.Columns.Count-1 do begin
-    // Skip hidden key columns
-    if not (coVisible in Grid.Header.Columns[i].Options) then
-      Continue;
-    Data := Grid.Header.Columns[i].Text;
-    // Alter column name in header if data is not raw.
-    if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-      Data := 'HEX(' + Data + ')';
-    // Add header item.
-    if tmp <> '' then tmp := tmp + Separator;
-    tmp := tmp + Encloser + Data + Encloser;
-  end;
-  tmp := tmp + Terminator;
-  StreamWrite(S, tmp);
-
-  // Data:
-  if SelectionOnly then Node := Grid.GetFirstSelected else Node := Grid.GetFirst;
-  while Assigned(Node) do begin
-    if (Node.Index+1) mod 100 = 0 then
-      ExportStatusMsg(Node, NodeCount, S.Size);
-    RowNum := Grid.GetNodeData(Node);
-    GridData.RecNo := RowNum^;
-    tmp := '';
-    for i:=0 to Grid.Header.Columns.Count-1 do begin
-      // Skip hidden key columns
-      if not (coVisible in Grid.Header.Columns[i].Options) then
-        Continue;
-      if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-        Data := GridData.BinColAsHex(i)
-      else
-        Data := GridData.Col(i);
-      // Unformat numeric values
-      if Mainform.prefExportLocaleNumbers and (GridData.DataType(i).Category in [dtcInteger, dtcReal]) then
-        Data := FormatNumber(Data, False);
-      // Escape encloser characters inside data per de-facto CSV.
-      Data := StringReplace(Data, Encloser, Encloser + Encloser, [rfReplaceAll]);
-      // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
-      if GridData.IsNull(i) then Data := 'NULL'
-      else Data := Encloser + Data + Encloser;
-      // Add cell.
-      if tmp <> '' then tmp := tmp + Separator;
-      tmp := tmp + Data;
-    end;
-    tmp := tmp + Terminator;
-    StreamWrite(S, tmp);
-    if SelectionOnly then Node := Grid.GetNextSelected(Node) else Node := Grid.GetNext(Node);
-    if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
-      MessageDlg(
-        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(NodeCount)]),
-        mtWarning, [mbOK], 0);
-      break;
-    end;
-  end;
-  Mainform.ProgressBarStatus.Visible := False;
-  Mainform.ShowStatusMsg;
-end;
-
-
-
-{***
-  Converts grid contents to XML.
-  @param Grid Object which holds data to export
-  @param string Text used as root-element
-}
-procedure GridToXml(Grid: TVirtualStringTree; S: TStream);
-var
-  i, MaxSize: Integer;
-  tmp, Data, root: String;
-  Node: PVirtualNode;
-  GridData: TMySQLQuery;
-  SelectionOnly: Boolean;
-  NodeCount: Cardinal;
-  RowNum: PCardinal;
-begin
-  // Only process selected nodes for "Copy as ..." actions
-  SelectionOnly := S is TMemoryStream;
-
-  Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
-  GridData := Mainform.GridResult(Grid);
-  root := BestTableName(GridData);
-
-  MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
-
-  if SelectionOnly then
-    NodeCount := Grid.SelectedCount
-  else
-    NodeCount := Grid.RootNodeCount;
-  EnableProgressBar(NodeCount);
-  tmp := '<?xml version="1.0"?>' + CRLF + CRLF +
-      '<table name="'+root+'">' + CRLF;
-  StreamWrite(S, tmp);
-
-  if SelectionOnly then Node := Grid.GetFirstSelected else Node := Grid.GetFirst;
-  while Assigned(Node) do begin
-    if (Node.Index+1) mod 100 = 0 then
-     ExportStatusMsg(Node, NodeCount, S.Size);
-    RowNum := Grid.GetNodeData(Node);
-    GridData.RecNo := RowNum^;
-    tmp := #9'<row>' + CRLF;
-    for i:=0 to Grid.Header.Columns.Count-1 do begin
-      // Skip hidden key columns
-      if not (coVisible in Grid.Header.Columns[i].Options) then
-        Continue;
-      // Print cell start tag.
-      tmp := tmp + #9#9'<' + Grid.Header.Columns[i].Text;
-      if GridData.IsNull(i) then tmp := tmp + ' isnull="true" />' + CRLF
-      else begin
-        if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-          tmp := tmp + ' format="hex"';
-        tmp := tmp + '>';
-        if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-          Data := GridData.BinColAsHex(i)
-        else
-          Data := GridData.Col(i);
-        // Escape XML control characters in data.
-        Data := htmlentities(Data);
-        // Add data and cell end tag.
-        tmp := tmp + Data + '</' + Grid.Header.Columns[i].Text + '>' + CRLF;
-      end;
-    end;
-    tmp := tmp + #9'</row>' + CRLF;
-    StreamWrite(S, tmp);
-    if SelectionOnly then Node := Grid.GetNextSelected(Node) else Node := Grid.GetNext(Node);
-    if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
-      MessageDlg(
-        Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(NodeCount)]),
-        mtWarning, [mbOK], 0);
-      break;
-    end;
-  end;
-  // footer:
-  tmp := '</table>' + CRLF;
-  StreamWrite(S, tmp);
-  Mainform.ProgressBarStatus.Visible := False;
-  Mainform.ShowStatusMsg;
-end;
-
-
-{***
-  Converts grid contents to XML.
-  @param Grid Object which holds data to export
-  @param string Text used as tablename in INSERTs
-}
-procedure GridToSql(Grid: TVirtualStringTree; S: TStream);
-var
-  i, MaxSize: Integer;
-  tmp, Data, TableName: String;
-  Node: PVirtualNode;
-  GridData: TMySQLQuery;
-  SelectionOnly: Boolean;
-  NodeCount: Cardinal;
-  RowNum: PCardinal;
-begin
-  // Only process selected nodes for "Copy as ..." actions
-  SelectionOnly := S is TMemoryStream;
-
-  Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
-  GridData := Mainform.GridResult(Grid);
   TableName := BestTableName(GridData);
 
-  MaxSize := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE) * SIZE_MB;
+  Header := '';
+  case ExportFormat of
+    efHTML: begin
+      Header :=
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
+        '  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + CRLF + CRLF +
+        '<html>' + CRLF +
+        '  <head>' + CRLF +
+        '    <title>' + TableName + '</title>' + CRLF +
+        '    <meta name="GENERATOR" content="'+ APPNAME+' '+Mainform.AppVersion + '">' + CRLF +
+        '    <style type="text/css">' + CRLF +
+        '      thead tr {background-color: ActiveCaption; color: CaptionText;}' + CRLF +
+        '      th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'"; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
+        '      table, td {border: 1px solid silver;}' + CRLF +
+        '      table {border-collapse: collapse;}' + CRLF;
+      Col := Grid.Header.Columns.GetFirstVisibleColumn;
+      while Col > NoColumn do begin
+        // Adjust preferred width of columns.
+        Header := Header +
+         '      thead .col' + IntToStr(Col) + ' {width: ' + IntToStr(Grid.Header.Columns[Col].Width) + 'px;}' + CRLF;
+        // Right-justify all cells to match the grid on screen.
+        if Grid.Header.Columns[Col].Alignment = taRightJustify then
+          Header := Header + '      .col' + IntToStr(Col) + ' {text-align: right;}' + CRLF;
+        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      end;
+      Header := Header +
+        '    </style>' + CRLF +
+        '  </head>' + CRLF + CRLF +
+        '  <body>' + CRLF + CRLF +
+        '    <table caption="' + TableName + ' (' + inttostr(NodeCount) + ' rows)">' + CRLF +
+        '      <thead>' + CRLF +
+        '        <tr>' + CRLF;
+      Col := Grid.Header.Columns.GetFirstVisibleColumn;
+      while Col > NoColumn do begin
+        Header := Header + '          <th class="col' + IntToStr(Col) + '">' + Grid.Header.Columns[Col].Text + '</th>' + CRLF;
+        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      end;
+      Header := Header +
+        '        </tr>' + CRLF +
+        '      </thead>' + CRLF +
+        '      <tbody>' + CRLF;
+    end;
+
+    efCSV: begin
+      Separator := esc2ascii(Mainform.prefCSVSeparator);
+      Encloser := esc2ascii(Mainform.prefCSVEncloser);
+      Terminator := esc2ascii(Mainform.prefCSVTerminator);
+      Col := Grid.Header.Columns.GetFirstVisibleColumn;
+      while Col > NoColumn do begin
+        // Alter column name in header if data is not raw.
+        Data := Grid.Header.Columns[Col].Text;
+        if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+          Data := 'HEX(' + Data + ')';
+        // Add header item.
+        if Header <> '' then
+          Header := Header + Separator;
+        Header := Header + Encloser + Data + Encloser;
+        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      end;
+      Header := Header + Terminator;
+    end;
+
+    efXML: begin
+      Header := '<?xml version="1.0"?>' + CRLF + CRLF +
+          '<table name="'+TableName+'">' + CRLF;
+    end;
+
+    efLaTeX: begin
+      Header := '\begin{tabular}{';
+      Separator := ' & ';
+      Encloser := '';
+      Terminator := '\\ '+CRLF;
+      Col := Grid.Header.Columns.GetFirstVisibleColumn;
+      while Col > NoColumn do begin
+        Header := Header + ' c ';
+        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      end;
+      Header := Header + '}' + CRLF;
+    end;
+  end;
+  StreamWrite(S, Header);
 
   if SelectionOnly then
-    NodeCount := Grid.SelectedCount
+    Node := Grid.GetFirstSelected
   else
-    NodeCount := Grid.RootNodeCount;
-  EnableProgressBar(NodeCount);
-
-  if SelectionOnly then Node := Grid.GetFirstSelected else Node := Grid.GetFirst;
+    Node := Grid.GetFirst;
   while Assigned(Node) do begin
-    if (Node.Index+1) mod 100 = 0 then
-      ExportStatusMsg(Node, NodeCount, S.Size);
+    // Update status once in a while.
+    if (Node.Index+1) mod 100 = 0 then begin
+      Mainform.ShowStatusMsg('Exporting row '+FormatNumber(Node.Index+1)+' of '+FormatNumber(NodeCount)+
+        ' ('+IntToStr(Trunc((Node.Index+1) / NodeCount *100))+'%, '+FormatByteNumber(S.Size)+')'
+        );
+      Mainform.ProgressBarStatus.Position := Node.Index+1;
+    end;
     RowNum := Grid.GetNodeData(Node);
     GridData.RecNo := RowNum^;
-    tmp := 'INSERT INTO '+Mainform.Mask(Tablename)+' (';
-    for i:=0 to Grid.Header.Columns.Count-1 do begin
-      // Skip hidden key columns
-      if not (coVisible in Grid.Header.Columns[i].Options) then
-        Continue;
-      tmp := tmp + Mainform.mask(Grid.Header.Columns[i].Text)+', ';
-    end;
-    Delete(tmp, Length(tmp)-1, 2);
-    tmp := tmp + ') VALUES (';
-    for i:=0 to Grid.Header.Columns.Count-1 do begin
-      // Skip hidden key columns
-      if not (coVisible in Grid.Header.Columns[i].Options) then
-        Continue;
-      if GridData.IsNull(i) then
-        tmp := tmp + 'NULL'
-      else begin
-        if (GridData.DataType(i).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-          Data := GridData.BinColAsHex(i)
-        else
-          Data := GridData.Col(i);
-        if not (GridData.DataType(i).Category in [dtcInteger, dtcReal]) then
-          Data := esc(Data);
-        tmp := tmp + Data;
+
+    // Row preamble
+    case ExportFormat of
+      efHTML: tmp := '        <tr>' + CRLF;
+
+      efXML: tmp := #9'<row>' + CRLF;
+
+      efSQL: begin
+        tmp := 'INSERT INTO '+Mainform.Mask(Tablename)+' (';
+        Col := Grid.Header.Columns.GetFirstVisibleColumn;
+        while Col > NoColumn do begin
+          tmp := tmp + Mainform.mask(Grid.Header.Columns[Col].Text)+', ';
+          Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+        end;
+        Delete(tmp, Length(tmp)-1, 2);
+        tmp := tmp + ') VALUES (';
       end;
-      tmp := tmp + ', ';
+
+      else tmp := '';
     end;
-    Delete(tmp, Length(tmp)-1, 2);
-    tmp := tmp + ');' + CRLF;
+
+    Col := Grid.Header.Columns.GetFirstVisibleColumn;
+    while Col > NoColumn do begin
+      if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+        Data := GridData.BinColAsHex(Col)
+      else
+        Data := GridData.Col(Col);
+      // Keep formatted numeric values
+      if (GridData.DataType(Col).Category in [dtcInteger, dtcReal])
+        and (ExportFormat in [efCSV, efHTML])
+        and Mainform.prefExportLocaleNumbers then
+          Data := FormatNumber(Data, False);
+
+      case ExportFormat of
+        efHTML: begin
+          // Handle nulls.
+          if GridData.IsNull(Col) then
+            Data := TEXT_NULL;
+          // Escape HTML control characters in data.
+          Data := htmlentities(Data);
+          tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
+        end;
+
+        efCSV, efLaTeX: begin
+          // Escape encloser characters inside data per de-facto CSV.
+          Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
+          // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
+          if GridData.IsNull(Col) then
+            Data := 'NULL'
+          else
+            Data := Encloser + Data + Encloser;
+          // Add cell.
+          if tmp <> '' then tmp := tmp + Separator;
+          tmp := tmp + Data;
+        end;
+
+        efXML: begin
+          // Print cell start tag.
+          tmp := tmp + #9#9'<' + Grid.Header.Columns[Col].Text;
+          if GridData.IsNull(Col) then
+            tmp := tmp + ' isnull="true" />' + CRLF
+          else begin
+            if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+              tmp := tmp + ' format="hex"';
+            tmp := tmp + '>' + htmlentities(Data) + '</' + Grid.Header.Columns[Col].Text + '>' + CRLF;
+          end;
+        end;
+
+        efSQL: begin
+          if GridData.IsNull(Col) then
+            Data := 'NULL'
+          else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
+            Data := esc(Data);
+          tmp := tmp + Data + ', ';
+        end;
+
+      end;
+
+      Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+    end;
+
+    // Row epilogue
+    case ExportFormat of
+      efHTML:
+        tmp := tmp + '        </tr>' + CRLF;
+      efCSV, efLaTeX:
+        tmp := tmp + Terminator;
+      efXML:
+        tmp := tmp + #9'</row>' + CRLF;
+      efSQL: begin
+        Delete(tmp, Length(tmp)-1, 2);
+        tmp := tmp + ');' + CRLF;
+      end;
+    end;
     StreamWrite(S, tmp);
-    if SelectionOnly then Node := Grid.GetNextSelected(Node) else Node := Grid.GetNext(Node);
+
+    if SelectionOnly then
+      Node := Grid.GetNextSelected(Node)
+    else
+      Node := Grid.GetNext(Node);
     if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
       MessageDlg(
         Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(NodeCount)]),
@@ -928,37 +768,33 @@ begin
       break;
     end;
   end;
-  // footer:
-  tmp := CRLF;
+
+  // Footer
+  case ExportFormat of
+    efHTML: begin
+      tmp :=
+        '      </tbody>' + CRLF +
+        '    </table>' + CRLF + CRLF +
+        '    <p>' + CRLF +
+        '      <em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
+        '      by <a href="'+APPDOMAIN+'">' + APPNAME + ' ' + Mainform.AppVersion + '</a></em>' + CRLF +
+        '    </p>' + CRLF + CRLF +
+        '  </body>' + CRLF +
+        '</html>' + CRLF;
+    end;
+    efXML:
+      tmp := '</table>' + CRLF;
+    efLaTeX:
+      tmp := '\end{tabular}' + CRLF;
+    else
+      tmp := '';
+  end;
   StreamWrite(S, tmp);
+
   Mainform.ProgressBarStatus.Visible := False;
   Mainform.ShowStatusMsg;
 end;
 
-
-{***
-  Converts grid contents to LaTeX table.
-  @param Grid Object which holds data to export
-}
-procedure GridToLaTeX(Grid: TVirtualStringTree; S: TStream);
-var
-  i: Integer;
-  tmp: String;
-begin
-  tmp := '\begin{tabular}{';
-  // Columns
-  for i:=0 to Grid.Header.Columns.Count-1 do begin
-    // Skip hidden key columns
-    if not (coVisible in Grid.Header.Columns[i].Options) then
-      Continue;
-    // Add header item.
-    tmp := tmp + ' c ';
-  end;
-  tmp := tmp + '}' + CRLF;
-  StreamWrite(S, tmp);
-  GridToCsv(Grid, ' & ', '', '\\ \r\n', s);
-	StreamWrite(S, '\end{tabular}'+CRLF);
-end;
 
 
 function BestTableName(Data: TMySQLQuery): String;
