@@ -67,7 +67,7 @@ type
   end;
   TSQLBatch = TObjectList<TSQLSentence>;
 
-  TGridExportFormat = (efUnknown, efCSV, efHTML, efXML, efSQL, efLaTeX);
+  TGridExportFormat = (efUnknown, efCSV, efHTML, efXML, efSQL, efLaTeX, efWiki);
 
 
 {$I const.inc}
@@ -644,6 +644,20 @@ begin
       end;
       Header := Header + '}' + CRLF;
     end;
+
+    efWiki: begin
+      Header := '|| ';
+      Separator := ' || ';
+      Encloser := '';
+      Terminator := ' ||'+CRLF;
+      Col := Grid.Header.Columns.GetFirstVisibleColumn;
+      while Col > NoColumn do begin
+        Header := Header + '*' + Grid.Header.Columns[Col].Text + '*' + Separator;
+        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      end;
+      Delete(Header, Length(Header)-Length(Separator)+1, Length(Separator));
+      Header := Header + Terminator;
+    end;
   end;
   StreamWrite(S, Header);
 
@@ -679,6 +693,8 @@ begin
         tmp := tmp + ') VALUES (';
       end;
 
+      efWiki: tmp := TrimLeft(Separator);
+
       else tmp := '';
     end;
 
@@ -704,17 +720,17 @@ begin
           tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
         end;
 
-        efCSV, efLaTeX: begin
+        efCSV, efLaTeX, efWiki: begin
           // Escape encloser characters inside data per de-facto CSV.
           Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
           // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
-          if GridData.IsNull(Col) then
-            Data := 'NULL'
-          else
+          if GridData.IsNull(Col) then begin
+            Data := 'NULL';
+            if ExportFormat = efWiki then
+              Data := '_'+Data+'_';
+          end else
             Data := Encloser + Data + Encloser;
-          // Add cell.
-          if tmp <> '' then tmp := tmp + Separator;
-          tmp := tmp + Data;
+          tmp := tmp + Data + Separator;
         end;
 
         efXML: begin
@@ -746,8 +762,10 @@ begin
     case ExportFormat of
       efHTML:
         tmp := tmp + '        </tr>' + CRLF;
-      efCSV, efLaTeX:
+      efCSV, efLaTeX, efWiki: begin
+        Delete(tmp, Length(tmp)-Length(Separator)+1, Length(Separator));
         tmp := tmp + Terminator;
+      end;
       efXML:
         tmp := tmp + #9'</row>' + CRLF;
       efSQL: begin
