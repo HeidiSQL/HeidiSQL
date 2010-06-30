@@ -579,7 +579,7 @@ begin
     Specs.Add('DROP FOREIGN KEY '+Mainform.mask(DeletedForeignKeys[i]));
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Added or FForeignKeys[i].Modified then
-      Specs.Add('ADD '+FForeignKeys[i].SQLCode);
+      Specs.Add('ADD '+FForeignKeys[i].SQLCode(True));
   end;
 
   Result := 'ALTER TABLE '+Mainform.mask(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
@@ -617,7 +617,7 @@ begin
   end;
 
   for i:=0 to FForeignKeys.Count-1 do
-    Result := Result + #9 + FForeignKeys[i].SQLCode + ','+CRLF;
+    Result := Result + #9 + FForeignKeys[i].SQLCode(True) + ','+CRLF;
 
   if Integer(listColumns.RootNodeCount) + IndexCount + FForeignKeys.Count > 0 then
     Delete(Result, Length(Result)-2, 3);

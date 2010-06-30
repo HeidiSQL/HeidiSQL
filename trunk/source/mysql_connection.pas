@@ -88,7 +88,7 @@ type
       Modified, Added, KeyNameWasCustomized: Boolean;
       constructor Create;
       destructor Destroy; override;
-      function SQLCode: String;
+      function SQLCode(IncludeSymbolName: Boolean): String;
   end;
   TForeignKeyList = TObjectList<TForeignKey>;
 
@@ -2560,11 +2560,15 @@ begin
   inherited Destroy;
 end;
 
-function TForeignKey.SQLCode: String;
+function TForeignKey.SQLCode(IncludeSymbolName: Boolean): String;
 var
   i: Integer;
 begin
-  Result := 'CONSTRAINT '+TMySQLConnection.QuoteIdent(KeyName)+' FOREIGN KEY (';
+  Result := '';
+  // Symbol names are unique in a db. In order to autocreate a valid name we leave the constraint clause away.
+  if IncludeSymbolName then
+    Result := 'CONSTRAINT '+TMySQLConnection.QuoteIdent(KeyName)+' ';
+  Result := Result + 'FOREIGN KEY (';
   for i:=0 to Columns.Count-1 do
     Result := Result + TMySQLConnection.QuoteIdent(Columns[i]) + ', ';
   if Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);

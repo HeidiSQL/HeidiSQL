@@ -390,7 +390,7 @@ begin
             DataCols := DataCols + MainForm.mask(FColumns[Node.Index].Name) + ', ';
           end;
           nKeys:         Clause := FKeys[Node.Index].SQLCode;
-          nForeignkeys:  Clause := FForeignKeys[Node.Index].SQLCode;
+          nForeignkeys:  Clause := FForeignKeys[Node.Index].SQLCode(False);
           else raise Exception.Create(SUnhandledNodeIndex);
         end;
         CreateCode := CreateCode + #9 + Clause + ',' + CRLF;
