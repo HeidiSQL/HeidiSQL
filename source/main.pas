@@ -1272,6 +1272,23 @@ begin
   for i:=StatusBar.Panels.Count-1 downto 1 do
     StatusBar.Panels[i].Width := Round(StatusBar.Panels[i].Width * DpiScaleFactor);
 
+  QueryTab := TQueryTab.Create;
+  QueryTab.TabSheet := tabQuery;
+  QueryTab.Number := 1;
+  QueryTab.pnlMemo := pnlQueryMemo;
+  QueryTab.pnlHelpers := pnlQueryHelpers;
+  QueryTab.lboxHelpers := lboxQueryHelpers;
+  QueryTab.tabsetHelpers := tabsetQueryHelpers;
+  QueryTab.Memo := SynMemoQuery;
+  QueryTab.MemoLineBreaks := lbsNone;
+  QueryTab.spltHelpers := spltQueryHelpers;
+  QueryTab.spltQuery := spltQuery;
+  QueryTab.tabsetQuery := tabsetQuery;
+  QueryTab.ResultTabs := TResultTabs.Create;
+
+  QueryTabs := TObjectList<TQueryTab>.Create;
+  QueryTabs.Add(QueryTab);
+
   // Enable auto completion in data tab, filter editor
   SynCompletionProposal.AddEditor(SynMemoFilter);
 
@@ -1404,23 +1421,6 @@ begin
     'DisableProcessWindowsGhosting');
   if Assigned(DisableProcessWindowsGhostingProc) then
     DisableProcessWindowsGhostingProc;
-
-  QueryTab := TQueryTab.Create;
-  QueryTab.TabSheet := tabQuery;
-  QueryTab.Number := 1;
-  QueryTab.pnlMemo := pnlQueryMemo;
-  QueryTab.pnlHelpers := pnlQueryHelpers;
-  QueryTab.lboxHelpers := lboxQueryHelpers;
-  QueryTab.tabsetHelpers := tabsetQueryHelpers;
-  QueryTab.Memo := SynMemoQuery;
-  QueryTab.MemoLineBreaks := lbsNone;
-  QueryTab.spltHelpers := spltQueryHelpers;
-  QueryTab.spltQuery := spltQuery;
-  QueryTab.tabsetQuery := tabsetQuery;
-  QueryTab.ResultTabs := TResultTabs.Create;
-
-  QueryTabs := TObjectList<TQueryTab>.Create;
-  QueryTabs.Add(QueryTab);
 
   // SynMemo font, hightlighting and shortcuts
   SetupSynEditors;
