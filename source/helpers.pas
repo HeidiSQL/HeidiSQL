@@ -2019,15 +2019,15 @@ begin
     HTML.Read(PAnsiChar(HTMLContent)^, HTML.Size);
     if CreateHTMLHeader then begin
       HTMLContent := 'Version:0.9' + CRLF +
-        'StartHTML:-1' + CRLF +
-        'EndHTML:-1' + CRLF +
-        'StartFragment:000081' + CRLF +
+        'StartHTML:000089' + CRLF +
+        'EndHTML:같같같' + CRLF +
+        'StartFragment:000089' + CRLF +
         'EndFragment:같같같' + CRLF +
         HTMLContent + CRLF;
       HTMLContent := AnsiStrings.StringReplace(
         HTMLContent, '같같같',
         AnsiStrings.Format('%.6d', [Length(HTMLContent)]),
-        []);
+        [rfReplaceAll]);
     end;
     ClpLen := Length(HTMLContent) + 1;
     GlobalMem := GlobalAlloc(GMEM_DDESHARE + GMEM_MOVEABLE, ClpLen);
