@@ -5310,7 +5310,7 @@ begin
     DBTree.FocusedNode := snode;
     exit;
   end;
-  raise Exception.Create('Table node ' + Text + ' not found in tree.');
+  LogSQL('Table node ' + Text + ' not found in tree.', lcError);
 end;
 
 
@@ -5328,7 +5328,7 @@ begin
     if (not Assigned(f)) or (f.Parent <> n) then
       SelectNode(DBtree, n);
   end else
-    raise Exception.Create('Database node ' + db + ' not found in tree.');
+    LogSQL('Database node ' + db + ' not found in tree.', lcError);
 end;
 
 
