@@ -2238,7 +2238,7 @@ begin
   try
     ActiveQueryTab.ResultTabs[TabIndex].Results.TableName;
     ImageIndex := 14;
-  except on E:EDatabaseError do
+  except
     ImageIndex := -1;
   end;
 end;
