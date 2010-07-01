@@ -2283,7 +2283,7 @@ begin
       efHTML: HTML := S;
       else HTML := nil;
     end;
-    StreamToClipboard(S, HTML, False);
+    StreamToClipboard(S, HTML, (ExportFormat=efHTML) and (HTML <> nil));
   finally
     ShowStatusMsg('Freeing data...');
     S.Free;
