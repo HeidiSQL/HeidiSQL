@@ -379,9 +379,9 @@ begin
   DelimLen := Length(Delim);
   Result := TSQLBatch.Create;
   rx := TRegExpr.Create;
-  rx.Expression := '^\s*DELIMITER\s+(\S+)\s*$';
+  rx.Expression := '^\s*DELIMITER\s+(\S+)\s*';
   rx.ModifierI := True;
-  rx.ModifierM := True;
+  rx.ModifierM := False;
   while i < AllLen do begin
     Inc(i);
     // Current and next char
@@ -405,10 +405,10 @@ begin
     if (CharInSet(c, NewLines) and (not CharInSet(n, NewLines))) or (i = 1) then begin
       if i > 1 then
         InComment := False;
-      if (not InString) and (not InBigComment) and rx.Exec(copy(SQL, LastLeftOffset, 100)) then begin
+      if (not InString) and (not InBigComment) and rx.Exec(copy(SQL, i, 100)) then begin
         Delim := rx.Match[1];
-        DelimLen := Length(Delim);
-        Inc(i, rx.MatchLen[0]+1);
+        DelimLen := rx.MatchLen[1];
+        Inc(i, rx.MatchLen[0]);
         LastLeftOffset := i;
         continue;
       end;
