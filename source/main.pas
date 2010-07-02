@@ -491,6 +491,7 @@ type
     actCopyAsWiki: TAction;
     CopyselectedrowsasWikitable1: TMenuItem;
     CopyselectedrowsasWikitable2: TMenuItem;
+    DataUNIXtimestamp: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -5095,6 +5096,7 @@ begin
   DataTime.Caption := Format('%.2d:%.2d:%.2d', [h,i,s]);
   DataTimestamp.caption := Format('%.4d%.2d%.2d%.2d%.2d%.2d', [y,m,d,h,i,s]);
   DataYear.Caption := Format('%.4d', [y]);
+  DataUNIXtimestamp.Caption := IntToStr(UnixTimestamp(Now));
 
   // Manipulate the Quick-filter menuitems
   AnyGridEnsureFullRow(Grid, Grid.FocusedNode);

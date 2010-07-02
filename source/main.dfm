@@ -8214,6 +8214,12 @@ object MainForm: TMainForm
         ImageIndex = 80
         OnClick = InsertDate
       end
+      object DataUNIXtimestamp: TMenuItem
+        Caption = 'unix timestamp'
+        Hint = 'Insert UNIX timestamp'
+        ImageIndex = 80
+        OnClick = InsertDate
+      end
     end
     object ViewasHTML1: TMenuItem
       Action = actDataPreview
