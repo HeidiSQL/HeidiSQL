@@ -1,7 +1,6 @@
 object frmTextEditor: TfrmTextEditor
   Left = 0
   Top = 0
-  BorderStyle = bsSizeToolWin
   Caption = 'Text editor'
   ClientHeight = 95
   ClientWidth = 253
