@@ -83,6 +83,7 @@ begin
   OpenRegistry;
   MainReg.WriteInteger( REGNAME_EDITOR_WIDTH, Width );
   MainReg.WriteInteger( REGNAME_EDITOR_HEIGHT, Height );
+  MainReg.WriteBool(REGNAME_EDITOR_WORDWRAP, btnWrap.Down);
 end;
 
 
@@ -91,6 +92,8 @@ begin
   // Restore form dimensions
   Width := GetRegValue(REGNAME_EDITOR_WIDTH, DEFAULT_EDITOR_WIDTH);
   Height := GetRegValue(REGNAME_EDITOR_HEIGHT, DEFAULT_EDITOR_HEIGHT);
+  if GetRegValue(REGNAME_EDITOR_WORDWRAP, btnWrap.Down) then
+    btnWrap.Click;
   // Fix label position:
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
   SetWindowSizeGrip(Handle, True);
