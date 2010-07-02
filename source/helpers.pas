@@ -92,7 +92,6 @@ type
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList); Overload;
   function _GetFileSize(filename: String): Int64;
-  function Mince(PathToMince: String; InSpace: Integer): String;
   function MakeInt( Str: String ) : Int64;
   function MakeFloat( Str: String ): Extended;
   function CleanupNumber(Str: String): String;
@@ -1003,64 +1002,6 @@ begin
   else
     Result := PInt64(@i64)^;
 end;
-
-
-
-{***
-  Change "C:\Program Files\Delphi\DDrop\TargetDemo\main.pas"
-  to:    "C:\Program Files\..\main.pas"
-
-  @param string File/Directory
-  @param integer Shorten name to this maximum amount of chars
-  @return string
-}
-function Mince(PathToMince: String; InSpace: Integer): String;
-Var
-  sl: TStringList;
-  sHelp, sFile: String;
-  iPos: Integer;
-
-Begin
-  sHelp := PathToMince;
-  iPos := Pos('\', sHelp);
-  If iPos = 0 Then
-  Begin
-    Result := PathToMince;
-  End
-  Else
-  Begin
-    sl := TStringList.Create;
-    // Decode string
-    While iPos <> 0 Do
-    Begin
-      sl.Add(Copy(sHelp, 1, (iPos - 1)));
-      sHelp := Copy(sHelp, (iPos + 1), Length(sHelp));
-      iPos := Pos('\', sHelp);
-    End;
-    If sHelp <> '' Then
-    Begin
-      sl.Add(sHelp);
-    End;
-    // Encode string
-    sFile := sl[sl.Count - 1];
-    sl.Delete(sl.Count - 1);
-    Result := '';
-    While (Length(Result + sFile) < InSpace) And (sl.Count <> 0) Do
-    Begin
-      Result := Result + sl[0] + '\';
-      sl.Delete(0);
-    End;
-    If sl.Count = 0 Then
-    Begin
-      Result := Result + sFile;
-    End
-    Else
-    Begin
-      Result := Result + '..\' + sFile;
-    End;
-    sl.Free;
-  End;
-End;
 
 
 

@@ -63,7 +63,7 @@ begin
   Running := True;
 
   // Initialize various variables
-  lblFilenameValue.Caption := mince( SQLFileName, 35 );
+  lblFilenameValue.Caption := SQLFileName;
   lblTimeValue.Caption := FormatTimeNumber( 0 );
   memoQueryValue.Lines.Clear;
   lines := '';
