@@ -163,6 +163,8 @@ type
   function CompareAnyNode(Text1, Text2: String): Integer;
   function GetColumnDefaultType(var Text: String): TColumnDefaultType;
   function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: String): String;
+  function UnixTimestamp(d: TDateTime): Integer;
+  function FromUnixTimestamp(t: Integer): TDateTime;
 
 var
   MainReg: TRegistry;
@@ -3267,6 +3269,15 @@ begin
 end;
 
 
+function UnixTimestamp(d: TDateTime): Integer;
+begin
+  Result := ((Trunc(d) - 25569) * 86400) + Trunc(86400 * (d - Trunc(d))) - 7200;
+end;
+
+function FromUnixTimestamp(t: Integer): TDateTime;
+begin
+  Result := ((t + 7200) / 86400) + 25569;
+end;
 
 end.
 
