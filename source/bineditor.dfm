@@ -1,7 +1,6 @@
 object frmBinEditor: TfrmBinEditor
   Left = 0
   Top = 0
-  BorderStyle = bsSizeToolWin
   Caption = 'Binary editor'
   ClientHeight = 95
   ClientWidth = 215
