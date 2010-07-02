@@ -28,6 +28,7 @@ object RunSQLFileForm: TRunSQLFileForm
     Anchors = [akLeft, akTop, akRight]
     AutoSize = False
     Caption = 'lblFilenameValue'
+    EllipsisPosition = epPathEllipsis
   end
   object lblFilenameName: TLabel
     Left = 16
