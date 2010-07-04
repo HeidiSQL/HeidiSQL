@@ -212,6 +212,7 @@ type
     panelTop: TPanel;
     pnlLeft: TPanel;
     DBtree: TVirtualStringTree;
+    comboDBFilter: TComboBox;
     spltDBtree: TSplitter;
     PageControlMain: TPageControl;
     tabData: TTabSheet;
@@ -784,6 +785,12 @@ type
     procedure spltPreviewMoved(Sender: TObject);
     procedure actDataSaveBlobToFileExecute(Sender: TObject);
     procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
+    procedure comboDBFilterChange(Sender: TObject);
+    procedure comboDBFilterExit(Sender: TObject);
+    procedure comboDBFilterDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
+    procedure comboDBFilterDragDrop(Sender, Source: TObject; X, Y: Integer);
+    procedure comboDBFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure DBtreeAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -1709,6 +1716,12 @@ begin
   InvalidateVT(DBtree, VTREE_NOTLOADED_PURGECACHE, False);
   DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
 
+  comboDBFilter.Items.Text := GetRegValue(REGNAME_DATABASE_FILTER, '', SessionName);
+  if comboDBFilter.Items.Count > 0 then
+    comboDBFilter.ItemIndex := 0
+  else
+    comboDBFilter.Text := '';
+
   // Reselect last used database
   if GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) then begin
     lastUsedDB := GetRegValue(REGNAME_LASTUSEDDB, '', SessionName);
@@ -1790,6 +1803,7 @@ begin
   // relative from already opened folder!
   OpenRegistry(SessionName);
   MainReg.WriteString( REGNAME_LASTUSEDDB, Connection.Database );
+  MainReg.WriteString( REGNAME_DATABASE_FILTER, comboDBFilter.Items.Text );
 
   // Post pending UPDATE
   Results := GridResult(DataGrid);
@@ -8484,6 +8498,107 @@ begin
 end;
 
 
+procedure TMainForm.comboDBFilterChange(Sender: TObject);
+var
+  Node: PVirtualNode;
+  rx: TRegExpr;
+  FilterError, NodeMatches: Boolean;
+  VisibleCount: Cardinal;
+begin
+  // Immediately apply database filter
+  rx := TRegExpr.Create;
+  rx.Expression := '('+StringReplace(comboDBFilter.Text, ';', '|', [rfReplaceAll])+')';
+  Node := DBtree.GetFirstChild(DBtree.GetFirst);
+  VisibleCount := 0;
+  FilterError := False;
+  while Assigned(Node) do begin
+    try
+      NodeMatches := rx.Exec(DBtree.Text[Node, 0]);
+    except
+      FilterError := True;
+      NodeMatches := True;
+    end;
+    DBtree.IsVisible[Node] := NodeMatches;
+    if NodeMatches then
+      Inc(VisibleCount);
+    Node := DBtree.GetNextSibling(Node);
+  end;
+  rx.Free;
+  if VisibleCount = 0 then
+    FilterError := True;
+  if FilterError then
+    comboDBFilter.Color := clWebPink
+  else
+    comboDBFilter.Color := clWindow;
+end;
+
+
+procedure TMainForm.comboDBFilterExit(Sender: TObject);
+var
+  i, idx: Integer;
+  FilterText: String;
+begin
+  // Add (move) custom filter text to (in) drop down history, if not empty
+  FilterText := comboDBFilter.Text;
+  idx := -1;
+  for i:=0 to comboDBFilter.Items.Count-1 do begin
+    if comboDBFilter.Items[i] = FilterText then begin
+      idx := i;
+      break;
+    end;
+  end;
+  if idx > -1 then
+    comboDBFilter.Items.Move(idx, 0)
+  else
+    comboDBFilter.Items.Insert(0, FilterText);
+  comboDBFilter.Text := FilterText;
+end;
+
+
+procedure TMainForm.comboDBFilterDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
+  var Accept: Boolean);
+begin
+  // DBtree dragging node over DB filter dropdown
+  Accept := (Source = DBtree) and (DBtree.GetNodeLevel(DBtree.FocusedNode) = 1);
+end;
+
+
+procedure TMainForm.comboDBFilterDragDrop(Sender, Source: TObject; X, Y: Integer);
+var
+  dbs: TStringList;
+  newdb: String;
+begin
+  // DBtree node dropped on DB filter dropdown
+  dbs := Explode(';', comboDBFilter.Text);
+  newdb := DBtree.Text[DBtree.FocusedNode, DBtree.FocusedColumn];
+  if dbs.IndexOf(newdb) = -1 then begin
+    if (comboDBFilter.Text <> '') and (comboDBFilter.Text[Length(comboDBFilter.Text)-1] <> ';') then
+      comboDBFilter.Text := comboDBFilter.Text + ';';
+    comboDBFilter.Text := comboDBFilter.Text + newdb;
+    comboDBFilter.Items.Insert(0, comboDBFilter.Text);
+    comboDBFilter.OnChange(Sender);
+  end;
+end;
+
+
+procedure TMainForm.comboDBFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  i: Integer;
+begin
+  // Pressing Delete key while filters are dropped down, deletes the filter from the list
+  i := comboDBFilter.ItemIndex;
+  if comboDBFilter.DroppedDown and (Key=VK_DELETE) and (i > -1) then begin
+    Key := 0;
+    comboDBFilter.Items.Delete(i);
+    if comboDBFilter.Items.Count > i then
+      comboDBFilter.ItemIndex := i
+    else
+      comboDBFilter.ItemIndex := i-1;
+    comboDBFilter.OnChange(Sender);
+  end;
+end;
+
+
 procedure TMainForm.CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   FLastMouseDownCloseButton := Sender;
@@ -9014,6 +9129,13 @@ begin
   end;
   ActiveQueryMemo.UndoList.AddGroupBreak;
   ActiveQueryMemo.SelText := sql;
+end;
+
+
+procedure TMainForm.DBtreeAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+begin
+  // Tree node filtering needs a hit in special cases, e.g. after a db was dropped
+  comboDBFilter.OnChange(Sender);
 end;
 
 

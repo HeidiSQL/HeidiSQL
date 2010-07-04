@@ -358,7 +358,7 @@ object MainForm: TMainForm
       TabOrder = 0
       object spltPreview: TSplitter
         Left = 0
-        Top = 253
+        Top = 232
         Width = 169
         Height = 4
         Cursor = crSizeNS
@@ -367,11 +367,34 @@ object MainForm: TMainForm
         Visible = False
         OnMoved = spltPreviewMoved
       end
+      object comboDBFilter: TComboBox
+        Left = 0
+        Top = 236
+        Width = 169
+        Height = 21
+        Hint = 
+          'Database filter|A list of databases, separated by semicolon. Can' +
+          ' contain regular expressions, e.g. "mydb;test.*;project\d+".'
+        Margins.Left = 0
+        Margins.Top = 0
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alBottom
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 2
+        TextHint = 'Database filter'
+        OnChange = comboDBFilterChange
+        OnDragDrop = comboDBFilterDragDrop
+        OnDragOver = comboDBFilterDragOver
+        OnExit = comboDBFilterExit
+        OnKeyDown = comboDBFilterKeyDown
+      end
       object DBtree: TVirtualStringTree
         Left = 0
         Top = 0
         Width = 169
-        Height = 253
+        Height = 232
         Align = alClient
         Constraints.MinWidth = 40
         DragMode = dmAutomatic
@@ -397,6 +420,7 @@ object MainForm: TMainForm
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toRightClickSelect]
+        OnAfterPaint = DBtreeAfterPaint
         OnChange = DBtreeChange
         OnDblClick = DBtreeDblClick
         OnFocusChanged = DBtreeFocusChanged
