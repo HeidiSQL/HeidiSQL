@@ -2360,6 +2360,13 @@ begin
     end else
       Col.Unsigned := False;
 
+    // Zero fill
+    if UpperCase(Copy(ColSpec, 1, 8)) = 'ZEROFILL' then begin
+      Col.ZeroFill := True;
+      Delete(ColSpec, 1, 9);
+    end else
+      Col.ZeroFill := False;
+
     // Collation
     rxCol.Expression := '^(CHARACTER SET \w+\s+)?COLLATE (\w+)\b';
     if rxCol.Exec(ColSpec) then begin

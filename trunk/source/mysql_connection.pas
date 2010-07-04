@@ -54,7 +54,7 @@ type
       Name, OldName: String;
       DataType: TDatatype;
       LengthSet: String;
-      Unsigned, AllowNull: Boolean;
+      Unsigned, AllowNull, ZeroFill: Boolean;
       DefaultType: TColumnDefaultType;
       DefaultText: String;
       Comment, Collation: String;
@@ -2469,8 +2469,10 @@ begin
   Result := TMySQLConnection.QuoteIdent(Name) + ' ' +DataType.Name;
   if LengthSet <> '' then
     Result := Result + '(' + LengthSet + ')';
-  if DataType.HasUnsigned and Unsigned then
+  if (DataType.Category in [dtcInteger, dtcReal]) and Unsigned then
     Result := Result + ' UNSIGNED';
+  if (DataType.Category in [dtcInteger, dtcReal]) and ZeroFill then
+    Result := Result + ' ZEROFILL';
   if not AllowNull then
     Result := Result + ' NOT';
   Result := Result + ' NULL';
