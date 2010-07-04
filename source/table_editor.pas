@@ -221,8 +221,8 @@ begin
   FixVT(listForeignKeys);
   // Try the best to auto fit various column widths, respecting a custom DPI setting and a pulldown arrow
   listColumns.Header.Columns[2].Width := Mainform.Canvas.TextWidth('GEOMETRYCOLLECTION') + 6*listColumns.TextMargin;
-  listColumns.Header.Columns[6].Width := Mainform.Canvas.TextWidth('AUTO_INCREMENT') + 4*listColumns.TextMargin;
-  listColumns.Header.Columns[8].Width := Mainform.Canvas.TextWidth('macroman_general_ci') + 6*listColumns.TextMargin;
+  listColumns.Header.Columns[7].Width := Mainform.Canvas.TextWidth('AUTO_INCREMENT') + 4*listColumns.TextMargin;
+  listColumns.Header.Columns[9].Width := Mainform.Canvas.TextWidth('macroman_general_ci') + 6*listColumns.TextMargin;
   // Overide column widths by custom values
   Mainform.RestoreListSetup(listColumns);
   Mainform.RestoreListSetup(treeIndexes);
@@ -512,8 +512,10 @@ begin
       ColSpec := ColSpec + ' ' + Col.DataType.Name;
       if Col.LengthSet <> '' then
         ColSpec := ColSpec + '(' + Col.LengthSet + ')';
-      if Col.DataType.HasUnsigned and Col.Unsigned then
+      if (Col.DataType.Category in [dtcInteger, dtcReal]) and Col.Unsigned then
         ColSpec := ColSpec + ' UNSIGNED';
+      if (Col.DataType.Category in [dtcInteger, dtcReal]) and Col.ZeroFill then
+        ColSpec := ColSpec + ' ZEROFILL';
       if not Col.AllowNull then
         ColSpec := ColSpec + ' NOT';
       ColSpec := ColSpec + ' NULL';
@@ -823,7 +825,7 @@ procedure TfrmTableEditor.listColumnsBeforeCellPaint(Sender: TBaseVirtualTree;
 begin
   // Darken cell background to signalize it doesn't allow length/set
   // Exclude non editable checkbox columns - grey looks ugly there.
-  if (not CellEditingAllowed(Node, Column)) and (not (Column in [4, 5])) then begin
+  if (not CellEditingAllowed(Node, Column)) and (not (Column in [4, 5, 6])) then begin
     TargetCanvas.Brush.Color := clBtnFace;
     TargetCanvas.FillRect(CellRect);
   end;
@@ -840,9 +842,10 @@ var
 begin
   // Paint checkbox image in certain columns
   // while restricting "Allow NULL" checkbox to numeric datatypes
-  if (Column in [4, 5]) and CellEditingAllowed(Node, Column) then begin
+  if (Column in [4, 5, 6]) and CellEditingAllowed(Node, Column) then begin
     Col := Sender.GetNodeData(Node);
-    if (Col.Unsigned and (Column=4)) or (Col.AllowNull and (Column=5)) then ImageIndex := 128
+    if (Col.Unsigned and (Column=4)) or (Col.AllowNull and (Column=5)) or (Col.ZeroFill and (Column = 6)) then
+      ImageIndex := 128
     else ImageIndex := 127;
     VT := TVirtualStringTree(Sender);
     X := CellRect.Left + (VT.Header.Columns[Column].Width div 2) - (VT.Images.Width div 2);
@@ -878,7 +881,7 @@ procedure TfrmTableEditor.listColumnsEditing(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 begin
   // Allow text editing? Explicitely block that in checkbox columns 
-  Allowed := CellEditingAllowed(Node, Column) and (not (Column in [4,5]));
+  Allowed := CellEditingAllowed(Node, Column) and (not (Column in [4,5,6]));
 end;
 
 
@@ -891,9 +894,9 @@ begin
     // No editor for very first column and checkbox columns
     0: Result := False;
     3: Result := Col.DataType.HasLength;
-    4: Result := Col.DataType.HasUnsigned;
+    4,6: Result := Col.DataType.Category in [dtcInteger, dtcReal];
     // No editing of collation allowed if "Convert data" was checked
-    8: Result := not chkCharsetConvert.Checked;
+    9: Result := not chkCharsetConvert.Checked;
     else Result := True;
   end;
 end;
@@ -912,8 +915,8 @@ begin
     1: CellText := Col.Name;
     2: CellText := Col.DataType.Name;
     3: CellText := Col.LengthSet;
-    4, 5: CellText := ''; // Checkbox
-    6: begin
+    4, 5, 6: CellText := ''; // Checkbox
+    7: begin
       case Col.DefaultType of
         cdtNothing:                 CellText := 'No default';
         cdtText, cdtTextUpdateTS: begin
@@ -929,8 +932,8 @@ begin
       if Col.DefaultType in [cdtTextUpdateTS, cdtNullUpdateTS, cdtCurTSUpdateTS] then
         CellText := CellText + ' ON UPDATE CURRENT_TIMESTAMP';
     end;
-    7: CellText := Col.Comment;
-    8: begin
+    8: CellText := Col.Comment;
+    9: begin
       CellText := Col.Collation;
       if (CellText <> '') and (chkCharsetConvert.Checked) then
         CellText := comboCollation.Text;
@@ -1005,14 +1008,14 @@ begin
   // No specific colors for selected nodes, would interfere with blue selection background
   if vsSelected in Node.States then Exit;
   // Break early if nothing to do
-  if not (Column in [2, 6]) then Exit;
+  if not (Column in [2, 7]) then Exit;
 
   // Give datatype column specific color, as set in preferences
   TextColor := TargetCanvas.Font.Color;
   case Column of
     2: TextColor := DatatypeCategories[Integer(Col.DataType.Category)].Color;
 
-    6: case Col.DefaultType of
+    7: case Col.DefaultType of
       cdtNothing, cdtNull, cdtNullUpdateTS:
         TextColor := clGray;
       cdtCurTS, cdtCurTSUpdateTS:
@@ -1084,12 +1087,12 @@ begin
     end; // Length / Set
     3: Col.LengthSet := NewText;
     // 4 + 5 are checkboxes - handled in OnClick
-    6: begin // Default value
+    7: begin // Default value
       Col.DefaultText := NewText;
       Col.DefaultType := GetColumnDefaultType(Col.DefaultText);
     end;
-    7: Col.Comment := NewText;
-    8: Col.Collation := NewText;
+    8: Col.Comment := NewText;
+    9: Col.Collation := NewText;
   end;
   Col.Status := esModified;
   Modification(Sender);
@@ -1125,7 +1128,7 @@ var
 begin
   // Space/click on checkbox column
   VT := Sender as TVirtualStringTree;
-  if (Ord(Key) = VK_SPACE) and (VT.FocusedColumn in [4, 5]) then
+  if (Ord(Key) = VK_SPACE) and (VT.FocusedColumn in [4, 5, 6]) then
     vtHandleClickOrKeyPress(VT, VT.FocusedNode, VT.FocusedColumn, []);
 end;
 
@@ -1160,6 +1163,12 @@ begin
         Modification(Sender);
         VT.InvalidateNode(Node);
       end;
+      6: begin
+        Col.ZeroFill := not Col.ZeroFill;
+        Col.Status := esModified;
+        Modification(Sender);
+        VT.InvalidateNode(Node);
+      end;
       else begin
         // All other cells go into edit mode please
         // Explicitely done on OnClick, not in OnFocusChanged which seemed annoying for keyboard users
@@ -1188,14 +1197,14 @@ begin
       DatatypeEditor.Datatype := Col.DataType.Index;
       EditLink := DataTypeEditor;
       end;
-    8: begin // Collation pulldown
+    9: begin // Collation pulldown
       EnumEditor := TEnumEditorLink.Create(VT);
       EnumEditor.ValueList := TStringList.Create;
       EnumEditor.ValueList.Text := Mainform.Connection.CollationList.Text;
       EnumEditor.ValueList.Insert(0, '');
       EditLink := EnumEditor;
       end;
-    6: begin
+    7: begin
       DefaultEditor := TColumnDefaultEditorLink.Create(VT);
       DefaultEditor.DefaultText := Col.DefaultText;
       DefaultEditor.DefaultType := Col.DefaultType;

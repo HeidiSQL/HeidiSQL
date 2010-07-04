@@ -33,8 +33,6 @@ type
     Description:     String;
     HasLength:       Boolean; // Can have Length- or Set-attribute?
     RequiresLength:  Boolean; // Must have a Length- or Set-attribute?
-    HasUnsigned:     Boolean; // Can be unsigned?
-    HasZerofill:     Boolean; // Can be zerofilled?
     HasBinary:       Boolean; // Can be binary?
     HasDefault:      Boolean; // Can have a default value?
     DefLengthSet:    String;  // Should be set for types which require a length/set
@@ -114,8 +112,6 @@ var
         'The unsigned range is 0 to 255.';
       HasLength:       True;
       RequiresLength:  False;
-      HasUnsigned:     True;
-      HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcInteger;
@@ -129,8 +125,6 @@ var
         'The unsigned range is 0 to 65535.';
       HasLength:       True;
       RequiresLength:  False;
-      HasUnsigned:     True;
-      HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcInteger;
@@ -144,8 +138,6 @@ var
         'The unsigned range is 0 to 16777215.';
       HasLength:       True;
       RequiresLength:  False;
-      HasUnsigned:     True;
-      HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcInteger;
@@ -159,8 +151,6 @@ var
         'The unsigned range is 0 to 4294967295.';
       HasLength:       True;
       RequiresLength:  False;
-      HasUnsigned:     True;
-      HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcInteger;
@@ -174,8 +164,6 @@ var
         '9223372036854775807. The unsigned range is 0 to 18446744073709551615.';
       HasLength:       True;
       RequiresLength:  False;
-      HasUnsigned:     True;
-      HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcInteger;
@@ -192,8 +180,6 @@ var
         'hardware or operating system.';
       HasLength:       True;
       RequiresLength:  False;
-      HasUnsigned:     True;
-      HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcReal;
@@ -210,8 +196,6 @@ var
         'be slightly smaller depending on your hardware or operating system.';
       HasLength:       True;
       RequiresLength:  False;
-      HasUnsigned:     True;
-      HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcReal;
@@ -230,8 +214,6 @@ var
         'the default is 0. If M is omitted, the default is 10.';
       HasLength:       True;
       RequiresLength:  True;
-      HasUnsigned:     True;
-      HasZerofill:     True;
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '10,0';
@@ -247,8 +229,6 @@ var
         'values to DATE columns using either strings or numbers.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcTemporal;
@@ -263,8 +243,6 @@ var
         'columns using either strings or numbers.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcTemporal;
@@ -282,8 +260,6 @@ var
         'either strings or numbers.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcTemporal;
@@ -299,8 +275,6 @@ var
         'DATETIME columns using either strings or numbers.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcTemporal;
@@ -318,8 +292,6 @@ var
         '''0000-00-00 00:00:00'', the "zero" TIMESTAMP value.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcTemporal;
@@ -336,8 +308,6 @@ var
         'unless the PAD_CHAR_TO_FULL_LENGTH SQL mode is enabled.';
       HasLength:       True;
       RequiresLength:  True;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      True;
       DefLengthSet:    '50';
@@ -359,8 +329,6 @@ var
         'remove trailing spaces from VARCHAR values.';
       HasLength:       True;
       RequiresLength:  True;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       True; // MySQL-Help says the opposite but it's valid for older versions at least.
       HasDefault:      True;
       DefLengthSet:    '50';
@@ -377,8 +345,6 @@ var
         'prefix that indicates the number of bytes in the value.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      False;
       Category:        dtcText;
@@ -397,8 +363,6 @@ var
         'values M characters long.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      False;
       Category:        dtcText;
@@ -414,8 +378,6 @@ var
         'prefix that indicates the number of bytes in the value.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      False;
       Category:        dtcText;
@@ -434,8 +396,6 @@ var
         'value.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       True;
       HasDefault:      False;
       Category:        dtcText;
@@ -450,8 +410,6 @@ var
         'column length in bytes.';
       HasLength:       True;
       RequiresLength:  True;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '50';
@@ -467,8 +425,6 @@ var
         'maximum column length in bytes.';
       HasLength:       True;
       RequiresLength:  True;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '50';
@@ -484,8 +440,6 @@ var
         'the number of bytes in the value.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcBinary;
@@ -503,8 +457,6 @@ var
         'values M bytes long.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcBinary;
@@ -519,8 +471,6 @@ var
         'indicates the number of bytes in the value.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcBinary;
@@ -537,8 +487,6 @@ var
         'length prefix that indicates the number of bytes in the value.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcBinary;
@@ -554,8 +502,6 @@ var
         'values. ENUM values are represented internally as integers.';
       HasLength:       True; // Obviously this is not meant as "length", but as "set of values"
       RequiresLength:  True;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '''Y'',''N''';
@@ -572,8 +518,6 @@ var
         'internally as integers.';
       HasLength:       True; // Same as for ENUM
       RequiresLength:  True;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '''Value A'',''Value B''';
@@ -588,8 +532,6 @@ var
         '64. The default is 1 if M is omitted.';
       HasLength:       True;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcSet;
@@ -602,8 +544,6 @@ var
         'Constructs a WKB Point using its coordinates.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcSpatial;
@@ -618,8 +558,6 @@ var
         'number of Point arguments is less than two, the return value is NULL.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcSpatial;
@@ -634,8 +572,6 @@ var
         '(that is, not a closed and simple LineString) the return value is NULL.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcSpatial;
@@ -647,8 +583,6 @@ var
       Description:     '';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcSpatial;
@@ -662,8 +596,6 @@ var
         'argument is not a WKB Point, the return value is NULL.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcSpatial;
@@ -677,8 +609,6 @@ var
         'If any argument is not a WKB LineString, the return value is NULL.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcSpatial;
@@ -693,8 +623,6 @@ var
         'NULL.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcSpatial;
@@ -708,8 +636,6 @@ var
         'well-formed WKB representation of a geometry, the return value is NULL.';
       HasLength:       False;
       RequiresLength:  False;
-      HasUnsigned:     False;
-      HasZerofill:     False;
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcSpatial;

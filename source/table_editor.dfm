@@ -136,18 +136,23 @@ object frmTableEditor: TfrmTableEditor
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 6
+        WideText = 'Zerofill'
+      end
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 7
         Width = 100
         WideText = 'Default'
       end
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 7
+        Position = 8
         Width = 130
         WideText = 'Comment'
       end
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 8
+        Position = 9
         Width = 100
         WideText = 'Collation'
       end>
