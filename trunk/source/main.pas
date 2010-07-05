@@ -6472,7 +6472,7 @@ begin
         end;
         ShowStatusMsg;
         VT.Tag := VTREE_LOADED;
-        InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
+        InvalidateVT(ListDatabases, VTREE_NOTLOADED, True);
         ChildCount := AllDatabases.Count;
         Screen.Cursor := crDefault;
       end;
