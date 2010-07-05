@@ -4368,8 +4368,8 @@ begin
 
   Proposal := Sender as TSynCompletionProposal;
   Editor := Proposal.Form.CurrentEditor;
-  Editor.GetHighlighterAttriAtRowColEx(Editor.CaretXY, Token, TokenTypeInt, Start, Attri);
-  if TtkTokenKind(TokenTypeInt) = tkString then begin
+  Editor.GetHighlighterAttriAtRowColEx(Editor.PrevWordPos, Token, TokenTypeInt, Start, Attri);
+  if TtkTokenKind(TokenTypeInt) in [tkString, tkComment] then begin
     CanExecute := False;
     Exit;
   end;
