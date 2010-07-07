@@ -3743,7 +3743,7 @@ begin
     for i:=0 to SelectedTableColumns.Count-1 do begin
       c := SelectedTableColumns[i];
       IsKeyColumn := KeyCols.IndexOf(c.Name) > -1;
-      ColLen := MakeInt(c.LengthSet);
+      ColLen := StrToInt64Def(c.LengthSet, 0);
       if (DatagridHiddenColumns.IndexOf(c.Name) = -1)
         or (IsKeyColumn)
         or (KeyCols.Count = 0)
