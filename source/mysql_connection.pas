@@ -2156,7 +2156,7 @@ begin
           end;
         end;
       end else
-        Connection.Query('UPDATE '+QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause);
+        Connection.Query('UPDATE '+QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause+' LIMIT 1');
       // Reset modification flags
       for i:=0 to ColumnCount-1 do begin
         Cell := Row[i];
