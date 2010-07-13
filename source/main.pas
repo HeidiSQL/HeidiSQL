@@ -50,6 +50,7 @@ type
     function GetActiveResultTab: TResultTab;
     public
       property ActiveResultTab: TResultTab read GetActiveResultTab;
+      destructor Destroy; override;
   end;
 
   TMainForm = class(TForm)
@@ -1136,6 +1137,10 @@ begin
   // Close database connection
   DoDisconnect;
 
+  // Some grid editors access the registry - be sure these are gone before freeing MainReg
+  QueryTabs.Clear;
+  DataGrid.EndEditNode;
+
   // Clearing query and browse data.
   FreeAndNil(DataGridResult);
 
@@ -1291,9 +1296,9 @@ begin
   QueryTab.spltHelpers := spltQueryHelpers;
   QueryTab.spltQuery := spltQuery;
   QueryTab.tabsetQuery := tabsetQuery;
-  QueryTab.ResultTabs := TResultTabs.Create;
+  QueryTab.ResultTabs := TResultTabs.Create(True);
 
-  QueryTabs := TObjectList<TQueryTab>.Create;
+  QueryTabs := TObjectList<TQueryTab>.Create(True);
   QueryTabs.Add(QueryTab);
 
   // Enable auto completion in data tab, filter editor
@@ -8423,7 +8428,7 @@ begin
   QueryTab.spltQuery.ResizeStyle := spltQuery.ResizeStyle;
   QueryTab.spltQuery.AutoSnap := spltQuery.AutoSnap;
 
-  QueryTab.ResultTabs := TResultTabs.Create;
+  QueryTab.ResultTabs := TResultTabs.Create(True);
 
   QueryTab.tabsetQuery := TTabSet.Create(QueryTab.TabSheet);
   QueryTab.tabsetQuery.Parent := QueryTab.TabSheet;
@@ -9331,6 +9336,13 @@ begin
 end;
 
 
+destructor TQueryTab.Destroy;
+begin
+  ResultTabs.Clear;
+end;
+
+
+
 { TResultTab }
 
 constructor TResultTab.Create;
@@ -9386,6 +9398,7 @@ end;
 destructor TResultTab.Destroy;
 begin
   Results.Free;
+  Grid.EndEditNode;
   Grid.Free;
   inherited;
 end;
