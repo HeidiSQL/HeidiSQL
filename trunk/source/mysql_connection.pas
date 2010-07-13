@@ -103,6 +103,7 @@ type
     NewText, OldText: String;
     NewIsNull, OldIsNull: Boolean;
     Modified: Boolean;
+    destructor Destroy; override;
   end;
   TRowData = class(TObjectList<TCellData>)
     RecNo: Int64;
@@ -1588,11 +1589,15 @@ begin
   FreeAndNil(FColumnOrgNames);
   FreeAndNil(FColumns);
   FreeAndNil(FKeys);
+  FreeAndNil(FUpdateData);
   SetLength(FColumnFlags, 0);
   SetLength(FColumnLengths, 0);
+  SetLength(FColumnTypes, 0);
   if HasResult then for i:=Low(FResultList) to High(FResultList) do
     mysql_free_result(FResultList[i]);
   SetLength(FResultList, 0);
+  FSQL := '';
+  FRecordCount := 0;
   inherited Destroy;
 end;
 
@@ -1939,6 +1944,7 @@ begin
   else
     ParseViewStructure(Res.Col(0), FColumns);
   FreeAndNil(Res);
+  FreeAndNil(FUpdateData);
   FUpdateData := TUpdateData.Create(True);
   FEditingPrepared := True;
 end;
@@ -2373,6 +2379,16 @@ begin
       end;
     end;
   end;
+end;
+
+
+
+{ TCellData }
+
+destructor TCellData.Destroy;
+begin
+  NewText := '';
+  OldText := '';
 end;
 
 
