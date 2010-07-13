@@ -1191,15 +1191,6 @@ begin
   SaveListSetup(ListCommandStats);
   SaveListSetup(ListTables);
 
-  filename := GetTempDir+'\'+APPNAME+'-preview.';
-  if FileExists(filename+'html') then
-    deletefile(filename+'html');
-  if FileExists(filename+'jpg') then
-    deletefile(filename+'jpg');
-  if FileExists(filename+'gif') then
-    deletefile(filename+'gif');
-  if FileExists(filename+'bmp') then
-    deletefile(filename+'bmp');
   if MainReg <> nil then begin
     MainReg.CloseKey;
     // Export settings into textfile in portable mode.
