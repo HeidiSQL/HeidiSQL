@@ -88,7 +88,6 @@ type
   function esc2ascii(str: String): String;
   function urlencode(url: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
-  function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): String;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList); Overload;
   function _GetFileSize(filename: String): Int64;
@@ -111,7 +110,6 @@ type
   procedure setLocales;
   procedure ShellExec(cmd: String; path: String=''; params: String='');
   function getFirstWord( text: String ): String;
-  function LastPos(needle: Char; haystack: String): Integer;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber( Seconds: Cardinal ): String;
@@ -126,7 +124,6 @@ type
   procedure StreamToClipboard(Text, HTML: TStream; CreateHTMLHeader: Boolean);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
-  procedure CheckHex(text: String; errorMessage: string);
   procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
@@ -196,19 +193,6 @@ begin
   SetLength(buf, Length(bin) * 2);
   BinToHex(@bin[1], PAnsiChar(buf), Length(bin));
   Result := String(buf);
-end;
-
-procedure CheckHex(text: String; errorMessage: string);
-const
-  allowed: string = '0123456789abcdefABCDEF';
-var
-  i: Cardinal;
-begin
-  for i := 1 to Length(text) do begin
-    if Pos(text[i], allowed) < 1 then begin
-      raise Exception.Create(errorMessage);
-    end;
-  end;
 end;
 
 
@@ -869,76 +853,6 @@ end;
 
 
 {***
-  Make SQL statement compatible with either ANSI SQL or MySQL
-  @note Works around MySQL placement of semicolon in conditional
-        statements, which is not compatible with standard SQL (making
-        the whole point of conditional statements slightly moot?).
-        The broken format is unfortunately the only format that the
-        mysql cli will eat, according to one user...
-
-        btnExportClick() could be rewritten to better handle this sort
-        of thing, but for now / with the current code, this is the easiest
-        way of accomplishing the desired effect.
-  @param string SQL statement
-  @param integer MySQL-version or SQL_VERSION_ANSI
-  @return string SQL
-}
-function fixSQL( sql: String; sql_version: Integer = SQL_VERSION_ANSI; cli_workarounds: Boolean = false ): String;
-var
-  rx : TRegExpr;
-begin
-  result := sql;
-
-  // For mysqldump and mysql.exe CLI compatibility
-  if cli_workarounds then
-  begin
-    result := StringReplace(result, ';*/', '*/;', [rfReplaceAll]);
-  end;
-
-  // Detect if SQL is a CREATE TABLE statement
-  if copy( result, 1, 12 ) = 'CREATE TABLE' then
-  begin
-    rx := TRegExpr.Create;
-    // Greedy: take as many chars as I can get
-    rx.ModifierG := True;
-    // Case insensitive
-    rx.ModifierI := True;
-
-    if sql_version < 40100 then begin
-      // Strip charset definition
-      // see issue #1685835
-      rx.Expression := '\s+(DEFAULT\s+)?(CHARSET|CHARACTER SET)=\w+';
-      result := rx.Replace(result, '', false);
-      // Strip collation part
-      rx.Expression := '\s+COLLATE=\w+';
-      result := rx.Replace(result, '', false);
-    end;
-
-    if sql_version = SQL_VERSION_ANSI then begin
-      // Switch quoting char
-      result := StringReplace(result, '`', '"', [rfReplaceAll]);
-      // Strip ENGINE|TYPE
-      rx.Expression := '\s+(ENGINE|TYPE)=\w+';
-      result := rx.Replace(result, '', false);
-    end;
-
-    // Turn ENGINE to TYPE
-    if sql_version < 40102 then
-      result := StringReplace(result, 'ENGINE=', 'TYPE=', [rfReplaceAll])
-    else
-      result := StringReplace(result, 'TYPE=', 'ENGINE=', [rfReplaceAll]);
-
-    // Mask USING {BTREE,HASH,RTREE} from older servers.
-    rx.Expression := '\s(USING\s+\w+)';
-    result := rx.Replace(result, ' /*!50100 $1 */', True);
-
-    rx.Free;
-  end;
-
-end;
-
-
-{***
   Check/Uncheck all items in a CheckListBox
 
   @param TCheckListBox List with checkable items
@@ -1476,28 +1390,6 @@ begin
     end;
     inc(i);
   end;
-end;
-
-
-{**
-  Get last position of substr in str
-  @param string Substring
-  @param string Text
-  @return Integer Last position
-}
-function LastPos(needle: Char; haystack: String): Integer;
-var
-  reverse: String;
-  i, len, w: Integer;
-begin
-  // Reverse string.
-  len := Length(haystack);
-  SetLength(reverse, len);
-  for i := 1 to len do reverse[i] := haystack[len - i + 1];
-  // Look for needle.
-  Result := 0;
-  w := Pos(needle, reverse);
-  if w > 0 then Result := len - w + 1;
 end;
 
 
