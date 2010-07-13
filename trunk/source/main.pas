@@ -930,11 +930,11 @@ type
 
     property Delimiter: String read FDelimiter write SetDelimiter;
     procedure CallSQLHelpWithKeyword( keyword: String );
-    procedure AddOrRemoveFromQueryLoadHistory( filename: String;
-      AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
+    procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
     procedure popupQueryLoadClick( sender: TObject );
     procedure FillPopupQueryLoad;
-    procedure PopupQueryLoadRemoveAbsentFiles( sender: TObject );
+    procedure PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
+    procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
     procedure SessionConnect(Sender: TObject);
     function InitConnection(Params: TConnectionParameters; Session: String): Boolean;
     function ActiveGrid: TVirtualStringTree;
@@ -3212,21 +3212,44 @@ begin
   menuitem := TMenuItem.Create( popupQueryLoad );
   menuitem.Caption := '-';
   popupQueryLoad.Items.Add(menuitem);
+
   menuitem := TMenuItem.Create( popupQueryLoad );
   menuitem.Caption := 'Remove absent files';
   menuitem.OnClick := PopupQueryLoadRemoveAbsentFiles;
   popupQueryLoad.Items.Add(menuitem);
 
+  menuitem := TMenuItem.Create( popupQueryLoad );
+  menuitem.Caption := 'Clear file list';
+  menuitem.OnClick := PopupQueryLoadRemoveAllFiles;
+  popupQueryLoad.Items.Add(menuitem);
+
 end;
 
 
-procedure TMainform.PopupQueryLoadRemoveAbsentFiles( sender: TObject );
+procedure TMainform.PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
 begin
-  AddOrRemoveFromQueryLoadHistory( '', false, true );
+  AddOrRemoveFromQueryLoadHistory('', False, True);
   FillPopupQueryLoad;
 end;
 
-procedure TMainform.popupQueryLoadClick( sender: TObject );
+
+procedure TMainform.PopupQueryLoadRemoveAllFiles(Sender: TObject);
+var
+  Values: TStringList;
+  i: Integer;
+begin
+  Values := TStringList.Create;
+  OpenRegistry;
+  MainReg.GetValueNames(Values);
+  for i:=0 to Values.Count-1 do begin
+    if Pos('SQLFile', Values[i]) = 1 then
+      MainReg.DeleteValue(Values[i]);
+  end;
+  FillPopupQueryLoad;
+end;
+
+
+procedure TMainform.popupQueryLoadClick(Sender: TObject);
 var
   Filename: String;
   p: Integer;
@@ -3244,7 +3267,7 @@ begin
 end;
 
 
-procedure TMainform.AddOrRemoveFromQueryLoadHistory( filename: String; AddIt: Boolean = true; CheckIfFileExists: Boolean = true );
+procedure TMainform.AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
 var
   i                     : Integer;
   Values, newfilelist   : TStringList;
@@ -5001,7 +5024,7 @@ begin
           RunFileDialog.Free;
           // Add filename to history menu
           if Pos( DirnameSnippets, filename ) = 0 then
-            AddOrRemoveFromQueryLoadHistory( filename, true );
+            AddOrRemoveFromQueryLoadHistory(Filename, True, True);
           // Don't load into editor
           Abort;
         end;
@@ -5023,7 +5046,7 @@ begin
   try
     filecontent := ReadTextfile(Filename, Encoding);
     if Pos( DirnameSnippets, Filename ) = 0 then
-      AddOrRemoveFromQueryLoadHistory( filename, true );
+      AddOrRemoveFromQueryLoadHistory(Filename, True, True);
     FillPopupQueryLoad;
     ActiveQueryMemo.UndoList.AddGroupBreak;
 
