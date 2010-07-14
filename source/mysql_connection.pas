@@ -54,7 +54,7 @@ type
       Name, OldName: String;
       DataType: TDatatype;
       LengthSet: String;
-      Unsigned, AllowNull, ZeroFill: Boolean;
+      Unsigned, AllowNull, ZeroFill, LengthCustomized: Boolean;
       DefaultType: TColumnDefaultType;
       DefaultText: String;
       Comment, Collation: String;
