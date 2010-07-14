@@ -7434,7 +7434,7 @@ begin
   if Assigned(DataGrid.FocusedNode) then begin
     KeyName := Mask(DataGridDB)+'.'+Mask(DataGridTable);
     FocusedCol := '';
-    if DataGrid.FocusedColumn <> NoColumn then
+    if DataGrid.FocusedColumn > NoColumn then
       FocusedCol := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
     DataGridFocusedCell.Values[KeyName] := IntToStr(DataGrid.FocusedNode.Index) + DELIM + FocusedCol;
   end;
