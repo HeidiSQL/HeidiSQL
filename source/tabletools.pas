@@ -434,7 +434,7 @@ end;
 procedure TfrmTableTools.Execute(Sender: TObject);
 var
   DBNode, TableNode: PVirtualNode;
-  DBObjects, Views: TDBObjectList;
+  DBObjects, LateObjects: TDBObjectList;
   DBObj: TDBObject;
   i: Integer;
   ProcessNodeFunc: procedure(DBObj: TDBObject) of Object;
@@ -450,15 +450,15 @@ begin
     FToolMode := tmBulkTableEdit;
   ResultGrid.Clear;
   FResults.Clear;
-  Views := TDBObjectList.Create;
-  Views.OwnsObjects := False; // So we can .Free that object afterwards without loosing the contained objects
+  LateObjects := TDBObjectList.Create;
+  LateObjects.OwnsObjects := False; // So we can .Free that object afterwards without loosing the contained objects
   TreeObjects.SetFocus;
   ProcessNodeFunc := nil;
   FHeaderCreated := False;
   DBNode := TreeObjects.GetFirstChild(TreeObjects.GetFirst);
   while Assigned(DBNode) do begin
     if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
-      Views.Clear;
+      LateObjects.Clear;
       TableNode := TreeObjects.GetFirstChild(DBNode);
       while Assigned(TableNode) do begin
         if (csCheckedNormal in [TableNode.CheckState, DBNode.CheckState]) and (TableNode.CheckType <> ctNone) then begin
@@ -473,8 +473,8 @@ begin
               tmBulkTableEdit: ProcessNodeFunc := DoBulkTableEdit;
             end;
             // Views have to be exported at the very end so at least all needed tables are ready when a view gets imported
-            if DBObj.NodeType = lntView then
-              Views.Add(DBObj)
+            if DBObj.NodeType in [lntView, lntTrigger] then
+              LateObjects.Add(DBObj)
             else
               ProcessNodeFunc(DBObj);
           except on E:EDatabaseError do
@@ -489,11 +489,11 @@ begin
       end; // End of db object node loop in db
 
       // Special block for late created views in export mode
-      for i:=0 to Views.Count-1 do begin
+      for i:=0 to LateObjects.Count-1 do begin
         try
-          ProcessNodeFunc(Views[i]);
+          ProcessNodeFunc(LateObjects[i]);
         except on E:EDatabaseError do
-          AddNotes(Views[i].Database, Views[i].Name, 'error', E.Message);
+          AddNotes(LateObjects[i].Database, LateObjects[i].Name, 'error', E.Message);
         end;
       end;
 
