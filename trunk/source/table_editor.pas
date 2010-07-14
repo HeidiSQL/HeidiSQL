@@ -1060,7 +1060,7 @@ begin
       if not Col.DataType.HasLength then
         Col.LengthSet := '';
       // Suggest length/set if required
-      if Col.DataType.RequiresLength and (Col.LengthSet = '') then
+      if (not Col.LengthCustomized) or (Col.DataType.RequiresLength and (Col.LengthSet = '')) then
         Col.LengthSet := Col.DataType.DefLengthSet;
       // Auto-fix user selected default type which can be invalid now
       case Col.DataType.Category of
@@ -1085,7 +1085,10 @@ begin
       end;
 
     end; // Length / Set
-    3: Col.LengthSet := NewText;
+    3: begin
+      Col.LengthSet := NewText;
+      Col.LengthCustomized := True;
+    end;
     // 4 + 5 are checkboxes - handled in OnClick
     7: begin // Default value
       Col.DefaultText := NewText;
