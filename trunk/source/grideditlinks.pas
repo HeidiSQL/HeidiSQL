@@ -930,8 +930,12 @@ begin
   if Result then begin
     FButton.Visible := ButtonVisible;
     SetBounds(Rect(0, 0, 0, 0));
-    FPanel.Show;
-    FEdit.SetFocus;
+    if (Length(FEdit.Text) > SIZE_KB*100) or (ScanLineBreaks(FEdit.Text) <> lbsNone) then
+      ButtonClick(FTree)
+    else begin
+      FPanel.Show;
+      FEdit.SetFocus;
+    end;
   end;
 end;
 
