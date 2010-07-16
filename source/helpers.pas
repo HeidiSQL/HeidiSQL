@@ -364,7 +364,7 @@ begin
   DelimLen := Length(Delim);
   Result := TSQLBatch.Create;
   rx := TRegExpr.Create;
-  rx.Expression := '^\s*DELIMITER\s+(\S+)\s*';
+  rx.Expression := '^\s*DELIMITER\s+(\S+)\s';
   rx.ModifierI := True;
   rx.ModifierM := False;
   while i < AllLen do begin
