@@ -64,6 +64,7 @@ object frmTableEditor: TfrmTableEditor
     Header.DefaultHeight = 17
     Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
     Header.ParentFont = True
+    Header.PopupMenu = MainForm.popupListHeader
     Images = MainForm.ImageListMain
     IncrementalSearch = isAll
     PopupMenu = popupColumns
