@@ -3044,6 +3044,7 @@ begin
     Result.Hostname := GetRegValue(REGNAME_HOST, '', Session);
     Result.Username := GetRegValue(REGNAME_USER, '', Session);
     Result.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
+    Result.LoginPrompt := GetRegValue(REGNAME_LOGINPROMPT, False, Session);
     Result.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', Session), DEFAULT_PORT);
     Result.AllDatabases := GetRegValue(REGNAME_DATABASES, '', Session);
     Result.SSHHost := GetRegValue(REGNAME_SSHHOST, '', Session);

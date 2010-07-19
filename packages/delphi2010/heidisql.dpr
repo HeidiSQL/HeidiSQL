@@ -37,7 +37,8 @@ uses
   mysql_connection in '..\..\source\mysql_connection.pas',
   trigger_editor in '..\..\source\trigger_editor.pas' {frmTriggerEditor: TFrame},
   searchreplace in '..\..\source\searchreplace.pas' {frmSearchReplace},
-  event_editor in '..\..\source\event_editor.pas' {frmEventEditor: TFrame};
+  event_editor in '..\..\source\event_editor.pas' {frmEventEditor: TFrame},
+  loginform in '..\..\source\loginform.pas' {frmLogin};
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\version.RES}

@@ -203,6 +203,9 @@
 				<Form>frmEventEditor</Form>
 				<DesignClass>TFrame</DesignClass>
 			</DCCReference>
+			<DCCReference Include="..\..\source\loginform.pas">
+				<Form>frmLogin</Form>
+			</DCCReference>
 			<RcCompile Include="..\..\res\updater.rc">
 				<Form>updater.res</Form>
 			</RcCompile>

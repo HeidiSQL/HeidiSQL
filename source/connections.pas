@@ -75,6 +75,7 @@ type
     lblDownloadPlink: TLabel;
     comboDatabases: TComboBox;
     lblDatabase: TLabel;
+    chkLoginPrompt: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -107,6 +108,7 @@ type
     procedure editHostChange(Sender: TObject);
     procedure lblDownloadPlinkClick(Sender: TObject);
     procedure comboDatabasesDropDown(Sender: TObject);
+    procedure chkLoginPromptClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -217,6 +219,7 @@ begin
   MainReg.WriteString(REGNAME_HOST, editHost.Text);
   MainReg.WriteString(REGNAME_USER, editUsername.Text);
   MainReg.WriteString(REGNAME_PASSWORD, encrypt(editPassword.Text));
+  MainReg.WriteBool(REGNAME_LOGINPROMPT, chkLoginPrompt.Checked);
   MainReg.WriteString(REGNAME_PORT, IntToStr(updownPort.Position));
   MainReg.WriteInteger(REGNAME_NETTYPE, comboNetType.ItemIndex);
   MainReg.WriteBool(REGNAME_COMPRESSED, chkCompressed.Checked);
@@ -339,6 +342,7 @@ begin
   Result.Hostname := editHost.Text;
   Result.Username := editUsername.Text;
   Result.Password := editPassword.Text;
+  Result.LoginPrompt := chkLoginPrompt.Checked;
   Result.Port := updownPort.Position;
   Result.AllDatabases := comboDatabases.Text;
   Result.SSHHost := editSSHHost.Text;
@@ -434,6 +438,7 @@ begin
     editHost.Text := FOrgParams.Hostname;
     editUsername.Text := FOrgParams.Username;
     editPassword.Text := FOrgParams.Password;
+    chkLoginPrompt.Checked := FOrgParams.LoginPrompt;
     updownPort.Position := FOrgParams.Port;
     chkCompressed.Checked := opCompress in FOrgParams.Options;
     comboDatabases.Text := FOrgParams.AllDatabases;
@@ -545,6 +550,21 @@ begin
   Modification(Sender);
 end;
 
+
+procedure Tconnform.chkLoginPromptClick(Sender: TObject);
+var
+  DoEnable: Boolean;
+begin
+  // Disable password input if user wants to be prompted
+  DoEnable := not TCheckBox(Sender).Checked;
+  lblUsername.Enabled := DoEnable;
+  editUsername.Enabled := DoEnable;
+  lblPassword.Enabled := DoEnable;
+  editPassword.Enabled := DoEnable;
+  Modification(Sender);
+end;
+
+
 procedure Tconnform.comboDatabasesDropDown(Sender: TObject);
 var
   Connection: TMySQLConnection;
@@ -575,6 +595,7 @@ begin
   if FLoaded then begin
     FSessionModified := (FOrgParams.Hostname <> editHost.Text)
       or (FOrgParams.Username <> editUsername.Text)
+      or (FOrgParams.LoginPrompt <> chkLoginPrompt.Checked)
       or (FOrgParams.Port <> updownPort.Position)
       or ((opCompress in FOrgParams.Options) <> chkCompressed.Checked)
       or (FOrgParams.NetType <> TNetType(comboNetType.ItemIndex))
