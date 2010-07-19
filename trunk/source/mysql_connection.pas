@@ -151,6 +151,7 @@ type
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort: Integer;
       FOptions: TMySQLClientOptions;
+      FLoginPrompt: Boolean;
     public
       constructor Create;
     published
@@ -159,6 +160,7 @@ type
       property Port: Integer read FPort write FPort;
       property Username: String read FUsername write FUsername;
       property Password: String read FPassword write FPassword;
+      property LoginPrompt: Boolean read FLoginPrompt write FLoginPrompt;
       property AllDatabases: String read FAllDatabases write FAllDatabases;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property Options: TMySQLClientOptions read FOptions write FOptions;
@@ -369,7 +371,7 @@ type
 
 implementation
 
-uses helpers;
+uses helpers, loginform;
 
 
 
@@ -426,13 +428,22 @@ procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
   ClientFlags, FinalPort: Integer;
-  Error, tmpdb, FinalHost, FinalSocket, PlinkCmd: String;
+  Error, tmpdb, FinalHost, FinalSocket, PlinkCmd, UsernamePrompt, PasswordPrompt: String;
   SSLResult: Byte;
   UsingPass, Protocol, CurCharset: String;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
 begin
   if Value and (FHandle = nil) then begin
+    // Prompt for password
+    if FParameters.LoginPrompt then begin
+      UsernamePrompt := FParameters.Username;
+      PasswordPrompt := FParameters.Password;
+      LoginPrompt('Login to '+FParameters.Hostname+':', UsernamePrompt, PasswordPrompt);
+      FParameters.Username := UsernamePrompt;
+      FParameters.Password := PasswordPrompt;
+    end;
+
     // Get handle
     FHandle := mysql_init(nil);
 

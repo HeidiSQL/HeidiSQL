@@ -260,7 +260,7 @@ object connform: Tconnform
       object editPassword: TEdit
         Left = 101
         Top = 92
-        Width = 197
+        Width = 126
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
@@ -311,6 +311,16 @@ object connform: Tconnform
         TextHint = 'Separated by semicolon'
         OnChange = Modification
         OnDropDown = comboDatabasesDropDown
+      end
+      object chkLoginPrompt: TCheckBox
+        Left = 233
+        Top = 94
+        Width = 65
+        Height = 17
+        Anchors = [akTop, akRight]
+        Caption = 'Prompt'
+        TabOrder = 9
+        OnClick = chkLoginPromptClick
       end
     end
     object tabSSHtunnel: TTabSheet
