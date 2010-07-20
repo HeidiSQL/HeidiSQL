@@ -284,6 +284,8 @@ begin
   end else begin
     // Editing existing table
     editName.Text := DBObject.Name;
+    // Try collation from SHOW TABLE STATUS, sometimes missing in SHOW CREATE TABLE result
+    comboCollation.ItemIndex := comboCollation.Items.IndexOf(DBObject.Collation);
     CreateTable := Mainform.SelectedTableCreateStatement;
     rx := TRegExpr.Create;
     rx.ModifierI := True;
