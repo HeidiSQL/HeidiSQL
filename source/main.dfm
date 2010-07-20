@@ -2123,7 +2123,7 @@ object MainForm: TMainForm
       Category = 'Export/Import'
       Caption = 'Export database as SQL'
       Hint = 'Dump database objects to an SQL file'
-      ImageIndex = 20
+      ImageIndex = 9
       OnExecute = actTableToolsExecute
     end
     object actLoadSQL: TAction
