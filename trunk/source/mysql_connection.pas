@@ -2428,6 +2428,8 @@ begin
   if Source is TDBObject then begin
     s := Source as TDBObject;
     Name := s.Name;
+    Collation := s.Collation;
+    Engine := s.Engine;
     Database := s.Database;
     NodeType := s.NodeType;
     Created := s.Created;
