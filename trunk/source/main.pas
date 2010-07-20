@@ -1119,7 +1119,7 @@ end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 var
-  filename, WinState: String;
+  WinState: String;
   i: Integer;
 begin
   // Destroy editors and dialogs. Must be done before connection gets closed, as some destructors do SQL stuff.
@@ -1730,10 +1730,8 @@ begin
     end;
   end;
   // By default, select the host node
-  if not Assigned(DBtree.FocusedNode) then begin
-    DBtree.Selected[DBtree.GetFirst] := true;
-    DBtree.FocusedNode := DBtree.GetFirst;
-  end;
+  if not Assigned(DBtree.FocusedNode) then
+    SelectNode(DBTree, DBtree.GetFirst);
 
   // Create function menu items in popupQuery and popupFilter
   menuQueryInsertFunction.Clear;
@@ -1994,9 +1992,7 @@ var
   Connections: TStringList;
 begin
   // Delete dynamically added connection menu items.
-  for i := menuConnections.Items.Count - 1 downto 0 do begin
-    menuConnections.Items.Delete(i);
-  end;
+  menuConnections.Items.Clear;
 
   // "Session manager" and "New window" items
   item := TMenuItem.Create(menuConnections);
@@ -2005,6 +2001,9 @@ begin
   menuConnections.Items.Add(item);
   item := TMenuItem.Create(menuConnections);
   item.Action := actNewWindow;
+  menuConnections.Items.Add(item);
+  item := TMenuItem.Create(menuConnections);
+  item.Caption := '-';
   menuConnections.Items.Add(item);
 
   // All sessions
