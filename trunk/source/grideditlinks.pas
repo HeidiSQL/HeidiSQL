@@ -540,7 +540,7 @@ begin
     dtDate: FMaskEdit.EditMask := '0000-00-00;1; ';
     dtDatetime, dtTimestamp: FMaskEdit.EditMask := '0000-00-00 00\:00\:00;1; ';
     dtTime: FMaskEdit.EditMask := '00\:00\:00;1; ';
-    //dtYear??
+    dtYear: FMaskEdit.EditMask := '0000;1; ';
   end;
   FMaskEdit.Text := FCellText;
   FMaskEdit.Font.Assign(FCellFont);
@@ -637,11 +637,18 @@ var
   dt: TDateTime;
   d: TDate;
   t: TTime;
+  i: Int64;
   text: String;
   OldSelStart, OldSelLength: Integer;
 begin
   try
     case Datatype of
+      dtYear: begin
+        i := MakeInt(FMaskEdit.Text);
+        i := i + Offset;
+        text := IntToStr(i);
+      end;
+
       dtDate: begin
         d := StrToDate(FMaskEdit.Text);
         // De- or increase focused date segment
