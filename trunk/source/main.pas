@@ -494,6 +494,11 @@ type
     CopyselectedrowsasWikitable1: TMenuItem;
     CopyselectedrowsasWikitable2: TMenuItem;
     DataUNIXtimestamp: TMenuItem;
+    btnClearFilters: TButton;
+    popupClearFilters: TPopupMenu;
+    menuClearFiltersTable: TMenuItem;
+    menuClearFiltersSession: TMenuItem;
+    menuClearFiltersAll: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -792,6 +797,7 @@ type
     procedure comboDBFilterDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure comboDBFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DBtreeAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure ClearFiltersClick(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -8204,6 +8210,8 @@ begin
   end;
   comboRecentFilters.Visible := comboRecentFilters.Items.Count > 0;
   lblRecentFilters.Visible := comboRecentFilters.Visible;
+  btnClearFilters.Visible := comboRecentFilters.Visible;
+  btnClearFilters.Height := comboRecentFilters.Height;
   SynMemoFilter.Height := pnlFilter.Height - 3;
   SynMemoFilter.Top := comboRecentFilters.Top;
   if comboRecentFilters.Visible then begin
@@ -8470,6 +8478,50 @@ procedure TMainForm.actCloseQueryTabExecute(Sender: TObject);
 begin
   // Close active query tab by main action
   CloseQueryTab(PageControlMain.ActivePageIndex);
+end;
+
+
+procedure TMainForm.ClearFiltersClick(Sender: TObject);
+var
+  Sessions, Keys: TStringList;
+  i, idx: Integer;
+begin
+  // Clear recent data filters
+  Keys := TStringList.Create;
+  if (Sender = btnClearFilters) or (Sender = menuClearFiltersTable) then begin
+    Screen.Cursor := crHourGlass;
+    OpenRegistry(SessionName);
+    MainReg.GetKeyNames(Keys);
+    idx := Keys.IndexOf(SelectedTable.Database+'|'+SelectedTable.Name);
+    if idx > -1 then
+      MainReg.DeleteKey(Keys[idx]);
+  end else if Sender = menuClearFiltersSession then begin
+    if MessageDlg('Remove all filter stuff for this session ('+SessionName+') ?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+      Screen.Cursor := crHourGlass;
+      OpenRegistry(SessionName);
+      MainReg.GetKeyNames(Keys);
+      for idx:=0 to Keys.Count-1 do
+        MainReg.DeleteKey(Keys[idx])
+    end;
+  end else if Sender = menuClearFiltersAll then begin
+    if MessageDlg('Remove all filters across all sessions?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+      Screen.Cursor := crHourGlass;
+      MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
+      Sessions := TStringList.Create;
+      MainReg.GetKeyNames(Sessions);
+      for i:=0 to Sessions.Count-1 do begin
+        MainReg.OpenKey(RegPath + REGKEY_SESSIONS + Sessions[i], True);
+        Keys.Clear;
+        MainReg.GetKeyNames(Keys);
+        for idx:=0 to Keys.Count-1 do
+          MainReg.DeleteKey(Keys[idx])
+      end;
+    end;
+  end;
+  FreeAndNil(Keys);
+  FreeAndNil(Sessions);
+  EnumerateRecentFilters;
+  Screen.Cursor := crDefault;
 end;
 
 

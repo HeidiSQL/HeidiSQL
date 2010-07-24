@@ -1397,6 +1397,20 @@ object MainForm: TMainForm
               TabOrder = 4
               OnSelect = LoadRecentFilter
             end
+            object btnClearFilters: TButton
+              Left = 373
+              Top = 0
+              Width = 36
+              Height = 21
+              Hint = 'Clear recent filters for this table'
+              Anchors = [akTop, akRight]
+              DropDownMenu = popupClearFilters
+              ImageIndex = 26
+              Images = ImageListMain
+              Style = bsSplitButton
+              TabOrder = 5
+              OnClick = ClearFiltersClick
+            end
           end
           object DataGrid: TVirtualStringTree
             Left = 0
@@ -8588,5 +8602,21 @@ object MainForm: TMainForm
     Delay = 100
     Left = 104
     Top = 128
+  end
+  object popupClearFilters: TPopupMenu
+    Left = 136
+    Top = 64
+    object menuClearFiltersTable: TMenuItem
+      Caption = 'Clear recent filters for this table only'
+      OnClick = ClearFiltersClick
+    end
+    object menuClearFiltersSession: TMenuItem
+      Caption = 'Clear recent filters for all tables in all databases ...'
+      OnClick = ClearFiltersClick
+    end
+    object menuClearFiltersAll: TMenuItem
+      Caption = 'Clear recent filters across all connections ...'
+      OnClick = ClearFiltersClick
+    end
   end
 end
