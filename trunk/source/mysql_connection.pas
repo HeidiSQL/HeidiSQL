@@ -191,6 +191,7 @@ type
       FConnectionStarted: Integer;
       FServerStarted: Integer;
       FParameters: TConnectionParameters;
+      FLoginPromptDone: Boolean;
       FDatabase: String;
       FLogPrefix: String;
       FOnLog: TMySQLLogEvent;
@@ -409,6 +410,7 @@ begin
   FLogPrefix := '';
   FIsUnicode := False;
   FDatabases := TDatabaseList.Create(True);
+  FLoginPromptDone := False;
 end;
 
 
@@ -435,13 +437,14 @@ var
   ExitCode: LongWord;
 begin
   if Value and (FHandle = nil) then begin
-    // Prompt for password
-    if FParameters.LoginPrompt then begin
+    // Prompt for password on initial connect
+    if FParameters.LoginPrompt and (not FLoginPromptDone) then begin
       UsernamePrompt := FParameters.Username;
       PasswordPrompt := FParameters.Password;
       LoginPrompt('Login to '+FParameters.Hostname+':', UsernamePrompt, PasswordPrompt);
       FParameters.Username := UsernamePrompt;
       FParameters.Password := PasswordPrompt;
+      FLoginPromptDone := True;
     end;
 
     // Get handle
