@@ -1804,6 +1804,9 @@ begin
   OpenRegistry(SessionName);
   MainReg.WriteString( REGNAME_LASTUSEDDB, Connection.Database );
   MainReg.WriteString( REGNAME_DATABASE_FILTER, comboDBFilter.Items.Text );
+  // Save last session name in root folder
+  OpenRegistry;
+  MainReg.WriteString(REGNAME_LASTSESSION, SessionName);
 
   // Post pending UPDATE
   Results := GridResult(DataGrid);
@@ -2666,9 +2669,6 @@ begin
       // Save "refused" counter
       OpenRegistry(Session);
       MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, Session)+1);
-      // Save last session name in root folder
-      OpenRegistry;
-      MainReg.WriteString(REGNAME_LASTSESSION, Session);
     end;
 
     Result := True;
