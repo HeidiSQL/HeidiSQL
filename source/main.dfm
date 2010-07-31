@@ -1390,7 +1390,7 @@ object MainForm: TMainForm
             object comboRecentFilters: TComboBox
               Left = 75
               Top = 0
-              Width = 334
+              Width = 298
               Height = 21
               Style = csDropDownList
               Anchors = [akLeft, akTop, akRight]
