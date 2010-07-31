@@ -1821,6 +1821,7 @@ begin
   FreeAndNil(DataGridHiddenColumns);
   SynMemoFilter.Clear;
   SetLength(DataGridSortColumns, 0);
+  FreeAndNil(SQLHelpForm);
 
   // Closing connection
   Connection.Active := False;

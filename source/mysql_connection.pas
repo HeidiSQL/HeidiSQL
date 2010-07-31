@@ -368,6 +368,7 @@ type
       property SQL: String read FSQL write SetSQL;
       property Connection: TMySQLConnection read FConnection write FConnection;
   end;
+  PMySQLQuery = ^TMySQLQuery;
 
 
 implementation

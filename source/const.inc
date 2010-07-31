@@ -28,9 +28,6 @@ const
   // Used by maskSQL and fixSQL:
   SQL_VERSION_ANSI = -1;
 
-  // Used for simulating a TTreeNode which has subnodes
-  DUMMY_NODE_TEXT : String = 'Dummy node, should never be visible';
-
   // Various names of registry variables
   // User-changable variables have a default value
   // Note: Color values are in HEX format: $00BBGGRR
