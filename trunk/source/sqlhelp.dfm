@@ -13,7 +13,7 @@ object frmSQLhelp: TfrmSQLhelp
   FormStyle = fsStayOnTop
   OldCreateOrder = False
   OnCreate = FormCreate
-  OnShow = FormShow
+  OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
   object btnSearchOnline: TButton
@@ -37,7 +37,6 @@ object frmSQLhelp: TfrmSQLhelp
     Cancel = True
     Caption = 'Close'
     Default = True
-    ModalResult = 1
     TabOrder = 1
     OnClick = ButtonCloseClick
   end
@@ -70,25 +69,6 @@ object frmSQLhelp: TfrmSQLhelp
       Align = alLeft
       BevelOuter = bvNone
       TabOrder = 0
-      object treeTopics: TTreeView
-        AlignWithMargins = True
-        Left = 0
-        Top = 24
-        Width = 153
-        Height = 283
-        Margins.Left = 0
-        Margins.Right = 0
-        Margins.Bottom = 0
-        Align = alClient
-        ChangeDelay = 50
-        Images = MainForm.ImageListMain
-        Indent = 19
-        ReadOnly = True
-        ShowLines = False
-        TabOrder = 1
-        OnChange = treeTopicsChange
-        OnExpanding = treeTopicsExpanding
-      end
       object editFilter: TButtonedEdit
         AlignWithMargins = True
         Left = 0
@@ -104,8 +84,41 @@ object frmSQLhelp: TfrmSQLhelp
         LeftButton.Hint = 'Search'
         LeftButton.ImageIndex = 53
         LeftButton.Visible = True
+        RightButton.ImageIndex = 26
         TabOrder = 0
+        TextHint = 'Filter'
         OnChange = editFilterChange
+        OnRightButtonClick = editFilterRightButtonClick
+      end
+      object treeTopics: TVirtualStringTree
+        AlignWithMargins = True
+        Left = 0
+        Top = 24
+        Width = 153
+        Height = 283
+        Margins.Left = 0
+        Margins.Right = 0
+        Margins.Bottom = 0
+        Align = alClient
+        Header.AutoSizeIndex = 0
+        Header.DefaultHeight = 17
+        Header.Font.Charset = DEFAULT_CHARSET
+        Header.Font.Color = clWindowText
+        Header.Font.Height = -11
+        Header.Font.Name = 'Tahoma'
+        Header.Font.Style = []
+        Header.MainColumn = -1
+        Images = MainForm.ImageListMain
+        TabOrder = 1
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        OnFocusChanged = treeTopicsFocusChanged
+        OnFreeNode = treeTopicsFreeNode
+        OnGetText = treeTopicsGetText
+        OnGetImageIndex = treeTopicsGetImageIndex
+        OnGetNodeDataSize = treeTopicsGetNodeDataSize
+        OnInitChildren = treeTopicsInitChildren
+        OnInitNode = treeTopicsInitNode
+        Columns = <>
       end
     end
     object pnlRight: TPanel
@@ -143,13 +156,13 @@ object frmSQLhelp: TfrmSQLhelp
         Width = 405
         Height = 16
         Align = alTop
-        Caption = 'lblKeyword'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
         ParentFont = False
+        ShowAccelChar = False
       end
       object lblExample: TLabel
         Left = 0
@@ -235,5 +248,11 @@ object frmSQLhelp: TfrmSQLhelp
     URIHighlighter = URIHighlighter
     Left = 480
     Top = 8
+  end
+  object timerSearch: TTimer
+    Interval = 500
+    OnTimer = DoSearch
+    Left = 8
+    Top = 320
   end
 end
