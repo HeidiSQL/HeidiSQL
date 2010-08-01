@@ -602,10 +602,12 @@ object MainForm: TMainForm
             ActivePage = tabDatabases
             Align = alClient
             HotTrack = True
+            Images = ImageListMain
             TabOrder = 0
             OnChange = PageControlHostChange
             object tabDatabases: TTabSheet
               Caption = 'Databases'
+              ImageIndex = 5
               object ListDatabases: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -688,6 +690,7 @@ object MainForm: TMainForm
             end
             object tabVariables: TTabSheet
               Caption = 'Variables'
+              ImageIndex = 137
               object ListVariables: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -740,6 +743,7 @@ object MainForm: TMainForm
             end
             object tabStatus: TTabSheet
               Caption = 'Status'
+              ImageIndex = 13
               object ListStatus: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -804,7 +808,7 @@ object MainForm: TMainForm
             end
             object tabProcessList: TTabSheet
               Caption = 'Process-List'
-              ImageIndex = 1
+              ImageIndex = 57
               object Splitter3: TSplitter
                 Left = 0
                 Top = 201
@@ -960,7 +964,7 @@ object MainForm: TMainForm
             end
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
-              ImageIndex = 2
+              ImageIndex = 145
               object ListCommandStats: TVirtualStringTree
                 Left = 0
                 Top = 0
