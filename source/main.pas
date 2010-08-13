@@ -6756,17 +6756,15 @@ var
   Add, Clause: String;
   i: Integer;
   ed: TEdit;
-  Col: TTableColumn;
 begin
   ed := TEdit(Sender);
   Clause := '';
   Add := '';
   if ed.Text <> '' then begin
     for i:=0 to SelectedTableColumns.Count-1 do begin
-      Col := TTableColumn(SelectedTableColumns[i]);
       if i > 0 then
         Add := Add + ' OR ';
-      Add := Add + mask(Col.Name) + ' LIKE ' + esc('%'+ed.Text+'%');
+      Add := Add + mask(SelectedTableColumns[i].Name) + ' LIKE ' + esc('%'+ed.Text+'%');
       if Length(Add) > 45 then begin
         Clause := Clause + Add + CRLF;
         Add := '';
