@@ -57,7 +57,6 @@ const
   nKeys = 1;
   nForeignKeys = 2;
   nData = 3;
-  CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
 
 {$R *.DFM}
 {$I const.inc}

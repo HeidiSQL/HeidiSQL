@@ -101,7 +101,7 @@ type
   procedure debug(txt: String);
   function fixNewlines(txt: String): String;
   function GetShellFolder(CSIDL: integer): string;
-  function getFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
+  function GetFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
   function goodfilename( str: String ): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
   function UnformatNumber(Val: String): String;
@@ -136,6 +136,7 @@ type
   procedure EnableProgressBar(MaxValue: Integer);
   function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
   function ListIndexByRegExpr(List: TStrings; Expression: String): Integer;
+  function FindNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode): PVirtualNode;
   procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
   procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
   function DateBackFriendlyCaption(d: TDateTime): String;
@@ -941,6 +942,16 @@ begin
   // Return it as string again, as there are callers which need to handle unsigned bigint's somehow -
   // there is no unsigned 64 bit integer type in Delphi.
   Result := '';
+
+  // Unformatted float coming in? Detect by order of thousand and decimal char
+  if ((Pos(',', Str) > 0) and (Pos(',', Str) < Pos('.', Str)))
+    or (Length(Str) - Pos('.', ReverseString(Str)) <> 4)
+    then begin
+    Str := StringReplace(Str, '.', '*', [rfReplaceAll]);
+    Str := StringReplace(Str, ',', ThousandSeparator, [rfReplaceAll]);
+    Str := StringReplace(Str, '*', DecimalSeparator, [rfReplaceAll]);
+  end;
+
   HasDecimalSep := False;
   for i:=1 to Length(Str) do begin
     if CharInSet(Str[i], ['0'..'9', DecimalSeparator]) or ((Str[i] = '-') and (Result='')) then
@@ -1173,7 +1184,7 @@ end;
   @param string Filepattern to filter files, defaults to all files (*.*)
   @return TStringList Filenames
 }
-function getFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
+function GetFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
 var
   sr : TSearchRec;
   s : String;
@@ -2084,22 +2095,34 @@ begin
 end;
 
 
-procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
+function FindNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode): PVirtualNode;
 var
   Node: PVirtualNode;
 begin
-  // Helper to focus and highlight a node by its index
+  // Helper to find a node by its index
+  Result := nil;
   if Assigned(ParentNode) then
     Node := VT.GetFirstChild(ParentNode)
   else
     Node := VT.GetFirst;
   while Assigned(Node) do begin
     if Node.Index = idx then begin
-      SelectNode(VT, Node);
+      Result := Node;
       break;
     end;
     Node := VT.GetNextSibling(Node);
   end;
+end;
+
+
+procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
+var
+  Node: PVirtualNode;
+begin
+  // Helper to focus and highlight a node by its index
+  Node := FindNode(VT, idx, ParentNode);
+  if Assigned(Node) then
+    SelectNode(VT, Node);
 end;
 
 

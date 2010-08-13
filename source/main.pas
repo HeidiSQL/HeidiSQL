@@ -36,9 +36,7 @@ type
     CloseButton: TSpeedButton;
     pnlMemo: TPanel;
     pnlHelpers: TPanel;
-    lboxHelpers: TListBox;
-    HelperListSelectedItems: Array[0..3] of Array of Integer;
-    tabsetHelpers: TTabSet;
+    treeHelpers: TVirtualStringTree;
     Memo: TSynMemo;
     MemoFilename: String;
     MemoLineBreaks: TLineBreaks;
@@ -47,6 +45,8 @@ type
     tabsetQuery: TTabSet;
     TabSheet: TTabSheet;
     ResultTabs: TResultTabs;
+    QueryProfile: TMySQLQuery;
+    ProfileTime, MaxProfileTime: Extended;
     function GetActiveResultTab: TResultTab;
     public
       property ActiveResultTab: TResultTab read GetActiveResultTab;
@@ -310,9 +310,6 @@ type
     QF18: TMenuItem;
     QF19: TMenuItem;
     N21: TMenuItem;
-    pnlQueryHelpers: TPanel;
-    tabsetQueryHelpers: TTabSet;
-    lboxQueryHelpers: TListBox;
     popupQuery: TPopupMenu;
     MenuRun: TMenuItem;
     MenuRunSelection: TMenuItem;
@@ -499,6 +496,7 @@ type
     menuClearFiltersTable: TMenuItem;
     menuClearFiltersSession: TMenuItem;
     menuClearFiltersAll: TMenuItem;
+    treeQueryHelpers: TVirtualStringTree;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -556,10 +554,6 @@ type
     procedure actWebbrowse(Sender: TObject);
     procedure actSelectTreeBackgroundExecute(Sender: TObject);
     procedure popupQueryPopup(Sender: TObject);
-    procedure lboxQueryHelpersClick(Sender: TObject);
-    procedure lboxQueryHelpersDblClick(Sender: TObject);
-    procedure tabsetQueryHelpersChange(Sender: TObject; NewTab: Integer;
-      var AllowChange: Boolean);
     procedure btnDataClick(Sender: TObject);
     procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure SynCompletionProposalAfterCodeCompletion(Sender: TObject;
@@ -574,7 +568,6 @@ type
     procedure PageControlHostChange(Sender: TObject);
     procedure ValidateControls(Sender: TObject);
     procedure ValidateQueryControls(Sender: TObject);
-    procedure RefreshQueryHelpers;
     procedure DataGridBeforePaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas);
     procedure LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo);
@@ -686,8 +679,6 @@ type
     procedure AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
-    procedure pnlQueryHelpersCanResize(Sender: TObject; var NewWidth,
-      NewHeight: Integer; var Resize: Boolean);
     procedure pnlQueryMemoCanResize(Sender: TObject; var NewWidth,
       NewHeight: Integer; var Resize: Boolean);
     procedure AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
@@ -728,8 +719,7 @@ type
     procedure FixQueryTabCloseButtons;
     function ActiveQueryTab: TQueryTab;
     function ActiveQueryMemo: TSynMemo;
-    function ActiveQueryHelpers: TListBox;
-    function ActiveQueryTabset: TTabset;
+    function ActiveQueryHelpers: TVirtualStringTree;
     function QueryTabActive: Boolean;
     function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
     procedure popupMainTabsPopup(Sender: TObject);
@@ -798,6 +788,23 @@ type
     procedure comboDBFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DBtreeAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure ClearFiltersClick(Sender: TObject);
+    procedure treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure treeQueryHelpersInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+      var InitialStates: TVirtualNodeInitStates);
+    procedure treeQueryHelpersInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      var ChildCount: Cardinal);
+    procedure treeQueryHelpersGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure treeQueryHelpersBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+      var ContentRect: TRect);
+    procedure treeQueryHelpersDblClick(Sender: TObject);
+    procedure treeQueryHelpersContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+    procedure treeQueryHelpersPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+    procedure treeQueryHelpersFocusChanging(Sender: TBaseVirtualTree; OldNode,
+      NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -822,6 +829,7 @@ type
     FCmdlineSessionName: String;
     FSearchReplaceExecuted: Boolean;
     FDataGridColumnWidthsCustomized: Boolean;
+    FSnippetFilenames: TStringList;
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats;
@@ -841,6 +849,8 @@ type
     procedure DoSearchReplace;
     procedure UpdateLineCharPanel;
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
+    procedure SetSnippetFilenames(Value: TStringList);
+    procedure RefreshHelperNode(NodeIndex: Cardinal);
   public
     Connection: TMySQLConnection;
     SessionName: String;
@@ -936,6 +946,7 @@ type
     DirnameSnippets: String;
 
     property Delimiter: String read FDelimiter write SetDelimiter;
+    property SnippetFilenames: TStringList read FSnippetFilenames write SetSnippetFilenames;
     procedure CallSQLHelpWithKeyword( keyword: String );
     procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
     procedure popupQueryLoadClick( sender: TObject );
@@ -984,6 +995,7 @@ const
   // Customized messages
   MSG_UPDATECHECK = WM_USER + 1;
   MSG_ABOUT = WM_USER + 2;
+  CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
 
 {$I const.inc}
 
@@ -1162,7 +1174,7 @@ begin
   MainReg.WriteBool(REGNAME_BLOBASTEXT, actBlobAsText.Checked);
   MainReg.WriteString( REGNAME_DELIMITER, Delimiter );
   MainReg.WriteInteger( REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height );
-  MainReg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width );
+  MainReg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, treeQueryHelpers.Width );
   MainReg.WriteInteger( REGNAME_DBTREEWIDTH, pnlLeft.width );
   MainReg.WriteInteger(REGNAME_PREVIEW_HEIGHT, pnlPreview.Height);
   MainReg.WriteBool(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked);
@@ -1261,6 +1273,7 @@ begin
 
   // Folder which contains snippet-files
   DirnameSnippets := DirnameCommonAppData + 'Snippets\';
+  SnippetFilenames := GetFilesFromDir(DirnameSnippets, '*.sql', True);
 
   // SQLFiles-History
   FillPopupQueryLoad;
@@ -1270,7 +1283,6 @@ begin
   // Delphi work around to force usage of Vista's default font (other OSes will be unaffected)
   SetVistaFonts(Font);
   InheritFont(Font);
-  InheritFont(tabsetQueryHelpers.Font);
   InheritFont(SynCompletionProposal.Font);
   // Simulated link label, has non inherited blue font color
   InheritFont(lblExplainProcess.Font);
@@ -1285,9 +1297,7 @@ begin
   QueryTab.TabSheet := tabQuery;
   QueryTab.Number := 1;
   QueryTab.pnlMemo := pnlQueryMemo;
-  QueryTab.pnlHelpers := pnlQueryHelpers;
-  QueryTab.lboxHelpers := lboxQueryHelpers;
-  QueryTab.tabsetHelpers := tabsetQueryHelpers;
+  QueryTab.treeHelpers := treeQueryHelpers;
   QueryTab.Memo := SynMemoQuery;
   QueryTab.MemoLineBreaks := lbsNone;
   QueryTab.spltHelpers := spltQueryHelpers;
@@ -1309,6 +1319,7 @@ begin
   FixVT(ListProcesses);
   FixVT(ListCommandStats);
   FixVT(ListTables);
+  FixVT(treeQueryHelpers);
 
   // Window dimensions
   Left := GetRegValue(REGNAME_WINDOWLEFT, Left);
@@ -1336,7 +1347,7 @@ begin
   actBlobAsText.Checked := GetRegValue(REGNAME_BLOBASTEXT, DEFAULT_BLOBASTEXT);
 
   pnlQueryMemo.Height := GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
-  pnlQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, pnlQueryHelpers.Width);
+  treeQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, treeQueryHelpers.Width);
   pnlLeft.Width := GetRegValue(REGNAME_DBTREEWIDTH, pnlLeft.Width);
   pnlPreview.Height := GetRegValue(REGNAME_PREVIEW_HEIGHT, pnlPreview.Height);
   if GetRegValue(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked) and (not actDataPreview.Checked) then
@@ -2108,6 +2119,9 @@ var
   QueryTab: TQueryTab;
   NewTab: TResultTab;
   col: TVirtualTreeColumn;
+  DoProfile: Boolean;
+  ProfileNode: PVirtualNode;
+  Time: Extended;
 begin
   Screen.Cursor := crHourglass;
   QueryTab := ActiveQueryTab;
@@ -2143,6 +2157,11 @@ begin
   RowsFound := 0;
   QueryTab.ResultTabs.Clear;
   QueryTab.tabsetQuery.Tabs.Clear;
+  QueryTab.QueryProfile.Free;
+  ProfileNode := FindNode(QueryTab.treeHelpers, HELPERNODE_PROFILE, nil);
+  DoProfile := Assigned(ProfileNode) and (QueryTab.treeHelpers.CheckState[ProfileNode] in CheckedStates);
+  if DoProfile then
+    Connection.Query('SET profiling=1');
   for i:=0 to SQLBatch.Count-1 do begin
     ShowStatusMsg('Executing query #'+FormatNumber(i+1)+' of '+FormatNumber(SQLBatch.Count)+' ...');
     ProgressBarStatus.StepIt;
@@ -2206,6 +2225,7 @@ begin
     end;
   end;
 
+  // Gather meta info for logging
   if QueryCount > 0 then begin
     MetaInfo := FormatNumber(RowsAffected) + ' rows affected, ' + FormatNumber(RowsFound) + ' rows found.';
     MetaInfo := MetaInfo + ' Duration for ' + IntToStr(QueryCount);
@@ -2221,6 +2241,22 @@ begin
     LogSQL(MetaInfo);
   end;
 
+  if DoProfile then begin
+    QueryTab.QueryProfile := Connection.GetResults('SHOW PROFILE');
+    QueryTab.ProfileTime := 0;
+    QueryTab.MaxProfileTime := 0;
+    while not QueryTab.QueryProfile.Eof do begin
+      Time := MakeFloat(QueryTab.QueryProfile.Col(1));
+      QueryTab.ProfileTime := QueryTab.ProfileTime + Time;
+      QueryTab.MaxProfileTime := Max(Time, QueryTab.MaxProfileTime);
+      QueryTab.QueryProfile.Next;
+    end;
+    QueryTab.treeHelpers.ReinitNode(ProfileNode, True);
+    QueryTab.treeHelpers.InvalidateChildren(ProfileNode, True);
+    Connection.Query('SET profiling=0');
+  end;
+
+  // Clean up
   ProgressBarStatus.Hide;
   if QueryTab.tabsetQuery.Tabs.Count > 0 then
     QueryTab.tabsetQuery.TabIndex := 0;
@@ -2985,37 +3021,36 @@ end;
 
 procedure TMainForm.actSQLhelpExecute(Sender: TObject);
 var
-  keyword : String;
-  Col: TTableColumn;
+  keyword: String;
+  Tree: TVirtualStringTree;
 begin
   // Call SQL Help from various places
   if Connection.ServerVersionInt < 40100 then
     exit;
 
   keyword := '';
+
   // Query-Tab
   if ActiveControl is TSynMemo then
     keyword := TSynMemo(ActiveControl).WordAtCursor
+
   // Data-Tab
   else if (PageControlMain.ActivePage = tabData)
     and Assigned(DataGrid.FocusedNode) then begin
-    Col := TTableColumn(SelectedTableColumns[DataGrid.FocusedColumn]);
-    keyword := Col.DataType.Name;
-  end
-  else if QueryTabActive and ActiveQueryHelpers.Focused then
-  begin
-    // Makes only sense if one of the tabs "SQL fn" or "SQL kw" was selected
-    if ActiveQueryTabset.TabIndex in [1,2] then
-    begin
-      keyword := ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex];
-    end;
+    keyword := SelectedTableColumns[DataGrid.FocusedColumn].DataType.Name;
+
+  end else if ActiveControl = ActiveQueryHelpers then begin
+    // Makes only sense if one of the nodes "SQL fn" or "SQL kw" was selected
+    Tree := ActiveQueryHelpers;
+    if Assigned(Tree.FocusedNode)
+      and (Tree.GetNodeLevel(Tree.FocusedNode)=1)
+      and (Tree.FocusedNode.Parent.Index in [HELPERNODE_FUNCTIONS, HELPERNODE_KEYWORDS]) then
+      keyword := Tree.Text[Tree.FocusedNode, 0];
   end;
 
   // Clean existing paranthesis, fx: char(64)
   if Pos( '(', keyword ) > 0 then
-  begin
     keyword := Copy( keyword, 1, Pos( '(', keyword )-1 );
-  end;
 
   // Show the window
   CallSQLHelpWithKeyword( keyword );
@@ -3114,7 +3149,6 @@ end;
 procedure TMainForm.actSaveSQLSnippetExecute(Sender: TObject);
 var
   snippetname : String;
-  mayChange   : Boolean;
   Text, LB: String;
 begin
   // Save snippet
@@ -3148,11 +3182,7 @@ begin
       ForceDirectories(DirnameSnippets);
     SaveUnicodeFile( snippetname, Text );
     FillPopupQueryLoad;
-    if ActiveQueryTabset.TabIndex = 3 then begin
-      // SQL Snippets selected in query helper, refresh list
-      mayChange := True; // Unused; satisfies callee parameter collection which is probably dictated by tabset.
-      tabsetQueryHelpersChange(Sender, 3, mayChange);
-    end;
+    SnippetFilenames := GetFilesFromDir(DirnameSnippets, '*.sql', True);
     Screen.Cursor := crDefault;
   end;
 end;
@@ -4231,20 +4261,10 @@ begin
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
   actDataSetNull.Enabled := inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
-  // Manually invoke OnChange event of tabset to fill helper list with data
-  if QueryTabActive then RefreshQueryHelpers;
-
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
 end;
 
-procedure TMainForm.RefreshQueryHelpers;
-var
-  dummy: Boolean;
-begin
-  dummy := True;
-  ActiveQueryTabset.OnChange(Self, ActiveQueryTabset.TabIndex, dummy);
-end;
 
 procedure TMainForm.ValidateQueryControls(Sender: TObject);
 var
@@ -4704,12 +4724,14 @@ procedure TMainForm.SynMemoQueryDragOver(Sender, Source: TObject; X,
 var
   src : TControl;
   Memo: TSynMemo;
+  H: TVirtualStringTree;
 begin
   // dragging an object over the query-memo
   Memo := ActiveQueryMemo;
   src := Source as TControl;
   // Accepting drag's from DBTree and QueryHelpers
-  Accept := (src = DBtree) or (src = ActiveQueryHelpers);
+  H := ActiveQueryHelpers;
+  Accept := (src = DBtree) or ((src = H) and Assigned(H.FocusedNode) and (H.GetNodeLevel(H.FocusedNode)=1));
   // set x-position of cursor
   Memo.CaretX := (x - Memo.Gutter.Width) div Memo.CharWidth - 1 + Memo.LeftChar;
   // set y-position of cursor
@@ -4725,14 +4747,15 @@ var
   src : TControl;
   Text, ItemText: String;
   LoadText, ShiftPressed: Boolean;
-  i: Integer;
+  Tree: TVirtualStringTree;
+  Node: PVirtualNode;
 begin
   // dropping a tree node or listbox item into the query-memo
   ActiveQueryMemo.UndoList.AddGroupBreak;
   src := Source as TControl;
-  Text := 'Error: Unspecified source control in drag''n drop operation!';
   LoadText := True;
   ShiftPressed := KeyPressed(VK_SHIFT);
+  Tree := ActiveQueryHelpers;
   // Check for allowed controls as source has already
   // been performed in OnDragOver. So, only do typecasting here.
   if src = DBtree then begin
@@ -4740,28 +4763,35 @@ begin
     Text := mask(DBtree.Text[DBtree.FocusedNode, 0]);
     if (DBtree.GetNodeLevel(DBtree.FocusedNode)=2) and ShiftPressed then
       Text := mask(DBtree.Text[DBtree.FocusedNode.Parent, 0]) + '.' + Text;
-  end else if (src = ActiveQueryHelpers) and (ActiveQueryHelpers.ItemIndex > -1) then begin
-    // Snippets tab
-    if ActiveQueryTabset.TabIndex = 3 then begin
-      QueryLoad( DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False, nil);
-      LoadText := False;
-    // All other tabs
-    end else begin
-      Text := '';
-      for i := 0 to ActiveQueryHelpers.Items.Count - 1 do begin
-        if ActiveQueryHelpers.Selected[i] then begin
-          ItemText := ActiveQueryHelpers.Items[i];
-          if tabsetQueryHelpers.TabIndex = 0 then
-            ItemText := mask(ItemText); // Quote column names
-          if ShiftPressed then
-            Text := Text + ItemText + ',' + CRLF
-          else
-            Text := Text + ItemText + ', ';
+  end else if src = Tree then begin
+    if (Tree.GetNodeLevel(Tree.FocusedNode) = 1) and Assigned(Tree.FocusedNode) then begin
+      case Tree.FocusedNode.Parent.Index of
+        HELPERNODE_SNIPPETS: begin
+          QueryLoad( DirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', False, nil);
+          LoadText := False;
+        end;
+        else begin
+          Text := '';
+          Node := Tree.GetFirstChild(Tree.FocusedNode.Parent);
+          while Assigned(Node) do begin
+            if Tree.Selected[Node] then begin
+              ItemText := Tree.Text[Node, 0];
+              if Node.Parent.Index = HELPERNODE_COLUMNS then
+                ItemText := mask(ItemText); // Quote column names
+              if ShiftPressed then
+                Text := Text + ItemText + ',' + CRLF
+              else
+                Text := Text + ItemText + ', ';
+            end;
+            Node := Tree.GetNextSibling(Node);
+          end;
+          Delete(Text, Length(Text)-1, 2);
         end;
       end;
-      Delete(Text, Length(Text)-1, 2);
     end;
-  end;
+  end else
+    Text := 'Error: Unspecified source control in drag''n drop operation!';
+
   // Only insert text if no previous action did the job.
   // Should be false when dropping a snippet-file here
   if LoadText then
@@ -5408,103 +5438,6 @@ begin
 end;
 
 
-{**
-  Tabset right to query-memo was clicked
-}
-procedure TMainForm.tabsetQueryHelpersChange(Sender: TObject; NewTab: Integer;
-  var AllowChange: Boolean);
-var
-  i, idx : Integer;
-  SnippetsAccessible : Boolean;
-  Files: TStringList;
-  Col: TTableColumn;
-begin
-  ActiveQueryHelpers.Items.BeginUpdate;
-  ActiveQueryHelpers.Items.Clear;
-  // By default sorted alpabetically
-  ActiveQueryHelpers.Sorted := True;
-  // By default disable all items in popupmenu, enable them when needed
-  menuQueryHelpersGenerateInsert.Enabled := False;
-  menuQueryHelpersGenerateUpdate.Enabled := False;
-  menuQueryHelpersGenerateDelete.Enabled := False;
-  menuInsertSnippetAtCursor.Enabled := False;
-  menuLoadSnippet.Enabled := False;
-  menuDeleteSnippet.Enabled := False;
-  menuExplore.Enabled := False;
-  menuHelp.Enabled := False;
-  ActiveQueryHelpers.MultiSelect := True;
-
-  case NewTab of
-    0: // Cols
-    begin
-      // Keep native order of columns
-      ActiveQueryHelpers.Sorted := False;
-      case SelectedTable.NodeType of
-        lntTable, lntView: begin
-          menuQueryHelpersGenerateInsert.Enabled := True;
-          menuQueryHelpersGenerateUpdate.Enabled := True;
-          menuQueryHelpersGenerateDelete.Enabled := True;
-          for i:=0 to SelectedTableColumns.Count-1 do begin
-            Col := TTableColumn(SelectedTableColumns[i]);
-            ActiveQueryHelpers.Items.Add(Col.Name);
-          end;
-        end;
-        lntFunction, lntProcedure: if Assigned(ActiveObjectEditor) then begin
-          for i:=0 to TfrmRoutineEditor(ActiveObjectEditor).Parameters.Count-1 do
-            ActiveQueryHelpers.Items.Add(TfrmRoutineEditor(ActiveObjectEditor).Parameters[i].Name);
-        end;
-      end;
-    end;
-
-    1: // SQL functions
-    begin
-      // State of items in popupmenu
-      menuHelp.Enabled := True;
-      for i := 0 to Length(MySQLFunctions) - 1 do
-      begin
-        // Don't display unsupported functions here
-        if MySqlFunctions[i].Version > Connection.ServerVersionInt then
-          continue;
-        ActiveQueryHelpers.Items.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
-      end;
-    end;
-
-    2: // SQL keywords
-    begin
-      // State of items in popupmenu
-      menuHelp.Enabled := True;
-      for i := 0 to MySQLKeywords.Count - 1 do
-        ActiveQueryHelpers.Items.Add(MySQLKeywords[i]);
-    end;
-
-    3: // SQL Snippets
-    begin
-      ActiveQueryHelpers.MultiSelect := False;
-      Files := getFilesFromDir( DirnameSnippets, '*.sql', true );
-      for i := 0 to Files.Count - 1 do
-        ActiveQueryHelpers.Items.Add(Files[i]);
-	  Files.Free;
-      // State of items in popupmenu
-      SnippetsAccessible := ActiveQueryHelpers.Items.Count > 0;
-      menuDeleteSnippet.Enabled := SnippetsAccessible;
-      menuInsertSnippetAtCursor.Enabled := SnippetsAccessible;
-      menuLoadSnippet.Enabled := SnippetsAccessible;
-      menuExplore.Enabled := True;
-    end;
-
-  end;
-
-  // Restore last selected item in tab
-  for i := 0 to Length(ActiveQueryTab.HelperListSelectedItems[NewTab]) - 1 do begin
-    idx := ActiveQueryTab.HelperListSelectedItems[NewTab][i];
-    if idx < ActiveQueryHelpers.Count then
-      ActiveQueryHelpers.Selected[idx] := True;
-  end;
-
-  ActiveQueryHelpers.Items.EndUpdate;
-end;
-
-
 procedure TMainForm.tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
   idx: Integer;
@@ -5546,36 +5479,6 @@ end;
 
 
 {**
-  Insert string from listbox with query helpers into SQL
-  memo at doubleclick
-}
-procedure TMainForm.lboxQueryHelpersDblClick(Sender: TObject);
-var
-  m: TSynMemo;
-begin
-  m := ActiveQueryMemo;
-  m.DragDrop(Sender, m.CaretX, m.CaretY);
-end;
-
-
-{**
-  Remember last used items in query helper tabs
-}
-procedure TMainForm.lboxQueryHelpersClick(Sender: TObject);
-var
-  i, s, idx: Integer;
-begin
-  s := ActiveQueryTabset.TabIndex;
-  SetLength(ActiveQueryTab.HelperListSelectedItems[s], 0);
-  for i := 0 to ActiveQueryHelpers.Count - 1 do if ActiveQueryHelpers.Selected[i] then begin
-    idx := Length(ActiveQueryTab.HelperListSelectedItems[s]);
-    SetLength(ActiveQueryTab.HelperListSelectedItems[s], idx+1);
-    ActiveQueryTab.HelperListSelectedItems[s][idx] := i;
-  end;
-end;
-
-
-{**
   Insert function name from popupmenu to query memo
 }
 procedure TMainForm.insertFunction(Sender: TObject);
@@ -5605,25 +5508,20 @@ end;
 procedure TMainForm.menuDeleteSnippetClick(Sender: TObject);
 var
   snippetfile : String;
-  mayChange : Boolean;
 begin
   // Don't do anything if no item was selected
-  if ActiveQueryHelpers.ItemIndex = -1 then
-    abort;
+  if not Assigned(ActiveQueryHelpers.FocusedNode) then
+    Exit;
 
-  snippetfile := DirnameSnippets + ActiveQueryHelpers.Items[ ActiveQueryHelpers.ItemIndex ] + '.sql';
-  if MessageDlg( 'Delete snippet file? ' + CRLF + snippetfile, mtConfirmation, [mbOk, mbCancel], 0) = mrOk then
+  snippetfile := DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql';
+  if MessageDlg('Delete snippet file? ' + CRLF + snippetfile, mtConfirmation, [mbOk, mbCancel], 0) = mrOk then
   begin
     Screen.Cursor := crHourGlass;
-    if DeleteFile( snippetfile ) then
-    begin
+    if DeleteFile(snippetfile) then begin
       // Refresh list with snippets
-      mayChange := True; // Unused; satisfies callee parameter collection which is probably dictated by tabset.
-      tabsetQueryHelpersChange( Sender, ActiveQueryTabset.TabIndex, mayChange );
+      SnippetFilenames := GetFilesFromDir(DirnameSnippets, '*.sql', True);
       FillPopupQueryLoad;
-    end
-    else
-    begin
+    end else begin
       Screen.Cursor := crDefault;
       MessageDlg( 'Failed deleting ' + snippetfile, mtError, [mbOK], 0 );
     end;
@@ -5637,7 +5535,7 @@ end;
 }
 procedure TMainForm.menuInsertSnippetAtCursorClick(Sender: TObject);
 begin
-  QueryLoad(DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', False, nil);
+  QueryLoad(DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', False, nil);
 end;
 
 
@@ -5646,7 +5544,7 @@ end;
 }
 procedure TMainForm.menuLoadSnippetClick(Sender: TObject);
 begin
-  QueryLoad(DirnameSnippets + ActiveQueryHelpers.Items[ActiveQueryHelpers.ItemIndex] + '.sql', True, nil);
+  QueryLoad(DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', True, nil);
 end;
 
 
@@ -6606,10 +6504,8 @@ begin
           end;
           if DataGrid.Tag = VTREE_LOADED then
             InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
-          // When a table is clicked in the tree, and the query
-          // tab is active, update the list of columns
-          if QueryTabActive then
-            RefreshQueryHelpers;
+          // Update the list of columns
+          RefreshHelperNode(HELPERNODE_COLUMNS);
         end;
       end;
   end;
@@ -7536,19 +7432,11 @@ begin
 end;
 
 
-procedure TMainForm.pnlQueryHelpersCanResize(Sender: TObject; var NewWidth,
-  NewHeight: Integer; var Resize: Boolean);
-begin
-  // Ensure minimum width for query helpers while resizing
-  Resize := NewWidth >= 20;
-end;
-
-
 procedure TMainForm.pnlQueryMemoCanResize(Sender: TObject; var NewWidth,
   NewHeight: Integer; var Resize: Boolean);
 begin
   // Ensure visibility of query memo while resizing
-  Resize := NewWidth >= pnlQueryHelpers.Width + spltQueryHelpers.Width + 40;
+  Resize := NewWidth >= treeQueryHelpers.Width + spltQueryHelpers.Width + 40;
 end;
 
 
@@ -8334,6 +8222,7 @@ procedure TMainForm.actNewQueryTabExecute(Sender: TObject);
 var
   i: Integer;
   QueryTab: TQueryTab;
+  HelperColumn: TVirtualTreeColumn;
 begin
   i := QueryTabs[QueryTabs.Count-1].Number + 1;
 
@@ -8391,32 +8280,31 @@ begin
   QueryTab.spltHelpers.ResizeStyle := spltQueryHelpers.ResizeStyle;
   QueryTab.spltHelpers.Width := spltQueryHelpers.Width;
 
-  QueryTab.pnlHelpers := TPanel.Create(QueryTab.pnlMemo);
-  QueryTab.pnlHelpers.Parent := QueryTab.pnlMemo;
-  QueryTab.pnlHelpers.Tag := pnlQueryHelpers.Tag;
-  QueryTab.pnlHelpers.BevelOuter := pnlQueryHelpers.BevelOuter;
-  QueryTab.pnlHelpers.Align := pnlQueryHelpers.Align;
-
-  QueryTab.lboxHelpers := TListBox.Create(QueryTab.pnlHelpers);
-  QueryTab.lboxHelpers.Parent := QueryTab.pnlHelpers;
-  QueryTab.lboxHelpers.Tag := lboxQueryHelpers.Tag;
-  QueryTab.lboxHelpers.Align := lboxQueryHelpers.Align;
-  QueryTab.lboxHelpers.PopupMenu := lboxQueryHelpers.PopupMenu;
-  QueryTab.lboxHelpers.MultiSelect := lboxQueryHelpers.MultiSelect;
-  QueryTab.lboxHelpers.DragMode := lboxQueryHelpers.DragMode;
-  QueryTab.lboxHelpers.Font.Assign(lboxQueryHelpers.Font);
-  QueryTab.lboxHelpers.OnClick := lboxQueryHelpers.OnClick;
-  QueryTab.lboxHelpers.OnDblClick := lboxQueryHelpers.OnDblClick;
-
-  QueryTab.tabsetHelpers := TTabSet.Create(QueryTab.pnlHelpers);
-  QueryTab.tabsetHelpers.Parent := QueryTab.pnlHelpers;
-  QueryTab.tabsetHelpers.Tag := tabsetQueryHelpers.Tag;
-  QueryTab.tabsetHelpers.Height := tabsetQueryHelpers.Height;
-  QueryTab.tabsetHelpers.Align := tabsetQueryHelpers.Align;
-  QueryTab.tabsetHelpers.Tabs := tabsetQueryHelpers.Tabs;
-  QueryTab.tabsetHelpers.Style := tabsetQueryHelpers.Style;
-  QueryTab.tabsetHelpers.Font.Assign(tabsetQueryHelpers.Font);
-  QueryTab.tabsetHelpers.OnChange := tabsetQueryHelpers.OnChange;
+  QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.pnlMemo);
+  QueryTab.treeHelpers.Parent := QueryTab.pnlMemo;
+  QueryTab.treeHelpers.Align := treeQueryHelpers.Align;
+  QueryTab.treeHelpers.PopupMenu := treeQueryHelpers.PopupMenu;
+  QueryTab.treeHelpers.Images := treeQueryHelpers.Images;
+  QueryTab.treeHelpers.DragMode := treeQueryHelpers.DragMode;
+  QueryTab.treeHelpers.DragType := treeQueryHelpers.DragType;
+  QueryTab.treeHelpers.OnBeforeCellPaint := treeQueryHelpers.OnBeforeCellPaint;
+  QueryTab.treeHelpers.OnContextPopup := treeQueryHelpers.OnContextPopup;
+  QueryTab.treeHelpers.OnDblClick := treeQueryHelpers.OnDblClick;
+  QueryTab.treeHelpers.OnGetImageIndex := treeQueryHelpers.OnGetImageIndex;
+  QueryTab.treeHelpers.OnGetText := treeQueryHelpers.OnGetText;
+  QueryTab.treeHelpers.OnInitChildren := treeQueryHelpers.OnInitChildren;
+  QueryTab.treeHelpers.OnInitNode := treeQueryHelpers.OnInitNode;
+  QueryTab.treeHelpers.OnPaintText := treeQueryHelpers.OnPaintText;
+  for i:=0 to treeQueryHelpers.Header.Columns.Count-1 do begin
+    HelperColumn := QueryTab.treeHelpers.Header.Columns.Add;
+    HelperColumn.Text := treeQueryHelpers.Header.Columns[i].Text;
+    HelperColumn.Width := treeQueryHelpers.Header.Columns[i].Width;
+  end;
+  QueryTab.treeHelpers.TreeOptions := treeQueryHelpers.TreeOptions;
+  QueryTab.treeHelpers.Header.Options := treeQueryHelpers.Header.Options;
+  QueryTab.treeHelpers.Header.AutoSizeIndex := treeQueryHelpers.Header.AutoSizeIndex;
+  QueryTab.treeHelpers.RootNodeCount := treeQueryHelpers.RootNodeCount;
+  FixVT(QueryTab.treeHelpers);
 
   QueryTab.spltQuery := TSplitter.Create(QueryTab.TabSheet);
   QueryTab.spltQuery.Parent := QueryTab.TabSheet;
@@ -8452,7 +8340,8 @@ begin
   QueryTab.pnlMemo.Height := pnlQueryMemo.Height;
   QueryTab.pnlMemo.Top := pnlQueryMemo.Top;
   QueryTab.spltQuery.Top := spltQuery.Top;
-  QueryTab.pnlHelpers.Width := pnlQueryHelpers.Width;
+  QueryTab.tabsetQuery.Top := tabsetQuery.Top;
+  QueryTab.treeHelpers.Width := treeQueryHelpers.Width;
 
   // Show new tab
   PageControlMain.ActivePage := QueryTab.TabSheet;
@@ -8776,17 +8665,10 @@ begin
 end;
 
 
-function TMainForm.ActiveQueryHelpers: TListBox;
+function TMainForm.ActiveQueryHelpers: TVirtualStringTree;
 begin
-  // Return current query helpers listbox
-  Result := ActiveQueryTab.lboxHelpers;
-end;
-
-
-function TMainForm.ActiveQueryTabset: TTabset;
-begin
-  // Return current query helpers tabset
-  Result := ActiveQueryTab.tabsetHelpers
+  // Return current query helpers tree
+  Result := ActiveQueryTab.treeHelpers;
 end;
 
 
@@ -9141,15 +9023,19 @@ var
   i, idx: Integer;
   ColumnNames, DefaultValues, KeyColumns: TStringList;
   Column: TTableColumn;
+  Tree: TVirtualStringTree;
+  Node: PVirtualNode;
 begin
   // Generate INSERT, UPDATE or DELETE query using selected columns
   MenuItem := (Sender as TMenuItem);
   ColumnNames := TStringList.Create;
   DefaultValues := TStringList.Create;
-  for i:=0 to ActiveQueryHelpers.Items.Count-1 do begin
-    if ActiveQueryHelpers.Selected[i] then begin
-      ColumnNames.Add(mask(ActiveQueryHelpers.Items[i]));
-      Column := SelectedTableColumns[i];
+  Tree := ActiveQueryHelpers;
+  Node := Tree.GetFirstChild(FindNode(Tree, HELPERNODE_COLUMNS, nil));
+  while Assigned(Node) do begin
+    if Tree.Selected[Node] then begin
+      ColumnNames.Add(mask(Tree.Text[Node, 0]));
+      Column := SelectedTableColumns[Node.Index];
       case Column.DataType.Category of
         dtcInteger, dtcReal: Val := '0';
         dtcText, dtcIntegerNamed, dtcSetNamed: begin
@@ -9166,6 +9052,7 @@ begin
         Val := 'NULL';
       DefaultValues.Add(Val);
     end;
+    Node := Tree.GetNextSibling(Node);
   end;
   KeyColumns := Connection.GetKeyColumns(SelectedTableColumns, SelectedTableKeys);
   WhereClause := '';
@@ -9363,6 +9250,270 @@ begin
     6: Result := TEncoding.UTF7;
   end;
 end;
+
+
+procedure TMainForm.treeQueryHelpersBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+  var ContentRect: TRect);
+var
+  Tab: TQueryTab;
+begin
+  // Paint green value bar in cell
+  if (Node.Parent.Index=HELPERNODE_PROFILE)
+    and (Column=1)
+    and (Sender.GetNodeLevel(Node)=1)
+    then begin
+    Tab := ActiveQueryTab;
+    Tab.QueryProfile.RecNo := Node.Index;
+    PaintColorBar(MakeFloat(Tab.QueryProfile.Col(Column)), Tab.MaxProfileTime, TargetCanvas, CellRect);
+  end;
+end;
+
+
+procedure TMainForm.treeQueryHelpersPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+begin
+  // Paint text in datatype's color
+  if (Node.Parent.Index=HELPERNODE_COLUMNS)
+    and (Column=1)
+    and (Sender.GetNodeLevel(Node)=1)
+    and (SelectedTable.NodeType in [lntView, lntTable])
+    then begin
+    TargetCanvas.Font.Color := DatatypeCategories[Integer(SelectedTableColumns[Node.Index].DataType.Category)].Color;
+  end;
+end;
+
+
+procedure TMainForm.treeQueryHelpersDblClick(Sender: TObject);
+var
+  m: TSynMemo;
+begin
+  m := ActiveQueryMemo;
+  m.DragDrop(Sender, m.CaretX, m.CaretY);
+end;
+
+
+procedure TMainForm.treeQueryHelpersFocusChanging(Sender: TBaseVirtualTree; OldNode,
+  NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
+var
+  Tree: TVirtualStringTree;
+begin
+  // Disable multi selection when snippet node is focused
+  Tree := Sender as TVirtualStringTree;
+  if not Assigned(NewNode) then
+    Exit;
+  if (Tree.GetNodeLevel(NewNode) = 0) or
+    (NewNode.Parent.Index=HELPERNODE_SNIPPETS)
+    then begin
+    Tree.ClearSelection;
+    Tree.TreeOptions.SelectionOptions := Tree.TreeOptions.SelectionOptions - [toMultiSelect]
+  end else
+    Tree.TreeOptions.SelectionOptions := Tree.TreeOptions.SelectionOptions + [toMultiSelect];
+end;
+
+
+procedure TMainForm.treeQueryHelpersGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+begin
+  // Query helpers tree fetching node icon index
+  if not (Kind in [ikNormal, ikSelected]) then
+    Exit;
+  if Column <> 0 then
+    Exit;
+  case Sender.GetNodeLevel(Node) of
+    0: case Node.Index of
+         HELPERNODE_COLUMNS: if SelectedTable.NodeType <> lntNone then
+              ImageIndex := SelectedTable.ImageIndex
+            else
+              ImageIndex := 14;
+         HELPERNODE_FUNCTIONS: ImageIndex := 13;
+         HELPERNODE_KEYWORDS: ImageIndex := 25;
+         HELPERNODE_SNIPPETS: ImageIndex := 51;
+         HELPERNODE_PROFILE: ImageIndex := 145;
+       end;
+    1: case Node.Parent.Index of
+         HELPERNODE_COLUMNS: ImageIndex := 42;
+         HELPERNODE_FUNCTIONS: ImageIndex := 13;
+         HELPERNODE_KEYWORDS: ImageIndex := 25;
+         HELPERNODE_SNIPPETS: ImageIndex := 68;
+         HELPERNODE_PROFILE: ImageIndex := 145;
+       end;
+  end;
+end;
+
+
+procedure TMainForm.treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+begin
+  // Query helpers tree fetching node text
+  CellText := '';
+  case Column of
+    0: case Sender.GetNodeLevel(Node) of
+        0: case Node.Index of
+             HELPERNODE_COLUMNS: case SelectedTable.NodeType of
+               lntNone: CellText := 'Columns';
+               lntProcedure, lntFunction: CellText := 'Parameters in '+SelectedTable.Name;
+               else CellText := 'Columns in '+SelectedTable.Name;
+             end;
+             HELPERNODE_FUNCTIONS: CellText := 'SQL Functions';
+             HELPERNODE_KEYWORDS: CellText := 'SQL Keywords';
+             HELPERNODE_SNIPPETS: CellText := 'Snippets';
+             HELPERNODE_PROFILE: begin
+                  CellText := 'Query profile';
+                  if Assigned(ActiveQueryTab.QueryProfile) then
+                    CellText := CellText + ' ('+FormatNumber(ActiveQueryTab.ProfileTime, 6)+'s)';
+                end;
+           end;
+        1: case Node.Parent.Index of
+             HELPERNODE_COLUMNS: case SelectedTable.NodeType of
+               lntTable, lntView:
+                 if SelectedTableColumns.Count > Integer(Node.Index) then
+                   CellText := SelectedTableColumns[Node.Index].Name;
+               lntFunction, lntProcedure:
+                 if Assigned(ActiveObjectEditor) then
+                   CellText := TfrmRoutineEditor(ActiveObjectEditor).Parameters[Node.Index].Name;
+             end;
+             HELPERNODE_FUNCTIONS: CellText := MySQLFunctions[Node.Index].Name;
+             HELPERNODE_KEYWORDS: CellText := MySQLKeywords[Node.Index];
+             HELPERNODE_SNIPPETS: CellText := FSnippetFilenames.Names[Node.Index];
+             HELPERNODE_PROFILE: begin
+                  if Assigned(ActiveQueryTab.QueryProfile) then begin
+                    ActiveQueryTab.QueryProfile.RecNo := Node.Index;
+                    CellText := ActiveQueryTab.QueryProfile.Col(Column);
+                  end;
+                end;
+           end;
+      end;
+    1: case Sender.GetNodeLevel(Node) of
+        0: CellText := '';
+        1: case Node.Parent.Index of
+             HELPERNODE_COLUMNS:
+               if (SelectedTable.NodeType in [lntTable, lntView]) and (SelectedTableColumns.Count > Integer(Node.Index)) then
+                 CellText := SelectedTableColumns[Node.Index].DataType.Name;
+             HELPERNODE_FUNCTIONS: CellText := MySQLFunctions[Node.Index].Declaration;
+             HELPERNODE_SNIPPETS: CellText := FormatByteNumber(FSnippetFilenames.ValueFromIndex[Node.Index]);
+             HELPERNODE_PROFILE: begin
+                  if Assigned(ActiveQueryTab.QueryProfile) then begin
+                    ActiveQueryTab.QueryProfile.RecNo := Node.Index;
+                    CellText := FormatNumber(ActiveQueryTab.QueryProfile.Col(Column))+'s';
+                  end;
+                end;
+             else CellText := '';
+           end;
+      end;
+  end;
+end;
+
+
+procedure TMainForm.treeQueryHelpersInitNode(Sender: TBaseVirtualTree; ParentNode,
+  Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+begin
+  // Query helpers tree asking if plus/minus button should be displayed
+  if Sender.GetNodeLevel(Node) = 0 then begin
+    Include(InitialStates, ivsHasChildren);
+    if Node.Index = HELPERNODE_PROFILE then
+      Node.CheckType := ctCheckbox;
+  end;
+end;
+
+
+procedure TMainForm.treeQueryHelpersInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  var ChildCount: Cardinal);
+begin
+  case Sender.GetNodeLevel(Node) of
+    0: case Node.Index of
+         HELPERNODE_COLUMNS: case SelectedTable.NodeType of
+           lntTable, lntView:
+             ChildCount := SelectedTableColumns.Count;
+           lntFunction, lntProcedure:
+             if Assigned(ActiveObjectEditor) then
+               ChildCount := TfrmRoutineEditor(ActiveObjectEditor).Parameters.Count
+             else
+               ChildCount := 0;
+           else
+             ChildCount := 0;
+         end;
+         HELPERNODE_FUNCTIONS: ChildCount := Length(MySQLFunctions);
+         HELPERNODE_KEYWORDS: ChildCount := MySQLKeywords.Count;
+         HELPERNODE_SNIPPETS: ChildCount := FSnippetFilenames.Count;
+         HELPERNODE_PROFILE: if not Assigned(ActiveQueryTab.QueryProfile) then ChildCount := 0
+            else ChildCount := ActiveQueryTab.QueryProfile.RecordCount;
+       end;
+    1: ChildCount := 0;
+  end;
+end;
+
+
+procedure TMainForm.SetSnippetFilenames(Value: TStringList);
+var
+  i: Integer;
+begin
+  // Refreshing list of snippet file names needs to refresh helper node too
+  if not Assigned(FSnippetFilenames) then
+    FSnippetFilenames := TStringList.Create;
+  FSnippetFilenames.Clear;
+  for i:=0 to Value.Count-1 do
+    FSnippetFilenames.Values[Value[i]] := IntToStr(_GetFileSize(DirnameSnippets+Value[i]+'.sql'));
+  RefreshHelperNode(HELPERNODE_SNIPPETS);
+end;
+
+
+
+procedure TMainForm.treeQueryHelpersContextPopup(Sender: TObject; MousePos: TPoint;
+  var Handled: Boolean);
+var
+  Tree: TVirtualStringTree;
+begin
+  Tree := Sender as TVirtualStringTree;
+  menuQueryHelpersGenerateInsert.Enabled := False;
+  menuQueryHelpersGenerateUpdate.Enabled := False;
+  menuQueryHelpersGenerateDelete.Enabled := False;
+  menuInsertSnippetAtCursor.Enabled := False;
+  menuLoadSnippet.Enabled := False;
+  menuDeleteSnippet.Enabled := False;
+  menuExplore.Enabled := False;
+  menuHelp.Enabled := False;
+
+  case Tree.GetNodeLevel(Tree.FocusedNode) of
+    0: ;
+    1: case Tree.FocusedNode.Parent.Index of
+      HELPERNODE_COLUMNS: if SelectedTable.NodeType in [lntTable, lntView] then begin
+          menuQueryHelpersGenerateInsert.Enabled := True;
+          menuQueryHelpersGenerateUpdate.Enabled := True;
+          menuQueryHelpersGenerateDelete.Enabled := True;
+        end;
+      HELPERNODE_FUNCTIONS: menuHelp.Enabled := True;
+      HELPERNODE_KEYWORDS: menuHelp.Enabled := True;
+      HELPERNODE_SNIPPETS: begin
+        menuDeleteSnippet.Enabled := True;
+        menuInsertSnippetAtCursor.Enabled := True;
+        menuLoadSnippet.Enabled := True;
+        menuExplore.Enabled := True;
+      end;
+      HELPERNODE_PROFILE: begin // Query profile
+
+      end;
+    end;
+  end;
+end;
+
+
+procedure TMainForm.RefreshHelperNode(NodeIndex: Cardinal);
+var
+  Tab: TQueryTab;
+  Node: PVirtualNode;
+begin
+  if not Assigned(QueryTabs) then
+    Exit;
+  for Tab in QueryTabs do begin
+    Node := FindNode(Tab.treeHelpers, NodeIndex, nil);
+    if vsInitialized in Node.States then begin
+      Tab.treeHelpers.ReinitNode(Node, True);
+      Tab.treeHelpers.InvalidateChildren(Node, True);
+    end;
+  end;
+end;
+
 
 
 

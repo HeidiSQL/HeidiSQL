@@ -337,3 +337,9 @@ const
   // Forms are designed at 96 dpi. Use that to scale TFrames, which obviously do not auto-scale.
   FORMS_DPI = 96;
 
+  HELPERNODE_COLUMNS = 0;
+  HELPERNODE_FUNCTIONS = 1;
+  HELPERNODE_KEYWORDS = 2;
+  HELPERNODE_SNIPPETS = 3;
+  HELPERNODE_PROFILE = 4;
+

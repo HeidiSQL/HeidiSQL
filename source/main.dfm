@@ -1489,7 +1489,7 @@ object MainForm: TMainForm
             OnCanResize = pnlQueryMemoCanResize
             object spltQueryHelpers: TSplitter
               Tag = 5
-              Left = 411
+              Left = 380
               Top = 0
               Width = 4
               Height = 96
@@ -1501,7 +1501,7 @@ object MainForm: TMainForm
               Tag = 6
               Left = 0
               Top = 0
-              Width = 411
+              Width = 380
               Height = 96
               SingleLineMode = False
               Align = alClient
@@ -1570,54 +1570,49 @@ object MainForm: TMainForm
                   ShortCut = 16460
                 end>
             end
-            object pnlQueryHelpers: TPanel
-              Tag = 2
-              Left = 415
+            object treeQueryHelpers: TVirtualStringTree
+              Left = 384
               Top = 0
-              Width = 160
+              Width = 191
               Height = 96
               Align = alRight
-              BevelOuter = bvNone
+              DragMode = dmAutomatic
+              DragType = dtVCL
+              Header.AutoSizeIndex = 0
+              Header.DefaultHeight = 17
+              Header.Font.Charset = DEFAULT_CHARSET
+              Header.Font.Color = clWindowText
+              Header.Font.Height = -11
+              Header.Font.Name = 'Tahoma'
+              Header.Font.Style = []
+              Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
+              Images = ImageListMain
+              PopupMenu = popupQueryHelpers
+              RootNodeCount = 5
               TabOrder = 1
-              OnCanResize = pnlQueryHelpersCanResize
-              object tabsetQueryHelpers: TTabSet
-                Tag = 4
-                Left = 0
-                Top = 72
-                Width = 160
-                Height = 24
-                Align = alBottom
-                Font.Charset = DEFAULT_CHARSET
-                Font.Color = clWindowText
-                Font.Height = -11
-                Font.Name = 'Tahoma'
-                Font.Style = []
-                ParentShowHint = False
-                ShowHint = False
-                Style = tsModernTabs
-                Tabs.Strings = (
-                  'Cols'
-                  'SQL fn'
-                  'SQL kw'
-                  'Snippets')
-                TabIndex = 0
-                OnChange = tabsetQueryHelpersChange
-              end
-              object lboxQueryHelpers: TListBox
-                Tag = 3
-                Left = 0
-                Top = 0
-                Width = 160
-                Height = 72
-                Align = alClient
-                DragMode = dmAutomatic
-                ItemHeight = 13
-                MultiSelect = True
-                PopupMenu = popupQueryHelpers
-                TabOrder = 1
-                OnClick = lboxQueryHelpersClick
-                OnDblClick = lboxQueryHelpersDblClick
-              end
+              TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+              TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+              TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
+              OnBeforeCellPaint = treeQueryHelpersBeforeCellPaint
+              OnContextPopup = treeQueryHelpersContextPopup
+              OnDblClick = treeQueryHelpersDblClick
+              OnFocusChanging = treeQueryHelpersFocusChanging
+              OnGetText = treeQueryHelpersGetText
+              OnPaintText = treeQueryHelpersPaintText
+              OnGetImageIndex = treeQueryHelpersGetImageIndex
+              OnInitChildren = treeQueryHelpersInitChildren
+              OnInitNode = treeQueryHelpersInitNode
+              Columns = <
+                item
+                  Position = 0
+                  Width = 87
+                  WideText = 'Main column'
+                end
+                item
+                  Position = 1
+                  Width = 100
+                  WideText = 'Attributes'
+                end>
             end
           end
           object QueryGrid: TVirtualStringTree
