@@ -6681,7 +6681,8 @@ begin
       Objects := Connection.GetDBObjects(ActiveDatabase);
       ObjNode := DBtree.GetFirstChild(FindDBNode(ActiveDatabase));
       while Assigned(ObjNode) do begin
-        if (Objects[ObjNode.Index].Name = FocusObject.Name)
+        if (Cardinal(Objects.Count) > ObjNode.Index)
+          and (Objects[ObjNode.Index].Name = FocusObject.Name)
           and (Objects[ObjNode.Index].NodeType = FocusObject.NodeType) then begin
           SelectNode(DBtree, ObjNode);
         end;
