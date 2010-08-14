@@ -240,6 +240,7 @@ type
       function Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TMySQLLogCategory=lcSQL): PMYSQL_RES;
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False): String;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
+      function UnescapeString(Text: String): String;
       class function QuoteIdent(Identifier: String; HasMultiSegments: Boolean=False): String;
       function DeQuoteIdent(Identifier: String): String;
       function ConvertServerVersion(Version: Integer): String;
@@ -963,6 +964,16 @@ begin
       Result[respos] := next;
     end;
   until bend = len;
+end;
+
+
+function TMySQLConnection.UnescapeString(Text: String): String;
+begin
+  // Return text with MySQL special sequences turned back to normal characters
+  Result := StringReplace(Text, '\r', #13, [rfReplaceAll]);
+  Result := StringReplace(Result, '\n', #10, [rfReplaceAll]);
+  Result := StringReplace(Result, '\t', #9, [rfReplaceAll]);
+  Result := StringReplace(Result, '''''', '''', [rfReplaceAll]);
 end;
 
 
