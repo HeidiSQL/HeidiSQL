@@ -6753,7 +6753,7 @@ end;
 
 procedure TMainForm.editFilterSearchChange(Sender: TObject);
 var
-  Add, Clause: String;
+  Clause: String;
   i: Integer;
   ed: TEdit;
 begin
