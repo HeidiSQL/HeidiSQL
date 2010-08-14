@@ -15,9 +15,9 @@ With HeidiSQL you will also be able to
 * Synchronize tables between two databases
 * Manage user-privileges
 * Import text-files
-* Export table-data as CSV, HTML, XML and SQL
+* Export grid-data as CSV, HTML, XML, SQL, LaTeX and Wiki style
 * Browse and edit table-data using a comfortable grid
-* Create and edit tables, views, stored routines and triggers
+* Create and edit tables, views, stored routines, triggers and scheduled events
 * Bulk edit tables (move to db, change engine, collation etc.)
 * Batch-insert ascii or binary files into tables
 * Write queries with customizable syntax-highlighting and code-completion
@@ -73,17 +73,16 @@ Examples:
 
 HeidiSQL is OpenSource and released under GPL (GNU GENERAL PUBLIC LICENSE).
 
-Maybe it saved you a lot of time and therefore you like it. In this case
-you may make a donation. For this purpose point your web-browser
-to the following URL:
-http://www.heidisql.com/donate.php
+Probably HeidiSQL saved you a lot of time and you like it. In this case you may
+make a donation here: http://www.heidisql.com/donate.php
 
 
 *** Credits:
 
-Ansgar Becker (project lead and development), David Dindorp (development),
-Francisco Ernesto Teixeira (development), Sven Lorenz (graphics), Mikkel M.
-Gerhardt-Pedersen (additional bugfixes), Mike Lischke (VirtualTreeView, GLPL),
-SynEdit (LGPL), Mark James (Silk icon set), Inno Setup 
+Ansgar Becker (project lead and development), David Dindorp (former development),
+Francisco Ernesto Teixeira (former development),  Andrew Brampton (LaTeX export),
+Sven Lorenz (graphics), Mikkel M. Gerhardt-Pedersen (additional bugfixes),
+Mike Lischke + Timo Tegtmeier (VirtualTreeView, GLPL), Maël Hörz (SynEdit, MPL),
+Mark James (Silk icons, Creative Commons 2.5), Jordan Russell (Inno Setup)
 
 1000 thanks to MySQL for great database software
