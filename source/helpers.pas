@@ -85,7 +85,6 @@ type
   function htmlentities(str: String): String;
   procedure GridExport(Grid: TVirtualStringTree; S: TStream; ExportFormat: TGridExportFormat);
   function BestTableName(Data: TMySQLQuery): String;
-  function esc2ascii(str: String): String;
   function urlencode(url: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
@@ -595,9 +594,9 @@ begin
     end;
 
     efCSV: begin
-      Separator := esc2ascii(Mainform.prefCSVSeparator);
-      Encloser := esc2ascii(Mainform.prefCSVEncloser);
-      Terminator := esc2ascii(Mainform.prefCSVTerminator);
+      Separator := Mainform.Connection.UnescapeString(Mainform.prefCSVSeparator);
+      Encloser := Mainform.Connection.UnescapeString(Mainform.prefCSVEncloser);
+      Terminator := Mainform.Connection.UnescapeString(Mainform.prefCSVTerminator);
       Col := Grid.Header.Columns.GetFirstVisibleColumn;
       while Col > NoColumn do begin
         // Alter column name in header if data is not raw.
@@ -809,22 +808,6 @@ begin
   except
     Result := 'UnknownTable';
   end;
-end;
-
-
-
-{***
-  Return ASCII-Values from MySQL-Escape-Sequences
-
-  @param string Text to analyze
-  @return string Converted text
-}
-function esc2ascii(str: String): String;
-begin
-  str := stringreplace(str, '\r', #13, [rfReplaceAll]);
-  str := stringreplace(str, '\n', #10, [rfReplaceAll]);
-  str := stringreplace(str, '\t', #9, [rfReplaceAll]);
-  result := str;
 end;
 
 

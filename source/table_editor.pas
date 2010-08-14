@@ -320,7 +320,7 @@ begin
       memoUnionTables.Lines.Clear;
     rx.Expression := '\bCOMMENT=''((.+)[^''])''';
     if rx.Exec(CreateTable) then
-      memoComment.Lines.Text := StringReplace(rx.Match[1], '''''', '''', [rfReplaceAll])
+      memoComment.Lines.Text := Mainform.Connection.UnescapeString(rx.Match[1])
     else
       memoComment.Lines.Clear;
     ParseTableStructure(CreateTable, FColumns, FKeys, FForeignKeys);
