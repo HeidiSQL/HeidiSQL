@@ -6759,20 +6759,15 @@ var
 begin
   ed := TEdit(Sender);
   Clause := '';
-  Add := '';
   if ed.Text <> '' then begin
     for i:=0 to SelectedTableColumns.Count-1 do begin
       if i > 0 then
-        Add := Add + ' OR ';
-      Add := Add + mask(SelectedTableColumns[i].Name) + ' LIKE ' + esc('%'+ed.Text+'%');
-      if Length(Add) > 45 then begin
-        Clause := Clause + Add + CRLF;
-        Add := '';
-      end;
+        Clause := Clause + ' OR ';
+      Clause := Clause + mask(SelectedTableColumns[i].Name) + ' LIKE ' + esc('%'+ed.Text+'%');
     end;
-    if Add <> '' then
-      Clause := Clause + Add;
   end;
+  // Add linebreaks at near right window edge
+  Clause := WrapText(Clause, SynMemoFilter.CharsInWindow-5);
   SynMemoFilter.UndoList.AddGroupBreak;
   SynMemoFilter.SelectAll;
   SynMemoFilter.SelText := Clause;
