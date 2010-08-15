@@ -9587,7 +9587,7 @@ destructor TResultTab.Destroy;
 begin
   Results.Free;
   Grid.EndEditNode;
-  Grid.Free;
+  // The grid itself is owned by the parent tabsheet, freeing it here results in AVs
   inherited;
 end;
 
