@@ -2806,7 +2806,6 @@ procedure TMainForm.actEmptyTablesExecute(Sender: TObject);
 var
   t: TStringList;
   i: Integer;
-  sql_pattern: String;
   Node: PVirtualNode;
 begin
   // Add selected items/tables to helper list
@@ -2829,25 +2828,21 @@ begin
     exit;
 
   Screen.Cursor := crHourglass;
-  {**
-    @note ansgarbecker: Empty table using faster TRUNCATE statement on newer servers
-    @see http://dev.mysql.com/doc/refman/5.0/en/truncate.html
-    @see https://sourceforge.net/tracker/index.php?func=detail&aid=1644143&group_id=164593&atid=832350
-  }
-  if Connection.ServerVersionInt < 50003 then
-    sql_pattern := 'DELETE FROM '
-  else
-    sql_pattern := 'TRUNCATE ';
-
+  EnableProgressBar(t.Count);
   try
-    for i:=0 to t.count-1 do
-      Connection.Query( sql_pattern + mask(t[i]) );
+    for i:=0 to t.Count-1 do begin
+      Connection.Query('TRUNCATE ' + mask(t[i]));
+      ProgressBarStatus.StepIt;
+    end;
     actRefresh.Execute;
   except
-    on E:EDatabaseError do
+    on E:EDatabaseError do begin
+      ProgressBarStatus.State := pbsError;
       MessageDlg(E.Message, mtError, [mbOK], 0);
+    end;
   end;
   t.Free;
+  ProgressBarStatus.Hide;
   Screen.Cursor := crDefault;
 end;
 
