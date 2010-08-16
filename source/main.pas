@@ -2737,11 +2737,14 @@ begin
     if MessageDLG('Delete '+IntToStr(Grid.SelectedCount)+' row(s)?',
       mtConfirmation, [mbOK, mbCancel], 0) = mrOK then begin
       FocusAfterDelete := nil;
+      EnableProgressBar(Grid.SelectedCount);
       Node := Grid.GetFirstSelected;
       while Assigned(Node) do begin
         RowNum := Grid.GetNodeData(Node);
         Results.RecNo := RowNum^;
         if Results.DeleteRow then begin
+          ProgressBarStatus.StepIt;
+          ProgressBarStatus.Repaint;
           SetLength(Nodes, Length(Nodes)+1);
           Nodes[Length(Nodes)-1] := Node;
           FocusAfterDelete := Node;
@@ -2761,9 +2764,12 @@ begin
         SelectNode(Grid, FocusAfterDelete);
       ValidateControls(Sender);
     end;
-  except on E:EDatabaseError do
-    MessageDlg('Grid editing error: '+E.Message, mtError, [mbOK], 0);
+  except on E:EDatabaseError do begin
+      ProgressBarStatus.State := pbsError;
+      MessageDlg('Grid editing error: '+E.Message, mtError, [mbOK], 0);
+    end;
   end;
+  Mainform.ProgressBarStatus.Visible := False;
 end;
 
 
