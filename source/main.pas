@@ -8662,9 +8662,15 @@ end;
 
 
 function TMainForm.ActiveQueryHelpers: TVirtualStringTree;
+var
+  Tab: TQueryTab;
 begin
   // Return current query helpers tree
-  Result := ActiveQueryTab.treeHelpers;
+  Tab := ActiveQueryTab;
+  if Tab = nil then
+    Result := nil
+  else
+    Result := Tab.treeHelpers;
 end;
 
 
