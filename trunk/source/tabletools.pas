@@ -503,7 +503,7 @@ begin
 
   if Assigned(ExportStream) then begin
     Output(EXPORT_FILE_FOOTER, False, True, False, False, False);
-    Output('/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, ''ON'') */', True, False, False, True, True);
+    Output('/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */', True, False, False, True, True);
     if comboExportOutputType.Text = OUTPUT_CLIPBOARD then
       StreamToClipboard(ExportStream, nil, false);
     FreeAndNil(ExportStream);
