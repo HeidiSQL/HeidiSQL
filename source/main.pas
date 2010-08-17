@@ -3600,7 +3600,7 @@ begin
   if snip then begin
     Msg :=
       Copy(Msg, 0, prefLogSqlWidth) +
-      '/* large SQL query ('+FormatNumber(Len)+' characters), snipped at ' +
+      '/* large SQL query ('+FormatByteNumber(Len)+'), snipped at ' +
       FormatNumber(prefLogSqlWidth) +
       ' characters */';
   end else if (not snip) and IsSQL then
