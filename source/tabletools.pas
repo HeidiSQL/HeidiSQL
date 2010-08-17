@@ -1190,7 +1190,7 @@ begin
             Row := Row + ')';
             Data.Next;
             // Determine length of current INSERT and stop before it reaches the 1M barrier
-            IsLastRowInChunk := Data.Eof or (ExportStream.Size-ExportStreamStartOfQueryPos >= SIZE_MB*0.8);
+            IsLastRowInChunk := Data.Eof or (ExportStream.Size-ExportStreamStartOfQueryPos >= SIZE_MB*0.6);
             if not IsLastRowInChunk then
               Row := Row + ','+CRLF+#9+'(';
             Output(Row, False, True, True, True, True);
