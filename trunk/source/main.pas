@@ -9596,7 +9596,9 @@ destructor TResultTab.Destroy;
 begin
   Results.Free;
   Grid.EndEditNode;
-  // The grid itself is owned by the parent tabsheet, freeing it here results in AVs
+  // The grid itself is owned by the parent tabsheet, free it only if the tabsheet is not being closed
+  if not (csDestroying in Grid.ComponentState) then
+    Grid.Free;
   inherited;
 end;
 
