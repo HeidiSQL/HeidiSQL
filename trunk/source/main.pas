@@ -2157,7 +2157,7 @@ begin
   RowsFound := 0;
   QueryTab.ResultTabs.Clear;
   QueryTab.tabsetQuery.Tabs.Clear;
-  QueryTab.QueryProfile.Free;
+  FreeAndNil(QueryTab.QueryProfile);
   ProfileNode := FindNode(QueryTab.treeHelpers, HELPERNODE_PROFILE, nil);
   DoProfile := Assigned(ProfileNode) and (QueryTab.treeHelpers.CheckState[ProfileNode] in CheckedStates);
   if DoProfile then
