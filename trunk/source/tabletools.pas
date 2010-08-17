@@ -920,11 +920,11 @@ var
   ChunkSize: Integer;
 begin
   if (ToFile and ForFile) or (ToDir and ForDir) or (ToClipboard and ForFile) then begin
-    if IsEndOfQuery then begin
+    if IsEndOfQuery then
       SQL := SQL + ';'+CRLF;
-      ExportStreamStartOfQueryPos := ExportStream.Size;
-    end;
     StreamWrite(ExportStream, SQL);
+    if IsEndOfQuery then
+      ExportStreamStartOfQueryPos := ExportStream.Size;
   end;
   if (ToDb and ForDb) or (ToServer and ForServer) then begin
     StreamWrite(ExportStream, SQL);
@@ -946,7 +946,7 @@ end;
 
 procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
-  IsLastRowInChunk, NeedsDBStructure: Boolean;
+  IsFirstRowInChunk, NeedsDBStructure: Boolean;
   Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent, tmp: String;
   i: Integer;
   RowCount, Limit, Offset, ResultCount: Int64;
@@ -1166,10 +1166,12 @@ begin
         BaseInsert := BaseInsert + ') VALUES'+CRLF+#9+'(';
         while true do begin
           Output(BaseInsert, False, True, True, True, True);
+          IsFirstRowInChunk := True;
 
           while not Data.Eof do begin
-            Inc(RowCount);
             Row := '';
+            if not IsFirstRowInChunk then
+              Row := Row + ','+CRLF+#9+'(';
             for i:=0 to Data.ColumnCount-1 do begin
               if Data.IsNull(i) then
                 Row := Row + 'NULL'
@@ -1188,14 +1190,15 @@ begin
                 Row := Row + ', ';
             end;
             Row := Row + ')';
-            Data.Next;
-            // Determine length of current INSERT and stop before it reaches the 1M barrier
-            IsLastRowInChunk := Data.Eof or (ExportStream.Size-ExportStreamStartOfQueryPos >= SIZE_MB*0.6);
-            if not IsLastRowInChunk then
-              Row := Row + ','+CRLF+#9+'(';
-            Output(Row, False, True, True, True, True);
-            if IsLastRowInChunk then
+            // Break if stream would increase over the barrier of 1MB, and throw away current row
+            if (not IsFirstRowInChunk)
+              and (ExportStream.Size - ExportStreamStartOfQueryPos + Length(Row) > SIZE_MB*0.9)
+              then
               break;
+            Inc(RowCount);
+            IsFirstRowInChunk := False;
+            Output(Row, False, True, True, True, True);
+            Data.Next;
           end;
           Output('', True, True, True, True, True);
           LogStatistic(RowCount);
