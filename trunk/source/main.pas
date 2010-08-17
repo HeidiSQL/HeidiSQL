@@ -15,7 +15,7 @@ uses
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
-  CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs,
+  CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
   mysql_api, insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup;
@@ -8078,6 +8078,9 @@ begin
     rx.Expression := '\s+';
     MainReg.GetValueNames(flt);
     for i := 0 to flt.Count - 1 do begin
+      // Legacy releases seem to store some integers here
+      if MainReg.GetDataType(flt[i]) <> rdString then
+        continue;
       item := TMenuItem.Create(popupFilter);
       capt := MainReg.ReadString(flt[i]);
       capt := rx.Replace(capt, ' ', True);
