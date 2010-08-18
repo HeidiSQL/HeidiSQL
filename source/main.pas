@@ -805,6 +805,7 @@ type
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure treeQueryHelpersFocusChanging(Sender: TBaseVirtualTree; OldNode,
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
+    procedure treeQueryHelpersResize(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -8293,6 +8294,7 @@ begin
   QueryTab.treeHelpers.OnInitChildren := treeQueryHelpers.OnInitChildren;
   QueryTab.treeHelpers.OnInitNode := treeQueryHelpers.OnInitNode;
   QueryTab.treeHelpers.OnPaintText := treeQueryHelpers.OnPaintText;
+  QueryTab.treeHelpers.OnResize := treeQueryHelpers.OnResize;
   for i:=0 to treeQueryHelpers.Header.Columns.Count-1 do begin
     HelperColumn := QueryTab.treeHelpers.Header.Columns.Add;
     HelperColumn.Text := treeQueryHelpers.Header.Columns[i].Text;
@@ -8302,6 +8304,7 @@ begin
   QueryTab.treeHelpers.Header.Options := treeQueryHelpers.Header.Options;
   QueryTab.treeHelpers.Header.AutoSizeIndex := treeQueryHelpers.Header.AutoSizeIndex;
   QueryTab.treeHelpers.RootNodeCount := treeQueryHelpers.RootNodeCount;
+  QueryTab.treeHelpers.TextMargin := treeQueryHelpers.TextMargin;
   FixVT(QueryTab.treeHelpers);
 
   QueryTab.spltQuery := TSplitter.Create(QueryTab.TabSheet);
@@ -9287,6 +9290,15 @@ begin
     then begin
     TargetCanvas.Font.Color := DatatypeCategories[Integer(SelectedTableColumns[Node.Index].DataType.Category)].Color;
   end;
+end;
+
+
+procedure TMainForm.treeQueryHelpersResize(Sender: TObject);
+var
+  Tree: TVirtualStringTree;
+begin
+  Tree := Sender as TVirtualStringTree;
+  Tree.Header.Columns[1].Width := Min(Tree.Width div 3, 100);
 end;
 
 
