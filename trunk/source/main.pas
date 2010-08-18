@@ -3479,7 +3479,7 @@ begin
       DupeNum := Grid.GetNodeData(DupeNode);
       AnyGridEnsureFullRow(Grid, DupeNode);
       for i:=0 to Grid.Header.Columns.Count-1 do begin
-        if not (coVisible in DataGrid.Header.Columns[i].Options) then
+        if not (coVisible in Grid.Header.Columns[i].Options) then
           continue; // Ignore invisible key column
         if Results.ColIsPrimaryKeyPart(i) then
           continue; // Empty value for primary key column
