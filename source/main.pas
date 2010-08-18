@@ -4748,14 +4748,14 @@ procedure TMainForm.SynMemoQueryDragDrop(Sender, Source: TObject; X,
 var
   src : TControl;
   Text, ItemText: String;
-  LoadText, ShiftPressed: Boolean;
+  ShiftPressed: Boolean;
   Tree: TVirtualStringTree;
   Node: PVirtualNode;
 begin
   // dropping a tree node or listbox item into the query-memo
   ActiveQueryMemo.UndoList.AddGroupBreak;
   src := Source as TControl;
-  LoadText := True;
+  Text := '';
   ShiftPressed := KeyPressed(VK_SHIFT);
   Tree := ActiveQueryHelpers;
   // Check for allowed controls as source has already
@@ -4768,12 +4768,9 @@ begin
   end else if src = Tree then begin
     if (Tree.GetNodeLevel(Tree.FocusedNode) = 1) and Assigned(Tree.FocusedNode) then begin
       case Tree.FocusedNode.Parent.Index of
-        HELPERNODE_SNIPPETS: begin
-          QueryLoad( DirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', False, nil);
-          LoadText := False;
-        end;
+        HELPERNODE_SNIPPETS:
+          Text := ReadTextFile(DirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', nil);
         else begin
-          Text := '';
           Node := Tree.GetFirstChild(Tree.FocusedNode.Parent);
           while Assigned(Node) do begin
             if Tree.Selected[Node] then begin
@@ -4792,15 +4789,14 @@ begin
       end;
     end;
   end else
-    Text := 'Error: Unspecified source control in drag''n drop operation!';
+    raise Exception.Create('Unspecified source control in drag''n drop operation!');
 
-  // Only insert text if no previous action did the job.
-  // Should be false when dropping a snippet-file here
-  if LoadText then
+  if Text <> '' then begin
     ActiveQueryMemo.SelText := Text;
-  ActiveQueryMemo.UndoList.AddGroupBreak;
-  // Requires to set focus, as doubleclick actions also call this procedure
-  ActiveQueryMemo.SetFocus;
+    ActiveQueryMemo.UndoList.AddGroupBreak;
+    // Requires to set focus, as doubleclick actions also call this procedure
+    ActiveQueryMemo.SetFocus;
+  end;
 end;
 
 
