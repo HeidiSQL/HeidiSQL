@@ -1587,6 +1587,7 @@ object MainForm: TMainForm
               Header.Font.Style = []
               Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
               Images = ImageListMain
+              IncrementalSearch = isAll
               PopupMenu = popupQueryHelpers
               RootNodeCount = 5
               TabOrder = 1
