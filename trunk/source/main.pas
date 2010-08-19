@@ -8299,6 +8299,7 @@ begin
   QueryTab.treeHelpers.TreeOptions := treeQueryHelpers.TreeOptions;
   QueryTab.treeHelpers.Header.Options := treeQueryHelpers.Header.Options;
   QueryTab.treeHelpers.Header.AutoSizeIndex := treeQueryHelpers.Header.AutoSizeIndex;
+  QueryTab.treeHelpers.IncrementalSearch := treeQueryHelpers.IncrementalSearch;
   QueryTab.treeHelpers.RootNodeCount := treeQueryHelpers.RootNodeCount;
   QueryTab.treeHelpers.TextMargin := treeQueryHelpers.TextMargin;
   FixVT(QueryTab.treeHelpers);
