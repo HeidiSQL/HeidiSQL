@@ -169,12 +169,14 @@ begin
       end;
     end;
 
+    rx.ModifierG := False;
     rx.Expression := '\bCOMMENT\s+''((.+)[^''])''';
     if rx.Exec(CreateCode) then begin
       editComment.Text := StringReplace(rx.Match[1], '''''', '''', [rfReplaceAll]);
       Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
     end;
 
+    rx.ModifierG := True;
     rx.Expression := '\bDO\s+(.*)';
     if rx.Exec(CreateCode) then
       SynMemoBody.Text := rx.Match[1];
