@@ -720,6 +720,7 @@ type
     function ActiveQueryTab: TQueryTab;
     function ActiveQueryMemo: TSynMemo;
     function ActiveQueryHelpers: TVirtualStringTree;
+    function ActiveSynMemo: TSynMemo;
     function QueryTabActive: Boolean;
     function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
     procedure popupMainTabsPopup(Sender: TObject);
@@ -2920,19 +2921,25 @@ end;
 procedure TMainForm.actQueryFindReplaceExecute(Sender: TObject);
 var
   DlgResult: TModalResult;
+  Memo: TSynMemo;
 begin
   // Display search + replace dialog
-  if not Assigned(SearchReplaceDialog) then
-    SearchReplaceDialog := TfrmSearchReplace.Create(Self);
-  SearchReplaceDialog.Editor := ActiveQueryMemo;
-  SearchReplaceDialog.chkReplace.Checked := Sender = actQueryReplace;
-  DlgResult := SearchReplaceDialog.ShowModal;
-  case DlgResult of
-    mrOK, mrAll: begin
-      DoSearchReplace;
-      FSearchReplaceExecuted := True; // Helper for later F3 hits
+  Memo := ActiveSynMemo;
+  if Memo = nil then
+    MessageBeep(MB_ICONASTERISK)
+  else begin
+    if not Assigned(SearchReplaceDialog) then
+      SearchReplaceDialog := TfrmSearchReplace.Create(Self);
+    SearchReplaceDialog.Editor := Memo;
+    SearchReplaceDialog.chkReplace.Checked := Sender = actQueryReplace;
+    DlgResult := SearchReplaceDialog.ShowModal;
+    case DlgResult of
+      mrOK, mrAll: begin
+        DoSearchReplace;
+        FSearchReplaceExecuted := True; // Helper for later F3 hits
+      end;
+      mrCancel: Exit;
     end;
-    mrCancel: Exit;
   end;
 end;
 
@@ -2943,8 +2950,11 @@ begin
   if not FSearchReplaceExecuted then
     actQueryFindReplaceExecute(Sender)
   else begin
-    SearchReplaceDialog.Editor := ActiveQueryMemo;
-    DoSearchReplace;
+    SearchReplaceDialog.Editor := ActiveSynMemo;
+    if SearchReplaceDialog.Editor = nil then
+      MessageBeep(MB_ICONASTERISK)
+    else
+      DoSearchReplace;
   end;
 end;
 
@@ -4288,9 +4298,6 @@ begin
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;
   actSaveSQLSnippet.Enabled := InQueryTab and NotEmpty;
   actSaveSQLSelectionSnippet.Enabled := InQueryTab and HasSelection;
-  actQueryFind.Enabled := InQueryTab;
-  actQueryReplace.Enabled := InQueryTab;
-  actQueryFindAgain.Enabled := InQueryTab;
   // We need a pressed button which somehow does not work in conjunction with Enabled=False
   // actQueryStopOnErrors.Enabled := QueryTabActive;
   actQueryWordWrap.Enabled := InQueryTab;
@@ -8659,9 +8666,14 @@ end;
 
 
 function TMainForm.ActiveQueryMemo: TSynMemo;
+var
+  Tab: TQueryTab;
 begin
   // Return current query memo
-  Result := ActiveQueryTab.Memo;
+  Tab := ActiveQueryTab;
+  Result := nil;
+  if Tab <> nil then
+    Result := Tab.Memo;
 end;
 
 
@@ -8671,10 +8683,26 @@ var
 begin
   // Return current query helpers tree
   Tab := ActiveQueryTab;
-  if Tab = nil then
-    Result := nil
-  else
+  Result := nil;
+  if Tab <> nil then
     Result := Tab.treeHelpers;
+end;
+
+
+function TMainForm.ActiveSynMemo: TSynMemo;
+var
+  Control: TWinControl;
+begin
+  Result := nil;
+  Control := Screen.ActiveControl;
+  if Control is TCustomSynEdit then begin
+    Result := Control as TSynMemo;
+    // We have a few readonly-SynMemos which we'll ignore here
+    if Result.ReadOnly then
+      Result := nil;
+  end;
+  if (not Assigned(Result)) and QueryTabActive then
+    Result := ActiveQueryMemo;
 end;
 
 
@@ -8965,22 +8993,12 @@ end;
 
 procedure TMainForm.actReformatSQLExecute(Sender: TObject);
 var
-  Control: TWinControl;
   m: TCustomSynEdit;
   CursorPosStart, CursorPosEnd: Integer;
   NewSQL: String;
 begin
   // Reformat SQL query
-  m := nil;
-  Control := Screen.ActiveControl;
-  if Control is TCustomSynEdit then begin
-    m := Control as TCustomSynEdit;
-    // We have a few readonly-SynMemos which we'll ignore here
-    if m.ReadOnly then
-      m := nil;
-  end;
-  if (not Assigned(m)) and QueryTabActive then
-    m := ActiveQueryMemo;
+  m := ActiveSynMemo;
   if not Assigned(m) then begin
     MessageDlg('Please select a non-readonly SQL editor first.', mtError, [mbOK], 0);
     Exit;

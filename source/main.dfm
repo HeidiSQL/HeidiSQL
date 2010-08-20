@@ -2451,7 +2451,6 @@ object MainForm: TMainForm
     object actQueryFind: TAction
       Category = 'SQL'
       Caption = 'Find text ...'
-      Enabled = False
       Hint = 'Find text ...'
       ImageIndex = 30
       ShortCut = 16454
@@ -2460,7 +2459,6 @@ object MainForm: TMainForm
     object actQueryReplace: TAction
       Category = 'SQL'
       Caption = 'Replace text ...'
-      Enabled = False
       Hint = 'Replace text ...'
       ImageIndex = 59
       ShortCut = 16466
