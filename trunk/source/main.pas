@@ -6481,6 +6481,7 @@ begin
       tabDatabase.TabVisible := False;
       tabEditor.TabVisible := False;
       tabData.TabVisible := False;
+      Connection.Database := '';
     end;
     1: begin
         newDb := AllDatabases[Node.Index];
