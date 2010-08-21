@@ -18,7 +18,7 @@ uses
   CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
-  mysql_api, insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup;
+  mysql_api, insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch;
 
 
 type
@@ -39,7 +39,10 @@ type
     treeHelpers: TVirtualStringTree;
     Memo: TSynMemo;
     MemoFilename: String;
+    MemoFileRenamed: Boolean;
     MemoLineBreaks: TLineBreaks;
+    DirectoryWatch: TDirectoryWatch;
+    MemofileModifiedTimer: TTimer;
     spltHelpers: TSplitter;
     spltQuery: TSplitter;
     tabsetQuery: TTabSet;
@@ -48,8 +51,11 @@ type
     QueryProfile: TMySQLQuery;
     ProfileTime, MaxProfileTime: Extended;
     function GetActiveResultTab: TResultTab;
+    procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
+    procedure MemofileModifiedTimerNotify(Sender: TObject);
     public
       property ActiveResultTab: TResultTab read GetActiveResultTab;
+      constructor Create;
       destructor Destroy; override;
   end;
 
@@ -1119,6 +1125,7 @@ begin
       MessageDlg(E.Message, mtError, [mbOK], 0);
   end;
 end;
+
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 var
@@ -5031,6 +5038,7 @@ var
   msgtext: String;
   LineBreaks: TLineBreaks;
   RunFileDialog: TRunSQLFileForm;
+  Tab: TQueryTab;
 begin
   Result := False;
 
@@ -5079,39 +5087,42 @@ begin
   Screen.Cursor := crHourGlass;
   if not QueryTabActive then
     PagecontrolMain.ActivePage := tabQuery;
-  LogSQL('Loading file "'+filename+'" ('+FormatByteNumber(FileSize)+') into query tab #'+IntToStr(ActiveQueryTab.Number)+' ...', lcInfo);
+  Tab := ActiveQueryTab;
+  LogSQL('Loading file "'+filename+'" ('+FormatByteNumber(FileSize)+') into query tab #'+IntToStr(Tab.Number)+' ...', lcInfo);
   try
     filecontent := ReadTextfile(Filename, Encoding);
     if Pos( DirnameSnippets, Filename ) = 0 then
       AddOrRemoveFromQueryLoadHistory(Filename, True, True);
     FillPopupQueryLoad;
-    ActiveQueryMemo.UndoList.AddGroupBreak;
+    Tab.Memo.UndoList.AddGroupBreak;
 
     if ScanNulChar(filecontent) then begin
       filecontent := RemoveNulChars(filecontent);
       MessageDlg(SContainsNulCharFile, mtInformation, [mbOK], 0);
     end;
 
-    ActiveQueryMemo.BeginUpdate;
+    Tab.Memo.BeginUpdate;
     LineBreaks := ScanLineBreaks(filecontent);
     if ReplaceContent then begin
-      ActiveQueryMemo.SelectAll;
-      ActiveQueryTab.MemoLineBreaks := LineBreaks;
+      Tab.Memo.SelectAll;
+      Tab.MemoLineBreaks := LineBreaks;
     end else begin
-      if (ActiveQueryTab.MemoLineBreaks <> lbsNone) and (ActiveQueryTab.MemoLineBreaks <> LineBreaks) then
-        ActiveQueryTab.MemoLineBreaks := lbsMixed
+      if (Tab.MemoLineBreaks <> lbsNone) and (Tab.MemoLineBreaks <> LineBreaks) then
+        Tab.MemoLineBreaks := lbsMixed
       else
-        ActiveQueryTab.MemoLineBreaks := LineBreaks;
+        Tab.MemoLineBreaks := LineBreaks;
     end;
-    if ActiveQueryTab.MemoLineBreaks = lbsMixed then
+    if Tab.MemoLineBreaks = lbsMixed then
       MessageDlg('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).', mtInformation, [mbOK], 0);
 
-    ActiveQueryMemo.SelText := filecontent;
-    ActiveQueryMemo.SelStart := ActiveQueryMemo.SelEnd;
-    ActiveQueryMemo.EndUpdate;
+    Tab.Memo.SelText := filecontent;
+    Tab.Memo.SelStart := ActiveQueryMemo.SelEnd;
+    Tab.Memo.EndUpdate;
     SetTabCaption(PageControlMain.ActivePageIndex, sstr(ExtractFilename(filename), 70));
-    ActiveQueryMemo.Modified := False;
-    ActiveQueryTab.MemoFilename := filename;
+    Tab.Memo.Modified := False;
+    Tab.MemoFilename := filename;
+    Tab.DirectoryWatch.Directory := ExtractFilePath(filename);
+    Tab.DirectoryWatch.Start;
     Result := True;
   except on E:Exception do
     // File does not exist, is locked or broken
@@ -9552,6 +9563,28 @@ end;
 
 { TQueryTab }
 
+
+constructor TQueryTab.Create;
+begin
+  // Creation of a new main query tab
+  DirectoryWatch := TDirectoryWatch.Create;
+  DirectoryWatch.WatchSubTree := False;
+  DirectoryWatch.OnNotify := DirectoryWatchNotify;
+  // Timer which postpones calling waModified event code until buffers have been saved
+  MemofileModifiedTimer := TTimer.Create(Memo);
+  MemofileModifiedTimer.Interval := 1000;
+  MemofileModifiedTimer.Enabled := False;
+  MemofileModifiedTimer.OnTimer := MemofileModifiedTimerNotify;
+end;
+
+
+destructor TQueryTab.Destroy;
+begin
+  ResultTabs.Clear;
+  DirectoryWatch.Free;
+end;
+
+
 function TQueryTab.GetActiveResultTab: TResultTab;
 var
   idx: Integer;
@@ -9563,9 +9596,56 @@ begin
 end;
 
 
-destructor TQueryTab.Destroy;
+procedure TQueryTab.DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
+var
+  IsCurrentFile: Boolean;
 begin
-  ResultTabs.Clear;
+  // Notification about file changes in loaded file's directory
+  IsCurrentFile := DirectoryWatch.Directory + FileName = MemoFilename;
+  case Action of
+    waRemoved:
+      if IsCurrentFile
+        and (MessageDlg('File was deleted from outside:'+CRLF+'  '+MemoFilename+CRLF+'Close file and query tab?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes) then begin
+        Mainform.actClearQueryEditor.Execute;
+        if Mainform.IsQueryTab(TabSheet.PageIndex, False) then
+          Mainform.CloseQueryTab(TabSheet.PageIndex);
+      end;
+
+    waModified:
+      if IsCurrentFile then begin
+        MemofileModifiedTimer.Enabled := False;
+        MemofileModifiedTimer.Enabled := True;
+      end;
+
+    waRenamedOld:
+      if IsCurrentFile then
+        MemoFileRenamed := True;
+
+    waRenamedNew:
+      if (not IsCurrentFile) and (MemoFilename <> '') and MemoFileRenamed then begin
+        MemoFilename := DirectoryWatch.Directory + FileName;
+        Mainform.SetTabCaption(TabSheet.PageIndex, Filename);
+        Mainform.ValidateQueryControls(Sender);
+        MemoFileRenamed := False;
+      end;
+
+  end;
+end;
+
+
+procedure TQueryTab.MemofileModifiedTimerNotify(Sender: TObject);
+var
+  OldTopLine: Integer;
+  OldCursor: TBufferCoord;
+begin
+  (Sender as TTimer).Enabled := False;
+  if MessageDlg('File was modified from outside:'+CRLF+'  '+MemoFilename+CRLF+'Reload it?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes then begin
+    OldCursor := Memo.CaretXY;
+    OldTopLine := Memo.TopLine;
+    Mainform.QueryLoad(MemoFilename, True, nil);
+    Memo.CaretXY := OldCursor;
+    Memo.TopLine := OldTopLine;
+  end;
 end;
 
 
