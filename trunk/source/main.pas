@@ -840,7 +840,7 @@ type
     FSnippetFilenames: TStringList;
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
-    procedure DisplayRowCountStats;
+    procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
     procedure insertFunction(Sender: TObject);
     function GetActiveDatabase: String;
     function GetSelectedTable: TDBObject;
@@ -2771,6 +2771,7 @@ begin
         FocusAfterDelete := Grid.GetLast;
       if Assigned(FocusAfterDelete) then
         SelectNode(Grid, FocusAfterDelete);
+      DisplayRowCountStats(Grid);
       ValidateControls(Sender);
     end;
   except on E:EDatabaseError do begin
@@ -3541,6 +3542,7 @@ begin
   // Node needs a repaint to remove red triangles
   if Assigned(Grid.FocusedNode) then
     Grid.InvalidateNode(Grid.FocusedNode);
+  DisplayRowCountStats(Grid);
 end;
 
 procedure TMainForm.actRemoveFilterExecute(Sender: TObject);
@@ -3935,7 +3937,7 @@ begin
         vt.OffsetXY := OldScrollOffset;
 
       ValidateControls(Sender);
-      DisplayRowCountStats;
+      DisplayRowCountStats(vt);
       actDataShowNext.Enabled := (vt.RootNodeCount = DatagridWantedRowCount) and (DatagridWantedRowCount < prefGridRowcountMax);
       actDataShowAll.Enabled := actDataShowNext.Enabled;
       EnumerateRecentFilters;
@@ -3967,13 +3969,16 @@ end;
   Calculate + display total rowcount and found rows matching to filter
   in data-tab
 }
-procedure TMainForm.DisplayRowCountStats;
+procedure TMainForm.DisplayRowCountStats(Sender: TBaseVirtualTree);
 var
   DBObject: TDBObject;
   IsFiltered, IsLimited: Boolean;
   cap: String;
   RowsTotal: Int64;
 begin
+  if Sender <> DataGrid then
+    Exit; // Only data tab has a top label
+
   DBObject := SelectedTable;
   cap := ActiveDatabase + '.' + DBObject.Name;
   IsLimited := DataGridWantedRowCount <= Datagrid.RootNodeCount;
@@ -7040,9 +7045,10 @@ begin
   if Assigned(OldNode) and (OldNode <> NewNode) then begin
     RowNum := Sender.GetNodeData(OldNode);
     Results.RecNo := RowNum^;
-    if Results.Modified then
-      Allowed := Results.SaveModifications
-    else if Results.Inserted then begin
+    if Results.Modified then begin
+      Allowed := Results.SaveModifications;
+      DisplayRowCountStats(Sender);
+    end else if Results.Inserted then begin
       Results.DiscardModifications;
       Sender.DeleteNode(OldNode);
     end;
@@ -7464,8 +7470,10 @@ begin
   Grid.GetHitTestInfoAt(X, Y, False, Hit);
   if (Hit.HitNode = nil) or (Hit.HitColumn = NoColumn) or (Hit.HitColumn = InvalidColumn) then begin
     Results := GridResult(Grid);
-    if Results.Modified then
+    if Results.Modified then begin
       Results.SaveModifications;
+      DisplayRowCountStats(Grid);
+    end;
   end;
 end;
 
