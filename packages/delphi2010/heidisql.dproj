@@ -206,6 +206,7 @@
 			<DCCReference Include="..\..\source\loginform.pas">
 				<Form>frmLogin</Form>
 			</DCCReference>
+			<DCCReference Include="..\..\source\Cromis.DirectoryWatch.pas"/>
 			<RcCompile Include="..\..\res\updater.rc">
 				<Form>updater.res</Form>
 			</RcCompile>
