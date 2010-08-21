@@ -2568,6 +2568,7 @@ var
   Obj: PDBObject;
   DBObject: TDBObject;
   ObjectList: TDBObjectList;
+  Editor: TDBObjectEditor;
 begin
   debug('drop objects activated');
   // Set default database name to to ActiveDatabase.
@@ -2625,8 +2626,12 @@ begin
 
   try
     // Compose and run DROP [TABLE|VIEW|...] queries
-    for DBObject in ObjectList do
+    Editor := ActiveObjectEditor;
+    for DBObject in ObjectList do begin
       Connection.Query('DROP '+UpperCase(DBObject.ObjType)+' '+Mask(DBObject.Name));
+      if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
+        Editor.Modified := False;
+    end;
     // Refresh ListTables + dbtree so the dropped tables are gone:
     Connection.ClearDbObjects(ActiveDatabase);
   except
@@ -2803,6 +2808,7 @@ begin
   PagecontrolMain.ActivePage := tabEditor;
   a := Sender as TAction;
   Obj := TDBObject.Create;
+  Obj.Database := ActiveDatabase;
   if a = actCreateTable then Obj.NodeType := lntTable
   else if a = actCreateView then Obj.NodeType := lntView
   else if a = actCreateRoutine then Obj.NodeType := lntProcedure

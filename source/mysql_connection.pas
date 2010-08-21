@@ -22,6 +22,7 @@ type
       NodeType: TListNodeType;
       constructor Create;
       procedure Assign(Source: TPersistent); override;
+      function IsSameAs(CompareTo: TDBObject): Boolean;
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
   end;
@@ -2454,6 +2455,12 @@ begin
     Size := s.Size;
   end else
     inherited;
+end;
+
+
+function TDBObject.IsSameAs(CompareTo: TDBObject): Boolean;
+begin
+  Result := (Name = CompareTo.Name) and (NodeType = CompareTo.NodeType) and (Database = CompareTo.Database);
 end;
 
 
