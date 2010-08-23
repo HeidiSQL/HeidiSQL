@@ -1340,7 +1340,8 @@ begin
     end;
   end;
   Modification(Sender);
-  treeIndexes.Invalidate;
+  treeIndexes.Repaint;
+  treeIndexes.ReinitChildren(nil, True);
   NewSelectNode := treeIndexes.GetPreviousVisible(treeIndexes.FocusedNode);
   if Assigned(NewSelectNode) then
     SelectNode(treeIndexes, NewSelectNode.Index, NewSelectNode.Parent);
