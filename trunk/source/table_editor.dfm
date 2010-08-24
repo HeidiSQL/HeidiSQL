@@ -787,6 +787,16 @@ object frmTableEditor: TfrmTableEditor
     object menuCopyColumnCell: TMenuItem
       Action = MainForm.actCopy
     end
+    object menuCopyColumns: TMenuItem
+      Caption = 'Copy selected columns'
+      ImageIndex = 155
+      OnClick = menuCopyColumnsClick
+    end
+    object menuPasteColumns: TMenuItem
+      Caption = 'Paste columns'
+      ImageIndex = 156
+      OnClick = menuPasteColumnsClick
+    end
     object N2: TMenuItem
       Caption = '-'
     end
