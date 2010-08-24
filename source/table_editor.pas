@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
-  SynMemo, Menus, Contnrs,
+  SynMemo, Menus, Contnrs, Clipbrd,
   grideditlinks, mysql_structures, mysql_connection, helpers, mysql_api;
 
 type
@@ -86,6 +86,8 @@ type
     menuSQLSelectAll: TMenuItem;
     pnlNoForeignKeys: TPanel;
     listForeignKeys: TVirtualStringTree;
+    menuCopyColumns: TMenuItem;
+    menuPasteColumns: TMenuItem;
     procedure editNameChange(Sender: TObject);
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
@@ -175,6 +177,8 @@ type
       Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
     procedure listColumnsStructureChange(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Reason: TChangeReason);
+    procedure menuCopyColumnsClick(Sender: TObject);
+    procedure menuPasteColumnsClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -1763,6 +1767,8 @@ var
   Col: PTableColumn;
 begin
   ColumnsSelected := ListColumns.SelectedCount > 0;
+  menuCopyColumns.Enabled := ColumnsSelected;
+  menuPasteColumns.Enabled := Clipboard.HasFormat(CF_TEXT);
   menuAddToIndex.Clear;
   menuCreateIndex.Clear;
   menuAddToIndex.Enabled := ColumnsSelected;
@@ -2110,6 +2116,54 @@ begin
     SynMemoCreateCode.SetFocus
   else if PageControlMain.ActivePage = tabALTERcode then
     SynMemoAlterCode.SetFocus;
+end;
+
+
+procedure TfrmTableEditor.menuCopyColumnsClick(Sender: TObject);
+var
+  Node: PVirtualNode;
+  Col: PTableColumn;
+  SQL: String;
+begin
+  // Copy selected columns as a CREATE TABLE query to clipboard
+  Node := listColumns.GetFirstSelected;
+  SQL := 'CREATE TABLE dummy ('+CRLF;
+  while Assigned(Node) do begin
+    Col := listColumns.GetNodeData(Node);
+    SQL := SQL + #9 + Col.SQLCode + ','+CRLF;
+    Node := listColumns.GetNextSelected(Node);
+  end;
+  Delete(SQL, Length(SQL)-2, 3);
+  SQL := SQL + CRLF + ')';
+  Clipboard.AsText := SQL;
+end;
+
+
+procedure TfrmTableEditor.menuPasteColumnsClick(Sender: TObject);
+var
+  Columns: TTableColumnList;
+  Node: PVirtualNode;
+  Col: TTableColumn;
+begin
+  Columns := TTableColumnList.Create(False);
+  ParseTableStructure(Clipboard.AsText, Columns, nil, nil);
+  Node := listColumns.FocusedNode;
+  if not Assigned(Node) then
+    Node := listColumns.GetLast;
+  listcolumns.BeginUpdate;
+  try
+    for Col in Columns do begin
+      Col.Status := esAddedUntouched;
+      // Create new node, insert column structure into list, and let OnInitNode bind its pointer
+      Node := listColumns.InsertNode(Node, amInsertAfter, nil);
+      FColumns.Insert(Node.Index, Col);
+    end;
+  finally
+    listcolumns.EndUpdate;
+  end;
+  listColumns.Invalidate;
+  Modification(Sender);
+  Columns.Free;
 end;
 
 
