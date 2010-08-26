@@ -214,19 +214,33 @@ procedure TfrmSQLhelp.treeTopicsInitNode(Sender: TBaseVirtualTree; ParentNode,
   Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 var
   Results: TMySQLQuery;
-  Folder: String;
+  ThisFolder, PrevFolder: String;
+  N: PVirtualNode;
+  VT: TVirtualStringTree;
+  RecursionAlarm: Boolean;
 begin
   // Display plus button for nodes which are folders
+  VT := Sender as TVirtualStringTree;
   Results := GetHelpResult(Node);
   Results.RecNo := Node.Index;
-  Folder := '';
-  if Assigned(ParentNode) then
-    Folder := treeTopics.Text[ParentNode, treeTopics.Header.MainColumn];
-  if Results.ColExists('is_it_category')
-    and (Results.Col('is_it_category') = 'Y')
-    and (Results.Col('name') <> Folder)
-    then
-    Include(InitialStates, ivsHasChildren);
+  if Results.Col('is_it_category', True) = 'Y' then begin
+    // Some random server versions have duplicated category names in help tables, which would cause
+    // infinite tree recursion, e.g. for "Polygon properties" > "Contents". Do not display these
+    // duplicates as folder
+    RecursionAlarm := False;
+    ThisFolder := Results.Col('name');
+    N := VT.GetPreviousInitialized(Node);
+    while Assigned(N) do begin
+      PrevFolder := VT.Text[N, VT.Header.MainColumn];
+      if VT.HasChildren[N] and ((ThisFolder=PrevFolder) or (ThisFolder='Contents')) then begin
+        RecursionAlarm := True;
+        break;
+      end;
+      N := VT.GetPreviousInitialized(N);
+    end;
+    if not RecursionAlarm then
+      Include(InitialStates, ivsHasChildren);
+  end;
 end;
 
 
