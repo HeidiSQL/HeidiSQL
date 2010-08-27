@@ -652,7 +652,7 @@ var
       Category:     'Logical operators';
       Version:      SQL_VERSION_ANSI;
       Description:  'Logical NOT. Evaluates to 1 if the operand is 0, to 0 if the operand '
-        +'is non-zero, and NOT NULL returns NULL.'
+        +'is nonzero, and NOT NULL returns NULL.'
     ),
 
     // Function nr. 2
@@ -670,7 +670,7 @@ var
       Declaration:  '';
       Category:     'Logical operators';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Logical AND. Evaluates to 1 if all operands are non-zero and not NULL, '
+      Description:  'Logical AND. Evaluates to 1 if all operands are nonzero and not NULL, '
         +'to 0 if one or more operands are 0, otherwise NULL is returned.'
     ),
 
@@ -817,7 +817,7 @@ var
       Name:         'ADDDATE';
       Declaration:  '(date,INTERVAL expr unit)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'When invoked with the INTERVAL form of the second argument, ADDDATE() '
         +'is a synonym for DATE_ADD(). The related function SUBDATE() is a '
         +'synonym for DATE_SUB(). For information on the INTERVAL unit argument, '
@@ -833,7 +833,7 @@ var
       Name:         'ADDTIME';
       Declaration:  '(expr1,expr2)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'ADDTIME() adds expr2 to expr1 and returns the result. expr1 is a time '
         +'or datetime expression, and expr2 is a time expression.'
     ),
@@ -1050,7 +1050,7 @@ var
       Name:         'BIT_XOR';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the bitwise XOR of all bits in expr. The calculation is '
         +'performed with 64-bit (BIGINT) precision.'
     ),
@@ -1141,7 +1141,7 @@ var
       Name:         'CHARSET';
       Declaration:  '(str)';
       Category:     'Information Functions';
-      Version:      40100;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the character set of the string argument.'
     ),
 
@@ -1172,7 +1172,7 @@ var
       Name:         'COERCIBILITY';
       Declaration:  '(str)';
       Category:     'Information Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the collation coercibility value of the string argument.'
     ),
 
@@ -1181,7 +1181,7 @@ var
       Name:         'COLLATION';
       Declaration:  '(str)';
       Category:     'Information Functions';
-      Version:      40100;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the collation of the string argument.'
     ),
 
@@ -1190,7 +1190,7 @@ var
       Name:         'COMPRESS';
       Declaration:  '(string_to_compress)';
       Category:     'Encryption Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Compresses a string and returns the result as a binary string. This '
         +'function requires MySQL to have been compiled with a compression '
         +'library such as zlib. Otherwise, the return value is always NULL. The '
@@ -1204,8 +1204,8 @@ var
       Category:     'String Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'Returns the string that results from concatenating the arguments. May '
-        +'have one or more arguments. If all arguments are non-binary strings, '
-        +'the result is a non-binary string. If the arguments include any binary '
+        +'have one or more arguments. If all arguments are nonbinary strings, '
+        +'the result is a nonbinary string. If the arguments include any binary '
         +'strings, the result is a binary string. A numeric argument is '
         +'converted to its equivalent binary string form; if you want to avoid '
         +'that, you can use an explicit type cast, as in this example: SELECT '
@@ -1292,7 +1292,7 @@ var
       Name:         'CONVERT_TZ';
       Declaration:  '(dt,from_tz,to_tz)';
       Category:     'Date and Time Functions';
-      Version:      40103;
+      Version:      SQL_VERSION_ANSI;
       Description:  'CONVERT_TZ() converts a datetime value dt from the time zone given by '
         +'from_tz to the time zone given by to_tz and returns the resulting '
         +'value. Time zones are specified as described in '
@@ -1334,7 +1334,7 @@ var
       Name:         'CRC32';
       Declaration:  '(expr)';
       Category:     'Numeric Functions';
-      Version:      40100;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Computes a cyclic redundancy check value and returns a 32-bit unsigned '
         +'value. The result is NULL if the argument is NULL. The argument is '
         +'expected to be a string and (if possible) is treated as one if it is '
@@ -1401,7 +1401,7 @@ var
       Declaration:  '()';
       Category:     'Information Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns the username and hostname combination for the MySQL account '
+      Description:  'Returns the user name and host name combination for the MySQL account '
         +'that the server used to authenticate the current client. This account '
         +'determines your access privileges. The return value is a string in the '
         +'utf8 character set. The value of CURRENT_USER() can differ from the '
@@ -1437,7 +1437,7 @@ var
       Name:         'DATE';
       Declaration:  '(expr)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Extracts the date part of the date or datetime expression expr.'
     ),
 
@@ -1446,7 +1446,7 @@ var
       Name:         'DATEDIFF';
       Declaration:  '(expr1,expr2)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'DATEDIFF() returns expr1 - expr2 expressed as a value in days from one '
         +'date to the other. expr1 and expr2 are date or date-and-time '
         +'expressions. Only the date parts of the values are used in the '
@@ -1490,7 +1490,7 @@ var
       Name:         'DAY';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'DAY() is a synonym for DAYOFMONTH().'
     ),
 
@@ -1499,7 +1499,7 @@ var
       Name:         'DAYNAME';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
-      Version:      40121;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the name of the weekday for date. As of MySQL 5.1.12, the '
         +'language used for the name is controlled by the value of the '
         +'lc_time_names system variable '
@@ -1646,8 +1646,10 @@ var
       Name:         'DIV';
       Declaration:  '';
       Category:     'Numeric Functions';
-      Version:      40100;
-      Description:  'Integer division. Similar to FLOOR(), but is safe with BIGINT values.'
+      Version:      SQL_VERSION_ANSI;
+      Description:  'Integer division. Similar to FLOOR(), but is safe with BIGINT values. '
+        +'Incorrect results may occur for noninteger operands that exceed BIGINT '
+        +'range.'
     ),
 
     // Function nr. 90
@@ -1938,9 +1940,7 @@ var
       Declaration:  '(g1,g2,...)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Constructs a WKB GeometryCollection. If any argument is not a '
-        +'well-formed WKB representation of a geometry, the return value is '
-        +'NULL.'
+      Description:  'Constructs a GeometryCollection.'
     ),
 
     // Function nr. 112
@@ -1979,7 +1979,7 @@ var
       Name:         'GET_FORMAT';
       Declaration:  '({DATE|TIME|DATETIME}, {''EUR''|''USA''|''JIS''|''ISO''|''INTERNAL''})';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a format string. This function is useful in combination with '
         +'the DATE_FORMAT() and the STR_TO_DATE() functions.'
     ),
@@ -2040,7 +2040,7 @@ var
       Name:         'GROUP_CONCAT';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
-      Version:      40100;
+      Version:      SQL_VERSION_ANSI;
       Description:  'This function returns a string result with the concatenated non-NULL '
         +'values from a group. It returns NULL if there are no non-NULL values. '
         +'The full syntax is as follows: GROUP_CONCAT([DISTINCT] expr [,expr '
@@ -2128,8 +2128,8 @@ var
       Declaration:  '(expr)';
       Category:     'Miscellaneous Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Given a numeric network address (4 or 8 byte), returns the dotted-quad '
-        +'representation of the address as a string.'
+      Description:  'Given a numeric network address in network byte order (4 or 8 byte), '
+        +'returns the dotted-quad representation of the address as a string.'
     ),
 
     // Function nr. 127
@@ -2251,7 +2251,7 @@ var
       Name:         'IS_USED_LOCK';
       Declaration:  '(str)';
       Category:     'Miscellaneous Functions';
-      Version:      40100;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Checks whether the lock named str is in use (that is, locked). If so, '
         +'it returns the connection identifier of the client that holds the '
         +'lock. Otherwise, it returns NULL.'
@@ -2262,7 +2262,7 @@ var
       Name:         'LAST_DAY';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Takes a date or datetime value and returns the corresponding value for '
         +'the last day of the month. Returns NULL if the argument is invalid.'
     ),
@@ -2401,9 +2401,8 @@ var
       Declaration:  '(pt1,pt2,...)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Constructs a WKB LineString value from a number of WKB Point '
-        +'arguments. If any argument is not a WKB Point, the return value is '
-        +'NULL. If the number of Point arguments is less than two, the return '
+      Description:  'Constructs a LineString value from a number of Point or WKB Point '
+        +'arguments. If the number of arguments is less than two, the return '
         +'value is NULL.'
     ),
 
@@ -2425,13 +2424,15 @@ var
       Version:      SQL_VERSION_ANSI;
       Description:  'Reads the file and returns the file contents as a string. To use this '
         +'function, the file must be located on the server host, you must '
-        +'specify the full pathname to the file, and you must have the FILE '
+        +'specify the full path name to the file, and you must have the FILE '
         +'privilege. The file must be readable by all and its size less than '
-        +'max_allowed_packet bytes. If the file does not exist or cannot be read '
-        +'because one of the preceding conditions is not satisfied, the function '
-        +'returns NULL. As of MySQL 5.1.6, the character_set_filesystem system '
-        +'variable controls interpretation of filenames that are given as '
-        +'literal strings.'
+        +'max_allowed_packet bytes. If the secure_file_priv system variable is '
+        +'set to a nonempty directory name, the file to be loaded must be '
+        +'located in that directory. If the file does not exist or cannot be '
+        +'read because one of the preceding conditions is not satisfied, the '
+        +'function returns NULL. As of MySQL 5.1.6, the character_set_filesystem '
+        +'system variable controls interpretation of file names that are given '
+        +'as literal strings.'
     ),
 
     // Function nr. 150
@@ -2448,7 +2449,7 @@ var
       Name:         'LOCALTIMESTAMP';
       Declaration:  '()';
       Category:     'Date and Time Functions';
-      Version:      40006;
+      Version:      SQL_VERSION_ANSI;
       Description:  'LOCALTIMESTAMP and LOCALTIMESTAMP() are synonyms for NOW().'
     ),
 
@@ -2505,7 +2506,7 @@ var
         +'(cp1252 West European). mysql> SELECT LOWER(''QUADRATICALLY''); -> '
         +'''quadratically'' LOWER() (and UPPER()) are ineffective when applied '
         +'to binary strings (BINARY, VARBINARY, BLOB). To perform lettercase '
-        +'conversion, convert the string to a non-binary string: mysql> SET @str '
+        +'conversion, convert the string to a nonbinary string: mysql> SET @str '
         +'= BINARY ''New York''; mysql> SELECT LOWER(@str), LOWER(CONVERT(@str '
         +'USING latin1)); +-------------+-----------------------------------+ | '
         +'LOWER(@str) | LOWER(CONVERT(@str USING latin1)) | '
@@ -2538,7 +2539,7 @@ var
       Name:         'MAKEDATE';
       Declaration:  '(year,dayofyear)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a date, given year and day-of-year values. dayofyear must be '
         +'greater than 0 or the result is NULL.'
     ),
@@ -2548,7 +2549,7 @@ var
       Name:         'MAKETIME';
       Declaration:  '(hour,minute,second)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a time value calculated from the hour, minute, and second '
         +'arguments.'
     ),
@@ -2750,7 +2751,7 @@ var
       Name:         'MICROSECOND';
       Declaration:  '(expr)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the microseconds from the time or datetime expression expr as '
         +'a number in the range from 0 to 999999.'
     ),
@@ -2832,7 +2833,7 @@ var
       Name:         'MONTHNAME';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
-      Version:      40121;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the full name of the month for date. As of MySQL 5.1.12, the '
         +'language used for the name is controlled by the value of the '
         +'lc_time_names system variable '
@@ -2881,8 +2882,8 @@ var
       Declaration:  '(ls1,ls2,...)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Constructs a WKB MultiLineString value using WKB LineString arguments. '
-        +'If any argument is not a WKB LineString, the return value is NULL.'
+      Description:  'Constructs a MultiLineString value using LineString or WKB LineString '
+        +'arguments.'
     ),
 
     // Function nr. 188
@@ -2891,8 +2892,7 @@ var
       Declaration:  '(pt1,pt2,...)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Constructs a WKB MultiPoint value using WKB Point arguments. If any '
-        +'argument is not a WKB Point, the return value is NULL.'
+      Description:  'Constructs a MultiPoint value using Point or WKB Point arguments.'
     ),
 
     // Function nr. 189
@@ -2901,9 +2901,8 @@ var
       Declaration:  '(poly1,poly2,...)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Constructs a WKB MultiPolygon value from a set of WKB Polygon '
-        +'arguments. If any argument is not a WKB Polygon, the return value is '
-        +'NULL.'
+      Description:  'Constructs a MultiPolygon value from a set of Polygon or WKB Polygon '
+        +'arguments.'
     ),
 
     // Function nr. 190
@@ -2911,7 +2910,7 @@ var
       Name:         'NAME_CONST';
       Declaration:  '(name,value)';
       Category:     'Miscellaneous Functions';
-      Version:      50012;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the given value. When used to produce a result set column, '
         +'NAME_CONST() causes the column to have the given name. The arguments '
         +'should be constants. mysql> SELECT NAME_CONST(''myname'', 14); '
@@ -2992,7 +2991,7 @@ var
       Name:         'OLD_PASSWORD';
       Declaration:  '(str)';
       Category:     'Encryption Functions';
-      Version:      40100;
+      Version:      SQL_VERSION_ANSI;
       Description:  'OLD_PASSWORD() was added to MySQL when the implementation of '
         +'PASSWORD() was changed to improve security. OLD_PASSWORD() returns the '
         +'value of the old (pre-4.1) implementation of PASSWORD() as a binary '
@@ -3079,7 +3078,7 @@ var
       Declaration:  '(x,y)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Constructs a WKB Point using its coordinates.'
+      Description:  'Constructs a Point using its coordinates.'
     ),
 
     // Function nr. 206
@@ -3134,9 +3133,9 @@ var
       Declaration:  '(ls1,ls2,...)';
       Category:     'Geographic Features';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Constructs a WKB Polygon value from a number of WKB LineString '
-        +'arguments. If any argument does not represent the WKB of a LinearRing '
-        +'(that is, not a closed and simple LineString) the return value is '
+      Description:  'Constructs a Polygon value from a number of LineString or WKB '
+        +'LineString arguments. If any argument does not represent a LinearRing '
+        +'(that is, not a closed and simple LineString), the return value is '
         +'NULL.'
     ),
 
@@ -3306,7 +3305,7 @@ var
       Name:         'ROW_COUNT';
       Declaration:  '()';
       Category:     'Information Functions';
-      Version:      50001;
+      Version:      SQL_VERSION_ANSI;
       Description:  'ROW_COUNT() returns the number of rows updated, inserted, or deleted '
         +'by the preceding statement. This is the same as the row count that the '
         +'mysql client displays and the value from the mysql_affected_rows() C '
@@ -3338,7 +3337,7 @@ var
       Name:         'SCHEMA';
       Declaration:  '()';
       Category:     'Information Functions';
-      Version:      50002;
+      Version:      SQL_VERSION_ANSI;
       Description:  'This function is a synonym for DATABASE().'
     ),
 
@@ -3410,7 +3409,7 @@ var
       Name:         'SLEEP';
       Declaration:  '(duration)';
       Category:     'Miscellaneous Functions';
-      Version:      50012;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Sleeps (pauses) for the number of seconds given by the duration '
         +'argument, then returns 0. If SLEEP() is interrupted, it returns 1. The '
         +'duration may have a fractional part given in microseconds.'
@@ -3426,7 +3425,7 @@ var
         +'same should have identical soundex strings. A standard soundex string '
         +'is four characters long, but the SOUNDEX() function returns an '
         +'arbitrarily long string. You can use SUBSTRING() on the result to get '
-        +'a standard soundex string. All non-alphabetic characters in str are '
+        +'a standard soundex string. All nonalphabetic characters in str are '
         +'ignored. All international alphabetic characters outside the A-Z range '
         +'are treated as vowels. *Important*: When using SOUNDEX(), you should '
         +'be aware of the following limitations: This function, as currently '
@@ -3435,8 +3434,8 @@ var
         +'reliable results. This function is not guaranteed to provide '
         +'consistent results with strings that use multi-byte character sets, '
         +'including utf-8. We hope to remove these limitations in a future '
-        +'release. See Bug#22638 (http://bugs.mysql.com/22638) for more '
-        +'information.'
+        +'release. See Bug#22638 (http://bugs.mysql.com/bug.php?id=22638) for '
+        +'more information.'
     ),
 
     // Function nr. 238
@@ -3444,7 +3443,7 @@ var
       Name:         'SOUNDS';
       Declaration:  '';
       Category:     'String Functions';
-      Version:      40100;
+      Version:      SQL_VERSION_ANSI;
       Description:  'This is the same as SOUNDEX(expr1) = SOUNDEX(expr2).'
     ),
 
@@ -3467,7 +3466,7 @@ var
         +'INDEX(g)); With ALTER TABLE: ALTER TABLE geom ADD SPATIAL INDEX(g); '
         +'With CREATE INDEX: CREATE SPATIAL INDEX sp_index ON geom (g); For '
         +'MyISAM tables, SPATIAL INDEX creates an R-tree index. For storage '
-        +'engines that support non-spatial indexing of spatial columns, the '
+        +'engines that support nonspatial indexing of spatial columns, the '
         +'engine creates a B-tree index. A B-tree index on spatial values will '
         +'be useful for exact-value lookups, but not for range scans. For more '
         +'information on indexing spatial columns, see [HELP CREATE INDEX]. To '
@@ -3485,7 +3484,7 @@ var
       Declaration:  '(X)';
       Category:     'Numeric Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns the square root of a non-negative number X.'
+      Description:  'Returns the square root of a nonnegative number X.'
     ),
 
     // Function nr. 242
@@ -3538,7 +3537,7 @@ var
       Name:         'STDDEV_POP';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
-      Version:      50003;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the population standard deviation of expr (the square root of '
         +'VAR_POP()). You can also use STD() or STDDEV(), which are equivalent '
         +'but not standard SQL. STDDEV_POP() returns NULL if there were no '
@@ -3550,7 +3549,7 @@ var
       Name:         'STDDEV_SAMP';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
-      Version:      50003;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the sample standard deviation of expr (the square root of '
         +'VAR_SAMP(). STDDEV_SAMP() returns NULL if there were no matching rows.'
     ),
@@ -3571,16 +3570,31 @@ var
       Name:         'STR_TO_DATE';
       Declaration:  '(str,format)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'This is the inverse of the DATE_FORMAT() function. It takes a string '
         +'str and a format string format. STR_TO_DATE() returns a DATETIME value '
         +'if the format string contains both date and time parts, or a DATE or '
-        +'TIME value if the string contains only date or time parts. The date, '
-        +'time, or datetime values contained in str should be given in the '
-        +'format indicated by format. For the specifiers that can be used in '
-        +'format, see the DATE_FORMAT() function description. If str contains an '
-        +'illegal date, time, or datetime value, STR_TO_DATE() returns NULL. An '
-        +'illegal value also produces a warning.'
+        +'TIME value if the string contains only date or time parts. If the '
+        +'date, time, or datetime value extracted from str is illegal, '
+        +'STR_TO_DATE() returns NULL and produces a warning. The server scans '
+        +'str attempting to match format to it. The format string can contain '
+        +'literal characters and format specifiers beginning with %. Literal '
+        +'characters in format must match literally in str. Format specifiers in '
+        +'format must match a date or time part in str. For the specifiers that '
+        +'can be used in format, see the DATE_FORMAT() function description. '
+        +'mysql> SELECT STR_TO_DATE(''01,5,2013'',''%d,%m,%Y''); -> '
+        +'''2013-05-01'' mysql> SELECT STR_TO_DATE(''May 1, 2013'',''%M '
+        +'%d,%Y''); -> ''2013-05-01'' Scanning starts at the beginning of str '
+        +'and fails if format is found not to match. Extra characters at the end '
+        +'of str are ignored. mysql> SELECT '
+        +'STR_TO_DATE(''a09:30:17'',''a%h:%i:%s''); -> ''09:30:17'' mysql> '
+        +'SELECT STR_TO_DATE(''a09:30:17'',''%h:%i:%s''); -> NULL mysql> SELECT '
+        +'STR_TO_DATE(''09:30:17a'',''%h:%i:%s''); -> ''09:30:17'' Unspecified '
+        +'date or time parts have a value of 0, so incompletely specified values '
+        +'in str produce a result with some or all parts set to 0: mysql> SELECT '
+        +'STR_TO_DATE(''abc'',''abc''); -> ''0000-00-00'' mysql> SELECT '
+        +'STR_TO_DATE(''9'',''%m''); -> ''0000-09-00'' mysql> SELECT '
+        +'STR_TO_DATE(''9'',''%s''); -> ''00:00:09'''
     ),
 
     // Function nr. 250
@@ -3646,7 +3660,7 @@ var
       Name:         'SUBTIME';
       Declaration:  '(expr1,expr2)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'SUBTIME() returns expr1 - expr2 expressed as a value in the same '
         +'format as expr1. expr1 is a time or datetime expression, and expr2 is '
         +'a time expression.'
@@ -3675,9 +3689,9 @@ var
         +'function is used in a string or numeric context. SYSDATE() returns the '
         +'time at which it executes. This differs from the behavior for NOW(), '
         +'which returns a constant time that indicates the time at which the '
-        +'statement began to execute. (Within a stored routine or trigger, NOW() '
-        +'returns the time at which the routine or triggering statement began to '
-        +'execute.) mysql> SELECT NOW(), SLEEP(2), NOW(); '
+        +'statement began to execute. (Within a stored function or trigger, '
+        +'NOW() returns the time at which the function or triggering statement '
+        +'began to execute.) mysql> SELECT NOW(), SLEEP(2), NOW(); '
         +'+---------------------+----------+---------------------+ | NOW() | '
         +'SLEEP(2) | NOW() | '
         +'+---------------------+----------+---------------------+ | 2006-04-12 '
@@ -3693,12 +3707,16 @@ var
         +'not by SYSDATE(). This means that timestamp settings in the binary log '
         +'have no effect on invocations of SYSDATE(). Because SYSDATE() can '
         +'return different values even within the same statement, and is not '
-        +'affected by SET TIMESTAMP, it is non-deterministic and therefore '
-        +'unsafe for replication if statement-based binary logging is used. If '
-        +'that is a problem, you can use row-based logging, or start the server '
-        +'with the --sysdate-is-now option to cause SYSDATE() to be an alias for '
-        +'NOW(). The non-deterministic nature of SYSDATE() also means that '
-        +'indexes cannot be used for evaluating expressions that refer to it.'
+        +'affected by SET TIMESTAMP, it is nondeterministic and therefore unsafe '
+        +'for replication if statement-based binary logging is used. If that is '
+        +'a problem, you can use row-based logging. Alternatively, you can use '
+        +'the --sysdate-is-now option to cause SYSDATE() to be an alias for '
+        +'NOW(). This works if the option is used on both the master and the '
+        +'slave. The nondeterministic nature of SYSDATE() also means that '
+        +'indexes cannot be used for evaluating expressions that refer to it. '
+        +'Beginning with MySQL 5.1.42, a warning is logged if you use this '
+        +'function when binlog_format is set to STATEMENT. (Bug#47995 '
+        +'(http://bugs.mysql.com/bug.php?id=47995))'
     ),
 
     // Function nr. 257
@@ -3724,7 +3742,7 @@ var
       Name:         'TIME';
       Declaration:  '(expr)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Extracts the time part of the time or datetime expression expr and '
         +'returns it as a string.'
     ),
@@ -3734,7 +3752,7 @@ var
       Name:         'TIMEDIFF';
       Declaration:  '(expr1,expr2)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'TIMEDIFF() returns expr1 - expr2 expressed as a time value. expr1 and '
         +'expr2 are time or date-and-time expressions, but both must be of the '
         +'same type.'
@@ -3745,7 +3763,7 @@ var
       Name:         'TIMESTAMP';
       Declaration:  '(expr)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'With a single argument, this function returns the date or datetime '
         +'expression expr as a datetime value. With two arguments, it adds the '
         +'time expression expr2 to the date or datetime expression expr1 and '
@@ -3757,7 +3775,7 @@ var
       Name:         'TIMESTAMPADD';
       Declaration:  '(unit,interval,datetime_expr)';
       Category:     'Date and Time Functions';
-      Version:      50000;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Adds the integer expression interval to the date or datetime '
         +'expression datetime_expr. The unit for interval is given by the unit '
         +'argument, which should be one of the following values: FRAC_SECOND '
@@ -3774,7 +3792,7 @@ var
       Name:         'TIMESTAMPDIFF';
       Declaration:  '(unit,datetime_expr1,datetime_expr2)';
       Category:     'Date and Time Functions';
-      Version:      50000;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns datetime_expr2 - datetime_expr1, where datetime_expr1 and '
         +'datetime_expr2 are date or datetime expressions. One expression may be '
         +'a date and the other a datetime; a date value is treated as a datetime '
@@ -3791,8 +3809,8 @@ var
       Category:     'Date and Time Functions';
       Version:      SQL_VERSION_ANSI;
       Description:  'This is used like the DATE_FORMAT() function, but the format string '
-        +'may contain format specifiers only for hours, minutes, and seconds. '
-        +'Other specifiers produce a NULL value or 0.'
+        +'may contain format specifiers only for hours, minutes, seconds, and '
+        +'microseconds. Other specifiers produce a NULL value or 0.'
     ),
 
     // Function nr. 265
@@ -3863,7 +3881,7 @@ var
       Name:         'UNCOMPRESS';
       Declaration:  '(string_to_uncompress)';
       Category:     'Encryption Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Uncompresses a string compressed by the COMPRESS() function. If the '
         +'argument is not a compressed value, the result is NULL. This function '
         +'requires MySQL to have been compiled with a compression library such '
@@ -3875,7 +3893,7 @@ var
       Name:         'UNCOMPRESSED_LENGTH';
       Declaration:  '(compressed_string)';
       Category:     'Encryption Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the length that the compressed string had before being '
         +'compressed.'
     ),
@@ -3885,7 +3903,7 @@ var
       Name:         'UNHEX';
       Declaration:  '';
       Category:     'String Functions';
-      Version:      40102;
+      Version:      SQL_VERSION_ANSI;
       Description:  'UNHEX(str) Performs the inverse operation of HEX(str). That is, it '
         +'interprets each pair of hexadecimal digits in the argument as a number '
         +'and converts it to the character represented by the number. The '
@@ -3944,7 +3962,7 @@ var
       Declaration:  '()';
       Category:     'Information Functions';
       Version:      SQL_VERSION_ANSI;
-      Description:  'Returns the current MySQL username and hostname as a string in the '
+      Description:  'Returns the current MySQL user name and host name as a string in the '
         +'utf8 character set.'
     ),
 
@@ -3953,7 +3971,7 @@ var
       Name:         'UTC_DATE';
       Declaration:  '()';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the current UTC date as a value in ''YYYY-MM-DD'' or YYYYMMDD '
         +'format, depending on whether the function is used in a string or '
         +'numeric context.'
@@ -3964,7 +3982,7 @@ var
       Name:         'UTC_TIME';
       Declaration:  '()';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the current UTC time as a value in ''HH:MM:SS'' or '
         +'HHMMSS.uuuuuu format, depending on whether the function is used in a '
         +'string or numeric context.'
@@ -3975,7 +3993,7 @@ var
       Name:         'UTC_TIMESTAMP';
       Declaration:  '()';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the current UTC date and time as a value in ''YYYY-MM-DD '
         +'HH:MM:SS'' or YYYYMMDDHHMMSS.uuuuuu format, depending on whether the '
         +'function is used in a string or numeric context.'
@@ -3986,7 +4004,7 @@ var
       Name:         'UUID';
       Declaration:  '()';
       Category:     'Miscellaneous Functions';
-      Version:      40102;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a Universal Unique Identifier (UUID) generated according to '
         +'"DCE 1.1: Remote Procedure Call" (Appendix A) CAE (Common Applications '
         +'Environment) Specifications published by The Open Group in October '
@@ -4017,7 +4035,7 @@ var
       Name:         'UUID_SHORT';
       Declaration:  '()';
       Category:     'Miscellaneous Functions';
-      Version:      50120;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns a "short" universal identifier as a 64-bit unsigned integer '
         +'(rather than a string-form 128-bit identifier as returned by the '
         +'UUID() function). The value of UUID_SHORT() is guaranteed to be unique '
@@ -4035,7 +4053,7 @@ var
       Name:         'VALUES';
       Declaration:  '(col_name)';
       Category:     'Miscellaneous Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'In an INSERT ... ON DUPLICATE KEY UPDATE statement, you can use the '
         +'VALUES(col_name) function in the UPDATE clause to refer to column '
         +'values from the INSERT portion of the statement. In other words, '
@@ -4052,7 +4070,7 @@ var
       Name:         'VARIANCE';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
-      Version:      40100;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the population standard variance of expr. This is an extension '
         +'to standard SQL. The standard SQL function VAR_POP() can be used '
         +'instead. VARIANCE() returns NULL if there were no matching rows.'
@@ -4063,7 +4081,7 @@ var
       Name:         'VAR_POP';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
-      Version:      50003;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the population standard variance of expr. It considers rows as '
         +'the whole population, not as a sample, so it has the number of rows as '
         +'the denominator. You can also use VARIANCE(), which is equivalent but '
@@ -4076,7 +4094,7 @@ var
       Name:         'VAR_SAMP';
       Declaration:  '(expr)';
       Category:     'Functions and Modifiers for Use with GROUP BY';
-      Version:      50003;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the sample variance of expr. That is, the denominator is the '
         +'number of rows minus one. VAR_SAMP() returns NULL if there were no '
         +'matching rows.'
@@ -4121,7 +4139,7 @@ var
       Name:         'WEEKOFYEAR';
       Declaration:  '(date)';
       Category:     'Date and Time Functions';
-      Version:      40101;
+      Version:      SQL_VERSION_ANSI;
       Description:  'Returns the calendar week of the date as a number in the range from 1 '
         +'to 53. WEEKOFYEAR() is a compatibility function that is equivalent to '
         +'WEEK(date,3).'
@@ -4163,7 +4181,7 @@ var
       Category:     'Logical operators';
       Version:      SQL_VERSION_ANSI;
       Description:  'Logical XOR. Returns NULL if either operand is NULL. For non-NULL '
-        +'operands, evaluates to 1 if an odd number of operands is non-zero, '
+        +'operands, evaluates to 1 if an odd number of operands is nonzero, '
         +'otherwise 0 is returned.'
     ),
 
@@ -4224,8 +4242,8 @@ var
       Category:     'Logical operators';
       Version:      SQL_VERSION_ANSI;
       Description:  'Logical OR. When both operands are non-NULL, the result is 1 if any '
-        +'operand is non-zero, and 0 otherwise. With a NULL operand, the result '
-        +'is 1 if the other operand is non-zero, and NULL otherwise. If both '
+        +'operand is nonzero, and 0 otherwise. With a NULL operand, the result '
+        +'is 1 if the other operand is nonzero, and NULL otherwise. If both '
         +'operands are NULL, the result is NULL.'
     ),
 
