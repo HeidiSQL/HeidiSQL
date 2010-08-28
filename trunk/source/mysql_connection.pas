@@ -185,6 +185,7 @@ type
   TMySQLDatabaseEvent = procedure(Database: String) of object;
 
   TMySQLQuery = class;
+  TMySQLQueryList = TObjectList<TMySQLQuery>;
   TMySQLConnection = class(TComponent)
     private
       FHandle: PMYSQL;
@@ -204,6 +205,7 @@ type
       FServerVersionUntouched: String;
       FRealHostname: String;
       FLastQueryDuration, FLastQueryNetworkDuration: Cardinal;
+      FLastQuerySQL: String;
       FIsUnicode: Boolean;
       FTableEngines: TStringList;
       FTableEngineDefault: String;
@@ -213,6 +215,8 @@ type
       FDatabases: TDatabaseList;
       FObjectNamesInSelectedDB: TStrings;
       FPlinkProcInfo: TProcessInformation;
+      FLastResults: Array of PMYSQL_RES;
+      FResultCount: Integer;
       procedure SetActive(Value: Boolean);
       procedure ClosePlink;
       procedure SetDatabase(Value: String);
@@ -255,6 +259,7 @@ type
       function ParseDateTime(Str: String): TDateTime;
       function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
       function ConnectionInfo: TStringList;
+      function GetLastResults: TMySQLQueryList;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
       property Parameters: TConnectionParameters read FParameters write FParameters;
@@ -281,6 +286,7 @@ type
       property CharsetList: TStringList read GetCharsetList;
       property InformationSchemaObjects: TStringList read GetInformationSchemaObjects;
       property ObjectNamesInSelectedDB: TStrings read FObjectNamesInSelectedDB write FObjectNamesInSelectedDB;
+      property ResultCount: Integer read FResultCount;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -310,7 +316,6 @@ type
       FCurrentRow: PMYSQL_ROW;
       FCurrentUpdateRow: TRowData;
       FEof: Boolean;
-      FLogCategory: TMySQLLogCategory;
       FStoreResult: Boolean;
       FColumns: TTableColumnList;
       FKeys: TTableKeyList;
@@ -327,7 +332,7 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      procedure Execute(AddResult: Boolean=False);
+      procedure Execute(AddResult: Boolean=False; Res: PMYSQL_RES=nil);
       procedure First;
       procedure Next;
       function ColumnCount: Integer;
@@ -363,7 +368,6 @@ type
       property Eof: Boolean read FEof;
       property RecordCount: Int64 read FRecordCount;
       property ColumnNames: TStringList read FColumnNames;
-      property LogCategory: TMySQLLogCategory read FLogCategory write FLogCategory;
       property StoreResult: Boolean read FStoreResult write FStoreResult;
       property ColumnOrgNames: TStringList read FColumnOrgNames write SetColumnOrgNames;
     published
@@ -631,7 +635,7 @@ end;
 }
 function TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TMySQLLogCategory=lcSQL): PMYSQL_RES;
 var
-  querystatus, i: Integer;
+  querystatus: Integer;
   NativeSQL: AnsiString;
   TimerStart: Cardinal;
   NextResult: PMYSQL_RES;
@@ -639,11 +643,14 @@ begin
   if not Ping then
     Active := True;
   Log(LogCategory, SQL);
+  FLastQuerySQL := SQL;
   if IsUnicode then
     NativeSQL := UTF8Encode(SQL)
   else
     NativeSQL := AnsiString(SQL);
   TimerStart := GetTickCount;
+  SetLength(FLastResults, 0);
+  FResultCount := 0;
   querystatus := mysql_real_query(FHandle, PAnsiChar(NativeSQL), Length(NativeSQL));
   FLastQueryDuration := GetTickCount - TimerStart;
   FLastQueryNetworkDuration := 0;
@@ -668,20 +675,27 @@ begin
       FRowsFound := mysql_num_rows(Result);
       FRowsAffected := 0;
       Log(lcDebug, IntToStr(RowsFound)+' rows found.');
-      if not DoStoreResult then begin
+
+      if DoStoreResult then begin
+        SetLength(FLastResults, 1);
+        FLastResults[0] := Result;
+      end else begin
         mysql_free_result(Result);
         Result := nil;
       end;
 
       // No support for real multi results yet, throw them away, so mysql_ping() does not crash on the *next* query.
-      i := 1;
       while mysql_next_result(FHandle) = 0 do begin
-        Inc(i);
-        Log(lcDebug, 'Storing and freeing result #'+IntToStr(i)+' from multiple result set ...');
         NextResult := mysql_store_result(FHandle);
-        if NextResult <> nil then
-          mysql_free_result(NextResult);
+        if NextResult <> nil then begin
+          if DoStoreResult then begin
+            SetLength(FLastResults, Length(FLastResults)+1);
+            FLastResults[Length(FLastResults)-1] := NextResult;
+          end else
+            mysql_free_result(NextResult);
+        end;
       end;
+      FResultCount := Length(FLastResults);
 
     end else begin
       // Query did not return a result
@@ -695,6 +709,22 @@ begin
           FOnDatabaseChanged(Database);
       end;
     end;
+  end;
+end;
+
+
+function TMySQLConnection.GetLastResults: TMySQLQueryList;
+var
+  r: TMySQLQuery;
+  i: Integer;
+begin
+  Result := TMySQLQueryList.Create(False);
+  for i:=Low(FLastResults) to High(FLastResults) do begin
+    r := TMySQLQuery.Create(nil);
+    r.Connection := Self;
+    r.SQL := FLastQuerySQL;
+    r.Execute(True, FLastResults[i]);
+    Result.Add(r);
   end;
 end;
 
@@ -1604,7 +1634,6 @@ begin
   FColumnOrgNames := TStringList.Create;
   FColumnOrgNames.CaseSensitive := True;
   FStoreResult := True;
-  FLogCategory := lcSQL;
 end;
 
 
@@ -1635,7 +1664,7 @@ begin
 end;
 
 
-procedure TMySQLQuery.Execute(AddResult: Boolean=False);
+procedure TMySQLQuery.Execute(AddResult: Boolean=False; Res: PMYSQL_RES=nil);
 var
   i, j, NumFields: Integer;
   NumResults: Int64;
@@ -1643,7 +1672,10 @@ var
   IsBinary: Boolean;
   FLastResult: PMYSQL_RES;
 begin
-  FLastResult := Connection.Query(FSQL, FStoreResult, FLogCategory);
+  if Res <> nil then
+    FLastResult := Res
+  else
+    FLastResult := Connection.Query(FSQL, FStoreResult);
   if AddResult and (Length(FResultList) = 0) then
     AddResult := False;
   if AddResult then
