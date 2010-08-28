@@ -2175,24 +2175,19 @@ begin
     ShowStatusMsg('Executing query #'+FormatNumber(i+1)+' of '+FormatNumber(SQLBatch.Count)+' ...');
     ProgressBarStatus.StepIt;
     ProgressBarStatus.Repaint;
-    Results := TMySQLQuery.Create(Self);
-    Results.Connection := Connection;
-    Results.LogCategory := lcUserFiredSQL;
-    Results.SQL := SQLBatch[i].SQL;
-    Results.StoreResult := QueryTab.ResultTabs.Count < prefMaxQueryResults;
     try
-      Results.Execute;
+      Connection.Query(SQLBatch[i].SQL, QueryTab.ResultTabs.Count < prefMaxQueryResults, lcUserFiredSQL);
       Inc(QueryCount);
       Inc(SQLtime, Connection.LastQueryDuration);
       Inc(SQLNetTime, Connection.LastQueryNetworkDuration);
       Inc(RowsAffected, Connection.RowsAffected);
       Inc(RowsFound, Connection.RowsFound);
-      if Results.StoreResult and Results.HasResult then begin
+      if (Connection.ResultCount > 0) then for Results in Connection.GetLastResults do begin
         NewTab := TResultTab.Create;
         QueryTab.ResultTabs.Add(NewTab);
         NewTab.Results := Results;
         try
-          TabCaption := Results.TableName;
+          TabCaption := NewTab.Results.TableName;
         except on E:EDatabaseError do
           TabCaption := 'Result #'+IntToStr(QueryTab.ResultTabs.Count);
         end;
@@ -2220,8 +2215,7 @@ begin
         NewTab.Grid.EndUpdate;
         for j:=0 to NewTab.Grid.Header.Columns.Count-1 do
           AutoCalcColWidth(NewTab.Grid, j);
-      end else
-        FreeAndNil(Results);
+      end;
     except
       on E:EDatabaseError do begin
         if actQueryStopOnErrors.Checked or (i = SQLBatch.Count - 1) then begin
