@@ -521,7 +521,7 @@ begin
         if CreateProcess(nil, PChar(PlinkCmd), nil, nil, false,
           CREATE_DEFAULT_ERROR_MODE + NORMAL_PRIORITY_CLASS + CREATE_NO_WINDOW,
           nil, nil, StartupInfo, FPlinkProcInfo) then begin
-          WaitForSingleObject(FPlinkProcInfo.hProcess, 1000);
+          WaitForSingleObject(FPlinkProcInfo.hProcess, 4000);
           GetExitCodeProcess(FPlinkProcInfo.hProcess, ExitCode);
           if ExitCode <> STILL_ACTIVE then
             raise EDatabaseError.Create('PLink exited unexpected. Command line was:'+CRLF+PlinkCmd);
