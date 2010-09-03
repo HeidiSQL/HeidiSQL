@@ -10,17 +10,13 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst,
-  SynRegExpr, Buttons, ExtCtrls, ToolWin,
+  SynRegExpr, Buttons, ExtCtrls, ToolWin, ExtDlgs, Math,
   mysql_connection;
 
 type
   Tloaddataform = class(TForm)
     btnImport: TButton;
     btnCancel: TButton;
-    OpenDialogCSVFile: TOpenDialog;
-    PageControlMain: TPageControl;
-    tabSource: TTabSheet;
-    tabDestination: TTabSheet;
     lblDatabase: TLabel;
     comboDatabase: TComboBox;
     lblTable: TLabel;
@@ -30,11 +26,6 @@ type
     ToolBarColMove: TToolBar;
     btnColUp: TToolButton;
     btnColDown: TToolButton;
-    grpOptions: TGroupBox;
-    chkLowPriority: TCheckBox;
-    chkReplace: TCheckBox;
-    chkIgnore: TCheckBox;
-    lblDuplicates: TLabel;
     grpFilename: TGroupBox;
     editFilename: TButtonedEdit;
     grpFields: TGroupBox;
@@ -53,8 +44,11 @@ type
     lblLineTerminator: TLabel;
     lblIgnoreLines: TLabel;
     lblFilename: TLabel;
-    comboCharset: TComboBox;
-    lblCharset: TLabel;
+    comboEncoding: TComboBox;
+    lblEncoding: TLabel;
+    grpDuplicates: TRadioGroup;
+    grpParseMethod: TRadioGroup;
+    grpDestination: TGroupBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
@@ -62,13 +56,18 @@ type
     procedure comboDatabaseChange(Sender: TObject);
     procedure comboTableChange(Sender: TObject);
     procedure btnImportClick(Sender: TObject);
+    procedure ServerParse(Sender: TObject);
+    procedure ClientParse(Sender: TObject);
     procedure btnOpenFileClick(Sender: TObject);
-    procedure chkReplaceClick(Sender: TObject);
-    procedure chkIgnoreClick(Sender: TObject);
-    procedure btnColUpClick(Sender: TObject);
-    procedure btnColDownClick(Sender: TObject);
+    procedure btnColMoveClick(Sender: TObject);
+    procedure grpParseMethodClick(Sender: TObject);
+    procedure comboEncodingSelect(Sender: TObject);
   private
     { Private declarations }
+    Encoding: TEncoding;
+    Term, Encl, Escp, LineTerm: String;
+    RowCount, ColumnCount: Integer;
+    SelectedCharsetIndex: Integer;
   public
     { Public declarations }
   end;
@@ -85,7 +84,10 @@ uses Main, helpers;
 procedure Tloaddataform.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  SetWindowSizeGrip(Handle, True);
   // Restore settings
+  Width := GetRegValue(REGNAME_CSV_WINDOWWIDTH, Width);
+  Height := GetRegValue(REGNAME_CSV_WINDOWHEIGHT, Height);
   editFilename.Text := GetRegValue(REGNAME_CSV_FILENAME, '');
   editFieldTerminator.Text := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
   editFieldEncloser.Text := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
@@ -93,9 +95,8 @@ begin
   chkFieldsEnclosedOptionally.Checked :=  GetRegValue(REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked);
   editFieldEscaper.Text := GetRegValue(REGNAME_CSV_ESCAPER, editFieldEscaper.Text);
   updownIgnoreLines.Position := GetRegValue(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
-  chkLowPriority.Checked := GetRegValue(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
-  chkReplace.Checked := GetRegValue(REGNAME_CSV_REPLACE, chkReplace.Checked);
-  chkIgnore.Checked := GetRegValue(REGNAME_CSV_IGNORE, chkIgnore.Checked);
+  grpDuplicates.ItemIndex := GetRegValue(REGNAME_CSV_DUPLICATES, grpDuplicates.ItemIndex);
+  grpParseMethod.ItemIndex := GetRegValue(REGNAME_CSV_PARSEMETHOD, grpParseMethod.ItemIndex);
 end;
 
 
@@ -103,6 +104,8 @@ procedure Tloaddataform.FormDestroy(Sender: TObject);
 begin
   // Save settings
   OpenRegistry;
+  MainReg.WriteInteger(REGNAME_CSV_WINDOWWIDTH, Width);
+  MainReg.WriteInteger(REGNAME_CSV_WINDOWHEIGHT, Height);
   MainReg.WriteString(REGNAME_CSV_FILENAME, editFilename.Text);
   MainReg.WriteString(REGNAME_CSV_SEPARATOR, editFieldTerminator.Text);
   MainReg.WriteString(REGNAME_CSV_ENCLOSER, editFieldEncloser.Text);
@@ -110,9 +113,8 @@ begin
   MainReg.WriteBool(REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked);
   MainReg.WriteString(REGNAME_CSV_ESCAPER, editFieldEscaper.Text);
   MainReg.WriteInteger(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
-  MainReg.WriteBool(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
-  MainReg.WriteBool(REGNAME_CSV_REPLACE, chkReplace.Checked);
-  MainReg.WriteBool(REGNAME_CSV_IGNORE, chkIgnore.Checked);
+  MainReg.WriteInteger(REGNAME_CSV_DUPLICATES, grpDuplicates.ItemIndex);
+  MainReg.WriteInteger(REGNAME_CSV_PARSEMETHOD, grpParseMethod.ItemIndex);
 end;
 
 
@@ -124,18 +126,65 @@ begin
   comboDatabase.ItemIndex := comboDatabase.Items.IndexOf( Mainform.ActiveDatabase );
   if comboDatabase.ItemIndex = -1 then
     comboDatabase.ItemIndex := 0;
-  comboDatabaseChange(self);
+  comboDatabaseChange(Sender);
+  editFilename.SetFocus;
+end;
+
+
+procedure Tloaddataform.grpParseMethodClick(Sender: TObject);
+var
+  ServerWillParse: Boolean;
+  Charset, DefCharset, dbcreate: String;
+  v: Integer;
+  CharsetTable: TMySQLQuery;
+  rx: TRegExpr;
+begin
+  ServerWillParse := grpParseMethod.ItemIndex = 0;
+  comboEncoding.Enabled := ServerWillParse;
+  editFieldEscaper.Enabled := ServerWillParse;
+  chkFieldsEnclosedOptionally.Enabled := ServerWillParse;
+  comboEncoding.Clear;
+  if comboEncoding.Enabled then begin
+    // Populate charset combo
+    v := Mainform.Connection.ServerVersionInt;
+    if ((v >= 50038) and (v < 50100)) or (v >= 50117) then begin
+      Charset := MainForm.GetCharsetByEncoding(Encoding);
+      // Detect db charset
+      DefCharset := 'Let server/database decide';
+      dbcreate := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+Mainform.mask(comboDatabase.Text), 1);
+      rx := TRegExpr.Create;
+      rx.ModifierG := True;
+      rx.Expression := 'CHARACTER SET (\w+)';
+      if rx.Exec(dbcreate) then
+        DefCharset := DefCharset + ' ('+rx.Match[1]+')';
+      comboEncoding.Items.Add(DefCharset);
+      CharsetTable := Mainform.Connection.CharsetTable;
+      CharsetTable.First;
+      while not CharsetTable.Eof do begin
+        comboEncoding.Items.Add(CharsetTable.Col(1) + ' ('+CharsetTable.Col(0)+')');
+        if (SelectedCharsetIndex = -1) and (Charset = CharsetTable.Col(0)) then
+          SelectedCharsetIndex := comboEncoding.Items.Count-1;
+        CharsetTable.Next;
+      end;
+      if SelectedCharsetIndex = -1 then
+        SelectedCharsetIndex := 0;
+      comboEncoding.ItemIndex := SelectedCharsetIndex;
+    end else begin
+      comboEncoding.Items.Add('Unsupported by this server');
+      comboEncoding.ItemIndex := 0;
+    end;
+  end else begin
+    comboEncoding.Items.Add(Mainform.GetEncodingName(Encoding));
+    comboEncoding.ItemIndex := 0;
+  end;
 end;
 
 
 procedure Tloaddataform.comboDatabaseChange(Sender: TObject);
 var
-  count, i, selCharsetIndex, v: Integer;
+  count, i: Integer;
   DBObjects: TDBObjectList;
-  seldb, seltable, dbcreate: String;
-  rx: TRegExpr;
-  DefCharset: String;
-  CharsetTable: TMySQLQuery;
+  seldb, seltable: String;
 begin
   // read tables from db
   comboTable.Items.Clear;
@@ -152,42 +201,15 @@ begin
   if comboTable.ItemIndex = -1 then
     comboTable.ItemIndex := 0;
 
-  comboTableChange(self);
-
-  selCharsetIndex := comboCharset.ItemIndex;
-  comboCharset.Enabled := False;
-  comboCharset.Clear;
-  v := Mainform.Connection.ServerVersionInt;
-  if ((v >= 50038) and (v < 50100)) or (v >= 50117) then begin
-    comboCharset.Enabled := True;
-    // Detect db charset
-    DefCharset := 'Let server/database decide';
-    dbcreate := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+Mainform.mask(comboDatabase.Text), 1);
-    rx := TRegExpr.Create;
-    rx.ModifierG := True;
-    rx.Expression := 'CHARACTER SET (\w+)';
-    if rx.Exec(dbcreate) then
-      DefCharset := DefCharset + ' ('+rx.Match[1]+')';
-    comboCharset.Items.Add(DefCharset);
-    CharsetTable := Mainform.Connection.CharsetTable;
-    CharsetTable.First;
-    while not CharsetTable.Eof do begin
-      comboCharset.Items.Add(CharsetTable.Col(1) + ' ('+CharsetTable.Col(0)+')');
-      if CharsetTable.Col(0) = 'utf8' then begin
-        i := comboCharset.Items.Count-1;
-        comboCharset.Items[i] := comboCharset.Items[i] + ' - '+APPNAME+' output';
-        if selCharsetIndex = -1 then
-          selCharsetIndex := i;
-      end;
-      CharsetTable.Next;
-    end;
-    comboCharset.ItemIndex := selCharsetIndex;
-  end else begin
-    comboCharset.Items.Add('Unsupported by this server');
-    comboCharset.ItemIndex := 0;
-  end;
+  grpParseMethod.OnClick(Sender);
+  comboTableChange(Sender);
 end;
 
+
+procedure Tloaddataform.comboEncodingSelect(Sender: TObject);
+begin
+  SelectedCharsetIndex := comboEncoding.ItemIndex;
+end;
 
 procedure Tloaddataform.comboTableChange(Sender: TObject);
 begin
@@ -200,145 +222,309 @@ begin
   ToggleCheckListBox( chklistColumns, True );
 
   // Ensure valid state of Import-Button
-  editFilenameChange(sender);  
+  editFilenameChange(Sender);
 end;
 
 
 procedure Tloaddataform.btnImportClick(Sender: TObject);
 var
-  query : String;
-  col   : TStringList;
-  i     : Integer;
-
-  // Correctly escape field-terminator, line-terminator or encloser
-  // and take care of already escaped characters like \t
-  // See bug 1827494
-  function escOptionString( str: String ): String;
-  begin
-    Result := '''' + StringReplace(str, '''', '\''', [rfReplaceAll]) + '''';
-  end;
+  StartTickCount: Cardinal;
+  i: Integer;
 begin
+  Screen.Cursor := crHourglass;
+  StartTickCount := GetTickCount;
 
-  query := 'LOAD DATA ';
+  ColumnCount := 0;
+  for i:=0 to chkListColumns.Items.Count-1 do begin
+    if chkListColumns.Checked[i] then
+      Inc(ColumnCount);
+  end;
 
-  if chkLowPriority.Checked then
-    query := query + 'LOW_PRIORITY ';
+  Term := MainForm.Connection.UnescapeString(editFieldTerminator.Text);
+  Encl := MainForm.Connection.UnescapeString(editFieldEncloser.Text);
+  LineTerm := MainForm.Connection.UnescapeString(editLineTerminator.Text);
+  Escp := MainForm.Connection.UnescapeString(editFieldEscaper.Text);
 
-  query := query + 'LOCAL INFILE ' + esc(editFilename.Text) + ' ';
-  if chkReplace.Checked then
-    query := query + 'REPLACE '
-  else if chkIgnore.Checked then
-    query := query + 'IGNORE ';
-  query := query + 'INTO TABLE ' + Mainform.Mask(comboDatabase.Text) + '.' +  Mainform.Mask(comboTable.Text) + ' ';
+  try
+    case grpParseMethod.ItemIndex of
+      0: ServerParse(Sender);
+      1: ClientParse(Sender);
+    end;
+    MainForm.LogSQL(FormatNumber(RowCount)+' rows imported in '+FormatNumber((GetTickcount-StartTickCount)/1000, 3)+' seconds.');
+  except
+    on E:EDatabaseError do begin
+      Screen.Cursor := crDefault;
+      ModalResult := mrNone;
+      MessageDlg(E.Message, mtError, [mbOK], 0);
+    end;
+  end;
 
-  if comboCharset.ItemIndex > 0 then begin
-    Mainform.Connection.CharsetTable.RecNo := comboCharset.ItemIndex-1;
-    query := query + 'CHARACTER SET '+Mainform.Connection.CharsetTable.Col(0)+' ';
+  Mainform.ShowStatusMsg;
+  Screen.Cursor := crDefault;
+end;
+
+
+procedure Tloaddataform.ServerParse(Sender: TObject);
+var
+  SQL: String;
+  i: Integer;
+begin
+  SQL := 'LOAD DATA LOCAL INFILE ' + esc(editFilename.Text) + ' ';
+  case grpDuplicates.ItemIndex of
+    1: SQL := SQL + 'IGNORE ';
+    2: SQL := SQL + 'REPLACE ';
+  end;
+  SQL := SQL + 'INTO TABLE ' + Mainform.Mask(comboDatabase.Text) + '.' +  Mainform.Mask(comboTable.Text) + ' ';
+
+  if comboEncoding.ItemIndex > 0 then begin
+    Mainform.Connection.CharsetTable.RecNo := comboEncoding.ItemIndex-1;
+    SQL := SQL + 'CHARACTER SET '+Mainform.Connection.CharsetTable.Col(0)+' ';
   end;
 
   // Fields:
-  if (editFieldTerminator.Text <> '') or (editFieldEncloser.Text <> '') or (editFieldEscaper.Text <> '') then
-    query := query + 'FIELDS ';
+  if (Term <> '') or (Encl <> '') or (Escp <> '') then
+    SQL := SQL + 'FIELDS ';
   if editFieldTerminator.Text <> '' then
-    query := query + 'TERMINATED BY ' + escOptionString(editFieldTerminator.Text) + ' ';
-  if editFieldEncloser.Text <> '' then
-  begin
+    SQL := SQL + 'TERMINATED BY ' + esc(Term) + ' ';
+  if Encl <> '' then begin
     if chkFieldsEnclosedOptionally.Checked then
-      query := query + 'OPTIONALLY ';
-    query := query + 'ENCLOSED BY ' + escOptionString(editFieldEncloser.Text) + ' ';
+      SQL := SQL + 'OPTIONALLY ';
+    SQL := SQL + 'ENCLOSED BY ' + esc(Encl) + ' ';
   end;
-  if editFieldEscaper.Text <> '' then
-    query := query + 'ESCAPED BY ' + escOptionString(editFieldEscaper.Text) + ' ';
+  if Escp <> '' then
+    SQL := SQL + 'ESCAPED BY ' + esc(Escp) + ' ';
 
   // Lines:
-  if editLineTerminator.Text <> '' then
-    query := query + 'LINES TERMINATED BY ' + escOptionString(editLineTerminator.Text) + ' ';
+  if LineTerm <> '' then
+    SQL := SQL + 'LINES TERMINATED BY ' + esc(LineTerm) + ' ';
   if updownIgnoreLines.Position > 0 then
-    query := query + 'IGNORE ' + inttostr(updownIgnoreLines.Position) + ' LINES ';
+    SQL := SQL + 'IGNORE ' + inttostr(updownIgnoreLines.Position) + ' LINES ';
 
-  col := TStringList.Create;
-  for i:=0 to chklistColumns.Items.Count - 1 do
-  begin
-    if chklistColumns.checked[i] then
-      col.Add(Mainform.Mask( chklistColumns.Items[i] ));
+  // Column listing
+  SQL := SQL + '(';
+  for i:=0 to chklistColumns.Items.Count-1 do begin
+    if chklistColumns.Checked[i] then
+      SQL := SQL + Mainform.Mask(chklistColumns.Items[i]) + ', ';
   end;
+  SetLength(SQL, Length(SQL)-2);
+  SQL := SQL + ')';
 
-//  if col.Count < ColumnsCheckListBox.Items.Count then
-  query := query + '(' + implodestr(',', col) + ')';
+  Mainform.Connection.Query(SQL);
+  RowCount := Max(MainForm.Connection.RowsAffected, 0);
+end;
 
-  try
-    Mainform.Connection.Query(query);
-  except
-    on E:EDatabaseError do begin
-      MessageDlg(E.Message, mtError, [mbOk], 0);
-      ModalResult := mrNone;
+
+procedure Tloaddataform.ClientParse(Sender: TObject);
+var
+  P, ContentLen, ProgressCharsPerStep, ProgressChars: Integer;
+  IgnoreLines, ValueCount, PacketSize: Integer;
+  EnclLen, TermLen, LineTermLen: Integer;
+  Contents: String;
+  EnclTest, TermTest, LineTermTest: String;
+  Value, SQL: String;
+  IsEncl, IsTerm, IsLineTerm: Boolean;
+  InEncl: Boolean;
+  OutStream: TMemoryStream;
+const
+  ProgressBarSteps=100;
+
+  procedure NextChar;
+  begin
+    Inc(P);
+    Inc(ProgressChars);
+    if ProgressChars >= ProgressCharsPerStep then begin
+      Mainform.ProgressBarStatus.StepIt;
+      Mainform.ShowStatusMsg('Importing textfile, row '+FormatNumber(RowCount-IgnoreLines)+', '+IntToStr(Mainform.ProgressBarStatus.Position)+'%');
+      ProgressChars := 0;
     end;
   end;
+
+  function TestLeftChars(var Portion: String; CompareTo: String; Len: Integer): Boolean;
+  var i: Integer;
+  begin
+    if Len > 0 then begin
+      for i:=1 to Len-1 do
+        Portion[i] := Portion[i+1];
+      Portion[Len] := Contents[P];
+      Result := Portion = CompareTo;
+    end else
+      Result := False;
+  end;
+
+  procedure AddValue;
+  var
+    i: Integer;
+  begin
+    Inc(ValueCount);
+    if ValueCount <= ColumnCount then begin
+      if Copy(Value, 1, EnclLen) = Encl then begin
+        Delete(Value, 1, EnclLen);
+        Delete(Value, Length(Value)-EnclLen+1, EnclLen);
+      end;
+      if SQL = '' then begin
+        case grpDuplicates.ItemIndex of
+          0: SQL := 'INSERT';
+          1: SQL := 'INSERT IGNORE';
+          2: SQL := 'REPLACE';
+        end;
+        SQL := SQL + ' INTO '+MainForm.mask(comboDatabase.Text)+'.'+MainForm.mask(comboTable.Text)+' (';
+        for i:=0 to chkListColumns.Items.Count-1 do begin
+          if chkListColumns.Checked[i] then
+            SQL := SQL + MainForm.mask(chkListColumns.Items[i]) + ', ';
+        end;
+        SetLength(SQL, Length(SQL)-2);
+        SQL := SQL + ') VALUES (';
+      end;
+      if Value <> 'NULL' then
+        Value := esc(Value);
+      SQL := SQL + Value + ', ';
+    end;
+    Value := '';
+  end;
+
+  procedure AddRow;
+  var
+    SA: AnsiString;
+    ChunkSize: Int64;
+    i: Integer;
+  begin
+    if SQL = '' then
+      Exit;
+    Inc(RowCount);
+    for i:=ValueCount to ColumnCount do begin
+      Value := 'NULL';
+      AddValue;
+    end;
+    ValueCount := 0;
+    if RowCount > IgnoreLines then begin
+      Delete(SQL, Length(SQL)-1, 2);
+      StreamWrite(OutStream, SQL + ')');
+      SQL := '';
+      if (OutStream.Size < PacketSize) and (P < ContentLen) then
+        SQL := SQL + ', ('
+      else begin
+        OutStream.Position := 0;
+        ChunkSize := OutStream.Size;
+        SetLength(SA, ChunkSize div SizeOf(AnsiChar));
+        OutStream.Read(PAnsiChar(SA)^, ChunkSize);
+        OutStream.Size := 0;
+        Mainform.Connection.Query(UTF8ToString(SA));
+        SQL := '';
+      end;
+    end else
+      SQL := '';
+  end;
+
+begin
+  EnableProgressBar(ProgressBarSteps);
+
+  TermLen := Length(Term);
+  EnclLen := Length(Encl);
+  LineTermLen := Length(LineTerm);
+
+  SetLength(TermTest, TermLen);
+  SetLength(EnclTest, EnclLen);
+  SetLength(LineTermTest, LineTermLen);
+
+  InEncl := False;
+
+  SQL := '';
+  Value := '';
+  OutStream := TMemoryStream.Create;
+
+  MainForm.ShowStatusMsg('Reading textfile ('+FormatByteNumber(_GetFileSize(editFilename.Text))+') ...');
+  Contents := ReadTextfile(editFilename.Text, Encoding);
+  ContentLen := Length(Contents);
+  MainForm.ShowStatusMsg;
+
+  P := 0;
+  ProgressCharsPerStep := ContentLen div ProgressBarSteps;
+  ProgressChars := 0;
+  RowCount := 0;
+  IgnoreLines := UpDownIgnoreLines.Position;
+  ValueCount := 0;
+  PacketSize := SIZE_MB div 2;
+  NextChar;
+
+  // TODO: read chunks!
+  while P <= ContentLen do begin
+    // Check characters left-side from current position
+    IsEncl := TestLeftChars(EnclTest, Encl, EnclLen);
+    IsTerm := TestLeftChars(TermTest, Term, TermLen);
+    IsLineTerm := TestLeftChars(LineTermTest, LineTerm, LineTermLen) and (ValueCount >= ColumnCount-1);
+
+    Value := Value + Contents[P];
+
+    if IsEncl then
+      InEncl := not InEncl;
+
+    if not InEncl then begin
+      if IsTerm then begin
+        SetLength(Value, Length(Value)-TermLen);
+        AddValue;
+      end else if IsLineTerm then begin
+        SetLength(Value, Length(Value)-LineTermLen);
+        AddValue;
+      end;
+    end;
+
+    if IsLineTerm and (not InEncl) then
+      AddRow;
+
+    NextChar;
+  end;
+  // Will check if SQL is empty and not run any query in that case:
+  AddRow;
+
+  Contents := '';
+  FreeAndNil(OutStream);
+  RowCount := Max(RowCount-IgnoreLines, 0);
+  Mainform.ProgressBarStatus.Hide;
 end;
+
 
 procedure Tloaddataform.btnOpenFileClick(Sender: TObject);
-begin
-  if OpenDialogCSVFile.Execute then
-    editfilename.Text := OpenDialogCSVFile.FileName;
-end;
-
-procedure Tloaddataform.chkReplaceClick(Sender: TObject);
-begin
-  if chkReplace.Checked then
-    chkIgnore.checked := false;
-end;
-
-procedure Tloaddataform.chkIgnoreClick(Sender: TObject);
-begin
-  if chkIgnore.Checked then
-    chkReplace.checked := false;
-end;
-
-procedure Tloaddataform.btnColUpClick(Sender: TObject);
 var
-  strtemp : String;
-  strchecked : boolean;
+  Dialog: TOpenTextFileDialog;
+  TestStream: TFileStream;
 begin
-  // move item up!
-  if chklistColumns.ItemIndex > -1 then
-  begin
-    if chklistColumns.ItemIndex > 0 then
-    begin // not first item...
-      strtemp := chklistColumns.Items[chklistColumns.ItemIndex-1];
-      strchecked := chklistColumns.Checked[chklistColumns.ItemIndex-1];
-      // replace old with new item...
-      chklistColumns.Items[chklistColumns.ItemIndex-1] := chklistColumns.Items[chklistColumns.ItemIndex];
-      chklistColumns.Checked[chklistColumns.ItemIndex-1] := chklistColumns.Checked[chklistColumns.ItemIndex];
-      // and set old item to its origin values...
-      chklistColumns.Items[chklistColumns.ItemIndex] := strtemp;
-      chklistColumns.Checked[chklistColumns.ItemIndex] := strchecked;
-
-      chklistColumns.ItemIndex := chklistColumns.ItemIndex-1;
+  Dialog := TOpenTextFileDialog.Create(Self);
+  Dialog.Filter := 'MySQL CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt|All files (*.*)|*.*';
+  Dialog.DefaultExt := 'csv';
+  Dialog.Encodings.Assign(Mainform.FileEncodings);
+  Dialog.EncodingIndex := 0;
+  if Dialog.Execute then begin
+    editfilename.Text := Dialog.FileName;
+    Encoding := Mainform.GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
+    if Encoding = nil then begin
+      TestStream := TFileStream.Create(Dialog.Filename, fmOpenRead or fmShareDenyNone);
+      Encoding := DetectEncoding(TestStream);
+      TestStream.Free;
     end;
+    SelectedCharsetIndex := -1;
+    grpParseMethod.OnClick(Sender);
   end;
+  Dialog.Free;
 end;
 
-procedure Tloaddataform.btnColDownClick(Sender: TObject);
-var
-  strtemp : String;
-  strchecked : boolean;
-begin
-  // move item down!
-  if chklistColumns.ItemIndex > -1 then
-  begin
-    if chklistColumns.ItemIndex < chklistColumns.Items.count-1 then
-    begin // not last item...
-      strtemp := chklistColumns.Items[chklistColumns.ItemIndex+1];
-      strchecked := chklistColumns.Checked[chklistColumns.ItemIndex+1];
-      // replace old with new item...
-      chklistColumns.Items[chklistColumns.ItemIndex+1] := chklistColumns.Items[chklistColumns.ItemIndex];
-      chklistColumns.Checked[chklistColumns.ItemIndex+1] := chklistColumns.Checked[chklistColumns.ItemIndex];
-      // and set old item to its origin values...
-      chklistColumns.Items[chklistColumns.ItemIndex] := strtemp;
-      chklistColumns.Checked[chklistColumns.ItemIndex] := strchecked;
 
-      chklistColumns.ItemIndex := chklistColumns.ItemIndex+1;
-    end;
+procedure Tloaddataform.btnColMoveClick(Sender: TObject);
+var
+  CheckedSelected, CheckedTarget: Boolean;
+  TargetIndex: Integer;
+begin
+  // Move column name and its checkstate up or down
+  if Sender = btnColUp then
+    TargetIndex := chklistColumns.ItemIndex-1
+  else
+    TargetIndex := chklistColumns.ItemIndex+1;
+  if (TargetIndex > -1) and (TargetIndex < chklistColumns.Count) then begin
+    CheckedSelected := chklistColumns.Checked[chklistColumns.ItemIndex];
+    CheckedTarget := chklistColumns.Checked[TargetIndex];
+    chklistColumns.Items.Exchange(chklistColumns.ItemIndex, TargetIndex);
+    chklistColumns.Checked[chklistColumns.ItemIndex] := CheckedTarget;
+    chklistColumns.Checked[TargetIndex] := CheckedSelected;
+    chklistColumns.ItemIndex := TargetIndex;
   end;
 end;
 
