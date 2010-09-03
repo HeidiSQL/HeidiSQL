@@ -155,12 +155,13 @@ const
   REGNAME_CSV_ESCAPER = 'CSVImportFieldEscaperV2';
   REGNAME_EXPORT_LOCALENUMBERS = 'ExportLocaleNumberFormats';
   DEFAULT_EXPORT_LOCALENUMBERS = False;
+  REGNAME_CSV_WINDOWWIDTH = 'CSVImportWindowWidth';
+  REGNAME_CSV_WINDOWHEIGHT = 'CSVImportWindowHeight';
   REGNAME_CSV_FILENAME = 'loadfilename';
   REGNAME_CSV_ENCLOPTION = 'CSVImportFieldsEnclosedOptionallyV2';
   REGNAME_CSV_IGNORELINES = 'CSVImportIgnoreLines';
-  REGNAME_CSV_LOWPRIO = 'CSVImportLowPriority';
-  REGNAME_CSV_REPLACE = 'CSVImportReplace';
-  REGNAME_CSV_IGNORE = 'CSVImportIgnore';
+  REGNAME_CSV_DUPLICATES = 'CSVImportDuplicateHandling';
+  REGNAME_CSV_PARSEMETHOD = 'CSVImportParseMethod';
   REGNAME_COPYMAXSIZE = 'CopyDataMaxSize';
   DEFAULT_COPYMAXSIZE = 5;
   REGNAME_DO_UPDATECHECK = 'Updatecheck';

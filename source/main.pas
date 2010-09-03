@@ -992,6 +992,8 @@ type
     function AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
     procedure DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
     function GetEncodingByName(Name: String): TEncoding;
+    function GetEncodingName(Encoding: TEncoding): String;
+    function GetCharsetByEncoding(Encoding: TEncoding): String;
 end;
 
 
@@ -1160,6 +1162,7 @@ begin
   FreeAndNil(CreateDatabaseForm);
   FreeAndNil(SearchReplaceDialog);
   FreeAndNil(CopyTableDialog);
+  FreeAndNil(ImportTextfileDialog);
 
   // Close database connection
   DoDisconnect;
@@ -9293,6 +9296,90 @@ begin
     5: Result := TEncoding.UTF8;
     6: Result := TEncoding.UTF7;
   end;
+end;
+
+
+function TMainForm.GetEncodingName(Encoding: TEncoding): String;
+var
+  idx: Integer;
+begin
+  if Encoding = TEncoding.Default then idx := 1
+  else if Encoding = TEncoding.ASCII then idx := 2
+  else if Encoding = TEncoding.Unicode then idx := 3
+  else if Encoding = TEncoding.BigEndianUnicode then idx := 4
+  else if Encoding = TEncoding.UTF8 then idx := 5
+  else if Encoding = TEncoding.UTF7 then idx := 6
+  else idx := 0;
+  Result := FileEncodings[idx];
+end;
+
+
+function TMainForm.GetCharsetByEncoding(Encoding: TEncoding): String;
+begin
+  Result := '';
+  if Encoding = TEncoding.Default then begin
+    // Listing taken from http://forge.mysql.com/worklog/task.php?id=1349
+    case GetACP of
+      437: Result := 'cp850';
+      850: Result := 'cp850';
+      852: Result := 'cp852';
+      858: Result := 'cp850';
+      866: Result := 'cp866';
+      874: Result := 'tis620';
+      932: Result := 'cp932';
+      936: Result := 'gbk';
+      949: Result := 'euckr';
+      959: Result := 'big5';
+      1200: Result := 'utf16le';
+      1201: Result := 'utf16';
+      1250: Result := 'latin2';
+      1251: Result := 'cp1251';
+      1252: Result := 'latin1';
+      1253: Result := 'greek';
+      1254: Result := 'latin5';
+      1255: Result := 'hebrew';
+      1256: Result := 'cp1256';
+      1257: Result := 'cp1257';
+      10000: Result := 'macroman';
+      10001: Result := 'sjis';
+      10002: Result := 'big5';
+      10008: Result := 'gb2312';
+      10021: Result := 'tis620';
+      10029: Result := 'macce';
+      12001: Result := 'utf32';
+      20107: Result := 'swe7';
+      20127: Result := 'ascii';
+      20866: Result := 'koi8r';
+      20932: Result := 'ujis';
+      20936: Result := 'gb2312';
+      20949: Result := 'euckr';
+      21866: Result := 'koi8u';
+      28591: Result := 'latin1';
+      28592: Result := 'latin2';
+      28597: Result := 'greek';
+      28598: Result := 'hebrew';
+      28599: Result := 'latin5';
+      28603: Result := 'latin7';
+      28605: Result := 'latin9';
+      38598: Result := 'hebrew';
+      51932: Result := 'ujis';
+      51936: Result := 'gb2312';
+      51949: Result := 'euckr';
+      51950: Result := 'big5';
+      54936: Result := 'gb18030';
+      65001: Result := 'utf8';
+    end;
+  end else if Encoding = TEncoding.ASCII then
+    Result := 'ascii'
+  else if Encoding = TEncoding.Unicode then
+    Result := 'utf16le'
+  else if Encoding = TEncoding.BigEndianUnicode then
+    Result := 'utf16'
+  else if Encoding = TEncoding.UTF8 then
+    Result := 'utf8'
+  else if Encoding = TEncoding.UTF7 then
+    Result := 'utf7';
+  // Auto-detection not supported here
 end;
 
 
