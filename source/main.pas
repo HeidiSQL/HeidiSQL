@@ -1817,6 +1817,7 @@ end;
 procedure TMainForm.DoDisconnect;
 var
   Results: TMySQLQuery;
+  Tab: TQueryTab;
 begin
   // Do nothing in case user clicked Cancel on session manager
   if (not Assigned(Connection)) or (not Connection.Active) then
@@ -1845,6 +1846,10 @@ begin
   SynMemoFilter.Clear;
   SetLength(DataGridSortColumns, 0);
   FreeAndNil(SQLHelpForm);
+  for Tab in QueryTabs do
+    FreeAndNil(Tab.QueryProfile);
+  RefreshHelperNode(HELPERNODE_PROFILE);
+  RefreshHelperNode(HELPERNODE_COLUMNS);
 
   // Closing connection
   Connection.Active := False;
@@ -9648,8 +9653,8 @@ begin
   for Tab in QueryTabs do begin
     Node := FindNode(Tab.treeHelpers, NodeIndex, nil);
     if vsInitialized in Node.States then begin
-      Tab.treeHelpers.ReinitNode(Node, True);
-      Tab.treeHelpers.InvalidateChildren(Node, True);
+      Node.States := Node.States - [vsInitialized];
+      Tab.treeHelpers.InvalidateNode(Node);
     end;
   end;
 end;
