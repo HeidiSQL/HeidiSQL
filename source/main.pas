@@ -858,7 +858,6 @@ type
     procedure UpdateLineCharPanel;
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
     procedure SetSnippetFilenames(Value: TStringList);
-    procedure RefreshHelperNode(NodeIndex: Cardinal);
   public
     Connection: TMySQLConnection;
     SessionName: String;
@@ -994,6 +993,7 @@ type
     function GetEncodingByName(Name: String): TEncoding;
     function GetEncodingName(Encoding: TEncoding): String;
     function GetCharsetByEncoding(Encoding: TEncoding): String;
+    procedure RefreshHelperNode(NodeIndex: Cardinal);
 end;
 
 

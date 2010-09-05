@@ -405,6 +405,7 @@ begin
     Mainform.UpdateEditorTab;
     Mainform.RefreshActiveTreeDB(DBObject);
     Mainform.ParseSelectedTableStructure;
+    Mainform.RefreshHelperNode(HELPERNODE_COLUMNS);
     ResetModificationFlags;
     AlterCodeValid := False;
     CreateCodeValid := False;
