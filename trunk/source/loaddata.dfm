@@ -1,13 +1,12 @@
 object loaddataform: Tloaddataform
   Left = 212
   Top = 111
-  BorderWidth = 3
   Caption = 'Import text file'
-  ClientHeight = 488
-  ClientWidth = 408
+  ClientHeight = 494
+  ClientWidth = 454
   Color = clBtnFace
   Constraints.MinHeight = 530
-  Constraints.MinWidth = 430
+  Constraints.MinWidth = 470
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -19,13 +18,13 @@ object loaddataform: Tloaddataform
   OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
-    408
-    488)
+    454
+    494)
   PixelsPerInch = 96
   TextHeight = 13
   object btnImport: TButton
-    Left = 244
-    Top = 455
+    Left = 290
+    Top = 461
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -37,8 +36,8 @@ object loaddataform: Tloaddataform
     OnClick = btnImportClick
   end
   object btnCancel: TButton
-    Left = 325
-    Top = 455
+    Left = 371
+    Top = 461
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -50,13 +49,13 @@ object loaddataform: Tloaddataform
   object grpFilename: TGroupBox
     Left = 8
     Top = 8
-    Width = 392
+    Width = 438
     Height = 84
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Input file'
     TabOrder = 0
     DesignSize = (
-      392
+      438
       84)
     object lblFilename: TLabel
       Left = 10
@@ -76,7 +75,7 @@ object loaddataform: Tloaddataform
     object editFilename: TButtonedEdit
       Left = 88
       Top = 24
-      Width = 294
+      Width = 340
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.ImageListMain
@@ -91,7 +90,7 @@ object loaddataform: Tloaddataform
     object comboEncoding: TComboBox
       Left = 88
       Top = 51
-      Width = 294
+      Width = 340
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -100,47 +99,55 @@ object loaddataform: Tloaddataform
       OnSelect = comboEncodingSelect
     end
   end
-  object grpFields: TGroupBox
-    Left = 8
-    Top = 93
-    Width = 209
-    Height = 109
-    Caption = 'Fields'
-    TabOrder = 1
+  object grpChars: TGroupBox
+    Left = 199
+    Top = 98
+    Width = 247
+    Height = 135
+    Anchors = [akLeft, akTop, akRight]
+    Caption = 'Control characters'
+    TabOrder = 2
     DesignSize = (
-      209
-      109)
+      247
+      135)
     object lblFieldTerminater: TLabel
       Left = 10
       Top = 26
-      Width = 67
+      Width = 97
       Height = 13
-      Caption = 'terminated by'
+      Caption = 'Fields terminated by'
     end
     object lblFieldEncloser: TLabel
       Left = 10
       Top = 51
-      Width = 57
+      Width = 87
       Height = 13
-      Caption = 'enclosed by'
+      Caption = 'Fields enclosed by'
     end
     object lblFieldEscaper: TLabel
       Left = 10
       Top = 75
-      Width = 55
+      Width = 85
       Height = 13
-      Caption = 'escaped by'
+      Caption = 'Fields escaped by'
+    end
+    object lblLineTerminator: TLabel
+      Left = 10
+      Top = 100
+      Width = 94
+      Height = 13
+      Caption = 'Lines terminated by'
     end
     object editFieldEscaper: TEdit
-      Left = 88
+      Left = 124
       Top = 72
       Width = 49
       Height = 21
-      TabOrder = 2
+      TabOrder = 3
       Text = '"'
     end
     object editFieldEncloser: TEdit
-      Left = 88
+      Left = 124
       Top = 48
       Width = 49
       Height = 21
@@ -148,86 +155,105 @@ object loaddataform: Tloaddataform
       Text = '"'
     end
     object editFieldTerminator: TEdit
-      Left = 88
-      Top = 24
+      Left = 124
+      Top = 23
       Width = 49
       Height = 21
       TabOrder = 0
       Text = ';'
     end
     object chkFieldsEnclosedOptionally: TCheckBox
-      Left = 143
+      Left = 179
       Top = 50
-      Width = 62
+      Width = 65
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'optionally'
       Checked = True
       State = cbChecked
-      TabOrder = 3
+      TabOrder = 2
+    end
+    object editLineTerminator: TEdit
+      Left = 124
+      Top = 97
+      Width = 49
+      Height = 21
+      TabOrder = 4
+      Text = '\r\n'
     end
   end
-  object grpLines: TGroupBox
-    Left = 223
-    Top = 93
-    Width = 177
-    Height = 109
-    Anchors = [akLeft, akTop, akRight]
-    Caption = 'Lines'
-    TabOrder = 2
+  object grpOptions: TGroupBox
+    Left = 8
+    Top = 98
+    Width = 185
+    Height = 135
+    Caption = 'Options'
+    TabOrder = 1
+    DesignSize = (
+      185
+      135)
     object lblIgnoreLinesCount: TLabel
       Left = 143
-      Top = 44
-      Width = 24
+      Top = 26
+      Width = 21
       Height = 13
-      Caption = 'Lines'
-    end
-    object lblLineTerminator: TLabel
-      Left = 10
-      Top = 20
-      Width = 67
-      Height = 13
-      Caption = 'terminated by'
+      Caption = 'lines'
     end
     object lblIgnoreLines: TLabel
       Left = 10
-      Top = 44
-      Width = 30
+      Top = 26
+      Width = 54
       Height = 13
-      Caption = 'ignore'
+      Caption = 'Ignore first'
     end
     object updownIgnoreLines: TUpDown
       Left = 121
-      Top = 41
+      Top = 23
       Width = 16
       Height = 21
       Associate = editIgnoreLines
       Max = 32767
       Position = 1
-      TabOrder = 2
+      TabOrder = 1
     end
     object editIgnoreLines: TEdit
       Left = 88
-      Top = 41
+      Top = 23
       Width = 33
       Height = 21
-      TabOrder = 1
+      TabOrder = 0
       Text = '1'
     end
-    object editLineTerminator: TEdit
-      Left = 88
-      Top = 17
-      Width = 49
-      Height = 21
-      TabOrder = 0
-      Text = '\r\n'
+    object chkLowPriority: TCheckBox
+      Left = 10
+      Top = 51
+      Width = 172
+      Height = 31
+      Anchors = [akLeft, akTop, akRight]
+      Caption = 'Low priority, avoid high server load'
+      Checked = True
+      State = cbChecked
+      TabOrder = 2
+      WordWrap = True
+    end
+    object chkLocalNumbers: TCheckBox
+      Left = 10
+      Top = 86
+      Width = 172
+      Height = 43
+      Anchors = [akLeft, akTop, akRight]
+      Caption = 
+        'Input file contains local formatted numbers, e.g. 1.234,56 in Ge' +
+        'rmany'
+      TabOrder = 3
+      WordWrap = True
     end
   end
   object grpDuplicates: TRadioGroup
     Left = 8
-    Top = 208
-    Width = 209
-    Height = 130
+    Top = 239
+    Width = 185
+    Height = 123
     Caption = 'Handling of duplicate rows'
     ItemIndex = 2
     Items.Strings = (
@@ -238,9 +264,9 @@ object loaddataform: Tloaddataform
   end
   object grpParseMethod: TRadioGroup
     Left = 8
-    Top = 344
-    Width = 209
-    Height = 105
+    Top = 368
+    Width = 185
+    Height = 87
     Anchors = [akLeft, akTop, akBottom]
     Caption = 'Method'
     ItemIndex = 0
@@ -252,16 +278,16 @@ object loaddataform: Tloaddataform
     OnClick = grpParseMethodClick
   end
   object grpDestination: TGroupBox
-    Left = 223
-    Top = 208
-    Width = 177
-    Height = 241
+    Left = 199
+    Top = 239
+    Width = 247
+    Height = 216
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Destination'
     TabOrder = 5
     DesignSize = (
-      177
-      241)
+      247
+      216)
     object lblDatabase: TLabel
       Left = 10
       Top = 24
@@ -286,7 +312,7 @@ object loaddataform: Tloaddataform
     object comboDatabase: TComboBox
       Left = 64
       Top = 21
-      Width = 103
+      Width = 173
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -296,7 +322,7 @@ object loaddataform: Tloaddataform
     object comboTable: TComboBox
       Left = 64
       Top = 45
-      Width = 103
+      Width = 173
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -306,14 +332,14 @@ object loaddataform: Tloaddataform
     object chklistColumns: TCheckListBox
       Left = 10
       Top = 91
-      Width = 128
-      Height = 141
+      Width = 198
+      Height = 116
       Anchors = [akLeft, akTop, akRight, akBottom]
       ItemHeight = 13
       TabOrder = 2
     end
     object ToolBarColMove: TToolBar
-      Left = 144
+      Left = 214
       Top = 91
       Width = 23
       Height = 44

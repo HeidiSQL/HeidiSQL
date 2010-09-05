@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst,
   SynRegExpr, Buttons, ExtCtrls, ToolWin, ExtDlgs, Math,
-  mysql_connection;
+  mysql_connection, mysql_structures;
 
 type
   Tloaddataform = class(TForm)
@@ -28,7 +28,7 @@ type
     btnColDown: TToolButton;
     grpFilename: TGroupBox;
     editFilename: TButtonedEdit;
-    grpFields: TGroupBox;
+    grpChars: TGroupBox;
     lblFieldTerminater: TLabel;
     lblFieldEncloser: TLabel;
     lblFieldEscaper: TLabel;
@@ -36,7 +36,7 @@ type
     editFieldEncloser: TEdit;
     editFieldTerminator: TEdit;
     chkFieldsEnclosedOptionally: TCheckBox;
-    grpLines: TGroupBox;
+    grpOptions: TGroupBox;
     lblIgnoreLinesCount: TLabel;
     updownIgnoreLines: TUpDown;
     editIgnoreLines: TEdit;
@@ -49,6 +49,8 @@ type
     grpDuplicates: TRadioGroup;
     grpParseMethod: TRadioGroup;
     grpDestination: TGroupBox;
+    chkLowPriority: TCheckBox;
+    chkLocalNumbers: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
@@ -68,6 +70,7 @@ type
     Term, Encl, Escp, LineTerm: String;
     RowCount, ColumnCount: Integer;
     SelectedCharsetIndex: Integer;
+    Columns: TTableColumnList;
   public
     { Public declarations }
   end;
@@ -95,6 +98,8 @@ begin
   chkFieldsEnclosedOptionally.Checked :=  GetRegValue(REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked);
   editFieldEscaper.Text := GetRegValue(REGNAME_CSV_ESCAPER, editFieldEscaper.Text);
   updownIgnoreLines.Position := GetRegValue(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
+  chkLowPriority.Checked := GetRegValue(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
+  chkLocalNumbers.Checked := GetRegValue(REGNAME_CSV_LOCALNUMBERS, chkLocalNumbers.Checked);
   grpDuplicates.ItemIndex := GetRegValue(REGNAME_CSV_DUPLICATES, grpDuplicates.ItemIndex);
   grpParseMethod.ItemIndex := GetRegValue(REGNAME_CSV_PARSEMETHOD, grpParseMethod.ItemIndex);
 end;
@@ -113,6 +118,8 @@ begin
   MainReg.WriteBool(REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked);
   MainReg.WriteString(REGNAME_CSV_ESCAPER, editFieldEscaper.Text);
   MainReg.WriteInteger(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
+  MainReg.WriteBool(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
+  MainReg.WriteBool(REGNAME_CSV_LOCALNUMBERS, chkLocalNumbers.Checked);
   MainReg.WriteInteger(REGNAME_CSV_DUPLICATES, grpDuplicates.ItemIndex);
   MainReg.WriteInteger(REGNAME_CSV_PARSEMETHOD, grpParseMethod.ItemIndex);
 end;
@@ -212,11 +219,29 @@ begin
 end;
 
 procedure Tloaddataform.comboTableChange(Sender: TObject);
+var
+  CreateCode: String;
+  Col: TTableColumn;
+  DBObjects: TDBObjectList;
+  Obj: TDBObject;
 begin
   // fill columns:
   chklistColumns.Items.Clear;
-  if (comboDatabase.Text <> '') and (comboTable.Text <> '') then
-    chklistColumns.Items.Text := Mainform.Connection.GetCol('SHOW FIELDS FROM ' + mainform.mask(comboDatabase.Text) + '.' +  mainform.mask(comboTable.Text)).Text;
+  if (comboDatabase.Text <> '') and (comboTable.Text <> '') then begin
+    if not Assigned(Columns) then
+      Columns := TTableColumnList.Create;
+    DBObjects := Mainform.Connection.GetDBObjects(comboDatabase.Text);
+    Obj := DBObjects[comboTable.ItemIndex];
+    case Obj.NodeType of
+      lntTable: begin
+        CreateCode := Mainform.Connection.GetVar('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+MainForm.mask(Obj.Database)+'.'+MainForm.mask(Obj.Name), 1);
+        ParseTableStructure(CreateCode, Columns, nil, nil);
+      end;
+      lntView: ParseViewStructure(Obj.Name, Columns);
+    end;
+    for Col in Columns do
+      chklistColumns.Items.Add(Col.Name);
+  end;
 
   // select all:
   ToggleCheckListBox( chklistColumns, True );
@@ -230,6 +255,7 @@ procedure Tloaddataform.btnImportClick(Sender: TObject);
 var
   StartTickCount: Cardinal;
   i: Integer;
+  Warnings: TMySQLQuery;
 begin
   Screen.Cursor := crHourglass;
   StartTickCount := GetTickCount;
@@ -251,6 +277,28 @@ begin
       1: ClientParse(Sender);
     end;
     MainForm.LogSQL(FormatNumber(RowCount)+' rows imported in '+FormatNumber((GetTickcount-StartTickCount)/1000, 3)+' seconds.');
+    // SHOW WARNINGS is implemented as of MySQL 4.1.0
+    if MainForm.Connection.ServerVersionInt >= 40100 then begin
+      Warnings := MainForm.Connection.GetResults('SHOW WARNINGS');
+      while not Warnings.Eof do begin
+        MainForm.LogSQL(Warnings.Col(0)+' ('+Warnings.Col(1)+'): '+Warnings.Col(2), lcError);
+        Warnings.Next;
+      end;
+      if Warnings.RecordCount > 0 then begin
+        MessageDlg('Your file was imported but the server returned '+FormatNumber(Warnings.RecordCount)+' warnings and/or notes. See the log panel for details.', mtError, [mbOK], 0);
+        ModalResult := mrNone;
+      end;
+    end;
+    // Hint user if zero rows were detected in file
+    if (ModalResult <> mrNone) and (RowCount = 0) then begin
+      MessageDlg('No rows were imported. This can have several causes:'+CRLF+
+        ' - File is empty'+CRLF+
+        ' - Wrong file encoding was selected or detected'+CRLF+
+        ' - Field and/or line terminator do not fit to the file contents'
+        , mtError, [mbOK], 0);
+      ModalResult := mrNone;
+    end;
+
   except
     on E:EDatabaseError do begin
       Screen.Cursor := crDefault;
@@ -266,10 +314,13 @@ end;
 
 procedure Tloaddataform.ServerParse(Sender: TObject);
 var
-  SQL: String;
+  SQL, SetColVars: String;
   i: Integer;
 begin
-  SQL := 'LOAD DATA LOCAL INFILE ' + esc(editFilename.Text) + ' ';
+  SQL := 'LOAD DATA ';
+  if chkLowPriority.Checked then
+    SQL := SQL + 'LOW_PRIORITY ';
+  SQL := SQL + 'LOCAL INFILE ' + esc(editFilename.Text) + ' ';
   case grpDuplicates.ItemIndex of
     1: SQL := SQL + 'IGNORE ';
     2: SQL := SQL + 'REPLACE ';
@@ -302,12 +353,24 @@ begin
 
   // Column listing
   SQL := SQL + '(';
+  SetColVars := '';
   for i:=0 to chklistColumns.Items.Count-1 do begin
-    if chklistColumns.Checked[i] then
-      SQL := SQL + Mainform.Mask(chklistColumns.Items[i]) + ', ';
+    if chklistColumns.Checked[i] then begin
+      if chkLocalNumbers.Checked and (Columns[i].DataType.Category in [dtcInteger, dtcReal]) then begin
+        SQL := SQL + '@ColVar' + IntToStr(i) + ', ';
+        SetColVars := SetColVars + Mainform.Mask(chklistColumns.Items[i]) +
+          ' = REPLACE(REPLACE(@ColVar' + IntToStr(i) + ', '+esc(ThousandSeparator)+', ''''), '+esc(DecimalSeparator)+', ''.''), ';
+      end else
+        SQL := SQL + Mainform.Mask(chklistColumns.Items[i]) + ', ';
+    end;
   end;
   SetLength(SQL, Length(SQL)-2);
   SQL := SQL + ')';
+  if SetColVars <> '' then begin
+    SetLength(SetColVars, Length(SetColVars)-2);
+    SQL := SQL + ' SET ' + SetColVars;
+  end;
+
 
   Mainform.Connection.Query(SQL);
   RowCount := Max(MainForm.Connection.RowsAffected, 0);
@@ -354,6 +417,7 @@ const
   procedure AddValue;
   var
     i: Integer;
+    LowPrio: String;
   begin
     Inc(ValueCount);
     if ValueCount <= ColumnCount then begin
@@ -362,12 +426,15 @@ const
         Delete(Value, Length(Value)-EnclLen+1, EnclLen);
       end;
       if SQL = '' then begin
+        LowPrio := '';
+        if chkLowPriority.Checked then
+          LowPrio := 'LOW_PRIORITY ';
         case grpDuplicates.ItemIndex of
-          0: SQL := 'INSERT';
-          1: SQL := 'INSERT IGNORE';
-          2: SQL := 'REPLACE';
+          0: SQL := 'INSERT '+LowPrio;
+          1: SQL := 'INSERT '+LowPrio+'IGNORE ';
+          2: SQL := 'REPLACE '+LowPrio;
         end;
-        SQL := SQL + ' INTO '+MainForm.mask(comboDatabase.Text)+'.'+MainForm.mask(comboTable.Text)+' (';
+        SQL := SQL + 'INTO '+MainForm.mask(comboDatabase.Text)+'.'+MainForm.mask(comboTable.Text)+' (';
         for i:=0 to chkListColumns.Items.Count-1 do begin
           if chkListColumns.Checked[i] then
             SQL := SQL + MainForm.mask(chkListColumns.Items[i]) + ', ';
@@ -375,8 +442,12 @@ const
         SetLength(SQL, Length(SQL)-2);
         SQL := SQL + ') VALUES (';
       end;
-      if Value <> 'NULL' then
-        Value := esc(Value);
+      if Value <> 'NULL' then begin
+        if chkLocalNumbers.Checked and (Columns[ValueCount-1].DataType.Category in [dtcInteger, dtcReal]) then
+          Value := UnformatNumber(Value)
+        else
+          Value := esc(Value);
+      end;
       SQL := SQL + Value + ', ';
     end;
     Value := '';
