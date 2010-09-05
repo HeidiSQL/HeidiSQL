@@ -6608,7 +6608,6 @@ end;
 procedure TMainForm.DBObjectsCleared(Database: String);
 var
   Node: PVirtualNode;
-  WasExpanded: Boolean;
 begin
   // Avoid AVs while processing FormDestroy
   if csDestroying in ComponentState then
@@ -6619,9 +6618,7 @@ begin
   Node := DBtree.GetFirstChild(DBtree.GetFirst);
   while Assigned(Node) do begin
     if Database = DBtree.Text[Node, 0] then begin
-      WasExpanded := DBtree.Expanded[Node];
-      DBtree.ResetNode(Node);
-      DBtree.Expanded[Node] := WasExpanded;
+      Node.States := Node.States - [vsInitialized];
       break;
     end;
     Node := DBtree.GetNextSibling(Node);
@@ -6711,11 +6708,8 @@ begin
       Objects := Connection.GetDBObjects(ActiveDatabase);
       ObjNode := DBtree.GetFirstChild(FindDBNode(ActiveDatabase));
       while Assigned(ObjNode) do begin
-        if (Cardinal(Objects.Count) > ObjNode.Index)
-          and (Objects[ObjNode.Index].Name = FocusObject.Name)
-          and (Objects[ObjNode.Index].NodeType = FocusObject.NodeType) then begin
+        if (Cardinal(Objects.Count) > ObjNode.Index) and Objects[ObjNode.Index].IsSameAs(FocusObject) then
           SelectNode(DBtree, ObjNode);
-        end;
         ObjNode := DBtree.GetNextSibling(ObjNode);
       end;
     end;
