@@ -220,7 +220,7 @@ end;
 
 procedure Tloaddataform.comboTableChange(Sender: TObject);
 var
-  CreateCode: String;
+  Algorithm, CheckOption, SelectCode: String;
   Col: TTableColumn;
   DBObjects: TDBObjectList;
   Obj: TDBObject;
@@ -233,11 +233,8 @@ begin
     DBObjects := Mainform.Connection.GetDBObjects(comboDatabase.Text);
     Obj := DBObjects[comboTable.ItemIndex];
     case Obj.NodeType of
-      lntTable: begin
-        CreateCode := Mainform.Connection.GetVar('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+MainForm.mask(Obj.Database)+'.'+MainForm.mask(Obj.Name), 1);
-        ParseTableStructure(CreateCode, Columns, nil, nil);
-      end;
-      lntView: ParseViewStructure(Obj.Name, Columns);
+      lntTable: ParseTableStructure(Obj.CreateCode, Columns, nil, nil);
+      lntView: ParseViewStructure(Obj.CreateCode, Columns, Algorithm, CheckOption, SelectCode);
     end;
     for Col in Columns do
       chklistColumns.Items.Add(Col.Name);

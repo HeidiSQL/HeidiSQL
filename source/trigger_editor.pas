@@ -173,6 +173,7 @@ begin
       ' FOR EACH ROW '+SynMemoStatement.Text;
     Mainform.Connection.Query(sql);
     DBObject.Name := editName.Text;
+    DBObject.CreateCode := '';
     Mainform.UpdateEditorTab;
     Mainform.RefreshActiveTreeDB(DBObject);
     Modified := False;

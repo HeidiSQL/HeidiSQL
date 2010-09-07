@@ -128,7 +128,7 @@ end;
 
 procedure TfrmRoutineEditor.Init(Obj: TDBObject);
 var
-  Create, Returns, DataAccess, Security, Comment, Body: String;
+  Returns, DataAccess, Security, Comment, Body: String;
   Deterministic: Boolean;
 begin
   inherited;
@@ -147,8 +147,7 @@ begin
   if DBObject.Name <> '' then begin
     // Editing existing routine
     comboType.ItemIndex := ListIndexByRegExpr(comboType.Items, '^'+FAlterRoutineType+'\b');
-    Create := Mainform.Connection.GetVar('SHOW CREATE '+FAlterRoutineType+' '+Mainform.mask(editName.Text), 2);
-    ParseRoutineStructure(Create, Parameters, Deterministic, Returns, DataAccess, Security, Comment, Body);
+    ParseRoutineStructure(DBObject.CreateCode, Parameters, Deterministic, Returns, DataAccess, Security, Comment, Body);
     comboReturns.Text := Returns;
     chkDeterministic.Checked := Deterministic;
     if DataAccess <> '' then
@@ -450,6 +449,7 @@ begin
     Mainform.Connection.Query(ComposeCreateStatement(editName.Text));
     // Set editing name if create/alter query was successful
     DBObject.Name := editName.Text;
+    DBObject.CreateCode := '';
     FAlterRoutineType := UpperCase(GetFirstWord(comboType.Text));
     if FAlterRoutineType = 'PROCEDURE' then DBObject.NodeType := lntProcedure
     else DBObject.NodeType := lntFunction;

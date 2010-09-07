@@ -832,6 +832,7 @@ type
     FilterTextData: String;
     PreviousFocusedNode: PVirtualNode;
     FProcessDBtreeFocusChanges: Boolean;
+    FSelectedTable: TDBObject;
     FCmdlineFilenames: TStringlist;
     FCmdlineConnectionParams: TConnectionParameters;
     FCmdlineSessionName: String;
@@ -843,7 +844,6 @@ type
     procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
     procedure insertFunction(Sender: TObject);
     function GetActiveDatabase: String;
-    function GetSelectedTable: TDBObject;
     procedure SetSelectedDatabase(db: String);
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     procedure AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
@@ -933,7 +933,6 @@ type
     DataGridFocusedColumnName: String;
     DataGridResult: TMySQLQuery;
     DataGridFullRowMode: Boolean;
-    SelectedTableCreateStatement: String;
     SelectedTableColumns: TTableColumnList;
     SelectedTableKeys: TTableKeyList;
     SelectedTableForeignKeys: TForeignKeyList;
@@ -965,7 +964,7 @@ type
     function ActiveGrid: TVirtualStringTree;
     function GridResult(Grid: TBaseVirtualTree): TMySQLQuery;
     property ActiveDatabase : String read GetActiveDatabase write SetSelectedDatabase;
-    property SelectedTable : TDBObject read GetSelectedTable;
+    property SelectedTable : TDBObject read FSelectedTable;
     procedure TestVTreeDataArray( P: PVTreeDataArray );
     function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
     procedure ActivateFileLogging;
@@ -2809,7 +2808,7 @@ begin
   tabEditor.TabVisible := True;
   PagecontrolMain.ActivePage := tabEditor;
   a := Sender as TAction;
-  Obj := TDBObject.Create;
+  Obj := TDBObject.Create(Connection);
   Obj.Database := ActiveDatabase;
   if a = actCreateTable then Obj.NodeType := lntTable
   else if a = actCreateView then Obj.NodeType := lntView
@@ -2868,7 +2867,7 @@ end;
 procedure TMainForm.actRunRoutinesExecute(Sender: TObject);
 var
   Tab: TQueryTab;
-  Query, ParamInput, ProcOrFunc,
+  Query, ParamInput,
   Returns, DataAccess, Security, Comment, Body: String;
   Deterministic: Boolean;
   i: Integer;
@@ -2898,20 +2897,11 @@ begin
     actNewQueryTab.Execute;
     Tab := QueryTabs[MainForm.QueryTabs.Count-1];
     case Obj.NodeType of
-      lntProcedure: begin
-        Query := 'CALL ';
-        ProcOrFunc := 'PROCEDURE';
-      end;
-      lntFunction: begin
-        Query := 'SELECT ';
-        ProcOrFunc := 'FUNCTION';
-      end;
+      lntProcedure: Query := 'CALL ';
+      lntFunction: Query := 'SELECT ';
     end;
     Parameters := TRoutineParamList.Create;
-    ParseRoutineStructure(Connection.GetVar('SHOW CREATE '+ProcOrFunc+' '+mask(Obj.Name), 2),
-      Parameters,
-      Deterministic, Returns, DataAccess, Security, Comment, Body
-      );
+    ParseRoutineStructure(Obj.CreateCode, Parameters, Deterministic, Returns, DataAccess, Security, Comment, Body);
     Query := Query + mask(Obj.Name);
     ParamInput := '';
     for i:=0 to Parameters.Count-1 do begin
@@ -5331,21 +5321,6 @@ begin
 end;
 
 
-function TMainForm.GetSelectedTable: TDBObject;
-var
-  Node: PVirtualNode;
-  DBObjects: TDBObjectList;
-begin
-  Node := DBtree.FocusedNode;
-  Result := TDBObject.Create;
-  if Assigned(Node) and (DBtree.GetNodeLevel(Node)=2) then begin
-    DBObjects := Connection.GetDBObjects(ActiveDatabase);
-    if Integer(Node.Index) < DBObjects.Count then
-      Result.Assign(DBObjects[Node.Index]);
-  end;
-end;
-
-
 function TMainForm.GetTreeNodeType(Tree: TBaseVirtualTree; Node: PVirtualNode): TListNodeType;
 var
   DBObjects: TDBObjectList;
@@ -6469,18 +6444,22 @@ procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
   newDb, oldDb, newDbObject: String;
+  DBObjects: TDBObjectList;
 begin
   debug('DBtreeFocusChanged()');
-  SelectedTableCreateStatement := '';
-  if not Assigned(Node) then
+  if not Assigned(Node) then begin
+    FSelectedTable := TDBObject.Create(Connection);
     Exit;
+  end;
   if not FProcessDBtreeFocusChanges then
     Exit;
+
   // Post pending UPDATE
   if Assigned(DataGridResult) and DataGridResult.Modified then
     actDataPostChangesExecute(DataGrid);
   case Sender.GetNodeLevel(Node) of
     0: begin
+      FSelectedTable := TDBObject.Create(Connection);
       if (not DBtree.Dragging) and (not QueryTabActive) then begin
         PageControlMain.ActivePage := tabHost;
         PageControlMain.OnChange(Sender);
@@ -6493,6 +6472,7 @@ begin
     end;
     1: begin
         newDb := AllDatabases[Node.Index];
+        FSelectedTable := TDBObject.Create(Connection);
         // Selecting a database can cause an SQL error if the db was deleted from outside. Select previous node in that case.
         try
           Connection.Database := newDb;
@@ -6520,6 +6500,8 @@ begin
             Exit;
           end;
         end;
+        DBObjects := Connection.GetDBObjects(newDb);
+        FSelectedTable := DBObjects[Node.Index];
         newDbObject := SelectedTable.Name;
         tabEditor.TabVisible := SelectedTable.NodeType in [lntTable, lntView, lntProcedure, lntFunction, lntTrigger, lntEvent];
         tabData.TabVisible := SelectedTable.NodeType in [lntTable, lntView];
@@ -6579,6 +6561,8 @@ end;
 
 
 procedure TMainForm.ParseSelectedTableStructure;
+var
+  Algorithm, CheckOption, SelectCode: String;
 begin
   SelectedTableColumns.Clear;
   SelectedTableKeys.Clear;
@@ -6586,11 +6570,10 @@ begin
   InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
   try
     case SelectedTable.NodeType of
-      lntTable: begin
-        SelectedTableCreateStatement := Connection.GetVar('SHOW CREATE TABLE '+Mainform.mask(SelectedTable.Name), 1);
-        ParseTableStructure(SelectedTableCreateStatement, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
-      end;
-      lntView: ParseViewStructure(SelectedTable.Name, SelectedTableColumns);
+      lntTable:
+        ParseTableStructure(SelectedTable.CreateCode, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
+      lntView:
+        ParseViewStructure(SelectedTable.CreateCode, SelectedTableColumns, Algorithm, CheckOption, SelectCode);
     end;
   except on E:EDatabaseError do
     MessageDlg(E.Message, mtError, [mbOK], 0);

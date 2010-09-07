@@ -120,7 +120,7 @@ begin
     // ON COMPLETION NOT PRESERVE
     // ENABLE
     // DO BEGIN END
-    CreateCode := Mainform.Connection.GetVar('SHOW CREATE EVENT '+Mainform.mask(DBObject.Name), 'Create Event');
+    CreateCode := DBObject.CreateCode;
     DateExpr := '[''"]([^''"]+)[''"]';
     rx := TRegExpr.Create;
     rx.ModifierI := True;
@@ -223,6 +223,7 @@ begin
   try
     Mainform.Connection.Query(sql);
     DBObject.Name := editName.Text;
+    DBObject.CreateCode := '';
     tabALTERcode.TabVisible := DBObject.Name <> '';
     Mainform.UpdateEditorTab;
     Mainform.RefreshActiveTreeDB(DBObject);

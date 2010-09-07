@@ -1063,7 +1063,7 @@ begin
       try
         case DBObj.NodeType of
           lntTable, lntView: begin
-            Struc := Mainform.Connection.GetVar('SHOW CREATE TABLE '+m(DBObj.Database)+'.'+m(DBObj.Name), 1);
+            Struc := DBObj.CreateCode;
             // Remove AUTO_INCREMENT clause if no data gets exported
             if comboExportData.Text = DATA_NO then begin
               rx := TRegExpr.Create;
@@ -1098,7 +1098,7 @@ begin
           end;
 
           lntFunction, lntProcedure: begin
-            Struc := Mainform.Connection.GetVar('SHOW CREATE '+UpperCase(DBObj.ObjType)+' '+m(DBObj.Database)+'.'+m(DBObj.Name), 2);
+            Struc := DBObj.CreateCode;
             if ToDb then begin
               if DBObj.NodeType = lntProcedure then
                 Insert(m(FinalDbName)+'.', Struc, Pos('PROCEDURE', Struc) + 10 )
@@ -1111,7 +1111,7 @@ begin
           end;
 
           lntEvent: begin
-            Struc := Mainform.Connection.GetVar('SHOW CREATE '+UpperCase(DBObj.ObjType)+' '+m(DBObj.Database)+'.'+m(DBObj.Name), 'Create Event');
+            Struc := DBObj.CreateCode;
             if ToDb then
               Insert(m(FinalDbName)+'.', Struc, Pos('EVENT', Struc) + 6 );
             if ToFile or ToDir or ToClipboard then
@@ -1259,7 +1259,7 @@ begin
       lntView: begin
         // Although RENAME works for views, that does not work for moving to another database without getting
         // a "Changing schema from x to y is not allowed". Instead, recreate them manually
-        CreateView := Mainform.Connection.GetVar('SHOW CREATE VIEW '+Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name), 1);
+        CreateView := DBObj.CreateCode;
         rx := TRegExpr.Create;
         rx.ModifierI := True;
         // Replace old database references in VIEW body

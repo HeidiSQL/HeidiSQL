@@ -11,20 +11,25 @@ type
 
   TListNodeType = (lntNone, lntDb, lntTable, lntView, lntFunction, lntProcedure, lntTrigger, lntEvent, lntColumn);
   TListNodeTypes = Set of TListNodeType;
+  TMySQLConnection = class;
   TDBObject = class(TPersistent)
     private
+      FCreateCode: String;
+      FConnection: TMySQLConnection;
       function GetObjType: String;
       function GetImageIndex: Integer;
+      function GetCreateCode: String;
     public
       Name, Database, Engine, Comment, RowFormat, CreateOptions, Collation: String;
       Created, Updated, LastChecked: TDateTime;
       Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
       NodeType: TListNodeType;
-      constructor Create;
+      constructor Create(OwnerConnection: TMySQLConnection);
       procedure Assign(Source: TPersistent); override;
       function IsSameAs(CompareTo: TDBObject): Boolean;
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
+      property CreateCode: String read GetCreateCode write FCreateCode;
   end;
   PDBObject = ^TDBObject;
   TDBObjectList = class(TObjectList<TDBObject>)
@@ -1315,7 +1320,7 @@ begin
     end;
     if Assigned(Results) then begin
       while not Results.Eof do begin
-        obj := TDBObject.Create;
+        obj := TDBObject.Create(Self);
         Result.Add(obj);
         obj.Name := Results.Col('Name');
         obj.Database := db;
@@ -1361,7 +1366,7 @@ begin
     end;
     if Assigned(Results) then begin
       while not Results.Eof do begin
-        obj := TDBObject.Create;
+        obj := TDBObject.Create(Self);
         Result.Add(obj);
         obj.Name := Results.Col('Name');
         obj.Database := db;
@@ -1381,7 +1386,7 @@ begin
     end;
     if Assigned(Results) then begin
       while not Results.Eof do begin
-        obj := TDBObject.Create;
+        obj := TDBObject.Create(Self);
         Result.Add(obj);
         obj.Name := Results.Col('Name');
         obj.Database := db;
@@ -1401,7 +1406,7 @@ begin
     end;
     if Assigned(Results) then begin
       while not Results.Eof do begin
-        obj := TDBObject.Create;
+        obj := TDBObject.Create(Self);
         Result.Add(obj);
         obj.Name := Results.Col('Trigger');
         obj.Database := db;
@@ -1421,7 +1426,7 @@ begin
     if Assigned(Results) then begin
       while not Results.Eof do begin
         if Results.Col('Db') = db then begin
-          Obj := TDBObject.Create;
+          Obj := TDBObject.Create(Self);
           Result.Add(obj);
           Obj.Name := Results.Col('Name');
           Obj.Database := db;
@@ -1921,21 +1926,21 @@ end;
 procedure TMySQLQuery.PrepareEditing;
 var
   Res: TMySQLQuery;
-  CreateTable: String;
+  CreateCode, Algorithm, CheckOption, SelectCode: String;
 begin
   // Try to fetch column names and keys
   if FEditingPrepared then
     Exit;
   Res := Connection.GetResults('SHOW CREATE TABLE ' + QuotedDbAndTableName);
-  CreateTable := Res.Col(1);
+  CreateCode := Res.Col(1);
   FColumns := TTableColumnList.Create;
   FKeys := TTableKeyList.Create;
   FForeignKeys := TForeignKeyList.Create;
   // This is probably a VIEW, so column names need to be fetched differently
   if UpperCase(Res.ColumnNames[0]) = 'TABLE' then
-    ParseTableStructure(CreateTable, FColumns, FKeys, FForeignKeys)
+    ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys)
   else
-    ParseViewStructure(Res.Col(0), FColumns);
+    ParseViewStructure(CreateCode, FColumns, Algorithm, CheckOption, SelectCode);
   FreeAndNil(Res);
   FreeAndNil(FUpdateData);
   FUpdateData := TUpdateData.Create(True);
@@ -2397,7 +2402,7 @@ end;
 
 { TDBObject }
 
-constructor TDBObject.Create;
+constructor TDBObject.Create(OwnerConnection: TMySQLConnection);
 begin
   NodeType := lntNone;
   Name := '';
@@ -2420,6 +2425,8 @@ begin
   Collation := '';
   CheckSum := -1;
   CreateOptions := '';
+  FCreateCode := '';
+  FConnection := OwnerConnection;
 end;
 
 
@@ -2475,6 +2482,25 @@ begin
     lntEvent: Result := ICONINDEX_EVENT;
     else Result := -1;
   end;
+end;
+
+function TDBObject.GetCreateCode: String;
+var
+  Column: Integer;
+begin
+  Column := -1;
+  case NodeType of
+    lntTable, lntView: Column := 1;
+    lntFunction, lntProcedure, lntTrigger: Column := 2;
+    lntEvent: Column := 3;
+    else Exception.Create('Unhandled list node type in '+ClassName+'.GetCreateCode');
+  end;
+  if FCreateCode = '' then try
+    FCreateCode := FConnection.GetVar('SHOW CREATE '+UpperCase(ObjType)+' '+FConnection.QuoteIdent(Database)+'.'+FConnection.QuoteIdent(Name), Column)
+  except on E:EDatabaseError do
+    FConnection.Log(lcError, 'Unable to fetch CREATE code for '+Name);
+  end;
+  Result := FCreateCode;
 end;
 
 
