@@ -87,7 +87,8 @@ end;
 
 procedure TCopyTableForm.FormShow(Sender: TObject);
 var
-  CreateCode, Table, Filter: String;
+  Table, Filter: String;
+  Algorithm, CheckOption, SelectCode: String;
   DBObjects: TDBObjectList;
   Obj: TDBObject;
   Values: TStringList;
@@ -125,11 +126,8 @@ begin
   FKeys.Clear;
   FForeignKeys.Clear;
   case FDBObj.NodeType of
-    lntTable: begin
-      CreateCode := MainForm.Connection.GetVar('SHOW CREATE TABLE '+MainForm.mask(FDBObj.Name), 1);
-      ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys);
-    end;
-    lntView: ParseViewStructure(FDBObj.Name, FColumns);
+    lntTable: ParseTableStructure(FDBObj.CreateCode, FColumns, FKeys, FForeignKeys);
+    lntView: ParseViewStructure(FDBObj.CreateCode, FColumns, Algorithm, CheckOption, SelectCode);
     else raise Exception.Create('Neither table nor view: '+FDBObj.Name);
   end;
 

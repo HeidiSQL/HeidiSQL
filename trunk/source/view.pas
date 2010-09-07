@@ -58,31 +58,18 @@ end;
 }
 procedure TfrmView.Init(Obj: TDBObject);
 var
-  Results: TMySQLQuery;
-  db: String;
-  rx: TRegExpr;
+  Algorithm, CheckOption, SelectCode: String;
 begin
   inherited;
   if Obj.Name <> '' then begin
     // Edit mode
     editName.Text := Obj.Name;
-    db := Mainform.ActiveDatabase;
-    Results := Mainform.Connection.GetResults('SELECT * FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.VIEWS ' +
-      'WHERE TABLE_SCHEMA = '+esc(db)+' AND TABLE_NAME = '+esc(Obj.Name));
-    if Results.RecordCount = 0 then
-      raise Exception.Create('Can''t find view definition for "'+Obj.Name+'" in '+DBNAME_INFORMATION_SCHEMA);
-    // Algorithm is not changeable as we cannot look up its current state!
-    rgAlgorithm.Enabled := False;
-    rgAlgorithm.ItemIndex := 0;
-    rgCheck.ItemIndex := rgCheck.Items.IndexOf(Results.Col('CHECK_OPTION'));
-    rgCheck.Enabled := Results.Col('IS_UPDATABLE') = 'YES';
-
-    rx := TRegExpr.Create;
-    rx.ModifierG := True;
-    rx.ModifierI := True;
-    rx.Expression := '\s+WITH\s+\w+\s+CHECK\s+OPTION$';
-    SynMemoSelect.Text := rx.Replace(Results.Col('VIEW_DEFINITION'), '', false);
-    rx.Free;
+    ParseViewStructure(Obj.CreateCode, nil, Algorithm, CheckOption, SelectCode);
+    rgAlgorithm.ItemIndex := rgAlgorithm.Items.IndexOf(Algorithm);
+    rgCheck.ItemIndex := rgCheck.Items.IndexOf(CheckOption);
+    if rgCheck.ItemIndex = -1 then
+      rgCheck.ItemIndex := 0;
+    SynMemoSelect.Text := SelectCode;
   end else begin
     // Create mode
     editName.Text := '';
@@ -179,6 +166,7 @@ begin
       Mainform.Connection.Query('RENAME TABLE '+viewname + ' TO '+renamed);
     end;
     DBObject.Name := editName.Text;
+    DBObject.CreateCode := '';
     Mainform.UpdateEditorTab;
     Mainform.RefreshActiveTreeDB(DBObject);
     Mainform.ParseSelectedTableStructure;

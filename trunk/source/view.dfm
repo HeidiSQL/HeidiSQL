@@ -40,9 +40,9 @@ object frmView: TfrmView
     Caption = 'Algorithm'
     ItemIndex = 0
     Items.Strings = (
-      'Undefined'
-      'Merge'
-      'Temptable')
+      'UNDEFINED'
+      'MERGE'
+      'TEMPTABLE')
     TabOrder = 1
     OnClick = Modification
   end
@@ -115,8 +115,8 @@ object frmView: TfrmView
     ItemIndex = 0
     Items.Strings = (
       'None'
-      'Cascaded'
-      'Local')
+      'CASCADED'
+      'LOCAL')
     TabOrder = 5
     OnClick = Modification
   end

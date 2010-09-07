@@ -142,7 +142,7 @@ type
   procedure InheritFont(AFont: TFont);
   function GetLightness(AColor: TColor): Byte;
   procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
-  procedure ParseViewStructure(ViewName: String; Columns: TTableColumnList);
+  procedure ParseViewStructure(CreateCode: String; Columns: TTableColumnList; var Algorithm, CheckOption, SelectCode: String);
   procedure ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
     var Deterministic: Boolean; var Returns, DataAccess, Security, Comment, Body: String);
   function ReformatSQL(SQL: String): String;
@@ -2400,42 +2400,70 @@ begin
 end;
 
 
-procedure ParseViewStructure(ViewName: String; Columns: TTableColumnList);
+procedure ParseViewStructure(CreateCode: String; Columns: TTableColumnList; var Algorithm, CheckOption, SelectCode: String);
 var
   rx: TRegExpr;
   Col: TTableColumn;
   Results: TMySQLQuery;
+  ViewName: String;
 begin
+  // CREATE
+  //   [OR REPLACE]
+  //   [ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
+  //   [DEFINER = { user | CURRENT_USER }]
+  //   [SQL SECURITY { DEFINER | INVOKER }]
+  //   VIEW view_name [(column_list)]
+  //   AS select_statement
+  //   [WITH [CASCADED | LOCAL] CHECK OPTION]
+  rx := TRegExpr.Create;
+  rx.ModifierG := False;
+  rx.ModifierI := True;
+  rx.Expression := '^CREATE\s+(OR\s+REPLACE\s+)?'+
+    '(ALGORITHM\s*=\s*(\w+)\s+)?'+
+    '(DEFINER\s*=\s*\S+\s+)?'+
+    '(SQL\s+SECURITY\s+\w+\s+)?'+
+    'VIEW\s+`?(\w[\w\s]+)`?\s+'+
+    '(\([^\)]\)\s+)?'+
+    'AS\s+(.+)(\s+WITH\s+(\w+\s+)?CHECK\s+OPTION\s*)?$';
+  if rx.Exec(CreateCode) then begin
+    Algorithm := rx.Match[3];
+    CheckOption := Trim(rx.Match[10]);
+    SelectCode := rx.Match[8];
+    ViewName := rx.Match[6];
+  end else
+    raise Exception.Create('Regular expression did not match the VIEW code in ParseViewStructure(): '+CRLF+CRLF+CreateCode);
+
   // Views reveal their columns only with a SHOW COLUMNS query.
   // No keys available in views - SHOW KEYS always returns an empty result
-  Columns.Clear;
-  rx := TRegExpr.Create;
-  rx.Expression := '^(\w+)(\((.+)\))?';
-  Results := Mainform.Connection.GetResults('SHOW /*!32332 FULL */ COLUMNS FROM '+Mainform.mask(ViewName));
-  while not Results.Eof do begin
-    Col := TTableColumn.Create;
-    Columns.Add(Col);
-    Col.Name := Results.Col('Field');
-    Col.AllowNull := Results.Col('Null') = 'YES';
-    if rx.Exec(Results.Col('Type')) then begin
-      Col.DataType := GetDatatypeByName(rx.Match[1]);
-      Col.LengthSet := rx.Match[3];
+  if Assigned(Columns) then begin
+    Columns.Clear;
+    rx.Expression := '^(\w+)(\((.+)\))?';
+    Results := Mainform.Connection.GetResults('SHOW /*!32332 FULL */ COLUMNS FROM '+Mainform.mask(ViewName));
+    while not Results.Eof do begin
+      Col := TTableColumn.Create;
+      Columns.Add(Col);
+      Col.Name := Results.Col('Field');
+      Col.AllowNull := Results.Col('Null') = 'YES';
+      if rx.Exec(Results.Col('Type')) then begin
+        Col.DataType := GetDatatypeByName(rx.Match[1]);
+        Col.LengthSet := rx.Match[3];
+      end;
+      Col.Unsigned := (Col.DataType.Category = dtcInteger) and (Pos('unsigned', Results.Col('Type')) > 0);
+      Col.AllowNull := UpperCase(Results.Col('Null')) = 'YES';
+      Col.Collation := Results.Col('Collation', True);
+      Col.Comment := Results.Col('Comment', True);
+      if Col.DataType.Category <> dtcTemporal then
+        Col.DefaultText := Results.Col('Default');
+      if Results.IsNull('Default') and Col.AllowNull then
+        Col.DefaultType := cdtNull
+      else if Col.DataType.Index = dtTimestamp then
+        Col.DefaultType := cdtCurTSUpdateTS
+      else if (Col.DefaultText = '') and Col.AllowNull then
+        Col.DefaultType := cdtNothing
+      else
+        Col.DefaultType := cdtText;
+      Results.Next;
     end;
-    Col.Unsigned := (Col.DataType.Category = dtcInteger) and (Pos('unsigned', Results.Col('Type')) > 0);
-    Col.AllowNull := UpperCase(Results.Col('Null')) = 'YES';
-    Col.Collation := Results.Col('Collation', True);
-    Col.Comment := Results.Col('Comment', True);
-    if Col.DataType.Category <> dtcTemporal then
-      Col.DefaultText := Results.Col('Default');
-    if Results.IsNull('Default') and Col.AllowNull then
-      Col.DefaultType := cdtNull
-    else if Col.DataType.Index = dtTimestamp then
-      Col.DefaultType := cdtCurTSUpdateTS
-    else if (Col.DefaultText = '') and Col.AllowNull then
-      Col.DefaultType := cdtNothing
-    else
-      Col.DefaultType := cdtText;
-    Results.Next;
   end;
   rx.Free;
 end;

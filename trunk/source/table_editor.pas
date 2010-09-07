@@ -256,7 +256,7 @@ end;
 
 procedure TfrmTableEditor.Init(Obj: TDBObject);
 var
-  CreateTable, AttrName, AttrValue: String;
+  AttrName, AttrValue: String;
   rx: TRegExpr;
 begin
   inherited;
@@ -290,11 +290,10 @@ begin
     editName.Text := DBObject.Name;
     // Try collation from SHOW TABLE STATUS, sometimes missing in SHOW CREATE TABLE result
     comboCollation.ItemIndex := comboCollation.Items.IndexOf(DBObject.Collation);
-    CreateTable := Mainform.SelectedTableCreateStatement;
     rx := TRegExpr.Create;
     rx.ModifierI := True;
     rx.Expression := '\s(\S+)\s*=\s*(\S+)';
-    if rx.Exec(CreateTable) then while true do begin
+    if rx.Exec(DBObject.CreateCode) then while true do begin
       AttrName := UpperCase(rx.Match[1]);
       AttrValue := rx.Match[2];
       if (AttrName='ENGINE') or (AttrName='TYPE') then
@@ -318,16 +317,16 @@ begin
     end;
 
     rx.Expression := '\bUNION=\((.+)\)';
-    if rx.Exec(CreateTable) then
+    if rx.Exec(DBObject.CreateCode) then
       memoUnionTables.Lines.Text := rx.Match[1]
     else
       memoUnionTables.Lines.Clear;
     rx.Expression := '\bCOMMENT=''((.+)[^''])''';
-    if rx.Exec(CreateTable) then
+    if rx.Exec(DBObject.CreateCode) then
       memoComment.Lines.Text := Mainform.Connection.UnescapeString(rx.Match[1])
     else
       memoComment.Lines.Clear;
-    ParseTableStructure(CreateTable, FColumns, FKeys, FForeignKeys);
+    ParseTableStructure(DBObject.CreateCode, FColumns, FKeys, FForeignKeys);
   end;
   listColumns.RootNodeCount := FColumns.Count;
   DeInitializeVTNodes(listColumns);
@@ -401,6 +400,7 @@ begin
     end;
     // Set table name for altering if Apply was clicked
     DBObject.Name := editName.Text;
+    DBObject.CreateCode := '';
     tabALTERcode.TabVisible := DBObject.Name <> '';
     Mainform.UpdateEditorTab;
     Mainform.RefreshActiveTreeDB(DBObject);
