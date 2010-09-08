@@ -32,6 +32,7 @@ type
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
       property CreateCode: String read GetCreateCode write SetCreateCode;
+      property Connection: TMySQLConnection read FConnection;
   end;
   PDBObject = ^TDBObject;
   TDBObjectList = class(TObjectList<TDBObject>)
@@ -2449,6 +2450,8 @@ begin
     Comment := s.Comment;
     Rows := s.Rows;
     Size := s.Size;
+    FCreateCode := s.FCreateCode;
+    FCreateCodeFetched := s.FCreateCodeFetched;
   end else
     inherited;
 end;
