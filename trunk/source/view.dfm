@@ -23,12 +23,13 @@ object frmView: TfrmView
   end
   object lblDisabledWhy: TLabel
     Left = 280
-    Top = 281
+    Top = 276
     Width = 167
-    Height = 13
+    Height = 25
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = False
     Caption = 'You need the SHOW VIEW privilege in order to edit a view.'
+    Layout = tlCenter
     Visible = False
   end
   object editName: TEdit
