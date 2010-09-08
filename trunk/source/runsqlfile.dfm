@@ -96,9 +96,9 @@ object RunSQLFileForm: TRunSQLFileForm
   object lblAffectedRowsValue: TLabel
     Left = 104
     Top = 57
-    Width = 104
+    Width = 6
     Height = 13
-    Caption = 'lblAffectedRowsValue'
+    Caption = '0'
   end
   object btnClose: TButton
     Left = 162
