@@ -21,22 +21,6 @@ object frmTableTools: TfrmTableTools
     383)
   PixelsPerInch = 96
   TextHeight = 13
-  object lblSkipLargeTablesMB: TLabel
-    Left = 192
-    Top = 355
-    Width = 87
-    Height = 13
-    Anchors = [akLeft, akBottom]
-    Caption = 'MB (0 = unlimited)'
-  end
-  object lblSkipLargeTables: TLabel
-    Left = 8
-    Top = 355
-    Width = 107
-    Height = 13
-    Anchors = [akLeft, akBottom]
-    Caption = 'Skip tables larger than'
-  end
   object btnClose: TButton
     Left = 461
     Top = 350
@@ -514,24 +498,5 @@ object frmTableTools: TfrmTableTools
     Caption = 'Execute'
     TabOrder = 2
     OnClick = Execute
-  end
-  object editSkipLargeTables: TEdit
-    Left = 130
-    Top = 352
-    Width = 40
-    Height = 21
-    Anchors = [akLeft, akBottom]
-    TabOrder = 3
-    Text = '20'
-  end
-  object udSkipLargeTables: TUpDown
-    Left = 170
-    Top = 352
-    Width = 16
-    Height = 21
-    Anchors = [akLeft, akBottom]
-    Associate = editSkipLargeTables
-    Position = 20
-    TabOrder = 4
   end
 end

@@ -177,7 +177,6 @@ const
   REGNAME_TOOLSWINHEIGHT = 'TableTools_WindowHeight';
   REGNAME_TOOLSTREEWIDTH = 'TableTools_TreeWidth';
   REGNAME_TOOLSFINDTEXT = 'TableTools_FindText';
-  REGNAME_TOOLSSKIPMB = 'TableTools_SkipMB';
   REGNAME_TOOLSDATATYPE = 'TableTools_Datatype';
   REGNAME_USERMNGR_WINWIDTH = 'Usermanager_WindowWidth';
   REGNAME_USERMNGR_WINHEIGHT = 'Usermanager_WindowHeight';

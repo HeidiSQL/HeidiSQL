@@ -53,10 +53,6 @@ type
     lblExportTables: TLabel;
     lblExportOutputTarget: TLabel;
     btnExecute: TButton;
-    editSkipLargeTables: TEdit;
-    udSkipLargeTables: TUpDown;
-    lblSkipLargeTablesMB: TLabel;
-    lblSkipLargeTables: TLabel;
     btnExportOutputTargetSelect: TButton;
     tabBulkTableEdit: TTabSheet;
     chkBulkTableEditDatabase: TCheckBox;
@@ -189,7 +185,6 @@ begin
   comboExportOutputTarget.Text := '';
 
   // Various
-  udSkipLargeTables.Position := GetRegValue(REGNAME_TOOLSSKIPMB, udSkipLargeTables.Position);
   SetWindowSizeGrip( Self.Handle, True );
   FixVT(TreeObjects);
   FixVT(ResultGrid);
@@ -225,8 +220,6 @@ begin
   MainReg.WriteInteger(REGNAME_EXP_OUTPUT, OutputItem);
   MainReg.WriteString(REGNAME_EXP_OUTFILES, OutputFiles.Text);
   MainReg.WriteString(REGNAME_EXP_OUTDIRS, OutputDirs.Text);
-
-  MainReg.WriteInteger( REGNAME_TOOLSSKIPMB, udSkipLargeTables.Position);
 end;
 
 
@@ -464,8 +457,7 @@ begin
         if (csCheckedNormal in [TableNode.CheckState, DBNode.CheckState]) and (TableNode.CheckType <> ctNone) then begin
           DBObjects := Mainform.Connection.GetDBObjects(TreeObjects.Text[DBNode, 0]);
           DBObj := DBObjects[TableNode.Index];
-          // Find table in cashed dataset and check its size - perhaps it has to be skipped
-          if (udSkipLargeTables.Position = 0) or ((DBObj.Size div SIZE_MB) < udSkipLargeTables.Position) then try
+          try
             case FToolMode of
               tmMaintenance: ProcessNodeFunc := DoMaintenance;
               tmFind: ProcessNodeFunc := DoFind;
@@ -481,8 +473,6 @@ begin
             // The above SQL can easily throw an exception, e.g. if a table is corrupted.
             // In such cases we create a dummy row, including the error message
             AddNotes(DBObj.Database, DBObj.Name, 'error', E.Message)
-          end else begin
-            AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+FormatByteNumber(DBObj.Size), '');
           end;
         end;
         TableNode := TreeObjects.GetNextSibling(TableNode);
