@@ -15,10 +15,12 @@ type
   TDBObject = class(TPersistent)
     private
       FCreateCode: String;
+      FCreateCodeFetched: Boolean;
       FConnection: TMySQLConnection;
       function GetObjType: String;
       function GetImageIndex: Integer;
       function GetCreateCode: String;
+      procedure SetCreateCode(Value: String);
     public
       Name, Database, Engine, Comment, RowFormat, CreateOptions, Collation: String;
       Created, Updated, LastChecked: TDateTime;
@@ -29,7 +31,7 @@ type
       function IsSameAs(CompareTo: TDBObject): Boolean;
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
-      property CreateCode: String read GetCreateCode write FCreateCode;
+      property CreateCode: String read GetCreateCode write SetCreateCode;
   end;
   PDBObject = ^TDBObject;
   TDBObjectList = class(TObjectList<TDBObject>)
@@ -2426,6 +2428,7 @@ begin
   CheckSum := -1;
   CreateOptions := '';
   FCreateCode := '';
+  FCreateCodeFetched := False;
   FConnection := OwnerConnection;
 end;
 
@@ -2498,14 +2501,20 @@ begin
     lntEvent: Column := 3;
     else Exception.Create('Unhandled list node type in '+ClassName+'.GetCreateCode');
   end;
-  if FCreateCode = '' then try
+  if not FCreateCodeFetched then try
     FCreateCode := FConnection.GetVar('SHOW CREATE '+UpperCase(ObjType)+' '+FConnection.QuoteIdent(Database)+'.'+FConnection.QuoteIdent(Name), Column)
-  except on E:EDatabaseError do
-    FConnection.Log(lcError, 'Unable to fetch CREATE code for '+Name);
+  except
   end;
+  FCreateCodeFetched := True;
   Result := FCreateCode;
 end;
 
+procedure TDBObject.SetCreateCode(Value: String);
+begin
+  // When manually clearing CreateCode from outside, also reset indicator for fetch attempt
+  FCreateCode := Value;
+  FCreateCodeFetched := Value <> '';
+end;
 
 
 { *** TTableColumn }
