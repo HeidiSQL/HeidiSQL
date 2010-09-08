@@ -6572,7 +6572,7 @@ begin
       lntTable:
         ParseTableStructure(SelectedTable.CreateCode, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
       lntView:
-        ParseViewStructure(SelectedTable.CreateCode, SelectedTableColumns, Algorithm, CheckOption, SelectCode);
+        ParseViewStructure(SelectedTable.CreateCode, SelectedTable.Name, SelectedTableColumns, Algorithm, CheckOption, SelectCode);
     end;
   except on E:EDatabaseError do
     MessageDlg(E.Message, mtError, [mbOK], 0);

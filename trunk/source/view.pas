@@ -19,6 +19,7 @@ type
     btnSave: TButton;
     rgCheck: TRadioGroup;
     btnHelp: TButton;
+    lblDisabledWhy: TLabel;
     procedure btnHelpClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure editNameChange(Sender: TObject);
@@ -61,15 +62,23 @@ var
   Algorithm, CheckOption, SelectCode: String;
 begin
   inherited;
+  lblDisabledWhy.Font.Color := clRed;
   if Obj.Name <> '' then begin
     // Edit mode
     editName.Text := Obj.Name;
-    ParseViewStructure(Obj.CreateCode, nil, Algorithm, CheckOption, SelectCode);
+    ParseViewStructure(Obj.CreateCode, Obj.Name, nil, Algorithm, CheckOption, SelectCode);
     rgAlgorithm.ItemIndex := rgAlgorithm.Items.IndexOf(Algorithm);
     rgCheck.ItemIndex := rgCheck.Items.IndexOf(CheckOption);
     if rgCheck.ItemIndex = -1 then
       rgCheck.ItemIndex := 0;
     SynMemoSelect.Text := SelectCode;
+    // User may not be allowed to run SHOW CREATE VIEW, in which case we have an empty CreateCode.
+    // Disable editor in this case.
+    lblDisabledWhy.Visible := SelectCode = '';
+    editName.Enabled := not lblDisabledWhy.Visible;
+    rgAlgorithm.Enabled := editName.Enabled;
+    rgCheck.Enabled := rgAlgorithm.Enabled;
+    SynMemoSelect.Enabled := rgAlgorithm.Enabled;
   end else begin
     // Create mode
     editName.Text := '';
@@ -78,6 +87,7 @@ begin
     rgCheck.Enabled := True;
     rgCheck.ItemIndex := 0;
     SynMemoSelect.Text := 'SELECT ';
+    lblDisabledWhy.Hide;
   end;
   // Ensure name is validated
   editNameChange(Self);

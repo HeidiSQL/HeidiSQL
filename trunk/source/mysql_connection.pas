@@ -1940,7 +1940,7 @@ begin
   if UpperCase(Res.ColumnNames[0]) = 'TABLE' then
     ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys)
   else
-    ParseViewStructure(CreateCode, FColumns, Algorithm, CheckOption, SelectCode);
+    ParseViewStructure(CreateCode, TableName, FColumns, Algorithm, CheckOption, SelectCode);
   FreeAndNil(Res);
   FreeAndNil(FUpdateData);
   FUpdateData := TUpdateData.Create(True);
