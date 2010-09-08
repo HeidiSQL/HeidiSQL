@@ -2692,7 +2692,8 @@ end;
 procedure TDBObjectEditor.Init(Obj: TDBObject);
 begin
   Mainform.ShowStatusMsg('Initializing editor ...');
-  DBObject := Obj;
+  DBObject := TDBObject.Create(Obj.Connection);
+  DBObject.Assign(Obj);
   Mainform.UpdateEditorTab;
   Screen.Cursor := crHourglass;
   MainForm.SetupSynEditors;

@@ -6446,12 +6446,12 @@ var
   DBObjects: TDBObjectList;
 begin
   debug('DBtreeFocusChanged()');
+  if not FProcessDBtreeFocusChanges then
+    Exit;
   if not Assigned(Node) then begin
     FSelectedTable := TDBObject.Create(Connection);
     Exit;
   end;
-  if not FProcessDBtreeFocusChanges then
-    Exit;
 
   // Post pending UPDATE
   if Assigned(DataGridResult) and DataGridResult.Modified then
@@ -6690,8 +6690,10 @@ begin
       Objects := Connection.GetDBObjects(ActiveDatabase);
       ObjNode := DBtree.GetFirstChild(FindDBNode(ActiveDatabase));
       while Assigned(ObjNode) do begin
-        if (Cardinal(Objects.Count) > ObjNode.Index) and Objects[ObjNode.Index].IsSameAs(FocusObject) then
+        if (Cardinal(Objects.Count) > ObjNode.Index) and Objects[ObjNode.Index].IsSameAs(FocusObject) then begin
           SelectNode(DBtree, ObjNode);
+          break;
+        end;
         ObjNode := DBtree.GetNextSibling(ObjNode);
       end;
     end;
