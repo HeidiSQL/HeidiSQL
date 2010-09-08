@@ -928,7 +928,7 @@ begin
 
   // Unformatted float coming in? Detect by order of thousand and decimal char
   if ((Pos(',', Str) > 0) and (Pos(',', Str) < Pos('.', Str)))
-    or (Length(Str) - Pos('.', ReverseString(Str)) <> 4)
+    or ((Pos('.', Str) > 0) and (Pos('.', ReverseString(Str)) <> 4))
     then begin
     Str := StringReplace(Str, '.', '*', [rfReplaceAll]);
     Str := StringReplace(Str, ',', ThousandSeparator, [rfReplaceAll]);
