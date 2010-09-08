@@ -21,6 +21,16 @@ object frmView: TfrmView
     Height = 13
     Caption = 'Select statement:'
   end
+  object lblDisabledWhy: TLabel
+    Left = 280
+    Top = 281
+    Width = 167
+    Height = 13
+    Anchors = [akLeft, akRight, akBottom]
+    AutoSize = False
+    Caption = 'You need the SHOW VIEW privilege in order to edit a view.'
+    Visible = False
+  end
   object editName: TEdit
     Left = 42
     Top = 3

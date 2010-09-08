@@ -234,7 +234,7 @@ begin
     Obj := DBObjects[comboTable.ItemIndex];
     case Obj.NodeType of
       lntTable: ParseTableStructure(Obj.CreateCode, Columns, nil, nil);
-      lntView: ParseViewStructure(Obj.CreateCode, Columns, Algorithm, CheckOption, SelectCode);
+      lntView: ParseViewStructure(Obj.CreateCode, Obj.Name, Columns, Algorithm, CheckOption, SelectCode);
     end;
     for Col in Columns do
       chklistColumns.Items.Add(Col.Name);
