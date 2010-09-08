@@ -2453,7 +2453,10 @@ end;
 
 function TDBObject.IsSameAs(CompareTo: TDBObject): Boolean;
 begin
-  Result := (Name = CompareTo.Name) and (NodeType = CompareTo.NodeType) and (Database = CompareTo.Database);
+  if not Assigned(CompareTo) then
+    Result := False
+  else
+    Result := (Name = CompareTo.Name) and (NodeType = CompareTo.NodeType) and (Database = CompareTo.Database);
 end;
 
 
