@@ -7974,8 +7974,12 @@ begin
   end else if Control is TSynMemo then begin
     SynMemo := TSynMemo(Control);
     if not SynMemo.ReadOnly then begin
-      SynMemo.PasteFromClipboard;
-      Success := True;
+      try
+        SynMemo.PasteFromClipboard;
+        Success := True;
+      except on E:Exception do
+        MessageDlg(E.Message, mtError, [mbOK], 0);
+      end;
     end;
   end;
   if not Success then
