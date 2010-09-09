@@ -503,6 +503,10 @@ type
     menuClearFiltersSession: TMenuItem;
     menuClearFiltersAll: TMenuItem;
     treeQueryHelpers: TVirtualStringTree;
+    popupExecuteQuery: TPopupMenu;
+    Run1: TMenuItem;
+    RunSelection1: TMenuItem;
+    Runcurrentquery1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
