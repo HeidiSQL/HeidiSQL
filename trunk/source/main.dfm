@@ -274,6 +274,8 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Action = actExecuteQuery
+        DropdownMenu = popupExecuteQuery
+        Style = tbsDropDown
       end
       object btnLoadSQL: TToolButton
         Left = 23
@@ -8750,6 +8752,20 @@ object MainForm: TMainForm
     object menuClearFiltersAll: TMenuItem
       Caption = 'Clear recent filters across all connections ...'
       OnClick = ClearFiltersClick
+    end
+  end
+  object popupExecuteQuery: TPopupMenu
+    Images = ImageListMain
+    Left = 136
+    Top = 128
+    object Run1: TMenuItem
+      Action = actExecuteQuery
+    end
+    object RunSelection1: TMenuItem
+      Action = actExecuteSelection
+    end
+    object Runcurrentquery1: TMenuItem
+      Action = actExecuteCurrentQuery
     end
   end
 end
