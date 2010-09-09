@@ -38,11 +38,11 @@ type
     pnlHelpers: TPanel;
     treeHelpers: TVirtualStringTree;
     Memo: TSynMemo;
-    MemoFilename: String;
     MemoFileRenamed: Boolean;
     MemoLineBreaks: TLineBreaks;
     DirectoryWatch: TDirectoryWatch;
     MemofileModifiedTimer: TTimer;
+    LastSaveTime: Cardinal;
     spltHelpers: TSplitter;
     spltQuery: TSplitter;
     tabsetQuery: TTabSet;
@@ -53,8 +53,13 @@ type
     function GetActiveResultTab: TResultTab;
     procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
     procedure MemofileModifiedTimerNotify(Sender: TObject);
+    procedure SaveQueryMemo(Filename: String; OnlySelection: Boolean);
+    private
+      FMemoFilename: String;
+      procedure SetMemoFilename(Value: String);
     public
       property ActiveResultTab: TResultTab read GetActiveResultTab;
+      property MemoFilename: String read FMemoFilename write SetMemoFilename;
       constructor Create;
       destructor Destroy; override;
   end;
@@ -854,7 +859,6 @@ type
     procedure PlaceObjectEditor(Obj: TDBObject);
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
-    procedure SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
     procedure UpdateFilterPanel(Sender: TObject);
     procedure DatabaseChanged(Database: String);
     procedure DBObjectsCleared(Database: String);
@@ -1961,7 +1965,6 @@ begin
   m.SelStart := 0;
   m.SelEnd := 0;
   if QueryTabActive then begin
-    SetTabCaption(PageControlMain.ActivePageIndex, '');
     ActiveQueryTab.MemoFilename := '';
     ActiveQueryTab.Memo.Modified := False;
   end;
@@ -3113,7 +3116,7 @@ begin
     end;
   end;
   if CanSave = mrYes then begin
-    SaveQueryMemo(ActiveQueryTab, SaveDialogSQLFile.FileName, (Sender as TAction).Tag = 1);
+    ActiveQueryTab.SaveQueryMemo(SaveDialogSQLFile.FileName, (Sender as TAction).Tag = 1);
     for i:=0 to QueryTabs.Count-1 do begin
       if QueryTabs[i] = ActiveQueryTab then
         continue;
@@ -3130,7 +3133,7 @@ var
   i: Integer;
 begin
   if ActiveQueryTab.MemoFilename <> '' then begin
-    SaveQueryMemo(ActiveQueryTab, ActiveQueryTab.MemoFilename, False);
+    ActiveQueryTab.SaveQueryMemo(ActiveQueryTab.MemoFilename, False);
     for i:=0 to QueryTabs.Count-1 do begin
       if QueryTabs[i] = ActiveQueryTab then
         continue;
@@ -3140,31 +3143,6 @@ begin
     ValidateQueryControls(Sender);
   end else
     actSaveSQLAsExecute(Sender);
-end;
-
-
-procedure TMainForm.SaveQueryMemo(Tab: TQueryTab; Filename: String; OnlySelection: Boolean);
-var
-  Text, LB: String;
-begin
-  Screen.Cursor := crHourGlass;
-  if OnlySelection then
-    Text := Tab.Memo.SelText
-  else
-    Text := Tab.Memo.Text;
-  LB := '';
-  case Tab.MemoLineBreaks of
-    lbsUnix: LB := LB_UNIX;
-    lbsMac: LB := LB_MAC;
-    lbsWide: LB := LB_WIDE;
-  end;
-  if LB <> '' then
-    Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
-  SaveUnicodeFile( Filename, Text );
-  SetTabCaption(Tab.Number+tabData.PageIndex, ExtractFilename(Filename));
-  Tab.MemoFilename := Filename;
-  Tab.Memo.Modified := False;
-  Screen.Cursor := crDefault;
 end;
 
 
@@ -5124,11 +5102,8 @@ begin
     Tab.Memo.SelText := filecontent;
     Tab.Memo.SelStart := ActiveQueryMemo.SelEnd;
     Tab.Memo.EndUpdate;
-    SetTabCaption(PageControlMain.ActivePageIndex, sstr(ExtractFilename(filename), 70));
     Tab.Memo.Modified := False;
     Tab.MemoFilename := filename;
-    Tab.DirectoryWatch.Directory := ExtractFilePath(filename);
-    Tab.DirectoryWatch.Start;
     Result := True;
   except on E:Exception do
     // File does not exist, is locked or broken
@@ -8839,9 +8814,9 @@ begin
       mrNo: Result := True;
       mrYes: begin
         if Tab.MemoFilename <> '' then
-          SaveQueryMemo(Tab, Tab.MemoFilename, False)
+          Tab.SaveQueryMemo(Tab.MemoFilename, False)
         else if SaveDialogSQLFile.Execute then
-          SaveQueryMemo(Tab, SaveDialogSQLFile.FileName, False);
+          Tab.SaveQueryMemo(SaveDialogSQLFile.FileName, False);
         // The save dialog can be cancelled.
         Result := not Tab.Memo.Modified;
       end;
@@ -9658,6 +9633,7 @@ begin
   MemofileModifiedTimer.Interval := 1000;
   MemofileModifiedTimer.Enabled := False;
   MemofileModifiedTimer.OnTimer := MemofileModifiedTimerNotify;
+  LastSaveTime := 0;
 end;
 
 
@@ -9695,7 +9671,7 @@ begin
       end;
 
     waModified:
-      if IsCurrentFile then begin
+      if IsCurrentFile and (LastSaveTime < GetTickCount-MemofileModifiedTimer.Interval) then begin
         MemofileModifiedTimer.Enabled := False;
         MemofileModifiedTimer.Enabled := True;
       end;
@@ -9707,8 +9683,6 @@ begin
     waRenamedNew:
       if (not IsCurrentFile) and (MemoFilename <> '') and MemoFileRenamed then begin
         MemoFilename := DirectoryWatch.Directory + FileName;
-        Mainform.SetTabCaption(TabSheet.PageIndex, Filename);
-        Mainform.ValidateQueryControls(Sender);
         MemoFileRenamed := False;
       end;
 
@@ -9730,6 +9704,47 @@ begin
     Memo.TopLine := OldTopLine;
   end;
 end;
+
+
+procedure TQueryTab.SaveQueryMemo(Filename: String; OnlySelection: Boolean);
+var
+  Text, LB: String;
+begin
+  Screen.Cursor := crHourGlass;
+  MainForm.ShowStatusMsg('Saving file ...');
+  if OnlySelection then
+    Text := Memo.SelText
+  else
+    Text := Memo.Text;
+  LB := '';
+  case MemoLineBreaks of
+    lbsUnix: LB := LB_UNIX;
+    lbsMac: LB := LB_MAC;
+    lbsWide: LB := LB_WIDE;
+  end;
+  if LB <> '' then
+    Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
+  SaveUnicodeFile( Filename, Text );
+  MemoFilename := Filename;
+  Memo.Modified := False;
+  LastSaveTime := GetTickCount;
+  MainForm.ShowStatusMsg;
+  Screen.Cursor := crDefault;
+end;
+
+
+procedure TQueryTab.SetMemoFilename(Value: String);
+begin
+  FMemoFilename := Value;
+  MainForm.SetTabCaption(TabSheet.PageIndex, sstr(ExtractFilename(FMemoFilename), 70));
+  MainForm.ValidateQueryControls(Self);
+  if FMemoFilename <> '' then begin
+    DirectoryWatch.Directory := ExtractFilePath(FMemoFilename);
+    DirectoryWatch.Start;
+  end else
+    DirectoryWatch.Stop;
+end;
+
 
 
 
