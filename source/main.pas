@@ -9212,10 +9212,12 @@ procedure TMainForm.UpdateLineCharPanel;
 var
   x, y: Int64;
   Grid: TVirtualStringTree;
+  AppendMsg: String;
 begin
   // Fill panel with "Line:Char"
   x := -1;
   y := -1;
+  AppendMsg := '';
   Grid := ActiveGrid;
   if Assigned(Grid) and Grid.Focused then begin
     if Assigned(Grid.FocusedNode) then
@@ -9224,10 +9226,11 @@ begin
   end else if QueryTabActive and ActiveQueryMemo.Focused then begin
     x := ActiveQueryMemo.CaretX;
     y := ActiveQueryMemo.CaretY;
+    AppendMsg := ' ('+FormatByteNumber(ActiveQueryMemo.GetTextLen)+')';
   end;
-  if (x > -1) and (y > -1) then
-    ShowStatusMsg(FormatNumber(y)+' : '+FormatNumber(x), 1)
-  else
+  if (x > -1) and (y > -1) then begin
+    ShowStatusMsg(FormatNumber(y)+' : '+FormatNumber(x) + AppendMsg, 1)
+  end else
     ShowStatusMsg('', 1);
 end;
 
