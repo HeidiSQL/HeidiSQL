@@ -104,6 +104,7 @@ type
     { Private declarations }
     FResults: TObjectList;
     FToolMode: TToolMode;
+    FSecondExportPass: Boolean; // Set to True after everything is exported and final VIEWs need to be exported again
     OutputFiles, OutputDirs: TStringList;
     ExportStream: TStream;
     ExportStreamStartOfQueryPos: Int64;
@@ -427,10 +428,26 @@ end;
 procedure TfrmTableTools.Execute(Sender: TObject);
 var
   DBNode, TableNode: PVirtualNode;
-  DBObjects, LateObjects: TDBObjectList;
+  DBObjects, Triggers, Views: TDBObjectList;
   DBObj: TDBObject;
   i: Integer;
-  ProcessNodeFunc: procedure(DBObj: TDBObject) of Object;
+
+  procedure ProcessNode(DBObj: TDBObject);
+  begin
+    try
+      case FToolMode of
+        tmMaintenance: DoMaintenance(DBObj);
+        tmFind: DoFind(DBObj);
+        tmSQLExport: DoExport(DBObj);
+        tmBulkTableEdit: DoBulkTableEdit(DBObj);
+      end;
+    except on E:EDatabaseError do
+      // The above SQL can easily throw an exception, e.g. if a table is corrupted.
+      // In such cases we create a dummy row, including the error message
+      AddNotes(DBObj.Database, DBObj.Name, 'error', E.Message)
+    end;
+  end;
+
 begin
   Screen.Cursor := crHourGlass;
   if tabsTools.ActivePage = tabMaintenance then
@@ -443,49 +460,41 @@ begin
     FToolMode := tmBulkTableEdit;
   ResultGrid.Clear;
   FResults.Clear;
-  LateObjects := TDBObjectList.Create;
-  LateObjects.OwnsObjects := False; // So we can .Free that object afterwards without loosing the contained objects
+  Triggers := TDBObjectList.Create(False); // False, so we can .Free that object afterwards without loosing the contained objects
+  Views := TDBObjectList.Create(False);
   TreeObjects.SetFocus;
-  ProcessNodeFunc := nil;
   FHeaderCreated := False;
   DBNode := TreeObjects.GetFirstChild(TreeObjects.GetFirst);
   while Assigned(DBNode) do begin
     if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
-      LateObjects.Clear;
+      Triggers.Clear;
+      Views.Clear;
+      FSecondExportPass := False;
       TableNode := TreeObjects.GetFirstChild(DBNode);
       while Assigned(TableNode) do begin
         if (csCheckedNormal in [TableNode.CheckState, DBNode.CheckState]) and (TableNode.CheckType <> ctNone) then begin
           DBObjects := Mainform.Connection.GetDBObjects(TreeObjects.Text[DBNode, 0]);
           DBObj := DBObjects[TableNode.Index];
-          try
-            case FToolMode of
-              tmMaintenance: ProcessNodeFunc := DoMaintenance;
-              tmFind: ProcessNodeFunc := DoFind;
-              tmSQLExport: ProcessNodeFunc := DoExport;
-              tmBulkTableEdit: ProcessNodeFunc := DoBulkTableEdit;
-            end;
-            // Views have to be exported at the very end so at least all needed tables are ready when a view gets imported
-            if DBObj.NodeType in [lntView, lntTrigger] then
-              LateObjects.Add(DBObj)
-            else
-              ProcessNodeFunc(DBObj);
-          except on E:EDatabaseError do
-            // The above SQL can easily throw an exception, e.g. if a table is corrupted.
-            // In such cases we create a dummy row, including the error message
-            AddNotes(DBObj.Database, DBObj.Name, 'error', E.Message)
+          // Triggers have to be exported at the very end
+          if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntTrigger) then
+            Triggers.Add(DBObj)
+          else begin
+            if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntView) then
+              Views.Add(DBObj);
+            ProcessNode(DBObj);
           end;
         end;
         TableNode := TreeObjects.GetNextSibling(TableNode);
       end; // End of db object node loop in db
 
-      // Special block for late created views in export mode
-      for i:=0 to LateObjects.Count-1 do begin
-        try
-          ProcessNodeFunc(LateObjects[i]);
-        except on E:EDatabaseError do
-          AddNotes(LateObjects[i].Database, LateObjects[i].Name, 'error', E.Message);
-        end;
-      end;
+      // Special block for late created triggers in export mode
+      for i:=0 to Triggers.Count-1 do
+        ProcessNode(Triggers[i]);
+
+      // Special block for final exporting final view structure
+      FSecondExportPass := True;
+      for i:=0 to Views.Count-1 do
+        ProcessNode(Views[i]);
 
     end;
     DBNode := TreeObjects.GetNextSibling(DBNode);
@@ -937,12 +946,14 @@ end;
 procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
   IsFirstRowInChunk, NeedsDBStructure: Boolean;
-  Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent, tmp: String;
+  Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent, tmp, Dummy: String;
   i: Integer;
   RowCount, Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;
   StrucResult, Data: TMySQLQuery;
   rx: TRegExpr;
+  ColumnList: TTableColumnList;
+  Column: TTableColumn;
 const
   TempDelim = '//';
 
@@ -1052,7 +1063,7 @@ begin
     if chkExportTablesCreate.Checked then begin
       try
         case DBObj.NodeType of
-          lntTable, lntView: begin
+          lntTable: begin
             Struc := DBObj.CreateCode;
             // Remove AUTO_INCREMENT clause if no data gets exported
             if comboExportData.Text = DATA_NO then begin
@@ -1062,12 +1073,35 @@ begin
               Struc := rx.Replace(Struc, ' ', false);
               rx.Free;
             end;
-            if DBObj.NodeType = lntTable then
-              Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
-            if ToDb then begin
-              if DBObj.NodeType = lntTable then
-                Insert(m(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
-              else if DBObj.NodeType = lntView then
+            Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
+            if ToDb then
+              Insert(m(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
+          end;
+
+          lntView: begin
+            if not FSecondExportPass then begin
+              // Create temporary VIEW replacement
+              ColumnList := TTableColumnList.Create(True);
+              ParseViewStructure(DBObj.CreateCode, DBObj.Name, ColumnList, Dummy, Dummy, Dummy);
+              Struc := '# Creating temporary table to overcome VIEW dependency errors'+CRLF+
+                'CREATE TABLE ';
+              if ToDb then
+                Struc := Struc + m(FinalDbName) + '.';
+              Struc := Struc + m(DBObj.Name)+' (';
+              for Column in ColumnList do
+                Struc := Struc + CRLF + #9 + Column.SQLCode + ',';
+              Delete(Struc, Length(Struc), 1);
+              Struc := Struc + CRLF + ') ENGINE=MyISAM';
+              ColumnList.Free;
+            end else begin
+              Struc := '# Removing temporary table and create final VIEW structure'+CRLF+
+                'DROP TABLE IF EXISTS ';
+              if ToDb then
+                Struc := Struc + m(FinalDbName)+'.';
+              Struc := Struc + m(DBObj.Name);
+              Output(Struc, True, True, True, True, True);
+              Struc := DBObj.CreateCode;
+              if ToDb then
                 Insert(m(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
             end;
           end;
