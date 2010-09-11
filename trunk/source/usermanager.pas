@@ -648,9 +648,17 @@ var
   u: TUser;
   p: TPrivilege;
   i: Integer;
+  Child: PVirtualNode;
 begin
   case Sender.GetNodeLevel(Node) of
-    0: Sender.Expanded[Node] := True;
+    0: begin
+      Child := Sender.GetFirstChild(Node);
+      while Assigned(Child) do begin
+        Child.CheckState := Node.CheckState;
+        Child := Sender.GetNextSibling(Child);
+      end;
+      Sender.Expanded[Node] := True;
+    end;
     1: begin
       u := Users[listUsers.FocusedNode.Index];
       p := u.Privileges[Node.Parent.Index];
