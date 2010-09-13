@@ -31,7 +31,7 @@ object frmTableTools: TfrmTableTools
     Caption = 'Close'
     Default = True
     ModalResult = 2
-    TabOrder = 0
+    TabOrder = 3
   end
   object pnlTop: TPanel
     AlignWithMargins = True
@@ -46,7 +46,7 @@ object frmTableTools: TfrmTableTools
     Align = alTop
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelOuter = bvNone
-    TabOrder = 1
+    TabOrder = 0
     object spltHorizontally: TSplitter
       Left = 144
       Top = 0
@@ -498,5 +498,17 @@ object frmTableTools: TfrmTableTools
     Caption = 'Execute'
     TabOrder = 2
     OnClick = Execute
+  end
+  object btnSeeResults: TButton
+    Left = 299
+    Top = 350
+    Width = 75
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Caption = 'See results'
+    ModalResult = 1
+    TabOrder = 1
+    Visible = False
+    OnClick = btnSeeResultsClick
   end
 end

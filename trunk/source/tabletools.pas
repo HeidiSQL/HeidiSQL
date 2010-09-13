@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
-  VirtualTrees, ExtCtrls, Contnrs, Graphics, SynRegExpr, Math,
+  VirtualTrees, ExtCtrls, Contnrs, Graphics, SynRegExpr, Math, Generics.Collections,
   mysql_connection, helpers;
 
 type
@@ -64,6 +64,7 @@ type
     comboBulkTableEditEngine: TComboBox;
     chkBulkTableEditCharset: TCheckBox;
     comboBulkTableEditCharset: TComboBox;
+    btnSeeResults: TButton;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -100,9 +101,10 @@ type
     procedure TreeObjectsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure TreeObjectsChecking(Sender: TBaseVirtualTree; Node: PVirtualNode; var NewState: TCheckState;
       var Allowed: Boolean);
+    procedure btnSeeResultsClick(Sender: TObject);
   private
     { Private declarations }
-    FResults: TObjectList;
+    FResults: TObjectList<TStringList>;
     FToolMode: TToolMode;
     FSecondExportPass: Boolean; // Set to True after everything is exported and final VIEWs need to be exported again
     OutputFiles, OutputDirs: TStringList;
@@ -113,6 +115,7 @@ type
     FLastOutputSelectedIndex: Integer;
     FModifiedDbs: TStringList;
     FHeaderCreated: Boolean;
+    FFindSeeResultSQL: TStringList;
     ToFile, ToDir, ToClipboard, ToDb, ToServer: Boolean;
     procedure SetToolMode(Value: TToolMode);
     procedure Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
@@ -189,10 +192,11 @@ begin
   SetWindowSizeGrip( Self.Handle, True );
   FixVT(TreeObjects);
   FixVT(ResultGrid);
-  FResults := TObjectList.Create;
+  FResults := TObjectList<TStringList>.Create;
   SelectedTables := TStringList.Create;
   FModifiedDbs := TStringList.Create;
   FModifiedDbs.Duplicates := dupIgnore;
+  FFindSeeResultSQL := TStringList.Create;
 end;
 
 
@@ -319,8 +323,10 @@ procedure TfrmTableTools.ValidateControls(Sender: TObject);
 var
   SomeChecked, OptionChecked: Boolean;
   op: String;
+  i: Integer;
 begin
   SomeChecked := TreeObjects.CheckedCount > 0;
+  btnSeeResults.Visible := tabsTools.ActivePage = tabFind;
   if tabsTools.ActivePage = tabMaintenance then begin
     btnExecute.Caption := 'Execute';
     btnExecute.Enabled := (Pos(SUnsupported, comboOperation.Text) = 0) and SomeChecked;
@@ -340,6 +346,14 @@ begin
   end else if tabsTools.ActivePage = tabFind then begin
     btnExecute.Caption := 'Find';
     btnExecute.Enabled := SomeChecked and (memoFindText.Text <> '');
+    // Enable "See results" button if there were results
+    btnSeeResults.Enabled := False;
+    for i:=0 to FResults.Count-1 do begin
+      if MakeInt(FResults[i][2]) > 0 then begin
+        btnSeeResults.Enabled := True;
+        break;
+      end;
+    end;
   end else if tabsTools.ActivePage = tabSQLExport then begin
     btnExecute.Caption := 'Export';
     btnExecute.Enabled := SomeChecked and ((comboExportOutputTarget.Text <> '') or (not comboExportOutputTarget.Enabled));
@@ -460,6 +474,7 @@ begin
     FToolMode := tmBulkTableEdit;
   ResultGrid.Clear;
   FResults.Clear;
+  FFindSeeResultSQL.Clear;
   Triggers := TDBObjectList.Create(False); // False, so we can .Free that object afterwards without loosing the contained objects
   Views := TDBObjectList.Create(False);
   TreeObjects.SetFocus;
@@ -516,6 +531,8 @@ begin
     InvalidateVT(Mainform.DBtree, VTREE_NOTLOADED_PURGECACHE, False);
     FModifiedDbs.Clear;
   end;
+
+  ValidateControls(Sender);
   Screen.Cursor := crDefault;
 end;
 
@@ -541,37 +558,56 @@ end;
 
 procedure TfrmTableTools.DoFind(DBObj: TDBObject);
 var
-  Results: TMySQLQuery;
-  SQL: String;
-  HasSelectedDatatype: Boolean;
-  i: Integer;
+  Columns: TTableColumnList;
+  Col: TTableColumn;
+  SQL, ResultSQL, Dummy: String;
 begin
-  if not (DBObj.NodeType in [lntTable, lntView]) then begin
-    AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' does not contain rows.', '');
-    Exit;
+  ResultSQL := '';
+  Columns := TTableColumnList.Create(True);
+  case DBObj.NodeType of
+    lntTable: ParseTableStructure(DBObj.CreateCode, Columns, nil, nil);
+    lntView: ParseViewStructure(DBObj.CreateCode, DBObj.Name, Columns, Dummy, Dummy, Dummy);
+    else AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' does not contain rows.', '');
   end;
-  Results := Mainform.Connection.GetResults('SHOW COLUMNS FROM '+Mainform.mask(DBObj.Database)+'.'+Mainform.mask(DBObj.Name));
-  SQL := '';
-  while not Results.Eof do begin
-    HasSelectedDatatype := comboDatatypes.ItemIndex = 0;
-    if not HasSelectedDatatype then for i:=Low(Datatypes) to High(Datatypes) do begin
-      HasSelectedDatatype := (LowerCase(getFirstWord(Results.Col('Type'))) = LowerCase(Datatypes[i].Name))
-        and (Integer(Datatypes[i].Category)+1 = comboDatatypes.ItemIndex);
-      if HasSelectedDatatype then
-        break;
+  if Columns.Count > 0 then begin
+    SQL := '';
+    for Col in Columns do begin
+      if (comboDatatypes.ItemIndex = 0) or (Integer(Col.DataType.Category) = comboDatatypes.ItemIndex-1) then
+        SQL := SQL + Mainform.mask(Col.Name) + ' LIKE ' + esc('%'+memoFindText.Text+'%') + ' OR ';
     end;
-    if HasSelectedDatatype then
-      SQL := SQL + Mainform.mask(Results.Col('Field')) + ' LIKE ' + esc('%'+memoFindText.Text+'%') + ' OR ';
-    Results.Next;
+    if SQL <> '' then begin
+      Delete(SQL, Length(SQL)-3, 3);
+      ResultSQL := 'SELECT * FROM '+Mainform.mask(DBObj.Database)+'.'+Mainform.mask(DBObj.Name)+' WHERE ' + SQL;
+      SQL := 'SELECT '''+DBObj.Database+''' AS `Database`, '''+DBObj.Name+''' AS `Table`, COUNT(*) AS `Found rows`, '
+        + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS `Relevance` FROM '+Mainform.mask(DBObj.Database)+'.'+Mainform.mask(DBObj.Name)+' WHERE '
+        + SQL;
+      AddResults(SQL);
+    end else
+      AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+DBObj.ObjType+' doesn''t have columns of selected type ('+comboDatatypes.Text+').', '');
   end;
-  if SQL <> '' then begin
-    Delete(SQL, Length(SQL)-3, 3);
-    SQL := 'SELECT '''+DBObj.Database+''' AS `Database`, '''+DBObj.Name+''' AS `Table`, COUNT(*) AS `Found rows`, '
-      + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS `Relevance` FROM '+Mainform.mask(DBObj.Database)+'.'+Mainform.mask(DBObj.Name)+' WHERE '
-      + SQL;
-    AddResults(SQL);
-  end else
-    AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+'table doesn''t have columns of selected type ('+comboDatatypes.Text+').', '');
+  Columns.Free;
+  FFindSeeResultSQL.Add(ResultSQL);
+end;
+
+
+procedure TfrmTableTools.btnSeeResultsClick(Sender: TObject);
+var
+  SQL: String;
+  i: Integer;
+  Tab: TQueryTab;
+begin
+  // "See results" clicked - auto create new query tab, and execute a batch of SELECT queries
+  SQL := '';
+  for i:=0 to FResults.Count-1 do begin
+    if MakeInt(FResults[i][2]) > 0 then begin
+      SQL := SQL + FFindSeeResultSQL[i] + ';' + CRLF;
+    end;
+  end;
+  MainForm.actNewQueryTab.Execute;
+  Tab := MainForm.QueryTabs[MainForm.QueryTabs.Count-1];
+  Tab.Memo.Text := SQL;
+  Tab.TabSheet.Show;
+  MainForm.actExecuteQueryExecute(Sender);
 end;
 
 
@@ -687,7 +723,7 @@ var
 begin
   // Bind string list to node
   Data := Sender.GetNodeData(Node);
-  Data^ := FResults[Node.Index] as TStringList;
+  Data^ := FResults[Node.Index];
 end;
 
 
@@ -968,7 +1004,7 @@ const
     LogRow: TStringlist;
     Percent: Double;
   begin
-    LogRow := TStringList(FResults.Last);
+    LogRow := FResults.Last;
     Percent := 100 / Max(DBObj.Rows,1) * RowsDone;
     LogRow[2] := FormatNumber(RowsDone) + ' / ' + FormatNumber(Percent, 0)+'%';
     LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000);
@@ -1323,7 +1359,7 @@ begin
       Specs.Add('AUTO_INCREMENT=0');
   end;
 
-  LogRow := TStringList(FResults.Last);
+  LogRow := FResults.Last;
   if Specs.Count > 0 then begin
     Mainform.Connection.Query('ALTER TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name) + ' ' + ImplodeStr(', ', Specs));
     LogRow[2] := 'Done';
