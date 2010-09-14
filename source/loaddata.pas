@@ -231,10 +231,13 @@ begin
     if not Assigned(Columns) then
       Columns := TTableColumnList.Create;
     DBObjects := Mainform.Connection.GetDBObjects(comboDatabase.Text);
-    Obj := DBObjects[comboTable.ItemIndex];
-    case Obj.NodeType of
-      lntTable: ParseTableStructure(Obj.CreateCode, Columns, nil, nil);
-      lntView: ParseViewStructure(Obj.CreateCode, Obj.Name, Columns, Algorithm, CheckOption, SelectCode);
+    for Obj in DBObjects do begin
+      if (Obj.Database=comboDatabase.Text) and (Obj.Name=comboTable.Text) then begin
+        case Obj.NodeType of
+          lntTable: ParseTableStructure(Obj.CreateCode, Columns, nil, nil);
+          lntView: ParseViewStructure(Obj.CreateCode, Obj.Name, Columns, Algorithm, CheckOption, SelectCode);
+        end;
+      end;
     end;
     for Col in Columns do
       chklistColumns.Items.Add(Col.Name);
