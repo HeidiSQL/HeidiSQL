@@ -2272,12 +2272,14 @@ begin
 
     if Field.table <> Field.org_table then begin
       // Probably a VIEW, in which case we rely on the first column's table name.
-	  // TODO: This is unsafe when joining a view with a table/view.
-      Objects := Connection.GetDBObjects(Connection.DecodeAPIString(Field.db));
-      for Obj in Objects do begin
-        if (Obj.Name = Connection.DecodeAPIString(Field.table)) and (Obj.NodeType = lntView) then begin
-          tbl := Field.table;
-          break;
+      // TODO: This is unsafe when joining a view with a table/view.
+      if Field.db <> '' then begin
+        Objects := Connection.GetDBObjects(Connection.DecodeAPIString(Field.db));
+        for Obj in Objects do begin
+          if (Obj.Name = Connection.DecodeAPIString(Field.table)) and (Obj.NodeType = lntView) then begin
+            tbl := Field.table;
+            break;
+          end;
         end;
       end;
       if tbl <> '' then
