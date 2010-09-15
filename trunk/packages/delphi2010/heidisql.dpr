@@ -49,8 +49,6 @@ uses
 var
   DoStop, prefAllowMultipleInstances: Boolean;
 begin
-  debug('perf: All modules loaded.');
-
   prefAllowMultipleInstances := GetRegValue(REGNAME_MULTI_INSTANCES, DEFAULT_MULTI_INSTANCES);
   SecondInstMsgId := RegisterWindowMessage(APPNAME);
   DoStop := False;
@@ -64,7 +62,6 @@ begin
     Application.UpdateFormatSettings := False;
     Application.CreateForm(TMainForm, MainForm);
     Application.OnMessage := Mainform.OnMessageHandler;
-    debug('perf: Main created.');
     MainForm.Startup;
     Application.Run;
   end;
