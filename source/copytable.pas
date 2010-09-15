@@ -96,7 +96,7 @@ var
   Item: TMenuItem;
 begin
   if Mainform.DBtree.Focused then
-    Table := Mainform.SelectedTable.Name
+    Table := Mainform.SelectedDbObj.Name
   else
     Table := Mainform.ListTables.Text[Mainform.ListTables.FocusedNode, 0];
   DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);

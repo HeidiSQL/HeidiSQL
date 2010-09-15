@@ -2692,6 +2692,7 @@ end;
 procedure TDBObjectEditor.Init(Obj: TDBObject);
 begin
   Mainform.ShowStatusMsg('Initializing editor ...');
+  Mainform.LogSQL(Self.ClassName+'.Init, using object "'+Obj.Name+'"', lcDebug);
   DBObject := TDBObject.Create(Obj.Connection);
   DBObject.Assign(Obj);
   Mainform.UpdateEditorTab;
@@ -2752,7 +2753,6 @@ begin
   pStr := Result;
   for Loop := 1 to ParamCount do
   begin
-    debug(ParamStr(Loop));
     lstrcpy(pStr, PChar(ParamStr(Loop)));
     pStr := @pStr[lstrlen(pStr) + 1];
   end;
