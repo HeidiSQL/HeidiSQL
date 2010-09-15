@@ -840,7 +840,7 @@ type
     FilterTextDatabase,
     FilterTextData: String;
     PreviousFocusedNode: PVirtualNode;
-    FInitEditorOnTreeSelection: Boolean;
+    FTreeRefreshInProgress: Boolean;
     FSelectedDbObj: TDBObject;
     FCmdlineFilenames: TStringlist;
     FCmdlineConnectionParams: TConnectionParameters;
@@ -1485,7 +1485,7 @@ begin
   SelectedTableKeys := TTableKeyList.Create;
   SelectedTableForeignKeys := TForeignKeyList.Create;
 
-  FInitEditorOnTreeSelection := True;
+  FTreeRefreshInProgress := False;
 
   FileEncodings := Explode(',', 'Auto detect (may fail),ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
 end;
@@ -6416,7 +6416,7 @@ begin
     LogSQL('DBtreeFocusChanged without node.', lcDebug);
     Exit;
   end;
-  LogSQL('DBtreeFocusChanged, Node level: '+IntToStr(Sender.GetNodeLevel(Node))+', FInitEditorOnTreeSelection: '+IntToStr(Integer(FInitEditorOnTreeSelection)), lcDebug);
+  LogSQL('DBtreeFocusChanged, Node level: '+IntToStr(Sender.GetNodeLevel(Node))+', FTreeRefreshInProgress: '+IntToStr(Integer(FTreeRefreshInProgress)), lcDebug);
 
   // Post pending UPDATE
   if Assigned(DataGridResult) and DataGridResult.Modified then
@@ -6472,7 +6472,7 @@ begin
         tabData.TabVisible := SelectedDbObj.NodeType in [lntTable, lntView];
         ParseSelectedTableStructure;
         if tabEditor.TabVisible then begin
-          if FInitEditorOnTreeSelection then
+          if not FTreeRefreshInProgress then
             actEditObjectExecute(Sender);
           // When a table is clicked in the tree, and the current
           // tab is a Host or Database tab, switch to showing table columns.
@@ -6509,7 +6509,7 @@ procedure TMainForm.DBtreeFocusChanging(Sender: TBaseVirtualTree; OldNode,
   var Allowed: Boolean);
 begin
   // Check if some editor has unsaved changes
-  if Assigned(ActiveObjectEditor) and Assigned(NewNode) and (NewNode <> OldNode) and FInitEditorOnTreeSelection then begin
+  if Assigned(ActiveObjectEditor) and Assigned(NewNode) and (NewNode <> OldNode) and (not FTreeRefreshInProgress) then begin
     Allowed := not (ActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
     DBTree.Selected[DBTree.FocusedNode] := not Allowed;
   end else
@@ -6642,14 +6642,14 @@ end;
 }
 procedure TMainForm.RefreshActiveTreeDB(FocusObject: TDBObject);
 begin
-  FInitEditorOnTreeSelection := False;
+  FTreeRefreshInProgress := True;
   try
     Connection.ClearDbObjects(ActiveDatabase);
     // Set focused node
     if FocusObject <> nil then
       SelectedDbObj := FocusObject;
   finally
-    FInitEditorOnTreeSelection := True;
+    FTreeRefreshInProgress := False;
   end;
 end;
 
