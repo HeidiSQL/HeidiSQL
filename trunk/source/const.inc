@@ -262,6 +262,7 @@ const
   REGPREFIX_COLWIDTHS = 'ColWidths_';
   REGPREFIX_COLSVISIBLE = 'ColsVisible_';
   REGPREFIX_COLPOS = 'ColPositions_';
+  REGPREFIX_COLSORT = 'ColSort_';
   REGPREFIX_DATEEDITOR_CURSOR = 'DateTimeEditor_CursorPos_Type';
   REGPREFIX_SHORTCUT1 = 'Shortcut1_';
   REGPREFIX_SHORTCUT2 = 'Shortcut2_';

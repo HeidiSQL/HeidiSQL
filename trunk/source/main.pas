@@ -5808,6 +5808,7 @@ begin
   MainReg.WriteString( REGPREFIX_COLWIDTHS + Regname, ColWidths );
   MainReg.WriteString( REGPREFIX_COLSVISIBLE + Regname, ColsVisible );
   MainReg.WriteString( REGPREFIX_COLPOS + Regname, ColPos );
+  MainReg.WriteString( REGPREFIX_COLSORT + Regname, IntToStr(List.Header.SortColumn) + ',' + IntToStr(Integer(List.Header.SortDirection)));
 end;
 
 
@@ -5862,6 +5863,19 @@ begin
       // Check if column number exists
       if List.Header.Columns.Count > i then
         List.Header.Columns[i].Position := colpos;
+    end;
+  end;
+
+  // Sort column and direction
+  Value := GetRegValue(REGPREFIX_COLSORT + Regname, '');
+  if Value <> '' then begin
+    ValueList := Explode(',', Value);
+    if ValueList.Count = 2 then begin
+      List.Header.SortColumn := MakeInt(ValueList[0]);
+      if MakeInt(ValueList[1]) = 0 then
+        List.Header.SortDirection := sdAscending
+      else
+        List.Header.SortDirection := sdDescending;
     end;
   end;
 
