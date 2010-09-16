@@ -9469,7 +9469,7 @@ begin
              end;
              HELPERNODE_FUNCTIONS: CellText := MySQLFunctions[Node.Index].Name;
              HELPERNODE_KEYWORDS: CellText := MySQLKeywords[Node.Index];
-             HELPERNODE_SNIPPETS: CellText := FSnippetFilenames.Names[Node.Index];
+             HELPERNODE_SNIPPETS: CellText := FSnippetFilenames[Node.Index];
              HELPERNODE_PROFILE: begin
                   if Assigned(ActiveQueryTab.QueryProfile) then begin
                     ActiveQueryTab.QueryProfile.RecNo := Node.Index;
@@ -9485,7 +9485,6 @@ begin
                if (SelectedDbObj.NodeType in [lntTable, lntView]) and (SelectedTableColumns.Count > Integer(Node.Index)) then
                  CellText := SelectedTableColumns[Node.Index].DataType.Name;
              HELPERNODE_FUNCTIONS: CellText := MySQLFunctions[Node.Index].Declaration;
-             HELPERNODE_SNIPPETS: CellText := FormatByteNumber(FSnippetFilenames.ValueFromIndex[Node.Index]);
              HELPERNODE_PROFILE: begin
                   if Assigned(ActiveQueryTab.QueryProfile) then begin
                     ActiveQueryTab.QueryProfile.RecNo := Node.Index;
@@ -9539,15 +9538,11 @@ end;
 
 
 procedure TMainForm.SetSnippetFilenames(Value: TStringList);
-var
-  i: Integer;
 begin
   // Refreshing list of snippet file names needs to refresh helper node too
-  if not Assigned(FSnippetFilenames) then
-    FSnippetFilenames := TStringList.Create;
-  FSnippetFilenames.Clear;
-  for i:=0 to Value.Count-1 do
-    FSnippetFilenames.Values[Value[i]] := IntToStr(_GetFileSize(DirnameSnippets+Value[i]+'.sql'));
+  if Assigned(FSnippetFilenames) then
+    FSnippetFilenames.Free;
+  FSnippetFilenames := Value;
   RefreshHelperNode(HELPERNODE_SNIPPETS);
 end;
 
