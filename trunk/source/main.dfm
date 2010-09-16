@@ -8735,6 +8735,7 @@ object MainForm: TMainForm
   end
   object BalloonHint1: TBalloonHint
     Delay = 100
+    HideAfter = 10000
     Left = 104
     Top = 128
   end
@@ -8767,5 +8768,10 @@ object MainForm: TMainForm
     object Runcurrentquery1: TMenuItem
       Action = actExecuteCurrentQuery
     end
+  end
+  object ApplicationEvents1: TApplicationEvents
+    OnDeactivate = ApplicationEvents1Deactivate
+    Left = 136
+    Top = 160
   end
 end

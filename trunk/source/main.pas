@@ -15,7 +15,7 @@ uses
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
-  CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry,
+  CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
   mysql_api, insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch;
@@ -512,6 +512,7 @@ type
     Run1: TMenuItem;
     RunSelection1: TMenuItem;
     Runcurrentquery1: TMenuItem;
+    ApplicationEvents1: TApplicationEvents;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -822,6 +823,7 @@ type
     procedure treeQueryHelpersFocusChanging(Sender: TBaseVirtualTree; OldNode,
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
     procedure treeQueryHelpersResize(Sender: TObject);
+    procedure ApplicationEvents1Deactivate(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -9601,6 +9603,13 @@ begin
       Tab.treeHelpers.InvalidateNode(Node);
     end;
   end;
+end;
+
+
+procedure TMainForm.ApplicationEvents1Deactivate(Sender: TObject);
+begin
+  // Force result tab balloon hint to disappear. Does not do so when mouse was moved too fast.
+  tabsetQueryMouseLeave(Sender);
 end;
 
 
