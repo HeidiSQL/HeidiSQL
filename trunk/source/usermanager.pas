@@ -640,6 +640,7 @@ begin
     VT.RootNodeCount := 0
   else
     VT.RootNodeCount := Users[listUsers.FocusedNode.Index].Privileges.Count;
+  VT.ReinitNode(nil, True);
 end;
 
 
@@ -648,17 +649,9 @@ var
   u: TUser;
   p: TPrivilege;
   i: Integer;
-  Child: PVirtualNode;
 begin
   case Sender.GetNodeLevel(Node) of
-    0: begin
-      Child := Sender.GetFirstChild(Node);
-      while Assigned(Child) do begin
-        Child.CheckState := Node.CheckState;
-        Child := Sender.GetNextSibling(Child);
-      end;
-      Sender.Expanded[Node] := True;
-    end;
+    0: Sender.Expanded[Node] := True;
     1: begin
       u := Users[listUsers.FocusedNode.Index];
       p := u.Privileges[Node.Parent.Index];
@@ -778,6 +771,13 @@ begin
       // Display plus/minus button
       Include(InitialStates, ivsHasChildren);
       p := Users[listUsers.FocusedNode.Index].Privileges[Node.Index];
+      // AutoOptions.toAutoTristateTracking does a good job but it does not auto-check parent nodes when initializing
+      if p.SelectedPrivNames.Count = 0 then
+        Node.CheckState := csUncheckedNormal
+      else if p.SelectedPrivNames.Count < p.PrivNames.Count then
+        Node.CheckState := csMixedNormal
+      else
+        Node.CheckState := csCheckedNormal;
     end;
     1: begin
       p := Users[listUsers.FocusedNode.Index].Privileges[Node.Parent.Index];
