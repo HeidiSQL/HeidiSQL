@@ -35,7 +35,7 @@ object optionsform: Toptionsform
       object chkAutoReconnect: TCheckBox
         Left = 16
         Top = 32
-        Width = 353
+        Width = 417
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Automatically reconnect to last session-account on startup'
@@ -45,7 +45,7 @@ object optionsform: Toptionsform
       object chkRestoreLastDB: TCheckBox
         Left = 16
         Top = 56
-        Width = 316
+        Width = 417
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Restore last used database on startup'
@@ -68,7 +68,7 @@ object optionsform: Toptionsform
         OnClick = chkUpdatecheckClick
       end
       object editUpdatecheckInterval: TEdit
-        Left = 335
+        Left = 374
         Top = 78
         Width = 43
         Height = 21
@@ -79,7 +79,7 @@ object optionsform: Toptionsform
         OnChange = Modified
       end
       object updownUpdatecheckInterval: TUpDown
-        Left = 378
+        Left = 417
         Top = 78
         Width = 16
         Height = 21
@@ -94,7 +94,7 @@ object optionsform: Toptionsform
       object chkUpdateCheckBuilds: TCheckBox
         Left = 34
         Top = 112
-        Width = 266
+        Width = 399
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Also check for updated nightly builds'
@@ -105,7 +105,7 @@ object optionsform: Toptionsform
       object chkDoStatistics: TCheckBox
         Left = 16
         Top = 135
-        Width = 398
+        Width = 417
         Height = 48
         Anchors = [akLeft, akTop, akRight]
         Caption = 
@@ -119,7 +119,7 @@ object optionsform: Toptionsform
       object chkAllowMultiInstances: TCheckBox
         Left = 16
         Top = 9
-        Width = 398
+        Width = 417
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Allow multiple application instances'
@@ -139,12 +139,23 @@ object optionsform: Toptionsform
       object cboxColorBars: TColorBox
         Left = 249
         Top = 187
-        Width = 145
+        Width = 184
         Height = 22
         Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
         Anchors = [akTop, akRight]
         TabOrder = 9
         OnClick = Modified
+      end
+      object chkAskFileSave: TCheckBox
+        Left = 16
+        Top = 213
+        Width = 417
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Prompt to save modified files on tab close'
+        Checked = True
+        State = cbChecked
+        TabOrder = 10
       end
     end
     object tabLogging: TTabSheet

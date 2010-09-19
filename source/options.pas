@@ -137,6 +137,7 @@ type
     lblMaxQueryResults: TLabel;
     editMaxQueryResults: TEdit;
     updownMaxQueryResults: TUpDown;
+    chkAskFileSave: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -228,6 +229,7 @@ begin
   MainReg.WriteBool(REGNAME_AUTORECONNECT, chkAutoReconnect.Checked);
   MainReg.WriteBool(REGNAME_MULTI_INSTANCES, chkAllowMultiInstances.Checked);
   MainReg.WriteBool(REGNAME_RESTORELASTUSEDDB, chkRestoreLastDB.Checked);
+  MainReg.WriteBool(REGNAME_PROMPTFILESAVE, chkAskFileSave.Checked);
   MainReg.WriteString(REGNAME_FONTNAME, comboSQLFontName.Text);
   MainReg.WriteInteger(REGNAME_FONTSIZE, updownSQLFontSize.Position);
   MainReg.WriteInteger(REGNAME_TABWIDTH, updownSQLTabWidth.Position);
@@ -430,6 +432,7 @@ begin
   chkDoStatistics.Checked := GetRegValue(REGNAME_DO_STATISTICS, DEFAULT_DO_STATISTICS);
   chkColorBars.Checked := GetRegValue(REGNAME_DISPLAYBARS, DEFAULT_DISPLAYBARS);
   cboxColorBars.Selected := GetRegValue(REGNAME_BARCOLOR, DEFAULT_BARCOLOR);
+  chkAskFileSave.Checked := GetRegValue(REGNAME_PROMPTFILESAVE, DEFAULT_PROMPTFILESAVE);
 
   // Logging
   updownLogLines.Position := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
