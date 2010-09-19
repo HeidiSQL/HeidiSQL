@@ -2140,7 +2140,6 @@ begin
         Val := 'NULL'
       else case Datatype(i).Category of
         dtcInteger, dtcReal: Val := Cell.NewText;
-        dtcBinary: Val := '_binary ' + Cell.NewText;
         else Val := Connection.EscapeString(Cell.NewText);
       end;
       sqlUpdate := sqlUpdate + Connection.QuoteIdent(FColumnOrgNames[i]) + '=' + Val;

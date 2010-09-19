@@ -9173,7 +9173,7 @@ end;
 procedure TMainForm.actBlobAsTextExecute(Sender: TObject);
 begin
   // Activate displaying BLOBs as text data, ignoring possible weird effects in grid updates/inserts
-  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
+  DataGrid.InvalidateChildren(nil, True);
 end;
 
 
