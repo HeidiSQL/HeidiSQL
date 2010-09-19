@@ -8792,7 +8792,7 @@ var
   Tab: TQueryTab;
 begin
   Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
-  if not Tab.Memo.Modified then
+  if (not Tab.Memo.Modified) or (not GetRegValue(REGNAME_PROMPTFILESAVE, DEFAULT_PROMPTFILESAVE)) then
     Result := True
   else begin
     // Unhide tabsheet so the user sees the memo content
