@@ -50,8 +50,13 @@ uses helpers, main;
 
 
 function TfrmBinEditor.GetText: String;
+var
+  Ansi: AnsiString;
 begin
-  Result := '0x' + memoText.Text;
+  // Convert hex to binary string before returning
+  SetLength(Ansi, memoText.GetTextLen div 2);
+  HexToBin(PWideChar(memoText.Text), PAnsiChar(Ansi), Length(Ansi));
+  Result := String(Ansi);
 end;
 
 procedure TfrmBinEditor.SetText(text: String);
