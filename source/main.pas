@@ -1201,6 +1201,7 @@ begin
   MainReg.WriteBool(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked);
   MainReg.WriteInteger( REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height );
   MainReg.WriteBool(REGNAME_FILTERACTIVE, pnlFilterVT.Tag=Integer(True));
+  MainReg.WriteBool(REGNAME_WRAPLINES, actQueryWordWrap.Checked);
   // Convert set to string.
   case WindowState of
     wsMinimized: WinState := 'Minimized';
@@ -1366,6 +1367,7 @@ begin
   ToolBarQuery.Top := GetRegValue(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
   actQueryStopOnErrors.Checked := GetRegValue(REGNAME_STOPONERRORSINBATCH, DEFAULT_STOPONERRORSINBATCH);
   actBlobAsText.Checked := GetRegValue(REGNAME_BLOBASTEXT, DEFAULT_BLOBASTEXT);
+  actQueryWordWrap.Checked := GetRegValue(REGNAME_WRAPLINES, actQueryWordWrap.Checked);
 
   pnlQueryMemo.Height := GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   treeQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, treeQueryHelpers.Width);
@@ -3196,7 +3198,8 @@ end;
 
 procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
 begin
-  ActiveQueryMemo.WordWrap := TAction(Sender).Checked;
+  // SetupSynEditors applies all customizations to any SynEditor
+  SetupSynEditors;
 end;
 
 
@@ -4289,9 +4292,6 @@ begin
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;
   actSaveSQLSnippet.Enabled := InQueryTab and NotEmpty;
   actSaveSQLSelectionSnippet.Enabled := InQueryTab and HasSelection;
-  // We need a pressed button which somehow does not work in conjunction with Enabled=False
-  // actQueryStopOnErrors.Enabled := QueryTabActive;
-  actQueryWordWrap.Enabled := InQueryTab;
   actClearQueryEditor.Enabled := InQueryTab and NotEmpty;
   actSetDelimiter.Enabled := InQueryTab;
   actCloseQueryTab.Enabled := IsQueryTab(PageControlMain.ActivePageIndex, False);
@@ -8931,6 +8931,8 @@ begin
     Editor.Gutter.LeftOffset := BaseEditor.Gutter.LeftOffset;
     Editor.Gutter.RightOffset := BaseEditor.Gutter.RightOffset;
     Editor.Gutter.ShowLineNumbers := BaseEditor.Gutter.ShowLineNumbers;
+    if Editor <> SynMemoSQLLog then
+      Editor.WordWrap := actQueryWordWrap.Checked;
     Editor.ActiveLineColor := ActiveLineColor;
     Editor.Options := BaseEditor.Options;
     Editor.TabWidth := TabWidth;

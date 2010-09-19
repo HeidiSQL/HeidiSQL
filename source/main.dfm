@@ -2445,7 +2445,6 @@ object MainForm: TMainForm
       Category = 'SQL'
       AutoCheck = True
       Caption = 'Wrap long lines'
-      Enabled = False
       Hint = 'Wrap long lines'
       ImageIndex = 62
       OnExecute = actQueryWordWrapExecute
