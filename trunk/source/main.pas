@@ -4372,9 +4372,40 @@ var
   Query: TSQLSentence;
 
   procedure addTable(Obj: TDBObject);
+  var
+    Params: TRoutineParamList;
+    Datatype: TDatatype;
+    Par: TRoutineParam;
+    DummyBool: Boolean;
+    ItemText, InsertText, Value, DummyString: String;
   begin
-    Proposal.InsertList.Add(Obj.Name);
-    Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [Obj.ImageIndex, LowerCase(Obj.ObjType), Obj.Name]) );
+    ItemText := Obj.Name;
+    InsertText := Obj.Name;
+    if Obj.NodeType in [lntFunction, lntProcedure] then begin
+      Params := TRoutineParamList.Create(True);
+      ParseRoutineStructure(Obj.CreateCode, Params, DummyBool, DummyString, DummyString, DummyString, DummyString, DummyString);
+      if Params.Count > 0 then begin
+        ItemText := ItemText + '(';
+        InsertText := InsertText + '(';
+        for Par in Params do begin
+          Datatype := GetDatatypeByName(GetFirstWord(Par.Datatype));
+          ItemText := ItemText + '\color{' + ColorToString(DatatypeCategories[Integer(Datatype.Category)].Color) + '}' + Par.Name + ': ' + Par.Datatype + '\color{clWindowText}, ';
+          case Datatype.Category of
+            dtcInteger: Value := '0';
+            dtcReal: Value := '0.0';
+            dtcTemporal: Value := 'NOW()';
+            else Value := esc(Par.Name);
+          end;
+          InsertText := InsertText + Value + ', ';
+        end;
+        Delete(ItemText, Length(ItemText)-1, 2);
+        Delete(InsertText, Length(InsertText)-1, 2);
+        ItemText := ItemText + ')';
+        InsertText := InsertText + ')';
+      end;
+    end;
+    Proposal.InsertList.Add(InsertText);
+    Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [Obj.ImageIndex, LowerCase(Obj.ObjType), ItemText]));
   end;
 
   procedure addColumns( tablename: String );
@@ -4547,7 +4578,7 @@ begin
       if MySqlFunctions[i].Version > Connection.ServerVersionInt then
         continue;
       Proposal.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
-      Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clSilver}' + MySQLFunctions[i].Declaration] ) );
+      Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clGrayText}' + MySQLFunctions[i].Declaration] ) );
     end;
 
     // Add keywords
