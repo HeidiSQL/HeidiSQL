@@ -412,7 +412,6 @@ type
     menuDeleteObject: TMenuItem;
     menuMaintenance2: TMenuItem;
     menuEmptyTables: TMenuItem;
-    actEditObject: TAction;
     menuCreateDB: TMenuItem;
     menuCreateTable: TMenuItem;
     menuCreateTableCopy: TMenuItem;
@@ -513,6 +512,7 @@ type
     RunSelection1: TMenuItem;
     Runcurrentquery1: TMenuItem;
     ApplicationEvents1: TApplicationEvents;
+    actDisconnect: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -520,8 +520,6 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Startup;
-    procedure DoAfterConnect;
-    procedure DoDisconnect;
     procedure FormResize(Sender: TObject);
     procedure actUserManagerExecute(Sender: TObject);
     procedure actAboutBoxExecute(Sender: TObject);
@@ -586,7 +584,7 @@ type
     procedure ValidateQueryControls(Sender: TObject);
     procedure DataGridBeforePaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas);
-    procedure LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo);
+    procedure LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo; Connection: TMySQLConnection=nil);
     procedure KillProcess(Sender: TObject);
     procedure SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     procedure TimerHostUptimeTimer(Sender: TObject);
@@ -648,6 +646,7 @@ type
         DropPosition: TPoint);
     procedure vstIncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode; const SearchText: String;
       var Result: Integer);
+    procedure SetMainTab(Page: TTabSheet);
     procedure DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex);
     procedure DBtreeDblClick(Sender: TObject);
@@ -721,7 +720,6 @@ type
     procedure ListTablesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; var Allowed: Boolean);
     procedure DBtreeChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure actEditObjectExecute(Sender: TObject);
     procedure ListTablesDblClick(Sender: TObject);
     procedure panelTopDblClick(Sender: TObject);
     procedure PageControlMainMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -824,6 +822,8 @@ type
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
     procedure treeQueryHelpersResize(Sender: TObject);
     procedure ApplicationEvents1Deactivate(Sender: TObject);
+    procedure actDisconnectExecute(Sender: TObject);
+    procedure menuEditObjectClick(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -841,38 +841,38 @@ type
     FilterTextCommandStats,
     FilterTextDatabase,
     FilterTextData: String;
-    PreviousFocusedNode: PVirtualNode;
     FTreeRefreshInProgress: Boolean;
-    FSelectedDbObj: TDBObject;
     FCmdlineFilenames: TStringlist;
     FCmdlineConnectionParams: TConnectionParameters;
     FCmdlineSessionName: String;
     FSearchReplaceExecuted: Boolean;
     FDataGridColumnWidthsCustomized: Boolean;
     FSnippetFilenames: TStringList;
+    FConnections: TMySQLConnectionList;
+    FTreeClickHistory: TNodeArray;
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
     procedure insertFunction(Sender: TObject);
+    function GetRootNode(Tree: TBaseVirtualTree; Connection: TMySQLConnection): PVirtualNode;
+    function GetActiveConnection: TMySQLConnection;
     function GetActiveDatabase: String;
-    procedure SetSelectedDatabase(db: String);
-    procedure SetSelectedDBObj(Obj: TDBObject);
+    procedure SetActiveDatabase(db: String; Connection: TMySQLConnection);
+    function GetActiveDBObj: TDBObject;
+    procedure SetActiveDBObj(Obj: TDBObject);
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     procedure AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
     procedure PlaceObjectEditor(Obj: TDBObject);
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
     procedure UpdateFilterPanel(Sender: TObject);
-    procedure DatabaseChanged(Database: String);
-    procedure DBObjectsCleared(Database: String);
+    procedure DBObjectsCleared(Connection: TMySQLConnection; Database: String);
     procedure DoSearchReplace;
     procedure UpdateLineCharPanel;
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
     procedure SetSnippetFilenames(Value: TStringList);
+    function TreeClickHistoryPrevious: PVirtualNode;
   public
-    Connection: TMySQLConnection;
-    SessionName: String;
-    AllDatabases: TStringList;
     AllDatabasesDetails: TMySQLQuery;
     btnAddTab: TSpeedButton;
     QueryTabs: TObjectList<TQueryTab>;
@@ -962,6 +962,7 @@ type
     DirnameUserAppData: String;
     DirnameSnippets: String;
 
+    property Connections: TMySQLConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
     property SnippetFilenames: TStringList read FSnippetFilenames write SetSnippetFilenames;
     procedure CallSQLHelpWithKeyword( keyword: String );
@@ -971,21 +972,22 @@ type
     procedure PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
     procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
     procedure SessionConnect(Sender: TObject);
-    function InitConnection(Params: TConnectionParameters; Session: String): Boolean;
+    function InitConnection(Params: TConnectionParameters; Session: String;
+      ActivateMe: Boolean; var Connection: TMySQLConnection): Boolean;
+    procedure ConnectionsNotify(Sender: TObject; const Item: TMySQLConnection; Action: TCollectionNotification);
     function ActiveGrid: TVirtualStringTree;
     function GridResult(Grid: TBaseVirtualTree): TMySQLQuery;
-    property ActiveDatabase : String read GetActiveDatabase write SetSelectedDatabase;
-    property SelectedDbObj: TDBObject read FSelectedDbObj write SetSelectedDBObj;
+    property ActiveConnection: TMySQLConnection read GetActiveConnection;
+    property ActiveDatabase: String read GetActiveDatabase;
+    property ActiveDbObj: TDBObject read GetActiveDbObj write SetActiveDBObj;
     procedure TestVTreeDataArray( P: PVTreeDataArray );
     function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
     procedure ActivateFileLogging;
     procedure DeactivateFileLogging;
     procedure TrimSQLLog;
-    function GetTreeNodeType(Tree: TBaseVirtualTree; Node: PVirtualNode): TListNodeType;
-    function GetFocusedTreeNodeType: TListNodeType;
-    procedure RefreshTree(DoResetTableCache: Boolean; SelectDatabase: String = '');
-    procedure RefreshActiveTreeDB(FocusObject: TDBObject);
-    function FindDBNode(db: String): PVirtualNode;
+    procedure RefreshTree(FocusNewObject: TDBObject=nil);
+    function FindDBObjectNode(Tree: TBaseVirtualTree; Obj: TDBObject): PVirtualNode;
+    function FindDBNode(Tree: TBaseVirtualTree; db: String): PVirtualNode;
     procedure CalcNullColors;
     procedure HandleDataGridAttributes(RefreshingData: Boolean);
     function GetRegKeyTable: String;
@@ -1090,7 +1092,7 @@ begin
     Exit;
   LastHintControlIndex := i;
   if LastHintControlIndex = 3 then begin
-    Infos := Connection.ConnectionInfo;
+    Infos := ActiveConnection.ConnectionInfo;
     BalloonHint1.Description := '';
     for i:=0 to Infos.Count-1 do
       BalloonHint1.Description := BalloonHint1.Description + Infos.Names[i] + ': ' + Infos.ValueFromIndex[i] + CRLF;
@@ -1121,7 +1123,7 @@ begin
   flushwhat := UpperCase(TAction(Sender).Caption);
   flushwhat := StripHotkey(flushwhat);
   try
-    Connection.Query('FLUSH ' + flushwhat);
+    ActiveConnection.Query('FLUSH ' + flushwhat);
     if Sender = actFlushTableswithreadlock then begin
       MessageDlg(
         'Tables have been flushed and read lock acquired.'#10 +
@@ -1129,7 +1131,7 @@ begin
         'Press OK to unlock when done...',
         mtInformation, [mbOk], 0
       );
-      Connection.Query('UNLOCK TABLES');
+      ActiveConnection.Query('UNLOCK TABLES');
     end;
   except
     on E:EDatabaseError do
@@ -1157,8 +1159,9 @@ end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 var
-  WinState: String;
+  WinState, OpenSessions: String;
   i: Integer;
+  Connection: TMySQLConnection;
 begin
   // Destroy editors and dialogs. Must be done before connection gets closed, as some destructors do SQL stuff.
   FreeAndNil(ActiveObjectEditor);
@@ -1173,8 +1176,18 @@ begin
   FreeAndNil(CopyTableDialog);
   FreeAndNil(ImportTextfileDialog);
 
-  // Close database connection
-  DoDisconnect;
+  // Save opened session names in root folder
+  OpenRegistry;
+  OpenSessions := '';
+  for Connection in Connections do
+    OpenSessions := OpenSessions + Connection.SessionName + DELIM;
+  Delete(OpenSessions, Length(OpenSessions)-Length(DELIM)+1, Length(DELIM));
+  MainReg.WriteString(REGNAME_LASTSESSIONS, OpenSessions);
+  if Assigned(ActiveConnection) then
+    MainReg.WriteString(REGNAME_LASTACTIVESESSION, ActiveConnection.SessionName);
+
+  // Close database connections
+  Connections.Clear;
 
   // Some grid editors access the registry - be sure these are gone before freeing MainReg
   QueryTabs.Clear;
@@ -1197,6 +1210,7 @@ begin
   MainReg.WriteInteger( REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height );
   MainReg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, treeQueryHelpers.Width );
   MainReg.WriteInteger( REGNAME_DBTREEWIDTH, pnlLeft.width );
+  MainReg.WriteString( REGNAME_DATABASE_FILTER, comboDBFilter.Items.Text );
   MainReg.WriteInteger(REGNAME_PREVIEW_HEIGHT, pnlPreview.Height);
   MainReg.WriteBool(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked);
   MainReg.WriteInteger( REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height );
@@ -1231,6 +1245,9 @@ begin
   SaveListSetup(ListCommandStats);
   SaveListSetup(ListTables);
 
+  if prefLogToFile then
+    DeactivateFileLogging;
+
   if MainReg <> nil then begin
     MainReg.CloseKey;
     // Export settings into textfile in portable mode.
@@ -1249,7 +1266,7 @@ end;
 }
 procedure TMainForm.FormCreate(Sender: TObject);
 var
-  i: Integer;
+  i, j: Integer;
   datafontname, WinState: String;
   datafontsize : Integer;
   DisableProcessWindowsGhostingProc: procedure;
@@ -1261,6 +1278,8 @@ var
   FI: PVSFixedFileInfo; // Delphi structure; see WINDOWS.PAS
   ptrVerBuf, Translation, Info: Pointer;
   DpiScaleFactor: Double;
+  FunctionCategories: TStringList;
+  miGroup, miFilterGroup, miFunction, miFilterFunction: TMenuItem;
 begin
   caption := APPNAME;
   setLocales;
@@ -1299,6 +1318,49 @@ begin
 
   // SQLFiles-History
   FillPopupQueryLoad;
+
+  // Create function menu items in popupQuery and popupFilter
+  menuQueryInsertFunction.Clear;
+  menuFilterInsertFunction.Clear;
+  FunctionCategories := GetFunctionCategories;
+  for i:=0 to FunctionCategories.Count-1 do begin
+    // Create a menu item which gets subitems later
+    miGroup := TMenuItem.Create(popupQuery);
+    miGroup.Caption := FunctionCategories[i];
+    menuQueryInsertFunction.Add(miGroup);
+    miFilterGroup := TMenuItem.Create(popupFilter);
+    miFilterGroup.Caption := miGroup.Caption;
+    menuFilterInsertFunction.Add(miFilterGroup);
+    for j:=0 to Length(MySqlFunctions)-1 do begin
+      if MySqlFunctions[j].Category <> FunctionCategories[i] then
+        continue;
+      miFunction := TMenuItem.Create(popupQuery);
+      miFunction.Caption := MySqlFunctions[j].Name;
+      miFunction.ImageIndex := 13;
+      // Prevent generating a hotkey
+      miFunction.Caption := StringReplace(miFunction.Caption, '&', '&&', [rfReplaceAll]);
+      // Prevent generating a seperator line
+      if miFunction.Caption = '-' then
+        miFunction.Caption := '&-';
+      miFunction.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration + ' - ' + sstr(MySqlFunctions[j].Description, 200);
+      // Prevent generating a seperator for ShortHint and LongHint
+      miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
+      miFunction.Tag := j;
+      // Place menuitem on menu
+      miFunction.OnClick := insertFunction;
+      miGroup.Add(miFunction);
+      // Create a copy of the menuitem for popupFilter
+      miFilterFunction := TMenuItem.Create(popupFilter);
+      miFilterFunction.Caption := miFunction.Caption;
+      miFilterFunction.Hint := miFunction.Hint;
+      miFilterFunction.ImageIndex := miFunction.ImageIndex;
+      miFilterFunction.Tag := miFunction.Tag;
+      miFilterFunction.OnClick := miFunction.OnClick;
+      miFilterFunction.Enabled := miFunction.Enabled;
+      miFilterGroup.Add(miFilterFunction);
+    end;
+  end;
+  FunctionCategories.Free;
 
   Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
 
@@ -1376,7 +1438,7 @@ begin
   if GetRegValue(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked) and (not actDataPreview.Checked) then
     actDataPreviewExecute(actDataPreview);
   SynMemoSQLLog.Height := GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
-  // Force status bar position to below log memo 
+  // Force status bar position to below log memo
   StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
   prefMaxColWidth := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
   prefGridRowcountMax := GetRegValue(REGNAME_MAXTOTALROWS, DEFAULT_MAXTOTALROWS);
@@ -1391,6 +1453,9 @@ begin
   prefLogsqlnum := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   prefLogSqlWidth := GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
   prefDirnameSessionLogs := GetRegValue(REGNAME_LOGDIR, DirnameUserAppData + 'Sessionlogs\');
+  // Activate logging
+  if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
+    ActivateFileLogging;
   prefCSVSeparator := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
   prefCSVEncloser := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
   prefCSVTerminator := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
@@ -1468,8 +1533,6 @@ begin
   // SynMemo font, hightlighting and shortcuts
   SetupSynEditors;
 
-  AllDatabases := TStringList.Create;
-
   btnAddTab := TSpeedButton.Create(PageControlMain);
   btnAddTab.Parent := PageControlMain;
   ImageListMain.GetBitmap(actNewQueryTab.ImageIndex, btnAddTab.Glyph);
@@ -1489,6 +1552,17 @@ begin
   SelectedTableKeys := TTableKeyList.Create;
   SelectedTableForeignKeys := TForeignKeyList.Create;
 
+  // Set up connections list
+  FConnections := TMySQLConnectionList.Create;
+  FConnections.OnNotify := ConnectionsNotify;
+
+  // Load database filter items. Was previously bound to sessions before multi connections were implemented
+  comboDBFilter.Items.Text := GetRegValue(REGNAME_DATABASE_FILTER, '');
+  if comboDBFilter.Items.Count > 0 then
+    comboDBFilter.ItemIndex := 0
+  else
+    comboDBFilter.Text := '';
+
   FTreeRefreshInProgress := False;
 
   FileEncodings := Explode(',', 'Auto detect (may fail),ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
@@ -1500,11 +1574,12 @@ end;
 }
 procedure TMainForm.Startup;
 var
-  CmdlineParameters: TStringlist;
+  CmdlineParameters, LastSessions: TStringlist;
+  Connection: TMySQLConnection;
   LoadedParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
-  DefaultLastrunDate, LastSession, StatsURL: String;
+  DefaultLastrunDate, LastActiveSession, StatsURL: String;
   frm : TfrmUpdateCheck;
   Connected, DecideForStatistic: Boolean;
   StatsCall: TDownloadUrl2;
@@ -1530,6 +1605,11 @@ begin
     end;
   end;
 
+  // Get all session names
+  SessionNames := TStringlist.Create;
+  if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, true) then
+    MainReg.GetKeyNames(SessionNames);
+
   // Call user statistics if checked in settings
   if GetRegValue(REGNAME_DO_STATISTICS, DEFAULT_DO_STATISTICS) then begin
     try
@@ -1541,9 +1621,6 @@ begin
       // Report used SVN revision
       StatsURL := APPDOMAIN + 'savestats.php?c=' + IntToStr(AppVerRevision);
       // Enumerate actively used server versions
-      SessionNames := TStringlist.Create;
-      if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, true) then
-        MainReg.GetKeyNames(SessionNames);
       for i:=0 to SessionNames.Count-1 do begin
         try
           LastConnect := StrToDateTime(GetRegValue(REGNAME_LASTCONNECT, DefaultLastrunDate, SessionNames[i]));
@@ -1577,23 +1654,37 @@ begin
     Mainreg.WriteBool(REGNAME_DO_STATISTICS, DecideForStatistic);
   end;
 
-
   Connected := False;
 
+  OpenRegistry;
   CmdlineParameters := TStringList.Create;
   for i:=1 to ParamCount do
     CmdlineParameters.Add(ParamStr(i));
   ParseCommandLineParameters(CmdlineParameters);
   if Assigned(FCmdlineConnectionParams) then begin
     // Minimal parameter for command line mode is hostname
-    Connected := InitConnection(FCmdlineConnectionParams, FCmdlineSessionName);
+    Connected := InitConnection(FCmdlineConnectionParams, FCmdlineSessionName, True, Connection);
   end else if GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT) then begin
     // Auto connection via preference setting
     // Do not autoconnect if we're in commandline mode and the connection was not successful
-    LastSession := GetRegValue(REGNAME_LASTSESSION, '');
-    if LastSession <> '' then begin
-      LoadedParams := LoadConnectionParams(LastSession);
-      Connected := InitConnection(LoadedParams, LastSession);
+    LastSessions := Explode(DELIM, GetRegValue(REGNAME_LASTSESSIONS, ''));
+    LastActiveSession := GetRegValue(REGNAME_LASTACTIVESESSION, '');
+    for i:=LastSessions.Count-1 downto 0 do begin
+      if SessionNames.IndexOf(LastSessions[i]) = -1 then
+        LastSessions.Delete(i);
+    end;
+    if LastSessions.Count > 0 then begin
+      if LastSessions.IndexOf(LastActiveSession) = -1 then
+        LastActiveSession := LastSessions[0];
+      for i:=0 to LastSessions.Count-1 do begin
+        try
+          LoadedParams := LoadConnectionParams(LastSessions[i]);
+          if InitConnection(LoadedParams, LastSessions[i], LastActiveSession=LastSessions[i], Connection) then
+            Connected := True;
+        except on E:Exception do
+          MessageDlg(E.Message, mtError, [mbOK], 0);
+        end;
+      end;
     end;
   end;
 
@@ -1614,8 +1705,6 @@ begin
       Exit;
     end;
   end;
-
-  DoAfterConnect;
 
   // Load SQL file(s) by command line
   for i:=0 to FCmdlineFilenames.Count-1 do begin
@@ -1704,179 +1793,69 @@ procedure TMainForm.actSessionManagerExecute(Sender: TObject);
 begin
   if not Assigned(SessionManager) then
     SessionManager := TConnForm.Create(Self);
-  if SessionManager.ShowModal <> mrCancel then
-    DoAfterConnect;
+  SessionManager.ShowModal;
 end;
 
 
-procedure TMainForm.DoAfterConnect;
+procedure TMainForm.actDisconnectExecute(Sender: TObject);
 var
-  i, j: Integer;
-  lastUsedDB, StartupScript, StartupSQL: String;
-  functioncats: TStringList;
-  StartupBatch: TSQLBatch;
-  miGroup,
-  miFilterGroup,
-  miFunction,
-  miFilterFunction: TMenuItem;
+  Connection: TMySQLConnection;
+  Node: PVirtualNode;
 begin
-  // Activate logging
-  if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
-    ActivateFileLogging;
-
-  tabHost.Caption := 'Host: '+Connection.Parameters.HostName;
-
-  // Save server version
-  OpenRegistry(SessionName);
-  Mainreg.WriteInteger(REGNAME_SERVERVERSION, Connection.ServerVersionInt);
-  Mainreg.WriteString(REGNAME_LASTCONNECT, DateTimeToStr(Now));
-
-  // Process startup script
-  StartupScript := Trim(Connection.Parameters.StartupScriptFilename);
-  if StartupScript <> '' then begin
-    if not FileExists(StartupScript) then
-      MessageDlg('Error: Startup script file not found: '+StartupScript, mtError, [mbOK], 0)
-    else begin
-      StartupSQL := ReadTextfile(StartupScript, nil);
-      StartupBatch := SplitSQL(StartupSQL);
-      for i:=0 to StartupBatch.Count-1 do try
-        Connection.Query(StartupBatch[i].SQL);
-      except
-        // Suppress popup, errors get logged into SQL log
-      end;
-      StartupBatch.Free;
-    end;
-  end;
-
-  // Remove db and table nodes, force host node to initialize again
-  InvalidateVT(DBtree, VTREE_NOTLOADED_PURGECACHE, False);
-  DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, SessionName);
-
-  comboDBFilter.Items.Text := GetRegValue(REGNAME_DATABASE_FILTER, '', SessionName);
-  if comboDBFilter.Items.Count > 0 then
-    comboDBFilter.ItemIndex := 0
-  else
-    comboDBFilter.Text := '';
-
-  // Reselect last used database
-  if GetRegValue( REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB ) then begin
-    lastUsedDB := GetRegValue(REGNAME_LASTUSEDDB, '', SessionName);
-    if lastUsedDB <> '' then try
-      ActiveDatabase := lastUsedDB;
-    except
-      // Suppress exception message when db was dropped externally or
-      // the session was just opened with "OnlyDBs" in place and the
-      // last db is not contained in this list.
-    end;
-  end;
-  // By default, select the host node
-  if not Assigned(DBtree.FocusedNode) then
-    SelectNode(DBTree, DBtree.GetFirst);
-
-  // Create function menu items in popupQuery and popupFilter
-  menuQueryInsertFunction.Clear;
-  menuFilterInsertFunction.Clear;
-  functioncats := GetFunctionCategories;
-  for i:=0 to functioncats.Count-1 do begin
-    // Create a menu item which gets subitems later
-    miGroup := TMenuItem.Create(popupQuery);
-    miGroup.Caption := functioncats[i];
-    menuQueryInsertFunction.Add(miGroup);
-    miFilterGroup := TMenuItem.Create(popupFilter);
-    miFilterGroup.Caption := miGroup.Caption;
-    menuFilterInsertFunction.Add(miFilterGroup);
-    for j:=0 to Length(MySqlFunctions)-1 do begin
-      if MySqlFunctions[j].Category <> functioncats[i] then
-        continue;
-      miFunction := TMenuItem.Create(popupQuery);
-      miFunction.Caption := MySqlFunctions[j].Name;
-      miFunction.ImageIndex := 13;
-      // Prevent generating a hotkey
-      miFunction.Caption := StringReplace(miFunction.Caption, '&', '&&', [rfReplaceAll]);
-      // Prevent generating a seperator line
-      if miFunction.Caption = '-' then
-        miFunction.Caption := '&-';
-      miFunction.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration;
-      // Take care of needed server version
-      if MySqlFunctions[j].Version <= Connection.ServerVersionInt then begin
-        if MySqlFunctions[j].Description <> '' then
-          miFunction.Hint := miFunction.Hint + ' - ' + Copy(MySqlFunctions[j].Description, 0, 200 );
-        miFunction.Tag := j;
-        // Place menuitem on menu
-        miFunction.OnClick := insertFunction;
-      end else begin
-        miFunction.Hint := miFunction.Hint + ' - ('+SUnsupported+', needs >= '+Connection.ConvertServerVersion(MySqlFunctions[j].Version)+')';
-        miFunction.Enabled := False;
-      end;
-      // Prevent generating a seperator for ShortHint and LongHint
-      miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
-      miGroup.Add(miFunction);
-      // Create a copy of the menuitem for popupFilter
-      miFilterFunction := TMenuItem.Create(popupFilter);
-      miFilterFunction.Caption := miFunction.Caption;
-      miFilterFunction.Hint := miFunction.Hint;
-      miFilterFunction.ImageIndex := miFunction.ImageIndex;
-      miFilterFunction.Tag := miFunction.Tag;
-      miFilterFunction.OnClick := miFunction.OnClick;
-      miFilterFunction.Enabled := miFunction.Enabled;
-      miFilterGroup.Add(miFilterFunction);
-    end;
+  // Disconnect active connection. If it's the last, exit application
+  if FConnections.Count = 1 then
+    actExitApplication.Execute
+  else begin
+    Connection := ActiveConnection;
+    // Find and remove connection node from tree
+    Node := GetRootNode(DBtree, Connection);
+    // TODO: focus last session?
+    SelectNode(DBtree, DBtree.GetFirst);
+    DBTree.DeleteNode(Node, True);
+    FConnections.Remove(Connection);
   end;
 end;
 
 
-procedure TMainForm.DoDisconnect;
+procedure TMainForm.ConnectionsNotify(Sender: TObject; const Item: TMySQLConnection; Action: TCollectionNotification);
 var
   Results: TMySQLQuery;
   Tab: TQueryTab;
 begin
-  // Do nothing in case user clicked Cancel on session manager
-  if (not Assigned(Connection)) or (not Connection.Active) then
-    Exit;
+  // Connection removed or added
+  case Action of
+    cnRemoved, cnExtracted: begin
+      // Post pending UPDATE
+      Results := GridResult(DataGrid);
+      if Assigned(Results) and Results.Modified then
+        actDataPostChangesExecute(DataGrid);
 
-  // Open server-specific registry-folder.
-  // relative from already opened folder!
-  OpenRegistry(SessionName);
-  MainReg.WriteString( REGNAME_LASTUSEDDB, Connection.Database );
-  MainReg.WriteString( REGNAME_DATABASE_FILTER, comboDBFilter.Items.Text );
-  // Save last session name in root folder
-  OpenRegistry;
-  MainReg.WriteString(REGNAME_LASTSESSION, SessionName);
+      // Remove result sets which may cause AVs when disconnected
+      for Tab in QueryTabs do begin
+        if Assigned(Tab.QueryProfile) and (Tab.QueryProfile.Connection = Item) then
+          FreeAndNil(Tab.QueryProfile);
+      end;
 
-  // Post pending UPDATE
-  Results := GridResult(DataGrid);
-  if Assigned(Results) and Results.Modified then
-    actDataPostChangesExecute(DataGrid);
+      {// TODO: Clear database and table lists
+      DBtree.ClearSelection;
+      DBtree.FocusedNode := nil;
+      FreeAndNil(DataGridHiddenColumns);
+      SynMemoFilter.Clear;
+      SetLength(DataGridSortColumns, 0);
+      RefreshHelperNode(HELPERNODE_PROFILE);
+      RefreshHelperNode(HELPERNODE_COLUMNS);}
 
-  // Clear database and table lists
-  DBtree.ClearSelection;
-  DBtree.FocusedNode := nil;
-  PreviousFocusedNode := nil;
-  FreeAndNil(AllDatabasesDetails);
-  FreeAndNil(DataGridHiddenColumns);
-  SynMemoFilter.Clear;
-  SetLength(DataGridSortColumns, 0);
-  FreeAndNil(SQLHelpForm);
-  for Tab in QueryTabs do
-    FreeAndNil(Tab.QueryProfile);
-  RefreshHelperNode(HELPERNODE_PROFILE);
-  RefreshHelperNode(HELPERNODE_COLUMNS);
+      // Last chance to access connection related properties before disconnecting
+      OpenRegistry(Item.SessionName);
+      MainReg.WriteString(REGNAME_LASTUSEDDB, Item.Database);
 
-  // Closing connection
-  Connection.Active := False;
+      // Disconnect
+      Item.Active := False;
+    end;
 
-  if prefLogToFile then
-    DeactivateFileLogging;
-
-  // Invalidate list contents
-  InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
-  InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
-  InvalidateVT(ListStatus, VTREE_NOTLOADED, False);
-  InvalidateVT(ListProcesses, VTREE_NOTLOADED, False);
-  InvalidateVT(ListCommandstats, VTREE_NOTLOADED, False);
-  InvalidateVT(ListTables, VTREE_NOTLOADED, False);
-
-  Application.Title := APPNAME;
+    // New connection
+    cnAdded: DBTree.InsertNode(DBTree.GetLastChild(nil), amInsertAfter);
+  end;
 end;
 
 
@@ -1889,7 +1868,7 @@ begin
 
   // Rely on the modalresult being set correctly
   if CreateDatabaseForm.ShowModal = mrOK then
-    InvalidateVT(DBtree, VTREE_NOTLOADED_PURGECACHE, False);
+    RefreshTree;
 end;
 
 
@@ -1981,20 +1960,22 @@ var
   Act: TAction;
   InDBTree: Boolean;
   Node: PVirtualNode;
+  DBObj: PDBObject;
 begin
   // Show table tools dialog
   if TableToolsDialog = nil then
     TableToolsDialog := TfrmTableTools.Create(Self);
   Act := Sender as TAction;
+  TableToolsDialog.PreSelectObjects.Clear;
   InDBTree := (Act.ActionComponent is TMenuItem)
     and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
   if InDBTree then
-    TableToolsDialog.SelectedTables.Text := SelectedDbObj.Name
+    TableToolsDialog.PreSelectObjects.Add(ActiveDbObj)
   else begin
-    TableToolsDialog.SelectedTables.Clear;
     Node := ListTables.GetFirstSelected;
     while Assigned(Node) do begin
-      TableToolsDialog.SelectedTables.Add(ListTables.Text[Node, 0]);
+      DBObj := ListTables.GetNodeData(Node);
+      TableToolsDialog.PreSelectObjects.Add(DBObj^);
       Node := ListTables.GetNextSelected(Node);
     end;
   end;
@@ -2037,7 +2018,8 @@ procedure TMainForm.menuConnectionsPopup(Sender: TObject);
 var
   i: integer;
   item: TMenuItem;
-  Connections: TStringList;
+  SessionNames: TStringList;
+  Connection: TMySQLConnection;
 begin
   // Delete dynamically added connection menu items.
   menuConnections.Items.Clear;
@@ -2056,16 +2038,19 @@ begin
 
   // All sessions
   if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, False) then begin
-    Connections := TStringList.Create;
-    MainReg.GetKeyNames(Connections);
-    for i := 0 to Connections.Count - 1 do begin
+    SessionNames := TStringList.Create;
+    MainReg.GetKeyNames(SessionNames);
+    for i:=0 to SessionNames.Count-1 do begin
       item := TMenuItem.Create(menuConnections);
-      item.Caption := Connections[i];
+      item.Caption := SessionNames[i];
       item.OnClick := SessionConnect;
       item.ImageIndex := 37;
-      if Connections[i] = SessionName then begin
-        item.Checked := True;
-        item.ImageIndex := -1;
+      for Connection in Connections do begin
+        if SessionNames[i] = Connection.SessionName then begin
+          item.Checked := True;
+          item.ImageIndex := -1;
+          break;
+        end;
       end;
       menuConnections.Items.Add(item);
     end;
@@ -2078,7 +2063,7 @@ procedure TMainForm.File1Click(Sender: TObject);
 var
   Item: TMenuItem;
   i: Integer;
-  Connections: TStringList;
+  SessionNames, ConnectedSessions: TStringList;
 begin
   // Decide if "Connect to" menu should be enabled
   menuConnectTo.Enabled := False;
@@ -2088,14 +2073,17 @@ begin
       // Add all sessions to submenu
       for i := menuConnectTo.Count - 1 downto 0 do
         menuConnectTo.Delete(i);
-      Connections := TStringList.Create;
-      MainReg.GetKeyNames(Connections);
-      for i := 0 to Connections.Count - 1 do begin
+      ConnectedSessions := TStringList.Create;
+      for i:=0 to Connections.Count-1 do
+        ConnectedSessions.Add(Connections[i].SessionName);
+      SessionNames := TStringList.Create;
+      MainReg.GetKeyNames(SessionNames);
+      for i:=0 to SessionNames.Count-1 do begin
         Item := TMenuItem.Create(menuConnectTo);
-        Item.Caption := Connections[i];
+        Item.Caption := SessionNames[i];
         Item.OnClick := SessionConnect;
         Item.ImageIndex := 37;
-        if Connections[i] = SessionName then begin
+        if ConnectedSessions.IndexOf(SessionNames[i]) > -1 then begin
           Item.Checked := True;
           Item.ImageIndex := -1;
         end;
@@ -2116,7 +2104,7 @@ end;
 // Escape database, table, field, index or key name.
 function TMainform.mask(str: String; HasMultiSegments: Boolean=False) : String;
 begin
-  result := Connection.QuoteIdent(str, HasMultiSegments);
+  result := ActiveConnection.QuoteIdent(str, HasMultiSegments);
 end;
 
 
@@ -2188,19 +2176,19 @@ begin
   ProfileNode := FindNode(QueryTab.treeHelpers, HELPERNODE_PROFILE, nil);
   DoProfile := Assigned(ProfileNode) and (QueryTab.treeHelpers.CheckState[ProfileNode] in CheckedStates);
   if DoProfile then
-    Connection.Query('SET profiling=1');
+    ActiveConnection.Query('SET profiling=1');
   for i:=0 to SQLBatch.Count-1 do begin
     ShowStatusMsg('Executing query #'+FormatNumber(i+1)+' of '+FormatNumber(SQLBatch.Count)+' ...');
     ProgressBarStatus.StepIt;
     ProgressBarStatus.Repaint;
     try
-      Connection.Query(SQLBatch[i].SQL, QueryTab.ResultTabs.Count < prefMaxQueryResults, lcUserFiredSQL);
+      ActiveConnection.Query(SQLBatch[i].SQL, QueryTab.ResultTabs.Count < prefMaxQueryResults, lcUserFiredSQL);
       Inc(QueryCount);
-      Inc(SQLtime, Connection.LastQueryDuration);
-      Inc(SQLNetTime, Connection.LastQueryNetworkDuration);
-      Inc(RowsAffected, Connection.RowsAffected);
-      Inc(RowsFound, Connection.RowsFound);
-      if (Connection.ResultCount > 0) then for Results in Connection.GetLastResults do begin
+      Inc(SQLtime, ActiveConnection.LastQueryDuration);
+      Inc(SQLNetTime, ActiveConnection.LastQueryNetworkDuration);
+      Inc(RowsAffected, ActiveConnection.RowsAffected);
+      Inc(RowsFound, ActiveConnection.RowsFound);
+      if (ActiveConnection.ResultCount > 0) then for Results in ActiveConnection.GetLastResults do begin
         NewTab := TResultTab.Create;
         QueryTab.ResultTabs.Add(NewTab);
         NewTab.Results := Results;
@@ -2263,7 +2251,7 @@ begin
   end;
 
   if DoProfile then begin
-    QueryTab.QueryProfile := Connection.GetResults('SHOW PROFILE');
+    QueryTab.QueryProfile := ActiveConnection.GetResults('SHOW PROFILE');
     QueryTab.ProfileTime := 0;
     QueryTab.MaxProfileTime := 0;
     while not QueryTab.QueryProfile.Eof do begin
@@ -2274,7 +2262,7 @@ begin
     end;
     QueryTab.treeHelpers.ReinitNode(ProfileNode, True);
     QueryTab.treeHelpers.InvalidateChildren(ProfileNode, True);
-    Connection.Query('SET profiling=0');
+    ActiveConnection.Query('SET profiling=0');
   end;
 
   // Clean up
@@ -2593,22 +2581,22 @@ begin
     and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
   if InDBTree then begin
     // drop table selected in tree view.
-    case GetFocusedTreeNodeType of
+    case ActiveDBObj.NodeType of
       lntDb: begin
         if MessageDlg('Drop Database "'+activeDB+'"?' + crlf + crlf + 'WARNING: You will lose all objects in database '+activeDB+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
           Abort;
         try
-          Connection.Query('DROP DATABASE ' + mask(activeDB));
-          Connection.ClearDbObjects(activeDB);
-          InvalidateVT(DBtree, VTREE_NOTLOADED_PURGECACHE, False);
-          ActiveDatabase := '';
+          SetActiveDatabase('', ActiveConnection);
+          ActiveConnection.Query('DROP DATABASE ' + mask(activeDB));
+          ActiveConnection.ClearDbObjects(activeDB);
+          RefreshTree;
         except
           on E:EDatabaseError do
             MessageDlg(E.Message, mtError, [mbOK], 0);
         end;
         Exit;
       end;
-      else ObjectList.Add(SelectedDbObj);
+      lntTable..lntEvent: ObjectList.Add(ActiveDbObj);
     end;
   end else begin
     // Invoked from database tab
@@ -2639,12 +2627,12 @@ begin
     // Compose and run DROP [TABLE|VIEW|...] queries
     Editor := ActiveObjectEditor;
     for DBObject in ObjectList do begin
-      Connection.Query('DROP '+UpperCase(DBObject.ObjType)+' '+Mask(DBObject.Name));
+      ActiveConnection.Query('DROP '+UpperCase(DBObject.ObjType)+' '+Mask(DBObject.Name));
       if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
         Editor.Modified := False;
     end;
     // Refresh ListTables + dbtree so the dropped tables are gone:
-    Connection.ClearDbObjects(ActiveDatabase);
+    ActiveConnection.ClearDbObjects(ActiveDatabase);
   except
     on E:EDatabaseError do
       MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -2684,32 +2672,67 @@ end;
 procedure TMainForm.SessionConnect(Sender: TObject);
 var
   Session: String;
+  Connection: TMySQLConnection;
   Params: TConnectionParameters;
+  Node, SessionNode: PVirtualNode;
+  DBObj: PDBObject;
+  i: Integer;
 begin
+  // Click on quick-session menu item:
   Session := (Sender as TMenuItem).Caption;
-  Params := LoadConnectionParams(Session);
-  if InitConnection(Params, Session) then
-    DoAfterConnect;
+  Node := nil;
+  // Probably wanted session was clicked before: navigate to last node
+  for i:=High(FTreeClickHistory) downto Low(FTreeClickHistory) do begin
+    if FTreeClickHistory[i] <> nil then begin
+      DBObj := DBtree.GetNodeData(FTreeClickHistory[i]);
+      if DBObj.Connection.SessionName = Session then begin
+        Node := FTreeClickHistory[i];
+        break;
+      end;
+    end;
+  end;
+  if not Assigned(Node) then begin
+    // Wanted session was not clicked yet but probably connected: navigate to root node
+    SessionNode := DBtree.GetFirstChild(nil);
+    while Assigned(SessionNode) do begin
+      DBObj := DBtree.GetNodeData(SessionNode);
+      if DBObj.Connection.SessionName = Session then begin
+        Node := SessionNode;
+      end;
+      SessionNode := DBtree.GetNextSibling(SessionNode);
+    end;
+  end;
+  // Finally we have a node if session is already connected
+  if Assigned(Node) then
+    SelectNode(DBtree, Node)
+  else begin
+    Params := LoadConnectionParams(Session);
+    InitConnection(Params, Session, True, Connection);
+  end;
 end;
 
 
 {**
-  Receive connection parameters and create the mdi-window
+  Receive connection parameters and create a connection tree node
   Paremeters are either sent by connection-form or by commandline.
 }
-function TMainform.InitConnection(Params: TConnectionParameters; Session: String): Boolean;
+function TMainform.InitConnection(Params: TConnectionParameters; Session: String;
+  ActivateMe: Boolean; var Connection: TMySQLConnection): Boolean;
 var
-  ConnectionAttempt: TMySQLConnection;
-  SessionExists: Boolean;
+  i: Integer;
+  SessionExists, RestoreLastActiveDatabase: Boolean;
+  StartupScript, StartupSQL, LastActiveDatabase: String;
+  StartupBatch: TSQLBatch;
+  SessionNode: PVirtualNode;
 begin
-  ConnectionAttempt := TMySQLConnection.Create(Self);
-  ConnectionAttempt.OnLog := LogSQL;
-  ConnectionAttempt.OnDatabaseChanged := DatabaseChanged;
-  ConnectionAttempt.OnDBObjectsCleared := DBObjectsCleared;
-  ConnectionAttempt.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
-  ConnectionAttempt.Parameters := Params;
+  Connection := TMySQLConnection.Create(Self);
+  Connection.OnLog := LogSQL;
+  Connection.OnDBObjectsCleared := DBObjectsCleared;
+  Connection.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
+  Connection.SessionName := Session;
+  Connection.Parameters := Params;
   try
-    ConnectionAttempt.Active := True;
+    Connection.Active := True;
   except
     on E:EDatabaseError do
       MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -2717,7 +2740,7 @@ begin
 
   // attempt to establish connection
   SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + Session);
-  if not ConnectionAttempt.Active then begin
+  if not Connection.Active then begin
     // attempt failed
     if SessionExists then begin
       // Save "refused" counter
@@ -2725,19 +2748,51 @@ begin
       MainReg.WriteInteger(REGNAME_REFUSEDCOUNT, GetRegValue(REGNAME_REFUSEDCOUNT, 0, Session)+1);
     end;
     Result := False;
-    FreeAndNil(ConnectionAttempt);
+    FreeAndNil(Connection);
   end else begin
+    // We have a connection
+    Result := True;
+    FConnections.Add(Connection);
+
     if SessionExists then begin
-      // Save "refused" counter
+      // Save "connected" counter
       OpenRegistry(Session);
       MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, Session)+1);
+      // Save server version
+      Mainreg.WriteInteger(REGNAME_SERVERVERSION, Connection.ServerVersionInt);
+      Mainreg.WriteString(REGNAME_LASTCONNECT, DateTimeToStr(Now));
     end;
 
-    Result := True;
-    DoDisconnect;
-    FreeAndNil(Connection);
-    Connection := ConnectionAttempt;
-    SessionName := Session;
+    if ActivateMe then begin
+      // Set focus on last uses db. If not wanted or db is gone, go to root node at least
+      RestoreLastActiveDatabase := GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
+      LastActiveDatabase := GetRegValue(REGNAME_LASTUSEDDB, '', Session);
+      if RestoreLastActiveDatabase and (Connection.AllDatabases.IndexOf(LastActiveDatabase) >- 1) then
+        SetActiveDatabase(LastActiveDatabase, Connection)
+      else begin
+        SessionNode := GetRootNode(DBtree, Connection);
+        SelectNode(DBtree, SessionNode);
+        DBtree.Expanded[SessionNode] := True;
+      end;
+    end;
+
+    // Process startup script
+    StartupScript := Trim(Connection.Parameters.StartupScriptFilename);
+    if StartupScript <> '' then begin
+      if not FileExists(StartupScript) then
+        MessageDlg('Error: Startup script file not found: '+StartupScript, mtError, [mbOK], 0)
+      else begin
+        StartupSQL := ReadTextfile(StartupScript, nil);
+        StartupBatch := SplitSQL(StartupSQL);
+        for i:=0 to StartupBatch.Count-1 do try
+          Connection.Query(StartupBatch[i].SQL);
+        except
+          // Suppress popup, errors get logged into SQL log
+        end;
+        StartupBatch.Free;
+      end;
+    end;
+
   end;
   ShowStatusMsg;
 end;
@@ -2816,9 +2871,9 @@ var
 begin
   // Create a new table, view, etc.
   tabEditor.TabVisible := True;
-  PagecontrolMain.ActivePage := tabEditor;
+  SetMainTab(tabEditor);
   a := Sender as TAction;
-  Obj := TDBObject.Create(Connection);
+  Obj := TDBObject.Create(ActiveConnection);
   Obj.Database := ActiveDatabase;
   if a = actCreateTable then Obj.NodeType := lntTable
   else if a = actCreateView then Obj.NodeType := lntView
@@ -2844,7 +2899,7 @@ begin
       Node := ListTables.GetNextSelected(Node);
     end;
   end else if DBTree.Focused then
-    t.Add(SelectedDbObj.Name)
+    t.Add(ActiveDbObj.Name)
   else
     Exit;
   if t.Count = 0 then
@@ -2858,7 +2913,7 @@ begin
   EnableProgressBar(t.Count);
   try
     for i:=0 to t.Count-1 do begin
-      Connection.Query('TRUNCATE ' + mask(t[i]));
+      ActiveConnection.Query('TRUNCATE ' + mask(t[i]));
       ProgressBarStatus.StepIt;
     end;
     actRefresh.Execute;
@@ -2898,7 +2953,7 @@ begin
       Node := ListTables.GetNextSelected(Node);
     end;
   end else
-    Objects.Add(SelectedDbObj);
+    Objects.Add(ActiveDbObj);
 
   if Objects.Count = 0 then
     MessageDlg('Please select one or more stored function(s) or routine(s).', mtError, [mbOK], 0);
@@ -3025,7 +3080,7 @@ begin
   // Force data tab update when appropriate.
   tab1 := PageControlMain.ActivePage;
   if ActiveControl = DBtree then
-    RefreshTree(True)
+    RefreshTree
   else if tab1 = tabHost then begin
     tab2 := PageControlHost.ActivePage;
     if tab2 = tabDatabases then
@@ -3052,7 +3107,7 @@ var
   Tree: TVirtualStringTree;
 begin
   // Call SQL Help from various places
-  if Connection.ServerVersionInt < 40100 then
+  if ActiveConnection.ServerVersionInt < 40100 then
     exit;
 
   keyword := '';
@@ -3570,7 +3625,7 @@ begin
   cs.Dialog.Color := DBtree.Color;
   if cs.Execute then begin
     DBtree.Color := cs.Dialog.Color;
-    OpenRegistry(SessionName);
+    OpenRegistry(ActiveConnection.SessionName);
     MainReg.WriteInteger(REGNAME_TREEBACKGROUND, cs.Dialog.Color);
   end;
 end;
@@ -3579,10 +3634,11 @@ end;
 {**
   Add a SQL-command or comment to SynMemoSQLLog
 }
-procedure TMainForm.LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo);
+procedure TMainForm.LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo; Connection: TMySQLConnection=nil);
 var
   snip, IsSQL: Boolean;
   Len: Integer;
+  Sess: String;
 begin
   if csDestroying in ComponentState then
     Exit;
@@ -3625,10 +3681,15 @@ begin
   // Log to file?
   if prefLogToFile then
   try
-    WriteLn(FileHandleSessionLog, Format('/* %s */ %s', [DateTimeToStr(Now), msg]));
+    Sess := '';
+    if Assigned(Connection) then
+      Sess := Connection.SessionName;
+    WriteLn(FileHandleSessionLog, Format('/* %s [%s] */ %s', [DateTimeToStr(Now), Sess, msg]));
   except
-    DeactivateFileLogging;
-    MessageDlg('Error writing to session log file:'+CRLF+FileNameSessionLog+CRLF+CRLF+'Logging is disabled now.', mtError, [mbOK], 0);
+    on E:Exception do begin
+      DeactivateFileLogging;
+      MessageDlg('Error writing to session log file:'+CRLF+FileNameSessionLog+CRLF+CRLF+E.Message+CRLF+CRLF+'Logging is disabled now.', mtError, [mbOK], 0);
+    end;
   end;
 end;
 
@@ -3785,18 +3846,18 @@ begin
     lblSorryNoData.Parent := tabData;
 
     // Indicates whether the current table data is just refreshed or if we're in another table
-    RefreshingData := (ActiveDatabase = DataGridDB) and (SelectedDbObj.Name = DataGridTable);
+    RefreshingData := (ActiveDatabase = DataGridDB) and (ActiveDbObj.Name = DataGridTable);
 
     // Load last view settings
     HandleDataGridAttributes(RefreshingData);
     OldScrollOffset := DataGrid.OffsetXY;
 
-    DataGridDB := SelectedDbObj.Database;
-    DataGridTable := SelectedDbObj.Name;
+    DataGridDB := ActiveDbObj.Database;
+    DataGridTable := ActiveDbObj.Name;
 
     Select := 'SELECT ';
     // Ensure key columns are included to enable editing
-    KeyCols := Connection.GetKeyColumns(SelectedTableColumns, SelectedTableKeys);
+    KeyCols := ActiveConnection.GetKeyColumns(SelectedTableColumns, SelectedTableKeys);
     WantedColumns := TTableColumnList.Create(False);
     WantedColumnOrgnames := TStringList.Create;
     for i:=0 to SelectedTableColumns.Count-1 do begin
@@ -3823,7 +3884,7 @@ begin
     // Cut last comma
     Delete(Select, Length(Select)-1, 2);
     // Include db name for cases in which dbtree is switching databases and pending updates are in process
-    Select := Select + ' FROM '+mask(ActiveDatabase)+'.'+mask(SelectedDbObj.Name);
+    Select := Select + ' FROM '+mask(ActiveDatabase)+'.'+mask(ActiveDbObj.Name);
 
     // Signal for the user if we hide some columns
     if WantedColumns.Count = SelectedTableColumns.Count then
@@ -3856,7 +3917,7 @@ begin
       ShowStatusMsg('Fetching rows ...');
       if not Assigned(DataGridResult) then
         DataGridResult := TMySQLQuery.Create(Self);
-      DataGridResult.Connection := Connection;
+      DataGridResult.Connection := ActiveConnection;
       DataGridResult.SQL := Select;
       DataGridResult.Execute(Offset > 0);
       DataGridResult.ColumnOrgNames := WantedColumnOrgnames;
@@ -3961,7 +4022,7 @@ begin
   if Sender <> DataGrid then
     Exit; // Only data tab has a top label
 
-  DBObject := SelectedDbObj;
+  DBObject := ActiveDbObj;
   cap := ActiveDatabase + '.' + DBObject.Name;
   IsLimited := DataGridWantedRowCount <= Datagrid.RootNodeCount;
   IsFiltered := SynMemoFilter.GetTextLen > 0;
@@ -3969,7 +4030,7 @@ begin
     if (not IsLimited) and (not IsFiltered) then
       RowsTotal := DataGrid.RootNodeCount // No need to fetch via SHOW TABLE STATUS
     else
-      RowsTotal := MakeInt(Connection.GetVar('SHOW TABLE STATUS LIKE '+esc(DBObject.Name), 'Rows'));
+      RowsTotal := MakeInt(ActiveConnection.GetVar('SHOW TABLE STATUS LIKE '+esc(DBObject.Name), 'Rows'));
     if RowsTotal > -1 then begin
       cap := cap + ': ' + FormatNumber(RowsTotal) + ' rows total';
       if DBObject.Engine = 'InnoDB' then
@@ -4091,7 +4152,7 @@ begin
   Screen.Cursor := crHourGlass;
 
   ShowStatusMsg( 'Displaying objects from "' + ActiveDatabase + '" ...' );
-  Objects := Connection.GetDBObjects(ActiveDatabase, vt.Tag = VTREE_NOTLOADED_PURGECACHE);
+  Objects := ActiveConnection.GetDBObjects(ActiveDatabase, vt.Tag = VTREE_NOTLOADED_PURGECACHE);
   ListTables.BeginUpdate;
   ListTables.Clear;
   ListTables.RootNodeCount := Objects.Count;
@@ -4130,10 +4191,8 @@ begin
   end;
   ShowStatusMsg(Msg, 0);
   ShowStatusMsg;
-  Screen.Cursor := crDefault;
-  // Ensure tree db node displays its chidren initialized
-  DBtree.ReinitChildren(FindDBNode(ActiveDatabase), False);
   ValidateControls(Self);
+  Screen.Cursor := crDefault;
 end;
 
 
@@ -4197,7 +4256,7 @@ var
   Objects: TDBObjectList;
 begin
   Obj := Sender.GetNodeData(Node);
-  Objects := Connection.GetDBObjects(ActiveDatabase);
+  Objects := ActiveConnection.GetDBObjects(ActiveDatabase);
   Obj^ := Objects[Node.Index];
 end;
 
@@ -4244,8 +4303,8 @@ begin
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and Assigned(Grid) and (Grid.RootNodeCount > 0);
   inGrid := Assigned(Grid) and (ActiveControl = Grid);
 
-  actSQLhelp.Enabled := Connection.ServerVersionInt >= 40100;
-  actImportCSV.Enabled := Connection.ServerVersionInt >= 32206;
+  actSQLhelp.Enabled := ActiveConnection.ServerVersionInt >= 40100;
+  actImportCSV.Enabled := ActiveConnection.ServerVersionInt >= 32206;
 
   actDataInsert.Enabled := inGrid and Assigned(Results);
   actDataDuplicateRow.Enabled := inGrid and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
@@ -4322,10 +4381,10 @@ begin
       while Assigned(Node) do begin
         pid := ListProcesses.Text[Node, ListProcesses.Header.MainColumn];
         // Don't kill own process
-        if pid = IntToStr(Connection.ThreadId) then
+        if pid = IntToStr(ActiveConnection.ThreadId) then
           LogSQL('Ignoring own process id #'+pid+' when trying to kill it.')
         else
-          Connection.Query('KILL '+pid);
+          ActiveConnection.Query('KILL '+pid);
         Node := ListProcesses.GetNextSelected(Node);
       end;
     except
@@ -4424,7 +4483,7 @@ var
     if dbname <> '' then
       tablename := dbname + '.' + tablename;
     try
-      Columns := Connection.GetResults('SHOW COLUMNS FROM '+tablename);
+      Columns := ActiveConnection.GetResults('SHOW COLUMNS FROM '+tablename);
     except
       Exit;
     end;
@@ -4470,7 +4529,7 @@ begin
   rx.ModifierI := True;
   if rx.Exec(PrevLongToken) then begin
     try
-      Results := Connection.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
+      Results := ActiveConnection.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
         Proposal.InsertList.Add(Results.Col(0));
         Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_PRIMARYKEY, 'variable', Results.Col(0)+'   \color{clSilver}= '+StringReplace(Results.Col(1), '\', '\\', [rfReplaceAll])] ) );
@@ -4490,7 +4549,7 @@ begin
   // 1. find the currently edited sql-statement around the cursor position in synmemo
   if Editor = SynMemoFilter then begin
     // Concat query segments, so the below regular expressions can find structure
-    sql := 'SELECT * FROM `'+SelectedDbObj.Name+'` WHERE ' + Editor.Text;
+    sql := 'SELECT * FROM `'+ActiveDbObj.Name+'` WHERE ' + Editor.Text;
   end else begin
     // Proposal in one of the query tabs
     QueryMarkers := GetSQLSplitMarkers(Editor.Text);
@@ -4545,11 +4604,11 @@ begin
 
   if Length(CurrentInput) = 0 then // makes only sense if the user has typed "database."
   begin
-    i := AllDatabases.IndexOf(PrevShortToken);
+    i := ActiveConnection.AllDatabases.IndexOf(PrevShortToken);
     if i > -1 then begin
       // Only display tables from specified db
       Screen.Cursor := crHourGlass;
-      DBObjects := Connection.GetDBObjects(AllDatabases[i]);
+      DBObjects := ActiveConnection.GetDBObjects(ActiveConnection.AllDatabases[i]);
       for j:=0 to DBObjects.Count-1 do
         addTable(DBObjects[j]);
       Screen.Cursor := crDefault;
@@ -4558,24 +4617,24 @@ begin
 
   if Proposal.ItemList.count = 0 then begin
     // Add databases
-    for i := 0 to AllDatabases.Count - 1 do begin
-      Proposal.InsertList.Add(AllDatabases[i]);
-      Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', AllDatabases[i]]));
+    for i := 0 to ActiveConnection.AllDatabases.Count - 1 do begin
+      Proposal.InsertList.Add(ActiveConnection.AllDatabases[i]);
+      Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', ActiveConnection.AllDatabases[i]]));
     end;
 
     if ActiveDatabase <> '' then begin
       // Display tables from current db
-      DBObjects := Connection.GetDBObjects(ActiveDatabase);
+      DBObjects := ActiveConnection.GetDBObjects(ActiveDatabase);
       for j:=0 to DBObjects.Count-1 do
         addTable(DBObjects[j]);
       if Length(CurrentInput) = 0 then // assume that we have already a dbname in memo
-        Proposal.Position := AllDatabases.Count;
+        Proposal.Position := ActiveConnection.AllDatabases.Count;
     end;
 
     // Add functions
     for i := 0 to Length(MySQLFunctions) - 1 do begin
       // Don't display unsupported functions here
-      if MySqlFunctions[i].Version > Connection.ServerVersionInt then
+      if MySqlFunctions[i].Version > ActiveConnection.ServerVersionInt then
         continue;
       Proposal.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
       Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clGrayText}' + MySQLFunctions[i].Declaration] ) );
@@ -4604,8 +4663,8 @@ end;
 procedure TMainForm.TimerHostUptimeTimer(Sender: TObject);
 begin
   // Display server uptime
-  if Assigned(Connection) then
-    ShowStatusMsg('Uptime: '+FormatTimeNumber(Connection.ServerUptime), 4)
+  if Assigned(ActiveConnection) then
+    ShowStatusMsg('Uptime: '+FormatTimeNumber(ActiveConnection.ServerUptime), 4)
   else
     ShowStatusMsg('', 4);
 end;
@@ -4637,7 +4696,7 @@ begin
   try
     ensureValidIdentifier( NewText );
     // rename table
-    Connection.Query('RENAME TABLE ' + mask(Obj.Name) + ' TO ' + mask(NewText));
+    ActiveConnection.Query('RENAME TABLE ' + mask(Obj.Name) + ' TO ' + mask(NewText));
 
     if SynSQLSyn1.TableNames.IndexOf( NewText ) = -1 then begin
       SynSQLSyn1.TableNames.Add(NewText);
@@ -4646,7 +4705,7 @@ begin
     Obj.Name := NewText;
     // Now the active tree db has to be updated. But calling RefreshTreeDB here causes an AV
     // so we do it manually here
-    DBTree.InvalidateChildren(FindDBNode(ActiveDatabase), True);
+    DBTree.InvalidateChildren(FindDBNode(DBtree, ActiveDatabase), True);
   except
     on E:EDatabaseError do
       MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -4658,12 +4717,11 @@ procedure TMainForm.TimerConnectedTimer(Sender: TObject);
 var
   ConnectedTime: Integer;
 begin
-  if Assigned(Connection) and Connection.Active then begin
+  if Assigned(ActiveConnection) and ActiveConnection.Active then begin
     // Calculate and display connection-time. Also, on any connect or reconnect, update server version panel.
-    ConnectedTime := Connection.ConnectionUptime;
+    ConnectedTime := ActiveConnection.ConnectionUptime;
     ShowStatusMsg('Connected: ' + FormatTimeNumber(ConnectedTime), 2);
-    if ConnectedTime < 10 then
-      ShowStatusMsg('MySQL '+Connection.ServerVersionStr, 3);
+    ShowStatusMsg('MySQL '+ActiveConnection.ServerVersionStr, 3);
   end else begin
     ShowStatusMsg('Disconnected.', 2);
   end;
@@ -4791,9 +4849,9 @@ begin
   // been performed in OnDragOver. So, only do typecasting here.
   if src = DBtree then begin
     // Insert table or database name. If a table is dropped and Shift is pressed, prepend the db name.
-    Text := mask(DBtree.Text[DBtree.FocusedNode, 0]);
-    if (DBtree.GetNodeLevel(DBtree.FocusedNode)=2) and ShiftPressed then
-      Text := mask(DBtree.Text[DBtree.FocusedNode.Parent, 0]) + '.' + Text;
+    Text := mask(ActiveDbObj.Name);
+    if (ActiveDbObj.NodeType in [lntTable..lntEvent]) and ShiftPressed then
+      Text := mask(ActiveDbObj.Database) + '.' + Text;
   end else if src = Tree then begin
     if (Tree.GetNodeLevel(Tree.FocusedNode) = 1) and Assigned(Tree.FocusedNode) then begin
       case Tree.FocusedNode.Parent.Index of
@@ -4954,7 +5012,7 @@ begin
   menuFetchDBitems.Enabled := (PageControlHost.ActivePage = tabDatabases) and (ListDatabases.SelectedCount > 0);
   Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and (ListProcesses.SelectedCount > 0);
   menuEditVariable.Enabled := False;
-  if Connection.ServerVersionInt >= 40003 then
+  if ActiveConnection.ServerVersionInt >= 40003 then
     menuEditVariable.Enabled := (PageControlHost.ActivePage = tabVariables) and Assigned(ListVariables.FocusedNode)
   else
     menuEditVariable.Hint := SUnsupported;
@@ -4977,10 +5035,9 @@ end;
 
 procedure TMainForm.popupDBPopup(Sender: TObject);
 var
-  L: Cardinal;
-  HasFocus, InDBTree: Boolean;
+  InDBTree: Boolean;
   Obj: PDBObject;
-  NodeType: TListNodeType;
+  HasFocus, IsDbOrObject: Boolean;
 begin
   // DBtree and ListTables both use popupDB as menu. Find out which of them was rightclicked.
   if Sender is TPopupMenu then
@@ -4991,23 +5048,19 @@ begin
     InDBTree := False;
 
   if InDBtree then begin
-    HasFocus := Assigned(DBtree.FocusedNode);
-    if HasFocus then
-      L := DBtree.GetNodeLevel(DBtree.FocusedNode)
-    else
-      L := 0;
-    NodeType := GetFocusedTreeNodeType;
-    actCreateDatabase.Enabled := L = 0;
-    actCreateTable.Enabled := L in [1,2];
-    actCreateView.Enabled := L in [1,2];
-    actCreateRoutine.Enabled := L in [1,2];
-    actCreateTrigger.Enabled := L in [1,2];
-    actCreateEvent.Enabled := L in [1,2];
-    actDropObjects.Enabled := L in [1,2];
-    actCopyTable.Enabled := HasFocus and (NodeType in [lntTable, lntView]);
-    actEmptyTables.Enabled := HasFocus and (NodeType in [lntTable, lntView]);
-    actRunRoutines.Enabled := HasFocus and (NodeType in [lntProcedure, lntFunction]);
-    actEditObject.Enabled := L > 0;
+    Obj := DBTree.GetNodeData(DBTree.FocusedNode);
+    IsDbOrObject := Obj.NodeType in [lntDb, lntTable..lntEvent];
+    actCreateDatabase.Enabled := Obj.NodeType = lntNone;
+    actCreateTable.Enabled := IsDbOrObject;
+    actCreateView.Enabled := IsDbOrObject;
+    actCreateRoutine.Enabled := IsDbOrObject;
+    actCreateTrigger.Enabled := IsDbOrObject;
+    actCreateEvent.Enabled := IsDbOrObject;
+    actDropObjects.Enabled := IsDbOrObject;
+    actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
+    actEmptyTables.Enabled := Obj.NodeType in [lntTable, lntView];
+    actRunRoutines.Enabled := Obj.NodeType in [lntProcedure, lntFunction];
+    menuEditObject.Enabled := IsDbOrObject;
     // Show certain items which are valid only here
     menuTreeExpandAll.Visible := True;
     menuTreeCollapseAll.Visible := True;
@@ -5028,7 +5081,7 @@ begin
       Obj := ListTables.GetNodeData(ListTables.FocusedNode);
       actEmptyTables.Enabled := Obj.NodeType in [lntTable, lntView];
     end;
-    actEditObject.Enabled := HasFocus;
+    menuEditObject.Enabled := HasFocus;
     // Show certain items which are valid only here
     actCopyTable.Enabled := actEmptyTables.Enabled;
     menuTreeExpandAll.Visible := False;
@@ -5036,10 +5089,10 @@ begin
     menuShowSizeColumn.Visible := False;
     actSelectTreeBackground.Visible := False;
   end;
-  actCreateView.Enabled := actCreateView.Enabled and (Connection.ServerVersionInt >= 50001);
-  actCreateRoutine.Enabled := actCreateRoutine.Enabled and (Connection.ServerVersionInt >= 50003);
-  actCreateTrigger.Enabled := actCreateTrigger.Enabled and (Connection.ServerVersionInt >= 50002);
-  actCreateEvent.Enabled := actCreateEvent.Enabled and (Connection.ServerVersionInt >= 50100);
+  actCreateView.Enabled := actCreateView.Enabled and (ActiveConnection.ServerVersionInt >= 50001);
+  actCreateRoutine.Enabled := actCreateRoutine.Enabled and (ActiveConnection.ServerVersionInt >= 50003);
+  actCreateTrigger.Enabled := actCreateTrigger.Enabled and (ActiveConnection.ServerVersionInt >= 50002);
+  actCreateEvent.Enabled := actCreateEvent.Enabled and (ActiveConnection.ServerVersionInt >= 50100);
 end;
 
 
@@ -5101,7 +5154,7 @@ begin
   // so we have to do it by replacing the SelText property
   Screen.Cursor := crHourGlass;
   if not QueryTabActive then
-    PagecontrolMain.ActivePage := tabQuery;
+    SetMainTab(tabQuery);
   Tab := ActiveQueryTab;
   LogSQL('Loading file "'+filename+'" ('+FormatByteNumber(FileSize)+') into query tab #'+IntToStr(Tab.Number)+' ...', lcInfo);
   try
@@ -5278,7 +5331,7 @@ begin
     Exit;
   Col := DataGridResult.ColumnOrgNames[DataGrid.FocusedColumn];
   ShowStatusMsg('Fetching distinct values ...');
-  Data := Connection.GetResults('SELECT '+mask(Col)+', COUNT(*) AS c FROM '+mask(SelectedDbObj.Name)+
+  Data := ActiveConnection.GetResults('SELECT '+mask(Col)+', COUNT(*) AS c FROM '+mask(ActiveDbObj.Name)+
     ' GROUP BY '+mask(Col)+' ORDER BY c DESC, '+mask(Col)+' LIMIT 30');
   for i:=0 to Data.RecordCount-1 do begin
     if QFvalues.Count > i then
@@ -5312,98 +5365,123 @@ begin
 end;
 
 
-function TMainForm.GetActiveDatabase: String;
+function TMainForm.GetRootNode(Tree: TBaseVirtualTree; Connection: TMySQLConnection): PVirtualNode;
 var
-  s: PVirtualNode;
+  SessionNode: PVirtualNode;
+  SessionObj: PDBObject;
 begin
-  // Find currently selected database node in database tree,
-  // or the parent if a table is currently selected.
-  if csDestroying in ComponentState then
-    Exit;
-  s := DBtree.FocusedNode;
-  if not Assigned(s) then Result := ''
-  else case DBtree.GetNodeLevel(s) of
-    2: Result := AllDatabases[s.Parent.Index];
-    1: Result := AllDatabases[s.Index];
-    else Result := '';
-  end;
-end;
-
-
-function TMainForm.GetTreeNodeType(Tree: TBaseVirtualTree; Node: PVirtualNode): TListNodeType;
-var
-  DBObjects: TDBObjectList;
-begin
-  Result := lntNone;
-  if Assigned(Node) then case Tree.GetNodeLevel(Node) of
-    1: Result := lntDb;
-    2: begin
-      DBObjects := Connection.GetDBObjects((Tree as TVirtualStringTree).Text[Node.Parent, 0]);
-      Result := DBObjects[Node.Index].NodeType;
-    end;
-  end;
-end;
-
-function TMainForm.GetFocusedTreeNodeType: TListNodeType;
-begin
-  Result := GetTreeNodeType(DBTree, DBtree.FocusedNode);
-end;
-
-
-procedure TMainForm.SetSelectedDBObj(Obj: TDBObject);
-var
-  DbNode: PVirtualNode;
-  DBObjects: TDBObjectList;
-  i, FoundIdx: Integer;
-begin
-  // Detect db node
-  case DBtree.GetNodeLevel(DBtree.FocusedNode) of
-    1: DbNode := DBtree.FocusedNode;
-    2: DbNode := DBtree.FocusedNode.Parent;
-    else DbNode := FindDBNode(Obj.Database);
-  end;
-  DBObjects := Connection.GetDBObjects(DBtree.Text[DbNode, 0]);
-  FoundIdx := -1;
-  // 1st search, case sensitive for lower-case-tablenames=0 servers
-  for i:=0 to DBObjects.Count-1 do begin
-    if (DBObjects[i].Name = Obj.Name) and (DBObjects[i].NodeType = Obj.NodeType) then begin
-      FoundIdx := i;
+  Result := nil;
+  SessionNode := Tree.GetFirstChild(nil);
+  while Assigned(SessionNode) do begin
+    SessionObj := Tree.GetNodeData(SessionNode);
+    if SessionObj.Connection = Connection then begin
+      Result := SessionNode;
       break;
     end;
+    SessionNode := Tree.GetNextSibling(SessionNode);
   end;
-  // 2nd search, case insensitive now
-  if FoundIdx < 0 then begin
-    for i:=0 to DBObjects.Count-1 do begin
-      if (AnsiCompareText(DBObjects[i].Name, Obj.Name) = 0) and (DBObjects[i].NodeType = Obj.NodeType) then begin
-        FoundIdx := i;
-        break;
-      end;
-    end;
-  end;
-  if FoundIdx >= 0 then begin
-    DBtree.Expanded[DbNode] := True;
-    SelectNode(DBTree, FoundIdx, DbNode);
-    FSelectedDbObj := DBObjects[FoundIdx];
-  end else
-    LogSQL('Table node ' + Obj.Name + ' not found in tree.', lcError);
 end;
 
 
-procedure TMainForm.SetSelectedDatabase(db: String);
-var
-  n, f: PVirtualNode;
+function TMainForm.GetActiveConnection: TMySQLConnection;
 begin
+  Result := nil;
+  if Assigned(ActiveDbObj) then
+    Result := ActiveDbObj.Connection;
+end;
+
+
+function TMainForm.GetActiveDatabase: String;
+begin
+  // Find currently selected database in active connection
+  Result := '';
+  if (not (csDestroying in ComponentState)) and Assigned(ActiveDBObj) then
+    Result := ActiveDBObj.Connection.Database;
+end;
+
+
+procedure TMainForm.SetActiveDatabase(db: String; Connection: TMySQLConnection);
+var
+  SessionNode, DBNode: PVirtualNode;
+  DBObj: PDBObject;
+  AlreadySelected: Boolean;
+begin
+  // Set focus on the wanted db node
+  LogSQL('SetActiveDatabase('+db+')', lcDebug);
+  SessionNode := GetRootNode(DBtree, Connection);
   if db = '' then
-    n := DBtree.GetFirst
+    SelectNode(DBtree, SessionNode)
+  else begin
+    DBNode := DBtree.GetFirstChild(SessionNode);
+    while Assigned(DBNode) do begin
+      DBObj := DBtree.GetNodeData(DBNode);
+      if DBObj.Database = db then begin
+        AlreadySelected := Assigned(DBtree.FocusedNode) and ((DBNode = DBtree.FocusedNode) or (DBNode = DBtree.FocusedNode.Parent));
+        if not AlreadySelected then
+          SelectNode(DBtree, DBNode);
+        break;
+      end;
+      DBNode := DBtree.GetNextSibling(DBNode);
+    end;
+  end;
+end;
+
+
+function TMainForm.GetActiveDBObj: TDBObject;
+var
+  DBObj: PDBObject;
+begin
+  Result := nil;
+  if Assigned(DBtree.FocusedNode) then begin
+    DBObj := DBtree.GetNodeData(DBtree.FocusedNode);
+    Result := DBObj^;
+  end;
+end;
+
+
+procedure TMainForm.SetActiveDBObj(Obj: TDBObject);
+var
+  FoundNode: PVirtualNode;
+begin
+  // Find right table/view/... node in tree and select it, implicitely call OnFocusChanged
+  LogSQL('SetActiveDBObj('+Obj.Name+')', lcDebug);
+  FoundNode := FindDBObjectNode(DBtree, Obj);
+  if Assigned(FoundNode) then
+    SelectNode(DBTree, FoundNode)
   else
-    n := FindDBNode(db);
-  if Assigned(n) then begin
-    // Set focus to db node, if current focus is outside
-    f := DBtree.FocusedNode;
-    if (not Assigned(f)) or (f.Parent <> n) then
-      SelectNode(DBtree, n);
-  end else
-    LogSQL('Database node ' + db + ' not found in tree.', lcError);
+    LogSQL('Table node "' + Obj.Name + '" not found in tree.', lcError);
+end;
+
+
+function TMainForm.FindDBObjectNode(Tree: TBaseVirtualTree; Obj: TDBObject): PVirtualNode;
+var
+  DbNode, ObjectNode: PVirtualNode;
+  DbObj, ObjectObj: PDBObject;
+begin
+  Result := nil;
+  DbNode := Tree.GetFirstChild(GetRootNode(Tree, Obj.Connection));
+  while Assigned(DbNode) do begin
+    DbObj := Tree.GetNodeData(DbNode);
+    if DBObj.IsSameAs(Obj) then begin
+      // Caller may have searched this db node
+      Result := DBNode;
+      break;
+    end;
+    if DbObj.Database = Obj.Database then begin
+      ObjectNode := Tree.GetFirstChild(DbNode);
+      while Assigned(ObjectNode) do begin
+        ObjectObj := Tree.GetNodeData(ObjectNode);
+        if ObjectObj.IsSameAs(Obj) then begin
+          // Caller asks for table/event/etc.
+          Result := ObjectNode;
+          break;
+        end;
+        ObjectNode := Tree.GetNextSibling(ObjectNode);
+      end;
+      break;
+    end;
+    DbNode := Tree.GetNextSibling(DbNode);
+  end;
 end;
 
 
@@ -5585,9 +5663,9 @@ begin
     Node := ListDatabases.GetFirstSelected;
     while Assigned(Node) do begin
       db := ListDatabases.Text[Node, 0];
-      Connection.GetDBObjects(db, True);
+      ActiveConnection.GetDBObjects(db, True);
       ListDatabases.RepaintNode(Node);
-      DBtree.RepaintNode(FindDBNode(db));
+      DBtree.RepaintNode(FindDBNode(DBtree, db));
       Node := ListDatabases.GetNextSelected(Node);
     end;
   finally
@@ -5931,13 +6009,12 @@ begin
   ForceDirectories(prefDirnameSessionLogs);
 
   // Determine free filename
-  LogfilePattern := '%s %.6u.log';
+  LogfilePattern := '%.6u.log';
   i := 1;
-  FileNameSessionLog := prefDirnameSessionLogs + goodfilename(Format(LogfilePattern, [SessionName, i]));
-  while FileExists( FileNameSessionLog ) do
-  begin
+  FileNameSessionLog := prefDirnameSessionLogs + goodfilename(Format(LogfilePattern, [i]));
+  while FileExists(FileNameSessionLog) do begin
     inc(i);
-    FileNameSessionLog := prefDirnameSessionLogs + goodfilename(Format(LogfilePattern, [SessionName, i]));
+    FileNameSessionLog := prefDirnameSessionLogs + goodfilename(Format(LogfilePattern, [i]));
   end;
 
   // Create file handle for writing
@@ -6273,17 +6350,14 @@ begin
   EditVariableForm.VarValue := NodeData.Captions[1];
   // Refresh relevant list node
   if EditVariableForm.ShowModal = mrOK then
-    NodeData.Captions[1] := Connection.GetVar('SHOW VARIABLES LIKE '+esc(NodeData.Captions[0]), 1);
+    NodeData.Captions[1] := ActiveConnection.GetVar('SHOW VARIABLES LIKE '+esc(NodeData.Captions[0]), 1);
 end;
 
 
-{**
-  The database tree doesn't use any structure for its nodes.
-}
-procedure TMainForm.DBtreeGetNodeDataSize(Sender: TBaseVirtualTree; var
-    NodeDataSize: Integer);
+procedure TMainForm.DBtreeGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
 begin
-  NodeDataSize := 0;
+  // Set pointer size of bound TDBObjects
+  NodeDataSize := SizeOf(TDBObject);
 end;
 
 
@@ -6294,26 +6368,24 @@ procedure TMainForm.DBtreeGetText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
 var
   DBObjects: TDBObjectList;
-  db: String;
+  DBObj: PDBObject;
   i: Integer;
   Bytes: Int64;
   AllListsCached: Boolean;
 begin
+  DBObj := Sender.GetNodeData(Node);
   case Column of
-    0: case Sender.GetNodeLevel(Node) of
-        0: CellText := Connection.Parameters.Username + '@' + Connection.Parameters.Hostname;
-        1: CellText := AllDatabases[Node.Index];
-        2: begin
-            DBObjects := Connection.GetDBObjects(AllDatabases[Node.Parent.Index]);
-            CellText := DBObjects[Node.Index].Name;
-          end;
+    0: case DBObj.NodeType of
+        lntNone: CellText := DBObj.Connection.SessionName;
+        lntDb: CellText := DBObj.Database;
+        lntTable..lntEvent, lntColumn: CellText := DBObj.Name;
       end;
-    1: case GetTreeNodeType(Sender, Node) of
+    1: if DBObj.Connection.Active then case DBObj.NodeType of
         // Calculate and display the sum of all table sizes in ALL dbs if all table lists are cached
         lntNone: begin
             AllListsCached := true;
-            for i:=0 to AllDatabases.Count-1 do begin
-              if not Connection.DbObjectsCached(AllDatabases[i]) then begin
+            for i:=0 to DBObj.Connection.AllDatabases.Count-1 do begin
+              if not DBObj.Connection.DbObjectsCached(DBObj.Connection.AllDatabases[i]) then begin
                 AllListsCached := false;
                 break;
               end;
@@ -6322,8 +6394,8 @@ begin
             Bytes := -1;
             if AllListsCached then begin
               Bytes := 0;
-              for i:=0 to AllDatabases.Count-1 do begin
-                DBObjects := Connection.GetDBObjects(AllDatabases[i]);
+              for i:=0 to DBObj.Connection.AllDatabases.Count-1 do begin
+                DBObjects := DBObj.Connection.GetDBObjects(DBObj.Connection.AllDatabases[i]);
                 Inc(Bytes, DBObjects.DataSize);
               end;
             end;
@@ -6332,20 +6404,15 @@ begin
           end;
         // Calculate and display the sum of all table sizes in ONE db, if the list is already cached.
         lntDb: begin
-            db := (Sender as TVirtualStringTree).Text[Node, 0];
-            if not Connection.DbObjectsCached(db) then
+            if not DBObj.Connection.DbObjectsCached(DBObj.Database) then
               CellText := ''
             else begin
-              DBObjects := Connection.GetDBObjects(db);
+              DBObjects := DBObj.Connection.GetDBObjects(DBObj.Database);
               CellText := FormatByteNumber(DBObjects.DataSize);
             end;
           end;
-        lntTable: begin
-          db := (Sender as TVirtualStringTree).Text[Node.Parent, 0];
-          DBObjects := Connection.GetDBObjects(db);
-          CellText := FormatByteNumber(DBObjects[Node.Index].Size);
-        end
-        else CellText := ''; // Applies for views and crashed tables
+        lntTable: CellText := FormatByteNumber(DBObj.Size);
+        else CellText := ''; // Applies for views/procs/... which have no size
       end;
   end;
 end;
@@ -6358,32 +6425,26 @@ procedure TMainForm.DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
     Boolean; var ImageIndex: Integer);
 var
-  DBObjects: TDBObjectList;
-  vt: TVirtualStringTree;
-  db: String;
+  DBObj: PDBObject;
 begin
   if Column > 0 then
     Exit;
-  // Prevent state images, overlaying the normal image
-  if not (Kind in [ikNormal, ikSelected]) then Exit;
-  vt := Sender as TVirtualStringTree;
-  case Sender.GetNodeLevel(Node) of
-    0: ImageIndex := ICONINDEX_SERVER;
-    1: begin
-      db := vt.Text[Node, 0];
-      if ActiveDatabase = db then
-        ImageIndex := ICONINDEX_DB_HIGHLIGHT
-      else
-        ImageIndex := ICONINDEX_DB;
-      Ghosted := not Connection.DbObjectsCached(db);
-    end;
-    2: begin
-        DBObjects := Connection.GetDBObjects(AllDatabases[Node.Parent.Index]);
-        // Various bug reports refer to this location where we reference a db object which is outside the range
-        // of DBObjects. Probably a timing issue. Work around that by doing a safety check here.
-        if Node.Index >= Cardinal(DBObjects.Count) then
-          Exit;
-        ImageIndex := DBObjects[Node.Index].ImageIndex;
+  DBObj := Sender.GetNodeData(Node);
+  case Kind of
+    ikNormal, ikSelected: begin
+        ImageIndex := DBObj.ImageIndex;
+        Ghosted := (DBObj.NodeType = lntNone) and (not DBObj.Connection.Active)
+          or (DBObj.NodeType = lntDB) and (not DBObj.Connection.DbObjectsCached(DBObj.Database));
+      end;
+    ikOverlay:
+      if DBObj.NodeType = lntNone then begin
+        if not DBObj.Connection.Active then
+          ImageIndex := 158
+        else if DBObj.Connection = ActiveConnection then
+          ImageIndex := ICONINDEX_HIGHLIGHTMARKER;
+      end else if DBObj.NodeType = lntDb then begin
+        if (DBObj.Database = DBObj.Connection.Database) then
+          ImageIndex := ICONINDEX_HIGHLIGHTMARKER;
       end;
   end;
 end;
@@ -6394,70 +6455,97 @@ end;
 }
 procedure TMainForm.DBtreeInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
 var
-  VT: TVirtualStringTree;
+  DBObj: PDBObject;
+  Columns: TTableColumnList;
 begin
-  VT := Sender as TVirtualStringTree;
-  case VT.GetNodeLevel(Node) of
-    // Root node has only one single child (user@host)
-    0: begin
+  DBObj := Sender.GetNodeData(Node);
+  case DBObj.NodeType of
+    // Session node expanding
+    lntNone: begin
         Screen.Cursor := crHourglass;
         ShowStatusMsg('Reading Databases...');
-        if VT.Tag = VTREE_NOTLOADED_PURGECACHE then try
-          AllDatabases := Connection.AllDatabases;
+        if Sender.Tag = VTREE_NOTLOADED_PURGECACHE then try
+          DBObj.Connection.RefreshAllDatabases;
         except
-          on E:EDatabaseError do begin
-            AllDatabases.Clear;
+          on E:EDatabaseError do
             MessageDlg(E.Message+CRLF+CRLF+'You have no privilege to execute SHOW DATABASES. Please specify one or more databases in your session settings, if you want to see any.', mtError, [mbOK], 0);
-          end;
         end;
         ShowStatusMsg;
-        VT.Tag := VTREE_LOADED;
+        Sender.Tag := VTREE_LOADED;
         InvalidateVT(ListDatabases, VTREE_NOTLOADED, True);
-        ChildCount := AllDatabases.Count;
+        ChildCount := DBObj.Connection.AllDatabases.Count;
         Screen.Cursor := crDefault;
       end;
     // DB node expanding
-    1: begin
+    lntDb: begin
         Screen.Cursor := crHourglass;
         ShowStatusMsg( 'Reading objects ...' );
         try
-          ChildCount := Connection.GetDBObjects(AllDatabases[Node.Index]).Count;
+          ChildCount := DBObj.Connection.GetDBObjects(DBObj.Connection.AllDatabases[Node.Index]).Count;
         finally
           ShowStatusMsg;
           Screen.Cursor := crDefault;
         end;
       end;
-    else Exit;
+    lntTable, lntView:
+      if Assigned(SelectDBObjectForm) and (Sender=SelectDBObjectForm.TreeDBO) then begin
+        Columns := TTableColumnList.Create(True);
+        ParseTableStructure(DBObj.CreateCode, Columns, nil, nil);
+        ChildCount := Columns.Count;
+      end;
   end;
 end;
 
 
 {**
-  Set initial options of a treenode
+  Set initial options of a treenode and bind DBobject to node which holds the relevant
+  connection object, probably its database and probably its table/view/... specific properties
 }
 procedure TMainForm.DBtreeInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
     PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 var
-  level: Cardinal;
+  Item, ParentItem: PDBObject;
+  DBObjects: TDBObjectList;
+  Columns: TTableColumnList;
 begin
-  level := Sender.GetNodeLevel(Node);
-  // Ensure plus sign is visible for root and dbs
-  if level in [0,1] then
-    Include( InitialStates, ivsHasChildren);
-  // Host node is always expanded
-  if level = 0 then
-    Include( InitialStates, ivsExpanded );
+  Item := Sender.GetNodeData(Node);
+  case Sender.GetNodeLevel(Node) of
+    0: begin
+      Item^ := TDBObject.Create(FConnections[Node.Index]);
+      // Ensure plus sign is visible for root (and dbs, see below)
+      Include(InitialStates, ivsHasChildren);
+    end;
+    1: begin
+      Item^ := TDBObject.Create(FConnections[Node.Parent.Index]);
+      Item.NodeType := lntDb;
+      Item.Database := Item.Connection.AllDatabases[Node.Index];
+      Include(InitialStates, ivsHasChildren);
+    end;
+    2: begin
+      DBObjects := FConnections[Node.Parent.Parent.Index].GetDBObjects(FConnections[Node.Parent.Parent.Index].AllDatabases[Node.Parent.Index]);
+      Item^ := DBObjects[Node.Index];
+      if Assigned(SelectDBObjectForm) and (Sender=SelectDBObjectForm.TreeDBO)
+        and (Item.NodeType in [lntTable, lntView]) then
+        InitialStates := InitialStates + [ivsHasChildren];
+    end;
+    3: begin
+      Item^ := TDBObject.Create(FConnections[Node.Parent.Parent.Parent.Index]);
+      Item.NodeType := lntColumn;
+      ParentItem := Sender.GetNodeData(Node.Parent);
+      Columns := TTableColumnList.Create(True);
+      ParseTableStructure(ParentItem.CreateCode, Columns, nil, nil);
+      Item.Name := Columns[Node.Index].Name;
+    end;
+  end;
 end;
 
 
 {**
   Selection in database tree has changed
 }
-procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; Column: TColumnIndex);
+procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
 var
-  newDb, oldDb, newDbObject: String;
-  DBObjects: TDBObjectList;
+  DBObj, PrevDBObj: PDBObject;
 begin
   if not Assigned(Node) then begin
     LogSQL('DBtreeFocusChanged without node.', lcDebug);
@@ -6468,84 +6556,94 @@ begin
   // Post pending UPDATE
   if Assigned(DataGridResult) and DataGridResult.Modified then
     actDataPostChangesExecute(DataGrid);
-  case Sender.GetNodeLevel(Node) of
-    0: begin
-      FSelectedDbObj := TDBObject.Create(Connection);
-      if (not DBtree.Dragging) and (not QueryTabActive) then begin
-        PageControlMain.ActivePage := tabHost;
-        PageControlMain.OnChange(Sender);
-        PageControlHost.ActivePage := tabDatabases;
-      end;
+
+  DBObj := Sender.GetNodeData(Node);
+
+  case DBObj.NodeType of
+
+    lntNone: begin
+      if (not DBtree.Dragging) and (not QueryTabActive) then
+        SetMainTab(tabHost);
       tabDatabase.TabVisible := False;
       tabEditor.TabVisible := False;
       tabData.TabVisible := False;
-      Connection.Database := '';
+      DBObj.Connection.Database := '';
     end;
-    1: begin
-        newDb := AllDatabases[Node.Index];
-        FSelectedDbObj := TDBObject.Create(Connection);
-        // Selecting a database can cause an SQL error if the db was deleted from outside. Select previous node in that case.
-        try
-          Connection.Database := newDb;
-        except on E:EDatabaseError do begin
-            MessageDlg(E.Message, mtError, [mbOK], 0);
-            SelectNode(DBtree, PreviousFocusedNode);
-            Exit;
-          end;
-        end;
-        if (not DBtree.Dragging) and (not QueryTabActive) then begin
-          PageControlMain.ActivePage := tabDatabase;
-          PageControlMain.OnChange(Sender);
-        end;
-        tabDatabase.TabVisible := true;
-        tabEditor.TabVisible := false;
-        tabData.TabVisible := false;
-      end;
-    2: begin
-        newDb := AllDatabases[Node.Parent.Index];
-        try
-          Connection.Database := newDb;
-        except on E:EDatabaseError do begin
-            MessageDlg(E.Message, mtError, [mbOK], 0);
-            SelectNode(DBtree, PreviousFocusedNode);
-            Exit;
-          end;
-        end;
-        DBObjects := Connection.GetDBObjects(newDb);
-        FSelectedDbObj := DBObjects[Node.Index];
-        newDbObject := SelectedDbObj.Name;
-        tabDatabase.TabVisible := True;
-        tabEditor.TabVisible := SelectedDbObj.NodeType in [lntTable, lntView, lntProcedure, lntFunction, lntTrigger, lntEvent];
-        tabData.TabVisible := SelectedDbObj.NodeType in [lntTable, lntView];
-        ParseSelectedTableStructure;
-        if tabEditor.TabVisible then begin
-          if not FTreeRefreshInProgress then
-            actEditObjectExecute(Sender);
-          // When a table is clicked in the tree, and the current
-          // tab is a Host or Database tab, switch to showing table columns.
-          if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then begin
-            PagecontrolMain.ActivePage := tabEditor;
-            PageControlMain.OnChange(Sender);
-          end;
-          if DataGrid.Tag = VTREE_LOADED then
-            InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
-          // Update the list of columns
-          RefreshHelperNode(HELPERNODE_COLUMNS);
+
+    lntDb: begin
+      // Selecting a database can cause an SQL error if the db was deleted from outside. Select previous node in that case.
+      try
+        DBObj.Connection.Database := DBObj.Database;
+      except on E:EDatabaseError do begin
+          MessageDlg(E.Message, mtError, [mbOK], 0);
+          SelectNode(DBtree, TreeClickHistoryPrevious);
+          Exit;
         end;
       end;
+      if (not DBtree.Dragging) and (not QueryTabActive) then
+        SetMainTab(tabDatabase);
+      tabDatabase.TabVisible := True;
+      tabEditor.TabVisible := False;
+      tabData.TabVisible := False;
+    end;
+
+    lntTable..lntEvent: begin
+      try
+        DBObj.Connection.Database := DBObj.Database;
+      except on E:EDatabaseError do begin
+          MessageDlg(E.Message, mtError, [mbOK], 0);
+          SelectNode(DBtree, TreeClickHistoryPrevious);
+          Exit;
+        end;
+      end;
+      tabDatabase.TabVisible := True;
+      tabEditor.TabVisible := DBObj.NodeType in [lntDb, lntTable..lntEvent];
+      tabData.TabVisible := DBObj.NodeType in [lntTable, lntView];
+      ParseSelectedTableStructure;
+      if tabEditor.TabVisible then begin
+        if not FTreeRefreshInProgress then
+          PlaceObjectEditor(DBObj^);
+        // When a table is clicked in the tree, and the current
+        // tab is a Host or Database tab, switch to showing table columns.
+        if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
+          SetMainTab(tabEditor);
+        if DataGrid.Tag = VTREE_LOADED then
+          InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
+        // Update the list of columns
+        RefreshHelperNode(HELPERNODE_COLUMNS);
+      end;
+    end;
+
   end;
-  if Assigned(PreviousFocusedNode) then case DBTree.GetNodeLevel(PreviousFocusedNode) of
-    0: oldDb := '';
-    1: oldDb := DBTree.Text[PreviousFocusedNode, 0];
-    2: oldDb := DBTree.Text[PreviousFocusedNode.Parent, 0];
-  end;
-  if newDb <> oldDb then begin
-    tabDatabase.Caption := sstr('Database: ' + newDb, 30);
-    ListTables.ClearSelection;
-    ListTables.FocusedNode := nil;
+
+  if TreeClickHistoryPrevious <> nil then
+    PrevDBObj := Sender.GetNodeData(TreeClickHistoryPrevious)
+  else
+    PrevDBObj := Pointer(TDBObject.Create(nil));
+
+  // When clicked node is from a different connection than before, do session specific stuff here:
+  if PrevDBObj.Connection <> DBObj.Connection then begin
+    DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, DBObj.Connection.SessionName);
+    FreeAndNil(AllDatabasesDetails);
+    FreeAndNil(SQLHelpForm);
+    InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
+    InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
+    InvalidateVT(ListStatus, VTREE_NOTLOADED, False);
+    InvalidateVT(ListProcesses, VTREE_NOTLOADED, False);
+    InvalidateVT(ListCommandstats, VTREE_NOTLOADED, False);
     InvalidateVT(ListTables, VTREE_NOTLOADED, False);
   end;
-  PreviousFocusedNode := DBTree.FocusedNode;
+  if (PrevDBObj.Connection <> DBObj.Connection) or (PrevDBObj.Database <> DBObj.Database) then
+    InvalidateVT(ListTables, VTREE_NOTLOADED, True);
+
+  // Store click history item
+  SetLength(FTreeClickHistory, Length(FTreeClickHistory)+1);
+  FTreeClickHistory[Length(FTreeClickHistory)-1] := Node;
+
+
+  tabHost.Caption := 'Host: '+sstr(DBObj.Connection.Parameters.HostName, 20);
+  tabDatabase.Caption := 'Database: '+sstr(DBObj.Connection.Database, 20);
+  DBTree.InvalidateColumn(0);
   FixQueryTabCloseButtons;
   SetWindowCaption;
 end;
@@ -6565,10 +6663,37 @@ end;
 
 
 procedure TMainForm.DBtreeFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+//  DBObj: PDBObject;
+  i: Integer;
 begin
   // Keep track of the previously selected tree node's state, to avoid AVs in OnFocusChanged()
-  if Node = PreviousFocusedNode then
-    PreviousFocusedNode := nil;
+  for i:=0 to Length(FTreeClickHistory)-1 do begin
+    if Node = FTreeClickHistory[i] then
+      FTreeClickHistory[i] := nil;
+  end;
+  // TODO: Free object if its host or db. Tables/views/... already get freed in Connection.ClearDBObjects
+  // does not work here when table is focused, for some reason:
+  {DBObj := Sender.GetNodeData(Node);
+  if Assigned(DBObj^) and (DBObj.NodeType in [lntNone, lntDb]) then
+    logsql('freeing node: type #'+inttostr(integer(dbobj.NodeType))+' name: '+dbobj.database);
+    FreeAndNil(DBObj^);
+  end; }
+end;
+
+
+function TMainForm.TreeClickHistoryPrevious: PVirtualNode;
+var
+  i: Integer;
+begin
+  // Navigate to previous or next existant clicked node
+  Result := nil;
+  for i:=High(FTreeClickHistory) downto Low(FTreeClickHistory) do begin
+    if FTreeClickHistory[i] <> nil then begin
+      Result := FTreeClickHistory[i];
+      break;
+    end;
+  end;
 end;
 
 
@@ -6581,11 +6706,11 @@ begin
   SelectedTableForeignKeys.Clear;
   InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
   try
-    case SelectedDbObj.NodeType of
+    case ActiveDbObj.NodeType of
       lntTable:
-        ParseTableStructure(SelectedDbObj.CreateCode, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
+        ParseTableStructure(ActiveDbObj.CreateCode, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
       lntView:
-        ParseViewStructure(SelectedDbObj.CreateCode, SelectedDbObj.Name, SelectedTableColumns, Algorithm, CheckOption, SelectCode);
+        ParseViewStructure(ActiveDbObj.CreateCode, ActiveDbObj.Name, SelectedTableColumns, Algorithm, CheckOption, SelectCode);
     end;
   except on E:EDatabaseError do
     MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -6593,108 +6718,112 @@ begin
 end;
 
 
-procedure TMainForm.DatabaseChanged(Database: String);
-begin
-  if (Database='') or (AllDatabases.IndexOf(Database) > -1) then
-    ActiveDatabase := Database;
-end;
-
-
-procedure TMainForm.DBObjectsCleared(Database: String);
+procedure TMainForm.DBObjectsCleared(Connection: TMySQLConnection; Database: String);
 var
   Node: PVirtualNode;
 begin
   // Avoid AVs while processing FormDestroy
   if csDestroying in ComponentState then
     Exit;
-  // Reload objects in ListTables
+  // Reload objects in ListTables ...
   InvalidateVT(ListTables, VTREE_NOTLOADED, False);
-  // Reload objects for database tree
-  Node := DBtree.GetFirstChild(DBtree.GetFirst);
-  while Assigned(Node) do begin
-    if Database = DBtree.Text[Node, 0] then begin
-      DBtree.ReinitChildren(Node, True);
-      break;
+  // ... in database tree
+  Node := FindDBNode(DBtree, Database);
+  if Assigned(Node) then begin
+    DBtree.ReinitNode(Node, False);
+    DBtree.ReinitChildren(Node, False);
+  end;  
+  // ... and perhaps in table tools dialog
+  if Assigned(TableToolsDialog) and TableToolsDialog.Visible then begin
+    Node := FindDBNode(TableToolsDialog.TreeObjects, Database);
+    if Assigned(Node) then begin
+      TableToolsDialog.TreeObjects.ReinitNode(Node, False);
+      TableToolsDialog.TreeObjects.ReinitChildren(Node, False);
     end;
-    Node := DBtree.GetNextSibling(Node);
   end;
-  ActiveDatabase := Database;
 end;
 
 
 procedure TMainForm.DBtreeDblClick(Sender: TObject);
 var
-  Node: PVirtualNode;
+  DBObj: PDBObject;
   m: TSynMemo;
 begin
   // Paste DB or table name into query window on treeview double click.
-  Node := DBtree.FocusedNode;
-  if not Assigned(Node) then Exit;
-  if DBtree.GetNodeLevel(Node) = 0 then Exit;
-  if not QueryTabActive then Exit;
-  m := ActiveQueryMemo;
-  m.DragDrop(Sender, m.CaretX, m.CaretY);
+  if QueryTabActive and Assigned(DBtree.FocusedNode) then begin
+    DBObj := DBtree.GetNodeData(DBtree.FocusedNode);
+    if DBObj.NodeType in [lntDb, lntTable..lntEvent] then begin
+      m := ActiveQueryMemo;
+      m.DragDrop(Sender, m.CaretX, m.CaretY);
+    end;
+  end;
 end;
 
 
 procedure TMainForm.DBtreePaintText(Sender: TBaseVirtualTree; const
     TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType:
     TVSTTextType);
+var
+  DBObj: PDBObject;
 begin
-  // Grey out rather unimportant "Size" column
-  if Column <> 1 then
-    Exit;
-  case Sender.GetNodeLevel(Node) of
-    0, 1: TargetCanvas.Font.Color := clWindowText;
-    2: TargetCanvas.Font.Color := $00444444;
-  end;
+  // Grey out non-current connection nodes, and rather unimportant "Size" column
+  DBObj := Sender.GetNodeData(Node);
+  if DBObj.Connection <> ActiveConnection then
+    TargetCanvas.Font.Color := $00999999
+  else if (Column = 1) and (DBObj.NodeType in [lntTable..lntEvent]) then
+    TargetCanvas.Font.Color := $00444444;
 end;
 
 
 {**
   Refresh the whole tree
 }
-procedure TMainForm.RefreshTree(DoResetTableCache: Boolean; SelectDatabase: String = '');
+procedure TMainForm.RefreshTree(FocusNewObject: TDBObject=nil);
 var
-  PrevObj: TDBObject;
+  SessionNode, DBNode: PVirtualNode;
+  OnlyDBNode: Boolean;
 begin
-  // Remember currently active database and table
-  PrevObj := TDBObject.Create(Connection);
-  PrevObj.Assign(SelectedDbObj);
-  DBtree.FocusedNode := nil;
+  // This refreshes exactly one session node and all its db and table nodes.
+  // Also, tries to focus the previous focused object, if present.
+
+  // Object editors call RefreshTree in order to make a just created object visible:
+  OnlyDBNode := FocusNewObject <> nil;
+
+  // Remember currently selected object
+  if FocusNewObject = nil then begin
+    FocusNewObject := TDBObject.Create(ActiveConnection);
+    FocusNewObject.Assign(ActiveDbObj);
+  end;
 
   // ReInit tree population
-  if DoResetTableCache then
-    Connection.ClearAllDbObjects;
-  InvalidateVT(DBtree, VTREE_NOTLOADED_PURGECACHE, True);
-
-  // Reselect active or new database if present. Could have been deleted or renamed.
-  try
-    if AllDatabases.IndexOf(SelectDatabase) > -1 then
-      ActiveDatabase := SelectDatabase
-    else if not (PrevObj.NodeType in [lntNone, lntDb]) then
-      SelectedDBObj := PrevObj
-    else if PrevObj.Database <> '' then
-      ActiveDatabase := PrevObj.Database;
-  except
-  end;
-  // Select "host" node if database was deleted outside and node is gone
-  if not Assigned(DBtree.FocusedNode) then
-    SelectNode(DBtree, DBtree.GetFirst);
-end;
-
-
-{**
-  Refresh one database node in the db tree
-}
-procedure TMainForm.RefreshActiveTreeDB(FocusObject: TDBObject);
-begin
   FTreeRefreshInProgress := True;
   try
-    Connection.ClearDbObjects(ActiveDatabase);
-    // Set focused node
-    if FocusObject <> nil then
-      SelectedDbObj := FocusObject;
+    if not OnlyDBNode then begin
+      FocusNewObject.Connection.ClearAllDbObjects;
+      FocusNewObject.Connection.RefreshAllDatabases;
+      SessionNode := GetRootNode(DBtree, FocusNewObject.Connection);
+      DBtree.ResetNode(SessionNode);
+      DBtree.Expanded[SessionNode] := True;
+    end else begin
+      FocusNewObject.Connection.ClearDbObjects(FocusNewObject.Database);
+      DBNode := FindDbNode(DBtree, FocusNewObject.Database);
+      if Assigned(DBNode) then
+        DBtree.ResetNode(DBNode);
+    end;
+
+    // Reselect active or new database if present. Could have been deleted or renamed.
+    try
+      if FocusNewObject.NodeType in [lntTable..lntEvent] then
+        ActiveDBObj := FocusNewObject;
+      if not Assigned(DBtree.FocusedNode) then
+        SetActiveDatabase(FocusNewObject.Database, FocusNewObject.Connection);
+      if not Assigned(DBtree.FocusedNode) then
+        SetActiveDatabase('', FocusNewObject.Connection);
+    except
+    end;
+      if not Assigned(DBtree.FocusedNode) then
+        raise Exception.Create('Error Message');
+
   finally
     FTreeRefreshInProgress := False;
   end;
@@ -6704,29 +6833,21 @@ end;
 {**
   Find a database node in the tree by passing its name
 }
-function TMainForm.FindDBNode(db: String): PVirtualNode;
+function TMainForm.FindDBNode(Tree: TBaseVirtualTree; db: String): PVirtualNode;
 var
-  i, s: Integer;
-  n: PVirtualNode;
+  DBObj: PDBObject;
+  n, DBNode: PVirtualNode;
 begin
   Result := nil;
-  // TStringList.CaseSensitive= True|False is only used in .IndexOf and .Sort procs,
-  // it does not avoid or remove duplicate items
-  AllDatabases.CaseSensitive := True;
-  s := AllDatabases.IndexOf(db);
-  if s = -1 then begin
-    AllDatabases.CaseSensitive := False;
-    s := AllDatabases.IndexOf(db);
-  end;
-  if s > -1 then begin
-    n := DBtree.GetFirstChild(DBtree.GetFirst);
-    for i := 0 to DBtree.GetFirst.ChildCount - 1 do begin
-      if Integer(n.Index) = s then begin
-        Result := n;
-        Exit;
-      end;
-      n := DBtree.GetNextSibling(n);
+  n := GetRootNode(Tree, ActiveConnection);
+  DBNode := Tree.GetFirstChild(n);
+  while Assigned(DBNode) do begin
+    DBObj := Tree.GetNodeData(DBNode);
+    if DBObj.Database = db then begin
+      Result := DBNode;
+      Break;
     end;
+    DBNode := Tree.GetNextSibling(DBNode);
   end;
 end;
 
@@ -7137,7 +7258,7 @@ begin
     idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
     if idx > -1 then begin
       // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
-      CreateTable := Connection.GetVar('SHOW CREATE TABLE '+Mask(ForeignKey.ReferenceTable, True), 1);
+      CreateTable := ActiveConnection.GetVar('SHOW CREATE TABLE '+Mask(ForeignKey.ReferenceTable, True), 1);
       Columns := TTableColumnList.Create;
       Keys := nil;
       ForeignKeys := nil;
@@ -7157,7 +7278,7 @@ begin
       if TextCol <> '' then SQL := SQL + Mask(TextCol) else SQL := SQL + KeyCol;
       SQL := SQL + ' LIMIT 1000';
 
-      ForeignResults := Connection.GetResults(SQL);
+      ForeignResults := ActiveConnection.GetResults(SQL);
       if ForeignResults.RecordCount < 1000 then begin
         EnumEditor := TEnumEditorLink.Create(VT);
         EnumEditor.DataType := DataGridResult.DataType(Column).Index;
@@ -7191,7 +7312,7 @@ begin
   end else if (TypeCat = dtcTemporal) and prefEnableDatetimeEditor then begin
     // Ensure date/time editor starts with a non-empty text value
     if Results.Col(Column) = '' then begin
-      NowText := Connection.GetVar('SELECT NOW()');
+      NowText := ActiveConnection.GetVar('SELECT NOW()');
       case Results.DataType(Column).Index of
         dtDate: NowText := Copy(NowText, 1, 10);
         dtTime: NowText := Copy(NowText, 12, 8);
@@ -7343,7 +7464,7 @@ begin
   end;
   DataGridFocusedNodeIndex := 0;
   DataGridFocusedColumnName := '';
-  KeyName := Mask(SelectedDbObj.Database)+'.'+Mask(SelectedDbObj.Name);
+  KeyName := Mask(ActiveDbObj.Database)+'.'+Mask(ActiveDbObj.Name);
   CellFocus := DataGridFocusedCell.Values[KeyName];
   if CellFocus <> '' then begin
     DataGridFocusedNodeIndex := MakeInt(Explode(DELIM, CellFocus)[0]);
@@ -7428,8 +7549,8 @@ end;
 function TMainForm.GetRegKeyTable: String;
 begin
   // Return the slightly complex registry path to \Servers\ThisServer\curdb|curtable
-  Result := REGPATH + REGKEY_SESSIONS + SessionName + '\' +
-    ActiveDatabase + DELIM + SelectedDbObj.Name;
+  Result := REGPATH + REGKEY_SESSIONS + ActiveDbObj.Connection.SessionName + '\' +
+    ActiveDatabase + DELIM + ActiveDbObj.Name;
 end;
 
 
@@ -7501,19 +7622,19 @@ begin
   FreeAndNil(AllDatabasesDetails);
   vt.Clear;
   try
-    if Connection.InformationSchemaObjects.IndexOf('SCHEMATA') > -1 then
-      AllDatabasesDetails := Connection.GetResults('SELECT * FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.'+mask('SCHEMATA'));
+    if ActiveConnection.InformationSchemaObjects.IndexOf('SCHEMATA') > -1 then
+      AllDatabasesDetails := ActiveConnection.GetResults('SELECT * FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.'+mask('SCHEMATA'));
   except
     on E:EDatabaseError do
       LogSQL(E.Message, lcError);
   end;
   if vt.Tag = VTREE_NOTLOADED_PURGECACHE then begin
-    for i:=0 to AllDatabases.Count-1 do begin
-      if Connection.DbObjectsCached(AllDatabases[i]) then
-        Connection.GetDBObjects(AllDatabases[i], True);
+    for i:=0 to ActiveConnection.AllDatabases.Count-1 do begin
+      if ActiveConnection.DbObjectsCached(ActiveConnection.AllDatabases[i]) then
+        ActiveConnection.GetDBObjects(ActiveConnection.AllDatabases[i], True);
     end;
   end;
-  vt.RootNodeCount := AllDatabases.Count;
+  vt.RootNodeCount := ActiveConnection.AllDatabases.Count;
   tabDatabases.Caption := 'Databases ('+FormatNumber(vt.RootNodeCount)+')';
   vt.Tag := VTREE_LOADED;
   Screen.Cursor := crDefault;
@@ -7523,11 +7644,9 @@ end;
 procedure TMainForm.ListDatabasesDblClick(Sender: TObject);
 begin
   // Select database on doubleclick
-  if Assigned(ListDatabases.FocusedNode) then try
-    ActiveDatabase := ListDatabases.Text[ListDatabases.FocusedNode, 0];
-  except
-    on E:EDatabaseError do LogSQL(E.Message, lcError);
-  end;
+  // TODO: Have DBObjects bound to ListDatabases, so we can sort nodes without breaking references
+  if Assigned(ListDatabases.FocusedNode) then
+    SetActiveDatabase(ListDatabases.Text[ListDatabases.FocusedNode, 0], ActiveConnection);
 end;
 
 
@@ -7537,16 +7656,14 @@ var
   db: String;
 begin
   // Return icon index for databases. Ghosted if db objects not yet in cache.
-  if not (Kind in [ikNormal, ikSelected]) then
-    Exit;
   if Column <> (Sender as TVirtualStringTree).Header.MainColumn then
     Exit;
   db := ListDatabases.Text[Node, 0];
-  if db = ActiveDatabase then
-    ImageIndex := ICONINDEX_DB_HIGHLIGHT
-  else
-    ImageIndex := ICONINDEX_DB;
-  Ghosted := not Connection.DbObjectsCached(db);
+  case Kind of
+    ikNormal, ikSelected: ImageIndex := ICONINDEX_DB;
+    ikOverlay: if db = ActiveDatabase then ImageIndex := ICONINDEX_HIGHLIGHTMARKER;
+  end;
+  Ghosted := not ActiveConnection.DbObjectsCached(db);
 end;
 
 
@@ -7595,9 +7712,9 @@ var
 begin
   // Return text for database columns
   Idx := Sender.GetNodeData(Node);
-  DBname := AllDatabases[Idx^];
-  if Connection.DbObjectsCached(DBname) then
-    Objects := Connection.GetDBObjects(DBname);
+  DBname := ActiveConnection.AllDatabases[Idx^];
+  if ActiveConnection.DbObjectsCached(DBname) then
+    Objects := ActiveConnection.GetDBObjects(DBname);
   case Column of
     0: CellText := DBname;
     1: if Assigned(Objects) then CellText := FormatByteNumber(Objects.DataSize)
@@ -7645,7 +7762,7 @@ begin
     vt.BeginUpdate;
     OldOffset := vt.OffsetXY;
     vt.Clear;
-    Results := Connection.GetResults('SHOW VARIABLES');
+    Results := ActiveConnection.GetResults('SHOW VARIABLES');
     SetLength(VTRowDataListVariables, Results.RecordCount);
     for i:=0 to Results.RecordCount-1 do begin
       VTRowDataListVariables[i].ImageIndex := 25;
@@ -7690,7 +7807,7 @@ begin
     vt.BeginUpdate;
     OldOffset := vt.OffsetXY;
     vt.Clear;
-    Results := Connection.GetResults('SHOW /*!50002 GLOBAL */ STATUS');
+    Results := ActiveConnection.GetResults('SHOW /*!50002 GLOBAL */ STATUS');
     SetLength(VTRowDataListStatus, Results.RecordCount);
     for i:=0 to Results.RecordCount-1 do begin
       VTRowDataListStatus[i].ImageIndex := 25;
@@ -7708,11 +7825,11 @@ begin
       if valIsNumber then begin
         valCount := MakeInt(val);
         // ... per hour
-        tmpval := valCount / ( Connection.ServerUptime / 60 / 60 );
+        tmpval := valCount / ( ActiveConnection.ServerUptime / 60 / 60 );
         if valIsBytes then avg_perhour := FormatByteNumber( Trunc(tmpval) )
         else avg_perhour := FormatNumber( tmpval, 1 );
         // ... per second
-        tmpval := valCount / Connection.ServerUptime;
+        tmpval := valCount / ActiveConnection.ServerUptime;
         if valIsBytes then avg_persec := FormatByteNumber( Trunc(tmpval) )
         else avg_persec := FormatNumber( tmpval, 1 );
       end;
@@ -7765,14 +7882,14 @@ begin
     OldOffset := vt.OffsetXY;
     vt.FocusedNode := nil;
     vt.Clear;
-    if Connection.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
+    if ActiveConnection.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
       // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
-      Results := Connection.GetResults('SELECT '+mask('ID')+', '+mask('USER')+', '+mask('HOST')+', '+mask('DB')+', '
+      Results := ActiveConnection.GetResults('SELECT '+mask('ID')+', '+mask('USER')+', '+mask('HOST')+', '+mask('DB')+', '
         + mask('COMMAND')+', '+mask('TIME')+', '+mask('STATE')+', LEFT('+mask('INFO')+', '+IntToStr(InfoLen)+') AS '+mask('Info')
         + ' FROM '+mask(DBNAME_INFORMATION_SCHEMA)+'.'+mask('PROCESSLIST'));
     end else begin
       // Older servers fetch the whole query length, but at least we cut them off below, so a high memory usage is just a peak
-      Results := Connection.GetResults('SHOW FULL PROCESSLIST');
+      Results := ActiveConnection.GetResults('SHOW FULL PROCESSLIST');
     end;
     SetLength(VTRowDataListProcesses, Results.RecordCount);
     ProcessListMaxTime := 1;
@@ -7827,10 +7944,10 @@ procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; Target
     // Total Frequency
     VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( commandCount ) );
     // Average per hour
-    tmpval := commandCount / ( Connection.ServerUptime / 60 / 60 );
+    tmpval := commandCount / ( ActiveConnection.ServerUptime / 60 / 60 );
     VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Average per second
-    tmpval := commandCount / Connection.ServerUptime;
+    tmpval := commandCount / ActiveConnection.ServerUptime;
     VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Percentage. Take care of division by zero errors and Int64's
     if commandCount < 0 then
@@ -7858,7 +7975,7 @@ begin
     vt.BeginUpdate;
     OldOffset := vt.OffsetXY;
     vt.Clear;
-    Results := Connection.GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
+    Results := ActiveConnection.GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
     questions := 0;
     while not Results.Eof do begin
       Inc(questions, MakeInt(Results.Col(1)));
@@ -8177,29 +8294,30 @@ begin
 end;
 
 
-procedure TMainForm.actEditObjectExecute(Sender: TObject);
+procedure TMainForm.menuEditObjectClick(Sender: TObject);
 var
   Obj: PDBObject;
 begin
   if ListTables.Focused then begin
     // Got here from ListTables.OnDblClick or ListTables's context menu item "Edit"
     Obj := ListTables.GetNodeData(ListTables.FocusedNode);
-    if not Obj.IsSameAs(SelectedDbObj) then
-      SelectedDBObj := Obj^;
-  end;
-
-  case DBtree.GetNodeLevel(DBtree.FocusedNode) of
-    1: begin
-      if CreateDatabaseForm = nil then
-        CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
-      CreateDatabaseForm.modifyDB := ActiveDatabase;
-      if CreateDatabaseForm.ShowModal = mrOk then
-        InvalidateVT(DBtree, VTREE_NOTLOADED_PURGECACHE, True);
+    if not Obj.IsSameAs(ActiveDbObj) then
+      ActiveDBObj := Obj^;
+    SetMainTab(tabEditor);
+  end else begin
+    Obj := DBtree.GetNodeData(DBtree.FocusedNode);
+    case Obj.NodeType of
+      lntDb: begin
+        if CreateDatabaseForm = nil then
+          CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
+        CreateDatabaseForm.modifyDB := ActiveDatabase;
+        if CreateDatabaseForm.ShowModal = mrOk then
+          RefreshTree;
+      end;
+      lntTable..lntEvent:
+        SetMainTab(tabEditor);
     end;
-
-    2: PlaceObjectEditor(SelectedDbObj);
   end;
-
 end;
 
 
@@ -8220,9 +8338,9 @@ begin
   vt := Sender as TVirtualStringTree;
   if Assigned(vt.FocusedNode) then begin
     Obj := vt.GetNodeData(vt.FocusedNode);
-    SelectedDBObj := Obj^;
+    ActiveDBObj := Obj^;
     // Normally the editor tab is active now, but not when same node was focused before
-    PageControlMain.ActivePage := tabEditor;
+    SetMainTab(tabEditor);
   end;
 end;
 
@@ -8356,8 +8474,7 @@ begin
   QueryTab.treeHelpers.Width := treeQueryHelpers.Width;
 
   // Show new tab
-  PageControlMain.ActivePage := QueryTab.TabSheet;
-  PageControlMainChange(Sender);
+  SetMainTab(QueryTab.TabSheet);
 end;
 
 
@@ -8392,15 +8509,15 @@ begin
   Keys := TStringList.Create;
   if (Sender = btnClearFilters) or (Sender = menuClearFiltersTable) then begin
     Screen.Cursor := crHourGlass;
-    OpenRegistry(SessionName);
+    OpenRegistry(ActiveDbObj.Connection.SessionName);
     MainReg.GetKeyNames(Keys);
-    idx := Keys.IndexOf(SelectedDbObj.Database+'|'+SelectedDbObj.Name);
+    idx := Keys.IndexOf(ActiveDbObj.Database+'|'+ActiveDbObj.Name);
     if idx > -1 then
       MainReg.DeleteKey(Keys[idx]);
   end else if Sender = menuClearFiltersSession then begin
-    if MessageDlg('Remove all filter stuff for this session ('+SessionName+') ?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+    if MessageDlg('Remove all filter stuff for this session ('+ActiveDbObj.Connection.SessionName+') ?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
       Screen.Cursor := crHourGlass;
-      OpenRegistry(SessionName);
+      OpenRegistry(ActiveDbObj.Connection.SessionName);
       MainReg.GetKeyNames(Keys);
       for idx:=0 to Keys.Count-1 do
         MainReg.DeleteKey(Keys[idx])
@@ -8474,7 +8591,7 @@ end;
 
 procedure TMainForm.comboDBFilterChange(Sender: TObject);
 var
-  Node: PVirtualNode;
+  SessionNode, DBNode: PVirtualNode;
   rx: TRegExpr;
   FilterError, NodeMatches: Boolean;
   VisibleCount: Cardinal;
@@ -8482,20 +8599,24 @@ begin
   // Immediately apply database filter
   rx := TRegExpr.Create;
   rx.Expression := '('+StringReplace(comboDBFilter.Text, ';', '|', [rfReplaceAll])+')';
-  Node := DBtree.GetFirstChild(DBtree.GetFirst);
+  SessionNode := DBtree.GetFirst;
   VisibleCount := 0;
   FilterError := False;
-  while Assigned(Node) do begin
-    try
-      NodeMatches := rx.Exec(DBtree.Text[Node, 0]);
-    except
-      FilterError := True;
-      NodeMatches := True;
+  while Assigned(SessionNode) do begin
+    DBNode := DBtree.GetFirstChild(SessionNode);
+    while Assigned(DBNode) do begin
+      try
+        NodeMatches := rx.Exec(DBtree.Text[DBNode, 0]);
+      except
+        FilterError := True;
+        NodeMatches := True;
+      end;
+      DBtree.IsVisible[DBNode] := NodeMatches;
+      if NodeMatches then
+        Inc(VisibleCount);
+      DBNode := DBtree.GetNextSibling(DBNode);
     end;
-    DBtree.IsVisible[Node] := NodeMatches;
-    if NodeMatches then
-      Inc(VisibleCount);
-    Node := DBtree.GetNextSibling(Node);
+    SessionNode := DBtree.GetNextSibling(SessionNode);
   end;
   rx.Free;
   if VisibleCount = 0 then
@@ -8533,7 +8654,7 @@ procedure TMainForm.comboDBFilterDragOver(Sender, Source: TObject; X, Y: Integer
   var Accept: Boolean);
 begin
   // DBtree dragging node over DB filter dropdown
-  Accept := (Source = DBtree) and (DBtree.GetNodeLevel(DBtree.FocusedNode) = 1);
+  Accept := (Source = DBtree) and (ActiveDbObj.NodeType = lntDb);
 end;
 
 
@@ -8769,11 +8890,11 @@ var
   Cap: String;
 begin
   // Set window caption and taskbar text
-  Cap := SessionName;
+  Cap := ActiveConnection.SessionName;
   if ActiveDatabase <> '' then
     Cap := Cap + ' /' + ActiveDatabase;
-  if SelectedDbObj.Name <> '' then
-    Cap := Cap + '/' + SelectedDbObj.Name;
+  if Assigned(ActiveDbObj) and (ActiveDbObj.Name <> '') then
+    Cap := Cap + '/' + ActiveDbObj.Name;
   Cap := Cap + ' - ' + APPNAME;
   if PortableMode then
     Cap := Cap + ' Portable';
@@ -8793,6 +8914,16 @@ begin
       MSG_ABOUT: Mainform.actAboutBox.Execute;
       else Handled := False;
     end;
+  end;
+end;
+
+
+procedure TMainForm.SetMainTab(Page: TTabSheet);
+begin
+  // Safely switch main tab
+  if not FTreeRefreshInProgress then begin
+    PagecontrolMain.ActivePage := Page;
+    PageControlMain.OnChange(Page);
   end;
 end;
 
@@ -9087,7 +9218,7 @@ begin
     end;
     Node := Tree.GetNextSibling(Node);
   end;
-  KeyColumns := Connection.GetKeyColumns(SelectedTableColumns, SelectedTableKeys);
+  KeyColumns := ActiveConnection.GetKeyColumns(SelectedTableColumns, SelectedTableKeys);
   WhereClause := '';
   for i:=0 to KeyColumns.Count-1 do begin
     idx := ColumnNames.IndexOf(mask(KeyColumns[i]));
@@ -9099,12 +9230,12 @@ begin
   end;
 
   if MenuItem = menuQueryHelpersGenerateInsert then begin
-    sql := 'INSERT INTO '+mask(SelectedDbObj.Name)+CRLF+
+    sql := 'INSERT INTO '+mask(ActiveDbObj.Name)+CRLF+
       #9'('+ImplodeStr(', ', ColumnNames)+')'+CRLF+
       #9'VALUES ('+ImplodeStr(', ', DefaultValues)+')';
 
   end else if MenuItem = menuQueryHelpersGenerateUpdate then begin
-    sql := 'UPDATE '+mask(SelectedDbObj.Name)+CRLF+#9'SET'+CRLF;
+    sql := 'UPDATE '+mask(ActiveDbObj.Name)+CRLF+#9'SET'+CRLF;
     if ColumnNames.Count > 0 then begin
       for i:=0 to ColumnNames.Count-1 do begin
         sql := sql + #9#9 + ColumnNames[i] + '=' + DefaultValues[i] + ',' + CRLF;
@@ -9115,7 +9246,7 @@ begin
     sql := sql + #9'WHERE ' + WhereClause;
 
   end else if MenuItem = menuQueryHelpersGenerateDelete then begin
-    sql := 'DELETE FROM '+mask(SelectedDbObj.Name)+' WHERE ' + WhereClause;
+    sql := 'DELETE FROM '+mask(ActiveDbObj.Name)+' WHERE ' + WhereClause;
 
   end;
   ActiveQueryMemo.UndoList.AddGroupBreak;
@@ -9172,6 +9303,7 @@ end;
 procedure TMainForm.WMCopyData(var Msg: TWMCopyData);
 var
   i: Integer;
+  Connection: TMySQLConnection;
 begin
   // Probably a second instance is posting its command line parameters here
   if (Msg.CopyDataStruct.dwData = SecondInstMsgId) and (SecondInstMsgId <> 0) then begin
@@ -9182,8 +9314,7 @@ begin
         actCloseQueryTabExecute(Self);
     end;
     if Assigned(FCmdlineConnectionParams) then
-      if InitConnection(FCmdlineConnectionParams, FCmdlineSessionName) then
-        DoAfterConnect;
+      InitConnection(FCmdlineConnectionParams, FCmdlineSessionName, True, Connection);
   end else
     // Not the right message id
     inherited;
@@ -9397,7 +9528,7 @@ begin
   if (Node.Parent.Index=HELPERNODE_COLUMNS)
     and (Column=1)
     and (Sender.GetNodeLevel(Node)=1)
-    and (SelectedDbObj.NodeType in [lntView, lntTable])
+    and (ActiveDbObj.NodeType in [lntView, lntTable])
     then begin
     TargetCanvas.Font.Color := DatatypeCategories[Integer(SelectedTableColumns[Node.Index].DataType.Category)].Color;
   end;
@@ -9451,8 +9582,8 @@ begin
     Exit;
   case Sender.GetNodeLevel(Node) of
     0: case Node.Index of
-         HELPERNODE_COLUMNS: if SelectedDbObj.NodeType <> lntNone then
-              ImageIndex := SelectedDbObj.ImageIndex
+         HELPERNODE_COLUMNS: if ActiveDbObj.NodeType <> lntNone then
+              ImageIndex := ActiveDbObj.ImageIndex
             else
               ImageIndex := 14;
          HELPERNODE_FUNCTIONS: ImageIndex := 13;
@@ -9479,10 +9610,10 @@ begin
   case Column of
     0: case Sender.GetNodeLevel(Node) of
         0: case Node.Index of
-             HELPERNODE_COLUMNS: case SelectedDbObj.NodeType of
+             HELPERNODE_COLUMNS: case ActiveDbObj.NodeType of
                lntNone: CellText := 'Columns';
-               lntProcedure, lntFunction: CellText := 'Parameters in '+SelectedDbObj.Name;
-               else CellText := 'Columns in '+SelectedDbObj.Name;
+               lntProcedure, lntFunction: CellText := 'Parameters in '+ActiveDbObj.Name;
+               else CellText := 'Columns in '+ActiveDbObj.Name;
              end;
              HELPERNODE_FUNCTIONS: CellText := 'SQL Functions';
              HELPERNODE_KEYWORDS: CellText := 'SQL Keywords';
@@ -9494,7 +9625,7 @@ begin
                 end;
            end;
         1: case Node.Parent.Index of
-             HELPERNODE_COLUMNS: case SelectedDbObj.NodeType of
+             HELPERNODE_COLUMNS: case ActiveDbObj.NodeType of
                lntTable, lntView:
                  if SelectedTableColumns.Count > Integer(Node.Index) then
                    CellText := SelectedTableColumns[Node.Index].Name;
@@ -9517,7 +9648,7 @@ begin
         0: CellText := '';
         1: case Node.Parent.Index of
              HELPERNODE_COLUMNS:
-               if (SelectedDbObj.NodeType in [lntTable, lntView]) and (SelectedTableColumns.Count > Integer(Node.Index)) then
+               if (ActiveDbObj.NodeType in [lntTable, lntView]) and (SelectedTableColumns.Count > Integer(Node.Index)) then
                  CellText := SelectedTableColumns[Node.Index].DataType.Name;
              HELPERNODE_FUNCTIONS: CellText := MySQLFunctions[Node.Index].Declaration;
              HELPERNODE_PROFILE: begin
@@ -9550,7 +9681,7 @@ procedure TMainForm.treeQueryHelpersInitChildren(Sender: TBaseVirtualTree; Node:
 begin
   case Sender.GetNodeLevel(Node) of
     0: case Node.Index of
-         HELPERNODE_COLUMNS: case SelectedDbObj.NodeType of
+         HELPERNODE_COLUMNS: case ActiveDbObj.NodeType of
            lntTable, lntView:
              ChildCount := SelectedTableColumns.Count;
            lntFunction, lntProcedure:
@@ -9601,7 +9732,7 @@ begin
   case Tree.GetNodeLevel(Tree.FocusedNode) of
     0: ;
     1: case Tree.FocusedNode.Parent.Index of
-      HELPERNODE_COLUMNS: if SelectedDbObj.NodeType in [lntTable, lntView] then begin
+      HELPERNODE_COLUMNS: if ActiveDbObj.NodeType in [lntTable, lntView] then begin
           menuQueryHelpersGenerateInsert.Enabled := True;
           menuQueryHelpersGenerateUpdate.Enabled := True;
           menuQueryHelpersGenerateDelete.Enabled := True;

@@ -594,9 +594,9 @@ begin
     end;
 
     efCSV: begin
-      Separator := Mainform.Connection.UnescapeString(Mainform.prefCSVSeparator);
-      Encloser := Mainform.Connection.UnescapeString(Mainform.prefCSVEncloser);
-      Terminator := Mainform.Connection.UnescapeString(Mainform.prefCSVTerminator);
+      Separator := MainForm.ActiveConnection.UnescapeString(Mainform.prefCSVSeparator);
+      Encloser := MainForm.ActiveConnection.UnescapeString(Mainform.prefCSVEncloser);
+      Terminator := MainForm.ActiveConnection.UnescapeString(Mainform.prefCSVTerminator);
       Col := Grid.Header.Columns.GetFirstVisibleColumn;
       while Col > NoColumn do begin
         // Alter column name in header if data is not raw.
@@ -992,7 +992,7 @@ end;
 
 function esc(Text: String; ProcessJokerChars: Boolean=false): String;
 begin
-  Result := Mainform.Connection.EscapeString(Text, ProcessJokerChars);
+  Result := MainForm.ActiveConnection.EscapeString(Text, ProcessJokerChars);
 end;
 
 
@@ -2440,7 +2440,7 @@ begin
     Columns.Clear;
     rx := TRegExpr.Create;
     rx.Expression := '^(\w+)(\((.+)\))?';
-    Results := Mainform.Connection.GetResults('SHOW /*!32332 FULL */ COLUMNS FROM '+Mainform.mask(ViewName));
+    Results := MainForm.ActiveConnection.GetResults('SHOW /*!32332 FULL */ COLUMNS FROM '+Mainform.mask(ViewName));
     while not Results.Eof do begin
       Col := TTableColumn.Create;
       Columns.Add(Col);
@@ -2919,16 +2919,10 @@ begin
   if not Assigned(VT) then
     Exit;
   VT.Tag := RefreshTag;
-  if VT = Mainform.DBtree then begin
-    VT.ResetNode(VT.GetFirst);
-    if ImmediateRepaint then
-      VT.ReinitNode(VT.GetFirst, False);
-  end else begin
-    if ImmediateRepaint then
-      VT.Repaint
-    else
-      VT.Invalidate;
-  end;
+  if ImmediateRepaint then
+    VT.Repaint
+  else
+    VT.Invalidate;
 end;
 
 

@@ -77,9 +77,9 @@ uses main, helpers;
 { FormShow }
 procedure TfrmInsertFiles.FormShow(Sender: TObject);
 begin
-  Caption := Mainform.SessionName + ' - Insert files into table ...';
+  Caption := Mainform.ActiveConnection.SessionName + ' - Insert files into table ...';
   ComboBoxDBs.Items.Clear;
-  ComboBoxDBs.Items.Assign(Mainform.AllDatabases);
+  ComboBoxDBs.Items.Assign(Mainform.ActiveConnection.AllDatabases);
   ComboBoxDBs.ItemIndex := ComboBoxDBs.Items.IndexOf( Mainform.ActiveDatabase );
   if ComboBoxDBs.ItemIndex = -1 then
     ComboBoxDBs.ItemIndex := 0;
@@ -95,7 +95,7 @@ var
 begin
   // read tables from db
   ComboBoxTables.Items.Clear;
-  DBObjects := Mainform.Connection.GetDBObjects(ComboBoxDBs.Text);
+  DBObjects := MainForm.ActiveConnection.GetDBObjects(ComboBoxDBs.Text);
   for i:=0 to DBObjects.Count-1 do begin
     if DBObjects[i].NodeType in [lntTable, lntView] then
       ComboBoxTables.Items.Add(DBObjects[i].Name);
@@ -112,7 +112,7 @@ var
 begin
   setlength(cols, 0);
   if ComboBoxTables.ItemIndex > -1 then begin
-    Results := Mainform.Connection.GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text));
+    Results := MainForm.ActiveConnection.GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text));
     while not Results.Eof do begin
       setlength(cols, length(cols)+1);
       cols[length(cols)-1].Name := Results.Col(0);
@@ -420,7 +420,7 @@ begin
       // Strip last comma + space
       sql := copy(sql, 1, length(sql)-2);
       sql := sql + ')';
-      Mainform.Connection.Query(sql);
+      MainForm.ActiveConnection.Query(sql);
       Mainform.ProgressBarStatus.StepIt;
       Mainform.ProgressBarStatus.Repaint;
     end;

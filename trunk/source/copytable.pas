@@ -96,10 +96,10 @@ var
   Item: TMenuItem;
 begin
   if Mainform.DBtree.Focused then
-    Table := Mainform.SelectedDbObj.Name
+    Table := Mainform.ActiveDbObj.Name
   else
     Table := Mainform.ListTables.Text[Mainform.ListTables.FocusedNode, 0];
-  DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);
+  DBObjects := MainForm.ActiveConnection.GetDBObjects(Mainform.ActiveDatabase);
   FDBObj := nil;
   for Obj in DBObjects do begin
     if Obj.Name = Table then begin
@@ -116,7 +116,7 @@ begin
 
 	// Select TargetDatabase
   comboDatabase.Items.Clear;
-  comboDatabase.Items.Assign(Mainform.AllDatabases);
+  comboDatabase.Items.Assign(Mainform.ActiveConnection.AllDatabases);
   comboDatabase.ItemIndex := comboDatabase.Items.IndexOf(Mainform.ActiveDatabase);
   if comboDatabase.ItemIndex = -1 then
     comboDatabase.ItemIndex := 0;
@@ -363,13 +363,13 @@ var
   DoData: Boolean;
 begin
   // Compose and run CREATE query
-  TableExistance := MainForm.Connection.GetVar('SHOW TABLES FROM '+MainForm.mask(comboDatabase.Text)+' LIKE '+esc(editNewTablename.Text));
+  TableExistance := MainForm.ActiveConnection.GetVar('SHOW TABLES FROM '+MainForm.mask(comboDatabase.Text)+' LIKE '+esc(editNewTablename.Text));
   if TableExistance <> '' then begin
     if MessageDlg('Target table exists. Drop it and overwrite?', mtConfirmation, [mbYes, mbCancel], 0) = mrCancel then begin
       ModalResult := mrNone;
       Exit;
     end;
-    MainForm.Connection.Query('DROP TABLE '+MainForm.mask(comboDatabase.Text)+'.'+MainForm.mask(editNewTablename.Text));
+    MainForm.ActiveConnection.Query('DROP TABLE '+MainForm.mask(comboDatabase.Text)+'.'+MainForm.mask(editNewTablename.Text));
   end;
 
   Screen.Cursor := crHourglass;
@@ -405,7 +405,7 @@ begin
   if FDBObj.Collation <> '' then
     CreateCode := CreateCode + ' COLLATE ''' + FDBObj.Collation + '''';
   if FDBObj.Engine <> '' then begin
-    if Mainform.Connection.ServerVersionInt < 40018 then
+    if MainForm.ActiveConnection.ServerVersionInt < 40018 then
       CreateCode := CreateCode + ' TYPE=' + FDBObj.Engine
     else
       CreateCode := CreateCode + ' ENGINE=' + FDBObj.Engine;
@@ -428,7 +428,7 @@ begin
   // Run query and refresh list
   try
     MainForm.ShowStatusMsg('Creating table ...');
-    MainForm.Connection.Query(CreateCode);
+    MainForm.ActiveConnection.Query(CreateCode);
     MainForm.actRefresh.Execute;
   except
     on E:EDatabaseError do begin
