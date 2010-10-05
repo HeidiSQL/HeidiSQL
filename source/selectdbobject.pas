@@ -70,6 +70,7 @@ begin
   Height := GetRegValue(REGNAME_SELECTDBO_WINHEIGHT, Height);
   SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
+  TreeDBO.TreeOptions := MainForm.DBtree.TreeOptions;
   FixVT(TreeDBO);
 end;
 
@@ -106,7 +107,7 @@ procedure TfrmSelectDBObject.FormShow(Sender: TObject);
 begin
   TreeDBO.Clear;
   TreeDBO.RootNodeCount := Mainform.DBtree.RootNodeCount;
-  SetLength(FColumns, Mainform.AllDatabases.Count);
+  SetLength(FColumns, Mainform.ActiveConnection.AllDatabases.Count);
 //  TreeDBO.OnFocusChanged(TreeDBO, TreeDBO.FocusedNode, 0);
   editDB.Clear;
   editTable.Clear;
@@ -163,38 +164,21 @@ procedure TfrmSelectDBObject.TreeDBOGetImageIndex(Sender: TBaseVirtualTree;
     Boolean; var ImageIndex: Integer);
 begin
   Mainform.DBtreeGetImageIndex(Sender, Node, Kind, Column, Ghosted, ImageIndex);
-  if Sender.GetNodeLevel(Node) = 3 then
-    ImageIndex := ICONINDEX_FIELD;
 end;
 
 
 procedure TfrmSelectDBObject.TreeDBOGetNodeDataSize(Sender: TBaseVirtualTree;
     var NodeDataSize: Integer);
 begin
-  NodeDataSize := 0;
+  MainForm.DBtreeGetNodeDataSize(Sender, NodeDataSize);
 end;
 
 
 procedure TfrmSelectDBObject.TreeDBOInitChildren(Sender: TBaseVirtualTree;
     Node: PVirtualNode; var ChildCount: Cardinal);
-var
-  DBObjects: TDBObjectList;
-  cols: TStringList;
 begin
   // Fetch sub nodes
   Mainform.DBtreeInitChildren(Sender, Node, ChildCount);
-  case Sender.GetNodeLevel(Node) of
-    1: SetLength(FColumns[Node.Index], ChildCount);
-    2: begin // Table expanding
-        DBObjects := Mainform.Connection.GetDBObjects(Mainform.AllDatabases[Node.Parent.Index]);
-        cols := Mainform.Connection.GetCol('SHOW COLUMNS FROM '
-          + Mainform.mask(Mainform.AllDatabases[Node.Parent.Index])+'.'
-          + Mainform.Mask(DBObjects[Node.Index].Name));
-        FColumns[Node.Parent.Index][Node.Index] := cols;
-        ChildCount := cols.Count;
-      end;
-  end;
-
 end;
 
 
@@ -203,18 +187,21 @@ procedure TfrmSelectDBObject.TreeDBOGetText(Sender: TBaseVirtualTree; Node:
     String);
 begin
   Mainform.DBtreeGetText(Sender, Node, Column, TextType, CellText);
-  if Sender.GetNodeLevel(Node) = 3 then
-    CellText := FColumns[Node.Parent.Parent.Index][Node.Parent.Index][Node.Index];
 end;
 
 
 procedure TfrmSelectDBObject.TreeDBOInitNode(Sender: TBaseVirtualTree;
     ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+var
+  DBObj: PDBObject;
 begin
-  // Ensure plus sign is visible for dbs and tables
   Mainform.DBtreeInitNode(Sender, ParentNode, Node, InitialStates);
-  if (Sender.GetNodeLevel(Node) = 2) and (Mainform.GetTreeNodeType(Sender, Node) in [lntTable, lntView]) then
-    InitialStates := InitialStates + [ivsHasChildren];
+  DBObj := Sender.GetNodeData(Node);
+  if DBObj.Connection <> MainForm.ActiveConnection then begin
+    Include(InitialStates, ivsDisabled);
+    Exclude(InitialStates, ivsHasChildren);
+  end else if DBObj.NodeType = lntNone then
+    Include(InitialStates, ivsExpanded);
 end;
 
 end.

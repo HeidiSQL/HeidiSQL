@@ -189,8 +189,8 @@ type
   { TMySQLConnection }
 
   TMySQLLogCategory = (lcInfo, lcSQL, lcUserFiredSQL, lcError, lcDebug);
-  TMySQLLogEvent = procedure(Msg: String; Category: TMySQLLogCategory=lcInfo) of object;
-  TMySQLDatabaseEvent = procedure(Database: String) of object;
+  TMySQLLogEvent = procedure(Msg: String; Category: TMySQLLogCategory=lcInfo; Connection: TMySQLConnection=nil) of object;
+  TMySQLDatabaseEvent = procedure(Connection: TMySQLConnection; Database: String) of object;
 
   TMySQLQuery = class;
   TMySQLQueryList = TObjectList<TMySQLQuery>;
@@ -200,9 +200,11 @@ type
       FActive: Boolean;
       FConnectionStarted: Integer;
       FServerStarted: Integer;
+      FSessionName: String;
       FParameters: TConnectionParameters;
       FLoginPromptDone: Boolean;
       FDatabase: String;
+      FAllDatabases: TStringList;
       FLogPrefix: String;
       FOnLog: TMySQLLogEvent;
       FOnDatabaseChanged: TMySQLDatabaseEvent;
@@ -262,6 +264,7 @@ type
       function GetVar(SQL: String; Column: Integer=0): String; overload;
       function GetVar(SQL: String; Column: String): String; overload;
       function Ping: Boolean;
+      function RefreshAllDatabases: TStringList;
       function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList;
       function DbObjectsCached(db: String): Boolean;
       function ParseDateTime(Str: String): TDateTime;
@@ -270,6 +273,7 @@ type
       function GetLastResults: TMySQLQueryList;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
+      property SessionName: String read FSessionName write FSessionName;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property ThreadId: Cardinal read GetThreadId;
       property ConnectionUptime: Integer read GetConnectionUptime;
@@ -304,6 +308,7 @@ type
       property OnDatabaseChanged: TMySQLDatabaseEvent read FOnDatabaseChanged write FOnDatabaseChanged;
       property OnDBObjectsCleared: TMySQLDatabaseEvent read FOnDBObjectsCleared write FOnDBObjectsCleared;
   end;
+  TMySQLConnectionList = TObjectList<TMySQLConnection>;
 
 
   { TMySQLQuery }
@@ -416,6 +421,7 @@ end;
 constructor TMySQLConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FSessionName := 'Unnamed';
   FParameters := TConnectionParameters.Create;
   FRowsFound := 0;
   FRowsAffected := 0;
@@ -592,8 +598,8 @@ begin
       FConnectionStarted := GetTickCount div 1000;
       FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), 1);
       FServerVersionUntouched := DecodeAPIString(mysql_get_server_info(FHandle));
-      FServerOS := GetVar('SHOW VARIABLES LIKE ' + esc('version_compile_os'), 1);
-      FRealHostname := GetVar('SHOW VARIABLES LIKE ' + esc('hostname'), 1);;
+      FServerOS := GetVar('SHOW VARIABLES LIKE ' + EscapeString('version_compile_os'), 1);
+      FRealHostname := GetVar('SHOW VARIABLES LIKE ' + EscapeString('hostname'), 1);;
       if FDatabase <> '' then begin
         tmpdb := FDatabase;
         FDatabase := '';
@@ -714,7 +720,7 @@ begin
         FDatabase := DeQuoteIdent(FDatabase);
         Log(lcDebug, 'Database "'+FDatabase+'" selected');
         if Assigned(FOnDatabaseChanged) then
-          FOnDatabaseChanged(Database);
+          FOnDatabaseChanged(Self, Database);
       end;
     end;
   end;
@@ -746,7 +752,7 @@ begin
     if Value = '' then begin
       FDatabase := Value;
       if Assigned(FOnDatabaseChanged) then
-        FOnDatabaseChanged(Value);
+        FOnDatabaseChanged(Self, Value);
     end else
       Query('USE '+QuoteIdent(Value), False);
     SetObjectNamesInSelectedDB;
@@ -855,19 +861,29 @@ function TMySQLConnection.GetAllDatabases: TStringList;
 var
   i: Integer;
 begin
-  if FParameters.AllDatabases <> '' then begin
-    Result := TStringList.Create;
-    Result.Delimiter := ';';
-    Result.StrictDelimiter := True;
-    Result.DelimitedText := FParameters.AllDatabases;
-    // Trim all and remove empty items
-    for i:=Result.Count-1 downto 0 do begin
-      Result[i] := Trim(Result[i]);
-      if Result[i] = '' then
-        Result.Delete(i);
-    end;
-  end else
-    Result := GetCol('SHOW DATABASES');
+  if not Assigned(FAllDatabases) then begin
+    if FParameters.AllDatabases <> '' then begin
+      FAllDatabases := TStringList.Create;
+      FAllDatabases.Delimiter := ';';
+      FAllDatabases.StrictDelimiter := True;
+      FAllDatabases.DelimitedText := FParameters.AllDatabases;
+      // Trim all and remove empty items
+      for i:=FAllDatabases.Count-1 downto 0 do begin
+        FAllDatabases[i] := Trim(FAllDatabases[i]);
+        if FAllDatabases[i] = '' then
+          FAllDatabases.Delete(i);
+      end;
+    end else
+      FAllDatabases := GetCol('SHOW DATABASES');
+  end;
+  Result := FAllDatabases;
+end;
+
+
+function TMySQLConnection.RefreshAllDatabases: TStringList;
+begin
+  FreeAndNil(FAllDatabases);
+  Result := AllDatabases;
 end;
 
 
@@ -906,7 +922,7 @@ end;
 procedure TMySQLConnection.Log(Category: TMySQLLogCategory; Msg: String);
 begin
   if Assigned(FOnLog) then
-    FOnLog(FLogPrefix+Msg, Category);
+    FOnLog(FLogPrefix+Msg, Category, Self);
 end;
 
 
@@ -1232,7 +1248,7 @@ begin
     if FDatabases[i].Database = db then begin
       FDatabases.Delete(i);
       if Assigned(FOnDBObjectsCleared) then
-        FOnDBObjectsCleared(db);
+        FOnDBObjectsCleared(Self, db);
       break;
     end;
   end;
@@ -2463,7 +2479,10 @@ begin
   if not Assigned(CompareTo) then
     Result := False
   else
-    Result := (Name = CompareTo.Name) and (NodeType = CompareTo.NodeType) and (Database = CompareTo.Database);
+    Result := (Name = CompareTo.Name)
+      and (NodeType = CompareTo.NodeType)
+      and (Database = CompareTo.Database)
+      and (Connection = CompareTo.Connection);
 end;
 
 
@@ -2484,12 +2503,19 @@ function TDBObject.GetImageIndex: Integer;
 begin
   // Detect key icon index for specified db object (table, trigger, ...)
   case NodeType of
+    lntNone: Result := ICONINDEX_SERVER;
+
+    lntDb: Result := ICONINDEX_DB;
+
     lntTable: Result := ICONINDEX_TABLE;
     lntFunction: Result := ICONINDEX_STOREDFUNCTION;
     lntProcedure: Result := ICONINDEX_STOREDPROCEDURE;
     lntView: Result := ICONINDEX_VIEW;
     lntTrigger: Result := ICONINDEX_TRIGGER;
     lntEvent: Result := ICONINDEX_EVENT;
+
+    lntColumn: Result := ICONINDEX_FIELD;
+
     else Result := -1;
   end;
 end;

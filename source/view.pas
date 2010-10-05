@@ -169,16 +169,16 @@ begin
     sql := sql + 'WITH '+Uppercase(rgCheck.Items[rgCheck.ItemIndex])+' CHECK OPTION';
 
   try
-    Mainform.Connection.Query(sql);
+    MainForm.ActiveConnection.Query(sql);
     // Probably rename view
     if (DBObject.Name <> '') and (DBObject.Name <> editName.Text) then begin
       renamed := Mainform.mask(editName.Text);
-      Mainform.Connection.Query('RENAME TABLE '+viewname + ' TO '+renamed);
+      MainForm.ActiveConnection.Query('RENAME TABLE '+viewname + ' TO '+renamed);
     end;
     DBObject.Name := editName.Text;
     DBObject.CreateCode := '';
     Mainform.UpdateEditorTab;
-    Mainform.RefreshActiveTreeDB(DBObject);
+    Mainform.RefreshTree(DBObject);
     Mainform.ParseSelectedTableStructure;
     Modified := False;
     btnSave.Enabled := Modified;

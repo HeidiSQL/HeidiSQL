@@ -129,7 +129,7 @@ procedure Tloaddataform.FormShow(Sender: TObject);
 begin
   // read dbs and Tables from treeview
   comboDatabase.Items.Clear;
-  comboDatabase.Items.Assign(Mainform.AllDatabases);
+  comboDatabase.Items.Assign(Mainform.ActiveConnection.AllDatabases);
   comboDatabase.ItemIndex := comboDatabase.Items.IndexOf( Mainform.ActiveDatabase );
   if comboDatabase.ItemIndex = -1 then
     comboDatabase.ItemIndex := 0;
@@ -153,19 +153,19 @@ begin
   comboEncoding.Clear;
   if comboEncoding.Enabled then begin
     // Populate charset combo
-    v := Mainform.Connection.ServerVersionInt;
+    v := MainForm.ActiveConnection.ServerVersionInt;
     if ((v >= 50038) and (v < 50100)) or (v >= 50117) then begin
       Charset := MainForm.GetCharsetByEncoding(Encoding);
       // Detect db charset
       DefCharset := 'Let server/database decide';
-      dbcreate := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+Mainform.mask(comboDatabase.Text), 1);
+      dbcreate := MainForm.ActiveConnection.GetVar('SHOW CREATE DATABASE '+Mainform.mask(comboDatabase.Text), 1);
       rx := TRegExpr.Create;
       rx.ModifierG := True;
       rx.Expression := 'CHARACTER SET (\w+)';
       if rx.Exec(dbcreate) then
         DefCharset := DefCharset + ' ('+rx.Match[1]+')';
       comboEncoding.Items.Add(DefCharset);
-      CharsetTable := Mainform.Connection.CharsetTable;
+      CharsetTable := MainForm.ActiveConnection.CharsetTable;
       CharsetTable.First;
       while not CharsetTable.Eof do begin
         comboEncoding.Items.Add(CharsetTable.Col(1) + ' ('+CharsetTable.Col(0)+')');
@@ -196,8 +196,8 @@ begin
   // read tables from db
   comboTable.Items.Clear;
   seldb := Mainform.ActiveDatabase;
-  seltable := Mainform.SelectedDbObj.Name;
-  DBObjects := Mainform.Connection.GetDBObjects(comboDatabase.Text);
+  seltable := Mainform.ActiveDbObj.Name;
+  DBObjects := MainForm.ActiveConnection.GetDBObjects(comboDatabase.Text);
   for i:=0 to DBObjects.Count-1 do begin
     if DBObjects[i].NodeType in [lntTable, lntView] then
       comboTable.Items.Add(DBObjects[i].Name);
@@ -230,7 +230,7 @@ begin
   if (comboDatabase.Text <> '') and (comboTable.Text <> '') then begin
     if not Assigned(Columns) then
       Columns := TTableColumnList.Create;
-    DBObjects := Mainform.Connection.GetDBObjects(comboDatabase.Text);
+    DBObjects := MainForm.ActiveConnection.GetDBObjects(comboDatabase.Text);
     for Obj in DBObjects do begin
       if (Obj.Database=comboDatabase.Text) and (Obj.Name=comboTable.Text) then begin
         case Obj.NodeType of
@@ -266,10 +266,10 @@ begin
       Inc(ColumnCount);
   end;
 
-  Term := MainForm.Connection.UnescapeString(editFieldTerminator.Text);
-  Encl := MainForm.Connection.UnescapeString(editFieldEncloser.Text);
-  LineTerm := MainForm.Connection.UnescapeString(editLineTerminator.Text);
-  Escp := MainForm.Connection.UnescapeString(editFieldEscaper.Text);
+  Term := MainForm.ActiveConnection.UnescapeString(editFieldTerminator.Text);
+  Encl := MainForm.ActiveConnection.UnescapeString(editFieldEncloser.Text);
+  LineTerm := MainForm.ActiveConnection.UnescapeString(editLineTerminator.Text);
+  Escp := MainForm.ActiveConnection.UnescapeString(editFieldEscaper.Text);
 
   try
     case grpParseMethod.ItemIndex of
@@ -278,8 +278,8 @@ begin
     end;
     MainForm.LogSQL(FormatNumber(RowCount)+' rows imported in '+FormatNumber((GetTickcount-StartTickCount)/1000, 3)+' seconds.');
     // SHOW WARNINGS is implemented as of MySQL 4.1.0
-    if MainForm.Connection.ServerVersionInt >= 40100 then begin
-      Warnings := MainForm.Connection.GetResults('SHOW WARNINGS');
+    if MainForm.ActiveConnection.ServerVersionInt >= 40100 then begin
+      Warnings := MainForm.ActiveConnection.GetResults('SHOW WARNINGS');
       while not Warnings.Eof do begin
         MainForm.LogSQL(Warnings.Col(0)+' ('+Warnings.Col(1)+'): '+Warnings.Col(2), lcError);
         Warnings.Next;
@@ -328,8 +328,8 @@ begin
   SQL := SQL + 'INTO TABLE ' + Mainform.Mask(comboDatabase.Text) + '.' +  Mainform.Mask(comboTable.Text) + ' ';
 
   if comboEncoding.ItemIndex > 0 then begin
-    Mainform.Connection.CharsetTable.RecNo := comboEncoding.ItemIndex-1;
-    SQL := SQL + 'CHARACTER SET '+Mainform.Connection.CharsetTable.Col(0)+' ';
+    MainForm.ActiveConnection.CharsetTable.RecNo := comboEncoding.ItemIndex-1;
+    SQL := SQL + 'CHARACTER SET '+MainForm.ActiveConnection.CharsetTable.Col(0)+' ';
   end;
 
   // Fields:
@@ -372,8 +372,8 @@ begin
   end;
 
 
-  Mainform.Connection.Query(SQL);
-  RowCount := Max(MainForm.Connection.RowsAffected, 0);
+  MainForm.ActiveConnection.Query(SQL);
+  RowCount := Max(MainForm.ActiveConnection.RowsAffected, 0);
 end;
 
 
@@ -479,7 +479,7 @@ const
         SetLength(SA, ChunkSize div SizeOf(AnsiChar));
         OutStream.Read(PAnsiChar(SA)^, ChunkSize);
         OutStream.Size := 0;
-        Mainform.Connection.Query(UTF8ToString(SA));
+        MainForm.ActiveConnection.Query(UTF8ToString(SA));
         SQL := '';
       end;
     end else

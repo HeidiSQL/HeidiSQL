@@ -276,14 +276,14 @@ begin
   // Test if we can access the privileges database and tables by
   // A. Using the mysql-DB
   try
-    Mainform.Connection.Database := DBNAME_MYSQL;
+    MainForm.ActiveConnection.Database := DBNAME_MYSQL;
   except
     MessageDlg('You have no access to the privileges database.', mtError, [mbOK], 0);
     Result := false;
     Exit;
   end;
   // B. retrieving a count of all users.
-  test_result := Mainform.Connection.GetVar('SELECT COUNT(*) FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS));
+  test_result := MainForm.ActiveConnection.GetVar('SELECT COUNT(*) FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS));
   if test_result = '' then begin
     MessageDlg('You have no access to the privileges tables.', mtError, [mbOK], 0);
     Result := false;
@@ -301,7 +301,7 @@ var
   snr: String;
 begin
   // Set hints text
-  snr := Mainform.Connection.GetVar('SHOW VARIABLES LIKE ' + esc('skip_name_resolve'));
+  snr := MainForm.ActiveConnection.GetVar('SHOW VARIABLES LIKE ' + esc('skip_name_resolve'));
   if snr = '' then snr := 'Unknown';
   lblHostHints.Caption := StringReplace(lblHostHints.Caption, '$SNR', snr, []);
 
@@ -936,10 +936,10 @@ begin
     AcctWhere := AccountSqlClause(u.FOldName, u.FOldHost, True);
     sql := 'DELETE FROM ' + db + '.';
     try
-      Mainform.Connection.Query(sql + mask(PRIVTABLE_COLUMNS) + AcctWhere);
-      Mainform.Connection.Query(sql + mask(PRIVTABLE_TABLES) + AcctWhere);
-      Mainform.Connection.Query(sql + mask(PRIVTABLE_DB) + AcctWhere);
-      Mainform.Connection.Query(sql + mask(PRIVTABLE_USERS) + AcctWhere);
+      MainForm.ActiveConnection.Query(sql + mask(PRIVTABLE_COLUMNS) + AcctWhere);
+      MainForm.ActiveConnection.Query(sql + mask(PRIVTABLE_TABLES) + AcctWhere);
+      MainForm.ActiveConnection.Query(sql + mask(PRIVTABLE_DB) + AcctWhere);
+      MainForm.ActiveConnection.Query(sql + mask(PRIVTABLE_USERS) + AcctWhere);
     except
       on E:EDatabaseError do begin
         MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -973,10 +973,10 @@ begin
     sql := 'UPDATE ' + db + '.';
     try
       // Todo: Allow concurrency by skipping this account and removing from Users array if changing key in mysql.user fails.
-      Mainform.Connection.Query(sql + mask(PRIVTABLE_USERS) + AcctValues + AcctWhere);
-      Mainform.Connection.Query(sql + mask(PRIVTABLE_DB) + AcctValues + AcctWhere);
-      Mainform.Connection.Query(sql + mask(PRIVTABLE_TABLES) + AcctValues + AcctWhere);
-      Mainform.Connection.Query(sql + mask(PRIVTABLE_COLUMNS) + AcctValues + AcctWhere);
+      MainForm.ActiveConnection.Query(sql + mask(PRIVTABLE_USERS) + AcctValues + AcctWhere);
+      MainForm.ActiveConnection.Query(sql + mask(PRIVTABLE_DB) + AcctValues + AcctWhere);
+      MainForm.ActiveConnection.Query(sql + mask(PRIVTABLE_TABLES) + AcctValues + AcctWhere);
+      MainForm.ActiveConnection.Query(sql + mask(PRIVTABLE_COLUMNS) + AcctValues + AcctWhere);
     except
       on E:EDatabaseError do begin
         MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -1021,7 +1021,7 @@ begin
     AcctValues := ' SET ' + Delim(AcctUpdates);
     sql := 'UPDATE ' + db + '.';
     try
-      Mainform.Connection.Query(sql + mask(PRIVTABLE_USERS) + AcctValues + AcctWhere);
+      MainForm.ActiveConnection.Query(sql + mask(PRIVTABLE_USERS) + AcctValues + AcctWhere);
     except
       on E:EDatabaseError do begin
         MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -1066,7 +1066,7 @@ begin
     sql := sql + ' SET ' + Delim(AcctUpdates);
     try
       // Todo: Allow concurrency by skipping this account and removing from Users array if inserting key in mysql.user fails.
-      Mainform.Connection.Query(sql);
+      MainForm.ActiveConnection.Query(sql);
     except
       on E:EDatabaseError do begin
         MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -1135,7 +1135,7 @@ begin
         sql := 'UPDATE ' + db + '.' + mask(PRIVTABLE_USERS);
         sql := sql + ' SET ' + Delim(PrivUpdates);
         try
-          Mainform.Connection.Query(sql + AcctWhere);
+          MainForm.ActiveConnection.Query(sql + AcctWhere);
         except
           on E:EDatabaseError do begin
             MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -1147,7 +1147,7 @@ begin
       if (p.DBOType <> lntNone) then begin
         sql := 'DELETE FROM ' + db + '.' + TableName;
         try
-          Mainform.Connection.Query(sql + AcctWhere + PrivWhere);
+          MainForm.ActiveConnection.Query(sql + AcctWhere + PrivWhere);
         except
           on E:EDatabaseError do begin
             MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -1213,9 +1213,9 @@ begin
           sql := sql + ', ' + Delim(PrivValues);
       end;
       try
-        Mainform.Connection.Query(sql);
-        if Mainform.Connection.RowsAffected = 0 then
-          Mainform.Connection.Query('UPDATE ' + db + '.' + TableName + ' SET ' +Delim(PrivUpdates) + AcctWhere);
+        MainForm.ActiveConnection.Query(sql);
+        if MainForm.ActiveConnection.RowsAffected = 0 then
+          MainForm.ActiveConnection.Query('UPDATE ' + db + '.' + TableName + ' SET ' +Delim(PrivUpdates) + AcctWhere);
       except
         on E:EDatabaseError do begin
           MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -1240,7 +1240,7 @@ begin
         sql := sql + ' SET ' + PrivWhere;
         sql := sql + ', ' + mask('column_priv') + '=' + esc(Delim(PrivValues, False));
         try
-          Mainform.Connection.Query(sql);
+          MainForm.ActiveConnection.Query(sql);
         except
           on E:EDatabaseError do begin
             MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -1251,7 +1251,7 @@ begin
     end;
   end;
   try
-    Mainform.Connection.Query('FLUSH PRIVILEGES');
+    MainForm.ActiveConnection.Query('FLUSH PRIVILEGES');
     ModalResult := mrOK;
   except
     on E:EDatabaseError do begin
@@ -1270,29 +1270,29 @@ var
   i: Integer;
   user, host: String;
 begin
-  dsUser := Mainform.Connection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS) + ' ORDER BY '
+  dsUser := MainForm.ActiveConnection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_USERS) + ' ORDER BY '
     + Mainform.Mask('User')+', '
     + Mainform.Mask('Host'));
-  dsDb := Mainform.Connection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_DB)
+  dsDb := MainForm.ActiveConnection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_DB)
     // Ignore db entries that contain magic pointers to the mysql.host table.
     + ' WHERE Db <> '#39#39
     + ' ORDER BY '
     + Mainform.Mask('User')+', '
     + Mainform.Mask('Host')+', '
     + Mainform.Mask('Db'));
-  dsTables := Mainform.Connection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_TABLES) + ' ORDER BY '
+  dsTables := MainForm.ActiveConnection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_TABLES) + ' ORDER BY '
     + Mainform.Mask('User')+', '
     + Mainform.Mask('Host')+', '
     + Mainform.Mask('Db')+', '
     + Mainform.Mask('Table_name'));
-  dsColumns := Mainform.Connection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_COLUMNS) + ' ORDER BY '
+  dsColumns := MainForm.ActiveConnection.GetResults('SELECT * FROM '+db+'.'+Mainform.Mask(PRIVTABLE_COLUMNS) + ' ORDER BY '
     + Mainform.Mask('User')+', '
     + Mainform.Mask('Host')+', '
     + Mainform.Mask('Db')+', '
     + Mainform.Mask('Table_name')+', '
     + Mainform.Mask('Column_name'));
-  dsTablesFields := Mainform.Connection.GetResults('SHOW FIELDS FROM '+db+'.tables_priv LIKE ''%\_priv''');
-  dsColumnsFields := Mainform.Connection.GetResults('SHOW FIELDS FROM '+db+'.columns_priv LIKE ''%\_priv''');
+  dsTablesFields := MainForm.ActiveConnection.GetResults('SHOW FIELDS FROM '+db+'.tables_priv LIKE ''%\_priv''');
+  dsColumnsFields := MainForm.ActiveConnection.GetResults('SHOW FIELDS FROM '+db+'.columns_priv LIKE ''%\_priv''');
   for i:=0 to dsUser.RecordCount-1 do begin
     // Avoid using dsUser.Next and dsUser.Eof here because TUser.Create
     // also iterates through the global dsUser result and moves the cursor

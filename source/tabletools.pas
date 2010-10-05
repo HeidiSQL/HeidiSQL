@@ -102,6 +102,7 @@ type
     procedure TreeObjectsChecking(Sender: TBaseVirtualTree; Node: PVirtualNode; var NewState: TCheckState;
       var Allowed: Boolean);
     procedure btnSeeResultsClick(Sender: TObject);
+    procedure TreeObjectsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
   private
     { Private declarations }
     FResults: TObjectList<TStringList>;
@@ -129,7 +130,7 @@ type
     procedure DoBulkTableEdit(DBObj: TDBObject);
   public
     { Public declarations }
-    SelectedTables: TStringList;
+    PreSelectObjects: TDBObjectList;
     property ToolMode: TToolMode read FToolMode write SetToolMode;
   end;
 
@@ -193,7 +194,7 @@ begin
   FixVT(TreeObjects);
   FixVT(ResultGrid);
   FResults := TObjectList<TStringList>.Create;
-  SelectedTables := TStringList.Create;
+  PreSelectObjects := TDBObjectList.Create(False);
   FModifiedDbs := TStringList.Create;
   FModifiedDbs.Duplicates := dupIgnore;
   FFindSeeResultSQL := TStringList.Create;
@@ -230,34 +231,20 @@ end;
 
 procedure TfrmTableTools.FormShow(Sender: TObject);
 var
-  DBNode, TableNode, FirstChecked: PVirtualNode;
+  Node, FirstChecked: PVirtualNode;
   idx, i: Integer;
   SessionNames: TStringList;
+  DBObj: TDBObject;
 begin
   // When this form is displayed the second time, databases may be deleted or filtered.
   // Also, checked nodes must be unchecked and unchecked nodes may need to be checked.
   TreeObjects.Clear;
   TreeObjects.RootNodeCount := Mainform.DBtree.RootNodeCount;
 
-  DBNode := TreeObjects.GetFirstChild(TreeObjects.GetFirst);
-  while Assigned(DBNode) do begin
-    if TreeObjects.Text[DBNode, 0] = Mainform.ActiveDatabase then begin
-      if SelectedTables.Count = 0 then begin
-        // Preselect active database
-        DBNode.CheckState := csCheckedNormal;
-      end else begin
-        DBNode.CheckState := csMixedNormal;
-        // Expand db node so checked table nodes are visible
-        TreeObjects.Expanded[DBNode] := true;
-        TableNode := TreeObjects.GetFirstChild(DBNode);
-        while Assigned(TableNode) do begin
-          if SelectedTables.IndexOf(TreeObjects.Text[TableNode, 0]) > -1 then
-            TableNode.CheckState := csCheckedNormal;
-          TableNode := TreeObjects.GetNextSibling(TableNode);
-        end;
-      end;
-    end;
-    DBNode := TreeObjects.GetNextSibling(DBNode);
+  for DBObj in PreSelectObjects do begin
+    Node := MainForm.FindDBObjectNode(TreeObjects, DBObj);
+    if Assigned(Node) then
+      TreeObjects.CheckState[Node] := csCheckedNormal;
   end;
 
   FirstChecked := TreeObjects.GetFirstChecked;
@@ -267,7 +254,7 @@ begin
   idx := comboOperation.ItemIndex;
   if idx = -1 then idx := 0;
   comboOperation.Items.CommaText := 'Check,Analyze,Checksum,Optimize,Repair';
-  if Mainform.Connection.ServerVersionInt < 40101 then
+  if Mainform.ActiveConnection.ServerVersionInt < 40101 then
     comboOperation.Items.Text := StringReplace(comboOperation.Items.Text, 'Checksum', 'Checksum ('+SUnsupported+')', [rfReplaceAll]);
   comboOperation.ItemIndex := idx;
   comboOperation.OnChange(Sender);
@@ -282,7 +269,7 @@ begin
   MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
   MainReg.GetKeyNames(SessionNames);
   for i:=0 to SessionNames.Count-1 do begin
-    if SessionNames[i] <> Mainform.SessionName then
+    if SessionNames[i] <> Mainform.ActiveConnection.SessionName then
       comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionNames[i]);
   end;
   if (idx > -1) and (idx < comboExportOutputType.Items.Count) then
@@ -291,19 +278,19 @@ begin
     comboExportOutputType.ItemIndex := GetRegValue(REGNAME_EXP_OUTPUT, 0);
   comboExportOutputType.OnChange(Sender);
 
-  comboBulkTableEditDatabase.Items.Text := Mainform.AllDatabases.Text;
+  comboBulkTableEditDatabase.Items.Text := Mainform.ActiveConnection.AllDatabases.Text;
   if comboBulkTableEditDatabase.Items.Count > 0 then
     comboBulkTableEditDatabase.ItemIndex := 0;
 
-  comboBulkTableEditEngine.Items := Mainform.Connection.TableEngines;
+  comboBulkTableEditEngine.Items := MainForm.ActiveConnection.TableEngines;
   if comboBulkTableEditEngine.Items.Count > 0 then
-    comboBulkTableEditEngine.ItemIndex := comboBulkTableEditEngine.Items.IndexOf(Mainform.Connection.TableEngineDefault);
+    comboBulkTableEditEngine.ItemIndex := comboBulkTableEditEngine.Items.IndexOf(MainForm.ActiveConnection.TableEngineDefault);
 
-  comboBulkTableEditCollation.Items := Mainform.Connection.CollationList;
+  comboBulkTableEditCollation.Items := MainForm.ActiveConnection.CollationList;
   if comboBulkTableEditCollation.Items.Count > 0 then
     comboBulkTableEditCollation.ItemIndex := 0;
 
-  comboBulkTableEditCharset.Items := Mainform.Connection.CharsetList;
+  comboBulkTableEditCharset.Items := MainForm.ActiveConnection.CharsetList;
   if comboBulkTableEditCharset.Items.Count > 0 then
     comboBulkTableEditCharset.ItemIndex := 0;
 
@@ -359,8 +346,8 @@ begin
     btnExecute.Enabled := SomeChecked and ((comboExportOutputTarget.Text <> '') or (not comboExportOutputTarget.Enabled));
   end else if tabsTools.ActivePage = tabBulkTableEdit then begin
     btnExecute.Caption := 'Update';
-    chkBulkTableEditCollation.Enabled := Mainform.Connection.IsUnicode;
-    chkBulkTableEditCharset.Enabled := Mainform.Connection.IsUnicode;
+    chkBulkTableEditCollation.Enabled := MainForm.ActiveConnection.IsUnicode;
+    chkBulkTableEditCharset.Enabled := MainForm.ActiveConnection.IsUnicode;
     OptionChecked := chkBulkTableEditDatabase.Checked or chkBulkTableEditEngine.Checked or chkBulkTableEditCollation.Checked
       or chkBulkTableEditCharset.Checked or chkBulkTableEditResetAutoinc.Checked;
     btnExecute.Enabled := SomeChecked and OptionChecked;
@@ -402,6 +389,11 @@ begin
 end;
 
 
+procedure TfrmTableTools.TreeObjectsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+begin
+  MainForm.DBtreeGetNodeDataSize(Sender, NodeDataSize);
+end;
+
 procedure TfrmTableTools.TreeObjectsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
 begin
@@ -441,9 +433,9 @@ end;
 
 procedure TfrmTableTools.Execute(Sender: TObject);
 var
-  DBNode, TableNode: PVirtualNode;
-  DBObjects, Triggers, Views: TDBObjectList;
-  DBObj: TDBObject;
+  SessionNode, DBNode, TableNode: PVirtualNode;
+  Triggers, Views: TDBObjectList;
+  DBObj: PDBObject;
   i: Integer;
 
   procedure ProcessNode(DBObj: TDBObject);
@@ -479,41 +471,44 @@ begin
   Views := TDBObjectList.Create(False);
   TreeObjects.SetFocus;
   FHeaderCreated := False;
-  DBNode := TreeObjects.GetFirstChild(TreeObjects.GetFirst);
-  while Assigned(DBNode) do begin
-    if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
-      Triggers.Clear;
-      Views.Clear;
-      FSecondExportPass := False;
-      TableNode := TreeObjects.GetFirstChild(DBNode);
-      while Assigned(TableNode) do begin
-        if (csCheckedNormal in [TableNode.CheckState, DBNode.CheckState]) and (TableNode.CheckType <> ctNone) then begin
-          DBObjects := Mainform.Connection.GetDBObjects(TreeObjects.Text[DBNode, 0]);
-          DBObj := DBObjects[TableNode.Index];
-          // Triggers have to be exported at the very end
-          if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntTrigger) then
-            Triggers.Add(DBObj)
-          else begin
-            if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntView) then
-              Views.Add(DBObj);
-            ProcessNode(DBObj);
+  SessionNode := TreeObjects.GetFirstChild(nil);
+  while Assigned(SessionNode) do begin
+    DBNode := TreeObjects.GetFirstChild(SessionNode);
+    while Assigned(DBNode) do begin
+      if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
+        Triggers.Clear;
+        Views.Clear;
+        FSecondExportPass := False;
+        TableNode := TreeObjects.GetFirstChild(DBNode);
+        while Assigned(TableNode) do begin
+          if (csCheckedNormal in [TableNode.CheckState, DBNode.CheckState]) and (TableNode.CheckType <> ctNone) then begin
+            DBObj := TreeObjects.GetNodeData(TableNode);
+            // Triggers have to be exported at the very end
+            if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntTrigger) then
+              Triggers.Add(DBObj^)
+            else begin
+              if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntView) then
+                Views.Add(DBObj^);
+              ProcessNode(DBObj^);
+            end;
           end;
-        end;
-        TableNode := TreeObjects.GetNextSibling(TableNode);
-      end; // End of db object node loop in db
+          TableNode := TreeObjects.GetNextSibling(TableNode);
+        end; // End of db object node loop in db
 
-      // Special block for late created triggers in export mode
-      for i:=0 to Triggers.Count-1 do
-        ProcessNode(Triggers[i]);
+        // Special block for late created triggers in export mode
+        for i:=0 to Triggers.Count-1 do
+          ProcessNode(Triggers[i]);
 
-      // Special block for final exporting final view structure
-      FSecondExportPass := True;
-      for i:=0 to Views.Count-1 do
-        ProcessNode(Views[i]);
+        // Special block for final exporting final view structure
+        FSecondExportPass := True;
+        for i:=0 to Views.Count-1 do
+          ProcessNode(Views[i]);
 
-    end;
-    DBNode := TreeObjects.GetNextSibling(DBNode);
-  end; // End of db item loop
+      end;
+      DBNode := TreeObjects.GetNextSibling(DBNode);
+    end; // End of db item loop
+    SessionNode := TreeObjects.GetNextSibling(SessionNode);
+  end;
 
   if Assigned(ExportStream) then begin
     Output(EXPORT_FILE_FOOTER, False, True, False, False, False);
@@ -524,13 +519,9 @@ begin
   end;
   ExportLastDatabase := '';
 
-  if FModifiedDbs.Count > 0 then begin
-    for i:=0 to FModifiedDbs.Count-1 do
-      Mainform.Connection.ClearDbObjects(FModifiedDbs[i]);
-    TreeObjects.ResetNode(TreeObjects.GetFirst);
-    InvalidateVT(Mainform.DBtree, VTREE_NOTLOADED_PURGECACHE, False);
-    FModifiedDbs.Clear;
-  end;
+  for i:=0 to FModifiedDbs.Count-1 do
+    Mainform.ActiveConnection.ClearDbObjects(FModifiedDbs[i]);
+  FModifiedDbs.Clear;
 
   ValidateControls(Sender);
   Screen.Cursor := crDefault;
@@ -618,7 +609,7 @@ var
   Results: TMySQLQuery;
 begin
   // Execute query and append results into grid
-  Results := Mainform.Connection.GetResults(SQL);
+  Results := MainForm.ActiveConnection.GetResults(SQL);
   if Results = nil then
     Exit;
 
@@ -971,7 +962,7 @@ begin
       ExportStream.Size := 0;
       ExportStreamStartOfQueryPos := 0;
       SQL := UTF8ToString(SA);
-      if ToDB then Mainform.Connection.Query(SQL)
+      if ToDB then MainForm.ActiveConnection.Query(SQL)
       else if ToServer then FTargetConnection.Query(SQL);
       SQL := '';
     end;
@@ -1044,14 +1035,14 @@ begin
     ExportStream := TMemoryStream.Create;
   if not FHeaderCreated then begin
     Header := '# --------------------------------------------------------' + CRLF +
-      Format('# %-30s%s', ['Host:', Mainform.Connection.Parameters.HostName]) + CRLF +
-      Format('# %-30s%s', ['Server version:', Mainform.Connection.ServerVersionUntouched]) + CRLF +
-      Format('# %-30s%s', ['Server OS:', Mainform.Connection.ServerOS]) + CRLF +
+      Format('# %-30s%s', ['Host:', MainForm.ActiveConnection.Parameters.HostName]) + CRLF +
+      Format('# %-30s%s', ['Server version:', MainForm.ActiveConnection.ServerVersionUntouched]) + CRLF +
+      Format('# %-30s%s', ['Server OS:', MainForm.ActiveConnection.ServerOS]) + CRLF +
       Format('# %-30s%s', [APPNAME + ' version:', Mainform.AppVersion]) + CRLF +
       Format('# %-30s%s', ['Date/time:', DateTimeToStr(Now)]) + CRLF +
       '# --------------------------------------------------------' + CRLF + CRLF +
       '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
-      '/*!40101 SET NAMES '+Mainform.Connection.CharacterSet+' */;' + CRLF +
+      '/*!40101 SET NAMES '+MainForm.ActiveConnection.CharacterSet+' */;' + CRLF +
       '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF +
       '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;';
     Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
@@ -1069,8 +1060,8 @@ begin
     if chkExportDatabasesDrop.Checked and chkExportDatabasesDrop.Enabled then
       Output('DROP DATABASE IF EXISTS '+m(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     if chkExportDatabasesCreate.Checked and chkExportDatabasesCreate.Enabled then begin
-      if Mainform.Connection.ServerVersionInt >= 40100 then begin
-        Struc := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+m(DBObj.Database), 1);
+      if MainForm.ActiveConnection.ServerVersionInt >= 40100 then begin
+        Struc := MainForm.ActiveConnection.GetVar('SHOW CREATE DATABASE '+m(DBObj.Database), 1);
         // Gracefully ignore it when target database exists, important in server mode
         Insert('IF NOT EXISTS ', Struc, Pos('DATABASE', Struc) + 9);
         // Create the right dbname
@@ -1143,7 +1134,7 @@ begin
           end;
 
           lntTrigger: begin
-            StrucResult := Mainform.Connection.GetResults('SHOW TRIGGERS FROM '+m(DBObj.Database)+' WHERE `Trigger`='+esc(DBObj.Name));
+            StrucResult := MainForm.ActiveConnection.GetResults('SHOW TRIGGERS FROM '+m(DBObj.Database)+' WHERE `Trigger`='+esc(DBObj.Name));
             Struc := 'CREATE '+UpperCase(DBObj.ObjType)+' '+m(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
                 ' ON '+m(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement');
             if ToDb then
@@ -1210,7 +1201,7 @@ begin
         Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
       Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
       while true do begin
-        Data := Mainform.Connection.GetResults('SELECT * FROM '+m(DBObj.Database)+'.'+m(DBObj.Name)+' LIMIT '+IntToStr(Offset)+', '+IntToStr(Limit));
+        Data := MainForm.ActiveConnection.GetResults('SELECT * FROM '+m(DBObj.Database)+'.'+m(DBObj.Name)+' LIMIT '+IntToStr(Offset)+', '+IntToStr(Limit));
         Inc(Offset, Limit);
         if Data.RecordCount = 0 then
           break;
@@ -1327,17 +1318,17 @@ begin
         CreateView := rx.Replace(CreateView, Mainform.mask(comboBulkTableEditDatabase.Text), false);
         rx.Free;
         // Temporarily switch to new database for VIEW creation, so the database references are correct
-        Mainform.Connection.Database := comboBulkTableEditDatabase.Text;
-        Mainform.Connection.Query(CreateView);
-        Mainform.Connection.Database := DBObj.Database;
-        Mainform.Connection.Query('DROP VIEW '+Mainform.mask(DBObj.Name));
+        DBObj.Connection.Database := comboBulkTableEditDatabase.Text;
+        DBObj.Connection.Query(CreateView);
+        DBObj.Connection.Database := DBObj.Database;
+        DBObj.Connection.Query('DROP VIEW '+Mainform.mask(DBObj.Name));
       end;
     end;
     FModifiedDbs.Add(DBObj.Database);
     FModifiedDbs.Add(comboBulkTableEditDatabase.Text);
   end;
   if (DBObj.NodeType = lntTable) and chkBulkTableEditEngine.Checked then begin
-    if Mainform.Connection.ServerVersionInt < 40018 then
+    if MainForm.ActiveConnection.ServerVersionInt < 40018 then
       Specs.Add('TYPE '+comboBulkTableEditEngine.Text)
     else
       Specs.Add('ENGINE '+comboBulkTableEditEngine.Text);
@@ -1345,8 +1336,8 @@ begin
   if DBObj.NodeType = lntTable then begin
     HasCharsetClause := False;
     if chkBulkTableEditCharset.Checked and (comboBulkTableEditCharset.ItemIndex > -1) then begin
-      Mainform.Connection.CharsetTable.RecNo := comboBulkTableEditCharset.ItemIndex;
-      Specs.Add('CONVERT TO CHARSET '+Mainform.Connection.CharsetTable.Col('Charset'));
+      MainForm.ActiveConnection.CharsetTable.RecNo := comboBulkTableEditCharset.ItemIndex;
+      Specs.Add('CONVERT TO CHARSET '+DBObj.Connection.CharsetTable.Col('Charset'));
       HasCharsetClause := True;
     end;
     if chkBulkTableEditCollation.Checked and (comboBulkTableEditCollation.ItemIndex > -1) then begin
@@ -1361,7 +1352,7 @@ begin
 
   LogRow := FResults.Last;
   if Specs.Count > 0 then begin
-    Mainform.Connection.Query('ALTER TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name) + ' ' + ImplodeStr(', ', Specs));
+    DBObj.Connection.Query('ALTER TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name) + ' ' + ImplodeStr(', ', Specs));
     LogRow[2] := 'Done';
     LogRow[3] := 'Success';
   end else begin

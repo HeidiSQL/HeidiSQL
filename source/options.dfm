@@ -38,7 +38,7 @@ object optionsform: Toptionsform
         Width = 417
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Automatically reconnect to last session-account on startup'
+        Caption = 'Automatically reconnect to previously opened sessions on startup'
         TabOrder = 1
         OnClick = Modified
       end

@@ -84,7 +84,7 @@ begin
   SynMemoStatement.Text := 'BEGIN'+CRLF+CRLF+'END';
   comboEvent.ItemIndex := 0;
   comboTiming.ItemIndex := 0;
-  DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);
+  DBObjects := MainForm.ActiveConnection.GetDBObjects(Mainform.ActiveDatabase);
   comboTable.Items.Clear;
   for i:=0 to DBObjects.Count-1 do begin
     if DBObjects[i].NodeType in [lntTable] then
@@ -95,7 +95,7 @@ begin
   if DBObject.Name <> '' then begin
     // Edit mode
     editName.Text := DBObject.Name;
-    Definitions := Mainform.Connection.GetResults('SHOW TRIGGERS FROM '+Mainform.mask(Mainform.ActiveDatabase));
+    Definitions := MainForm.ActiveConnection.GetResults('SHOW TRIGGERS FROM '+Mainform.mask(Mainform.ActiveDatabase));
     Found := False;
     while not Definitions.Eof do begin
       if Definitions.Col('Trigger') = DBObject.Name then begin
@@ -160,7 +160,7 @@ begin
     // his statement. The user must fix such errors and re-press "Save" while we have them in memory,
     // otherwise the trigger attributes are lost forever.
     if DBObject.Name <> '' then try
-      Mainform.Connection.Query('DROP TRIGGER '+Mainform.mask(DBObject.Name));
+      MainForm.ActiveConnection.Query('DROP TRIGGER '+Mainform.mask(DBObject.Name));
     except
     end;
     // CREATE
@@ -171,11 +171,11 @@ begin
       comboTiming.Items[comboTiming.ItemIndex]+' '+comboEvent.Items[comboEvent.ItemIndex]+
       ' ON '+Mainform.mask(comboTable.Text)+
       ' FOR EACH ROW '+SynMemoStatement.Text;
-    Mainform.Connection.Query(sql);
+    MainForm.ActiveConnection.Query(sql);
     DBObject.Name := editName.Text;
     DBObject.CreateCode := '';
     Mainform.UpdateEditorTab;
-    Mainform.RefreshActiveTreeDB(DBObject);
+    Mainform.RefreshTree(DBObject);
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
@@ -204,7 +204,7 @@ begin
     if comboTable.Text = '' then
       CanExecute := False
     else try
-      Columns := Mainform.Connection.GetResults('SHOW COLUMNS FROM '+Mainform.mask(comboTable.Text));
+      Columns := MainForm.ActiveConnection.GetResults('SHOW COLUMNS FROM '+Mainform.mask(comboTable.Text));
       while not Columns.Eof do begin
         Proposal.InsertList.Add(Columns.Col('Field'));
         Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );

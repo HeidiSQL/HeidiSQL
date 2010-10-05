@@ -418,7 +418,7 @@ begin
     if DBObject.Name <> '' then begin
       // Create temp name
       i := 0;
-      allRoutineNames := Mainform.Connection.GetCol('SELECT ROUTINE_NAME FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.'+Mainform.mask('ROUTINES')+
+      allRoutineNames := MainForm.ActiveConnection.GetCol('SELECT ROUTINE_NAME FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.'+Mainform.mask('ROUTINES')+
         ' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase)+
         ' AND ROUTINE_TYPE = '+esc(ProcOrFunc)
         );
@@ -436,17 +436,17 @@ begin
         if allRoutineNames.IndexOf(TempName) = -1 then
           break;
       end;
-      Mainform.Connection.Query(ComposeCreateStatement(tempName));
+      MainForm.ActiveConnection.Query(ComposeCreateStatement(tempName));
       // Drop temporary routine, used for syntax checking
-      Mainform.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(TempName));
+      MainForm.ActiveConnection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(TempName));
       // Drop edited routine
-      Mainform.Connection.Query('DROP '+FAlterRoutineType+' IF EXISTS '+Mainform.mask(DBObject.Name));
+      MainForm.ActiveConnection.Query('DROP '+FAlterRoutineType+' IF EXISTS '+Mainform.mask(DBObject.Name));
       if TargetExists then begin
         // Drop target routine - overwriting has been confirmed, see above
-        Mainform.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(editName.Text));
+        MainForm.ActiveConnection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(editName.Text));
       end;
     end;
-    Mainform.Connection.Query(ComposeCreateStatement(editName.Text));
+    MainForm.ActiveConnection.Query(ComposeCreateStatement(editName.Text));
     // Set editing name if create/alter query was successful
     DBObject.Name := editName.Text;
     DBObject.CreateCode := '';
@@ -454,7 +454,7 @@ begin
     if FAlterRoutineType = 'PROCEDURE' then DBObject.NodeType := lntProcedure
     else DBObject.NodeType := lntFunction;
     Mainform.UpdateEditorTab;
-    Mainform.RefreshActiveTreeDB(DBObject);
+    Mainform.RefreshTree(DBObject);
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;

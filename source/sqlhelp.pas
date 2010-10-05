@@ -93,7 +93,7 @@ begin
 
   treeTopics.Clear;
   FreeAndNil(FRootTopics);
-  FRootTopics := Mainform.Connection.GetResults('HELP '+esc('CONTENTS'));
+  FRootTopics := MainForm.ActiveConnection.GetResults('HELP '+esc('CONTENTS'));
   treeTopics.RootNodeCount := FRootTopics.RecordCount;
 end;
 
@@ -118,7 +118,7 @@ begin
 
   if FKeyword <> '' then try
     Screen.Cursor := crHourglass;
-    Results := Mainform.Connection.GetResults('HELP '+esc(FKeyword));
+    Results := MainForm.ActiveConnection.GetResults('HELP '+esc(FKeyword));
     Caption := Caption + ' - ' + FKeyword;
     MemoDescription.Text := fixNewlines(Results.Col('description', True));
     MemoExample.Text := fixNewlines(Results.Col('example', True));
@@ -205,7 +205,7 @@ begin
   // Return number of children for folder
   VT := Sender as TVirtualStringTree;
   Results := VT.GetNodeData(Node);
-  Results^ := MainForm.Connection.GetResults('HELP '+esc(VT.Text[Node, VT.Header.MainColumn]));
+  Results^ := MainForm.ActiveConnection.GetResults('HELP '+esc(VT.Text[Node, VT.Header.MainColumn]));
   ChildCount := Results.RecordCount;
 end;
 
@@ -265,7 +265,7 @@ end;
 procedure TfrmSQLhelp.ButtonOnlinehelpClick(Sender: TObject);
 begin
   // Link/redirect to mysql.com for further help
-  ShellExec( APPDOMAIN + 'sqlhelp.php?mysqlversion='+inttostr(Mainform.Connection.ServerVersionInt)+
+  ShellExec( APPDOMAIN + 'sqlhelp.php?mysqlversion='+inttostr(MainForm.ActiveConnection.ServerVersionInt)+
     '&keyword='+urlencode(keyword) );
 end;
 
@@ -290,7 +290,7 @@ begin
   FKeyword := Value;
   if FKeyword = '' then
     Exit;
-  Results := Mainform.Connection.GetResults('HELP '+esc(FKeyword));
+  Results := MainForm.ActiveConnection.GetResults('HELP '+esc(FKeyword));
   while not Results.Eof do begin
     if Results.Col('is_it_category', true) = 'N' then begin
       FKeyword := Results.Col('name');

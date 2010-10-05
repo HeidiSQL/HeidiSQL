@@ -139,8 +139,10 @@ uses Main, helpers, grideditlinks;
 
 procedure Tconnform.FormCreate(Sender: TObject);
 var
-  LastSession: String;
+  LastActiveSession: String;
+  LastSessions: TStringList;
   hSysMenu: THandle;
+  idx: Integer;
 begin
   // Fix GUI stuff
   InheritFont(Font);
@@ -155,8 +157,16 @@ begin
   FSessionNames.OnChange := SessionNamesChange;
   RefreshSessionList;
   // Focus last session
-  LastSession := GetRegValue(REGNAME_LASTSESSION, '');
-  SelectNode(ListSessions, FSessionNames.IndexOf(LastSession));
+  LastSessions := Explode(DELIM, GetRegValue(REGNAME_LASTSESSIONS, ''));
+  LastActiveSession := GetRegValue(REGNAME_LASTACTIVESESSION, '');
+  idx := FSessionNames.IndexOf(LastActiveSession);
+  if idx = -1 then begin
+    if LastSessions.Count > 0 then
+      idx := FSessionNames.IndexOf(LastSessions[0]);
+    if idx = -1 then
+      idx := 0;
+  end;
+  SelectNode(ListSessions, idx);
   ValidateControls;
   // Add own menu items to system menu
   hSysMenu := GetSystemMenu(Handle, False);
@@ -200,10 +210,12 @@ end;
 
 
 procedure Tconnform.btnOpenClick(Sender: TObject);
+var
+  Connection: TMySQLConnection;
 begin
   // Connect to selected session
   Screen.Cursor := crHourglass;
-  if Mainform.InitConnection(CurrentParams, SelectedSession) then
+  if Mainform.InitConnection(CurrentParams, SelectedSession, True, Connection) then
     ModalResult := mrOK
   else begin
     TimerStatistics.OnTimer(Sender);
@@ -524,6 +536,7 @@ procedure Tconnform.ListSessionsNewText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   SessionKey: String;
+  Connection: TMySQLConnection;
 begin
   // Rename session
   OpenRegistry;
@@ -534,11 +547,12 @@ begin
     SessionKey := RegPath + REGKEY_SESSIONS + SelectedSession;
     if MainReg.KeyExists(SessionKey) then
       MainReg.MoveKey(SessionKey, RegPath + REGKEY_SESSIONS + NewText, true);
-    // Also fix internal session name in main form, which gets used to store e.g. "lastuseddb" later
-    if Mainform.SessionName = SelectedSession then begin
-      Mainform.SessionName := NewText;
-      Mainform.SetWindowCaption;
+    // Also fix internal session names in main form, which gets used to store e.g. "lastuseddb" later
+    for Connection in MainForm.Connections do begin
+      if Connection.SessionName = SelectedSession then
+        Connection.SessionName := NewText;
     end;
+    MainForm.SetWindowCaption;
     FSessionNames[FSessionNames.IndexOf(SelectedSession)] := NewText;
   end;
 end;

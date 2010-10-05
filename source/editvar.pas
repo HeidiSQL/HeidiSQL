@@ -70,7 +70,7 @@ begin
 
   // Set the value and keep the form open in any error case
   try
-    Mainform.Connection.Query(sql);
+    MainForm.ActiveConnection.Query(sql);
   except
     on E:EDatabaseError do begin
       ModalResult := mrNone;

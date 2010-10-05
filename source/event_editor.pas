@@ -128,7 +128,7 @@ begin
     if rx.Exec(CreateCode) then begin
       if UpperCase(rx.Match[1]) = 'AT' then begin
         radioOnce.Checked := True;
-        d := Mainform.Connection.ParseDateTime(WideDequotedStr(rx.Match[3], ''''));
+        d := MainForm.ActiveConnection.ParseDateTime(WideDequotedStr(rx.Match[3], ''''));
         dateOnce.DateTime := d;
         timeOnce.DateTime := d;
       end else begin
@@ -141,13 +141,13 @@ begin
           editEveryQuantity.Text := WideDequotedStr(rx.Match[3], '''');
         chkStarts.Checked := rx.MatchLen[5] > 0;
         if chkStarts.Checked then begin
-          d := Mainform.Connection.ParseDateTime(rx.Match[6]);
+          d := MainForm.ActiveConnection.ParseDateTime(rx.Match[6]);
           dateStarts.DateTime := d;
           timeStarts.DateTime := d;
         end;
         chkEnds.Checked := rx.MatchLen[7] > 0;
         if chkEnds.Checked then begin
-          d := Mainform.Connection.ParseDateTime(rx.Match[8]);
+          d := MainForm.ActiveConnection.ParseDateTime(rx.Match[8]);
           dateEnds.DateTime := d;
           timeEnds.DateTime := d;
         end;
@@ -221,12 +221,12 @@ begin
   else
     sql := ComposeAlterStatement;
   try
-    Mainform.Connection.Query(sql);
+    MainForm.ActiveConnection.Query(sql);
     DBObject.Name := editName.Text;
     DBObject.CreateCode := '';
     tabALTERcode.TabVisible := DBObject.Name <> '';
     Mainform.UpdateEditorTab;
-    Mainform.RefreshActiveTreeDB(DBObject);
+    Mainform.RefreshTree(DBObject);
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;

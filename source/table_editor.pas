@@ -261,9 +261,9 @@ var
 begin
   inherited;
   FLoaded := False;
-  comboEngine.Items := Mainform.Connection.TableEngines;
-  comboEngine.ItemIndex := comboEngine.Items.IndexOf(Mainform.Connection.TableEngineDefault);
-  comboCollation.Items := Mainform.Connection.CollationList;
+  comboEngine.Items := MainForm.ActiveConnection.TableEngines;
+  comboEngine.ItemIndex := comboEngine.Items.IndexOf(MainForm.ActiveConnection.TableEngineDefault);
+  comboCollation.Items := MainForm.ActiveConnection.CollationList;
   listColumns.BeginUpdate;
   FColumns.Clear;
   btnClearIndexesClick(Self);
@@ -283,7 +283,7 @@ begin
   if DBObject.Name = '' then begin
     // Creating new table
     editName.Text := '';
-    comboCollation.ItemIndex := comboCollation.Items.IndexOf(Mainform.Connection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
+    comboCollation.ItemIndex := comboCollation.Items.IndexOf(MainForm.ActiveConnection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
     PageControlMain.ActivePage := tabBasic;
   end else begin
     // Editing existing table
@@ -323,7 +323,7 @@ begin
       memoUnionTables.Lines.Clear;
     rx.Expression := '\bCOMMENT=''((.+)[^''])''';
     if rx.Exec(DBObject.CreateCode) then
-      memoComment.Lines.Text := Mainform.Connection.UnescapeString(rx.Match[1])
+      memoComment.Lines.Text := MainForm.ActiveConnection.UnescapeString(rx.Match[1])
     else
       memoComment.Lines.Clear;
     ParseTableStructure(DBObject.CreateCode, FColumns, FKeys, FForeignKeys);
@@ -388,8 +388,8 @@ begin
   end;
   try
     if Specs.Count > 0 then
-      Mainform.Connection.Query('ALTER TABLE '+Mainform.mask(DBObject.Name)+' '+ImplodeStr(', ', Specs));
-    Mainform.Connection.Query(sql);
+      MainForm.ActiveConnection.Query('ALTER TABLE '+Mainform.mask(DBObject.Name)+' '+ImplodeStr(', ', Specs));
+    MainForm.ActiveConnection.Query(sql);
     tabALTERcode.TabVisible := DBObject.Name <> '';
     if chkCharsetConvert.Checked then begin
       // Autoadjust column collations
@@ -403,7 +403,7 @@ begin
     DBObject.CreateCode := '';
     tabALTERcode.TabVisible := DBObject.Name <> '';
     Mainform.UpdateEditorTab;
-    Mainform.RefreshActiveTreeDB(DBObject);
+    Mainform.RefreshTree(DBObject);
     Mainform.ParseSelectedTableStructure;
     Mainform.RefreshHelperNode(HELPERNODE_COLUMNS);
     ResetModificationFlags;
@@ -477,7 +477,7 @@ begin
   if (comboCollation.Tag = ModifiedFlag) or (chkCharsetConvert.Checked) then
     Specs.Add('COLLATE=' + esc(comboCollation.Text));
   if comboEngine.Tag = ModifiedFlag then begin
-    if Mainform.Connection.ServerVersionInt < 40018 then
+    if MainForm.ActiveConnection.ServerVersionInt < 40018 then
       Specs.Add('TYPE=' + comboEngine.Text)
     else
       Specs.Add('ENGINE=' + comboEngine.Text);
@@ -497,7 +497,7 @@ begin
   if comboInsertMethod.Enabled and (comboInsertMethod.Tag = ModifiedFlag) and (comboInsertMethod.Text <> '') then
     Specs.Add('INSERT_METHOD='+comboInsertMethod.Text);
   if chkCharsetConvert.Checked then begin
-    Results := Mainform.Connection.CollationTable;
+    Results := MainForm.ActiveConnection.CollationTable;
     if Assigned(Results) then while not Results.Eof do begin
       if Results.Col('Collation') = comboCollation.Text then begin
         Specs.Add('CONVERT TO CHARSET '+Results.Col('Charset'));
@@ -540,7 +540,7 @@ begin
           ColSpec := ColSpec + esc(Col.Collation);
       end;
       // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
-      if Mainform.Connection.ServerVersionInt >= 40001 then begin
+      if MainForm.ActiveConnection.ServerVersionInt >= 40001 then begin
         if PreviousCol = nil then
           ColSpec := ColSpec + ' FIRST'
         else
@@ -637,7 +637,7 @@ begin
   if comboCollation.Text <> '' then
     Result := Result + 'COLLATE='+esc(comboCollation.Text) + CRLF;
   if comboEngine.Text <> '' then begin
-    if Mainform.Connection.ServerVersionInt < 40018 then
+    if MainForm.ActiveConnection.ServerVersionInt < 40018 then
       Result := Result + 'TYPE='+comboEngine.Text + CRLF
     else
       Result := Result + 'ENGINE='+comboEngine.Text + CRLF;
@@ -1210,7 +1210,7 @@ begin
     9: begin // Collation pulldown
       EnumEditor := TEnumEditorLink.Create(VT);
       EnumEditor.ValueList := TStringList.Create;
-      EnumEditor.ValueList.Text := Mainform.Connection.CollationList.Text;
+      EnumEditor.ValueList.Text := MainForm.ActiveConnection.CollationList.Text;
       EnumEditor.ValueList.Insert(0, '');
       EditLink := EnumEditor;
       end;
@@ -1947,7 +1947,7 @@ begin
       MessageDlg('Please select a reference table before selecting foreign columns.', mtError, [mbOk], 0)
     else begin
       try
-        Mainform.Connection.GetVar('SELECT 1 FROM '+Mainform.Mask(Key.ReferenceTable, True));
+        MainForm.ActiveConnection.GetVar('SELECT 1 FROM '+Mainform.Mask(Key.ReferenceTable, True));
         Allowed := True;
       except
         // Leave Allowed = False
@@ -1989,7 +1989,7 @@ begin
     2: begin
         EnumEditor := TEnumEditorLink.Create(VT);
         EnumEditor.AllowCustomText := True;
-        DBObjects := Mainform.Connection.GetDBObjects(Mainform.ActiveDatabase);
+        DBObjects := MainForm.ActiveConnection.GetDBObjects(Mainform.ActiveDatabase);
         for i:=0 to DBObjects.Count-1 do begin
           if DBObjects[i].NodeType = lntTable then
             EnumEditor.ValueList.Add(DBObjects[i].Name);
@@ -1999,7 +1999,7 @@ begin
     3: begin
         Key := FForeignKeys[Node.Index];
         SetEditor := TSetEditorLink.Create(VT);
-        SetEditor.ValueList := Mainform.Connection.GetCol('SHOW COLUMNS FROM '+Mainform.Mask(Key.ReferenceTable, True));
+        SetEditor.ValueList := MainForm.ActiveConnection.GetCol('SHOW COLUMNS FROM '+Mainform.Mask(Key.ReferenceTable, True));
         EditLink := SetEditor;
       end;
     4, 5: begin

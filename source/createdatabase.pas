@@ -66,9 +66,9 @@ var
   Charset: String;
   colpos: Integer;
 begin
-  CollationTable := Mainform.Connection.CollationTable;
+  CollationTable := MainForm.ActiveConnection.CollationTable;
   // Detect servers default charset
-  defaultCharset := Mainform.Connection.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
+  defaultCharset := MainForm.ActiveConnection.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
   comboCharset.Enabled := Assigned(CollationTable);
   lblCharset.Enabled := comboCharset.Enabled;
   comboCollation.Enabled := comboCharset.Enabled;
@@ -99,7 +99,7 @@ begin
     editDBName.SelectAll;
     
     // Detect current charset and collation to be able to preselect them in the pulldowns
-    sql_create := Mainform.Connection.GetVar('SHOW CREATE DATABASE '+Mainform.mask(modifyDB), 1);
+    sql_create := MainForm.ActiveConnection.GetVar('SHOW CREATE DATABASE '+Mainform.mask(modifyDB), 1);
     currentCharset := Copy( sql_create, pos('CHARACTER SET', sql_create)+14, Length(sql_create));
     currentCharset := GetFirstWord( currentCharset );
     if currentCharset <> '' then
@@ -210,7 +210,7 @@ var
 begin
   if modifyDB = '' then try
     sql := GetCreateStatement;
-    Mainform.Connection.Query(sql);
+    MainForm.ActiveConnection.Query(sql);
     // Close form
     ModalResult := mrOK;
   except
@@ -227,13 +227,13 @@ begin
     end;
     if modifyDB = editDBName.Text then begin
       // Alter database
-      Mainform.Connection.Query(sql);
+      MainForm.ActiveConnection.Query(sql);
     end else begin
       // Rename database
-      ObjectsInOldDb := MainForm.Connection.GetDBObjects(modifyDB, True);
-      AllDatabases := Mainform.Connection.GetCol('SHOW DATABASES');
+      ObjectsInOldDb := MainForm.ActiveConnection.GetDBObjects(modifyDB, True);
+      AllDatabases := MainForm.ActiveConnection.GetCol('SHOW DATABASES');
       if AllDatabases.IndexOf(editDBName.Text) > -1 then
-        ObjectsInNewDb := MainForm.Connection.GetDBObjects(editDBName.Text, True)
+        ObjectsInNewDb := MainForm.ActiveConnection.GetDBObjects(editDBName.Text, True)
       else
         ObjectsInNewDb := nil; // Silence compiler warning
       // Warn if there are tables with same names in new db
@@ -253,7 +253,7 @@ begin
 
       if AllDatabases.IndexOf(editDBName.Text) = -1 then begin
         // Target db does not exist - create it
-        Mainform.Connection.Query(GetCreateStatement);
+        MainForm.ActiveConnection.Query(GetCreateStatement);
       end else begin
         if MessageDlg('Database "'+editDBName.Text+'" exists. But it does not contain objects with same names as in '+
           '"'+modifyDB+'", so it''s uncritical to move everything.'+CRLF+CRLF+'Move all objects to "'+editDBName.Text+'"?',
@@ -269,16 +269,15 @@ begin
       if sql <> '' then begin
         Delete(sql, Length(sql)-1, 2);
         sql := 'RENAME TABLE '+sql;
-        Mainform.Connection.Query(sql);
-        Mainform.Connection.ClearDbObjects(modifyDB);
-        Mainform.Connection.ClearDbObjects(editDBName.Text);
+        MainForm.ActiveConnection.Query(sql);
+        MainForm.ActiveConnection.ClearDbObjects(modifyDB);
+        MainForm.ActiveConnection.ClearDbObjects(editDBName.Text);
       end;
       // Last check if old db is really empty, before we drop it.
-      ObjectsLeft := Mainform.Connection.GetDBObjects(modifyDB);
+      ObjectsLeft := MainForm.ActiveConnection.GetDBObjects(modifyDB);
       if ObjectsLeft.Count = 0 then begin
-        Mainform.Connection.Query('DROP DATABASE '+Mainform.mask(modifyDB));
-        InvalidateVT(Mainform.DBtree, VTREE_NOTLOADED_PURGECACHE, False);
-        Mainform.ActiveDatabase := '';
+        MainForm.ActiveConnection.Query('DROP DATABASE '+Mainform.mask(modifyDB));
+        MainForm.RefreshTree;
       end;
     end;
     // Close form
@@ -290,16 +289,16 @@ begin
   end;
 
   // Save new db name to registry
-  AllDatabases := Explode(';', Mainform.Connection.Parameters.AllDatabases);
+  AllDatabases := Explode(';', MainForm.ActiveConnection.Parameters.AllDatabases);
   if AllDatabases.Count > 0 then begin
     i := AllDatabases.IndexOf(modifyDB);
     if i > -1 then
       AllDatabases[i] := editDBname.Text
     else
       AllDatabases.Add(editDBname.Text);
-    OpenRegistry(Mainform.SessionName);
-    Mainform.Connection.Parameters.AllDatabases := ImplodeStr(';', AllDatabases);
-    MainReg.WriteString(REGNAME_DATABASES, Mainform.Connection.Parameters.AllDatabases);
+    OpenRegistry(Mainform.ActiveConnection.SessionName);
+    MainForm.ActiveConnection.Parameters.AllDatabases := ImplodeStr(';', AllDatabases);
+    MainReg.WriteString(REGNAME_DATABASES, MainForm.ActiveConnection.Parameters.AllDatabases);
   end;
 end;
 
