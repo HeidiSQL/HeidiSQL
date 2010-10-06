@@ -1914,24 +1914,14 @@ object MainForm: TMainForm
       object menuUpdateCheck: TMenuItem
         Action = actUpdateCheck
       end
-      object menuWebsite: TMenuItem
-        Tag = 56
-        Action = actWebMainsite
-      end
       object menuDownload: TMenuItem
         Action = actWebDownloadpage
       end
       object menuSupportForum: TMenuItem
         Action = actWebForum
       end
-      object menuBugtracker: TMenuItem
-        Action = actWebIssuetracker
-      end
       object menuFeaturetracker: TMenuItem
         Action = actWebChangelog
-      end
-      object N9: TMenuItem
-        Caption = '-'
       end
       object menuReadme: TMenuItem
         Tag = 55
@@ -2335,13 +2325,6 @@ object MainForm: TMainForm
       ImageIndex = 94
       OnExecute = actUpdateCheckExecute
     end
-    object actWebMainsite: TAction
-      Category = 'Various'
-      Caption = 'HeidiSQL website'
-      Hint = 'http://www.heidisql.com/'
-      ImageIndex = 69
-      OnExecute = actWebbrowse
-    end
     object actWebDownloadpage: TAction
       Category = 'Various'
       Caption = 'Download page'
@@ -2354,13 +2337,6 @@ object MainForm: TMainForm
       Caption = 'Support forum'
       Hint = 'http://www.heidisql.com/forum.php'
       ImageIndex = 95
-      OnExecute = actWebbrowse
-    end
-    object actWebIssuetracker: TAction
-      Category = 'Various'
-      Caption = 'Issue tracker'
-      Hint = 'http://code.google.com/p/heidisql/issues/list'
-      ImageIndex = 96
       OnExecute = actWebbrowse
     end
     object actWebChangelog: TAction
