@@ -106,8 +106,6 @@ type
     CopyContentsasHTMLTable1: TMenuItem;
     actCopyAsHTML: TAction;
     actCopyAsCSV: TAction;
-    menuWebsite: TMenuItem;
-    N9: TMenuItem;
     N11: TMenuItem;
     actPrintList: TAction;
     actCopyTable: TAction;
@@ -146,7 +144,6 @@ type
     actLoadSQL: TAction;
     ImportSQL1: TMenuItem;
     menuConnections: TPopupMenu;
-    menuBugtracker: TMenuItem;
     menuFeaturetracker: TMenuItem;
     menuDownload: TMenuItem;
     btnSQLHelp: TToolButton;
@@ -186,10 +183,8 @@ type
     actFlushTableswithreadlock: TAction;
     actFlushStatus: TAction;
     actUpdateCheck: TAction;
-    actWebMainsite: TAction;
     actWebDownloadpage: TAction;
     actWebForum: TAction;
-    actWebIssuetracker: TAction;
     actWebChangelog: TAction;
     actReadme: TAction;
     actSaveSQL: TAction;
