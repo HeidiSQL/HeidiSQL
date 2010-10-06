@@ -303,6 +303,7 @@ type
     menuExporttables: TMenuItem;
     popupListHeader: TVTHeaderPopupMenu;
     SynCompletionProposal: TSynCompletionProposal;
+    ParameterCompletionProposal: TSynCompletionProposal;
     SaveDialogSQLFile: TSaveDialog;
     SynEditSearch1: TSynEditSearch;
     SynEditRegexSearch1: TSynEditRegexSearch;
@@ -572,6 +573,8 @@ type
     procedure SynCompletionProposalExecute(Kind: SynCompletionType;
       Sender: TObject; var CurrentInput: String; var x, y: Integer;
       var CanExecute: Boolean);
+    procedure ParameterCompletionProposalExecute(Kind: SynCompletionType; Sender: TObject;
+      var CurrentInput: string; var x, y: Integer; var CanExecute: Boolean);
     procedure PageControlMainChange(Sender: TObject);
     procedure PageControlMainChanging(Sender: TObject; var AllowChange: Boolean);
     procedure PageControlHostChange(Sender: TObject);
@@ -1363,6 +1366,7 @@ begin
   SetVistaFonts(Font);
   InheritFont(Font);
   InheritFont(SynCompletionProposal.Font);
+  InheritFont(ParameterCompletionProposal.Font);
   // Simulated link label, has non inherited blue font color
   InheritFont(lblExplainProcess.Font);
 
@@ -1389,6 +1393,7 @@ begin
 
   // Enable auto completion in data tab, filter editor
   SynCompletionProposal.AddEditor(SynMemoFilter);
+  ParameterCompletionProposal.AddEditor(SynMemoFilter);
 
   // Fix node height on Virtual Trees for current DPI settings
   FixVT(DBTree);
@@ -4427,39 +4432,10 @@ var
 
   procedure addTable(Obj: TDBObject);
   var
-    Params: TRoutineParamList;
-    Datatype: TDatatype;
-    Par: TRoutineParam;
-    DummyBool: Boolean;
-    ItemText, InsertText, Value, DummyString: String;
+    DisplayText: String;
   begin
-    ItemText := Obj.Name;
-    InsertText := Obj.Name;
-    if Obj.NodeType in [lntFunction, lntProcedure] then begin
-      Params := TRoutineParamList.Create(True);
-      ParseRoutineStructure(Obj.CreateCode, Params, DummyBool, DummyString, DummyString, DummyString, DummyString, DummyString);
-      if Params.Count > 0 then begin
-        ItemText := ItemText + '(';
-        InsertText := InsertText + '(';
-        for Par in Params do begin
-          Datatype := GetDatatypeByName(GetFirstWord(Par.Datatype));
-          ItemText := ItemText + '\color{' + ColorToString(DatatypeCategories[Integer(Datatype.Category)].Color) + '}' + Par.Name + ': ' + Par.Datatype + '\color{clWindowText}, ';
-          case Datatype.Category of
-            dtcInteger: Value := '0';
-            dtcReal: Value := '0.0';
-            dtcTemporal: Value := 'NOW()';
-            else Value := esc(Par.Name);
-          end;
-          InsertText := InsertText + Value + ', ';
-        end;
-        Delete(ItemText, Length(ItemText)-1, 2);
-        Delete(InsertText, Length(InsertText)-1, 2);
-        ItemText := ItemText + ')';
-        InsertText := InsertText + ')';
-      end;
-    end;
-    Proposal.InsertList.Add(InsertText);
-    Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [Obj.ImageIndex, LowerCase(Obj.ObjType), ItemText]));
+    DisplayText := Format(SYNCOMPLETION_PATTERN, [Obj.ImageIndex, LowerCase(Obj.ObjType), Obj.Name]);
+    Proposal.AddItem(DisplayText, Obj.Name);
   end;
 
   procedure addColumns( tablename: String );
@@ -4643,6 +4619,59 @@ begin
 
   end;
 
+end;
+
+
+procedure TMainForm.ParameterCompletionProposalExecute(Kind: SynCompletionType; Sender: TObject; var CurrentInput: string;
+  var x, y: Integer; var CanExecute: Boolean);
+var
+  LeftText, Identifier: String;
+  rx: TRegExpr;
+  i: Integer;
+  DummyBool: Boolean;
+  DbObjects: TDBObjectList;
+  DbObj: TDbObject;
+  Params: TRoutineParamList;
+  ItemText, DummyStr: String;
+  Prop: TSynCompletionProposal;
+begin
+  // Display hint on function and procedure parameters
+
+  // Activated in preferences?
+  if not prefCompletionProposal then begin
+    CanExecute := False;
+    Exit;
+  end;
+
+  Prop := TSynCompletionProposal(Sender);
+  Prop.ItemList.Clear;
+  LeftText := Copy(Prop.Form.CurrentEditor.LineText, 0, Prop.Form.CurrentEditor.CaretX-1);
+  rx := TRegExpr.Create;
+  rx.Expression := '\b([\w\d]+)[`]?\(([^\(]*)$';
+  if rx.Exec(LeftText) then begin
+    Identifier := rx.Match[1];
+    // Tell proposal which parameter should be highlighted/bold
+    Prop.Form.CurrentIndex := 0;
+    for i:=1 to rx.MatchLen[2] do begin
+      if rx.Match[2][i] = ',' then
+        Prop.Form.CurrentIndex := Prop.Form.CurrentIndex + 1;
+    end;
+    // Find right function or proc object and concatenate its parameter list
+    DbObjects := ActiveConnection.GetDBObjects(ActiveConnection.Database, False);
+    for DbObj in DbObjects do begin
+      if (CompareText(DbObj.Name, Identifier)=0) and (DbObj.NodeType in [lntFunction, lntProcedure]) then begin
+        Params := TRoutineParamList.Create(True);
+        ParseRoutineStructure(DbObj.CreateCode, Params, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
+        ItemText := '';
+        for i:=0 to Params.Count-1 do
+          ItemText := ItemText + '"' + Params[i].Name + ': ' + Params[i].Datatype + '", ';
+        Delete(ItemText, Length(ItemText)-2, 2);
+        Prop.ItemList.Add(ItemText);
+      end;
+    end;
+  end;
+  CanExecute := Prop.ItemList.Count > 0;
+  rx.Free;
 end;
 
 
@@ -8393,6 +8422,7 @@ begin
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
   QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
   SynCompletionProposal.AddEditor(QueryTab.Memo);
+  ParameterCompletionProposal.AddEditor(QueryTab.Memo);
 
   QueryTab.spltHelpers := TSplitter.Create(QueryTab.pnlMemo);
   QueryTab.spltHelpers.Parent := QueryTab.pnlMemo;
