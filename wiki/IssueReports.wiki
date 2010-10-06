@@ -1,0 +1,7 @@
+= How to report bugs and request new features =
+
+*Please do not file new issues before validating your complaint or feature request via a well-formed report posted into the [http://www.heidisql.com/forum.php HeidiSQL forum], including readable and comprehensible arguments for your request.*
+
+Unvalidated issues will be unceremoniously closed.
+
+You can find our issue tracker [http://code.google.com/p/heidisql/issues/list here], but remember, issues which have not been discussed on the forum will be discarded.
