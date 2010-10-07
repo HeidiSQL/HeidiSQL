@@ -358,18 +358,19 @@ end;
 
 procedure TCopyTableForm.btnOKClick(Sender: TObject);
 var
-  CreateCode, Clause, DataCols, TableExistance: String;
+  CreateCode, InsertCode, TargetTable, Clause, DataCols, TableExistance: String;
   ParentNode, Node: PVirtualNode;
   DoData: Boolean;
 begin
   // Compose and run CREATE query
+  TargetTable := Mainform.mask(comboDatabase.Text)+'.'+Mainform.mask(editNewTablename.Text);
   TableExistance := MainForm.ActiveConnection.GetVar('SHOW TABLES FROM '+MainForm.mask(comboDatabase.Text)+' LIKE '+esc(editNewTablename.Text));
   if TableExistance <> '' then begin
     if MessageDlg('Target table exists. Drop it and overwrite?', mtConfirmation, [mbYes, mbCancel], 0) = mrCancel then begin
       ModalResult := mrNone;
       Exit;
     end;
-    MainForm.ActiveConnection.Query('DROP TABLE '+MainForm.mask(comboDatabase.Text)+'.'+MainForm.mask(editNewTablename.Text));
+    MainForm.ActiveConnection.Query('DROP TABLE '+TargetTable);
   end;
 
   Screen.Cursor := crHourglass;
@@ -399,7 +400,7 @@ begin
     ParentNode := TreeElements.GetNextSibling(ParentNode);
   end;
   Delete(CreateCode, Length(CreateCode)-2, 3);
-  CreateCode := 'CREATE TABLE '+Mainform.mask(comboDatabase.Text)+'.'+Mainform.mask(editNewTablename.Text)+' ('+CRLF+CreateCode+CRLF+')'+CRLF;
+  CreateCode := 'CREATE TABLE '+TargetTable+' ('+CRLF+CreateCode+CRLF+')'+CRLF;
 
   // Add collation and engine clauses
   if FDBObj.Collation <> '' then
@@ -416,19 +417,22 @@ begin
     CreateCode := CreateCode + ' AUTO_INCREMENT=' + IntToStr(FDBObj.AutoInc);
   CreateCode := CreateCode + ' COMMENT=' + esc(FDBObj.Comment);
 
-  // Append SELECT .. FROM OrgTable clause
+  // Add INSERT .. SELECT .. FROM OrgTable clause
+  InsertCode := '';
   if DoData and (DataCols <> '') then begin
     DataCols := Trim(DataCols);
     Delete(DataCols, Length(DataCols), 1);
-    CreateCode := CreateCode + ' SELECT ' + DataCols + ' FROM ' + MainForm.mask(FDBObj.Name);
+    InsertCode := 'INSERT INTO '+TargetTable+' ('+DataCols+') SELECT ' + DataCols + ' FROM ' + MainForm.mask(FDBObj.Name);
     if MemoFilter.GetTextLen > 0 then
-      CreateCode := CreateCode + ' WHERE ' + MemoFilter.Text;
+      InsertCode := InsertCode + ' WHERE ' + MemoFilter.Text;
   end;
 
   // Run query and refresh list
   try
     MainForm.ShowStatusMsg('Creating table ...');
     MainForm.ActiveConnection.Query(CreateCode);
+    if InsertCode <> '' then
+      MainForm.ActiveConnection.Query(InsertCode);
     MainForm.actRefresh.Execute;
   except
     on E:EDatabaseError do begin
