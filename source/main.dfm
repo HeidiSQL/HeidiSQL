@@ -1369,16 +1369,6 @@ object MainForm: TMainForm
               WantTabs = True
               WordWrap = True
               OnStatusChange = SynMemoFilterStatusChange
-              RemovedKeystrokes = <
-                item
-                  Command = ecDeleteLine
-                  ShortCut = 16473
-                end>
-              AddedKeystrokes = <
-                item
-                  Command = ecRedo
-                  ShortCut = 16473
-                end>
             end
             object editFilterSearch: TEdit
               Left = 412
@@ -1535,38 +1525,14 @@ object MainForm: TMainForm
               OnReplaceText = SynMemoQueryReplaceText
               OnStatusChange = SynMemoQueryStatusChange
               OnPaintTransient = SynMemoQueryPaintTransient
-              RemovedKeystrokes = <
-                item
-                  Command = ecDeleteWord
-                  ShortCut = 16468
-                end
-                item
-                  Command = ecDeleteLine
-                  ShortCut = 16473
-                end
-                item
-                  Command = ecDeleteEOL
-                  ShortCut = 24665
-                end>
+              RemovedKeystrokes = <>
               AddedKeystrokes = <
                 item
-                  Command = ecDeleteWord
-                  ShortCut = 16430
-                end
-                item
-                  Command = ecDeleteEOL
-                  ShortCut = 24622
-                end
-                item
-                  Command = ecRedo
-                  ShortCut = 16473
-                end
-                item
-                  Command = ecUpperCase
+                  Command = ecUpperCaseBlock
                   ShortCut = 16469
                 end
                 item
-                  Command = ecLowerCase
+                  Command = ecLowerCaseBlock
                   ShortCut = 16460
                 end>
             end
