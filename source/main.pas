@@ -869,7 +869,7 @@ type
     procedure UpdateLineCharPanel;
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
     procedure SetSnippetFilenames(Value: TStringList);
-    function TreeClickHistoryPrevious: PVirtualNode;
+    function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
   public
     AllDatabasesDetails: TMySQLQuery;
     btnAddTab: TSpeedButton;
@@ -1809,10 +1809,10 @@ begin
     Connection := ActiveConnection;
     // Find and remove connection node from tree
     Node := GetRootNode(DBtree, Connection);
-    // TODO: focus last session?
-    SelectNode(DBtree, DBtree.GetFirst);
     DBTree.DeleteNode(Node, True);
     FConnections.Remove(Connection);
+    // TODO: focus last session?
+    SelectNode(DBtree, DBtree.GetFirst);
   end;
 end;
 
@@ -6640,15 +6640,15 @@ begin
 
   end;
 
-  if TreeClickHistoryPrevious <> nil then
-    PrevDBObj := Sender.GetNodeData(TreeClickHistoryPrevious)
+  if TreeClickHistoryPrevious(True) <> nil then
+    PrevDBObj := Sender.GetNodeData(TreeClickHistoryPrevious(True))
   else
     PrevDBObj := Pointer(TDBObject.Create(nil));
 
   // When clicked node is from a different connection than before, do session specific stuff here:
   if PrevDBObj.Connection <> DBObj.Connection then begin
+    LogSQL('Connection switch!', lcDebug);
     DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, DBObj.Connection.SessionName);
-    FreeAndNil(AllDatabasesDetails);
     FreeAndNil(SQLHelpForm);
     InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
     InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
@@ -6706,14 +6706,14 @@ begin
 end;
 
 
-function TMainForm.TreeClickHistoryPrevious: PVirtualNode;
+function TMainForm.TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
 var
   i: Integer;
 begin
   // Navigate to previous or next existant clicked node
   Result := nil;
   for i:=High(FTreeClickHistory) downto Low(FTreeClickHistory) do begin
-    if FTreeClickHistory[i] <> nil then begin
+    if MayBeNil or (FTreeClickHistory[i] <> nil) then begin
       Result := FTreeClickHistory[i];
       break;
     end;
@@ -7643,7 +7643,6 @@ begin
   if vt.Tag = VTREE_LOADED then
     Exit;
   Screen.Cursor := crHourglass;
-  FreeAndNil(AllDatabasesDetails);
   vt.Clear;
   try
     if ActiveConnection.InformationSchemaObjects.IndexOf('SCHEMATA') > -1 then
