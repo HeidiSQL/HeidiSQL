@@ -7552,8 +7552,10 @@ begin
   // Set filter, without changing cursor position
   if MainReg.ValueExists(REGNAME_FILTER) then begin
     Filter := MainReg.ReadString(REGNAME_FILTER);
-    if SynMemoFilter.Text <> Filter then
+    if SynMemoFilter.Text <> Filter then begin
       SynMemoFilter.Text := Filter;
+      SynMemoFilter.Modified := True;
+    end;
     if SynMemoFilter.GetTextLen > 0 then
       ToggleFilterPanel(True);
   end;
