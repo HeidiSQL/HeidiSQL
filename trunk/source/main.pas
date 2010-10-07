@@ -4656,7 +4656,8 @@ begin
       if rx.Match[2][i] = ',' then
         Prop.Form.CurrentIndex := Prop.Form.CurrentIndex + 1;
     end;
-    // Find right function or proc object and concatenate its parameter list
+
+    // Find matching function or procedure object(s)
     DbObjects := ActiveConnection.GetDBObjects(ActiveConnection.Database, False);
     for DbObj in DbObjects do begin
       if (CompareText(DbObj.Name, Identifier)=0) and (DbObj.NodeType in [lntFunction, lntProcedure]) then begin
@@ -4669,7 +4670,19 @@ begin
         Prop.ItemList.Add(ItemText);
       end;
     end;
+
+    // Find matching server function(s)
+    for i:=Low(MySqlFunctions) to High(MySqlFunctions) do begin
+      if CompareText(MySqlFunctions[i].Name, Identifier)=0 then begin
+        ItemText := '"' + Copy(MySqlFunctions[i].Declaration, 2, Length(MySqlFunctions[i].Declaration)-2) + '"';
+        ItemText := StringReplace(ItemText, ',', '","', [rfReplaceAll]);
+        Prop.ItemList.Add(ItemText);
+      end;
+    end;
+
+
   end;
+
   CanExecute := Prop.ItemList.Count > 0;
   rx.Free;
 end;
