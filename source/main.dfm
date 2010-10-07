@@ -8401,6 +8401,11 @@ object MainForm: TMainForm
     object Copy1: TMenuItem
       Action = actCopy
     end
+    object Copylinetonewquerytab1: TMenuItem
+      Caption = 'Copy line to new query tab'
+      ImageIndex = 132
+      OnClick = Copylinetonewquerytab1Click
+    end
     object Clear2: TMenuItem
       Caption = 'Clear'
       ImageIndex = 58

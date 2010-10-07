@@ -509,6 +509,7 @@ type
     Runcurrentquery1: TMenuItem;
     ApplicationEvents1: TApplicationEvents;
     actDisconnect: TAction;
+    Copylinetonewquerytab1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -822,6 +823,7 @@ type
     procedure ApplicationEvents1Deactivate(Sender: TObject);
     procedure actDisconnectExecute(Sender: TObject);
     procedure menuEditObjectClick(Sender: TObject);
+    procedure Copylinetonewquerytab1Click(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -4772,6 +4774,18 @@ begin
   SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + SynMemoSQLLog.Lines.Count;
   SynMemoSQLLog.Lines.Clear;
   Screen.Cursor := crDefault;
+end;
+
+
+procedure TMainForm.Copylinetonewquerytab1Click(Sender: TObject);
+var
+  Tab: TQueryTab;
+begin
+  // Create new query tab with current line in SQL log. This is for lazy mouse users.
+  if actNewQueryTab.Execute then begin
+    Tab := QueryTabs[MainForm.QueryTabs.Count-1];
+    Tab.Memo.Text := SynMemoSQLLog.LineText;
+  end;
 end;
 
 
@@ -9137,6 +9151,8 @@ begin
       Editor.WordWrap := actQueryWordWrap.Checked;
     Editor.ActiveLineColor := ActiveLineColor;
     Editor.Options := BaseEditor.Options;
+    if Editor = SynMemoSQLLog then
+      Editor.Options := Editor.Options + [eoRightMouseMovesCursor];
     Editor.TabWidth := TabWidth;
     Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
     Editor.WantTabs := BaseEditor.WantTabs;
