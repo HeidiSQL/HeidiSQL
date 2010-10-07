@@ -6235,9 +6235,10 @@ begin
   // Add minimal margin to cell edges
   InflateRect(CellRect, -1, -1);
   CellWidth := CellRect.Right - CellRect.Left;
-  BarWidth := Round(CellWidth / Max * Value);
 
-  if BarWidth > 0 then begin
+  // Avoid division by zero, when max is 0 - very rare case but reported in issue #2196.
+  if (Value > 0) and (Max > 0) then begin
+    BarWidth := Round(CellWidth / Max * Value);
     TargetCanvas.Brush.Color := prefBarColor;
     TargetCanvas.Pen.Color := ColorAdjustBrightness(TargetCanvas.Brush.Color, -40);
     TargetCanvas.RoundRect(CellRect.Left, CellRect.Top, CellRect.Left+BarWidth, CellRect.Bottom, 2, 2);
