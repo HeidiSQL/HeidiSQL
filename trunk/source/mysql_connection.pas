@@ -66,7 +66,7 @@ type
       Unsigned, AllowNull, ZeroFill, LengthCustomized: Boolean;
       DefaultType: TColumnDefaultType;
       DefaultText: String;
-      Comment, Collation: String;
+      Comment, Charset, Collation: String;
       FStatus: TEditingStatus;
       constructor Create;
       destructor Destroy; override;
@@ -273,6 +273,10 @@ type
       function GetLastResults: TMySQLQueryList;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
+      procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
+      procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, CheckOption, SelectCode: String);
+      procedure ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
+        var Deterministic: Boolean; var Returns, DataAccess, Security, Comment, Body: String);
       property SessionName: String read FSessionName write FSessionName;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property ThreadId: Cardinal read GetThreadId;
@@ -1579,6 +1583,402 @@ begin
 end;
 
 
+procedure TMySQLConnection.ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
+var
+  ColSpec: String;
+  rx, rxCol: TRegExpr;
+  i: Integer;
+  InLiteral: Boolean;
+  Col: TTableColumn;
+  Key: TTableKey;
+  ForeignKey: TForeignKey;
+  Collations: TMySQLQuery;
+begin
+  if Assigned(Columns) then Columns.Clear;
+  if Assigned(Keys) then Keys.Clear;
+  if Assigned(ForeignKeys) then ForeignKeys.Clear;
+  if CreateTable = '' then
+    Exit;
+  rx := TRegExpr.Create;
+  rx.ModifierS := False;
+  rx.ModifierM := True;
+  rx.Expression := '^\s+[`"]([^`"]+)[`"]\s(\w+)';
+  rxCol := TRegExpr.Create;
+  rxCol.ModifierI := True;
+  if rx.Exec(CreateTable) then while true do begin
+    if not Assigned(Columns) then
+      break;
+    ColSpec := '';
+    for i:=rx.MatchPos[2]+rx.MatchLen[2] to Length(CreateTable) do begin
+      if CharInSet(CreateTable[i], [#13, #10]) then
+        break;
+      ColSpec := ColSpec + CreateTable[i];
+    end;
+
+    // Strip trailing comma
+    if (ColSpec <> '') and (ColSpec[Length(ColSpec)] = ',') then
+      Delete(ColSpec, Length(ColSpec), 1);
+
+    Col := TTableColumn.Create;
+    Columns.Add(Col);
+    Col.Name := rx.Match[1];
+    Col.OldName := Col.Name;
+    Col.Status := esUntouched;
+    Col.LengthCustomized := True;
+
+    // Datatype
+    Col.DataType := GetDatatypeByName(UpperCase(rx.Match[2]));
+
+    // Length / Set
+    // Various datatypes, e.g. BLOBs, don't have any length property
+    InLiteral := False;
+    if (ColSpec <> '') and (ColSpec[1] = '(') then begin
+      for i:=2 to Length(ColSpec) do begin
+        if (ColSpec[i] = ')') and (not InLiteral) then
+          break;
+        if ColSpec[i] = '''' then
+          InLiteral := not InLiteral;
+      end;
+      Col.LengthSet := Copy(ColSpec, 2, i-2);
+      Delete(ColSpec, 1, i);
+    end;
+    ColSpec := Trim(ColSpec);
+
+    // Unsigned
+    if UpperCase(Copy(ColSpec, 1, 8)) = 'UNSIGNED' then begin
+      Col.Unsigned := True;
+      Delete(ColSpec, 1, 9);
+    end else
+      Col.Unsigned := False;
+
+    // Zero fill
+    if UpperCase(Copy(ColSpec, 1, 8)) = 'ZEROFILL' then begin
+      Col.ZeroFill := True;
+      Delete(ColSpec, 1, 9);
+    end else
+      Col.ZeroFill := False;
+
+    // Charset
+    rxCol.Expression := '^CHARACTER SET (\w+)\b\s*';
+    if rxCol.Exec(ColSpec) then begin
+      Col.Charset := rxCol.Match[1];
+      Delete(ColSpec, 1, rxCol.MatchLen[0]);
+    end;
+
+    // Collation - probably not present when charset present
+    rxCol.Expression := '^COLLATE (\w+)\b\s*';
+    if rxCol.Exec(ColSpec) then begin
+      Col.Collation := rxCol.Match[1];
+      Delete(ColSpec, 1, rxCol.MatchLen[0]);
+    end;
+    if Col.Collation = '' then begin
+      Collations := CollationTable;
+      if Assigned(Collations) then while not Collations.Eof do begin
+        if (Collations.Col('Charset') = Col.Charset) and (Collations.Col('Default') = 'Yes') then begin
+          Col.Collation := Collations.Col('Collation');
+          break;
+        end;
+        Collations.Next;
+      end;
+    end;
+
+    // Allow NULL
+    if UpperCase(Copy(ColSpec, 1, 8)) = 'NOT NULL' then begin
+      Col.AllowNull := False;
+      Delete(ColSpec, 1, 9);
+    end else begin
+      Col.AllowNull := True;
+      // Sporadically there is a "NULL" found at this position.
+      if UpperCase(Copy(ColSpec, 1, 4)) = 'NULL' then
+        Delete(ColSpec, 1, 5);
+    end;
+
+    // Default value
+    Col.DefaultType := cdtNothing;
+    Col.DefaultText := '';
+    if UpperCase(Copy(ColSpec, 1, 14)) = 'AUTO_INCREMENT' then begin
+      Col.DefaultType := cdtAutoInc;
+      Col.DefaultText := 'AUTO_INCREMENT';
+      Delete(ColSpec, 1, 15);
+    end else if UpperCase(Copy(ColSpec, 1, 8)) = 'DEFAULT ' then begin
+      Delete(ColSpec, 1, 8);
+      if UpperCase(Copy(ColSpec, 1, 4)) = 'NULL' then begin
+        Col.DefaultType := cdtNull;
+        Col.DefaultText := 'NULL';
+        Delete(ColSpec, 1, 5);
+      end else if UpperCase(Copy(ColSpec, 1, 17)) = 'CURRENT_TIMESTAMP' then begin
+        Col.DefaultType := cdtCurTS;
+        Col.DefaultText := 'CURRENT_TIMESTAMP';
+        Delete(ColSpec, 1, 18);
+      end else if ColSpec[1] = '''' then begin
+        InLiteral := True;
+        for i:=2 to Length(ColSpec) do begin
+          if ColSpec[i] = '''' then
+            InLiteral := not InLiteral
+          else if not InLiteral then
+            break;
+        end;
+        Col.DefaultType := cdtText;
+        Col.DefaultText := Copy(ColSpec, 2, i-3);
+        // A single quote gets escaped by single quote - remove the escape char - escaping is done in Save action afterwards
+        Col.DefaultText := StringReplace(Col.DefaultText, '''''', '''', [rfReplaceAll]);
+        Delete(ColSpec, 1, i);
+      end;
+    end;
+    if UpperCase(Copy(ColSpec, 1, 27)) = 'ON UPDATE CURRENT_TIMESTAMP' then begin
+      // Adjust default type
+      case Col.DefaultType of
+        cdtText: Col.DefaultType := cdtTextUpdateTS;
+        cdtNull: Col.DefaultType := cdtNullUpdateTS;
+        cdtCurTS: Col.DefaultType := cdtCurTSUpdateTS;
+      end;
+      Delete(ColSpec, 1, 28);
+    end;
+
+    // Comment
+    if UpperCase(Copy(ColSpec, 1, 9)) = 'COMMENT ''' then begin
+      InLiteral := True;
+      for i:=10 to Length(ColSpec) do begin
+        if ColSpec[i] = '''' then
+          InLiteral := not InLiteral
+        else if not InLiteral then
+          break;
+      end;
+      Col.Comment := Copy(ColSpec, 10, i-11);
+      Col.Comment := StringReplace(Col.Comment, '''''', '''', [rfReplaceAll]);
+      Delete(ColSpec, 1, i);
+    end;
+
+    if not rx.ExecNext then
+      break;
+  end;
+
+  // Detect keys
+  // PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), KEY `id_2` (`id`) USING BTREE,
+  // KEY `Text` (`Text`(100)), FULLTEXT KEY `Email` (`Email`,`Text`)
+  rx.Expression := '^\s+((\w+)\s+)?KEY\s+([`"]?([^`"]+)[`"]?\s+)?\((.+)\)(\s+USING\s+(\w+))?,?$';
+  if rx.Exec(CreateTable) then while true do begin
+    if not Assigned(Keys) then
+      break;
+    Key := TTableKey.Create;
+    Keys.Add(Key);
+    Key.Name := rx.Match[4];
+    if Key.Name = '' then Key.Name := rx.Match[2]; // PRIMARY
+    Key.OldName := Key.Name;
+    Key.IndexType := rx.Match[2];
+    Key.OldIndexType := Key.IndexType;
+    Key.Algorithm := rx.Match[7];
+    if Key.IndexType = '' then Key.IndexType := 'KEY'; // KEY
+    Key.Columns := Explode(',', rx.Match[5]);
+    for i:=0 to Key.Columns.Count-1 do begin
+      rxCol.Expression := '^[`"]?([^`"]+)[`"]?(\((\d+)\))?$';
+      if rxCol.Exec(Key.Columns[i]) then begin
+        Key.Columns[i] := rxCol.Match[1];
+        Key.SubParts.Add(rxCol.Match[3]);
+      end;
+    end;
+    if not rx.ExecNext then
+      break;
+  end;
+
+  // Detect foreign keys
+  // CONSTRAINT `FK1` FOREIGN KEY (`which`) REFERENCES `fk1` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+  rx.Expression := '\s+CONSTRAINT\s+[`"]([^`"]+)[`"]\sFOREIGN KEY\s+\(([^\)]+)\)\s+REFERENCES\s+[`"]([^\(]+)[`"]\s\(([^\)]+)\)(\s+ON DELETE (RESTRICT|CASCADE|SET NULL|NO ACTION))?(\s+ON UPDATE (RESTRICT|CASCADE|SET NULL|NO ACTION))?';
+  if rx.Exec(CreateTable) then while true do begin
+    if not Assigned(ForeignKeys) then
+      break;
+    ForeignKey := TForeignKey.Create;
+    ForeignKeys.Add(ForeignKey);
+    ForeignKey.KeyName := rx.Match[1];
+    ForeignKey.OldKeyName := ForeignKey.KeyName;
+    ForeignKey.KeyNameWasCustomized := True;
+    ForeignKey.ReferenceTable := StringReplace(rx.Match[3], '`', '', [rfReplaceAll]);
+    ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, '"', '', [rfReplaceAll]);
+    ExplodeQuotedList(rx.Match[2], ForeignKey.Columns);
+    ExplodeQuotedList(rx.Match[4], ForeignKey.ForeignColumns);
+    if rx.Match[6] <> '' then
+      ForeignKey.OnDelete := rx.Match[6];
+    if rx.Match[8] <> '' then
+      ForeignKey.OnUpdate := rx.Match[8];
+    if not rx.ExecNext then
+      break;
+  end;
+
+  FreeAndNil(rxCol);
+  FreeAndNil(rx);
+end;
+
+
+procedure TMySQLConnection.ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, CheckOption, SelectCode: String);
+var
+  rx: TRegExpr;
+  Col: TTableColumn;
+  Results: TMySQLQuery;
+  DbName, DbAndViewName: String;
+begin
+  if CreateCode <> '' then begin
+    // CREATE
+    //   [OR REPLACE]
+    //   [ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
+    //   [DEFINER = { user | CURRENT_USER }]
+    //   [SQL SECURITY { DEFINER | INVOKER }]
+    //   VIEW view_name [(column_list)]
+    //   AS select_statement
+    //   [WITH [CASCADED | LOCAL] CHECK OPTION]
+    rx := TRegExpr.Create;
+    rx.ModifierG := False;
+    rx.ModifierI := True;
+    rx.Expression := '^CREATE\s+(OR\s+REPLACE\s+)?'+
+      '(ALGORITHM\s*=\s*(\w+)\s+)?'+
+      '(DEFINER\s*=\s*\S+\s+)?'+
+      '(SQL\s+SECURITY\s+\w+\s+)?'+
+      'VIEW\s+(`?(\w[\w\s]*)`?\.)?(`?(\w[\w\s]*)`?)?\s+'+
+      '(\([^\)]\)\s+)?'+
+      'AS\s+(.+)(\s+WITH\s+(\w+\s+)?CHECK\s+OPTION\s*)?$';
+    if rx.Exec(CreateCode) then begin
+      Algorithm := rx.Match[3];
+      // When exporting a view we need the db name for the below SHOW COLUMNS query,
+      // if the connection is on a different db currently
+      DbName := rx.Match[7];
+      ViewName := rx.Match[9];
+      CheckOption := Trim(rx.Match[13]);
+      SelectCode := rx.Match[11];
+    end else
+      raise Exception.Create('Regular expression did not match the VIEW code in ParseViewStructure(): '+CRLF+CRLF+CreateCode);
+    rx.Free;
+  end;
+
+  // Views reveal their columns only with a SHOW COLUMNS query.
+  // No keys available in views - SHOW KEYS always returns an empty result
+  if Assigned(Columns) then begin
+    Columns.Clear;
+    rx := TRegExpr.Create;
+    rx.Expression := '^(\w+)(\((.+)\))?';
+    if DbName <> '' then
+      DbAndViewName := EscapeString(DbName)+'.';
+    DbAndViewName := DbAndViewName + EscapeString(ViewName);
+    Results := GetResults('SHOW /*!32332 FULL */ COLUMNS FROM '+DbAndViewName);
+    while not Results.Eof do begin
+      Col := TTableColumn.Create;
+      Columns.Add(Col);
+      Col.Name := Results.Col('Field');
+      Col.AllowNull := Results.Col('Null') = 'YES';
+      if rx.Exec(Results.Col('Type')) then begin
+        Col.DataType := GetDatatypeByName(rx.Match[1]);
+        Col.LengthSet := rx.Match[3];
+      end;
+      Col.Unsigned := (Col.DataType.Category = dtcInteger) and (Pos('unsigned', Results.Col('Type')) > 0);
+      Col.AllowNull := UpperCase(Results.Col('Null')) = 'YES';
+      Col.Collation := Results.Col('Collation', True);
+      Col.Comment := Results.Col('Comment', True);
+      if Col.DataType.Category <> dtcTemporal then
+        Col.DefaultText := Results.Col('Default');
+      if Results.IsNull('Default') and Col.AllowNull then
+        Col.DefaultType := cdtNull
+      else if Col.DataType.Index = dtTimestamp then
+        Col.DefaultType := cdtCurTSUpdateTS
+      else if (Col.DefaultText = '') and Col.AllowNull then
+        Col.DefaultType := cdtNothing
+      else
+        Col.DefaultType := cdtText;
+      Results.Next;
+    end;
+    rx.Free;
+  end;
+end;
+
+
+procedure TMySQLConnection.ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
+  var Deterministic: Boolean; var Returns, DataAccess, Security, Comment, Body: String);
+var
+  Params: String;
+  ParenthesesCount: Integer;
+  rx: TRegExpr;
+  i: Integer;
+  Param: TRoutineParam;
+begin
+  // Parse CREATE code of stored function or procedure to detect parameters
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  rx.ModifierG := True;
+  // CREATE DEFINER=`root`@`localhost` PROCEDURE `bla2`(IN p1 INT, p2 VARCHAR(20))
+  // CREATE DEFINER=`root`@`localhost` FUNCTION `test3`(`?b` varchar(20)) RETURNS tinyint(4)
+  // CREATE DEFINER=`root`@`localhost` PROCEDURE `test3`(IN `Param1` int(1) unsigned)
+  ParenthesesCount := 0;
+  Params := '';
+  for i:=1 to Length(CreateCode) do begin
+    if CreateCode[i] = ')' then begin
+      Dec(ParenthesesCount);
+      if ParenthesesCount = 0 then
+        break;
+    end;
+    if ParenthesesCount >= 1 then
+      Params := Params + CreateCode[i];
+    if CreateCode[i] = '(' then
+      Inc(ParenthesesCount);
+  end;
+  rx.Expression := '(^|,)\s*((IN|OUT|INOUT)\s+)?(\S+)\s+([^\s,\(]+(\([^\)]*\))?[^,]*)';
+  if rx.Exec(Params) then while true do begin
+    Param := TRoutineParam.Create;
+    Param.Context := UpperCase(rx.Match[3]);
+    if Param.Context = '' then
+      Param.Context := 'IN';
+    Param.Name := DeQuoteIdent(rx.Match[4]);
+    Param.Datatype := rx.Match[5];
+    Parameters.Add(Param);
+    if not rx.ExecNext then
+      break;
+  end;
+
+  // Cut left part including parameters, so it's easier to parse the rest
+  CreateCode := Copy(CreateCode, i+1, MaxInt);
+  // CREATE PROCEDURE sp_name ([proc_parameter[,...]]) [characteristic ...] routine_body
+  // CREATE FUNCTION sp_name ([func_parameter[,...]]) RETURNS type [characteristic ...] routine_body
+  // LANGUAGE SQL
+  //  | [NOT] DETERMINISTIC                                              // IS_DETERMINISTIC
+  //  | { CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }   // DATA_ACCESS
+  //  | SQL SECURITY { DEFINER | INVOKER }                               // SECURITY_TYPE
+  //  | COMMENT 'string'                                                 // COMMENT
+
+  rx.Expression := '\bLANGUAGE SQL\b';
+  if rx.Exec(CreateCode) then
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
+  rx.Expression := '\bRETURNS\s+(\w+(\([^\)]*\))?(\s+UNSIGNED)?)';
+  if rx.Exec(CreateCode) then begin
+    Returns := rx.Match[1];
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
+  end;
+  rx.Expression := '\b(NOT\s+)?DETERMINISTIC\b';
+  if rx.Exec(CreateCode) then begin
+    Deterministic := rx.MatchLen[1] = -1;
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
+  end;
+  rx.Expression := '\b(CONTAINS SQL|NO SQL|READS SQL DATA|MODIFIES SQL DATA)\b';
+  if rx.Exec(CreateCode) then begin
+    DataAccess := rx.Match[1];
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
+  end;
+  rx.Expression := '\bSQL\s+SECURITY\s+(DEFINER|INVOKER)\b';
+  if rx.Exec(CreateCode) then begin
+    Security := rx.Match[1];
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
+  end;
+  rx.ModifierG := False;
+  rx.Expression := '\bCOMMENT\s+''((.+)[^''])''[^'']';
+  if rx.Exec(CreateCode) then begin
+    Comment := StringReplace(rx.Match[1], '''''', '''', [rfReplaceAll]);
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]-1);
+  end;
+  rx.Expression := '^\s*CHARSET\s+[\w\d]+\s';
+  if rx.Exec(CreateCode) then
+    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]-1);
+  // Tata, remaining code is the routine body
+  Body := TrimLeft(CreateCode);
+
+  rx.Free;
+end;
+
+
 
 { TMySQLQuery }
 
@@ -1957,9 +2357,9 @@ begin
   FForeignKeys := TForeignKeyList.Create;
   // This is probably a VIEW, so column names need to be fetched differently
   if UpperCase(Res.ColumnNames[0]) = 'TABLE' then
-    ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys)
+    Connection.ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys)
   else
-    ParseViewStructure(CreateCode, TableName, FColumns, Algorithm, CheckOption, SelectCode);
+    Connection.ParseViewStructure(CreateCode, TableName, FColumns, Algorithm, CheckOption, SelectCode);
   FreeAndNil(Res);
   FreeAndNil(FUpdateData);
   FUpdateData := TUpdateData.Create(True);
