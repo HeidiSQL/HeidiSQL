@@ -2968,7 +2968,7 @@ begin
       lntFunction: Query := 'SELECT ';
     end;
     Parameters := TRoutineParamList.Create;
-    ParseRoutineStructure(Obj.CreateCode, Parameters, Deterministic, Returns, DataAccess, Security, Comment, Body);
+    Obj.Connection.ParseRoutineStructure(Obj.CreateCode, Parameters, Deterministic, Returns, DataAccess, Security, Comment, Body);
     Query := Query + mask(Obj.Name);
     ParamInput := '';
     for i:=0 to Parameters.Count-1 do begin
@@ -4664,7 +4664,7 @@ begin
     for DbObj in DbObjects do begin
       if (CompareText(DbObj.Name, Identifier)=0) and (DbObj.NodeType in [lntFunction, lntProcedure]) then begin
         Params := TRoutineParamList.Create(True);
-        ParseRoutineStructure(DbObj.CreateCode, Params, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
+        DbObj.Connection.ParseRoutineStructure(DbObj.CreateCode, Params, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
         ItemText := '';
         for i:=0 to Params.Count-1 do
           ItemText := ItemText + '"' + Params[i].Name + ': ' + Params[i].Datatype + '", ';
@@ -6542,7 +6542,7 @@ begin
     lntTable, lntView:
       if Assigned(SelectDBObjectForm) and (Sender=SelectDBObjectForm.TreeDBO) then begin
         Columns := TTableColumnList.Create(True);
-        ParseTableStructure(DBObj.CreateCode, Columns, nil, nil);
+        DBObj.Connection.ParseTableStructure(DBObj.CreateCode, Columns, nil, nil);
         ChildCount := Columns.Count;
       end;
   end;
@@ -6585,7 +6585,7 @@ begin
       Item.NodeType := lntColumn;
       ParentItem := Sender.GetNodeData(Node.Parent);
       Columns := TTableColumnList.Create(True);
-      ParseTableStructure(ParentItem.CreateCode, Columns, nil, nil);
+      ParentItem.Connection.ParseTableStructure(ParentItem.CreateCode, Columns, nil, nil);
       Item.Name := Columns[Node.Index].Name;
     end;
   end;
@@ -6760,9 +6760,9 @@ begin
   try
     case ActiveDbObj.NodeType of
       lntTable:
-        ParseTableStructure(ActiveDbObj.CreateCode, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
+        ActiveConnection.ParseTableStructure(ActiveDbObj.CreateCode, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
       lntView:
-        ParseViewStructure(ActiveDbObj.CreateCode, ActiveDbObj.Name, SelectedTableColumns, Algorithm, CheckOption, SelectCode);
+        ActiveConnection.ParseViewStructure(ActiveDbObj.CreateCode, ActiveDbObj.Name, SelectedTableColumns, Algorithm, CheckOption, SelectCode);
     end;
   except on E:EDatabaseError do
     MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -7314,7 +7314,7 @@ begin
       Columns := TTableColumnList.Create;
       Keys := nil;
       ForeignKeys := nil;
-      ParseTableStructure(CreateTable, Columns, Keys, ForeignKeys);
+      ActiveConnection.ParseTableStructure(CreateTable, Columns, Keys, ForeignKeys);
       TextCol := '';
       for TblColumn in Columns do begin
         if (TblColumn.DataType.Category = dtcText) and (TblColumn.Name <> ForeignKey.ForeignColumns[idx]) then begin

@@ -326,7 +326,7 @@ begin
       memoComment.Lines.Text := MainForm.ActiveConnection.UnescapeString(rx.Match[1])
     else
       memoComment.Lines.Clear;
-    ParseTableStructure(DBObject.CreateCode, FColumns, FKeys, FForeignKeys);
+    DBObject.Connection.ParseTableStructure(DBObject.CreateCode, FColumns, FKeys, FForeignKeys);
   end;
   listColumns.RootNodeCount := FColumns.Count;
   DeInitializeVTNodes(listColumns);
@@ -2147,7 +2147,7 @@ var
   Col: TTableColumn;
 begin
   Columns := TTableColumnList.Create(False);
-  ParseTableStructure(Clipboard.AsText, Columns, nil, nil);
+  DBObject.Connection.ParseTableStructure(Clipboard.AsText, Columns, nil, nil);
   Node := listColumns.FocusedNode;
   if not Assigned(Node) then
     Node := listColumns.GetLast;

@@ -147,7 +147,7 @@ begin
   if DBObject.Name <> '' then begin
     // Editing existing routine
     comboType.ItemIndex := ListIndexByRegExpr(comboType.Items, '^'+FAlterRoutineType+'\b');
-    ParseRoutineStructure(DBObject.CreateCode, Parameters, Deterministic, Returns, DataAccess, Security, Comment, Body);
+    DBObject.Connection.ParseRoutineStructure(DBObject.CreateCode, Parameters, Deterministic, Returns, DataAccess, Security, Comment, Body);
     comboReturns.Text := Returns;
     chkDeterministic.Checked := Deterministic;
     if DataAccess <> '' then

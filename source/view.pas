@@ -66,7 +66,7 @@ begin
   if Obj.Name <> '' then begin
     // Edit mode
     editName.Text := Obj.Name;
-    ParseViewStructure(Obj.CreateCode, Obj.Name, nil, Algorithm, CheckOption, SelectCode);
+    Obj.Connection.ParseViewStructure(Obj.CreateCode, Obj.Name, nil, Algorithm, CheckOption, SelectCode);
     rgAlgorithm.ItemIndex := rgAlgorithm.Items.IndexOf(Algorithm);
     rgCheck.ItemIndex := rgCheck.Items.IndexOf(CheckOption);
     if rgCheck.ItemIndex = -1 then
