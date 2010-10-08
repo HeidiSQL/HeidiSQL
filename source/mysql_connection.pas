@@ -1855,8 +1855,8 @@ begin
     rx := TRegExpr.Create;
     rx.Expression := '^(\w+)(\((.+)\))?';
     if DbName <> '' then
-      DbAndViewName := EscapeString(DbName)+'.';
-    DbAndViewName := DbAndViewName + EscapeString(ViewName);
+      DbAndViewName := QuoteIdent(DbName)+'.';
+    DbAndViewName := DbAndViewName + QuoteIdent(ViewName);
     Results := GetResults('SHOW /*!32332 FULL */ COLUMNS FROM '+DbAndViewName);
     while not Results.Eof do begin
       Col := TTableColumn.Create;
