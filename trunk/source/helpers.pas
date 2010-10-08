@@ -2405,6 +2405,7 @@ var
   rx: TRegExpr;
   Col: TTableColumn;
   Results: TMySQLQuery;
+  DbName, DbAndViewName: String;
 begin
   if CreateCode <> '' then begin
     // CREATE
@@ -2422,13 +2423,17 @@ begin
       '(ALGORITHM\s*=\s*(\w+)\s+)?'+
       '(DEFINER\s*=\s*\S+\s+)?'+
       '(SQL\s+SECURITY\s+\w+\s+)?'+
-      'VIEW\s+`?\w[\w\s]*`?\s+'+
+      'VIEW\s+(`?(\w[\w\s]*)`?\.)?(`?(\w[\w\s]*)`?)?\s+'+
       '(\([^\)]\)\s+)?'+
       'AS\s+(.+)(\s+WITH\s+(\w+\s+)?CHECK\s+OPTION\s*)?$';
     if rx.Exec(CreateCode) then begin
       Algorithm := rx.Match[3];
-      CheckOption := Trim(rx.Match[9]);
-      SelectCode := rx.Match[7];
+      // When exporting a view we need the db name for the below SHOW COLUMNS query,
+      // if the connection is on a different db currently
+      DbName := rx.Match[7];
+      ViewName := rx.Match[9];
+      CheckOption := Trim(rx.Match[13]);
+      SelectCode := rx.Match[11];
     end else
       raise Exception.Create('Regular expression did not match the VIEW code in ParseViewStructure(): '+CRLF+CRLF+CreateCode);
     rx.Free;
@@ -2440,7 +2445,10 @@ begin
     Columns.Clear;
     rx := TRegExpr.Create;
     rx.Expression := '^(\w+)(\((.+)\))?';
-    Results := MainForm.ActiveConnection.GetResults('SHOW /*!32332 FULL */ COLUMNS FROM '+Mainform.mask(ViewName));
+    if DbName <> '' then
+      DbAndViewName := MainForm.mask(DbName)+'.';
+    DbAndViewName := DbAndViewName + MainForm.mask(ViewName);
+    Results := MainForm.ActiveConnection.GetResults('SHOW /*!32332 FULL */ COLUMNS FROM '+DbAndViewName);
     while not Results.Eof do begin
       Col := TTableColumn.Create;
       Columns.Add(Col);
