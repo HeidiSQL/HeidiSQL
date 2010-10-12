@@ -199,7 +199,7 @@ object frmTableEditor: TfrmTableEditor
         TabOrder = 0
         Text = 'editName'
         TextHint = 'Enter table name'
-        OnChange = editNameChange
+        OnChange = Modification
       end
       object memoComment: TMemo
         Left = 72

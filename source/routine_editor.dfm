@@ -25,7 +25,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Anchors = [akLeft, akBottom]
     Caption = 'Save'
     Default = True
-    TabOrder = 3
+    TabOrder = 4
     OnClick = btnSaveClick
   end
   object btnDiscard: TButton
@@ -36,7 +36,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Anchors = [akLeft, akBottom]
     Caption = 'Discard'
     ModalResult = 2
-    TabOrder = 2
+    TabOrder = 3
     OnClick = btnDiscardClick
   end
   object btnHelp: TButton
@@ -46,7 +46,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Help'
-    TabOrder = 1
+    TabOrder = 2
     OnClick = btnHelpClick
   end
   object SynMemoBody: TSynMemo
@@ -63,7 +63,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Font.Height = -13
     Font.Name = 'Courier New'
     Font.Style = []
-    TabOrder = 0
+    TabOrder = 1
     OnDragDrop = SynMemoBodyDragDrop
     OnDragOver = SynMemoBodyDragOver
     Gutter.AutoSize = True
@@ -102,7 +102,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     ActivePage = tabOptions
     Align = alTop
     Images = MainForm.ImageListMain
-    TabOrder = 4
+    TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 39
@@ -157,6 +157,13 @@ object frmRoutineEditor: TfrmRoutineEditor
         Caption = '&Comment:'
         FocusControl = editComment
       end
+      object lblDefiner: TLabel
+        Left = 408
+        Top = 11
+        Width = 39
+        Height = 13
+        Caption = 'De&finer:'
+      end
       object chkDeterministic: TCheckBox
         Left = 84
         Top = 114
@@ -164,7 +171,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = '&Deterministic'
-        TabOrder = 0
+        TabOrder = 7
         OnClick = Modification
       end
       object editComment: TEdit
@@ -173,7 +180,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Width = 505
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 1
+        TabOrder = 2
         Text = 'editComment'
         OnChange = Modification
       end
@@ -184,7 +191,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 2
+        TabOrder = 6
         OnChange = Modification
       end
       object comboDataAccess: TComboBox
@@ -194,7 +201,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 3
+        TabOrder = 5
         OnChange = Modification
       end
       object comboReturns: TComboBox
@@ -212,19 +219,29 @@ object frmRoutineEditor: TfrmRoutineEditor
         Width = 310
         Height = 21
         Style = csDropDownList
-        TabOrder = 5
+        TabOrder = 3
         OnSelect = comboTypeSelect
       end
       object editName: TEdit
         Left = 84
         Top = 8
-        Width = 505
+        Width = 310
         Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        TabOrder = 6
+        TabOrder = 0
         Text = 'editName'
         TextHint = 'Enter routine name'
-        OnChange = editNameChange
+        OnChange = Modification
+      end
+      object comboDefiner: TComboBox
+        Left = 489
+        Top = 8
+        Width = 100
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 1
+        Text = 'comboDefiner'
+        OnChange = Modification
+        OnDropDown = comboDefinerDropDown
       end
     end
     object tabParameters: TTabSheet

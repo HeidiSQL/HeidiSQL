@@ -21,7 +21,6 @@ type
     procedure btnOKClick(Sender: TObject);
     procedure comboCharsetChange(Sender: TObject);
     procedure Modified(Sender: TObject);
-    procedure editDBNameChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -166,31 +165,6 @@ begin
     comboCollation.ItemIndex := 0;
 
   comboCollation.Items.EndUpdate;
-
-  // Invoke SQL preview
-  Modified(Sender);
-end;
-
-
-{**
-  User writes something into editDBName
-}
-procedure TCreateDatabaseForm.editDBNameChange(Sender: TObject);
-begin
-  editDBName.Font.Color := clWindowText;
-  editDBName.Color := clWindow;
-  // Enable "OK"-Button by default
-  btnOK.Enabled := True;
-  try
-    ensureValidIdentifier( editDBName.Text );
-  except
-    // Invalid database name
-    if editDBName.Text <> '' then begin
-      editDBName.Font.Color := clRed;
-      editDBName.Color := clYellow;
-    end;
-    btnOK.Enabled := False;
-  end;
 
   // Invoke SQL preview
   Modified(Sender);

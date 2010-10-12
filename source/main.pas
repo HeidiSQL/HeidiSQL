@@ -527,7 +527,7 @@ type
     procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
     procedure ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
-    function mask(str: String; HasMultiSegments: Boolean=False) : String;
+    function mask(str: String; Glue: Char=#0) : String;
     procedure actExecuteQueryExecute(Sender: TObject);
     procedure actCreateDatabaseExecute(Sender: TObject);
     procedure actDataCancelChangesExecute(Sender: TObject);
@@ -2104,9 +2104,9 @@ end;
 
 
 // Escape database, table, field, index or key name.
-function TMainform.mask(str: String; HasMultiSegments: Boolean=False) : String;
+function TMainform.mask(str: String; Glue: Char=#0) : String;
 begin
-  result := ActiveConnection.QuoteIdent(str, HasMultiSegments);
+  result := ActiveConnection.QuoteIdent(str, Glue);
 end;
 
 
@@ -2935,8 +2935,8 @@ procedure TMainForm.actRunRoutinesExecute(Sender: TObject);
 var
   Tab: TQueryTab;
   Query, ParamInput,
-  Returns, DataAccess, Security, Comment, Body: String;
-  Deterministic: Boolean;
+  DummyStr: String;
+  DummyBool: Boolean;
   i: Integer;
   pObj: PDBObject;
   Obj: TDBObject;
@@ -2968,7 +2968,7 @@ begin
       lntFunction: Query := 'SELECT ';
     end;
     Parameters := TRoutineParamList.Create;
-    Obj.Connection.ParseRoutineStructure(Obj.CreateCode, Parameters, Deterministic, Returns, DataAccess, Security, Comment, Body);
+    Obj.Connection.ParseRoutineStructure(Obj.CreateCode, Parameters, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
     Query := Query + mask(Obj.Name);
     ParamInput := '';
     for i:=0 to Parameters.Count-1 do begin
@@ -4664,7 +4664,7 @@ begin
     for DbObj in DbObjects do begin
       if (CompareText(DbObj.Name, Identifier)=0) and (DbObj.NodeType in [lntFunction, lntProcedure]) then begin
         Params := TRoutineParamList.Create(True);
-        DbObj.Connection.ParseRoutineStructure(DbObj.CreateCode, Params, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
+        DbObj.Connection.ParseRoutineStructure(DbObj.CreateCode, Params, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
         ItemText := '';
         for i:=0 to Params.Count-1 do
           ItemText := ItemText + '"' + Params[i].Name + ': ' + Params[i].Datatype + '", ';
@@ -4733,7 +4733,6 @@ begin
 
   // Try to rename, on any error abort and don't rename ListItem
   try
-    ensureValidIdentifier( NewText );
     // rename table
     ActiveConnection.Query('RENAME TABLE ' + mask(Obj.Name) + ' TO ' + mask(NewText));
 
@@ -6751,7 +6750,7 @@ end;
 
 procedure TMainForm.ParseSelectedTableStructure;
 var
-  Algorithm, CheckOption, SelectCode: String;
+  DummyStr: String;
 begin
   SelectedTableColumns.Clear;
   SelectedTableKeys.Clear;
@@ -6762,7 +6761,7 @@ begin
       lntTable:
         ActiveConnection.ParseTableStructure(ActiveDbObj.CreateCode, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
       lntView:
-        ActiveConnection.ParseViewStructure(ActiveDbObj.CreateCode, ActiveDbObj.Name, SelectedTableColumns, Algorithm, CheckOption, SelectCode);
+        ActiveConnection.ParseViewStructure(ActiveDbObj.CreateCode, ActiveDbObj.Name, SelectedTableColumns, DummyStr, DummyStr, DummyStr, DummyStr);
     end;
   except on E:EDatabaseError do
     MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -7310,7 +7309,7 @@ begin
     idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
     if idx > -1 then begin
       // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
-      CreateTable := ActiveConnection.GetVar('SHOW CREATE TABLE '+Mask(ForeignKey.ReferenceTable, True), 1);
+      CreateTable := ActiveConnection.GetVar('SHOW CREATE TABLE '+Mask(ForeignKey.ReferenceTable, '.'), 1);
       Columns := TTableColumnList.Create;
       Keys := nil;
       ForeignKeys := nil;
@@ -7326,7 +7325,7 @@ begin
       KeyCol := Mask(ForeignKey.ForeignColumns[idx]);
       SQL := 'SELECT '+KeyCol;
       if TextCol <> '' then SQL := SQL + ', LEFT(' + Mask(TextCol) + ', 256)';
-      SQL := SQL + ' FROM '+Mask(ForeignKey.ReferenceTable, True)+' GROUP BY '+KeyCol+' ORDER BY ';
+      SQL := SQL + ' FROM '+Mask(ForeignKey.ReferenceTable, '.')+' GROUP BY '+KeyCol+' ORDER BY ';
       if TextCol <> '' then SQL := SQL + Mask(TextCol) else SQL := SQL + KeyCol;
       SQL := SQL + ' LIMIT 1000';
 

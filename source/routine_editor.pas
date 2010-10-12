@@ -39,10 +39,11 @@ type
     btnClearParams: TToolButton;
     SynMemoCREATEcode: TSynMemo;
     btnRunProc: TButton;
+    lblDefiner: TLabel;
+    comboDefiner: TComboBox;
     procedure comboTypeSelect(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
-    procedure editNameChange(Sender: TObject);
     procedure btnAddParamClick(Sender: TObject);
     procedure listParametersGetText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
@@ -70,6 +71,7 @@ type
       const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType);
     procedure btnDiscardClick(Sender: TObject);
+    procedure comboDefinerDropDown(Sender: TObject);
   private
     { Private declarations }
     FAlterRoutineType: String;
@@ -128,7 +130,7 @@ end;
 
 procedure TfrmRoutineEditor.Init(Obj: TDBObject);
 var
-  Returns, DataAccess, Security, Comment, Body: String;
+  Definer, Returns, DataAccess, Security, Comment, Body: String;
   Deterministic: Boolean;
 begin
   inherited;
@@ -143,11 +145,14 @@ begin
   comboDataAccess.ItemIndex := 0;
   comboSecurity.ItemIndex := 0;
   editComment.Clear;
+  comboDefiner.Text := '';
+  comboDefiner.TextHint := 'Current user ('+Obj.Connection.CurrentUserHostCombination+')';
+  comboDefiner.Hint := 'Leave empty for current user ('+Obj.Connection.CurrentUserHostCombination+')';
   SynMemoBody.Text := 'BEGIN'+CRLF+CRLF+'END';
   if DBObject.Name <> '' then begin
     // Editing existing routine
     comboType.ItemIndex := ListIndexByRegExpr(comboType.Items, '^'+FAlterRoutineType+'\b');
-    DBObject.Connection.ParseRoutineStructure(DBObject.CreateCode, Parameters, Deterministic, Returns, DataAccess, Security, Comment, Body);
+    DBObject.Connection.ParseRoutineStructure(Obj.CreateCode, Parameters, Deterministic, Definer, Returns, DataAccess, Security, Comment, Body);
     comboReturns.Text := Returns;
     chkDeterministic.Checked := Deterministic;
     if DataAccess <> '' then
@@ -155,11 +160,11 @@ begin
     if Security <> '' then
       comboSecurity.ItemIndex := comboSecurity.Items.IndexOf(Security);
     editComment.Text := Comment;
+    comboDefiner.Text := Definer;
     SynMemoBody.Text := Body;
   end else begin
     editName.Text := '';
   end;
-  editNameChange(Self);
   comboTypeSelect(comboType);
   btnRemoveParam.Enabled := Assigned(listParameters.FocusedNode);
   Modified := False;
@@ -171,27 +176,10 @@ begin
 end;
 
 
-procedure TfrmRoutineEditor.editNameChange(Sender: TObject);
-begin
-  editName.Font.Color := clWindowText;
-  editName.Color := clWindow;
-  try
-    ensureValidIdentifier( editName.Text );
-  except
-    // Invalid name
-    if editName.Text <> '' then begin
-      editName.Font.Color := clRed;
-      editName.Color := clYellow;
-    end;
-  end;
-  Modification(Sender);
-end;
-
-
 procedure TfrmRoutineEditor.Modification(Sender: TObject);
 begin
   Modified := True;
-  btnSave.Enabled := Modified;
+  btnSave.Enabled := Modified and (editName.Text <> '');
   btnDiscard.Enabled := Modified;
   SynMemoCreateCode.Text := ComposeCreateStatement(editName.Text);
 end;
@@ -206,6 +194,13 @@ begin
   comboReturns.Enabled := isfunc;
   Modification(Sender);
   listParameters.Repaint;
+end;
+
+
+procedure TfrmRoutineEditor.comboDefinerDropDown(Sender: TObject);
+begin
+  // Populate definers from mysql.user
+  (Sender as TComboBox).Items.Assign(GetDefiners);
 end;
 
 
@@ -474,7 +469,10 @@ var
   i: Integer;
 begin
   ProcOrFunc := UpperCase(GetFirstWord(comboType.Text));
-  Result := 'CREATE '+ProcOrFunc+' '+Mainform.mask(NameOfObject)+'(';
+  Result := 'CREATE ';
+  if comboDefiner.Text <> '' then
+    Result := Result + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, '@')+' ';
+  Result := Result + ProcOrFunc+' '+Mainform.mask(NameOfObject)+'(';
   for i:=0 to Parameters.Count-1 do begin
     if ProcOrFunc = 'PROCEDURE' then
       Result := Result + Parameters[i].Context + ' ';

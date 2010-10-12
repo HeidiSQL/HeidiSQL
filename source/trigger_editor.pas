@@ -23,12 +23,15 @@ type
     lblEvent: TLabel;
     comboTiming: TComboBox;
     comboEvent: TComboBox;
+    lblDefiner: TLabel;
+    comboDefiner: TComboBox;
     procedure btnHelpClick(Sender: TObject);
     procedure btnDiscardClick(Sender: TObject);
     procedure Modification(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure SynCompletionProposalStatementExecute(Kind: SynCompletionType; Sender: TObject;
       var CurrentInput: String; var x, y: Integer; var CanExecute: Boolean);
+    procedure comboDefinerDropDown(Sender: TObject);
   private
     { Private declarations }
   public
@@ -81,6 +84,9 @@ var
 begin
   inherited;
   editName.Text := '';
+  comboDefiner.Text := '';
+  comboDefiner.TextHint := 'Current user ('+Obj.Connection.CurrentUserHostCombination+')';
+  comboDefiner.Hint := 'Leave empty for current user ('+Obj.Connection.CurrentUserHostCombination+')';
   SynMemoStatement.Text := 'BEGIN'+CRLF+CRLF+'END';
   comboEvent.ItemIndex := 0;
   comboTiming.ItemIndex := 0;
@@ -99,6 +105,7 @@ begin
     Found := False;
     while not Definitions.Eof do begin
       if Definitions.Col('Trigger') = DBObject.Name then begin
+        comboDefiner.Text := Definitions.Col('Definer');
         comboTable.ItemIndex := comboTable.Items.IndexOf(Definitions.Col('Table'));
         comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(Definitions.Col('Timing')));
         comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(Definitions.Col('Event')));
@@ -125,11 +132,12 @@ end;
 procedure TfrmTriggerEditor.Modification(Sender: TObject);
 begin
   // Enable buttons if anything has changed
-  btnSave.Enabled := (editName.Text <> '') and (comboTable.ItemIndex > -1)
+  Modified := True;
+  btnSave.Enabled := Modified
+    and (editName.Text <> '') and (comboTable.ItemIndex > -1)
     and (comboTiming.ItemIndex > -1) and (comboEvent.ItemIndex > -1)
     and (SynMemoStatement.Text <> '');
-  btnDiscard.Enabled := True;
-  Modified := True;
+  btnDiscard.Enabled := Modified;
 end;
 
 
@@ -144,6 +152,13 @@ end;
 procedure TfrmTriggerEditor.btnSaveClick(Sender: TObject);
 begin
   ApplyModifications;
+end;
+
+
+procedure TfrmTriggerEditor.comboDefinerDropDown(Sender: TObject);
+begin
+  // Populate definers from mysql.user
+  (Sender as TComboBox).Items.Assign(GetDefiners);
 end;
 
 
@@ -167,7 +182,10 @@ begin
     //   [DEFINER = { user | CURRENT_USER }]
     //   TRIGGER trigger_name trigger_time trigger_event
     //   ON tbl_name FOR EACH ROW trigger_stmt
-    sql := 'CREATE TRIGGER '+Mainform.mask(editName.Text)+' '+
+    sql := 'CREATE ';
+    if comboDefiner.Text <> '' then
+      sql := sql + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, '@')+' ';
+    sql := sql + 'TRIGGER '+Mainform.mask(editName.Text)+' '+
       comboTiming.Items[comboTiming.ItemIndex]+' '+comboEvent.Items[comboEvent.ItemIndex]+
       ' ON '+Mainform.mask(comboTable.Text)+
       ' FOR EACH ROW '+SynMemoStatement.Text;

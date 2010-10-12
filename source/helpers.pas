@@ -40,6 +40,7 @@ type
   TDBObjectEditor = class(TFrame)
     private
       FModified: Boolean;
+      FDefiners: TStringList;
       procedure SetModified(Value: Boolean);
     protected
     public
@@ -48,6 +49,7 @@ type
       destructor Destroy; override;
       procedure Init(Obj: TDBObject); virtual;
       function DeInit: TModalResult;
+      function GetDefiners: TStringList;
       property Modified: Boolean read FModified write SetModified;
       function ApplyModifications: TModalResult; virtual; abstract;
   end;
@@ -75,7 +77,6 @@ type
   function implodestr(seperator: String; a: TStrings) :String;
   function Explode(Separator, Text: String) :TStringList;
   procedure ExplodeQuotedList(Text: String; var List: TStringList);
-  procedure ensureValidIdentifier(name: String);
   function getEnumValues(str: String): String;
   function GetSQLSplitMarkers(const SQL: String): TSQLBatch;
   function SplitSQL(const SQL: String): TSQLBatch;
@@ -236,81 +237,6 @@ begin
     Delete(Text, 1, i-1+Length(Separator));
   end;
 end;
-
-
-
-{***
-  Check for valid identifier (table-/db-/column-name) ?
-
-  @param string Identifier
-  @return boolean Name is valid?
-  @note rosenfield, 2007-02-01:
-    Those certain characters are standard filesystem wildcards * ?,
-    pipe redirection characters | < >, standard path separators / \,
-    Windows mount point identifiers :, DBMS security / container separator
-    characters . and so on.  In other words, characters that may or may
-    not be allowed by MySQL and the underlying filesystem, but which are
-    really, really, really stupid to use in a table name, since you'll
-    get into trouble once trying to use the table/db in a query or move it
-    to a different filesystem, or what not.
-  @note ansgarbecker, 2007-02-01:
-    Since mysql 5.1.6 those problematic characters are encoded in
-    a hexadecimal manner if they apply to a file (table) or folder (database)
-    But after testing that by renaming a table to a name with a dot
-    I still get an error, so we currently should be careful also on a 5.1.6+
-  @see http://dev.mysql.com/doc/refman/5.1/en/identifier-mapping.html
-}
-procedure ensureValidIdentifier( name: String );
-var
-  i                                     : Integer;
-  invalidChars, invalidCharsShown       : String;
-  isToolong, hasInvalidChars   : Boolean;
-  msgStr                                : String;
-begin
-  isToolong := false;
-  hasInvalidChars := false;
-
-  // Check length
-  if (length(name) < 1) or (length(name) > 64) then
-    isToolong := true;
-
-  // Check for invalid chars
-  invalidChars := '\/:*?"<>|.';
-  for i:=1 to length(name) do
-  begin
-    if (pos( name[i], invalidChars ) > 0 ) then
-    begin
-      hasInvalidChars := true;
-      break;
-    end;
-  end;
-
-  // Raise exception which explains what's wrong
-  if isTooLong or hasInvalidChars then
-  begin
-    if hasInvalidChars then
-    begin
-      // Add space between chars for better readability
-      invalidCharsShown := '';
-      for i:=1 to length(invalidChars) do
-      begin
-        invalidCharsShown := invalidCharsShown + invalidChars[i] + ' ';
-      end;
-      msgStr := 'The name "%s" contains some invalid characters.'+
-        CRLF+CRLF + 'An identifier must not contain the following characters:'+CRLF+invalidCharsShown;
-    end
-    else if isToolong then
-    begin
-      msgStr := 'The name "%s" has '+IntToStr(Length(name))
-        +' characters and exceeds the maximum length of 64 characters.';
-    end;
-
-    Raise Exception.CreateFmt(msgStr, [name]);
-  end;
-
-
-end;
-
 
 
 {***
@@ -2345,6 +2271,26 @@ begin
     end;
   end;
 end;
+
+
+function TDBObjectEditor.GetDefiners: TStringList;
+  function q(s: String): String;
+  begin
+    Result := DBObject.Connection.QuoteIdent(s);
+  end;
+begin
+  // For populating combobox items
+  if not Assigned(FDefiners) then begin
+    try
+      FDefiners := DBObject.Connection.GetCol('SELECT CONCAT('+q('User')+', '+esc('@')+', '+q('Host')+') FROM '+
+        q('mysql')+'.'+q('user')+' WHERE '+q('User')+'!='+esc('')+' ORDER BY '+q('User')+', '+q('Host'));
+    except on E:EDatabaseError do
+      FDefiners := TStringList.Create;
+    end;
+  end;
+  Result := FDefiners;
+end;
+
 
 
 
