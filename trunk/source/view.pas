@@ -20,11 +20,13 @@ type
     rgCheck: TRadioGroup;
     btnHelp: TButton;
     lblDisabledWhy: TLabel;
+    lblDefiner: TLabel;
+    comboDefiner: TComboBox;
     procedure btnHelpClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
-    procedure editNameChange(Sender: TObject);
     procedure btnDiscardClick(Sender: TObject);
     procedure Modification(Sender: TObject);
+    procedure comboDefinerDropDown(Sender: TObject);
   private
     { Private declarations }
   public
@@ -59,14 +61,18 @@ end;
 }
 procedure TfrmView.Init(Obj: TDBObject);
 var
-  Algorithm, CheckOption, SelectCode: String;
+  Algorithm, CheckOption, SelectCode, Definer: String;
 begin
   inherited;
   lblDisabledWhy.Font.Color := clRed;
+  comboDefiner.Text := '';
+  comboDefiner.TextHint := 'Current user ('+Obj.Connection.CurrentUserHostCombination+')';
+  comboDefiner.Hint := 'Leave empty for current user ('+Obj.Connection.CurrentUserHostCombination+')';
   if Obj.Name <> '' then begin
     // Edit mode
     editName.Text := Obj.Name;
-    Obj.Connection.ParseViewStructure(Obj.CreateCode, Obj.Name, nil, Algorithm, CheckOption, SelectCode);
+    Obj.Connection.ParseViewStructure(Obj.CreateCode, Obj.Name, nil, Algorithm, Definer, CheckOption, SelectCode);
+    comboDefiner.Text := Definer;
     rgAlgorithm.ItemIndex := rgAlgorithm.Items.IndexOf(Algorithm);
     rgCheck.ItemIndex := rgCheck.Items.IndexOf(CheckOption);
     if rgCheck.ItemIndex = -1 then
@@ -89,8 +95,6 @@ begin
     SynMemoSelect.Text := 'SELECT ';
     lblDisabledWhy.Hide;
   end;
-  // Ensure name is validated
-  editNameChange(Self);
   Modified := False;
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
@@ -99,20 +103,10 @@ begin
 end;
 
 
-{**
-  View name has changed: Check for valid naming
-}
-procedure TfrmView.editNameChange(Sender: TObject);
+procedure TfrmView.comboDefinerDropDown(Sender: TObject);
 begin
-  try
-    ensureValidIdentifier( editName.Text );
-    editName.Font.Color := clWindowText;
-    editName.Color := clWindow;
-  except
-    editName.Font.Color := clRed;
-    editName.Color := clYellow;
-  end;
-  Modification(Sender);
+  // Populate definers from mysql.user
+  (Sender as TComboBox).Items.Assign(GetDefiners);
 end;
 
 
@@ -164,6 +158,8 @@ begin
   viewname := Mainform.mask(viewname);
   if rgAlgorithm.Enabled and (rgAlgorithm.ItemIndex > -1) then
     sql := sql + 'ALGORITHM = '+Uppercase(rgAlgorithm.Items[rgAlgorithm.ItemIndex])+' ';
+  if comboDefiner.Text <> '' then
+    sql := sql + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, '@')+' ';
   sql := sql + 'VIEW ' + viewname+' AS '+SynMemoSelect.Text+' ';
   if rgCheck.Enabled and (rgCheck.ItemIndex > 0) then
     sql := sql + 'WITH '+Uppercase(rgCheck.Items[rgCheck.ItemIndex])+' CHECK OPTION';
@@ -195,7 +191,7 @@ end;
 procedure TfrmView.Modification(Sender: TObject);
 begin
   Modified := True;
-  btnSave.Enabled := Modified;
+  btnSave.Enabled := Modified and (editName.Text <> '');
   btnDiscard.Enabled := Modified;
 end;
 

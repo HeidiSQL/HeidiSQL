@@ -36,12 +36,18 @@ object frmTriggerEditor: TfrmTriggerEditor
     Height = 13
     Caption = 'Event:'
   end
+  object lblDefiner: TLabel
+    Left = 247
+    Top = 6
+    Width = 39
+    Height = 13
+    Caption = 'Definer:'
+  end
   object editName: TEdit
-    Left = 96
+    Left = 84
     Top = 3
-    Width = 378
+    Width = 157
     Height = 21
-    Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     Text = 'editName'
     TextHint = 'Enter trigger name'
@@ -59,7 +65,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Font.Height = -13
     Font.Name = 'Courier New'
     Font.Style = []
-    TabOrder = 2
+    TabOrder = 4
     Gutter.Font.Charset = DEFAULT_CHARSET
     Gutter.Font.Color = clWindowText
     Gutter.Font.Height = -11
@@ -76,7 +82,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Help'
-    TabOrder = 3
+    TabOrder = 5
     OnClick = btnHelpClick
   end
   object btnDiscard: TButton
@@ -86,7 +92,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Discard'
-    TabOrder = 4
+    TabOrder = 6
     OnClick = btnDiscardClick
   end
   object btnSave: TButton
@@ -97,13 +103,13 @@ object frmTriggerEditor: TfrmTriggerEditor
     Anchors = [akLeft, akBottom]
     Caption = 'Save'
     Default = True
-    TabOrder = 5
+    TabOrder = 7
     OnClick = btnSaveClick
   end
   object comboTable: TComboBox
-    Left = 96
+    Left = 84
     Top = 30
-    Width = 378
+    Width = 390
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
@@ -111,12 +117,12 @@ object frmTriggerEditor: TfrmTriggerEditor
     OnChange = Modification
   end
   object comboTiming: TComboBox
-    Left = 96
+    Left = 84
     Top = 56
-    Width = 145
+    Width = 157
     Height = 21
     Style = csDropDownList
-    TabOrder = 6
+    TabOrder = 2
     OnChange = Modification
   end
   object comboEvent: TComboBox
@@ -125,8 +131,19 @@ object frmTriggerEditor: TfrmTriggerEditor
     Width = 145
     Height = 21
     Style = csDropDownList
-    TabOrder = 7
+    TabOrder = 3
     OnChange = Modification
+  end
+  object comboDefiner: TComboBox
+    Left = 304
+    Top = 3
+    Width = 170
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 8
+    Text = 'comboDefiner'
+    OnChange = Modification
+    OnDropDown = comboDefinerDropDown
   end
   object SynCompletionProposalStatement: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]

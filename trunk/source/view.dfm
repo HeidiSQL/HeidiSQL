@@ -32,16 +32,22 @@ object frmView: TfrmView
     Layout = tlCenter
     Visible = False
   end
+  object lblDefiner: TLabel
+    Left = 215
+    Top = 6
+    Width = 39
+    Height = 13
+    Caption = 'Definer:'
+  end
   object editName: TEdit
     Left = 42
     Top = 3
-    Width = 405
+    Width = 167
     Height = 21
-    Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     Text = 'editName'
     TextHint = 'Enter view name'
-    OnChange = editNameChange
+    OnChange = Modification
   end
   object rgAlgorithm: TRadioGroup
     Left = 3
@@ -54,7 +60,7 @@ object frmView: TfrmView
       'UNDEFINED'
       'MERGE'
       'TEMPTABLE')
-    TabOrder = 1
+    TabOrder = 2
     OnClick = Modification
   end
   object SynMemoSelect: TSynMemo
@@ -69,7 +75,7 @@ object frmView: TfrmView
     Font.Height = -13
     Font.Name = 'Courier New'
     Font.Style = []
-    TabOrder = 2
+    TabOrder = 4
     Gutter.AutoSize = True
     Gutter.DigitCount = 2
     Gutter.Font.Charset = DEFAULT_CHARSET
@@ -102,7 +108,7 @@ object frmView: TfrmView
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Discard'
-    TabOrder = 3
+    TabOrder = 6
     OnClick = btnDiscardClick
   end
   object btnSave: TButton
@@ -113,7 +119,7 @@ object frmView: TfrmView
     Anchors = [akLeft, akBottom]
     Caption = 'Save'
     Default = True
-    TabOrder = 4
+    TabOrder = 7
     OnClick = btnSaveClick
   end
   object rgCheck: TRadioGroup
@@ -128,7 +134,7 @@ object frmView: TfrmView
       'None'
       'CASCADED'
       'LOCAL')
-    TabOrder = 5
+    TabOrder = 3
     OnClick = Modification
   end
   object btnHelp: TButton
@@ -138,7 +144,18 @@ object frmView: TfrmView
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Help'
-    TabOrder = 6
+    TabOrder = 5
     OnClick = btnHelpClick
+  end
+  object comboDefiner: TComboBox
+    Left = 265
+    Top = 3
+    Width = 182
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 1
+    Text = 'comboDefiner'
+    OnChange = Modification
+    OnDropDown = comboDefinerDropDown
   end
 end

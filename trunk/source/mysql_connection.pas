@@ -227,6 +227,7 @@ type
       FPlinkProcInfo: TProcessInformation;
       FLastResults: Array of PMYSQL_RES;
       FResultCount: Integer;
+      FCurrentUserHostCombination: String;
       procedure SetActive(Value: Boolean);
       procedure ClosePlink;
       procedure SetDatabase(Value: String);
@@ -245,6 +246,7 @@ type
       function GetInformationSchemaObjects: TStringList;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
+      function GetCurrentUserHostCombination: String;
       function DecodeAPIString(a: AnsiString): String;
       procedure Log(Category: TMySQLLogCategory; Msg: String);
       procedure ClearCache;
@@ -256,8 +258,8 @@ type
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False): String;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
       function UnescapeString(Text: String): String;
-      class function QuoteIdent(Identifier: String; HasMultiSegments: Boolean=False): String;
-      function DeQuoteIdent(Identifier: String): String;
+      class function QuoteIdent(Identifier: String; Glue: Char=#0): String;
+      function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
       function ConvertServerVersion(Version: Integer): String;
       function GetResults(SQL: String): TMySQLQuery;
       function GetCol(SQL: String; Column: Integer=0): TStringList;
@@ -274,9 +276,9 @@ type
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
       procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
-      procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, CheckOption, SelectCode: String);
+      procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, Definer, CheckOption, SelectCode: String);
       procedure ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
-        var Deterministic: Boolean; var Returns, DataAccess, Security, Comment, Body: String);
+        var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String);
       property SessionName: String read FSessionName write FSessionName;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property ThreadId: Cardinal read GetThreadId;
@@ -303,6 +305,7 @@ type
       property InformationSchemaObjects: TStringList read GetInformationSchemaObjects;
       property ObjectNamesInSelectedDB: TStrings read FObjectNamesInSelectedDB write FObjectNamesInSelectedDB;
       property ResultCount: Integer read FResultCount;
+      property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -436,6 +439,7 @@ begin
   FIsUnicode := False;
   FDatabases := TDatabaseList.Create(True);
   FLoginPromptDone := False;
+  FCurrentUserHostCombination := '';
 end;
 
 
@@ -1040,21 +1044,23 @@ end;
   Add backticks to identifier
   Todo: Support ANSI style
 }
-class function TMySQLConnection.QuoteIdent(Identifier: String; HasMultiSegments: Boolean=False): String;
+class function TMySQLConnection.QuoteIdent(Identifier: String; Glue: Char=#0): String;
 begin
   Result := Identifier;
   Result := StringReplace(Result, '`', '``', [rfReplaceAll]);
-  if HasMultiSegments then
-    Result := StringReplace(Result, '.', '`.`', [rfReplaceAll]);
+  if Glue <> #0 then
+    Result := StringReplace(Result, Glue, '`'+Glue+'`', [rfReplaceAll]);
   Result := '`' + Result + '`';
 end;
 
 
-function TMySQLConnection.DeQuoteIdent(Identifier: String): String;
+function TMySQLConnection.DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
 begin
   Result := Identifier;
   if (Result[1] = '`') and (Result[Length(Identifier)] = '`') then
     Result := Copy(Result, 2, Length(Result)-2);
+  if Glue <> #0 then
+    Result := StringReplace(Result, '`'+Glue+'`', Glue, [rfReplaceAll]);
 end;
 
 
@@ -1231,6 +1237,15 @@ begin
 end;
 
 
+function TMySQLConnection.GetCurrentUserHostCombination: String;
+begin
+  // Return current user@host combination, used by various object editors for DEFINER clauses
+  if FCurrentUserHostCombination = '' then
+    FCurrentUserHostCombination := GetVar('SELECT CURRENT_USER()');
+  Result := FCurrentUserHostCombination;
+end;
+
+
 procedure TMySQLConnection.ClearCache;
 begin
   // Free cached lists and results. Called when the connection was closed and/or destroyed
@@ -1240,6 +1255,7 @@ begin
   FreeAndNil(FInformationSchemaObjects);
   ClearAllDbObjects;
   FTableEngineDefault := '';
+  FCurrentUserHostCombination := '';
 end;
 
 
@@ -1809,7 +1825,7 @@ begin
 end;
 
 
-procedure TMySQLConnection.ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, CheckOption, SelectCode: String);
+procedure TMySQLConnection.ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, Definer, CheckOption, SelectCode: String);
 var
   rx: TRegExpr;
   Col: TTableColumn;
@@ -1830,19 +1846,20 @@ begin
     rx.ModifierI := True;
     rx.Expression := '^CREATE\s+(OR\s+REPLACE\s+)?'+
       '(ALGORITHM\s*=\s*(\w+)\s+)?'+
-      '(DEFINER\s*=\s*\S+\s+)?'+
+      '(DEFINER\s*=\s*(\S+)\s+)?'+
       '(SQL\s+SECURITY\s+\w+\s+)?'+
       'VIEW\s+(`?(\w[\w\s]*)`?\.)?(`?(\w[\w\s]*)`?)?\s+'+
       '(\([^\)]\)\s+)?'+
       'AS\s+(.+)(\s+WITH\s+(\w+\s+)?CHECK\s+OPTION\s*)?$';
     if rx.Exec(CreateCode) then begin
       Algorithm := rx.Match[3];
+      Definer := DeQuoteIdent(rx.Match[5], '@');
       // When exporting a view we need the db name for the below SHOW COLUMNS query,
       // if the connection is on a different db currently
-      DbName := rx.Match[7];
-      ViewName := rx.Match[9];
-      CheckOption := Trim(rx.Match[13]);
-      SelectCode := rx.Match[11];
+      DbName := rx.Match[8];
+      ViewName := rx.Match[10];
+      CheckOption := Trim(rx.Match[14]);
+      SelectCode := rx.Match[12];
     end else
       raise Exception.Create('Regular expression did not match the VIEW code in ParseViewStructure(): '+CRLF+CRLF+CreateCode);
     rx.Free;
@@ -1889,7 +1906,7 @@ end;
 
 
 procedure TMySQLConnection.ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
-  var Deterministic: Boolean; var Returns, DataAccess, Security, Comment, Body: String);
+  var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String);
 var
   Params: String;
   ParenthesesCount: Integer;
@@ -1904,6 +1921,14 @@ begin
   // CREATE DEFINER=`root`@`localhost` PROCEDURE `bla2`(IN p1 INT, p2 VARCHAR(20))
   // CREATE DEFINER=`root`@`localhost` FUNCTION `test3`(`?b` varchar(20)) RETURNS tinyint(4)
   // CREATE DEFINER=`root`@`localhost` PROCEDURE `test3`(IN `Param1` int(1) unsigned)
+
+  rx.Expression := '\bDEFINER\s*=\s*(\S+)\s';
+  if rx.Exec(CreateCode) then
+    Definer := DequoteIdent(rx.Match[1], '@')
+  else
+    Definer := '';
+
+  // Parse parameter list
   ParenthesesCount := 0;
   Params := '';
   for i:=1 to Length(CreateCode) do begin
@@ -2345,7 +2370,7 @@ end;
 procedure TMySQLQuery.PrepareEditing;
 var
   Res: TMySQLQuery;
-  CreateCode, Algorithm, CheckOption, SelectCode: String;
+  CreateCode, Dummy: String;
 begin
   // Try to fetch column names and keys
   if FEditingPrepared then
@@ -2359,7 +2384,7 @@ begin
   if UpperCase(Res.ColumnNames[0]) = 'TABLE' then
     Connection.ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys)
   else
-    Connection.ParseViewStructure(CreateCode, TableName, FColumns, Algorithm, CheckOption, SelectCode);
+    Connection.ParseViewStructure(CreateCode, TableName, FColumns, Dummy, Dummy, Dummy, Dummy);
   FreeAndNil(Res);
   FreeAndNil(FUpdateData);
   FUpdateData := TUpdateData.Create(True);
@@ -3079,7 +3104,7 @@ begin
   for i:=0 to Columns.Count-1 do
     Result := Result + TMySQLConnection.QuoteIdent(Columns[i]) + ', ';
   if Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
-  Result := Result + ') REFERENCES ' + TMySQLConnection.QuoteIdent(ReferenceTable, True) + ' (';
+  Result := Result + ') REFERENCES ' + TMySQLConnection.QuoteIdent(ReferenceTable, '.') + ' (';
   for i:=0 to ForeignColumns.Count-1 do
     Result := Result + TMySQLConnection.QuoteIdent(ForeignColumns[i]) + ', ';
   if ForeignColumns.Count > 0 then Delete(Result, Length(Result)-1, 2);

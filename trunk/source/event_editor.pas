@@ -196,7 +196,7 @@ end;
 procedure TfrmEventEditor.Modification(Sender: TObject);
 begin
   Modified := True;
-  btnSave.Enabled := Modified;
+  btnSave.Enabled := Modified and (editName.Text <> '');
   btnDiscard.Enabled := Modified;
   CreateCodeValid := False;
   AlterCodeValid := False;

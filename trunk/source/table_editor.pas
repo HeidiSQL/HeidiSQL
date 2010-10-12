@@ -88,7 +88,6 @@ type
     listForeignKeys: TVirtualStringTree;
     menuCopyColumns: TMenuItem;
     menuPasteColumns: TMenuItem;
-    procedure editNameChange(Sender: TObject);
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
     procedure btnRemoveColumnClick(Sender: TObject);
@@ -660,24 +659,6 @@ begin
 end;
 
 
-procedure TfrmTableEditor.editNameChange(Sender: TObject);
-begin
-  // Name edited
-  editName.Font.Color := clWindowText;
-  editName.Color := clWindow;
-  try
-    ensureValidIdentifier( editName.Text );
-  except
-    // Invalid name
-    if editName.Text <> '' then begin
-      editName.Font.Color := clRed;
-      editName.Color := clYellow;
-    end;
-  end;
-  Modification(Sender);
-end;
-
-
 procedure TfrmTableEditor.Modification(Sender: TObject);
 begin
   // Memorize modified status
@@ -685,7 +666,7 @@ begin
     if Sender is TComponent then
       TComponent(Sender).Tag := ModifiedFlag;
     Modified := True;
-    btnSave.Enabled := Modified;
+    btnSave.Enabled := Modified and (editName.Text <> '');
     btnDiscard.Enabled := Modified;
     CreateCodeValid := False;
     AlterCodeValid := False;
@@ -1947,7 +1928,7 @@ begin
       MessageDlg('Please select a reference table before selecting foreign columns.', mtError, [mbOk], 0)
     else begin
       try
-        MainForm.ActiveConnection.GetVar('SELECT 1 FROM '+Mainform.Mask(Key.ReferenceTable, True));
+        MainForm.ActiveConnection.GetVar('SELECT 1 FROM '+Mainform.Mask(Key.ReferenceTable, '.'));
         Allowed := True;
       except
         // Leave Allowed = False
@@ -1999,7 +1980,7 @@ begin
     3: begin
         Key := FForeignKeys[Node.Index];
         SetEditor := TSetEditorLink.Create(VT);
-        SetEditor.ValueList := MainForm.ActiveConnection.GetCol('SHOW COLUMNS FROM '+Mainform.Mask(Key.ReferenceTable, True));
+        SetEditor.ValueList := MainForm.ActiveConnection.GetCol('SHOW COLUMNS FROM '+Mainform.Mask(Key.ReferenceTable, '.'));
         EditLink := SetEditor;
       end;
     4, 5: begin

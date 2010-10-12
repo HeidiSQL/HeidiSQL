@@ -220,7 +220,7 @@ end;
 
 procedure Tloaddataform.comboTableChange(Sender: TObject);
 var
-  Algorithm, CheckOption, SelectCode: String;
+  DummyStr: String;
   Col: TTableColumn;
   DBObjects: TDBObjectList;
   Obj: TDBObject;
@@ -235,7 +235,7 @@ begin
       if (Obj.Database=comboDatabase.Text) and (Obj.Name=comboTable.Text) then begin
         case Obj.NodeType of
           lntTable: Obj.Connection.ParseTableStructure(Obj.CreateCode, Columns, nil, nil);
-          lntView: Obj.Connection.ParseViewStructure(Obj.CreateCode, Obj.Name, Columns, Algorithm, CheckOption, SelectCode);
+          lntView: Obj.Connection.ParseViewStructure(Obj.CreateCode, Obj.Name, Columns, DummyStr, DummyStr, DummyStr, DummyStr);
         end;
       end;
     end;
