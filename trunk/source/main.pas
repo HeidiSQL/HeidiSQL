@@ -4899,9 +4899,14 @@ begin
   // been performed in OnDragOver. So, only do typecasting here.
   if src = DBtree then begin
     // Insert table or database name. If a table is dropped and Shift is pressed, prepend the db name.
-    Text := mask(ActiveDbObj.Name);
-    if (ActiveDbObj.NodeType in [lntTable..lntEvent]) and ShiftPressed then
-      Text := mask(ActiveDbObj.Database) + '.' + Text;
+    case ActiveDbObj.NodeType of
+      lntDb: Text := mask(ActiveDbObj.Database);
+      lntTable..lntEvent: begin
+        if ShiftPressed then
+          Text := mask(ActiveDbObj.Database) + '.';
+        Text := Text + mask(ActiveDbObj.Name);
+      end;
+    end;
   end else if src = Tree then begin
     if (Tree.GetNodeLevel(Tree.FocusedNode) = 1) and Assigned(Tree.FocusedNode) then begin
       case Tree.FocusedNode.Parent.Index of
