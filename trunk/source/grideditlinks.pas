@@ -737,8 +737,11 @@ begin
       FMaskEdit.SelLength := OldSelLength;
     end;
   except
-    // Ignore any DateToStr exception. Should only appear in cases where the users
-    // enters invalid dates
+    on E:EConvertError do begin
+      // Ignore any DateToStr exception. Should only appear in cases where the users
+      // enters invalid dates
+    end else
+      raise;
   end;
 end;
 
