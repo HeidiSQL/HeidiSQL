@@ -525,7 +525,7 @@ end;
 
 function TDateTimeEditorLink.EndEdit: Boolean;
 begin
-  Result := EndEditHelper(FMaskEdit.Text);
+  Result := EndEditHelper(Trim(FMaskEdit.Text));
 end;
 
 
@@ -539,7 +539,11 @@ begin
   case Datatype of
     dtDate: FMaskEdit.EditMask := '0000-00-00;1; ';
     dtDatetime, dtTimestamp: FMaskEdit.EditMask := '0000-00-00 00\:00\:00;1; ';
-    dtTime: FMaskEdit.EditMask := '00\:00\:00;1; ';
+    dtTime: begin
+      FMaskEdit.EditMask := '#900\:00\:00;1; ';
+      while Length(FCellText) < 10 do
+        FCellText := ' ' + FCellText;
+    end;
     dtYear: FMaskEdit.EditMask := '0000;1; ';
   end;
   FMaskEdit.Text := FCellText;
@@ -636,10 +640,40 @@ procedure TDateTimeEditorLink.ModifyDate(Offset: Integer);
 var
   dt: TDateTime;
   d: TDate;
-  t: TTime;
-  i: Int64;
+  i, MaxSeconds, MinSeconds: Int64;
   text: String;
   OldSelStart, OldSelLength: Integer;
+
+  function TimeToSeconds(Str: String): Int64;
+  var
+    Hours: String;
+    Seconds: Int64;
+  begin
+    Hours := Trim(Copy(Str, 1, 4));
+    Result := MakeInt(Hours) * 60 * 60;
+    Seconds := MakeInt(Copy(Str, 6, 2)) * 60 + MakeInt(Copy(Str, 9, 2));
+    if (Result < 0) or ((Result = 0) and (Hours[1]='-')) then
+      Dec(Result, Seconds)
+    else
+      Inc(Result, Seconds);
+  end;
+
+  function SecondsToTime(Seconds: Int64): String;
+  var
+    HoursNum, Minutes: Int64;
+    Hours: String;
+  begin
+    HoursNum := Abs(Seconds div (60*60));
+    Hours := IntToStr(HoursNum);
+    if Length(Hours) = 1 then
+      Hours := '0' + Hours;
+    if Seconds < 0 then
+      Hours := '-' + Hours;
+    Seconds := Abs(Seconds) mod (60*60);
+    Minutes := Seconds div 60;
+    Seconds := Seconds mod 60;
+    Result := Format('%4s:%.2u:%.2u', [Hours, Minutes, Seconds]);
+  end;
 begin
   try
     case Datatype of
@@ -676,13 +710,20 @@ begin
       end;
 
       dtTime: begin
-        t := StrToTime(FMaskEdit.Text);
+        i := TimeToSeconds(FMaskEdit.Text);
         case FMaskEdit.SelStart of
-          0,1: t := IncHour(t, Offset);
-          3,4: t := IncMinute(t, Offset);
-          6..8: t := IncSecond(t, Offset);
+          0..3: Inc(i, Offset*60*60);
+          5,6: Inc(i, Offset*60);
+          8,9: Inc(i, Offset);
         end;
-        text := TimeToStr(t);
+        // Stop at max and min values. See http://dev.mysql.com/doc/refman/5.0/en/time.html
+        MaxSeconds := 839*60*60-1;
+        MinSeconds := -(MaxSeconds);
+        if i > MaxSeconds then
+          i := MaxSeconds;
+        if i < MinSeconds then
+          i := MinSeconds;
+        text := SecondsToTime(i);
       end;
 
       else text := '';
