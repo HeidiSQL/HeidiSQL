@@ -8948,12 +8948,16 @@ var
   Cap: String;
 begin
   // Set window caption and taskbar text
-  Cap := ActiveConnection.SessionName;
-  if ActiveDatabase <> '' then
-    Cap := Cap + ' /' + ActiveDatabase;
-  if Assigned(ActiveDbObj) and (ActiveDbObj.Name <> '') then
-    Cap := Cap + '/' + ActiveDbObj.Name;
-  Cap := Cap + ' - ' + APPNAME;
+  Cap := '';
+  if ActiveConnection <> nil then begin
+    Cap := Cap + ActiveConnection.SessionName;
+    if ActiveDatabase <> '' then
+      Cap := Cap + ' /' + ActiveDatabase;
+    if Assigned(ActiveDbObj) and (ActiveDbObj.Name <> '') then
+      Cap := Cap + '/' + ActiveDbObj.Name;
+    Cap := Cap + ' - ';
+  end;
+  Cap := Cap + APPNAME;
   if PortableMode then
     Cap := Cap + ' Portable';
   Cap := Cap + ' ' + AppVersion;
