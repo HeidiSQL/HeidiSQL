@@ -6602,6 +6602,7 @@ end;
 procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
 var
   DBObj, PrevDBObj: PDBObject;
+  MainTabToActivate: TTabSheet;
 begin
   if not Assigned(Node) then begin
     LogSQL('DBtreeFocusChanged without node.', lcDebug);
@@ -6613,13 +6614,16 @@ begin
   if Assigned(DataGridResult) and DataGridResult.Modified then
     actDataPostChangesExecute(DataGrid);
 
+  // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
+  MainTabToActivate := nil;
+
   DBObj := Sender.GetNodeData(Node);
 
   case DBObj.NodeType of
 
     lntNone: begin
       if (not DBtree.Dragging) and (not QueryTabActive) then
-        SetMainTab(tabHost);
+        MainTabToActivate := tabHost;
       tabDatabase.TabVisible := False;
       tabEditor.TabVisible := False;
       tabData.TabVisible := False;
@@ -6637,7 +6641,7 @@ begin
         end;
       end;
       if (not DBtree.Dragging) and (not QueryTabActive) then
-        SetMainTab(tabDatabase);
+        MainTabToActivate := tabDatabase;
       tabDatabase.TabVisible := True;
       tabEditor.TabVisible := False;
       tabData.TabVisible := False;
@@ -6662,7 +6666,7 @@ begin
         // When a table is clicked in the tree, and the current
         // tab is a Host or Database tab, switch to showing table columns.
         if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
-          SetMainTab(tabEditor);
+          MainTabToActivate := tabEditor;
         if DataGrid.Tag = VTREE_LOADED then
           InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
         // Update the list of columns
@@ -6696,9 +6700,11 @@ begin
   SetLength(FTreeClickHistory, Length(FTreeClickHistory)+1);
   FTreeClickHistory[Length(FTreeClickHistory)-1] := Node;
 
-
+  // Main tab stuff
   tabHost.Caption := 'Host: '+sstr(DBObj.Connection.Parameters.HostName, 20);
   tabDatabase.Caption := 'Database: '+sstr(DBObj.Connection.Database, 20);
+  SetMainTab(MainTabToActivate);
+
   DBTree.InvalidateColumn(0);
   FixQueryTabCloseButtons;
   SetWindowCaption;
@@ -8983,7 +8989,7 @@ end;
 procedure TMainForm.SetMainTab(Page: TTabSheet);
 begin
   // Safely switch main tab
-  if not FTreeRefreshInProgress then begin
+  if (Page <> nil) and (not FTreeRefreshInProgress) then begin
     PagecontrolMain.ActivePage := Page;
     PageControlMain.OnChange(Page);
   end;
