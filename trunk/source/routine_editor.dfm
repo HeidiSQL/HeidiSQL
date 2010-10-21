@@ -14,7 +14,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Width = 600
     Height = 13
     Align = alTop
-    Caption = '&Routine body:'
+    Caption = 'Routine body:'
     FocusControl = SynMemoBody
   end
   object btnSave: TButton
