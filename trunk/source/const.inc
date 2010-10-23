@@ -180,6 +180,7 @@ const
   REGNAME_TOOLSTREEWIDTH = 'TableTools_TreeWidth';
   REGNAME_TOOLSFINDTEXT = 'TableTools_FindText';
   REGNAME_TOOLSDATATYPE = 'TableTools_Datatype';
+  REGNAME_TOOLSCASESENSITIVE = 'TableTools_FindCaseSensitive';
   REGNAME_USERMNGR_WINWIDTH = 'Usermanager_WindowWidth';
   REGNAME_USERMNGR_WINHEIGHT = 'Usermanager_WindowHeight';
   REGNAME_USERMNGR_LISTWIDTH = 'Usermanager_ListWidth';
