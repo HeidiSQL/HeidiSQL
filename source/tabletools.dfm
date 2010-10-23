@@ -248,31 +248,40 @@ object frmTableTools: TfrmTableTools
             Caption = 'Text to find:'
           end
           object lblDataTypes: TLabel
-            Left = 80
-            Top = 93
-            Width = 151
+            Left = 3
+            Top = 67
+            Width = 114
             Height = 13
             Anchors = [akLeft, akBottom]
-            Caption = 'Restrict search to column types'
+            Caption = 'Search in column types:'
           end
           object memoFindText: TMemo
-            Left = 80
+            Left = 139
             Top = 11
-            Width = 289
-            Height = 73
+            Width = 230
+            Height = 46
             Anchors = [akLeft, akTop, akRight, akBottom]
             ScrollBars = ssVertical
             TabOrder = 0
             OnChange = ValidateControls
           end
           object comboDataTypes: TComboBox
-            Left = 264
-            Top = 90
-            Width = 105
+            Left = 139
+            Top = 64
+            Width = 230
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akRight, akBottom]
             TabOrder = 1
+          end
+          object chkCaseSensitive: TCheckBox
+            Left = 139
+            Top = 91
+            Width = 230
+            Height = 17
+            Anchors = [akLeft, akRight, akBottom]
+            Caption = 'Case sensitive'
+            TabOrder = 2
           end
         end
         object tabSQLexport: TTabSheet

@@ -65,6 +65,7 @@ type
     chkBulkTableEditCharset: TCheckBox;
     comboBulkTableEditCharset: TComboBox;
     btnSeeResults: TButton;
+    chkCaseSensitive: TCheckBox;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -174,6 +175,7 @@ begin
   for i:=Low(DatatypeCategories) to High(DatatypeCategories) do
     comboDatatypes.Items.Add(DatatypeCategories[i].Name);
   comboDatatypes.ItemIndex := GetRegValue(REGNAME_TOOLSDATATYPE, 0);
+  chkCaseSensitive.Checked := GetRegValue(REGNAME_TOOLSCASESENSITIVE, chkCaseSensitive.Checked);
 
   // SQL export tab
   chkExportDatabasesCreate.Checked := GetRegValue(REGNAME_EXP_CREATEDB, chkExportDatabasesCreate.Checked);
@@ -213,6 +215,7 @@ begin
 
   MainReg.WriteString( REGNAME_TOOLSFINDTEXT, memoFindText.Text);
   MainReg.WriteInteger( REGNAME_TOOLSDATATYPE, comboDatatypes.ItemIndex);
+  MainReg.WriteBool(REGNAME_TOOLSCASESENSITIVE, chkCaseSensitive.Checked);
 
   MainReg.WriteBool(REGNAME_EXP_CREATEDB, chkExportDatabasesCreate.Checked);
   MainReg.WriteBool(REGNAME_EXP_DROPDB, chkExportDatabasesDrop.Checked);
@@ -335,7 +338,7 @@ begin
     btnExecute.Enabled := SomeChecked and (memoFindText.Text <> '');
     // Enable "See results" button if there were results
     btnSeeResults.Enabled := False;
-    for i:=0 to FResults.Count-1 do begin
+    if Assigned(FResults) then for i:=0 to FResults.Count-1 do begin
       if MakeInt(FResults[i][2]) > 0 then begin
         btnSeeResults.Enabled := True;
         break;
@@ -563,8 +566,12 @@ begin
   if Columns.Count > 0 then begin
     SQL := '';
     for Col in Columns do begin
-      if (comboDatatypes.ItemIndex = 0) or (Integer(Col.DataType.Category) = comboDatatypes.ItemIndex-1) then
-        SQL := SQL + Mainform.mask(Col.Name) + ' LIKE ' + esc('%'+memoFindText.Text+'%') + ' OR ';
+      if (comboDatatypes.ItemIndex = 0) or (Integer(Col.DataType.Category) = comboDatatypes.ItemIndex-1) then begin
+        if chkCaseSensitive.Checked then
+          SQL := SQL + Mainform.mask(Col.Name) + ' LIKE BINARY ' + esc('%'+memoFindText.Text+'%') + ' OR '
+        else
+          SQL := SQL + 'LOWER(CONVERT('+Mainform.mask(Col.Name)+' USING '+DBObj.Connection.CharacterSet+')) LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' OR '
+      end;
     end;
     if SQL <> '' then begin
       Delete(SQL, Length(SQL)-3, 3);
