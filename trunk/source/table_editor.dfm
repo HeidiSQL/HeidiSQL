@@ -84,19 +84,17 @@ object frmTableEditor: TfrmTableEditor
     OnFocusChanged = listColumnsFocusChanged
     OnGetText = listColumnsGetText
     OnPaintText = listColumnsPaintText
-    OnGetImageIndex = listColumnsGetImageIndex
     OnGetNodeDataSize = listColumnsGetNodeDataSize
     OnInitNode = listColumnsInitNode
     OnKeyPress = listColumnsKeyPress
     OnNewText = listColumnsNewText
     OnNodeMoved = listColumnsNodeMoved
-    OnStructureChange = listColumnsStructureChange
     Columns = <
       item
         Alignment = taRightJustify
         Color = clBtnFace
         MinWidth = 20
-        Options = [coDraggable, coEnabled, coParentBidiMode, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Options = [coDraggable, coEnabled, coParentBidiMode, coShowDropMark, coVisible, coAllowFocus]
         Position = 0
         Width = 20
         WideText = '#'
