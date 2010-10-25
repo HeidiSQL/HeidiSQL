@@ -2128,7 +2128,7 @@ procedure TMainForm.actExecuteQueryExecute(Sender: TObject);
 var
   SQLBatch: TSQLBatch;
   Query: TSQLSentence;
-  i, j, QueryCount: Integer;
+  i, j, QueryCount, StartOffsetInMemo: Integer;
   SQLTime, SQLNetTime: Cardinal;
   RowsAffected, RowsFound: Int64;
   Results: TMySQLQuery;
@@ -2139,6 +2139,29 @@ var
   DoProfile: Boolean;
   ProfileNode: PVirtualNode;
   Time: Extended;
+
+  procedure GoToErrorPos(Err: String);
+  var
+    rx: TRegExpr;
+    SelStart, ErrorPos: Integer;
+  begin
+    // Try to set memo cursor to the relevant position
+    SelStart := StartOffsetInMemo;
+
+    // "... for the right syntax to use near 'lik 123)' at line 4"
+    rx := TRegExpr.Create;
+    rx.Expression := 'for the right syntax to use near ''(.+)'' at line (\d+)';
+    if rx.Exec(Err) then begin
+      // Examine 1kb of memo text at given offset
+      ErrorPos := Pos(rx.Match[1], Copy(QueryTab.Memo.Text, SelStart, SIZE_KB));
+      if ErrorPos > 0 then
+        Inc(SelStart, ErrorPos-1);
+    end;
+
+    QueryTab.Memo.SelLength := 0;
+    QueryTab.Memo.SelStart := SelStart;
+  end;
+
 begin
   Screen.Cursor := crHourglass;
   QueryTab := ActiveQueryTab;
@@ -2149,13 +2172,17 @@ begin
     for Query in SQLBatch do begin
       if (Query.LeftOffset <= QueryTab.Memo.SelStart) and (QueryTab.Memo.SelStart < Query.RightOffset) then begin
         Text := Copy(QueryTab.Memo.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
+        StartOffsetInMemo := Query.LeftOffset;
         break;
       end;
     end;
-  end else if Sender = actExecuteSelection then
-    Text := QueryTab.Memo.SelText
-  else
+  end else if Sender = actExecuteSelection then begin
+    Text := QueryTab.Memo.SelText;
+    StartOffsetInMemo := QueryTab.Memo.SelStart;
+  end else begin
     Text := QueryTab.Memo.Text;
+    StartOffsetInMemo := 0;
+  end;
   // Give text back its original linebreaks if possible
   case QueryTab.MemoLineBreaks of
     lbsUnix: LB := LB_UNIX;
@@ -2229,6 +2256,7 @@ begin
         if actQueryStopOnErrors.Checked or (i = SQLBatch.Count - 1) then begin
           Screen.Cursor := crDefault;
           ProgressBarStatus.State := pbsError;
+          GoToErrorPos(E.Message);
           MessageDlg( E.Message, mtError, [mbOK], 0 );
           Break;
         end;
