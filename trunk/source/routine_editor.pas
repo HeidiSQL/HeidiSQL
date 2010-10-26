@@ -41,6 +41,8 @@ type
     btnRunProc: TButton;
     lblDefiner: TLabel;
     comboDefiner: TComboBox;
+    btnMoveUpParam: TToolButton;
+    btnMoveDownParam: TToolButton;
     procedure comboTypeSelect(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -72,6 +74,7 @@ type
       TextType: TVSTTextType);
     procedure btnDiscardClick(Sender: TObject);
     procedure comboDefinerDropDown(Sender: TObject);
+    procedure btnMoveParamClick(Sender: TObject);
   private
     { Private declarations }
     FAlterRoutineType: String;
@@ -140,6 +143,7 @@ begin
   comboType.ItemIndex := 0;
   comboReturns.Text := '';
   chkDeterministic.Checked := False;
+  listParameters.FocusedNode := nil;
   listParameters.Clear;
   Parameters.Clear;
   comboDataAccess.ItemIndex := 0;
@@ -166,7 +170,6 @@ begin
     editName.Text := '';
   end;
   comboTypeSelect(comboType);
-  btnRemoveParam.Enabled := Assigned(listParameters.FocusedNode);
   Modified := False;
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
@@ -235,6 +238,23 @@ begin
 end;
 
 
+procedure TfrmRoutineEditor.btnMoveParamClick(Sender: TObject);
+var
+  Source, Target: Integer;
+begin
+  // Move param up or down
+  Source := ListParameters.FocusedNode.Index;
+  if Sender = btnMoveUpParam then
+    Target := Source -1
+  else
+    Target := Source +1;
+  Parameters.Exchange(Source, Target);
+  SelectNode(listParameters, Target);
+  listParameters.Repaint;
+  Modification(Sender);
+end;
+
+
 procedure TfrmRoutineEditor.listParametersBeforePaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas);
 begin
@@ -295,9 +315,16 @@ end;
 
 procedure TfrmRoutineEditor.listParametersFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
+var
+  HasNode: Boolean;
 begin
-  btnRemoveParam.Enabled := Assigned(Node);
-  if Assigned(Node) and (not ((comboType.ItemIndex = 1) and (Column=3))) then
+  // Enable/disable buttons
+  HasNode := Assigned(Node);
+  btnRemoveParam.Enabled := HasNode;
+  btnMoveUpParam.Enabled := HasNode and (Node <> Sender.GetFirst);
+  btnMoveDownParam.Enabled := HasNode and (Node <> Sender.GetLast);
+
+  if HasNode and (not ((comboType.ItemIndex = 1) and (Column=3))) then
     Sender.EditNode(Node, Column);
 end;
 
