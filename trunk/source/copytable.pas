@@ -87,28 +87,20 @@ end;
 
 procedure TCopyTableForm.FormShow(Sender: TObject);
 var
-  Table, Filter: String;
+  Filter: String;
   Dummy: String;
-  DBObjects: TDBObjectList;
-  Obj: TDBObject;
+  Obj: PDBObject;
   Values: TStringList;
   i, j: Integer;
   Item: TMenuItem;
+  Tree: TVirtualStringTree;
 begin
   if Mainform.DBtree.Focused then
-    Table := Mainform.ActiveDbObj.Name
+    Tree := Mainform.DBtree
   else
-    Table := Mainform.ListTables.Text[Mainform.ListTables.FocusedNode, 0];
-  DBObjects := MainForm.ActiveConnection.GetDBObjects(Mainform.ActiveDatabase);
-  FDBObj := nil;
-  for Obj in DBObjects do begin
-    if Obj.Name = Table then begin
-      FDBObj := Obj;
-      break;
-    end;
-  end;
-  if FDBObj = nil then
-    Exception.Create('Database object "'+Table+'" not found.');
+    Tree := Mainform.ListTables;
+  Obj := Tree.GetNodeData(Tree.FocusedNode);
+  FDBObj := Obj^;
   editNewTablename.Text := FDBObj.Name + '_copy';
   editNewTablename.SetFocus;
   lblNewTablename.Caption := 'Copy ''' + FDBObj.Name + ''' to new db.table:';
