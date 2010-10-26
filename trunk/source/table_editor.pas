@@ -837,7 +837,7 @@ begin
     MinWidthAllCols := Max(MinWidthAllCols, MinWidthThisCol);
   end;
   // Add space for number
-  Inc(MinWidthAllCols, listColumns.Canvas.TextWidth(IntToStr(FColumns.Count))+5);
+  Inc(MinWidthAllCols, listColumns.Canvas.TextWidth(IntToStr(FColumns.Count+1)) + listColumns.TextMargin*4);
   listColumns.Header.Columns[0].Width := MinWidthAllCols;
 end;
 
