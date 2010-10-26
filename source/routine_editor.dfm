@@ -248,9 +248,9 @@ object frmRoutineEditor: TfrmRoutineEditor
       Caption = 'Parameters'
       ImageIndex = 122
       object listParameters: TVirtualStringTree
-        Left = 66
+        Left = 82
         Top = 0
-        Width = 526
+        Width = 510
         Height = 137
         Align = alClient
         DragImageKind = diMainColumnOnly
@@ -286,7 +286,7 @@ object frmRoutineEditor: TfrmRoutineEditor
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 1
-            Width = 337
+            Width = 321
             WideText = 'Name'
           end
           item
@@ -305,11 +305,11 @@ object frmRoutineEditor: TfrmRoutineEditor
       object tlbParameters: TToolBar
         Left = 0
         Top = 0
-        Width = 66
+        Width = 82
         Height = 137
         Align = alLeft
         AutoSize = True
-        ButtonWidth = 66
+        ButtonWidth = 82
         Caption = 'tlbParameters'
         Images = MainForm.ImageListMain
         List = True
@@ -327,6 +327,7 @@ object frmRoutineEditor: TfrmRoutineEditor
           Left = 0
           Top = 22
           Caption = 'Remove'
+          Enabled = False
           ImageIndex = 46
           Wrap = True
           OnClick = btnRemoveParamClick
@@ -336,7 +337,25 @@ object frmRoutineEditor: TfrmRoutineEditor
           Top = 44
           Caption = 'Clear'
           ImageIndex = 26
+          Wrap = True
           OnClick = btnClearParamsClick
+        end
+        object btnMoveUpParam: TToolButton
+          Left = 0
+          Top = 66
+          Caption = 'Move up'
+          Enabled = False
+          ImageIndex = 74
+          Wrap = True
+          OnClick = btnMoveParamClick
+        end
+        object btnMoveDownParam: TToolButton
+          Left = 0
+          Top = 88
+          Caption = 'Move down'
+          Enabled = False
+          ImageIndex = 75
+          OnClick = btnMoveParamClick
         end
       end
     end
