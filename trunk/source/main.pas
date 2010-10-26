@@ -2916,46 +2916,53 @@ end;
 
 procedure TMainForm.actEmptyTablesExecute(Sender: TObject);
 var
-  t: TStringList;
-  i: Integer;
   Node: PVirtualNode;
+  Obj: PDBObject;
+  TableOrView: TDBObject;
+  Objects: TDBObjectList;
+  Names: String;
 begin
   // Add selected items/tables to helper list
-  t := TStringList.Create;
+  Objects := TDBObjectList.Create(False);
   if ListTables.Focused then begin
     Node := ListTables.GetFirstSelected;
     while Assigned(Node) do begin
-      t.Add(ListTables.Text[Node, ListTables.Header.MainColumn]);
+      Obj := ListTables.GetNodeData(Node);
+      if Obj.NodeType in [lntTable, lntView] then begin
+        Objects.Add(Obj^);
+        Names := Names + Obj.Name + ', ';
+      end;
       Node := ListTables.GetNextSelected(Node);
     end;
-  end else if DBTree.Focused then
-    t.Add(ActiveDbObj.Name)
-  else
-    Exit;
-  if t.Count = 0 then
-    Exit;
-
-  if MessageDlg('Empty ' + IntToStr(t.count) + ' table(s) ?' + CRLF + '(' + implodestr(', ', t) + ')',
-    mtConfirmation, [mbOk, mbCancel], 0) <> mrOk then
-    exit;
-
-  Screen.Cursor := crHourglass;
-  EnableProgressBar(t.Count);
-  try
-    for i:=0 to t.Count-1 do begin
-      ActiveConnection.Query('TRUNCATE ' + mask(t[i]));
-      ProgressBarStatus.StepIt;
-    end;
-    actRefresh.Execute;
-  except
-    on E:EDatabaseError do begin
-      ProgressBarStatus.State := pbsError;
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+    Delete(Names, Length(Names)-1, 2);
+  end else if DBTree.Focused then begin
+    Objects.Add(ActiveDbObj);
+    Names := ActiveDbObj.Name;
+  end;
+  if Objects.Count = 0 then
+    MessageDlg('No table(s) selected.', mtError, [mbOK], 0)
+  else begin
+    if MessageDlg('Empty ' + IntToStr(Objects.count) + ' table(s) and/or view(s) ?' + CRLF + '('+Names+')',
+      mtConfirmation, [mbOk, mbCancel], 0) = mrOk then begin
+      Screen.Cursor := crHourglass;
+      EnableProgressBar(Objects.Count);
+      try
+        for TableOrView in Objects do begin
+          ActiveConnection.Query('TRUNCATE ' + mask(TableOrView.Name));
+          ProgressBarStatus.StepIt;
+        end;
+        actRefresh.Execute;
+      except
+        on E:EDatabaseError do begin
+          ProgressBarStatus.State := pbsError;
+          MessageDlg(E.Message, mtError, [mbOK], 0);
+        end;
+      end;
+      Objects.Free;
+      ProgressBarStatus.Hide;
+      Screen.Cursor := crDefault;
     end;
   end;
-  t.Free;
-  ProgressBarStatus.Hide;
-  Screen.Cursor := crDefault;
 end;
 
 
@@ -5158,15 +5165,14 @@ begin
     actCreateTrigger.Enabled := True;
     actCreateEvent.Enabled := True;
     actDropObjects.Enabled := ListTables.SelectedCount > 0;
-    actEmptyTables.Enabled := False;
+    actEmptyTables.Enabled := True;
     actRunRoutines.Enabled := True;
+    menuEditObject.Enabled := HasFocus;
+    actCopyTable.Enabled := False;
     if HasFocus then begin
       Obj := ListTables.GetNodeData(ListTables.FocusedNode);
-      actEmptyTables.Enabled := Obj.NodeType in [lntTable, lntView];
+      actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
     end;
-    menuEditObject.Enabled := HasFocus;
-    // Show certain items which are valid only here
-    actCopyTable.Enabled := actEmptyTables.Enabled;
     menuTreeExpandAll.Visible := False;
     menuTreeCollapseAll.Visible := False;
     menuShowSizeColumn.Visible := False;
