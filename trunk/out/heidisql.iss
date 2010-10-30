@@ -68,7 +68,6 @@ Name: "{group}\HeidiSQL"; Filename: "{app}\heidisql.exe"
 Name: "{group}\HeidiSQL on the Web"; Filename: "{app}\heidisql.url"
 Name: "{group}\HeidiSQL Forum"; Filename: "{app}\heidisql_forum.url"
 Name: "{group}\Donate"; Filename: "{app}\donate.url"
-Name: "{group}\Uninstall HeidiSQL"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\HeidiSQL"; Filename: "{app}\heidisql.exe"; MinVersion: 4,4; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\HeidiSQL"; Filename: "{app}\heidisql.exe"; MinVersion: 4,4; Tasks: quicklaunchicon
 
