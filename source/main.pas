@@ -2604,7 +2604,7 @@ begin
   // Can be overwritten when someone selects a table in dbtree from different database
   activeDB := ActiveDatabase;
 
-  ObjectList := TDBobjectList.Create(False);
+  ObjectList := TDBobjectList.Create(TDBObjectDropComparer.Create, False);
 
   Act := Sender as TAction;
   InDBTree := (Act.ActionComponent is TMenuItem)
@@ -2646,28 +2646,31 @@ begin
     Exit;
 
   // Ask user for confirmation to drop selected objects
+  ObjectList.Sort;
   msg := 'Drop ' + IntToStr(ObjectList.Count) + ' object(s) in database "'+activeDB+'"?' + CRLF + CRLF;
   for DBObject in ObjectList do
     msg := msg + DBObject.Name + ', ';
   Delete(msg, Length(msg)-1, 2);
-  if MessageDlg(msg, mtConfirmation, [mbok,mbcancel], 0) <> mrok then
-    Exit;
-
-  try
-    // Compose and run DROP [TABLE|VIEW|...] queries
-    Editor := ActiveObjectEditor;
-    for DBObject in ObjectList do begin
-      ActiveConnection.Query('DROP '+UpperCase(DBObject.ObjType)+' '+Mask(DBObject.Name));
-      if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
-        Editor.Modified := False;
+  if MessageDlg(msg, mtConfirmation, [mbok,mbcancel], 0) = mrOk then begin
+    try
+      // Disable foreign key checks to avoid SQL errors
+      ActiveConnection.Query('/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */');
+      // Compose and run DROP [TABLE|VIEW|...] queries
+      Editor := ActiveObjectEditor;
+      for DBObject in ObjectList do begin
+        ActiveConnection.Query('DROP '+UpperCase(DBObject.ObjType)+' '+Mask(DBObject.Name));
+        if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
+          Editor.Modified := False;
+      end;
+      // Refresh ListTables + dbtree so the dropped tables are gone:
+      ActiveConnection.ClearDbObjects(ActiveDatabase);
+      ActiveConnection.Query('/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */');
+    except
+      on E:EDatabaseError do
+        MessageDlg(E.Message, mtError, [mbOK], 0);
     end;
-    // Refresh ListTables + dbtree so the dropped tables are gone:
-    ActiveConnection.ClearDbObjects(ActiveDatabase);
-  except
-    on E:EDatabaseError do
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+    ObjectList.Free;
   end;
-  ObjectList.Free;
 end;
 
 
