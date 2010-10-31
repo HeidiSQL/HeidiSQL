@@ -6661,9 +6661,6 @@ begin
     lntNone: begin
       if (not DBtree.Dragging) and (not QueryTabActive) then
         MainTabToActivate := tabHost;
-      tabDatabase.TabVisible := False;
-      tabEditor.TabVisible := False;
-      tabData.TabVisible := False;
       DBObj.Connection.Database := '';
     end;
 
@@ -6679,9 +6676,6 @@ begin
       end;
       if (not DBtree.Dragging) and (not QueryTabActive) then
         MainTabToActivate := tabDatabase;
-      tabDatabase.TabVisible := True;
-      tabEditor.TabVisible := False;
-      tabData.TabVisible := False;
     end;
 
     lntTable..lntEvent: begin
@@ -6693,22 +6687,17 @@ begin
           Exit;
         end;
       end;
-      tabDatabase.TabVisible := True;
-      tabEditor.TabVisible := DBObj.NodeType in [lntDb, lntTable..lntEvent];
-      tabData.TabVisible := DBObj.NodeType in [lntTable, lntView];
       ParseSelectedTableStructure;
-      if tabEditor.TabVisible then begin
-        if not FTreeRefreshInProgress then
-          PlaceObjectEditor(DBObj^);
-        // When a table is clicked in the tree, and the current
-        // tab is a Host or Database tab, switch to showing table columns.
-        if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
-          MainTabToActivate := tabEditor;
-        if DataGrid.Tag = VTREE_LOADED then
-          InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
-        // Update the list of columns
-        RefreshHelperNode(HELPERNODE_COLUMNS);
-      end;
+      if not FTreeRefreshInProgress then
+        PlaceObjectEditor(DBObj^);
+      // When a table is clicked in the tree, and the current
+      // tab is a Host or Database tab, switch to showing table columns.
+      if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
+        MainTabToActivate := tabEditor;
+      if DataGrid.Tag = VTREE_LOADED then
+        InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
+      // Update the list of columns
+      RefreshHelperNode(HELPERNODE_COLUMNS);
     end;
 
   end;
@@ -6741,6 +6730,9 @@ begin
   tabHost.Caption := 'Host: '+sstr(DBObj.Connection.Parameters.HostName, 20);
   tabDatabase.Caption := 'Database: '+sstr(DBObj.Connection.Database, 20);
   SetMainTab(MainTabToActivate);
+  tabDatabase.TabVisible := DBObj.NodeType <> lntNone;
+  tabEditor.TabVisible := DBObj.NodeType in [lntTable..lntEvent];
+  tabData.TabVisible := DBObj.NodeType in [lntTable, lntView];
 
   DBTree.InvalidateColumn(0);
   FixQueryTabCloseButtons;
