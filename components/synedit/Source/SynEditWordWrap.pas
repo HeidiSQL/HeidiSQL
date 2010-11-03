@@ -65,7 +65,7 @@ var
 type
   TLineIndex = 0..MaxListSize;
   TRowIndex = 0..MaxListSize;
-  TRowLength = byte;
+  TRowLength = word;
 
   TRowIndexArray = array [TLineIndex] of TRowIndex;
   PRowIndexArray = ^TRowIndexArray;
@@ -394,10 +394,8 @@ procedure TSynWordWrapPlugin.Reset;
 begin
   Assert(Editor.CharsInWindow >= 0);
 
-  // Work around AV when editor is wider than 255 chars
-  // Editor.CharsInWindow is Integer and can exceed TRowLength, which is Byte.
-  fMaxRowLength := Min(High(TRowLength), Editor.CharsInWindow);
-  fMinRowLength := Min(High(TRowLength), Editor.CharsInWindow - (Editor.CharsInWindow div 3));
+  fMaxRowLength := Editor.CharsInWindow;
+  fMinRowLength := Editor.CharsInWindow - (Editor.CharsInWindow div 3);
 
   if fMinRowLength <= 0 then
     fMinRowLength := 1;
@@ -428,7 +426,7 @@ begin
   vLine := Editor.ExpandAtWideGlyphs(vLine);
   // Pre-allocate a buffer for rowlengths
   vMaxNewRows := ((Length(vLine) - 1) div fMinRowLength) + 1;
-  vTempRowLengths := AllocMem(vMaxNewRows);
+  vTempRowLengths := AllocMem(vMaxNewRows * SizeOf(TRowLength));
   try
     vLineRowCount := 0;
     vRowBegin := PWideChar(vLine);
