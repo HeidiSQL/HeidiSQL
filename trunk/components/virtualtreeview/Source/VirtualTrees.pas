@@ -21041,6 +21041,7 @@ begin
   if Assigned(FFocusedNode) and not (vsDisabled in FFocusedNode.States) and
     not (toReadOnly in FOptions.FMiscOptions) and (FEditLink = nil) then
   begin
+    ScrollIntoView(FFocusedNode, False, False);
     FEditLink := DoCreateEditor(FFocusedNode, FEditColumn);
     if Assigned(FEditLink) then
     begin
