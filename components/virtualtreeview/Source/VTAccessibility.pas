@@ -497,7 +497,7 @@ begin
   begin
     if FVirtualTree.FocusedNode <> nil then
     begin
-      DisplayRect := FVirtualTree.GetDisplayRect(FVirtualTree.FocusedNode, -1, TRUE, FALSE);
+      DisplayRect := FVirtualTree.GetDisplayRect(FVirtualTree.FocusedNode, FVirtualTree.Header.Columns.GetFirstVisibleColumn, TRUE, FALSE);//Use fisrt visible column instead of -1
       P := FVirtualTree.ClientToScreen(DisplayRect.TopLeft);
       pxLeft := P.X;
       pyTop := P.Y;
