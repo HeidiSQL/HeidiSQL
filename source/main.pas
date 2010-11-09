@@ -8816,6 +8816,8 @@ var
   TabNumber: Integer;
 begin
   // Simulate doubleclick on tab to close it
+  if Button <> mbLeft then
+    Exit;
   CurTickcount := GetTickCount;
   TabNumber := GetMainTabAt(X, Y);
   if (TabNumber = FLastTabNumberOnMouseUp)
