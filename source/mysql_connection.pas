@@ -22,7 +22,7 @@ type
       function GetCreateCode: String;
       procedure SetCreateCode(Value: String);
     public
-      Name, Database, Engine, Comment, RowFormat, CreateOptions, Collation: String;
+      Name, Database, Column, Engine, Comment, RowFormat, CreateOptions, Collation: String;
       Created, Updated, LastChecked: TDateTime;
       Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
       NodeType: TListNodeType;
@@ -2899,6 +2899,7 @@ begin
   if Source is TDBObject then begin
     s := Source as TDBObject;
     Name := s.Name;
+    Column := s.Column;
     Collation := s.Collation;
     Engine := s.Engine;
     Database := s.Database;
@@ -2923,6 +2924,7 @@ begin
     Result := (Name = CompareTo.Name)
       and (NodeType = CompareTo.NodeType)
       and (Database = CompareTo.Database)
+      and (Column = CompareTo.Column)
       and (Connection = CompareTo.Connection);
 end;
 
@@ -2936,6 +2938,7 @@ begin
     lntProcedure: Result := 'Procedure';
     lntTrigger: Result := 'Trigger';
     lntEvent: Result := 'Event';
+    lntColumn: Result := 'Column';
     else Result := 'Unknown, should never appear';
   end;
 end;

@@ -12,17 +12,8 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     lblSelect: TLabel;
-    editDB: TEdit;
-    editTable: TEdit;
-    editCol: TEdit;
-    lblDB: TLabel;
-    lblTable: TLabel;
-    lblCol: TLabel;
-    lblHint: TLabel;
-    procedure editChange(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure FormResize(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure TreeDBOFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex);
@@ -40,13 +31,13 @@ type
   private
     { Private declarations }
     FColumns: Array of Array of TStringList;
-    function GetSelectedObject: TStringList;
+    function GetSelectedObject: TDBObject;
   public
     { Public declarations }
-    property SelectedObject: TStringList read GetSelectedObject;
+    property SelectedObject: TDBObject read GetSelectedObject;
   end;
 
-function SelectDBO: TStringList;
+function SelectDBO: TDBObject;
 
 implementation
 
@@ -54,7 +45,7 @@ uses main, helpers;
 
 {$R *.dfm}
 
-function SelectDBO: TStringList;
+function SelectDBO: TDBObject;
 begin
   if Mainform.SelectDBObjectForm = nil then
     Mainform.SelectDBObjectForm := TfrmSelectDBObject.Create(Mainform);
@@ -81,49 +72,24 @@ begin
   MainReg.WriteInteger( REGNAME_SELECTDBO_WINHEIGHT, Height );
 end;
 
-procedure TfrmSelectDBObject.FormResize(Sender: TObject);
-var
-  EditWidth: Integer;
-const
-  space = 3;
-begin
-  // Calculate width for 1 TEdit
-  EditWidth := (TreeDBO.Width - 2*space) div 3;
-  // Set widths
-  editDb.Width := EditWidth;
-  editTable.Width := EditWidth;
-  editCol.Width := EditWidth;
-  // Set position of TEdits
-  editDb.Left := TreeDBO.Left;
-  editTable.Left := TreeDBO.Left + EditWidth + space;
-  editCol.Left := TreeDBO.Left + 2*(EditWidth + space);
-  // Set position of TLabels
-  lblDB.Left := editDB.Left;
-  lblTable.Left := editTable.Left;
-  lblCol.Left := editCol.Left;
-end;
-
 procedure TfrmSelectDBObject.FormShow(Sender: TObject);
 begin
   TreeDBO.Clear;
   TreeDBO.RootNodeCount := Mainform.DBtree.RootNodeCount;
   SetLength(FColumns, Mainform.ActiveConnection.AllDatabases.Count);
 //  TreeDBO.OnFocusChanged(TreeDBO, TreeDBO.FocusedNode, 0);
-  editDB.Clear;
-  editTable.Clear;
-  editCol.Clear;
-  editChange(Sender);
 end;
 
 
-function TfrmSelectDBObject.GetSelectedObject: TStringList;
+function TfrmSelectDBObject.GetSelectedObject: TDBObject;
+var
+  DBObj: PDBObject;
 begin
   Result := nil;
-  if editDb.Text <> '' then begin
-    Result := TStringList.Create;
-    Result.Add(editDb.Text);
-    if editTable.Text <> '' then Result.Add(editTable.Text);
-    if editCol.Text <> '' then Result.Add(editCol.Text);
+  if Assigned(TreeDBO.FocusedNode) then begin
+    DBObj := TreeDBO.GetNodeData(TreeDBO.FocusedNode);
+    Result := TDBObject.Create(DBObj.Connection);
+    Result.Assign(DBObj^);
   end;
   // Let the result be nil to indicate we have no selected node
 end;
@@ -131,31 +97,7 @@ end;
 procedure TfrmSelectDBObject.TreeDBOFocusChanged(Sender: TBaseVirtualTree;
     Node: PVirtualNode; Column: TColumnIndex);
 begin
-  editDB.Clear;
-  editTable.Clear;
-  editCol.Clear;
-  if Assigned(Node) then case TreeDBO.GetNodeLevel(Node) of
-    1: editDB.Text := TreeDBO.Text[Node, 0];
-    2: begin
-      editDB.Text := TreeDBO.Text[Node.Parent, 0];
-      editTable.Text := TreeDBO.Text[Node, 0];
-    end;
-    3: begin
-      editDB.Text := TreeDBO.Text[Node.Parent.Parent, 0];
-      editTable.Text := TreeDBO.Text[Node.Parent, 0];
-      editCol.Text := TreeDBO.Text[Node, 0];
-    end;
-  end;
-end;
-
-
-procedure TfrmSelectDBObject.editChange(Sender: TObject);
-begin
-  // DB must be filled
-  btnOK.Enabled := editDB.Text <> '';
-  // If col given, check if table is also given
-  if editCol.Text <> '' then
-    btnOK.Enabled := editTable.Text <> '';
+  btnOK.Enabled := Assigned(Node);
 end;
 
 

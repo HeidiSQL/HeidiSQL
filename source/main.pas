@@ -1921,8 +1921,7 @@ procedure TMainForm.actUserManagerExecute(Sender: TObject);
 begin
   if UserManagerForm = nil then
     UserManagerForm := TUserManagerForm.Create(Self);
-  if UserManagerForm.TestUserAdmin then
-    UserManagerForm.ShowModal;
+  UserManagerForm.ShowModal;
 end;
 
 procedure TMainForm.actAboutBoxExecute(Sender: TObject);
@@ -6475,7 +6474,8 @@ begin
     0: case DBObj.NodeType of
         lntNone: CellText := DBObj.Connection.SessionName;
         lntDb: CellText := DBObj.Database;
-        lntTable..lntEvent, lntColumn: CellText := DBObj.Name;
+        lntTable..lntEvent: CellText := DBObj.Name;
+        lntColumn: CellText := DBObj.Column;
       end;
     1: if DBObj.Connection.Active then case DBObj.NodeType of
         // Calculate and display the sum of all table sizes in ALL dbs if all table lists are cached
@@ -6631,7 +6631,9 @@ begin
       ParentItem := Sender.GetNodeData(Node.Parent);
       Columns := TTableColumnList.Create(True);
       ParentItem.Connection.ParseTableStructure(ParentItem.CreateCode, Columns, nil, nil);
-      Item.Name := Columns[Node.Index].Name;
+      Item.Database := ParentItem.Database;
+      Item.Name := ParentItem.Name;
+      Item.Column := Columns[Node.Index].Name;
     end;
   end;
 end;
