@@ -8295,44 +8295,47 @@ object MainForm: TMainForm
     object N12: TMenuItem
       Caption = '-'
     end
-    object DataInsertDateTime: TMenuItem
-      Caption = 'Insert Date/Time'
+    object DataInsertValue: TMenuItem
+      Caption = 'Insert value'
       ImageIndex = 80
+      OnClick = DataInsertValueClick
       object DataDateTime: TMenuItem
         Caption = 'datetime'
         Hint = 'Insert datetime-value'
         ImageIndex = 80
-        OnClick = InsertDate
+        OnClick = InsertValue
       end
       object DataDate: TMenuItem
         Caption = 'date'
         Hint = 'Insert date-value'
         ImageIndex = 80
-        OnClick = InsertDate
+        OnClick = InsertValue
       end
       object DataTime: TMenuItem
         Caption = 'time'
         Hint = 'Insert time-value'
         ImageIndex = 80
-        OnClick = InsertDate
-      end
-      object DataTimestamp: TMenuItem
-        Caption = 'timestamp'
-        Hint = 'Insert timestamp-value'
-        ImageIndex = 80
-        OnClick = InsertDate
+        OnClick = InsertValue
       end
       object DataYear: TMenuItem
         Caption = 'year'
         Hint = 'Insert year-value'
         ImageIndex = 80
-        OnClick = InsertDate
+        OnClick = InsertValue
       end
       object DataUNIXtimestamp: TMenuItem
         Caption = 'unix timestamp'
         Hint = 'Insert UNIX timestamp'
         ImageIndex = 80
-        OnClick = InsertDate
+        OnClick = InsertValue
+      end
+      object N2: TMenuItem
+        Caption = '-'
+      end
+      object DataGUID: TMenuItem
+        Caption = 'GUID'
+        ImageIndex = 112
+        OnClick = InsertValue
       end
     end
     object ViewasHTML1: TMenuItem

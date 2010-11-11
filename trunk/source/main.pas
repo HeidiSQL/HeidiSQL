@@ -290,12 +290,13 @@ type
     Exportdata2: TMenuItem;
     SaveDialogExportData: TSaveDialog;
     N11a: TMenuItem;
-    DataInsertDateTime: TMenuItem;
-    DataTimestamp: TMenuItem;
+    DataInsertValue: TMenuItem;
     DataDateTime: TMenuItem;
     DataTime: TMenuItem;
     DataDate: TMenuItem;
     DataYear: TMenuItem;
+    N2: TMenuItem;
+    DataGUID: TMenuItem;
     ViewasHTML1: TMenuItem;
     InsertfilesintoBLOBfields3: TMenuItem;
     N19: TMenuItem;
@@ -604,7 +605,8 @@ type
     procedure SaveDialogExportDataTypeChange(Sender: TObject);
     procedure popupDataGridPopup(Sender: TObject);
     procedure QFvaluesClick(Sender: TObject);
-    procedure InsertDate(Sender: TObject);
+    procedure DataInsertValueClick(Sender: TObject);
+    procedure InsertValue(Sender: TObject);
     procedure actDataSetNullExecute(Sender: TObject);
     function QueryLoad(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
     procedure AnyGridCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -5313,7 +5315,7 @@ procedure TMainForm.popupDataGridPopup(Sender: TObject);
 var
   Grid: TVirtualStringTree;
   Results: TMySQLQuery;
-  y,m,d,h,i,s,ms : Word;
+  i: Integer;
   cpText, Col, value : String;
   CellFocused, InDataGrid: Boolean;
   RowNumber: PCardinal;
@@ -5323,7 +5325,7 @@ begin
   Grid := ActiveGrid;
   CellFocused := Assigned(Grid.FocusedNode) and (Grid.FocusedColumn > NoColumn);
   InDataGrid := Grid = DataGrid;
-  DataInsertDateTime.Enabled := CellFocused;
+  DataInsertValue.Enabled := CellFocused;
   QFvalues.Enabled := CellFocused;
   menuQuickFilter.Enabled := InDataGrid;
   actDataResetSorting.Enabled := InDataGrid;
@@ -5333,15 +5335,6 @@ begin
   if not CellFocused then
     Exit;
   Results := GridResult(Grid);
-
-  decodedate(now, y, m, d);
-  decodetime(now, h, i, s, ms);
-  DataDateTime.Caption := Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,i,s]);
-  DataDate.Caption := Format('%.4d-%.2d-%.2d', [y,m,d]);
-  DataTime.Caption := Format('%.2d:%.2d:%.2d', [h,i,s]);
-  DataTimestamp.caption := Format('%.4d%.2d%.2d%.2d%.2d%.2d', [y,m,d,h,i,s]);
-  DataYear.Caption := Format('%.4d', [y]);
-  DataUNIXtimestamp.Caption := IntToStr(UnixTimestamp(Now));
 
   // Manipulate the Quick-filter menuitems
   AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
@@ -5444,13 +5437,34 @@ begin
 end;
 
 
-procedure TMainForm.InsertDate(Sender: TObject);
+procedure TMainForm.DataInsertValueClick(Sender: TObject);
+var
+  y, m, d, h, i, s, ms: Word;
+  Uid: TGuid;
+begin
+  DecodeDateTime(Now, y, m, d, h, i, s, ms);
+  DataDateTime.Caption := 'DATETIME: ' + Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,i,s]);
+  DataDate.Caption := 'DATE: ' + Format('%.4d-%.2d-%.2d', [y,m,d]);
+  DataTime.Caption := 'TIME: ' + Format('%.2d:%.2d:%.2d', [h,i,s]);
+  DataYear.Caption := 'YEAR: ' + Format('%.4d', [y]);
+  DataUNIXtimestamp.Caption := 'UNIX Timestamp: ' + IntToStr(UnixTimestamp(Now));
+
+  CreateGuid(Uid);
+  DataGUID.Caption := 'GUID: ' + GuidToString(Uid);
+end;
+
+
+procedure TMainForm.InsertValue(Sender: TObject);
 var
   d: String;
+  p: Integer;
   Grid: TVirtualStringTree;
 begin
   // Insert date/time-value into table
   d := StripHotkey((Sender as TMenuItem).Caption);
+  p := Pos(':', d);
+  if p > 0 then
+    d := Trim(Copy(d, p+1, MaxInt));
   Grid := ActiveGrid;
   try
     Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := d;
