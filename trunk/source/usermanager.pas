@@ -161,7 +161,7 @@ begin
   PrivsDb := InitPrivList('');
   PrivsTable := InitPrivList('ALTER,CREATE,DELETE,DROP,GRANT,INDEX');
   PrivsRoutine := InitPrivList('GRANT');
-  PrivsColumn := InitPrivList('INSERT,SELECT,UPDATE');
+  PrivsColumn := InitPrivList('INSERT,SELECT,UPDATE,REFERENCES');
 
   if Version >= 40002 then begin
     PrivsGlobal.Add('REPLICATION CLIENT');
