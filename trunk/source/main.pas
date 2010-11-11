@@ -6735,6 +6735,8 @@ begin
   // Main tab stuff
   tabHost.Caption := 'Host: '+sstr(DBObj.Connection.Parameters.HostName, 20);
   tabDatabase.Caption := 'Database: '+sstr(DBObj.Connection.Database, 20);
+  // Make wanted tab visible before activating, to avoid unset tab on Wine
+  MainTabToActivate.TabVisible := True;
   SetMainTab(MainTabToActivate);
   tabDatabase.TabVisible := DBObj.NodeType <> lntNone;
   tabEditor.TabVisible := DBObj.NodeType in [lntTable..lntEvent];
