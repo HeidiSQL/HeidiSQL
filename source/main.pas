@@ -2205,12 +2205,14 @@ begin
   FreeAndNil(QueryTab.QueryProfile);
   ProfileNode := FindNode(QueryTab.treeHelpers, HELPERNODE_PROFILE, nil);
   DoProfile := Assigned(ProfileNode) and (QueryTab.treeHelpers.CheckState[ProfileNode] in CheckedStates);
-  if DoProfile and (ActiveConnection.ServerVersionInt < 50037) then begin
-    DoProfile := False;
-    MessageDlg('Query profiling requires MySQL 5.0.37 or later.', mtError, [mbOK], 0);
-  end;
-  if DoProfile then
+  if DoProfile then try
     ActiveConnection.Query('SET profiling=1');
+  except
+    on E:EDatabaseError do begin
+      MessageDlg('Query profiling requires MySQL 5.0.37 or later, and the server must not be configured with --disable-profiling.'+CRLF+CRLF+E.Message, mtError, [mbOK], 0);
+      DoProfile := False;
+    end;
+  end;
   for i:=0 to SQLBatch.Count-1 do begin
     ShowStatusMsg('Executing query #'+FormatNumber(i+1)+' of '+FormatNumber(SQLBatch.Count)+' ...');
     ProgressBarStatus.StepIt;
