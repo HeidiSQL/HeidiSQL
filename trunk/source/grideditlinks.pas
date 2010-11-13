@@ -117,6 +117,7 @@ type
     function EndEdit: Boolean; override;
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
     procedure SetBounds(R: TRect); override;
+    procedure PanelResize(Sender: TObject);
   end;
 
   // Inplace editor with button
@@ -839,6 +840,10 @@ begin
   FPanel.Hide;
   FPanel.Parent := FParentForm;
   FPanel.ParentBackground := False;
+  FPanel.Width := GetRegValue(REGNAME_SETEDITORWIDTH, DEFAULT_SETEDITORWIDTH);
+  FPanel.Height := GetRegValue(REGNAME_SETEDITORHEIGHT, DEFAULT_SETEDITORHEIGHT);
+  SetWindowSizeGrip(FPanel.Handle, True);
+  FPanel.OnResize := PanelResize;
   FPanel.OnExit := DoEndEdit;
 
   FCheckList := TCheckListBox.Create(FPanel);
@@ -860,6 +865,8 @@ end;
 
 destructor TSetEditorLink.Destroy;
 begin
+  Mainreg.WriteInteger(REGNAME_SETEDITORWIDTH, FPanel.Width);
+  Mainreg.WriteInteger(REGNAME_SETEDITORHEIGHT, FPanel.Height);
   FreeAndNil(FPanel);
   inherited;
 end;
@@ -910,18 +917,16 @@ end;
 
 procedure TSetEditorLink.SetBounds(R: TRect); stdcall;
 const
-  margin = 3;
+  margin = 5;
 begin
   R := GetCellRect(False);
   FPanel.Top := R.Top;
   FPanel.Left := R.Left;
-  FPanel.Width := R.Right - R.Left;
-  FPanel.Height := 130;
 
   FBtnOk.Width := (FPanel.Width - 3*margin) div 2;
   FBtnOk.Left := margin;
   FBtnOk.Height := 24;
-  FBtnOk.Top := FPanel.Height - margin - FBtnOk.Height;
+  FBtnOk.Top := FPanel.Height - 2*margin - FBtnOk.Height;
 
   FBtnCancel.Width := FBtnOk.Width;
   FBtnCancel.Left := 2*margin + FBtnOk.Width;
@@ -931,7 +936,13 @@ begin
   FCheckList.Top := margin;
   FCheckList.Left := margin;
   FCheckList.Width := FPanel.Width - 2*margin;
-  FCheckList.Height := FPanel.Height - 3*margin - FBtnOk.Height;
+  FCheckList.Height := FBtnOk.Top - margin - FCheckList.Top;
+end;
+
+
+procedure TSetEditorLink.PanelResize(Sender: TObject);
+begin
+  SetBounds(FPanel.ClientRect);
 end;
 
 
