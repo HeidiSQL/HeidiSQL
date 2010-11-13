@@ -440,6 +440,7 @@ var
   Triggers, Views: TDBObjectList;
   DBObj: PDBObject;
   i: Integer;
+  ExitLoop: Boolean;
 
   procedure ProcessNode(DBObj: TDBObject);
   begin
@@ -450,10 +451,17 @@ var
         tmSQLExport: DoExport(DBObj);
         tmBulkTableEdit: DoBulkTableEdit(DBObj);
       end;
-    except on E:EDatabaseError do
-      // The above SQL can easily throw an exception, e.g. if a table is corrupted.
-      // In such cases we create a dummy row, including the error message
-      AddNotes(DBObj.Database, DBObj.Name, 'error', E.Message)
+    except
+      on E:EDatabaseError do begin
+        // The above SQL can easily throw an exception, e.g. if a table is corrupted.
+        // In such cases we create a dummy row, including the error message
+        AddNotes(DBObj.Database, DBObj.Name, 'error', E.Message)
+      end;
+      on E:EFCreateError do begin
+        // Occurs when export output file can not be created
+        MessageDlg(E.Message, mtError, [mbOK], 0);
+        ExitLoop := True;
+      end;
     end;
   end;
 
@@ -474,6 +482,7 @@ begin
   Views := TDBObjectList.Create(False);
   TreeObjects.SetFocus;
   FHeaderCreated := False;
+  ExitLoop := False;
   SessionNode := TreeObjects.GetFirstChild(nil);
   while Assigned(SessionNode) do begin
     DBNode := TreeObjects.GetFirstChild(SessionNode);
@@ -490,9 +499,12 @@ begin
             if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntTrigger) then
               Triggers.Add(DBObj^)
             else begin
+              ProcessNode(DBObj^);
+              // File creation exceptions should stop the whole loop here
+              if ExitLoop then
+                Break;
               if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntView) then
                 Views.Add(DBObj^);
-              ProcessNode(DBObj^);
             end;
           end;
           TableNode := TreeObjects.GetNextSibling(TableNode);
