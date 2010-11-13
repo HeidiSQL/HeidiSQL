@@ -554,9 +554,9 @@ procedure TfrmTableTools.DoFind(DBObj: TDBObject);
 var
   Columns: TTableColumnList;
   Col: TTableColumn;
-  SQL, ResultSQL, Dummy: String;
+  SQL, Dummy: String;
 begin
-  ResultSQL := '';
+  FFindSeeResultSQL.Add('');
   Columns := TTableColumnList.Create(True);
   case DBObj.NodeType of
     lntTable: DBObj.Connection.ParseTableStructure(DBObj.CreateCode, Columns, nil, nil);
@@ -575,7 +575,7 @@ begin
     end;
     if SQL <> '' then begin
       Delete(SQL, Length(SQL)-3, 3);
-      ResultSQL := 'SELECT * FROM '+Mainform.mask(DBObj.Database)+'.'+Mainform.mask(DBObj.Name)+' WHERE ' + SQL;
+      FFindSeeResultSQL[FFindSeeResultSQL.Count-1] := 'SELECT * FROM '+Mainform.mask(DBObj.Database)+'.'+Mainform.mask(DBObj.Name)+' WHERE ' + SQL;
       SQL := 'SELECT '''+DBObj.Database+''' AS `Database`, '''+DBObj.Name+''' AS `Table`, COUNT(*) AS `Found rows`, '
         + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS `Relevance` FROM '+Mainform.mask(DBObj.Database)+'.'+Mainform.mask(DBObj.Name)+' WHERE '
         + SQL;
@@ -584,7 +584,6 @@ begin
       AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+DBObj.ObjType+' doesn''t have columns of selected type ('+comboDatatypes.Text+').', '');
   end;
   Columns.Free;
-  FFindSeeResultSQL.Add(ResultSQL);
 end;
 
 
