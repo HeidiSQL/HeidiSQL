@@ -2598,7 +2598,7 @@ end;
 // Drop Table(s)
 procedure TMainForm.actDropObjectsExecute(Sender: TObject);
 var
-  msg, activeDB : String;
+  msg, db: String;
   InDBTree: Boolean;
   Act: TAction;
   Node: PVirtualNode;
@@ -2606,10 +2606,9 @@ var
   DBObject: TDBObject;
   ObjectList: TDBObjectList;
   Editor: TDBObjectEditor;
+  Conn: TMySQLConnection;
 begin
-  // Set default database name to to ActiveDatabase.
-  // Can be overwritten when someone selects a table in dbtree from different database
-  activeDB := ActiveDatabase;
+  Conn := ActiveConnection;
 
   ObjectList := TDBobjectList.Create(TDBObjectDropComparer.Create, False);
 
@@ -2620,13 +2619,15 @@ begin
     // drop table selected in tree view.
     case ActiveDBObj.NodeType of
       lntDb: begin
-        if MessageDlg('Drop Database "'+activeDB+'"?' + crlf + crlf + 'WARNING: You will lose all objects in database '+activeDB+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
+        if MessageDlg('Drop Database "'+Conn.Database+'"?' + crlf + crlf + 'WARNING: You will lose all objects in database '+Conn.Database+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
           Abort;
         try
-          SetActiveDatabase('', ActiveConnection);
-          ActiveConnection.Query('DROP DATABASE ' + mask(activeDB));
-          ActiveConnection.ClearDbObjects(activeDB);
-          RefreshTree;
+          db := Conn.Database;
+          Node := FindDBNode(DBtree, db);
+          SetActiveDatabase('', Conn);
+          Conn.Query('DROP DATABASE ' + mask(db));
+          DBtree.DeleteNode(Node);
+          Conn.ClearDbObjects(db);
         except
           on E:EDatabaseError do
             MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -2654,24 +2655,27 @@ begin
 
   // Ask user for confirmation to drop selected objects
   ObjectList.Sort;
-  msg := 'Drop ' + IntToStr(ObjectList.Count) + ' object(s) in database "'+activeDB+'"?' + CRLF + CRLF;
+  msg := 'Drop ' + IntToStr(ObjectList.Count) + ' object(s) in database "'+Conn.Database+'"?' + CRLF + CRLF;
   for DBObject in ObjectList do
     msg := msg + DBObject.Name + ', ';
   Delete(msg, Length(msg)-1, 2);
   if MessageDlg(msg, mtConfirmation, [mbok,mbcancel], 0) = mrOk then begin
     try
       // Disable foreign key checks to avoid SQL errors
-      ActiveConnection.Query('/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */');
+      if Conn.ServerVersionInt >= 40014 then
+        Conn.Query('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0');
       // Compose and run DROP [TABLE|VIEW|...] queries
       Editor := ActiveObjectEditor;
       for DBObject in ObjectList do begin
-        ActiveConnection.Query('DROP '+UpperCase(DBObject.ObjType)+' '+Mask(DBObject.Name));
+        Conn.Query('DROP '+UpperCase(DBObject.ObjType)+' '+Mask(DBObject.Name));
         if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
           Editor.Modified := False;
       end;
+      if Conn.ServerVersionInt >= 40014 then
+        Conn.Query('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS');
       // Refresh ListTables + dbtree so the dropped tables are gone:
-      ActiveConnection.ClearDbObjects(ActiveDatabase);
-      ActiveConnection.Query('/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */');
+      Conn.ClearDbObjects(ActiveDatabase);
+      SetActiveDatabase(Conn.Database, Conn);
     except
       on E:EDatabaseError do
         MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -6741,7 +6745,8 @@ begin
     InvalidateVT(ListCommandstats, VTREE_NOTLOADED, False);
     InvalidateVT(ListTables, VTREE_NOTLOADED, False);
   end;
-  if (PrevDBObj.Connection <> DBObj.Connection) or (PrevDBObj.Database <> DBObj.Database) then
+  if (DBObj.NodeType <> lntNone)
+    and ((PrevDBObj.Connection <> DBObj.Connection) or (PrevDBObj.Database <> DBObj.Database)) then
     InvalidateVT(ListTables, VTREE_NOTLOADED, True);
 
   // Store click history item
