@@ -5,7 +5,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
-  ExtCtrls, ToolWin, ClipBrd, Generics.Collections, SynRegExpr,
+  ExtCtrls, ToolWin, ClipBrd, Generics.Collections, Generics.Defaults, SynRegExpr,
   mysql_connection, helpers, VirtualTrees;
 
 {$I const.inc}
@@ -23,6 +23,9 @@ type
       destructor Destroy; override;
   end;
   TPrivObjList = TObjectList<TPrivObj>;
+  TPrivComparer = class(TComparer<TPrivObj>)
+    function Compare(const Left, Right: TPrivObj): Integer; override;
+  end;
 
   EInputError = class(Exception);
 
@@ -229,7 +232,7 @@ begin
       'WHERE '+MainForm.mask('Password')+'!='+esc('!')+' '+
       'ORDER BY LOWER('+MainForm.mask('user')+'), LOWER('+MainForm.mask('host')+')');
     InvalidateVT(listUsers, VTREE_NOTLOADED, False);
-    FPrivObjects := TPrivObjList.Create(True);
+    FPrivObjects := TPrivObjList.Create(TPrivComparer.Create, True);
     Modified := False;
     FAdded := False;
     listUsers.OnFocusChanged(listUsers, listUsers.FocusedNode, listUsers.FocusedColumn);
@@ -473,6 +476,7 @@ begin
         Ptmp.AddedPrivs.AddStrings(Ptmp.OrgPrivs);
     end;
 
+    FPrivObjects.Sort;
     rxA.Free;
     rxB.Free;
     FreeAndNil(Grants);
@@ -957,6 +961,24 @@ begin
   FreeAndNil(OrgPrivs);
   FreeAndNil(AddedPrivs);
   FreeAndNil(DeletedPrivs);
+end;
+
+
+{ TPrivComparer }
+
+function TPrivComparer.Compare(const Left, Right: TPrivObj): Integer;
+begin
+  // Prio for global > db > table > view > function > proc > event > column
+  if (Left.DBObj.NodeType < Right.DBObj.NodeType) then
+    Result := -1
+  else if (Left.DBObj.NodeType > Right.DBObj.NodeType) then
+    Result := 1
+  else begin
+    Result := CompareText(
+      Left.DBObj.Database+Left.DBObj.Name+Left.DBObj.Column,
+      Right.DBObj.Database+Right.DBObj.Name+Right.DBObj.Column
+      );
+  end;
 end;
 
 
