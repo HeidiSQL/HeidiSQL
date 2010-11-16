@@ -17,6 +17,7 @@ type
     DBObj: TDBObject;
     OrgPrivs, AddedPrivs, DeletedPrivs: TStringList;
     AllPrivileges: TStringList;
+    Added: Boolean;
     public
       constructor Create;
       destructor Destroy; override;
@@ -377,6 +378,7 @@ begin
       if rxA.Exec(Grants[i]) then begin
         P := TPrivObj.Create;
         P.GrantCode := Grants[i];
+        P.Added := FAdded;
         FPrivObjects.Add(P);
 
         if (rxA.Match[4] = '*') and (rxA.Match[5] = '*') then begin
@@ -747,6 +749,7 @@ begin
     else Priv.OrgPrivs.Add('SELECT');
   end;
   Priv.AddedPrivs.AddStrings(Priv.OrgPrivs);
+  Priv.Added := True;
   FPrivObjects.Add(Priv);
   Node := treePrivs.AddChild(nil);
   treePrivs.Expanded[Node] := True;
@@ -803,7 +806,7 @@ begin
       end;
 
       // Revoke privileges
-      if P.DeletedPrivs.Count > 0 then begin
+      if (not P.Added) and (P.DeletedPrivs.Count > 0) then begin
         Revoke := '';
         for i:=0 to P.DeletedPrivs.Count-1 do begin
           Revoke := Revoke + P.DeletedPrivs[i];
@@ -819,7 +822,7 @@ begin
       end;
 
       // Grant privileges. Must be applied with USAGE for added users without specific privs.
-      if (P.AddedPrivs.Count > 0) or FAdded then begin
+      if P.Added or (P.AddedPrivs.Count > 0) then begin
         Grant := '';
         for i:=0 to P.AddedPrivs.Count-1 do begin
           if P.AddedPrivs[i] = 'GRANT' then
@@ -943,6 +946,7 @@ begin
   AddedPrivs.Duplicates := dupIgnore;
   DeletedPrivs := TStringList.Create;
   DeletedPrivs.Duplicates := dupIgnore;
+  Added := False;
   DBObj := TDBObject.Create(MainForm.ActiveConnection);
 end;
 
