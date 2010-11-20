@@ -57,8 +57,6 @@ end;
 
 
 procedure TAboutBox.FormShow(Sender: TObject);
-var
-  Compiled       : TDateTime;
 begin
   Screen.Cursor := crHourGlass;
 
@@ -72,8 +70,7 @@ begin
   lblAppName.Caption := AppName;
   lblAppDescription.Caption := Mainform.AppDescription;
   lblAppVersion.Caption := 'Version '+Mainform.AppVersion;
-  FileAge(ParamStr(0), Compiled);
-  lblAppCompiled.Caption := 'Compiled on: ' + DateTimeToStr(Compiled);
+  lblAppCompiled.Caption := 'Compiled on: ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName));
   lblAppWebpage.Caption := AppDomain;
   lblAppWebpage.Hint := AppDomain;
   // Avoid scroll by removing blank line outside visible area in Authors text box

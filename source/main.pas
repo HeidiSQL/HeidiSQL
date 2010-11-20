@@ -5453,7 +5453,7 @@ begin
   DataDate.Caption := 'DATE: ' + Format('%.4d-%.2d-%.2d', [y,m,d]);
   DataTime.Caption := 'TIME: ' + Format('%.2d:%.2d:%.2d', [h,i,s]);
   DataYear.Caption := 'YEAR: ' + Format('%.4d', [y]);
-  DataUNIXtimestamp.Caption := 'UNIX Timestamp: ' + IntToStr(UnixTimestamp(Now));
+  DataUNIXtimestamp.Caption := 'UNIX Timestamp: ' + IntToStr(DateTimeToUnix(Now));
 
   CreateGuid(Uid);
   DataGUID.Caption := 'GUID: ' + GuidToString(Uid);
