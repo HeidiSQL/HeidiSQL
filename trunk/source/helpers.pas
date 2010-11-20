@@ -156,8 +156,7 @@ type
   function CompareAnyNode(Text1, Text2: String): Integer;
   function GetColumnDefaultType(var Text: String): TColumnDefaultType;
   function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: String): String;
-  function UnixTimestamp(d: TDateTime): Integer;
-  function FromUnixTimestamp(t: Integer): TDateTime;
+  function GetImageLinkTimeStamp(const FileName: string): TDateTime;
 
 var
   MainReg: TRegistry;
@@ -2715,15 +2714,119 @@ begin
 end;
 
 
-function UnixTimestamp(d: TDateTime): Integer;
+{**
+  Return compile date/time from passed .exe name
+  Code taken and modified from Michael Puff
+  http://www.michael-puff.de/Programmierung/Delphi/Code-Snippets/GetImageLinkTimeStamp.shtml
+}
+function GetImageLinkTimeStamp(const FileName: string): TDateTime;
+const
+  INVALID_SET_FILE_POINTER = DWORD(-1);
+  BorlandMagicTimeStamp = $2A425E19; // Delphi 4-6 (and above?)
+  FileTime1970: TFileTime = (dwLowDateTime:$D53E8000; dwHighDateTime:$019DB1DE);
+type
+  PImageSectionHeaders = ^TImageSectionHeaders;
+  TImageSectionHeaders = array [Word] of TImageSectionHeader;
+type
+  PImageResourceDirectory = ^TImageResourceDirectory;
+  TImageResourceDirectory = packed record
+    Characteristics: DWORD;
+    TimeDateStamp: DWORD;
+    MajorVersion: Word;
+    MinorVersion: Word;
+    NumberOfNamedEntries: Word;
+    NumberOfIdEntries: Word;
+  end;
+var
+  FileHandle: THandle;
+  BytesRead: DWORD;
+  ImageDosHeader: TImageDosHeader;
+  ImageNtHeaders: TImageNtHeaders;
+  SectionHeaders: PImageSectionHeaders;
+  Section: Word;
+  ResDirRVA: DWORD;
+  ResDirSize: DWORD;
+  ResDirRaw: DWORD;
+  ResDirTable: TImageResourceDirectory;
+  FileTime: TFileTime;
+  TimeStamp: DWord;
 begin
-  Result := ((Trunc(d) - 25569) * 86400) + Trunc(86400 * (d - Trunc(d))) - 7200;
+  TimeStamp := 0;
+  Result := 0;
+  // Open file for read access
+  FileHandle := CreateFile(PChar(FileName), GENERIC_READ, FILE_SHARE_READ, nil, OPEN_EXISTING, 0, 0);
+  if (FileHandle <> INVALID_HANDLE_VALUE) then try
+    // Read MS-DOS header to get the offset of the PE32 header
+    // (not required on WinNT based systems - but mostly available)
+    if not ReadFile(FileHandle, ImageDosHeader, SizeOf(TImageDosHeader),
+      BytesRead, nil) or (BytesRead <> SizeOf(TImageDosHeader)) or
+      (ImageDosHeader.e_magic <> IMAGE_DOS_SIGNATURE) then begin
+      ImageDosHeader._lfanew := 0;
+    end;
+    // Read PE32 header (including optional header
+    if (SetFilePointer(FileHandle, ImageDosHeader._lfanew, nil, FILE_BEGIN) = INVALID_SET_FILE_POINTER) then
+      Exit;
+    if not(ReadFile(FileHandle, ImageNtHeaders, SizeOf(TImageNtHeaders), BytesRead, nil) and (BytesRead = SizeOf(TImageNtHeaders))) then
+      Exit;
+    // Validate PE32 image header
+    if (ImageNtHeaders.Signature <> IMAGE_NT_SIGNATURE) then
+      Exit;
+    // Seconds since 1970 (UTC)
+    TimeStamp := ImageNtHeaders.FileHeader.TimeDateStamp;
+
+    // Check for Borland's magic value for the link time stamp
+    // (we take the time stamp from the resource directory table)
+    if (ImageNtHeaders.FileHeader.TimeDateStamp = BorlandMagicTimeStamp) then
+    with ImageNtHeaders, FileHeader, OptionalHeader do begin
+      // Validate Optional header
+      if (SizeOfOptionalHeader < IMAGE_SIZEOF_NT_OPTIONAL_HEADER) or (Magic <> IMAGE_NT_OPTIONAL_HDR_MAGIC) then
+        Exit;
+      // Read section headers
+      SectionHeaders :=
+        GetMemory(NumberOfSections * SizeOf(TImageSectionHeader));
+      if Assigned(SectionHeaders) then try
+        if (SetFilePointer(FileHandle, SizeOfOptionalHeader - IMAGE_SIZEOF_NT_OPTIONAL_HEADER, nil, FILE_CURRENT) = INVALID_SET_FILE_POINTER) then
+          Exit;
+        if not(ReadFile(FileHandle, SectionHeaders^, NumberOfSections * SizeOf(TImageSectionHeader), BytesRead, nil) and (BytesRead = NumberOfSections * SizeOf(TImageSectionHeader))) then
+          Exit;
+        // Get RVA and size of the resource directory
+        with DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE] do begin
+          ResDirRVA := VirtualAddress;
+          ResDirSize := Size;
+        end;
+        // Search for section which contains the resource directory
+        ResDirRaw := 0;
+        for Section := 0 to NumberOfSections - 1 do
+        with SectionHeaders[Section] do
+          if (VirtualAddress <= ResDirRVA) and (VirtualAddress + SizeOfRawData >= ResDirRVA + ResDirSize) then begin
+            ResDirRaw := PointerToRawData - (VirtualAddress - ResDirRVA);
+            Break;
+          end;
+        // Resource directory table found?
+        if (ResDirRaw = 0) then
+          Exit;
+        // Read resource directory table
+        if (SetFilePointer(FileHandle, ResDirRaw, nil, FILE_BEGIN) = INVALID_SET_FILE_POINTER) then
+          Exit;
+        if not(ReadFile(FileHandle, ResDirTable, SizeOf(TImageResourceDirectory), BytesRead, nil) and (BytesRead = SizeOf(TImageResourceDirectory))) then
+          Exit;
+        // Convert from DosDateTime to SecondsSince1970
+        if DosDateTimeToFileTime(HiWord(ResDirTable.TimeDateStamp), LoWord(ResDirTable.TimeDateStamp), FileTime) then begin
+          // FIXME: Borland's linker uses the local system time
+          // of the user who linked the executable image file.
+          // (is that information anywhere?)
+          TimeStamp := (ULARGE_INTEGER(FileTime).QuadPart - ULARGE_INTEGER(FileTime1970).QuadPart) div 10000000;
+        end;
+      finally
+        FreeMemory(SectionHeaders);
+      end;
+    end;
+  finally
+    CloseHandle(FileHandle);
+  end;
+  Result := UnixToDateTime(TimeStamp);
 end;
 
-function FromUnixTimestamp(t: Integer): TDateTime;
-begin
-  Result := ((t + 7200) / 86400) + 25569;
-end;
 
 end.
 
