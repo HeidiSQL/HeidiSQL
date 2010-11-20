@@ -6942,8 +6942,8 @@ begin
         SetActiveDatabase('', FocusNewObject.Connection);
     except
     end;
-      if not Assigned(DBtree.FocusedNode) then
-        raise Exception.Create('Error Message');
+    if not Assigned(DBtree.FocusedNode) then
+      raise Exception.Create('Could not find node to focus.');
 
   finally
     FTreeRefreshInProgress := False;
