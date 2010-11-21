@@ -143,14 +143,6 @@ end;
 
 
 procedure TUserManagerForm.FormCreate(Sender: TObject);
-var
-  Version: Integer;
-function InitPrivList(Values: String): TStringList;
-begin
-  Result := Explode(',', Values);
-  Result.Sorted := True;
-  Result.Duplicates := dupIgnore;
-end;
 begin
   // Restore GUI setup
   InheritFont(Font);
@@ -160,6 +152,34 @@ begin
   SetWindowSizeGrip( Self.Handle, True );
   FixVT(listUsers);
   FixVT(treePrivs);
+  PrivsRead := Explode(',', 'SELECT,SHOW VIEW,SHOW DATABASES,PROCESS,EXECUTE');
+  PrivsWrite := Explode(',', 'ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES');
+  PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER');
+end;
+
+
+procedure TUserManagerForm.FormDestroy(Sender: TObject);
+begin
+  // FormDestroy: Save GUI setup
+  OpenRegistry;
+  MainReg.WriteInteger( REGNAME_USERMNGR_WINWIDTH, Width );
+  MainReg.WriteInteger( REGNAME_USERMNGR_WINHEIGHT, Height );
+  MainReg.WriteInteger( REGNAME_USERMNGR_LISTWIDTH, pnlLeft.Width );
+end;
+
+
+procedure TUserManagerForm.FormShow(Sender: TObject);
+var
+  Version: Integer;
+
+function InitPrivList(Values: String): TStringList;
+begin
+  Result := Explode(',', Values);
+  Result.Sorted := True;
+  Result.Duplicates := dupIgnore;
+end;
+
+begin
   Version := Mainform.ActiveConnection.ServerVersionInt;
   PrivsGlobal := InitPrivList('FILE,PROCESS,RELOAD,SHUTDOWN');
   PrivsDb := InitPrivList('');
@@ -195,10 +215,6 @@ begin
   PrivsDb.AddStrings(PrivsRoutine);
   PrivsGlobal.AddStrings(PrivsDb);
 
-  PrivsRead := InitPrivList('SELECT,SHOW VIEW,SHOW DATABASES,PROCESS,EXECUTE');
-  PrivsWrite := InitPrivList('ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES');
-  PrivsAdmin := InitPrivList('RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER');
-
   PrivsGlobal.Sorted := False;
   PrivsGlobal.CustomSort(ComparePrivs);
   PrivsDb.Sorted := False;
@@ -209,21 +225,8 @@ begin
   PrivsRoutine.CustomSort(ComparePrivs);
   PrivsColumn.Sorted := False;
   PrivsColumn.CustomSort(ComparePrivs);
-end;
 
 
-procedure TUserManagerForm.FormDestroy(Sender: TObject);
-begin
-  // FormDestroy: Save GUI setup
-  OpenRegistry;
-  MainReg.WriteInteger( REGNAME_USERMNGR_WINWIDTH, Width );
-  MainReg.WriteInteger( REGNAME_USERMNGR_WINHEIGHT, Height );
-  MainReg.WriteInteger( REGNAME_USERMNGR_LISTWIDTH, pnlLeft.Width );
-end;
-
-
-procedure TUserManagerForm.FormShow(Sender: TObject);
-begin
   // Load user@host list
   try
     FUsers := MainForm.ActiveConnection.GetCol(
@@ -255,9 +258,14 @@ end;
 
 procedure TUserManagerForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  // Free user list
+  // Free user list and list of available priv names
   FreeAndNil(FUsers);
   FreeAndNil(FPrivObjects);
+  FreeAndNil(PrivsGlobal);
+  FreeAndNil(PrivsDb);
+  FreeAndNil(PrivsTable);
+  FreeAndNil(PrivsRoutine);
+  FreeAndNil(PrivsColumn);
 end;
 
 
