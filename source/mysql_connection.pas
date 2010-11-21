@@ -2849,8 +2849,10 @@ end;
 function TDBObjectDropComparer.Compare(const Left, Right: TDBObject): Integer;
 begin
   // Sorting a TDBObject items so that dropping them does not trap in SQL errors
-  if Left.NodeType = lntTrigger then
+  if (Left.NodeType = lntTrigger) and (Right.NodeType <> lntTrigger) then
     Result := -1
+  else if (Left.NodeType <> lntTrigger) and (Right.NodeType = lntTrigger) then
+    Result := 1
   else if (Left.NodeType = lntView) and (Right.NodeType <> lntView) then
     Result := -1
   else if (Left.NodeType <> lntView) and (Right.NodeType = lntView) then
