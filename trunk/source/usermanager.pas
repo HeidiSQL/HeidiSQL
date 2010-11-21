@@ -766,10 +766,11 @@ end;
 procedure TUserManagerForm.btnSaveClick(Sender: TObject);
 var
   Conn: TMySQLConnection;
-  UserHost, NewUserHost, Table, Revoke, Grant, OnObj: String;
+  UserHost, NewUserHost, Create, Table, Revoke, Grant, OnObj: String;
   Tables: TStringList;
   P: TPrivObj;
   i: Integer;
+  PasswordSet: Boolean;
 begin
   // Save changes
   Conn := MainForm.ActiveConnection;
@@ -792,6 +793,16 @@ begin
     // Check input: Ensure we have a unique user@host combination
     if editPassword.Text <> editRepeatPassword.Text then
       raise EInputError.Create('Repeated password does not match first one.');
+
+    // Create added user
+    PasswordSet := False;
+    if FAdded and (Conn.ServerVersionInt >= 50002) then begin
+      Create := 'CREATE USER '+UserHost;
+      if editPassword.Modified then
+        Create := Create + ' IDENTIFIED BY '+esc(editPassword.Text);
+      Conn.Query(Create);
+      PasswordSet := True;
+    end;
 
     // Grant added privileges and revoke deleted ones
     for P in FPrivObjects do begin
@@ -847,7 +858,7 @@ begin
     end;
 
     // Set password
-    if editPassword.Modified then begin
+    if editPassword.Modified and (not PasswordSet) then begin
       Conn.Query('SET PASSWORD FOR ' + UserHost + ' = PASSWORD('+esc(editPassword.Text)+')');
     end;
 
