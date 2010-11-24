@@ -511,6 +511,7 @@ type
     ApplicationEvents1: TApplicationEvents;
     actDisconnect: TAction;
     Copylinetonewquerytab1: TMenuItem;
+    menuLogHorizontalScrollbar: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -825,6 +826,7 @@ type
     procedure actDisconnectExecute(Sender: TObject);
     procedure menuEditObjectClick(Sender: TObject);
     procedure Copylinetonewquerytab1Click(Sender: TObject);
+    procedure menuLogHorizontalScrollbarClick(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -1217,6 +1219,7 @@ begin
   MainReg.WriteInteger( REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height );
   MainReg.WriteBool(REGNAME_FILTERACTIVE, pnlFilterVT.Tag=Integer(True));
   MainReg.WriteBool(REGNAME_WRAPLINES, actQueryWordWrap.Checked);
+  MainReg.WriteBool(REGNAME_LOG_HORIZONTALSCROLLBAR, SynMemoSQLLog.ScrollBars = ssBoth);
   // Convert set to string.
   case WindowState of
     wsMinimized: WinState := 'Minimized';
@@ -1464,6 +1467,8 @@ begin
   prefCSVTerminator := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
   prefExportLocaleNumbers := GetRegValue(REGNAME_EXPORT_LOCALENUMBERS, DEFAULT_EXPORT_LOCALENUMBERS);
   prefRememberFilters := GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
+  if GetRegValue(REGNAME_LOG_HORIZONTALSCROLLBAR, SynMemoSQLLog.ScrollBars = ssBoth) then
+    menuLogHorizontalScrollbar.OnClick(menuLogHorizontalScrollbar);
   prefLogErrors := GetRegValue(REGNAME_LOG_ERRORS, DEFAULT_LOG_ERRORS);
   prefLogUserSQL := GetRegValue(REGNAME_LOG_USERSQL, DEFAULT_LOG_USERSQL);
   prefLogSQL := GetRegValue(REGNAME_LOG_SQL, DEFAULT_LOG_SQL);
@@ -6185,6 +6190,20 @@ begin
   // Disable displaying hint if text is displayed completely in list
   if NeededWidth <= DisplayedWidth then
     HintText := '';
+end;
+
+
+procedure TMainForm.menuLogHorizontalScrollbarClick(Sender: TObject);
+var
+  Item: TMenuItem;
+begin
+  // Toggle visibility of horizontal scrollbar
+  Item := Sender as TMenuItem;
+  Item.Checked := not Item.Checked;
+  if Item.Checked then
+    SynMemoSQLLog.ScrollBars := ssBoth
+  else
+    SynMemoSQLLog.ScrollBars := ssVertical;
 end;
 
 

@@ -60,6 +60,7 @@ const
   REGNAME_LOGSQLWIDTH = 'logsqlwidth';
   DEFAULT_LOGSQLWIDTH = 2000;
   REGNAME_LOGDIR = 'SessionLogsDirectory';
+  REGNAME_LOG_HORIZONTALSCROLLBAR = 'LogHorizontalScrollbar';
   REGPREFIX_SQLATTRI = 'SQL Attr ';
   REGPOSTFIX_SQL_FG = ' Foreground';
   REGPOSTFIX_SQL_BG = ' Background';
