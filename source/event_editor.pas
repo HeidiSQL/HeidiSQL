@@ -244,13 +244,13 @@ end;
 
 function TfrmEventEditor.ComposeCreateStatement: String;
 begin
-  Result := 'CREATE EVENT ' + Mainform.mask(editName.Text) + ' ' + ComposeBaseStatement;
+  Result := 'CREATE EVENT ' + QuoteIdent(editName.Text) + ' ' + ComposeBaseStatement;
 end;
 
 
 function TfrmEventEditor.ComposeAlterStatement: String;
 begin
-  Result := 'ALTER EVENT ' + Mainform.mask(DBObject.Name) + ' ' + ComposeBaseStatement;
+  Result := 'ALTER EVENT ' + QuoteIdent(DBObject.Name) + ' ' + ComposeBaseStatement;
 end;
 
 
@@ -289,7 +289,7 @@ begin
   else
     Result := Result + #9 + 'ON COMPLETION PRESERVE';
   if (DBObject.Name <> '') and (DBObject.Name <> editName.Text) then
-    Result := Result + CRLF + #9 + 'RENAME TO ' + MainForm.mask(editName.Text);
+    Result := Result + CRLF + #9 + 'RENAME TO ' + QuoteIdent(editName.Text);
   Result := Result + CRLF + #9 + UpperCase(grpState.Items[grpState.ItemIndex]);
   Result := Result + CRLF + #9 + 'COMMENT ' + esc(editComment.Text);
   Result := Result + CRLF + #9 + 'DO ' + SynMemoBody.Text;

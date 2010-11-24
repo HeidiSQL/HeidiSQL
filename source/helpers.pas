@@ -590,10 +590,10 @@ begin
       efXML: tmp := #9'<row>' + CRLF;
 
       efSQL: begin
-        tmp := 'INSERT INTO '+Mainform.Mask(Tablename)+' (';
+        tmp := 'INSERT INTO '+QuoteIdent(Tablename)+' (';
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
-          tmp := tmp + Mainform.mask(Grid.Header.Columns[Col].Text)+', ';
+          tmp := tmp + QuoteIdent(Grid.Header.Columns[Col].Text)+', ';
           Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
         end;
         Delete(tmp, Length(tmp)-1, 2);
@@ -1875,7 +1875,7 @@ begin
       sort := TXT_ASC
     else
       sort := TXT_DESC;
-    result := result + Mainform.Mask( Cols[i].ColumnName ) + ' ' + sort;
+    result := result + QuoteIdent( Cols[i].ColumnName ) + ' ' + sort;
   end;
 end;
 
@@ -2276,7 +2276,7 @@ end;
 function TDBObjectEditor.GetDefiners: TStringList;
   function q(s: String): String;
   begin
-    Result := DBObject.Connection.QuoteIdent(s);
+    Result := QuoteIdent(s);
   end;
 begin
   // For populating combobox items

@@ -158,7 +158,7 @@ begin
       Charset := MainForm.GetCharsetByEncoding(Encoding);
       // Detect db charset
       DefCharset := 'Let server/database decide';
-      dbcreate := MainForm.ActiveConnection.GetVar('SHOW CREATE DATABASE '+Mainform.mask(comboDatabase.Text), 1);
+      dbcreate := MainForm.ActiveConnection.GetVar('SHOW CREATE DATABASE '+QuoteIdent(comboDatabase.Text), 1);
       rx := TRegExpr.Create;
       rx.ModifierG := True;
       rx.Expression := 'CHARACTER SET (\w+)';
@@ -325,7 +325,7 @@ begin
     1: SQL := SQL + 'IGNORE ';
     2: SQL := SQL + 'REPLACE ';
   end;
-  SQL := SQL + 'INTO TABLE ' + Mainform.Mask(comboDatabase.Text) + '.' +  Mainform.Mask(comboTable.Text) + ' ';
+  SQL := SQL + 'INTO TABLE ' + QuoteIdent(comboDatabase.Text) + '.' +  QuoteIdent(comboTable.Text) + ' ';
 
   if comboEncoding.ItemIndex > 0 then begin
     MainForm.ActiveConnection.CharsetTable.RecNo := comboEncoding.ItemIndex-1;
@@ -358,10 +358,10 @@ begin
     if chklistColumns.Checked[i] then begin
       if chkLocalNumbers.Checked and (Columns[i].DataType.Category in [dtcInteger, dtcReal]) then begin
         SQL := SQL + '@ColVar' + IntToStr(i) + ', ';
-        SetColVars := SetColVars + Mainform.Mask(chklistColumns.Items[i]) +
+        SetColVars := SetColVars + QuoteIdent(chklistColumns.Items[i]) +
           ' = REPLACE(REPLACE(@ColVar' + IntToStr(i) + ', '+esc(ThousandSeparator)+', ''''), '+esc(DecimalSeparator)+', ''.''), ';
       end else
-        SQL := SQL + Mainform.Mask(chklistColumns.Items[i]) + ', ';
+        SQL := SQL + QuoteIdent(chklistColumns.Items[i]) + ', ';
     end;
   end;
   SetLength(SQL, Length(SQL)-2);
@@ -434,10 +434,10 @@ const
           1: SQL := 'INSERT '+LowPrio+'IGNORE ';
           2: SQL := 'REPLACE '+LowPrio;
         end;
-        SQL := SQL + 'INTO '+MainForm.mask(comboDatabase.Text)+'.'+MainForm.mask(comboTable.Text)+' (';
+        SQL := SQL + 'INTO '+QuoteIdent(comboDatabase.Text)+'.'+QuoteIdent(comboTable.Text)+' (';
         for i:=0 to chkListColumns.Items.Count-1 do begin
           if chkListColumns.Checked[i] then
-            SQL := SQL + MainForm.mask(chkListColumns.Items[i]) + ', ';
+            SQL := SQL + QuoteIdent(chkListColumns.Items[i]) + ', ';
         end;
         SetLength(SQL, Length(SQL)-2);
         SQL := SQL + ') VALUES (';

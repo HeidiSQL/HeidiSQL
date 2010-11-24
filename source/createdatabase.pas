@@ -98,7 +98,7 @@ begin
     editDBName.SelectAll;
     
     // Detect current charset and collation to be able to preselect them in the pulldowns
-    sql_create := MainForm.ActiveConnection.GetVar('SHOW CREATE DATABASE '+Mainform.mask(modifyDB), 1);
+    sql_create := MainForm.ActiveConnection.GetVar('SHOW CREATE DATABASE '+QuoteIdent(modifyDB), 1);
     currentCharset := Copy( sql_create, pos('CHARACTER SET', sql_create)+14, Length(sql_create));
     currentCharset := GetFirstWord( currentCharset );
     if currentCharset <> '' then
@@ -192,7 +192,7 @@ begin
       MessageDlg( 'Creating database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
     // Keep form open
   end else try
-    sql := 'ALTER DATABASE ' + Mainform.mask( modifyDB );
+    sql := 'ALTER DATABASE ' + QuoteIdent( modifyDB );
     if comboCharset.Enabled and (comboCharset.Text <> '') then
     begin
       sql := sql + ' CHARACTER SET ' + comboCharset.Text;
@@ -237,8 +237,8 @@ begin
       // Move all tables, views and procedures to target db
       sql := '';
       for i:=0 to ObjectsInOldDb.Count-1 do begin
-        sql := sql + Mainform.mask(modifyDb)+'.'+Mainform.mask(ObjectsInOldDb[i].Name)+' TO '+
-          Mainform.mask(editDBName.Text)+'.'+Mainform.mask(ObjectsInOldDb[i].Name)+', ';
+        sql := sql + QuoteIdent(modifyDb)+'.'+QuoteIdent(ObjectsInOldDb[i].Name)+' TO '+
+          QuoteIdent(editDBName.Text)+'.'+QuoteIdent(ObjectsInOldDb[i].Name)+', ';
       end;
       if sql <> '' then begin
         Delete(sql, Length(sql)-1, 2);
@@ -250,7 +250,7 @@ begin
       // Last check if old db is really empty, before we drop it.
       ObjectsLeft := MainForm.ActiveConnection.GetDBObjects(modifyDB);
       if ObjectsLeft.Count = 0 then begin
-        MainForm.ActiveConnection.Query('DROP DATABASE '+Mainform.mask(modifyDB));
+        MainForm.ActiveConnection.Query('DROP DATABASE '+QuoteIdent(modifyDB));
         MainForm.RefreshTree;
       end;
     end;
@@ -292,7 +292,7 @@ end;
 }
 function TCreateDatabaseForm.GetCreateStatement: String;
 begin
-  Result := 'CREATE DATABASE ' + Mainform.mask( editDBName.Text );
+  Result := 'CREATE DATABASE ' + QuoteIdent( editDBName.Text );
   if comboCharset.Enabled and (comboCharset.Text <> '') then
   begin
     Result := Result + ' /*!40100 CHARACTER SET ' + comboCharset.Text;

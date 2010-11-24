@@ -155,11 +155,11 @@ begin
     sql := 'ALTER ';
     viewname := DBObject.Name;
   end;
-  viewname := Mainform.mask(viewname);
+  viewname := QuoteIdent(viewname);
   if rgAlgorithm.Enabled and (rgAlgorithm.ItemIndex > -1) then
     sql := sql + 'ALGORITHM = '+Uppercase(rgAlgorithm.Items[rgAlgorithm.ItemIndex])+' ';
   if comboDefiner.Text <> '' then
-    sql := sql + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, '@')+' ';
+    sql := sql + 'DEFINER='+QuoteIdent(comboDefiner.Text, True, '@')+' ';
   sql := sql + 'VIEW ' + viewname+' AS '+SynMemoSelect.Text+' ';
   if rgCheck.Enabled and (rgCheck.ItemIndex > 0) then
     sql := sql + 'WITH '+Uppercase(rgCheck.Items[rgCheck.ItemIndex])+' CHECK OPTION';
@@ -168,7 +168,7 @@ begin
     MainForm.ActiveConnection.Query(sql);
     // Probably rename view
     if (DBObject.Name <> '') and (DBObject.Name <> editName.Text) then begin
-      renamed := Mainform.mask(editName.Text);
+      renamed := QuoteIdent(editName.Text);
       MainForm.ActiveConnection.Query('RENAME TABLE '+viewname + ' TO '+renamed);
     end;
     DBObject.Name := editName.Text;

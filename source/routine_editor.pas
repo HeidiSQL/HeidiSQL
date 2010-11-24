@@ -440,7 +440,7 @@ begin
     if DBObject.Name <> '' then begin
       // Create temp name
       i := 0;
-      allRoutineNames := MainForm.ActiveConnection.GetCol('SELECT ROUTINE_NAME FROM '+Mainform.mask(DBNAME_INFORMATION_SCHEMA)+'.'+Mainform.mask('ROUTINES')+
+      allRoutineNames := MainForm.ActiveConnection.GetCol('SELECT ROUTINE_NAME FROM '+QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+QuoteIdent('ROUTINES')+
         ' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase)+
         ' AND ROUTINE_TYPE = '+esc(ProcOrFunc)
         );
@@ -460,12 +460,12 @@ begin
       end;
       MainForm.ActiveConnection.Query(ComposeCreateStatement(tempName));
       // Drop temporary routine, used for syntax checking
-      MainForm.ActiveConnection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(TempName));
+      MainForm.ActiveConnection.Query('DROP '+ProcOrFunc+' IF EXISTS '+QuoteIdent(TempName));
       // Drop edited routine
-      MainForm.ActiveConnection.Query('DROP '+FAlterRoutineType+' IF EXISTS '+Mainform.mask(DBObject.Name));
+      MainForm.ActiveConnection.Query('DROP '+FAlterRoutineType+' IF EXISTS '+QuoteIdent(DBObject.Name));
       if TargetExists then begin
         // Drop target routine - overwriting has been confirmed, see above
-        MainForm.ActiveConnection.Query('DROP '+ProcOrFunc+' IF EXISTS '+Mainform.mask(editName.Text));
+        MainForm.ActiveConnection.Query('DROP '+ProcOrFunc+' IF EXISTS '+QuoteIdent(editName.Text));
       end;
     end;
     MainForm.ActiveConnection.Query(ComposeCreateStatement(editName.Text));
@@ -498,12 +498,12 @@ begin
   ProcOrFunc := UpperCase(GetFirstWord(comboType.Text));
   Result := 'CREATE ';
   if comboDefiner.Text <> '' then
-    Result := Result + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, '@')+' ';
-  Result := Result + ProcOrFunc+' '+Mainform.mask(NameOfObject)+'(';
+    Result := Result + 'DEFINER='+QuoteIdent(comboDefiner.Text, True, '@')+' ';
+  Result := Result + ProcOrFunc+' '+QuoteIdent(NameOfObject)+'(';
   for i:=0 to Parameters.Count-1 do begin
     if ProcOrFunc = 'PROCEDURE' then
       Result := Result + Parameters[i].Context + ' ';
-    Result := Result + Mainform.Mask(Parameters[i].Name) + ' ' + Parameters[i].Datatype;
+    Result := Result + QuoteIdent(Parameters[i].Name) + ' ' + Parameters[i].Datatype;
     if i < Parameters.Count-1 then
       Result := Result + ', ';
   end;

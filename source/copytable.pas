@@ -355,8 +355,8 @@ var
   DoData: Boolean;
 begin
   // Compose and run CREATE query
-  TargetTable := Mainform.mask(comboDatabase.Text)+'.'+Mainform.mask(editNewTablename.Text);
-  TableExistance := MainForm.ActiveConnection.GetVar('SHOW TABLES FROM '+MainForm.mask(comboDatabase.Text)+' LIKE '+esc(editNewTablename.Text));
+  TargetTable := QuoteIdent(comboDatabase.Text)+'.'+QuoteIdent(editNewTablename.Text);
+  TableExistance := MainForm.ActiveConnection.GetVar('SHOW TABLES FROM '+QuoteIdent(comboDatabase.Text)+' LIKE '+esc(editNewTablename.Text));
   if TableExistance <> '' then begin
     if MessageDlg('Target table exists. Drop it and overwrite?', mtConfirmation, [mbYes, mbCancel], 0) = mrCancel then begin
       ModalResult := mrNone;
@@ -377,7 +377,7 @@ begin
         case ParentNode.Index of
           nColumns: begin
             Clause := FColumns[Node.Index].SQLCode;
-            DataCols := DataCols + MainForm.mask(FColumns[Node.Index].Name) + ', ';
+            DataCols := DataCols + QuoteIdent(FColumns[Node.Index].Name) + ', ';
           end;
           nKeys:         Clause := FKeys[Node.Index].SQLCode;
           nForeignkeys:  Clause := FForeignKeys[Node.Index].SQLCode(False);
@@ -414,7 +414,7 @@ begin
   if DoData and (DataCols <> '') then begin
     DataCols := Trim(DataCols);
     Delete(DataCols, Length(DataCols), 1);
-    InsertCode := 'INSERT INTO '+TargetTable+' ('+DataCols+') SELECT ' + DataCols + ' FROM ' + MainForm.mask(FDBObj.Name);
+    InsertCode := 'INSERT INTO '+TargetTable+' ('+DataCols+') SELECT ' + DataCols + ' FROM ' + QuoteIdent(FDBObj.Name);
     if MemoFilter.GetTextLen > 0 then
       InsertCode := InsertCode + ' WHERE ' + MemoFilter.Text;
   end;
