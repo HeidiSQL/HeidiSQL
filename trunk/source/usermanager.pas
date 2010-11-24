@@ -230,10 +230,10 @@ begin
   // Load user@host list
   try
     FUsers := MainForm.ActiveConnection.GetCol(
-      'SELECT CONCAT('+MainForm.mask('user')+', '+esc('@')+', '+MainForm.mask('host')+') '+
-      'FROM '+MainForm.mask('mysql')+'.'+MainForm.mask('user')+' '+
-      'WHERE '+MainForm.mask('Password')+'!='+esc('!')+' '+
-      'ORDER BY LOWER('+MainForm.mask('user')+'), LOWER('+MainForm.mask('host')+')');
+      'SELECT CONCAT('+QuoteIdent('user')+', '+esc('@')+', '+QuoteIdent('host')+') '+
+      'FROM '+QuoteIdent('mysql')+'.'+QuoteIdent('user')+' '+
+      'WHERE '+QuoteIdent('Password')+'!='+esc('!')+' '+
+      'ORDER BY LOWER('+QuoteIdent('user')+'), LOWER('+QuoteIdent('host')+')');
     InvalidateVT(listUsers, VTREE_NOTLOADED, False);
     FPrivObjects := TPrivObjList.Create(TPrivComparer.Create, True);
     Modified := False;
@@ -475,8 +475,8 @@ begin
     for Ptmp in FPrivObjects do begin
       if Ptmp.DBObj.NodeType = lntColumn then begin
         Ptmp.GrantCode := 'GRANT ' + Copy(Ptmp.GrantCode, 1, Length(Ptmp.GrantCode)-2) + ' ON ' +
-          MainForm.mask(Ptmp.DBObj.Database) + '.' +
-          MainForm.mask(Ptmp.DBObj.Name) +
+          QuoteIdent(Ptmp.DBObj.Database) + '.' +
+          QuoteIdent(Ptmp.DBObj.Name) +
           ' TO ' + UserHost;
       end;
       // Flag all privs as added, so "Save" action applies them
@@ -819,11 +819,11 @@ begin
         lntNone:
           OnObj := '*.*';
         lntDb:
-          OnObj := Mainform.mask(P.DBObj.Database) + '.*';
+          OnObj := QuoteIdent(P.DBObj.Database) + '.*';
         lntTable, lntFunction, lntProcedure:
-          OnObj := UpperCase(P.DBObj.ObjType) + ' ' + Mainform.mask(P.DBObj.Database) + '.' + Mainform.mask(P.DBObj.Name);
+          OnObj := UpperCase(P.DBObj.ObjType) + ' ' + QuoteIdent(P.DBObj.Database) + '.' + QuoteIdent(P.DBObj.Name);
         lntColumn:
-          OnObj := 'TABLE ' + Mainform.mask(P.DBObj.Database) + '.' + Mainform.mask(P.DBObj.Name);
+          OnObj := 'TABLE ' + QuoteIdent(P.DBObj.Database) + '.' + QuoteIdent(P.DBObj.Name);
         else
           raise Exception.Create('Unhandled privilege object: '+P.DBObj.ObjType);
       end;
@@ -836,7 +836,7 @@ begin
           if P.DeletedPrivs[i] = 'GRANT' then
             Revoke := Revoke + ' OPTION';
           if P.DBObj.NodeType = lntColumn then
-            Revoke := Revoke + '('+Mainform.mask(P.DBObj.Column)+')';
+            Revoke := Revoke + '('+QuoteIdent(P.DBObj.Column)+')';
           Revoke := Revoke + ', ';
         end;
         Delete(Revoke, Length(Revoke)-1, 1);
@@ -852,7 +852,7 @@ begin
             Continue;
           Grant := Grant + P.AddedPrivs[i];
           if P.DBObj.NodeType = lntColumn then
-            Grant := Grant + '('+Mainform.mask(P.DBObj.Column)+')';
+            Grant := Grant + '('+QuoteIdent(P.DBObj.Column)+')';
           Grant := Grant + ', ';
         end;
         Delete(Grant, Length(Grant)-1, 1);
@@ -877,7 +877,7 @@ begin
       else begin
         Tables := Explode(',', 'user,db,tables_priv,columns_priv');
         for Table in Tables do begin
-          Conn.Query('UPDATE '+Mainform.mask('mysql')+'.'+Mainform.mask(Table)+
+          Conn.Query('UPDATE '+QuoteIdent('mysql')+'.'+QuoteIdent(Table)+
             ' SET User='+esc(editUsername.Text)+', Host='+esc(editFromHost.Text)+
             ' WHERE User='+esc(OrgUsername)+' AND Host='+esc(OrgFromHost)
             );

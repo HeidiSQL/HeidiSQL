@@ -355,3 +355,5 @@ const
   HELPERNODE_SNIPPETS = 3;
   HELPERNODE_PROFILE = 4;
 
+  // A set of characters which need not to be quoted
+  IDENTCHARS = ['A'..'z', '0'..'9'];

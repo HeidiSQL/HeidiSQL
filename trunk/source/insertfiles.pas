@@ -112,7 +112,7 @@ var
 begin
   setlength(cols, 0);
   if ComboBoxTables.ItemIndex > -1 then begin
-    Results := MainForm.ActiveConnection.GetResults('SHOW FIELDS FROM '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text));
+    Results := MainForm.ActiveConnection.GetResults('SHOW FIELDS FROM '+QuoteIdent(ComboBoxDBs.Text)+'.'+QuoteIdent(ComboBoxTables.Text));
     while not Results.Eof do begin
       setlength(cols, length(cols)+1);
       cols[length(cols)-1].Name := Results.Col(0);
@@ -369,12 +369,12 @@ begin
       ListViewFiles.Selected := ListViewFiles.ItemFocused;
       ListViewFiles.ItemFocused.MakeVisible(False);
       ListViewFiles.Repaint;
-      sql := 'INSERT INTO '+mainform.mask(ComboBoxDBs.Text)+'.'+mainform.mask(ComboBoxTables.Text) +
-        ' (' + mainform.mask(ComboBoxColumns.Text);
+      sql := 'INSERT INTO '+QuoteIdent(ComboBoxDBs.Text)+'.'+QuoteIdent(ComboBoxTables.Text) +
+        ' (' + QuoteIdent(ComboBoxColumns.Text);
       for j:=0 to length(cols)-1 do begin
         if cols[j].Name = ComboBoxColumns.Text then
           Continue;
-        sql := sql + ', ' + mainform.mask(cols[j].Name);
+        sql := sql + ', ' + QuoteIdent(cols[j].Name);
       end;
       FileStream := TFileStream.Create( filename, fmShareDenyWrite );
       try

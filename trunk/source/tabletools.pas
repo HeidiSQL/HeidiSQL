@@ -551,7 +551,7 @@ begin
     AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' cannot be maintained.', '');
     Exit;
   end;
-  SQL := UpperCase(comboOperation.Text) + ' TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name);
+  SQL := UpperCase(comboOperation.Text) + ' TABLE ' + QuoteIdent(DBObj.Database) + '.' + QuoteIdent(DBObj.Name);
   if chkQuick.Enabled and chkQuick.Checked then SQL := SQL + ' QUICK';
   if chkFast.Enabled and chkFast.Checked then SQL := SQL + ' FAST';
   if chkMedium.Enabled and chkMedium.Checked then SQL := SQL + ' MEDIUM';
@@ -580,16 +580,16 @@ begin
     for Col in Columns do begin
       if (comboDatatypes.ItemIndex = 0) or (Integer(Col.DataType.Category) = comboDatatypes.ItemIndex-1) then begin
         if chkCaseSensitive.Checked then
-          SQL := SQL + Mainform.mask(Col.Name) + ' LIKE BINARY ' + esc('%'+memoFindText.Text+'%') + ' OR '
+          SQL := SQL + QuoteIdent(Col.Name) + ' LIKE BINARY ' + esc('%'+memoFindText.Text+'%') + ' OR '
         else
-          SQL := SQL + 'LOWER(CONVERT('+Mainform.mask(Col.Name)+' USING '+DBObj.Connection.CharacterSet+')) LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' OR '
+          SQL := SQL + 'LOWER(CONVERT('+QuoteIdent(Col.Name)+' USING '+DBObj.Connection.CharacterSet+')) LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' OR '
       end;
     end;
     if SQL <> '' then begin
       Delete(SQL, Length(SQL)-3, 3);
-      FFindSeeResultSQL[FFindSeeResultSQL.Count-1] := 'SELECT * FROM '+Mainform.mask(DBObj.Database)+'.'+Mainform.mask(DBObj.Name)+' WHERE ' + SQL;
+      FFindSeeResultSQL[FFindSeeResultSQL.Count-1] := 'SELECT * FROM '+QuoteIdent(DBObj.Database)+'.'+QuoteIdent(DBObj.Name)+' WHERE ' + SQL;
       SQL := 'SELECT '''+DBObj.Database+''' AS `Database`, '''+DBObj.Name+''' AS `Table`, COUNT(*) AS `Found rows`, '
-        + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS `Relevance` FROM '+Mainform.mask(DBObj.Database)+'.'+Mainform.mask(DBObj.Name)+' WHERE '
+        + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS `Relevance` FROM '+QuoteIdent(DBObj.Database)+'.'+QuoteIdent(DBObj.Name)+' WHERE '
         + SQL;
       AddResults(SQL);
     end else
@@ -1002,12 +1002,6 @@ var
 const
   TempDelim = '//';
 
-  // Short version of Mainform.Mask()
-  function m(s: String): String;
-  begin
-    Result := Mainform.mask(s);
-  end;
-
   procedure LogStatistic(RowsDone: Int64);
   var
     LogRow: TStringlist;
@@ -1022,10 +1016,10 @@ const
 
 begin
   // Handle one table, view or whatever in SQL export mode
-  AddResults('SELECT '+esc(DBObj.Database)+' AS '+Mainform.mask('Database')+', ' +
-    esc(DBObj.Name)+' AS '+Mainform.mask('Table')+', ' +
-    IntToStr(DBObj.Rows)+' AS '+Mainform.mask('Rows')+', '+
-    '0 AS '+Mainform.mask('Duration')
+  AddResults('SELECT '+esc(DBObj.Database)+' AS '+QuoteIdent('Database')+', ' +
+    esc(DBObj.Name)+' AS '+QuoteIdent('Table')+', ' +
+    IntToStr(DBObj.Rows)+' AS '+QuoteIdent('Rows')+', '+
+    '0 AS '+QuoteIdent('Duration')
     );
   ToFile := comboExportOutputType.Text = OUTPUT_FILE;
   ToDir := comboExportOutputType.Text = OUTPUT_DIR;
@@ -1076,23 +1070,23 @@ begin
   if chkExportDatabasesDrop.Checked or chkExportDatabasesCreate.Checked then begin
     Output(CRLF+CRLF+'# Dumping database structure for '+DBObj.Database+CRLF, False, NeedsDBStructure, False, False, False);
     if chkExportDatabasesDrop.Checked and chkExportDatabasesDrop.Enabled then
-      Output('DROP DATABASE IF EXISTS '+m(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
+      Output('DROP DATABASE IF EXISTS '+QuoteIdent(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     if chkExportDatabasesCreate.Checked and chkExportDatabasesCreate.Enabled then begin
       if MainForm.ActiveConnection.ServerVersionInt >= 40100 then begin
-        Struc := MainForm.ActiveConnection.GetVar('SHOW CREATE DATABASE '+m(DBObj.Database), 1);
+        Struc := MainForm.ActiveConnection.GetVar('SHOW CREATE DATABASE '+QuoteIdent(DBObj.Database), 1);
         // Gracefully ignore it when target database exists, important in server mode
         Insert('IF NOT EXISTS ', Struc, Pos('DATABASE', Struc) + 9);
         // Create the right dbname
         Struc := StringReplace(Struc, DBObj.Database, FinalDbName, []);
       end else
-        Struc := 'CREATE DATABASE IF NOT EXISTS '+m(FinalDbName);
+        Struc := 'CREATE DATABASE IF NOT EXISTS '+QuoteIdent(FinalDbName);
       Output(Struc, True, NeedsDBStructure, False, False, NeedsDBStructure);
-      Output('USE '+m(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
+      Output('USE '+QuoteIdent(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     end;
   end;
   if ToServer and (not chkExportDatabasesCreate.Checked) then begin
     // Export to server without "CREATE/USE dbname" and "Same dbs as on source server" - needs a "USE dbname"
-    Output('USE '+m(FinalDbName), True, False, False, False, NeedsDBStructure);
+    Output('USE '+QuoteIdent(FinalDbName), True, False, False, False, NeedsDBStructure);
   end;
 
   // Table structure
@@ -1101,8 +1095,8 @@ begin
     if chkExportTablesDrop.Checked then begin
       Struc := 'DROP '+UpperCase(DBObj.ObjType)+' IF EXISTS ';
       if ToDb then
-        Struc := Struc + m(FinalDbName)+'.';
-      Struc := Struc + m(DBObj.Name);
+        Struc := Struc + QuoteIdent(FinalDbName)+'.';
+      Struc := Struc + QuoteIdent(DBObj.Name);
       Output(Struc, True, True, True, True, True);
     end;
     if chkExportTablesCreate.Checked then begin
@@ -1120,7 +1114,7 @@ begin
             end;
             Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
             if ToDb then
-              Insert(m(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
+              Insert(QuoteIdent(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
           end;
 
           lntView: begin
@@ -1131,8 +1125,8 @@ begin
               Struc := '# Creating temporary table to overcome VIEW dependency errors'+CRLF+
                 'CREATE TABLE ';
               if ToDb then
-                Struc := Struc + m(FinalDbName) + '.';
-              Struc := Struc + m(DBObj.Name)+' (';
+                Struc := Struc + QuoteIdent(FinalDbName) + '.';
+              Struc := Struc + QuoteIdent(DBObj.Name)+' (';
               for Column in ColumnList do
                 Struc := Struc + CRLF + #9 + Column.SQLCode + ',';
               Delete(Struc, Length(Struc), 1);
@@ -1142,21 +1136,21 @@ begin
               Struc := '# Removing temporary table and create final VIEW structure'+CRLF+
                 'DROP TABLE IF EXISTS ';
               if ToDb then
-                Struc := Struc + m(FinalDbName)+'.';
-              Struc := Struc + m(DBObj.Name);
+                Struc := Struc + QuoteIdent(FinalDbName)+'.';
+              Struc := Struc + QuoteIdent(DBObj.Name);
               Output(Struc, True, True, True, True, True);
               Struc := DBObj.CreateCode;
               if ToDb then
-                Insert(m(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
+                Insert(QuoteIdent(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
             end;
           end;
 
           lntTrigger: begin
-            StrucResult := MainForm.ActiveConnection.GetResults('SHOW TRIGGERS FROM '+m(DBObj.Database)+' WHERE `Trigger`='+esc(DBObj.Name));
-            Struc := 'CREATE '+UpperCase(DBObj.ObjType)+' '+m(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
-                ' ON '+m(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement');
+            StrucResult := MainForm.ActiveConnection.GetResults('SHOW TRIGGERS FROM '+QuoteIdent(DBObj.Database)+' WHERE `Trigger`='+esc(DBObj.Name));
+            Struc := 'CREATE '+UpperCase(DBObj.ObjType)+' '+QuoteIdent(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
+                ' ON '+QuoteIdent(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement');
             if ToDb then
-              Insert(m(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
+              Insert(QuoteIdent(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
             if ToFile or ToClipboard or ToDir then begin
               Struc := 'SET SESSION SQL_MODE=' + esc(StrucResult.Col('sql_mode')) + ';' + CRLF +
                 'DELIMITER ' + TempDelim + CRLF +
@@ -1170,9 +1164,9 @@ begin
             Struc := DBObj.CreateCode;
             if ToDb then begin
               if DBObj.NodeType = lntProcedure then
-                Insert(m(FinalDbName)+'.', Struc, Pos('PROCEDURE', Struc) + 10 )
+                Insert(QuoteIdent(FinalDbName)+'.', Struc, Pos('PROCEDURE', Struc) + 10 )
               else if DBObj.NodeType = lntFunction then
-                Insert(m(FinalDbName)+'.', Struc, Pos('FUNCTION', Struc) + 9 );
+                Insert(QuoteIdent(FinalDbName)+'.', Struc, Pos('FUNCTION', Struc) + 9 );
             end;
             // Change delimiter for file output, so readers split queries at the right string position
             if ToFile or ToDir or ToClipboard then
@@ -1182,7 +1176,7 @@ begin
           lntEvent: begin
             Struc := DBObj.CreateCode;
             if ToDb then
-              Insert(m(FinalDbName)+'.', Struc, Pos('EVENT', Struc) + 6 );
+              Insert(QuoteIdent(FinalDbName)+'.', Struc, Pos('EVENT', Struc) + 6 );
             if ToFile or ToDir or ToClipboard then
               Struc := 'DELIMITER ' + TempDelim + CRLF + Struc + TempDelim + CRLF + 'DELIMITER ';
           end;
@@ -1208,9 +1202,9 @@ begin
       if LowerCase(DBObj.Engine) = 'innodb' then
         tmp := '~'+tmp+' (approximately)';
       Output(CRLF+'# Dumping data for table '+DBObj.Database+'.'+DBObj.Name+': '+tmp+CRLF, False, True, True, False, False);
-      TargetDbAndObject := m(DBObj.Name);
+      TargetDbAndObject := QuoteIdent(DBObj.Name);
       if ToDb then
-        TargetDbAndObject := m(FinalDbName) + '.' + TargetDbAndObject;
+        TargetDbAndObject := QuoteIdent(FinalDbName) + '.' + TargetDbAndObject;
       Offset := 0;
       RowCount := 0;
       // Calculate limit so we select ~100MB per loop
@@ -1219,7 +1213,7 @@ begin
         Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
       Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
       while true do begin
-        Data := MainForm.ActiveConnection.GetResults('SELECT * FROM '+m(DBObj.Database)+'.'+m(DBObj.Name)+' LIMIT '+IntToStr(Offset)+', '+IntToStr(Limit));
+        Data := MainForm.ActiveConnection.GetResults('SELECT * FROM '+QuoteIdent(DBObj.Database)+'.'+QuoteIdent(DBObj.Name)+' LIMIT '+IntToStr(Offset)+', '+IntToStr(Limit));
         Inc(Offset, Limit);
         if Data.RecordCount = 0 then
           break;
@@ -1230,7 +1224,7 @@ begin
           BaseInsert := 'REPLACE INTO ';
         BaseInsert := BaseInsert + TargetDbAndObject + ' (';
         for i:=0 to Data.ColumnCount-1 do
-          BaseInsert := BaseInsert + m(Data.ColumnNames[i]) + ', ';
+          BaseInsert := BaseInsert + QuoteIdent(Data.ColumnNames[i]) + ', ';
         Delete(BaseInsert, Length(BaseInsert)-1, 2);
         BaseInsert := BaseInsert + ') VALUES'+CRLF+#9+'(';
         while true do begin
@@ -1316,15 +1310,15 @@ var
   rx: TRegExpr;
   HasCharsetClause: Boolean;
 begin
-  AddResults('SELECT '+esc(DBObj.Database)+' AS '+Mainform.mask('Database')+', ' +
-    esc(DBObj.Name)+' AS '+Mainform.mask('Table')+', ' +
-    esc('Updating...')+' AS '+Mainform.mask('Operation')+', '+
-    ''''' AS '+Mainform.mask('Result')
+  AddResults('SELECT '+esc(DBObj.Database)+' AS '+QuoteIdent('Database')+', ' +
+    esc(DBObj.Name)+' AS '+QuoteIdent('Table')+', ' +
+    esc('Updating...')+' AS '+QuoteIdent('Operation')+', '+
+    ''''' AS '+QuoteIdent('Result')
     );
   Specs := TStringList.Create;
   if chkBulkTableEditDatabase.Checked and (comboBulkTableEditDatabase.Text <> DBObj.Database) then begin
     case DBObj.NodeType of
-      lntTable: Specs.Add('RENAME ' + Mainform.mask(comboBulkTableEditDatabase.Text)+'.'+Mainform.mask(DBObj.Name));
+      lntTable: Specs.Add('RENAME ' + QuoteIdent(comboBulkTableEditDatabase.Text)+'.'+QuoteIdent(DBObj.Name));
       lntView: begin
         // Although RENAME works for views, that does not work for moving to another database without getting
         // a "Changing schema from x to y is not allowed". Instead, recreate them manually
@@ -1333,13 +1327,13 @@ begin
         rx.ModifierI := True;
         // Replace old database references in VIEW body
         rx.Expression := '(["`])'+QuoteRegExprMetaChars(DBObj.Database)+'(["`])';
-        CreateView := rx.Replace(CreateView, Mainform.mask(comboBulkTableEditDatabase.Text), false);
+        CreateView := rx.Replace(CreateView, QuoteIdent(comboBulkTableEditDatabase.Text), false);
         rx.Free;
         // Temporarily switch to new database for VIEW creation, so the database references are correct
         DBObj.Connection.Database := comboBulkTableEditDatabase.Text;
         DBObj.Connection.Query(CreateView);
         DBObj.Connection.Database := DBObj.Database;
-        DBObj.Connection.Query('DROP VIEW '+Mainform.mask(DBObj.Name));
+        DBObj.Connection.Query('DROP VIEW '+QuoteIdent(DBObj.Name));
       end;
     end;
     FModifiedDbs.Add(DBObj.Database);
@@ -1370,7 +1364,7 @@ begin
 
   LogRow := FResults.Last;
   if Specs.Count > 0 then begin
-    DBObj.Connection.Query('ALTER TABLE ' + Mainform.mask(DBObj.Database) + '.' + Mainform.mask(DBObj.Name) + ' ' + ImplodeStr(', ', Specs));
+    DBObj.Connection.Query('ALTER TABLE ' + QuoteIdent(DBObj.Database) + '.' + QuoteIdent(DBObj.Name) + ' ' + ImplodeStr(', ', Specs));
     LogRow[2] := 'Done';
     LogRow[3] := 'Success';
   end else begin

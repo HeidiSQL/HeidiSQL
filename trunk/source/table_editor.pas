@@ -379,12 +379,12 @@ begin
     //   ALTER TABLE  statement. Separate statements are required."
     for i:=0 to FForeignKeys.Count-1 do begin
       if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
-        Specs.Add('DROP FOREIGN KEY '+Mainform.mask(FForeignKeys[i].OldKeyName));
+        Specs.Add('DROP FOREIGN KEY '+QuoteIdent(FForeignKeys[i].OldKeyName));
     end;
   end;
   try
     if Specs.Count > 0 then
-      MainForm.ActiveConnection.Query('ALTER TABLE '+Mainform.mask(DBObject.Name)+' '+ImplodeStr(', ', Specs));
+      MainForm.ActiveConnection.Query('ALTER TABLE '+QuoteIdent(DBObject.Name)+' '+ImplodeStr(', ', Specs));
     MainForm.ActiveConnection.Query(sql);
     tabALTERcode.TabVisible := DBObject.Name <> '';
     if chkCharsetConvert.Checked then begin
@@ -467,7 +467,7 @@ begin
   Screen.Cursor := crHourglass;
   Specs := TStringList.Create;
   if editName.Text <> DBObject.Name then
-    Specs.Add('RENAME TO ' + Mainform.mask(editName.Text));
+    Specs.Add('RENAME TO ' + QuoteIdent(editName.Text));
   if memoComment.Tag = ModifiedFlag then
     Specs.Add('COMMENT=' + esc(memoComment.Text));
   if (comboCollation.Tag = ModifiedFlag) or (chkCharsetConvert.Checked) then
@@ -511,7 +511,7 @@ begin
     Mainform.ProgressBarStatus.StepIt;
     Col := listColumns.GetNodeData(Node);
     if Col.Status <> esUntouched then begin
-      ColSpec := Mainform.mask(Col.Name);
+      ColSpec := QuoteIdent(Col.Name);
       ColSpec := ColSpec + ' ' + Col.DataType.Name;
       if Col.LengthSet <> '' then
         ColSpec := ColSpec + '(' + Col.LengthSet + ')';
@@ -540,10 +540,10 @@ begin
         if PreviousCol = nil then
           ColSpec := ColSpec + ' FIRST'
         else
-          ColSpec := ColSpec + ' AFTER '+Mainform.mask(PreviousCol.Name);
+          ColSpec := ColSpec + ' AFTER '+QuoteIdent(PreviousCol.Name);
       end;
       if Col.Status = esModified then
-        Specs.Add('CHANGE COLUMN '+Mainform.mask(Col.OldName) + ' ' + ColSpec)
+        Specs.Add('CHANGE COLUMN '+QuoteIdent(Col.OldName) + ' ' + ColSpec)
       else if Col.Status in [esAddedUntouched, esAddedModified] then
         Specs.Add('ADD COLUMN ' + ColSpec);
     end;
@@ -554,7 +554,7 @@ begin
   // Deleted columns, not available as Node in above loop
   for i:=0 to FColumns.Count-1 do begin
     if FColumns[i].Status = esDeleted then
-      Specs.Add('DROP COLUMN '+Mainform.mask(FColumns[i].OldName));
+      Specs.Add('DROP COLUMN '+QuoteIdent(FColumns[i].OldName));
   end;
 
   // Drop indexes, also changed indexes, which will be readded below
@@ -563,7 +563,7 @@ begin
     if DeletedKeys[i] = PKEY then
       IndexSQL := 'PRIMARY KEY'
     else
-      IndexSQL := 'INDEX ' + Mainform.Mask(DeletedKeys[i]);
+      IndexSQL := 'INDEX ' + QuoteIdent(DeletedKeys[i]);
     Specs.Add('DROP '+IndexSQL);
   end;
   // Add changed or added indexes
@@ -573,7 +573,7 @@ begin
       if FKeys[i].OldIndexType = PKEY then
         IndexSQL := 'PRIMARY KEY'
       else
-        IndexSQL := 'INDEX ' + Mainform.Mask(FKeys[i].OldName);
+        IndexSQL := 'INDEX ' + QuoteIdent(FKeys[i].OldName);
       Specs.Add('DROP '+IndexSQL);
     end;
     if FKeys[i].Added or FKeys[i].Modified then
@@ -581,13 +581,13 @@ begin
   end;
 
   for i:=0 to DeletedForeignKeys.Count-1 do
-    Specs.Add('DROP FOREIGN KEY '+Mainform.mask(DeletedForeignKeys[i]));
+    Specs.Add('DROP FOREIGN KEY '+QuoteIdent(DeletedForeignKeys[i]));
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Added or FForeignKeys[i].Modified then
       Specs.Add('ADD '+FForeignKeys[i].SQLCode(True));
   end;
 
-  Result := 'ALTER TABLE '+Mainform.mask(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
+  Result := 'ALTER TABLE '+QuoteIdent(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
   Result := Trim(Result);
   FreeAndNil(Specs);
   Mainform.ShowStatusMsg;
@@ -604,7 +604,7 @@ var
   tmp: String;
 begin
   // Compose CREATE query, called by buttons and for SQL code tab
-  Result := 'CREATE TABLE '+Mainform.mask(editName.Text)+' ('+CRLF;
+  Result := 'CREATE TABLE '+QuoteIdent(editName.Text)+' ('+CRLF;
   Node := listColumns.GetFirst;
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
@@ -1933,7 +1933,7 @@ begin
       MessageDlg('Please select a reference table before selecting foreign columns.', mtError, [mbOk], 0)
     else begin
       try
-        MainForm.ActiveConnection.GetVar('SELECT 1 FROM '+Mainform.Mask(Key.ReferenceTable, '.'));
+        MainForm.ActiveConnection.GetVar('SELECT 1 FROM '+QuoteIdent(Key.ReferenceTable, True, '.'));
         Allowed := True;
       except
         // Leave Allowed = False
@@ -1985,7 +1985,7 @@ begin
     3: begin
         Key := FForeignKeys[Node.Index];
         SetEditor := TSetEditorLink.Create(VT);
-        SetEditor.ValueList := MainForm.ActiveConnection.GetCol('SHOW COLUMNS FROM '+Mainform.Mask(Key.ReferenceTable, '.'));
+        SetEditor.ValueList := MainForm.ActiveConnection.GetCol('SHOW COLUMNS FROM '+QuoteIdent(Key.ReferenceTable, True, '.'));
         EditLink := SetEditor;
       end;
     4, 5: begin

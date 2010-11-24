@@ -261,8 +261,6 @@ type
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False): String;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
       function UnescapeString(Text: String): String;
-      class function QuoteIdent(Identifier: String; Glue: Char=#0): String;
-      function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
       function ConvertServerVersion(Version: Integer): String;
       function GetResults(SQL: String): TMySQLQuery;
       function GetCol(SQL: String; Column: Integer=0): TStringList;
@@ -399,6 +397,8 @@ type
   end;
   PMySQLQuery = ^TMySQLQuery;
 
+  function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
+  function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
 
 implementation
 
@@ -1047,17 +1047,37 @@ end;
   Add backticks to identifier
   Todo: Support ANSI style
 }
-class function TMySQLConnection.QuoteIdent(Identifier: String; Glue: Char=#0): String;
+function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
+var
+  GluePos, i: Integer;
 begin
   Result := Identifier;
-  Result := StringReplace(Result, '`', '``', [rfReplaceAll]);
-  if Glue <> #0 then
-    Result := StringReplace(Result, Glue, '`'+Glue+'`', [rfReplaceAll]);
-  Result := '`' + Result + '`';
+  GluePos := 0;
+  if Glue <> #0 then begin
+    GluePos := Pos(Glue, Result);
+    if GluePos > 0 then
+      Result := QuoteIdent(Copy(Result, 1, GluePos-1)) + Glue + QuoteIdent(Copy(Result, GluePos+1, MaxInt));
+  end;
+  if GluePos = 0 then begin
+    if not AlwaysQuote then begin
+      if MySQLKeywords.IndexOf(Result) > -1 then
+        AlwaysQuote := True
+      else for i:=1 to Length(Result) do begin
+        if not CharInSet(Result[i], IDENTCHARS) then begin
+          AlwaysQuote := True;
+          break;
+        end;
+      end;
+    end;
+    if AlwaysQuote then begin
+      Result := StringReplace(Result, '`', '``', [rfReplaceAll]);
+      Result := '`' + Result + '`';
+    end;
+  end;
 end;
 
 
-function TMySQLConnection.DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
+function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
 begin
   Result := Identifier;
   if (Result[1] = '`') and (Result[Length(Identifier)] = '`') then
@@ -2509,7 +2529,7 @@ begin
     for i:=0 to FColumnOrgNames.Count-1 do begin
       if sql <> '' then
         sql := sql + ', ';
-      sql := sql + Connection.QuoteIdent(FColumnOrgNames[i]);
+      sql := sql + QuoteIdent(FColumnOrgNames[i]);
     end;
     Data := Connection.GetResults('SELECT '+sql+' FROM '+QuotedDbAndTableName+' WHERE '+GetWhereClause+' LIMIT 1');
     Result := Data.RecordCount = 1;
@@ -2584,8 +2604,8 @@ begin
         dtcInteger, dtcReal: Val := Cell.NewText;
         else Val := Connection.EscapeString(Cell.NewText);
       end;
-      sqlUpdate := sqlUpdate + Connection.QuoteIdent(FColumnOrgNames[i]) + '=' + Val;
-      sqlInsertColumns := sqlInsertColumns + Connection.QuoteIdent(FColumnOrgNames[i]);
+      sqlUpdate := sqlUpdate + QuoteIdent(FColumnOrgNames[i]) + '=' + Val;
+      sqlInsertColumns := sqlInsertColumns + QuoteIdent(FColumnOrgNames[i]);
       sqlInsertValues := sqlInsertValues + Val;
     end;
 
@@ -2748,8 +2768,8 @@ begin
   // Return `db`.`table` if necessairy, otherwise `table`
   db := DatabaseName;
   if Connection.Database <> db then
-    Result := Connection.QuoteIdent(db)+'.';
-  Result := Result + Connection.QuoteIdent(TableName);
+    Result := QuoteIdent(db)+'.';
+  Result := Result + QuoteIdent(TableName);
 end;
 
 
@@ -2805,7 +2825,7 @@ begin
       raise EDatabaseError.Create('Cannot compose WHERE clause - column missing: '+NeededCols[i]);
     if Result <> '' then
       Result := Result + ' AND';
-    Result := Result + ' ' + Connection.QuoteIdent(FColumnOrgNames[j]);
+    Result := Result + ' ' + QuoteIdent(FColumnOrgNames[j]);
     if Modified(j) then begin
       ColVal := FCurrentUpdateRow[j].OldText;
       ColIsNull := FCurrentUpdateRow[j].OldIsNull;
@@ -2978,7 +2998,7 @@ begin
     else Exception.Create('Unhandled list node type in '+ClassName+'.GetCreateCode');
   end;
   if not FCreateCodeFetched then try
-    FCreateCode := FConnection.GetVar('SHOW CREATE '+UpperCase(ObjType)+' '+FConnection.QuoteIdent(Database)+'.'+FConnection.QuoteIdent(Name), Column)
+    FCreateCode := FConnection.GetVar('SHOW CREATE '+UpperCase(ObjType)+' '+QuoteIdent(Database)+'.'+QuoteIdent(Name), Column)
   except
   end;
   FCreateCodeFetched := True;
@@ -3017,7 +3037,7 @@ end;
 
 function TTableColumn.SQLCode: String;
 begin
-  Result := TMySQLConnection.QuoteIdent(Name) + ' ' +DataType.Name;
+  Result := QuoteIdent(Name) + ' ' +DataType.Name;
   if LengthSet <> '' then
     Result := Result + '(' + LengthSet + ')';
   if (DataType.Category in [dtcInteger, dtcReal]) and Unsigned then
@@ -3076,11 +3096,11 @@ begin
   else begin
     if IndexType <> KEY then
       Result := Result + IndexType + ' ';
-    Result := Result + 'INDEX ' + TMySQLConnection.QuoteIdent(Name) + ' ';
+    Result := Result + 'INDEX ' + QuoteIdent(Name) + ' ';
   end;
   Result := Result + '(';
   for i:=0 to Columns.Count-1 do begin
-    Result := Result + TMySQLConnection.QuoteIdent(Columns[i]);
+    Result := Result + QuoteIdent(Columns[i]);
     if SubParts[i] <> '' then
       Result := Result + '(' + SubParts[i] + ')';
     Result := Result + ', ';
@@ -3120,14 +3140,14 @@ begin
   Result := '';
   // Symbol names are unique in a db. In order to autocreate a valid name we leave the constraint clause away.
   if IncludeSymbolName then
-    Result := 'CONSTRAINT '+TMySQLConnection.QuoteIdent(KeyName)+' ';
+    Result := 'CONSTRAINT '+QuoteIdent(KeyName)+' ';
   Result := Result + 'FOREIGN KEY (';
   for i:=0 to Columns.Count-1 do
-    Result := Result + TMySQLConnection.QuoteIdent(Columns[i]) + ', ';
+    Result := Result + QuoteIdent(Columns[i]) + ', ';
   if Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
-  Result := Result + ') REFERENCES ' + TMySQLConnection.QuoteIdent(ReferenceTable, '.') + ' (';
+  Result := Result + ') REFERENCES ' + QuoteIdent(ReferenceTable, True, '.') + ' (';
   for i:=0 to ForeignColumns.Count-1 do
-    Result := Result + TMySQLConnection.QuoteIdent(ForeignColumns[i]) + ', ';
+    Result := Result + QuoteIdent(ForeignColumns[i]) + ', ';
   if ForeignColumns.Count > 0 then Delete(Result, Length(Result)-1, 2);
   Result := Result + ')';
   if OnUpdate <> '' then
