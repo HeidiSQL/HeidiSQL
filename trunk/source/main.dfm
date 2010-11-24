@@ -8380,6 +8380,10 @@ object MainForm: TMainForm
       ImageIndex = 58
       OnClick = Clear2Click
     end
+    object menuLogHorizontalScrollbar: TMenuItem
+      Caption = 'Horizontal scrollbar'
+      OnClick = menuLogHorizontalScrollbarClick
+    end
     object N15: TMenuItem
       Caption = '-'
     end
