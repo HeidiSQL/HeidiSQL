@@ -838,6 +838,7 @@ type
     FLastMouseDownCloseButton: TObject;
     // Filter text per tab for filter panel
     FilterTextDatabases,
+    FilterTextEditor,
     FilterTextVariables,
     FilterTextStatus,
     FilterTextProcessList,
@@ -6373,7 +6374,7 @@ begin
   // Reset typing timer
   TimerFilterVT.Enabled := False;
   TimerFilterVT.Enabled := True;
-  editFilterVT.RightButton.Enabled := editFilterVT.Text <> '';
+  editFilterVT.RightButton.Visible := editFilterVT.Text <> '';
 end;
 
 
@@ -6419,6 +6420,10 @@ begin
   end else if tab = tabDatabase then begin
     VT := ListTables;
     FilterTextDatabase := editFilterVT.Text;
+  end else if tab = tabEditor then begin
+    if ActiveObjectEditor is TfrmTableEditor then
+      VT := TfrmTableEditor(ActiveObjectEditor).listColumns;
+    FilterTextEditor := editFilterVT.Text;
   end else if tab = tabData then begin
     VT := DataGrid;
     FilterTextData := editFilterVT.Text;
@@ -8410,6 +8415,7 @@ begin
     ActiveObjectEditor.Parent := tabEditor;
   end;
   ActiveObjectEditor.Init(Obj);
+  UpdateFilterPanel(Self);
 end;
 
 
@@ -9140,7 +9146,7 @@ var
   FilterPanelVisible: Boolean;
 begin
   // Called when active tab changes
-  pnlFilterVT.Enabled := PageControlMain.ActivePage <> tabEditor;
+  pnlFilterVT.Enabled := (PageControlMain.ActivePage <> tabEditor) or (ActiveObjectEditor is TfrmTableEditor);
   lblFilterVT.Enabled := pnlFilterVT.Enabled;
   editFilterVT.Enabled := pnlFilterVT.Enabled;
   lblFilterVTInfo.Enabled := pnlFilterVT.Enabled;
@@ -9164,6 +9170,7 @@ begin
     else if tab = tabProcesslist then f := FilterTextProcessList
     else if tab = tabCommandStats then f := FilterTextCommandStats
     else if tab = tabDatabase then f := FilterTextDatabase
+    else if tab = tabEditor then f := FilterTextEditor
     else if tab = tabData then f := FilterTextData
     else if QueryTabActive and (ActiveQueryTab.ActiveResultTab <> nil) then f := ActiveQueryTab.ActiveResultTab.FilterText;
     if editFilterVT.Text <> f then

@@ -566,7 +566,6 @@ object MainForm: TMainForm
           Width = 154
           Height = 21
           Images = ImageListMain
-          RightButton.Enabled = False
           RightButton.Hint = 'Clear filter'
           RightButton.ImageIndex = 26
           RightButton.Visible = True
