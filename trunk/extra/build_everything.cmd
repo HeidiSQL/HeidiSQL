@@ -62,13 +62,7 @@ if "%package_dir%" == "none" (goto unknown_version) else (goto init)
 :unknown_version
 echo Error: Unknown version of Delphi compiler 'dcc32.exe'!
 echo.
-echo At present, only Delphi 10 (Borland Developer Studio 2006)
-echo and Delphi 11 (CodeGear Delphi 2007).
-echo.
-echo Please install one of those...
-echo.
-echo If you think you are receiving this message in error,
-echo please inform the developers at heidisql-devel@sourceforge.net.
+echo At present, only Delphi 2010 is supported.
 echo.
 pause >NUL:
 goto :eof
