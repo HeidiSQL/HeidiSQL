@@ -871,6 +871,7 @@ type
     function ConfirmTabClose(PageIndex: Integer): Boolean;
     procedure UpdateFilterPanel(Sender: TObject);
     procedure DBObjectsCleared(Connection: TMySQLConnection; Database: String);
+    procedure DatabaseChanged(Connection: TMySQLConnection; Database: String);
     procedure DoSearchReplace;
     procedure UpdateLineCharPanel;
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
@@ -2770,6 +2771,7 @@ begin
   Connection := TMySQLConnection.Create(Self);
   Connection.OnLog := LogSQL;
   Connection.OnDBObjectsCleared := DBObjectsCleared;
+  Connection.OnDatabaseChanged := DatabaseChanged;
   Connection.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
   Connection.SessionName := Session;
   Connection.Parameters := Params;
@@ -6878,6 +6880,13 @@ begin
       TableToolsDialog.TreeObjects.ReinitChildren(Node, False);
     end;
   end;
+end;
+
+
+procedure TMainForm.DatabaseChanged(Connection: TMySQLConnection; Database: String);
+begin
+  // Immediately force db icons to repaint, so the user sees the active db state
+  DBtree.Repaint;
 end;
 
 
