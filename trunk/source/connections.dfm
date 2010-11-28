@@ -331,7 +331,7 @@ object connform: Tconnform
         217)
       object lblSSHLocalPort: TLabel
         Left = 3
-        Top = 163
+        Top = 190
         Width = 51
         Height = 13
         Caption = 'Local port:'
@@ -370,7 +370,7 @@ object connform: Tconnform
       end
       object lblSSHkeyfile: TLabel
         Left = 3
-        Top = 136
+        Top = 163
         Width = 75
         Height = 13
         Caption = 'Private key file:'
@@ -392,14 +392,21 @@ object connform: Tconnform
         ParentFont = False
         OnClick = lblDownloadPlinkClick
       end
+      object lblPlinkTimeout: TLabel
+        Left = 3
+        Top = 136
+        Width = 64
+        Height = 13
+        Caption = 'plink.exe timeout:'
+      end
       object editSSHlocalport: TEdit
         Left = 101
-        Top = 160
+        Top = 187
         Width = 188
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         NumbersOnly = True
-        TabOrder = 6
+        TabOrder = 8
         Text = 'editSSHlocalport'
         OnChange = Modification
       end
@@ -465,19 +472,36 @@ object connform: Tconnform
       end
       object editSSHPrivateKey: TButtonedEdit
         Left = 101
-        Top = 133
+        Top = 160
         Width = 188
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
-        TabOrder = 5
+        TabOrder = 7
         Text = 'editSSHPrivateKey'
         TextHint = 'PuTTY private key (*.ppk)'
         OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
+      end
+      object editSSHTimeout: TEdit
+        Left = 101
+        Top = 133
+        Width = 60
+        Height = 21
+        TabOrder = 5
+        Text = '0'
+      end
+      object updownSSHTimeout: TUpDown
+        Left = 161
+        Top = 133
+        Width = 17
+        Height = 21
+        Associate = editSSHTimeout
+        TabOrder = 6
+        Wrap = True
       end
     end
     object tabSSLOptions: TTabSheet

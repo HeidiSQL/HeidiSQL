@@ -131,6 +131,8 @@ const
   REGNAME_SSHLOCALPORT = 'SSHtunnelPort';
   REGNAME_SSHUSER = 'SSHtunnelUser';
   REGNAME_SSHPASSWORD = 'SSHtunnelPassword';
+  REGNAME_SSHTIMEOUT = 'SSHtunnelTimeout';
+  DEFAULT_SSHTIMEOUT = 4;
   REGNAME_SSHKEY = 'SSHtunnelPrivateKey';
   REGNAME_SSL_KEY = 'SSL_Key';
   REGNAME_SSL_CERT = 'SSL_Cert';

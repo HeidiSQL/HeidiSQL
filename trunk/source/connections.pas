@@ -76,6 +76,9 @@ type
     comboDatabases: TComboBox;
     lblDatabase: TLabel;
     chkLoginPrompt: TCheckBox;
+    lblPlinkTimeout: TLabel;
+    editSSHTimeout: TEdit;
+    updownSSHTimeout: TUpDown;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -241,6 +244,7 @@ begin
   MainReg.WriteInteger(REGNAME_SSHPORT, MakeInt(editSSHport.Text));
   MainReg.WriteString(REGNAME_SSHUSER, editSSHUser.Text);
   MainReg.WriteString(REGNAME_SSHPASSWORD, encrypt(editSSHPassword.Text));
+  MainReg.WriteInteger(REGNAME_SSHTIMEOUT, updownSSHTimeout.Position);
   MainReg.WriteString(REGNAME_SSHKEY, editSSHPrivateKey.Text);
   MainReg.WriteInteger(REGNAME_SSHLOCALPORT, MakeInt(editSSHlocalport.Text));
   MainReg.WriteString(REGNAME_SSL_KEY, editSSLPrivateKey.Text);
@@ -361,6 +365,7 @@ begin
   Result.SSHPort := MakeInt(editSSHPort.Text);
   Result.SSHUser := editSSHuser.Text;
   Result.SSHPassword := editSSHpassword.Text;
+  Result.SSHTimeout := updownSSHTimeout.Position;
   Result.SSHPrivateKey := editSSHPrivateKey.Text;
   Result.SSHLocalPort := MakeInt(editSSHlocalport.Text);
   Result.SSHPlinkExe := editSSHplinkexe.Text;
@@ -460,6 +465,7 @@ begin
     editSSHport.Text := IntToStr(FOrgParams.SSHPort);
     editSSHUser.Text := FOrgParams.SSHUser;
     editSSHPassword.Text := FOrgParams.SSHPassword;
+    updownSSHTimeout.Position := FOrgParams.SSHTimeout;
     editSSHPrivateKey.Text := FOrgParams.SSHPrivateKey;
     editSSHlocalport.Text := IntToStr(FOrgParams.SSHLocalPort);
     editSSLPrivateKey.Text := FOrgParams.SSLPrivateKey;
@@ -621,6 +627,7 @@ begin
       or (IntToStr(FOrgParams.SSHLocalPort) <> editSSHlocalport.Text)
       or (FOrgParams.SSHUser <> editSSHUser.Text)
       or (FOrgParams.SSHPassword <> editSSHPassword.Text)
+      or (FOrgParams.SSHTimeout <> updownSSHTimeout.Position)
       or (FOrgParams.SSHPrivateKey <> editSSHPrivateKey.Text)
       or (FOrgParams.SSLPrivateKey <> editSSLPrivateKey.Text)
       or (FOrgParams.SSLCertificate <> editSSLCertificate.Text)

@@ -2654,6 +2654,7 @@ begin
     Result.SSHPort := GetRegValue(REGNAME_SSHPORT, DEFAULT_SSHPORT, Session);
     Result.SSHUser := GetRegValue(REGNAME_SSHUSER, '', Session);
     Result.SSHPassword := decrypt(GetRegValue(REGNAME_SSHPASSWORD, '', Session));
+    Result.SSHTimeout := GetRegValue(REGNAME_SSHTIMEOUT, DEFAULT_SSHTIMEOUT, Session);
     Result.SSHPrivateKey := GetRegValue(REGNAME_SSHKEY, '', Session);
     Result.SSHLocalPort := GetRegValue(REGNAME_SSHLOCALPORT, 0, Session);
     Result.SSHPlinkExe := GetRegValue(REGNAME_PLINKEXE, '');

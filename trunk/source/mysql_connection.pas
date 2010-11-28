@@ -161,7 +161,7 @@ type
       FHostname, FUsername, FPassword, FAllDatabases, FStartupScriptFilename,
       FSSLPrivateKey, FSSLCertificate, FSSLCACertificate,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
-      FPort, FSSHPort, FSSHLocalPort: Integer;
+      FPort, FSSHPort, FSSHLocalPort, FSSHTimeout: Integer;
       FOptions: TMySQLClientOptions;
       FLoginPrompt: Boolean;
     public
@@ -180,6 +180,7 @@ type
       property SSHPort: Integer read FSSHPort write FSSHPort;
       property SSHUser: String read FSSHUser write FSSHUser;
       property SSHPassword: String read FSSHPassword write FSSHPassword;
+      property SSHTimeout: Integer read FSSHTimeout write FSSHTimeout;
       property SSHPrivateKey: String read FSSHPrivateKey write FSSHPrivateKey;
       property SSHLocalPort: Integer read FSSHLocalPort write FSSHLocalPort;
       property SSHPlinkExe: String read FSSHPlinkExe write FSSHPlinkExe;
@@ -416,6 +417,7 @@ begin
   FPassword := '';
   FPort := DEFAULT_PORT;
   FSSHPort := DEFAULT_SSHPORT;
+  FSSHTimeout := DEFAULT_SSHTIMEOUT;
   FSSHLocalPort := FPort + 1;
   FSSLPrivateKey := '';
   FSSLCertificate := '';
@@ -538,7 +540,7 @@ begin
         if FParameters.SSHPrivateKey <> '' then
           PlinkCmd := PlinkCmd + ' -i "' + FParameters.SSHPrivateKey + '"';
         PlinkCmd := PlinkCmd + ' -L ' + IntToStr(FParameters.SSHLocalPort) + ':' + FParameters.Hostname + ':' + IntToStr(FParameters.Port);
-        Log(lcInfo, 'Attempt to create plink.exe process ...');
+        Log(lcInfo, 'Attempt to create plink.exe process, waiting '+FormatNumber(FParameters.SSHTimeout)+'s for response ...');
         // Create plink.exe process
         FillChar(FPlinkProcInfo, SizeOf(TProcessInformation), 0);
         FillChar(StartupInfo, SizeOf(TStartupInfo), 0);
@@ -546,7 +548,7 @@ begin
         if CreateProcess(nil, PChar(PlinkCmd), nil, nil, false,
           CREATE_DEFAULT_ERROR_MODE + NORMAL_PRIORITY_CLASS + CREATE_NO_WINDOW,
           nil, nil, StartupInfo, FPlinkProcInfo) then begin
-          WaitForSingleObject(FPlinkProcInfo.hProcess, 4000);
+          WaitForSingleObject(FPlinkProcInfo.hProcess, FParameters.SSHTimeout*1000);
           GetExitCodeProcess(FPlinkProcInfo.hProcess, ExitCode);
           if ExitCode <> STILL_ACTIVE then
             raise EDatabaseError.Create('PLink exited unexpected. Command line was:'+CRLF+PlinkCmd);
