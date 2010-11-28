@@ -539,7 +539,7 @@ begin
           PlinkCmd := PlinkCmd + ' -P ' + IntToStr(FParameters.SSHPort);
         if FParameters.SSHPrivateKey <> '' then
           PlinkCmd := PlinkCmd + ' -i "' + FParameters.SSHPrivateKey + '"';
-        PlinkCmd := PlinkCmd + ' -L ' + IntToStr(FParameters.SSHLocalPort) + ':' + FParameters.Hostname + ':' + IntToStr(FParameters.Port);
+        PlinkCmd := PlinkCmd + ' -N -L ' + IntToStr(FParameters.SSHLocalPort) + ':' + FParameters.Hostname + ':' + IntToStr(FParameters.Port);
         Log(lcInfo, 'Attempt to create plink.exe process, waiting '+FormatNumber(FParameters.SSHTimeout)+'s for response ...');
         // Create plink.exe process
         FillChar(FPlinkProcInfo, SizeOf(TProcessInformation), 0);
