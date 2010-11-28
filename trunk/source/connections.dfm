@@ -395,7 +395,7 @@ object connform: Tconnform
       object lblPlinkTimeout: TLabel
         Left = 3
         Top = 136
-        Width = 64
+        Width = 86
         Height = 13
         Caption = 'plink.exe timeout:'
       end
@@ -493,6 +493,7 @@ object connform: Tconnform
         Height = 21
         TabOrder = 5
         Text = '0'
+        OnChange = Modification
       end
       object updownSSHTimeout: TUpDown
         Left = 161
