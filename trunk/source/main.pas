@@ -7402,7 +7402,7 @@ begin
   // Find foreign key values on InnoDB table cells
   if Sender = DataGrid then for ForeignKey in SelectedTableForeignKeys do begin
     idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
-    if idx > -1 then begin
+    if idx > -1 then try
       // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
       CreateTable := ActiveConnection.GetVar('SHOW CREATE TABLE '+QuoteIdent(ForeignKey.ReferenceTable, True, '.'), 1);
       Columns := TTableColumnList.Create;
@@ -7438,6 +7438,8 @@ begin
       end;
       ForeignResults.Free;
       break;
+    except on E:EDatabaseError do
+      // Error gets logged, do nothing more here. All other exception types raise please.
     end;
   end;
 
