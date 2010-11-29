@@ -9084,6 +9084,8 @@ end;
 
 
 procedure TMainForm.SetTabCaption(PageIndex: Integer; Text: String);
+var
+  Tab: TQueryTab;
 begin
   // The current tab can be closed already if we're here after CloseQueryTab()
   if PageIndex >= PageControlMain.PageCount then
@@ -9095,12 +9097,18 @@ begin
   if (PageIndex = tabQuery.PageIndex) and (Text = '') then
     Text := 'Query';
   if IsQueryTab(PageIndex, False) then begin
-    if Text = '' then
-      Text := 'Query #'+IntToStr(PageIndex-tabQuery.PageIndex);
+    if Text = '' then begin
+      for Tab in QueryTabs do begin
+        if Tab.TabSheet = PageControlMain.Pages[PageIndex] then begin
+          Text := 'Query #'+IntToStr(Tab.Number);
+          break;
+        end;
+      end;
+    end;
     // Leave space for close button on closable query tabs
     Text := Text + '      ';
   end;
-  TTabSheet(PageControlMain.Pages[PageIndex]).Caption := Text;
+  PageControlMain.Pages[PageIndex].Caption := Text;
   FixQueryTabCloseButtons;
 end;
 
