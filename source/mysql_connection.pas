@@ -1915,12 +1915,13 @@ begin
       Col.Comment := Results.Col('Comment', True);
       if Col.DataType.Category <> dtcTemporal then
         Col.DefaultText := Results.Col('Default');
-      if Results.IsNull('Default') and Col.AllowNull then
-        Col.DefaultType := cdtNull
-      else if Col.DataType.Index = dtTimestamp then
+      if Results.IsNull('Default') then begin
+        if Col.AllowNull then
+          Col.DefaultType := cdtNull
+        else
+          Col.DefaultType := cdtNothing;
+      end else if Col.DataType.Index = dtTimestamp then
         Col.DefaultType := cdtCurTSUpdateTS
-      else if (Col.DefaultText = '') and Col.AllowNull then
-        Col.DefaultType := cdtNothing
       else
         Col.DefaultType := cdtText;
       Results.Next;
