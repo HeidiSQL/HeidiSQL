@@ -1797,7 +1797,7 @@ begin
   // Detect keys
   // PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), KEY `id_2` (`id`) USING BTREE,
   // KEY `Text` (`Text`(100)), FULLTEXT KEY `Email` (`Email`,`Text`)
-  rx.Expression := '^\s+((\w+)\s+)?KEY\s+([`"]?([^`"]+)[`"]?\s+)?\((.+)\)(\s+USING\s+(\w+))?,?$';
+  rx.Expression := '^\s+((\w+)\s+)?KEY\s+([`"]?([^`"]+)[`"]?\s+)?(USING\s+(\w+)\s+)?\((.+)\)(\s+USING\s+(\w+))?,?$';
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(Keys) then
       break;
@@ -1808,9 +1808,12 @@ begin
     Key.OldName := Key.Name;
     Key.IndexType := rx.Match[2];
     Key.OldIndexType := Key.IndexType;
-    Key.Algorithm := rx.Match[7];
+    if rx.Match[6] <> '' then // 5.0 and below show USING ... before column list
+      Key.Algorithm := rx.Match[6]
+    else
+      Key.Algorithm := rx.Match[9];
     if Key.IndexType = '' then Key.IndexType := 'KEY'; // KEY
-    Key.Columns := Explode(',', rx.Match[5]);
+    Key.Columns := Explode(',', rx.Match[7]);
     for i:=0 to Key.Columns.Count-1 do begin
       rxCol.Expression := '^[`"]?([^`"]+)[`"]?(\((\d+)\))?$';
       if rxCol.Exec(Key.Columns[i]) then begin
