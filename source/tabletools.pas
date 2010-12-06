@@ -467,6 +467,11 @@ var
 
 begin
   Screen.Cursor := crHourGlass;
+  // Disable critical controls so ProcessMessages is unable to do things while export is in progress
+  btnExecute.Enabled := False;
+  btnClose.Enabled := False;
+  tabsTools.Enabled := False;
+  treeObjects.Enabled := False;
   if tabsTools.ActivePage = tabMaintenance then
     FToolMode := tmMaintenance
   else if tabsTools.ActivePage = tabFind then
@@ -480,7 +485,6 @@ begin
   FFindSeeResultSQL.Clear;
   Triggers := TDBObjectList.Create(False); // False, so we can .Free that object afterwards without loosing the contained objects
   Views := TDBObjectList.Create(False);
-  TreeObjects.SetFocus;
   FHeaderCreated := False;
   ExitLoop := False;
   SessionNode := TreeObjects.GetFirstChild(nil);
@@ -538,6 +542,9 @@ begin
     Mainform.ActiveConnection.ClearDbObjects(FModifiedDbs[i]);
   FModifiedDbs.Clear;
 
+  btnClose.Enabled := True;
+  tabsTools.Enabled := True;
+  treeObjects.Enabled := True;
   ValidateControls(Sender);
   Screen.Cursor := crDefault;
 end;
@@ -1012,6 +1019,7 @@ const
     LogRow[2] := FormatNumber(RowsDone) + ' / ' + FormatNumber(Percent, 0)+'%';
     LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000);
     UpdateResultGrid;
+    Application.ProcessMessages;
   end;
 
 begin
