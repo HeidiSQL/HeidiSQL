@@ -1873,7 +1873,7 @@ begin
       '(ALGORITHM\s*=\s*(\w+)\s+)?'+
       '(DEFINER\s*=\s*(\S+)\s+)?'+
       '(SQL\s+SECURITY\s+\w+\s+)?'+
-      'VIEW\s+(`?(\w[\w\s]*)`?\.)?(`?(\w[\w\s]*)`?)?\s+'+
+      'VIEW\s+(`?(\w[\w\s\-]*)`?\.)?(`?(\w[\w\s\-]*)`?)?\s+'+
       '(\([^\)]\)\s+)?'+
       'AS\s+(.+)(\s+WITH\s+(\w+\s+)?CHECK\s+OPTION\s*)?$';
     if rx.Exec(CreateCode) then begin
