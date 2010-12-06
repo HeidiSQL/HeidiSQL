@@ -4790,6 +4790,7 @@ begin
     end;
     // Update nodedata
     Obj.Name := NewText;
+    Obj.CreateCode := '';
     // Now the active tree db has to be updated. But calling RefreshTreeDB here causes an AV
     // so we do it manually here
     DBTree.InvalidateChildren(FindDBNode(DBtree, ActiveDatabase), True);
