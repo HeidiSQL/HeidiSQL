@@ -622,6 +622,8 @@ type
         TColumnIndex; TextType: TVSTTextType; var CellText: String);
     procedure DataGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
     procedure AnyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure AnyGridMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
+      MousePos: TPoint; var Handled: Boolean);
     procedure AnyGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
         TColumnIndex; NewText: String);
     procedure AnyGridPaintText(Sender: TBaseVirtualTree; const TargetCanvas:
@@ -7260,6 +7262,29 @@ begin
 end;
 
 
+procedure TMainForm.AnyGridMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
+  MousePos: TPoint; var Handled: Boolean);
+var
+  VT: TVirtualStringTree;
+  Node: PVirtualNode;
+begin
+  // Advance to next or previous grid node on Shift+MouseWheel
+  if KeyPressed(VK_SHIFT) then begin
+    VT := Sender as TVirtualStringTree;
+    if Assigned(VT.FocusedNode) then begin
+      if WheelDelta > 0 then
+        Node := VT.FocusedNode.PrevSibling
+      else
+        Node := VT.FocusedNode.NextSibling;
+      if Assigned(Node) then begin
+        SelectNode(VT, Node);
+        Handled := True;
+      end;
+    end;
+  end;
+end;
+
+
 {**
   Content of a grid cell was modified
 }
@@ -10125,6 +10150,7 @@ begin
   Grid.OnInitNode := OrgGrid.OnInitNode;
   Grid.OnKeyDown := OrgGrid.OnKeyDown;
   Grid.OnMouseUp := OrgGrid.OnMouseUp;
+  Grid.OnMouseWheel := OrgGrid.OnMouseWheel;
   Grid.OnNewText := OrgGrid.OnNewText;
   Grid.OnPaintText := OrgGrid.OnPaintText;
   Grid.OnStartOperation := OrgGrid.OnStartOperation;

@@ -1818,6 +1818,7 @@ begin
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toHotTrack];
   VT.OnGetHint := MainForm.vstGetHint;
   VT.OnScroll := MainForm.vstScroll;
+  VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
   VT.ShowHint := True;
   VT.HintMode := hmToolTip;
   // Apply case insensitive incremental search event
