@@ -1448,6 +1448,7 @@ object MainForm: TMainForm
             OnInitNode = AnyGridInitNode
             OnKeyDown = AnyGridKeyDown
             OnMouseUp = AnyGridMouseUp
+            OnMouseWheel = AnyGridMouseWheel
             OnNewText = AnyGridNewText
             Columns = <>
           end
@@ -1630,6 +1631,7 @@ object MainForm: TMainForm
             OnInitNode = AnyGridInitNode
             OnKeyDown = AnyGridKeyDown
             OnMouseUp = AnyGridMouseUp
+            OnMouseWheel = AnyGridMouseWheel
             OnNewText = AnyGridNewText
             OnStartOperation = AnyGridStartOperation
             Columns = <>
