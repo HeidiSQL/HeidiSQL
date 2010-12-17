@@ -1149,7 +1149,7 @@ begin
         engineName := ShowEngines.Col('Engine');
         engineSupport := LowerCase(ShowEngines.Col('Support'));
         // Add to dropdown if supported
-        if engineSupport <> 'no' then
+        if (engineSupport = 'yes') or (engineSupport = 'default') then
           FTableEngines.Add(engineName);
         // Check if this is the default engine
         if engineSupport = 'default' then
