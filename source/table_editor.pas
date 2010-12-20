@@ -727,16 +727,16 @@ end;
 
 procedure TfrmTableEditor.btnRemoveColumnClick(Sender: TObject);
 var
-  Node, NodeFocus: PVirtualNode;
+  Node, NodeDelete, NodeFocus: PVirtualNode;
   Col: PTableColumn;
 begin
   // Remove selected column(s)
-  Node := listColumns.GetFirstSelected;
+  Node := GetNextNode(listColumns, nil, True);
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
     Col.Name := Col.OldName;
     Col.Status := esDeleted;
-    Node := listColumns.GetNextSelected(Node);
+    Node := GetNextNode(listColumns, Node, True);
   end;
   // Find next unselected node for new focus
   Node := listColumns.FocusedNode;
@@ -748,8 +748,13 @@ begin
     end;
     Node := listColumns.GetNextSibling(Node);
   end;
-
-  listColumns.DeleteSelectedNodes;
+  // Delete selected + visible
+  Node := GetNextNode(listColumns, nil, True);
+  while Assigned(Node) do begin
+    NodeDelete := Node;
+    Node := GetNextNode(listColumns, Node, True);
+    listColumns.DeleteNode(NodeDelete);
+  end;
 
   if not Assigned(NodeFocus) then
     NodeFocus := listColumns.GetLast;
@@ -1775,14 +1780,14 @@ begin
     // Disable menuitem if all selected columns are already part of this index,
     // enable it if one or more selected columns are not.
     Item.Enabled := False;
-    Node := listColumns.GetFirstSelected;
+    Node := GetNextNode(listColumns, nil, True);
     while Assigned(Node) do begin
       Col := listColumns.GetNodeData(Node);
       if FKeys[i].Columns.IndexOf(Col.Name) = -1 then begin
         Item.Enabled := True;
         Break;
       end;
-      Node := listColumns.GetNextSelected(Node);
+      Node := GetNextNode(listColumns, Node, True);
     end;
   end;
   menuAddToIndex.Enabled := menuAddToIndex.Count > 0;
@@ -1809,10 +1814,10 @@ begin
   // Auto create index or add columns to existing one by rightclicking a column
   Item := (Sender as TMenuItem);
   NewParts := TStringList.Create;
-  Node := listColumns.GetFirstSelected;
+  Node := GetNextNode(listColumns, nil, True);
   while Assigned(Node) do begin
     NewParts.Add(listColumns.Text[Node, 1]);
-    Node := listColumns.GetNextSelected(Node);
+    Node := GetNextNode(listColumns, Node, True);
   end;
   if Item.Parent = menuCreateIndex then begin
     NewType := StripHotkey(Item.Caption);
@@ -2113,12 +2118,12 @@ var
   SQL: String;
 begin
   // Copy selected columns as a CREATE TABLE query to clipboard
-  Node := listColumns.GetFirstSelected;
+  Node := GetNextNode(listColumns, nil, True);
   SQL := 'CREATE TABLE dummy ('+CRLF;
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
     SQL := SQL + #9 + Col.SQLCode + ','+CRLF;
-    Node := listColumns.GetNextSelected(Node);
+    Node := GetNextNode(listColumns, Node, True);
   end;
   Delete(SQL, Length(SQL)-2, 3);
   SQL := SQL + CRLF + ')';
