@@ -139,6 +139,7 @@ type
   function FindNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode): PVirtualNode;
   procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
   procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
+  function GetNextNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function DateBackFriendlyCaption(d: TDateTime): String;
   procedure InheritFont(AFont: TFont);
   function GetLightness(AColor: TColor): Byte;
@@ -568,10 +569,7 @@ begin
   end;
   StreamWrite(S, Header);
 
-  if SelectionOnly then
-    Node := Grid.GetFirstSelected
-  else
-    Node := Grid.GetFirst;
+  Node := GetNextNode(Grid, nil, SelectionOnly);
   while Assigned(Node) do begin
     // Update status once in a while.
     if (Node.Index+1) mod 100 = 0 then begin
@@ -682,10 +680,7 @@ begin
     end;
     StreamWrite(S, tmp);
 
-    if SelectionOnly then
-      Node := Grid.GetNextSelected(Node)
-    else
-      Node := Grid.GetNext(Node);
+    Node := GetNextNode(Grid, Node, SelectionOnly);
     if (MaxSize > 0) and Assigned(Node) and (S is TMemoryStream) and (S.Size >= MaxSize) then begin
       MessageDlg(
         Format(MSG_COPYMAXSIZE, [FormatByteNumber(MaxSize), FormatNumber(Node.Index), FormatNumber(NodeCount)]),
@@ -2038,6 +2033,28 @@ begin
   VT.FocusedNode := Node;
   VT.Selected[Node] := True;
   VT.ScrollIntoView(Node, False);
+end;
+
+
+function GetNextNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
+begin
+  // Get next visible + selected node. Not possible with VTree's own functions.
+  Result := CurrentNode;
+  while True do begin
+    if Selected then begin
+      if not Assigned(Result) then
+        Result := Tree.GetFirstSelected
+      else
+        Result := Tree.GetNextSelected(Result);
+    end else begin
+      if not Assigned(Result) then
+        Result := Tree.GetFirst
+      else
+        Result := Tree.GetNext(Result);
+    end;
+    if (not Assigned(Result)) or Tree.IsVisible[Result] then
+      break;
+  end;
 end;
 
 

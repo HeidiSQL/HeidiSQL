@@ -1824,7 +1824,7 @@ begin
     DBTree.DeleteNode(Node, True);
     FConnections.Remove(Connection);
     // TODO: focus last session?
-    SelectNode(DBtree, DBtree.GetFirst);
+    SelectNode(DBtree, GetNextNode(DBtree, nil));
   end;
 end;
 
@@ -1983,11 +1983,11 @@ begin
   if InDBTree then
     TableToolsDialog.PreSelectObjects.Add(ActiveDbObj)
   else begin
-    Node := ListTables.GetFirstSelected;
+    Node := GetNextNode(ListTables, nil, True);
     while Assigned(Node) do begin
       DBObj := ListTables.GetNodeData(Node);
       TableToolsDialog.PreSelectObjects.Add(DBObj^);
-      Node := ListTables.GetNextSelected(Node);
+      Node := GetNextNode(ListTables, Node, True);
     end;
   end;
   if Sender = actMaintenance then
@@ -2639,11 +2639,11 @@ begin
     end;
   end else begin
     // Invoked from database tab
-    Node := ListTables.GetFirstSelected;
+    Node := GetNextNode(ListTables, nil, True);
     while Assigned(Node) do begin
       Obj := ListTables.GetNodeData(Node);
       ObjectList.Add(Obj^);
-      Node := ListTables.GetNextSelected(Node);
+      Node := GetNextNode(ListTables, Node, True);
     end;
   end;
 
@@ -2864,7 +2864,7 @@ begin
       mtConfirmation, [mbOK, mbCancel], 0) = mrOK then begin
       FocusAfterDelete := nil;
       EnableProgressBar(Grid.SelectedCount);
-      Node := Grid.GetFirstSelected;
+      Node := GetNextNode(Grid, nil, True);
       while Assigned(Node) do begin
         RowNum := Grid.GetNodeData(Node);
         Results.RecNo := RowNum^;
@@ -2875,7 +2875,7 @@ begin
           Nodes[Length(Nodes)-1] := Node;
           FocusAfterDelete := Node;
         end;
-        Node := Grid.GetNextSelected(Node);
+        Node := GetNextNode(Grid, Node, True);
       end;
       if Assigned(FocusAfterDelete) then
         FocusAfterDelete := Grid.GetNext(FocusAfterDelete);
@@ -2941,14 +2941,14 @@ begin
   // Add selected items/tables to helper list
   Objects := TDBObjectList.Create(False);
   if ListTables.Focused then begin
-    Node := ListTables.GetFirstSelected;
+    Node := GetNextNode(ListTables, nil, True);
     while Assigned(Node) do begin
       Obj := ListTables.GetNodeData(Node);
       if Obj.NodeType in [lntTable, lntView] then begin
         Objects.Add(Obj^);
         Names := Names + Obj.Name + ', ';
       end;
-      Node := ListTables.GetNextSelected(Node);
+      Node := GetNextNode(ListTables, Node, True);
     end;
     Delete(Names, Length(Names)-1, 2);
   end else if DBTree.Focused then begin
@@ -2998,12 +2998,12 @@ begin
   // Run stored function(s) or procedure(s)
   Objects := TDBObjectList.Create(False);
   if ListTables.Focused then begin
-    Node := ListTables.GetFirstSelected;
+    Node := GetNextNode(ListTables, nil, True);
     while Assigned(Node) do begin
       pObj := ListTables.GetNodeData(Node);
       if pObj.NodeType in [lntProcedure, lntFunction] then
         Objects.Add(pObj^);
-      Node := ListTables.GetNextSelected(Node);
+      Node := GetNextNode(ListTables, Node, True);
     end;
   end else
     Objects.Add(ActiveDbObj);
@@ -3551,7 +3551,7 @@ procedure TMainForm.actDataFirstExecute(Sender: TObject);
 var
   Node: PVirtualNode;
 begin
-  Node := ActiveGrid.GetFirst;
+  Node := GetNextNode(ActiveGrid, nil);
   if Assigned(Node) then
     SelectNode(ActiveGrid, Node);
 end;
@@ -3812,10 +3812,7 @@ var
 begin
   // Load remaining data of all grid rows
   Results := GridResult(Grid);
-  if SelectedOnly then
-    Node := Grid.GetFirstSelected
-  else
-    Node := Grid.GetFirst;
+  Node := GetNextNode(Grid, nil, SelectedOnly);
   while Assigned(Node) do begin
     RowNum := Grid.GetNodeData(Node);
     Results.RecNo := RowNum^;
@@ -3824,10 +3821,7 @@ begin
       InvalidateVT(Grid, VTREE_NOTLOADED_PURGECACHE, True);
       break;
     end;
-    if SelectedOnly then
-      Node := Grid.GetNextSelected(Node)
-    else
-      Node := Grid.GetNext(Node);
+    Node := GetNextNode(Grid, Node, SelectedOnly);
   end;
 end;
 
@@ -4430,7 +4424,7 @@ begin
   if MessageDlg('Kill '+IntToStr(ListProcesses.SelectedCount)+' Process(es)?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
   begin
     try
-      Node := ListProcesses.GetFirstSelected;
+      Node := GetNextNode(ListProcesses, nil, True);
       while Assigned(Node) do begin
         pid := ListProcesses.Text[Node, ListProcesses.Header.MainColumn];
         // Don't kill own process
@@ -4438,7 +4432,7 @@ begin
           LogSQL('Ignoring own process id #'+pid+' when trying to kill it.')
         else
           ActiveConnection.Query('KILL '+pid);
-        Node := ListProcesses.GetNextSelected(Node);
+        Node := GetNextNode(ListProcesses, Node, True);
       end;
     except
       on E:EDatabaseError do
@@ -5778,13 +5772,13 @@ begin
   // Fill db object cache of selected databases
   try
     Screen.Cursor := crHourglass;
-    Node := ListDatabases.GetFirstSelected;
+    Node := GetNextNode(ListDatabases, nil, True);
     while Assigned(Node) do begin
       db := ListDatabases.Text[Node, 0];
       ActiveConnection.GetDBObjects(db, True);
       ListDatabases.RepaintNode(Node);
       DBtree.RepaintNode(FindDBNode(DBtree, db));
-      Node := ListDatabases.GetNextSelected(Node);
+      Node := GetNextNode(ListDatabases, Node, True);
     end;
   finally
     Screen.Cursor := crDefault;
