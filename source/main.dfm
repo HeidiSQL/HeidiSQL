@@ -413,6 +413,7 @@ object MainForm: TMainForm
         HotCursor = crHandPoint
         Images = ImageListMain
         IncrementalSearch = isInitializedOnly
+        Indent = 12
         ParentShowHint = False
         PopupMenu = popupDB
         ShowHint = True
