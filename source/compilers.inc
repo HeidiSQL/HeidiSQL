@@ -102,6 +102,10 @@
 {$endif}
 
 {$ifdef Win32}
+  {$ifdef VER220}
+    {$define COMPILER_15}
+  {$endif VER220}
+
   {$ifdef VER210}
     {$define COMPILER_14}
     {$define DELPHI}
@@ -529,6 +533,23 @@
   {$define COMPILER_11_UP}
   {$define COMPILER_12_UP}
   {$define COMPILER_14_UP}
+{$endif}
+
+{$ifdef COMPILER_15}
+  {$define COMPILER_1_UP}
+  {$define COMPILER_2_UP}
+  {$define COMPILER_3_UP}
+  {$define COMPILER_4_UP}
+  {$define COMPILER_5_UP}
+  {$define COMPILER_6_UP}
+  {$define COMPILER_7_UP}
+  {$define COMPILER_8_UP}
+  {$define COMPILER_9_UP}
+  {$define COMPILER_10_UP}
+  {$define COMPILER_11_UP}
+  {$define COMPILER_12_UP}
+  {$define COMPILER_14_UP}
+  {$define COMPILER_15_UP}
 {$endif}
 
 {$ifndef COMPILER_1_UP}
