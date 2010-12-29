@@ -1066,6 +1066,7 @@ begin
         ImageIndex := 150;
     end;
   end;
+  StatusBar.Canvas.FillRect(Rect);
   if ImageIndex > -1 then begin
     ImageListMain.Draw(StatusBar.Canvas, Rect.Left, Rect.Top, ImageIndex, true);
     TextRect := Rect;
