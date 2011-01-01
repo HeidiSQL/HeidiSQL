@@ -7988,7 +7988,11 @@ begin
       avg_persec := '';
 
       // Detect value type
-      valIsNumber := IntToStr(MakeInt(val)) = val;
+      try
+        valIsNumber := IntToStr(MakeInt(val)) = val;
+      except on E:EInvalidOp do
+        valIsNumber := False;
+      end;
       valIsBytes := valIsNumber and (Copy(Results.Col(0), 1, 6) = 'Bytes_');
 
       // Calculate average values ...
