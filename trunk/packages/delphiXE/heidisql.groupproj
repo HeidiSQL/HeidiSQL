@@ -3,16 +3,16 @@
 			<ProjectGuid>{9d2773a7-5199-4f9f-9b9a-ad4c0c48a953}</ProjectGuid>
 		</PropertyGroup>
 		<ItemGroup>
-			<Projects Include="..\..\components\synedit\Packages\delphi2010\SynEditR.dproj">
+			<Projects Include="..\..\components\synedit\Packages\delphiXE\SynEditR.dproj">
 				<Dependencies/>
 			</Projects>
-			<Projects Include="..\..\components\synedit\Packages\delphi2010\SynEditD.dproj">
+			<Projects Include="..\..\components\synedit\Packages\delphiXE\SynEditD.dproj">
 				<Dependencies/>
 			</Projects>
-			<Projects Include="..\..\components\virtualtreeview\packages\delphi2010\VirtualTreesR.dproj">
+			<Projects Include="..\..\components\virtualtreeview\packages\delphiXE\VirtualTreesR.dproj">
 				<Dependencies/>
 			</Projects>
-			<Projects Include="..\..\components\virtualtreeview\packages\delphi2010\VirtualTreesD.dproj">
+			<Projects Include="..\..\components\virtualtreeview\packages\delphiXE\VirtualTreesD.dproj">
 				<Dependencies/>
 			</Projects>
 			<Projects Include="heidisql.dproj">
@@ -29,40 +29,40 @@
 			</BorlandProject>
 		</ProjectExtensions>
 		<Target Name="SynEditR">
-			<MSBuild Projects="..\..\components\synedit\Packages\delphi2010\SynEditR.dproj"/>
+			<MSBuild Projects="..\..\components\synedit\Packages\delphiXE\SynEditR.dproj"/>
 		</Target>
 		<Target Name="SynEditR:Clean">
-			<MSBuild Targets="Clean" Projects="..\..\components\synedit\Packages\delphi2010\SynEditR.dproj"/>
+			<MSBuild Targets="Clean" Projects="..\..\components\synedit\Packages\delphiXE\SynEditR.dproj"/>
 		</Target>
 		<Target Name="SynEditR:Make">
-			<MSBuild Targets="Make" Projects="..\..\components\synedit\Packages\delphi2010\SynEditR.dproj"/>
+			<MSBuild Targets="Make" Projects="..\..\components\synedit\Packages\delphiXE\SynEditR.dproj"/>
 		</Target>
 		<Target Name="SynEditD">
-			<MSBuild Projects="..\..\components\synedit\Packages\delphi2010\SynEditD.dproj"/>
+			<MSBuild Projects="..\..\components\synedit\Packages\delphiXE\SynEditD.dproj"/>
 		</Target>
 		<Target Name="SynEditD:Clean">
-			<MSBuild Targets="Clean" Projects="..\..\components\synedit\Packages\delphi2010\SynEditD.dproj"/>
+			<MSBuild Targets="Clean" Projects="..\..\components\synedit\Packages\delphiXE\SynEditD.dproj"/>
 		</Target>
 		<Target Name="SynEditD:Make">
-			<MSBuild Targets="Make" Projects="..\..\components\synedit\Packages\delphi2010\SynEditD.dproj"/>
+			<MSBuild Targets="Make" Projects="..\..\components\synedit\Packages\delphiXE\SynEditD.dproj"/>
 		</Target>
 		<Target Name="VirtualTreesR">
-			<MSBuild Projects="..\..\components\virtualtreeview\packages\delphi2010\VirtualTreesR.dproj"/>
+			<MSBuild Projects="..\..\components\virtualtreeview\packages\delphiXE\VirtualTreesR.dproj"/>
 		</Target>
 		<Target Name="VirtualTreesR:Clean">
-			<MSBuild Targets="Clean" Projects="..\..\components\virtualtreeview\packages\delphi2010\VirtualTreesR.dproj"/>
+			<MSBuild Targets="Clean" Projects="..\..\components\virtualtreeview\packages\delphiXE\VirtualTreesR.dproj"/>
 		</Target>
 		<Target Name="VirtualTreesR:Make">
-			<MSBuild Targets="Make" Projects="..\..\components\virtualtreeview\packages\delphi2010\VirtualTreesR.dproj"/>
+			<MSBuild Targets="Make" Projects="..\..\components\virtualtreeview\packages\delphiXE\VirtualTreesR.dproj"/>
 		</Target>
 		<Target Name="VirtualTreesD">
-			<MSBuild Projects="..\..\components\virtualtreeview\packages\delphi2010\VirtualTreesD.dproj"/>
+			<MSBuild Projects="..\..\components\virtualtreeview\packages\delphiXE\VirtualTreesD.dproj"/>
 		</Target>
 		<Target Name="VirtualTreesD:Clean">
-			<MSBuild Targets="Clean" Projects="..\..\components\virtualtreeview\packages\delphi2010\VirtualTreesD.dproj"/>
+			<MSBuild Targets="Clean" Projects="..\..\components\virtualtreeview\packages\delphiXE\VirtualTreesD.dproj"/>
 		</Target>
 		<Target Name="VirtualTreesD:Make">
-			<MSBuild Targets="Make" Projects="..\..\components\virtualtreeview\packages\delphi2010\VirtualTreesD.dproj"/>
+			<MSBuild Targets="Make" Projects="..\..\components\virtualtreeview\packages\delphiXE\VirtualTreesD.dproj"/>
 		</Target>
 		<Target Name="heidisql">
 			<MSBuild Projects="heidisql.dproj"/>
