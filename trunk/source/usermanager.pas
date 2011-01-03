@@ -232,7 +232,7 @@ begin
     FUsers := MainForm.ActiveConnection.GetCol(
       'SELECT CONCAT('+QuoteIdent('user')+', '+esc('@')+', '+QuoteIdent('host')+') '+
       'FROM '+QuoteIdent('mysql')+'.'+QuoteIdent('user')+' '+
-      'WHERE '+QuoteIdent('Password')+'!='+esc('!')+' '+
+      'WHERE LENGTH('+QuoteIdent('Password')+') IN (0, 16, 41) '+
       'ORDER BY LOWER('+QuoteIdent('user')+'), LOWER('+QuoteIdent('host')+')');
     InvalidateVT(listUsers, VTREE_NOTLOADED, False);
     FPrivObjects := TPrivObjList.Create(TPrivComparer.Create, True);
