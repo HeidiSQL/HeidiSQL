@@ -4881,20 +4881,20 @@ end;
 
 procedure TMainForm.AutoRefreshSetInterval(Sender: TObject);
 var
-  seconds : String;
-  secondsInt : Integer;
+  SecondsStr: String;
+  Seconds: Extended;
 begin
   // set interval for autorefresh-timer
-  seconds := IntToStr(TimerRefresh.interval div 1000);
-  if inputquery('Auto refresh','Refresh list every ... second(s):', seconds) then begin
-    secondsInt := StrToIntDef(seconds, 0);
-    if secondsInt > 0 then begin
-      TimerRefresh.Interval := secondsInt * 1000;
+  SecondsStr := FloatToStr(TimerRefresh.interval div 1000);
+  if InputQuery('Auto refresh','Refresh list every ... second(s):', SecondsStr) then begin
+    Seconds := StrToFloatDef(SecondsStr, 0);
+    if Seconds > 0 then begin
+      TimerRefresh.Interval := Trunc(Seconds * 1000);
       TimerRefresh.Enabled := true;
       menuAutoRefresh.Checked := true;
     end
     else
-      MessageDLG('Seconds must be between 1 and ' + IntToStr(maxint) + '.', mtError, [mbOK], 0);
+      MessageDLG('Seconds must be between 0 and ' + IntToStr(maxint) + '.', mtError, [mbOK], 0);
   end;
 end;
 
