@@ -2769,7 +2769,7 @@ var
   SessionExists, RestoreLastActiveDatabase: Boolean;
   StartupScript, StartupSQL, LastActiveDatabase: String;
   StartupBatch: TSQLBatch;
-  SessionNode: PVirtualNode;
+  SessionNode, DBNode: PVirtualNode;
 begin
   Connection := TMySQLConnection.Create(Self);
   Connection.OnLog := LogSQL;
@@ -2814,9 +2814,12 @@ begin
       // Set focus on last uses db. If not wanted or db is gone, go to root node at least
       RestoreLastActiveDatabase := GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
       LastActiveDatabase := GetRegValue(REGNAME_LASTUSEDDB, '', Session);
-      if RestoreLastActiveDatabase and (Connection.AllDatabases.IndexOf(LastActiveDatabase) >- 1) then
-        SetActiveDatabase(LastActiveDatabase, Connection)
-      else begin
+      if RestoreLastActiveDatabase and (Connection.AllDatabases.IndexOf(LastActiveDatabase) >- 1) then begin
+        SetActiveDatabase(LastActiveDatabase, Connection);
+        DBNode := FindDBNode(DBtree, LastActiveDatabase);
+        if Assigned(DBNode) then
+          DBtree.Expanded[DBNode] := True;
+      end else begin
         SessionNode := GetRootNode(DBtree, Connection);
         SelectNode(DBtree, SessionNode);
         DBtree.Expanded[SessionNode] := True;
