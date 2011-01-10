@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
-  SynMemo, Menus, Contnrs, Clipbrd, Math,
+  SynMemo, Menus, Contnrs, Clipbrd,
   grideditlinks, mysql_structures, mysql_connection, helpers, mysql_api;
 
 type
@@ -145,6 +145,9 @@ type
     procedure btnDiscardClick(Sender: TObject);
     procedure popupColumnsPopup(Sender: TObject);
     procedure AddIndexByColumn(Sender: TObject);
+    procedure listColumnsGetImageIndex(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+      var Ghosted: Boolean; var ImageIndex: Integer);
     procedure listForeignKeysBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure listForeignKeysCreateEditor(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
@@ -171,6 +174,8 @@ type
     procedure listColumnsKeyPress(Sender: TObject; var Key: Char);
     procedure vtHandleClickOrKeyPress(Sender: TVirtualStringTree;
       Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
+    procedure listColumnsStructureChange(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Reason: TChangeReason);
     procedure menuCopyColumnsClick(Sender: TObject);
     procedure menuPasteColumnsClick(Sender: TObject);
   private
@@ -189,7 +194,6 @@ type
     function ComposeAlterStatement: String;
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
-    procedure CalcMinColWidth;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -335,7 +339,6 @@ begin
   AlterCodeValid := False;
   PageControlMainChange(Self); // Foreign key editor needs a hit
   UpdateSQLCode;
-  CalcMinColWidth;
   // Indicate change mechanisms can call their events now. See Modification().
   FLoaded := True;
   // Empty status panel
@@ -668,7 +671,6 @@ begin
     CreateCodeValid := False;
     AlterCodeValid := False;
     UpdateSQLcode;
-    CalcMinColWidth;
   end;
 end;
 
@@ -823,68 +825,24 @@ begin
 end;
 
 
-procedure TfrmTableEditor.CalcMinColWidth;
-var
-  i, j, MinWidthThisCol, MinWidthAllCols: Integer;
-begin
-  // Find maximum column widths so the index icons have enough room after auto-fitting
-  MinWidthAllCols := 0;
-  for i:=0 to FColumns.Count-1 do begin
-    MinWidthThisCol := 0;
-    for j:=0 to FKeys.Count-1 do begin
-      if FKeys[j].Columns.IndexOf(FColumns[i].Name) > -1 then
-        Inc(MinWidthThisCol, listColumns.Images.Width);
-    end;
-    for j:=0 to FForeignKeys.Count-1 do begin
-      if FForeignKeys[j].Columns.IndexOf(FColumns[i].Name) > -1 then
-        Inc(MinWidthThisCol, listColumns.Images.Width);
-    end;
-    MinWidthAllCols := Max(MinWidthAllCols, MinWidthThisCol);
-  end;
-  // Add space for number
-  Inc(MinWidthAllCols, listColumns.Canvas.TextWidth(IntToStr(FColumns.Count+1)) + listColumns.TextMargin*4);
-  listColumns.Header.Columns[0].Width := MinWidthAllCols;
-end;
-
-
 procedure TfrmTableEditor.listColumnsAfterCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellRect: TRect);
 var
   Col: PTableColumn;
-  ImageIndex, X, Y, i: Integer;
+  ImageIndex, X, Y: Integer;
   VT: TVirtualStringTree;
 begin
-  VT := TVirtualStringTree(Sender);
-  Col := Sender.GetNodeData(Node);
-  Y := CellRect.Top + Integer(VT.NodeHeight[Node] div 2) - (VT.Images.Height div 2);
-
-  // Paint one icon per index of which this column is part of
-  if Column = 0 then begin
-    X := 0;
-    for i:=0 to FKeys.Count-1 do begin
-      if FKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
-        ImageIndex := GetIndexIcon(FKeys[i].IndexType);
-        VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
-        Inc(X, VT.Images.Width);
-      end;
-    end;
-    for i:=0 to FForeignKeys.Count-1 do begin
-      if FForeignKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
-        ImageIndex := ICONINDEX_FOREIGNKEY;
-        VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
-        Inc(X, VT.Images.Width);
-      end;
-    end;
-  end;
-
   // Paint checkbox image in certain columns
   // while restricting "Allow NULL" checkbox to numeric datatypes
   if (Column in [4, 5, 6]) and CellEditingAllowed(Node, Column) then begin
+    Col := Sender.GetNodeData(Node);
     if (Col.Unsigned and (Column=4)) or (Col.AllowNull and (Column=5)) or (Col.ZeroFill and (Column = 6)) then
       ImageIndex := 128
     else ImageIndex := 127;
+    VT := TVirtualStringTree(Sender);
     X := CellRect.Left + (VT.Header.Columns[Column].Width div 2) - (VT.Images.Width div 2);
+    Y := CellRect.Top + Integer(VT.NodeHeight[Node] div 2) - (VT.Images.Height div 2);
     VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
   end;
 end;
@@ -988,6 +946,35 @@ begin
 end;
 
 
+procedure TfrmTableEditor.listColumnsGetImageIndex(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+  var Ghosted: Boolean; var ImageIndex: Integer);
+var
+  i: Integer;
+  Col: PTableColumn;
+begin
+  // Primary key icon
+  if Column <> 0 then Exit;
+  if not (Kind in [ikNormal, ikSelected]) then Exit;
+  Col := Sender.GetNodeData(Node);
+
+  for i:=0 to FKeys.Count-1 do begin
+    if FKeys[i].Columns.IndexOf(Col.Name) > -1 then
+      ImageIndex := GetIndexIcon(FKeys[i].IndexType);
+    // Priority for PK columns. We cannot display more than one icon anyway.
+    if ImageIndex > -1 then
+      break;
+  end;
+
+  for i:=0 to FForeignKeys.Count-1 do begin
+    if FForeignKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
+      ImageIndex := ICONINDEX_FOREIGNKEY;
+      break;
+    end;
+  end;
+end;
+
+
 procedure TfrmTableEditor.listColumnsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
 begin
   NodeDataSize := SizeOf(TTableColumn);
@@ -1031,6 +1018,14 @@ begin
     end;
   end;
   TargetCanvas.Font.Color := TextColor;
+end;
+
+
+procedure TfrmTableEditor.listColumnsStructureChange(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Reason: TChangeReason);
+begin
+  // Auto resize first column to optimal width
+  listColumns.Header.AutoFitColumns(False, smaUseColumnOption, 0, 0);
 end;
 
 
