@@ -1854,7 +1854,7 @@ begin
       end;
     end;
     SelectNode(treeIndexes, Item.MenuIndex);
-    treeIndexes.ReinitChildren(treeIndexes.FocusedNode, False);
+    treeIndexes.ReinitNode(treeIndexes.FocusedNode, False);
     SelectNode(treeIndexes, TblKey.Columns.Count-1, treeIndexes.FocusedNode);
   end;
   Modification(Sender);
