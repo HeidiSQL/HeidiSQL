@@ -2630,6 +2630,8 @@ begin
           Conn.Query('DROP DATABASE ' + QuoteIdent(db));
           DBtree.DeleteNode(Node);
           Conn.ClearDbObjects(db);
+          Conn.RefreshAllDatabases;
+          InvalidateVT(ListDatabases, VTREE_NOTLOADED_PURGECACHE, False);
         except
           on E:EDatabaseError do
             MessageDlg(E.Message, mtError, [mbOK], 0);
