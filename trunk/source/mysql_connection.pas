@@ -253,7 +253,7 @@ type
       function GetCurrentUserHostCombination: String;
       function DecodeAPIString(a: AnsiString): String;
       procedure Log(Category: TMySQLLogCategory; Msg: String);
-      procedure ClearCache;
+      procedure ClearCache(IncludeDBObjects: Boolean);
       procedure SetObjectNamesInSelectedDB;
     public
       constructor Create(AOwner: TComponent); override;
@@ -452,7 +452,7 @@ destructor TMySQLConnection.Destroy;
 begin
   if Active then Active := False;
   FOnDBObjectsCleared := nil;
-  ClearCache;
+  ClearCache(True);
   inherited Destroy;
 end;
 
@@ -630,6 +630,7 @@ begin
   else if (not Value) and (FHandle <> nil) then begin
     mysql_close(FHandle);
     FActive := False;
+    ClearCache(False);
     FConnectionStarted := 0;
     FHandle := nil;
     ClosePlink;
@@ -1141,6 +1142,8 @@ var
   engineName, engineSupport: String;
   PossibleEngines: TStringList;
 begin
+  // After a disconnect Ping triggers the cached engines to be reset
+  Ping;
   if not Assigned(FTableEngines) then begin
     FTableEngines := TStringList.Create;
     try
@@ -1188,6 +1191,7 @@ end;
 
 function TMySQLConnection.GetCollationTable: TMySQLQuery;
 begin
+  Ping;
   if (not Assigned(FCollationTable)) and (ServerVersionInt >= 40100) then
     FCollationTable := GetResults('SHOW COLLATION');
   if Assigned(FCollationTable) then
@@ -1211,6 +1215,7 @@ end;
 
 function TMySQLConnection.GetCharsetTable: TMySQLQuery;
 begin
+  Ping;
   if (not Assigned(FCharsetTable)) and (ServerVersionInt >= 40100) then
     FCharsetTable := GetResults('SHOW CHARSET');
   Result := FCharsetTable;
@@ -1235,6 +1240,7 @@ end;
 
 function TMySQLConnection.GetInformationSchemaObjects: TStringList;
 begin
+  Ping;
   if not Assigned(FInformationSchemaObjects) then try
     FInformationSchemaObjects := GetCol('SHOW TABLES FROM '+QuoteIdent('information_schema'));
   except
@@ -1265,20 +1271,22 @@ end;
 function TMySQLConnection.GetCurrentUserHostCombination: String;
 begin
   // Return current user@host combination, used by various object editors for DEFINER clauses
+  Ping;
   if FCurrentUserHostCombination = '' then
     FCurrentUserHostCombination := GetVar('SELECT CURRENT_USER()');
   Result := FCurrentUserHostCombination;
 end;
 
 
-procedure TMySQLConnection.ClearCache;
+procedure TMySQLConnection.ClearCache(IncludeDBObjects: Boolean);
 begin
   // Free cached lists and results. Called when the connection was closed and/or destroyed
   FreeAndNil(FCollationTable);
   FreeAndNil(FCharsetTable);
   FreeAndNil(FTableEngines);
   FreeAndNil(FInformationSchemaObjects);
-  ClearAllDbObjects;
+  if IncludeDBObjects then
+    ClearAllDbObjects;
   FTableEngineDefault := '';
   FCurrentUserHostCombination := '';
 end;
