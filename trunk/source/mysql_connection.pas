@@ -642,6 +642,7 @@ end;
 
 function TMySQLConnection.Ping: Boolean;
 begin
+  Log(lcDebug, 'Ping server ...');
   if FActive and ((FHandle=nil) or (mysql_ping(FHandle) <> 0)) then
     Active := False;
   Result := FActive;
