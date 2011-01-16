@@ -1144,6 +1144,7 @@ var
   PossibleEngines: TStringList;
 begin
   // After a disconnect Ping triggers the cached engines to be reset
+  Log(lcDebug, 'Fetching list of table engines ...');
   Ping;
   if not Assigned(FTableEngines) then begin
     FTableEngines := TStringList.Create;
@@ -1192,6 +1193,7 @@ end;
 
 function TMySQLConnection.GetCollationTable: TMySQLQuery;
 begin
+  Log(lcDebug, 'Fetching list of collations ...');
   Ping;
   if (not Assigned(FCollationTable)) and (ServerVersionInt >= 40100) then
     FCollationTable := GetResults('SHOW COLLATION');
@@ -1216,6 +1218,7 @@ end;
 
 function TMySQLConnection.GetCharsetTable: TMySQLQuery;
 begin
+  Log(lcDebug, 'Fetching charset list ...');
   Ping;
   if (not Assigned(FCharsetTable)) and (ServerVersionInt >= 40100) then
     FCharsetTable := GetResults('SHOW CHARSET');
@@ -1241,6 +1244,7 @@ end;
 
 function TMySQLConnection.GetInformationSchemaObjects: TStringList;
 begin
+  Log(lcDebug, 'Fetching objects in information_schema db ...');
   Ping;
   if not Assigned(FInformationSchemaObjects) then try
     FInformationSchemaObjects := GetCol('SHOW TABLES FROM '+QuoteIdent('information_schema'));
@@ -1272,6 +1276,7 @@ end;
 function TMySQLConnection.GetCurrentUserHostCombination: String;
 begin
   // Return current user@host combination, used by various object editors for DEFINER clauses
+  Log(lcDebug, 'Fetching user@host ...');
   Ping;
   if FCurrentUserHostCombination = '' then
     FCurrentUserHostCombination := GetVar('SELECT CURRENT_USER()');
@@ -1601,6 +1606,7 @@ var
     if B then Result := 'Yes' else Result := 'No';
   end;
 begin
+  Log(lcDebug, 'Get connection details ...');
   Result := TStringList.Create;
   if Assigned(Parameters) then
     Result.Values['Hostname'] := Parameters.Hostname;
