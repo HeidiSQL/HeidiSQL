@@ -1932,8 +1932,7 @@ begin
       Col.AllowNull := UpperCase(Results.Col('Null')) = 'YES';
       Col.Collation := Results.Col('Collation', True);
       Col.Comment := Results.Col('Comment', True);
-      if Col.DataType.Category <> dtcTemporal then
-        Col.DefaultText := Results.Col('Default');
+      Col.DefaultText := Results.Col('Default');
       if Results.IsNull('Default') then begin
         if Col.AllowNull then
           Col.DefaultType := cdtNull
