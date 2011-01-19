@@ -2158,10 +2158,9 @@ var
       ErrorPos := Pos(rx.Match[1], Copy(QueryTab.Memo.Text, SelStart, SIZE_KB));
       if ErrorPos > 0 then
         Inc(SelStart, ErrorPos-1);
+      QueryTab.Memo.SelLength := 0;
+      QueryTab.Memo.SelStart := SelStart;
     end;
-
-    QueryTab.Memo.SelLength := 0;
-    QueryTab.Memo.SelStart := SelStart;
   end;
 
 begin
