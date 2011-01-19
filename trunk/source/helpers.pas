@@ -101,7 +101,6 @@ type
   procedure debug(txt: String);
   function fixNewlines(txt: String): String;
   function GetShellFolder(CSIDL: integer): string;
-  function GetFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
   function goodfilename( str: String ): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
   function UnformatNumber(Val: String): String;
@@ -1072,38 +1071,6 @@ begin
     Result := FolderPath;
   finally
     Malloc.Free(pidl);
-  end;
-end;
-
-
-
-{***
-  Return all files in a given directory into a TStringList
-
-  @param string Folderpath
-  @param string Filepattern to filter files, defaults to all files (*.*)
-  @return TStringList Filenames
-}
-function GetFilesFromDir( dir: String; pattern: String = '*.*'; hideExt: Boolean = false ): TStringList;
-var
-  sr : TSearchRec;
-  s : String;
-begin
-  result := TStringList.Create;
-  if dir[length(dir)] <> '\' then
-    dir := dir + '\';
-  if FindFirst( dir + pattern, $3F, sr ) = 0 then
-  begin
-    repeat
-      if (sr.Attr and faAnyFile) > 0 then begin
-        s := sr.Name;
-        if hideExt and (Pos('.', s) > 0) then begin
-          SetLength(s, Pos('.', s) - 1);
-        end;
-        result.Add( s );
-      end;
-    until FindNext( sr ) <> 0;
-    // FindClose( sr );
   end;
 end;
 

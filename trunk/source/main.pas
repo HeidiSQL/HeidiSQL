@@ -14,7 +14,7 @@ uses
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
-  SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns,
+  SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns, IOUtils, Types,
   CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
@@ -877,7 +877,7 @@ type
     procedure DoSearchReplace;
     procedure UpdateLineCharPanel;
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
-    procedure SetSnippetFilenames(Value: TStringList);
+    procedure SetSnippetFilenames;
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
   public
     AllDatabasesDetails: TMySQLQuery;
@@ -971,7 +971,6 @@ type
 
     property Connections: TMySQLConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
-    property SnippetFilenames: TStringList read FSnippetFilenames write SetSnippetFilenames;
     procedure CallSQLHelpWithKeyword( keyword: String );
     procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
     procedure popupQueryLoadClick( sender: TObject );
@@ -1323,7 +1322,7 @@ begin
 
   // Folder which contains snippet-files
   DirnameSnippets := DirnameCommonAppData + 'Snippets\';
-  SnippetFilenames := GetFilesFromDir(DirnameSnippets, '*.sql', True);
+  SetSnippetFilenames;
 
   // SQLFiles-History
   FillPopupQueryLoad;
@@ -3298,7 +3297,7 @@ begin
       ForceDirectories(DirnameSnippets);
     SaveUnicodeFile( snippetname, Text );
     FillPopupQueryLoad;
-    SnippetFilenames := GetFilesFromDir(DirnameSnippets, '*.sql', True);
+    SetSnippetFilenames;
     Screen.Cursor := crDefault;
   end;
 end;
@@ -3321,20 +3320,19 @@ procedure TMainform.FillPopupQueryLoad;
 var
   i, j: Integer;
   menuitem, snippetsfolder: TMenuItem;
-  snippets: TStringList;
   sqlFilename: String;
 begin
   // Fill the popupQueryLoad menu
   popupQueryLoad.Items.Clear;
 
   // Snippets
-  snippets := getFilesFromDir( DirnameSnippets, '*.sql', true );
+  SetSnippetFilenames;
   snippetsfolder := TMenuItem.Create( popupQueryLoad );
   snippetsfolder.Caption := 'Snippets';
   popupQueryLoad.Items.Add(snippetsfolder);
-  for i := 0 to snippets.Count - 1 do begin
+  for i:=0 to FSnippetFilenames.Count-1 do begin
     menuitem := TMenuItem.Create( snippetsfolder );
-    menuitem.Caption := snippets[i];
+    menuitem.Caption := FSnippetFilenames[i];
     menuitem.OnClick := popupQueryLoadClick;
     snippetsfolder.Add(menuitem);
   end;
@@ -5719,7 +5717,7 @@ begin
     Screen.Cursor := crHourGlass;
     if DeleteFile(snippetfile) then begin
       // Refresh list with snippets
-      SnippetFilenames := GetFilesFromDir(DirnameSnippets, '*.sql', True);
+      SetSnippetFilenames;
       FillPopupQueryLoad;
     end else begin
       Screen.Cursor := crDefault;
@@ -9903,12 +9901,22 @@ begin
 end;
 
 
-procedure TMainForm.SetSnippetFilenames(Value: TStringList);
+procedure TMainForm.SetSnippetFilenames;
+var
+  Files: TStringDynArray;
+  Snip: String;
+  i: Integer;
 begin
   // Refreshing list of snippet file names needs to refresh helper node too
-  if Assigned(FSnippetFilenames) then
-    FSnippetFilenames.Free;
-  FSnippetFilenames := Value;
+  if not Assigned(FSnippetFilenames) then
+    FSnippetFilenames := TStringList.Create;
+  FSnippetFilenames.Clear;
+  Files := TDirectory.GetFiles(DirnameSnippets, '*.sql');
+  for i:=0 to Length(Files)-1 do begin
+    Snip := ExtractFilename(Files[i]);
+    Snip := Copy(Snip, 1, Length(Snip)-4);
+    FSnippetFilenames.Add(snip);
+  end;
   RefreshHelperNode(HELPERNODE_SNIPPETS);
 end;
 
