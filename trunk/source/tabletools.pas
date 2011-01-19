@@ -244,6 +244,12 @@ begin
   TreeObjects.Clear;
   TreeObjects.RootNodeCount := Mainform.DBtree.RootNodeCount;
 
+  // Init all objects in active database, so the tree does not just check the db node
+  // if we want the first child only. See issue #2267.
+  Node := MainForm.FindDBNode(TreeObjects, MainForm.ActiveDatabase);
+  Node := TreeObjects.GetFirstChild(Node);
+  while Assigned(Node) do
+    Node := TreeObjects.GetNextSibling(Node);
   for DBObj in PreSelectObjects do begin
     Node := MainForm.FindDBObjectNode(TreeObjects, DBObj);
     if Assigned(Node) then
