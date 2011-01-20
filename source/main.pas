@@ -9910,11 +9910,17 @@ begin
   if not Assigned(FSnippetFilenames) then
     FSnippetFilenames := TStringList.Create;
   FSnippetFilenames.Clear;
-  Files := TDirectory.GetFiles(DirnameSnippets, '*.sql');
-  for i:=0 to Length(Files)-1 do begin
-    Snip := ExtractFilename(Files[i]);
-    Snip := Copy(Snip, 1, Length(Snip)-4);
-    FSnippetFilenames.Add(snip);
+  try
+    Files := TDirectory.GetFiles(DirnameSnippets+'sdsd', '*.sql');
+    for i:=0 to Length(Files)-1 do begin
+      Snip := ExtractFilename(Files[i]);
+      Snip := Copy(Snip, 1, Length(Snip)-4);
+      FSnippetFilenames.Add(snip);
+    end;
+  except
+    on E:Exception do begin
+      LogSQL('Error with snippets directory: '+E.Message, lcError);
+    end;
   end;
   RefreshHelperNode(HELPERNODE_SNIPPETS);
 end;
