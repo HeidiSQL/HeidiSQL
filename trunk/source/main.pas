@@ -2238,7 +2238,7 @@ begin
       PacketSize := 0;
       BatchStartOffset := SQLBatch[i].LeftOffset;
       while i < SQLBatch.Count do begin
-        PacketSize := SQLBatch[i].RightOffset - BatchStartOffset + (i * 10);
+        PacketSize := SQLBatch[i].RightOffset - BatchStartOffset + (i-i_first * 10);
         if PacketSize >= MaxAllowedPacket then begin
           LogSQL('Limiting batch packet size to '+FormatByteNumber(Length(SQL)), lcDebug);
           Dec(i);
