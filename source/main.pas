@@ -9911,7 +9911,7 @@ begin
     FSnippetFilenames := TStringList.Create;
   FSnippetFilenames.Clear;
   try
-    Files := TDirectory.GetFiles(DirnameSnippets+'sdsd', '*.sql');
+    Files := TDirectory.GetFiles(DirnameSnippets, '*.sql');
     for i:=0 to Length(Files)-1 do begin
       Snip := ExtractFilename(Files[i]);
       Snip := Copy(Snip, 1, Length(Snip)-4);
