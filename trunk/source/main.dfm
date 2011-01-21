@@ -2612,6 +2612,22 @@ object MainForm: TMainForm
       ImageIndex = 29
       OnExecute = actDisconnectExecute
     end
+    object actBatchInOneGo: TAction
+      Category = 'SQL'
+      AutoCheck = True
+      Caption = 'Send batch in one go'
+      GroupIndex = 1
+      Hint = 'Send up to max_allowed_packet batch at once'
+      OnExecute = actBatchInOneGoExecute
+    end
+    object actSingleQueries: TAction
+      Category = 'SQL'
+      AutoCheck = True
+      Caption = 'Send queries one by one'
+      Checked = True
+      GroupIndex = 1
+      OnExecute = actBatchInOneGoExecute
+    end
   end
   object SaveDialog2: TSaveDialog
     DefaultExt = 'reg'
@@ -8722,6 +8738,17 @@ object MainForm: TMainForm
     end
     object Runcurrentquery1: TMenuItem
       Action = actExecuteCurrentQuery
+    end
+    object N3: TMenuItem
+      Caption = '-'
+    end
+    object Sendqueriesonebyone1: TMenuItem
+      Action = actSingleQueries
+      AutoCheck = True
+    end
+    object Runbatchinonego1: TMenuItem
+      Action = actBatchInOneGo
+      AutoCheck = True
     end
   end
   object ApplicationEvents1: TApplicationEvents

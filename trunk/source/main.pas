@@ -512,6 +512,11 @@ type
     actDisconnect: TAction;
     Copylinetonewquerytab1: TMenuItem;
     menuLogHorizontalScrollbar: TMenuItem;
+    actBatchInOneGo: TAction;
+    Runbatchinonego1: TMenuItem;
+    actSingleQueries: TAction;
+    Sendqueriesonebyone1: TMenuItem;
+    N3: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -829,6 +834,7 @@ type
     procedure menuEditObjectClick(Sender: TObject);
     procedure Copylinetonewquerytab1Click(Sender: TObject);
     procedure menuLogHorizontalScrollbarClick(Sender: TObject);
+    procedure actBatchInOneGoExecute(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -2130,11 +2136,11 @@ procedure TMainForm.actExecuteQueryExecute(Sender: TObject);
 var
   SQLBatch: TSQLBatch;
   Query: TSQLSentence;
-  i, j, QueryCount, StartOffsetInMemo: Integer;
+  i, i_first, j, StartOffsetInMemo, BatchStartOffset: Integer;
   SQLTime, SQLNetTime: Cardinal;
-  RowsAffected, RowsFound: Int64;
+  RowsAffected, RowsFound, PacketSize, MaxAllowedPacket: Int64;
   Results: TMySQLQuery;
-  Text, LB, MetaInfo, TabCaption: String;
+  SQL, Text, LB, MetaInfo, TabCaption: String;
   QueryTab: TQueryTab;
   NewTab: TResultTab;
   col: TVirtualTreeColumn;
@@ -2193,13 +2199,14 @@ begin
   if LB <> '' then
     Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
   SQLBatch := SplitSQL(Text);
+  Text := '';
 
   EnableProgressBar(SQLBatch.Count);
   SQLtime := 0;
   SQLNetTime := 0;
-  QueryCount := 0;
   RowsAffected := 0;
   RowsFound := 0;
+  MaxAllowedPacket := 0;
   QueryTab.ResultTabs.Clear;
   QueryTab.tabsetQuery.Tabs.Clear;
   FreeAndNil(QueryTab.QueryProfile);
@@ -2213,13 +2220,40 @@ begin
       DoProfile := False;
     end;
   end;
-  for i:=0 to SQLBatch.Count-1 do begin
-    ShowStatusMsg('Executing query #'+FormatNumber(i+1)+' of '+FormatNumber(SQLBatch.Count)+' ...');
+  i := 0;
+  i_first := 0;
+  while i < SQLBatch.Count do begin
+    SQL := '';
+    if not actBatchInOneGo.Checked then begin
+      SQL := SQLBatch[i].SQL;
+      Inc(i);
+      Text := 'query #' + FormatNumber(i+1);
+    end else begin
+      // Concat queries up to a size of max_allowed_packet
+      if MaxAllowedPacket = 0 then begin
+        MaxAllowedPacket := MakeInt(ActiveConnection.GetVar('SHOW VARIABLES LIKE '+esc('max_allowed_packet'), 1));
+        LogSQL('Detected maximum allowed packet size: '+FormatByteNumber(MaxAllowedPacket), lcDebug);
+      end;
+      i_first := i;
+      PacketSize := 0;
+      BatchStartOffset := SQLBatch[i].LeftOffset;
+      while i < SQLBatch.Count do begin
+        PacketSize := SQLBatch[i].RightOffset - BatchStartOffset + (i * 10);
+        if PacketSize >= MaxAllowedPacket then begin
+          LogSQL('Limiting batch packet size to '+FormatByteNumber(Length(SQL)), lcDebug);
+          Dec(i);
+          break;
+        end;
+        SQL := SQL + SQLBatch[i].SQL + ';';
+        Inc(i);
+      end;
+      Text := 'queries #' + FormatNumber(i_first+1) + ' to #' + FormatNumber(i+1);
+    end;
+    ShowStatusMsg('Executing #'+Text+' of '+FormatNumber(SQLBatch.Count)+' ...');
     ProgressBarStatus.StepIt;
     ProgressBarStatus.Repaint;
     try
-      ActiveConnection.Query(SQLBatch[i].SQL, QueryTab.ResultTabs.Count < prefMaxQueryResults, lcUserFiredSQL);
-      Inc(QueryCount);
+      ActiveConnection.Query(SQL, QueryTab.ResultTabs.Count < prefMaxQueryResults, lcUserFiredSQL);
       Inc(SQLtime, ActiveConnection.LastQueryDuration);
       Inc(SQLNetTime, ActiveConnection.LastQueryNetworkDuration);
       Inc(RowsAffected, ActiveConnection.RowsAffected);
@@ -2272,10 +2306,10 @@ begin
   end;
 
   // Gather meta info for logging
-  if QueryCount > 0 then begin
+  if i > 0 then begin
     MetaInfo := FormatNumber(RowsAffected) + ' rows affected, ' + FormatNumber(RowsFound) + ' rows found.';
-    MetaInfo := MetaInfo + ' Duration for ' + IntToStr(QueryCount);
-    if QueryCount < SQLBatch.Count then
+    MetaInfo := MetaInfo + ' Duration for ' + IntToStr(Min(SQLBatch.Count, i+1));
+    if i < SQLBatch.Count then
       MetaInfo := MetaInfo + ' of ' + IntToStr(SQLBatch.Count);
     if SQLBatch.Count = 1 then
       MetaInfo := MetaInfo + ' query'
@@ -2985,6 +3019,11 @@ begin
   end;
 end;
 
+
+procedure TMainForm.actBatchInOneGoExecute(Sender: TObject);
+begin
+  //
+end;
 
 procedure TMainForm.actRunRoutinesExecute(Sender: TObject);
 var
