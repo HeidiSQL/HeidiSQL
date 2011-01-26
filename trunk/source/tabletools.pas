@@ -258,7 +258,7 @@ begin
 
   FirstChecked := TreeObjects.GetFirstChecked;
   if Assigned(FirstChecked) then
-    TreeObjects.ScrollIntoView(FirstChecked, True);
+    SelectNode(TreeObjects, FirstChecked);
   // CHECKSUM available since MySQL 4.1.1
   idx := comboOperation.ItemIndex;
   if idx = -1 then idx := 0;
