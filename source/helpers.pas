@@ -1786,6 +1786,8 @@ begin
   // Apply case insensitive incremental search event
   if VT.IncrementalSearch <> isNone then
     VT.OnIncrementalSearch := Mainform.vstIncrementalSearch;
+  VT.OnStartOperation := Mainform.AnyGridStartOperation;
+  VT.OnEndOperation := Mainform.AnyGridEndOperation;
 end;
 
 
