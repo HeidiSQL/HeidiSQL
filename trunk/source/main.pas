@@ -517,6 +517,8 @@ type
     actSingleQueries: TAction;
     Sendqueriesonebyone1: TMenuItem;
     N3: TMenuItem;
+    btnCancelOperation: TToolButton;
+    actCancelOperation: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -835,6 +837,7 @@ type
     procedure Copylinetonewquerytab1Click(Sender: TObject);
     procedure menuLogHorizontalScrollbarClick(Sender: TObject);
     procedure actBatchInOneGoExecute(Sender: TObject);
+    procedure actCancelOperationExecute(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -862,6 +865,7 @@ type
     FSnippetFilenames: TStringList;
     FConnections: TMySQLConnectionList;
     FTreeClickHistory: TNodeArray;
+    FOperationTicker: Cardinal;
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
@@ -885,6 +889,7 @@ type
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
     procedure SetSnippetFilenames;
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
+    procedure OperationRunning(Runs: Boolean);
   public
     AllDatabasesDetails: TMySQLQuery;
     btnAddTab: TSpeedButton;
@@ -5970,6 +5975,7 @@ var
 begin
   VT := Sender as TVirtualStringTree;
   Result := CompareAnyNode(VT.Text[Node1, Column], VT.Text[Node2, Column]);
+  OperationRunning(True);
 end;
 
 
@@ -9628,16 +9634,52 @@ end;
 procedure TMainForm.AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
 begin
   // Display status message on long running sort operations
-  if OperationKind = okSortTree then
+  if OperationKind = okSortTree then begin
     ShowStatusMsg('Sorting grid nodes ...');
+    OperationRunning(True);
+  end;
 end;
 
 
 procedure TMainForm.AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
 begin
   // Reset status message after long running operations
-  if OperationKind = okSortTree then
+  if OperationKind = okSortTree then begin
     ShowStatusMsg;
+    OperationRunning(False);
+  end;
+end;
+
+
+procedure TMainForm.actCancelOperationExecute(Sender: TObject);
+begin
+  // Stop current sort operation
+  ActiveGrid.CancelOperation;
+  LogSQL('Sorting cancelled.');
+end;
+
+
+procedure TMainForm.OperationRunning(Runs: Boolean);
+begin
+  if actCancelOperation.Enabled <> Runs then begin
+    actCancelOperation.ImageIndex := 159;
+    actCancelOperation.Enabled := Runs;
+    if Runs then
+      FOperationTicker := GetTickCount
+    else
+      FOperationTicker := 0;
+    Application.ProcessMessages;
+  end else if Runs then begin
+    if (GetTickCount-FOperationTicker) > 250 then begin
+      // Signalize running operation
+      if actCancelOperation.ImageIndex = 159 then
+        actCancelOperation.ImageIndex := 160
+      else
+        actCancelOperation.ImageIndex := 159;
+      Application.ProcessMessages;
+      FOperationTicker := GetTickCount;
+    end;
+  end;
 end;
 
 
