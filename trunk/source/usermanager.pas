@@ -727,7 +727,7 @@ procedure TUserManagerForm.btnAddObjectClick(Sender: TObject);
 var
   DBObj: TDBObject;
   Priv: TPrivObj;
-  Node: PVirtualNode;
+  Node, Child: PVirtualNode;
 begin
   // Add new privilege object
   DBObj := SelectDBO;
@@ -764,6 +764,9 @@ begin
   Priv.Added := True;
   FPrivObjects.Add(Priv);
   Node := treePrivs.AddChild(nil);
+  Child := treePrivs.GetFirstChild(Node);
+  while Assigned(Child) do
+    Child := treePrivs.GetNextSibling(Child);
   treePrivs.Expanded[Node] := True;
   treePrivs.SetFocus;
   SelectNode(treePrivs, Node);
