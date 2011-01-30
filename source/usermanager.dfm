@@ -87,24 +87,35 @@ object UserManagerForm: TUserManagerForm
       Align = alClient
       Header.AutoSizeIndex = 0
       Header.DefaultHeight = 17
-      Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
+      Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
       Header.ParentFont = True
+      Header.SortColumn = 0
       Images = MainForm.ImageListMain
       IncrementalSearch = isAll
       TabOrder = 0
+      TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
       TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
       TreeOptions.SelectionOptions = [toFullRowSelect]
+      OnAfterPaint = listUsersAfterPaint
       OnBeforePaint = listUsersBeforePaint
+      OnCompareNodes = listUsersCompareNodes
       OnFocusChanged = listUsersFocusChanged
       OnFocusChanging = listUsersFocusChanging
       OnGetText = listUsersGetText
       OnGetImageIndex = listUsersGetImageIndex
       OnGetNodeDataSize = listUsersGetNodeDataSize
+      OnHeaderClick = listUsersHeaderClick
       OnInitNode = listUsersInitNode
       Columns = <
         item
           Position = 0
-          Width = 173
+          Width = 93
+          WideText = 'Username'
+        end
+        item
+          Position = 1
+          Width = 80
+          WideText = 'Host'
         end>
     end
     object ToolBar1: TToolBar

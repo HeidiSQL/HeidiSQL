@@ -12,6 +12,12 @@ uses
 
 
 type
+  TUser = class(TObject)
+    Username, Host, Password: String;
+  end;
+  PUser = ^TUser;
+  TUserList = TObjectList<TUser>;
+
   TPrivObj = class(TObject)
     GrantCode: String;
     DBObj: TDBObject;
@@ -92,14 +98,16 @@ type
     procedure treePrivsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure treePrivsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+    procedure listUsersHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+    procedure listUsersCompareNodes(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
+    procedure listUsersAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
   private
     { Private declarations }
-    FUsers: TStringList;
+    FUsers: TUserList;
     FModified, FAdded: Boolean;
     CloneGrants: TStringList;
     FPrivObjects: TPrivObjList;
     PrivsGlobal, PrivsDb, PrivsTable, PrivsRoutine, PrivsColumn: TStringList;
-    OrgUsername, OrgFromHost: String;
     procedure SetModified(Value: Boolean);
     property Modified: Boolean read FModified write SetModified;
     function GetPrivByNode(Node: PVirtualNode): TPrivObj;
@@ -152,6 +160,7 @@ begin
   SetWindowSizeGrip( Self.Handle, True );
   FixVT(listUsers);
   FixVT(treePrivs);
+  Mainform.RestoreListSetup(listUsers);
   PrivsRead := Explode(',', 'SELECT,SHOW VIEW,SHOW DATABASES,PROCESS,EXECUTE');
   PrivsWrite := Explode(',', 'ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES');
   PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER');
@@ -165,12 +174,15 @@ begin
   MainReg.WriteInteger( REGNAME_USERMNGR_WINWIDTH, Width );
   MainReg.WriteInteger( REGNAME_USERMNGR_WINHEIGHT, Height );
   MainReg.WriteInteger( REGNAME_USERMNGR_LISTWIDTH, pnlLeft.Width );
+  Mainform.SaveListSetup(listUsers);
 end;
 
 
 procedure TUserManagerForm.FormShow(Sender: TObject);
 var
   Version: Integer;
+  Users: TMySQLQuery;
+  U: TUser;
 
 function InitPrivList(Values: String): TStringList;
 begin
@@ -229,11 +241,21 @@ begin
 
   // Load user@host list
   try
-    FUsers := MainForm.ActiveConnection.GetCol(
-      'SELECT CONCAT('+QuoteIdent('user')+', '+esc('@')+', '+QuoteIdent('host')+') '+
+    FUsers := TUserList.Create(True);
+    Users := MainForm.ActiveConnection.GetResults(
+      'SELECT '+QuoteIdent('user')+', '+QuoteIdent('host')+', '+QuoteIdent('password')+' '+
       'FROM '+QuoteIdent('mysql')+'.'+QuoteIdent('user')+' '+
-      'WHERE LENGTH('+QuoteIdent('Password')+') IN (0, 16, 41) '+
-      'ORDER BY LOWER('+QuoteIdent('user')+'), LOWER('+QuoteIdent('host')+')');
+      'WHERE LENGTH('+QuoteIdent('Password')+') IN (0, 16, 41)'
+      );
+    while not Users.Eof do begin
+      U := TUser.Create;
+      U.Username := Users.Col('user');
+      U.Host := Users.Col('host');
+      U.Password := Users.Col('password');
+      FUsers.Add(U);
+      Users.Next;
+    end;
+    listUsers.Clear;
     InvalidateVT(listUsers, VTREE_NOTLOADED, False);
     FPrivObjects := TPrivObjList.Create(TPrivComparer.Create, True);
     Modified := False;
@@ -284,6 +306,13 @@ begin
 end;
 
 
+procedure TUserManagerForm.listUsersAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+begin
+  // Background painting for sorted column
+  MainForm.vstAfterPaint(Sender, TargetCanvas);
+end;
+
+
 procedure TUserManagerForm.listUsersBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   VT: TVirtualStringTree;
@@ -307,7 +336,10 @@ end;
 procedure TUserManagerForm.listUsersFocusChanging(Sender: TBaseVirtualTree; OldNode,
   NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
 begin
-  if (OldNode <> NewNode) and FModified then begin
+  // Allow selecting a user? Also, set allowed to false if new node is the same as
+  // the old one, otherwise OnFocusChanged will be triggered.
+  Allowed := NewNode <> OldNode;
+  if Allowed and FModified then begin
     case MessageDlg('Save modified user?', mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
       mrYes: begin
         btnSave.Click;
@@ -320,8 +352,7 @@ begin
       end;
       mrCancel: Allowed := False;
     end;
-  end else
-    Allowed := True;
+  end;
 end;
 
 
@@ -329,6 +360,7 @@ procedure TUserManagerForm.listUsersFocusChanged(Sender: TBaseVirtualTree; Node:
   Column: TColumnIndex);
 var
   P, Ptmp, PCol: TPrivObj;
+  User: PUser;
   UserHost: String;
   Grants, AllPNames, Cols: TStringList;
   rxA, rxB: TRegExpr;
@@ -347,13 +379,11 @@ begin
   editRepeatPassword.Clear;
 
   if UserSelected then begin
-    UserHost := FUsers[listUsers.FocusedNode.Index];
-    OrgUsername := Copy(UserHost, 1, Pos('@', UserHost)-1);
-    OrgFromHost := Copy(UserHost, Pos('@', UserHost)+1, MaxInt);
-    UserHost := esc(OrgUsername)+'@'+esc(OrgFromHost);
-    editUsername.Text := OrgUsername;
-    editFromHost.Text := OrgFromHost;
-    Caption := Caption + ' - ' + FUsers[listUsers.FocusedNode.Index];
+    User := listUsers.GetNodeData(listUsers.FocusedNode);
+    UserHost := esc(User.Username)+'@'+esc(User.Host);
+    editUsername.Text := User.Username;
+    editFromHost.Text := User.Host;
+    Caption := Caption + ' - ' + User.Username;
 
     AllPNames := TStringList.Create;
     AllPNames.AddStrings(PrivsGlobal);
@@ -372,7 +402,7 @@ begin
         Grants.Add('GRANT USAGE ON *.* TO '+UserHost);
       end;
     end else
-      Grants := MainForm.ActiveConnection.GetCol('SHOW GRANTS FOR '+esc(OrgUsername)+'@'+esc(OrgFromHost));
+      Grants := MainForm.ActiveConnection.GetCol('SHOW GRANTS FOR '+esc(User.Username)+'@'+esc(User.Host));
 
     rxA := TRegExpr.Create;
     rxA.ModifierI := True;
@@ -519,12 +549,20 @@ end;
 
 procedure TUserManagerForm.listUsersGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+var
+  User: PUser;
 begin
-  if Kind in [ikNormal, ikSelected] then begin
-    if FModified and (Node = Sender.FocusedNode) then
-      ImageIndex := 12
-    else
-      ImageIndex := 43;
+  if Column <> 0 then
+    Exit;
+  case Kind of
+    ikNormal, ikSelected: ImageIndex := 43;
+    ikOverlay: begin
+      User := Sender.GetNodeData(Node);
+      if User.Password = '' then
+        ImageIndex := 161;
+      if FModified and (Node = Sender.FocusedNode) then
+        ImageIndex := 162;
+    end;
   end;
 end;
 
@@ -532,29 +570,45 @@ end;
 procedure TUserManagerForm.listUsersGetNodeDataSize(Sender: TBaseVirtualTree;
   var NodeDataSize: Integer);
 begin
-  NodeDataSize := SizeOf(Cardinal);
+  NodeDataSize := SizeOf(TUser);
 end;
 
 
 procedure TUserManagerForm.listUsersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
-  Idx: PCardinal;
+  User: PUser;
 begin
   if not Assigned(FUsers) then
     Exit;
-  Idx := Sender.GetNodeData(Node);
-  CellText := FUsers[Idx^];
+  User := Sender.GetNodeData(Node);
+  case Column of
+    0: CellText := User.Username;
+    1: CellText := User.Host;
+  end;
+end;
+
+
+procedure TUserManagerForm.listUsersHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+begin
+  Mainform.vstHeaderClick(Sender, HitInfo);
+end;
+
+
+procedure TUserManagerForm.listUsersCompareNodes(Sender: TBaseVirtualTree;
+  Node1, Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
+begin
+  Mainform.vstCompareNodes(Sender, Node1, Node2, Column, Result);
 end;
 
 
 procedure TUserManagerForm.listUsersInitNode(Sender: TBaseVirtualTree; ParentNode,
   Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 var
-  Idx: PCardinal;
+  User: PUser;
 begin
-  Idx := Sender.GetNodeData(Node);
-  Idx^ := Node.Index;
+  User := Sender.GetNodeData(Node);
+  User^ := FUsers[Node.Index];
 end;
 
 
@@ -617,8 +671,16 @@ procedure TUserManagerForm.treePrivsGetImageIndex(Sender: TBaseVirtualTree; Node
   Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
 begin
   // Icon for privilege
-  if (Sender.GetNodeLevel(Node) = 0) and (Kind in [ikNormal, ikSelected]) then
-    ImageIndex := FPrivObjects[Node.Index].DBObj.ImageIndex;
+  if Sender.GetNodeLevel(Node) <> 0 then
+    Exit;
+  case Kind of
+    ikNormal, ikSelected:
+      ImageIndex := FPrivObjects[Node.Index].DBObj.ImageIndex;
+    ikOverlay: begin
+      if FPrivObjects[Node.Index].Added then
+        ImageIndex := 163;
+    end;
+  end;
 end;
 
 
@@ -705,9 +767,19 @@ end;
 procedure TUserManagerForm.btnAddUserClick(Sender: TObject);
 var
   P: TPrivObj;
+  User: TUser;
+  NodeUser: PUser;
+  Node: PVirtualNode;
 begin
   // Create new user
-  FUsers.Add('UnNamed@localhost');
+  // Try to unfocus current user which triggers saving modifications.
+  listUsers.FocusedNode := nil;
+  if Assigned(listUsers.FocusedNode) then
+    Exit;
+  User := TUser.Create;
+  User.Username := 'Unnamed';
+  User.Host := 'localhost';
+  FUsers.Add(User);
   FAdded := True;
   if Sender = btnCloneUser then begin
     CloneGrants := TStringList.Create;
@@ -716,7 +788,15 @@ begin
   end;
   InvalidateVT(listUsers, VTREE_NOTLOADED, True);
   // Select newly added item.
-  SelectNode(listUsers, listUsers.RootNodeCount - 1);
+  Node := listUsers.GetFirst;
+  while Assigned(Node) do begin
+    NodeUser := listUsers.GetNodeData(Node);
+    if User = NodeUser^ then begin
+      SelectNode(listUsers, Node);
+      break;
+    end;
+    Node := listUsers.GetNextSibling(Node);
+  end;
   Modified := True;
   // Focus the user name entry box.
   editUserName.SetFocus;
@@ -777,7 +857,9 @@ end;
 procedure TUserManagerForm.btnSaveClick(Sender: TObject);
 var
   Conn: TMySQLConnection;
-  UserHost, NewUserHost, Create, Table, Revoke, Grant, OnObj: String;
+  UserHost, OrgUserHost, Create, Table, Revoke, Grant, OnObj: String;
+  User: TUser;
+  FocusedUser: PUser;
   Tables: TStringList;
   P: TPrivObj;
   i: Integer;
@@ -785,20 +867,17 @@ var
 begin
   // Save changes
   Conn := MainForm.ActiveConnection;
-  if FAdded then begin
-    OrgUsername := editUsername.Text;
-    OrgFromHost := editFromHost.Text;
-  end;
-  UserHost := esc(OrgUsername)+'@'+esc(OrgFromHost);
-  NewUserHost := editUsername.Text+'@'+editFromHost.Text;
+  FocusedUser := listUsers.GetNodeData(listUsers.FocusedNode);
+  OrgUserHost := esc(FocusedUser.Username)+'@'+esc(FocusedUser.Host);
+  UserHost := esc(editUsername.Text)+'@'+esc(editFromHost.Text);
 
   try
     // Ensure we have a unique user@host combination
-    for i:=0 to FUsers.Count-1 do begin
-      if i = Integer(listUsers.FocusedNode.Index) then
+    for User in FUsers do begin
+      if User = FocusedUser^ then
         Continue;
-      if FUsers[i] = NewUserHost then
-        raise EInputError.Create('User <'+NewUserHost+'> already exists.');
+      if (User.Username = editUsername.Text) and (User.Host = editFromHost.Text) then
+        raise EInputError.Create('User <'+editUsername.Text+'@'+editFromHost.Text+'> already exists.');
     end;
 
     // Check input: Ensure we have a unique user@host combination
@@ -843,7 +922,7 @@ begin
           Revoke := Revoke + ', ';
         end;
         Delete(Revoke, Length(Revoke)-1, 1);
-        Revoke := 'REVOKE ' + Revoke + ' ON ' + OnObj + ' FROM ' + UserHost;
+        Revoke := 'REVOKE ' + Revoke + ' ON ' + OnObj + ' FROM ' + OrgUserHost;
         Conn.Query(Revoke);
       end;
 
@@ -861,7 +940,7 @@ begin
         Delete(Grant, Length(Grant)-1, 1);
         if Grant = '' then
           Grant := 'USAGE';
-        Grant := 'GRANT ' + Grant + ' ON ' + OnObj + ' TO ' + UserHost;
+        Grant := 'GRANT ' + Grant + ' ON ' + OnObj + ' TO ' + OrgUserHost;
         if P.AddedPrivs.IndexOf('GRANT') > -1 then
           Grant := Grant + ' WITH GRANT OPTION';
         Conn.Query(Grant);
@@ -870,19 +949,20 @@ begin
 
     // Set password
     if editPassword.Modified and (not PasswordSet) then begin
-      Conn.Query('SET PASSWORD FOR ' + UserHost + ' = PASSWORD('+esc(editPassword.Text)+')');
+      Conn.Query('SET PASSWORD FOR ' + OrgUserHost + ' = PASSWORD('+esc(editPassword.Text)+')');
     end;
 
     // Rename user
-    if (OrgUsername <> editUsername.Text) or (OrgFromHost <> editFromHost.Text) then begin
+    if (not FAdded) and
+      ((FocusedUser.Username <> editUsername.Text) or (FocusedUser.Host <> editFromHost.Text)) then begin
       if Conn.ServerVersionInt >= 50002 then
-        Conn.Query('RENAME USER '+UserHost+' TO '+esc(editUsername.Text)+'@'+esc(editFromHost.Text))
+        Conn.Query('RENAME USER '+OrgUserHost+' TO '+UserHost)
       else begin
         Tables := Explode(',', 'user,db,tables_priv,columns_priv');
         for Table in Tables do begin
           Conn.Query('UPDATE '+QuoteIdent('mysql')+'.'+QuoteIdent(Table)+
             ' SET User='+esc(editUsername.Text)+', Host='+esc(editFromHost.Text)+
-            ' WHERE User='+esc(OrgUsername)+' AND Host='+esc(OrgFromHost)
+            ' WHERE User='+esc(FocusedUser.Username)+' AND Host='+esc(FocusedUser.Host)
             );
         end;
         FreeAndNil(Tables);
@@ -892,7 +972,10 @@ begin
     Conn.Query('FLUSH PRIVILEGES');
     Modified := False;
     FAdded := False;
-    FUsers[listUsers.FocusedNode.Index] := NewUserHost;
+    FocusedUser.Username := editUsername.Text;
+    FocusedUser.Host := editFromHost.Text;
+    if editPassword.Modified then
+      FocusedUser.Password := editPassword.Text;
     listUsers.OnFocusChanged(listUsers, listUsers.FocusedNode, listUsers.FocusedColumn);
   except
     on E:EDatabaseError do
@@ -908,16 +991,17 @@ procedure TUserManagerForm.btnDeleteUserClick(Sender: TObject);
 var
   UserHost: String;
   Conn: TMySQLConnection;
+  User: PUser;
 begin
   // Delete user
+  User := listUsers.GetNodeData(listUsers.FocusedNode);
   if FAdded then begin
-    FUsers.Delete(listUsers.FocusedNode.Index);
+    FUsers.Remove(User^);
     listUsers.DeleteNode(listUsers.FocusedNode);
     FAdded := False;
-  end else if MessageDlg('Delete user "'+FUsers[listUsers.FocusedNode.Index]+'"?',
-    mtConfirmation, [mbYes, mbCancel], 0 ) = mrYes then begin
+  end else if MessageDlg('Delete user '+User.Username+'@'+User.Host+'?', mtConfirmation, [mbYes, mbCancel], 0 ) = mrYes then begin
     Conn := MainForm.ActiveConnection;
-    UserHost := esc(OrgUsername)+'@'+esc(OrgFromHost);
+    UserHost := esc(User.Username)+'@'+esc(User.Host);
     try
       // Revoke privs explicitly, required on old servers.
       // Newer servers only require one DROP USER query
@@ -926,11 +1010,11 @@ begin
         Conn.Query('REVOKE GRANT OPTION ON *.* FROM '+UserHost);
       end;
       if Conn.ServerVersionInt < 40101 then
-        Conn.Query('DELETE FROM mysql.user WHERE User='+esc(OrgUsername)+' AND Host='+esc(OrgFromHost))
+        Conn.Query('DELETE FROM mysql.user WHERE User='+esc(User.Username)+' AND Host='+esc(User.Host))
       else
         Conn.Query('DROP USER '+UserHost);
-      FUsers.Delete(listUsers.FocusedNode.Index);
-      InvalidateVT(listUsers, VTREE_NOTLOADED, False);
+      FUsers.Remove(User^);
+      listUsers.DeleteNode(listUsers.FocusedNode);
     except on E:EDatabaseError do
       MessageDlg(E.Message, mtError, [mbOK], 0);
     end;
