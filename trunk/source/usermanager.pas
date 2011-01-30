@@ -737,10 +737,11 @@ begin
         Node.CheckState := csCheckedNormal;
     end;
     1: begin
-      case p.OrgPrivs.IndexOf(p.AllPrivileges[Node.Index]) of
-        -1: Node.CheckState := csUncheckedNormal;
-        else Node.CheckState := csCheckedNormal;
-      end;
+      // Added objects have some basic added privs, others only have original privs.
+      Node.CheckState := csUncheckedNormal;
+      if (p.OrgPrivs.IndexOf(p.AllPrivileges[Node.Index]) > -1)
+        or (p.AddedPrivs.IndexOf(p.AllPrivileges[Node.Index]) > -1) then
+        Node.CheckState := csCheckedNormal;
     end;
   end;
 end;
@@ -837,10 +838,9 @@ begin
   end;
   // Assign minimum privileges
   case Priv.DBObj.NodeType of
-    lntFunction, lntProcedure: Priv.OrgPrivs.Add('EXECUTE');
-    else Priv.OrgPrivs.Add('SELECT');
+    lntFunction, lntProcedure: Priv.AddedPrivs.Add('EXECUTE');
+    else Priv.AddedPrivs.Add('SELECT');
   end;
-  Priv.AddedPrivs.AddStrings(Priv.OrgPrivs);
   Priv.Added := True;
   FPrivObjects.Add(Priv);
   Node := treePrivs.AddChild(nil);
