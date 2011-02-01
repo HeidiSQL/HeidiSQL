@@ -55,14 +55,14 @@ if "%compiler_dir%" == "none" (goto dcc32_not_found) else (goto test_packages)
 
 :test_packages
 set package_dir=none
-dcc32.exe --version | find "21.0" >NUL:
-if %errorlevel% == 0 set package_dir=delphi2010
+dcc32.exe --version | find "22.0" >NUL:
+if %errorlevel% == 0 set package_dir=delphiXE
 if "%package_dir%" == "none" (goto unknown_version) else (goto init)
 
 :unknown_version
 echo Error: Unknown version of Delphi compiler 'dcc32.exe'!
 echo.
-echo At present, only Delphi 2010 is supported.
+echo At present, only Delphi XE is supported.
 echo.
 pause >NUL:
 goto :eof
@@ -73,7 +73,6 @@ set start_dir=%CD%
 cd ..
 set base_dir=%CD%
 set mad_dir=%base_dir%\..\madCollection
-
 set compiler=dcc32.exe
 set params=--no-config
 set params=%params% -DDEBUG -GD
@@ -81,7 +80,7 @@ set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BD
 set params=%params% -B
 set params=%params% -i"%base_dir%\source"
 set params=%params% -r"%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources"
-set params=%params% -u"%compiler_dir%\lib;%compiler_dir%\lib\obj;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\graphicex;%mad_dir%\madExcept\BDS7;%mad_dir%\madDisAsm\BDS7;%mad_dir%\madBasic\BDS7"
+set params=%params% -u"%compiler_dir%\lib\win32\release;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\graphicex;%mad_dir%\madExcept\BDS7;%mad_dir%\madDisAsm\BDS7;%mad_dir%\madBasic\BDS7"
 set params=%params% -N0"..\..\build" 
 set params=%params% -LE"..\..\build"
 set params=%params% -LN"..\..\build"
