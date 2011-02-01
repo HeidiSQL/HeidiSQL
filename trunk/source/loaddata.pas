@@ -359,7 +359,7 @@ begin
       if chkLocalNumbers.Checked and (Columns[i].DataType.Category in [dtcInteger, dtcReal]) then begin
         SQL := SQL + '@ColVar' + IntToStr(i) + ', ';
         SetColVars := SetColVars + QuoteIdent(chklistColumns.Items[i]) +
-          ' = REPLACE(REPLACE(@ColVar' + IntToStr(i) + ', '+esc(ThousandSeparator)+', ''''), '+esc(DecimalSeparator)+', ''.''), ';
+          ' = REPLACE(REPLACE(@ColVar' + IntToStr(i) + ', '+esc(FormatSettings.ThousandSeparator)+', ''''), '+esc(FormatSettings.DecimalSeparator)+', ''.''), ';
       end else
         SQL := SQL + QuoteIdent(chklistColumns.Items[i]) + ', ';
     end;
