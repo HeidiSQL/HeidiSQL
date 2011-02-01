@@ -847,21 +847,21 @@ begin
     or ((Pos('.', Str) > 0) and (Pos('.', ReverseString(Str)) <> 4))
     then begin
     Str := StringReplace(Str, '.', '*', [rfReplaceAll]);
-    Str := StringReplace(Str, ',', ThousandSeparator, [rfReplaceAll]);
-    Str := StringReplace(Str, '*', DecimalSeparator, [rfReplaceAll]);
+    Str := StringReplace(Str, ',', FormatSettings.ThousandSeparator, [rfReplaceAll]);
+    Str := StringReplace(Str, '*', FormatSettings.DecimalSeparator, [rfReplaceAll]);
   end;
 
   HasDecimalSep := False;
   for i:=1 to Length(Str) do begin
-    if CharInSet(Str[i], ['0'..'9', DecimalSeparator]) or ((Str[i] = '-') and (Result='')) then
+    if CharInSet(Str[i], ['0'..'9', FormatSettings.DecimalSeparator]) or ((Str[i] = '-') and (Result='')) then
     begin
       // Avoid confusion and AV in StrToFloat()
-      if (ThousandSeparator = DecimalSeparator) and (Str[i] = DecimalSeparator) then
+      if (FormatSettings.ThousandSeparator = FormatSettings.DecimalSeparator) and (Str[i] = FormatSettings.DecimalSeparator) then
         continue;
       // Ensure only 1 decimalseparator is left
-      if (Str[i] = DecimalSeparator) and HasDecimalSep then
+      if (Str[i] = FormatSettings.DecimalSeparator) and HasDecimalSep then
         continue;
-      if Str[i] = DecimalSeparator then
+      if Str[i] = FormatSettings.DecimalSeparator then
         HasDecimalSep := True;
       Result := Result + Str[i];
     end;
@@ -1110,10 +1110,10 @@ begin
     c := Val[i];
     if CharInSet(c, Numbers) or ((c = '-') and (i = 1)) then
       Result := Result + c
-    else if (c = DecimalSeparator) and (not HasDecim) then begin
+    else if (c = FormatSettings.DecimalSeparator) and (not HasDecim) then begin
       Result := Result + '.';
       HasDecim := True;
-    end else if c <> ThousandSeparator then
+    end else if c <> FormatSettings.ThousandSeparator then
       break;
   end;
   if Result = '' then
@@ -1130,21 +1130,21 @@ function FormatNumber(str: String; Thousands: Boolean=True): String; Overload;
 var
   i, p, Left: Integer;
 begin
-  Result := StringReplace(str, '.', DecimalSeparator, [rfReplaceAll]);
+  Result := StringReplace(str, '.', FormatSettings.DecimalSeparator, [rfReplaceAll]);
   if Thousands then begin
     // Do not add thousand separators to zerofilled numbers
     if ((Length(Result) >= 1) and (Result[1] = '0'))
       or ((Length(Result) >= 2) and (Result[1] = '-') and (Result[2] = '0'))
     then
       Exit;
-    p := Pos(DecimalSeparator, Result);
+    p := Pos(FormatSettings.DecimalSeparator, Result);
     if p = 0 then p := Length(Result)+1;
     Left := 2;
     if (Length(Result) >= 1) and (Result[1] = '-') then
       Left := 3;
     if p > 0 then for i:=p-1 downto Left do begin
       if (p-i) mod 3 = 0 then
-        Insert(ThousandSeparator, Result, i);
+        Insert(FormatSettings.ThousandSeparator, Result, i);
     end;
   end;
 end;
@@ -1190,13 +1190,13 @@ end;
 }
 procedure setLocales;
 begin
-  DateSeparator := '-';
-  TimeSeparator := ':';
-  ShortDateFormat := 'yyyy/mm/dd';
-  LongTimeFormat := 'hh:nn:ss';
+  FormatSettings.DateSeparator := '-';
+  FormatSettings.TimeSeparator := ':';
+  FormatSettings.ShortDateFormat := 'yyyy/mm/dd';
+  FormatSettings.LongTimeFormat := 'hh:nn:ss';
   if DecimalSeparatorSystemdefault = '' then
-    DecimalSeparatorSystemdefault := DecimalSeparator;
-  DecimalSeparator := DecimalSeparatorSystemdefault;
+    DecimalSeparatorSystemdefault := FormatSettings.DecimalSeparator;
+  FormatSettings.DecimalSeparator := DecimalSeparatorSystemdefault;
 end;
 
 
