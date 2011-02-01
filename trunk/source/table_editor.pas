@@ -768,6 +768,7 @@ end;
 procedure TfrmTableEditor.btnMoveUpColumnClick(Sender: TObject);
 begin
   // Move column up
+  listColumns.EndEditNode;
   listColumns.MoveTo(listColumns.FocusedNode, listColumns.GetPreviousSibling(listColumns.FocusedNode), amInsertBefore, False);
   ValidateColumnControls;
 end;
@@ -776,6 +777,7 @@ end;
 procedure TfrmTableEditor.btnMoveDownColumnClick(Sender: TObject);
 begin
   // Move column down
+  listColumns.EndEditNode;
   listColumns.MoveTo(listColumns.FocusedNode, listColumns.GetNextSibling(listColumns.FocusedNode), amInsertAfter, False);
   ValidateColumnControls;
 end;
