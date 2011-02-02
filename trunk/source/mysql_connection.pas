@@ -1088,6 +1088,7 @@ begin
     Result := Copy(Result, 2, Length(Result)-2);
   if Glue <> #0 then
     Result := StringReplace(Result, '`'+Glue+'`', Glue, [rfReplaceAll]);
+  Result := StringReplace(Result, '``', '`', [rfReplaceAll]);
 end;
 
 
@@ -1658,7 +1659,7 @@ begin
   rx := TRegExpr.Create;
   rx.ModifierS := False;
   rx.ModifierM := True;
-  rx.Expression := '^\s+[`"]([^`"]+)[`"]\s(\w+)';
+  rx.Expression := '^\s+[`"](.+)[`"]\s(\w+)';
   rxCol := TRegExpr.Create;
   rxCol.ModifierI := True;
   if rx.Exec(CreateTable) then while true do begin
@@ -1677,7 +1678,7 @@ begin
 
     Col := TTableColumn.Create;
     Columns.Add(Col);
-    Col.Name := rx.Match[1];
+    Col.Name := DeQuoteIdent(rx.Match[1]);
     Col.OldName := Col.Name;
     Col.Status := esUntouched;
     Col.LengthCustomized := True;
