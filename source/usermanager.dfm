@@ -280,12 +280,16 @@ object UserManagerForm: TUserManagerForm
         ParentFont = False
         Visible = False
       end
-      object editFromHost: TEdit
+      object editFromHost: TButtonedEdit
         Left = 109
         Top = 44
         Width = 169
         Height = 21
         Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.ImageListMain
+        RightButton.DropDownMenu = menuHost
+        RightButton.ImageIndex = 75
+        RightButton.Visible = True
         TabOrder = 1
         OnChange = Modification
       end
@@ -336,5 +340,33 @@ object UserManagerForm: TUserManagerForm
     Images = MainForm.ImageListMain
     TabOrder = 3
     OnClick = btnDiscardClick
+  end
+  object menuHost: TPopupMenu
+    OnPopup = menuHostPopup
+    Left = 8
+    Top = 328
+    object menuHost1: TMenuItem
+      Caption = 'Access from server location only'
+      Hint = 'localhost'
+      OnClick = menuHostClick
+    end
+    object menuHost2: TMenuItem
+      Caption = 'Local network: 192.168.%'
+      Hint = '192.168.%'
+      OnClick = menuHostClick
+    end
+    object menuHost3: TMenuItem
+      Caption = 'Local network: 10.122.%'
+      Hint = '10.122.%'
+      OnClick = menuHostClick
+    end
+    object menuHostLocal4: TMenuItem
+      Caption = 'Access from everywhere'
+      Hint = '%'
+      OnClick = menuHostClick
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
   end
 end
