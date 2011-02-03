@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
   ExtCtrls, ToolWin, ClipBrd, Generics.Collections, Generics.Defaults, SynRegExpr,
-  mysql_connection, helpers, VirtualTrees;
+  mysql_connection, helpers, VirtualTrees, Menus;
 
 {$I const.inc}
 
@@ -50,7 +50,7 @@ type
     lblPassword: TLabel;
     lblUsername: TLabel;
     lblRepeatPassword: TLabel;
-    editFromHost: TEdit;
+    editFromHost: TButtonedEdit;
     editUsername: TEdit;
     editPassword: TButtonedEdit;
     editRepeatPassword: TEdit;
@@ -62,6 +62,12 @@ type
     btnCloneUser: TToolButton;
     lblWarning: TLabel;
     Label1: TLabel;
+    menuHost: TPopupMenu;
+    menuHost1: TMenuItem;
+    menuHostLocal4: TMenuItem;
+    menuHost2: TMenuItem;
+    menuHost3: TMenuItem;
+    N1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -101,6 +107,8 @@ type
     procedure listUsersHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
     procedure listUsersCompareNodes(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
     procedure listUsersAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure menuHostClick(Sender: TObject);
+    procedure menuHostPopup(Sender: TObject);
   private
     { Private declarations }
     FUsers: TUserList;
@@ -1030,6 +1038,50 @@ begin
   // Reset modifications
   Modified := False;
   listUsers.OnFocusChanged(listUsers, listUsers.FocusedNode, listUsers.FocusedColumn);
+end;
+
+
+procedure TUserManagerForm.menuHostClick(Sender: TObject);
+begin
+  // Insert predefined host
+  editFromHost.Text := (Sender as TMenuItem).Hint;
+end;
+
+
+procedure TUserManagerForm.menuHostPopup(Sender: TObject);
+var
+  Item: TMenuItem;
+  i: Integer;
+  User: TUser;
+  ItemExists: Boolean;
+begin
+  // Delete custom items and readd unique ones
+  for i:=menuHost.Items.Count-1 downto 0 do begin
+    if menuHost.Items[i].Caption = '-' then
+      break;
+    menuHost.Items.Delete(i);
+  end;
+  for User in FUsers do begin
+    if User.Host = '' then
+      Continue;
+    ItemExists := False;
+    for Item in menuHost.Items do begin
+      if Item.Hint = User.Host then begin
+        ItemExists := True;
+        Break;
+      end;
+    end;
+    if not ItemExists then begin
+      Item := TMenuItem.Create(menuHost);
+      Item.Caption := User.Host;
+      Item.Hint := User.Host;
+      Item.OnClick := menuHostClick;
+      menuHost.Items.Add(Item);
+    end;
+  end;
+  // Auto check current host if any matches
+  for Item in menuHost.Items do
+    Item.Checked := Item.Hint = editFromHost.Text;
 end;
 
 
