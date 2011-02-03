@@ -638,7 +638,7 @@ begin
     else
       Result := Result + 'ENGINE='+comboEngine.Text + CRLF;
   end;
-  if comboRowFormat.Text <> '' then
+  if comboRowFormat.Tag = ModifiedFlag then
     Result := Result + 'ROW_FORMAT='+comboRowFormat.Text + CRLF;
   if chkChecksum.Checked then
     Result := Result + 'CHECKSUM='+IntToStr(Integer(chkChecksum.Checked)) + CRLF;
