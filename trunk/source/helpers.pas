@@ -2229,6 +2229,8 @@ begin
 end;
 
 procedure TDBObjectEditor.Init(Obj: TDBObject);
+var
+  editName: TWinControl;
 begin
   Mainform.ShowStatusMsg('Initializing editor ...');
   Mainform.LogSQL(Self.ClassName+'.Init, using object "'+Obj.Name+'"', lcDebug);
@@ -2237,6 +2239,10 @@ begin
   Mainform.UpdateEditorTab;
   Screen.Cursor := crHourglass;
   MainForm.SetupSynEditors;
+  // Enable user to start typing immediately
+  editName := FindComponent('editName') as TWinControl;
+  if Assigned(editName) and editName.CanFocus then
+    editName.SetFocus;
 end;
 
 function TDBObjectEditor.DeInit: TModalResult;
