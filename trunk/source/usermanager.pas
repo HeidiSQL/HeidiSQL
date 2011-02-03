@@ -868,6 +868,10 @@ begin
   // Save changes
   Conn := MainForm.ActiveConnection;
   FocusedUser := listUsers.GetNodeData(listUsers.FocusedNode);
+  if FAdded then begin
+    FocusedUser.Username := editUsername.Text;
+    FocusedUser.Host := editFromHost.Text;
+  end;
   OrgUserHost := esc(FocusedUser.Username)+'@'+esc(FocusedUser.Host);
   UserHost := esc(editUsername.Text)+'@'+esc(editFromHost.Text);
 
@@ -953,8 +957,7 @@ begin
     end;
 
     // Rename user
-    if (not FAdded) and
-      ((FocusedUser.Username <> editUsername.Text) or (FocusedUser.Host <> editFromHost.Text)) then begin
+    if (FocusedUser.Username <> editUsername.Text) or (FocusedUser.Host <> editFromHost.Text) then begin
       if Conn.ServerVersionInt >= 50002 then
         Conn.Query('RENAME USER '+OrgUserHost+' TO '+UserHost)
       else begin
