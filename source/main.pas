@@ -1824,18 +1824,22 @@ procedure TMainForm.actDisconnectExecute(Sender: TObject);
 var
   Connection: TMySQLConnection;
   Node: PVirtualNode;
+  DlgResult: Integer;
 begin
   // Disconnect active connection. If it's the last, exit application
-  if FConnections.Count = 1 then
-    actExitApplication.Execute
-  else begin
-    Connection := ActiveConnection;
-    // Find and remove connection node from tree
-    Node := GetRootNode(DBtree, Connection);
-    DBTree.DeleteNode(Node, True);
-    FConnections.Remove(Connection);
-    // TODO: focus last session?
-    SelectNode(DBtree, GetNextNode(DBtree, nil));
+  Connection := ActiveConnection;
+  // Find and remove connection node from tree
+  Node := GetRootNode(DBtree, Connection);
+  DBTree.DeleteNode(Node, True);
+  FConnections.Remove(Connection);
+  // TODO: focus last session?
+  SelectNode(DBtree, GetNextNode(DBtree, nil));
+  if FConnections.Count = 0 then begin
+    if not Assigned(SessionManager) then
+      SessionManager := TConnForm.Create(Self);
+    DlgResult := SessionManager.ShowModal;
+    if DlgResult = mrCancel then
+      actExitApplication.Execute;
   end;
 end;
 
