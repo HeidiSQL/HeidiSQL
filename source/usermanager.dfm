@@ -310,12 +310,12 @@ object UserManagerForm: TUserManagerForm
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
         PasswordChar = '*'
-        RightButton.Hint = 'Generate random password and copy to clipboard'
-        RightButton.ImageIndex = 0
+        RightButton.DropDownMenu = menuPassword
+        RightButton.Hint = 'Select random password'
+        RightButton.ImageIndex = 75
         RightButton.Visible = True
         TabOrder = 2
-        OnChange = Modification
-        OnRightButtonClick = editPasswordRightButtonClick
+        OnChange = editPasswordChange
       end
       object editRepeatPassword: TEdit
         Left = 109
@@ -367,6 +367,51 @@ object UserManagerForm: TUserManagerForm
     end
     object N1: TMenuItem
       Caption = '-'
+    end
+  end
+  object menuPassword: TPopupMenu
+    AutoHotkeys = maManual
+    Left = 40
+    Top = 328
+    object menuPassword1: TMenuItem
+      Caption = '6 characters'
+      OnClick = menuPasswordClick
+      object menuDummy1: TMenuItem
+        Caption = 'dummy'
+        OnClick = menuPasswordInsert
+      end
+    end
+    object menuPassword2: TMenuItem
+      Caption = '8 characters'
+      OnClick = menuPasswordClick
+      object menuDummy2: TMenuItem
+        Caption = 'dummy'
+        OnClick = menuPasswordInsert
+      end
+    end
+    object menuPassword3: TMenuItem
+      Caption = '10 characters'
+      OnClick = menuPasswordClick
+      object menuDummy3: TMenuItem
+        Caption = 'dummy'
+        OnClick = menuPasswordInsert
+      end
+    end
+    object menuPassword4: TMenuItem
+      Caption = '12 characters'
+      OnClick = menuPasswordClick
+      object menuDummy4: TMenuItem
+        Caption = 'dummy'
+        OnClick = menuPasswordInsert
+      end
+    end
+    object menuPassword5: TMenuItem
+      Caption = '30 characters'
+      OnClick = menuPasswordClick
+      object menuDummy5: TMenuItem
+        Caption = 'dummy'
+        OnClick = menuPasswordInsert
+      end
     end
   end
 end

@@ -68,12 +68,22 @@ type
     menuHost2: TMenuItem;
     menuHost3: TMenuItem;
     N1: TMenuItem;
+    menuPassword: TPopupMenu;
+    menuPassword1: TMenuItem;
+    menuPassword2: TMenuItem;
+    menuPassword3: TMenuItem;
+    menuPassword4: TMenuItem;
+    menuPassword5: TMenuItem;
+    menuDummy1: TMenuItem;
+    menuDummy2: TMenuItem;
+    menuDummy3: TMenuItem;
+    menuDummy4: TMenuItem;
+    menuDummy5: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnAddUserClick(Sender: TObject);
     procedure btnDeleteUserClick(Sender: TObject);
-    procedure editPasswordRightButtonClick(Sender: TObject);
     procedure listUsersFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -109,6 +119,9 @@ type
     procedure listUsersAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure menuHostClick(Sender: TObject);
     procedure menuHostPopup(Sender: TObject);
+    procedure menuPasswordClick(Sender: TObject);
+    procedure menuPasswordInsert(Sender: TObject);
+    procedure editPasswordChange(Sender: TObject);
   private
     { Private declarations }
     FUsers: TUserList;
@@ -1085,19 +1098,49 @@ begin
 end;
 
 
-procedure TUserManagerForm.editPasswordRightButtonClick(Sender: TObject);
+procedure TUserManagerForm.editPasswordChange(Sender: TObject);
 begin
-  // Auto generate a random password, display it for a second and copy it to clipboard
-  Screen.Cursor := crHourglass;
-  editPassword.SetFocus;
-  editPassword.Text := GeneratePassword(8);
+  // Password manually edited
+  editRepeatPassword.Enabled := True;
+  editPassword.PasswordChar := '*';
+  editRepeatPassword.PasswordChar := editPassword.PasswordChar;
+  Modification(Sender);
+end;
+
+
+procedure TUserManagerForm.menuPasswordInsert(Sender: TObject);
+var
+  Item: TMenuItem;
+begin
+  // Insert password from menu item
+  Item := Sender as TMenuItem;
+  editPassword.Text := Item.Caption;
   editPassword.Modified := True;
   editPassword.PasswordChar := #0;
-  editPassword.Repaint;
-  Sleep(1000);
-  editPassword.PasswordChar := '*';
-  Clipboard.AsText := editPassword.Text;
-  Screen.Cursor := crDefault;
+  editRepeatPassword.Text := editPassword.Text;
+  editRepeatPassword.PasswordChar := editPassword.PasswordChar;
+  editRepeatPassword.Enabled := False;
+end;
+
+
+procedure TUserManagerForm.menuPasswordClick(Sender: TObject);
+var
+  Parent, Item: TMenuItem;
+  PasswordLen, i: Integer;
+begin
+  // Create menu items with random passwords
+  Parent := Sender as TMenuItem;
+  PasswordLen := MakeInt(Parent.Caption);
+  for i:=0 to 19 do begin
+    if Parent.Count > i then
+      Item := Parent[i]
+    else begin
+      Item := TMenuItem.Create(Parent);
+      Parent.Add(Item);
+    end;
+    Item.OnClick := menuPasswordInsert;
+    Item.Caption := GeneratePassword(PasswordLen);
+  end;
 end;
 
 
