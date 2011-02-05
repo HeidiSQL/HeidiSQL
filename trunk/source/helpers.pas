@@ -2465,11 +2465,14 @@ var
 const
   Consos = 'bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ';
   Vocals = 'aeiouAEIOU';
+  Numbers = '123456789';
 begin
   // Create a random, mnemonic password
   SetLength(Result, Len);
   for i:=1 to Len do begin
-    if i mod 2 = 0 then
+    if Random(4) = 1 then
+      CharTable := Numbers
+    else if i mod 2 = 0 then
       CharTable := Vocals
     else
       CharTable := Consos;
