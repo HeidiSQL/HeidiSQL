@@ -122,6 +122,7 @@ type
     procedure menuPasswordClick(Sender: TObject);
     procedure menuPasswordInsert(Sender: TObject);
     procedure editPasswordChange(Sender: TObject);
+    procedure listUsersHotChange(Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode);
   private
     { Private declarations }
     FUsers: TUserList;
@@ -265,8 +266,7 @@ begin
     FUsers := TUserList.Create(True);
     Users := MainForm.ActiveConnection.GetResults(
       'SELECT '+QuoteIdent('user')+', '+QuoteIdent('host')+', '+QuoteIdent('password')+' '+
-      'FROM '+QuoteIdent('mysql')+'.'+QuoteIdent('user')+' '+
-      'WHERE LENGTH('+QuoteIdent('Password')+') IN (0, 16, 41)'
+      'FROM '+QuoteIdent('mysql')+'.'+QuoteIdent('user')
       );
     while not Users.Eof do begin
       U := TUser.Create;
@@ -359,7 +359,7 @@ procedure TUserManagerForm.listUsersFocusChanging(Sender: TBaseVirtualTree; OldN
 begin
   // Allow selecting a user? Also, set allowed to false if new node is the same as
   // the old one, otherwise OnFocusChanged will be triggered.
-  Allowed := NewNode <> OldNode;
+  Allowed := (NewNode <> OldNode) and (not Assigned(NewNode) or (not (vsDisabled in NewNode.States)));
   if Allowed and FModified then begin
     case MessageDlg('Save modified user?', mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
       mrYes: begin
@@ -392,7 +392,6 @@ begin
   UserSelected := Assigned(Node);
   FPrivObjects.Clear;
   Caption := MainForm.actUserManager.Caption;
-  lblWarning.Visible := False;
   editUsername.Clear;
   editFromHost.Clear;
   editPassword.Clear;
@@ -400,7 +399,7 @@ begin
   editRepeatPassword.Clear;
 
   if UserSelected then begin
-    User := listUsers.GetNodeData(listUsers.FocusedNode);
+    User := Sender.GetNodeData(Node);
     UserHost := esc(User.Username)+'@'+esc(User.Host);
     editUsername.Text := User.Username;
     editFromHost.Text := User.Host;
@@ -446,10 +445,8 @@ begin
         if (rxA.Match[4] = '*') and (rxA.Match[5] = '*') then begin
           P.DBObj.NodeType := lntNone;
           P.AllPrivileges := PrivsGlobal;
-          if not FAdded then begin
-            lblWarning.Visible := rxA.Match[8] = '';
+          if not FAdded then
             editPassword.TextHint := MainForm.ActiveConnection.UnescapeString(rxA.Match[8]);
-          end;
         end else if (rxA.Match[5] = '*') then begin
           P.DBObj.NodeType := lntDb;
           P.DBObj.Database := rxA.Match[4];
@@ -565,6 +562,9 @@ begin
   btnAddObject.Enabled := UserSelected;
   btnDeleteUser.Enabled := UserSelected;
   btnCloneUser.Enabled := UserSelected and (not FAdded);
+
+  // Ensure the warning hint is displayed or cleared. This is not done when the dialog shows up.
+  listUsers.OnHotChange(Sender, nil, Node);
 end;
 
 
@@ -616,6 +616,30 @@ begin
 end;
 
 
+procedure TUserManagerForm.listUsersHotChange(Sender: TBaseVirtualTree; OldNode,
+  NewNode: PVirtualNode);
+var
+  Node: PVirtualNode;
+  User: PUser;
+  Msg: String;
+begin
+  // Display warning hint for problematic stuff in the lower left corner.
+  Node := NewNode;
+  if not Assigned(Node) then
+    Node := Sender.FocusedNode;
+  Msg := '';
+  if Assigned(Node) then begin
+    User := Sender.GetNodeData(Node);
+    case Length(User.Password) of
+      0: Msg := 'This user has an empty password.';
+      16, 41: Msg := '';
+      else Msg := 'This user is inactive due to an invalid length of its encrypted password. Please fix that in the mysql.user table.';
+    end;
+  end;
+  lblWarning.Caption := Msg;
+end;
+
+
 procedure TUserManagerForm.listUsersCompareNodes(Sender: TBaseVirtualTree;
   Node1, Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 begin
@@ -630,6 +654,8 @@ var
 begin
   User := Sender.GetNodeData(Node);
   User^ := FUsers[Node.Index];
+  if not (Length(User.Password) in [0, 16, 41]) then
+    Include(InitialStates, ivsDisabled);
 end;
 
 
