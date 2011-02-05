@@ -36,6 +36,21 @@ object UserManagerForm: TUserManagerForm
     Height = 316
     ResizeStyle = rsUpdate
   end
+  object lblWarning: TLabel
+    Left = 8
+    Top = 330
+    Width = 192
+    Height = 30
+    Anchors = [akLeft, akRight, akBottom]
+    AutoSize = False
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clRed
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    WordWrap = True
+  end
   object btnCancel: TButton
     Left = 391
     Top = 332
@@ -105,6 +120,7 @@ object UserManagerForm: TUserManagerForm
       OnGetImageIndex = listUsersGetImageIndex
       OnGetNodeDataSize = listUsersGetNodeDataSize
       OnHeaderClick = listUsersHeaderClick
+      OnHotChange = listUsersHotChange
       OnInitNode = listUsersInitNode
       Columns = <
         item
@@ -165,7 +181,7 @@ object UserManagerForm: TUserManagerForm
     TabOrder = 1
     object tlbObjects: TToolBar
       Left = 0
-      Top = 145
+      Top = 129
       Width = 286
       Height = 22
       AutoSize = True
@@ -200,9 +216,9 @@ object UserManagerForm: TUserManagerForm
     end
     object treePrivs: TVirtualStringTree
       Left = 0
-      Top = 167
+      Top = 151
       Width = 286
-      Height = 149
+      Height = 165
       Align = alClient
       Header.AutoSizeIndex = 0
       Header.DefaultHeight = 17
@@ -226,13 +242,13 @@ object UserManagerForm: TUserManagerForm
       Left = 0
       Top = 0
       Width = 286
-      Height = 145
+      Height = 129
       Align = alTop
       Caption = 'Credentials'
       TabOrder = 0
       DesignSize = (
         286
-        145)
+        129)
       object lblFromHost: TLabel
         Left = 6
         Top = 47
@@ -263,22 +279,6 @@ object UserManagerForm: TUserManagerForm
         Height = 13
         Caption = 'Repeat password:'
         FocusControl = editRepeatPassword
-      end
-      object lblWarning: TLabel
-        Left = 6
-        Top = 126
-        Width = 167
-        Height = 13
-        Caption = 'This user has an empty password! '
-        Color = clBtnText
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clRed
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentColor = False
-        ParentFont = False
-        Visible = False
       end
       object editFromHost: TButtonedEdit
         Left = 109
@@ -343,8 +343,8 @@ object UserManagerForm: TUserManagerForm
   end
   object menuHost: TPopupMenu
     OnPopup = menuHostPopup
-    Left = 8
-    Top = 328
+    Left = 16
+    Top = 280
     object menuHost1: TMenuItem
       Caption = 'Access from server location only'
       Hint = 'localhost'
@@ -371,8 +371,8 @@ object UserManagerForm: TUserManagerForm
   end
   object menuPassword: TPopupMenu
     AutoHotkeys = maManual
-    Left = 40
-    Top = 328
+    Left = 48
+    Top = 280
     object menuPassword1: TMenuItem
       Caption = '6 characters'
       OnClick = menuPasswordClick
