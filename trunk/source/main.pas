@@ -615,7 +615,7 @@ type
     procedure DataInsertValueClick(Sender: TObject);
     procedure InsertValue(Sender: TObject);
     procedure actDataSetNullExecute(Sender: TObject);
-    function QueryLoad(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
+    function QueryLoad(Filename: String; MakeNewTab: Boolean; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
     procedure AnyGridCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; out EditLink: IVTEditLink);
     procedure AnyGridEditCancelled(Sender: TBaseVirtualTree; Column: TColumnIndex);
@@ -1731,10 +1731,7 @@ begin
 
   // Load SQL file(s) by command line
   for i:=0 to FCmdlineFilenames.Count-1 do begin
-    if i>0 then
-      actNewQueryTabExecute(Self);
-    if not QueryLoad(FCmdlineFilenames[i], True, nil) then
-      actCloseQueryTabExecute(Self);
+    QueryLoad(FCmdlineFilenames[i], True, True, nil);
   end;
 end;
 
@@ -2748,9 +2745,7 @@ begin
   if Dialog.Execute then begin
     Encoding := GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
     for i:=0 to Dialog.Files.Count-1 do begin
-      if i > 0 then
-        actNewQueryTabExecute(Sender);
-      QueryLoad(Dialog.Files[i], True, Encoding);
+      QueryLoad(Dialog.Files[i], True, True, Encoding);
     end;
   end;
   Dialog.Free;
@@ -3457,7 +3452,7 @@ begin
     p := Pos(' ', Filename) + 1;
     filename := Copy(Filename, p, Length(Filename));
   end;
-  QueryLoad(Filename, True, nil);
+  QueryLoad(Filename, False, True, nil);
 end;
 
 
@@ -5048,9 +5043,7 @@ begin
   // One or more files from explorer or somewhere else was dropped onto the
   // query-memo - load their contents into seperate tabs
   for i:=0 to AFiles.Count-1 do begin
-    if i > 0 then
-      actNewQueryTab.Execute;
-    QueryLoad(AFiles[i], False, nil);
+    QueryLoad(AFiles[i], True, False, nil);
   end;
 end;
 
@@ -5249,7 +5242,7 @@ end;
 
 
 
-function TMainForm.QueryLoad(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
+function TMainForm.QueryLoad(Filename: String; MakeNewTab: Boolean; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
 
 var
   filecontent: String;
@@ -5258,6 +5251,7 @@ var
   LineBreaks: TLineBreaks;
   RunFileDialog: TRunSQLFileForm;
   Tab: TQueryTab;
+  FoundEmptyOne: Boolean;
 begin
   Result := False;
 
@@ -5289,62 +5283,75 @@ begin
           // Add filename to history menu
           if Pos( DirnameSnippets, filename ) = 0 then
             AddOrRemoveFromQueryLoadHistory(Filename, True, True);
-          // Don't load into editor
-          Abort;
+          Result := True;
         end;
       // Do nothing here, go ahead and load the file normally into the editor
-      mrNo:;
+      mrNo: Result := False;
       // Cancel opening file
-      mrCancel: Abort;
+      mrCancel: Result := True;
     end;
   end;
 
-  // Load file and add that to the undo-history of SynEdit.
-  // Normally we would do a simple SynMemo.Lines.LoadFromFile but
-  // this would prevent SynEdit from adding this step to the undo-history
-  // so we have to do it by replacing the SelText property
-  Screen.Cursor := crHourGlass;
-  if not QueryTabActive then
-    SetMainTab(tabQuery);
-  Tab := ActiveQueryTab;
-  LogSQL('Loading file "'+filename+'" ('+FormatByteNumber(FileSize)+') into query tab #'+IntToStr(Tab.Number)+' ...', lcInfo);
-  try
-    filecontent := ReadTextfile(Filename, Encoding);
-    if Pos( DirnameSnippets, Filename ) = 0 then
-      AddOrRemoveFromQueryLoadHistory(Filename, True, True);
-    FillPopupQueryLoad;
-    Tab.Memo.UndoList.AddGroupBreak;
-
-    if ScanNulChar(filecontent) then begin
-      filecontent := RemoveNulChars(filecontent);
-      MessageDlg(SContainsNulCharFile, mtInformation, [mbOK], 0);
+  if not Result then begin
+    // Load file and add that to the undo-history of SynEdit.
+    // Normally we would do a simple SynMemo.Lines.LoadFromFile but
+    // this would prevent SynEdit from adding this step to the undo-history
+    // so we have to do it by replacing the SelText property
+    Screen.Cursor := crHourGlass;
+    if MakeNewTab then begin
+      FoundEmptyOne := False;
+      for Tab in QueryTabs do begin
+        if (Tab.MemoFilename='') and (Tab.Memo.GetTextLen=0) then begin
+          SetMainTab(Tab.TabSheet);
+          FoundEmptyOne := True;
+          break;
+        end;
+      end;
+      if not FoundEmptyOne then
+        actNewQueryTabExecute(Self);
     end;
+    if not QueryTabActive then
+      SetMainTab(tabQuery);
+    Tab := ActiveQueryTab;
+    LogSQL('Loading file "'+filename+'" ('+FormatByteNumber(FileSize)+') into query tab #'+IntToStr(Tab.Number)+' ...', lcInfo);
+    try
+      filecontent := ReadTextfile(Filename, Encoding);
+      if Pos( DirnameSnippets, Filename ) = 0 then
+        AddOrRemoveFromQueryLoadHistory(Filename, True, True);
+      FillPopupQueryLoad;
+      Tab.Memo.UndoList.AddGroupBreak;
 
-    Tab.Memo.BeginUpdate;
-    LineBreaks := ScanLineBreaks(filecontent);
-    if ReplaceContent then begin
-      Tab.Memo.SelectAll;
-      Tab.MemoLineBreaks := LineBreaks;
-    end else begin
-      if (Tab.MemoLineBreaks <> lbsNone) and (Tab.MemoLineBreaks <> LineBreaks) then
-        Tab.MemoLineBreaks := lbsMixed
-      else
+      if ScanNulChar(filecontent) then begin
+        filecontent := RemoveNulChars(filecontent);
+        MessageDlg(SContainsNulCharFile, mtInformation, [mbOK], 0);
+      end;
+
+      Tab.Memo.BeginUpdate;
+      LineBreaks := ScanLineBreaks(filecontent);
+      if ReplaceContent then begin
+        Tab.Memo.SelectAll;
         Tab.MemoLineBreaks := LineBreaks;
-    end;
-    if Tab.MemoLineBreaks = lbsMixed then
-      MessageDlg('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).', mtInformation, [mbOK], 0);
+      end else begin
+        if (Tab.MemoLineBreaks <> lbsNone) and (Tab.MemoLineBreaks <> LineBreaks) then
+          Tab.MemoLineBreaks := lbsMixed
+        else
+          Tab.MemoLineBreaks := LineBreaks;
+      end;
+      if Tab.MemoLineBreaks = lbsMixed then
+        MessageDlg('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).', mtInformation, [mbOK], 0);
 
-    Tab.Memo.SelText := filecontent;
-    Tab.Memo.SelStart := ActiveQueryMemo.SelEnd;
-    Tab.Memo.EndUpdate;
-    Tab.Memo.Modified := False;
-    Tab.MemoFilename := filename;
-    Result := True;
-  except on E:Exception do
-    // File does not exist, is locked or broken
-    MessageDlg(E.message, mtError, [mbOK], 0);
+      Tab.Memo.SelText := filecontent;
+      Tab.Memo.SelStart := ActiveQueryMemo.SelEnd;
+      Tab.Memo.EndUpdate;
+      Tab.Memo.Modified := False;
+      Tab.MemoFilename := filename;
+      Result := True;
+    except on E:Exception do
+      // File does not exist, is locked or broken
+      MessageDlg(E.message, mtError, [mbOK], 0);
+    end;
+    Screen.Cursor := crDefault;
   end;
-  Screen.Cursor := crDefault;
 end;
 
 
@@ -5780,7 +5787,7 @@ end;
 }
 procedure TMainForm.menuInsertSnippetAtCursorClick(Sender: TObject);
 begin
-  QueryLoad(DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', False, nil);
+  QueryLoad(DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', False, False, nil);
 end;
 
 
@@ -5789,7 +5796,7 @@ end;
 }
 procedure TMainForm.menuLoadSnippetClick(Sender: TObject);
 begin
-  QueryLoad(DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', True, nil);
+  QueryLoad(DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', False, True, nil);
 end;
 
 
@@ -9555,9 +9562,7 @@ begin
   if (Msg.CopyDataStruct.dwData = SecondInstMsgId) and (SecondInstMsgId <> 0) then begin
     ParseCommandLineParameters(ParamBlobToStr(Msg.CopyDataStruct.lpData));
     for i:=0 to FCmdlineFilenames.Count-1 do begin
-      actNewQueryTabExecute(self);
-      if not QueryLoad(FCmdlineFilenames[i], True, nil) then
-        actCloseQueryTabExecute(Self);
+      QueryLoad(FCmdlineFilenames[i], True, True, nil);
     end;
     if Assigned(FCmdlineConnectionParams) then
       InitConnection(FCmdlineConnectionParams, FCmdlineSessionName, True, Connection);
@@ -10157,7 +10162,7 @@ begin
   if MessageDlg('File was modified from outside:'+CRLF+'  '+MemoFilename+CRLF+'Reload it?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes then begin
     OldCursor := Memo.CaretXY;
     OldTopLine := Memo.TopLine;
-    Mainform.QueryLoad(MemoFilename, True, nil);
+    Mainform.QueryLoad(MemoFilename, False, True, nil);
     Memo.CaretXY := OldCursor;
     Memo.TopLine := OldTopLine;
   end;
