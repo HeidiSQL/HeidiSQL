@@ -3,7 +3,7 @@ unit selectdbobject;
 interface
 
 uses
-  Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees,
+  Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees, Graphics,
   mysql_connection;
 
 type
@@ -14,8 +14,6 @@ type
     lblSelect: TLabel;
     lblCustom: TLabel;
     editDb: TEdit;
-    editTable: TEdit;
-    editColumn: TEdit;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -32,7 +30,7 @@ type
         ChildCount: Cardinal);
     procedure TreeDBOInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
         PVirtualNode; var InitialStates: TVirtualNodeInitStates);
-    procedure FormResize(Sender: TObject);
+    procedure ValidateControls(Sender: TObject);
   private
     { Private declarations }
     FColumns: Array of Array of TStringList;
@@ -78,19 +76,16 @@ begin
 end;
 
 
-procedure TfrmSelectDBObject.FormResize(Sender: TObject);
-var
-  EditWidth: Integer;
-const
-  Spacing=4;
+procedure TfrmSelectDBObject.ValidateControls(Sender: TObject);
 begin
-  // Adjust dimensions of edit boxes
-  EditWidth := (TreeDBO.Width - 2*Spacing) div 3;
-  editDb.Width := EditWidth;
-  editTable.Width := EditWidth;
-  editTable.Left := editDb.Left + editDb.Width + Spacing;
-  editColumn.Width := EditWidth;
-  editColumn.Left := editTable.Left + editTable.Width + Spacing;
+  // Signalize if tree or edit box is used
+  if editDb.Modified then begin
+    TreeDBO.Color := clBtnFace;
+    editDb.Color := clWindow;
+  end else begin
+    TreeDBO.Color := clWindow;
+    editDb.Color := clBtnFace;
+  end;
 end;
 
 
@@ -109,17 +104,10 @@ var
 begin
   // Return currently selected object, either from tree node or from edit boxes
   Result := nil;
-  if editDb.Modified or editTable.Modified or editColumn.Modified then begin
+  if editDb.Modified then begin
     Result := TDBObject.Create(MainForm.ActiveConnection);
     Result.Database := editDb.Text;
-    Result.Name := editTable.Text;
-    Result.Column := editColumn.Text;
-    if Result.Column <> '' then
-      Result.NodeType := lntColumn
-    else if Result.Name <> '' then
-      Result.NodeType := lntTable
-    else
-      Result.NodeType := lntDb;
+    Result.NodeType := lntDb;
   end else if Assigned(TreeDBO.FocusedNode) then begin
     DBObj := TreeDBO.GetNodeData(TreeDBO.FocusedNode);
     Result := TDBObject.Create(DBObj.Connection);
@@ -142,29 +130,18 @@ var
 begin
   // Overtake node text into lower edit boxes
   editDb.Clear;
-  editTable.Clear;
-  editColumn.Clear;
   Tree := Sender as TVirtualStringTree;
   btnOK.Enabled := Assigned(Node);
   if btnOK.Enabled then begin
     case Sender.GetNodeLevel(Node) of
       0: editDb.Text := '%';
       1: editDb.Text := esc(Tree.Text[Node, 0], True);
-      2: begin
-        editDb.Text := Tree.Text[Node.Parent, 0];
-        editTable.Text := Tree.Text[Node, 0];
-      end;
-      3: begin
-        editDb.Text := Tree.Text[Node.Parent.Parent, 0];
-        editTable.Text := Tree.Text[Node.Parent, 0];
-        editColumn.Text := Tree.Text[Node, 0];
-      end;
+      2: editDb.Text := esc(Tree.Text[Node.Parent, 0], True);
+      3: editDb.Text := esc(Tree.Text[Node.Parent.Parent, 0], True);
     end;
   end;
   // Indicate automatic changes only
   editDb.Modified := False;
-  editTable.Modified := False;
-  editColumn.Modified := False;
 end;
 
 
