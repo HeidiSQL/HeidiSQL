@@ -9595,7 +9595,7 @@ begin
   // A tree gets scrolled only when the mouse is over it - see FormMouseWheel
   // Our home brewn cell editors do not reposition when the underlying tree scrolls.
   // To avoid confusion, terminate editors then.
-  if Sender.IsEditing then
+  if Sender.IsEditing and (DeltaX=0) then
     Sender.EndEditNode;
 end;
 
