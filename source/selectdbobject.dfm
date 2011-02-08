@@ -16,7 +16,6 @@ object frmSelectDBObject: TfrmSelectDBObject
   Position = poOwnerFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
     232
@@ -33,10 +32,10 @@ object frmSelectDBObject: TfrmSelectDBObject
   object lblCustom: TLabel
     Left = 8
     Top = 239
-    Width = 174
+    Width = 210
     Height = 13
     Anchors = [akLeft, akBottom]
-    Caption = 'Custom, wildcards % and _ allowed:'
+    Caption = '... or wildcard database (% and _ allowed):'
   end
   object TreeDBO: TVirtualStringTree
     Left = 8
@@ -57,6 +56,7 @@ object frmSelectDBObject: TfrmSelectDBObject
     Margin = 2
     TabOrder = 0
     TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+    OnEnter = ValidateControls
     OnFocusChanged = TreeDBOFocusChanged
     OnGetText = TreeDBOGetText
     OnGetImageIndex = TreeDBOGetImageIndex
@@ -85,7 +85,7 @@ object frmSelectDBObject: TfrmSelectDBObject
     Default = True
     Enabled = False
     ModalResult = 1
-    TabOrder = 4
+    TabOrder = 2
   end
   object btnCancel: TButton
     Left = 149
@@ -96,36 +96,18 @@ object frmSelectDBObject: TfrmSelectDBObject
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 5
+    TabOrder = 3
   end
   object editDb: TEdit
     Left = 8
     Top = 255
-    Width = 58
+    Width = 216
     Height = 21
-    Anchors = [akBottom]
+    Anchors = [akLeft, akRight, akBottom]
     TabOrder = 1
     Text = 'editDb'
     TextHint = 'database'
-  end
-  object editTable: TEdit
-    Left = 72
-    Top = 255
-    Width = 71
-    Height = 21
-    Anchors = [akBottom]
-    TabOrder = 2
-    Text = 'editTable'
-    TextHint = 'all tables'
-  end
-  object editColumn: TEdit
-    Left = 149
-    Top = 255
-    Width = 75
-    Height = 21
-    Anchors = [akBottom]
-    TabOrder = 3
-    Text = 'editColumn'
-    TextHint = 'all columns'
+    OnChange = ValidateControls
+    OnEnter = ValidateControls
   end
 end
