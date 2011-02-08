@@ -12,6 +12,10 @@ type
     btnOK: TButton;
     btnCancel: TButton;
     lblSelect: TLabel;
+    lblCustom: TLabel;
+    editDb: TEdit;
+    editTable: TEdit;
+    editColumn: TEdit;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -28,6 +32,7 @@ type
         ChildCount: Cardinal);
     procedure TreeDBOInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
         PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
     FColumns: Array of Array of TStringList;
@@ -72,12 +77,29 @@ begin
   MainReg.WriteInteger( REGNAME_SELECTDBO_WINHEIGHT, Height );
 end;
 
+
+procedure TfrmSelectDBObject.FormResize(Sender: TObject);
+var
+  EditWidth: Integer;
+const
+  Spacing=4;
+begin
+  // Adjust dimensions of edit boxes
+  EditWidth := (TreeDBO.Width - 2*Spacing) div 3;
+  editDb.Width := EditWidth;
+  editTable.Width := EditWidth;
+  editTable.Left := editDb.Left + editDb.Width + Spacing;
+  editColumn.Width := EditWidth;
+  editColumn.Left := editTable.Left + editTable.Width + Spacing;
+end;
+
+
 procedure TfrmSelectDBObject.FormShow(Sender: TObject);
 begin
   TreeDBO.Clear;
   TreeDBO.RootNodeCount := Mainform.DBtree.RootNodeCount;
   SetLength(FColumns, Mainform.ActiveConnection.AllDatabases.Count);
-//  TreeDBO.OnFocusChanged(TreeDBO, TreeDBO.FocusedNode, 0);
+  TreeDBO.OnFocusChanged(TreeDBO, TreeDBO.FocusedNode, 0);
 end;
 
 
@@ -85,19 +107,64 @@ function TfrmSelectDBObject.GetSelectedObject: TDBObject;
 var
   DBObj: PDBObject;
 begin
+  // Return currently selected object, either from tree node or from edit boxes
   Result := nil;
-  if Assigned(TreeDBO.FocusedNode) then begin
+  if editDb.Modified or editTable.Modified or editColumn.Modified then begin
+    Result := TDBObject.Create(MainForm.ActiveConnection);
+    Result.Database := editDb.Text;
+    Result.Name := editTable.Text;
+    Result.Column := editColumn.Text;
+    if Result.Column <> '' then
+      Result.NodeType := lntColumn
+    else if Result.Name <> '' then
+      Result.NodeType := lntTable
+    else
+      Result.NodeType := lntDb;
+  end else if Assigned(TreeDBO.FocusedNode) then begin
     DBObj := TreeDBO.GetNodeData(TreeDBO.FocusedNode);
     Result := TDBObject.Create(DBObj.Connection);
     Result.Assign(DBObj^);
+    if Result.NodeType = lntDb then
+      Result.Database := esc(Result.Database, True);
+    if Result.NodeType = lntNone then begin
+      Result.NodeType := lntDb;
+      Result.Database := '%';
+    end;
   end;
   // Let the result be nil to indicate we have no selected node
 end;
 
 procedure TfrmSelectDBObject.TreeDBOFocusChanged(Sender: TBaseVirtualTree;
     Node: PVirtualNode; Column: TColumnIndex);
+var
+  DBObj: PDBObject;
+  Tree: TVirtualStringTree;
 begin
+  // Overtake node text into lower edit boxes
+  editDb.Clear;
+  editTable.Clear;
+  editColumn.Clear;
+  Tree := Sender as TVirtualStringTree;
   btnOK.Enabled := Assigned(Node);
+  if btnOK.Enabled then begin
+    case Sender.GetNodeLevel(Node) of
+      0: editDb.Text := '%';
+      1: editDb.Text := esc(Tree.Text[Node, 0], True);
+      2: begin
+        editDb.Text := Tree.Text[Node.Parent, 0];
+        editTable.Text := Tree.Text[Node, 0];
+      end;
+      3: begin
+        editDb.Text := Tree.Text[Node.Parent.Parent, 0];
+        editTable.Text := Tree.Text[Node.Parent, 0];
+        editColumn.Text := Tree.Text[Node, 0];
+      end;
+    end;
+  end;
+  // Indicate automatic changes only
+  editDb.Modified := False;
+  editTable.Modified := False;
+  editColumn.Modified := False;
 end;
 
 

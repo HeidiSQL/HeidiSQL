@@ -16,6 +16,7 @@ object frmSelectDBObject: TfrmSelectDBObject
   Position = poOwnerFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
     232
@@ -29,11 +30,19 @@ object frmSelectDBObject: TfrmSelectDBObject
     Height = 13
     Caption = 'Select database, table or column:'
   end
+  object lblCustom: TLabel
+    Left = 8
+    Top = 239
+    Width = 174
+    Height = 13
+    Anchors = [akLeft, akBottom]
+    Caption = 'Custom, wildcards % and _ allowed:'
+  end
   object TreeDBO: TVirtualStringTree
     Left = 8
     Top = 27
     Width = 216
-    Height = 250
+    Height = 206
     Anchors = [akLeft, akTop, akRight, akBottom]
     Header.AutoSizeIndex = 0
     Header.DefaultHeight = 17
@@ -76,7 +85,7 @@ object frmSelectDBObject: TfrmSelectDBObject
     Default = True
     Enabled = False
     ModalResult = 1
-    TabOrder = 1
+    TabOrder = 4
   end
   object btnCancel: TButton
     Left = 149
@@ -87,6 +96,36 @@ object frmSelectDBObject: TfrmSelectDBObject
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
+    TabOrder = 5
+  end
+  object editDb: TEdit
+    Left = 8
+    Top = 255
+    Width = 58
+    Height = 21
+    Anchors = [akBottom]
+    TabOrder = 1
+    Text = 'editDb'
+    TextHint = 'database'
+  end
+  object editTable: TEdit
+    Left = 72
+    Top = 255
+    Width = 71
+    Height = 21
+    Anchors = [akBottom]
     TabOrder = 2
+    Text = 'editTable'
+    TextHint = 'all tables'
+  end
+  object editColumn: TEdit
+    Left = 149
+    Top = 255
+    Width = 75
+    Height = 21
+    Anchors = [akBottom]
+    TabOrder = 3
+    Text = 'editColumn'
+    TextHint = 'all columns'
   end
 end
