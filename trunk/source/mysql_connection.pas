@@ -501,6 +501,16 @@ begin
     FinalPort := FParameters.Port;
     case FParameters.NetType of
       ntTCPIP: begin
+        if (IsNotEmpty(FParameters.SSLPrivateKey)
+          or IsNotEmpty(FParameters.SSLCertificate)
+          or IsNotEmpty(FParameters.SSLCACertificate))
+          and (IsEmpty(FParameters.SSLPrivateKey)
+          or IsEmpty(FParameters.SSLCertificate)
+          or IsEmpty(FParameters.SSLCACertificate))
+          then begin
+            raise EDatabaseError.Create('SSL settings incomplete. Please specify all three SSL parameters.');
+        end;
+
         if (FParameters.SSLPrivateKey <> '') and
         (FParameters.SSLCertificate <> '') and
         (FParameters.SSLCACertificate <> '') then begin

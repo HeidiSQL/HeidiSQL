@@ -157,6 +157,8 @@ type
   function GetColumnDefaultType(var Text: String): TColumnDefaultType;
   function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: String): String;
   function GetImageLinkTimeStamp(const FileName: string): TDateTime;
+  function IsEmpty(Str: String): Boolean;
+  function IsNotEmpty(Str: String): Boolean;
 
 var
   MainReg: TRegistry;
@@ -2823,6 +2825,20 @@ begin
   end;
   Result := UnixToDateTime(TimeStamp);
 end;
+
+
+function IsEmpty(Str: String): Boolean;
+begin
+  // Alternative version of "Str = ''"
+  Result := Str = '';
+end;
+
+function IsNotEmpty(Str: String): Boolean;
+begin
+  // Alternative version of "Str <> ''"
+  Result := Str <> '';
+end;
+
 
 
 end.
