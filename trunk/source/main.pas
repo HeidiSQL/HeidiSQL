@@ -1068,7 +1068,7 @@ begin
   ImageIndex := -1;
   case Panel.Index of
     2: ImageIndex := 149;
-    3: begin
+    3: if ActiveConnection <> nil then begin
       if opSSL in ActiveConnection.Parameters.Options then
         ImageIndex := 144 // Lock
       else
