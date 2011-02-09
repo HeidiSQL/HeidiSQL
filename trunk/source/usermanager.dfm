@@ -60,6 +60,8 @@ object UserManagerForm: TUserManagerForm
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Close'
+    ImageIndex = 26
+    Images = MainForm.ImageListMain
     ModalResult = 2
     TabOrder = 4
   end
