@@ -513,7 +513,9 @@ begin
             PansiChar(AnsiString(FParameters.SSLCACertificate)),
             {PansiChar(AnsiString(FParameters.CApath))}nil,
             {PansiChar(AnsiString(FParameters.Cipher))}nil);
-          if SSLresult <> 0 then
+          if SSLresult = 0 then
+            Log(lcInfo, 'SSL parameters successfully set.')
+          else
             raise EDatabaseError.CreateFmt('Could not connect using SSL (Error %d)', [SSLresult]);
         end;
       end;
@@ -1621,6 +1623,7 @@ begin
     Result.Values['Connection port'] := IntToStr(Parameters.Port);
     Result.Values['Compressed protocol'] := EvalBool(opCompress in Parameters.Options);
     Result.Values['Unicode enabled'] := EvalBool(IsUnicode);
+    Result.Values['SSL enabled'] := EvalBool(opSSL in Parameters.Options);
     Infos := DecodeApiString(mysql_stat(FHandle));
     rx := TRegExpr.Create;
     rx.ModifierG := False;
