@@ -49,6 +49,7 @@ object UserManagerForm: TUserManagerForm
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    Layout = tlCenter
     WordWrap = True
   end
   object btnCancel: TButton
