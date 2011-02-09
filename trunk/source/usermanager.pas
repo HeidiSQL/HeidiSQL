@@ -911,6 +911,15 @@ var
   P: TPrivObj;
   i: Integer;
   PasswordSet: Boolean;
+
+  function GetObjectType(ObjType: String): String;
+  begin
+    // Decide if object type can be part of a GRANT or REVOKE query
+    Result := '';
+    if Conn.ServerVersionInt >= 50006 then
+      Result := UpperCase(ObjType) + ' ';
+  end;
+
 begin
   // Save changes
   Conn := MainForm.ActiveConnection;
@@ -954,9 +963,9 @@ begin
         lntDb:
           OnObj := QuoteIdent(P.DBObj.Database) + '.*';
         lntTable, lntFunction, lntProcedure:
-          OnObj := UpperCase(P.DBObj.ObjType) + ' ' + QuoteIdent(P.DBObj.Database) + '.' + QuoteIdent(P.DBObj.Name);
+          OnObj := GetObjectType(P.DBObj.ObjType) + QuoteIdent(P.DBObj.Database) + '.' + QuoteIdent(P.DBObj.Name);
         lntColumn:
-          OnObj := 'TABLE ' + QuoteIdent(P.DBObj.Database) + '.' + QuoteIdent(P.DBObj.Name);
+          OnObj := GetObjectType('TABLE') + QuoteIdent(P.DBObj.Database) + '.' + QuoteIdent(P.DBObj.Name);
         else
           raise Exception.Create('Unhandled privilege object: '+P.DBObj.ObjType);
       end;
