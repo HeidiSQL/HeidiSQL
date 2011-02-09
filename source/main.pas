@@ -1068,12 +1068,17 @@ begin
   ImageIndex := -1;
   case Panel.Index of
     2: ImageIndex := 149;
-    3: ImageIndex := 1;
+    3: begin
+      if opSSL in ActiveConnection.Parameters.Options then
+        ImageIndex := 144 // Lock
+      else
+        ImageIndex := 1;
+    end;
     6: begin
       if Panel.Text = SIdle then
-        ImageIndex := 151
+        ImageIndex := 151 // Green dot
       else
-        ImageIndex := 150;
+        ImageIndex := 150; // Hourglass
     end;
   end;
   StatusBar.Canvas.FillRect(Rect);
