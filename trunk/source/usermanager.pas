@@ -1072,6 +1072,7 @@ begin
         Conn.Query('DELETE FROM mysql.user WHERE User='+esc(User.Username)+' AND Host='+esc(User.Host))
       else
         Conn.Query('DROP USER '+UserHost);
+      Conn.Query('FLUSH PRIVILEGES');
       FUsers.Remove(User^);
       listUsers.DeleteNode(listUsers.FocusedNode);
     except on E:EDatabaseError do
