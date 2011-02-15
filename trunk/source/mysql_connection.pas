@@ -618,7 +618,7 @@ begin
       FActive := True;
       CharacterSet := 'utf8';
       CurCharset := CharacterSet;
-      Log(lcInfo, 'Characterset: '+CurCharset);
+      Log(lcDebug, 'Characterset: '+CurCharset);
       FIsUnicode := CurCharset = 'utf8';
       FConnectionStarted := GetTickCount div 1000;
       FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), 1);
