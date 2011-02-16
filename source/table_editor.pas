@@ -364,6 +364,7 @@ var
   sql: String;
   i: Integer;
   Specs: TStringList;
+  Col: TTableColumn;
 begin
   // Create or alter table
   Result := mrOk;
@@ -380,6 +381,13 @@ begin
     for i:=0 to FForeignKeys.Count-1 do begin
       if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
         Specs.Add('DROP FOREIGN KEY '+QuoteIdent(FForeignKeys[i].OldKeyName));
+    end;
+    // Special case for removed default values on columns, which can neither be done in
+    // ALTER TABLE ... CHANGE COLUMN query, as there is no "no default" clause, nor by
+    // appending an ALTER COLUMN ... DROP DEFAULT, without getting an "unknown column" error
+    for Col in FColumns do begin
+      if (Col.FStatus = esModified) and (Col.DefaultType = cdtNothing) then
+        Specs.Add('ALTER '+QuoteIdent(Col.OldName)+' DROP DEFAULT');
     end;
   end;
   try
