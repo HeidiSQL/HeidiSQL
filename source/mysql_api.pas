@@ -514,11 +514,8 @@ var
   mysql_affected_rows          : function(Handle: PMYSQL): Int64; stdcall;
   mysql_character_set_name     : function(Handle: PMYSQL): PAnsiChar; stdcall;
   mysql_close                  : procedure(Handle: PMYSQL); stdcall;
-  mysql_connect                : function(Handle: PMYSQL; const Host, User, Passwd: PAnsiChar): PMYSQL; stdcall;
-  mysql_create_db              : function(Handle: PMYSQL; const Db: PAnsiChar): Integer; stdcall;
   mysql_data_seek              : procedure(Result: PMYSQL_RES; Offset: Int64); stdcall;
   mysql_debug                  : procedure(Debug: PAnsiChar); stdcall;
-  mysql_drop_db                : function(Handle: PMYSQL; const Db: PAnsiChar): Integer; stdcall;
   mysql_dump_debug_info        : function(Handle: PMYSQL): Integer; stdcall;
   mysql_eof                    : function(Result: PMYSQL_RES): Byte; stdcall;
   mysql_errno                  : function(Handle: PMYSQL): Cardinal; stdcall;
@@ -584,11 +581,9 @@ var
 
   { Perform query on master }
   mysql_master_query           : function(mysql: PMYSQL; const query: PAnsiChar; length: Cardinal): Byte; stdcall;
-  mysql_master_send_query      : function(mysql: PMYSQL; const query: PAnsiChar; length: Cardinal): Byte; stdcall;
 
   { Perform query on slave }
   mysql_slave_query            : function(mysql: PMYSQL; const query: PAnsiChar; length: Cardinal): Byte; stdcall;
-  mysql_slave_send_query       : function(mysql: PMYSQL; const query: PAnsiChar; length: Cardinal): Byte; stdcall;
 
   { Enable/disable parsing of all queries to decide
     if they go on master or slave }
@@ -602,26 +597,10 @@ var
   mysql_enable_reads_from_master : procedure(mysql: PMYSQL); stdcall;
   mysql_disable_reads_from_master : procedure(mysql: PMYSQL); stdcall;
 
-  { Get the value of the master read flag }
-  mysql_reads_from_master_enabled : function(mysql: PMYSQL): Byte; stdcall;
-
   mysql_rpl_query_type         : function(const query: PAnsiChar; len: Integer): TMySqlRplType; stdcall;
 
   { Discover the master and its slaves }
   mysql_rpl_probe              : function(mysql: PMYSQL): Byte; stdcall;
-
-  { Set the master, close/free the old one, if it is not a pivot }
-  mysql_set_master             : function(mysql: PMYSQL; const host: PAnsiChar; port: Cardinal;
-                                          const user: PAnsiChar; const passwd: PAnsiChar): Integer; stdcall;
-  mysql_add_slave              : function(mysql: PMYSQL; const host: PAnsiChar; port: Cardinal;
-                                          const user: PAnsiChar; const passwd: PAnsiChar): Integer; stdcall;
-
-  mysql_manager_init           : function(con: PMYSQL_MANAGER): PMYSQL_MANAGER; stdcall;
-  mysql_manager_connect        : function(con: PMYSQL_MANAGER; const host: PAnsiChar; const user: PAnsiChar;
-                                          const passwd: PAnsiChar; port: Cardinal): PMYSQL_MANAGER; stdcall;
-  mysql_manager_close          : procedure(con: PMYSQL_MANAGER); stdcall;
-  mysql_manager_command        : function(con: PMYSQL_MANAGER; const cmd: PAnsiChar; cmd_len: Integer): Integer; stdcall;
-  mysql_manager_fetch_line     : function(con: PMYSQL_MANAGER; res_buf: PAnsiChar; res_buf_size: Integer): Integer; stdcall;
 
   mysql_autocommit             : function(Handle: PMYSQL; const mode: Byte): Byte; stdcall;
   mysql_commit                 : function(Handle: PMYSQL): Byte; stdcall;
@@ -635,37 +614,6 @@ var
   mysql_shutdown               : function(Handle: PMYSQL; shutdown_level: TMysqlShutdownLevel): Integer;
   mysql_sqlstate               : function(Handle: PMYSQL): PAnsiChar; stdcall;
   mysql_warning_count          : function(Handle: PMYSQL): Cardinal; stdcall;
-
-  mysql_stmt_affected_rows     : function(stmt: PMYSQL_STMT): Int64; stdcall;
-  mysql_stmt_attr_get          : function(stmt: PMYSQL_STMT; option: TMysqlStmtAttrType;arg: PAnsiChar): Integer; stdcall;
-  mysql_stmt_attr_set          : function(stmt: PMYSQL_STMT; option: TMysqlStmtAttrType;
-                                          const arg: PAnsiChar): Integer; stdcall;
-  mysql_stmt_bind_param        : function(stmt: PMYSQL_STMT; bind: PMYSQL_BIND): Byte; stdcall;
-  mysql_stmt_bind_result       : function(stmt: PMYSQL_STMT; bind: PMYSQL_BIND): Byte; stdcall;
-  mysql_stmt_close             : function(stmt: PMYSQL_STMT): Byte; stdcall;
-  mysql_stmt_data_seek         : procedure(stmt: PMYSQL_STMT; offset: Int64); stdcall;
-  mysql_stmt_errno             : function(stmt: PMYSQL_STMT): Cardinal; stdcall;
-  mysql_stmt_error             : function(stmt: PMYSQL_STMT): PAnsiChar; stdcall;
-  mysql_stmt_execute           : function(stmt: PMYSQL_STMT): Integer; stdcall;
-  mysql_stmt_fetch             : function(stmt: PMYSQL_STMT): Integer; stdcall;
-  mysql_stmt_fetch_column      : function(stmt: PMYSQL_STMT; bind: PMYSQL_BIND; column: Cardinal;
-                                          offset: Cardinal): Integer; stdcall;
-  mysql_stmt_field_count       : function(stmt: PMYSQL_STMT): Cardinal; stdcall;
-  mysql_stmt_free_result       : function(stmt: PMYSQL_STMT): Byte; stdcall;
-  mysql_stmt_init              : function(Handle: PMYSQL): PMYSQL_STMT; stdcall;
-  mysql_stmt_insert_id         : function(stmt: PMYSQL_STMT): Int64; stdcall;
-  mysql_stmt_num_rows          : function(stmt: PMYSQL_STMT): Int64; stdcall;
-  mysql_stmt_param_count       : function(stmt: PMYSQL_STMT): Cardinal; stdcall;
-  mysql_stmt_param_metadata    : function(stmt: PMYSQL_STMT): PMYSQL_RES; stdcall;
-  mysql_stmt_prepare           : function(stmt: PMYSQL_STMT; const query: PAnsiChar; length: Cardinal): Integer; stdcall;
-  mysql_stmt_reset             : function(stmt: PMYSQL_STMT): Byte; stdcall;
-  mysql_stmt_result_metadata   : function(stmt: PMYSQL_STMT): PMYSQL_RES; stdcall;
-  mysql_stmt_row_seek          : function(stmt: PMYSQL_STMT; offset: PMYSQL_ROWS): PMYSQL_ROWS; stdcall;
-  mysql_stmt_row_tell          : function(stmt: PMYSQL_STMT): PMYSQL_ROWS; stdcall;
-  mysql_stmt_send_long_data    : function(stmt: PMYSQL_STMT; parameter_number: Cardinal; const
-                                  data: PAnsiChar; length: Cardinal): Byte; stdcall;
-  mysql_stmt_sqlstate          : function(stmt: PMYSQL_STMT): PAnsiChar; stdcall;
-  mysql_stmt_store_result      : function(stmt: PMYSQL_STMT): Integer; stdcall;
 
   mysql_get_character_set_info : procedure(Handle: PMYSQL; cs: PMY_CHARSET_INFO); stdcall;
 
@@ -698,7 +646,8 @@ function libmysql_load: Byte;
   procedure assign_proc(var proc: FARPROC; name: PAnsiChar);
   begin
     proc := GetProcAddress(libmysql_handle, name);
-    if proc = nil then libmysql_status := LIBMYSQL_INCOMPATIBLE;
+    if proc = nil then
+      libmysql_status := LIBMYSQL_INCOMPATIBLE;
   end;
 
 begin
@@ -711,11 +660,8 @@ begin
     assign_proc(@mysql_affected_rows, 'mysql_affected_rows');
     assign_proc(@mysql_character_set_name, 'mysql_character_set_name');
     assign_proc(@mysql_close, 'mysql_close');
-    assign_proc(@mysql_connect, 'mysql_connect');
-    assign_proc(@mysql_create_db, 'mysql_create_db');
     assign_proc(@mysql_data_seek, 'mysql_data_seek');
     assign_proc(@mysql_debug, 'mysql_debug');
-    assign_proc(@mysql_drop_db, 'mysql_drop_db');
     assign_proc(@mysql_dump_debug_info, 'mysql_dump_debug_info');
     assign_proc(@mysql_eof, 'mysql_eof');
     assign_proc(@mysql_errno, 'mysql_errno');
@@ -772,24 +718,14 @@ begin
     assign_proc(@mysql_send_query, 'mysql_send_query');
     assign_proc(@mysql_read_query_result, 'mysql_read_query_result');
     assign_proc(@mysql_master_query, 'mysql_master_query');
-    assign_proc(@mysql_master_send_query, 'mysql_master_send_query');
     assign_proc(@mysql_slave_query, 'mysql_slave_query');
-    assign_proc(@mysql_slave_send_query, 'mysql_slave_send_query');
     assign_proc(@mysql_enable_rpl_parse, 'mysql_enable_rpl_parse');
     assign_proc(@mysql_disable_rpl_parse, 'mysql_disable_rpl_parse');
     assign_proc(@mysql_rpl_parse_enabled, 'mysql_rpl_parse_enabled');
     assign_proc(@mysql_enable_reads_from_master, 'mysql_enable_reads_from_master');
     assign_proc(@mysql_disable_reads_from_master, 'mysql_disable_reads_from_master');
-    assign_proc(@mysql_reads_from_master_enabled, 'mysql_reads_from_master_enabled');
     assign_proc(@mysql_rpl_query_type, 'mysql_rpl_query_type');
     assign_proc(@mysql_rpl_probe, 'mysql_rpl_probe');
-    assign_proc(@mysql_set_master, 'mysql_set_master');
-    assign_proc(@mysql_add_slave, 'mysql_add_slave');
-    assign_proc(@mysql_manager_init, 'mysql_manager_init');
-    assign_proc(@mysql_manager_connect, 'mysql_manager_connect');
-    assign_proc(@mysql_manager_close, 'mysql_manager_close');
-    assign_proc(@mysql_manager_command, 'mysql_manager_command');
-    assign_proc(@mysql_manager_fetch_line, 'mysql_manager_fetch_line');
     assign_proc(@mysql_autocommit, 'mysql_autocommit');
     assign_proc(@mysql_commit, 'mysql_commit');
     assign_proc(@mysql_get_server_version, 'mysql_get_server_version');
@@ -801,35 +737,6 @@ begin
     assign_proc(@mysql_set_server_option, 'mysql_set_server_option');
     assign_proc(@mysql_sqlstate, 'mysql_sqlstate');
     assign_proc(@mysql_warning_count, 'mysql_warning_count');
-
-    {API for PREPARED STATEMENTS}
-    assign_proc(@mysql_stmt_affected_rows, 'mysql_stmt_affected_rows');
-    assign_proc(@mysql_stmt_attr_get, 'mysql_stmt_attr_get');
-    assign_proc(@mysql_stmt_attr_set, 'mysql_stmt_attr_set');
-    assign_proc(@mysql_stmt_bind_param, 'mysql_stmt_bind_param');
-    assign_proc(@mysql_stmt_bind_result, 'mysql_stmt_bind_result');
-    assign_proc(@mysql_stmt_close, 'mysql_stmt_close');
-    assign_proc(@mysql_stmt_data_seek, 'mysql_stmt_data_seek');
-    assign_proc(@mysql_stmt_errno, 'mysql_stmt_errno');
-    assign_proc(@mysql_stmt_error, 'mysql_stmt_error');
-    assign_proc(@mysql_stmt_execute, 'mysql_stmt_execute');
-    assign_proc(@mysql_stmt_fetch, 'mysql_stmt_fetch');
-    assign_proc(@mysql_stmt_fetch_column, 'mysql_stmt_fetch_column');
-    assign_proc(@mysql_stmt_field_count, 'mysql_stmt_field_count');
-    assign_proc(@mysql_stmt_free_result, 'mysql_stmt_free_result');
-    assign_proc(@mysql_stmt_init, 'mysql_stmt_init');
-    assign_proc(@mysql_stmt_insert_id, 'mysql_stmt_insert_id');
-    assign_proc(@mysql_stmt_num_rows, 'mysql_stmt_num_rows');
-    assign_proc(@mysql_stmt_param_count, 'mysql_stmt_param_count');
-    assign_proc(@mysql_stmt_param_metadata, 'mysql_stmt_param_metadata');
-    assign_proc(@mysql_stmt_prepare, 'mysql_stmt_prepare');
-    assign_proc(@mysql_stmt_reset, 'mysql_stmt_reset');
-    assign_proc(@mysql_stmt_result_metadata, 'mysql_stmt_result_metadata');
-    assign_proc(@mysql_stmt_row_seek, 'mysql_stmt_row_seek');
-    assign_proc(@mysql_stmt_row_tell, 'mysql_stmt_row_tell');
-    assign_proc(@mysql_stmt_send_long_data, 'mysql_stmt_send_long_data');
-    assign_proc(@mysql_stmt_sqlstate, 'mysql_stmt_sqlstate');
-    assign_proc(@mysql_stmt_store_result, 'mysql_stmt_store_result');
 
     assign_proc(@mysql_get_character_set_info, 'mysql_get_character_set_info');
   end; 
