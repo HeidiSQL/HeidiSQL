@@ -482,11 +482,7 @@ begin
     end;
 
     // Get handle
-    try
-      FHandle := mysql_init(nil);
-    except
-      raise EDatabaseError.Create('Can''t find a usable libmysql.dll. Please launch '+ExtractFileName(ParamStr(0))+' from the directory where you have installed it.');
-    end;
+    FHandle := mysql_init(nil);
 
     // Prepare connection
     case FParameters.NetType of
