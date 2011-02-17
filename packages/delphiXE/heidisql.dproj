@@ -194,7 +194,6 @@
 			<DCCReference Include="..\..\source\table_editor.pas">
 				<Form>frmTableEditor</Form>
 			</DCCReference>
-			<DCCReference Include="..\..\source\mysql_api.pas"/>
 			<DCCReference Include="..\..\source\mysql_connection.pas"/>
 			<DCCReference Include="..\..\source\trigger_editor.pas">
 				<Form>frmTriggerEditor</Form>

@@ -18,7 +18,7 @@ uses
   CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
-  mysql_api, insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch;
+  insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch;
 
 
 type

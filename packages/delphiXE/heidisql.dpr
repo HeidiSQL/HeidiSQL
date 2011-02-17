@@ -33,7 +33,6 @@ uses
   uVistaFuncs in '..\..\source\uVistaFuncs.pas',
   routine_editor in '..\..\source\routine_editor.pas' {frmRoutineEditor},
   table_editor in '..\..\source\table_editor.pas' {frmTableEditor},
-  mysql_api in '..\..\source\mysql_api.pas',
   mysql_connection in '..\..\source\mysql_connection.pas',
   trigger_editor in '..\..\source\trigger_editor.pas' {frmTriggerEditor: TFrame},
   searchreplace in '..\..\source\searchreplace.pas' {frmSearchReplace},
@@ -48,27 +47,12 @@ uses
 
 var
   DoStop, prefAllowMultipleInstances: Boolean;
-  Err: String;
 begin
   prefAllowMultipleInstances := GetRegValue(REGNAME_MULTI_INSTANCES, DEFAULT_MULTI_INSTANCES);
   SecondInstMsgId := RegisterWindowMessage(APPNAME);
   DoStop := False;
-
   if not prefAllowMultipleInstances then
     DoStop := CheckForSecondInstance;
-
-  if not DoStop then begin
-    case libmysql_status of
-      LIBMYSQL_MISSING: Err := 'Can''t find a usable libmysql.dll. Please launch '+ExtractFileName(ParamStr(0))+' from the directory where you have installed it.';
-      LIBMYSQL_INCOMPATIBLE: Err := 'Your libmysql.dll is out-dated or somehow incompatible to '+APPNAME+'. Please use the one from the installer, or just reinstall '+APPNAME+'.';
-      else Err := '';
-    end;
-    if Err <> '' then begin
-      MessageDlg(Err, mtError, [mbOK], 0);
-      DoStop := True;
-    end;
-  end;
-
   if DoStop then
     Application.Terminate
   else begin
