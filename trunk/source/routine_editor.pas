@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, SynEdit, SynMemo, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, SynRegExpr, WideStrUtils,
-  mysql_connection, helpers, mysql_api;
+  mysql_connection, helpers;
 
 type
   TFrame = TDBObjectEditor;
