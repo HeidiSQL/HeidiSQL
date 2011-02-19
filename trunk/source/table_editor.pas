@@ -185,8 +185,8 @@ type
     procedure ValidateIndexControls;
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
     procedure ResetModificationFlags;
-    function ComposeCreateStatement: String;
-    function ComposeAlterStatement: String;
+    function ComposeCreateStatement: TSQLBatch;
+    function ComposeAlterStatement: TSQLBatch;
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
     procedure CalcMinColWidth;
@@ -361,39 +361,19 @@ end;
 
 function TfrmTableEditor.ApplyModifications: TModalResult;
 var
-  sql: String;
+  Batch: TSQLBatch;
+  Query: TSQLSentence;
   i: Integer;
-  Specs: TStringList;
-  Col: TTableColumn;
 begin
   // Create or alter table
   Result := mrOk;
-  Specs := TStringList.Create;
   if DBObject.Name = '' then
-    sql := ComposeCreateStatement
-  else begin
-    sql := ComposeAlterStatement;
-    // Special case for altered foreign keys: These have to be dropped in a seperate query
-    // otherwise the server would return error 121 "Duplicate key on write or update"
-    // See also http://dev.mysql.com/doc/refman/5.1/en/innodb-foreign-key-constraints.html :
-    //   "You cannot add a foreign key and drop a foreign key in separate clauses of a single
-    //   ALTER TABLE  statement. Separate statements are required."
-    for i:=0 to FForeignKeys.Count-1 do begin
-      if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
-        Specs.Add('DROP FOREIGN KEY '+QuoteIdent(FForeignKeys[i].OldKeyName));
-    end;
-    // Special case for removed default values on columns, which can neither be done in
-    // ALTER TABLE ... CHANGE COLUMN query, as there is no "no default" clause, nor by
-    // appending an ALTER COLUMN ... DROP DEFAULT, without getting an "unknown column" error
-    for Col in FColumns do begin
-      if (Col.FStatus = esModified) and (Col.DefaultType = cdtNothing) then
-        Specs.Add('ALTER '+QuoteIdent(Col.OldName)+' DROP DEFAULT');
-    end;
-  end;
+    Batch := ComposeCreateStatement
+  else
+    Batch := ComposeAlterStatement;
   try
-    if Specs.Count > 0 then
-      MainForm.ActiveConnection.Query('ALTER TABLE '+QuoteIdent(DBObject.Name)+' '+ImplodeStr(', ', Specs));
-    MainForm.ActiveConnection.Query(sql);
+    for Query in Batch do
+      MainForm.ActiveConnection.Query(Query.SQL);
     tabALTERcode.TabVisible := DBObject.Name <> '';
     if chkCharsetConvert.Checked then begin
       // Autoadjust column collations
@@ -461,19 +441,53 @@ begin
 end;
 
 
-function TfrmTableEditor.ComposeAlterStatement: String;
+function TfrmTableEditor.ComposeAlterStatement: TSQLBatch;
 var
   Specs: TStringList;
   ColSpec, IndexSQL: String;
+  Query: TSQLSentence;
   i: Integer;
   Results: TMySQLQuery;
   Col, PreviousCol: PTableColumn;
   Node: PVirtualNode;
+
+  procedure AddQuery;
+  begin
+    if Specs.Count > 0 then begin
+      Query := TSQLSentence.Create;
+      Query.SQL := 'ALTER TABLE '+QuoteIdent(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
+      Query.SQL := Trim(Query.SQL);
+      Result.Add(Query);
+      Specs.Clear;
+    end;
+  end;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
   Mainform.ShowStatusMsg('Composing ALTER statement ...');
+  Result := TSQLBatch.Create;
   Screen.Cursor := crHourglass;
   Specs := TStringList.Create;
+
+  // Special case for altered foreign keys: These have to be dropped in a seperate query
+  // otherwise the server would return error 121 "Duplicate key on write or update"
+  // See also http://dev.mysql.com/doc/refman/5.1/en/innodb-foreign-key-constraints.html :
+  //   "You cannot add a foreign key and drop a foreign key in separate clauses of a single
+  //   ALTER TABLE  statement. Separate statements are required."
+  for i:=0 to FForeignKeys.Count-1 do begin
+    if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
+      Specs.Add('DROP FOREIGN KEY '+QuoteIdent(FForeignKeys[i].OldKeyName));
+  end;
+  AddQuery;
+
+  // Special case for removed default values on columns, which can neither be done in
+  // ALTER TABLE ... CHANGE COLUMN query, as there is no "no default" clause, nor by
+  // appending an ALTER COLUMN ... DROP DEFAULT, without getting an "unknown column" error
+  for i:=0 to FColumns.Count-1 do begin
+    if (FColumns[i].FStatus = esModified) and (FColumns[i].DefaultType = cdtNothing) then
+      Specs.Add('ALTER '+QuoteIdent(FColumns[i].OldName)+' DROP DEFAULT');
+  end;
+  AddQuery;
+
   if editName.Text <> DBObject.Name then
     Specs.Add('RENAME TO ' + QuoteIdent(editName.Text));
   if memoComment.Tag = ModifiedFlag then
@@ -595,8 +609,7 @@ begin
       Specs.Add('ADD '+FForeignKeys[i].SQLCode(True));
   end;
 
-  Result := 'ALTER TABLE '+QuoteIdent(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
-  Result := Trim(Result);
+  AddQuery;
   FreeAndNil(Specs);
   Mainform.ShowStatusMsg;
   Mainform.ProgressBarStatus.Hide;
@@ -604,19 +617,23 @@ begin
 end;
 
 
-function TfrmTableEditor.ComposeCreateStatement: String;
+function TfrmTableEditor.ComposeCreateStatement: TSQLBatch;
 var
   i, IndexCount: Integer;
   Col: PTableColumn;
   Node: PVirtualNode;
   tmp: String;
+  Query: TSQLSentence;
 begin
   // Compose CREATE query, called by buttons and for SQL code tab
-  Result := 'CREATE TABLE '+QuoteIdent(editName.Text)+' ('+CRLF;
+  Result := TSQLBatch.Create;
+  Query := TSQLSentence.Create;
+  Result.Add(Query);
+  Query.SQL := 'CREATE TABLE '+QuoteIdent(editName.Text)+' ('+CRLF;
   Node := listColumns.GetFirst;
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
-    Result := Result + #9 + Col.SQLCode + ','+CRLF;
+    Query.SQL := Query.SQL + #9 + Col.SQLCode + ','+CRLF;
     Node := listColumns.GetNextSibling(Node);
   end;
 
@@ -624,43 +641,43 @@ begin
   for i:=0 to FKeys.Count-1 do begin
     tmp := FKeys[i].SQLCode;
     if tmp <> '' then begin
-      Result := Result + #9 + tmp + ','+CRLF;
+      Query.SQL := Query.SQL + #9 + tmp + ','+CRLF;
       Inc(IndexCount);
     end;
   end;
 
   for i:=0 to FForeignKeys.Count-1 do
-    Result := Result + #9 + FForeignKeys[i].SQLCode(True) + ','+CRLF;
+    Query.SQL := Query.SQL + #9 + FForeignKeys[i].SQLCode(True) + ','+CRLF;
 
   if Integer(listColumns.RootNodeCount) + IndexCount + FForeignKeys.Count > 0 then
-    Delete(Result, Length(Result)-2, 3);
+    Delete(Query.SQL, Length(Query.SQL)-2, 3);
 
-  Result := Result + CRLF + ')' + CRLF;
+  Query.SQL := Query.SQL + CRLF + ')' + CRLF;
   if memoComment.Text <> '' then
-    Result := Result + 'COMMENT='+esc(memoComment.Text) + CRLF;
+    Query.SQL := Query.SQL + 'COMMENT='+esc(memoComment.Text) + CRLF;
   if comboCollation.Text <> '' then
-    Result := Result + 'COLLATE='+esc(comboCollation.Text) + CRLF;
+    Query.SQL := Query.SQL + 'COLLATE='+esc(comboCollation.Text) + CRLF;
   if comboEngine.Text <> '' then begin
     if MainForm.ActiveConnection.ServerVersionInt < 40018 then
-      Result := Result + 'TYPE='+comboEngine.Text + CRLF
+      Query.SQL := Query.SQL + 'TYPE='+comboEngine.Text + CRLF
     else
-      Result := Result + 'ENGINE='+comboEngine.Text + CRLF;
+      Query.SQL := Query.SQL + 'ENGINE='+comboEngine.Text + CRLF;
   end;
   if comboRowFormat.Tag = ModifiedFlag then
-    Result := Result + 'ROW_FORMAT='+comboRowFormat.Text + CRLF;
+    Query.SQL := Query.SQL + 'ROW_FORMAT='+comboRowFormat.Text + CRLF;
   if chkChecksum.Checked then
-    Result := Result + 'CHECKSUM='+IntToStr(Integer(chkChecksum.Checked)) + CRLF;
+    Query.SQL := Query.SQL + 'CHECKSUM='+IntToStr(Integer(chkChecksum.Checked)) + CRLF;
   if editAutoInc.Text <> '' then
-    Result := Result + 'AUTO_INCREMENT='+editAutoInc.Text + CRLF;
+    Query.SQL := Query.SQL + 'AUTO_INCREMENT='+editAutoInc.Text + CRLF;
   if editAvgRowLen.Text <> '' then
-    Result := Result + 'AVG_ROW_LENGTH='+editAvgRowLen.Text + CRLF;
+    Query.SQL := Query.SQL + 'AVG_ROW_LENGTH='+editAvgRowLen.Text + CRLF;
   if editMaxRows.Text <> '' then
-    Result := Result + 'MAX_ROWS='+editMaxRows.Text + CRLF;
+    Query.SQL := Query.SQL + 'MAX_ROWS='+editMaxRows.Text + CRLF;
   if memoUnionTables.Enabled and (memoUnionTables.Text <> '') then
-    Result := Result + 'UNION=('+memoUnionTables.Text+')' + CRLF;
+    Query.SQL := Query.SQL + 'UNION=('+memoUnionTables.Text+')' + CRLF;
   if comboInsertMethod.Enabled and (comboInsertMethod.Text <> '') then
-    Result := Result + 'INSERT_METHOD='+comboInsertMethod.Text + CRLF;
-  Result := Trim(Result);
+    Query.SQL := Query.SQL + 'INSERT_METHOD='+comboInsertMethod.Text + CRLF;
+  Query.SQL := Trim(Query.SQL);
 end;
 
 
@@ -1723,18 +1740,23 @@ end;
 procedure TfrmTableEditor.UpdateSQLcode;
 var
   OldTopLine: Integer;
+  Query: TSQLSentence;
 begin
   if (PageControlMain.ActivePage = tabALTERCode) and (not AlterCodeValid) then begin
     SynMemoALTERcode.BeginUpdate;
     OldTopLine := SynMemoALTERcode.TopLine;
-    SynMemoALTERcode.Text := ComposeAlterStatement;
+    SynMemoALTERcode.Clear;
+    for Query in ComposeAlterStatement do
+      SynMemoALTERcode.Text := SynMemoALTERcode.Text + Query.SQL + ';' + CRLF;
     SynMemoALTERcode.TopLine := OldTopLine;
     SynMemoALTERcode.EndUpdate;
     AlterCodeValid := True;
   end else if (PageControlMain.ActivePage = tabCREATECode) and (not CreateCodeValid) then begin
     SynMemoCREATEcode.BeginUpdate;
     OldTopLine := SynMemoCREATEcode.TopLine;
-    SynMemoCREATEcode.Text := ComposeCreateStatement;
+    SynMemoCREATEcode.Clear;
+    for Query in ComposeCreateStatement do
+      SynMemoCREATEcode.Text := SynMemoCREATEcode.Text + Query.SQL + ';' + CRLF;
     SynMemoCREATEcode.TopLine := OldTopLine;
     SynMemoCREATEcode.EndUpdate;
     CreateCodeValid := True;
