@@ -12,7 +12,7 @@ interface
 uses
   Windows, SysUtils, Classes, GraphicEx, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
-  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
+  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, SyncObjs,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns, IOUtils, Types,
   CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
@@ -22,17 +22,19 @@ uses
 
 
 type
+  TQueryTab = class;
   TResultTab = class(TObject)
     Results: TMySQLQuery;
     Grid: TVirtualStringTree;
     FilterText: String;
     public
-      constructor Create;
+      constructor Create(AOwner: TQueryTab);
       destructor Destroy; override;
   end;
   TResultTabs = TObjectList<TResultTab>;
   TQueryTab = class(TObject)
     Number: Integer;
+    ExecutionThread: TQueryThread;
     CloseButton: TSpeedButton;
     pnlMemo: TPanel;
     pnlHelpers: TPanel;
@@ -48,8 +50,11 @@ type
     tabsetQuery: TTabSet;
     TabSheet: TTabSheet;
     ResultTabs: TResultTabs;
+    DoProfile: Boolean;
+    QueryRunning: Boolean;
     QueryProfile: TMySQLQuery;
     ProfileTime, MaxProfileTime: Extended;
+    LeftOffsetInMemo: Integer;
     function GetActiveResultTab: TResultTab;
     procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
     procedure MemofileModifiedTimerNotify(Sender: TObject);
@@ -866,6 +871,8 @@ type
     FConnections: TMySQLConnectionList;
     FTreeClickHistory: TNodeArray;
     FOperationTicker: Cardinal;
+    FOperatingGrid: TBaseVirtualTree;
+
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
@@ -890,6 +897,7 @@ type
     procedure SetSnippetFilenames;
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
     procedure OperationRunning(Runs: Boolean);
+    function FindQueryTabByThread(Thread: TQueryThread): TQueryTab;
   public
     AllDatabasesDetails: TMySQLQuery;
     btnAddTab: TSpeedButton;
@@ -1022,6 +1030,9 @@ type
     function GetEncodingName(Encoding: TEncoding): String;
     function GetCharsetByEncoding(Encoding: TEncoding): String;
     procedure RefreshHelperNode(NodeIndex: Cardinal);
+    procedure BeforeQueryExecution(Thread: TQueryThread);
+    procedure AfterQueryExecution(Thread: TQueryThread);
+    procedure FinishedQueryExecution(Thread: TQueryThread);
 end;
 
 
@@ -2145,19 +2156,141 @@ end;
 
 procedure TMainForm.actExecuteQueryExecute(Sender: TObject);
 var
-  SQLBatch: TSQLBatch;
   Query: TSQLSentence;
-  i, i_first, j, StartOffsetInMemo, BatchStartOffset: Integer;
-  SQLTime, SQLNetTime: Cardinal;
-  RowsAffected, RowsFound, PacketSize, MaxAllowedPacket: Int64;
-  Results: TMySQLQuery;
-  SQL, Text, LB, MetaInfo, TabCaption: String;
-  QueryTab: TQueryTab;
+  Text, LB: String;
+  ProfileNode: PVirtualNode;
+  Batch: TSQLBatch;
+  Tab: TQueryTab;
+
+begin
+  Screen.Cursor := crHourGlass;
+  Tab := ActiveQueryTab;
+  OperationRunning(True);
+
+  ShowStatusMsg('Splitting SQL queries ...');
+  if Sender = actExecuteCurrentQuery then begin
+    Batch := GetSQLSplitMarkers(Tab.Memo.Text);
+    for Query in Batch do begin
+      if (Query.LeftOffset <= Tab.Memo.SelStart) and (Tab.Memo.SelStart < Query.RightOffset) then begin
+        Text := Copy(Tab.Memo.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
+        Tab.LeftOffsetInMemo := Query.LeftOffset;
+        break;
+      end;
+    end;
+  end else if Sender = actExecuteSelection then begin
+    Text := Tab.Memo.SelText;
+    Tab.LeftOffsetInMemo := Tab.Memo.SelStart;
+  end else begin
+    Text := Tab.Memo.Text;
+    Tab.LeftOffsetInMemo := 0;
+  end;
+  // Give text back its original linebreaks if possible
+  case Tab.MemoLineBreaks of
+    lbsUnix: LB := LB_UNIX;
+    lbsMac: LB := LB_MAC;
+    lbsWide: LB := LB_WIDE;
+  end;
+  if LB <> '' then
+    Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
+  Batch := SplitSQL(Text);
+  Text := '';
+
+  EnableProgressBar(Batch.Count);
+  Tab.ResultTabs.Clear;
+  Tab.tabsetQuery.Tabs.Clear;
+  FreeAndNil(Tab.QueryProfile);
+  ProfileNode := FindNode(Tab.treeHelpers, HELPERNODE_PROFILE, nil);
+  Tab.DoProfile := Assigned(ProfileNode) and (Tab.treeHelpers.CheckState[ProfileNode] in CheckedStates);
+  if Tab.DoProfile then try
+    ActiveConnection.Query('SET profiling=1');
+  except
+    on E:EDatabaseError do begin
+      MessageDlg('Query profiling requires MySQL 5.0.37 or later, and the server must not be configured with --disable-profiling.'+CRLF+CRLF+E.Message, mtError, [mbOK], 0);
+      Tab.DoProfile := False;
+    end;
+  end;
+
+  // Start the execution thread
+  Screen.Cursor := crAppStart;
+  Tab.QueryRunning := True;
+  Tab.ExecutionThread := TQueryThread.Create(ActiveConnection, Batch);
+  ValidateQueryControls(Sender);
+end;
+
+
+
+procedure TMainForm.BeforeQueryExecution(Thread: TQueryThread);
+var
+  Text: String;
+begin
+  // Update GUI stuff
+  Text := 'query #' + FormatNumber(Thread.BatchPosition+1);
+  if Thread.QueriesInPacket > 1 then
+    Text := 'queries #' + FormatNumber(Thread.BatchPosition+1) + ' to #' + FormatNumber(Thread.BatchPosition+Thread.QueriesInPacket);
+  ShowStatusMsg('Executing '+Text+' of '+FormatNumber(Thread.Batch.Count)+' ...');
+  ProgressBarStatus.Position := Thread.BatchPosition;
+end;
+
+
+procedure TMainForm.AfterQueryExecution(Thread: TQueryThread);
+var
+  Tab: TQueryTab;
   NewTab: TResultTab;
   col: TVirtualTreeColumn;
-  DoProfile: Boolean;
+  TabCaption: String;
+  Results: TMySQLQuery;
+  i: Integer;
+begin
+  // Single query or query packet has finished
+  ShowStatusMsg('Setting up result grid(s) ...');
+  Tab := FindQueryTabByThread(Thread);
+
+  // Create result tabs
+  for Results in ActiveConnection.GetLastResults do begin
+    NewTab := TResultTab.Create(Tab);
+    Tab.ResultTabs.Add(NewTab);
+    NewTab.Results := Results;
+    try
+      TabCaption := NewTab.Results.TableName;
+    except on E:EDatabaseError do
+      TabCaption := 'Result #'+IntToStr(Tab.ResultTabs.Count);
+    end;
+    Tab.tabsetQuery.Tabs.Add(TabCaption);
+
+    NewTab.Grid.BeginUpdate;
+    NewTab.Grid.Header.Options := NewTab.Grid.Header.Options + [hoVisible];
+    NewTab.Grid.Header.Columns.BeginUpdate;
+    NewTab.Grid.Header.Columns.Clear;
+    for i:=0 to NewTab.Results.ColumnCount-1 do begin
+      col := NewTab.Grid.Header.Columns.Add;
+      col.Text := NewTab.Results.ColumnNames[i];
+      if NewTab.Results.DataType(i).Category in [dtcInteger, dtcReal] then
+        col.Alignment := taRightJustify;
+      if NewTab.Results.ColIsPrimaryKeyPart(i) then
+        col.ImageIndex := ICONINDEX_PRIMARYKEY
+      else if NewTab.Results.ColIsUniqueKeyPart(i) then
+        col.ImageIndex := ICONINDEX_UNIQUEKEY
+      else if NewTab.Results.ColIsKeyPart(i) then
+        col.ImageIndex := ICONINDEX_INDEXKEY;
+    end;
+    NewTab.Grid.Header.Columns.EndUpdate;
+    NewTab.Grid.RootNodeCount := NewTab.Results.RecordCount;
+    NewTab.Grid.EndUpdate;
+    for i:=0 to NewTab.Grid.Header.Columns.Count-1 do
+      AutoCalcColWidth(NewTab.Grid, i);
+    if Tab.tabsetQuery.TabIndex = -1 then
+      Tab.tabsetQuery.TabIndex := 0;
+  end;
+  ShowStatusMsg;
+end;
+
+
+procedure TMainForm.FinishedQueryExecution(Thread: TQueryThread);
+var
+  Tab: TQueryTab;
+  MetaInfo: String;
+  ProfileAllTime: Extended;
   ProfileNode: PVirtualNode;
-  Time: Extended;
 
   procedure GoToErrorPos(Err: String);
   var
@@ -2165,192 +2298,68 @@ var
     SelStart, ErrorPos: Integer;
   begin
     // Try to set memo cursor to the relevant position
-    SelStart := StartOffsetInMemo;
+    SelStart := Tab.LeftOffsetInMemo;
 
     // "... for the right syntax to use near 'lik 123)' at line 4"
     rx := TRegExpr.Create;
     rx.Expression := 'for the right syntax to use near ''(.+)'' at line (\d+)';
     if rx.Exec(Err) then begin
       // Examine 1kb of memo text at given offset
-      ErrorPos := Pos(rx.Match[1], Copy(QueryTab.Memo.Text, SelStart, SIZE_KB));
+      ErrorPos := Pos(rx.Match[1], Copy(Tab.Memo.Text, SelStart, SIZE_KB));
       if ErrorPos > 0 then
         Inc(SelStart, ErrorPos-1);
-      QueryTab.Memo.SelLength := 0;
-      QueryTab.Memo.SelStart := SelStart;
+      Tab.Memo.SelLength := 0;
+      Tab.Memo.SelStart := SelStart;
     end;
   end;
 
 begin
-  Screen.Cursor := crHourglass;
-  QueryTab := ActiveQueryTab;
+  // Find right query tab
+  Tab := FindQueryTabByThread(Thread);
 
-  ShowStatusMsg('Splitting SQL queries ...');
-  if Sender = actExecuteCurrentQuery then begin
-    SQLBatch := GetSQLSplitMarkers(QueryTab.Memo.Text);
-    for Query in SQLBatch do begin
-      if (Query.LeftOffset <= QueryTab.Memo.SelStart) and (QueryTab.Memo.SelStart < Query.RightOffset) then begin
-        Text := Copy(QueryTab.Memo.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
-        StartOffsetInMemo := Query.LeftOffset;
-        break;
-      end;
-    end;
-  end else if Sender = actExecuteSelection then begin
-    Text := QueryTab.Memo.SelText;
-    StartOffsetInMemo := QueryTab.Memo.SelStart;
-  end else begin
-    Text := QueryTab.Memo.Text;
-    StartOffsetInMemo := 0;
-  end;
-  // Give text back its original linebreaks if possible
-  case QueryTab.MemoLineBreaks of
-    lbsUnix: LB := LB_UNIX;
-    lbsMac: LB := LB_MAC;
-    lbsWide: LB := LB_WIDE;
-  end;
-  if LB <> '' then
-    Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
-  SQLBatch := SplitSQL(Text);
-  Text := '';
-
-  EnableProgressBar(SQLBatch.Count);
-  SQLtime := 0;
-  SQLNetTime := 0;
-  RowsAffected := 0;
-  RowsFound := 0;
-  MaxAllowedPacket := 0;
-  QueryTab.ResultTabs.Clear;
-  QueryTab.tabsetQuery.Tabs.Clear;
-  FreeAndNil(QueryTab.QueryProfile);
-  ProfileNode := FindNode(QueryTab.treeHelpers, HELPERNODE_PROFILE, nil);
-  DoProfile := Assigned(ProfileNode) and (QueryTab.treeHelpers.CheckState[ProfileNode] in CheckedStates);
-  if DoProfile then try
-    ActiveConnection.Query('SET profiling=1');
-  except
-    on E:EDatabaseError do begin
-      MessageDlg('Query profiling requires MySQL 5.0.37 or later, and the server must not be configured with --disable-profiling.'+CRLF+CRLF+E.Message, mtError, [mbOK], 0);
-      DoProfile := False;
-    end;
-  end;
-  i := 0;
-  i_first := 0;
-  while i < SQLBatch.Count do begin
-    SQL := '';
-    if not actBatchInOneGo.Checked then begin
-      SQL := SQLBatch[i].SQL;
-      Inc(i);
-      Text := 'query #' + FormatNumber(i+1);
-    end else begin
-      // Concat queries up to a size of max_allowed_packet
-      if MaxAllowedPacket = 0 then begin
-        MaxAllowedPacket := MakeInt(ActiveConnection.GetVar('SHOW VARIABLES LIKE '+esc('max_allowed_packet'), 1));
-        LogSQL('Detected maximum allowed packet size: '+FormatByteNumber(MaxAllowedPacket), lcDebug);
-      end;
-      i_first := i;
-      PacketSize := 0;
-      BatchStartOffset := SQLBatch[i].LeftOffset;
-      while i < SQLBatch.Count do begin
-        PacketSize := SQLBatch[i].RightOffset - BatchStartOffset + ((i-i_first) * 10);
-        if (PacketSize >= MaxAllowedPacket) or (i-i_first >= 50) then begin
-          LogSQL('Limiting batch packet size to '+FormatByteNumber(Length(SQL))+' with '+FormatNumber(i-i_first)+' queries.', lcDebug);
-          Dec(i);
-          break;
-        end;
-        SQL := SQL + SQLBatch[i].SQL + ';';
-        Inc(i);
-      end;
-      Text := 'queries #' + FormatNumber(i_first+1) + ' to #' + FormatNumber(i+1);
-    end;
-    ShowStatusMsg('Executing #'+Text+' of '+FormatNumber(SQLBatch.Count)+' ...');
-    ProgressBarStatus.StepIt;
-    ProgressBarStatus.Repaint;
-    try
-      ActiveConnection.Query(SQL, QueryTab.ResultTabs.Count < prefMaxQueryResults, lcUserFiredSQL);
-      Inc(SQLtime, ActiveConnection.LastQueryDuration);
-      Inc(SQLNetTime, ActiveConnection.LastQueryNetworkDuration);
-      Inc(RowsAffected, ActiveConnection.RowsAffected);
-      Inc(RowsFound, ActiveConnection.RowsFound);
-      if (ActiveConnection.ResultCount > 0) then for Results in ActiveConnection.GetLastResults do begin
-        NewTab := TResultTab.Create;
-        QueryTab.ResultTabs.Add(NewTab);
-        NewTab.Results := Results;
-        try
-          TabCaption := NewTab.Results.TableName;
-        except on E:EDatabaseError do
-          TabCaption := 'Result #'+IntToStr(QueryTab.ResultTabs.Count);
-        end;
-        QueryTab.tabsetQuery.Tabs.Add(TabCaption);
-
-        ShowStatusMsg('Setting up result grid ...');
-        NewTab.Grid.BeginUpdate;
-        NewTab.Grid.Header.Options := NewTab.Grid.Header.Options + [hoVisible];
-        NewTab.Grid.Header.Columns.BeginUpdate;
-        NewTab.Grid.Header.Columns.Clear;
-        for j:=0 to NewTab.Results.ColumnCount-1 do begin
-          col := NewTab.Grid.Header.Columns.Add;
-          col.Text := NewTab.Results.ColumnNames[j];
-          if NewTab.Results.DataType(j).Category in [dtcInteger, dtcReal] then
-            col.Alignment := taRightJustify;
-          if NewTab.Results.ColIsPrimaryKeyPart(j) then
-            col.ImageIndex := ICONINDEX_PRIMARYKEY
-          else if NewTab.Results.ColIsUniqueKeyPart(j) then
-            col.ImageIndex := ICONINDEX_UNIQUEKEY
-          else if NewTab.Results.ColIsKeyPart(j) then
-            col.ImageIndex := ICONINDEX_INDEXKEY;
-        end;
-        NewTab.Grid.Header.Columns.EndUpdate;
-        NewTab.Grid.RootNodeCount := NewTab.Results.RecordCount;
-        NewTab.Grid.EndUpdate;
-        for j:=0 to NewTab.Grid.Header.Columns.Count-1 do
-          AutoCalcColWidth(NewTab.Grid, j);
-      end;
-    except
-      on E:EDatabaseError do begin
-        if actQueryStopOnErrors.Checked or (i = SQLBatch.Count - 1) then begin
-          Screen.Cursor := crDefault;
-          ProgressBarStatus.State := pbsError;
-          GoToErrorPos(E.Message);
-          MessageDlg( E.Message, mtError, [mbOK], 0 );
-          Break;
-        end;
-      end;
-    end;
+  // Error handling
+  if IsNotEmpty(Thread.ErrorMessage) then begin
+    ProgressBarStatus.State := pbsError;
+    GoToErrorPos(Thread.ErrorMessage);
+    MessageDlg(Thread.ErrorMessage, mtError, [mbOK], 0);
   end;
 
   // Gather meta info for logging
-  if i > 0 then begin
-    MetaInfo := FormatNumber(RowsAffected) + ' rows affected, ' + FormatNumber(RowsFound) + ' rows found.';
-    MetaInfo := MetaInfo + ' Duration for ' + IntToStr(Min(SQLBatch.Count, i+1));
-    if i < SQLBatch.Count then
-      MetaInfo := MetaInfo + ' of ' + IntToStr(SQLBatch.Count);
-    if SQLBatch.Count = 1 then
-      MetaInfo := MetaInfo + ' query'
-    else
-      MetaInfo := MetaInfo + ' queries';
-    MetaInfo := MetaInfo + ': '+FormatNumber(SQLTime/1000, 3) +' sec.';
-    if SQLNetTime > 0 then
-      MetaInfo := MetaInfo + ' (+ '+FormatNumber(SQLNetTime/1000, 3) +' sec. network)';
-    LogSQL(MetaInfo);
-  end;
+  MetaInfo := FormatNumber(Thread.RowsAffected) + ' rows affected, ' + FormatNumber(Thread.RowsFound) + ' rows found.';
+  MetaInfo := MetaInfo + ' Duration for ' + FormatNumber(Thread.BatchPosition);
+  if Thread.BatchPosition < Thread.Batch.Count then
+    MetaInfo := MetaInfo + ' of ' + FormatNumber(Thread.Batch.Count);
+  if Thread.Batch.Count = 1 then
+    MetaInfo := MetaInfo + ' query'
+  else
+    MetaInfo := MetaInfo + ' queries';
+  MetaInfo := MetaInfo + ': '+FormatNumber(Thread.QueryTime/1000, 3) +' sec.';
+  if Thread.QueryNetTime > 0 then
+    MetaInfo := MetaInfo + ' (+ '+FormatNumber(Thread.QueryNetTime/1000, 3) +' sec. network)';
+  LogSQL(MetaInfo);
 
-  if DoProfile then begin
-    QueryTab.QueryProfile := ActiveConnection.GetResults('SHOW PROFILE');
-    QueryTab.ProfileTime := 0;
-    QueryTab.MaxProfileTime := 0;
-    while not QueryTab.QueryProfile.Eof do begin
-      Time := MakeFloat(QueryTab.QueryProfile.Col(1));
-      QueryTab.ProfileTime := QueryTab.ProfileTime + Time;
-      QueryTab.MaxProfileTime := Max(Time, QueryTab.MaxProfileTime);
-      QueryTab.QueryProfile.Next;
+  // Display query profile
+  if Tab.DoProfile then begin
+    Tab.QueryProfile := ActiveConnection.GetResults('SHOW PROFILE');
+    Tab.ProfileTime := 0;
+    Tab.MaxProfileTime := 0;
+    while not Tab.QueryProfile.Eof do begin
+      ProfileAllTime := MakeFloat(Tab.QueryProfile.Col(1));
+      Tab.ProfileTime := Tab.ProfileTime + ProfileAllTime;
+      Tab.MaxProfileTime := Max(Time, Tab.MaxProfileTime);
+      Tab.QueryProfile.Next;
     end;
-    QueryTab.treeHelpers.ReinitNode(ProfileNode, True);
-    QueryTab.treeHelpers.InvalidateChildren(ProfileNode, True);
+    ProfileNode := FindNode(Tab.treeHelpers, HELPERNODE_PROFILE, nil);
+    Tab.treeHelpers.ReinitNode(ProfileNode, True);
+    Tab.treeHelpers.InvalidateChildren(ProfileNode, True);
     ActiveConnection.Query('SET profiling=0');
   end;
 
   // Clean up
   ProgressBarStatus.Hide;
-  if QueryTab.tabsetQuery.Tabs.Count > 0 then
-    QueryTab.tabsetQuery.TabIndex := 0;
+  Tab.QueryRunning := False;
+  ValidateControls(Thread);
+  OperationRunning(False);
   Screen.Cursor := crDefault;
   ShowStatusMsg;
 end;
@@ -4435,14 +4444,22 @@ var
   Tab: TQueryTab;
   cap: String;
   InQueryTab: Boolean;
-  i: Integer;
 begin
+  for Tab in QueryTabs do begin
+    cap := Trim(Tab.TabSheet.Caption);
+    if cap[Length(cap)] = '*' then
+      cap := Copy(cap, 1, Length(cap)-1);
+    if Tab.Memo.Modified then
+      cap := cap + '*';
+    if Tab.TabSheet.Caption <> cap then
+      SetTabCaption(Tab.TabSheet.PageIndex, cap);
+  end;
   InQueryTab := QueryTabActive;
   Tab := ActiveQueryTab;
   NotEmpty := InQueryTab and (Tab.Memo.GetTextLen > 0);
   HasSelection := InQueryTab and Tab.Memo.SelAvail;
-  actExecuteQuery.Enabled := InQueryTab and NotEmpty;
-  actExecuteSelection.Enabled := InQueryTab and HasSelection;
+  actExecuteQuery.Enabled := InQueryTab and NotEmpty and (not Tab.QueryRunning);
+  actExecuteSelection.Enabled := InQueryTab and HasSelection and (not Tab.QueryRunning);
   actExecuteCurrentQuery.Enabled := actExecuteQuery.Enabled;
   actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
   actSaveSQL.Enabled := actSaveSQLAs.Enabled and Tab.Memo.Modified;
@@ -4452,15 +4469,6 @@ begin
   actClearQueryEditor.Enabled := InQueryTab and NotEmpty;
   actSetDelimiter.Enabled := InQueryTab;
   actCloseQueryTab.Enabled := IsQueryTab(PageControlMain.ActivePageIndex, False);
-  for i:=0 to QueryTabs.Count-1 do begin
-    cap := trim(QueryTabs[i].TabSheet.Caption);
-    if cap[Length(cap)] = '*' then
-      cap := copy(cap, 1, Length(cap)-1);
-    if QueryTabs[i].Memo.Modified then
-      cap := cap + '*';
-    if QueryTabs[i].TabSheet.Caption <> cap then
-      SetTabCaption(QueryTabs[i].TabSheet.PageIndex, cap);
-  end;
 end;
 
 
@@ -9650,6 +9658,7 @@ begin
   // Display status message on long running sort operations
   if OperationKind = okSortTree then begin
     ShowStatusMsg('Sorting grid nodes ...');
+    FOperatingGrid := Sender;
     OperationRunning(True);
   end;
 end;
@@ -9660,16 +9669,40 @@ begin
   // Reset status message after long running operations
   if OperationKind = okSortTree then begin
     ShowStatusMsg;
+    FOperatingGrid := nil;
     OperationRunning(False);
   end;
 end;
 
 
 procedure TMainForm.actCancelOperationExecute(Sender: TObject);
+var
+  Killer: TMySQLConnection;
+  KillCommand: String;
+  Tab: TQueryTab;
 begin
-  // Stop current sort operation
-  ActiveGrid.CancelOperation;
-  LogSQL('Sorting cancelled.');
+  // Stop current operation (sorting grid or running user queries)
+  if FOperatingGrid <> nil then begin
+    FOperatingGrid.CancelOperation;
+    LogSQL('Sorting cancelled.');
+  end;
+  for Tab in QueryTabs do begin
+    if Tab.QueryRunning then begin
+      Tab.ExecutionThread.Aborted := True;
+      Killer := TMySQLConnection.Create(Self);
+      Killer.Parameters := ActiveConnection.Parameters;
+      Killer.LogPrefix := '[HelperConnection] ';
+      Killer.OnLog := LogSQL;
+      Killer.Active := True;
+      KillCommand := 'KILL ';
+      if Killer.ServerVersionInt >= 50000 then
+        KillCommand := KillCommand + 'QUERY ';
+      KillCommand := KillCommand + IntToStr(ActiveConnection.ThreadId);
+      Killer.Query(KillCommand);
+      Killer.Active := False;
+      Killer.Free;
+    end;
+  end;
 end;
 
 
@@ -10085,6 +10118,20 @@ begin
 end;
 
 
+function TMainForm.FindQueryTabByThread(Thread: TQueryThread): TQueryTab;
+var
+  i: Integer;
+begin
+  // Find right query tab
+  Result := nil;
+  for i:=0 to QueryTabs.Count-1 do begin
+    if QueryTabs[i].ExecutionThread = Thread then begin
+      Result := QueryTabs[i];
+      break;
+    end;
+  end;
+end;
+
 
 
 { TQueryTab }
@@ -10109,6 +10156,7 @@ destructor TQueryTab.Destroy;
 begin
   ResultTabs.Clear;
   DirectoryWatch.Free;
+  FreeAndNil(ExecutionThread);
 end;
 
 
@@ -10218,13 +10266,13 @@ end;
 
 { TResultTab }
 
-constructor TResultTab.Create;
+constructor TResultTab.Create(AOwner: TQueryTab);
 var
   QueryTab: TQueryTab;
   OrgGrid: TVirtualStringTree;
 begin
-  inherited;
-  QueryTab := Mainform.ActiveQueryTab;
+  inherited Create;
+  QueryTab := AOwner;
   OrgGrid := Mainform.QueryGrid;
   Grid := TVirtualStringTree.Create(QueryTab.TabSheet);
   Grid.Parent := QueryTab.TabSheet;
