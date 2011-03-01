@@ -2372,7 +2372,13 @@ var
 begin
   // Result tab clicked / changed
   Screen.Cursor := crHourGlass;
-  QueryTab := ActiveQueryTab;
+  QueryTab := nil;
+  for i:=0 to QueryTabs.Count-1 do begin
+    if QueryTabs[i].tabsetQuery = Sender then begin
+      QueryTab := QueryTabs[i];
+      break;
+    end;
+  end;
   for i:=0 to QueryTab.ResultTabs.Count-1 do
     QueryTab.ResultTabs[i].Grid.Hide;
   if QueryTab.ActiveResultTab <> nil then begin
