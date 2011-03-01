@@ -71,6 +71,43 @@ type
 
   TGridExportFormat = (efUnknown, efCSV, efHTML, efXML, efSQL, efLaTeX, efWiki);
 
+  // Threading stuff
+  TQueryThread = class(TThread)
+  private
+    FConnection: TMySQLConnection;
+    FBatch: TSQLBatch;
+    FBatchInOneGo: Boolean;
+    FStopOnErrors: Boolean;
+    FAborted: Boolean;
+    FErrorMessage: String;
+    FBatchPosition: Integer;
+    FQueriesInPacket: Integer;
+    FQueryTime: Cardinal;
+    FQueryNetTime: Cardinal;
+    FRowsAffected: Int64;
+    FRowsFound: Int64;
+    FResults: TMySQLQueryList;
+  private
+    procedure BeforeQuery;
+    procedure AfterQuery;
+    procedure BatchFinished;
+  public
+    property Connection: TMySQLConnection read FConnection;
+    property Batch: TSQLBatch read FBatch;
+    property BatchPosition: Integer read FBatchPosition;
+    property Results: TMySQLQueryList read FResults;
+    property QueriesInPacket: Integer read FQueriesInPacket;
+    property QueryTime: Cardinal read FQueryTime;
+    property QueryNetTime: Cardinal read FQueryNetTime;
+    property RowsAffected: Int64 read FRowsAffected;
+    property RowsFound: Int64 read FRowsFound;
+    property Aborted: Boolean read FAborted write FAborted;
+    property ErrorMessage: String read FErrorMessage;
+    constructor Create(Connection: TMySQLConnection; Batch: TSQLBatch);
+    procedure Execute; override;
+  end;
+
+
 
 {$I const.inc}
 
@@ -2839,6 +2876,111 @@ begin
   Result := Str <> '';
 end;
 
+
+
+{ Threading stuff }
+
+constructor TQueryThread.Create(Connection: TMySQLConnection; Batch: TSQLBatch);
+begin
+  inherited Create(False);
+  FConnection := Connection;
+  FAborted := False;
+  FBatch := Batch;
+  FBatchPosition := 0;
+  FQueryTime := 0;
+  FQueryNetTime := 0;
+  FRowsAffected := 0;
+  FRowsFound := 0;
+  FErrorMessage := '';
+  FBatchInOneGo := MainForm.actBatchInOneGo.Checked;
+  FStopOnErrors := MainForm.actQueryStopOnErrors.Checked;
+  FResults := TMySQLQueryList.Create;
+  FreeOnTerminate := True;
+  Priority := tpNormal;
+end;
+
+
+procedure TQueryThread.Execute;
+var
+  SQL: String;
+  i, BatchStartOffset: Integer;
+  PacketSize, MaxAllowedPacket: Int64;
+  QueryResult: TMySQLQuery;
+begin
+  inherited;
+
+  MaxAllowedPacket := 0;
+  i := 0;
+
+  while i < FBatch.Count do begin
+    SQL := '';
+    if not FBatchInOneGo then begin
+      SQL := FBatch[i].SQL;
+      Inc(i);
+    end else begin
+      // Concat queries up to a size of max_allowed_packet
+      if MaxAllowedPacket = 0 then begin
+        MaxAllowedPacket := MakeInt(FConnection.GetVar('SHOW VARIABLES LIKE '+esc('max_allowed_packet'), 1));
+        // TODO: Log('Detected maximum allowed packet size: '+FormatByteNumber(MaxAllowedPacket), lcDebug);
+      end;
+      BatchStartOffset := FBatch[i].LeftOffset;
+      while i < FBatch.Count do begin
+        PacketSize := FBatch[i].RightOffset - BatchStartOffset + ((i-FBatchPosition) * 10);
+        if (PacketSize >= MaxAllowedPacket) or (i-FBatchPosition >= 50) then begin
+          // TODO: Log('Limiting batch packet size to '+FormatByteNumber(Length(SQL))+' with '+FormatNumber(i-FUserQueryOffset)+' queries.', lcDebug);
+          Dec(i);
+          break;
+        end;
+        SQL := SQL + FBatch[i].SQL + ';';
+        Inc(i);
+      end;
+      FQueriesInPacket := i - FBatchPosition;
+    end;
+    Synchronize(BeforeQuery);
+    try
+      FConnection.Query(SQL, True, lcUserFiredSQL);
+      for QueryResult in FConnection.GetLastResults do
+        FResults.Add(QueryResult);
+      FBatchPosition := i;
+      Inc(FQueryTime, FConnection.LastQueryDuration);
+      Inc(FQueryNetTime, FConnection.LastQueryNetworkDuration);
+      Inc(FRowsAffected, FConnection.RowsAffected);
+      Inc(FRowsFound, FConnection.RowsFound);
+      Synchronize(AfterQuery);
+    except
+      on E:EDatabaseError do begin
+        if FStopOnErrors or (i = FBatch.Count - 1) then begin
+          FErrorMessage := E.Message;
+          Break;
+        end;
+      end;
+    end;
+    // Check if FAborted is set by the main thread, to avoid proceeding the loop in case
+    // FStopOnErrors is set to false
+    if FAborted then
+      break;
+  end;
+
+  Synchronize(BatchFinished);
+end;
+
+
+procedure TQueryThread.BeforeQuery;
+begin
+  MainForm.BeforeQueryExecution(Self);
+end;
+
+
+procedure TQueryThread.AfterQuery;
+begin
+  MainForm.AfterQueryExecution(Self);
+end;
+
+
+procedure TQueryThread.BatchFinished;
+begin
+  MainForm.FinishedQueryExecution(Self);
+end;
 
 
 end.
