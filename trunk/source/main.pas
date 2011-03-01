@@ -10162,7 +10162,6 @@ destructor TQueryTab.Destroy;
 begin
   ResultTabs.Clear;
   DirectoryWatch.Free;
-  FreeAndNil(ExecutionThread);
 end;
 
 
