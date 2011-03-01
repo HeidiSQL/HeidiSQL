@@ -4567,15 +4567,15 @@ var
       tablename := dbname + '.' + tablename;
     try
       Columns := ActiveConnection.GetResults('SHOW COLUMNS FROM '+tablename);
+      while not Columns.Eof do begin
+        Proposal.InsertList.Add(Columns.Col('Field'));
+        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );
+        Columns.Next;
+      end;
+      FreeAndNil(Columns);
     except
-      Exit;
+      on E:EDatabaseError do;
     end;
-    while not Columns.Eof do begin
-      Proposal.InsertList.Add(Columns.Col('Field'));
-      Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );
-      Columns.Next;
-    end;
-    FreeAndNil(Columns);
   end;
 
 begin
