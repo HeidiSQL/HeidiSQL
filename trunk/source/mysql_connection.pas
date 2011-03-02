@@ -435,6 +435,7 @@ type
       FLastResults: Array of PMYSQL_RES;
       FResultCount: Integer;
       FCurrentUserHostCombination: String;
+      FLockedByThread: TThread;
       procedure SetActive(Value: Boolean);
       procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
       procedure ClosePlink;
@@ -512,6 +513,7 @@ type
       property ObjectNamesInSelectedDB: TStrings read FObjectNamesInSelectedDB write FObjectNamesInSelectedDB;
       property ResultCount: Integer read FResultCount;
       property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
+      property LockedByThread: TThread read FLockedByThread write FLockedByThread;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -1052,6 +1054,15 @@ var
   TimerStart: Cardinal;
   NextResult: PMYSQL_RES;
 begin
+  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
+    Log(lcDebug, 'Waiting for running query to finish ...');
+    try
+      FLockedByThread.WaitFor;
+    except
+      on E:EThread do;
+    end;
+  end;
+
   if not Ping then
     Active := True;
   Log(LogCategory, SQL);

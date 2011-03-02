@@ -2895,6 +2895,7 @@ begin
   FBatchInOneGo := MainForm.actBatchInOneGo.Checked;
   FStopOnErrors := MainForm.actQueryStopOnErrors.Checked;
   FResults := TMySQLQueryList.Create;
+  FConnection.LockedByThread := Self;
   FreeOnTerminate := True;
   Priority := tpNormal;
 end;
@@ -2980,6 +2981,7 @@ end;
 procedure TQueryThread.BatchFinished;
 begin
   MainForm.FinishedQueryExecution(Self);
+  FConnection.LockedByThread := nil;
 end;
 
 
