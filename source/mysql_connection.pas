@@ -2124,8 +2124,7 @@ begin
       Delete(ColSpec, 1, rxCol.MatchLen[0]);
     end;
     if Col.Collation = '' then begin
-      if not Assigned(Collations) then
-        Collations := CollationTable;
+      Collations := CollationTable;
       if Assigned(Collations) then while not Collations.Eof do begin
         if (Collations.Col('Charset') = Col.Charset) and (Collations.Col('Default') = 'Yes') then begin
           Col.Collation := Collations.Col('Collation');
