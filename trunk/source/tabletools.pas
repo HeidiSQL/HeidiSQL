@@ -1291,7 +1291,9 @@ begin
 
       end;
       Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True, True);
-      LogStatistic(DbObj.Rows); // Cosmetic fix for estimated InnoDB row count
+      // Cosmetic fix for estimated InnoDB row count
+      DBObj.Rows := RowCount;
+      LogStatistic(RowCount);
     end;
   end;
 
