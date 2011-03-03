@@ -638,6 +638,7 @@ var
   i: Integer;
   Row: TStringList;
   Results: TMySQLQuery;
+  Value: String;
 begin
   // Execute query and append results into grid
   Results := MainForm.ActiveConnection.GetResults(SQL);
@@ -649,10 +650,14 @@ begin
   while not Results.Eof do begin
     Row := TStringList.Create;
     for i:=0 to Results.ColumnCount-1 do begin
-      if Results.DataType(i).Category = dtcInteger then
-        Row.Add(FormatNumber(Results.Col(i)))
-      else
-        Row.Add(Results.Col(i));
+      Value := Results.Col(i);
+      if Results.DataType(i).Category = dtcInteger then begin
+        if MakeFloat(Value) >= 0 then
+          Row.Add(FormatNumber(Value))
+        else
+          Row.Add('');
+      end else
+        Row.Add(Value);
     end;
     FResults.Add(Row);
     Results.Next;
