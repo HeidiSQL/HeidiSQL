@@ -8955,7 +8955,7 @@ end;
 
 procedure TMainForm.CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  aPoint: TPoint;
+  i: Integer;
 begin
   // Click on "Close" button of Query tab
   if Button <> mbLeft then
@@ -8964,8 +8964,12 @@ begin
   // here, we must check if also the MouseDown event was fired on this particular button. See issue #1469.
   if (Sender <> FLastMouseDownCloseButton) then
     Exit;
-  aPoint := PageControlMain.ScreenToClient((Sender as TSpeedButton).ClientToScreen(Point(X,Y)));
-  CloseQueryTab(GetMainTabAt(aPoint.X, aPoint.Y));
+  for i:=0 to QueryTabs.Count-1 do begin
+    if QueryTabs[i].CloseButton = Sender then begin
+      CloseQueryTab(QueryTabs[i].TabSheet.PageIndex);
+      break;
+    end;
+  end;
 end;
 
 
