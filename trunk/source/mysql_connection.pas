@@ -3147,11 +3147,13 @@ var
   tbl, db: AnsiString;
   Objects: TDBObjectList;
   Obj: TDBObject;
+  IsView: Boolean;
 begin
+  IsView := False;
   for i:=0 to ColumnCount-1 do begin
     Field := mysql_fetch_field_direct(FCurrentResults, i);
 
-    if Field.table <> Field.org_table then begin
+    if Connection.DecodeAPIString(Field.table) <> Connection.DecodeAPIString(Field.org_table) then begin
       // Probably a VIEW, in which case we rely on the first column's table name.
       // TODO: This is unsafe when joining a view with a table/view.
       if Field.db <> '' then begin
@@ -3159,11 +3161,12 @@ begin
         for Obj in Objects do begin
           if (Obj.Name = Connection.DecodeAPIString(Field.table)) and (Obj.NodeType = lntView) then begin
             tbl := Field.table;
+            IsView := True;
             break;
           end;
         end;
       end;
-      if tbl <> '' then
+      if IsView and (tbl <> '') then
         break;
     end;
 
