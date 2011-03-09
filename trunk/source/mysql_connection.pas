@@ -129,18 +129,6 @@ type
   end;
   PMYSQL_DATA = ^MYSQL_DATA;
 
-  PMY_CHARSET_INFO = ^MY_CHARSET_INFO;
-  MY_CHARSET_INFO = record
-    number:         Cardinal;
-    state:          Cardinal;
-    csname:         PAnsiChar;
-    name:           PAnsiChar;
-    comment:        PAnsiChar;
-    dir:            PAnsiChar;
-    mbminlen:       Cardinal;
-    mbmaxlen:       Cardinal;
-  end;
-
   PMYSQL = ^MYSQL;
   MYSQL = record
     _net:            NET;
@@ -203,12 +191,6 @@ type
   end;
   PMYSQL_RES = ^MYSQL_RES;
 
-
-  { Options for mysql_set_option }
-  TMySqlSetOption = (
-    MYSQL_OPTION_MULTI_STATEMENTS_ON,
-    MYSQL_OPTION_MULTI_STATEMENTS_OFF
-  );
 
   { TDBObjectList and friends }
 
@@ -612,72 +594,26 @@ var
   mysql_character_set_name: function(Handle: PMYSQL): PAnsiChar; stdcall;
   mysql_close: procedure(Handle: PMYSQL); stdcall;
   mysql_data_seek: procedure(Result: PMYSQL_RES; Offset: Int64); stdcall;
-  mysql_debug: procedure(Debug: PAnsiChar); stdcall;
-  mysql_dump_debug_info: function(Handle: PMYSQL): Integer; stdcall;
-  mysql_eof: function(Result: PMYSQL_RES): Byte; stdcall;
   mysql_errno: function(Handle: PMYSQL): Cardinal; stdcall;
   mysql_error: function(Handle: PMYSQL): PAnsiChar; stdcall;
-  mysql_escape_string: function(PTo, PFrom: PAnsiChar; Len: Cardinal): Cardinal; stdcall;
-  mysql_fetch_field: function(Result: PMYSQL_RES): PMYSQL_FIELD; stdcall;
   mysql_fetch_field_direct: function(Result: PMYSQL_RES; FieldNo: Cardinal): PMYSQL_FIELD; stdcall;
-  mysql_fetch_fields: function(Result: PMYSQL_RES): PMYSQL_FIELD; stdcall;
   mysql_fetch_lengths: function(Result: PMYSQL_RES): PLongInt; stdcall;
   mysql_fetch_row: function(Result: PMYSQL_RES): PMYSQL_ROW; stdcall;
-  mysql_field_seek: function(Result: PMYSQL_RES; Offset: Cardinal): Cardinal; stdcall;
-  mysql_field_tell: function(Result: PMYSQL_RES): Cardinal; stdcall;
   mysql_free_result: procedure(Result: PMYSQL_RES); stdcall;
   mysql_get_client_info: function: PAnsiChar; stdcall;
-  mysql_get_host_info: function(Handle: PMYSQL): PAnsiChar; stdcall;
-  mysql_get_proto_info: function(Handle: PMYSQL): Cardinal; stdcall;
   mysql_get_server_info: function(Handle: PMYSQL): PAnsiChar; stdcall;
-  mysql_info: function(Handle: PMYSQL): PAnsiChar; stdcall;
   mysql_init: function(Handle: PMYSQL): PMYSQL; stdcall;
-  mysql_insert_id: function(Handle: PMYSQL): Int64; stdcall;
-  mysql_kill: function(Handle: PMYSQL; Pid: LongInt): Integer; stdcall;
-  mysql_list_dbs: function(Handle: PMYSQL; Wild: PAnsiChar): PMYSQL_RES; stdcall;
-  mysql_list_fields: function(Handle: PMYSQL; const Table, Wild: PAnsiChar): PMYSQL_RES; stdcall;
-  mysql_list_processes: function(Handle: PMYSQL): PMYSQL_RES; stdcall;
-  mysql_list_tables: function(Handle: PMYSQL; const Wild: PAnsiChar): PMYSQL_RES; stdcall;
   mysql_num_fields: function(Result: PMYSQL_RES): Integer; stdcall;
   mysql_num_rows: function(Result: PMYSQL_RES): Int64; stdcall;
-  mysql_options: function(Handle: PMYSQL; Option: TMySQLOption; const Arg: PAnsiChar): Integer; stdcall;
   mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
-  mysql_query: function(Handle: PMYSQL; const Query: PAnsiChar): Integer; stdcall;
   mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
-  mysql_real_escape_string: function(Handle: PMYSQL; PTo: PAnsiChar; const PFrom: PAnsiChar; length: Cardinal): Cardinal; stdcall;
   mysql_real_query: function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
-  mysql_refresh: function(Handle: PMYSQL; Options: Cardinal): Integer; stdcall;
-  mysql_row_seek: function(Result: PMYSQL_RES; Offset: PMYSQL_ROWS): PMYSQL_ROWS; stdcall;
-  mysql_row_tell: function(Result: PMYSQL_RES): PMYSQL_ROWS; stdcall;
-  mysql_select_db: function(Handle: PMYSQL; const Db: PAnsiChar): Integer; stdcall;
   mysql_ssl_set: function(Handle: PMYSQL; const key, cert, CA, CApath, cipher: PAnsiChar): Byte; stdcall;
   mysql_stat: function(Handle: PMYSQL): PAnsiChar; stdcall;
   mysql_store_result: function(Handle: PMYSQL): PMYSQL_RES; stdcall;
   mysql_thread_id: function(Handle: PMYSQL): Cardinal; stdcall;
-  mysql_use_result: function(Handle: PMYSQL): PMYSQL_RES; stdcall;
-  mysql_change_user: function(mysql: PMYSQL; const user: PAnsiChar; const passwd: PAnsiChar; const db: PAnsiChar): Byte;
-  mysql_field_count: function(Handle: PMYSQL): Cardinal; stdcall;
-  mysql_get_client_version: function: Cardinal; stdcall;
-  mysql_send_query: function(mysql: PMYSQL; const query: PAnsiChar; length: Cardinal): Integer; stdcall;
-  mysql_read_query_result: function(mysql: PMYSQL): Integer; stdcall;
-  mysql_autocommit: function(Handle: PMYSQL; const mode: Byte): Byte; stdcall;
-  mysql_commit: function(Handle: PMYSQL): Byte; stdcall;
-  mysql_get_server_version: function(Handle: PMYSQL): Cardinal; stdcall;
-  mysql_hex_string: function(PTo, PFrom: PAnsiChar; Len: Cardinal): Cardinal; stdcall;
-  mysql_more_results: function(Handle: PMYSQL): Byte; stdcall;
   mysql_next_result: function(Handle: PMYSQL): Integer; stdcall;
-  mysql_rollback: function(Handle: PMYSQL): Byte; stdcall;
   mysql_set_character_set: function(Handle: PMYSQL; csname: PAnsiChar): Integer; stdcall;
-  mysql_set_server_option: function(Handle: PMYSQL; Option: TMysqlSetOption): Integer; stdcall;
-  mysql_sqlstate: function(Handle: PMYSQL): PAnsiChar; stdcall;
-  mysql_warning_count: function(Handle: PMYSQL): Cardinal; stdcall;
-  mysql_get_character_set_info: procedure(Handle: PMYSQL; cs: PMY_CHARSET_INFO); stdcall;
-  { Set up and bring down a thread; these function should be called for each thread in an application which
-  opens at least one MySQL connection.  All uses of the connection(s) should be between these function calls. }
-  my_init: procedure; stdcall;
-  mysql_thread_init: function: Byte; stdcall;
-  mysql_thread_end: procedure; stdcall;
-  mysql_thread_safe: function: Cardinal; stdcall;
 
   libmysql_handle: HMODULE = 0;
   libmysql_file: PWideChar = 'libmysql.dll';
@@ -775,70 +711,26 @@ begin
       AssignProc(@mysql_character_set_name, 'mysql_character_set_name');
       AssignProc(@mysql_close, 'mysql_close');
       AssignProc(@mysql_data_seek, 'mysql_data_seek');
-      AssignProc(@mysql_debug, 'mysql_debug');
-      AssignProc(@mysql_dump_debug_info, 'mysql_dump_debug_info');
-      AssignProc(@mysql_eof, 'mysql_eof');
       AssignProc(@mysql_errno, 'mysql_errno');
       AssignProc(@mysql_error, 'mysql_error');
-      AssignProc(@mysql_escape_string, 'mysql_escape_string');
-      AssignProc(@mysql_fetch_field, 'mysql_fetch_field');
       AssignProc(@mysql_fetch_field_direct, 'mysql_fetch_field_direct');
-      AssignProc(@mysql_fetch_fields, 'mysql_fetch_fields');
       AssignProc(@mysql_fetch_lengths, 'mysql_fetch_lengths');
       AssignProc(@mysql_fetch_row, 'mysql_fetch_row');
-      AssignProc(@mysql_field_seek, 'mysql_field_seek');
-      AssignProc(@mysql_field_tell, 'mysql_field_tell');
       AssignProc(@mysql_free_result, 'mysql_free_result');
       AssignProc(@mysql_get_client_info, 'mysql_get_client_info');
-      AssignProc(@mysql_get_host_info, 'mysql_get_host_info');
-      AssignProc(@mysql_get_proto_info, 'mysql_get_proto_info');
       AssignProc(@mysql_get_server_info, 'mysql_get_server_info');
-      AssignProc(@mysql_info, 'mysql_info');
       AssignProc(@mysql_init, 'mysql_init');
-      AssignProc(@mysql_insert_id, 'mysql_insert_id');
-      AssignProc(@mysql_kill, 'mysql_kill');
-      AssignProc(@mysql_list_dbs, 'mysql_list_dbs');
-      AssignProc(@mysql_list_fields, 'mysql_list_fields');
-      AssignProc(@mysql_list_processes, 'mysql_list_processes');
-      AssignProc(@mysql_list_tables, 'mysql_list_tables');
       AssignProc(@mysql_num_fields, 'mysql_num_fields');
       AssignProc(@mysql_num_rows, 'mysql_num_rows');
-      AssignProc(@mysql_options, 'mysql_options');
       AssignProc(@mysql_ping, 'mysql_ping');
-      AssignProc(@mysql_query, 'mysql_query');
       AssignProc(@mysql_real_connect, 'mysql_real_connect');
-      AssignProc(@mysql_real_escape_string, 'mysql_real_escape_string');
       AssignProc(@mysql_real_query, 'mysql_real_query');
-      AssignProc(@mysql_refresh, 'mysql_refresh');
-      AssignProc(@mysql_row_seek, 'mysql_row_seek');
-      AssignProc(@mysql_row_tell, 'mysql_row_tell');
-      AssignProc(@mysql_select_db, 'mysql_select_db');
       AssignProc(@mysql_ssl_set, 'mysql_ssl_set');
       AssignProc(@mysql_stat, 'mysql_stat');
       AssignProc(@mysql_store_result, 'mysql_store_result');
       AssignProc(@mysql_thread_id, 'mysql_thread_id');
-      AssignProc(@mysql_use_result, 'mysql_use_result');
-      AssignProc(@my_init, 'my_init');
-      AssignProc(@mysql_thread_init, 'mysql_thread_init');
-      AssignProc(@mysql_thread_end, 'mysql_thread_end');
-      AssignProc(@mysql_thread_safe, 'mysql_thread_safe');
-      AssignProc(@mysql_change_user, 'mysql_change_user');
-      AssignProc(@mysql_field_count, 'mysql_field_count');
-      AssignProc(@mysql_get_client_version, 'mysql_get_client_version');
-      AssignProc(@mysql_send_query, 'mysql_send_query');
-      AssignProc(@mysql_read_query_result, 'mysql_read_query_result');
-      AssignProc(@mysql_autocommit, 'mysql_autocommit');
-      AssignProc(@mysql_commit, 'mysql_commit');
-      AssignProc(@mysql_get_server_version, 'mysql_get_server_version');
-      AssignProc(@mysql_hex_string, 'mysql_hex_string');
-      AssignProc(@mysql_more_results, 'mysql_more_results');
       AssignProc(@mysql_next_result, 'mysql_next_result');
-      AssignProc(@mysql_rollback, 'mysql_rollback');
       AssignProc(@mysql_set_character_set, 'mysql_set_character_set');
-      AssignProc(@mysql_set_server_option, 'mysql_set_server_option');
-      AssignProc(@mysql_sqlstate, 'mysql_sqlstate');
-      AssignProc(@mysql_warning_count, 'mysql_warning_count');
-      AssignProc(@mysql_get_character_set_info, 'mysql_get_character_set_info');
       Log(lcDebug, libmysql_file + ' v' + DecodeApiString(mysql_get_client_info) + ' loaded.');
     end;
   end;
