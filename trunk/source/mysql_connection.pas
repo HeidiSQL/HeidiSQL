@@ -1282,8 +1282,11 @@ begin
         if FAllDatabases[i] = '' then
           FAllDatabases.Delete(i);
       end;
-    end else
+    end else try
       FAllDatabases := GetCol('SHOW DATABASES');
+    except on E:EDatabaseError do
+      FAllDatabases := TStringList.Create;
+    end;
   end;
   Result := FAllDatabases;
 end;
