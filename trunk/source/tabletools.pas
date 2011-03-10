@@ -66,6 +66,7 @@ type
     comboBulkTableEditCharset: TComboBox;
     btnSeeResults: TButton;
     chkCaseSensitive: TCheckBox;
+    lblCheckedSize: TLabel;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -119,6 +120,7 @@ type
     FHeaderCreated: Boolean;
     FFindSeeResultSQL: TStringList;
     ToFile, ToDir, ToClipboard, ToDb, ToServer: Boolean;
+    FObjectSizes: Int64;
     procedure SetToolMode(Value: TToolMode);
     procedure Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
     procedure AddResults(SQL: String);
@@ -244,6 +246,8 @@ begin
   TreeObjects.Clear;
   TreeObjects.RootNodeCount := Mainform.DBtree.RootNodeCount;
 
+  FObjectSizes := 0;
+
   // Init all objects in active database, so the tree does not just check the db node
   // if we want the first child only. See issue #2267.
   Node := MainForm.FindDBNode(TreeObjects, MainForm.ActiveDatabase);
@@ -323,6 +327,7 @@ var
 begin
   SomeChecked := TreeObjects.CheckedCount > 0;
   btnSeeResults.Visible := tabsTools.ActivePage = tabFind;
+  lblCheckedSize.Caption := 'Selected object sizes: '+FormatByteNumber(FObjectSizes);
   if tabsTools.ActivePage = tabMaintenance then begin
     btnExecute.Caption := 'Execute';
     btnExecute.Enabled := (Pos(SUnsupported, comboOperation.Text) = 0) and SomeChecked;
@@ -371,7 +376,17 @@ end;
 
 
 procedure TfrmTableTools.TreeObjectsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+  Obj: PDBObject;
+  ObjSize: Int64;
 begin
+  // Track sum of checked objects size
+  Obj := Sender.GetNodeData(Node);
+  ObjSize := Max(Obj.Size, 0);
+  if Node.CheckState in CheckedStates then
+    Inc(FObjectSizes, ObjSize)
+  else
+    Dec(FObjectSizes, ObjSize);
   ValidateControls(Sender);
 end;
 
