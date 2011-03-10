@@ -21,6 +21,14 @@ object frmTableTools: TfrmTableTools
     383)
   PixelsPerInch = 96
   TextHeight = 13
+  object lblCheckedSize: TLabel
+    Left = 8
+    Top = 355
+    Width = 70
+    Height = 13
+    Anchors = [akLeft, akBottom]
+    Caption = 'lblCheckedSize'
+  end
   object btnClose: TButton
     Left = 461
     Top = 350
