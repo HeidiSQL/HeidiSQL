@@ -1177,7 +1177,11 @@ begin
     end else try
       FAllDatabases := GetCol('SHOW DATABASES');
     except on E:EDatabaseError do
-      FAllDatabases := TStringList.Create;
+      try
+        FAllDatabases := GetCol('SELECT '+QuoteIdent('SCHEMA_NAME')+' FROM '+QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+QuoteIdent('SCHEMATA')+' ORDER BY '+QuoteIdent('SCHEMA_NAME'));
+      except on E:EDatabaseError do
+        FAllDatabases := TStringList.Create;
+      end;
     end;
   end;
   Result := FAllDatabases;
