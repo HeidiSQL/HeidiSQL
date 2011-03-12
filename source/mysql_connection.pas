@@ -766,19 +766,19 @@ begin
     FinalPort := FParameters.Port;
     case FParameters.NetType of
       ntTCPIP: begin
-        if (IsNotEmpty(FParameters.SSLPrivateKey)
-          or IsNotEmpty(FParameters.SSLCertificate)
-          or IsNotEmpty(FParameters.SSLCACertificate))
-          and (IsEmpty(FParameters.SSLPrivateKey)
-          or IsEmpty(FParameters.SSLCertificate)
-          or IsEmpty(FParameters.SSLCACertificate))
-          then begin
-            raise EDatabaseError.Create('SSL settings incomplete. Please specify all three SSL parameters.');
-        end;
-
-        if (FParameters.SSLPrivateKey <> '') and
-        (FParameters.SSLCertificate <> '') and
-        (FParameters.SSLCACertificate <> '') then begin
+        if (
+            IsNotEmpty(FParameters.SSLCACertificate)
+            and IsEmpty(FParameters.SSLPrivateKey)
+            and IsEmpty(FParameters.SSLCertificate)
+          )
+          or
+          (
+            IsNotEmpty(FParameters.SSLCACertificate)
+            and IsNotEmpty(FParameters.SSLPrivateKey)
+            and IsNotEmpty(FParameters.SSLCertificate)
+          )
+          then
+        begin
           FParameters.Options := FParameters.Options + [opSSL];
           { TODO : Use Cipher and CAPath parameters }
           SSLResult := mysql_ssl_set(
@@ -792,6 +792,13 @@ begin
             Log(lcInfo, 'SSL parameters successfully set.')
           else
             raise EDatabaseError.CreateFmt('Could not connect using SSL (Error %d)', [SSLresult]);
+        end
+        else if IsNotEmpty(FParameters.SSLPrivateKey)
+          or IsNotEmpty(FParameters.SSLCertificate)
+          or IsNotEmpty(FParameters.SSLCACertificate)
+          then
+        begin
+          raise EDatabaseError.Create('SSL settings incomplete. Please set either CA certificate or all three SSL parameters.');
         end;
       end;
 
