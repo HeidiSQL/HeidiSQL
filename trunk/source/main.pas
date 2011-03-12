@@ -5396,12 +5396,14 @@ var
   Grid: TVirtualStringTree;
   Results: TMySQLQuery;
   i: Integer;
-  cpText, Col, value : String;
-  CellFocused, InDataGrid: Boolean;
+  Col, Value: String;
+  CellFocused, InDataGrid, HasNullValue, HasNotNullValue: Boolean;
   RowNumber: PCardinal;
+  Node: PVirtualNode;
 const
   CLPBRD : String = 'CLIPBOARD';
 begin
+  // Manipulate quick filter menuitems
   Grid := ActiveGrid;
   CellFocused := Assigned(Grid.FocusedNode) and (Grid.FocusedColumn > NoColumn);
   InDataGrid := Grid = DataGrid;
@@ -5416,37 +5418,74 @@ begin
     Exit;
   Results := GridResult(Grid);
 
-  // Manipulate the Quick-filter menuitems
-  AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
-  RowNumber := Grid.GetNodeData(Grid.FocusedNode);
-  Results.RecNo := RowNumber^;
   Col := QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn]);
-  // 1. block: include selected columnname and value from datagrid in caption
-  if Results.IsNull(Grid.FocusedColumn) then begin
-    QF1.Hint := Col + ' IS NULL';
-    QF2.Hint := Col + ' IS NOT NULL';
-    QF3.Visible := False;
-    QF4.Visible := False;
-    QF5.Visible := False;
-    QF6.Visible := False;
-    QF7.Visible := False;
-  end else begin
-    value := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
-    QF1.Hint := Col + ' = ' + esc( value );
-    QF2.Hint := Col + ' != ' + esc( value );
-    QF3.Hint := Col + ' > ' + esc( value );
-    QF4.Hint := Col + ' < ' + esc( value );
-    QF5.Hint := Col + ' LIKE ''' + esc( value, true ) + '%''';
-    QF6.Hint := Col + ' LIKE ''%' + esc( value, true ) + '''';
-    QF7.Hint := Col + ' LIKE ''%' + esc( value, true ) + '%''';
-    QF3.Visible := True;
-    QF4.Visible := True;
-    QF5.Visible := True;
-    QF6.Visible := True;
-    QF7.Visible := True;
-  end;
 
-  // 2. block: include only selected columnname in caption
+  // Block 1: WHERE col IN ([focused cell values])
+  QF1.Hint := '';
+  QF2.Hint := '';
+  QF3.Hint := '';
+  QF4.Hint := '';
+  QF5.Hint := '';
+  QF6.Hint := '';
+  QF7.Hint := '';
+  Node := Grid.GetFirstSelected;
+  HasNullValue := False;
+  HasNotNullValue := False;
+  while Assigned(Node) do begin
+    AnyGridEnsureFullRow(Grid, Node);
+    RowNumber := Grid.GetNodeData(Node);
+    Results.RecNo := RowNumber^;
+    if Results.IsNull(Grid.FocusedColumn) then
+      HasNullValue := True
+    else begin
+      HasNotNullValue := True;
+      Value := Grid.Text[Node, Grid.FocusedColumn];
+      QF1.Hint := QF1.Hint + esc(Value) + ', ';
+      QF2.Hint := QF2.Hint + esc(Value) + ', ';
+      QF5.Hint := QF5.Hint + Col + ' LIKE ''' + esc(Value, True) + '%'' OR ';
+      QF6.Hint := QF6.Hint + Col + ' LIKE ''%' + esc(Value, True) + ''' OR ';
+      QF7.Hint := QF7.Hint + Col + ' LIKE ''%' + esc(Value, True) + '%'' OR ';
+      QF3.Hint := QF3.Hint + Col + ' > ' + esc(Value) + ' OR ';
+      QF4.Hint := QF4.Hint + Col + ' < ' + esc(Value) + ' OR ';
+    end;
+    Node := Grid.GetNextSelected(Node);
+    if Length(QF1.Hint) > SIZE_MB then
+      Break;
+  end;
+  if HasNotNullValue then begin
+    QF1.Hint := Col + ' IN (' + Copy(QF1.Hint, 1, Length(QF1.Hint)-2) + ')';
+    QF2.Hint := Col + ' NOT IN (' + Copy(QF2.Hint, 1, Length(QF2.Hint)-2) + ')';
+    QF5.Hint := Copy(QF5.Hint, 1, Length(QF5.Hint)-4);
+    QF6.Hint := Copy(QF6.Hint, 1, Length(QF6.Hint)-4);
+    QF7.Hint := Copy(QF7.Hint, 1, Length(QF7.Hint)-4);
+    QF3.Hint := Copy(QF3.Hint, 1, Length(QF3.Hint)-4);
+    QF4.Hint := Copy(QF4.Hint, 1, Length(QF4.Hint)-4);
+  end;
+  if HasNullValue then begin
+    if HasNotNullValue then begin
+      QF1.Hint := QF1.Hint + ' OR ';
+      QF2.Hint := QF2.Hint + ' AND ';
+      QF5.Hint := QF5.Hint + ' OR ';
+      QF6.Hint := QF6.Hint + ' OR ';
+      QF7.Hint := QF7.Hint + ' OR ';
+      QF3.Hint := QF3.Hint + ' OR ';
+      QF4.Hint := QF4.Hint + ' OR ';
+    end;
+    QF1.Hint := QF1.Hint + Col + ' IS NULL';
+    QF2.Hint := QF2.Hint + Col + ' IS NOT NULL';
+    QF5.Hint := QF5.Hint + Col + ' IS NULL';
+    QF6.Hint := QF6.Hint + Col + ' IS NULL';
+    QF7.Hint := QF7.Hint + Col + ' IS NULL';
+    QF3.Hint := QF3.Hint + Col + ' IS NULL';
+    QF4.Hint := QF4.Hint + Col + ' IS NULL';
+  end;
+  QF5.Visible := HasNotNullValue;
+  QF6.Visible := HasNotNullValue;
+  QF7.Visible := HasNotNullValue;
+  QF3.Visible := HasNotNullValue;
+  QF4.Visible := HasNotNullValue;
+
+  // Block 2: WHERE col = [ask user for value]
   QF8.Hint := Col + ' = "..."';
   QF9.Hint := Col + ' != "..."';
   QF10.Hint := Col + ' > "..."';
@@ -5455,14 +5494,14 @@ begin
   QF13.Hint := Col + ' IS NULL';
   QF14.Hint := Col + ' IS NOT NULL';
 
-  // 3. block: include selected columnname and clipboard-content in caption for one-click-filtering
-  cpText := Clipboard.AsText;
-  if Length(cpText) < SIZE_KB then begin
-    QF15.Enabled := true; QF15.Hint := Col + ' = ' + esc( cpText );
-    QF16.Enabled := true; QF16.Hint := Col + ' != ' + esc( cpText );
-    QF17.Enabled := true; QF17.Hint := Col + ' > ' + esc( cpText );
-    QF18.Enabled := true; QF18.Hint := Col + ' < ' + esc( cpText );
-    QF19.Enabled := true; QF19.Hint := Col + ' LIKE ''%' + esc( cpText, true ) + '%''';
+  // Block 3: WHERE col = [clipboard content]
+  Value := Clipboard.AsText;
+  if Length(Value) < SIZE_KB then begin
+    QF15.Enabled := true; QF15.Hint := Col + ' = ' + esc(Value);
+    QF16.Enabled := true; QF16.Hint := Col + ' != ' + esc(Value);
+    QF17.Enabled := true; QF17.Hint := Col + ' > ' + esc(Value);
+    QF18.Enabled := true; QF18.Hint := Col + ' < ' + esc(Value);
+    QF19.Enabled := true; QF19.Hint := Col + ' LIKE ''%' + esc(Value, True) + '%''';
   end else begin
     QF15.Enabled := false; QF15.Hint := Col + ' = ' + CLPBRD;
     QF16.Enabled := false; QF16.Hint := Col + ' != ' + CLPBRD;
