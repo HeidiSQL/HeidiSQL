@@ -1180,6 +1180,8 @@ begin
         FAllDatabases[i] := Trim(FAllDatabases[i]);
         if FAllDatabases[i] = '' then
           FAllDatabases.Delete(i);
+        if FAllDatabases.IndexOf(FAllDatabases[i]) <> i then
+          FAllDatabases.Delete(i);
       end;
     end else try
       FAllDatabases := GetCol('SHOW DATABASES');
