@@ -132,13 +132,19 @@ end;
 procedure TfrmSearchReplace.comboSearchReplaceExit(Sender: TObject);
 var
   Combo: TComboBox;
-  idx: Integer;
+  i, idx: Integer;
 begin
   // Store search or replace text history
   Combo := Sender as TComboBox;
   if Combo.Text = '' then
     Exit;
-  idx := Combo.Items.IndexOf(Combo.Text);
+  idx := -1;
+  for i:=0 to Combo.Items.Count-1 do begin
+    if Combo.Items[i] = Combo.Text then begin
+      idx := i;
+      break;
+    end;
+  end;
   if idx > -1 then
     Combo.Items.Move(idx, 0)
   else
