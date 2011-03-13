@@ -598,7 +598,7 @@ begin
   Screen.Cursor := crHourglass;
   try
     Connection.Active := True;
-    comboDatabases.Items := Connection.GetCol('SHOW DATABASES');
+    comboDatabases.Items := Connection.AllDatabases;
   except
     // Silence connection errors here - should be sufficient to log them
   end;
