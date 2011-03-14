@@ -592,6 +592,7 @@ begin
   // Try to connect and lookup database names
   Connection := TMySQLConnection.Create(Self);
   Connection.Parameters := CurrentParams;
+  Connection.Parameters.AllDatabases := '';
   Connection.LogPrefix := '['+SelectedSession+'] ';
   Connection.OnLog := Mainform.LogSQL;
   comboDatabases.Items.Clear;
