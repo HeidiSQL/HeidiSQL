@@ -695,7 +695,6 @@ var
   Connected: PMYSQL;
   ClientFlags, FinalPort: Integer;
   Error, tmpdb, FinalHost, FinalSocket, PlinkCmd, UsernamePrompt, PasswordPrompt: String;
-  SSLResult: Byte;
   UsingPass, Protocol, CurCharset: String;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
@@ -781,17 +780,14 @@ begin
         begin
           FParameters.Options := FParameters.Options + [opSSL];
           { TODO : Use Cipher and CAPath parameters }
-          SSLResult := mysql_ssl_set(
+          mysql_ssl_set(
             FHandle,
             PansiChar(AnsiString(FParameters.SSLPrivateKey)),
             PansiChar(AnsiString(FParameters.SSLCertificate)),
             PansiChar(AnsiString(FParameters.SSLCACertificate)),
             {PansiChar(AnsiString(FParameters.CApath))}nil,
             {PansiChar(AnsiString(FParameters.Cipher))}nil);
-          if SSLresult = 0 then
-            Log(lcInfo, 'SSL parameters successfully set.')
-          else
-            raise EDatabaseError.CreateFmt('Could not connect using SSL (Error %d)', [SSLresult]);
+          Log(lcInfo, 'SSL parameters successfully set.')
         end
         else if IsNotEmpty(FParameters.SSLPrivateKey)
           or IsNotEmpty(FParameters.SSLCertificate)
