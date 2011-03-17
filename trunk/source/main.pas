@@ -8103,6 +8103,7 @@ begin
       avg_persec := '';
 
       // Detect value type
+      valIsNumber := False;
       try
         valIsNumber := IntToStr(MakeInt(val)) = val;
       except on E:EInvalidOp do

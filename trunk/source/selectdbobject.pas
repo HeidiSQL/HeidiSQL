@@ -125,7 +125,6 @@ end;
 procedure TfrmSelectDBObject.TreeDBOFocusChanged(Sender: TBaseVirtualTree;
     Node: PVirtualNode; Column: TColumnIndex);
 var
-  DBObj: PDBObject;
   Tree: TVirtualStringTree;
 begin
   // Overtake node text into lower edit boxes
