@@ -6,7 +6,7 @@ uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, ExtCtrls,
   Buttons, SynMemo, SynEditHighlighter, SynHighlighterURI,
   SynURIOpener, SynEdit, VirtualTrees, Graphics,
-  mysql_connection;
+  dbconnection;
 
 type
   TfrmSQLhelp = class(TForm)
@@ -53,8 +53,8 @@ type
   private
     { Private declarations }
     FKeyword: String;
-    FRootTopics: TMySQLQuery;
-    function GetHelpResult(Node: PVirtualNode): TMySQLQuery;
+    FRootTopics: TDBQuery;
+    function GetHelpResult(Node: PVirtualNode): TDBQuery;
     procedure SetKeyword(Value: String);
   public
     { Public declarations }
@@ -101,7 +101,7 @@ end;
 procedure TfrmSQLhelp.treeTopicsFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex);
 var
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   VT: TVirtualStringTree;
 begin
   // Topic selected
@@ -137,7 +137,7 @@ end;
 
 procedure TfrmSQLhelp.treeTopicsFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
 var
-  Results: PMySQLQuery;
+  Results: PDBQuery;
 begin
   // Node gets destroyed - free memory used for bound SQL result
   Results := Sender.GetNodeData(Node);
@@ -165,14 +165,14 @@ end;
 procedure TfrmSQLhelp.treeTopicsGetNodeDataSize(Sender: TBaseVirtualTree;
   var NodeDataSize: Integer);
 begin
-  // We bind one TMySQLQuery to a node
-  NodeDataSize := SizeOf(TMySQLQuery);
+  // We bind one TDBQuery to a node
+  NodeDataSize := SizeOf(TDBQuery);
 end;
 
 
-function TfrmSQLhelp.GetHelpResult(Node: PVirtualNode): TMySQLQuery;
+function TfrmSQLhelp.GetHelpResult(Node: PVirtualNode): TDBQuery;
 var
-  P: PMySQLQuery;
+  P: PDBQuery;
 begin
   // Find right result set for given node
   if treeTopics.GetNodeLevel(Node) = 0 then
@@ -187,7 +187,7 @@ end;
 procedure TfrmSQLhelp.treeTopicsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
-  Results: TMySQLQuery;
+  Results: TDBQuery;
 begin
   // Ask result set for node text
   Results := GetHelpResult(Node);
@@ -199,7 +199,7 @@ end;
 procedure TfrmSQLhelp.treeTopicsInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
   var ChildCount: Cardinal);
 var
-  Results: PMySQLQuery;
+  Results: PDBQuery;
   VT: TVirtualStringTree;
 begin
   // Return number of children for folder
@@ -213,7 +213,7 @@ end;
 procedure TfrmSQLhelp.treeTopicsInitNode(Sender: TBaseVirtualTree; ParentNode,
   Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 var
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   ThisFolder, PrevFolder: String;
   N: PVirtualNode;
   VT: TVirtualStringTree;
@@ -283,7 +283,7 @@ procedure TfrmSQLhelp.SetKeyword(Value: string);
 var
   VT: TVirtualStringTree;
   Node: PVirtualNode;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   SearchNoInit: Boolean;
 begin
   // Find keyword in tree

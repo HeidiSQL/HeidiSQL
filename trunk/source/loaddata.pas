@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst,
   SynRegExpr, Buttons, ExtCtrls, ToolWin, ExtDlgs, Math,
-  mysql_connection, mysql_structures;
+  dbconnection, mysql_structures;
 
 type
   Tloaddataform = class(TForm)
@@ -143,7 +143,7 @@ var
   ServerWillParse: Boolean;
   Charset, DefCharset, dbcreate: String;
   v: Integer;
-  CharsetTable: TMySQLQuery;
+  CharsetTable: TDBQuery;
   rx: TRegExpr;
 begin
   ServerWillParse := grpParseMethod.ItemIndex = 0;
@@ -255,7 +255,7 @@ procedure Tloaddataform.btnImportClick(Sender: TObject);
 var
   StartTickCount: Cardinal;
   i: Integer;
-  Warnings: TMySQLQuery;
+  Warnings: TDBQuery;
 begin
   Screen.Cursor := crHourglass;
   StartTickCount := GetTickCount;

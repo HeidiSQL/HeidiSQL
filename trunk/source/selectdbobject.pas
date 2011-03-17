@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees, Graphics,
-  mysql_connection;
+  dbconnection;
 
 type
   TfrmSelectDBObject = class(TForm)

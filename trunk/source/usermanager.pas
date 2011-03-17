@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
   ExtCtrls, ToolWin, ClipBrd, Generics.Collections, Generics.Defaults, SynRegExpr,
-  mysql_connection, helpers, VirtualTrees, Menus;
+  dbconnection, helpers, VirtualTrees, Menus;
 
 {$I const.inc}
 
@@ -203,7 +203,7 @@ end;
 procedure TUserManagerForm.FormShow(Sender: TObject);
 var
   Version: Integer;
-  Users: TMySQLQuery;
+  Users: TDBQuery;
   U: TUser;
 
 function InitPrivList(Values: String): TStringList;
@@ -903,7 +903,7 @@ end;
 
 procedure TUserManagerForm.btnSaveClick(Sender: TObject);
 var
-  Conn: TMySQLConnection;
+  Conn: TDBConnection;
   UserHost, OrgUserHost, Create, Table, Revoke, Grant, OnObj: String;
   User: TUser;
   FocusedUser: PUser;
@@ -1049,7 +1049,7 @@ end;
 procedure TUserManagerForm.btnDeleteUserClick(Sender: TObject);
 var
   UserHost: String;
-  Conn: TMySQLConnection;
+  Conn: TDBConnection;
   User: PUser;
 begin
   // Delete user

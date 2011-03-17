@@ -34,7 +34,7 @@ type
 
 implementation
 
-uses main, helpers, table_editor, mysql_connection;
+uses main, helpers, table_editor, dbconnection;
 
 {$R *.DFM}
 

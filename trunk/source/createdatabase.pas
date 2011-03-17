@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
-  mysql_connection;
+  dbconnection;
 
 type
   TCreateDatabaseForm = class(TForm)
@@ -27,7 +27,7 @@ type
     function GetCreateStatement: String;
   private
     { Private declarations }
-    CollationTable: TMySQLQuery;
+    CollationTable: TDBQuery;
     defaultCharset : String;
     currentCollation : String;
   public

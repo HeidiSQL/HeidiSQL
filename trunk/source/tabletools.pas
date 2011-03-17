@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
   VirtualTrees, ExtCtrls, Contnrs, Graphics, SynRegExpr, Math, Generics.Collections,
-  mysql_connection, helpers;
+  dbconnection, helpers;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
@@ -114,7 +114,7 @@ type
     ExportStream: TStream;
     ExportStreamStartOfQueryPos: Int64;
     ExportLastDatabase: String;
-    FTargetConnection: TMySQLConnection;
+    FTargetConnection: TDBConnection;
     FLastOutputSelectedIndex: Integer;
     FModifiedDbs: TStringList;
     FHeaderCreated: Boolean;
@@ -125,7 +125,7 @@ type
     procedure Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
     procedure AddResults(SQL: String);
     procedure AddNotes(Col1, Col2, Col3, Col4: String);
-    procedure SetupResultGrid(Results: TMySQLQuery=nil);
+    procedure SetupResultGrid(Results: TDBQuery=nil);
     procedure UpdateResultGrid;
     procedure DoMaintenance(DBObj: TDBObject);
     procedure DoFind(DBObj: TDBObject);
@@ -652,7 +652,7 @@ procedure TfrmTableTools.AddResults(SQL: String);
 var
   i: Integer;
   Row: TStringList;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   Value: String;
 begin
   // Execute query and append results into grid
@@ -699,7 +699,7 @@ begin
 end;
 
 
-procedure TfrmTableTools.SetupResultGrid(Results: TMySQLQuery=nil);
+procedure TfrmTableTools.SetupResultGrid(Results: TDBQuery=nil);
 var
   ColCount, i: Integer;
   Col: TVirtualTreeColumn;
@@ -816,6 +816,7 @@ var
   NewIdx: Integer;
   DBNode: PVirtualNode;
   SessionName: String;
+  Params: TConnectionParameters;
 begin
   // Target type (file, directory, ...) selected
   OldItem := comboExportOutputTarget.Text;
@@ -861,8 +862,8 @@ begin
     btnExportOutputTargetSelect.ImageIndex := 27;
     SessionName := Copy(comboExportOutputType.Text, Length(OUTPUT_SERVER)+1, Length(comboExportOutputType.Text));
     FreeAndNil(FTargetConnection);
-    FTargetConnection := TMySQLConnection.Create(Self);
-    FTargetConnection.Parameters := LoadConnectionParams(SessionName);
+    Params := LoadConnectionParams(SessionName);
+    FTargetConnection := Params.CreateConnection(Self);
     FTargetConnection.LogPrefix := '['+SessionName+'] ';
     FTargetConnection.OnLog := Mainform.LogSQL;
     Screen.Cursor := crHourglass;
@@ -1028,7 +1029,7 @@ var
   i: Integer;
   RowCount, Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;
-  StrucResult, Data: TMySQLQuery;
+  StrucResult, Data: TDBQuery;
   rx: TRegExpr;
   ColumnList: TTableColumnList;
   Column: TTableColumn;

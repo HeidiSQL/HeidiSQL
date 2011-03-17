@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
-  mysql_connection;
+  dbconnection;
 
 type
   TfrmEditVariable = class(TForm)

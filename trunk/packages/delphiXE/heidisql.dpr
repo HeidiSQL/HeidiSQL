@@ -33,7 +33,7 @@ uses
   uVistaFuncs in '..\..\source\uVistaFuncs.pas',
   routine_editor in '..\..\source\routine_editor.pas' {frmRoutineEditor},
   table_editor in '..\..\source\table_editor.pas' {frmTableEditor},
-  mysql_connection in '..\..\source\mysql_connection.pas',
+  dbconnection in '..\..\source\dbconnection.pas',
   trigger_editor in '..\..\source\trigger_editor.pas' {frmTriggerEditor: TFrame},
   searchreplace in '..\..\source\searchreplace.pas' {frmSearchReplace},
   event_editor in '..\..\source\event_editor.pas' {frmEventEditor: TFrame},

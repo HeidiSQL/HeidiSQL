@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics,
-  mysql_connection;
+  dbconnection;
 
 type
   Tconnform = class(TForm)
@@ -214,7 +214,7 @@ end;
 
 procedure Tconnform.btnOpenClick(Sender: TObject);
 var
-  Connection: TMySQLConnection;
+  Connection: TDBConnection;
 begin
   // Connect to selected session
   Screen.Cursor := crHourglass;
@@ -542,7 +542,7 @@ procedure Tconnform.ListSessionsNewText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   SessionKey: String;
-  Connection: TMySQLConnection;
+  Connection: TDBConnection;
 begin
   // Rename session
   OpenRegistry;
@@ -587,11 +587,12 @@ end;
 
 procedure Tconnform.comboDatabasesDropDown(Sender: TObject);
 var
-  Connection: TMySQLConnection;
+  Connection: TDBConnection;
+  Params: TConnectionParameters;
 begin
   // Try to connect and lookup database names
-  Connection := TMySQLConnection.Create(Self);
-  Connection.Parameters := CurrentParams;
+  Params := CurrentParams;
+  Connection := Params.CreateConnection(Self);
   Connection.Parameters.AllDatabases := '';
   Connection.LogPrefix := '['+SelectedSession+'] ';
   Connection.OnLog := Mainform.LogSQL;

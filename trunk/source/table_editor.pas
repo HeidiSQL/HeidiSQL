@@ -6,7 +6,7 @@ uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
   SynMemo, Menus, Contnrs, Clipbrd, Math,
-  grideditlinks, mysql_structures, mysql_connection, helpers;
+  grideditlinks, mysql_structures, dbconnection, helpers;
 
 type
   TFrame = TDBObjectEditor;
@@ -447,7 +447,7 @@ var
   ColSpec, IndexSQL: String;
   Query: TSQLSentence;
   i: Integer;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   Col, PreviousCol: PTableColumn;
   Node: PVirtualNode;
 

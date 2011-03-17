@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
   SynCompletionProposal, VirtualTrees,
-  mysql_connection, mysql_structures, helpers;
+  dbconnection, mysql_structures, helpers;
 
 type
   TFrame = TDBObjectEditor;
@@ -77,7 +77,7 @@ end;
 
 procedure TfrmTriggerEditor.Init(Obj: TDBObject);
 var
-  Definitions: TMySQLQuery;
+  Definitions: TDBQuery;
   DBObjects: TDBObjectList;
   i: Integer;
   Found: Boolean;
@@ -211,7 +211,7 @@ procedure TfrmTriggerEditor.SynCompletionProposalStatementExecute(Kind: SynCompl
 var
   Proposal: TSynCompletionProposal;
   Token: String;
-  Columns: TMySQLQuery;
+  Columns: TDBQuery;
 begin
   // Propose column names from referencing table
   Proposal := Sender as TSynCompletionProposal;

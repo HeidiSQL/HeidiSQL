@@ -5,7 +5,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, Contnrs,
-  mysql_connection, VirtualTrees, SynEdit, SynMemo, Menus;
+  dbconnection, VirtualTrees, SynEdit, SynMemo, Menus;
 
 type
   TCopyTableForm = class(TForm)
