@@ -1,4 +1,4 @@
-unit mysql_connection;
+unit dbconnection;
 
 interface
 
@@ -196,12 +196,14 @@ type
 
   TListNodeType = (lntNone, lntDb, lntTable, lntView, lntFunction, lntProcedure, lntTrigger, lntEvent, lntColumn);
   TListNodeTypes = Set of TListNodeType;
-  TMySQLConnection = class;
+  TDBConnection = class;
+  TDBQuery = class;
+  TDBQueryList = TObjectList<TDBQuery>;
   TDBObject = class(TPersistent)
     private
       FCreateCode: String;
       FCreateCodeFetched: Boolean;
-      FConnection: TMySQLConnection;
+      FConnection: TDBConnection;
       function GetObjType: String;
       function GetImageIndex: Integer;
       function GetCreateCode: String;
@@ -211,13 +213,13 @@ type
       Created, Updated, LastChecked: TDateTime;
       Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
       NodeType: TListNodeType;
-      constructor Create(OwnerConnection: TMySQLConnection);
+      constructor Create(OwnerConnection: TDBConnection);
       procedure Assign(Source: TPersistent); override;
       function IsSameAs(CompareTo: TDBObject): Boolean;
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
       property CreateCode: String read GetCreateCode write SetCreateCode;
-      property Connection: TMySQLConnection read FConnection;
+      property Connection: TDBConnection read FConnection;
   end;
   PDBObject = ^TDBObject;
   TDBObjectList = class(TObjectList<TDBObject>)
@@ -351,6 +353,8 @@ type
       FLoginPrompt: Boolean;
     public
       constructor Create;
+      function CreateConnection(AOwner: TComponent): TDBConnection;
+      function CreateQuery(AOwner: TComponent): TDBQuery;
     published
       property NetType: TNetType read FNetType write FNetType;
       property Hostname: String read FHostname write FHostname;
@@ -375,17 +379,14 @@ type
   end;
 
 
-  { TMySQLConnection }
+  { TDBConnection }
 
-  TMySQLLogCategory = (lcInfo, lcSQL, lcUserFiredSQL, lcError, lcDebug);
-  TMySQLLogEvent = procedure(Msg: String; Category: TMySQLLogCategory=lcInfo; Connection: TMySQLConnection=nil) of object;
-  TMySQLDatabaseEvent = procedure(Connection: TMySQLConnection; Database: String) of object;
+  TDBLogCategory = (lcInfo, lcSQL, lcUserFiredSQL, lcError, lcDebug);
+  TDBLogEvent = procedure(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil) of object;
+  TDBEvent = procedure(Connection: TDBConnection; Database: String) of object;
 
-  TMySQLQuery = class;
-  TMySQLQueryList = TObjectList<TMySQLQuery>;
-  TMySQLConnection = class(TComponent)
+  TDBConnection = class(TComponent)
     private
-      FHandle: PMYSQL;
       FActive: Boolean;
       FConnectionStarted: Integer;
       FServerStarted: Integer;
@@ -395,9 +396,9 @@ type
       FDatabase: String;
       FAllDatabases: TStringList;
       FLogPrefix: String;
-      FOnLog: TMySQLLogEvent;
-      FOnDatabaseChanged: TMySQLDatabaseEvent;
-      FOnDBObjectsCleared: TMySQLDatabaseEvent;
+      FOnLog: TDBLogEvent;
+      FOnDatabaseChanged: TDBEvent;
+      FOnDBObjectsCleared: TDBEvent;
       FRowsFound: Int64;
       FRowsAffected: Int64;
       FServerOS: String;
@@ -408,66 +409,62 @@ type
       FIsUnicode: Boolean;
       FTableEngines: TStringList;
       FTableEngineDefault: String;
-      FCollationTable: TMySQLQuery;
-      FCharsetTable: TMySQLQuery;
+      FCollationTable: TDBQuery;
+      FCharsetTable: TDBQuery;
       FInformationSchemaObjects: TStringList;
       FDatabases: TDatabaseList;
       FObjectNamesInSelectedDB: TStrings;
-      FPlinkProcInfo: TProcessInformation;
-      FLastResults: Array of PMYSQL_RES;
       FResultCount: Integer;
       FCurrentUserHostCombination: String;
       FLockedByThread: TThread;
-      procedure SetActive(Value: Boolean);
-      procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
-      procedure ClosePlink;
+      procedure SetActive(Value: Boolean); virtual; abstract;
       procedure SetDatabase(Value: String);
-      function GetThreadId: Cardinal;
-      function GetCharacterSet: String;
-      procedure SetCharacterSet(CharsetName: String);
-      function GetLastError: String;
-      function GetServerVersionStr: String;
-      function GetServerVersionInt: Integer;
-      function GetAllDatabases: TStringList;
-      function GetTableEngines: TStringList;
-      function GetCollationTable: TMySQLQuery;
+      function GetThreadId: Cardinal; virtual; abstract;
+      function GetCharacterSet: String; virtual; abstract;
+      procedure SetCharacterSet(CharsetName: String); virtual; abstract;
+      function GetLastError: String; virtual; abstract;
+      function GetServerVersionStr: String; virtual; abstract;
+      function GetServerVersionInt: Integer; virtual; abstract;
+      function GetAllDatabases: TStringList; virtual; abstract;
+      function GetTableEngines: TStringList; virtual; abstract;
+      function GetCollationTable: TDBQuery; virtual; abstract;
       function GetCollationList: TStringList;
-      function GetCharsetTable: TMySQLQuery;
+      function GetCharsetTable: TDBQuery; virtual; abstract;
       function GetCharsetList: TStringList;
-      function GetInformationSchemaObjects: TStringList;
+      function GetInformationSchemaObjects: TStringList; virtual; abstract;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
       function GetCurrentUserHostCombination: String;
-      function DecodeAPIString(a: AnsiString): String;
-      procedure Log(Category: TMySQLLogCategory; Msg: String);
+      function DecodeAPIString(a: AnsiString): String; virtual; abstract;
+      procedure Log(Category: TDBLogCategory; Msg: String);
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure SetObjectNamesInSelectedDB;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      function Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TMySQLLogCategory=lcSQL): PMYSQL_RES;
+      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual; abstract;
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False): String;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
       function UnescapeString(Text: String): String;
       function ConvertServerVersion(Version: Integer): String;
-      function GetResults(SQL: String): TMySQLQuery;
+      function GetResults(SQL: String): TDBQuery;
       function GetCol(SQL: String; Column: Integer=0): TStringList;
       function GetVar(SQL: String; Column: Integer=0): String; overload;
       function GetVar(SQL: String; Column: String): String; overload;
-      function Ping: Boolean;
+      function Ping: Boolean; virtual; abstract;
       function RefreshAllDatabases: TStringList;
-      function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList;
+      function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList; virtual; abstract;
       function DbObjectsCached(db: String): Boolean;
-      function ParseDateTime(Str: String): TDateTime;
-      function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
-      function ConnectionInfo: TStringList;
-      function GetLastResults: TMySQLQueryList;
+      function ParseDateTime(Str: String): TDateTime; virtual; abstract;
+      function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList; virtual; abstract;
+      function ConnectionInfo: TStringList; virtual; abstract;
+      function GetLastResults: TDBQueryList; virtual; abstract;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
-      procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
-      procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, Definer, CheckOption, SelectCode: String);
+      procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList); virtual; abstract;
+      procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, Definer, CheckOption, SelectCode: String); virtual; abstract;
       procedure ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
-        var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String);
+        var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String); virtual; abstract;
       property SessionName: String read FSessionName write FSessionName;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property ThreadId: Cardinal read GetThreadId;
@@ -487,9 +484,9 @@ type
       property AllDatabases: TStringList read GetAllDatabases;
       property TableEngines: TStringList read GetTableEngines;
       property TableEngineDefault: String read FTableEngineDefault;
-      property CollationTable: TMySQLQuery read GetCollationTable;
+      property CollationTable: TDBQuery read GetCollationTable;
       property CollationList: TStringList read GetCollationList;
-      property CharsetTable: TMySQLQuery read GetCharsetTable;
+      property CharsetTable: TDBQuery read GetCharsetTable;
       property CharsetList: TStringList read GetCharsetList;
       property InformationSchemaObjects: TStringList read GetInformationSchemaObjects;
       property ObjectNamesInSelectedDB: TStrings read FObjectNamesInSelectedDB write FObjectNamesInSelectedDB;
@@ -500,20 +497,59 @@ type
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
       property LogPrefix: String read FLogPrefix write FLogPrefix;
-      // Events
-      property OnLog: TMySQLLogEvent read FOnLog write FOnLog;
-      property OnDatabaseChanged: TMySQLDatabaseEvent read FOnDatabaseChanged write FOnDatabaseChanged;
-      property OnDBObjectsCleared: TMySQLDatabaseEvent read FOnDBObjectsCleared write FOnDBObjectsCleared;
+      property OnLog: TDBLogEvent read FOnLog write FOnLog;
+      property OnDatabaseChanged: TDBEvent read FOnDatabaseChanged write FOnDatabaseChanged;
+      property OnDBObjectsCleared: TDBEvent read FOnDBObjectsCleared write FOnDBObjectsCleared;
   end;
-  TMySQLConnectionList = TObjectList<TMySQLConnection>;
+  TDBConnectionList = TObjectList<TDBConnection>;
 
 
-  { TMySQLQuery }
+  { TMySQLConnection }
 
-  TMySQLQuery = class(TComponent)
+  TMySQLQuery = class;
+  TMySQLRawResults = Array of PMYSQL_RES;
+  TMySQLConnection = class(TDBConnection)
+    private
+      FHandle: PMYSQL;
+      FLastRawResults: TMySQLRawResults;
+      FPlinkProcInfo: TProcessInformation;
+      procedure SetActive(Value: Boolean); override;
+      procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
+      procedure ClosePlink;
+      function GetThreadId: Cardinal;override;
+      function GetCharacterSet: String; override;
+      procedure SetCharacterSet(CharsetName: String); override;
+      function GetLastError: String; override;
+      function GetServerVersionStr: String; override;
+      function GetServerVersionInt: Integer; override;
+      function GetAllDatabases: TStringList; override;
+      function GetTableEngines: TStringList; override;
+      function GetCollationTable: TDBQuery; override;
+      function GetCharsetTable: TDBQuery; override;
+      function GetInformationSchemaObjects: TStringList; override;
+      function DecodeAPIString(a: AnsiString): String; override;
+    public
+      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
+      function Ping: Boolean; override;
+      function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList; override;
+      function ParseDateTime(Str: String): TDateTime; override;
+      function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList; override;
+      function ConnectionInfo: TStringList; override;
+      function GetLastResults: TDBQueryList; override;
+      procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList); override;
+      procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, Definer, CheckOption, SelectCode: String); override;
+      procedure ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
+        var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String); override;
+      property LastRawResults: TMySQLRawResults read FLastRawResults;
+  end;
+
+
+  { TDBQuery }
+
+  TDBQuery = class(TComponent)
     private
       FSQL: String;
-      FConnection: TMySQLConnection;
+      FConnection: TDBConnection;
       FRecNo,
       FRecordCount: Int64;
       FColumnNames: TStringList;
@@ -521,9 +557,6 @@ type
       FColumnTypes: Array of TDatatype;
       FColumnLengths: TIntegerDynArray;
       FColumnFlags: TCardinalDynArray;
-      FResultList: Array of PMYSQL_RES;
-      FCurrentResults: PMYSQL_RES;
-      FCurrentRow: PMYSQL_ROW;
       FCurrentUpdateRow: TRowData;
       FEof: Boolean;
       FStoreResult: Boolean;
@@ -532,8 +565,7 @@ type
       FForeignKeys: TForeignKeyList;
       FEditingPrepared: Boolean;
       FUpdateData: TUpdateData;
-      procedure SetSQL(Value: String);
-      procedure SetRecNo(Value: Int64);
+      procedure SetRecNo(Value: Int64); virtual; abstract;
       procedure SetColumnOrgNames(Value: TStringList);
       procedure CreateUpdateRow;
       function GetKeyColumns: TStringList;
@@ -542,23 +574,23 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      procedure Execute(AddResult: Boolean=False; Res: PMYSQL_RES=nil);
+      procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); virtual; abstract;
       procedure First;
       procedure Next;
       function ColumnCount: Integer;
-      function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload;
+      function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; virtual; abstract;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
-      function BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String;
+      function BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String; virtual; abstract;
       function DataType(Column: Integer): TDataType;
       function MaxLength(Column: Integer): Int64;
       function ValueList(Column: Integer): TStringList;
       function ColExists(Column: String): Boolean;
-      function ColIsPrimaryKeyPart(Column: Integer): Boolean;
-      function ColIsUniqueKeyPart(Column: Integer): Boolean;
-      function ColIsKeyPart(Column: Integer): Boolean;
-      function IsNull(Column: Integer): Boolean; overload;
+      function ColIsPrimaryKeyPart(Column: Integer): Boolean; virtual; abstract;
+      function ColIsUniqueKeyPart(Column: Integer): Boolean; virtual; abstract;
+      function ColIsKeyPart(Column: Integer): Boolean; virtual; abstract;
+      function IsNull(Column: Integer): Boolean; overload; virtual; abstract;
       function IsNull(Column: String): Boolean; overload;
-      function HasResult: Boolean;
+      function HasResult: Boolean; virtual; abstract;
       procedure CheckEditable;
       function DeleteRow: Boolean;
       function InsertRow: Cardinal;
@@ -569,8 +601,8 @@ type
       function Modified: Boolean; overload;
       function Inserted: Boolean;
       function SaveModifications: Boolean;
-      function DatabaseName: String;
-      function TableName: String;
+      function DatabaseName: String; virtual; abstract;
+      function TableName: String; virtual; abstract;
       function QuotedDbAndTableName: String;
       procedure DiscardModifications;
       procedure PrepareEditing;
@@ -581,10 +613,32 @@ type
       property StoreResult: Boolean read FStoreResult write FStoreResult;
       property ColumnOrgNames: TStringList read FColumnOrgNames write SetColumnOrgNames;
     published
-      property SQL: String read FSQL write SetSQL;
-      property Connection: TMySQLConnection read FConnection write FConnection;
+      property SQL: String read FSQL write FSQL;
+      property Connection: TDBConnection read FConnection write FConnection;
   end;
-  PMySQLQuery = ^TMySQLQuery;
+  PDBQuery = ^TDBQuery;
+
+  { TMySQLQuery }
+
+  TMySQLQuery = class(TDBQuery)
+    private
+      FResultList: Array of PMYSQL_RES;
+      FCurrentResults: PMYSQL_RES;
+      FCurrentRow: PMYSQL_ROW;
+      procedure SetRecNo(Value: Int64); override;
+    public
+      destructor Destroy; override;
+      procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
+      function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
+      function BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String; override;
+      function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
+      function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
+      function ColIsKeyPart(Column: Integer): Boolean; override;
+      function IsNull(Column: Integer): Boolean; overload; override;
+      function HasResult: Boolean; override;
+      function DatabaseName: String; override;
+      function TableName: String; override;
+  end;
 
   function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
   function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
@@ -645,10 +699,33 @@ begin
 end;
 
 
+function TConnectionParameters.CreateConnection(AOwner: TComponent): TDBConnection;
+begin
+  case FNetType of
+    ntTCPIP, ntNamedPipe, ntSSHTunnel:
+      Result := TMySQLConnection.Create(AOwner);
+    else
+      Raise Exception.Create('Unhandled connection type ('+IntToStr(Integer(FNetType))+')');
+  end;
+  Result.Parameters := Self;
+end;
+
+
+function TConnectionParameters.CreateQuery(AOwner: TComponent): TDBQuery;
+begin
+  case FNetType of
+    ntTCPIP, ntNamedPipe, ntSSHTunnel:
+      Result := TMySQLQuery.Create(AOwner);
+    else
+      Raise Exception.Create('Unhandled connection type ('+IntToStr(Integer(FNetType))+')');
+  end;
+end;
+
+
 
 { TMySQLConnection }
 
-constructor TMySQLConnection.Create(AOwner: TComponent);
+constructor TDBConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FSessionName := 'Unnamed';
@@ -666,7 +743,7 @@ begin
 end;
 
 
-destructor TMySQLConnection.Destroy;
+destructor TDBConnection.Destroy;
 begin
   if Active then Active := False;
   FOnDBObjectsCleared := nil;
@@ -942,12 +1019,12 @@ end;
 {**
    Executes a query
 }
-function TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TMySQLLogCategory=lcSQL): PMYSQL_RES;
+procedure TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 var
   querystatus: Integer;
   NativeSQL: AnsiString;
   TimerStart: Cardinal;
-  NextResult: PMYSQL_RES;
+  QueryResult: PMYSQL_RES;
 begin
   if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
     Log(lcDebug, 'Waiting for running query to finish ...');
@@ -967,7 +1044,7 @@ begin
   else
     NativeSQL := AnsiString(SQL);
   TimerStart := GetTickCount;
-  SetLength(FLastResults, 0);
+  SetLength(FLastRawResults, 0);
   FResultCount := 0;
   querystatus := mysql_real_query(FHandle, PAnsiChar(NativeSQL), Length(NativeSQL));
   FLastQueryDuration := GetTickCount - TimerStart;
@@ -981,39 +1058,33 @@ begin
     // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html
     FRowsAffected := mysql_affected_rows(FHandle);
     TimerStart := GetTickCount;
-    Result := mysql_store_result(FHandle);
+    QueryResult := mysql_store_result(FHandle);
     FLastQueryNetworkDuration := GetTickCount - TimerStart;
-    if (Result = nil) and (FRowsAffected = -1) then begin
+    if (QueryResult = nil) and (FRowsAffected = -1) then begin
       // Indicates a late error, e.g. triggered by mysql_store_result(), after selecting a stored
       // function with invalid SQL body. Also SHOW TABLE STATUS on older servers.
       Log(lcError, GetLastError);
       raise EDatabaseError.Create(GetLastError);
     end;
-    if Result <> nil then begin
-      FRowsFound := mysql_num_rows(Result);
+    if QueryResult <> nil then begin
+      FRowsFound := mysql_num_rows(QueryResult);
       FRowsAffected := 0;
       Log(lcDebug, IntToStr(RowsFound)+' rows found.');
 
-      if DoStoreResult then begin
-        SetLength(FLastResults, 1);
-        FLastResults[0] := Result;
-      end else begin
-        mysql_free_result(Result);
-        Result := nil;
-      end;
-
-      // No support for real multi results yet, throw them away, so mysql_ping() does not crash on the *next* query.
-      while mysql_next_result(FHandle) = 0 do begin
-        NextResult := mysql_store_result(FHandle);
-        if NextResult <> nil then begin
+      while true do begin
+        if QueryResult <> nil then begin
           if DoStoreResult then begin
-            SetLength(FLastResults, Length(FLastResults)+1);
-            FLastResults[Length(FLastResults)-1] := NextResult;
-          end else
-            mysql_free_result(NextResult);
+            SetLength(FLastRawResults, Length(FLastRawResults)+1);
+            FLastRawResults[Length(FLastRawResults)-1] := QueryResult;
+          end else begin
+            mysql_free_result(QueryResult);
+          end;
         end;
+        if mysql_next_result(FHandle) <> 0 then
+          break;
+        QueryResult := mysql_store_result(FHandle);
       end;
-      FResultCount := Length(FLastResults);
+      FResultCount := Length(FLastRawResults);
 
     end else begin
       // Query did not return a result
@@ -1031,17 +1102,17 @@ begin
 end;
 
 
-function TMySQLConnection.GetLastResults: TMySQLQueryList;
+function TMySQLConnection.GetLastResults: TDBQueryList;
 var
-  r: TMySQLQuery;
+  r: TDBQuery;
   i: Integer;
 begin
-  Result := TMySQLQueryList.Create(False);
-  for i:=Low(FLastResults) to High(FLastResults) do begin
-    r := TMySQLQuery.Create(nil);
+  Result := TDBQueryList.Create(False);
+  for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
+    r := Parameters.CreateQuery(nil);
     r.Connection := Self;
     r.SQL := FLastQuerySQL;
-    r.Execute(True, FLastResults[i]);
+    r.Execute(True, i);
     Result.Add(r);
   end;
 end;
@@ -1050,7 +1121,7 @@ end;
 {**
   Set "Database" property and select that db if connected
 }
-procedure TMySQLConnection.SetDatabase(Value: String);
+procedure TDBConnection.SetDatabase(Value: String);
 begin
   if Value <> FDatabase then begin
     if Value = '' then begin
@@ -1193,7 +1264,7 @@ begin
 end;
 
 
-function TMySQLConnection.RefreshAllDatabases: TStringList;
+function TDBConnection.RefreshAllDatabases: TStringList;
 begin
   FreeAndNil(FAllDatabases);
   Result := AllDatabases;
@@ -1203,7 +1274,7 @@ end;
 {**
   Convert integer version to real version string
 }
-function TMySQLConnection.ConvertServerVersion(Version: Integer): String;
+function TDBConnection.ConvertServerVersion(Version: Integer): String;
 var
   v : String;
   v1, v2 : Byte;
@@ -1215,9 +1286,9 @@ begin
 end;
 
 
-function TMySQLConnection.GetResults(SQL: String): TMySQLQuery;
+function TDBConnection.GetResults(SQL: String): TDBQuery;
 begin
-  Result := TMySQLQuery.Create(Self);
+  Result := Parameters.CreateQuery(Self);
   Result.Connection := Self;
   Result.SQL := SQL;
   try
@@ -1232,7 +1303,7 @@ end;
 {**
   Call log event if assigned to object
 }
-procedure TMySQLConnection.Log(Category: TMySQLLogCategory; Msg: String);
+procedure TDBConnection.Log(Category: TDBLogCategory; Msg: String);
 begin
   if Assigned(FOnLog) then
     FOnLog(FLogPrefix+Msg, Category, Self);
@@ -1251,7 +1322,7 @@ end;
   @param boolean Escape text so it can be used in a LIKE-comparison
   @return string
 }
-function TMySQLConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false): String;
+function TDBConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false): String;
 var
   c1, c2, c3, c4, EscChar: Char;
 begin
@@ -1287,7 +1358,7 @@ end;
 {***
  Attempt to do string replacement faster than StringReplace
 }
-function TMySQLConnection.escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
+function TDBConnection.escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
 const
   // Attempt to match whatever the CPU cache will hold.
   block: Cardinal = 65536;
@@ -1335,7 +1406,7 @@ begin
 end;
 
 
-function TMySQLConnection.UnescapeString(Text: String): String;
+function TDBConnection.UnescapeString(Text: String): String;
 begin
   // Return text with MySQL special sequences turned back to normal characters
   Result := StringReplace(Text, '\r', #13, [rfReplaceAll]);
@@ -1390,9 +1461,9 @@ begin
 end;
 
 
-function TMySQLConnection.GetCol(SQL: String; Column: Integer=0): TStringList;
+function TDBConnection.GetCol(SQL: String; Column: Integer=0): TStringList;
 var
-  Results: TMySQLQuery;
+  Results: TDBQuery;
 begin
   Results := GetResults(SQL);
   Result := TStringList.Create;
@@ -1407,9 +1478,9 @@ end;
 {**
   Get single cell value via SQL query, identified by column number
 }
-function TMySQLConnection.GetVar(SQL: String; Column: Integer=0): String;
+function TDBConnection.GetVar(SQL: String; Column: Integer=0): String;
 var
-  Results: TMySQLQuery;
+  Results: TDBQuery;
 begin
   Results := GetResults(SQL);
   if Results.RecordCount > 0 then
@@ -1423,9 +1494,9 @@ end;
 {**
   Get single cell value via SQL query, identified by column name
 }
-function TMySQLConnection.GetVar(SQL: String; Column: String): String;
+function TDBConnection.GetVar(SQL: String; Column: String): String;
 var
-  Results: TMySQLQuery;
+  Results: TDBQuery;
 begin
   Results := GetResults(SQL);
   if Results.RecordCount > 0 then
@@ -1438,7 +1509,7 @@ end;
 
 function TMySQLConnection.GetTableEngines: TStringList;
 var
-  ShowEngines, HaveEngines: TMySQLQuery;
+  ShowEngines, HaveEngines: TDBQuery;
   engineName, engineSupport: String;
   PossibleEngines: TStringList;
 begin
@@ -1490,7 +1561,7 @@ begin
 end;
 
 
-function TMySQLConnection.GetCollationTable: TMySQLQuery;
+function TMySQLConnection.GetCollationTable: TDBQuery;
 begin
   Log(lcDebug, 'Fetching list of collations ...');
   Ping;
@@ -1502,9 +1573,9 @@ begin
 end;
 
 
-function TMySQLConnection.GetCollationList: TStringList;
+function TDBConnection.GetCollationList: TStringList;
 var
-  c: TMySQLQuery;
+  c: TDBQuery;
 begin
   c := CollationTable;
   Result := TStringList.Create;
@@ -1515,7 +1586,7 @@ begin
 end;
 
 
-function TMySQLConnection.GetCharsetTable: TMySQLQuery;
+function TMySQLConnection.GetCharsetTable: TDBQuery;
 begin
   Log(lcDebug, 'Fetching charset list ...');
   Ping;
@@ -1525,9 +1596,9 @@ begin
 end;
 
 
-function TMySQLConnection.GetCharsetList: TStringList;
+function TDBConnection.GetCharsetList: TStringList;
 var
-  c: TMySQLQuery;
+  c: TDBQuery;
 begin
   c := CharsetTable;
   Result := TStringList.Create;
@@ -1555,7 +1626,7 @@ begin
 end;
 
 
-function TMySQLConnection.GetConnectionUptime: Integer;
+function TDBConnection.GetConnectionUptime: Integer;
 begin
   // Return seconds since last connect
   if not FActive then
@@ -1565,14 +1636,14 @@ begin
 end;
 
 
-function TMySQLConnection.GetServerUptime: Integer;
+function TDBConnection.GetServerUptime: Integer;
 begin
   // Return server uptime in seconds
   Result := Integer(GetTickCount div 1000) - FServerStarted;
 end;
 
 
-function TMySQLConnection.GetCurrentUserHostCombination: String;
+function TDBConnection.GetCurrentUserHostCombination: String;
 begin
   // Return current user@host combination, used by various object editors for DEFINER clauses
   Log(lcDebug, 'Fetching user@host ...');
@@ -1583,7 +1654,7 @@ begin
 end;
 
 
-procedure TMySQLConnection.ClearCache(IncludeDBObjects: Boolean);
+procedure TDBConnection.ClearCache(IncludeDBObjects: Boolean);
 begin
   // Free cached lists and results. Called when the connection was closed and/or destroyed
   FreeAndNil(FCollationTable);
@@ -1597,7 +1668,7 @@ begin
 end;
 
 
-procedure TMySQLConnection.ClearDbObjects(db: String);
+procedure TDBConnection.ClearDbObjects(db: String);
 var
   i: Integer;
 begin
@@ -1613,7 +1684,7 @@ begin
 end;
 
 
-procedure TMySQLConnection.ClearAllDbObjects;
+procedure TDBConnection.ClearAllDbObjects;
 var
   i: Integer;
 begin
@@ -1622,7 +1693,7 @@ begin
 end;
 
 
-function TMySQLConnection.DbObjectsCached(db: String): Boolean;
+function TDBConnection.DbObjectsCached(db: String): Boolean;
 var
   i: Integer;
 begin
@@ -1664,7 +1735,7 @@ end;
 function TMySQLConnection.GetDbObjects(db: String; Refresh: Boolean=False): TDBObjectList;
 var
   obj: TDBObject;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   rx: TRegExpr;
   i: Integer;
 begin
@@ -1694,6 +1765,7 @@ begin
     try
       Results := GetResults('SHOW TABLE STATUS FROM '+QuoteIdent(db));
     except
+      on E:EDatabaseError do;
     end;
     if Assigned(Results) then begin
       while not Results.Eof do begin
@@ -1740,6 +1812,7 @@ begin
     if ServerVersionInt >= 50000 then try
       Results := GetResults('SHOW FUNCTION STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
     except
+      on E:EDatabaseError do;
     end;
     if Assigned(Results) then begin
       while not Results.Eof do begin
@@ -1760,6 +1833,7 @@ begin
     if ServerVersionInt >= 50000 then try
       Results := GetResults('SHOW PROCEDURE STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
     except
+      on E:EDatabaseError do;
     end;
     if Assigned(Results) then begin
       while not Results.Eof do begin
@@ -1780,6 +1854,7 @@ begin
     if ServerVersionInt >= 50010 then try
       Results := GetResults('SHOW TRIGGERS FROM '+QuoteIdent(db));
     except
+      on E:EDatabaseError do;
     end;
     if Assigned(Results) then begin
       while not Results.Eof do begin
@@ -1799,6 +1874,7 @@ begin
     if ServerVersionInt >= 50100 then try
       Results := GetResults('SHOW EVENTS FROM '+QuoteIdent(db));
     except
+      on E:EDatabaseError do;
     end;
     if Assigned(Results) then begin
       while not Results.Eof do begin
@@ -1827,7 +1903,7 @@ begin
 end;
 
 
-procedure TMySQLConnection.SetObjectNamesInSelectedDB;
+procedure TDBConnection.SetObjectNamesInSelectedDB;
 var
   i: Integer;
   Objects: TDBObjectList;
@@ -1948,7 +2024,7 @@ var
   Col: TTableColumn;
   Key: TTableKey;
   ForeignKey: TForeignKey;
-  Collations: TMySQLQuery;
+  Collations: TDBQuery;
 begin
   if Assigned(Columns) then Columns.Clear;
   if Assigned(Keys) then Keys.Clear;
@@ -2176,7 +2252,7 @@ procedure TMySQLConnection.ParseViewStructure(CreateCode, ViewName: String; Colu
 var
   rx: TRegExpr;
   Col: TTableColumn;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   DbName, DbAndViewName: String;
 begin
   if CreateCode <> '' then begin
@@ -2354,7 +2430,7 @@ end;
 
 { TMySQLQuery }
 
-constructor TMySQLQuery.Create(AOwner: TComponent);
+constructor TDBQuery.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FRecNo := -1;
@@ -2364,6 +2440,12 @@ begin
   FColumnOrgNames := TStringList.Create;
   FColumnOrgNames.CaseSensitive := True;
   FStoreResult := True;
+end;
+
+
+destructor TDBQuery.Destroy;
+begin
+  inherited Destroy;
 end;
 
 
@@ -2388,13 +2470,7 @@ begin
 end;
 
 
-procedure TMySQLQuery.SetSQL(Value: String);
-begin
-  FSQL := Value;
-end;
-
-
-procedure TMySQLQuery.Execute(AddResult: Boolean=False; Res: PMYSQL_RES=nil);
+procedure TMySQLQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
   i, j, NumFields: Integer;
   NumResults: Int64;
@@ -2402,10 +2478,15 @@ var
   IsBinary: Boolean;
   FLastResult: PMYSQL_RES;
 begin
-  if Res <> nil then
-    FLastResult := Res
+  // Execute a query, or just take over one of the last result pointers
+  if UseRawResult = -1 then begin
+    Connection.Query(FSQL, FStoreResult);
+    UseRawResult := 0;
+  end;
+  if Connection.ResultCount > UseRawResult then
+    FLastResult := TMySQLConnection(Connection).LastRawResults[UseRawResult]
   else
-    FLastResult := Connection.Query(FSQL, FStoreResult);
+    FLastResult := nil;
   if AddResult and (Length(FResultList) = 0) then
     AddResult := False;
   if AddResult then
@@ -2474,20 +2555,20 @@ begin
 end;
 
 
-procedure TMySQLQuery.SetColumnOrgNames(Value: TStringList);
+procedure TDBQuery.SetColumnOrgNames(Value: TStringList);
 begin
   // Retrieve original column names from caller
   FColumnOrgNames.Text := Value.Text;
 end;
 
 
-procedure TMySQLQuery.First;
+procedure TDBQuery.First;
 begin
   RecNo := 0;
 end;
 
 
-procedure TMySQLQuery.Next;
+procedure TDBQuery.Next;
 begin
   RecNo := RecNo + 1;
 end;
@@ -2551,7 +2632,7 @@ begin
 end;
 
 
-function TMySQLQuery.ColumnCount: Integer;
+function TDBQuery.ColumnCount: Integer;
 begin
   Result := ColumnNames.Count;
 end;
@@ -2578,7 +2659,7 @@ begin
 end;
 
 
-function TMySQLQuery.Col(ColumnName: String; IgnoreErrors: Boolean=False): String;
+function TDBQuery.Col(ColumnName: String; IgnoreErrors: Boolean=False): String;
 var
   idx: Integer;
 begin
@@ -2604,7 +2685,7 @@ begin
 end;
 
 
-function TMySQLQuery.DataType(Column: Integer): TDataType;
+function TDBQuery.DataType(Column: Integer): TDataType;
 var
   Col: TTableColumn;
 begin
@@ -2616,7 +2697,7 @@ begin
 end;
 
 
-function TMySQLQuery.MaxLength(Column: Integer): Int64;
+function TDBQuery.MaxLength(Column: Integer): Int64;
 var
   ColAttr: TTableColumn;
 begin
@@ -2636,7 +2717,7 @@ begin
 end;
 
 
-function TMySQLQuery.ValueList(Column: Integer): TStringList;
+function TDBQuery.ValueList(Column: Integer): TStringList;
 var
   ColAttr: TTableColumn;
 begin
@@ -2649,7 +2730,7 @@ begin
 end;
 
 
-function TMySQLQuery.ColAttributes(Column: Integer): TTableColumn;
+function TDBQuery.ColAttributes(Column: Integer): TTableColumn;
 var
   i: Integer;
 begin
@@ -2667,7 +2748,7 @@ begin
 end;
 
 
-function TMySQLQuery.ColExists(Column: String): Boolean;
+function TDBQuery.ColExists(Column: String): Boolean;
 begin
   Result := (ColumnNames <> nil) and (ColumnNames.IndexOf(Column) > -1);
 end;
@@ -2700,7 +2781,7 @@ begin
 end;
 
 
-function TMySQLQuery.IsNull(Column: String): Boolean;
+function TDBQuery.IsNull(Column: String): Boolean;
 begin
   Result := IsNull(FColumnNames.IndexOf(Column));
 end;
@@ -2712,9 +2793,9 @@ begin
 end;
 
 
-procedure TMySQLQuery.PrepareEditing;
+procedure TDBQuery.PrepareEditing;
 var
-  Res: TMySQLQuery;
+  Res: TDBQuery;
   CreateCode, Dummy: String;
 begin
   // Try to fetch column names and keys
@@ -2737,7 +2818,7 @@ begin
 end;
 
 
-function TMySQLQuery.DeleteRow: Boolean;
+function TDBQuery.DeleteRow: Boolean;
 var
   sql: String;
   IsVirtual: Boolean;
@@ -2757,7 +2838,7 @@ begin
 end;
 
 
-function TMySQLQuery.InsertRow: Cardinal;
+function TDBQuery.InsertRow: Cardinal;
 var
   Row, OtherRow: TRowData;
   c: TCellData;
@@ -2800,7 +2881,7 @@ begin
 end;
 
 
-procedure TMySQLQuery.SetCol(Column: Integer; NewText: String; Null: Boolean);
+procedure TDBQuery.SetCol(Column: Integer; NewText: String; Null: Boolean);
 begin
   PrepareEditing;
   if not Assigned(FCurrentUpdateRow) then begin
@@ -2817,7 +2898,7 @@ begin
 end;
 
 
-procedure TMySQLQuery.CreateUpdateRow;
+procedure TDBQuery.CreateUpdateRow;
 var
   i: Integer;
   c: TCellData;
@@ -2840,11 +2921,11 @@ begin
 end;
 
 
-function TMySQLQuery.EnsureFullRow: Boolean;
+function TDBQuery.EnsureFullRow: Boolean;
 var
   i: Integer;
   sql: String;
-  Data: TMySQLQuery;
+  Data: TDBQuery;
 begin
   // Load full column values
   Result := True;
@@ -2874,7 +2955,7 @@ begin
 end;
 
 
-function TMySQLQuery.HasFullData: Boolean;
+function TDBQuery.HasFullData: Boolean;
 var
   Val: String;
   i: Integer;
@@ -2892,7 +2973,7 @@ begin
 end;
 
 
-function TMySQLQuery.SaveModifications: Boolean;
+function TDBQuery.SaveModifications: Boolean;
 var
   i: Integer;
   Row: TRowData;
@@ -2969,7 +3050,7 @@ begin
 end;
 
 
-procedure TMySQLQuery.DiscardModifications;
+procedure TDBQuery.DiscardModifications;
 var
   x: Integer;
   c: TCellData;
@@ -2988,7 +3069,7 @@ begin
 end;
 
 
-function TMySQLQuery.Modified(Column: Integer): Boolean;
+function TDBQuery.Modified(Column: Integer): Boolean;
 begin
   Result := False;
   if FEditingPrepared and Assigned(FCurrentUpdateRow) then try
@@ -3000,7 +3081,7 @@ begin
 end;
 
 
-function TMySQLQuery.Modified: Boolean;
+function TDBQuery.Modified: Boolean;
 var
   x, y: Integer;
 begin
@@ -3017,7 +3098,7 @@ begin
 end;
 
 
-function TMySQLQuery.Inserted: Boolean;
+function TDBQuery.Inserted: Boolean;
 begin
   // Check if current row was inserted and not yet posted to the server
   Result := False;
@@ -3088,7 +3169,7 @@ begin
 end;
 
 
-function TMySQLQuery.QuotedDbAndTableName: String;
+function TDBQuery.QuotedDbAndTableName: String;
 var
   db: String;
 begin
@@ -3100,7 +3181,7 @@ begin
 end;
 
 
-function TMySQLQuery.GetKeyColumns: TStringList;
+function TDBQuery.GetKeyColumns: TStringList;
 var
   NeededCols: TStringList;
   i: Integer;
@@ -3122,7 +3203,7 @@ begin
 end;
 
 
-procedure TMySQLQuery.CheckEditable;
+procedure TDBQuery.CheckEditable;
 var
   i: Integer;
 begin
@@ -3136,7 +3217,7 @@ begin
 end;
 
 
-function TMySQLQuery.GetWhereClause: String;
+function TDBQuery.GetWhereClause: String;
 var
   i, j: Integer;
   NeededCols: TStringList;
@@ -3212,7 +3293,7 @@ end;
 
 { TDBObject }
 
-constructor TDBObject.Create(OwnerConnection: TMySQLConnection);
+constructor TDBObject.Create(OwnerConnection: TDBConnection);
 begin
   NodeType := lntNone;
   Name := '';

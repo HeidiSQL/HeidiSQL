@@ -7,7 +7,7 @@ interface
 uses
   Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Mask, DateUtils, Math,
-  mysql_connection, mysql_structures, helpers, texteditor, bineditor;
+  dbconnection, mysql_structures, helpers, texteditor, bineditor;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control

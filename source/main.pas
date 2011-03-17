@@ -17,14 +17,14 @@ uses
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns, IOUtils, Types,
   CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
-  TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, mysql_connection,
+  TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch;
 
 
 type
   TQueryTab = class;
   TResultTab = class(TObject)
-    Results: TMySQLQuery;
+    Results: TDBQuery;
     Grid: TVirtualStringTree;
     FilterText: String;
     public
@@ -52,7 +52,7 @@ type
     ResultTabs: TResultTabs;
     DoProfile: Boolean;
     QueryRunning: Boolean;
-    QueryProfile: TMySQLQuery;
+    QueryProfile: TDBQuery;
     ProfileTime, MaxProfileTime: Extended;
     LeftOffsetInMemo: Integer;
     function GetActiveResultTab: TResultTab;
@@ -596,7 +596,7 @@ type
     procedure ValidateQueryControls(Sender: TObject);
     procedure DataGridBeforePaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas);
-    procedure LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo; Connection: TMySQLConnection=nil);
+    procedure LogSQL(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil);
     procedure KillProcess(Sender: TObject);
     procedure SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     procedure TimerHostUptimeTimer(Sender: TObject);
@@ -868,7 +868,7 @@ type
     FSearchReplaceExecuted: Boolean;
     FDataGridColumnWidthsCustomized: Boolean;
     FSnippetFilenames: TStringList;
-    FConnections: TMySQLConnectionList;
+    FConnections: TDBConnectionList;
     FTreeClickHistory: TNodeArray;
     FOperationTicker: Cardinal;
     FOperatingGrid: TBaseVirtualTree;
@@ -877,10 +877,10 @@ type
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
     procedure insertFunction(Sender: TObject);
-    function GetRootNode(Tree: TBaseVirtualTree; Connection: TMySQLConnection): PVirtualNode;
-    function GetActiveConnection: TMySQLConnection;
+    function GetRootNode(Tree: TBaseVirtualTree; Connection: TDBConnection): PVirtualNode;
+    function GetActiveConnection: TDBConnection;
     function GetActiveDatabase: String;
-    procedure SetActiveDatabase(db: String; Connection: TMySQLConnection);
+    procedure SetActiveDatabase(db: String; Connection: TDBConnection);
     function GetActiveDBObj: TDBObject;
     procedure SetActiveDBObj(Obj: TDBObject);
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
@@ -889,8 +889,8 @@ type
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
     procedure UpdateFilterPanel(Sender: TObject);
-    procedure DBObjectsCleared(Connection: TMySQLConnection; Database: String);
-    procedure DatabaseChanged(Connection: TMySQLConnection; Database: String);
+    procedure DBObjectsCleared(Connection: TDBConnection; Database: String);
+    procedure DatabaseChanged(Connection: TDBConnection; Database: String);
     procedure DoSearchReplace;
     procedure UpdateLineCharPanel;
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
@@ -899,7 +899,7 @@ type
     procedure OperationRunning(Runs: Boolean);
     function FindQueryTabByThread(Thread: TQueryThread): TQueryTab;
   public
-    AllDatabasesDetails: TMySQLQuery;
+    AllDatabasesDetails: TDBQuery;
     btnAddTab: TSpeedButton;
     QueryTabs: TObjectList<TQueryTab>;
     DBObjectsMaxSize: Int64;
@@ -968,7 +968,7 @@ type
     DataGridFocusedCell: TStringList;
     DataGridFocusedNodeIndex: Int64;
     DataGridFocusedColumnName: String;
-    DataGridResult: TMySQLQuery;
+    DataGridResult: TDBQuery;
     DataGridFullRowMode: Boolean;
     SelectedTableColumns: TTableColumnList;
     SelectedTableKeys: TTableKeyList;
@@ -988,7 +988,7 @@ type
     DirnameUserAppData: String;
     DirnameSnippets: String;
 
-    property Connections: TMySQLConnectionList read FConnections;
+    property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
     procedure CallSQLHelpWithKeyword( keyword: String );
     procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
@@ -998,11 +998,11 @@ type
     procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
     procedure SessionConnect(Sender: TObject);
     function InitConnection(Params: TConnectionParameters; Session: String;
-      ActivateMe: Boolean; var Connection: TMySQLConnection): Boolean;
-    procedure ConnectionsNotify(Sender: TObject; const Item: TMySQLConnection; Action: TCollectionNotification);
+      ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
+    procedure ConnectionsNotify(Sender: TObject; const Item: TDBConnection; Action: TCollectionNotification);
     function ActiveGrid: TVirtualStringTree;
-    function GridResult(Grid: TBaseVirtualTree): TMySQLQuery;
-    property ActiveConnection: TMySQLConnection read GetActiveConnection;
+    function GridResult(Grid: TBaseVirtualTree): TDBQuery;
+    property ActiveConnection: TDBConnection read GetActiveConnection;
     property ActiveDatabase: String read GetActiveDatabase;
     property ActiveDbObj: TDBObject read GetActiveDbObj write SetActiveDBObj;
     procedure TestVTreeDataArray( P: PVTreeDataArray );
@@ -1195,7 +1195,7 @@ procedure TMainForm.FormDestroy(Sender: TObject);
 var
   WinState, OpenSessions: String;
   i: Integer;
-  Connection: TMySQLConnection;
+  Connection: TDBConnection;
 begin
   // Destroy editors and dialogs. Must be done before connection gets closed, as some destructors do SQL stuff.
   FreeAndNil(ActiveObjectEditor);
@@ -1592,7 +1592,7 @@ begin
   SelectedTableForeignKeys := TForeignKeyList.Create;
 
   // Set up connections list
-  FConnections := TMySQLConnectionList.Create;
+  FConnections := TDBConnectionList.Create;
   FConnections.OnNotify := ConnectionsNotify;
 
   // Load database filter items. Was previously bound to sessions before multi connections were implemented
@@ -1614,7 +1614,7 @@ end;
 procedure TMainForm.Startup;
 var
   CmdlineParameters, LastSessions: TStringlist;
-  Connection: TMySQLConnection;
+  Connection: TDBConnection;
   LoadedParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
@@ -1835,7 +1835,7 @@ end;
 
 procedure TMainForm.actDisconnectExecute(Sender: TObject);
 var
-  Connection: TMySQLConnection;
+  Connection: TDBConnection;
   Node: PVirtualNode;
   DlgResult: Integer;
 begin
@@ -1857,9 +1857,9 @@ begin
 end;
 
 
-procedure TMainForm.ConnectionsNotify(Sender: TObject; const Item: TMySQLConnection; Action: TCollectionNotification);
+procedure TMainForm.ConnectionsNotify(Sender: TObject; const Item: TDBConnection; Action: TCollectionNotification);
 var
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   Tab: TQueryTab;
 begin
   // Connection removed or added
@@ -2058,7 +2058,7 @@ var
   i: integer;
   item: TMenuItem;
   SessionNames: TStringList;
-  Connection: TMySQLConnection;
+  Connection: TDBConnection;
 begin
   // Delete dynamically added connection menu items.
   menuConnections.Items.Clear;
@@ -2238,7 +2238,7 @@ var
   NewTab: TResultTab;
   col: TVirtualTreeColumn;
   TabCaption: String;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   i: Integer;
 begin
   // Single query or query packet has finished
@@ -2508,7 +2508,7 @@ end;
 procedure TMainForm.UpdatePreviewPanel;
 var
   Grid: TVirtualStringTree;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   RowNum: PCardinal;
   ImgType: String;
   Content, Header: AnsiString;
@@ -2610,7 +2610,7 @@ end;
 procedure TMainForm.actDataSaveBlobToFileExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   RowNum: PCardinal;
   Content: AnsiString;
   FileStream: TFileStream;
@@ -2666,7 +2666,7 @@ var
   DBObject: TDBObject;
   ObjectList: TDBObjectList;
   Editor: TDBObjectEditor;
-  Conn: TMySQLConnection;
+  Conn: TDBConnection;
 begin
   Conn := ActiveConnection;
 
@@ -2776,7 +2776,7 @@ end;
 procedure TMainForm.SessionConnect(Sender: TObject);
 var
   Session: String;
-  Connection: TMySQLConnection;
+  Connection: TDBConnection;
   Params: TConnectionParameters;
   Node, SessionNode: PVirtualNode;
   DBObj: PDBObject;
@@ -2821,7 +2821,7 @@ end;
   Paremeters are either sent by connection-form or by commandline.
 }
 function TMainform.InitConnection(Params: TConnectionParameters; Session: String;
-  ActivateMe: Boolean; var Connection: TMySQLConnection): Boolean;
+  ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
 var
   i: Integer;
   SessionExists, RestoreLastActiveDatabase: Boolean;
@@ -2829,13 +2829,12 @@ var
   StartupBatch: TSQLBatch;
   SessionNode, DBNode: PVirtualNode;
 begin
-  Connection := TMySQLConnection.Create(Self);
+  Connection := Params.CreateConnection(Self);
   Connection.OnLog := LogSQL;
   Connection.OnDBObjectsCleared := DBObjectsCleared;
   Connection.OnDatabaseChanged := DatabaseChanged;
   Connection.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
   Connection.SessionName := Session;
-  Connection.Parameters := Params;
   try
     Connection.Active := True;
   except
@@ -2911,7 +2910,7 @@ var
   Grid: TVirtualStringTree;
   Node, FocusAfterDelete: PVirtualNode;
   RowNum: PCardinal;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   Nodes: TNodeArray;
   i: Integer;
 begin
@@ -3627,7 +3626,7 @@ procedure TMainForm.actDataInsertExecute(Sender: TObject);
 var
   DupeNode, NewNode: PVirtualNode;
   Grid: TVirtualStringTree;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   RowNum: Cardinal;
   DupeNum: PCardinal;
   i: Integer;
@@ -3688,7 +3687,7 @@ end;
 procedure TMainForm.actDataPostChangesExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
 begin
   if Sender is TVirtualStringTree then
     Grid := Sender as TVirtualStringTree
@@ -3712,7 +3711,7 @@ end;
 procedure TMainForm.actDataCancelChangesExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   RowNum: PCardinal;
   Node, FocNode: PVirtualNode;
 begin
@@ -3753,7 +3752,7 @@ end;
 {**
   Add a SQL-command or comment to SynMemoSQLLog
 }
-procedure TMainForm.LogSQL(Msg: String; Category: TMySQLLogCategory=lcInfo; Connection: TMySQLConnection=nil);
+procedure TMainForm.LogSQL(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil);
 var
   snip, IsSQL: Boolean;
   Len: Integer;
@@ -3857,7 +3856,7 @@ end;
 function TMainForm.AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
 var
   RowNum: PCardinal;
-  Data: TMySQLQuery;
+  Data: TDBQuery;
 begin
   // Load remaining data on a partially loaded row in data grid
   Result := True;
@@ -3873,7 +3872,7 @@ end;
 procedure TMainForm.DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
 var
   Node: PVirtualNode;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   RowNum: PCardinal;
 begin
   // Load remaining data of all grid rows
@@ -4029,7 +4028,7 @@ begin
     try
       ShowStatusMsg('Fetching rows ...');
       if not Assigned(DataGridResult) then
-        DataGridResult := TMySQLQuery.Create(Self);
+        DataGridResult := ActiveConnection.Parameters.CreateQuery(Self);
       DataGridResult.Connection := ActiveConnection;
       DataGridResult.SQL := Select;
       DataGridResult.Execute(Offset > 0);
@@ -4397,7 +4396,7 @@ procedure TMainForm.ValidateControls(Sender: TObject);
 var
   inDataTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty, inGrid, GridHasChanges: Boolean;
   Grid: TVirtualStringTree;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   RowNum: PCardinal;
 begin
   Grid := ActiveGrid;
@@ -4530,7 +4529,7 @@ procedure TMainForm.SynCompletionProposalExecute(Kind: SynCompletionType;
   var CanExecute: Boolean);
 var
   i,j: Integer;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   DBObjects: TDBObjectList;
   sql, TableClauses, tablename, PrevShortToken, PrevLongToken, Token: String;
   Tables: TStringList;
@@ -4553,7 +4552,7 @@ var
   procedure addColumns( tablename: String );
   var
     dbname : String;
-    Columns: TMySQLQuery;
+    Columns: TDBQuery;
   begin
     dbname := ActiveDatabase;
     if Pos( '.', tablename ) > -1 then
@@ -5394,7 +5393,7 @@ end;
 procedure TMainForm.popupDataGridPopup(Sender: TObject);
 var
   Grid: TVirtualStringTree;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   i: Integer;
   Col, Value: String;
   CellFocused, InDataGrid, HasNullValue, HasNotNullValue: Boolean;
@@ -5523,7 +5522,7 @@ end;
 
 procedure TMainForm.QFvaluesClick(Sender: TObject);
 var
-  Data: TMySQLQuery;
+  Data: TDBQuery;
   Col: String;
   Item: TMenuItem;
   i: Integer;
@@ -5593,7 +5592,7 @@ begin
 end;
 
 
-function TMainForm.GetRootNode(Tree: TBaseVirtualTree; Connection: TMySQLConnection): PVirtualNode;
+function TMainForm.GetRootNode(Tree: TBaseVirtualTree; Connection: TDBConnection): PVirtualNode;
 var
   SessionNode: PVirtualNode;
   SessionObj: PDBObject;
@@ -5611,7 +5610,7 @@ begin
 end;
 
 
-function TMainForm.GetActiveConnection: TMySQLConnection;
+function TMainForm.GetActiveConnection: TDBConnection;
 begin
   Result := nil;
   if Assigned(ActiveDbObj) then
@@ -5628,7 +5627,7 @@ begin
 end;
 
 
-procedure TMainForm.SetActiveDatabase(db: String; Connection: TMySQLConnection);
+procedure TMainForm.SetActiveDatabase(db: String; Connection: TDBConnection);
 var
   SessionNode, DBNode: PVirtualNode;
   DBObj: PDBObject;
@@ -6971,7 +6970,7 @@ begin
 end;
 
 
-procedure TMainForm.DBObjectsCleared(Connection: TMySQLConnection; Database: String);
+procedure TMainForm.DBObjectsCleared(Connection: TDBConnection; Database: String);
 var
   Node: PVirtualNode;
 begin
@@ -6997,7 +6996,7 @@ begin
 end;
 
 
-procedure TMainForm.DatabaseChanged(Connection: TMySQLConnection; Database: String);
+procedure TMainForm.DatabaseChanged(Connection: TDBConnection; Database: String);
 begin
   // Immediately force db icons to repaint, so the user sees the active db state
   DBtree.Repaint;
@@ -7199,7 +7198,7 @@ procedure TMainForm.AnyGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
 var
   EditingAndFocused: Boolean;
   RowNumber: PCardinal;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
 begin
   if Column = -1 then
     Exit;
@@ -7250,7 +7249,7 @@ procedure TMainForm.AnyGridPaintText(Sender: TBaseVirtualTree; const TargetCanva
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
 var
   cl: TColor;
-  r: TMySQLQuery;
+  r: TDBQuery;
   RowNumber: PCardinal;
 begin
   if Column = NoColumn then
@@ -7280,7 +7279,7 @@ end;
 procedure TMainForm.AnyGridAfterCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
   Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
 var
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   RowNum: PCardinal;
 begin
   // Don't waist time
@@ -7357,7 +7356,7 @@ procedure TMainForm.actDataSetNullExecute(Sender: TObject);
 var
   RowNum: PCardinal;
   Grid: TVirtualStringTree;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
 begin
   // Set cell to NULL value
   Grid := ActiveGrid;
@@ -7401,7 +7400,7 @@ end;
 }
 procedure TMainForm.AnyGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   RowNum: PCardinal;
 begin
   Results := GridResult(Sender);
@@ -7425,7 +7424,7 @@ procedure TMainForm.AnyGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
     NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed:
     Boolean);
 var
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   RowNum: PCardinal;
 begin
   // Detect changed focus and update row
@@ -7528,7 +7527,7 @@ var
   Columns: TTableColumnList;
   Keys: TTableKeyList;
   ForeignKeys: TForeignKeyList;
-  ForeignResults, Results: TMySQLQuery;
+  ForeignResults, Results: TDBQuery;
   RowNum: PCardinal;
 begin
   VT := Sender as TVirtualStringTree;
@@ -7698,7 +7697,7 @@ procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
-  r: TMySQLQuery;
+  r: TDBQuery;
   cl: TColor;
   RowNumber: PCardinal;
 begin
@@ -7854,7 +7853,7 @@ procedure TMainForm.AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
 var
   Grid: TVirtualStringTree;
   Hit: THitInfo;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
 begin
   // Detect mouse hit in grid whitespace and apply changes.
   Grid := Sender as TVirtualStringTree;
@@ -8036,7 +8035,7 @@ procedure TMainForm.ListVariablesBeforePaint(Sender: TBaseVirtualTree; TargetCan
 var
   i : Integer;
   vt: TVirtualStringTree;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   OldOffset: TPoint;
 begin
   // Display server variables
@@ -8078,7 +8077,7 @@ var
   i: Integer;
   valcount: Int64;
   tmpval: Double;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   val, avg_perhour, avg_persec: String;
   valIsBytes, valIsNumber: Boolean;
   vt: TVirtualStringTree;
@@ -8154,7 +8153,7 @@ end;
 procedure TMainForm.ListProcessesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   i, j: Integer;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   vt: TVirtualStringTree;
   Text: String;
   OldOffset: TPoint;
@@ -8251,7 +8250,7 @@ procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; Target
 var
   i: Integer;
   questions: Int64;
-  Results: TMySQLQuery;
+  Results: TDBQuery;
   vt: TVirtualStringTree;
   OldOffset: TPoint;
 begin
@@ -9141,7 +9140,7 @@ begin
 end;
 
 
-function TMainForm.GridResult(Grid: TBaseVirtualTree): TMySQLQuery;
+function TMainForm.GridResult(Grid: TBaseVirtualTree): TDBQuery;
 var
   QueryTab: TQueryTab;
   CurrentTab: TTabSheet;
@@ -9618,7 +9617,7 @@ end;
 procedure TMainForm.WMCopyData(var Msg: TWMCopyData);
 var
   i: Integer;
-  Connection: TMySQLConnection;
+  Connection: TDBConnection;
 begin
   // Probably a second instance is posting its command line parameters here
   if (Msg.CopyDataStruct.dwData = SecondInstMsgId) and (SecondInstMsgId <> 0) then begin
@@ -9726,7 +9725,7 @@ end;
 
 procedure TMainForm.actCancelOperationExecute(Sender: TObject);
 var
-  Killer: TMySQLConnection;
+  Killer: TDBConnection;
   KillCommand: String;
   Tab: TQueryTab;
 begin
@@ -9738,7 +9737,7 @@ begin
   for Tab in QueryTabs do begin
     if Tab.QueryRunning then begin
       Tab.ExecutionThread.Aborted := True;
-      Killer := TMySQLConnection.Create(Self);
+      Killer := ActiveConnection.Parameters.CreateConnection(Self);
       Killer.Parameters := ActiveConnection.Parameters;
       Killer.LogPrefix := '[HelperConnection] ';
       Killer.OnLog := LogSQL;

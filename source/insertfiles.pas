@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, ImgList,
   ShellApi, Math,
-  mysql_connection;
+  dbconnection;
 
 type TCol = record
   Name   : String;   // for displaying in lists
@@ -108,7 +108,7 @@ end;
 { Show Columns from selected table }
 procedure TfrmInsertFiles.ComboBoxTablesChange(Sender: TObject);
 var
-  Results: TMySQLQuery;
+  Results: TDBQuery;
 begin
   setlength(cols, 0);
   if ComboBoxTables.ItemIndex > -1 then begin

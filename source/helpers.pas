@@ -12,7 +12,7 @@ uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ComCtrls, ShellApi, CheckLst,
   Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, SynEditHighlighter, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
-  mysql_connection, mysql_structures;
+  dbconnection, mysql_structures;
 
 type
 
@@ -74,7 +74,7 @@ type
   // Threading stuff
   TQueryThread = class(TThread)
   private
-    FConnection: TMySQLConnection;
+    FConnection: TDBConnection;
     FBatch: TSQLBatch;
     FBatchInOneGo: Boolean;
     FStopOnErrors: Boolean;
@@ -86,16 +86,16 @@ type
     FQueryNetTime: Cardinal;
     FRowsAffected: Int64;
     FRowsFound: Int64;
-    FResults: TMySQLQueryList;
+    FResults: TDBQueryList;
   private
     procedure BeforeQuery;
     procedure AfterQuery;
     procedure BatchFinished;
   public
-    property Connection: TMySQLConnection read FConnection;
+    property Connection: TDBConnection read FConnection;
     property Batch: TSQLBatch read FBatch;
     property BatchPosition: Integer read FBatchPosition;
-    property Results: TMySQLQueryList read FResults;
+    property Results: TDBQueryList read FResults;
     property QueriesInPacket: Integer read FQueriesInPacket;
     property QueryTime: Cardinal read FQueryTime;
     property QueryNetTime: Cardinal read FQueryNetTime;
@@ -103,7 +103,7 @@ type
     property RowsFound: Int64 read FRowsFound;
     property Aborted: Boolean read FAborted write FAborted;
     property ErrorMessage: String read FErrorMessage;
-    constructor Create(Connection: TMySQLConnection; Batch: TSQLBatch);
+    constructor Create(Connection: TDBConnection; Batch: TSQLBatch);
     procedure Execute; override;
   end;
 
@@ -122,7 +122,7 @@ type
   function decrypt(str: String): String;
   function htmlentities(str: String): String;
   procedure GridExport(Grid: TVirtualStringTree; S: TStream; ExportFormat: TGridExportFormat);
-  function BestTableName(Data: TMySQLQuery): String;
+  function BestTableName(Data: TDBQuery): String;
   function urlencode(url: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
@@ -493,7 +493,7 @@ var
   Col: TColumnIndex;
   Header, Data, tmp, Encloser, Separator, Terminator, TableName: String;
   Node: PVirtualNode;
-  GridData: TMySQLQuery;
+  GridData: TDBQuery;
   SelectionOnly: Boolean;
   NodeCount: Cardinal;
   RowNum: PCardinal;
@@ -755,7 +755,7 @@ end;
 
 
 
-function BestTableName(Data: TMySQLQuery): String;
+function BestTableName(Data: TDBQuery): String;
 begin
   // Get table name from result if possible. Used by GridToXYZ() functions.
   try
@@ -2880,7 +2880,7 @@ end;
 
 { Threading stuff }
 
-constructor TQueryThread.Create(Connection: TMySQLConnection; Batch: TSQLBatch);
+constructor TQueryThread.Create(Connection: TDBConnection; Batch: TSQLBatch);
 begin
   inherited Create(False);
   FConnection := Connection;
@@ -2894,7 +2894,7 @@ begin
   FErrorMessage := '';
   FBatchInOneGo := MainForm.actBatchInOneGo.Checked;
   FStopOnErrors := MainForm.actQueryStopOnErrors.Checked;
-  FResults := TMySQLQueryList.Create;
+  FResults := TDBQueryList.Create;
   FConnection.LockedByThread := Self;
   FreeOnTerminate := True;
   Priority := tpNormal;
@@ -2906,7 +2906,7 @@ var
   SQL: String;
   i, BatchStartOffset: Integer;
   PacketSize, MaxAllowedPacket: Int64;
-  QueryResult: TMySQLQuery;
+  QueryResult: TDBQuery;
 begin
   inherited;
 
