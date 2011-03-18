@@ -506,7 +506,6 @@ type
 
   { TMySQLConnection }
 
-  TMySQLQuery = class;
   TMySQLRawResults = Array of PMYSQL_RES;
   TMySQLConnection = class(TDBConnection)
     private
