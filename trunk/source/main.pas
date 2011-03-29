@@ -1525,9 +1525,8 @@ begin
   DatatypeCategories[Integer(dtcText)].Color := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
   DatatypeCategories[Integer(dtcBinary)].Color := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
   DatatypeCategories[Integer(dtcTemporal)].Color := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
-  DatatypeCategories[Integer(dtcIntegerNamed)].Color := GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
-  DatatypeCategories[Integer(dtcSet)].Color := GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
-  DatatypeCategories[Integer(dtcSetNamed)].Color := GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
+  DatatypeCategories[Integer(dtcSpatial)].Color := GetRegValue(REGNAME_FIELDCOLOR_SPATIAL, DEFAULT_FIELDCOLOR_SPATIAL);
+  DatatypeCategories[Integer(dtcOther)].Color := GetRegValue(REGNAME_FIELDCOLOR_OTHER, DEFAULT_FIELDCOLOR_OTHER);
   prefNullBG := GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
   CalcNullColors;
   // Editor enablings
@@ -2685,7 +2684,7 @@ begin
           db := Conn.Database;
           Node := FindDBNode(DBtree, db);
           SetActiveDatabase('', Conn);
-          Conn.Query('DROP DATABASE ' + QuoteIdent(db));
+          Conn.Query('DROP DATABASE ' + Conn.QuoteIdent(db));
           DBtree.DeleteNode(Node);
           Conn.ClearDbObjects(db);
           Conn.RefreshAllDatabases;
@@ -2729,7 +2728,7 @@ begin
       // Compose and run DROP [TABLE|VIEW|...] queries
       Editor := ActiveObjectEditor;
       for DBObject in ObjectList do begin
-        Conn.Query('DROP '+UpperCase(DBObject.ObjType)+' '+QuoteIdent(DBObject.Name));
+        Conn.Query('DROP '+UpperCase(DBObject.ObjType)+' '+DBObject.QuotedName);
         if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
           Editor.Modified := False;
       end;
@@ -3025,7 +3024,7 @@ begin
       EnableProgressBar(Objects.Count);
       try
         for TableOrView in Objects do begin
-          ActiveConnection.Query('TRUNCATE ' + QuoteIdent(TableOrView.Name));
+          ActiveConnection.Query('TRUNCATE ' + TableOrView.QuotedName);
           ProgressBarStatus.StepIt;
         end;
         actRefresh.Execute;
@@ -3051,15 +3050,15 @@ end;
 procedure TMainForm.actRunRoutinesExecute(Sender: TObject);
 var
   Tab: TQueryTab;
-  Query, ParamInput,
-  DummyStr: String;
+  Query, ParamValues, ParamValue, DummyStr: String;
+  Params: TStringList;
   DummyBool: Boolean;
-  i: Integer;
   pObj: PDBObject;
   Obj: TDBObject;
   Objects: TDBObjectList;
   Node: PVirtualNode;
   Parameters: TRoutineParamList;
+  Param: TRoutineParam;
 begin
   // Run stored function(s) or procedure(s)
   Objects := TDBObjectList.Create(False);
@@ -3080,21 +3079,33 @@ begin
   for Obj in Objects do begin
     actNewQueryTab.Execute;
     Tab := QueryTabs[MainForm.QueryTabs.Count-1];
-    case Obj.NodeType of
-      lntProcedure: Query := 'CALL ';
-      lntFunction: Query := 'SELECT ';
+    case Obj.Connection.Parameters.NetType of
+      ntTCPIP, ntNamedPipe, ntSSHTunnel:
+        case Obj.NodeType of
+          lntProcedure: Query := 'CALL ';
+          lntFunction: Query := 'SELECT ';
+        end;
+      ntMSSQL:
+        Query := 'EXEC ';
     end;
     Parameters := TRoutineParamList.Create;
     Obj.Connection.ParseRoutineStructure(Obj.CreateCode, Parameters, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
-    Query := Query + QuoteIdent(Obj.Name);
-    ParamInput := '';
-    for i:=0 to Parameters.Count-1 do begin
-      if ParamInput <> '' then
-        ParamInput := ParamInput + ', ';
-      ParamInput := ParamInput + '''' + InputBox(Obj.Name, 'Parameter #'+IntToStr(i+1)+': '+Parameters[i].Name+' ('+Parameters[i].Datatype+')', '') + '''';
+    Query := Query + Obj.QuotedName;
+    Params := TStringList.Create;
+    for Param in Parameters do begin
+      ParamValue := InputBox(Obj.Name, 'Parameter "'+Param.Name+'" ('+Param.Datatype+')', '');
+      ParamValue := Obj.Connection.EscapeString(ParamValue);
+      Params.Add(ParamValue);
     end;
     Parameters.Free;
-    Query := Query + '('+ParamInput+')';
+    ParamValues := '';
+    if Params.Count > 0 then case Obj.Connection.Parameters.NetType of
+      ntTCPIP, ntNamedPipe, ntSSHTunnel:
+        ParamValues := '(' + ImplodeStr(', ', Params) + ')';
+      ntMSSQL:
+        ParamValues := ' ' + ImplodeStr(' ', Params);
+    end;
+    Query := Query + ParamValues;
     Tab.Memo.Text := Query;
     actExecuteQueryExecute(Sender);
   end;
@@ -3901,6 +3912,7 @@ var
   WantedColumns: TTableColumnList;
   c: TTableColumn;
   OldScrollOffset: TPoint;
+  DBObj: TDBObject;
 
   procedure InitColumn(idx: Integer; TblCol: TTableColumn);
   var
@@ -3956,20 +3968,21 @@ begin
     pnlDataTop.Enabled := True;
     pnlFilter.Enabled := True;
     lblSorryNoData.Parent := tabData;
+    DBObj := ActiveDbObj;
 
     // Indicates whether the current table data is just refreshed or if we're in another table
-    RefreshingData := (ActiveDatabase = DataGridDB) and (ActiveDbObj.Name = DataGridTable);
+    RefreshingData := (ActiveDatabase = DataGridDB) and (DBObj.Name = DataGridTable);
 
     // Load last view settings
     HandleDataGridAttributes(RefreshingData);
     OldScrollOffset := DataGrid.OffsetXY;
 
-    DataGridDB := ActiveDbObj.Database;
-    DataGridTable := ActiveDbObj.Name;
+    DataGridDB := DBObj.Database;
+    DataGridTable := DBObj.Name;
 
-    Select := 'SELECT ';
+    Select := '';
     // Ensure key columns are included to enable editing
-    KeyCols := ActiveConnection.GetKeyColumns(SelectedTableColumns, SelectedTableKeys);
+    KeyCols := DBObj.Connection.GetKeyColumns(SelectedTableColumns, SelectedTableKeys);
     WantedColumns := TTableColumnList.Create(False);
     WantedColumnOrgnames := TStringList.Create;
     for i:=0 to SelectedTableColumns.Count-1 do begin
@@ -3986,9 +3999,9 @@ begin
           and (not IsKeyColumn) // We need full length of any key column, so DataGridLoadFullRow() has the chance to fetch the right row
           and ((ColLen > GRIDMAXDATA) or (ColLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
           then
-            Select := Select + ' LEFT(' + QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), '
+            Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), '
           else
-            Select := Select + ' ' + QuoteIdent(c.Name) + ', ';
+            Select := Select + ' ' + DBObj.Connection.QuoteIdent(c.Name) + ', ';
         WantedColumns.Add(c);
         WantedColumnOrgnames.Add(c.Name);
       end;
@@ -3996,7 +4009,10 @@ begin
     // Cut last comma
     Delete(Select, Length(Select)-1, 2);
     // Include db name for cases in which dbtree is switching databases and pending updates are in process
-    Select := Select + ' FROM '+QuoteIdent(ActiveDatabase)+'.'+QuoteIdent(ActiveDbObj.Name);
+    Select := Select + ' FROM '+DBObj.Connection.QuoteIdent(ActiveDatabase)+'.';
+    if DBObj.Connection.IsMSSQL then
+      Select := Select + DBObj.Connection.QuoteIdent('dbo') + '.';
+    Select := Select + DBObj.QuotedName;
 
     // Signal for the user if we hide some columns
     if WantedColumns.Count = SelectedTableColumns.Count then
@@ -4023,12 +4039,12 @@ begin
       Offset := DataGridResult.RecordCount
     else
       Offset := 0;
-    Select := Select + ' LIMIT '+IntToStr(Offset)+', '+IntToStr(DatagridWantedRowCount-Offset);
+    Select := DBObj.Connection.ApplyLimitClause('SELECT', Select, DatagridWantedRowCount-Offset);
 
     try
       ShowStatusMsg('Fetching rows ...');
       if not Assigned(DataGridResult) then
-        DataGridResult := ActiveConnection.Parameters.CreateQuery(Self);
+        DataGridResult := DBObj.Connection.Parameters.CreateQuery(Self);
       DataGridResult.Connection := ActiveConnection;
       DataGridResult.SQL := Select;
       DataGridResult.Execute(Offset > 0);
@@ -4142,7 +4158,7 @@ begin
     if (not IsLimited) and (not IsFiltered) then
       RowsTotal := DataGrid.RootNodeCount // No need to fetch via SHOW TABLE STATUS
     else
-      RowsTotal := MakeInt(ActiveConnection.GetVar('SHOW TABLE STATUS LIKE '+esc(DBObject.Name), 'Rows'));
+      RowsTotal := MakeInt(DBObject.Connection.GetVar('SELECT COUNT(*) FROM '+DBObject.QuotedName));
     if RowsTotal > -1 then begin
       cap := cap + ': ' + FormatNumber(RowsTotal) + ' rows total';
       if DBObject.Engine = 'InnoDB' then
@@ -4843,7 +4859,7 @@ begin
   // Try to rename, on any error abort and don't rename ListItem
   try
     // rename table
-    ActiveConnection.Query('RENAME TABLE ' + QuoteIdent(Obj.Name) + ' TO ' + QuoteIdent(NewText));
+    ActiveConnection.Query('RENAME TABLE ' + Obj.QuotedName + ' TO ' + Obj.Connection.QuoteIdent(NewText));
 
     if SynSQLSyn1.TableNames.IndexOf( NewText ) = -1 then begin
       SynSQLSyn1.TableNames.Add(NewText);
@@ -4864,12 +4880,19 @@ end;
 procedure TMainForm.TimerConnectedTimer(Sender: TObject);
 var
   ConnectedTime: Integer;
+  Vendor: String;
 begin
   if Assigned(ActiveConnection) and ActiveConnection.Active then begin
     // Calculate and display connection-time. Also, on any connect or reconnect, update server version panel.
     ConnectedTime := ActiveConnection.ConnectionUptime;
     ShowStatusMsg('Connected: ' + FormatTimeNumber(ConnectedTime), 2);
-    ShowStatusMsg('MySQL '+ActiveConnection.ServerVersionStr, 3);
+    case ActiveConnection.Parameters.NetType of
+      ntTCPIP, ntNamedPipe, ntSSHTunnel:
+        Vendor := 'MySQL';
+      ntMSSQL:
+        Vendor := 'MS SQL';
+    end;
+    ShowStatusMsg(Vendor+' '+ActiveConnection.ServerVersionStr, 3);
   end else begin
     ShowStatusMsg('Disconnected.', 2);
   end;
@@ -4914,15 +4937,15 @@ begin
     if Val = 'Value' then
       Filter := ''
     else if Item = QF8 then
-      Filter := QuoteIdent(Col) + ' = ''' + Val + ''''
+      Filter := ActiveConnection.QuoteIdent(Col) + ' = ''' + Val + ''''
     else if Item = QF9 then
-      Filter := QuoteIdent(Col) + ' != ''' + Val + ''''
+      Filter := ActiveConnection.QuoteIdent(Col) + ' != ''' + Val + ''''
     else if Item = QF10 then
-      Filter := QuoteIdent(Col) + ' > ''' + Val + ''''
+      Filter := ActiveConnection.QuoteIdent(Col) + ' > ''' + Val + ''''
     else if Item = QF11 then
-      Filter := QuoteIdent(Col) + ' < ''' + Val + ''''
+      Filter := ActiveConnection.QuoteIdent(Col) + ' < ''' + Val + ''''
     else if Item = QF12 then
-      Filter := QuoteIdent(Col) + ' LIKE ''%' + Val + '%''';
+      Filter := ActiveConnection.QuoteIdent(Col) + ' LIKE ''%' + Val + '%''';
   end else
     Filter := Item.Hint;
 
@@ -5010,11 +5033,11 @@ begin
   if src = DBtree then begin
     // Insert table or database name. If a table is dropped and Shift is pressed, prepend the db name.
     case ActiveDbObj.NodeType of
-      lntDb: Text := QuoteIdent(ActiveDbObj.Database, False);
+      lntDb: Text := ActiveDbObj.QuotedDatabase(False);
       lntTable..lntEvent: begin
         if ShiftPressed then
-          Text := QuoteIdent(ActiveDbObj.Database, False) + '.';
-        Text := Text + QuoteIdent(ActiveDbObj.Name, False);
+          Text := ActiveDbObj.QuotedDatabase(False) + '.';
+        Text := Text + ActiveDbObj.QuotedName(False);
       end;
     end;
   end else if src = Tree then begin
@@ -5028,7 +5051,7 @@ begin
             if Tree.Selected[Node] then begin
               ItemText := Tree.Text[Node, 0];
               if Node.Parent.Index = HELPERNODE_COLUMNS then
-                ItemText := QuoteIdent(ItemText, False); // Quote column names
+                ItemText := ActiveConnection.QuoteIdent(ItemText, False); // Quote column names
               if ShiftPressed then
                 Text := Text + ItemText + ',' + CRLF
               else
@@ -5417,7 +5440,7 @@ begin
     Exit;
   Results := GridResult(Grid);
 
-  Col := QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn]);
+  Col := ActiveConnection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn]);
 
   // Block 1: WHERE col IN ([focused cell values])
   QF1.Hint := '';
@@ -5523,6 +5546,7 @@ end;
 procedure TMainForm.QFvaluesClick(Sender: TObject);
 var
   Data: TDBQuery;
+  Conn: TDBConnection;
   Col: String;
   Item: TMenuItem;
   i: Integer;
@@ -5537,8 +5561,9 @@ begin
     Exit;
   Col := DataGridResult.ColumnOrgNames[DataGrid.FocusedColumn];
   ShowStatusMsg('Fetching distinct values ...');
-  Data := ActiveConnection.GetResults('SELECT '+QuoteIdent(Col)+', COUNT(*) AS c FROM '+QuoteIdent(ActiveDbObj.Name)+
-    ' GROUP BY '+QuoteIdent(Col)+' ORDER BY c DESC, '+QuoteIdent(Col)+' LIMIT 30');
+  Conn := ActiveConnection;
+  Data := Conn.GetResults('SELECT '+Conn.QuoteIdent(Col)+', COUNT(*) AS c FROM '+ActiveDbObj.QuotedName+
+    ' GROUP BY '+Conn.QuoteIdent(Col)+' ORDER BY c DESC, '+Conn.QuoteIdent(Col)+' LIMIT 30');
   for i:=0 to Data.RecordCount-1 do begin
     if QFvalues.Count > i then
       Item := QFvalues[i]
@@ -5546,7 +5571,7 @@ begin
       Item := TMenuItem.Create(QFvalues);
       QFvalues.Add(Item);
     end;
-    Item.Hint := QuoteIdent(Col)+'='+esc(Data.Col(Col));
+    Item.Hint := Conn.QuoteIdent(Col)+'='+esc(Data.Col(Col));
     Item.Caption := sstr(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
     Item.OnClick := QuickFilterClick;
     Data.Next;
@@ -6868,6 +6893,14 @@ begin
   if PrevDBObj.Connection <> DBObj.Connection then begin
     LogSQL('Connection switch!', lcDebug);
     DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, DBObj.Connection.SessionName);
+    case DBObj.Connection.Parameters.NetType of
+      ntTCPIP, ntNamedPipe, ntSSHTunnel:
+        SynSQLSyn1.SQLDialect := sqlMySQL;
+      ntMSSQL:
+        SynSQLSyn1.SQLDialect := sqlMSSQL2K;
+      else
+        raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(DBObj.Connection.Parameters.NetType)]);
+    end;
     FreeAndNil(SQLHelpForm);
     InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
     InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
@@ -7149,7 +7182,7 @@ begin
     for i:=0 to SelectedTableColumns.Count-1 do begin
       if i > 0 then
         Clause := Clause + ' OR ';
-      Clause := Clause + QuoteIdent(SelectedTableColumns[i].Name) + ' LIKE ' + esc('%'+ed.Text+'%');
+      Clause := Clause + ActiveConnection.QuoteIdent(SelectedTableColumns[i].Name) + ' LIKE ' + esc('%'+ed.Text+'%');
     end;
   end;
   // Add linebreaks at near right window edge
@@ -7519,7 +7552,7 @@ var
   EnumEditor: TEnumEditorLink;
   SetEditor: TSetEditorLink;
   InplaceEditor: TInplaceEditorLink;
-  TypeCat: TDatatypeCategoryIndex;
+  TypeCat: TDBDatatypeCategoryIndex;
   ForeignKey: TForeignKey;
   TblColumn: TTableColumn;
   idx: Integer;
@@ -7528,23 +7561,25 @@ var
   Keys: TTableKeyList;
   ForeignKeys: TForeignKeyList;
   ForeignResults, Results: TDBQuery;
+  Conn: TDBConnection;
   RowNum: PCardinal;
 begin
   VT := Sender as TVirtualStringTree;
   Results := GridResult(VT);
   RowNum := VT.GetNodeData(Node);
   Results.RecNo := RowNum^;
+  Conn := Results.Connection;
 
   // Find foreign key values on InnoDB table cells
   if Sender = DataGrid then for ForeignKey in SelectedTableForeignKeys do begin
     idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
     if idx > -1 then try
       // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
-      CreateTable := ActiveConnection.GetVar('SHOW CREATE TABLE '+QuoteIdent(ForeignKey.ReferenceTable, True, '.'), 1);
+      CreateTable := Conn.GetVar('SHOW CREATE TABLE '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.'), 1);
       Columns := TTableColumnList.Create;
       Keys := nil;
       ForeignKeys := nil;
-      ActiveConnection.ParseTableStructure(CreateTable, Columns, Keys, ForeignKeys);
+      Conn.ParseTableStructure(CreateTable, Columns, Keys, ForeignKeys);
       TextCol := '';
       for TblColumn in Columns do begin
         if (TblColumn.DataType.Category = dtcText) and (TblColumn.Name <> ForeignKey.ForeignColumns[idx]) then begin
@@ -7553,14 +7588,14 @@ begin
         end;
       end;
 
-      KeyCol := QuoteIdent(ForeignKey.ForeignColumns[idx]);
+      KeyCol := Conn.QuoteIdent(ForeignKey.ForeignColumns[idx]);
       SQL := 'SELECT '+KeyCol;
-      if TextCol <> '' then SQL := SQL + ', LEFT(' + QuoteIdent(TextCol) + ', 256)';
-      SQL := SQL + ' FROM '+QuoteIdent(ForeignKey.ReferenceTable, True, '.')+' GROUP BY '+KeyCol+' ORDER BY ';
-      if TextCol <> '' then SQL := SQL + QuoteIdent(TextCol) else SQL := SQL + KeyCol;
+      if TextCol <> '' then SQL := SQL + ', LEFT(' + Conn.QuoteIdent(TextCol) + ', 256)';
+      SQL := SQL + ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+' GROUP BY '+KeyCol+' ORDER BY ';
+      if TextCol <> '' then SQL := SQL + Conn.QuoteIdent(TextCol) else SQL := SQL + KeyCol;
       SQL := SQL + ' LIMIT 1000';
 
-      ForeignResults := ActiveConnection.GetResults(SQL);
+      ForeignResults := Conn.GetResults(SQL);
       if ForeignResults.RecordCount < 1000 then begin
         EnumEditor := TEnumEditorLink.Create(VT);
         EnumEditor.DataType := DataGridResult.DataType(Column).Index;
@@ -7582,7 +7617,12 @@ begin
   TypeCat := Results.DataType(Column).Category;
   if Assigned(EditLink) then
     // Editor was created above, do nothing now
-  else if (TypeCat = dtcText) or ((TypeCat in [dtcBinary, dtcSpatial]) and actBlobAsText.Checked) then begin
+  else if (Results.DataType(Column).Index = dtEnum) and prefEnableEnumEditor then begin
+    EnumEditor := TEnumEditorLink.Create(VT);
+    EnumEditor.DataType := Results.DataType(Column).Index;
+    EnumEditor.ValueList := Results.ValueList(Column);
+    EditLink := EnumEditor;
+  end else if (TypeCat = dtcText) or ((TypeCat in [dtcBinary, dtcSpatial]) and actBlobAsText.Checked) then begin
     InplaceEditor := TInplaceEditorLink.Create(VT);
     InplaceEditor.DataType := Results.DataType(Column).Index;
     InplaceEditor.MaxLength := Results.MaxLength(Column);
@@ -7596,7 +7636,7 @@ begin
   end else if (TypeCat = dtcTemporal) and prefEnableDatetimeEditor then begin
     // Ensure date/time editor starts with a non-empty text value
     if Results.Col(Column) = '' then begin
-      NowText := ActiveConnection.GetVar('SELECT NOW()');
+      NowText := Conn.GetVar('SELECT NOW()');
       case Results.DataType(Column).Index of
         dtDate: NowText := Copy(NowText, 1, 10);
         dtTime: NowText := Copy(NowText, 12, 8);
@@ -7606,12 +7646,7 @@ begin
     DateTimeEditor := TDateTimeEditorLink.Create(VT);
     DateTimeEditor.DataType := Results.DataType(Column).Index;
     EditLink := DateTimeEditor;
-  end else if (TypeCat = dtcIntegerNamed) and prefEnableEnumEditor then begin
-    EnumEditor := TEnumEditorLink.Create(VT);
-    EnumEditor.DataType := Results.DataType(Column).Index;
-    EnumEditor.ValueList := Results.ValueList(Column);
-    EditLink := EnumEditor;
-  end else if (TypeCat = dtcSetNamed) and prefEnableSetEditor then begin
+  end else if (Results.DataType(Column).Index = dtSet) and prefEnableSetEditor then begin
     SetEditor := TSetEditorLink.Create(VT);
     SetEditor.DataType := Results.DataType(Column).Index;
     SetEditor.ValueList := Results.ValueList(Column);
@@ -7622,6 +7657,7 @@ begin
     InplaceEditor.ButtonVisible := False;
     EditLink := InplaceEditor;
   end;
+  TBaseGridEditorLink(EditLink).Connection := Conn;
 end;
 
 
@@ -7740,7 +7776,7 @@ begin
     DataGridFocusedCell := TStringList.Create;
   // Remember focused node and column for selected table
   if Assigned(DataGrid.FocusedNode) then begin
-    KeyName := QuoteIdent(DataGridDB)+'.'+QuoteIdent(DataGridTable);
+    KeyName := ActiveConnection.QuoteIdent(DataGridDB)+'.'+ActiveConnection.QuoteIdent(DataGridTable);
     FocusedCol := '';
     if DataGrid.FocusedColumn > NoColumn then
       FocusedCol := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
@@ -7748,7 +7784,7 @@ begin
   end;
   DataGridFocusedNodeIndex := 0;
   DataGridFocusedColumnName := '';
-  KeyName := QuoteIdent(ActiveDbObj.Database)+'.'+QuoteIdent(ActiveDbObj.Name);
+  KeyName := ActiveDbObj.QuotedDatabase+'.'+ActiveDbObj.QuotedName;
   CellFocus := DataGridFocusedCell.Values[KeyName];
   if CellFocus <> '' then begin
     DataGridFocusedNodeIndex := MakeInt(Explode(DELIM, CellFocus)[0]);
@@ -7899,6 +7935,7 @@ procedure TMainForm.ListDatabasesBeforePaint(Sender: TBaseVirtualTree; TargetCan
 var
   vt: TVirtualStringTree;
   i: Integer;
+  Conn: TDBConnection;
 begin
   // Invalidate list of databases, before (re)painting
   vt := Sender as TVirtualStringTree;
@@ -7906,20 +7943,21 @@ begin
     Exit;
   Screen.Cursor := crHourglass;
   vt.Clear;
+  Conn := ActiveConnection;
   try
-    if ActiveConnection.InformationSchemaObjects.IndexOf('SCHEMATA') > -1 then
-      AllDatabasesDetails := ActiveConnection.GetResults('SELECT * FROM '+QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+QuoteIdent('SCHEMATA'));
+    if Conn.InformationSchemaObjects.IndexOf('SCHEMATA') > -1 then
+      AllDatabasesDetails := Conn.GetResults('SELECT * FROM '+Conn.QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+Conn.QuoteIdent('SCHEMATA'));
   except
     on E:EDatabaseError do
       LogSQL(E.Message, lcError);
   end;
   if vt.Tag = VTREE_NOTLOADED_PURGECACHE then begin
-    for i:=0 to ActiveConnection.AllDatabases.Count-1 do begin
-      if ActiveConnection.DbObjectsCached(ActiveConnection.AllDatabases[i]) then
-        ActiveConnection.GetDBObjects(ActiveConnection.AllDatabases[i], True);
+    for i:=0 to Conn.AllDatabases.Count-1 do begin
+      if Conn.DbObjectsCached(Conn.AllDatabases[i]) then
+        Conn.GetDBObjects(Conn.AllDatabases[i], True);
     end;
   end;
-  vt.RootNodeCount := ActiveConnection.AllDatabases.Count;
+  vt.RootNodeCount := Conn.AllDatabases.Count;
   tabDatabases.Caption := 'Databases ('+FormatNumber(vt.RootNodeCount)+')';
   vt.Tag := VTREE_LOADED;
   Screen.Cursor := crDefault;
@@ -8158,6 +8196,7 @@ var
   vt: TVirtualStringTree;
   Text: String;
   OldOffset: TPoint;
+  Conn: TDBConnection;
 const
   InfoLen = SIZE_KB*50;
 begin
@@ -8172,14 +8211,34 @@ begin
     OldOffset := vt.OffsetXY;
     vt.FocusedNode := nil;
     vt.Clear;
-    if ActiveConnection.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
-      // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
-      Results := ActiveConnection.GetResults('SELECT '+QuoteIdent('ID')+', '+QuoteIdent('USER')+', '+QuoteIdent('HOST')+', '+QuoteIdent('DB')+', '
-        + QuoteIdent('COMMAND')+', '+QuoteIdent('TIME')+', '+QuoteIdent('STATE')+', LEFT('+QuoteIdent('INFO')+', '+IntToStr(InfoLen)+') AS '+QuoteIdent('Info')
-        + ' FROM '+QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+QuoteIdent('PROCESSLIST'));
-    end else begin
-      // Older servers fetch the whole query length, but at least we cut them off below, so a high memory usage is just a peak
-      Results := ActiveConnection.GetResults('SHOW FULL PROCESSLIST');
+    Conn := ActiveConnection;
+    case Conn.Parameters.NetType of
+      ntTCPIP, ntNamedPipe, ntSSHTunnel: begin
+        if Conn.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
+          // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
+          Results := Conn.GetResults('SELECT '+Conn.QuoteIdent('ID')+', '+Conn.QuoteIdent('USER')+', '+Conn.QuoteIdent('HOST')+', '+Conn.QuoteIdent('DB')+', '
+            + Conn.QuoteIdent('COMMAND')+', '+Conn.QuoteIdent('TIME')+', '+Conn.QuoteIdent('STATE')+', LEFT('+Conn.QuoteIdent('INFO')+', '+IntToStr(InfoLen)+') AS '+Conn.QuoteIdent('Info')
+            + ' FROM '+Conn.QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+Conn.QuoteIdent('PROCESSLIST'));
+        end else begin
+          // Older servers fetch the whole query length, but at least we cut them off below, so a high memory usage is just a peak
+          Results := Conn.GetResults('SHOW FULL PROCESSLIST');
+        end;
+      end;
+      ntMSSQL: begin
+        Results := Conn.GetResults('SELECT '+
+          Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('spid')+
+          ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('loginame')+') AS '+Conn.QuoteIdent('loginname')+
+          ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('hostname')+') AS '+Conn.QuoteIdent('hostname')+
+          ', '+Conn.QuoteIdent('d')+'.'+Conn.QuoteIdent('name')+
+          ', '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('cmd')+
+          ', '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('waittime')+
+          ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('status')+'), '+
+          'NULL AS '+Conn.QuoteIdent('Info')+' '+
+          'FROM '+Conn.QuoteIdent('sys')+'.'+Conn.QuoteIdent('sysprocesses')+' AS '+Conn.QuoteIdent('p')+
+          ', '+Conn.QuoteIdent('sys')+'.'+Conn.QuoteIdent('sysdatabases')+' AS '+Conn.QuoteIdent('d')+
+          ' WHERE '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('dbid')+'='+Conn.QuoteIdent('d')+'.'+Conn.QuoteIdent('dbid')
+          );
+      end;
     end;
     SetLength(VTRowDataListProcesses, Results.RecordCount);
     ProcessListMaxTime := 1;
@@ -8193,7 +8252,7 @@ begin
           VTRowDataListProcesses[i].ImageIndex := 57 // running query
       end;
       VTRowDataListProcesses[i].Captions := TStringList.Create;
-      for j:=0 to Results.ColumnCount-1 do begin
+      for j:=0 to vt.Header.Columns.Count-1 do begin
         Text := Results.Col(j);
         if Results.ColumnNames[j] = 'Info' then
           Text := sstr(Text, InfoLen);
@@ -9513,11 +9572,11 @@ begin
   Node := Tree.GetFirstChild(FindNode(Tree, HELPERNODE_COLUMNS, nil));
   while Assigned(Node) do begin
     if Tree.Selected[Node] then begin
-      ColumnNames.Add(QuoteIdent(Tree.Text[Node, 0], False));
+      ColumnNames.Add(ActiveConnection.QuoteIdent(Tree.Text[Node, 0], False));
       Column := SelectedTableColumns[Node.Index];
       case Column.DataType.Category of
         dtcInteger, dtcReal: Val := '0';
-        dtcText, dtcIntegerNamed, dtcSetNamed: begin
+        dtcText, dtcOther: begin
           Val := esc(Column.DefaultText);
           if Column.DefaultType in [cdtNull, cdtNullUpdateTS] then
             Val := esc('')
@@ -9536,21 +9595,21 @@ begin
   KeyColumns := ActiveConnection.GetKeyColumns(SelectedTableColumns, SelectedTableKeys);
   WhereClause := '';
   for i:=0 to KeyColumns.Count-1 do begin
-    idx := ColumnNames.IndexOf(QuoteIdent(KeyColumns[i], False));
+    idx := ColumnNames.IndexOf(ActiveConnection.QuoteIdent(KeyColumns[i], False));
     if idx > -1 then begin
       if WhereClause <> '' then
         WhereClause := WhereClause + ' AND ';
-      WhereClause := WhereClause + QuoteIdent(KeyColumns[i], False)+'='+DefaultValues[idx];
+      WhereClause := WhereClause + ActiveConnection.QuoteIdent(KeyColumns[i], False)+'='+DefaultValues[idx];
     end;
   end;
 
   if MenuItem = menuQueryHelpersGenerateInsert then begin
-    sql := 'INSERT INTO '+QuoteIdent(ActiveDbObj.Name, False)+CRLF+
+    sql := 'INSERT INTO '+ActiveDbObj.QuotedName(False)+CRLF+
       #9'('+ImplodeStr(', ', ColumnNames)+')'+CRLF+
       #9'VALUES ('+ImplodeStr(', ', DefaultValues)+')';
 
   end else if MenuItem = menuQueryHelpersGenerateUpdate then begin
-    sql := 'UPDATE '+QuoteIdent(ActiveDbObj.Name, False)+CRLF+#9'SET'+CRLF;
+    sql := 'UPDATE '+ActiveDbObj.QuotedName(False)+CRLF+#9'SET'+CRLF;
     if ColumnNames.Count > 0 then begin
       for i:=0 to ColumnNames.Count-1 do begin
         sql := sql + #9#9 + ColumnNames[i] + '=' + DefaultValues[i] + ',' + CRLF;
@@ -9561,7 +9620,7 @@ begin
     sql := sql + #9'WHERE ' + WhereClause;
 
   end else if MenuItem = menuQueryHelpersGenerateDelete then begin
-    sql := 'DELETE FROM '+QuoteIdent(ActiveDbObj.Name, False)+' WHERE ' + WhereClause;
+    sql := 'DELETE FROM '+ActiveDbObj.QuotedName(False)+' WHERE ' + WhereClause;
 
   end;
   ActiveQueryMemo.UndoList.AddGroupBreak;
@@ -9669,7 +9728,7 @@ begin
   // Click on "Explain" link label, in process viewer
   actNewQueryTabExecute(Sender);
   Tab := QueryTabs[QueryTabs.Count-1];
-  Tab.Memo.Text := 'USE '+QuoteIdent(listProcesses.Text[listProcesses.FocusedNode, 3])+';'+CRLF+
+  Tab.Memo.Text := 'USE '+ActiveConnection.QuoteIdent(listProcesses.Text[listProcesses.FocusedNode, 3])+';'+CRLF+
     'EXPLAIN'+CRLF+SynMemoProcessView.Text;
   Tab.TabSheet.Show;
   actExecuteQueryExecute(Sender);

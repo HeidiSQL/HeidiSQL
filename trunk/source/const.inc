@@ -243,14 +243,14 @@ const
   REGNAME_FIELDCOLOR_TEXT = 'FieldColor_Text';
   REGNAME_FIELDCOLOR_BINARY = 'FieldColor_Binary';
   REGNAME_FIELDCOLOR_DATETIME = 'FieldColor_Datetime';
-  REGNAME_FIELDCOLOR_ENUM = 'FieldColor_Enum';
-  REGNAME_FIELDCOLOR_SET = 'FieldColor_Set';
+  REGNAME_FIELDCOLOR_SPATIAL = 'FieldColor_Spatial';
+  REGNAME_FIELDCOLOR_OTHER = 'FieldColor_Other';
   DEFAULT_FIELDCOLOR_NUMERIC = $00FF0000; // clBlue
   DEFAULT_FIELDCOLOR_TEXT = $00008000; // clGreen
   DEFAULT_FIELDCOLOR_BINARY = $00800080; // clPurple
   DEFAULT_FIELDCOLOR_DATETIME = $00000080; // clMaroon
-  DEFAULT_FIELDCOLOR_ENUM = $00008080; // clOlive
-  DEFAULT_FIELDCOLOR_SET = $00808000; // clTeal
+  DEFAULT_FIELDCOLOR_SPATIAL = $00808000; // clOlive
+  DEFAULT_FIELDCOLOR_OTHER = $00008080; // clTeal
   COLORSHIFT_NULLFIELDS = 70; // Brightness adjustment to add to normal field colors for NULL values
   COLORSHIFT_SORTCOLUMNS = 12; // Brightness adjustment to add to sorted column backgrounds
 

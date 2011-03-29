@@ -360,7 +360,7 @@ begin
   Result.Password := editPassword.Text;
   Result.LoginPrompt := chkLoginPrompt.Checked;
   Result.Port := updownPort.Position;
-  Result.AllDatabases := comboDatabases.Text;
+  Result.AllDatabasesStr := comboDatabases.Text;
   Result.SSHHost := editSSHHost.Text;
   Result.SSHPort := MakeInt(editSSHPort.Text);
   Result.SSHUser := editSSHuser.Text;
@@ -458,7 +458,7 @@ begin
     chkLoginPrompt.Checked := FOrgParams.LoginPrompt;
     updownPort.Position := FOrgParams.Port;
     chkCompressed.Checked := opCompress in FOrgParams.Options;
-    comboDatabases.Text := FOrgParams.AllDatabases;
+    comboDatabases.Text := FOrgParams.AllDatabasesStr;
     editStartupScript.Text := FOrgParams.StartupScriptFilename;
     editSSHPlinkExe.Text := FOrgParams.SSHPlinkExe;
     editSSHHost.Text := FOrgParams.SSHHost;
@@ -593,7 +593,7 @@ begin
   // Try to connect and lookup database names
   Params := CurrentParams;
   Connection := Params.CreateConnection(Self);
-  Connection.Parameters.AllDatabases := '';
+  Connection.Parameters.AllDatabasesStr := '';
   Connection.LogPrefix := '['+SelectedSession+'] ';
   Connection.OnLog := Mainform.LogSQL;
   comboDatabases.Items.Clear;
@@ -622,7 +622,7 @@ begin
       or ((opCompress in FOrgParams.Options) <> chkCompressed.Checked)
       or (FOrgParams.NetType <> TNetType(comboNetType.ItemIndex))
       or (FOrgParams.StartupScriptFilename <> editStartupScript.Text)
-      or (FOrgParams.AllDatabases <> comboDatabases.Text)
+      or (FOrgParams.AllDatabasesStr <> comboDatabases.Text)
       or (FOrgParams.SSHHost <> editSSHHost.Text)
       or (IntToStr(FOrgParams.SSHPort) <> editSSHPort.Text)
       or (FOrgParams.SSHPlinkExe <> editSSHPlinkExe.Text)

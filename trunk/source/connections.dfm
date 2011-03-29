@@ -299,7 +299,8 @@ object connform: Tconnform
         Items.Strings = (
           'TCP/IP'
           'Named pipe'
-          'SSH tunnel')
+          'SSH tunnel'
+          'MSSQL')
       end
       object comboDatabases: TComboBox
         Left = 101

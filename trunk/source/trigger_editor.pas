@@ -101,7 +101,7 @@ begin
   if DBObject.Name <> '' then begin
     // Edit mode
     editName.Text := DBObject.Name;
-    Definitions := MainForm.ActiveConnection.GetResults('SHOW TRIGGERS FROM '+QuoteIdent(Mainform.ActiveDatabase));
+    Definitions := MainForm.ActiveConnection.GetResults('SHOW TRIGGERS FROM '+Obj.Connection.QuoteIdent(Mainform.ActiveDatabase));
     Found := False;
     while not Definitions.Eof do begin
       if Definitions.Col('Trigger') = DBObject.Name then begin
@@ -175,7 +175,7 @@ begin
     // his statement. The user must fix such errors and re-press "Save" while we have them in memory,
     // otherwise the trigger attributes are lost forever.
     if DBObject.Name <> '' then try
-      MainForm.ActiveConnection.Query('DROP TRIGGER '+QuoteIdent(DBObject.Name));
+      DBObject.Connection.Query('DROP TRIGGER '+DBObject.Connection.QuoteIdent(DBObject.Name));
     except
     end;
     // CREATE
@@ -184,10 +184,10 @@ begin
     //   ON tbl_name FOR EACH ROW trigger_stmt
     sql := 'CREATE ';
     if comboDefiner.Text <> '' then
-      sql := sql + 'DEFINER='+QuoteIdent(comboDefiner.Text, True, '@')+' ';
-    sql := sql + 'TRIGGER '+QuoteIdent(editName.Text)+' '+
+      sql := sql + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, True, '@')+' ';
+    sql := sql + 'TRIGGER '+DBObject.Connection.QuoteIdent(editName.Text)+' '+
       comboTiming.Items[comboTiming.ItemIndex]+' '+comboEvent.Items[comboEvent.ItemIndex]+
-      ' ON '+QuoteIdent(comboTable.Text)+
+      ' ON '+DBObject.Connection.QuoteIdent(comboTable.Text)+
       ' FOR EACH ROW '+SynMemoStatement.Text;
     MainForm.ActiveConnection.Query(sql);
     DBObject.Name := editName.Text;
@@ -222,7 +222,7 @@ begin
     if comboTable.Text = '' then
       CanExecute := False
     else try
-      Columns := MainForm.ActiveConnection.GetResults('SHOW COLUMNS FROM '+QuoteIdent(comboTable.Text));
+      Columns := DBObject.Connection.GetResults('SHOW COLUMNS FROM '+DBObject.Connection.QuoteIdent(comboTable.Text));
       while not Columns.Eof do begin
         Proposal.InsertList.Add(Columns.Col('Field'));
         Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );

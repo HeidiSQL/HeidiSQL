@@ -100,21 +100,21 @@ const
 
 type
   // MySQL data types
-  TDatatypeIndex = (dtTinyint, dtSmallint, dtMediumint, dtInt, dtBigint,
-    dtFloat, dtDouble, dtDecimal,
-    dtDate, dtTime, dtYear, dtDatetime, dtTimestamp,
-    dtChar, dtVarchar, dtTinytext, dtText, dtMediumtext, dtLongtext,
-    dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob,
+  TDBDatatypeIndex = (dtTinyint, dtSmallint, dtMediumint, dtInt, dtBigint,
+    dtFloat, dtDouble, dtDecimal, dtNumeric, dtReal, dtMoney, dtSmallmoney,
+    dtDate, dtTime, dtYear, dtDatetime, dtSmalldatetime, dtTimestamp,
+    dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
+    dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
     dtEnum, dtSet, dtBit,
+    dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier,
     dtPoint, dtLinestring, dtPolygon, dtGeometry, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection);
 
   // MySQL data type categorization
-  TDatatypeCategoryIndex = (dtcInteger, dtcIntegerNamed, dtcReal, dtcText, dtcBinary, dtcTemporal,
-    dtcSpatial, dtcSet, dtcSetNamed);
+  TDBDatatypeCategoryIndex = (dtcInteger, dtcReal, dtcText, dtcBinary, dtcTemporal, dtcSpatial, dtcOther);
 
   // MySQL data type structure
-  TDatatype = record
-    Index:           TDatatypeIndex;
+  TDBDatatype = record
+    Index:           TDBDatatypeIndex;
     NativeType:      Cardinal; // See field types
     Name:            String;
     Description:     String;
@@ -123,12 +123,12 @@ type
     HasBinary:       Boolean; // Can be binary?
     HasDefault:      Boolean; // Can have a default value?
     DefLengthSet:    String;  // Should be set for types which require a length/set
-    Category:        TDatatypeCategoryIndex;
+    Category:        TDBDatatypeCategoryIndex;
   end;
 
   // MySQL data type category structure
-  TDatatypeCategory = record
-    Index:           TDatatypeCategoryIndex;
+  TDBDatatypeCategory = record
+    Index:           TDBDatatypeCategoryIndex;
     Name:            String;
     Color:           TColor;
     NullColor:       TColor;
@@ -148,14 +148,10 @@ var
   MySQLErrorCodes: TStringList;
 
   // MySQL data type categories
-  DatatypeCategories: array[0..8] of TDatatypeCategory = (
+  DatatypeCategories: array[0..6] of TDBDatatypeCategory = (
     (
       Index:           dtcInteger;
       Name:            'Integer'
-    ),
-    (
-      Index:           dtcIntegerNamed;
-      Name:            'Integer, named (nonstandard)'
     ),
     (
       Index:           dtcReal;
@@ -178,17 +174,13 @@ var
       Name:            'Spatial (geometry)'
     ),
     (
-      Index:           dtcSet;
-      Name:            'Set of Bits (nonstandard)'
-    ),
-    (
-      Index:           dtcSetNamed;
-      Name:            'Set of Bits, named (nonstandard)'
+      Index:           dtcOther;
+      Name:            'Other'
     )
   );
 
   // MySQL Data Type List and Properties
-  Datatypes: array [0..35] of TDatatype =
+  MySQLDatatypes: array [0..35] of TDBDatatype =
   (
     (
       Index:           dtTinyint;
@@ -384,7 +376,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtCHAR;
+      Index:           dtChar;
       NativeType:      FIELD_TYPE_STRING;
       Name:            'CHAR';
       Description:     'CHAR[(M)]' + CRLF +
@@ -592,7 +584,7 @@ var
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '''Y'',''N''';
-      Category:        dtcIntegerNamed;
+      Category:        dtcOther;
     ),
     (
       Index:           dtSet;
@@ -608,7 +600,7 @@ var
       HasBinary:       False;
       HasDefault:      True;
       DefLengthSet:    '''Value A'',''Value B''';
-      Category:        dtcSetNamed;
+      Category:        dtcOther;
     ),
     (
       Index:           dtBit;
@@ -621,7 +613,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
-      Category:        dtcSet;
+      Category:        dtcInteger;
     ),
     (
       Index:           dtPoint;
@@ -727,8 +719,278 @@ var
       HasDefault:      False;
       Category:        dtcSpatial;
     )
+
   );
 
+  MSSQLDatatypes: array [0..25] of TDBDatatype =
+  (
+    (
+      Index: dtTinyint;
+      Name:            'TINYINT';
+      Description:     'Integer data from 0 through 255.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtSmallint;
+      Name:            'SMALLINT';
+      Description:     'Integer data from -2^15 (-32,768) through 2^15 - 1 (32,767).';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtInt;
+      Name:            'INT';
+      Description:     'Integer (whole number) data from -2^31 (-2,147,483,648) through 2^31 - 1 (2,147,483,647).';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtBigint;
+      Name:            'BIGINT';
+      Description:     'Integer (whole number) data from -2^63 (-9,223,372,036,854,775,808) through 2^63-1 (9,223,372,036,854,775,807).';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtDecimal;
+      Name:            'DECIMAL';
+      Description:     'Fixed precision and scale numeric data from -10^38 +1 through 10^38 –1.';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      DefLengthSet:    '10,0';
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtNumeric;
+      Name:            'NUMERIC';
+      Description:     'Functionally equivalent to decimal.';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      DefLengthSet:    '10,0';
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtMoney;
+      Name:            'MONEY';
+      Description:     'Monetary data values from -2^63 (-922,337,203,685,477.5808) through 2^63 - 1 (+922,337,203,685,477.5807), with accuracy to a ten-thousandth of a monetary unit.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtSmallmoney;
+      Name:            'SMALLMONEY';
+      Description:     'Monetary data values from -214,748.3648 through +214,748.3647, with accuracy to a ten-thousandth of a monetary unit.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtFloat;
+      Name:            'FLOAT';
+      Description:     'Floating precision number data with the following valid values: -1.79E + 308 through -2.23E - 308, 0 and 2.23E + 308 through 1.79E + 308.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtReal;
+      Name:            'REAL';
+      Description:     'Floating precision number data with the following valid values: -3.40E + 38 through -1.18E - 38, 0 and 1.18E - 38 through 3.40E + 38.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtDatetime;
+      Name:            'DATETIME';
+      Description:     'Date and time data from January 1, 1753, through December 31, 9999, with an accuracy of three-hundredths of a second, or 3.33 milliseconds.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtSmalldatetime;
+      Name:            'SMALLDATETIME';
+      Description:     'Date and time data from January 1, 1900, through June 6, 2079, with an accuracy of one minute.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtTimestamp;
+      Name:            'TIMESTAMP';
+      Description:     'A database-wide unique number that gets updated every time a row gets updated.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcBinary;
+    ),
+    (
+      Index:           dtChar;
+      Name:            'CHAR';
+      Description:     'Fixed-length non-Unicode character data with a maximum length of 8,000 characters.';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      DefLengthSet:    '50';
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtVarchar;
+      Name:            'VARCHAR';
+      Description:     'Variable-length non-Unicode data with a maximum of 8,000 characters.';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      DefLengthSet:    '50';
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtText;
+      Name:            'TEXT';
+      Description:     'Variable-length non-Unicode data with a maximum length of 2^31 - 1 (2,147,483,647) characters.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtNchar;
+      Name:            'NCHAR';
+      Description:     'Fixed-length Unicode data with a maximum length of 4,000 characters.';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      DefLengthSet:    '50';
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtNvarchar;
+      Name:            'NVARCHAR';
+      Description:     'Variable-length Unicode data with a maximum length of 4,000 characters. sysname is a system-supplied user-defined data type that is functionally equivalent to nvarchar(128) and is used to reference database object names.';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      DefLengthSet:    '50';
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtNtext;
+      Name:            'NTEXT';
+      Description:     'Variable-length Unicode data with a maximum length of 2^30 - 1 (1,073,741,823) characters.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtBinary;
+      Name:            'BINARY';
+      Description:     'Fixed-length binary data with a maximum length of 8,000 bytes.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcBinary;
+    ),
+    (
+      Index:           dtVarbinary;
+      Name:            'VARBINARY';
+      Description:     'Variable-length binary data with a maximum length of 8,000 bytes.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcBinary;
+    ),
+    (
+      Index:           dtImage;
+      Name:            'IMAGE';
+      Description:     'Variable-length binary data with a maximum length of 2^31 - 1 (2,147,483,647) bytes.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcBinary;
+    ),
+    (
+      Index:           dtCursor;
+      Name:            'CURSOR';
+      Description:     'A reference to a cursor.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcOther;
+    ),
+    (
+      Index:           dtSqlvariant;
+      Name:            'SQL_VARIANT';
+      Description:     'A data type that stores values of various SQL Server-supported data types, except text, ntext, timestamp, and sql_variant.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcOther;
+    ),
+    (
+      Index:           dtTable;
+      Name:            'TABLE';
+      Description:     'A special data type used to store a result set for later processing .';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcOther;
+    ),
+    (
+      Index:           dtUniqueidentifier;
+      Name:            'UNIQUEIDENTIFIER';
+      Description:     'A globally unique identifier (GUID).';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcOther;
+    )
+  );
 
   MySqlFunctions: Array [0..300] of TMysqlFunction =
   (
@@ -4346,7 +4608,6 @@ var
   );
 
   function GetFunctionCategories: TStringList;
-  function GetDatatypeByName(Datatype: String): TDatatype;
 
 implementation
 
@@ -4365,19 +4626,6 @@ begin
     end;
   end;
   Result.Sort;
-end;
-
-
-function GetDatatypeByName(Datatype: String): TDatatype;
-var
-  i: Integer;
-begin
-  for i:=Low(Datatypes) to High(Datatypes) do begin
-    if AnsiCompareText(Datatypes[i].Name, Datatype) = 0 then begin
-      Result := Datatypes[i];
-      break;
-    end;
-  end;
 end;
 
 
