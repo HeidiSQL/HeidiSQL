@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, windows, mysql_structures, SynRegExpr, Contnrs, Generics.Collections, Generics.Defaults,
-  DateUtils, Types, ShellApi, Math, Dialogs;
+  DateUtils, Types, ShellApi, Math, Dialogs, ADODB, DB, ComObj;
 
 
 type
@@ -216,6 +216,9 @@ type
       constructor Create(OwnerConnection: TDBConnection);
       procedure Assign(Source: TPersistent); override;
       function IsSameAs(CompareTo: TDBObject): Boolean;
+      function QuotedDatabase(AlwaysQuote: Boolean=True): String;
+      function QuotedName(AlwaysQuote: Boolean=True): String;
+      function QuotedColumn(AlwaysQuote: Boolean=True): String;
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
       property CreateCode: String read GetCreateCode write SetCreateCode;
@@ -248,17 +251,18 @@ type
   // Column object, many of them in a TObjectList
   TTableColumn = class(TObject)
     private
+      FConnection: TDBConnection;
       procedure SetStatus(Value: TEditingStatus);
     public
       Name, OldName: String;
-      DataType: TDatatype;
+      DataType: TDBDatatype;
       LengthSet: String;
       Unsigned, AllowNull, ZeroFill, LengthCustomized: Boolean;
       DefaultType: TColumnDefaultType;
       DefaultText: String;
       Comment, Charset, Collation: String;
       FStatus: TEditingStatus;
-      constructor Create;
+      constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
       function SQLCode: String;
       property Status: TEditingStatus read FStatus write SetStatus;
@@ -267,12 +271,14 @@ type
   TTableColumnList = TObjectList<TTableColumn>;
 
   TTableKey = class(TObject)
+    private
+      FConnection: TDBConnection;
     public
       Name, OldName: String;
       IndexType, OldIndexType, Algorithm: String;
       Columns, SubParts: TStringList;
       Modified, Added: Boolean;
-      constructor Create;
+      constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
       procedure Modification(Sender: TObject);
       function SQLCode: String;
@@ -281,11 +287,13 @@ type
 
   // Helper object to manage foreign keys in a TObjectList
   TForeignKey = class(TObject)
+    private
+      FConnection: TDBConnection;
     public
       KeyName, OldKeyName, ReferenceTable, OnUpdate, OnDelete: String;
       Columns, ForeignColumns: TStringList;
       Modified, Added, KeyNameWasCustomized: Boolean;
-      constructor Create;
+      constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
       function SQLCode(IncludeSymbolName: Boolean): String;
   end;
@@ -317,7 +325,7 @@ type
 
   { TConnectionParameters and friends }
 
-  TNetType = (ntTCPIP, ntNamedPipe, ntSSHtunnel);
+  TNetType = (ntTCPIP, ntNamedPipe, ntSSHtunnel, ntMSSQL);
 
   TMySQLClientOption = (
     opCompress,             // CLIENT_COMPRESS
@@ -362,7 +370,7 @@ type
       property Username: String read FUsername write FUsername;
       property Password: String read FPassword write FPassword;
       property LoginPrompt: Boolean read FLoginPrompt write FLoginPrompt;
-      property AllDatabases: String read FAllDatabases write FAllDatabases;
+      property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property Options: TMySQLClientOptions read FOptions write FOptions;
       property SSHHost: String read FSSHHost write FSSHHost;
@@ -384,6 +392,7 @@ type
   TDBLogCategory = (lcInfo, lcSQL, lcUserFiredSQL, lcError, lcDebug);
   TDBLogEvent = procedure(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil) of object;
   TDBEvent = procedure(Connection: TDBConnection; Database: String) of object;
+  TDBDataTypeArray = Array of TDBDataType;
 
   TDBConnection = class(TComponent)
     private
@@ -417,25 +426,28 @@ type
       FResultCount: Integer;
       FCurrentUserHostCombination: String;
       FLockedByThread: TThread;
+      FQuoteChar: Char;
+      FDatatypes: TDBDataTypeArray;
       procedure SetActive(Value: Boolean); virtual; abstract;
+      procedure DoBeforeConnect;
       procedure SetDatabase(Value: String);
       function GetThreadId: Cardinal; virtual; abstract;
       function GetCharacterSet: String; virtual; abstract;
       procedure SetCharacterSet(CharsetName: String); virtual; abstract;
       function GetLastError: String; virtual; abstract;
-      function GetServerVersionStr: String; virtual; abstract;
+      function GetServerVersionStr: String;
       function GetServerVersionInt: Integer; virtual; abstract;
-      function GetAllDatabases: TStringList; virtual; abstract;
-      function GetTableEngines: TStringList; virtual; abstract;
-      function GetCollationTable: TDBQuery; virtual; abstract;
+      function GetAllDatabases: TStringList; virtual;
+      function GetTableEngines: TStringList; virtual;
+      function GetCollationTable: TDBQuery; virtual;
       function GetCollationList: TStringList;
-      function GetCharsetTable: TDBQuery; virtual; abstract;
+      function GetCharsetTable: TDBQuery; virtual;
       function GetCharsetList: TStringList;
-      function GetInformationSchemaObjects: TStringList; virtual; abstract;
+      function GetInformationSchemaObjects: TStringList;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
       function GetCurrentUserHostCombination: String;
-      function DecodeAPIString(a: AnsiString): String; virtual; abstract;
+      function DecodeAPIString(a: AnsiString): String;
       procedure Log(Category: TDBLogCategory; Msg: String);
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure SetObjectNamesInSelectedDB;
@@ -444,27 +456,34 @@ type
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual; abstract;
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False): String;
+      function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
+      function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
       function UnescapeString(Text: String): String;
-      function ConvertServerVersion(Version: Integer): String;
+      function ConvertServerVersion(Version: Integer): String; virtual; abstract;
       function GetResults(SQL: String): TDBQuery;
       function GetCol(SQL: String; Column: Integer=0): TStringList;
       function GetVar(SQL: String; Column: Integer=0): String; overload;
       function GetVar(SQL: String; Column: String): String; overload;
-      function Ping: Boolean; virtual; abstract;
+      function Ping(Reconnect: Boolean): Boolean; virtual; abstract;
       function RefreshAllDatabases: TStringList;
       function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList; virtual; abstract;
       function DbObjectsCached(db: String): Boolean;
-      function ParseDateTime(Str: String): TDateTime; virtual; abstract;
-      function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList; virtual; abstract;
-      function ConnectionInfo: TStringList; virtual; abstract;
+      function ParseDateTime(Str: String): TDateTime;
+      function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
+      function ConnectionInfo: TStringList;
       function GetLastResults: TDBQueryList; virtual; abstract;
+      function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; virtual; abstract;
+      function IsMySQL: Boolean;
+      function IsMSSQL: Boolean;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
-      procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList); virtual; abstract;
-      procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, Definer, CheckOption, SelectCode: String); virtual; abstract;
+      procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
+      procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, Definer, CheckOption, SelectCode: String);
       procedure ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
-        var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String); virtual; abstract;
+        var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String);
+      function GetDatatypeByName(Datatype: String): TDBDatatype;
+      function ApplyLimitClause(QueryType, QueryBody: String; Limit: Cardinal): String;
       property SessionName: String read FSessionName write FSessionName;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property ThreadId: Cardinal read GetThreadId;
@@ -493,6 +512,7 @@ type
       property ResultCount: Integer read FResultCount;
       property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
       property LockedByThread: TThread read FLockedByThread write FLockedByThread;
+      property Datatypes: TDBDataTypeArray read FDatatypes;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -515,31 +535,50 @@ type
       procedure SetActive(Value: Boolean); override;
       procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
       procedure ClosePlink;
-      function GetThreadId: Cardinal;override;
+      function GetThreadId: Cardinal; override;
       function GetCharacterSet: String; override;
       procedure SetCharacterSet(CharsetName: String); override;
       function GetLastError: String; override;
-      function GetServerVersionStr: String; override;
       function GetServerVersionInt: Integer; override;
       function GetAllDatabases: TStringList; override;
       function GetTableEngines: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
-      function GetInformationSchemaObjects: TStringList; override;
-      function DecodeAPIString(a: AnsiString): String; override;
     public
+      constructor Create(AOwner: TComponent); override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
-      function Ping: Boolean; override;
+      function ConvertServerVersion(Version: Integer): String; override;
+      function Ping(Reconnect: Boolean): Boolean; override;
       function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList; override;
-      function ParseDateTime(Str: String): TDateTime; override;
-      function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList; override;
-      function ConnectionInfo: TStringList; override;
       function GetLastResults: TDBQueryList; override;
-      procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList); override;
-      procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, Definer, CheckOption, SelectCode: String); override;
-      procedure ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
-        var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String); override;
+      function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
       property LastRawResults: TMySQLRawResults read FLastRawResults;
+  end;
+
+  TAdoDBConnection = class(TDBConnection)
+    private
+      FAdoHandle: TAdoConnection;
+      FLastRawResult: _RecordSet;
+      FLastError: String;
+      procedure SetActive(Value: Boolean); override;
+      function GetThreadId: Cardinal; override;
+      function GetCharacterSet: String; override;
+      procedure SetCharacterSet(CharsetName: String); override;
+      function GetLastError: String; override;
+      function GetServerVersionInt: Integer; override;
+      function GetAllDatabases: TStringList; override;
+      function GetCollationTable: TDBQuery; override;
+      function GetCharsetTable: TDBQuery; override;
+    public
+      constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
+      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
+      function ConvertServerVersion(Version: Integer): String; override;
+      function Ping(Reconnect: Boolean): Boolean; override;
+      function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList; override;
+      function GetLastResults: TDBQueryList; override;
+      function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
+      property LastRawResult: _RecordSet read FLastRawResult;
   end;
 
 
@@ -553,7 +592,7 @@ type
       FRecordCount: Int64;
       FColumnNames: TStringList;
       FColumnOrgNames: TStringList;
-      FColumnTypes: Array of TDatatype;
+      FColumnTypes: Array of TDBDatatype;
       FColumnLengths: TIntegerDynArray;
       FColumnFlags: TCardinalDynArray;
       FCurrentUpdateRow: TRowData;
@@ -579,8 +618,8 @@ type
       function ColumnCount: Integer;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; virtual; abstract;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
-      function BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String; virtual; abstract;
-      function DataType(Column: Integer): TDataType;
+      function BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String;
+      function DataType(Column: Integer): TDBDataType;
       function MaxLength(Column: Integer): Int64;
       function ValueList(Column: Integer): TStringList;
       function ColExists(Column: String): Boolean;
@@ -621,7 +660,7 @@ type
 
   TMySQLQuery = class(TDBQuery)
     private
-      FResultList: Array of PMYSQL_RES;
+      FResultList: TMySQLRawResults;
       FCurrentResults: PMYSQL_RES;
       FCurrentRow: PMYSQL_ROW;
       procedure SetRecNo(Value: Int64); override;
@@ -629,7 +668,6 @@ type
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
-      function BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
       function ColIsKeyPart(Column: Integer): Boolean; override;
@@ -639,8 +677,22 @@ type
       function TableName: String; override;
   end;
 
-  function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
-  function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
+  TAdoDBQuery = class(TDBQuery)
+    private
+      FAdoQuery: TAdoQuery;
+      procedure SetRecNo(Value: Int64); override;
+    public
+      destructor Destroy; override;
+      procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
+      function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
+      function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
+      function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
+      function ColIsKeyPart(Column: Integer): Boolean; override;
+      function IsNull(Column: Integer): Boolean; overload; override;
+      function HasResult: Boolean; override;
+      function DatabaseName: String; override;
+      function TableName: String; override;
+  end;
 
 var
   mysql_affected_rows: function(Handle: PMYSQL): Int64; stdcall;
@@ -671,6 +723,11 @@ var
   libmysql_handle: HMODULE = 0;
   libmysql_file: PWideChar = 'libmysql.dll';
 
+const
+  MsgSQLError: String = 'SQL Error (%d): %s';
+  MsgUnhandledNetType: String = 'Unhandled connection type (%d)';
+  MsgDisconnect: String = 'Connection to %s closed at %s';
+  MsgInvalidColumn: String = 'Column #%d not available. Query returned %d columns and %d rows.';
 
 implementation
 
@@ -703,8 +760,10 @@ begin
   case FNetType of
     ntTCPIP, ntNamedPipe, ntSSHTunnel:
       Result := TMySQLConnection.Create(AOwner);
+    ntMSSQL:
+      Result := TAdoDBConnection.Create(AOwner);
     else
-      Raise Exception.Create('Unhandled connection type ('+IntToStr(Integer(FNetType))+')');
+      raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(FNetType)]);
   end;
   Result.Parameters := Self;
 end;
@@ -715,8 +774,10 @@ begin
   case FNetType of
     ntTCPIP, ntNamedPipe, ntSSHTunnel:
       Result := TMySQLQuery.Create(AOwner);
+    ntMSSQL:
+      Result := TAdoDBQuery.Create(AOwner);
     else
-      Raise Exception.Create('Unhandled connection type ('+IntToStr(Integer(FNetType))+')');
+      raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(FNetType)]);
   end;
 end;
 
@@ -726,7 +787,7 @@ end;
 
 constructor TDBConnection.Create(AOwner: TComponent);
 begin
-  inherited Create(AOwner);
+  inherited;
   FSessionName := 'Unnamed';
   FParameters := TConnectionParameters.Create;
   FRowsFound := 0;
@@ -742,12 +803,60 @@ begin
 end;
 
 
+constructor TMySQLConnection.Create(AOwner: TComponent);
+var
+  i: Integer;
+begin
+  inherited;
+  FQuoteChar := '`';
+  // The compiler complains that dynamic and static arrays are incompatible, so this does not work:
+  // FDatatypes := MySQLDatatypes
+  SetLength(FDatatypes, Length(MySQLDatatypes));
+  for i:=0 to High(MySQLDatatypes) do
+    FDatatypes[i] := MySQLDatatypes[i];
+end;
+
+
+constructor TAdoDBConnection.Create(AOwner: TComponent);
+var
+  i: Integer;
+begin
+  inherited;
+  FAdoHandle := TAdoConnection.Create(AOwner);
+  FQuoteChar := '"';
+  SetLength(FDatatypes, Length(MSSQLDatatypes));
+  for i:=0 to High(MSSQLDatatypes) do
+    FDatatypes[i] := MSSQLDatatypes[i];
+end;
+
+
 destructor TDBConnection.Destroy;
 begin
   if Active then Active := False;
   FOnDBObjectsCleared := nil;
   ClearCache(True);
-  inherited Destroy;
+  inherited;
+end;
+
+
+destructor TAdoDBConnection.Destroy;
+begin
+  if Active then Active := False;
+  FreeAndNil(FAdoHandle);
+  inherited;
+end;
+
+
+function TDBConnection.GetDatatypeByName(Datatype: String): TDBDatatype;
+var
+  i: Integer;
+begin
+  for i:=0 to High(FDatatypes) do begin
+    if AnsiCompareText(FDatatypes[i].Name, Datatype) = 0 then begin
+      Result := FDatatypes[i];
+      break;
+    end;
+  end;
 end;
 
 
@@ -770,8 +879,8 @@ procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
   ClientFlags, FinalPort: Integer;
-  Error, tmpdb, FinalHost, FinalSocket, PlinkCmd, UsernamePrompt, PasswordPrompt: String;
-  UsingPass, Protocol, CurCharset: String;
+  Error, tmpdb, FinalHost, FinalSocket, PlinkCmd: String;
+  CurCharset: String;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
 begin
@@ -811,29 +920,10 @@ begin
   end;
 
   if Value and (FHandle = nil) then begin
-    // Prompt for password on initial connect
-    if FParameters.LoginPrompt and (not FLoginPromptDone) then begin
-      UsernamePrompt := FParameters.Username;
-      PasswordPrompt := FParameters.Password;
-      LoginPrompt('Login to '+FParameters.Hostname+':', UsernamePrompt, PasswordPrompt);
-      FParameters.Username := UsernamePrompt;
-      FParameters.Password := PasswordPrompt;
-      FLoginPromptDone := True;
-    end;
+    DoBeforeConnect;
 
     // Get handle
     FHandle := mysql_init(nil);
-
-    // Prepare connection
-    case FParameters.NetType of
-      ntTCPIP: Protocol := 'TCP/IP';
-      ntNamedPipe: Protocol := 'named pipe';
-      ntSSHtunnel: Protocol := 'SSH tunnel';
-    end;
-    if FParameters.Password <> '' then UsingPass := 'Yes' else UsingPass := 'No';
-    Log(lcInfo, 'Connecting to '+FParameters.Hostname+' via '+Protocol+
-      ', username '+FParameters.Username+
-      ', using password: '+UsingPass+' ...');
 
     // Prepare special stuff for SSL and SSH tunnel
     FinalHost := FParameters.Hostname;
@@ -990,17 +1080,143 @@ begin
     FConnectionStarted := 0;
     FHandle := nil;
     ClosePlink;
-    Log(lcInfo, 'Connection to '+FParameters.Hostname+' closed at '+DateTimeToStr(Now));
+    Log(lcInfo, Format(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 
 end;
 
 
-function TMySQLConnection.Ping: Boolean;
+procedure TAdoDBConnection.SetActive(Value: Boolean);
+var
+  tmpdb, Error: String;
+  rx: TRegExpr;
+begin
+  if Value then begin
+    DoBeforeConnect;
+    FAdoHandle.ConnectionString := 'Provider=SQLOLEDB.1;'+
+      'Password='+Parameters.Password+';'+
+      'Persist Security Info=True;'+
+      'User ID='+Parameters.Username+';'+
+      'Data Source='+Parameters.Hostname
+      ;
+    try
+      FAdoHandle.Connected := True;
+      FConnectionStarted := GetTickCount div 1000;
+      FActive := True;
+      Log(lcInfo, 'Connected. Thread-ID: '+IntToStr(ThreadId));
+      // No need to set a charset for MS SQL
+      // CharacterSet := 'utf8';
+      // CurCharset := CharacterSet;
+      // Log(lcDebug, 'Characterset: '+CurCharset);
+      FIsUnicode := True;
+      FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SELECT DATEDIFF(SECOND, '+QuoteIdent('login_time')+', CURRENT_TIMESTAMP) FROM '+QuoteIdent('sys')+'.'+QuoteIdent('sysprocesses')+' WHERE '+QuoteIdent('spid')+'=1'), 1);
+      // Microsoft SQL Server 2008 R2 (RTM) - 10.50.1600.1 (Intel X86) 
+	    // Apr  2 2010 15:53:02 
+	    // Copyright (c) Microsoft Corporation
+      // Express Edition with Advanced Services on Windows NT 6.1 <X86> (Build 7600: )
+      FServerVersionUntouched := Trim(GetVar('SELECT @@VERSION'));
+      rx := TRegExpr.Create;
+      rx.ModifierI := False;
+      // Extract server OS
+      rx.Expression := '\s+on\s+([^\r\n]+)';
+      if rx.Exec(FServerVersionUntouched) then
+        FServerOS := rx.Match[1];
+      // Cut at first line break
+      rx.Expression := '^([^\r\n]+)';
+      if rx.Exec(FServerVersionUntouched) then
+        FServerVersionUntouched := rx.Match[1];
+      rx.Free;
+      FRealHostname := Parameters.Hostname;
+
+      // Reopen closed datasets after reconnecting
+      // ... does not work for some reason. Still getting "not allowed on a closed object" errors in grid.
+      //for i:=0 to FAdoHandle.DataSetCount-1 do
+      //  FAdoHandle.DataSets[i].Open;
+
+      if FDatabase <> '' then begin
+        tmpdb := FDatabase;
+        FDatabase := '';
+        try
+          Database := tmpdb;
+        except
+          FDatabase := tmpdb;
+          Database := '';
+        end;
+      end;
+    except
+      on E:EOleException do begin
+        Error := LastError;
+        Log(lcError, Error);
+        FConnectionStarted := 0;
+        raise EDatabaseError.Create(Error);
+      end;
+    end;
+  end else begin
+    FAdoHandle.Connected := False;
+    FActive := False;
+    ClearCache(False);
+    FConnectionStarted := 0;
+    Log(lcInfo, Format(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
+  end;
+end;
+
+
+procedure TDBConnection.DoBeforeConnect;
+var
+  UsernamePrompt, PasswordPrompt: String;
+  UsingPass, Protocol: String;
+begin
+  // Prompt for password on initial connect
+  if FParameters.LoginPrompt and (not FLoginPromptDone) then begin
+    UsernamePrompt := FParameters.Username;
+    PasswordPrompt := FParameters.Password;
+    LoginPrompt('Login to '+FParameters.Hostname+':', UsernamePrompt, PasswordPrompt);
+    FParameters.Username := UsernamePrompt;
+    FParameters.Password := PasswordPrompt;
+    FLoginPromptDone := True;
+  end;
+
+  // Prepare connection
+  case FParameters.NetType of
+    ntTCPIP: Protocol := 'TCP/IP';
+    ntNamedPipe: Protocol := 'named pipe';
+    ntSSHtunnel: Protocol := 'SSH tunnel';
+    ntMSSQL: Protocol := 'MS SQL';
+  end;
+  if FParameters.Password <> '' then UsingPass := 'Yes' else UsingPass := 'No';
+  Log(lcInfo, 'Connecting to '+FParameters.Hostname+' via '+Protocol+
+    ', username '+FParameters.Username+
+    ', using password: '+UsingPass+' ...');
+end;
+
+
+function TMySQLConnection.Ping(Reconnect: Boolean): Boolean;
 begin
   Log(lcDebug, 'Ping server ...');
-  if FActive and ((FHandle=nil) or (mysql_ping(FHandle) <> 0)) then
+  if FActive and ((FHandle=nil) or (mysql_ping(FHandle) <> 0)) then begin
+    // Be sure to release some stuff before reconnecting
     Active := False;
+    if Reconnect then
+      Active := True;
+  end;
+  Result := FActive;
+end;
+
+
+function TAdoDBConnection.Ping(Reconnect: Boolean): Boolean;
+begin
+  Log(lcDebug, 'Ping server ...');
+  if FActive then try
+    FAdoHandle.Execute('SELECT 1');
+  except
+    on E:EOleException do begin
+      Log(lcError, E.Message);
+      Active := False;
+      if Reconnect then
+        Active := True;
+    end;
+  end;
+
   Result := FActive;
 end;
 
@@ -1034,8 +1250,7 @@ begin
     end;
   end;
 
-  if not Ping then
-    Active := True;
+  Ping(True);
   Log(LogCategory, SQL);
   FLastQuerySQL := SQL;
   if IsUnicode then
@@ -1101,6 +1316,59 @@ begin
 end;
 
 
+procedure TAdoDBConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
+var
+  TimerStart: Cardinal;
+  VarRowsAffected: OleVariant;
+begin
+  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
+    Log(lcDebug, 'Waiting for running query to finish ...');
+    try
+      FLockedByThread.WaitFor;
+    except
+      on E:EThread do;
+    end;
+  end;
+
+  Ping(True);
+  Log(LogCategory, SQL);
+  FLastQuerySQL := SQL;
+  TimerStart := GetTickCount;
+  FResultCount := 0;
+  try
+    // TODO: Handle multiple results
+    FLastRawResult := FAdoHandle.ConnectionObject.Execute(SQL, VarRowsAffected, 1);
+    FRowsAffected := VarRowsAffected;
+    FRowsAffected := Max(FRowsAffected, 0);
+    if FLastRawResult.Fields.Count = 0 then begin
+      FRowsFound := 0;
+      FLastRawResult := nil;
+      Log(lcDebug, IntToStr(RowsAffected)+' rows affected.');
+      if UpperCase(Copy(SQL, 1, 3)) = 'USE' then begin
+        FDatabase := Trim(Copy(SQL, 4, Length(SQL)-3));
+        FDatabase := DeQuoteIdent(FDatabase);
+        Log(lcDebug, 'Database "'+FDatabase+'" selected');
+        if Assigned(FOnDatabaseChanged) then
+          FOnDatabaseChanged(Self, Database);
+      end;
+    end else begin
+      FResultCount := 1;
+      FRowsFound := FLastRawResult.RecordCount;
+      Log(lcDebug, IntToStr(RowsFound)+' rows found.');
+    end;
+    FLastQueryDuration := GetTickCount - TimerStart;
+    FLastQueryNetworkDuration := 0;
+    FResultCount := 1;
+  except
+    on E:EOleException do begin
+      FLastError := E.Message;
+      Log(lcError, GetLastError);
+      raise EDatabaseError.Create(GetLastError);
+    end;
+  end;
+end;
+
+
 function TMySQLConnection.GetLastResults: TDBQueryList;
 var
   r: TDBQuery;
@@ -1114,6 +1382,66 @@ begin
     r.Execute(True, i);
     Result.Add(r);
   end;
+end;
+
+
+function TAdoDBConnection.GetLastResults: TDBQueryList;
+var
+  r: TDBQuery;
+begin
+  // TODO: Handle multiple results
+  Result := TDBQueryList.Create(False);
+  if FLastRawResult <> nil then begin
+    r := Parameters.CreateQuery(nil);
+    r.Connection := Self;
+    r.SQL := FLastQuerySQL;
+    r.Execute(True, 0);
+    Result.Add(r);
+  end;
+end;
+
+
+function TMySQLConnection.GetCreateCode(Database, Name: String; NodeType: TListNodeType): String;
+var
+  Column: Integer;
+  ObjType: String;
+  TmpObj: TDBObject;
+begin
+  Column := -1;
+  TmpObj := TDBObject.Create(Self);
+  TmpObj.NodeType := NodeType;
+  ObjType := TmpObj.ObjType;
+  case NodeType of
+    lntTable, lntView: Column := 1;
+    lntFunction, lntProcedure, lntTrigger: Column := 2;
+    lntEvent: Column := 3;
+    else Exception.Create('Unhandled list node type in '+ClassName+'.GetCreateCode');
+  end;
+  Result := GetVar('SHOW CREATE '+UpperCase(TmpObj.ObjType)+' '+QuoteIdent(Database)+'.'+QuoteIdent(Name), Column);
+  TmpObj.Free;
+end;
+
+
+function TAdoDBConnection.GetCreateCode(Database, Name: String; NodeType: TListNodeType): String;
+var
+  Cols: TDBQuery;
+begin
+  Result := 'CREATE TABLE '+QuoteIdent(Name)+' (';
+  Cols := GetResults('SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE '+
+    'TABLE_CATALOG='+EscapeString(Database)+' AND TABLE_NAME='+EscapeString(Name));
+  while not Cols.Eof do begin
+    Result := Result + CRLF + #9 + QuoteIdent(Cols.Col('COLUMN_NAME')) + ' ' + UpperCase(Cols.Col('DATA_TYPE'));
+    if not Cols.IsNull('CHARACTER_MAXIMUM_LENGTH') then
+      Result := Result + '(' + Cols.Col('CHARACTER_MAXIMUM_LENGTH') + ')';
+    if Cols.Col('IS_NULLABLE') = 'NO' then
+      Result := Result + ' NOT';
+    Result := Result + ' NULL';
+    Result := Result + ',';
+    Cols.Next;
+  end;
+  Cols.Free;
+  Delete(Result, Length(Result)-1, 1);
+  Result := Result + ')';
 end;
 
 
@@ -1143,6 +1471,12 @@ begin
 end;
 
 
+function TAdoDBConnection.GetThreadId: Cardinal;
+begin
+  Result := StrToIntDef(GetVar('SELECT @@SPID'), 0);
+end;
+
+
 {**
   Return currently used character set
 }
@@ -1152,12 +1486,24 @@ begin
 end;
 
 
+function TAdoDBConnection.GetCharacterSet: String;
+begin
+  Result := '';
+end;
+
+
 {**
   Switch character set
 }
 procedure TMySQLConnection.SetCharacterSet(CharsetName: String);
 begin
   mysql_set_character_set(FHandle, PAnsiChar(Utf8Encode(CharsetName)));
+end;
+
+
+procedure TAdoDBConnection.SetCharacterSet(CharsetName: String);
+begin
+  // Not in use. No charset stuff going on here?
 end;
 
 
@@ -1179,7 +1525,16 @@ begin
       Msg := Msg + CRLF + CRLF + Additional;
   end;
   rx.Free;
-  Result := Format('SQL Error (%d): %s', [mysql_errno(FHandle), Msg]);
+  Result := Format(MsgSQLError, [mysql_errno(FHandle), Msg]);
+end;
+
+
+function TAdoDBConnection.GetLastError: String;
+var
+  E: Error;
+begin
+  E := FAdoHandle.Errors[FAdoHandle.Errors.Count-1];
+  Result := Format(MsgSQLError, [E.NativeError, E.Description]);
 end;
 
 
@@ -1224,23 +1579,38 @@ begin
 
 end;
 
+function TAdoDBConnection.GetServerVersionInt: Integer;
+var
+  rx: TRegExpr;
+begin
+  rx := TRegExpr.Create;
+  rx.ModifierG := False;
+  rx.Expression := '(\d{4})\D';
+  if rx.Exec(FServerVersionUntouched) then
+    Result := MakeInt(rx.Match[1])
+  else
+    Result := 0;
+  rx.Free;
+end;
 
-function TMySQLConnection.GetServerVersionStr: String;
+
+function TDBConnection.GetServerVersionStr: String;
 begin
   Result := ConvertServerVersion(ServerVersionInt);
 end;
 
 
-function TMySQLConnection.GetAllDatabases: TStringList;
+function TDBConnection.GetAllDatabases: TStringList;
 var
   i: Integer;
 begin
+  // Get user passed delimited list
   if not Assigned(FAllDatabases) then begin
-    if FParameters.AllDatabases <> '' then begin
+    if FParameters.AllDatabasesStr <> '' then begin
       FAllDatabases := TStringList.Create;
       FAllDatabases.Delimiter := ';';
       FAllDatabases.StrictDelimiter := True;
-      FAllDatabases.DelimitedText := FParameters.AllDatabases;
+      FAllDatabases.DelimitedText := FParameters.AllDatabasesStr;
       // Trim all and remove empty items
       for i:=FAllDatabases.Count-1 downto 0 do begin
         FAllDatabases[i] := Trim(FAllDatabases[i]);
@@ -1249,7 +1619,17 @@ begin
         if FAllDatabases.IndexOf(FAllDatabases[i]) <> i then
           FAllDatabases.Delete(i);
       end;
-    end else try
+    end;
+  end;
+  Result := FAllDatabases;
+end;
+
+
+function TMySQLConnection.GetAllDatabases: TStringList;
+begin
+  Result := inherited;
+  if not Assigned(Result) then begin
+    try
       FAllDatabases := GetCol('SHOW DATABASES');
     except on E:EDatabaseError do
       try
@@ -1258,8 +1638,22 @@ begin
         FAllDatabases := TStringList.Create;
       end;
     end;
+    Result := FAllDatabases;
   end;
-  Result := FAllDatabases;
+end;
+
+
+function TAdoDBConnection.GetAllDatabases: TStringList;
+begin
+  Result := inherited;
+  if not Assigned(Result) then begin
+    try
+      FAllDatabases := GetCol('EXEC '+QuoteIdent('sp_databases'));
+    except on E:EDatabaseError do
+      FAllDatabases := TStringList.Create;
+    end;
+    Result := FAllDatabases;
+  end;
 end;
 
 
@@ -1273,7 +1667,7 @@ end;
 {**
   Convert integer version to real version string
 }
-function TDBConnection.ConvertServerVersion(Version: Integer): String;
+function TMySQLConnection.ConvertServerVersion(Version: Integer): String;
 var
   v : String;
   v1, v2 : Byte;
@@ -1282,6 +1676,12 @@ begin
   v1 := StrToIntDef( v[2]+v[3], 0 );
   v2 := StrToIntDef( v[4]+v[5], 0 );
   Result := v[1] + '.' + IntToStr(v1) + '.' + IntToStr(v2);
+end;
+
+
+function TAdoDBConnection.ConvertServerVersion(Version: Integer): String;
+begin
+  Result := IntToStr(Version);
 end;
 
 
@@ -1419,7 +1819,7 @@ end;
   Add backticks to identifier
   Todo: Support ANSI style
 }
-function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
+function TDBConnection.QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
 var
   GluePos, i: Integer;
 begin
@@ -1442,21 +1842,21 @@ begin
       end;
     end;
     if AlwaysQuote then begin
-      Result := StringReplace(Result, '`', '``', [rfReplaceAll]);
-      Result := '`' + Result + '`';
+      Result := StringReplace(Result, FQuoteChar, FQuoteChar+FQuoteChar, [rfReplaceAll]);
+      Result := FQuoteChar + Result + FQuoteChar;
     end;
   end;
 end;
 
 
-function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
+function TDBConnection.DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
 begin
   Result := Identifier;
-  if (Result[1] = '`') and (Result[Length(Identifier)] = '`') then
+  if (Result[1] = FQuoteChar) and (Result[Length(Identifier)] = FQuoteChar) then
     Result := Copy(Result, 2, Length(Result)-2);
   if Glue <> #0 then
-    Result := StringReplace(Result, '`'+Glue+'`', Glue, [rfReplaceAll]);
-  Result := StringReplace(Result, '``', '`', [rfReplaceAll]);
+    Result := StringReplace(Result, FQuoteChar+Glue+FQuoteChar, Glue, [rfReplaceAll]);
+  Result := StringReplace(Result, FQuoteChar+FQuoteChar, FQuoteChar, [rfReplaceAll]);
 end;
 
 
@@ -1506,6 +1906,14 @@ begin
 end;
 
 
+function TDBConnection.GetTableEngines: TStringList;
+begin
+  if not Assigned(FTableEngines) then
+    FTableEngines := TStringList.Create;
+  Result := FTableEngines;
+end;
+
+
 function TMySQLConnection.GetTableEngines: TStringList;
 var
   ShowEngines, HaveEngines: TDBQuery;
@@ -1514,7 +1922,7 @@ var
 begin
   // After a disconnect Ping triggers the cached engines to be reset
   Log(lcDebug, 'Fetching list of table engines ...');
-  Ping;
+  Ping(True);
   if not Assigned(FTableEngines) then begin
     FTableEngines := TStringList.Create;
     try
@@ -1560,12 +1968,33 @@ begin
 end;
 
 
-function TMySQLConnection.GetCollationTable: TDBQuery;
+function TDBConnection.GetCollationTable: TDBQuery;
 begin
   Log(lcDebug, 'Fetching list of collations ...');
-  Ping;
+  Ping(True);
+  Result := FCollationTable;
+end;
+
+
+function TMySQLConnection.GetCollationTable: TDBQuery;
+begin
+  inherited;
   if (not Assigned(FCollationTable)) and (ServerVersionInt >= 40100) then
     FCollationTable := GetResults('SHOW COLLATION');
+  if Assigned(FCollationTable) then
+    FCollationTable.First;
+  Result := FCollationTable;
+end;
+
+
+function TAdoDBConnection.GetCollationTable: TDBQuery;
+begin
+  inherited;
+  if (not Assigned(FCollationTable)) then
+    FCollationTable := GetResults('SELECT '+EscapeString('')+' AS '+QuoteIdent('Collation')+', '+
+      EscapeString('')+' AS '+QuoteIdent('Charset')+', 0 AS '+QuoteIdent('Id')+', '+
+      EscapeString('')+' AS '+QuoteIdent('Default')+', '+EscapeString('')+' AS '+QuoteIdent('Compiled')+', '+
+      '1 AS '+QuoteIdent('Sortlen'));
   if Assigned(FCollationTable) then
     FCollationTable.First;
   Result := FCollationTable;
@@ -1585,12 +2014,28 @@ begin
 end;
 
 
-function TMySQLConnection.GetCharsetTable: TDBQuery;
+function TDBConnection.GetCharsetTable: TDBQuery;
 begin
   Log(lcDebug, 'Fetching charset list ...');
-  Ping;
+  Ping(True);
+  Result := nil;
+end;
+
+
+function TMySQLConnection.GetCharsetTable: TDBQuery;
+begin
+  inherited;
   if (not Assigned(FCharsetTable)) and (ServerVersionInt >= 40100) then
     FCharsetTable := GetResults('SHOW CHARSET');
+  Result := FCharsetTable;
+end;
+
+
+function TAdoDBConnection.GetCharsetTable: TDBQuery;
+begin
+  inherited;
+  if not Assigned(FCharsetTable) then
+    FCharsetTable := GetResults('SELECT * FROM '+QuoteIdent('syscharsets'));
   Result := FCharsetTable;
 end;
 
@@ -1611,15 +2056,21 @@ begin
 end;
 
 
-function TMySQLConnection.GetInformationSchemaObjects: TStringList;
+function TDBConnection.GetInformationSchemaObjects: TStringList;
+var
+  Objects: TDBObjectList;
+  Obj: TDBObject;
 begin
   Log(lcDebug, 'Fetching objects in information_schema db ...');
-  Ping;
-  if not Assigned(FInformationSchemaObjects) then try
-    FInformationSchemaObjects := GetCol('SHOW TABLES FROM '+QuoteIdent('information_schema'));
-  except
-    // Gracefully return an empty list on old servers
+  Ping(True);
+  if not Assigned(FInformationSchemaObjects) then begin
     FInformationSchemaObjects := TStringList.Create;
+    // Gracefully return an empty list on old servers
+    if AllDatabases.IndexOf('information_schema') > -1 then begin
+      Objects := GetDBObjects('information_schema');
+      for Obj in Objects do
+        FInformationSchemaObjects.Add(Obj.Name);
+    end;
   end;
   Result := FInformationSchemaObjects;
 end;
@@ -1643,12 +2094,23 @@ end;
 
 
 function TDBConnection.GetCurrentUserHostCombination: String;
+var
+  sql: String;
 begin
   // Return current user@host combination, used by various object editors for DEFINER clauses
   Log(lcDebug, 'Fetching user@host ...');
-  Ping;
-  if FCurrentUserHostCombination = '' then
-    FCurrentUserHostCombination := GetVar('SELECT CURRENT_USER()');
+  Ping(True);
+  if FCurrentUserHostCombination = '' then begin
+    case Parameters.NetType of
+      ntTCPIP, ntNamedPipe, ntSSHTunnel:
+        sql := 'SELECT CURRENT_USER()';
+      ntMSSQL:
+        sql := 'SELECT SYSTEM_USER';
+      else
+        raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(Parameters.NetType)]);
+    end;
+    FCurrentUserHostCombination := GetVar(sql);
+  end;
   Result := FCurrentUserHostCombination;
 end;
 
@@ -1707,11 +2169,11 @@ begin
 end;
 
 
-function TMySQLConnection.ParseDateTime(Str: String): TDateTime;
+function TDBConnection.ParseDateTime(Str: String): TDateTime;
 var
   rx: TRegExpr;
 begin
-  // Parse a MySQL date / time string value into a TDateTime
+  // Parse SQL date/time string value into a TDateTime
   Result := 0;
   rx := TRegExpr.Create;
   rx.Expression := '^(\d{4})\-(\d{2})\-(\d{2}) (\d{2})\:(\d{2})\:(\d{2})$';
@@ -1902,6 +2364,73 @@ begin
 end;
 
 
+function TAdoDBConnection.GetDbObjects(db: String; Refresh: Boolean=False): TDBObjectList;
+var
+  obj: TDBObject;
+  Results: TDBQuery;
+  i: Integer;
+  tp: String;
+begin
+  // Cache and return a db's table list
+  if Refresh then
+    ClearDbObjects(db);
+
+  // Find list in cache
+  Result := nil;
+  for i:=0 to FDatabases.Count-1 do begin
+    if FDatabases[i].Database = db then begin
+      Result := FDatabases[i];
+      break;
+    end;
+  end;
+
+  if not Assigned(Result) then begin
+    Result := TDBObjectList.Create(TDBObjectComparer.Create);
+    Result.FLastUpdate := 0;
+    Result.FDataSize := 0;
+    Result.FDatabase := db;
+    Results := nil;
+
+    // Tables, views and procedures
+    try
+      Results := GetResults('SELECT * FROM '+QuoteIdent(db)+'.'+QuoteIdent('sys')+'.'+QuoteIdent('objects')+
+        ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+')');
+    except
+      on E:EDatabaseError do;
+    end;
+    if Assigned(Results) then begin
+      while not Results.Eof do begin
+        obj := TDBObject.Create(Self);
+        Result.Add(obj);
+        obj.Name := Results.Col('name');
+        obj.Created := ParseDateTime(Results.Col('create_date'));
+        obj.Updated := ParseDateTime(Results.Col('modify_date'));
+        obj.Database := db;
+        tp := Trim(Results.Col('type'));
+        if tp = 'U' then
+          obj.NodeType := lntTable
+        else if tp = 'P' then
+          obj.NodeType := lntProcedure
+        else if tp = 'V' then
+          obj.NodeType := lntView;
+        Results.Next;
+      end;
+      FreeAndNil(Results);
+    end;
+
+    // Find youngest last update
+    for i:=0 to Result.Count-1 do
+      Result.FLastUpdate := Max(Result.FLastUpdate, Max(Result[i].Updated, Result[i].Created));
+    // Sort list like it get sorted in MainForm.vstCompareNodes
+    Result.Sort;
+    // Add list of objects in this database to cached list of all databases
+    FDatabases.Add(Result);
+    SetObjectNamesInSelectedDB;
+  end;
+
+end;
+
+
 procedure TDBConnection.SetObjectNamesInSelectedDB;
 var
   i: Integer;
@@ -1922,7 +2451,7 @@ begin
 end;
 
 
-function TMySQLConnection.GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
+function TDBConnection.GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
 var
   i: Integer;
   AllowsNull: Boolean;
@@ -1961,7 +2490,7 @@ begin
 end;
 
 
-function TMySQLConnection.DecodeAPIString(a: AnsiString): String;
+function TDBConnection.DecodeAPIString(a: AnsiString): String;
 begin
   if IsUnicode then
     Result := Utf8ToString(a)
@@ -1970,7 +2499,7 @@ begin
 end;
 
 
-function TMySQLConnection.ConnectionInfo: TStringList;
+function TDBConnection.ConnectionInfo: TStringList;
 var
   Infos, Val: String;
   rx: TRegExpr;
@@ -1984,37 +2513,55 @@ begin
   Result := TStringList.Create;
   if Assigned(Parameters) then
     Result.Values['Hostname'] := Parameters.Hostname;
-  Ping;
+  Ping(False);
   Result.Values['Connected'] := EvalBool(FActive);
   if FActive then begin
     Result.Values['Real Hostname'] := FRealHostname;
     Result.Values['Server OS'] := ServerOS;
     Result.Values['Server version'] := FServerVersionUntouched;
-    Result.Values['Client version (libmysql)'] := DecodeApiString(mysql_get_client_info);
     Result.Values['Connection port'] := IntToStr(Parameters.Port);
     Result.Values['Compressed protocol'] := EvalBool(opCompress in Parameters.Options);
     Result.Values['Unicode enabled'] := EvalBool(IsUnicode);
     Result.Values['SSL enabled'] := EvalBool(opSSL in Parameters.Options);
-    Infos := DecodeApiString(mysql_stat(FHandle));
-    rx := TRegExpr.Create;
-    rx.ModifierG := False;
-    rx.Expression := '(\S.*)\:\s+(\S*)(\s+|$)';
-    if rx.Exec(Infos) then while True do begin
-      Val := rx.Match[2];
-      if LowerCase(rx.Match[1]) = 'uptime' then
-        Val := FormatTimeNumber(StrToIntDef(Val, 0))
-      else
-        Val := FormatNumber(Val);
-      Result.Values[rx.Match[1]] := Val;
-      if not rx.ExecNext then
-        break;
+    case Parameters.NetType of
+      ntTCPIP, ntNamedPipe, ntSSHTunnel: begin
+        Result.Values['Client version (libmysql)'] := DecodeApiString(mysql_get_client_info);
+        Infos := DecodeApiString(mysql_stat((Self as TMySQLConnection).FHandle));
+        rx := TRegExpr.Create;
+        rx.ModifierG := False;
+        rx.Expression := '(\S.*)\:\s+(\S*)(\s+|$)';
+        if rx.Exec(Infos) then while True do begin
+          Val := rx.Match[2];
+          if LowerCase(rx.Match[1]) = 'uptime' then
+            Val := FormatTimeNumber(StrToIntDef(Val, 0))
+          else
+            Val := FormatNumber(Val);
+          Result.Values[rx.Match[1]] := Val;
+          if not rx.ExecNext then
+            break;
+        end;
+        rx.Free;
+      end;
+
+      ntMSSQL: ; // Nothing specific yet
     end;
-    rx.Free;
   end;
 end;
 
 
-procedure TMySQLConnection.ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
+function TDBConnection.IsMySQL: Boolean;
+begin
+  Result := Self is TMySQLConnection;
+end;
+
+
+function TDBConnection.IsMSSQL: Boolean;
+begin
+  Result := Self is TAdoDBConnection;
+end;
+
+
+procedure TDBConnection.ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
 var
   ColSpec: String;
   rx, rxCol: TRegExpr;
@@ -2050,7 +2597,7 @@ begin
     if (ColSpec <> '') and (ColSpec[Length(ColSpec)] = ',') then
       Delete(ColSpec, Length(ColSpec), 1);
 
-    Col := TTableColumn.Create;
+    Col := TTableColumn.Create(Self);
     Columns.Add(Col);
     Col.Name := DeQuoteIdent(rx.Match[1]);
     Col.OldName := Col.Name;
@@ -2195,7 +2742,7 @@ begin
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(Keys) then
       break;
-    Key := TTableKey.Create;
+    Key := TTableKey.Create(Self);
     Keys.Add(Key);
     Key.Name := rx.Match[4];
     if Key.Name = '' then Key.Name := rx.Match[2]; // PRIMARY
@@ -2225,7 +2772,7 @@ begin
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(ForeignKeys) then
       break;
-    ForeignKey := TForeignKey.Create;
+    ForeignKey := TForeignKey.Create(Self);
     ForeignKeys.Add(ForeignKey);
     ForeignKey.KeyName := rx.Match[1];
     ForeignKey.OldKeyName := ForeignKey.KeyName;
@@ -2247,7 +2794,7 @@ begin
 end;
 
 
-procedure TMySQLConnection.ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, Definer, CheckOption, SelectCode: String);
+procedure TDBConnection.ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, Definer, CheckOption, SelectCode: String);
 var
   rx: TRegExpr;
   Col: TTableColumn;
@@ -2298,7 +2845,7 @@ begin
     DbAndViewName := DbAndViewName + QuoteIdent(ViewName);
     Results := GetResults('SHOW /*!32332 FULL */ COLUMNS FROM '+DbAndViewName);
     while not Results.Eof do begin
-      Col := TTableColumn.Create;
+      Col := TTableColumn.Create(Self);
       Columns.Add(Col);
       Col.Name := Results.Col('Field');
       Col.AllowNull := Results.Col('Null') = 'YES';
@@ -2327,7 +2874,7 @@ begin
 end;
 
 
-procedure TMySQLConnection.ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
+procedure TDBConnection.ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
   var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String);
 var
   Params: String;
@@ -2426,6 +2973,17 @@ begin
 end;
 
 
+function TDBConnection.ApplyLimitClause(QueryType, QueryBody: String; Limit: Cardinal): String;
+begin
+  Result := QueryType + ' ';
+  if IsMSSQL then
+    Result := Result + 'TOP('+IntToStr(Limit)+') ';
+  Result := Result + QueryBody;
+  if IsMySQL then
+    Result := Result + ' LIMIT '+IntToStr(Limit);
+end;
+
+
 
 { TMySQLQuery }
 
@@ -2444,14 +3002,6 @@ end;
 
 destructor TDBQuery.Destroy;
 begin
-  inherited Destroy;
-end;
-
-
-destructor TMySQLQuery.Destroy;
-var
-  i: Integer;
-begin
   FreeAndNil(FColumnNames);
   FreeAndNil(FColumnOrgNames);
   FreeAndNil(FColumns);
@@ -2460,12 +3010,30 @@ begin
   SetLength(FColumnFlags, 0);
   SetLength(FColumnLengths, 0);
   SetLength(FColumnTypes, 0);
+  FSQL := '';
+  FRecordCount := 0;
+  inherited;
+end;
+
+
+destructor TMySQLQuery.Destroy;
+var
+  i: Integer;
+begin
   if HasResult then for i:=Low(FResultList) to High(FResultList) do
     mysql_free_result(FResultList[i]);
   SetLength(FResultList, 0);
-  FSQL := '';
-  FRecordCount := 0;
-  inherited Destroy;
+  inherited;
+end;
+
+
+destructor TAdoDBQuery.Destroy;
+begin
+  if FAdoQuery <> nil then begin
+    FAdoQuery.Close;
+    FAdoQuery.Free;
+  end;
+  inherited;
 end;
 
 
@@ -2521,13 +3089,13 @@ begin
         else
           FColumnOrgNames.Add(Connection.DecodeAPIString(Field.name));
         FColumnFlags[i] := Field.flags;
-        FColumnTypes[i] := Datatypes[Low(Datatypes)];
+        FColumnTypes[i] := FConnection.Datatypes[0];
         if (Field.flags and ENUM_FLAG) = ENUM_FLAG then
-          FColumnTypes[i] := Datatypes[Integer(dtEnum)]
+          FColumnTypes[i] := FConnection.Datatypes[Integer(dtEnum)]
         else if (Field.flags and SET_FLAG) = SET_FLAG then
-          FColumnTypes[i] := Datatypes[Integer(dtSet)]
-        else for j:=Low(Datatypes) to High(Datatypes) do begin
-          if Field._type = Datatypes[j].NativeType then begin
+          FColumnTypes[i] := FConnection.Datatypes[Integer(dtSet)]
+        else for j:=0 to High(FConnection.Datatypes) do begin
+          if Field._type = FConnection.Datatypes[j].NativeType then begin
             // Text and Blob types share the same constants (see FIELD_TYPEs)
             // Some function results return binary collation up to the latest versions. Work around
             // that by checking if this field is a real table field
@@ -2536,9 +3104,9 @@ begin
               IsBinary := (Field.charsetnr = COLLATION_BINARY) and (Field.org_table <> '')
             else
               IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
-            if IsBinary and (Datatypes[j].Category = dtcText) then
+            if IsBinary and (FConnection.Datatypes[j].Category = dtcText) then
               continue;
-            FColumnTypes[i] := Datatypes[j];
+            FColumnTypes[i] := FConnection.Datatypes[j];
             break;
           end;
         end;
@@ -2549,6 +3117,90 @@ begin
       SetLength(FColumnTypes, 0);
       SetLength(FColumnLengths, 0);
       SetLength(FColumnFlags, 0);
+    end;
+  end;
+end;
+
+
+procedure TAdoDBQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
+var
+  NumFields, i, j: Integer;
+  TypeIndex: TDBDatatypeIndex;
+  RecordSet: _RecordSet;
+begin
+  // TODO: Handle multiple results
+  if UseRawResult = -1 then begin
+    Connection.Query(FSQL, FStoreResult);
+    //UseRawResult := 0;
+  end;
+  RecordSet := TAdoDBConnection(Connection).LastRawResult;
+  if RecordSet <> nil then begin
+    FAdoQuery := TAdoQuery.Create(Self);
+    FAdoQuery.Recordset := RecordSet;
+    FAdoQuery.Open;
+    NumFields := FAdoQuery.FieldCount;
+  end else
+    NumFields := 0;
+  SetLength(FColumnTypes, NumFields);
+  SetLength(FColumnLengths, NumFields);
+  SetLength(FColumnFlags, NumFields);
+  FColumnNames.Clear;
+  FColumnOrgNames.Clear;
+  FRecordCount := Connection.RowsFound;
+  FEditingPrepared := False;
+
+  // Set up columns and data types
+  if HasResult then begin
+    First;
+    for i:=0 to NumFields-1 do begin
+      FColumnNames.Add(FAdoQuery.Fields[i].FieldName);
+      FColumnOrgNames.Add(FColumnNames[i]);
+      { ftUnknown, ftString, ftSmallint, ftInteger, ftWord, // 0..4
+        ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate, ftTime, ftDateTime, // 5..11
+        ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo, // 12..18
+        ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar, ftWideString, // 19..24
+        ftLargeint, ftADT, ftArray, ftReference, ftDataSet, ftOraBlob, ftOraClob, // 25..31
+        ftVariant, ftInterface, ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, // 32..37
+        ftFixedWideChar, ftWideMemo, ftOraTimeStamp, ftOraInterval, // 38..41
+        ftLongWord, ftShortint, ftByte, ftExtended, ftConnection, ftParams, ftStream, //42..48
+        ftTimeStampOffset, ftObject, ftSingle //49..51 }
+      case FAdoQuery.Fields[i].DataType of
+        ftSmallint, ftWord:
+          TypeIndex := dtMediumInt;
+        ftInteger, ftAutoInc:
+          TypeIndex := dtInt;
+        ftLargeint:
+          TypeIndex := dtBigInt;
+        ftBCD, ftFMTBcd:
+          TypeIndex := dtDecimal;
+        ftFixedChar:
+          TypeIndex := dtChar;
+        ftString, ftWideString, ftBoolean, ftGuid:
+          TypeIndex := dtVarchar;
+        ftMemo, ftWideMemo:
+          TypeIndex := dtMediumText;
+        ftBlob, ftVariant:
+          TypeIndex := dtMediumBlob;
+        ftBytes:
+          TypeIndex := dtBinary;
+        ftVarBytes:
+          TypeIndex := dtVarbinary;
+        ftFloat:
+          TypeIndex := dtEnum;
+        ftDate:
+          TypeIndex := dtDate;
+        ftTime:
+          TypeIndex := dtTime;
+        ftDateTime:
+          TypeIndex := dtDateTime;
+        else
+          raise EDatabaseError.Create('Unknown data type for column #'+IntToStr(i)+' - '+FColumnNames[i]+': '+IntToStr(Integer(FAdoQuery.Fields[i].DataType)));
+      end;
+      for j:=0 to High(FConnection.DataTypes) do begin
+        if TypeIndex = FConnection.DataTypes[j].Index then
+          FColumnTypes[i] := FConnection.DataTypes[j];
+      end;
+
     end;
   end;
 end;
@@ -2631,6 +3283,48 @@ begin
 end;
 
 
+procedure TAdoDBQuery.SetRecNo(Value: Int64);
+var
+  i: Integer;
+  RowFound: Boolean;
+  Row: TRowData;
+begin
+  if Value = FRecNo then
+    Exit;
+  if (not FEditingPrepared) and (Value >= RecordCount) then begin
+    FRecNo := RecordCount;
+    FEof := True;
+    FAdoQuery.Last;
+  end else begin
+    FRecNo := Value;
+    FEof := False;
+
+    // Find row in edited data
+    RowFound := False;
+    if FEditingPrepared then begin
+      for Row in FUpdateData do begin
+        if Row.RecNo = Value then begin
+          FCurrentUpdateRow := Row;
+          for i:=Low(FColumnLengths) to High(FColumnLengths) do
+            FColumnLengths[i] := Length(FCurrentUpdateRow[i].NewText);
+          RowFound := True;
+          break;
+        end;
+      end;
+    end;
+
+    if not RowFound then begin
+      // Ado starts with row 1, not 0
+      FAdoQuery.RecNo := FRecNo+1;
+      FCurrentUpdateRow := nil;
+      for i:=Low(FColumnLengths) to High(FColumnLengths) do
+        FColumnLengths[i] := FAdoQuery.Fields[i].DataSize;
+    end;
+
+  end;
+end;
+
+
 function TDBQuery.ColumnCount: Integer;
 begin
   Result := ColumnNames.Count;
@@ -2654,7 +3348,24 @@ begin
         Result := Connection.DecodeAPIString(AnsiStr);
     end;
   end else if not IgnoreErrors then
-    Raise EDatabaseError.CreateFmt('Column #%d not available. Query returned %d columns and %d rows.', [Column, ColumnCount, RecordCount]);
+    Raise EDatabaseError.CreateFmt(MsgInvalidColumn, [Column, ColumnCount, RecordCount]);
+end;
+
+
+function TAdoDBQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
+begin
+  if (Column > -1) and (Column < ColumnCount) then begin
+    if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
+      Result := FCurrentUpdateRow[Column].NewText;
+    end else begin
+      try
+        Result := FAdoQuery.Fields[Column].AsString;
+      except
+        Result := String(FAdoQuery.Fields[Column].AsAnsiString);
+      end;
+    end;
+  end else if not IgnoreErrors then
+    Raise EDatabaseError.CreateFmt(MsgInvalidColumn, [Column, ColumnCount, RecordCount]);
 end;
 
 
@@ -2670,7 +3381,7 @@ begin
 end;
 
 
-function TMySQLQuery.BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String;
+function TDBQuery.BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String;
 var
   BinLen: Integer;
   Ansi: AnsiString;
@@ -2684,7 +3395,7 @@ begin
 end;
 
 
-function TDBQuery.DataType(Column: Integer): TDataType;
+function TDBQuery.DataType(Column: Integer): TDBDataType;
 var
   Col: TTableColumn;
 begin
@@ -2759,15 +3470,34 @@ begin
 end;
 
 
+function TAdoDBQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
+begin
+//  Result := FAdoQuery.Fields[0].KeyFields
+  Result := False;
+end;
+
+
 function TMySQLQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
 begin
   Result := (FColumnFlags[Column] and UNIQUE_KEY_FLAG) = UNIQUE_KEY_FLAG;
 end;
 
 
+function TAdoDBQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
+begin
+  Result := False;
+end;
+
+
 function TMySQLQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
   Result := (FColumnFlags[Column] and MULTIPLE_KEY_FLAG) = MULTIPLE_KEY_FLAG;
+end;
+
+
+function TAdoDbQuery.ColIsKeyPart(Column: Integer): Boolean;
+begin
+  Result := FAdoQuery.Fields[Column].IsIndexField;
 end;
 
 
@@ -2786,31 +3516,57 @@ begin
 end;
 
 
+function TAdoDBQuery.IsNull(Column: Integer): Boolean;
+begin
+  Result := FAdoQuery.Fields[Column].IsNull;
+end;
+
+
 function TMySQLQuery.HasResult: Boolean;
 begin
   Result := Length(FResultList) > 0;
 end;
 
 
+function TAdoDBQuery.HasResult: Boolean;
+begin
+  Result := FAdoQuery <> nil;
+end;
+
+
 procedure TDBQuery.PrepareEditing;
 var
-  Res: TDBQuery;
-  CreateCode, Dummy: String;
+  CreateCode, Dummy, DB, Table: String;
+  DBObjects: TDBObjectList;
+  Obj: TDBObject;
+  ObjType: TListNodeType;
 begin
   // Try to fetch column names and keys
   if FEditingPrepared then
     Exit;
-  Res := Connection.GetResults('SHOW CREATE TABLE ' + QuotedDbAndTableName);
-  CreateCode := Res.Col(1);
+  // This is probably a VIEW, so column names need to be fetched differently
+  DB := DatabaseName;
+  if DB = '' then
+    DB := Connection.Database;
+  DBObjects := Connection.GetDBObjects(DB);
+  Table := TableName;
+  ObjType := lntTable;
+  for Obj in DBObjects do begin
+    if (Obj.NodeType in [lntTable, lntView]) and (Obj.Name = Table) then begin
+      ObjType := Obj.NodeType;
+      break;
+    end;
+  end;
+  CreateCode := Connection.GetCreateCode(DatabaseName, TableName, ObjType);
   FColumns := TTableColumnList.Create;
   FKeys := TTableKeyList.Create;
   FForeignKeys := TForeignKeyList.Create;
-  // This is probably a VIEW, so column names need to be fetched differently
-  if UpperCase(Res.ColumnNames[0]) = 'TABLE' then
-    Connection.ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys)
-  else
-    Connection.ParseViewStructure(CreateCode, TableName, FColumns, Dummy, Dummy, Dummy, Dummy);
-  FreeAndNil(Res);
+  case ObjType of
+    lntTable:
+      Connection.ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys);
+    lntView:
+      Connection.ParseViewStructure(CreateCode, TableName, FColumns, Dummy, Dummy, Dummy, Dummy);
+  end;  
   FreeAndNil(FUpdateData);
   FUpdateData := TUpdateData.Create(True);
   FEditingPrepared := True;
@@ -2826,7 +3582,7 @@ begin
   PrepareEditing;
   IsVirtual := Assigned(FCurrentUpdateRow) and FCurrentUpdateRow.Inserted;
   if not IsVirtual then begin
-    sql := 'DELETE FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause + ' LIMIT 1';
+    sql := Connection.ApplyLimitClause('DELETE', 'FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause, 1);
     Connection.Query(sql);
   end;
   if Assigned(FCurrentUpdateRow) then begin
@@ -2933,9 +3689,11 @@ begin
     for i:=0 to FColumnOrgNames.Count-1 do begin
       if sql <> '' then
         sql := sql + ', ';
-      sql := sql + QuoteIdent(FColumnOrgNames[i]);
+      sql := sql + Connection.QuoteIdent(FColumnOrgNames[i]);
     end;
-    Data := Connection.GetResults('SELECT '+sql+' FROM '+QuotedDbAndTableName+' WHERE '+GetWhereClause+' LIMIT 1');
+    sql := sql + ' FROM '+QuotedDbAndTableName+' WHERE '+GetWhereClause;
+    sql := Connection.ApplyLimitClause('SELECT', sql, 1);
+    Data := Connection.GetResults(sql);
     Result := Data.RecordCount = 1;
     if Result then begin
       if not Assigned(FCurrentUpdateRow) then
@@ -3008,8 +3766,8 @@ begin
         dtcInteger, dtcReal: Val := Cell.NewText;
         else Val := Connection.EscapeString(Cell.NewText);
       end;
-      sqlUpdate := sqlUpdate + QuoteIdent(FColumnOrgNames[i]) + '=' + Val;
-      sqlInsertColumns := sqlInsertColumns + QuoteIdent(FColumnOrgNames[i]);
+      sqlUpdate := sqlUpdate + Connection.QuoteIdent(FColumnOrgNames[i]) + '=' + Val;
+      sqlInsertColumns := sqlInsertColumns + Connection.QuoteIdent(FColumnOrgNames[i]);
       sqlInsertValues := sqlInsertValues + Val;
     end;
 
@@ -3027,8 +3785,11 @@ begin
             break;
           end;
         end;
-      end else
-        Connection.Query('UPDATE '+QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause+' LIMIT 1');
+      end else begin
+        sqlUpdate := QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause;
+        sqlUpdate := Connection.ApplyLimitClause('UPDATE', sqlUpdate, 1);
+        Connection.Query(sqlUpdate);
+      end;
       // Reset modification flags
       for i:=0 to ColumnCount-1 do begin
         Cell := Row[i];
@@ -3124,6 +3885,12 @@ begin
 end;
 
 
+function TAdoDBQuery.DatabaseName: String;
+begin
+  Result := Connection.Database;
+end;
+
+
 function TMySQLQuery.TableName: String;
 var
   Field: PMYSQL_FIELD;
@@ -3168,6 +3935,22 @@ begin
 end;
 
 
+function TAdoDBQuery.TableName: String;
+var
+  rx: TRegExpr;
+begin
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  rx.ModifierG := True;
+  rx.Expression := '\s*SELECT\s.+\sFROM\s+("?([^"\s]+)"?\.)?("?dbo"?\.)?"?([^"\s]+)"?';
+  if rx.Exec(SQL) then
+    Result := rx.Match[4];
+  rx.Free;
+  if Result = '' then
+    raise EDatabaseError.Create('Could not determine name of table.');
+end;
+
+
 function TDBQuery.QuotedDbAndTableName: String;
 var
   db: String;
@@ -3175,8 +3958,8 @@ begin
   // Return `db`.`table` if necessairy, otherwise `table`
   db := DatabaseName;
   if Connection.Database <> db then
-    Result := QuoteIdent(db)+'.';
-  Result := Result + QuoteIdent(TableName);
+    Result := Connection.QuoteIdent(db)+'.';
+  Result := Result + Connection.QuoteIdent(TableName);
 end;
 
 
@@ -3232,7 +4015,7 @@ begin
       raise EDatabaseError.Create('Cannot compose WHERE clause - column missing: '+NeededCols[i]);
     if Result <> '' then
       Result := Result + ' AND';
-    Result := Result + ' ' + QuoteIdent(FColumnOrgNames[j]);
+    Result := Result + ' ' + Connection.QuoteIdent(FColumnOrgNames[j]);
     if Modified(j) then begin
       ColVal := FCurrentUpdateRow[j].OldText;
       ColIsNull := FCurrentUpdateRow[j].OldIsNull;
@@ -3393,19 +4176,11 @@ begin
   end;
 end;
 
+
 function TDBObject.GetCreateCode: String;
-var
-  Column: Integer;
 begin
-  Column := -1;
-  case NodeType of
-    lntTable, lntView: Column := 1;
-    lntFunction, lntProcedure, lntTrigger: Column := 2;
-    lntEvent: Column := 3;
-    else Exception.Create('Unhandled list node type in '+ClassName+'.GetCreateCode');
-  end;
   if not FCreateCodeFetched then try
-    FCreateCode := FConnection.GetVar('SHOW CREATE '+UpperCase(ObjType)+' '+QuoteIdent(Database)+'.'+QuoteIdent(Name), Column)
+    FCreateCode := Connection.GetCreateCode(Database, Name, NodeType);
   except
   end;
   FCreateCodeFetched := True;
@@ -3419,12 +4194,28 @@ begin
   FCreateCodeFetched := Value <> '';
 end;
 
+function TDBObject.QuotedDatabase(AlwaysQuote: Boolean=True): String;
+begin
+  Result := Connection.QuoteIdent(Database, AlwaysQuote);
+end;
+
+function TDBObject.QuotedName(AlwaysQuote: Boolean=True): String;
+begin
+  Result := Connection.QuoteIdent(Name, AlwaysQuote);
+end;
+
+function TDBObject.QuotedColumn(AlwaysQuote: Boolean=True): String;
+begin
+  Result := Connection.QuoteIdent(Column, AlwaysQuote);
+end;
+
 
 { *** TTableColumn }
 
-constructor TTableColumn.Create;
+constructor TTableColumn.Create(AOwner: TDBConnection);
 begin
   inherited Create;
+  FConnection := AOwner;
 end;
 
 destructor TTableColumn.Destroy;
@@ -3444,7 +4235,7 @@ end;
 
 function TTableColumn.SQLCode: String;
 begin
-  Result := QuoteIdent(Name) + ' ' +DataType.Name;
+  Result := FConnection.QuoteIdent(Name) + ' ' +DataType.Name;
   if LengthSet <> '' then
     Result := Result + '(' + LengthSet + ')';
   if (DataType.Category in [dtcInteger, dtcReal]) and Unsigned then
@@ -3468,9 +4259,10 @@ end;
 
 { *** TTableKey }
 
-constructor TTableKey.Create;
+constructor TTableKey.Create(AOwner: TDBConnection);
 begin
   inherited Create;
+  FConnection := AOwner;
   Columns := TStringList.Create;
   SubParts := TStringList.Create;
   Columns.OnChange := Modification;
@@ -3503,11 +4295,11 @@ begin
   else begin
     if IndexType <> KEY then
       Result := Result + IndexType + ' ';
-    Result := Result + 'INDEX ' + QuoteIdent(Name) + ' ';
+    Result := Result + 'INDEX ' + FConnection.QuoteIdent(Name) + ' ';
   end;
   Result := Result + '(';
   for i:=0 to Columns.Count-1 do begin
-    Result := Result + QuoteIdent(Columns[i]);
+    Result := Result + FConnection.QuoteIdent(Columns[i]);
     if SubParts[i] <> '' then
       Result := Result + '(' + SubParts[i] + ')';
     Result := Result + ', ';
@@ -3526,9 +4318,10 @@ end;
 
 { *** TForeignKey }
 
-constructor TForeignKey.Create;
+constructor TForeignKey.Create(AOwner: TDBConnection);
 begin
   inherited Create;
+  FConnection := AOwner;
   Columns := TStringList.Create;
   ForeignColumns := TStringList.Create;
 end;
@@ -3547,14 +4340,14 @@ begin
   Result := '';
   // Symbol names are unique in a db. In order to autocreate a valid name we leave the constraint clause away.
   if IncludeSymbolName then
-    Result := 'CONSTRAINT '+QuoteIdent(KeyName)+' ';
+    Result := 'CONSTRAINT '+FConnection.QuoteIdent(KeyName)+' ';
   Result := Result + 'FOREIGN KEY (';
   for i:=0 to Columns.Count-1 do
-    Result := Result + QuoteIdent(Columns[i]) + ', ';
+    Result := Result + FConnection.QuoteIdent(Columns[i]) + ', ';
   if Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
-  Result := Result + ') REFERENCES ' + QuoteIdent(ReferenceTable, True, '.') + ' (';
+  Result := Result + ') REFERENCES ' + FConnection.QuoteIdent(ReferenceTable, True, '.') + ' (';
   for i:=0 to ForeignColumns.Count-1 do
-    Result := Result + QuoteIdent(ForeignColumns[i]) + ', ';
+    Result := Result + FConnection.QuoteIdent(ForeignColumns[i]) + ', ';
   if ForeignColumns.Count > 0 then Delete(Result, Length(Result)-1, 2);
   Result := Result + ')';
   if OnUpdate <> '' then

@@ -60,6 +60,8 @@ type
     procedure addfile(filename: String);
     procedure ListViewFilesChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
+  private
+    FConnection: TDBConnection;
   public
     { Public declarations }
     cols : Array of TCol;
@@ -77,10 +79,11 @@ uses main, helpers;
 { FormShow }
 procedure TfrmInsertFiles.FormShow(Sender: TObject);
 begin
-  Caption := Mainform.ActiveConnection.SessionName + ' - Insert files into table ...';
+  FConnection := Mainform.ActiveConnection;
+  Caption := FConnection.SessionName + ' - Insert files into table ...';
   ComboBoxDBs.Items.Clear;
-  ComboBoxDBs.Items.Assign(Mainform.ActiveConnection.AllDatabases);
-  ComboBoxDBs.ItemIndex := ComboBoxDBs.Items.IndexOf( Mainform.ActiveDatabase );
+  ComboBoxDBs.Items.Assign(FConnection.AllDatabases);
+  ComboBoxDBs.ItemIndex := ComboBoxDBs.Items.IndexOf(FConnection.Database);
   if ComboBoxDBs.ItemIndex = -1 then
     ComboBoxDBs.ItemIndex := 0;
   ComboBoxDBsChange(self);
@@ -95,7 +98,7 @@ var
 begin
   // read tables from db
   ComboBoxTables.Items.Clear;
-  DBObjects := MainForm.ActiveConnection.GetDBObjects(ComboBoxDBs.Text);
+  DBObjects := FConnection.GetDBObjects(ComboBoxDBs.Text);
   for i:=0 to DBObjects.Count-1 do begin
     if DBObjects[i].NodeType in [lntTable, lntView] then
       ComboBoxTables.Items.Add(DBObjects[i].Name);
@@ -112,7 +115,7 @@ var
 begin
   setlength(cols, 0);
   if ComboBoxTables.ItemIndex > -1 then begin
-    Results := MainForm.ActiveConnection.GetResults('SHOW FIELDS FROM '+QuoteIdent(ComboBoxDBs.Text)+'.'+QuoteIdent(ComboBoxTables.Text));
+    Results := FConnection.GetResults('SHOW FIELDS FROM '+FConnection.QuoteIdent(ComboBoxDBs.Text)+'.'+FConnection.QuoteIdent(ComboBoxTables.Text));
     while not Results.Eof do begin
       setlength(cols, length(cols)+1);
       cols[length(cols)-1].Name := Results.Col(0);
@@ -369,12 +372,12 @@ begin
       ListViewFiles.Selected := ListViewFiles.ItemFocused;
       ListViewFiles.ItemFocused.MakeVisible(False);
       ListViewFiles.Repaint;
-      sql := 'INSERT INTO '+QuoteIdent(ComboBoxDBs.Text)+'.'+QuoteIdent(ComboBoxTables.Text) +
-        ' (' + QuoteIdent(ComboBoxColumns.Text);
+      sql := 'INSERT INTO '+FConnection.QuoteIdent(ComboBoxDBs.Text)+'.'+FConnection.QuoteIdent(ComboBoxTables.Text) +
+        ' (' + FConnection.QuoteIdent(ComboBoxColumns.Text);
       for j:=0 to length(cols)-1 do begin
         if cols[j].Name = ComboBoxColumns.Text then
           Continue;
-        sql := sql + ', ' + QuoteIdent(cols[j].Name);
+        sql := sql + ', ' + FConnection.QuoteIdent(cols[j].Name);
       end;
       FileStream := TFileStream.Create( filename, fmShareDenyWrite );
       try
@@ -420,7 +423,7 @@ begin
       // Strip last comma + space
       sql := copy(sql, 1, length(sql)-2);
       sql := sql + ')';
-      MainForm.ActiveConnection.Query(sql);
+      FConnection.Query(sql);
       Mainform.ProgressBarStatus.StepIt;
       Mainform.ProgressBarStatus.Repaint;
     end;

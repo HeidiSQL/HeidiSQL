@@ -278,7 +278,8 @@ begin
   if DBObject.Name = '' then begin
     // Creating new table
     editName.Text := '';
-    comboCollation.ItemIndex := comboCollation.Items.IndexOf(MainForm.ActiveConnection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
+    if DBObject.Connection.IsMySQL then
+      comboCollation.ItemIndex := comboCollation.Items.IndexOf(MainForm.ActiveConnection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
     PageControlMain.ActivePage := tabBasic;
   end else begin
     // Editing existing table
@@ -455,7 +456,7 @@ var
   begin
     if Specs.Count > 0 then begin
       Query := TSQLSentence.Create;
-      Query.SQL := 'ALTER TABLE '+QuoteIdent(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
+      Query.SQL := 'ALTER TABLE '+DBObject.Connection.QuoteIdent(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
       Query.SQL := Trim(Query.SQL);
       Result.Add(Query);
       Specs.Clear;
@@ -475,7 +476,7 @@ begin
   //   ALTER TABLE  statement. Separate statements are required."
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
-      Specs.Add('DROP FOREIGN KEY '+QuoteIdent(FForeignKeys[i].OldKeyName));
+      Specs.Add('DROP FOREIGN KEY '+DBObject.Connection.QuoteIdent(FForeignKeys[i].OldKeyName));
   end;
   AddQuery;
 
@@ -484,18 +485,18 @@ begin
   // appending an ALTER COLUMN ... DROP DEFAULT, without getting an "unknown column" error
   for i:=0 to FColumns.Count-1 do begin
     if (FColumns[i].FStatus = esModified) and (FColumns[i].DefaultType = cdtNothing) then
-      Specs.Add('ALTER '+QuoteIdent(FColumns[i].OldName)+' DROP DEFAULT');
+      Specs.Add('ALTER '+DBObject.Connection.QuoteIdent(FColumns[i].OldName)+' DROP DEFAULT');
   end;
   AddQuery;
 
   if editName.Text <> DBObject.Name then
-    Specs.Add('RENAME TO ' + QuoteIdent(editName.Text));
+    Specs.Add('RENAME TO ' + DBObject.Connection.QuoteIdent(editName.Text));
   if memoComment.Tag = ModifiedFlag then
     Specs.Add('COMMENT=' + esc(memoComment.Text));
   if (comboCollation.Tag = ModifiedFlag) or (chkCharsetConvert.Checked) then
     Specs.Add('COLLATE=' + esc(comboCollation.Text));
   if comboEngine.Tag = ModifiedFlag then begin
-    if MainForm.ActiveConnection.ServerVersionInt < 40018 then
+    if DBObject.Connection.ServerVersionInt < 40018 then
       Specs.Add('TYPE=' + comboEngine.Text)
     else
       Specs.Add('ENGINE=' + comboEngine.Text);
@@ -515,7 +516,7 @@ begin
   if comboInsertMethod.Enabled and (comboInsertMethod.Tag = ModifiedFlag) and (comboInsertMethod.Text <> '') then
     Specs.Add('INSERT_METHOD='+comboInsertMethod.Text);
   if chkCharsetConvert.Checked then begin
-    Results := MainForm.ActiveConnection.CollationTable;
+    Results := DBObject.Connection.CollationTable;
     if Assigned(Results) then while not Results.Eof do begin
       if Results.Col('Collation') = comboCollation.Text then begin
         Specs.Add('CONVERT TO CHARSET '+Results.Col('Charset'));
@@ -533,7 +534,7 @@ begin
     Mainform.ProgressBarStatus.StepIt;
     Col := listColumns.GetNodeData(Node);
     if Col.Status <> esUntouched then begin
-      ColSpec := QuoteIdent(Col.Name);
+      ColSpec := DBObject.Connection.QuoteIdent(Col.Name);
       ColSpec := ColSpec + ' ' + Col.DataType.Name;
       if Col.LengthSet <> '' then
         ColSpec := ColSpec + '(' + Col.LengthSet + ')';
@@ -558,14 +559,14 @@ begin
           ColSpec := ColSpec + esc(Col.Collation);
       end;
       // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
-      if MainForm.ActiveConnection.ServerVersionInt >= 40001 then begin
+      if DBObject.Connection.ServerVersionInt >= 40001 then begin
         if PreviousCol = nil then
           ColSpec := ColSpec + ' FIRST'
         else
-          ColSpec := ColSpec + ' AFTER '+QuoteIdent(PreviousCol.Name);
+          ColSpec := ColSpec + ' AFTER '+DBObject.Connection.QuoteIdent(PreviousCol.Name);
       end;
       if Col.Status = esModified then
-        Specs.Add('CHANGE COLUMN '+QuoteIdent(Col.OldName) + ' ' + ColSpec)
+        Specs.Add('CHANGE COLUMN '+DBObject.Connection.QuoteIdent(Col.OldName) + ' ' + ColSpec)
       else if Col.Status in [esAddedUntouched, esAddedModified] then
         Specs.Add('ADD COLUMN ' + ColSpec);
     end;
@@ -576,7 +577,7 @@ begin
   // Deleted columns, not available as Node in above loop
   for i:=0 to FColumns.Count-1 do begin
     if FColumns[i].Status = esDeleted then
-      Specs.Add('DROP COLUMN '+QuoteIdent(FColumns[i].OldName));
+      Specs.Add('DROP COLUMN '+DBObject.Connection.QuoteIdent(FColumns[i].OldName));
   end;
 
   // Drop indexes, also changed indexes, which will be readded below
@@ -585,7 +586,7 @@ begin
     if DeletedKeys[i] = PKEY then
       IndexSQL := 'PRIMARY KEY'
     else
-      IndexSQL := 'INDEX ' + QuoteIdent(DeletedKeys[i]);
+      IndexSQL := 'INDEX ' + DBObject.Connection.QuoteIdent(DeletedKeys[i]);
     Specs.Add('DROP '+IndexSQL);
   end;
   // Add changed or added indexes
@@ -595,7 +596,7 @@ begin
       if FKeys[i].OldIndexType = PKEY then
         IndexSQL := 'PRIMARY KEY'
       else
-        IndexSQL := 'INDEX ' + QuoteIdent(FKeys[i].OldName);
+        IndexSQL := 'INDEX ' + DBObject.Connection.QuoteIdent(FKeys[i].OldName);
       Specs.Add('DROP '+IndexSQL);
     end;
     if FKeys[i].Added or FKeys[i].Modified then
@@ -603,7 +604,7 @@ begin
   end;
 
   for i:=0 to DeletedForeignKeys.Count-1 do
-    Specs.Add('DROP FOREIGN KEY '+QuoteIdent(DeletedForeignKeys[i]));
+    Specs.Add('DROP FOREIGN KEY '+DBObject.Connection.QuoteIdent(DeletedForeignKeys[i]));
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Added or FForeignKeys[i].Modified then
       Specs.Add('ADD '+FForeignKeys[i].SQLCode(True));
@@ -629,7 +630,7 @@ begin
   Result := TSQLBatch.Create;
   Query := TSQLSentence.Create;
   Result.Add(Query);
-  Query.SQL := 'CREATE TABLE '+QuoteIdent(editName.Text)+' ('+CRLF;
+  Query.SQL := 'CREATE TABLE '+DBObject.Connection.QuoteIdent(editName.Text)+' ('+CRLF;
   Node := listColumns.GetFirst;
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
@@ -658,7 +659,7 @@ begin
   if comboCollation.Text <> '' then
     Query.SQL := Query.SQL + 'COLLATE='+esc(comboCollation.Text) + CRLF;
   if comboEngine.Text <> '' then begin
-    if MainForm.ActiveConnection.ServerVersionInt < 40018 then
+    if DBObject.Connection.ServerVersionInt < 40018 then
       Query.SQL := Query.SQL + 'TYPE='+comboEngine.Text + CRLF
     else
       Query.SQL := Query.SQL + 'ENGINE='+comboEngine.Text + CRLF;
@@ -709,7 +710,7 @@ begin
   if listColumns.IsEditing then
     listColumns.EndEditNode;
   fn := listColumns.FocusedNode;
-  NewCol := TTableColumn.Create;
+  NewCol := TTableColumn.Create(DBObject.Connection);
   if Assigned(fn) then begin
     idx := fn.Index+1;
     // Copy properties from focused node
@@ -730,7 +731,7 @@ begin
     NewCol.Collation := '';
   end else begin
     idx := listColumns.RootNodeCount;
-    NewCol.DataType := GetDatatypeByName('INT');
+    NewCol.DataType := DBObject.Connection.GetDatatypeByName('INT');
     NewCol.LengthSet := '10';
     NewCol.Unsigned := False;
     NewCol.AllowNull := True;
@@ -956,7 +957,7 @@ begin
     // No editor for very first column and checkbox columns
     0: Result := False;
     3: Result := Col.DataType.HasLength;
-    4,6: Result := Col.DataType.Category in [dtcInteger, dtcReal];
+    4,6: Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.IsMySQL);
     // No editing of collation allowed if "Convert data" was checked
     9: Result := not chkCharsetConvert.Checked;
     else Result := True;
@@ -1080,7 +1081,7 @@ begin
       Col.Name := NewText;
     end;
     2: begin // Data type
-      Col.DataType := GetDatatypeByName(NewText);
+      Col.DataType := DBObject.Connection.GetDatatypeByName(NewText);
       // Reset length/set for column types which don't support that
       if not Col.DataType.HasLength then
         Col.LengthSet := '';
@@ -1097,7 +1098,7 @@ begin
           if Col.DefaultType = cdtNullUpdateTS then
             Col.DefaultType := cdtNull;
         end;
-        dtcText, dtcIntegerNamed, dtcBinary, dtcSpatial, dtcSet, dtcSetNamed: begin
+        dtcText, dtcBinary, dtcSpatial, dtcOther: begin
           if Col.DefaultType in [cdtCurTS, cdtCurTSUpdateTS, cdtAutoInc] then
             Col.DefaultType := cdtNothing;
           if Col.DefaultType = cdtNullUpdateTS then
@@ -1228,7 +1229,7 @@ begin
     9: begin // Collation pulldown
       EnumEditor := TEnumEditorLink.Create(VT);
       EnumEditor.ValueList := TStringList.Create;
-      EnumEditor.ValueList.Text := MainForm.ActiveConnection.CollationList.Text;
+      EnumEditor.ValueList.Text := DBObject.Connection.CollationList.Text;
       EnumEditor.ValueList.Insert(0, '');
       EditLink := EnumEditor;
       end;
@@ -1242,6 +1243,7 @@ begin
     else
       EditLink := TInplaceEditorLink.Create(VT);
   end;
+  TBaseGridEditorLink(EditLink).Connection := DBObject.Connection;
 end;
 
 
@@ -1282,7 +1284,7 @@ var
   TblKey: TTableKey;
 begin
   // Add new index
-  TblKey := TTableKey.Create;
+  TblKey := TTableKey.Create(DBObject.Connection);
   TblKey.Name := 'Index '+IntToStr(FKeys.Count+1);
   TblKey.OldName := TblKey.Name;
   TblKey.IndexType := KEY;
@@ -1864,7 +1866,7 @@ begin
         break;
       end;
     end;
-    TblKey := TTableKey.Create;
+    TblKey := TTableKey.Create(DBObject.Connection);
     TblKey.Name := ImplodeStr('_', NewParts);
     TblKey.IndexType := NewType;
     TblKey.Added := True;
@@ -1899,7 +1901,7 @@ var
   idx: Integer;
 begin
   // Add new foreign key
-  Key := TForeignKey.Create;
+  Key := TForeignKey.Create(DBObject.Connection);
   idx := FForeignKeys.Add(Key);
   Key.KeyName := 'FK'+IntToStr(idx+1);
   Key.OnUpdate := '';
@@ -1970,7 +1972,7 @@ begin
       MessageDlg('Please select a reference table before selecting foreign columns.', mtError, [mbOk], 0)
     else begin
       try
-        MainForm.ActiveConnection.GetVar('SELECT 1 FROM '+QuoteIdent(Key.ReferenceTable, True, '.'));
+        DBObject.Connection.GetVar('SELECT 1 FROM '+DBObject.Connection.QuoteIdent(Key.ReferenceTable, True, '.'));
         Allowed := True;
       except
         // Leave Allowed = False
@@ -2012,7 +2014,7 @@ begin
     2: begin
         EnumEditor := TEnumEditorLink.Create(VT);
         EnumEditor.AllowCustomText := True;
-        DBObjects := MainForm.ActiveConnection.GetDBObjects(Mainform.ActiveDatabase);
+        DBObjects := DBObject.Connection.GetDBObjects(Mainform.ActiveDatabase);
         for i:=0 to DBObjects.Count-1 do begin
           if DBObjects[i].NodeType = lntTable then
             EnumEditor.ValueList.Add(DBObjects[i].Name);
@@ -2022,7 +2024,7 @@ begin
     3: begin
         Key := FForeignKeys[Node.Index];
         SetEditor := TSetEditorLink.Create(VT);
-        SetEditor.ValueList := MainForm.ActiveConnection.GetCol('SHOW COLUMNS FROM '+QuoteIdent(Key.ReferenceTable, True, '.'));
+        SetEditor.ValueList := DBObject.Connection.GetCol('SHOW COLUMNS FROM '+DBObject.Connection.QuoteIdent(Key.ReferenceTable, True, '.'));
         EditLink := SetEditor;
       end;
     4, 5: begin

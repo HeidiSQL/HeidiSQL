@@ -355,14 +355,14 @@ var
   DoData: Boolean;
 begin
   // Compose and run CREATE query
-  TargetTable := QuoteIdent(comboDatabase.Text)+'.'+QuoteIdent(editNewTablename.Text);
-  TableExistance := MainForm.ActiveConnection.GetVar('SHOW TABLES FROM '+QuoteIdent(comboDatabase.Text)+' LIKE '+esc(editNewTablename.Text));
+  TargetTable := FDBObj.Connection.QuoteIdent(comboDatabase.Text)+'.'+FDBObj.Connection.QuoteIdent(editNewTablename.Text);
+  TableExistance := FDBObj.Connection.GetVar('SHOW TABLES FROM '+FDBObj.Connection.QuoteIdent(comboDatabase.Text)+' LIKE '+esc(editNewTablename.Text));
   if TableExistance <> '' then begin
     if MessageDlg('Target table exists. Drop it and overwrite?', mtConfirmation, [mbYes, mbCancel], 0) = mrCancel then begin
       ModalResult := mrNone;
       Exit;
     end;
-    MainForm.ActiveConnection.Query('DROP TABLE '+TargetTable);
+    FDBObj.Connection.Query('DROP TABLE '+TargetTable);
   end;
 
   Screen.Cursor := crHourglass;
@@ -377,7 +377,7 @@ begin
         case ParentNode.Index of
           nColumns: begin
             Clause := FColumns[Node.Index].SQLCode;
-            DataCols := DataCols + QuoteIdent(FColumns[Node.Index].Name) + ', ';
+            DataCols := DataCols + FDBObj.Connection.QuoteIdent(FColumns[Node.Index].Name) + ', ';
           end;
           nKeys:         Clause := FKeys[Node.Index].SQLCode;
           nForeignkeys:  Clause := FForeignKeys[Node.Index].SQLCode(False);
@@ -414,7 +414,7 @@ begin
   if DoData and (DataCols <> '') then begin
     DataCols := Trim(DataCols);
     Delete(DataCols, Length(DataCols), 1);
-    InsertCode := 'INSERT INTO '+TargetTable+' ('+DataCols+') SELECT ' + DataCols + ' FROM ' + QuoteIdent(FDBObj.Name);
+    InsertCode := 'INSERT INTO '+TargetTable+' ('+DataCols+') SELECT ' + DataCols + ' FROM ' + FDBObj.QuotedName;
     if MemoFilter.GetTextLen > 0 then
       InsertCode := InsertCode + ' WHERE ' + MemoFilter.Text;
   end;

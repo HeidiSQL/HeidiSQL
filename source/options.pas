@@ -61,16 +61,16 @@ type
     lblFieldText: TLabel;
     lblFieldBinary: TLabel;
     lblFieldNumeric: TLabel;
-    lblFieldEnum: TLabel;
+    lblFieldSpatial: TLabel;
     cboxBinary: TColorBox;
     cboxDatetime: TColorBox;
     cboxNumeric: TColorBox;
-    cboxEnum: TColorBox;
+    cboxSpatial: TColorBox;
     chkEditorBinary: TCheckBox;
     chkEditorDatetime: TCheckBox;
     chkEditorEnum: TCheckBox;
-    lblFieldSet: TLabel;
-    cboxSet: TColorBox;
+    lblFieldOther: TLabel;
+    cboxOther: TColorBox;
     chkEditorSet: TCheckBox;
     chkNullBG: TCheckBox;
     lblFieldNull: TLabel;
@@ -276,8 +276,8 @@ begin
   MainReg.WriteInteger(REGNAME_FIELDCOLOR_TEXT, cboxText.Selected);
   MainReg.WriteInteger(REGNAME_FIELDCOLOR_BINARY, cboxBinary.Selected);
   MainReg.WriteInteger(REGNAME_FIELDCOLOR_DATETIME, cboxDatetime.Selected);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_ENUM, cboxEnum.Selected);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_SET, cboxSet.Selected);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_SPATIAL, cboxSpatial.Selected);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_OTHER, cboxOther.Selected);
   MainReg.WriteInteger(REGNAME_BG_NULL, cboxNullBg.Selected);
   // Editor enablings
   MainReg.WriteBool(REGNAME_FIELDEDITOR_BINARY, chkEditorBinary.Checked);
@@ -351,9 +351,8 @@ begin
   DatatypeCategories[Integer(dtcText)].Color := cboxText.Selected;
   DatatypeCategories[Integer(dtcBinary)].Color := cboxBinary.Selected;
   DatatypeCategories[Integer(dtcTemporal)].Color := cboxDatetime.Selected;
-  DatatypeCategories[Integer(dtcIntegerNamed)].Color := cboxEnum.Selected;
-  DatatypeCategories[Integer(dtcSet)].Color := cboxSet.Selected;
-  DatatypeCategories[Integer(dtcSetNamed)].Color := cboxSet.Selected;
+  DatatypeCategories[Integer(dtcSpatial)].Color := cboxSpatial.Selected;
+  DatatypeCategories[Integer(dtcOther)].Color := cboxOther.Selected;
   Mainform.prefNullBG := cboxNullBg.Selected;
   Mainform.CalcNullColors;
   Mainform.DataGrid.Repaint;
@@ -476,8 +475,8 @@ begin
   cboxText.Selected := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
   cboxBinary.Selected := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
   cboxDatetime.Selected := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
-  cboxEnum.Selected := GetRegValue(REGNAME_FIELDCOLOR_ENUM, DEFAULT_FIELDCOLOR_ENUM);
-  cboxSet.Selected := GetRegValue(REGNAME_FIELDCOLOR_SET, DEFAULT_FIELDCOLOR_SET);
+  cboxSpatial.Selected := GetRegValue(REGNAME_FIELDCOLOR_SPATIAL, DEFAULT_FIELDCOLOR_SPATIAL);
+  cboxOther.Selected := GetRegValue(REGNAME_FIELDCOLOR_OTHER, DEFAULT_FIELDCOLOR_OTHER);
   cboxNullBG.Selected := GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
   // Editor enablings
   chkEditorBinary.Checked := GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);

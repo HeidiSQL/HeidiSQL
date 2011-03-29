@@ -30,6 +30,7 @@ type
     CollationTable: TDBQuery;
     defaultCharset : String;
     currentCollation : String;
+    FConnection: TDBConnection;
   public
     { Public declarations }
     modifyDB : String;
@@ -65,9 +66,10 @@ var
   Charset: String;
   colpos: Integer;
 begin
-  CollationTable := MainForm.ActiveConnection.CollationTable;
+  FConnection := MainForm.ActiveConnection;
+  CollationTable := FConnection.CollationTable;
   // Detect servers default charset
-  defaultCharset := MainForm.ActiveConnection.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
+  defaultCharset := FConnection.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
   comboCharset.Enabled := Assigned(CollationTable);
   lblCharset.Enabled := comboCharset.Enabled;
   comboCollation.Enabled := comboCharset.Enabled;
@@ -98,7 +100,7 @@ begin
     editDBName.SelectAll;
     
     // Detect current charset and collation to be able to preselect them in the pulldowns
-    sql_create := MainForm.ActiveConnection.GetVar('SHOW CREATE DATABASE '+QuoteIdent(modifyDB), 1);
+    sql_create := FConnection.GetVar('SHOW CREATE DATABASE '+FConnection.QuoteIdent(modifyDB), 1);
     currentCharset := Copy( sql_create, pos('CHARACTER SET', sql_create)+14, Length(sql_create));
     currentCharset := GetFirstWord( currentCharset );
     if currentCharset <> '' then
@@ -184,7 +186,7 @@ var
 begin
   if modifyDB = '' then try
     sql := GetCreateStatement;
-    MainForm.ActiveConnection.Query(sql);
+    FConnection.Query(sql);
     // Close form
     ModalResult := mrOK;
   except
@@ -192,7 +194,7 @@ begin
       MessageDlg( 'Creating database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
     // Keep form open
   end else try
-    sql := 'ALTER DATABASE ' + QuoteIdent( modifyDB );
+    sql := 'ALTER DATABASE ' + FConnection.QuoteIdent( modifyDB );
     if comboCharset.Enabled and (comboCharset.Text <> '') then
     begin
       sql := sql + ' CHARACTER SET ' + comboCharset.Text;
@@ -201,13 +203,13 @@ begin
     end;
     if modifyDB = editDBName.Text then begin
       // Alter database
-      MainForm.ActiveConnection.Query(sql);
+      FConnection.Query(sql);
     end else begin
       // Rename database
-      ObjectsInOldDb := MainForm.ActiveConnection.GetDBObjects(modifyDB, True);
-      AllDatabases := MainForm.ActiveConnection.GetCol('SHOW DATABASES');
+      ObjectsInOldDb := FConnection.GetDBObjects(modifyDB, True);
+      AllDatabases := FConnection.GetCol('SHOW DATABASES');
       if AllDatabases.IndexOf(editDBName.Text) > -1 then
-        ObjectsInNewDb := MainForm.ActiveConnection.GetDBObjects(editDBName.Text, True)
+        ObjectsInNewDb := FConnection.GetDBObjects(editDBName.Text, True)
       else
         ObjectsInNewDb := nil; // Silence compiler warning
       // Warn if there are tables with same names in new db
@@ -227,7 +229,7 @@ begin
 
       if AllDatabases.IndexOf(editDBName.Text) = -1 then begin
         // Target db does not exist - create it
-        MainForm.ActiveConnection.Query(GetCreateStatement);
+        FConnection.Query(GetCreateStatement);
       end else begin
         if MessageDlg('Database "'+editDBName.Text+'" exists. But it does not contain objects with same names as in '+
           '"'+modifyDB+'", so it''s uncritical to move everything.'+CRLF+CRLF+'Move all objects to "'+editDBName.Text+'"?',
@@ -237,20 +239,20 @@ begin
       // Move all tables, views and procedures to target db
       sql := '';
       for i:=0 to ObjectsInOldDb.Count-1 do begin
-        sql := sql + QuoteIdent(modifyDb)+'.'+QuoteIdent(ObjectsInOldDb[i].Name)+' TO '+
-          QuoteIdent(editDBName.Text)+'.'+QuoteIdent(ObjectsInOldDb[i].Name)+', ';
+        sql := sql + FConnection.QuoteIdent(modifyDb)+'.'+FConnection.QuoteIdent(ObjectsInOldDb[i].Name)+' TO '+
+          FConnection.QuoteIdent(editDBName.Text)+'.'+FConnection.QuoteIdent(ObjectsInOldDb[i].Name)+', ';
       end;
       if sql <> '' then begin
         Delete(sql, Length(sql)-1, 2);
         sql := 'RENAME TABLE '+sql;
-        MainForm.ActiveConnection.Query(sql);
-        MainForm.ActiveConnection.ClearDbObjects(modifyDB);
-        MainForm.ActiveConnection.ClearDbObjects(editDBName.Text);
+        FConnection.Query(sql);
+        FConnection.ClearDbObjects(modifyDB);
+        FConnection.ClearDbObjects(editDBName.Text);
       end;
       // Last check if old db is really empty, before we drop it.
-      ObjectsLeft := MainForm.ActiveConnection.GetDBObjects(modifyDB);
+      ObjectsLeft := FConnection.GetDBObjects(modifyDB);
       if ObjectsLeft.Count = 0 then begin
-        MainForm.ActiveConnection.Query('DROP DATABASE '+QuoteIdent(modifyDB));
+        FConnection.Query('DROP DATABASE '+FConnection.QuoteIdent(modifyDB));
         MainForm.RefreshTree;
       end;
     end;
@@ -263,16 +265,16 @@ begin
   end;
 
   // Save new db name to registry
-  AllDatabases := Explode(';', MainForm.ActiveConnection.Parameters.AllDatabases);
+  AllDatabases := Explode(';', FConnection.Parameters.AllDatabasesStr);
   if AllDatabases.Count > 0 then begin
     i := AllDatabases.IndexOf(modifyDB);
     if i > -1 then
       AllDatabases[i] := editDBname.Text
     else
       AllDatabases.Add(editDBname.Text);
-    OpenRegistry(Mainform.ActiveConnection.SessionName);
-    MainForm.ActiveConnection.Parameters.AllDatabases := ImplodeStr(';', AllDatabases);
-    MainReg.WriteString(REGNAME_DATABASES, MainForm.ActiveConnection.Parameters.AllDatabases);
+    OpenRegistry(FConnection.SessionName);
+    FConnection.Parameters.AllDatabasesStr := ImplodeStr(';', AllDatabases);
+    MainReg.WriteString(REGNAME_DATABASES, FConnection.Parameters.AllDatabasesStr);
   end;
 end;
 
@@ -292,7 +294,7 @@ end;
 }
 function TCreateDatabaseForm.GetCreateStatement: String;
 begin
-  Result := 'CREATE DATABASE ' + QuoteIdent( editDBName.Text );
+  Result := 'CREATE DATABASE ' + FConnection.QuoteIdent( editDBName.Text );
   if comboCharset.Enabled and (comboCharset.Text <> '') then
   begin
     Result := Result + ' /*!40100 CHARACTER SET ' + comboCharset.Text;

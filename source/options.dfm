@@ -654,20 +654,20 @@ object optionsform: Toptionsform
           Caption = '&Numbers:'
           FocusControl = cboxNumeric
         end
-        object lblFieldEnum: TLabel
+        object lblFieldSpatial: TLabel
           Left = 12
           Top = 120
-          Width = 30
+          Width = 36
           Height = 13
-          Caption = '&Enum:'
-          FocusControl = cboxEnum
+          Caption = '&Spatial:'
+          FocusControl = cboxSpatial
         end
-        object lblFieldSet: TLabel
+        object lblFieldOther: TLabel
           Left = 12
           Top = 144
-          Width = 20
+          Width = 32
           Height = 13
-          Caption = '&Set:'
+          Caption = '&Other:'
         end
         object lblFieldNull: TLabel
           Left = 12
@@ -712,7 +712,7 @@ object optionsform: Toptionsform
           TabOrder = 0
           OnChange = Modified
         end
-        object cboxEnum: TColorBox
+        object cboxSpatial: TColorBox
           Left = 100
           Top = 117
           Width = 120
@@ -744,11 +744,11 @@ object optionsform: Toptionsform
           Top = 120
           Width = 154
           Height = 17
-          Caption = 'Enable pulldown editor'
+          Caption = 'Enable ENUM pulldown editor'
           TabOrder = 7
           OnClick = Modified
         end
-        object cboxSet: TColorBox
+        object cboxOther: TColorBox
           Left = 100
           Top = 141
           Width = 120
@@ -762,7 +762,7 @@ object optionsform: Toptionsform
           Top = 143
           Width = 154
           Height = 17
-          Caption = 'Enable checkbox editor'
+          Caption = 'Enable SET checkbox editor'
           TabOrder = 9
           OnClick = Modified
         end

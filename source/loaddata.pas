@@ -71,6 +71,7 @@ type
     RowCount, ColumnCount: Integer;
     SelectedCharsetIndex: Integer;
     Columns: TTableColumnList;
+    FConnection: TDBConnection;
   public
     { Public declarations }
   end;
@@ -128,8 +129,9 @@ end;
 procedure Tloaddataform.FormShow(Sender: TObject);
 begin
   // read dbs and Tables from treeview
+  FConnection := MainForm.ActiveConnection;
   comboDatabase.Items.Clear;
-  comboDatabase.Items.Assign(Mainform.ActiveConnection.AllDatabases);
+  comboDatabase.Items.Assign(FConnection.AllDatabases);
   comboDatabase.ItemIndex := comboDatabase.Items.IndexOf( Mainform.ActiveDatabase );
   if comboDatabase.ItemIndex = -1 then
     comboDatabase.ItemIndex := 0;
@@ -153,19 +155,19 @@ begin
   comboEncoding.Clear;
   if comboEncoding.Enabled then begin
     // Populate charset combo
-    v := MainForm.ActiveConnection.ServerVersionInt;
+    v := FConnection.ServerVersionInt;
     if ((v >= 50038) and (v < 50100)) or (v >= 50117) then begin
       Charset := MainForm.GetCharsetByEncoding(Encoding);
       // Detect db charset
       DefCharset := 'Let server/database decide';
-      dbcreate := MainForm.ActiveConnection.GetVar('SHOW CREATE DATABASE '+QuoteIdent(comboDatabase.Text), 1);
+      dbcreate := FConnection.GetVar('SHOW CREATE DATABASE '+FConnection.QuoteIdent(comboDatabase.Text), 1);
       rx := TRegExpr.Create;
       rx.ModifierG := True;
       rx.Expression := 'CHARACTER SET (\w+)';
       if rx.Exec(dbcreate) then
         DefCharset := DefCharset + ' ('+rx.Match[1]+')';
       comboEncoding.Items.Add(DefCharset);
-      CharsetTable := MainForm.ActiveConnection.CharsetTable;
+      CharsetTable := FConnection.CharsetTable;
       CharsetTable.First;
       while not CharsetTable.Eof do begin
         comboEncoding.Items.Add(CharsetTable.Col(1) + ' ('+CharsetTable.Col(0)+')');
@@ -197,7 +199,7 @@ begin
   comboTable.Items.Clear;
   seldb := Mainform.ActiveDatabase;
   seltable := Mainform.ActiveDbObj.Name;
-  DBObjects := MainForm.ActiveConnection.GetDBObjects(comboDatabase.Text);
+  DBObjects := FConnection.GetDBObjects(comboDatabase.Text);
   for i:=0 to DBObjects.Count-1 do begin
     if DBObjects[i].NodeType in [lntTable, lntView] then
       comboTable.Items.Add(DBObjects[i].Name);
@@ -230,7 +232,7 @@ begin
   if (comboDatabase.Text <> '') and (comboTable.Text <> '') then begin
     if not Assigned(Columns) then
       Columns := TTableColumnList.Create;
-    DBObjects := MainForm.ActiveConnection.GetDBObjects(comboDatabase.Text);
+    DBObjects := FConnection.GetDBObjects(comboDatabase.Text);
     for Obj in DBObjects do begin
       if (Obj.Database=comboDatabase.Text) and (Obj.Name=comboTable.Text) then begin
         case Obj.NodeType of
@@ -266,10 +268,10 @@ begin
       Inc(ColumnCount);
   end;
 
-  Term := MainForm.ActiveConnection.UnescapeString(editFieldTerminator.Text);
-  Encl := MainForm.ActiveConnection.UnescapeString(editFieldEncloser.Text);
-  LineTerm := MainForm.ActiveConnection.UnescapeString(editLineTerminator.Text);
-  Escp := MainForm.ActiveConnection.UnescapeString(editFieldEscaper.Text);
+  Term := FConnection.UnescapeString(editFieldTerminator.Text);
+  Encl := FConnection.UnescapeString(editFieldEncloser.Text);
+  LineTerm := FConnection.UnescapeString(editLineTerminator.Text);
+  Escp := FConnection.UnescapeString(editFieldEscaper.Text);
 
   try
     case grpParseMethod.ItemIndex of
@@ -278,8 +280,8 @@ begin
     end;
     MainForm.LogSQL(FormatNumber(RowCount)+' rows imported in '+FormatNumber((GetTickcount-StartTickCount)/1000, 3)+' seconds.');
     // SHOW WARNINGS is implemented as of MySQL 4.1.0
-    if MainForm.ActiveConnection.ServerVersionInt >= 40100 then begin
-      Warnings := MainForm.ActiveConnection.GetResults('SHOW WARNINGS');
+    if FConnection.ServerVersionInt >= 40100 then begin
+      Warnings := FConnection.GetResults('SHOW WARNINGS');
       while not Warnings.Eof do begin
         MainForm.LogSQL(Warnings.Col(0)+' ('+Warnings.Col(1)+'): '+Warnings.Col(2), lcError);
         Warnings.Next;
@@ -325,11 +327,11 @@ begin
     1: SQL := SQL + 'IGNORE ';
     2: SQL := SQL + 'REPLACE ';
   end;
-  SQL := SQL + 'INTO TABLE ' + QuoteIdent(comboDatabase.Text) + '.' +  QuoteIdent(comboTable.Text) + ' ';
+  SQL := SQL + 'INTO TABLE ' + FConnection.QuoteIdent(comboDatabase.Text) + '.' +  FConnection.QuoteIdent(comboTable.Text) + ' ';
 
   if comboEncoding.ItemIndex > 0 then begin
-    MainForm.ActiveConnection.CharsetTable.RecNo := comboEncoding.ItemIndex-1;
-    SQL := SQL + 'CHARACTER SET '+MainForm.ActiveConnection.CharsetTable.Col(0)+' ';
+    FConnection.CharsetTable.RecNo := comboEncoding.ItemIndex-1;
+    SQL := SQL + 'CHARACTER SET '+FConnection.CharsetTable.Col(0)+' ';
   end;
 
   // Fields:
@@ -358,10 +360,10 @@ begin
     if chklistColumns.Checked[i] then begin
       if chkLocalNumbers.Checked and (Columns[i].DataType.Category in [dtcInteger, dtcReal]) then begin
         SQL := SQL + '@ColVar' + IntToStr(i) + ', ';
-        SetColVars := SetColVars + QuoteIdent(chklistColumns.Items[i]) +
+        SetColVars := SetColVars + FConnection.QuoteIdent(chklistColumns.Items[i]) +
           ' = REPLACE(REPLACE(@ColVar' + IntToStr(i) + ', '+esc(FormatSettings.ThousandSeparator)+', ''''), '+esc(FormatSettings.DecimalSeparator)+', ''.''), ';
       end else
-        SQL := SQL + QuoteIdent(chklistColumns.Items[i]) + ', ';
+        SQL := SQL + FConnection.QuoteIdent(chklistColumns.Items[i]) + ', ';
     end;
   end;
   SetLength(SQL, Length(SQL)-2);
@@ -372,8 +374,8 @@ begin
   end;
 
 
-  MainForm.ActiveConnection.Query(SQL);
-  RowCount := Max(MainForm.ActiveConnection.RowsAffected, 0);
+  FConnection.Query(SQL);
+  RowCount := Max(FConnection.RowsAffected, 0);
 end;
 
 
@@ -434,10 +436,10 @@ const
           1: SQL := 'INSERT '+LowPrio+'IGNORE ';
           2: SQL := 'REPLACE '+LowPrio;
         end;
-        SQL := SQL + 'INTO '+QuoteIdent(comboDatabase.Text)+'.'+QuoteIdent(comboTable.Text)+' (';
+        SQL := SQL + 'INTO '+FConnection.QuoteIdent(comboDatabase.Text)+'.'+FConnection.QuoteIdent(comboTable.Text)+' (';
         for i:=0 to chkListColumns.Items.Count-1 do begin
           if chkListColumns.Checked[i] then
-            SQL := SQL + QuoteIdent(chkListColumns.Items[i]) + ', ';
+            SQL := SQL + FConnection.QuoteIdent(chkListColumns.Items[i]) + ', ';
         end;
         SetLength(SQL, Length(SQL)-2);
         SQL := SQL + ') VALUES (';
@@ -479,7 +481,7 @@ const
         SetLength(SA, ChunkSize div SizeOf(AnsiChar));
         OutStream.Read(PAnsiChar(SA)^, ChunkSize);
         OutStream.Size := 0;
-        MainForm.ActiveConnection.Query(UTF8ToString(SA));
+        FConnection.Query(UTF8ToString(SA));
         SQL := '';
       end;
     end else

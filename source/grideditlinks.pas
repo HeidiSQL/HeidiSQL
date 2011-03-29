@@ -39,7 +39,8 @@ type
     procedure DoCancelEdit(Sender: TObject);
     function GetCellRect(InnerTextBounds: Boolean): TRect;
   public
-    Datatype: TDatatypeIndex;                        // The data type of the cell being edited. Mostly used in data grids.
+    Connection: TDBConnection;
+    Datatype: TDBDatatypeIndex;                        // The data type of the cell being edited. Mostly used in data grids.
     constructor Create; overload;                    // The original constructor, not used any more, throws an exception if you do
     constructor Create(Tree: TVirtualStringTree); overload; virtual; // The right constructor, we need the Tree reference
     destructor Destroy; override;
@@ -275,7 +276,7 @@ begin
   FColumn := Column;
   FCellFont := TFont.Create;
   FTree.GetTextInfo(FNode, FColumn, FCellFont, FCellTextBounds, FCellText);
-  FCellFont.Color := DatatypeCategories[Integer(Datatypes[Integer(Datatype)].Category)].Color;
+  FCellFont.Color := DatatypeCategories[Integer(Connection.Datatypes[Integer(Datatype)].Category)].Color;
   FCellBackground := FTree.Header.Columns[FColumn].Color;
   if Assigned(FMainControl) then begin
     FOldWindowProc := FMainControl.WindowProc;
@@ -1200,7 +1201,7 @@ end;
 
 function TColumnDefaultEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
-  DataTypeCategory: TDataTypeCategoryIndex;
+  DataTypeCategory: TDBDataTypeCategoryIndex;
 begin
   inherited PrepareEdit(Tree, Node, Column);
 
@@ -1217,7 +1218,7 @@ begin
 
   // Disable non working default options per data type
   // But leave checked option enabled, regardless of if that is a valid default option or not
-  DataTypeCategory := Datatypes[Integer(Datatype)].Category;
+  DataTypeCategory := Connection.Datatypes[Integer(Datatype)].Category;
   FRadioCurTS.Enabled := FRadioCurTS.Checked or (DataType = dtTimestamp);
   FCheckCurTS.Enabled := FCheckCurTS.Checked or FRadioCurTS.Enabled;
   FRadioAutoInc.Enabled := FRadioAutoInc.Checked or (DataTypeCategory = dtcInteger);
@@ -1361,7 +1362,7 @@ end;
 
 function TDataTypeEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
-  dt: TDatatype;
+  dt: TDBDatatype;
   CatNode, TypeNode: PVirtualNode;
 begin
   Result := inherited PrepareEdit(Tree, Node, Column);
@@ -1372,7 +1373,7 @@ begin
   FTreeSelect.Font.Size := FCellFont.Size;
 
   // Find and select current datatype in tree
-  dt := GetDataTypeByName(FCellText);
+  dt := Connection.GetDataTypeByName(FCellText);
   CatNode := FTreeSelect.GetFirst;
   while Assigned(CatNode) do begin
     if CatNode.Index = Cardinal(dt.Category) then begin
@@ -1447,8 +1448,8 @@ var
 begin
   // Tell number of datatypes per category
   ChildCount := 0;
-  if Sender.GetNodeLevel(Node) = 0 then for i:=Low(Datatypes) to High(Datatypes) do begin
-    if Datatypes[i].Category = DatatypeCategories[Node.Index].Index then
+  if Sender.GetNodeLevel(Node) = 0 then for i:=0 to High(Connection.Datatypes) do begin
+    if Connection.Datatypes[i].Category = DatatypeCategories[Node.Index].Index then
       Inc(ChildCount);
   end;
 end;
@@ -1465,11 +1466,11 @@ begin
     0: CellText := DatatypeCategories[Node.Index].Name;
     1: begin
          Counter := 0;
-         for i:=Low(Datatypes) to High(Datatypes) do begin
-           if Datatypes[i].Category = DatatypeCategories[Node.Parent.Index].Index then begin
+         for i:=0 to High(Connection.Datatypes) do begin
+           if Connection.Datatypes[i].Category = DatatypeCategories[Node.Parent.Index].Index then begin
              Inc(Counter);
              if Counter = Node.Index+1 then begin
-               CellText := Datatypes[i].Name;
+               CellText := Connection.Datatypes[i].Name;
                break;
              end;
            end;
@@ -1493,7 +1494,7 @@ begin
     FMemoHelp.Width := Min(250, FTreeSelect.Left);
     FMemoHelp.Left := FTreeSelect.Left - FMemoHelp.Width + (Integer(FTreeSelect.Indent) Div 2);
     FMemoHelp.Top := FTreeSelect.Top + R.Top + 3;
-    FMemoHelp.Text := GetDatatypeByName(NodeText).Description;
+    FMemoHelp.Text := Connection.GetDatatypeByName(NodeText).Description;
     // Calc height of memo
     bmp := TBitMap.Create;
     bmp.Canvas.Font.Assign(FMemoHelp.Font);

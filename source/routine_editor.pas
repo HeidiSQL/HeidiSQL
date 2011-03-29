@@ -97,8 +97,6 @@ uses main, mysql_structures, grideditlinks;
 
 
 constructor TfrmRoutineEditor.Create(AOwner: TComponent);
-var
-  i: Integer;
 begin
   inherited;
   ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
@@ -112,8 +110,6 @@ begin
   comboDataAccess.Items.Add('Modifies SQL data');
   comboSecurity.Items.Add('Definer');
   comboSecurity.Items.Add('Invoker');
-  for i := Low(Datatypes) to High(Datatypes) do
-    comboReturns.Items.Add(Datatypes[i].Name);
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   FixVT(listParameters);
   Mainform.RestoreListSetup(listParameters);
@@ -135,6 +131,7 @@ procedure TfrmRoutineEditor.Init(Obj: TDBObject);
 var
   Definer, Returns, DataAccess, Security, Comment, Body: String;
   Deterministic: Boolean;
+  i: Integer;
 begin
   inherited;
   if Obj.NodeType = lntProcedure then FAlterRoutineType := 'PROCEDURE'
@@ -142,6 +139,9 @@ begin
   editName.Text := DBObject.Name;
   comboType.ItemIndex := 0;
   comboReturns.Text := '';
+  comboReturns.Clear;
+  for i:=0 to High(Obj.Connection.Datatypes) do
+    comboReturns.Items.Add(Obj.Connection.Datatypes[i].Name);
   chkDeterministic.Checked := False;
   listParameters.FocusedNode := nil;
   listParameters.Clear;
@@ -349,25 +349,27 @@ procedure TfrmRoutineEditor.listParametersCreateEditor(Sender: TBaseVirtualTree;
 var
   VT: TVirtualStringTree;
   EnumEditor: TEnumEditorLink;
-  i: Integer;
   Datatype: String;
+  DBDatatype: TDBDatatype;
 begin
   VT := Sender as TVirtualStringTree;
   if Column = 1 then
     EditLink := TStringEditLink.Create
   else if Column = 2 then begin
     EnumEditor := TEnumEditorLink.Create(VT);
+    EnumEditor.Connection := DBObject.Connection;
     EnumEditor.AllowCustomText := True;
     EnumEditor.ValueList := TStringList.Create;
-    for i:=Low(Datatypes) to High(Datatypes) do begin
-      Datatype := Datatypes[i].Name;
-      if Datatypes[i].RequiresLength then
-        Datatype := Datatype + '(' + Datatypes[i].DefLengthSet + ')';
+    for DBDatatype in DBObject.Connection.Datatypes do begin
+      Datatype := DBDatatype.Name;
+      if DBDatatype.RequiresLength then
+        Datatype := Datatype + '(' + DBDatatype.DefLengthSet + ')';
       EnumEditor.ValueList.Add(Datatype);
     end;
     EditLink := EnumEditor;
   end else if Column = 3 then begin
     EnumEditor := TEnumEditorLink.Create(VT);
+    EnumEditor.Connection := DBObject.Connection;
     EnumEditor.ValueList := TStringList.Create;
     EnumEditor.ValueList.Add('IN');
     EnumEditor.ValueList.Add('OUT');
@@ -440,7 +442,7 @@ begin
     if DBObject.Name <> '' then begin
       // Create temp name
       i := 0;
-      allRoutineNames := MainForm.ActiveConnection.GetCol('SELECT ROUTINE_NAME FROM '+QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+QuoteIdent('ROUTINES')+
+      allRoutineNames := DBObject.Connection.GetCol('SELECT ROUTINE_NAME FROM '+DBObject.Connection.QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+DBObject.Connection.QuoteIdent('ROUTINES')+
         ' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase)+
         ' AND ROUTINE_TYPE = '+esc(ProcOrFunc)
         );
@@ -458,17 +460,17 @@ begin
         if allRoutineNames.IndexOf(TempName) = -1 then
           break;
       end;
-      MainForm.ActiveConnection.Query(ComposeCreateStatement(tempName));
+      DBObject.Connection.Query(ComposeCreateStatement(tempName));
       // Drop temporary routine, used for syntax checking
-      MainForm.ActiveConnection.Query('DROP '+ProcOrFunc+' IF EXISTS '+QuoteIdent(TempName));
+      DBObject.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+DBObject.Connection.QuoteIdent(TempName));
       // Drop edited routine
-      MainForm.ActiveConnection.Query('DROP '+FAlterRoutineType+' IF EXISTS '+QuoteIdent(DBObject.Name));
+      DBObject.Connection.Query('DROP '+FAlterRoutineType+' IF EXISTS '+DBObject.Connection.QuoteIdent(DBObject.Name));
       if TargetExists then begin
         // Drop target routine - overwriting has been confirmed, see above
-        MainForm.ActiveConnection.Query('DROP '+ProcOrFunc+' IF EXISTS '+QuoteIdent(editName.Text));
+        DBObject.Connection.Query('DROP '+ProcOrFunc+' IF EXISTS '+DBObject.Connection.QuoteIdent(editName.Text));
       end;
     end;
-    MainForm.ActiveConnection.Query(ComposeCreateStatement(editName.Text));
+    DBObject.Connection.Query(ComposeCreateStatement(editName.Text));
     // Set editing name if create/alter query was successful
     DBObject.Name := editName.Text;
     DBObject.CreateCode := '';
@@ -498,12 +500,12 @@ begin
   ProcOrFunc := UpperCase(GetFirstWord(comboType.Text));
   Result := 'CREATE ';
   if comboDefiner.Text <> '' then
-    Result := Result + 'DEFINER='+QuoteIdent(comboDefiner.Text, True, '@')+' ';
-  Result := Result + ProcOrFunc+' '+QuoteIdent(NameOfObject)+'(';
+    Result := Result + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, True, '@')+' ';
+  Result := Result + ProcOrFunc+' '+DBObject.Connection.QuoteIdent(NameOfObject)+'(';
   for i:=0 to Parameters.Count-1 do begin
     if ProcOrFunc = 'PROCEDURE' then
       Result := Result + Parameters[i].Context + ' ';
-    Result := Result + QuoteIdent(Parameters[i].Name) + ' ' + Parameters[i].Datatype;
+    Result := Result + DBObject.Connection.QuoteIdent(Parameters[i].Name) + ' ' + Parameters[i].Datatype;
     if i < Parameters.Count-1 then
       Result := Result + ', ';
   end;

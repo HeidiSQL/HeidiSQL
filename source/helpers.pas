@@ -626,10 +626,10 @@ begin
       efXML: tmp := #9'<row>' + CRLF;
 
       efSQL: begin
-        tmp := 'INSERT INTO '+QuoteIdent(Tablename)+' (';
+        tmp := 'INSERT INTO '+GridData.Connection.QuoteIdent(Tablename)+' (';
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
-          tmp := tmp + QuoteIdent(Grid.Header.Columns[Col].Text)+', ';
+          tmp := tmp + GridData.Connection.QuoteIdent(Grid.Header.Columns[Col].Text)+', ';
           Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
         end;
         Delete(tmp, Length(tmp)-1, 2);
@@ -1879,7 +1879,7 @@ begin
       sort := TXT_ASC
     else
       sort := TXT_DESC;
-    result := result + QuoteIdent( Cols[i].ColumnName ) + ' ' + sort;
+    result := result + MainForm.ActiveConnection.QuoteIdent( Cols[i].ColumnName ) + ' ' + sort;
   end;
 end;
 
@@ -2147,6 +2147,7 @@ var
   IsEsc, IsQuote, InComment, InBigComment, InString, InKeyword, InIdent, LastWasComment: Boolean;
   c, p: Char;
   Keyword, PreviousKeyword, TestPair: String;
+  Datatypes: TDBDataTypeArray;
 const
   WordChars = ['a'..'z', 'A'..'Z', '0'..'9', '_', '.'];
   WhiteSpaces = [#9, #10, #13, #32];
@@ -2159,6 +2160,7 @@ begin
     if (MySQLFunctions[i].Declaration <> '') and (MySQLFunctions[i].Name <> 'X') then
       AllKeywords.Add(MySQLFunctions[i].Name);
   end;
+  Datatypes := Mainform.ActiveConnection.Datatypes;
   for i:=Low(Datatypes) to High(Datatypes) do
     AllKeywords.Add(Datatypes[i].Name);
   KeywordMaxLen := 0;
@@ -2308,7 +2310,7 @@ end;
 function TDBObjectEditor.GetDefiners: TStringList;
   function q(s: String): String;
   begin
-    Result := QuoteIdent(s);
+    Result := DBObject.Connection.QuoteIdent(s);
   end;
 begin
   // For populating combobox items
@@ -2684,7 +2686,7 @@ begin
     Result.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
     Result.LoginPrompt := GetRegValue(REGNAME_LOGINPROMPT, False, Session);
     Result.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', Session), DEFAULT_PORT);
-    Result.AllDatabases := GetRegValue(REGNAME_DATABASES, '', Session);
+    Result.AllDatabasesStr := GetRegValue(REGNAME_DATABASES, '', Session);
     Result.SSHHost := GetRegValue(REGNAME_SSHHOST, '', Session);
     Result.SSHPort := GetRegValue(REGNAME_SSHPORT, DEFAULT_SSHPORT, Session);
     Result.SSHUser := GetRegValue(REGNAME_SSHUSER, '', Session);

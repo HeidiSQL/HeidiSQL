@@ -130,6 +130,7 @@ type
     CloneGrants: TStringList;
     FPrivObjects: TPrivObjList;
     PrivsGlobal, PrivsDb, PrivsTable, PrivsRoutine, PrivsColumn: TStringList;
+    FConnection: TDBConnection;
     procedure SetModified(Value: Boolean);
     property Modified: Boolean read FModified write SetModified;
     function GetPrivByNode(Node: PVirtualNode): TPrivObj;
@@ -214,7 +215,8 @@ begin
 end;
 
 begin
-  Version := Mainform.ActiveConnection.ServerVersionInt;
+  FConnection := Mainform.ActiveConnection;
+  Version := FConnection.ServerVersionInt;
   PrivsGlobal := InitPrivList('FILE,PROCESS,RELOAD,SHUTDOWN');
   PrivsDb := InitPrivList('');
   PrivsTable := InitPrivList('ALTER,CREATE,DELETE,DROP,GRANT,INDEX');
@@ -264,9 +266,9 @@ begin
   // Load user@host list
   try
     FUsers := TUserList.Create(True);
-    Users := MainForm.ActiveConnection.GetResults(
-      'SELECT '+QuoteIdent('user')+', '+QuoteIdent('host')+', '+QuoteIdent('password')+' '+
-      'FROM '+QuoteIdent('mysql')+'.'+QuoteIdent('user')
+    Users := FConnection.GetResults(
+      'SELECT '+FConnection.QuoteIdent('user')+', '+FConnection.QuoteIdent('host')+', '+FConnection.QuoteIdent('password')+' '+
+      'FROM '+FConnection.QuoteIdent('mysql')+'.'+FConnection.QuoteIdent('user')
       );
     while not Users.Eof do begin
       U := TUser.Create;
@@ -422,7 +424,7 @@ begin
         Grants.Add('GRANT USAGE ON *.* TO '+UserHost);
       end;
     end else
-      Grants := MainForm.ActiveConnection.GetCol('SHOW GRANTS FOR '+esc(User.Username)+'@'+esc(User.Host));
+      Grants := FConnection.GetCol('SHOW GRANTS FOR '+esc(User.Username)+'@'+esc(User.Host));
 
     rxA := TRegExpr.Create;
     rxA.ModifierI := True;
@@ -446,7 +448,7 @@ begin
           P.DBObj.NodeType := lntNone;
           P.AllPrivileges := PrivsGlobal;
           if not FAdded then
-            editPassword.TextHint := MainForm.ActiveConnection.UnescapeString(rxA.Match[8]);
+            editPassword.TextHint := FConnection.UnescapeString(rxA.Match[8]);
         end else if (rxA.Match[5] = '*') then begin
           P.DBObj.NodeType := lntDb;
           P.DBObj.Database := rxA.Match[4];
@@ -523,8 +525,8 @@ begin
     for Ptmp in FPrivObjects do begin
       if Ptmp.DBObj.NodeType = lntColumn then begin
         Ptmp.GrantCode := 'GRANT ' + Copy(Ptmp.GrantCode, 1, Length(Ptmp.GrantCode)-2) + ' ON ' +
-          QuoteIdent(Ptmp.DBObj.Database) + '.' +
-          QuoteIdent(Ptmp.DBObj.Name) +
+          Ptmp.DBObj.QuotedDatabase + '.' +
+          Ptmp.DBObj.QuotedName +
           ' TO ' + UserHost;
       end;
       // Flag all privs as added, so "Save" action applies them
@@ -903,7 +905,6 @@ end;
 
 procedure TUserManagerForm.btnSaveClick(Sender: TObject);
 var
-  Conn: TDBConnection;
   UserHost, OrgUserHost, Create, Table, Revoke, Grant, OnObj: String;
   User: TUser;
   FocusedUser: PUser;
@@ -916,13 +917,12 @@ var
   begin
     // Decide if object type can be part of a GRANT or REVOKE query
     Result := '';
-    if Conn.ServerVersionInt >= 50006 then
+    if FConnection.ServerVersionInt >= 50006 then
       Result := UpperCase(ObjType) + ' ';
   end;
 
 begin
   // Save changes
-  Conn := MainForm.ActiveConnection;
   FocusedUser := listUsers.GetNodeData(listUsers.FocusedNode);
   if FAdded then begin
     FocusedUser.Username := editUsername.Text;
@@ -946,11 +946,11 @@ begin
 
     // Create added user
     PasswordSet := False;
-    if FAdded and (Conn.ServerVersionInt >= 50002) then begin
+    if FAdded and (FConnection.ServerVersionInt >= 50002) then begin
       Create := 'CREATE USER '+UserHost;
       if editPassword.Modified then
         Create := Create + ' IDENTIFIED BY '+esc(editPassword.Text);
-      Conn.Query(Create);
+      FConnection.Query(Create);
       PasswordSet := True;
     end;
 
@@ -961,11 +961,11 @@ begin
         lntNone:
           OnObj := '*.*';
         lntDb:
-          OnObj := QuoteIdent(P.DBObj.Database) + '.*';
+          OnObj := P.DBObj.QuotedDatabase + '.*';
         lntTable, lntFunction, lntProcedure:
-          OnObj := GetObjectType(P.DBObj.ObjType) + QuoteIdent(P.DBObj.Database) + '.' + QuoteIdent(P.DBObj.Name);
+          OnObj := GetObjectType(P.DBObj.ObjType) + P.DBObj.QuotedDatabase + '.' + P.DBObj.QuotedName;
         lntColumn:
-          OnObj := GetObjectType('TABLE') + QuoteIdent(P.DBObj.Database) + '.' + QuoteIdent(P.DBObj.Name);
+          OnObj := GetObjectType('TABLE') + P.DBObj.QuotedDatabase + '.' + P.DBObj.QuotedName;
         else
           raise Exception.Create('Unhandled privilege object: '+P.DBObj.ObjType);
       end;
@@ -978,12 +978,12 @@ begin
           if P.DeletedPrivs[i] = 'GRANT' then
             Revoke := Revoke + ' OPTION';
           if P.DBObj.NodeType = lntColumn then
-            Revoke := Revoke + '('+QuoteIdent(P.DBObj.Column)+')';
+            Revoke := Revoke + '('+P.DBObj.QuotedColumn+')';
           Revoke := Revoke + ', ';
         end;
         Delete(Revoke, Length(Revoke)-1, 1);
         Revoke := 'REVOKE ' + Revoke + ' ON ' + OnObj + ' FROM ' + OrgUserHost;
-        Conn.Query(Revoke);
+        FConnection.Query(Revoke);
       end;
 
       // Grant privileges. Must be applied with USAGE for added users without specific privs.
@@ -994,7 +994,7 @@ begin
             Continue;
           Grant := Grant + P.AddedPrivs[i];
           if P.DBObj.NodeType = lntColumn then
-            Grant := Grant + '('+QuoteIdent(P.DBObj.Column)+')';
+            Grant := Grant + '('+P.DBObj.QuotedColumn+')';
           Grant := Grant + ', ';
         end;
         Delete(Grant, Length(Grant)-1, 1);
@@ -1003,23 +1003,23 @@ begin
         Grant := 'GRANT ' + Grant + ' ON ' + OnObj + ' TO ' + OrgUserHost;
         if P.AddedPrivs.IndexOf('GRANT') > -1 then
           Grant := Grant + ' WITH GRANT OPTION';
-        Conn.Query(Grant);
+        FConnection.Query(Grant);
       end;
     end;
 
     // Set password
     if editPassword.Modified and (not PasswordSet) then begin
-      Conn.Query('SET PASSWORD FOR ' + OrgUserHost + ' = PASSWORD('+esc(editPassword.Text)+')');
+      FConnection.Query('SET PASSWORD FOR ' + OrgUserHost + ' = PASSWORD('+esc(editPassword.Text)+')');
     end;
 
     // Rename user
     if (FocusedUser.Username <> editUsername.Text) or (FocusedUser.Host <> editFromHost.Text) then begin
-      if Conn.ServerVersionInt >= 50002 then
-        Conn.Query('RENAME USER '+OrgUserHost+' TO '+UserHost)
+      if FConnection.ServerVersionInt >= 50002 then
+        FConnection.Query('RENAME USER '+OrgUserHost+' TO '+UserHost)
       else begin
         Tables := Explode(',', 'user,db,tables_priv,columns_priv');
         for Table in Tables do begin
-          Conn.Query('UPDATE '+QuoteIdent('mysql')+'.'+QuoteIdent(Table)+
+          FConnection.Query('UPDATE '+FConnection.QuoteIdent('mysql')+'.'+FConnection.QuoteIdent(Table)+
             ' SET User='+esc(editUsername.Text)+', Host='+esc(editFromHost.Text)+
             ' WHERE User='+esc(FocusedUser.Username)+' AND Host='+esc(FocusedUser.Host)
             );
@@ -1028,7 +1028,7 @@ begin
       end;
     end;
 
-    Conn.Query('FLUSH PRIVILEGES');
+    FConnection.Query('FLUSH PRIVILEGES');
     Modified := False;
     FAdded := False;
     FocusedUser.Username := editUsername.Text;
@@ -1049,7 +1049,6 @@ end;
 procedure TUserManagerForm.btnDeleteUserClick(Sender: TObject);
 var
   UserHost: String;
-  Conn: TDBConnection;
   User: PUser;
 begin
   // Delete user
@@ -1059,20 +1058,19 @@ begin
     listUsers.DeleteNode(listUsers.FocusedNode);
     FAdded := False;
   end else if MessageDlg('Delete user '+User.Username+'@'+User.Host+'?', mtConfirmation, [mbYes, mbCancel], 0 ) = mrYes then begin
-    Conn := MainForm.ActiveConnection;
     UserHost := esc(User.Username)+'@'+esc(User.Host);
     try
       // Revoke privs explicitly, required on old servers.
       // Newer servers only require one DROP USER query
-      if Conn.ServerVersionInt < 50002 then begin
-        Conn.Query('REVOKE ALL PRIVILEGES ON *.* FROM '+UserHost);
-        Conn.Query('REVOKE GRANT OPTION ON *.* FROM '+UserHost);
+      if FConnection.ServerVersionInt < 50002 then begin
+        FConnection.Query('REVOKE ALL PRIVILEGES ON *.* FROM '+UserHost);
+        FConnection.Query('REVOKE GRANT OPTION ON *.* FROM '+UserHost);
       end;
-      if Conn.ServerVersionInt < 40101 then
-        Conn.Query('DELETE FROM mysql.user WHERE User='+esc(User.Username)+' AND Host='+esc(User.Host))
+      if FConnection.ServerVersionInt < 40101 then
+        FConnection.Query('DELETE FROM mysql.user WHERE User='+esc(User.Username)+' AND Host='+esc(User.Host))
       else
-        Conn.Query('DROP USER '+UserHost);
-      Conn.Query('FLUSH PRIVILEGES');
+        FConnection.Query('DROP USER '+UserHost);
+      FConnection.Query('FLUSH PRIVILEGES');
       FUsers.Remove(User^);
       listUsers.DeleteNode(listUsers.FocusedNode);
     except on E:EDatabaseError do
