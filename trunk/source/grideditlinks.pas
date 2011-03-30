@@ -276,7 +276,9 @@ begin
   FColumn := Column;
   FCellFont := TFont.Create;
   FTree.GetTextInfo(FNode, FColumn, FCellFont, FCellTextBounds, FCellText);
-  FCellFont.Color := DatatypeCategories[Integer(Connection.Datatypes[Integer(Datatype)].Category)].Color;
+  // Not all editors have a connection assigned, e.g. session manager tree
+  if Assigned(Connection) then
+    FCellFont.Color := DatatypeCategories[Integer(Connection.Datatypes[Integer(Datatype)].Category)].Color;
   FCellBackground := FTree.Header.Columns[FColumn].Color;
   if Assigned(FMainControl) then begin
     FOldWindowProc := FMainControl.WindowProc;
