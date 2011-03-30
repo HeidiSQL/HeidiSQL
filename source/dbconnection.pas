@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, windows, mysql_structures, SynRegExpr, Contnrs, Generics.Collections, Generics.Defaults,
-  DateUtils, Types, ShellApi, Math, Dialogs, ADODB, DB, ComObj;
+  DateUtils, Types, ShellApi, Math, Dialogs, ADODB, DB, DBCommon, ComObj;
 
 
 type
@@ -555,10 +555,11 @@ type
       property LastRawResults: TMySQLRawResults read FLastRawResults;
   end;
 
+  TAdoRawResults = Array of _RecordSet;
   TAdoDBConnection = class(TDBConnection)
     private
       FAdoHandle: TAdoConnection;
-      FLastRawResult: _RecordSet;
+      FLastRawResults: TAdoRawResults;
       FLastError: String;
       procedure SetActive(Value: Boolean); override;
       function GetThreadId: Cardinal; override;
@@ -578,7 +579,7 @@ type
       function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList; override;
       function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
-      property LastRawResult: _RecordSet read FLastRawResult;
+      property LastRawResults: TAdoRawResults read FLastRawResults;
   end;
 
 
@@ -679,7 +680,8 @@ type
 
   TAdoDBQuery = class(TDBQuery)
     private
-      FAdoQuery: TAdoQuery;
+      FCurrentResults: TAdoQuery;
+      FResultList: Array of TAdoQuery;
       procedure SetRecNo(Value: Int64); override;
     public
       destructor Destroy; override;
@@ -1320,6 +1322,8 @@ procedure TAdoDBConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogC
 var
   TimerStart: Cardinal;
   VarRowsAffected: OleVariant;
+  QueryResult, NextResult: _RecordSet;
+  Affected: Int64;
 begin
   if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
     Log(lcDebug, 'Waiting for running query to finish ...');
@@ -1334,31 +1338,41 @@ begin
   Log(LogCategory, SQL);
   FLastQuerySQL := SQL;
   TimerStart := GetTickCount;
+  SetLength(FLastRawResults, 0);
   FResultCount := 0;
+  FRowsFound := 0;
+  FRowsAffected := 0;
   try
-    // TODO: Handle multiple results
-    FLastRawResult := FAdoHandle.ConnectionObject.Execute(SQL, VarRowsAffected, 1);
-    FRowsAffected := VarRowsAffected;
-    FRowsAffected := Max(FRowsAffected, 0);
-    if FLastRawResult.Fields.Count = 0 then begin
-      FRowsFound := 0;
-      FLastRawResult := nil;
-      Log(lcDebug, IntToStr(RowsAffected)+' rows affected.');
-      if UpperCase(Copy(SQL, 1, 3)) = 'USE' then begin
-        FDatabase := Trim(Copy(SQL, 4, Length(SQL)-3));
-        FDatabase := DeQuoteIdent(FDatabase);
-        Log(lcDebug, 'Database "'+FDatabase+'" selected');
-        if Assigned(FOnDatabaseChanged) then
-          FOnDatabaseChanged(Self, Database);
-      end;
-    end else begin
-      FResultCount := 1;
-      FRowsFound := FLastRawResult.RecordCount;
-      Log(lcDebug, IntToStr(RowsFound)+' rows found.');
-    end;
+    QueryResult := FAdoHandle.ConnectionObject.Execute(SQL, VarRowsAffected, 1);
     FLastQueryDuration := GetTickCount - TimerStart;
     FLastQueryNetworkDuration := 0;
-    FResultCount := 1;
+
+    // Handle multiple results
+    while(QueryResult <> nil) do begin
+      Affected := VarRowsAffected;
+      Affected := Max(Affected, 0);
+      Inc(FRowsAffected, Affected);
+      NextResult := QueryResult.NextRecordset(VarRowsAffected);
+      if QueryResult.Fields.Count > 0 then begin
+        Inc(FRowsFound, QueryResult.RecordCount);
+        if DoStoreResult then begin
+          SetLength(FLastRawResults, Length(FLastRawResults)+1);
+          FLastRawResults[Length(FLastRawResults)-1] := QueryResult;
+        end else
+          QueryResult := nil;
+      end else
+        QueryResult := nil;
+      QueryResult := NextResult;
+    end;
+    FResultCount := Length(FLastRawResults);
+
+    if UpperCase(Copy(SQL, 1, 3)) = 'USE' then begin
+      FDatabase := Trim(Copy(SQL, 4, Length(SQL)-3));
+      FDatabase := DeQuoteIdent(FDatabase);
+      Log(lcDebug, 'Database "'+FDatabase+'" selected');
+      if Assigned(FOnDatabaseChanged) then
+        FOnDatabaseChanged(Self, Database);
+    end;
   except
     on E:EOleException do begin
       FLastError := E.Message;
@@ -1379,7 +1393,7 @@ begin
     r := Parameters.CreateQuery(nil);
     r.Connection := Self;
     r.SQL := FLastQuerySQL;
-    r.Execute(True, i);
+    r.Execute(False, i);
     Result.Add(r);
   end;
 end;
@@ -1388,14 +1402,14 @@ end;
 function TAdoDBConnection.GetLastResults: TDBQueryList;
 var
   r: TDBQuery;
+  i: Integer;
 begin
-  // TODO: Handle multiple results
   Result := TDBQueryList.Create(False);
-  if FLastRawResult <> nil then begin
+  for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
     r := Parameters.CreateQuery(nil);
     r.Connection := Self;
     r.SQL := FLastQuerySQL;
-    r.Execute(True, 0);
+    r.Execute(False, i);
     Result.Add(r);
   end;
 end;
@@ -3032,11 +3046,14 @@ end;
 
 
 destructor TAdoDBQuery.Destroy;
+var
+  i: Integer;
 begin
-  if FAdoQuery <> nil then begin
-    FAdoQuery.Close;
-    FAdoQuery.Free;
+  if HasResult then for i:=Low(FResultList) to High(FResultList) do begin
+    FResultList[i].Close;
+    FResultList[i].Free;
   end;
+  SetLength(FResultList, 0);
   inherited;
 end;
 
@@ -3047,7 +3064,7 @@ var
   NumResults: Int64;
   Field: PMYSQL_FIELD;
   IsBinary: Boolean;
-  FLastResult: PMYSQL_RES;
+  LastResult: PMYSQL_RES;
 begin
   // Execute a query, or just take over one of the last result pointers
   if UseRawResult = -1 then begin
@@ -3055,9 +3072,9 @@ begin
     UseRawResult := 0;
   end;
   if Connection.ResultCount > UseRawResult then
-    FLastResult := TMySQLConnection(Connection).LastRawResults[UseRawResult]
+    LastResult := TMySQLConnection(Connection).LastRawResults[UseRawResult]
   else
-    FLastResult := nil;
+    LastResult := nil;
   if AddResult and (Length(FResultList) = 0) then
     AddResult := False;
   if AddResult then
@@ -3069,24 +3086,24 @@ begin
     FRecordCount := 0;
     FEditingPrepared := False;
   end;
-  if FLastResult <> nil then begin
+  if LastResult <> nil then begin
     Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
     SetLength(FResultList, NumResults);
-    FResultList[NumResults-1] := FLastResult;
-    FRecordCount := FRecordCount + FLastResult.row_count;
+    FResultList[NumResults-1] := LastResult;
+    FRecordCount := FRecordCount + LastResult.row_count;
   end;
   if not AddResult then begin
     if HasResult then begin
       // FCurrentResults is normally done in SetRecNo, but never if result has no rows
-      FCurrentResults := FLastResult;
-      NumFields := mysql_num_fields(FLastResult);
+      FCurrentResults := LastResult;
+      NumFields := mysql_num_fields(LastResult);
       SetLength(FColumnTypes, NumFields);
       SetLength(FColumnLengths, NumFields);
       SetLength(FColumnFlags, NumFields);
       FColumnNames.Clear;
       FColumnOrgNames.Clear;
       for i:=0 to NumFields-1 do begin
-        Field := mysql_fetch_field_direct(FLastResult, i);
+        Field := mysql_fetch_field_direct(LastResult, i);
         FColumnNames.Add(Connection.DecodeAPIString(Field.name));
         if Connection.ServerVersionInt >= 40100 then
           FColumnOrgNames.Add(Connection.DecodeAPIString(Field.org_name))
@@ -3130,81 +3147,106 @@ procedure TAdoDBQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1
 var
   NumFields, i, j: Integer;
   TypeIndex: TDBDatatypeIndex;
-  RecordSet: _RecordSet;
+  LastResult: TAdoQuery;
+  NumResults: Int64;
 begin
   // TODO: Handle multiple results
   if UseRawResult = -1 then begin
     Connection.Query(FSQL, FStoreResult);
-    //UseRawResult := 0;
+    UseRawResult := 0;
   end;
-  RecordSet := TAdoDBConnection(Connection).LastRawResult;
-  if RecordSet <> nil then begin
-    FAdoQuery := TAdoQuery.Create(Self);
-    FAdoQuery.Recordset := RecordSet;
-    FAdoQuery.Open;
-    NumFields := FAdoQuery.FieldCount;
+  if Connection.ResultCount > UseRawResult then begin
+    LastResult := TAdoQuery.Create(Self);
+    LastResult.Recordset := TAdoDBConnection(Connection).LastRawResults[UseRawResult];
+    LastResult.Open;
   end else
-    NumFields := 0;
-  SetLength(FColumnTypes, NumFields);
-  SetLength(FColumnLengths, NumFields);
-  SetLength(FColumnFlags, NumFields);
-  FColumnNames.Clear;
-  FColumnOrgNames.Clear;
-  FRecordCount := Connection.RowsFound;
-  FEditingPrepared := False;
+    LastResult := nil;
+  if AddResult and (Length(FResultList) = 0) then
+    AddResult := False;
+  if AddResult then
+    NumResults := Length(FResultList)+1
+  else begin
+    for i:=Low(FResultList) to High(FResultList) do begin
+      FResultList[i].Close;
+      FResultList[i].Free;
+    end;
+    NumResults := 1;
+    FRecordCount := 0;
+    FEditingPrepared := False;
+  end;
+  if LastResult <> nil then begin
+    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    SetLength(FResultList, NumResults);
+    FResultList[NumResults-1] := LastResult;
+    FRecordCount := FRecordCount + LastResult.RecordCount;
+  end;
 
   // Set up columns and data types
-  if HasResult then begin
-    First;
-    for i:=0 to NumFields-1 do begin
-      FColumnNames.Add(FAdoQuery.Fields[i].FieldName);
-      FColumnOrgNames.Add(FColumnNames[i]);
-      { ftUnknown, ftString, ftSmallint, ftInteger, ftWord, // 0..4
-        ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate, ftTime, ftDateTime, // 5..11
-        ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo, // 12..18
-        ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar, ftWideString, // 19..24
-        ftLargeint, ftADT, ftArray, ftReference, ftDataSet, ftOraBlob, ftOraClob, // 25..31
-        ftVariant, ftInterface, ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, // 32..37
-        ftFixedWideChar, ftWideMemo, ftOraTimeStamp, ftOraInterval, // 38..41
-        ftLongWord, ftShortint, ftByte, ftExtended, ftConnection, ftParams, ftStream, //42..48
-        ftTimeStampOffset, ftObject, ftSingle //49..51 }
-      case FAdoQuery.Fields[i].DataType of
-        ftSmallint, ftWord:
-          TypeIndex := dtMediumInt;
-        ftInteger, ftAutoInc:
-          TypeIndex := dtInt;
-        ftLargeint:
-          TypeIndex := dtBigInt;
-        ftBCD, ftFMTBcd:
-          TypeIndex := dtDecimal;
-        ftFixedChar:
-          TypeIndex := dtChar;
-        ftString, ftWideString, ftBoolean, ftGuid:
-          TypeIndex := dtVarchar;
-        ftMemo, ftWideMemo:
-          TypeIndex := dtMediumText;
-        ftBlob, ftVariant:
-          TypeIndex := dtMediumBlob;
-        ftBytes:
-          TypeIndex := dtBinary;
-        ftVarBytes:
-          TypeIndex := dtVarbinary;
-        ftFloat:
-          TypeIndex := dtEnum;
-        ftDate:
-          TypeIndex := dtDate;
-        ftTime:
-          TypeIndex := dtTime;
-        ftDateTime:
-          TypeIndex := dtDateTime;
-        else
-          raise EDatabaseError.Create('Unknown data type for column #'+IntToStr(i)+' - '+FColumnNames[i]+': '+IntToStr(Integer(FAdoQuery.Fields[i].DataType)));
-      end;
-      for j:=0 to High(FConnection.DataTypes) do begin
-        if TypeIndex = FConnection.DataTypes[j].Index then
-          FColumnTypes[i] := FConnection.DataTypes[j];
-      end;
+  if not AddResult then begin
+    if HasResult then begin
+      FCurrentResults := LastResult;
+      NumFields := LastResult.FieldCount;
+      SetLength(FColumnTypes, NumFields);
+      SetLength(FColumnLengths, NumFields);
+      SetLength(FColumnFlags, NumFields);
+      FColumnNames.Clear;
+      FColumnOrgNames.Clear;
+      for i:=0 to NumFields-1 do begin
+        FColumnNames.Add(LastResult.Fields[i].FieldName);
+        FColumnOrgNames.Add(FColumnNames[i]);
+        { ftUnknown, ftString, ftSmallint, ftInteger, ftWord, // 0..4
+          ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate, ftTime, ftDateTime, // 5..11
+          ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo, // 12..18
+          ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar, ftWideString, // 19..24
+          ftLargeint, ftADT, ftArray, ftReference, ftDataSet, ftOraBlob, ftOraClob, // 25..31
+          ftVariant, ftInterface, ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, // 32..37
+          ftFixedWideChar, ftWideMemo, ftOraTimeStamp, ftOraInterval, // 38..41
+          ftLongWord, ftShortint, ftByte, ftExtended, ftConnection, ftParams, ftStream, //42..48
+          ftTimeStampOffset, ftObject, ftSingle //49..51 }
+        case LastResult.Fields[i].DataType of
+          ftSmallint, ftWord:
+            TypeIndex := dtMediumInt;
+          ftInteger, ftAutoInc:
+            TypeIndex := dtInt;
+          ftLargeint:
+            TypeIndex := dtBigInt;
+          ftBCD, ftFMTBcd:
+            TypeIndex := dtDecimal;
+          ftFixedChar:
+            TypeIndex := dtChar;
+          ftString, ftWideString, ftBoolean, ftGuid:
+            TypeIndex := dtVarchar;
+          ftMemo, ftWideMemo:
+            TypeIndex := dtMediumText;
+          ftBlob, ftVariant:
+            TypeIndex := dtMediumBlob;
+          ftBytes:
+            TypeIndex := dtBinary;
+          ftVarBytes:
+            TypeIndex := dtVarbinary;
+          ftFloat:
+            TypeIndex := dtEnum;
+          ftDate:
+            TypeIndex := dtDate;
+          ftTime:
+            TypeIndex := dtTime;
+          ftDateTime:
+            TypeIndex := dtDateTime;
+          else
+            raise EDatabaseError.Create('Unknown data type for column #'+IntToStr(i)+' - '+FColumnNames[i]+': '+IntToStr(Integer(LastResult.Fields[i].DataType)));
+        end;
+        for j:=0 to High(FConnection.DataTypes) do begin
+          if TypeIndex = FConnection.DataTypes[j].Index then
+            FColumnTypes[i] := FConnection.DataTypes[j];
+        end;
 
+      end;
+      FRecNo := -1;
+      First;
+    end else begin
+      SetLength(FColumnTypes, 0);
+      SetLength(FColumnLengths, 0);
+      SetLength(FColumnFlags, 0);
     end;
   end;
 end;
@@ -3289,19 +3331,18 @@ end;
 
 procedure TAdoDBQuery.SetRecNo(Value: Int64);
 var
-  i: Integer;
+  i, j: Integer;
   RowFound: Boolean;
   Row: TRowData;
+  NumRows, WantedLocalRecNo: Int64;
 begin
   if Value = FRecNo then
     Exit;
   if (not FEditingPrepared) and (Value >= RecordCount) then begin
     FRecNo := RecordCount;
     FEof := True;
-    FAdoQuery.Last;
+    FCurrentResults.Last;
   end else begin
-    FRecNo := Value;
-    FEof := False;
 
     // Find row in edited data
     RowFound := False;
@@ -3317,14 +3358,25 @@ begin
       end;
     end;
 
+    // Row not edited data - find it in normal result
     if not RowFound then begin
-      // Ado starts with row 1, not 0
-      FAdoQuery.RecNo := FRecNo+1;
-      FCurrentUpdateRow := nil;
-      for i:=Low(FColumnLengths) to High(FColumnLengths) do
-        FColumnLengths[i] := FAdoQuery.Fields[i].DataSize;
+      NumRows := 0;
+      for i:=Low(FResultList) to High(FResultList) do begin
+        Inc(NumRows, FResultList[i].RecordCount);
+        if NumRows > Value then begin
+          FCurrentResults := FResultList[i];
+          WantedLocalRecNo := FCurrentResults.RecordCount-(NumRows-Value);
+          FCurrentResults.RecNo := WantedLocalRecNo+1;
+          FCurrentUpdateRow := nil;
+          for j:=Low(FColumnLengths) to High(FColumnLengths) do
+            FColumnLengths[j] := FCurrentResults.Fields[j].DataSize;
+          break;
+        end;
+      end;
     end;
 
+    FRecNo := Value;
+    FEof := False;
   end;
 end;
 
@@ -3363,9 +3415,9 @@ begin
       Result := FCurrentUpdateRow[Column].NewText;
     end else begin
       try
-        Result := FAdoQuery.Fields[Column].AsString;
+        Result := FCurrentResults.Fields[Column].AsString;
       except
-        Result := String(FAdoQuery.Fields[Column].AsAnsiString);
+        Result := String(FCurrentResults.Fields[Column].AsAnsiString);
       end;
     end;
   end else if not IgnoreErrors then
@@ -3476,7 +3528,7 @@ end;
 
 function TAdoDBQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
 begin
-//  Result := FAdoQuery.Fields[0].KeyFields
+//  Result := FCurrentResults.Fields[0].KeyFields
   Result := False;
 end;
 
@@ -3501,7 +3553,7 @@ end;
 
 function TAdoDbQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
-  Result := FAdoQuery.Fields[Column].IsIndexField;
+  Result := FCurrentResults.Fields[Column].IsIndexField;
 end;
 
 
@@ -3522,7 +3574,7 @@ end;
 
 function TAdoDBQuery.IsNull(Column: Integer): Boolean;
 begin
-  Result := FAdoQuery.Fields[Column].IsNull;
+  Result := FCurrentResults.Fields[Column].IsNull;
 end;
 
 
@@ -3534,7 +3586,7 @@ end;
 
 function TAdoDBQuery.HasResult: Boolean;
 begin
-  Result := FAdoQuery <> nil;
+  Result := Length(FResultList) > 0;
 end;
 
 
@@ -3940,16 +3992,9 @@ end;
 
 
 function TAdoDBQuery.TableName: String;
-var
-  rx: TRegExpr;
 begin
-  rx := TRegExpr.Create;
-  rx.ModifierI := True;
-  rx.ModifierG := True;
-  rx.Expression := '\s*SELECT\s.+\sFROM\s+("?([^"\s]+)"?\.)?("?dbo"?\.)?"?([^"\s]+)"?';
-  if rx.Exec(SQL) then
-    Result := rx.Match[4];
-  rx.Free;
+  // Untested with joins, compute columns and views
+  Result := GetTableNameFromSQLEx(SQL, idMixCase);
   if Result = '' then
     raise EDatabaseError.Create('Could not determine name of table.');
 end;
