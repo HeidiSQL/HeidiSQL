@@ -483,7 +483,7 @@ type
       procedure ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
         var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String);
       function GetDatatypeByName(Datatype: String): TDBDatatype;
-      function ApplyLimitClause(QueryType, QueryBody: String; Limit: Cardinal): String;
+      function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Cardinal): String;
       property SessionName: String read FSessionName write FSessionName;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property ThreadId: Cardinal read GetThreadId;
@@ -2973,14 +2973,18 @@ begin
 end;
 
 
-function TDBConnection.ApplyLimitClause(QueryType, QueryBody: String; Limit: Cardinal): String;
+function TDBConnection.ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Cardinal): String;
 begin
   Result := QueryType + ' ';
   if IsMSSQL then
     Result := Result + 'TOP('+IntToStr(Limit)+') ';
   Result := Result + QueryBody;
-  if IsMySQL then
-    Result := Result + ' LIMIT '+IntToStr(Limit);
+  if IsMySQL then begin
+    Result := Result + ' LIMIT ';
+    if Offset > 0 then
+      Result := Result + IntToStr(Offset) + ', ';
+    Result := Result + IntToStr(Limit);
+  end;
 end;
 
 
@@ -3582,7 +3586,7 @@ begin
   PrepareEditing;
   IsVirtual := Assigned(FCurrentUpdateRow) and FCurrentUpdateRow.Inserted;
   if not IsVirtual then begin
-    sql := Connection.ApplyLimitClause('DELETE', 'FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause, 1);
+    sql := Connection.ApplyLimitClause('DELETE', 'FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause, 1, 0);
     Connection.Query(sql);
   end;
   if Assigned(FCurrentUpdateRow) then begin
@@ -3692,7 +3696,7 @@ begin
       sql := sql + Connection.QuoteIdent(FColumnOrgNames[i]);
     end;
     sql := sql + ' FROM '+QuotedDbAndTableName+' WHERE '+GetWhereClause;
-    sql := Connection.ApplyLimitClause('SELECT', sql, 1);
+    sql := Connection.ApplyLimitClause('SELECT', sql, 1, 0);
     Data := Connection.GetResults(sql);
     Result := Data.RecordCount = 1;
     if Result then begin
@@ -3787,7 +3791,7 @@ begin
         end;
       end else begin
         sqlUpdate := QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause;
-        sqlUpdate := Connection.ApplyLimitClause('UPDATE', sqlUpdate, 1);
+        sqlUpdate := Connection.ApplyLimitClause('UPDATE', sqlUpdate, 1, 0);
         Connection.Query(sqlUpdate);
       end;
       // Reset modification flags
