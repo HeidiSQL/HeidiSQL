@@ -4039,7 +4039,7 @@ begin
       Offset := DataGridResult.RecordCount
     else
       Offset := 0;
-    Select := DBObj.Connection.ApplyLimitClause('SELECT', Select, DatagridWantedRowCount-Offset);
+    Select := DBObj.Connection.ApplyLimitClause('SELECT', Select, DatagridWantedRowCount-Offset, Offset);
 
     try
       ShowStatusMsg('Fetching rows ...');
