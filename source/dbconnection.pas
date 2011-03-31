@@ -1663,7 +1663,7 @@ begin
   Result := inherited;
   if not Assigned(Result) then begin
     try
-      FAllDatabases := GetCol('EXEC '+QuoteIdent('sp_databases'));
+      FAllDatabases := GetCol('SELECT '+QuoteIdent('name')+' FROM '+QuoteIdent('sys')+'.'+QuoteIdent('databases')+' ORDER BY '+QuoteIdent('name'));
     except on E:EDatabaseError do
       FAllDatabases := TStringList.Create;
     end;
