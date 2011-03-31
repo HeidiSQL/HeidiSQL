@@ -443,7 +443,7 @@ type
       function GetCollationList: TStringList;
       function GetCharsetTable: TDBQuery; virtual;
       function GetCharsetList: TStringList;
-      function GetInformationSchemaObjects: TStringList;
+      function GetInformationSchemaObjects: TStringList; virtual;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
       function GetCurrentUserHostCombination: String;
@@ -570,6 +570,7 @@ type
       function GetAllDatabases: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
+      function GetInformationSchemaObjects: TStringList; override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -2085,6 +2086,36 @@ begin
       for Obj in Objects do
         FInformationSchemaObjects.Add(Obj.Name);
     end;
+  end;
+  Result := FInformationSchemaObjects;
+end;
+
+
+function TAdoDBConnection.GetInformationSchemaObjects: TStringList;
+begin
+  // MS SQL hides information_schema
+  inherited;
+  if FInformationSchemaObjects.Count = 0 then begin
+    FInformationSchemaObjects.CommaText := 'CHECK_CONSTRAINTS,'+
+      'COLUMN_DOMAIN_USAGE,'+
+      'COLUMN_PRIVILEGES,'+
+      'COLUMNS,'+
+      'CONSTRAINT_COLUMN_USAGE,'+
+      'CONSTRAINT_TABLE_USAGE,'+
+      'DOMAIN_CONSTRAINTS,'+
+      'DOMAINS,'+
+      'KEY_COLUMN_USAGE,'+
+      'PARAMETERS,'+
+      'REFERENTIAL_CONSTRAINTS,'+
+      'ROUTINES,'+
+      'ROUTINE_COLUMNS,'+
+      'SCHEMATA,'+
+      'TABLE_CONSTRAINTS,'+
+      'TABLE_PRIVILEGES,'+
+      'TABLES,'+
+      'VIEW_COLUMN_USAGE,'+
+      'VIEW_TABLE_USAGE,'+
+      'VIEWS';
   end;
   Result := FInformationSchemaObjects;
 end;
