@@ -33,6 +33,7 @@ type
     FLastKeyDown: Integer;            // Set in OnKeyDown on the editor's main control
     FLastShiftState: TShiftState;
     FOldWindowProc: TWndMethod;       // Temporary switched to TempWindowProc to be able to catch Tab key
+    FFullDatatype: TDBDatatype;
     procedure TempWindowProc(var Message: TMessage);
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoEndEdit(Sender: TObject);
@@ -268,6 +269,7 @@ end;
 function TBaseGridEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
   FCellTextBounds: TRect;
+  i: Integer;
 begin
   Result := not FStopping;
   if not Result then
@@ -277,8 +279,15 @@ begin
   FCellFont := TFont.Create;
   FTree.GetTextInfo(FNode, FColumn, FCellFont, FCellTextBounds, FCellText);
   // Not all editors have a connection assigned, e.g. session manager tree
-  if Assigned(Connection) then
-    FCellFont.Color := DatatypeCategories[Integer(Connection.Datatypes[Integer(Datatype)].Category)].Color;
+  if Assigned(Connection) then begin
+    for i:=0 to High(Connection.Datatypes) do begin
+      if Connection.Datatypes[i].Index = Datatype then begin
+        FFullDatatype := Connection.Datatypes[i];
+        break;
+      end;
+    end;
+    FCellFont.Color := DatatypeCategories[Integer(FFullDatatype.Category)].Color;
+  end;
   FCellBackground := FTree.Header.Columns[FColumn].Color;
   if Assigned(FMainControl) then begin
     FOldWindowProc := FMainControl.WindowProc;
@@ -1202,8 +1211,6 @@ end;
 
 
 function TColumnDefaultEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
-var
-  DataTypeCategory: TDBDataTypeCategoryIndex;
 begin
   inherited PrepareEdit(Tree, Node, Column);
 
@@ -1220,10 +1227,9 @@ begin
 
   // Disable non working default options per data type
   // But leave checked option enabled, regardless of if that is a valid default option or not
-  DataTypeCategory := Connection.Datatypes[Integer(Datatype)].Category;
-  FRadioCurTS.Enabled := FRadioCurTS.Checked or (DataType = dtTimestamp);
+  FRadioCurTS.Enabled := FRadioCurTS.Checked or (FFullDataType.Index = dtTimestamp);
   FCheckCurTS.Enabled := FCheckCurTS.Checked or FRadioCurTS.Enabled;
-  FRadioAutoInc.Enabled := FRadioAutoInc.Checked or (DataTypeCategory = dtcInteger);
+  FRadioAutoInc.Enabled := FRadioAutoInc.Checked or (FFullDataType.Category = dtcInteger);
 
   Result := True;
 end;
