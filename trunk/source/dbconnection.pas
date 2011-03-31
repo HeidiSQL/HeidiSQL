@@ -3111,12 +3111,14 @@ begin
           FColumnOrgNames.Add(Connection.DecodeAPIString(Field.name));
         FColumnFlags[i] := Field.flags;
         FColumnTypes[i] := FConnection.Datatypes[0];
-        if (Field.flags and ENUM_FLAG) = ENUM_FLAG then
-          FColumnTypes[i] := FConnection.Datatypes[Integer(dtEnum)]
-        else if (Field.flags and SET_FLAG) = SET_FLAG then
-          FColumnTypes[i] := FConnection.Datatypes[Integer(dtSet)]
-        else for j:=0 to High(FConnection.Datatypes) do begin
-          if Field._type = FConnection.Datatypes[j].NativeType then begin
+        for j:=0 to High(FConnection.Datatypes) do begin
+          if (Field.flags and ENUM_FLAG) = ENUM_FLAG then begin
+            if FConnection.Datatypes[j].Index = dtEnum then
+              FColumnTypes[i] := FConnection.Datatypes[j];
+          end else if (Field.flags and SET_FLAG) = SET_FLAG then begin
+            if FConnection.Datatypes[j].Index = dtSet then
+              FColumnTypes[i] := FConnection.Datatypes[j];
+          end else if Field._type = FConnection.Datatypes[j].NativeType then begin
             // Text and Blob types share the same constants (see FIELD_TYPEs)
             // Some function results return binary collation up to the latest versions. Work around
             // that by checking if this field is a real table field
