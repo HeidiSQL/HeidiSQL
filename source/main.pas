@@ -1075,15 +1075,17 @@ procedure TMainForm.StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPane
 var
   TextRect: TRect;
   ImageIndex: Integer;
+  Conn: TDBConnection;
 begin
   ImageIndex := -1;
   case Panel.Index of
     2: ImageIndex := 149;
-    3: if ActiveConnection <> nil then begin
-      if opSSL in ActiveConnection.Parameters.Options then
-        ImageIndex := 144 // Lock
-      else
-        ImageIndex := 1;
+    3: begin
+      Conn := ActiveConnection;
+      if Conn <> nil then case Conn.Parameters.NetType of
+        ntTCPIP, ntNamedPipe, ntSSHTunnel: ImageIndex := 164;
+        ntMSSQL: ImageIndex := 123;
+      end;
     end;
     6: begin
       if Panel.Text = SIdle then
