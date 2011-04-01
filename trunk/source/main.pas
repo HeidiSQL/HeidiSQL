@@ -4883,18 +4883,20 @@ procedure TMainForm.TimerConnectedTimer(Sender: TObject);
 var
   ConnectedTime: Integer;
   Vendor: String;
+  Conn: TDBConnection;
 begin
-  if Assigned(ActiveConnection) and ActiveConnection.Active then begin
+  Conn := ActiveConnection;
+  if Assigned(Conn) and Conn.Active then begin
     // Calculate and display connection-time. Also, on any connect or reconnect, update server version panel.
-    ConnectedTime := ActiveConnection.ConnectionUptime;
+    ConnectedTime := Conn.ConnectionUptime;
     ShowStatusMsg('Connected: ' + FormatTimeNumber(ConnectedTime), 2);
-    case ActiveConnection.Parameters.NetType of
+    case Conn.Parameters.NetType of
       ntTCPIP, ntNamedPipe, ntSSHTunnel:
         Vendor := 'MySQL';
       ntMSSQL:
         Vendor := 'MS SQL';
     end;
-    ShowStatusMsg(Vendor+' '+ActiveConnection.ServerVersionStr, 3);
+    ShowStatusMsg(Vendor+' '+Conn.ServerVersionStr, 3);
   end else begin
     ShowStatusMsg('Disconnected.', 2);
   end;
