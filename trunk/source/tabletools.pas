@@ -869,7 +869,7 @@ begin
     Screen.Cursor := crHourglass;
     try
       FTargetConnection.Active := True;
-      comboExportOutputTarget.Items := FTargetConnection.GetCol('SHOW DATABASES');
+      comboExportOutputTarget.Items := FTargetConnection.AllDatabases;
       comboExportOutputTarget.Items.Insert(0, '[Same as on source server]');
       comboExportOutputTarget.ItemIndex := 0;
       Screen.Cursor := crDefault;
