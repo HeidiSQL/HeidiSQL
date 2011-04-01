@@ -1033,6 +1033,7 @@ var
   rx: TRegExpr;
   ColumnList: TTableColumnList;
   Column: TTableColumn;
+  Quoter: TDBConnection;
 const
   TempDelim = '//';
 
@@ -1061,6 +1062,12 @@ begin
   ToClipboard := comboExportOutputType.Text = OUTPUT_CLIPBOARD;
   ToDb := comboExportOutputType.Text = OUTPUT_DB;
   ToServer := Copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER;
+
+  if ToServer then
+    Quoter := FTargetConnection
+  else
+    Quoter := DBObj.Connection;
+
   StartTime := GetTickCount;
   ExportStreamStartOfQueryPos := 0;
   if ToDir then begin
@@ -1089,7 +1096,7 @@ begin
       Format('# %-30s%s', ['Date/time:', DateTimeToStr(Now)]) + CRLF +
       '# --------------------------------------------------------' + CRLF + CRLF +
       '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
-      '/*!40101 SET NAMES '+MainForm.ActiveConnection.CharacterSet+' */;' + CRLF +
+      '/*!40101 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF +
       '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF +
       '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;';
     Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
@@ -1105,23 +1112,23 @@ begin
   if chkExportDatabasesDrop.Checked or chkExportDatabasesCreate.Checked then begin
     Output(CRLF+CRLF+'# Dumping database structure for '+DBObj.Database+CRLF, False, NeedsDBStructure, False, False, False);
     if chkExportDatabasesDrop.Checked and chkExportDatabasesDrop.Enabled then
-      Output('DROP DATABASE IF EXISTS '+DBObj.Connection.QuoteIdent(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
+      Output('DROP DATABASE IF EXISTS '+Quoter.QuoteIdent(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     if chkExportDatabasesCreate.Checked and chkExportDatabasesCreate.Enabled then begin
-      if MainForm.ActiveConnection.ServerVersionInt >= 40100 then begin
-        Struc := MainForm.ActiveConnection.GetVar('SHOW CREATE DATABASE '+DBObj.QuotedDatabase, 1);
+      if DBObj.Connection.ServerVersionInt >= 40100 then begin
+        Struc := DBObj.Connection.GetVar('SHOW CREATE DATABASE '+DBObj.QuotedDatabase, 1);
         // Gracefully ignore it when target database exists, important in server mode
         Insert('IF NOT EXISTS ', Struc, Pos('DATABASE', Struc) + 9);
         // Create the right dbname
         Struc := StringReplace(Struc, DBObj.Database, FinalDbName, []);
       end else
-        Struc := 'CREATE DATABASE IF NOT EXISTS '+DBObj.Connection.QuoteIdent(FinalDbName);
+        Struc := 'CREATE DATABASE IF NOT EXISTS '+Quoter.QuoteIdent(FinalDbName);
       Output(Struc, True, NeedsDBStructure, False, False, NeedsDBStructure);
-      Output('USE '+DBObj.Connection.QuoteIdent(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
+      Output('USE '+Quoter.QuoteIdent(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     end;
   end;
   if ToServer and (not chkExportDatabasesCreate.Checked) then begin
     // Export to server without "CREATE/USE dbname" and "Same dbs as on source server" - needs a "USE dbname"
-    Output('USE '+DBObj.Connection.QuoteIdent(FinalDbName), True, False, False, False, NeedsDBStructure);
+    Output('USE '+Quoter.QuoteIdent(FinalDbName), True, False, False, False, NeedsDBStructure);
   end;
 
   // Table structure
@@ -1130,8 +1137,8 @@ begin
     if chkExportTablesDrop.Checked then begin
       Struc := 'DROP '+UpperCase(DBObj.ObjType)+' IF EXISTS ';
       if ToDb then
-        Struc := Struc + DBObj.Connection.QuoteIdent(FinalDbName)+'.';
-      Struc := Struc + DBObj.QuotedName;
+        Struc := Struc + Quoter.QuoteIdent(FinalDbName)+'.';
+      Struc := Struc + Quoter.QuoteIdent(DBObj.Name);
       Output(Struc, True, True, True, True, True);
     end;
     if chkExportTablesCreate.Checked then begin
@@ -1149,7 +1156,7 @@ begin
             end;
             Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
             if ToDb then
-              Insert(DBObj.Connection.QuoteIdent(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
+              Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
           end;
 
           lntView: begin
@@ -1160,8 +1167,8 @@ begin
               Struc := '# Creating temporary table to overcome VIEW dependency errors'+CRLF+
                 'CREATE TABLE ';
               if ToDb then
-                Struc := Struc + DBObj.Connection.QuoteIdent(FinalDbName) + '.';
-              Struc := Struc + DBObj.QuotedName+' (';
+                Struc := Struc + Quoter.QuoteIdent(FinalDbName) + '.';
+              Struc := Struc + Quoter.QuoteIdent(DBObj.Name)+' (';
               for Column in ColumnList do
                 Struc := Struc + CRLF + #9 + Column.SQLCode + ',';
               Delete(Struc, Length(Struc), 1);
@@ -1171,21 +1178,21 @@ begin
               Struc := '# Removing temporary table and create final VIEW structure'+CRLF+
                 'DROP TABLE IF EXISTS ';
               if ToDb then
-                Struc := Struc + DBObj.Connection.QuoteIdent(FinalDbName)+'.';
-              Struc := Struc + DBObj.QuotedName;
+                Struc := Struc + Quoter.QuoteIdent(FinalDbName)+'.';
+              Struc := Struc + Quoter.QuoteIdent(DBObj.Name);
               Output(Struc, True, True, True, True, True);
               Struc := DBObj.CreateCode;
               if ToDb then
-                Insert(DBObj.Connection.QuoteIdent(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
+                Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
             end;
           end;
 
           lntTrigger: begin
-            StrucResult := MainForm.ActiveConnection.GetResults('SHOW TRIGGERS FROM '+DBObj.QuotedDatabase+' WHERE `Trigger`='+esc(DBObj.Name));
-            Struc := 'CREATE '+UpperCase(DBObj.ObjType)+' '+DBObj.QuotedName+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
-                ' ON '+DBObj.Connection.QuoteIdent(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement');
+            StrucResult := DBObj.Connection.GetResults('SHOW TRIGGERS FROM '+DBObj.QuotedDatabase+' WHERE `Trigger`='+esc(DBObj.Name));
+            Struc := 'CREATE '+UpperCase(DBObj.ObjType)+' '+Quoter.QuoteIdent(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
+                ' ON '+Quoter.QuoteIdent(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement');
             if ToDb then
-              Insert(DBObj.Connection.QuoteIdent(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
+              Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
             if ToFile or ToClipboard or ToDir then begin
               Struc := 'SET SESSION SQL_MODE=' + esc(StrucResult.Col('sql_mode')) + ';' + CRLF +
                 'DELIMITER ' + TempDelim + CRLF +
@@ -1199,9 +1206,9 @@ begin
             Struc := DBObj.CreateCode;
             if ToDb then begin
               if DBObj.NodeType = lntProcedure then
-                Insert(DBObj.Connection.QuoteIdent(FinalDbName)+'.', Struc, Pos('PROCEDURE', Struc) + 10 )
+                Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('PROCEDURE', Struc) + 10 )
               else if DBObj.NodeType = lntFunction then
-                Insert(DBObj.Connection.QuoteIdent(FinalDbName)+'.', Struc, Pos('FUNCTION', Struc) + 9 );
+                Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('FUNCTION', Struc) + 9 );
             end;
             // Change delimiter for file output, so readers split queries at the right string position
             if ToFile or ToDir or ToClipboard then
@@ -1211,7 +1218,7 @@ begin
           lntEvent: begin
             Struc := DBObj.CreateCode;
             if ToDb then
-              Insert(DBObj.Connection.QuoteIdent(FinalDbName)+'.', Struc, Pos('EVENT', Struc) + 6 );
+              Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('EVENT', Struc) + 6 );
             if ToFile or ToDir or ToClipboard then
               Struc := 'DELIMITER ' + TempDelim + CRLF + Struc + TempDelim + CRLF + 'DELIMITER ';
           end;
@@ -1237,9 +1244,9 @@ begin
       if LowerCase(DBObj.Engine) = 'innodb' then
         tmp := '~'+tmp+' (approximately)';
       Output(CRLF+'# Dumping data for table '+DBObj.Database+'.'+DBObj.Name+': '+tmp+CRLF, False, True, True, False, False);
-      TargetDbAndObject := DBObj.QuotedName;
+      TargetDbAndObject := Quoter.QuoteIdent(DBObj.Name);
       if ToDb then
-        TargetDbAndObject := DBObj.Connection.QuoteIdent(FinalDbName) + '.' + TargetDbAndObject;
+        TargetDbAndObject := Quoter.QuoteIdent(FinalDbName) + '.' + TargetDbAndObject;
       Offset := 0;
       RowCount := 0;
       // Calculate limit so we select ~100MB per loop
@@ -1248,7 +1255,7 @@ begin
         Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
       Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
       while true do begin
-        Data := MainForm.ActiveConnection.GetResults('SELECT * FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' LIMIT '+IntToStr(Offset)+', '+IntToStr(Limit));
+        Data := DBObj.Connection.GetResults('SELECT * FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' LIMIT '+IntToStr(Offset)+', '+IntToStr(Limit));
         Inc(Offset, Limit);
         if Data.RecordCount = 0 then
           break;
@@ -1259,7 +1266,7 @@ begin
           BaseInsert := 'REPLACE INTO ';
         BaseInsert := BaseInsert + TargetDbAndObject + ' (';
         for i:=0 to Data.ColumnCount-1 do
-          BaseInsert := BaseInsert + DBObj.Connection.QuoteIdent(Data.ColumnNames[i]) + ', ';
+          BaseInsert := BaseInsert + Quoter.QuoteIdent(Data.ColumnNames[i]) + ', ';
         Delete(BaseInsert, Length(BaseInsert)-1, 2);
         BaseInsert := BaseInsert + ') VALUES'+CRLF+#9+'(';
         while true do begin
