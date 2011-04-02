@@ -208,6 +208,7 @@ object frmTableEditor: TfrmTableEditor
         Lines.Strings = (
           'memoComment')
         MaxLength = 60
+        ScrollBars = ssVertical
         TabOrder = 1
         OnChange = Modification
       end
