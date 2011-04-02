@@ -266,6 +266,10 @@ begin
   tabALTERcode.TabVisible := DBObject.Name <> '';
   // Clear value editors
   memoComment.Text := '';
+  if Obj.Connection.ServerVersionInt < 50503 then
+    memoComment.MaxLength := 60
+  else
+    memoComment.MaxLength := 2048;
   editAutoInc.Text := '';
   editAvgRowLen.Text := '';
   editMaxRows.Text := '';
