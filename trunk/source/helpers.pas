@@ -2680,7 +2680,7 @@ begin
     raise Exception.Create('Error: Session "'+Session+'" not found in registry.')
   else begin
     Result := TConnectionParameters.Create;
-    Result.NetType := TNetType(GetRegValue(REGNAME_NETTYPE, Integer(ntTCPIP), Session));
+    Result.NetType := TNetType(GetRegValue(REGNAME_NETTYPE, Integer(ntMySQL_TCPIP), Session));
     Result.Hostname := GetRegValue(REGNAME_HOST, '', Session);
     Result.Username := GetRegValue(REGNAME_USER, '', Session);
     Result.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));

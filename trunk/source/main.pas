@@ -1082,9 +1082,9 @@ begin
     2: ImageIndex := 149;
     3: begin
       Conn := ActiveConnection;
-      if Conn <> nil then case Conn.Parameters.NetType of
-        ntTCPIP, ntNamedPipe, ntSSHTunnel: ImageIndex := 164;
-        ntMSSQL: ImageIndex := 123;
+      if Conn <> nil then case Conn.Parameters.NetTypeGroup of
+        ngMySQL: ImageIndex := 164;
+        ngMSSQL: ImageIndex := 123;
       end;
     end;
     6: begin
@@ -1811,7 +1811,7 @@ begin
     if Port <> 0 then FCmdlineConnectionParams.Port := Port;
     if Socket <> '' then begin
       FCmdlineConnectionParams.Hostname := Socket;
-      FCmdlineConnectionParams.NetType := ntNamedPipe;
+      FCmdlineConnectionParams.NetType := ntMySQL_NamedPipe;
     end;
     // Ensure we have a session name to pass to InitConnection
     if (FCmdlineSessionName = '') and (FCmdlineConnectionParams.Hostname <> '') then
@@ -3081,13 +3081,13 @@ begin
   for Obj in Objects do begin
     actNewQueryTab.Execute;
     Tab := QueryTabs[MainForm.QueryTabs.Count-1];
-    case Obj.Connection.Parameters.NetType of
-      ntTCPIP, ntNamedPipe, ntSSHTunnel:
+    case Obj.Connection.Parameters.NetTypeGroup of
+      ngMySQL:
         case Obj.NodeType of
           lntProcedure: Query := 'CALL ';
           lntFunction: Query := 'SELECT ';
         end;
-      ntMSSQL:
+      ngMSSQL:
         Query := 'EXEC ';
     end;
     Parameters := TRoutineParamList.Create;
@@ -3101,10 +3101,10 @@ begin
     end;
     Parameters.Free;
     ParamValues := '';
-    if Params.Count > 0 then case Obj.Connection.Parameters.NetType of
-      ntTCPIP, ntNamedPipe, ntSSHTunnel:
+    if Params.Count > 0 then case Obj.Connection.Parameters.NetTypeGroup of
+      ngMySQL:
         ParamValues := '(' + ImplodeStr(', ', Params) + ')';
-      ntMSSQL:
+      ngMSSQL:
         ParamValues := ' ' + ImplodeStr(' ', Params);
     end;
     Query := Query + ParamValues;
@@ -4882,7 +4882,6 @@ end;
 procedure TMainForm.TimerConnectedTimer(Sender: TObject);
 var
   ConnectedTime: Integer;
-  Vendor: String;
   Conn: TDBConnection;
 begin
   Conn := ActiveConnection;
@@ -4890,13 +4889,7 @@ begin
     // Calculate and display connection-time. Also, on any connect or reconnect, update server version panel.
     ConnectedTime := Conn.ConnectionUptime;
     ShowStatusMsg('Connected: ' + FormatTimeNumber(ConnectedTime), 2);
-    case Conn.Parameters.NetType of
-      ntTCPIP, ntNamedPipe, ntSSHTunnel:
-        Vendor := 'MySQL';
-      ntMSSQL:
-        Vendor := 'MS SQL';
-    end;
-    ShowStatusMsg(Vendor+' '+Conn.ServerVersionStr, 3);
+    ShowStatusMsg(Conn.Parameters.NetTypeName(Conn.Parameters.NetType, False)+' '+Conn.ServerVersionStr, 3);
   end else begin
     ShowStatusMsg('Disconnected.', 2);
   end;
@@ -6897,10 +6890,10 @@ begin
   if PrevDBObj.Connection <> DBObj.Connection then begin
     LogSQL('Connection switch!', lcDebug);
     DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, DBObj.Connection.SessionName);
-    case DBObj.Connection.Parameters.NetType of
-      ntTCPIP, ntNamedPipe, ntSSHTunnel:
+    case DBObj.Connection.Parameters.NetTypeGroup of
+      ngMySQL:
         SynSQLSyn1.SQLDialect := sqlMySQL;
-      ntMSSQL:
+      ngMSSQL:
         SynSQLSyn1.SQLDialect := sqlMSSQL2K;
       else
         raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(DBObj.Connection.Parameters.NetType)]);
@@ -8216,8 +8209,8 @@ begin
     vt.FocusedNode := nil;
     vt.Clear;
     Conn := ActiveConnection;
-    case Conn.Parameters.NetType of
-      ntTCPIP, ntNamedPipe, ntSSHTunnel: begin
+    case Conn.Parameters.NetTypeGroup of
+      ngMySQL: begin
         if Conn.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
           // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
           Results := Conn.GetResults('SELECT '+Conn.QuoteIdent('ID')+', '+Conn.QuoteIdent('USER')+', '+Conn.QuoteIdent('HOST')+', '+Conn.QuoteIdent('DB')+', '
@@ -8228,7 +8221,7 @@ begin
           Results := Conn.GetResults('SHOW FULL PROCESSLIST');
         end;
       end;
-      ntMSSQL: begin
+      ngMSSQL: begin
         Results := Conn.GetResults('SELECT '+
           Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('spid')+
           ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('loginame')+') AS '+Conn.QuoteIdent('loginname')+

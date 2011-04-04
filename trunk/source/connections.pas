@@ -112,6 +112,7 @@ type
     procedure lblDownloadPlinkClick(Sender: TObject);
     procedure comboDatabasesDropDown(Sender: TObject);
     procedure chkLoginPromptClick(Sender: TObject);
+    procedure comboNetTypeChange(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -146,6 +147,7 @@ var
   LastSessions: TStringList;
   hSysMenu: THandle;
   idx: Integer;
+  nt: TNetType;
 begin
   // Fix GUI stuff
   InheritFont(Font);
@@ -156,6 +158,11 @@ begin
   FixVT(ListSessions);
   ListSessions.OnGetHint := Mainform.vstGetHint;
   FLoaded := False;
+
+  comboNetType.Clear;
+  for nt:=Low(nt) to High(nt) do
+    comboNetType.Items.Add(TConnectionParameters.NetTypeName(nt, True));
+
   FSessionNames := TStringList.Create;
   FSessionNames.OnChange := SessionNamesChange;
   RefreshSessionList;
@@ -609,6 +616,19 @@ begin
 end;
 
 
+procedure Tconnform.comboNetTypeChange(Sender: TObject);
+begin
+  if (not editPort.Modified) and (FLoaded) then begin
+    case TNetType(comboNetType.ItemIndex) of
+      ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHTunnel:
+        updownPort.Position := DEFAULT_PORT;
+      ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
+        updownPort.Position := 1433;
+    end;
+  end;
+  Modification(Sender);
+end;
+
 procedure Tconnform.Modification(Sender: TObject);
 var
   PasswordModified: Boolean;
@@ -691,15 +711,15 @@ begin
 
     // Validate session GUI stuff
     NetType := TNetType(comboNetType.ItemIndex);
-    if NetType = ntNamedPipe then
+    if NetType = ntMySQL_NamedPipe then
       lblHost.Caption := 'Socket name:'
     else
       lblHost.Caption := 'Hostname / IP:';
-    lblPort.Enabled := NetType in [ntTCPIP, ntSSHtunnel];
+    lblPort.Enabled := NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP];
     editPort.Enabled := lblPort.Enabled;
     updownPort.Enabled := lblPort.Enabled;
-    tabSSLoptions.TabVisible := NetType = ntTCPIP;
-    tabSSHtunnel.TabVisible := NetType = ntSSHtunnel;
+    tabSSLoptions.TabVisible := NetType = ntMySQL_TCPIP;
+    tabSSHtunnel.TabVisible := NetType = ntMySQL_SSHtunnel;
   end;
 end;
 
