@@ -325,7 +325,9 @@ type
 
   { TConnectionParameters and friends }
 
-  TNetType = (ntTCPIP, ntNamedPipe, ntSSHtunnel, ntMSSQL);
+  TNetType = (ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel,
+    ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC);
+  TNetTypeGroup = (ngMySQL, ngMSSQL);
 
   TMySQLClientOption = (
     opCompress,             // CLIENT_COMPRESS
@@ -363,8 +365,11 @@ type
       constructor Create;
       function CreateConnection(AOwner: TComponent): TDBConnection;
       function CreateQuery(AOwner: TComponent): TDBQuery;
+      class function NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
+      function GetNetTypeGroup: TNetTypeGroup;
     published
       property NetType: TNetType read FNetType write FNetType;
+      property NetTypeGroup: TNetTypeGroup read GetNetTypeGroup;
       property Hostname: String read FHostname write FHostname;
       property Port: Integer read FPort write FPort;
       property Username: String read FUsername write FUsername;
@@ -742,7 +747,7 @@ uses helpers, loginform;
 
 constructor TConnectionParameters.Create;
 begin
-  FNetType := ntTCPIP;
+  FNetType := ntMySQL_TCPIP;
   FHostname := DEFAULT_HOST;
   FUsername := DEFAULT_USER;
   FPassword := '';
@@ -760,10 +765,10 @@ end;
 
 function TConnectionParameters.CreateConnection(AOwner: TComponent): TDBConnection;
 begin
-  case FNetType of
-    ntTCPIP, ntNamedPipe, ntSSHTunnel:
+  case NetTypeGroup of
+    ngMySQL:
       Result := TMySQLConnection.Create(AOwner);
-    ntMSSQL:
+    ngMSSQL:
       Result := TAdoDBConnection.Create(AOwner);
     else
       raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(FNetType)]);
@@ -774,11 +779,52 @@ end;
 
 function TConnectionParameters.CreateQuery(AOwner: TComponent): TDBQuery;
 begin
-  case FNetType of
-    ntTCPIP, ntNamedPipe, ntSSHTunnel:
+  case NetTypeGroup of
+    ngMySQL:
       Result := TMySQLQuery.Create(AOwner);
-    ntMSSQL:
+    ngMSSQL:
       Result := TAdoDBQuery.Create(AOwner);
+    else
+      raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(FNetType)]);
+  end;
+end;
+
+
+class function TConnectionParameters.NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
+begin
+  if LongFormat then case NetType of
+    ntMySQL_TCPIP:
+      Result := 'MySQL (TCP/IP)';
+    ntMySQL_NamedPipe:
+      Result := 'MySQL (named pipe)';
+    ntMySQL_SSHtunnel:
+      Result := 'MySQL (SSH tunnel)';
+    ntMSSQL_NamedPipe:
+      Result := 'Microsoft SQL Server (named pipe)';
+    ntMSSQL_TCPIP:
+      Result := 'Microsoft SQL Server (TCP/IP)';
+    ntMSSQL_SPX:
+      Result := 'Microsoft SQL Server (SPX/IPX)';
+    ntMSSQL_VINES:
+      Result := 'Microsoft SQL Server (Banyan VINES)';
+    ntMSSQL_RPC:
+      Result := 'Microsoft SQL Server (Windows RPC)';
+  end else case NetType of
+    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel:
+      Result := 'MySQL';
+    ntMSSQL_NamedPipe, ntMSSQL_TCPIP:
+      Result := 'MS SQL';
+  end;
+end;
+
+
+function TConnectionParameters.GetNetTypeGroup: TNetTypeGroup;
+begin
+  case FNetType of
+    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel:
+      Result := ngMySQL;
+    ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
+      Result := ngMSSQL;
     else
       raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(FNetType)]);
   end;
@@ -933,7 +979,7 @@ begin
     FinalSocket := '';
     FinalPort := FParameters.Port;
     case FParameters.NetType of
-      ntTCPIP: begin
+      ntMySQL_TCPIP: begin
         if (
             IsNotEmpty(FParameters.SSLCACertificate)
             and IsEmpty(FParameters.SSLPrivateKey)
@@ -967,12 +1013,12 @@ begin
         end;
       end;
 
-      ntNamedPipe: begin
+      ntMySQL_NamedPipe: begin
         FinalHost := '.';
         FinalSocket := FParameters.Hostname;
       end;
 
-      ntSSHtunnel: begin
+      ntMySQL_SSHtunnel: begin
         // Build plink.exe command line
         // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
         PlinkCmd := FParameters.SSHPlinkExe + ' -ssh ';
@@ -1091,17 +1137,33 @@ end;
 
 procedure TAdoDBConnection.SetActive(Value: Boolean);
 var
-  tmpdb, Error: String;
+  tmpdb, Error, NetLib, DataSource: String;
   rx: TRegExpr;
+  i: Integer;
 begin
   if Value then begin
     DoBeforeConnect;
-    FAdoHandle.ConnectionString := 'Provider=SQLOLEDB.1;'+
+    NetLib := '';
+    case Parameters.NetType of
+      ntMSSQL_NamedPipe: NetLib := 'DBNMPNTW';
+      ntMSSQL_TCPIP: NetLib := 'DBMSSOCN';
+      ntMSSQL_SPX: NetLib := 'DBMSSPXN';
+      ntMSSQL_VINES: NetLib := 'DBMSVINN';
+      ntMSSQL_RPC: NetLib := 'DBMSRPCN';
+    end;
+    DataSource := Parameters.Hostname;
+    if Parameters.NetType = ntMSSQL_TCPIP then
+      DataSource := DataSource + ','+IntToStr(Parameters.Port);
+    FAdoHandle.ConnectionString := 'Provider=SQLOLEDB;'+
       'Password='+Parameters.Password+';'+
       'Persist Security Info=True;'+
       'User ID='+Parameters.Username+';'+
-      'Data Source='+Parameters.Hostname
+      'Network Library='+NetLib+';'+
+      'Data Source='+DataSource
       ;
+    // Show up dynamic connection properties, probably useful for debugging
+    for i:=0 to FAdoHandle.Properties.Count-1 do
+      Log(lcDebug, 'OLE DB property "'+FAdoHandle.Properties[i].Name+'": '+String(FAdoHandle.Properties[i].Value));
     try
       FAdoHandle.Connected := True;
       FConnectionStarted := GetTickCount div 1000;
@@ -1167,7 +1229,7 @@ end;
 procedure TDBConnection.DoBeforeConnect;
 var
   UsernamePrompt, PasswordPrompt: String;
-  UsingPass, Protocol: String;
+  UsingPass: String;
 begin
   // Prompt for password on initial connect
   if FParameters.LoginPrompt and (not FLoginPromptDone) then begin
@@ -1180,14 +1242,8 @@ begin
   end;
 
   // Prepare connection
-  case FParameters.NetType of
-    ntTCPIP: Protocol := 'TCP/IP';
-    ntNamedPipe: Protocol := 'named pipe';
-    ntSSHtunnel: Protocol := 'SSH tunnel';
-    ntMSSQL: Protocol := 'MS SQL';
-  end;
   if FParameters.Password <> '' then UsingPass := 'Yes' else UsingPass := 'No';
-  Log(lcInfo, 'Connecting to '+FParameters.Hostname+' via '+Protocol+
+  Log(lcInfo, 'Connecting to '+FParameters.Hostname+' via '+FParameters.NetTypeName(FParameters.NetType, True)+
     ', username '+FParameters.Username+
     ', using password: '+UsingPass+' ...');
 end;
@@ -2146,10 +2202,10 @@ begin
   Log(lcDebug, 'Fetching user@host ...');
   Ping(True);
   if FCurrentUserHostCombination = '' then begin
-    case Parameters.NetType of
-      ntTCPIP, ntNamedPipe, ntSSHTunnel:
+    case Parameters.NetTypeGroup of
+      ngMySQL:
         sql := 'SELECT CURRENT_USER()';
-      ntMSSQL:
+      ngMSSQL:
         sql := 'SELECT SYSTEM_USER';
       else
         raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(Parameters.NetType)]);
@@ -2568,8 +2624,8 @@ begin
     Result.Values['Compressed protocol'] := EvalBool(opCompress in Parameters.Options);
     Result.Values['Unicode enabled'] := EvalBool(IsUnicode);
     Result.Values['SSL enabled'] := EvalBool(opSSL in Parameters.Options);
-    case Parameters.NetType of
-      ntTCPIP, ntNamedPipe, ntSSHTunnel: begin
+    case Parameters.NetTypeGroup of
+      ngMySQL: begin
         Result.Values['Client version (libmysql)'] := DecodeApiString(mysql_get_client_info);
         Infos := DecodeApiString(mysql_stat((Self as TMySQLConnection).FHandle));
         rx := TRegExpr.Create;
@@ -2588,7 +2644,7 @@ begin
         rx.Free;
       end;
 
-      ntMSSQL: ; // Nothing specific yet
+      ngMSSQL: ; // Nothing specific yet
     end;
   end;
 end;
