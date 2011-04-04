@@ -4558,6 +4558,7 @@ var
   Editor: TCustomSynEdit;
   QueryMarkers: TSQLBatch;
   Query: TSQLSentence;
+  Conn: TDBConnection;
 
   procedure addTable(Obj: TDBObject);
   var
@@ -4567,31 +4568,41 @@ var
     Proposal.AddItem(DisplayText, Obj.Name);
   end;
 
-  procedure addColumns( tablename: String );
+  procedure addColumns(tablename: String);
   var
-    dbname : String;
-    Columns: TDBQuery;
+    dbname, Dummy: String;
+    Columns: TTableColumnList;
+    Col: TTableColumn;
+    Obj: TDBObject;
   begin
-    dbname := ActiveDatabase;
-    if Pos( '.', tablename ) > -1 then
+    dbname := '';
+    if Pos('.', tablename) > -1 then
     begin
-      dbname := Copy( tablename, 0, Pos( '.', tablename )-1 );
-      tablename := Copy( tablename, Pos( '.', tablename )+1, Length(tablename) );
+      dbname := Copy(tablename, 0, Pos( '.', tablename )-1);
+      tablename := Copy(tablename, Pos( '.', tablename )+1, Length(tablename));
     end;
-    // Do not quote db and table name to avoid double masking.
-    // Rely on what the user typed is already a valid masked/quoted identifier.
-    if dbname <> '' then
-      tablename := dbname + '.' + tablename;
-    try
-      Columns := ActiveConnection.GetResults('SHOW COLUMNS FROM '+tablename);
-      while not Columns.Eof do begin
-        Proposal.InsertList.Add(Columns.Col('Field'));
-        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );
-        Columns.Next;
+    // db and table name may already be quoted
+    if dbname = '' then
+      dbname := Conn.Database;
+    dbname := Conn.DeQuoteIdent(dbname);
+    tablename := Conn.DeQuoteIdent(tablename);
+    DBObjects := Conn.GetDBObjects(dbname);
+    for Obj in DBObjects do begin
+      if Obj.Name = tablename then begin
+        Columns := TTableColumnList.Create(True);
+        case Obj.NodeType of
+          lntTable:
+            Conn.ParseTableStructure(Obj.CreateCode, Columns, nil, nil);
+          lntView:
+            Conn.ParseViewStructure(Obj.CreateCode, Obj.Name, Columns, Dummy, Dummy, Dummy, Dummy);
+        end;
+        for Col in Columns do begin
+          Proposal.InsertList.Add(Col.Name);
+          Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name]) );
+        end;
+        Columns.Free;
+        break;
       end;
-      FreeAndNil(Columns);
-    except
-      on E:EDatabaseError do;
     end;
   end;
 
@@ -4608,6 +4619,8 @@ begin
     CanExecute := False;
     Exit;
   end;
+
+  Conn := ActiveConnection;
 
   Proposal.InsertList.Clear;
   Proposal.ItemList.Clear;
@@ -4629,7 +4642,7 @@ begin
   rx.ModifierI := True;
   if rx.Exec(PrevLongToken) then begin
     try
-      Results := ActiveConnection.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
+      Results := Conn.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
         Proposal.InsertList.Add(Results.Col(0));
         Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_PRIMARYKEY, 'variable', Results.Col(0)+'   \color{clSilver}= '+StringReplace(Results.Col(1), '\', '\\', [rfReplaceAll])] ) );
@@ -4680,7 +4693,7 @@ begin
       // If the just typed word equals the alias of this table or the
       // tablename itself, set tablename var and break loop
       if rx.Exec(Tables[i]) then while true do begin
-        if PrevShortToken = WideDequotedStr(rx.Match[3],'`') then begin
+        if PrevShortToken = Conn.DeQuoteIdent(rx.Match[3]) then begin
           tablename := rx.Match[1];
           break;
         end;
@@ -4704,11 +4717,11 @@ begin
 
   if Length(CurrentInput) = 0 then // makes only sense if the user has typed "database."
   begin
-    i := ActiveConnection.AllDatabases.IndexOf(PrevShortToken);
+    i := Conn.AllDatabases.IndexOf(PrevShortToken);
     if i > -1 then begin
       // Only display tables from specified db
       Screen.Cursor := crHourGlass;
-      DBObjects := ActiveConnection.GetDBObjects(ActiveConnection.AllDatabases[i]);
+      DBObjects := Conn.GetDBObjects(Conn.AllDatabases[i]);
       for j:=0 to DBObjects.Count-1 do
         addTable(DBObjects[j]);
       Screen.Cursor := crDefault;
@@ -4717,24 +4730,24 @@ begin
 
   if Proposal.ItemList.count = 0 then begin
     // Add databases
-    for i := 0 to ActiveConnection.AllDatabases.Count - 1 do begin
+    for i := 0 to Conn.AllDatabases.Count - 1 do begin
       Proposal.InsertList.Add(ActiveConnection.AllDatabases[i]);
-      Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', ActiveConnection.AllDatabases[i]]));
+      Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', Conn.AllDatabases[i]]));
     end;
 
     if ActiveDatabase <> '' then begin
       // Display tables from current db
-      DBObjects := ActiveConnection.GetDBObjects(ActiveDatabase);
+      DBObjects := Conn.GetDBObjects(Conn.Database);
       for j:=0 to DBObjects.Count-1 do
         addTable(DBObjects[j]);
       if Length(CurrentInput) = 0 then // assume that we have already a dbname in memo
-        Proposal.Position := ActiveConnection.AllDatabases.Count;
+        Proposal.Position := Conn.AllDatabases.Count;
     end;
 
     // Add functions
     for i := 0 to Length(MySQLFunctions) - 1 do begin
       // Don't display unsupported functions here
-      if MySqlFunctions[i].Version > ActiveConnection.ServerVersionInt then
+      if MySqlFunctions[i].Version > Conn.ServerVersionInt then
         continue;
       Proposal.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
       Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clGrayText}' + MySQLFunctions[i].Declaration] ) );
