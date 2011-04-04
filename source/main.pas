@@ -4827,10 +4827,13 @@ end;
 
 
 procedure TMainForm.TimerHostUptimeTimer(Sender: TObject);
+var
+  Conn: TDBConnection;
 begin
   // Display server uptime
-  if Assigned(ActiveConnection) then
-    ShowStatusMsg('Uptime: '+FormatTimeNumber(ActiveConnection.ServerUptime), 4)
+  Conn := ActiveConnection;
+  if Assigned(Conn) then
+    ShowStatusMsg('Uptime: '+FormatTimeNumber(Conn.ServerUptime), 4)
   else
     ShowStatusMsg('', 4);
 end;
