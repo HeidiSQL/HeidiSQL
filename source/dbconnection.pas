@@ -1602,10 +1602,19 @@ end;
 
 function TAdoDBConnection.GetLastError: String;
 var
+  Msg: String;
+  rx: TRegExpr;
   E: Error;
 begin
   E := FAdoHandle.Errors[FAdoHandle.Errors.Count-1];
-  Result := Format(MsgSQLError, [E.NativeError, E.Description]);
+  Msg := E.Description;
+  // Remove stuff from driver in message "[DBNETLIB][ConnectionOpen (Connect()).]"
+  rx := TRegExpr.Create;
+  rx.Expression := '^\[DBNETLIB\]\[.*\](.+)$';
+  if rx.Exec(Msg) then
+    Msg := rx.Match[1];
+  rx.Free;
+  Result := Format(MsgSQLError, [E.NativeError, Msg]);
 end;
 
 
