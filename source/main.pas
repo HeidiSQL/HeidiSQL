@@ -3026,7 +3026,10 @@ begin
       EnableProgressBar(Objects.Count);
       try
         for TableOrView in Objects do begin
-          ActiveConnection.Query('TRUNCATE ' + TableOrView.QuotedName);
+          case TableOrView.Connection.Parameters.NetTypeGroup of
+            ngMySQL: TableOrView.Connection.Query('TRUNCATE ' + TableOrView.QuotedName);
+            ngMSSQL: TableOrView.Connection.Query('DELETE FROM ' + TableOrView.QuotedName);
+          end;
           ProgressBarStatus.StepIt;
         end;
         actRefresh.Execute;
