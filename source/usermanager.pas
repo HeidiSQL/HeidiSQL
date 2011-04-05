@@ -447,8 +447,11 @@ begin
         if (rxA.Match[4] = '*') and (rxA.Match[5] = '*') then begin
           P.DBObj.NodeType := lntNone;
           P.AllPrivileges := PrivsGlobal;
-          if not FAdded then
+          if not FAdded then begin
             editPassword.TextHint := FConnection.UnescapeString(rxA.Match[8]);
+            // Set password for changed user, to silence the error message about invalid length
+            User.Password := editPassword.TextHint;
+          end;
         end else if (rxA.Match[5] = '*') then begin
           P.DBObj.NodeType := lntDb;
           P.DBObj.Database := rxA.Match[4];
