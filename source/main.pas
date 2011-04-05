@@ -803,6 +803,7 @@ type
     procedure tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure tabsetQueryMouseLeave(Sender: TObject);
     procedure StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
+    procedure UpdateServerPanel;
     procedure StatusBarMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure StatusBarMouseLeave(Sender: TObject);
     procedure AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
@@ -872,6 +873,7 @@ type
     FTreeClickHistory: TNodeArray;
     FOperationTicker: Cardinal;
     FOperatingGrid: TBaseVirtualTree;
+    FActiveDbObj: TDBObject;
 
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
@@ -881,7 +883,6 @@ type
     function GetActiveConnection: TDBConnection;
     function GetActiveDatabase: String;
     procedure SetActiveDatabase(db: String; Connection: TDBConnection);
-    function GetActiveDBObj: TDBObject;
     procedure SetActiveDBObj(Obj: TDBObject);
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     procedure AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
@@ -889,6 +890,7 @@ type
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
     procedure UpdateFilterPanel(Sender: TObject);
+    procedure ConnectionReady(Connection: TDBConnection; Database: String);
     procedure DBObjectsCleared(Connection: TDBConnection; Database: String);
     procedure DatabaseChanged(Connection: TDBConnection; Database: String);
     procedure DoSearchReplace;
@@ -1004,7 +1006,7 @@ type
     function GridResult(Grid: TBaseVirtualTree): TDBQuery;
     property ActiveConnection: TDBConnection read GetActiveConnection;
     property ActiveDatabase: String read GetActiveDatabase;
-    property ActiveDbObj: TDBObject read GetActiveDbObj write SetActiveDBObj;
+    property ActiveDbObj: TDBObject read FActiveDbObj write SetActiveDBObj;
     procedure TestVTreeDataArray( P: PVTreeDataArray );
     function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
     procedure ActivateFileLogging;
@@ -1061,28 +1063,34 @@ uses
 
 
 procedure TMainForm.ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
+var
+  PanelRect: TRect;
 begin
   // Show message in some statusbar panel
   if (PanelNr = 6) and (Msg = '') then
     Msg := SIdle;
   StatusBar.Panels[PanelNr].Text := Msg;
-  StatusBar.Repaint;
+  if PanelNr = 6 then begin
+    // Immediately repaint this special panel, as it holds critical update messages,
+    // while avoiding StatusBar.Repaint which refreshes all panels
+    SendMessage(StatusBar.Handle, SB_GETRECT, PanelNr, Integer(@PanelRect));
+    StatusBar.OnDrawPanel(StatusBar, StatusBar.Panels[PanelNr], PanelRect);
+  end;
 end;
 
 
 procedure TMainForm.StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
   const Rect: TRect);
 var
-  TextRect: TRect;
+  PanelRect: TRect;
   ImageIndex: Integer;
-  Conn: TDBConnection;
 begin
+  // Refresh one status bar panel, probably with icon
   ImageIndex := -1;
   case Panel.Index of
     2: ImageIndex := 149;
     3: begin
-      Conn := ActiveConnection;
-      if Conn <> nil then case Conn.Parameters.NetTypeGroup of
+      if FActiveDbObj <> nil then case FActiveDbObj.Connection.Parameters.NetTypeGroup of
         ngMySQL: ImageIndex := 164;
         ngMSSQL: ImageIndex := 123;
       end;
@@ -1094,14 +1102,23 @@ begin
         ImageIndex := 150; // Hourglass
     end;
   end;
-  StatusBar.Canvas.FillRect(Rect);
+  PanelRect := Rect;
+  StatusBar.Canvas.FillRect(PanelRect);
   if ImageIndex > -1 then begin
-    ImageListMain.Draw(StatusBar.Canvas, Rect.Left, Rect.Top, ImageIndex, true);
-    TextRect := Rect;
-    OffsetRect(TextRect, ImageListMain.Width+2, 0);
-    DrawText(StatusBar.Canvas.Handle, PChar(Panel.Text), -1, TextRect, dt_singleline or dt_vcenter);
+    ImageListMain.Draw(StatusBar.Canvas, PanelRect.Left, PanelRect.Top, ImageIndex, true);
+    OffsetRect(PanelRect, ImageListMain.Width+2, 0);
   end;
+  DrawText(StatusBar.Canvas.Handle, PChar(Panel.Text), -1, PanelRect, DT_SINGLELINE or DT_VCENTER);
 end;
+
+
+procedure TMainForm.UpdateServerPanel;
+begin
+  // Display server vendor and version. Also required on reconnects.
+  if Assigned(FActiveDbObj) then
+    ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(FActiveDbObj.Connection.Parameters.NetType, False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
+end;
+
 
 procedure TMainForm.StatusBarMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
@@ -2832,6 +2849,7 @@ var
 begin
   Connection := Params.CreateConnection(Self);
   Connection.OnLog := LogSQL;
+  Connection.OnConnected := ConnectionReady;
   Connection.OnDBObjectsCleared := DBObjectsCleared;
   Connection.OnDatabaseChanged := DatabaseChanged;
   Connection.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
@@ -4908,7 +4926,6 @@ begin
     // Calculate and display connection-time. Also, on any connect or reconnect, update server version panel.
     ConnectedTime := Conn.ConnectionUptime;
     ShowStatusMsg('Connected: ' + FormatTimeNumber(ConnectedTime), 2);
-    ShowStatusMsg(Conn.Parameters.NetTypeName(Conn.Parameters.NetType, False)+' '+Conn.ServerVersionStr, 3);
   end else begin
     ShowStatusMsg('Disconnected.', 2);
   end;
@@ -5654,8 +5671,8 @@ end;
 function TMainForm.GetActiveConnection: TDBConnection;
 begin
   Result := nil;
-  if Assigned(ActiveDbObj) then
-    Result := ActiveDbObj.Connection;
+  if Assigned(FActiveDbObj) then
+    Result := FActiveDbObj.Connection;
 end;
 
 
@@ -5663,8 +5680,8 @@ function TMainForm.GetActiveDatabase: String;
 begin
   // Find currently selected database in active connection
   Result := '';
-  if (not (csDestroying in ComponentState)) and Assigned(ActiveDBObj) then
-    Result := ActiveDBObj.Connection.Database;
+  if (not (csDestroying in ComponentState)) and Assigned(FActiveDBObj) then
+    Result := FActiveDBObj.Connection.Database;
 end;
 
 
@@ -5691,18 +5708,6 @@ begin
       end;
       DBNode := DBtree.GetNextSibling(DBNode);
     end;
-  end;
-end;
-
-
-function TMainForm.GetActiveDBObj: TDBObject;
-var
-  DBObj: PDBObject;
-begin
-  Result := nil;
-  if Assigned(DBtree.FocusedNode) then begin
-    DBObj := DBtree.GetNodeData(DBtree.FocusedNode);
-    Result := DBObj^;
   end;
 end;
 
@@ -6841,6 +6846,7 @@ var
 begin
   if not Assigned(Node) then begin
     LogSQL('DBtreeFocusChanged without node.', lcDebug);
+    FActiveDbObj := nil;
     Exit;
   end;
   LogSQL('DBtreeFocusChanged, Node level: '+IntToStr(Sender.GetNodeLevel(Node))+', FTreeRefreshInProgress: '+IntToStr(Integer(FTreeRefreshInProgress)), lcDebug);
@@ -6853,6 +6859,7 @@ begin
   MainTabToActivate := nil;
 
   DBObj := Sender.GetNodeData(Node);
+  FActiveDbObj := DBObj^;
 
   case DBObj.NodeType of
 
@@ -6908,6 +6915,7 @@ begin
   // When clicked node is from a different connection than before, do session specific stuff here:
   if PrevDBObj.Connection <> DBObj.Connection then begin
     LogSQL('Connection switch!', lcDebug);
+    UpdateServerPanel;
     DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, DBObj.Connection.SessionName);
     case DBObj.Connection.Parameters.NetTypeGroup of
       ngMySQL:
@@ -7016,6 +7024,12 @@ begin
   except on E:EDatabaseError do
     MessageDlg(E.Message, mtError, [mbOK], 0);
   end;
+end;
+
+
+procedure TMainForm.ConnectionReady(Connection: TDBConnection; Database: String);
+begin
+  UpdateServerPanel;
 end;
 
 

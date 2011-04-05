@@ -411,6 +411,7 @@ type
       FAllDatabases: TStringList;
       FLogPrefix: String;
       FOnLog: TDBLogEvent;
+      FOnConnected: TDBEvent;
       FOnDatabaseChanged: TDBEvent;
       FOnDBObjectsCleared: TDBEvent;
       FRowsFound: Int64;
@@ -435,6 +436,7 @@ type
       FDatatypes: TDBDataTypeArray;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect;
+      procedure DoAfterConnect;
       procedure SetDatabase(Value: String);
       function GetThreadId: Cardinal; virtual; abstract;
       function GetCharacterSet: String; virtual; abstract;
@@ -523,6 +525,7 @@ type
       property Database: String read FDatabase write SetDatabase;
       property LogPrefix: String read FLogPrefix write FLogPrefix;
       property OnLog: TDBLogEvent read FOnLog write FOnLog;
+      property OnConnected: TDBEvent read FOnConnected write FOnConnected;
       property OnDatabaseChanged: TDBEvent read FOnDatabaseChanged write FOnDatabaseChanged;
       property OnDBObjectsCleared: TDBEvent read FOnDBObjectsCleared write FOnDBObjectsCleared;
   end;
@@ -1107,7 +1110,8 @@ begin
       FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), 1);
       FServerVersionUntouched := DecodeAPIString(mysql_get_server_info(FHandle));
       FServerOS := GetVar('SHOW VARIABLES LIKE ' + EscapeString('version_compile_os'), 1);
-      FRealHostname := GetVar('SHOW VARIABLES LIKE ' + EscapeString('hostname'), 1);;
+      FRealHostname := GetVar('SHOW VARIABLES LIKE ' + EscapeString('hostname'), 1);
+      DoAfterConnect;
       if FDatabase <> '' then begin
         tmpdb := FDatabase;
         FDatabase := '';
@@ -1192,6 +1196,7 @@ begin
         FServerVersionUntouched := rx.Match[1];
       rx.Free;
       FRealHostname := Parameters.Hostname;
+      DoAfterConnect;
 
       // Reopen closed datasets after reconnecting
       // ... does not work for some reason. Still getting "not allowed on a closed object" errors in grid.
@@ -1246,6 +1251,13 @@ begin
   Log(lcInfo, 'Connecting to '+FParameters.Hostname+' via '+FParameters.NetTypeName(FParameters.NetType, True)+
     ', username '+FParameters.Username+
     ', using password: '+UsingPass+' ...');
+end;
+
+
+procedure TDBConnection.DoAfterConnect;
+begin
+  if Assigned(FOnConnected) then
+    FOnConnected(Self, FDatabase);
 end;
 
 
