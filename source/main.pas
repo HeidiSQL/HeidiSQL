@@ -1089,12 +1089,7 @@ begin
   ImageIndex := -1;
   case Panel.Index of
     2: ImageIndex := 149;
-    3: begin
-      if FActiveDbObj <> nil then case FActiveDbObj.Connection.Parameters.NetTypeGroup of
-        ngMySQL: ImageIndex := 164;
-        ngMSSQL: ImageIndex := 123;
-      end;
-    end;
+    3: if FActiveDbObj <> nil then ImageIndex := FActiveDbObj.Connection.Parameters.ImageIndex;
     6: begin
       if Panel.Text = SIdle then
         ImageIndex := 151 // Green dot
@@ -6733,9 +6728,7 @@ begin
     ikOverlay:
       if DBObj.NodeType = lntNone then begin
         if not DBObj.Connection.Active then
-          ImageIndex := 158
-        else if DBObj.Connection = ActiveConnection then
-          ImageIndex := ICONINDEX_HIGHLIGHTMARKER;
+          ImageIndex := 158;
       end else if DBObj.NodeType = lntDb then begin
         if (DBObj.Database = DBObj.Connection.Database) then
           ImageIndex := ICONINDEX_HIGHLIGHTMARKER;

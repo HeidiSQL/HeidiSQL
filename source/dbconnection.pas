@@ -361,12 +361,14 @@ type
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout: Integer;
       FOptions: TMySQLClientOptions;
       FLoginPrompt: Boolean;
+      function GetImageIndex: Integer;
     public
       constructor Create;
       function CreateConnection(AOwner: TComponent): TDBConnection;
       function CreateQuery(AOwner: TComponent): TDBQuery;
       class function NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
       function GetNetTypeGroup: TNetTypeGroup;
+      property ImageIndex: Integer read GetImageIndex;
     published
       property NetType: TNetType read FNetType write FNetType;
       property NetTypeGroup: TNetTypeGroup read GetNetTypeGroup;
@@ -830,6 +832,16 @@ begin
       Result := ngMSSQL;
     else
       raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(FNetType)]);
+  end;
+end;
+
+
+function TConnectionParameters.GetImageIndex: Integer;
+begin
+  case NetTypeGroup of
+    ngMySQL: Result := 164;
+    ngMSSQL: Result := 123;
+    else Result := ICONINDEX_SERVER;
   end;
 end;
 
@@ -4318,7 +4330,7 @@ function TDBObject.GetImageIndex: Integer;
 begin
   // Detect key icon index for specified db object (table, trigger, ...)
   case NodeType of
-    lntNone: Result := ICONINDEX_SERVER;
+    lntNone: Result := FConnection.Parameters.ImageIndex;
 
     lntDb: Result := ICONINDEX_DB;
 
