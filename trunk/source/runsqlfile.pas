@@ -64,7 +64,7 @@ begin
 
   // Initialize various variables
   lblFilenameValue.Caption := SQLFileName;
-  lblTimeValue.Caption := FormatTimeNumber( 0 );
+  lblTimeValue.Caption := FormatTimeNumber(0, True);
   memoQueryValue.Lines.Clear;
   lines := '';
   querycount := 0;
@@ -92,7 +92,7 @@ begin
       lblPositionValue.Caption := FormatByteNumber( Stream.Position ) + ' / ' + FormatByteNumber( filesize );
 
       // Time
-      lblTimeValue.Caption := FormatTimeNumber( (GetTickCount - starttime) DIV 1000 );
+      lblTimeValue.Caption := FormatTimeNumber((GetTickCount - starttime) DIV 1000, True);
 
       // Step progressbar's position
       prbarRun.Position := Trunc( prbarRun.Max / filesize * Stream.Position );
@@ -122,7 +122,7 @@ begin
         memoQueryValue.Text := sstr( SQL[i].SQL, 100 );
 
         // Time
-        lblTimeValue.Caption := FormatTimeNumber( (GetTickCount - starttime) DIV 1000 );
+        lblTimeValue.Caption := FormatTimeNumber((GetTickCount - starttime) DIV 1000, True);
 
         // Execute single query and display affected rows
         Mainform.ActiveConnection.Query(SQL[i].SQL);
