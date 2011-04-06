@@ -2139,7 +2139,9 @@ function TAdoDBConnection.GetCharsetTable: TDBQuery;
 begin
   inherited;
   if not Assigned(FCharsetTable) then
-    FCharsetTable := GetResults('SELECT * FROM '+QuoteIdent('syscharsets'));
+    FCharsetTable := GetResults('SELECT '+QuoteIdent('name')+' AS '+QuoteIdent('Charset')+', '+QuoteIdent('description')+' AS '+QuoteIdent('Description')+
+      ' FROM '+QuoteIdent('sys')+'.'+QuoteIdent('syscharsets')
+      );
   Result := FCharsetTable;
 end;
 
