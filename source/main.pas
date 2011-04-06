@@ -1069,12 +1069,14 @@ begin
   // Show message in some statusbar panel
   if (PanelNr = 6) and (Msg = '') then
     Msg := SIdle;
-  StatusBar.Panels[PanelNr].Text := Msg;
-  if PanelNr = 6 then begin
-    // Immediately repaint this special panel, as it holds critical update messages,
-    // while avoiding StatusBar.Repaint which refreshes all panels
-    SendMessage(StatusBar.Handle, SB_GETRECT, PanelNr, Integer(@PanelRect));
-    StatusBar.OnDrawPanel(StatusBar, StatusBar.Panels[PanelNr], PanelRect);
+  if Msg <> StatusBar.Panels[PanelNr].Text then begin
+    StatusBar.Panels[PanelNr].Text := Msg;
+    if PanelNr = 6 then begin
+      // Immediately repaint this special panel, as it holds critical update messages,
+      // while avoiding StatusBar.Repaint which refreshes all panels
+      SendMessage(StatusBar.Handle, SB_GETRECT, PanelNr, Integer(@PanelRect));
+      StatusBar.OnDrawPanel(StatusBar, StatusBar.Panels[PanelNr], PanelRect);
+    end;
   end;
 end;
 
@@ -4862,7 +4864,7 @@ begin
   // Display server uptime
   Conn := ActiveConnection;
   if Assigned(Conn) then
-    ShowStatusMsg('Uptime: '+FormatTimeNumber(Conn.ServerUptime), 4)
+    ShowStatusMsg('Uptime: '+FormatTimeNumber(Conn.ServerUptime, False), 4)
   else
     ShowStatusMsg('', 4);
 end;
@@ -4920,7 +4922,7 @@ begin
   if Assigned(Conn) and Conn.Active then begin
     // Calculate and display connection-time. Also, on any connect or reconnect, update server version panel.
     ConnectedTime := Conn.ConnectionUptime;
-    ShowStatusMsg('Connected: ' + FormatTimeNumber(ConnectedTime), 2);
+    ShowStatusMsg('Connected: ' + FormatTimeNumber(ConnectedTime, False), 2);
   end else begin
     ShowStatusMsg('Disconnected.', 2);
   end;
@@ -6908,6 +6910,8 @@ begin
   // When clicked node is from a different connection than before, do session specific stuff here:
   if PrevDBObj.Connection <> DBObj.Connection then begin
     LogSQL('Connection switch!', lcDebug);
+    TimerConnected.OnTimer(Sender);
+    TimerHostUptime.OnTimer(Sender);
     UpdateServerPanel;
     DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, DBObj.Connection.SessionName);
     case DBObj.Connection.Parameters.NetTypeGroup of

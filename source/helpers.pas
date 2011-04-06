@@ -148,7 +148,7 @@ type
   function getFirstWord( text: String ): String;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
-  function FormatTimeNumber( Seconds: Cardinal ): String;
+  function FormatTimeNumber(Seconds: Cardinal; DisplaySeconds: Boolean): String;
   function GetTempDir: String;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
   procedure SaveUnicodeFile(Filename: String; Text: String);
@@ -1349,7 +1349,7 @@ end;
   @param Cardinal Number of seconds
   @result String 12:34:56
 }
-function FormatTimeNumber( Seconds: Cardinal ): String;
+function FormatTimeNumber(Seconds: Cardinal; DisplaySeconds: Boolean): String;
 var
   d, h, m, s : Integer;
 begin
@@ -1360,10 +1360,17 @@ begin
   s := s mod (60*60);
   m := s div 60;
   s := s mod 60;
-  if d > 0 then
-    Result := Format('%d days, %.2d:%.2d:%.2d', [d, h, m, s])
-  else
-    Result := Format('%.2d:%.2d:%.2d', [h, m, s]);
+  if d > 0 then begin
+    if DisplaySeconds then
+      Result := Format('%d days, %.2d:%.2d:%.2d', [d, h, m, s])
+    else
+      Result := Format('%d days, %.2d:%.2d h', [d, h, m]);
+  end else begin
+    if DisplaySeconds then
+      Result := Format('%.2d:%.2d:%.2d', [h, m, s])
+    else
+      Result := Format('%.2d:%.2d h', [h, m])
+  end;
 end;
 
 

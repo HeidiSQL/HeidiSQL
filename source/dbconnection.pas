@@ -2669,7 +2669,7 @@ begin
         if rx.Exec(Infos) then while True do begin
           Val := rx.Match[2];
           if LowerCase(rx.Match[1]) = 'uptime' then
-            Val := FormatTimeNumber(StrToIntDef(Val, 0))
+            Val := FormatTimeNumber(StrToIntDef(Val, 0), True)
           else
             Val := FormatNumber(Val);
           Result.Values[rx.Match[1]] := Val;

@@ -1045,7 +1045,7 @@ const
     LogRow := FResults.Last;
     Percent := 100 / Max(DBObj.Rows,1) * Max(RowsDone,1);
     LogRow[2] := FormatNumber(RowsDone) + ' / ' + FormatNumber(Percent, 0)+'%';
-    LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000);
+    LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000, True);
     UpdateResultGrid;
     Application.ProcessMessages;
   end;
