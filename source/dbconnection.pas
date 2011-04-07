@@ -3768,6 +3768,7 @@ begin
   if Assigned(FCurrentUpdateRow) then begin
     FUpdateData.Remove(FCurrentUpdateRow);
     FCurrentUpdateRow := nil;
+    FRecNo := -1;
   end;
   Result := True;
 end;
