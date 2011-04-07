@@ -1071,6 +1071,7 @@ procedure TfrmTableEditor.listColumnsNewText(Sender: TBaseVirtualTree;
 var
   i: Integer;
   Col: PTableColumn;
+  Key: TTableKey;
 begin
   // Column property edited
   Col := Sender.GetNodeData(Node);
@@ -1082,6 +1083,13 @@ begin
           Exit;
         end;
       end;
+      for Key in FKeys do begin
+        for i:=0 to Key.Columns.Count-1 do begin
+          if Key.Columns[i] = Col.Name then
+            Key.Columns[i] := NewText;
+        end;
+      end;
+      treeIndexes.Invalidate;
       Col.Name := NewText;
     end;
     2: begin // Data type
