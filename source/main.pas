@@ -747,6 +747,7 @@ type
     function GetMainTabAt(X, Y: Integer): Integer;
     procedure FixQueryTabCloseButtons;
     function ActiveQueryTab: TQueryTab;
+    function GetQueryTabByNumber(Number: Integer): TQueryTab;
     function ActiveQueryMemo: TSynMemo;
     function ActiveQueryHelpers: TVirtualStringTree;
     function ActiveSynMemo: TSynMemo;
@@ -899,7 +900,6 @@ type
     procedure SetSnippetFilenames;
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
     procedure OperationRunning(Runs: Boolean);
-    function FindQueryTabByThread(Thread: TQueryThread): TQueryTab;
   public
     AllDatabasesDetails: TDBQuery;
     btnAddTab: TSpeedButton;
@@ -2228,7 +2228,7 @@ begin
   // Start the execution thread
   Screen.Cursor := crAppStart;
   Tab.QueryRunning := True;
-  Tab.ExecutionThread := TQueryThread.Create(ActiveConnection, Batch);
+  Tab.ExecutionThread := TQueryThread.Create(ActiveConnection, Batch, Tab.Number);
   ValidateQueryControls(Sender);
 end;
 
@@ -2258,7 +2258,7 @@ var
 begin
   // Single query or query packet has finished
   ShowStatusMsg('Setting up result grid(s) ...');
-  Tab := FindQueryTabByThread(Thread);
+  Tab := GetQueryTabByNumber(Thread.TabNumber);
 
   // Create result tabs
   for Results in ActiveConnection.GetLastResults do begin
@@ -2330,7 +2330,7 @@ var
 
 begin
   // Find right query tab
-  Tab := FindQueryTabByThread(Thread);
+  Tab := GetQueryTabByNumber(Thread.TabNumber);
 
   // Error handling
   if IsNotEmpty(Thread.ErrorMessage) then begin
@@ -2355,7 +2355,7 @@ begin
 
   // Display query profile
   if Tab.DoProfile then begin
-    Tab.QueryProfile := ActiveConnection.GetResults('SHOW PROFILE');
+    Tab.QueryProfile := Thread.Connection.GetResults('SHOW PROFILE');
     Tab.ProfileTime := 0;
     Tab.MaxProfileTime := 0;
     while not Tab.QueryProfile.Eof do begin
@@ -2367,7 +2367,7 @@ begin
     ProfileNode := FindNode(Tab.treeHelpers, HELPERNODE_PROFILE, nil);
     Tab.treeHelpers.ReinitNode(ProfileNode, True);
     Tab.treeHelpers.InvalidateChildren(ProfileNode, True);
-    ActiveConnection.Query('SET profiling=0');
+    Thread.Connection.Query('SET profiling=0');
   end;
 
   // Clean up
@@ -9177,6 +9177,21 @@ begin
 end;
 
 
+function TMainForm.GetQueryTabByNumber(Number: Integer): TQueryTab;
+var
+  i: Integer;
+begin
+  // Find right query tab
+  Result := nil;
+  for i:=0 to QueryTabs.Count-1 do begin
+    if QueryTabs[i].Number = Number then begin
+      Result := QueryTabs[i];
+      break;
+    end;
+  end;
+end;
+
+
 function TMainForm.ActiveQueryMemo: TSynMemo;
 var
   Tab: TQueryTab;
@@ -10250,21 +10265,6 @@ procedure TMainForm.ApplicationEvents1Deactivate(Sender: TObject);
 begin
   // Force result tab balloon hint to disappear. Does not do so when mouse was moved too fast.
   tabsetQueryMouseLeave(Sender);
-end;
-
-
-function TMainForm.FindQueryTabByThread(Thread: TQueryThread): TQueryTab;
-var
-  i: Integer;
-begin
-  // Find right query tab
-  Result := nil;
-  for i:=0 to QueryTabs.Count-1 do begin
-    if QueryTabs[i].ExecutionThread = Thread then begin
-      Result := QueryTabs[i];
-      break;
-    end;
-  end;
 end;
 
 

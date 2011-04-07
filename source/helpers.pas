@@ -76,6 +76,7 @@ type
   private
     FConnection: TDBConnection;
     FBatch: TSQLBatch;
+    FTabNumber: Integer;
     FBatchInOneGo: Boolean;
     FStopOnErrors: Boolean;
     FAborted: Boolean;
@@ -94,6 +95,7 @@ type
   public
     property Connection: TDBConnection read FConnection;
     property Batch: TSQLBatch read FBatch;
+    property TabNumber: Integer read FTabNumber;
     property BatchPosition: Integer read FBatchPosition;
     property Results: TDBQueryList read FResults;
     property QueriesInPacket: Integer read FQueriesInPacket;
@@ -103,7 +105,7 @@ type
     property RowsFound: Int64 read FRowsFound;
     property Aborted: Boolean read FAborted write FAborted;
     property ErrorMessage: String read FErrorMessage;
-    constructor Create(Connection: TDBConnection; Batch: TSQLBatch);
+    constructor Create(Connection: TDBConnection; Batch: TSQLBatch; TabNumber: Integer);
     procedure Execute; override;
   end;
 
@@ -2889,12 +2891,13 @@ end;
 
 { Threading stuff }
 
-constructor TQueryThread.Create(Connection: TDBConnection; Batch: TSQLBatch);
+constructor TQueryThread.Create(Connection: TDBConnection; Batch: TSQLBatch; TabNumber: Integer);
 begin
   inherited Create(False);
   FConnection := Connection;
   FAborted := False;
   FBatch := Batch;
+  FTabNumber := TabNumber;
   FBatchPosition := 0;
   FQueryTime := 0;
   FQueryNetTime := 0;
