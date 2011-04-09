@@ -58,6 +58,7 @@ begin
   else begin
     Application.Initialize;
     Application.Title := APPNAME;
+    Application.MainFormOnTaskBar := True;
     Application.UpdateFormatSettings := False;
     Application.CreateForm(TMainForm, MainForm);
     Application.OnMessage := Mainform.OnMessageHandler;
