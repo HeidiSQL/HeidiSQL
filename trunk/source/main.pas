@@ -14,7 +14,7 @@ uses
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, SyncObjs,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
-  SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, WideStrUtils, ExtActns, IOUtils, Types,
+  SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types,
   CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
@@ -4643,7 +4643,7 @@ begin
   Proposal.InsertList.Clear;
   Proposal.ItemList.Clear;
   PrevShortToken := Proposal.PreviousToken;
-  PrevShortToken := WideDequotedStr(PrevShortToken, '`');
+  PrevShortToken := Conn.DeQuoteIdent(PrevShortToken);
 
   rx := TRegExpr.Create;
 
