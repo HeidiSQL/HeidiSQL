@@ -7031,8 +7031,19 @@ end;
 
 
 procedure TMainForm.DBObjectsCleared(Connection: TDBConnection; Database: String);
-var
-  Node: PVirtualNode;
+  procedure DoRefresh(Tree: TBaseVirtualTree);
+  var
+    Node: PVirtualNode;
+  begin
+    Node := FindDBNode(Tree, Database);
+    if Assigned(Node) then begin
+      Tree.ReinitNode(Node, False);
+      if Tree.Expanded[Node] then
+        Tree.ReinitChildren(Node, False)
+      else
+        Tree.ResetNode(Node);
+    end;
+  end;
 begin
   // Avoid AVs while processing FormDestroy
   if csDestroying in ComponentState then
@@ -7040,19 +7051,10 @@ begin
   // Reload objects in ListTables ...
   InvalidateVT(ListTables, VTREE_NOTLOADED, False);
   // ... in database tree
-  Node := FindDBNode(DBtree, Database);
-  if Assigned(Node) then begin
-    DBtree.ReinitNode(Node, False);
-    DBtree.ReinitChildren(Node, False);
-  end;  
+  DoRefresh(DBtree);
   // ... and perhaps in table tools dialog
-  if Assigned(TableToolsDialog) and TableToolsDialog.Visible then begin
-    Node := FindDBNode(TableToolsDialog.TreeObjects, Database);
-    if Assigned(Node) then begin
-      TableToolsDialog.TreeObjects.ReinitNode(Node, False);
-      TableToolsDialog.TreeObjects.ReinitChildren(Node, False);
-    end;
-  end;
+  if Assigned(TableToolsDialog) and TableToolsDialog.Visible then
+    DoRefresh(TableToolsDialog.TreeObjects);
 end;
 
 
@@ -7120,9 +7122,6 @@ begin
     if not OnlyDBNode then begin
       FocusNewObject.Connection.ClearAllDbObjects;
       FocusNewObject.Connection.RefreshAllDatabases;
-      SessionNode := GetRootNode(DBtree, FocusNewObject.Connection);
-      DBtree.ResetNode(SessionNode);
-      DBtree.Expanded[SessionNode] := True;
     end else begin
       FocusNewObject.Connection.ClearDbObjects(FocusNewObject.Database);
       DBNode := FindDbNode(DBtree, FocusNewObject.Database);
