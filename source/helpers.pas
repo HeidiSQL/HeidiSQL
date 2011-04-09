@@ -2289,10 +2289,12 @@ begin
   Mainform.UpdateEditorTab;
   Screen.Cursor := crHourglass;
   MainForm.SetupSynEditors;
-  // Enable user to start typing immediately
-  editName := FindComponent('editName') as TWinControl;
-  if Assigned(editName) and editName.CanFocus then
-    editName.SetFocus;
+  // Enable user to start typing immediately when creating a new object
+  if DBObject.Name = '' then begin
+    editName := FindComponent('editName') as TWinControl;
+    if Assigned(editName) and editName.CanFocus then
+      editName.SetFocus;
+  end;
 end;
 
 function TDBObjectEditor.DeInit: TModalResult;
