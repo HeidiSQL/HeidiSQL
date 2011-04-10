@@ -1312,7 +1312,7 @@ end;
 }
 procedure TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 var
-  querystatus: Integer;
+  QueryStatus: Integer;
   NativeSQL: AnsiString;
   TimerStart: Cardinal;
   QueryResult: PMYSQL_RES;
@@ -1336,10 +1336,10 @@ begin
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
   FResultCount := 0;
-  querystatus := mysql_real_query(FHandle, PAnsiChar(NativeSQL), Length(NativeSQL));
+  QueryStatus := mysql_real_query(FHandle, PAnsiChar(NativeSQL), Length(NativeSQL));
   FLastQueryDuration := GetTickCount - TimerStart;
   FLastQueryNetworkDuration := 0;
-  if querystatus <> 0 then begin
+  if QueryStatus <> 0 then begin
     // Most errors will show up here, some others slightly later, after mysql_store_result()
     Log(lcError, GetLastError);
     raise EDatabaseError.Create(GetLastError);
@@ -1370,9 +1370,16 @@ begin
             mysql_free_result(QueryResult);
           end;
         end;
-        if mysql_next_result(FHandle) <> 0 then
-          break;
-        QueryResult := mysql_store_result(FHandle);
+        // more results? -1 = no, >0 = error, 0 = yes (keep looping)
+        QueryStatus := mysql_next_result(FHandle);
+        case QueryStatus of
+          -1: break;
+          0: QueryResult := mysql_store_result(FHandle);
+          else begin
+            Log(lcError, GetLastError);
+            raise EDatabaseError.Create(GetLastError);
+          end;
+        end;
       end;
       FResultCount := Length(FLastRawResults);
 
