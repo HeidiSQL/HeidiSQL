@@ -947,6 +947,8 @@ var
   CurCharset: String;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
+  sslca, sslkey, sslcert: PAnsiChar;
+  DoSSL, SSLsettingsComplete: Boolean;
 begin
   // Init library
   if libmysql_handle = 0 then begin
@@ -995,36 +997,28 @@ begin
     FinalPort := FParameters.Port;
     case FParameters.NetType of
       ntMySQL_TCPIP: begin
-        if (
-            IsNotEmpty(FParameters.SSLCACertificate)
-            and IsEmpty(FParameters.SSLPrivateKey)
-            and IsEmpty(FParameters.SSLCertificate)
-          )
-          or
-          (
-            IsNotEmpty(FParameters.SSLCACertificate)
-            and IsNotEmpty(FParameters.SSLPrivateKey)
-            and IsNotEmpty(FParameters.SSLCertificate)
-          )
-          then
-        begin
-          FParameters.Options := FParameters.Options + [opSSL];
-          { TODO : Use Cipher and CAPath parameters }
-          mysql_ssl_set(
-            FHandle,
-            PansiChar(AnsiString(FParameters.SSLPrivateKey)),
-            PansiChar(AnsiString(FParameters.SSLCertificate)),
-            PansiChar(AnsiString(FParameters.SSLCACertificate)),
-            {PansiChar(AnsiString(FParameters.CApath))}nil,
-            {PansiChar(AnsiString(FParameters.Cipher))}nil);
-          Log(lcInfo, 'SSL parameters successfully set.')
-        end
-        else if IsNotEmpty(FParameters.SSLPrivateKey)
-          or IsNotEmpty(FParameters.SSLCertificate)
-          or IsNotEmpty(FParameters.SSLCACertificate)
-          then
-        begin
-          raise EDatabaseError.Create('SSL settings incomplete. Please set either CA certificate or all three SSL parameters.');
+        sslca := nil;
+        sslkey := nil;
+        sslcert := nil;
+        if FParameters.SSLCACertificate <> '' then
+          sslca := PAnsiChar(AnsiString(FParameters.SSLCACertificate));
+        if FParameters.SSLPrivateKey <> '' then
+          sslkey := PAnsiChar(AnsiString(FParameters.SSLPrivateKey));
+        if FParameters.SSLCertificate <> '' then
+          sslcert := PAnsiChar(AnsiString(FParameters.SSLCertificate));
+        DoSSL := (sslca<>nil) or (sslkey<>nil) or (sslcert<>nil);
+        SSLsettingsComplete := ((sslca<>nil) and (sslkey<>nil) and (sslcert<>nil))
+          or ((sslca<>nil) and (sslkey=nil) and (sslcert=nil));
+        if DoSSL then begin
+          if not SSLsettingsComplete then
+            raise EDatabaseError.Create('SSL settings incomplete. Please set either CA certificate or all three SSL parameters.')
+          else if SSLsettingsComplete then begin
+            FParameters.Options := FParameters.Options + [opSSL];
+            { TODO : Use Cipher and CAPath parameters }
+            showmessage(inttostr(integer(sslkey=nil)));
+            mysql_ssl_set(FHandle, sslkey, sslcert, sslca, nil, nil);
+            Log(lcInfo, 'SSL parameters successfully set.');
+          end;
         end;
       end;
 
