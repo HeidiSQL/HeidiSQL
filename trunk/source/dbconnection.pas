@@ -1015,7 +1015,6 @@ begin
           else if SSLsettingsComplete then begin
             FParameters.Options := FParameters.Options + [opSSL];
             { TODO : Use Cipher and CAPath parameters }
-            showmessage(inttostr(integer(sslkey=nil)));
             mysql_ssl_set(FHandle, sslkey, sslcert, sslca, nil, nil);
             Log(lcInfo, 'SSL parameters successfully set.');
           end;
