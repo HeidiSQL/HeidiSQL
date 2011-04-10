@@ -4523,20 +4523,21 @@ begin
   TimerRefresh.Enabled := false; // prevent av (ListProcesses.selected...)
   if MessageDlg('Kill '+IntToStr(ListProcesses.SelectedCount)+' Process(es)?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
   begin
-    try
-      Node := GetNextNode(ListProcesses, nil, True);
-      while Assigned(Node) do begin
-        pid := ListProcesses.Text[Node, ListProcesses.Header.MainColumn];
-        // Don't kill own process
-        if pid = IntToStr(ActiveConnection.ThreadId) then
-          LogSQL('Ignoring own process id #'+pid+' when trying to kill it.')
-        else
-          ActiveConnection.Query('KILL '+pid);
-        Node := GetNextNode(ListProcesses, Node, True);
+    Node := GetNextNode(ListProcesses, nil, True);
+    while Assigned(Node) do begin
+      pid := ListProcesses.Text[Node, ListProcesses.Header.MainColumn];
+      // Don't kill own process
+      if pid = IntToStr(ActiveConnection.ThreadId) then
+        LogSQL('Ignoring own process id #'+pid+' when trying to kill it.')
+      else try
+        ActiveConnection.Query('KILL '+pid);
+      except
+        on E:EDatabaseError do begin
+          if MessageDlg(E.Message, mtError, [mbOK, mbAbort], 0) = mrAbort then
+            break;
+        end;
       end;
-    except
-      on E:EDatabaseError do
-        MessageDlg(E.Message, mtError, [mbOK], 0);
+      Node := GetNextNode(ListProcesses, Node, True);
     end;
     InvalidateVT(ListProcesses, VTREE_NOTLOADED, True);
   end;
