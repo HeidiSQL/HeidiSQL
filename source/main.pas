@@ -804,7 +804,6 @@ type
     procedure tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure tabsetQueryMouseLeave(Sender: TObject);
     procedure StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
-    procedure UpdateServerPanel;
     procedure StatusBarMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure StatusBarMouseLeave(Sender: TObject);
     procedure AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
@@ -1106,14 +1105,6 @@ begin
     OffsetRect(PanelRect, ImageListMain.Width+2, 0);
   end;
   DrawText(StatusBar.Canvas.Handle, PChar(Panel.Text), -1, PanelRect, DT_SINGLELINE or DT_VCENTER);
-end;
-
-
-procedure TMainForm.UpdateServerPanel;
-begin
-  // Display server vendor and version. Also required on reconnects.
-  if Assigned(FActiveDbObj) then
-    ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(FActiveDbObj.Connection.Parameters.NetType, False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
 end;
 
 
@@ -3257,9 +3248,6 @@ var
   Tree: TVirtualStringTree;
 begin
   // Call SQL Help from various places
-  if ActiveConnection.ServerVersionInt < 40100 then
-    exit;
-
   keyword := '';
 
   // Query-Tab
@@ -4450,9 +4438,6 @@ begin
   inDataOrQueryTab := inDataTab or QueryTabActive;
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and Assigned(Grid) and (Grid.RootNodeCount > 0);
   inGrid := Assigned(Grid) and (ActiveControl = Grid);
-
-  actSQLhelp.Enabled := ActiveConnection.ServerVersionInt >= 40100;
-  actImportCSV.Enabled := ActiveConnection.ServerVersionInt >= 32206;
 
   actDataInsert.Enabled := inGrid and Assigned(Results);
   actDataDuplicateRow.Enabled := inGrid and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
@@ -6913,7 +6898,7 @@ begin
     LogSQL('Connection switch!', lcDebug);
     TimerConnected.OnTimer(Sender);
     TimerHostUptime.OnTimer(Sender);
-    UpdateServerPanel;
+    DBObj.Connection.OnConnected(DBObj.Connection, DBObj.Connection.Database);
     DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, DBObj.Connection.SessionName);
     case DBObj.Connection.Parameters.NetTypeGroup of
       ngMySQL:
@@ -7027,7 +7012,10 @@ end;
 
 procedure TMainForm.ConnectionReady(Connection: TDBConnection; Database: String);
 begin
-  UpdateServerPanel;
+  // Display server vendor and version. Also required on reconnects.
+  ShowStatusMsg(Connection.Parameters.NetTypeName(Connection.Parameters.NetType, False)+' '+Connection.ServerVersionStr, 3);
+  actSQLhelp.Enabled := Connection.ServerVersionInt >= 40100;
+  actImportCSV.Enabled := Connection.ServerVersionInt >= 32206;
 end;
 
 
