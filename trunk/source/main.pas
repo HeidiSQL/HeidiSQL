@@ -7082,7 +7082,7 @@ end;
 }
 procedure TMainForm.RefreshTree(FocusNewObject: TDBObject=nil);
 var
-  SessionNode, DBNode: PVirtualNode;
+  DBNode: PVirtualNode;
   OnlyDBNode: Boolean;
 begin
   // This refreshes exactly one session node and all its db and table nodes.
