@@ -1311,7 +1311,6 @@ var
   i, j: Integer;
   datafontname, WinState: String;
   datafontsize : Integer;
-  DisableProcessWindowsGhostingProc: procedure;
   QueryTab: TQueryTab;
   Action: TAction;
   dwInfoSize,           // Size of VERSIONINFO structure
@@ -1567,13 +1566,6 @@ begin
   // Place progressbar on the statusbar
   ProgressBarStatus.Parent := StatusBar;
   ProgressBarStatus.Visible := False;
-
-  // Work around Vistas ghosting feature breaking the GUI
-  DisableProcessWindowsGhostingProc := GetProcAddress(
-    GetModuleHandle('user32.dll'),
-    'DisableProcessWindowsGhosting');
-  if Assigned(DisableProcessWindowsGhostingProc) then
-    DisableProcessWindowsGhostingProc;
 
   // SynMemo font, hightlighting and shortcuts
   SetupSynEditors;
