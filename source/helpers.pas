@@ -2710,10 +2710,7 @@ begin
     Result.SSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', Session);
     Result.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', Session);
     Result.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, '', Session);
-    if GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session) then
-      Result.Options := Result.Options + [opCompress]
-    else
-      Result.Options := Result.Options - [opCompress];
+    Result.Compressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session);
   end;
 end;
 

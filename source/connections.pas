@@ -380,10 +380,7 @@ begin
   Result.SSLCertificate := editSSLCertificate.Text;
   Result.SSLCACertificate := editSSLCACertificate.Text;
   Result.StartupScriptFilename := editStartupScript.Text;
-  if chkCompressed.Checked then
-    Result.Options := Result.Options + [opCompress]
-  else
-    Result.Options := Result.Options - [opCompress];
+  Result.Compressed := chkCompressed.Checked;
 end;
 
 
@@ -464,7 +461,7 @@ begin
     editPassword.Text := FOrgParams.Password;
     chkLoginPrompt.Checked := FOrgParams.LoginPrompt;
     updownPort.Position := FOrgParams.Port;
-    chkCompressed.Checked := opCompress in FOrgParams.Options;
+    chkCompressed.Checked := FOrgParams.Compressed;
     comboDatabases.Text := FOrgParams.AllDatabasesStr;
     editStartupScript.Text := FOrgParams.StartupScriptFilename;
     editSSHPlinkExe.Text := FOrgParams.SSHPlinkExe;
@@ -639,7 +636,7 @@ begin
       or (FOrgParams.Username <> editUsername.Text)
       or (FOrgParams.LoginPrompt <> chkLoginPrompt.Checked)
       or (FOrgParams.Port <> updownPort.Position)
-      or ((opCompress in FOrgParams.Options) <> chkCompressed.Checked)
+      or (FOrgParams.Compressed <> chkCompressed.Checked)
       or (FOrgParams.NetType <> TNetType(comboNetType.ItemIndex))
       or (FOrgParams.StartupScriptFilename <> editStartupScript.Text)
       or (FOrgParams.AllDatabasesStr <> comboDatabases.Text)
