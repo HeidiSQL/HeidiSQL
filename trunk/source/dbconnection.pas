@@ -8,31 +8,6 @@ uses
 
 
 type
-  TMySQLOption = (
-    MYSQL_OPT_CONNECT_TIMEOUT,
-    MYSQL_OPT_COMPRESS,
-    MYSQL_OPT_NAMED_PIPE,
-    MYSQL_INIT_COMMAND,
-    MYSQL_READ_DEFAULT_FILE,
-    MYSQL_READ_DEFAULT_GROUP,
-    MYSQL_SET_CHARSET_DIR,
-    MYSQL_SET_CHARSET_NAME,
-    MYSQL_OPT_LOCAL_INFILE,
-    MYSQL_OPT_PROTOCOL,
-    MYSQL_SHARED_MEMORY_BASE_NAME,
-    MYSQL_OPT_READ_TIMEOUT,
-    MYSQL_OPT_WRITE_TIMEOUT,
-    MYSQL_OPT_USE_RESULT,
-    MYSQL_OPT_USE_REMOTE_CONNECTION,
-    MYSQL_OPT_USE_EMBEDDED_CONNECTION,
-    MYSQL_OPT_GUESS_CONNECTION,
-    MYSQL_SET_CLIENT_IP,
-    MYSQL_SECURE_AUTH,
-    MYSQL_REPORT_DATA_TRUNCATION,
-    MYSQL_OPT_RECONNECT,
-    MYSQL_OPT_SSL_VERIFY_SERVER_CERT
-  );
-
   PUSED_MEM=^USED_MEM;
   USED_MEM = packed record
     next:       PUSED_MEM;
@@ -157,7 +132,7 @@ type
     server_status:   Cardinal;
     server_language: Cardinal;
     warning_count:   Cardinal;
-    options:         TMySQLOption;
+    options:         Cardinal;
     status:          Byte;
     free_me:         Byte;
     reconnect:       Byte;
@@ -329,29 +304,6 @@ type
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC);
   TNetTypeGroup = (ngMySQL, ngMSSQL);
 
-  TMySQLClientOption = (
-    opCompress,             // CLIENT_COMPRESS
-    opConnectWithDb,        // CLIENT_CONNECT_WITH_DB
-    opFoundRows,            // CLIENT_FOUND_ROWS
-    opIgnoreSigpipe,        // CLIENT_IGNORE_SIGPIPE
-    opIgnoreSpace,          // CLIENT_IGNORE_SPACE
-    opInteractive,          // CLIENT_INTERACTIVE
-    opLocalFiles,           // CLIENT_LOCAL_FILES
-    opLongFlag,             // CLIENT_LONG_FLAG
-    opLongPassword,         // CLIENT_LONG_PASSWORD
-    opMultiResults,         // CLIENT_MULTI_RESULTS
-    opMultiStatements,      // CLIENT_MULTI_STATEMENTS
-    opNoSchema,             // CLIENT_NO_SCHEMA
-    opODBC,                 // CLIENT_ODBC
-    opProtocol41,           // CLIENT_PROTOCOL_41
-    opRememberOptions,      // CLIENT_REMEMBER_OPTIONS
-    opReserved,             // CLIENT_RESERVED
-    opSecureConnection,     // CLIENT_SECURE_CONNECTION
-    opSSL,                  // CLIENT_SSL
-    opTransactions          // CLIENT_TRANSACTIONS
-    );
-  TMySQLClientOptions = set of TMySQLClientOption;
-
   TConnectionParameters = class(TObject)
     strict private
       FNetType: TNetType;
@@ -359,8 +311,7 @@ type
       FSSLPrivateKey, FSSLCertificate, FSSLCACertificate,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout: Integer;
-      FOptions: TMySQLClientOptions;
-      FLoginPrompt: Boolean;
+      FLoginPrompt, FCompressed: Boolean;
       function GetImageIndex: Integer;
     public
       constructor Create;
@@ -379,7 +330,7 @@ type
       property LoginPrompt: Boolean read FLoginPrompt write FLoginPrompt;
       property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
-      property Options: TMySQLClientOptions read FOptions write FOptions;
+      property Compressed: Boolean read FCompressed write FCompressed;
       property SSHHost: String read FSSHHost write FSSHHost;
       property SSHPort: Integer read FSSHPort write FSSHPort;
       property SSHUser: String read FSSHUser write FSSHUser;
@@ -424,6 +375,7 @@ type
       FLastQueryDuration, FLastQueryNetworkDuration: Cardinal;
       FLastQuerySQL: String;
       FIsUnicode: Boolean;
+      FIsSSL: Boolean;
       FTableEngines: TStringList;
       FTableEngineDefault: String;
       FCollationTable: TDBQuery;
@@ -509,6 +461,7 @@ type
       property LastQueryDuration: Cardinal read FLastQueryDuration;
       property LastQueryNetworkDuration: Cardinal read FLastQueryNetworkDuration;
       property IsUnicode: Boolean read FIsUnicode;
+      property IsSSL: Boolean read FIsSSL;
       property AllDatabases: TStringList read GetAllDatabases;
       property TableEngines: TStringList read GetTableEngines;
       property TableEngineDefault: String read FTableEngineDefault;
@@ -764,7 +717,6 @@ begin
   FSSLCertificate := '';
   FSSLCACertificate := '';
   FStartupScriptFilename := '';
-  FOptions := [opCompress, opLocalFiles, opInteractive, opProtocol41, opMultiStatements];
 end;
 
 
@@ -861,6 +813,7 @@ begin
   FLastQueryNetworkDuration := 0;
   FLogPrefix := '';
   FIsUnicode := False;
+  FIsSSL := False;
   FDatabases := TDatabaseList.Create(True);
   FLoginPromptDone := False;
   FCurrentUserHostCombination := '';
@@ -1013,7 +966,7 @@ begin
           if not SSLsettingsComplete then
             raise EDatabaseError.Create('SSL settings incomplete. Please set either CA certificate or all three SSL parameters.')
           else if SSLsettingsComplete then begin
-            FParameters.Options := FParameters.Options + [opSSL];
+            FIsSSL := True;
             { TODO : Use Cipher and CAPath parameters }
             mysql_ssl_set(FHandle, sslkey, sslcert, sslca, nil, nil);
             Log(lcInfo, 'SSL parameters successfully set.');
@@ -1065,27 +1018,11 @@ begin
     end;
 
     // Gather client options
-    ClientFlags := 0;
-    if opRememberOptions   in FParameters.Options then ClientFlags := ClientFlags or CLIENT_REMEMBER_OPTIONS;
-    if opLongPassword      in FParameters.Options then ClientFlags := ClientFlags or CLIENT_LONG_PASSWORD;
-    if opFoundRows         in FParameters.Options then ClientFlags := ClientFlags or CLIENT_FOUND_ROWS;
-    if opLongFlag          in FParameters.Options then ClientFlags := ClientFlags or CLIENT_LONG_FLAG;
-    if opConnectWithDb     in FParameters.Options then ClientFlags := ClientFlags or CLIENT_CONNECT_WITH_DB;
-    if opNoSchema          in FParameters.Options then ClientFlags := ClientFlags or CLIENT_NO_SCHEMA;
-    if opCompress          in FParameters.Options then ClientFlags := ClientFlags or CLIENT_COMPRESS;
-    if opODBC              in FParameters.Options then ClientFlags := ClientFlags or CLIENT_ODBC;
-    if opLocalFiles        in FParameters.Options then ClientFlags := ClientFlags or CLIENT_LOCAL_FILES;
-    if opIgnoreSpace       in FParameters.Options then ClientFlags := ClientFlags or CLIENT_IGNORE_SPACE;
-    if opProtocol41        in FParameters.Options then ClientFlags := ClientFlags or CLIENT_PROTOCOL_41;
-    if opInteractive       in FParameters.Options then ClientFlags := ClientFlags or CLIENT_INTERACTIVE;
-    if opSSL               in FParameters.Options then ClientFlags := ClientFlags or CLIENT_SSL;
-    if opIgnoreSigpipe     in FParameters.Options then ClientFlags := ClientFlags or CLIENT_IGNORE_SIGPIPE;
-    if opTransactions      in FParameters.Options then ClientFlags := ClientFlags or CLIENT_TRANSACTIONS;
-    if opReserved          in FParameters.Options then ClientFlags := ClientFlags or CLIENT_RESERVED;
-    if opSecureConnection  in FParameters.Options then ClientFlags := ClientFlags or CLIENT_SECURE_CONNECTION;
-    if opMultiStatements   in FParameters.Options then ClientFlags := ClientFlags or CLIENT_MULTI_STATEMENTS;
-    if opMultiResults      in FParameters.Options then ClientFlags := ClientFlags or CLIENT_MULTI_RESULTS;
-    if opRememberOptions   in FParameters.Options then ClientFlags := ClientFlags or CLIENT_REMEMBER_OPTIONS;
+    ClientFlags := CLIENT_LOCAL_FILES or CLIENT_INTERACTIVE or CLIENT_PROTOCOL_41 or CLIENT_MULTI_STATEMENTS;
+    if Parameters.Compressed then
+      ClientFlags := ClientFlags or CLIENT_COMPRESS;
+    if FIsSSL then
+      ClientFlags := ClientFlags or CLIENT_SSL;
 
     Connected := mysql_real_connect(
       FHandle,
@@ -2656,9 +2593,9 @@ begin
     Result.Values['Server OS'] := ServerOS;
     Result.Values['Server version'] := FServerVersionUntouched;
     Result.Values['Connection port'] := IntToStr(Parameters.Port);
-    Result.Values['Compressed protocol'] := EvalBool(opCompress in Parameters.Options);
+    Result.Values['Compressed protocol'] := EvalBool(Parameters.Compressed);
     Result.Values['Unicode enabled'] := EvalBool(IsUnicode);
-    Result.Values['SSL enabled'] := EvalBool(opSSL in Parameters.Options);
+    Result.Values['SSL enabled'] := EvalBool(IsSSL);
     case Parameters.NetTypeGroup of
       ngMySQL: begin
         Result.Values['Client version (libmysql)'] := DecodeApiString(mysql_get_client_info);
