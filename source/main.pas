@@ -4658,7 +4658,7 @@ begin
   // 1. find the currently edited sql-statement around the cursor position in synmemo
   if Editor = SynMemoFilter then begin
     // Concat query segments, so the below regular expressions can find structure
-    sql := 'SELECT * FROM `'+ActiveDbObj.Name+'` WHERE ' + Editor.Text;
+    sql := 'SELECT * FROM '+ActiveDbObj.QuotedName+' WHERE ' + Editor.Text;
   end else begin
     // Proposal in one of the query tabs
     QueryMarkers := GetSQLSplitMarkers(Editor.Text);
