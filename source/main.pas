@@ -1258,27 +1258,14 @@ begin
   MainReg.WriteBool(REGNAME_FILTERACTIVE, pnlFilterVT.Tag=Integer(True));
   MainReg.WriteBool(REGNAME_WRAPLINES, actQueryWordWrap.Checked);
   MainReg.WriteBool(REGNAME_LOG_HORIZONTALSCROLLBAR, SynMemoSQLLog.ScrollBars = ssBoth);
-  // Convert set to string.
-  case WindowState of
-    wsMinimized: WinState := 'Minimized';
-    wsMaximized: WinState := 'Maximized';
-    else WinState := 'Normal';
-  end;
-  MainReg.WriteString(REGNAME_WINDOWSTATE, WinState);
+  MainReg.WriteBool(REGNAME_WINMAXIMIZED, WindowState=wsMaximized);
+  MainReg.WriteInteger(REGNAME_WINONMONITOR, Monitor.MonitorNum);
   // Window dimensions are only valid when WindowState is normal.
   if WindowState = wsNormal then begin
-    MainReg.WriteInteger(REGNAME_WINDOWLEFT, Left);
-    MainReg.WriteInteger(REGNAME_WINDOWTOP, Top);
-    MainReg.WriteInteger(REGNAME_WINDOWWIDTH, Width);
-    MainReg.WriteInteger(REGNAME_WINDOWHEIGHT, Height);
-  end else begin
-    // Ensure Left + Top values are at least set to the right monitor area for the next start
-    i := GetRegValue(REGNAME_WINDOWLEFT, Left);
-    if (i < Monitor.Left) or (i > Monitor.Left+Monitor.Width) then
-      MainReg.WriteInteger(REGNAME_WINDOWLEFT, Monitor.Left);
-    i := GetRegValue(REGNAME_WINDOWTOP, Top);
-    if (i < Monitor.Top) or (i > Monitor.Top+Monitor.Height) then
-      MainReg.WriteInteger(REGNAME_WINDOWTOP, Monitor.Top);
+    MainReg.WriteInteger(REGNAME_WINLEFT, Left);
+    MainReg.WriteInteger(REGNAME_WINTOP, Top);
+    MainReg.WriteInteger(REGNAME_WINWIDTH, Width);
+    MainReg.WriteInteger(REGNAME_WINHEIGHT, Height);
   end;
   SaveListSetup(ListDatabases);
   SaveListSetup(ListVariables);
@@ -1308,8 +1295,8 @@ end;
 }
 procedure TMainForm.FormCreate(Sender: TObject);
 var
-  i, j: Integer;
-  datafontname, WinState: String;
+  i, j, MonitorIndex: Integer;
+  datafontname: String;
   datafontsize : Integer;
   QueryTab: TQueryTab;
   Action: TAction;
@@ -1448,20 +1435,20 @@ begin
   FixVT(ListTables);
   FixVT(treeQueryHelpers);
 
-  // Window dimensions
-  Left := GetRegValue(REGNAME_WINDOWLEFT, Left);
-  Top := GetRegValue(REGNAME_WINDOWTOP, Top);
-  Width := GetRegValue(REGNAME_WINDOWWIDTH, Width);
-  Height := GetRegValue(REGNAME_WINDOWHEIGHT, Height);
-  // Move window to left and/or top edge of monitor, if screen resolution has been decreased
-  if Left > Monitor.Left+Monitor.Width-100 then
-    Left := 0;
-  if Top > Monitor.Top+Monitor.Height-100 then
-    Top := 0;
-  WinState := GetRegValue(REGNAME_WINDOWSTATE, '');
-  if WinState = 'Minimized' then WindowState := wsMinimized else
-  if WinState = 'Maximized' then WindowState := wsMaximized else
-  WindowState := wsNormal;
+  // Window position
+  Left := GetRegValue(REGNAME_WINLEFT, Left);
+  Top := GetRegValue(REGNAME_WINTOP, Top);
+  // .. dimensions
+  Width := GetRegValue(REGNAME_WINWIDTH, Width);
+  Height := GetRegValue(REGNAME_WINHEIGHT, Height);
+  // ... state
+  if GetRegValue(REGNAME_WINMAXIMIZED, WindowState=wsMaximized) then
+    WindowState := wsMaximized;
+  // ... and monitor placement
+  MonitorIndex := GetRegValue(REGNAME_WINONMONITOR, Monitor.MonitorNum);
+  MonitorIndex := Max(0, MonitorIndex);
+  MonitorIndex := Min(Screen.MonitorCount-1, MonitorIndex);
+  MakeFullyVisible(Screen.Monitors[MonitorIndex]);
 
   // Position of Toolbars
   ToolBarStandard.Left := GetRegValue(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
