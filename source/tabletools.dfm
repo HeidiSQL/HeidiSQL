@@ -29,7 +29,7 @@ object frmTableTools: TfrmTableTools
     Anchors = [akLeft, akBottom]
     Caption = 'lblCheckedSize'
   end
-  object btnClose: TButton
+  object btnCloseOrCancel: TButton
     Left = 461
     Top = 350
     Width = 75
@@ -40,6 +40,7 @@ object frmTableTools: TfrmTableTools
     Default = True
     ModalResult = 2
     TabOrder = 3
+    OnClick = btnCloseOrCancelClick
   end
   object pnlTop: TPanel
     AlignWithMargins = True

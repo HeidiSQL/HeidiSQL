@@ -16,7 +16,7 @@ uses
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
   TfrmTableTools = class(TForm)
-    btnClose: TButton;
+    btnCloseOrCancel: TButton;
     pnlTop: TPanel;
     TreeObjects: TVirtualStringTree;
     spltHorizontally: TSplitter;
@@ -105,11 +105,13 @@ type
       var Allowed: Boolean);
     procedure btnSeeResultsClick(Sender: TObject);
     procedure TreeObjectsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure btnCloseOrCancelClick(Sender: TObject);
   private
     { Private declarations }
     FResults: TObjectList<TStringList>;
     FToolMode: TToolMode;
     FSecondExportPass: Boolean; // Set to True after everything is exported and final VIEWs need to be exported again
+    FCancelled: Boolean;
     OutputFiles, OutputDirs: TStringList;
     ExportStream: TStream;
     ExportStreamStartOfQueryPos: Int64;
@@ -461,7 +463,6 @@ var
   Triggers, Views: TDBObjectList;
   DBObj: PDBObject;
   i: Integer;
-  ExitLoop: Boolean;
 
   procedure ProcessNode(DBObj: TDBObject);
   begin
@@ -481,7 +482,7 @@ var
       on E:EFCreateError do begin
         // Occurs when export output file can not be created
         MessageDlg(E.Message, mtError, [mbOK], 0);
-        ExitLoop := True;
+        FCancelled := True;
       end;
     end;
   end;
@@ -490,7 +491,8 @@ begin
   Screen.Cursor := crHourGlass;
   // Disable critical controls so ProcessMessages is unable to do things while export is in progress
   btnExecute.Enabled := False;
-  btnClose.Enabled := False;
+  btnCloseOrCancel.Caption := 'Cancel';
+  btnCloseOrCancel.ModalResult := mrNone;
   tabsTools.Enabled := False;
   treeObjects.Enabled := False;
   if tabsTools.ActivePage = tabMaintenance then
@@ -507,7 +509,7 @@ begin
   Triggers := TDBObjectList.Create(False); // False, so we can .Free that object afterwards without loosing the contained objects
   Views := TDBObjectList.Create(False);
   FHeaderCreated := False;
-  ExitLoop := False;
+  FCancelled := False;
   SessionNode := TreeObjects.GetFirstChild(nil);
   while Assigned(SessionNode) do begin
     DBNode := TreeObjects.GetFirstChild(SessionNode);
@@ -525,28 +527,33 @@ begin
               Triggers.Add(DBObj^)
             else begin
               ProcessNode(DBObj^);
-              // File creation exceptions should stop the whole loop here
-              if ExitLoop then
-                Break;
               if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntView) then
                 Views.Add(DBObj^);
             end;
           end;
+          // File creation exception occurred or user clicked cancel button
+          if FCancelled then Break;
           TableNode := TreeObjects.GetNextSibling(TableNode);
         end; // End of db object node loop in db
 
         // Special block for late created triggers in export mode
-        for i:=0 to Triggers.Count-1 do
+        for i:=0 to Triggers.Count-1 do begin
           ProcessNode(Triggers[i]);
+          if FCancelled then Break;
+        end;
 
-        // Special block for final exporting final view structure
+        // Special block for exporting final view structure
         FSecondExportPass := True;
-        for i:=0 to Views.Count-1 do
+        for i:=0 to Views.Count-1 do begin
           ProcessNode(Views[i]);
+          if FCancelled then Break;
+        end;
 
       end;
+      if FCancelled then Break;
       DBNode := TreeObjects.GetNextSibling(DBNode);
     end; // End of db item loop
+    if FCancelled then Break;
     SessionNode := TreeObjects.GetNextSibling(SessionNode);
   end;
 
@@ -563,7 +570,8 @@ begin
     Mainform.ActiveConnection.ClearDbObjects(FModifiedDbs[i]);
   FModifiedDbs.Clear;
 
-  btnClose.Enabled := True;
+  btnCloseOrCancel.Caption := 'Close';
+  btnCloseOrCancel.ModalResult := mrCancel;
   tabsTools.Enabled := True;
   treeObjects.Enabled := True;
   ValidateControls(Sender);
@@ -743,7 +751,7 @@ begin
   ResultGrid.RootNodeCount := FResults.Count;
   ResultGrid.FocusedNode := ResultGrid.GetLast;
   ResultGrid.Selected[ResultGrid.FocusedNode] := True;
-  ResultGrid.Repaint;
+  Application.ProcessMessages;
 end;
 
 procedure TfrmTableTools.ResultGridCompareNodes(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode;
@@ -949,6 +957,16 @@ begin
 end;
 
 
+procedure TfrmTableTools.btnCloseOrCancelClick(Sender: TObject);
+begin
+  // Set cancel flag to stop running loop in the next possible loop position
+  if TButton(Sender).ModalResult = mrNone then begin
+    FCancelled := True;
+    Mainform.LogSQL('Processing cancelled by user, waiting for current object to finish ...', lcInfo);
+  end;
+end;
+
+
 procedure TfrmTableTools.btnExportOutputTargetSelectClick(Sender: TObject);
 var
   SaveDialog: TSaveDialog;
@@ -1047,7 +1065,6 @@ const
     LogRow[2] := FormatNumber(RowsDone) + ' / ' + FormatNumber(Percent, 0)+'%';
     LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000, True);
     UpdateResultGrid;
-    Application.ProcessMessages;
   end;
 
 begin
