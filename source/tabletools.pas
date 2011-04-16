@@ -122,7 +122,7 @@ type
     FHeaderCreated: Boolean;
     FFindSeeResultSQL: TStringList;
     ToFile, ToDir, ToClipboard, ToDb, ToServer: Boolean;
-    FObjectSizes: Int64;
+    FObjectSizes, FObjectSizesDone, FObjectSizesDoneExact: Int64;
     procedure SetToolMode(Value: TToolMode);
     procedure Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
     procedure AddResults(SQL: String);
@@ -329,7 +329,7 @@ var
 begin
   SomeChecked := TreeObjects.CheckedCount > 0;
   btnSeeResults.Visible := tabsTools.ActivePage = tabFind;
-  lblCheckedSize.Caption := 'Selected object sizes: '+FormatByteNumber(FObjectSizes);
+  lblCheckedSize.Caption := 'Selected objects size: '+FormatByteNumber(FObjectSizes);
   if tabsTools.ActivePage = tabMaintenance then begin
     btnExecute.Caption := 'Execute';
     btnExecute.Enabled := (Pos(SUnsupported, comboOperation.Text) = 0) and SomeChecked;
@@ -510,6 +510,9 @@ begin
   Views := TDBObjectList.Create(False);
   FHeaderCreated := False;
   FCancelled := False;
+  FObjectSizesDone := 0;
+  FObjectSizesDoneExact := 0;
+  EnableProgressBar(100);
   SessionNode := TreeObjects.GetFirstChild(nil);
   while Assigned(SessionNode) do begin
     DBNode := TreeObjects.GetFirstChild(SessionNode);
@@ -527,6 +530,8 @@ begin
               Triggers.Add(DBObj^)
             else begin
               ProcessNode(DBObj^);
+              FObjectSizesDone := FObjectSizesDone + Max(DBObj.Size, 0);
+              FObjectSizesDoneExact := FObjectSizesDone;
               if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntView) then
                 Views.Add(DBObj^);
             end;
@@ -572,6 +577,7 @@ begin
 
   btnCloseOrCancel.Caption := 'Close';
   btnCloseOrCancel.ModalResult := mrCancel;
+  Mainform.ProgressBarStatus.Hide;
   tabsTools.Enabled := True;
   treeObjects.Enabled := True;
   ValidateControls(Sender);
@@ -746,11 +752,17 @@ end;
 
 
 procedure TfrmTableTools.UpdateResultGrid;
+var
+  Percent: Double;
 begin
   // Refresh resultgrid
   ResultGrid.RootNodeCount := FResults.Count;
   ResultGrid.FocusedNode := ResultGrid.GetLast;
   ResultGrid.Selected[ResultGrid.FocusedNode] := True;
+  Percent := 100 / FObjectSizes * FObjectSizesDoneExact;
+  lblCheckedSize.Caption := 'Selected objects size: '+FormatByteNumber(FObjectSizes)+'. '+
+    FormatNumber(Percent, 1) + '% done.';
+  Mainform.ProgressBarStatus.Position := Round(Percent);
   Application.ProcessMessages;
 end;
 
@@ -1059,9 +1071,12 @@ const
   var
     LogRow: TStringlist;
     Percent: Double;
+    BytesDone: Int64;
   begin
     LogRow := FResults.Last;
     Percent := 100 / Max(DBObj.Rows,1) * Max(RowsDone,1);
+    BytesDone := Max(DBObj.Size,0) div Max(DBObj.Rows,1) * RowsDone;
+    FObjectSizesDoneExact := FObjectSizesDone + BytesDone;
     LogRow[2] := FormatNumber(RowsDone) + ' / ' + FormatNumber(Percent, 0)+'%';
     LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000, True);
     UpdateResultGrid;
