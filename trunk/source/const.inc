@@ -79,11 +79,12 @@ const
   DEFAULT_REMEMBERFILTERS = True;
   REGNAME_LOGTOFILE = 'LogToFile';
   DEFAULT_LOGTOFILE = False;
-  REGNAME_WINDOWSTATE = 'windowstate';
-  REGNAME_WINDOWLEFT = 'windowleft';
-  REGNAME_WINDOWTOP = 'windowtop';
-  REGNAME_WINDOWWIDTH = 'windowwidth';
-  REGNAME_WINDOWHEIGHT = 'windowheight';
+  REGNAME_WINMAXIMIZED = 'MainWinMaximized';
+  REGNAME_WINLEFT = 'MainWinLeft';
+  REGNAME_WINTOP = 'MainWinTop';
+  REGNAME_WINWIDTH = 'MainWinWidth';
+  REGNAME_WINHEIGHT = 'MainWinHeight';
+  REGNAME_WINONMONITOR = 'MainWinOnMonitor';
   REGNAME_TOOLBAR2LEFT = 'ToolBar2Left';
   REGNAME_TOOLBAR2TOP = 'ToolBar2Top';
   REGNAME_TOOLBARDATALEFT = 'ToolBarDataLeft';
