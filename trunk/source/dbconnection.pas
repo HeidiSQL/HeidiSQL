@@ -710,6 +710,7 @@ begin
   FUsername := DEFAULT_USER;
   FPassword := '';
   FPort := DEFAULT_PORT;
+  FSSHPlinkExe := GetRegValue(REGNAME_PLINKEXE, '');
   FSSHPort := DEFAULT_SSHPORT;
   FSSHTimeout := DEFAULT_SSHTIMEOUT;
   FSSHLocalPort := FPort + 1;
