@@ -488,7 +488,10 @@ begin
   // ALTER TABLE ... CHANGE COLUMN query, as there is no "no default" clause, nor by
   // appending an ALTER COLUMN ... DROP DEFAULT, without getting an "unknown column" error
   for i:=0 to FColumns.Count-1 do begin
-    if (FColumns[i].FStatus = esModified) and (FColumns[i].DefaultType = cdtNothing) then
+    if (FColumns[i].FStatus = esModified)
+      and (FColumns[i].DefaultType = cdtNothing)
+      and (FColumns[i].DataType.HasDefault)
+      then
       Specs.Add('ALTER '+DBObject.Connection.QuoteIdent(FColumns[i].OldName)+' DROP DEFAULT');
   end;
   AddQuery;
