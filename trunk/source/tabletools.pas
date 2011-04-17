@@ -284,7 +284,7 @@ begin
   MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
   MainReg.GetKeyNames(SessionNames);
   for i:=0 to SessionNames.Count-1 do begin
-    if SessionNames[i] <> Mainform.ActiveConnection.SessionName then
+    if SessionNames[i] <> Mainform.ActiveConnection.Parameters.SessionName then
       comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionNames[i]);
   end;
   if (idx > -1) and (idx < comboExportOutputType.Items.Count) then

@@ -80,7 +80,7 @@ uses main, helpers;
 procedure TfrmInsertFiles.FormShow(Sender: TObject);
 begin
   FConnection := Mainform.ActiveConnection;
-  Caption := FConnection.SessionName + ' - Insert files into table ...';
+  Caption := FConnection.Parameters.SessionName + ' - Insert files into table ...';
   ComboBoxDBs.Items.Clear;
   ComboBoxDBs.Items.Assign(FConnection.AllDatabases);
   ComboBoxDBs.ItemIndex := ComboBoxDBs.Items.IndexOf(FConnection.Database);

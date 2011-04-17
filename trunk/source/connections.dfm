@@ -111,6 +111,8 @@ object connform: Tconnform
     OnFocusChanging = ListSessionsFocusChanging
     OnGetText = ListSessionsGetText
     OnGetImageIndex = ListSessionsGetImageIndex
+    OnGetNodeDataSize = ListSessionsGetNodeDataSize
+    OnInitNode = ListSessionsInitNode
     OnNewText = ListSessionsNewText
     Columns = <
       item
