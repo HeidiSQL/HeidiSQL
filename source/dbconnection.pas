@@ -308,7 +308,7 @@ type
     strict private
       FNetType: TNetType;
       FHostname, FUsername, FPassword, FAllDatabases, FStartupScriptFilename,
-      FSSLPrivateKey, FSSLCertificate, FSSLCACertificate,
+      FSessionName, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout: Integer;
       FLoginPrompt, FCompressed: Boolean;
@@ -323,6 +323,7 @@ type
     published
       property NetType: TNetType read FNetType write FNetType;
       property NetTypeGroup: TNetTypeGroup read GetNetTypeGroup;
+      property SessionName: String read FSessionName write FSessionName;
       property Hostname: String read FHostname write FHostname;
       property Port: Integer read FPort write FPort;
       property Username: String read FUsername write FUsername;
@@ -343,6 +344,7 @@ type
       property SSLCertificate: String read FSSLCertificate write FSSLCertificate;
       property SSLCACertificate: String read FSSLCACertificate write FSSLCACertificate;
   end;
+  PConnectionParameters = ^TConnectionParameters;
 
 
   { TDBConnection }
@@ -357,7 +359,6 @@ type
       FActive: Boolean;
       FConnectionStarted: Integer;
       FServerStarted: Integer;
-      FSessionName: String;
       FParameters: TConnectionParameters;
       FLoginPromptDone: Boolean;
       FDatabase: String;
@@ -445,7 +446,6 @@ type
         var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String);
       function GetDatatypeByName(Datatype: String): TDBDatatype;
       function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Cardinal): String;
-      property SessionName: String read FSessionName write FSessionName;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property ThreadId: Cardinal read GetThreadId;
       property ConnectionUptime: Integer read GetConnectionUptime;
@@ -805,7 +805,6 @@ end;
 constructor TDBConnection.Create(AOwner: TComponent);
 begin
   inherited;
-  FSessionName := 'Unnamed';
   FParameters := TConnectionParameters.Create;
   FRowsFound := 0;
   FRowsAffected := 0;

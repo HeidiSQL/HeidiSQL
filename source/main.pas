@@ -865,7 +865,6 @@ type
     FTreeRefreshInProgress: Boolean;
     FCmdlineFilenames: TStringlist;
     FCmdlineConnectionParams: TConnectionParameters;
-    FCmdlineSessionName: String;
     FSearchReplaceExecuted: Boolean;
     FDataGridColumnWidthsCustomized: Boolean;
     FSnippetFilenames: TStringList;
@@ -998,8 +997,7 @@ type
     procedure PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
     procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
     procedure SessionConnect(Sender: TObject);
-    function InitConnection(Params: TConnectionParameters; Session: String;
-      ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
+    function InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
     procedure ConnectionsNotify(Sender: TObject; const Item: TDBConnection; Action: TCollectionNotification);
     function ActiveGrid: TVirtualStringTree;
     function GridResult(Grid: TBaseVirtualTree): TDBQuery;
@@ -1221,11 +1219,11 @@ begin
   OpenRegistry;
   OpenSessions := '';
   for Connection in Connections do
-    OpenSessions := OpenSessions + Connection.SessionName + DELIM;
+    OpenSessions := OpenSessions + Connection.Parameters.SessionName + DELIM;
   Delete(OpenSessions, Length(OpenSessions)-Length(DELIM)+1, Length(DELIM));
   MainReg.WriteString(REGNAME_LASTSESSIONS, OpenSessions);
   if Assigned(ActiveConnection) then
-    MainReg.WriteString(REGNAME_LASTACTIVESESSION, ActiveConnection.SessionName);
+    MainReg.WriteString(REGNAME_LASTACTIVESESSION, ActiveConnection.Parameters.SessionName);
 
   // Close database connections
   Connections.Clear;
@@ -1687,7 +1685,7 @@ begin
   ParseCommandLineParameters(CmdlineParameters);
   if Assigned(FCmdlineConnectionParams) then begin
     // Minimal parameter for command line mode is hostname
-    Connected := InitConnection(FCmdlineConnectionParams, FCmdlineSessionName, True, Connection);
+    Connected := InitConnection(FCmdlineConnectionParams, True, Connection);
   end else if GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT) then begin
     // Auto connection via preference setting
     // Do not autoconnect if we're in commandline mode and the connection was not successful
@@ -1703,7 +1701,7 @@ begin
       for i:=0 to LastSessions.Count-1 do begin
         try
           LoadedParams := LoadConnectionParams(LastSessions[i]);
-          if InitConnection(LoadedParams, LastSessions[i], LastActiveSession=LastSessions[i], Connection) then
+          if InitConnection(LoadedParams, LastActiveSession=LastSessions[i], Connection) then
             Connected := True;
         except on E:Exception do
           MessageDlg(E.Message, mtError, [mbOK], 0);
@@ -1740,7 +1738,7 @@ end;
 procedure TMainForm.ParseCommandLineParameters(Parameters: TStringlist);
 var
   rx: TRegExpr;
-  AllParams, Host, User, Pass, Socket: String;
+  AllParams, SessName, Host, User, Pass, Socket: String;
   i, Port: Integer;
 
   function GetParamValue(ShortName, LongName: String): String;
@@ -1756,22 +1754,22 @@ begin
   if not Assigned(FCmdlineFilenames) then
     FCmdlineFilenames := TStringlist.Create;
   FCmdlineFilenames.Clear;
-  FCmdlineSessionName := '';
+  SessName := '';
   FreeAndNil(FCmdlineConnectionParams);
 
   // Prepend a space, so the regular expression can request a mandantory space
   // before each param name including the first one
   AllParams := ' ' + ImplodeStr(' ', Parameters);
   rx := TRegExpr.Create;
-  FCmdlineSessionName := GetParamValue('d', 'description');
-  if FCmdlineSessionName <> '' then begin
+  SessName := GetParamValue('d', 'description');
+  if SessName <> '' then begin
     try
-      FCmdlineConnectionParams := LoadConnectionParams(FCmdlineSessionName);
+      FCmdlineConnectionParams := LoadConnectionParams(SessName);
     except
       on E:Exception do begin
         // Session params not found in registry
         LogSQL(E.Message);
-        FCmdlineSessionName := '';
+        SessName := '';
       end;
     end;
 
@@ -1787,8 +1785,10 @@ begin
   // Leave out support for startup script, seems reasonable for command line connecting
 
   if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> 0) or (Socket <> '') then begin
-    if not Assigned(FCmdlineConnectionParams) then
+    if not Assigned(FCmdlineConnectionParams) then begin
       FCmdlineConnectionParams := TConnectionParameters.Create;
+      FCmdlineConnectionParams.SessionName := SessName;
+    end;
     if Host <> '' then FCmdlineConnectionParams.Hostname := Host;
     if User <> '' then FCmdlineConnectionParams.Username := User;
     if Pass <> '' then FCmdlineConnectionParams.Password := Pass;
@@ -1798,8 +1798,8 @@ begin
       FCmdlineConnectionParams.NetType := ntMySQL_NamedPipe;
     end;
     // Ensure we have a session name to pass to InitConnection
-    if (FCmdlineSessionName = '') and (FCmdlineConnectionParams.Hostname <> '') then
-      FCmdlineSessionName := FCmdlineConnectionParams.Hostname;
+    if (FCmdlineConnectionParams.SessionName = '') and (FCmdlineConnectionParams.Hostname <> '') then
+      FCmdlineConnectionParams.SessionName := FCmdlineConnectionParams.Hostname;
   end;
 
   // Check for valid filename(s) in parameters
@@ -1871,7 +1871,7 @@ begin
       RefreshHelperNode(HELPERNODE_COLUMNS);}
 
       // Last chance to access connection related properties before disconnecting
-      OpenRegistry(Item.SessionName);
+      OpenRegistry(Item.Parameters.SessionName);
       MainReg.WriteString(REGNAME_LASTUSEDDB, Item.Database);
 
       // Disconnect
@@ -2070,7 +2070,7 @@ begin
       item.OnClick := SessionConnect;
       item.ImageIndex := 37;
       for Connection in Connections do begin
-        if SessionNames[i] = Connection.SessionName then begin
+        if SessionNames[i] = Connection.Parameters.SessionName then begin
           item.Checked := True;
           item.ImageIndex := -1;
           break;
@@ -2099,7 +2099,7 @@ begin
         menuConnectTo.Delete(i);
       ConnectedSessions := TStringList.Create;
       for i:=0 to Connections.Count-1 do
-        ConnectedSessions.Add(Connections[i].SessionName);
+        ConnectedSessions.Add(Connections[i].Parameters.SessionName);
       SessionNames := TStringList.Create;
       MainReg.GetKeyNames(SessionNames);
       for i:=0 to SessionNames.Count-1 do begin
@@ -2774,7 +2774,7 @@ begin
   for i:=High(FTreeClickHistory) downto Low(FTreeClickHistory) do begin
     if FTreeClickHistory[i] <> nil then begin
       DBObj := DBtree.GetNodeData(FTreeClickHistory[i]);
-      if DBObj.Connection.SessionName = Session then begin
+      if DBObj.Connection.Parameters.SessionName = Session then begin
         Node := FTreeClickHistory[i];
         break;
       end;
@@ -2785,7 +2785,7 @@ begin
     SessionNode := DBtree.GetFirstChild(nil);
     while Assigned(SessionNode) do begin
       DBObj := DBtree.GetNodeData(SessionNode);
-      if DBObj.Connection.SessionName = Session then begin
+      if DBObj.Connection.Parameters.SessionName = Session then begin
         Node := SessionNode;
       end;
       SessionNode := DBtree.GetNextSibling(SessionNode);
@@ -2796,7 +2796,7 @@ begin
     SelectNode(DBtree, Node)
   else begin
     Params := LoadConnectionParams(Session);
-    InitConnection(Params, Session, True, Connection);
+    InitConnection(Params, True, Connection);
   end;
 end;
 
@@ -2805,8 +2805,7 @@ end;
   Receive connection parameters and create a connection tree node
   Paremeters are either sent by connection-form or by commandline.
 }
-function TMainform.InitConnection(Params: TConnectionParameters; Session: String;
-  ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
+function TMainform.InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
 var
   i: Integer;
   SessionExists, RestoreLastActiveDatabase: Boolean;
@@ -2820,7 +2819,6 @@ begin
   Connection.OnDBObjectsCleared := DBObjectsCleared;
   Connection.OnDatabaseChanged := DatabaseChanged;
   Connection.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
-  Connection.SessionName := Session;
   try
     Connection.Active := True;
   except
@@ -2829,13 +2827,13 @@ begin
   end;
 
   // attempt to establish connection
-  SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + Session);
+  SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + Params.SessionName);
   if not Connection.Active then begin
     // attempt failed
     if SessionExists then begin
       // Save "refused" counter
-      OpenRegistry(Session);
-      MainReg.WriteInteger(REGNAME_REFUSEDCOUNT, GetRegValue(REGNAME_REFUSEDCOUNT, 0, Session)+1);
+      OpenRegistry(Params.SessionName);
+      MainReg.WriteInteger(REGNAME_REFUSEDCOUNT, GetRegValue(REGNAME_REFUSEDCOUNT, 0, Params.SessionName)+1);
     end;
     Result := False;
     FreeAndNil(Connection);
@@ -2846,8 +2844,8 @@ begin
 
     if SessionExists then begin
       // Save "connected" counter
-      OpenRegistry(Session);
-      MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, Session)+1);
+      OpenRegistry(Params.SessionName);
+      MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, Params.SessionName)+1);
       // Save server version
       Mainreg.WriteInteger(REGNAME_SERVERVERSION, Connection.ServerVersionInt);
       Mainreg.WriteString(REGNAME_LASTCONNECT, DateTimeToStr(Now));
@@ -2856,7 +2854,7 @@ begin
     if ActivateMe then begin
       // Set focus on last uses db. If not wanted or db is gone, go to root node at least
       RestoreLastActiveDatabase := GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
-      LastActiveDatabase := GetRegValue(REGNAME_LASTUSEDDB, '', Session);
+      LastActiveDatabase := GetRegValue(REGNAME_LASTUSEDDB, '', Params.SessionName);
       if RestoreLastActiveDatabase and (Connection.AllDatabases.IndexOf(LastActiveDatabase) >- 1) then begin
         SetActiveDatabase(LastActiveDatabase, Connection);
         DBNode := FindDBNode(DBtree, LastActiveDatabase);
@@ -3741,7 +3739,7 @@ begin
   cs.Dialog.Color := DBtree.Color;
   if cs.Execute then begin
     DBtree.Color := cs.Dialog.Color;
-    OpenRegistry(ActiveConnection.SessionName);
+    OpenRegistry(ActiveConnection.Parameters.SessionName);
     MainReg.WriteInteger(REGNAME_TREEBACKGROUND, cs.Dialog.Color);
   end;
 end;
@@ -3799,7 +3797,7 @@ begin
   try
     Sess := '';
     if Assigned(Connection) then
-      Sess := Connection.SessionName;
+      Sess := Connection.Parameters.SessionName;
     WriteLn(FileHandleSessionLog, Format('/* %s [%s] */ %s', [DateTimeToStr(Now), Sess, msg]));
   except
     on E:Exception do begin
@@ -6631,7 +6629,7 @@ begin
   DBObj := Sender.GetNodeData(Node);
   case Column of
     0: case DBObj.NodeType of
-        lntNone: CellText := DBObj.Connection.SessionName;
+        lntNone: CellText := DBObj.Connection.Parameters.SessionName;
         lntDb: CellText := DBObj.Database;
         lntTable..lntEvent: CellText := DBObj.Name;
         lntColumn: CellText := DBObj.Column;
@@ -6878,7 +6876,7 @@ begin
     TimerConnected.OnTimer(Sender);
     TimerHostUptime.OnTimer(Sender);
     DBObj.Connection.OnConnected(DBObj.Connection, DBObj.Connection.Database);
-    DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, DBObj.Connection.SessionName);
+    DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, DBObj.Connection.Parameters.SessionName);
     case DBObj.Connection.Parameters.NetTypeGroup of
       ngMySQL:
         SynSQLSyn1.SQLDialect := sqlMySQL;
@@ -7865,7 +7863,7 @@ end;
 function TMainForm.GetRegKeyTable: String;
 begin
   // Return the slightly complex registry path to \Servers\ThisServer\curdb|curtable
-  Result := REGPATH + REGKEY_SESSIONS + ActiveDbObj.Connection.SessionName + '\' +
+  Result := REGPATH + REGKEY_SESSIONS + ActiveDbObj.Connection.Parameters.SessionName + '\' +
     ActiveDatabase + DELIM + ActiveDbObj.Name;
 end;
 
@@ -8854,15 +8852,15 @@ begin
   Keys := TStringList.Create;
   if (Sender = btnClearFilters) or (Sender = menuClearFiltersTable) then begin
     Screen.Cursor := crHourGlass;
-    OpenRegistry(ActiveDbObj.Connection.SessionName);
+    OpenRegistry(ActiveDbObj.Connection.Parameters.SessionName);
     MainReg.GetKeyNames(Keys);
     idx := Keys.IndexOf(ActiveDbObj.Database+'|'+ActiveDbObj.Name);
     if idx > -1 then
       MainReg.DeleteKey(Keys[idx]);
   end else if Sender = menuClearFiltersSession then begin
-    if MessageDlg('Remove all filter stuff for this session ('+ActiveDbObj.Connection.SessionName+') ?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+    if MessageDlg('Remove all filter stuff for this session ('+ActiveDbObj.Connection.Parameters.SessionName+') ?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
       Screen.Cursor := crHourGlass;
-      OpenRegistry(ActiveDbObj.Connection.SessionName);
+      OpenRegistry(ActiveDbObj.Connection.Parameters.SessionName);
       MainReg.GetKeyNames(Keys);
       for idx:=0 to Keys.Count-1 do
         MainReg.DeleteKey(Keys[idx])
@@ -9258,7 +9256,7 @@ begin
   // Set window caption and taskbar text
   Cap := '';
   if ActiveConnection <> nil then begin
-    Cap := Cap + ActiveConnection.SessionName;
+    Cap := Cap + ActiveConnection.Parameters.SessionName;
     if ActiveDatabase <> '' then
       Cap := Cap + ' /' + ActiveDatabase;
     if Assigned(ActiveDbObj) and (ActiveDbObj.Name <> '') then
@@ -9695,7 +9693,7 @@ begin
       QueryLoad(FCmdlineFilenames[i], True, True, nil);
     end;
     if Assigned(FCmdlineConnectionParams) then
-      InitConnection(FCmdlineConnectionParams, FCmdlineSessionName, True, Connection);
+      InitConnection(FCmdlineConnectionParams, True, Connection);
   end else
     // Not the right message id
     inherited;
