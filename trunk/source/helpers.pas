@@ -2907,7 +2907,6 @@ begin
   FBatchInOneGo := MainForm.actBatchInOneGo.Checked;
   FStopOnErrors := MainForm.actQueryStopOnErrors.Checked;
   FResults := TDBQueryList.Create;
-  FConnection.LockedByThread := Self;
   FreeOnTerminate := True;
   Priority := tpNormal;
 end;
