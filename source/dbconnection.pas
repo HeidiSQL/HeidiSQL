@@ -413,6 +413,7 @@ type
       procedure Log(Category: TDBLogCategory; Msg: String);
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure SetObjectNamesInSelectedDB;
+      procedure SetLockedByThread(Value: TThread); virtual;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -473,7 +474,7 @@ type
       property ObjectNamesInSelectedDB: TStrings read FObjectNamesInSelectedDB write FObjectNamesInSelectedDB;
       property ResultCount: Integer read FResultCount;
       property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
-      property LockedByThread: TThread read FLockedByThread write FLockedByThread;
+      property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
       property Datatypes: TDBDataTypeArray read FDatatypes;
     published
       property Active: Boolean read FActive write SetActive default False;
@@ -507,6 +508,7 @@ type
       function GetTableEngines: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
+      procedure SetLockedByThread(Value: TThread); override;
     public
       constructor Create(AOwner: TComponent); override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
@@ -685,6 +687,8 @@ var
   mysql_thread_id: function(Handle: PMYSQL): Cardinal; stdcall;
   mysql_next_result: function(Handle: PMYSQL): Integer; stdcall;
   mysql_set_character_set: function(Handle: PMYSQL; csname: PAnsiChar): Integer; stdcall;
+  mysql_thread_init: function: Byte; stdcall;
+  mysql_thread_end: procedure; stdcall;
 
   libmysql_handle: HMODULE = 0;
   libmysql_file: PWideChar = 'libmysql.dll';
@@ -889,6 +893,27 @@ begin
 end;
 
 
+procedure TDBConnection.SetLockedByThread(Value: TThread);
+begin
+  FLockedByThread := Value;
+end;
+
+
+procedure TMySQLConnection.SetLockedByThread(Value: TThread);
+begin
+  if Value <> FLockedByThread then begin
+    if Value <> nil then begin
+      Log(lcDebug, 'mysql_thread_init, thread id #'+IntToStr(Value.ThreadID));
+      mysql_thread_init;
+    end else begin
+      mysql_thread_end;
+      Log(lcDebug, 'mysql_thread_end, thread id #'+IntToStr(FLockedByThread.ThreadID));
+    end;
+  end;
+  FLockedByThread := Value;
+end;
+
+
 {**
   (Dis-)Connect to/from server
 }
@@ -934,6 +959,8 @@ begin
       AssignProc(@mysql_thread_id, 'mysql_thread_id');
       AssignProc(@mysql_next_result, 'mysql_next_result');
       AssignProc(@mysql_set_character_set, 'mysql_set_character_set');
+      AssignProc(@mysql_thread_init, 'mysql_thread_init');
+      AssignProc(@mysql_thread_end, 'mysql_thread_end');
       Log(lcDebug, libmysql_file + ' v' + DecodeApiString(mysql_get_client_info) + ' loaded.');
     end;
   end;
