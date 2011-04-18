@@ -2995,8 +2995,8 @@ end;
 
 procedure TQueryThread.BatchFinished;
 begin
-  MainForm.FinishedQueryExecution(Self);
   FConnection.LockedByThread := nil;
+  MainForm.FinishedQueryExecution(Self);
 end;
 
 
