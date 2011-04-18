@@ -2933,9 +2933,11 @@ begin
     end else begin
       // Concat queries up to a size of max_allowed_packet
       if MaxAllowedPacket = 0 then begin
-        if FConnection.IsMySQL then
-          MaxAllowedPacket := MakeInt(FConnection.GetVar('SHOW VARIABLES LIKE '+esc('max_allowed_packet'), 1))
-        else
+        if FConnection.IsMySQL then begin
+          FConnection.LockedByThread := Self;
+          MaxAllowedPacket := MakeInt(FConnection.GetVar('SHOW VARIABLES LIKE '+esc('max_allowed_packet'), 1));
+          FConnection.LockedByThread := nil;
+        end else
           MaxAllowedPacket := SIZE_MB;
         // TODO: Log('Detected maximum allowed packet size: '+FormatByteNumber(MaxAllowedPacket), lcDebug);
       end;
@@ -2954,6 +2956,7 @@ begin
     end;
     Synchronize(BeforeQuery);
     try
+      FConnection.LockedByThread := Self;
       FConnection.Query(SQL, True, lcUserFiredSQL);
       for QueryResult in FConnection.GetLastResults do
         FResults.Add(QueryResult);
@@ -2962,9 +2965,11 @@ begin
       Inc(FQueryNetTime, FConnection.LastQueryNetworkDuration);
       Inc(FRowsAffected, FConnection.RowsAffected);
       Inc(FRowsFound, FConnection.RowsFound);
+      FConnection.LockedByThread := nil;
       Synchronize(AfterQuery);
     except
       on E:EDatabaseError do begin
+        FConnection.LockedByThread := nil;
         if FStopOnErrors or (i = FBatch.Count - 1) then begin
           FErrorMessage := E.Message;
           Break;
@@ -2995,7 +3000,6 @@ end;
 
 procedure TQueryThread.BatchFinished;
 begin
-  FConnection.LockedByThread := nil;
   MainForm.FinishedQueryExecution(Self);
 end;
 
