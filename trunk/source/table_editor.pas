@@ -282,7 +282,7 @@ begin
   if DBObject.Name = '' then begin
     // Creating new table
     editName.Text := '';
-    if DBObject.Connection.IsMySQL then
+    if DBObject.Connection.Parameters.NetTypeGroup = ngMySQL then
       comboCollation.ItemIndex := comboCollation.Items.IndexOf(MainForm.ActiveConnection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
     PageControlMain.ActivePage := tabBasic;
   end else begin
@@ -964,7 +964,7 @@ begin
     // No editor for very first column and checkbox columns
     0: Result := False;
     3: Result := Col.DataType.HasLength;
-    4,6: Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.IsMySQL);
+    4,6: Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
     // No editing of collation allowed if "Convert data" was checked
     9: Result := not chkCharsetConvert.Checked;
     else Result := True;

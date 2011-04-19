@@ -437,8 +437,6 @@ type
       function ConnectionInfo: TStringList;
       function GetLastResults: TDBQueryList; virtual; abstract;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; virtual; abstract;
-      function IsMySQL: Boolean;
-      function IsMSSQL: Boolean;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
       procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
@@ -2649,18 +2647,6 @@ begin
 end;
 
 
-function TDBConnection.IsMySQL: Boolean;
-begin
-  Result := Self is TMySQLConnection;
-end;
-
-
-function TDBConnection.IsMSSQL: Boolean;
-begin
-  Result := Self is TAdoDBConnection;
-end;
-
-
 procedure TDBConnection.ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
 var
   ColSpec: String;
@@ -3076,10 +3062,10 @@ end;
 function TDBConnection.ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Cardinal): String;
 begin
   Result := QueryType + ' ';
-  if IsMSSQL then
+  if FParameters.NetTypeGroup = ngMSSQL then
     Result := Result + 'TOP('+IntToStr(Limit)+') ';
   Result := Result + QueryBody;
-  if IsMySQL then begin
+  if FParameters.NetTypeGroup = ngMySQL then begin
     Result := Result + ' LIMIT ';
     if Offset > 0 then
       Result := Result + IntToStr(Offset) + ', ';

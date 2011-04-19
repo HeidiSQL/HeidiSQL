@@ -2931,7 +2931,7 @@ begin
     end else begin
       // Concat queries up to a size of max_allowed_packet
       if MaxAllowedPacket = 0 then begin
-        if FConnection.IsMySQL then begin
+        if FConnection.Parameters.NetTypeGroup = ngMySQL then begin
           FConnection.LockedByThread := Self;
           MaxAllowedPacket := MakeInt(FConnection.GetVar('SHOW VARIABLES LIKE '+esc('max_allowed_packet'), 1));
           FConnection.LockedByThread := nil;
