@@ -1008,7 +1008,6 @@ type
     function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
     procedure ActivateFileLogging;
     procedure DeactivateFileLogging;
-    procedure TrimSQLLog;
     procedure RefreshTree(FocusNewObject: TDBObject=nil);
     function FindDBObjectNode(Tree: TBaseVirtualTree; Obj: TDBObject): PVirtualNode;
     function FindDBNode(Tree: TBaseVirtualTree; db: String): PVirtualNode;
@@ -3751,7 +3750,7 @@ end;
 procedure TMainForm.LogSQL(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil);
 var
   snip, IsSQL: Boolean;
-  Len: Integer;
+  Len, i: Integer;
   Sess: String;
 begin
   if csDestroying in ComponentState then
@@ -3786,7 +3785,16 @@ begin
   Msg := StringReplace(Msg, #13, ' ', [rfReplaceAll]);
   Msg := StringReplace(Msg, '  ', ' ', [rfReplaceAll]);
   SynMemoSQLLog.Lines.Add(Msg);
-  TrimSQLLog;
+
+  // Delete first line(s) in SQL log and adjust LineNumberStart in gutter
+  i := 0;
+  while SynMemoSQLLog.Lines.Count > prefLogsqlnum do begin
+    SynMemoSQLLog.Lines.Delete(0);
+    Inc(i);
+  end;
+  // Increase first displayed number in gutter so it doesn't lie about the log entries
+  if i > 0 then
+    SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + i;
 
   // Scroll to last line and repaint
   SynMemoSQLLog.GotoLineAndCenter(SynMemoSQLLog.Lines.Count);
@@ -3805,26 +3813,6 @@ begin
       MessageDlg('Error writing to session log file:'+CRLF+FileNameSessionLog+CRLF+CRLF+E.Message+CRLF+CRLF+'Logging is disabled now.', mtError, [mbOK], 0);
     end;
   end;
-end;
-
-
-{**
-  Delete first line(s) in SQL log and adjust LineNumberStart in gutter
-  Called by LogSQL and preferences dialog
-}
-procedure TMainForm.TrimSQLLog;
-var
-  i : Integer;
-begin
-  i := 0;
-  while SynMemoSQLLog.Lines.Count > prefLogsqlnum do
-  begin
-    SynMemoSQLLog.Lines.Delete(0);
-    inc(i);
-  end;
-  // Increase first displayed number in gutter so it doesn't lie about the log entries
-  if i > 0 then
-    SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + i;
 end;
 
 

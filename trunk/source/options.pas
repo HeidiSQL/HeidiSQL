@@ -336,7 +336,6 @@ begin
   Mainform.prefLogInfos := chkLogEventInfo.Checked;
   Mainform.prefLogDebug := chkLogEventDebug.Checked;
   Mainform.prefDirnameSessionLogs := editLogDir.Text;
-  Mainform.TrimSQLLog;
   if chkLogToFile.Checked then
     Mainform.ActivateFileLogging
   else if Mainform.prefLogToFile then
