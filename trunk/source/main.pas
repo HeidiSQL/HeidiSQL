@@ -873,6 +873,7 @@ type
     FOperationTicker: Cardinal;
     FOperatingGrid: TBaseVirtualTree;
     FActiveDbObj: TDBObject;
+    FCriticalSection: TRTLCriticalSection;
 
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
@@ -1587,6 +1588,8 @@ begin
   FTreeRefreshInProgress := False;
 
   FileEncodings := Explode(',', 'Auto detect (may fail),ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
+
+  InitializeCriticalSection(FCriticalSection);
 end;
 
 
@@ -3784,6 +3787,8 @@ begin
   Msg := StringReplace(Msg, #10, ' ', [rfReplaceAll]);
   Msg := StringReplace(Msg, #13, ' ', [rfReplaceAll]);
   Msg := StringReplace(Msg, '  ', ' ', [rfReplaceAll]);
+
+  EnterCriticalSection(FCriticalSection);
   SynMemoSQLLog.Lines.Add(Msg);
 
   // Delete first line(s) in SQL log and adjust LineNumberStart in gutter
@@ -3813,6 +3818,7 @@ begin
       MessageDlg('Error writing to session log file:'+CRLF+FileNameSessionLog+CRLF+CRLF+E.Message+CRLF+CRLF+'Logging is disabled now.', mtError, [mbOK], 0);
     end;
   end;
+  LeaveCriticalSection(FCriticalSection);
 end;
 
 
