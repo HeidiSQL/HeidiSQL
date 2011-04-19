@@ -2233,7 +2233,7 @@ begin
   Tab := GetQueryTabByNumber(Thread.TabNumber);
 
   // Create result tabs
-  for Results in ActiveConnection.GetLastResults do begin
+  for Results in Thread.Connection.GetLastResults do begin
     NewTab := TResultTab.Create(Tab);
     Tab.ResultTabs.Add(NewTab);
     NewTab.Results := Results;

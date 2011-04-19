@@ -87,7 +87,6 @@ type
     FQueryNetTime: Cardinal;
     FRowsAffected: Int64;
     FRowsFound: Int64;
-    FResults: TDBQueryList;
   private
     procedure BeforeQuery;
     procedure AfterQuery;
@@ -97,7 +96,6 @@ type
     property Batch: TSQLBatch read FBatch;
     property TabNumber: Integer read FTabNumber;
     property BatchPosition: Integer read FBatchPosition;
-    property Results: TDBQueryList read FResults;
     property QueriesInPacket: Integer read FQueriesInPacket;
     property QueryTime: Cardinal read FQueryTime;
     property QueryNetTime: Cardinal read FQueryNetTime;
@@ -2906,7 +2904,6 @@ begin
   FErrorMessage := '';
   FBatchInOneGo := MainForm.actBatchInOneGo.Checked;
   FStopOnErrors := MainForm.actQueryStopOnErrors.Checked;
-  FResults := TDBQueryList.Create;
   FreeOnTerminate := True;
   Priority := tpNormal;
 end;
@@ -2915,14 +2912,16 @@ end;
 procedure TQueryThread.Execute;
 var
   SQL: String;
-  i, BatchStartOffset: Integer;
+  i, BatchStartOffset, ResultCount: Integer;
   PacketSize, MaxAllowedPacket: Int64;
   QueryResult: TDBQuery;
+  DoStoreResult: Boolean;
 begin
   inherited;
 
   MaxAllowedPacket := 0;
   i := 0;
+  ResultCount := 0;
 
   while i < FBatch.Count do begin
     SQL := '';
@@ -2956,9 +2955,9 @@ begin
     Synchronize(BeforeQuery);
     try
       FConnection.LockedByThread := Self;
-      FConnection.Query(SQL, True, lcUserFiredSQL);
-      for QueryResult in FConnection.GetLastResults do
-        FResults.Add(QueryResult);
+      DoStoreResult := ResultCount < Mainform.prefMaxQueryResults;
+      FConnection.Query(SQL, DoStoreResult, lcUserFiredSQL);
+      Inc(ResultCount, FConnection.ResultCount);
       FBatchPosition := i;
       Inc(FQueryTime, FConnection.LastQueryDuration);
       Inc(FQueryNetTime, FConnection.LastQueryNetworkDuration);
