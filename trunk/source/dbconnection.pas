@@ -1918,7 +1918,7 @@ end;
 function TDBConnection.DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
 begin
   Result := Identifier;
-  if (Result[1] = FQuoteChar) and (Result[Length(Identifier)] = FQuoteChar) then
+  if (Length(Identifier)>0) and (Result[1] = FQuoteChar) and (Result[Length(Identifier)] = FQuoteChar) then
     Result := Copy(Result, 2, Length(Result)-2);
   if Glue <> #0 then
     Result := StringReplace(Result, FQuoteChar+Glue+FQuoteChar, Glue, [rfReplaceAll]);
