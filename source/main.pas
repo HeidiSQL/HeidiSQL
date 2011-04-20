@@ -6710,12 +6710,8 @@ begin
     lntNone: begin
         Screen.Cursor := crHourglass;
         ShowStatusMsg('Reading Databases...');
-        if Sender.Tag = VTREE_NOTLOADED_PURGECACHE then try
+        if Sender.Tag = VTREE_NOTLOADED_PURGECACHE then
           DBObj.Connection.RefreshAllDatabases;
-        except
-          on E:EDatabaseError do
-            MessageDlg(E.Message+CRLF+CRLF+'You have no privilege to execute SHOW DATABASES. Please specify one or more databases in your session settings, if you want to see any.', mtError, [mbOK], 0);
-        end;
         ShowStatusMsg;
         Sender.Tag := VTREE_LOADED;
         InvalidateVT(ListDatabases, VTREE_NOTLOADED, True);

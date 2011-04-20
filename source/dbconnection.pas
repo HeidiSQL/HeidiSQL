@@ -1700,8 +1700,11 @@ begin
     except on E:EDatabaseError do
       try
         FAllDatabases := GetCol('SELECT '+QuoteIdent('SCHEMA_NAME')+' FROM '+QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+QuoteIdent('SCHEMATA')+' ORDER BY '+QuoteIdent('SCHEMA_NAME'));
-      except on E:EDatabaseError do
-        FAllDatabases := TStringList.Create;
+      except
+        on E:EDatabaseError do begin
+          FAllDatabases := TStringList.Create;
+          Log(lcError, 'Database names not available due to missing privileges for user '+CurrentUserHostCombination+'.');
+        end;
       end;
     end;
     Result := FAllDatabases;
