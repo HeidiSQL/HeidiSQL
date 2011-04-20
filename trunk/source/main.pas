@@ -7063,6 +7063,7 @@ procedure TMainForm.RefreshTree(FocusNewObject: TDBObject=nil);
 var
   DBNode: PVirtualNode;
   OnlyDBNode: Boolean;
+  SessNode: PVirtualNode;
 begin
   // This refreshes exactly one session node and all its db and table nodes.
   // Also, tries to focus the previous focused object, if present.
@@ -7082,6 +7083,9 @@ begin
     if not OnlyDBNode then begin
       FocusNewObject.Connection.ClearAllDbObjects;
       FocusNewObject.Connection.RefreshAllDatabases;
+      SessNode := GetRootNode(DBtree, FocusNewObject.Connection);
+      if Assigned(SessNode) then
+        DBtree.ReinitChildren(SessNode, False);
     end else begin
       FocusNewObject.Connection.ClearDbObjects(FocusNewObject.Database);
       DBNode := FindDbNode(DBtree, FocusNewObject.Database);
