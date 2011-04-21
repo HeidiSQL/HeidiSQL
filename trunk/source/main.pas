@@ -1552,6 +1552,9 @@ begin
   ProgressBarStatus.Parent := StatusBar;
   ProgressBarStatus.Visible := False;
 
+  // Create critical section variable, used in LogSQL
+  InitializeCriticalSection(FCriticalSection);
+
   // SynMemo font, hightlighting and shortcuts
   SetupSynEditors;
 
@@ -1588,8 +1591,6 @@ begin
   FTreeRefreshInProgress := False;
 
   FileEncodings := Explode(',', 'Auto detect (may fail),ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
-
-  InitializeCriticalSection(FCriticalSection);
 end;
 
 
