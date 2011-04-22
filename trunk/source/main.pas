@@ -4023,9 +4023,12 @@ begin
 
     try
       ShowStatusMsg('Fetching rows ...');
-      if not Assigned(DataGridResult) then
+      // Result object must be of the right vendor type
+      if not RefreshingData then begin
+        FreeAndNil(DataGridResult);
         DataGridResult := DBObj.Connection.Parameters.CreateQuery(Self);
-      DataGridResult.Connection := ActiveConnection;
+      end;
+      DataGridResult.Connection := DBObj.Connection;
       DataGridResult.SQL := Select;
       DataGridResult.Execute(Offset > 0);
       DataGridResult.ColumnOrgNames := WantedColumnOrgnames;
