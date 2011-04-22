@@ -7162,21 +7162,25 @@ end;
 
 procedure TMainForm.editFilterSearchChange(Sender: TObject);
 var
-  Clause: String;
+  Clause, Line: String;
   i: Integer;
   ed: TEdit;
 begin
   ed := TEdit(Sender);
   Clause := '';
   if ed.Text <> '' then begin
+    Line := '';
     for i:=0 to SelectedTableColumns.Count-1 do begin
       if i > 0 then
-        Clause := Clause + ' OR ';
-      Clause := Clause + ActiveConnection.QuoteIdent(SelectedTableColumns[i].Name) + ' LIKE ' + esc('%'+ed.Text+'%');
+        Line := Line + ' OR ';
+      Line := Line + ActiveConnection.QuoteIdent(SelectedTableColumns[i].Name) + ' LIKE ' + esc('%'+ed.Text+'%');
+      // Add linebreak near right window edge
+      if Length(Line) > SynMemoFilter.CharsInWindow-30 then begin
+        Clause := Clause + Line + CRLF;
+        Line := '';
+      end;
     end;
   end;
-  // Add linebreaks at near right window edge
-  Clause := WrapText(Clause, SynMemoFilter.CharsInWindow-5);
   SynMemoFilter.UndoList.AddGroupBreak;
   SynMemoFilter.SelectAll;
   SynMemoFilter.SelText := Clause;
