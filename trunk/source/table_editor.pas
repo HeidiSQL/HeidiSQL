@@ -484,18 +484,6 @@ begin
   end;
   AddQuery;
 
-  // Special case for removed default values on columns, which can neither be done in
-  // ALTER TABLE ... CHANGE COLUMN query, as there is no "no default" clause, nor by
-  // appending an ALTER COLUMN ... DROP DEFAULT, without getting an "unknown column" error
-  for i:=0 to FColumns.Count-1 do begin
-    if (FColumns[i].FStatus = esModified)
-      and (FColumns[i].DefaultType = cdtNothing)
-      and (FColumns[i].DataType.HasDefault)
-      then
-      Specs.Add('ALTER '+DBObject.Connection.QuoteIdent(FColumns[i].OldName)+' DROP DEFAULT');
-  end;
-  AddQuery;
-
   if editName.Text <> DBObject.Name then
     Specs.Add('RENAME TO ' + DBObject.Connection.QuoteIdent(editName.Text));
   if memoComment.Tag = ModifiedFlag then
@@ -618,6 +606,20 @@ begin
   end;
 
   AddQuery;
+
+  // Special case for removed default values on columns, which can neither be done in
+  // ALTER TABLE ... CHANGE COLUMN query, as there is no "no default" clause, nor by
+  // appending an ALTER COLUMN ... DROP DEFAULT, without getting an "unknown column" error.
+  // Also, do this after the data type was altered, if from TEXT > VARCHAR e.g.
+  for i:=0 to FColumns.Count-1 do begin
+    if (FColumns[i].FStatus = esModified)
+      and (FColumns[i].DefaultType = cdtNothing)
+      and (FColumns[i].DataType.HasDefault)
+      then
+      Specs.Add('ALTER '+DBObject.Connection.QuoteIdent(FColumns[i].OldName)+' DROP DEFAULT');
+  end;
+  AddQuery;
+
   FreeAndNil(Specs);
   Mainform.ShowStatusMsg;
   Mainform.ProgressBarStatus.Hide;
