@@ -1847,29 +1847,6 @@ object MainForm: TMainForm
         Tag = 45
         Action = actExportTables
       end
-      object N11: TMenuItem
-        Caption = '-'
-      end
-      object MenuCopyCSV: TMenuItem
-        Tag = 48
-        Action = actCopyAsCSV
-      end
-      object CopyContentsasHTMLTable1: TMenuItem
-        Tag = 49
-        Action = actCopyAsHTML
-      end
-      object CopyasXMLdata1: TMenuItem
-        Action = actCopyAsXML
-      end
-      object CopyAsSQLdata: TMenuItem
-        Action = actCopyAsSQL
-      end
-      object CopyselectedrowsasLaTeXtable1: TMenuItem
-        Action = actCopyAsLaTeX
-      end
-      object CopyselectedrowsasWikitable2: TMenuItem
-        Action = actCopyAsWiki
-      end
       object Exportdata1: TMenuItem
         Action = actExportData
       end
@@ -1940,13 +1917,6 @@ object MainForm: TMainForm
       ShortCut = 16451
       OnExecute = actCopyOrCutExecute
     end
-    object actCopyAsSQL: TAction
-      Category = 'Export/Import'
-      Caption = 'Copy selected rows as SQL'
-      Enabled = False
-      ImageIndex = 114
-      OnExecute = actCopyDataExecute
-    end
     object actPaste: TAction
       Tag = 58
       Category = 'Various'
@@ -2003,40 +1973,11 @@ object MainForm: TMainForm
       ShortCut = 24646
       OnExecute = actTableToolsExecute
     end
-    object actCopyAsHTML: TAction
-      Tag = 49
-      Category = 'Export/Import'
-      Caption = 'Copy selected rows as HTML'
-      Enabled = False
-      ImageIndex = 32
-      OnExecute = actCopyDataExecute
-    end
-    object actCopyAsCSV: TAction
-      Tag = 48
-      Category = 'Export/Import'
-      Caption = 'Copy selected rows as CSV'
-      Enabled = False
-      ImageIndex = 49
-      OnExecute = actCopyDataExecute
-    end
-    object actCopyAsXML: TAction
-      Category = 'Export/Import'
-      Caption = 'Copy selected rows as XML'
-      Enabled = False
-      ImageIndex = 48
-      OnExecute = actCopyDataExecute
-    end
-    object actCopyAsLaTeX: TAction
-      Category = 'Export/Import'
-      Caption = 'Copy selected rows as LaTeX table'
-      Enabled = False
-      ImageIndex = 153
-      OnExecute = actCopyDataExecute
-    end
     object actExportData: TAction
       Category = 'Export/Import'
-      Caption = 'Export grid data to file ...'
+      Caption = 'Export grid rows ...'
       Enabled = False
+      Hint = 'Export rows to file or copy to clipboard, in various formats'
       ImageIndex = 20
       OnExecute = actExportDataExecute
     end
@@ -2603,13 +2544,6 @@ object MainForm: TMainForm
       Hint = 'Save contents to local file ...'
       ImageIndex = 10
       OnExecute = actDataSaveBlobToFileExecute
-    end
-    object actCopyAsWiki: TAction
-      Category = 'Export/Import'
-      Caption = 'Copy selected rows as Wiki table'
-      Enabled = False
-      ImageIndex = 154
-      OnExecute = actCopyDataExecute
     end
     object actDisconnect: TAction
       Category = 'File'
@@ -8406,6 +8340,58 @@ object MainForm: TMainForm
     object setNULL1: TMenuItem
       Action = actDataSetNull
     end
+    object DataInsertValue: TMenuItem
+      Caption = 'Insert value'
+      ImageIndex = 80
+      OnClick = DataInsertValueClick
+      object DataDateTime: TMenuItem
+        Caption = 'datetime'
+        Hint = 'Insert datetime-value'
+        ImageIndex = 80
+        OnClick = InsertValue
+      end
+      object DataDate: TMenuItem
+        Caption = 'date'
+        Hint = 'Insert date-value'
+        ImageIndex = 80
+        OnClick = InsertValue
+      end
+      object DataTime: TMenuItem
+        Caption = 'time'
+        Hint = 'Insert time-value'
+        ImageIndex = 80
+        OnClick = InsertValue
+      end
+      object DataYear: TMenuItem
+        Caption = 'year'
+        Hint = 'Insert year-value'
+        ImageIndex = 80
+        OnClick = InsertValue
+      end
+      object DataUNIXtimestamp: TMenuItem
+        Caption = 'unix timestamp'
+        Hint = 'Insert UNIX timestamp'
+        ImageIndex = 80
+        OnClick = InsertValue
+      end
+      object N2: TMenuItem
+        Caption = '-'
+      end
+      object DataGUID: TMenuItem
+        Caption = 'GUID'
+        ImageIndex = 112
+        OnClick = InsertValue
+      end
+    end
+    object ViewasHTML1: TMenuItem
+      Action = actDataPreview
+    end
+    object SaveBLOBtofile1: TMenuItem
+      Action = actDataSaveBlobToFile
+    end
+    object InsertfilesintoBLOBfields3: TMenuItem
+      Action = actInsertFiles
+    end
     object N4a: TMenuItem
       Caption = '-'
     end
@@ -8561,90 +8547,8 @@ object MainForm: TMainForm
     object N9a: TMenuItem
       Caption = '-'
     end
-    object Copytableas1: TMenuItem
-      Tag = 46
-      Caption = 'Copy data'
-      object CopyasCSVData1: TMenuItem
-        Tag = 48
-        Action = actCopyAsCSV
-      end
-      object CopycontentsasHTML1: TMenuItem
-        Tag = 49
-        Action = actCopyAsHTML
-      end
-      object CopyasXMLdata3: TMenuItem
-        Action = actCopyAsXML
-      end
-      object CopygriddataasSQL2: TMenuItem
-        Action = actCopyAsSQL
-      end
-      object CopyselectedrowsasLaTeXtable2: TMenuItem
-        Action = actCopyAsLaTeX
-      end
-      object CopyselectedrowsasWikitable1: TMenuItem
-        Action = actCopyAsWiki
-      end
-    end
     object Exportdata2: TMenuItem
       Action = actExportData
-    end
-    object N12: TMenuItem
-      Caption = '-'
-    end
-    object DataInsertValue: TMenuItem
-      Caption = 'Insert value'
-      ImageIndex = 80
-      OnClick = DataInsertValueClick
-      object DataDateTime: TMenuItem
-        Caption = 'datetime'
-        Hint = 'Insert datetime-value'
-        ImageIndex = 80
-        OnClick = InsertValue
-      end
-      object DataDate: TMenuItem
-        Caption = 'date'
-        Hint = 'Insert date-value'
-        ImageIndex = 80
-        OnClick = InsertValue
-      end
-      object DataTime: TMenuItem
-        Caption = 'time'
-        Hint = 'Insert time-value'
-        ImageIndex = 80
-        OnClick = InsertValue
-      end
-      object DataYear: TMenuItem
-        Caption = 'year'
-        Hint = 'Insert year-value'
-        ImageIndex = 80
-        OnClick = InsertValue
-      end
-      object DataUNIXtimestamp: TMenuItem
-        Caption = 'unix timestamp'
-        Hint = 'Insert UNIX timestamp'
-        ImageIndex = 80
-        OnClick = InsertValue
-      end
-      object N2: TMenuItem
-        Caption = '-'
-      end
-      object DataGUID: TMenuItem
-        Caption = 'GUID'
-        ImageIndex = 112
-        OnClick = InsertValue
-      end
-    end
-    object ViewasHTML1: TMenuItem
-      Action = actDataPreview
-    end
-    object SaveBLOBtofile1: TMenuItem
-      Action = actDataSaveBlobToFile
-    end
-    object InsertfilesintoBLOBfields3: TMenuItem
-      Action = actInsertFiles
-    end
-    object N19: TMenuItem
-      Caption = '-'
     end
     object menuSQLhelpData: TMenuItem
       Action = actSQLhelp
@@ -8705,18 +8609,6 @@ object MainForm: TMainForm
     OnTimer = actRefreshExecute
     Left = 72
     Top = 197
-  end
-  object SaveDialogExportData: TSaveDialog
-    DefaultExt = 'csv'
-    Filter = 
-      'Comma separated values (*.csv)|*.csv|Hypertext markup language (' +
-      '*.html)|*.html|Extensible markup language (*.xml)|*.xml|Structur' +
-      'ed query language (*.sql)|*.sql|LaTeX table (*.latex)|*.latex|Wi' +
-      'ki markup table (*.wiki)|*.wiki'
-    Options = [ofOverwritePrompt, ofEnableSizing]
-    OnTypeChange = SaveDialogExportDataTypeChange
-    Left = 40
-    Top = 128
   end
   object popupListHeader: TVTHeaderPopupMenu
     Images = ImageListMain
@@ -8966,20 +8858,6 @@ object MainForm: TMainForm
   end
   object SynEditRegexSearch1: TSynEditRegexSearch
     Left = 104
-    Top = 232
-  end
-  object SynExporterHTML1: TSynExporterHTML
-    Color = clWindow
-    DefaultFilter = 'HTML Documents (*.htm;*.html)|*.htm;*.html'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Courier New'
-    Font.Style = []
-    Highlighter = SynSQLSyn1
-    Title = 'Untitled'
-    UseBackground = False
-    Left = 136
     Top = 232
   end
   object BalloonHint1: TBalloonHint

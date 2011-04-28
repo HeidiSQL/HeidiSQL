@@ -29,18 +29,6 @@ type
     btnApply: TButton;
     tabSQL: TTabSheet;
     chkAutoReconnect: TCheckBox;
-    tabCSV: TTabSheet;
-    grpCSV: TGroupBox;
-    lblCSVSeparator: TLabel;
-    editCSVSeparator: TEdit;
-    editCSVEncloser: TEdit;
-    lblCSVTerminator: TLabel;
-    lblCSVEncloser: TLabel;
-    editCSVTerminator: TEdit;
-    lblCSVHintCR: TLabel;
-    lblCSVHintLF: TLabel;
-    lblCSVHintTAB: TLabel;
-    lblCSVHintEscaped: TLabel;
     tabData: TTabSheet;
     lblDataFont: TLabel;
     comboDataFontName: TComboBox;
@@ -87,9 +75,6 @@ type
     cboxSQLColForeground: TColorBox;
     SynMemoSQLSample: TSynMemo;
     SynSQLSynSQLSample: TSynSQLSyn;
-    lblCopyDataMaxSize: TLabel;
-    editCopyDataMaxSize: TEdit;
-    updownCopyDataMaxSize: TUpDown;
     chkSQLBold: TCheckBox;
     chkSQLItalic: TCheckBox;
     lblSQLColBackground: TLabel;
@@ -108,7 +93,6 @@ type
     grpSQLTabWidth: TGroupBox;
     editSQLTabWidth: TEdit;
     updownSQLTabWidth: TUpDown;
-    chkExportLocaleNumbers: TCheckBox;
     chkAllowMultiInstances: TCheckBox;
     tabLogging: TTabSheet;
     Label4: TLabel;
@@ -249,12 +233,6 @@ begin
   end;
   MainReg.WriteString(REGNAME_SQLCOLACTIVELINE, ColorToString(SynMemoSQLSample.ActiveLineColor));
 
-  MainReg.WriteString(REGNAME_CSV_SEPARATOR, editCSVSeparator.Text);
-  MainReg.WriteString(REGNAME_CSV_ENCLOSER, editCSVEncloser.Text);
-  MainReg.WriteString(REGNAME_CSV_TERMINATOR, editCSVTerminator.Text);
-  MainReg.WriteInteger(REGNAME_COPYMAXSIZE, updownCopyDataMaxSize.Position);
-  MainReg.WriteBool(REGNAME_EXPORT_LOCALENUMBERS, chkExportLocaleNumbers.Checked);
-
   MainReg.WriteInteger(REGNAME_MAXCOLWIDTH, updownMaxColWidth.Position);
   Mainform.prefGridRowcountStep := StrToIntDef(editGridRowCountStep.Text, DEFAULT_ROWSPERSTEP);
   Mainform.prefGridRowcountMax := StrToIntDef(editGridRowCountMax.Text, DEFAULT_MAXTOTALROWS);
@@ -341,10 +319,6 @@ begin
   else if Mainform.prefLogToFile then
     Mainform.DeactivateFileLogging;
   Mainform.prefMaxColWidth := updownMaxColWidth.Position;
-  Mainform.prefCSVSeparator := editCSVSeparator.Text;
-  Mainform.prefCSVEncloser := editCSVEncloser.Text;
-  Mainform.prefCSVTerminator := editCSVTerminator.Text;
-  Mainform.prefExportLocaleNumbers := chkExportLocaleNumbers.Checked;
   DatatypeCategories[Integer(dtcInteger)].Color := cboxNumeric.Selected;
   DatatypeCategories[Integer(dtcReal)].Color := cboxNumeric.Selected;
   DatatypeCategories[Integer(dtcText)].Color := cboxText.Selected;
@@ -448,13 +422,6 @@ begin
   editGridRowCountStep.Text := IntToStr(GetRegValue(REGNAME_ROWSPERSTEP, DEFAULT_ROWSPERSTEP));
   editGridRowCountMax.Text := IntToStr(GetRegValue(REGNAME_MAXTOTALROWS, DEFAULT_MAXTOTALROWS));
   updownGridRowsLineCount.Position := GetRegValue(REGNAME_GRIDROWSLINECOUNT, DEFAULT_GRIDROWSLINECOUNT);
-
-  // Export-Options:
-  editCSVSeparator.Text := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
-  editCSVEncloser.Text := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
-  editCSVTerminator.Text := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
-  updownCopyDataMaxSize.Position := GetRegValue(REGNAME_COPYMAXSIZE, DEFAULT_COPYMAXSIZE);
-  chkExportLocaleNumbers.Checked := GetRegValue(REGNAME_EXPORT_LOCALENUMBERS, DEFAULT_EXPORT_LOCALENUMBERS);
 
   // SQL:
   Mainform.SetupSynEditors;

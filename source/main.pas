@@ -88,7 +88,6 @@ type
     actExitApplication: TAction;
     Extra1: TMenuItem;
     FlushUserPrivileges1: TMenuItem;
-    MenuCopyCSV: TMenuItem;
     MenuExport: TMenuItem;
     N5: TMenuItem;
     MenuImportTextFile: TMenuItem;
@@ -108,10 +107,6 @@ type
     actMaintenance: TAction;
     menuMaintenance: TMenuItem;
     ImExport1: TMenuItem;
-    CopyContentsasHTMLTable1: TMenuItem;
-    actCopyAsHTML: TAction;
-    actCopyAsCSV: TAction;
-    N11: TMenuItem;
     actPrintList: TAction;
     actCopyTable: TAction;
     ControlBar1: TControlBar;
@@ -136,10 +131,8 @@ type
     Importsettings1: TMenuItem;
     OpenDialog2: TOpenDialog;
     menuSupportForum: TMenuItem;
-    actCopyAsXML: TAction;
     actExportData: TAction;
     Exportdata1: TMenuItem;
-    CopyasXMLdata1: TMenuItem;
     actExecuteCurrentQuery: TAction;
     actDataPreview: TAction;
     actInsertFiles: TAction;
@@ -219,8 +212,6 @@ type
     actDataCancelChanges: TAction;
     ToolButton1: TToolButton;
     actRemoveFilter: TAction;
-    actCopyAsSQL: TAction;
-    CopyAsSQLdata: TMenuItem;
     panelTop: TPanel;
     pnlLeft: TPanel;
     DBtree: TVirtualStringTree;
@@ -253,22 +244,18 @@ type
     N5a: TMenuItem;
     popupDataGrid: TPopupMenu;
     Refresh3: TMenuItem;
-    CopyasCSVData1: TMenuItem;
     N9a: TMenuItem;
     TimerConnected: TTimer;
-    N12: TMenuItem;
     popupSqlLog: TPopupMenu;
     Clear2: TMenuItem;
     Copy1: TMenuItem;
     N15: TMenuItem;
     N17: TMenuItem;
-    CopycontentsasHTML1: TMenuItem;
     Copy3: TMenuItem;
     Paste2: TMenuItem;
     N4a: TMenuItem;
     DataGrid: TVirtualStringTree;
     QueryGrid: TVirtualStringTree;
-    Copytableas1: TMenuItem;
     Delete1: TMenuItem;
     N6a: TMenuItem;
     QF1: TMenuItem;
@@ -291,9 +278,7 @@ type
     QF11: TMenuItem;
     QF9: TMenuItem;
     QF12: TMenuItem;
-    CopyasXMLdata3: TMenuItem;
     Exportdata2: TMenuItem;
-    SaveDialogExportData: TSaveDialog;
     N11a: TMenuItem;
     DataInsertValue: TMenuItem;
     DataDateTime: TMenuItem;
@@ -304,7 +289,6 @@ type
     DataGUID: TMenuItem;
     ViewasHTML1: TMenuItem;
     InsertfilesintoBLOBfields3: TMenuItem;
-    N19: TMenuItem;
     setNULL1: TMenuItem;
     menuExporttables: TMenuItem;
     popupListHeader: TVTHeaderPopupMenu;
@@ -387,7 +371,6 @@ type
     Cancelediting1: TMenuItem;
     DataPost1: TMenuItem;
     menuShowSizeColumn: TMenuItem;
-    CopygriddataasSQL2: TMenuItem;
     menuSelectBGColor: TMenuItem;
     actPreviousTab: TPreviousTab;
     actNextTab: TNextTab;
@@ -474,7 +457,6 @@ type
     tbtnDataNext: TToolButton;
     actDataShowNext: TAction;
     actDataShowAll: TAction;
-    SynExporterHTML1: TSynExporterHTML;
     QFvalues: TMenuItem;
     tabDatabases: TTabSheet;
     ListDatabases: TVirtualStringTree;
@@ -496,12 +478,6 @@ type
     btnPreviewClose: TToolButton;
     actDataSaveBlobToFile: TAction;
     SaveBLOBtofile1: TMenuItem;
-    actCopyAsLaTeX: TAction;
-    CopyselectedrowsasLaTeXtable1: TMenuItem;
-    CopyselectedrowsasLaTeXtable2: TMenuItem;
-    actCopyAsWiki: TAction;
-    CopyselectedrowsasWikitable1: TMenuItem;
-    CopyselectedrowsasWikitable2: TMenuItem;
     DataUNIXtimestamp: TMenuItem;
     btnClearFilters: TButton;
     popupClearFilters: TPopupMenu;
@@ -537,7 +513,6 @@ type
     procedure actApplyFilterExecute(Sender: TObject);
     procedure actClearEditorExecute(Sender: TObject);
     procedure actTableToolsExecute(Sender: TObject);
-    procedure actCopyDataExecute(Sender: TObject);
     procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
     procedure ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
@@ -614,7 +589,6 @@ type
     procedure popupHostPopup(Sender: TObject);
     procedure Saveastextfile1Click(Sender: TObject);
     procedure popupDBPopup(Sender: TObject);
-    procedure SaveDialogExportDataTypeChange(Sender: TObject);
     procedure popupDataGridPopup(Sender: TObject);
     procedure QFvaluesClick(Sender: TObject);
     procedure DataInsertValueClick(Sender: TObject);
@@ -938,9 +912,6 @@ type
     prefGridRowcountStep: Integer;
     prefGridRowcountMax: Integer;
     prefGridRowsLineCount: Word;
-    prefCSVSeparator: String;
-    prefCSVEncloser: String;
-    prefCSVTerminator: String;
     prefLogToFile: Boolean;
     prefLogErrors: Boolean;
     prefLogUserSQL: Boolean;
@@ -952,7 +923,6 @@ type
     prefEnableEnumEditor: Boolean;
     prefEnableSetEditor: Boolean;
     prefEnableNullBG: Boolean;
-    prefExportLocaleNumbers: Boolean;
     prefNullColorDefault: TColor;
     prefNullBG: TColor;
     prefDisplayBars: Boolean;
@@ -1052,7 +1022,7 @@ implementation
 
 uses
   About, printlist, mysql_structures, UpdateCheck, uVistaFuncs, runsqlfile,
-  column_selection, data_sorting, grideditlinks, jpeg, GIFImg;
+  column_selection, data_sorting, grideditlinks, ExportGrid, jpeg, GIFImg;
 
 
 
@@ -1484,10 +1454,6 @@ begin
   // Activate logging
   if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
     ActivateFileLogging;
-  prefCSVSeparator := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
-  prefCSVEncloser := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
-  prefCSVTerminator := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
-  prefExportLocaleNumbers := GetRegValue(REGNAME_EXPORT_LOCALENUMBERS, DEFAULT_EXPORT_LOCALENUMBERS);
   prefRememberFilters := GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
   if GetRegValue(REGNAME_LOG_HORIZONTALSCROLLBAR, SynMemoSQLLog.ScrollBars = ssBoth) then
     menuLogHorizontalScrollbar.OnClick(menuLogHorizontalScrollbar);
@@ -2394,76 +2360,14 @@ begin
 end;
 
 
-procedure TMainForm.actCopyDataExecute(Sender: TObject);
-var
-  S, HTML: TMemoryStream;
-  act: TAction;
-  Content: AnsiString;
-  ExportFormat: TGridExportFormat;
-begin
-  // Copy data in focused grid as CSV
-  Screen.Cursor := crHourglass;
-  S := TMemoryStream.Create;
-  try
-    act := Sender as TAction;
-    if act = actCopyAsCSV then
-      ExportFormat := efCSV
-    else if act = actCopyAsHTML then
-      ExportFormat := efHTML
-    else if act = actCopyAsXML then
-      ExportFormat := efXML
-    else if act = actCopyAsSQL then
-      ExportFormat := efSQL
-    else if act = actCopyAsLaTeX then
-      ExportFormat := efLaTeX
-    else if act = actCopyAsWiki then
-      ExportFormat := efWiki
-    else
-      ExportFormat := efUnknown;
-    GridExport(ActiveGrid, S, ExportFormat);
-    case ExportFormat of
-      efSQL: begin
-        SetLength(Content, S.Size);
-        S.Position := 0;
-        S.Read(PAnsiChar(Content)^, S.Size);
-        SynExporterHTML1.ExportAll(Explode(CRLF, UTF8ToString(Content)));
-        HTML := TMemoryStream.Create;
-        SynExporterHTML1.SaveToStream(HTML);
-      end;
-      efHTML: HTML := S;
-      else HTML := nil;
-    end;
-    StreamToClipboard(S, HTML, (ExportFormat=efHTML) and (HTML <> nil));
-  finally
-    ShowStatusMsg('Freeing data...');
-    S.Free;
-    ShowStatusMsg;
-    Screen.Cursor := crDefault;
-  end;
-end;
-
-
 procedure TMainForm.actExportDataExecute(Sender: TObject);
 var
-  Dialog: TSaveDialog;
-  FS: TFileStream;
-  ExportFormat: TGridExportFormat;
+  ExportDialog: TfrmExportGrid;
 begin
   // Save data in current dataset into various text file formats
-  Dialog := SaveDialogExportData;
-  Dialog.FileName := BestTableName(GridResult(ActiveGrid));
-  Dialog.Title := 'Export result set from '+Dialog.Filename+'...';
-  if Dialog.Execute and (Dialog.FileName <> '') then try
-    Screen.Cursor := crHourGlass;
-    ExportFormat := TGridExportFormat(Dialog.FilterIndex);
-    FS := TFileStream.Create(Dialog.FileName, fmCreate or fmOpenWrite);
-    GridExport(ActiveGrid, FS, ExportFormat);
-  finally
-    ShowStatusMsg('Freeing data...');
-    FreeAndNil(FS);
-    ShowStatusMsg;
-    Screen.Cursor := crDefault;
-  end;
+  ExportDialog := TfrmExportGrid.Create(Self);
+  ExportDialog.Grid := ActiveGrid;
+  ExportDialog.ShowModal;
 end;
 
 
@@ -4425,12 +4329,6 @@ begin
   actDataPreview.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
 
   // Activate export-options if we're on Data- or Query-tab
-  actCopyAsCSV.Enabled := inDataOrQueryTabNotEmpty;
-  actCopyAsHTML.Enabled := inDataOrQueryTabNotEmpty;
-  actCopyAsXML.Enabled := inDataOrQueryTabNotEmpty;
-  actCopyAsSQL.Enabled := inDataOrQueryTabNotEmpty;
-  actCopyAsLaTeX.Enabled := inDataOrQueryTabNotEmpty;
-  actCopyAsWiki.Enabled := inDataOrQueryTabNotEmpty;
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
   actDataSetNull.Enabled := inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
@@ -5383,23 +5281,6 @@ begin
       MessageDlg(E.message, mtError, [mbOK], 0);
     end;
     Screen.Cursor := crDefault;
-  end;
-end;
-
-
-
-
-procedure TMainForm.SaveDialogExportDataTypeChange(Sender: TObject);
-begin
-  // Set default file-extension of saved file and options on the dialog to show
-  with SaveDialogExportData do begin
-    Case FilterIndex of
-      1: DefaultExt := 'csv';
-      2: DefaultExt := 'html';
-      3: DefaultExt := 'xml';
-      4: DefaultExt := 'sql';
-      5: DefaultExt := 'LaTeX';
-    end;
   end;
 end;
 
@@ -8361,6 +8242,7 @@ var
   ClpFormat: Word;
   ClpData: THandle;
   APalette: HPalette;
+  Exporter: TSynExporterHTML;
 begin
   // Copy text from a focused control to clipboard
   Success := False;
@@ -8401,12 +8283,15 @@ begin
       SynMemo := Control as TSynMemo;
       if SynMemo.SelAvail then begin
         // Create both text and HTML clipboard format, so rich text applications can paste highlighted SQL
-        SynExporterHTML1.ExportAll(Explode(CRLF, SynMemo.SelText));
+        Exporter := TSynExporterHTML.Create(Self);
+        Exporter.Highlighter := SynSQLSyn1;
+        Exporter.ExportAll(Explode(CRLF, SynMemo.SelText));
         if DoCut then SynMemo.CutToClipboard
         else SynMemo.CopyToClipboard;
         SQLStream := TMemoryStream.Create;
-        SynExporterHTML1.SaveToStream(SQLStream);
+        Exporter.SaveToStream(SQLStream);
         StreamToClipboard(nil, SQLStream, False);
+        Exporter.Free;
         Success := True;
       end;
     end;
