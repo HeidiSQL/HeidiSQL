@@ -152,6 +152,17 @@ const
   REGNAME_EXP_OUTFILES = 'ExportSQL_Filenames';
   REGNAME_EXP_OUTDIRS = 'ExportSQL_Directories';
   REGNAME_EXP_OUTPUT = 'ExportSQL_Output';
+  REGNAME_GEXP_OUTPUTCOPY = 'GridExportOutputCopy';
+  REGNAME_GEXP_OUTPUTFILE = 'GridExportOutputFile';
+  REGNAME_GEXP_FILENAME = 'GridExportFilename';
+  REGNAME_GEXP_RECENTFILES = 'GridExportRecentFiles';
+  REGNAME_GEXP_ENCODING = 'GridExportEncoding';
+  REGNAME_GEXP_FORMAT = 'GridExportFormat';
+  REGNAME_GEXP_SELECTION = 'GridExportSelection';
+  REGNAME_GEXP_COLUMNNAMES = 'GridExportColumnNames';
+  REGNAME_GEXP_SEPARATOR = 'GridExportSeparator';
+  REGNAME_GEXP_ENCLOSER = 'GridExportEncloser';
+  REGNAME_GEXP_TERMINATOR = 'GridExportTerminator';
   REGNAME_CSV_SEPARATOR = 'CSVSeparatorV2';
   DEFAULT_CSV_SEPARATOR = ';';
   REGNAME_CSV_ENCLOSER = 'CSVEncloserV2';
@@ -159,8 +170,6 @@ const
   REGNAME_CSV_TERMINATOR = 'CSVTerminator';
   DEFAULT_CSV_TERMINATOR = '\r\n';
   REGNAME_CSV_ESCAPER = 'CSVImportFieldEscaperV2';
-  REGNAME_EXPORT_LOCALENUMBERS = 'ExportLocaleNumberFormats';
-  DEFAULT_EXPORT_LOCALENUMBERS = False;
   REGNAME_CSV_WINDOWWIDTH = 'CSVImportWindowWidth';
   REGNAME_CSV_WINDOWHEIGHT = 'CSVImportWindowHeight';
   REGNAME_CSV_FILENAME = 'loadfilename';
@@ -170,8 +179,6 @@ const
   REGNAME_CSV_LOCALNUMBERS = 'CSVImportLocalNumbers';
   REGNAME_CSV_DUPLICATES = 'CSVImportDuplicateHandling';
   REGNAME_CSV_PARSEMETHOD = 'CSVImportParseMethod';
-  REGNAME_COPYMAXSIZE = 'CopyDataMaxSize';
-  DEFAULT_COPYMAXSIZE = 5;
   REGNAME_DO_UPDATECHECK = 'Updatecheck';
   DEFAULT_DO_UPDATECHECK = False;
   REGNAME_DO_UPDATECHECK_BUILDS = 'UpdatecheckBuilds';

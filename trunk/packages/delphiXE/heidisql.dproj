@@ -210,6 +210,9 @@
 				<Form>frmLogin</Form>
 			</DCCReference>
 			<DCCReference Include="..\..\source\Cromis.DirectoryWatch.pas"/>
+			<DCCReference Include="..\..\source\exportgrid.pas">
+				<Form>frmExportGrid</Form>
+			</DCCReference>
 			<RcCompile Include="..\..\res\updater.rc">
 				<Form>updater.res</Form>
 			</RcCompile>

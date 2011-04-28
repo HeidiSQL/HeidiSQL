@@ -1877,9 +1877,12 @@ end;
 function TDBConnection.UnescapeString(Text: String): String;
 begin
   // Return text with MySQL special sequences turned back to normal characters
-  Result := StringReplace(Text, '\r', #13, [rfReplaceAll]);
-  Result := StringReplace(Result, '\n', #10, [rfReplaceAll]);
+  Result := StringReplace(Text, '\0', #0, [rfReplaceAll]);
+  Result := StringReplace(Result, '\b', #8, [rfReplaceAll]);
   Result := StringReplace(Result, '\t', #9, [rfReplaceAll]);
+  Result := StringReplace(Result, '\n', #10, [rfReplaceAll]);
+  Result := StringReplace(Result, '\r', #13, [rfReplaceAll]);
+  Result := StringReplace(Result, '\Z', #26, [rfReplaceAll]);
   Result := StringReplace(Result, '''''', '''', [rfReplaceAll]);
 end;
 

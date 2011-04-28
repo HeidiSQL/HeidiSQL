@@ -38,7 +38,8 @@ uses
   searchreplace in '..\..\source\searchreplace.pas' {frmSearchReplace},
   event_editor in '..\..\source\event_editor.pas' {frmEventEditor: TFrame},
   loginform in '..\..\source\loginform.pas' {frmLogin},
-  Cromis.DirectoryWatch in '..\..\source\Cromis.DirectoryWatch.pas';
+  Cromis.DirectoryWatch in '..\..\source\Cromis.DirectoryWatch.pas',
+  exportgrid in '..\..\source\exportgrid.pas' {frmExportGrid};
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\version.RES}
