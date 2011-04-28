@@ -105,7 +105,8 @@ begin
     Found := False;
     while not Definitions.Eof do begin
       if Definitions.Col('Trigger') = DBObject.Name then begin
-        comboDefiner.Text := Definitions.Col('Definer');
+        // "Definer" column available since MySQL 5.0.17
+        comboDefiner.Text := Definitions.Col('Definer', True);
         comboTable.ItemIndex := comboTable.Items.IndexOf(Definitions.Col('Table'));
         comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(Definitions.Col('Timing')));
         comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(Definitions.Col('Event')));
