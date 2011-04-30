@@ -37,17 +37,20 @@ type
     comboEncoding: TComboBox;
     lblEncoding: TLabel;
     popupRecentFiles: TPopupMenu;
-    procedure menuCSVClick(Sender: TObject);
-    procedure editCSVRightButtonClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure editFilenameRightButtonClick(Sender: TObject);
+    procedure editFilenameChange(Sender: TObject);
+    procedure AddRecentFile(Sender: TObject);
+    procedure SelectRecentFile(Sender: TObject);
+    procedure popupRecentFilesPopup(Sender: TObject);
+    procedure menuCSVClick(Sender: TObject);
+    procedure editCSVRightButtonClick(Sender: TObject);
+    procedure editCSVChange(Sender: TObject);
     procedure ValidateControls(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
-    procedure editFilenameChange(Sender: TObject);
-    procedure FormShow(Sender: TObject);
-    procedure editCSVChange(Sender: TObject);
   private
     { Private declarations }
     FCSVEditor: TButtonedEdit;
@@ -55,8 +58,6 @@ type
     FGrid: TVirtualStringTree;
     FRecentFiles: TStringList;
     procedure SaveDialogTypeChange(Sender: TObject);
-    procedure FillRecentFiles;
-    procedure SelectRecentFile(Sender: TObject);
     function ExportFormat: TGridExportFormat;
   public
     { Public declarations }
@@ -79,7 +80,6 @@ begin
   radioOutputCopyToClipboard.Checked := GetRegValue(REGNAME_GEXP_OUTPUTCOPY, radioOutputCopyToClipboard.Checked);
   radioOutputFile.Checked := GetRegValue(REGNAME_GEXP_OUTPUTFILE, radioOutputFile.Checked);
   FRecentFiles := Explode(DELIM, GetRegValue(REGNAME_GEXP_RECENTFILES, ''));
-  FillRecentFiles;
   comboEncoding.Items.Assign(MainForm.FileEncodings);
   comboEncoding.Items.Delete(0); // Remove "Auto detect"
   comboEncoding.ItemIndex := GetRegValue(REGNAME_GEXP_ENCODING, 4);
@@ -99,6 +99,7 @@ begin
     MainReg.WriteBool(REGNAME_GEXP_OUTPUTCOPY, radioOutputCopyToClipboard.Checked);
     MainReg.WriteBool(REGNAME_GEXP_OUTPUTFILE, radioOutputFile.Checked);
     MainReg.WriteString(REGNAME_GEXP_FILENAME, editFilename.Text);
+    AddRecentFile(Sender);
     MainReg.WriteString(REGNAME_GEXP_RECENTFILES, ImplodeStr(DELIM, FRecentFiles));
     MainReg.WriteInteger(REGNAME_GEXP_ENCODING, comboEncoding.ItemIndex);
     MainReg.WriteInteger(REGNAME_GEXP_FORMAT, grpFormat.ItemIndex);
@@ -189,7 +190,6 @@ end;
 procedure TfrmExportGrid.editFilenameRightButtonClick(Sender: TObject);
 var
   Dialog: TSaveDialog;
-  idx: Integer;
 begin
   // Select file target
   Dialog := TSaveDialog.Create(Self);
@@ -212,14 +212,50 @@ begin
     if Dialog.FilterIndex <= grpFormat.Items.Count then
       grpFormat.ItemIndex := Dialog.FilterIndex-1;
     editFilename.Text := Dialog.FileName;
-    idx := FRecentFiles.IndexOf(editFilename.Text);
-    if idx > -1 then
-      FRecentFiles.Delete(idx);
-    FRecentFiles.Insert(0, editFilename.Text);
-    FillRecentFiles;
     ValidateControls(Sender);
   end;
   Dialog.Free;
+end;
+
+
+procedure TfrmExportGrid.popupRecentFilesPopup(Sender: TObject);
+var
+  Filename: String;
+  Menu: TPopupMenu;
+  Item: TMenuItem;
+begin
+  // Clear and populate drop down menu with recent files
+  Menu := Sender as TPopupMenu;
+  Menu.Items.Clear;
+  for Filename in FRecentFiles do begin
+    Item := TMenuItem.Create(Menu);
+    Menu.Items.Add(Item);
+    Item.Caption := Filename;
+    Item.Hint := Filename;
+    Item.OnClick := SelectRecentFile;
+    Item.Checked := Filename = editFilename.Text;
+  end;
+end;
+
+
+procedure TfrmExportGrid.AddRecentFile(Sender: TObject);
+var
+  i: Integer;
+begin
+  // Add selected file to file list, and sort it onto the top of the list
+  i := FRecentFiles.IndexOf(editFilename.Text);
+  if i > -1 then
+    FRecentFiles.Delete(i);
+  FRecentFiles.Insert(0, editFilename.Text);
+  for i:=FRecentFiles.Count-1 downto 10 do
+    FRecentFiles.Delete(i);
+end;
+
+
+procedure TfrmExportGrid.SelectRecentFile(Sender: TObject);
+begin
+  editFilename.Text := (Sender as TMenuItem).Hint;
+  AddRecentFile(Sender);
 end;
 
 
@@ -248,29 +284,6 @@ begin
     5: Dialog.DefaultExt := 'LaTeX';
     6: Dialog.DefaultExt := 'wiki';
   end;
-end;
-
-
-procedure TfrmExportGrid.FillRecentFiles;
-var
-  Filename: String;
-  Item: TMenuItem;
-begin
-  // Clear and populate drop down menu with recent files
-  popupRecentFiles.Items.Clear;
-  for Filename in FRecentFiles do begin
-    Item := TMenuItem.Create(popupRecentFiles);
-    popupRecentFiles.Items.Add(Item);
-    Item.Caption := Filename;
-    Item.Hint := Filename;
-    Item.OnClick := SelectRecentFile;
-  end;
-end;
-
-
-procedure TfrmExportGrid.SelectRecentFile(Sender: TObject);
-begin
-  editFilename.Text := (Sender as TMenuItem).Hint;
 end;
 
 

@@ -267,6 +267,7 @@ object frmExportGrid: TfrmExportGrid
   end
   object popupRecentFiles: TPopupMenu
     AutoHotkeys = maManual
+    OnPopup = popupRecentFilesPopup
     Left = 40
     Top = 320
   end
