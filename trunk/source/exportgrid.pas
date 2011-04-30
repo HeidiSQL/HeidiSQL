@@ -47,9 +47,11 @@ type
     procedure btnOKClick(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure editCSVChange(Sender: TObject);
   private
     { Private declarations }
     FCSVEditor: TButtonedEdit;
+    FCSVSeparator, FCSVEncloser, FCSVTerminator: String;
     FGrid: TVirtualStringTree;
     FRecentFiles: TStringList;
     procedure SaveDialogTypeChange(Sender: TObject);
@@ -83,9 +85,9 @@ begin
   comboEncoding.ItemIndex := GetRegValue(REGNAME_GEXP_ENCODING, 4);
   grpFormat.ItemIndex := GetRegValue(REGNAME_GEXP_FORMAT, grpFormat.ItemIndex);
   chkColumnHeader.Checked := GetRegValue(REGNAME_GEXP_COLUMNNAMES, chkColumnHeader.Checked);
-  editSeparator.Text := GetRegValue(REGNAME_GEXP_SEPARATOR, editSeparator.Text);
-  editEncloser.Text := GetRegValue(REGNAME_GEXP_ENCLOSER, editEncloser.Text);
-  editTerminator.Text := GetRegValue(REGNAME_GEXP_TERMINATOR, editTerminator.Text);
+  FCSVSeparator := GetRegValue(REGNAME_GEXP_SEPARATOR, editSeparator.Text);
+  FCSVEncloser := GetRegValue(REGNAME_GEXP_ENCLOSER, editEncloser.Text);
+  FCSVTerminator := GetRegValue(REGNAME_GEXP_TERMINATOR, editTerminator.Text);
   ValidateControls(Sender);
 end;
 
@@ -102,9 +104,9 @@ begin
     MainReg.WriteInteger(REGNAME_GEXP_FORMAT, grpFormat.ItemIndex);
     MainReg.WriteInteger(REGNAME_GEXP_SELECTION, grpSelection.ItemIndex);
     MainReg.WriteBool(REGNAME_GEXP_COLUMNNAMES, chkColumnHeader.Checked);
-    MainReg.WriteString(REGNAME_GEXP_SEPARATOR, editSeparator.Text);
-    MainReg.WriteString(REGNAME_GEXP_ENCLOSER, editEncloser.Text);
-    MainReg.WriteString(REGNAME_GEXP_TERMINATOR, editTerminator.Text);
+    MainReg.WriteString(REGNAME_GEXP_SEPARATOR, FCSVSeparator);
+    MainReg.WriteString(REGNAME_GEXP_ENCLOSER, FCSVEncloser);
+    MainReg.WriteString(REGNAME_GEXP_TERMINATOR, FCSVTerminator);
   end;
 end;
 
@@ -130,6 +132,28 @@ procedure TfrmExportGrid.ValidateControls(Sender: TObject);
 var
   Enable: Boolean;
 begin
+  // Display the actually used control characters, even if they cannot be changed
+  case ExportFormat of
+    efTSV: begin
+      if radioOutputCopyToClipboard.Checked then
+        editSeparator.Text := '\t'
+      else
+        editSeparator.Text := ',';
+      editEncloser.Text := '"';
+      editTerminator.Text := '\r\n';
+    end;
+    efCSV: begin
+      editSeparator.Text := FCSVSeparator;
+      editEncloser.Text := FCSVEncloser;
+      editTerminator.Text := FCSVTerminator;
+    end;
+    else begin
+      editSeparator.Text := '';
+      editEncloser.Text := '';
+      editTerminator.Text := '';
+    end;
+  end;
+
   Enable := ExportFormat = efCSV;
   lblSeparator.Enabled := Enable;
   editSeparator.Enabled := Enable;
@@ -196,6 +220,17 @@ begin
     ValidateControls(Sender);
   end;
   Dialog.Free;
+end;
+
+
+procedure TfrmExportGrid.editCSVChange(Sender: TObject);
+begin
+  // Remember csv settings
+  if (ExportFormat = efCSV) and TControl(Sender).Enabled then begin
+    FCSVSeparator := editSeparator.Text;
+    FCSVEncloser := editEncloser.Text;
+    FCSVTerminator := editTerminator.Text;
+  end;
 end;
 
 
@@ -340,21 +375,9 @@ begin
     end;
 
     efTSV, efCSV: begin
-      case ExportFormat of
-        efTSV: begin
-          if radioOutputCopyToClipboard.Checked then
-            Separator := #9
-          else
-            Separator := ',';
-          Encloser := '"';
-          Terminator := CRLF;
-        end;
-        efCSV: begin
-          Separator := GridData.Connection.UnescapeString(editSeparator.Text);
-          Encloser := GridData.Connection.UnescapeString(editEncloser.Text);
-          Terminator := GridData.Connection.UnescapeString(editTerminator.Text);
-        end;
-      end;
+      Separator := GridData.Connection.UnescapeString(editSeparator.Text);
+      Encloser := GridData.Connection.UnescapeString(editEncloser.Text);
+      Terminator := GridData.Connection.UnescapeString(editTerminator.Text);
       if chkColumnHeader.Checked then begin
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin

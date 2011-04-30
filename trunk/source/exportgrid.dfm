@@ -199,6 +199,7 @@ object frmExportGrid: TfrmExportGrid
       RightButton.Visible = True
       TabOrder = 1
       Text = ';'
+      OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
     object editEncloser: TButtonedEdit
@@ -211,6 +212,7 @@ object frmExportGrid: TfrmExportGrid
       RightButton.ImageIndex = 108
       RightButton.Visible = True
       TabOrder = 2
+      OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
     object editTerminator: TButtonedEdit
@@ -224,6 +226,7 @@ object frmExportGrid: TfrmExportGrid
       RightButton.Visible = True
       TabOrder = 3
       Text = '\r\n'
+      OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
   end
