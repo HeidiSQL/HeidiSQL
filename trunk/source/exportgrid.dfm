@@ -16,6 +16,7 @@ object frmExportGrid: TfrmExportGrid
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   DesignSize = (
     383
     351)

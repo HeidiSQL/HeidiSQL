@@ -46,6 +46,7 @@ type
     procedure ValidateControls(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     FCSVEditor: TButtonedEdit;
@@ -81,7 +82,6 @@ begin
   comboEncoding.Items.Delete(0); // Remove "Auto detect"
   comboEncoding.ItemIndex := GetRegValue(REGNAME_GEXP_ENCODING, 4);
   grpFormat.ItemIndex := GetRegValue(REGNAME_GEXP_FORMAT, grpFormat.ItemIndex);
-  grpSelection.ItemIndex := GetRegValue(REGNAME_GEXP_SELECTION, grpSelection.ItemIndex);
   chkColumnHeader.Checked := GetRegValue(REGNAME_GEXP_COLUMNNAMES, chkColumnHeader.Checked);
   editSeparator.Text := GetRegValue(REGNAME_GEXP_SEPARATOR, editSeparator.Text);
   editEncloser.Text := GetRegValue(REGNAME_GEXP_ENCLOSER, editEncloser.Text);
@@ -106,6 +106,16 @@ begin
     MainReg.WriteString(REGNAME_GEXP_ENCLOSER, editEncloser.Text);
     MainReg.WriteString(REGNAME_GEXP_TERMINATOR, editTerminator.Text);
   end;
+end;
+
+
+procedure TfrmExportGrid.FormShow(Sender: TObject);
+begin
+  // Show dialog. Expect "Grid" property to be set now by the caller.
+  grpSelection.Items.Clear;
+  grpSelection.Items.Add('Selected rows ('+FormatNumber(Grid.SelectedCount)+')');
+  grpSelection.Items.Add('All loaded rows ('+FormatNumber(Grid.RootNodeCount)+')');
+  grpSelection.ItemIndex := GetRegValue(REGNAME_GEXP_SELECTION, grpSelection.ItemIndex);
 end;
 
 
