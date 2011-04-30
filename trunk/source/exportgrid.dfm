@@ -53,7 +53,7 @@ object frmExportGrid: TfrmExportGrid
     Caption = 'Output format'
     ItemIndex = 0
     Items.Strings = (
-      'Excel TSV'
+      'Excel compatible'
       'Delimited text'
       'HTML table'
       'XML'

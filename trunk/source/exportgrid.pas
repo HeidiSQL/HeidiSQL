@@ -332,7 +332,10 @@ begin
     efTSV, efCSV: begin
       case ExportFormat of
         efTSV: begin
-          Separator := #9;
+          if radioOutputCopyToClipboard.Checked then
+            Separator := #9
+          else
+            Separator := ',';
           Encloser := '"';
           Terminator := CRLF;
         end;
