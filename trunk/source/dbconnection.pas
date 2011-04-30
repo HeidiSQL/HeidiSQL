@@ -230,7 +230,7 @@ type
       procedure SetStatus(Value: TEditingStatus);
     public
       Name, OldName: String;
-      DataType: TDBDatatype;
+      DataType, OldDataType: TDBDatatype;
       LengthSet: String;
       Unsigned, AllowNull, ZeroFill, LengthCustomized: Boolean;
       DefaultType: TColumnDefaultType;
@@ -2698,6 +2698,7 @@ begin
 
     // Datatype
     Col.DataType := GetDatatypeByName(UpperCase(rx.Match[2]));
+    Col.OldDataType := GetDatatypeByName(UpperCase(rx.Match[2]));
 
     // Length / Set
     // Various datatypes, e.g. BLOBs, don't have any length property
