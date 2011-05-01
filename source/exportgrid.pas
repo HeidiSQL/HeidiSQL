@@ -120,11 +120,33 @@ end;
 
 
 procedure TfrmExportGrid.FormShow(Sender: TObject);
+var
+  GridData: TDBQuery;
+  Node: PVirtualNode;
+  Col: TColumnIndex;
+  RowNum: PCardinal;
+  SelectionSize, AllSize: Int64;
 begin
   // Show dialog. Expect "Grid" property to be set now by the caller.
   grpSelection.Items.Clear;
-  grpSelection.Items.Add('Selected rows ('+FormatNumber(Grid.SelectedCount)+')');
-  grpSelection.Items.Add('All loaded rows ('+FormatNumber(Grid.RootNodeCount)+')');
+  GridData := Mainform.GridResult(Grid);
+  AllSize := 0;
+  SelectionSize := 0;
+  Node := GetNextNode(Grid, nil, False);
+  while Assigned(Node) do begin
+    RowNum := Grid.GetNodeData(Node);
+    GridData.RecNo := RowNum^;
+    Col := Grid.Header.Columns.GetFirstVisibleColumn;
+    while Col > NoColumn do begin
+      Inc(AllSize, GridData.FColumnLengths[Col]);
+      if vsSelected in Node.States then
+        Inc(SelectionSize, GridData.FColumnLengths[Col]);
+      Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+    end;
+    Node := GetNextNode(Grid, Node, False);
+  end;
+  grpSelection.Items.Add('Selection ('+FormatNumber(Grid.SelectedCount)+' rows, '+FormatByteNumber(SelectionSize)+')');
+  grpSelection.Items.Add('Complete ('+FormatNumber(Grid.RootNodeCount)+' rows, '+FormatByteNumber(AllSize)+')');
   grpSelection.ItemIndex := GetRegValue(REGNAME_GEXP_SELECTION, grpSelection.ItemIndex);
 end;
 
