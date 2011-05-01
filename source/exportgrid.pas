@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, Menus, VirtualTrees, SynExportHTML;
 
 type
-  TGridExportFormat = (efTSV, efCSV, efHTML, efXML, efSQL, efLaTeX, efWiki);
+  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQL, efLaTeX, efWiki);
 
   TfrmExportGrid = class(TForm)
     btnOK: TButton;
@@ -50,7 +50,6 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure editFilenameRightButtonClick(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
-    procedure AddRecentFile(Sender: TObject);
     procedure SelectRecentFile(Sender: TObject);
     procedure popupRecentFilesPopup(Sender: TObject);
     procedure menuCSVClick(Sender: TObject);
@@ -65,10 +64,13 @@ type
     FGrid: TVirtualStringTree;
     FRecentFiles: TStringList;
     procedure SaveDialogTypeChange(Sender: TObject);
-    function ExportFormat: TGridExportFormat;
+    function GetExportFormat: TGridExportFormat;
+    procedure SetExportFormat(Value: TGridExportFormat);
+    procedure SetExportFormatByFilename;
   public
     { Public declarations }
     property Grid: TVirtualStringTree read FGrid write FGrid;
+    property ExportFormat: TGridExportFormat read GetExportFormat write SetExportFormat;
   end;
 
 
@@ -101,13 +103,21 @@ end;
 
 
 procedure TfrmExportGrid.FormDestroy(Sender: TObject);
+var
+  i: Integer;
 begin
   // Store settings
   if ModalResult = mrOK then begin
     MainReg.WriteBool(REGNAME_GEXP_OUTPUTCOPY, radioOutputCopyToClipboard.Checked);
     MainReg.WriteBool(REGNAME_GEXP_OUTPUTFILE, radioOutputFile.Checked);
     MainReg.WriteString(REGNAME_GEXP_FILENAME, editFilename.Text);
-    AddRecentFile(Sender);
+    // Add selected file to file list, and sort it onto the top of the list
+    i := FRecentFiles.IndexOf(editFilename.Text);
+    if i > -1 then
+      FRecentFiles.Delete(i);
+    FRecentFiles.Insert(0, editFilename.Text);
+    for i:=FRecentFiles.Count-1 downto 10 do
+      FRecentFiles.Delete(i);
     MainReg.WriteString(REGNAME_GEXP_RECENTFILES, ImplodeStr(DELIM, FRecentFiles));
     MainReg.WriteInteger(REGNAME_GEXP_ENCODING, comboEncoding.ItemIndex);
     MainReg.WriteInteger(REGNAME_GEXP_FORMAT, grpFormat.ItemIndex);
@@ -165,7 +175,7 @@ var
 begin
   // Display the actually used control characters, even if they cannot be changed
   case ExportFormat of
-    efTSV: begin
+    efExcel: begin
       if radioOutputCopyToClipboard.Checked then
         editSeparator.Text := '\t'
       else
@@ -205,9 +215,31 @@ begin
 end;
 
 
-function TfrmExportGrid.ExportFormat: TGridExportFormat;
+function TfrmExportGrid.GetExportFormat: TGridExportFormat;
 begin
   Result := TGridExportFormat(grpFormat.ItemIndex);
+end;
+
+
+procedure TfrmExportGrid.SetExportFormat(Value: TGridExportFormat);
+begin
+  grpFormat.ItemIndex := Integer(Value);
+end;
+
+
+procedure TfrmExportGrid.SetExportFormatByFilename;
+var
+  ext: String;
+begin
+  // Set format by file extension
+  ext := LowerCase(Copy(ExtractFileExt(editFilename.Text), 2, 10));
+  if (ext = 'csv') and (not (ExportFormat in [efExcel, efCSV]))
+                         then ExportFormat := efCSV
+  else if ext = 'html'   then ExportFormat := efHTML
+  else if ext = 'xml'    then ExportFormat := efXML
+  else if ext = 'sql'    then ExportFormat := efSQL
+  else if ext = 'latex'  then ExportFormat := efLaTeX
+  else if ext = 'wiki'   then ExportFormat := efWiki;
 end;
 
 
@@ -238,10 +270,8 @@ begin
     'Wiki markup table (*.wiki)|*.wiki|'+
     'All files (*.*)|*.*';
   if Dialog.Execute then begin
-    // Select format by file extension
-    if Dialog.FilterIndex <= grpFormat.Items.Count then
-      grpFormat.ItemIndex := Dialog.FilterIndex-1;
     editFilename.Text := Dialog.FileName;
+    SetExportFormatByFilename;
     ValidateControls(Sender);
   end;
   Dialog.Free;
@@ -268,24 +298,11 @@ begin
 end;
 
 
-procedure TfrmExportGrid.AddRecentFile(Sender: TObject);
-var
-  i: Integer;
-begin
-  // Add selected file to file list, and sort it onto the top of the list
-  i := FRecentFiles.IndexOf(editFilename.Text);
-  if i > -1 then
-    FRecentFiles.Delete(i);
-  FRecentFiles.Insert(0, editFilename.Text);
-  for i:=FRecentFiles.Count-1 downto 10 do
-    FRecentFiles.Delete(i);
-end;
-
-
 procedure TfrmExportGrid.SelectRecentFile(Sender: TObject);
 begin
+  // Select file from recently used files
   editFilename.Text := (Sender as TMenuItem).Hint;
-  AddRecentFile(Sender);
+  SetExportFormatByFilename;
 end;
 
 
@@ -423,7 +440,7 @@ begin
         '      <tbody>' + CRLF;
     end;
 
-    efTSV, efCSV: begin
+    efExcel, efCSV: begin
       Separator := GridData.Connection.UnescapeString(editSeparator.Text);
       Encloser := GridData.Connection.UnescapeString(editEncloser.Text);
       Terminator := GridData.Connection.UnescapeString(editTerminator.Text);
@@ -529,7 +546,7 @@ begin
         Data := GridData.Col(Col);
       // Keep formatted numeric values
       if (GridData.DataType(Col).Category in [dtcInteger, dtcReal])
-        and (ExportFormat in [efTSV, efHTML]) then
+        and (ExportFormat in [efExcel, efHTML]) then
           Data := FormatNumber(Data, False);
 
       case ExportFormat of
@@ -542,7 +559,7 @@ begin
           tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
         end;
 
-        efTSV, efCSV, efLaTeX, efWiki: begin
+        efExcel, efCSV, efLaTeX, efWiki: begin
           // Escape encloser characters inside data per de-facto CSV.
           Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
           // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
@@ -584,7 +601,7 @@ begin
     case ExportFormat of
       efHTML:
         tmp := tmp + '        </tr>' + CRLF;
-      efTSV, efCSV, efLaTeX, efWiki: begin
+      efExcel, efCSV, efLaTeX, efWiki: begin
         Delete(tmp, Length(tmp)-Length(Separator)+1, Length(Separator));
         tmp := tmp + Terminator;
       end;
