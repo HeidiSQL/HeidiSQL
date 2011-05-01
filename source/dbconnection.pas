@@ -583,6 +583,7 @@ type
       function ColumnCount: Integer;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; virtual; abstract;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
+      function ColumnLengths(Column: Integer): Int64; virtual;
       function BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String;
       function DataType(Column: Integer): TDBDataType;
       function MaxLength(Column: Integer): Int64;
@@ -3515,6 +3516,12 @@ begin
     Result := Col(idx)
   else if not IgnoreErrors then
     Raise EDatabaseError.CreateFmt('Column "%s" not available.', [ColumnName]);
+end;
+
+
+function TDBQuery.ColumnLengths(Column: Integer): Int64;
+begin
+  Result := FColumnLengths[Column];
 end;
 
 
