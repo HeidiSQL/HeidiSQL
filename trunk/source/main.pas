@@ -818,6 +818,7 @@ type
     procedure menuLogHorizontalScrollbarClick(Sender: TObject);
     procedure actBatchInOneGoExecute(Sender: TObject);
     procedure actCancelOperationExecute(Sender: TObject);
+    procedure AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -7356,9 +7357,14 @@ procedure TMainForm.AnyGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtual
   Column: TColumnIndex);
 begin
   ValidateControls(Sender);
-  UpdateLineCharPanel;
   if Assigned(Node) and pnlPreview.Visible then
     UpdatePreviewPanel;
+end;
+
+
+procedure TMainForm.AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+begin
+  UpdateLineCharPanel;
 end;
 
 
@@ -9644,6 +9650,8 @@ begin
     if Assigned(Grid.FocusedNode) then
       y := Grid.FocusedNode.Index+1;
     x := Grid.FocusedColumn+1;
+    if Grid.SelectedCount > 1 then
+      AppendMsg := ' ('+FormatNumber(Grid.SelectedCount)+' sel)';
   end else if QueryTabActive and ActiveQueryMemo.Focused then begin
     x := ActiveQueryMemo.CaretX;
     y := ActiveQueryMemo.CaretY;
@@ -10280,6 +10288,7 @@ begin
   Grid.OnAfterCellPaint := OrgGrid.OnAfterCellPaint;
   Grid.OnAfterPaint := OrgGrid.OnAfterPaint;
   Grid.OnBeforeCellPaint := OrgGrid.OnBeforeCellPaint;
+  Grid.OnChange := OrgGrid.OnChange;
   Grid.OnCreateEditor := OrgGrid.OnCreateEditor;
   Grid.OnCompareNodes := OrgGrid.OnCompareNodes;
   Grid.OnEditCancelled := OrgGrid.OnEditCancelled;

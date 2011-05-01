@@ -1438,6 +1438,7 @@ object MainForm: TMainForm
             OnAfterCellPaint = AnyGridAfterCellPaint
             OnBeforeCellPaint = AnyGridBeforeCellPaint
             OnBeforePaint = DataGridBeforePaint
+            OnChange = AnyGridChange
             OnColumnResize = DataGridColumnResize
             OnCreateEditor = AnyGridCreateEditor
             OnEditCancelled = AnyGridEditCancelled
@@ -1620,6 +1621,7 @@ object MainForm: TMainForm
             OnAfterCellPaint = AnyGridAfterCellPaint
             OnAfterPaint = vstAfterPaint
             OnBeforeCellPaint = AnyGridBeforeCellPaint
+            OnChange = AnyGridChange
             OnCompareNodes = vstCompareNodes
             OnCreateEditor = AnyGridCreateEditor
             OnEditCancelled = AnyGridEditCancelled
