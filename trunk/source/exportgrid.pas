@@ -260,12 +260,18 @@ end;
 
 
 procedure TfrmExportGrid.editCSVChange(Sender: TObject);
+var
+  Edit: TButtonedEdit;
 begin
   // Remember csv settings
-  if (ExportFormat = efCSV) and TControl(Sender).Enabled then begin
-    FCSVSeparator := editSeparator.Text;
-    FCSVEncloser := editEncloser.Text;
-    FCSVTerminator := editTerminator.Text;
+  Edit := Sender as TButtonedEdit;
+  if ExportFormat = efCSV then begin
+    if Edit = editSeparator then
+      FCSVSeparator := Edit.Text
+    else if Edit = editEncloser then
+      FCSVEncloser := Edit.Text
+    else if Edit = editTerminator then
+      FCSVTerminator := Edit.Text;
   end;
 end;
 
