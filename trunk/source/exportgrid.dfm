@@ -239,6 +239,28 @@ object frmExportGrid: TfrmExportGrid
       Hint = '\t'
       OnClick = menuCSVClick
     end
+    object menuCSVcomma: TMenuItem
+      Caption = 'Comma'
+      Hint = ','
+    end
+    object menuCSVsemicolon: TMenuItem
+      Caption = 'Semicolon'
+      Hint = ';'
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object menuCSVsinglequote: TMenuItem
+      Caption = 'Single quote'
+      Hint = #39
+    end
+    object menuCSVdoublequote: TMenuItem
+      Caption = 'Double quote'
+      Hint = '"'
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
     object menuCSVwinlinebreak: TMenuItem
       Caption = 'Windows linebreak'
       Hint = '\r\n'
@@ -251,6 +273,9 @@ object frmExportGrid: TfrmExportGrid
     object menuCSVmaclinebreak: TMenuItem
       Caption = 'Mac OS linebreak'
       Hint = '\r'
+    end
+    object N3: TMenuItem
+      Caption = '-'
     end
     object menuCSVnul: TMenuItem
       Caption = 'NUL character'

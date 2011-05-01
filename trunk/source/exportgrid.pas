@@ -37,6 +37,13 @@ type
     comboEncoding: TComboBox;
     lblEncoding: TLabel;
     popupRecentFiles: TPopupMenu;
+    menuCSVsinglequote: TMenuItem;
+    menuCSVdoublequote: TMenuItem;
+    menuCSVcomma: TMenuItem;
+    menuCSVsemicolon: TMenuItem;
+    N1: TMenuItem;
+    N2: TMenuItem;
+    N3: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
