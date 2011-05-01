@@ -82,6 +82,7 @@ uses main, helpers, dbconnection, mysql_structures;
 
 procedure TfrmExportGrid.FormCreate(Sender: TObject);
 begin
+  InheritFont(Font);
   OpenRegistry;
   editFilename.Text := GetRegValue(REGNAME_GEXP_FILENAME, editFilename.Text);
   radioOutputCopyToClipboard.Checked := GetRegValue(REGNAME_GEXP_OUTPUTCOPY, radioOutputCopyToClipboard.Checked);
