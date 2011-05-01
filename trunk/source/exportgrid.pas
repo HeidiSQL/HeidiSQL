@@ -375,6 +375,7 @@ var
   HTML: TStream;
   S: TStringStream;
   Exporter: TSynExporterHTML;
+  Encoding: TEncoding;
 begin
   Screen.Cursor := crHourglass;
 
@@ -389,9 +390,10 @@ begin
   TableName := BestTableName(GridData);
 
   if radioOutputCopyToClipboard.Checked then
-    S := TStringStream.Create(Header, TEncoding.UTF8)
+    Encoding := TEncoding.UTF8
   else
-    S := TStringStream.Create(Header, MainForm.GetEncodingByName(comboEncoding.Text));
+    Encoding := MainForm.GetEncodingByName(comboEncoding.Text);
+  S := TStringStream.Create(Header, Encoding);
   Header := '';
   case ExportFormat of
     efHTML: begin
@@ -402,7 +404,7 @@ begin
         '  <head>' + CRLF +
         '    <title>' + TableName + '</title>' + CRLF +
         '    <meta name="GENERATOR" content="'+ APPNAME+' '+Mainform.AppVersion + '">' + CRLF +
-        '    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />' + CRLF +
+        '    <meta http-equiv="Content-Type" content="text/html; charset='+Mainform.GetCharsetByEncoding(Encoding)+'" />' + CRLF +
         '    <style type="text/css">' + CRLF +
         '      thead tr {background-color: ActiveCaption; color: CaptionText;}' + CRLF +
         '      th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'"; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
@@ -462,7 +464,7 @@ begin
     end;
 
     efXML: begin
-      Header := '<?xml version="1.0"?>' + CRLF + CRLF +
+      Header := '<?xml version="1.0" encoding="'+MainForm.GetCharsetByEncoding(Encoding)+'"?>' + CRLF + CRLF +
           '<table name="'+TableName+'">' + CRLF;
     end;
 
