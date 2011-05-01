@@ -103,21 +103,12 @@ end;
 
 
 procedure TfrmExportGrid.FormDestroy(Sender: TObject);
-var
-  i: Integer;
 begin
   // Store settings
   if ModalResult = mrOK then begin
     MainReg.WriteBool(REGNAME_GEXP_OUTPUTCOPY, radioOutputCopyToClipboard.Checked);
     MainReg.WriteBool(REGNAME_GEXP_OUTPUTFILE, radioOutputFile.Checked);
     MainReg.WriteString(REGNAME_GEXP_FILENAME, editFilename.Text);
-    // Add selected file to file list, and sort it onto the top of the list
-    i := FRecentFiles.IndexOf(editFilename.Text);
-    if i > -1 then
-      FRecentFiles.Delete(i);
-    FRecentFiles.Insert(0, editFilename.Text);
-    for i:=FRecentFiles.Count-1 downto 10 do
-      FRecentFiles.Delete(i);
     MainReg.WriteString(REGNAME_GEXP_RECENTFILES, ImplodeStr(DELIM, FRecentFiles));
     MainReg.WriteInteger(REGNAME_GEXP_ENCODING, comboEncoding.ItemIndex);
     MainReg.WriteInteger(REGNAME_GEXP_FORMAT, grpFormat.ItemIndex);
@@ -370,6 +361,7 @@ var
   Node: PVirtualNode;
   GridData: TDBQuery;
   SelectionOnly: Boolean;
+  i: Integer;
   NodeCount: Cardinal;
   RowNum: PCardinal;
   HTML: TStream;
@@ -391,8 +383,16 @@ begin
 
   if radioOutputCopyToClipboard.Checked then
     Encoding := TEncoding.UTF8
-  else
+  else begin
     Encoding := MainForm.GetEncodingByName(comboEncoding.Text);
+    // Add selected file to file list, and sort it onto the top of the list
+    i := FRecentFiles.IndexOf(editFilename.Text);
+    if i > -1 then
+      FRecentFiles.Delete(i);
+    FRecentFiles.Insert(0, editFilename.Text);
+    for i:=FRecentFiles.Count-1 downto 10 do
+      FRecentFiles.Delete(i);
+  end;
   S := TStringStream.Create(Header, Encoding);
   Header := '';
   case ExportFormat of
