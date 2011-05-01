@@ -138,9 +138,9 @@ begin
     GridData.RecNo := RowNum^;
     Col := Grid.Header.Columns.GetFirstVisibleColumn;
     while Col > NoColumn do begin
-      Inc(AllSize, GridData.FColumnLengths[Col]);
+      Inc(AllSize, GridData.ColumnLengths(Col));
       if vsSelected in Node.States then
-        Inc(SelectionSize, GridData.FColumnLengths[Col]);
+        Inc(SelectionSize, GridData.ColumnLengths(Col));
       Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
     end;
     Node := GetNextNode(Grid, Node, False);
