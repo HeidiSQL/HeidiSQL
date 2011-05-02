@@ -4407,15 +4407,23 @@ end;
 { Proposal about to insert a String into synmemo }
 procedure TMainForm.SynCompletionProposalCodeCompletion(Sender: TObject;
   var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
+var
+  Editor: TCustomSynEdit;
 begin
-  (Sender as TSynCompletionProposal).Form.CurrentEditor.UndoList.AddGroupBreak;
+  Editor := (Sender as TSynCompletionProposal).Form.CurrentEditor;
+  Editor.UndoList.AddGroupBreak;
 end;
 
 
 procedure TMainForm.SynCompletionProposalAfterCodeCompletion(Sender: TObject;
   const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
+var
+  Editor: TCustomSynEdit;
 begin
-  (Sender as TSynCompletionProposal).Form.CurrentEditor.UndoList.AddGroupBreak;
+  Editor := (Sender as TSynCompletionProposal).Form.CurrentEditor;
+  Editor.UndoList.AddGroupBreak;
+  // Explicitly set focus again to work around a bug in Ultramon, see issue #2396
+  Editor.SetFocus;
 end;
 
 
