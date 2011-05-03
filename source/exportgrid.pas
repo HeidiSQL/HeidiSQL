@@ -167,8 +167,12 @@ begin
   // Display the actually used control characters, even if they cannot be changed
   case ExportFormat of
     efExcel: begin
+      // Tab for pasting, semicolon if comma is also the decimal separator, and comma for the rest
+      // see http://en.wikipedia.org/wiki/Comma-separated_values
       if radioOutputCopyToClipboard.Checked then
         editSeparator.Text := '\t'
+      else if FormatSettings.DecimalSeparator=',' then
+        editSeparator.Text := ';'
       else
         editSeparator.Text := ',';
       editEncloser.Text := '"';
