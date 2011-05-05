@@ -4045,6 +4045,8 @@ begin
   if DBObject.NodeType = lntTable then begin
     if (not IsLimited) and (not IsFiltered) then
       RowsTotal := DataGrid.RootNodeCount // No need to fetch via SHOW TABLE STATUS
+    else if DBObject.Connection.Parameters.NetTypeGroup = ngMySQL then
+      RowsTotal := MakeInt(DBObject.Connection.GetVar('SHOW TABLE STATUS LIKE '+esc(DBObject.Name), 'Rows'))
     else
       RowsTotal := MakeInt(DBObject.Connection.GetVar('SELECT COUNT(*) FROM '+DBObject.QuotedName));
     if RowsTotal > -1 then begin
