@@ -500,6 +500,8 @@ type
     N3: TMenuItem;
     btnCancelOperation: TToolButton;
     actCancelOperation: TAction;
+    actToggleComment: TAction;
+    Uncomment1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -819,6 +821,7 @@ type
     procedure actBatchInOneGoExecute(Sender: TObject);
     procedure actCancelOperationExecute(Sender: TObject);
     procedure AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure actToggleCommentExecute(Sender: TObject);
   private
     LastHintMousepos: TPoint;
     LastHintControlIndex: Integer;
@@ -10138,6 +10141,42 @@ procedure TMainForm.ApplicationEvents1Deactivate(Sender: TObject);
 begin
   // Force result tab balloon hint to disappear. Does not do so when mouse was moved too fast.
   tabsetQueryMouseLeave(Sender);
+end;
+
+
+procedure TMainForm.actToggleCommentExecute(Sender: TObject);
+var
+  Editor: TSynMemo;
+  rx: TRegExpr;
+  Sel: TStringList;
+  i: Integer;
+  IsComment: Boolean;
+begin
+  // Un/comment selected SQL
+  Editor := ActiveSynMemo;
+  Editor.UndoList.AddGroupBreak;
+  rx := TRegExpr.Create;
+  rx.Expression := '^(\s*)(\-\- |#)?(.*)$';
+  if not Editor.SelAvail then begin
+    rx.Exec(Editor.LineText);
+    if rx.MatchLen[2] > 0 then
+      Editor.LineText := rx.Match[1] + rx.Match[3]
+    else
+      Editor.LineText := '-- '+Editor.LineText;
+  end else begin
+    Sel := Explode(CRLF, Editor.SelText);
+    IsComment := False;
+    for i:=0 to Sel.Count-1 do begin
+      rx.Exec(Sel[i]);
+      if i = 0 then
+        IsComment := rx.MatchLen[2] > 0;
+      if IsComment then
+        Sel[i] := rx.Match[1] + rx.Match[3]
+      else
+        Sel[i] := '-- '+Sel[i];
+    end;
+    Editor.SelText := ImplodeStr(CRLF, Sel);
+  end;
 end;
 
 
