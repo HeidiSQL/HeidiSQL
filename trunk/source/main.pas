@@ -2995,7 +2995,7 @@ begin
     end;
     Parameters.Free;
     ParamValues := '';
-    if Params.Count > 0 then case Obj.Connection.Parameters.NetTypeGroup of
+    case Obj.Connection.Parameters.NetTypeGroup of
       ngMySQL:
         ParamValues := '(' + ImplodeStr(', ', Params) + ')';
       ngMSSQL:
