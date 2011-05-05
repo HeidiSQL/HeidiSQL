@@ -102,6 +102,7 @@ const
   REGNAME_WRAPLINES = 'WrapLongLines';
   REGNAME_BLOBASTEXT = 'DisplayBLOBsAsText';
   DEFAULT_BLOBASTEXT = False;
+  REGNAME_SINGLEQUERIES = 'SingleQueries';
   REGNAME_EDITOR_WIDTH = 'MemoEditorWidth';
   DEFAULT_EDITOR_WIDTH = 100;
   REGNAME_EDITOR_HEIGHT = 'MemoEditorHeight';

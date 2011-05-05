@@ -1226,6 +1226,7 @@ begin
   MainReg.WriteInteger( REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height );
   MainReg.WriteBool(REGNAME_FILTERACTIVE, pnlFilterVT.Tag=Integer(True));
   MainReg.WriteBool(REGNAME_WRAPLINES, actQueryWordWrap.Checked);
+  MainReg.WriteBool(REGNAME_SINGLEQUERIES, actSingleQueries.Checked);
   MainReg.WriteBool(REGNAME_LOG_HORIZONTALSCROLLBAR, SynMemoSQLLog.ScrollBars = ssBoth);
   MainReg.WriteBool(REGNAME_WINMAXIMIZED, WindowState=wsMaximized);
   MainReg.WriteInteger(REGNAME_WINONMONITOR, Monitor.MonitorNum);
@@ -1429,6 +1430,8 @@ begin
   actQueryStopOnErrors.Checked := GetRegValue(REGNAME_STOPONERRORSINBATCH, DEFAULT_STOPONERRORSINBATCH);
   actBlobAsText.Checked := GetRegValue(REGNAME_BLOBASTEXT, DEFAULT_BLOBASTEXT);
   actQueryWordWrap.Checked := GetRegValue(REGNAME_WRAPLINES, actQueryWordWrap.Checked);
+  actSingleQueries.Checked := GetRegValue(REGNAME_SINGLEQUERIES, actSingleQueries.Checked);
+  actBatchInOneGo.Checked := not GetRegValue(REGNAME_SINGLEQUERIES, actSingleQueries.Checked);
 
   pnlQueryMemo.Height := GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
   treeQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, treeQueryHelpers.Width);
