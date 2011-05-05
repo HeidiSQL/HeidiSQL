@@ -759,7 +759,7 @@ begin
   ResultGrid.RootNodeCount := FResults.Count;
   ResultGrid.FocusedNode := ResultGrid.GetLast;
   ResultGrid.Selected[ResultGrid.FocusedNode] := True;
-  Percent := 100 / FObjectSizes * FObjectSizesDoneExact;
+  Percent := 100 / Max(FObjectSizes,1) * FObjectSizesDoneExact;
   lblCheckedSize.Caption := 'Selected objects size: '+FormatByteNumber(FObjectSizes)+'. '+
     FormatNumber(Percent, 1) + '% done.';
   Mainform.ProgressBarStatus.Position := Round(Percent);
