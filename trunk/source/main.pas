@@ -3839,6 +3839,9 @@ var
     col.Alignment := taLeftJustify;
     if DataGridResult.DataType(idx).Category in [dtcInteger, dtcReal] then
       col.Alignment := taRightJustify;
+
+    // Force repaint, for Wine users
+    vt.Header.Invalidate(col);
   end;
 
 begin
