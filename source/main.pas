@@ -852,6 +852,7 @@ type
     FOperatingGrid: TBaseVirtualTree;
     FActiveDbObj: TDBObject;
     FCriticalSection: TRTLCriticalSection;
+    FIsWine: Boolean;
 
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
@@ -1281,6 +1282,8 @@ var
   DpiScaleFactor: Double;
   FunctionCategories: TStringList;
   miGroup, miFilterGroup, miFunction, miFilterFunction: TMenuItem;
+  NTHandle: THandle;
+  wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
 begin
   caption := APPNAME;
   setLocales;
@@ -1304,6 +1307,14 @@ begin
     dwInfoSize);
   SetString(AppDescription, PChar(Info), dwInfoSize-1);
   FreeMem(ptrVerBuf);
+
+  // Detect if we're running on Wine, not on native Windows
+  // Idea taken from http://ruminatedrumblings.blogspot.com/2008/04/detecting-virtualized-environment.html
+  NTHandle := LoadLibrary('NTDLL.DLL');
+  if NTHandle>32 then
+    wine_nt_to_unix_file_name := GetProcAddress(NTHandle, 'wine_nt_to_unix_file_name');
+  FIsWine := Assigned(wine_nt_to_unix_file_name);
+  FreeLibrary(NTHandle);
 
   // "All users" folder for HeidiSQL's data (All Users\Application Data)
   DirnameCommonAppData := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\';
@@ -6200,17 +6211,20 @@ var
   NeededWidth : Integer;
   Tree: TVirtualStringTree;
 begin
-  Tree := TVirtualStringTree(Sender);
-  HintText := Tree.Text[Node, Column];
-  HintText := sstr(HintText, SIZE_KB);
-  LineBreakStyle := hlbForceMultiLine;
-  // Check if the list has shortened the text
-  r := Tree.GetDisplayRect(Node, Column, True);
-  DisplayedWidth := r.Right-r.Left;
-  NeededWidth := Canvas.TextWidth(HintText) + Tree.TextMargin*2;
-  // Disable displaying hint if text is displayed completely in list
-  if NeededWidth <= DisplayedWidth then
-    HintText := '';
+  // Disable tooltips on Wine, as they prevent users from clicking + editing clipped cells
+  if not FIsWine then begin
+    Tree := TVirtualStringTree(Sender);
+    HintText := Tree.Text[Node, Column];
+    HintText := sstr(HintText, SIZE_KB);
+    LineBreakStyle := hlbForceMultiLine;
+    // Check if the list has shortened the text
+    r := Tree.GetDisplayRect(Node, Column, True);
+    DisplayedWidth := r.Right-r.Left;
+    NeededWidth := Canvas.TextWidth(HintText) + Tree.TextMargin*2;
+    // Disable displaying hint if text is displayed completely in list
+    if NeededWidth <= DisplayedWidth then
+      HintText := '';
+  end;
 end;
 
 
