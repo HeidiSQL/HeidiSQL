@@ -5550,7 +5550,9 @@ function TMainForm.GetActiveDatabase: String;
 begin
   // Find currently selected database in active connection
   Result := '';
-  if (not (csDestroying in ComponentState)) and Assigned(FActiveDBObj) then
+  if (not (csDestroying in ComponentState))
+    and Assigned(FActiveDBObj)
+    and Assigned(FActiveDBObj.Connection) then
     Result := FActiveDBObj.Connection.Database;
 end;
 
