@@ -73,6 +73,20 @@ begin
 end;
 
 
+function Trim(const S: string): string;
+var
+  I, L: Integer;
+begin
+  L := Length(S);
+  I := 1;
+  if (L > 0) and (S[I] > ' ') and (S[L] > ' ') then Exit(S);
+  while (I <= L) and (S[I] <= ' ') do Inc(I);
+  if I > L then Exit('');
+  while S[L] <= ' ' do Dec(L);
+  Result := Copy(S, I, L - I + 1);
+end;
+
+
 function GetEXEFromHandle(const wnd: HWND) : string;
 var
   pid: dword;
@@ -154,6 +168,8 @@ begin
   for i:=1 to 256 do
     WndTitle[i] := ' ';
   GetWindowText(Wnd, PChar(WndTitle), 256);
+  WndTitle := Trim(WndTitle);
+
   Hint := 'Closing "'+WndTitle+'"';
   Status(Hint);
   WaitTime := 0;
