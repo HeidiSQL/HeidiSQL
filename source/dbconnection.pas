@@ -3472,6 +3472,10 @@ end;
 function TMySQLQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 var
   AnsiStr: AnsiString;
+  BitString: String;
+  NumBit: Integer;
+  ByteVal: Byte;
+  c: Char;
 begin
   if (Column > -1) and (Column < ColumnCount) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
@@ -3484,6 +3488,25 @@ begin
         Result := String(AnsiStr)
       else
         Result := Connection.DecodeAPIString(AnsiStr);
+      // Create string bitmask for BIT fields
+      if Datatype(Column).Index = dtBit then begin
+        for c in Result do begin
+          ByteVal := Byte(c);
+          BitString := '';
+          for NumBit:=0 to 7 do begin
+            if (ByteVal shr NumBit and $1) = $1 then
+              BitString := BitString + '1'
+            else
+              BitString := BitString + '0';
+            if Length(BitString) >= MaxLength(Column) then
+              break;
+          end;
+          if Length(BitString) >= MaxLength(Column) then
+            break;
+        end;
+        Result := BitString;
+      end;
+
     end;
   end else if not IgnoreErrors then
     Raise EDatabaseError.CreateFmt(MsgInvalidColumn, [Column, ColumnCount, RecordCount]);
@@ -3561,7 +3584,7 @@ begin
   ColAttr := ColAttributes(Column);
   if Assigned(ColAttr) then begin
     case ColAttr.DataType.Index of
-      dtChar, dtVarchar, dtBinary, dtVarBinary: Result := MakeInt(ColAttr.LengthSet);
+      dtChar, dtVarchar, dtBinary, dtVarBinary, dtBit: Result := MakeInt(ColAttr.LengthSet);
       dtTinyText, dtTinyBlob: Result := 255;
       dtText, dtBlob: Result := 65535;
       dtMediumText, dtMediumBlob: Result := 16777215;
@@ -3908,8 +3931,13 @@ begin
       if Cell.NewIsNull then
         Val := 'NULL'
       else case Datatype(i).Category of
-        dtcInteger, dtcReal: Val := Cell.NewText;
-        else Val := Connection.EscapeString(Cell.NewText);
+        dtcInteger, dtcReal: begin
+          Val := Cell.NewText;
+          if Datatype(i).Index = dtBit then
+            Val := 'b' + Connection.EscapeString(Val);
+        end
+        else
+          Val := Connection.EscapeString(Cell.NewText);
       end;
       sqlUpdate := sqlUpdate + Connection.QuoteIdent(FColumnOrgNames[i]) + '=' + Val;
       sqlInsertColumns := sqlInsertColumns + Connection.QuoteIdent(FColumnOrgNames[i]);
@@ -4166,8 +4194,14 @@ begin
       Result := Result + ' IS NULL'
     else begin
       case DataType(j).Category of
-        dtcInteger, dtcReal: Result := Result + '=' + ColVal;
-        else Result := Result + '=' + Connection.EscapeString(ColVal);
+        dtcInteger, dtcReal: begin
+          if DataType(j).Index = dtBit then
+            Result := Result + '=b' + Connection.EscapeString(ColVal)
+          else
+            Result := Result + '=' + ColVal;
+        end
+        else
+          Result := Result + '=' + Connection.EscapeString(ColVal);
       end;
     end;
   end;
