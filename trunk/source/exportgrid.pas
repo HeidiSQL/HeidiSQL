@@ -593,6 +593,8 @@ begin
         efSQL: begin
           if GridData.IsNull(Col) then
             Data := 'NULL'
+          else if GridData.DataType(Col).Index = dtBit then
+            Data := 'b' + esc(Data)
           else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
             Data := esc(Data);
           tmp := tmp + Data + ', ';

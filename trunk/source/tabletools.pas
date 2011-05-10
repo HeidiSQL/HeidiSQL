@@ -1313,7 +1313,12 @@ begin
               if Data.IsNull(i) then
                 Row := Row + 'NULL'
               else case Data.DataType(i).Category of
-                dtcInteger, dtcReal: Row := Row + Data.Col(i);
+                dtcInteger, dtcReal: begin
+                  if Data.DataType(i).Index = dtBit then
+                    Row := Row + 'b' + Quoter.EscapeString(Data.Col(i))
+                  else
+                    Row := Row + Data.Col(i);
+                end;
                 dtcBinary, dtcSpatial: begin
                   BinContent := Data.BinColAsHex(i);
                   if Length(BinContent) > 0 then
