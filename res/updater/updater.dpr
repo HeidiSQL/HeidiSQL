@@ -18,7 +18,6 @@ const
   WindowWidth = 600;
   WindowHeight = 80;
   QuitTimeout = 20000; // We long we're gracefully waiting for a window to be gone, in milliseconds
-  ClosePostInterval = 2000; // Interval between WM_CLOSE posts to a window, in milliseconds
   TerminatedCheck = 200; // Interval between checks if host application is gone
   PathDelim = '\';
 
@@ -158,16 +157,16 @@ begin
   Hint := 'Closing "'+WndTitle+'"';
   Status(Hint);
   WaitTime := 0;
+  PostMessage(Wnd, WM_CLOSE, 0, 0);
   while WaitTime < QuitTimeout do begin
-    if WaitTime mod ClosePostInterval = 0 then
-      PostMessage(Wnd, WM_CLOSE, 0, 0);
     Sleep(TerminatedCheck);
     Inc(WaitTime, TerminatedCheck);
     Status(Hint + ', wait time left: '+IntToStr((QuitTimeout - WaitTime) div 1000)+' seconds.');
-    if not IsWindow(Wnd) then
+    // IsWindow() returns true on dialogs we have just hidden
+    if not IsWindowVisible(Wnd) then
       break;
   end;
-  if IsWindow(Wnd) then begin
+  if IsWindowVisible(Wnd) then begin
     Status('Error: Could not terminate session '+WndTitle, true);
     Result := False;
   end;
