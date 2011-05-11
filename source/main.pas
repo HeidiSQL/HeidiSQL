@@ -4431,22 +4431,29 @@ end;
 procedure TMainForm.SynCompletionProposalCodeCompletion(Sender: TObject;
   var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
 var
-  Editor: TCustomSynEdit;
+  Proposal: TSynCompletionProposal;
+  rx: TRegExpr;
 begin
-  Editor := (Sender as TSynCompletionProposal).Form.CurrentEditor;
-  Editor.UndoList.AddGroupBreak;
+  Proposal := Sender as TSynCompletionProposal;
+  // Surround identifiers with backticks if it is a column, table, routine, db
+  rx := TRegExpr.Create;
+  rx.Expression := '\\image\{('+IntToStr(ICONINDEX_KEYWORD)+'|'+IntToStr(ICONINDEX_FUNCTION)+')\}';
+  if not rx.Exec(Proposal.ItemList[Index]) then
+    Value := ActiveConnection.QuoteIdent(Value, False);
+  rx.Free;
+  Proposal.Form.CurrentEditor.UndoList.AddGroupBreak;
 end;
 
 
 procedure TMainForm.SynCompletionProposalAfterCodeCompletion(Sender: TObject;
   const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
 var
-  Editor: TCustomSynEdit;
+  Proposal: TSynCompletionProposal;
 begin
-  Editor := (Sender as TSynCompletionProposal).Form.CurrentEditor;
-  Editor.UndoList.AddGroupBreak;
+  Proposal := Sender as TSynCompletionProposal;
+  Proposal.Form.CurrentEditor.UndoList.AddGroupBreak;
   // Explicitly set focus again to work around a bug in Ultramon, see issue #2396
-  Editor.SetFocus;
+  Proposal.Form.CurrentEditor.SetFocus;
 end;
 
 
