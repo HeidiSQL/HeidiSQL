@@ -37,7 +37,6 @@ object frmTableTools: TfrmTableTools
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Close'
-    Default = True
     ModalResult = 2
     TabOrder = 3
     OnClick = btnCloseOrCancelClick
