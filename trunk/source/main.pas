@@ -1854,9 +1854,9 @@ begin
       DBtree.FocusedNode := nil;
       FreeAndNil(DataGridHiddenColumns);
       SynMemoFilter.Clear;
-      SetLength(DataGridSortColumns, 0);
+      SetLength(DataGridSortColumns, 0);}
       RefreshHelperNode(HELPERNODE_PROFILE);
-      RefreshHelperNode(HELPERNODE_COLUMNS);}
+      RefreshHelperNode(HELPERNODE_COLUMNS);
 
       // Last chance to access connection related properties before disconnecting
       OpenRegistry(Item.Parameters.SessionName);
@@ -9960,7 +9960,7 @@ begin
     Exit;
   case Sender.GetNodeLevel(Node) of
     0: case Node.Index of
-         HELPERNODE_COLUMNS: if ActiveDbObj.NodeType <> lntNone then
+         HELPERNODE_COLUMNS: if (ActiveDbObj <> nil) and (ActiveDbObj.NodeType <> lntNone) then
               ImageIndex := ActiveDbObj.ImageIndex
             else
               ImageIndex := 14;
@@ -9988,10 +9988,12 @@ begin
   case Column of
     0: case Sender.GetNodeLevel(Node) of
         0: case Node.Index of
-             HELPERNODE_COLUMNS: case ActiveDbObj.NodeType of
-               lntNone: CellText := 'Columns';
-               lntProcedure, lntFunction: CellText := 'Parameters in '+ActiveDbObj.Name;
-               else CellText := 'Columns in '+ActiveDbObj.Name;
+             HELPERNODE_COLUMNS: begin
+               CellText := 'Columns';
+               if ActiveDbObj <> nil then case ActiveDbObj.NodeType of
+                 lntProcedure, lntFunction: CellText := 'Parameters in '+ActiveDbObj.Name;
+                 lntTable, lntView: CellText := 'Columns in '+ActiveDbObj.Name;
+               end;
              end;
              HELPERNODE_FUNCTIONS: CellText := 'SQL Functions';
              HELPERNODE_KEYWORDS: CellText := 'SQL Keywords';
@@ -10059,16 +10061,17 @@ procedure TMainForm.treeQueryHelpersInitChildren(Sender: TBaseVirtualTree; Node:
 begin
   case Sender.GetNodeLevel(Node) of
     0: case Node.Index of
-         HELPERNODE_COLUMNS: case ActiveDbObj.NodeType of
-           lntTable, lntView:
-             ChildCount := SelectedTableColumns.Count;
-           lntFunction, lntProcedure:
-             if Assigned(ActiveObjectEditor) then
-               ChildCount := TfrmRoutineEditor(ActiveObjectEditor).Parameters.Count
-             else
-               ChildCount := 0;
-           else
-             ChildCount := 0;
+         HELPERNODE_COLUMNS: begin
+           ChildCount := 0;
+           if ActiveDbObj <> nil then case ActiveDbObj.NodeType of
+             lntTable, lntView:
+               ChildCount := SelectedTableColumns.Count;
+             lntFunction, lntProcedure:
+               if Assigned(ActiveObjectEditor) then
+                 ChildCount := TfrmRoutineEditor(ActiveObjectEditor).Parameters.Count
+               else
+                 ChildCount := 0;
+           end;
          end;
          HELPERNODE_FUNCTIONS: ChildCount := Length(MySQLFunctions);
          HELPERNODE_KEYWORDS: ChildCount := MySQLKeywords.Count;
