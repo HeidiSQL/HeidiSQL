@@ -698,7 +698,7 @@ begin
     if Sender is TComponent then
       TComponent(Sender).Tag := ModifiedFlag;
     Modified := True;
-    btnSave.Enabled := Modified and (editName.Text <> '');
+    btnSave.Enabled := Modified and (editName.Text <> '') and (listColumns.RootNodeCount > 0);
     btnDiscard.Enabled := Modified;
     CreateCodeValid := False;
     AlterCodeValid := False;
