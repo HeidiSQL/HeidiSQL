@@ -265,11 +265,11 @@ begin
 
   // Load user@host list
   try
-    FUsers := TUserList.Create(True);
     Users := FConnection.GetResults(
       'SELECT '+FConnection.QuoteIdent('user')+', '+FConnection.QuoteIdent('host')+', '+FConnection.QuoteIdent('password')+' '+
       'FROM '+FConnection.QuoteIdent('mysql')+'.'+FConnection.QuoteIdent('user')
       );
+    FUsers := TUserList.Create(True);
     while not Users.Eof do begin
       U := TUser.Create;
       U.Username := Users.Col('user');
