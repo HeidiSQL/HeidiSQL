@@ -2664,6 +2664,7 @@ var
   i: Integer;
   Dialog: TOpenTextFileDialog;
   Encoding: TEncoding;
+  MakeNewTab: Boolean;
 begin
   //  if IsWindowsVista then
   //    Dialog := TFileOpenDialog.Create(Self);
@@ -2675,8 +2676,10 @@ begin
   Dialog.EncodingIndex := 0;
   if Dialog.Execute then begin
     Encoding := GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
+    MakeNewTab := not QueryTabActive;
     for i:=0 to Dialog.Files.Count-1 do begin
-      QueryLoad(Dialog.Files[i], True, True, Encoding);
+      QueryLoad(Dialog.Files[i], MakeNewTab, True, Encoding);
+      MakeNewTab := True;
     end;
   end;
   Dialog.Free;
