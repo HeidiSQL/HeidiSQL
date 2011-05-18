@@ -7868,9 +7868,11 @@ begin
   vt := Sender as TVirtualStringTree;
   if vt.Tag = VTREE_LOADED then
     Exit;
+  Conn := ActiveConnection;
+  if Conn = nil then
+    Exit;
   Screen.Cursor := crHourglass;
   vt.Clear;
-  Conn := ActiveConnection;
   try
     if Conn.InformationSchemaObjects.IndexOf('SCHEMATA') > -1 then
       AllDatabasesDetails := Conn.GetResults('SELECT * FROM '+Conn.QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+Conn.QuoteIdent('SCHEMATA'));
