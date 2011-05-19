@@ -1855,6 +1855,7 @@ begin
       FreeAndNil(DataGridHiddenColumns);
       SynMemoFilter.Clear;
       SetLength(DataGridSortColumns, 0);}
+      InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
       RefreshHelperNode(HELPERNODE_PROFILE);
       RefreshHelperNode(HELPERNODE_COLUMNS);
 
@@ -6505,7 +6506,7 @@ begin
       + IntToStr(VT.RootNodeCount - VisibleCount) + ' hidden.';
   end else
     lblFilterVTInfo.Caption := '';
-  VT.Repaint;
+  VT.Invalidate;
 end;
 
 
@@ -7869,24 +7870,24 @@ begin
   if vt.Tag = VTREE_LOADED then
     Exit;
   Conn := ActiveConnection;
-  if Conn = nil then
-    Exit;
   Screen.Cursor := crHourglass;
   vt.Clear;
-  try
-    if Conn.InformationSchemaObjects.IndexOf('SCHEMATA') > -1 then
-      AllDatabasesDetails := Conn.GetResults('SELECT * FROM '+Conn.QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+Conn.QuoteIdent('SCHEMATA'));
-  except
-    on E:EDatabaseError do
-      LogSQL(E.Message, lcError);
-  end;
-  if vt.Tag = VTREE_NOTLOADED_PURGECACHE then begin
-    for i:=0 to Conn.AllDatabases.Count-1 do begin
-      if Conn.DbObjectsCached(Conn.AllDatabases[i]) then
-        Conn.GetDBObjects(Conn.AllDatabases[i], True);
+  if Conn <> nil then begin
+    try
+      if Conn.InformationSchemaObjects.IndexOf('SCHEMATA') > -1 then
+        AllDatabasesDetails := Conn.GetResults('SELECT * FROM '+Conn.QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+Conn.QuoteIdent('SCHEMATA'));
+    except
+      on E:EDatabaseError do
+        LogSQL(E.Message, lcError);
     end;
+    if vt.Tag = VTREE_NOTLOADED_PURGECACHE then begin
+      for i:=0 to Conn.AllDatabases.Count-1 do begin
+        if Conn.DbObjectsCached(Conn.AllDatabases[i]) then
+          Conn.GetDBObjects(Conn.AllDatabases[i], True);
+      end;
+    end;
+    vt.RootNodeCount := Conn.AllDatabases.Count;
   end;
-  vt.RootNodeCount := Conn.AllDatabases.Count;
   tabDatabases.Caption := 'Databases ('+FormatNumber(vt.RootNodeCount)+')';
   vt.Tag := VTREE_LOADED;
   Screen.Cursor := crDefault;
@@ -7906,16 +7907,18 @@ procedure TMainForm.ListDatabasesGetImageIndex(Sender: TBaseVirtualTree; Node: P
   Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
 var
   db: String;
+  Conn: TDBConnection;
 begin
   // Return icon index for databases. Ghosted if db objects not yet in cache.
   if Column <> (Sender as TVirtualStringTree).Header.MainColumn then
     Exit;
+  Conn := ActiveConnection;
   db := ListDatabases.Text[Node, 0];
   case Kind of
     ikNormal, ikSelected: ImageIndex := ICONINDEX_DB;
-    ikOverlay: if db = ActiveDatabase then ImageIndex := ICONINDEX_HIGHLIGHTMARKER;
+    ikOverlay: if db = Conn.Database then ImageIndex := ICONINDEX_HIGHLIGHTMARKER;
   end;
-  Ghosted := not ActiveConnection.DbObjectsCached(db);
+  Ghosted := not Conn.DbObjectsCached(db);
 end;
 
 
@@ -7944,6 +7947,7 @@ var
   Idx: PInt;
   Objects: TDBObjectList;
   DBname: String;
+  Conn: TDBConnection;
 
   function GetItemCount(ItemType: TListNodeType): String;
   var
@@ -7964,9 +7968,11 @@ var
 begin
   // Return text for database columns
   Idx := Sender.GetNodeData(Node);
-  DBname := ActiveConnection.AllDatabases[Idx^];
-  if ActiveConnection.DbObjectsCached(DBname) then
-    Objects := ActiveConnection.GetDBObjects(DBname);
+
+  Conn := ActiveConnection;
+  DBname := Conn.AllDatabases[Idx^];
+  if Conn.DbObjectsCached(DBname) then
+    Objects := Conn.GetDBObjects(DBname);
   case Column of
     0: CellText := DBname;
     1: if Assigned(Objects) then CellText := FormatByteNumber(Objects.DataSize)
