@@ -287,7 +287,7 @@ object MainForm: TMainForm
       object btnSaveSQL: TToolButton
         Left = 76
         Top = 0
-        Action = actSaveSQLAs
+        Action = actSaveSQL
       end
       object btnSaveSQLSnippet: TToolButton
         Left = 99
@@ -2472,6 +2472,7 @@ object MainForm: TMainForm
       Category = 'SQL'
       Caption = 'Save'
       Enabled = False
+      Hint = 'Save SQL to file'
       ImageIndex = 10
       ShortCut = 16467
       OnExecute = actSaveSQLExecute
