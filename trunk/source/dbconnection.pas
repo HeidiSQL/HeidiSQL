@@ -4109,9 +4109,16 @@ end;
 
 
 function TAdoDBQuery.TableName: String;
+var
+  rx: TRegExpr;
 begin
   // Untested with joins, compute columns and views
   Result := GetTableNameFromSQLEx(SQL, idMixCase);
+  rx := TRegExpr.Create;
+  rx.Expression := '\.([^\.]+)$';
+  if rx.Exec(Result) then
+    Result := rx.Match[1];
+  rx.Free;
   if Result = '' then
     raise EDatabaseError.Create('Could not determine name of table.');
 end;
