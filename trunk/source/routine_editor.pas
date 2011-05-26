@@ -449,7 +449,7 @@ begin
       TargetExists := ((editName.Text <> DBObject.Name) or (ProcOrFunc <> FAlterRoutineType)) and
         (allRoutineNames.IndexOf(editName.Text) > -1);
       if TargetExists then begin
-        Result := MessageDlg('Routine "'+editName.Text+'" already exists. Overwrite it?',
+        Result := TaskMessageDlg('Overwrite?', 'Routine "'+editName.Text+'" already exists.',
           mtConfirmation, [mbYes, mbNo, mbCancel], 0);
         if Result = mrNo then
           Exit;

@@ -293,7 +293,8 @@ begin
     end;
     // Hint user if zero rows were detected in file
     if (ModalResult <> mrNone) and (RowCount = 0) then begin
-      MessageDlg('No rows were imported. This can have several causes:'+CRLF+
+      TaskMessageDlg('No rows were imported',
+        'This can have several causes:'+CRLF+
         ' - File is empty'+CRLF+
         ' - Wrong file encoding was selected or detected'+CRLF+
         ' - Field and/or line terminator do not fit to the file contents'

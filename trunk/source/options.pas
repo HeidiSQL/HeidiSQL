@@ -616,7 +616,8 @@ var
   i: Integer;
 begin
   // Factory defaults
-  if MessageDlg('Reset all preference options to default values?'+CRLF+CRLF+'This also applies to automatic settings, e.g. toolbar positions.',
+  if TaskMessageDlg('Reset all preference options to default values?',
+    'This also applies to automatic settings, e.g. toolbar positions.',
     mtConfirmation, [mbOK, mbCancel], 0) = mrCancel then
     Exit;
   OpenRegistry;

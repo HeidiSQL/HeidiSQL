@@ -1688,7 +1688,7 @@ begin
     Col := SourceVT.GetNodeData(SourceVT.FocusedNode);
     ColName := Col.Name;
     if TblKey.Columns.IndexOf(ColName) > -1 then begin
-      if MessageDlg('Index "'+VT.Text[Node, 0]+'" already contains the column "'+ColName+'". It is possible to add a column twice into a index, but total nonsense in practice.'+CRLF+CRLF+'Add anyway?',
+      if TaskMessageDlg('Add duplicated column to index?', 'Index "'+VT.Text[Node, 0]+'" already contains the column "'+ColName+'". It is possible to add a column twice into a index, but total nonsense in practice.',
         mtConfirmation, [mbYes, mbNo], 0) = mrNo then
         Exit;
     end;
@@ -1876,7 +1876,7 @@ begin
     for i:=0 to FKeys.Count-1 do begin
       TblKey := FKeys[i];
       if (TblKey.IndexType = NewType) and (TblKey.Columns.Text = NewParts.Text) then begin
-        if MessageDlg('Key already exists. Really create another identical one?'+CRLF+CRLF+
+        if TaskMessageDlg('Key already exists. Really create another identical one?',
           'This will increase disk usage and probably slow down queries on this table.',
           mtConfirmation, [mbYes, mbNo], 0) = mrNo then
           Exit;
