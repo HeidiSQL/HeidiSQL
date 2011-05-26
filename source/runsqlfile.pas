@@ -138,7 +138,7 @@ begin
   except
     on E: Exception do
     begin
-      MessageDLG( 'Error while reading file ' + SQLFileName + ':' + CRLF + CRLF + E.Message, mtError, [mbOK], 0);
+      TaskMessageDLG('Error while reading file "'+SQLFileName+'"', E.Message, mtError, [mbOK], 0);
       Mainform.AddOrRemoveFromQueryLoadHistory(SQLFileName, False, True);
       Mainform.FillPopupQueryLoad;
     end;

@@ -718,7 +718,7 @@ end;
 procedure Tconnform.FinalizeModifications(var CanProceed: Boolean);
 begin
   if (FSessionModified and (not FOnlyPasswordModified)) or FSessionAdded then begin
-    case MessageDlg('Save settings for "'+SelectedSession+'"?', mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
+    case TaskMessageDlg('Save modifications?', 'Settings for "'+SelectedSession+'" were changed.', mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
       mrYes: begin
           btnSave.OnClick(Self);
           CanProceed := True;

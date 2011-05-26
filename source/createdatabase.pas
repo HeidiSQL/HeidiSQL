@@ -191,7 +191,7 @@ begin
     ModalResult := mrOK;
   except
     on E:EDatabaseError do
-      MessageDlg( 'Creating database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
+      TaskMessageDlg('Creating database "'+editDBName.Text+'" failed.', E.Message, mtError, [mbOK], 0 );
     // Keep form open
   end else try
     sql := 'ALTER DATABASE ' + FConnection.QuoteIdent( modifyDB );
@@ -260,7 +260,7 @@ begin
     ModalResult := mrOK;
   except
     on E:Exception do
-      MessageDlg( 'Altering database "'+editDBName.Text+'" failed:'+CRLF+CRLF+E.Message, mtError, [mbOK], 0 );
+      TaskMessageDlg('Altering database "'+editDBName.Text+'" failed.', E.Message, mtError, [mbOK], 0 );
     // Keep form open
   end;
 
