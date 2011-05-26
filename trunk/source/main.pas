@@ -1060,13 +1060,17 @@ procedure TMainForm.StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPane
 var
   PanelRect: TRect;
   ImageIndex: Integer;
+  Conn: TDBConnection;
 begin
   // Refresh one status bar panel, probably with icon
   ImageIndex := -1;
   case Panel.Index of
     2: ImageIndex := 149;
-    3: if (FActiveDbObj <> nil) and (Assigned(FActiveDbObj.Connection)) then
-      ImageIndex := FActiveDbObj.Connection.Parameters.ImageIndex;
+    3: begin
+      Conn := ActiveConnection;
+      if Conn <> nil then
+        ImageIndex := Conn.Parameters.ImageIndex;
+    end;
     6: begin
       if Panel.Text = SIdle then
         ImageIndex := 151 // Green dot
