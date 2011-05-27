@@ -30,7 +30,6 @@ uses
   texteditor in '..\..\source\texteditor.pas' {frmTextEditor},
   bineditor in '..\..\source\bineditor.pas' {frmBinEditor},
   grideditlinks in '..\..\source\grideditlinks.pas',
-  uVistaFuncs in '..\..\source\uVistaFuncs.pas',
   routine_editor in '..\..\source\routine_editor.pas' {frmRoutineEditor},
   table_editor in '..\..\source\table_editor.pas' {frmTableEditor},
   dbconnection in '..\..\source\dbconnection.pas',

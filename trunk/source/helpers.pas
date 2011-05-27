@@ -197,6 +197,7 @@ type
   function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
+  procedure SetVistaFonts(const AFont: TFont);
 
 var
   MainReg: TRegistry;
@@ -209,7 +210,7 @@ var
 
 implementation
 
-uses main, uVistaFuncs, table_editor, view, routine_editor, trigger_editor, event_editor;
+uses main, table_editor, view, routine_editor, trigger_editor, event_editor;
 
 
 
@@ -1553,7 +1554,7 @@ begin
   end;
   VT.EndUpdate;
   // Disable hottracking in non-Vista mode, looks ugly in XP, but nice in Vista
-  if (toUseExplorerTheme in VT.TreeOptions.PaintOptions) and IsWindowsVista then
+  if (toUseExplorerTheme in VT.TreeOptions.PaintOptions) and (Win32MajorVersion >= 6) then
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
   else
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toHotTrack];
@@ -2649,6 +2650,20 @@ end;
 function ErrorDialog(const Title, Msg: string): Integer;
 begin
   Result := MessageDialog(Title, Msg, mtError, [mbOK]);
+end;
+
+
+procedure SetVistaFonts(const AFont: TFont);
+const
+  VistaFont = 'Segoe UI';
+begin
+  if (Win32MajorVersion >= 6)
+    and not SameText(AFont.Name, VistaFont)
+    and (Screen.Fonts.IndexOf(VistaFont) >= 0) then
+  begin
+    AFont.Size := AFont.Size + 1;
+    AFont.Name := VistaFont;
+  end;
 end;
 
 
