@@ -327,7 +327,7 @@ begin
       Exit; // Cancelled
     NameOK := not MainReg.KeyExists(REGKEY_SESSIONS + newName);
     if not NameOK then
-      MessageDlg('Session name '''+newName+''' already in use.', mtError, [mbOK], 0)
+      ErrorDialog('Session name '''+newName+''' already in use.')
     else begin
       // Create the key and save its values
       OpenRegistry(newName);
@@ -373,7 +373,7 @@ var
   Sess: PConnectionParameters;
 begin
   Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
-  if MessageDlg('Delete session "' + Sess.SessionName + '" ?', mtConfirmation, [mbYes, mbCancel], 0) = mrYes then
+  if MessageDialog('Delete session "' + Sess.SessionName + '" ?', mtConfirmation, [mbYes, mbCancel]) = mrYes then
   begin
     SessionKey := RegPath + REGKEY_SESSIONS + Sess.SessionName;
     if MainReg.KeyExists(SessionKey) then
@@ -603,7 +603,7 @@ begin
   Sess := Sender.GetNodeData(Node);
   OpenRegistry;
   if MainReg.KeyExists(REGKEY_SESSIONS + NewText) then begin
-    MessageDLG('Session "'+NewText+'" already exists!', mtError, [mbCancel], 0);
+    ErrorDialog('Session "'+NewText+'" already exists!');
     NewText := Sess.SessionName;
   end else begin
     SessionKey := RegPath + REGKEY_SESSIONS + Sess.SessionName;
@@ -718,7 +718,7 @@ end;
 procedure Tconnform.FinalizeModifications(var CanProceed: Boolean);
 begin
   if (FSessionModified and (not FOnlyPasswordModified)) or FSessionAdded then begin
-    case TaskMessageDlg('Save modifications?', 'Settings for "'+SelectedSession+'" were changed.', mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
+    case MessageDialog('Save modifications?', 'Settings for "'+SelectedSession+'" were changed.', mtConfirmation, [mbYes, mbNo, mbCancel]) of
       mrYes: begin
           btnSave.OnClick(Self);
           CanProceed := True;

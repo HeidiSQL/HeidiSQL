@@ -616,9 +616,9 @@ var
   i: Integer;
 begin
   // Factory defaults
-  if TaskMessageDlg('Reset all preference options to default values?',
+  if MessageDialog('Reset all preference options to default values?',
     'This also applies to automatic settings, e.g. toolbar positions.',
-    mtConfirmation, [mbOK, mbCancel], 0) = mrCancel then
+    mtConfirmation, [mbOK, mbCancel]) = mrCancel then
     Exit;
   OpenRegistry;
   ValueList := TStringlist.Create;

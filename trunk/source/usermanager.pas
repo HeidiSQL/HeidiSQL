@@ -286,7 +286,7 @@ begin
     listUsers.OnFocusChanged(listUsers, listUsers.FocusedNode, listUsers.FocusedColumn);
   except
     on E:EDatabaseError do begin
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
       // Closing form in OnShow does not work. Instead, do that in listUsers.OnBeforePaint.
     end;
   end;
@@ -363,7 +363,7 @@ begin
   // the old one, otherwise OnFocusChanged will be triggered.
   Allowed := (NewNode <> OldNode) and (not Assigned(NewNode) or (not (vsDisabled in NewNode.States)));
   if Allowed and FModified then begin
-    case MessageDlg('Save modified user?', mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
+    case MessageDialog('Save modified user?', mtConfirmation, [mbYes, mbNo, mbCancel]) of
       mrYes: begin
         btnSave.Click;
         Allowed := not FModified;
@@ -868,13 +868,13 @@ begin
     Exit;
   // Check for unsupported object type, selectable in tree
   if not (DBObj.NodeType in [lntDb, lntTable, lntFunction, lntProcedure, lntColumn]) then begin
-    MessageDlg('Objects of type '+DBObj.ObjType+' cannot be part of privileges.', mtError, [mbOK], 0);
+    ErrorDialog('Objects of type '+DBObj.ObjType+' cannot be part of privileges.');
     Exit;
   end;
   // Check if this would be a duplicate object
   for Priv in FPrivObjects do begin
     if Priv.DBObj.IsSameAs(DBObj) then begin
-      MessageDlg('Selected object is already accessible.', mtError, [mbOK], 0);
+      ErrorDialog('Selected object is already accessible.');
       Exit;
     end;
   end;
@@ -1041,9 +1041,9 @@ begin
     listUsers.OnFocusChanged(listUsers, listUsers.FocusedNode, listUsers.FocusedColumn);
   except
     on E:EDatabaseError do
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
     on E:EInputError do
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
   end;
 
 end;
@@ -1060,7 +1060,7 @@ begin
     FUsers.Remove(User^);
     listUsers.DeleteNode(listUsers.FocusedNode);
     FAdded := False;
-  end else if MessageDlg('Delete user '+User.Username+'@'+User.Host+'?', mtConfirmation, [mbYes, mbCancel], 0 ) = mrYes then begin
+  end else if MessageDialog('Delete user '+User.Username+'@'+User.Host+'?', mtConfirmation, [mbYes, mbCancel]) = mrYes then begin
     UserHost := esc(User.Username)+'@'+esc(User.Host);
     try
       // Revoke privs explicitly, required on old servers.
@@ -1077,7 +1077,7 @@ begin
       FUsers.Remove(User^);
       listUsers.DeleteNode(listUsers.FocusedNode);
     except on E:EDatabaseError do
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
     end;
   end;
 end;

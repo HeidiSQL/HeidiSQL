@@ -400,7 +400,7 @@ begin
     CreateCodeValid := False;
   except
     on E:EDatabaseError do begin
-      MessageDlg(E.Message, mtError, [mbOk], 0);
+      ErrorDialog(E.Message);
       Result := mrAbort;
     end;
   end;
@@ -1084,7 +1084,7 @@ begin
     1: begin // Name of column
       for i:=0 to FColumns.Count-1 do begin
         if FColumns[i].Name = NewText then begin
-          MessageDlg('Column "'+NewText+'" already exists.', mtError, [mbOk], 0);
+          ErrorDialog('Column "'+NewText+'" already exists.');
           Exit;
         end;
       end;
@@ -1688,8 +1688,8 @@ begin
     Col := SourceVT.GetNodeData(SourceVT.FocusedNode);
     ColName := Col.Name;
     if TblKey.Columns.IndexOf(ColName) > -1 then begin
-      if TaskMessageDlg('Add duplicated column to index?', 'Index "'+VT.Text[Node, 0]+'" already contains the column "'+ColName+'". It is possible to add a column twice into a index, but total nonsense in practice.',
-        mtConfirmation, [mbYes, mbNo], 0) = mrNo then
+      if MessageDialog('Add duplicated column to index?', 'Index "'+VT.Text[Node, 0]+'" already contains the column "'+ColName+'". It is possible to add a column twice into a index, but total nonsense in practice.',
+        mtConfirmation, [mbYes, mbNo]) = mrNo then
         Exit;
     end;
 
@@ -1876,9 +1876,9 @@ begin
     for i:=0 to FKeys.Count-1 do begin
       TblKey := FKeys[i];
       if (TblKey.IndexType = NewType) and (TblKey.Columns.Text = NewParts.Text) then begin
-        if TaskMessageDlg('Key already exists. Really create another identical one?',
+        if MessageDialog('Key already exists. Really create another identical one?',
           'This will increase disk usage and probably slow down queries on this table.',
-          mtConfirmation, [mbYes, mbNo], 0) = mrNo then
+          mtConfirmation, [mbYes, mbNo]) = mrNo then
           Exit;
         break;
       end;
@@ -1986,14 +1986,14 @@ begin
     Key := FForeignKeys[Node.Index];
     Allowed := False;
     if Key.ReferenceTable = '' then
-      MessageDlg('Please select a reference table before selecting foreign columns.', mtError, [mbOk], 0)
+      ErrorDialog('Please select a reference table before selecting foreign columns.')
     else begin
       try
         DBObject.Connection.GetVar('SELECT 1 FROM '+DBObject.Connection.QuoteIdent(Key.ReferenceTable, True, '.'));
         Allowed := True;
       except
         // Leave Allowed = False
-        MessageDlg('Reference table "'+Key.ReferenceTable+'" seems to be missing, broken or non-accessible.', mtError, [mbOk], 0)
+        ErrorDialog('Reference table "'+Key.ReferenceTable+'" seems to be missing, broken or non-accessible.')
       end;
     end;
   end else

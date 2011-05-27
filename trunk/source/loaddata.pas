@@ -287,18 +287,18 @@ begin
         Warnings.Next;
       end;
       if Warnings.RecordCount > 0 then begin
-        MessageDlg('Your file was imported but the server returned '+FormatNumber(Warnings.RecordCount)+' warnings and/or notes. See the log panel for details.', mtError, [mbOK], 0);
+        ErrorDialog('Your file was imported but the server returned '+FormatNumber(Warnings.RecordCount)+' warnings and/or notes. See the log panel for details.');
         ModalResult := mrNone;
       end;
     end;
     // Hint user if zero rows were detected in file
     if (ModalResult <> mrNone) and (RowCount = 0) then begin
-      TaskMessageDlg('No rows were imported',
+      ErrorDialog('No rows were imported',
         'This can have several causes:'+CRLF+
         ' - File is empty'+CRLF+
         ' - Wrong file encoding was selected or detected'+CRLF+
         ' - Field and/or line terminator do not fit to the file contents'
-        , mtError, [mbOK], 0);
+        );
       ModalResult := mrNone;
     end;
 
@@ -306,7 +306,7 @@ begin
     on E:EDatabaseError do begin
       Screen.Cursor := crDefault;
       ModalResult := mrNone;
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
     end;
   end;
 

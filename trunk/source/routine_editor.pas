@@ -386,7 +386,7 @@ begin
   Allowed := Column > 0;
   if (Column = 3) and (comboType.ItemIndex = 1) then begin
     Allowed := False;
-    MessageDlg('A stored function can only have IN parameters so context editing is blocked.', mtInformation, [mbOK], 0);
+    MessageDialog('A stored function can only have IN parameters so context editing is blocked.', mtInformation, [mbOK]);
   end;
 end;
 
@@ -449,8 +449,8 @@ begin
       TargetExists := ((editName.Text <> DBObject.Name) or (ProcOrFunc <> FAlterRoutineType)) and
         (allRoutineNames.IndexOf(editName.Text) > -1);
       if TargetExists then begin
-        Result := TaskMessageDlg('Overwrite?', 'Routine "'+editName.Text+'" already exists.',
-          mtConfirmation, [mbYes, mbNo, mbCancel], 0);
+        Result := MessageDialog('Overwrite?', 'Routine "'+editName.Text+'" already exists.',
+          mtConfirmation, [mbYes, mbNo, mbCancel]);
         if Result = mrNo then
           Exit;
       end;
@@ -485,7 +485,7 @@ begin
     Mainform.actRunRoutines.Enabled := True;
   except
     on E:EDatabaseError do begin
-      MessageDlg(E.Message, mtError, [mbOk], 0);
+      ErrorDialog(E.Message);
       Result := mrAbort;
     end;
   end;
