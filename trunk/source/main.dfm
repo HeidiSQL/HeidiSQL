@@ -423,8 +423,8 @@ object MainForm: TMainForm
         PopupMenu = popupDB
         ShowHint = True
         TabOrder = 0
-        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
-        TreeOptions.SelectionOptions = [toRightClickSelect]
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
         OnAfterPaint = DBtreeAfterPaint
         OnChange = DBtreeChange
         OnDblClick = DBtreeDblClick
@@ -1213,6 +1213,8 @@ object MainForm: TMainForm
             Caption = 'No data available for this item.'
             Layout = tlCenter
             WordWrap = True
+            ExplicitWidth = 147
+            ExplicitHeight = 13
           end
           object pnlDataTop: TPanel
             Left = 0
@@ -1851,6 +1853,9 @@ object MainForm: TMainForm
       end
       object Exportdata1: TMenuItem
         Action = actExportData
+      end
+      object Synchronizedatabase1: TMenuItem
+        Action = actSynchronizeDatabase
       end
     end
     object Help1: TMenuItem
@@ -2586,6 +2591,12 @@ object MainForm: TMainForm
       ImageIndex = 165
       OnExecute = actToggleCommentExecute
     end
+    object actSynchronizeDatabase: TAction
+      Category = 'Export/Import'
+      Caption = 'Synchronize database'
+      ImageIndex = 27
+      OnExecute = actSynchronizeDatabaseExecute
+    end
   end
   object SaveDialog2: TSaveDialog
     DefaultExt = 'reg'
@@ -2615,7 +2626,7 @@ object MainForm: TMainForm
     Left = 104
     Top = 160
     Bitmap = {
-      494C0101A6005001200110001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101A6005001340110001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       000000000000360000002800000040000000A0020000010020000000000000A0
       0200000000000000000000000000000000000000000000000000000000000000
       000000000000000000000000000000000000000000000000000000000000FFFF
