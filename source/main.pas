@@ -1028,7 +1028,7 @@ const
 implementation
 
 uses
-  About, printlist, mysql_structures, UpdateCheck, uVistaFuncs, runsqlfile,
+  About, printlist, mysql_structures, UpdateCheck, runsqlfile,
   column_selection, data_sorting, grideditlinks, ExportGrid, jpeg, GIFImg;
 
 

@@ -187,7 +187,6 @@
 				<Form>frmBinEditor</Form>
 			</DCCReference>
 			<DCCReference Include="..\..\source\grideditlinks.pas"/>
-			<DCCReference Include="..\..\source\uVistaFuncs.pas"/>
 			<DCCReference Include="..\..\source\routine_editor.pas">
 				<Form>frmRoutineEditor</Form>
 			</DCCReference>
