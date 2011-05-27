@@ -197,7 +197,6 @@ type
   function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
-  procedure SetVistaFonts(const AFont: TFont);
 
 var
   MainReg: TRegistry;
@@ -2650,20 +2649,6 @@ end;
 function ErrorDialog(const Title, Msg: string): Integer;
 begin
   Result := MessageDialog(Title, Msg, mtError, [mbOK]);
-end;
-
-
-procedure SetVistaFonts(const AFont: TFont);
-const
-  VistaFont = 'Segoe UI';
-begin
-  if (Win32MajorVersion >= 6)
-    and not SameText(AFont.Name, VistaFont)
-    and (Screen.Fonts.IndexOf(VistaFont) >= 0) then
-  begin
-    AFont.Size := AFont.Size + 1;
-    AFont.Name := VistaFont;
-  end;
 end;
 
 
