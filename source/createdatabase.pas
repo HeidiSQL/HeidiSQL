@@ -191,7 +191,7 @@ begin
     ModalResult := mrOK;
   except
     on E:EDatabaseError do
-      TaskMessageDlg('Creating database "'+editDBName.Text+'" failed.', E.Message, mtError, [mbOK], 0 );
+      ErrorDialog('Creating database "'+editDBName.Text+'" failed.', E.Message);
     // Keep form open
   end else try
     sql := 'ALTER DATABASE ' + FConnection.QuoteIdent( modifyDB );
@@ -231,9 +231,9 @@ begin
         // Target db does not exist - create it
         FConnection.Query(GetCreateStatement);
       end else begin
-        if MessageDlg('Database "'+editDBName.Text+'" exists. But it does not contain objects with same names as in '+
+        if MessageDialog('Database "'+editDBName.Text+'" exists. But it does not contain objects with same names as in '+
           '"'+modifyDB+'", so it''s uncritical to move everything.'+CRLF+CRLF+'Move all objects to "'+editDBName.Text+'"?',
-          mtConfirmation, [mbYes, mbCancel], 0) <> mrYes then
+          mtConfirmation, [mbYes, mbCancel]) <> mrYes then
           Exit;
       end;
       // Move all tables, views and procedures to target db
@@ -260,7 +260,7 @@ begin
     ModalResult := mrOK;
   except
     on E:Exception do
-      TaskMessageDlg('Altering database "'+editDBName.Text+'" failed.', E.Message, mtError, [mbOK], 0 );
+      ErrorDialog('Altering database "'+editDBName.Text+'" failed.', E.Message);
     // Keep form open
   end;
 

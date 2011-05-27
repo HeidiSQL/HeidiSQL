@@ -481,7 +481,7 @@ var
       end;
       on E:EFCreateError do begin
         // Occurs when export output file can not be created
-        MessageDlg(E.Message, mtError, [mbOK], 0);
+        ErrorDialog(E.Message);
         FCancelled := True;
       end;
     end;
@@ -896,7 +896,7 @@ begin
     except
       on E:EDatabaseError do begin
         Screen.Cursor := crDefault;
-        MessageDlg(E.Message, mtError, [mbOK], 0);
+        ErrorDialog(E.Message);
         comboExportOutputType.ItemIndex := FLastOutputSelectedIndex;
         comboExportOutputType.OnChange(Sender);
       end;

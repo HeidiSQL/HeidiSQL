@@ -1146,17 +1146,17 @@ begin
   try
     ActiveConnection.Query('FLUSH ' + flushwhat);
     if Sender = actFlushTableswithreadlock then begin
-      MessageDlg(
+      MessageDialog(
         'Tables have been flushed and read lock acquired.'#10 +
         'Perform backup or snapshot of table data files now.'#10 +
         'Press OK to unlock when done...',
-        mtInformation, [mbOk], 0
+        mtInformation, [mbOk]
       );
       ActiveConnection.Query('UNLOCK TABLES');
     end;
   except
     on E:EDatabaseError do
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
   end;
 end;
 
@@ -1665,9 +1665,9 @@ begin
   // Ask if we shall activate statistic calls. Would be used by noone otherwise.
   OpenRegistry;
   if not Mainreg.ValueExists(REGNAME_DO_STATISTICS) then begin
-    DecideForStatistic := MessageDlg(APPNAME + ' has a new statistics feature: If activated, server and client versions '+
+    DecideForStatistic := MessageDialog(APPNAME + ' has a new statistics feature: If activated, server and client versions '+
       'are reported once per month and displayed on heidisql.com.'+CRLF+CRLF+'Activate this feature?',
-      mtConfirmation, [mbYes, mbNo], 0) = mrYes;
+      mtConfirmation, [mbYes, mbNo]) = mrYes;
     Mainreg.WriteBool(REGNAME_DO_STATISTICS, DecideForStatistic);
   end;
 
@@ -1699,7 +1699,7 @@ begin
           if InitConnection(LoadedParams, LastActiveSession=LastSessions[i], Connection) then
             Connected := True;
         except on E:Exception do
-          MessageDlg(E.Message, mtError, [mbOK], 0);
+          ErrorDialog(E.Message);
         end;
       end;
     end;
@@ -2195,7 +2195,7 @@ begin
     ActiveConnection.Query('SET profiling=1');
   except
     on E:EDatabaseError do begin
-      MessageDlg('Query profiling requires MySQL 5.0.37 or later, and the server must not be configured with --disable-profiling.'+CRLF+CRLF+E.Message, mtError, [mbOK], 0);
+      ErrorDialog('Query profiling requires MySQL 5.0.37 or later, and the server must not be configured with --disable-profiling.', E.Message);
       Tab.DoProfile := False;
     end;
   end;
@@ -2311,7 +2311,7 @@ begin
   if IsNotEmpty(Thread.ErrorMessage) then begin
     ProgressBarStatus.State := pbsError;
     GoToErrorPos(Thread.ErrorMessage);
-    MessageDlg(Thread.ErrorMessage, mtError, [mbOK], 0);
+    ErrorDialog(Thread.ErrorMessage);
   end;
 
   // Gather meta info for logging
@@ -2567,7 +2567,7 @@ begin
       FileStream := TFileStream.Create(Dialog.FileName, fmCreate or fmOpenWrite);
       FileStream.Write(Content[1], StrLen);
     except on E:Exception do
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
     end;
     FreeAndNil(FileStream);
     Screen.Cursor := crDefault;
@@ -2607,7 +2607,7 @@ begin
     // drop table selected in tree view.
     case ActiveDBObj.NodeType of
       lntDb: begin
-        if TaskMessageDlg('Drop Database "'+Conn.Database+'"?', 'WARNING: You will lose all objects in database '+Conn.Database+'!', mtConfirmation, [mbok,mbcancel], 0) <> mrok then
+        if MessageDialog('Drop Database "'+Conn.Database+'"?', 'WARNING: You will lose all objects in database '+Conn.Database+'!', mtConfirmation, [mbok,mbcancel]) <> mrok then
           Abort;
         try
           db := Conn.Database;
@@ -2620,7 +2620,7 @@ begin
           InvalidateVT(ListDatabases, VTREE_NOTLOADED_PURGECACHE, False);
         except
           on E:EDatabaseError do
-            MessageDlg(E.Message, mtError, [mbOK], 0);
+            ErrorDialog(E.Message);
         end;
         Exit;
       end;
@@ -2649,7 +2649,7 @@ begin
   for DBObject in ObjectList do
     msg := msg + DBObject.Name + ', ';
   Delete(msg, Length(msg)-1, 2);
-  if TaskMessageDlg('Drop ' + IntToStr(ObjectList.Count) + ' object(s) in database "'+Conn.Database+'"?', msg, mtConfirmation, [mbok,mbcancel], 0) = mrOk then begin
+  if MessageDialog('Drop ' + IntToStr(ObjectList.Count) + ' object(s) in database "'+Conn.Database+'"?', msg, mtConfirmation, [mbok,mbcancel]) = mrOk then begin
     try
       // Disable foreign key checks to avoid SQL errors
       if Conn.ServerVersionInt >= 40014 then
@@ -2668,7 +2668,7 @@ begin
       SetActiveDatabase(Conn.Database, Conn);
     except
       on E:EDatabaseError do
-        MessageDlg(E.Message, mtError, [mbOK], 0);
+        ErrorDialog(E.Message);
     end;
     ObjectList.Free;
   end;
@@ -2719,7 +2719,7 @@ var
 begin
   // Ask for action when loading a big file
   if not FileExists(Filename) then begin
-    MessageDlg('File not found: "'+filename+'"', mtError, [mbOK], 0);
+    ErrorDialog('File not found: "'+filename+'"');
     Result := mrYes;
     Exit;
   end;
@@ -2733,7 +2733,7 @@ begin
       '  [Yes] to run the file without loading it into the editor' + CRLF +
       '  [No] to load the file into the query editor' + CRLF +
       '  [Cancel] to cancel file opening.';
-    Result := TaskMessageDlg('Just execute this large file ('+Filename+')?', msgtext, mtWarning, [mbYes, mbNo, mbCancel], 0);
+    Result := MessageDialog('Just execute this large file ('+Filename+')?', msgtext, mtWarning, [mbYes, mbNo, mbCancel]);
     if Result = mrYes then begin
       RunFileDialog := TRunSQLFileForm.Create(Self);
       RunFileDialog.SQLFileName := Filename;
@@ -2813,7 +2813,7 @@ begin
     Connection.Active := True;
   except
     on E:EDatabaseError do
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
   end;
 
   // attempt to establish connection
@@ -2861,7 +2861,7 @@ begin
     StartupScript := Trim(Connection.Parameters.StartupScriptFilename);
     if StartupScript <> '' then begin
       if not FileExists(StartupScript) then
-        MessageDlg('Error: Startup script file not found: '+StartupScript, mtError, [mbOK], 0)
+        ErrorDialog('Startup script file not found: '+StartupScript)
       else begin
         StartupSQL := ReadTextfile(StartupScript, nil);
         StartupBatch := SplitSQL(StartupSQL);
@@ -2892,11 +2892,11 @@ begin
   Grid := ActiveGrid;
   Results := GridResult(Grid);
   if Grid.SelectedCount = 0 then
-    TaskMessageDLG('No rows selected', 'Please select one or more rows to delete them.', mtError, [mbOK], 0)
+    ErrorDialog('No rows selected', 'Please select one or more rows to delete them.')
   else try
     Results.CheckEditable;
-    if MessageDLG('Delete '+IntToStr(Grid.SelectedCount)+' row(s)?',
-      mtConfirmation, [mbOK, mbCancel], 0) = mrOK then begin
+    if MessageDialog('Delete '+IntToStr(Grid.SelectedCount)+' row(s)?',
+      mtConfirmation, [mbOK, mbCancel]) = mrOK then begin
       FocusAfterDelete := nil;
       EnableProgressBar(Grid.SelectedCount);
       Node := GetNextNode(Grid, nil, True);
@@ -2928,7 +2928,7 @@ begin
     end;
   except on E:EDatabaseError do begin
       ProgressBarStatus.State := pbsError;
-      TaskMessageDlg('Grid editing error', E.Message, mtError, [mbOK], 0);
+      ErrorDialog('Grid editing error', E.Message);
     end;
   end;
   Mainform.ProgressBarStatus.Visible := False;
@@ -2991,10 +2991,10 @@ begin
     Names := ActiveDbObj.Name;
   end;
   if Objects.Count = 0 then
-    MessageDlg('No table(s) selected.', mtError, [mbOK], 0)
+    ErrorDialog('No table(s) selected.')
   else begin
-    if TaskMessageDlg('Empty '+IntToStr(Objects.count)+' table(s) and/or view(s) ?', Names,
-      mtConfirmation, [mbOk, mbCancel], 0) = mrOk then begin
+    if MessageDialog('Empty '+IntToStr(Objects.count)+' table(s) and/or view(s) ?', Names,
+      mtConfirmation, [mbOk, mbCancel]) = mrOk then begin
       Screen.Cursor := crHourglass;
       EnableProgressBar(Objects.Count);
       try
@@ -3009,7 +3009,7 @@ begin
       except
         on E:EDatabaseError do begin
           ProgressBarStatus.State := pbsError;
-          MessageDlg(E.Message, mtError, [mbOK], 0);
+          ErrorDialog(E.Message);
         end;
       end;
       Objects.Free;
@@ -3052,7 +3052,7 @@ begin
     Objects.Add(ActiveDbObj);
 
   if Objects.Count = 0 then
-    TaskMessageDlg('No stored procedure selected.', 'Please select one or more stored function(s) or routine(s).', mtError, [mbOK], 0);
+    ErrorDialog('No stored procedure selected.', 'Please select one or more stored function(s) or routine(s).');
 
   for Obj in Objects do begin
     actNewQueryTab.Execute;
@@ -3161,7 +3161,7 @@ begin
   else begin
     if (OldCaretXY.Char = SearchReplaceDialog.Editor.CaretXY.Char) and
       (OldCaretXY.Line = SearchReplaceDialog.Editor.CaretXY.Line) then
-      MessageDlg('Text "'+SearchReplaceDialog.comboSearch.Text+'" not found.', mtInformation, [mbOk], 0);
+      MessageDialog('Text "'+SearchReplaceDialog.comboSearch.Text+'" not found.', mtInformation, [mbOk]);
   end;
 end;
 
@@ -3170,7 +3170,7 @@ procedure TMainForm.SynMemoQueryReplaceText(Sender: TObject; const ASearch,
   AReplace: string; Line, Column: Integer; var Action: TSynReplaceAction);
 begin
   // Fires when "Replace all" in search dialog was pressed with activated "Prompt on replace"
-  case MessageDlg('Replace this occurrence of "'+sstr(ASearch, 100)+'"?', mtConfirmation, [mbYes, mbYesToAll, mbNo, mbCancel], 0) of
+  case MessageDialog('Replace this occurrence of "'+sstr(ASearch, 100)+'"?', mtConfirmation, [mbYes, mbYesToAll, mbNo, mbCancel]) of
     mrYes: Action := raReplace;
     mrYesToAll: Action := raReplaceAll;
     mrNo: Action := raSkip;
@@ -3271,8 +3271,8 @@ begin
     CanSave := mrYes;
     for i:=0 to QueryTabs.Count-1 do begin
       if QueryTabs[i].MemoFilename = SaveDialogSQLFile.FileName then begin
-        CanSave := TaskMessageDlg('Overwrite "'+SaveDialogSQLFile.FileName+'"?', 'This file is already open in query tab #'+IntToStr(QueryTabs[i].Number)+'.',
-          mtWarning, [mbYes, mbNo, mbCancel], 0);
+        CanSave := MessageDialog('Overwrite "'+SaveDialogSQLFile.FileName+'"?', 'This file is already open in query tab #'+IntToStr(QueryTabs[i].Number)+'.',
+          mtWarning, [mbYes, mbNo, mbCancel]);
         break;
       end;
     end;
@@ -3322,7 +3322,7 @@ begin
     snippetname := DirnameSnippets + goodfilename(snippetname);
     if FileExists( snippetname ) then
     begin
-      if MessageDlg( 'Overwrite existing snippet '+snippetname+'?', mtConfirmation, [mbOK, mbCancel], 0 ) <> mrOK then
+      if MessageDialog('Overwrite existing snippet '+snippetname+'?', mtConfirmation, [mbOK, mbCancel]) <> mrOK then
         exit;
     end;
     Screen.Cursor := crHourglass;
@@ -3519,7 +3519,7 @@ begin
       Delimiter := newVal;
       ok := True;
     except on E:Exception do
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
     end else // Cancel clicked
       ok := True;
   end;
@@ -3547,7 +3547,7 @@ begin
   if Msg <> '' then begin
     Msg := 'Error setting delimiter to "'+Value+'": '+Msg;
     LogSQL(Msg, lcError);
-    MessageDlg(Msg, mtError, [mbOK], 0);
+    ErrorDialog(Msg);
   end else begin
     FDelimiter := Value;
     LogSQL('Delimiter changed to '+FDelimiter, lcInfo);
@@ -3654,7 +3654,7 @@ begin
       end;
     end;
   except on E:EDatabaseError do
-    TaskMessageDlg('Grid editing error', E.Message, mtError, [mbOk], 0);
+    ErrorDialog('Grid editing error', E.Message);
   end;
 end;
 
@@ -3806,7 +3806,7 @@ begin
   except
     on E:Exception do begin
       DeactivateFileLogging;
-      TaskMessageDlg('Error writing to session log file.', FileNameSessionLog+CRLF+CRLF+E.Message+CRLF+CRLF+'Logging is disabled now.', mtError, [mbOK], 0);
+      ErrorDialog('Error writing to session log file.', FileNameSessionLog+CRLF+CRLF+E.Message+CRLF+CRLF+'Logging is disabled now.');
     end;
   end;
   LeaveCriticalSection(FCriticalSection);
@@ -4094,7 +4094,7 @@ begin
     except
       // Wrong WHERE clause in most cases
       on E:EDatabaseError do
-        MessageDlg(E.Message, mtError, [mbOK], 0);
+        ErrorDialog(E.Message);
     end;
 
   end;
@@ -4470,7 +4470,7 @@ var
 begin
   t := TimerRefresh.Enabled;
   TimerRefresh.Enabled := false; // prevent av (ListProcesses.selected...)
-  if MessageDlg('Kill '+IntToStr(ListProcesses.SelectedCount)+' Process(es)?', mtConfirmation, [mbok,mbcancel], 0) = mrok then
+  if MessageDialog('Kill '+IntToStr(ListProcesses.SelectedCount)+' Process(es)?', mtConfirmation, [mbok,mbcancel]) = mrok then
   begin
     Node := GetNextNode(ListProcesses, nil, True);
     while Assigned(Node) do begin
@@ -4482,7 +4482,7 @@ begin
         ActiveConnection.Query('KILL '+pid);
       except
         on E:EDatabaseError do begin
-          if MessageDlg(E.Message, mtError, [mbOK, mbAbort], 0) = mrAbort then
+          if MessageDialog(E.Message, mtError, [mbOK, mbAbort]) = mrAbort then
             break;
         end;
       end;
@@ -4873,7 +4873,7 @@ begin
     DBTree.InvalidateChildren(FindDBNode(DBtree, ActiveDatabase), True);
   except
     on E:EDatabaseError do
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
   end;
 end;
 
@@ -4975,7 +4975,7 @@ begin
       menuAutoRefresh.Checked := true;
     end
     else
-      MessageDLG('Seconds must be between 0 and ' + IntToStr(maxint) + '.', mtError, [mbOK], 0);
+      ErrorDialog('Seconds must be between 0 and ' + IntToStr(maxint) + '.');
   end;
 end;
 
@@ -5477,7 +5477,7 @@ begin
   try
     Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := d;
   except on E:EDatabaseError do
-    MessageDlg(E.Message, mtError, [mbOK], 0);
+    ErrorDialog(E.Message);
   end;
 end;
 
@@ -5703,7 +5703,7 @@ begin
     Exit;
 
   snippetfile := DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql';
-  if TaskMessageDlg('Delete snippet file?', snippetfile, mtConfirmation, [mbOk, mbCancel], 0) = mrOk then
+  if MessageDialog('Delete snippet file?', snippetfile, mtConfirmation, [mbOk, mbCancel]) = mrOk then
   begin
     Screen.Cursor := crHourGlass;
     if DeleteFile(snippetfile) then begin
@@ -5712,7 +5712,7 @@ begin
       FillPopupQueryLoad;
     end else begin
       Screen.Cursor := crDefault;
-      MessageDlg( 'Failed deleting ' + snippetfile, mtError, [mbOK], 0 );
+      ErrorDialog('Failed deleting ' + snippetfile);
     end;
     Screen.Cursor := crDefault;
   end;
@@ -5748,8 +5748,8 @@ begin
   if DirectoryExists( DirnameSnippets ) then
     ShellExec( '', DirnameSnippets )
   else
-    if TaskMessageDlg( 'Snippets folder does not exist', 'The folder "'+DirnameSnippets+'" is normally created when you install '+appname+'.' + CRLF + CRLF + 'Shall it be created now?',
-      mtWarning, [mbYes, mbNo], 0 ) = mrYes then
+    if MessageDialog( 'Snippets folder does not exist', 'The folder "'+DirnameSnippets+'" is normally created when you install '+appname+'.' + CRLF + CRLF + 'Shall it be created now?',
+      mtWarning, [mbYes, mbNo]) = mrYes then
     try
       Screen.Cursor := crHourglass;
       ForceDirectories( DirnameSnippets );
@@ -6135,7 +6135,7 @@ begin
   {$I+}
   if IOResult <> 0 then
   begin
-    TaskMessageDlg('Error opening session log file', FileNameSessionLog+CRLF+CRLF+'Logging is disabled now.', mtError, [mbOK], 0);
+    ErrorDialog('Error opening session log file', FileNameSessionLog+CRLF+CRLF+'Logging is disabled now.');
     prefLogToFile := False;
   end else
     prefLogToFile := True;
@@ -6705,7 +6705,7 @@ begin
       try
         DBObj.Connection.Database := DBObj.Database;
       except on E:EDatabaseError do begin
-          MessageDlg(E.Message, mtError, [mbOK], 0);
+          ErrorDialog(E.Message);
           SelectNode(DBtree, TreeClickHistoryPrevious);
           Exit;
         end;
@@ -6718,7 +6718,7 @@ begin
       try
         DBObj.Connection.Database := DBObj.Database;
       except on E:EDatabaseError do begin
-          MessageDlg(E.Message, mtError, [mbOK], 0);
+          ErrorDialog(E.Message);
           SelectNode(DBtree, TreeClickHistoryPrevious);
           Exit;
         end;
@@ -6855,7 +6855,7 @@ begin
         ActiveConnection.ParseViewStructure(ActiveDbObj.CreateCode, ActiveDbObj.Name, SelectedTableColumns, DummyStr, DummyStr, DummyStr, DummyStr);
     end;
   except on E:EDatabaseError do
-    MessageDlg(E.Message, mtError, [mbOK], 0);
+    ErrorDialog(E.Message);
   end;
 end;
 
@@ -7272,7 +7272,8 @@ begin
   try
     Results.SetCol(Grid.FocusedColumn, '', True);
   except
-    on E:EDatabaseError do MessageDlg(E.Message, mtError, [mbOK], 0);
+    on E:EDatabaseError do
+      ErrorDialog(E.Message);
   end;
   Grid.RepaintNode(Grid.FocusedNode);
 end;
@@ -7317,7 +7318,8 @@ begin
       NewText := UnformatNumber(NewText);
     Results.SetCol(Column, NewText, False);
   except
-    on E:EDatabaseError do MessageDlg(E.Message, mtError, [mbOK], 0);
+    on E:EDatabaseError do
+      ErrorDialog(E.Message);
   end;
   ValidateControls(Sender);
 end;
@@ -7391,7 +7393,7 @@ begin
   try
     GridResult(Sender).CheckEditable;
     if not AnyGridEnsureFullRow(Sender as TVirtualStringTree, Node) then
-      MessageDlg('Could not load full row data.', mtError, [mbOk], 0)
+      ErrorDialog('Could not load full row data.')
     else begin
       Allowed := True;
       // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
@@ -7399,7 +7401,7 @@ begin
       actDataPostChanges.ShortCut := 0;
     end;
   except on E:EDatabaseError do
-    TaskMessageDlg('Grid editing error', E.Message, mtError, [mbOk], 0);
+    ErrorDialog('Grid editing error', E.Message);
   end;
 end;
 
@@ -8352,7 +8354,7 @@ begin
         SynMemo.PasteFromClipboard;
         Success := True;
       except on E:Exception do
-        MessageDlg(E.Message, mtError, [mbOK], 0);
+        ErrorDialog(E.Message);
       end;
     end;
   end;
@@ -8755,7 +8757,7 @@ begin
     if idx > -1 then
       MainReg.DeleteKey(Keys[idx]);
   end else if Sender = menuClearFiltersSession then begin
-    if MessageDlg('Remove all filter stuff for this session ('+ActiveDbObj.Connection.Parameters.SessionName+') ?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+    if MessageDialog('Remove all filter stuff for this session ('+ActiveDbObj.Connection.Parameters.SessionName+') ?', mtConfirmation, [mbYes, mbNo]) = mrYes then begin
       Screen.Cursor := crHourGlass;
       OpenRegistry(ActiveDbObj.Connection.Parameters.SessionName);
       MainReg.GetKeyNames(Keys);
@@ -8763,7 +8765,7 @@ begin
         MainReg.DeleteKey(Keys[idx])
     end;
   end else if Sender = menuClearFiltersAll then begin
-    if MessageDlg('Remove all filters across all sessions?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then begin
+    if MessageDialog('Remove all filters across all sessions?', mtConfirmation, [mbYes, mbNo]) = mrYes then begin
       Screen.Cursor := crHourGlass;
       MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
       Sessions := TStringList.Create;
@@ -9266,7 +9268,7 @@ begin
       msg := 'Save changes to file '+CRLF+CRLF+Tab.MemoFilename+' ?'
     else
       msg := 'Save content of tab "'+Trim(Tab.TabSheet.Caption)+'" ?';
-    case TaskMessageDlg('Modified query', msg, mtConfirmation, [mbYes, mbNo, mbCancel], 0) of
+    case MessageDialog('Modified query', msg, mtConfirmation, [mbYes, mbNo, mbCancel]) of
       mrNo: Result := True;
       mrYes: begin
         if Tab.MemoFilename <> '' then
@@ -9446,7 +9448,7 @@ begin
   // Reformat SQL query
   m := ActiveSynMemo;
   if not Assigned(m) then begin
-    TaskMessageDlg('Cannot reformat', 'Please select a non-readonly SQL editor first.', mtError, [mbOK], 0);
+    ErrorDialog('Cannot reformat', 'Please select a non-readonly SQL editor first.');
     Exit;
   end;
   CursorPosStart := m.SelStart;
@@ -9455,7 +9457,7 @@ begin
     m.SelectAll;
   NewSQL := m.SelText;
   if Length(NewSQL) = 0 then
-    TaskMessageDlg('Cannot reformat anything', 'The current editor is empty.', mtError, [mbOK], 0)
+    ErrorDialog('Cannot reformat anything', 'The current editor is empty.')
   else begin
     Screen.Cursor := crHourglass;
     m.UndoList.AddGroupBreak;
@@ -10253,7 +10255,7 @@ begin
   case Action of
     waRemoved:
       if IsCurrentFile
-        and (TaskMessageDlg('Close file and query tab?', 'File was deleted from outside: '+MemoFilename, mtConfirmation, [mbYes, mbCancel], 0) = mrYes) then begin
+        and (MessageDialog('Close file and query tab?', 'File was deleted from outside: '+MemoFilename, mtConfirmation, [mbYes, mbCancel]) = mrYes) then begin
         Mainform.actClearQueryEditor.Execute;
         if Mainform.IsQueryTab(TabSheet.PageIndex, False) then
           Mainform.CloseQueryTab(TabSheet.PageIndex);
@@ -10285,7 +10287,7 @@ var
   OldCursor: TBufferCoord;
 begin
   (Sender as TTimer).Enabled := False;
-  if TaskMessageDlg('Reload file?', 'File was modified from outside: '+MemoFilename, mtConfirmation, [mbYes, mbCancel], 0) = mrYes then begin
+  if MessageDialog('Reload file?', 'File was modified from outside: '+MemoFilename, mtConfirmation, [mbYes, mbCancel]) = mrYes then begin
     OldCursor := Memo.CaretXY;
     OldTopLine := Memo.TopLine;
     LoadContents(MemoFilename, True, nil);
@@ -10318,7 +10320,7 @@ begin
 
     if ScanNulChar(Content) then begin
       Content := RemoveNulChars(Content);
-      MessageDlg(SContainsNulCharFile, mtInformation, [mbOK], 0);
+      MessageDialog(SContainsNulCharFile, mtInformation, [mbOK]);
     end;
 
     Memo.BeginUpdate;
@@ -10333,7 +10335,7 @@ begin
         MemoLineBreaks := LineBreaks;
     end;
     if MemoLineBreaks = lbsMixed then
-      MessageDlg('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).', mtInformation, [mbOK], 0);
+      MessageDialog('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).', mtInformation, [mbOK]);
 
     Memo.SelText := Content;
     Memo.SelStart := Memo.SelEnd;
@@ -10343,7 +10345,7 @@ begin
     Result := True;
   except on E:Exception do
     // File does not exist, is locked or broken
-    MessageDlg(E.message, mtError, [mbOK], 0);
+    ErrorDialog(E.message);
   end;
   Screen.Cursor := crDefault;
 end;

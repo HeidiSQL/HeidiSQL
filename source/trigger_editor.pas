@@ -200,7 +200,7 @@ begin
     btnDiscard.Enabled := Modified;
   except
     on E:EDatabaseError do begin
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
       Result := mrAbort;
     end;
   end;

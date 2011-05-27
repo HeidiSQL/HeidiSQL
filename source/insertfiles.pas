@@ -433,7 +433,7 @@ begin
   except
     on E:Exception do begin
       Screen.Cursor := crDefault;
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
       Mainform.ProgressBarStatus.Hide;
     end;
   end;

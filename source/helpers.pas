@@ -193,6 +193,10 @@ type
   function GetImageLinkTimeStamp(const FileName: string): TDateTime;
   function IsEmpty(Str: String): Boolean;
   function IsNotEmpty(Str: String): Boolean;
+  function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
+  function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
+  function ErrorDialog(Msg: string): Integer; overload;
+  function ErrorDialog(const Title, Msg: string): Integer; overload;
 
 var
   MainReg: TRegistry;
@@ -2036,7 +2040,7 @@ begin
       Msg := 'Save modified '+ObjType+' "'+DBObject.Name+'"?'
     else
       Msg := 'Save new '+ObjType+'?';
-    Result := MessageDlg(Msg, mtConfirmation, [mbYes, mbNo, mbCancel], 0);
+    Result := MessageDialog(Msg, mtConfirmation, [mbYes, mbNo, mbCancel]);
     case Result of
       mrYes: Result := ApplyModifications;
       mrNo: Modified := False;
@@ -2312,7 +2316,7 @@ const
         rdInteger:
           Value := IntToStr(MainReg.ReadInteger(Names[i]));
         rdBinary, rdUnknown, rdExpandString:
-          MessageDlg(Names[i]+' has an unsupported data type.', mtError, [mbOK], 0);
+          ErrorDialog(Names[i]+' has an unsupported data type.');
       end;
       Content := Content + Value + CRLF;
     end;
@@ -2366,7 +2370,7 @@ begin
           rdInteger:
             MainReg.WriteInteger(Name, MakeInt(Value));
           rdBinary, rdUnknown, rdExpandString:
-            MessageDlg(Name+' has an unsupported data type.', mtError, [mbOK], 0);
+            ErrorDialog(Name+' has an unsupported data type.');
         end;
         Segments.Free;
       end;
@@ -2405,7 +2409,7 @@ begin
     end;
   except
     On E:Exception do
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
   end;
   Screen.Cursor := crDefault;
 
@@ -2612,6 +2616,39 @@ function IsNotEmpty(Str: String): Boolean;
 begin
   // Alternative version of "Str <> ''"
   Result := Str <> '';
+end;
+
+
+function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer;
+begin
+  Result := MessageDialog('', Msg, DlgType, Buttons);
+end;
+
+
+function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer;
+var
+  m: String;
+begin
+ if (Win32MajorVersion >= 6) and (Title <> '') then
+   Result := TaskMessageDlg(Title, Msg, DlgType, Buttons, 0)
+ else begin
+   m := Msg;
+   if Title <> '' then
+     m := Title + CRLF + CRLF + m;
+   Result := MessageDlg(m, DlgType, Buttons, 0);
+ end;
+end;
+
+
+function ErrorDialog(Msg: string): Integer;
+begin
+  Result := MessageDialog(Msg, mtError, [mbOK]);
+end;
+
+
+function ErrorDialog(const Title, Msg: string): Integer;
+begin
+  Result := MessageDialog(Title, Msg, mtError, [mbOK]);
 end;
 
 

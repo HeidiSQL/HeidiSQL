@@ -74,7 +74,7 @@ begin
   except
     on E:EDatabaseError do begin
       ModalResult := mrNone;
-      MessageDlg(E.Message, mtError, [mbOK], 0);
+      ErrorDialog(E.Message);
     end;
   end;
 end;

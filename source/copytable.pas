@@ -358,7 +358,7 @@ begin
   TargetTable := FDBObj.Connection.QuoteIdent(comboDatabase.Text)+'.'+FDBObj.Connection.QuoteIdent(editNewTablename.Text);
   TableExistance := FDBObj.Connection.GetVar('SHOW TABLES FROM '+FDBObj.Connection.QuoteIdent(comboDatabase.Text)+' LIKE '+esc(editNewTablename.Text));
   if TableExistance <> '' then begin
-    if MessageDlg('Target table exists. Drop it and overwrite?', mtConfirmation, [mbYes, mbCancel], 0) = mrCancel then begin
+    if MessageDialog('Target table exists. Drop it and overwrite?', mtConfirmation, [mbYes, mbCancel]) = mrCancel then begin
       ModalResult := mrNone;
       Exit;
     end;
@@ -429,7 +429,7 @@ begin
   except
     on E:EDatabaseError do begin
       Screen.Cursor := crDefault;
-      MessageDlg(E.Message, mtError, [mbOk], 0);
+      ErrorDialog(E.Message);
       ModalResult := mrNone;
     end;
   end;

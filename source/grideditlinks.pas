@@ -1067,7 +1067,7 @@ begin
   FEdit.Font.Color := clWindowText;
   FPanel.Color := FCellBackground;
   if ScanNulChar(FCellText) then begin
-    MessageDlg(SContainsNulCharGrid, mtInformation, [mbOK], 0);
+    MessageDialog(SContainsNulCharGrid, mtInformation, [mbOK]);
     FEdit.Text := RemoveNulChars(FCellText);
   end else
     FEdit.Text := FCellText;

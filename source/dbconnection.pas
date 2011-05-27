@@ -3975,7 +3975,7 @@ begin
     except
       on E:EDatabaseError do begin
         Result := False;
-        MessageDlg(E.Message, mtError, [mbOK], 0);
+        ErrorDialog(E.Message);
       end;
     end;
 

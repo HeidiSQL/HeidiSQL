@@ -104,7 +104,7 @@ begin
     text := StringReplace(text, LB, CRLF, [rfReplaceAll]);
 
   if ScanNulChar(text) then begin
-    MessageDlg(SContainsNulCharGrid, mtInformation, [mbOK], 0);
+    MessageDialog(SContainsNulCharGrid, mtInformation, [mbOK]);
     text := RemoveNulChars(text);
   end;
 
@@ -256,7 +256,7 @@ begin
     Exit;
   FStopping := True;
   if Modified then
-    DoPost := MessageDlg('Apply modifications?', mtConfirmation, [mbYes, mbNo], 0) = mrYes
+    DoPost := MessageDialog('Apply modifications?', mtConfirmation, [mbYes, mbNo]) = mrYes
   else
     DoPost := False;
   if DoPost then
