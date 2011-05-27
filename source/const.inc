@@ -7,14 +7,6 @@ const
   LB_MAC = #13;
   LB_WIDE = WideChar($2027);
 
-  // Names of the system tables and system databases
-  PRIVTABLE_USERS           = 'user';
-  PRIVTABLE_DB              = 'db';
-  PRIVTABLE_TABLES          = 'tables_priv';
-  PRIVTABLE_COLUMNS         = 'columns_priv';
-  DBNAME_INFORMATION_SCHEMA = 'information_schema';
-  DBNAME_MYSQL              = 'mysql';
-
   // Placeholder text for NULL values
   TEXT_NULL                 = '(NULL)';
 
@@ -337,12 +329,8 @@ const
   VTREE_NOTLOADED_PURGECACHE = 1;
   VTREE_LOADED = 2;
 
-  MSG_COPYMAXSIZE = 'Copying data is limited to %s but more data is available. '
-        + 'Only %s out of %s rows were copied.' + CRLF + CRLF
-        + 'Increase the value in Tools > Preferences > Export if you need more.';
   SContainsNulCharFile = 'This file contains NUL characters. They have been converted to ASCII spaces (SP).';
   SContainsNulCharGrid = 'This cell contains NUL characters. They have been converted to ASCII spaces (SP). Press ESC to cancel editing.';
-  SUnhandledTreeLevel = 'Unhandled tree node level.';
   SUnhandledNodeIndex = 'Unhandled tree node index';
   MSG_NOGRIDEDITING = 'Selected columns don''t contain a sufficient set of key columns to allow editing. Please select primary or unique key columns, or just all columns.';
   SIdle = 'Idle.';
