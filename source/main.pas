@@ -6568,8 +6568,8 @@ begin
   case Kind of
     ikNormal, ikSelected: begin
         ImageIndex := DBObj.ImageIndex;
-        Ghosted := (DBObj.NodeType = lntNone) and (not DBObj.Connection.Active)
-          or (DBObj.NodeType = lntDB) and (not DBObj.Connection.DbObjectsCached(DBObj.Database));
+        Ghosted := ((DBObj.NodeType = lntNone) and (not DBObj.Connection.Active))
+          or ((DBObj.NodeType = lntDB) and (not DBObj.Connection.DbObjectsCached(DBObj.Database)));
       end;
     ikOverlay:
       if DBObj.NodeType = lntNone then begin
