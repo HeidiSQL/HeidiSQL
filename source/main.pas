@@ -2165,7 +2165,7 @@ begin
   if Sender = actExecuteCurrentQuery then begin
     Batch := GetSQLSplitMarkers(Tab.Memo.Text);
     for Query in Batch do begin
-      if (Query.LeftOffset <= Tab.Memo.SelStart) and (Tab.Memo.SelStart < Query.RightOffset) then begin
+      if (Tab.Memo.SelStart >= Query.LeftOffset-1) and (Tab.Memo.SelStart < Query.RightOffset) then begin
         Text := Copy(Tab.Memo.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
         Tab.LeftOffsetInMemo := Query.LeftOffset;
         break;
