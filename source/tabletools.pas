@@ -1320,9 +1320,9 @@ begin
                     Row := Row + Data.Col(i);
                 end;
                 dtcBinary, dtcSpatial: begin
-                  BinContent := Data.BinColAsHex(i);
+                  BinContent := Data.HexValue(i);
                   if Length(BinContent) > 0 then
-                    Row := Row + '_binary 0x' + BinContent
+                    Row := Row + '_binary ' + BinContent
                   else
                     Row := Row + esc('');
                 end;

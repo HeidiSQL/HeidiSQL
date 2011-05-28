@@ -547,7 +547,7 @@ begin
     Col := Grid.Header.Columns.GetFirstVisibleColumn;
     while Col > NoColumn do begin
       if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-        Data := GridData.BinColAsHex(Col)
+        Data := GridData.HexValue(Col)
       else
         Data := GridData.Col(Col);
       // Keep formatted numeric values
@@ -595,7 +595,7 @@ begin
             Data := 'NULL'
           else if GridData.DataType(Col).Index = dtBit then
             Data := 'b' + esc(Data)
-          else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
+          else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal, dtcBinary, dtcSpatial]) then
             Data := esc(Data);
           tmp := tmp + Data + ', ';
         end;
