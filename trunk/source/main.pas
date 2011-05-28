@@ -7831,7 +7831,7 @@ begin
   if Conn <> nil then begin
     try
       if Conn.InformationSchemaObjects.IndexOf('SCHEMATA') > -1 then
-        AllDatabasesDetails := Conn.GetResults('SELECT * FROM '+Conn.QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+Conn.QuoteIdent('SCHEMATA'));
+        AllDatabasesDetails := Conn.GetResults('SELECT * FROM '+Conn.QuoteIdent('information_schema')+'.'+Conn.QuoteIdent('SCHEMATA'));
     except
       on E:EDatabaseError do
         LogSQL(E.Message, lcError);
@@ -8109,7 +8109,7 @@ begin
           // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
           Results := Conn.GetResults('SELECT '+Conn.QuoteIdent('ID')+', '+Conn.QuoteIdent('USER')+', '+Conn.QuoteIdent('HOST')+', '+Conn.QuoteIdent('DB')+', '
             + Conn.QuoteIdent('COMMAND')+', '+Conn.QuoteIdent('TIME')+', '+Conn.QuoteIdent('STATE')+', LEFT('+Conn.QuoteIdent('INFO')+', '+IntToStr(InfoLen)+') AS '+Conn.QuoteIdent('Info')
-            + ' FROM '+Conn.QuoteIdent(DBNAME_INFORMATION_SCHEMA)+'.'+Conn.QuoteIdent('PROCESSLIST'));
+            + ' FROM '+Conn.QuoteIdent('information_schema')+'.'+Conn.QuoteIdent('PROCESSLIST'));
         end else begin
           // Older servers fetch the whole query length, but at least we cut them off below, so a high memory usage is just a peak
           Results := Conn.GetResults('SHOW FULL PROCESSLIST');
