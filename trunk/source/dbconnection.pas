@@ -584,7 +584,8 @@ type
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; virtual; abstract;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
       function ColumnLengths(Column: Integer): Int64; virtual;
-      function BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String;
+      function HexValue(Column: Integer; IgnoreErrors: Boolean=False): String; overload;
+      function HexValue(BinValue: String): String; overload;
       function DataType(Column: Integer): TDBDataType;
       function MaxLength(Column: Integer): Int64;
       function ValueList(Column: Integer): TStringList;
@@ -3548,17 +3549,28 @@ begin
 end;
 
 
-function TDBQuery.BinColAsHex(Column: Integer; IgnoreErrors: Boolean=False): String;
+function TDBQuery.HexValue(Column: Integer; IgnoreErrors: Boolean=False): String;
+begin
+  // Return a binary column value as hex AnsiString
+  Result := HexValue(Col(Column, IgnoreErrors));
+end;
+
+
+function TDBQuery.HexValue(BinValue: String): String;
 var
   BinLen: Integer;
   Ansi: AnsiString;
 begin
-  // Return a binary column value as hex AnsiString
-  Result := Col(Column, IgnoreErrors);
-  Ansi := AnsiString(Result);
-  BinLen := FColumnLengths[Column];
-  SetLength(Result, BinLen*2);
-  BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
+  // Return a binary value as hex AnsiString
+  Ansi := AnsiString(BinValue);
+  BinLen := Length(Ansi);
+  if BinLen = 0 then begin
+    Result := '';
+  end else begin
+    SetLength(Result, BinLen*2);
+    BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
+    Result := '0x' + Result;
+  end;
 end;
 
 
@@ -3751,6 +3763,10 @@ begin
   if not IsVirtual then begin
     sql := Connection.ApplyLimitClause('DELETE', 'FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause, 1, 0);
     Connection.Query(sql);
+    if Connection.RowsAffected = 0 then begin
+      raise EDatabaseError.Create(FormatNumber(Connection.RowsAffected)+' rows deleted when that should have been 1.');
+      Result := False;
+    end;
   end;
   if Assigned(FCurrentUpdateRow) then begin
     FUpdateData.Remove(FCurrentUpdateRow);
@@ -3935,7 +3951,9 @@ begin
           Val := Cell.NewText;
           if Datatype(i).Index = dtBit then
             Val := 'b' + Connection.EscapeString(Val);
-        end
+        end;
+        dtcBinary, dtcSpatial:
+          Val := HexValue(Cell.NewText);
         else
           Val := Connection.EscapeString(Cell.NewText);
       end;
@@ -3962,6 +3980,10 @@ begin
         sqlUpdate := QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause;
         sqlUpdate := Connection.ApplyLimitClause('UPDATE', sqlUpdate, 1, 0);
         Connection.Query(sqlUpdate);
+        if Connection.RowsAffected = 0 then begin
+          raise EDatabaseError.Create(FormatNumber(Connection.RowsAffected)+' rows updated when that should have been 1.');
+          Result := False;
+        end;
       end;
       // Reset modification flags
       for i:=0 to ColumnCount-1 do begin
@@ -4206,7 +4228,9 @@ begin
             Result := Result + '=b' + Connection.EscapeString(ColVal)
           else
             Result := Result + '=' + ColVal;
-        end
+        end;
+        dtcBinary:
+          Result := Result + '=' + HexValue(ColVal);
         else
           Result := Result + '=' + Connection.EscapeString(ColVal);
       end;

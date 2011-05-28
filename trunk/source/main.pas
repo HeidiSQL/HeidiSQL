@@ -7125,7 +7125,7 @@ begin
         if actBlobAsText.Checked then
           CellText := Results.Col(Column)
         else
-          CellText := '0x' + Results.BinColAsHex(Column);
+          CellText := Results.HexValue(Column);
       end;
       else begin
         CellText := Results.Col(Column);
