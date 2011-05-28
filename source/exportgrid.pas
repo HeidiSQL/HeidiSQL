@@ -662,7 +662,15 @@ begin
     end;
     StreamToClipboard(S, HTML, (ExportFormat=efHTML) and (HTML <> nil));
   end else begin
-    S.SaveToFile(editFilename.Text);
+    try
+      S.SaveToFile(editFilename.Text);
+    except
+      on E:EFCreateError do begin
+        // Keep form open if file cannot be created
+        ModalResult := mrNone;
+        ErrorDialog(E.Message);
+      end;
+    end;
   end;
 
   Mainform.ProgressBarStatus.Visible := False;
