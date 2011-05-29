@@ -4536,7 +4536,7 @@ var
   i,j: Integer;
   Results: TDBQuery;
   DBObjects: TDBObjectList;
-  sql, TableClauses, tablename, PrevShortToken, PrevLongToken, Token: String;
+  sql, TableClauses, tablename, PreviousToken, LeftmostToken, Token: String;
   Tables: TStringList;
   rx: TRegExpr;
   Start, TokenTypeInt: Integer;
@@ -4611,23 +4611,22 @@ begin
 
   Proposal.InsertList.Clear;
   Proposal.ItemList.Clear;
-  PrevShortToken := Proposal.PreviousToken;
-  PrevShortToken := Conn.DeQuoteIdent(PrevShortToken);
 
   rx := TRegExpr.Create;
 
-  // Find longer token, ignore EndOfTokenChars, just the last chars up to a whitespace, comma or paranthesis
-  rx.Expression := '([^\s,\(\)=]+)$';
-  PrevLongToken := Copy(Editor.LineText, 1, Editor.CaretX-2);
-  if rx.Exec(PrevLongToken) then
-    PrevLongToken := rx.Match[1]
+  PreviousToken := Conn.DeQuoteIdent(Proposal.PreviousToken);
+  // Find token before previous token, the last chars up to a control char
+  rx.Expression := '([^\s,\(\)=\.]+)(\..*)?$';
+  LeftmostToken := Copy(Editor.LineText, 1, Editor.CaretX-2);
+  if rx.Exec(LeftmostToken) then
+    LeftmostToken := rx.Match[1]
   else
-    PrevLongToken := '';
+    LeftmostToken := '';
 
   // Display list of variables
   rx.Expression := '^@@(SESSION|GLOBAL)$';
   rx.ModifierI := True;
-  if rx.Exec(PrevLongToken) then begin
+  if rx.Exec(LeftmostToken) then begin
     try
       Results := Conn.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
@@ -4680,7 +4679,7 @@ begin
       // If the just typed word equals the alias of this table or the
       // tablename itself, set tablename var and break loop
       if rx.Exec(Tables[i]) then while true do begin
-        if PrevShortToken = Conn.DeQuoteIdent(rx.Match[3]) then begin
+        if PreviousToken = Conn.DeQuoteIdent(rx.Match[3]) then begin
           tablename := rx.Match[1];
           break;
         end;
@@ -4691,20 +4690,20 @@ begin
         break;
     end;
   end;
-  rx.Free;
 
   if (tablename <> '') then begin
-    // add columns to proposal
-    addColumns( tablename );
-  end else if PrevLongToken <> '' then begin
-    // assuming previoustoken itself is a table
-    addColumns( PrevLongToken );
+    // Add columns to proposal
+    addColumns(tablename);
+  end else if LeftmostToken <> '' then begin
+    // Assuming LeftmostToken contains a table
+    addColumns(LeftmostToken);
   end;
+  rx.Free;
 
 
   if Length(CurrentInput) = 0 then // makes only sense if the user has typed "database."
   begin
-    i := Conn.AllDatabases.IndexOf(PrevShortToken);
+    i := Conn.AllDatabases.IndexOf(PreviousToken);
     if i > -1 then begin
       // Only display tables from specified db
       Screen.Cursor := crHourGlass;
