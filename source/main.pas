@@ -854,7 +854,6 @@ type
     FActiveDbObj: TDBObject;
     FCriticalSection: TRTLCriticalSection;
     FIsWine: Boolean;
-    FLoadLargeQueryClick: Integer;
 
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
@@ -880,7 +879,7 @@ type
     procedure SetSnippetFilenames;
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
     procedure OperationRunning(Runs: Boolean);
-    procedure LoadLargeQueryFile(Filename: String; Encoding: TEncoding);
+    function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding): Boolean;
   public
     AllDatabasesDetails: TDBQuery;
     btnAddTab: TSpeedButton;
@@ -1729,17 +1728,12 @@ begin
   end;
 
   // Load SQL file(s) by command line
-  for i:=0 to FCmdlineFilenames.Count-1 do begin
-    LoadLargeQueryFile(FCmdlineFilenames[i], nil);
-    case FLoadLargeQueryClick of
-      mrYes, mrYesToAll:; // Do nothing - file was loaded via "run file" dialog
-      mrNo, mrNoToAll: begin
-        Tab := ActiveOrEmptyQueryTab(False);
-        Tab.LoadContents(FCmdlineFilenames[i], True, nil);
-        if i = FCmdlineFilenames.Count-1 then
-          SetMainTab(Tab.TabSheet);
-      end;
-      mrCancel: break;
+  if not RunQueryFiles(FCmdlineFilenames, nil) then begin
+    for i:=0 to FCmdlineFilenames.Count-1 do begin
+      Tab := ActiveOrEmptyQueryTab(False);
+      Tab.LoadContents(FCmdlineFilenames[i], True, nil);
+      if i = FCmdlineFilenames.Count-1 then
+        SetMainTab(Tab.TabSheet);
     end;
   end;
 end;
@@ -2698,19 +2692,14 @@ begin
   Dialog.EncodingIndex := 0;
   if Dialog.Execute then begin
     Encoding := GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
-    ConsiderActiveTab := True;
-    for i:=0 to Dialog.Files.Count-1 do begin
-      LoadLargeQueryFile(Dialog.Files[i], Encoding);
-      case FLoadLargeQueryClick of
-        mrYes, mrYesToAll:; // Do nothing - file was loaded via "run file" dialog
-        mrNo, mrNoToAll: begin
-          Tab := ActiveOrEmptyQueryTab(ConsiderActiveTab);
-          ConsiderActiveTab := False;
-          Tab.LoadContents(Dialog.Files[i], True, Encoding);
-          if i = Dialog.Files.Count-1 then
-            SetMainTab(Tab.TabSheet);
-        end;
-        mrCancel: break;
+    if not RunQueryFiles(Dialog.Files, Encoding) then begin
+      ConsiderActiveTab := True;
+      for i:=0 to Dialog.Files.Count-1 do begin
+        Tab := ActiveOrEmptyQueryTab(ConsiderActiveTab);
+        ConsiderActiveTab := False;
+        Tab.LoadContents(Dialog.Files[i], True, Encoding);
+        if i = Dialog.Files.Count-1 then
+          SetMainTab(Tab.TabSheet);
       end;
     end;
   end;
@@ -2718,48 +2707,68 @@ begin
 end;
 
 
-procedure TMainForm.LoadLargeQueryFile(Filename: String; Encoding: TEncoding);
+function TMainForm.RunQueryFiles(Filenames: TStrings; Encoding: TEncoding): Boolean;
 var
+  i: Integer;
   Filesize: Int64;
   msgtext: String;
+  AbsentFiles, PopupFileList: TStringList;
+  DoRunFiles: Boolean;
   RunFileDialog: TRunSQLFileForm;
 const
   RunFileSize = 5*SIZE_MB;
 begin
-  // Ask for action when loading a big file
-  if not FileExists(Filename) then begin
-    ErrorDialog('File not found: "'+filename+'"');
-    if not (FLoadLargeQueryClick in [mrYesToAll, mrNoToAll]) then
-      FLoadLargeQueryClick := mrYes;
-    Exit;
+  // Ask for execution when loading big files, or return false
+  Result := False;
+
+  // Remove non existant files
+  AbsentFiles := TStringList.Create;
+  for i:=Filenames.Count-1 downto 0 do begin
+    if not FileExists(Filenames[i]) then begin
+      AbsentFiles.Add(Filenames[i]);
+      Filenames.Delete(i);
+    end;
+  end;
+  // Check if one or more files are large
+  DoRunFiles := False;
+  PopupFileList := TStringList.Create;
+  for i:=0 to Filenames.Count-1 do begin
+    FileSize := _GetFileSize(Filenames[i]);
+    PopupFileList.Add(ExtractFilename(Filenames[i]) + ' (' + FormatByteNumber(FileSize) + ')');
+    DoRunFiles := DoRunFiles or (FileSize > RunFileSize);
   end;
 
-  Filesize := _GetFileSize(filename);
-  if (Filesize > RunFileSize) and (not (FLoadLargeQueryClick in [mrYesToAll, mrNoToAll])) then begin
-    msgtext := 'The file you are about to load is '+FormatByteNumber(Filesize)+' (> '+FormatByteNumber(RunFileSize, 0)+').' + CRLF + CRLF +
-      'Do you want to just run the file to avoid loading it completely into the query-editor ( = memory ) ?' + CRLF + CRLF +
+  if DoRunFiles then begin
+    msgtext := 'One or more of the selected files are larger than '+FormatByteNumber(RunFileSize, 0)+':' + CRLF +
+      ImplodeStr(CRLF, PopupFileList) + CRLF + CRLF +
+      'Just run these files to avoid loading them into the query-editor (= memory)?' + CRLF + CRLF +
       'Press' + CRLF +
-      '  [Yes] to run the file without loading it into the editor' + CRLF +
-      '  [No] to load the file into the query editor' + CRLF +
+      '  [Yes] to run file(s) without loading it into the editor' + CRLF +
+      '  [No] to load file(s) into the query editor' + CRLF +
       '  [Cancel] to cancel file opening.';
-    FLoadLargeQueryClick := MessageDialog(
-      'Just execute this large file ('+Filename+')?',
-      msgtext,
-      mtWarning,
-      [mbYes, mbYesToAll, mbNo, mbNoToAll, mbCancel]
-      );
+    case MessageDialog('Execute query file(s)?', msgtext, mtWarning, [mbYes, mbNo, mbCancel]) of
+      mrYes: begin
+        Result := True;
+        for i:=0 to Filenames.Count-1 do begin
+          RunFileDialog := TRunSQLFileForm.Create(Self);
+          RunFileDialog.SQLFileName := Filenames[i];
+          RunFileDialog.FileEncoding := Encoding;
+          RunFileDialog.ShowModal;
+          RunFileDialog.Free;
+          // Add filename to history menu
+          if Pos(MainForm.DirnameSnippets, Filenames[i]) = 0 then
+            MainForm.AddOrRemoveFromQueryLoadHistory(Filenames[i], True, True);
+        end;
+      end;
+      mrNo: Result := False;
+      mrCancel: Result := True;
+    end;
   end;
 
-  if FLoadLargeQueryClick in [mrYes, mrYesToAll] then begin
-    RunFileDialog := TRunSQLFileForm.Create(Self);
-    RunFileDialog.SQLFileName := Filename;
-    RunFileDialog.FileEncoding := Encoding;
-    RunFileDialog.ShowModal;
-    RunFileDialog.Free;
-    // Add filename to history menu
-    if Pos(MainForm.DirnameSnippets, filename ) = 0 then
-      MainForm.AddOrRemoveFromQueryLoadHistory(Filename, True, True);
-  end;
+  if AbsentFiles.Count > 0 then
+    ErrorDialog('Could not load file(s):', AbsentFiles.Text);
+  AbsentFiles.Free;
+  PopupFileList.Free;
 end;
 
 
@@ -9630,15 +9639,10 @@ begin
   // Probably a second instance is posting its command line parameters here
   if (Msg.CopyDataStruct.dwData = SecondInstMsgId) and (SecondInstMsgId <> 0) then begin
     ParseCommandLineParameters(ParamBlobToStr(Msg.CopyDataStruct.lpData));
-    for i:=0 to FCmdlineFilenames.Count-1 do begin
-      LoadLargeQueryFile(FCmdlineFilenames[i], nil);
-      case FLoadLargeQueryClick of
-        mrYes, mrYesToAll:; // Do nothing - file was loaded via "run file" dialog
-        mrNo, mrNoToAll: begin
-          Tab := ActiveOrEmptyQueryTab(False);
-          Tab.LoadContents(FCmdlineFilenames[i], True, nil);
-        end;
-        mrCancel: break;
+    if not RunQueryFiles(FCmdlineFilenames, nil) then begin
+      for i:=0 to FCmdlineFilenames.Count-1 do begin
+        Tab := ActiveOrEmptyQueryTab(False);
+        Tab.LoadContents(FCmdlineFilenames[i], True, nil);
       end;
     end;
     if Assigned(FCmdlineConnectionParams) then
