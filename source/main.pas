@@ -4907,7 +4907,7 @@ var
   Conn: TDBConnection;
 begin
   Conn := ActiveConnection;
-  if Assigned(Conn) and Conn.Active then begin
+  if (Conn <> nil) and Conn.Active then begin
     // Calculate and display connection-time. Also, on any connect or reconnect, update server version panel.
     ConnectedTime := Conn.ConnectionUptime;
     ShowStatusMsg('Connected: ' + FormatTimeNumber(ConnectedTime, False), 2);
