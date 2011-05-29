@@ -8042,10 +8042,9 @@ begin
       avg_persec := '';
 
       // Detect value type
-      valIsNumber := False;
       try
         valIsNumber := IntToStr(MakeInt(val)) = val;
-      except on E:EInvalidOp do
+      except
         valIsNumber := False;
       end;
       valIsBytes := valIsNumber and (Copy(Results.Col(0), 1, 6) = 'Bytes_');
