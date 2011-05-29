@@ -1399,6 +1399,8 @@ begin
   // Column data gets freed below - end any editor which could cause AV's
   if treeIndexes.IsEditing then
     treeIndexes.CancelEditNode;
+  // Trigger ValidateIndexControls
+  treeIndexes.FocusedNode := nil;
   for i:=0 to FKeys.Count-1 do begin
     TblKey := TTableKey(FKeys[i]);
     if not TblKey.Added then
