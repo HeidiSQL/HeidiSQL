@@ -6759,7 +6759,7 @@ begin
 
   // When clicked node is from a different connection than before, do session specific stuff here:
   if PrevDBObj.Connection <> DBObj.Connection then begin
-    LogSQL('Connection switch!', lcDebug);
+    LogSQL('Entering session "'+DBObj.Connection.Parameters.SessionName+'"', lcInfo);
     TimerConnected.OnTimer(Sender);
     TimerHostUptime.OnTimer(Sender);
     DBObj.Connection.OnConnected(DBObj.Connection, DBObj.Connection.Database);
