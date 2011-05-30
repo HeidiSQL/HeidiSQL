@@ -256,9 +256,9 @@ var
 begin
   inherited;
   FLoaded := False;
-  comboEngine.Items := MainForm.ActiveConnection.TableEngines;
-  comboEngine.ItemIndex := comboEngine.Items.IndexOf(MainForm.ActiveConnection.TableEngineDefault);
-  comboCollation.Items := MainForm.ActiveConnection.CollationList;
+  comboEngine.Items := DBObject.Connection.TableEngines;
+  comboEngine.ItemIndex := comboEngine.Items.IndexOf(DBObject.Connection.TableEngineDefault);
+  comboCollation.Items := DBObject.Connection.CollationList;
   listColumns.BeginUpdate;
   FColumns.Clear;
   btnClearIndexesClick(Self);
@@ -283,7 +283,7 @@ begin
     // Creating new table
     editName.Text := '';
     if DBObject.Connection.Parameters.NetTypeGroup = ngMySQL then
-      comboCollation.ItemIndex := comboCollation.Items.IndexOf(MainForm.ActiveConnection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
+      comboCollation.ItemIndex := comboCollation.Items.IndexOf(DBObject.Connection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
     PageControlMain.ActivePage := tabBasic;
   end else begin
     // Editing existing table
@@ -323,7 +323,7 @@ begin
       memoUnionTables.Lines.Clear;
     rx.Expression := '\bCOMMENT=''((.+)[^''])''';
     if rx.Exec(DBObject.CreateCode) then
-      memoComment.Lines.Text := MainForm.ActiveConnection.UnescapeString(rx.Match[1])
+      memoComment.Lines.Text := DBObject.Connection.UnescapeString(rx.Match[1])
     else
       memoComment.Lines.Clear;
     DBObject.Connection.ParseTableStructure(DBObject.CreateCode, FColumns, FKeys, FForeignKeys);
@@ -378,7 +378,7 @@ begin
     Batch := ComposeAlterStatement;
   try
     for Query in Batch do
-      MainForm.ActiveConnection.Query(Query.SQL);
+      DBObject.Connection.Query(Query.SQL);
     tabALTERcode.TabVisible := DBObject.Name <> '';
     if chkCharsetConvert.Checked then begin
       // Autoadjust column collations
