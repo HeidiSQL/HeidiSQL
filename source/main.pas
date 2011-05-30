@@ -8845,10 +8845,13 @@ begin
   NewPageIndex := PageControlMain.ActivePageIndex;
   if NewPageIndex >= PageIndex then
     Dec(NewPageIndex);
+  // Avoid excessive flicker:
+  LockWindowUpdate(PageControlMain.Handle);
   PageControlMain.Pages[PageIndex].Free;
   QueryTabs.Delete(PageIndex-tabQuery.PageIndex);
   PageControlMain.ActivePageIndex := NewPageIndex;
   FixQueryTabCloseButtons;
+  LockWindowUpdate(0);
   PageControlMain.OnChange(PageControlMain);
 end;
 
