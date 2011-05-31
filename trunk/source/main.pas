@@ -4556,7 +4556,7 @@ var
   i,j: Integer;
   Results: TDBQuery;
   DBObjects: TDBObjectList;
-  sql, TableClauses, tablename, PreviousToken, LeftmostToken, Token: String;
+  sql, TableClauses, TableName, LeftPart, Token1, Token2, Token3, Token, Ident: String;
   Tables: TStringList;
   rx: TRegExpr;
   Start, TokenTypeInt: Integer;
@@ -4567,7 +4567,7 @@ var
   Query: TSQLSentence;
   Conn: TDBConnection;
 
-  procedure addTable(Obj: TDBObject);
+  procedure AddTable(Obj: TDBObject);
   var
     DisplayText: String;
   begin
@@ -4575,7 +4575,7 @@ var
     Proposal.AddItem(DisplayText, Obj.Name);
   end;
 
-  procedure addColumns(tablename: String);
+  procedure AddColumns(TableName: String);
   var
     dbname, Dummy: String;
     Columns: TTableColumnList;
@@ -4583,19 +4583,19 @@ var
     Obj: TDBObject;
   begin
     dbname := '';
-    if Pos('.', tablename) > -1 then
+    if Pos('.', TableName) > -1 then
     begin
-      dbname := Copy(tablename, 0, Pos( '.', tablename )-1);
-      tablename := Copy(tablename, Pos( '.', tablename )+1, Length(tablename));
+      dbname := Copy(TableName, 0, Pos( '.', TableName )-1);
+      TableName := Copy(TableName, Pos( '.', TableName )+1, Length(TableName));
     end;
     // db and table name may already be quoted
     if dbname = '' then
       dbname := Conn.Database;
     dbname := Conn.DeQuoteIdent(dbname);
-    tablename := Conn.DeQuoteIdent(tablename);
+    TableName := Conn.DeQuoteIdent(TableName);
     DBObjects := Conn.GetDBObjects(dbname);
     for Obj in DBObjects do begin
-      if Obj.Name = tablename then begin
+      if Obj.Name = TableName then begin
         Columns := TTableColumnList.Create(True);
         case Obj.NodeType of
           lntTable:
@@ -4614,39 +4614,32 @@ var
   end;
 
 begin
-  if not prefCompletionProposal then begin
-    CanExecute := False;
-    Exit;
-  end;
-
   Proposal := Sender as TSynCompletionProposal;
+  Proposal.ClearList;
+  Conn := ActiveConnection;
   Editor := Proposal.Form.CurrentEditor;
   Editor.GetHighlighterAttriAtRowColEx(Editor.PrevWordPos, Token, TokenTypeInt, Start, Attri);
-  if TtkTokenKind(TokenTypeInt) in [tkString, tkComment] then begin
-    CanExecute := False;
+  CanExecute := prefCompletionProposal and
+    (not (TtkTokenKind(TokenTypeInt) in [tkString, tkComment]));
+  if not CanExecute then
     Exit;
-  end;
-
-  Conn := ActiveConnection;
-
-  Proposal.InsertList.Clear;
-  Proposal.ItemList.Clear;
 
   rx := TRegExpr.Create;
 
-  PreviousToken := Conn.DeQuoteIdent(Proposal.PreviousToken);
-  // Find token before previous token, the last chars up to a control char
-  rx.Expression := '([^\s,\(\)=\.]+)(\..*)?$';
-  LeftmostToken := Copy(Editor.LineText, 1, Editor.CaretX-2);
-  if rx.Exec(LeftmostToken) then
-    LeftmostToken := rx.Match[1]
-  else
-    LeftmostToken := '';
+  // Find token1.token2.token3, while cursor is somewhere in token3
+  Ident := '[^\s,\(\)=\.]';
+  rx.Expression := '(('+Ident+'+)\.)?('+Ident+'+)\.('+Ident+'*)$';
+  LeftPart := Copy(Editor.LineText, 1, Editor.CaretX-1);
+  if rx.Exec(LeftPart) then begin
+    Token1 := Conn.DeQuoteIdent(rx.Match[2]);
+    Token2 := Conn.DeQuoteIdent(rx.Match[3]);
+    Token3 := Conn.DeQuoteIdent(rx.Match[4]);
+  end;
 
-  // Display list of variables
+  // Server variables, s'il vous plait?
   rx.Expression := '^@@(SESSION|GLOBAL)$';
   rx.ModifierI := True;
-  if rx.Exec(LeftmostToken) then begin
+  if rx.Exec(Token2) then begin
     try
       Results := Conn.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
@@ -4657,116 +4650,111 @@ begin
     except
       // Just log error in sql log, do not disturb user while typing
     end;
-    Exit;
-  end;
-
-  // Get column-names into the proposal pulldown
-  // when we write sql like "SELECT t.|col FROM table [AS] t"
-  // Current limitation: Identifiers (masked or not) containing
-  // spaces are not detected correctly.
-
-  // 1. find the currently edited sql-statement around the cursor position in synmemo
-  if Editor = SynMemoFilter then begin
-    // Concat query segments, so the below regular expressions can find structure
-    sql := 'SELECT * FROM '+ActiveDbObj.QuotedName+' WHERE ' + Editor.Text;
   end else begin
-    // Proposal in one of the query tabs
-    QueryMarkers := GetSQLSplitMarkers(Editor.Text);
-    for Query in QueryMarkers do begin
-      if (Query.LeftOffset <= Editor.SelStart) and (Editor.SelStart < Query.RightOffset) then begin
-        sql := Copy(Editor.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
-        break;
-      end;
-    end;
-    FreeAndNil(QueryMarkers);
-  end;
+    // Get column names into the proposal pulldown
+    // when we write sql like "SELECT t.|col FROM table [AS] t"
+    // Current limitation: Identifiers (masked or not) containing
+    // spaces are not detected correctly.
 
-  // 2. Parse FROM clause to detect relevant table/view, probably aliased
-  rx.ModifierG := True;
-  rx.Expression := '\b(FROM|INTO|UPDATE)\s+(.+)(WHERE|HAVING|ORDER|GROUP)?';
-  if rx.Exec(sql) then begin
-    TableClauses := rx.Match[2];
-    // Ensure tables in JOIN clause(s) are splitted by comma
-    TableClauses := StringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
-    // Split table clauses by commas
-    Tables := TStringList.Create;
-    Tables.Delimiter := ',';
-    Tables.StrictDelimiter := true;
-    Tables.DelimitedText := TableClauses;
-    rx.Expression := '(\S+)\s+(AS\s+)?(\S+)';
-
-    for i := 0 to Tables.Count - 1 do begin
-      // If the just typed word equals the alias of this table or the
-      // tablename itself, set tablename var and break loop
-      if rx.Exec(Tables[i]) then while true do begin
-        if PreviousToken = Conn.DeQuoteIdent(rx.Match[3]) then begin
-          tablename := rx.Match[1];
+    // 1. find currently edited sql query around the cursor position in synmemo
+    if Editor = SynMemoFilter then begin
+      // Make sure the below regexp can find structure
+      sql := 'SELECT * FROM '+ActiveDbObj.QuotedName+' WHERE ' + Editor.Text;
+    end else begin
+      // In a query tab
+      QueryMarkers := GetSQLSplitMarkers(Editor.Text);
+      for Query in QueryMarkers do begin
+        if (Query.LeftOffset <= Editor.SelStart) and (Editor.SelStart < Query.RightOffset) then begin
+          sql := Copy(Editor.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
           break;
         end;
-        if not rx.ExecNext then
+      end;
+      FreeAndNil(QueryMarkers);
+    end;
+
+    // 2. Parse FROM clause, detect relevant table/view, probably aliased
+    rx.ModifierG := True;
+    rx.Expression := '\b(FROM|INTO|UPDATE)\s+(.+)(WHERE|HAVING|ORDER|GROUP)?';
+    if rx.Exec(sql) then begin
+      TableClauses := rx.Match[2];
+      // Ensure tables in JOIN clause(s) are splitted by comma
+      TableClauses := StringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
+      // Split table clauses by commas
+      Tables := TStringList.Create;
+      Tables.Delimiter := ',';
+      Tables.StrictDelimiter := true;
+      Tables.DelimitedText := TableClauses;
+      rx.Expression := '(\S+)\s+(AS\s+)?(\S+)';
+
+      for i := 0 to Tables.Count - 1 do begin
+        // If the just typed word equals the alias of this table or the
+        // tablename itself, set tablename var and break loop
+        if rx.Exec(Tables[i]) then while true do begin
+          if Token2 = Conn.DeQuoteIdent(rx.Match[3]) then begin
+            TableName := rx.Match[1];
+            break;
+          end;
+          if not rx.ExecNext then
+            break;
+        end;
+        if TableName <> '' then
           break;
       end;
-      if tablename <> '' then
-        break;
     end;
-  end;
 
-  if (tablename <> '') then begin
-    // Add columns to proposal
-    addColumns(tablename);
-  end else if LeftmostToken <> '' then begin
-    // Assuming LeftmostToken contains a table
-    addColumns(LeftmostToken);
+    if TableName <> '' then
+      AddColumns(TableName)
+    else if Token1 <> '' then
+      AddColumns(Conn.QuoteIdent(Token1)+'.'+Conn.QuoteIdent(Token2))
+    else if Token2 <> '' then
+      AddColumns(Conn.QuoteIdent(Token2));
+
+    if Token1 = '' then begin
+      i := Conn.AllDatabases.IndexOf(Token2);
+      if i > -1 then begin
+        // Tables from specific database
+        Screen.Cursor := crHourGlass;
+        DBObjects := Conn.GetDBObjects(Conn.AllDatabases[i]);
+        for j:=0 to DBObjects.Count-1 do
+          AddTable(DBObjects[j]);
+        Screen.Cursor := crDefault;
+      end;
+    end;
+
+    if Token2 = '' then begin
+      // All databases
+      for i:=0 to Conn.AllDatabases.Count-1 do begin
+        Proposal.InsertList.Add(ActiveConnection.AllDatabases[i]);
+        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', Conn.AllDatabases[i]]));
+      end;
+
+      // Tables from current db
+      if Conn.Database <> '' then begin
+        DBObjects := Conn.GetDBObjects(Conn.Database);
+        for j:=0 to DBObjects.Count-1 do
+          AddTable(DBObjects[j]);
+        if Token1 <> '' then // assume that we have already a dbname in memo
+          Proposal.Position := Conn.AllDatabases.Count;
+      end;
+
+      // Functions
+      for i:=0 to Length(MySQLFunctions)-1 do begin
+        // Hide unsupported functions
+        if MySqlFunctions[i].Version > Conn.ServerVersionInt then
+          continue;
+        Proposal.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
+        Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clGrayText}' + MySQLFunctions[i].Declaration] ) );
+      end;
+
+      // Keywords
+      for i:=0 to MySQLKeywords.Count-1 do begin
+        Proposal.InsertList.Add( MySQLKeywords[i] );
+        Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i]] ) );
+      end;
+    end;
+
   end;
   rx.Free;
-
-
-  if Length(CurrentInput) = 0 then // makes only sense if the user has typed "database."
-  begin
-    i := Conn.AllDatabases.IndexOf(PreviousToken);
-    if i > -1 then begin
-      // Only display tables from specified db
-      Screen.Cursor := crHourGlass;
-      DBObjects := Conn.GetDBObjects(Conn.AllDatabases[i]);
-      for j:=0 to DBObjects.Count-1 do
-        addTable(DBObjects[j]);
-      Screen.Cursor := crDefault;
-    end;
-  end;
-
-  if Proposal.ItemList.count = 0 then begin
-    // Add databases
-    for i := 0 to Conn.AllDatabases.Count - 1 do begin
-      Proposal.InsertList.Add(ActiveConnection.AllDatabases[i]);
-      Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', Conn.AllDatabases[i]]));
-    end;
-
-    if ActiveDatabase <> '' then begin
-      // Display tables from current db
-      DBObjects := Conn.GetDBObjects(Conn.Database);
-      for j:=0 to DBObjects.Count-1 do
-        addTable(DBObjects[j]);
-      if Length(CurrentInput) = 0 then // assume that we have already a dbname in memo
-        Proposal.Position := Conn.AllDatabases.Count;
-    end;
-
-    // Add functions
-    for i := 0 to Length(MySQLFunctions) - 1 do begin
-      // Don't display unsupported functions here
-      if MySqlFunctions[i].Version > Conn.ServerVersionInt then
-        continue;
-      Proposal.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
-      Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clGrayText}' + MySQLFunctions[i].Declaration] ) );
-    end;
-
-    // Add keywords
-    for i := 0 to MySQLKeywords.Count - 1 do begin
-      Proposal.InsertList.Add( MySQLKeywords[i] );
-      Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i]] ) );
-    end;
-
-  end;
-
 end;
 
 
