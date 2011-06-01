@@ -3470,6 +3470,7 @@ end;
 procedure TMainform.popupQueryLoadClick(Sender: TObject);
 var
   Filename: String;
+  FileList: TStringList;
   p: Integer;
   Tab: TQueryTab;
 begin
@@ -3482,9 +3483,14 @@ begin
     p := Pos(' ', Filename) + 1;
     filename := Copy(Filename, p, Length(Filename));
   end;
-  Tab := ActiveOrEmptyQueryTab(True);
-  Tab.LoadContents(Filename, True, nil);
-  SetMainTab(Tab.TabSheet);
+  FileList := TStringList.Create;
+  FileList.Add(Filename);
+  if not RunQueryFiles(FileList, nil) then begin
+    Tab := ActiveOrEmptyQueryTab(True);
+    Tab.LoadContents(Filename, True, nil);
+    SetMainTab(Tab.TabSheet);
+  end;
+  FileList.Free;
 end;
 
 
@@ -5090,9 +5096,11 @@ var
 begin
   // One or more files from explorer or somewhere else was dropped onto the
   // query-memo - load their contents into seperate tabs
-  for i:=0 to AFiles.Count-1 do begin
-    Tab := ActiveOrEmptyQueryTab(True);
-    Tab.LoadContents(AFiles[i], False, nil);
+  if not RunQueryFiles(AFiles, nil) then begin
+    for i:=0 to AFiles.Count-1 do begin
+      Tab := ActiveOrEmptyQueryTab(True);
+      Tab.LoadContents(AFiles[i], False, nil);
+    end;
   end;
 end;
 
