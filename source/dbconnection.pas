@@ -1233,7 +1233,7 @@ end;
 function TMySQLConnection.Ping(Reconnect: Boolean): Boolean;
 begin
   Log(lcDebug, 'Ping server ...');
-  if FActive and ((FHandle=nil) or (mysql_ping(FHandle) <> 0)) then begin
+  if (FHandle=nil) or (mysql_ping(FHandle) <> 0) then begin
     // Be sure to release some stuff before reconnecting
     Active := False;
     if Reconnect then
