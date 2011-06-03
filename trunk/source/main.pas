@@ -4108,6 +4108,8 @@ begin
       if RefreshingData then
         vt.OffsetXY := OldScrollOffset;
 
+      vt.Header.Invalidate(nil);
+      vt.UpdateScrollBars(True);
       ValidateControls(Sender);
       DisplayRowCountStats(vt);
       actDataShowNext.Enabled := (vt.RootNodeCount = DatagridWantedRowCount) and (DatagridWantedRowCount < prefGridRowcountMax);
