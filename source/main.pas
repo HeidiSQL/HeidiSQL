@@ -3948,9 +3948,6 @@ var
     col.Alignment := taLeftJustify;
     if DataGridResult.DataType(idx).Category in [dtcInteger, dtcReal] then
       col.Alignment := taRightJustify;
-
-    // Force repaint, for Wine users
-    vt.Header.Invalidate(col);
   end;
 
 begin
@@ -4078,7 +4075,6 @@ begin
         for i:=0 to vt.Header.Columns.Count-1 do
           ColWidths.Values[vt.Header.Columns[i].Text] := IntToStr(vt.Header.Columns[i].Width);
       end;
-      vt.Header.Columns.BeginUpdate;
       vt.Header.Columns.Clear;
       for i:=0 to WantedColumns.Count-1 do
         InitColumn(i, WantedColumns[i]);
@@ -4095,7 +4091,6 @@ begin
       end;
       ColWidths.Free;
 
-      vt.Header.Columns.EndUpdate;
       vt.EndUpdate;
 
       // Do not steel filter while writing filters
