@@ -1871,7 +1871,6 @@ begin
       FreeAndNil(DataGridHiddenColumns);
       SynMemoFilter.Clear;
       SetLength(DataGridSortColumns, 0);}
-      InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
       RefreshHelperNode(HELPERNODE_PROFILE);
       RefreshHelperNode(HELPERNODE_COLUMNS);
 
@@ -4276,52 +4275,55 @@ var
   NumObjects: TStringList;
   Msg: String;
   vt: TVirtualStringTree;
+  Conn: TDBConnection;
 begin
   // DB-Properties
   vt := Sender as TVirtualStringTree;
   if vt.Tag = VTREE_LOADED then
     Exit;
-
   Screen.Cursor := crHourGlass;
+  Conn := ActiveConnection;
+  vt.BeginUpdate;
+  vt.Clear;
+  Msg := '';
+  if Conn <> nil then begin
+    ShowStatusMsg( 'Displaying objects from "' + Conn.Database + '" ...' );
+    Objects := Conn.GetDBObjects(Conn.Database, vt.Tag = VTREE_NOTLOADED_PURGECACHE);
+    vt.RootNodeCount := Objects.Count;
 
-  ShowStatusMsg( 'Displaying objects from "' + ActiveDatabase + '" ...' );
-  Objects := ActiveConnection.GetDBObjects(ActiveDatabase, vt.Tag = VTREE_NOTLOADED_PURGECACHE);
-  ListTables.BeginUpdate;
-  ListTables.Clear;
-  ListTables.RootNodeCount := Objects.Count;
-  ListTables.EndUpdate;
-  vt.Tag := VTREE_LOADED;
-
-  NumObjects := TStringList.Create;
-  DBObjectsMaxSize := 1;
-  DBObjectsMaxRows := 1;
-  for i:=0 to Objects.Count-1 do begin
-    Obj := Objects[i];
-    NumObj := StrToIntDef(NumObjects.Values[Obj.ObjType], 0);
-    Inc(NumObj);
-    NumObjects.Values[Obj.ObjType] := IntToStr(NumObj);
-    if Obj.Size > DBObjectsMaxSize then DBObjectsMaxSize := Obj.Size;
-    if Obj.Rows > DBObjectsMaxRows then DBObjectsMaxRows := Obj.Rows;
-  end;
-  Msg := ActiveDatabase + ': ' + FormatNumber(Objects.Count) + ' ';
-  if NumObjects.Count = 1 then
-    Msg := Msg + LowerCase(NumObjects.Names[0])
-  else
-    Msg := Msg + 'object';
-  if Objects.Count <> 1 then Msg := Msg + 's';
-  if (NumObjects.Count > 1) and (Objects.Count > 0) then begin
-    Msg := Msg + ' (';
-    for i:=0 to NumObjects.Count-1 do begin
-      NumObj := StrToIntDef(NumObjects.ValueFromIndex[i], 0);
-      if NumObj = 0 then
-        Continue;
-      Msg := Msg + FormatNumber(NumObj) + ' ' + LowerCase(NumObjects.Names[i]);
-      if NumObj <> 1 then Msg := Msg + 's';
-      Msg := Msg + ', ';
+    NumObjects := TStringList.Create;
+    DBObjectsMaxSize := 1;
+    DBObjectsMaxRows := 1;
+    for i:=0 to Objects.Count-1 do begin
+      Obj := Objects[i];
+      NumObj := StrToIntDef(NumObjects.Values[Obj.ObjType], 0);
+      Inc(NumObj);
+      NumObjects.Values[Obj.ObjType] := IntToStr(NumObj);
+      if Obj.Size > DBObjectsMaxSize then DBObjectsMaxSize := Obj.Size;
+      if Obj.Rows > DBObjectsMaxRows then DBObjectsMaxRows := Obj.Rows;
     end;
-    Delete(Msg, Length(Msg)-1, 2);
-    Msg := Msg + ')';
+    Msg := Conn.Database + ': ' + FormatNumber(Objects.Count) + ' ';
+    if NumObjects.Count = 1 then
+      Msg := Msg + LowerCase(NumObjects.Names[0])
+    else
+      Msg := Msg + 'object';
+    if Objects.Count <> 1 then Msg := Msg + 's';
+    if (NumObjects.Count > 1) and (Objects.Count > 0) then begin
+      Msg := Msg + ' (';
+      for i:=0 to NumObjects.Count-1 do begin
+        NumObj := StrToIntDef(NumObjects.ValueFromIndex[i], 0);
+        if NumObj = 0 then
+          Continue;
+        Msg := Msg + FormatNumber(NumObj) + ' ' + LowerCase(NumObjects.Names[i]);
+        if NumObj <> 1 then Msg := Msg + 's';
+        Msg := Msg + ', ';
+      end;
+      Delete(Msg, Length(Msg)-1, 2);
+      Msg := Msg + ')';
+    end;
   end;
+  vt.EndUpdate;
+  vt.Tag := VTREE_LOADED;
   ShowStatusMsg(Msg, 0);
   ShowStatusMsg;
   ValidateControls(Self);
@@ -6691,89 +6693,96 @@ var
   DBObj, PrevDBObj: PDBObject;
   MainTabToActivate: TTabSheet;
 begin
-  if not Assigned(Node) then begin
-    LogSQL('DBtreeFocusChanged without node.', lcDebug);
-    FActiveDbObj := nil;
-    Exit;
-  end;
-  LogSQL('DBtreeFocusChanged, Node level: '+IntToStr(Sender.GetNodeLevel(Node))+', FTreeRefreshInProgress: '+IntToStr(Integer(FTreeRefreshInProgress)), lcDebug);
-
-  // Post pending UPDATE
-  if Assigned(DataGridResult) and DataGridResult.Modified then
-    actDataPostChangesExecute(DataGrid);
-
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
   MainTabToActivate := nil;
 
-  DBObj := Sender.GetNodeData(Node);
-  FActiveDbObj := DBObj^;
+  if Assigned(Node) then begin
+    LogSQL('DBtreeFocusChanged, Node level: '+IntToStr(Sender.GetNodeLevel(Node))+', FTreeRefreshInProgress: '+IntToStr(Integer(FTreeRefreshInProgress)), lcDebug);
 
-  case DBObj.NodeType of
+    // Post pending UPDATE
+    if Assigned(DataGridResult) and DataGridResult.Modified then
+      actDataPostChangesExecute(DataGrid);
 
-    lntNone: begin
-      if (not DBtree.Dragging) and (not QueryTabActive) then
-        MainTabToActivate := tabHost;
-      DBObj.Connection.Database := '';
-    end;
+    DBObj := Sender.GetNodeData(Node);
+    FActiveDbObj := DBObj^;
 
-    lntDb: begin
-      // Selecting a database can cause an SQL error if the db was deleted from outside. Select previous node in that case.
-      try
-        DBObj.Connection.Database := DBObj.Database;
-      except on E:EDatabaseError do begin
-          ErrorDialog(E.Message);
-          SelectNode(DBtree, TreeClickHistoryPrevious);
-          Exit;
-        end;
+    case FActiveDbObj.NodeType of
+      lntNone: begin
+        if (not DBtree.Dragging) and (not QueryTabActive) then
+          MainTabToActivate := tabHost;
+        FActiveDbObj.Connection.Database := '';
       end;
-      if (not DBtree.Dragging) and (not QueryTabActive) then
-        MainTabToActivate := tabDatabase;
-    end;
-
-    lntTable..lntEvent: begin
-      try
-        DBObj.Connection.Database := DBObj.Database;
-      except on E:EDatabaseError do begin
-          ErrorDialog(E.Message);
-          SelectNode(DBtree, TreeClickHistoryPrevious);
-          Exit;
+      lntDb: begin
+        // Selecting a database can cause an SQL error if the db was deleted from outside. Select previous node in that case.
+        try
+          FActiveDbObj.Connection.Database := FActiveDbObj.Database;
+        except on E:EDatabaseError do begin
+            ErrorDialog(E.Message);
+            SelectNode(DBtree, TreeClickHistoryPrevious);
+            Exit;
+          end;
         end;
+        if (not DBtree.Dragging) and (not QueryTabActive) then
+          MainTabToActivate := tabDatabase;
       end;
-      ParseSelectedTableStructure;
-      if not FTreeRefreshInProgress then
-        PlaceObjectEditor(DBObj^);
-      // When a table is clicked in the tree, and the current
-      // tab is a Host or Database tab, switch to showing table columns.
-      if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
-        MainTabToActivate := tabEditor;
-      if DataGrid.Tag = VTREE_LOADED then
-        InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
-      // Update the list of columns
-      RefreshHelperNode(HELPERNODE_COLUMNS);
+      lntTable..lntEvent: begin
+        try
+          FActiveDbObj.Connection.Database := FActiveDbObj.Database;
+        except on E:EDatabaseError do begin
+            ErrorDialog(E.Message);
+            SelectNode(DBtree, TreeClickHistoryPrevious);
+            Exit;
+          end;
+        end;
+        ParseSelectedTableStructure;
+        if not FTreeRefreshInProgress then
+          PlaceObjectEditor(FActiveDbObj);
+        // When a table is clicked in the tree, and the current
+        // tab is a Host or Database tab, switch to showing table columns.
+        if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
+          MainTabToActivate := tabEditor;
+        if DataGrid.Tag = VTREE_LOADED then
+          InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
+        // Update the list of columns
+        RefreshHelperNode(HELPERNODE_COLUMNS);
+      end;
     end;
 
+    if TreeClickHistoryPrevious(True) <> nil then
+      PrevDBObj := Sender.GetNodeData(TreeClickHistoryPrevious(True));
+
+    // When clicked node is from a different connection than before, do session specific stuff here:
+    if (PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) then begin
+      LogSQL('Entering session "'+FActiveDbObj.Connection.Parameters.SessionName+'"', lcInfo);
+      FActiveDbObj.Connection.OnConnected(FActiveDbObj.Connection, FActiveDbObj.Connection.Database);
+      DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, FActiveDbObj.Connection.Parameters.SessionName);
+      case FActiveDbObj.Connection.Parameters.NetTypeGroup of
+        ngMySQL:
+          SynSQLSyn1.SQLDialect := sqlMySQL;
+        ngMSSQL:
+          SynSQLSyn1.SQLDialect := sqlMSSQL2K;
+        else
+          raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(FActiveDbObj.Connection.Parameters.NetType)]);
+      end;
+    end;
+    if (FActiveDbObj.NodeType <> lntNone)
+      and ((PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) or (PrevDBObj.Database <> FActiveDbObj.Database)) then
+      InvalidateVT(ListTables, VTREE_NOTLOADED, True);
+    tabHost.Caption := 'Host: '+sstr(FActiveDbObj.Connection.Parameters.HostName, 20);
+    tabDatabase.Caption := 'Database: '+sstr(FActiveDbObj.Connection.Database, 20);
+  end else begin
+    LogSQL('DBtreeFocusChanged without node.', lcDebug);
+    FActiveDbObj := nil;
+    MainTabToActivate := tabHost;
+    tabHost.Caption := 'Host';
+    tabDatabase.Caption := 'Database';
+    // Clear server version panel
+    ShowStatusMsg('', 3);
   end;
 
-  if TreeClickHistoryPrevious(True) <> nil then
-    PrevDBObj := Sender.GetNodeData(TreeClickHistoryPrevious(True))
-  else
-    PrevDBObj := Pointer(TDBObject.Create(nil));
-
-  // When clicked node is from a different connection than before, do session specific stuff here:
-  if PrevDBObj.Connection <> DBObj.Connection then begin
-    LogSQL('Entering session "'+DBObj.Connection.Parameters.SessionName+'"', lcInfo);
+  if (FActiveDbObj = nil) or (PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) then begin
     TimerConnected.OnTimer(Sender);
     TimerHostUptime.OnTimer(Sender);
-    DBObj.Connection.OnConnected(DBObj.Connection, DBObj.Connection.Database);
-    DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, DBObj.Connection.Parameters.SessionName);
-    case DBObj.Connection.Parameters.NetTypeGroup of
-      ngMySQL:
-        SynSQLSyn1.SQLDialect := sqlMySQL;
-      ngMSSQL:
-        SynSQLSyn1.SQLDialect := sqlMSSQL2K;
-      else
-        raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(DBObj.Connection.Parameters.NetType)]);
-    end;
     FreeAndNil(SQLHelpForm);
     InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
     InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
@@ -6782,24 +6791,18 @@ begin
     InvalidateVT(ListCommandstats, VTREE_NOTLOADED, False);
     InvalidateVT(ListTables, VTREE_NOTLOADED, False);
   end;
-  if (DBObj.NodeType <> lntNone)
-    and ((PrevDBObj.Connection <> DBObj.Connection) or (PrevDBObj.Database <> DBObj.Database)) then
-    InvalidateVT(ListTables, VTREE_NOTLOADED, True);
 
-  // Store click history item
-  SetLength(FTreeClickHistory, Length(FTreeClickHistory)+1);
-  FTreeClickHistory[Length(FTreeClickHistory)-1] := Node;
-
-  // Main tab stuff
-  tabHost.Caption := 'Host: '+sstr(DBObj.Connection.Parameters.HostName, 20);
-  tabDatabase.Caption := 'Database: '+sstr(DBObj.Connection.Database, 20);
   // Make wanted tab visible before activating, to avoid unset tab on Wine
   if Assigned(MainTabToActivate) then
     MainTabToActivate.TabVisible := True;
   SetMainTab(MainTabToActivate);
-  tabDatabase.TabVisible := DBObj.NodeType <> lntNone;
-  tabEditor.TabVisible := DBObj.NodeType in [lntTable..lntEvent];
-  tabData.TabVisible := DBObj.NodeType in [lntTable, lntView];
+  tabDatabase.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType <> lntNone);
+  tabEditor.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable..lntEvent]);
+  tabData.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable, lntView]);
+
+  // Store click history item
+  SetLength(FTreeClickHistory, Length(FTreeClickHistory)+1);
+  FTreeClickHistory[Length(FTreeClickHistory)-1] := Node;
 
   DBTree.InvalidateColumn(0);
   FixQueryTabCloseButtons;
@@ -7978,17 +7981,19 @@ var
   vt: TVirtualStringTree;
   Results: TDBQuery;
   OldOffset: TPoint;
+  Conn: TDBConnection;
 begin
   // Display server variables
   vt := Sender as TVirtualStringTree;
   if vt.Tag = VTREE_LOADED then
     Exit;
+  Conn := ActiveConnection;
   Screen.Cursor := crHourglass;
-  try
-    vt.BeginUpdate;
-    OldOffset := vt.OffsetXY;
-    vt.Clear;
-    Results := ActiveConnection.GetResults('SHOW VARIABLES');
+  vt.BeginUpdate;
+  OldOffset := vt.OffsetXY;
+  vt.Clear;
+  if Conn <> nil then begin
+    Results := Conn.GetResults('SHOW VARIABLES');
     SetLength(VTRowDataListVariables, Results.RecordCount);
     for i:=0 to Results.RecordCount-1 do begin
       VTRowDataListVariables[i].ImageIndex := 25;
@@ -8000,16 +8005,14 @@ begin
     FreeAndNil(Results);
     vt.RootNodeCount := Length(VTRowDataListVariables);
     vt.OffsetXY := OldOffset;
-    // Apply or reset filter
-    editFilterVTChange(Sender);
-    // Display number of listed values on tab
-    tabVariables.Caption := 'Variables (' + IntToStr(vt.RootNodeCount) + ')';
-  finally
-    // Important to flag the tree as "loaded", otherwise OnPaint will cause an endless loop
-    vt.EndUpdate;
-    vt.Tag := VTREE_LOADED;
-    Screen.Cursor := crDefault;
   end;
+  // Apply or reset filter
+  editFilterVTChange(Sender);
+  // Display number of listed values on tab
+  tabVariables.Caption := 'Variables (' + IntToStr(vt.RootNodeCount) + ')';
+  vt.EndUpdate;
+  vt.Tag := VTREE_LOADED;
+  Screen.Cursor := crDefault;
 end;
 
 
@@ -8023,17 +8026,19 @@ var
   valIsBytes, valIsNumber: Boolean;
   vt: TVirtualStringTree;
   OldOffset: TPoint;
+  Conn: TDBConnection;
 begin
   // Display server status key/value pairs
   vt := Sender as TVirtualStringTree;
   if vt.Tag = VTREE_LOADED then
     Exit;
+  Conn := ActiveConnection;
   Screen.Cursor := crHourglass;
-  try
-    vt.BeginUpdate;
-    OldOffset := vt.OffsetXY;
-    vt.Clear;
-    Results := ActiveConnection.GetResults('SHOW /*!50002 GLOBAL */ STATUS');
+  vt.BeginUpdate;
+  OldOffset := vt.OffsetXY;
+  vt.Clear;
+  if Conn <> nil then begin
+    Results := Conn.GetResults('SHOW /*!50002 GLOBAL */ STATUS');
     SetLength(VTRowDataListStatus, Results.RecordCount);
     for i:=0 to Results.RecordCount-1 do begin
       VTRowDataListStatus[i].ImageIndex := 25;
@@ -8055,11 +8060,11 @@ begin
       if valIsNumber then begin
         valCount := MakeInt(val);
         // ... per hour
-        tmpval := valCount / ( ActiveConnection.ServerUptime / 60 / 60 );
+        tmpval := valCount / (Conn.ServerUptime / 60 / 60);
         if valIsBytes then avg_perhour := FormatByteNumber( Trunc(tmpval) )
         else avg_perhour := FormatNumber( tmpval, 1 );
         // ... per second
-        tmpval := valCount / ActiveConnection.ServerUptime;
+        tmpval := valCount / Conn.ServerUptime;
         if valIsBytes then avg_persec := FormatByteNumber( Trunc(tmpval) )
         else avg_persec := FormatNumber( tmpval, 1 );
       end;
@@ -8079,15 +8084,14 @@ begin
     // Tell VirtualTree the number of nodes it will display
     vt.RootNodeCount := Length(VTRowDataListStatus);
     vt.OffsetXY := OldOffset;
-    // Apply or reset filter
-    editFilterVTChange(Sender);
-    // Display number of listed values on tab
-    tabStatus.Caption := 'Status (' + IntToStr(vt.RootNodeCount) + ')';
-  finally
-    vt.EndUpdate;
-    vt.Tag := VTREE_LOADED;
-    Screen.Cursor := crDefault;
   end;
+  // Apply or reset filter
+  editFilterVTChange(Sender);
+  // Display number of listed values on tab
+  tabStatus.Caption := 'Status (' + IntToStr(vt.RootNodeCount) + ')';
+  vt.EndUpdate;
+  vt.Tag := VTREE_LOADED;
+  Screen.Cursor := crDefault;
 end;
 
 
@@ -8106,14 +8110,13 @@ begin
   vt := Sender as TVirtualStringTree;
   if vt.Tag = VTREE_LOADED then
     Exit;
-  vt.OnFocusChanged(vt, vt.FocusedNode, vt.FocusedColumn);
+  Conn := ActiveConnection;
   Screen.Cursor := crHourglass;
-  try
-    vt.BeginUpdate;
-    OldOffset := vt.OffsetXY;
-    vt.FocusedNode := nil;
-    vt.Clear;
-    Conn := ActiveConnection;
+  vt.BeginUpdate;
+  OldOffset := vt.OffsetXY;
+  vt.FocusedNode := nil;
+  vt.Clear;
+  if Conn <> nil then begin
     case Conn.Parameters.NetTypeGroup of
       ngMySQL: begin
         if Conn.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
@@ -8166,16 +8169,11 @@ begin
     FreeAndNil(Results);
     vt.RootNodeCount := Length(VTRowDataListProcesses);
     vt.OffsetXY := OldOffset;
-    // Apply or reset filter
-    editFilterVTChange(Sender);
-    // Display number of listed values on tab
-    tabProcessList.Caption := 'Process-List (' + IntToStr(vt.RootNodeCount) + ')';
-  except
-    on E: Exception do begin
-      LogSQL('Error loading process list (automatic refresh disabled): ' + e.Message);
-      TimerRefresh.Enabled := false;
-    end;
   end;
+  // Apply or reset filter
+  editFilterVTChange(Sender);
+  // Display number of listed values on tab
+  tabProcessList.Caption := 'Process-List (' + IntToStr(vt.RootNodeCount) + ')';
   vt.EndUpdate;
   vt.Tag := VTREE_LOADED;
   Screen.Cursor := crDefault;
@@ -8183,6 +8181,14 @@ end;
 
 
 procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+var
+  i: Integer;
+  questions: Int64;
+  Results: TDBQuery;
+  vt: TVirtualStringTree;
+  OldOffset: TPoint;
+  Conn: TDBConnection;
+
   procedure addLVitem( idx: Integer; caption: String; commandCount: Int64; totalCount: Int64 );
   var
     tmpval : Double;
@@ -8195,10 +8201,10 @@ procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; Target
     // Total Frequency
     VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( commandCount ) );
     // Average per hour
-    tmpval := commandCount / ( ActiveConnection.ServerUptime / 60 / 60 );
+    tmpval := commandCount / (Conn.ServerUptime / 60 / 60);
     VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Average per second
-    tmpval := commandCount / ActiveConnection.ServerUptime;
+    tmpval := commandCount / Conn.ServerUptime;
     VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Percentage. Take care of division by zero errors and Int64's
     if commandCount < 0 then
@@ -8209,24 +8215,18 @@ procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; Target
     VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) + ' %' );
   end;
 
-var
-  i: Integer;
-  questions: Int64;
-  Results: TDBQuery;
-  vt: TVirtualStringTree;
-  OldOffset: TPoint;
 begin
   // Display command statistics
   vt := Sender as TVirtualStringTree;
   if vt.Tag = VTREE_LOADED then
     Exit;
-
+  Conn := ActiveConnection;
   Screen.Cursor := crHourglass;
-  try
-    vt.BeginUpdate;
-    OldOffset := vt.OffsetXY;
-    vt.Clear;
-    Results := ActiveConnection.GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
+  vt.BeginUpdate;
+  OldOffset := vt.OffsetXY;
+  vt.Clear;
+  if Conn <> nil then begin
+    Results := Conn.GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
     questions := 0;
     while not Results.Eof do begin
       Inc(questions, MakeInt(Results.Col(1)));
@@ -8243,15 +8243,14 @@ begin
     // Tell VirtualTree the number of nodes it will display
     vt.RootNodeCount := Length(VTRowDataListCommandStats);
     vt.OffsetXY := OldOffset;
-    // Apply or reset filter
-    editFilterVTChange(Sender);
-    // Display number of listed values on tab
-    tabCommandStats.Caption := 'Command-Statistics (' + IntToStr(vt.RootNodeCount) + ')';
-  finally
-    vt.EndUpdate;
-    vt.Tag := VTREE_LOADED;
-    Screen.Cursor := crDefault;
   end;
+  // Apply or reset filter
+  editFilterVTChange(Sender);
+  // Display number of listed values on tab
+  tabCommandStats.Caption := 'Command-Statistics (' + IntToStr(vt.RootNodeCount) + ')';
+  vt.EndUpdate;
+  vt.Tag := VTREE_LOADED;
+  Screen.Cursor := crDefault;
 end;
 
 
@@ -9197,13 +9196,15 @@ end;
 procedure TMainForm.SetWindowCaption;
 var
   Cap: String;
+  Conn: TDBConnection;
 begin
   // Set window caption and taskbar text
   Cap := '';
-  if ActiveConnection <> nil then begin
-    Cap := Cap + ActiveConnection.Parameters.SessionName;
-    if ActiveDatabase <> '' then
-      Cap := Cap + ' /' + ActiveDatabase;
+  Conn := ActiveConnection;
+  if Conn <> nil then begin
+    Cap := Cap + Conn.Parameters.SessionName;
+    if Conn.Database <> '' then
+      Cap := Cap + ' /' + Conn.Database;
     if Assigned(ActiveDbObj) and (ActiveDbObj.Name <> '') then
       Cap := Cap + '/' + ActiveDbObj.Name;
     Cap := Cap + ' - ';
