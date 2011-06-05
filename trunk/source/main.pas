@@ -3275,10 +3275,13 @@ end;
 }
 procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
 begin
-  if SQLHelpForm = nil then
-    SQLHelpForm := TfrmSQLhelp.Create(Self);
-  SQLHelpForm.Show;
-  SQLHelpForm.Keyword := keyword;
+  if FActiveDbObj.Connection.ServerVersionInt >= 40100 then begin
+    if SQLHelpForm = nil then
+      SQLHelpForm := TfrmSQLhelp.Create(Self);
+    SQLHelpForm.Show;
+    SQLHelpForm.Keyword := keyword;
+  end else
+    ErrorDialog('SQL help not available.', 'HELP <keyword> required MySQL 4.1 or newer.');
 end;
 
 
@@ -6755,7 +6758,6 @@ begin
     // When clicked node is from a different connection than before, do session specific stuff here:
     if (PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) then begin
       LogSQL('Entering session "'+FActiveDbObj.Connection.Parameters.SessionName+'"', lcInfo);
-      FActiveDbObj.Connection.OnConnected(FActiveDbObj.Connection, FActiveDbObj.Connection.Database);
       DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, FActiveDbObj.Connection.Parameters.SessionName);
       case FActiveDbObj.Connection.Parameters.NetTypeGroup of
         ngMySQL:
@@ -6771,6 +6773,7 @@ begin
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
     tabHost.Caption := 'Host: '+sstr(FActiveDbObj.Connection.Parameters.HostName, 20);
     tabDatabase.Caption := 'Database: '+sstr(FActiveDbObj.Connection.Database, 20);
+    ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(FActiveDbObj.Connection.Parameters.NetType, False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
   end else begin
     LogSQL('DBtreeFocusChanged without node.', lcDebug);
     FActiveDbObj := nil;
@@ -6882,10 +6885,9 @@ end;
 
 procedure TMainForm.ConnectionReady(Connection: TDBConnection; Database: String);
 begin
-  // Display server vendor and version. Also required on reconnects.
-  ShowStatusMsg(Connection.Parameters.NetTypeName(Connection.Parameters.NetType, False)+' '+Connection.ServerVersionStr, 3);
-  actSQLhelp.Enabled := Connection.ServerVersionInt >= 40100;
-  actImportCSV.Enabled := Connection.ServerVersionInt >= 32206;
+  // Manually trigger changed focused tree node, to display the right server vendor
+  // and version. Also required on reconnects.
+  DBtree.OnFocusChanged(DBtree, DBtree.FocusedNode, DBtree.FocusedColumn);
 end;
 
 
