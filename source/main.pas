@@ -503,6 +503,7 @@ type
     actCancelOperation: TAction;
     actToggleComment: TAction;
     Uncomment1: TMenuItem;
+    Disconnect1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);

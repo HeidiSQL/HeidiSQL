@@ -8258,6 +8258,9 @@ object MainForm: TMainForm
     object menuRefreshDB: TMenuItem
       Action = actRefresh
     end
+    object Disconnect1: TMenuItem
+      Action = actDisconnect
+    end
   end
   object popupHost: TPopupMenu
     Images = ImageListMain
