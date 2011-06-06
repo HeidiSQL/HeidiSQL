@@ -333,8 +333,13 @@ begin
         FOldWindowProc(Message);
     WM_GETDLGCODE: // "WantTabs" mode for main control
       Message.Result := Message.Result or DLGC_WANTARROWS or DLGC_WANTALLKEYS or DLGC_WANTTAB;
-    else
-      FOldWindowProc(Message);
+    else begin
+      try
+        FOldWindowProc(Message);
+      except
+        // EAccessViolation occurring in some cases
+      end;
+    end;
   end;
 end;
 
