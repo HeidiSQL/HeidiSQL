@@ -2160,7 +2160,6 @@ object MainForm: TMainForm
     object actSQLhelp: TAction
       Category = 'Tools'
       Caption = 'SQL help'
-      Enabled = False
       Hint = 'SQL help browser'
       ImageIndex = 31
       ShortCut = 112
