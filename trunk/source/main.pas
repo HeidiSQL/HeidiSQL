@@ -3958,6 +3958,9 @@ begin
   vt := Sender as TVirtualStringTree;
   if vt.Tag = VTREE_LOADED then
     Exit;
+  DBObj := ActiveDbObj;
+  if DBObj = nil then
+    Exit;
   Screen.Cursor := crHourglass;
 
   // No data for routines
@@ -3971,7 +3974,6 @@ begin
     pnlDataTop.Enabled := True;
     pnlFilter.Enabled := True;
     lblSorryNoData.Parent := tabData;
-    DBObj := ActiveDbObj;
 
     // Indicates whether the current table data is just refreshed or if we're in another table
     RefreshingData := (ActiveDatabase = DataGridDB) and (DBObj.Name = DataGridTable);
@@ -4393,10 +4395,14 @@ procedure TMainForm.ListTablesInitNode(Sender: TBaseVirtualTree; ParentNode,
 var
   Obj: PDBObject;
   Objects: TDBObjectList;
+  Conn: TDBConnection;
 begin
-  Obj := Sender.GetNodeData(Node);
-  Objects := ActiveConnection.GetDBObjects(ActiveDatabase);
-  Obj^ := Objects[Node.Index];
+  Conn := ActiveConnection;
+  if Conn <> nil then begin
+    Obj := Sender.GetNodeData(Node);
+    Objects := Conn.GetDBObjects(Conn.Database);
+    Obj^ := Objects[Node.Index];
+  end;
 end;
 
 
@@ -6799,10 +6805,12 @@ begin
   // Make wanted tab visible before activating, to avoid unset tab on Wine
   if Assigned(MainTabToActivate) then
     MainTabToActivate.TabVisible := True;
-  SetMainTab(MainTabToActivate);
-  tabDatabase.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType <> lntNone);
-  tabEditor.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable..lntEvent]);
-  tabData.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable, lntView]);
+  if not FTreeRefreshInProgress then begin
+    SetMainTab(MainTabToActivate);
+    tabDatabase.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType <> lntNone);
+    tabEditor.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable..lntEvent]);
+    tabData.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable, lntView]);
+  end;
 
   // Store click history item
   SetLength(FTreeClickHistory, Length(FTreeClickHistory)+1);
