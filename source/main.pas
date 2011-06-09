@@ -5554,7 +5554,6 @@ procedure TMainForm.SetActiveDatabase(db: String; Connection: TDBConnection);
 var
   SessionNode, DBNode: PVirtualNode;
   DBObj: PDBObject;
-  AlreadySelected: Boolean;
 begin
   // Set focus on the wanted db node
   LogSQL('SetActiveDatabase('+db+')', lcDebug);
@@ -5566,8 +5565,7 @@ begin
     while Assigned(DBNode) do begin
       DBObj := DBtree.GetNodeData(DBNode);
       if DBObj.Database = db then begin
-        AlreadySelected := Assigned(DBtree.FocusedNode) and ((DBNode = DBtree.FocusedNode) or (DBNode = DBtree.FocusedNode.Parent));
-        if not AlreadySelected then
+        if DBNode <> DBtree.FocusedNode then
           SelectNode(DBtree, DBNode);
         break;
       end;
