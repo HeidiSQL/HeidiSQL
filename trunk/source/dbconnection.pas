@@ -396,6 +396,7 @@ type
       function GetThreadId: Cardinal; virtual; abstract;
       function GetCharacterSet: String; virtual; abstract;
       procedure SetCharacterSet(CharsetName: String); virtual; abstract;
+      function GetLastErrorCode: Cardinal; virtual; abstract;
       function GetLastError: String; virtual; abstract;
       function GetServerVersionStr: String;
       function GetServerVersionInt: Integer; virtual; abstract;
@@ -450,6 +451,7 @@ type
       property ConnectionUptime: Integer read GetConnectionUptime;
       property ServerUptime: Integer read GetServerUptime;
       property CharacterSet: String read GetCharacterSet write SetCharacterSet;
+      property LastErrorCode: Cardinal read GetLastErrorCode;
       property LastError: String read GetLastError;
       property ServerOS: String read FServerOS;
       property ServerVersionUntouched: String read FServerVersionUntouched;
@@ -500,6 +502,7 @@ type
       function GetThreadId: Cardinal; override;
       function GetCharacterSet: String; override;
       procedure SetCharacterSet(CharsetName: String); override;
+      function GetLastErrorCode: Cardinal; override;
       function GetLastError: String; override;
       function GetServerVersionInt: Integer; override;
       function GetAllDatabases: TStringList; override;
@@ -528,6 +531,7 @@ type
       function GetThreadId: Cardinal; override;
       function GetCharacterSet: String; override;
       procedure SetCharacterSet(CharsetName: String); override;
+      function GetLastErrorCode: Cardinal; override;
       function GetLastError: String; override;
       function GetServerVersionInt: Integer; override;
       function GetAllDatabases: TStringList; override;
@@ -1566,6 +1570,18 @@ begin
 end;
 
 
+function TMySQLConnection.GetLastErrorCode: Cardinal;
+begin
+  Result := mysql_errno(FHandle);
+end;
+
+
+function TAdoDBConnection.GetLastErrorCode: Cardinal;
+begin
+  Result := FAdoHandle.Errors[FAdoHandle.Errors.Count-1].NativeError;
+end;
+
+
 {**
   Return the last error nicely formatted
 }
@@ -1584,7 +1600,7 @@ begin
       Msg := Msg + CRLF + CRLF + Additional;
   end;
   rx.Free;
-  Result := Format(MsgSQLError, [mysql_errno(FHandle), Msg]);
+  Result := Format(MsgSQLError, [LastErrorCode, Msg]);
 end;
 
 
@@ -1602,7 +1618,7 @@ begin
   if rx.Exec(Msg) then
     Msg := rx.Match[1];
   rx.Free;
-  Result := Format(MsgSQLError, [E.NativeError, Msg]);
+  Result := Format(MsgSQLError, [LastErrorCode, Msg]);
 end;
 
 

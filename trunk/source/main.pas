@@ -4506,23 +4506,26 @@ var
   t: Boolean;
   pid: String;
   Node: PVirtualNode;
+  Conn: TDBConnection;
 begin
   t := TimerRefresh.Enabled;
   TimerRefresh.Enabled := false; // prevent av (ListProcesses.selected...)
+  Conn := ActiveConnection;
   if MessageDialog('Kill '+IntToStr(ListProcesses.SelectedCount)+' Process(es)?', mtConfirmation, [mbok,mbcancel]) = mrok then
   begin
     Node := GetNextNode(ListProcesses, nil, True);
     while Assigned(Node) do begin
       pid := ListProcesses.Text[Node, ListProcesses.Header.MainColumn];
       // Don't kill own process
-      if pid = IntToStr(ActiveConnection.ThreadId) then
+      if pid = IntToStr(Conn.ThreadId) then
         LogSQL('Ignoring own process id #'+pid+' when trying to kill it.')
       else try
-        ActiveConnection.Query('KILL '+pid);
+        Conn.Query('KILL '+pid);
       except
         on E:EDatabaseError do begin
-          if MessageDialog(E.Message, mtError, [mbOK, mbAbort]) = mrAbort then
-            break;
+          if Conn.LastErrorCode <> 1094 then
+            if MessageDialog(E.Message, mtError, [mbOK, mbAbort]) = mrAbort then
+              break;
         end;
       end;
       Node := GetNextNode(ListProcesses, Node, True);
