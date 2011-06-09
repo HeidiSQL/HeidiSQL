@@ -7077,17 +7077,19 @@ var
   Clause, Line: String;
   i: Integer;
   ed: TEdit;
+  Conn: TDBConnection;
 begin
   ed := TEdit(Sender);
   Clause := '';
+  Conn := ActiveConnection;
   if ed.Text <> '' then begin
     Line := '';
     for i:=0 to SelectedTableColumns.Count-1 do begin
       if i > 0 then
         Line := Line + ' OR ';
-      Line := Line + ActiveConnection.QuoteIdent(SelectedTableColumns[i].Name) + ' LIKE ' + esc('%'+ed.Text+'%');
+      Line := Line + Conn.QuoteIdent(SelectedTableColumns[i].Name) + ' LIKE ' + esc('%'+ed.Text+'%');
       // Add linebreak near right window edge
-      if Length(Line) > SynMemoFilter.CharsInWindow-30 then begin
+      if (Length(Line) > SynMemoFilter.CharsInWindow-30) or (i = SelectedTableColumns.Count-1) then begin
         Clause := Clause + Line + CRLF;
         Line := '';
       end;
