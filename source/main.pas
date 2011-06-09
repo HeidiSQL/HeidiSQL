@@ -14,7 +14,7 @@ uses
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, SyncObjs,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
-  SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types,
+  SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes,
   CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
@@ -2710,11 +2710,14 @@ end;
 function TMainForm.RunQueryFiles(Filenames: TStrings; Encoding: TEncoding): Boolean;
 var
   i: Integer;
-  Filesize: Int64;
+  Filesize, FilesizeSum: Int64;
   msgtext: String;
   AbsentFiles, PopupFileList: TStringList;
   DoRunFiles: Boolean;
   RunFileDialog: TRunSQLFileForm;
+  Dialog: TTaskDialog;
+  Btn: TTaskDialogButtonItem;
+  DialogResult: TModalResult;
 const
   RunFileSize = 5*SIZE_MB;
 begin
@@ -2732,21 +2735,49 @@ begin
   // Check if one or more files are large
   DoRunFiles := False;
   PopupFileList := TStringList.Create;
+  FilesizeSum := 0;
   for i:=0 to Filenames.Count-1 do begin
     FileSize := _GetFileSize(Filenames[i]);
+    Inc(FilesizeSum, Filesize);
     PopupFileList.Add(ExtractFilename(Filenames[i]) + ' (' + FormatByteNumber(FileSize) + ')');
     DoRunFiles := DoRunFiles or (FileSize > RunFileSize);
   end;
 
   if DoRunFiles then begin
-    msgtext := 'One or more of the selected files are larger than '+FormatByteNumber(RunFileSize, 0)+':' + CRLF +
-      ImplodeStr(CRLF, PopupFileList) + CRLF + CRLF +
-      'Just run these files to avoid loading them into the query-editor (= memory)?' + CRLF + CRLF +
-      'Press' + CRLF +
-      '  [Yes] to run file(s) without loading it into the editor' + CRLF +
-      '  [No] to load file(s) into the query editor' + CRLF +
-      '  [Cancel] to cancel file opening.';
-    case MessageDialog('Execute query file(s)?', msgtext, mtWarning, [mbYes, mbNo, mbCancel]) of
+    if (Win32MajorVersion >= 6) and ThemeServices.ThemesEnabled then begin
+      Dialog := TTaskDialog.Create(Self);
+      Dialog.Caption := 'Opening large files';
+      Dialog.Text := 'Selected files have a size of '+FormatByteNumber(FilesizeSum, 1);
+      Dialog.ExpandButtonCaption := 'File list';
+      Dialog.ExpandedText := PopupFileList.Text;
+      Dialog.Flags := [tfUseCommandLinks, tfExpandFooterArea];
+      Dialog.CommonButtons := [];
+      Dialog.MainIcon := tdiWarning;
+      Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
+      Btn.Caption := 'Run file(s) directly';
+      Btn.CommandLinkHint := '... without loading into the editor';
+      Btn.ModalResult := mrYes;
+      Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
+      Btn.Caption := 'Load file(s) into the editor';
+      Btn.CommandLinkHint := 'Can cause large memory usage';
+      Btn.ModalResult := mrNo;
+      Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
+      Btn.Caption := 'Cancel';
+      Btn.ModalResult := mrCancel;
+      Dialog.Execute;
+      DialogResult := Dialog.ModalResult;
+    end else begin
+      msgtext := 'One or more of the selected files are larger than '+FormatByteNumber(RunFileSize, 0)+':' + CRLF +
+        ImplodeStr(CRLF, PopupFileList) + CRLF + CRLF +
+        'Just run these files to avoid loading them into the query-editor (= memory)?' + CRLF + CRLF +
+        'Press' + CRLF +
+        '  [Yes] to run file(s) without loading it into the editor' + CRLF +
+        '  [No] to load file(s) into the query editor' + CRLF +
+        '  [Cancel] to cancel file opening.';
+      DialogResult := MessageDialog('Execute query file(s)?', msgtext, mtWarning, [mbYes, mbNo, mbCancel]);
+    end;
+
+    case DialogResult of
       mrYes: begin
         Result := True;
         for i:=0 to Filenames.Count-1 do begin
