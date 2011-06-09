@@ -6834,7 +6834,7 @@ begin
     Allowed := not (ActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
     DBTree.Selected[DBTree.FocusedNode] := not Allowed;
   end else
-    Allowed := True;
+    Allowed := NewNode <> OldNode;
 end;
 
 
