@@ -2767,6 +2767,7 @@ begin
       Btn.ModalResult := mrCancel;
       Dialog.Execute;
       DialogResult := Dialog.ModalResult;
+      Dialog.Free;
     end else begin
       msgtext := 'One or more of the selected files are larger than '+FormatByteNumber(RunFileSize, 0)+':' + CRLF +
         ImplodeStr(CRLF, PopupFileList) + CRLF + CRLF +
