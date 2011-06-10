@@ -2443,6 +2443,7 @@ begin
     Result.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', Session);
     Result.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, '', Session);
     Result.Compressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session);
+    Result.ServerVersion := GetRegValue(REGNAME_SERVERVERSION_FULL, '', Session);
   end;
 end;
 

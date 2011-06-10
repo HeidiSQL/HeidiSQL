@@ -200,6 +200,7 @@ const
   REGNAME_COPYTABLE_DATA = 'CopyTable_Data';
   REGNAME_FILTERS = 'RecentFilters';
   REGNAME_SERVERVERSION = 'ServerVersion';
+  REGNAME_SERVERVERSION_FULL = 'ServerVersionFull';
   REGNAME_LASTCONNECT = 'LastConnect';
   REGNAME_CONNECTCOUNT = 'ConnectCount';
   REGNAME_REFUSEDCOUNT = 'RefusedCount';

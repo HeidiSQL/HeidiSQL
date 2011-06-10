@@ -123,6 +123,7 @@ type
     FSessions: TObjectList<TConnectionParameters>;
     FSessionModified, FOnlyPasswordModified, FSessionAdded: Boolean;
     FWidthListSessions: Byte; // Percentage values
+    FServerVersion: String;
     function SelectedSession: String;
     function CurrentParams: TConnectionParameters;
     procedure FinalizeModifications(var CanProceed: Boolean);
@@ -152,6 +153,7 @@ var
   i: Integer;
   nt: TNetType;
   Node: PVirtualNode;
+  Params: TConnectionParameters;
 begin
   // Fix GUI stuff
   InheritFont(Font);
@@ -164,8 +166,10 @@ begin
   FLoaded := False;
 
   comboNetType.Clear;
+  Params := TConnectionParameters.Create;
   for nt:=Low(nt) to High(nt) do
-    comboNetType.Items.Add(TConnectionParameters.NetTypeName(nt, True));
+    comboNetType.Items.Add(Params.NetTypeName(nt, True));
+  Params.Free;
 
   FSessions := TObjectList<TConnectionParameters>.Create;
   SessionNames := TStringList.Create;
@@ -406,6 +410,7 @@ begin
   Result := TConnectionParameters.Create;
   Result.SessionName := SelectedSession;
   Result.NetType := TNetType(comboNetType.ItemIndex);
+  Result.ServerVersion := FServerVersion;
   Result.Hostname := editHost.Text;
   Result.Username := editUsername.Text;
   Result.Password := editPassword.Text;
@@ -525,6 +530,7 @@ begin
     editSSLPrivateKey.Text := Sess.SSLPrivateKey;
     editSSLCertificate.Text := Sess.SSLCertificate;
     editSSLCACertificate.Text := Sess.SSLCACertificate;
+    FServerVersion := Sess.ServerVersion;
     FLoaded := True;
   end;
 
