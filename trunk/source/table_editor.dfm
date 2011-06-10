@@ -154,6 +154,18 @@ object frmTableEditor: TfrmTableEditor
         Position = 9
         Width = 100
         WideText = 'Collation'
+      end
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 10
+        Width = 100
+        WideText = 'Expression'
+      end
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 11
+        Width = 100
+        WideText = 'Virtuality'
       end>
   end
   object PageControlMain: TPageControl

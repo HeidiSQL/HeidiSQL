@@ -259,6 +259,12 @@ begin
   comboEngine.Items := DBObject.Connection.TableEngines;
   comboEngine.ItemIndex := comboEngine.Items.IndexOf(DBObject.Connection.TableEngineDefault);
   comboCollation.Items := DBObject.Connection.CollationList;
+  if DBObject.Connection.Parameters.IsMariaDB then begin
+    with listColumns.Header do begin
+      Columns[10].Options := Columns[10].Options + [coVisible];
+      Columns[11].Options := Columns[11].Options + [coVisible];
+    end;
+  end;
   listColumns.BeginUpdate;
   FColumns.Clear;
   btnClearIndexesClick(Self);
@@ -455,6 +461,7 @@ var
   Results: TDBQuery;
   Col, PreviousCol: PTableColumn;
   Node: PVirtualNode;
+  IsVirtual: Boolean;
 
   procedure AddQuery;
   begin
@@ -544,19 +551,24 @@ begin
     if Col.Status <> esUntouched then begin
       ColSpec := DBObject.Connection.QuoteIdent(Col.Name);
       ColSpec := ColSpec + ' ' + Col.DataType.Name;
+      IsVirtual := (Col.Expression <> '') and (Col.Virtuality <> '');
       if Col.LengthSet <> '' then
         ColSpec := ColSpec + '(' + Col.LengthSet + ')';
       if (Col.DataType.Category in [dtcInteger, dtcReal]) and Col.Unsigned then
         ColSpec := ColSpec + ' UNSIGNED';
       if (Col.DataType.Category in [dtcInteger, dtcReal]) and Col.ZeroFill then
         ColSpec := ColSpec + ' ZEROFILL';
-      if not Col.AllowNull then
-        ColSpec := ColSpec + ' NOT';
-      ColSpec := ColSpec + ' NULL';
+      if not IsVirtual then begin
+        if not Col.AllowNull then
+          ColSpec := ColSpec + ' NOT';
+        ColSpec := ColSpec + ' NULL';
+      end;
       if Col.DefaultType <> cdtNothing then begin
         ColSpec := ColSpec + ' ' + GetColumnDefaultClause(Col.DefaultType, Col.DefaultText);
         ColSpec := TrimRight(ColSpec); // Remove whitespace for columns without default value
       end;
+      if IsVirtual then
+        ColSpec := ColSpec + ' AS ('+Col.Expression+') '+Col.Virtuality;
       if Col.Comment <> '' then
         ColSpec := ColSpec + ' COMMENT '+esc(Col.Comment);
       if Col.Collation <> '' then begin
@@ -1010,6 +1022,8 @@ begin
       if (CellText <> '') and (chkCharsetConvert.Checked) then
         CellText := comboCollation.Text;
     end;
+    10: CellText := Col.Expression;
+    11: CellText := Col.Virtuality;
   end;
 end;
 
@@ -1139,6 +1153,8 @@ begin
     end;
     8: Col.Comment := NewText;
     9: Col.Collation := NewText;
+    10: Col.Expression := NewText;
+    11: Col.Virtuality := NewText;
   end;
   Col.Status := esModified;
   Modification(Sender);
@@ -1256,6 +1272,14 @@ begin
       DefaultEditor.DefaultType := Col.DefaultType;
       DefaultEditor.DataType := Col.DataType.Index;
       EditLink := DefaultEditor;
+    end;
+    11: begin // Virtuality pulldown
+      EnumEditor := TEnumEditorLink.Create(VT);
+      EnumEditor.ValueList := TStringList.Create;
+      EnumEditor.ValueList.Add('');
+      EnumEditor.ValueList.Add('VIRTUAL');
+      EnumEditor.ValueList.Add('PERSISTENT');
+      EditLink := EnumEditor;
     end
     else
       EditLink := TInplaceEditorLink.Create(VT);

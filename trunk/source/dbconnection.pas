@@ -235,7 +235,7 @@ type
       Unsigned, AllowNull, ZeroFill, LengthCustomized: Boolean;
       DefaultType: TColumnDefaultType;
       DefaultText: String;
-      Comment, Charset, Collation: String;
+      Comment, Charset, Collation, Expression, Virtuality: String;
       FStatus: TEditingStatus;
       constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
@@ -2775,6 +2775,14 @@ begin
       Delete(ColSpec, 1, rxCol.MatchLen[0]);
     end;
 
+    // Virtual columns
+    rxCol.Expression := '^AS \((.+)\)\s+(VIRTUAL|PERSISTENT)\s*';
+    if rxCol.Exec(ColSpec) then begin
+      Col.Expression := rxCol.Match[1];
+      Col.Virtuality := rxCol.Match[2];
+      Delete(ColSpec, 1, rxCol.MatchLen[0]);
+    end;
+
     // Collation - probably not present when charset present
     rxCol.Expression := '^COLLATE (\w+)\b\s*';
     if rxCol.Exec(ColSpec) then begin
@@ -4474,21 +4482,28 @@ begin
 end;
 
 function TTableColumn.SQLCode: String;
+var
+  IsVirtual: Boolean;
 begin
   Result := FConnection.QuoteIdent(Name) + ' ' +DataType.Name;
+  IsVirtual := (Expression <> '') and (Virtuality <> '');
   if LengthSet <> '' then
     Result := Result + '(' + LengthSet + ')';
   if (DataType.Category in [dtcInteger, dtcReal]) and Unsigned then
     Result := Result + ' UNSIGNED';
   if (DataType.Category in [dtcInteger, dtcReal]) and ZeroFill then
     Result := Result + ' ZEROFILL';
-  if not AllowNull then
-    Result := Result + ' NOT';
-  Result := Result + ' NULL';
+  if not IsVirtual then begin
+    if not AllowNull then
+      Result := Result + ' NOT';
+    Result := Result + ' NULL';
+  end;
   if DefaultType <> cdtNothing then begin
     Result := Result + ' ' + GetColumnDefaultClause(DefaultType, DefaultText);
     Result := TrimRight(Result); // Remove whitespace for columns without default value
   end;
+  if IsVirtual then
+    Result := Result + ' AS ('+Expression+') '+Virtuality;
   if Comment <> '' then
     Result := Result + ' COMMENT '+esc(Comment);
   if Collation <> '' then
