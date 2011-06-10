@@ -308,7 +308,7 @@ type
     strict private
       FNetType: TNetType;
       FHostname, FUsername, FPassword, FAllDatabases, FStartupScriptFilename,
-      FSessionName, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate,
+      FSessionName, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout: Integer;
       FLoginPrompt, FCompressed: Boolean;
@@ -317,12 +317,14 @@ type
       constructor Create;
       function CreateConnection(AOwner: TComponent): TDBConnection;
       function CreateQuery(AOwner: TComponent): TDBQuery;
-      class function NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
+      function NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
       function GetNetTypeGroup: TNetTypeGroup;
+      function IsMariaDB: Boolean;
       property ImageIndex: Integer read GetImageIndex;
     published
       property NetType: TNetType read FNetType write FNetType;
       property NetTypeGroup: TNetTypeGroup read GetNetTypeGroup;
+      property ServerVersion: String read FServerVersion write FServerVersion;
       property SessionName: String read FSessionName write FSessionName;
       property Hostname: String read FHostname write FHostname;
       property Port: Integer read FPort write FPort;
@@ -756,15 +758,21 @@ begin
 end;
 
 
-class function TConnectionParameters.NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
+function TConnectionParameters.NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
+var
+  My: String;
 begin
+  if IsMariaDB then
+    My := 'MariaDB'
+  else
+    My := 'MySQL';
   if LongFormat then case NetType of
     ntMySQL_TCPIP:
-      Result := 'MySQL (TCP/IP)';
+      Result := My+' (TCP/IP)';
     ntMySQL_NamedPipe:
-      Result := 'MySQL (named pipe)';
+      Result := My+' (named pipe)';
     ntMySQL_SSHtunnel:
-      Result := 'MySQL (SSH tunnel)';
+      Result := My+' (SSH tunnel)';
     ntMSSQL_NamedPipe:
       Result := 'Microsoft SQL Server (named pipe)';
     ntMSSQL_TCPIP:
@@ -777,7 +785,7 @@ begin
       Result := 'Microsoft SQL Server (Windows RPC)';
   end else case NetType of
     ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel:
-      Result := 'MySQL';
+      Result := My;
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP:
       Result := 'MS SQL';
   end;
@@ -797,10 +805,20 @@ begin
 end;
 
 
+function TConnectionParameters.IsMariaDB: Boolean;
+begin
+  Result := Pos('-mariadb', LowerCase(ServerVersion)) > 0;
+end;
+
+
 function TConnectionParameters.GetImageIndex: Integer;
 begin
   case NetTypeGroup of
-    ngMySQL: Result := 164;
+    ngMySQL: begin
+      Result := 164;
+      if IsMariaDB then
+        Result := 166;
+    end;
     ngMSSQL: Result := 123;
     else Result := ICONINDEX_SERVER;
   end;
@@ -1229,6 +1247,9 @@ end;
 
 procedure TDBConnection.DoAfterConnect;
 begin
+  OpenRegistry(FParameters.SessionName);
+  MainReg.WriteString(REGNAME_SERVERVERSION_FULL, FServerVersionUntouched);
+  FParameters.ServerVersion := FServerVersionUntouched;
   if Assigned(FOnConnected) then
     FOnConnected(Self, FDatabase);
 end;
