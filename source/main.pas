@@ -2707,6 +2707,7 @@ begin
 end;
 
 
+{$WARN SYMBOL_PLATFORM OFF}
 function TMainForm.RunQueryFiles(Filenames: TStrings; Encoding: TEncoding): Boolean;
 var
   i: Integer;
@@ -2801,6 +2802,7 @@ begin
   AbsentFiles.Free;
   PopupFileList.Free;
 end;
+{$WARN SYMBOL_PLATFORM ON}
 
 
 procedure TMainForm.SessionConnect(Sender: TObject);
