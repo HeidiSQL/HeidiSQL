@@ -28,14 +28,6 @@ object connform: Tconnform
     294)
   PixelsPerInch = 96
   TextHeight = 13
-  object lblSession: TLabel
-    Tag = 5
-    Left = 8
-    Top = 8
-    Width = 77
-    Height = 13
-    Caption = 'Saved sessions:'
-  end
   object lblHelp: TLabel
     Left = 177
     Top = 27
@@ -83,10 +75,10 @@ object connform: Tconnform
     TabOrder = 6
   end
   object ListSessions: TVirtualStringTree
-    Left = 9
-    Top = 27
-    Width = 162
-    Height = 226
+    Left = 8
+    Top = 8
+    Width = 167
+    Height = 247
     Anchors = [akLeft, akTop, akBottom]
     EditDelay = 250
     Header.AutoSizeIndex = 0
@@ -96,7 +88,9 @@ object connform: Tconnform
     Header.Font.Height = -11
     Header.Font.Name = 'Tahoma'
     Header.Font.Style = []
-    Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
+    Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+    Header.PopupMenu = MainForm.popupListHeader
+    Header.SortColumn = 0
     HintMode = hmTooltip
     Images = MainForm.ImageListMain
     IncrementalSearch = isAll
@@ -117,8 +111,23 @@ object connform: Tconnform
     Columns = <
       item
         Position = 0
-        Width = 158
-        WideText = 'Title'
+        Width = 163
+        WideText = 'Session name'
+      end
+      item
+        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+        Position = 1
+        WideText = 'Host'
+      end
+      item
+        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+        Position = 2
+        WideText = 'User'
+      end
+      item
+        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+        Position = 3
+        WideText = 'Version'
       end>
   end
   object btnNew: TButton
@@ -145,7 +154,7 @@ object connform: Tconnform
     Left = 177
     Top = 8
     Width = 309
-    Height = 246
+    Height = 247
     ActivePage = tabSettings
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = MainForm.ImageListMain
@@ -155,7 +164,7 @@ object connform: Tconnform
       ImageIndex = 39
       DesignSize = (
         301
-        217)
+        218)
       object lblStartupScript: TLabel
         Left = 3
         Top = 193
@@ -331,7 +340,7 @@ object connform: Tconnform
       ImageIndex = 147
       DesignSize = (
         301
-        217)
+        218)
       object lblSSHLocalPort: TLabel
         Left = 3
         Top = 190
@@ -513,7 +522,7 @@ object connform: Tconnform
       ImageIndex = 144
       DesignSize = (
         301
-        217)
+        218)
       object lblSSLPrivateKey: TLabel
         Tag = 6
         Left = 3
@@ -589,7 +598,7 @@ object connform: Tconnform
       ImageIndex = 145
       DesignSize = (
         301
-        217)
+        218)
       object lblLastConnectLeft: TLabel
         Left = 3
         Top = 31

@@ -15,7 +15,6 @@ uses
 
 type
   Tconnform = class(TForm)
-    lblSession: TLabel;
     btnCancel: TButton;
     btnOpen: TButton;
     btnSave: TButton;
@@ -162,7 +161,10 @@ begin
   Width := GetRegValue(REGNAME_SESSMNGR_WINWIDTH, Width);
   Height := GetRegValue(REGNAME_SESSMNGR_WINHEIGHT, Height);
   FixVT(ListSessions);
-  ListSessions.OnGetHint := Mainform.vstGetHint;
+  MainForm.RestoreListSetup(ListSessions);
+  ListSessions.OnCompareNodes := MainForm.vstCompareNodes;
+  ListSessions.OnHeaderClick := MainForm.vstHeaderClick;
+  ListSessions.OnHeaderDraggedOut := MainForm.vstHeaderDraggedOut;
   FLoaded := False;
 
   comboNetType.Clear;
@@ -209,6 +211,7 @@ begin
   OpenRegistry;
   MainReg.WriteInteger(REGNAME_SESSMNGR_WINWIDTH, Width);
   MainReg.WriteInteger(REGNAME_SESSMNGR_WINHEIGHT, Height);
+  MainForm.SaveListSetup(ListSessions);
 end;
 
 
@@ -440,7 +443,9 @@ var
   Sess: PConnectionParameters;
 begin
   // A new session gets an additional plus symbol, editing gets a pencil
-  case Kind of
+  if Column > 0 then
+    ImageIndex := -1
+  else case Kind of
     ikNormal, ikSelected: begin
       Sess := Sender.GetNodeData(Node);
       ImageIndex := Sess.ImageIndex;
@@ -472,9 +477,16 @@ var
 begin
   // Display session name cell
   Sess := Sender.GetNodeData(Node);
-  CellText := Sess.SessionName;
-  if (FSessionModified or FSessionAdded) and (Node = Sender.FocusedNode) and (not Sender.IsEditing) then
-    CellText := CellText + ' *';
+  case Column of
+    0: begin
+      CellText := Sess.SessionName;
+      if (FSessionModified or FSessionAdded) and (Node = Sender.FocusedNode) and (not Sender.IsEditing) then
+        CellText := CellText + ' *';
+    end;
+    1: CellText := Sess.Hostname;
+    2: CellText := Sess.Username;
+    3: CellText := Sess.ServerVersion;
+  end;
 end;
 
 
