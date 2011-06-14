@@ -124,7 +124,7 @@ type
   procedure StreamWrite(S: TStream; Text: String = '');
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
   procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList); Overload;
-  function _GetFileSize(filename: String): Int64;
+  function _GetFileSize(Filename: String): Int64;
   function MakeInt( Str: String ) : Int64;
   function MakeFloat( Str: String ): Extended;
   function CleanupNumber(Str: String): String;
@@ -564,31 +564,20 @@ end;
 
 
 {***
-  Get filesize of a given file
-
+  Return filesize of a given file
   @param string Filename
   @return int64 Size in bytes
 }
-function _GetFileSize(filename: String): Int64;
+function _GetFileSize(Filename: String): Int64;
 var
-  i64: record
-    LoDWord: LongWord;
-    HiDWord: LongWord;
-  end;
-  stream : TFileStream;
+  Attr: _WIN32_FILE_ATTRIBUTE_DATA;
 begin
-  Stream := TFileStream.Create(filename, fmOpenRead or fmShareDenyNone);
-  try
-    i64.LoDWord := GetFileSize(Stream.Handle, @i64.HiDWord);
-  finally
-    Stream.Free;
-  end;
-  if (i64.LoDWord = MAXDWORD) and (GetLastError <> 0) then
-    Result := 0
-  else
-    Result := PInt64(@i64)^;
+  if FileExists(Filename) then begin
+    GetFileAttributesEx(PChar(Filename), GetFileExInfoStandard, @Attr);
+    Result := Int64(Attr.nFileSizeHigh) shl 32 + Int64(Attr.nFileSizeLow);
+  end else
+    Result := -1;
 end;
-
 
 
 {***
