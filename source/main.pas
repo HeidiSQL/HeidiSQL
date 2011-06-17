@@ -3841,11 +3841,6 @@ begin
   if not IsSQL then
     Msg := '/* ' + Msg + ' */';
 
-  Msg := StringReplace(Msg, #9, ' ', [rfReplaceAll]);
-  Msg := StringReplace(Msg, #10, ' ', [rfReplaceAll]);
-  Msg := StringReplace(Msg, #13, ' ', [rfReplaceAll]);
-  Msg := StringReplace(Msg, '  ', ' ', [rfReplaceAll]);
-
   EnterCriticalSection(FCriticalSection);
   SynMemoSQLLog.Lines.Add(Msg);
 
