@@ -7177,6 +7177,9 @@ begin
     Exit;
   EditingAndFocused := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
   Results := GridResult(Sender);
+  // Happens in some crashes, see issue #2462
+  if Column >= Results.ColumnCount then
+    Exit;
   RowNumber := Sender.GetNodeData(Node);
   Results.RecNo := RowNumber^;
   if Results.IsNull(Column) and (not EditingAndFocused) then
