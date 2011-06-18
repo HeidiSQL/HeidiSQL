@@ -311,6 +311,7 @@ var
 const
   StringEnclosers = ['"', '''', '`'];
   NewLines = [#13, #10];
+  WhiteSpaces = NewLines + [#9, ' '];
 begin
   // Scan SQL batch for delimiters and return a list with start + end offsets
   AllLen := Length(SQL);
@@ -379,6 +380,8 @@ begin
       QueryTest := Trim(Copy(SQL, LastLeftOffset, RightOffset-LastLeftOffset));
       if (QueryTest <> '') and (QueryTest <> Delim) then begin
         Marker := TSQLSentence.Create;
+        while CharInSet(SQL[LastLeftOffset], WhiteSpaces) do
+          Inc(LastLeftOffset);
         Marker.LeftOffset := LastLeftOffset;
         Marker.RightOffset := RightOffset;
         Result.Add(Marker);
