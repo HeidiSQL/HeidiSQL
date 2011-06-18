@@ -1169,7 +1169,7 @@ begin
       // CurCharset := CharacterSet;
       // Log(lcDebug, 'Characterset: '+CurCharset);
       FIsUnicode := True;
-      FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SELECT DATEDIFF(SECOND, '+QuoteIdent('login_time')+', CURRENT_TIMESTAMP) FROM '+QuoteIdent('sys')+'.'+QuoteIdent('sysprocesses')+' WHERE '+QuoteIdent('spid')+'=1'), 1);
+      FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SELECT DATEDIFF(SECOND, '+QuoteIdent('login_time')+', CURRENT_TIMESTAMP) FROM '+QuoteIdent('dbo')+'.'+QuoteIdent('sysprocesses')+' WHERE '+QuoteIdent('spid')+'=1'), 1);
       // Microsoft SQL Server 2008 R2 (RTM) - 10.50.1600.1 (Intel X86) 
 	    // Apr  2 2010 15:53:02 
 	    // Copyright (c) Microsoft Corporation
