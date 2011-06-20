@@ -2320,7 +2320,18 @@ const
   end;
 begin
   // Export registry keys and values into textfile, for portable reasons
-  FileName := ExtractFilePath(ParamStr(0)) + 'portable_settings.txt';
+
+  // Use filename from command line. If not given, use file in directory of executable.
+  rx := TRegExpr.Create;
+  rx.Expression := '^\-\-?psettings\=(.+)$';
+  for i:=1 to ParamCount do begin
+    if rx.Exec(ParamStr(i)) then begin
+      Filename := rx.Match[1];
+      break;
+    end;
+  end;
+  if Filename = '' then
+    Filename := ExtractFilePath(ParamStr(0)) + 'portable_settings.txt';
   if not FileExists(FileName) then
     Exit;
 
@@ -2380,7 +2391,6 @@ begin
       MainReg.OpenKeyReadOnly('\Software\');
       AllKeys := TStringList.Create;
       MainReg.GetKeyNames(AllKeys);
-      rx := TRegExpr.Create;
       rx.Expression := '^' + QuoteRegExprMetaChars(APPNAME) + ' Portable (\d+)$';
       for i:=0 to AllKeys.Count-1 do begin
         if not rx.Exec(AllKeys[i]) then
