@@ -51,6 +51,7 @@ and are based on those used by the MySQL command line applications, e.g. mysqldu
 -p, -password       Password
 -P, -port           Port (defaults to 3306 if not given)
 -S, -socket         Socket name (for connecting via named pipe)
+--psettings         Custom filename for portable settings. Ignored if file does not exist.
 
 Examples:
 
@@ -67,6 +68,9 @@ Examples:
 
 * Open multiple .sql files in query tabs:
     c:\path\to\heidisql.exe fileA.sql path\to\fileB.sql fileC.sql ...
+
+* Use custom portable settings file:
+    c:\path\to\heidisql.exe --psettings=c:\temp\p.txt
 
 
 *** License:
