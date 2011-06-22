@@ -7018,13 +7018,14 @@ begin
 
   // ReInit tree population
   FTreeRefreshInProgress := True;
+  DBtree.FocusedNode := nil;
   try
     if not OnlyDBNode then begin
       FocusNewObject.Connection.ClearAllDbObjects;
       FocusNewObject.Connection.RefreshAllDatabases;
       SessNode := GetRootNode(DBtree, FocusNewObject.Connection);
       if Assigned(SessNode) then
-        DBtree.ReinitChildren(SessNode, False);
+        DBtree.ResetNode(SessNode);
     end else begin
       FocusNewObject.Connection.ClearDbObjects(FocusNewObject.Database);
       DBNode := FindDbNode(DBtree, FocusNewObject.Database);
