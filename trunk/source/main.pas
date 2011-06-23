@@ -989,7 +989,7 @@ type
     procedure DeactivateFileLogging;
     procedure RefreshTree(FocusNewObject: TDBObject=nil);
     function FindDBObjectNode(Tree: TBaseVirtualTree; Obj: TDBObject): PVirtualNode;
-    function FindDBNode(Tree: TBaseVirtualTree; db: String): PVirtualNode;
+    function FindDBNode(Tree: TBaseVirtualTree; Connection: TDBConnection; db: String): PVirtualNode;
     procedure CalcNullColors;
     procedure HandleDataGridAttributes(RefreshingData: Boolean);
     function GetRegKeyTable: String;
@@ -2611,7 +2611,7 @@ begin
           Abort;
         try
           db := Conn.Database;
-          Node := FindDBNode(DBtree, db);
+          Node := FindDBNode(DBtree, Conn, db);
           SetActiveDatabase('', Conn);
           Conn.Query('DROP DATABASE ' + Conn.QuoteIdent(db));
           DBtree.DeleteNode(Node);
@@ -2905,7 +2905,7 @@ begin
       LastActiveDatabase := GetRegValue(REGNAME_LASTUSEDDB, '', Params.SessionName);
       if RestoreLastActiveDatabase and (Connection.AllDatabases.IndexOf(LastActiveDatabase) >- 1) then begin
         SetActiveDatabase(LastActiveDatabase, Connection);
-        DBNode := FindDBNode(DBtree, LastActiveDatabase);
+        DBNode := FindDBNode(DBtree, Connection, LastActiveDatabase);
         if Assigned(DBNode) then
           DBtree.Expanded[DBNode] := True;
       end else begin
@@ -4918,7 +4918,7 @@ begin
   // Try to rename, on any error abort and don't rename ListItem
   try
     // rename table
-    ActiveConnection.Query('RENAME TABLE ' + Obj.QuotedName + ' TO ' + Obj.Connection.QuoteIdent(NewText));
+    Obj.Connection.Query('RENAME TABLE ' + Obj.QuotedName + ' TO ' + Obj.Connection.QuoteIdent(NewText));
 
     if SynSQLSyn1.TableNames.IndexOf( NewText ) = -1 then begin
       SynSQLSyn1.TableNames.Add(NewText);
@@ -4928,7 +4928,7 @@ begin
     Obj.CreateCode := '';
     // Now the active tree db has to be updated. But calling RefreshTreeDB here causes an AV
     // so we do it manually here
-    DBTree.InvalidateChildren(FindDBNode(DBtree, ActiveDatabase), True);
+    DBTree.InvalidateChildren(FindDBNode(DBtree, Obj.Connection, Obj.Database), True);
   except
     on E:EDatabaseError do
       ErrorDialog(E.Message);
@@ -5821,16 +5821,18 @@ procedure TMainForm.menuFetchDBitemsClick(Sender: TObject);
 var
   Node: PVirtualNode;
   db: String;
+  Conn: TDBConnection;
 begin
   // Fill db object cache of selected databases
   try
     Screen.Cursor := crHourglass;
     Node := GetNextNode(ListDatabases, nil, True);
+    Conn := ActiveConnection;
     while Assigned(Node) do begin
       db := ListDatabases.Text[Node, 0];
-      ActiveConnection.GetDBObjects(db, True);
+      Conn.GetDBObjects(db, True);
       ListDatabases.RepaintNode(Node);
-      DBtree.RepaintNode(FindDBNode(DBtree, db));
+      DBtree.RepaintNode(FindDBNode(DBtree, Conn, db));
       Node := GetNextNode(ListDatabases, Node, True);
     end;
   finally
@@ -6934,7 +6936,7 @@ procedure TMainForm.DBObjectsCleared(Connection: TDBConnection; Database: String
   var
     Node: PVirtualNode;
   begin
-    Node := FindDBNode(Tree, Database);
+    Node := FindDBNode(Tree, Connection, Database);
     if Assigned(Node) then begin
       Tree.ReinitNode(Node, False);
       if Tree.Expanded[Node] then
@@ -7028,7 +7030,7 @@ begin
         DBtree.ResetNode(SessNode);
     end else begin
       FocusNewObject.Connection.ClearDbObjects(FocusNewObject.Database);
-      DBNode := FindDbNode(DBtree, FocusNewObject.Database);
+      DBNode := FindDbNode(DBtree, FocusNewObject.Connection, FocusNewObject.Database);
       if Assigned(DBNode) then
         DBtree.ResetNode(DBNode);
     end;
@@ -7055,13 +7057,13 @@ end;
 {**
   Find a database node in the tree by passing its name
 }
-function TMainForm.FindDBNode(Tree: TBaseVirtualTree; db: String): PVirtualNode;
+function TMainForm.FindDBNode(Tree: TBaseVirtualTree; Connection: TDBConnection; db: String): PVirtualNode;
 var
   DBObj: PDBObject;
   n, DBNode: PVirtualNode;
 begin
   Result := nil;
-  n := GetRootNode(Tree, ActiveConnection);
+  n := GetRootNode(Tree, Connection);
   DBNode := Tree.GetFirstChild(n);
   while Assigned(DBNode) do begin
     DBObj := Tree.GetNodeData(DBNode);
