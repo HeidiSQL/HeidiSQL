@@ -357,4 +357,4 @@ const
   HELPERNODE_PROFILE = 4;
 
   // A set of characters which need not to be quoted
-  IDENTCHARS = ['A'..'Z', 'a'..'z', '0'..'9'];
+  IDENTCHARS = ['A'..'Z', 'a'..'z', '0'..'9', '_'];
