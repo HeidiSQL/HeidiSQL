@@ -4075,6 +4075,10 @@ begin
       Offset := 0;
     Select := DBObj.Connection.ApplyLimitClause('SELECT', Select, DatagridWantedRowCount-Offset, Offset);
 
+    vt.BeginUpdate;
+    vt.Header.Columns.Clear;
+    vt.Clear;
+
     try
       ShowStatusMsg('Fetching rows ...');
       // Result object must be of the right vendor type
@@ -4096,8 +4100,6 @@ begin
       TimerFilterVT.OnTimer(Sender);
 
       // Assign new data
-      vt.BeginUpdate;
-      vt.Clear;
       vt.RootNodeCount := DataGridResult.RecordCount;
 
       // Set up grid column headers
@@ -4109,7 +4111,6 @@ begin
         for i:=0 to vt.Header.Columns.Count-1 do
           ColWidths.Values[vt.Header.Columns[i].Text] := IntToStr(vt.Header.Columns[i].Width);
       end;
-      vt.Header.Columns.Clear;
       for i:=0 to WantedColumns.Count-1 do
         InitColumn(i, WantedColumns[i]);
 
@@ -4125,38 +4126,38 @@ begin
       end;
       ColWidths.Free;
 
-      vt.EndUpdate;
-
-      // Do not steel filter while writing filters
-      if not SynMemoFilter.Focused then
-        vt.SetFocus;
-
-      DataGridFocusedNodeIndex := Min(DataGridFocusedNodeIndex, vt.RootNodeCount-1);
-      SelectNode(vt, DataGridFocusedNodeIndex);
-      for i:=0 to vt.Header.Columns.Count-1 do begin
-        if vt.Header.Columns[i].Text = DataGridFocusedColumnName then begin
-          vt.FocusedColumn := i;
-          break;
-        end;
-      end;
-      if RefreshingData then
-        vt.OffsetXY := OldScrollOffset;
-
-      vt.Header.Invalidate(nil);
-      vt.UpdateScrollBars(True);
-      ValidateControls(Sender);
-      DisplayRowCountStats(vt);
-      actDataShowNext.Enabled := (vt.RootNodeCount = DatagridWantedRowCount) and (DatagridWantedRowCount < prefGridRowcountMax);
-      actDataShowAll.Enabled := actDataShowNext.Enabled;
-      EnumerateRecentFilters;
-      if Integer(vt.RootNodeCount) = prefGridRowcountMax then
-        LogSQL('Browsing is currently limited to a maximum of '+FormatNumber(prefGridRowcountMax)+' rows. To see more rows, increase this maximum in Tools > Preferences > Data .', lcInfo);
-
     except
       // Wrong WHERE clause in most cases
       on E:EDatabaseError do
         ErrorDialog(E.Message);
     end;
+
+    vt.EndUpdate;
+
+    // Do not steel filter while writing filters
+    if not SynMemoFilter.Focused then
+      vt.SetFocus;
+
+    DataGridFocusedNodeIndex := Min(DataGridFocusedNodeIndex, vt.RootNodeCount-1);
+    SelectNode(vt, DataGridFocusedNodeIndex);
+    for i:=0 to vt.Header.Columns.Count-1 do begin
+      if vt.Header.Columns[i].Text = DataGridFocusedColumnName then begin
+        vt.FocusedColumn := i;
+        break;
+      end;
+    end;
+    if RefreshingData then
+      vt.OffsetXY := OldScrollOffset;
+
+    vt.Header.Invalidate(nil);
+    vt.UpdateScrollBars(True);
+    ValidateControls(Sender);
+    DisplayRowCountStats(vt);
+    actDataShowNext.Enabled := (vt.RootNodeCount = DatagridWantedRowCount) and (DatagridWantedRowCount < prefGridRowcountMax);
+    actDataShowAll.Enabled := actDataShowNext.Enabled;
+    EnumerateRecentFilters;
+    if Integer(vt.RootNodeCount) = prefGridRowcountMax then
+      LogSQL('Browsing is currently limited to a maximum of '+FormatNumber(prefGridRowcountMax)+' rows. To see more rows, increase this maximum in Tools > Preferences > Data .', lcInfo);
 
   end;
   vt.Tag := VTREE_LOADED;
