@@ -825,23 +825,23 @@ type
     procedure AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actToggleCommentExecute(Sender: TObject);
   private
-    LastHintMousepos: TPoint;
-    LastHintControlIndex: Integer;
+    FLastHintMousepos: TPoint;
+    FLastHintControlIndex: Integer;
     FDelimiter: String;
-    FileNameSessionLog: String;
-    FileHandleSessionLog: Textfile;
+    FFileNameSessionLog: String;
+    FFileHandleSessionLog: Textfile;
     FLastMouseUpOnPageControl: Cardinal;
     FLastTabNumberOnMouseUp: Integer;
     FLastMouseDownCloseButton: TObject;
     // Filter text per tab for filter panel
-    FilterTextDatabases,
-    FilterTextEditor,
-    FilterTextVariables,
-    FilterTextStatus,
-    FilterTextProcessList,
-    FilterTextCommandStats,
-    FilterTextDatabase,
-    FilterTextData: String;
+    FFilterTextDatabases,
+    FFilterTextEditor,
+    FFilterTextVariables,
+    FFilterTextStatus,
+    FFilterTextProcessList,
+    FFilterTextCommandStats,
+    FFilterTextDatabase,
+    FFilterTextData: String;
     FTreeRefreshInProgress: Boolean;
     FCmdlineFilenames: TStringlist;
     FCmdlineConnectionParams: TConnectionParameters;
@@ -855,6 +855,21 @@ type
     FActiveDbObj: TDBObject;
     FCriticalSection: TRTLCriticalSection;
     FIsWine: Boolean;
+    FBtnAddTab: TSpeedButton;
+    FDBObjectsMaxSize: Int64;
+    FDBObjectsMaxRows: Int64;
+    FProcessListMaxTime: Int64;
+
+    // Virtual Tree data arrays
+    FVTRowDataListVariables,
+    FVTRowDataListStatus,
+    FVTRowDataListProcesses,
+    FVTRowDataListCommandStats: TVTreeDataArray;
+
+    // Common directories
+    FDirnameCommonAppData: String;
+    FDirnameUserAppData: String;
+    FDirnameSnippets: String;
 
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
@@ -883,11 +898,7 @@ type
     function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding): Boolean;
   public
     AllDatabasesDetails: TDBQuery;
-    btnAddTab: TSpeedButton;
     QueryTabs: TObjectList<TQueryTab>;
-    DBObjectsMaxSize: Int64;
-    DBObjectsMaxRows: Int64;
-    ProcessListMaxTime: Int64;
     ActiveObjectEditor: TDBObjectEditor;
     FileEncodings: TStringList;
 
@@ -904,12 +915,6 @@ type
     SearchReplaceDialog: TfrmSearchReplace;
     ImportTextfileDialog: Tloaddataform;
     CopyTableDialog: TCopyTableForm;
-
-    // Virtual Tree data arrays
-    VTRowDataListVariables,
-    VTRowDataListStatus,
-    VTRowDataListProcesses,
-    VTRowDataListCommandStats: TVTreeDataArray;
 
     // Variables set by preferences dialog
     prefRememberFilters: Boolean;
@@ -961,11 +966,6 @@ type
     AppVerRevision: Integer;
     AppVersion: String;
     AppDescription: String;
-
-    // Common directories
-    DirnameCommonAppData: String;
-    DirnameUserAppData: String;
-    DirnameSnippets: String;
 
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
@@ -1098,22 +1098,22 @@ var
   Infos: TStringList;
 begin
   // Display various server, client and connection related details in a hint
-  if (LastHintMousepos.X = X) and (LastHintMousepos.Y = Y) then
+  if (FLastHintMousepos.X = X) and (FLastHintMousepos.Y = Y) then
     Exit;
-  LastHintMousepos := Point(X, Y);
+  FLastHintMousepos := Point(X, Y);
   MouseP := StatusBar.ClientOrigin;
   Inc(MouseP.X, X);
   Inc(MouseP.Y, Y);
   Bar := Sender as TStatusBar;
   for i:=0 to Bar.Panels.Count-1 do begin
     SendMessage(Bar.Handle, SB_GETRECT, i, Integer(@PanelRect));
-    if PtInRect(PanelRect, LastHintMousepos) then
+    if PtInRect(PanelRect, FLastHintMousepos) then
       break;
   end;
-  if i = LastHintControlIndex then
+  if i = FLastHintControlIndex then
     Exit;
-  LastHintControlIndex := i;
-  if LastHintControlIndex = 3 then begin
+  FLastHintControlIndex := i;
+  if FLastHintControlIndex = 3 then begin
     Infos := ActiveConnection.ConnectionInfo;
     BalloonHint1.Description := '';
     for i:=0 to Infos.Count-1 do
@@ -1129,7 +1129,7 @@ end;
 procedure TMainForm.StatusBarMouseLeave(Sender: TObject);
 begin
   BalloonHint1.HideHint;
-  LastHintControlIndex := -1;
+  FLastHintControlIndex := -1;
 end;
 
 
@@ -1327,15 +1327,15 @@ begin
   FreeLibrary(NTHandle);
 
   // "All users" folder for HeidiSQL's data (All Users\Application Data)
-  DirnameCommonAppData := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\';
+  FDirnameCommonAppData := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\';
 
   // User folder for HeidiSQL's data (<user name>\Application Data)
-  DirnameUserAppData := GetShellFolder(CSIDL_APPDATA) + '\' + APPNAME + '\';
+  FDirnameUserAppData := GetShellFolder(CSIDL_APPDATA) + '\' + APPNAME + '\';
   // Ensure directory exists
-  ForceDirectories(DirnameUserAppData);
+  ForceDirectories(FDirnameUserAppData);
 
   // Folder which contains snippet-files
-  DirnameSnippets := DirnameCommonAppData + 'Snippets\';
+  FDirnameSnippets := FDirnameCommonAppData + 'Snippets\';
   SetSnippetFilenames;
 
   // SQLFiles-History
@@ -1480,7 +1480,7 @@ begin
     prefMaxColWidth := DEFAULT_MAXCOLWIDTH;
   prefLogsqlnum := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
   prefLogSqlWidth := GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
-  prefDirnameSessionLogs := GetRegValue(REGNAME_LOGDIR, DirnameUserAppData + 'Sessionlogs\');
+  prefDirnameSessionLogs := GetRegValue(REGNAME_LOGDIR, FDirnameUserAppData + 'Sessionlogs\');
   // Activate logging
   if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
     ActivateFileLogging;
@@ -1554,14 +1554,14 @@ begin
   // SynMemo font, hightlighting and shortcuts
   SetupSynEditors;
 
-  btnAddTab := TSpeedButton.Create(PageControlMain);
-  btnAddTab.Parent := PageControlMain;
-  ImageListMain.GetBitmap(actNewQueryTab.ImageIndex, btnAddTab.Glyph);
-  btnAddTab.Height := PageControlMain.TabRect(0).Bottom - PageControlMain.TabRect(0).Top - 2;
-  btnAddTab.Width := btnAddTab.Height;
-  btnAddTab.Flat := True;
-  btnAddTab.Hint := actNewQueryTab.Hint;
-  btnAddTab.OnClick := actNewQueryTab.OnExecute;
+  FBtnAddTab := TSpeedButton.Create(PageControlMain);
+  FBtnAddTab.Parent := PageControlMain;
+  ImageListMain.GetBitmap(actNewQueryTab.ImageIndex, FBtnAddTab.Glyph);
+  FBtnAddTab.Height := PageControlMain.TabRect(0).Bottom - PageControlMain.TabRect(0).Top - 2;
+  FBtnAddTab.Width := FBtnAddTab.Height;
+  FBtnAddTab.Flat := True;
+  FBtnAddTab.Hint := actNewQueryTab.Hint;
+  FBtnAddTab.OnClick := actNewQueryTab.OnExecute;
 
   // Filter panel
   ImageListMain.GetBitmap(134, btnCloseFilterPanel.Glyph);
@@ -2789,7 +2789,7 @@ begin
           RunFileDialog.ShowModal;
           RunFileDialog.Free;
           // Add filename to history menu
-          if Pos(MainForm.DirnameSnippets, Filenames[i]) = 0 then
+          if Pos(MainForm.FDirnameSnippets, Filenames[i]) = 0 then
             MainForm.AddOrRemoveFromQueryLoadHistory(Filenames[i], True, True);
         end;
       end;
@@ -3380,7 +3380,7 @@ begin
     if Copy( snippetname, Length(snippetname)-4, 4 ) <> '.sql' then
       snippetname := snippetname + '.sql';
     // cleanup snippetname from special characters
-    snippetname := DirnameSnippets + goodfilename(snippetname);
+    snippetname := FDirnameSnippets + goodfilename(snippetname);
     if FileExists( snippetname ) then
     begin
       if MessageDialog('Overwrite existing snippet '+snippetname+'?', mtConfirmation, [mbOK, mbCancel]) <> mrOK then
@@ -3401,8 +3401,8 @@ begin
     end;
     if LB <> '' then
       Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
-    if not DirectoryExists(DirnameSnippets) then
-      ForceDirectories(DirnameSnippets);
+    if not DirectoryExists(FDirnameSnippets) then
+      ForceDirectories(FDirnameSnippets);
     SaveUnicodeFile( snippetname, Text );
     FillPopupQueryLoad;
     SetSnippetFilenames;
@@ -3515,7 +3515,7 @@ begin
   Filename := (Sender as TMenuItem).Caption;
   Filename := StripHotkey(Filename);
   if Pos('\', Filename) = 0 then // assuming we load a snippet
-    Filename := DirnameSnippets + Filename + '.sql'
+    Filename := FDirnameSnippets + Filename + '.sql'
   else begin // assuming we load a file from the recent-list
     p := Pos(' ', Filename) + 1;
     filename := Copy(Filename, p, Length(Filename));
@@ -3864,11 +3864,11 @@ begin
     Sess := '';
     if Assigned(Connection) then
       Sess := Connection.Parameters.SessionName;
-    WriteLn(FileHandleSessionLog, Format('/* %s [%s] */ %s', [DateTimeToStr(Now), Sess, msg]));
+    WriteLn(FFileHandleSessionLog, Format('/* %s [%s] */ %s', [DateTimeToStr(Now), Sess, msg]));
   except
     on E:Exception do begin
       DeactivateFileLogging;
-      ErrorDialog('Error writing to session log file.', FileNameSessionLog+CRLF+CRLF+E.Message+CRLF+CRLF+'Logging is disabled now.');
+      ErrorDialog('Error writing to session log file.', FFileNameSessionLog+CRLF+CRLF+E.Message+CRLF+CRLF+'Logging is disabled now.');
     end;
   end;
   LeaveCriticalSection(FCriticalSection);
@@ -4328,15 +4328,15 @@ begin
     vt.RootNodeCount := Objects.Count;
 
     NumObjects := TStringList.Create;
-    DBObjectsMaxSize := 1;
-    DBObjectsMaxRows := 1;
+    FDBObjectsMaxSize := 1;
+    FDBObjectsMaxRows := 1;
     for i:=0 to Objects.Count-1 do begin
       Obj := Objects[i];
       NumObj := StrToIntDef(NumObjects.Values[Obj.ObjType], 0);
       Inc(NumObj);
       NumObjects.Values[Obj.ObjType] := IntToStr(NumObj);
-      if Obj.Size > DBObjectsMaxSize then DBObjectsMaxSize := Obj.Size;
-      if Obj.Rows > DBObjectsMaxRows then DBObjectsMaxRows := Obj.Rows;
+      if Obj.Size > FDBObjectsMaxSize then FDBObjectsMaxSize := Obj.Size;
+      if Obj.Rows > FDBObjectsMaxRows then FDBObjectsMaxRows := Obj.Rows;
     end;
     Msg := Conn.Database + ': ' + FormatNumber(Objects.Count) + ' ';
     if NumObjects.Count = 1 then
@@ -5098,7 +5098,7 @@ begin
     if (Tree.GetNodeLevel(Tree.FocusedNode) = 1) and Assigned(Tree.FocusedNode) then begin
       case Tree.FocusedNode.Parent.Index of
         HELPERNODE_SNIPPETS:
-          Text := ReadTextFile(DirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', nil);
+          Text := ReadTextFile(FDirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', nil);
         else begin
           Node := Tree.GetFirstChild(Tree.FocusedNode.Parent);
           while Assigned(Node) do begin
@@ -5696,14 +5696,14 @@ var
   HintSQL: String;
 begin
   // Display some hint with row/col count + SQL when mouse hovers over result tab
-  if (LastHintMousepos.X = x) and (LastHintMousepos.Y = Y) then
+  if (FLastHintMousepos.X = x) and (FLastHintMousepos.Y = Y) then
     Exit;
-  LastHintMousepos := Point(X, Y);
+  FLastHintMousepos := Point(X, Y);
   Tabs := Sender as TTabSet;
   idx := Tabs.ItemAtPos(Point(X, Y), True);
-  if (idx = -1) or (idx = LastHintControlIndex) then
+  if (idx = -1) or (idx = FLastHintControlIndex) then
     Exit;
-  LastHintControlIndex := idx;
+  FLastHintControlIndex := idx;
   ResultTab := ActiveQueryTab.ResultTabs[idx];
   HintSQL := sstr(ResultTab.Results.SQL, SIZE_KB);
   HintSQL := WrapText(HintSQL, CRLF, ['.',' ',#9,'-',',',';'], 100);
@@ -5722,7 +5722,7 @@ procedure TMainForm.tabsetQueryMouseLeave(Sender: TObject);
 begin
   // BalloonHint.HideAfter is -1, so it will stay forever if we wouldn't hide it at some point
   BalloonHint1.HideHint;
-  LastHintControlIndex := -1;
+  FLastHintControlIndex := -1;
 end;
 
 
@@ -5761,7 +5761,7 @@ begin
   if not Assigned(ActiveQueryHelpers.FocusedNode) then
     Exit;
 
-  snippetfile := DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql';
+  snippetfile := FDirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql';
   if MessageDialog('Delete snippet file?', snippetfile, mtConfirmation, [mbOk, mbCancel]) = mrOk then
   begin
     Screen.Cursor := crHourGlass;
@@ -5783,7 +5783,7 @@ end;
 }
 procedure TMainForm.menuInsertSnippetAtCursorClick(Sender: TObject);
 begin
-  ActiveQueryTab.LoadContents(DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', False, nil);
+  ActiveQueryTab.LoadContents(FDirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', False, nil);
 end;
 
 
@@ -5792,7 +5792,7 @@ end;
 }
 procedure TMainForm.menuLoadSnippetClick(Sender: TObject);
 begin
-  ActiveQueryTab.LoadContents(DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', True, nil);
+  ActiveQueryTab.LoadContents(FDirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', True, nil);
 end;
 
 
@@ -5804,14 +5804,14 @@ begin
   // Normally the snippets folder is created at installation. But it sure
   // can be the case that it has been deleted or that the application was
   // not installed properly. Ask if we should create the folder now.
-  if DirectoryExists( DirnameSnippets ) then
-    ShellExec( '', DirnameSnippets )
+  if DirectoryExists(FDirnameSnippets) then
+    ShellExec('', FDirnameSnippets)
   else
-    if MessageDialog( 'Snippets folder does not exist', 'The folder "'+DirnameSnippets+'" is normally created when you install '+appname+'.' + CRLF + CRLF + 'Shall it be created now?',
+    if MessageDialog('Snippets folder does not exist', 'The folder "'+FDirnameSnippets+'" is normally created when you install '+appname+'.' + CRLF + CRLF + 'Shall it be created now?',
       mtWarning, [mbYes, mbNo]) = mrYes then
     try
       Screen.Cursor := crHourglass;
-      ForceDirectories( DirnameSnippets );
+      ForceDirectories(FDirnameSnippets);
     finally
       Screen.Cursor := crDefault;
     end;
@@ -6014,13 +6014,13 @@ end;
 function TMainForm.GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
 begin
   if VT = ListVariables then
-    Result := @VTRowDataListVariables
+    Result := @FVTRowDataListVariables
   else if VT = ListStatus then
-    Result := @VTRowDataListStatus
+    Result := @FVTRowDataListStatus
   else if VT = ListCommandStats then
-    Result := @VTRowDataListCommandStats
+    Result := @FVTRowDataListCommandStats
   else if VT = ListProcesses then
-    Result := @VTRowDataListProcesses
+    Result := @FVTRowDataListProcesses
   else begin
     raise Exception.Create( VT.ClassName + ' "' + VT.Name + '" doesn''t have an assigned array with data.' );
   end;
@@ -6032,10 +6032,10 @@ end;
 }
 procedure TMainForm.TestVTreeDataArray( P: PVTreeDataArray );
 begin
-  if P = @VTRowDataListVariables then Exit;
-  if P = @VTRowDataListStatus then Exit;
-  if P = @VTRowDataListCommandStats then Exit;
-  if P = @VTRowDataListProcesses then Exit;
+  if P = @FVTRowDataListVariables then Exit;
+  if P = @FVTRowDataListStatus then Exit;
+  if P = @FVTRowDataListCommandStats then Exit;
+  if P = @FVTRowDataListProcesses then Exit;
   raise Exception.Create('Assertion failed: Invalid global VT array.');
 end;
 
@@ -6180,23 +6180,23 @@ begin
   // Determine free filename
   LogfilePattern := '%.6u.log';
   i := 1;
-  FileNameSessionLog := prefDirnameSessionLogs + goodfilename(Format(LogfilePattern, [i]));
-  while FileExists(FileNameSessionLog) do begin
+  FFileNameSessionLog := prefDirnameSessionLogs + goodfilename(Format(LogfilePattern, [i]));
+  while FileExists(FFileNameSessionLog) do begin
     inc(i);
-    FileNameSessionLog := prefDirnameSessionLogs + goodfilename(Format(LogfilePattern, [i]));
+    FFileNameSessionLog := prefDirnameSessionLogs + goodfilename(Format(LogfilePattern, [i]));
   end;
 
   // Create file handle for writing
-  AssignFile( FileHandleSessionLog, FileNameSessionLog );
+  AssignFile( FFileHandleSessionLog, FFileNameSessionLog );
   {$I-} // Supress errors
-  if FileExists(FileNameSessionLog) then
-    Append(FileHandleSessionLog)
+  if FileExists(FFileNameSessionLog) then
+    Append(FFileHandleSessionLog)
   else
-    Rewrite(FileHandleSessionLog);
+    Rewrite(FFileHandleSessionLog);
   {$I+}
   if IOResult <> 0 then
   begin
-    ErrorDialog('Error opening session log file', FileNameSessionLog+CRLF+CRLF+'Logging is disabled now.');
+    ErrorDialog('Error opening session log file', FFileNameSessionLog+CRLF+CRLF+'Logging is disabled now.');
     prefLogToFile := False;
   end else
     prefLogToFile := True;
@@ -6214,7 +6214,7 @@ procedure TMainForm.DeactivateFileLogging;
 begin
   prefLogToFile := False;
   {$I-} // Supress errors
-  CloseFile(FileHandleSessionLog);
+  CloseFile(FFileHandleSessionLog);
   {$I+}
   // Reset IOResult so later checks in ActivateFileLogging doesn't get an old value
   IOResult;
@@ -6355,8 +6355,8 @@ begin
   if Column in [1, 2] then begin
     Obj := Sender.GetNodeData(Node);
     case Column of
-      1: PaintColorBar(Obj.Rows, DBObjectsMaxRows, TargetCanvas, CellRect);
-      2: PaintColorBar(Obj.Size, DBObjectsMaxSize, TargetCanvas, CellRect);
+      1: PaintColorBar(Obj.Rows, FDBObjectsMaxRows, TargetCanvas, CellRect);
+      2: PaintColorBar(Obj.Size, FDBObjectsMaxSize, TargetCanvas, CellRect);
     end;
   end;
 end;
@@ -6369,7 +6369,7 @@ var
 begin
   if Column = 5 then begin
     NodeData := Sender.GetNodeData(Node);
-    PaintColorBar(MakeFloat(NodeData.Captions[Column]), ProcessListMaxTime, TargetCanvas, CellRect);
+    PaintColorBar(MakeFloat(NodeData.Captions[Column]), FProcessListMaxTime, TargetCanvas, CellRect);
   end;
 end;
 
@@ -6463,29 +6463,29 @@ begin
   VT := nil;
   if tab = tabDatabases then begin
     VT := ListDatabases;
-    FilterTextDatabases := editFilterVT.Text;
+    FFilterTextDatabases := editFilterVT.Text;
   end else if tab = tabVariables then begin
     VT := ListVariables;
-    FilterTextVariables := editFilterVT.Text;
+    FFilterTextVariables := editFilterVT.Text;
   end else if tab = tabStatus then begin
     VT := ListStatus;
-    FilterTextStatus := editFilterVT.Text;
+    FFilterTextStatus := editFilterVT.Text;
   end else if tab = tabProcesslist then begin
     VT := ListProcesses;
-    FilterTextProcessList := editFilterVT.Text;
+    FFilterTextProcessList := editFilterVT.Text;
   end else if tab = tabCommandStats then begin
     VT := ListCommandStats;
-    FilterTextCommandStats := editFilterVT.Text;
+    FFilterTextCommandStats := editFilterVT.Text;
   end else if tab = tabDatabase then begin
     VT := ListTables;
-    FilterTextDatabase := editFilterVT.Text;
+    FFilterTextDatabase := editFilterVT.Text;
   end else if tab = tabEditor then begin
     if ActiveObjectEditor is TfrmTableEditor then
       VT := TfrmTableEditor(ActiveObjectEditor).listColumns;
-    FilterTextEditor := editFilterVT.Text;
+    FFilterTextEditor := editFilterVT.Text;
   end else if tab = tabData then begin
     VT := DataGrid;
-    FilterTextData := editFilterVT.Text;
+    FFilterTextData := editFilterVT.Text;
   end else if QueryTabActive and (ActiveQueryTab.ActiveResultTab <> nil) then begin
     VT := ActiveGrid;
     ActiveQueryTab.ActiveResultTab.FilterText := editFilterVT.Text;
@@ -8044,16 +8044,16 @@ begin
   vt.Clear;
   if Conn <> nil then begin
     Results := Conn.GetResults('SHOW VARIABLES');
-    SetLength(VTRowDataListVariables, Results.RecordCount);
+    SetLength(FVTRowDataListVariables, Results.RecordCount);
     for i:=0 to Results.RecordCount-1 do begin
-      VTRowDataListVariables[i].ImageIndex := 25;
-      VTRowDataListVariables[i].Captions := TStringList.Create;
-      VTRowDataListVariables[i].Captions.Add(Results.Col(0));
-      VTRowDataListVariables[i].Captions.Add(Results.Col(1));
+      FVTRowDataListVariables[i].ImageIndex := 25;
+      FVTRowDataListVariables[i].Captions := TStringList.Create;
+      FVTRowDataListVariables[i].Captions.Add(Results.Col(0));
+      FVTRowDataListVariables[i].Captions.Add(Results.Col(1));
       Results.Next;
     end;
     FreeAndNil(Results);
-    vt.RootNodeCount := Length(VTRowDataListVariables);
+    vt.RootNodeCount := Length(FVTRowDataListVariables);
     vt.OffsetXY := OldOffset;
   end;
   // Apply or reset filter
@@ -8089,11 +8089,11 @@ begin
   vt.Clear;
   if Conn <> nil then begin
     Results := Conn.GetResults('SHOW /*!50002 GLOBAL */ STATUS');
-    SetLength(VTRowDataListStatus, Results.RecordCount);
+    SetLength(FVTRowDataListStatus, Results.RecordCount);
     for i:=0 to Results.RecordCount-1 do begin
-      VTRowDataListStatus[i].ImageIndex := 25;
-      VTRowDataListStatus[i].Captions := TStringList.Create;
-      VTRowDataListStatus[i].Captions.Add(Results.Col(0));
+      FVTRowDataListStatus[i].ImageIndex := 25;
+      FVTRowDataListStatus[i].Captions := TStringList.Create;
+      FVTRowDataListStatus[i].Captions.Add(Results.Col(0));
       val := Results.Col(1);
       avg_perhour := '';
       avg_persec := '';
@@ -8125,14 +8125,14 @@ begin
       else if valIsNumber then
         val := FormatNumber(val);
 
-      VTRowDataListStatus[i].Captions.Add( val );
-      VTRowDataListStatus[i].Captions.Add(avg_perhour);
-      VTRowDataListStatus[i].Captions.Add(avg_persec);
+      FVTRowDataListStatus[i].Captions.Add( val );
+      FVTRowDataListStatus[i].Captions.Add(avg_perhour);
+      FVTRowDataListStatus[i].Captions.Add(avg_persec);
       Results.Next;
     end;
     FreeAndNil(Results);
     // Tell VirtualTree the number of nodes it will display
-    vt.RootNodeCount := Length(VTRowDataListStatus);
+    vt.RootNodeCount := Length(FVTRowDataListStatus);
     vt.OffsetXY := OldOffset;
   end;
   // Apply or reset filter
@@ -8195,29 +8195,29 @@ begin
           );
       end;
     end;
-    SetLength(VTRowDataListProcesses, Results.RecordCount);
-    ProcessListMaxTime := 1;
+    SetLength(FVTRowDataListProcesses, Results.RecordCount);
+    FProcessListMaxTime := 1;
     for i:=0 to Results.RecordCount-1 do begin
       if AnsiCompareText(Results.Col(4), 'Killed') = 0 then
-        VTRowDataListProcesses[i].ImageIndex := 26  // killed
+        FVTRowDataListProcesses[i].ImageIndex := 26  // killed
       else begin
         if Results.Col('Info') = '' then
-          VTRowDataListProcesses[i].ImageIndex := 55 // idle
+          FVTRowDataListProcesses[i].ImageIndex := 55 // idle
         else
-          VTRowDataListProcesses[i].ImageIndex := 57 // running query
+          FVTRowDataListProcesses[i].ImageIndex := 57 // running query
       end;
-      VTRowDataListProcesses[i].Captions := TStringList.Create;
+      FVTRowDataListProcesses[i].Captions := TStringList.Create;
       for j:=0 to vt.Header.Columns.Count-1 do begin
         Text := Results.Col(j);
         if Results.ColumnNames[j] = 'Info' then
           Text := sstr(Text, InfoLen);
-        VTRowDataListProcesses[i].Captions.Add(Text);
+        FVTRowDataListProcesses[i].Captions.Add(Text);
       end;
-      ProcessListMaxTime := Max(ProcessListMaxTime, MakeInt(Results.Col(5)));
+      FProcessListMaxTime := Max(FProcessListMaxTime, MakeInt(Results.Col(5)));
       Results.Next;
     end;
     FreeAndNil(Results);
-    vt.RootNodeCount := Length(VTRowDataListProcesses);
+    vt.RootNodeCount := Length(FVTRowDataListProcesses);
     vt.OffsetXY := OldOffset;
   end;
   // Apply or reset filter
@@ -8243,26 +8243,26 @@ var
   var
     tmpval : Double;
   begin
-    VTRowDataListCommandStats[idx].ImageIndex := 25;
-    VTRowDataListCommandStats[idx].Captions := TStringList.Create;
+    FVTRowDataListCommandStats[idx].ImageIndex := 25;
+    FVTRowDataListCommandStats[idx].Captions := TStringList.Create;
     caption := Copy( caption, 5, Length(caption) );
     caption := StringReplace( caption, '_', ' ', [rfReplaceAll] );
-    VTRowDataListCommandStats[idx].Captions.Add( caption );
+    FVTRowDataListCommandStats[idx].Captions.Add( caption );
     // Total Frequency
-    VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( commandCount ) );
+    FVTRowDataListCommandStats[idx].Captions.Add( FormatNumber( commandCount ) );
     // Average per hour
     tmpval := commandCount / (Conn.ServerUptime / 60 / 60);
-    VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
+    FVTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Average per second
     tmpval := commandCount / Conn.ServerUptime;
-    VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
+    FVTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
     // Percentage. Take care of division by zero errors and Int64's
     if commandCount < 0 then
       commandCount := 0;
     if totalCount < 1 then
       totalCount := 1;
     tmpval := 100 / totalCount * commandCount;
-    VTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) + ' %' );
+    FVTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) + ' %' );
   end;
 
 begin
@@ -8282,7 +8282,7 @@ begin
       Inc(questions, MakeInt(Results.Col(1)));
       Results.Next;
     end;
-    SetLength(VTRowDataListCommandStats, Results.RecordCount+1);
+    SetLength(FVTRowDataListCommandStats, Results.RecordCount+1);
     addLVitem(0, '    All commands', questions, questions );
     Results.First;
     for i:=1 to Results.RecordCount do begin
@@ -8291,7 +8291,7 @@ begin
     end;
     FreeAndNil(Results);
     // Tell VirtualTree the number of nodes it will display
-    vt.RootNodeCount := Length(VTRowDataListCommandStats);
+    vt.RootNodeCount := Length(FVTRowDataListCommandStats);
     vt.OffsetXY := OldOffset;
   end;
   // Apply or reset filter
@@ -9071,7 +9071,7 @@ var
 begin
   // Fix positions of "Close" buttons on Query tabs
   // Avoid AV on Startup, when Mainform.OnResize is called once or twice implicitely.
-  if not Assigned(btnAddTab) then
+  if not Assigned(FBtnAddTab) then
     Exit;
   for PageIndex:=tabQuery.PageIndex+1 to PageControlMain.PageCount-1 do begin
     VisiblePageIndex := PageIndex;
@@ -9091,8 +9091,8 @@ begin
       Dec(VisiblePageIndex);
   end;
   Rect := PageControlMain.TabRect(VisiblePageIndex);
-  btnAddTab.Top := Rect.Top;
-  btnAddTab.Left := Rect.Right + 5;
+  FBtnAddTab.Top := Rect.Top;
+  FBtnAddTab.Left := Rect.Right + 5;
 end;
 
 
@@ -9393,13 +9393,13 @@ begin
     else
       editFilterVTChange(Sender);
   end else begin
-    if tab = tabVariables then f := FilterTextVariables
-    else if tab = tabStatus then f := FilterTextStatus
-    else if tab = tabProcesslist then f := FilterTextProcessList
-    else if tab = tabCommandStats then f := FilterTextCommandStats
-    else if tab = tabDatabase then f := FilterTextDatabase
-    else if tab = tabEditor then f := FilterTextEditor
-    else if tab = tabData then f := FilterTextData
+    if tab = tabVariables then f := FFilterTextVariables
+    else if tab = tabStatus then f := FFilterTextStatus
+    else if tab = tabProcesslist then f := FFilterTextProcessList
+    else if tab = tabCommandStats then f := FFilterTextCommandStats
+    else if tab = tabDatabase then f := FFilterTextDatabase
+    else if tab = tabEditor then f := FFilterTextEditor
+    else if tab = tabData then f := FFilterTextData
     else if QueryTabActive and (ActiveQueryTab.ActiveResultTab <> nil) then f := ActiveQueryTab.ActiveResultTab.FilterText;
     if editFilterVT.Text <> f then
       editFilterVT.Text := f
@@ -9547,7 +9547,7 @@ var
   TabsHeight: Integer;
 begin
   // Activate tab popup menu only when clicked on tabs area.
-  TabsHeight := (btnAddTab.Height+2) * PageControlMain.RowCount;
+  TabsHeight := (FBtnAddTab.Height+2) * PageControlMain.RowCount;
   if MousePos.Y <= TabsHeight then begin
     ClickPoint := PageControlMain.ClientToScreen(MousePos);
     popupMainTabs.Popup(ClickPoint.X, ClickPoint.Y);
@@ -10159,7 +10159,7 @@ begin
     FSnippetFilenames := TStringList.Create;
   FSnippetFilenames.Clear;
   try
-    Files := TDirectory.GetFiles(DirnameSnippets, '*.sql');
+    Files := TDirectory.GetFiles(FDirnameSnippets, '*.sql');
     for i:=0 to Length(Files)-1 do begin
       Snip := ExtractFilename(Files[i]);
       Snip := Copy(Snip, 1, Length(Snip)-4);
@@ -10378,7 +10378,7 @@ begin
   MainForm.LogSQL('Loading file "'+Filename+'" ('+FormatByteNumber(Filesize)+') into query tab #'+IntToStr(Number)+' ...', lcInfo);
   try
     Content := ReadTextfile(Filename, Encoding);
-    if Pos(MainForm.DirnameSnippets, Filename) = 0 then
+    if Pos(MainForm.FDirnameSnippets, Filename) = 0 then
       MainForm.AddOrRemoveFromQueryLoadHistory(Filename, True, True);
     MainForm.FillPopupQueryLoad;
     Memo.UndoList.AddGroupBreak;
