@@ -64,6 +64,7 @@ type
     procedure btnColMoveClick(Sender: TObject);
     procedure grpParseMethodClick(Sender: TObject);
     procedure comboEncodingSelect(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     Encoding: TEncoding;
@@ -137,6 +138,12 @@ begin
     comboDatabase.ItemIndex := 0;
   comboDatabaseChange(Sender);
   editFilename.SetFocus;
+end;
+
+
+procedure Tloaddataform.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
 end;
 
 

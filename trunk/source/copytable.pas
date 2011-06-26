@@ -191,6 +191,7 @@ begin
       MainReg.WriteString(REGPREFIX_COPYTABLE_FILTERS+IntToStr(i), NewValues[i]);
     end;
   end;
+  Action := caFree;
 end;
 
 

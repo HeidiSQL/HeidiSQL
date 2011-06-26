@@ -49,12 +49,14 @@ uses main, helpers;
 {$R *.dfm}
 
 function SelectDBO: TDBObject;
+var
+  Dialog: TfrmSelectDBObject;
 begin
-  if Mainform.SelectDBObjectForm = nil then
-    Mainform.SelectDBObjectForm := TfrmSelectDBObject.Create(Mainform);
+  Dialog := TfrmSelectDBObject.Create(Mainform);
   Result := nil;
-  if Mainform.SelectDBObjectForm.ShowModal = mrOK then
-    Result := Mainform.SelectDBObjectForm.SelectedObject;
+  if Dialog.ShowModal = mrOK then
+    Result := Dialog.SelectedObject;
+  Dialog.Free;
 end;
 
 

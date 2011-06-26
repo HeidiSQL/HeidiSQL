@@ -155,6 +155,7 @@ type
     procedure ShortcutEnter(Sender: TObject);
     procedure ShortcutExit(Sender: TObject);
     procedure chkColorBarsClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -349,6 +350,11 @@ begin
 end;
 
 
+procedure Toptionsform.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
+end;
+
 
 procedure Toptionsform.FormCreate(Sender: TObject);
 var
@@ -371,8 +377,10 @@ begin
     'CREATE TABLE /*!32312 IF NOT EXISTS*/ tableB' + CRLF +
     #9'(id INT, name VARCHAR(30) DEFAULT "standard")';
   SynSQLSynSQLSample.TableNames.CommaText := 'tableA,tableB';
-  for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do
+  for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
+    SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(MainForm.SynSQLSyn1.Attribute[i]);
     comboSQLColElement.Items.Add(SynSQLSynSQLSample.Attribute[i].FriendlyName);
+  end;
   comboSQLColElement.Items.Add('Active line background');
   comboSQLColElement.ItemIndex := 0;
   FShortcutCategories := TStringList.Create;

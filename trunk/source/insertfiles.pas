@@ -60,6 +60,7 @@ type
     procedure addfile(filename: String);
     procedure ListViewFilesChange(Sender: TObject; Item: TListItem;
       Change: TItemChange);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     FConnection: TDBConnection;
   public
@@ -87,6 +88,12 @@ begin
   if ComboBoxDBs.ItemIndex = -1 then
     ComboBoxDBs.ItemIndex := 0;
   ComboBoxDBsChange(self);
+end;
+
+
+procedure TfrmInsertFiles.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
 end;
 
 
