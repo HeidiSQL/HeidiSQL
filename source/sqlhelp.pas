@@ -49,6 +49,7 @@ type
       Column: TColumnIndex);
     procedure editFilterChange(Sender: TObject);
     procedure editFilterRightButtonClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
 
   private
     { Private declarations }
@@ -95,6 +96,12 @@ begin
   FreeAndNil(FRootTopics);
   FRootTopics := MainForm.ActiveConnection.GetResults('HELP '+esc('CONTENTS'));
   treeTopics.RootNodeCount := FRootTopics.RecordCount;
+end;
+
+
+procedure TfrmSQLhelp.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
 end;
 
 

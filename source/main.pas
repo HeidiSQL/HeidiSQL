@@ -859,6 +859,7 @@ type
     FDBObjectsMaxSize: Int64;
     FDBObjectsMaxRows: Int64;
     FProcessListMaxTime: Int64;
+    FSearchReplaceDialog: TfrmSearchReplace;
 
     // Virtual Tree data arrays
     FVTRowDataListVariables,
@@ -901,20 +902,6 @@ type
     QueryTabs: TObjectList<TQueryTab>;
     ActiveObjectEditor: TDBObjectEditor;
     FileEncodings: TStringList;
-
-    // Cached forms
-    TableToolsDialog: TfrmTableTools;
-    UserManagerForm: TUserManagerForm;
-    SelectDBObjectForm: TfrmSelectDBObject;
-    SQLHelpForm: TfrmSQLhelp;
-    OptionsForm: Toptionsform;
-    SessionManager: TConnForm;
-    CreateDatabaseForm: TCreateDatabaseForm;
-    InsertFiles: TfrmInsertFiles;
-    EditVariableForm: TfrmEditVariable;
-    SearchReplaceDialog: TfrmSearchReplace;
-    ImportTextfileDialog: Tloaddataform;
-    CopyTableDialog: TCopyTableForm;
 
     // Variables set by preferences dialog
     prefRememberFilters: Boolean;
@@ -1181,22 +1168,12 @@ end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 var
-  WinState, OpenSessions: String;
-  i: Integer;
+  OpenSessions: String;
   Connection: TDBConnection;
 begin
   // Destroy editors and dialogs. Must be done before connection gets closed, as some destructors do SQL stuff.
   FreeAndNil(ActiveObjectEditor);
-  FreeAndNil(TableToolsDialog);
-  FreeAndNil(UserManagerForm);
-  FreeAndNil(SelectDBObjectForm);
-  FreeAndNil(SQLHelpForm);
-  FreeAndNil(OptionsForm);
-  FreeAndNil(SessionManager);
-  FreeAndNil(CreateDatabaseForm);
-  FreeAndNil(SearchReplaceDialog);
-  FreeAndNil(CopyTableDialog);
-  FreeAndNil(ImportTextfileDialog);
+  FreeAndNil(FSearchReplaceDialog);
 
   // Save opened session names in root folder
   OpenRegistry;
@@ -1607,6 +1584,7 @@ var
   SessionNames: TStringlist;
   DlgResult: TModalResult;
   Tab: TQueryTab;
+  SessionManager: TConnForm;
 begin
   DefaultLastrunDate := '2000-01-01';
 
@@ -1713,11 +1691,11 @@ begin
   // Display session manager
   if not Connected then begin
     // Cannot be done in OnCreate because we need ready forms here:
-    if not Assigned(SessionManager) then
-      SessionManager := TConnForm.Create(Self);
+    SessionManager := TConnForm.Create(Self);
     DlgResult := mrCancel;
     try
       DlgResult := SessionManager.ShowModal;
+      SessionManager.Free;
     except
       // Work around VCL bug: Suppress access violation in TCustomForm.IsFormSizeStored
       // when closing dialog via Alt+F4
@@ -1816,10 +1794,11 @@ end;
 
 
 procedure TMainForm.actSessionManagerExecute(Sender: TObject);
+var
+  Dialog: TConnForm;
 begin
-  if not Assigned(SessionManager) then
-    SessionManager := TConnForm.Create(Self);
-  SessionManager.ShowModal;
+  Dialog := TConnForm.Create(Self);
+  Dialog.ShowModal;
 end;
 
 
@@ -1828,6 +1807,7 @@ var
   Connection: TDBConnection;
   Node: PVirtualNode;
   DlgResult: Integer;
+  Dialog: TConnForm;
 begin
   // Disconnect active connection. If it's the last, exit application
   Connection := ActiveConnection;
@@ -1838,9 +1818,8 @@ begin
   // TODO: focus last session?
   SelectNode(DBtree, GetNextNode(DBtree, nil));
   if FConnections.Count = 0 then begin
-    if not Assigned(SessionManager) then
-      SessionManager := TConnForm.Create(Self);
-    DlgResult := SessionManager.ShowModal;
+    Dialog := TConnForm.Create(Self);
+    DlgResult := Dialog.ShowModal;
     if DlgResult = mrCancel then
       actExitApplication.Execute;
   end;
@@ -1890,32 +1869,33 @@ end;
 
 
 procedure TMainForm.actCreateDatabaseExecute(Sender: TObject);
+var
+  Dialog: TCreateDatabaseForm;
 begin
   // Create database:
-  // Create modal form once on demand
-  if CreateDatabaseForm = nil then
-    CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
-
+  Dialog := TCreateDatabaseForm.Create(Self);
   // Rely on the modalresult being set correctly
-  if CreateDatabaseForm.ShowModal = mrOK then
+  if Dialog.ShowModal = mrOK then
     RefreshTree;
 end;
 
 
 procedure TMainForm.actImportCSVExecute(Sender: TObject);
+var
+  Dialog: Tloaddataform;
 begin
   // Import Textfile
-  if not Assigned(ImportTextfileDialog) then
-    ImportTextfileDialog := Tloaddataform.Create(Self);
-  ImportTextfileDialog.ShowModal;
+  Dialog := Tloaddataform.Create(Self);
+  Dialog.ShowModal;
 end;
 
 procedure TMainForm.actPreferencesExecute(Sender: TObject);
+var
+  Dialog: Toptionsform;
 begin
   // Preferences
-  if OptionsForm = nil then
-    OptionsForm := Toptionsform.Create(Self);
-  OptionsForm.ShowModal;
+  Dialog := Toptionsform.Create(Self);
+  Dialog.ShowModal;
 end;
 
 procedure TMainForm.actReadmeExecute(Sender: TObject);
@@ -1946,10 +1926,11 @@ begin
 end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
+var
+  Dialog: TUserManagerForm;
 begin
-  if UserManagerForm = nil then
-    UserManagerForm := TUserManagerForm.Create(Self);
-  UserManagerForm.ShowModal;
+  Dialog := TUserManagerForm.Create(Self);
+  Dialog.ShowModal;
 end;
 
 procedure TMainForm.actAboutBoxExecute(Sender: TObject);
@@ -1990,33 +1971,33 @@ var
   InDBTree: Boolean;
   Node: PVirtualNode;
   DBObj: PDBObject;
+  Dialog: TfrmTableTools;
 begin
   // Show table tools dialog
-  if TableToolsDialog = nil then
-    TableToolsDialog := TfrmTableTools.Create(Self);
+  Dialog := TfrmTableTools.Create(Self);
   Act := Sender as TAction;
-  TableToolsDialog.PreSelectObjects.Clear;
+  Dialog.PreSelectObjects.Clear;
   InDBTree := (Act.ActionComponent is TMenuItem)
     and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
   if InDBTree then
-    TableToolsDialog.PreSelectObjects.Add(ActiveDbObj)
+    Dialog.PreSelectObjects.Add(ActiveDbObj)
   else begin
     Node := GetNextNode(ListTables, nil, True);
     while Assigned(Node) do begin
       DBObj := ListTables.GetNodeData(Node);
-      TableToolsDialog.PreSelectObjects.Add(DBObj^);
+      Dialog.PreSelectObjects.Add(DBObj^);
       Node := GetNextNode(ListTables, Node, True);
     end;
   end;
   if Sender = actMaintenance then
-    TableToolsDialog.ToolMode := tmMaintenance
+    Dialog.ToolMode := tmMaintenance
   else if Sender = actFindTextOnServer then
-    TableToolsDialog.ToolMode := tmFind
+    Dialog.ToolMode := tmFind
   else if Sender = actExportTables then
-    TableToolsDialog.ToolMode := tmSQLExport
+    Dialog.ToolMode := tmSQLExport
   else if Sender = actBulkTableEdit then
-    TableToolsDialog.ToolMode := tmBulkTableEdit;
-  TableToolsDialog.ShowModal;
+    Dialog.ToolMode := tmBulkTableEdit;
+  Dialog.ShowModal;
 end;
 
 
@@ -2035,11 +2016,12 @@ end;
 
 
 procedure TMainForm.actCopyTableExecute(Sender: TObject);
+var
+  Dialog: TCopyTableForm;
 begin
   // copy table
-  if not Assigned(CopyTableDialog) then
-    CopyTableDialog := TCopyTableForm.Create(Self);
-  CopyTableDialog.ShowModal;
+  Dialog := TCopyTableForm.Create(Self);
+  Dialog.ShowModal;
 end;
 
 
@@ -2577,10 +2559,11 @@ end;
 
 
 procedure TMainForm.actInsertFilesExecute(Sender: TObject);
+var
+  Dialog: TfrmInsertFiles;
 begin
-  if not Assigned(InsertFiles) then
-    InsertFiles := TfrmInsertFiles.Create(Self);
-  InsertFiles.ShowModal;
+  Dialog := TfrmInsertFiles.Create(Self);
+  Dialog.ShowModal;
 end;
 
 // Drop Table(s)
@@ -3164,11 +3147,11 @@ begin
   if Memo = nil then
     MessageBeep(MB_ICONASTERISK)
   else begin
-    if not Assigned(SearchReplaceDialog) then
-      SearchReplaceDialog := TfrmSearchReplace.Create(Self);
-    SearchReplaceDialog.Editor := Memo;
-    SearchReplaceDialog.chkReplace.Checked := Sender = actQueryReplace;
-    DlgResult := SearchReplaceDialog.ShowModal;
+    if not Assigned(FSearchReplaceDialog) then
+      FSearchReplaceDialog := TfrmSearchReplace.Create(Self);
+    FSearchReplaceDialog.Editor := Memo;
+    FSearchReplaceDialog.chkReplace.Checked := Sender = actQueryReplace;
+    DlgResult := FSearchReplaceDialog.ShowModal;
     case DlgResult of
       mrOK, mrAll: begin
         DoSearchReplace;
@@ -3186,8 +3169,8 @@ begin
   if not FSearchReplaceExecuted then
     actQueryFindReplaceExecute(Sender)
   else begin
-    SearchReplaceDialog.Editor := ActiveSynMemo;
-    if SearchReplaceDialog.Editor = nil then
+    FSearchReplaceDialog.Editor := ActiveSynMemo;
+    if FSearchReplaceDialog.Editor = nil then
       MessageBeep(MB_ICONASTERISK)
     else
       DoSearchReplace;
@@ -3200,26 +3183,26 @@ var
   Occurences: Integer;
   OldCaretXY: TBufferCoord;
 begin
-  if SearchReplaceDialog.chkRegularExpression.Checked then
-    SearchReplaceDialog.Editor.SearchEngine := SynEditRegexSearch1
+  if FSearchReplaceDialog.chkRegularExpression.Checked then
+    FSearchReplaceDialog.Editor.SearchEngine := SynEditRegexSearch1
   else
-    SearchReplaceDialog.Editor.SearchEngine := SynEditSearch1;
-  OldCaretXY := SearchReplaceDialog.Editor.CaretXY;
-  SearchReplaceDialog.Editor.BeginUpdate;
+    FSearchReplaceDialog.Editor.SearchEngine := SynEditSearch1;
+  OldCaretXY := FSearchReplaceDialog.Editor.CaretXY;
+  FSearchReplaceDialog.Editor.BeginUpdate;
   ShowStatusMsg('Searching ...');
-  Occurences := SearchReplaceDialog.Editor.SearchReplace(
-    SearchReplaceDialog.comboSearch.Text,
-    SearchReplaceDialog.comboReplace.Text,
-    SearchReplaceDialog.Options
+  Occurences := FSearchReplaceDialog.Editor.SearchReplace(
+    FSearchReplaceDialog.comboSearch.Text,
+    FSearchReplaceDialog.comboReplace.Text,
+    FSearchReplaceDialog.Options
     );
-  SearchReplaceDialog.Editor.EndUpdate;
+  FSearchReplaceDialog.Editor.EndUpdate;
   ShowStatusMsg;
-  if ssoReplaceAll in SearchReplaceDialog.Options then
-    ShowStatusMsg('Text "'+SearchReplaceDialog.comboSearch.Text+'" '+FormatNumber(Occurences)+' times replaced.', 0)
+  if ssoReplaceAll in FSearchReplaceDialog.Options then
+    ShowStatusMsg('Text "'+FSearchReplaceDialog.comboSearch.Text+'" '+FormatNumber(Occurences)+' times replaced.', 0)
   else begin
-    if (OldCaretXY.Char = SearchReplaceDialog.Editor.CaretXY.Char) and
-      (OldCaretXY.Line = SearchReplaceDialog.Editor.CaretXY.Line) then
-      MessageDialog('Text "'+SearchReplaceDialog.comboSearch.Text+'" not found.', mtInformation, [mbOk]);
+    if (OldCaretXY.Char = FSearchReplaceDialog.Editor.CaretXY.Char) and
+      (OldCaretXY.Line = FSearchReplaceDialog.Editor.CaretXY.Line) then
+      MessageDialog('Text "'+FSearchReplaceDialog.comboSearch.Text+'" not found.', mtInformation, [mbOk]);
   end;
 end;
 
@@ -3308,12 +3291,13 @@ end;
   @see FieldeditForm.btnDatatypeHelp
 }
 procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
+var
+  Dialog: TfrmSQLhelp;
 begin
   if FActiveDbObj.Connection.ServerVersionInt >= 40100 then begin
-    if SQLHelpForm = nil then
-      SQLHelpForm := TfrmSQLhelp.Create(Self);
-    SQLHelpForm.Show;
-    SQLHelpForm.Keyword := keyword;
+    Dialog := TfrmSQLhelp.Create(Self);
+    Dialog.Show;
+    Dialog.Keyword := keyword;
   end else
     ErrorDialog('SQL help not available.', 'HELP <keyword> required MySQL 4.1 or newer.');
 end;
@@ -6533,14 +6517,14 @@ end;
 procedure TMainForm.menuEditVariableClick(Sender: TObject);
 var
   NodeData: PVTreeData;
+  Dialog: TfrmEditVariable;
 begin
-  if EditVariableForm = nil then
-    EditVariableForm := TfrmEditVariable.Create(Self);
+  Dialog := TfrmEditVariable.Create(Self);
   NodeData := ListVariables.GetNodeData(ListVariables.FocusedNode);
-  EditVariableForm.VarName := NodeData.Captions[0];
-  EditVariableForm.VarValue := NodeData.Captions[1];
+  Dialog.VarName := NodeData.Captions[0];
+  Dialog.VarValue := NodeData.Captions[1];
   // Refresh relevant list node
-  if EditVariableForm.ShowModal = mrOK then
+  if Dialog.ShowModal = mrOK then
     NodeData.Captions[1] := ActiveConnection.GetVar('SHOW VARIABLES LIKE '+esc(NodeData.Captions[0]), 1);
 end;
 
@@ -6674,7 +6658,7 @@ begin
         end;
       end;
     lntTable, lntView:
-      if Assigned(SelectDBObjectForm) and (Sender=SelectDBObjectForm.TreeDBO) then begin
+      if Sender.Parent is TfrmSelectDBObject then begin
         Columns := TTableColumnList.Create(True);
         DBObj.Connection.ParseTableStructure(DBObj.CreateCode, Columns, nil, nil);
         ChildCount := Columns.Count;
@@ -6710,8 +6694,7 @@ begin
     2: begin
       DBObjects := FConnections[Node.Parent.Parent.Index].GetDBObjects(FConnections[Node.Parent.Parent.Index].AllDatabases[Node.Parent.Index]);
       Item^ := DBObjects[Node.Index];
-      if Assigned(SelectDBObjectForm) and (Sender=SelectDBObjectForm.TreeDBO)
-        and (Item.NodeType in [lntTable, lntView]) then
+      if (Sender.Parent is TfrmSelectDBObject) and (Item.NodeType in [lntTable, lntView]) then
         InitialStates := InitialStates + [ivsHasChildren];
     end;
     3: begin
@@ -6826,7 +6809,6 @@ begin
   if (FActiveDbObj = nil) or (PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) then begin
     TimerConnected.OnTimer(Sender);
     TimerHostUptime.OnTimer(Sender);
-    FreeAndNil(SQLHelpForm);
     InvalidateVT(ListDatabases, VTREE_NOTLOADED, False);
     InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
     InvalidateVT(ListStatus, VTREE_NOTLOADED, False);
@@ -6952,11 +6934,8 @@ begin
     Exit;
   // Reload objects in ListTables ...
   InvalidateVT(ListTables, VTREE_NOTLOADED, False);
-  // ... in database tree
+  // ... and in database tree
   DoRefresh(DBtree);
-  // ... and perhaps in table tools dialog
-  if Assigned(TableToolsDialog) and TableToolsDialog.Visible then
-    DoRefresh(TableToolsDialog.TreeObjects);
 end;
 
 
@@ -8602,6 +8581,7 @@ end;
 procedure TMainForm.menuEditObjectClick(Sender: TObject);
 var
   Obj: PDBObject;
+  Dialog: TCreateDatabaseForm;
 begin
   if ListTables.Focused then begin
     // Got here from ListTables.OnDblClick or ListTables's context menu item "Edit"
@@ -8613,10 +8593,9 @@ begin
     Obj := DBtree.GetNodeData(DBtree.FocusedNode);
     case Obj.NodeType of
       lntDb: begin
-        if CreateDatabaseForm = nil then
-          CreateDatabaseForm := TCreateDatabaseForm.Create(Self);
-        CreateDatabaseForm.modifyDB := ActiveDatabase;
-        if CreateDatabaseForm.ShowModal = mrOk then
+        Dialog := TCreateDatabaseForm.Create(Self);
+        Dialog.modifyDB := ActiveDatabase;
+        if Dialog.ShowModal = mrOk then
           RefreshTree;
       end;
       lntTable..lntEvent:
@@ -9442,16 +9421,6 @@ begin
   Editors.Add(SynMemoSQLLog);
   if Assigned(ActiveObjectEditor) then
     FindEditors(ActiveObjectEditor);
-  if Assigned(CreateDatabaseForm) then
-    Editors.Add(CreateDatabaseForm.SynMemoPreview);
-  if Assigned(OptionsForm) then
-    Editors.Add(OptionsForm.SynMemoSQLSample);
-  if Assigned(SQLHelpForm) then begin
-    Editors.Add(SQLHelpForm.memoDescription);
-    Editors.Add(SQLHelpForm.MemoExample);
-  end;
-  if Assigned(CopyTableDialog) then
-    Editors.Add(CopyTableDialog.MemoFilter);
 
   FontName := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
   FontSize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
@@ -9502,8 +9471,6 @@ begin
     Attri.Foreground := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_FG, Attri.Foreground);
     Attri.Background := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_BG, Attri.Background);
     Attri.IntegerStyle := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Attri.IntegerStyle);
-    if Assigned(OptionsForm) then
-      OptionsForm.SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(Attri);
   end;
 end;
 

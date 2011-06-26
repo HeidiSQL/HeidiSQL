@@ -318,6 +318,7 @@ begin
   // Auto close temorary connection
   if Assigned(FTargetConnection) then
     FreeAndNil(FTargetConnection);
+  Action := caFree;
 end;
 
 
@@ -463,6 +464,7 @@ var
   Triggers, Views: TDBObjectList;
   DBObj: PDBObject;
   i: Integer;
+  Conn: TDBConnection;
 
   procedure ProcessNode(DBObj: TDBObject);
   begin
@@ -571,8 +573,13 @@ begin
   end;
   ExportLastDatabase := '';
 
-  for i:=0 to FModifiedDbs.Count-1 do
-    Mainform.ActiveConnection.ClearDbObjects(FModifiedDbs[i]);
+  Conn := Mainform.ActiveConnection;
+  for i:=0 to FModifiedDbs.Count-1 do begin
+    Conn.ClearDbObjects(FModifiedDbs[i]);
+    DBNode := MainForm.FindDBNode(TreeObjects, Conn, FModifiedDbs[i]);
+    TreeObjects.ReinitNode(DBNode, False);
+    TreeObjects.ReinitChildren(DBNode, False)
+  end;
   FModifiedDbs.Clear;
 
   btnCloseOrCancel.Caption := 'Close';

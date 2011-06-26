@@ -226,6 +226,7 @@ procedure Tconnform.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   // Suspend calculating statistics as long as they're not visible
   TimerStatistics.Enabled := False;
+  Action := caFree;
 end;
 
 

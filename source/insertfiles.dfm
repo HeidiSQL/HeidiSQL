@@ -15,6 +15,7 @@ object frmInsertFiles: TfrmInsertFiles
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (

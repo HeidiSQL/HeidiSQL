@@ -311,6 +311,7 @@ begin
   FreeAndNil(PrivsTable);
   FreeAndNil(PrivsRoutine);
   FreeAndNil(PrivsColumn);
+  Action := caFree;
 end;
 
 

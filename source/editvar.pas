@@ -17,6 +17,7 @@ type
     procedure editValueChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
   public
@@ -43,6 +44,12 @@ begin
   editValue.Text := VarValue;
   editValue.SelectAll;
   editValue.SetFocus;
+end;
+
+
+procedure TfrmEditVariable.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
 end;
 
 

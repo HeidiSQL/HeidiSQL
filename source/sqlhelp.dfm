@@ -12,6 +12,7 @@ object frmSQLhelp: TfrmSQLhelp
   Font.Style = []
   FormStyle = fsStayOnTop
   OldCreateOrder = False
+  OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   PixelsPerInch = 96
