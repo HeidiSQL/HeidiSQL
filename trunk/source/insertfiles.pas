@@ -72,7 +72,7 @@ type
 
 implementation
 
-uses main, helpers;
+uses main, helpers, mysql_structures;
 
 {$R *.DFM}
 
@@ -118,21 +118,23 @@ end;
 { Show Columns from selected table }
 procedure TfrmInsertFiles.ComboBoxTablesChange(Sender: TObject);
 var
-  Results: TDBQuery;
+  Columns: TTableColumnList;
+  i: Integer;
+  DBObjects: TDBObjectList;
 begin
-  setlength(cols, 0);
+  SetLength(cols, 0);
   if ComboBoxTables.ItemIndex > -1 then begin
-    Results := FConnection.GetResults('SHOW FIELDS FROM '+FConnection.QuoteIdent(ComboBoxDBs.Text)+'.'+FConnection.QuoteIdent(ComboBoxTables.Text));
-    while not Results.Eof do begin
-      setlength(cols, length(cols)+1);
-      cols[length(cols)-1].Name := Results.Col(0);
-      cols[length(cols)-1].isBLOB := (pos('blob', lowercase(Results.Col(1))) > 0) or (pos('text', lowercase(Results.Col(1))) > 0);
-      cols[length(cols)-1].Value := 'NULL';
-      cols[length(cols)-1].Quote := false;
-      Results.Next;
+    DBObjects := FConnection.GetDBObjects(ComboBoxDBs.Text);
+    Columns := TTableColumnList.Create(True);
+    FConnection.ParseTableStructure(DBObjects[ComboBoxTables.ItemIndex].CreateCode, Columns, nil, nil);
+    SetLength(cols, Columns.Count);
+    for i:=0 to Columns.Count-1 do begin
+      cols[i].Name := Columns[i].Name;
+      cols[i].isBLOB := Columns[i].DataType.Category in [dtcText, dtcBinary];
+      cols[i].Value := 'NULL';
+      cols[i].Quote := false;
     end;
-    FreeAndNil(Results);
-    DisplayColumns(self);
+    DisplayColumns(Sender);
   end;
 end;
 
