@@ -1442,9 +1442,9 @@ begin
     end;
     if chkBulkTableEditCollation.Checked and (comboBulkTableEditCollation.ItemIndex > -1) then begin
       if HasCharsetClause then // No comma between charset + collation clause
-        Specs[Specs.Count-1] := Specs[Specs.Count-1] + ' COLLATE '+comboBulkTableEditCollation.Text
+        Specs[Specs.Count-1] := Specs[Specs.Count-1] + ' COLLATE '+esc(comboBulkTableEditCollation.Text)
       else
-        Specs.Add('COLLATE '+comboBulkTableEditCollation.Text);
+        Specs.Add('COLLATE '+esc(comboBulkTableEditCollation.Text));
     end;
     if chkBulkTableEditResetAutoinc.Checked then
       Specs.Add('AUTO_INCREMENT=0');

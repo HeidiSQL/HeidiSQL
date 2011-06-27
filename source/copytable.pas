@@ -397,7 +397,7 @@ begin
 
   // Add collation and engine clauses
   if FDBObj.Collation <> '' then
-    CreateCode := CreateCode + ' COLLATE ''' + FDBObj.Collation + '''';
+    CreateCode := CreateCode + ' COLLATE ' + esc(FDBObj.Collation);
   if FDBObj.Engine <> '' then begin
     if MainForm.ActiveConnection.ServerVersionInt < 40018 then
       CreateCode := CreateCode + ' TYPE=' + FDBObj.Engine

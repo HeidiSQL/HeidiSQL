@@ -199,7 +199,7 @@ begin
     begin
       sql := sql + ' CHARACTER SET ' + comboCharset.Text;
       if comboCollation.Enabled and (comboCollation.Text <> '') then
-        sql := sql + ' COLLATE ' + comboCollation.Text;
+        sql := sql + ' COLLATE ' + esc(comboCollation.Text);
     end;
     if modifyDB = editDBName.Text then begin
       // Alter database
@@ -299,7 +299,7 @@ begin
   begin
     Result := Result + ' /*!40100 CHARACTER SET ' + comboCharset.Text;
     if comboCollation.Enabled and (comboCollation.Text <> '') then
-      Result := Result + ' COLLATE ' + comboCollation.Text;
+      Result := Result + ' COLLATE ' + esc(comboCollation.Text);
     Result := Result + ' */';
   end;
 end;
