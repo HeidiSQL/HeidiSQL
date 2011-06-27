@@ -6657,7 +6657,7 @@ begin
         end;
       end;
     lntTable, lntView:
-      if Sender.Parent is TfrmSelectDBObject then begin
+      if GetParentFormOrFrame(Sender) is TfrmSelectDBObject then begin
         Columns := TTableColumnList.Create(True);
         DBObj.Connection.ParseTableStructure(DBObj.CreateCode, Columns, nil, nil);
         ChildCount := Columns.Count;
@@ -6693,8 +6693,8 @@ begin
     2: begin
       DBObjects := FConnections[Node.Parent.Parent.Index].GetDBObjects(FConnections[Node.Parent.Parent.Index].AllDatabases[Node.Parent.Index]);
       Item^ := DBObjects[Node.Index];
-      if (Sender.Parent is TfrmSelectDBObject) and (Item.NodeType in [lntTable, lntView]) then
-        InitialStates := InitialStates + [ivsHasChildren];
+      if (GetParentFormOrFrame(Sender) is TfrmSelectDBObject) and (Item.NodeType in [lntTable, lntView]) then
+        Include(InitialStates, ivsHasChildren);
     end;
     3: begin
       Item^ := TDBObject.Create(FConnections[Node.Parent.Parent.Parent.Index]);
