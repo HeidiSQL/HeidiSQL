@@ -1171,8 +1171,7 @@ var
   OpenSessions: String;
   Connection: TDBConnection;
 begin
-  // Destroy editors and dialogs. Must be done before connection gets closed, as some destructors do SQL stuff.
-  FreeAndNil(ActiveObjectEditor);
+  // Destroy dialogs
   FreeAndNil(FSearchReplaceDialog);
 
   // Save opened session names in root folder
@@ -1851,6 +1850,7 @@ begin
       FreeAndNil(DataGridHiddenColumns);
       SynMemoFilter.Clear;
       SetLength(DataGridSortColumns, 0);}
+      FreeAndNil(ActiveObjectEditor);
       RefreshHelperNode(HELPERNODE_PROFILE);
       RefreshHelperNode(HELPERNODE_COLUMNS);
 
