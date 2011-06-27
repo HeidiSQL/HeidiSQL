@@ -1150,6 +1150,8 @@ begin
     7: begin // Default value
       Col.DefaultText := NewText;
       Col.DefaultType := GetColumnDefaultType(Col.DefaultText);
+      if Col.DefaultType in [cdtNull, cdtNullUpdateTS] then
+        Col.AllowNull := True;
     end;
     8: Col.Comment := NewText;
     9: Col.Collation := NewText;
