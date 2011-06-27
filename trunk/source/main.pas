@@ -3840,7 +3840,6 @@ begin
 
   // Scroll to last line and repaint
   SynMemoSQLLog.GotoLineAndCenter(SynMemoSQLLog.Lines.Count);
-  SynMemoSQLLog.Repaint;
 
   // Log to file?
   if prefLogToFile then
