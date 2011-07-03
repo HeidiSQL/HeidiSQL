@@ -426,6 +426,7 @@ object MainForm: TMainForm
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
         OnAfterPaint = DBtreeAfterPaint
+        OnBeforeCellPaint = DBtreeBeforeCellPaint
         OnChange = DBtreeChange
         OnDblClick = DBtreeDblClick
         OnFocusChanged = DBtreeFocusChanged

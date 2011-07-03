@@ -82,6 +82,7 @@ object frmTableTools: TfrmTableTools
       TabOrder = 0
       TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
       TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
+      OnBeforeCellPaint = TreeObjectsBeforeCellPaint
       OnChange = TreeObjectsChange
       OnChecked = TreeObjectsChecked
       OnChecking = TreeObjectsChecking

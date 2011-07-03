@@ -106,6 +106,9 @@ type
     procedure btnSeeResultsClick(Sender: TObject);
     procedure TreeObjectsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure btnCloseOrCancelClick(Sender: TObject);
+    procedure TreeObjectsBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+      var ContentRect: TRect);
   private
     { Private declarations }
     FResults: TObjectList<TStringList>;
@@ -371,6 +374,13 @@ begin
   end;
 end;
 
+
+procedure TfrmTableTools.TreeObjectsBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+  var ContentRect: TRect);
+begin
+  MainForm.DBtreeBeforeCellPaint(Sender, TargetCanvas, Node, Column, CellPaintMode, CellRect, ContentRect);
+end;
 
 procedure TfrmTableTools.TreeObjectsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
 begin
