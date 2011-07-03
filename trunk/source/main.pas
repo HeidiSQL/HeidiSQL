@@ -621,22 +621,12 @@ type
     procedure menuExploreClick(Sender: TObject);
     procedure menuInsertSnippetAtCursorClick(Sender: TObject);
     procedure menuLoadSnippetClick(Sender: TObject);
-    procedure vstGetNodeDataSize(Sender: TBaseVirtualTree; var
-        NodeDataSize: Integer);
-    procedure vstInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
-        PVirtualNode; var InitialStates: TVirtualNodeInitStates);
-    procedure vstFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure vstGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-        Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
-    procedure vstGetImageIndex(Sender: TBaseVirtualTree; Node:
-        PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
-        Boolean; var ImageIndex: Integer);
-    procedure vstHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
-    procedure vstCompareNodes(Sender: TBaseVirtualTree; Node1, Node2:
+    procedure AnyGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+    procedure AnyGridCompareNodes(Sender: TBaseVirtualTree; Node1, Node2:
         PVirtualNode; Column: TColumnIndex; var Result: Integer);
-    procedure vstHeaderDraggedOut(Sender: TVTHeader; Column: TColumnIndex;
+    procedure AnyGridHeaderDraggedOut(Sender: TVTHeader; Column: TColumnIndex;
         DropPosition: TPoint);
-    procedure vstIncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode; const SearchText: String;
+    procedure AnyGridIncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode; const SearchText: String;
       var Result: Integer);
     procedure SetMainTab(Page: TTabSheet);
     procedure DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -660,16 +650,10 @@ type
     procedure editFilterSearchExit(Sender: TObject);
     procedure menuLogToFileClick(Sender: TObject);
     procedure menuOpenLogFolderClick(Sender: TObject);
-    procedure vstGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
+    procedure AnyGridGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; var LineBreakStyle: TVTTooltipLineBreakStyle; var
         HintText: String);
-    procedure ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
-      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure ListTablesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
-      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
-      var ContentRect: TRect);
-    procedure ListProcessesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
       var ContentRect: TRect);
     procedure ListProcessesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
@@ -691,10 +675,14 @@ type
     procedure AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure File1Click(Sender: TObject);
-    procedure ListVariablesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-    procedure ListStatusBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-    procedure ListProcessesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-    procedure ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure HostListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure HostListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure HostListBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure HostListBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+      var ContentRect: TRect);
     procedure ListTablesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure ListTablesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
       Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
@@ -703,7 +691,7 @@ type
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure ListTablesInitNode(Sender: TBaseVirtualTree; ParentNode,
       Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
-    procedure vstAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure AnyGridAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure actCopyOrCutExecute(Sender: TObject);
     procedure actPasteExecute(Sender: TObject);
     procedure actSelectAllExecute(Sender: TObject);
@@ -751,7 +739,7 @@ type
     procedure SynMemoQueryPaintTransient(Sender: TObject; Canvas: TCanvas;
       TransientType: TTransientType);
     procedure actQueryFindAgainExecute(Sender: TObject);
-    procedure vstScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
+    procedure AnyGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
     procedure lblExplainProcessClick(Sender: TObject);
     procedure actDataShowNextExecute(Sender: TObject);
     procedure actDataShowAllExecute(Sender: TObject);
@@ -858,14 +846,15 @@ type
     FBtnAddTab: TSpeedButton;
     FDBObjectsMaxSize: Int64;
     FDBObjectsMaxRows: Int64;
-    FProcessListMaxTime: Int64;
     FSearchReplaceDialog: TfrmSearchReplace;
 
-    // Virtual Tree data arrays
-    FVTRowDataListVariables,
-    FVTRowDataListStatus,
-    FVTRowDataListProcesses,
-    FVTRowDataListCommandStats: TVTreeDataArray;
+    // Host subtabs backend structures
+    FHostListResults: TDBQueryList;
+    FHostTabCaptions: TStringList;
+    FStatusServerUptime: Integer;
+    FProcessListMaxTime: Int64;
+    FCommandStatsQueryCount: Int64;
+    FCommandStatsServerUptime: Integer;
 
     // Common directories
     FDirnameCommonAppData: String;
@@ -970,8 +959,6 @@ type
     property ActiveConnection: TDBConnection read GetActiveConnection;
     property ActiveDatabase: String read GetActiveDatabase;
     property ActiveDbObj: TDBObject read FActiveDbObj write SetActiveDBObj;
-    procedure TestVTreeDataArray( P: PVTreeDataArray );
-    function GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
     procedure ActivateFileLogging;
     procedure DeactivateFileLogging;
     procedure RefreshTree(FocusNewObject: TDBObject=nil);
@@ -1392,6 +1379,14 @@ begin
 
   QueryTabs := TObjectList<TQueryTab>.Create(True);
   QueryTabs.Add(QueryTab);
+
+  // Populate generic results for "Host" subtabs
+  FHostListResults := TDBQueryList.Create(False);
+  FHostTabCaptions := TStringList.Create;
+  for i:=0 to PageControlHost.PageCount-1 do begin
+    FHostListResults.Add(nil);
+    FHostTabCaptions.Add(PageControlHost.Pages[i].Caption);
+  end;
 
   // Enable auto completion in data tab, filter editor
   SynCompletionProposal.AddEditor(SynMemoFilter);
@@ -1829,6 +1824,7 @@ procedure TMainForm.ConnectionsNotify(Sender: TObject; const Item: TDBConnection
 var
   Results: TDBQuery;
   Tab: TQueryTab;
+  i: Integer;
 begin
   // Connection removed or added
   case Action of
@@ -1843,6 +1839,13 @@ begin
         if Assigned(Tab.QueryProfile) and (Tab.QueryProfile.Connection = Item) then
           FreeAndNil(Tab.QueryProfile);
       end;
+      for i:=0 to FHostListResults.Count-1 do begin
+        if (FHostListResults[i] <> nil) and (FHostListResults[i].Connection = Item) then begin
+          FHostListResults[i].Free;
+          FHostListResults[i] := nil;
+        end;
+      end;
+
 
       {// TODO: Clear database and table lists
       DBtree.ClearSelection;
@@ -5826,114 +5829,10 @@ end;
 
 
 {**
-  Tell a VirtualStringTree the mem size to allocate per node
-}
-procedure TMainForm.vstGetNodeDataSize(Sender: TBaseVirtualTree; var
-    NodeDataSize: Integer);
-begin
-  NodeDataSize := SizeOf(TVTreeData);
-end;
-
-
-{**
-  Various lists initialize their nodes by calling the following procedure
-  once per node
-}
-procedure TMainForm.vstInitNode(Sender: TBaseVirtualTree; ParentNode,
-    Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
-var
-  NodeData : PVTreeData;
-  a : TVTreeDataArray;
-begin
-  // Get the pointer to the node data
-  NodeData := Sender.GetNodeData(Node);
-  // Fetch data array
-  a := GetVTreeDataArray( Sender )^;
-  // Bind data to node
-  NodeData.Captions := a[Node.Index].Captions;
-  NodeData.ImageIndex := a[Node.Index].ImageIndex;
-  NodeData.NodeType := a[Node.Index].NodeType;
-end;
-
-
-{**
-  Free data of a node
-}
-procedure TMainForm.vstFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
-var
-  b : PVTreeDataArray;
-begin
-  // Detect which global array should be processed
-  b := GetVTreeDataArray( Sender );
-  // TODO: If you optimize 'b' out of the code, the compiler will
-  //       sometimes generate code that causes a new array here instead of
-  //       a reference to the global array, thus breaking SetLength.  Find
-  //       out why...
-  //TestVTreeDataArray(b);
-  if (Low(b^) < 0) or (High(b^) < 0) then raise Exception.Create('Internal error: unsupported array bounds.');
-  if Node.Index + 1 < Cardinal(High(b^)) then
-  begin
-    // Delete node somewhere in the middle of the array
-    // Taken from http://delphi.about.com/cs/adptips2004/a/bltip0204_2.htm
-    System.Move(
-      b^[Node.Index + 1],
-      b^[Node.Index],
-      (Cardinal(Length(b^)) - (Node.Index - Cardinal(Low(b^))) - 1) * SizeOf(TVTreeData)
-    );
-  end;
-  SetLength(b^, Length(b^) - 1);
-end;
-
-
-{**
-  A node in a VirtualStringTree gets visible and asks which text it shall display
-}
-procedure TMainForm.vstGetText(Sender: TBaseVirtualTree; Node:
-    PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: String);
-var
-  NodeData : PVTreeData;
-  i : Integer;
-begin
-  // Get pointer to node which gets displayed
-  NodeData := Sender.GetNodeData(Node);
-  // Column is -1 if no column headers are defined
-  if Column = -1 then
-    i := 0
-  else
-    i := Column;
-  // Avoid AV, don't exceed Captions content
-  if NodeData.Captions.Count > i then
-    CellText := NodeData.Captions[i]
-  else
-    CellText := '';
-end;
-
-
-{**
-  A node in a VirtualStringTree gets visible and asks which icon it shall display
-}
-procedure TMainForm.vstGetImageIndex(Sender: TBaseVirtualTree; Node:
-    PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
-    Boolean; var ImageIndex: Integer);
-var
-  NodeData : PVTreeData;
-begin
-  // Display icon only for leftmost cell (0) or for tree nodes (-1)
-  if Column > 0 then
-    exit;
-  // Prevent state images, overlaying the normal image
-  if not (Kind in [ikNormal, ikSelected]) then Exit;
-  // Get pointer to node which gets displayed
-  NodeData := Sender.GetNodeData(Node);
-  ImageIndex := NodeData.ImageIndex;
-end;
-
-
-{**
   A column header of a VirtualStringTree was clicked:
   Toggle the sort direction
 }
-procedure TMainForm.vstHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+procedure TMainForm.AnyGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
 begin
   // Don't call sorting procedure on right click
   // Some list-headers have a contextmenu which should popup then.
@@ -5960,7 +5859,7 @@ end;
 {**
   Sorting a column of a VirtualTree by comparing two cells
 }
-procedure TMainForm.vstCompareNodes(Sender: TBaseVirtualTree; Node1,
+procedure TMainForm.AnyGridCompareNodes(Sender: TBaseVirtualTree; Node1,
     Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 var
   VT: TVirtualStringTree;
@@ -5974,7 +5873,7 @@ end;
 {**
   VirtualTree was painted. Adjust background color of sorted column.
 }
-procedure TMainForm.vstAfterPaint(Sender: TBaseVirtualTree;
+procedure TMainForm.AnyGridAfterPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas);
 var
   i: Integer;
@@ -5988,38 +5887,6 @@ begin
       NewColor := ColorAdjustBrightness(NewColor, COLORSHIFT_SORTCOLUMNS);
     h.Columns[i].Color := NewColor;
   end;
-end;
-
-
-{**
-  Return the data array which belongs to a VirtualTree component
-}
-function TMainForm.GetVTreeDataArray( VT: TBaseVirtualTree ): PVTreeDataArray;
-begin
-  if VT = ListVariables then
-    Result := @FVTRowDataListVariables
-  else if VT = ListStatus then
-    Result := @FVTRowDataListStatus
-  else if VT = ListCommandStats then
-    Result := @FVTRowDataListCommandStats
-  else if VT = ListProcesses then
-    Result := @FVTRowDataListProcesses
-  else begin
-    raise Exception.Create( VT.ClassName + ' "' + VT.Name + '" doesn''t have an assigned array with data.' );
-  end;
-end;
-
-
-{**
-  Internal: Test quality of code/compiler.
-}
-procedure TMainForm.TestVTreeDataArray( P: PVTreeDataArray );
-begin
-  if P = @FVTRowDataListVariables then Exit;
-  if P = @FVTRowDataListStatus then Exit;
-  if P = @FVTRowDataListCommandStats then Exit;
-  if P = @FVTRowDataListProcesses then Exit;
-  raise Exception.Create('Assertion failed: Invalid global VT array.');
 end;
 
 
@@ -6210,7 +6077,7 @@ end;
 {**
   Display tooltips in VirtualTrees. Imitates default behaviour of TListView.
 }
-procedure TMainForm.vstGetHint(Sender: TBaseVirtualTree; Node:
+procedure TMainForm.AnyGridGetHint(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var LineBreakStyle:
     TVTTooltipLineBreakStyle; var HintText: String);
 var
@@ -6287,7 +6154,7 @@ end;
   We imitate the behaviour of various applications (fx Outlook) and
   hide this dragged column
 }
-procedure TMainForm.vstHeaderDraggedOut(Sender: TVTHeader; Column:
+procedure TMainForm.AnyGridHeaderDraggedOut(Sender: TVTHeader; Column:
     TColumnIndex; DropPosition: TPoint);
 begin
   // Hide the draggedout column
@@ -6295,7 +6162,7 @@ begin
 end;
 
 
-procedure TMainForm.vstIncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode;
+procedure TMainForm.AnyGridIncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode;
   const SearchText: String; var Result: Integer);
 var
   CellText: String;
@@ -6307,24 +6174,6 @@ begin
     Exit;
   CellText := VT.Text[Node, VT.FocusedColumn];
   Result := StrLIComp(PChar(CellText), PChar(SearchText), Length(SearchText));
-end;
-
-
-{**
-  A cell in ListCommandStats gets painted.
-  Draw a progress bar on it to visualize its percentage value.
-}
-procedure TMainForm.ListCommandStatsBeforeCellPaint(Sender: TBaseVirtualTree;
-  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
-var
-  NodeData: PVTreeData;
-begin
-  // Only paint bar in percentage column
-  if Column = 4 then begin
-    NodeData := Sender.GetNodeData(Node);
-    PaintColorBar(MakeFloat(NodeData.Captions[Column]), 100, TargetCanvas, CellRect);
-  end;
 end;
 
 
@@ -6341,18 +6190,6 @@ begin
       1: PaintColorBar(Obj.Rows, FDBObjectsMaxRows, TargetCanvas, CellRect);
       2: PaintColorBar(Obj.Size, FDBObjectsMaxSize, TargetCanvas, CellRect);
     end;
-  end;
-end;
-
-procedure TMainForm.ListProcessesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
-  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
-  var ContentRect: TRect);
-var
-  NodeData: PVTreeData;
-begin
-  if Column = 5 then begin
-    NodeData := Sender.GetNodeData(Node);
-    PaintColorBar(MakeFloat(NodeData.Captions[Column]), FProcessListMaxTime, TargetCanvas, CellRect);
   end;
 end;
 
@@ -6385,16 +6222,14 @@ end;
 procedure TMainForm.ListProcessesFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
-  NodeData : PVTreeData;
   enableSQLView : Boolean;
 begin
   enableSQLView := Assigned(Node);
   SynMemoProcessView.Enabled := enableSQLView;
   pnlProcessView.Enabled := enableSQLView;
   if enableSQLView then begin
-    NodeData := ListProcesses.GetNodeData(Node);
     SynMemoProcessView.Highlighter := SynSQLSyn1;
-    SynMemoProcessView.Text := NodeData.Captions[7];
+    SynMemoProcessView.Text := ListProcesses.Text[Node, 7];
     SynMemoProcessView.Color := clWindow;
   end else begin
     SynMemoProcessView.Highlighter := nil;
@@ -6510,21 +6345,122 @@ begin
 end;
 
 
+procedure TMainForm.HostListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+var
+  Results: TDBQuery;
+begin
+  if not (Kind in [ikNormal, ikSelected]) then
+    exit;
+  if (Column <> (Sender as TVirtualStringTree).Header.MainColumn) then
+    exit;
+  ImageIndex := 25;
+  if Sender = ListProcesses then begin
+    Results := GridResult(Sender);
+    if AnsiCompareText(Results.Col(4), 'Killed') = 0 then
+      ImageIndex := 26  // killed
+    else begin
+      if Results.Col('Info') = '' then
+        ImageIndex := 55 // idle
+      else
+        ImageIndex := 57 // running query
+    end;
+  end;
+end;
+
+
+procedure TMainForm.HostListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+var
+  Idx: PCardinal;
+  Results: TDBQuery;
+  ValIsBytes, ValIsNumber: Boolean;
+  ValCount, CommandCount: Int64;
+  tmpval: Double;
+begin
+  Idx := Sender.GetNodeData(Node);
+  Results := GridResult(Sender);
+  Results.RecNo := Idx^;
+
+  if (Sender = ListStatus) and (Column in [1,2,3]) then begin
+    CellText := Results.Col(1);
+
+    // Detect value type
+    try
+      ValIsNumber := IntToStr(MakeInt(CellText)) = CellText;
+    except
+      ValIsNumber := False;
+    end;
+    ValIsBytes := ValIsNumber and (Copy(Results.Col(0), 1, 6) = 'Bytes_');
+
+    // Calculate average values ...
+    case Column of
+      1: begin // Format numeric or byte values
+        if ValIsBytes then
+          CellText := FormatByteNumber(CellText)
+        else if ValIsNumber then
+          CellText := FormatNumber(CellText);
+      end;
+      2,3: begin // ... per hour/second
+        if ValIsNumber then begin
+          ValCount := MakeInt(CellText);
+          tmpval := ValCount / (FStatusServerUptime / 60 / 60);
+          if Column = 3 then
+            tmpval := tmpval / 60 / 60;
+          if ValIsBytes then
+            CellText := FormatByteNumber(Trunc(tmpval))
+          else if ValIsNumber then
+            CellText := FormatNumber(tmpval, 1);
+        end else
+          CellText := '';
+      end;
+    end;
+
+  end else if Sender = ListCommandStats then begin
+    CommandCount := MakeInt(Results.Col(1));
+    case Column of
+      0: begin // Strip "Com_"
+        CellText := Results.Col(Column);
+        CellText := Copy(CellText, 5, Length(CellText));
+        CellText := StringReplace(CellText, '_', ' ', [rfReplaceAll] );
+      end;
+      1: begin // Total Frequency
+        CellText := FormatNumber(CommandCount);
+      end;
+      2: begin // Average per hour
+        tmpval := CommandCount / (FCommandStatsServerUptime / 60 / 60);
+        CellText := FormatNumber(tmpval, 1);
+      end;
+      3: begin // Average per second
+        tmpval := CommandCount / FCommandStatsServerUptime;
+        CellText := FormatNumber(tmpval, 1);
+      end;
+      4: begin // Percentage. Take care of division by zero errors and Int64's
+        tmpval := 100 / Max(FCommandStatsQueryCount, 1) * Max(CommandCount, 1);
+        CellText := FormatNumber(tmpval, 1) + ' %';
+      end;
+    end;
+
+  end else begin
+    // Values directly from a query result
+    CellText := sstr(Results.Col(Column), SIZE_KB*50);
+  end;
+end;
+
+
 {**
   Edit a server variable
 }
 procedure TMainForm.menuEditVariableClick(Sender: TObject);
 var
-  NodeData: PVTreeData;
   Dialog: TfrmEditVariable;
 begin
   Dialog := TfrmEditVariable.Create(Self);
-  NodeData := ListVariables.GetNodeData(ListVariables.FocusedNode);
-  Dialog.VarName := NodeData.Captions[0];
-  Dialog.VarValue := NodeData.Captions[1];
-  // Refresh relevant list node
+  Dialog.VarName := ListVariables.Text[ListVariables.FocusedNode, 0];
+  Dialog.VarValue := ListVariables.Text[ListVariables.FocusedNode, 1];
+  // Refresh list node
   if Dialog.ShowModal = mrOK then
-    NodeData.Captions[1] := ActiveConnection.GetVar('SHOW VARIABLES LIKE '+esc(NodeData.Captions[0]), 1);
+    InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
 end;
 
 
@@ -7887,7 +7823,7 @@ begin
     end;
     vt.RootNodeCount := Conn.AllDatabases.Count;
   end;
-  tabDatabases.Caption := 'Databases ('+FormatNumber(vt.RootNodeCount)+')';
+  tabDatabases.Caption := FHostTabCaptions[tabDatabases.PageIndex] + ' ('+FormatNumber(vt.RootNodeCount)+')';
   vt.Tag := VTREE_LOADED;
   Screen.Cursor := crDefault;
 end;
@@ -8003,282 +7939,105 @@ begin
 end;
 
 
-procedure TMainForm.ListVariablesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+procedure TMainForm.HostListBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
-  i : Integer;
   vt: TVirtualStringTree;
-  Results: TDBQuery;
   OldOffset: TPoint;
   Conn: TDBConnection;
+  Tab: TTabSheet;
+  Results: TDBQuery;
+  i: Integer;
 begin
   // Display server variables
   vt := Sender as TVirtualStringTree;
   if vt.Tag = VTREE_LOADED then
     Exit;
-  Conn := ActiveConnection;
-  Screen.Cursor := crHourglass;
+  Tab := vt.Parent as TTabSheet;
   vt.BeginUpdate;
   OldOffset := vt.OffsetXY;
   vt.Clear;
-  if Conn <> nil then begin
-    Results := Conn.GetResults('SHOW VARIABLES');
-    SetLength(FVTRowDataListVariables, Results.RecordCount);
-    for i:=0 to Results.RecordCount-1 do begin
-      FVTRowDataListVariables[i].ImageIndex := 25;
-      FVTRowDataListVariables[i].Captions := TStringList.Create;
-      FVTRowDataListVariables[i].Captions.Add(Results.Col(0));
-      FVTRowDataListVariables[i].Captions.Add(Results.Col(1));
-      Results.Next;
-    end;
-    FreeAndNil(Results);
-    vt.RootNodeCount := Length(FVTRowDataListVariables);
-    vt.OffsetXY := OldOffset;
-  end;
-  // Apply or reset filter
-  editFilterVTChange(Sender);
-  // Display number of listed values on tab
-  tabVariables.Caption := 'Variables (' + IntToStr(vt.RootNodeCount) + ')';
-  vt.EndUpdate;
-  vt.Tag := VTREE_LOADED;
-  Screen.Cursor := crDefault;
-end;
-
-
-procedure TMainForm.ListStatusBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-var
-  i: Integer;
-  valcount: Int64;
-  tmpval: Double;
-  Results: TDBQuery;
-  val, avg_perhour, avg_persec: String;
-  valIsBytes, valIsNumber: Boolean;
-  vt: TVirtualStringTree;
-  OldOffset: TPoint;
-  Conn: TDBConnection;
-begin
-  // Display server status key/value pairs
-  vt := Sender as TVirtualStringTree;
-  if vt.Tag = VTREE_LOADED then
-    Exit;
   Conn := ActiveConnection;
-  Screen.Cursor := crHourglass;
-  vt.BeginUpdate;
-  OldOffset := vt.OffsetXY;
-  vt.Clear;
   if Conn <> nil then begin
-    Results := Conn.GetResults('SHOW /*!50002 GLOBAL */ STATUS');
-    SetLength(FVTRowDataListStatus, Results.RecordCount);
-    for i:=0 to Results.RecordCount-1 do begin
-      FVTRowDataListStatus[i].ImageIndex := 25;
-      FVTRowDataListStatus[i].Captions := TStringList.Create;
-      FVTRowDataListStatus[i].Captions.Add(Results.Col(0));
-      val := Results.Col(1);
-      avg_perhour := '';
-      avg_persec := '';
-
-      // Detect value type
-      try
-        valIsNumber := IntToStr(MakeInt(val)) = val;
-      except
-        valIsNumber := False;
-      end;
-      valIsBytes := valIsNumber and (Copy(Results.Col(0), 1, 6) = 'Bytes_');
-
-      // Calculate average values ...
-      if valIsNumber then begin
-        valCount := MakeInt(val);
-        // ... per hour
-        tmpval := valCount / (Conn.ServerUptime / 60 / 60);
-        if valIsBytes then avg_perhour := FormatByteNumber( Trunc(tmpval) )
-        else avg_perhour := FormatNumber( tmpval, 1 );
-        // ... per second
-        tmpval := valCount / Conn.ServerUptime;
-        if valIsBytes then avg_persec := FormatByteNumber( Trunc(tmpval) )
-        else avg_persec := FormatNumber( tmpval, 1 );
-      end;
-
-      // Format numeric or byte values
-      if valIsBytes then
-        val := FormatByteNumber(val)
-      else if valIsNumber then
-        val := FormatNumber(val);
-
-      FVTRowDataListStatus[i].Captions.Add( val );
-      FVTRowDataListStatus[i].Captions.Add(avg_perhour);
-      FVTRowDataListStatus[i].Captions.Add(avg_persec);
-      Results.Next;
-    end;
-    FreeAndNil(Results);
-    // Tell VirtualTree the number of nodes it will display
-    vt.RootNodeCount := Length(FVTRowDataListStatus);
-    vt.OffsetXY := OldOffset;
-  end;
-  // Apply or reset filter
-  editFilterVTChange(Sender);
-  // Display number of listed values on tab
-  tabStatus.Caption := 'Status (' + IntToStr(vt.RootNodeCount) + ')';
-  vt.EndUpdate;
-  vt.Tag := VTREE_LOADED;
-  Screen.Cursor := crDefault;
-end;
-
-
-procedure TMainForm.ListProcessesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-var
-  i, j: Integer;
-  Results: TDBQuery;
-  vt: TVirtualStringTree;
-  Text: String;
-  OldOffset: TPoint;
-  Conn: TDBConnection;
-const
-  InfoLen = SIZE_KB*50;
-begin
-  // Display client threads
-  vt := Sender as TVirtualStringTree;
-  if vt.Tag = VTREE_LOADED then
-    Exit;
-  Conn := ActiveConnection;
-  Screen.Cursor := crHourglass;
-  vt.BeginUpdate;
-  OldOffset := vt.OffsetXY;
-  vt.FocusedNode := nil;
-  vt.Clear;
-  if Conn <> nil then begin
-    case Conn.Parameters.NetTypeGroup of
-      ngMySQL: begin
-        if Conn.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
-          // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
-          Results := Conn.GetResults('SELECT '+Conn.QuoteIdent('ID')+', '+Conn.QuoteIdent('USER')+', '+Conn.QuoteIdent('HOST')+', '+Conn.QuoteIdent('DB')+', '
-            + Conn.QuoteIdent('COMMAND')+', '+Conn.QuoteIdent('TIME')+', '+Conn.QuoteIdent('STATE')+', LEFT('+Conn.QuoteIdent('INFO')+', '+IntToStr(InfoLen)+') AS '+Conn.QuoteIdent('Info')
-            + ' FROM '+Conn.QuoteIdent('information_schema')+'.'+Conn.QuoteIdent('PROCESSLIST'));
-        end else begin
-          // Older servers fetch the whole query length, but at least we cut them off below, so a high memory usage is just a peak
-          Results := Conn.GetResults('SHOW FULL PROCESSLIST');
+    Results := GridResult(vt);
+    if Results <> nil then
+      FreeAndNil(Results);
+    Screen.Cursor := crHourglass;
+    if vt = ListVariables then begin
+      Results := Conn.GetResults('SHOW VARIABLES');
+    end else if vt = ListStatus then begin
+      Results := Conn.GetResults('SHOW /*!50002 GLOBAL */ STATUS');
+      FStatusServerUptime := Conn.ServerUptime;
+    end else if vt = ListProcesses then begin
+      case Conn.Parameters.NetTypeGroup of
+        ngMySQL: begin
+          if Conn.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
+            // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
+            Results := Conn.GetResults('SELECT '+Conn.QuoteIdent('ID')+', '+Conn.QuoteIdent('USER')+', '+Conn.QuoteIdent('HOST')+', '+Conn.QuoteIdent('DB')+', '
+              + Conn.QuoteIdent('COMMAND')+', '+Conn.QuoteIdent('TIME')+', '+Conn.QuoteIdent('STATE')+', LEFT('+Conn.QuoteIdent('INFO')+', '+IntToStr(SIZE_KB*50)+') AS '+Conn.QuoteIdent('Info')
+              + ' FROM '+Conn.QuoteIdent('information_schema')+'.'+Conn.QuoteIdent('PROCESSLIST'));
+          end else begin
+            // Older servers fetch the whole query length, but at least we cut them off below, so a high memory usage is just a peak
+            Results := Conn.GetResults('SHOW FULL PROCESSLIST');
+          end;
+        end;
+        ngMSSQL: begin
+          Results := Conn.GetResults('SELECT '+
+            Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('spid')+
+            ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('loginame')+') AS '+Conn.QuoteIdent('loginname')+
+            ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('hostname')+') AS '+Conn.QuoteIdent('hostname')+
+            ', '+Conn.QuoteIdent('d')+'.'+Conn.QuoteIdent('name')+
+            ', '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('cmd')+
+            ', '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('waittime')+
+            ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('status')+'), '+
+            'NULL AS '+Conn.QuoteIdent('Info')+' '+
+            'FROM '+Conn.QuoteIdent('sys')+'.'+Conn.QuoteIdent('sysprocesses')+' AS '+Conn.QuoteIdent('p')+
+            ', '+Conn.QuoteIdent('sys')+'.'+Conn.QuoteIdent('sysdatabases')+' AS '+Conn.QuoteIdent('d')+
+            ' WHERE '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('dbid')+'='+Conn.QuoteIdent('d')+'.'+Conn.QuoteIdent('dbid')
+            );
         end;
       end;
-      ngMSSQL: begin
-        Results := Conn.GetResults('SELECT '+
-          Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('spid')+
-          ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('loginame')+') AS '+Conn.QuoteIdent('loginname')+
-          ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('hostname')+') AS '+Conn.QuoteIdent('hostname')+
-          ', '+Conn.QuoteIdent('d')+'.'+Conn.QuoteIdent('name')+
-          ', '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('cmd')+
-          ', '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('waittime')+
-          ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('status')+'), '+
-          'NULL AS '+Conn.QuoteIdent('Info')+' '+
-          'FROM '+Conn.QuoteIdent('sys')+'.'+Conn.QuoteIdent('sysprocesses')+' AS '+Conn.QuoteIdent('p')+
-          ', '+Conn.QuoteIdent('sys')+'.'+Conn.QuoteIdent('sysdatabases')+' AS '+Conn.QuoteIdent('d')+
-          ' WHERE '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('dbid')+'='+Conn.QuoteIdent('d')+'.'+Conn.QuoteIdent('dbid')
-          );
+      FProcessListMaxTime := 1;
+      for i:=0 to Results.RecordCount-1 do begin
+        FProcessListMaxTime := Max(FProcessListMaxTime, MakeInt(Results.Col(5)));
+        Results.Next;
+      end;
+    end else if vt = ListCommandStats then begin
+      Results := Conn.GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
+      FCommandStatsServerUptime := Conn.ServerUptime;
+      FCommandStatsQueryCount := 0;
+      while not Results.Eof do begin
+        Inc(FCommandStatsQueryCount, MakeInt(Results.Col(1)));
+        Results.Next;
       end;
     end;
-    SetLength(FVTRowDataListProcesses, Results.RecordCount);
-    FProcessListMaxTime := 1;
-    for i:=0 to Results.RecordCount-1 do begin
-      if AnsiCompareText(Results.Col(4), 'Killed') = 0 then
-        FVTRowDataListProcesses[i].ImageIndex := 26  // killed
-      else begin
-        if Results.Col('Info') = '' then
-          FVTRowDataListProcesses[i].ImageIndex := 55 // idle
-        else
-          FVTRowDataListProcesses[i].ImageIndex := 57 // running query
-      end;
-      FVTRowDataListProcesses[i].Captions := TStringList.Create;
-      for j:=0 to vt.Header.Columns.Count-1 do begin
-        Text := Results.Col(j);
-        if Results.ColumnNames[j] = 'Info' then
-          Text := sstr(Text, InfoLen);
-        FVTRowDataListProcesses[i].Captions.Add(Text);
-      end;
-      FProcessListMaxTime := Max(FProcessListMaxTime, MakeInt(Results.Col(5)));
-      Results.Next;
-    end;
-    FreeAndNil(Results);
-    vt.RootNodeCount := Length(FVTRowDataListProcesses);
+
+    FHostListResults[Tab.PageIndex] := Results;
+    Screen.Cursor := crDefault;
+    vt.RootNodeCount := Results.RecordCount;
     vt.OffsetXY := OldOffset;
   end;
   // Apply or reset filter
   editFilterVTChange(Sender);
-  // Display number of listed values on tab
-  tabProcessList.Caption := 'Process-List (' + IntToStr(vt.RootNodeCount) + ')';
   vt.EndUpdate;
   vt.Tag := VTREE_LOADED;
-  Screen.Cursor := crDefault;
+  // Display number of listed values on tab
+  Tab.Caption := FHostTabCaptions[Tab.PageIndex] + ' (' + IntToStr(vt.RootNodeCount) + ')';
 end;
 
 
-procedure TMainForm.ListCommandStatsBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+procedure TMainForm.HostListBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+  var ContentRect: TRect);
 var
-  i: Integer;
-  questions: Int64;
-  Results: TDBQuery;
   vt: TVirtualStringTree;
-  OldOffset: TPoint;
-  Conn: TDBConnection;
-
-  procedure addLVitem( idx: Integer; caption: String; commandCount: Int64; totalCount: Int64 );
-  var
-    tmpval : Double;
-  begin
-    FVTRowDataListCommandStats[idx].ImageIndex := 25;
-    FVTRowDataListCommandStats[idx].Captions := TStringList.Create;
-    caption := Copy( caption, 5, Length(caption) );
-    caption := StringReplace( caption, '_', ' ', [rfReplaceAll] );
-    FVTRowDataListCommandStats[idx].Captions.Add( caption );
-    // Total Frequency
-    FVTRowDataListCommandStats[idx].Captions.Add( FormatNumber( commandCount ) );
-    // Average per hour
-    tmpval := commandCount / (Conn.ServerUptime / 60 / 60);
-    FVTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
-    // Average per second
-    tmpval := commandCount / Conn.ServerUptime;
-    FVTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) );
-    // Percentage. Take care of division by zero errors and Int64's
-    if commandCount < 0 then
-      commandCount := 0;
-    if totalCount < 1 then
-      totalCount := 1;
-    tmpval := 100 / totalCount * commandCount;
-    FVTRowDataListCommandStats[idx].Captions.Add( FormatNumber( tmpval, 1 ) + ' %' );
-  end;
-
 begin
-  // Display command statistics
   vt := Sender as TVirtualStringTree;
-  if vt.Tag = VTREE_LOADED then
-    Exit;
-  Conn := ActiveConnection;
-  Screen.Cursor := crHourglass;
-  vt.BeginUpdate;
-  OldOffset := vt.OffsetXY;
-  vt.Clear;
-  if Conn <> nil then begin
-    Results := Conn.GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
-    questions := 0;
-    while not Results.Eof do begin
-      Inc(questions, MakeInt(Results.Col(1)));
-      Results.Next;
-    end;
-    SetLength(FVTRowDataListCommandStats, Results.RecordCount+1);
-    addLVitem(0, '    All commands', questions, questions );
-    Results.First;
-    for i:=1 to Results.RecordCount do begin
-      addLVitem(i, Results.Col(0), MakeInt(Results.Col(1)), questions );
-      Results.Next;
-    end;
-    FreeAndNil(Results);
-    // Tell VirtualTree the number of nodes it will display
-    vt.RootNodeCount := Length(FVTRowDataListCommandStats);
-    vt.OffsetXY := OldOffset;
+  if (Column = 5) and (vt = ListProcesses) then
+    PaintColorBar(MakeFloat(vt.Text[Node, Column]), FProcessListMaxTime, TargetCanvas, CellRect);
+  if (Column = 4) and (vt = ListCommandStats) then begin
+    // Only paint bar in percentage column
+    PaintColorBar(MakeFloat(vt.Text[Node, Column]), 100, TargetCanvas, CellRect);
   end;
-  // Apply or reset filter
-  editFilterVTChange(Sender);
-  // Display number of listed values on tab
-  tabCommandStats.Caption := 'Command-Statistics (' + IntToStr(vt.RootNodeCount) + ')';
-  vt.EndUpdate;
-  vt.Tag := VTREE_LOADED;
-  Screen.Cursor := crDefault;
 end;
 
 
@@ -9185,13 +8944,15 @@ var
   CurrentTab: TTabSheet;
   ResultTab: TResultTab;
 begin
-  // All grids (data- and query-grids) are placed directly on a TTabSheet
+  // All grids (data- and query-grids, also host subtabs) are placed directly on a TTabSheet
   Result := nil;
   if Grid = DataGrid then
     Result := DataGridResult
   else if Assigned(Grid) then begin
     CurrentTab := Grid.Parent as TTabSheet;
-    for QueryTab in QueryTabs do begin
+    if CurrentTab.Parent = PageControlHost then
+      Result := FHostListResults[CurrentTab.PageIndex]
+    else for QueryTab in QueryTabs do begin
       if QueryTab.TabSheet = CurrentTab then begin
         for ResultTab in QueryTab.ResultTabs do begin
           if ResultTab.Grid = Grid then begin
@@ -9684,7 +9445,7 @@ begin
 end;
 
 
-procedure TMainForm.vstScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
+procedure TMainForm.AnyGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
 begin
   // A tree gets scrolled only when the mouse is over it - see FormMouseWheel
   // Our home brewn cell editors do not reposition when the underlying tree scrolls.

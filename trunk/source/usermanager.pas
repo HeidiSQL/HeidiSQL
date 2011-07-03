@@ -333,7 +333,7 @@ end;
 procedure TUserManagerForm.listUsersAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 begin
   // Background painting for sorted column
-  MainForm.vstAfterPaint(Sender, TargetCanvas);
+  MainForm.AnyGridAfterPaint(Sender, TargetCanvas);
 end;
 
 
@@ -618,7 +618,7 @@ end;
 
 procedure TUserManagerForm.listUsersHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
 begin
-  Mainform.vstHeaderClick(Sender, HitInfo);
+  Mainform.AnyGridHeaderClick(Sender, HitInfo);
 end;
 
 
@@ -649,7 +649,7 @@ end;
 procedure TUserManagerForm.listUsersCompareNodes(Sender: TBaseVirtualTree;
   Node1, Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 begin
-  Mainform.vstCompareNodes(Sender, Node1, Node2, Column, Result);
+  Mainform.AnyGridCompareNodes(Sender, Node1, Node2, Column, Result);
 end;
 
 
