@@ -204,10 +204,12 @@ type
     private
       FDatabase: String;
       FDataSize: Int64;
+      FLargestObjectSize: Int64;
       FLastUpdate: TDateTime;
     public
       property Database: String read FDatabase;
       property DataSize: Int64 read FDataSize;
+      property LargestObjectSize: Int64 read FLargestObjectSize;
       property LastUpdate: TDateTime read FLastUpdate;
   end;
   TDatabaseList = TObjectList<TDBObjectList>; // A list of db object lists, used for caching
@@ -2381,6 +2383,7 @@ begin
         if (not Results.IsNull('Data_length')) and (not Results.IsNull('Index_length')) then begin
           Obj.Size := StrToInt64Def(Results.Col('Data_length'), 0) + StrToInt64Def(Results.Col('Index_length'), 0);
           Inc(Result.FDataSize, Obj.Size);
+          Result.FLargestObjectSize := Max(Result.FLargestObjectSize, Obj.Size);
         end;
         Obj.NodeType := lntTable;
         if Results.IsNull(1) and Results.IsNull(2) then // Engine column is NULL for views

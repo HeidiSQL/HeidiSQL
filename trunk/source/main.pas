@@ -812,6 +812,9 @@ type
     procedure actCancelOperationExecute(Sender: TObject);
     procedure AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actToggleCommentExecute(Sender: TObject);
+    procedure DBtreeBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+      var ContentRect: TRect);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -9362,6 +9365,23 @@ procedure TMainForm.DBtreeAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCa
 begin
   // Tree node filtering needs a hit in special cases, e.g. after a db was dropped
   comboDBFilter.OnChange(Sender);
+end;
+
+
+procedure TMainForm.DBtreeBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+  var ContentRect: TRect);
+var
+  DBObj: PDBObject;
+  AllObjects: TDBObjectList;
+begin
+  if (CellPaintMode=cpmPaint) and (Column=1) then begin
+    DBObj := Sender.GetNodeData(Node);
+    if DBObj.Connection.DbObjectsCached(DBObj.Database) then begin
+      AllObjects := DBObj.Connection.GetDBObjects(DBObj.Database);
+      PaintColorBar(DBObj.Size, AllObjects.LargestObjectSize, TargetCanvas, CellRect);
+    end;
+  end;
 end;
 
 
