@@ -16,19 +16,6 @@ uses
 
 type
 
-  // Define a record which can hold everything we need for one row / node in a VirtualStringTree
-  TVTreeData = record
-    Captions: TStringList;
-    ImageIndex: Integer;
-    NodeType: TListNodeType;
-  end;
-  PVTreedata = ^TVTreeData;
-
-  // Standardize the list with node-data-records to be able to
-  // use this type as variables in functions/procedures (fx VT.OnFreeNode)
-  TVTreeDataArray = Array of TVTreeData;
-  PVTreeDataArray = ^TVTreeDataArray;
-
   TOrderCol = class(TObject)
     ColumnName: String;
     SortDirection: Byte;
@@ -1549,14 +1536,14 @@ begin
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
   else
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toHotTrack];
-  VT.OnGetHint := MainForm.vstGetHint;
-  VT.OnScroll := MainForm.vstScroll;
+  VT.OnGetHint := MainForm.AnyGridGetHint;
+  VT.OnScroll := MainForm.AnyGridScroll;
   VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
   VT.ShowHint := True;
   VT.HintMode := hmToolTip;
   // Apply case insensitive incremental search event
   if VT.IncrementalSearch <> isNone then
-    VT.OnIncrementalSearch := Mainform.vstIncrementalSearch;
+    VT.OnIncrementalSearch := Mainform.AnyGridIncrementalSearch;
   VT.OnStartOperation := Mainform.AnyGridStartOperation;
   VT.OnEndOperation := Mainform.AnyGridEndOperation;
 end;

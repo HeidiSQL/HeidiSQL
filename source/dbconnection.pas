@@ -2497,7 +2497,7 @@ begin
     // Find youngest last update
     for i:=0 to Result.Count-1 do
       Result.FLastUpdate := Max(Result.FLastUpdate, Max(Result[i].Updated, Result[i].Created));
-    // Sort list like it get sorted in MainForm.vstCompareNodes
+    // Sort list like it get sorted in AnyGridCompareNodes
     Result.Sort;
     // Add list of objects in this database to cached list of all databases
     FDatabases.Add(Result);
@@ -2564,7 +2564,7 @@ begin
     // Find youngest last update
     for i:=0 to Result.Count-1 do
       Result.FLastUpdate := Max(Result.FLastUpdate, Max(Result[i].Updated, Result[i].Created));
-    // Sort list like it get sorted in MainForm.vstCompareNodes
+    // Sort list like it get sorted in AnyGridCompareNodes
     Result.Sort;
     // Add list of objects in this database to cached list of all databases
     FDatabases.Add(Result);

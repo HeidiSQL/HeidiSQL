@@ -776,7 +776,7 @@ end;
 procedure TfrmTableTools.ResultGridCompareNodes(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode;
   Column: TColumnIndex; var Result: Integer);
 begin
-  Mainform.vstCompareNodes(Sender, Node1, Node2, Column, Result);
+  Mainform.AnyGridCompareNodes(Sender, Node1, Node2, Column, Result);
 end;
 
 procedure TfrmTableTools.ResultGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
@@ -833,7 +833,7 @@ end;
 procedure TfrmTableTools.ResultGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
 begin
   // Header column clicked to sort
-  Mainform.vstHeaderClick(Sender, HitInfo);
+  Mainform.AnyGridHeaderClick(Sender, HitInfo);
 end;
 
 

@@ -162,9 +162,9 @@ begin
   Height := GetRegValue(REGNAME_SESSMNGR_WINHEIGHT, Height);
   FixVT(ListSessions);
   MainForm.RestoreListSetup(ListSessions);
-  ListSessions.OnCompareNodes := MainForm.vstCompareNodes;
-  ListSessions.OnHeaderClick := MainForm.vstHeaderClick;
-  ListSessions.OnHeaderDraggedOut := MainForm.vstHeaderDraggedOut;
+  ListSessions.OnCompareNodes := MainForm.AnyGridCompareNodes;
+  ListSessions.OnHeaderClick := MainForm.AnyGridHeaderClick;
+  ListSessions.OnHeaderDraggedOut := MainForm.AnyGridHeaderDraggedOut;
   FLoaded := False;
 
   comboNetType.Clear;
