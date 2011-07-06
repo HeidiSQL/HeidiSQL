@@ -811,7 +811,7 @@ object MainForm: TMainForm
               end
             end
             object tabProcessList: TTabSheet
-              Caption = 'Process-List'
+              Caption = 'Processes'
               ImageIndex = 57
               object Splitter3: TSplitter
                 Left = 0
