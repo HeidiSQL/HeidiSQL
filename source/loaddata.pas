@@ -65,6 +65,7 @@ type
     procedure grpParseMethodClick(Sender: TObject);
     procedure comboEncodingSelect(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure chklistColumnsClick(Sender: TObject);
   private
     { Private declarations }
     Encoding: TEncoding;
@@ -254,6 +255,7 @@ begin
 
   // select all:
   ToggleCheckListBox( chklistColumns, True );
+  chklistColumns.OnClick(Sender);
 
   // Ensure valid state of Import-Button
   editFilenameChange(Sender);
@@ -589,6 +591,15 @@ begin
 end;
 
 
+procedure Tloaddataform.chklistColumnsClick(Sender: TObject);
+begin
+  btnColDown.Enabled := (chklistColumns.ItemIndex > -1)
+    and (chklistColumns.ItemIndex < chklistColumns.Count-1);
+  btnColUp.Enabled := (chklistColumns.ItemIndex > -1)
+    and (chklistColumns.ItemIndex > 0);
+end;
+
+
 procedure Tloaddataform.btnColMoveClick(Sender: TObject);
 var
   CheckedSelected, CheckedTarget: Boolean;
@@ -607,6 +618,7 @@ begin
     chklistColumns.Checked[TargetIndex] := CheckedSelected;
     chklistColumns.ItemIndex := TargetIndex;
   end;
+  chklistColumns.OnClick(Sender);
 end;
 
 

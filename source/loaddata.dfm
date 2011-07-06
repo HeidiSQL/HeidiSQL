@@ -338,6 +338,7 @@ object loaddataform: Tloaddataform
       Anchors = [akLeft, akTop, akRight, akBottom]
       ItemHeight = 13
       TabOrder = 2
+      OnClick = chklistColumnsClick
     end
     object ToolBarColMove: TToolBar
       Left = 214
