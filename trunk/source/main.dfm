@@ -926,6 +926,7 @@ object MainForm: TMainForm
                     Cursor = crHandPoint
                     Hint = 'Analyze this query'
                     Caption = 'EXPLAIN'
+                    Enabled = False
                     Font.Charset = DEFAULT_CHARSET
                     Font.Color = clBlue
                     Font.Height = -11
