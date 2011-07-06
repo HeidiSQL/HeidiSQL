@@ -7956,6 +7956,7 @@ begin
   if vt.Tag = VTREE_LOADED then
     Exit;
   Tab := vt.Parent as TTabSheet;
+  vt.FocusedNode := nil;
   vt.BeginUpdate;
   OldOffset := vt.OffsetXY;
   vt.Clear;
