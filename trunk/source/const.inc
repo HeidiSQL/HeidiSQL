@@ -185,6 +185,8 @@ const
   REGNAME_TOOLSFINDTEXT = 'TableTools_FindText';
   REGNAME_TOOLSDATATYPE = 'TableTools_Datatype';
   REGNAME_TOOLSCASESENSITIVE = 'TableTools_FindCaseSensitive';
+  REGNAME_FILEIMPORTWINWIDTH = 'FileImport_WindowWidth';
+  REGNAME_FILEIMPORTWINHEIGHT = 'FileImport_WindowHeight';
   REGNAME_USERMNGR_WINWIDTH = 'Usermanager_WindowWidth';
   REGNAME_USERMNGR_WINHEIGHT = 'Usermanager_WindowHeight';
   REGNAME_USERMNGR_LISTWIDTH = 'Usermanager_ListWidth';

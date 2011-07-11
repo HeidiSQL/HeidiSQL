@@ -884,7 +884,6 @@ type
     procedure DatabaseChanged(Connection: TDBConnection; Database: String);
     procedure DoSearchReplace;
     procedure UpdateLineCharPanel;
-    procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
     procedure SetSnippetFilenames;
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
     procedure OperationRunning(Runs: Boolean);
@@ -948,6 +947,7 @@ type
 
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
+    procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
     procedure CallSQLHelpWithKeyword( keyword: String );
     procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
     procedure popupQueryLoadClick( sender: TObject );
@@ -5845,6 +5845,8 @@ begin
   // Seems buggy in VT as this suddenly calls it with Column=-1 in those cases.
   // See also issue #1150
   if HitInfo.Column = NoColumn then
+    Exit;
+  if Sender.Columns[HitInfo.Column].CheckBox then
     Exit;
 
   if Sender.SortColumn <> HitInfo.Column then

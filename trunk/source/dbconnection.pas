@@ -423,7 +423,7 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual; abstract;
-      function EscapeString(Text: String; ProcessJokerChars: Boolean=False): String;
+      function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: Boolean=True): String;
       function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
       function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
@@ -1831,7 +1831,7 @@ end;
   @param boolean Escape text so it can be used in a LIKE-comparison
   @return string
 }
-function TDBConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false): String;
+function TDBConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
 var
   c1, c2, c3, c4, EscChar: Char;
 begin
@@ -1854,11 +1854,8 @@ begin
   c4 := #0;
   // TODO: SynEdit also chokes on Char($2028) and possibly Char($2029).
   Result := escChars(Result, EscChar, c1, c2, c3, c4);
-  if not ProcessJokerChars then begin
-    // Add surrounding single quotes only for non-LIKE-values
-    // because in all cases we're using ProcessLIKEChars we
-    // need to add leading and/or trailing joker-chars by hand
-    // without being escaped
+  if DoQuote then begin
+    // Add surrounding single quotes
     Result := Char(#39) + Result + Char(#39);
   end;
 end;
