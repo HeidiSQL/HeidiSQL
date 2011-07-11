@@ -3,91 +3,162 @@ unit insertfiles;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, ImgList,
-  ShellApi, Math,
-  dbconnection;
-
-type TCol = record
-  Name   : String;   // for displaying in lists
-  isBLOB : Boolean;  // to decide whether to show or not
-  Value  : String;   // for other fiels
-  quote  : Boolean;  // dito
-end;
+  Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ImgList,
+  ShellApi, Math, Graphics, ComCtrls, ToolWin,
+  dbconnection, mysql_structures, VirtualTrees, grideditlinks, SynRegExpr;
 
 type
+  TColInfo = class
+    public
+      Name: String;
+      Datatype: TDBDatatype;
+      Value: String;
+  end;
+  PColInfo = ^TColInfo;
+
+  TFileInfo = class(TObject)
+    public
+      Filename: String;
+      ImageIndex: Integer;
+      Size: Int64;
+      IsBinary: Boolean;
+  end;
+  PFileInfo = ^TFileInfo;
+
   TfrmInsertFiles = class(TForm)
-    ListViewFiles: TListView;
-    ButtonAddFiles: TButton;
-    ComboBoxDBs: TComboBox;
-    Label1: TLabel;
-    Label2: TLabel;
-    ComboBoxTables: TComboBox;
-    Label3: TLabel;
-    ComboBoxColumns: TComboBox;
-    ButtonInsert: TButton;
-    ButtonCancel: TButton;
-    ButtonRemoveFiles: TButton;
-    LabelFileCount: TLabel;
-    CheckBoxShowOnlyBlobs: TCheckBox;
+    btnInsert: TButton;
+    btnCancel: TButton;
     OpenDialog: TOpenDialog;
-    LargeImages: TImageList;
-    SmallImages: TImageList;
-    ButtonClearList: TButton;
-    GroupBox1: TGroupBox;
-    ListBoxOtherFields: TListBox;
-    CheckBoxQuote: TCheckBox;
-    Label4: TLabel;
-    ComboBoxValue: TComboBox;
+    grpSelectObject: TGroupBox;
+    Label1: TLabel;
+    comboDBs: TComboBox;
+    comboTables: TComboBox;
+    GroupBox2: TGroupBox;
     Label5: TLabel;
+    LabelFileCount: TLabel;
+    ListFiles: TVirtualStringTree;
+    ToolBar1: TToolBar;
+    btnAddFiles: TToolButton;
+    btnRemoveFiles: TToolButton;
+    btnClearFiles: TToolButton;
+    ListColumns: TVirtualStringTree;
+    lblFilecontents: TLabel;
     procedure FormShow(Sender: TObject);
-    procedure ComboBoxDBsChange(Sender: TObject);
-    procedure ComboBoxTablesChange(Sender: TObject);
-    procedure ButtonCancelClick(Sender: TObject);
+    procedure comboDBsChange(Sender: TObject);
+    procedure comboTablesChange(Sender: TObject);
     procedure Modified;
-    procedure ButtonAddFilesClick(Sender: TObject);
-    procedure ListViewFilesClick(Sender: TObject);
-    procedure ButtonRemoveFilesClick(Sender: TObject);
+    procedure btnAddFilesClick(Sender: TObject);
+    procedure btnRemoveFilesClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure ButtonClearListClick(Sender: TObject);
-    procedure DisplayColumns(Sender: TObject);
-    procedure ComboBoxColumnsChange(Sender: TObject);
-    procedure ListViewFilesKeyUp(Sender: TObject; var Key: Word;
-      Shift: TShiftState);
-    procedure ListBoxOtherFieldsClick(Sender: TObject);
-    procedure FieldChange(Sender: TObject);
-    procedure ButtonInsertClick(Sender: TObject);
-    procedure ListViewFilesDblClick(Sender: TObject);
-    procedure addfile(filename: String);
-    procedure ListViewFilesChange(Sender: TObject; Item: TListItem;
-      Change: TItemChange);
+    procedure btnInsertClick(Sender: TObject);
+    procedure AddFile(Filename: String);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure ListFilesGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure ListFilesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType; var CellText: string);
+    procedure ListFilesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure ListFilesHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+    procedure ListFilesCompareNodes(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode;
+      Column: TColumnIndex; var Result: Integer);
+    procedure ListFilesDblClick(Sender: TObject);
+    procedure ListFilesKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure ListFilesFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure ListFilesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+      var ContentRect: TRect);
+    procedure ListFilesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure ListFilesStructureChange(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Reason: TChangeReason);
+    procedure ListColumnsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure ListColumnsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType; var CellText: string);
+    procedure ListColumnsFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure GridAfterCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
+    procedure GridClick(Sender: TObject);
+    procedure GridKeyPress(Sender: TObject; var Key: Char);
+    procedure GridHandleClickOrKeyPress(Sender: TVirtualStringTree;
+      Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
+    procedure ListColumnsEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+      var Allowed: Boolean);
+    procedure ListColumnsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; out EditLink: IVTEditLink);
+    procedure ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+      NewText: string);
+    procedure ListColumnsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+    procedure FormDestroy(Sender: TObject);
   private
     FConnection: TDBConnection;
+    FSmallImages: TImageList;
+    FMaxFileSize: Int64;
   public
     { Public declarations }
-    cols : Array of TCol;
     procedure AcceptFiles( var msg : TMessage ); message WM_DROPFILES;
   end;
 
 
 implementation
 
-uses main, helpers, mysql_structures;
+uses main, helpers;
+
+const
+  ColColname = 0;
+  ColDatatype = 1;
+  ColValue = 2;
+  ColFilename = 0;
+  ColBinary = 1;
+  ColFilesize = 2;
 
 {$R *.DFM}
 
 
-{ FormShow }
+
+procedure TfrmInsertFiles.FormCreate(Sender: TObject);
+var
+ SysIL : uint;
+ SFI   : TSHFileInfo;
+begin
+  FSmallImages := TImageList.Create(Self);
+  SysIL := SHGetFileInfo('', 0, SFI, SizeOf(SFI), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
+  if SysIL <> 0 then begin
+    FSmallImages.Handle := SysIL;
+    FSmallImages.ShareImages := TRUE;
+  end;
+  ListFiles.Images := FSmallImages;
+  DragAcceptFiles(Handle , True);
+  SetWindowSizeGrip(Self.Handle, True);
+  InheritFont(Font);
+  MainForm.RestoreListSetup(ListColumns);
+  MainForm.RestoreListSetup(listFiles);
+  FixVT(ListFiles);
+  FixVT(ListColumns);
+end;
+
+
+procedure TfrmInsertFiles.FormDestroy(Sender: TObject);
+begin
+  OpenRegistry;
+  MainReg.WriteInteger(REGNAME_FILEIMPORTWINWIDTH, Width);
+  MainReg.WriteInteger(REGNAME_FILEIMPORTWINHEIGHT, Height);
+  MainForm.SaveListSetup(ListColumns);
+  MainForm.SaveListSetup(listFiles);
+end;
+
+
 procedure TfrmInsertFiles.FormShow(Sender: TObject);
 begin
+  Width := GetRegValue(REGNAME_FILEIMPORTWINWIDTH, Width);
+  Height := GetRegValue(REGNAME_FILEIMPORTWINHEIGHT, Height);
   FConnection := Mainform.ActiveConnection;
-  Caption := FConnection.Parameters.SessionName + ' - Insert files into table ...';
-  ComboBoxDBs.Items.Clear;
-  ComboBoxDBs.Items.Assign(FConnection.AllDatabases);
-  ComboBoxDBs.ItemIndex := ComboBoxDBs.Items.IndexOf(FConnection.Database);
-  if ComboBoxDBs.ItemIndex = -1 then
-    ComboBoxDBs.ItemIndex := 0;
-  ComboBoxDBsChange(self);
+  Caption := FConnection.Parameters.SessionName + ' - ' + MainForm.actInsertFiles.Caption;
+  comboDBs.Items.Clear;
+  comboDBs.Items.Assign(FConnection.AllDatabases);
+  comboDBs.ItemIndex := comboDBs.Items.IndexOf(FConnection.Database);
+  if comboDBs.ItemIndex = -1 then
+    comboDBs.ItemIndex := 0;
+  comboDBs.OnChange(Sender);
 end;
 
 
@@ -97,404 +168,550 @@ begin
 end;
 
 
-{ Read tables from selected DB }
-procedure TfrmInsertFiles.ComboBoxDBsChange(Sender: TObject);
+procedure TfrmInsertFiles.ListColumnsFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+  ColInfo: PColInfo;
+begin
+  // Free some memory
+  ColInfo := Sender.GetNodeData(Node);
+  ColInfo.Free;
+end;
+
+
+procedure TfrmInsertFiles.ListColumnsGetNodeDataSize(Sender: TBaseVirtualTree;
+  var NodeDataSize: Integer);
+begin
+  NodeDataSize := SizeOf(TColInfo);
+end;
+
+
+procedure TfrmInsertFiles.ListColumnsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+var
+  ColInfo: PColInfo;
+begin
+  // Display cell value
+  ColInfo := Sender.GetNodeData(Node);
+  case Column of
+    ColColname: CellText := ColInfo.Name;
+    ColDatatype: CellText := ColInfo.Datatype.Name;
+    ColValue: CellText := ColInfo.Value;
+  end;
+end;
+
+
+procedure TfrmInsertFiles.ListColumnsPaintText(Sender: TBaseVirtualTree;
+  const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+var
+  ColInfo: PColInfo;
+begin
+  // Datatype specific font color
+  if Column = ColDatatype then begin
+    ColInfo := Sender.GetNodeData(Node);
+    TargetCanvas.Font.Color := DatatypeCategories[Integer(ColInfo.DataType.Category)].Color;
+  end;
+end;
+
+
+procedure TfrmInsertFiles.GridAfterCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+  Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
+var
+  ImageIndex, X, Y: Integer;
+  Grid: TVirtualStringTree;
+  FileInfo: PFileInfo;
+  PaintCheckbox, CheckState: Boolean;
+begin
+  // Paint checkbox image in certain columns
+  Grid := Sender as TVirtualStringTree;
+  PaintCheckbox := False;
+  CheckState := False;
+  if (Grid = listFiles) and (Column = ColBinary) then begin
+    FileInfo := Sender.GetNodeData(Node);
+    CheckState := FileInfo.IsBinary;
+    PaintCheckbox := True;
+  end;
+
+  if PaintCheckbox then begin
+    if CheckState then
+      ImageIndex := 128
+    else
+      ImageIndex := 127;
+    X := CellRect.Left + (Grid.Header.Columns[Column].Width div 2) - (MainForm.ImageListMain.Width div 2);
+    Y := CellRect.Top + Integer(Grid.NodeHeight[Node] div 2) - (MainForm.ImageListMain.Height div 2);
+    MainForm.ImageListMain.Draw(TargetCanvas, X, Y, ImageIndex);
+  end;
+end;
+
+
+procedure TfrmInsertFiles.ListColumnsEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; var Allowed: Boolean);
+begin
+  // Editor only allowed for "value"
+  Allowed := Column = ColValue;
+end;
+
+
+procedure TfrmInsertFiles.GridKeyPress(Sender: TObject; var Key: Char);
+var
+  Grid: TVirtualStringTree;
+begin
+  // Space/click on checkbox column
+  Grid := Sender as TVirtualStringTree;
+  if Ord(Key) = VK_SPACE then
+    GridHandleClickOrKeyPress(Grid, Grid.FocusedNode, Grid.FocusedColumn, []);
+end;
+
+
+procedure TfrmInsertFiles.GridClick(Sender: TObject);
+var
+  Grid: TVirtualStringTree;
+  Click: THitInfo;
+begin
+  // Handle click event
+  Grid := Sender as TVirtualStringTree;
+  Grid.GetHitTestInfoAt(Mouse.CursorPos.X-Grid.ClientOrigin.X, Mouse.CursorPos.Y-Grid.ClientOrigin.Y, True, Click);
+  GridHandleClickOrKeyPress(Grid, Click.HitNode, Click.HitColumn, Click.HitPositions);
+end;
+
+
+procedure TfrmInsertFiles.ListColumnsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; out EditLink: IVTEditLink);
+var
+  Grid: TVirtualStringTree;
+  EnumEditor: TEnumEditorLink;
+begin
+  // Start cell editor
+  Grid := Sender as TVirtualStringTree;
+  if Column = ColValue then begin
+    EnumEditor := TEnumEditorLink.Create(Grid);
+    EnumEditor.AllowCustomText := True;
+    EnumEditor.ValueList := TStringList.Create;
+    EnumEditor.ValueList.Text := 'NULL'+CRLF+
+      '''%filecontent%'''+CRLF+
+      '''%filename%'''+CRLF+
+      '''%filepath%'''+CRLF+
+      '''%filesize%'''+CRLF+
+      '''%filedate%'''+CRLF+
+      '''%filedatetime%'''+CRLF+
+      '''%filetime%'''+CRLF+
+      'NOW()'+CRLF+
+      'LOWER(''%filename%'')'+CRLF+
+      'UPPER(''%filenname%'')'+CRLF+
+      'UNIX_TIMESTAMP(''%filedatetime%'')'+CRLF+
+      'ENCODE(''%filename%'', ''password'')';
+    EditLink := EnumEditor;
+  end;
+end;
+
+
+procedure TfrmInsertFiles.ListColumnsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; NewText: string);
+var
+  ColInfo: PColInfo;
+begin
+  // User entered new value
+  ColInfo := Sender.GetNodeData(Node);
+  if Column = ColValue then
+    ColInfo.Value := NewText;
+end;
+
+
+procedure TfrmInsertFiles.GridHandleClickOrKeyPress(Sender: TVirtualStringTree;
+  Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
+var
+  FileInfo: PFileInfo;
+  Grid: TVirtualStringTree;
+begin
+  // "quote" checkbox, cell editor disabled, instead toggle its state
+  if (not Assigned(Node)) or (Column = NoColumn) then
+    Exit;
+  Grid := Sender as TVirtualStringTree;
+  if (Grid = listFiles) and (Column = ColBinary) then begin
+    FileInfo := Grid.GetNodeData(Node);
+    FileInfo.IsBinary := not FileInfo.IsBinary;
+    Grid.OnChange(Sender, Node);
+  end;
+  Grid.InvalidateNode(Node);
+end;
+
+
+procedure TfrmInsertFiles.comboDBsChange(Sender: TObject);
 var
   DBObjects: TDBObjectList;
   i: Integer;
 begin
   // read tables from db
-  ComboBoxTables.Items.Clear;
-  DBObjects := FConnection.GetDBObjects(ComboBoxDBs.Text);
+  comboTables.Items.Clear;
+  DBObjects := FConnection.GetDBObjects(comboDBs.Text);
   for i:=0 to DBObjects.Count-1 do begin
     if DBObjects[i].NodeType in [lntTable, lntView] then
-      ComboBoxTables.Items.Add(DBObjects[i].Name);
+      comboTables.Items.Add(DBObjects[i].Name);
   end;
-  if ComboBoxTables.Items.Count > 0 then
-    ComboBoxTables.ItemIndex := 0;
-  ComboBoxTablesChange(self);
+  if comboTables.Items.Count > 0 then
+    comboTables.ItemIndex := 0;
+  comboTables.OnChange(Sender);
 end;
 
-{ Show Columns from selected table }
-procedure TfrmInsertFiles.ComboBoxTablesChange(Sender: TObject);
+
+procedure TfrmInsertFiles.comboTablesChange(Sender: TObject);
 var
   Columns: TTableColumnList;
-  i: Integer;
+  Col: TTableColumn;
+  ColInfo: TColInfo;
   DBObjects: TDBObjectList;
+  Node: PVirtualNode;
 begin
-  SetLength(cols, 0);
-  if ComboBoxTables.ItemIndex > -1 then begin
-    DBObjects := FConnection.GetDBObjects(ComboBoxDBs.Text);
+  // Populate combobox with columns from selected table
+  ListColumns.Clear;
+  if comboTables.ItemIndex > -1 then begin
+    DBObjects := FConnection.GetDBObjects(comboDBs.Text);
     Columns := TTableColumnList.Create(True);
-    FConnection.ParseTableStructure(DBObjects[ComboBoxTables.ItemIndex].CreateCode, Columns, nil, nil);
-    SetLength(cols, Columns.Count);
-    for i:=0 to Columns.Count-1 do begin
-      cols[i].Name := Columns[i].Name;
-      cols[i].isBLOB := Columns[i].DataType.Category in [dtcText, dtcBinary];
-      cols[i].Value := 'NULL';
-      cols[i].Quote := false;
+    FConnection.ParseTableStructure(DBObjects[comboTables.ItemIndex].CreateCode, Columns, nil, nil);
+    Node := nil;
+    for Col in Columns do begin
+      ColInfo := TColInfo.Create;
+      ColInfo.Name := Col.Name;
+      ColInfo.Datatype := Col.DataType;
+      ColInfo.Value := '';
+      Node := ListColumns.InsertNode(Node, amInsertAfter, PColInfo(ColInfo));
     end;
-    DisplayColumns(Sender);
+    Modified;
   end;
 end;
 
-{ display columns in combobox }
-procedure TfrmInsertFiles.DisplayColumns(Sender: TObject);
-var i : Integer;
-  sel : String;
-begin
-  sel := ComboBoxColumns.Text;
-  ComboBoxColumns.Items.Clear;
-  for i:=0 to length(cols)-1 do begin
-    if (CheckBoxShowOnlyBlobs.Checked and cols[i].isBLOB) or (not CheckBoxShowOnlyBlobs.Checked) then
-      ComboBoxColumns.Items.Add(cols[i].Name)
-  end;
-  if ComboBoxColumns.Items.Count > 0 then begin
-    if sel <> '' then
-      ComboBoxColumns.ItemIndex := ComboBoxColumns.Items.IndexOf(sel);
-    if ComboBoxColumns.ItemIndex = -1 then
-      ComboBoxColumns.ItemIndex := 0;
-  end;
-  ComboBoxColumnsChange(self);
-  Modified;
-end;
 
-
-{ Cancel! }
-procedure TfrmInsertFiles.ButtonCancelClick(Sender: TObject);
-begin
-  ModalResult := mrCancel;
-end;
-
-{ buttons need to be checked for being enabled }
 procedure TfrmInsertFiles.Modified;
 begin
-  ButtonInsert.Enabled := (ComboBoxColumns.ItemIndex > -1) and (ListViewFiles.Items.Count > 0);
+  // Buttons need to be checked for being enabled
+  btnInsert.Enabled := (ListColumns.RootNodeCount > 0) and (ListFiles.RootNodeCount > 0);
 end;
 
 
-procedure TfrmInsertFiles.addfile(filename: String);
+procedure TfrmInsertFiles.AddFile(Filename: String);
 var
-  li : TListItem;
-  filesize: Integer;
-  Info    : TSHFileInfo;
+  Info: TSHFileInfo;
+  FileInfo: TFileInfo;
+  NewNode: PVirtualNode;
+  rx: TRegExpr;
 begin
-  if DirectoryExists(filename) then Exit;
-  li := ListViewFiles.Items.Add;
-  li.Caption := filename;
-  filesize := ceil(_getfilesize(filename) / 1024);
-  li.SubItems.Add(Format('%u', [filesize]));
-  SHGetFileInfo(PChar(filename),0,Info,SizeOf(TSHFileInfo),SHGFI_SYSIconIndex or SHGFI_TYPENAME);
-  li.ImageIndex:=Info.IIcon;
+  if DirectoryExists(filename) then
+    Exit;
+  FileInfo := TFileInfo.Create;
+  FileInfo.Filename := Filename;
+  SHGetFileInfo(PChar(Filename), 0, Info, SizeOf(TSHFileInfo), SHGFI_SYSIconIndex or SHGFI_TYPENAME);
+  FileInfo.ImageIndex := Info.IIcon;
+  FileInfo.Size := _GetFileSize(Filename);
+  rx := TRegExpr.Create;
+  // Decide if file is binary by excluding common text format file extensions
+  rx.Expression := '\.(te?xt|html?|xml|cmd|bat|sql|ini|pas|php|h|conf|log|csv|reg|latex|wiki|patch)$';
+  rx.ModifierI := True;
+  FileInfo.IsBinary := not rx.Exec(Filename);
+  NewNode := ListFiles.InsertNode(ListFiles.FocusedNode, amInsertAfter, PFileInfo(FileInfo));
+  SelectNode(ListFiles, NewNode);
 end;
 
-{ Add file(s) to list }
-procedure TfrmInsertFiles.ButtonAddFilesClick(Sender: TObject);
+
+procedure TfrmInsertFiles.btnAddFilesClick(Sender: TObject);
 var
-  i : Integer;
+  i: Integer;
 begin
-  if OpenDialog.Execute then
-  begin
+  // Add file(s) to list
+  if OpenDialog.Execute then begin
     Screen.Cursor := crHourglass;
-    ListViewFiles.Items.BeginUpdate;
+    ListFiles.BeginUpdate;
     try
       for i:=0 to OpenDialog.Files.Count-1 do
-        addfile(OpenDialog.Files[i]);
+        AddFile(OpenDialog.Files[i]);
     finally
-      ListViewFiles.Items.EndUpdate;
+      ListFiles.EndUpdate;
     end;
-    ListViewFilesClick(self);
     Screen.Cursor := crDefault;
   end;
 end;
 
 
-{ files(s) have been (un)selected }
-procedure TfrmInsertFiles.ListViewFilesClick(Sender: TObject);
+procedure TfrmInsertFiles.ListFilesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+  var ContentRect: TRect);
 var
-   i: Integer;
-   kbytes : Real;
+  FileInfo: PFileInfo;
 begin
-  ButtonRemoveFiles.Enabled := ListViewFiles.SelCount > 0;
-  ButtonClearList.Enabled := ListViewFiles.Items.Count > 0;
-  kbytes := 0;
-  with LabelFileCount do
-  begin
-    for i:=0 to ListViewFiles.Items.Count-1 do
-    begin
-      if ListViewFiles.Items[i].SubItems.Count > 0 then
-      begin
-        kbytes := kbytes + strtointdef(ListViewFiles.Items[i].Subitems[0], 0);
-      end;
-    end;
-    Caption := format('%u files, %.0n KB, %u files selected.', [ListViewFiles.Items.count, kbytes, ListViewFiles.selcount]);
+  // Display bar in filesize column
+  if Column = ColFilesize then begin
+    FileInfo := Sender.GetNodeData(Node);
+    MainForm.PaintColorBar(FileInfo.Size, FMaxFileSize, TargetCanvas, CellRect);
   end;
+end;
+
+
+procedure TfrmInsertFiles.ListFilesStructureChange(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Reason: TChangeReason);
+begin
+  (Sender as TVirtualStringTree).OnChange(Sender, Node);
+end;
+
+
+procedure TfrmInsertFiles.ListFilesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+  FileInfo: PFileInfo;
+  Bytes: Int64;
+  Grid: TVirtualStringTree;
+  LNode: PVirtualNode;
+  Binaries: Int64;
+  CheckState: TCheckState;
+begin
+  // Node focus or selection has changed
+  Grid := Sender as TVirtualStringTree;
+  btnRemoveFiles.Enabled := Grid.SelectedCount > 0;
+  btnClearFiles.Enabled := Grid.RootNodeCount > 0;
+  LNode := Grid.GetFirst;
+  Bytes := 0;
+  FMaxFileSize := 0;
+  Binaries := 0;
+  while Assigned(LNode) do begin
+    FileInfo := Grid.GetNodeData(LNode);
+    Inc(Bytes, FileInfo.Size);
+    FMaxFileSize := Max(FMaxFileSize, FileInfo.Size);
+    if FileInfo.IsBinary then
+      Inc(Binaries);
+    LNode := Grid.GetNextSibling(LNode);
+  end;
+  // Set column header checkstate
+  if Binaries = 0 then
+    CheckState := csUncheckedNormal
+  else if Binaries = Grid.RootNodeCount then
+    CheckState := csCheckedNormal
+  else
+    CheckState := csMixedNormal;
+  Grid.Header.Columns[ColBinary].CheckState := CheckState;
+
+  LabelFileCount.Caption := Format('%u files, %s, %u files selected.', [Grid.RootNodeCount, FormatByteNumber(Bytes), Grid.SelectedCount]);
   Modified;
 end;
 
-{ Remove one or more files from list }
-procedure TfrmInsertFiles.ButtonRemoveFilesClick(Sender: TObject);
-var
-  i, lastdel : Integer;
+
+procedure TfrmInsertFiles.ListFilesCompareNodes(Sender: TBaseVirtualTree; Node1,
+  Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 begin
+  MainForm.AnyGridCompareNodes(Sender, Node1, Node2, Column, Result);
+end;
+
+
+procedure TfrmInsertFiles.ListFilesDblClick(Sender: TObject);
+var
+  FileInfo: PFileInfo;
+begin
+  // Run file on doubleclick
+  if Assigned(ListFiles.FocusedNode) then begin
+    FileInfo := ListFiles.GetNodeData(ListFiles.FocusedNode);
+    ShellExec(FileInfo.Filename);
+  end;
+end;
+
+
+procedure TfrmInsertFiles.ListFilesFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+var
+  FileInfo: PFileInfo;
+begin
+  // Free some memory when file gets removed
+  FileInfo := Sender.GetNodeData(Node);
+  FileInfo.Free;
+end;
+
+
+procedure TfrmInsertFiles.btnRemoveFilesClick(Sender: TObject);
+begin
+  // Remove selected or all files from list
   Screen.Cursor := crHourglass;
-  lastdel := -1;
-  ListViewFiles.Items.BeginUpdate;
-  for i:=ListViewFiles.Items.Count-1 downto 0 do
-  begin
-    if ListViewFiles.Items[i].Selected then
-    begin
-      ListViewFiles.Items[i].Delete;
-      lastdel := i;
+  if Sender = btnRemoveFiles then
+    ListFiles.DeleteSelectedNodes
+  else
+    ListFiles.Clear;
+  Screen.Cursor := crDefault;
+end;
+
+
+procedure TfrmInsertFiles.ListFilesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+var
+  FileInfo: PFileInfo;
+  Grid: TVirtualStringTree;
+begin
+  Grid := Sender as TVirtualStringTree;
+  if not (Kind in [ikNormal, ikSelected]) then
+    Exit;
+  if Column <> Grid.Header.MainColumn then
+    Exit;
+  FileInfo := Sender.GetNodeData(Node);
+  ImageIndex := FileInfo.ImageIndex;
+end;
+
+
+procedure TfrmInsertFiles.ListFilesGetNodeDataSize(Sender: TBaseVirtualTree;
+  var NodeDataSize: Integer);
+begin
+  NodeDataSize := SizeOf(TFileInfo);
+end;
+
+
+procedure TfrmInsertFiles.ListFilesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+var
+  FileInfo: PFileInfo;
+begin
+  FileInfo := Sender.GetNodeData(Node);
+  case Column of
+    ColFilename: CellText := FileInfo.Filename;
+    ColBinary: CellText := '';
+    ColFilesize: CellText := FormatByteNumber(FileInfo.Size);
+  end;
+end;
+
+
+procedure TfrmInsertFiles.ListFilesHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+var
+  Node: PVirtualNode;
+  FileInfo: PFileInfo;
+  CheckState: TCheckState;
+begin
+  // Header column click / check
+  MainForm.AnyGridHeaderClick(Sender, HitInfo);
+  CheckState := Sender.Columns[HitInfo.Column].CheckState;
+  if (HitInfo.Column = ColBinary) and (not (CheckState in [csMixedNormal, csMixedPressed])) then begin
+    Node := Sender.Treeview.GetFirst;
+    while Assigned(Node) do begin
+      FileInfo := Sender.Treeview.GetNodeData(Node);
+      FileInfo.IsBinary := CheckState in CheckedStates;
+      Node := Sender.Treeview.GetNextSibling(Node);
     end;
+    Sender.Treeview.InvalidateChildren(nil, false);
   end;
-  ListViewFiles.Items.EndUpdate;
-  if ListViewFiles.Items.count > lastdel then
-  begin
-    ListViewFiles.Selected := ListViewFiles.Items[lastdel];
-  end
-  else if ListViewFiles.Items.count > 0 then
-  begin
-    ListViewFiles.Selected := ListViewFiles.Items[lastdel-1];
-  end;
-  ListViewFiles.SetFocus;
-  ListViewFilesClick(self); // count files and (de-)activate buttons
-  Screen.Cursor := crDefault;
 end;
 
 
-{ Run only once }
-procedure TfrmInsertFiles.FormCreate(Sender: TObject);
-var
- SysIL : uint;
- SFI   : TSHFileInfo;
-
+procedure TfrmInsertFiles.ListFilesKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  LargeImages := TImageList.Create(MainForm);
-  SysIL := SHGetFileInfo('', 0, SFI, SizeOf(SFI), SHGFI_SYSICONINDEX or SHGFI_LARGEICON);
-  if SysIL <> 0 then begin
-    LargeImages.Handle := SysIL;
-    LargeImages.ShareImages := TRUE;
-  end;
-  SmallImages := TImageList.Create(MainForm);
-  SysIL := SHGetFileInfo('', 0, SFI, SizeOf(SFI), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
-  if SysIL <> 0 then begin
-    SmallImages.Handle := SysIL;
-    SmallImages.ShareImages := TRUE;
-  end;
-  ListViewFiles.LargeImages:=LargeImages;
-  ListViewFiles.SmallImages:=SmallImages;
-  DragAcceptFiles( Handle , True );
-  SetWindowSizeGrip( Self.Handle, True );
-  InheritFont(Font);
-end;
-
-
-
-{ Clear list }
-procedure TfrmInsertFiles.ButtonClearListClick(Sender: TObject);
-begin
-  Screen.Cursor := crHourglass;
-  ListViewFiles.Items.BeginUpdate;
-  ListViewFiles.Items.Clear;
-  ListViewFiles.Items.EndUpdate;
-  ListViewFilesClick(self);
-  Screen.Cursor := crDefault;
-end;
-
-{ collect all other columns }
-procedure TfrmInsertFiles.ComboBoxColumnsChange(Sender: TObject);
-var i : Integer;
-begin
-  ListBoxOtherFields.Items.BeginUpdate;
-  ListBoxOtherFields.Items.Clear;
-  for i:=0 to length(cols)-1 do
-  begin
-    if ComboBoxColumns.Text <> cols[i].Name then
-      ListBoxOtherFields.Items.Add(cols[i].Name);
-  end;
-  ListBoxOtherFields.Items.EndUpdate;
-  ListBoxOtherFieldsClick(self);
-end;
-
-{ remove selected by pressing Delete }
-procedure TfrmInsertFiles.ListViewFilesKeyUp(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
-begin
+  // Remove focused file
   if Key = VK_DELETE then
-    ButtonRemoveFilesClick(self);
+    btnRemoveFiles.OnClick(btnRemoveFiles);
 end;
 
-{ other field selected => display value and quote }
-procedure TfrmInsertFiles.ListBoxOtherFieldsClick(Sender: TObject);
-var
-  i : Integer;
-  enable : Boolean;
-begin
-  enable := ListBoxOtherFields.ItemIndex > -1;
-  ComboBoxValue.Enabled := enable;
-  CheckBoxQuote.Enabled := enable;
-  if not enable then exit;
-  for i:=0 to length(cols)-1 do
-  begin
-    if ListBoxOtherFields.Items[ListBoxOtherFields.ItemIndex] = cols[i].Name then
-      break;
-  end;
-  ComboBoxValue.Text := cols[i].Value;
-  CheckBoxQuote.Checked := cols[i].Quote;
-end;
 
-{ store value and quote of field }
-procedure TfrmInsertFiles.FieldChange(Sender: TObject);
-var i : Integer;
-begin
-  if ListBoxOtherFields.ItemIndex = -1 then exit;
-  for i:=0 to length(cols)-1 do
-    if ListBoxOtherFields.Items[ListBoxOtherFields.ItemIndex] = cols[i].Name then break;
-  cols[i].Value := ComboBoxValue.Text;
-  cols[i].Quote := CheckBoxQuote.Checked;
-end;
-
-{ ok, let's rock! }
-procedure TfrmInsertFiles.ButtonInsertClick(Sender: TObject);
+procedure TfrmInsertFiles.btnInsertClick(Sender: TObject);
 const
   ChunkSize = 131072;
-
 var
-  i, j: Integer;
-  value, filename: String;
-  dt: TDateTime;
+  Value, sql, FileContent: String;
+  FileDate: TDateTime;
   y, m, d, h, mi, s, ms: Word;
-  FileStream: TFileStream;
-  readBuf: AnsiString;
-  bytesRead: Integer;
-  sql, data: String;
+  Node, ColNode, DoneNode: PVirtualNode;
+  FileInfo: PFileInfo;
+  ColInfo: PColInfo;
+  FileReadDone: Boolean;
+  FileSize: Int64;
 begin
+  // Insert files
   Screen.Cursor := crHourglass;
-  EnableProgressBar(ListViewFiles.Items.Count);
+  EnableProgressBar(ListFiles.RootNodeCount);
 
-  try
-    for i:=0 to ListViewFiles.Items.Count-1 do begin
-      filename := ListViewFiles.Items[i].Caption;
-      ListViewFiles.ClearSelection;
-      ListViewFiles.ItemFocused := ListViewFiles.Items[i];
-      ListViewFiles.Selected := ListViewFiles.ItemFocused;
-      ListViewFiles.ItemFocused.MakeVisible(False);
-      ListViewFiles.Repaint;
-      sql := 'INSERT INTO '+FConnection.QuoteIdent(ComboBoxDBs.Text)+'.'+FConnection.QuoteIdent(ComboBoxTables.Text) +
-        ' (' + FConnection.QuoteIdent(ComboBoxColumns.Text);
-      for j:=0 to length(cols)-1 do begin
-        if cols[j].Name = ComboBoxColumns.Text then
-          Continue;
-        sql := sql + ', ' + FConnection.QuoteIdent(cols[j].Name);
-      end;
-      FileStream := TFileStream.Create( filename, fmShareDenyWrite );
-      try
-        data := '_binary 0x';
-        while FileStream.Position < FileStream.Size do begin
-          // Read characters from file.
-          // Data is imported as-is (byte for byte).
-          // How the server interprets the data is decided by the
-          // character set on the column that is imported into.
-          // Set the character set on the column before importing the file.
-          //
-          // TODO: Indicate this character set on the GUI.
-          //
-          SetLength(readBuf, ChunkSize);
-          bytesRead := FileStream.Read(PAnsiChar(readBuf)^, ChunkSize);
-          SetLength(readBuf, bytesRead);
-          data := data + BinToWideHex(readBuf);
-        end;
-      finally
-        FileStream.Free;
-      end;
-      sql := sql + ') VALUES ('+data+', ';
+  Node := ListFiles.GetFirst;
+  while Assigned(Node) do begin
+    ListFiles.FocusedNode := Node;
+    FileInfo := ListFiles.GetNodeData(Node);
+    FileSize := _GetFileSize(FileInfo.Filename);
+    FileReadDone := False;
+    sql := 'INSERT INTO '+FConnection.QuoteIdent(comboDBs.Text)+'.'+FConnection.QuoteIdent(comboTables.Text) +
+      ' (';
+    ColNode := ListColumns.GetFirst;
+    while Assigned(ColNode) do begin
+      ColInfo := ListColumns.GetNodeData(ColNode);
+      if ColInfo.Value <> '' then
+        sql := sql + FConnection.QuoteIdent(ColInfo.Name) + ', ';
+      ColNode := ListColumns.GetNextSibling(ColNode);
+    end;
+    Delete(sql, Length(sql)-1, 2);
+    sql := sql + ') VALUES (';
 
-      for j:=0 to Length(cols)-1 do begin
-        if cols[j].Name = ComboBoxColumns.Text then
-          Continue;
-        Value := cols[j].Value;
+    ColNode := ListColumns.GetFirst;
+    while Assigned(ColNode) do begin
+      ColInfo := ListColumns.GetNodeData(ColNode);
+      if ColInfo.Value <> '' then begin
+        Value := ColInfo.Value;
         if pos('%', Value) > 0 then begin
-          //Value := stringreplace(Value, '%filesize%', inttostr(size), [rfReplaceAll]);
-          Value := stringreplace(Value, '%filename%', ExtractFileName(filename), [rfReplaceAll]);
-          Value := stringreplace(Value, '%filepath%', ExtractFilePath(filename), [rfReplaceAll]);
-          FileAge(filename, dt);
-          DecodeDate(dt, y, m, d);
-          DecodeTime(dt, h, mi, s, ms);
-          Value := stringreplace(Value, '%filedate%', Format('%.4d-%.2d-%.2d', [y,m,d]), [rfReplaceAll]);
-          Value := stringreplace(Value, '%filedatetime%', Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), [rfReplaceAll]);
-          Value := stringreplace(Value, '%filetime%', Format('%.2d:%.2d:%.2d', [h,mi,s]), [rfReplaceAll]);
+
+          if Pos('%filecontent%', ColInfo.Value) > 0 then begin
+            if not FileReadDone then begin
+              // Import binaries as-is (byte for byte), and auto-detect encoding of text files.
+              if FileInfo.IsBinary then
+                FileContent := '_binary 0x' + BinToWideHex(ReadBinaryFile(FileInfo.Filename, 0))
+              else
+                FileContent := esc(ReadTextfile(FileInfo.Filename, nil));
+              FileReadDone := True;
+            end;
+            Value := FileContent;
+          end else begin
+            Value := StringReplace(Value, '%filesize%', IntToStr(FileSize), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filename%', esc(ExtractFileName(FileInfo.Filename), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filepath%', esc(ExtractFilePath(FileInfo.Filename), False, False), [rfReplaceAll]);
+            FileAge(FileInfo.Filename, FileDate);
+            DecodeDate(FileDate, y, m, d);
+            DecodeTime(FileDate, h, mi, s, ms);
+            Value := StringReplace(Value, '%filedate%', esc(Format('%.4d-%.2d-%.2d', [y,m,d]), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filedatetime%', esc(Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filetime%', esc(Format('%.2d:%.2d:%.2d', [h,mi,s]), False, False), [rfReplaceAll]);
+          end;
         end;
-        if cols[j].Quote then
-          Value := esc(Value);
         sql := sql + Value + ', ';
       end;
-      // Strip last comma + space
-      sql := copy(sql, 1, length(sql)-2);
-      sql := sql + ')';
+      ColNode := ListColumns.GetNextSibling(ColNode);
+    end;
+    // Strip last comma + space
+    Delete(sql, Length(sql)-1, 2);
+    sql := sql + ')';
+    try
       FConnection.Query(sql);
       Mainform.ProgressBarStatus.StepIt;
       Mainform.ProgressBarStatus.Repaint;
+    except
+      on E:EDatabaseError do begin
+        Screen.Cursor := crDefault;
+        ErrorDialog(E.Message);
+        ModalResult := mrNone;
+        break;
+      end;
     end;
-    Screen.Cursor := crDefault;
-    Mainform.ProgressBarStatus.Hide;
-    Close;
-  except
-    on E:Exception do begin
-      Screen.Cursor := crDefault;
-      ErrorDialog(E.Message);
-      Mainform.ProgressBarStatus.Hide;
-    end;
+    DoneNode := Node;
+    Node := ListFiles.GetNextSibling(Node);
+    ListFiles.DeleteNode(DoneNode);
   end;
+  Screen.Cursor := crDefault;
+  Mainform.ProgressBarStatus.Hide;
 end;
 
-{ Execute selected file }
-procedure TfrmInsertFiles.ListViewFilesDblClick(Sender: TObject);
-begin
-  if ListViewFiles.Selected <> nil then
-    ShellExec( ListViewFiles.Selected.Caption );
-end;
 
-{ for file-dropping into listview }
-procedure TfrmInsertFiles.AcceptFiles( var msg : TMessage );
+procedure TfrmInsertFiles.AcceptFiles(var msg : TMessage);
 const
-  cnMaxFileNameLen = 255;
+  MaxFileNameLen = 255;
 var
-  i,
-  nCount     : integer;
-  acFileName : array [0..cnMaxFileNameLen] of char;
+  i, FileCount: integer;
+  FileName: array [0..MaxFileNameLen] of char;
 begin
-  // find out how many files we're accepting
+  // Files dropped onto form
   Screen.Cursor := crHourglass;
-  nCount := DragQueryFile( msg.WParam,
-                           $FFFFFFFF,
-                           acFileName,
-                           cnMaxFileNameLen );
-
-  // query Windows one at a time for the file name
-  ListViewFiles.Items.BeginUpdate;
+  FileCount := DragQueryFile(msg.WParam, $FFFFFFFF, FileName, MaxFileNameLen);
+  // Query Windows one at a time for the file name
+  ListFiles.BeginUpdate;
   try
-    for i := 0 to nCount-1 do
-    begin
-      DragQueryFile( msg.WParam, i, acFileName, cnMaxFileNameLen );
-      // do your thing with the acFileName
-      // MessageBox( Handle, acFileName, '', MB_OK );
-      addfile(acFileName);
+    for i:=0 to FileCount-1 do begin
+      DragQueryFile(msg.WParam, i, FileName, MaxFileNameLen);
+      AddFile(FileName);
     end;
   finally
-    ListViewFiles.Items.EndUpdate;
+    ListFiles.EndUpdate;
     Screen.Cursor := crDefault;
   end;
-
-  // let Windows know that you're done
-  DragFinish( msg.WParam );
+  DragFinish(msg.WParam);
 end;
 
-
-procedure TfrmInsertFiles.ListViewFilesChange(Sender: TObject;
-  Item: TListItem; Change: TItemChange);
-begin
-  ListViewFilesClick(self);
-end;
 
 end.

@@ -115,7 +115,7 @@ begin
     Result := TDBObject.Create(DBObj.Connection);
     Result.Assign(DBObj^);
     if Result.NodeType = lntDb then
-      Result.Database := esc(Result.Database, True);
+      Result.Database := esc(Result.Database, True, False);
     if Result.NodeType = lntNone then begin
       Result.NodeType := lntDb;
       Result.Database := '%';
@@ -136,9 +136,9 @@ begin
   if btnOK.Enabled then begin
     case Sender.GetNodeLevel(Node) of
       0: editDb.Text := '%';
-      1: editDb.Text := esc(Tree.Text[Node, 0], True);
-      2: editDb.Text := esc(Tree.Text[Node.Parent, 0], True);
-      3: editDb.Text := esc(Tree.Text[Node.Parent.Parent, 0], True);
+      1: editDb.Text := esc(Tree.Text[Node, 0], True, False);
+      2: editDb.Text := esc(Tree.Text[Node.Parent, 0], True, False);
+      3: editDb.Text := esc(Tree.Text[Node.Parent.Parent, 0], True, False);
     end;
   end;
   // Indicate automatic changes only
