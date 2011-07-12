@@ -30,12 +30,12 @@ type
     btnCancel: TButton;
     OpenDialog: TOpenDialog;
     grpSelectObject: TGroupBox;
-    Label1: TLabel;
+    lblTable: TLabel;
     comboDBs: TComboBox;
     comboTables: TComboBox;
     GroupBox2: TGroupBox;
-    Label5: TLabel;
-    LabelFileCount: TLabel;
+    lblDropHint: TLabel;
+    lblFileCount: TLabel;
     ListFiles: TVirtualStringTree;
     ToolBar1: TToolBar;
     btnAddFiles: TToolButton;
@@ -485,7 +485,7 @@ begin
     CheckState := csMixedNormal;
   Grid.Header.Columns[ColBinary].CheckState := CheckState;
 
-  LabelFileCount.Caption := Format('%u files, %s, %u files selected.', [Grid.RootNodeCount, FormatByteNumber(Bytes), Grid.SelectedCount]);
+  lblFileCount.Caption := Format('%u files, %s, %u files selected.', [Grid.RootNodeCount, FormatByteNumber(Bytes), Grid.SelectedCount]);
   Modified;
 end;
 

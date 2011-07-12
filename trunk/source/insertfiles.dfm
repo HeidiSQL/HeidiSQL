@@ -59,7 +59,7 @@ object frmInsertFiles: TfrmInsertFiles
     DesignSize = (
       495
       234)
-    object Label1: TLabel
+    object lblTable: TLabel
       Left = 10
       Top = 26
       Width = 81
@@ -154,18 +154,18 @@ object frmInsertFiles: TfrmInsertFiles
     DesignSize = (
       495
       204)
-    object Label5: TLabel
+    object lblDropHint: TLabel
       Left = 248
-      Top = 14
-      Width = 236
-      Height = 25
+      Top = 22
+      Width = 238
+      Height = 13
       Anchors = [akLeft, akTop, akRight]
+      AutoSize = False
       Caption = 
         'Hint: You can drop files from your Windows Explorer onto the lis' +
         't.'
-      WordWrap = True
     end
-    object LabelFileCount: TLabel
+    object lblFileCount: TLabel
       Left = 10
       Top = 179
       Width = 28
