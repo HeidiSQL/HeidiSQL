@@ -168,13 +168,18 @@ begin
       Charset := MainForm.GetCharsetByEncoding(Encoding);
       // Detect db charset
       DefCharset := 'Let server/database decide';
-      dbcreate := FConnection.GetVar('SHOW CREATE DATABASE '+FConnection.QuoteIdent(comboDatabase.Text), 1);
-      rx := TRegExpr.Create;
-      rx.ModifierG := True;
-      rx.Expression := 'CHARACTER SET (\w+)';
-      if rx.Exec(dbcreate) then
-        DefCharset := DefCharset + ' ('+rx.Match[1]+')';
-      comboEncoding.Items.Add(DefCharset);
+      try
+        dbcreate := FConnection.GetVar('SHOW CREATE DATABASE '+FConnection.QuoteIdent(comboDatabase.Text), 1);
+        rx := TRegExpr.Create;
+        rx.ModifierG := True;
+        rx.Expression := 'CHARACTER SET (\w+)';
+        if rx.Exec(dbcreate) then
+          DefCharset := DefCharset + ' ('+rx.Match[1]+')';
+        comboEncoding.Items.Add(DefCharset);
+      except
+        // Supress error dialog when user does not have privs for above SHOW query
+        // see http://www.heidisql.com/forum.php?t=8862
+      end;
       CharsetTable := FConnection.CharsetTable;
       CharsetTable.First;
       while not CharsetTable.Eof do begin
