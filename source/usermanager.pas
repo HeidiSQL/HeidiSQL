@@ -14,6 +14,7 @@ uses
 type
   TUser = class(TObject)
     Username, Host, Password: String;
+    MaxQueries, MaxUpdates, MaxConnections, MaxUserConnections: Integer;
   end;
   PUser = ^TUser;
   TUserList = TObjectList<TUser>;
@@ -45,15 +46,6 @@ type
     tlbObjects: TToolBar;
     btnAddObject: TToolButton;
     treePrivs: TVirtualStringTree;
-    grpCredentials: TGroupBox;
-    lblFromHost: TLabel;
-    lblPassword: TLabel;
-    lblUsername: TLabel;
-    lblRepeatPassword: TLabel;
-    editFromHost: TButtonedEdit;
-    editUsername: TEdit;
-    editPassword: TButtonedEdit;
-    editRepeatPassword: TEdit;
     btnDiscard: TButton;
     lblUsers: TLabel;
     ToolBar1: TToolBar;
@@ -79,6 +71,29 @@ type
     menuDummy3: TMenuItem;
     menuDummy4: TMenuItem;
     menuDummy5: TMenuItem;
+    PageControlSettings: TPageControl;
+    tabCredentials: TTabSheet;
+    tabLimitations: TTabSheet;
+    lblUsername: TLabel;
+    lblFromHost: TLabel;
+    lblPassword: TLabel;
+    lblRepeatPassword: TLabel;
+    editRepeatPassword: TEdit;
+    editPassword: TButtonedEdit;
+    editFromHost: TButtonedEdit;
+    editUsername: TEdit;
+    lblMaxQueries: TLabel;
+    lblMaxUpdates: TLabel;
+    lblMaxConnections: TLabel;
+    lblMaxUserConnections: TLabel;
+    editMaxQueries: TEdit;
+    editMaxUpdates: TEdit;
+    editMaxConnections: TEdit;
+    editMaxUserConnections: TEdit;
+    udMaxQueries: TUpDown;
+    udMaxUpdates: TUpDown;
+    udMaxConnections: TUpDown;
+    udMaxUserConnections: TUpDown;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -123,6 +138,7 @@ type
     procedure menuPasswordInsert(Sender: TObject);
     procedure editPasswordChange(Sender: TObject);
     procedure listUsersHotChange(Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode);
+    procedure udMaxQueriesClick(Sender: TObject; Button: TUDBtnType);
   private
     { Private declarations }
     FUsers: TUserList;
@@ -325,8 +341,25 @@ end;
 
 
 procedure TUserManagerForm.Modification(Sender: TObject);
+var
+  User: PUser;
 begin
-  Modified := True;
+  if Assigned(listUsers.FocusedNode) and (TWinControl(Sender).Parent = tabLimitations) then begin
+    // Any TUpDown triggers a OnChange event on its TEdit when the UpDown gets painted
+    User := listUsers.GetNodeData(listUsers.FocusedNode);
+    Modified := Modified
+      or (editMaxQueries.Text <> IntToStr(User.MaxQueries))
+      or (editMaxUpdates.Text <> IntToStr(User.MaxUpdates))
+      or (editMaxConnections.Text <> IntToStr(User.MaxConnections))
+      or (editMaxUserConnections.Text <> IntToStr(User.MaxUserConnections));
+  end else
+    Modified := True;
+end;
+
+
+procedure TUserManagerForm.udMaxQueriesClick(Sender: TObject; Button: TUDBtnType);
+begin
+  Modification(Sender);
 end;
 
 
@@ -385,7 +418,7 @@ procedure TUserManagerForm.listUsersFocusChanged(Sender: TBaseVirtualTree; Node:
 var
   P, Ptmp, PCol: TPrivObj;
   User: PUser;
-  UserHost: String;
+  UserHost, WithClause: String;
   Grants, AllPNames, Cols: TStringList;
   rxA, rxB: TRegExpr;
   i, j: Integer;
@@ -400,6 +433,10 @@ begin
   editPassword.Clear;
   editPassword.TextHint := '';
   editRepeatPassword.Clear;
+  udMaxQueries.Position := 0;
+  udMaxUpdates.Position := 0;
+  udMaxConnections.Position := 0;
+  udMaxUserConnections.Position := 0;
 
   if UserSelected then begin
     User := Sender.GetNodeData(Node);
@@ -438,7 +475,7 @@ begin
       GRANT SELECT ON `avtoserver`.* TO 'newbie'@'%'
       GRANT SELECT, SELECT (Enter (column) name), INSERT, INSERT (Enter (column) name), UPDATE, UPDATE (Enter (column) name), DELETE, CREATE ON `avtoserver`.`avtomodel` TO 'newbie'@'%'
       GRANT EXECUTE, ALTER ROUTINE ON PROCEDURE `pulle`.`f_procedure` TO 'newbie'@'%' }
-      rxA.Expression := '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?`?([^`.]+)`?\.`?([^`]+)`?\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+WITH.+GRANT\s+OPTION)?';
+      rxA.Expression := '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?`?([^`.]+)`?\.`?([^`]+)`?\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+WITH.+GRANT\s+OPTION)?(.*)$';
       if rxA.Exec(Grants[i]) then begin
         P := TPrivObj.Create;
         P.GrantCode := Grants[i];
@@ -522,6 +559,34 @@ begin
           P.OrgPrivs.Add('GRANT');
         if (P.OrgPrivs.Count = 0) and (P.DBObj.NodeType = lntTable) then
           FPrivObjects.Remove(P);
+
+        // WITH MAX_QUERIES_PER_HOUR 20
+        //      MAX_UPDATES_PER_HOUR 10
+        //      MAX_CONNECTIONS_PER_HOUR 5
+        //      MAX_USER_CONNECTIONS 2;
+        WithClause := rxA.Match[10];
+        if WithClause <> '' then begin
+          User.MaxQueries := 0;
+          User.MaxUpdates := 0;
+          User.MaxConnections := 0;
+          User.MaxUserConnections := 0;
+          rxA.Expression := '\bMAX_QUERIES_PER_HOUR\s+(\d+)\b';
+          if rxA.Exec(WithClause) then
+            User.MaxQueries := MakeInt(rxA.Match[1]);
+          rxA.Expression := '\bMAX_UPDATES_PER_HOUR\s+(\d+)\b';
+          if rxA.Exec(WithClause) then
+            User.MaxUpdates := MakeInt(rxA.Match[1]);
+          rxA.Expression := '\bMAX_CONNECTIONS_PER_HOUR\s+(\d+)\b';
+          if rxA.Exec(WithClause) then
+            User.MaxConnections := MakeInt(rxA.Match[1]);
+          rxA.Expression := '\bMAX_USER_CONNECTIONS\s+(\d+)\b';
+          if rxA.Exec(WithClause) then
+            User.MaxUserConnections := MakeInt(rxA.Match[1]);
+          udMaxQueries.Position := User.MaxQueries;
+          udMaxUpdates.Position := User.MaxUpdates;
+          udMaxConnections.Position := User.MaxConnections;
+          udMaxUserConnections.Position := User.MaxUserConnections;
+        end;
       end;
     end;
 
@@ -564,7 +629,22 @@ begin
   editPassword.Enabled := UserSelected;
   lblRepeatPassword.Enabled := UserSelected;
   editRepeatPassword.Enabled := UserSelected;
-  grpCredentials.Enabled := UserSelected;
+  tabCredentials.Enabled := UserSelected;
+  lblMaxQueries.Enabled := UserSelected and (FConnection.ServerVersionInt >= 40002);
+
+  tabLimitations.Enabled := UserSelected;
+  editMaxQueries.Enabled := lblMaxQueries.Enabled;
+  udMaxQueries.Enabled := lblMaxQueries.Enabled;
+  lblMaxUpdates.Enabled := lblMaxQueries.Enabled;
+  editMaxUpdates.Enabled := lblMaxQueries.Enabled;
+  udMaxUpdates.Enabled := lblMaxQueries.Enabled;
+  lblMaxConnections.Enabled := lblMaxQueries.Enabled;
+  editMaxConnections.Enabled := lblMaxQueries.Enabled;
+  udMaxConnections.Enabled := lblMaxQueries.Enabled;
+  lblMaxUserConnections.Enabled := UserSelected and (FConnection.ServerVersionInt >= 50003);
+  editMaxUserConnections.Enabled := lblMaxUserConnections.Enabled;
+  udMaxUserConnections.Enabled := lblMaxUserConnections.Enabled;
+
   btnAddObject.Enabled := UserSelected;
   btnDeleteUser.Enabled := UserSelected;
   btnCloneUser.Enabled := UserSelected and (not FAdded);
@@ -912,7 +992,7 @@ var
   UserHost, OrgUserHost, Create, Table, Revoke, Grant, OnObj: String;
   User: TUser;
   FocusedUser: PUser;
-  Tables: TStringList;
+  Tables, WithClauses: TStringList;
   P: TPrivObj;
   i: Integer;
   PasswordSet: Boolean;
@@ -991,24 +1071,41 @@ begin
       end;
 
       // Grant privileges. Must be applied with USAGE for added users without specific privs.
-      if P.Added or (P.AddedPrivs.Count > 0) then begin
-        Grant := '';
-        for i:=0 to P.AddedPrivs.Count-1 do begin
-          if P.AddedPrivs[i] = 'GRANT' then
-            Continue;
-          Grant := Grant + P.AddedPrivs[i];
-          if P.DBObj.NodeType = lntColumn then
-            Grant := Grant + '('+P.DBObj.QuotedColumn+')';
-          Grant := Grant + ', ';
-        end;
-        Delete(Grant, Length(Grant)-1, 1);
-        if Grant = '' then
-          Grant := 'USAGE';
-        Grant := 'GRANT ' + Grant + ' ON ' + OnObj + ' TO ' + OrgUserHost;
-        if P.AddedPrivs.IndexOf('GRANT') > -1 then
-          Grant := Grant + ' WITH GRANT OPTION';
-        FConnection.Query(Grant);
+      Grant := '';
+      for i:=0 to P.AddedPrivs.Count-1 do begin
+        if P.AddedPrivs[i] = 'GRANT' then
+          Continue;
+        Grant := Grant + P.AddedPrivs[i];
+        if P.DBObj.NodeType = lntColumn then
+          Grant := Grant + '('+P.DBObj.QuotedColumn+')';
+        Grant := Grant + ', ';
       end;
+      Delete(Grant, Length(Grant)-1, 1);
+      if Grant = '' then
+        Grant := 'USAGE';
+      Grant := 'GRANT ' + Grant + ' ON ' + OnObj + ' TO ' + OrgUserHost;
+
+      WithClauses := TStringList.Create;
+      if P.AddedPrivs.IndexOf('GRANT') > -1 then
+        WithClauses.Add('GRANT OPTION');
+      if P.DBObj.NodeType = lntNone then begin
+        // Apply resource limits only to global privilege
+        if udMaxQueries.Position <> FocusedUser.MaxQueries then
+          WithClauses.Add('MAX_QUERIES_PER_HOUR '+IntToStr(udMaxQueries.Position));
+        if udMaxUpdates.Position <> FocusedUser.MaxUpdates then
+          WithClauses.Add('MAX_UPDATES_PER_HOUR '+IntToStr(udMaxUpdates.Position));
+        if udMaxConnections.Position <> FocusedUser.MaxConnections then
+          WithClauses.Add('MAX_CONNECTIONS_PER_HOUR '+IntToStr(udMaxConnections.Position));
+        if udMaxUserConnections.Position <> FocusedUser.MaxUserConnections then
+          WithClauses.Add('MAX_USER_CONNECTIONS '+IntToStr(udMaxUserConnections.Position));
+      end;
+      if WithClauses.Count > 0 then
+        Grant := Grant + ' WITH ' + ImplodeStr(' ', WithClauses);
+
+      if P.Added or (P.AddedPrivs.Count > 0) or (WithClauses.Count > 0) then
+        FConnection.Query(Grant);
+
+      WithClauses.Free;
     end;
 
     // Set password
