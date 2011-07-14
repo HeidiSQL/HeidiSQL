@@ -184,7 +184,7 @@ object UserManagerForm: TUserManagerForm
     TabOrder = 1
     object tlbObjects: TToolBar
       Left = 0
-      Top = 129
+      Top = 145
       Width = 286
       Height = 22
       AutoSize = True
@@ -219,9 +219,9 @@ object UserManagerForm: TUserManagerForm
     end
     object treePrivs: TVirtualStringTree
       Left = 0
-      Top = 151
+      Top = 167
       Width = 286
-      Height = 165
+      Height = 149
       Align = alClient
       Header.AutoSizeIndex = 0
       Header.DefaultHeight = 17
@@ -241,94 +241,221 @@ object UserManagerForm: TUserManagerForm
       OnInitNode = treePrivsInitNode
       Columns = <>
     end
-    object grpCredentials: TGroupBox
+    object PageControlSettings: TPageControl
       Left = 0
       Top = 0
       Width = 286
-      Height = 129
+      Height = 145
+      ActivePage = tabCredentials
       Align = alTop
-      Caption = 'Credentials'
       TabOrder = 0
-      DesignSize = (
-        286
-        129)
-      object lblFromHost: TLabel
-        Left = 6
-        Top = 47
-        Width = 52
-        Height = 13
-        Caption = 'From &host:'
-        FocusControl = editFromHost
+      object tabCredentials: TTabSheet
+        Caption = 'Credentials'
+        DesignSize = (
+          278
+          117)
+        object lblUsername: TLabel
+          Left = 3
+          Top = 10
+          Width = 55
+          Height = 13
+          Caption = 'User &name:'
+        end
+        object lblFromHost: TLabel
+          Left = 3
+          Top = 37
+          Width = 52
+          Height = 13
+          Caption = 'From &host:'
+          FocusControl = editFromHost
+        end
+        object lblPassword: TLabel
+          Left = 3
+          Top = 64
+          Width = 50
+          Height = 13
+          Caption = '&Password:'
+          FocusControl = editPassword
+        end
+        object lblRepeatPassword: TLabel
+          Left = 3
+          Top = 91
+          Width = 88
+          Height = 13
+          Caption = 'Repeat password:'
+          FocusControl = editRepeatPassword
+        end
+        object editRepeatPassword: TEdit
+          Left = 106
+          Top = 88
+          Width = 169
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          PasswordChar = '*'
+          TabOrder = 3
+          OnChange = Modification
+        end
+        object editPassword: TButtonedEdit
+          Left = 106
+          Top = 61
+          Width = 169
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          Images = MainForm.ImageListMain
+          PasswordChar = '*'
+          RightButton.DropDownMenu = menuPassword
+          RightButton.Hint = 'Select random password'
+          RightButton.ImageIndex = 75
+          RightButton.Visible = True
+          TabOrder = 2
+          OnChange = editPasswordChange
+        end
+        object editFromHost: TButtonedEdit
+          Left = 106
+          Top = 34
+          Width = 169
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          Images = MainForm.ImageListMain
+          RightButton.DropDownMenu = menuHost
+          RightButton.ImageIndex = 75
+          RightButton.Visible = True
+          TabOrder = 1
+          OnChange = Modification
+        end
+        object editUsername: TEdit
+          Left = 106
+          Top = 7
+          Width = 169
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 0
+          OnChange = Modification
+        end
       end
-      object lblPassword: TLabel
-        Left = 6
-        Top = 74
-        Width = 50
-        Height = 13
-        Caption = '&Password:'
-        FocusControl = editPassword
-      end
-      object lblUsername: TLabel
-        Left = 6
-        Top = 20
-        Width = 55
-        Height = 13
-        Caption = 'User &name:'
-      end
-      object lblRepeatPassword: TLabel
-        Left = 6
-        Top = 101
-        Width = 88
-        Height = 13
-        Caption = 'Repeat password:'
-        FocusControl = editRepeatPassword
-      end
-      object editFromHost: TButtonedEdit
-        Left = 109
-        Top = 44
-        Width = 169
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.ImageListMain
-        RightButton.DropDownMenu = menuHost
-        RightButton.ImageIndex = 75
-        RightButton.Visible = True
-        TabOrder = 1
-        OnChange = Modification
-      end
-      object editUsername: TEdit
-        Left = 109
-        Top = 17
-        Width = 169
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        TabOrder = 0
-        OnChange = Modification
-      end
-      object editPassword: TButtonedEdit
-        Left = 109
-        Top = 71
-        Width = 169
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.ImageListMain
-        PasswordChar = '*'
-        RightButton.DropDownMenu = menuPassword
-        RightButton.Hint = 'Select random password'
-        RightButton.ImageIndex = 75
-        RightButton.Visible = True
-        TabOrder = 2
-        OnChange = editPasswordChange
-      end
-      object editRepeatPassword: TEdit
-        Left = 109
-        Top = 98
-        Width = 169
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        PasswordChar = '*'
-        TabOrder = 3
-        OnChange = Modification
+      object tabLimitations: TTabSheet
+        Caption = 'Limitations'
+        ImageIndex = 1
+        DesignSize = (
+          278
+          117)
+        object lblMaxQueries: TLabel
+          Left = 3
+          Top = 10
+          Width = 85
+          Height = 13
+          Caption = 'Queries per hour:'
+        end
+        object lblMaxUpdates: TLabel
+          Left = 3
+          Top = 37
+          Width = 88
+          Height = 13
+          Caption = 'Updates per hour:'
+        end
+        object lblMaxConnections: TLabel
+          Left = 3
+          Top = 64
+          Width = 107
+          Height = 13
+          Caption = 'Connections per hour:'
+        end
+        object lblMaxUserConnections: TLabel
+          Left = 3
+          Top = 91
+          Width = 127
+          Height = 13
+          Caption = 'Simultaneous connections:'
+        end
+        object editMaxQueries: TEdit
+          Left = 162
+          Top = 7
+          Width = 97
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          NumbersOnly = True
+          TabOrder = 0
+          Text = '0'
+          OnChange = Modification
+        end
+        object editMaxUpdates: TEdit
+          Left = 162
+          Top = 34
+          Width = 97
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          NumbersOnly = True
+          TabOrder = 2
+          Text = '0'
+          OnChange = Modification
+        end
+        object editMaxConnections: TEdit
+          Left = 162
+          Top = 61
+          Width = 97
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          NumbersOnly = True
+          TabOrder = 4
+          Text = '0'
+          OnChange = Modification
+        end
+        object editMaxUserConnections: TEdit
+          Left = 162
+          Top = 88
+          Width = 97
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          NumbersOnly = True
+          TabOrder = 6
+          Text = '0'
+          OnChange = Modification
+        end
+        object udMaxQueries: TUpDown
+          Left = 259
+          Top = 7
+          Width = 17
+          Height = 21
+          Anchors = [akTop, akRight]
+          Associate = editMaxQueries
+          Max = 2147483647
+          TabOrder = 1
+          Thousands = False
+          OnClick = udMaxQueriesClick
+        end
+        object udMaxUpdates: TUpDown
+          Left = 259
+          Top = 34
+          Width = 17
+          Height = 21
+          Anchors = [akTop, akRight]
+          Associate = editMaxUpdates
+          Max = 2147483647
+          TabOrder = 3
+          Thousands = False
+        end
+        object udMaxConnections: TUpDown
+          Left = 259
+          Top = 61
+          Width = 17
+          Height = 21
+          Anchors = [akTop, akRight]
+          Associate = editMaxConnections
+          Max = 2147483647
+          TabOrder = 5
+          Thousands = False
+        end
+        object udMaxUserConnections: TUpDown
+          Left = 259
+          Top = 88
+          Width = 17
+          Height = 21
+          Anchors = [akTop, akRight]
+          Associate = editMaxUserConnections
+          Max = 2147483647
+          TabOrder = 7
+          Thousands = False
+        end
       end
     end
   end
