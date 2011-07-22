@@ -201,7 +201,7 @@ begin
   FixVT(treePrivs);
   Mainform.RestoreListSetup(listUsers);
   PrivsRead := Explode(',', 'SELECT,SHOW VIEW,SHOW DATABASES,PROCESS,EXECUTE');
-  PrivsWrite := Explode(',', 'ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES');
+  PrivsWrite := Explode(',', 'ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES,CREATE TABLESPACE');
   PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER');
 end;
 
@@ -261,6 +261,15 @@ begin
     PrivsDb.Add('TRIGGER');
     PrivsDb.Add('EVENT');
   end;
+  if Version >= 50404 then begin
+    PrivsGlobal.Add('CREATE TABLESPACE');
+  end;
+  { TODO: PROXY priv must be applied with another GRANT syntax:
+  GRANT PROXY ON 'employee'@'localhost' TO 'external_auth'@'localhost';
+  if Version >= 50507 then begin
+    PrivsDb.Add('PROXY');
+  end;
+  }
 
   PrivsTable.AddStrings(PrivsColumn);
   PrivsDb.AddStrings(PrivsTable);
