@@ -440,7 +440,7 @@ var
         'An optional length M can be given for this type. If this is done, MySQL ' +
         'creates the column as the smallest TEXT type large enough to hold ' +
         'values M characters long.';
-      HasLength:       False;
+      HasLength:       True;
       RequiresLength:  False;
       HasBinary:       True;
       HasDefault:      False;
