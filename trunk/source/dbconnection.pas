@@ -2703,6 +2703,7 @@ var
   ForeignKey: TForeignKey;
   Collations: TDBQuery;
 begin
+  Ping(True);
   if Assigned(Columns) then Columns.Clear;
   if Assigned(Keys) then Keys.Clear;
   if Assigned(ForeignKeys) then ForeignKeys.Clear;
