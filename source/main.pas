@@ -5499,14 +5499,17 @@ procedure TMainForm.DataInsertValueClick(Sender: TObject);
 var
   y, m, d, h, i, s, ms: Word;
   Uid: TGuid;
+  UnixTimestamp: Int64;
+  SystemTime: TSystemTime;
 begin
   DecodeDateTime(Now, y, m, d, h, i, s, ms);
   DataDateTime.Caption := 'DATETIME: ' + Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,i,s]);
   DataDate.Caption := 'DATE: ' + Format('%.4d-%.2d-%.2d', [y,m,d]);
   DataTime.Caption := 'TIME: ' + Format('%.2d:%.2d:%.2d', [h,i,s]);
   DataYear.Caption := 'YEAR: ' + Format('%.4d', [y]);
-  DataUNIXtimestamp.Caption := 'UNIX Timestamp: ' + IntToStr(DateTimeToUnix(Now));
-
+  GetSystemTime(SystemTime);
+  UnixTimestamp := DateTimeToUnix(SystemTimeToDateTime(SystemTime));
+  DataUNIXtimestamp.Caption := 'UNIX Timestamp: ' + IntToStr(UnixTimestamp);
   CreateGuid(Uid);
   DataGUID.Caption := 'GUID: ' + GuidToString(Uid);
 end;
