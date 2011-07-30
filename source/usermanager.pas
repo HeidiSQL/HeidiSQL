@@ -914,7 +914,12 @@ var
   NodeUser: PUser;
   Node: PVirtualNode;
 begin
-  // Create new user
+  // Create new or clone existing user
+  if Sender = btnCloneUser then begin
+    CloneGrants := TStringList.Create;
+    for P in FPrivObjects do
+      CloneGrants.Add(P.GrantCode);
+  end;
   // Try to unfocus current user which triggers saving modifications.
   listUsers.FocusedNode := nil;
   if Assigned(listUsers.FocusedNode) then
@@ -924,11 +929,6 @@ begin
   User.Host := 'localhost';
   FUsers.Add(User);
   FAdded := True;
-  if Sender = btnCloneUser then begin
-    CloneGrants := TStringList.Create;
-    for P in FPrivObjects do
-      CloneGrants.Add(P.GrantCode);
-  end;
   InvalidateVT(listUsers, VTREE_NOTLOADED, True);
   // Select newly added item.
   Node := listUsers.GetFirst;
