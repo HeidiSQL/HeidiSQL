@@ -5379,9 +5379,9 @@ begin
       Value := Grid.Text[Node, Grid.FocusedColumn];
       QF1.Hint := QF1.Hint + esc(Value) + ', ';
       QF2.Hint := QF2.Hint + esc(Value) + ', ';
-      QF5.Hint := QF5.Hint + Col + ' LIKE ''' + esc(Value, True) + '%'' OR ';
-      QF6.Hint := QF6.Hint + Col + ' LIKE ''%' + esc(Value, True) + ''' OR ';
-      QF7.Hint := QF7.Hint + Col + ' LIKE ''%' + esc(Value, True) + '%'' OR ';
+      QF5.Hint := QF5.Hint + Col + ' LIKE ''' + esc(Value, True, False) + '%'' OR ';
+      QF6.Hint := QF6.Hint + Col + ' LIKE ''%' + esc(Value, True, False) + ''' OR ';
+      QF7.Hint := QF7.Hint + Col + ' LIKE ''%' + esc(Value, True, False) + '%'' OR ';
       QF3.Hint := QF3.Hint + Col + ' > ' + esc(Value) + ' OR ';
       QF4.Hint := QF4.Hint + Col + ' < ' + esc(Value) + ' OR ';
     end;
@@ -5438,7 +5438,7 @@ begin
     QF16.Enabled := true; QF16.Hint := Col + ' != ' + esc(Value);
     QF17.Enabled := true; QF17.Hint := Col + ' > ' + esc(Value);
     QF18.Enabled := true; QF18.Hint := Col + ' < ' + esc(Value);
-    QF19.Enabled := true; QF19.Hint := Col + ' LIKE ''%' + esc(Value, True) + '%''';
+    QF19.Enabled := true; QF19.Hint := Col + ' LIKE ''%' + esc(Value, True, False) + '%''';
   end else begin
     QF15.Enabled := false; QF15.Hint := Col + ' = ' + CLPBRD;
     QF16.Enabled := false; QF16.Hint := Col + ' != ' + CLPBRD;
