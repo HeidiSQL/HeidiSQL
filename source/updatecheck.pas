@@ -235,35 +235,40 @@ begin
   if FileExists(Download.Filename) then
     DeleteFile(Download.Filename);
 
-  // Do the download
-  Download.ExecuteTarget(nil);
+  try
+    // Do the download
+    Download.ExecuteTarget(nil);
 
-  // Check if downloaded file exists
-  if not FileExists(Download.Filename) then
-    Raise Exception.Create('Downloaded file not found: '+Download.Filename);
+    // Check if downloaded file exists
+    if not FileExists(Download.Filename) then
+      Raise Exception.Create('Downloaded file not found: '+Download.Filename);
 
-  Status('Update in progress ...');
-  ResInfoblockHandle := FindResource(HInstance, 'UPDATER', 'EXE');
-  ResHandle := LoadResource(HInstance, ResInfoblockHandle);
-  if ResHandle <> 0 then begin
-    Stream := TMemoryStream.Create;
-    try
-      ResPointer := LockResource(ResHandle);
-      Stream.WriteBuffer(ResPointer[0], SizeOfResource(HInstance, ResInfoblockHandle));
-      Stream.Position := 0;
-      UpdaterFilename := GetTempDir + AppName+'_updater.exe';
-      if FileExists(UpdaterFilename) and (Stream.Size = _GetFileSize(UpdaterFilename)) then
-        // Do not replace old updater if it's still valid. Avoids annoyance for cases in which
-        // user has whitelisted this .exe in his antivirus or whatever software.
-      else
-        Stream.SaveToFile(UpdaterFilename);
-      // Calling the script will now post a WM_CLOSE this running exe...
-      ShellExec(UpdaterFilename, '', '"'+ParamStr(0)+'" "'+Download.Filename+'"');
-    finally
-      UnlockResource(ResHandle);
-      FreeResource(ResHandle);
-      Stream.Free;
+    Status('Update in progress ...');
+    ResInfoblockHandle := FindResource(HInstance, 'UPDATER', 'EXE');
+    ResHandle := LoadResource(HInstance, ResInfoblockHandle);
+    if ResHandle <> 0 then begin
+      Stream := TMemoryStream.Create;
+      try
+        ResPointer := LockResource(ResHandle);
+        Stream.WriteBuffer(ResPointer[0], SizeOfResource(HInstance, ResInfoblockHandle));
+        Stream.Position := 0;
+        UpdaterFilename := GetTempDir + AppName+'_updater.exe';
+        if FileExists(UpdaterFilename) and (Stream.Size = _GetFileSize(UpdaterFilename)) then
+          // Do not replace old updater if it's still valid. Avoids annoyance for cases in which
+          // user has whitelisted this .exe in his antivirus or whatever software.
+        else
+          Stream.SaveToFile(UpdaterFilename);
+        // Calling the script will now post a WM_CLOSE this running exe...
+        ShellExec(UpdaterFilename, '', '"'+ParamStr(0)+'" "'+Download.Filename+'"');
+      finally
+        UnlockResource(ResHandle);
+        FreeResource(ResHandle);
+        Stream.Free;
+      end;
     end;
+  except
+    on E:Exception do
+      ErrorDialog(E.Message);
   end;
 end;
 
