@@ -91,10 +91,10 @@ type
     procedure ResultGridPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType);
     procedure ValidateControls(Sender: TObject);
+    procedure SaveSettings(Sender: TObject);
     procedure chkExportOptionClick(Sender: TObject);
     procedure btnExportOutputTargetSelectClick(Sender: TObject);
     procedure comboExportOutputTargetChange(Sender: TObject);
-    procedure comboExportOutputTargetExit(Sender: TObject);
     procedure comboExportOutputTypeChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure TreeObjectsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
@@ -115,7 +115,6 @@ type
     FToolMode: TToolMode;
     FSecondExportPass: Boolean; // Set to True after everything is exported and final VIEWs need to be exported again
     FCancelled: Boolean;
-    OutputFiles, OutputDirs: TStringList;
     ExportStream: TStream;
     ExportStreamStartOfQueryPos: Int64;
     ExportLastDatabase: String;
@@ -169,6 +168,7 @@ const
 procedure TfrmTableTools.FormCreate(Sender: TObject);
 var
   i: Integer;
+  SessionNames: TStringList;
 begin
   // Restore GUI setup
   InheritFont(Font);
@@ -191,11 +191,15 @@ begin
   chkExportTablesDrop.Checked := GetRegValue(REGNAME_EXP_DROPTABLE, chkExportTablesDrop.Checked);
   comboExportData.Items.Text := DATA_NO+CRLF +DATA_REPLACE+CRLF +DATA_INSERT+CRLF +DATA_INSERTNEW+CRLF +DATA_UPDATE;
   comboExportData.ItemIndex := GetRegValue(REGNAME_EXP_DATAHOW, 0);
-  OutputFiles := TStringList.Create;
-  OutputDirs := TStringList.Create;
-  OutputFiles.Text := GetRegValue(REGNAME_EXP_OUTFILES, '');
-  OutputDirs.Text := GetRegValue(REGNAME_EXP_OUTDIRS, '');
+  // Add hardcoded output options and session names from registry
   comboExportOutputType.Items.Text := OUTPUT_FILE+CRLF +OUTPUT_DIR+CRLF +OUTPUT_CLIPBOARD+CRLF +OUTPUT_DB;
+  SessionNames := TStringList.Create;
+  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
+  MainReg.GetKeyNames(SessionNames);
+  for i:=0 to SessionNames.Count-1 do begin
+    if SessionNames[i] <> Mainform.ActiveConnection.Parameters.SessionName then
+      comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionNames[i]);
+  end;
   comboExportOutputTarget.Text := '';
 
   // Various
@@ -211,39 +215,19 @@ end;
 
 
 procedure TfrmTableTools.FormDestroy(Sender: TObject);
-var
-  OutputItem: Integer;
 begin
   // Save GUI setup
   OpenRegistry;
   MainReg.WriteInteger( REGNAME_TOOLSWINWIDTH, Width );
   MainReg.WriteInteger( REGNAME_TOOLSWINHEIGHT, Height );
   MainReg.WriteInteger( REGNAME_TOOLSTREEWIDTH, TreeObjects.Width);
-
-  MainReg.WriteString( REGNAME_TOOLSFINDTEXT, memoFindText.Text);
-  MainReg.WriteInteger( REGNAME_TOOLSDATATYPE, comboDatatypes.ItemIndex);
-  MainReg.WriteBool(REGNAME_TOOLSCASESENSITIVE, chkCaseSensitive.Checked);
-
-  MainReg.WriteBool(REGNAME_EXP_CREATEDB, chkExportDatabasesCreate.Checked);
-  MainReg.WriteBool(REGNAME_EXP_DROPDB, chkExportDatabasesDrop.Checked);
-  MainReg.WriteBool(REGNAME_EXP_CREATETABLE, chkExportTablesCreate.Checked);
-  MainReg.WriteBool(REGNAME_EXP_DROPTABLE, chkExportTablesDrop.Checked);
-  MainReg.WriteInteger(REGNAME_EXP_DATAHOW, comboExportData.ItemIndex);
-  // Do not remember a selected session name for the next time
-  OutputItem := comboExportOutputType.ItemIndex;
-  if OutputItem > 3 then
-    OutputItem := 0;
-  MainReg.WriteInteger(REGNAME_EXP_OUTPUT, OutputItem);
-  MainReg.WriteString(REGNAME_EXP_OUTFILES, OutputFiles.Text);
-  MainReg.WriteString(REGNAME_EXP_OUTDIRS, OutputDirs.Text);
 end;
 
 
 procedure TfrmTableTools.FormShow(Sender: TObject);
 var
   Node, FirstChecked: PVirtualNode;
-  idx, i: Integer;
-  SessionNames: TStringList;
+  idx: Integer;
   DBObj: TDBObject;
 begin
   // When this form is displayed the second time, databases may be deleted or filtered.
@@ -277,23 +261,15 @@ begin
   comboOperation.ItemIndex := idx;
   comboOperation.OnChange(Sender);
 
-  // Add session names from registry
-  idx := comboExportOutputType.ItemIndex;
-  for i:=comboExportOutputType.Items.Count-1 downto 0 do begin
-    if Pos(OUTPUT_SERVER, comboExportOutputType.Items[i]) = 1 then
-      comboExportOutputType.Items.Delete(i);
-  end;
-  SessionNames := TStringList.Create;
-  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
-  MainReg.GetKeyNames(SessionNames);
-  for i:=0 to SessionNames.Count-1 do begin
-    if SessionNames[i] <> Mainform.ActiveConnection.Parameters.SessionName then
-      comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionNames[i]);
-  end;
-  if (idx > -1) and (idx < comboExportOutputType.Items.Count) then
-    comboExportOutputType.ItemIndex := idx
-  else
-    comboExportOutputType.ItemIndex := GetRegValue(REGNAME_EXP_OUTPUT, 0);
+  // Restore output option. Use Server preselection in tmSQLExport mode only, to avoid
+  // unwanted connects in other modes.
+  idx := GetRegValue(REGNAME_EXP_OUTPUT, 0);
+  if (idx = -1) or (idx >= comboExportOutputType.Items.Count) then
+    idx := 0;
+  if (copy(comboExportOutputType.Items[idx], 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER)
+    and (ToolMode <> tmSQLExport) then
+    idx := 0;
+  comboExportOutputType.ItemIndex := idx;
   comboExportOutputType.OnChange(Sender);
 
   comboBulkTableEditDatabase.Items.Text := Mainform.ActiveConnection.AllDatabases.Text;
@@ -322,6 +298,43 @@ begin
   if Assigned(FTargetConnection) then
     FreeAndNil(FTargetConnection);
   Action := caFree;
+end;
+
+
+procedure TfrmTableTools.SaveSettings(Sender: TObject);
+begin
+  OpenRegistry;
+
+  case ToolMode of
+    tmFind: begin
+      MainReg.WriteString(REGNAME_TOOLSFINDTEXT, memoFindText.Text);
+      MainReg.WriteInteger(REGNAME_TOOLSDATATYPE, comboDatatypes.ItemIndex);
+      MainReg.WriteBool(REGNAME_TOOLSCASESENSITIVE, chkCaseSensitive.Checked);
+    end;
+
+    tmSQLExport: begin
+      MainReg.WriteBool(REGNAME_EXP_CREATEDB, chkExportDatabasesCreate.Checked);
+      MainReg.WriteBool(REGNAME_EXP_DROPDB, chkExportDatabasesDrop.Checked);
+      MainReg.WriteBool(REGNAME_EXP_CREATETABLE, chkExportTablesCreate.Checked);
+      MainReg.WriteBool(REGNAME_EXP_DROPTABLE, chkExportTablesDrop.Checked);
+      MainReg.WriteInteger(REGNAME_EXP_DATAHOW, comboExportData.ItemIndex);
+      MainReg.WriteInteger(REGNAME_EXP_OUTPUT, comboExportOutputType.ItemIndex);
+
+      if comboExportOutputType.Text = OUTPUT_FILE then begin
+        comboExportOutputTarget.Items.Insert(0, comboExportOutputTarget.Text);
+        MainReg.WriteString(REGNAME_EXP_OUTFILES, comboExportOutputTarget.Items.Text);
+      end else if comboExportOutputType.Text = OUTPUT_DIR then begin
+        comboExportOutputTarget.Items.Insert(0, comboExportOutputTarget.Text);
+        MainReg.WriteString(REGNAME_EXP_OUTDIRS, comboExportOutputTarget.Items.Text);
+      end else if comboExportOutputType.Text = OUTPUT_DB then begin
+        MainReg.WriteString(REGNAME_EXP_OUTDATABASE, comboExportOutputTarget.Text);
+      end else if copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER then begin
+        MainReg.WriteString(REGNAME_EXP_OUTSERVERDB, comboExportOutputTarget.Text);
+      end;
+    end;
+
+  end;
+
 end;
 
 
@@ -598,6 +611,7 @@ begin
   tabsTools.Enabled := True;
   treeObjects.Enabled := True;
   ValidateControls(Sender);
+  SaveSettings(Sender);
   Screen.Cursor := crDefault;
 end;
 
@@ -849,26 +863,28 @@ end;
 
 procedure TfrmTableTools.comboExportOutputTypeChange(Sender: TObject);
 var
-  OldItem: String;
-  NewIdx: Integer;
   DBNode: PVirtualNode;
   SessionName: String;
   Params: TConnectionParameters;
 begin
   // Target type (file, directory, ...) selected
-  OldItem := comboExportOutputTarget.Text;
   comboExportOutputTarget.Enabled := True;
+  comboExportOutputTarget.Text := '';
   if Assigned(FTargetConnection) then
     FreeAndNil(FTargetConnection);
   if comboExportOutputType.Text = OUTPUT_FILE then begin
     comboExportOutputTarget.Style := csDropDown;
-    comboExportOutputTarget.Items.Text := OutputFiles.Text;
+    comboExportOutputTarget.Items.Text := GetRegValue(REGNAME_EXP_OUTFILES, '');
+    if comboExportOutputTarget.Items.Count > 0 then
+      comboExportOutputTarget.ItemIndex := 0;
     lblExportOutputTarget.Caption := 'Filename:';
     btnExportOutputTargetSelect.Enabled := True;
     btnExportOutputTargetSelect.ImageIndex := 10;
   end else if comboExportOutputType.Text = OUTPUT_DIR then begin
     comboExportOutputTarget.Style := csDropDown;
-    comboExportOutputTarget.Items.Text := OutputDirs.Text;
+    comboExportOutputTarget.Items.Text := GetRegValue(REGNAME_EXP_OUTDIRS, '');
+    if comboExportOutputTarget.Items.Count > 0 then
+      comboExportOutputTarget.ItemIndex := 0;
     lblExportOutputTarget.Caption := 'Directory:';
     btnExportOutputTargetSelect.Enabled := True;
     btnExportOutputTargetSelect.ImageIndex := 51;
@@ -891,6 +907,9 @@ begin
         comboExportOutputTarget.Items.Add(TreeObjects.Text[DBNode, 0]);
       DBNode := TreeObjects.GetNextSibling(DBNode);
     end;
+    comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(GetRegValue(REGNAME_EXP_OUTDATABASE, ''));
+    if comboExportOutputTarget.ItemIndex = -1 then
+      comboExportOutputTarget.ItemIndex := 0;
   end else begin
     // Server selected. Display databases in below dropdown
     comboExportOutputTarget.Style := csDropDownList;
@@ -901,14 +920,16 @@ begin
     FreeAndNil(FTargetConnection);
     Params := LoadConnectionParams(SessionName);
     FTargetConnection := Params.CreateConnection(Self);
-    FTargetConnection.LogPrefix := '['+SessionName+'] ';
+    FTargetConnection.LogPrefix := SessionName;
     FTargetConnection.OnLog := Mainform.LogSQL;
     Screen.Cursor := crHourglass;
     try
       FTargetConnection.Active := True;
       comboExportOutputTarget.Items := FTargetConnection.AllDatabases;
       comboExportOutputTarget.Items.Insert(0, '[Same as on source server]');
-      comboExportOutputTarget.ItemIndex := 0;
+      comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(GetRegValue(REGNAME_EXP_OUTSERVERDB, ''));
+      if comboExportOutputTarget.ItemIndex = -1 then
+        comboExportOutputTarget.ItemIndex := 0;
       Screen.Cursor := crDefault;
     except
       on E:EDatabaseError do begin
@@ -925,10 +946,6 @@ begin
     or (comboExportOutputType.Text = OUTPUT_CLIPBOARD)
     or (Copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER);
   chkExportDatabasesDrop.Enabled := chkExportDatabasesCreate.Enabled;
-  NewIdx := comboExportOutputTarget.Items.IndexOf(OldItem);
-  if (NewIdx = -1) and (comboExportOutputTarget.Items.Count > 0) then
-    NewIdx := 0;
-  comboExportOutputTarget.ItemIndex := NewIdx;
   ValidateControls(Sender);
 end;
 
@@ -936,28 +953,6 @@ end;
 procedure TfrmTableTools.comboExportOutputTargetChange(Sender: TObject);
 begin
   ValidateControls(Sender);
-end;
-
-
-procedure TfrmTableTools.comboExportOutputTargetExit(Sender: TObject);
-var
-  ItemList: TStringList;
-  idx: Integer;
-begin
-  // Add typed text to recent items
-  if comboExportOutputTarget.Text = '' then
-    Exit;
-  ItemList := nil;
-  if comboExportOutputType.Text = OUTPUT_FILE then
-    ItemList := OutputFiles
-  else if comboExportOutputType.Text = OUTPUT_DIR then
-    ItemList := OutputDirs;
-  if not Assigned(ItemList) then
-    Exit;
-  idx := ItemList.IndexOf(comboExportOutputTarget.Text);
-  if idx > -1 then
-    ItemList.Delete(idx);
-  ItemList.Insert(0, comboExportOutputTarget.Text);
 end;
 
 

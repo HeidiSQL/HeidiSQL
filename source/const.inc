@@ -144,6 +144,8 @@ const
   REGNAME_EXP_DATAHOW = 'ExportSQL_DataHow';
   REGNAME_EXP_OUTFILES = 'ExportSQL_Filenames';
   REGNAME_EXP_OUTDIRS = 'ExportSQL_Directories';
+  REGNAME_EXP_OUTDATABASE = 'ExportSQL_Database';
+  REGNAME_EXP_OUTSERVERDB = 'ExportSQL_ServerDatabase';
   REGNAME_EXP_OUTPUT = 'ExportSQL_Output';
   REGNAME_GEXP_OUTPUTCOPY = 'GridExportOutputCopy';
   REGNAME_GEXP_OUTPUTFILE = 'GridExportOutputFile';
