@@ -410,7 +410,6 @@ object frmTableTools: TfrmTableTools
             TabOrder = 6
             Text = 'comboExportOutputTarget'
             OnChange = comboExportOutputTargetChange
-            OnExit = comboExportOutputTargetExit
           end
         end
         object tabBulkTableEdit: TTabSheet
