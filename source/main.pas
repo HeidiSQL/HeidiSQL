@@ -6357,21 +6357,36 @@ procedure TMainForm.HostListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtu
   Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
 var
   Results: TDBQuery;
+  Idx: PCardinal;
 begin
-  if not (Kind in [ikNormal, ikSelected]) then
-    exit;
   if (Column <> (Sender as TVirtualStringTree).Header.MainColumn) then
     exit;
-  ImageIndex := 25;
   if Sender = ListProcesses then begin
+    Idx := Sender.GetNodeData(Node);
     Results := GridResult(Sender);
-    if AnsiCompareText(Results.Col(4), 'Killed') = 0 then
-      ImageIndex := 26  // killed
-    else begin
-      if Results.Col('Info') = '' then
-        ImageIndex := 55 // idle
-      else
-        ImageIndex := 57 // running query
+    Results.RecNo := Idx^;
+    case Kind of
+      ikNormal, ikSelected: begin
+        if Results.Col('Info') = '' then begin
+          if MakeInt(Results.Col(5)) < 60 then
+            ImageIndex := 151 // Idle, same icon as in lower right status panel
+          else
+            ImageIndex := 167 // Long idle thread
+        end else
+          ImageIndex := actExecuteQuery.ImageIndex; // Running query
+        end;
+      ikOverlay: begin
+        if IntToStr(Results.Connection.ThreadId) = Results.Col(0) then
+          ImageIndex := 168; // Indicate users own thread id
+        if CompareText(Results.Col(4), 'Killed') = 0 then
+          ImageIndex := 158; // Broken
+        end;
+      else;
+    end;
+  end else begin
+    case Kind of
+      ikNormal, ikSelected: ImageIndex := 25;
+      else;
     end;
   end;
 end;
