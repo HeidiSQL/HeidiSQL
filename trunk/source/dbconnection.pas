@@ -354,12 +354,6 @@ type
   { TDBConnection }
 
   TDBLogCategory = (lcInfo, lcSQL, lcUserFiredSQL, lcError, lcDebug);
-  TDBLogItem = class(TObject)
-    public
-      Msg: String;
-      Category: TDBLogCategory;
-  end;
-  TDBLogList = TObjectList<TDBLogItem>;
   TDBLogEvent = procedure(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil) of object;
   TDBEvent = procedure(Connection: TDBConnection; Database: String) of object;
   TDBDataTypeArray = Array of TDBDataType;
