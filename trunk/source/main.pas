@@ -844,7 +844,6 @@ type
     FOperationTicker: Cardinal;
     FOperatingGrid: TBaseVirtualTree;
     FActiveDbObj: TDBObject;
-    FCriticalSection: TRTLCriticalSection;
     FIsWine: Boolean;
     FBtnAddTab: TSpeedButton;
     FDBObjectsMaxSize: Int64;
@@ -1521,9 +1520,6 @@ begin
   // Place progressbar on the statusbar
   ProgressBarStatus.Parent := StatusBar;
   ProgressBarStatus.Visible := False;
-
-  // Create critical section variable, used in LogSQL
-  InitializeCriticalSection(FCriticalSection);
 
   // SynMemo font, hightlighting and shortcuts
   SetupSynEditors;
@@ -2218,10 +2214,16 @@ var
   TabCaption: String;
   Results: TDBQuery;
   i: Integer;
+  Log: TDBLogItem;
 begin
   // Single query or query packet has finished
   ShowStatusMsg('Setting up result grid(s) ...');
   Tab := GetQueryTabByNumber(Thread.TabNumber);
+
+  // Log postponed messages
+  for Log in Thread.LogQueue do begin
+    LogSQL(Log.Msg, Log.Category, Thread.Connection);
+  end;
 
   // Create result tabs
   for Results in Thread.Connection.GetLastResults do begin
@@ -3803,6 +3805,8 @@ var
   snip, IsSQL: Boolean;
   Len, i: Integer;
   Sess: String;
+  Thread: TQueryThread;
+  Log: TDBLogItem;
 begin
   if csDestroying in ComponentState then
     Exit;
@@ -3814,6 +3818,18 @@ begin
     lcSQL: if not prefLogSQL then Exit;
     lcInfo: if not prefLogInfos then Exit;
     lcDebug: if not prefLogDebug then Exit;
+  end;
+
+  // Log to queue if message from query thread comes in
+  if (Connection <> nil)
+    and (Connection.LockedByThread <> nil)
+    and (Connection.LockedByThread = TThread.CurrentThread) then begin
+    Log := TDBLogItem.Create;
+    Log.Msg := Msg;
+    Log.Category := Category;
+    Thread := TQueryThread(Connection.LockedByThread);
+    Thread.LogQueue.Add(Log);
+    Exit;
   end;
 
   // Shorten very long messages
@@ -3831,7 +3847,6 @@ begin
   if not IsSQL then
     Msg := '/* ' + Msg + ' */';
 
-  EnterCriticalSection(FCriticalSection);
   SynMemoSQLLog.Lines.Add(Msg);
 
   // Delete first line(s) in SQL log and adjust LineNumberStart in gutter
@@ -3846,6 +3861,7 @@ begin
 
   // Scroll to last line and repaint
   SynMemoSQLLog.GotoLineAndCenter(SynMemoSQLLog.Lines.Count);
+  SynMemoSQLLog.Repaint;
 
   // Log to file?
   if prefLogToFile then
@@ -3860,7 +3876,6 @@ begin
       ErrorDialog('Error writing to session log file.', FFileNameSessionLog+CRLF+CRLF+E.Message+CRLF+CRLF+'Logging is disabled now.');
     end;
   end;
-  LeaveCriticalSection(FCriticalSection);
 end;
 
 
