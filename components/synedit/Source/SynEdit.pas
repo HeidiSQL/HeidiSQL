@@ -2834,7 +2834,7 @@ begin
   for i := 1 to Length(S) do
   begin
     inc(j);
-    CountOfAvgGlyphs := Ceil(fTextDrawer.TextWidth(S[i]) / fCharWidth);
+    CountOfAvgGlyphs := Ceil(fTextDrawer.TextWidth(S[i]) / Max(fCharWidth,1));
 
     if j + CountOfAvgGlyphs > Length(Result) then
       SetLength(Result, Length(Result) + 128);
