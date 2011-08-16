@@ -72,6 +72,7 @@ type
     FQueryNetTime: Cardinal;
     FRowsAffected: Int64;
     FRowsFound: Int64;
+    FLogQueue: TDBLogList;
   private
     procedure BeforeQuery;
     procedure AfterQuery;
@@ -88,6 +89,7 @@ type
     property RowsFound: Int64 read FRowsFound;
     property Aborted: Boolean read FAborted write FAborted;
     property ErrorMessage: String read FErrorMessage;
+    property LogQueue: TDBLogList read FLogQueue;
     constructor Create(Connection: TDBConnection; Batch: TSQLBatch; TabNumber: Integer);
     procedure Execute; override;
   end;
@@ -2649,6 +2651,7 @@ constructor TQueryThread.Create(Connection: TDBConnection; Batch: TSQLBatch; Tab
 begin
   inherited Create(False);
   FConnection := Connection;
+  FLogQueue := TDBLogList.Create(True);
   FAborted := False;
   FBatch := Batch;
   FTabNumber := TabNumber;
@@ -2749,6 +2752,7 @@ end;
 procedure TQueryThread.AfterQuery;
 begin
   MainForm.AfterQueryExecution(Self);
+  FLogQueue.Clear;
 end;
 
 
