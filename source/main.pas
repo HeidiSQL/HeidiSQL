@@ -6358,6 +6358,7 @@ procedure TMainForm.HostListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtu
 var
   Results: TDBQuery;
   Idx: PCardinal;
+  IsIdle: Boolean;
 begin
   if (Column <> (Sender as TVirtualStringTree).Header.MainColumn) then
     exit;
@@ -6367,7 +6368,12 @@ begin
     Results.RecNo := Idx^;
     case Kind of
       ikNormal, ikSelected: begin
-        if Results.Col('Info') = '' then begin
+        case Results.Connection.Parameters.NetTypeGroup of
+          ngMySQL: IsIdle := Results.Col('Info') = '';
+          ngMSSQL: IsIdle := (Results.Col(6) <> 'running') and (Results.Col(6) <> 'runnable');
+          else IsIdle := False;
+        end;
+        if IsIdle then begin
           if MakeInt(Results.Col(5)) < 60 then
             ImageIndex := 151 // Idle, same icon as in lower right status panel
           else
