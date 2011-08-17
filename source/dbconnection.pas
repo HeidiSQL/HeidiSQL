@@ -393,6 +393,7 @@ type
       FLockedByThread: TThread;
       FQuoteChar: Char;
       FDatatypes: TDBDataTypeArray;
+      FThreadID: Cardinal;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect;
       procedure DoAfterConnect;
@@ -839,6 +840,7 @@ begin
   FConnectionStarted := 0;
   FLastQueryDuration := 0;
   FLastQueryNetworkDuration := 0;
+  FThreadID := 0;
   FLogPrefix := '';
   FIsUnicode := False;
   FIsSSL := False;
@@ -1553,13 +1555,23 @@ end;
 }
 function TMySQLConnection.GetThreadId: Cardinal;
 begin
-  Result := mysql_thread_id(FHandle);
+  if FThreadId = 0 then begin
+    Ping(False);
+    if FActive then
+      FThreadID := mysql_thread_id(FHandle);
+  end;
+  Result := FThreadID;
 end;
 
 
 function TAdoDBConnection.GetThreadId: Cardinal;
 begin
-  Result := StrToIntDef(GetVar('SELECT @@SPID'), 0);
+  if FThreadId = 0 then begin
+    Ping(False);
+    if FActive then
+      FThreadID := StrToIntDef(GetVar('SELECT @@SPID'), 0);
+  end;
+  Result := FThreadID;
 end;
 
 
@@ -2268,6 +2280,7 @@ begin
     ClearAllDbObjects;
   FTableEngineDefault := '';
   FCurrentUserHostCombination := '';
+  FThreadID := 0;
 end;
 
 
