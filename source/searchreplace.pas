@@ -23,6 +23,7 @@ type
     grpOrigin: TRadioGroup;
     grpScope: TRadioGroup;
     btnOK: TButton;
+    lblReplaceHint: TLabel;
     procedure ValidateControls(Sender: TObject);
     procedure chkReplaceClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -122,6 +123,7 @@ begin
   comboReplace.Enabled := chkReplace.Checked;
   chkPromptOnReplace.Enabled := chkReplace.Checked;
   btnReplaceAll.Enabled := chkReplace.Checked;
+  lblReplaceHint.Enabled := chkReplace.Checked;
   if chkReplace.Checked then
     btnOK.Caption := 'Replace'
   else
