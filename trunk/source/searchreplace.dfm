@@ -3,7 +3,7 @@ object frmSearchReplace: TfrmSearchReplace
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Search and replace text'
-  ClientHeight = 236
+  ClientHeight = 256
   ClientWidth = 388
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -19,7 +19,7 @@ object frmSearchReplace: TfrmSearchReplace
   OnShow = FormShow
   DesignSize = (
     388
-    236)
+    256)
   PixelsPerInch = 96
   TextHeight = 13
   object lblSearch: TLabel
@@ -30,9 +30,17 @@ object frmSearchReplace: TfrmSearchReplace
     Caption = '&Text to find:'
     FocusControl = comboSearch
   end
+  object lblReplaceHint: TLabel
+    Left = 90
+    Top = 58
+    Width = 259
+    Height = 13
+    Caption = 'Replacement can have \n for new lines and \t for tabs'
+    Enabled = False
+  end
   object btnCancel: TButton
     Left = 305
-    Top = 203
+    Top = 223
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -43,7 +51,7 @@ object frmSearchReplace: TfrmSearchReplace
   end
   object btnReplaceAll: TButton
     Left = 224
-    Top = 203
+    Top = 223
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -85,7 +93,7 @@ object frmSearchReplace: TfrmSearchReplace
   end
   object grpOptions: TGroupBox
     Left = 8
-    Top = 60
+    Top = 80
     Width = 372
     Height = 69
     Anchors = [akLeft, akTop, akRight]
@@ -129,7 +137,7 @@ object frmSearchReplace: TfrmSearchReplace
   end
   object grpDirection: TRadioGroup
     Left = 8
-    Top = 135
+    Top = 155
     Width = 120
     Height = 62
     Anchors = [akLeft, akTop, akBottom]
@@ -142,7 +150,7 @@ object frmSearchReplace: TfrmSearchReplace
   end
   object grpOrigin: TRadioGroup
     Left = 134
-    Top = 135
+    Top = 155
     Width = 120
     Height = 62
     Anchors = [akLeft, akTop, akBottom]
@@ -155,7 +163,7 @@ object frmSearchReplace: TfrmSearchReplace
   end
   object grpScope: TRadioGroup
     Left = 260
-    Top = 135
+    Top = 155
     Width = 120
     Height = 62
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -168,7 +176,7 @@ object frmSearchReplace: TfrmSearchReplace
   end
   object btnOK: TButton
     Left = 143
-    Top = 203
+    Top = 223
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]

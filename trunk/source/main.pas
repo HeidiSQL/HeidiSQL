@@ -3188,21 +3188,30 @@ procedure TMainForm.DoSearchReplace;
 var
   Occurences: Integer;
   OldCaretXY: TBufferCoord;
+  Replacement: String;
 begin
   if FSearchReplaceDialog.chkRegularExpression.Checked then
     FSearchReplaceDialog.Editor.SearchEngine := SynEditRegexSearch1
   else
     FSearchReplaceDialog.Editor.SearchEngine := SynEditSearch1;
+
   OldCaretXY := FSearchReplaceDialog.Editor.CaretXY;
+  Replacement := FSearchReplaceDialog.comboReplace.Text;
+  Replacement := StringReplace(Replacement, '\n', CRLF, [rfReplaceAll]);
+  Replacement := StringReplace(Replacement, '\t', #9, [rfReplaceAll]);
+
   FSearchReplaceDialog.Editor.BeginUpdate;
+
   ShowStatusMsg('Searching ...');
   Occurences := FSearchReplaceDialog.Editor.SearchReplace(
     FSearchReplaceDialog.comboSearch.Text,
-    FSearchReplaceDialog.comboReplace.Text,
+    Replacement,
     FSearchReplaceDialog.Options
     );
+
   FSearchReplaceDialog.Editor.EndUpdate;
   ShowStatusMsg;
+
   if ssoReplaceAll in FSearchReplaceDialog.Options then
     ShowStatusMsg('Text "'+FSearchReplaceDialog.comboSearch.Text+'" '+FormatNumber(Occurences)+' times replaced.', 0)
   else begin
