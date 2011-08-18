@@ -96,7 +96,9 @@ begin
   if grpOrigin.ItemIndex = 1 then Include(Options, ssoEntireScope);
   if grpScope.ItemIndex = 1 then Include(Options, ssoSelectedOnly);
   if ModalResult = mrAll then Include(Options, ssoReplaceAll);
-
+  // Work around multi line bug in SynEdit
+  if (ssoReplaceAll in Options) and (Pos('\n', comboReplace.Text) > 0) then
+    Include(Options, ssoBackwards);
 end;
 
 
