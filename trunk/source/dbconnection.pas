@@ -322,6 +322,7 @@ type
       function NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
       function GetNetTypeGroup: TNetTypeGroup;
       function IsMariaDB: Boolean;
+      function IsPercona: Boolean;
       property ImageIndex: Integer read GetImageIndex;
     published
       property NetType: TNetType read FNetType write FNetType;
@@ -443,6 +444,7 @@ type
       function ConnectionInfo: TStringList;
       function GetLastResults: TDBQueryList; virtual; abstract;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; virtual; abstract;
+      function GetServerVariables: TDBQuery; virtual; abstract;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
       procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
@@ -524,6 +526,7 @@ type
       function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
       property LastRawResults: TMySQLRawResults read FLastRawResults;
+      function GetServerVariables: TDBQuery; override;
   end;
 
   TAdoRawResults = Array of _RecordSet;
@@ -552,6 +555,7 @@ type
       function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList; override;
       function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
+      function GetServerVariables: TDBQuery; override;
       property LastRawResults: TAdoRawResults read FLastRawResults;
   end;
 
@@ -767,6 +771,8 @@ var
 begin
   if IsMariaDB then
     My := 'MariaDB'
+  else if IsPercona then
+    My := 'Percona'
   else
     My := 'MySQL';
   if LongFormat then case NetType of
@@ -814,6 +820,12 @@ begin
 end;
 
 
+function TConnectionParameters.IsPercona: Boolean;
+begin
+  Result := Pos('percona server', LowerCase(ServerVersion)) > 0;
+end;
+
+
 function TConnectionParameters.GetImageIndex: Integer;
 begin
   case NetTypeGroup of
@@ -821,6 +833,8 @@ begin
       Result := 164;
       if IsMariaDB then
         Result := 166;
+      if IsPercona then
+        Result := 169;
     end;
     ngMSSQL: Result := 123;
     else Result := ICONINDEX_SERVER;
@@ -953,6 +967,7 @@ var
   ExitCode: LongWord;
   sslca, sslkey, sslcert: PAnsiChar;
   DoSSL, SSLsettingsComplete: Boolean;
+  Vars: TDBQuery;
 begin
   // Init library
   if libmysql_handle = 0 then begin
@@ -1104,8 +1119,16 @@ begin
       FConnectionStarted := GetTickCount div 1000;
       FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), 1);
       FServerVersionUntouched := DecodeAPIString(mysql_get_server_info(FHandle));
-      FServerOS := GetVar('SHOW VARIABLES LIKE ' + EscapeString('version_compile_os'), 1);
-      FRealHostname := GetVar('SHOW VARIABLES LIKE ' + EscapeString('hostname'), 1);
+      Vars := GetServerVariables;
+      while not Vars.Eof do begin
+        if Vars.Col(0) = 'version_compile_os' then
+          FServerOS := Vars.Col(1);
+        if Vars.Col(0) = 'hostname' then
+          FRealHostname := Vars.Col(1);
+        if (Vars.Col(0) = 'version_comment') and (Vars.Col(1) <> '') then
+          FServerVersionUntouched := FServerVersionUntouched + ' - ' + Vars.Col(1);
+        Vars.Next;
+      end;
       DoAfterConnect;
       if FDatabase <> '' then begin
         tmpdb := FDatabase;
@@ -2038,9 +2061,9 @@ end;
 
 function TMySQLConnection.GetTableEngines: TStringList;
 var
-  ShowEngines, HaveEngines: TDBQuery;
+  Results: TDBQuery;
   engineName, engineSupport: String;
-  PossibleEngines: TStringList;
+  rx: TRegExpr;
 begin
   // After a disconnect Ping triggers the cached engines to be reset
   Log(lcDebug, 'Fetching list of table engines ...');
@@ -2048,42 +2071,38 @@ begin
   if not Assigned(FTableEngines) then begin
     FTableEngines := TStringList.Create;
     try
-      ShowEngines := GetResults('SHOW ENGINES');
-      while not ShowEngines.Eof do begin
-        engineName := ShowEngines.Col('Engine');
-        engineSupport := LowerCase(ShowEngines.Col('Support'));
+      Results := GetResults('SHOW ENGINES');
+      while not Results.Eof do begin
+        engineName := Results.Col('Engine');
+        engineSupport := LowerCase(Results.Col('Support'));
         // Add to dropdown if supported
         if (engineSupport = 'yes') or (engineSupport = 'default') then
           FTableEngines.Add(engineName);
         // Check if this is the default engine
         if engineSupport = 'default' then
           FTableEngineDefault := engineName;
-        ShowEngines.Next;
+        Results.Next;
       end;
+      Results.Free;
     except
       // Ignore errors on old servers and try a fallback:
       // Manually fetch available engine types by analysing have_* options
       // This is for servers below 4.1 or when the SHOW ENGINES statement has
       // failed for some other reason
-      HaveEngines := GetResults('SHOW VARIABLES LIKE ''have%''');
+      Results := GetServerVariables;
       // Add default engines which will not show in a have_* variable:
       FTableEngines.CommaText := 'MyISAM,MRG_MyISAM,HEAP';
       FTableEngineDefault := 'MyISAM';
-      // Possible other engines:
-      PossibleEngines := TStringList.Create;
-      PossibleEngines.CommaText := 'ARCHIVE,BDB,BLACKHOLE,CSV,EXAMPLE,FEDERATED,INNODB,ISAM';
-      while not HaveEngines.Eof do begin
-        engineName := copy(HaveEngines.Col(0), 6, Length(HaveEngines.Col(0)));
-        // Strip additional "_engine" suffix, fx from "have_blackhole_engine"
-        if Pos('_', engineName) > 0 then
-          engineName := copy(engineName, 0, Pos('_', engineName)-1);
-        engineName := UpperCase(engineName);
-        // Add engine to list if it's a) in HaveEngineList and b) activated
-        if (PossibleEngines.IndexOf(engineName) > -1)
-          and (LowerCase(HaveEngines.Col(1)) = 'yes') then
-          FTableEngines.Add(engineName);
-        HaveEngines.Next;
+      rx := TRegExpr.Create;
+      rx.ModifierI := True;
+      rx.Expression := '^have_(ARCHIVE|BDB|BLACKHOLE|CSV|EXAMPLE|FEDERATED|INNODB|ISAM)(_engine)?$';
+      while not Results.Eof do begin
+        if rx.Exec(Results.Col(0)) and (LowerCase(Results.Col(1)) = 'yes') then
+          FTableEngines.Add(UpperCase(rx.Match[1]));
+        Results.Next;
       end;
+      rx.Free;
+      Results.Free;
     end;
   end;
   Result := FTableEngines;
@@ -2177,6 +2196,20 @@ begin
       c.Next;
     end;
   end;
+end;
+
+
+function TMySQLConnection.GetServerVariables: TDBQuery;
+begin
+  // Return server variables
+  Result := GetResults('SHOW VARIABLES');
+end;
+
+
+function TAdoDBConnection.GetServerVariables: TDBQuery;
+begin
+  // Enumerate some config values on MS SQL
+  Result := GetResults('SELECT '+QuoteIdent('comment')+', '+QuoteIdent('value')+' FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('syscurconfigs')+' ORDER BY '+QuoteIdent('comment'));
 end;
 
 
