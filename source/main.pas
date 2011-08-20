@@ -9591,7 +9591,7 @@ begin
       Tab.ExecutionThread.Aborted := True;
       Killer := ActiveConnection.Parameters.CreateConnection(Self);
       Killer.Parameters := ActiveConnection.Parameters;
-      Killer.LogPrefix := '[HelperConnection] ';
+      Killer.LogPrefix := 'HelperConnection';
       Killer.OnLog := LogSQL;
       Killer.Active := True;
       KillCommand := 'KILL ';

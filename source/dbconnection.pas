@@ -1849,8 +1849,11 @@ end;
 }
 procedure TDBConnection.Log(Category: TDBLogCategory; Msg: String);
 begin
-  if Assigned(FOnLog) then
-    FOnLog(FLogPrefix+Msg, Category, Self);
+  if Assigned(FOnLog) then begin
+    if FLogPrefix <> '' then
+      Msg := '['+FLogPrefix+'] ' + Msg;
+    FOnLog(Msg, Category, Self);
+  end;
 end;
 
 

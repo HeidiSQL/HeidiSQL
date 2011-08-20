@@ -669,7 +669,7 @@ begin
   Params := CurrentParams;
   Connection := Params.CreateConnection(Self);
   Connection.Parameters.AllDatabasesStr := '';
-  Connection.LogPrefix := '['+SelectedSession+'] ';
+  Connection.LogPrefix := SelectedSession;
   Connection.OnLog := Mainform.LogSQL;
   comboDatabases.Items.Clear;
   Screen.Cursor := crHourglass;
