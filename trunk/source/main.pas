@@ -889,7 +889,6 @@ type
     procedure OperationRunning(Runs: Boolean);
     function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding): Boolean;
   public
-    AllDatabasesDetails: TDBQuery;
     QueryTabs: TObjectList<TQueryTab>;
     ActiveObjectEditor: TDBObjectEditor;
     FileEncodings: TStringList;
@@ -7846,13 +7845,6 @@ begin
   Screen.Cursor := crHourglass;
   vt.Clear;
   if Conn <> nil then begin
-    try
-      if Conn.InformationSchemaObjects.IndexOf('SCHEMATA') > -1 then
-        AllDatabasesDetails := Conn.GetResults('SELECT * FROM '+Conn.QuoteIdent('information_schema')+'.'+Conn.QuoteIdent('SCHEMATA'));
-    except
-      on E:EDatabaseError do
-        LogSQL(E.Message, lcError);
-    end;
     if vt.Tag = VTREE_NOTLOADED_PURGECACHE then begin
       for i:=0 to Conn.AllDatabases.Count-1 do begin
         if Conn.DbObjectsCached(Conn.AllDatabases[i]) then
@@ -7946,32 +7938,19 @@ begin
   DBname := Conn.AllDatabases[Idx^];
   if Conn.DbObjectsCached(DBname) then
     Objects := Conn.GetDBObjects(DBname);
+  CellText := '';
   case Column of
     0: CellText := DBname;
-    1: if Assigned(Objects) then CellText := FormatByteNumber(Objects.DataSize)
-      else CellText := '';
+    1: if Assigned(Objects) then CellText := FormatByteNumber(Objects.DataSize);
     2: CellText := GetItemCount(lntNone);
-    3: if Assigned(Objects) and (Objects.LastUpdate > 0) then CellText := DateTimeToStr(Objects.LastUpdate)
-      else CellText := '';
+    3: if Assigned(Objects) and (Objects.LastUpdate > 0) then CellText := DateTimeToStr(Objects.LastUpdate);
     4: CellText := GetItemCount(lntTable);
     5: CellText := GetItemCount(lntView);
     6: CellText := GetItemCount(lntFunction);
     7: CellText := GetItemCount(lntProcedure);
     8: CellText := GetItemCount(lntTrigger);
     9: CellText := GetItemCount(lntEvent);
-    10: begin
-      CellText := '';
-      if Assigned(AllDatabasesDetails) then begin
-        AllDatabasesDetails.First;
-        while not AllDatabasesDetails.Eof do begin
-          if AllDatabasesDetails.Col('SCHEMA_NAME', True) = DBname then begin
-            CellText := AllDatabasesDetails.Col('DEFAULT_COLLATION_NAME', True);
-            break;
-          end;
-          AllDatabasesDetails.Next;
-        end;
-      end;
-    end;
+    10: if Assigned(Objects) then CellText := Objects.Collation;
   end;
 
 end;

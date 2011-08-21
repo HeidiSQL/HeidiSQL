@@ -206,11 +206,13 @@ type
       FDataSize: Int64;
       FLargestObjectSize: Int64;
       FLastUpdate: TDateTime;
+      FCollation: String;
     public
       property Database: String read FDatabase;
       property DataSize: Int64 read FDataSize;
       property LargestObjectSize: Int64 read FLargestObjectSize;
       property LastUpdate: TDateTime read FLastUpdate;
+      property Collation: String read FCollation;
   end;
   TDatabaseList = TObjectList<TDBObjectList>; // A list of db object lists, used for caching
   TDBObjectComparer = class(TComparer<TDBObject>)
@@ -2409,6 +2411,13 @@ begin
     Result.FLastUpdate := 0;
     Result.FDataSize := 0;
     Result.FDatabase := db;
+    try
+      Result.FCollation := GetVar('SELECT '+QuoteIdent('DEFAULT_COLLATION_NAME')+
+        ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('SCHEMATA')+
+        ' WHERE '+QuoteIdent('SCHEMA_NAME')+'='+EscapeString(db));
+    except
+      Result.FCollation := '';
+    end;
     Results := nil;
     rx := TRegExpr.Create;
     rx.ModifierI := True;
