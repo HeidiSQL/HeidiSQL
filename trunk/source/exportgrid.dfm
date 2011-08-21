@@ -59,6 +59,7 @@ object frmExportGrid: TfrmExportGrid
       'HTML table'
       'XML'
       'SQL INSERTs'
+      'SQL REPLACEs'
       'LaTeX'
       'Wiki markup')
     TabOrder = 2
