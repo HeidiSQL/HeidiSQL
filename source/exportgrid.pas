@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, Menus, VirtualTrees, SynExportHTML;
 
 type
-  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQL, efLaTeX, efWiki);
+  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efLaTeX, efWiki);
 
   TfrmExportGrid = class(TForm)
     btnOK: TButton;
@@ -232,7 +232,7 @@ begin
                          then ExportFormat := efCSV
   else if ext = 'html'   then ExportFormat := efHTML
   else if ext = 'xml'    then ExportFormat := efXML
-  else if ext = 'sql'    then ExportFormat := efSQL
+  else if ext = 'sql'    then ExportFormat := efSQLInsert
   else if ext = 'latex'  then ExportFormat := efLaTeX
   else if ext = 'wiki'   then ExportFormat := efWiki;
 end;
@@ -524,8 +524,12 @@ begin
 
       efXML: tmp := #9'<row>' + CRLF;
 
-      efSQL: begin
-        tmp := 'INSERT INTO '+GridData.Connection.QuoteIdent(Tablename);
+      efSQLInsert, efSQLReplace: begin
+        if ExportFormat = efSQLInsert then
+          tmp := 'INSERT'
+        else
+          tmp := 'REPLACE';
+        tmp := tmp + ' INTO '+GridData.Connection.QuoteIdent(Tablename);
         if chkColumnHeader.Checked then begin
           tmp := tmp + ' (';
           Col := Grid.Header.Columns.GetFirstVisibleColumn;
@@ -590,7 +594,7 @@ begin
           end;
         end;
 
-        efSQL: begin
+        efSQLInsert, efSQLReplace: begin
           if GridData.IsNull(Col) then
             Data := 'NULL'
           else if GridData.DataType(Col).Index = dtBit then
@@ -615,7 +619,7 @@ begin
       end;
       efXML:
         tmp := tmp + #9'</row>' + CRLF;
-      efSQL: begin
+      efSQLInsert, efSQLReplace: begin
         Delete(tmp, Length(tmp)-1, 2);
         tmp := tmp + ');' + CRLF;
       end;
@@ -649,7 +653,7 @@ begin
 
   if radioOutputCopyToClipboard.Checked then begin
     case ExportFormat of
-      efSQL: begin
+      efSQLInsert, efSQLReplace: begin
         Exporter := TSynExporterHTML.Create(Self);
         Exporter.Highlighter := MainForm.SynSQLSyn1;
         Exporter.ExportAll(Explode(CRLF, S.DataString));
