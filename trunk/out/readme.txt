@@ -11,6 +11,7 @@ using the popular MySQL-Database. It allows you to manage and browse your
 databases and tables from an intuitive Windows® interface.
 
 With HeidiSQL you will also be able to 
+* Manage Microsoft SQL Servers, with a reduced feature set
 * Generate nice SQL-exports
 * Synchronize tables between two databases
 * Manage user-privileges
@@ -21,6 +22,7 @@ With HeidiSQL you will also be able to
 * Bulk edit tables (move to db, change engine, collation etc.)
 * Batch-insert ascii or binary files into tables
 * Write queries with customizable syntax-highlighting and code-completion
+* Profile your queries
 * Pretty reformat disordered SQL
 * Monitor and kill client-processes
 * Connect to servers via commandline
@@ -87,6 +89,7 @@ Ansgar Becker (project lead and development), David Dindorp (former development)
 Francisco Ernesto Teixeira (former development),  Andrew Brampton (LaTeX export),
 Sven Lorenz (graphics), Mikkel M. Gerhardt-Pedersen (additional bugfixes),
 Mike Lischke + Timo Tegtmeier (VirtualTreeView, GLPL), Maël Hörz (SynEdit, MPL),
-Mark James (Silk icons, Creative Commons 2.5), Jordan Russell (Inno Setup)
+Iztok Kacin (Cromis.DirectoryWatch, BSD License), Mark James (Silk icons, Creative
+Commons 2.5), Jordan Russell (Inno Setup)
 
 1000 thanks to MySQL for great database software
