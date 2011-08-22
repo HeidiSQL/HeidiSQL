@@ -1850,6 +1850,9 @@ object MainForm: TMainForm
       object Exportdata1: TMenuItem
         Action = actExportData
       end
+      object Synchronizedatabase1: TMenuItem
+        Action = actSynchronizeDatabase
+      end
     end
     object Help1: TMenuItem
       Tag = 22
@@ -2582,6 +2585,12 @@ object MainForm: TMainForm
       Hint = 'Makes selected SQL a comment or removes comment chars'
       ImageIndex = 165
       OnExecute = actToggleCommentExecute
+    end
+    object actSynchronizeDatabase: TAction
+      Category = 'Export/Import'
+      Caption = 'Synchronize database'
+      ImageIndex = 27
+      OnExecute = actSynchronizeDatabaseExecute
     end
   end
   object SaveDialog2: TSaveDialog

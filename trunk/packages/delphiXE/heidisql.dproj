@@ -212,6 +212,9 @@
 			<DCCReference Include="..\..\source\exportgrid.pas">
 				<Form>frmExportGrid</Form>
 			</DCCReference>
+			<DCCReference Include="..\..\source\syncdb.pas">
+				<Form>frmSyncDB</Form>
+			</DCCReference>
 			<RcCompile Include="..\..\res\updater.rc">
 				<Form>updater.res</Form>
 			</RcCompile>

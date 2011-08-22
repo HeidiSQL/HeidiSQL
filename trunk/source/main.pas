@@ -18,7 +18,7 @@ uses
   CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
-  insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch;
+  insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB;
 
 
 type
@@ -503,6 +503,8 @@ type
     actCancelOperation: TAction;
     actToggleComment: TAction;
     Uncomment1: TMenuItem;
+    actSynchronizeDatabase: TAction;
+    Synchronizedatabase1: TMenuItem;
     Disconnect1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
@@ -812,6 +814,7 @@ type
     procedure actCancelOperationExecute(Sender: TObject);
     procedure AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actToggleCommentExecute(Sender: TObject);
+    procedure actSynchronizeDatabaseExecute(Sender: TObject);
     procedure DBtreeBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
       var ContentRect: TRect);
@@ -3296,6 +3299,15 @@ begin
 
   // Show the window
   CallSQLHelpWithKeyword( keyword );
+end;
+
+
+procedure TMainForm.actSynchronizeDatabaseExecute(Sender: TObject);
+var
+  SyncForm: TfrmSyncDB;
+begin
+  SyncForm := TfrmSyncDB.Create(Self);
+  SyncForm.ShowModal;
 end;
 
 
@@ -9406,7 +9418,7 @@ var
 begin
   // Resize "Size" column in dbtree to hold widest possible byte numbers without cutting text
   VT := Sender as TVirtualStringTree;
-  if coVisible in VT.Header.Columns[1].Options then
+  if (VT.Header.Columns.Count >= 2) and (coVisible in VT.Header.Columns[1].Options) then
     VT.Header.Columns[1].Width := TextWidth(VT.Canvas, FormatByteNumber(SIZE_MB-1))+VT.TextMargin*2;
 end;
 
