@@ -1,0 +1,210 @@
+object frmSyncDB: TfrmSyncDB
+  Left = 0
+  Top = 0
+  Caption = 'frmSyncDB'
+  ClientHeight = 373
+  ClientWidth = 539
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  Position = poMainFormCenter
+  OnClose = FormClose
+  OnCreate = FormCreate
+  DesignSize = (
+    539
+    373)
+  PixelsPerInch = 96
+  TextHeight = 13
+  object lblSource: TLabel
+    Left = 8
+    Top = 8
+    Width = 169
+    Height = 13
+    Caption = 'Select source database or table(s):'
+  end
+  object lblDifferences: TLabel
+    Left = 207
+    Top = 191
+    Width = 59
+    Height = 13
+    Caption = 'Differences:'
+  end
+  object treeSource: TVirtualStringTree
+    Left = 8
+    Top = 24
+    Width = 193
+    Height = 310
+    AccessibleName = 'tree'
+    Anchors = [akLeft, akTop, akBottom]
+    Header.AutoSizeIndex = 0
+    Header.DefaultHeight = 17
+    Header.Font.Charset = DEFAULT_CHARSET
+    Header.Font.Color = clWindowText
+    Header.Font.Height = -11
+    Header.Font.Name = 'Tahoma'
+    Header.Font.Style = []
+    Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
+    Images = MainForm.ImageListMain
+    TabOrder = 0
+    TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+    TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
+    OnChange = treeSourceChange
+    OnGetText = treeSourceGetText
+    OnPaintText = treeSourcePaintText
+    OnGetImageIndex = treeSourceGetImageIndex
+    OnGetNodeDataSize = treeSourceGetNodeDataSize
+    OnInitChildren = treeSourceInitChildren
+    OnInitNode = treeSourceInitNode
+    Columns = <
+      item
+        Position = 0
+        Width = 193
+        WideText = 'Name'
+      end>
+  end
+  object grpTarget: TGroupBox
+    Left = 207
+    Top = 8
+    Width = 324
+    Height = 105
+    Anchors = [akLeft, akTop, akRight]
+    Caption = 'Target database or table'
+    TabOrder = 1
+    DesignSize = (
+      324
+      105)
+    object lblTargetServer: TLabel
+      Left = 9
+      Top = 21
+      Width = 36
+      Height = 13
+      Caption = 'Server:'
+    end
+    object lblTargetDatabase: TLabel
+      Left = 9
+      Top = 48
+      Width = 50
+      Height = 13
+      Caption = 'Database:'
+    end
+    object lblTargetTable: TLabel
+      Left = 9
+      Top = 75
+      Width = 30
+      Height = 13
+      Caption = 'Table:'
+    end
+    object comboTargetServer: TComboBox
+      Left = 88
+      Top = 18
+      Width = 228
+      Height = 21
+      Style = csDropDownList
+      Anchors = [akLeft, akTop, akRight]
+      TabOrder = 0
+      OnChange = comboTargetServerChange
+    end
+    object comboTargetDatabase: TComboBox
+      Left = 88
+      Top = 45
+      Width = 228
+      Height = 21
+      Style = csDropDownList
+      Anchors = [akLeft, akTop, akRight]
+      TabOrder = 1
+      OnChange = comboTargetDatabaseChange
+    end
+    object comboTargetTable: TComboBox
+      Left = 88
+      Top = 72
+      Width = 228
+      Height = 21
+      Style = csDropDownList
+      Anchors = [akLeft, akTop, akRight]
+      TabOrder = 2
+    end
+  end
+  object btnClose: TButton
+    Left = 456
+    Top = 340
+    Width = 75
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Cancel = True
+    Caption = 'Close'
+    ImageIndex = 26
+    Images = MainForm.ImageListMain
+    ModalResult = 2
+    TabOrder = 2
+  end
+  object btnApply: TButton
+    Left = 375
+    Top = 340
+    Width = 75
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Caption = 'Apply'
+    Enabled = False
+    ImageIndex = 120
+    Images = MainForm.ImageListMain
+    TabOrder = 3
+  end
+  object btnAnalyze: TButton
+    Left = 294
+    Top = 340
+    Width = 75
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Caption = 'Analyze'
+    ImageIndex = 146
+    Images = MainForm.ImageListMain
+    TabOrder = 4
+  end
+  object grpOptions: TGroupBox
+    Left = 207
+    Top = 119
+    Width = 324
+    Height = 66
+    Anchors = [akLeft, akTop, akRight]
+    Caption = 'Options'
+    TabOrder = 5
+    object radioOptionsStructure: TCheckBox
+      Left = 88
+      Top = 16
+      Width = 97
+      Height = 17
+      Caption = 'Structure'
+      TabOrder = 0
+    end
+    object radioOptionsData: TCheckBox
+      Left = 88
+      Top = 39
+      Width = 97
+      Height = 17
+      Caption = 'Data'
+      TabOrder = 1
+    end
+  end
+  object treeDifferences: TVirtualStringTree
+    Left = 207
+    Top = 208
+    Width = 324
+    Height = 126
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Header.AutoSizeIndex = 0
+    Header.DefaultHeight = 17
+    Header.Font.Charset = DEFAULT_CHARSET
+    Header.Font.Color = clWindowText
+    Header.Font.Height = -11
+    Header.Font.Name = 'Tahoma'
+    Header.Font.Style = []
+    Header.MainColumn = -1
+    Images = MainForm.ImageListMain
+    TabOrder = 6
+    Columns = <>
+  end
+end

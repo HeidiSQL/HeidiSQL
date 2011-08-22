@@ -38,7 +38,8 @@ uses
   event_editor in '..\..\source\event_editor.pas' {frmEventEditor: TFrame},
   loginform in '..\..\source\loginform.pas' {frmLogin},
   Cromis.DirectoryWatch in '..\..\source\Cromis.DirectoryWatch.pas',
-  exportgrid in '..\..\source\exportgrid.pas' {frmExportGrid};
+  exportgrid in '..\..\source\exportgrid.pas' {frmExportGrid},
+  syncdb in '..\..\source\syncdb.pas' {frmSyncDB};
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\version.RES}
