@@ -78,6 +78,7 @@ begin
   MainReg.GetKeyNames(comboTargetServer.Items);
   comboTargetServer.Items.Insert(0, 'Select server session ...');
   comboTargetServer.ItemIndex := 0;
+  comboTargetServer.OnChange(Sender);
 end;
 
 
@@ -85,10 +86,20 @@ procedure TfrmSyncDB.comboTargetServerChange(Sender: TObject);
 var
   Parameters: TConnectionParameters;
   Connection: TDBConnection;
+  SessionSelected: Boolean;
 begin
-  // Populate database drop down
+  // Populate database drop down, or disable remaining controls if no session selected
   comboTargetDatabase.Clear;
-  if comboTargetServer.ItemIndex > 0 then begin
+  SessionSelected := comboTargetServer.ItemIndex > 0;
+  lblTargetDatabase.Enabled := SessionSelected;
+  comboTargetDatabase.Enabled := SessionSelected;
+  lblTargetTable.Enabled := SessionSelected;
+  comboTargetTable.Enabled := SessionSelected;
+  radioOptionsStructure.Enabled := SessionSelected;
+  radioOptionsData.Enabled := SessionSelected;
+  grpOptions.Enabled := SessionSelected;
+  btnAnalyze.Enabled := SessionSelected;
+  if lblTargetDatabase.Enabled then begin
     Parameters := LoadConnectionParams(comboTargetServer.Text);
     Connection := Parameters.CreateConnection(Self);
     Connection.OnLog := MainForm.LogSQL;
@@ -97,9 +108,10 @@ begin
     comboTargetDatabase.Items.Assign(Connection.AllDatabases);
     Connection.Active := False;
     Connection.Free;
+    comboTargetDatabase.Items.Insert(0, '[Same as source]');
+    comboTargetDatabase.ItemIndex := 0;
+    comboTargetDatabase.OnChange(Sender);
   end;
-  comboTargetDatabase.Items.Insert(0, '[Same as source]');
-  comboTargetDatabase.ItemIndex := 0;
 end;
 
 
@@ -140,7 +152,7 @@ end;
 
 procedure TfrmSyncDB.treeSourceChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
 var
-  DB, Table: PVirtualNode;
+  DB: PVirtualNode;
 begin
   // Uncheck table nodes other than current checked one
   if (Sender.GetNodeLevel(Node) = 1) and (Node.CheckState in CheckedStates) then begin
