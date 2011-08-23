@@ -180,6 +180,8 @@ object frmSyncDB: TfrmSyncDB
       Width = 97
       Height = 17
       Caption = 'Structure'
+      Checked = True
+      State = cbChecked
       TabOrder = 0
     end
     object radioOptionsData: TCheckBox
@@ -188,6 +190,8 @@ object frmSyncDB: TfrmSyncDB
       Width = 97
       Height = 17
       Caption = 'Data'
+      Checked = True
+      State = cbChecked
       TabOrder = 1
     end
   end
