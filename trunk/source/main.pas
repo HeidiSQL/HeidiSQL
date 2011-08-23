@@ -871,7 +871,6 @@ type
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
     procedure insertFunction(Sender: TObject);
-    function GetRootNode(Tree: TBaseVirtualTree; Connection: TDBConnection): PVirtualNode;
     function GetActiveConnection: TDBConnection;
     function GetActiveDatabase: String;
     procedure SetActiveDatabase(db: String; Connection: TDBConnection);
@@ -967,6 +966,7 @@ type
     procedure ActivateFileLogging;
     procedure DeactivateFileLogging;
     procedure RefreshTree(FocusNewObject: TDBObject=nil);
+    function GetRootNode(Tree: TBaseVirtualTree; Connection: TDBConnection): PVirtualNode;
     function FindDBObjectNode(Tree: TBaseVirtualTree; Obj: TDBObject): PVirtualNode;
     function FindDBNode(Tree: TBaseVirtualTree; Connection: TDBConnection; db: String): PVirtualNode;
     procedure CalcNullColors;

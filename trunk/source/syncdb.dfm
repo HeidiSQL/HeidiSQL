@@ -53,6 +53,8 @@ object frmSyncDB: TfrmSyncDB
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
     TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
     OnChange = treeSourceChange
+    OnChecked = treeSourceChecked
+    OnChecking = treeSourceChecking
     OnGetText = treeSourceGetText
     OnPaintText = treeSourcePaintText
     OnGetImageIndex = treeSourceGetImageIndex
