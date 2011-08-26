@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, VirtualTrees;
+  Dialogs, StdCtrls, Generics.Collections, VirtualTrees,
+  dbconnection;
 
 type
   TfrmSyncDB = class(TForm)
@@ -38,20 +39,61 @@ type
     procedure treeSourcePaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure comboTargetServerChange(Sender: TObject);
     procedure comboTargetDatabaseChange(Sender: TObject);
+    procedure btnAnalyzeClick(Sender: TObject);
+    procedure btnApplyClick(Sender: TObject);
+    procedure treeDifferencesGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure treeDifferencesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+    procedure treeDifferencesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure treeDifferencesInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
+    procedure treeDifferencesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
   private
     { Private declarations }
+    function CreateTargetConnection: TDBConnection;
   public
     { Public declarations }
   end;
 
+  TDiffType = (diCreate, diAlter, diInsert);
+  TDiffItem = class(TObject)
+    private
+      FTitle: String;
+      FSQL: String;
+      FDiffType: TDiffType;
+    public
+      property Title: String read FTitle write FTitle;
+      property SQL: String read FSQL write FSQL;
+      property DiffType: TDiffType read FDiffType write FDiffType;
+  end;
+  TDiffObject = class(TObjectList<TDiffItem>)
+    private
+      FDBObject: TDBObject;
+    public
+      function AddItem(Title, SQL: String; DiffType: TDiffType): TDiffItem;
+      property DBObject: TDBObject read FDBObject write FDBObject;
+  end;
+  PDiffObject = ^TDiffObject;
 
 implementation
 
-uses main, helpers, dbconnection;
+uses main, helpers;
 
 {$R *.dfm}
 
 
+{ TDiffObject }
+
+function TDiffObject.AddItem(Title, SQL: String; DiffType: TDiffType): TDiffItem;
+begin
+  // Add ALTER, INSERT or whatever difference to diff object
+  Result := TDiffItem.Create;
+  Result.Title := Title;
+  Result.SQL := SQL;
+  Result.DiffType := DiffType;
+  Add(Result);
+end;
+
+
+{ TfrmSyncDB }
 
 procedure TfrmSyncDB.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -63,6 +105,7 @@ procedure TfrmSyncDB.FormCreate(Sender: TObject);
 var
   SessNode: PVirtualNode;
 begin
+  Caption := MainForm.actSynchronizeDatabase.Caption;
   InheritFont(Font);
   SetWindowSizeGrip(Self.Handle, True);
   FixVT(treeSource);
@@ -84,7 +127,6 @@ end;
 
 procedure TfrmSyncDB.comboTargetServerChange(Sender: TObject);
 var
-  Parameters: TConnectionParameters;
   Connection: TDBConnection;
   SessionSelected: Boolean;
 begin
@@ -100,11 +142,7 @@ begin
   grpOptions.Enabled := SessionSelected;
   btnAnalyze.Enabled := SessionSelected;
   if lblTargetDatabase.Enabled then begin
-    Parameters := LoadConnectionParams(comboTargetServer.Text);
-    Connection := Parameters.CreateConnection(Self);
-    Connection.OnLog := MainForm.LogSQL;
-    Connection.LogPrefix := comboTargetServer.Text;
-    Connection.Active := True;
+    Connection := CreateTargetConnection;
     comboTargetDatabase.Items.Assign(Connection.AllDatabases);
     Connection.Active := False;
     Connection.Free;
@@ -117,19 +155,18 @@ end;
 
 procedure TfrmSyncDB.comboTargetDatabaseChange(Sender: TObject);
 var
-  Parameters: TConnectionParameters;
   Connection: TDBConnection;
   Objects: TDBObjectList;
   Obj: TDBObject;
+  DBSelected: Boolean;
 begin
   // Populate table drop down
   comboTargetTable.Clear;
-  if comboTargetDatabase.ItemIndex > 0 then begin
-    Parameters := LoadConnectionParams(comboTargetServer.Text);
-    Connection := Parameters.CreateConnection(Self);
-    Connection.OnLog := MainForm.LogSQL;
-    Connection.LogPrefix := comboTargetServer.Text;
-    Connection.Active := True;
+  DBSelected := comboTargetDatabase.ItemIndex > 0;
+  lblTargetTable.Enabled := DBSelected;
+  comboTargetTable.Enabled := DBSelected;
+  if DBSelected then begin
+    Connection := CreateTargetConnection;
     Objects := Connection.GetDBObjects(comboTargetDatabase.Text);
     for Obj in Objects do begin
       if Obj.NodeType = lntTable then
@@ -143,6 +180,86 @@ begin
 end;
 
 
+procedure TfrmSyncDB.treeDifferencesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+var
+  Diff: PDiffObject;
+begin
+  if Kind in [ikNormal, ikSelected] then begin
+    case Sender.GetNodeLevel(Node) of
+      0: begin
+        Diff := Sender.GetNodeData(Node);
+        ImageIndex := Diff.DBObject.ImageIndex;
+        Ghosted := Diff.Count = 0;
+      end;
+      1: begin
+        Diff := Sender.GetNodeData(Node.Parent);
+        case Diff^[Node.Index].DiffType of
+          diCreate: ImageIndex := 45;
+          diAlter: ImageIndex := 42;
+          diInsert: ImageIndex := 41;
+        end;
+      end;
+    end;
+  end;
+end;
+
+
+procedure TfrmSyncDB.treeDifferencesGetNodeDataSize(Sender: TBaseVirtualTree;
+  var NodeDataSize: Integer);
+begin
+  NodeDataSize := SizeOf(PDiffObject);
+end;
+
+
+procedure TfrmSyncDB.treeDifferencesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+var
+  Diff: PDiffObject;
+begin
+  case Sender.GetNodeLevel(Node) of
+    0: begin
+      Diff := Sender.GetNodeData(Node);
+      CellText := Diff.DBObject.Name;
+    end;
+    1: begin
+      Diff := Sender.GetNodeData(Node.Parent);
+      CellText := Diff^[Node.Index].Title;
+    end;
+  end;
+end;
+
+
+procedure TfrmSyncDB.treeDifferencesInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  var ChildCount: Cardinal);
+var
+  Diff: PDiffObject;
+begin
+  case Sender.GetNodeLevel(Node) of
+    0: begin
+      Diff := Sender.GetNodeData(Node);
+      ChildCount := Diff.Count;
+    end;
+    1: ChildCount := 0;
+  end;
+end;
+
+
+procedure TfrmSyncDB.treeDifferencesInitNode(Sender: TBaseVirtualTree; ParentNode,
+  Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+var
+  Diff: PDiffObject;
+begin
+  if Sender.GetNodeLevel(Node) = 0 then begin
+    Diff := Sender.GetNodeData(Node);
+    if Diff.Count > 0 then
+      Include(InitialStates, ivsHasChildren);
+  end;
+  Node.CheckType := ctTriStateCheckBox;
+  Node.CheckState := csUncheckedNormal;
+end;
+
+
 procedure TfrmSyncDB.treeSourceChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
 begin
   // Clone logic of MainForm.DBtree
@@ -152,15 +269,19 @@ end;
 
 procedure TfrmSyncDB.treeSourceChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
 var
-  DB: PVirtualNode;
+  Sess, DB: PVirtualNode;
 begin
   // Uncheck table nodes other than current checked one
   if (Sender.GetNodeLevel(Node) = 1) and (Node.CheckState in CheckedStates) then begin
-    DB := Sender.GetFirstChild(Node.Parent);
-    while Assigned(DB) do begin
-      if DB <> Node then
-        Sender.CheckState[DB] := csUncheckedNormal;
-      DB := Sender.GetNextSibling(DB);
+    Sess := Sender.GetFirstChild(nil);
+    while Assigned(Sess) do begin
+      DB := Sender.GetFirstChild(Sess);
+      while Assigned(DB) do begin
+        if DB <> Node then
+          Sender.CheckState[DB] := csUncheckedNormal;
+        DB := Sender.GetNextSibling(DB);
+      end;
+      Sess := Sender.GetNextSibling(Sess);
     end;
   end;
 end;
@@ -230,6 +351,90 @@ procedure TfrmSyncDB.treeSourcePaintText(Sender: TBaseVirtualTree;
 begin
   // Clone logic of MainForm.DBtree
   MainForm.DBtree.OnPaintText(Sender, TargetCanvas, Node, Column, TextType);
+end;
+
+
+function TfrmSyncDB.CreateTargetConnection: TDBConnection;
+var
+  Parameters: TConnectionParameters;
+begin
+  // Create target connection
+  Parameters := LoadConnectionParams(comboTargetServer.Text);
+  Result := Parameters.CreateConnection(Self);
+  Result.OnLog := MainForm.LogSQL;
+  Result.LogPrefix := comboTargetServer.Text;
+  Result.Active := True;
+end;
+
+
+procedure TfrmSyncDB.btnAnalyzeClick(Sender: TObject);
+var
+  Sess, DB, Table: PVirtualNode;
+  Connection: TDBConnection;
+  Objects, TargetObjects: TDBObjectList;
+  SourceObj, TargetObj: TDBObject;
+  DBObj: PDBObject;
+  ObjExists: Boolean;
+  TargetDB: String;
+  Diff: TDiffObject;
+begin
+  // Analyze differences, display these in diff tree
+  Objects := TDBObjectList.Create(False);
+  Sess := treeSource.GetFirstChild(nil);
+  while Assigned(Sess) do begin
+    DB := treeSource.GetFirstChild(Sess);
+    while Assigned(DB) do begin
+      if treeSource.ChildrenInitialized[DB] then begin
+        Table := treeSource.GetFirstChild(DB);
+        while Assigned(Table) do begin
+          if treeSource.CheckState[Table] in CheckedStates then begin
+            DBObj := treeSource.GetNodeData(Table);
+            Objects.Add(DBObj^);
+          end;
+          Table := treeSource.GetNextSibling(Table);
+        end;
+      end;
+      DB := treeSource.GetNextSibling(DB);
+    end;
+    Sess := treeSource.GetNextSibling(Sess);
+  end;
+
+  Connection := CreateTargetConnection;
+  if comboTargetDatabase.ItemIndex = 0 then
+    TargetDB := Objects[0].Database
+  else
+    TargetDB := comboTargetDatabase.Text;
+
+  // Check for existance in target db
+  TargetObjects := Connection.GetDBObjects(TargetDB);
+  for SourceObj in Objects do begin
+    Diff := TDiffObject.Create(True);
+    Diff.DBObject := SourceObj;
+    treeDifferences.BeginUpdate;
+    treeDifferences.AddChild(nil, PDiffObject(Diff));
+    ObjExists := False;
+    for TargetObj in TargetObjects do begin
+      if (TargetObj.Name = SourceObj.Name) and (TargetObj.NodeType = SourceObj.NodeType) then begin
+        ObjExists := True;
+        break;
+      end;
+    end;
+    if not ObjExists then begin
+      Diff.AddItem('Create missing '+LowerCase(SourceObj.ObjType), SourceObj.CreateCode, diCreate);
+    end;
+    treeDifferences.EndUpdate;
+  end;
+
+
+  // Throw target connection away
+  Connection.Active := False;
+  Connection.Free;
+end;
+
+
+procedure TfrmSyncDB.btnApplyClick(Sender: TObject);
+begin
+  // Apply selected differences on target database
 end;
 
 

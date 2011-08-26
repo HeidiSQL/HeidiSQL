@@ -2,9 +2,11 @@ object frmSyncDB: TfrmSyncDB
   Left = 0
   Top = 0
   Caption = 'frmSyncDB'
-  ClientHeight = 373
-  ClientWidth = 539
+  ClientHeight = 362
+  ClientWidth = 534
   Color = clBtnFace
+  Constraints.MinHeight = 400
+  Constraints.MinWidth = 550
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -15,8 +17,8 @@ object frmSyncDB: TfrmSyncDB
   OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
-    539
-    373)
+    534
+    362)
   PixelsPerInch = 96
   TextHeight = 13
   object lblSource: TLabel
@@ -37,7 +39,7 @@ object frmSyncDB: TfrmSyncDB
     Left = 8
     Top = 24
     Width = 193
-    Height = 310
+    Height = 299
     AccessibleName = 'tree'
     Anchors = [akLeft, akTop, akBottom]
     Header.AutoSizeIndex = 0
@@ -64,20 +66,20 @@ object frmSyncDB: TfrmSyncDB
     Columns = <
       item
         Position = 0
-        Width = 193
+        Width = 189
         WideText = 'Name'
       end>
   end
   object grpTarget: TGroupBox
     Left = 207
     Top = 8
-    Width = 324
+    Width = 319
     Height = 105
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Target database or table'
     TabOrder = 1
     DesignSize = (
-      324
+      319
       105)
     object lblTargetServer: TLabel
       Left = 9
@@ -103,7 +105,7 @@ object frmSyncDB: TfrmSyncDB
     object comboTargetServer: TComboBox
       Left = 88
       Top = 18
-      Width = 228
+      Width = 223
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -113,7 +115,7 @@ object frmSyncDB: TfrmSyncDB
     object comboTargetDatabase: TComboBox
       Left = 88
       Top = 45
-      Width = 228
+      Width = 223
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -123,7 +125,7 @@ object frmSyncDB: TfrmSyncDB
     object comboTargetTable: TComboBox
       Left = 88
       Top = 72
-      Width = 228
+      Width = 223
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -131,8 +133,8 @@ object frmSyncDB: TfrmSyncDB
     end
   end
   object btnClose: TButton
-    Left = 456
-    Top = 340
+    Left = 451
+    Top = 329
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -144,8 +146,8 @@ object frmSyncDB: TfrmSyncDB
     TabOrder = 2
   end
   object btnApply: TButton
-    Left = 375
-    Top = 340
+    Left = 370
+    Top = 329
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -154,10 +156,11 @@ object frmSyncDB: TfrmSyncDB
     ImageIndex = 120
     Images = MainForm.ImageListMain
     TabOrder = 3
+    OnClick = btnApplyClick
   end
   object btnAnalyze: TButton
-    Left = 294
-    Top = 340
+    Left = 289
+    Top = 329
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -165,11 +168,12 @@ object frmSyncDB: TfrmSyncDB
     ImageIndex = 146
     Images = MainForm.ImageListMain
     TabOrder = 4
+    OnClick = btnAnalyzeClick
   end
   object grpOptions: TGroupBox
     Left = 207
     Top = 119
-    Width = 324
+    Width = 319
     Height = 66
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Options'
@@ -198,8 +202,8 @@ object frmSyncDB: TfrmSyncDB
   object treeDifferences: TVirtualStringTree
     Left = 207
     Top = 208
-    Width = 324
-    Height = 126
+    Width = 319
+    Height = 115
     Anchors = [akLeft, akTop, akRight, akBottom]
     Header.AutoSizeIndex = 0
     Header.DefaultHeight = 17
@@ -211,6 +215,13 @@ object frmSyncDB: TfrmSyncDB
     Header.MainColumn = -1
     Images = MainForm.ImageListMain
     TabOrder = 6
+    TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+    TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
+    OnGetText = treeDifferencesGetText
+    OnGetImageIndex = treeDifferencesGetImageIndex
+    OnGetNodeDataSize = treeDifferencesGetNodeDataSize
+    OnInitChildren = treeDifferencesInitChildren
+    OnInitNode = treeDifferencesInitNode
     Columns = <>
   end
 end
