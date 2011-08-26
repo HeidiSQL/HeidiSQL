@@ -2492,8 +2492,9 @@ begin
           IntToStr(Graphic.Width)+' x '+IntToStr(Graphic.Height)+' pixels, 100%, '+
           FormatByteNumber(StrLen);
         spltPreview.OnMoved(spltPreview);
-      except on E:EInvalidGraphic do
-        lblPreviewTitle.Caption := ImgType+': ' + E.Message;
+      except
+        on E:Exception do
+          lblPreviewTitle.Caption := ImgType+': ' + E.Message + ' ('+E.ClassName+')';
       end;
       FreeAndNil(ContentStream);
     end else
