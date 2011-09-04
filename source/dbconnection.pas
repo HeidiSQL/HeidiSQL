@@ -177,6 +177,7 @@ type
   TDBObject = class(TPersistent)
     private
       FCreateCode: String;
+      FViewSelectCode: String;
       FCreateCodeFetched: Boolean;
       FConnection: TDBConnection;
       function GetObjType: String;
@@ -197,6 +198,7 @@ type
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
       property CreateCode: String read GetCreateCode write SetCreateCode;
+      property ViewSelectCode: String read FViewSelectCode;
       property Connection: TDBConnection read FConnection;
   end;
   PDBObject = ^TDBObject;
@@ -4485,9 +4487,22 @@ end;
 
 
 function TDBObject.GetCreateCode: String;
+var
+  rx: TRegExpr;
 begin
   if not FCreateCodeFetched then try
     FCreateCode := Connection.GetCreateCode(Database, Name, NodeType);
+    if NodeType = lntView then begin
+      FViewSelectCode := Connection.GetVar('SELECT LOAD_FILE(CONCAT(IFNULL(@@GLOBAL.datadir, CONCAT(@@GLOBAL.basedir, '+Connection.EscapeString('data/')+')), '+Connection.EscapeString(Database+'/'+Name+'.frm')+'))');
+      rx := TRegExpr.Create;
+      rx.ModifierI := True;
+      rx.ModifierG := False;
+      rx.Expression := '\nsource\=(.+)\n\w+\=';
+      if rx.Exec(FViewSelectCode) then
+        FViewSelectCode := Connection.UnescapeString(rx.Match[1])
+      else
+        FViewSelectCode := '';
+    end;
   except
   end;
   FCreateCodeFetched := True;

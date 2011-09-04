@@ -77,7 +77,10 @@ begin
     rgCheck.ItemIndex := rgCheck.Items.IndexOf(CheckOption);
     if rgCheck.ItemIndex = -1 then
       rgCheck.ItemIndex := 0;
-    SynMemoSelect.Text := SelectCode;
+    if Obj.ViewSelectCode <> '' then
+      SynMemoSelect.Text := Obj.ViewSelectCode
+    else
+      SynMemoSelect.Text := SelectCode;
     // User may not be allowed to run SHOW CREATE VIEW, in which case we have an empty CreateCode.
     // Disable editor in this case.
     lblDisabledWhy.Visible := SelectCode = '';
