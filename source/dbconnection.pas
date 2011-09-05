@@ -1963,6 +1963,7 @@ begin
   Result := StringReplace(Result, '\n', #10, [rfReplaceAll]);
   Result := StringReplace(Result, '\r', #13, [rfReplaceAll]);
   Result := StringReplace(Result, '\Z', #26, [rfReplaceAll]);
+  Result := StringReplace(Result, '\''', '''', [rfReplaceAll]);
   Result := StringReplace(Result, '''''', '''', [rfReplaceAll]);
 end;
 
