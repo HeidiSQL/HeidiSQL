@@ -7406,7 +7406,7 @@ var
 begin
   g := TVirtualStringTree(Sender);
   case Key of
-    VK_HOME: g.FocusedColumn := 0;
+    VK_HOME: g.FocusedColumn := g.Header.Columns.GetFirstVisibleColumn(False);
     VK_END: begin
       if (ssCtrl in Shift) and (g = DataGrid) then
         actDataShowAll.Execute;
