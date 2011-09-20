@@ -1114,8 +1114,8 @@ begin
       ClosePlink;
       raise EDatabaseError.Create(Error);
     end else begin
-      Log(lcInfo, 'Connected. Thread-ID: '+IntToStr(ThreadId));
       FActive := True;
+      Log(lcInfo, 'Connected. Thread-ID: '+IntToStr(ThreadId));
       CharacterSet := 'utf8';
       CurCharset := CharacterSet;
       Log(lcDebug, 'Characterset: '+CurCharset);
