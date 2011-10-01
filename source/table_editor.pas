@@ -1399,6 +1399,9 @@ begin
       if not FKeys[idx].Added then
         DeletedKeys.Add(FKeys[idx].OldName);
       FKeys.Delete(idx);
+      // Delete node although ReinitChildren would do the same, but the Repaint before
+      // creates AVs in certain cases. See issue #2557
+      treeIndexes.DeleteNode(treeIndexes.FocusedNode);
     end;
     1: begin
       idx := treeIndexes.FocusedNode.Parent.Index;
