@@ -4560,7 +4560,7 @@ function TTableColumn.SQLCode: String;
 var
   IsVirtual: Boolean;
 begin
-  Result := FConnection.QuoteIdent(Name, False) + ' ' +DataType.Name;
+  Result := FConnection.QuoteIdent(Name) + ' ' +DataType.Name;
   IsVirtual := (Expression <> '') and (Virtuality <> '');
   if LengthSet <> '' then
     Result := Result + '(' + LengthSet + ')';
@@ -4625,11 +4625,11 @@ begin
   else begin
     if IndexType <> KEY then
       Result := Result + IndexType + ' ';
-    Result := Result + 'INDEX ' + FConnection.QuoteIdent(Name, False) + ' ';
+    Result := Result + 'INDEX ' + FConnection.QuoteIdent(Name) + ' ';
   end;
   Result := Result + '(';
   for i:=0 to Columns.Count-1 do begin
-    Result := Result + FConnection.QuoteIdent(Columns[i], False);
+    Result := Result + FConnection.QuoteIdent(Columns[i]);
     if SubParts[i] <> '' then
       Result := Result + '(' + SubParts[i] + ')';
     Result := Result + ', ';
@@ -4670,14 +4670,14 @@ begin
   Result := '';
   // Symbol names are unique in a db. In order to autocreate a valid name we leave the constraint clause away.
   if IncludeSymbolName then
-    Result := 'CONSTRAINT '+FConnection.QuoteIdent(KeyName, False)+' ';
+    Result := 'CONSTRAINT '+FConnection.QuoteIdent(KeyName)+' ';
   Result := Result + 'FOREIGN KEY (';
   for i:=0 to Columns.Count-1 do
-    Result := Result + FConnection.QuoteIdent(Columns[i], False) + ', ';
+    Result := Result + FConnection.QuoteIdent(Columns[i]) + ', ';
   if Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
-  Result := Result + ') REFERENCES ' + FConnection.QuoteIdent(ReferenceTable, False, '.') + ' (';
+  Result := Result + ') REFERENCES ' + FConnection.QuoteIdent(ReferenceTable, True, '.') + ' (';
   for i:=0 to ForeignColumns.Count-1 do
-    Result := Result + FConnection.QuoteIdent(ForeignColumns[i], False) + ', ';
+    Result := Result + FConnection.QuoteIdent(ForeignColumns[i]) + ', ';
   if ForeignColumns.Count > 0 then Delete(Result, Length(Result)-1, 2);
   Result := Result + ')';
   if OnUpdate <> '' then
