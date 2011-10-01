@@ -467,7 +467,7 @@ var
   begin
     if Specs.Count > 0 then begin
       Query := TSQLSentence.Create;
-      Query.SQL := 'ALTER TABLE '+DBObject.Connection.QuoteIdent(DBObject.Name, False) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
+      Query.SQL := 'ALTER TABLE '+DBObject.Connection.QuoteIdent(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
       Query.SQL := Trim(Query.SQL);
       Result.Add(Query);
       Specs.Clear;
@@ -487,7 +487,7 @@ begin
   //   ALTER TABLE  statement. Separate statements are required."
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
-      Specs.Add('DROP FOREIGN KEY '+DBObject.Connection.QuoteIdent(FForeignKeys[i].OldKeyName, False));
+      Specs.Add('DROP FOREIGN KEY '+DBObject.Connection.QuoteIdent(FForeignKeys[i].OldKeyName));
   end;
   AddQuery;
 
@@ -500,12 +500,12 @@ begin
       and (FColumns[i].DefaultType = cdtNothing)
       and (FColumns[i].OldDataType.HasDefault)
       then
-      Specs.Add('ALTER '+DBObject.Connection.QuoteIdent(FColumns[i].OldName, False)+' DROP DEFAULT');
+      Specs.Add('ALTER '+DBObject.Connection.QuoteIdent(FColumns[i].OldName)+' DROP DEFAULT');
   end;
   AddQuery;
 
   if editName.Text <> DBObject.Name then
-    Specs.Add('RENAME TO ' + DBObject.Connection.QuoteIdent(editName.Text, False));
+    Specs.Add('RENAME TO ' + DBObject.Connection.QuoteIdent(editName.Text));
   if memoComment.Tag = ModifiedFlag then
     Specs.Add('COMMENT=' + esc(memoComment.Text));
   if (comboCollation.Tag = ModifiedFlag) or (chkCharsetConvert.Checked) then
@@ -549,7 +549,7 @@ begin
     Mainform.ProgressBarStatus.StepIt;
     Col := listColumns.GetNodeData(Node);
     if Col.Status <> esUntouched then begin
-      ColSpec := DBObject.Connection.QuoteIdent(Col.Name, False);
+      ColSpec := DBObject.Connection.QuoteIdent(Col.Name);
       ColSpec := ColSpec + ' ' + Col.DataType.Name;
       IsVirtual := (Col.Expression <> '') and (Col.Virtuality <> '');
       if Col.LengthSet <> '' then
@@ -583,10 +583,10 @@ begin
         if PreviousCol = nil then
           ColSpec := ColSpec + ' FIRST'
         else
-          ColSpec := ColSpec + ' AFTER '+DBObject.Connection.QuoteIdent(PreviousCol.Name, False);
+          ColSpec := ColSpec + ' AFTER '+DBObject.Connection.QuoteIdent(PreviousCol.Name);
       end;
       if Col.Status = esModified then
-        Specs.Add('CHANGE COLUMN '+DBObject.Connection.QuoteIdent(Col.OldName, False) + ' ' + ColSpec)
+        Specs.Add('CHANGE COLUMN '+DBObject.Connection.QuoteIdent(Col.OldName) + ' ' + ColSpec)
       else if Col.Status in [esAddedUntouched, esAddedModified] then
         Specs.Add('ADD COLUMN ' + ColSpec);
     end;
@@ -597,7 +597,7 @@ begin
   // Deleted columns, not available as Node in above loop
   for i:=0 to FColumns.Count-1 do begin
     if FColumns[i].Status = esDeleted then
-      Specs.Add('DROP COLUMN '+DBObject.Connection.QuoteIdent(FColumns[i].OldName, False));
+      Specs.Add('DROP COLUMN '+DBObject.Connection.QuoteIdent(FColumns[i].OldName));
   end;
 
   // Drop indexes, also changed indexes, which will be readded below
@@ -606,7 +606,7 @@ begin
     if DeletedKeys[i] = PKEY then
       IndexSQL := 'PRIMARY KEY'
     else
-      IndexSQL := 'INDEX ' + DBObject.Connection.QuoteIdent(DeletedKeys[i], False);
+      IndexSQL := 'INDEX ' + DBObject.Connection.QuoteIdent(DeletedKeys[i]);
     Specs.Add('DROP '+IndexSQL);
   end;
   // Add changed or added indexes
@@ -616,7 +616,7 @@ begin
       if FKeys[i].OldIndexType = PKEY then
         IndexSQL := 'PRIMARY KEY'
       else
-        IndexSQL := 'INDEX ' + DBObject.Connection.QuoteIdent(FKeys[i].OldName, False);
+        IndexSQL := 'INDEX ' + DBObject.Connection.QuoteIdent(FKeys[i].OldName);
       Specs.Add('DROP '+IndexSQL);
     end;
     if FKeys[i].Added or FKeys[i].Modified then
@@ -624,7 +624,7 @@ begin
   end;
 
   for i:=0 to DeletedForeignKeys.Count-1 do
-    Specs.Add('DROP FOREIGN KEY '+DBObject.Connection.QuoteIdent(DeletedForeignKeys[i], False));
+    Specs.Add('DROP FOREIGN KEY '+DBObject.Connection.QuoteIdent(DeletedForeignKeys[i]));
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Added or FForeignKeys[i].Modified then
       Specs.Add('ADD '+FForeignKeys[i].SQLCode(True));
@@ -651,7 +651,7 @@ begin
   Result := TSQLBatch.Create;
   Query := TSQLSentence.Create;
   Result.Add(Query);
-  Query.SQL := 'CREATE TABLE '+DBObject.Connection.QuoteIdent(editName.Text, False)+' ('+CRLF;
+  Query.SQL := 'CREATE TABLE '+DBObject.Connection.QuoteIdent(editName.Text)+' ('+CRLF;
   Node := listColumns.GetFirst;
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
