@@ -369,6 +369,7 @@ var
 begin
   InheritFont(Font);
   EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, LPARAM(Pointer(comboSQLFontName.Items)));
+  comboSQLFontName.Sorted := True;
   SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
     #9'''String literal'' AS lit' + CRLF +
     'FROM tableA AS ta -- A comment' + CRLF +
