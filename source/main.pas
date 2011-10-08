@@ -853,6 +853,7 @@ type
     FDBObjectsMaxSize: Int64;
     FDBObjectsMaxRows: Int64;
     FSearchReplaceDialog: TfrmSearchReplace;
+    FPreferencesDialog: Toptionsform;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1898,12 +1899,10 @@ begin
 end;
 
 procedure TMainForm.actPreferencesExecute(Sender: TObject);
-var
-  Dialog: Toptionsform;
 begin
   // Preferences
-  Dialog := Toptionsform.Create(Self);
-  Dialog.ShowModal;
+  FPreferencesDialog := Toptionsform.Create(Self);
+  FPreferencesDialog.ShowModal;
 end;
 
 procedure TMainForm.actReadmeExecute(Sender: TObject);
@@ -9212,6 +9211,8 @@ begin
   Editors.Add(SynMemoSQLLog);
   if Assigned(ActiveObjectEditor) then
     FindEditors(ActiveObjectEditor);
+  if Assigned(FPreferencesDialog) then
+    Editors.Add(FPreferencesDialog.SynMemoSQLSample);
 
   FontName := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
   FontSize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
