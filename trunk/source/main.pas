@@ -4610,7 +4610,7 @@ procedure TMainForm.SynCompletionProposalExecute(Kind: SynCompletionType;
   Sender: TObject; var CurrentInput: String; var x, y: Integer;
   var CanExecute: Boolean);
 var
-  i,j: Integer;
+  i, j, ImageIndex: Integer;
   Results: TDBQuery;
   DBObjects: TDBObjectList;
   sql, TableClauses, TableName, LeftPart, Token1, Token2, Token3, Token, Ident: String;
@@ -4623,6 +4623,8 @@ var
   QueryMarkers: TSQLBatch;
   Query: TSQLSentence;
   Conn: TDBConnection;
+  RoutineEditor: TfrmRoutineEditor;
+  Param: TRoutineParam;
 
   procedure AddTable(Obj: TDBObject);
   var
@@ -4808,6 +4810,20 @@ begin
         Proposal.InsertList.Add( MySQLKeywords[i] );
         Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i]] ) );
       end;
+
+      // Procedure params
+      if GetParentFormOrFrame(Editor) is TfrmRoutineEditor then begin
+        RoutineEditor := GetParentFormOrFrame(Editor) as TfrmRoutineEditor;
+        for Param in RoutineEditor.Parameters do begin
+          if Param.Context = 'IN' then ImageIndex := 120
+          else if Param.Context = 'OUT' then ImageIndex := 121
+          else if Param.Context = 'INOUT' then ImageIndex := 122
+          else ImageIndex := -1;
+          Proposal.InsertList.Add(Param.Name);
+          Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ImageIndex, Param.Datatype, Param.Name]));
+        end;
+      end;
+
     end;
 
   end;
