@@ -1822,36 +1822,33 @@ object MainForm: TMainForm
       object N7: TMenuItem
         Caption = '-'
       end
+      object ExportdatabaseasSQL1: TMenuItem
+        Action = actExportTables
+      end
+      object Exportgridrows1: TMenuItem
+        Action = actExportData
+      end
+      object Synchronizedatabase2: TMenuItem
+        Action = actSynchronizeDatabase
+      end
+      object N9: TMenuItem
+        Caption = '-'
+      end
+      object LoadSQLfile1: TMenuItem
+        Action = actLoadSQL
+      end
+      object ImportCSVfile1: TMenuItem
+        Action = actImportCSV
+      end
+      object InsertfilesintoTEXTBLOBfields1: TMenuItem
+        Action = actInsertFiles
+      end
+      object N4: TMenuItem
+        Caption = '-'
+      end
       object MenuPreferences: TMenuItem
         Tag = 36
         Action = actPreferences
-      end
-    end
-    object Import1: TMenuItem
-      Caption = '&Import'
-      object MenuImportTextFile: TMenuItem
-        Tag = 43
-        Action = actImportCSV
-      end
-      object ImportSQL1: TMenuItem
-        Action = actLoadSQL
-      end
-      object InsertfilesintoBLOBfields1: TMenuItem
-        Action = actInsertFiles
-      end
-    end
-    object ImExport1: TMenuItem
-      Tag = 20
-      Caption = 'E&xport'
-      object MenuExport: TMenuItem
-        Tag = 45
-        Action = actExportTables
-      end
-      object Exportdata1: TMenuItem
-        Action = actExportData
-      end
-      object Synchronizedatabase1: TMenuItem
-        Action = actSynchronizeDatabase
       end
     end
     object Help1: TMenuItem
