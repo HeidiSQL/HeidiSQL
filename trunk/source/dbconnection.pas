@@ -1133,7 +1133,6 @@ begin
           FServerVersionUntouched := FServerVersionUntouched + ' - ' + Vars.Col(1);
         Vars.Next;
       end;
-      DoAfterConnect;
       if FDatabase <> '' then begin
         tmpdb := FDatabase;
         FDatabase := '';
@@ -1145,6 +1144,7 @@ begin
           Database := '';
         end;
       end;
+      DoAfterConnect;
     end;
   end
 
@@ -1565,6 +1565,7 @@ end;
 }
 procedure TDBConnection.SetDatabase(Value: String);
 begin
+  Log(lcDebug, 'SetDatabase('+Value+'), FDatabase: '+FDatabase);
   if Value <> FDatabase then begin
     if Value = '' then begin
       FDatabase := Value;
