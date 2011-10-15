@@ -2951,6 +2951,7 @@ begin
       Node := GetNextNode(Grid, nil, True);
       while Assigned(Node) do begin
         RowNum := Grid.GetNodeData(Node);
+        ShowStatusMsg('Deleting row #'+FormatNumber(ProgressBarStatus.Position+1)+' of '+FormatNumber(ProgressBarStatus.Max)+' ...');
         Results.RecNo := RowNum^;
         if Results.DeleteRow then begin
           ProgressBarStatus.StepIt;
@@ -2961,6 +2962,7 @@ begin
         end;
         Node := GetNextNode(Grid, Node, True);
       end;
+      ShowStatusMsg('Clean up ...');
       if Assigned(FocusAfterDelete) then
         FocusAfterDelete := Grid.GetNext(FocusAfterDelete);
       // Remove nodes and select some nearby node
@@ -2981,6 +2983,7 @@ begin
     end;
   end;
   Mainform.ProgressBarStatus.Visible := False;
+  ShowStatusMsg();
 end;
 
 
