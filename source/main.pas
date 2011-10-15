@@ -3951,7 +3951,7 @@ var
   vt: TVirtualStringTree;
   Select: String;
   RefreshingData, IsKeyColumn: Boolean;
-  i, Offset, ColLen, ColWidth: Integer;
+  i, Offset, ColLen, ColWidth, VisibleColumns: Integer;
   KeyCols, ColWidths, WantedColumnOrgnames: TStringList;
   WantedColumns: TTableColumnList;
   c: TTableColumn;
@@ -4060,12 +4060,6 @@ begin
       Select := Select + DBObj.Connection.QuoteIdent('dbo') + '.';
     Select := Select + DBObj.QuotedName;
 
-    // Signal for the user if we hide some columns
-    if WantedColumns.Count = SelectedTableColumns.Count then
-      tbtnDataColumns.ImageIndex := 107
-    else
-      tbtnDataColumns.ImageIndex := 108;
-
     // Append WHERE clause
     if SynMemoFilter.GetTextLen > 0 then begin
       Select := Select + ' WHERE ' + SynMemoFilter.Text;
@@ -4123,8 +4117,18 @@ begin
         for i:=0 to vt.Header.Columns.Count-1 do
           ColWidths.Values[vt.Header.Columns[i].Text] := IntToStr(vt.Header.Columns[i].Width);
       end;
-      for i:=0 to WantedColumns.Count-1 do
+      VisibleColumns := 0;
+      for i:=0 to WantedColumns.Count-1 do begin
         InitColumn(i, WantedColumns[i]);
+        if coVisible in vt.Header.Columns[i].Options then
+          Inc(VisibleColumns);
+      end;
+
+      // Signal for the user if we hide some columns
+      if VisibleColumns = SelectedTableColumns.Count then
+        tbtnDataColumns.ImageIndex := 107
+      else
+        tbtnDataColumns.ImageIndex := 108;
 
       // Autoset or restore column width
       for i:=0 to vt.Header.Columns.Count-1 do begin
