@@ -104,7 +104,6 @@ object UserManagerForm: TUserManagerForm
       Height = 275
       Align = alClient
       Header.AutoSizeIndex = 0
-      Header.DefaultHeight = 17
       Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
       Header.ParentFont = True
       Header.SortColumn = 0
@@ -224,7 +223,6 @@ object UserManagerForm: TUserManagerForm
       Height = 149
       Align = alClient
       Header.AutoSizeIndex = 0
-      Header.DefaultHeight = 17
       Header.MainColumn = -1
       Header.ParentFont = True
       Images = MainForm.ImageListMain

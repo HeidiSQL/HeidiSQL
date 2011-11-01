@@ -258,7 +258,6 @@ object frmRoutineEditor: TfrmRoutineEditor
         DragType = dtVCL
         EditDelay = 0
         Header.AutoSizeIndex = 1
-        Header.DefaultHeight = 17
         Header.MainColumn = 1
         Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
         Header.ParentFont = True

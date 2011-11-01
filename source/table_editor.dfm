@@ -61,7 +61,6 @@ object frmTableEditor: TfrmTableEditor
     DragMode = dmAutomatic
     EditDelay = 0
     Header.AutoSizeIndex = -1
-    Header.DefaultHeight = 17
     Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
     Header.ParentFont = True
     Header.PopupMenu = MainForm.popupListHeader
@@ -398,7 +397,6 @@ object frmTableEditor: TfrmTableEditor
         DragMode = dmAutomatic
         EditDelay = 0
         Header.AutoSizeIndex = 0
-        Header.DefaultHeight = 17
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
         Header.ParentFont = True
         Images = MainForm.ImageListMain
@@ -561,7 +559,6 @@ object frmTableEditor: TfrmTableEditor
           Align = alClient
           EditDelay = 0
           Header.AutoSizeIndex = 0
-          Header.DefaultHeight = 17
           Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
           Header.ParentFont = True
           Images = MainForm.ImageListMain

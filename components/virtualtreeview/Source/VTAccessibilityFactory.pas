@@ -50,14 +50,13 @@ implementation
 
 var
   VTAccessibleFactory: TVTAccessibilityFactory = nil;
-  AccessibilityAvailable: boolean = false;
-  
+  AccessibilityAvailable: Boolean = False;
 
 { TVTAccessibilityFactory }
 
 constructor TVTAccessibilityFactory.Create;
 begin
-  inherited;
+  inherited Create;
   FAccessibleProviders := TInterfaceList.Create;
   FAccessibleProviders.Clear;
 end;
@@ -77,15 +76,15 @@ var
 // We'll work top to bottom, from the most complicated to the most simple.
 // The index for these should all be greater than 0, e g the IAccessible for the tree itself should always be registered first, then any IAccessible items.
 begin
-  result := nil;
+  Result := nil;
   if ATree <> nil then
   begin
     if ATree.Accessible = nil then
     begin
       if FAccessibleProviders.Count > 0 then
       begin
-        result := IVTAccessibleProvider(FAccessibleProviders.Items[0]).CreateIAccessible(ATree);
-        exit;
+        Result := IVTAccessibleProvider(FAccessibleProviders.Items[0]).CreateIAccessible(ATree);
+        Exit;
       end;
     end;
     if ATree.AccessibleItem = nil then
@@ -97,19 +96,18 @@ begin
           TmpIAccessible := IVTAccessibleProvider(FAccessibleProviders.Items[I]).CreateIAccessible(ATree);
           if TmpIAccessible <> nil then
           begin
-            result := TmpIAccessible;
-            break;
+            Result := TmpIAccessible;
+            Break;
           end;
         end;
         if TmpIAccessible = nil then
         begin
-          result := IVTAccessibleProvider(FAccessibleProviders.Items[0]).CreateIAccessible(ATree);
+          Result := IVTAccessibleProvider(FAccessibleProviders.Items[0]).CreateIAccessible(ATree);
         end;
       end;
     end
-    else begin
+    else
       Result := ATree.AccessibleItem;
-    end;
   end;
 end;
 
@@ -120,7 +118,7 @@ begin
   {$ifndef COMPILER_10_UP}
     FreeAccLibrary;
   {$endif COMPILER_10_UP}
-  inherited;
+  inherited Destroy;
 end;
 
 procedure TVTAccessibilityFactory.RegisterAccessibleProvider(
@@ -157,15 +155,15 @@ begin
     // Check to see if the class has already been created.
     if VTAccessibleFactory = nil then
       VTAccessibleFactory := TVTAccessibilityFactory.Create;
-    result := VTAccessibleFactory;
+    Result := VTAccessibleFactory;
   end
   else
-    result := nil;
+    Result := nil;
 end;
-
 
 initialization
 
 finalization
-  VTAccessibleFactory.free;
+  VTAccessibleFactory.Free;
+
 end.

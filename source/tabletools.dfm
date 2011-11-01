@@ -70,7 +70,6 @@ object frmTableTools: TfrmTableTools
       Height = 336
       Align = alLeft
       Header.AutoSizeIndex = 0
-      Header.DefaultHeight = 17
       Header.Font.Charset = DEFAULT_CHARSET
       Header.Font.Color = clWindowText
       Header.Font.Height = -11
@@ -119,7 +118,6 @@ object frmTableTools: TfrmTableTools
         Height = 191
         Align = alClient
         Header.AutoSizeIndex = -1
-        Header.DefaultHeight = 17
         Header.Images = MainForm.ImageListMain
         Header.MainColumn = -1
         Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]

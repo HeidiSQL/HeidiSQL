@@ -102,7 +102,6 @@ object frmInsertFiles: TfrmInsertFiles
       Anchors = [akLeft, akTop, akRight]
       EditDelay = 0
       Header.AutoSizeIndex = 2
-      Header.DefaultHeight = 17
       Header.Font.Charset = DEFAULT_CHARSET
       Header.Font.Color = clWindowText
       Header.Font.Height = -11
@@ -180,7 +179,6 @@ object frmInsertFiles: TfrmInsertFiles
       Height = 128
       Anchors = [akLeft, akTop, akRight, akBottom]
       Header.AutoSizeIndex = 0
-      Header.DefaultHeight = 17
       Header.Font.Charset = DEFAULT_CHARSET
       Header.Font.Color = clWindowText
       Header.Font.Height = -11

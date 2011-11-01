@@ -68,7 +68,7 @@ unit VTHeaderPopup;
 {$ifdef COMPILER_12_UP}
   {$WARN IMPLICIT_STRING_CAST       OFF}
   {$WARN IMPLICIT_STRING_CAST_LOSS  OFF}
-{$endif COMPILER_7_UP}
+{$endif COMPILER_12_UP}
 
 interface
 
