@@ -44,7 +44,6 @@ object frmSelectDBObject: TfrmSelectDBObject
     Height = 206
     Anchors = [akLeft, akTop, akRight, akBottom]
     Header.AutoSizeIndex = 0
-    Header.DefaultHeight = 17
     Header.Font.Charset = DEFAULT_CHARSET
     Header.Font.Color = clWindowText
     Header.Font.Height = -11

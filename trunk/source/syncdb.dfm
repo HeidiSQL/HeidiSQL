@@ -43,7 +43,6 @@ object frmSyncDB: TfrmSyncDB
     AccessibleName = 'tree'
     Anchors = [akLeft, akTop, akBottom]
     Header.AutoSizeIndex = 0
-    Header.DefaultHeight = 17
     Header.Font.Charset = DEFAULT_CHARSET
     Header.Font.Color = clWindowText
     Header.Font.Height = -11
@@ -206,7 +205,6 @@ object frmSyncDB: TfrmSyncDB
     Height = 115
     Anchors = [akLeft, akTop, akRight, akBottom]
     Header.AutoSizeIndex = 0
-    Header.DefaultHeight = 17
     Header.Font.Charset = DEFAULT_CHARSET
     Header.Font.Color = clWindowText
     Header.Font.Height = -11

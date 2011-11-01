@@ -407,7 +407,6 @@ object MainForm: TMainForm
         DragMode = dmAutomatic
         DragType = dtVCL
         Header.AutoSizeIndex = 0
-        Header.DefaultHeight = 17
         Header.Font.Charset = DEFAULT_CHARSET
         Header.Font.Color = clWindowText
         Header.Font.Height = -11
@@ -621,7 +620,6 @@ object MainForm: TMainForm
                 Height = 273
                 Align = alClient
                 Header.AutoSizeIndex = 0
-                Header.DefaultHeight = 17
                 Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.ParentFont = True
                 Header.PopupMenu = popupListHeader
@@ -705,7 +703,6 @@ object MainForm: TMainForm
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
-                Header.DefaultHeight = 17
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.ParentFont = True
@@ -757,7 +754,6 @@ object MainForm: TMainForm
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
-                Header.DefaultHeight = 17
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.ParentFont = True
@@ -829,7 +825,6 @@ object MainForm: TMainForm
                 Height = 200
                 Align = alClient
                 Header.AutoSizeIndex = 7
-                Header.DefaultHeight = 17
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.ParentFont = True
@@ -976,7 +971,6 @@ object MainForm: TMainForm
                 Height = 273
                 Align = alClient
                 Header.AutoSizeIndex = 4
-                Header.DefaultHeight = 17
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.ParentFont = True
@@ -1049,7 +1043,6 @@ object MainForm: TMainForm
             Align = alClient
             EditDelay = 500
             Header.AutoSizeIndex = -1
-            Header.DefaultHeight = 17
             Header.Height = 20
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
             Header.ParentFont = True
@@ -1418,7 +1411,6 @@ object MainForm: TMainForm
             AutoScrollDelay = 50
             EditDelay = 0
             Header.AutoSizeIndex = -1
-            Header.DefaultHeight = 17
             Header.Height = 20
             Header.Images = ImageListMain
             Header.MainColumn = -1
@@ -1550,7 +1542,6 @@ object MainForm: TMainForm
               DragMode = dmAutomatic
               DragType = dtVCL
               Header.AutoSizeIndex = 0
-              Header.DefaultHeight = 17
               Header.Font.Charset = DEFAULT_CHARSET
               Header.Font.Color = clWindowText
               Header.Font.Height = -11
@@ -1600,7 +1591,6 @@ object MainForm: TMainForm
             AutoScrollDelay = 50
             EditDelay = 0
             Header.AutoSizeIndex = -1
-            Header.DefaultHeight = 17
             Header.Height = 20
             Header.Images = ImageListMain
             Header.MainColumn = -1
