@@ -373,6 +373,15 @@ var
   Exporter: TSynExporterHTML;
   Encoding: TEncoding;
 begin
+  // Confirmation dialog if file exists
+  if radioOutputFile.Checked
+    and FileExists(editFilename.Text)
+    and (MessageDialog('File exists', 'Overwrite file '+editFilename.Text+'?', mtConfirmation, [mbYes, mbCancel]) = mrCancel)
+    then begin
+      ModalResult := mrNone;
+      Exit;
+  end;
+
   Screen.Cursor := crHourglass;
 
   SelectionOnly := grpSelection.ItemIndex = 0;
