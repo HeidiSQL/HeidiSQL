@@ -3020,7 +3020,7 @@ begin
       '(ALGORITHM\s*=\s*(\w+)\s+)?'+
       '(DEFINER\s*=\s*(\S+)\s+)?'+
       '(SQL\s+SECURITY\s+\w+\s+)?'+
-      'VIEW\s+(["`]?(\w[\w\s\-]*)["`]?\.)?(["`]?(\w[\w\s\-]*)["`]?)?\s+'+
+      'VIEW\s+(([^\.]+)\.)?([^\.]+)\s+'+
       '(\([^\)]\)\s+)?'+
       'AS\s+(.+)(\s+WITH\s+(\w+\s+)?CHECK\s+OPTION\s*)?$';
     if rx.Exec(CreateCode) then begin
@@ -3028,10 +3028,10 @@ begin
       Definer := DeQuoteIdent(rx.Match[5], '@');
       // When exporting a view we need the db name for the below SHOW COLUMNS query,
       // if the connection is on a different db currently
-      DbName := rx.Match[8];
-      ViewName := rx.Match[10];
-      CheckOption := Trim(rx.Match[14]);
-      SelectCode := rx.Match[12];
+      DbName := DeQuoteIdent(rx.Match[8]);
+      ViewName := DeQuoteIdent(rx.Match[9]);
+      CheckOption := Trim(rx.Match[13]);
+      SelectCode := rx.Match[11];
     end else
       raise Exception.Create('Regular expression did not match the VIEW code in ParseViewStructure(): '+CRLF+CRLF+CreateCode);
     rx.Free;
