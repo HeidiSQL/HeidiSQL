@@ -1227,6 +1227,8 @@ begin
               Struc := Struc + Quoter.QuoteIdent(DBObj.Name);
               Output(Struc, True, True, True, True, True);
               Struc := DBObj.CreateCode;
+              if DBObj.ViewSelectCode <> '' then
+                Struc := DBObj.ViewSelectCode;
               if ToDb then
                 Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
             end;
