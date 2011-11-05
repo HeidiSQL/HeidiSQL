@@ -863,7 +863,7 @@ end;
 
 procedure TfrmTableTools.comboExportOutputTypeChange(Sender: TObject);
 var
-  DBNode: PVirtualNode;
+  SessionNode, DBNode: PVirtualNode;
   SessionName: String;
   Params: TConnectionParameters;
 begin
@@ -901,7 +901,8 @@ begin
     btnExportOutputTargetSelect.ImageIndex := 27;
     // Add unchecked databases
     comboExportOutputTarget.Items.Clear;
-    DBNode := TreeObjects.GetFirstChild(TreeObjects.GetFirst);
+    SessionNode := MainForm.GetRootNode(TreeObjects, MainForm.ActiveConnection);
+    DBNode := TreeObjects.GetFirstChild(SessionNode);
     while Assigned(DBNode) do begin
       if DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed] then
         comboExportOutputTarget.Items.Add(TreeObjects.Text[DBNode, 0]);
