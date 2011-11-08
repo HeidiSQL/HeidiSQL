@@ -612,7 +612,7 @@ var
 begin
   // Insert files
   Screen.Cursor := crHourglass;
-  EnableProgressBar(ListFiles.RootNodeCount);
+  MainForm.EnableProgress(ListFiles.RootNodeCount);
 
   Node := ListFiles.GetFirst;
   while Assigned(Node) do begin
@@ -670,11 +670,11 @@ begin
     sql := sql + ')';
     try
       FConnection.Query(sql);
-      Mainform.ProgressBarStatus.StepIt;
-      Mainform.ProgressBarStatus.Repaint;
+      Mainform.ProgressStep;
     except
       on E:EDatabaseError do begin
         Screen.Cursor := crDefault;
+        MainForm.SetProgressState(pbsError);
         ErrorDialog(E.Message);
         ModalResult := mrNone;
         break;
@@ -685,7 +685,7 @@ begin
     ListFiles.DeleteNode(DoneNode);
   end;
   Screen.Cursor := crDefault;
-  Mainform.ProgressBarStatus.Hide;
+  MainForm.DisableProgress;
 end;
 
 

@@ -153,7 +153,6 @@ type
   function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
   function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
-  procedure EnableProgressBar(MaxValue: Integer);
   function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
   function ListIndexByRegExpr(List: TStrings; Expression: String): Integer;
   function FindNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode): PVirtualNode;
@@ -1675,15 +1674,6 @@ begin
     Node.States := Node.States - [vsInitialized];
     Node := Sender.GetNextInitialized(Node);
   end;
-end;
-
-
-procedure EnableProgressBar(MaxValue: Integer);
-begin
-  Mainform.ProgressBarStatus.State := pbsNormal;
-  Mainform.ProgressBarStatus.Visible := True;
-  Mainform.ProgressBarStatus.Max := MaxValue;
-  Mainform.ProgressBarStatus.Position := 0;
 end;
 
 
