@@ -537,7 +537,7 @@ begin
   FCancelled := False;
   FObjectSizesDone := 0;
   FObjectSizesDoneExact := 0;
-  EnableProgressBar(100);
+  MainForm.EnableProgress(100);
   SessionNode := TreeObjects.GetFirstChild(nil);
   while Assigned(SessionNode) do begin
     DBNode := TreeObjects.GetFirstChild(SessionNode);
@@ -607,7 +607,7 @@ begin
 
   btnCloseOrCancel.Caption := 'Close';
   btnCloseOrCancel.ModalResult := mrCancel;
-  Mainform.ProgressBarStatus.Hide;
+  MainForm.DisableProgress;
   tabsTools.Enabled := True;
   treeObjects.Enabled := True;
   ValidateControls(Sender);
@@ -793,7 +793,7 @@ begin
   Percent := 100 / Max(FObjectSizes,1) * FObjectSizesDoneExact;
   lblCheckedSize.Caption := 'Selected objects size: '+FormatByteNumber(FObjectSizes)+'. '+
     FormatNumber(Percent, 1) + '% done.';
-  Mainform.ProgressBarStatus.Position := Round(Percent);
+  MainForm.SetProgressPosition(Round(Percent));
   Application.ProcessMessages;
 end;
 

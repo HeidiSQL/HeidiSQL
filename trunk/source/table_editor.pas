@@ -542,11 +542,11 @@ begin
   end;
 
   // Update columns
-  EnableProgressBar(FColumns.Count + DeletedKeys.Count + FKeys.Count);
+  MainForm.EnableProgress(FColumns.Count + DeletedKeys.Count + FKeys.Count);
   Node := listColumns.GetFirst;
   PreviousCol := nil;
   while Assigned(Node) do begin
-    Mainform.ProgressBarStatus.StepIt;
+    Mainform.ProgressStep;
     Col := listColumns.GetNodeData(Node);
     if Col.Status <> esUntouched then begin
       ColSpec := DBObject.Connection.QuoteIdent(Col.Name);
@@ -602,7 +602,7 @@ begin
 
   // Drop indexes, also changed indexes, which will be readded below
   for i:=0 to DeletedKeys.Count-1 do begin
-    Mainform.ProgressBarStatus.StepIt;
+    Mainform.ProgressStep;
     if DeletedKeys[i] = PKEY then
       IndexSQL := 'PRIMARY KEY'
     else
@@ -611,7 +611,7 @@ begin
   end;
   // Add changed or added indexes
   for i:=0 to FKeys.Count-1 do begin
-    Mainform.ProgressBarStatus.StepIt;
+    Mainform.ProgressStep;
     if FKeys[i].Modified and (not FKeys[i].Added) then begin
       if FKeys[i].OldIndexType = PKEY then
         IndexSQL := 'PRIMARY KEY'
@@ -634,7 +634,7 @@ begin
 
   FreeAndNil(Specs);
   Mainform.ShowStatusMsg;
-  Mainform.ProgressBarStatus.Hide;
+  MainForm.DisableProgress;
   Screen.Cursor := crDefault;
 end;
 

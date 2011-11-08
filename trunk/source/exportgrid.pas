@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Menus, VirtualTrees, SynExportHTML;
+  Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML;
 
 type
   TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efLaTeX, efWiki);
@@ -391,7 +391,7 @@ begin
     NodeCount := Grid.SelectedCount
   else
     NodeCount := Grid.RootNodeCount;
-  EnableProgressBar(NodeCount);
+  MainForm.EnableProgress(NodeCount);
   TableName := BestTableName(GridData);
 
   if radioOutputCopyToClipboard.Checked then
@@ -522,7 +522,7 @@ begin
       Mainform.ShowStatusMsg('Exporting row '+FormatNumber(Node.Index+1)+' of '+FormatNumber(NodeCount)+
         ' ('+IntToStr(Trunc((Node.Index+1) / NodeCount *100))+'%, '+FormatByteNumber(S.Size)+')'
         );
-      Mainform.ProgressBarStatus.Position := Node.Index+1;
+      MainForm.ProgressStep;
     end;
     RowNum := Grid.GetNodeData(Node);
     GridData.RecNo := RowNum^;
@@ -681,12 +681,13 @@ begin
       on E:EFCreateError do begin
         // Keep form open if file cannot be created
         ModalResult := mrNone;
+        MainForm.SetProgressState(pbsError);
         ErrorDialog(E.Message);
       end;
     end;
   end;
 
-  Mainform.ProgressBarStatus.Visible := False;
+  Mainform.DisableProgress;
   Mainform.ShowStatusMsg('Freeing data...');
   FreeAndNil(S);
   Mainform.ShowStatusMsg;

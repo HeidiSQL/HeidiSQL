@@ -14,7 +14,7 @@ uses
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, SyncObjs,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
-  SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes,
+  SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
   CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
@@ -68,6 +68,34 @@ type
       property MemoFilename: String read FMemoFilename write SetMemoFilename;
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
+  end;
+
+  ITaskbarList = interface(IUnknown)
+    [SID_ITaskbarList]
+    function HrInit: HRESULT; stdcall;
+    function AddTab(hwnd: HWND): HRESULT; stdcall;
+    function DeleteTab(hwnd: HWND): HRESULT; stdcall;
+    function ActivateTab(hwnd: HWND): HRESULT; stdcall;
+    function SetActiveAlt(hwnd: HWND): HRESULT; stdcall;
+  end;
+  ITaskbarList2 = interface(ITaskbarList)
+    [SID_ITaskbarList2]
+    function MarkFullscreenWindow(hwnd: HWND; fFullscreen: BOOL): HRESULT; stdcall;
+  end;
+  ITaskbarList3 = interface(ITaskbarList2)
+    [SID_ITaskbarList3]
+    function SetProgressValue(hwnd: HWND; ullCompleted: ULONGLONG; ullTotal: ULONGLONG): HRESULT; stdcall;
+    function SetProgressState(hwnd: HWND; tbpFlags: Integer): HRESULT; stdcall;
+    function RegisterTab(hwndTab: HWND; hwndMDI: HWND): HRESULT; stdcall;
+    function UnregisterTab(hwndTab: HWND): HRESULT; stdcall;
+    function SetTabOrder(hwndTab: HWND; hwndInsertBefore: HWND): HRESULT; stdcall;
+    function SetTabActive(hwndTab: HWND; hwndMDI: HWND; tbatFlags: Integer): HRESULT; stdcall;
+    function ThumbBarAddButtons(hwnd: HWND; cButtons: UINT; pButton: PThumbButton): HRESULT; stdcall;
+    function ThumbBarUpdateButtons(hwnd: HWND; cButtons: UINT; pButton: PThumbButton): HRESULT; stdcall;
+    function ThumbBarSetImageList(hwnd: HWND; himl: HIMAGELIST): HRESULT; stdcall;
+    function SetOverlayIcon(hwnd: HWND; hIcon: HICON; pszDescription: LPCWSTR): HRESULT; stdcall;
+    function SetThumbnailTooltip(hwnd: HWND; pszTip: LPCWSTR): HRESULT; stdcall;
+    function SetThumbnailClip(hwnd: HWND; var prcClip: TRect): HRESULT; stdcall;
   end;
 
   TMainForm = class(TForm)
@@ -947,6 +975,12 @@ type
     AppVersion: String;
     AppDescription: String;
 
+    // Task button interface
+    TaskbarList: ITaskbarList;
+    TaskbarList2: ITaskbarList2;
+    TaskbarList3: ITaskbarList3;
+    TaskbarList4: ITaskbarList4;
+
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
@@ -990,6 +1024,11 @@ type
     procedure BeforeQueryExecution(Thread: TQueryThread);
     procedure AfterQueryExecution(Thread: TQueryThread);
     procedure FinishedQueryExecution(Thread: TQueryThread);
+    procedure EnableProgress(MaxValue: Integer);
+    procedure DisableProgress;
+    procedure SetProgressPosition(Value: Integer);
+    procedure ProgressStep;
+    procedure SetProgressState(State: TProgressbarState);
 end;
 
 
@@ -1294,6 +1333,15 @@ begin
     wine_nt_to_unix_file_name := GetProcAddress(NTHandle, 'wine_nt_to_unix_file_name');
   FIsWine := Assigned(wine_nt_to_unix_file_name);
   FreeLibrary(NTHandle);
+
+  // Taskbar button interface for Windows 7
+  if CheckWin32Version(6, 1) then begin
+    TaskbarList := CreateComObject(CLSID_TaskbarList) as ITaskbarList;
+    TaskbarList.HrInit;
+    Supports(TaskbarList, IID_ITaskbarList2, TaskbarList2);
+    Supports(TaskbarList, IID_ITaskbarList3, TaskbarList3);
+    Supports(TaskbarList, IID_ITaskbarList4, TaskbarList4);
+  end;
 
   // "All users" folder for HeidiSQL's data (All Users\Application Data)
   FDirnameCommonAppData := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\';
@@ -2174,7 +2222,7 @@ begin
   Batch := SplitSQL(Text);
   Text := '';
 
-  EnableProgressBar(Batch.Count);
+  EnableProgress(Batch.Count);
   Tab.ResultTabs.Clear;
   Tab.tabsetQuery.Tabs.Clear;
   FreeAndNil(Tab.QueryProfile);
@@ -2207,7 +2255,7 @@ begin
   if Thread.QueriesInPacket > 1 then
     Text := 'queries #' + FormatNumber(Thread.BatchPosition+1) + ' to #' + FormatNumber(Thread.BatchPosition+Thread.QueriesInPacket);
   ShowStatusMsg('Executing '+Text+' of '+FormatNumber(Thread.Batch.Count)+' ...');
-  ProgressBarStatus.Position := Thread.BatchPosition;
+  SetProgressPosition(Thread.BatchPosition);
 end;
 
 
@@ -2298,7 +2346,7 @@ begin
 
   // Error handling
   if IsNotEmpty(Thread.ErrorMessage) then begin
-    ProgressBarStatus.State := pbsError;
+    SetProgressState(pbsError);
     GoToErrorPos(Thread.ErrorMessage);
     ErrorDialog(Thread.ErrorMessage);
   end;
@@ -2335,7 +2383,7 @@ begin
   end;
 
   // Clean up
-  ProgressBarStatus.Hide;
+  DisableProgress;
   Tab.QueryRunning := False;
   ValidateControls(Thread);
   OperationRunning(False);
@@ -2947,15 +2995,14 @@ begin
     if MessageDialog('Delete '+IntToStr(Grid.SelectedCount)+' row(s)?',
       mtConfirmation, [mbOK, mbCancel]) = mrOK then begin
       FocusAfterDelete := nil;
-      EnableProgressBar(Grid.SelectedCount);
+      EnableProgress(Grid.SelectedCount);
       Node := GetNextNode(Grid, nil, True);
       while Assigned(Node) do begin
         RowNum := Grid.GetNodeData(Node);
         ShowStatusMsg('Deleting row #'+FormatNumber(ProgressBarStatus.Position+1)+' of '+FormatNumber(ProgressBarStatus.Max)+' ...');
         Results.RecNo := RowNum^;
         if Results.DeleteRow then begin
-          ProgressBarStatus.StepIt;
-          ProgressBarStatus.Repaint;
+          ProgressStep;
           SetLength(Nodes, Length(Nodes)+1);
           Nodes[Length(Nodes)-1] := Node;
           FocusAfterDelete := Node;
@@ -2978,11 +3025,11 @@ begin
       ValidateControls(Sender);
     end;
   except on E:EDatabaseError do begin
-      ProgressBarStatus.State := pbsError;
+      SetProgressState(pbsError);
       ErrorDialog('Grid editing error', E.Message);
     end;
   end;
-  Mainform.ProgressBarStatus.Visible := False;
+  DisableProgress;
   ShowStatusMsg();
 end;
 
@@ -3048,24 +3095,24 @@ begin
     if MessageDialog('Empty '+IntToStr(Objects.count)+' table(s) and/or view(s) ?', Names,
       mtConfirmation, [mbOk, mbCancel]) = mrOk then begin
       Screen.Cursor := crHourglass;
-      EnableProgressBar(Objects.Count);
+      EnableProgress(Objects.Count);
       try
         for TableOrView in Objects do begin
           case TableOrView.Connection.Parameters.NetTypeGroup of
             ngMySQL: TableOrView.Connection.Query('TRUNCATE ' + TableOrView.QuotedName);
             ngMSSQL: TableOrView.Connection.Query('DELETE FROM ' + TableOrView.QuotedName);
           end;
-          ProgressBarStatus.StepIt;
+          ProgressStep;
         end;
         actRefresh.Execute;
       except
         on E:EDatabaseError do begin
-          ProgressBarStatus.State := pbsError;
+          SetProgressState(pbsError);
           ErrorDialog(E.Message);
         end;
       end;
       Objects.Free;
-      ProgressBarStatus.Hide;
+      DisableProgress;
       Screen.Cursor := crDefault;
     end;
   end;
@@ -10069,6 +10116,61 @@ begin
         Sel[i] := '-- '+Sel[i];
     end;
     Editor.SelText := ImplodeStr(CRLF, Sel);
+  end;
+end;
+
+
+procedure TMainForm.EnableProgress(MaxValue: Integer);
+begin
+  // Initialize progres bar and button
+  SetProgressPosition(0);
+  SetProgressState(pbsNormal);
+  ProgressBarStatus.Visible := True;
+  ProgressBarStatus.Max := MaxValue;
+end;
+
+
+procedure TMainForm.DisableProgress;
+begin
+  // Hide global progress bar
+  SetProgressPosition(0);
+  ProgressBarStatus.Hide;
+  if Assigned(TaskBarList3) then
+    TaskBarList3.SetProgressState(Application.MainForm.Handle, 0);
+end;
+
+
+procedure TMainForm.SetProgressPosition(Value: Integer);
+begin
+  // Advance progress bar and task progress position
+  ProgressBarStatus.Position := Value;
+  ProgressBarStatus.Repaint;
+  if Assigned(TaskBarList3) then
+    TaskBarList3.SetProgressValue(Application.MainForm.Handle, Value, ProgressBarStatus.Max);
+end;
+
+
+procedure TMainForm.ProgressStep;
+begin
+  SetProgressPosition(ProgressBarStatus.Position+1);
+end;
+
+
+procedure TMainForm.SetProgressState(State: TProgressbarState);
+var
+  Flag: Integer;
+begin
+  // Set error or pause state in progress bar or task button
+  ProgressBarStatus.State := State;
+  ProgressBarStatus.Repaint;
+  if Assigned(TaskBarList3) then begin
+    case State of
+      pbsNormal: Flag := 2;
+      pbsError: Flag := 4;
+      pbsPaused: Flag := 8;
+      else Flag := 0;
+    end;
+    TaskBarList3.SetProgressState(Application.MainForm.Handle, Flag);
   end;
 end;
 

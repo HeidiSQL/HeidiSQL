@@ -85,6 +85,8 @@ uses Main, helpers;
 
 {$R *.DFM}
 
+const
+  ProgressBarSteps=100;
 
 
 procedure Tloaddataform.FormCreate(Sender: TObject);
@@ -275,6 +277,7 @@ var
 begin
   Screen.Cursor := crHourglass;
   StartTickCount := GetTickCount;
+  MainForm.EnableProgress(ProgressBarSteps);
 
   ColumnCount := 0;
   for i:=0 to chkListColumns.Items.Count-1 do begin
@@ -320,11 +323,13 @@ begin
     on E:EDatabaseError do begin
       Screen.Cursor := crDefault;
       ModalResult := mrNone;
+      MainForm.SetProgressState(pbsError);
       ErrorDialog(E.Message);
     end;
   end;
 
   Mainform.ShowStatusMsg;
+  MainForm.DisableProgress;
   Screen.Cursor := crDefault;
 end;
 
@@ -405,15 +410,13 @@ var
   IsEncl, IsTerm, IsLineTerm: Boolean;
   InEncl: Boolean;
   OutStream: TMemoryStream;
-const
-  ProgressBarSteps=100;
 
   procedure NextChar;
   begin
     Inc(P);
     Inc(ProgressChars);
     if ProgressChars >= ProgressCharsPerStep then begin
-      Mainform.ProgressBarStatus.StepIt;
+      Mainform.ProgressStep;
       Mainform.ShowStatusMsg('Importing textfile, row '+FormatNumber(RowCount-IgnoreLines)+', '+IntToStr(Mainform.ProgressBarStatus.Position)+'%');
       ProgressChars := 0;
     end;
@@ -504,8 +507,6 @@ const
   end;
 
 begin
-  EnableProgressBar(ProgressBarSteps);
-
   TermLen := Length(Term);
   EnclLen := Length(Encl);
   LineTermLen := Length(LineTerm);
@@ -567,7 +568,6 @@ begin
   Contents := '';
   FreeAndNil(OutStream);
   RowCount := Max(RowCount-IgnoreLines, 0);
-  Mainform.ProgressBarStatus.Hide;
 end;
 
 
