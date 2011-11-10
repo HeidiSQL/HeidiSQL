@@ -171,9 +171,9 @@ begin
     v := FConnection.ServerVersionInt;
     if ((v >= 50038) and (v < 50100)) or (v >= 50117) then begin
       Charset := MainForm.GetCharsetByEncoding(Encoding);
-      // Detect db charset
-      DefCharset := 'Let server/database decide';
       try
+        // Detect db charset
+        DefCharset := 'Let server/database decide';
         dbcreate := FConnection.GetVar('SHOW CREATE DATABASE '+FConnection.QuoteIdent(comboDatabase.Text), 1);
         rx := TRegExpr.Create;
         rx.ModifierG := True;
@@ -181,6 +181,7 @@ begin
         if rx.Exec(dbcreate) then
           DefCharset := DefCharset + ' ('+rx.Match[1]+')';
         comboEncoding.Items.Add(DefCharset);
+        rx.Free;
       except
         // Supress error dialog when user does not have privs for above SHOW query
         // see http://www.heidisql.com/forum.php?t=8862
