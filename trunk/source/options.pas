@@ -63,22 +63,7 @@ type
     chkNullBG: TCheckBox;
     lblFieldNull: TLabel;
     cboxNullBG: TColorBox;
-    grpSQLFont: TGroupBox;
-    comboSQLFontName: TComboBox;
-    lblSQLFontSize: TLabel;
-    editSQLFontSize: TEdit;
-    updownSQLFontSize: TUpDown;
-    grpSQLColors: TGroupBox;
-    comboSQLColElement: TComboBox;
-    lblSQLColElement: TLabel;
-    lblSQLColForeground: TLabel;
-    cboxSQLColForeground: TColorBox;
-    SynMemoSQLSample: TSynMemo;
     SynSQLSynSQLSample: TSynSQLSyn;
-    chkSQLBold: TCheckBox;
-    chkSQLItalic: TCheckBox;
-    lblSQLColBackground: TLabel;
-    cboxSQLColBackground: TColorBox;
     btnRestoreDefaults: TButton;
     lblMaxTotalRows: TLabel;
     editGridRowCountMax: TEdit;
@@ -90,9 +75,6 @@ type
     lblShortcutHint: TLabel;
     Shortcut2: TSynHotKey;
     lblShortcut2: TLabel;
-    grpSQLTabWidth: TGroupBox;
-    editSQLTabWidth: TEdit;
-    updownSQLTabWidth: TUpDown;
     chkAllowMultiInstances: TCheckBox;
     tabLogging: TTabSheet;
     Label4: TLabel;
@@ -117,11 +99,30 @@ type
     updownGridRowsLineCount: TUpDown;
     chkColorBars: TCheckBox;
     cboxColorBars: TColorBox;
+    tabHighlighter: TTabSheet;
+    lblSQLColElement: TLabel;
+    chkSQLBold: TCheckBox;
+    chkSQLItalic: TCheckBox;
+    comboSQLColElement: TComboBox;
+    lblSQLColForeground: TLabel;
+    lblSQLColBackground: TLabel;
+    cboxSQLColBackground: TColorBox;
+    cboxSQLColForeground: TColorBox;
+    SynMemoSQLSample: TSynMemo;
+    comboSQLFontName: TComboBox;
+    lblFont: TLabel;
+    editSQLFontSize: TEdit;
+    updownSQLFontSize: TUpDown;
+    lblSQLFontSize: TLabel;
     chkCompletionProposal: TCheckBox;
+    chkTabsToSpaces: TCheckBox;
+    editSQLTabWidth: TEdit;
+    updownSQLTabWidth: TUpDown;
+    Label1: TLabel;
+    chkAskFileSave: TCheckBox;
     lblMaxQueryResults: TLabel;
     editMaxQueryResults: TEdit;
     updownMaxQueryResults: TUpDown;
-    chkAskFileSave: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -266,6 +267,7 @@ begin
   MainReg.WriteBool(REGNAME_BG_NULL_ENABLED, chkNullBg.Checked);
 
   MainReg.WriteBool(REGNAME_COMPLETIONPROPOSAL, chkCompletionProposal.Checked);
+  MainReg.WriteBool(REGNAME_TABSTOSPACES, chkTabsToSpaces.Checked);
 
   // Shortcuts
   CatNode := TreeShortcutItems.GetFirst;
@@ -438,6 +440,7 @@ begin
   updownSQLFontSize.Position := SynMemoSQLSample.Font.Size;
   updownSQLTabWidth.Position := SynMemoSQLSample.TabWidth;
   chkCompletionProposal.Checked := GetRegValue(REGNAME_COMPLETIONPROPOSAL, DEFAULT_COMPLETIONPROPOSAL);
+  chkTabsToSpaces.Checked := GetRegValue(REGNAME_TABSTOSPACES, DEFAULT_TABSTOSPACES);
   comboSQLColElementChange(Sender);
 
   // Data-Appearance:

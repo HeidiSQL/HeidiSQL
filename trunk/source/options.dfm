@@ -34,8 +34,8 @@ object optionsform: Toptionsform
     object tabMisc: TTabSheet
       Caption = 'Miscellaneous'
       object chkAutoReconnect: TCheckBox
-        Left = 16
-        Top = 32
+        Left = 8
+        Top = 31
         Width = 417
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -44,8 +44,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object chkRestoreLastDB: TCheckBox
-        Left = 16
-        Top = 56
+        Left = 8
+        Top = 55
         Width = 417
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -56,8 +56,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object chkUpdatecheck: TCheckBox
-        Left = 16
-        Top = 78
+        Left = 8
+        Top = 77
         Width = 300
         Height = 28
         Anchors = [akLeft, akTop, akRight]
@@ -70,7 +70,7 @@ object optionsform: Toptionsform
       end
       object editUpdatecheckInterval: TEdit
         Left = 374
-        Top = 78
+        Top = 77
         Width = 43
         Height = 21
         Anchors = [akTop, akRight]
@@ -81,7 +81,7 @@ object optionsform: Toptionsform
       end
       object updownUpdatecheckInterval: TUpDown
         Left = 417
-        Top = 78
+        Top = 77
         Width = 16
         Height = 21
         Anchors = [akTop, akRight]
@@ -93,8 +93,8 @@ object optionsform: Toptionsform
         OnChanging = anyUpDownLimitChanging
       end
       object chkUpdateCheckBuilds: TCheckBox
-        Left = 34
-        Top = 112
+        Left = 26
+        Top = 111
         Width = 399
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -104,8 +104,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object chkDoStatistics: TCheckBox
-        Left = 16
-        Top = 135
+        Left = 8
+        Top = 134
         Width = 417
         Height = 48
         Anchors = [akLeft, akTop, akRight]
@@ -118,8 +118,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object chkAllowMultiInstances: TCheckBox
-        Left = 16
-        Top = 9
+        Left = 8
+        Top = 8
         Width = 417
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -129,8 +129,8 @@ object optionsform: Toptionsform
         TabOrder = 0
       end
       object chkColorBars: TCheckBox
-        Left = 16
-        Top = 189
+        Left = 8
+        Top = 188
         Width = 201
         Height = 17
         Caption = 'Display bars in various list columns'
@@ -139,7 +139,7 @@ object optionsform: Toptionsform
       end
       object cboxColorBars: TColorBox
         Left = 249
-        Top = 187
+        Top = 186
         Width = 184
         Height = 22
         Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
@@ -147,59 +147,48 @@ object optionsform: Toptionsform
         TabOrder = 9
         OnClick = Modified
       end
-      object chkAskFileSave: TCheckBox
-        Left = 16
-        Top = 213
-        Width = 417
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Prompt to save modified files on tab close'
-        Checked = True
-        State = cbChecked
-        TabOrder = 10
-      end
     end
     object tabLogging: TTabSheet
       Caption = 'Logging'
       ImageIndex = 5
       object Label4: TLabel
-        Left = 16
-        Top = 18
+        Left = 8
+        Top = 11
         Width = 37
         Height = 13
         Caption = 'Log last'
       end
       object lblLogLinesHint: TLabel
-        Left = 240
-        Top = 18
+        Left = 226
+        Top = 11
         Width = 71
         Height = 13
         Caption = 'lines in SQL log'
       end
       object lblLogSnipHint: TLabel
-        Left = 238
-        Top = 45
+        Left = 226
+        Top = 38
         Width = 139
         Height = 13
         Caption = 'characters  (0 = no snipping)'
       end
       object lblLogSnip: TLabel
-        Left = 16
-        Top = 45
+        Left = 8
+        Top = 38
         Width = 96
         Height = 13
         Caption = 'Snip SQL log lines to'
       end
       object lblLogLevel: TLabel
-        Left = 16
-        Top = 102
+        Left = 8
+        Top = 95
         Width = 57
         Height = 13
         Caption = 'Log events:'
       end
       object editLogLines: TEdit
-        Left = 159
-        Top = 15
+        Left = 150
+        Top = 8
         Width = 53
         Height = 21
         TabOrder = 0
@@ -207,8 +196,8 @@ object optionsform: Toptionsform
         OnChange = Modified
       end
       object updownLogLines: TUpDown
-        Left = 212
-        Top = 15
+        Left = 203
+        Top = 8
         Width = 16
         Height = 21
         Associate = editLogLines
@@ -220,8 +209,8 @@ object optionsform: Toptionsform
         OnChanging = anyUpDownLimitChanging
       end
       object updownLogSnip: TUpDown
-        Left = 212
-        Top = 42
+        Left = 203
+        Top = 35
         Width = 16
         Height = 21
         Associate = editLogSnip
@@ -231,8 +220,8 @@ object optionsform: Toptionsform
         OnChanging = anyUpDownLimitChanging
       end
       object editLogSnip: TEdit
-        Left = 159
-        Top = 42
+        Left = 150
+        Top = 35
         Width = 53
         Height = 21
         TabOrder = 2
@@ -240,8 +229,8 @@ object optionsform: Toptionsform
         OnChange = Modified
       end
       object chkLogToFile: TCheckBox
-        Left = 16
-        Top = 71
+        Left = 8
+        Top = 64
         Width = 182
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -250,8 +239,8 @@ object optionsform: Toptionsform
         OnClick = chkLogToFileClick
       end
       object chkLogEventErrors: TCheckBox
-        Left = 159
-        Top = 101
+        Left = 150
+        Top = 94
         Width = 150
         Height = 17
         Caption = 'Errors'
@@ -259,8 +248,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object chkLogEventUserFiredSQL: TCheckBox
-        Left = 159
-        Top = 120
+        Left = 150
+        Top = 113
         Width = 150
         Height = 17
         Caption = 'User fired SQL queries'
@@ -268,8 +257,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object chkLogEventSQL: TCheckBox
-        Left = 159
-        Top = 139
+        Left = 150
+        Top = 132
         Width = 150
         Height = 17
         Caption = 'Internal SQL queries'
@@ -277,8 +266,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object chkLogEventInfo: TCheckBox
-        Left = 159
-        Top = 158
+        Left = 150
+        Top = 151
         Width = 150
         Height = 17
         Caption = 'Information messages'
@@ -286,8 +275,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object chkLogEventDebug: TCheckBox
-        Left = 159
-        Top = 177
+        Left = 150
+        Top = 170
         Width = 150
         Height = 17
         Caption = 'Debug messages'
@@ -295,8 +284,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object editLogDir: TButtonedEdit
-        Left = 159
-        Top = 69
+        Left = 150
+        Top = 62
         Width = 282
         Height = 21
         Anchors = [akLeft, akTop, akRight]
@@ -312,259 +301,293 @@ object optionsform: Toptionsform
       end
     end
     object tabSQL: TTabSheet
-      BorderWidth = 5
       Caption = 'SQL'
       ImageIndex = 1
-      object grpSQLFont: TGroupBox
-        Left = 1
-        Top = 1
-        Width = 329
-        Height = 56
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Editor font'
-        TabOrder = 0
-        object lblSQLFontSize: TLabel
-          Left = 307
-          Top = 26
-          Width = 10
-          Height = 13
-          Anchors = [akTop, akRight]
-          Caption = 'pt'
-        end
-        object comboSQLFontName: TComboBox
-          Left = 3
-          Top = 23
-          Width = 238
-          Height = 21
-          Style = csDropDownList
-          Anchors = [akLeft, akTop, akRight]
-          TabOrder = 0
-          OnChange = SQLFontChange
-        end
-        object editSQLFontSize: TEdit
-          Left = 244
-          Top = 23
-          Width = 41
-          Height = 21
-          Anchors = [akTop, akRight]
-          TabOrder = 1
-          Text = '9'
-          OnExit = SQLFontChange
-        end
-        object updownSQLFontSize: TUpDown
-          Left = 285
-          Top = 23
-          Width = 16
-          Height = 21
-          Anchors = [akTop, akRight]
-          Associate = editSQLFontSize
-          Position = 9
-          TabOrder = 2
-          OnClick = updownSQLFontSizeClick
-        end
+      object lblFont: TLabel
+        Left = 8
+        Top = 11
+        Width = 55
+        Height = 13
+        Caption = 'Editor font:'
       end
-      object grpSQLColors: TGroupBox
-        Left = 1
-        Top = 86
-        Width = 438
-        Height = 254
-        Anchors = [akLeft, akTop, akRight, akBottom]
-        Caption = 'Syntax'
-        TabOrder = 3
-        object lblSQLColElement: TLabel
-          Left = 3
-          Top = 17
-          Width = 42
-          Height = 13
-          Caption = 'Element:'
-        end
-        object lblSQLColForeground: TLabel
-          Left = 234
-          Top = 16
-          Width = 60
-          Height = 13
-          Anchors = [akTop, akRight]
-          Caption = 'Foreground:'
-        end
-        object lblSQLColBackground: TLabel
-          Left = 234
-          Top = 42
-          Width = 60
-          Height = 13
-          Anchors = [akTop, akRight]
-          Caption = 'Background:'
-        end
-        object comboSQLColElement: TComboBox
-          Left = 55
-          Top = 13
-          Width = 164
-          Height = 21
-          Style = csDropDownList
-          Anchors = [akLeft, akTop, akRight]
-          TabOrder = 0
-          OnChange = comboSQLColElementChange
-        end
-        object cboxSQLColForeground: TColorBox
-          Left = 305
-          Top = 13
-          Width = 130
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-          Anchors = [akTop, akRight]
-          TabOrder = 1
-          OnChange = SQLFontChange
-        end
-        object chkSQLBold: TCheckBox
-          Left = 55
-          Top = 41
-          Width = 57
-          Height = 17
-          Caption = 'Bold'
-          TabOrder = 2
-          OnClick = SQLFontChange
-        end
-        object chkSQLItalic: TCheckBox
-          Left = 118
-          Top = 41
-          Width = 91
-          Height = 17
-          Anchors = [akLeft, akTop, akRight]
-          Caption = 'Italic'
-          TabOrder = 3
-          OnClick = SQLFontChange
-        end
-        object cboxSQLColBackground: TColorBox
-          Left = 305
-          Top = 39
-          Width = 130
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-          Anchors = [akTop, akRight]
-          TabOrder = 4
-          OnChange = SQLFontChange
-        end
-        object SynMemoSQLSample: TSynMemo
-          AlignWithMargins = True
-          Left = 3
-          Top = 67
-          Width = 432
-          Height = 184
-          Cursor = crHandPoint
-          SingleLineMode = False
-          Anchors = [akLeft, akTop, akRight, akBottom]
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -13
-          Font.Name = 'Courier New'
-          Font.Style = []
-          TabOrder = 5
-          OnClick = SynMemoSQLSampleClick
-          Gutter.Font.Charset = DEFAULT_CHARSET
-          Gutter.Font.Color = clWindowText
-          Gutter.Font.Height = -11
-          Gutter.Font.Name = 'Courier New'
-          Gutter.Font.Style = []
-          Gutter.Visible = False
-          Gutter.Width = 0
-          Highlighter = SynSQLSynSQLSample
-          Lines.Strings = (
-            'SynMemoSQLSample')
-          Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoNoCaret, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
-          ReadOnly = True
-          RightEdge = 0
-          TabWidth = 2
-          WordWrap = True
-          OnChange = SQLFontChange
-        end
-      end
-      object grpSQLTabWidth: TGroupBox
-        Left = 336
-        Top = 1
-        Width = 102
-        Height = 56
+      object lblSQLFontSize: TLabel
+        Left = 213
+        Top = 38
+        Width = 10
+        Height = 13
         Anchors = [akTop, akRight]
-        Caption = 'Tab width'
+        Caption = 'pt'
+      end
+      object Label1: TLabel
+        Left = 8
+        Top = 65
+        Width = 51
+        Height = 13
+        Caption = 'Tab width:'
+      end
+      object lblMaxQueryResults: TLabel
+        Left = 8
+        Top = 92
+        Width = 101
+        Height = 13
+        Caption = 'Maximum result sets:'
+      end
+      object comboSQLFontName: TComboBox
+        Left = 150
+        Top = 8
+        Width = 289
+        Height = 21
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 0
+        OnChange = SQLFontChange
+      end
+      object editSQLFontSize: TEdit
+        Left = 150
+        Top = 35
+        Width = 41
+        Height = 21
+        Anchors = [akTop, akRight]
         TabOrder = 1
-        object editSQLTabWidth: TEdit
-          Left = 14
-          Top = 23
-          Width = 43
-          Height = 21
-          TabOrder = 0
-          Text = '0'
-          OnExit = SQLFontChange
-        end
-        object updownSQLTabWidth: TUpDown
-          Left = 57
-          Top = 23
-          Width = 16
-          Height = 21
-          Associate = editSQLTabWidth
-          TabOrder = 1
-          OnClick = updownSQLFontSizeClick
-        end
+        Text = '9'
+        OnExit = SQLFontChange
+      end
+      object updownSQLFontSize: TUpDown
+        Left = 191
+        Top = 35
+        Width = 16
+        Height = 21
+        Anchors = [akTop, akRight]
+        Associate = editSQLFontSize
+        Position = 9
+        TabOrder = 2
+        OnClick = updownSQLFontSizeClick
       end
       object chkCompletionProposal: TCheckBox
-        Left = 3
-        Top = 63
-        Width = 434
+        Left = 8
+        Top = 118
+        Width = 431
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Enable SQL completion proposal'
+        Caption = 'Enable completion proposal'
+        TabOrder = 5
+        OnClick = Modified
+      end
+      object chkTabsToSpaces: TCheckBox
+        Left = 8
+        Top = 142
+        Width = 431
+        Height = 17
+        Caption = 'Tabs to spaces'
+        TabOrder = 6
+        OnClick = Modified
+      end
+      object editSQLTabWidth: TEdit
+        Left = 150
+        Top = 62
+        Width = 41
+        Height = 21
+        TabOrder = 3
+        Text = '0'
+        OnExit = SQLFontChange
+      end
+      object updownSQLTabWidth: TUpDown
+        Left = 191
+        Top = 62
+        Width = 16
+        Height = 21
+        Associate = editSQLTabWidth
+        TabOrder = 4
+        OnClick = updownSQLFontSizeClick
+      end
+      object chkAskFileSave: TCheckBox
+        Left = 8
+        Top = 166
+        Width = 431
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Prompt to save modified files on tab close'
+        Checked = True
+        State = cbChecked
+        TabOrder = 7
+        OnClick = Modified
+      end
+      object editMaxQueryResults: TEdit
+        Left = 150
+        Top = 89
+        Width = 41
+        Height = 21
+        TabOrder = 8
+        Text = '1'
+        OnChange = Modified
+      end
+      object updownMaxQueryResults: TUpDown
+        Left = 191
+        Top = 89
+        Width = 16
+        Height = 21
+        Associate = editMaxQueryResults
+        Min = 1
+        Position = 1
+        TabOrder = 9
+        OnChanging = anyUpDownLimitChanging
+      end
+    end
+    object tabHighlighter: TTabSheet
+      Caption = 'Highlighter'
+      ImageIndex = 5
+      DesignSize = (
+        450
+        353)
+      object lblSQLColElement: TLabel
+        Left = 8
+        Top = 11
+        Width = 42
+        Height = 13
+        Caption = 'Element:'
+      end
+      object lblSQLColForeground: TLabel
+        Left = 234
+        Top = 11
+        Width = 60
+        Height = 13
+        Anchors = [akTop, akRight]
+        Caption = 'Foreground:'
+      end
+      object lblSQLColBackground: TLabel
+        Left = 234
+        Top = 37
+        Width = 60
+        Height = 13
+        Anchors = [akTop, akRight]
+        Caption = 'Background:'
+      end
+      object chkSQLBold: TCheckBox
+        Left = 8
+        Top = 35
+        Width = 57
+        Height = 17
+        Caption = 'Bold'
+        TabOrder = 1
+        OnClick = SQLFontChange
+      end
+      object chkSQLItalic: TCheckBox
+        Left = 71
+        Top = 35
+        Width = 91
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Italic'
         TabOrder = 2
+        OnClick = SQLFontChange
+      end
+      object comboSQLColElement: TComboBox
+        Left = 64
+        Top = 8
+        Width = 155
+        Height = 21
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 0
+        OnChange = comboSQLColElementChange
+      end
+      object cboxSQLColBackground: TColorBox
+        Left = 302
+        Top = 34
+        Width = 139
+        Height = 22
+        Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
+        Anchors = [akTop, akRight]
+        TabOrder = 4
+        OnChange = SQLFontChange
+      end
+      object cboxSQLColForeground: TColorBox
+        Left = 302
+        Top = 8
+        Width = 139
+        Height = 22
+        Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
+        Anchors = [akTop, akRight]
+        TabOrder = 3
+        OnChange = SQLFontChange
+      end
+      object SynMemoSQLSample: TSynMemo
+        AlignWithMargins = True
+        Left = 8
+        Top = 67
+        Width = 433
+        Height = 278
+        Cursor = crHandPoint
+        SingleLineMode = False
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = []
+        TabOrder = 5
+        OnClick = SynMemoSQLSampleClick
+        Gutter.Font.Charset = DEFAULT_CHARSET
+        Gutter.Font.Color = clWindowText
+        Gutter.Font.Height = -11
+        Gutter.Font.Name = 'Courier New'
+        Gutter.Font.Style = []
+        Gutter.Visible = False
+        Gutter.Width = 0
+        Highlighter = SynSQLSynSQLSample
+        Lines.Strings = (
+          'SynMemoSQLSample')
+        Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoNoCaret, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
+        ReadOnly = True
+        RightEdge = 0
+        TabWidth = 2
+        WordWrap = True
+        OnChange = SQLFontChange
       end
     end
     object tabData: TTabSheet
-      BorderWidth = 5
       Caption = 'Data'
       ImageIndex = 4
       object lblMaxColWidth: TLabel
-        Left = 4
-        Top = 8
+        Left = 8
+        Top = 11
         Width = 177
         Height = 13
         Caption = 'Maximum column-width in data-grids:'
       end
       object lblDataFontHint: TLabel
-        Left = 362
-        Top = 84
-        Width = 29
+        Left = 372
+        Top = 87
+        Width = 10
         Height = 13
         Anchors = [akTop, akRight]
-        Caption = 'points'
+        Caption = 'pt'
       end
       object lblDataFont: TLabel
-        Left = 4
-        Top = 84
+        Left = 8
+        Top = 87
         Width = 26
         Height = 13
         Caption = '&Font:'
         FocusControl = comboDataFontName
       end
       object lblMaxTotalRows: TLabel
-        Left = 4
-        Top = 33
+        Left = 8
+        Top = 36
         Width = 267
         Height = 13
         Caption = 'Number of rows displayed in data tab (Step, Maximum):'
       end
       object lblGridRowsLinecount: TLabel
-        Left = 4
-        Top = 58
+        Left = 8
+        Top = 61
         Width = 122
         Height = 13
         Caption = 'Lines of text in grid rows:'
       end
-      object lblMaxQueryResults: TLabel
-        Left = 4
-        Top = 108
-        Width = 166
-        Height = 13
-        Caption = 'Maximum number of query results:'
-      end
       object editMaxColWidth: TEdit
-        Left = 299
-        Top = 5
+        Left = 309
+        Top = 8
         Width = 42
         Height = 21
         Anchors = [akTop, akRight]
@@ -573,8 +596,8 @@ object optionsform: Toptionsform
         OnChange = Modified
       end
       object updownMaxColWidth: TUpDown
-        Left = 341
-        Top = 5
+        Left = 351
+        Top = 8
         Width = 16
         Height = 21
         Anchors = [akTop, akRight]
@@ -587,42 +610,42 @@ object optionsform: Toptionsform
       end
       object comboDataFontName: TComboBox
         Left = 59
-        Top = 80
-        Width = 234
+        Top = 83
+        Width = 244
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 2
+        TabOrder = 6
         OnChange = DataFontsChange
       end
       object editDataFontSize: TEdit
-        Left = 299
-        Top = 80
+        Left = 309
+        Top = 83
         Width = 42
         Height = 21
         Anchors = [akTop, akRight]
-        TabOrder = 3
+        TabOrder = 7
         Text = '8'
         OnChange = DataFontsChange
       end
       object updownDataFontSize: TUpDown
-        Left = 341
-        Top = 80
+        Left = 351
+        Top = 83
         Width = 16
         Height = 21
         Anchors = [akTop, akRight]
         Associate = editDataFontSize
         Position = 8
-        TabOrder = 4
+        TabOrder = 8
       end
       object grpFieldLayout: TGroupBox
-        Left = 4
-        Top = 136
+        Left = 8
+        Top = 120
         Width = 433
-        Height = 200
+        Height = 226
         Anchors = [akLeft, akTop, akRight, akBottom]
         Caption = 'Field colors and editors'
-        TabOrder = 5
+        TabOrder = 9
         object lblFieldDatetime: TLabel
           Left = 12
           Top = 96
@@ -788,63 +811,44 @@ object optionsform: Toptionsform
         end
       end
       object editGridRowCountMax: TEdit
-        Left = 364
-        Top = 30
-        Width = 73
+        Left = 374
+        Top = 33
+        Width = 67
         Height = 21
         Anchors = [akTop, akRight]
         NumbersOnly = True
-        TabOrder = 6
+        TabOrder = 3
         OnChange = Modified
       end
       object editGridRowCountStep: TEdit
-        Left = 299
-        Top = 30
+        Left = 309
+        Top = 33
         Width = 57
         Height = 21
         Anchors = [akTop, akRight]
         NumbersOnly = True
-        TabOrder = 7
+        TabOrder = 2
       end
       object editGridRowsLineCount: TEdit
-        Left = 299
-        Top = 55
+        Left = 309
+        Top = 58
         Width = 42
         Height = 21
         Anchors = [akTop, akRight]
-        TabOrder = 8
+        TabOrder = 4
         Text = '1'
         OnChange = Modified
       end
       object updownGridRowsLineCount: TUpDown
-        Left = 341
-        Top = 55
+        Left = 351
+        Top = 58
         Width = 16
         Height = 21
         Anchors = [akTop, akRight]
         Associate = editGridRowsLineCount
         Min = 1
         Position = 1
-        TabOrder = 9
-        OnChanging = anyUpDownLimitChanging
-      end
-      object editMaxQueryResults: TEdit
-        Left = 299
-        Top = 105
-        Width = 42
-        Height = 21
-        TabOrder = 10
-        Text = '0'
-        OnChange = Modified
-      end
-      object updownMaxQueryResults: TUpDown
-        Left = 341
-        Top = 105
-        Width = 16
-        Height = 21
-        Associate = editMaxQueryResults
-        Min = 1
-        TabOrder = 11
+        TabOrder = 5
         OnChanging = anyUpDownLimitChanging
       end
     end
@@ -856,7 +860,7 @@ object optionsform: Toptionsform
         353)
       object lblShortcut1: TLabel
         Left = 199
-        Top = 62
+        Top = 69
         Width = 45
         Height = 13
         Anchors = [akLeft, akTop, akBottom]
@@ -864,9 +868,9 @@ object optionsform: Toptionsform
       end
       object lblShortcutHint: TLabel
         Left = 199
-        Top = 3
+        Top = 8
         Width = 211
-        Height = 101
+        Height = 55
         Anchors = [akLeft, akTop, akBottom]
         AutoSize = False
         Caption = 'Please select a shortcut item in the tree.'
@@ -874,7 +878,7 @@ object optionsform: Toptionsform
       end
       object lblShortcut2: TLabel
         Left = 199
-        Top = 107
+        Top = 112
         Width = 98
         Height = 13
         Anchors = [akLeft, akTop, akBottom]
@@ -905,7 +909,7 @@ object optionsform: Toptionsform
       end
       object Shortcut1: TSynHotKey
         Left = 199
-        Top = 81
+        Top = 86
         Width = 207
         Height = 19
         HotKey = 0
@@ -916,7 +920,7 @@ object optionsform: Toptionsform
       end
       object Shortcut2: TSynHotKey
         Left = 199
-        Top = 125
+        Top = 130
         Width = 207
         Height = 19
         HotKey = 0

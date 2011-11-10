@@ -9287,6 +9287,10 @@ begin
   FontName := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
   FontSize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
   TabWidth := GetRegValue(REGNAME_TABWIDTH, DEFAULT_TABWIDTH);
+  if GetRegValue(REGNAME_TABSTOSPACES, DEFAULT_TABSTOSPACES) then
+    BaseEditor.Options := BaseEditor.Options + [eoTabsToSpaces]
+  else
+    BaseEditor.Options := BaseEditor.Options - [eoTabsToSpaces];
   ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
   for i:=0 to Editors.Count-1 do begin
     Editor := Editors[i] as TSynMemo;
