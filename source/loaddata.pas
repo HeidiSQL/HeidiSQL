@@ -51,6 +51,7 @@ type
     grpDestination: TGroupBox;
     chkLowPriority: TCheckBox;
     chkLocalNumbers: TCheckBox;
+    chkTruncateTable: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
@@ -105,6 +106,7 @@ begin
   updownIgnoreLines.Position := GetRegValue(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
   chkLowPriority.Checked := GetRegValue(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
   chkLocalNumbers.Checked := GetRegValue(REGNAME_CSV_LOCALNUMBERS, chkLocalNumbers.Checked);
+  chkTruncateTable.Checked := GetRegValue(REGNAME_CSV_TRUNCATETABLE, chkTruncateTable.Checked);
   grpDuplicates.ItemIndex := GetRegValue(REGNAME_CSV_DUPLICATES, grpDuplicates.ItemIndex);
   grpParseMethod.ItemIndex := GetRegValue(REGNAME_CSV_PARSEMETHOD, grpParseMethod.ItemIndex);
 end;
@@ -125,6 +127,7 @@ begin
   MainReg.WriteInteger(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
   MainReg.WriteBool(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
   MainReg.WriteBool(REGNAME_CSV_LOCALNUMBERS, chkLocalNumbers.Checked);
+  MainReg.WriteBool(REGNAME_CSV_TRUNCATETABLE, chkTruncateTable.Checked);
   MainReg.WriteInteger(REGNAME_CSV_DUPLICATES, grpDuplicates.ItemIndex);
   MainReg.WriteInteger(REGNAME_CSV_PARSEMETHOD, grpParseMethod.ItemIndex);
 end;
@@ -278,6 +281,10 @@ begin
   Screen.Cursor := crHourglass;
   StartTickCount := GetTickCount;
   MainForm.EnableProgress(ProgressBarSteps);
+
+  // Truncate table before importing
+  if chkTruncateTable.Checked then
+    FConnection.Query('TRUNCATE TABLE ' + FConnection.QuoteIdent(comboDatabase.Text) + '.' +  FConnection.QuoteIdent(comboTable.Text));
 
   ColumnCount := 0;
   for i:=0 to chkListColumns.Items.Count-1 do begin

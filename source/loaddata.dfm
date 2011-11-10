@@ -3,10 +3,10 @@ object loaddataform: Tloaddataform
   Top = 111
   Caption = 'Import text file'
   ClientHeight = 494
-  ClientWidth = 454
+  ClientWidth = 509
   Color = clBtnFace
   Constraints.MinHeight = 530
-  Constraints.MinWidth = 470
+  Constraints.MinWidth = 525
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -19,12 +19,12 @@ object loaddataform: Tloaddataform
   OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
-    454
+    509
     494)
   PixelsPerInch = 96
   TextHeight = 13
   object btnImport: TButton
-    Left = 290
+    Left = 345
     Top = 461
     Width = 75
     Height = 25
@@ -37,7 +37,7 @@ object loaddataform: Tloaddataform
     OnClick = btnImportClick
   end
   object btnCancel: TButton
-    Left = 371
+    Left = 426
     Top = 461
     Width = 75
     Height = 25
@@ -50,13 +50,13 @@ object loaddataform: Tloaddataform
   object grpFilename: TGroupBox
     Left = 8
     Top = 8
-    Width = 438
+    Width = 493
     Height = 84
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Input file'
     TabOrder = 0
     DesignSize = (
-      438
+      493
       84)
     object lblFilename: TLabel
       Left = 10
@@ -76,7 +76,7 @@ object loaddataform: Tloaddataform
     object editFilename: TButtonedEdit
       Left = 88
       Top = 24
-      Width = 340
+      Width = 395
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.ImageListMain
@@ -91,7 +91,7 @@ object loaddataform: Tloaddataform
     object comboEncoding: TComboBox
       Left = 88
       Top = 51
-      Width = 340
+      Width = 395
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -101,11 +101,11 @@ object loaddataform: Tloaddataform
     end
   end
   object grpChars: TGroupBox
-    Left = 199
+    Left = 254
     Top = 98
     Width = 247
     Height = 135
-    Anchors = [akLeft, akTop, akRight]
+    Anchors = [akTop, akRight]
     Caption = 'Control characters'
     TabOrder = 2
     DesignSize = (
@@ -186,12 +186,13 @@ object loaddataform: Tloaddataform
   object grpOptions: TGroupBox
     Left = 8
     Top = 98
-    Width = 185
+    Width = 240
     Height = 135
+    Anchors = [akLeft, akTop, akRight]
     Caption = 'Options'
     TabOrder = 1
     DesignSize = (
-      185
+      240
       135)
     object lblIgnoreLinesCount: TLabel
       Left = 143
@@ -228,8 +229,8 @@ object loaddataform: Tloaddataform
     object chkLowPriority: TCheckBox
       Left = 10
       Top = 51
-      Width = 172
-      Height = 31
+      Width = 227
+      Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Low priority, avoid high server load'
       Checked = True
@@ -239,9 +240,9 @@ object loaddataform: Tloaddataform
     end
     object chkLocalNumbers: TCheckBox
       Left = 10
-      Top = 86
-      Width = 172
-      Height = 43
+      Top = 70
+      Width = 227
+      Height = 35
       Anchors = [akLeft, akTop, akRight]
       Caption = 
         'Input file contains local formatted numbers, e.g. 1.234,56 in Ge' +
@@ -249,12 +250,22 @@ object loaddataform: Tloaddataform
       TabOrder = 3
       WordWrap = True
     end
+    object chkTruncateTable: TCheckBox
+      Left = 10
+      Top = 108
+      Width = 227
+      Height = 17
+      Anchors = [akLeft, akTop, akRight]
+      Caption = 'Truncate destination table before import'
+      TabOrder = 4
+    end
   end
   object grpDuplicates: TRadioGroup
     Left = 8
     Top = 239
-    Width = 185
+    Width = 240
     Height = 123
+    Anchors = [akLeft, akTop, akRight]
     Caption = 'Handling of duplicate rows'
     ItemIndex = 2
     Items.Strings = (
@@ -266,9 +277,9 @@ object loaddataform: Tloaddataform
   object grpParseMethod: TRadioGroup
     Left = 8
     Top = 368
-    Width = 185
+    Width = 240
     Height = 87
-    Anchors = [akLeft, akTop, akBottom]
+    Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Method'
     ItemIndex = 0
     Items.Strings = (
@@ -279,11 +290,11 @@ object loaddataform: Tloaddataform
     OnClick = grpParseMethodClick
   end
   object grpDestination: TGroupBox
-    Left = 199
+    Left = 254
     Top = 239
     Width = 247
     Height = 216
-    Anchors = [akLeft, akTop, akRight, akBottom]
+    Anchors = [akTop, akRight, akBottom]
     Caption = 'Destination'
     TabOrder = 5
     DesignSize = (

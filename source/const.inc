@@ -172,6 +172,7 @@ const
   REGNAME_CSV_IGNORELINES = 'CSVImportIgnoreLines';
   REGNAME_CSV_LOWPRIO = 'CSVImportLowPriority';
   REGNAME_CSV_LOCALNUMBERS = 'CSVImportLocalNumbers';
+  REGNAME_CSV_TRUNCATETABLE = 'CSVImportTruncateTable';
   REGNAME_CSV_DUPLICATES = 'CSVImportDuplicateHandling';
   REGNAME_CSV_PARSEMETHOD = 'CSVImportParseMethod';
   REGNAME_DO_UPDATECHECK = 'Updatecheck';
