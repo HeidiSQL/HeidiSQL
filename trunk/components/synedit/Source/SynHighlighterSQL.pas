@@ -1644,7 +1644,6 @@ begin
     rsString:
       AsciiCharProc;
   else
-    if Run <= Length(fLine) then
     case fLine[Run] of
       #0: NullProc;
       #10: LFProc;

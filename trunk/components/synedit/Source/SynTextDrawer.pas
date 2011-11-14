@@ -935,12 +935,8 @@ procedure TheTextDrawer.ExtTextOut(X, Y: Integer; Options: TTextOutOptions;
   end;
 
 begin
-  try
-    InitETODist(GetCharWidth);
-    AdjustLastCharWidthAndRect;
-  except
-    // Suppress error in threaded applications
-  end;
+  InitETODist(GetCharWidth);
+  AdjustLastCharWidthAndRect;
   UniversalExtTextOut(FDC, X, Y, Options, ARect, Text, Length, FETODist);
 end;
 
