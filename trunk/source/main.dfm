@@ -8675,6 +8675,11 @@ object MainForm: TMainForm
         ImageIndex = 4
         OnClick = QuickFilterClick
       end
+      object QF20: TMenuItem
+        Caption = 'Column IN ()'
+        ImageIndex = 4
+        OnClick = QuickFilterClick
+      end
       object N21: TMenuItem
         Caption = '-'
       end

@@ -534,6 +534,7 @@ type
     ExportdatabaseasSQL1: TMenuItem;
     Exportgridrows1: TMenuItem;
     Synchronizedatabase2: TMenuItem;
+    QF20: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -5529,12 +5530,14 @@ begin
     QF17.Enabled := true; QF17.Hint := Col + ' > ' + esc(Value);
     QF18.Enabled := true; QF18.Hint := Col + ' < ' + esc(Value);
     QF19.Enabled := true; QF19.Hint := Col + ' LIKE ''%' + esc(Value, True, False) + '%''';
+    QF20.Enabled := true; QF20.Hint := Col + ' IN (' + Value + ')';
   end else begin
     QF15.Enabled := false; QF15.Hint := Col + ' = ' + CLPBRD;
     QF16.Enabled := false; QF16.Hint := Col + ' != ' + CLPBRD;
     QF17.Enabled := false; QF17.Hint := Col + ' > ' + CLPBRD;
     QF18.Enabled := false; QF18.Hint := Col + ' < ' + CLPBRD;
     QF19.Enabled := false; QF19.Hint := Col + ' LIKE %' + CLPBRD + '%';
+    QF20.Enabled := false; QF20.Hint := Col + ' IN (' + CLPBRD + ')';
   end;
 
   for i:=0 to menuQuickFilter.Count-1 do begin
