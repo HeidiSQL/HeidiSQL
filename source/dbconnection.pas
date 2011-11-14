@@ -360,6 +360,12 @@ type
 
   TDBLogCategory = (lcInfo, lcSQL, lcUserFiredSQL, lcError, lcDebug);
   TDBLogEvent = procedure(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil) of object;
+  TDBLogItem = class(TObject)
+    public
+      Msg: String;
+      Category: TDBLogCategory;
+  end;
+  TDBLogQueue = TObjectList<TDBLogItem>;
   TDBEvent = procedure(Connection: TDBConnection; Database: String) of object;
   TDBDataTypeArray = Array of TDBDataType;
 
@@ -373,6 +379,7 @@ type
       FDatabase: String;
       FAllDatabases: TStringList;
       FLogPrefix: String;
+      FLogQueue: TDBLogQueue;
       FOnLog: TDBLogEvent;
       FOnConnected: TDBEvent;
       FOnDatabaseChanged: TDBEvent;
@@ -421,7 +428,6 @@ type
       function GetServerUptime: Integer;
       function GetCurrentUserHostCombination: String;
       function DecodeAPIString(a: AnsiString): String;
-      procedure Log(Category: TDBLogCategory; Msg: String);
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure SetObjectNamesInSelectedDB;
       procedure SetLockedByThread(Value: TThread); virtual;
@@ -429,6 +435,7 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual; abstract;
+      procedure Log(Category: TDBLogCategory; Msg: String);
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: Boolean=True): String;
       function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
       function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
@@ -487,6 +494,7 @@ type
       property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
       property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
       property Datatypes: TDBDataTypeArray read FDatatypes;
+      property LogQueue: TDBLogQueue read FLogQueue;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -860,6 +868,7 @@ begin
   FLastQueryNetworkDuration := 0;
   FThreadID := 0;
   FLogPrefix := '';
+  FLogQueue := TDBLogQueue.Create(True);
   FIsUnicode := False;
   FIsSSL := False;
   FDatabases := TDatabaseList.Create(True);
@@ -1851,10 +1860,18 @@ end;
 
 {**
   Call log event if assigned to object
+  If running a thread, log to queue and let the main thread later do logging
 }
 procedure TDBConnection.Log(Category: TDBLogCategory; Msg: String);
+var
+  LogItem: TDBLogItem;
 begin
-  if Assigned(FOnLog) then begin
+  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID = GetCurrentThreadID) then begin
+    LogItem := TDBLogItem.Create;
+    LogItem.Msg := Msg;
+    LogItem.Category := Category;
+    FLogQueue.Add(LogItem);
+  end else if Assigned(FOnLog) then begin
     if FLogPrefix <> '' then
       Msg := '['+FLogPrefix+'] ' + Msg;
     FOnLog(Msg, Category, Self);

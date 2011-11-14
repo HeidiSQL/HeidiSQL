@@ -1988,7 +1988,6 @@ begin
   DBObject.Assign(Obj);
   Mainform.UpdateEditorTab;
   Screen.Cursor := crHourglass;
-  MainForm.SetupSynEditors;
   // Enable user to start typing immediately when creating a new object
   if DBObject.Name = '' then begin
     editName := FindComponent('editName') as TWinControl;

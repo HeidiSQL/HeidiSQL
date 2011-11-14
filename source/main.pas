@@ -2268,8 +2268,15 @@ var
   TabCaption: String;
   Results: TDBQuery;
   i: Integer;
+  LogItem: TDBLogItem;
 begin
   // Single query or query packet has finished
+
+  // Log postponed messages
+  for LogItem in Thread.Connection.LogQueue do
+    Thread.Connection.Log(LogItem.Category, LogItem.Msg);
+  Thread.Connection.LogQueue.Clear;
+
   ShowStatusMsg('Setting up result grid(s) ...');
   Tab := GetQueryTabByNumber(Thread.TabNumber);
 
@@ -3902,7 +3909,6 @@ begin
   if not IsSQL then
     Msg := '/* ' + Msg + ' */';
 
-  EnterCriticalSection(FCriticalSection);
   SynMemoSQLLog.Lines.Add(Msg);
 
   // Delete first line(s) in SQL log and adjust LineNumberStart in gutter
@@ -3917,6 +3923,7 @@ begin
 
   // Scroll to last line and repaint
   SynMemoSQLLog.GotoLineAndCenter(SynMemoSQLLog.Lines.Count);
+  SynMemoSQLLog.Repaint;
 
   // Log to file?
   if prefLogToFile then
@@ -3931,7 +3938,6 @@ begin
       ErrorDialog('Error writing to session log file.', FFileNameSessionLog+CRLF+CRLF+E.Message+CRLF+CRLF+'Logging is disabled now.');
     end;
   end;
-  LeaveCriticalSection(FCriticalSection);
 end;
 
 
@@ -8419,6 +8425,7 @@ begin
   if not Assigned(ActiveObjectEditor) then begin
     ActiveObjectEditor := EditorClass.Create(tabEditor);
     ActiveObjectEditor.Parent := tabEditor;
+    MainForm.SetupSynEditors;
   end;
   ActiveObjectEditor.Init(Obj);
   UpdateFilterPanel(Self);
@@ -9297,6 +9304,9 @@ begin
   ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
   for i:=0 to Editors.Count-1 do begin
     Editor := Editors[i] as TSynMemo;
+    if Editor = nil then
+      continue;
+    LogSQL('Setting up TSynMemo "'+Editor.Name+'"', lcDebug);
     Editor.Font.Name := FontName;
     Editor.Font.Size := FontSize;
     Editor.Gutter.Font.Name := FontName;
