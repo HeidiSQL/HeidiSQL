@@ -6793,7 +6793,8 @@ begin
       actDataPostChangesExecute(DataGrid);
 
     DBObj := Sender.GetNodeData(Node);
-    FActiveDbObj := DBObj^;
+    FActiveDbObj := TDBObject.Create(DBObj.Connection);
+    FActiveDbObj.Assign(DBObj^);
 
     case FActiveDbObj.NodeType of
       lntNone: begin
@@ -6861,7 +6862,7 @@ begin
     ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(FActiveDbObj.Connection.Parameters.NetType, False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
   end else begin
     LogSQL('DBtreeFocusChanged without node.', lcDebug);
-    FActiveDbObj := nil;
+    FreeAndNil(FActiveDbObj);
     MainTabToActivate := tabHost;
     tabHost.Caption := 'Host';
     tabDatabase.Caption := 'Database';

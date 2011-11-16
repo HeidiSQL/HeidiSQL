@@ -4451,6 +4451,7 @@ begin
     Size := s.Size;
     FCreateCode := s.FCreateCode;
     FCreateCodeFetched := s.FCreateCodeFetched;
+    FViewSelectCode := s.FViewSelectCode;
   end else
     inherited;
 end;
