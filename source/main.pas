@@ -4077,6 +4077,15 @@ begin
     HandleDataGridAttributes(RefreshingData);
     OldScrollOffset := DataGrid.OffsetXY;
 
+    // Remember old column widths if customized
+    ColWidths := TStringList.Create;
+    if not RefreshingData then
+      FDataGridColumnWidthsCustomized := False;
+    if FDataGridColumnWidthsCustomized then begin
+      for i:=0 to vt.Header.Columns.Count-1 do
+        ColWidths.Values[vt.Header.Columns[i].Text] := IntToStr(vt.Header.Columns[i].Width);
+    end;
+
     DataGridDB := DBObj.Database;
     DataGridTable := DBObj.Name;
 
@@ -4164,13 +4173,6 @@ begin
 
       // Set up grid column headers
       ShowStatusMsg('Setting up columns ...');
-      ColWidths := TStringList.Create;
-      if not RefreshingData then
-        FDataGridColumnWidthsCustomized := False;
-      if FDataGridColumnWidthsCustomized then begin
-        for i:=0 to vt.Header.Columns.Count-1 do
-          ColWidths.Values[vt.Header.Columns[i].Text] := IntToStr(vt.Header.Columns[i].Width);
-      end;
       VisibleColumns := 0;
       for i:=0 to WantedColumns.Count-1 do begin
         InitColumn(i, WantedColumns[i]);
@@ -4194,7 +4196,6 @@ begin
         else
           AutoCalcColWidth(vt, i);
       end;
-      ColWidths.Free;
 
     except
       // Wrong WHERE clause in most cases
@@ -4226,6 +4227,7 @@ begin
     actDataShowNext.Enabled := (vt.RootNodeCount = DatagridWantedRowCount) and (DatagridWantedRowCount < prefGridRowcountMax);
     actDataShowAll.Enabled := actDataShowNext.Enabled;
     EnumerateRecentFilters;
+    ColWidths.Free;
     if Integer(vt.RootNodeCount) = prefGridRowcountMax then
       LogSQL('Browsing is currently limited to a maximum of '+FormatNumber(prefGridRowcountMax)+' rows. To see more rows, increase this maximum in Tools > Preferences > Data .', lcInfo);
 
@@ -4240,7 +4242,8 @@ end;
 procedure TMainForm.DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
 begin
   // Remember current table after last column resizing so we can auto size them as long as this did not happen
-  FDataGridColumnWidthsCustomized := True;
+  if not (tsUpdating in Sender.Treeview.TreeStates) then
+    FDataGridColumnWidthsCustomized := True;
 end;
 
 
