@@ -3034,7 +3034,7 @@ begin
     rx.ModifierG := False;
     rx.ModifierI := True;
     rx.Expression := '^CREATE\s+(OR\s+REPLACE\s+)?'+
-      '(ALGORITHM\s*=\s*(\w+)\s+)?'+
+      '(ALGORITHM\s*=\s*(\w*)\s*)?'+
       '(DEFINER\s*=\s*(\S+)\s+)?'+
       '(SQL\s+SECURITY\s+\w+\s+)?'+
       'VIEW\s+(([^\.]+)\.)?([^\.]+)\s+'+
