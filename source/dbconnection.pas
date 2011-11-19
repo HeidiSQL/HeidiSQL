@@ -317,7 +317,7 @@ type
       FSessionName, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout: Integer;
-      FLoginPrompt, FCompressed: Boolean;
+      FLoginPrompt, FCompressed, FWindowsAuth: Boolean;
       function GetImageIndex: Integer;
     public
       constructor Create;
@@ -338,6 +338,7 @@ type
       property Username: String read FUsername write FUsername;
       property Password: String read FPassword write FPassword;
       property LoginPrompt: Boolean read FLoginPrompt write FLoginPrompt;
+      property WindowsAuth: Boolean read FWindowsAuth write FWindowsAuth;
       property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property Compressed: Boolean read FCompressed write FCompressed;
@@ -1194,8 +1195,10 @@ begin
       'Persist Security Info=True;'+
       'User ID='+Parameters.Username+';'+
       'Network Library='+NetLib+';'+
-      'Data Source='+DataSource
+      'Data Source='+DataSource+';'
       ;
+    if Parameters.WindowsAuth then
+      FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Integrated Security=SSPI;';
     // Show up dynamic connection properties, probably useful for debugging
     for i:=0 to FAdoHandle.Properties.Count-1 do
       Log(lcDebug, 'OLE DB property "'+FAdoHandle.Properties[i].Name+'": '+String(FAdoHandle.Properties[i].Value));
