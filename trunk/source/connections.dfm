@@ -4,10 +4,10 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu]
   Caption = 'Session manager'
-  ClientHeight = 294
+  ClientHeight = 342
   ClientWidth = 494
   Color = clBtnFace
-  Constraints.MinHeight = 330
+  Constraints.MinHeight = 380
   Constraints.MinWidth = 510
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -25,7 +25,7 @@ object connform: Tconnform
   OnShow = FormShow
   DesignSize = (
     494
-    294)
+    342)
   PixelsPerInch = 96
   TextHeight = 13
   object lblHelp: TLabel
@@ -41,7 +41,7 @@ object connform: Tconnform
   end
   object btnSave: TButton
     Left = 64
-    Top = 261
+    Top = 309
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -52,7 +52,7 @@ object connform: Tconnform
   object btnOpen: TButton
     Tag = 15
     Left = 320
-    Top = 261
+    Top = 309
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -65,7 +65,7 @@ object connform: Tconnform
   object btnCancel: TButton
     Tag = 16
     Left = 406
-    Top = 261
+    Top = 309
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -78,7 +78,7 @@ object connform: Tconnform
     Left = 8
     Top = 8
     Width = 167
-    Height = 247
+    Height = 295
     Anchors = [akLeft, akTop, akBottom]
     EditDelay = 250
     Header.AutoSizeIndex = 0
@@ -131,7 +131,7 @@ object connform: Tconnform
   end
   object btnNew: TButton
     Left = 8
-    Top = 261
+    Top = 309
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -141,7 +141,7 @@ object connform: Tconnform
   end
   object btnDelete: TButton
     Left = 120
-    Top = 261
+    Top = 309
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -153,7 +153,7 @@ object connform: Tconnform
     Left = 177
     Top = 8
     Width = 309
-    Height = 247
+    Height = 295
     ActivePage = tabSettings
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = MainForm.ImageListMain
@@ -163,10 +163,10 @@ object connform: Tconnform
       ImageIndex = 39
       DesignSize = (
         301
-        218)
+        266)
       object lblStartupScript: TLabel
         Left = 3
-        Top = 193
+        Top = 241
         Width = 69
         Height = 13
         Caption = 'Startup script:'
@@ -175,7 +175,7 @@ object connform: Tconnform
       object lblPort: TLabel
         Tag = 9
         Left = 3
-        Top = 120
+        Top = 168
         Width = 24
         Height = 13
         Caption = 'Port:'
@@ -184,7 +184,7 @@ object connform: Tconnform
       object lblPassword: TLabel
         Tag = 8
         Left = 3
-        Top = 95
+        Top = 143
         Width = 50
         Height = 13
         Caption = 'Password:'
@@ -202,7 +202,7 @@ object connform: Tconnform
       object lblUsername: TLabel
         Tag = 7
         Left = 3
-        Top = 70
+        Top = 118
         Width = 26
         Height = 13
         Caption = 'User:'
@@ -217,21 +217,21 @@ object connform: Tconnform
       end
       object lblDatabase: TLabel
         Left = 3
-        Top = 168
+        Top = 216
         Width = 55
         Height = 13
         Caption = 'Databases:'
       end
       object editStartupScript: TButtonedEdit
         Left = 101
-        Top = 190
+        Top = 238
         Width = 197
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
-        TabOrder = 8
+        TabOrder = 10
         OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
@@ -239,51 +239,51 @@ object connform: Tconnform
       object chkCompressed: TCheckBox
         Tag = 12
         Left = 101
-        Top = 142
+        Top = 190
         Width = 197
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Compressed client/server protocol'
-        TabOrder = 6
+        TabOrder = 8
         OnClick = Modification
       end
       object editPort: TEdit
         Left = 101
-        Top = 117
+        Top = 165
         Width = 60
         Height = 21
-        TabOrder = 4
+        TabOrder = 6
         Text = '0'
         OnChange = Modification
       end
       object updownPort: TUpDown
         Left = 161
-        Top = 117
+        Top = 165
         Width = 17
         Height = 21
         Associate = editPort
         Max = 65535
-        TabOrder = 5
+        TabOrder = 7
         Thousands = False
         Wrap = True
       end
       object editPassword: TEdit
         Left = 101
-        Top = 92
-        Width = 126
+        Top = 140
+        Width = 197
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
-        TabOrder = 3
+        TabOrder = 5
         OnChange = Modification
       end
       object editUsername: TEdit
         Left = 101
-        Top = 67
+        Top = 115
         Width = 197
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 2
+        TabOrder = 4
         OnChange = Modification
       end
       object editHost: TEdit
@@ -305,7 +305,7 @@ object connform: Tconnform
         ItemIndex = 0
         TabOrder = 0
         Text = 'TCP/IP'
-        OnChange = comboNetTypeChange
+        OnChange = Modification
         Items.Strings = (
           'TCP/IP'
           'Named pipe'
@@ -314,23 +314,34 @@ object connform: Tconnform
       end
       object comboDatabases: TComboBox
         Left = 101
-        Top = 165
+        Top = 213
         Width = 197
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 7
+        TabOrder = 9
         TextHint = 'Separated by semicolon'
         OnChange = Modification
         OnDropDown = comboDatabasesDropDown
       end
       object chkLoginPrompt: TCheckBox
-        Left = 233
-        Top = 94
-        Width = 65
+        Left = 101
+        Top = 69
+        Width = 197
         Height = 17
-        Anchors = [akTop, akRight]
-        Caption = 'Prompt'
-        TabOrder = 9
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Prompt for credentials'
+        TabOrder = 2
+        OnClick = chkLoginPromptClick
+      end
+      object chkWindowsAuth: TCheckBox
+        Left = 101
+        Top = 92
+        Width = 197
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Use Windows authentication'
+        Enabled = False
+        TabOrder = 3
         OnClick = chkLoginPromptClick
       end
     end
@@ -339,7 +350,7 @@ object connform: Tconnform
       ImageIndex = 147
       DesignSize = (
         301
-        218)
+        266)
       object lblSSHLocalPort: TLabel
         Left = 3
         Top = 190
@@ -521,7 +532,7 @@ object connform: Tconnform
       ImageIndex = 144
       DesignSize = (
         301
-        218)
+        266)
       object lblSSLPrivateKey: TLabel
         Tag = 6
         Left = 3
@@ -597,7 +608,7 @@ object connform: Tconnform
       ImageIndex = 145
       DesignSize = (
         301
-        218)
+        266)
       object lblLastConnectLeft: TLabel
         Left = 3
         Top = 31

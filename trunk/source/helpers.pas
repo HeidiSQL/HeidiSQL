@@ -2406,6 +2406,7 @@ begin
     Result.Username := GetRegValue(REGNAME_USER, '', Session);
     Result.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
     Result.LoginPrompt := GetRegValue(REGNAME_LOGINPROMPT, False, Session);
+    Result.WindowsAuth := GetRegValue(REGNAME_WINDOWSAUTH, False, Session);
     Result.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', Session), DEFAULT_PORT);
     Result.AllDatabasesStr := GetRegValue(REGNAME_DATABASES, '', Session);
     Result.SSHHost := GetRegValue(REGNAME_SSHHOST, '', Session);

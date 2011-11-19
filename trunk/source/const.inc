@@ -115,6 +115,7 @@ const
   REGNAME_USER = 'User';
   DEFAULT_USER = 'root';
   REGNAME_PASSWORD = 'Password';
+  REGNAME_WINDOWSAUTH = 'WindowsAuth';
   REGNAME_LOGINPROMPT = 'LoginPrompt';
   REGNAME_PORT = 'Port';
   DEFAULT_PORT = 3306;

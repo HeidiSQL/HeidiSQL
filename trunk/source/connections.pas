@@ -78,6 +78,7 @@ type
     lblPlinkTimeout: TLabel;
     editSSHTimeout: TEdit;
     updownSSHTimeout: TUpDown;
+    chkWindowsAuth: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -111,7 +112,6 @@ type
     procedure lblDownloadPlinkClick(Sender: TObject);
     procedure comboDatabasesDropDown(Sender: TObject);
     procedure chkLoginPromptClick(Sender: TObject);
-    procedure comboNetTypeChange(Sender: TObject);
     procedure ListSessionsInitNode(Sender: TBaseVirtualTree; ParentNode,
       Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure ListSessionsGetNodeDataSize(Sender: TBaseVirtualTree;
@@ -262,6 +262,7 @@ var
 begin
   OpenRegistry(Session);
   MainReg.WriteString(REGNAME_HOST, editHost.Text);
+  MainReg.WriteBool(REGNAME_WINDOWSAUTH, chkWindowsAuth.Checked);
   MainReg.WriteString(REGNAME_USER, editUsername.Text);
   MainReg.WriteString(REGNAME_PASSWORD, encrypt(editPassword.Text));
   MainReg.WriteBool(REGNAME_LOGINPROMPT, chkLoginPrompt.Checked);
@@ -291,6 +292,7 @@ begin
   Sess.Username := editUsername.Text;
   Sess.Password := editPassword.Text;
   Sess.LoginPrompt := chkLoginPrompt.Checked;
+  Sess.WindowsAuth := chkWindowsAuth.Checked;
   Sess.Port := updownPort.Position;
   Sess.NetType := TNetType(comboNetType.ItemIndex);
   Sess.Compressed := chkCompressed.Checked;
@@ -419,6 +421,7 @@ begin
   Result.Username := editUsername.Text;
   Result.Password := editPassword.Text;
   Result.LoginPrompt := chkLoginPrompt.Checked;
+  Result.WindowsAuth := chkWindowsAuth.Checked;
   Result.Port := updownPort.Position;
   Result.AllDatabasesStr := comboDatabases.Text;
   Result.SSHHost := editSSHHost.Text;
@@ -528,6 +531,7 @@ begin
     editUsername.Text := Sess.Username;
     editPassword.Text := Sess.Password;
     chkLoginPrompt.Checked := Sess.LoginPrompt;
+    chkWindowsAuth.Checked := Sess.WindowsAuth;
     updownPort.Position := Sess.Port;
     chkCompressed.Checked := Sess.Compressed;
     comboDatabases.Text := Sess.AllDatabasesStr;
@@ -599,6 +603,7 @@ begin
       lblCounterRight.Caption := lblCounterRight.Caption + ', unsuccessful: '+IntToStr(Refused);
   end else if Refused > 0 then
     lblCounterRight.Caption := 'Unsuccessful connects: '+IntToStr(Refused);
+  Invalidate;
 end;
 
 
@@ -648,14 +653,14 @@ end;
 
 procedure Tconnform.chkLoginPromptClick(Sender: TObject);
 var
-  DoEnable: Boolean;
+  Checked: Boolean;
 begin
-  // Disable password input if user wants to be prompted
-  DoEnable := not TCheckBox(Sender).Checked;
-  lblUsername.Enabled := DoEnable;
-  editUsername.Enabled := DoEnable;
-  lblPassword.Enabled := DoEnable;
-  editPassword.Enabled := DoEnable;
+  // Login prompt and SQL Server integrated Windows Auth are mutually exclusive
+  Checked := TCheckBox(Sender).Checked;
+  if Checked and (Sender = chkWindowsAuth) then
+    chkLoginPrompt.Checked := False;
+  if Checked and (Sender = chkLoginPrompt) then
+    chkWindowsAuth.Checked := False;
   Modification(Sender);
 end;
 
@@ -684,19 +689,6 @@ begin
 end;
 
 
-procedure Tconnform.comboNetTypeChange(Sender: TObject);
-begin
-  if (not editPort.Modified) and (FLoaded) then begin
-    case TNetType(comboNetType.ItemIndex) of
-      ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHTunnel:
-        updownPort.Position := DEFAULT_PORT;
-      ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
-        updownPort.Position := 1433;
-    end;
-  end;
-  Modification(Sender);
-end;
-
 procedure Tconnform.Modification(Sender: TObject);
 var
   PasswordModified: Boolean;
@@ -708,6 +700,7 @@ begin
     FSessionModified := (Sess.Hostname <> editHost.Text)
       or (Sess.Username <> editUsername.Text)
       or (Sess.LoginPrompt <> chkLoginPrompt.Checked)
+      or (Sess.WindowsAuth <> chkWindowsAuth.Checked)
       or (Sess.Port <> updownPort.Position)
       or (Sess.Compressed <> chkCompressed.Checked)
       or (Sess.NetType <> TNetType(comboNetType.ItemIndex))
@@ -755,7 +748,7 @@ end;
 procedure Tconnform.ValidateControls;
 var
   SessionFocused: Boolean;
-  NetType: TNetType;
+  Params: TConnectionParameters;
 begin
   SessionFocused := Assigned(ListSessions.FocusedNode);
 
@@ -779,16 +772,29 @@ begin
     PageControlDetails.Visible := True;
 
     // Validate session GUI stuff
-    NetType := TNetType(comboNetType.ItemIndex);
-    if NetType = ntMySQL_NamedPipe then
+    Params := CurrentParams;
+    if Params.NetType = ntMySQL_NamedPipe then
       lblHost.Caption := 'Socket name:'
     else
       lblHost.Caption := 'Hostname / IP:';
-    lblPort.Enabled := NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP];
+    chkWindowsAuth.Enabled := Params.NetTypeGroup = ngMSSQL;
+    lblUsername.Enabled := ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
+      and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
+    editUsername.Enabled := lblUsername.Enabled;
+    lblPassword.Enabled := lblUsername.Enabled;
+    editPassword.Enabled := lblUsername.Enabled;
+    lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP];
     editPort.Enabled := lblPort.Enabled;
     updownPort.Enabled := lblPort.Enabled;
-    tabSSLoptions.TabVisible := NetType = ntMySQL_TCPIP;
-    tabSSHtunnel.TabVisible := NetType = ntMySQL_SSHtunnel;
+    tabSSLoptions.TabVisible := Params.NetType = ntMySQL_TCPIP;
+    tabSSHtunnel.TabVisible := Params.NetType = ntMySQL_SSHtunnel;
+    if not editPort.Modified then case Params.NetTypeGroup of
+      ngMySQL:
+        updownPort.Position := DEFAULT_PORT;
+      ngMSSQL:
+        updownPort.Position := 1433;
+    end;
+    FreeAndNil(Params);
   end;
 end;
 
