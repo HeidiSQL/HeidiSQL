@@ -305,7 +305,7 @@ object connform: Tconnform
         ItemIndex = 0
         TabOrder = 0
         Text = 'TCP/IP'
-        OnChange = Modification
+        OnChange = comboNetTypeChange
         Items.Strings = (
           'TCP/IP'
           'Named pipe'

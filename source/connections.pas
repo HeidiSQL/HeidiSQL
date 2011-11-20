@@ -116,6 +116,7 @@ type
       Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure ListSessionsGetNodeDataSize(Sender: TBaseVirtualTree;
       var NodeDataSize: Integer);
+    procedure comboNetTypeChange(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -691,6 +692,25 @@ begin
 end;
 
 
+procedure Tconnform.comboNetTypeChange(Sender: TObject);
+var
+  Params: TConnectionParameters;
+begin
+  // Autoset default port number as long as that was not modified by user
+  if (not editPort.Modified) and (FLoaded) then begin
+    Params := CurrentParams;
+    case Params.NetTypeGroup of
+      ngMySQL:
+        updownPort.Position := DEFAULT_PORT;
+      ngMSSQL:
+        updownPort.Position := 1433;
+    end;
+    FreeAndNil(Params);
+  end;
+  Modification(Sender);
+end;
+
+
 procedure Tconnform.Modification(Sender: TObject);
 var
   PasswordModified: Boolean;
@@ -790,12 +810,6 @@ begin
     updownPort.Enabled := lblPort.Enabled;
     tabSSLoptions.TabVisible := Params.NetType = ntMySQL_TCPIP;
     tabSSHtunnel.TabVisible := Params.NetType = ntMySQL_SSHtunnel;
-    if not editPort.Modified then case Params.NetTypeGroup of
-      ngMySQL:
-        updownPort.Position := DEFAULT_PORT;
-      ngMSSQL:
-        updownPort.Position := 1433;
-    end;
     FreeAndNil(Params);
   end;
 end;
