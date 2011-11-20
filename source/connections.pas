@@ -612,7 +612,9 @@ procedure Tconnform.ListSessionsFocusChanging(Sender: TBaseVirtualTree; OldNode,
   var Allowed: Boolean);
 begin
   if NewNode <> OldNode then
-    FinalizeModifications(Allowed);
+    FinalizeModifications(Allowed)
+  else
+    Allowed := False;
 end;
 
 
