@@ -202,6 +202,7 @@ begin
   hSysMenu := GetSystemMenu(Handle, False);
   AppendMenu(hSysMenu, MF_SEPARATOR, 0, #0);
   AppendMenu(hSysMenu, MF_STRING, MSG_UPDATECHECK, PChar(Mainform.actUpdateCheck.Caption));
+  AppendMenu(hSysMenu, MF_STRING, MSG_PREFERENCES, PChar(Mainform.actPreferences.Caption));
   AppendMenu(hSysMenu, MF_STRING, MSG_ABOUT, PChar(Mainform.actAboutBox.Caption));
 end;
 

@@ -1040,7 +1040,8 @@ var
 const
   // Customized messages
   MSG_UPDATECHECK = WM_USER + 1;
-  MSG_ABOUT = WM_USER + 2;
+  MSG_PREFERENCES = WM_USER + 2;
+  MSG_ABOUT = WM_USER + 3;
   CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
 
 {$I const.inc}
@@ -9128,6 +9129,7 @@ begin
     Handled := True;
     case Msg.wParam of
       MSG_UPDATECHECK: Mainform.actUpdateCheck.Execute;
+      MSG_PREFERENCES: Mainform.actPreferences.Execute;
       MSG_ABOUT: Mainform.actAboutBox.Execute;
       else Handled := False;
     end;
