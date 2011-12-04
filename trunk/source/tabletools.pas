@@ -158,8 +158,7 @@ const
   DATA_INSERT = 'INSERT';
   DATA_INSERTNEW = 'INSERT IGNORE (do not update existing)';
   DATA_UPDATE = 'REPLACE existing data';
-  EXPORT_FILE_FOOTER = '/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;'+CRLF+
-    '/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;'+CRLF+
+  EXPORT_FILE_FOOTER = '/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;'+CRLF+
     '/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;'+CRLF;
 
 {$R *.DFM}
@@ -1142,8 +1141,7 @@ begin
       '# --------------------------------------------------------' + CRLF + CRLF +
       '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
       '/*!40101 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF +
-      '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF +
-      '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;';
+      '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;';
     Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
     Output('/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */', True, False, False, True, True);
     FHeaderCreated := True;
@@ -1241,11 +1239,11 @@ begin
             if ToDb then
               Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
             if ToFile or ToClipboard or ToDir then begin
-              Struc := 'SET SESSION SQL_MODE=' + esc(StrucResult.Col('sql_mode')) + ';' + CRLF +
+              Struc := 'SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=' + esc(StrucResult.Col('sql_mode')) + ';' + CRLF +
                 'DELIMITER ' + TempDelim + CRLF +
                 Struc + TempDelim + CRLF +
                 'DELIMITER ;' + CRLF +
-                'SET SESSION SQL_MODE=@OLD_SQL_MODE';
+                'SET SQL_MODE=@OLD_SQL_MODE';
             end;
           end;
 
