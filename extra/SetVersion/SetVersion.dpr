@@ -6,11 +6,12 @@ uses
   SysUtils, Windows, SynRegExpr, Classes;
 
 var
-  FileName, FileContent, Line, Revision, CurDir, SvnOutput, Cmd: String;
+  FileName, FileContent, Line, Revision, AppVer, CurDir, SvnOutput, Cmd: String;
   FileHandle: TextFile;
   rx: TRegExpr;
   SvnOutputLines: TStringList;
 
+{$I ..\..\source\const.inc}
 
 function RunConsoleAppWaitAndCapture(const cConsoleApp, cParameters,
   cWorkingDir: string; aResults: TStringList): DWord;
@@ -147,9 +148,16 @@ begin
     end;
 
     // Inject revision into file content
-    rx.Expression := '(\bFILEVERSION\s\d+,\d+,\d+,)\d+(\b)';
-    FileContent := rx.Replace(FileContent, '${1}'+Revision+'${2}', True);
+    rx.Expression := '((\bFILEVERSION\s)(\d+),(\d+),(\d+),)\d+(\b)';
+    if rx.Exec(FileContent) then
+      AppVer := rx.Match[3]+'.'+rx.Match[4]+'.'+rx.Match[5]+'.'+Revision
+    else
+      AppVer := '[Parse error in '+ExtractFileName(ParamStr(0))+']';
+    FileContent := rx.Replace(FileContent, '${1}'+Revision+'${6}', True);
     rx.Free;
+
+    FileContent := StringReplace(FileContent, '%APPNAME%', APPNAME, [rfReplaceAll]);
+    FileContent := StringReplace(FileContent, '%APPVER%', AppVer, [rfReplaceAll]);
 
     // Save modified file
     Rewrite(FileHandle);
