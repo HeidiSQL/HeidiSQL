@@ -408,7 +408,7 @@ type
       FDatatypes: TDBDataTypeArray;
       FThreadID: Cardinal;
       procedure SetActive(Value: Boolean); virtual; abstract;
-      procedure DoBeforeConnect;
+      procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect;
       procedure SetDatabase(Value: String);
       function GetThreadId: Cardinal; virtual; abstract;
@@ -433,6 +433,32 @@ type
       procedure SetObjectNamesInSelectedDB;
       procedure SetLockedByThread(Value: TThread); virtual;
     public
+      mysql_affected_rows: function(Handle: PMYSQL): Int64; stdcall;
+      mysql_character_set_name: function(Handle: PMYSQL): PAnsiChar; stdcall;
+      mysql_close: procedure(Handle: PMYSQL); stdcall;
+      mysql_data_seek: procedure(Result: PMYSQL_RES; Offset: Int64); stdcall;
+      mysql_errno: function(Handle: PMYSQL): Cardinal; stdcall;
+      mysql_error: function(Handle: PMYSQL): PAnsiChar; stdcall;
+      mysql_fetch_field_direct: function(Result: PMYSQL_RES; FieldNo: Cardinal): PMYSQL_FIELD; stdcall;
+      mysql_fetch_lengths: function(Result: PMYSQL_RES): PLongInt; stdcall;
+      mysql_fetch_row: function(Result: PMYSQL_RES): PMYSQL_ROW; stdcall;
+      mysql_free_result: procedure(Result: PMYSQL_RES); stdcall;
+      mysql_get_client_info: function: PAnsiChar; stdcall;
+      mysql_get_server_info: function(Handle: PMYSQL): PAnsiChar; stdcall;
+      mysql_init: function(Handle: PMYSQL): PMYSQL; stdcall;
+      mysql_num_fields: function(Result: PMYSQL_RES): Integer; stdcall;
+      mysql_num_rows: function(Result: PMYSQL_RES): Int64; stdcall;
+      mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
+      mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
+      mysql_real_query: function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
+      mysql_ssl_set: function(Handle: PMYSQL; const key, cert, CA, CApath, cipher: PAnsiChar): Byte; stdcall;
+      mysql_stat: function(Handle: PMYSQL): PAnsiChar; stdcall;
+      mysql_store_result: function(Handle: PMYSQL): PMYSQL_RES; stdcall;
+      mysql_thread_id: function(Handle: PMYSQL): Cardinal; stdcall;
+      mysql_next_result: function(Handle: PMYSQL): Integer; stdcall;
+      mysql_set_character_set: function(Handle: PMYSQL; csname: PAnsiChar): Integer; stdcall;
+      mysql_thread_init: function: Byte; stdcall;
+      mysql_thread_end: procedure; stdcall;
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual; abstract;
@@ -514,9 +540,12 @@ type
   TMySQLConnection = class(TDBConnection)
     private
       FHandle: PMYSQL;
+      FLibraryHandle: HMODULE;
+      FLibraryPath: String;
       FLastRawResults: TMySQLRawResults;
       FPlinkProcInfo: TProcessInformation;
       procedure SetActive(Value: Boolean); override;
+      procedure DoBeforeConnect; override;
       procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
       procedure ClosePlink;
       function GetThreadId: Cardinal; override;
@@ -532,6 +561,7 @@ type
       procedure SetLockedByThread(Value: TThread); override;
     public
       constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function ConvertServerVersion(Version: Integer): String; override;
       function Ping(Reconnect: Boolean): Boolean; override;
@@ -687,37 +717,6 @@ type
       function DatabaseName: String; override;
       function TableName: String; override;
   end;
-
-var
-  mysql_affected_rows: function(Handle: PMYSQL): Int64; stdcall;
-  mysql_character_set_name: function(Handle: PMYSQL): PAnsiChar; stdcall;
-  mysql_close: procedure(Handle: PMYSQL); stdcall;
-  mysql_data_seek: procedure(Result: PMYSQL_RES; Offset: Int64); stdcall;
-  mysql_errno: function(Handle: PMYSQL): Cardinal; stdcall;
-  mysql_error: function(Handle: PMYSQL): PAnsiChar; stdcall;
-  mysql_fetch_field_direct: function(Result: PMYSQL_RES; FieldNo: Cardinal): PMYSQL_FIELD; stdcall;
-  mysql_fetch_lengths: function(Result: PMYSQL_RES): PLongInt; stdcall;
-  mysql_fetch_row: function(Result: PMYSQL_RES): PMYSQL_ROW; stdcall;
-  mysql_free_result: procedure(Result: PMYSQL_RES); stdcall;
-  mysql_get_client_info: function: PAnsiChar; stdcall;
-  mysql_get_server_info: function(Handle: PMYSQL): PAnsiChar; stdcall;
-  mysql_init: function(Handle: PMYSQL): PMYSQL; stdcall;
-  mysql_num_fields: function(Result: PMYSQL_RES): Integer; stdcall;
-  mysql_num_rows: function(Result: PMYSQL_RES): Int64; stdcall;
-  mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
-  mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
-  mysql_real_query: function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
-  mysql_ssl_set: function(Handle: PMYSQL; const key, cert, CA, CApath, cipher: PAnsiChar): Byte; stdcall;
-  mysql_stat: function(Handle: PMYSQL): PAnsiChar; stdcall;
-  mysql_store_result: function(Handle: PMYSQL): PMYSQL_RES; stdcall;
-  mysql_thread_id: function(Handle: PMYSQL): Cardinal; stdcall;
-  mysql_next_result: function(Handle: PMYSQL): Integer; stdcall;
-  mysql_set_character_set: function(Handle: PMYSQL; csname: PAnsiChar): Integer; stdcall;
-  mysql_thread_init: function: Byte; stdcall;
-  mysql_thread_end: procedure; stdcall;
-
-  libmysql_handle: HMODULE = 0;
-  libmysql_file: PWideChar = 'libmysql.dll';
 
 const
   MsgSQLError: String = 'SQL Error (%d): %s';
@@ -884,6 +883,7 @@ var
 begin
   inherited;
   FQuoteChar := '`';
+  FLibraryPath := 'libmysql.dll';
   // The compiler complains that dynamic and static arrays are incompatible, so this does not work:
   // FDatatypes := MySQLDatatypes
   SetLength(FDatatypes, Length(MySQLDatatypes));
@@ -922,6 +922,16 @@ begin
 end;
 
 
+destructor TMySQLConnection.Destroy;
+begin
+  // Release libmysql.dll handle
+  inherited;
+  if FLibraryHandle <> 0 then
+    FreeLibrary(FLibraryHandle);
+  FLibraryHandle := 0;
+end;
+
+
 function TDBConnection.GetDatatypeByName(Datatype: String): TDBDatatype;
 var
   i: Integer;
@@ -939,10 +949,10 @@ procedure TMySQLConnection.AssignProc(var Proc: FARPROC; Name: PAnsiChar);
 begin
   // Map library procedure to internal procedure
   Log(lcDebug, 'Assign procedure "'+Name+'"');
-  Proc := GetProcAddress(libmysql_handle, Name);
+  Proc := GetProcAddress(FLibraryHandle, Name);
   if Proc = nil then begin
-    libmysql_handle := 0;
-    raise EDatabaseError.Create('Your '+libmysql_file+' is out-dated or somehow incompatible to '+APPNAME+'. Please use the one from the installer, or just reinstall '+APPNAME+'.');
+    FLibraryHandle := 0;
+    raise EDatabaseError.Create('Your '+FLibraryPath+' is out-dated or somehow incompatible to '+APPNAME+'. Please use the one from the installer, or just reinstall '+APPNAME+'.');
   end;
 end;
 
@@ -983,43 +993,6 @@ var
   DoSSL, SSLsettingsComplete: Boolean;
   Vars: TDBQuery;
 begin
-  // Init library
-  if libmysql_handle = 0 then begin
-    Log(lcDebug, 'Loading library file '+libmysql_file+' ...');
-    libmysql_handle := LoadLibrary(libmysql_file);
-    if libmysql_handle = 0 then
-      raise EDatabaseError.Create('Can''t find a usable '+libmysql_file+'. Please launch '+ExtractFileName(ParamStr(0))+' from the directory where you have installed it.')
-    else begin
-      AssignProc(@mysql_affected_rows, 'mysql_affected_rows');
-      AssignProc(@mysql_character_set_name, 'mysql_character_set_name');
-      AssignProc(@mysql_close, 'mysql_close');
-      AssignProc(@mysql_data_seek, 'mysql_data_seek');
-      AssignProc(@mysql_errno, 'mysql_errno');
-      AssignProc(@mysql_error, 'mysql_error');
-      AssignProc(@mysql_fetch_field_direct, 'mysql_fetch_field_direct');
-      AssignProc(@mysql_fetch_lengths, 'mysql_fetch_lengths');
-      AssignProc(@mysql_fetch_row, 'mysql_fetch_row');
-      AssignProc(@mysql_free_result, 'mysql_free_result');
-      AssignProc(@mysql_get_client_info, 'mysql_get_client_info');
-      AssignProc(@mysql_get_server_info, 'mysql_get_server_info');
-      AssignProc(@mysql_init, 'mysql_init');
-      AssignProc(@mysql_num_fields, 'mysql_num_fields');
-      AssignProc(@mysql_num_rows, 'mysql_num_rows');
-      AssignProc(@mysql_ping, 'mysql_ping');
-      AssignProc(@mysql_real_connect, 'mysql_real_connect');
-      AssignProc(@mysql_real_query, 'mysql_real_query');
-      AssignProc(@mysql_ssl_set, 'mysql_ssl_set');
-      AssignProc(@mysql_stat, 'mysql_stat');
-      AssignProc(@mysql_store_result, 'mysql_store_result');
-      AssignProc(@mysql_thread_id, 'mysql_thread_id');
-      AssignProc(@mysql_next_result, 'mysql_next_result');
-      AssignProc(@mysql_set_character_set, 'mysql_set_character_set');
-      AssignProc(@mysql_thread_init, 'mysql_thread_init');
-      AssignProc(@mysql_thread_end, 'mysql_thread_end');
-      Log(lcDebug, libmysql_file + ' v' + DecodeApiString(mysql_get_client_info) + ' loaded.');
-    end;
-  end;
-
   if Value and (FHandle = nil) then begin
     DoBeforeConnect;
 
@@ -1285,6 +1258,49 @@ begin
   Log(lcInfo, 'Connecting to '+FParameters.Hostname+' via '+FParameters.NetTypeName(FParameters.NetType, True)+
     ', username '+FParameters.Username+
     ', using password: '+UsingPass+' ...');
+end;
+
+
+procedure TMySQLConnection.DoBeforeConnect;
+begin
+  // Init libmysql before actually connecting.
+  // Each connection has its own library handle
+  if FLibraryHandle = 0 then begin
+    Log(lcDebug, 'Loading library file '+FLibraryPath+' ...');
+    FLibraryHandle := LoadLibrary(PWideChar(FLibraryPath));
+    if FLibraryHandle = 0 then
+      raise EDatabaseError.Create('Can''t find a usable '+FLibraryPath+'. Please launch '+ExtractFileName(ParamStr(0))+' from the directory where you have installed it.')
+    else begin
+      AssignProc(@mysql_affected_rows, 'mysql_affected_rows');
+      AssignProc(@mysql_character_set_name, 'mysql_character_set_name');
+      AssignProc(@mysql_close, 'mysql_close');
+      AssignProc(@mysql_data_seek, 'mysql_data_seek');
+      AssignProc(@mysql_errno, 'mysql_errno');
+      AssignProc(@mysql_error, 'mysql_error');
+      AssignProc(@mysql_fetch_field_direct, 'mysql_fetch_field_direct');
+      AssignProc(@mysql_fetch_lengths, 'mysql_fetch_lengths');
+      AssignProc(@mysql_fetch_row, 'mysql_fetch_row');
+      AssignProc(@mysql_free_result, 'mysql_free_result');
+      AssignProc(@mysql_get_client_info, 'mysql_get_client_info');
+      AssignProc(@mysql_get_server_info, 'mysql_get_server_info');
+      AssignProc(@mysql_init, 'mysql_init');
+      AssignProc(@mysql_num_fields, 'mysql_num_fields');
+      AssignProc(@mysql_num_rows, 'mysql_num_rows');
+      AssignProc(@mysql_ping, 'mysql_ping');
+      AssignProc(@mysql_real_connect, 'mysql_real_connect');
+      AssignProc(@mysql_real_query, 'mysql_real_query');
+      AssignProc(@mysql_ssl_set, 'mysql_ssl_set');
+      AssignProc(@mysql_stat, 'mysql_stat');
+      AssignProc(@mysql_store_result, 'mysql_store_result');
+      AssignProc(@mysql_thread_id, 'mysql_thread_id');
+      AssignProc(@mysql_next_result, 'mysql_next_result');
+      AssignProc(@mysql_set_character_set, 'mysql_set_character_set');
+      AssignProc(@mysql_thread_init, 'mysql_thread_init');
+      AssignProc(@mysql_thread_end, 'mysql_thread_end');
+      Log(lcDebug, FLibraryPath + ' v' + DecodeApiString(mysql_get_client_info) + ' loaded.');
+    end;
+  end;
+  inherited;
 end;
 
 
@@ -3248,7 +3264,7 @@ var
   i: Integer;
 begin
   if HasResult then for i:=Low(FResultList) to High(FResultList) do
-    mysql_free_result(FResultList[i]);
+    FConnection.mysql_free_result(FResultList[i]);
   SetLength(FResultList, 0);
   inherited;
 end;
@@ -3290,7 +3306,7 @@ begin
     NumResults := Length(FResultList)+1
   else begin
     for i:=Low(FResultList) to High(FResultList) do
-      mysql_free_result(FResultList[i]);
+      FConnection.mysql_free_result(FResultList[i]);
     NumResults := 1;
     FRecordCount := 0;
     FEditingPrepared := False;
@@ -3305,14 +3321,14 @@ begin
     if HasResult then begin
       // FCurrentResults is normally done in SetRecNo, but never if result has no rows
       FCurrentResults := LastResult;
-      NumFields := mysql_num_fields(LastResult);
+      NumFields := FConnection.mysql_num_fields(LastResult);
       SetLength(FColumnTypes, NumFields);
       SetLength(FColumnLengths, NumFields);
       SetLength(FColumnFlags, NumFields);
       FColumnNames.Clear;
       FColumnOrgNames.Clear;
       for i:=0 to NumFields-1 do begin
-        Field := mysql_fetch_field_direct(LastResult, i);
+        Field := FConnection.mysql_fetch_field_direct(LastResult, i);
         FColumnNames.Add(Connection.DecodeAPIString(Field.name));
         if Connection.ServerVersionInt >= 40100 then
           FColumnOrgNames.Add(Connection.DecodeAPIString(Field.org_name))
@@ -3522,11 +3538,11 @@ begin
           // Do not seek if FCurrentRow points to the previous row of the wanted row
           WantedLocalRecNo := FCurrentResults.row_count-(NumRows-Value);
           if (WantedLocalRecNo = 0) or (FRecNo+1 <> Value) or (FCurrentRow = nil) then
-            mysql_data_seek(FCurrentResults, WantedLocalRecNo);
-          FCurrentRow := mysql_fetch_row(FCurrentResults);
+            FConnection.mysql_data_seek(FCurrentResults, WantedLocalRecNo);
+          FCurrentRow := FConnection.mysql_fetch_row(FCurrentResults);
           FCurrentUpdateRow := nil;
           // Remember length of column contents. Important for Col() so contents of cells with #0 chars are not cut off
-          LengthPointer := mysql_fetch_lengths(FCurrentResults);
+          LengthPointer := FConnection.mysql_fetch_lengths(FCurrentResults);
           for j:=Low(FColumnLengths) to High(FColumnLengths) do
             FColumnLengths[j] := PInteger(Integer(LengthPointer) + j * SizeOf(Integer))^;
           break;
@@ -4197,7 +4213,7 @@ var
 begin
   // Return first available Field.db property, or just the current database as fallback
   for i:=0 to ColumnCount-1 do begin
-    Field := mysql_fetch_field_direct(FCurrentResults, i);
+    Field := FConnection.mysql_fetch_field_direct(FCurrentResults, i);
     if Field.db <> '' then begin
       Result := Connection.DecodeAPIString(Field.db);
       break;
@@ -4225,7 +4241,7 @@ var
 begin
   IsView := False;
   for i:=0 to ColumnCount-1 do begin
-    Field := mysql_fetch_field_direct(FCurrentResults, i);
+    Field := FConnection.mysql_fetch_field_direct(FCurrentResults, i);
 
     if Connection.DecodeAPIString(Field.table) <> Connection.DecodeAPIString(Field.org_table) then begin
       // Probably a VIEW, in which case we rely on the first column's table name.
@@ -4709,17 +4725,6 @@ begin
 end;
 
 
-
-initialization
-
-finalization
-
-
-begin
-  if libmysql_handle <> 0 then
-    FreeLibrary(libmysql_handle);
-  libmysql_handle := 0;
-end;
 
 
 end.
