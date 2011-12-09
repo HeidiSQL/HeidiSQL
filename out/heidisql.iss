@@ -14,7 +14,7 @@
 [Setup]
 AppId={#ProgName}
 AppName={#ProgName}
-AppVerName={#ProgName} {#ProgShortVersion}
+AppVerName={#ProgName} {#ProgVersion}
 VersionInfoVersion={#ProgVersion}
 
 ; Displayed on the "Support" dialog of the Add/Remove Programs Control Panel applet:
