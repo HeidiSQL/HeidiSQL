@@ -153,6 +153,10 @@ if not %errorlevel% == 0 goto end
 rem Patch executable with exception handler
 "%mad_dir%\madExcept\Tools\madExceptPatch.exe" "%base_dir%\out\heidisql.exe" heidisql.mes
 
+rem Create installer
+rem cd /d "%base_dir%\out
+"C:\Program Files (x86)\Inno Setup 5\ISCC.exe" /finstaller "%base_dir%\out\heidisql.iss"
+
 echo.
 echo Started:   %start_time%
 echo Finished:  %DATE% %TIME%
