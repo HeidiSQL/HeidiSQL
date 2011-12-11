@@ -1132,13 +1132,13 @@ begin
   if ToDb or ToServer then
     ExportStream := TMemoryStream.Create;
   if not FHeaderCreated then begin
-    Header := '# --------------------------------------------------------' + CRLF +
-      Format('# %-30s%s', ['Host:', DBObj.Connection.Parameters.HostName]) + CRLF +
-      Format('# %-30s%s', ['Server version:', DBObj.Connection.ServerVersionUntouched]) + CRLF +
-      Format('# %-30s%s', ['Server OS:', DBObj.Connection.ServerOS]) + CRLF +
-      Format('# %-30s%s', [APPNAME + ' version:', Mainform.AppVersion]) + CRLF +
-      Format('# %-30s%s', ['Date/time:', DateTimeToStr(Now)]) + CRLF +
-      '# --------------------------------------------------------' + CRLF + CRLF +
+    Header := '-- --------------------------------------------------------' + CRLF +
+      Format('-- %-30s%s', ['Host:', DBObj.Connection.Parameters.HostName]) + CRLF +
+      Format('-- %-30s%s', ['Server version:', DBObj.Connection.ServerVersionUntouched]) + CRLF +
+      Format('-- %-30s%s', ['Server OS:', DBObj.Connection.ServerOS]) + CRLF +
+      Format('-- %-30s%s', [APPNAME + ' version:', Mainform.AppVersion]) + CRLF +
+      Format('-- %-30s%s', ['Date/time:', DateTimeToStr(Now)]) + CRLF +
+      '-- --------------------------------------------------------' + CRLF + CRLF +
       '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
       '/*!40101 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF +
       '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;';
@@ -1153,7 +1153,7 @@ begin
     FinalDbName := comboExportOutputTarget.Text;
   NeedsDBStructure := FinalDbName <> ExportLastDatabase;
   if chkExportDatabasesDrop.Checked or chkExportDatabasesCreate.Checked then begin
-    Output(CRLF+CRLF+'# Dumping database structure for '+DBObj.Database+CRLF, False, NeedsDBStructure, False, False, False);
+    Output(CRLF+CRLF+'-- Dumping database structure for '+DBObj.Database+CRLF, False, NeedsDBStructure, False, False, False);
     if chkExportDatabasesDrop.Checked and chkExportDatabasesDrop.Enabled then
       Output('DROP DATABASE IF EXISTS '+Quoter.QuoteIdent(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     if chkExportDatabasesCreate.Checked and chkExportDatabasesCreate.Enabled then begin
@@ -1176,7 +1176,7 @@ begin
 
   // Table structure
   if chkExportTablesDrop.Checked or chkExportTablesCreate.Checked then begin
-    Output(CRLF+CRLF+'# Dumping structure for '+LowerCase(DBObj.ObjType)+' '+DBObj.Database+'.'+DBObj.Name+CRLF, False, True, True, False, False);
+    Output(CRLF+CRLF+'-- Dumping structure for '+LowerCase(DBObj.ObjType)+' '+DBObj.Database+'.'+DBObj.Name+CRLF, False, True, True, False, False);
     if chkExportTablesDrop.Checked then begin
       Struc := 'DROP '+UpperCase(DBObj.ObjType)+' IF EXISTS ';
       if ToDb then
@@ -1207,7 +1207,7 @@ begin
               // Create temporary VIEW replacement
               ColumnList := TTableColumnList.Create(True);
               DBObj.Connection.ParseViewStructure(DBObj.CreateCode, DBObj.Name, ColumnList, Dummy, Dummy, Dummy, Dummy);
-              Struc := '# Creating temporary table to overcome VIEW dependency errors'+CRLF+
+              Struc := '-- Creating temporary table to overcome VIEW dependency errors'+CRLF+
                 'CREATE TABLE ';
               if ToDb then
                 Struc := Struc + Quoter.QuoteIdent(FinalDbName) + '.';
@@ -1218,7 +1218,7 @@ begin
               Struc := Struc + CRLF + ') ENGINE=MyISAM';
               ColumnList.Free;
             end else begin
-              Struc := '# Removing temporary table and create final VIEW structure'+CRLF+
+              Struc := '-- Removing temporary table and create final VIEW structure'+CRLF+
                 'DROP TABLE IF EXISTS ';
               if ToDb then
                 Struc := Struc + Quoter.QuoteIdent(FinalDbName)+'.';
@@ -1283,12 +1283,12 @@ begin
   if DBObj.NodeType = lntTable then begin
     // Table data
     if comboExportData.Text = DATA_NO then begin
-      Output(CRLF+'# Data exporting was unselected.'+CRLF, False, True, True, False, False);
+      Output(CRLF+'-- Data exporting was unselected.'+CRLF, False, True, True, False, False);
     end else begin
       tmp := FormatNumber(DBObj.Rows)+' rows';
       if LowerCase(DBObj.Engine) = 'innodb' then
         tmp := '~'+tmp+' (approximately)';
-      Output(CRLF+'# Dumping data for table '+DBObj.Database+'.'+DBObj.Name+': '+tmp+CRLF, False, True, True, False, False);
+      Output(CRLF+'-- Dumping data for table '+DBObj.Database+'.'+DBObj.Name+': '+tmp+CRLF, False, True, True, False, False);
       TargetDbAndObject := Quoter.QuoteIdent(DBObj.Name);
       if ToDb then
         TargetDbAndObject := Quoter.QuoteIdent(FinalDbName) + '.' + TargetDbAndObject;
