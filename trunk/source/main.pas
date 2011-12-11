@@ -1218,15 +1218,15 @@ begin
   if Assigned(ActiveConnection) then
     MainReg.WriteString(REGNAME_LASTACTIVESESSION, ActiveConnection.Parameters.SessionName);
 
-  // Close database connections
-  Connections.Clear;
-
   // Some grid editors access the registry - be sure these are gone before freeing MainReg
   QueryTabs.Clear;
   DataGrid.EndEditNode;
 
   // Clearing query and browse data.
   FreeAndNil(DataGridResult);
+
+  // Close database connections
+  Connections.Clear;
 
   // Save various settings
   OpenRegistry;
