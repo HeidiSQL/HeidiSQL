@@ -1583,7 +1583,7 @@ begin
     Cols.Next;
   end;
   Cols.Free;
-  Delete(Result, Length(Result)-1, 1);
+  Delete(Result, Length(Result), 1);
   Result := Result + ')';
 end;
 
