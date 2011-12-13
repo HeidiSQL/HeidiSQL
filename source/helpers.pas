@@ -2661,13 +2661,14 @@ var
   i, BatchStartOffset, ResultCount: Integer;
   PacketSize, MaxAllowedPacket: Int64;
   QueryResult: TDBQuery;
-  DoStoreResult: Boolean;
+  DoStoreResult, ErrorAborted: Boolean;
 begin
   inherited;
 
   MaxAllowedPacket := 0;
   i := 0;
   ResultCount := 0;
+  ErrorAborted := False;
 
   while i < FBatch.Count do begin
     SQL := '';
@@ -2709,20 +2710,19 @@ begin
       Inc(FQueryNetTime, FConnection.LastQueryNetworkDuration);
       Inc(FRowsAffected, FConnection.RowsAffected);
       Inc(FRowsFound, FConnection.RowsFound);
-      FConnection.LockedByThread := nil;
-      Synchronize(AfterQuery);
     except
       on E:EDatabaseError do begin
-        FConnection.LockedByThread := nil;
         if FStopOnErrors or (i = FBatch.Count - 1) then begin
           FErrorMessage := E.Message;
-          Break;
+          ErrorAborted := True;
         end;
       end;
     end;
+    FConnection.LockedByThread := nil;
+    Synchronize(AfterQuery);
     // Check if FAborted is set by the main thread, to avoid proceeding the loop in case
     // FStopOnErrors is set to false
-    if FAborted then
+    if FAborted or ErrorAborted then
       break;
   end;
 
