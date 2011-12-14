@@ -178,7 +178,6 @@ begin
     DBObject.CreateCode := '';
     Mainform.UpdateEditorTab;
     Mainform.RefreshTree(DBObject);
-    Mainform.ParseSelectedTableStructure;
     Modified := False;
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;

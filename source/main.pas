@@ -1015,7 +1015,6 @@ type
     procedure OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
     procedure DefaultHandler(var Message); override;
     procedure SetupSynEditors;
-    procedure ParseSelectedTableStructure;
     function AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
     procedure DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
     function GetEncodingByName(Name: String): TEncoding;
@@ -4058,6 +4057,7 @@ begin
   if DBObj = nil then
     Exit;
   Screen.Cursor := crHourglass;
+  DBObj.Connection.Ping(True);
 
   // No data for routines
   if SelectedTableColumns.Count = 0 then begin
@@ -6785,6 +6785,7 @@ procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualN
 var
   DBObj, PrevDBObj: PDBObject;
   MainTabToActivate: TTabSheet;
+  DummyStr: String;
 begin
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
   MainTabToActivate := nil;
@@ -6828,7 +6829,23 @@ begin
             Exit;
           end;
         end;
-        ParseSelectedTableStructure;
+
+        // Retrieve columns of current table or view. Mainly used in datagrid.
+        SelectedTableColumns.Clear;
+        SelectedTableKeys.Clear;
+        SelectedTableForeignKeys.Clear;
+        InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
+        try
+          case FActiveDbObj.NodeType of
+            lntTable:
+              FActiveDbObj.Connection.ParseTableStructure(FActiveDbObj.CreateCode, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
+            lntView:
+              FActiveDbObj.Connection.ParseViewStructure(FActiveDbObj.CreateCode, FActiveDbObj.Name, SelectedTableColumns, DummyStr, DummyStr, DummyStr, DummyStr);
+          end;
+        except on E:EDatabaseError do
+          ErrorDialog(E.Message);
+        end;
+
         if not FTreeRefreshInProgress then
           PlaceObjectEditor(FActiveDbObj);
         // When a table is clicked in the tree, and the current
@@ -6949,27 +6966,6 @@ begin
       Result := FTreeClickHistory[i];
       break;
     end;
-  end;
-end;
-
-
-procedure TMainForm.ParseSelectedTableStructure;
-var
-  DummyStr: String;
-begin
-  SelectedTableColumns.Clear;
-  SelectedTableKeys.Clear;
-  SelectedTableForeignKeys.Clear;
-  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
-  try
-    case ActiveDbObj.NodeType of
-      lntTable:
-        ActiveConnection.ParseTableStructure(ActiveDbObj.CreateCode, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
-      lntView:
-        ActiveConnection.ParseViewStructure(ActiveDbObj.CreateCode, ActiveDbObj.Name, SelectedTableColumns, DummyStr, DummyStr, DummyStr, DummyStr);
-    end;
-  except on E:EDatabaseError do
-    ErrorDialog(E.Message);
   end;
 end;
 

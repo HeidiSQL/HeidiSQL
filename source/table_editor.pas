@@ -399,7 +399,6 @@ begin
     tabALTERcode.TabVisible := DBObject.Name <> '';
     Mainform.UpdateEditorTab;
     Mainform.RefreshTree(DBObject);
-    Mainform.ParseSelectedTableStructure;
     Mainform.RefreshHelperNode(HELPERNODE_COLUMNS);
     ResetModificationFlags;
     AlterCodeValid := False;
