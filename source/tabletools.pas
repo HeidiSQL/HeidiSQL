@@ -158,7 +158,7 @@ const
   DATA_INSERT = 'INSERT';
   DATA_INSERTNEW = 'INSERT IGNORE (do not update existing)';
   DATA_UPDATE = 'REPLACE existing data';
-  EXPORT_FILE_FOOTER = '/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;'+CRLF+
+  EXPORT_FILE_FOOTER = '/*!40014 SET FOREIGN_KEY_CHECKS=1 */;'+CRLF+
     '/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;'+CRLF;
 
 {$R *.DFM}
@@ -588,7 +588,7 @@ begin
 
   if Assigned(ExportStream) then begin
     Output(EXPORT_FILE_FOOTER, False, True, False, False, False);
-    Output('/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */', True, False, False, True, True);
+    Output('/*!40014 SET FOREIGN_KEY_CHECKS=1 */', True, False, False, True, True);
     if comboExportOutputType.Text = OUTPUT_CLIPBOARD then
       StreamToClipboard(ExportStream, nil, false);
     FreeAndNil(ExportStream);
@@ -1141,9 +1141,9 @@ begin
       '-- --------------------------------------------------------' + CRLF + CRLF +
       '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
       '/*!40101 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF +
-      '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;';
+      '/*!40014 SET FOREIGN_KEY_CHECKS=0 */;';
     Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
-    Output('/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */', True, False, False, True, True);
+    Output('/*!40014 SET FOREIGN_KEY_CHECKS=0 */', True, False, False, True, True);
     FHeaderCreated := True;
   end;
 
