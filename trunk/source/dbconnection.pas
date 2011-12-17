@@ -1826,7 +1826,12 @@ begin
   Result := inherited;
   if not Assigned(Result) then begin
     try
-      FAllDatabases := GetCol('SELECT '+QuoteIdent('name')+' FROM '+QuoteIdent('sys')+'.'+QuoteIdent('databases')+' ORDER BY '+QuoteIdent('name'));
+      case ServerVersionInt of
+        2000:
+          FAllDatabases := GetCol('SELECT '+QuoteIdent('name')+' FROM '+QuoteIdent('master')+'..'+QuoteIdent('sysdatabases')+' ORDER BY '+QuoteIdent('name'));
+        else
+          FAllDatabases := GetCol('SELECT '+QuoteIdent('name')+' FROM '+QuoteIdent('sys')+'.'+QuoteIdent('databases')+' ORDER BY '+QuoteIdent('name'));
+      end;
     except on E:EDatabaseError do
       FAllDatabases := TStringList.Create;
     end;
