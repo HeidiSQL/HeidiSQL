@@ -2433,7 +2433,7 @@ var
 begin
   Result := 0;
   // Apply different comparisons for numbers and text
-  if (StrToIntDef(Copy(Text1, 0, 1), -1) <> -1) and (StrToIntDef(Copy(Text2, 0, 1), -1) <> -1) then begin
+  if (StrToIntDef(Copy(Text1, 0, 2), 100) <> 100) and (StrToIntDef(Copy(Text2, 0, 2), 100) <> 100) then begin
     // Assuming numeric values
     Number1 := MakeFloat(Text1);
     Number2 := MakeFloat(Text2);
