@@ -2430,10 +2430,18 @@ end;
 function CompareAnyNode(Text1, Text2: String): Integer;
 var
   Number1, Number2 : Extended;
+  a1, a2, b1, b2: Char;
+const
+  Numbers = ['0'..'9'];
 begin
   Result := 0;
   // Apply different comparisons for numbers and text
-  if (StrToIntDef(Copy(Text1, 0, 2), 100) <> 100) and (StrToIntDef(Copy(Text2, 0, 2), 100) <> 100) then begin
+  a1 := Text1[1];
+  a2 := Text1[2];
+  b1 := Text2[1];
+  b2 := Text2[2];
+  if ((a1='-') and (CharInSet(a2, Numbers)) or CharInSet(a1, Numbers))
+    and ((b1='-') and (CharInSet(b2, Numbers)) or CharInSet(b1, Numbers)) then begin
     // Assuming numeric values
     Number1 := MakeFloat(Text1);
     Number2 := MakeFloat(Text2);
