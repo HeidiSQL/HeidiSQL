@@ -1778,22 +1778,24 @@ end;
 function TDBConnection.GetAllDatabases: TStringList;
 var
   i: Integer;
+  tmp: TStringList;
+  rx: TRegExpr;
 begin
   // Get user passed delimited list
   if not Assigned(FAllDatabases) then begin
     if FParameters.AllDatabasesStr <> '' then begin
       FAllDatabases := TStringList.Create;
-      FAllDatabases.Delimiter := ';';
-      FAllDatabases.StrictDelimiter := True;
-      FAllDatabases.DelimitedText := FParameters.AllDatabasesStr;
-      // Trim all and remove empty items
-      for i:=FAllDatabases.Count-1 downto 0 do begin
-        FAllDatabases[i] := Trim(FAllDatabases[i]);
-        if FAllDatabases[i] = '' then
-          FAllDatabases.Delete(i);
-        if FAllDatabases.IndexOf(FAllDatabases[i]) <> i then
-          FAllDatabases.Delete(i);
+      rx := TRegExpr.Create;
+      rx.Expression := '[^;\s]+';
+      rx.ModifierG := True;
+      if rx.Exec(FParameters.AllDatabasesStr) then while true do begin
+        // Add if not a duplicate
+        if FAllDatabases.IndexOf(rx.Match[0]) = -1 then
+          FAllDatabases.Add(rx.Match[0]);
+        if not rx.ExecNext then
+          break;
       end;
+      rx.Free;
     end;
   end;
   Result := FAllDatabases;
