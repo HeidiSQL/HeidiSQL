@@ -173,6 +173,7 @@ type
   procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
   procedure HandlePortableSettings(StartupMode: Boolean);
   function LoadConnectionParams(Session: String): TConnectionParameters;
+  function CharAtPos(Str: String; Pos: Integer): Char;
   function CompareAnyNode(Text1, Text2: String): Integer;
   function GetColumnDefaultType(var Text: String): TColumnDefaultType;
   function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: String): String;
@@ -2427,6 +2428,16 @@ begin
 end;
 
 
+function CharAtPos(Str: String; Pos: Integer): Char;
+begin
+  // Access char in string without causing access violation
+  if Length(Str) < Pos then
+    Result := #0
+  else
+    Result := Str[Pos];
+end;
+
+
 function CompareAnyNode(Text1, Text2: String): Integer;
 var
   Number1, Number2 : Extended;
@@ -2436,10 +2447,10 @@ const
 begin
   Result := 0;
   // Apply different comparisons for numbers and text
-  a1 := Text1[1];
-  a2 := Text1[2];
-  b1 := Text2[1];
-  b2 := Text2[2];
+  a1 := CharAtPos(Text1, 1);
+  a2 := CharAtPos(Text1, 2);
+  b1 := CharAtPos(Text2, 1);
+  b2 := CharAtPos(Text2, 2);
   if ((a1='-') and (CharInSet(a2, Numbers)) or CharInSet(a1, Numbers))
     and ((b1='-') and (CharInSet(b2, Numbers)) or CharInSet(b1, Numbers)) then begin
     // Assuming numeric values
