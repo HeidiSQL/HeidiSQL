@@ -22,7 +22,7 @@ type
     { Public declarations }
   end;
 
-  procedure LoginPrompt(ACaption: String; var AUsername, APassword: String);
+  procedure LoginPrompt(ACaption: String; var AUsername, APassword: String; UsernameEnabled: Boolean=True; PasswordEnabled: Boolean=True);
 
 implementation
 
@@ -31,7 +31,7 @@ uses helpers;
 {$R *.dfm}
 {$I const.inc}
 
-procedure LoginPrompt(ACaption: String; var AUsername, APassword: String);
+procedure LoginPrompt(ACaption: String; var AUsername, APassword: String; UsernameEnabled: Boolean=True; PasswordEnabled: Boolean=True);
 var
   frm: TfrmLogin;
 begin
@@ -40,6 +40,10 @@ begin
   frm.lblPrompt.Caption := ACaption;
   frm.editUsername.Text := AUsername;
   frm.editPassword.Text := APassword;
+  frm.editUsername.Enabled := UsernameEnabled;
+  frm.lblUsername.Enabled := UsernameEnabled;
+  frm.editPassword.Enabled := PasswordEnabled;
+  frm.lblPassword.Enabled := PasswordEnabled;
   frm.ShowModal;
   AUsername := frm.editUsername.Text;
   APassword := frm.editPassword.Text;
@@ -55,9 +59,9 @@ end;
 
 procedure TfrmLogin.FormShow(Sender: TObject);
 begin
-  if (editUsername.GetTextLen > 0) and (editPassword.GetTextLen = 0) then
+  if editPassword.CanFocus and (editUsername.GetTextLen > 0) and (editPassword.GetTextLen = 0) then
     editPassword.SetFocus
-  else
+  else if editUsername.CanFocus then
     editUsername.SetFocus;
 end;
 

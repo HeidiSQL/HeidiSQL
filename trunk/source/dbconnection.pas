@@ -166,6 +166,16 @@ type
   end;
   PMYSQL_RES = ^MYSQL_RES;
 
+  TMySQLOption = (MYSQL_OPT_CONNECT_TIMEOUT, MYSQL_OPT_COMPRESS, MYSQL_OPT_NAMED_PIPE,
+    MYSQL_INIT_COMMAND, MYSQL_READ_DEFAULT_FILE, MYSQL_READ_DEFAULT_GROUP,
+    MYSQL_SET_CHARSET_DIR, MYSQL_SET_CHARSET_NAME, MYSQL_OPT_LOCAL_INFILE,
+    MYSQL_OPT_PROTOCOL, MYSQL_SHARED_MEMORY_BASE_NAME, MYSQL_OPT_READ_TIMEOUT,
+    MYSQL_OPT_WRITE_TIMEOUT, MYSQL_OPT_USE_RESULT,
+    MYSQL_OPT_USE_REMOTE_CONNECTION, MYSQL_OPT_USE_EMBEDDED_CONNECTION,
+    MYSQL_OPT_GUESS_CONNECTION, MYSQL_SET_CLIENT_IP, MYSQL_SECURE_AUTH,
+    MYSQL_REPORT_DATA_TRUNCATION, MYSQL_OPT_RECONNECT,
+    MYSQL_OPT_SSL_VERIFY_SERVER_CERT, MYSQL_PLUGIN_DIR, MYSQL_DEFAULT_AUTH);
+
 
   { TDBObjectList and friends }
 
@@ -448,6 +458,7 @@ type
       mysql_init: function(Handle: PMYSQL): PMYSQL; stdcall;
       mysql_num_fields: function(Result: PMYSQL_RES): Integer; stdcall;
       mysql_num_rows: function(Result: PMYSQL_RES): Int64; stdcall;
+      mysql_options: function(Handle: PMYSQL; Option: TMySQLOption; arg: PAnsiChar): Integer; stdcall;
       mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
       mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
       mysql_real_query: function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
@@ -717,6 +728,17 @@ type
       function DatabaseName: String; override;
       function TableName: String; override;
   end;
+
+function mysql_authentication_dialog_ask(
+    Handle: PMYSQL;
+    _type: Integer;
+    prompt: PAnsiChar;
+    buf: PAnsiChar;
+    buf_len: Integer
+    ): PAnsiChar; cdecl;
+
+exports
+  mysql_authentication_dialog_ask;
 
 const
   MsgSQLError: String = 'SQL Error (%d): %s';
@@ -990,6 +1012,7 @@ var
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
   sslca, sslkey, sslcert: PAnsiChar;
+  PluginDir: AnsiString;
   DoSSL, SSLsettingsComplete: Boolean;
   Vars: TDBQuery;
 begin
@@ -1078,6 +1101,10 @@ begin
       ClientFlags := ClientFlags or CLIENT_COMPRESS;
     if FIsSSL then
       ClientFlags := ClientFlags or CLIENT_SSL;
+
+    // Point libmysql to the folder with client plugins
+    PluginDir := AnsiString(ExtractFilePath(ParamStr(0))+'plugins\');
+    mysql_options(FHandle, MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
 
     Connected := mysql_real_connect(
       FHandle,
@@ -1287,6 +1314,7 @@ begin
       AssignProc(@mysql_num_fields, 'mysql_num_fields');
       AssignProc(@mysql_num_rows, 'mysql_num_rows');
       AssignProc(@mysql_ping, 'mysql_ping');
+      AssignProc(@mysql_options, 'mysql_options');
       AssignProc(@mysql_real_connect, 'mysql_real_connect');
       AssignProc(@mysql_real_query, 'mysql_real_query');
       AssignProc(@mysql_ssl_set, 'mysql_ssl_set');
@@ -4732,6 +4760,48 @@ begin
 end;
 
 
+
+
+function mysql_authentication_dialog_ask;
+var
+  Username, Password: String;
+begin
+  {
+  From client_plugin.h:
+    The C function with the name "mysql_authentication_dialog_ask", if exists,
+    will be used by the "dialog" client authentication plugin when user
+    input is needed. This function should be of mysql_authentication_dialog_ask_t
+    type. If the function does not exists, a built-in implementation will be
+    used.
+    @param mysql          mysql
+    @param type           type of the input
+                          1 - normal string input
+                          2 - password string
+    @param prompt         prompt
+    @param buf            a buffer to store the use input
+    @param buf_len        the length of the buffer
+    @retval               a pointer to the user input string.
+                          It may be equal to 'buf' or to 'mysql->password'.
+                          In all other cases it is assumed to be an allocated
+                          string, and the "dialog" plugin will free() it.
+  Test suite:
+    INSTALL PLUGIN three_attempts SONAME 'dialog.dll';
+    CREATE USER test_dialog IDENTIFIED VIA three_attempts USING 'SECRET';
+  }
+  Username := '';
+  Password := '';
+  case _type of
+    1: Username := String(buf);
+    2: Password := String(buf);
+    else raise EDatabaseError.Create('Unsupported type ('+IntToStr(_type)+') in mysql_authentication_dialog_ask.');
+  end;
+  LoginPrompt(String(prompt), Username, Password, _type=1, _type=2);
+  Result := buf;
+  case _type of
+    1: Result := PAnsiChar(AnsiString(Username));
+    2: Result := PAnsiChar(AnsiString(Password));
+  end;
+end;
 
 
 end.

@@ -62,6 +62,7 @@ Source: "readme.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "libmysql.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "plugins\*.dll"; DestDir: "{app}\plugins"; Flags: ignoreversion
 Source: "Snippets\*.sql"; DestDir: "{commonappdata}\{#ProgName}\Snippets";
 
 [Icons]
