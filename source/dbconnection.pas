@@ -8,175 +8,6 @@ uses
 
 
 type
-  PUSED_MEM=^USED_MEM;
-  USED_MEM = packed record
-    next:       PUSED_MEM;
-    left:       Integer;
-    size:       Integer;
-  end;
-
-  PERR_PROC = ^ERR_PROC;
-  ERR_PROC = procedure;
-
-  PMEM_ROOT = ^MEM_ROOT;
-  MEM_ROOT = packed record
-    free:              PUSED_MEM;
-    used:              PUSED_MEM;
-    pre_alloc:         PUSED_MEM;
-    min_malloc:        Integer;
-    block_size:        Integer;
-    block_num:         Integer;
-    first_block_usage: Integer;
-    error_handler:     PERR_PROC;
-  end;
-
-  NET = record
-    vio:              Pointer;
-    buff:             PAnsiChar;
-    buff_end:         PAnsiChar;
-    write_pos:        PAnsiChar;
-    read_pos:         PAnsiChar;
-    fd:               Integer;
-    max_packet:       Cardinal;
-    max_packet_size:  Cardinal;
-    pkt_nr:           Cardinal;
-    compress_pkt_nr:  Cardinal;
-    write_timeout:    Cardinal;
-    read_timeout:     Cardinal;
-    retry_count:      Cardinal;
-    fcntl:            Integer;
-    compress:         Byte;
-    remain_in_buf:    LongInt;
-    length:           LongInt;
-    buf_length:       LongInt;
-    where_b:          LongInt;
-    return_status:    Pointer;
-    reading_or_writing: Char;
-    save_char:        Char;
-    no_send_ok:       Byte;
-    last_error:       array[1..MYSQL_ERRMSG_SIZE] of Char;
-    sqlstate:         array[1..SQLSTATE_LENGTH + 1] of Char;
-    last_errno:       Cardinal;
-    error:            Char;
-    query_cache_query: Pointer;
-    report_error:     Byte;
-    return_errno:     Byte;
-  end;
-
-  PMYSQL_FIELD = ^MYSQL_FIELD;
-  MYSQL_FIELD = record
-    name:             PAnsiChar;   // Name of column
-    org_name:         PAnsiChar;   // Original column name, if an alias
-    table:            PAnsiChar;   // Table of column if column was a field
-    org_table:        PAnsiChar;   // Org table name if table was an alias
-    db:               PAnsiChar;   // Database for table
-    catalog:	      PAnsiChar;   // Catalog for table
-    def:              PAnsiChar;   // Default value (set by mysql_list_fields)
-    length:           LongInt; // Width of column
-    max_length:       LongInt; // Max width of selected set
-    name_length:      Cardinal;
-    org_name_length:  Cardinal;
-    table_length:     Cardinal;
-    org_table_length: Cardinal;
-    db_length:        Cardinal;
-    catalog_length:   Cardinal;
-    def_length:       Cardinal;
-    flags:            Cardinal; // Div flags
-    decimals:         Cardinal; // Number of decimals in field
-    charsetnr:        Cardinal; // Character set
-    _type:            Cardinal; // Type of field. Se mysql_com.h for types
-  end;
-
-  MYSQL_ROW = array[0..$ffff] of PAnsiChar;
-  PMYSQL_ROW = ^MYSQL_ROW;
-
-  PMYSQL_ROWS = ^MYSQL_ROWS;
-  MYSQL_ROWS = record
-    next:       PMYSQL_ROWS;
-    data:       PMYSQL_ROW;
-  end;
-
-  MYSQL_DATA = record
-    Rows:       Int64;
-    Fields:     Cardinal;
-    Data:       PMYSQL_ROWS;
-    Alloc:      MEM_ROOT;
-  end;
-  PMYSQL_DATA = ^MYSQL_DATA;
-
-  PMYSQL = ^MYSQL;
-  MYSQL = record
-    _net:            NET;
-    connector_fd:    Pointer;
-    host:            PAnsiChar;
-    user:            PAnsiChar;
-    passwd:          PAnsiChar;
-    unix_socket:     PAnsiChar;
-    server_version:  PAnsiChar;
-    host_info:       PAnsiChar;
-    info:            PAnsiChar;
-    db:              PAnsiChar;
-    charset:         PAnsiChar;
-    fields:          PMYSQL_FIELD;
-    field_alloc:     MEM_ROOT;
-    affected_rows:   Int64;
-    insert_id:       Int64;
-    extra_info:      Int64;
-    thread_id:       LongInt;
-    packet_length:   LongInt;
-    port:            Cardinal;
-    client_flag:     LongInt;
-    server_capabilities: LongInt;
-    protocol_version: Cardinal;
-    field_count:     Cardinal;
-    server_status:   Cardinal;
-    server_language: Cardinal;
-    warning_count:   Cardinal;
-    options:         Cardinal;
-    status:          Byte;
-    free_me:         Byte;
-    reconnect:       Byte;
-    scramble:        array[1..SCRAMBLE_LENGTH+1] of Char;
-    rpl_pivot:       Byte;
-    master:          PMYSQL;
-    next_slave:      PMYSQL;
-    last_used_slave: PMYSQL;
-    last_used_con:   PMYSQL;
-    stmts:           Pointer;
-    methods:         Pointer;
-    thd:             Pointer;
-    unbuffered_fetch_owner: PByte;
-  end;
-
-  MYSQL_RES = record
-    row_count:       Int64;
-    fields:          PMYSQL_FIELD;
-    data:            PMYSQL_DATA;
-    data_cursor:     PMYSQL_ROWS;
-    lengths:         PLongInt;
-    handle:          PMYSQL;
-    field_alloc:     MEM_ROOT;
-    field_count:     Integer;
-    current_field:   Integer;
-    row:             PMYSQL_ROW;
-    current_row:     PMYSQL_ROW;
-    eof:             Byte;
-    unbuffered_fetch_cancelled: Byte;
-    methods:         PAnsiChar;
-  end;
-  PMYSQL_RES = ^MYSQL_RES;
-
-  TMySQLOption = (MYSQL_OPT_CONNECT_TIMEOUT, MYSQL_OPT_COMPRESS, MYSQL_OPT_NAMED_PIPE,
-    MYSQL_INIT_COMMAND, MYSQL_READ_DEFAULT_FILE, MYSQL_READ_DEFAULT_GROUP,
-    MYSQL_SET_CHARSET_DIR, MYSQL_SET_CHARSET_NAME, MYSQL_OPT_LOCAL_INFILE,
-    MYSQL_OPT_PROTOCOL, MYSQL_SHARED_MEMORY_BASE_NAME, MYSQL_OPT_READ_TIMEOUT,
-    MYSQL_OPT_WRITE_TIMEOUT, MYSQL_OPT_USE_RESULT,
-    MYSQL_OPT_USE_REMOTE_CONNECTION, MYSQL_OPT_USE_EMBEDDED_CONNECTION,
-    MYSQL_OPT_GUESS_CONNECTION, MYSQL_SET_CLIENT_IP, MYSQL_SECURE_AUTH,
-    MYSQL_REPORT_DATA_TRUNCATION, MYSQL_OPT_RECONNECT,
-    MYSQL_OPT_SSL_VERIFY_SERVER_CERT, MYSQL_PLUGIN_DIR, MYSQL_DEFAULT_AUTH);
-
-
   { TDBObjectList and friends }
 
   TListNodeType = (lntNone, lntDb, lntTable, lntView, lntFunction, lntProcedure, lntTrigger, lntEvent, lntColumn);
@@ -443,33 +274,6 @@ type
       procedure SetObjectNamesInSelectedDB;
       procedure SetLockedByThread(Value: TThread); virtual;
     public
-      mysql_affected_rows: function(Handle: PMYSQL): Int64; stdcall;
-      mysql_character_set_name: function(Handle: PMYSQL): PAnsiChar; stdcall;
-      mysql_close: procedure(Handle: PMYSQL); stdcall;
-      mysql_data_seek: procedure(Result: PMYSQL_RES; Offset: Int64); stdcall;
-      mysql_errno: function(Handle: PMYSQL): Cardinal; stdcall;
-      mysql_error: function(Handle: PMYSQL): PAnsiChar; stdcall;
-      mysql_fetch_field_direct: function(Result: PMYSQL_RES; FieldNo: Cardinal): PMYSQL_FIELD; stdcall;
-      mysql_fetch_lengths: function(Result: PMYSQL_RES): PLongInt; stdcall;
-      mysql_fetch_row: function(Result: PMYSQL_RES): PMYSQL_ROW; stdcall;
-      mysql_free_result: procedure(Result: PMYSQL_RES); stdcall;
-      mysql_get_client_info: function: PAnsiChar; stdcall;
-      mysql_get_server_info: function(Handle: PMYSQL): PAnsiChar; stdcall;
-      mysql_init: function(Handle: PMYSQL): PMYSQL; stdcall;
-      mysql_num_fields: function(Result: PMYSQL_RES): Integer; stdcall;
-      mysql_num_rows: function(Result: PMYSQL_RES): Int64; stdcall;
-      mysql_options: function(Handle: PMYSQL; Option: TMySQLOption; arg: PAnsiChar): Integer; stdcall;
-      mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
-      mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
-      mysql_real_query: function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
-      mysql_ssl_set: function(Handle: PMYSQL; const key, cert, CA, CApath, cipher: PAnsiChar): Byte; stdcall;
-      mysql_stat: function(Handle: PMYSQL): PAnsiChar; stdcall;
-      mysql_store_result: function(Handle: PMYSQL): PMYSQL_RES; stdcall;
-      mysql_thread_id: function(Handle: PMYSQL): Cardinal; stdcall;
-      mysql_next_result: function(Handle: PMYSQL): Integer; stdcall;
-      mysql_set_character_set: function(Handle: PMYSQL; csname: PAnsiChar): Integer; stdcall;
-      mysql_thread_init: function: Byte; stdcall;
-      mysql_thread_end: procedure; stdcall;
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual; abstract;
@@ -551,8 +355,6 @@ type
   TMySQLConnection = class(TDBConnection)
     private
       FHandle: PMYSQL;
-      FLibraryHandle: HMODULE;
-      FLibraryPath: String;
       FLastRawResults: TMySQLRawResults;
       FPlinkProcInfo: TProcessInformation;
       procedure SetActive(Value: Boolean); override;
@@ -572,7 +374,6 @@ type
       procedure SetLockedByThread(Value: TThread); override;
     public
       constructor Create(AOwner: TComponent); override;
-      destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function ConvertServerVersion(Version: Integer): String; override;
       function Ping(Reconnect: Boolean): Boolean; override;
@@ -740,11 +541,39 @@ function mysql_authentication_dialog_ask(
 exports
   mysql_authentication_dialog_ask;
 
-const
-  MsgSQLError: String = 'SQL Error (%d): %s';
-  MsgUnhandledNetType: String = 'Unhandled connection type (%d)';
-  MsgDisconnect: String = 'Connection to %s closed at %s';
-  MsgInvalidColumn: String = 'Column #%d not available. Query returned %d columns and %d rows.';
+{$I const.inc}
+
+var
+  LibMysqlPath: String = 'libmysql.dll';
+  LibMysqlHandle: HMODULE; // Shared module handle
+
+  mysql_affected_rows: function(Handle: PMYSQL): Int64; stdcall;
+  mysql_character_set_name: function(Handle: PMYSQL): PAnsiChar; stdcall;
+  mysql_close: procedure(Handle: PMYSQL); stdcall;
+  mysql_data_seek: procedure(Result: PMYSQL_RES; Offset: Int64); stdcall;
+  mysql_errno: function(Handle: PMYSQL): Cardinal; stdcall;
+  mysql_error: function(Handle: PMYSQL): PAnsiChar; stdcall;
+  mysql_fetch_field_direct: function(Result: PMYSQL_RES; FieldNo: Cardinal): PMYSQL_FIELD; stdcall;
+  mysql_fetch_lengths: function(Result: PMYSQL_RES): PLongInt; stdcall;
+  mysql_fetch_row: function(Result: PMYSQL_RES): PMYSQL_ROW; stdcall;
+  mysql_free_result: procedure(Result: PMYSQL_RES); stdcall;
+  mysql_get_client_info: function: PAnsiChar; stdcall;
+  mysql_get_server_info: function(Handle: PMYSQL): PAnsiChar; stdcall;
+  mysql_init: function(Handle: PMYSQL): PMYSQL; stdcall;
+  mysql_num_fields: function(Result: PMYSQL_RES): Integer; stdcall;
+  mysql_num_rows: function(Result: PMYSQL_RES): Int64; stdcall;
+  mysql_options: function(Handle: PMYSQL; Option: TMySQLOption; arg: PAnsiChar): Integer; stdcall;
+  mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
+  mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
+  mysql_real_query: function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
+  mysql_ssl_set: function(Handle: PMYSQL; const key, cert, CA, CApath, cipher: PAnsiChar): Byte; stdcall;
+  mysql_stat: function(Handle: PMYSQL): PAnsiChar; stdcall;
+  mysql_store_result: function(Handle: PMYSQL): PMYSQL_RES; stdcall;
+  mysql_thread_id: function(Handle: PMYSQL): Cardinal; stdcall;
+  mysql_next_result: function(Handle: PMYSQL): Integer; stdcall;
+  mysql_set_character_set: function(Handle: PMYSQL; csname: PAnsiChar): Integer; stdcall;
+  mysql_thread_init: function: Byte; stdcall;
+  mysql_thread_end: procedure; stdcall;
 
 implementation
 
@@ -905,7 +734,6 @@ var
 begin
   inherited;
   FQuoteChar := '`';
-  FLibraryPath := 'libmysql.dll';
   // The compiler complains that dynamic and static arrays are incompatible, so this does not work:
   // FDatatypes := MySQLDatatypes
   SetLength(FDatatypes, Length(MySQLDatatypes));
@@ -944,16 +772,6 @@ begin
 end;
 
 
-destructor TMySQLConnection.Destroy;
-begin
-  // Release libmysql.dll handle
-  inherited;
-  if FLibraryHandle <> 0 then
-    FreeLibrary(FLibraryHandle);
-  FLibraryHandle := 0;
-end;
-
-
 function TDBConnection.GetDatatypeByName(Datatype: String): TDBDatatype;
 var
   i: Integer;
@@ -971,10 +789,10 @@ procedure TMySQLConnection.AssignProc(var Proc: FARPROC; Name: PAnsiChar);
 begin
   // Map library procedure to internal procedure
   Log(lcDebug, 'Assign procedure "'+Name+'"');
-  Proc := GetProcAddress(FLibraryHandle, Name);
+  Proc := GetProcAddress(LibMysqlHandle, Name);
   if Proc = nil then begin
-    FLibraryHandle := 0;
-    raise EDatabaseError.Create('Your '+FLibraryPath+' is out-dated or somehow incompatible to '+APPNAME+'. Please use the one from the installer, or just reinstall '+APPNAME+'.');
+    LibMysqlHandle := 0;
+    raise EDatabaseError.Create('Your '+LibMysqlPath+' is out-dated or somehow incompatible to '+APPNAME+'. Please use the one from the installer, or just reinstall '+APPNAME+'.');
   end;
 end;
 
@@ -1292,11 +1110,11 @@ procedure TMySQLConnection.DoBeforeConnect;
 begin
   // Init libmysql before actually connecting.
   // Each connection has its own library handle
-  if FLibraryHandle = 0 then begin
-    Log(lcDebug, 'Loading library file '+FLibraryPath+' ...');
-    FLibraryHandle := LoadLibrary(PWideChar(FLibraryPath));
-    if FLibraryHandle = 0 then
-      raise EDatabaseError.Create('Can''t find a usable '+FLibraryPath+'. Please launch '+ExtractFileName(ParamStr(0))+' from the directory where you have installed it.')
+  if LibMysqlHandle = 0 then begin
+    Log(lcDebug, 'Loading library file '+LibMysqlPath+' ...');
+    LibMysqlHandle := LoadLibrary(PWideChar(LibMysqlPath));
+    if LibMysqlHandle = 0 then
+      raise EDatabaseError.Create('Can''t find a usable '+LibMysqlPath+'. Please launch '+ExtractFileName(ParamStr(0))+' from the directory where you have installed it.')
     else begin
       AssignProc(@mysql_affected_rows, 'mysql_affected_rows');
       AssignProc(@mysql_character_set_name, 'mysql_character_set_name');
@@ -1325,7 +1143,7 @@ begin
       AssignProc(@mysql_set_character_set, 'mysql_set_character_set');
       AssignProc(@mysql_thread_init, 'mysql_thread_init');
       AssignProc(@mysql_thread_end, 'mysql_thread_end');
-      Log(lcDebug, FLibraryPath + ' v' + DecodeApiString(mysql_get_client_info) + ' loaded.');
+      Log(lcDebug, LibMysqlPath + ' v' + DecodeApiString(mysql_get_client_info) + ' loaded.');
     end;
   end;
   inherited;
@@ -3299,7 +3117,7 @@ var
   i: Integer;
 begin
   if HasResult then for i:=Low(FResultList) to High(FResultList) do
-    FConnection.mysql_free_result(FResultList[i]);
+    mysql_free_result(FResultList[i]);
   SetLength(FResultList, 0);
   inherited;
 end;
@@ -3341,7 +3159,7 @@ begin
     NumResults := Length(FResultList)+1
   else begin
     for i:=Low(FResultList) to High(FResultList) do
-      FConnection.mysql_free_result(FResultList[i]);
+      mysql_free_result(FResultList[i]);
     NumResults := 1;
     FRecordCount := 0;
     FEditingPrepared := False;
@@ -3356,14 +3174,14 @@ begin
     if HasResult then begin
       // FCurrentResults is normally done in SetRecNo, but never if result has no rows
       FCurrentResults := LastResult;
-      NumFields := FConnection.mysql_num_fields(LastResult);
+      NumFields := mysql_num_fields(LastResult);
       SetLength(FColumnTypes, NumFields);
       SetLength(FColumnLengths, NumFields);
       SetLength(FColumnFlags, NumFields);
       FColumnNames.Clear;
       FColumnOrgNames.Clear;
       for i:=0 to NumFields-1 do begin
-        Field := FConnection.mysql_fetch_field_direct(LastResult, i);
+        Field := mysql_fetch_field_direct(LastResult, i);
         FColumnNames.Add(Connection.DecodeAPIString(Field.name));
         if Connection.ServerVersionInt >= 40100 then
           FColumnOrgNames.Add(Connection.DecodeAPIString(Field.org_name))
@@ -3573,11 +3391,11 @@ begin
           // Do not seek if FCurrentRow points to the previous row of the wanted row
           WantedLocalRecNo := FCurrentResults.row_count-(NumRows-Value);
           if (WantedLocalRecNo = 0) or (FRecNo+1 <> Value) or (FCurrentRow = nil) then
-            FConnection.mysql_data_seek(FCurrentResults, WantedLocalRecNo);
-          FCurrentRow := FConnection.mysql_fetch_row(FCurrentResults);
+            mysql_data_seek(FCurrentResults, WantedLocalRecNo);
+          FCurrentRow := mysql_fetch_row(FCurrentResults);
           FCurrentUpdateRow := nil;
           // Remember length of column contents. Important for Col() so contents of cells with #0 chars are not cut off
-          LengthPointer := FConnection.mysql_fetch_lengths(FCurrentResults);
+          LengthPointer := mysql_fetch_lengths(FCurrentResults);
           for j:=Low(FColumnLengths) to High(FColumnLengths) do
             FColumnLengths[j] := PInteger(Integer(LengthPointer) + j * SizeOf(Integer))^;
           break;
@@ -4248,7 +4066,7 @@ var
 begin
   // Return first available Field.db property, or just the current database as fallback
   for i:=0 to ColumnCount-1 do begin
-    Field := FConnection.mysql_fetch_field_direct(FCurrentResults, i);
+    Field := mysql_fetch_field_direct(FCurrentResults, i);
     if Field.db <> '' then begin
       Result := Connection.DecodeAPIString(Field.db);
       break;
@@ -4276,7 +4094,7 @@ var
 begin
   IsView := False;
   for i:=0 to ColumnCount-1 do begin
-    Field := FConnection.mysql_fetch_field_direct(FCurrentResults, i);
+    Field := mysql_fetch_field_direct(FCurrentResults, i);
 
     if Connection.DecodeAPIString(Field.table) <> Connection.DecodeAPIString(Field.org_table) then begin
       // Probably a VIEW, in which case we rely on the first column's table name.
@@ -4801,6 +4619,18 @@ begin
     1: Result := PAnsiChar(AnsiString(Username));
     2: Result := PAnsiChar(AnsiString(Password));
   end;
+end;
+
+
+initialization
+
+
+finalization
+
+// Release libmysql.dll handle
+if LibMysqlHandle <> 0 then begin
+  FreeLibrary(LibMysqlHandle);
+  LibMysqlHandle := 0;
 end;
 
 
