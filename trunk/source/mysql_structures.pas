@@ -11,94 +11,175 @@ uses
 
 {$I const.inc}
 
-const
-
-  // General declarations
-  MYSQL_ERRMSG_SIZE = 512;
-  SQLSTATE_LENGTH = 5;
-  SCRAMBLE_LENGTH = 20;
-  MYSQL_PORT = 3306;
-  LOCAL_HOST = 'localhost';
-  NAME_LEN = 64;
-  PROTOCOL_VERSION = 10;
-  FRM_VER = 6;
-
-  // Field's flags
-  NOT_NULL_FLAG = 1;
-  PRI_KEY_FLAG = 2;
-  UNIQUE_KEY_FLAG = 4;
-  MULTIPLE_KEY_FLAG = 8;
-  BLOB_FLAG = 16;
-  UNSIGNED_FLAG = 32;
-  ZEROFILL_FLAG = 64;
-  BINARY_FLAG = 128;
-  ENUM_FLAG = 256;
-  AUTO_INCREMENT_FLAG = 512;
-  TIMESTAMP_FLAG = 1024;
-  SET_FLAG = 2048;
-  NUM_FLAG = 32768;
-  PART_KEY_FLAG = 16384;
-  GROUP_FLAG = 32768;
-  UNIQUE_FLAG = 65536;
-  BINCMP_FLAG = 131072;
-
-  // Client connection options
-  CLIENT_LONG_PASSWORD = 1;
-  CLIENT_FOUND_ROWS = 2; // Found instead of affected rows
-  CLIENT_LONG_FLAG = 4;
-  CLIENT_CONNECT_WITH_DB = 8;
-  CLIENT_NO_SCHEMA = 16; // Don't allow database.table.column
-  CLIENT_COMPRESS = 32;
-  CLIENT_ODBC = 64;
-  CLIENT_LOCAL_FILES = 128;
-  CLIENT_IGNORE_SPACE = 256; // Ignore spaces before '('
-  CLIENT_PROTOCOL_41 = 512;
-  CLIENT_INTERACTIVE = 1024;
-  CLIENT_SSL = 2048; // Switch to SSL after handshake
-  CLIENT_IGNORE_SIGPIPE = 4096;
-  CLIENT_TRANSACTIONS = 8192;
-  CLIENT_RESERVED = 16384;
-  CLIENT_SECURE_CONNECTION = 32768;
-  CLIENT_MULTI_STATEMENTS = 65536;
-  CLIENT_MULTI_RESULTS = 131072;
-  CLIENT_SSL_VERIFY_SERVER_CERT = 67108864;
-  CLIENT_REMEMBER_OPTIONS = 134217728;
-
-  // Enum Field Types
-  FIELD_TYPE_DECIMAL = 0;
-  FIELD_TYPE_TINY = 1;
-  FIELD_TYPE_SHORT = 2;
-  FIELD_TYPE_LONG = 3;
-  FIELD_TYPE_FLOAT = 4;
-  FIELD_TYPE_DOUBLE = 5;
-  FIELD_TYPE_NULL = 6;
-  FIELD_TYPE_TIMESTAMP = 7;
-  FIELD_TYPE_LONGLONG = 8;
-  FIELD_TYPE_INT24 = 9;
-  FIELD_TYPE_DATE = 10;
-  FIELD_TYPE_TIME = 11;
-  FIELD_TYPE_DATETIME = 12;
-  FIELD_TYPE_YEAR = 13;
-  FIELD_TYPE_NEWDATE = 14;
-  FIELD_TYPE_VARCHAR = 15;
-  FIELD_TYPE_BIT = 16;
-  FIELD_TYPE_NEWDECIMAL = 246;
-  FIELD_TYPE_ENUM = 247;
-  FIELD_TYPE_SET = 248;
-  FIELD_TYPE_TINY_BLOB = 249;
-  FIELD_TYPE_MEDIUM_BLOB = 250;
-  FIELD_TYPE_LONG_BLOB = 251;
-  FIELD_TYPE_BLOB = 252;
-  FIELD_TYPE_VAR_STRING = 253;
-  FIELD_TYPE_STRING = 254;
-  FIELD_TYPE_GEOMETRY = 255;
-
-  COLLATION_BINARY = 63;
-  // Equivalent to COLLATION_BINARY, this is what a new driver returns when connected to a pre-4.1 server.
-  COLLATION_NONE =  0;
-
-
 type
+  PUSED_MEM=^USED_MEM;
+  USED_MEM = packed record
+    next:       PUSED_MEM;
+    left:       Integer;
+    size:       Integer;
+  end;
+
+  PERR_PROC = ^ERR_PROC;
+  ERR_PROC = procedure;
+
+  PMEM_ROOT = ^MEM_ROOT;
+  MEM_ROOT = packed record
+    free:              PUSED_MEM;
+    used:              PUSED_MEM;
+    pre_alloc:         PUSED_MEM;
+    min_malloc:        Integer;
+    block_size:        Integer;
+    block_num:         Integer;
+    first_block_usage: Integer;
+    error_handler:     PERR_PROC;
+  end;
+
+  NET = record
+    vio:              Pointer;
+    buff:             PAnsiChar;
+    buff_end:         PAnsiChar;
+    write_pos:        PAnsiChar;
+    read_pos:         PAnsiChar;
+    fd:               Integer;
+    max_packet:       Cardinal;
+    max_packet_size:  Cardinal;
+    pkt_nr:           Cardinal;
+    compress_pkt_nr:  Cardinal;
+    write_timeout:    Cardinal;
+    read_timeout:     Cardinal;
+    retry_count:      Cardinal;
+    fcntl:            Integer;
+    compress:         Byte;
+    remain_in_buf:    LongInt;
+    length:           LongInt;
+    buf_length:       LongInt;
+    where_b:          LongInt;
+    return_status:    Pointer;
+    reading_or_writing: Char;
+    save_char:        Char;
+    no_send_ok:       Byte;
+    last_error:       array[1..MYSQL_ERRMSG_SIZE] of Char;
+    sqlstate:         array[1..SQLSTATE_LENGTH + 1] of Char;
+    last_errno:       Cardinal;
+    error:            Char;
+    query_cache_query: Pointer;
+    report_error:     Byte;
+    return_errno:     Byte;
+  end;
+
+  PMYSQL_FIELD = ^MYSQL_FIELD;
+  MYSQL_FIELD = record
+    name:             PAnsiChar;   // Name of column
+    org_name:         PAnsiChar;   // Original column name, if an alias
+    table:            PAnsiChar;   // Table of column if column was a field
+    org_table:        PAnsiChar;   // Org table name if table was an alias
+    db:               PAnsiChar;   // Database for table
+    catalog:	      PAnsiChar;   // Catalog for table
+    def:              PAnsiChar;   // Default value (set by mysql_list_fields)
+    length:           LongInt; // Width of column
+    max_length:       LongInt; // Max width of selected set
+    name_length:      Cardinal;
+    org_name_length:  Cardinal;
+    table_length:     Cardinal;
+    org_table_length: Cardinal;
+    db_length:        Cardinal;
+    catalog_length:   Cardinal;
+    def_length:       Cardinal;
+    flags:            Cardinal; // Div flags
+    decimals:         Cardinal; // Number of decimals in field
+    charsetnr:        Cardinal; // Character set
+    _type:            Cardinal; // Type of field. Se mysql_com.h for types
+  end;
+
+  MYSQL_ROW = array[0..$ffff] of PAnsiChar;
+  PMYSQL_ROW = ^MYSQL_ROW;
+
+  PMYSQL_ROWS = ^MYSQL_ROWS;
+  MYSQL_ROWS = record
+    next:       PMYSQL_ROWS;
+    data:       PMYSQL_ROW;
+  end;
+
+  MYSQL_DATA = record
+    Rows:       Int64;
+    Fields:     Cardinal;
+    Data:       PMYSQL_ROWS;
+    Alloc:      MEM_ROOT;
+  end;
+  PMYSQL_DATA = ^MYSQL_DATA;
+
+  PMYSQL = ^MYSQL;
+  MYSQL = record
+    _net:            NET;
+    connector_fd:    Pointer;
+    host:            PAnsiChar;
+    user:            PAnsiChar;
+    passwd:          PAnsiChar;
+    unix_socket:     PAnsiChar;
+    server_version:  PAnsiChar;
+    host_info:       PAnsiChar;
+    info:            PAnsiChar;
+    db:              PAnsiChar;
+    charset:         PAnsiChar;
+    fields:          PMYSQL_FIELD;
+    field_alloc:     MEM_ROOT;
+    affected_rows:   Int64;
+    insert_id:       Int64;
+    extra_info:      Int64;
+    thread_id:       LongInt;
+    packet_length:   LongInt;
+    port:            Cardinal;
+    client_flag:     LongInt;
+    server_capabilities: LongInt;
+    protocol_version: Cardinal;
+    field_count:     Cardinal;
+    server_status:   Cardinal;
+    server_language: Cardinal;
+    warning_count:   Cardinal;
+    options:         Cardinal;
+    status:          Byte;
+    free_me:         Byte;
+    reconnect:       Byte;
+    scramble:        array[1..SCRAMBLE_LENGTH+1] of Char;
+    rpl_pivot:       Byte;
+    master:          PMYSQL;
+    next_slave:      PMYSQL;
+    last_used_slave: PMYSQL;
+    last_used_con:   PMYSQL;
+    stmts:           Pointer;
+    methods:         Pointer;
+    thd:             Pointer;
+    unbuffered_fetch_owner: PByte;
+  end;
+
+  MYSQL_RES = record
+    row_count:       Int64;
+    fields:          PMYSQL_FIELD;
+    data:            PMYSQL_DATA;
+    data_cursor:     PMYSQL_ROWS;
+    lengths:         PLongInt;
+    handle:          PMYSQL;
+    field_alloc:     MEM_ROOT;
+    field_count:     Integer;
+    current_field:   Integer;
+    row:             PMYSQL_ROW;
+    current_row:     PMYSQL_ROW;
+    eof:             Byte;
+    unbuffered_fetch_cancelled: Byte;
+    methods:         PAnsiChar;
+  end;
+  PMYSQL_RES = ^MYSQL_RES;
+
+  TMySQLOption = (MYSQL_OPT_CONNECT_TIMEOUT, MYSQL_OPT_COMPRESS, MYSQL_OPT_NAMED_PIPE,
+    MYSQL_INIT_COMMAND, MYSQL_READ_DEFAULT_FILE, MYSQL_READ_DEFAULT_GROUP,
+    MYSQL_SET_CHARSET_DIR, MYSQL_SET_CHARSET_NAME, MYSQL_OPT_LOCAL_INFILE,
+    MYSQL_OPT_PROTOCOL, MYSQL_SHARED_MEMORY_BASE_NAME, MYSQL_OPT_READ_TIMEOUT,
+    MYSQL_OPT_WRITE_TIMEOUT, MYSQL_OPT_USE_RESULT,
+    MYSQL_OPT_USE_REMOTE_CONNECTION, MYSQL_OPT_USE_EMBEDDED_CONNECTION,
+    MYSQL_OPT_GUESS_CONNECTION, MYSQL_SET_CLIENT_IP, MYSQL_SECURE_AUTH,
+    MYSQL_REPORT_DATA_TRUNCATION, MYSQL_OPT_RECONNECT,
+    MYSQL_OPT_SSL_VERIFY_SERVER_CERT, MYSQL_PLUGIN_DIR, MYSQL_DEFAULT_AUTH);
+
   // MySQL data types
   TDBDatatypeIndex = (dtTinyint, dtSmallint, dtMediumint, dtInt, dtBigint,
     dtFloat, dtDouble, dtDecimal, dtNumeric, dtReal, dtMoney, dtSmallmoney,
