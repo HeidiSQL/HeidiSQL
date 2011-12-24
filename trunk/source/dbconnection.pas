@@ -1623,8 +1623,6 @@ end;
 
 function TDBConnection.GetAllDatabases: TStringList;
 var
-  i: Integer;
-  tmp: TStringList;
   rx: TRegExpr;
 begin
   // Get user passed delimited list
