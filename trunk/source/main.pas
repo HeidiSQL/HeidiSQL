@@ -6979,19 +6979,9 @@ end;
 
 
 procedure TMainForm.DBObjectsCleared(Connection: TDBConnection; Database: String);
-  procedure DoRefresh(Tree: TBaseVirtualTree);
-  var
-    Node: PVirtualNode;
-  begin
-    Node := FindDBNode(Tree, Connection, Database);
-    if Assigned(Node) then begin
-      Tree.ReinitNode(Node, False);
-      if Tree.Expanded[Node] then
-        Tree.ReinitChildren(Node, False)
-      else
-        Tree.ResetNode(Node);
-    end;
-  end;
+var
+  Node: PVirtualNode;
+  WasExpanded: Boolean;
 begin
   // Avoid AVs while processing FormDestroy
   if csDestroying in ComponentState then
@@ -6999,7 +6989,21 @@ begin
   // Reload objects in ListTables ...
   InvalidateVT(ListTables, VTREE_NOTLOADED, False);
   // ... and in database tree
-  DoRefresh(DBtree);
+  Node := FindDBNode(DBTree, Connection, Database);
+  if Assigned(Node) then begin
+    WasExpanded := DBTree.Expanded[Node];
+    DBTree.ResetNode(Node);
+    DBtree.Expanded[Node] := WasExpanded;
+    {
+    // Earlier code, replaced by above ResetNode, not sure if that causes new errors.
+    // See issue #2645
+    Tree.ReinitNode(Node, False);
+    if Tree.Expanded[Node] then
+      Tree.ReinitChildren(Node, False)
+    else
+      Tree.ResetNode(Node);
+    }
+  end;
 end;
 
 
