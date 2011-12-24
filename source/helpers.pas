@@ -196,7 +196,7 @@ var
 
 implementation
 
-uses main, table_editor, view, routine_editor, trigger_editor, event_editor;
+uses main;
 
 
 
