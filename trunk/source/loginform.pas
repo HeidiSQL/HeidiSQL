@@ -4,16 +4,18 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls;
+  Dialogs, StdCtrls, ExtCtrls;
 
 type
   TfrmLogin = class(TForm)
     btnOK: TButton;
-    editPassword: TEdit;
+    pnlBackground: TPanel;
     lblPrompt: TLabel;
-    editUsername: TEdit;
     lblUsername: TLabel;
     lblPassword: TLabel;
+    editPassword: TEdit;
+    editUsername: TEdit;
+    imgIcon: TImage;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
@@ -26,7 +28,7 @@ type
 
 implementation
 
-uses helpers;
+uses helpers, main;
 
 {$R *.dfm}
 {$I const.inc}
@@ -55,6 +57,10 @@ procedure TfrmLogin.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
   Caption := APPNAME + ' - Login';
+  MainForm.ImageListMain.GetBitmap(144, imgIcon.Picture.Bitmap);
+  lblPrompt.Font.Size := 10;
+  lblPrompt.Font.Color := clHotlight;
+  lblPrompt.Font.Style := lblPrompt.Font.Style + [fsBold];
 end;
 
 procedure TfrmLogin.FormShow(Sender: TObject);
