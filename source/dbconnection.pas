@@ -1000,14 +1000,10 @@ begin
       // Creating the ADO object throws exceptions if MDAC is missing, especially on Wine
       FAdoHandle := TAdoConnection.Create(Owner);
     except
-      on E:Exception do begin
-        if Pos('Data Access Components', E.Message) > 0 then
-          raise EDatabaseError.Create(E.Message+CRLF+CRLF+
-            'On Wine, you can try to install these:'+CRLF+
-            'sh winetricks mdac28')
-        else
-          raise;
-      end;
+      on E:Exception do
+        raise EDatabaseError.Create(E.Message+CRLF+CRLF+
+            'On Wine, you can try to install MDAC:'+CRLF+
+            'sh winetricks mdac28');
     end;
     NetLib := '';
     case Parameters.NetType of
