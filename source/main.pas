@@ -9309,6 +9309,9 @@ begin
     BaseEditor.Options := BaseEditor.Options - [eoTabsToSpaces];
   ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
   for i:=0 to Editors.Count-1 do begin
+    // See issue #2651:
+    if Editors[i]=nil then
+      Continue;
     Editor := Editors[i] as TSynMemo;
     if Editor = nil then
       continue;
