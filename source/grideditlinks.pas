@@ -1311,8 +1311,10 @@ procedure TColumnDefaultEditorLink.RadioClick(Sender: TObject);
 begin
   if not FRadioText.Checked then
     FMemoText.Color := clBtnFace
-  else
+  else begin
     FMemoText.Color := clWindow;
+    FMemoText.SetFocus;
+  end;
   FCheckCurTS.Enabled := not FRadioNothing.Checked;
 end;
 
