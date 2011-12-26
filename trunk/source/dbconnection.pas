@@ -747,7 +747,6 @@ var
   i: Integer;
 begin
   inherited;
-  FAdoHandle := TAdoConnection.Create(AOwner);
   FQuoteChar := '"';
   SetLength(FDatatypes, Length(MSSQLDatatypes));
   for i:=0 to High(MSSQLDatatypes) do
@@ -997,6 +996,19 @@ var
 begin
   if Value then begin
     DoBeforeConnect;
+    try
+      // Creating the ADO object throws exceptions if MDAC is missing, especially on Wine
+      FAdoHandle := TAdoConnection.Create(Owner);
+    except
+      on E:Exception do begin
+        if Pos('Data Access Components', E.Message) > 0 then
+          raise EDatabaseError.Create(E.Message+CRLF+CRLF+
+            'On Wine, you can try to install these:'+CRLF+
+            'sh winetricks mdac28')
+        else
+          raise;
+      end;
+    end;
     NetLib := '';
     case Parameters.NetType of
       ntMSSQL_NamedPipe: NetLib := 'DBNMPNTW';
