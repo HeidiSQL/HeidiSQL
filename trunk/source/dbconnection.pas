@@ -2469,7 +2469,7 @@ var
   obj: TDBObject;
   Results: TDBQuery;
   i: Integer;
-  tp: String;
+  tp, FromClause, CreateCol, UpdateCol, TypeCol: String;
 begin
   // Cache and return a db's table list
   if Refresh then
@@ -2492,8 +2492,22 @@ begin
     Results := nil;
 
     // Tables, views and procedures
+    case ServerVersionInt of
+      2000: begin
+        FromClause := QuoteIdent(db)+'..'+QuoteIdent('sysobjects');
+        CreateCol := 'crdate';
+        UpdateCol := '';
+        TypeCol := 'xtype';
+      end
+      else begin
+        FromClause := QuoteIdent(db)+'.'+QuoteIdent('sys')+'.'+QuoteIdent('objects');
+        CreateCol := 'create_date';
+        UpdateCol := 'modify_date';
+        TypeCol := 'type';
+      end;
+    end;
     try
-      Results := GetResults('SELECT * FROM '+QuoteIdent(db)+'.'+QuoteIdent('sys')+'.'+QuoteIdent('objects')+
+      Results := GetResults('SELECT * FROM '+FromClause+
         ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+')');
     except
       on E:EDatabaseError do;
@@ -2503,10 +2517,10 @@ begin
         obj := TDBObject.Create(Self);
         Result.Add(obj);
         obj.Name := Results.Col('name');
-        obj.Created := ParseDateTime(Results.Col('create_date'));
-        obj.Updated := ParseDateTime(Results.Col('modify_date'));
+        obj.Created := ParseDateTime(Results.Col(CreateCol, True));
+        obj.Updated := ParseDateTime(Results.Col(UpdateCol, True));
         obj.Database := db;
-        tp := Trim(Results.Col('type'));
+        tp := Trim(Results.Col(TypeCol, True));
         if tp = 'U' then
           obj.NodeType := lntTable
         else if tp = 'P' then
