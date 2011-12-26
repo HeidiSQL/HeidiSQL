@@ -307,7 +307,6 @@ type
     DataTime: TMenuItem;
     DataDate: TMenuItem;
     DataYear: TMenuItem;
-    N2: TMenuItem;
     DataGUID: TMenuItem;
     ViewasHTML1: TMenuItem;
     InsertfilesintoBLOBfields3: TMenuItem;
@@ -535,6 +534,7 @@ type
     Exportgridrows1: TMenuItem;
     Synchronizedatabase2: TMenuItem;
     QF20: TMenuItem;
+    DataDefaultValue: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -5604,6 +5604,8 @@ var
   Uid: TGuid;
   UnixTimestamp: Int64;
   SystemTime: TSystemTime;
+  ColNum: TColumnIndex;
+  Col: TTableColumn;
 begin
   DecodeDateTime(Now, y, m, d, h, i, s, ms);
   DataDateTime.Caption := 'DATETIME: ' + Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,i,s]);
@@ -5615,6 +5617,19 @@ begin
   DataUNIXtimestamp.Caption := 'UNIX Timestamp: ' + IntToStr(UnixTimestamp);
   CreateGuid(Uid);
   DataGUID.Caption := 'GUID: ' + GuidToString(Uid);
+
+  ColNum := DataGrid.FocusedColumn;
+  DataDefaultValue.Caption := 'Default: ?';
+  DataDefaultValue.Enabled := False;
+  if ColNum <> NOCOLUMN then begin
+    for Col in SelectedTableColumns do begin
+      if (Col.Name = DataGrid.Header.Columns[ColNum].Text) and (Col.DefaultType = cdtText) then begin
+        DataDefaultValue.Caption := 'Default: '+Col.DefaultText;
+        DataDefaultValue.Enabled := True;
+        break;
+      end;
+    end;
+  end;
 end;
 
 

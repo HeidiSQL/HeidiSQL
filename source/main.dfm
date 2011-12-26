@@ -2521,7 +2521,7 @@ object MainForm: TMainForm
     end
     object actDataSetNull: TAction
       Category = 'Data'
-      Caption = 'Set NULL'
+      Caption = 'NULL'
       Enabled = False
       Hint = 'Set focused cell to NULL'
       ImageIndex = 92
@@ -8475,13 +8475,18 @@ object MainForm: TMainForm
     object Paste2: TMenuItem
       Action = actPaste
     end
-    object setNULL1: TMenuItem
-      Action = actDataSetNull
-    end
     object DataInsertValue: TMenuItem
       Caption = 'Insert value'
       ImageIndex = 80
       OnClick = DataInsertValueClick
+      object setNULL1: TMenuItem
+        Action = actDataSetNull
+      end
+      object DataDefaultValue: TMenuItem
+        Caption = 'default'
+        ImageIndex = 28
+        OnClick = InsertValue
+      end
       object DataDateTime: TMenuItem
         Caption = 'datetime'
         Hint = 'Insert datetime-value'
@@ -8511,9 +8516,6 @@ object MainForm: TMainForm
         Hint = 'Insert UNIX timestamp'
         ImageIndex = 80
         OnClick = InsertValue
-      end
-      object N2: TMenuItem
-        Caption = '-'
       end
       object DataGUID: TMenuItem
         Caption = 'GUID'
