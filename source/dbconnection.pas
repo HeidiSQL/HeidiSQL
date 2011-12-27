@@ -3089,7 +3089,7 @@ function TDBConnection.ApplyLimitClause(QueryType, QueryBody: String; Limit, Off
 begin
   Result := QueryType + ' ';
   if FParameters.NetTypeGroup = ngMSSQL then
-    Result := Result + 'TOP('+IntToStr(Limit)+') ';
+    Result := Result + 'TOP '+IntToStr(Limit)+' ';
   Result := Result + QueryBody;
   if FParameters.NetTypeGroup = ngMySQL then begin
     Result := Result + ' LIMIT ';
