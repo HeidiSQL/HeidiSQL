@@ -1003,7 +1003,9 @@ begin
       on E:Exception do
         raise EDatabaseError.Create(E.Message+CRLF+CRLF+
             'On Wine, you can try to install MDAC:'+CRLF+
-            'sh winetricks mdac28');
+            '> wget http://winetricks.org/winetricks'+CRLF+
+            '> chmod +x winetricks'+CRLF+
+            '> sh winetricks mdac28');
     end;
     NetLib := '';
     case Parameters.NetType of
