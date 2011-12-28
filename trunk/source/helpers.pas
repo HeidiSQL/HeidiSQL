@@ -2443,6 +2443,7 @@ function CompareAnyNode(Text1, Text2: String): Integer;
 var
   Number1, Number2 : Extended;
   a1, a2, b1, b2: Char;
+  NumberMode: Boolean;
 const
   Numbers = ['0'..'9'];
 begin
@@ -2452,8 +2453,9 @@ begin
   a2 := CharAtPos(Text1, 2);
   b1 := CharAtPos(Text2, 1);
   b2 := CharAtPos(Text2, 2);
-  if ((a1='-') and (CharInSet(a2, Numbers)) or CharInSet(a1, Numbers))
-    and ((b1='-') and (CharInSet(b2, Numbers)) or CharInSet(b1, Numbers)) then begin
+  NumberMode := ((a1='-') and (CharInSet(a2, Numbers)) or CharInSet(a1, Numbers))
+    and ((b1='-') and (CharInSet(b2, Numbers)) or CharInSet(b1, Numbers));
+  if NumberMode then begin
     // Assuming numeric values
     Number1 := MakeFloat(Text1);
     Number2 := MakeFloat(Text2);
@@ -2463,7 +2465,8 @@ begin
       Result := 0
     else if Number1 < Number2 then
       Result := -1;
-  end else begin
+  end;
+  if (not NumberMode) or (Result=0) then begin
     // Compare Strings
     Result := CompareText(Text1, Text2);
   end;
