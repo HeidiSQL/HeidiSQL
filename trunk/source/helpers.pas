@@ -2683,7 +2683,6 @@ var
   SQL: String;
   i, BatchStartOffset, ResultCount: Integer;
   PacketSize, MaxAllowedPacket: Int64;
-  QueryResult: TDBQuery;
   DoStoreResult, ErrorAborted: Boolean;
 begin
   inherited;

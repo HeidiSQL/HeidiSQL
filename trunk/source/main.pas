@@ -3009,12 +3009,11 @@ begin
         RowNum := Grid.GetNodeData(Node);
         ShowStatusMsg('Deleting row #'+FormatNumber(ProgressBarStatus.Position+1)+' of '+FormatNumber(ProgressBarStatus.Max)+' ...');
         Results.RecNo := RowNum^;
-        if Results.DeleteRow then begin
-          ProgressStep;
-          SetLength(Nodes, Length(Nodes)+1);
-          Nodes[Length(Nodes)-1] := Node;
-          FocusAfterDelete := Node;
-        end;
+        Results.DeleteRow;
+        ProgressStep;
+        SetLength(Nodes, Length(Nodes)+1);
+        Nodes[Length(Nodes)-1] := Node;
+        FocusAfterDelete := Node;
         Node := GetNextNode(Grid, Node, True);
       end;
       ShowStatusMsg('Clean up ...');
@@ -6804,6 +6803,7 @@ var
 begin
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
   MainTabToActivate := nil;
+  PrevDBObj := nil;
 
   if Assigned(Node) then begin
     LogSQL('DBtreeFocusChanged, Node level: '+IntToStr(Sender.GetNodeLevel(Node))+', FTreeRefreshInProgress: '+IntToStr(Integer(FTreeRefreshInProgress)), lcDebug);
