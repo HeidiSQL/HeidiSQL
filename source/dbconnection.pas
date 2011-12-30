@@ -465,7 +465,7 @@ type
       function IsNull(Column: String): Boolean; overload;
       function HasResult: Boolean; virtual; abstract;
       procedure CheckEditable;
-      function DeleteRow: Boolean;
+      procedure DeleteRow;
       function InsertRow: Cardinal;
       procedure SetCol(Column: Integer; NewText: String; Null: Boolean);
       function EnsureFullRow: Boolean;
@@ -2682,6 +2682,7 @@ begin
   if Assigned(ForeignKeys) then ForeignKeys.Clear;
   if CreateTable = '' then
     Exit;
+  Collations := CollationTable;
   rx := TRegExpr.Create;
   rx.ModifierS := False;
   rx.ModifierM := True;
@@ -2764,8 +2765,6 @@ begin
       Delete(ColSpec, 1, rxCol.MatchLen[0]);
     end;
     if Col.Collation = '' then begin
-      if not Assigned(Collations) then
-        Collations := CollationTable;
       if Assigned(Collations) then begin
         Collations.First;
         while not Collations.Eof do begin
@@ -3771,7 +3770,7 @@ begin
 end;
 
 
-function TDBQuery.DeleteRow: Boolean;
+procedure TDBQuery.DeleteRow;
 var
   sql: String;
   IsVirtual: Boolean;
@@ -3782,17 +3781,14 @@ begin
   if not IsVirtual then begin
     sql := Connection.ApplyLimitClause('DELETE', 'FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause, 1, 0);
     Connection.Query(sql);
-    if Connection.RowsAffected = 0 then begin
+    if Connection.RowsAffected = 0 then
       raise EDatabaseError.Create(FormatNumber(Connection.RowsAffected)+' rows deleted when that should have been 1.');
-      Result := False;
-    end;
   end;
   if Assigned(FCurrentUpdateRow) then begin
     FUpdateData.Remove(FCurrentUpdateRow);
     FCurrentUpdateRow := nil;
     FRecNo := -1;
   end;
-  Result := True;
 end;
 
 
