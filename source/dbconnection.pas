@@ -885,7 +885,7 @@ begin
         else
           PlinkCmd := PlinkCmd + FParameters.Hostname;
         if FParameters.SSHPassword <> '' then
-          PlinkCmd := PlinkCmd + ' -pw ' + FParameters.SSHPassword;
+          PlinkCmd := PlinkCmd + ' -pw "' + FParameters.SSHPassword + '"';
         if FParameters.SSHPort > 0 then
           PlinkCmd := PlinkCmd + ' -P ' + IntToStr(FParameters.SSHPort);
         if FParameters.SSHPrivateKey <> '' then
