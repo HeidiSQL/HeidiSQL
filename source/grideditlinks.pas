@@ -1313,7 +1313,8 @@ begin
     FMemoText.Color := clBtnFace
   else begin
     FMemoText.Color := clWindow;
-    FMemoText.SetFocus;
+    if FMemoText.CanFocus then
+      FMemoText.SetFocus;
   end;
   FCheckCurTS.Enabled := not FRadioNothing.Checked;
 end;
