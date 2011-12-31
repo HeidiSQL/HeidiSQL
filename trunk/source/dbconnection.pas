@@ -1095,16 +1095,19 @@ end;
 
 procedure TDBConnection.DoBeforeConnect;
 var
-  UsernamePrompt, PasswordPrompt: String;
   UsingPass: String;
+  Dialog: TfrmLogin;
 begin
   // Prompt for password on initial connect
   if FParameters.LoginPrompt and (not FLoginPromptDone) then begin
-    UsernamePrompt := FParameters.Username;
-    PasswordPrompt := FParameters.Password;
-    LoginPrompt('Login to '+FParameters.Hostname+':', UsernamePrompt, PasswordPrompt);
-    FParameters.Username := UsernamePrompt;
-    FParameters.Password := PasswordPrompt;
+    Dialog := TfrmLogin.Create(Self);
+    Dialog.lblPrompt.Caption := 'Login to '+FParameters.Hostname+':';
+    Dialog.editUsername.Text := FParameters.Username;
+    Dialog.editPassword.Text := FParameters.Password;
+    Dialog.ShowModal;
+    FParameters.Username := Dialog.editUsername.Text;
+    FParameters.Password := Dialog.editPassword.Text;
+    Dialog.Free;
     FLoginPromptDone := True;
   end;
 
@@ -4601,6 +4604,7 @@ end;
 function mysql_authentication_dialog_ask;
 var
   Username, Password: String;
+  Dialog: TfrmLogin;
 begin
   {
   From client_plugin.h:
@@ -4626,17 +4630,26 @@ begin
   }
   Username := '';
   Password := '';
-  case _type of
-    1: Username := String(buf);
-    2: Password := String(buf);
-    else raise EDatabaseError.Create('Unsupported type ('+IntToStr(_type)+') in mysql_authentication_dialog_ask.');
-  end;
-  LoginPrompt(String(prompt), Username, Password, _type=1, _type=2);
+  Dialog := TfrmLogin.Create(nil);
+  Dialog.lblPrompt.Caption := String(prompt);
+  Dialog.editUsername.Width := Dialog.editUsername.Width + (Dialog.editUsername.Left - Dialog.lblUsername.Left);
+  Dialog.editPassword.Width := Dialog.editUsername.Width;
+  Dialog.lblUsername.Visible := False;
+  Dialog.lblPassword.Visible := False;
+  Dialog.editUsername.Left := Dialog.lblUsername.Left;
+  Dialog.editPassword.Left := Dialog.lblPassword.Left;
+  Dialog.editUsername.Top := Dialog.lblPrompt.Top + Dialog.lblPrompt.Height + 15;
+  Dialog.editPassword.Top := Dialog.editUsername.Top;
+  Dialog.editUsername.Visible := _type=1;
+  Dialog.editPassword.Visible := _type=2;
+  Dialog.ShowModal;
   Result := buf;
   case _type of
-    1: Result := PAnsiChar(AnsiString(Username));
-    2: Result := PAnsiChar(AnsiString(Password));
+    1: Result := PAnsiChar(AnsiString(Dialog.editUsername.Text));
+    2: Result := PAnsiChar(AnsiString(Dialog.editPassword.Text));
+    else raise EDatabaseError.Create('Unsupported type ('+IntToStr(_type)+') in mysql_authentication_dialog_ask.');
   end;
+  Dialog.Free;
 end;
 
 
