@@ -24,7 +24,6 @@ type
     { Public declarations }
   end;
 
-  procedure LoginPrompt(ACaption: String; var AUsername, APassword: String; UsernameEnabled: Boolean=True; PasswordEnabled: Boolean=True);
 
 implementation
 
@@ -33,24 +32,6 @@ uses helpers, main;
 {$R *.dfm}
 {$I const.inc}
 
-procedure LoginPrompt(ACaption: String; var AUsername, APassword: String; UsernameEnabled: Boolean=True; PasswordEnabled: Boolean=True);
-var
-  frm: TfrmLogin;
-begin
-  // Create login box and pass back user + pass
-  frm := TfrmLogin.Create(nil);
-  frm.lblPrompt.Caption := ACaption;
-  frm.editUsername.Text := AUsername;
-  frm.editPassword.Text := APassword;
-  frm.editUsername.Enabled := UsernameEnabled;
-  frm.lblUsername.Enabled := UsernameEnabled;
-  frm.editPassword.Enabled := PasswordEnabled;
-  frm.lblPassword.Enabled := PasswordEnabled;
-  frm.ShowModal;
-  AUsername := frm.editUsername.Text;
-  APassword := frm.editPassword.Text;
-  frm.Free;
-end;
 
 
 procedure TfrmLogin.FormCreate(Sender: TObject);
@@ -61,6 +42,8 @@ begin
   lblPrompt.Font.Size := 10;
   lblPrompt.Font.Color := clHotlight;
   lblPrompt.Font.Style := lblPrompt.Font.Style + [fsBold];
+  editUsername.Text := '';
+  editPassword.Text := '';
 end;
 
 procedure TfrmLogin.FormShow(Sender: TObject);
