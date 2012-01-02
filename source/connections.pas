@@ -187,6 +187,7 @@ begin
   ListSessions.RootNodeCount := FSessions.Count;
 
   // Focus last session
+  SelectNode(ListSessions, nil);
   LastSessions := Explode(DELIM, GetRegValue(REGNAME_LASTSESSIONS, ''));
   LastActiveSession := GetRegValue(REGNAME_LASTACTIVESESSION, '');
   if (LastActiveSession = '') and (LastSessions.Count > 0) then
@@ -198,7 +199,6 @@ begin
       SelectNode(ListSessions, Node);
     Node := ListSessions.GetNextSibling(Node);
   end;
-  ValidateControls;
 
   // Add own menu items to system menu
   hSysMenu := GetSystemMenu(Handle, False);
@@ -397,11 +397,8 @@ begin
     FSessions.Remove(Sess^);
     if (not Assigned(ListSessions.FocusedNode)) and (ListSessions.RootNodeCount > 0) then
       SelectNode(ListSessions, ListSessions.RootNodeCount-1)
-    else begin
-      Node := ListSessions.FocusedNode;
-      ListSessions.FocusedNode := nil;
-      ListSessions.FocusedNode := Node;
-    end;
+    else
+      SelectNode(ListSessions, nil);
   end;
 end;
 
@@ -527,10 +524,25 @@ begin
   Screen.Cursor := crHourglass;
   TimerStatistics.Enabled := False;
   SessionFocused := Assigned(Node);
-  if SessionFocused then begin
+  FLoaded := False;
+  tabStart.TabVisible := not SessionFocused;
+  tabSettings.TabVisible := SessionFocused;
+  tabSSHtunnel.TabVisible := SessionFocused;
+  tabSSLoptions.TabVisible := SessionFocused;
+  tabStatistics.TabVisible := SessionFocused;
+
+  if not SessionFocused then begin
+    PageControlDetails.ActivePage := tabStart;
+    if FSessions.Count = 0 then
+      lblHelp.Caption := 'New here? In order to connect to a server, you have to create a so called '+
+        '"session" at first. Just click the "New" button on the bottom left to create your first session.'+CRLF+CRLF+
+        'Give it a friendly name (e.g. "Local DB server") so you''ll recall it the next time you start '+APPNAME+'.'
+    else
+      lblHelp.Caption := 'Please click a session on the left list to edit parameters, doubleclick to open it.';
+  end else begin
+    PageControlDetails.ActivePage := tabSettings;
     Sess := Sender.GetNodeData(Node);
 
-    FLoaded := False;
     comboNetType.ItemIndex := Integer(Sess.NetType);
     editHost.Text := Sess.Hostname;
     editUsername.Text := Sess.Username;
@@ -553,9 +565,9 @@ begin
     editSSLCertificate.Text := Sess.SSLCertificate;
     editSSLCACertificate.Text := Sess.SSLCACertificate;
     FServerVersion := Sess.ServerVersion;
-    FLoaded := True;
   end;
 
+  FLoaded := True;
   FSessionModified := False;
   FSessionAdded := False;
   ListSessions.Repaint;
@@ -778,27 +790,13 @@ var
 begin
   SessionFocused := Assigned(ListSessions.FocusedNode);
 
-  LockWindowUpdate(PageControlDetails.Handle);
-  tabStart.TabVisible := not SessionFocused;
-  tabSettings.TabVisible := SessionFocused;
-  tabSSHtunnel.TabVisible := SessionFocused;
-  tabSSLoptions.TabVisible := SessionFocused;
-  tabStatistics.TabVisible := SessionFocused;
   btnOpen.Enabled := SessionFocused;
   btnNew.Enabled := not FSessionAdded;
   btnSave.Enabled := FSessionModified or FSessionAdded;
   btnDelete.Enabled := SessionFocused;
   btnOpen.Enabled := SessionFocused;
 
-  if not SessionFocused then begin
-    PageControlDetails.ActivePage := tabStart;
-    if FSessions.Count = 0 then
-      lblHelp.Caption := 'New here? In order to connect to a server, you have to create a so called '+
-        '"session" at first. Just click the "New" button on the bottom left to create your first session.'+CRLF+CRLF+
-        'Give it a friendly name (e.g. "Local DB server") so you''ll recall it the next time you start '+APPNAME+'.'
-    else
-      lblHelp.Caption := 'Please click a session on the left list to edit parameters, doubleclick to open it.';
-  end else begin
+  if SessionFocused then begin
     // Validate session GUI stuff
     Params := CurrentParams;
     if Params.NetType = ntMySQL_NamedPipe then
@@ -814,12 +812,10 @@ begin
     lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP];
     editPort.Enabled := lblPort.Enabled;
     updownPort.Enabled := lblPort.Enabled;
-    PageControlDetails.ActivePage := tabSettings;
     tabSSLoptions.TabVisible := Params.NetType = ntMySQL_TCPIP;
     tabSSHtunnel.TabVisible := Params.NetType = ntMySQL_SSHtunnel;
     FreeAndNil(Params);
   end;
-  LockWindowUpdate(0);
 end;
 
 
