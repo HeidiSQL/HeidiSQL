@@ -814,8 +814,6 @@ begin
     lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP];
     editPort.Enabled := lblPort.Enabled;
     updownPort.Enabled := lblPort.Enabled;
-    // Fix empty settings tab
-    PageControlDetails.ActivePage := tabStatistics;
     PageControlDetails.ActivePage := tabSettings;
     tabSSLoptions.TabVisible := Params.NetType = ntMySQL_TCPIP;
     tabSSHtunnel.TabVisible := Params.NetType = ntMySQL_SSHtunnel;
