@@ -1747,11 +1747,16 @@ end;
 
 
 procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
+var
+  OldFocus: PVirtualNode;
 begin
+  OldFocus := VT.FocusedNode;
   VT.ClearSelection;
   VT.FocusedNode := Node;
   VT.Selected[Node] := True;
   VT.ScrollIntoView(Node, False);
+  if (OldFocus = Node) and Assigned(VT.OnFocusChanged) then
+    VT.OnFocusChanged(VT, Node, VT.Header.MainColumn);
 end;
 
 
