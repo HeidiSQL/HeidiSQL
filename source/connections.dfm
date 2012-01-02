@@ -21,23 +21,25 @@ object connform: Tconnform
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
     494
     342)
   PixelsPerInch = 96
   TextHeight = 13
-  object lblHelp: TLabel
-    Left = 177
-    Top = 27
-    Width = 296
-    Height = 190
-    Anchors = [akLeft, akTop, akRight]
-    AutoSize = False
-    Caption = 'lblHelp'
-    Visible = False
-    WordWrap = True
+  object splitterMain: TSplitter
+    AlignWithMargins = True
+    Left = 175
+    Top = 8
+    Width = 8
+    Height = 294
+    Cursor = crSizeWE
+    Margins.Left = 0
+    Margins.Top = 8
+    Margins.Right = 0
+    Margins.Bottom = 40
+    ResizeStyle = rsUpdate
+    OnMoved = splitterMainMoved
   end
   object btnSave: TButton
     Left = 64
@@ -75,13 +77,18 @@ object connform: Tconnform
     TabOrder = 6
   end
   object ListSessions: TVirtualStringTree
+    AlignWithMargins = True
     Left = 8
     Top = 8
     Width = 167
-    Height = 295
-    Anchors = [akLeft, akTop, akBottom]
+    Height = 294
+    Margins.Left = 8
+    Margins.Top = 8
+    Margins.Right = 0
+    Margins.Bottom = 40
+    Align = alLeft
     EditDelay = 250
-    Header.AutoSizeIndex = 0
+    Header.AutoSizeIndex = -1
     Header.Font.Charset = DEFAULT_CHARSET
     Header.Font.Color = clWindowText
     Header.Font.Height = -11
@@ -150,20 +157,44 @@ object connform: Tconnform
     OnClick = btnDeleteClick
   end
   object PageControlDetails: TPageControl
-    Left = 177
+    AlignWithMargins = True
+    Left = 183
     Top = 8
-    Width = 309
-    Height = 295
+    Width = 303
+    Height = 294
+    Margins.Left = 0
+    Margins.Top = 8
+    Margins.Right = 8
+    Margins.Bottom = 40
     ActivePage = tabSettings
-    Anchors = [akLeft, akTop, akRight, akBottom]
+    Align = alClient
     Images = MainForm.ImageListMain
     TabOrder = 4
+    object tabStart: TTabSheet
+      Caption = 'Start'
+      ImageIndex = 112
+      object lblHelp: TLabel
+        AlignWithMargins = True
+        Left = 10
+        Top = 10
+        Width = 275
+        Height = 245
+        Margins.Left = 10
+        Margins.Top = 10
+        Margins.Right = 10
+        Margins.Bottom = 10
+        Align = alClient
+        AutoSize = False
+        Caption = 'lblHelp'
+        WordWrap = True
+      end
+    end
     object tabSettings: TTabSheet
       Caption = 'Settings'
       ImageIndex = 39
       DesignSize = (
-        301
-        266)
+        295
+        265)
       object lblStartupScript: TLabel
         Left = 3
         Top = 241
@@ -225,7 +256,7 @@ object connform: Tconnform
       object editStartupScript: TButtonedEdit
         Left = 101
         Top = 238
-        Width = 197
+        Width = 191
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -240,7 +271,7 @@ object connform: Tconnform
         Tag = 12
         Left = 101
         Top = 190
-        Width = 197
+        Width = 191
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Compressed client/server protocol'
@@ -270,7 +301,7 @@ object connform: Tconnform
       object editPassword: TEdit
         Left = 101
         Top = 140
-        Width = 197
+        Width = 191
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
@@ -280,7 +311,7 @@ object connform: Tconnform
       object editUsername: TEdit
         Left = 101
         Top = 115
-        Width = 197
+        Width = 191
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 4
@@ -289,7 +320,7 @@ object connform: Tconnform
       object editHost: TEdit
         Left = 101
         Top = 42
-        Width = 197
+        Width = 191
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
@@ -298,7 +329,7 @@ object connform: Tconnform
       object comboNetType: TComboBox
         Left = 101
         Top = 9
-        Width = 197
+        Width = 191
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -315,7 +346,7 @@ object connform: Tconnform
       object comboDatabases: TComboBox
         Left = 101
         Top = 213
-        Width = 197
+        Width = 191
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 9
@@ -326,7 +357,7 @@ object connform: Tconnform
       object chkLoginPrompt: TCheckBox
         Left = 101
         Top = 69
-        Width = 197
+        Width = 191
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Prompt for credentials'
@@ -336,7 +367,7 @@ object connform: Tconnform
       object chkWindowsAuth: TCheckBox
         Left = 101
         Top = 92
-        Width = 197
+        Width = 191
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use Windows authentication'
@@ -349,8 +380,8 @@ object connform: Tconnform
       Caption = 'SSH tunnel'
       ImageIndex = 147
       DesignSize = (
-        301
-        266)
+        295
+        265)
       object lblSSHLocalPort: TLabel
         Left = 3
         Top = 190
@@ -424,7 +455,7 @@ object connform: Tconnform
       object editSSHlocalport: TEdit
         Left = 101
         Top = 187
-        Width = 188
+        Width = 182
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         NumbersOnly = True
@@ -435,7 +466,7 @@ object connform: Tconnform
       object editSSHUser: TEdit
         Left = 101
         Top = 79
-        Width = 188
+        Width = 182
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 3
@@ -446,7 +477,7 @@ object connform: Tconnform
       object editSSHPassword: TEdit
         Left = 101
         Top = 106
-        Width = 188
+        Width = 182
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
@@ -458,7 +489,7 @@ object connform: Tconnform
       object editSSHPlinkExe: TButtonedEdit
         Left = 101
         Top = 9
-        Width = 188
+        Width = 182
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -474,7 +505,7 @@ object connform: Tconnform
       object editSSHhost: TEdit
         Left = 101
         Top = 52
-        Width = 133
+        Width = 127
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
@@ -482,7 +513,7 @@ object connform: Tconnform
         OnChange = Modification
       end
       object editSSHport: TEdit
-        Left = 240
+        Left = 234
         Top = 52
         Width = 49
         Height = 21
@@ -495,7 +526,7 @@ object connform: Tconnform
       object editSSHPrivateKey: TButtonedEdit
         Left = 101
         Top = 160
-        Width = 188
+        Width = 182
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -531,8 +562,8 @@ object connform: Tconnform
       Caption = 'SSL options'
       ImageIndex = 144
       DesignSize = (
-        301
-        266)
+        295
+        265)
       object lblSSLPrivateKey: TLabel
         Tag = 6
         Left = 3
@@ -563,7 +594,7 @@ object connform: Tconnform
       object editSSLPrivateKey: TButtonedEdit
         Left = 101
         Top = 9
-        Width = 197
+        Width = 191
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -577,7 +608,7 @@ object connform: Tconnform
       object editSSLCACertificate: TButtonedEdit
         Left = 101
         Top = 38
-        Width = 197
+        Width = 191
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -591,7 +622,7 @@ object connform: Tconnform
       object editSSLCertificate: TButtonedEdit
         Left = 101
         Top = 65
-        Width = 197
+        Width = 191
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -607,8 +638,8 @@ object connform: Tconnform
       Caption = 'Statistics'
       ImageIndex = 145
       DesignSize = (
-        301
-        266)
+        295
+        265)
       object lblLastConnectLeft: TLabel
         Left = 3
         Top = 31
@@ -640,7 +671,7 @@ object connform: Tconnform
       object lblCounterRight: TLabel
         Left = 101
         Top = 50
-        Width = 197
+        Width = 191
         Height = 39
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False

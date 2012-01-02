@@ -196,6 +196,7 @@ const
   REGNAME_USERMNGR_LISTWIDTH = 'Usermanager_ListWidth';
   REGNAME_SELECTDBO_WINWIDTH = 'SelectDBO_WindowWidth';
   REGNAME_SELECTDBO_WINHEIGHT = 'SelectDBO_WindowHeight';
+  REGNAME_SESSMNGR_LISTWIDTH = 'SessionManager_ListWidth';
   REGNAME_SESSMNGR_WINWIDTH = 'SessionManager_WindowWidth';
   REGNAME_SESSMNGR_WINHEIGHT = 'SessionManager_WindowHeight';
   REGNAME_COPYTABLE_WINHEIGHT = 'CopyTable_WindowHeight';

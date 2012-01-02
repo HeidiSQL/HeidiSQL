@@ -26,7 +26,6 @@ type
     Delete1: TMenuItem;
     Saveas1: TMenuItem;
     TimerStatistics: TTimer;
-    lblHelp: TLabel;
     PageControlDetails: TPageControl;
     tabSettings: TTabSheet;
     lblStartupScript: TLabel;
@@ -79,6 +78,9 @@ type
     editSSHTimeout: TEdit;
     updownSSHTimeout: TUpDown;
     chkWindowsAuth: TCheckBox;
+    splitterMain: TSplitter;
+    tabStart: TTabSheet;
+    lblHelp: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -105,7 +107,6 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       out EditLink: IVTEditLink);
-    procedure FormResize(Sender: TObject);
     procedure PickFile(Sender: TObject);
     procedure editSSHPlinkExeChange(Sender: TObject);
     procedure editHostChange(Sender: TObject);
@@ -117,12 +118,12 @@ type
     procedure ListSessionsGetNodeDataSize(Sender: TBaseVirtualTree;
       var NodeDataSize: Integer);
     procedure comboNetTypeChange(Sender: TObject);
+    procedure splitterMainMoved(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
     FSessions: TObjectList<TConnectionParameters>;
     FSessionModified, FOnlyPasswordModified, FSessionAdded: Boolean;
-    FWidthListSessions: Byte; // Percentage values
     FServerVersion: String;
     function SelectedSession: String;
     function CurrentParams: TConnectionParameters;
@@ -158,9 +159,10 @@ begin
   // Fix GUI stuff
   InheritFont(Font);
   SetWindowSizeGrip(Handle, True);
-  FWidthListSessions := Round(100 / ClientWidth * ListSessions.Width);
   Width := GetRegValue(REGNAME_SESSMNGR_WINWIDTH, Width);
   Height := GetRegValue(REGNAME_SESSMNGR_WINHEIGHT, Height);
+  ListSessions.Width := GetRegValue(REGNAME_SESSMNGR_LISTWIDTH, ListSessions.Width);
+  splitterMain.OnMoved(Sender);
   FixVT(ListSessions);
   MainForm.RestoreListSetup(ListSessions);
   ListSessions.OnCompareNodes := MainForm.AnyGridCompareNodes;
@@ -211,6 +213,7 @@ procedure Tconnform.FormDestroy(Sender: TObject);
 begin
   // Save GUI stuff
   OpenRegistry;
+  MainReg.WriteInteger(REGNAME_SESSMNGR_LISTWIDTH, ListSessions.Width);
   MainReg.WriteInteger(REGNAME_SESSMNGR_WINWIDTH, Width);
   MainReg.WriteInteger(REGNAME_SESSMNGR_WINHEIGHT, Height);
   MainForm.SaveListSetup(ListSessions);
@@ -775,6 +778,12 @@ var
 begin
   SessionFocused := Assigned(ListSessions.FocusedNode);
 
+  LockWindowUpdate(PageControlDetails.Handle);
+  tabStart.TabVisible := not SessionFocused;
+  tabSettings.TabVisible := SessionFocused;
+  tabSSHtunnel.TabVisible := SessionFocused;
+  tabSSLoptions.TabVisible := SessionFocused;
+  tabStatistics.TabVisible := SessionFocused;
   btnOpen.Enabled := SessionFocused;
   btnNew.Enabled := not FSessionAdded;
   btnSave.Enabled := FSessionModified or FSessionAdded;
@@ -782,18 +791,14 @@ begin
   btnOpen.Enabled := SessionFocused;
 
   if not SessionFocused then begin
-    PageControlDetails.Visible := False;
-    lblHelp.Visible := True;
+    PageControlDetails.ActivePage := tabStart;
     if FSessions.Count = 0 then
-      lblHelp.Caption := 'New here? In order to connect to a MySQL server, you have to create a so called '+
+      lblHelp.Caption := 'New here? In order to connect to a server, you have to create a so called '+
         '"session" at first. Just click the "New" button on the bottom left to create your first session.'+CRLF+CRLF+
         'Give it a friendly name (e.g. "Local DB server") so you''ll recall it the next time you start '+APPNAME+'.'
     else
       lblHelp.Caption := 'Please click a session on the left list to edit parameters, doubleclick to open it.';
   end else begin
-    lblHelp.Visible := False;
-    PageControlDetails.Visible := True;
-
     // Validate session GUI stuff
     Params := CurrentParams;
     if Params.NetType = ntMySQL_NamedPipe then
@@ -809,31 +814,29 @@ begin
     lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP];
     editPort.Enabled := lblPort.Enabled;
     updownPort.Enabled := lblPort.Enabled;
+    // Fix empty settings tab
+    PageControlDetails.ActivePage := tabStatistics;
+    PageControlDetails.ActivePage := tabSettings;
     tabSSLoptions.TabVisible := Params.NetType = ntMySQL_TCPIP;
     tabSSHtunnel.TabVisible := Params.NetType = ntMySQL_SSHtunnel;
     FreeAndNil(Params);
   end;
+  LockWindowUpdate(0);
 end;
 
 
-procedure Tconnform.FormResize(Sender: TObject);
+procedure Tconnform.splitterMainMoved(Sender: TObject);
 var
   ButtonWidth: Integer;
-const
-  Margin = 6;
 begin
-  // Resize form - adjust width of both main components
-  ListSessions.Width := Round(ClientWidth / 100 * FWidthListSessions);
-  PageControlDetails.Left := 2 * ListSessions.Left + ListSessions.Width;
-  PageControlDetails.Width := ClientWidth - PageControlDetails.Left - Margin;
-  lblHelp.Left := PageControlDetails.Left;
-  ButtonWidth := Round((ListSessions.Width - 2 * Margin) / 3);
+  // Splitter resized - adjust width of buttons
+  ButtonWidth := Round((ListSessions.Width - 2 * ListSessions.Margins.Left) / 3);
   btnNew.Width := ButtonWidth;
   btnSave.Width := ButtonWidth;
   btnDelete.Width := ButtonWidth;
   btnNew.Left := ListSessions.Left;
-  btnSave.Left := btnNew.Left + btnNew.Width + Margin;
-  btnDelete.Left := btnSave.Left + btnSave.Width + Margin;
+  btnSave.Left := btnNew.Left + btnNew.Width + ListSessions.Margins.Left;
+  btnDelete.Left := btnSave.Left + btnSave.Width + ListSessions.Margins.Left;
 end;
 
 
