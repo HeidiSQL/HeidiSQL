@@ -33,7 +33,7 @@ type
     procedure ValidateControls(Sender: TObject);
   private
     { Private declarations }
-    FColumns: Array of Array of TStringList;
+    FConnection: TDBConnection;
     function GetSelectedObject: TDBObject;
   public
     { Public declarations }
@@ -68,6 +68,7 @@ begin
   InheritFont(Font);
   TreeDBO.TreeOptions := MainForm.DBtree.TreeOptions;
   FixVT(TreeDBO);
+  FConnection := MainForm.ActiveConnection;
 end;
 
 procedure TfrmSelectDBObject.FormDestroy(Sender: TObject);
@@ -97,7 +98,6 @@ procedure TfrmSelectDBObject.FormShow(Sender: TObject);
 begin
   TreeDBO.Clear;
   TreeDBO.RootNodeCount := Mainform.DBtree.RootNodeCount;
-  SetLength(FColumns, Mainform.ActiveConnection.AllDatabases.Count);
   TreeDBO.OnFocusChanged(TreeDBO, TreeDBO.FocusedNode, 0);
 end;
 
@@ -109,7 +109,7 @@ begin
   // Return currently selected object, either from tree node or from edit boxes
   Result := nil;
   if editDb.Modified then begin
-    Result := TDBObject.Create(MainForm.ActiveConnection);
+    Result := TDBObject.Create(FConnection);
     Result.Database := editDb.Text;
     Result.NodeType := lntDb;
   end else if Assigned(TreeDBO.FocusedNode) then begin
@@ -186,7 +186,7 @@ var
 begin
   Mainform.DBtreeInitNode(Sender, ParentNode, Node, InitialStates);
   DBObj := Sender.GetNodeData(Node);
-  if DBObj.Connection <> MainForm.ActiveConnection then begin
+  if DBObj.Connection <> FConnection then begin
     Include(InitialStates, ivsDisabled);
     Exclude(InitialStates, ivsHasChildren);
   end else if DBObj.NodeType = lntNone then
