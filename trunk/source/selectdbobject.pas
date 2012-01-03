@@ -84,9 +84,11 @@ begin
   if editDb.Modified then begin
     TreeDBO.Color := clBtnFace;
     editDb.Color := clWindow;
+    btnOK.Enabled := editDb.GetTextLen > 0;
   end else begin
     TreeDBO.Color := clWindow;
     editDb.Color := clBtnFace;
+    btnOK.Enabled := Assigned(TreeDBO.FocusedNode);
   end;
 end;
 
@@ -132,8 +134,7 @@ begin
   // Overtake node text into lower edit boxes
   editDb.Clear;
   Tree := Sender as TVirtualStringTree;
-  btnOK.Enabled := Assigned(Node);
-  if btnOK.Enabled then begin
+  if Assigned(Node) then begin
     case Sender.GetNodeLevel(Node) of
       0: editDb.Text := '%';
       1: editDb.Text := esc(Tree.Text[Node, 0], True, False);
@@ -143,6 +144,7 @@ begin
   end;
   // Indicate automatic changes only
   editDb.Modified := False;
+  ValidateControls(Sender);
 end;
 
 
