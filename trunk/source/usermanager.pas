@@ -13,8 +13,8 @@ uses
 
 type
   TUser = class(TObject)
-    Username, Host, Password: String;
-    MaxQueries, MaxUpdates, MaxConnections, MaxUserConnections: Integer;
+    Username, Host, Password, Cipher, Issuer, Subject: String;
+    MaxQueries, MaxUpdates, MaxConnections, MaxUserConnections, SSL: Integer;
   end;
   PUser = ^TUser;
   TUserList = TObjectList<TUser>;
@@ -94,6 +94,15 @@ type
     udMaxUpdates: TUpDown;
     udMaxConnections: TUpDown;
     udMaxUserConnections: TUpDown;
+    tabSSL: TTabSheet;
+    lblCipher: TLabel;
+    editCipher: TEdit;
+    lblIssuer: TLabel;
+    lblSubject: TLabel;
+    editIssuer: TEdit;
+    editSubject: TEdit;
+    comboSSL: TComboBox;
+    lblSSL: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -139,6 +148,7 @@ type
     procedure editPasswordChange(Sender: TObject);
     procedure listUsersHotChange(Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode);
     procedure udMaxQueriesClick(Sender: TObject; Button: TUDBtnType);
+    procedure comboSSLChange(Sender: TObject);
   private
     { Private declarations }
     FUsers: TUserList;
@@ -427,7 +437,7 @@ procedure TUserManagerForm.listUsersFocusChanged(Sender: TBaseVirtualTree; Node:
 var
   P, Ptmp, PCol: TPrivObj;
   User: PUser;
-  UserHost, WithClause: String;
+  UserHost, RequireClause, WithClause: String;
   Grants, AllPNames, Cols: TStringList;
   rxA, rxB: TRegExpr;
   i, j: Integer;
@@ -446,6 +456,10 @@ begin
   udMaxUpdates.Position := 0;
   udMaxConnections.Position := 0;
   udMaxUserConnections.Position := 0;
+  comboSSL.ItemIndex := 0;
+  editCipher.Clear;
+  editIssuer.Clear;
+  editSubject.Clear;
 
   if UserSelected then begin
     User := Sender.GetNodeData(Node);
@@ -480,11 +494,11 @@ begin
 
     for i:=0 to Grants.Count-1 do begin
       // Find selected priv objects via regular expression
-      { GRANT USAGE ON *.* TO 'newbie'@'%' IDENTIFIED BY PASSWORD '*99D8973ECC09819DF81624F051BFF4FC6695140B' WITH GRANT OPTION
+      { GRANT USAGE ON *.* TO 'newbie'@'%' IDENTIFIED BY PASSWORD '*99D8973ECC09819DF81624F051BFF4FC6695140B' REQUIRE (NONE | ssl_option [[AND] ssl_option] ...) WITH GRANT OPTION
       GRANT SELECT ON `avtoserver`.* TO 'newbie'@'%'
       GRANT SELECT, SELECT (Enter (column) name), INSERT, INSERT (Enter (column) name), UPDATE, UPDATE (Enter (column) name), DELETE, CREATE ON `avtoserver`.`avtomodel` TO 'newbie'@'%'
       GRANT EXECUTE, ALTER ROUTINE ON PROCEDURE `pulle`.`f_procedure` TO 'newbie'@'%' }
-      rxA.Expression := '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?`?([^`.]+)`?\.`?([^`]+)`?\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+WITH.+GRANT\s+OPTION)?(.*)$';
+      rxA.Expression := '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?`?([^`.]+)`?\.`?([^`]+)`?\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+REQUIRE\s+((NONE|SSL|X509|CIPHER|ISSUER|SUBJECT)(\s+''[^'']*'')?(\s+AND)?\s+)+)?(\s+WITH\s+GRANT\s+OPTION)?(.*)$';
       if rxA.Exec(Grants[i]) then begin
         P := TPrivObj.Create;
         P.GrantCode := Grants[i];
@@ -563,8 +577,40 @@ begin
           end;
 
         end;
+
+        // REQUIRE SSL X509 ISSUER '456' SUBJECT '789' CIPHER '123' NONE
+        RequireClause := rxA.Match[9];
+        if RequireClause <> '' then begin
+          User.SSL := 0;
+          User.Cipher := '';
+          User.Issuer := '';
+          User.Subject := '';
+          rxB.Expression := '\bSSL\b';
+          if rxB.Exec(RequireClause) then
+            User.SSL := 1;
+          rxB.Expression := '\bX509\b';
+          if rxB.Exec(RequireClause) then
+            User.SSL := 2;
+          rxB.Expression := '\bCIPHER\s+''([^'']+)';
+          if rxB.Exec(RequireClause) then
+            User.Cipher := rxB.Match[1];
+          rxB.Expression := '\bISSUER\s+''([^'']+)';
+          if rxB.Exec(RequireClause) then
+            User.Issuer := rxB.Match[1];
+          rxB.Expression := '\bSUBJECT\s+''([^'']+)';
+          if rxB.Exec(RequireClause) then
+            User.Subject := rxB.Match[1];
+          if IsNotEmpty(User.Cipher) or IsNotEmpty(User.Issuer) or IsNotEmpty(User.Subject) then
+            User.SSL := 3;
+          comboSSL.ItemIndex := User.SSL;
+          comboSSL.OnChange(Sender);
+          editCipher.Text := User.Cipher;
+          editIssuer.Text := User.Issuer;
+          editSubject.Text := User.Subject;
+        end;
+
         // WITH .. GRANT OPTION ?
-        if rxA.Match[9] <> '' then
+        if rxA.Match[15] <> '' then
           P.OrgPrivs.Add('GRANT');
         if (P.OrgPrivs.Count = 0) and (P.DBObj.NodeType = lntTable) then
           FPrivObjects.Remove(P);
@@ -573,24 +619,24 @@ begin
         //      MAX_UPDATES_PER_HOUR 10
         //      MAX_CONNECTIONS_PER_HOUR 5
         //      MAX_USER_CONNECTIONS 2;
-        WithClause := rxA.Match[10];
+        WithClause := rxA.Match[16];
         if WithClause <> '' then begin
           User.MaxQueries := 0;
           User.MaxUpdates := 0;
           User.MaxConnections := 0;
           User.MaxUserConnections := 0;
-          rxA.Expression := '\bMAX_QUERIES_PER_HOUR\s+(\d+)\b';
-          if rxA.Exec(WithClause) then
-            User.MaxQueries := MakeInt(rxA.Match[1]);
-          rxA.Expression := '\bMAX_UPDATES_PER_HOUR\s+(\d+)\b';
-          if rxA.Exec(WithClause) then
-            User.MaxUpdates := MakeInt(rxA.Match[1]);
-          rxA.Expression := '\bMAX_CONNECTIONS_PER_HOUR\s+(\d+)\b';
-          if rxA.Exec(WithClause) then
-            User.MaxConnections := MakeInt(rxA.Match[1]);
-          rxA.Expression := '\bMAX_USER_CONNECTIONS\s+(\d+)\b';
-          if rxA.Exec(WithClause) then
-            User.MaxUserConnections := MakeInt(rxA.Match[1]);
+          rxB.Expression := '\bMAX_QUERIES_PER_HOUR\s+(\d+)\b';
+          if rxB.Exec(WithClause) then
+            User.MaxQueries := MakeInt(rxB.Match[1]);
+          rxB.Expression := '\bMAX_UPDATES_PER_HOUR\s+(\d+)\b';
+          if rxB.Exec(WithClause) then
+            User.MaxUpdates := MakeInt(rxB.Match[1]);
+          rxB.Expression := '\bMAX_CONNECTIONS_PER_HOUR\s+(\d+)\b';
+          if rxB.Exec(WithClause) then
+            User.MaxConnections := MakeInt(rxB.Match[1]);
+          rxB.Expression := '\bMAX_USER_CONNECTIONS\s+(\d+)\b';
+          if rxB.Exec(WithClause) then
+            User.MaxUserConnections := MakeInt(rxB.Match[1]);
           udMaxQueries.Position := User.MaxQueries;
           udMaxUpdates.Position := User.MaxUpdates;
           udMaxConnections.Position := User.MaxConnections;
@@ -653,6 +699,9 @@ begin
   lblMaxUserConnections.Enabled := UserSelected and (FConnection.ServerVersionInt >= 50003);
   editMaxUserConnections.Enabled := lblMaxUserConnections.Enabled;
   udMaxUserConnections.Enabled := lblMaxUserConnections.Enabled;
+
+  tabSSL.Enabled := UserSelected;
+  comboSSL.Enabled := UserSelected;
 
   btnAddObject.Enabled := UserSelected;
   btnDeleteUser.Enabled := UserSelected;
@@ -998,7 +1047,7 @@ end;
 
 procedure TUserManagerForm.btnSaveClick(Sender: TObject);
 var
-  UserHost, OrgUserHost, Create, Table, Revoke, Grant, OnObj: String;
+  UserHost, OrgUserHost, Create, Table, Revoke, Grant, OnObj, RequireClause: String;
   User: TUser;
   FocusedUser: PUser;
   Tables, WithClauses: TStringList;
@@ -1094,6 +1143,24 @@ begin
         Grant := 'USAGE';
       Grant := 'GRANT ' + Grant + ' ON ' + OnObj + ' TO ' + OrgUserHost;
 
+      // SSL options
+      if P.DBObj.NodeType = lntNone then begin
+        RequireClause := ' REQUIRE ';
+        case comboSSL.ItemIndex of
+          0: RequireClause := RequireClause + 'NONE';
+          1: RequireClause := RequireClause + 'SSL';
+          2: RequireClause := RequireClause + 'X509';
+          3: RequireClause := RequireClause + 'CIPHER '+esc(editCipher.Text)+' ISSUER '+esc(editIssuer.Text)+' SUBJECT '+esc(editSubject.Text);
+        end;
+        if (FocusedUser.SSL = comboSSL.ItemIndex)
+          and (FocusedUser.Cipher = editCipher.Text)
+          and (FocusedUser.Issuer = editIssuer.Text)
+          and (FocusedUser.Subject = editSubject.Text)
+          then
+          RequireClause := '';
+        Grant := Grant + RequireClause;
+      end;
+
       WithClauses := TStringList.Create;
       if P.AddedPrivs.IndexOf('GRANT') > -1 then
         WithClauses.Add('GRANT OPTION');
@@ -1111,7 +1178,7 @@ begin
       if WithClauses.Count > 0 then
         Grant := Grant + ' WITH ' + ImplodeStr(' ', WithClauses);
 
-      if P.Added or (P.AddedPrivs.Count > 0) or (WithClauses.Count > 0) then
+      if P.Added or (P.AddedPrivs.Count > 0) or (WithClauses.Count > 0) or (RequireClause <> '') then
         FConnection.Query(Grant);
 
       WithClauses.Free;
@@ -1145,6 +1212,10 @@ begin
     FocusedUser.Host := editFromHost.Text;
     if editPassword.Modified then
       FocusedUser.Password := editPassword.Text;
+    FocusedUser.SSL := comboSSL.ItemIndex;
+    FocusedUser.Cipher := editCipher.Text;
+    FocusedUser.Issuer := editIssuer.Text;
+    FocusedUser.Subject := editSubject.Text;
     listUsers.OnFocusChanged(listUsers, listUsers.FocusedNode, listUsers.FocusedColumn);
   except
     on E:EDatabaseError do
@@ -1153,6 +1224,19 @@ begin
       ErrorDialog(E.Message);
   end;
 
+end;
+
+
+procedure TUserManagerForm.comboSSLChange(Sender: TObject);
+begin
+  // Enable custom SSL settings
+  lblCipher.Enabled := (comboSSL.ItemIndex = 3) and Assigned(listUsers.FocusedNode);
+  editCipher.Enabled := lblCipher.Enabled;
+  lblIssuer.Enabled := lblCipher.Enabled;
+  editIssuer.Enabled := lblCipher.Enabled;
+  lblSubject.Enabled := lblCipher.Enabled;
+  editSubject.Enabled := lblCipher.Enabled;
+  Modification(Sender);
 end;
 
 

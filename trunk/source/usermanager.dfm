@@ -456,6 +456,89 @@ object UserManagerForm: TUserManagerForm
           Thousands = False
         end
       end
+      object tabSSL: TTabSheet
+        Caption = 'SSL options'
+        ImageIndex = 2
+        DesignSize = (
+          278
+          117)
+        object lblCipher: TLabel
+          Left = 3
+          Top = 36
+          Width = 35
+          Height = 13
+          Caption = '&Cipher:'
+          FocusControl = editCipher
+        end
+        object lblIssuer: TLabel
+          Left = 3
+          Top = 62
+          Width = 34
+          Height = 13
+          Caption = '&Issuer:'
+          FocusControl = editIssuer
+        end
+        object lblSubject: TLabel
+          Left = 3
+          Top = 89
+          Width = 40
+          Height = 13
+          Caption = '&Subject:'
+          FocusControl = editSubject
+        end
+        object lblSSL: TLabel
+          Left = 3
+          Top = 9
+          Width = 61
+          Height = 13
+          Caption = '&Require SSL:'
+        end
+        object editCipher: TEdit
+          Left = 106
+          Top = 33
+          Width = 169
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 1
+          Text = 'editCipher'
+          OnChange = Modification
+        end
+        object editIssuer: TEdit
+          Left = 106
+          Top = 59
+          Width = 169
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 2
+          Text = 'editIssuer'
+          OnChange = Modification
+        end
+        object editSubject: TEdit
+          Left = 106
+          Top = 86
+          Width = 169
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 3
+          Text = 'editSubject'
+          OnChange = Modification
+        end
+        object comboSSL: TComboBox
+          Left = 106
+          Top = 6
+          Width = 169
+          Height = 21
+          Style = csDropDownList
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 0
+          OnChange = comboSSLChange
+          Items.Strings = (
+            'No SSL or X509 requirements'
+            'Only permit SSL-encrypted connections'
+            'X509 (certificate, issuer and subject do not matter)'
+            'Specify requirements...')
+        end
+      end
     end
   end
   object btnDiscard: TButton
