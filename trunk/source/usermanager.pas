@@ -439,7 +439,7 @@ var
   User: PUser;
   UserHost, RequireClause, WithClause: String;
   Grants, AllPNames, Cols: TStringList;
-  rxA, rxB: TRegExpr;
+  rxTemp, rxGrant: TRegExpr;
   i, j: Integer;
   UserSelected: Boolean;
 begin
@@ -487,43 +487,43 @@ begin
     end else
       Grants := FConnection.GetCol('SHOW GRANTS FOR '+esc(User.Username)+'@'+esc(User.Host));
 
-    rxA := TRegExpr.Create;
-    rxA.ModifierI := True;
-    rxB := TRegExpr.Create;
-    rxB.ModifierI := True;
+    { GRANT USAGE ON *.* TO 'newbie'@'%' IDENTIFIED BY PASSWORD '*99D8973ECC09819DF81624F051BFF4FC6695140B' REQUIRE (NONE | ssl_option [[AND] ssl_option] ...) WITH GRANT OPTION
+    GRANT SELECT ON `avtoserver`.* TO 'newbie'@'%'
+    GRANT SELECT, SELECT (Enter (column) name), INSERT, INSERT (Enter (column) name), UPDATE, UPDATE (Enter (column) name), DELETE, CREATE ON `avtoserver`.`avtomodel` TO 'newbie'@'%'
+    GRANT EXECUTE, ALTER ROUTINE ON PROCEDURE `pulle`.`f_procedure` TO 'newbie'@'%' }
+    rxTemp := TRegExpr.Create;
+    rxTemp.ModifierI := True;
+    rxGrant := TRegExpr.Create;
+    rxGrant.ModifierI := True;
+    rxGrant.Expression := '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?`?([^`.]+)`?\.`?([^`]+)`?\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+REQUIRE\s+.+)?(\s+WITH\s+.+)?$';
 
     for i:=0 to Grants.Count-1 do begin
       // Find selected priv objects via regular expression
-      { GRANT USAGE ON *.* TO 'newbie'@'%' IDENTIFIED BY PASSWORD '*99D8973ECC09819DF81624F051BFF4FC6695140B' REQUIRE (NONE | ssl_option [[AND] ssl_option] ...) WITH GRANT OPTION
-      GRANT SELECT ON `avtoserver`.* TO 'newbie'@'%'
-      GRANT SELECT, SELECT (Enter (column) name), INSERT, INSERT (Enter (column) name), UPDATE, UPDATE (Enter (column) name), DELETE, CREATE ON `avtoserver`.`avtomodel` TO 'newbie'@'%'
-      GRANT EXECUTE, ALTER ROUTINE ON PROCEDURE `pulle`.`f_procedure` TO 'newbie'@'%' }
-      rxA.Expression := '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?`?([^`.]+)`?\.`?([^`]+)`?\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+REQUIRE\s+((NONE|SSL|X509|CIPHER|ISSUER|SUBJECT)(\s+''[^'']*'')?(\s+AND)?\s+)+)?(\s+WITH\s+GRANT\s+OPTION)?(.*)$';
-      if rxA.Exec(Grants[i]) then begin
+      if rxGrant.Exec(Grants[i]) then begin
         P := TPrivObj.Create;
         P.GrantCode := Grants[i];
         P.Added := FAdded;
         FPrivObjects.Add(P);
 
-        if (rxA.Match[4] = '*') and (rxA.Match[5] = '*') then begin
+        if (rxGrant.Match[4] = '*') and (rxGrant.Match[5] = '*') then begin
           P.DBObj.NodeType := lntNone;
           P.AllPrivileges := PrivsGlobal;
           if not FAdded then begin
-            editPassword.TextHint := FConnection.UnescapeString(rxA.Match[8]);
+            editPassword.TextHint := FConnection.UnescapeString(rxGrant.Match[8]);
             // Set password for changed user, to silence the error message about invalid length
             User.Password := editPassword.TextHint;
           end;
-        end else if (rxA.Match[5] = '*') then begin
+        end else if (rxGrant.Match[5] = '*') then begin
           P.DBObj.NodeType := lntDb;
-          P.DBObj.Database := rxA.Match[4];
+          P.DBObj.Database := rxGrant.Match[4];
           P.AllPrivileges := PrivsDb;
         end else begin
-          P.DBObj.Database := rxA.Match[4];
-          P.DBObj.Name := rxA.Match[5];
-          if UpperCase(rxA.Match[3]) = 'FUNCTION' then begin
+          P.DBObj.Database := rxGrant.Match[4];
+          P.DBObj.Name := rxGrant.Match[5];
+          if UpperCase(rxGrant.Match[3]) = 'FUNCTION' then begin
             P.DBObj.NodeType := lntFunction;
             P.AllPrivileges := PrivsRoutine;
-          end else if (UpperCase(rxA.Match[3]) = 'PROCEDURE') then begin
+          end else if (UpperCase(rxGrant.Match[3]) = 'PROCEDURE') then begin
             P.DBObj.NodeType := lntProcedure;
             P.AllPrivileges := PrivsRoutine;
           end else begin
@@ -536,17 +536,17 @@ begin
         { USAGE
           SELECT, SELECT (id, colname), INSERT, INSERT (id, colname), UPDATE, UPDATE (colname), DELETE, CREATE
           EXECUTE, ALTER ROUTINE }
-        if rxA.Match[1] = 'ALL PRIVILEGES' then begin
+        if rxGrant.Match[1] = 'ALL PRIVILEGES' then begin
           P.OrgPrivs.AddStrings(P.AllPrivileges);
           P.OrgPrivs.Delete(P.OrgPrivs.IndexOf('GRANT'));
         end else begin
-          rxB.Expression := '\b('+ImplodeStr('|', AllPnames)+')(\s+\(([^\)]+)\))?,';
-          if rxB.Exec(rxA.Match[1]+',') then while True do begin
-            if rxB.Match[3] = '' then
-              P.OrgPrivs.Add(rxB.Match[1])
+          rxTemp.Expression := '\b('+ImplodeStr('|', AllPnames)+')(\s+\(([^\)]+)\))?,';
+          if rxTemp.Exec(rxGrant.Match[1]+',') then while True do begin
+            if rxTemp.Match[3] = '' then
+              P.OrgPrivs.Add(rxTemp.Match[1])
             else begin
               // Find previously created column priv or create new one
-              Cols := Explode(',', rxB.Match[3]);
+              Cols := Explode(',', rxTemp.Match[3]);
               for j:=0 to Cols.Count-1 do begin
                 PCol := nil;
                 for Ptmp in FPrivObjects do begin
@@ -567,39 +567,39 @@ begin
                   PCol.AllPrivileges := PrivsColumn;
                   FPrivObjects.Add(PCol);
                 end;
-                PCol.OrgPrivs.Add(rxB.Match[1]);
-                PCol.GrantCode := PCol.GrantCode + rxB.Match[1] + ' ('+Trim(Cols[j])+')' + ', ';
+                PCol.OrgPrivs.Add(rxTemp.Match[1]);
+                PCol.GrantCode := PCol.GrantCode + rxTemp.Match[1] + ' ('+Trim(Cols[j])+')' + ', ';
               end;
 
             end;
-            if not rxB.ExecNext then
+            if not rxTemp.ExecNext then
               break;
           end;
 
         end;
 
         // REQUIRE SSL X509 ISSUER '456' SUBJECT '789' CIPHER '123' NONE
-        RequireClause := rxA.Match[9];
-        if RequireClause <> '' then begin
+        if rxGrant.Match[9] <> '' then begin
+          RequireClause := rxGrant.Match[9];
           User.SSL := 0;
           User.Cipher := '';
           User.Issuer := '';
           User.Subject := '';
-          rxB.Expression := '\bSSL\b';
-          if rxB.Exec(RequireClause) then
+          rxTemp.Expression := '\bSSL\b';
+          if rxTemp.Exec(RequireClause) then
             User.SSL := 1;
-          rxB.Expression := '\bX509\b';
-          if rxB.Exec(RequireClause) then
+          rxTemp.Expression := '\bX509\b';
+          if rxTemp.Exec(RequireClause) then
             User.SSL := 2;
-          rxB.Expression := '\bCIPHER\s+''([^'']+)';
-          if rxB.Exec(RequireClause) then
-            User.Cipher := rxB.Match[1];
-          rxB.Expression := '\bISSUER\s+''([^'']+)';
-          if rxB.Exec(RequireClause) then
-            User.Issuer := rxB.Match[1];
-          rxB.Expression := '\bSUBJECT\s+''([^'']+)';
-          if rxB.Exec(RequireClause) then
-            User.Subject := rxB.Match[1];
+          rxTemp.Expression := '\bCIPHER\s+''([^'']+)';
+          if rxTemp.Exec(RequireClause) then
+            User.Cipher := rxTemp.Match[1];
+          rxTemp.Expression := '\bISSUER\s+''([^'']+)';
+          if rxTemp.Exec(RequireClause) then
+            User.Issuer := rxTemp.Match[1];
+          rxTemp.Expression := '\bSUBJECT\s+''([^'']+)';
+          if rxTemp.Exec(RequireClause) then
+            User.Subject := rxTemp.Match[1];
           if IsNotEmpty(User.Cipher) or IsNotEmpty(User.Issuer) or IsNotEmpty(User.Subject) then
             User.SSL := 3;
           comboSSL.ItemIndex := User.SSL;
@@ -609,39 +609,36 @@ begin
           editSubject.Text := User.Subject;
         end;
 
-        // WITH .. GRANT OPTION ?
-        if rxA.Match[15] <> '' then
-          P.OrgPrivs.Add('GRANT');
-        if (P.OrgPrivs.Count = 0) and (P.DBObj.NodeType = lntTable) then
-          FPrivObjects.Remove(P);
-
-        // WITH MAX_QUERIES_PER_HOUR 20
-        //      MAX_UPDATES_PER_HOUR 10
-        //      MAX_CONNECTIONS_PER_HOUR 5
-        //      MAX_USER_CONNECTIONS 2;
-        WithClause := rxA.Match[16];
-        if WithClause <> '' then begin
+        // WITH .. GRANT OPTION
+        // MAX_QUERIES_PER_HOUR 20 MAX_UPDATES_PER_HOUR 10 MAX_CONNECTIONS_PER_HOUR 5 MAX_USER_CONNECTIONS 2
+        if rxGrant.Match[10] <> '' then begin
+          WithClause := rxGrant.Match[10];
           User.MaxQueries := 0;
           User.MaxUpdates := 0;
           User.MaxConnections := 0;
           User.MaxUserConnections := 0;
-          rxB.Expression := '\bMAX_QUERIES_PER_HOUR\s+(\d+)\b';
-          if rxB.Exec(WithClause) then
-            User.MaxQueries := MakeInt(rxB.Match[1]);
-          rxB.Expression := '\bMAX_UPDATES_PER_HOUR\s+(\d+)\b';
-          if rxB.Exec(WithClause) then
-            User.MaxUpdates := MakeInt(rxB.Match[1]);
-          rxB.Expression := '\bMAX_CONNECTIONS_PER_HOUR\s+(\d+)\b';
-          if rxB.Exec(WithClause) then
-            User.MaxConnections := MakeInt(rxB.Match[1]);
-          rxB.Expression := '\bMAX_USER_CONNECTIONS\s+(\d+)\b';
-          if rxB.Exec(WithClause) then
-            User.MaxUserConnections := MakeInt(rxB.Match[1]);
+          if ExecRegExpr('\bGRANT\s+OPTION\b', WithClause) then
+            P.OrgPrivs.Add('GRANT');
+          rxTemp.Expression := '\bMAX_QUERIES_PER_HOUR\s+(\d+)\b';
+          if rxTemp.Exec(WithClause) then
+            User.MaxQueries := MakeInt(rxTemp.Match[1]);
+          rxTemp.Expression := '\bMAX_UPDATES_PER_HOUR\s+(\d+)\b';
+          if rxTemp.Exec(WithClause) then
+            User.MaxUpdates := MakeInt(rxTemp.Match[1]);
+          rxTemp.Expression := '\bMAX_CONNECTIONS_PER_HOUR\s+(\d+)\b';
+          if rxTemp.Exec(WithClause) then
+            User.MaxConnections := MakeInt(rxTemp.Match[1]);
+          rxTemp.Expression := '\bMAX_USER_CONNECTIONS\s+(\d+)\b';
+          if rxTemp.Exec(WithClause) then
+            User.MaxUserConnections := MakeInt(rxTemp.Match[1]);
           udMaxQueries.Position := User.MaxQueries;
           udMaxUpdates.Position := User.MaxUpdates;
           udMaxConnections.Position := User.MaxConnections;
           udMaxUserConnections.Position := User.MaxUserConnections;
         end;
+
+        if (P.OrgPrivs.Count = 0) and (P.DBObj.NodeType = lntTable) then
+          FPrivObjects.Remove(P);
       end;
     end;
 
@@ -659,8 +656,8 @@ begin
     end;
 
     FPrivObjects.Sort;
-    rxA.Free;
-    rxB.Free;
+    rxGrant.Free;
+    rxTemp.Free;
     FreeAndNil(Grants);
     FreeAndNil(CloneGrants);
     FreeAndNil(AllPnames);
