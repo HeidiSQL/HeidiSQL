@@ -2520,7 +2520,7 @@ begin
     end;
     try
       Results := GetResults('SELECT * FROM '+FromClause+
-        ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+')');
+        ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+', '+EscapeString('TR')+', '+EscapeString('FN')+')');
     except
       on E:EDatabaseError do;
     end;
@@ -2538,7 +2538,11 @@ begin
         else if tp = 'P' then
           obj.NodeType := lntProcedure
         else if tp = 'V' then
-          obj.NodeType := lntView;
+          obj.NodeType := lntView
+        else if tp = 'TR' then
+          obj.NodeType := lntTrigger
+        else if tp = 'FN' then
+          obj.NodeType := lntFunction;
         Results.Next;
       end;
       FreeAndNil(Results);
