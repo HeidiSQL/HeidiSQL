@@ -457,6 +457,7 @@ begin
   udMaxConnections.Position := 0;
   udMaxUserConnections.Position := 0;
   comboSSL.ItemIndex := 0;
+  comboSSL.OnChange(Sender);
   editCipher.Clear;
   editIssuer.Clear;
   editSubject.Clear;
