@@ -1040,7 +1040,7 @@ begin
       // CurCharset := CharacterSet;
       // Log(lcDebug, 'Characterset: '+CurCharset);
       FIsUnicode := True;
-      tmp := GetVar('SELECT DATEDIFF(SECOND, '+QuoteIdent('login_time')+', CURRENT_TIMESTAMP) FROM '+QuoteIdent('sys')+'.'+QuoteIdent('sysprocesses')+' WHERE '+QuoteIdent('spid')+'=1');
+      tmp := GetVar('SELECT DATEDIFF(SECOND, '+QuoteIdent('login_time')+', CURRENT_TIMESTAMP) FROM '+QuoteIdent('master')+'.'+QuoteIdent('sys')+'.'+QuoteIdent('sysprocesses')+' WHERE '+QuoteIdent('spid')+'=1');
       if tmp <> '' then
         FServerStarted := FConnectionStarted - MakeInt(tmp)
       else
