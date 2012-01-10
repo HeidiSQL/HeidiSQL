@@ -215,7 +215,7 @@ type
     private
       FActive: Boolean;
       FConnectionStarted: Integer;
-      FServerStarted: Integer;
+      FServerUptime: Integer;
       FParameters: TConnectionParameters;
       FLoginPromptDone: Boolean;
       FDatabase: String;
@@ -948,7 +948,7 @@ begin
       Log(lcDebug, 'Characterset: '+CurCharset);
       FIsUnicode := CurCharset = 'utf8';
       FConnectionStarted := GetTickCount div 1000;
-      FServerStarted := FConnectionStarted - StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), 1);
+      FServerUptime := StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), -1);
       FServerVersionUntouched := DecodeAPIString(mysql_get_server_info(FHandle));
       Vars := GetServerVariables;
       while not Vars.Eof do begin
@@ -990,7 +990,7 @@ end;
 
 procedure TAdoDBConnection.SetActive(Value: Boolean);
 var
-  tmpdb, tmp, Error, NetLib, DataSource: String;
+  tmpdb, Error, NetLib, DataSource: String;
   rx: TRegExpr;
   i: Integer;
 begin
@@ -1040,11 +1040,7 @@ begin
       // CurCharset := CharacterSet;
       // Log(lcDebug, 'Characterset: '+CurCharset);
       FIsUnicode := True;
-      tmp := GetVar('SELECT DATEDIFF(SECOND, '+QuoteIdent('login_time')+', CURRENT_TIMESTAMP) FROM '+QuoteIdent('master')+'.'+QuoteIdent('sys')+'.'+QuoteIdent('sysprocesses')+' WHERE '+QuoteIdent('spid')+'=1');
-      if tmp <> '' then
-        FServerStarted := FConnectionStarted - MakeInt(tmp)
-      else
-        FServerStarted := -1;
+      FServerUptime := StrToIntDef(GetVar('SELECT DATEDIFF(SECOND, '+QuoteIdent('login_time')+', CURRENT_TIMESTAMP) FROM '+QuoteIdent('master')+'.'+QuoteIdent('sys')+'.'+QuoteIdent('sysprocesses')+' WHERE '+QuoteIdent('spid')+'=1'), -1);
       // Microsoft SQL Server 2008 R2 (RTM) - 10.50.1600.1 (Intel X86)
       // Apr  2 2010 15:53:02
       // Copyright (c) Microsoft Corporation
@@ -2189,10 +2185,10 @@ end;
 function TDBConnection.GetServerUptime: Integer;
 begin
   // Return server uptime in seconds. Return -1 if unknown.
-  if FServerStarted > 0 then
-    Result := Integer(GetTickCount div 1000) - FServerStarted
+  if FServerUptime > 0 then
+    Result := FServerUptime + (Integer(GetTickCount div 1000) - FConnectionStarted)
   else
-    Result := FServerStarted;
+    Result := -1;
 end;
 
 
