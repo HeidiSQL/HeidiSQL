@@ -785,13 +785,20 @@ end;
 
 
 procedure TMySQLConnection.AssignProc(var Proc: FARPROC; Name: PAnsiChar);
+var
+  ClientVersion: String;
 begin
   // Map library procedure to internal procedure
   Log(lcDebug, 'Assign procedure "'+Name+'"');
   Proc := GetProcAddress(LibMysqlHandle, Name);
   if Proc = nil then begin
+    if @mysql_get_client_info = nil then
+      mysql_get_client_info := GetProcAddress(LibMysqlHandle, 'mysql_get_client_info');
+    ClientVersion := '';
+    if @mysql_get_client_info <> nil then
+      ClientVersion := ' ('+DecodeApiString(mysql_get_client_info)+')';
     LibMysqlHandle := 0;
-    raise EDatabaseError.Create('Your '+LibMysqlPath+' is out-dated or somehow incompatible to '+APPNAME+'. Please use the one from the installer, or just reinstall '+APPNAME+'.');
+    raise EDatabaseError.Create('Your '+LibMysqlPath+ClientVersion+' is out-dated or somehow incompatible to '+APPNAME+'. Please use the one from the installer, or just reinstall '+APPNAME+'.');
   end;
 end;
 
