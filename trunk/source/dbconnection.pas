@@ -1535,7 +1535,11 @@ end;
 
 function TAdoDBConnection.GetLastErrorCode: Cardinal;
 begin
-  Result := FAdoHandle.Errors[FAdoHandle.Errors.Count-1].NativeError;
+  // SELECT @@SPID throws errors without filling the error pool. See issue #2684.
+  if FAdoHandle.Errors.Count > 0 then
+    Result := FAdoHandle.Errors[FAdoHandle.Errors.Count-1].NativeError
+  else
+    Result := 0;
 end;
 
 
@@ -1567,14 +1571,17 @@ var
   rx: TRegExpr;
   E: Error;
 begin
-  E := FAdoHandle.Errors[FAdoHandle.Errors.Count-1];
-  Msg := E.Description;
-  // Remove stuff from driver in message "[DBNETLIB][ConnectionOpen (Connect()).]"
-  rx := TRegExpr.Create;
-  rx.Expression := '^\[DBNETLIB\]\[.*\](.+)$';
-  if rx.Exec(Msg) then
-    Msg := rx.Match[1];
-  rx.Free;
+  if FAdoHandle.Errors.Count > 0 then begin
+    E := FAdoHandle.Errors[FAdoHandle.Errors.Count-1];
+    Msg := E.Description;
+    // Remove stuff from driver in message "[DBNETLIB][ConnectionOpen (Connect()).]"
+    rx := TRegExpr.Create;
+    rx.Expression := '^\[DBNETLIB\]\[.*\](.+)$';
+    if rx.Exec(Msg) then
+      Msg := rx.Match[1];
+    rx.Free;
+  end else
+    Msg := 'unknown';
   Result := Format(MsgSQLError, [LastErrorCode, Msg]);
 end;
 
