@@ -3113,14 +3113,20 @@ end;
 function TDBConnection.ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Cardinal): String;
 begin
   Result := QueryType + ' ';
-  if FParameters.NetTypeGroup = ngMSSQL then
-    Result := Result + 'TOP '+IntToStr(Limit)+' ';
-  Result := Result + QueryBody;
-  if FParameters.NetTypeGroup = ngMySQL then begin
-    Result := Result + ' LIMIT ';
-    if Offset > 0 then
-      Result := Result + IntToStr(Offset) + ', ';
-    Result := Result + IntToStr(Limit);
+  case FParameters.NetTypeGroup of
+    ngMSSQL: begin
+      if UpperCase(QueryType) = 'UPDATE' then
+        Result := Result + 'TOP('+IntToStr(Limit)+') '
+      else
+        Result := Result + 'TOP '+IntToStr(Limit)+' ';
+      Result := Result + QueryBody;
+    end;
+    ngMySQL: begin
+      Result := Result + QueryBody + ' LIMIT ';
+      if Offset > 0 then
+        Result := Result + IntToStr(Offset) + ', ';
+      Result := Result + IntToStr(Limit);
+    end;
   end;
 end;
 
