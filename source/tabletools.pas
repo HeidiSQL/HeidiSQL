@@ -1199,7 +1199,17 @@ begin
             end;
             Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
             if ToDb then
-              Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 )
+              Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 );
+            if ToServer then begin
+              rx := TRegExpr.Create;
+              rx.ModifierI := True;
+              rx.Expression := '(\s)(TYPE|ENGINE)(\=|\s+)(\w+)';
+              if FTargetConnection.ServerVersionInt < 40018 then
+                Struc := rx.Replace(Struc, '${1}TYPE${3}${4}', true)
+              else
+                Struc := rx.Replace(Struc, '${1}ENGINE${3}${4}', true);
+              rx.Free;
+            end;
           end;
 
           lntView: begin
