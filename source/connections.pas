@@ -332,6 +332,8 @@ procedure Tconnform.btnSaveAsClick(Sender: TObject);
 var
   newName: String;
   NameOK: Boolean;
+  NewSess: TConnectionParameters;
+  Node: PVirtualNode;
 begin
   // Save session as ...
   newName := 'Enter new session name ...';
@@ -347,6 +349,10 @@ begin
       // Create the key and save its values
       OpenRegistry(newName);
       SaveCurrentValues(newName, True);
+      NewSess := LoadConnectionParams(newName);
+      FSessions.Add(NewSess);
+      Node := ListSessions.AddChild(nil, @NewSess);
+      SelectNode(ListSessions, Node);
     end;
   end;
 end;
