@@ -3112,12 +3112,13 @@ end;
 
 function TDBConnection.ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Cardinal): String;
 begin
+  QueryType := UpperCase(QueryType);
   Result := QueryType + ' ';
   case FParameters.NetTypeGroup of
     ngMSSQL: begin
-      if UpperCase(QueryType) = 'UPDATE' then
+      if QueryType = 'UPDATE' then
         Result := Result + 'TOP('+IntToStr(Limit)+') '
-      else
+      else if QueryType = 'SELECT' then
         Result := Result + 'TOP '+IntToStr(Limit)+' ';
       Result := Result + QueryBody;
     end;
