@@ -2979,6 +2979,14 @@ begin
       end;
     end;
 
+    if Params.WantSSL and not Connection.IsSSL then begin
+      MessageDialog('SSL not used.',
+        'Your SSL settings were not accepted by the server, or the server does not support any SSL configuration.',
+        mtWarning,
+        [mbOK]
+        );
+    end;
+
   end;
   ShowStatusMsg;
 end;

@@ -129,6 +129,7 @@ const
   REGNAME_SSHTIMEOUT = 'SSHtunnelTimeout';
   DEFAULT_SSHTIMEOUT = 4;
   REGNAME_SSHKEY = 'SSHtunnelPrivateKey';
+  REGNAME_SSL_ACTIVE = 'SSL_Active';
   REGNAME_SSL_KEY = 'SSL_Key';
   REGNAME_SSL_CERT = 'SSL_Cert';
   REGNAME_SSL_CA = 'SSL_CA';

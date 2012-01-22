@@ -158,7 +158,7 @@ type
       FSessionName, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout: Integer;
-      FLoginPrompt, FCompressed, FWindowsAuth: Boolean;
+      FLoginPrompt, FCompressed, FWindowsAuth, FWantSSL: Boolean;
       function GetImageIndex: Integer;
     public
       constructor Create;
@@ -191,6 +191,7 @@ type
       property SSHPrivateKey: String read FSSHPrivateKey write FSSHPrivateKey;
       property SSHLocalPort: Integer read FSSHLocalPort write FSSHLocalPort;
       property SSHPlinkExe: String read FSSHPlinkExe write FSSHPlinkExe;
+      property WantSSL: Boolean read FWantSSL write FWantSSL;
       property SSLPrivateKey: String read FSSLPrivateKey write FSSLPrivateKey;
       property SSLCertificate: String read FSSLCertificate write FSSLCertificate;
       property SSLCACertificate: String read FSSLCACertificate write FSSLCACertificate;
@@ -831,14 +832,12 @@ procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
   ClientFlags, FinalPort: Integer;
-  Error, tmpdb, FinalHost, FinalSocket, PlinkCmd: String;
+  Error, tmpdb, FinalHost, FinalSocket, PlinkCmd, StatusName: String;
   CurCharset: String;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
-  sslca, sslkey, sslcert: PAnsiChar;
   PluginDir: AnsiString;
-  DoSSL, SSLsettingsComplete: Boolean;
-  Vars: TDBQuery;
+  Vars, Status: TDBQuery;
 begin
   if Value and (FHandle = nil) then begin
     DoBeforeConnect;
@@ -852,27 +851,15 @@ begin
     FinalPort := FParameters.Port;
     case FParameters.NetType of
       ntMySQL_TCPIP: begin
-        sslca := nil;
-        sslkey := nil;
-        sslcert := nil;
-        if FParameters.SSLCACertificate <> '' then
-          sslca := PAnsiChar(AnsiString(FParameters.SSLCACertificate));
-        if FParameters.SSLPrivateKey <> '' then
-          sslkey := PAnsiChar(AnsiString(FParameters.SSLPrivateKey));
-        if FParameters.SSLCertificate <> '' then
-          sslcert := PAnsiChar(AnsiString(FParameters.SSLCertificate));
-        DoSSL := (sslca<>nil) or (sslkey<>nil) or (sslcert<>nil);
-        SSLsettingsComplete := ((sslca<>nil) and (sslkey<>nil) and (sslcert<>nil))
-          or ((sslca<>nil) and (sslkey=nil) and (sslcert=nil));
-        if DoSSL then begin
-          if not SSLsettingsComplete then
-            raise EDatabaseError.Create('SSL settings incomplete. Please set either CA certificate or all three SSL parameters.')
-          else if SSLsettingsComplete then begin
-            FIsSSL := True;
-            { TODO : Use Cipher and CAPath parameters }
-            mysql_ssl_set(FHandle, sslkey, sslcert, sslca, nil, nil);
-            Log(lcInfo, 'SSL parameters successfully set.');
-          end;
+        if FParameters.WantSSL then begin
+          { TODO : Use Cipher and CAPath parameters }
+          mysql_ssl_set(FHandle,
+            PAnsiChar(AnsiString(FParameters.SSLPrivateKey)),
+            PAnsiChar(AnsiString(FParameters.SSLCertificate)),
+            PAnsiChar(AnsiString(FParameters.SSLCACertificate)),
+            nil,
+            nil);
+          Log(lcInfo, 'SSL parameters successfully set.');
         end;
       end;
 
@@ -923,7 +910,7 @@ begin
     ClientFlags := CLIENT_LOCAL_FILES or CLIENT_INTERACTIVE or CLIENT_PROTOCOL_41 or CLIENT_MULTI_STATEMENTS;
     if Parameters.Compressed then
       ClientFlags := ClientFlags or CLIENT_COMPRESS;
-    if FIsSSL then
+    if Parameters.WantSSL then
       ClientFlags := ClientFlags or CLIENT_SSL;
 
     // Point libmysql to the folder with client plugins
@@ -955,7 +942,16 @@ begin
       Log(lcDebug, 'Characterset: '+CurCharset);
       FIsUnicode := CurCharset = 'utf8';
       FConnectionStarted := GetTickCount div 1000;
-      FServerUptime := StrToIntDef(GetVar('SHOW STATUS LIKE ''Uptime''', 1), -1);
+      FServerUptime := -1;
+      Status := GetResults('SHOW STATUS');
+      while not Status.Eof do begin
+        StatusName := LowerCase(Status.Col(0));
+        if StatusName = 'uptime' then
+          FServerUptime := StrToIntDef(Status.Col(1), FServerUptime)
+        else if StatusName = 'ssl_cipher' then
+          FIsSSL := Status.Col(1) <> '';
+        Status.Next;
+      end;
       FServerVersionUntouched := DecodeAPIString(mysql_get_server_info(FHandle));
       Vars := GetServerVariables;
       while not Vars.Eof do begin
