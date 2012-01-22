@@ -2425,6 +2425,8 @@ begin
     Result.SSHLocalPort := GetRegValue(REGNAME_SSHLOCALPORT, 0, Session);
     Result.SSHPlinkExe := GetRegValue(REGNAME_PLINKEXE, '');
     Result.SSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', Session);
+    // Auto-activate SSL for sessions created before UseSSL was introduced:
+    Result.WantSSL := GetRegValue(REGNAME_SSL_ACTIVE, Result.SSLPrivateKey<>'', Session);
     Result.SSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', Session);
     Result.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', Session);
     Result.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, '', Session);

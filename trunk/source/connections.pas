@@ -81,6 +81,7 @@ type
     splitterMain: TSplitter;
     tabStart: TTabSheet;
     lblHelp: TLabel;
+    chkWantSSL: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -283,6 +284,7 @@ begin
   MainReg.WriteInteger(REGNAME_SSHTIMEOUT, updownSSHTimeout.Position);
   MainReg.WriteString(REGNAME_SSHKEY, editSSHPrivateKey.Text);
   MainReg.WriteInteger(REGNAME_SSHLOCALPORT, MakeInt(editSSHlocalport.Text));
+  MainReg.WriteBool(REGNAME_SSL_ACTIVE, chkWantSSL.Checked);
   MainReg.WriteString(REGNAME_SSL_KEY, editSSLPrivateKey.Text);
   MainReg.WriteString(REGNAME_SSL_CERT, editSSLCertificate.Text);
   MainReg.WriteString(REGNAME_SSL_CA, editSSLCACertificate.Text);
@@ -310,6 +312,7 @@ begin
   Sess.SSHTimeout := updownSSHTimeout.Position;
   Sess.SSHPrivateKey := editSSHPrivateKey.Text;
   Sess.SSHLocalPort := MakeInt(editSSHlocalport.Text);
+  Sess.WantSSL := chkWantSSL.Checked;
   Sess.SSLPrivateKey := editSSLPrivateKey.Text;
   Sess.SSLCertificate := editSSLCertificate.Text;
   Sess.SSLCACertificate := editSSLCACertificate.Text;
@@ -440,6 +443,7 @@ begin
   Result.SSHPrivateKey := editSSHPrivateKey.Text;
   Result.SSHLocalPort := MakeInt(editSSHlocalport.Text);
   Result.SSHPlinkExe := editSSHplinkexe.Text;
+  Result.WantSSL := chkWantSSL.Checked;
   Result.SSLPrivateKey := editSSLPrivateKey.Text;
   Result.SSLCertificate := editSSLCertificate.Text;
   Result.SSLCACertificate := editSSLCACertificate.Text;
@@ -567,6 +571,7 @@ begin
     updownSSHTimeout.Position := Sess.SSHTimeout;
     editSSHPrivateKey.Text := Sess.SSHPrivateKey;
     editSSHlocalport.Text := IntToStr(Sess.SSHLocalPort);
+    chkWantSSL.Checked := Sess.WantSSL;
     editSSLPrivateKey.Text := Sess.SSLPrivateKey;
     editSSLCertificate.Text := Sess.SSLCertificate;
     editSSLCACertificate.Text := Sess.SSLCACertificate;
@@ -758,6 +763,7 @@ begin
       or (Sess.SSHPassword <> editSSHPassword.Text)
       or (Sess.SSHTimeout <> updownSSHTimeout.Position)
       or (Sess.SSHPrivateKey <> editSSHPrivateKey.Text)
+      or (Sess.WantSSL <> chkWantSSL.Checked)
       or (Sess.SSLPrivateKey <> editSSLPrivateKey.Text)
       or (Sess.SSLCertificate <> editSSLCertificate.Text)
       or (Sess.SSLCACertificate <> editSSLCACertificate.Text);
@@ -819,6 +825,12 @@ begin
     editPort.Enabled := lblPort.Enabled;
     updownPort.Enabled := lblPort.Enabled;
     tabSSLoptions.TabVisible := Params.NetType = ntMySQL_TCPIP;
+    lblSSLPrivateKey.Enabled := Params.WantSSL;
+    editSSLPrivateKey.Enabled := Params.WantSSL;
+    lblSSLCACertificate.Enabled := Params.WantSSL;
+    editSSLCACertificate.Enabled := Params.WantSSL;
+    lblSSLCertificate.Enabled := Params.WantSSL;
+    editSSLCertificate.Enabled := Params.WantSSL;
     tabSSHtunnel.TabVisible := Params.NetType = ntMySQL_SSHtunnel;
     FreeAndNil(Params);
   end;

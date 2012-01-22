@@ -567,7 +567,7 @@ object connform: Tconnform
       object lblSSLPrivateKey: TLabel
         Tag = 6
         Left = 3
-        Top = 12
+        Top = 39
         Width = 78
         Height = 13
         Caption = 'SSL private key:'
@@ -576,7 +576,7 @@ object connform: Tconnform
       object lblSSLCACertificate: TLabel
         Tag = 6
         Left = 3
-        Top = 41
+        Top = 68
         Width = 89
         Height = 13
         Caption = 'SSL CA certificate:'
@@ -585,7 +585,7 @@ object connform: Tconnform
       object lblSSLCertificate: TLabel
         Tag = 6
         Left = 3
-        Top = 68
+        Top = 95
         Width = 72
         Height = 13
         Caption = 'SSL certificate:'
@@ -593,21 +593,7 @@ object connform: Tconnform
       end
       object editSSLPrivateKey: TButtonedEdit
         Left = 101
-        Top = 9
-        Width = 191
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 51
-        RightButton.Visible = True
-        TabOrder = 0
-        OnChange = Modification
-        OnDblClick = PickFile
-        OnRightButtonClick = PickFile
-      end
-      object editSSLCACertificate: TButtonedEdit
-        Left = 101
-        Top = 38
+        Top = 36
         Width = 191
         Height = 21
         Anchors = [akLeft, akTop, akRight]
@@ -619,7 +605,7 @@ object connform: Tconnform
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
       end
-      object editSSLCertificate: TButtonedEdit
+      object editSSLCACertificate: TButtonedEdit
         Left = 101
         Top = 65
         Width = 191
@@ -632,6 +618,30 @@ object connform: Tconnform
         OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
+      end
+      object editSSLCertificate: TButtonedEdit
+        Left = 101
+        Top = 92
+        Width = 191
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.ImageListMain
+        RightButton.ImageIndex = 51
+        RightButton.Visible = True
+        TabOrder = 3
+        OnChange = Modification
+        OnDblClick = PickFile
+        OnRightButtonClick = PickFile
+      end
+      object chkWantSSL: TCheckBox
+        Left = 101
+        Top = 9
+        Width = 191
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Use SSL'
+        TabOrder = 0
+        OnClick = Modification
       end
     end
     object tabStatistics: TTabSheet
