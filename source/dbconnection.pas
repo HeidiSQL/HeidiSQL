@@ -836,6 +836,7 @@ var
   CurCharset: String;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
+  sslca, sslkey, sslcert: PAnsiChar;
   PluginDir: AnsiString;
   Vars, Status: TDBQuery;
 begin
@@ -852,11 +853,21 @@ begin
     case FParameters.NetType of
       ntMySQL_TCPIP: begin
         if FParameters.WantSSL then begin
+          // mysql_ssl_set() wants nil, while PAnsiChar(AnsiString()) is never nil
+          sslkey := nil;
+          sslcert := nil;
+          sslca := nil;
+          if FParameters.SSLPrivateKey <> '' then
+ 	          sslkey := PAnsiChar(AnsiString(FParameters.SSLPrivateKey));
+          if FParameters.SSLCertificate <> '' then
+ 	          sslcert := PAnsiChar(AnsiString(FParameters.SSLCertificate));
+          if FParameters.SSLCACertificate <> '' then
+ 	          sslca := PAnsiChar(AnsiString(FParameters.SSLCACertificate));
           { TODO : Use Cipher and CAPath parameters }
           mysql_ssl_set(FHandle,
-            PAnsiChar(AnsiString(FParameters.SSLPrivateKey)),
-            PAnsiChar(AnsiString(FParameters.SSLCertificate)),
-            PAnsiChar(AnsiString(FParameters.SSLCACertificate)),
+            sslkey,
+            sslcert,
+            sslca,
             nil,
             nil);
           Log(lcInfo, 'SSL parameters successfully set.');
