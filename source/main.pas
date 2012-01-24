@@ -2323,7 +2323,7 @@ end;
 procedure TMainForm.FinishedQueryExecution(Thread: TQueryThread);
 var
   Tab: TQueryTab;
-  MetaInfo: String;
+  MetaInfo, ErroneousSQL: String;
   ProfileAllTime: Extended;
   ProfileNode: PVirtualNode;
 
@@ -2333,14 +2333,25 @@ var
     SelStart, ErrorPos: Integer;
   begin
     // Try to set memo cursor to the relevant position
-    SelStart := Tab.LeftOffsetInMemo;
+    if Tab.LeftOffsetInMemo > 0 then
+      SelStart := Tab.LeftOffsetInMemo-1
+    else
+      SelStart := Thread.Batch[Thread.BatchPosition].LeftOffset-1;
 
-    // "... for the right syntax to use near 'lik 123)' at line 4"
+    // Extract erroneous portion of SQL out of error message
+    ErroneousSQL := '';
     rx := TRegExpr.Create;
     rx.Expression := 'for the right syntax to use near ''(.+)'' at line (\d+)';
-    if rx.Exec(Err) then begin
+    if rx.Exec(Err) then
+      ErroneousSQL := rx.Match[1];
+    rx.Expression := 'Duplicate entry ''([^'']+)''';
+    if rx.Exec(Err) then
+      ErroneousSQL := rx.Match[1];
+    rx.Free;
+
+    if ErroneousSQL <> '' then begin
       // Examine 1kb of memo text at given offset
-      ErrorPos := Pos(rx.Match[1], Copy(Tab.Memo.Text, SelStart, SIZE_KB));
+      ErrorPos := Pos(ErroneousSQL, Copy(Tab.Memo.Text, SelStart, SIZE_KB));
       if ErrorPos > 0 then
         Inc(SelStart, ErrorPos-1);
       Tab.Memo.SelLength := 0;
