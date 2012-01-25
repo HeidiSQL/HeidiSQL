@@ -3317,6 +3317,7 @@ procedure TMainForm.actRefreshExecute(Sender: TObject);
 var
   tab1, tab2: TTabSheet;
   List: TVirtualStringTree;
+  OldDbObject: TDBObject;
 begin
   // Refresh
   // Force data tab update when appropriate.
@@ -3336,9 +3337,11 @@ begin
     else
       List := ListCommandStats;
     InvalidateVT(List, VTREE_NOTLOADED_PURGECACHE, True);
-  end else if tab1 = tabDatabase then
-    InvalidateVT(ListTables, VTREE_NOTLOADED_PURGECACHE, False)
-  else if tab1 = tabData then
+  end else if tab1 = tabDatabase then begin
+    OldDbObject := TDBObject.Create(FActiveDbObj.Connection);
+    OldDbObject.Assign(FActiveDbObj);
+    RefreshTree(OldDbObject);
+  end else if tab1 = tabData then
     InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 
@@ -5964,7 +5967,10 @@ begin
     Conn := ActiveConnection;
     while Assigned(Node) do begin
       db := ListDatabases.Text[Node, 0];
-      Conn.GetDBObjects(db, True);
+      if db = ActiveDatabase then
+        RefreshTree
+      else
+        Conn.GetDBObjects(db, True);
       ListDatabases.RepaintNode(Node);
       DBtree.RepaintNode(FindDBNode(DBtree, Conn, db));
       Node := GetNextNode(ListDatabases, Node, True);
@@ -7031,6 +7037,7 @@ begin
   Node := FindDBNode(DBTree, Connection, Database);
   if Assigned(Node) then begin
     WasExpanded := DBTree.Expanded[Node];
+    // Will trigger OnFocusChanged:
     DBTree.ResetNode(Node);
     DBtree.Expanded[Node] := WasExpanded;
     {
@@ -7107,7 +7114,7 @@ begin
 
   // ReInit tree population
   FTreeRefreshInProgress := True;
-  DBtree.FocusedNode := nil;
+  SelectNode(DBtree, nil);
   try
     if not OnlyDBNode then begin
       FocusNewObject.Connection.ClearAllDbObjects;
@@ -7982,8 +7989,12 @@ begin
   if Conn <> nil then begin
     if vt.Tag = VTREE_NOTLOADED_PURGECACHE then begin
       for i:=0 to Conn.AllDatabases.Count-1 do begin
-        if Conn.DbObjectsCached(Conn.AllDatabases[i]) then
-          Conn.GetDBObjects(Conn.AllDatabases[i], True);
+        if Conn.DbObjectsCached(Conn.AllDatabases[i]) then begin
+          if Conn.AllDatabases[i] = ActiveDatabase then
+            RefreshTree
+          else
+            Conn.GetDBObjects(Conn.AllDatabases[i], True);
+        end;
       end;
     end;
     vt.RootNodeCount := Conn.AllDatabases.Count;
@@ -8105,7 +8116,7 @@ begin
   if vt.Tag = VTREE_LOADED then
     Exit;
   Tab := vt.Parent as TTabSheet;
-  vt.FocusedNode := nil;
+  SelectNode(vt, nil);
   vt.BeginUpdate;
   OldOffset := vt.OffsetXY;
   vt.Clear;
