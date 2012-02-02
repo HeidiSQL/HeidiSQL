@@ -40,6 +40,9 @@ SetupIconFile={#ResourceDir}mainicon.ico
 UsePreviousAppDir=yes
 DirExistsWarning=auto
 PrivilegesRequired=none
+; Minimum memory requirements for compression (1m), so we don't get a
+; "out of memory" error on the server
+Compression=zip/7
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"; MinVersion: 4,4
