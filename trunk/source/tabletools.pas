@@ -1294,6 +1294,8 @@ begin
     // Table data
     if comboExportData.Text = DATA_NO then begin
       Output(CRLF+'-- Data exporting was unselected.'+CRLF, False, True, True, False, False);
+    end else if DBObj.Engine = 'MRG_MYISAM' then begin
+      Output(CRLF+'-- Table data not exported because this is '+DBObj.Engine+' table which holds its data in separate tables.'+CRLF, False, True, True, False, False);
     end else begin
       tmp := FormatNumber(DBObj.Rows)+' rows';
       if LowerCase(DBObj.Engine) = 'innodb' then
