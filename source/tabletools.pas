@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
   VirtualTrees, ExtCtrls, Contnrs, Graphics, SynRegExpr, Math, Generics.Collections,
-  dbconnection, helpers;
+  dbconnection, helpers, Menus;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
@@ -67,6 +67,10 @@ type
     btnSeeResults: TButton;
     chkCaseSensitive: TCheckBox;
     lblCheckedSize: TLabel;
+    popupTree: TPopupMenu;
+    menuCheckAll: TMenuItem;
+    menuCheckByType: TMenuItem;
+    menuCheckNone: TMenuItem;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -109,6 +113,7 @@ type
     procedure TreeObjectsBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
       var ContentRect: TRect);
+    procedure CheckAllClick(Sender: TObject);
   private
     { Private declarations }
     FResults: TObjectList<TStringList>;
@@ -168,6 +173,9 @@ procedure TfrmTableTools.FormCreate(Sender: TObject);
 var
   i: Integer;
   SessionNames: TStringList;
+  MenuItem: TMenuItem;
+  dt: TListNodeType;
+  Obj: TDBObject;
 begin
   // Restore GUI setup
   InheritFont(Font);
@@ -210,6 +218,19 @@ begin
   FModifiedDbs := TStringList.Create;
   FModifiedDbs.Duplicates := dupIgnore;
   FFindSeeResultSQL := TStringList.Create;
+
+  // Popup menu
+  Obj := TDBObject.Create(nil);
+  for dt:=lntTable to lntEvent do begin
+    Obj.NodeType := dt;
+    MenuItem := TMenuItem.Create(menuCheckByType);
+    MenuItem.Caption := UpperCase(Obj.ObjType)+'s';
+    MenuItem.ImageIndex := Obj.ImageIndex;
+    MenuItem.OnClick := CheckAllClick;
+    MenuItem.Tag := Integer(dt);
+    menuCheckByType.Add(MenuItem);
+  end;
+  Obj.Free;
 end;
 
 
@@ -1476,6 +1497,46 @@ begin
     LogRow[3] := 'Selected operations cannot be applied to a '+LowerCase(DBObj.ObjType);
   end;
   UpdateResultGrid;
+end;
+
+
+procedure TfrmTableTools.CheckAllClick(Sender: TObject);
+var
+  DBNode, ObjNode: PVirtualNode;
+  WantedType: TListNodeType;
+  DBObj: PDBObject;
+  CheckNone: Boolean;
+  CheckedNodes: Int64;
+begin
+  // Check all/none/by type via context menu
+  WantedType := TListNodeType((Sender as TMenuItem).Tag);
+  CheckNone := Sender = menuCheckNone;
+  case TreeObjects.GetNodeLevel(TreeObjects.FocusedNode) of
+    1: DBNode := TreeObjects.FocusedNode;
+    2: DBNode := TreeObjects.FocusedNode.Parent;
+    else raise Exception.Create('Unhandled tree level');
+  end;
+  ObjNode := TreeObjects.GetFirstChild(DBNode);
+  CheckedNodes := 0;
+  while Assigned(ObjNode) do begin
+    DBObj := TreeObjects.GetNodeData(ObjNode);
+    if CheckNone then
+      ObjNode.CheckState := csUncheckedNormal
+    else begin
+      if (WantedType = lntNone) or (DBObj.NodeType = WantedType) then
+        ObjNode.CheckState := csCheckedNormal
+      else
+        ObjNode.CheckState := csUncheckedNormal;
+    end;
+    if ObjNode.CheckState = csCheckedNormal then
+      Inc(CheckedNodes);
+    TreeObjects.RepaintNode(ObjNode);
+    ObjNode := TreeObjects.GetNextSibling(ObjNode);
+  end;
+  if CheckedNodes = 0 then
+    TreeObjects.CheckState[DBNode] := csUncheckedNormal
+  else
+    TreeObjects.CheckState[DBNode] := csCheckedNormal;
 end;
 
 
