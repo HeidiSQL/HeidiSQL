@@ -78,9 +78,11 @@ object frmTableTools: TfrmTableTools
       Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
       Images = MainForm.ImageListMain
       IncrementalSearch = isInitializedOnly
+      PopupMenu = popupTree
       TabOrder = 0
       TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
       TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
+      TreeOptions.SelectionOptions = [toRightClickSelect]
       OnBeforeCellPaint = TreeObjectsBeforeCellPaint
       OnChange = TreeObjectsChange
       OnChecked = TreeObjectsChecked
@@ -525,5 +527,21 @@ object frmTableTools: TfrmTableTools
     TabOrder = 1
     Visible = False
     OnClick = btnSeeResultsClick
+  end
+  object popupTree: TPopupMenu
+    Images = MainForm.ImageListMain
+    Left = 144
+    Top = 352
+    object menuCheckNone: TMenuItem
+      Caption = 'Check none'
+      OnClick = CheckAllClick
+    end
+    object menuCheckAll: TMenuItem
+      Caption = 'Check all'
+      OnClick = CheckAllClick
+    end
+    object menuCheckByType: TMenuItem
+      Caption = 'Check ...'
+    end
   end
 end
