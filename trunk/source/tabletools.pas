@@ -644,7 +644,7 @@ begin
   Columns := TTableColumnList.Create(True);
   case DBObj.NodeType of
     lntTable: DBObj.Connection.ParseTableStructure(DBObj.CreateCode, Columns, nil, nil);
-    lntView: DBObj.Connection.ParseViewStructure(DBObj.CreateCode, DBObj.Name, Columns, Dummy, Dummy, Dummy, Dummy);
+    lntView: DBObj.Connection.ParseViewStructure(DBObj.CreateCode, DBObj.Name, Columns, Dummy, Dummy, Dummy, Dummy, Dummy);
     else AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' does not contain rows.', '');
   end;
   if Columns.Count > 0 then begin
@@ -1216,7 +1216,7 @@ begin
             if not FSecondExportPass then begin
               // Create temporary VIEW replacement
               ColumnList := TTableColumnList.Create(True);
-              DBObj.Connection.ParseViewStructure(DBObj.CreateCode, DBObj.Name, ColumnList, Dummy, Dummy, Dummy, Dummy);
+              DBObj.Connection.ParseViewStructure(DBObj.CreateCode, DBObj.Name, ColumnList, Dummy, Dummy, Dummy, Dummy, Dummy);
               Struc := '-- Creating temporary table to overcome VIEW dependency errors'+CRLF+
                 'CREATE TABLE ';
               if ToDb then
@@ -1235,8 +1235,6 @@ begin
               Struc := Struc + Quoter.QuoteIdent(DBObj.Name);
               Output(Struc, True, True, True, True, True);
               Struc := DBObj.CreateCode;
-              if DBObj.ViewSelectCode <> '' then
-                Struc := DBObj.ViewSelectCode;
               if ToDb then
                 Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
             end;

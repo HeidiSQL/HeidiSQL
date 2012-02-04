@@ -4746,7 +4746,7 @@ var
           lntTable:
             Conn.ParseTableStructure(Obj.CreateCode, Columns, nil, nil);
           lntView:
-            Conn.ParseViewStructure(Obj.CreateCode, Obj.Name, Columns, Dummy, Dummy, Dummy, Dummy);
+            Conn.ParseViewStructure(Obj.CreateCode, Obj.Name, Columns, Dummy, Dummy, Dummy, Dummy, Dummy);
         end;
         for Col in Columns do begin
           Proposal.InsertList.Add(Col.Name);
@@ -6885,7 +6885,7 @@ begin
             lntTable:
               FActiveDbObj.Connection.ParseTableStructure(FActiveDbObj.CreateCode, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
             lntView:
-              FActiveDbObj.Connection.ParseViewStructure(FActiveDbObj.CreateCode, FActiveDbObj.Name, SelectedTableColumns, DummyStr, DummyStr, DummyStr, DummyStr);
+              FActiveDbObj.Connection.ParseViewStructure(FActiveDbObj.CreateCode, FActiveDbObj.Name, SelectedTableColumns, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
           end;
         except on E:EDatabaseError do
           ErrorDialog(E.Message);
