@@ -18,7 +18,6 @@ type
   TDBObject = class(TPersistent)
     private
       FCreateCode: String;
-      FViewSelectCode: String;
       FCreateCodeFetched: Boolean;
       FConnection: TDBConnection;
       function GetObjType: String;
@@ -39,7 +38,6 @@ type
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
       property CreateCode: String read GetCreateCode write SetCreateCode;
-      property ViewSelectCode: String read FViewSelectCode;
       property Connection: TDBConnection read FConnection;
   end;
   PDBObject = ^TDBObject;
@@ -302,7 +300,8 @@ type
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
       procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
-      procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, Definer, CheckOption, SelectCode: String);
+      procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList;
+        var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
       procedure ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
         var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String);
       function GetDatatypeByName(Datatype: String): TDBDatatype;
@@ -2938,7 +2937,8 @@ begin
 end;
 
 
-procedure TDBConnection.ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList; var Algorithm, Definer, CheckOption, SelectCode: String);
+procedure TDBConnection.ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList;
+  var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
 var
   rx: TRegExpr;
   Col: TTableColumn;
@@ -3800,7 +3800,7 @@ begin
     lntTable:
       Connection.ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys);
     lntView:
-      Connection.ParseViewStructure(CreateCode, TableName, FColumns, Dummy, Dummy, Dummy, Dummy);
+      Connection.ParseViewStructure(CreateCode, TableName, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
   end;  
   FreeAndNil(FUpdateData);
   FUpdateData := TUpdateData.Create(True);
@@ -4379,7 +4379,6 @@ begin
     Size := s.Size;
     FCreateCode := s.FCreateCode;
     FCreateCodeFetched := s.FCreateCodeFetched;
-    FViewSelectCode := s.FViewSelectCode;
   end else
     inherited;
 end;
@@ -4437,19 +4436,33 @@ end;
 function TDBObject.GetCreateCode: String;
 var
   rx: TRegExpr;
+  ViewName, Algorithm, CheckOption, SelectCode, Definer, SQLSecurity: String;
+  AlternativeSelectCode: String;
 begin
   if not FCreateCodeFetched then try
     FCreateCode := Connection.GetCreateCode(Database, Name, NodeType);
     if NodeType = lntView then begin
-      FViewSelectCode := Connection.GetVar('SELECT LOAD_FILE(CONCAT(IFNULL(@@GLOBAL.datadir, CONCAT(@@GLOBAL.basedir, '+Connection.EscapeString('data/')+')), '+Connection.EscapeString(Database+'/'+Name+'.frm')+'))');
+      // Try to fetch original VIEW code from .frm file
+      AlternativeSelectCode := Connection.GetVar('SELECT LOAD_FILE(CONCAT(IFNULL(@@GLOBAL.datadir, CONCAT(@@GLOBAL.basedir, '+Connection.EscapeString('data/')+')), '+Connection.EscapeString(Database+'/'+Name+'.frm')+'))');
       rx := TRegExpr.Create;
       rx.ModifierI := True;
       rx.ModifierG := False;
       rx.Expression := '\nsource\=(.+)\n\w+\=';
-      if rx.Exec(FViewSelectCode) then
-        FViewSelectCode := Connection.UnescapeString(rx.Match[1])
-      else
-        FViewSelectCode := '';
+      if rx.Exec(AlternativeSelectCode) then begin
+        // Put pieces of CREATE VIEW together
+        Connection.ParseViewStructure(FCreateCode, ViewName, nil,
+          Algorithm, Definer, SQLSecurity, CheckOption, SelectCode);
+        AlternativeSelectCode := Connection.UnescapeString(rx.Match[1]);
+        FCreateCode := 'CREATE ';
+        if Algorithm <> '' then
+          FCreateCode := FCreateCode + 'ALGORITHM='+Uppercase(Algorithm)+' ';
+        if Definer <> '' then
+          FCreateCode := FCreateCode + 'DEFINER='+Connection.QuoteIdent(Definer, True, '@')+' ';
+        FCreateCode := FCreateCode + 'VIEW '+QuotedName+' AS '+AlternativeSelectCode+' ';
+        if CheckOption <> '' then
+          FCreateCode := FCreateCode + 'WITH '+Uppercase(CheckOption)+' CHECK OPTION';
+      end;
+      rx.Free;
     end;
   except
   end;

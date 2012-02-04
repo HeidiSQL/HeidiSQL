@@ -61,7 +61,7 @@ end;
 }
 procedure TfrmView.Init(Obj: TDBObject);
 var
-  Algorithm, CheckOption, SelectCode, Definer: String;
+  Algorithm, CheckOption, SelectCode, Definer, SQLSecurity: String;
 begin
   inherited;
   lblDisabledWhy.Font.Color := clRed;
@@ -71,16 +71,13 @@ begin
   if Obj.Name <> '' then begin
     // Edit mode
     editName.Text := Obj.Name;
-    Obj.Connection.ParseViewStructure(Obj.CreateCode, Obj.Name, nil, Algorithm, Definer, CheckOption, SelectCode);
+    Obj.Connection.ParseViewStructure(Obj.CreateCode, Obj.Name, nil, Algorithm, Definer, SQLSecurity, CheckOption, SelectCode);
     comboDefiner.Text := Definer;
     rgAlgorithm.ItemIndex := rgAlgorithm.Items.IndexOf(Algorithm);
     rgCheck.ItemIndex := rgCheck.Items.IndexOf(CheckOption);
     if rgCheck.ItemIndex = -1 then
       rgCheck.ItemIndex := 0;
-    if Obj.ViewSelectCode <> '' then
-      SynMemoSelect.Text := Obj.ViewSelectCode
-    else
-      SynMemoSelect.Text := SelectCode;
+    SynMemoSelect.Text := SelectCode;
     // User may not be allowed to run SHOW CREATE VIEW, in which case we have an empty CreateCode.
     // Disable editor in this case.
     lblDisabledWhy.Visible := SelectCode = '';
