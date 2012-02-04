@@ -371,6 +371,7 @@ type
       function GetTableEngines: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
+      function GetCreateViewCode(Database, Name: String): String;
       procedure SetLockedByThread(Value: TThread); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -1432,8 +1433,63 @@ begin
     lntEvent: Column := 3;
     else Exception.Create('Unhandled list node type in '+ClassName+'.GetCreateCode');
   end;
-  Result := GetVar('SHOW CREATE '+UpperCase(TmpObj.ObjType)+' '+QuoteIdent(Database)+'.'+QuoteIdent(Name), Column);
+  if NodeType = lntView then
+    Result := GetCreateViewCode(Database, Name)
+  else
+    Result := GetVar('SHOW CREATE '+UpperCase(TmpObj.ObjType)+' '+QuoteIdent(Database)+'.'+QuoteIdent(Name), Column);
   TmpObj.Free;
+end;
+
+
+function TMySQLConnection.GetCreateViewCode(Database, Name: String): String;
+var
+  ViewIS: TDBQuery;
+  ViewName, Algorithm, CheckOption, SelectCode, Definer, SQLSecurity: String;
+  AlternativeSelectCode: String;
+  rx: TRegExpr;
+begin
+  // Get CREATE VIEW code, which can throw privilege errors and errors due to
+  // references to renamed or deleted columns
+  try
+    Result := GetVar('SHOW CREATE VIEW '+QuoteIdent(Database)+'.'+QuoteIdent(Name), 1);
+  except
+    on E:EDatabaseError do begin
+      ViewIS := GetResults('SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE '+
+        'TABLE_SCHEMA='+EscapeString(Database)+' AND TABLE_NAME='+EscapeString(Name));
+      Result := 'CREATE ';
+      if ViewIS.Col('DEFINER') <> '' then
+        Result := Result + 'DEFINER='+QuoteIdent(ViewIS.Col('DEFINER'), True, '@')+' ';
+      Result := Result + 'VIEW '+QuoteIdent(Name)+' AS '+ViewIS.Col('VIEW_DEFINITION')+' ';
+      if ViewIS.Col('CHECK_OPTION') <> 'NONE' then
+        Result := Result + 'WITH '+Uppercase(ViewIS.Col('CHECK_OPTION'))+' CHECK OPTION';
+    end;
+  end;
+  try
+    // Try to fetch original VIEW code from .frm file
+    AlternativeSelectCode := GetVar('SELECT LOAD_FILE(CONCAT(IFNULL(@@GLOBAL.datadir, CONCAT(@@GLOBAL.basedir, '+EscapeString('data/')+')), '+EscapeString(Database+'/'+Name+'.frm')+'))');
+    rx := TRegExpr.Create;
+    rx.ModifierI := True;
+    rx.ModifierG := False;
+    rx.Expression := '\nsource\=(.+)\n\w+\=';
+    if rx.Exec(AlternativeSelectCode) then begin
+      // Put pieces of CREATE VIEW together
+      ParseViewStructure(Result, ViewName, nil,
+        Algorithm, Definer, SQLSecurity, CheckOption, SelectCode);
+      AlternativeSelectCode := UnescapeString(rx.Match[1]);
+      Result := 'CREATE ';
+      if Algorithm <> '' then
+        Result := Result + 'ALGORITHM='+Uppercase(Algorithm)+' ';
+      if Definer <> '' then
+        Result := Result + 'DEFINER='+QuoteIdent(Definer, True, '@')+' ';
+      Result := Result + 'VIEW '+QuoteIdent(Name)+' AS '+AlternativeSelectCode+' ';
+      if CheckOption <> '' then
+        Result := Result + 'WITH '+Uppercase(CheckOption)+' CHECK OPTION';
+    end;
+    rx.Free;
+  except
+    // Do not raise if that didn't work
+    on E:EDatabaseError do;
+  end;
 end;
 
 
@@ -4434,36 +4490,9 @@ end;
 
 
 function TDBObject.GetCreateCode: String;
-var
-  rx: TRegExpr;
-  ViewName, Algorithm, CheckOption, SelectCode, Definer, SQLSecurity: String;
-  AlternativeSelectCode: String;
 begin
   if not FCreateCodeFetched then try
     FCreateCode := Connection.GetCreateCode(Database, Name, NodeType);
-    if NodeType = lntView then begin
-      // Try to fetch original VIEW code from .frm file
-      AlternativeSelectCode := Connection.GetVar('SELECT LOAD_FILE(CONCAT(IFNULL(@@GLOBAL.datadir, CONCAT(@@GLOBAL.basedir, '+Connection.EscapeString('data/')+')), '+Connection.EscapeString(Database+'/'+Name+'.frm')+'))');
-      rx := TRegExpr.Create;
-      rx.ModifierI := True;
-      rx.ModifierG := False;
-      rx.Expression := '\nsource\=(.+)\n\w+\=';
-      if rx.Exec(AlternativeSelectCode) then begin
-        // Put pieces of CREATE VIEW together
-        Connection.ParseViewStructure(FCreateCode, ViewName, nil,
-          Algorithm, Definer, SQLSecurity, CheckOption, SelectCode);
-        AlternativeSelectCode := Connection.UnescapeString(rx.Match[1]);
-        FCreateCode := 'CREATE ';
-        if Algorithm <> '' then
-          FCreateCode := FCreateCode + 'ALGORITHM='+Uppercase(Algorithm)+' ';
-        if Definer <> '' then
-          FCreateCode := FCreateCode + 'DEFINER='+Connection.QuoteIdent(Definer, True, '@')+' ';
-        FCreateCode := FCreateCode + 'VIEW '+QuotedName+' AS '+AlternativeSelectCode+' ';
-        if CheckOption <> '' then
-          FCreateCode := FCreateCode + 'WITH '+Uppercase(CheckOption)+' CHECK OPTION';
-      end;
-      rx.Free;
-    end;
   except
   end;
   FCreateCodeFetched := True;
