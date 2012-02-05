@@ -486,14 +486,21 @@ begin
       Separator := ' & ';
       Encloser := '';
       Terminator := '\\ '+CRLF;
+      Header := Header + '{';
+      Col := Grid.Header.Columns.GetFirstVisibleColumn;
+      while Col > NoColumn do begin
+        Header := Header + ' c ';
+        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      end;
+      Header := Header + '}' + CRLF;
       if chkColumnHeader.Checked then begin
-        Header := Header + '{';
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
-          Header := Header + ' c ';
+          Header := Header + Grid.Header.Columns[Col].Text + Separator;
           Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
         end;
-        Header := Header + '}' + CRLF;
+        Delete(Header, Length(Header)-Length(Separator)+1, Length(Separator));
+        Header := Header + Terminator;
       end;
     end;
 
