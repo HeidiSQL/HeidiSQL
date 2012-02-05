@@ -3882,10 +3882,28 @@ end;
 procedure TMainForm.actSelectTreeBackgroundExecute(Sender: TObject);
 var
   cs: TColorSelect;
+  SessionNames: TStringList;
+  i: Integer;
+  Col: Integer;
+  CharPostfix: Char;
 begin
   // Select database tree background color
   cs := TColorSelect.Create(Self);
   cs.Dialog.Color := DBtree.Color;
+  // Add custom colors from all sessions
+  SessionNames := TStringList.Create;
+  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
+  MainReg.GetKeyNames(SessionNames);
+  CharPostfix := 'A';
+  for i:=0 to SessionNames.Count-1 do begin
+    Col := GetRegValue(REGNAME_TREEBACKGROUND, clWhite, SessionNames[i]);
+    if Col <> clWhite then begin
+      cs.Dialog.CustomColors.Add('Color'+CharPostfix+'='+Copy(ColorToString(Col),4,8));
+      if CharPostFix = 'P' then
+        break;
+      CharPostfix := Chr(Ord(CharPostfix)+1);
+    end;
+  end;
   if cs.Execute then begin
     DBtree.Color := cs.Dialog.Color;
     OpenRegistry(ActiveConnection.Parameters.SessionName);
