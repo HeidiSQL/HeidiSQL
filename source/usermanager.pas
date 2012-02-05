@@ -496,7 +496,7 @@ begin
     rxTemp.ModifierI := True;
     rxGrant := TRegExpr.Create;
     rxGrant.ModifierI := True;
-    rxGrant.Expression := '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?`?([^`.]+)`?\.`?([^`]+)`?\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+REQUIRE\s+.+)?(\s+WITH\s+.+)?$';
+    rxGrant.Expression := '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?`?([^`.]+)`?\.`?([^`]+)`?\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+.+)?$';
 
     for i:=0 to Grants.Count-1 do begin
       // Find selected priv objects via regular expression
@@ -580,8 +580,9 @@ begin
         end;
 
         // REQUIRE SSL X509 ISSUER '456' SUBJECT '789' CIPHER '123' NONE
-        if rxGrant.Match[9] <> '' then begin
-          RequireClause := rxGrant.Match[9];
+        rxTemp.Expression := '\sREQUIRE\s+(.+)';
+        if rxTemp.Exec(rxGrant.Match[9]) then begin
+          RequireClause := rxTemp.Match[1];
           User.SSL := 0;
           User.Cipher := '';
           User.Issuer := '';
@@ -612,8 +613,9 @@ begin
 
         // WITH .. GRANT OPTION
         // MAX_QUERIES_PER_HOUR 20 MAX_UPDATES_PER_HOUR 10 MAX_CONNECTIONS_PER_HOUR 5 MAX_USER_CONNECTIONS 2
-        if rxGrant.Match[10] <> '' then begin
-          WithClause := rxGrant.Match[10];
+        rxTemp.Expression := '\sWITH\s+(.+)';
+        if rxTemp.Exec(rxGrant.Match[9]) then begin
+          WithClause := rxTemp.Match[1];
           User.MaxQueries := 0;
           User.MaxUpdates := 0;
           User.MaxConnections := 0;
