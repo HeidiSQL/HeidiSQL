@@ -32,12 +32,12 @@ type
     FModified: Boolean;
     FStopping: Boolean;
     procedure SetModified(NewVal: Boolean);
-    property Modified: Boolean read FModified write SetModified;
   public
     function GetText: String;
     procedure SetText(text: String);
     procedure SetMaxLength(len: integer);
     procedure SetFont(font: TFont);
+    property Modified: Boolean read FModified write SetModified;
   end;
 
 
