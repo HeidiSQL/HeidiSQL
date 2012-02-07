@@ -1061,11 +1061,12 @@ begin
   if FStopping then Exit;
   if Assigned(FTextEditor) then begin
     NewText := FTextEditor.GetText;
+    FModified := FTextEditor.Modified;
     FTextEditor.Close;
   end else begin
     NewText := FEdit.Text;
+    FModified := FEdit.Modified;
   end;
-  FModified := FEdit.Modified;
   Result := EndEditHelper(NewText);
 end;
 
@@ -1086,7 +1087,6 @@ begin
   FTextEditor.Modified := FEdit.Modified;
   FTextEditor.SetMaxLength(Self.FMaxLength);
   FTextEditor.ShowModal;
-  FEdit.Modified := FTextEditor.Modified;
 end;
 
 function TInplaceEditorLink.PrepareEdit(Tree: TBaseVirtualTree;
