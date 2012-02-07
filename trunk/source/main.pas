@@ -3887,6 +3887,21 @@ var
   Col: TColor;
   ColString: String;
   CharPostfix: Char;
+
+  function ValueExists(Value: String): Boolean;
+  var
+    j: Integer;
+  begin
+    // Value exists in string list?
+    Result := False;
+    for j:=0 to cs.Dialog.CustomColors.Count-1 do begin
+      if cs.Dialog.CustomColors.ValueFromIndex[j] = Value then begin
+        Result := True;
+        break;
+      end;
+    end;
+  end;
+
 begin
   // Select database tree background color
   cs := TColorSelect.Create(Self);
@@ -3897,13 +3912,15 @@ begin
   MainReg.GetKeyNames(SessionNames);
   CharPostfix := 'A';
   for i:=0 to SessionNames.Count-1 do begin
-    Col := GetRegValue(REGNAME_TREEBACKGROUND, clWhite, SessionNames[i]);
-    if Col <> clWhite then begin
+    Col := GetRegValue(REGNAME_TREEBACKGROUND, clDefault, SessionNames[i]);
+    if Col <> clDefault then begin
       ColString := IntToHex(ColorToRgb(Col), 6);
-      cs.Dialog.CustomColors.Add('Color'+CharPostfix+'='+ColString);
-      if CharPostFix = 'P' then
-        break;
-      CharPostfix := Chr(Ord(CharPostfix)+1);
+      if not ValueExists(ColString) then begin
+        cs.Dialog.CustomColors.Add('Color'+CharPostfix+'='+ColString);
+        if cs.Dialog.CustomColors.Count >= MaxCustomColors then
+          break;
+        CharPostfix := Chr(Ord(CharPostfix)+1);
+      end;
     end;
   end;
   if cs.Execute then begin
