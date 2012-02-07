@@ -3884,7 +3884,8 @@ var
   cs: TColorSelect;
   SessionNames: TStringList;
   i: Integer;
-  Col: Integer;
+  Col: TColor;
+  ColString: String;
   CharPostfix: Char;
 begin
   // Select database tree background color
@@ -3898,7 +3899,8 @@ begin
   for i:=0 to SessionNames.Count-1 do begin
     Col := GetRegValue(REGNAME_TREEBACKGROUND, clWhite, SessionNames[i]);
     if Col <> clWhite then begin
-      cs.Dialog.CustomColors.Add('Color'+CharPostfix+'='+Copy(ColorToString(Col),4,8));
+      ColString := IntToHex(ColorToRgb(Col), 6);
+      cs.Dialog.CustomColors.Add('Color'+CharPostfix+'='+ColString);
       if CharPostFix = 'P' then
         break;
       CharPostfix := Chr(Ord(CharPostfix)+1);
