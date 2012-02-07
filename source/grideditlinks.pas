@@ -34,6 +34,7 @@ type
     FLastShiftState: TShiftState;
     FOldWindowProc: TWndMethod;       // Temporary switched to TempWindowProc to be able to catch Tab key
     FFullDatatype: TDBDatatype;
+    FModified: Boolean;
     procedure TempWindowProc(var Message: TMessage);
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoEndEdit(Sender: TObject);
@@ -77,12 +78,14 @@ type
     FModifyOffset: Integer;
     FTimerCalls: Integer;
     FUpDown: TUpDown;
+    FDefaultDateTime: String;
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure UpDownChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: SmallInt; Direction: TUpDownDirection);
     procedure UpDownMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure DoOnTimer(Sender: TObject);
     procedure ModifyDate(Offset: Integer);
+    procedure TextChange(Sender: TObject);
   public
     constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
@@ -90,6 +93,7 @@ type
     function EndEdit: Boolean; override;
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
     procedure SetBounds(R: TRect); override;
+    property DefaultDateTime: String read FDefaultDateTime write FDefaultDateTime;
   end;
 
   TEnumEditorLink = class(TBaseGridEditorLink)
@@ -180,6 +184,7 @@ type
       TextType: TVSTTextType);
     procedure DoTreeSelectFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
         PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
+    procedure DoTreeSelectFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
   public
     constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
@@ -224,6 +229,7 @@ begin
   // Avoid flicker
   FParentForm.Repaint;
   SendMessage(FParentForm.Handle, WM_SETREDRAW, 0, 0);
+  FModified := False;
 end;
 
 destructor TBaseGridEditorLink.Destroy;
@@ -319,7 +325,7 @@ begin
   Result := not FStopping;
   if FStopping then Exit;
   FStopping := True;
-  if NewText <> FCellText then
+  if FModified then
     FTree.Text[FNode, FColumn] := NewText;
   if FTree.CanFocus and (FLastKeyDown <> VK_TAB) then
     FTree.SetFocus;
@@ -472,6 +478,7 @@ end;
 function THexEditorLink.EndEdit: Boolean; stdcall;
 begin
   FForm.Close;
+  FModified := FForm.Modified;
   Result := EndEditHelper(FForm.GetText);
 end;
 
@@ -502,6 +509,7 @@ begin
   FMaskEdit.BorderStyle := bsNone;
   FMaskEdit.OnKeyDown := DoKeyDown;
   FMaskEdit.OnKeyUp := DoKeyUp;
+  FMaskEdit.OnChange := TextChange;
   FMainControl := FMaskEdit;
 
   FUpDown := TUpDown.Create(FPanel);
@@ -513,6 +521,8 @@ begin
   FTimer.Interval := 50;
   FTimer.OnTimer := DoOnTimer;
   FTimer.Enabled := False;
+
+  FDefaultDateTime := '';
 end;
 
 
@@ -564,7 +574,15 @@ begin
     end;
     dtYear: FMaskEdit.EditMask := '0000;1; ';
   end;
-  FMaskEdit.Text := FCellText;
+  if FCellText = '' then begin
+    FMaskEdit.Text := FDefaultDateTime;
+    case DataType of
+      dtDate: FMaskEdit.Text := Copy(FMaskEdit.Text, 1, 10);
+      dtTime: FMaskEdit.Text := Copy(FMaskEdit.Text, 12, 8);
+    end;
+  end else
+    FMaskEdit.Text := FCellText;
+  FModified := False;
   FMaskEdit.Font.Assign(FCellFont);
   FPanel.Color := FCellBackground;
   // Auto-enlarge current tree column so the text in the edit is not cut
@@ -764,6 +782,12 @@ begin
 end;
 
 
+procedure TDateTimeEditorLink.TextChange;
+begin
+  FModified := True;
+end;
+
+
 
 { Enum editor }
 
@@ -809,6 +833,7 @@ begin
     NewText := ValueList[FCombo.ItemIndex]
   else
     NewText := '';
+  FModified := NewText <> FCellText;
   Result := EndEditHelper(NewText);
 end;
 
@@ -910,6 +935,7 @@ begin
   for i := 0 to FCheckList.Items.Count - 1 do
     if FCheckList.Checked[i] then newText := newText + FCheckList.Items[i] + ',';
   Delete(newText, Length(newText), 1);
+  FModified := newText <> FCellText;
   Result := EndEditHelper(newText);
 end;
 
@@ -1039,6 +1065,7 @@ begin
   end else begin
     NewText := FEdit.Text;
   end;
+  FModified := FEdit.Modified;
   Result := EndEditHelper(NewText);
 end;
 
@@ -1056,9 +1083,10 @@ begin
   FTextEditor := TfrmTextEditor.Create(FTree);
   FTextEditor.SetFont(FEdit.Font);
   FTextEditor.SetText(FEdit.Text);
-  FTextEditor.Modified := FEdit.Text <> FCellText;
+  FTextEditor.Modified := FEdit.Modified;
   FTextEditor.SetMaxLength(Self.FMaxLength);
   FTextEditor.ShowModal;
+  FEdit.Modified := FTextEditor.Modified;
 end;
 
 function TInplaceEditorLink.PrepareEdit(Tree: TBaseVirtualTree;
@@ -1076,6 +1104,7 @@ begin
     FEdit.Text := RemoveNulChars(FCellText);
   end else
     FEdit.Text := FCellText;
+  FEdit.Modified := False;
 end;
 
 procedure TInplaceEditorLink.SetBounds(R: TRect);
@@ -1317,12 +1346,14 @@ begin
       FMemoText.SetFocus;
   end;
   FCheckCurTS.Enabled := not FRadioNothing.Checked;
+  FModified := True;
 end;
 
 
 procedure TColumnDefaultEditorLink.TextChange(Sender: TObject);
 begin
   FRadioText.Checked := True;
+  FModified := True;
 end;
 
 
@@ -1354,6 +1385,7 @@ begin
   FTreeSelect.OnHotChange := DoTreeSelectHotChange;
   FTreeSelect.OnPaintText := DoTreeSelectPaintText;
   FTreeSelect.OnExit := DoEndEdit;
+  // See further events in PrepareEdit
   FixVT(FTreeSelect);
   FMainControl := FTreeSelect;
 
@@ -1409,6 +1441,7 @@ begin
   if Assigned(FTreeSelect.FocusedNode) then
     FTreeSelect.ScrollIntoView(FTreeSelect.FocusedNode, True);
   FTreeSelect.OnFocusChanging := DoTreeSelectFocusChanging;
+  FTreeSelect.OnFocusChanged := DoTreeSelectFocusChanged;
   FTreeSelect.OnClick := DoEndEdit;
 end;
 
@@ -1554,6 +1587,12 @@ begin
     if Assigned(JumpToNode) then
       Sender.FocusedNode := JumpToNode;
   end;
+end;
+
+
+procedure TDataTypeEditorLink.DoTreeSelectFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
+begin
+  FModified := True;
 end;
 
 

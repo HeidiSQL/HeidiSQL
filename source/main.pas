@@ -7616,7 +7616,7 @@ var
   ForeignKey: TForeignKey;
   TblColumn: TTableColumn;
   idx: Integer;
-  KeyCol, TextCol, SQL, CreateTable, NowText: String;
+  KeyCol, TextCol, SQL, CreateTable: String;
   Columns: TTableColumnList;
   Keys: TTableKeyList;
   ForeignKeys: TForeignKeyList;
@@ -7694,17 +7694,11 @@ begin
     HexEditor.MaxLength := Results.MaxLength(Column);
     EditLink := HexEditor;
   end else if (TypeCat = dtcTemporal) and prefEnableDatetimeEditor then begin
-    // Ensure date/time editor starts with a non-empty text value
-    if Results.Col(Column) = '' then begin
-      NowText := Conn.GetVar('SELECT NOW()');
-      case Results.DataType(Column).Index of
-        dtDate: NowText := Copy(NowText, 1, 10);
-        dtTime: NowText := Copy(NowText, 12, 8);
-      end;
-      VT.Text[Node, Column] := NowText;
-    end;
     DateTimeEditor := TDateTimeEditorLink.Create(VT);
     DateTimeEditor.DataType := Results.DataType(Column).Index;
+    // Ensure date/time editor starts with a non-empty text value
+    if Results.Col(Column) = '' then
+      DateTimeEditor.DefaultDateTime := Conn.GetVar('SELECT NOW()');
     EditLink := DateTimeEditor;
   end else if (Results.DataType(Column).Index = dtSet) and prefEnableSetEditor then begin
     SetEditor := TSetEditorLink.Create(VT);
