@@ -647,15 +647,15 @@ begin
     ntMySQL_SSHtunnel:
       Result := My+' (SSH tunnel)';
     ntMSSQL_NamedPipe:
-      Result := 'Microsoft SQL Server (named pipe)';
+      Result := 'Microsoft SQL Server (named pipe, experimental)';
     ntMSSQL_TCPIP:
-      Result := 'Microsoft SQL Server (TCP/IP)';
+      Result := 'Microsoft SQL Server (TCP/IP, experimental)';
     ntMSSQL_SPX:
-      Result := 'Microsoft SQL Server (SPX/IPX)';
+      Result := 'Microsoft SQL Server (SPX/IPX, experimental)';
     ntMSSQL_VINES:
-      Result := 'Microsoft SQL Server (Banyan VINES)';
+      Result := 'Microsoft SQL Server (Banyan VINES, experimental)';
     ntMSSQL_RPC:
-      Result := 'Microsoft SQL Server (Windows RPC)';
+      Result := 'Microsoft SQL Server (Windows RPC, experimental)';
   end else case NetType of
     ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel:
       Result := My;
