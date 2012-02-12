@@ -4336,7 +4336,7 @@ begin
           if DataType(j).Index = dtBit then
             Result := Result + '=b' + Connection.EscapeString(ColVal)
           else
-            Result := Result + '=' + UnformatNumber(ColVal);
+            Result := Result + '=' + ColVal;
         end;
         dtcBinary:
           Result := Result + '=' + HexValue(ColVal);
