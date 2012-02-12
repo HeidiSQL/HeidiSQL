@@ -8155,11 +8155,22 @@ begin
   if vt.Tag = VTREE_LOADED then
     Exit;
   Tab := vt.Parent as TTabSheet;
+  Conn := ActiveConnection;
+
+  // Status + command statistics only available in MySQL
+  if ((vt=ListStatus) or (vt=ListCommandStats))
+    and (Conn <> nil)
+    and (Conn.Parameters.NetTypeGroup <> ngMySQL) then begin
+    vt.Clear;
+    vt.EmptyListMessage := 'Not available on '+Conn.Parameters.NetTypeName(Conn.Parameters.NetType, False);
+    vt.Tag := VTREE_LOADED;
+    Exit;
+  end;
+
   SelectNode(vt, nil);
   vt.BeginUpdate;
   OldOffset := vt.OffsetXY;
   vt.Clear;
-  Conn := ActiveConnection;
   if Conn <> nil then begin
     Results := GridResult(vt);
     if Results <> nil then
