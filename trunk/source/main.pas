@@ -1879,6 +1879,7 @@ procedure TMainForm.ConnectionsNotify(Sender: TObject; const Item: TDBConnection
 var
   Results: TDBQuery;
   Tab: TQueryTab;
+  ResultTab: TResultTab;
   i: Integer;
 begin
   // Connection removed or added
@@ -1893,6 +1894,13 @@ begin
       for Tab in QueryTabs do begin
         if Assigned(Tab.QueryProfile) and (Tab.QueryProfile.Connection = Item) then
           FreeAndNil(Tab.QueryProfile);
+        for ResultTab in Tab.ResultTabs do begin
+          if ResultTab.Results.Connection = Item then begin
+            Tab.ResultTabs.Clear;
+            Tab.tabsetQuery.Tabs.Clear;
+            break;
+          end;
+        end;
       end;
       for i:=0 to FHostListResults.Count-1 do begin
         if (FHostListResults[i] <> nil) and (FHostListResults[i].Connection = Item) then begin
