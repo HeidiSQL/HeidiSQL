@@ -15,6 +15,7 @@ type
     btnCancel: TButton;
     btnAddCol: TButton;
     btnReset: TButton;
+    timerRefresh: TTimer;
     procedure btnAddColClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
@@ -23,12 +24,12 @@ type
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnResetClick(Sender: TObject);
+    procedure DisplaySortingControls(Sender: TObject);
   private
     { Private declarations }
     ColumnNames : TStringList;
     OrderColumns : TOrderColArray;
     OldOrderClause : String;
-    procedure DisplaySortingControls;
     procedure dropdownColsChange( Sender: TObject );
     procedure buttonOrderClick( Sender: TObject );
     procedure buttonDeleteClick( Sender: TObject );
@@ -73,7 +74,7 @@ begin
   OldOrderClause := ComposeOrderClause(OrderColumns);
 
   // First creation of controls
-  DisplaySortingControls;
+  DisplaySortingControls(Sender);
 
 end;
 
@@ -81,7 +82,7 @@ end;
 {**
   Create controls for order columns
 }
-procedure TDataSortingForm.DisplaySortingControls;
+procedure TDataSortingForm.DisplaySortingControls(Sender: TObject);
 var
   labelNumber: TLabel;
   buttonDelete: TButton;
@@ -89,6 +90,12 @@ var
   buttonOrder: TSpeedButton;
   i, xPosition, topPosition, btnWidth : Integer;
 begin
+  if not timerRefresh.Enabled then begin
+    timerRefresh.Enabled := True;
+    Exit;
+  end;
+
+  timerRefresh.Enabled := False;
 
   // Remove previously created components
   for i := ComponentCount - 1 downto 0 do
@@ -253,7 +260,7 @@ begin
   SetLength(OrderColumns, Length(OrderColumns)-1);
 
   // Refresh controls
-  DisplaySortingControls;
+  DisplaySortingControls(Sender);
 
   // Enables OK button
   Modified;
@@ -291,7 +298,7 @@ begin
   OrderColumns[new].SortDirection := ORDER_ASC;
 
   // Refresh controls
-  DisplaySortingControls;
+  DisplaySortingControls(Sender);
 
   // Enables OK button
   Modified;
