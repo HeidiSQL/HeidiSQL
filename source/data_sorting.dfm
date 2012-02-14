@@ -76,4 +76,11 @@ object DataSortingForm: TDataSortingForm
       OnClick = btnResetClick
     end
   end
+  object timerRefresh: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = DisplaySortingControls
+    Left = 8
+    Top = 8
+  end
 end
