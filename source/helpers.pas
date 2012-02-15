@@ -158,6 +158,8 @@ type
   function FindNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode): PVirtualNode;
   procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
   procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
+  function GetVTSelection(VT: TVirtualStringTree): TStringList;
+  procedure SetVTSelection(VT: TVirtualStringTree; Captions: TStringList);
   function GetNextNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function DateBackFriendlyCaption(d: TDateTime): String;
   procedure InheritFont(AFont: TFont);
@@ -1757,6 +1759,40 @@ begin
   VT.ScrollIntoView(Node, False);
   if (OldFocus = Node) and Assigned(VT.OnFocusChanged) then
     VT.OnFocusChanged(VT, Node, VT.Header.MainColumn);
+end;
+
+
+function GetVTSelection(VT: TVirtualStringTree): TStringList;
+var
+  Node: PVirtualNode;
+  InvalidationTag: Integer;
+begin
+  // Return captions of selected nodes
+  InvalidationTag := vt.Tag;
+  vt.Tag := VTREE_LOADED;
+  Result := TStringList.Create;
+  Node := GetNextNode(VT, nil, true);
+  while Assigned(Node) do begin
+    Result.Add(VT.Text[Node, VT.Header.MainColumn]);
+    Node := GetNextNode(VT, Node, true);
+  end;
+  vt.Tag := InvalidationTag;
+end;
+
+
+procedure SetVTSelection(VT: TVirtualStringTree; Captions: TStringList);
+var
+  Node: PVirtualNode;
+  idx: Integer;
+begin
+  // Restore selected nodes based on captions list
+  Node := GetNextNode(VT, nil, false);
+  while Assigned(Node) do begin
+    idx := Captions.IndexOf(VT.Text[Node, VT.Header.MainColumn]);
+    if idx > -1 then
+      VT.Selected[Node] := True;
+    Node := GetNextNode(VT, Node, false);
+  end;
 end;
 
 
