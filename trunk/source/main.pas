@@ -8143,6 +8143,7 @@ var
   Tab: TTabSheet;
   Results: TDBQuery;
   i: Integer;
+  SelectedCaptions: TStringList;
 begin
   // Display server variables
   vt := Sender as TVirtualStringTree;
@@ -8161,6 +8162,7 @@ begin
     Exit;
   end;
 
+  SelectedCaptions := GetVTSelection(vt);
   SelectNode(vt, nil);
   vt.BeginUpdate;
   OldOffset := vt.OffsetXY;
@@ -8230,6 +8232,9 @@ begin
   vt.Tag := VTREE_LOADED;
   // Display number of listed values on tab
   Tab.Caption := FHostTabCaptions[Tab.PageIndex] + ' (' + IntToStr(vt.RootNodeCount) + ')';
+  // Restore selection
+  SetVTSelection(vt, SelectedCaptions);
+  SelectedCaptions.Free;
 end;
 
 
