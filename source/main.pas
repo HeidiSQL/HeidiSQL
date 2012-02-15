@@ -7717,9 +7717,6 @@ begin
   end else if (TypeCat = dtcTemporal) and prefEnableDatetimeEditor then begin
     DateTimeEditor := TDateTimeEditorLink.Create(VT);
     DateTimeEditor.DataType := Results.DataType(Column).Index;
-    // Ensure date/time editor starts with a non-empty text value
-    if Results.Col(Column) = '' then
-      DateTimeEditor.DefaultDateTime := Conn.GetVar('SELECT NOW()');
     EditLink := DateTimeEditor;
   end else if (Results.DataType(Column).Index = dtSet) and prefEnableSetEditor then begin
     SetEditor := TSetEditorLink.Create(VT);
