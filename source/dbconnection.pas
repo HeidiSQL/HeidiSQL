@@ -201,12 +201,6 @@ type
 
   TDBLogCategory = (lcInfo, lcSQL, lcUserFiredSQL, lcError, lcDebug);
   TDBLogEvent = procedure(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil) of object;
-  TDBLogItem = class(TObject)
-    public
-      Msg: String;
-      Category: TDBLogCategory;
-  end;
-  TDBLogQueue = TObjectList<TDBLogItem>;
   TDBEvent = procedure(Connection: TDBConnection; Database: String) of object;
   TDBDataTypeArray = Array of TDBDataType;
 
@@ -220,7 +214,6 @@ type
       FDatabase: String;
       FAllDatabases: TStringList;
       FLogPrefix: String;
-      FLogQueue: TDBLogQueue;
       FOnLog: TDBLogEvent;
       FOnConnected: TDBEvent;
       FOnDatabaseChanged: TDBEvent;
@@ -336,7 +329,6 @@ type
       property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
       property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
       property Datatypes: TDBDataTypeArray read FDatatypes;
-      property LogQueue: TDBLogQueue read FLogQueue;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -720,7 +712,6 @@ begin
   FLastQueryNetworkDuration := 0;
   FThreadID := 0;
   FLogPrefix := '';
-  FLogQueue := TDBLogQueue.Create(True);
   FIsUnicode := False;
   FIsSSL := False;
   FDatabases := TDatabaseList.Create(True);
@@ -1822,15 +1813,8 @@ end;
   If running a thread, log to queue and let the main thread later do logging
 }
 procedure TDBConnection.Log(Category: TDBLogCategory; Msg: String);
-var
-  LogItem: TDBLogItem;
 begin
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID = GetCurrentThreadID) then begin
-    LogItem := TDBLogItem.Create;
-    LogItem.Msg := Msg;
-    LogItem.Category := Category;
-    FLogQueue.Add(LogItem);
-  end else if Assigned(FOnLog) then begin
+  if Assigned(FOnLog) then begin
     if FLogPrefix <> '' then
       Msg := '['+FLogPrefix+'] ' + Msg;
     FOnLog(Msg, Category, Self);
