@@ -2276,14 +2276,8 @@ var
   TabCaption: String;
   Results: TDBQuery;
   i: Integer;
-  LogItem: TDBLogItem;
 begin
   // Single query or query packet has finished
-
-  // Log postponed messages
-  for LogItem in Thread.Connection.LogQueue do
-    Thread.Connection.Log(LogItem.Category, LogItem.Msg);
-  Thread.Connection.LogQueue.Clear;
 
   ShowStatusMsg('Setting up result grid(s) ...');
   Tab := GetQueryTabByNumber(Thread.TabNumber);
