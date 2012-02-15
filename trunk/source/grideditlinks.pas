@@ -78,7 +78,6 @@ type
     FModifyOffset: Integer;
     FTimerCalls: Integer;
     FUpDown: TUpDown;
-    FDefaultDateTime: String;
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure UpDownChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: SmallInt; Direction: TUpDownDirection);
@@ -93,7 +92,6 @@ type
     function EndEdit: Boolean; override;
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
     procedure SetBounds(R: TRect); override;
-    property DefaultDateTime: String read FDefaultDateTime write FDefaultDateTime;
   end;
 
   TEnumEditorLink = class(TBaseGridEditorLink)
@@ -521,8 +519,6 @@ begin
   FTimer.Interval := 50;
   FTimer.OnTimer := DoOnTimer;
   FTimer.Enabled := False;
-
-  FDefaultDateTime := '';
 end;
 
 
@@ -574,14 +570,7 @@ begin
     end;
     dtYear: FMaskEdit.EditMask := '0000;1; ';
   end;
-  if FCellText = '' then begin
-    FMaskEdit.Text := FDefaultDateTime;
-    case DataType of
-      dtDate: FMaskEdit.Text := Copy(FMaskEdit.Text, 1, 10);
-      dtTime: FMaskEdit.Text := Copy(FMaskEdit.Text, 12, 8);
-    end;
-  end else
-    FMaskEdit.Text := FCellText;
+  FMaskEdit.Text := FCellText;
   FModified := False;
   FMaskEdit.Font.Assign(FCellFont);
   FPanel.Color := FCellBackground;
