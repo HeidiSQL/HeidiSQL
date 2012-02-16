@@ -1274,6 +1274,8 @@ begin
     HandlePortableSettings(False);
     MainReg.Free;
   end;
+
+  DeleteCriticalSection(FCriticalSection);
 end;
 
 
@@ -3954,6 +3956,9 @@ begin
     lcDebug: if not prefLogDebug then Exit;
   end;
 
+  // SynEdit runs into various AVs when accessing in threads
+  EnterCriticalSection(FCriticalSection);
+
   // Shorten very long messages
   Len := Length(Msg);
   snip := (prefLogSqlWidth > 0) and (Len > prefLogSqlWidth);
@@ -3998,6 +4003,8 @@ begin
       ErrorDialog('Error writing to session log file.', FFileNameSessionLog+CRLF+CRLF+E.Message+CRLF+CRLF+'Logging is disabled now.');
     end;
   end;
+
+  LeaveCriticalSection(FCriticalSection);
 end;
 
 
