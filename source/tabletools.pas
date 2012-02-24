@@ -1524,9 +1524,9 @@ begin
       ObjNode.CheckState := csUncheckedNormal
     else begin
       if (WantedType = lntNone) or (DBObj.NodeType = WantedType) then
-        ObjNode.CheckState := csCheckedNormal
+        TreeObjects.CheckState[ObjNode] := csCheckedNormal
       else
-        ObjNode.CheckState := csUncheckedNormal;
+        TreeObjects.CheckState[ObjNode] := csUncheckedNormal;
     end;
     if ObjNode.CheckState = csCheckedNormal then
       Inc(CheckedNodes);
