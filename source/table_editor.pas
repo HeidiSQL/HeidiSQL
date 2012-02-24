@@ -1769,8 +1769,8 @@ procedure TfrmTableEditor.PageControlMainChange(Sender: TObject);
 var
   SupportsForeignKeys: Boolean;
 begin
-  if treeIndexes.IsEditing then
-    treeIndexes.EndEditNode;
+  treeIndexes.EndEditNode;
+  listForeignKeys.EndEditNode;
   if PageControlMain.ActivePage = tabForeignKeys then begin
     SupportsForeignKeys := LowerCase(comboEngine.Text) = 'innodb';
     ListForeignKeys.Enabled := SupportsForeignKeys;
