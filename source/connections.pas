@@ -652,11 +652,19 @@ var
   SessionKey: String;
   Connection: TDBConnection;
   Sess: PConnectionParameters;
+  Names: TStringList;
+  idx: Integer;
 begin
   // Rename session
   Sess := Sender.GetNodeData(Node);
   OpenRegistry;
-  if MainReg.KeyExists(REGKEY_SESSIONS + NewText) then begin
+  Names := TStringList.Create;
+  MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, true);
+  MainReg.GetKeyNames(Names);
+  idx := Names.IndexOf(Sess.SessionName);
+  if idx > -1 then
+    Names.Delete(idx);
+  if Names.IndexOf(NewText) > -1 then begin
     ErrorDialog('Session "'+NewText+'" already exists!');
     NewText := Sess.SessionName;
   end else begin
