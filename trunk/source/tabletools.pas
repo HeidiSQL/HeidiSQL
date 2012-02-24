@@ -1521,7 +1521,7 @@ begin
   while Assigned(ObjNode) do begin
     DBObj := TreeObjects.GetNodeData(ObjNode);
     if CheckNone then
-      ObjNode.CheckState := csUncheckedNormal
+      TreeObjects.CheckState[ObjNode] := csUncheckedNormal
     else begin
       if (WantedType = lntNone) or (DBObj.NodeType = WantedType) then
         TreeObjects.CheckState[ObjNode] := csCheckedNormal
