@@ -1032,9 +1032,13 @@ begin
       ;
     if Parameters.WindowsAuth then
       FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Integrated Security=SSPI;';
-    // Show up dynamic connection properties, probably useful for debugging
-    for i:=0 to FAdoHandle.Properties.Count-1 do
-      Log(lcDebug, 'OLE DB property "'+FAdoHandle.Properties[i].Name+'": '+String(FAdoHandle.Properties[i].Value));
+    try
+      // Show up dynamic connection properties, probably useful for debugging
+      for i:=0 to FAdoHandle.Properties.Count-1 do
+        Log(lcDebug, 'OLE DB property "'+FAdoHandle.Properties[i].Name+'": '+String(FAdoHandle.Properties[i].Value));
+    except
+      // Silence DLL errors, see issue #2741.
+    end;
     try
       FAdoHandle.Connected := True;
       FConnectionStarted := GetTickCount div 1000;
