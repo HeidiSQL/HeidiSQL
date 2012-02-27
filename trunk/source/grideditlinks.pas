@@ -290,7 +290,7 @@ begin
         break;
       end;
     end;
-    FCellFont.Color := DatatypeCategories[Integer(FFullDatatype.Category)].Color;
+    FCellFont.Color := DatatypeCategories[FFullDatatype.Category].Color;
   end;
   FCellBackground := FTree.Header.Columns[FColumn].Color;
   if Assigned(FMainControl) then begin
@@ -1487,7 +1487,7 @@ begin
   // Tell number of datatypes per category
   ChildCount := 0;
   if Sender.GetNodeLevel(Node) = 0 then for i:=0 to High(Connection.Datatypes) do begin
-    if Connection.Datatypes[i].Category = DatatypeCategories[Node.Index].Index then
+    if Connection.Datatypes[i].Category = TDBDatatypeCategoryIndex(Node.Index) then
       Inc(ChildCount);
   end;
 end;
@@ -1501,11 +1501,11 @@ var
 begin
   // Get cell text
   case Sender.GetNodeLevel(Node) of
-    0: CellText := DatatypeCategories[Node.Index].Name;
+    0: CellText := DatatypeCategories[TDBDatatypeCategoryIndex(Node.Index)].Name;
     1: begin
          Counter := 0;
          for i:=0 to High(Connection.Datatypes) do begin
-           if Connection.Datatypes[i].Category = DatatypeCategories[Node.Parent.Index].Index then begin
+           if Connection.Datatypes[i].Category = TDBDatatypeCategoryIndex(Node.Parent.Index) then begin
              Inc(Counter);
              if Counter = Node.Index+1 then begin
                CellText := Connection.Datatypes[i].Name;
@@ -1555,7 +1555,7 @@ begin
   case Sender.GetNodeLevel(Node) of
     0: TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
     1: if not (vsSelected in Node.States) then
-      TargetCanvas.Font.Color := DatatypeCategories[Node.Parent.Index].Color;
+      TargetCanvas.Font.Color := DatatypeCategories[TDBDatatypeCategoryIndex(Node.Parent.Index)].Color;
   end;
 end;
 

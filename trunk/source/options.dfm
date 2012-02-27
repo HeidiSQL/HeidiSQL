@@ -585,6 +585,20 @@ object optionsform: Toptionsform
         Height = 13
         Caption = 'Lines of text in grid rows:'
       end
+      object lblGridTextColors: TLabel
+        Left = 8
+        Top = 112
+        Width = 77
+        Height = 13
+        Caption = 'Grid text colors:'
+      end
+      object lblNullBackground: TLabel
+        Left = 8
+        Top = 137
+        Width = 226
+        Height = 13
+        Caption = 'NULL background color (use "None" to disable):'
+      end
       object editMaxColWidth: TEdit
         Left = 309
         Top = 8
@@ -638,178 +652,6 @@ object optionsform: Toptionsform
         Position = 8
         TabOrder = 8
       end
-      object grpFieldLayout: TGroupBox
-        Left = 8
-        Top = 120
-        Width = 433
-        Height = 226
-        Anchors = [akLeft, akTop, akRight, akBottom]
-        Caption = 'Field colors and editors'
-        TabOrder = 9
-        object lblFieldDatetime: TLabel
-          Left = 12
-          Top = 96
-          Width = 51
-          Height = 13
-          Caption = '&Date/time:'
-          FocusControl = cboxDatetime
-        end
-        object lblFieldText: TLabel
-          Left = 12
-          Top = 48
-          Width = 26
-          Height = 13
-          Caption = '&Text:'
-          FocusControl = cboxText
-        end
-        object lblFieldBinary: TLabel
-          Left = 12
-          Top = 72
-          Width = 34
-          Height = 13
-          Caption = '&Binary:'
-          FocusControl = cboxBinary
-        end
-        object lblFieldNumeric: TLabel
-          Left = 12
-          Top = 24
-          Width = 46
-          Height = 13
-          Caption = '&Numbers:'
-          FocusControl = cboxNumeric
-        end
-        object lblFieldSpatial: TLabel
-          Left = 12
-          Top = 120
-          Width = 36
-          Height = 13
-          Caption = '&Spatial:'
-          FocusControl = cboxSpatial
-        end
-        object lblFieldOther: TLabel
-          Left = 12
-          Top = 144
-          Width = 32
-          Height = 13
-          Caption = '&Other:'
-        end
-        object lblFieldNull: TLabel
-          Left = 12
-          Top = 168
-          Width = 28
-          Height = 13
-          Caption = 'N&ULL:'
-        end
-        object cboxText: TColorBox
-          Left = 100
-          Top = 45
-          Width = 120
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          TabOrder = 1
-          OnChange = Modified
-        end
-        object cboxBinary: TColorBox
-          Left = 100
-          Top = 69
-          Width = 120
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          TabOrder = 2
-          OnChange = Modified
-        end
-        object cboxDatetime: TColorBox
-          Left = 100
-          Top = 93
-          Width = 120
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          TabOrder = 4
-          OnChange = Modified
-        end
-        object cboxNumeric: TColorBox
-          Left = 100
-          Top = 21
-          Width = 120
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          TabOrder = 0
-          OnChange = Modified
-        end
-        object cboxSpatial: TColorBox
-          Left = 100
-          Top = 117
-          Width = 120
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          TabOrder = 6
-          OnChange = Modified
-        end
-        object chkEditorBinary: TCheckBox
-          Left = 234
-          Top = 71
-          Width = 154
-          Height = 17
-          Caption = 'Enable popup HEX editor'
-          TabOrder = 3
-          OnClick = Modified
-        end
-        object chkEditorDatetime: TCheckBox
-          Left = 234
-          Top = 97
-          Width = 154
-          Height = 17
-          Caption = 'Enable calendar editor'
-          TabOrder = 5
-          OnClick = Modified
-        end
-        object chkEditorEnum: TCheckBox
-          Left = 234
-          Top = 120
-          Width = 154
-          Height = 17
-          Caption = 'Enable ENUM pulldown editor'
-          TabOrder = 7
-          OnClick = Modified
-        end
-        object cboxOther: TColorBox
-          Left = 100
-          Top = 141
-          Width = 120
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          TabOrder = 8
-          OnChange = Modified
-        end
-        object chkEditorSet: TCheckBox
-          Left = 234
-          Top = 143
-          Width = 154
-          Height = 17
-          Caption = 'Enable SET checkbox editor'
-          TabOrder = 9
-          OnClick = Modified
-        end
-        object chkNullBG: TCheckBox
-          Left = 234
-          Top = 167
-          Width = 154
-          Height = 17
-          Caption = 'Enable background color'
-          TabOrder = 11
-          OnClick = chkNullBGClick
-        end
-        object cboxNullBG: TColorBox
-          Left = 100
-          Top = 165
-          Width = 120
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          Enabled = False
-          TabOrder = 10
-          OnChange = Modified
-        end
-      end
       object editGridRowCountMax: TEdit
         Left = 374
         Top = 33
@@ -850,6 +692,76 @@ object optionsform: Toptionsform
         Position = 1
         TabOrder = 5
         OnChanging = anyUpDownLimitChanging
+      end
+      object comboGridTextColors: TComboBox
+        Left = 158
+        Top = 109
+        Width = 145
+        Height = 21
+        Style = csDropDownList
+        TabOrder = 9
+        OnSelect = comboGridTextColorsSelect
+      end
+      object colorBoxGridTextColors: TColorBox
+        Left = 309
+        Top = 109
+        Width = 132
+        Height = 22
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbCustomColor, cbPrettyNames]
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 10
+        OnSelect = colorBoxGridTextColorsSelect
+      end
+      object cboxNullBackground: TColorBox
+        Left = 309
+        Top = 137
+        Width = 132
+        Height = 22
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 11
+        OnChange = Modified
+        OnSelect = Modified
+      end
+      object chkEditorBinary: TCheckBox
+        Left = 8
+        Top = 164
+        Width = 433
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Enable popup BLOB/HEX editor'
+        TabOrder = 12
+        OnClick = Modified
+      end
+      object chkEditorDatetime: TCheckBox
+        Left = 8
+        Top = 187
+        Width = 433
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Enable inplace date/time editor'
+        TabOrder = 13
+        OnClick = Modified
+      end
+      object chkEditorEnum: TCheckBox
+        Left = 8
+        Top = 210
+        Width = 433
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Enable ENUM pulldown editor'
+        TabOrder = 14
+        OnClick = Modified
+      end
+      object chkEditorSet: TCheckBox
+        Left = 8
+        Top = 233
+        Width = 433
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Enable SET checkbox editor'
+        TabOrder = 15
+        OnClick = Modified
       end
     end
     object tabShortcuts: TTabSheet

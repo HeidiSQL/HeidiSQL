@@ -208,7 +208,7 @@ begin
   // Datatype specific font color
   if Column = ColDatatype then begin
     ColInfo := Sender.GetNodeData(Node);
-    TargetCanvas.Font.Color := DatatypeCategories[Integer(ColInfo.DataType.Category)].Color;
+    TargetCanvas.Font.Color := DatatypeCategories[ColInfo.DataType.Category].Color;
   end;
 end;
 

@@ -229,7 +229,7 @@ var
   MySQLErrorCodes: TStringList;
 
   // MySQL data type categories
-  DatatypeCategories: array[0..6] of TDBDatatypeCategory = (
+  DatatypeCategories: array[dtcInteger..dtcOther] of TDBDatatypeCategory = (
     (
       Index:           dtcInteger;
       Name:            'Integer'

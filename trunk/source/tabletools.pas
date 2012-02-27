@@ -172,6 +172,7 @@ const
 procedure TfrmTableTools.FormCreate(Sender: TObject);
 var
   i: Integer;
+  dtc: TDBDatatypeCategoryIndex;
   SessionNames: TStringList;
   MenuItem: TMenuItem;
   dt: TListNodeType;
@@ -186,8 +187,8 @@ begin
   // Find text tab
   memoFindText.Text := GetRegValue(REGNAME_TOOLSFINDTEXT, '');
   comboDatatypes.Items.Add('All data types');
-  for i:=Low(DatatypeCategories) to High(DatatypeCategories) do
-    comboDatatypes.Items.Add(DatatypeCategories[i].Name);
+  for dtc:=Low(DatatypeCategories) to High(DatatypeCategories) do
+    comboDatatypes.Items.Add(DatatypeCategories[dtc].Name);
   comboDatatypes.ItemIndex := GetRegValue(REGNAME_TOOLSDATATYPE, 0);
   chkCaseSensitive.Checked := GetRegValue(REGNAME_TOOLSCASESENSITIVE, chkCaseSensitive.Checked);
 

@@ -944,7 +944,6 @@ type
     prefEnableDatetimeEditor: Boolean;
     prefEnableEnumEditor: Boolean;
     prefEnableSetEditor: Boolean;
-    prefEnableNullBG: Boolean;
     prefNullColorDefault: TColor;
     prefNullBG: TColor;
     prefDisplayBars: Boolean;
@@ -1535,13 +1534,13 @@ begin
   FixVT(DataGrid, prefGridRowsLineCount);
   FixVT(QueryGrid, prefGridRowsLineCount);
   // Load color settings
-  DatatypeCategories[Integer(dtcInteger)].Color := GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
-  DatatypeCategories[Integer(dtcReal)].Color := GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
-  DatatypeCategories[Integer(dtcText)].Color := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
-  DatatypeCategories[Integer(dtcBinary)].Color := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
-  DatatypeCategories[Integer(dtcTemporal)].Color := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
-  DatatypeCategories[Integer(dtcSpatial)].Color := GetRegValue(REGNAME_FIELDCOLOR_SPATIAL, DEFAULT_FIELDCOLOR_SPATIAL);
-  DatatypeCategories[Integer(dtcOther)].Color := GetRegValue(REGNAME_FIELDCOLOR_OTHER, DEFAULT_FIELDCOLOR_OTHER);
+  DatatypeCategories[dtcInteger].Color := GetRegValue(REGNAME_FIELDCOLOR_INTEGER, DEFAULT_FIELDCOLOR_INTEGER);
+  DatatypeCategories[dtcReal].Color := GetRegValue(REGNAME_FIELDCOLOR_REAL, DEFAULT_FIELDCOLOR_REAL);
+  DatatypeCategories[dtcText].Color := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
+  DatatypeCategories[dtcBinary].Color := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
+  DatatypeCategories[dtcTemporal].Color := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
+  DatatypeCategories[dtcSpatial].Color := GetRegValue(REGNAME_FIELDCOLOR_SPATIAL, DEFAULT_FIELDCOLOR_SPATIAL);
+  DatatypeCategories[dtcOther].Color := GetRegValue(REGNAME_FIELDCOLOR_OTHER, DEFAULT_FIELDCOLOR_OTHER);
   prefNullBG := GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
   CalcNullColors;
   // Editor enablings
@@ -1549,7 +1548,6 @@ begin
   prefEnableDatetimeEditor := GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
   prefEnableEnumEditor := GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
   prefEnableSetEditor := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
-  prefEnableNullBG := GetRegValue(REGNAME_BG_NULL_ENABLED, DEFAULT_BG_NULL_ENABLED);
 
   // Switch off/on displaying table/db sized in tree
   menuShowSizeColumn.Checked := GetRegValue(REGNAME_SIZECOL_TREE, DEFAULT_SIZECOL_TREE);
@@ -7343,14 +7341,14 @@ end;
 
 procedure TMainForm.CalcNullColors;
 var
-  i: Integer;
+  dtc: TDBDatatypeCategoryIndex;
   h, l, s: Word;
 begin
-  for i:=Low(DatatypeCategories) to High(DatatypeCategories) do begin
-    ColorRGBToHLS(DatatypeCategories[i].Color, h, l, s);
+  for dtc:=Low(DatatypeCategories) to High(DatatypeCategories) do begin
+    ColorRGBToHLS(DatatypeCategories[dtc].Color, h, l, s);
     Inc(l, COLORSHIFT_NULLFIELDS);
     s := Max(0, s-2*COLORSHIFT_NULLFIELDS);
-    DatatypeCategories[i].NullColor := ColorHLSToRGB(h, l, s);
+    DatatypeCategories[dtc].NullColor := ColorHLSToRGB(h, l, s);
   end;
 end;
 
@@ -7383,9 +7381,9 @@ begin
   else if vsSelected in Node.States then
     cl := clBlack
   else if r.IsNull(Column) then
-    cl := DatatypeCategories[Integer(r.DataType(Column).Category)].NullColor
+    cl := DatatypeCategories[r.DataType(Column).Category].NullColor
   else
-    cl := DatatypeCategories[Integer(r.DataType(Column).Category)].Color;
+    cl := DatatypeCategories[r.DataType(Column).Category].Color;
   TargetCanvas.Font.Color := cl;
 end;
 
@@ -7826,7 +7824,7 @@ begin
     cl := clHighlight
   else if vsSelected in Node.States then
     cl := $00DDDDDD
-  else if prefEnableNullBG and r.IsNull(Column) then
+  else if (prefNullBG <> clNone) and r.IsNull(Column) then
     cl := prefNullBG;
   if cl <> clNone then begin
     TargetCanvas.Brush.Color := cl;
@@ -9947,7 +9945,7 @@ begin
     and (Sender.GetNodeLevel(Node)=1)
     and (ActiveDbObj.NodeType in [lntView, lntTable])
     then begin
-    TargetCanvas.Font.Color := DatatypeCategories[Integer(SelectedTableColumns[Node.Index].DataType.Category)].Color;
+    TargetCanvas.Font.Color := DatatypeCategories[SelectedTableColumns[Node.Index].DataType.Category].Color;
   end;
 end;
 
