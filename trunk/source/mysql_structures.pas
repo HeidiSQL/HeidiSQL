@@ -362,7 +362,7 @@ var
     ),
     (
       Index:           dtDecimal;
-      NativeType:      FIELD_TYPE_DECIMAL;
+      NativeType:      FIELD_TYPE_NEWDECIMAL;
       Name:            'DECIMAL';
       Description:     'DECIMAL[(M[,D])] [UNSIGNED] [ZEROFILL]' + CRLF +
         'A packed "exact" fixed-point number. M is the total number of digits ' +
