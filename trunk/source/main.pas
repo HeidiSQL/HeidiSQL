@@ -942,6 +942,7 @@ type
     prefLogDebug: Boolean;
     prefEnableBinaryEditor: Boolean;
     prefEnableDatetimeEditor: Boolean;
+    prefPrefillDateTime: Boolean;
     prefEnableEnumEditor: Boolean;
     prefEnableSetEditor: Boolean;
     prefNullColorDefault: TColor;
@@ -1546,6 +1547,7 @@ begin
   // Editor enablings
   prefEnableBinaryEditor := GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
   prefEnableDatetimeEditor := GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
+  prefPrefillDateTime := GetRegValue(REGNAME_PREFILL_DATETIME, DEFAULT_PREFILL_DATETIME);
   prefEnableEnumEditor := GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
   prefEnableSetEditor := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
 
@@ -7642,7 +7644,7 @@ var
   ForeignKey: TForeignKey;
   TblColumn: TTableColumn;
   idx: Integer;
-  KeyCol, TextCol, SQL, CreateTable: String;
+  KeyCol, TextCol, SQL, CreateTable, NowText: String;
   Columns: TTableColumnList;
   Keys: TTableKeyList;
   ForeignKeys: TForeignKeyList;
@@ -7720,6 +7722,15 @@ begin
     HexEditor.MaxLength := Results.MaxLength(Column);
     EditLink := HexEditor;
   end else if (TypeCat = dtcTemporal) and prefEnableDatetimeEditor then begin
+    // Ensure date/time editor starts with a non-empty text value
+    if (Results.Col(Column) = '') and prefPrefillDateTime then begin
+      NowText := Conn.GetVar('SELECT NOW()');
+      case Results.DataType(Column).Index of
+        dtDate: NowText := Copy(NowText, 1, 10);
+        dtTime: NowText := Copy(NowText, 12, 8);
+      end;
+      VT.Text[Node, Column] := NowText;
+    end;
     DateTimeEditor := TDateTimeEditorLink.Create(VT);
     DateTimeEditor.DataType := Results.DataType(Column).Index;
     EditLink := DateTimeEditor;
