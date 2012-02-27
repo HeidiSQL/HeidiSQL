@@ -113,6 +113,7 @@ type
     chkEditorDatetime: TCheckBox;
     chkEditorEnum: TCheckBox;
     chkEditorSet: TCheckBox;
+    chkPrefillDateTime: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -255,6 +256,7 @@ begin
   // Editor enablings
   MainReg.WriteBool(REGNAME_FIELDEDITOR_BINARY, chkEditorBinary.Checked);
   MainReg.WriteBool(REGNAME_FIELDEDITOR_DATETIME, chkEditorDatetime.Checked);
+  MainReg.WriteBool(REGNAME_PREFILL_DATETIME, chkPrefillDatetime.Checked);
   MainReg.WriteBool(REGNAME_FIELDEDITOR_ENUM, chkEditorEnum.Checked);
   MainReg.WriteBool(REGNAME_FIELDEDITOR_SET, chkEditorSet.Checked);
 
@@ -327,6 +329,7 @@ begin
   Mainform.QueryGrid.Repaint;
   Mainform.prefEnableBinaryEditor := chkEditorBinary.Checked;
   Mainform.prefEnableDatetimeEditor := chkEditorDatetime.Checked;
+  Mainform.prefPrefillDateTime := chkPrefillDateTime.Checked;
   Mainform.prefEnableEnumEditor := chkEditorEnum.Checked;
   Mainform.prefEnableSetEditor := chkEditorSet.Checked;
   Mainform.prefDisplayBars := chkColorBars.Checked;
@@ -464,6 +467,7 @@ begin
   // Editor enablings
   chkEditorBinary.Checked := GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
   chkEditorDatetime.Checked := GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
+  chkPrefillDateTime.Checked := GetRegValue(REGNAME_PREFILL_DATETIME, DEFAULT_PREFILL_DATETIME);
   chkEditorEnum.Checked := GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
   chkEditorSet.Checked := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
 

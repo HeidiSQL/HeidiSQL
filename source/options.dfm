@@ -745,22 +745,32 @@ object optionsform: Toptionsform
       end
       object chkEditorEnum: TCheckBox
         Left = 8
-        Top = 210
-        Width = 433
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Enable ENUM pulldown editor'
-        TabOrder = 14
-        OnClick = Modified
-      end
-      object chkEditorSet: TCheckBox
-        Left = 8
         Top = 233
         Width = 433
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Enable SET checkbox editor'
+        Caption = 'Enable ENUM pulldown editor'
         TabOrder = 15
+        OnClick = Modified
+      end
+      object chkEditorSet: TCheckBox
+        Left = 8
+        Top = 256
+        Width = 433
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Enable SET checkbox editor'
+        TabOrder = 16
+        OnClick = Modified
+      end
+      object chkPrefillDateTime: TCheckBox
+        Left = 24
+        Top = 210
+        Width = 417
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Prefill empty date/time fields with current date/time'
+        TabOrder = 14
         OnClick = Modified
       end
     end
