@@ -11,7 +11,8 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
-  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns, Menus;
+  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns, Menus,
+  mysql_structures;
 
 type
   TShortcutItemData = record
@@ -43,26 +44,6 @@ type
     editUpdatecheckInterval: TEdit;
     updownUpdatecheckInterval: TUpDown;
     chkUpdateCheckBuilds: TCheckBox;
-    grpFieldLayout: TGroupBox;
-    lblFieldDatetime: TLabel;
-    cboxText: TColorBox;
-    lblFieldText: TLabel;
-    lblFieldBinary: TLabel;
-    lblFieldNumeric: TLabel;
-    lblFieldSpatial: TLabel;
-    cboxBinary: TColorBox;
-    cboxDatetime: TColorBox;
-    cboxNumeric: TColorBox;
-    cboxSpatial: TColorBox;
-    chkEditorBinary: TCheckBox;
-    chkEditorDatetime: TCheckBox;
-    chkEditorEnum: TCheckBox;
-    lblFieldOther: TLabel;
-    cboxOther: TColorBox;
-    chkEditorSet: TCheckBox;
-    chkNullBG: TCheckBox;
-    lblFieldNull: TLabel;
-    cboxNullBG: TColorBox;
     SynSQLSynSQLSample: TSynSQLSyn;
     btnRestoreDefaults: TButton;
     lblMaxTotalRows: TLabel;
@@ -123,6 +104,15 @@ type
     lblMaxQueryResults: TLabel;
     editMaxQueryResults: TEdit;
     updownMaxQueryResults: TUpDown;
+    lblGridTextColors: TLabel;
+    comboGridTextColors: TComboBox;
+    colorBoxGridTextColors: TColorBox;
+    lblNullBackground: TLabel;
+    cboxNullBackground: TColorBox;
+    chkEditorBinary: TCheckBox;
+    chkEditorDatetime: TCheckBox;
+    chkEditorEnum: TCheckBox;
+    chkEditorSet: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -134,7 +124,6 @@ type
     procedure chkLogToFileClick(Sender: TObject);
     procedure chkUpdatecheckClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure chkNullBGClick(Sender: TObject);
     procedure comboSQLColElementChange(Sender: TObject);
     procedure pagecontrolMainChanging(Sender: TObject;
       var AllowChange: Boolean);
@@ -157,17 +146,20 @@ type
     procedure ShortcutExit(Sender: TObject);
     procedure chkColorBarsClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure comboGridTextColorsSelect(Sender: TObject);
+    procedure colorBoxGridTextColorsSelect(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
     FShortcutCategories: TStringList;
+    FGridTextColors: Array[dtcInteger..dtcOther] of TColor;
   public
     { Public declarations }
   end;
 
 
 implementation
-uses main, helpers, mysql_structures;
+uses main, helpers;
 {$R *.DFM}
 
 
@@ -252,19 +244,19 @@ begin
   MainReg.WriteInteger(REGNAME_BARCOLOR, cboxColorBars.Selected);
   MainReg.WriteInteger(REGNAME_MAXQUERYRESULTS, updownMaxQueryResults.Position);
   // Save color settings
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_NUMERIC, cboxNumeric.Selected);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_TEXT, cboxText.Selected);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_BINARY, cboxBinary.Selected);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_DATETIME, cboxDatetime.Selected);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_SPATIAL, cboxSpatial.Selected);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_OTHER, cboxOther.Selected);
-  MainReg.WriteInteger(REGNAME_BG_NULL, cboxNullBg.Selected);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_INTEGER, FGridTextColors[dtcInteger]);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_REAL, FGridTextColors[dtcReal]);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_TEXT, FGridTextColors[dtcText]);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_BINARY, FGridTextColors[dtcBinary]);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_DATETIME, FGridTextColors[dtcTemporal]);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_SPATIAL, FGridTextColors[dtcSpatial]);
+  MainReg.WriteInteger(REGNAME_FIELDCOLOR_OTHER, FGridTextColors[dtcOther]);
+  MainReg.WriteInteger(REGNAME_BG_NULL, cboxNullBackground.Selected);
   // Editor enablings
   MainReg.WriteBool(REGNAME_FIELDEDITOR_BINARY, chkEditorBinary.Checked);
   MainReg.WriteBool(REGNAME_FIELDEDITOR_DATETIME, chkEditorDatetime.Checked);
   MainReg.WriteBool(REGNAME_FIELDEDITOR_ENUM, chkEditorEnum.Checked);
   MainReg.WriteBool(REGNAME_FIELDEDITOR_SET, chkEditorSet.Checked);
-  MainReg.WriteBool(REGNAME_BG_NULL_ENABLED, chkNullBg.Checked);
 
   MainReg.WriteBool(REGNAME_COMPLETIONPROPOSAL, chkCompletionProposal.Checked);
   MainReg.WriteBool(REGNAME_TABSTOSPACES, chkTabsToSpaces.Checked);
@@ -322,14 +314,14 @@ begin
   else if Mainform.prefLogToFile then
     Mainform.DeactivateFileLogging;
   Mainform.prefMaxColWidth := updownMaxColWidth.Position;
-  DatatypeCategories[Integer(dtcInteger)].Color := cboxNumeric.Selected;
-  DatatypeCategories[Integer(dtcReal)].Color := cboxNumeric.Selected;
-  DatatypeCategories[Integer(dtcText)].Color := cboxText.Selected;
-  DatatypeCategories[Integer(dtcBinary)].Color := cboxBinary.Selected;
-  DatatypeCategories[Integer(dtcTemporal)].Color := cboxDatetime.Selected;
-  DatatypeCategories[Integer(dtcSpatial)].Color := cboxSpatial.Selected;
-  DatatypeCategories[Integer(dtcOther)].Color := cboxOther.Selected;
-  Mainform.prefNullBG := cboxNullBg.Selected;
+  DatatypeCategories[dtcInteger].Color := FGridTextColors[dtcInteger];
+  DatatypeCategories[dtcReal].Color := FGridTextColors[dtcReal];
+  DatatypeCategories[dtcText].Color := FGridTextColors[dtcText];
+  DatatypeCategories[dtcBinary].Color := FGridTextColors[dtcBinary];
+  DatatypeCategories[dtcTemporal].Color := FGridTextColors[dtcTemporal];
+  DatatypeCategories[dtcSpatial].Color := FGridTextColors[dtcSpatial];
+  DatatypeCategories[dtcOther].Color := FGridTextColors[dtcOther];
+  Mainform.prefNullBG := cboxNullBackground.Selected;
   Mainform.CalcNullColors;
   Mainform.DataGrid.Repaint;
   Mainform.QueryGrid.Repaint;
@@ -337,7 +329,6 @@ begin
   Mainform.prefEnableDatetimeEditor := chkEditorDatetime.Checked;
   Mainform.prefEnableEnumEditor := chkEditorEnum.Checked;
   Mainform.prefEnableSetEditor := chkEditorSet.Checked;
-  Mainform.prefEnableNullBG := chkNullBg.Checked;
   Mainform.prefDisplayBars := chkColorBars.Checked;
   Mainform.prefBarColor := cboxColorBars.Selected;
   Mainform.prefCompletionProposal := chkCompletionProposal.Checked;
@@ -361,6 +352,7 @@ end;
 procedure Toptionsform.FormCreate(Sender: TObject);
 var
   i: Integer;
+  dtc: TDBDatatypeCategoryIndex;
   // Callback function used by EnumFontFamilies()
   function EnumFixedProc(lpelf: PEnumLogFont; lpntm: PNewTextMetric; FontType: Integer; Data: LPARAM): Integer; stdcall;
   begin
@@ -370,6 +362,13 @@ var
   end;
 begin
   InheritFont(Font);
+
+  // Data
+  // Populate datatype categories pulldown
+  for dtc:=Low(TDBDatatypeCategoryIndex) to High(TDBDatatypeCategoryIndex) do
+    comboGridTextColors.Items.Add(DatatypeCategories[dtc].Name);
+
+  // SQL
   EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, LPARAM(Pointer(comboSQLFontName.Items)));
   comboSQLFontName.Sorted := True;
   SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
@@ -386,6 +385,8 @@ begin
   end;
   comboSQLColElement.Items.Add('Active line background');
   comboSQLColElement.ItemIndex := 0;
+
+  // Shortcuts
   FShortcutCategories := TStringList.Create;
   for i:=0 to Mainform.ActionList1.ActionCount-1 do begin
     if FShortcutCategories.IndexOf(Mainform.ActionList1.Actions[i].Category) = -1 then
@@ -394,6 +395,7 @@ begin
   FShortcutCategories.Add('SQL editing');
   TreeShortcutItems.RootNodeCount := FShortcutCategories.Count;
 end;
+
 
 procedure Toptionsform.FormShow(Sender: TObject);
 var
@@ -449,19 +451,21 @@ begin
   updownDataFontSize.Position := datafontsize;
   updownMaxQueryResults.Position := GetRegValue(REGNAME_MAXQUERYRESULTS, DEFAULT_MAXQUERYRESULTS);
   // Load color settings
-  cboxNumeric.Selected := GetRegValue(REGNAME_FIELDCOLOR_NUMERIC, DEFAULT_FIELDCOLOR_NUMERIC);
-  cboxText.Selected := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
-  cboxBinary.Selected := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
-  cboxDatetime.Selected := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
-  cboxSpatial.Selected := GetRegValue(REGNAME_FIELDCOLOR_SPATIAL, DEFAULT_FIELDCOLOR_SPATIAL);
-  cboxOther.Selected := GetRegValue(REGNAME_FIELDCOLOR_OTHER, DEFAULT_FIELDCOLOR_OTHER);
-  cboxNullBG.Selected := GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
+  FGridTextColors[dtcInteger] := GetRegValue(REGNAME_FIELDCOLOR_INTEGER, DEFAULT_FIELDCOLOR_INTEGER);
+  FGridTextColors[dtcReal] := GetRegValue(REGNAME_FIELDCOLOR_REAL, DEFAULT_FIELDCOLOR_REAL);
+  FGridTextColors[dtcText] := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
+  FGridTextColors[dtcBinary] := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
+  FGridTextColors[dtcTemporal] := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
+  FGridTextColors[dtcSpatial] := GetRegValue(REGNAME_FIELDCOLOR_SPATIAL, DEFAULT_FIELDCOLOR_SPATIAL);
+  FGridTextColors[dtcOther] := GetRegValue(REGNAME_FIELDCOLOR_OTHER, DEFAULT_FIELDCOLOR_OTHER);
+  comboGridTextColors.ItemIndex := 0;
+  comboGridTextColors.OnSelect(comboGridTextColors);
+  cboxNullBackground.Selected := GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
   // Editor enablings
   chkEditorBinary.Checked := GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
   chkEditorDatetime.Checked := GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
   chkEditorEnum.Checked := GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
   chkEditorSet.Checked := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
-  chkNullBG.Checked := GetRegValue(REGNAME_BG_NULL_ENABLED, DEFAULT_BG_NULL_ENABLED);
 
   // Shortcuts
   TreeShortcutItems.ReinitChildren(nil, True);
@@ -556,9 +560,17 @@ begin
 end;
 
 
-procedure Toptionsform.chkNullBGClick(Sender: TObject);
+procedure Toptionsform.comboGridTextColorsSelect(Sender: TObject);
 begin
-  cboxNullBG.Enabled := (Sender as TCheckbox).Checked;
+  // Data type category selected
+  colorboxGridTextColors.Selected := FGridTextColors[TDBDatatypeCategoryIndex(comboGridTextColors.ItemIndex)];
+end;
+
+
+procedure Toptionsform.colorBoxGridTextColorsSelect(Sender: TObject);
+begin
+  // Color selected
+  FGridTextColors[TDBDatatypeCategoryIndex(comboGridTextColors.ItemIndex)] := colorboxGridTextColors.Selected;
   Modified(Sender);
 end;
 

@@ -1069,13 +1069,13 @@ begin
   // Give datatype column specific color, as set in preferences
   TextColor := TargetCanvas.Font.Color;
   case Column of
-    2: TextColor := DatatypeCategories[Integer(Col.DataType.Category)].Color;
+    2: TextColor := DatatypeCategories[Col.DataType.Category].Color;
 
     7: case Col.DefaultType of
       cdtNothing, cdtNull, cdtNullUpdateTS:
         TextColor := clGray;
       cdtCurTS, cdtCurTSUpdateTS:
-        TextColor := DatatypeCategories[Integer(dtcTemporal)].Color;
+        TextColor := DatatypeCategories[dtcTemporal].Color;
       cdtAutoInc:
         TextColor := clNavy;
     end;
