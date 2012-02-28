@@ -1244,8 +1244,12 @@ begin
               if ToDb then
                 Struc := Struc + Quoter.QuoteIdent(FinalDbName) + '.';
               Struc := Struc + Quoter.QuoteIdent(DBObj.Name)+' (';
-              for Column in ColumnList do
+              for Column in ColumnList do begin
+                // Prevent DEFAULT value from coming in, to fix errors due to multiple CURRENT_TIMESTAMP values
+                // See issue #2748
+                Column.DefaultType := cdtNothing;
                 Struc := Struc + CRLF + #9 + Column.SQLCode + ',';
+              end;
               Delete(Struc, Length(Struc), 1);
               Struc := Struc + CRLF + ') ENGINE=MyISAM';
               ColumnList.Free;
