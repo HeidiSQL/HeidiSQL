@@ -535,6 +535,8 @@ type
     Synchronizedatabase2: TMenuItem;
     QF20: TMenuItem;
     DataDefaultValue: TMenuItem;
+    actLaunchCommandline: TAction;
+    Launchcommandline1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -847,6 +849,7 @@ type
     procedure DBtreeBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
       var ContentRect: TRect);
+    procedure actLaunchCommandlineExecute(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -2733,6 +2736,29 @@ begin
         ErrorDialog(E.Message);
     end;
     ObjectList.Free;
+  end;
+end;
+
+
+procedure TMainForm.actLaunchCommandlineExecute(Sender: TObject);
+var
+  path, p: String;
+  Params: TConnectionParameters;
+begin
+  // Launch mysql.exe
+  path := GetRegValue(REGNAME_MYSQLBINARIES, DEFAULT_MYSQLBINARIES);
+  if (path = DEFAULT_MYSQLBINARIES) or (not FileExists(path+'\mysql.exe', true)) then
+    ErrorDialog('You need to tell '+APPNAME+' where your MySQL binaries reside, in Tools > Preferences > Miscellaneous')
+  else begin
+    Params := ActiveConnection.Parameters;
+    p := ' --host="'+Params.Hostname+'" --user="'+Params.Username+'" --port='+IntToStr(Params.Port);
+    if Params.Password <> '' then
+      p := p + ' --password="'+Params.Password+'"';
+    if Params.Compressed then
+      p := p + ' --compress';
+    if ActiveDatabase <> '' then
+      p := p + ' --database="' + ActiveDatabase + '"';
+    ShellExec('mysql.exe', path, p);
   end;
 end;
 

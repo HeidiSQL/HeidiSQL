@@ -33,6 +33,14 @@ object optionsform: Toptionsform
     OnChanging = pagecontrolMainChanging
     object tabMisc: TTabSheet
       Caption = 'Miscellaneous'
+      object lblMySQLBinaries: TLabel
+        Left = 8
+        Top = 224
+        Width = 129
+        Height = 33
+        Caption = 'Location of MySQL command line binaries:'
+        WordWrap = True
+      end
       object chkAutoReconnect: TCheckBox
         Left = 8
         Top = 31
@@ -131,21 +139,38 @@ object optionsform: Toptionsform
       object chkColorBars: TCheckBox
         Left = 8
         Top = 188
-        Width = 201
-        Height = 17
+        Width = 129
+        Height = 30
         Caption = 'Display bars in various list columns'
         TabOrder = 8
+        WordWrap = True
         OnClick = chkColorBarsClick
       end
       object cboxColorBars: TColorBox
-        Left = 249
-        Top = 186
-        Width = 184
+        Left = 150
+        Top = 188
+        Width = 123
         Height = 22
         Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
         Anchors = [akTop, akRight]
         TabOrder = 9
         OnClick = Modified
+      end
+      object editMySQLBinaries: TButtonedEdit
+        Left = 152
+        Top = 221
+        Width = 281
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.ImageListMain
+        RightButton.ImageIndex = 51
+        RightButton.Visible = True
+        TabOrder = 10
+        Text = 'editMySQLBinaries'
+        TextHint = 'Required to launch mysql.exe shell'
+        OnChange = Modified
+        OnDblClick = editMySQLBinariesRightButtonClick
+        OnRightButtonClick = editMySQLBinariesRightButtonClick
       end
     end
     object tabLogging: TTabSheet
