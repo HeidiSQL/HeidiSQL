@@ -114,6 +114,8 @@ type
     chkEditorEnum: TCheckBox;
     chkEditorSet: TCheckBox;
     chkPrefillDateTime: TCheckBox;
+    lblMySQLBinaries: TLabel;
+    editMySQLBinaries: TButtonedEdit;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -149,6 +151,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure comboGridTextColorsSelect(Sender: TObject);
     procedure colorBoxGridTextColorsSelect(Sender: TObject);
+    procedure editMySQLBinariesRightButtonClick(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -243,6 +246,7 @@ begin
   MainReg.WriteBool(REGNAME_DO_STATISTICS, chkDoStatistics.Checked);
   MainReg.WriteBool(REGNAME_DISPLAYBARS, chkColorBars.Checked);
   MainReg.WriteInteger(REGNAME_BARCOLOR, cboxColorBars.Selected);
+  MainReg.WriteString(REGNAME_MYSQLBINARIES, editMySQLBinaries.Text);
   MainReg.WriteInteger(REGNAME_MAXQUERYRESULTS, updownMaxQueryResults.Position);
   // Save color settings
   MainReg.WriteInteger(REGNAME_FIELDCOLOR_INTEGER, FGridTextColors[dtcInteger]);
@@ -420,6 +424,7 @@ begin
   chkDoStatistics.Checked := GetRegValue(REGNAME_DO_STATISTICS, DEFAULT_DO_STATISTICS);
   chkColorBars.Checked := GetRegValue(REGNAME_DISPLAYBARS, DEFAULT_DISPLAYBARS);
   cboxColorBars.Selected := GetRegValue(REGNAME_BARCOLOR, DEFAULT_BARCOLOR);
+  editMySQLBinaries.Text := GetRegValue(REGNAME_MYSQLBINARIES, DEFAULT_MYSQLBINARIES);
   chkAskFileSave.Checked := GetRegValue(REGNAME_PROMPTFILESAVE, DEFAULT_PROMPTFILESAVE);
 
   // Logging
@@ -537,6 +542,24 @@ begin
   end;
   Browse.Free;
 end;
+
+
+procedure Toptionsform.editMySQLBinariesRightButtonClick(Sender: TObject);
+var
+  Browse: TBrowseForFolder;
+begin
+  // Select folder where MySQL binaries reside
+  Browse := TBrowseForFolder.Create(Self);
+  Browse.Folder := (Sender as TButtonedEdit).Text;
+  Browse.DialogCaption := 'Find mysql.exe directory';
+  Browse.BrowseOptions := Browse.BrowseOptions + [bifNewDialogStyle];
+  if Browse.Execute then begin
+    (Sender as TButtonedEdit).Text := Browse.Folder;
+    Modified(Sender);
+  end;
+  Browse.Free;
+end;
+
 
 {**
   Updatecheck checkbox was clicked
