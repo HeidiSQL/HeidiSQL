@@ -577,9 +577,6 @@ begin
 
       case ExportFormat of
         efHTML: begin
-          // Handle nulls.
-          if GridData.IsNull(Col) then
-            Data := TEXT_NULL;
           // Escape HTML control characters in data.
           Data := htmlentities(Data);
           tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
@@ -588,13 +585,7 @@ begin
         efExcel, efCSV, efLaTeX, efWiki: begin
           // Escape encloser characters inside data per de-facto CSV.
           Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
-          // Special handling for NULL (MySQL-ism, not de-facto CSV: unquote value)
-          if GridData.IsNull(Col) then begin
-            Data := 'NULL';
-            if ExportFormat = efWiki then
-              Data := '_'+Data+'_';
-          end else
-            Data := Encloser + Data + Encloser;
+          Data := Encloser + Data + Encloser;
           tmp := tmp + Data + Separator;
         end;
 
