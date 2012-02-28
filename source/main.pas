@@ -2743,22 +2743,26 @@ end;
 procedure TMainForm.actLaunchCommandlineExecute(Sender: TObject);
 var
   path, p: String;
-  Params: TConnectionParameters;
+  Conn: TDBConnection;
 begin
   // Launch mysql.exe
-  path := GetRegValue(REGNAME_MYSQLBINARIES, DEFAULT_MYSQLBINARIES);
-  if (path = DEFAULT_MYSQLBINARIES) or (not FileExists(path+'\mysql.exe', true)) then
-    ErrorDialog('You need to tell '+APPNAME+' where your MySQL binaries reside, in Tools > Preferences > Miscellaneous')
+  Conn := ActiveConnection;
+  if Conn.Parameters.NetTypeGroup <> ngMySQL then
+    ErrorDialog('Command line only works on MySQL connections.')
   else begin
-    Params := ActiveConnection.Parameters;
-    p := ' --host="'+Params.Hostname+'" --user="'+Params.Username+'" --port='+IntToStr(Params.Port);
-    if Params.Password <> '' then
-      p := p + ' --password="'+Params.Password+'"';
-    if Params.Compressed then
-      p := p + ' --compress';
-    if ActiveDatabase <> '' then
-      p := p + ' --database="' + ActiveDatabase + '"';
-    ShellExec('mysql.exe', path, p);
+    path := GetRegValue(REGNAME_MYSQLBINARIES, DEFAULT_MYSQLBINARIES);
+    if (path = DEFAULT_MYSQLBINARIES) or (not FileExists(path+'\mysql.exe', true)) then
+      ErrorDialog('You need to tell '+APPNAME+' where your MySQL binaries reside, in Tools > Preferences > Miscellaneous')
+    else begin
+      p := ' --host="'+Conn.Parameters.Hostname+'" --user="'+Conn.Parameters.Username+'" --port='+IntToStr(Conn.Parameters.Port);
+      if Conn.Parameters.Password <> '' then
+        p := p + ' --password="'+Conn.Parameters.Password+'"';
+      if Conn.Parameters.Compressed then
+        p := p + ' --compress';
+      if ActiveDatabase <> '' then
+        p := p + ' --database="' + ActiveDatabase + '"';
+      ShellExec('mysql.exe', path, p);
+    end;
   end;
 end;
 
