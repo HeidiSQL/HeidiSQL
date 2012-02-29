@@ -2742,8 +2742,9 @@ end;
 
 procedure TMainForm.actLaunchCommandlineExecute(Sender: TObject);
 var
-  path, p: String;
+  path, p, log: String;
   Conn: TDBConnection;
+  rx: TRegExpr;
 begin
   // Launch mysql.exe
   Conn := ActiveConnection;
@@ -2754,13 +2755,30 @@ begin
     if (path = DEFAULT_MYSQLBINARIES) or (not FileExists(path+'\mysql.exe', true)) then
       ErrorDialog('You need to tell '+APPNAME+' where your MySQL binaries reside, in Tools > Preferences > Miscellaneous')
     else begin
-      p := ' --host="'+Conn.Parameters.Hostname+'" --user="'+Conn.Parameters.Username+'" --port='+IntToStr(Conn.Parameters.Port);
+      case Conn.Parameters.NetType of
+        ntMySQL_TCPIP: begin
+          p := ' --host="'+Conn.Parameters.Hostname+'" --port='+IntToStr(Conn.Parameters.Port);
+          if Conn.Parameters.WantSSL then
+            p := p + ' --ssl --ssl-key="'+Conn.Parameters.SSLPrivateKey+'" --ssl-cert="'+Conn.Parameters.SSLCertificate+'" --ssl-ca="'+Conn.Parameters.SSLCACertificate+'"';
+        end;
+        ntMySQL_NamedPipe:
+          p := ' --protocol=socket --socket="'+Conn.Parameters.Hostname+'"';
+        ntMySQL_SSHtunnel:
+          p := ' --host="localhost" --port='+IntToStr(Conn.Parameters.SSHLocalPort);
+      end;
+
+      p := p + ' --user="'+Conn.Parameters.Username+'"';
       if Conn.Parameters.Password <> '' then
         p := p + ' --password="'+Conn.Parameters.Password+'"';
       if Conn.Parameters.Compressed then
         p := p + ' --compress';
       if ActiveDatabase <> '' then
         p := p + ' --database="' + ActiveDatabase + '"';
+      rx := TRegExpr.Create;
+      rx.Expression := '(\-\-password\=")([^"]*)(")';
+      log := rx.Replace(p, '$1********$3', true);
+      LogSQL('Launching command line: '+path+'\mysql.exe'+log, lcInfo);
+      rx.Free;
       ShellExec('mysql.exe', path, p);
     end;
   end;
