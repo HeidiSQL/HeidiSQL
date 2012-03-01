@@ -2742,7 +2742,7 @@ end;
 
 procedure TMainForm.actLaunchCommandlineExecute(Sender: TObject);
 var
-  path, p, log: String;
+  path, p, log, cmd: String;
   Conn: TDBConnection;
   rx: TRegExpr;
 begin
@@ -2752,7 +2752,11 @@ begin
     ErrorDialog('Command line only works on MySQL connections.')
   else begin
     path := GetRegValue(REGNAME_MYSQLBINARIES, DEFAULT_MYSQLBINARIES);
-    if (path = DEFAULT_MYSQLBINARIES) or (not FileExists(path+'\mysql.exe', true)) then
+    if FIsWine then
+      cmd := 'mysql'
+    else
+      cmd := 'mysql.exe';
+    if (path = DEFAULT_MYSQLBINARIES) or (not FileExists(path+'\'+cmd, true)) then
       ErrorDialog('You need to tell '+APPNAME+' where your MySQL binaries reside, in Tools > Preferences > Miscellaneous')
     else begin
       case Conn.Parameters.NetType of
@@ -2777,9 +2781,9 @@ begin
       rx := TRegExpr.Create;
       rx.Expression := '(\-\-password\=")([^"]*)(")';
       log := rx.Replace(p, '$1********$3', true);
-      LogSQL('Launching command line: '+path+'\mysql.exe'+log, lcInfo);
+      LogSQL('Launching command line: '+path+'\'+cmd+log, lcInfo);
       rx.Free;
-      ShellExec('mysql.exe', path, p);
+      ShellExec(cmd, path, p);
     end;
   end;
 end;
