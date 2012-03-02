@@ -370,6 +370,13 @@ var
 begin
   InheritFont(Font);
 
+  // Misecllaneous
+  // Hide browse button on Wine, as the browse dialog returns Windows-style paths, while we need a Unix path
+  if MainForm.IsWine then begin
+    editMySQLBinaries.RightButton.Visible := False;
+    editMySQLBinaries.OnDblClick := nil;
+  end;
+
   // Data
   // Populate datatype categories pulldown
   for dtc:=Low(TDBDatatypeCategoryIndex) to High(TDBDatatypeCategoryIndex) do

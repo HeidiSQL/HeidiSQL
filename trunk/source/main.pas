@@ -987,6 +987,7 @@ type
 
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
+    property IsWine: Boolean read FIsWine;
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
     procedure CallSQLHelpWithKeyword( keyword: String );
     procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
@@ -2743,6 +2744,7 @@ end;
 procedure TMainForm.actLaunchCommandlineExecute(Sender: TObject);
 var
   path, p, log, cmd: String;
+  sep: Char;
   Conn: TDBConnection;
   rx: TRegExpr;
 begin
@@ -2751,14 +2753,20 @@ begin
   if Conn.Parameters.NetTypeGroup <> ngMySQL then
     ErrorDialog('Command line only works on MySQL connections.')
   else begin
-    path := GetRegValue(REGNAME_MYSQLBINARIES, DEFAULT_MYSQLBINARIES);
-    if FIsWine then
-      cmd := 'mysql'
-    else
+    if FIsWine then begin
+      cmd := 'mysql';
+      sep := '/';
+    end else begin
       cmd := 'mysql.exe';
-    if (path = DEFAULT_MYSQLBINARIES) or (not FileExists(path+'\'+cmd, true)) then
-      ErrorDialog('You need to tell '+APPNAME+' where your MySQL binaries reside, in Tools > Preferences > Miscellaneous')
-    else begin
+      sep := '\';
+    end;
+    path := GetRegValue(REGNAME_MYSQLBINARIES, DEFAULT_MYSQLBINARIES);
+    if (Length(path)>0) and (path[Length(path)] <> sep) then
+      path := path + sep;
+    if not FileExists(path+cmd, true) then begin
+      ErrorDialog('You need to tell '+APPNAME+' where your MySQL binaries reside, in Tools > Preferences > Miscellaneous.'+
+        CRLF+CRLF+'Current setting is: '+CRLF+'"'+path+'"');
+    end else begin
       case Conn.Parameters.NetType of
         ntMySQL_TCPIP: begin
           p := ' --host="'+Conn.Parameters.Hostname+'" --port='+IntToStr(Conn.Parameters.Port);
@@ -2781,7 +2789,7 @@ begin
       rx := TRegExpr.Create;
       rx.Expression := '(\-\-password\=")([^"]*)(")';
       log := rx.Replace(p, '$1********$3', true);
-      LogSQL('Launching command line: '+path+'\'+cmd+log, lcInfo);
+      LogSQL('Launching command line: '+path+cmd+log, lcInfo);
       rx.Free;
       ShellExec(cmd, path, p);
     end;
