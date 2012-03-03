@@ -264,6 +264,7 @@ begin
     'Structured query language (*.sql)|*.sql|'+
     'LaTeX table (*.latex)|*.latex|'+
     'Wiki markup table (*.wiki)|*.wiki|'+
+    'PHP script (*.php)|*.php|'+
     'All files (*.*)|*.*';
   if Dialog.Execute then begin
     editFilename.Text := Dialog.FileName;
