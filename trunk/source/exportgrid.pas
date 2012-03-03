@@ -625,7 +625,10 @@ begin
             Data := 'NULL'
           else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
             Data := esc(Data);
-          tmp := tmp + #9#9 + '''' + Grid.Header.Columns[Col].Text + ''' => ' + Data + ','+CRLF;
+          if chkColumnHeader.Checked then
+            tmp := tmp + #9#9 + '''' + Grid.Header.Columns[Col].Text + ''' => ' + Data + ','+CRLF
+          else
+            tmp := tmp + #9#9 + Data + ','+CRLF;
         end;
 
       end;
