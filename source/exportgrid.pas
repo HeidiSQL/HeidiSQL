@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML;
 
 type
-  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efLaTeX, efWiki);
+  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efLaTeX, efWiki, efPHPArray);
 
   TfrmExportGrid = class(TForm)
     btnOK: TButton;
@@ -234,7 +234,8 @@ begin
   else if ext = 'xml'    then ExportFormat := efXML
   else if ext = 'sql'    then ExportFormat := efSQLInsert
   else if ext = 'latex'  then ExportFormat := efLaTeX
-  else if ext = 'wiki'   then ExportFormat := efWiki;
+  else if ext = 'wiki'   then ExportFormat := efWiki
+  else if ext = 'php'    then ExportFormat := efPHPArray;
 end;
 
 
@@ -519,6 +520,11 @@ begin
         Header := Header + Terminator;
       end;
     end;
+
+    efPHPArray: begin
+      Header := '<?php'+CRLF+'$'+TableName+' = array('+CRLF;
+    end;
+
   end;
   S.WriteString(Header);
 
@@ -560,6 +566,8 @@ begin
       end;
 
       efWiki: tmp := TrimLeft(Separator);
+
+      efPHPArray: tmp := #9 + 'array( // row #'+FormatNumber(GridData.RecNo)+CRLF;
 
       else tmp := '';
     end;
@@ -611,6 +619,14 @@ begin
           tmp := tmp + Data + ', ';
         end;
 
+        efPHPArray: begin
+          if GridData.IsNull(Col) then
+            Data := 'NULL'
+          else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
+            Data := esc(Data);
+          tmp := tmp + #9#9 + '''' + Grid.Header.Columns[Col].Text + ''' => ' + Data + ','+CRLF;
+        end;
+
       end;
 
       Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
@@ -630,6 +646,8 @@ begin
         Delete(tmp, Length(tmp)-1, 2);
         tmp := tmp + ');' + CRLF;
       end;
+      efPHPArray:
+        tmp := tmp + #9 + '),' + CRLF;
     end;
     S.WriteString(tmp);
 
@@ -653,6 +671,8 @@ begin
       tmp := '</table>' + CRLF;
     efLaTeX:
       tmp := '\end{tabular}' + CRLF;
+    efPHPArray:
+      tmp := ');' + CRLF + '?>';
     else
       tmp := '';
   end;
