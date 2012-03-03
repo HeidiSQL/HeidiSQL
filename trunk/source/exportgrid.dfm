@@ -61,7 +61,8 @@ object frmExportGrid: TfrmExportGrid
       'SQL INSERTs'
       'SQL REPLACEs'
       'LaTeX'
-      'Wiki markup')
+      'Wiki markup'
+      'PHP Array')
     TabOrder = 2
     OnClick = ValidateControls
   end
