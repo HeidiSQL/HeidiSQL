@@ -523,7 +523,10 @@ begin
     end;
 
     efPHPArray: begin
-      Header := '<?php'+CRLF+'$'+TableName+' = array('+CRLF;
+      if radioOutputFile.Checked then
+        Header := '<?php'+CRLF+'$'+TableName+' = array('+CRLF
+      else
+        Header := '$'+TableName+' = array('+CRLF;
     end;
 
   end;
@@ -675,8 +678,11 @@ begin
       tmp := '</table>' + CRLF;
     efLaTeX:
       tmp := '\end{tabular}' + CRLF;
-    efPHPArray:
-      tmp := ');' + CRLF + '?>';
+    efPHPArray: begin
+      tmp := ');' + CRLF;
+      if radioOutputFile.Checked then
+        tmp := tmp + '?>';
+    end;
     else
       tmp := '';
   end;
