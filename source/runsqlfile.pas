@@ -48,15 +48,12 @@ uses
 }
 procedure TRunSQLFileForm.FormActivate(Sender: TObject);
 var
-  Stream              : TFileStream;
-  lines               : String;
-  filesize,
-  querycount,
-  rowsaffected        : Int64;
-  starttime           : Cardinal;
-  SQL                 : TSQLBatch;
-  i                   : Integer;
-  lines_remaining     : String;
+  Stream: TFileStream;
+  lines, lines_remaining: String;
+  filesize, querycount, rowsaffected: Int64;
+  starttime: Cardinal;
+  Queries: TSQLBatch;
+  i: Integer;
 begin
   if Running then
     abort;
@@ -71,6 +68,7 @@ begin
   rowsaffected := 0;
   lines_remaining := '';
   starttime := GetTickCount;
+  Queries := TSQLBatch.Create;
 
   Screen.Cursor := crHourGlass;
 
@@ -100,17 +98,17 @@ begin
       Repaint;
 
       // Split buffer into single queries
-      SQL := SplitSQL( lines_remaining + lines );
+      Queries.SQL := lines_remaining + lines;
       lines := '';
       lines_remaining := '';
 
       // Execute detected queries
-      for i := 0 to SQL.Count - 1 do
+      for i:=0 to Queries.Count-1 do
       begin
         // Last line has to be processed in next loop if end of file is not reached
-        if (i = SQL.Count-1) and (Stream.Position < Stream.Size) then
+        if (i = Queries.Count-1) and (Stream.Position < Stream.Size) then
         begin
-          lines_remaining := SQL[i].SQL;
+          lines_remaining := Queries[i].SQL;
           break;
         end;
 
@@ -119,19 +117,19 @@ begin
         lblQueryCountValue.Caption := FormatNumber( querycount );
 
         // Display part of query
-        memoQueryValue.Text := sstr( SQL[i].SQL, 100 );
+        memoQueryValue.Text := sstr(Queries[i].SQL, 100 );
 
         // Time
         lblTimeValue.Caption := FormatTimeNumber((GetTickCount - starttime) DIV 1000, True);
 
         // Execute single query and display affected rows
-        Mainform.ActiveConnection.Query(SQL[i].SQL);
+        Mainform.ActiveConnection.Query(Queries[i].SQL);
         rowsaffected := rowsaffected + Mainform.ActiveConnection.RowsAffected;
         lblAffectedRowsValue.Caption := FormatNumber( rowsaffected );
 
         Repaint;
       end;
-      SQL.Free;
+      Queries.Free;
 
     end;
     Stream.Free;

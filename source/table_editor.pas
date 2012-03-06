@@ -454,8 +454,7 @@ end;
 function TfrmTableEditor.ComposeAlterStatement: TSQLBatch;
 var
   Specs: TStringList;
-  ColSpec, IndexSQL: String;
-  Query: TSQLSentence;
+  ColSpec, IndexSQL, SQL: String;
   i: Integer;
   Results: TDBQuery;
   Col, PreviousCol: PTableColumn;
@@ -465,19 +464,16 @@ var
   procedure AddQuery;
   begin
     if Specs.Count > 0 then begin
-      Query := TSQLSentence.Create;
-      Query.SQL := 'ALTER TABLE '+DBObject.Connection.QuoteIdent(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs);
-      Query.SQL := Trim(Query.SQL);
-      Result.Add(Query);
+      SQL := SQL + Trim('ALTER TABLE '+DBObject.Connection.QuoteIdent(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs)) + ';' + CRLF;
       Specs.Clear;
     end;
   end;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
   Mainform.ShowStatusMsg('Composing ALTER statement ...');
-  Result := TSQLBatch.Create;
   Screen.Cursor := crHourglass;
   Specs := TStringList.Create;
+  SQL := '';
 
   // Special case for altered foreign keys: These have to be dropped in a seperate query
   // otherwise the server would return error 121 "Duplicate key on write or update"
@@ -631,6 +627,9 @@ begin
 
   AddQuery;
 
+  Result := TSQLBatch.Create;
+  Result.SQL := SQL;
+
   FreeAndNil(Specs);
   Mainform.ShowStatusMsg;
   MainForm.DisableProgress;
@@ -643,18 +642,14 @@ var
   i, IndexCount: Integer;
   Col: PTableColumn;
   Node: PVirtualNode;
-  tmp: String;
-  Query: TSQLSentence;
+  tmp, SQL: String;
 begin
   // Compose CREATE query, called by buttons and for SQL code tab
-  Result := TSQLBatch.Create;
-  Query := TSQLSentence.Create;
-  Result.Add(Query);
-  Query.SQL := 'CREATE TABLE '+DBObject.Connection.QuoteIdent(editName.Text)+' ('+CRLF;
+  SQL := 'CREATE TABLE '+DBObject.Connection.QuoteIdent(editName.Text)+' ('+CRLF;
   Node := listColumns.GetFirst;
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
-    Query.SQL := Query.SQL + #9 + Col.SQLCode + ','+CRLF;
+    SQL := SQL + #9 + Col.SQLCode + ','+CRLF;
     Node := listColumns.GetNextSibling(Node);
   end;
 
@@ -662,43 +657,44 @@ begin
   for i:=0 to FKeys.Count-1 do begin
     tmp := FKeys[i].SQLCode;
     if tmp <> '' then begin
-      Query.SQL := Query.SQL + #9 + tmp + ','+CRLF;
+      SQL := SQL + #9 + tmp + ','+CRLF;
       Inc(IndexCount);
     end;
   end;
 
   for i:=0 to FForeignKeys.Count-1 do
-    Query.SQL := Query.SQL + #9 + FForeignKeys[i].SQLCode(True) + ','+CRLF;
+    SQL := SQL + #9 + FForeignKeys[i].SQLCode(True) + ','+CRLF;
 
   if Integer(listColumns.RootNodeCount) + IndexCount + FForeignKeys.Count > 0 then
-    Delete(Query.SQL, Length(Query.SQL)-2, 3);
+    Delete(SQL, Length(SQL)-2, 3);
 
-  Query.SQL := Query.SQL + CRLF + ')' + CRLF;
+  SQL := SQL + CRLF + ')' + CRLF;
   if memoComment.Text <> '' then
-    Query.SQL := Query.SQL + 'COMMENT='+esc(memoComment.Text) + CRLF;
+    SQL := SQL + 'COMMENT='+esc(memoComment.Text) + CRLF;
   if comboCollation.Text <> '' then
-    Query.SQL := Query.SQL + 'COLLATE='+esc(comboCollation.Text) + CRLF;
+    SQL := SQL + 'COLLATE='+esc(comboCollation.Text) + CRLF;
   if comboEngine.Text <> '' then begin
     if DBObject.Connection.ServerVersionInt < 40018 then
-      Query.SQL := Query.SQL + 'TYPE='+comboEngine.Text + CRLF
+      SQL := SQL + 'TYPE='+comboEngine.Text + CRLF
     else
-      Query.SQL := Query.SQL + 'ENGINE='+comboEngine.Text + CRLF;
+      SQL := SQL + 'ENGINE='+comboEngine.Text + CRLF;
   end;
   if comboRowFormat.Tag = ModifiedFlag then
-    Query.SQL := Query.SQL + 'ROW_FORMAT='+comboRowFormat.Text + CRLF;
+    SQL := SQL + 'ROW_FORMAT='+comboRowFormat.Text + CRLF;
   if chkChecksum.Checked then
-    Query.SQL := Query.SQL + 'CHECKSUM='+IntToStr(Integer(chkChecksum.Checked)) + CRLF;
+    SQL := SQL + 'CHECKSUM='+IntToStr(Integer(chkChecksum.Checked)) + CRLF;
   if editAutoInc.Text <> '' then
-    Query.SQL := Query.SQL + 'AUTO_INCREMENT='+editAutoInc.Text + CRLF;
+    SQL := SQL + 'AUTO_INCREMENT='+editAutoInc.Text + CRLF;
   if editAvgRowLen.Text <> '' then
-    Query.SQL := Query.SQL + 'AVG_ROW_LENGTH='+editAvgRowLen.Text + CRLF;
+    SQL := SQL + 'AVG_ROW_LENGTH='+editAvgRowLen.Text + CRLF;
   if editMaxRows.Text <> '' then
-    Query.SQL := Query.SQL + 'MAX_ROWS='+editMaxRows.Text + CRLF;
+    SQL := SQL + 'MAX_ROWS='+editMaxRows.Text + CRLF;
   if memoUnionTables.Enabled and (memoUnionTables.Text <> '') then
-    Query.SQL := Query.SQL + 'UNION=('+memoUnionTables.Text+')' + CRLF;
+    SQL := SQL + 'UNION=('+memoUnionTables.Text+')' + CRLF;
   if comboInsertMethod.Enabled and (comboInsertMethod.Text <> '') then
-    Query.SQL := Query.SQL + 'INSERT_METHOD='+comboInsertMethod.Text + CRLF;
-  Query.SQL := Trim(Query.SQL);
+    SQL := SQL + 'INSERT_METHOD='+comboInsertMethod.Text + CRLF;
+  Result := TSQLBatch.Create;
+  Result.SQL := Trim(SQL);
 end;
 
 

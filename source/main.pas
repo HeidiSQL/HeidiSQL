@@ -2199,9 +2199,8 @@ end;
 procedure TMainForm.actExecuteQueryExecute(Sender: TObject);
 var
   Query: TSQLSentence;
-  Text, LB: String;
   ProfileNode: PVirtualNode;
-  Batch: TSQLBatch;
+  BatchAll, Batch: TSQLBatch;
   Tab: TQueryTab;
 
 begin
@@ -2210,32 +2209,25 @@ begin
   OperationRunning(True);
 
   ShowStatusMsg('Splitting SQL queries ...');
+  Batch := TSQLBatch.Create;
   if Sender = actExecuteCurrentQuery then begin
-    Batch := GetSQLSplitMarkers(Tab.Memo.Text);
-    for Query in Batch do begin
+    BatchAll := TSQLBatch.Create;
+    BatchAll.SQL := Tab.Memo.Text;
+    for Query in BatchAll do begin
       if (Tab.Memo.SelStart >= Query.LeftOffset-1) and (Tab.Memo.SelStart < Query.RightOffset) then begin
-        Text := Copy(Tab.Memo.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
+        Batch.SQL := Query.SQL;
         Tab.LeftOffsetInMemo := Query.LeftOffset;
         break;
       end;
     end;
+    BatchAll.Free;
   end else if Sender = actExecuteSelection then begin
-    Text := Tab.Memo.SelText;
+    Batch.SQL := Tab.Memo.SelText;
     Tab.LeftOffsetInMemo := Tab.Memo.SelStart;
   end else begin
-    Text := Tab.Memo.Text;
+    Batch.SQL := Tab.Memo.Text;
     Tab.LeftOffsetInMemo := 0;
   end;
-  // Give text back its original linebreaks if possible
-  case Tab.MemoLineBreaks of
-    lbsUnix: LB := LB_UNIX;
-    lbsMac: LB := LB_MAC;
-    lbsWide: LB := LB_WIDE;
-  end;
-  if LB <> '' then
-    Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
-  Batch := SplitSQL(Text);
-  Text := '';
 
   EnableProgress(Batch.Count);
   Tab.ResultTabs.Clear;
@@ -2985,10 +2977,10 @@ end;
 }
 function TMainform.InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
 var
-  i: Integer;
   SessionExists, RestoreLastActiveDatabase: Boolean;
-  StartupScript, StartupSQL, LastActiveDatabase: String;
+  StartupScript, LastActiveDatabase: String;
   StartupBatch: TSQLBatch;
+  Query: TSQLSentence;
   SessionNode, DBNode: PVirtualNode;
 begin
   Connection := Params.CreateConnection(Self);
@@ -3051,10 +3043,10 @@ begin
       if not FileExists(StartupScript) then
         ErrorDialog('Startup script file not found: '+StartupScript)
       else begin
-        StartupSQL := ReadTextfile(StartupScript, nil);
-        StartupBatch := SplitSQL(StartupSQL);
-        for i:=0 to StartupBatch.Count-1 do try
-          Connection.Query(StartupBatch[i].SQL);
+        StartupBatch := TSQLBatch.Create;
+        StartupBatch.SQL := ReadTextfile(StartupScript, nil);
+        for Query in StartupBatch do try
+          Connection.Query(Query.SQL);
         except
           // Suppress popup, errors get logged into SQL log
         end;
@@ -4820,7 +4812,7 @@ var
   Attri: TSynHighlighterAttributes;
   Proposal: TSynCompletionProposal;
   Editor: TCustomSynEdit;
-  QueryMarkers: TSQLBatch;
+  Queries: TSQLBatch;
   Query: TSQLSentence;
   Conn: TDBConnection;
   RoutineEditor: TfrmRoutineEditor;
@@ -4921,14 +4913,15 @@ begin
       sql := 'SELECT * FROM '+ActiveDbObj.QuotedName+' WHERE ' + Editor.Text;
     end else begin
       // In a query tab
-      QueryMarkers := GetSQLSplitMarkers(Editor.Text);
-      for Query in QueryMarkers do begin
+      Queries := TSQLBatch.Create;
+      Queries.SQL := Editor.Text;
+      for Query in Queries do begin
         if (Query.LeftOffset <= Editor.SelStart) and (Editor.SelStart < Query.RightOffset) then begin
-          sql := Copy(Editor.Text, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
+          sql := Query.SQL;
           break;
         end;
       end;
-      FreeAndNil(QueryMarkers);
+      Queries.Free;
     end;
 
     // 2. Parse FROM clause, detect relevant table/view, probably aliased
