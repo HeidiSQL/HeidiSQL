@@ -2767,16 +2767,23 @@ begin
       ErrorDialog('You need to tell '+APPNAME+' where your MySQL binaries reside, in Tools > Preferences > Miscellaneous.'+
         CRLF+CRLF+'Current setting is: '+CRLF+'"'+path+'"');
     end else begin
+      p := '';
+      if FIsWine then begin
+        p := ' -e '+path+cmd;
+        path := '';
+        cmd := '$TERM';
+      end;
+
       case Conn.Parameters.NetType of
         ntMySQL_TCPIP: begin
-          p := ' --host="'+Conn.Parameters.Hostname+'" --port='+IntToStr(Conn.Parameters.Port);
+          p := p + ' --host="'+Conn.Parameters.Hostname+'" --port='+IntToStr(Conn.Parameters.Port);
           if Conn.Parameters.WantSSL then
             p := p + ' --ssl --ssl-key="'+Conn.Parameters.SSLPrivateKey+'" --ssl-cert="'+Conn.Parameters.SSLCertificate+'" --ssl-ca="'+Conn.Parameters.SSLCACertificate+'"';
         end;
         ntMySQL_NamedPipe:
-          p := ' --protocol=socket --socket="'+Conn.Parameters.Hostname+'"';
+          p := p + ' --protocol=socket --socket="'+Conn.Parameters.Hostname+'"';
         ntMySQL_SSHtunnel:
-          p := ' --host="localhost" --port='+IntToStr(Conn.Parameters.SSHLocalPort);
+          p := p + ' --host="localhost" --port='+IntToStr(Conn.Parameters.SSHLocalPort);
       end;
 
       p := p + ' --user="'+Conn.Parameters.Username+'"';
@@ -2788,8 +2795,9 @@ begin
         p := p + ' --database="' + ActiveDatabase + '"';
       rx := TRegExpr.Create;
       rx.Expression := '(\-\-password\=")([^"]*)(")';
-      log := rx.Replace(p, '$1********$3', true);
-      LogSQL('Launching command line: '+path+cmd+log, lcInfo);
+      log := path + cmd + p;
+      log := rx.Replace(log, '$1********$3', true);
+      LogSQL('Launching command line: '+log, lcInfo);
       rx.Free;
       ShellExec(cmd, path, p);
     end;
