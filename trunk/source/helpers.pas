@@ -50,11 +50,27 @@ type
     GripRect: TRect;
   end;
 
+  TSQLBatch = class;
   TSQLSentence = class(TObject)
-    LeftOffset, RightOffset: Integer;
-    SQL: String;
+    private
+      FOwner: TSQLBatch;
+      function GetSize: Integer;
+      function GetSQL: String;
+    public
+      LeftOffset, RightOffset: Integer;
+      constructor Create(Owner: TSQLBatch);
+      property SQL: String read GetSQL;
+      property Size: Integer read GetSize;
   end;
-  TSQLBatch = TObjectList<TSQLSentence>;
+  TSQLBatch = class(TObjectList<TSQLSentence>)
+    private
+      FSQL: String;
+      procedure SetSQL(Value: String);
+      function GetSize: Integer;
+    public
+      property Size: Integer read GetSize;
+      property SQL: String read FSQL write SetSQL;
+  end;
 
   // Threading stuff
   TQueryThread = class(TThread)
@@ -100,8 +116,6 @@ type
   function Explode(Separator, Text: String) :TStringList;
   procedure ExplodeQuotedList(Text: String; var List: TStringList);
   function getEnumValues(str: String): String;
-  function GetSQLSplitMarkers(const SQL: String): TSQLBatch;
-  function SplitSQL(const SQL: String): TSQLBatch;
   function sstr(str: String; len: Integer) : String;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
@@ -288,109 +302,6 @@ begin
   end;
 end;
 
-
-function GetSQLSplitMarkers(const SQL: String): TSQLBatch;
-var
-  i, AllLen, DelimLen, DelimStart, LastLeftOffset, RightOffset, LastNewLineOffset: Integer;
-  c, n, LastStringEncloser: Char;
-  Delim, DelimTest, QueryTest: String;
-  InString, InComment, InBigComment, InEscape: Boolean;
-  Marker: TSQLSentence;
-  rx: TRegExpr;
-const
-  StringEnclosers = ['"', '''', '`'];
-  NewLines = [#13, #10];
-  WhiteSpaces = NewLines + [#9, ' '];
-begin
-  // Scan SQL batch for delimiters and return a list with start + end offsets
-  AllLen := Length(SQL);
-  i := 0;
-  LastLeftOffset := 1;
-  Delim := Mainform.Delimiter;
-  InString := False; // Loop in "enclosed string" or `identifier`
-  InComment := False; // Loop in one-line comment (# or --)
-  InBigComment := False; // Loop in /* multi-line */ or /*! condictional comment */
-  InEscape := False; // Previous char was backslash
-  LastStringEncloser := #0;
-  DelimLen := Length(Delim);
-  Result := TSQLBatch.Create;
-  rx := TRegExpr.Create;
-  rx.Expression := '^\s*DELIMITER\s+(\S+)';
-  rx.ModifierG := True;
-  rx.ModifierI := True;
-  rx.ModifierM := False;
-  while i < AllLen do begin
-    Inc(i);
-    // Current and next char
-    c := SQL[i];
-    if i < AllLen then n := SQL[i+1]
-    else n := #0;
-
-    // Check for comment syntax and for enclosed literals, so a query delimiter can be ignored
-    if (not InComment) and (not InBigComment) and (not InString) and ((c + n = '--') or (c = '#')) then
-      InComment := True;
-    if (not InComment) and (not InBigComment) and (not InString) and (c + n = '/*') then
-      InBigComment := True;
-    if InBigComment and (not InComment) and (not InString) and (c + n = '*/') then
-      InBigComment := False;
-    if (not InEscape) and (not InComment) and (not InBigComment) and CharInSet(c, StringEnclosers) then begin
-      if (not InString) or (InString and (c = LastStringEncloser)) then begin
-        InString := not InString;
-        LastStringEncloser := c;
-      end;
-    end;
-    if (CharInSet(c, NewLines) and (not CharInSet(n, NewLines))) or (i = 1) then begin
-      if i > 1 then
-        InComment := False;
-      if (not InString) and (not InBigComment) and rx.Exec(copy(SQL, i, 100)) then begin
-        Delim := rx.Match[1];
-        DelimLen := rx.MatchLen[1];
-        Inc(i, rx.MatchLen[0]);
-        LastLeftOffset := i;
-        continue;
-      end;
-    end;
-    if not InEscape then
-      InEscape := c = '\'
-    else
-      InEscape := False;
-
-    // Prepare delimiter test string
-    if (not InComment) and (not InString) and (not InBigComment) then begin
-      DelimStart := Max(1, i+1-DelimLen);
-      DelimTest := Copy(SQL, DelimStart, i-Max(i-DelimLen, 0));
-    end else
-      DelimTest := '';
-
-    // End of query or batch reached. Add query markers to result list if sentence is not empty.
-    if (DelimTest = Delim) or (i = AllLen) then begin
-      RightOffset := i+1;
-      if DelimTest = Delim then
-        Dec(RightOffset, DelimLen);
-      QueryTest := Trim(Copy(SQL, LastLeftOffset, RightOffset-LastLeftOffset));
-      if (QueryTest <> '') and (QueryTest <> Delim) then begin
-        Marker := TSQLSentence.Create;
-        while CharInSet(SQL[LastLeftOffset], WhiteSpaces) do
-          Inc(LastLeftOffset);
-        Marker.LeftOffset := LastLeftOffset;
-        Marker.RightOffset := RightOffset;
-        Result.Add(Marker);
-        LastLeftOffset := i+1;
-      end;
-    end;
-  end;
-end;
-
-
-function SplitSQL(const SQL: String): TSQLBatch;
-var
-  Query: TSQLSentence;
-begin
-  // Return a list of queries tokenized from a big string. Replaces earlier parseSQL() method.
-  Result := GetSQLSplitMarkers(SQL);
-  for Query in Result do
-    Query.SQL := Copy(SQL, Query.LeftOffset, Query.RightOffset-Query.LeftOffset);
-end;
 
 
 
@@ -2811,6 +2722,135 @@ procedure TQueryThread.BatchFinished;
 begin
   MainForm.FinishedQueryExecution(Self);
 end;
+
+
+{ TSQLSentence }
+
+constructor TSQLSentence.Create(Owner: TSQLBatch);
+begin
+  // Use a back reference to the parent batch object, so we can extract SQL from it
+  FOwner := Owner;
+end;
+
+
+function TSQLSentence.GetSize: Integer;
+begin
+  Result := RightOffset - LeftOffset;
+end;
+
+
+function TSQLSentence.GetSQL: String;
+begin
+  Result := Copy(FOwner.SQL, LeftOffset, RightOffset-LeftOffset);
+end;
+
+
+{ TSQLBatch }
+
+function TSQLBatch.GetSize: Integer;
+var
+  Query: TSQLSentence;
+begin
+  // Return overall string length of batch
+  Result := 0;
+  for Query in Self do
+    Inc(Result, Query.Size);
+end;
+
+
+procedure TSQLBatch.SetSQL(Value: String);
+var
+  i, AllLen, DelimLen, DelimStart, LastLeftOffset, RightOffset, LastNewLineOffset: Integer;
+  c, n, LastStringEncloser: Char;
+  Delim, DelimTest, QueryTest: String;
+  InString, InComment, InBigComment, InEscape: Boolean;
+  Marker: TSQLSentence;
+  rx: TRegExpr;
+const
+  StringEnclosers = ['"', '''', '`'];
+  NewLines = [#13, #10];
+  WhiteSpaces = NewLines + [#9, ' '];
+begin
+  // Scan SQL batch for delimiters and store a list with start + end offsets
+  FSQL := Value;
+  Clear;
+  AllLen := Length(FSQL);
+  i := 0;
+  LastLeftOffset := 1;
+  Delim := Mainform.Delimiter;
+  InString := False; // Loop in "enclosed string" or `identifier`
+  InComment := False; // Loop in one-line comment (# or --)
+  InBigComment := False; // Loop in /* multi-line */ or /*! condictional comment */
+  InEscape := False; // Previous char was backslash
+  LastStringEncloser := #0;
+  DelimLen := Length(Delim);
+  rx := TRegExpr.Create;
+  rx.Expression := '^\s*DELIMITER\s+(\S+)';
+  rx.ModifierG := True;
+  rx.ModifierI := True;
+  rx.ModifierM := False;
+  while i < AllLen do begin
+    Inc(i);
+    // Current and next char
+    c := FSQL[i];
+    if i < AllLen then n := FSQL[i+1]
+    else n := #0;
+
+    // Check for comment syntax and for enclosed literals, so a query delimiter can be ignored
+    if (not InComment) and (not InBigComment) and (not InString) and ((c + n = '--') or (c = '#')) then
+      InComment := True;
+    if (not InComment) and (not InBigComment) and (not InString) and (c + n = '/*') then
+      InBigComment := True;
+    if InBigComment and (not InComment) and (not InString) and (c + n = '*/') then
+      InBigComment := False;
+    if (not InEscape) and (not InComment) and (not InBigComment) and CharInSet(c, StringEnclosers) then begin
+      if (not InString) or (InString and (c = LastStringEncloser)) then begin
+        InString := not InString;
+        LastStringEncloser := c;
+      end;
+    end;
+    if (CharInSet(c, NewLines) and (not CharInSet(n, NewLines))) or (i = 1) then begin
+      if i > 1 then
+        InComment := False;
+      if (not InString) and (not InBigComment) and rx.Exec(copy(FSQL, i, 100)) then begin
+        Delim := rx.Match[1];
+        DelimLen := rx.MatchLen[1];
+        Inc(i, rx.MatchLen[0]);
+        LastLeftOffset := i;
+        continue;
+      end;
+    end;
+    if not InEscape then
+      InEscape := c = '\'
+    else
+      InEscape := False;
+
+    // Prepare delimiter test string
+    if (not InComment) and (not InString) and (not InBigComment) then begin
+      DelimStart := Max(1, i+1-DelimLen);
+      DelimTest := Copy(FSQL, DelimStart, i-Max(i-DelimLen, 0));
+    end else
+      DelimTest := '';
+
+    // End of query or batch reached. Add query markers to result list if sentence is not empty.
+    if (DelimTest = Delim) or (i = AllLen) then begin
+      RightOffset := i+1;
+      if DelimTest = Delim then
+        Dec(RightOffset, DelimLen);
+      QueryTest := Trim(Copy(FSQL, LastLeftOffset, RightOffset-LastLeftOffset));
+      if (QueryTest <> '') and (QueryTest <> Delim) then begin
+        Marker := TSQLSentence.Create(Self);
+        while CharInSet(FSQL[LastLeftOffset], WhiteSpaces) do
+          Inc(LastLeftOffset);
+        Marker.LeftOffset := LastLeftOffset;
+        Marker.RightOffset := RightOffset;
+        Add(Marker);
+        LastLeftOffset := i+1;
+      end;
+    end;
+  end;
+end;
+
 
 
 end.
