@@ -17,6 +17,15 @@ object frmRoutineEditor: TfrmRoutineEditor
     Caption = 'Routine body:'
     FocusControl = SynMemoBody
   end
+  object lblDisabledWhy: TLabel
+    Left = 256
+    Top = 460
+    Width = 177
+    Height = 13
+    Anchors = [akLeft, akBottom]
+    Caption = 'You have no privilege to this routine.'
+    Visible = False
+  end
   object btnSave: TButton
     Left = 165
     Top = 455

@@ -43,6 +43,7 @@ type
     comboDefiner: TComboBox;
     btnMoveUpParam: TToolButton;
     btnMoveDownParam: TToolButton;
+    lblDisabledWhy: TLabel;
     procedure comboTypeSelect(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -166,6 +167,11 @@ begin
     editComment.Text := Comment;
     comboDefiner.Text := Definer;
     SynMemoBody.Text := Body;
+    // User may not be allowed to view code in SHOW CREATE FUNCTION, in which case we have an empty CreateCode.
+    // Disable editor in this case.
+    lblDisabledWhy.Visible := Body = '';
+    PageControlMain.Enabled := not lblDisabledWhy.Visible;
+    SynMemoBody.Enabled := PageControlMain.Enabled;
   end else begin
     editName.Text := '';
   end;
