@@ -133,7 +133,7 @@ begin
     Queries.Free;
     Stream.Free;
   except
-    on E: Exception do
+    on E:EFileStreamError do
     begin
       ErrorDialog('Error while reading file "'+SQLFileName+'"', E.Message);
       Mainform.AddOrRemoveFromQueryLoadHistory(SQLFileName, False, True);
