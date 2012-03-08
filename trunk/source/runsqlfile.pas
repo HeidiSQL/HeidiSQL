@@ -129,9 +129,8 @@ begin
 
         Repaint;
       end;
-      Queries.Free;
-
     end;
+    Queries.Free;
     Stream.Free;
   except
     on E: Exception do
