@@ -88,10 +88,12 @@ type
     FQueryNetTime: Cardinal;
     FRowsAffected: Int64;
     FRowsFound: Int64;
-  private
+    FLogMsg: String;
+    FLogCategory: TDBLogCategory;
     procedure BeforeQuery;
     procedure AfterQuery;
     procedure BatchFinished;
+    procedure Log;
   public
     property Connection: TDBConnection read FConnection;
     property Batch: TSQLBatch read FBatch;
@@ -106,6 +108,7 @@ type
     property ErrorMessage: String read FErrorMessage;
     constructor Create(Connection: TDBConnection; Batch: TSQLBatch; TabNumber: Integer);
     procedure Execute; override;
+    procedure LogFromOutside(Msg: String; Category: TDBLogCategory);
   end;
 
 
@@ -2709,6 +2712,20 @@ end;
 procedure TQueryThread.BeforeQuery;
 begin
   MainForm.BeforeQueryExecution(Self);
+end;
+
+
+procedure TQueryThread.LogFromOutside(Msg: String; Category: TDBLogCategory);
+begin
+  FLogMsg := Msg;
+  FLogCategory := Category;
+  Synchronize(Log);
+end;
+
+
+procedure TQueryThread.Log;
+begin
+  FConnection.OnLog(FLogMsg, FLogCategory, FConnection);
 end;
 
 
