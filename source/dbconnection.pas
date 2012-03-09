@@ -805,14 +805,16 @@ procedure TMySQLConnection.SetLockedByThread(Value: TThread);
 begin
   if Value <> FLockedByThread then begin
     if Value <> nil then begin
+      // We're running in a thread already. Ensure that Log() is able to detect that.
+      FLockedByThread := Value;
       Log(lcDebug, 'mysql_thread_init, thread id #'+IntToStr(Value.ThreadID));
       mysql_thread_init;
     end else begin
       mysql_thread_end;
       Log(lcDebug, 'mysql_thread_end, thread id #'+IntToStr(FLockedByThread.ThreadID));
+      FLockedByThread := Value;
     end;
   end;
-  FLockedByThread := Value;
 end;
 
 
@@ -1819,7 +1821,12 @@ begin
   if Assigned(FOnLog) then begin
     if FLogPrefix <> '' then
       Msg := '['+FLogPrefix+'] ' + Msg;
-    FOnLog(Msg, Category, Self);
+    // If in a thread, synchronize logging with the main thread. Logging within a thread
+    // causes SynEdit to throw exceptions left and right.
+    if (FLockedByThread <> nil) and (FLockedByThread.ThreadID = GetCurrentThreadID) then
+      (FLockedByThread as TQueryThread).LogFromOutside(Msg, Category)
+    else
+      FOnLog(Msg, Category, Self);
   end;
 end;
 
