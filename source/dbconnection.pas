@@ -220,6 +220,7 @@ type
       FOnDBObjectsCleared: TDBEvent;
       FRowsFound: Int64;
       FRowsAffected: Int64;
+      FWarningCount: Cardinal;
       FServerOS: String;
       FServerVersionUntouched: String;
       FRealHostname: String;
@@ -312,6 +313,7 @@ type
       property ServerVersionInt: Integer read GetServerVersionInt;
       property RowsFound: Int64 read FRowsFound;
       property RowsAffected: Int64 read FRowsAffected;
+      property WarningCount: Cardinal read FWarningCount;
       property LastQueryDuration: Cardinal read FLastQueryDuration;
       property LastQueryNetworkDuration: Cardinal read FLastQueryNetworkDuration;
       property IsUnicode: Boolean read FIsUnicode;
@@ -567,6 +569,7 @@ var
   mysql_set_character_set: function(Handle: PMYSQL; csname: PAnsiChar): Integer; stdcall;
   mysql_thread_init: function: Byte; stdcall;
   mysql_thread_end: procedure; stdcall;
+  mysql_warning_count: function(Handle: PMYSQL): Cardinal; stdcall;
 
 implementation
 
@@ -707,6 +710,7 @@ begin
   FParameters := TConnectionParameters.Create;
   FRowsFound := 0;
   FRowsAffected := 0;
+  FWarningCount := 0;
   FConnectionStarted := 0;
   FLastQueryDuration := 0;
   FLastQueryNetworkDuration := 0;
@@ -1165,6 +1169,7 @@ begin
       AssignProc(@mysql_set_character_set, 'mysql_set_character_set');
       AssignProc(@mysql_thread_init, 'mysql_thread_init');
       AssignProc(@mysql_thread_end, 'mysql_thread_end');
+      AssignProc(@mysql_warning_count, 'mysql_warning_count');
       Log(lcDebug, LibMysqlPath + ' v' + DecodeApiString(mysql_get_client_info) + ' loaded.');
     end;
   end;
@@ -1263,6 +1268,7 @@ begin
     // We must call mysql_store_result() + mysql_free_result() to unblock the connection
     // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html
     FRowsAffected := mysql_affected_rows(FHandle);
+    FWarningCount := mysql_warning_count(FHandle);
     TimerStart := GetTickCount;
     QueryResult := mysql_store_result(FHandle);
     FLastQueryNetworkDuration := GetTickCount - TimerStart;
@@ -1275,7 +1281,7 @@ begin
     if QueryResult <> nil then begin
       FRowsFound := mysql_num_rows(QueryResult);
       FRowsAffected := 0;
-      Log(lcDebug, IntToStr(RowsFound)+' rows found.');
+      Log(lcDebug, IntToStr(RowsFound)+' rows found, '+IntToStr(WarningCount)+' warnings.');
 
       while true do begin
         if QueryResult <> nil then begin

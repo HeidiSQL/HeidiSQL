@@ -88,6 +88,7 @@ type
     FQueryNetTime: Cardinal;
     FRowsAffected: Int64;
     FRowsFound: Int64;
+    FWarningCount: Int64;
     FLogMsg: String;
     FLogCategory: TDBLogCategory;
     procedure BeforeQuery;
@@ -104,6 +105,7 @@ type
     property QueryNetTime: Cardinal read FQueryNetTime;
     property RowsAffected: Int64 read FRowsAffected;
     property RowsFound: Int64 read FRowsFound;
+    property WarningCount: Int64 read FWarningCount;
     property Aborted: Boolean read FAborted write FAborted;
     property ErrorMessage: String read FErrorMessage;
     constructor Create(Connection: TDBConnection; Batch: TSQLBatch; TabNumber: Integer);
@@ -2627,6 +2629,7 @@ begin
   FQueryNetTime := 0;
   FRowsAffected := 0;
   FRowsFound := 0;
+  FWarningCount := 0;
   FErrorMessage := '';
   FBatchInOneGo := MainForm.actBatchInOneGo.Checked;
   FStopOnErrors := MainForm.actQueryStopOnErrors.Checked;
@@ -2689,6 +2692,7 @@ begin
       Inc(FQueryNetTime, FConnection.LastQueryNetworkDuration);
       Inc(FRowsAffected, FConnection.RowsAffected);
       Inc(FRowsFound, FConnection.RowsFound);
+      Inc(FWarningCount, FConnection.WarningCount);
     except
       on E:EDatabaseError do begin
         if FStopOnErrors or (i = FBatch.Count - 1) then begin

@@ -2316,10 +2316,12 @@ end;
 
 procedure TMainForm.FinishedQueryExecution(Thread: TQueryThread);
 var
-  Tab: TQueryTab;
-  MetaInfo, ErroneousSQL: String;
+  Tab, WarningsTab: TQueryTab;
+  MetaInfo, ErroneousSQL, MsgTitle, MsgText: String;
   ProfileAllTime: Extended;
   ProfileNode: PVirtualNode;
+  Warnings: TDBQuery;
+  MaxWarnings: Integer;
 
   procedure GoToErrorPos(Err: String);
   var
@@ -2365,8 +2367,10 @@ begin
   end;
 
   // Gather meta info for logging
-  MetaInfo := FormatNumber(Thread.RowsAffected) + ' rows affected, ' + FormatNumber(Thread.RowsFound) + ' rows found.';
-  MetaInfo := MetaInfo + ' Duration for ' + FormatNumber(Thread.BatchPosition);
+  MetaInfo := 'Affected rows: '+FormatNumber(Thread.RowsAffected)+
+    '  Found rows: '+FormatNumber(Thread.RowsFound)+
+    '  Warnings: '+FormatNumber(Thread.WarningCount)+
+    '  Duration for ' + FormatNumber(Thread.BatchPosition);
   if Thread.BatchPosition < Thread.Batch.Count then
     MetaInfo := MetaInfo + ' of ' + FormatNumber(Thread.Batch.Count);
   if Thread.Batch.Count = 1 then
@@ -2393,6 +2397,34 @@ begin
     Tab.treeHelpers.ReinitNode(ProfileNode, True);
     Tab.treeHelpers.InvalidateChildren(ProfileNode, True);
     Thread.Connection.Query('SET profiling=0');
+  end;
+
+  // Show warnings
+  if Thread.WarningCount > 0 then begin
+    MsgTitle := 'Your query produced '+FormatNumber(Thread.WarningCount)+' warnings.';
+    MsgText := '';
+    Warnings := Thread.Connection.GetResults('SHOW WARNINGS LIMIT 5');
+    if Warnings.RecordCount < Thread.WarningCount then
+      MsgText := MsgText + 'First '+FormatNumber(Warnings.RecordCount)+' warnings:'+CRLF;
+    while not Warnings.Eof do begin
+      MsgText := MsgText + Warnings.Col('Level') + ': ' + Warnings.Col('Message') + CRLF;
+      Warnings.Next;
+    end;
+    MsgText := Trim(MsgText);
+    if Warnings.RecordCount = Thread.WarningCount then
+      MessageDialog(MsgTitle, MsgText, mtWarning, [mbOk])
+    else begin
+      MsgText := MsgText + CRLF+CRLF + 'Show all warnings in a new query tab?';
+      MaxWarnings := MakeInt(Thread.Connection.GetVar('SELECT @@max_error_count'));
+      if MaxWarnings < Thread.WarningCount then
+        MsgText := MsgText + CRLF+CRLF+ 'The server variable @@max_error_count is currently set to '+IntToStr(MaxWarnings)+', so you won''t see all warnings.';
+      if MessageDialog(MsgTitle, MsgText, mtWarning, [mbYes, mbNo]) = mrYes then begin
+        actNewQueryTab.Execute;
+        WarningsTab := QueryTabs[QueryTabs.Count-1];
+        WarningsTab.Memo.Text := 'SHOW WARNINGS';
+        actExecuteQueryExecute(WarningsTab);
+      end;
+    end;
   end;
 
   // Clean up
