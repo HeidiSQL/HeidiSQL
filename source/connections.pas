@@ -393,7 +393,6 @@ end;
 procedure Tconnform.btnDeleteClick(Sender: TObject);
 var
   SessionKey: String;
-  Node: PVirtualNode;
   Sess: PConnectionParameters;
 begin
   Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
