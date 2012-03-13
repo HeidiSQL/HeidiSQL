@@ -433,7 +433,10 @@ begin
   Result.Password := editPassword.Text;
   Result.LoginPrompt := chkLoginPrompt.Checked;
   Result.WindowsAuth := chkWindowsAuth.Checked;
-  Result.Port := updownPort.Position;
+  if updownPort.Enabled then
+    Result.Port := updownPort.Position
+  else
+    Result.Port := 0;
   Result.AllDatabasesStr := comboDatabases.Text;
   Result.SSHHost := editSSHHost.Text;
   Result.SSHPort := MakeInt(editSSHPort.Text);
@@ -830,6 +833,8 @@ begin
     lblPassword.Enabled := lblUsername.Enabled;
     editPassword.Enabled := lblUsername.Enabled;
     lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP];
+    if (Params.NetType = ntMSSQL_TCPIP) and (Pos('\', editHost.Text) > 0) then
+      lblPort.Enabled := False; // Named instance without port
     editPort.Enabled := lblPort.Enabled;
     updownPort.Enabled := lblPort.Enabled;
     tabSSLoptions.TabVisible := Params.NetType = ntMySQL_TCPIP;
