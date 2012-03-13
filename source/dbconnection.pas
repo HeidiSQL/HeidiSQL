@@ -1027,7 +1027,7 @@ begin
       ntMSSQL_RPC: NetLib := 'DBMSRPCN';
     end;
     DataSource := Parameters.Hostname;
-    if Parameters.NetType = ntMSSQL_TCPIP then
+    if (Parameters.NetType = ntMSSQL_TCPIP) and (Parameters.Port <> 0) then
       DataSource := DataSource + ','+IntToStr(Parameters.Port);
     FAdoHandle.ConnectionString := 'Provider=SQLOLEDB;'+
       'Password='+Parameters.Password+';'+
