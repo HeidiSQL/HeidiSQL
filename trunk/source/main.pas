@@ -500,11 +500,6 @@ type
     actDataSaveBlobToFile: TAction;
     SaveBLOBtofile1: TMenuItem;
     DataUNIXtimestamp: TMenuItem;
-    btnClearFilters: TButton;
-    popupClearFilters: TPopupMenu;
-    menuClearFiltersTable: TMenuItem;
-    menuClearFiltersSession: TMenuItem;
-    menuClearFiltersAll: TMenuItem;
     treeQueryHelpers: TVirtualStringTree;
     popupExecuteQuery: TPopupMenu;
     Run1: TMenuItem;
@@ -817,7 +812,6 @@ type
     procedure comboDBFilterDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure comboDBFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DBtreeAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-    procedure ClearFiltersClick(Sender: TObject);
     procedure treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure treeQueryHelpersInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
@@ -1881,6 +1875,8 @@ var
   Tab: TQueryTab;
   ResultTab: TResultTab;
   i: Integer;
+  Keys: TStringList;
+  rx: TRegExpr;
 begin
   // Connection removed or added
   case Action of
@@ -1909,13 +1905,20 @@ begin
         end;
       end;
 
+      // Remove filters if unwanted
+      if not prefRememberFilters then begin
+        OpenRegistry(Item.Parameters.SessionName);
+        Keys := TStringList.Create;
+        MainReg.GetKeyNames(Keys);
+        rx := TRegExpr.Create;
+        rx.Expression := '.+'+QuoteRegExprMetaChars(DELIM)+'.+';
+        for i:=0 to Keys.Count-1 do begin
+          if rx.Exec(Keys[i]) then
+            MainReg.DeleteKey(Keys[i]);
+        end;
+        rx.Free;
+      end;
 
-      {// TODO: Clear database and table lists
-      DBtree.ClearSelection;
-      DBtree.FocusedNode := nil;
-      FreeAndNil(DataGridHiddenColumns);
-      SynMemoFilter.Clear;
-      SetLength(DataGridSortColumns, 0);}
       FreeAndNil(ActiveObjectEditor);
       RefreshHelperNode(HELPERNODE_PROFILE);
       RefreshHelperNode(HELPERNODE_COLUMNS);
@@ -8575,8 +8578,6 @@ begin
   end;
   comboRecentFilters.Visible := comboRecentFilters.Items.Count > 0;
   lblRecentFilters.Visible := comboRecentFilters.Visible;
-  btnClearFilters.Visible := comboRecentFilters.Visible;
-  btnClearFilters.Height := comboRecentFilters.Height;
   SynMemoFilter.Height := pnlFilter.Height - 3;
   SynMemoFilter.Top := comboRecentFilters.Top;
   if comboRecentFilters.Visible then begin
@@ -8849,50 +8850,6 @@ procedure TMainForm.actCloseQueryTabExecute(Sender: TObject);
 begin
   // Close active query tab by main action
   CloseQueryTab(PageControlMain.ActivePageIndex);
-end;
-
-
-procedure TMainForm.ClearFiltersClick(Sender: TObject);
-var
-  Sessions, Keys: TStringList;
-  i, idx: Integer;
-begin
-  // Clear recent data filters
-  Keys := TStringList.Create;
-  if (Sender = btnClearFilters) or (Sender = menuClearFiltersTable) then begin
-    Screen.Cursor := crHourGlass;
-    OpenRegistry(ActiveDbObj.Connection.Parameters.SessionName);
-    MainReg.GetKeyNames(Keys);
-    idx := Keys.IndexOf(ActiveDbObj.Database+'|'+ActiveDbObj.Name);
-    if idx > -1 then
-      MainReg.DeleteKey(Keys[idx]);
-  end else if Sender = menuClearFiltersSession then begin
-    if MessageDialog('Remove all filter stuff for this session ('+ActiveDbObj.Connection.Parameters.SessionName+') ?', mtConfirmation, [mbYes, mbNo]) = mrYes then begin
-      Screen.Cursor := crHourGlass;
-      OpenRegistry(ActiveDbObj.Connection.Parameters.SessionName);
-      MainReg.GetKeyNames(Keys);
-      for idx:=0 to Keys.Count-1 do
-        MainReg.DeleteKey(Keys[idx])
-    end;
-  end else if Sender = menuClearFiltersAll then begin
-    if MessageDialog('Remove all filters across all sessions?', mtConfirmation, [mbYes, mbNo]) = mrYes then begin
-      Screen.Cursor := crHourGlass;
-      MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
-      Sessions := TStringList.Create;
-      MainReg.GetKeyNames(Sessions);
-      for i:=0 to Sessions.Count-1 do begin
-        MainReg.OpenKey(RegPath + REGKEY_SESSIONS + Sessions[i], True);
-        Keys.Clear;
-        MainReg.GetKeyNames(Keys);
-        for idx:=0 to Keys.Count-1 do
-          MainReg.DeleteKey(Keys[idx])
-      end;
-    end;
-  end;
-  FreeAndNil(Keys);
-  FreeAndNil(Sessions);
-  EnumerateRecentFilters;
-  Screen.Cursor := crDefault;
 end;
 
 

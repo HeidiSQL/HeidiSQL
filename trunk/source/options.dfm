@@ -798,6 +798,15 @@ object optionsform: Toptionsform
         TabOrder = 14
         OnClick = Modified
       end
+      object chkRememberFilters: TCheckBox
+        Left = 8
+        Top = 279
+        Width = 433
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Remember filters, sorting and column selection across sessions'
+        TabOrder = 17
+      end
     end
     object tabShortcuts: TTabSheet
       Caption = 'Shortcuts'
