@@ -144,7 +144,7 @@ begin
   for i:=0 to High(Obj.Connection.Datatypes) do
     comboReturns.Items.Add(Obj.Connection.Datatypes[i].Name);
   chkDeterministic.Checked := False;
-  listParameters.FocusedNode := nil;
+  SelectNode(listParameters, nil);
   listParameters.Clear;
   Parameters.Clear;
   comboDataAccess.ItemIndex := 0;
