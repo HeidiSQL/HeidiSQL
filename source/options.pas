@@ -116,6 +116,7 @@ type
     chkPrefillDateTime: TCheckBox;
     lblMySQLBinaries: TLabel;
     editMySQLBinaries: TButtonedEdit;
+    chkRememberFilters: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -263,6 +264,7 @@ begin
   MainReg.WriteBool(REGNAME_PREFILL_DATETIME, chkPrefillDatetime.Checked);
   MainReg.WriteBool(REGNAME_FIELDEDITOR_ENUM, chkEditorEnum.Checked);
   MainReg.WriteBool(REGNAME_FIELDEDITOR_SET, chkEditorSet.Checked);
+  MainReg.WriteBool(REGNAME_REMEMBERFILTERS, chkRememberFilters.Checked);
 
   MainReg.WriteBool(REGNAME_COMPLETIONPROPOSAL, chkCompletionProposal.Checked);
   MainReg.WriteBool(REGNAME_TABSTOSPACES, chkTabsToSpaces.Checked);
@@ -336,6 +338,7 @@ begin
   Mainform.prefPrefillDateTime := chkPrefillDateTime.Checked;
   Mainform.prefEnableEnumEditor := chkEditorEnum.Checked;
   Mainform.prefEnableSetEditor := chkEditorSet.Checked;
+  Mainform.prefRememberFilters := chkRememberFilters.Checked;
   Mainform.prefDisplayBars := chkColorBars.Checked;
   Mainform.prefBarColor := cboxColorBars.Selected;
   Mainform.prefCompletionProposal := chkCompletionProposal.Checked;
@@ -482,6 +485,7 @@ begin
   chkPrefillDateTime.Checked := GetRegValue(REGNAME_PREFILL_DATETIME, DEFAULT_PREFILL_DATETIME);
   chkEditorEnum.Checked := GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
   chkEditorSet.Checked := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
+  chkRememberFilters.Checked := GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
 
   // Shortcuts
   TreeShortcutItems.ReinitChildren(nil, True);
