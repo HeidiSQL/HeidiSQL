@@ -1034,7 +1034,8 @@ begin
       'Persist Security Info=True;'+
       'User ID='+Parameters.Username+';'+
       'Network Library='+NetLib+';'+
-      'Data Source='+DataSource+';'
+      'Data Source='+DataSource+';'+
+      'Application Name='+AppName+';'
       ;
     if Parameters.WindowsAuth then
       FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Integrated Security=SSPI;';
