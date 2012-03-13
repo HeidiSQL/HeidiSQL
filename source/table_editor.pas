@@ -1424,7 +1424,7 @@ begin
   if treeIndexes.IsEditing then
     treeIndexes.CancelEditNode;
   // Trigger ValidateIndexControls
-  treeIndexes.FocusedNode := nil;
+  SelectNode(treeIndexes, nil);
   for i:=0 to FKeys.Count-1 do begin
     TblKey := TTableKey(FKeys[i]);
     if not TblKey.Added then

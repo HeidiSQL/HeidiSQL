@@ -489,8 +489,7 @@ begin
 
   // Shortcuts
   TreeShortcutItems.ReinitChildren(nil, True);
-  TreeShortcutItems.FocusedNode := nil;
-  TreeShortcutItems.OnFocusChanged(TreeShortcutItems, TreeShortcutItems.FocusedNode, NoColumn);
+  SelectNode(TreeShortcutItems, nil);
 
   btnApply.Enabled := False;
   screen.Cursor := crdefault;
