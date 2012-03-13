@@ -120,7 +120,6 @@ type
   function implodestr(seperator: String; a: TStrings) :String;
   function Explode(Separator, Text: String) :TStringList;
   procedure ExplodeQuotedList(Text: String; var List: TStringList);
-  function getEnumValues(str: String): String;
   function sstr(str: String; len: Integer) : String;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
@@ -284,30 +283,6 @@ begin
     Delete(Text, 1, i-1+Length(Separator));
   end;
 end;
-
-
-{***
-  Get values from an enum- or set-typed column definition
-
-  @param string Type definition, fx: enum('Y','N')
-  @return string Content of brackets
-}
-function getEnumValues(str: String): String;
-var
-  p1,p2        : Integer;
-begin
-  p1 := pos('(', str);
-  Result := '';
-  // Only return something if opening bracket was found, otherwise empty string
-  if p1 > 0 then
-  begin
-    for p2:=Length(str) downto 0 do
-      if str[p2] = ')' then break;
-    result := copy (str, p1+1, p2-p1-1);
-  end;
-end;
-
-
 
 
 {***
