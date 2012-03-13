@@ -116,6 +116,7 @@ begin
     DBObj := TreeDBO.GetNodeData(TreeDBO.FocusedNode);
     Result := TDBObject.Create(DBObj.Connection);
     Result.Assign(DBObj^);
+    // Database privileges can be wildcarded. Tables/columns not so.
     if Result.NodeType = lntDb then
       Result.Database := esc(Result.Database, True, False);
     if Result.NodeType = lntNone then begin
