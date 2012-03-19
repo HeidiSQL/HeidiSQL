@@ -14,6 +14,7 @@ const
   APPNAME          = 'HeidiSQL';
   APPDOMAIN        = 'http://www.heidisql.com/';
   REGKEY_SESSIONS  = 'Servers\';
+  REGKEY_QUERYHISTORY = 'QueryHistory';
   // Some unique char, used to separate e.g. selected columns in registry
   DELIM = '|';
 
@@ -372,7 +373,8 @@ const
   HELPERNODE_FUNCTIONS = 1;
   HELPERNODE_KEYWORDS = 2;
   HELPERNODE_SNIPPETS = 3;
-  HELPERNODE_PROFILE = 4;
+  HELPERNODE_HISTORY = 4;
+  HELPERNODE_PROFILE = 5;
 
   // A set of characters which need not to be quoted
   IDENTCHARS = ['A'..'Z', 'a'..'z', '0'..'9', '_'];
