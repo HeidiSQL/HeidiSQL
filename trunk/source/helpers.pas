@@ -171,7 +171,6 @@ type
   function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
   function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
-  function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
   function ListIndexByRegExpr(List: TStrings; Expression: String): Integer;
   function FindNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode): PVirtualNode;
   procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
@@ -195,6 +194,8 @@ type
   function LoadConnectionParams(Session: String): TConnectionParameters;
   function CharAtPos(Str: String; Pos: Integer): Char;
   function CompareAnyNode(Text1, Text2: String): Integer;
+  function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
+  function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Integer): Integer;
   function GetColumnDefaultType(var Text: String): TColumnDefaultType;
   function GetColumnDefaultClause(DefaultType: TColumnDefaultType; Text: String): String;
   function GetImageLinkTimeStamp(const FileName: string): TDateTime;
@@ -1572,22 +1573,6 @@ begin
 end;
 
 
-function CompareNumbers(List: TStringList; Index1, Index2: Integer): Integer;
-var
-  Number1, Number2 : Extended;
-begin
-  // Custom sort method for TStringLists
-  Number1 := MakeFloat( List[Index1] );
-  Number2 := MakeFloat( List[Index2] );
-  if Number1 > Number2 then
-    Result := 1
-  else if Number1 = Number2 then
-    Result := 0
-  else
-    Result := -1;
-end;
-
-
 function ListIndexByRegExpr(List: TStrings; Expression: String): Integer;
 var
   rx: TRegExpr;
@@ -2404,6 +2389,20 @@ begin
     // Compare Strings
     Result := CompareText(Text1, Text2);
   end;
+end;
+
+
+function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
+begin
+  // Sort TStringList items, containing numbers or strings, ascending
+  Result := CompareAnyNode(List[Index1], List[Index2]);
+end;
+
+
+function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Integer): Integer;
+begin
+  // Sort TStringList items, containing numbers or strings, descending
+  Result := CompareAnyNode(List[Index2], List[Index1]);
 end;
 
 

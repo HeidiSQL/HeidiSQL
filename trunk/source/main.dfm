@@ -1537,7 +1537,7 @@ object MainForm: TMainForm
               Images = ImageListMain
               IncrementalSearch = isAll
               PopupMenu = popupQueryHelpers
-              RootNodeCount = 5
+              RootNodeCount = 6
               TabOrder = 1
               TextMargin = 0
               TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSpanColumns, toAutoTristateTracking, toAutoDeleteMovedNodes]
@@ -1548,6 +1548,7 @@ object MainForm: TMainForm
               OnContextPopup = treeQueryHelpersContextPopup
               OnDblClick = treeQueryHelpersDblClick
               OnFocusChanging = treeQueryHelpersFocusChanging
+              OnFreeNode = treeQueryHelpersFreeNode
               OnGetText = treeQueryHelpersGetText
               OnPaintText = treeQueryHelpersPaintText
               OnGetImageIndex = treeQueryHelpersGetImageIndex
