@@ -15,7 +15,7 @@ uses
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, SyncObjs,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
-  CommCtrl, Contnrs, Generics.Collections, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
+  CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB;
@@ -59,6 +59,7 @@ type
       QueryProfile: TDBQuery;
       ProfileTime, MaxProfileTime: Extended;
       LeftOffsetInMemo: Integer;
+      HistoryDays: TStringList;
       function GetActiveResultTab: TResultTab;
       procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
       procedure MemofileModifiedTimerNotify(Sender: TObject);
@@ -68,6 +69,24 @@ type
       property MemoFilename: String read FMemoFilename write SetMemoFilename;
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
+  end;
+
+  TQueryHistoryItem = class(TObject)
+    Time: TDateTime;
+    Database: String;
+    SQL: String;
+    Duration: Cardinal;
+    RegValue: Integer;
+  end;
+  TQueryHistory = class(TObjectList<TQueryHistoryItem>)
+    private
+      FMaxDuration: Cardinal;
+    public
+      property MaxDuration: Cardinal read FMaxDuration;
+      function ReadItem(RegValue: Integer): TQueryHistoryItem;
+  end;
+  TQueryHistoryItemComparer = class(TComparer<TQueryHistoryItem>)
+    function Compare(const Left, Right: TQueryHistoryItem): Integer; override;
   end;
 
   ITaskbarList = interface(IUnknown)
@@ -742,6 +761,7 @@ type
     function ActiveQueryTab: TQueryTab;
     function ActiveOrEmptyQueryTab(ConsiderActiveTab: Boolean): TQueryTab;
     function GetQueryTabByNumber(Number: Integer): TQueryTab;
+    function GetQueryTabByHelpers(FindTree: TBaseVirtualTree): TQueryTab;
     function ActiveQueryMemo: TSynMemo;
     function ActiveQueryHelpers: TVirtualStringTree;
     function ActiveSynMemo: TSynMemo;
@@ -825,6 +845,7 @@ type
       var ContentRect: TRect);
     procedure treeQueryHelpersDblClick(Sender: TObject);
     procedure treeQueryHelpersContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+    procedure treeQueryHelpersFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure treeQueryHelpersPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure treeQueryHelpersFocusChanging(Sender: TBaseVirtualTree; OldNode,
@@ -2320,11 +2341,16 @@ end;
 procedure TMainForm.FinishedQueryExecution(Thread: TQueryThread);
 var
   Tab, WarningsTab: TQueryTab;
-  MetaInfo, ErroneousSQL, MsgTitle, MsgText: String;
+  MetaInfo, ErroneousSQL, RegName, RegItem, MsgTitle, MsgText: String;
   ProfileAllTime: Extended;
   ProfileNode: PVirtualNode;
+  AllRegItems: TStringList;
+  History: TQueryHistory;
+  HistoryItem: TQueryHistoryItem;
   Warnings: TDBQuery;
-  MaxWarnings: Integer;
+  HistoryNum, MaxWarnings, RegItemsSize: Integer;
+  DoDelete: Boolean;
+  MinDate: TDateTime;
 
   procedure GoToErrorPos(Err: String);
   var
@@ -2428,6 +2454,59 @@ begin
         actExecuteQueryExecute(WarningsTab);
       end;
     end;
+  end;
+
+
+  // Store successful query packet in history if it's not a batch.
+  // Assume that a bunch of up to 5 queries is not a batch.
+  if IsEmpty(Thread.ErrorMessage) and (Thread.Batch.Count <= 5) and (Thread.Batch.Size <= SIZE_MB) then begin
+    ShowStatusMsg('Updating query history ...');
+    OpenRegistry(Thread.Connection.Parameters.SessionName);
+    MainReg.OpenKey(REGKEY_QUERYHISTORY, true);
+
+    // Load all items so we can clean up
+    AllRegItems := TStringList.Create;
+    MainReg.GetValueNames(AllRegItems);
+    History := TQueryHistory.Create;
+    for RegItem in AllRegItems do begin
+      History.ReadItem(StrToInt(RegItem));
+    end;
+
+    // Find lowest unused item number
+    HistoryNum := 0;
+    while True do begin
+      Inc(HistoryNum);
+      RegName := IntToStr(HistoryNum);
+      if AllRegItems.IndexOf(RegName) = -1 then
+        break;
+    end;
+
+    // Sort by date
+    History.Sort(TQueryHistoryItemComparer.Create);
+
+    // Delete identical history items to avoid spam
+    // Delete old items
+    // Delete items which exceed a max datasize barrier
+    MinDate := IncDay(Now, -30);
+    RegItemsSize := Thread.Batch.Size;
+    for HistoryItem in History do begin
+      Inc(RegItemsSize, Length(HistoryItem.SQL));
+      DoDelete := (HistoryItem.SQL = Thread.Batch.SQL)
+        or (HistoryItem.Time < MinDate)
+        or (RegItemsSize > SIZE_MB);
+      if DoDelete then
+        MainReg.DeleteValue(IntToStr(HistoryItem.RegValue));
+    end;
+    History.Free;
+
+    // Store history item and closing registry key to ensure writing has finished
+    MainReg.WriteString(RegName, DateTimeToStr(Now) + DELIM +
+      Thread.Connection.Database + DELIM +
+      IntToStr(Thread.QueryTime+Thread.QueryNetTime) + DELIM +
+      Thread.Batch.SQL);
+    MainReg.CloseKey;
+
+    RefreshHelperNode(HELPERNODE_HISTORY);
   end;
 
   // Clean up
@@ -3823,7 +3902,7 @@ begin
     Filters.Add(Trim(SynMemoFilter.Text));
     MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, True);
     MainReg.GetValueNames(OldNumbers);
-    OldNumbers.CustomSort(CompareNumbers);
+    OldNumbers.CustomSort(StringListCompareAnythingAsc);
     // Add old filters
     for i := 0 to OldNumbers.Count - 1 do begin
       nr := MakeInt(OldNumbers[i]);
@@ -5304,7 +5383,7 @@ begin
   src := Source as TControl;
   // Accepting drag's from DBTree and QueryHelpers
   H := ActiveQueryHelpers;
-  Accept := (src = DBtree) or ((src = H) and Assigned(H.FocusedNode) and (H.GetNodeLevel(H.FocusedNode)=1));
+  Accept := (src = DBtree) or ((src = H) and Assigned(H.FocusedNode) and (H.GetNodeLevel(H.FocusedNode) in [1,2]));
   // set x-position of cursor
   Memo.CaretX := (x - Memo.Gutter.Width) div Memo.CharWidth - 1 + Memo.LeftChar;
   // set y-position of cursor
@@ -5322,6 +5401,7 @@ var
   ShiftPressed: Boolean;
   Tree: TVirtualStringTree;
   Node: PVirtualNode;
+  History: TQueryHistory;
 begin
   // dropping a tree node or listbox item into the query-memo
   ActiveQueryMemo.UndoList.AddGroupBreak;
@@ -5342,27 +5422,37 @@ begin
       end;
     end;
   end else if src = Tree then begin
-    if (Tree.GetNodeLevel(Tree.FocusedNode) = 1) and Assigned(Tree.FocusedNode) then begin
-      case Tree.FocusedNode.Parent.Index of
-        HELPERNODE_SNIPPETS:
-          Text := ReadTextFile(FDirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', nil);
-        else begin
-          Node := Tree.GetFirstChild(Tree.FocusedNode.Parent);
-          while Assigned(Node) do begin
-            if Tree.Selected[Node] then begin
-              ItemText := Tree.Text[Node, 0];
-              if Node.Parent.Index = HELPERNODE_COLUMNS then
-                ItemText := ActiveConnection.QuoteIdent(ItemText, False); // Quote column names
-              if ShiftPressed then
-                Text := Text + ItemText + ',' + CRLF
-              else
-                Text := Text + ItemText + ', ';
+    case Tree.GetNodeLevel(Tree.FocusedNode) of
+      1:
+        case Tree.FocusedNode.Parent.Index of
+          HELPERNODE_SNIPPETS:
+            Text := ReadTextFile(FDirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', nil);
+          HELPERNODE_HISTORY:
+            Text := '';
+          else begin
+            Node := Tree.GetFirstChild(Tree.FocusedNode.Parent);
+            while Assigned(Node) do begin
+              if Tree.Selected[Node] then begin
+                ItemText := Tree.Text[Node, 0];
+                if Node.Parent.Index = HELPERNODE_COLUMNS then
+                  ItemText := ActiveConnection.QuoteIdent(ItemText, False); // Quote column names
+                if ShiftPressed then
+                  Text := Text + ItemText + ',' + CRLF
+                else
+                  Text := Text + ItemText + ', ';
+              end;
+              Node := Tree.GetNextSibling(Node);
             end;
-            Node := Tree.GetNextSibling(Node);
+            Delete(Text, Length(Text)-1, 2);
           end;
-          Delete(Text, Length(Text)-1, 2);
         end;
-      end;
+        2:
+          case Tree.FocusedNode.Parent.Parent.Index of
+            HELPERNODE_HISTORY: begin
+              History := ActiveQueryTab.HistoryDays.Objects[Tree.FocusedNode.Parent.Index] as TQueryHistory;
+              Text := History[Tree.FocusedNode.Index].SQL;
+            end;
+          end;
     end;
   end else
     raise Exception.Create('Unspecified source control in drag''n drop operation!');
@@ -7042,6 +7132,7 @@ begin
     if (PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) then begin
       LogSQL('Entering session "'+FActiveDbObj.Connection.Parameters.SessionName+'"', lcInfo);
       DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, FActiveDbObj.Connection.Parameters.SessionName);
+      RefreshHelperNode(HELPERNODE_HISTORY);
       case FActiveDbObj.Connection.Parameters.NetTypeGroup of
         ngMySQL:
           SynSQLSyn1.SQLDialect := sqlMySQL;
@@ -7188,6 +7279,8 @@ procedure TMainForm.DatabaseChanged(Connection: TDBConnection; Database: String)
 begin
   // Immediately force db icons to repaint, so the user sees the active db state
   DBtree.Repaint;
+  if ActiveQueryHelpers <> nil then
+    ActiveQueryHelpers.Invalidate;
 end;
 
 
@@ -8770,6 +8863,7 @@ begin
   QueryTab.treeHelpers.OnBeforeCellPaint := treeQueryHelpers.OnBeforeCellPaint;
   QueryTab.treeHelpers.OnContextPopup := treeQueryHelpers.OnContextPopup;
   QueryTab.treeHelpers.OnDblClick := treeQueryHelpers.OnDblClick;
+  QueryTab.treeHelpers.OnFreeNode := treeQueryHelpers.OnFreeNode;
   QueryTab.treeHelpers.OnGetImageIndex := treeQueryHelpers.OnGetImageIndex;
   QueryTab.treeHelpers.OnGetText := treeQueryHelpers.OnGetText;
   QueryTab.treeHelpers.OnInitChildren := treeQueryHelpers.OnInitChildren;
@@ -9148,6 +9242,21 @@ begin
   for i:=0 to QueryTabs.Count-1 do begin
     if QueryTabs[i].Number = Number then begin
       Result := QueryTabs[i];
+      break;
+    end;
+  end;
+end;
+
+
+function TMainForm.GetQueryTabByHelpers(FindTree: TBaseVirtualTree): TQueryTab;
+var
+  Tab: TQueryTab;
+begin
+  // Find query tab where passed treeHelpers resides
+  Result := nil;
+  for Tab in QueryTabs do begin
+    if Tab.treeHelpers = FindTree then begin
+      Result := Tab;
       break;
     end;
   end;
@@ -9973,21 +10082,36 @@ procedure TMainForm.treeQueryHelpersBeforeCellPaint(Sender: TBaseVirtualTree; Ta
   var ContentRect: TRect);
 var
   Tab: TQueryTab;
+  History: TQueryHistory;
 begin
   // Paint green value bar in cell
   if (Node.Parent.Index=HELPERNODE_PROFILE)
     and (Column=1)
     and (Sender.GetNodeLevel(Node)=1)
     then begin
-    Tab := ActiveQueryTab;
-    Tab.QueryProfile.RecNo := Node.Index;
-    PaintColorBar(MakeFloat(Tab.QueryProfile.Col(Column)), Tab.MaxProfileTime, TargetCanvas, CellRect);
+    Tab := GetQueryTabByHelpers(Sender);
+    if Tab <> nil then begin
+      Tab.QueryProfile.RecNo := Node.Index;
+      PaintColorBar(MakeFloat(Tab.QueryProfile.Col(Column)), Tab.MaxProfileTime, TargetCanvas, CellRect);
+    end;
+  end;
+  if (Sender.GetNodeLevel(Node)=2)
+    and (Column=1)
+    and (Node.Parent.Parent.Index=HELPERNODE_HISTORY) then begin
+    Tab := GetQueryTabByHelpers(Sender);
+    if Tab <> nil then begin
+      History := Tab.HistoryDays.Objects[Node.Parent.Index] as TQueryHistory;
+      PaintColorBar(History[Node.Index].Duration, History.MaxDuration, TargetCanvas, CellRect);
+    end;
   end;
 end;
 
 
 procedure TMainForm.treeQueryHelpersPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+var
+  History: TQueryHistory;
+  Tab: TQueryTab;
 begin
   // Paint text in datatype's color
   if (Node.Parent.Index=HELPERNODE_COLUMNS)
@@ -9996,6 +10120,15 @@ begin
     and (ActiveDbObj.NodeType in [lntView, lntTable])
     then begin
     TargetCanvas.Font.Color := DatatypeCategories[SelectedTableColumns[Node.Index].DataType.Category].Color;
+  end;
+  if (Sender.GetNodeLevel(Node)=2)
+    and (Node.Parent.Parent.Index=HELPERNODE_HISTORY) then begin
+    Tab := GetQueryTabByHelpers(Sender);
+    if Tab <> nil then begin
+      History := Tab.HistoryDays.Objects[Node.Parent.Index] as TQueryHistory;
+      if ActiveConnection.Database <> History[Node.Index].Database then
+        TargetCanvas.Font.Color := clGrayText;
+    end;
   end;
 end;
 
@@ -10037,6 +10170,24 @@ begin
 end;
 
 
+procedure TMainForm.treeQueryHelpersFreeNode(Sender: TBaseVirtualTree;
+  Node: PVirtualNode);
+var
+  Values: TQueryHistory;
+  Tab: TQueryTab;
+begin
+  // Free some memory, taken by probably big SQL query history items
+  if (Sender.GetNodeLevel(Node)=1)
+    and (Node.Parent.Index = HELPERNODE_HISTORY) then begin
+    Tab := GetQueryTabByHelpers(Sender);
+    if Tab <> nil then begin
+      Tab.HistoryDays.Objects[Node.Index].Free;
+      Tab.HistoryDays.Delete(Node.Index);
+    end;
+  end;
+end;
+
+
 procedure TMainForm.treeQueryHelpersGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
 begin
@@ -10054,6 +10205,7 @@ begin
          HELPERNODE_FUNCTIONS: ImageIndex := 13;
          HELPERNODE_KEYWORDS: ImageIndex := 25;
          HELPERNODE_SNIPPETS: ImageIndex := 51;
+         HELPERNODE_HISTORY: ImageIndex := 149;
          HELPERNODE_PROFILE: ImageIndex := 145;
        end;
     1: case Node.Parent.Index of
@@ -10061,6 +10213,7 @@ begin
          HELPERNODE_FUNCTIONS: ImageIndex := 13;
          HELPERNODE_KEYWORDS: ImageIndex := 25;
          HELPERNODE_SNIPPETS: ImageIndex := 68;
+         HELPERNODE_HISTORY: ImageIndex := 80;
          HELPERNODE_PROFILE: ImageIndex := 145;
        end;
   end;
@@ -10069,9 +10222,13 @@ end;
 
 procedure TMainForm.treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+var
+  History: TQueryHistory;
+  Tab: TQueryTab;
 begin
   // Query helpers tree fetching node text
   CellText := '';
+  Tab := GetQueryTabByHelpers(Sender);
   case Column of
     0: case Sender.GetNodeLevel(Node) of
         0: case Node.Index of
@@ -10085,10 +10242,11 @@ begin
              HELPERNODE_FUNCTIONS: CellText := 'SQL Functions';
              HELPERNODE_KEYWORDS: CellText := 'SQL Keywords';
              HELPERNODE_SNIPPETS: CellText := 'Snippets';
+             HELPERNODE_HISTORY: CellText := 'Query history';
              HELPERNODE_PROFILE: begin
                   CellText := 'Query profile';
-                  if Assigned(ActiveQueryTab.QueryProfile) then
-                    CellText := CellText + ' ('+FormatNumber(ActiveQueryTab.ProfileTime, 6)+'s)';
+                  if Assigned(Tab.QueryProfile) then
+                    CellText := CellText + ' ('+FormatNumber(Tab.ProfileTime, 6)+'s)';
                 end;
            end;
         1: case Node.Parent.Index of
@@ -10103,13 +10261,27 @@ begin
              HELPERNODE_FUNCTIONS: CellText := MySQLFunctions[Node.Index].Name;
              HELPERNODE_KEYWORDS: CellText := MySQLKeywords[Node.Index];
              HELPERNODE_SNIPPETS: CellText := FSnippetFilenames[Node.Index];
+             HELPERNODE_HISTORY: begin
+               CellText := Tab.HistoryDays[Node.Index];
+               if CellText = DateToStr(Today) then
+                 CellText := CellText + ', today'
+               else if CellText = DateToStr(Yesterday) then
+                 CellText := CellText + ', yesterday';
+             end;
              HELPERNODE_PROFILE: begin
-                  if Assigned(ActiveQueryTab.QueryProfile) then begin
-                    ActiveQueryTab.QueryProfile.RecNo := Node.Index;
-                    CellText := ActiveQueryTab.QueryProfile.Col(Column);
+                  if Assigned(Tab.QueryProfile) then begin
+                    Tab.QueryProfile.RecNo := Node.Index;
+                    CellText := Tab.QueryProfile.Col(Column);
                   end;
                 end;
            end;
+        2: case Node.Parent.Parent.Index of
+             HELPERNODE_HISTORY: begin
+               History := Tab.HistoryDays.Objects[Node.Parent.Index] as TQueryHistory;
+               CellText := Copy(TimeToStr(History[Node.Index].Time), 1, 5)+': '+History[Node.Index].SQL;
+             end
+             else CellText := ''; // unused
+        end;
       end;
     1: case Sender.GetNodeLevel(Node) of
         0: CellText := '';
@@ -10119,12 +10291,18 @@ begin
                  CellText := SelectedTableColumns[Node.Index].DataType.Name;
              HELPERNODE_FUNCTIONS: CellText := MySQLFunctions[Node.Index].Declaration;
              HELPERNODE_PROFILE: begin
-                  if Assigned(ActiveQueryTab.QueryProfile) then begin
-                    ActiveQueryTab.QueryProfile.RecNo := Node.Index;
-                    CellText := FormatNumber(ActiveQueryTab.QueryProfile.Col(Column))+'s';
+                  if Assigned(Tab.QueryProfile) then begin
+                    Tab.QueryProfile.RecNo := Node.Index;
+                    CellText := FormatNumber(Tab.QueryProfile.Col(Column))+'s';
                   end;
                 end;
              else CellText := '';
+           end;
+        2: case Node.Parent.Parent.Index of
+             HELPERNODE_HISTORY: begin
+               History := Tab.HistoryDays.Objects[Node.Parent.Index] as TQueryHistory;
+               CellText := FormatNumber(History[Node.Index].Duration / 1000, 3)+'s';
+             end;
            end;
       end;
   end;
@@ -10135,17 +10313,30 @@ procedure TMainForm.treeQueryHelpersInitNode(Sender: TBaseVirtualTree; ParentNod
   Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 begin
   // Query helpers tree asking if plus/minus button should be displayed
-  if Sender.GetNodeLevel(Node) = 0 then begin
-    Include(InitialStates, ivsHasChildren);
-    if Node.Index = HELPERNODE_PROFILE then
-      Node.CheckType := ctCheckbox;
+  case Sender.GetNodeLevel(Node) of
+    0: begin
+      Include(InitialStates, ivsHasChildren);
+      if Node.Index = HELPERNODE_PROFILE then
+        Node.CheckType := ctCheckbox;
+    end;
+    1: begin
+      if Node.Parent.Index = HELPERNODE_HISTORY then
+        Include(InitialStates, ivsHasChildren);
+    end;
   end;
 end;
 
 
 procedure TMainForm.treeQueryHelpersInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
   var ChildCount: Cardinal);
+var
+  Values: TStringList;
+  v, QueryDay: String;
+  History: TQueryHistory;
+  Item: TQueryHistoryItem;
+  Tab: TQueryTab;
 begin
+  Tab := GetQueryTabByHelpers(Sender);
   case Sender.GetNodeLevel(Node) of
     0: case Node.Index of
          HELPERNODE_COLUMNS: begin
@@ -10163,10 +10354,50 @@ begin
          HELPERNODE_FUNCTIONS: ChildCount := Length(MySQLFunctions);
          HELPERNODE_KEYWORDS: ChildCount := MySQLKeywords.Count;
          HELPERNODE_SNIPPETS: ChildCount := FSnippetFilenames.Count;
-         HELPERNODE_PROFILE: if not Assigned(ActiveQueryTab.QueryProfile) then ChildCount := 0
-            else ChildCount := ActiveQueryTab.QueryProfile.RecordCount;
+         HELPERNODE_HISTORY: begin
+           // Find all unique days in history
+           if not Assigned(Tab.HistoryDays) then
+             Tab.HistoryDays := TStringList.Create;
+           Tab.HistoryDays.Clear;
+           OpenRegistry(ActiveConnection.Parameters.SessionName);
+           MainReg.OpenKey(REGKEY_QUERYHISTORY, true);
+           Values := TStringList.Create;
+           MainReg.GetValueNames(Values);
+           History := TQueryHistory.Create;
+           for v in Values do begin
+             Item := History.ReadItem(StrToInt(v));
+             QueryDay := DateToStr(Item.Time);
+             if Tab.HistoryDays.IndexOf(QueryDay) = -1 then
+               Tab.HistoryDays.Add(QueryDay);
+           end;
+           History.Free;
+           Values.Free;
+           Tab.HistoryDays.CustomSort(StringListCompareAnythingDesc);
+           ChildCount := Tab.HistoryDays.Count;
+         end;
+         HELPERNODE_PROFILE: if not Assigned(Tab.QueryProfile) then ChildCount := 0
+            else ChildCount := Tab.QueryProfile.RecordCount;
        end;
-    1: ChildCount := 0;
+    1: case Node.Parent.Index of
+      HELPERNODE_HISTORY: begin
+        History := TQueryHistory.Create;
+        Tab.HistoryDays.Objects[Node.Index] := History;
+        OpenRegistry(ActiveConnection.Parameters.SessionName);
+        MainReg.OpenKey(REGKEY_QUERYHISTORY, true);
+        Values := TStringList.Create;
+        MainReg.GetValueNames(Values);
+        for v in Values do begin
+          Item := History.ReadItem(StrToInt(v));
+          QueryDay := DateToStr(Item.Time);
+          if QueryDay <> Tab.HistoryDays[Node.Index] then
+            History.Remove(Item);
+        end;
+        History.Sort(TQueryHistoryItemComparer.Create);
+        ChildCount := History.Count;
+        Values.Free;
+      end;
+      else ChildCount := 0;
+    end;
   end;
 end;
 
@@ -10240,16 +10471,39 @@ end;
 procedure TMainForm.RefreshHelperNode(NodeIndex: Cardinal);
 var
   Tab: TQueryTab;
-  Node: PVirtualNode;
+  Node, Child: PVirtualNode;
+  OldStates: TVirtualNodeStates;
+  OldCheckState: TCheckState;
+  ExpandedChildren: TStringList;
 begin
   if not Assigned(QueryTabs) then
     Exit;
   for Tab in QueryTabs do begin
     Node := FindNode(Tab.treeHelpers, NodeIndex, nil);
-    if vsInitialized in Node.States then begin
-      Node.States := Node.States - [vsInitialized];
-      Tab.treeHelpers.InvalidateNode(Node);
+    // Store node + children states
+    OldStates := Node.States;
+    OldCheckState := Node.CheckState;
+    ExpandedChildren := TStringList.Create;
+    Child := Tab.treeHelpers.GetFirstChild(Node);
+    while Assigned(Child) do begin
+      if vsExpanded in Child.States then
+        ExpandedChildren.Add(IntToStr(Child.Index));
+      Child := Tab.treeHelpers.GetNextSibling(Child);
     end;
+    // Keep scroll offset
+    Tab.treeHelpers.BeginUpdate;
+    // Remove children and grandchildren
+    Tab.treeHelpers.ResetNode(Node);
+    // Restore old node + children states
+    Tab.treeHelpers.CheckState[Node] := OldCheckState;
+    Tab.treeHelpers.Expanded[Node] := vsExpanded in OldStates;
+    Child := Tab.treeHelpers.GetFirstChild(Node);
+    while Assigned(Child) do begin
+      Tab.treeHelpers.Expanded[Child] := ExpandedChildren.IndexOf(IntToStr(Child.Index)) > -1;
+      Child := Tab.treeHelpers.GetNextSibling(Child);
+    end;
+    ExpandedChildren.Free;
+    Tab.treeHelpers.EndUpdate;
   end;
 end;
 
@@ -10600,6 +10854,41 @@ begin
   inherited;
 end;
 
+
+{ TQueryHistory }
+
+function TQueryHistory.ReadItem(RegValue: Integer): TQueryHistoryItem;
+var
+  p: Integer;
+  Raw: String;
+begin
+  Result := TQueryHistoryItem.Create;
+  Result.RegValue := RegValue;
+  Raw := MainReg.ReadString(IntToStr(RegValue));
+  p := Pos(DELIM, Raw);
+  Result.Time := StrToDateTime(Copy(Raw, 1, p-1));
+  System.Delete(Raw, 1, p);
+  p := Pos(DELIM, Raw);
+  Result.Database := Copy(Raw, 1, p-1);
+  System.Delete(Raw, 1, p);
+  p := Pos(DELIM, Raw);
+  Result.Duration := StrToIntDef(Copy(Raw, 1, p-1), 0);
+  FMaxDuration := Max(FMaxDuration, Result.Duration);
+  Result.SQL := Copy(Raw, p+1, Length(Raw));
+  Add(Result);
+end;
+
+
+function TQueryHistoryItemComparer.Compare(const Left, Right: TQueryHistoryItem): Integer;
+begin
+  // Simple sort method for a TDBObjectList
+  if Left.Time > Right.Time then
+    Result := -1
+  else if Left.Time = Right.Time then
+    Result := 0
+  else
+    Result := 1;
+end;
 
 
 end.
