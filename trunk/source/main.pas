@@ -10497,10 +10497,14 @@ begin
     // Restore old node + children states
     Tab.treeHelpers.CheckState[Node] := OldCheckState;
     Tab.treeHelpers.Expanded[Node] := vsExpanded in OldStates;
-    Child := Tab.treeHelpers.GetFirstChild(Node);
-    while Assigned(Child) do begin
-      Tab.treeHelpers.Expanded[Child] := ExpandedChildren.IndexOf(IntToStr(Child.Index)) > -1;
-      Child := Tab.treeHelpers.GetNextSibling(Child);
+    // Do not check expansion state of children unless the parent node is expanded, to avoid
+    // initializing children when not required. Accesses registry items when doing so.
+    if Tab.treeHelpers.Expanded[Node] then begin
+      Child := Tab.treeHelpers.GetFirstChild(Node);
+      while Assigned(Child) do begin
+        Tab.treeHelpers.Expanded[Child] := ExpandedChildren.IndexOf(IntToStr(Child.Index)) > -1;
+        Child := Tab.treeHelpers.GetNextSibling(Child);
+      end;
     end;
     ExpandedChildren.Free;
     Tab.treeHelpers.EndUpdate;
