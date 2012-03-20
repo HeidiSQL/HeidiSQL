@@ -551,6 +551,7 @@ type
     DataDefaultValue: TMenuItem;
     actLaunchCommandline: TAction;
     Launchcommandline1: TMenuItem;
+    menuClearQueryHistory: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -865,6 +866,7 @@ type
       Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
       var ContentRect: TRect);
     procedure actLaunchCommandlineExecute(Sender: TObject);
+    procedure menuClearQueryHistoryClick(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -6175,6 +6177,25 @@ begin
 end;
 
 
+procedure TMainForm.menuClearQueryHistoryClick(Sender: TObject);
+var
+  Values: TStringList;
+begin
+  // Clear query history items in registry
+  OpenRegistry(ActiveConnection.Parameters.SessionName);
+  MainReg.OpenKey(REGKEY_QUERYHISTORY, True);
+  Values := TStringList.Create;
+  MainReg.GetValueNames(Values);
+  if MessageDialog('Clear query history?', FormatNumber(Values.Count)+' history items will be deleted.', mtConfirmation, [mbYes, mbNo]) = mrYes then begin
+    Screen.Cursor := crHourglass;
+    OpenRegistry(ActiveConnection.Parameters.SessionName);
+    MainReg.DeleteKey(REGKEY_QUERYHISTORY);
+    RefreshHelperNode(HELPERNODE_HISTORY);
+    Screen.Cursor := crDefault;
+  end;
+end;
+
+
 procedure TMainForm.menuFetchDBitemsClick(Sender: TObject);
 var
   Node: PVirtualNode;
@@ -10443,6 +10464,7 @@ begin
   menuDeleteSnippet.Enabled := False;
   menuExplore.Enabled := False;
   menuHelp.Enabled := False;
+  menuClearQueryHistory.Enabled := False;
 
   case Tree.GetNodeLevel(Tree.FocusedNode) of
     0: ;
@@ -10463,6 +10485,12 @@ begin
       HELPERNODE_PROFILE: begin // Query profile
 
       end;
+      HELPERNODE_HISTORY:
+        menuClearQueryHistory.Enabled := True;
+    end;
+    2: case Tree.FocusedNode.Parent.Parent.Index of
+      HELPERNODE_HISTORY:
+        menuClearQueryHistory.Enabled := True;
     end;
   end;
 end;
