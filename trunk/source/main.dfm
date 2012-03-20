@@ -8916,6 +8916,11 @@ object MainForm: TMainForm
     object menuHelp: TMenuItem
       Action = actSQLhelp
     end
+    object menuClearQueryHistory: TMenuItem
+      Caption = 'Clear query history ...'
+      Enabled = False
+      OnClick = menuClearQueryHistoryClick
+    end
     object menuQueryHelpersGenerateInsert: TMenuItem
       Caption = 'Generate INSERT ...'
       Enabled = False
