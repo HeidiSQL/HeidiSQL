@@ -83,7 +83,7 @@ type
       FMaxDuration: Cardinal;
     public
       property MaxDuration: Cardinal read FMaxDuration;
-      function ReadItem(RegValue: Integer): TQueryHistoryItem;
+      function ReadItem(RegValue: String): TQueryHistoryItem;
   end;
   TQueryHistoryItemComparer = class(TComparer<TQueryHistoryItem>)
     function Compare(const Left, Right: TQueryHistoryItem): Integer; override;
@@ -2469,7 +2469,7 @@ begin
     MainReg.GetValueNames(AllRegItems);
     History := TQueryHistory.Create;
     for RegItem in AllRegItems do begin
-      History.ReadItem(StrToInt(RegItem));
+      History.ReadItem(RegItem);
     end;
 
     // Find lowest unused item number
@@ -10365,7 +10365,7 @@ begin
            MainReg.GetValueNames(Values);
            History := TQueryHistory.Create;
            for v in Values do begin
-             Item := History.ReadItem(StrToInt(v));
+             Item := History.ReadItem(v);
              QueryDay := DateToStr(Item.Time);
              if Tab.HistoryDays.IndexOf(QueryDay) = -1 then
                Tab.HistoryDays.Add(QueryDay);
@@ -10387,7 +10387,7 @@ begin
         Values := TStringList.Create;
         MainReg.GetValueNames(Values);
         for v in Values do begin
-          Item := History.ReadItem(StrToInt(v));
+          Item := History.ReadItem(v);
           QueryDay := DateToStr(Item.Time);
           if QueryDay <> Tab.HistoryDays[Node.Index] then
             History.Remove(Item);
@@ -10857,14 +10857,20 @@ end;
 
 { TQueryHistory }
 
-function TQueryHistory.ReadItem(RegValue: Integer): TQueryHistoryItem;
+function TQueryHistory.ReadItem(RegValue: String): TQueryHistoryItem;
 var
-  p: Integer;
+  i, p: Integer;
   Raw: String;
 begin
+  i := StrToIntDef(RegValue, -1);
+  // Prevent from running into serious errors when registry has some non-numeric value
+  if i=-1 then begin
+    Result := nil;
+    Exit;
+  end;
   Result := TQueryHistoryItem.Create;
-  Result.RegValue := RegValue;
-  Raw := MainReg.ReadString(IntToStr(RegValue));
+  Result.RegValue := i;
+  Raw := MainReg.ReadString(RegValue);
   p := Pos(DELIM, Raw);
   Result.Time := StrToDateTime(Copy(Raw, 1, p-1));
   System.Delete(Raw, 1, p);
