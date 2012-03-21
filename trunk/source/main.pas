@@ -10388,9 +10388,11 @@ begin
            History := TQueryHistory.Create;
            for v in Values do begin
              Item := History.ReadItem(v);
-             QueryDay := DateToStr(Item.Time);
-             if Tab.HistoryDays.IndexOf(QueryDay) = -1 then
-               Tab.HistoryDays.Add(QueryDay);
+             if Assigned(Item) then begin
+               QueryDay := DateToStr(Item.Time);
+               if Tab.HistoryDays.IndexOf(QueryDay) = -1 then
+                 Tab.HistoryDays.Add(QueryDay);
+             end;
            end;
            History.Free;
            Values.Free;
@@ -10410,9 +10412,11 @@ begin
         MainReg.GetValueNames(Values);
         for v in Values do begin
           Item := History.ReadItem(v);
-          QueryDay := DateToStr(Item.Time);
-          if QueryDay <> Tab.HistoryDays[Node.Index] then
-            History.Remove(Item);
+          if Assigned(Item) then begin
+            QueryDay := DateToStr(Item.Time);
+            if QueryDay <> Tab.HistoryDays[Node.Index] then
+              History.Remove(Item);
+          end;
         end;
         History.Sort(TQueryHistoryItemComparer.Create);
         ChildCount := History.Count;
