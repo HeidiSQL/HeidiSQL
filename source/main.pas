@@ -6193,6 +6193,7 @@ begin
     RefreshHelperNode(HELPERNODE_HISTORY);
     Screen.Cursor := crDefault;
   end;
+  Values.Free;
 end;
 
 
