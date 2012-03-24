@@ -1540,8 +1540,10 @@ begin
   end;
   if CheckedNodes = 0 then
     TreeObjects.CheckState[DBNode] := csUncheckedNormal
+  else if CheckedNodes = TreeObjects.ChildCount[DBNode] then
+    TreeObjects.CheckState[DBNode] := csCheckedNormal
   else
-    TreeObjects.CheckState[DBNode] := csCheckedNormal;
+    TreeObjects.CheckState[DBNode] := csMixedNormal;
 end;
 
 
