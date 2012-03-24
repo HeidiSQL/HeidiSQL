@@ -159,7 +159,7 @@ begin
   for I := 1 to PatLen do Shift[Pat[I]] := PatLenSucc - I;
   while Look_at < PatLen do
   begin
-    if Pat[PatLen] = Pat[PatLen - Look_at] then exit;
+    if Pat[PatLen] = Pat[PatLen - Look_at] then break;
     inc(Look_at);
   end;
   fShiftInitialized := True;

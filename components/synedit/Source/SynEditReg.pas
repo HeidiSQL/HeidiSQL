@@ -164,7 +164,10 @@ uses
   SynHighlighterCss,
   SynHighlighterDfm,
   SynHighlighterDml,
-  SynHighlighterDOT,   
+  SynHighlighterDOT,
+  {$ifdef SYN_DELPHI_2009_UP}
+  SynHighlighterDWS,
+  {$endif}
   SynHighlighterEiffel,
   SynHighlighterFortran,
   SynHighlighterFoxpro,
@@ -259,7 +262,11 @@ begin
     TSynCssSyn, TSynHTMLSyn, TSynJScriptSyn, TSynPHPSyn, TSynVBScriptSyn,
     TSynXMLSyn, TSynVrml97Syn,
     //interpreted
-    TSynAWKSyn, TSynBATSyn, TSynKixSyn, TSynPerlSyn, TSynPythonSyn, 
+    TSynAWKSyn, TSynBATSyn,
+    {$ifdef SYN_DELPHI_2009_UP}
+    TSynDWSSyn,
+    {$endif}
+    TSynKixSyn, TSynPerlSyn, TSynPythonSyn,
     TSynTclTkSyn, TSynGWScriptSyn, TSynRubySyn, TSynUNIXShellScriptSyn,
     //database
     TSynCACSyn, TSynCacheSyn, TSynFoxproSyn, TSynSQLSyn, TSynSDDSyn,

@@ -1124,6 +1124,8 @@ begin
   LoadKeyVersions('\SOFTWARE\Borland\Delphi', '');
   LoadKeyVersions('\SOFTWARE\Borland\BDS', BDSVersionPrefix);
   LoadKeyVersions('\SOFTWARE\CodeGear\BDS', BDSVersionPrefix);
+  LoadKeyVersions('\SOFTWARE\Embarcadero\BDS', BDSVersionPrefix);
+
 {$ENDIF}
 end;
 
@@ -1171,21 +1173,31 @@ function TSynPasSyn.UseUserSettings(VersionIndex: Integer): Boolean;
                '\Software\CodeGear\BDS\'+settingTag+'\Editor\Highlight',key,False);
       end; { ReadDelphi2009OrMore }
 
+      function ReadDelphiXEOrMore(settingTag: string; attri: TSynHighlighterAttributes; key: string): Boolean;
+      begin
+        Result := attri.LoadFromBorlandRegistry(HKEY_CURRENT_USER,
+               '\Software\Embarcadero\BDS\'+settingTag+'\Editor\Highlight',key,False);
+      end; { ReadDelphi2009OrMore }
+
+
     begin { ReadDelphiSetting }
       try
         if Pos('BDS', settingTag) = 1 then // BDS product
         begin
           VersionStr := Copy(settingTag, Length(BDSVersionPrefix) + 1, 999);
           Version := 0;
-          if not TryStrToCurr(StringReplace(VersionStr, '.', DecimalSeparator, []), Version) then
+          if not TryStrToCurr(StringReplace(VersionStr, '.', {$IFDEF SYN_COMPILER_15_UP}FormatSettings.{$ENDIF}DecimalSeparator, []), Version) then
           begin
             Result := False;
             Exit;
           end;
-          if Version >= 6 then
-            Result := ReadDelphi2009OrMore(VersionStr, attri, key)
+          if Version >= 8 then
+            Result := ReadDelphiXEOrMore(VersionStr, attri, key)
           else
-            Result := ReadDelphi8To2007(VersionStr, attri, key);
+            if Version >= 6 then
+              Result := ReadDelphi2009OrMore(VersionStr, attri, key)
+            else
+              Result := ReadDelphi8To2007(VersionStr, attri, key);
         end
         else begin // Borland Delphi 7 or earlier
           if (settingTag[1] = '2') or (settingTag[1] = '3')

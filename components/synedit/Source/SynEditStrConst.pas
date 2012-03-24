@@ -435,6 +435,7 @@ resourcestring
   SYNS_FilterCPM                =  'CPM Reports (*.rdf;*.rif;*.rmf;*.rxf)|*.rdf;*.rif;*.rmf;*.rxf';
   SYNS_FilterCPP                =  'C/C++ Files (*.c;*.cpp;*.cc;*.h;*.hpp;*.hh;*.cxx;*.hxx;*.cu)|*.c;*.cpp;*.cc;*.h;*.hpp;*.hh;*.cxx;*.hxx;*.cu';
   SYNS_FilterCS                 =  'C# Files (*.cs)|*.cs';
+  SYNS_FilterDWS                =  'DWScript Files (*.dws;*.pas;*.inc)|*.dws;*.pas;*.inc';
   SYNS_FilterJava               =  'Java Files (*.java)|*.java';
   SYNS_FilterPerl               =  'Perl Files (*.pl;*.pm;*.cgi)|*.pl;*.pm;*.cgi';
   SYNS_FilterAWK                =  'AWK Scripts (*.awk)|*.awk';

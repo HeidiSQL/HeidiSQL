@@ -2199,7 +2199,7 @@ procedure GetProcedureAddress(var P: Pointer; const ModuleName, ProcName: string
 begin
   if not Assigned(P) then
   begin
-    P := Pointer(GetProcAddress(Usp10DllModule, PChar(ProcName)));
+    P := Pointer(GetProcAddress(Usp10DllModule, PAnsiChar(AnsiString(ProcName))));
     if not Assigned(P) or (Usp10DllModule = 0) then
       RaiseLastOSError;
   end;

@@ -2,7 +2,7 @@ Contributors to the SynEdit project:
 
     Ackbar, Andre Mens, Andy Colson, Anthony Steele, Arentjan Banck, Aaron Chan,
     Bruno Mikkelsen, Colin Laplace, Daniel Parnell, David H. Muir, Dean Harmon,
-    Eden Kirin, Erik B. Berry, Falko Jens Wagner, Flávio Etrusco, 
+    Eden Kirin, Eric Grange, Erik B. Berry, Falko Jens Wagner, Flávio Etrusco, 
     James D. Richardson, Jan Fiala, Jeff Rafter, Johan Visser, Jordan Russell, 
     Jorg Jans, Jonathan Halterman, Kirys, Lasse Vagsather Karlsen, Leon Brown, 
     Lorant Toth, Maël Hörz, Marko Njezic, Martin Pley, Massimo Maria Ghisalberti, 

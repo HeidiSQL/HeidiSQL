@@ -18,7 +18,7 @@ All Rights Reserved.
 Contributors to the SynEdit and mwEdit projects are listed in the
 Contributors.txt file.
 
-$Id: SynEditHighlighter.pas,v 1.36.2.19 2009/09/28 17:54:20 maelh Exp $
+$Id: SynEditHighlighter.pas,v 1.9 2011/12/28 09:24:20 Egg Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -1219,24 +1219,30 @@ begin
 end;
 
 procedure TSynCustomHighlighter.DoSetLine(const Value: UnicodeString; LineNumber: Integer);
+
+  procedure DoWideLowerCase(const value : UnicodeString; var dest : UnicodeString);
+  begin
+    // segregated here so case-insensitive highlighters don't have to pay the overhead
+    // of the exception frame for the release of the temporary string
+    dest := SynWideLowerCase(value);
+  end;
+
 begin
   // UnicodeStrings are not reference counted, hence we need to copy
   if fCaseSensitive then
   begin
     fLineStr := Value;
-    fLine := PWideChar(fLineStr);
-    fLineLen := Length(fLineStr);
     fCasedLineStr := '';
     fCasedLine := PWideChar(fLineStr);
   end
   else
   begin
-    fLineStr := SynWideLowerCase(Value);
-    fLine := PWideChar(fLineStr);
-    fLineLen := Length(fLineStr);
+    DoWideLowerCase(Value, fLineStr);
     fCasedLineStr := Value;
     fCasedLine := PWideChar(fCasedLineStr);
   end;
+  fLine := PWideChar(fLineStr);
+  fLineLen := Length(fLineStr);
 
   Run := 0;
   ExpandedRun := 0;

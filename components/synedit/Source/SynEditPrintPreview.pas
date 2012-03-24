@@ -747,23 +747,37 @@ procedure TSynEditPrintPreview.WMMouseWheel(var Message: TWMMouseWheel);
 const
   WHEEL_DELTA = 120;
 {$ENDIF}
+var
+  bCtrl: Boolean;
 
   procedure MouseWheelUp;
   begin
-    ScrollVertFor(WHEEL_DELTA);
+    if bCtrl and (fPageNumber > 1) then
+      PreviousPage
+    else
+      ScrollVertFor(WHEEL_DELTA);
   end;
 
   procedure MouseWheelDown;
   begin
-    ScrollVertFor(-WHEEL_DELTA);
+    if bCtrl and (fPageNumber < PageCount) then
+      NextPage
+    else
+      ScrollVertFor(-WHEEL_DELTA);
   end;
 
 var
   MousePos: TPoint;
   IsNeg: Boolean;
 begin
+  { Find modifiers }
+  bCtrl := GetKeyState(VK_CONTROL) < 0;
+
+  { Find mouse pos and increment accumulator }
   MousePos:= SmallPointToPoint(Message.Pos);
   Inc(FWheelAccumulator, Message.WheelDelta);
+
+  { Do actions while accumulated is bigger than delta }
   while Abs(FWheelAccumulator) >= WHEEL_DELTA do
   begin
     IsNeg := FWheelAccumulator < 0;

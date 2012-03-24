@@ -83,7 +83,7 @@ type
   TRangeState = (rsUnknown, rsComment, rsString, rsConditionalComment);
 
   TSQLDialect = (sqlStandard, sqlInterbase6, sqlMSSQL7, sqlMySQL, sqlOracle,
-    sqlSybase, sqlIngres, sqlMSSQL2K, sqlPostgres);
+    sqlSybase, sqlIngres, sqlMSSQL2K, sqlPostgres, sqlNexus);
 
 type
   TSynSQLSyn = class(TSynCustomHighlighter)
@@ -92,6 +92,7 @@ type
     fTokenID: TtkTokenKind;
     fKeywords: TSynHashEntryList;
     fTableNames: TUnicodeStrings;
+    fFunctionNames: TUniCodeStrings;
     fDialect: TSQLDialect;
     fCommentAttri: TSynHighlighterAttributes;
     fConditionalCommentAttri: TSynHighlighterAttributes;
@@ -115,6 +116,8 @@ type
     procedure DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
     procedure SetDialect(Value: TSQLDialect);
     procedure SetTableNames(const Value: TUnicodeStrings);
+    procedure SetFunctionNames(const Value: TUnicodeStrings);
+    procedure PutFunctionNamesInKeywordList;
     procedure TableNamesChanged(Sender: TObject);
     procedure InitializeKeywordLists;
     procedure PutTableNamesInKeywordList;
@@ -198,6 +201,7 @@ type
     property TableNameAttri: TSynHighlighterAttributes read fTableNameAttri
       write fTableNameAttri;
     property TableNames: TUnicodeStrings read fTableNames write SetTableNames;
+    property FunctionNames: TUnicodeStrings read fFunctionNames write SetFunctionNames;
     property VariableAttri: TSynHighlighterAttributes read fVariableAttri
       write fVariableAttri;
     property SQLDialect: TSQLDialect read fDialect write SetDialect
@@ -1120,6 +1124,57 @@ const
     'TRANSACTION_STATE,TRIM,UPDATE_ROWCNT,UPDATE_SYSCAT,UPPERCASE,USERNAME,' +
     'VARBYTE';
 
+//---Nexus----------------------------------------------------------------------
+  // keywords
+  NexusKW: UnicodeString =
+    'ABSOLUTE,AFTER,ALTER,ANY,ASC,ASSERT,ATOMIC,' +
+    'ADD,ALL,AND,AS,ASSEMBLY,AUTHORIZATION,BEFORE,' +
+    'BETWEEN,BINARY,BLOCK,BY,BEGIN,' +
+    'BLOCKSIZE,CALL,CASCADE,CAST,,' +
+    'CHARACTERS,CLR,CLOSE,CODEPAGE,COLLATION,COMMIT,CONTAINS,' +
+    'CROSS,CALLED,CASE,CATCH,' +
+    'CHECK,COALESCE,COLLATE,COLUMN,CONSTRAINT,' +
+    'CREATE,CURSOR,DATA,DECLARE,' +
+    'DELETE,DESC,DETERMINISTIC,DO,DROP,DAY,DEFAULT,DELETING,' +
+    'DESCRIPTION,DISTINCT,EACH,ELSEIF,ENCRYPT,END,EQUIVALENT,' +
+    'ESCAPE,EXECUTE,EXISTS,ELSE,EMPTY,ENCRYPTION,ENGINE,' +
+    'EXCEPT,EXTERNAL,FALSE,FETCH,FETCH_STATUS,FOR,FROM,FUNCTION,FIRST,FOREIGN,' +
+    'FULL,HAVING,HOUR,GLOBAL,GROW,GROUP,GROWSIZE,IDENTITY,IGNORE,' +
+    'IMMEDIATE,IN,INITIAL,INNER,INPUT,INSERTING,INTERVAL,IS,IF,INDEX,' +
+    'INITIALSIZE,INOUT,INSERT,INTERSECT,INTO,ITERATE,JOIN,' +
+    'KANA,KEY,LANGUAGE,LEAVE,LIKE,LOCALE,' +
+    'LARGE,LAST,LEFT,LOCAL,MATCH,' +
+    'MINUTE,MODIFIES,MONTH,NAME,NATURAL,NEXT,NONSPACE,' +
+    'NULLIF,NATIONAL,' +
+    'NEW,NO,NORESTRICT,NOT,NULL,NULLS,OBJECT,OCTETS,OF,ON,OUT,OCTET_LENGTH,' +
+    'ODD,OLD,OPEN,OR,ORDER,OUTER,PARTIAL,PERCENT,PRECISION,' +
+    'PRIOR,PROCEDURE,PASSWORDS,PRIMARY,REFERENCES,RELATIVE,REMOVE,RESTRICT,' +
+    'RETURNS,ROLLBACK,ROUTINE,READS,' +
+    'REFERENCING,REPEAT,RETURN,RIGHT,ROW,SECOND,' +
+    'SERIALIZABLE,SET,SIMPLE,SNAPSHOT,SORT,' +
+    'STRING,SELECT,SIGNAL,' +
+    'SOME,SQL,START,STORAGE,SYMBOLS,TABLE,' +
+    'TOP,TRANSACTION,TRY,THEN,' +
+    'TO,TRIGGER,TRUE,TYPE,UNION,UNKNOWN,UPDATE,' +
+    'UNIQUE,UNTIL,UPDATING,USE,VALUES,VARYING,' +
+    'VIEW,WHEN,WHILE,WITH,WORK,WHERE,WIDTH,YEAR';
+
+  // functions
+  NexusFunctions: UnicodeString =
+    'ABS,ATAN,ATAN2,ATN2,AVG,BOTH,BROUND,CEIL,CEILING,CHAR_LENGTH,CHARACTER_LENGTH,'+
+    'CHR,COS,COUNT,CURRENT_DATE,CURRENT_TIME,CURRENT_TIMESTAMP,CURRENT_USER,ERROR_MESSAGE,EXP,EXTRACT,'+
+    'FLOOR,LASTAUTOINC,LEADING,LIST,LN,LOCALTIME,LOCALTIMESTAMP,LOWER,MAX,MED,MIN,MOD,NEWGUID,OCTECT,'+
+    'OCTECT_LENGTH,ORD,PI,POSITION,POWER,RAND,ROUND,ROWSAFFECTED,ROWSREAD,SESSION_USER,SIN,SQRT,STD,'+
+    'SUBSTRING,SUM,SYSTEM_ROW#,TOSTRING,TOSTRINGLEN,TRAILING,TRIM,UPPER,USER,USING';
+
+  // types
+  NexusTypes: UnicodeString =
+    'CHARACTER,CHAR,NULLSTRING,SHORTSTRING,SINGLECHAR,VARCHAR,' +
+    'CLOB,TEXT,NSINGLECHAR,NCHAR,' +
+    'NVARCHAR,NCLOB,BLOB,IMAGE,NUMERIC,DECIMAL,DEC,BYTE,TINYINT,SHORTINT,SMALLINT,INTEGER,INT,' +
+    'AUTOINC,BIGINT,LARGEINT,WORD,DWORD,FLOAT,REAL,DOUBLE,EXTENDED,MONEY,' +
+    'BOOLEAN,BOOL,DATE,TIME,TIMESTAMP,DATETIME,GUID,BYTEARRAY,RECREV';
+
 function TSynSQLSyn.HashKey(Str: PWideChar): Integer;
 var
   FoundDoubleMinus: Boolean;
@@ -1186,6 +1241,10 @@ begin
   fKeywords := TSynHashEntryList.Create;
   fTableNames := TUnicodeStringList.Create;
   TUnicodeStringList(fTableNames).OnChange := TableNamesChanged;
+
+  fFunctionNames := TunicodeStringList.Create;
+  TUnicodeStringList(fFunctionNames).OnChange := TableNamesChanged;
+
   fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style := [fsItalic];
   AddAttribute(fCommentAttri);
@@ -1242,6 +1301,7 @@ destructor TSynSQLSyn.Destroy;
 begin
   fKeywords.Free;
   fTableNames.Free;
+  fFunctionNames.Free;
   inherited Destroy;
 end;
 
@@ -1260,8 +1320,6 @@ begin
 end;
 
 procedure TSynSQLSyn.AsciiCharProc;
-var
-  IsEsc: Boolean;
 begin
   // Oracle SQL allows strings to go over multiple lines
   if fLine[Run] = #0 then
@@ -1286,18 +1344,12 @@ begin
     end
     else
     begin
-      IsEsc := False;
       if (Run > 0) or (fRange <> rsString) or
         ((fLine[Run] <> #39) and (fLine[Run - 1] <> '\')) then
       begin
         fRange := rsString;
         repeat
-          if fLine[Run] = '\' then
-            IsEsc := not IsEsc
-          else
-            IsEsc := False;
-
-          if (not IsEsc) and (fLine[Run + 1] = #39) then
+          if (fLine[Run] <> '\') and (fLine[Run + 1] = #39) then
           begin
             Inc(Run);
             break;
@@ -1305,7 +1357,7 @@ begin
           Inc(Run);
         until IsLineEnd(Run);
       end;
-      if (fLine[Run] = #39) and (not IsEsc) then
+      if (fLine[Run] = #39) and not(fLine[Run-1] = '\') then
       begin
         Inc(Run);
         fRange := rsUnknown;
@@ -1479,6 +1531,16 @@ begin
         Inc(Run);
         fTokenID := tkSymbol;
       end;
+    '/':
+      begin
+        if (SQLDialect = sqlNexus)  then
+        begin
+          fTokenID := tkComment;
+          repeat
+            Inc(Run);
+          until IsLineEnd(Run);
+        end;
+      end
     else
       fTokenID := tkSymbol;
   end;
@@ -1757,9 +1819,11 @@ begin
     '-':
       Result := fDialect = sqlStandard;
     '#', '$':                          // TODO: check this case, ANSI code wasn't clear here if this is exclusively Oracle
-      Result := fDialect = sqlOracle;
+      Result := fDialect in [sqlOracle, sqlNexus];
     '@':
       Result := fDialect in [sqlMSSQL7, sqlMSSQL2K];
+     '!', '^', '{', '}','~':
+      Result := fDialect = sqlNexus
     else
       Result := False;
   end;
@@ -1808,6 +1872,25 @@ begin
   end;
 end;
 
+procedure TSynSQLSyn.PutFunctionNamesInKeywordList;
+var
+  i: Integer;
+  Entry: TSynHashEntry;
+begin
+  for i := 0 to (fFunctionNames.Count - 1) do
+  begin
+    Entry := fKeywords[HashKey(PWideChar(fFunctionNames[i]))];
+    while Assigned(Entry) do
+    begin
+      if SynWideLowerCase(Entry.Keyword) = SynWideLowerCase(fFunctionNames[i]) then
+        Break;
+      Entry := Entry.Next;
+    end;
+    if not Assigned(Entry) then
+      DoAddKeyword(fFunctionNames[i], Ord(tkFunction));
+  end;
+end;
+
 procedure TSynSQLSyn.InitializeKeywordLists;
 var
   I: Integer;
@@ -1818,6 +1901,7 @@ begin
     EnumerateKeywords(I, GetKeywords(I), IsIdentChar, DoAddKeyword);
 
   PutTableNamesInKeywordList;
+  PutFunctionNamesInKeywordList;
   DefHighlightChange(Self);
 end;
 
@@ -1828,6 +1912,11 @@ begin
     fDialect := Value;
     InitializeKeywordLists;
   end;
+end;
+
+procedure TSynSQLSyn.SetFunctionNames(const Value: TUnicodeStrings);
+begin
+  fFunctionNames := Value;
 end;
 
 function TSynSQLSyn.GetSampleSource: UnicodeString;
@@ -2027,6 +2116,12 @@ begin
     sqlSybase:
       if TtkTokenKind(TokenKind) = tkKey then
         Result := SybaseKW;
+    sqlNexus:
+      case TtkTokenKind(TokenKind) of
+        tkKey: Result := NexusKW;
+        tkDatatype: Result := NexusTypes;
+        tkFunction: Result := NexusFunctions;
+      end;
   end;
 end;
 

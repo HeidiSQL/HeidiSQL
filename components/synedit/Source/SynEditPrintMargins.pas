@@ -110,14 +110,24 @@ type
   //Margins class - sorting out dimensions of printable area
   TSynEditPrintMargins = class(TPersistent)
   private
-    FLeft, FRight, FTop, FBottom: Double;
-    FHeader, FFooter: Double;
-    FLeftHFTextIndent: Double;
-    FRightHFTextIndent: Double;
-    FHFInternalMargin: Double;
-    FGutter: Double;
-    FMirrorMargins: Boolean;
-    FUnitSystem: TUnitSystem;
+    FLeft,                      // Distance from left edge of paper to text
+    FRight,                     // Distance from right edge of paper to text
+    FTop,                       // Distance from top edge of paper to top of text
+    FBottom: Double;            // Distance from bottom edge of paper to bottom of text
+    FHeader,                    // Distance from top edge of paper to line below header
+    FFooter: Double;            // Distance from bottom edge of paper to line above footer
+    FLeftHFTextIndent: Double;  // Distance from left margin to first left-aligned character
+                                // in header or footer
+    FRightHFTextIndent: Double; // Distance from right margin to last right-aligned character
+                                // in header or footer
+    FHFInternalMargin: Double;  // Internal margin between top-line and text in header and
+                                // footer AND between bottom-line and text in header and
+                                // footer
+    FGutter: Double;            // Binding gutter - added to right margin (or left if 2-sided)
+    FMirrorMargins: Boolean;    // Set if margins should be mirrored (i.e. when printing
+                                // 2-sided)
+    FUnitSystem: TUnitSystem;   // The units used to specify sizes in.
+                                // Internally is allways used mm
     function ConvertTo(Value: Double): Double;
     function ConvertFrom(Value: Double): Double;
     function GetBottom: Double;
@@ -141,15 +151,26 @@ type
     procedure SetRightHFTextIndent(const Value: Double);
     procedure SetHFInternalMargin(const Value: Double);
   public
-        //When initpage has been called, the following values will reflect the
-        //margins in paper units. Note that all values are calculated from
-        //left or top of paper (i.e. PRight is distance from left margin)
-    PLeft, PRight, PTop, PBottom: Integer;
-    PHeader, PFooter: Integer;
-    PLeftHFTextIndent: Integer;
-    PRightHFTextIndent: Integer;
-    PHFInternalMargin: Integer;
-    PGutter: Integer;
+    { When initpage has been called, the following values will reflect the
+      margins in paper units. Note that all values are calculated from
+      left or top of paper (i.e. PRight is distance from left margin) }
+
+    PLeft,  // Left position of text in device units (pixels) - this is the left
+            // margin minus the left unprintable distance (+ gutter)
+    PRight, // Right position of text in device units (pixels) - calculated form
+            // left
+    PTop,   // Top position of text in device units (pixels) - this is the top
+            // margin minus the top unprintable distance
+    PBottom: Integer; // Bottom position of text in device units (pixels) -
+                      // calculated form top
+    PHeader,          // Header in device units (pixels)
+    PFooter: Integer; // Footer in device units (pixels) - calculated from top
+    PLeftHFTextIndent: Integer;  // Left position of text in header and footer in device
+                                 // units (pixels). Calculated as Left margin + LeftHFTextIndent
+    PRightHFTextIndent: Integer; // Right position of text in header and footer in device
+                                 // units (pixels). Calculated from left
+    PHFInternalMargin: Integer;  // Internal margin in device units (pixels)
+    PGutter: Integer; // Binding gutter in device units (pixels)
     constructor Create;
     procedure InitPage(ACanvas: TCanvas; PageNum: Integer;
       PrinterInfo: TSynEditPrinterInfo; LineNumbers,
@@ -324,12 +345,15 @@ begin
   FHFInternalMargin := ConvertTo(Value);
 end;
 
+// -----------------------------------------------------------------------------
+// Called by TSynEditPrint class to initialize margins
 procedure TSynEditPrintMargins.InitPage(ACanvas: TCanvas; PageNum: Integer;
   PrinterInfo: TSynEditPrinterInfo; LineNumbers, LineNumbersInMargin: Boolean;
   MaxLineNum: Integer);
 //Calculate the P... values
 begin
-  if FMirrorMargins and ((PageNum mod 2) = 0) then begin
+  if FMirrorMargins and ((PageNum mod 2) = 0) then
+  begin
     PLeft := PrinterInfo.PixFromLeft(FRight);
     PRight := PrinterInfo.PrintableWidth - PrinterInfo.PixFromRight(FLeft + FGutter);
   end
@@ -349,6 +373,8 @@ begin
   PLeftHFTextIndent := PLeft + Round(PrinterInfo.XPixPrmm * FLeftHFTextIndent);
 end;
 
+// -----------------------------------------------------------------------------
+// Assign values from another TSynEditPrintMargins object
 procedure TSynEditPrintMargins.Assign(Source: TPersistent);
 var
   Src: TSynEditPrintMargins;

@@ -29,7 +29,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterGeneral.pas,v 1.15.2.8 2008/09/14 16:25:00 maelh Exp $
+$Id: SynHighlighterGeneral.pas,v 1.12 2011/04/14 15:12:54 Egg Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -78,7 +78,13 @@ type
 
   TRangeState = (rsANil, rsAnsi, rsPasStyle, rsCStyle, rsUnKnown);
 
-  TStringDelim = (sdSingleQuote, sdDoubleQuote);
+  TStringDelim = (sdSingleQuote, sdDoubleQuote, sdSingleAndDoubleQuote);
+
+  TGetTokenAttributeEvent = procedure (attribute : TSynHighlighterAttributes) of object;
+
+const
+   cDefaultIdentChars = '_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+                         'abcdefghijklmnopqrstuvwxyz';
 
 type
   TSynGeneralSyn = class(TSynCustomHighlighter)
@@ -96,8 +102,10 @@ type
     fSymbolAttri: TSynHighlighterAttributes;
     fKeyWords: TUnicodeStrings;
     fComments: TCommentStyles;
-    fStringDelimCh: WideChar;
+    fStringDelim: TStringDelim;
     fDetectPreprocessor: Boolean;
+    fOnGetTokenAttribute: TGetTokenAttributeEvent;
+    FStringMultiLine : Boolean;
     procedure AsciiCharProc;
     procedure BraceOpenProc;
     procedure PointCommaProc;
@@ -121,10 +129,12 @@ type
     procedure SetStringDelim(const Value: TStringDelim);
     function GetIdentifierChars: UnicodeString;
     procedure SetIdentifierChars(const Value: UnicodeString);
+    function StoreIdentChars : Boolean;
     procedure SetDetectPreprocessor(Value: boolean);
   public
     class function GetLanguageName: string; override;
     class function GetFriendlyLanguageName: UnicodeString; override;
+    function IsStringDelim(aChar : WideChar) : Boolean;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -133,6 +143,8 @@ type
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
+    function GetCharBeforeToken(offset : Integer = -1) : WideChar;
+    function GetCharAfterToken(offset : Integer = 1) : WideChar;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
     function GetTokenKind: integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
@@ -145,16 +157,18 @@ type
     function SaveToRegistry(RootKey: HKEY; Key: string): boolean; override;
     function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; override;
     {$ENDIF}
+    property OnGetTokenAttribute : TGetTokenAttributeEvent read fOnGetTokenAttribute write fOnGetTokenAttribute;
+    property StringMultiLine : Boolean read FStringMultiLine write FStringMultiLine;
   published
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
       write fCommentAttri;
-    property Comments: TCommentStyles read fComments write SetComments;
+    property Comments: TCommentStyles read fComments write SetComments default [];
     property DetectPreprocessor: boolean read fDetectPreprocessor
       write SetDetectPreprocessor;
     property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
       write fIdentifierAttri;
     property IdentifierChars: UnicodeString read GetIdentifierChars
-      write SetIdentifierChars;
+      write SetIdentifierChars stored StoreIdentChars;
     property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
     property KeyWords: TUnicodeStrings read fKeyWords write SetKeyWords;
     property NumberAttri: TSynHighlighterAttributes read fNumberAttri
@@ -249,9 +263,8 @@ begin
   AddAttribute(fPreprocessorAttri);
   SetAttributesOnChange(DefHighlightChange);
 
-  fStringDelimCh := '''';
-  fIdentChars := '_0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
-    'abcdefghijklmnopqrstuvwxyz';
+  fStringDelim := sdSingleQuote;
+  fIdentChars := cDefaultIdentChars;
   fRange := rsUnknown;
 end; { Create }
 
@@ -560,16 +573,20 @@ begin
 end;
 
 procedure TSynGeneralSyn.StringProc;
+var
+   delim : WideChar;
 begin
   fTokenID := tkString;
-  if (fLine[Run + 1] = fStringDelimCh) and (fLine[Run + 2] = fStringDelimCh) then
+  if IsStringDelim(fLine[Run + 1]) and IsStringDelim(fLine[Run + 2]) then
     Inc(Run, 2);
+  delim:=fLine[Run];
   repeat
     case FLine[Run] of
-      #0, #10, #13: break;
+      #0 :  break;
+      #10, #13: if not StringMultiLine then break;
     end;
     inc(Run);
-  until FLine[Run] = fStringDelimCh;
+  until FLine[Run] = delim;
   if FLine[Run] <> #0 then inc(Run);
 end;
 
@@ -587,7 +604,7 @@ begin
     rsPasStyle: PasStyleProc;
     rsCStyle: CStyleProc;
   else
-    if fLine[Run] = fStringDelimCh then
+    if IsStringDelim(fLine[Run]) then
       StringProc
     else
       case fLine[Run] of
@@ -638,6 +655,22 @@ begin
   Result := fTokenId;
 end;
 
+// GetCharBeforeToken
+//
+function TSynGeneralSyn.GetCharBeforeToken(offset : Integer = -1) : WideChar;
+begin
+   if fTokenPos+offset>=0 then
+      Result:=FLine[fTokenPos+offset]
+   else Result:=#0;
+end;
+
+// GetCharAfterToken
+//
+function TSynGeneralSyn.GetCharAfterToken(offset : Integer = 1) : WideChar;
+begin
+   Result:=FLine[fTokenPos+offset];
+end;
+
 function TSynGeneralSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
   case fTokenID of
@@ -653,6 +686,8 @@ begin
   else
     Result := nil;
   end;
+  if Assigned(fOnGetTokenAttribute) then
+    fOnGetTokenAttribute(Result);
 end;
 
 function TSynGeneralSyn.GetTokenKind: integer;
@@ -681,7 +716,11 @@ begin
         Value[i] := SynWideUpperCase(Value[i]);
       Value.EndUpdate;
     end;
+
+  TUnicodeStringList(fKeyWords).Sorted:=False;
   fKeyWords.Assign(Value);
+  TUnicodeStringList(fKeyWords).Sorted:=True;
+
   DefHighLightChange(nil);
 end;
 
@@ -734,22 +773,12 @@ end;
 
 function TSynGeneralSyn.GetStringDelim: TStringDelim;
 begin
-  if fStringDelimCh = '''' then
-    Result := sdSingleQuote
-  else
-    Result := sdDoubleQuote;
+  Result:=fStringDelim;
 end;
 
 procedure TSynGeneralSyn.SetStringDelim(const Value: TStringDelim);
-var
-  newCh: WideChar;
 begin
-  case Value of
-    sdSingleQuote: newCh := '''';
-    else newCh := '"';
-  end; //case
-  if newCh <> fStringDelimCh then
-    fStringDelimCh := newCh;
+   fStringDelim:=Value;
 end;
 
 function TSynGeneralSyn.GetIdentifierChars: UnicodeString;
@@ -760,6 +789,11 @@ end;
 procedure TSynGeneralSyn.SetIdentifierChars(const Value: UnicodeString);
 begin
   fIdentChars := Value;
+end;
+
+function TSynGeneralSyn.StoreIdentChars : Boolean;
+begin
+   Result := (fIdentChars<>cDefaultIdentChars);
 end;
 
 procedure TSynGeneralSyn.SetDetectPreprocessor(Value: boolean);
@@ -774,6 +808,18 @@ end;
 class function TSynGeneralSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangGeneral;
+end;
+
+// IsStringDelim
+//
+function TSynGeneralSyn.IsStringDelim(aChar : WideChar) : Boolean;
+begin
+   case fStringDelim of
+      sdSingleQuote : Result:=(aChar='''');
+      sdDoubleQuote : Result:=(aChar='"');
+   else
+      Result:=(aChar='''') or (aChar='"');
+   end;
 end;
 
 initialization

@@ -311,10 +311,9 @@ begin
   if (Command = ecChar) and (AChar = #27) then
     FDataLink.Reset
   // set editing state if editor command
-  else begin
-    if (Command >= ecEditCommandFirst) and (Command <= ecEditCommandLast) then
-      FDataLink.Edit;
-  end;
+  else if (Command >= ecEditCommandFirst) and (Command <= ecEditCommandLast) then
+      if not FDataLink.Edit then Exit;
+ 
   inherited;
 end;
 

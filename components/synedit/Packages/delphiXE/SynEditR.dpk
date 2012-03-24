@@ -11,14 +11,14 @@ package SynEditR;
 {$LONGSTRINGS ON}
 {$OPENSTRINGS ON}
 {$OPTIMIZATION ON}
-{$OVERFLOWCHECKS ON}
-{$RANGECHECKS ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
 {$REFERENCEINFO ON}
 {$SAFEDIVIDE OFF}
-{$STACKFRAMES ON}
-{$TYPEDADDRESS ON}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
 {$VARSTRINGCHECKS ON}
-{$WRITEABLECONST OFF}
+{$WRITEABLECONST ON}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
 {$DESCRIPTION 'SynEdit component suite runtime'}
@@ -126,6 +126,7 @@ contains
   SynHighlighterURI in '..\..\Source\SynHighlighterURI.pas',
   SynURIOpener in '..\..\Source\SynURIOpener.pas',
   SynHighlighterDOT in '..\..\Source\SynHighlighterDOT.pas',
+  SynHighlighterDWS in '..\..\Source\SynHighlighterDWS.pas',
   SynHighlighterVrml97 in '..\..\Source\SynHighlighterVrml97.pas',
   SynHighlighterEiffel in '..\..\Source\SynHighlighterEiffel.pas',
   SynUnicode in '..\..\Source\SynUnicode.pas',

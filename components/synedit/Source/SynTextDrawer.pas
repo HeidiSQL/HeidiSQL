@@ -206,15 +206,23 @@ type
 
     // Begin/EndDrawing calling count
     FDrawingCount: Integer;
+
+    // GetCharABCWidthsW cache
+    FCharABCWidthCache : array [0..127] of TABC;
+    FCharWidthCache : array [0..127] of Integer;
+
   protected
     procedure ReleaseETODist; virtual;
     procedure AfterStyleSet; virtual;
     procedure DoSetCharExtra(Value: Integer); virtual;
+    procedure FlushCharABCWidthCache;
+    function GetCachedABCWidth(c : Cardinal; var abc : TABC) : Boolean;
     property StockDC: HDC read FDC;
     property DrawingCount: Integer read FDrawingCount;
     property FontStock: TheFontStock read FFontStock;
     property BaseCharWidth: Integer read FBaseCharWidth;
     property BaseCharHeight: Integer read FBaseCharHeight;
+
   public
     constructor Create(CalcExtentBaseStyle: TFontStyles; BaseFont: TFont); virtual;
     destructor Destroy; override;
@@ -782,6 +790,7 @@ procedure TheTextDrawer.SetBaseFont(Value: TFont);
 begin
   if Assigned(Value) then
   begin
+    FlushCharABCWidthCache;
     ReleaseETODist;
     FStockBitmap.Canvas.Font.Assign(Value);
     FStockBitmap.Canvas.Font.Style := [];
@@ -803,6 +812,7 @@ begin
   if FCalcExtentBaseStyle <> Value then
   begin
     FCalcExtentBaseStyle := Value;
+    FlushCharABCWidthCache;
     ReleaseETODist;
     with FFontStock do
     begin
@@ -864,6 +874,26 @@ begin
     SetTextCharacterExtra(FDC, Value);
 end;
 
+procedure TheTextDrawer.FlushCharABCWidthCache;
+begin
+   FillChar(FCharABCWidthCache, SizeOf(TABC)*Length(FCharABCWidthCache), 0);
+   FillChar(FCharWidthCache, SizeOf(Integer)*Length(FCharWidthCache), 0);
+end;
+
+function TheTextDrawer.GetCachedABCWidth(c : Cardinal; var abc : TABC) : Boolean;
+begin
+   if c>High(FCharABCWidthCache) then begin
+      Result:=GetCharABCWidthsW(FDC, c, c, abc);
+      Exit;
+   end;
+   abc:=FCharABCWidthCache[c];
+   if (abc.abcA or Integer(abc.abcB) or abc.abcC)=0 then begin
+      Result:=GetCharABCWidthsW(FDC, c, c, abc);
+      if Result then
+         FCharABCWidthCache[c]:=abc;
+   end else Result:=True;
+end;
+
 procedure TheTextDrawer.TextOut(X, Y: Integer; Text: PWideChar;
   Length: Integer);
 var
@@ -903,7 +933,7 @@ procedure TheTextDrawer.ExtTextOut(X, Y: Integer; Options: TTextOutOptions;
     RealCharWidth := CharWidth;
     if Win32PlatformIsUnicode then
     begin
-      if GetCharABCWidthsW(FDC, LastChar, LastChar, CharInfo) then
+      if GetCachedABCWidth(LastChar, CharInfo) then
       begin
         RealCharWidth := CharInfo.abcA + Integer(CharInfo.abcB);
         if CharInfo.abcC >= 0 then
@@ -956,8 +986,21 @@ begin
 end;
 
 function TheTextDrawer.TextWidth(const Text: UnicodeString): Integer;
+var
+   c : Cardinal;
 begin
-  Result := SynUnicode.TextExtent(FStockBitmap.Canvas, Text).cX;
+   if Length(Text)=1 then begin
+      c:=Ord(Text[1]);
+      if c<=High(FCharWidthCache) then begin
+         Result:=FCharWidthCache[c];
+         if Result=0 then begin
+            Result:=SynUnicode.TextExtent(FStockBitmap.Canvas, Text).cX;
+            FCharWidthCache[c]:=Result;
+         end;
+         Exit;
+      end;
+   end;
+   Result := SynUnicode.TextExtent(FStockBitmap.Canvas, Text).cX;
 end;
 
 function TheTextDrawer.TextWidth(Text: PWideChar; Count: Integer): Integer;

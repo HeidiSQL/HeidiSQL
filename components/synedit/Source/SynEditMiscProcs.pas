@@ -64,9 +64,12 @@ uses
 {$ENDIF}
   Classes;
 
+const
+  MaxIntArraySize = MaxInt div 16;
+
 type
   PIntArray = ^TIntArray;
-  TIntArray = array[0..MaxListSize - 1] of Integer;
+  TIntArray = array[0..MaxIntArraySize - 1] of Integer;
 
 {$IFNDEF SYN_COMPILER_4_UP}
 function Max(x, y: Integer): Integer;
