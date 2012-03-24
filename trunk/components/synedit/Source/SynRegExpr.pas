@@ -30,8 +30,8 @@ unit SynRegExpr;
     not be charged seperatly.
  4. Altered versions must be plainly marked as such, and must
     not be misrepresented as being the original software.
- 5. RegExp Studio application and all the visual components as 
-    well as documentation is not part of the TRegExpr library 
+ 5. RegExp Studio application and all the visual components as
+    well as documentation is not part of the TRegExpr library
     and is not free for usage.
 
                                     mailto:anso@mail.ru
@@ -45,26 +45,16 @@ interface
 
 // ======== Determine compiler
 {$IFDEF VER80} Sorry, TRegExpr is for 32-bits Delphi only. Delphi 1 is not supported (and whos really care today?!). {$ENDIF}
-{$IFDEF VER90} {$DEFINE D2} {$ENDIF} // D2
-{$IFDEF VER93} {$DEFINE D2} {$ENDIF} // CPPB 1
-{$IFDEF VER100} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D3
-{$IFDEF VER110} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // CPPB 3
-{$IFDEF VER120} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D4
-{$IFDEF VER130} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D5
-{$IFDEF VER140} {$DEFINE D6} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D6
-{$IFDEF VER150} {$DEFINE D7} {$DEFINE D6} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D7
-{$IFDEF VER170} {$DEFINE D7} {$DEFINE D6} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D2005
-{$IFDEF VER180} {$DEFINE D7} {$DEFINE D6} {$DEFINE D5} {$DEFINE D4} {$DEFINE D3} {$DEFINE D2} {$ENDIF} // D2006
 
 // ======== Define base compiler options
 {$BOOLEVAL OFF}
 {$EXTENDEDSYNTAX ON}
 {$LONGSTRINGS ON}
 {$OPTIMIZATION ON}
-{$IFDEF D6}
+{$IFDEF SYN_COMPILER_6_UP}
   {$WARN SYMBOL_PLATFORM OFF} // Suppress .Net warnings
 {$ENDIF}
-{$IFDEF D7}
+{$IFDEF SYN_COMPILER_7_UP}
   {$WARN UNSAFE_CAST OFF} // Suppress .Net warnings
   {$WARN UNSAFE_TYPE OFF} // Suppress .Net warnings
   {$WARN UNSAFE_CODE OFF} // Suppress .Net warnings
@@ -91,14 +81,14 @@ interface
 // Define 'UseAsserts' option (do not edit this definitions).
 // Asserts used to catch 'strange bugs' in TRegExpr implementation (when something goes
 // completely wrong). You can swith asserts on/off with help of {$C+}/{$C-} compiler options.
-{$IFDEF D3} {$DEFINE UseAsserts} {$ENDIF}
+{$IFDEF SYN_COMPILER_3_UP} {$DEFINE UseAsserts} {$ENDIF}
 {$IFDEF FPC} {$DEFINE UseAsserts} {$ENDIF}
 
 // Define 'use subroutine parameters default values' option (do not edit this definition).
-{$IFDEF D4} {$DEFINE DefParam} {$ENDIF}
+{$IFDEF SYN_COMPILER_4_UP} {$DEFINE DefParam} {$ENDIF}
 
 // Define 'OverMeth' options, to use method overloading (do not edit this definitions).
-{$IFDEF D5} {$DEFINE OverMeth} {$ENDIF}
+{$IFDEF SYN_COMPILER_5_UP} {$DEFINE OverMeth} {$ENDIF}
 {$IFDEF FPC} {$DEFINE OverMeth} {$ENDIF}
 
 uses
@@ -3590,7 +3580,8 @@ procedure TRegExpr.SetInputString (const AInputString : RegExprString);
 
   // copy input string into buffer
   {$IFDEF SynRegUniCode}
-  StrPCopy (fInputString, Copy (AInputString, 1, Len)); //###0.927
+//  StrPCopy (fInputString, Copy (AInputString, 1, Len)); //###0.927
+  StrPCopy (fInputString, AInputString); //KV Copy above is wastefull.  Do not really understand why is there.
   {$ELSE}
   StrLCopy (fInputString, PRegExprChar (AInputString), Len);
   {$ENDIF}

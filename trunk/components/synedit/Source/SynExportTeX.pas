@@ -149,10 +149,10 @@ var
   OldDecimalSeparator: AnsiChar;
 {$ENDIF}
 begin
-  OldDecimalSeparator := DecimalSeparator;
-  DecimalSeparator := '.';
+  OldDecimalSeparator := {$IFDEF SYN_COMPILER_15_UP}FormatSettings.{$ENDIF}DecimalSeparator;
+  {$IFDEF SYN_COMPILER_15_UP}FormatSettings.{$ENDIF}DecimalSeparator := '.';
   Result := SysUtils.Format(Format, Args);
-  DecimalSeparator := OldDecimalSeparator;
+  {$IFDEF SYN_COMPILER_15_UP}FormatSettings.{$ENDIF}DecimalSeparator := OldDecimalSeparator;
 end;
 
 function ColorToTeX(AColor: TColor): string;

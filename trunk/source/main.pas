@@ -5531,12 +5531,12 @@ begin
 
   Start := Editor.SelStart;
 
-  if (Start > 0) and (Start <= length(Editor.Text)) then
+  if (Start >= 0) and (Start <= length(Editor.Text)) then
     TmpCharA := Editor.Text[Start]
   else
     TmpCharA := #0;
 
-  if (Start < length(Editor.Text)) then
+  if (Start >= 0) and (Start < length(Editor.Text)) then
     TmpCharB := Editor.Text[Start + 1]
   else
     TmpCharB := #0;

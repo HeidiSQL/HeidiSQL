@@ -1518,7 +1518,7 @@ begin
 {$ENDIF}
 end;
 
-{.$MESSAGE 'Check what must be adapted in DoKeyPressW and related methods'}
+{$MESSAGE 'Check what must be adapted in DoKeyPressW and related methods'}
 procedure TSynBaseCompletionProposalForm.DoKeyPressW(Key: WideChar);
 begin
   if Key <> #0 then
@@ -2458,22 +2458,19 @@ begin
 
   case Kind of
   ctCode:
+    if Form.AssignedList.Count > 0 then
     begin
-      CurrentString := s;
-
+      //This may seem redundant, but it fixes scrolling bugs for the first time
+      //That is the only time these occur
+      Position := 0;
+      Form.AdjustScrollBarPosition;
+      Form.FScrollbar.Position := Form.Position;
       Form.FScrollbar.Visible := True;
 
       RecalcFormPlacement;
+      Form.Show;
 
-      //This may seem redundant, but it fixes scrolling bugs for the first time
-      //up when MatchText is not true.  That is the only time these occur
-      if not(scoLimitToMatchedText in Options) then
-      begin
-        Form.AdjustScrollBarPosition;
-        Form.FScrollbar.Position := Form.Position;
-      end;
-      if Form.AssignedList.Count > 0 then
-        Form.Show
+      CurrentString := s;  // bug id 1496148
     end;
   ctParams, ctHint:
     begin

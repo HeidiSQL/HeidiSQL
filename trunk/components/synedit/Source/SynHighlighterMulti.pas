@@ -143,7 +143,12 @@ type
 
   TRangeOperation = (roGet, roSet);
 
-  TRangeProc = procedure (Operation: TRangeOperation; var Range: cardinal) of object;
+{$IFDEF SYN_COMPILER_16_UP}
+  TRangeUNativeInt = NativeUInt;
+{$ELSE}
+  TRangeUNativeInt = Cardinal;
+{$ENDIF}
+  TRangeProc = procedure (Operation: TRangeOperation; var Range: TRangeUNativeInt) of object;
 
   TCustomRangeEvent = procedure (Sender: TSynMultiSyn; Operation: TRangeOperation;
     var Range: pointer) of object;
@@ -215,9 +220,9 @@ type
     procedure SetSampleSource(Value: UnicodeString); override;
     procedure DoSetLine(const Value: UnicodeString; LineNumber: Integer); override;
     //
-    procedure OldRangeProc(Operation: TRangeOperation; var Range: cardinal);
-    procedure NewRangeProc(Operation: TRangeOperation; var Range: cardinal);
-    procedure UserRangeProc(Operation: TRangeOperation; var Range: cardinal);
+    procedure OldRangeProc(Operation: TRangeOperation; var Range: TRangeUNativeInt);
+    procedure NewRangeProc(Operation: TRangeOperation; var Range: TRangeUNativeInt);
+    procedure UserRangeProc(Operation: TRangeOperation; var Range: TRangeUNativeInt);
   public
     class function GetLanguageName: string; override;
     class function GetFriendlyLanguageName: UnicodeString; override;
@@ -417,7 +422,7 @@ begin
   Result := TMarker(fMarkers[Index]);
 end;
 
-procedure TSynMultiSyn.OldRangeProc(Operation: TRangeOperation; var Range: cardinal);
+procedure TSynMultiSyn.OldRangeProc(Operation: TRangeOperation; var Range: TRangeUNativeInt);
 const
   MaxNestedMultiSyn = 6;
   { number of bits of the Range that will be used to store the SchemeIndex }
@@ -764,15 +769,15 @@ end;
 function TSynMultiSyn.GetRange: Pointer;
 begin
   Result := nil;
-  fRangeProc(roGet, cardinal(Result));
+  fRangeProc(roGet, TRangeUNativeInt(Result));
 end;
 
 procedure TSynMultiSyn.SetRange(Value: Pointer);
 begin
-  fRangeProc(roSet, cardinal(Value));
+  fRangeProc(roSet, TRangeUNativeInt(Value));
 end;
 
-procedure TSynMultiSyn.NewRangeProc(Operation: TRangeOperation; var Range: cardinal);
+procedure TSynMultiSyn.NewRangeProc(Operation: TRangeOperation; var Range: TRangeUNativeInt);
 const
   SchemeIndexSize = 3;
   MaxSchemeCount = (1 shl SchemeIndexSize) - 1;
@@ -835,7 +840,7 @@ begin
     DefHighlightChange(Self);
 end;
 
-procedure TSynMultiSyn.UserRangeProc(Operation: TRangeOperation; var Range: cardinal);
+procedure TSynMultiSyn.UserRangeProc(Operation: TRangeOperation; var Range: TRangeUNativeInt);
 begin
   OnCustomRange(Self, Operation, pointer(Range));
   if (Operation = roSet) and (DefaultHighlighter <> nil) then
