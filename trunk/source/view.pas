@@ -13,7 +13,7 @@ type
     editName: TEdit;
     lblName: TLabel;
     rgAlgorithm: TRadioGroup;
-    SynMemoSelect: TSynMemo;
+    SynMemoBody: TSynMemo;
     lblSelect: TLabel;
     btnDiscard: TButton;
     btnSave: TButton;
@@ -50,8 +50,8 @@ uses main;
 constructor TfrmView.Create(AOwner: TComponent);
 begin
   inherited;
-  SynMemoSelect.Highlighter := Mainform.SynSQLSyn1;
-  Mainform.SynCompletionProposal.AddEditor(SynMemoSelect);
+  SynMemoBody.Highlighter := Mainform.SynSQLSyn1;
+  Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   editName.MaxLength := NAME_LEN;
 end;
 
@@ -77,14 +77,14 @@ begin
     rgCheck.ItemIndex := rgCheck.Items.IndexOf(CheckOption);
     if rgCheck.ItemIndex = -1 then
       rgCheck.ItemIndex := 0;
-    SynMemoSelect.Text := SelectCode;
+    SynMemoBody.Text := SelectCode;
     // User may not be allowed to run SHOW CREATE VIEW, in which case we have an empty CreateCode.
     // Disable editor in this case.
     lblDisabledWhy.Visible := SelectCode = '';
     editName.Enabled := not lblDisabledWhy.Visible;
     rgAlgorithm.Enabled := editName.Enabled;
     rgCheck.Enabled := rgAlgorithm.Enabled;
-    SynMemoSelect.Enabled := rgAlgorithm.Enabled;
+    SynMemoBody.Enabled := rgAlgorithm.Enabled;
   end else begin
     // Create mode
     editName.Text := '';
@@ -92,7 +92,7 @@ begin
     rgAlgorithm.ItemIndex := 0;
     rgCheck.Enabled := True;
     rgCheck.ItemIndex := 0;
-    SynMemoSelect.Text := 'SELECT ';
+    SynMemoBody.Text := 'SELECT ';
     lblDisabledWhy.Hide;
   end;
   Modified := False;
@@ -160,7 +160,7 @@ begin
     sql := sql + 'ALGORITHM = '+Uppercase(rgAlgorithm.Items[rgAlgorithm.ItemIndex])+' ';
   if comboDefiner.Text <> '' then
     sql := sql + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, True, '@')+' ';
-  sql := sql + 'VIEW ' + viewname+' AS '+SynMemoSelect.Text+' ';
+  sql := sql + 'VIEW ' + viewname+' AS '+SynMemoBody.Text+' ';
   if rgCheck.Enabled and (rgCheck.ItemIndex > 0) then
     sql := sql + 'WITH '+Uppercase(rgCheck.Items[rgCheck.ItemIndex])+' CHECK OPTION';
 

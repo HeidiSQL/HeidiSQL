@@ -12,7 +12,7 @@ uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ComCtrls, ShellApi, CheckLst,
   Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, SynEditHighlighter, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
-  dbconnection, mysql_structures;
+  dbconnection, mysql_structures, SynMemo, Menus;
 
 type
 
@@ -1900,6 +1900,9 @@ end;
 procedure TDBObjectEditor.Init(Obj: TDBObject);
 var
   editName: TWinControl;
+  SynMemo: TSynMemo;
+  popup: TPopupMenu;
+  Item: TMenuItem;
 begin
   Mainform.ShowStatusMsg('Initializing editor ...');
   Mainform.LogSQL(Self.ClassName+'.Init, using object "'+Obj.Name+'"', lcDebug);
@@ -1913,6 +1916,25 @@ begin
     if Assigned(editName) and editName.CanFocus then
       editName.SetFocus;
   end;
+  SynMemo := FindComponent('SynMemoBody') as TSynMemo;
+  if Assigned(SynMemo) and (not Assigned(SynMemo.PopupMenu)) then begin
+    popup := TPopupMenu.Create(Self);
+    popup.Images := MainForm.ImageListMain;
+    Item := TMenuItem.Create(popup);
+    Item.Action := MainForm.actCopy;
+    popup.Items.Add(Item);
+    Item := TMenuItem.Create(popup);
+    Item.Action := MainForm.actCut;
+    popup.Items.Add(Item);
+    Item := TMenuItem.Create(popup);
+    Item.Action := MainForm.actPaste;
+    popup.Items.Add(Item);
+    Item := TMenuItem.Create(popup);
+    Item.Action := MainForm.actSelectAll;
+    popup.Items.Add(Item);
+    SynMemo.PopupMenu := popup;
+  end;
+
 end;
 
 function TDBObjectEditor.DeInit: TModalResult;

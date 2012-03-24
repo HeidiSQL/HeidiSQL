@@ -12,7 +12,7 @@ type
   TfrmTriggerEditor = class(TFrame)
     lblName: TLabel;
     editName: TEdit;
-    SynMemoStatement: TSynMemo;
+    SynMemoBody: TSynMemo;
     btnHelp: TButton;
     btnDiscard: TButton;
     btnSave: TButton;
@@ -57,7 +57,7 @@ var
   i: Integer;
 begin
   inherited;
-  SynMemoStatement.Highlighter := Mainform.SynSQLSyn1;
+  SynMemoBody.Highlighter := Mainform.SynSQLSyn1;
   editName.MaxLength := NAME_LEN;
   comboTiming.Items.Text := 'BEFORE'+CRLF+'AFTER';
   comboEvent.Items.Text := 'INSERT'+CRLF+'UPDATE'+CRLF+'DELETE';
@@ -87,7 +87,7 @@ begin
   comboDefiner.Text := '';
   comboDefiner.TextHint := 'Current user ('+Obj.Connection.CurrentUserHostCombination+')';
   comboDefiner.Hint := 'Leave empty for current user ('+Obj.Connection.CurrentUserHostCombination+')';
-  SynMemoStatement.Text := 'BEGIN'+CRLF+CRLF+'END';
+  SynMemoBody.Text := 'BEGIN'+CRLF+CRLF+'END';
   comboEvent.ItemIndex := 0;
   comboTiming.ItemIndex := 0;
   DBObjects := MainForm.ActiveConnection.GetDBObjects(Mainform.ActiveDatabase);
@@ -110,7 +110,7 @@ begin
         comboTable.ItemIndex := comboTable.Items.IndexOf(Definitions.Col('Table'));
         comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(Definitions.Col('Timing')));
         comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(Definitions.Col('Event')));
-        SynMemoStatement.Text := Definitions.Col('Statement');
+        SynMemoBody.Text := Definitions.Col('Statement');
         Found := True;
         break;
       end;
@@ -137,7 +137,7 @@ begin
   btnSave.Enabled := Modified
     and (editName.Text <> '') and (comboTable.ItemIndex > -1)
     and (comboTiming.ItemIndex > -1) and (comboEvent.ItemIndex > -1)
-    and (SynMemoStatement.Text <> '');
+    and (SynMemoBody.Text <> '');
   btnDiscard.Enabled := Modified;
 end;
 
@@ -189,7 +189,7 @@ begin
     sql := sql + 'TRIGGER '+DBObject.Connection.QuoteIdent(editName.Text)+' '+
       comboTiming.Items[comboTiming.ItemIndex]+' '+comboEvent.Items[comboEvent.ItemIndex]+
       ' ON '+DBObject.Connection.QuoteIdent(comboTable.Text)+
-      ' FOR EACH ROW '+SynMemoStatement.Text;
+      ' FOR EACH ROW '+SynMemoBody.Text;
     MainForm.ActiveConnection.Query(sql);
     DBObject.Name := editName.Text;
     DBObject.CreateCode := '';

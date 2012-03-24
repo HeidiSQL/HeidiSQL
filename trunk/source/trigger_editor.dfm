@@ -53,7 +53,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     TextHint = 'Enter trigger name'
     OnChange = Modification
   end
-  object SynMemoStatement: TSynMemo
+  object SynMemoBody: TSynMemo
     Left = 3
     Top = 106
     Width = 471
@@ -72,7 +72,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Gutter.Font.Name = 'Courier New'
     Gutter.Font.Style = []
     Lines.Strings = (
-      'SynMemoStatement')
+      'SynMemoBody')
     OnChange = Modification
   end
   object btnHelp: TButton
@@ -166,7 +166,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Images = MainForm.ImageListMain
     OnExecute = SynCompletionProposalStatementExecute
     ShortCut = 16416
-    Editor = SynMemoStatement
+    Editor = SynMemoBody
     Left = 264
     Top = 304
   end
