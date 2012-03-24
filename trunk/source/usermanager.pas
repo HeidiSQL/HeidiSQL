@@ -154,6 +154,7 @@ type
     FUsers: TUserList;
     FModified, FAdded: Boolean;
     CloneGrants: TStringList;
+    FFocusedUserGrants: TStringList;
     FPrivObjects: TPrivObjList;
     PrivsGlobal, PrivsDb, PrivsTable, PrivsRoutine, PrivsColumn: TStringList;
     FConnection: TDBConnection;
@@ -411,10 +412,33 @@ end;
 
 procedure TUserManagerForm.listUsersFocusChanging(Sender: TBaseVirtualTree; OldNode,
   NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
+var
+  User: PUser;
+  Msg: String;
 begin
   // Allow selecting a user? Also, set allowed to false if new node is the same as
   // the old one, otherwise OnFocusChanged will be triggered.
   Allowed := (NewNode <> OldNode) and (not Assigned(NewNode) or (not (vsDisabled in NewNode.States)));
+
+  if Allowed and (not FAdded) and Assigned(NewNode) then begin
+    // Check grants before node has focus. Could be a non-yet flushed user which throws
+    //   "There is no such grant defined for user"
+    // when firing SHOW GRANTS. See http://www.heidisql.com/forum.php?t=10364
+    User := Sender.GetNodeData(NewNode);
+    try
+      FFocusedUserGrants := FConnection.GetCol('SHOW GRANTS FOR '+esc(User.Username)+'@'+esc(User.Host));
+    except
+      on E:EDatabaseError do begin
+        Allowed := False;
+        Include(NewNode.States, vsDisabled);
+        Msg := FConnection.LastError;
+        if FConnection.LastErrorCode = 1141 then
+          Msg := Msg + CRLF + CRLF + 'You need to run FLUSH PRIVILEGES before you can edit this user.';
+        MessageDialog(Msg, mtError, [mbOK]);
+      end;
+    end;
+  end;
+
   if Allowed and FModified then begin
     case MessageDialog('Save modified user?', mtConfirmation, [mbYes, mbNo, mbCancel]) of
       mrYes: begin
@@ -486,7 +510,7 @@ begin
         Grants.Add('GRANT USAGE ON *.* TO '+UserHost);
       end;
     end else
-      Grants := FConnection.GetCol('SHOW GRANTS FOR '+esc(User.Username)+'@'+esc(User.Host));
+      Grants := FFocusedUserGrants;
 
     { GRANT USAGE ON *.* TO 'newbie'@'%' IDENTIFIED BY PASSWORD '*99D8973ECC09819DF81624F051BFF4FC6695140B' REQUIRE (NONE | ssl_option [[AND] ssl_option] ...) WITH GRANT OPTION
     GRANT SELECT ON `avtoserver`.* TO 'newbie'@'%'
