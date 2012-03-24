@@ -63,7 +63,7 @@ object frmView: TfrmView
     TabOrder = 2
     OnClick = Modification
   end
-  object SynMemoSelect: TSynMemo
+  object SynMemoBody: TSynMemo
     Left = 3
     Top = 143
     Width = 444
