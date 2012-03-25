@@ -203,6 +203,8 @@ type
   TDBLogEvent = procedure(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil) of object;
   TDBEvent = procedure(Connection: TDBConnection; Database: String) of object;
   TDBDataTypeArray = Array of TDBDataType;
+  TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId,
+    spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol);
 
   TDBConnection = class(TComponent)
     private
@@ -241,9 +243,10 @@ type
       FQuoteChar: Char;
       FDatatypes: TDBDataTypeArray;
       FThreadID: Cardinal;
+      FSQLSpecifities: Array[TSQLSpecifityId] of String;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
-      procedure DoAfterConnect;
+      procedure DoAfterConnect; virtual;
       procedure SetDatabase(Value: String);
       function GetThreadId: Cardinal; virtual; abstract;
       function GetCharacterSet: String; virtual; abstract;
@@ -291,6 +294,7 @@ type
       function GetLastResults: TDBQueryList; virtual; abstract;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; virtual; abstract;
       function GetServerVariables: TDBQuery; virtual; abstract;
+      function GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
       procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
@@ -353,6 +357,7 @@ type
       FPlinkProcInfo: TProcessInformation;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
+      procedure DoAfterConnect; override;
       procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
       procedure ClosePlink;
       function GetThreadId: Cardinal; override;
@@ -386,6 +391,7 @@ type
       FLastRawResults: TAdoRawResults;
       FLastError: String;
       procedure SetActive(Value: Boolean); override;
+      procedure DoAfterConnect; override;
       function GetThreadId: Cardinal; override;
       function GetCharacterSet: String; override;
       procedure SetCharacterSet(CharsetName: String); override;
@@ -1188,6 +1194,36 @@ begin
 end;
 
 
+procedure TMySQLConnection.DoAfterConnect;
+begin
+  inherited;
+end;
+
+
+procedure TAdoDBConnection.DoAfterConnect;
+begin
+  inherited;
+  case ServerVersionInt of
+    2000: begin
+      FSQLSpecifities[spDatabaseTable] := QuoteIdent('master')+'..'+QuoteIdent('sysdatabases');
+      FSQLSpecifities[spDatabaseTableId] := QuoteIdent('dbid');
+      FSQLSpecifities[spDbObjectsTable] := '..'+QuoteIdent('sysobjects');
+      FSQLSpecifities[spDbObjectsCreateCol] := 'crdate';
+      FSQLSpecifities[spDbObjectsUpdateCol] := '';
+      FSQLSpecifities[spDbObjectsTypeCol] := 'xtype';
+    end;
+    else begin
+      FSQLSpecifities[spDatabaseTable] := QuoteIdent('sys')+'.'+QuoteIdent('databases');
+      FSQLSpecifities[spDatabaseTableId] := QuoteIdent('database_id');
+      FSQLSpecifities[spDbObjectsTable] := '.'+QuoteIdent('sys')+'.'+QuoteIdent('objects');
+      FSQLSpecifities[spDbObjectsCreateCol] := 'create_date';
+      FSQLSpecifities[spDbObjectsUpdateCol] := 'modify_date';
+      FSQLSpecifities[spDbObjectsTypeCol] := 'type';
+    end;
+  end;
+end;
+
+
 function TMySQLConnection.Ping(Reconnect: Boolean): Boolean;
 begin
   Log(lcDebug, 'Ping server ...');
@@ -1763,12 +1799,7 @@ begin
   Result := inherited;
   if not Assigned(Result) then begin
     try
-      case ServerVersionInt of
-        2000:
-          FAllDatabases := GetCol('SELECT '+QuoteIdent('name')+' FROM '+QuoteIdent('master')+'..'+QuoteIdent('sysdatabases')+' ORDER BY '+QuoteIdent('name'));
-        else
-          FAllDatabases := GetCol('SELECT '+QuoteIdent('name')+' FROM '+QuoteIdent('sys')+'.'+QuoteIdent('databases')+' ORDER BY '+QuoteIdent('name'));
-      end;
+      FAllDatabases := GetCol('SELECT '+QuoteIdent('name')+' FROM '+GetSQLSpecifity(spDatabaseTable)+' ORDER BY '+QuoteIdent('name'));
     except on E:EDatabaseError do
       FAllDatabases := TStringList.Create;
     end;
@@ -2198,6 +2229,13 @@ begin
 end;
 
 
+function TDBConnection.GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
+begin
+  // Return some version specific SQL clause or snippet
+  Result := FSQLSpecifities[Specifity];
+end;
+
+
 function TDBConnection.GetInformationSchemaObjects: TStringList;
 var
   Objects: TDBObjectList;
@@ -2553,7 +2591,7 @@ var
   obj: TDBObject;
   Results: TDBQuery;
   i: Integer;
-  tp, FromClause, CreateCol, UpdateCol, TypeCol: String;
+  tp: String;
 begin
   // Cache and return a db's table list
   if Refresh then
@@ -2576,22 +2614,8 @@ begin
     Results := nil;
 
     // Tables, views and procedures
-    case ServerVersionInt of
-      2000: begin
-        FromClause := QuoteIdent(db)+'..'+QuoteIdent('sysobjects');
-        CreateCol := 'crdate';
-        UpdateCol := '';
-        TypeCol := 'xtype';
-      end
-      else begin
-        FromClause := QuoteIdent(db)+'.'+QuoteIdent('sys')+'.'+QuoteIdent('objects');
-        CreateCol := 'create_date';
-        UpdateCol := 'modify_date';
-        TypeCol := 'type';
-      end;
-    end;
     try
-      Results := GetResults('SELECT * FROM '+FromClause+
+      Results := GetResults('SELECT * FROM '+QuoteIdent(db)+GetSQLSpecifity(spDbObjectsTable)+
         ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+', '+EscapeString('TR')+', '+EscapeString('FN')+')');
     except
       on E:EDatabaseError do;
@@ -2601,10 +2625,10 @@ begin
         obj := TDBObject.Create(Self);
         Result.Add(obj);
         obj.Name := Results.Col('name');
-        obj.Created := ParseDateTime(Results.Col(CreateCol, True));
-        obj.Updated := ParseDateTime(Results.Col(UpdateCol, True));
+        obj.Created := ParseDateTime(Results.Col(GetSQLSpecifity(spDbObjectsCreateCol), True));
+        obj.Updated := ParseDateTime(Results.Col(GetSQLSpecifity(spDbObjectsUpdateCol), True));
         obj.Database := db;
-        tp := Trim(Results.Col(TypeCol, True));
+        tp := Trim(Results.Col(GetSQLSpecifity(spDbObjectsTypeCol), True));
         if tp = 'U' then
           obj.NodeType := lntTable
         else if tp = 'P' then
