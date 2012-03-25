@@ -5479,7 +5479,7 @@ begin
   // query-memo - load their contents into seperate tabs
   if not RunQueryFiles(AFiles, nil) then begin
     for i:=0 to AFiles.Count-1 do begin
-      Tab := ActiveOrEmptyQueryTab(True);
+      Tab := ActiveOrEmptyQueryTab(False);
       Tab.LoadContents(AFiles[i], False, nil);
     end;
   end;
