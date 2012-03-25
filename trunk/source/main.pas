@@ -8414,8 +8414,8 @@ begin
             ', RTRIM('+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('status')+'), '+
             'NULL AS '+Conn.QuoteIdent('Info')+' '+
             'FROM '+Conn.QuoteIdent('sys')+'.'+Conn.QuoteIdent('sysprocesses')+' AS '+Conn.QuoteIdent('p')+
-            ', '+Conn.QuoteIdent('sys')+'.'+Conn.QuoteIdent('sysdatabases')+' AS '+Conn.QuoteIdent('d')+
-            ' WHERE '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('dbid')+'='+Conn.QuoteIdent('d')+'.'+Conn.QuoteIdent('dbid')
+            ', '+Conn.GetSQLSpecifity(spDatabaseTable)+' AS '+Conn.QuoteIdent('d')+
+            ' WHERE '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('dbid')+'='+Conn.QuoteIdent('d')+'.'+Conn.GetSQLSpecifity(spDatabaseTableId)
             );
         end;
       end;
