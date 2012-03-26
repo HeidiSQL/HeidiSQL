@@ -27,6 +27,7 @@ object MainForm: TMainForm
     Align = alBottom
     AutoSnap = False
     ResizeStyle = rsUpdate
+    OnMoved = splitterTopBottomMoved
   end
   object SynMemoSQLLog: TSynMemo
     Left = 0
