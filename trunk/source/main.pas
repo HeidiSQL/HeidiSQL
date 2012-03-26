@@ -1744,7 +1744,7 @@ begin
         LastActiveSession := LastSessions[0];
       for i:=0 to LastSessions.Count-1 do begin
         try
-          LoadedParams := LoadConnectionParams(LastSessions[i]);
+          LoadedParams := TConnectionParameters.ReadFromRegistry(LastSessions[i]);
           if InitConnection(LoadedParams, LastActiveSession=LastSessions[i], Connection) then
             Connected := True;
         except on E:Exception do
@@ -1813,7 +1813,7 @@ begin
   SessName := GetParamValue('d', 'description');
   if SessName <> '' then begin
     try
-      FCmdlineConnectionParams := LoadConnectionParams(SessName);
+      FCmdlineConnectionParams := TConnectionParameters.ReadFromRegistry(SessName);
     except
       on E:Exception do begin
         // Session params not found in registry
@@ -3075,7 +3075,7 @@ begin
   if Assigned(Node) then
     SelectNode(DBtree, Node)
   else begin
-    Params := LoadConnectionParams(Session);
+    Params := TConnectionParameters.ReadFromRegistry(Session);
     InitConnection(Params, True, Connection);
   end;
 end;
