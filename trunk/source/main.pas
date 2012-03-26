@@ -8444,7 +8444,6 @@ begin
   Tab.Caption := FHostTabCaptions[Tab.PageIndex] + ' (' + IntToStr(vt.RootNodeCount) + ')';
   // Restore selection
   SetVTSelection(vt, SelectedCaptions);
-  SelectedCaptions.Free;
 end;
 
 
@@ -10192,7 +10191,6 @@ end;
 procedure TMainForm.treeQueryHelpersFreeNode(Sender: TBaseVirtualTree;
   Node: PVirtualNode);
 var
-  Values: TQueryHistory;
   Tab: TQueryTab;
 begin
   // Free some memory, taken by probably big SQL query history items
