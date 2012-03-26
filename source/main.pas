@@ -867,6 +867,7 @@ type
       var ContentRect: TRect);
     procedure actLaunchCommandlineExecute(Sender: TObject);
     procedure menuClearQueryHistoryClick(Sender: TObject);
+    procedure splitterTopBottomMoved(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -2013,6 +2014,7 @@ begin
     ProgressBarStatus.SetBounds(Left, Top, Right-Left, Bottom-Top);
   lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
   FixQueryTabCloseButtons;
+  splitterTopBottom.OnMoved(Sender);
 end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
@@ -2679,6 +2681,22 @@ begin
     lblPreviewTitle.Hint := lblPreviewTitle.Caption;
     ShowStatusMsg;
     Screen.Cursor := crDefault;
+  end;
+end;
+
+
+procedure TMainForm.splitterTopBottomMoved(Sender: TObject);
+var
+  Tab: TQueryTab;
+  MinHeight: Integer;
+begin
+  // Ensure query grids are not overlapped by sql log
+  for Tab in QueryTabs do begin
+    MinHeight := Tab.pnlMemo.Height + Tab.tabsetQuery.Height + 20;
+    if Tab.TabSheet.Height < MinHeight then
+      Tab.pnlMemo.Height := Max(Tab.TabSheet.Height - Tab.tabsetQuery.Height - 20, 20);
+    if Tab.TabSheet.Height < MinHeight then
+      SynMemoSQLLog.Height := SynMemoSQLLog.Height - (MinHeight - Tab.TabSheet.Height);
   end;
 end;
 
