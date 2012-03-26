@@ -191,7 +191,6 @@ type
   function GeneratePassword(Len: Integer): String;
   procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
   procedure HandlePortableSettings(StartupMode: Boolean);
-  function LoadConnectionParams(Session: String): TConnectionParameters;
   function CharAtPos(Str: String; Pos: Integer): Char;
   function CompareAnyNode(Text1, Text2: String): Integer;
   function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
@@ -2332,41 +2331,6 @@ begin
   end;
   Screen.Cursor := crDefault;
 
-end;
-
-
-function LoadConnectionParams(Session: String): TConnectionParameters;
-begin
-  if not Mainreg.KeyExists(REGPATH + REGKEY_SESSIONS + Session) then
-    raise Exception.Create('Error: Session "'+Session+'" not found in registry.')
-  else begin
-    Result := TConnectionParameters.Create;
-    Result.SessionName := Session;
-    Result.NetType := TNetType(GetRegValue(REGNAME_NETTYPE, Integer(ntMySQL_TCPIP), Session));
-    Result.Hostname := GetRegValue(REGNAME_HOST, '', Session);
-    Result.Username := GetRegValue(REGNAME_USER, '', Session);
-    Result.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
-    Result.LoginPrompt := GetRegValue(REGNAME_LOGINPROMPT, False, Session);
-    Result.WindowsAuth := GetRegValue(REGNAME_WINDOWSAUTH, False, Session);
-    Result.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', Session), DEFAULT_PORT);
-    Result.AllDatabasesStr := GetRegValue(REGNAME_DATABASES, '', Session);
-    Result.SSHHost := GetRegValue(REGNAME_SSHHOST, '', Session);
-    Result.SSHPort := GetRegValue(REGNAME_SSHPORT, DEFAULT_SSHPORT, Session);
-    Result.SSHUser := GetRegValue(REGNAME_SSHUSER, '', Session);
-    Result.SSHPassword := decrypt(GetRegValue(REGNAME_SSHPASSWORD, '', Session));
-    Result.SSHTimeout := GetRegValue(REGNAME_SSHTIMEOUT, DEFAULT_SSHTIMEOUT, Session);
-    Result.SSHPrivateKey := GetRegValue(REGNAME_SSHKEY, '', Session);
-    Result.SSHLocalPort := GetRegValue(REGNAME_SSHLOCALPORT, 0, Session);
-    Result.SSHPlinkExe := GetRegValue(REGNAME_PLINKEXE, '');
-    Result.SSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', Session);
-    // Auto-activate SSL for sessions created before UseSSL was introduced:
-    Result.WantSSL := GetRegValue(REGNAME_SSL_ACTIVE, Result.SSLPrivateKey<>'', Session);
-    Result.SSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', Session);
-    Result.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', Session);
-    Result.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, '', Session);
-    Result.Compressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session);
-    Result.ServerVersion := GetRegValue(REGNAME_SERVERVERSION_FULL, '', Session);
-  end;
 end;
 
 

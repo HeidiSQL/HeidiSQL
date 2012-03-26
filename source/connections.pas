@@ -182,7 +182,7 @@ begin
   MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
   MainReg.GetKeyNames(SessionNames);
   for i:=0 to SessionNames.Count-1 do begin
-    Sess := LoadConnectionParams(SessionNames[i]);
+    Sess := TConnectionParameters.ReadFromRegistry(SessionNames[i]);
     FSessions.Add(Sess);
   end;
   ListSessions.RootNodeCount := FSessions.Count;
@@ -352,7 +352,7 @@ begin
       // Create the key and save its values
       OpenRegistry(newName);
       SaveCurrentValues(newName, True);
-      NewSess := LoadConnectionParams(newName);
+      NewSess := TConnectionParameters.ReadFromRegistry(newName);
       FSessions.Add(NewSess);
       Node := ListSessions.AddChild(nil, @NewSess);
       SelectNode(ListSessions, Node);

@@ -359,7 +359,7 @@ var
   Parameters: TConnectionParameters;
 begin
   // Create target connection
-  Parameters := LoadConnectionParams(comboTargetServer.Text);
+  Parameters := TConnectionParameters.ReadFromRegistry(comboTargetServer.Text);
   Result := Parameters.CreateConnection(Self);
   Result.OnLog := MainForm.LogSQL;
   Result.LogPrefix := comboTargetServer.Text;

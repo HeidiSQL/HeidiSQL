@@ -940,7 +940,7 @@ begin
     btnExportOutputTargetSelect.ImageIndex := 27;
     SessionName := Copy(comboExportOutputType.Text, Length(OUTPUT_SERVER)+1, Length(comboExportOutputType.Text));
     FreeAndNil(FTargetConnection);
-    Params := LoadConnectionParams(SessionName);
+    Params := TConnectionParameters.ReadFromRegistry(SessionName);
     FTargetConnection := Params.CreateConnection(Self);
     FTargetConnection.LogPrefix := SessionName;
     FTargetConnection.OnLog := Mainform.LogSQL;
