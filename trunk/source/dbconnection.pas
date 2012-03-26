@@ -205,7 +205,8 @@ type
   TDBEvent = procedure(Connection: TDBConnection; Database: String) of object;
   TDBDataTypeArray = Array of TDBDataType;
   TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId,
-    spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol);
+    spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
+    spEmptyTable, spCurrentUserHost);
 
   TDBConnection = class(TComponent)
     private
@@ -1233,12 +1234,16 @@ end;
 procedure TMySQLConnection.DoAfterConnect;
 begin
   inherited;
+  FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
+  FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
 end;
 
 
 procedure TAdoDBConnection.DoAfterConnect;
 begin
   inherited;
+  FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
+  FSQLSpecifities[spCurrentUserHost] := 'SELECT SYSTEM_USER';
   case ServerVersionInt of
     2000: begin
       FSQLSpecifities[spDatabaseTable] := QuoteIdent('master')+'..'+QuoteIdent('sysdatabases');
@@ -2343,23 +2348,12 @@ end;
 
 
 function TDBConnection.GetCurrentUserHostCombination: String;
-var
-  sql: String;
 begin
   // Return current user@host combination, used by various object editors for DEFINER clauses
   Log(lcDebug, 'Fetching user@host ...');
   Ping(True);
-  if FCurrentUserHostCombination = '' then begin
-    case Parameters.NetTypeGroup of
-      ngMySQL:
-        sql := 'SELECT CURRENT_USER()';
-      ngMSSQL:
-        sql := 'SELECT SYSTEM_USER';
-      else
-        raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(Parameters.NetType)]);
-    end;
-    FCurrentUserHostCombination := GetVar(sql);
-  end;
+  if FCurrentUserHostCombination = '' then
+    FCurrentUserHostCombination := GetVar(GetSQLSpecifity(spCurrentUserHost));
   Result := FCurrentUserHostCombination;
 end;
 

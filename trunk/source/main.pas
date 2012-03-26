@@ -3298,10 +3298,7 @@ begin
       EnableProgress(Objects.Count);
       try
         for TableOrView in Objects do begin
-          case TableOrView.Connection.Parameters.NetTypeGroup of
-            ngMySQL: TableOrView.Connection.Query('TRUNCATE ' + TableOrView.QuotedName);
-            ngMSSQL: TableOrView.Connection.Query('DELETE FROM ' + TableOrView.QuotedName);
-          end;
+          TableOrView.Connection.Query(TableOrView.Connection.GetSQLSpecifity(spEmptyTable) + TableOrView.QuotedName);
           ProgressStep;
         end;
         actRefresh.Execute;
