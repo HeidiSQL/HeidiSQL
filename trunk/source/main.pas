@@ -1967,9 +1967,7 @@ var
 begin
   // Create database:
   Dialog := TCreateDatabaseForm.Create(Self);
-  // Rely on the modalresult being set correctly
-  if Dialog.ShowModal = mrOK then
-    RefreshTree;
+  Dialog.ShowModal;
 end;
 
 
@@ -7358,7 +7356,7 @@ end;
 procedure TMainForm.RefreshTree(FocusNewObject: TDBObject=nil);
 var
   DBNode: PVirtualNode;
-  OnlyDBNode: Boolean;
+  OnlyDBNode, Expanded: Boolean;
   SessNode: PVirtualNode;
 begin
   // This refreshes exactly one session node and all its db and table nodes.
@@ -7381,8 +7379,11 @@ begin
       FocusNewObject.Connection.ClearAllDbObjects;
       FocusNewObject.Connection.RefreshAllDatabases;
       SessNode := GetRootNode(DBtree, FocusNewObject.Connection);
-      if Assigned(SessNode) then
+      if Assigned(SessNode) then begin
+        Expanded := DBtree.Expanded[SessNode];
         DBtree.ResetNode(SessNode);
+        DBtree.Expanded[SessNode] := Expanded;
+      end;
     end else begin
       FocusNewObject.Connection.ClearDbObjects(FocusNewObject.Database);
       DBNode := FindDbNode(DBtree, FocusNewObject.Connection, FocusNewObject.Database);
