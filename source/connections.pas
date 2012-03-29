@@ -82,6 +82,8 @@ type
     tabStart: TTabSheet;
     lblHelp: TLabel;
     chkWantSSL: TCheckBox;
+    btnImportSettings: TButton;
+    timerSettingsImport: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -120,12 +122,16 @@ type
       var NodeDataSize: Integer);
     procedure comboNetTypeChange(Sender: TObject);
     procedure splitterMainMoved(Sender: TObject);
+    procedure btnImportSettingsClick(Sender: TObject);
+    procedure timerSettingsImportTimer(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
     FSessions: TObjectList<TConnectionParameters>;
     FSessionModified, FOnlyPasswordModified, FSessionAdded: Boolean;
     FServerVersion: String;
+    FSettingsImportWaitTime: Cardinal;
+    procedure SetSessions;
     function SelectedSession: String;
     function CurrentParams: TConnectionParameters;
     procedure FinalizeModifications(var CanProceed: Boolean);
@@ -148,11 +154,9 @@ uses Main, helpers, grideditlinks;
 procedure Tconnform.FormCreate(Sender: TObject);
 var
   LastActiveSession: String;
-  SessionNames, LastSessions: TStringList;
-  Sess: TConnectionParameters;
+  LastSessions: TStringList;
   PSess: PConnectionParameters;
   hSysMenu: THandle;
-  i: Integer;
   nt: TNetType;
   Node: PVirtualNode;
   Params: TConnectionParameters;
@@ -169,6 +173,7 @@ begin
   ListSessions.OnCompareNodes := MainForm.AnyGridCompareNodes;
   ListSessions.OnHeaderClick := MainForm.AnyGridHeaderClick;
   ListSessions.OnHeaderDraggedOut := MainForm.AnyGridHeaderDraggedOut;
+  btnImportSettings.Caption := MainForm.actImportSettings.Caption;
   FLoaded := False;
 
   comboNetType.Clear;
@@ -178,14 +183,7 @@ begin
   Params.Free;
 
   FSessions := TObjectList<TConnectionParameters>.Create;
-  SessionNames := TStringList.Create;
-  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
-  MainReg.GetKeyNames(SessionNames);
-  for i:=0 to SessionNames.Count-1 do begin
-    Sess := TConnectionParameters.ReadFromRegistry(SessionNames[i]);
-    FSessions.Add(Sess);
-  end;
-  ListSessions.RootNodeCount := FSessions.Count;
+  SetSessions;
 
   // Focus last session
   SelectNode(ListSessions, nil);
@@ -207,6 +205,24 @@ begin
   AppendMenu(hSysMenu, MF_STRING, MSG_UPDATECHECK, PChar(Mainform.actUpdateCheck.Caption));
   AppendMenu(hSysMenu, MF_STRING, MSG_PREFERENCES, PChar(Mainform.actPreferences.Caption));
   AppendMenu(hSysMenu, MF_STRING, MSG_ABOUT, PChar(Mainform.actAboutBox.Caption));
+end;
+
+
+procedure Tconnform.SetSessions;
+var
+  SessionNames: TStringList;
+  i: Integer;
+  Sess: TConnectionParameters;
+begin
+  // Initialize session tree
+  SessionNames := TStringList.Create;
+  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
+  MainReg.GetKeyNames(SessionNames);
+  for i:=0 to SessionNames.Count-1 do begin
+    Sess := TConnectionParameters.ReadFromRegistry(SessionNames[i]);
+    FSessions.Add(Sess);
+  end;
+  ListSessions.RootNodeCount := FSessions.Count;
 end;
 
 
@@ -357,6 +373,27 @@ begin
       Node := ListSessions.AddChild(nil, @NewSess);
       SelectNode(ListSessions, Node);
     end;
+  end;
+end;
+
+
+procedure Tconnform.btnImportSettingsClick(Sender: TObject);
+begin
+  MainForm.actImportSettings.Execute;
+  FSettingsImportWaitTime := 0;
+  timerSettingsImport.Enabled := True;
+end;
+
+
+procedure Tconnform.timerSettingsImportTimer(Sender: TObject);
+begin
+  Inc(FSettingsImportWaitTime, timerSettingsImport.Interval);
+  SetSessions;
+  if FSessions.Count > 0 then
+    timerSettingsImport.Enabled := False;
+  if FSettingsImportWaitTime >= 10000 then begin
+    timerSettingsImport.Enabled := False;
+    MessageDialog('Imported sessions could not be detected. Restarting HeidiSQL may solve that.', mtWarning, [mbOK]);
   end;
 end;
 

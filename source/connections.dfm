@@ -178,15 +178,25 @@ object connform: Tconnform
         Left = 10
         Top = 10
         Width = 275
-        Height = 245
+        Height = 161
         Margins.Left = 10
         Margins.Top = 10
         Margins.Right = 10
         Margins.Bottom = 10
-        Align = alClient
+        Align = alTop
         AutoSize = False
         Caption = 'lblHelp'
         WordWrap = True
+      end
+      object btnImportSettings: TButton
+        Left = 10
+        Top = 184
+        Width = 119
+        Height = 25
+        Caption = 'Import settings ...'
+        ImageIndex = 101
+        TabOrder = 0
+        OnClick = btnImportSettingsClick
       end
     end
     object tabSettings: TTabSheet
@@ -725,5 +735,11 @@ object connform: Tconnform
     OnTimer = TimerStatisticsTimer
     Left = 48
     Top = 35
+  end
+  object timerSettingsImport: TTimer
+    Enabled = False
+    OnTimer = timerSettingsImportTimer
+    Left = 88
+    Top = 32
   end
 end
