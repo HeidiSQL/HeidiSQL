@@ -187,6 +187,7 @@ begin
   if modifyDB = '' then try
     sql := GetCreateStatement;
     FConnection.Query(sql);
+    MainForm.RefreshTree;
     // Close form
     ModalResult := mrOK;
   except
