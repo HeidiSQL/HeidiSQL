@@ -3191,7 +3191,7 @@ begin
   rx.Expression := '\bLANGUAGE SQL\b';
   if rx.Exec(CreateCode) then
     Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
-  rx.Expression := '\bRETURNS\s+(\w+(\([^\)]*\))?(\s+UNSIGNED)?)';
+  rx.Expression := '\bRETURNS\s+(\w+(\([^\)]*\))?(\s+UNSIGNED)?(\s+CHARSET\s+\S+)?(\s+COLLATE\s+\S+)?)';
   if rx.Exec(CreateCode) then begin
     Returns := rx.Match[1];
     Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
@@ -3217,9 +3217,6 @@ begin
     Comment := StringReplace(rx.Match[1], '''''', '''', [rfReplaceAll]);
     Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]-1);
   end;
-  rx.Expression := '^\s*CHARSET\s+[\w\d]+\s';
-  if rx.Exec(CreateCode) then
-    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]-1);
   // Tata, remaining code is the routine body
   Body := TrimLeft(CreateCode);
 
