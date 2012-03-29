@@ -1512,7 +1512,7 @@ begin
   pnlPreview.Height := GetRegValue(REGNAME_PREVIEW_HEIGHT, pnlPreview.Height);
   if GetRegValue(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked) and (not actDataPreview.Checked) then
     actDataPreviewExecute(actDataPreview);
-  SynMemoSQLLog.Height := GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
+  SynMemoSQLLog.Height := Max(GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height), splitterTopBottom.MinSize);
   // Force status bar position to below log memo
   StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
   prefMaxColWidth := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
