@@ -35,6 +35,7 @@ type
     FOldWindowProc: TWndMethod;       // Temporary switched to TempWindowProc to be able to catch Tab key
     FFullDatatype: TDBDatatype;
     FModified: Boolean;
+    FBeginEditTime: Cardinal;
     procedure TempWindowProc(var Message: TMessage);
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoEndEdit(Sender: TObject);
@@ -97,6 +98,7 @@ type
   TEnumEditorLink = class(TBaseGridEditorLink)
   private
     FCombo: TComboBox;
+    procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   public
     ValueList, DisplayList: TStringList;
     AllowCustomText: Boolean;
@@ -305,6 +307,7 @@ end;
 function TBaseGridEditorLink.BeginEdit: Boolean;
 begin
   Result := not FStopping;
+  FBeginEditTime := GetTickCount;
 end;
 
 function TBaseGridEditorLink.CancelEdit: Boolean;
@@ -857,6 +860,15 @@ begin
   FCombo.BoundsRect := GetCellRect(False);
 end;
 
+
+procedure TEnumEditorLink.DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  // Work around a magic automatic TAB key arriving the editor if the user got
+  // into this cell via TAB. Only seen for a TComboBox with style=csDropDown.
+  // See issue #2809
+  if not (AllowCustomText and (GetTickCount-FBeginEditTime < 200)) then
+    inherited;
+end;
 
 
 
