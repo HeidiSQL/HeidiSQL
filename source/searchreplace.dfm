@@ -155,7 +155,7 @@ object frmSearchReplace: TfrmSearchReplace
     Height = 62
     Anchors = [akLeft, akTop, akBottom]
     Caption = 'Or&igin'
-    ItemIndex = 0
+    ItemIndex = 1
     Items.Strings = (
       'From cursor'
       'Entire scope')
