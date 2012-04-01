@@ -1295,6 +1295,8 @@ var
   Mem: HGLOBAL;
   P: PByte;
   SLen: Integer;
+  Success: Boolean;
+  RetryCount: Integer;
 {$ENDIF}
 begin
   if SText = '' then Exit;
@@ -1306,7 +1308,20 @@ end;
   // Open and Close are the only TClipboard methods we use because TClipboard
   // is very hard (impossible) to work with if you want to put more than one
   // format on it at a time.
-  Clipboard.Open;
+  RetryCount := 0;
+  while not Success do
+  try
+    Clipboard.Open;
+    Success := True;
+  except
+    on Exception do begin
+      Inc(RetryCount);
+      if RetryCount < 3 then
+        Sleep(RetryCount * 100)
+      else
+        raise;
+    end;
+  end;
   try
     // Copy it in our custom format so we know what kind of block it is.
     // That effects how it is pasted in.
