@@ -12,9 +12,13 @@ uses
 
 
 type
+  TUserProblem = (upNone, upEmptyPassword, upInvalidPasswordLen, upUpperHost, upSkipNameResolve, upUnknown);
+
   TUser = class(TObject)
     Username, Host, Password, Cipher, Issuer, Subject: String;
     MaxQueries, MaxUpdates, MaxConnections, MaxUserConnections, SSL: Integer;
+    Problem: TUserProblem;
+    function HostRequiresNameResolve: Boolean;
   end;
   PUser = ^TUser;
   TUserList = TObjectList<TUser>;
@@ -232,6 +236,8 @@ var
   Version: Integer;
   Users: TDBQuery;
   U: TUser;
+  tmp: String;
+  SkipNameResolve: Boolean;
 
 function InitPrivList(Values: String): TStringList;
 begin
@@ -300,6 +306,8 @@ begin
 
   // Load user@host list
   try
+    tmp := FConnection.GetVar('SHOW VARIABLES LIKE '+FConnection.EscapeString('skip_name_resolve'), 1);
+    SkipNameResolve := LowerCase(tmp) = 'on';
     FConnection.Query('FLUSH PRIVILEGES');
     Users := FConnection.GetResults(
       'SELECT '+FConnection.QuoteIdent('user')+', '+FConnection.QuoteIdent('host')+', '+FConnection.QuoteIdent('password')+' '+
@@ -311,6 +319,15 @@ begin
       U.Username := Users.Col('user');
       U.Host := Users.Col('host');
       U.Password := Users.Col('password');
+      U.Problem := upNone;
+      if Length(U.Password) = 0 then
+        U.Problem := upEmptyPassword;
+      if not (Length(U.Password) in [0, 16, 41]) then
+        U.Problem := upInvalidPasswordLen
+      else if SkipNameResolve and U.HostRequiresNameResolve then
+        U.Problem := upSkipNameResolve
+      else if LowerCase(U.Host) <> U.Host then
+        U.Problem := upUpperHost;
       FUsers.Add(U);
       Users.Next;
     end;
@@ -438,7 +455,7 @@ procedure TUserManagerForm.listUsersFocusChanged(Sender: TBaseVirtualTree; Node:
 var
   P, Ptmp, PCol: TPrivObj;
   User: PUser;
-  UserHost, RequireClause, WithClause: String;
+  UserHost, RequireClause, WithClause, Msg: String;
   Grants, AllPNames, Cols: TStringList;
   rxTemp, rxGrant: TRegExpr;
   i, j: Integer;
@@ -486,8 +503,23 @@ begin
         Grants := TStringList.Create;
         Grants.Add('GRANT USAGE ON *.* TO '+UserHost);
       end;
-    end else
+    end else try
       Grants := FConnection.GetCol('SHOW GRANTS FOR '+esc(User.Username)+'@'+esc(User.Host));
+    except
+      on E:EDatabaseError do begin
+        Msg := E.Message;
+        if FConnection.LastErrorCode = 1141 then begin
+          // Disable this user node lately, for old server which do not show skip-name-resolve variable
+          Msg := Msg + CRLF + CRLF + 'Starting the server without --skip-name-resolve may solve this issue.';
+          User.Problem := upUnknown;
+          Node.States := Node.States + [vsDisabled];
+        end;
+        MessageDialog(Msg, mtError, [mbOK]);
+        FModified := False;
+        SelectNode(listUsers, nil);
+        Exit;
+      end;
+    end;
 
     { GRANT USAGE ON *.* TO 'newbie'@'%' IDENTIFIED BY PASSWORD '*99D8973ECC09819DF81624F051BFF4FC6695140B' REQUIRE (NONE | ssl_option [[AND] ssl_option] ...) WITH GRANT OPTION
     GRANT SELECT ON `avtoserver`.* TO 'newbie'@'%'
@@ -775,12 +807,18 @@ begin
   Msg := '';
   if Assigned(Node) then begin
     User := Sender.GetNodeData(Node);
-    if User.Host <> LowerCase(User.Host) then begin
-      Msg := 'This user is broken due to uppercase characters in its hostname. Please fix that in the mysql.user table.';
-    end else case Length(User.Password) of
-      0: Msg := 'This user has an empty password.';
-      16, 41: Msg := '';
-      else Msg := 'This user is inactive due to an invalid length of its encrypted password. Please fix that in the mysql.user table.';
+    Msg := '';
+    case User.Problem of
+      upEmptyPassword:
+        Msg := 'This user has an empty password.';
+      upInvalidPasswordLen:
+        Msg := 'This user is inactive due to an invalid length of its encrypted password. Please fix that in the mysql.user table.';
+      upUpperHost:
+        Msg := 'This user is broken due to uppercase characters in its hostname. Please fix that in the mysql.user table.';
+      upSkipNameResolve:
+        Msg := 'This user is inactive due to having a host name, while the server runs with --skip-name-resolve.';
+      upUnknown:
+        Msg := 'This user is inactive due to some unknown reason.';
     end;
   end;
   lblWarning.Caption := Msg;
@@ -801,7 +839,7 @@ var
 begin
   User := Sender.GetNodeData(Node);
   User^ := FUsers[Node.Index];
-  if (not (Length(User.Password) in [0, 16, 41])) or (LowerCase(User.Host) <> User.Host) then
+  if not (User.Problem in [upNone, upEmptyPassword]) then
     Include(InitialStates, ivsDisabled);
 end;
 
@@ -1374,6 +1412,18 @@ begin
     Item.Caption := GeneratePassword(PasswordLen);
   end;
 end;
+
+
+function TUser.HostRequiresNameResolve: Boolean;
+var
+  rx: TRegExpr;
+begin
+  rx := TRegExpr.Create;
+  rx.Expression := '^(localhost|.*\%.*|\d+\.\d+\.\d+\.\d+|\:\:1|[\w\d]{4}\:.*)$';
+  Result := not rx.Exec(Host);
+  rx.Free;
+end;
+
 
 
 
