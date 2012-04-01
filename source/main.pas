@@ -3441,6 +3441,7 @@ begin
     actQueryFindReplaceExecute(Sender)
   else begin
     FSearchReplaceDialog.Editor := ActiveSynMemo;
+    Exclude(FSearchReplaceDialog.Options, ssoEntireScope);
     if FSearchReplaceDialog.Editor = nil then
       MessageBeep(MB_ICONASTERISK)
     else
