@@ -2435,14 +2435,16 @@ begin
     MsgTitle := 'Your query produced '+FormatNumber(Thread.WarningCount)+' warnings.';
     MsgText := '';
     Warnings := Thread.Connection.GetResults('SHOW WARNINGS LIMIT 5');
-    if Warnings.RecordCount < Thread.WarningCount then
+    if Warnings.RecordCount < 5 then
+      MsgText := MsgText + 'Warnings from last query:'+CRLF
+    else if Warnings.RecordCount < Thread.WarningCount then
       MsgText := MsgText + 'First '+FormatNumber(Warnings.RecordCount)+' warnings:'+CRLF;
     while not Warnings.Eof do begin
       MsgText := MsgText + Warnings.Col('Level') + ': ' + Warnings.Col('Message') + CRLF;
       Warnings.Next;
     end;
     MsgText := Trim(MsgText);
-    if Warnings.RecordCount = Thread.WarningCount then
+    if (Warnings.RecordCount = Thread.WarningCount) or (Warnings.RecordCount < 5) then
       MessageDialog(MsgTitle, MsgText, mtWarning, [mbOk])
     else begin
       MsgText := MsgText + CRLF+CRLF + 'Show all warnings in a new query tab?';
