@@ -2408,7 +2408,10 @@ begin
     MetaInfo := MetaInfo + ' query'
   else
     MetaInfo := MetaInfo + ' queries';
-  MetaInfo := MetaInfo + ': '+FormatNumber(Thread.QueryTime/1000, 3) +' sec.';
+  if Thread.QueryTime < 60*1000 then
+    MetaInfo := MetaInfo + ': '+FormatNumber(Thread.QueryTime/1000, 3) +' sec.'
+  else
+    MetaInfo := MetaInfo + ': '+FormatTimeNumber(Thread.QueryTime div 1000, True);
   if Thread.QueryNetTime > 0 then
     MetaInfo := MetaInfo + ' (+ '+FormatNumber(Thread.QueryNetTime/1000, 3) +' sec. network)';
   LogSQL(MetaInfo);
