@@ -12,7 +12,7 @@ uses
 
 
 type
-  TUserProblem = (upNone, upEmptyPassword, upInvalidPasswordLen, upUpperHost, upSkipNameResolve, upUnknown);
+  TUserProblem = (upNone, upEmptyPassword, upInvalidPasswordLen, upSkipNameResolve, upUnknown);
 
   TUser = class(TObject)
     Username, Host, Password, Cipher, Issuer, Subject: String;
@@ -325,9 +325,7 @@ begin
       if not (Length(U.Password) in [0, 16, 41]) then
         U.Problem := upInvalidPasswordLen
       else if SkipNameResolve and U.HostRequiresNameResolve then
-        U.Problem := upSkipNameResolve
-      else if LowerCase(U.Host) <> U.Host then
-        U.Problem := upUpperHost;
+        U.Problem := upSkipNameResolve;
       FUsers.Add(U);
       Users.Next;
     end;
@@ -813,8 +811,6 @@ begin
         Msg := 'This user has an empty password.';
       upInvalidPasswordLen:
         Msg := 'This user is inactive due to an invalid length of its encrypted password. Please fix that in the mysql.user table.';
-      upUpperHost:
-        Msg := 'This user is broken due to uppercase characters in its hostname. Please fix that in the mysql.user table.';
       upSkipNameResolve:
         Msg := 'This user is inactive due to having a host name, while the server runs with --skip-name-resolve.';
       upUnknown:
