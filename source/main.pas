@@ -2307,6 +2307,12 @@ begin
     NewTab.Results := Results;
     try
       TabCaption := NewTab.Results.TableName;
+      // Add postfix to tab name so tab captions are unique
+      i := 1;
+      while Tab.tabsetQuery.Tabs.IndexOf(TabCaption) > -1 do begin
+        Inc(i);
+        TabCaption := NewTab.Results.TableName + ' #' + IntToStr(i);
+      end;
     except on E:EDatabaseError do
       TabCaption := 'Result #'+IntToStr(Tab.ResultTabs.Count);
     end;
