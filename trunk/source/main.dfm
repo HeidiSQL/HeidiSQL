@@ -2577,21 +2577,6 @@ object MainForm: TMainForm
       OnExecute = actLaunchCommandlineExecute
     end
   end
-  object SaveDialog2: TSaveDialog
-    DefaultExt = 'reg'
-    Filter = 'Registry-files (*.reg)|*.reg|All files (*.*)|*.*'
-    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Title = 'Export settings from registry...'
-    Left = 8
-    Top = 128
-  end
-  object OpenDialog2: TOpenDialog
-    DefaultExt = 'reg'
-    Filter = 'Registry-files (*.reg)|*.reg|All files (*.*)|*.*'
-    Title = 'Import settings to registry...'
-    Left = 72
-    Top = 160
-  end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
     Images = ImageListMain
