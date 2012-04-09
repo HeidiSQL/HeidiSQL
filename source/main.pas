@@ -171,10 +171,8 @@ type
     ToolButton14: TToolButton;
     actExecuteQuery: TAction;
     actExecuteSelection: TAction;
-    SaveDialog2: TSaveDialog;
     ExportSettings1: TMenuItem;
     Importsettings1: TMenuItem;
-    OpenDialog2: TOpenDialog;
     menuSupportForum: TMenuItem;
     actExportData: TAction;
     actExecuteCurrentQuery: TAction;
@@ -2203,18 +2201,48 @@ end;
 
 
 procedure TMainForm.actExportSettingsExecute(Sender: TObject);
+var
+  Dialog: TSaveDialog;
 begin
-  // Export settings to .reg-file
-  if SaveDialog2.Execute then
-    ShellExec('regedit.exe', '', '/e "'+SaveDialog2.FileName+'" HKEY_CURRENT_USER'+REGPATH);
+  // Export settings to .txt file
+  Dialog := TSaveDialog.Create(Self);
+  Dialog.Title := 'Export '+APPNAME+' settings to file ...';
+  Dialog.DefaultExt := 'txt';
+  Dialog.Filter := 'Textfiles (*.txt)|*.txt|All files (*.*)|*.*';
+  Dialog.Options := Dialog.Options + [ofOverwritePrompt];
+  if Dialog.Execute then try
+    ExportSettings(Dialog.FileName);
+    MessageDialog('Settings successfully exported to '+Dialog.FileName, mtInformation, [mbOK]);
+  except
+    on E:Exception do
+      ErrorDialog(E.Message);
+  end;
+  Dialog.Free;
 end;
 
+
 procedure TMainForm.actImportSettingsExecute(Sender: TObject);
+var
+  Dialog: TOpenDialog;
 begin
-  // Import settings from .reg-file
-  if OpenDialog2.Execute then
-    ShellExec('regedit.exe', '', '"'+OpenDialog2.FileName+'"');
+  // Import settings from .txt or .reg file
+  Dialog := TOpenDialog.Create(Self);
+  Dialog.Title := 'Import '+APPNAME+' settings from file ...';
+  Dialog.Filter := 'Textfiles (*.txt)|*.txt|Registry dump, deprecated (*.reg)|*.reg|All files (*.*)|*.*';
+  if Dialog.Execute then try
+    if LowerCase(ExtractFileExt(Dialog.FileName)) = 'reg' then
+      ShellExec('regedit.exe', '', '"'+Dialog.FileName+'"')
+    else begin
+      ImportSettings(Dialog.FileName);
+      MessageDialog('Settings successfully restored from '+Dialog.FileName, mtInformation, [mbOK]);
+    end;
+  except
+    on E:Exception do
+      ErrorDialog(E.Message);
+  end;
+  Dialog.Free;
 end;
+
 
 procedure TMainForm.actExecuteQueryExecute(Sender: TObject);
 var

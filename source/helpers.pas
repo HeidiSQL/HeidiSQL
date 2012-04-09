@@ -192,6 +192,8 @@ type
   function GeneratePassword(Len: Integer): String;
   procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
   procedure HandlePortableSettings(StartupMode: Boolean);
+  procedure ImportSettings(Filename: String);
+  procedure ExportSettings(Filename: String);
   function CharAtPos(Str: String; Pos: Integer): Char;
   function CompareAnyNode(Text1, Text2: String): Integer;
   function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
@@ -2192,20 +2194,51 @@ begin
 end;
 
 
-procedure HandlePortableSettings(StartupMode: Boolean);
+procedure ImportSettings(Filename: String);
 var
-  Content, FileName, Name, Value, KeyPath: String;
-  Lines, Segments, AllKeys: TStringList;
+  Content, Name, Value, KeyPath: String;
+  Lines, Segments: TStringList;
   i: Integer;
   DataType: TRegDataType;
-  Proc: TProcessEntry32;
-  ProcRuns: Boolean;
-  SnapShot: THandle;
-  rx: TRegExpr;
-const
-  Chr10Replacement = '<}}}>';
-  Chr13Replacement = '<{{{>';
-  Delimiter = '<|||>';
+begin
+  // Load registry settings from file
+  Content := ReadTextfile(FileName, nil);
+  Lines := Explode(CRLF, Content);
+  for i:=0 to Lines.Count-1 do begin
+    // Each line has 3 segments: reg path | data type | value. Continue if explode finds less or more than 3.
+    Segments := Explode(DELIMITER, Lines[i]);
+    if Segments.Count <> 3 then
+      continue;
+    KeyPath := RegPath + ExtractFilePath(Segments[0]);
+    Name := ExtractFileName(Segments[0]);
+    DataType := TRegDataType(StrToInt(Segments[1]));
+    MainReg.OpenKey(KeyPath, True);
+    if MainReg.ValueExists(Name) then
+      Continue; // Don't touch value if already there
+    Value := '';
+    if Segments.Count >= 3 then
+      Value := Segments[2];
+    case DataType of
+      rdString: begin
+        Value := StringReplace(Value, CHR13REPLACEMENT, #13, [rfReplaceAll]);
+        Value := StringReplace(Value, CHR10REPLACEMENT, #10, [rfReplaceAll]);
+        MainReg.WriteString(Name, Value);
+      end;
+      rdInteger:
+        MainReg.WriteInteger(Name, MakeInt(Value));
+      rdBinary, rdUnknown, rdExpandString:
+        ErrorDialog(Name+' has an unsupported data type.');
+    end;
+    Segments.Free;
+  end;
+  Lines.Free;
+end;
+
+
+procedure ExportSettings(Filename: String);
+var
+  Content, Value: String;
+  DataType: TRegDataType;
 
   procedure ReadKeyToContent(Path: String);
   var
@@ -2213,20 +2246,21 @@ const
     i: Integer;
     SubPath: String;
   begin
-    MainReg.OpenKeyReadOnly(Path);
+    // Recursively read values in keys and their subkeys into "content" variable
+    MainReg.OpenKey(Path, True);
     SubPath := Copy(Path, Length(RegPath)+1, MaxInt);
     Names := TStringList.Create;
     MainReg.GetValueNames(Names);
     for i:=0 to Names.Count-1 do begin
       DataType := MainReg.GetDataType(Names[i]);
       Content := Content +
-        SubPath + Names[i] + Delimiter +
-        IntToStr(Integer(DataType)) + Delimiter;
+        SubPath + Names[i] + DELIMITER +
+        IntToStr(Integer(DataType)) + DELIMITER;
       case DataType of
         rdString: begin
           Value := MainReg.ReadString(Names[i]);
-          Value := StringReplace(Value, #13, Chr13Replacement, [rfReplaceAll]);
-          Value := StringReplace(Value, #10, Chr10Replacement, [rfReplaceAll]);
+          Value := StringReplace(Value, #13, CHR13REPLACEMENT, [rfReplaceAll]);
+          Value := StringReplace(Value, #10, CHR10REPLACEMENT, [rfReplaceAll]);
         end;
         rdInteger:
           Value := IntToStr(MainReg.ReadInteger(Names[i]));
@@ -2241,6 +2275,24 @@ const
       ReadKeyToContent(Path + Names[i] + '\');
     Names.Free;
   end;
+
+begin
+  // Save registry settings to file
+  Content := '';
+  ReadKeyToContent(RegPath);
+  SaveUnicodeFile(FileName, Content);
+end;
+
+
+procedure HandlePortableSettings(StartupMode: Boolean);
+var
+  FileName: String;
+  AllKeys: TStringList;
+  i: Integer;
+  Proc: TProcessEntry32;
+  ProcRuns: Boolean;
+  SnapShot: THandle;
+  rx: TRegExpr;
 begin
   // Export registry keys and values into textfile, for portable reasons
 
@@ -2270,41 +2322,12 @@ begin
 
   Screen.Cursor := crHourGlass;
   try
+    // Both ImportSettings and ExportSettings rely on RegPath pointing to the right reg key
     if StartupMode then begin
-      Content := ReadTextfile(FileName, nil);
-      Lines := Explode(CRLF, Content);
-      for i:=0 to Lines.Count-1 do begin
-        // Each line has 3 segments: reg path | data type | value. Continue if explode finds less or more than 3.
-        Segments := Explode(Delimiter, Lines[i]);
-        if Segments.Count <> 3 then
-          continue;
-        KeyPath := RegPath + ExtractFilePath(Segments[0]);
-        Name := ExtractFileName(Segments[0]);
-        DataType := TRegDataType(StrToInt(Segments[1]));
-        MainReg.OpenKey(KeyPath, True);
-        if MainReg.ValueExists(Name) then
-          Continue; // Don't touch value if already there
-        Value := '';
-        if Segments.Count >= 3 then
-          Value := Segments[2];
-        case DataType of
-          rdString: begin
-            Value := StringReplace(Value, Chr13Replacement, #13, [rfReplaceAll]);
-            Value := StringReplace(Value, Chr10Replacement, #10, [rfReplaceAll]);
-            MainReg.WriteString(Name, Value);
-          end;
-          rdInteger:
-            MainReg.WriteInteger(Name, MakeInt(Value));
-          rdBinary, rdUnknown, rdExpandString:
-            ErrorDialog(Name+' has an unsupported data type.');
-        end;
-        Segments.Free;
-      end;
-      Lines.Free;
+      ImportSettings(Filename);
     end else begin
-      // Application closes: Recursively read values in keys and their subkeys into textfile
-      ReadKeyToContent(RegPath);
-      SaveUnicodeFile(FileName, Content);
+      // Application closes
+      ExportSettings(Filename);
       MainReg.CloseKey;
       MainReg.DeleteKey(RegPath);
 

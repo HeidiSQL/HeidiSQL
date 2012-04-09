@@ -17,6 +17,9 @@ const
   REGKEY_QUERYHISTORY = 'QueryHistory';
   // Some unique char, used to separate e.g. selected columns in registry
   DELIM = '|';
+  CHR10REPLACEMENT = '<}}}>';
+  CHR13REPLACEMENT = '<{{{>';
+  DELIMITER = '<|||>';
 
   // Used by maskSQL and fixSQL:
   SQL_VERSION_ANSI = -1;
