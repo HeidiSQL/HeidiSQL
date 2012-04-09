@@ -138,7 +138,6 @@ type
   function ScanNulChar(Text: String): Boolean;
   function ScanLineBreaks(Text: String): TLineBreaks;
   function RemoveNulChars(Text: String): String;
-  procedure debug(txt: String);
   function fixNewlines(txt: String): String;
   function GetShellFolder(CSIDL: integer): string;
   function goodfilename( str: String ): String;
@@ -213,7 +212,6 @@ var
   RegPath: String = '\Software\' + APPNAME + '\';
   PortableMode: Boolean = False;
   MutexHandle: THandle = 0;
-  dbgCounter: Integer = 0;
   DecimalSeparatorSystemdefault: Char;
 
 
@@ -654,23 +652,6 @@ begin
     else Result[i] := c;
     i := i + 1;
   until i > length(Text);
-end;
-
-
-
-{***
-  Use DebugView from SysInternals or Delphi's Event Log to view.
-
-  @param string Text to ouput
-  @return void
-}
-procedure debug(txt: String);
-begin
-  if length(txt) = 0 then txt := '(debug: blank output?)';
-  // Todo: not thread safe.
-  dbgCounter := dbgCounter + 1;
-  txt := Format(APPNAME+': %d %s', [dbgCounter, txt]);
-  OutputDebugString(PChar(txt));
 end;
 
 
