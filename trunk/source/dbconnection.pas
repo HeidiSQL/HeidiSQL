@@ -166,6 +166,9 @@ type
       function GetNetTypeGroup: TNetTypeGroup;
       function IsMariaDB: Boolean;
       function IsPercona: Boolean;
+      function IsTokudb: Boolean;
+      function IsInfiniDB: Boolean;
+      function IsInfobright: Boolean;
       class function ReadFromRegistry(Session: String): TConnectionParameters;
       property ImageIndex: Integer read GetImageIndex;
     published
@@ -640,6 +643,12 @@ begin
     My := 'MariaDB'
   else if IsPercona then
     My := 'Percona'
+  else if IsTokudb then
+    My := 'TokuDB'
+  else if IsInfiniDB then
+    My := 'InfiniDB'
+  else if IsInfobright then
+    My := 'Infobright'
   else
     My := 'MySQL';
   if LongFormat then case NetType of
@@ -693,15 +702,34 @@ begin
 end;
 
 
+function TConnectionParameters.IsTokudb: Boolean;
+begin
+  Result := Pos('tokudb', LowerCase(ServerVersion)) > 0;
+end;
+
+
+function TConnectionParameters.IsInfiniDB: Boolean;
+begin
+  Result := Pos('infinidb', LowerCase(ServerVersion)) > 0;
+end;
+
+
+function TConnectionParameters.IsInfobright: Boolean;
+begin
+  Result := Pos('infobright', LowerCase(ServerVersion)) > 0;
+end;
+
+
 function TConnectionParameters.GetImageIndex: Integer;
 begin
   case NetTypeGroup of
     ngMySQL: begin
       Result := 164;
-      if IsMariaDB then
-        Result := 166;
-      if IsPercona then
-        Result := 169;
+      if IsMariaDB then Result := 166
+      else if IsPercona then Result := 169
+      else if IsTokudb then Result := 171
+      else if IsInfiniDB then Result := 172
+      else if IsInfobright then Result := 173;
     end;
     ngMSSQL: Result := 123;
     else Result := ICONINDEX_SERVER;
