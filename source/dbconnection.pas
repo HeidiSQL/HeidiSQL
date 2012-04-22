@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, windows, mysql_structures, SynRegExpr, Contnrs, Generics.Collections, Generics.Defaults,
-  DateUtils, Types, ShellApi, Math, Dialogs, ADODB, DB, DBCommon, ComObj;
+  DateUtils, Types, ShellApi, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics;
 
 
 type
@@ -157,6 +157,7 @@ type
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout: Integer;
       FLoginPrompt, FCompressed, FWindowsAuth, FWantSSL: Boolean;
+      FSessionColor: TColor;
       function GetImageIndex: Integer;
     public
       constructor Create;
@@ -176,6 +177,7 @@ type
       property NetTypeGroup: TNetTypeGroup read GetNetTypeGroup;
       property ServerVersion: String read FServerVersion write FServerVersion;
       property SessionName: String read FSessionName write FSessionName;
+      property SessionColor: TColor read FSessionColor write FSessionColor;
       property Hostname: String read FHostname write FHostname;
       property Port: Integer read FPort write FPort;
       property Username: String read FUsername write FUsername;
@@ -744,6 +746,7 @@ begin
   else begin
     Result := TConnectionParameters.Create;
     Result.SessionName := Session;
+    Result.SessionColor := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, Session);
     Result.NetType := TNetType(GetRegValue(REGNAME_NETTYPE, Integer(ntMySQL_TCPIP), Session));
     Result.Hostname := GetRegValue(REGNAME_HOST, '', Session);
     Result.Username := GetRegValue(REGNAME_USER, '', Session);

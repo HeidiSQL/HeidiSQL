@@ -4132,7 +4132,7 @@ var
 begin
   // Select database tree background color
   cs := TColorSelect.Create(Self);
-  cs.Dialog.Color := DBtree.Color;
+  cs.Dialog.Color := ActiveConnection.Parameters.SessionColor;
   // Add custom colors from all sessions
   SessionNames := TStringList.Create;
   MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
@@ -4151,7 +4151,7 @@ begin
     end;
   end;
   if cs.Execute then begin
-    DBtree.Color := cs.Dialog.Color;
+    ActiveConnection.Parameters.SessionColor := cs.Dialog.Color;
     OpenRegistry(ActiveConnection.Parameters.SessionName);
     MainReg.WriteInteger(REGNAME_TREEBACKGROUND, cs.Dialog.Color);
   end;
@@ -7206,7 +7206,6 @@ begin
     // When clicked node is from a different connection than before, do session specific stuff here:
     if (PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) then begin
       LogSQL('Entering session "'+FActiveDbObj.Connection.Parameters.SessionName+'"', lcInfo);
-      DBTree.Color := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, FActiveDbObj.Connection.Parameters.SessionName);
       RefreshHelperNode(HELPERNODE_HISTORY);
       case FActiveDbObj.Connection.Parameters.NetTypeGroup of
         ngMySQL:
@@ -9837,9 +9836,11 @@ var
   DBObj: PDBObject;
   AllObjects: TDBObjectList;
 begin
-  if (CellPaintMode=cpmPaint) and (Column=1) then begin
+  if CellPaintMode=cpmPaint then begin
     DBObj := Sender.GetNodeData(Node);
-    if DBObj.Connection.DbObjectsCached(DBObj.Database) then begin
+    TargetCanvas.Brush.Color := DbObj.Connection.Parameters.SessionColor;
+    TargetCanvas.FillRect(CellRect);
+    if (Column=1) and DBObj.Connection.DbObjectsCached(DBObj.Database) then begin
       AllObjects := DBObj.Connection.GetDBObjects(DBObj.Database);
       PaintColorBar(DBObj.Size, AllObjects.LargestObjectSize, TargetCanvas, CellRect);
     end;
