@@ -607,6 +607,7 @@ begin
   FSSLCertificate := '';
   FSSLCACertificate := '';
   FStartupScriptFilename := '';
+  FSessionColor := DEFAULT_TREEBACKGROUND;
 end;
 
 
@@ -746,7 +747,7 @@ begin
   else begin
     Result := TConnectionParameters.Create;
     Result.SessionName := Session;
-    Result.SessionColor := GetRegValue(REGNAME_TREEBACKGROUND, clWindow, Session);
+    Result.SessionColor := GetRegValue(REGNAME_TREEBACKGROUND, DEFAULT_TREEBACKGROUND, Session);
     Result.NetType := TNetType(GetRegValue(REGNAME_NETTYPE, Integer(ntMySQL_TCPIP), Session));
     Result.Hostname := GetRegValue(REGNAME_HOST, '', Session);
     Result.Username := GetRegValue(REGNAME_USER, '', Session);

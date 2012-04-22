@@ -9838,8 +9838,10 @@ var
 begin
   if CellPaintMode=cpmPaint then begin
     DBObj := Sender.GetNodeData(Node);
-    TargetCanvas.Brush.Color := DbObj.Connection.Parameters.SessionColor;
-    TargetCanvas.FillRect(CellRect);
+    if DbObj.Connection.Parameters.SessionColor <> DEFAULT_TREEBACKGROUND then begin
+      TargetCanvas.Brush.Color := DbObj.Connection.Parameters.SessionColor;
+      TargetCanvas.FillRect(CellRect);
+    end;
     if (Column=1) and DBObj.Connection.DbObjectsCached(DBObj.Database) then begin
       AllObjects := DBObj.Connection.GetDBObjects(DBObj.Database);
       PaintColorBar(DBObj.Size, AllObjects.LargestObjectSize, TargetCanvas, CellRect);

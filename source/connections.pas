@@ -130,6 +130,7 @@ type
     FSessions: TObjectList<TConnectionParameters>;
     FSessionModified, FOnlyPasswordModified, FSessionAdded: Boolean;
     FServerVersion: String;
+    FSessionColor: TColor;
     FSettingsImportWaitTime: Cardinal;
     procedure SetSessions;
     function SelectedSession: String;
@@ -462,6 +463,7 @@ begin
   // Return non-stored parameters
   Result := TConnectionParameters.Create;
   Result.SessionName := SelectedSession;
+  Result.SessionColor := FSessionColor;
   Result.NetType := TNetType(comboNetType.ItemIndex);
   Result.ServerVersion := FServerVersion;
   Result.Hostname := editHost.Text;
@@ -615,6 +617,7 @@ begin
     editSSLCertificate.Text := Sess.SSLCertificate;
     editSSLCACertificate.Text := Sess.SSLCACertificate;
     FServerVersion := Sess.ServerVersion;
+    FSessionColor := Sess.SessionColor;
   end;
 
   FLoaded := True;
