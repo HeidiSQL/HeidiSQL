@@ -349,6 +349,9 @@ const
   VTREE_NOTLOADED_PURGECACHE = 1;
   VTREE_LOADED = 2;
 
+  // Modification indicator for TControl.Tag
+  MODIFIEDFLAG = 10;
+
   SContainsNulCharFile = 'This file contains NUL characters. They have been converted to ASCII spaces (SP).';
   SContainsNulCharGrid = 'This cell contains NUL characters. They have been converted to ASCII spaces (SP). Press ESC to cancel editing.';
   SUnhandledNodeIndex = 'Unhandled tree node index';
