@@ -203,10 +203,6 @@ implementation
 
 uses main;
 
-const
-  NotModifiedFlag : Byte = 0;
-  ModifiedFlag : Byte = 1;
-
 
 {$R *.dfm}
 
@@ -422,7 +418,7 @@ begin
   chkCharsetConvert.Checked := False;
   // Reset modification flags of TEdits and TMemos
   for i:=0 to ComponentCount-1 do
-    Components[i].Tag := NotModifiedFlag;
+    Components[i].Tag := 0;
   // Reset column changes
   for i:=FColumns.Count-1 downto 0 do begin
     if FColumns[i].Status = esDeleted then
@@ -501,29 +497,29 @@ begin
 
   if editName.Text <> DBObject.Name then
     Specs.Add('RENAME TO ' + DBObject.Connection.QuoteIdent(editName.Text));
-  if memoComment.Tag = ModifiedFlag then
+  if memoComment.Tag = MODIFIEDFLAG then
     Specs.Add('COMMENT=' + esc(memoComment.Text));
-  if (comboCollation.Tag = ModifiedFlag) or (chkCharsetConvert.Checked) then
+  if (comboCollation.Tag = MODIFIEDFLAG) or (chkCharsetConvert.Checked) then
     Specs.Add('COLLATE=' + esc(comboCollation.Text));
-  if comboEngine.Tag = ModifiedFlag then begin
+  if comboEngine.Tag = MODIFIEDFLAG then begin
     if DBObject.Connection.ServerVersionInt < 40018 then
       Specs.Add('TYPE=' + comboEngine.Text)
     else
       Specs.Add('ENGINE=' + comboEngine.Text);
   end;
-  if comboRowFormat.Tag = ModifiedFlag then
+  if comboRowFormat.Tag = MODIFIEDFLAG then
     Specs.Add('ROW_FORMAT=' + comboRowFormat.Text);
-  if chkChecksum.Tag = ModifiedFlag then
+  if chkChecksum.Tag = MODIFIEDFLAG then
     Specs.Add('CHECKSUM=' + IntToStr(Integer(chkChecksum.Checked)));
-  if editAutoInc.Tag = ModifiedFlag then
+  if editAutoInc.Tag = MODIFIEDFLAG then
     Specs.Add('AUTO_INCREMENT=' + IntToStr(MakeInt(editAutoInc.Text)));
-  if editAvgRowLen.Tag = ModifiedFlag then
+  if editAvgRowLen.Tag = MODIFIEDFLAG then
     Specs.Add('AVG_ROW_LENGTH=' + IntToStr(MakeInt(editAvgRowLen.Text)));
-  if editMaxRows.Tag = ModifiedFlag then
+  if editMaxRows.Tag = MODIFIEDFLAG then
     Specs.Add('MAX_ROWS=' + IntToStr(MakeInt(editMaxRows.Text)));
-  if memoUnionTables.Enabled and (memoUnionTables.Tag = ModifiedFlag) and (memoUnionTables.Text <> '') then
+  if memoUnionTables.Enabled and (memoUnionTables.Tag = MODIFIEDFLAG) and (memoUnionTables.Text <> '') then
     Specs.Add('UNION=('+memoUnionTables.Text+')');
-  if comboInsertMethod.Enabled and (comboInsertMethod.Tag = ModifiedFlag) and (comboInsertMethod.Text <> '') then
+  if comboInsertMethod.Enabled and (comboInsertMethod.Tag = MODIFIEDFLAG) and (comboInsertMethod.Text <> '') then
     Specs.Add('INSERT_METHOD='+comboInsertMethod.Text);
   if chkCharsetConvert.Checked then begin
     Results := DBObject.Connection.CollationTable;
@@ -679,7 +675,7 @@ begin
     else
       SQL := SQL + 'ENGINE='+comboEngine.Text + CRLF;
   end;
-  if comboRowFormat.Tag = ModifiedFlag then
+  if comboRowFormat.Tag = MODIFIEDFLAG then
     SQL := SQL + 'ROW_FORMAT='+comboRowFormat.Text + CRLF;
   if chkChecksum.Checked then
     SQL := SQL + 'CHECKSUM='+IntToStr(Integer(chkChecksum.Checked)) + CRLF;
@@ -703,7 +699,7 @@ begin
   // Memorize modified status
   if FLoaded then begin
     if Sender is TComponent then
-      TComponent(Sender).Tag := ModifiedFlag;
+      TComponent(Sender).Tag := MODIFIEDFLAG;
     Modified := True;
     btnSave.Enabled := Modified and (editName.Text <> '') and (listColumns.RootNodeCount > 0);
     btnDiscard.Enabled := Modified;
