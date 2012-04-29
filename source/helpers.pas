@@ -12,7 +12,7 @@ uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ComCtrls, ShellApi, CheckLst,
   Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, SynEditHighlighter, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
-  dbconnection, mysql_structures, SynMemo, Menus;
+  dbconnection, mysql_structures, SynMemo, Menus, WinInet;
 
 type
 
@@ -70,6 +70,23 @@ type
     public
       property Size: Integer read GetSize;
       property SQL: String read FSQL write SetSQL;
+  end;
+
+  // Download
+  THttpDownload = class(TObject)
+    private
+      FOwner: TComponent;
+      FURL: String;
+      FBytesRead: Integer;
+      FContentLength: Integer;
+      FOnProgress: TNotifyEvent;
+    public
+      constructor Create(Owner: TComponent);
+      procedure SendRequest(Filename: String);
+      property OnProgress: TNotifyEvent read FOnProgress write FOnProgress;
+      property URL: String read FURL write FURL;
+      property BytesRead: Integer read FBytesRead;
+      property ContentLength: Integer read FContentLength;
   end;
 
   // Threading stuff
@@ -2842,6 +2859,85 @@ begin
     end;
   end;
 end;
+
+
+{ THttpDownload }
+
+constructor THttpDownload.Create(Owner: TComponent);
+begin
+  FBytesRead := -1;
+  FContentLength := -1;
+  FOwner := Owner;
+end;
+
+
+procedure THttpDownload.SendRequest(Filename: String);
+var
+  NetHandle: HINTERNET;
+  UrlHandle: HINTERNET;
+  Buffer: array[1..4096] of Byte;
+  Head: array[1..1024] of Char;
+  BytesInChunk, HeadSize, Reserved: Cardinal;
+  LocalFile: File;
+  DoStore: Boolean;
+  UserAgent: String;
+  HttpStatus: Integer;
+begin
+  DoStore := False;
+  UserAgent := APPNAME+' '+MainForm.AppVersion+' ('+ExtractFilename(Application.ExeName)+'; '+FOwner.Name+')';
+  NetHandle := InternetOpen(PChar(UserAgent), INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
+
+  try
+    UrlHandle := InternetOpenURL(NetHandle, PChar(FURL), nil, 0, INTERNET_FLAG_RELOAD, 0);
+    if not Assigned(UrlHandle) then
+      raise Exception.Create('Could not open URL: '+FURL);
+
+    // Detect content length
+    HeadSize := SizeOf(Head);
+    Reserved := 0;
+    if HttpQueryInfo(UrlHandle, HTTP_QUERY_CONTENT_LENGTH, @Head, HeadSize, Reserved) then
+      FContentLength := StrToIntDef(Head, -1)
+    else
+      raise Exception.Create('Server did not send required "Content-Length" header: '+FURL);
+
+    // Check if we got HTTP status 200
+    HeadSize := SizeOf(Head);
+    Reserved := 0;
+    if HttpQueryInfo(UrlHandle, HTTP_QUERY_STATUS_CODE, @Head, HeadSize, Reserved) then begin
+      HttpStatus := StrToIntDef(Head, -1);
+      if HttpStatus <> 200 then
+        raise Exception.Create('Got HTTP status '+IntToStr(HttpStatus)+' from '+FURL);
+    end;
+
+    // Create local file
+    if Filename <> '' then begin
+      AssignFile(LocalFile, FileName);
+      Rewrite(LocalFile, 1);
+      DoStore := True;
+    end;
+
+    // Stream contents
+    while true do begin
+      InternetReadFile(UrlHandle, @Buffer, SizeOf(Buffer), BytesInChunk);
+      if DoStore then
+        BlockWrite(LocalFile, Buffer, BytesInChunk);
+      Inc(FBytesRead, BytesInChunk);
+      if Assigned(FOnProgress) then
+        FOnProgress(Self);
+      if BytesInChunk = 0 then
+        break;
+    end;
+
+  finally
+    if DoStore then
+      CloseFile(LocalFile);
+    if Assigned(UrlHandle) then
+      InternetCloseHandle(UrlHandle);
+    if Assigned(NetHandle) then
+      InternetCloseHandle(NetHandle);
+  end;
+end;
+
 
 
 

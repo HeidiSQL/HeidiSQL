@@ -22,9 +22,9 @@ object frmUpdateCheck: TfrmUpdateCheck
   TextHeight = 13
   object lblStatus: TLabel
     Left = 8
-    Top = 307
+    Top = 300
     Width = 256
-    Height = 28
+    Height = 38
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = False
     Caption = 'lblStatus'
