@@ -1642,10 +1642,10 @@ var
   LoadedParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
-  DefaultLastrunDate, LastActiveSession, StatsURL: String;
+  DefaultLastrunDate, LastActiveSession: String;
   frm : TfrmUpdateCheck;
   Connected, DecideForStatistic: Boolean;
-  StatsCall: TDownloadUrl2;
+  StatsCall: THttpDownload;
   SessionNames: TStringlist;
   DlgResult: TModalResult;
   Tab: TQueryTab;
@@ -1684,7 +1684,8 @@ begin
     end;
     if DaysBetween(Now, LastStatsCall) >= 30 then begin
       // Report used SVN revision
-      StatsURL := APPDOMAIN + 'savestats.php?c=' + IntToStr(AppVerRevision);
+      StatsCall := THttpDownload.Create(Self);
+      StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(AppVerRevision);
       // Enumerate actively used server versions
       for i:=0 to SessionNames.Count-1 do begin
         try
@@ -1693,14 +1694,11 @@ begin
           LastConnect := StrToDateTime(DefaultLastrunDate);
         end;
         if LastConnect > LastStatsCall then begin
-          StatsURL := StatsURL + '&s[]=' + IntToStr(GetRegValue(REGNAME_SERVERVERSION, 0, SessionNames[i]));
+          StatsCall.URL := StatsCall.URL + '&s[]=' + IntToStr(GetRegValue(REGNAME_SERVERVERSION, 0, SessionNames[i]));
         end;
       end;
-      StatsCall := TDownloadUrl2.Create(Self);
-      StatsCall.URL := StatsURL;
-      StatsCall.SetUserAgent(APPNAME + ' ' + AppVersion);
       try
-        StatsCall.ExecuteTarget(nil);
+        StatsCall.SendRequest('');
         OpenRegistry;
         MainReg.WriteString(REGNAME_LAST_STATSCALL, DateTimeToStr(Now));
       except

@@ -3,15 +3,10 @@ unit updatecheck;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Forms, StdCtrls, ExtActns, IniFiles, Controls, Graphics;
+  Windows, Messages, SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
+  helpers;
 
 type
-  TUrlMonUrlMkSetSessionOption = function(dwOption: Cardinal; pBuffer: PChar; dwBufferLength: Cardinal; dwReserved: Cardinal): HRESULT; stdcall;
-  TDownloadUrl2 = class(TDownloadUrl)
-  public
-    procedure SetUserAgent(name: string);
-  end;
-
   TfrmUpdateCheck = class(TForm)
     btnCancel: TButton;
     groupBuild: TGroupBox;
@@ -27,13 +22,13 @@ type
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
-    CheckfileDownload : TDownLoadURL2;
+    CheckfileDownload: THttpDownLoad;
     ReleaseURL, BuildURL : String;
     FLastStatusUpdate: Cardinal;
+    FCheckFilename: String;
     procedure Status(txt: String);
     procedure ReadCheckFile;
-    procedure URLOnDownloadProgress(Sender: TDownLoadURL; Progress, ProgressMax: Cardinal;
-      StatusCode: TURLDownloadStatus; StatusText: String; var Cancel: Boolean);
+    procedure DownloadProgress(Sender: TObject);
   public
     { Public declarations }
     AutoClose: Boolean; // Automatically close dialog after detecting no available downloads
@@ -44,29 +39,13 @@ type
 
 implementation
 
-uses helpers, main;
+uses main;
 
 {$R *.dfm}
 
 {$I const.inc}
 
 
-procedure TDownloadUrl2.SetUserAgent(name: string);
-const
-  UrlMonLib = 'URLMON.DLL';
-  sUrlMkSetSessionOptionA = 'UrlMkSetSessionOption';
-  URLMON_OPTION_USERAGENT = $10000001;
-var
-  UrlMonHandle: HMODULE;
-  UrlMkSetSessionOption: TUrlMonUrlMkSetSessionOption;
-begin
-  UrlMonHandle := LoadLibrary(UrlMonLib);
-  if UrlMonHandle = 0 then raise Exception.Create('Could not get handle to urlmon.dll.');
-  UrlMkSetSessionOption := GetProcAddress(UrlMonHandle, PChar(sUrlMkSetSessionOptionA));
-  if not Assigned(UrlMkSetSessionOption) then raise Exception.Create('Could not get handle to UrlMonUrlMkSetSessionOption().');
-  // TODO: Rumoured to be broken in IE8, test when it hits the stores. 
-  if UrlMkSetSessionOption(URLMON_OPTION_USERAGENT, PChar(name), Length(name), 0) <> 0 then raise Exception.Create('Could not set User-Agent via UrlMonUrlMkSetSessionOption().');
-end;
 
 {**
   Set defaults
@@ -103,16 +82,15 @@ begin
   memoBuild.Clear;
 
   // Prepare download
-  CheckfileDownload := TDownLoadURL2.Create(Self);
-  CheckfileDownload.SetUserAgent(APPNAME + ' ' + Mainform.AppVersion + ' update checker tool');
-  CheckfileDownload.URL := APPDOMAIN + 'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision)+'&t='+DateTimeToStr(Now);
-  CheckfileDownload.Filename := GetTempDir + APPNAME + '_updatecheck.ini';
+  CheckfileDownload := THttpDownload.Create(Self);
+  CheckfileDownload.URL := APPDOMAIN+'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision)+'&t='+DateTimeToStr(Now);
+  FCheckFilename := GetTempDir + APPNAME + '_updatecheck.ini';
 
   // Download the check file
   Screen.Cursor := crHourglass;
   try
     Status('Downloading check file ...');
-    CheckfileDownload.ExecuteTarget(nil);
+    CheckfileDownload.SendRequest(FCheckFilename);
     Status('Reading check file ...');
     ReadCheckFile;
     // Developer versions probably have "unknown" (0) as revision,
@@ -131,8 +109,8 @@ begin
     on E:Exception do
       Status(E.Message);
   end;
-  if FileExists(CheckfileDownload.Filename) then
-    DeleteFile(CheckfileDownload.Filename);
+  if FileExists(FCheckFilename) then
+    DeleteFile(FCheckFilename);
   FreeAndNil(CheckfileDownload);
   Screen.Cursor := crDefault;
 
@@ -161,7 +139,7 @@ const
   INISECT_BUILD = 'Build';
 begin
   // Read [Release] section of check file
-  Ini := TIniFile.Create(CheckfileDownload.Filename);
+  Ini := TIniFile.Create(FCheckFilename);
   if Ini.SectionExists(INISECT_RELEASE) then begin
     ReleaseVersion := Ini.ReadString(INISECT_RELEASE, 'Version', 'unknown');
     ReleaseRevision := Ini.ReadInteger(INISECT_RELEASE, 'Revision', 0);
@@ -216,32 +194,32 @@ end;
 }
 procedure TfrmUpdateCheck.btnBuildClick(Sender: TObject);
 var
-  Download: TDownLoadURL;
-  ExeName, UpdaterFilename: String;
+  Download: THttpDownLoad;
+  ExeName, DownloadFilename, UpdaterFilename: String;
   ResInfoblockHandle: HRSRC;
   ResHandle: THandle;
   ResPointer: PChar;
   Stream: TMemoryStream;
 begin
-  Download := TDownLoadURL.Create(Self);
+  Download := THttpDownload.Create(Self);
   Download.URL := BuildURL;
   ExeName := ExtractFileName(Application.ExeName);
 
   // Save the file in a temp directory
-  Download.Filename := GetTempDir + ExeName;
-  Download.OnDownloadProgress := URLOnDownloadProgress;
+  DownloadFilename := GetTempDir + ExeName;
+  Download.OnProgress := DownloadProgress;
 
   // Delete probably previously downloaded file
-  if FileExists(Download.Filename) then
-    DeleteFile(Download.Filename);
+  if FileExists(DownloadFilename) then
+    DeleteFile(DownloadFilename);
 
   try
     // Do the download
-    Download.ExecuteTarget(nil);
+    Download.SendRequest(DownloadFilename);
 
     // Check if downloaded file exists
-    if not FileExists(Download.Filename) then
-      Raise Exception.Create('Downloaded file not found: '+Download.Filename);
+    if not FileExists(DownloadFilename) then
+      Raise Exception.Create('Downloaded file not found: '+DownloadFilename);
 
     Status('Update in progress ...');
     ResInfoblockHandle := FindResource(HInstance, 'UPDATER', 'EXE');
@@ -259,7 +237,7 @@ begin
         else
           Stream.SaveToFile(UpdaterFilename);
         // Calling the script will now post a WM_CLOSE this running exe...
-        ShellExec(UpdaterFilename, '', '"'+ParamStr(0)+'" "'+Download.Filename+'"');
+        ShellExec(UpdaterFilename, '', '"'+ParamStr(0)+'" "'+DownloadFilename+'"');
       finally
         UnlockResource(ResHandle);
         FreeResource(ResHandle);
@@ -276,11 +254,14 @@ end;
 {**
   Download progress event
 }
-procedure TfrmUpdateCheck.URLOnDownloadProgress;
+procedure TfrmUpdateCheck.DownloadProgress(Sender: TObject);
+var
+  Download: THttpDownload;
 begin
   if FLastStatusUpdate > GetTickCount-200 then
     Exit;
-  Status('Downloading: '+FormatByteNumber(Progress)+' / '+FormatByteNumber(BuildSize) + ' ...');
+  Download := Sender as THttpDownload;
+  Status('Downloading: '+FormatByteNumber(Download.BytesRead)+' / '+FormatByteNumber(Download.ContentLength) + ' ...');
   FLastStatusUpdate := GetTickCount;
 end;
 
