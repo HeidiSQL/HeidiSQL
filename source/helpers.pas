@@ -2838,11 +2838,15 @@ var
   BytesInChunk, HeadSize, Reserved: Cardinal;
   LocalFile: File;
   DoStore: Boolean;
-  UserAgent: String;
+  UserAgent, OS: String;
   HttpStatus: Integer;
 begin
   DoStore := False;
-  UserAgent := APPNAME+' '+MainForm.AppVersion+' ('+ExtractFilename(Application.ExeName)+'; '+FOwner.Name+')';
+  if MainForm.IsWine then
+    OS := 'Linux/Wine'
+  else
+    OS := 'Windows NT '+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);
+  UserAgent := APPNAME+' '+MainForm.AppVersion+' ('+OS+'; '+ExtractFilename(Application.ExeName)+'; '+FOwner.Name+')';
   NetHandle := InternetOpen(PChar(UserAgent), INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
 
   try
