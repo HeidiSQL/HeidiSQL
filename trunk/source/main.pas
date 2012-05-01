@@ -12,7 +12,7 @@ interface
 uses
   Windows, SysUtils, Classes, GraphicEx, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
-  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, SyncObjs,
+  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
   CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,

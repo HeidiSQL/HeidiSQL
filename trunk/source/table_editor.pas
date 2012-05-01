@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
-  SynMemo, Menus, Contnrs, Clipbrd, Math,
+  SynMemo, Menus, Clipbrd, Math,
   grideditlinks, mysql_structures, dbconnection, helpers;
 
 type
