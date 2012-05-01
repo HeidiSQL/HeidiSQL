@@ -54,14 +54,11 @@ procedure TColumnSelectionForm.FormShow(Sender: TObject);
 var
   i: Integer;
 begin
-  for i:=0 to Mainform.SelectedTableColumns.Count-1 do
+  for i:=0 to Mainform.SelectedTableColumns.Count-1 do begin
     chklistColumns.Items.Add(Mainform.SelectedTableColumns[i].Name);
-
-  // Check items!
-  if Mainform.DataGridHiddenColumns.Count = 0 then // Simply check all items
-    ToggleCheckListBox( chklistColumns, True )
-  else // Only check selected items
-    ToggleCheckListBox( chklistColumns, False, Mainform.DataGridHiddenColumns );
+    chklistColumns.Checked[i] := (Mainform.DataGridHiddenColumns.Count = 0) or
+      (Mainform.DataGridHiddenColumns.IndexOf(chklistColumns.Items[i]) = -1);
+  end;
 
   // Call check-event to update state of "Select / Deselect all" checkbox
   chklistColumnsClickCheck( Sender );
@@ -96,10 +93,13 @@ end;
   Select / Deselect all
 }
 procedure TColumnSelectionForm.chkSelectAllClick(Sender: TObject);
+var
+  cb: TCheckBox;
 begin
   // Avoid executing when checkbox was toggled by code (see proc below)
-  if (Sender as TCheckBox).Focused then
-    ToggleCheckListBox( chklistColumns, (Sender as TCheckBox).Checked );
+  cb := Sender as TCheckBox;
+  if cb.Focused then
+    chklistColumns.CheckAll(cb.State);
 end;
 
 

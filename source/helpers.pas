@@ -145,8 +145,6 @@ type
   function BestTableName(Data: TDBQuery): String;
   function urlencode(url: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
-  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean); Overload;
-  procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList); Overload;
   function _GetFileSize(Filename: String): Int64;
   function MakeInt( Str: String ) : Int64;
   function MakeFloat( Str: String ): Extended;
@@ -429,46 +427,6 @@ begin
   utf8 := Utf8Encode(Text);
   S.Write(utf8[1], Length(utf8));
 end;
-
-
-
-{***
-  Check/Uncheck all items in a CheckListBox
-
-  @param TCheckListBox List with checkable items
-  @param boolean Check them?
-  @return void
-}
-procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean);
-var
-  i : Integer;
-begin
-  // select all/none
-  for i:=0 to list.Items.Count-1 do
-    list.checked[i] := state;
-end;
-
-
-{***
-  Check/Uncheck items in a CheckListBox which come in a second list
-
-  @param TCheckListBox List with checkable items
-  @param boolean Check them?
-  @param TStringList Second list with items to change
-  @return void
-}
-procedure ToggleCheckListBox(list: TCheckListBox; state: Boolean; list_toggle: TStringList);
-var
-  i : Integer;
-begin
-  for i:=0 to list.Items.Count-1 do begin
-    if list_toggle.IndexOf(list.Items[i]) > -1 then
-      list.Checked[i] := state
-    else
-      list.Checked[i] := not state;
-  end;
-end;
-
 
 
 {***
