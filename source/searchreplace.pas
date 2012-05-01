@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
-  ExtCtrls, SynMemo, SynEditSearch, SynEditTypes, SynEditMiscClasses;
+  ExtCtrls, SynMemo, SynEditTypes;
 
 type
   TfrmSearchReplace = class(TForm)
@@ -44,7 +44,7 @@ implementation
 
 {$R *.dfm}
 
-uses main, helpers;
+uses helpers;
 
 
 procedure TfrmSearchReplace.FormCreate(Sender: TObject);

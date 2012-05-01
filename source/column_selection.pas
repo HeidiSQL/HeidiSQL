@@ -3,7 +3,7 @@ unit column_selection;
 interface
 
 uses
-  Windows, Classes, Controls, Forms, StdCtrls, CheckLst, ExtCtrls, Contnrs,
+  Windows, Classes, Controls, Forms, StdCtrls, CheckLst, ExtCtrls,
   helpers;
 
 type

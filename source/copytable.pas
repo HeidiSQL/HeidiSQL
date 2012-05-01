@@ -4,7 +4,7 @@ unit copytable;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, Contnrs,
+  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   dbconnection, VirtualTrees, SynEdit, SynMemo, Menus;
 
 type

@@ -9,9 +9,9 @@ unit helpers;
 interface
 
 uses
-  Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ComCtrls, ShellApi, CheckLst,
-  Windows, Contnrs, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
-  Registry, SynEditHighlighter, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
+  Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi,
+  Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
+  Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, mysql_structures, SynMemo, Menus, WinInet;
 
 type

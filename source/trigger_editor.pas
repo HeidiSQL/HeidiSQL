@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
-  SynCompletionProposal, VirtualTrees,
+  SynCompletionProposal,
   dbconnection, mysql_structures, helpers;
 
 type

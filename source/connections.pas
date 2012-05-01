@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  VirtualTrees, Menus, Graphics, Contnrs, Generics.Collections,
+  VirtualTrees, Menus, Graphics, Generics.Collections,
   dbconnection;
 
 type

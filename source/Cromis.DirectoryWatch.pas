@@ -50,7 +50,7 @@ unit Cromis.DirectoryWatch;
 interface
 
 uses
-   Windows, SysUtils, Classes, Messages, SyncObjs;
+   Windows, SysUtils, Classes, Messages;
 
 const
   FILE_NOTIFY_CHANGE_FILE_NAME   = $00000001;
