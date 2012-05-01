@@ -143,7 +143,7 @@ type
   function decrypt(str: String): String;
   function htmlentities(str: String): String;
   function BestTableName(Data: TDBQuery): String;
-  function urlencode(url: String): String;
+  function EncodeURL(const Src: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
   function _GetFileSize(Filename: String): Int64;
   function MakeInt( Str: String ) : Int64;
@@ -406,14 +406,23 @@ end;
 
 
 {***
-  Encode spaces (and more to come) in URLs
-
+  Encode critical characters in URL segments
   @param string URL to encode
   @return string
 }
-function urlencode(url: String): String;
+function EncodeURL(const Src: String): String;
+var
+  i: Integer;
+const
+  SafeChars = ['A'..'Z','a'..'z','*','@','.','_','-','0'..'9','$','!','''','(',')'];
 begin
-  result := stringreplace(url, ' ', '+', [rfReplaceAll]);
+  Result := '';
+  for i:=1 to Length(Src) do begin
+    if CharInSet(Src[i], SafeChars) then
+      Result := Result + Src[i]
+    else
+      Result := Result + '%' + IntToHex(Ord(Src[i]), 2);
+  end;
 end;
 
 
