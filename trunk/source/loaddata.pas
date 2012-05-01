@@ -265,7 +265,7 @@ begin
   end;
 
   // select all:
-  ToggleCheckListBox( chklistColumns, True );
+  chklistColumns.CheckAll(cbChecked);
   chklistColumns.OnClick(Sender);
 
   // Ensure valid state of Import-Button
