@@ -944,6 +944,7 @@ end;
 function TSetEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
   SelValues: TStringList;
+  i: Integer;
 begin
   Result := inherited PrepareEdit(Tree, Node, Column);
   if not Result then
@@ -955,7 +956,10 @@ begin
   SelValues.Delimiter := ',';
   SelValues.StrictDelimiter := True;
   SelValues.DelimitedText := FCellText;
-  ToggleCheckListBox(FCheckList, True, SelValues);
+  for i:=0 to FCheckList.Items.Count-1 do begin
+    FCheckList.Checked[i] := SelValues.IndexOf(FCheckList.Items[i]) > -1;
+  end;
+  SelValues.Free;
 end;
 
 
