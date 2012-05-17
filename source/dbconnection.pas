@@ -1264,10 +1264,31 @@ end;
 
 
 procedure TMySQLConnection.DoAfterConnect;
+var
+  TZI: TTimeZoneInformation;
+  Minutes, Hours: Integer;
+  Offset: String;
 begin
   inherited;
   FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
   FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
+
+  // Set timezone offset to UTC
+  Minutes := 0;
+  case GetTimeZoneInformation(TZI) of
+    TIME_ZONE_ID_STANDARD: Minutes := (TZI.Bias + TZI.StandardBias);
+    TIME_ZONE_ID_DAYLIGHT: Minutes := (TZI.Bias + TZI.DaylightBias);
+    TIME_ZONE_ID_UNKNOWN: Minutes := TZI.Bias;
+    else RaiseLastOSError;
+  end;
+  Hours := Minutes div 60;
+  Minutes := Minutes mod 60;
+  if Hours < 0 then
+    Offset := '+'
+  else
+    Offset := '-';
+  Offset := Offset + Format('%.2d:%.2d', [Abs(Hours), Abs(Minutes)]);
+  Query('SET time_zone='+EscapeString(Offset));
 end;
 
 
