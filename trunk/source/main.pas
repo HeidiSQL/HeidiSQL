@@ -7977,10 +7977,10 @@ begin
   end else if (TypeCat = dtcTemporal) and prefEnableDatetimeEditor then begin
     // Ensure date/time editor starts with a non-empty text value
     if (Results.Col(Column) = '') and prefPrefillDateTime then begin
-      NowText := Conn.GetVar('SELECT NOW()');
       case Results.DataType(Column).Index of
-        dtDate: NowText := Copy(NowText, 1, 10);
-        dtTime: NowText := Copy(NowText, 12, 8);
+        dtDate: NowText := DateToStr(Now);
+        dtTime: NowText := TimeToStr(Now);
+        else NowText := DateTimeToStr(Now);
       end;
       VT.Text[Node, Column] := NowText;
     end;
