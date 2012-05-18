@@ -2576,6 +2576,14 @@ object MainForm: TMainForm
       ImageIndex = 170
       OnExecute = actLaunchCommandlineExecute
     end
+    object actGridEditFunction: TAction
+      Category = 'Data'
+      Caption = 'SQL function'
+      Hint = 'Insert SQL function call in this grid cell, e.g. NOW()'
+      ImageIndex = 13
+      ShortCut = 16497
+      OnExecute = actGridEditFunctionExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -8595,6 +8603,9 @@ object MainForm: TMainForm
       OnClick = DataInsertValueClick
       object setNULL1: TMenuItem
         Action = actDataSetNull
+      end
+      object InsertSQLfunction1: TMenuItem
+        Action = actGridEditFunction
       end
       object DataDefaultValue: TMenuItem
         Caption = 'default'

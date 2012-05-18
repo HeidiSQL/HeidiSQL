@@ -129,6 +129,7 @@ type
   TCellData = class(TObject)
     NewText, OldText: String;
     NewIsNull, OldIsNull: Boolean;
+    NewIsFunction, OldIsFunction: Boolean;
     Modified: Boolean;
     destructor Destroy; override;
   end;
@@ -471,12 +472,13 @@ type
       function ColIsKeyPart(Column: Integer): Boolean; virtual; abstract;
       function IsNull(Column: Integer): Boolean; overload; virtual; abstract;
       function IsNull(Column: String): Boolean; overload;
+      function IsFunction(Column: Integer): Boolean;
       function HasResult: Boolean; virtual; abstract;
       procedure CheckEditable;
       procedure DeleteRow;
       function InsertRow: Cardinal;
-      procedure SetCol(Column: Integer; NewText: String; Null: Boolean);
-      function EnsureFullRow: Boolean;
+      procedure SetCol(Column: Integer; NewText: String; Null: Boolean; IsFunction: Boolean);
+      function EnsureFullRow(Refresh: Boolean): Boolean;
       function HasFullData: Boolean;
       function Modified(Column: Integer): Boolean; overload;
       function Modified: Boolean; overload;
@@ -3917,6 +3919,15 @@ begin
 end;
 
 
+function TDBQuery.IsFunction(Column: Integer): Boolean;
+begin
+  if FEditingPrepared and Assigned(FCurrentUpdateRow) then
+    Result := FCurrentUpdateRow[Column].NewIsFunction
+  else
+    Result := False;
+end;
+
+
 function TMySQLQuery.HasResult: Boolean;
 begin
   Result := Length(FResultList) > 0;
@@ -4005,6 +4016,7 @@ begin
     c := TCellData.Create;
     Row.Add(c);
     c.OldText := '';
+    c.OldIsFunction := False;
     c.OldIsNull := False;
     ColAttr := ColAttributes(i);
     if Assigned(ColAttr) then begin
@@ -4013,6 +4025,7 @@ begin
         c.OldText := ColAttr.DefaultText;
     end;
     c.NewText := c.OldText;
+    c.NewIsFunction := c.OldIsFunction;
     c.NewIsNull := c.OldIsNull;
     c.Modified := False;
   end;
@@ -4033,20 +4046,23 @@ begin
 end;
 
 
-procedure TDBQuery.SetCol(Column: Integer; NewText: String; Null: Boolean);
+procedure TDBQuery.SetCol(Column: Integer; NewText: String; Null: Boolean; IsFunction: Boolean);
 begin
   PrepareEditing;
   if not Assigned(FCurrentUpdateRow) then begin
     CreateUpdateRow;
-    EnsureFullRow;
+    EnsureFullRow(False);
   end;
   FCurrentUpdateRow[Column].NewIsNull := Null;
+  FCurrentUpdateRow[Column].NewIsFunction := IsFunction;
   if Null then
     FCurrentUpdateRow[Column].NewText := ''
   else
     FCurrentUpdateRow[Column].NewText := NewText;
   FCurrentUpdateRow[Column].Modified := (FCurrentUpdateRow[Column].NewText <> FCurrentUpdateRow[Column].OldText) or
-    (FCurrentUpdateRow[Column].NewIsNull <> FCurrentUpdateRow[Column].OldIsNull);
+    (FCurrentUpdateRow[Column].NewIsNull <> FCurrentUpdateRow[Column].OldIsNull) or
+    (FCurrentUpdateRow[Column].NewIsFunction <> FCurrentUpdateRow[Column].OldIsFunction)
+    ;
 end;
 
 
@@ -4064,6 +4080,8 @@ begin
     c.NewText := c.OldText;
     c.OldIsNull := IsNull(i);
     c.NewIsNull := c.OldIsNull;
+    c.OldIsFunction := False;
+    c.NewIsFunction := c.OldIsFunction;
     c.Modified := False;
   end;
   Row.Inserted := False;
@@ -4073,7 +4091,7 @@ begin
 end;
 
 
-function TDBQuery.EnsureFullRow: Boolean;
+function TDBQuery.EnsureFullRow(Refresh: Boolean): Boolean;
 var
   i: Integer;
   sql: String;
@@ -4081,7 +4099,7 @@ var
 begin
   // Load full column values
   Result := True;
-  if not HasFullData then try
+  if Refresh or (not HasFullData) then try
     PrepareEditing;
     for i:=0 to FColumnOrgNames.Count-1 do begin
       if sql <> '' then
@@ -4100,6 +4118,8 @@ begin
         FCurrentUpdateRow[i].NewText := FCurrentUpdateRow[i].OldText;
         FCurrentUpdateRow[i].OldIsNull := Data.IsNull(i);
         FCurrentUpdateRow[i].NewIsNull := FCurrentUpdateRow[i].OldIsNull;
+        FCurrentUpdateRow[i].OldIsFunction := False;
+        FCurrentUpdateRow[i].NewIsFunction := FCurrentUpdateRow[i].OldIsFunction;
       end;
       Data.Free;
     end;
@@ -4159,6 +4179,8 @@ begin
       end;
       if Cell.NewIsNull then
         Val := 'NULL'
+      else if Cell.NewIsFunction then
+        Val := Cell.NewText
       else case Datatype(i).Category of
         dtcInteger, dtcReal: begin
           Val := Cell.NewText;
@@ -4203,10 +4225,13 @@ begin
         Cell := Row[i];
         Cell.OldText := Cell.NewText;
         Cell.OldIsNull := Cell.NewIsNull;
+        Cell.OldIsFunction := False;
+        Cell.NewIsFunction := False;
         Cell.Modified := False;
       end;
       Row.Inserted := False;
-      // TODO: Reload real row data from server if keys allow that???
+      // Reload real row data from server if keys allow that
+      EnsureFullRow(True);
     except
       on E:EDatabaseError do begin
         Result := False;
@@ -4231,6 +4256,7 @@ begin
       c := FCurrentUpdateRow[x];
       c.NewText := c.OldText;
       c.NewIsNull := c.OldIsNull;
+      c.NewIsFunction := c.OldIsFunction;
       c.Modified := False;
     end;
   end;
