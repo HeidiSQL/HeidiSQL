@@ -550,6 +550,8 @@ type
     actLaunchCommandline: TAction;
     Launchcommandline1: TMenuItem;
     menuClearQueryHistory: TMenuItem;
+    actGridEditFunction: TAction;
+    InsertSQLfunction1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -866,6 +868,7 @@ type
     procedure actLaunchCommandlineExecute(Sender: TObject);
     procedure menuClearQueryHistoryClick(Sender: TObject);
     procedure splitterTopBottomMoved(Sender: TObject);
+    procedure actGridEditFunctionExecute(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -901,6 +904,7 @@ type
     FDBObjectsMaxRows: Int64;
     FSearchReplaceDialog: TfrmSearchReplace;
     FPreferencesDialog: Toptionsform;
+    FGridEditFunctionMode: Boolean;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1198,6 +1202,14 @@ begin
     on E:EDatabaseError do
       ErrorDialog(E.Message);
   end;
+end;
+
+
+procedure TMainForm.actGridEditFunctionExecute(Sender: TObject);
+begin
+  // Insert SQL function in grid
+  FGridEditFunctionMode := True;
+  ActiveGrid.EditNode(ActiveGrid.FocusedNode, ActiveGrid.FocusedColumn);
 end;
 
 
@@ -4031,7 +4043,7 @@ begin
         Value := Results.Col(i);
         IsNull := Results.IsNull(i);
         Results.RecNo := RowNum;
-        Results.SetCol(i, Value, IsNull);
+        Results.SetCol(i, Value, IsNull, False);
       end;
     end;
   except on E:EDatabaseError do
@@ -4256,7 +4268,7 @@ begin
     RowNum := Grid.GetNodeData(Node);
     Data := GridResult(Grid);
     Data.RecNo := RowNum^;
-    Result := Data.EnsureFullRow;
+    Result := Data.EnsureFullRow(False);
   end;
 end;
 
@@ -7731,7 +7743,7 @@ begin
   Results := GridResult(Grid);
   Results.RecNo := RowNum^;
   try
-    Results.SetCol(Grid.FocusedColumn, '', True);
+    Results.SetCol(Grid.FocusedColumn, '', True, False);
   except
     on E:EDatabaseError do
       ErrorDialog(E.Message);
@@ -7775,13 +7787,14 @@ begin
   RowNum := Sender.GetNodeData(Node);
   Results.RecNo := RowNum^;
   try
-    if Results.DataType(Column).Category in [dtcInteger, dtcReal] then
+    if (not FGridEditFunctionMode) and (Results.DataType(Column).Category in [dtcInteger, dtcReal]) then
       NewText := UnformatNumber(NewText);
-    Results.SetCol(Column, NewText, False);
+    Results.SetCol(Column, NewText, False, FGridEditFunctionMode);
   except
     on E:EDatabaseError do
       ErrorDialog(E.Message);
   end;
+  FGridEditFunctionMode := False;
   ValidateControls(Sender);
 end;
 
@@ -7953,6 +7966,16 @@ begin
     except on E:EDatabaseError do
       // Error gets logged, do nothing more here. All other exception types raise please.
     end;
+  end;
+
+  FGridEditFunctionMode := FGridEditFunctionMode or Results.IsFunction(Column);
+  if FGridEditFunctionMode then begin
+    EnumEditor := TEnumEditorLink.Create(VT);
+    EnumEditor.DataType := Results.DataType(Column).Index;
+    for idx:=Low(MySQLFunctions) to High(MySQLFunctions) do
+      EnumEditor.ValueList.Add(MySQLFunctions[idx].Name + MySQLFunctions[idx].Declaration);
+    EnumEditor.AllowCustomText := True;
+    EditLink := EnumEditor;
   end;
 
   TypeCat := Results.DataType(Column).Category;
