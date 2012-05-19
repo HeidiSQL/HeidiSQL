@@ -221,6 +221,7 @@ type
   function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
+  function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
 
 var
   MainReg: TRegistry;
@@ -2566,6 +2567,24 @@ end;
 function ErrorDialog(const Title, Msg: string): Integer;
 begin
   Result := MessageDialog(Title, Msg, mtError, [mbOK]);
+end;
+
+
+function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
+begin
+  Result := '';
+  if Encoding = TEncoding.Default then
+    Result := 'Windows-'+IntToStr(GetACP)
+  else if Encoding = TEncoding.ASCII then
+    Result := 'ascii'
+  else if Encoding = TEncoding.Unicode then
+    Result := 'utf-16le'
+  else if Encoding = TEncoding.BigEndianUnicode then
+    Result := 'utf-16'
+  else if Encoding = TEncoding.UTF8 then
+    Result := 'utf-8'
+  else if Encoding = TEncoding.UTF7 then
+    Result := 'utf-7';
 end;
 
 
