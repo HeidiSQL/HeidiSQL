@@ -225,11 +225,10 @@ type
   end;
 
   // Server variables
-  TVarType = (vtString, vtNumeric, vtBoolean, vtEnum);
   TVarScope = (vsGlobal, vsSession, vsBoth);
   TServerVariable = record
     Name: String;
-    VarType: TVarType;
+    IsDynamic: Boolean;
     VarScope: TVarScope;
     EnumValues: String;
   end;
@@ -4699,1316 +4698,2117 @@ var
   );
 
 
-  MySQLVariables: array [0..257] of TServerVariable =
+  MySQLVariables: array [0..417] of TServerVariable =
   (
     (
       Name: 'auto_increment_increment';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'auto_increment_offset';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'autocommit';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'automatic_sp_privileges';
-      VarType: vtBoolean;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'back_log';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'basedir';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'big_tables';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'binlog_cache_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'binlog_checksum';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'binlog_direct_non_transactional_updates';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'binlog_format';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsBoth;
       EnumValues: 'ROW,STATEMENT,MIXED';
     ),
     (
       Name: 'binlog_row_image';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsBoth;
       EnumValues: 'FULL,MINIMAL,NOBLOB';
     ),
     (
-      Name: 'binlog_rows_query_log_events';
-      VarType: vtBoolean;
-      VarScope: vsBoth;
-    ),
-    (
       Name: 'binlog_stmt_cache_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'bulk_insert_buffer_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'character_set_client';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'character_set_connection';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
-      Name: 'character_set_database';
-      VarType: vtString;
+      Name: 'character_set_database[a]';
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'character_set_filesystem';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'character_set_results';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'character_set_server';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
+    ),
+    (
+      Name: 'character_set_system';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'character_sets_dir';
+      IsDynamic: False;
+      VarScope: vsGlobal;
     ),
     (
       Name: 'collation_connection';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
-      Name: 'collation_database';
-      VarType: vtString;
+      Name: 'collation_database[b]';
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'collation_server';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'completion_type';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsBoth;
       EnumValues: 'NO_CHAIN,CHAIN,RELEASE,0,1,2';
     ),
     (
       Name: 'concurrent_insert';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsGlobal;
       EnumValues: 'NEVER,AUTO,ALWAYS,0,1,2';
     ),
     (
       Name: 'connect_timeout';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'datadir';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'date_format';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'datetime_format';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'debug';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'debug_sync';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsSession;
     ),
     (
       Name: 'default_storage_engine';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsBoth;
       EnumValues: 'FEDERATED,MRG_MYISAM,MyISAM,BLACKHOLE,CSV,MEMORY,ARCHIVE,InnoDB';
     ),
     (
       Name: 'default_tmp_storage_engine';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsBoth;
       EnumValues: 'FEDERATED,MRG_MYISAM,MyISAM,BLACKHOLE,CSV,MEMORY,ARCHIVE,InnoDB';
     ),
     (
       Name: 'default_week_format';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'delay_key_write';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsGlobal;
       EnumValues: 'ON,OFF,ALL';
     ),
     (
       Name: 'delayed_insert_limit';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'delayed_insert_timeout';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'delayed_queue_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'disable_gtid_unsafe_statements';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'div_precision_increment';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'end_markers_in_json';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'engine_condition_pushdown';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'eq_range_index_dive_limit';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'error_count';
+      IsDynamic: False;
+      VarScope: vsSession;
+    ),
+    (
       Name: 'event_scheduler';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsGlobal;
       EnumValues: 'ON,OFF,DISABLED';
     ),
     (
       Name: 'expire_logs_days';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
+      Name: 'external_user';
+      IsDynamic: False;
+      VarScope: vsSession;
+    ),
+    (
       Name: 'flush';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'flush_time';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'foreign_key_checks';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'ft_boolean_syntax';
-      VarType: vtString;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'ft_max_word_len';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'ft_min_word_len';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'ft_query_expansion_limit';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'ft_stopword_file';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'general_log';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'general_log_file';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'group_concat_max_len';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'gtid_done';
+      IsDynamic: False;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'gtid_lost';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'gtid_mode';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'gtid_mode';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'gtid_next';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsSession;
       EnumValues: 'AUTOMATIC,ANONYMOUS';
     ),
     (
+      Name: 'gtid_owned';
+      IsDynamic: False;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'have_compress';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_crypt';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_csv';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_dynamic_loading';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_geometry';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_innodb';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_ndbcluster';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_openssl';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_partitioning';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_profiling';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_query_cache';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_rtree_keys';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_ssl';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'have_symlink';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'host_cache_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'hostname';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'identity';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsSession;
     ),
     (
+      Name: 'ignore_builtin_innodb';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'init_connect';
-      VarType: vtString;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'init_file';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'init_slave';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_adaptive_flushing';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_adaptive_hash_index';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_adaptive_max_sleep_delay';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_additional_mem_pool_size';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_analyze_is_persistent';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_api_enable_binlog';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_api_enable_mdl';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_api_trx_level';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_autoextend_increment';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_autoinc_lock_mode';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_buffer_pool_dump_at_shutdown';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_buffer_pool_dump_now';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_buffer_pool_filename';
-      VarType: vtBoolean;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_buffer_pool_instances';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_buffer_pool_load_abort';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_buffer_pool_load_at_startup';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_buffer_pool_load_now';
-      VarType: vtBoolean;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_buffer_pool_size';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_change_buffer_max_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_change_buffering';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsGlobal;
       EnumValues: 'INSERTS,DELETES,PURGES,CHANGES,ALL,NONE';
     ),
     (
       Name: 'innodb_checksum_algorithm';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsGlobal;
       EnumValues: 'INNODB,CRC32,NONE,STRICT_INNODB,STRICT_CRC32,STRICT_NONE';
     ),
     (
+      Name: 'innodb_checksums';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'innodb_commit_concurrency';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_concurrency_tickets';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_data_file_path';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_data_home_dir';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_doublewrite';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_fast_shutdown';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_file_format';
-      VarType: vtString;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_file_format_check';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_file_format_max';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_file_per_table';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_flush_log_at_trx_commit';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsGlobal;
       EnumValues: '0,1,2';
     ),
     (
+      Name: 'innodb_flush_method';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'innodb_flush_neighbors';
-      VarType: vtBoolean;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_force_load_corrupted';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_force_recovery';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_ft_aux_table';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_ft_cache_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_ft_enable_stopword';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_ft_max_token_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_ft_min_token_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_ft_num_word_optimize';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_ft_server_stopword_table';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_ft_sort_pll_degree';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_ft_user_stopword_table';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_io_capacity';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_large_prefix';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_lock_wait_timeout';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'innodb_locks_unsafe_for_binlog';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_log_buffer_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_log_file_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_log_files_in_group';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_log_group_home_dir';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'innodb_lru_scan_depth';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_max_dirty_pages_pct';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_max_purge_lag';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_mirrored_log_groups';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_monitor_disable';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_monitor_enable';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_monitor_reset';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_monitor_reset_all';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_old_blocks_pct';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_old_blocks_time';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_open_files';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_optimize_fulltext_only';
-      VarType: vtBoolean;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_page_size';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_print_all_deadlocks';
-      VarType: vtBoolean;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_purge_batch_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_purge_threads';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_random_read_ahead';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_read_ahead_threshold';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_read_io_threads';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_replication_delay';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_rollback_on_timeout';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_rollback_segments';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_sort_buffer_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_spin_wait_delay';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_stats_method';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsBoth;
       EnumValues: 'NULLS_EQUAL,NULLS_UNEQUAL,NULLS_IGNORED';
     ),
     (
       Name: 'innodb_stats_on_metadata';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_stats_persistent_sample_pages';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_stats_sample_pages';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_stats_transient_sample_pages';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_strict_mode';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'innodb_support_xa';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'innodb_sync_array_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'innodb_sync_spin_loops';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_table_locks';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'innodb_thread_concurrency';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_thread_sleep_delay';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_undo_directory';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_undo_logs';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'innodb_undo_tablespaces';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_use_native_aio';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_use_sys_malloc';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_version';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_write_io_threads';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'insert_id';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsSession;
     ),
     (
       Name: 'interactive_timeout';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'join_buffer_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'keep_files_on_create';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'key_buffer_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'key_cache_age_threshold';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'key_cache_block_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'key_cache_division_limit';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'language';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'large_files_support';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'large_page_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'large_pages';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'last_insert_id';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsSession;
     ),
     (
       Name: 'lc_messages';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
+    ),
+    (
+      Name: 'lc_messages_dir';
+      IsDynamic: False;
+      VarScope: vsGlobal;
     ),
     (
       Name: 'lc_time_names';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'license';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'local_infile';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'lock_wait_timeout';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'locked_in_memory';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'log';
-      VarType: vtString;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'log_bin';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'log_bin_basename';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'log_error';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'log_output';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'log_queries_not_using_indexes';
-      VarType: vtBoolean;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'log_slave_updates';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'log_slow_queries';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'log_throttle_queries_not_using_indexes';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'log_warnings';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'long_query_time';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'low_priority_updates';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'lower_case_file_system';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'lower_case_table_names';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'master_info_repository';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'master_verify_checksum';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'max_allowed_packet';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'max_binlog_cache_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'max_binlog_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'max_binlog_stmt_cache_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'max_connect_errors';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'max_connections';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'max_delayed_threads';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'max_error_count';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'max_heap_table_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'max_insert_delayed_threads';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'max_join_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'max_length_for_sort_data';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'max_prepared_stmt_count';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'max_relay_log_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'max_seeks_for_key';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'max_sort_length';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'max_sp_recursion_depth';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'max_tmp_tables';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'max_user_connections';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'max_write_lock_count';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
-      Name: 'min_examined_row_limit';
-      VarType: vtNumeric;
-      VarScope: vsBoth;
+      Name: 'memlock';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'metadata_locks_cache_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
     ),
     (
       Name: 'myisam_data_pointer_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'myisam_max_sort_file_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'myisam_mmap_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'myisam_recover_options';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'myisam_repair_threads';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'myisam_sort_buffer_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'myisam_stats_method';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsBoth;
       EnumValues: 'NULLS_EQUAL,NULLS_UNEQUAL,NULLS_IGNORED';
     ),
     (
       Name: 'myisam_use_mmap';
-      VarType: vtBoolean;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'named_pipe';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'net_buffer_length';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'net_read_timeout';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'net_retry_count';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'net_write_timeout';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'new';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'old';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'old_alter_table';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'old_passwords';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'open_files_limit';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'optimizer_join_cache_level';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'optimizer_prune_level';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'optimizer_search_depth';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'optimizer_switch';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'optimizer_trace';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'optimizer_trace_features';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'optimizer_trace_limit';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'optimizer_trace_max_mem_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'optimizer_trace_offset';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'have_partitioning';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_accounts_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_digests_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_events_stages_history_long_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_events_stages_history_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_events_statements_history_long_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_events_statements_history_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_events_waits_history_long_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_events_waits_history_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_hosts_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_cond_classes';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_cond_instances';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_file_classes';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_file_handles';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_file_instances';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_mutex_classes';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_mutex_instances';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_rwlock_classes';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_rwlock_instances';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_socket_classes';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_socket_instances';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_stage_classes';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_statement_classes';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_table_handles';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_table_instances';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_thread_classes';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_max_thread_instances';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_setup_actors_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_setup_objects_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'performance_schema_users_size';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'pid_file';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'plugin_dir';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'port';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'preload_buffer_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'profiling';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'profiling_history_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'protocol_version';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'proxy_user';
+      IsDynamic: False;
+      VarScope: vsSession;
+    ),
+    (
       Name: 'pseudo_thread_id';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsSession;
     ),
     (
       Name: 'query_alloc_block_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'query_cache_limit';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'query_cache_min_res_unit';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'query_cache_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'query_cache_type';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsBoth;
       EnumValues: '0,1,2';
     ),
     (
       Name: 'query_cache_wlock_invalidate';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'query_prealloc_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'rand_seed1';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsSession;
     ),
     (
       Name: 'rand_seed2';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsSession;
     ),
     (
       Name: 'range_alloc_block_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'read_buffer_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'read_only';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'read_rnd_buffer_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'relay_log_basename';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'relay_log_index';
+      IsDynamic: False;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'relay_log_index';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'relay_log_info_file';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'relay_log_info_repository';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'relay_log_purge';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'relay_log_recovery';
-      VarType: vtBoolean;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'relay_log_space_limit';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'report_host';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'report_password';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'report_port';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'report_user';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'rpl_semi_sync_master_enabled';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'rpl_semi_sync_master_timeout';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'rpl_semi_sync_master_trace_level';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'rpl_semi_sync_master_wait_no_slave';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'rpl_semi_sync_slave_enabled';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'rpl_semi_sync_slave_trace_level';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'secure_auth';
-      VarType: vtBoolean;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'secure_file_priv';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'server_id';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'server_uuid';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'shared_memory';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'shared_memory_base_name';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'skip_external_locking';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'skip_name_resolve';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'skip_networking';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'skip_show_database';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'slave_compressed_protocol';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'slave_exec_mode';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsGlobal;
       EnumValues: 'IDEMPOTENT,STRICT';
     ),
     (
+      Name: 'slave_load_tmpdir';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'slave_net_timeout';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'slave_parallel_workers';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'slave_skip_errors';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'slave_sql_verify_checksum';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'slave_transaction_retries';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'slave_type_conversions';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'slow_launch_time';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'slow_query_log';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'slow_query_log_file';
-      VarType: vtString;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'socket';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'sort_buffer_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_auto_is_null';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_big_selects';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_big_tables';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_buffer_result';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_log_bin';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_log_off';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_low_priority_updates';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_max_join_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_mode';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_notes';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_quote_show_create';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_safe_updates';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_select_limit';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'sql_slave_skip_counter';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'sql_warnings';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'ssl_ca';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'ssl_capath';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'ssl_cert';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'ssl_cipher';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'ssl_crl';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'ssl_crlpath';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'ssl_key';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'storage_engine';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsBoth;
       EnumValues: 'FEDERATED,MRG_MYISAM,MyISAM,BLACKHOLE,CSV,MEMORY,ARCHIVE,InnoDB';
     ),
     (
       Name: 'stored_program_cache';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'sync_binlog';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'sync_frm';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'sync_master_info';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'sync_relay_log';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'sync_relay_log_info';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'system_time_zone';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'table_definition_cache';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'table_open_cache';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'thread_cache_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'thread_concurrency';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'thread_handling';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'thread_stack';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'time_format';
+      IsDynamic: False;
       VarScope: vsGlobal;
     ),
     (
       Name: 'time_zone';
-      VarType: vtString;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'timed_mutexes';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsGlobal;
     ),
     (
       Name: 'timestamp';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsSession;
     ),
     (
       Name: 'tmp_table_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'tmpdir';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'transaction_alloc_block_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'transaction_prealloc_size';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'tx_isolation';
-      VarType: vtEnum;
+      IsDynamic: True;
       VarScope: vsBoth;
       EnumValues: 'READ-UNCOMMITTED,READ-COMMITTED,REPEATABLE-READ,SERIALIZABLE';
     ),
     (
       Name: 'tx_read_only';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'unique_checks';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
       Name: 'updatable_views_with_limit';
-      VarType: vtBoolean;
+      IsDynamic: True;
       VarScope: vsBoth;
     ),
     (
+      Name: 'version';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'version_comment';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'version_compile_machine';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'version_compile_os';
+      IsDynamic: False;
+      VarScope: vsGlobal;
+    ),
+    (
       Name: 'wait_timeout';
-      VarType: vtNumeric;
+      IsDynamic: True;
       VarScope: vsBoth;
+    ),
+    (
+      Name: 'warning_count';
+      IsDynamic: False;
+      VarScope: vsSession;
     )
+
   );
 
 

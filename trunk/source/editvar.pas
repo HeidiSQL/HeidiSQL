@@ -7,6 +7,9 @@ uses
   dbconnection, mysql_structures, ComCtrls;
 
 type
+  TVarType = (vtString, vtNumeric, vtBoolean, vtEnum);
+  EVariableError = class(Exception);
+
   TfrmEditVariable = class(TForm)
     btnOK: TButton;
     btnCancel: TButton;
@@ -28,15 +31,18 @@ type
     procedure btnOKClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
   private
     { Private declarations }
     FVar: TServerVariable;
+    FVarType: TVarType;
+    FVarValue: String;
+    procedure SetVarName(Value: String);
   public
     { Public declarations }
-    VarName, VarValue: String;
+    property VarName: String write SetVarName;
+    property VarValue: String write FVarValue;
   end;
 
 
@@ -64,54 +70,66 @@ begin
 end;
 
 
-procedure TfrmEditVariable.FormShow(Sender: TObject);
+procedure TfrmEditVariable.SetVarName(Value: String);
 var
   i: Integer;
-  val: String;
+  Found: Boolean;
 begin
   // Find var name in predefined documented list of variables
+  Found := False;
   for i:=Low(MySQLVariables) to High(MySQLVariables) do begin
-    if MySQLVariables[i].Name = VarName then begin
+    if MySQLVariables[i].Name = Value then begin
       FVar := MySQLVariables[i];
+      Found := True;
+      if not FVar.IsDynamic then
+        raise EVariableError.Create(Value+' is a read only variable, not editable.');
       break;
     end;
   end;
+  if not Found then
+    raise EVariableError.Create('Could not find '+Value+' variable in internal mapping.');
+end;
+
+
+procedure TfrmEditVariable.FormShow(Sender: TObject);
+var
+  val: String;
+begin
   // Verify variable type by value
-  if (FVar.VarType = vtNumeric) and (not IsNumeric(VarValue)) then
-    FVar.VarType := vtString;
-  if (FVar.VarType = vtEnum) and (Pos(UpperCase(VarValue), UpperCase(FVar.EnumValues))=0) then
-    FVar.VarType := vtString;
-  if (FVar.VarType = vtBoolean) and (Pos(UpperCase(VarValue), 'ON,OFF,0,1,YES,NO')=0) then
-    FVar.VarType := vtString;
-  if (FVar.VarType = vtString) and (Pos(UpperCase(VarValue), 'ON,OFF,0,1,YES,NO')>0) then
-    FVar.VarType := vtBoolean;
+  FVarType := vtString;
+  if IsNumeric(FVarValue) then
+    FVarType := vtNumeric;
+  if (FVar.EnumValues <> '') and (Pos(UpperCase(FVarValue), UpperCase(FVar.EnumValues))>0) then
+    FVarType := vtEnum;
+  if (FVarType <> vtEnum) and (Pos(UpperCase(FVarValue), 'ON,OFF,0,1,YES,NO')>0) then
+    FVarType := vtBoolean;
 
-  gbValue.Caption := VarName;
+  gbValue.Caption := FVar.Name;
 
-  lblString.Enabled := FVar.VarType = vtString;
-  editString.Enabled := FVar.VarType = vtString;
-  lblNumber.Enabled := FVar.VarType = vtNumeric;
-  editNumber.Enabled := FVar.VarType = vtNumeric;
-  UpDownNumber.Enabled := FVar.VarType = vtNumeric;
-  lblEnum.Enabled := FVar.VarType = vtEnum;
-  comboEnum.Enabled := FVar.VarType = vtEnum;
-  lblBoolean.Enabled := FVar.VarType = vtBoolean;
-  radioBooleanOn.Enabled := FVar.VarType = vtBoolean;
-  radioBooleanOff.Enabled := FVar.VarType = vtBoolean;
+  lblString.Enabled := FVarType = vtString;
+  editString.Enabled := FVarType = vtString;
+  lblNumber.Enabled := FVarType = vtNumeric;
+  editNumber.Enabled := FVarType = vtNumeric;
+  UpDownNumber.Enabled := FVarType = vtNumeric;
+  lblEnum.Enabled := FVarType = vtEnum;
+  comboEnum.Enabled := FVarType = vtEnum;
+  lblBoolean.Enabled := FVarType = vtBoolean;
+  radioBooleanOn.Enabled := FVarType = vtBoolean;
+  radioBooleanOff.Enabled := FVarType = vtBoolean;
 
-  case FVar.VarType of
+  case FVarType of
     vtString: begin
-      editString.Text := VarValue;
+      editString.Text := FVarValue;
       editString.SelectAll;
       editString.SetFocus;
     end;
     vtNumeric: begin
-      UpDownNumber.Position := MakeInt(VarValue);
+      UpDownNumber.Position := MakeInt(FVarValue);
       editNumber.SelectAll;
       editNumber.SetFocus;
     end;
     vtBoolean: begin
-      val := UpperCase(VarValue);
+      val := UpperCase(FVarValue);
       if (val='ON') or (val='1') or (val='YES') then begin
         radioBooleanOn.Checked := True;
         radioBooleanOn.SetFocus;
@@ -122,7 +140,7 @@ begin
     end;
     vtEnum: begin
       comboEnum.Items.CommaText := FVar.EnumValues;
-      comboEnum.ItemIndex := comboEnum.Items.IndexOf(UpperCase(VarValue));
+      comboEnum.ItemIndex := comboEnum.Items.IndexOf(UpperCase(FVarValue));
       comboEnum.SetFocus;
     end;
   end;
@@ -133,12 +151,6 @@ begin
     radioScopeSession.Checked := True
   else if radioScopeGlobal.Enabled then
     radioScopeGlobal.Checked := True;
-end;
-
-
-procedure TfrmEditVariable.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  Action := caFree;
 end;
 
 
@@ -155,9 +167,9 @@ begin
     sql := sql + 'session'
   else
     sql := sql + 'global';
-  sql := sql + '.' + VarName + ' = ';
+  sql := sql + '.' + FVar.Name + ' = ';
 
-  case FVar.VarType of
+  case FVarType of
     vtNumeric: val := IntToStr(UpDownNumber.Position);
     vtString: val := MainForm.ActiveConnection.EscapeString(editString.Text);
     vtBoolean: val := IntToStr(Integer(radioBooleanOn.Checked));
