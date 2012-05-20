@@ -149,6 +149,7 @@ type
   function MakeInt( Str: String ) : Int64;
   function MakeFloat( Str: String ): Extended;
   function CleanupNumber(Str: String): String;
+  function IsNumeric(Str: String): Boolean;
   function esc(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
   function ScanNulChar(Text: String): Boolean;
   function ScanLineBreaks(Text: String): TLineBreaks;
@@ -505,6 +506,12 @@ begin
   end;
   if (Result = '') or (Result = '-') then
     Result := '0';
+end;
+
+
+function IsNumeric(Str: String): Boolean;
+begin
+  Result := IntToStr(MakeInt(Str)) = Str;
 end;
 
 
