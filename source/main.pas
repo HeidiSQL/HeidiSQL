@@ -869,6 +869,9 @@ type
     procedure menuClearQueryHistoryClick(Sender: TObject);
     procedure splitterTopBottomMoved(Sender: TObject);
     procedure actGridEditFunctionExecute(Sender: TObject);
+    procedure ListVariablesPaintText(Sender: TBaseVirtualTree;
+      const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -6806,6 +6809,41 @@ begin
 end;
 
 
+procedure TMainForm.ListVariablesPaintText(Sender: TBaseVirtualTree;
+  const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  TextType: TVSTTextType);
+var
+  Results: TDBQuery;
+  Idx: PCardinal;
+  i, tmp: Integer;
+  Val: String;
+  dcat: TDBDatatypeCategoryIndex;
+begin
+  Idx := Sender.GetNodeData(Node);
+  Results := GridResult(Sender);
+  Results.RecNo := Idx^;
+  tmp := -1;
+  for i:=Low(MySQLVariables) to High(MySQLVariables) do begin
+    if MySQLVariables[i].Name = Results.Col(0) then begin
+      tmp := i;
+      break;
+    end;
+  end;
+  if (tmp=-1) or (not MySQLVariables[tmp].IsDynamic) then
+    TargetCanvas.Font.Color := clInactiveCaptionText
+  else if Column=1 then begin
+    Val := Results.Col(1);
+    if IsNumeric(Val) then
+      dcat := dtcInteger
+    else if (tmp > -1) and ((MySQLVariables[tmp].EnumValues <> '') or (Pos(UpperCase(Val), 'ON,OFF,0,1,YES,NO')>0)) then
+      dcat := dtcOther
+    else
+      dcat := dtcText;
+    TargetCanvas.Font.Color := DatatypeCategories[dcat].Color;
+  end;
+end;
+
+
 procedure TMainForm.HostListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
 var
@@ -6938,11 +6976,20 @@ var
   Dialog: TfrmEditVariable;
 begin
   Dialog := TfrmEditVariable.Create(Self);
-  Dialog.VarName := ListVariables.Text[ListVariables.FocusedNode, 0];
-  Dialog.VarValue := ListVariables.Text[ListVariables.FocusedNode, 1];
-  // Refresh list node
-  if Dialog.ShowModal = mrOK then
-    InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
+  try
+    try
+      Dialog.VarName := ListVariables.Text[ListVariables.FocusedNode, 0];
+      Dialog.VarValue := ListVariables.Text[ListVariables.FocusedNode, 1];
+      // Refresh list node
+      if Dialog.ShowModal = mrOK then
+        InvalidateVT(ListVariables, VTREE_NOTLOADED, False);
+    except
+      on E:EVariableError do
+        ErrorDialog(E.Message);
+    end;
+  finally
+    Dialog.Free;
+  end;
 end;
 
 

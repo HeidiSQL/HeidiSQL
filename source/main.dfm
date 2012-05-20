@@ -725,6 +725,7 @@ object MainForm: TMainForm
                 OnCompareNodes = AnyGridCompareNodes
                 OnDblClick = ListVariablesDblClick
                 OnGetText = HostListGetText
+                OnPaintText = ListVariablesPaintText
                 OnGetImageIndex = HostListGetImageIndex
                 OnGetHint = AnyGridGetHint
                 OnGetNodeDataSize = AnyGridGetNodeDataSize
