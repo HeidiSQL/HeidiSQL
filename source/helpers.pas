@@ -463,10 +463,15 @@ end;
   @param string String-number
   @return int64
 }
-function MakeInt( Str: String ) : Int64;
+function MakeInt(Str: String): Int64;
 begin
   // Result has to be of integer type
-  Result := Trunc( MakeFloat( Str ) );
+  try
+    Result := Trunc(MakeFloat(Str));
+  except
+    on E:EInvalidOp do
+      Result := 0;
+  end;
 end;
 
 
