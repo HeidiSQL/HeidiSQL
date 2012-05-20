@@ -224,6 +224,16 @@ type
     Description:  String;
   end;
 
+  // Server variables
+  TVarType = (vtString, vtNumeric, vtBoolean, vtEnum);
+  TVarScope = (vsGlobal, vsSession, vsBoth);
+  TServerVariable = record
+    Name: String;
+    VarType: TVarType;
+    VarScope: TVarScope;
+    EnumValues: String;
+  end;
+
 var
   MySQLKeywords: TStringList;
   MySQLErrorCodes: TStringList;
@@ -4687,6 +4697,1320 @@ var
     )
 
   );
+
+
+  MySQLVariables: array [0..257] of TServerVariable =
+  (
+    (
+      Name: 'auto_increment_increment';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'auto_increment_offset';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'autocommit';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'automatic_sp_privileges';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'big_tables';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'binlog_cache_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'binlog_checksum';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'binlog_direct_non_transactional_updates';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'binlog_format';
+      VarType: vtEnum;
+      VarScope: vsBoth;
+      EnumValues: 'ROW,STATEMENT,MIXED';
+    ),
+    (
+      Name: 'binlog_row_image';
+      VarType: vtEnum;
+      VarScope: vsBoth;
+      EnumValues: 'FULL,MINIMAL,NOBLOB';
+    ),
+    (
+      Name: 'binlog_rows_query_log_events';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'binlog_stmt_cache_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'bulk_insert_buffer_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'character_set_client';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'character_set_connection';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'character_set_database';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'character_set_filesystem';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'character_set_results';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'character_set_server';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'collation_connection';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'collation_database';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'collation_server';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'completion_type';
+      VarType: vtEnum;
+      VarScope: vsBoth;
+      EnumValues: 'NO_CHAIN,CHAIN,RELEASE,0,1,2';
+    ),
+    (
+      Name: 'concurrent_insert';
+      VarType: vtEnum;
+      VarScope: vsGlobal;
+      EnumValues: 'NEVER,AUTO,ALWAYS,0,1,2';
+    ),
+    (
+      Name: 'connect_timeout';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'debug';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'debug_sync';
+      VarType: vtString;
+      VarScope: vsSession;
+    ),
+    (
+      Name: 'default_storage_engine';
+      VarType: vtEnum;
+      VarScope: vsBoth;
+      EnumValues: 'FEDERATED,MRG_MYISAM,MyISAM,BLACKHOLE,CSV,MEMORY,ARCHIVE,InnoDB';
+    ),
+    (
+      Name: 'default_tmp_storage_engine';
+      VarType: vtEnum;
+      VarScope: vsBoth;
+      EnumValues: 'FEDERATED,MRG_MYISAM,MyISAM,BLACKHOLE,CSV,MEMORY,ARCHIVE,InnoDB';
+    ),
+    (
+      Name: 'default_week_format';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'delay_key_write';
+      VarType: vtEnum;
+      VarScope: vsGlobal;
+      EnumValues: 'ON,OFF,ALL';
+    ),
+    (
+      Name: 'delayed_insert_limit';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'delayed_insert_timeout';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'delayed_queue_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'div_precision_increment';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'end_markers_in_json';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'engine_condition_pushdown';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'eq_range_index_dive_limit';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'event_scheduler';
+      VarType: vtEnum;
+      VarScope: vsGlobal;
+      EnumValues: 'ON,OFF,DISABLED';
+    ),
+    (
+      Name: 'expire_logs_days';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'flush';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'flush_time';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'foreign_key_checks';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'ft_boolean_syntax';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'general_log';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'general_log_file';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'group_concat_max_len';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'gtid_next';
+      VarType: vtEnum;
+      VarScope: vsSession;
+      EnumValues: 'AUTOMATIC,ANONYMOUS';
+    ),
+    (
+      Name: 'host_cache_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'identity';
+      VarType: vtNumeric;
+      VarScope: vsSession;
+    ),
+    (
+      Name: 'init_connect';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'init_slave';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_adaptive_flushing';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_adaptive_hash_index';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_adaptive_max_sleep_delay';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_analyze_is_persistent';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_api_enable_binlog';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_api_enable_mdl';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_api_trx_level';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_autoextend_increment';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_buffer_pool_dump_at_shutdown';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_buffer_pool_dump_now';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_buffer_pool_filename';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_buffer_pool_load_abort';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_buffer_pool_load_at_startup';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_buffer_pool_load_now';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_change_buffer_max_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_change_buffering';
+      VarType: vtEnum;
+      VarScope: vsGlobal;
+      EnumValues: 'INSERTS,DELETES,PURGES,CHANGES,ALL,NONE';
+    ),
+    (
+      Name: 'innodb_checksum_algorithm';
+      VarType: vtEnum;
+      VarScope: vsGlobal;
+      EnumValues: 'INNODB,CRC32,NONE,STRICT_INNODB,STRICT_CRC32,STRICT_NONE';
+    ),
+    (
+      Name: 'innodb_commit_concurrency';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_concurrency_tickets';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_fast_shutdown';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_file_format';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_file_format_max';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_file_per_table';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_flush_log_at_trx_commit';
+      VarType: vtEnum;
+      VarScope: vsGlobal;
+      EnumValues: '0,1,2';
+    ),
+    (
+      Name: 'innodb_flush_neighbors';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_ft_aux_table';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_ft_cache_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_ft_enable_stopword';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_ft_max_token_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_ft_min_token_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_ft_num_word_optimize';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_ft_server_stopword_table';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_ft_sort_pll_degree';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_ft_user_stopword_table';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_io_capacity';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_large_prefix';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_lock_wait_timeout';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'innodb_lru_scan_depth';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_max_dirty_pages_pct';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_max_purge_lag';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_monitor_disable';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_monitor_enable';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_monitor_reset';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_monitor_reset_all';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_old_blocks_pct';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_old_blocks_time';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_optimize_fulltext_only';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_print_all_deadlocks';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_random_read_ahead';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_read_ahead_threshold';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_replication_delay';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_rollback_segments';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_sort_buffer_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_spin_wait_delay';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_stats_method';
+      VarType: vtEnum;
+      VarScope: vsBoth;
+      EnumValues: 'NULLS_EQUAL,NULLS_UNEQUAL,NULLS_IGNORED';
+    ),
+    (
+      Name: 'innodb_stats_on_metadata';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_stats_persistent_sample_pages';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_stats_sample_pages';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_stats_transient_sample_pages';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_strict_mode';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'innodb_support_xa';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'innodb_sync_spin_loops';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_table_locks';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'innodb_thread_concurrency';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_thread_sleep_delay';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_undo_directory';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_undo_logs';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'innodb_undo_tablespaces';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'insert_id';
+      VarType: vtNumeric;
+      VarScope: vsSession;
+    ),
+    (
+      Name: 'interactive_timeout';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'join_buffer_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'keep_files_on_create';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'key_buffer_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'key_cache_age_threshold';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'key_cache_block_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'key_cache_division_limit';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'last_insert_id';
+      VarType: vtNumeric;
+      VarScope: vsSession;
+    ),
+    (
+      Name: 'lc_messages';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'lc_time_names';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'local_infile';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'lock_wait_timeout';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'log';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'log_output';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'log_queries_not_using_indexes';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'log_slow_queries';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'log_throttle_queries_not_using_indexes';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'log_warnings';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'long_query_time';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'low_priority_updates';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'master_verify_checksum';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'max_allowed_packet';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'max_binlog_cache_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'max_binlog_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'max_binlog_stmt_cache_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'max_connect_errors';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'max_connections';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'max_delayed_threads';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'max_error_count';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'max_heap_table_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'max_insert_delayed_threads';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'max_join_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'max_length_for_sort_data';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'max_prepared_stmt_count';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'max_relay_log_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'max_seeks_for_key';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'max_sort_length';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'max_sp_recursion_depth';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'max_tmp_tables';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'max_user_connections';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'max_write_lock_count';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'min_examined_row_limit';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'myisam_data_pointer_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'myisam_max_sort_file_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'myisam_repair_threads';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'myisam_sort_buffer_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'myisam_stats_method';
+      VarType: vtEnum;
+      VarScope: vsBoth;
+      EnumValues: 'NULLS_EQUAL,NULLS_UNEQUAL,NULLS_IGNORED';
+    ),
+    (
+      Name: 'myisam_use_mmap';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'net_buffer_length';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'net_read_timeout';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'net_retry_count';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'net_write_timeout';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'new';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'old_alter_table';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'old_passwords';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'optimizer_join_cache_level';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'optimizer_prune_level';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'optimizer_search_depth';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'optimizer_switch';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'optimizer_trace';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'optimizer_trace_features';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'optimizer_trace_limit';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'optimizer_trace_max_mem_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'optimizer_trace_offset';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'preload_buffer_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'profiling';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'profiling_history_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'pseudo_thread_id';
+      VarType: vtNumeric;
+      VarScope: vsSession;
+    ),
+    (
+      Name: 'query_alloc_block_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'query_cache_limit';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'query_cache_min_res_unit';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'query_cache_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'query_cache_type';
+      VarType: vtEnum;
+      VarScope: vsBoth;
+      EnumValues: '0,1,2';
+    ),
+    (
+      Name: 'query_cache_wlock_invalidate';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'query_prealloc_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'rand_seed1';
+      VarType: vtNumeric;
+      VarScope: vsSession;
+    ),
+    (
+      Name: 'rand_seed2';
+      VarType: vtNumeric;
+      VarScope: vsSession;
+    ),
+    (
+      Name: 'range_alloc_block_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'read_buffer_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'read_only';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'read_rnd_buffer_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'relay_log_purge';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'relay_log_recovery';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'rpl_semi_sync_master_enabled';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'rpl_semi_sync_master_timeout';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'rpl_semi_sync_master_trace_level';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'rpl_semi_sync_master_wait_no_slave';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'rpl_semi_sync_slave_enabled';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'rpl_semi_sync_slave_trace_level';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'secure_auth';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'server_id';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'slave_compressed_protocol';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'slave_exec_mode';
+      VarType: vtEnum;
+      VarScope: vsGlobal;
+      EnumValues: 'IDEMPOTENT,STRICT';
+    ),
+    (
+      Name: 'slave_net_timeout';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'slave_parallel_workers';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'slave_sql_verify_checksum';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'slave_transaction_retries';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'slow_launch_time';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'slow_query_log';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'slow_query_log_file';
+      VarType: vtString;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'sort_buffer_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_auto_is_null';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_big_selects';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_big_tables';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_buffer_result';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_log_bin';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_log_off';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_low_priority_updates';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_max_join_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_mode';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_notes';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_quote_show_create';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_safe_updates';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_select_limit';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'sql_slave_skip_counter';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'sql_warnings';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'storage_engine';
+      VarType: vtEnum;
+      VarScope: vsBoth;
+      EnumValues: 'FEDERATED,MRG_MYISAM,MyISAM,BLACKHOLE,CSV,MEMORY,ARCHIVE,InnoDB';
+    ),
+    (
+      Name: 'stored_program_cache';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'sync_binlog';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'sync_frm';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'sync_master_info';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'sync_relay_log';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'sync_relay_log_info';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'table_definition_cache';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'table_open_cache';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'thread_cache_size';
+      VarType: vtNumeric;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'time_zone';
+      VarType: vtString;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'timed_mutexes';
+      VarType: vtBoolean;
+      VarScope: vsGlobal;
+    ),
+    (
+      Name: 'timestamp';
+      VarType: vtNumeric;
+      VarScope: vsSession;
+    ),
+    (
+      Name: 'tmp_table_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'transaction_alloc_block_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'transaction_prealloc_size';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'tx_isolation';
+      VarType: vtEnum;
+      VarScope: vsBoth;
+      EnumValues: 'READ-UNCOMMITTED,READ-COMMITTED,REPEATABLE-READ,SERIALIZABLE';
+    ),
+    (
+      Name: 'tx_read_only';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'unique_checks';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'updatable_views_with_limit';
+      VarType: vtBoolean;
+      VarScope: vsBoth;
+    ),
+    (
+      Name: 'wait_timeout';
+      VarType: vtNumeric;
+      VarScope: vsBoth;
+    )
+  );
+
 
   function GetFunctionCategories: TStringList;
 

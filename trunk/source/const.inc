@@ -197,6 +197,8 @@ const
   REGNAME_TOOLSCASESENSITIVE = 'TableTools_FindCaseSensitive';
   REGNAME_FILEIMPORTWINWIDTH = 'FileImport_WindowWidth';
   REGNAME_FILEIMPORTWINHEIGHT = 'FileImport_WindowHeight';
+  REGNAME_EDITVARWINWIDTH = 'EditVar_WindowWidth';
+  REGNAME_EDITVARWINHEIGHT = 'EditVar_WindowHeight';
   REGNAME_USERMNGR_WINWIDTH = 'Usermanager_WindowWidth';
   REGNAME_USERMNGR_WINHEIGHT = 'Usermanager_WindowHeight';
   REGNAME_USERMNGR_LISTWIDTH = 'Usermanager_ListWidth';
