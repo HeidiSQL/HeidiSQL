@@ -6830,7 +6830,7 @@ begin
     end;
   end;
   if (tmp=-1) or (not MySQLVariables[tmp].IsDynamic) then
-    TargetCanvas.Font.Color := clInactiveCaptionText
+    TargetCanvas.Font.Color := clGrayText
   else if Column=1 then begin
     Val := Results.Col(1);
     if IsNumeric(Val) then
