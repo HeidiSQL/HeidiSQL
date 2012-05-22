@@ -8480,6 +8480,11 @@ var
   Results: TDBQuery;
   i: Integer;
   SelectedCaptions: TStringList;
+  IS_objects: TDBObjectList;
+  Obj: TDBObject;
+  ProcessColumns: TTableColumnList;
+  Columns: String;
+  Col: TVirtualTreeColumn;
 begin
   // Display server variables
   vt := Sender as TVirtualStringTree;
@@ -8518,9 +8523,38 @@ begin
         ngMySQL: begin
           if Conn.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
             // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
-            Results := Conn.GetResults('SELECT '+Conn.QuoteIdent('ID')+', '+Conn.QuoteIdent('USER')+', '+Conn.QuoteIdent('HOST')+', '+Conn.QuoteIdent('DB')+', '
-              + Conn.QuoteIdent('COMMAND')+', '+Conn.QuoteIdent('TIME')+', '+Conn.QuoteIdent('STATE')+', LEFT('+Conn.QuoteIdent('INFO')+', '+IntToStr(SIZE_KB*50)+') AS '+Conn.QuoteIdent('Info')
-              + ' FROM '+Conn.QuoteIdent('information_schema')+'.'+Conn.QuoteIdent('PROCESSLIST'));
+            Columns := Conn.QuoteIdent('ID')+', '+
+              Conn.QuoteIdent('USER')+', '+
+              Conn.QuoteIdent('HOST')+', '+
+              Conn.QuoteIdent('DB')+', '+
+              Conn.QuoteIdent('COMMAND')+', '+
+              Conn.QuoteIdent('TIME')+', '+
+              Conn.QuoteIdent('STATE')+', '+
+              'LEFT('+Conn.QuoteIdent('INFO')+', '+IntToStr(SIZE_KB*50)+') AS '+Conn.QuoteIdent('Info');
+            // Get additional column names into SELECT query and ListProcesses tree
+            IS_objects := Conn.GetDBObjects('information_schema');
+            for Obj in IS_objects do begin
+              if Obj.Name = 'PROCESSLIST' then begin
+                ProcessColumns := TTableColumnList.Create;
+                Conn.ParseTableStructure(Obj.CreateCode, ProcessColumns, nil, nil);
+                for i:=8 to ProcessColumns.Count-1 do begin
+                  Columns := Columns + ', '+Conn.QuoteIdent(ProcessColumns[i].Name);
+                  if ListProcesses.Header.Columns.Count <= i then
+                    Col := ListProcesses.Header.Columns.Add
+                  else
+                    Col := ListProcesses.Header.Columns[i];
+                  Col.Options := Col.Options + [coVisible];
+                  Col.Text := ProcessColumns[i].Name;
+                end;
+                ProcessColumns.Free;
+                // Hide unused tree columns
+                for i:=ListProcesses.Header.Columns.Count-1 downto ProcessColumns.Count do
+                  ListProcesses.Header.Columns[i].Options := ListProcesses.Header.Columns[i].Options - [coVisible];
+                break;
+              end;
+            end;
+            Results := Conn.GetResults('SELECT '+Columns+' FROM '+
+              Conn.QuoteIdent('information_schema')+'.'+Conn.QuoteIdent('PROCESSLIST'));
           end else begin
             // Older servers fetch the whole query length, but at least we cut them off below, so a high memory usage is just a peak
             Results := Conn.GetResults('SHOW FULL PROCESSLIST');
