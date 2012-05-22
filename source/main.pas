@@ -7569,7 +7569,7 @@ begin
     for i:=0 to SelectedTableColumns.Count-1 do begin
       if i > 0 then
         Line := Line + ' OR ';
-      Line := Line + Conn.QuoteIdent(SelectedTableColumns[i].Name) + ' LIKE ' + esc('%'+ed.Text+'%');
+      Line := Line + Conn.QuoteIdent(SelectedTableColumns[i].Name) + ' LIKE ''%' + esc(ed.Text, True, False)+'%''';
       // Add linebreak near right window edge
       if (Length(Line) > SynMemoFilter.CharsInWindow-30) or (i = SelectedTableColumns.Count-1) then begin
         Clause := Clause + Line + CRLF;
