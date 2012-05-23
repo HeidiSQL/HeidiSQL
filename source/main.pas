@@ -8546,10 +8546,10 @@ begin
                   Col.Options := Col.Options + [coVisible];
                   Col.Text := ProcessColumns[i].Name;
                 end;
-                ProcessColumns.Free;
                 // Hide unused tree columns
                 for i:=ListProcesses.Header.Columns.Count-1 downto ProcessColumns.Count do
                   ListProcesses.Header.Columns[i].Options := ListProcesses.Header.Columns[i].Options - [coVisible];
+                ProcessColumns.Free;
                 break;
               end;
             end;
