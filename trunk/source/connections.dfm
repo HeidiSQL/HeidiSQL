@@ -4,10 +4,10 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu]
   Caption = 'Session manager'
-  ClientHeight = 342
+  ClientHeight = 364
   ClientWidth = 494
   Color = clBtnFace
-  Constraints.MinHeight = 380
+  Constraints.MinHeight = 400
   Constraints.MinWidth = 510
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -24,7 +24,7 @@ object connform: Tconnform
   OnShow = FormShow
   DesignSize = (
     494
-    342)
+    364)
   PixelsPerInch = 96
   TextHeight = 13
   object splitterMain: TSplitter
@@ -32,7 +32,7 @@ object connform: Tconnform
     Left = 175
     Top = 8
     Width = 8
-    Height = 294
+    Height = 316
     Cursor = crSizeWE
     Margins.Left = 0
     Margins.Top = 8
@@ -43,7 +43,7 @@ object connform: Tconnform
   end
   object btnSave: TButton
     Left = 64
-    Top = 309
+    Top = 331
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -54,7 +54,7 @@ object connform: Tconnform
   object btnOpen: TButton
     Tag = 15
     Left = 320
-    Top = 309
+    Top = 331
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -67,7 +67,7 @@ object connform: Tconnform
   object btnCancel: TButton
     Tag = 16
     Left = 406
-    Top = 309
+    Top = 331
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -81,7 +81,7 @@ object connform: Tconnform
     Left = 8
     Top = 8
     Width = 167
-    Height = 294
+    Height = 316
     Margins.Left = 8
     Margins.Top = 8
     Margins.Right = 0
@@ -138,7 +138,7 @@ object connform: Tconnform
   end
   object btnNew: TButton
     Left = 8
-    Top = 309
+    Top = 331
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -148,7 +148,7 @@ object connform: Tconnform
   end
   object btnDelete: TButton
     Left = 120
-    Top = 309
+    Top = 331
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -161,7 +161,7 @@ object connform: Tconnform
     Left = 183
     Top = 8
     Width = 303
-    Height = 294
+    Height = 316
     Margins.Left = 0
     Margins.Top = 8
     Margins.Right = 8
@@ -204,10 +204,10 @@ object connform: Tconnform
       ImageIndex = 39
       DesignSize = (
         295
-        265)
+        287)
       object lblStartupScript: TLabel
         Left = 3
-        Top = 241
+        Top = 264
         Width = 69
         Height = 13
         Caption = 'Startup script:'
@@ -258,21 +258,21 @@ object connform: Tconnform
       end
       object lblDatabase: TLabel
         Left = 3
-        Top = 216
+        Top = 239
         Width = 55
         Height = 13
         Caption = 'Databases:'
       end
       object editStartupScript: TButtonedEdit
         Left = 101
-        Top = 238
+        Top = 261
         Width = 191
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
-        TabOrder = 10
+        TabOrder = 11
         OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
@@ -355,11 +355,11 @@ object connform: Tconnform
       end
       object comboDatabases: TComboBox
         Left = 101
-        Top = 213
+        Top = 236
         Width = 191
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 9
+        TabOrder = 10
         TextHint = 'Separated by semicolon'
         OnChange = Modification
         OnDropDown = comboDatabasesDropDown
@@ -385,13 +385,26 @@ object connform: Tconnform
         TabOrder = 3
         OnClick = chkLoginPromptClick
       end
+      object chkLocalTimeZone: TCheckBox
+        Left = 101
+        Top = 213
+        Width = 191
+        Height = 17
+        Hint = 
+          'Use your client time zone in date/time SQL functions, e.g. NOW()' +
+          ', for MySQL 4.1.3+'
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Set client time zone'
+        TabOrder = 9
+        OnClick = Modification
+      end
     end
     object tabSSHtunnel: TTabSheet
       Caption = 'SSH tunnel'
       ImageIndex = 147
       DesignSize = (
         295
-        265)
+        287)
       object lblSSHLocalPort: TLabel
         Left = 3
         Top = 190
@@ -573,7 +586,7 @@ object connform: Tconnform
       ImageIndex = 144
       DesignSize = (
         295
-        265)
+        287)
       object lblSSLPrivateKey: TLabel
         Tag = 6
         Left = 3
@@ -659,7 +672,7 @@ object connform: Tconnform
       ImageIndex = 145
       DesignSize = (
         295
-        265)
+        287)
       object lblLastConnectLeft: TLabel
         Left = 3
         Top = 31

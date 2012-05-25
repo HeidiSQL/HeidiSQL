@@ -157,7 +157,7 @@ type
       FSessionName, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout: Integer;
-      FLoginPrompt, FCompressed, FWindowsAuth, FWantSSL: Boolean;
+      FLoginPrompt, FCompressed, FLocalTimeZone, FWindowsAuth, FWantSSL: Boolean;
       FSessionColor: TColor;
       function GetImageIndex: Integer;
     public
@@ -188,6 +188,7 @@ type
       property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property Compressed: Boolean read FCompressed write FCompressed;
+      property LocalTimeZone: Boolean read FLocalTimeZone write FLocalTimeZone;
       property SSHHost: String read FSSHHost write FSSHHost;
       property SSHPort: Integer read FSSHPort write FSSHPort;
       property SSHUser: String read FSSHUser write FSSHUser;
@@ -773,6 +774,7 @@ begin
     Result.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', Session);
     Result.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, '', Session);
     Result.Compressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session);
+    Result.LocalTimeZone := GetRegValue(REGNAME_LOCALTIMEZONE, DEFAULT_LOCALTIMEZONE, Session);
     Result.ServerVersion := GetRegValue(REGNAME_SERVERVERSION_FULL, '', Session);
   end;
 end;
@@ -1276,7 +1278,7 @@ begin
   FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
 
   // Set timezone offset to UTC
-  if ServerVersionInt >= 40103 then begin
+  if (ServerVersionInt >= 40103) and Parameters.LocalTimeZone then begin
     Minutes := 0;
     case GetTimeZoneInformation(TZI) of
       TIME_ZONE_ID_STANDARD: Minutes := (TZI.Bias + TZI.StandardBias);

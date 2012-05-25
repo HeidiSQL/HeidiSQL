@@ -84,6 +84,7 @@ type
     chkWantSSL: TCheckBox;
     btnImportSettings: TButton;
     timerSettingsImport: TTimer;
+    chkLocalTimeZone: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -320,6 +321,7 @@ begin
   Sess.Port := updownPort.Position;
   Sess.NetType := TNetType(comboNetType.ItemIndex);
   Sess.Compressed := chkCompressed.Checked;
+  Sess.LocalTimeZone := chkLocalTimeZone.Checked;
   Sess.AllDatabasesStr := comboDatabases.Text;
   Sess.StartupScriptFilename := editStartupScript.Text;
   Sess.SSHHost := editSSHhost.Text;
@@ -490,6 +492,7 @@ begin
   Result.SSLCACertificate := editSSLCACertificate.Text;
   Result.StartupScriptFilename := editStartupScript.Text;
   Result.Compressed := chkCompressed.Checked;
+  Result.LocalTimeZone := chkLocalTimeZone.Checked;
 end;
 
 
@@ -602,6 +605,7 @@ begin
     chkWindowsAuth.Checked := Sess.WindowsAuth;
     updownPort.Position := Sess.Port;
     chkCompressed.Checked := Sess.Compressed;
+    chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     comboDatabases.Text := Sess.AllDatabasesStr;
     editStartupScript.Text := Sess.StartupScriptFilename;
     editSSHPlinkExe.Text := Sess.SSHPlinkExe;
@@ -802,6 +806,7 @@ begin
       or (Sess.WindowsAuth <> chkWindowsAuth.Checked)
       or (Sess.Port <> updownPort.Position)
       or (Sess.Compressed <> chkCompressed.Checked)
+      or (Sess.LocalTimeZone <> chkLocalTimeZone.Checked)
       or (Sess.NetType <> TNetType(comboNetType.ItemIndex))
       or (Sess.StartupScriptFilename <> editStartupScript.Text)
       or (Sess.AllDatabasesStr <> comboDatabases.Text)
