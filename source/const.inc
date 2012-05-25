@@ -141,6 +141,8 @@ const
   REGNAME_NETTYPE = 'NetType';
   REGNAME_COMPRESSED = 'Compressed';
   DEFAULT_COMPRESSED = False;
+  REGNAME_LOCALTIMEZONE = 'LocalTimeZone';
+  DEFAULT_LOCALTIMEZONE = False;
   REGNAME_STARTUPSCRIPT = 'StartupScriptFilename';
   REGNAME_DATABASES = 'Databases';
   REGNAME_DATABASE_FILTER = 'DatabaseFilter';
