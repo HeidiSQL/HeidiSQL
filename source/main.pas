@@ -867,7 +867,6 @@ type
       var ContentRect: TRect);
     procedure actLaunchCommandlineExecute(Sender: TObject);
     procedure menuClearQueryHistoryClick(Sender: TObject);
-    procedure splitterTopBottomMoved(Sender: TObject);
     procedure actGridEditFunctionExecute(Sender: TObject);
     procedure ListVariablesPaintText(Sender: TBaseVirtualTree;
       const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
@@ -2008,6 +2007,13 @@ procedure TMainForm.FormResize(Sender: TObject);
 var
   i, room: Integer;
   PanelRect: TRect;
+  Tab: TQueryTab;
+
+  function GridNeedHeight: Integer;
+  begin
+    // Return missing number of height pixels the query grid needs
+    Result := Max(0, Tab.spltQuery.MinSize - (Tab.TabSheet.Height - Tab.pnlMemo.Height - Tab.spltQuery.Height - Tab.tabsetQuery.Height));
+  end;
 begin
   // Exit early when user pressed "Cancel" on connection dialog
   if csDestroying in ComponentState then
@@ -2023,7 +2029,14 @@ begin
     ProgressBarStatus.SetBounds(Left, Top, Right-Left, Bottom-Top);
   lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
   FixQueryTabCloseButtons;
-  splitterTopBottom.OnMoved(Sender);
+
+  // Ensure query grids are not overlapped by sql log
+  for Tab in QueryTabs do begin
+    // Decrease height of pnlMemo if grid has not enough height
+    Tab.pnlMemo.Height := Max(Tab.pnlMemo.Height-GridNeedHeight, Tab.spltQuery.MinSize);
+    // Try again and resize SQLLog if required
+    SynMemoSQLLog.Height := Max(SynMemoSQLLog.Height-GridNeedHeight, splitterTopBottom.MinSize);
+  end;
 end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
@@ -2731,22 +2744,6 @@ begin
     lblPreviewTitle.Hint := lblPreviewTitle.Caption;
     ShowStatusMsg;
     Screen.Cursor := crDefault;
-  end;
-end;
-
-
-procedure TMainForm.splitterTopBottomMoved(Sender: TObject);
-var
-  Tab: TQueryTab;
-  MinHeight: Integer;
-begin
-  // Ensure query grids are not overlapped by sql log
-  for Tab in QueryTabs do begin
-    MinHeight := Tab.pnlMemo.Height + Tab.tabsetQuery.Height + 20;
-    if Tab.TabSheet.Height < MinHeight then
-      Tab.pnlMemo.Height := Max(Tab.TabSheet.Height - Tab.tabsetQuery.Height - 20, 20);
-    if Tab.TabSheet.Height < MinHeight then
-      SynMemoSQLLog.Height := SynMemoSQLLog.Height - (MinHeight - Tab.TabSheet.Height);
   end;
 end;
 
