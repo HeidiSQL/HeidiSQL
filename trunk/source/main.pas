@@ -5378,19 +5378,19 @@ begin
 
   if Item.Tag = 1 then begin
     // Item needs prompt
-    Val := InputBox('Specify filter-value...', Item.Caption, 'Value');
-    if Val = 'Value' then
-      Filter := ''
-    else if Item = QF8 then
-      Filter := ActiveConnection.QuoteIdent(Col) + ' = ''' + Val + ''''
-    else if Item = QF9 then
-      Filter := ActiveConnection.QuoteIdent(Col) + ' != ''' + Val + ''''
-    else if Item = QF10 then
-      Filter := ActiveConnection.QuoteIdent(Col) + ' > ''' + Val + ''''
-    else if Item = QF11 then
-      Filter := ActiveConnection.QuoteIdent(Col) + ' < ''' + Val + ''''
-    else if Item = QF12 then
-      Filter := ActiveConnection.QuoteIdent(Col) + ' LIKE ''%' + Val + '%''';
+    Val := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
+    if InputQuery('Specify filter-value...', Item.Caption, Val) then begin
+      if Item = QF8 then
+        Filter := ActiveConnection.QuoteIdent(Col) + ' = ''' + Val + ''''
+      else if Item = QF9 then
+        Filter := ActiveConnection.QuoteIdent(Col) + ' != ''' + Val + ''''
+      else if Item = QF10 then
+        Filter := ActiveConnection.QuoteIdent(Col) + ' > ''' + Val + ''''
+      else if Item = QF11 then
+        Filter := ActiveConnection.QuoteIdent(Col) + ' < ''' + Val + ''''
+      else if Item = QF12 then
+        Filter := ActiveConnection.QuoteIdent(Col) + ' LIKE ''%' + Val + '%''';
+    end;
   end else
     Filter := Item.Hint;
 
