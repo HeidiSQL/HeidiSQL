@@ -293,6 +293,7 @@ begin
   MainReg.WriteString(REGNAME_PORT, IntToStr(updownPort.Position));
   MainReg.WriteInteger(REGNAME_NETTYPE, comboNetType.ItemIndex);
   MainReg.WriteBool(REGNAME_COMPRESSED, chkCompressed.Checked);
+  MainReg.WriteBool(REGNAME_LOCALTIMEZONE, chkLocalTimeZone.Checked);
   MainReg.WriteString(REGNAME_DATABASES, comboDatabases.Text);
   MainReg.WriteString(REGNAME_STARTUPSCRIPT, editStartupScript.Text);
   MainReg.WriteString(REGNAME_SSHHOST, editSSHHost.Text);
