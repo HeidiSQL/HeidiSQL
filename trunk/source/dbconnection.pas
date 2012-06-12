@@ -4469,8 +4469,13 @@ begin
         dtcInteger, dtcReal: begin
           if DataType(j).Index = dtBit then
             Result := Result + '=b' + Connection.EscapeString(ColVal)
-          else
+          else begin
+            // Guess (!) the default value silently inserted by the server. This is likely
+            // to be incomplete in cases where a UNIQUE key allows NULL here
+            if ColVal='' then
+              ColVal := '0';
             Result := Result + '=' + ColVal;
+          end;
         end;
         dtcBinary:
           Result := Result + '=' + HexValue(ColVal);
