@@ -1149,12 +1149,15 @@ begin
     ExportStream := TFileStream.Create(DbDir + DBObj.Name+'.sql', fmCreate or fmOpenWrite);
     FHeaderCreated := False;
   end;
-  if ToFile and (not Assigned(ExportStream)) then
-    ExportStream := TFileStream.Create(comboExportOutputTarget.Text, fmCreate or fmOpenWrite);
-  if ToClipboard and (not Assigned(ExportStream)) then
-    ExportStream := TMemoryStream.Create;
-  if ToDb or ToServer then
-    ExportStream := TMemoryStream.Create;
+  if not Assigned(ExportStream) then begin
+    if ToFile then
+      ExportStream := TFileStream.Create(comboExportOutputTarget.Text, fmCreate or fmOpenWrite);
+    // ToDir handled above
+    if ToClipboard then
+      ExportStream := TMemoryStream.Create;
+    if ToDb or ToServer then
+      ExportStream := TMemoryStream.Create;
+  end;
   if not FHeaderCreated then begin
     Header := '-- --------------------------------------------------------' + CRLF +
       Format('-- %-30s%s', ['Host:', DBObj.Connection.Parameters.HostName]) + CRLF +
