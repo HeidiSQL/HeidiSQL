@@ -609,6 +609,8 @@ begin
     SessionNode := TreeObjects.GetNextSibling(SessionNode);
   end;
 
+  Conn := Mainform.ActiveConnection;
+
   if Assigned(ExportStream) then begin
     Output(EXPORT_FILE_FOOTER, False, True, False, False, False);
     Output('/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '''') */', True, False, False, True, True);
@@ -616,10 +618,11 @@ begin
     if comboExportOutputType.Text = OUTPUT_CLIPBOARD then
       StreamToClipboard(ExportStream, nil, false);
     FreeAndNil(ExportStream);
+    // Activate ansi mode or whatever again, locally
+    Conn.Query('/*!40101 SET SQL_MODE=IFNULL(@OLD_LOCAL_SQL_MODE, '''') */');
   end;
   ExportLastDatabase := '';
 
-  Conn := Mainform.ActiveConnection;
   for i:=0 to FModifiedDbs.Count-1 do begin
     Conn.ClearDbObjects(FModifiedDbs[i]);
     DBNode := MainForm.FindDBNode(TreeObjects, Conn, FModifiedDbs[i]);
@@ -1130,6 +1133,10 @@ begin
   ToClipboard := comboExportOutputType.Text = OUTPUT_CLIPBOARD;
   ToDb := comboExportOutputType.Text = OUTPUT_DB;
   ToServer := Copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER;
+  if not Assigned(ExportStream) then begin
+    // Very first round here. Prevent "SHOW CREATE db|table" from using double quotes
+    DBObj.Connection.Query('/*!40101 SET @OLD_LOCAL_SQL_MODE=@@SQL_MODE, SQL_MODE='''' */');
+  end;
 
   if ToServer then
     Quoter := FTargetConnection
