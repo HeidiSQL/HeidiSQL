@@ -552,6 +552,7 @@ type
     menuClearQueryHistory: TMenuItem;
     actGridEditFunction: TAction;
     InsertSQLfunction1: TMenuItem;
+    menuGroupObjects: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -871,6 +872,9 @@ type
     procedure ListVariablesPaintText(Sender: TBaseVirtualTree;
       const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType);
+    procedure DBtreeExpanding(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      var Allowed: Boolean);
+    procedure menuGroupObjectsClick(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -900,6 +904,7 @@ type
     FOperationTicker: Cardinal;
     FOperatingGrid: TBaseVirtualTree;
     FActiveDbObj: TDBObject;
+    FActiveObjectGroup: TListNodeType;
     FIsWine: Boolean;
     FBtnAddTab: TSpeedButton;
     FDBObjectsMaxSize: Int64;
@@ -1274,6 +1279,7 @@ begin
   MainReg.WriteInteger( REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height );
   MainReg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, treeQueryHelpers.Width );
   MainReg.WriteInteger( REGNAME_DBTREEWIDTH, pnlLeft.width );
+  MainReg.WriteBool(REGNAME_GROUPOBJECTS, menuGroupObjects.Checked);
   MainReg.WriteString( REGNAME_DATABASE_FILTER, comboDBFilter.Items.Text );
   MainReg.WriteInteger(REGNAME_PREVIEW_HEIGHT, pnlPreview.Height);
   MainReg.WriteBool(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked);
@@ -1582,7 +1588,8 @@ begin
   prefEnableEnumEditor := GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
   prefEnableSetEditor := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
 
-  // Switch off/on displaying table/db sized in tree
+  // Database tree options
+  menuGroupObjects.Checked := GetRegValue(REGNAME_GROUPOBJECTS, DEFAULT_GROUPOBJECTS);
   menuShowSizeColumn.Checked := GetRegValue(REGNAME_SIZECOL_TREE, DEFAULT_SIZECOL_TREE);
   if menuShowSizeColumn.Checked then
     DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible]
@@ -4686,6 +4693,7 @@ begin
   vt := Sender as TVirtualStringTree;
   if vt.Tag = VTREE_LOADED then
     Exit;
+  LogSQL('ListTablesBeforePaint', lcDebug);
   Screen.Cursor := crHourGlass;
   Conn := ActiveConnection;
   vt.BeginUpdate;
@@ -4693,7 +4701,7 @@ begin
   Msg := '';
   if Conn <> nil then begin
     ShowStatusMsg( 'Displaying objects from "' + Conn.Database + '" ...' );
-    Objects := Conn.GetDBObjects(Conn.Database, vt.Tag = VTREE_NOTLOADED_PURGECACHE);
+    Objects := Conn.GetDBObjects(Conn.Database, vt.Tag = VTREE_NOTLOADED_PURGECACHE, FActiveObjectGroup);
     vt.RootNodeCount := Objects.Count;
 
     NumObjects := TStringList.Create;
@@ -4799,7 +4807,7 @@ begin
   Conn := ActiveConnection;
   if Conn <> nil then begin
     Obj := Sender.GetNodeData(Node);
-    Objects := Conn.GetDBObjects(Conn.Database);
+    Objects := Conn.GetDBObjects(Conn.Database, False, FActiveObjectGroup);
     Obj^ := Objects[Node.Index];
   end;
 end;
@@ -5710,6 +5718,7 @@ begin
     // Show certain items which are valid only here
     menuTreeExpandAll.Visible := True;
     menuTreeCollapseAll.Visible := True;
+    menuGroupObjects.Visible := True;
     menuShowSizeColumn.Visible := True;
     actSelectTreeBackground.Visible := True;
   end else begin
@@ -5731,6 +5740,7 @@ begin
     end;
     menuTreeExpandAll.Visible := False;
     menuTreeCollapseAll.Visible := False;
+    menuGroupObjects.Visible := False;
     menuShowSizeColumn.Visible := False;
     actSelectTreeBackground.Visible := False;
   end;
@@ -6043,27 +6053,40 @@ end;
 
 function TMainForm.FindDBObjectNode(Tree: TBaseVirtualTree; Obj: TDBObject): PVirtualNode;
 var
-  DbNode, ObjectNode: PVirtualNode;
-  DbObj, ObjectObj: PDBObject;
+  DbNode, ObjectNode, GroupedNode: PVirtualNode;
+  DbObj, ObjectObj, GroupedObj: PDBObject;
 begin
   Result := nil;
   DbNode := Tree.GetFirstChild(GetRootNode(Tree, Obj.Connection));
   while Assigned(DbNode) do begin
+    // Search in database nodes
     DbObj := Tree.GetNodeData(DbNode);
     if DBObj.IsSameAs(Obj) then begin
-      // Caller may have searched this db node
       Result := DBNode;
       break;
     end;
+
+    // Search in table/view/... nodes
     if DbObj.Database = Obj.Database then begin
       ObjectNode := Tree.GetFirstChild(DbNode);
       while Assigned(ObjectNode) do begin
         ObjectObj := Tree.GetNodeData(ObjectNode);
         if ObjectObj.IsSameAs(Obj) then begin
-          // Caller asks for table/event/etc.
           Result := ObjectNode;
           break;
         end;
+
+        // Search in grouped table/view/... nodes
+        GroupedNode := Tree.GetFirstChild(ObjectNode);
+        while Assigned(GroupedNode) do begin
+          GroupedObj := Tree.GetNodeData(GroupedNode);
+          if GroupedObj.IsSameAs(Obj) then begin
+            Result := GroupedNode;
+            break;
+          end;
+          GroupedNode := Tree.GetNextSibling(GroupedNode);
+        end;
+
         ObjectNode := Tree.GetNextSibling(ObjectNode);
       end;
       break;
@@ -7014,6 +7037,7 @@ begin
     0: case DBObj.NodeType of
         lntNone: CellText := DBObj.Connection.Parameters.SessionName;
         lntDb: CellText := DBObj.Database;
+        lntGroup: CellText := DBObj.Name;
         lntTable..lntEvent: CellText := DBObj.Name;
         lntColumn: CellText := DBObj.Column;
       end;
@@ -7070,8 +7094,14 @@ begin
   case Kind of
     ikNormal, ikSelected: begin
         ImageIndex := DBObj.ImageIndex;
-        Ghosted := ((DBObj.NodeType = lntNone) and (not DBObj.Connection.Active))
-          or ((DBObj.NodeType = lntDB) and (not DBObj.Connection.DbObjectsCached(DBObj.Database)));
+        Ghosted := (DBObj.NodeType = lntNone) and (not DBObj.Connection.Active);
+        Ghosted := Ghosted or ((DBObj.NodeType = lntDB)
+          and (not DBObj.Connection.DbObjectsCached(DBObj.Database))
+          );
+        Ghosted := Ghosted or ((DBObj.NodeType = lntGroup)
+          and Sender.ChildrenInitialized[Node]
+          and (Sender.ChildCount[Node] = 0)
+          );
       end;
     ikOverlay:
       if DBObj.NodeType = lntNone then begin
@@ -7092,6 +7122,7 @@ procedure TMainForm.DBtreeInitChildren(Sender: TBaseVirtualTree; Node: PVirtualN
 var
   DBObj: PDBObject;
   Columns: TTableColumnList;
+  DBObjects: TDBObjectList;
 begin
   DBObj := Sender.GetNodeData(Node);
   case DBObj.NodeType of
@@ -7109,16 +7140,26 @@ begin
       end;
     // DB node expanding
     lntDb: begin
-        Screen.Cursor := crHourglass;
-        ShowStatusMsg( 'Reading objects ...' );
-        try
-          ChildCount := DBObj.Connection.GetDBObjects(DBObj.Connection.AllDatabases[Node.Index]).Count;
-        finally
-          ShowStatusMsg;
-          Screen.Cursor := crDefault;
+        if menuGroupObjects.Checked then begin
+          // Just tables, views, etc.
+          ChildCount := 6;
+        end else begin
+          ShowStatusMsg( 'Reading objects ...' );
+          Screen.Cursor := crHourglass;
+          try
+            ChildCount := DBObj.Connection.GetDBObjects(DBObj.Connection.AllDatabases[Node.Index]).Count;
+          finally
+            ShowStatusMsg;
+            Screen.Cursor := crDefault;
+          end;
         end;
       end;
-    lntTable, lntView:
+    lntGroup: begin
+        ChildCount := 0;
+        DBObjects := DBObj.Connection.GetDBObjects(DBObj.Database, False, DBObj.GroupType);
+        ChildCount := DBObjects.Count;
+      end;
+    lntTable:
       if GetParentFormOrFrame(Sender) is TfrmSelectDBObject then begin
         Columns := TTableColumnList.Create(True);
         DBObj.Connection.ParseTableStructure(DBObj.CreateCode, Columns, nil, nil);
@@ -7135,38 +7176,64 @@ end;
 procedure TMainForm.DBtreeInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
     PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 var
-  Item, ParentItem: PDBObject;
+  Item, ParentObj: PDBObject;
   DBObjects: TDBObjectList;
   Columns: TTableColumnList;
+  NodeStates: TVirtualNodeInitStates;
 begin
   Item := Sender.GetNodeData(Node);
-  case Sender.GetNodeLevel(Node) of
-    0: begin
-      Item^ := TDBObject.Create(FConnections[Node.Index]);
-      // Ensure plus sign is visible for root (and dbs, see below)
-      Include(InitialStates, ivsHasChildren);
-    end;
-    1: begin
-      Item^ := TDBObject.Create(FConnections[Node.Parent.Index]);
-      Item.NodeType := lntDb;
-      Item.Database := Item.Connection.AllDatabases[Node.Index];
-      Include(InitialStates, ivsHasChildren);
-    end;
-    2: begin
-      DBObjects := FConnections[Node.Parent.Parent.Index].GetDBObjects(FConnections[Node.Parent.Parent.Index].AllDatabases[Node.Parent.Index]);
-      Item^ := DBObjects[Node.Index];
-      if (GetParentFormOrFrame(Sender) is TfrmSelectDBObject) and (Item.NodeType in [lntTable, lntView]) then
+  if not Assigned(ParentNode) then begin
+    Item^ := TDBObject.Create(FConnections[Node.Index]);
+    // Ensure plus sign is visible for root (and dbs, see below)
+    Include(InitialStates, ivsHasChildren);
+  end else begin
+    ParentObj := Sender.GetNodeData(ParentNode);
+    case ParentObj.NodeType of
+      lntNone: begin
+        Item^ := TDBObject.Create(ParentObj.Connection);
+        Item.NodeType := lntDb;
+        Item.Database := Item.Connection.AllDatabases[Node.Index];
         Include(InitialStates, ivsHasChildren);
-    end;
-    3: begin
-      Item^ := TDBObject.Create(FConnections[Node.Parent.Parent.Parent.Index]);
-      Item.NodeType := lntColumn;
-      ParentItem := Sender.GetNodeData(Node.Parent);
-      Columns := TTableColumnList.Create(True);
-      ParentItem.Connection.ParseTableStructure(ParentItem.CreateCode, Columns, nil, nil);
-      Item.Database := ParentItem.Database;
-      Item.Name := ParentItem.Name;
-      Item.Column := Columns[Node.Index].Name;
+      end;
+      lntDb: begin
+        if menuGroupObjects.Checked then begin
+          Item^ := TDBObject.Create(ParentObj.Connection);
+          Item.NodeType := lntGroup;
+          case Node.Index of
+            0: begin Item.GroupType := lntTable; Item.Name := 'Tables'; end;
+            1: begin Item.GroupType := lntView; Item.Name := 'Views'; end;
+            2: begin Item.GroupType := lntProcedure; Item.Name := 'Procedures'; end;
+            3: begin Item.GroupType := lntFunction; Item.Name := 'Functions'; end;
+            4: begin Item.GroupType := lntTrigger; Item.Name := 'Triggers'; end;
+            5: begin Item.GroupType := lntEvent; Item.Name := 'Events'; end;
+          end;
+          Item.Database := ParentObj.Database;
+          NodeStates := [ivsHasChildren];
+          if Item.Connection.DbObjectsCached(Item.Database) then begin
+          end;
+          InitialStates := InitialStates + NodeStates;
+        end else begin
+          DBObjects := ParentObj.Connection.GetDBObjects(ParentObj.Database);
+          Item^ := DBObjects[Node.Index];
+          if (GetParentFormOrFrame(Sender) is TfrmSelectDBObject) and (Item.NodeType = lntTable) then
+            Include(InitialStates, ivsHasChildren);
+        end;
+      end;
+      lntGroup: begin
+        DBObjects := ParentObj.Connection.GetDBObjects(ParentObj.Database, False, ParentObj.GroupType);
+        Item^ := DBObjects[Node.Index];
+        if (GetParentFormOrFrame(Sender) is TfrmSelectDBObject) and (Item.NodeType = lntTable) then
+          Include(InitialStates, ivsHasChildren);
+      end;
+      lntTable: begin
+        Item^ := TDBObject.Create(ParentObj.Connection);
+        Item.NodeType := lntColumn;
+        Columns := TTableColumnList.Create(True);
+        ParentObj.Connection.ParseTableStructure(ParentObj.CreateCode, Columns, nil, nil);
+        Item.Database := ParentObj.Database;
+        Item.Name := ParentObj.Name;
+        Item.Column := Columns[Node.Index].Name;
+      end;
     end;
   end;
 end;
@@ -7177,13 +7244,14 @@ end;
 }
 procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
 var
-  DBObj, PrevDBObj: PDBObject;
+  DBObj, PrevDBObj, ParentDBObj: PDBObject;
   MainTabToActivate: TTabSheet;
   DummyStr: String;
 begin
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
   MainTabToActivate := nil;
   PrevDBObj := nil;
+  ParentDBObj := nil;
 
   if Assigned(Node) then begin
     LogSQL('DBtreeFocusChanged, Node level: '+IntToStr(Sender.GetNodeLevel(Node))+', FTreeRefreshInProgress: '+IntToStr(Integer(FTreeRefreshInProgress)), lcDebug);
@@ -7195,6 +7263,8 @@ begin
     DBObj := Sender.GetNodeData(Node);
     FActiveDbObj := TDBObject.Create(DBObj.Connection);
     FActiveDbObj.Assign(DBObj^);
+    if Assigned(Node.Parent) then
+      ParentDBObj := Sender.GetNodeData(Node.Parent);
 
     case FActiveDbObj.NodeType of
       lntNone: begin
@@ -7202,7 +7272,7 @@ begin
           MainTabToActivate := tabHost;
         FActiveDbObj.Connection.Database := '';
       end;
-      lntDb: begin
+      lntDb, lntGroup: begin
         // Selecting a database can cause an SQL error if the db was deleted from outside. Select previous node in that case.
         try
           FActiveDbObj.Connection.Database := FActiveDbObj.Database;
@@ -7214,6 +7284,7 @@ begin
         end;
         if (not DBtree.Dragging) and (not QueryTabActive) then
           MainTabToActivate := tabDatabase;
+        FActiveObjectGroup := FActiveDbObj.GroupType;
       end;
       lntTable..lntEvent: begin
         try
@@ -7251,6 +7322,7 @@ begin
           InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
         // Update the list of columns
         RefreshHelperNode(HELPERNODE_COLUMNS);
+        FActiveObjectGroup := ParentDBObj.GroupType;
       end;
     end;
 
@@ -7271,7 +7343,14 @@ begin
       end;
     end;
     if (FActiveDbObj.NodeType <> lntNone)
-      and ((PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) or (PrevDBObj.Database <> FActiveDbObj.Database)) then
+      and (
+        (PrevDBObj = nil)
+        or (PrevDBObj.Connection <> FActiveDbObj.Connection)
+        or (PrevDBObj.Database <> FActiveDbObj.Database)
+        or (PrevDBObj.GroupType <> FActiveObjectGroup)
+      ) then
+      InvalidateVT(ListTables, VTREE_NOTLOADED, True);
+    if FActiveDbObj.NodeType = lntGroup then
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
     tabHost.Caption := 'Host: '+sstr(FActiveDbObj.Connection.Parameters.HostName, 20);
     tabDatabase.Caption := 'Database: '+sstr(FActiveDbObj.Connection.Database, 20);
@@ -7423,6 +7502,26 @@ begin
     if DBObj.NodeType in [lntDb, lntTable..lntEvent] then begin
       m := ActiveQueryMemo;
       m.DragDrop(Sender, m.CaretX, m.CaretY);
+    end;
+  end;
+end;
+
+
+procedure TMainForm.DBtreeExpanding(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; var Allowed: Boolean);
+var
+  DBObj: PDBObject;
+  GNode: PVirtualNode;
+begin
+  // Auto-init children of sibling groups
+  DBObj := Sender.GetNodeData(Node);
+  if DBObj.NodeType = lntGroup then begin
+    GNode := Sender.GetFirstChild(Node.Parent);
+    while Assigned(GNode) do begin
+      if not Sender.ChildrenInitialized[GNode] then begin
+        Sender.ReinitChildren(GNode, False);
+      end;
+      GNode := Sender.GetNextSibling(GNode);
     end;
   end;
 end;
@@ -8081,6 +8180,13 @@ begin
     DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options - [coVisible];
   OpenRegistry;
   MainReg.WriteBool(REGNAME_SIZECOL_TREE, NewVal);
+end;
+
+
+procedure TMainForm.menuGroupObjectsClick(Sender: TObject);
+begin
+  // Group tree objects by type
+  RefreshTree(nil);
 end;
 
 

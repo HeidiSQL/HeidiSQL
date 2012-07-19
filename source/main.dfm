@@ -428,6 +428,7 @@ object MainForm: TMainForm
         OnBeforeCellPaint = DBtreeBeforeCellPaint
         OnChange = DBtreeChange
         OnDblClick = DBtreeDblClick
+        OnExpanding = DBtreeExpanding
         OnFocusChanged = DBtreeFocusChanged
         OnFocusChanging = DBtreeFocusChanging
         OnFreeNode = DBtreeFreeNode
@@ -8491,6 +8492,11 @@ object MainForm: TMainForm
       Caption = 'Collapse all'
       ImageIndex = 88
       OnClick = menuTreeCollapseAllClick
+    end
+    object menuGroupObjects: TMenuItem
+      AutoCheck = True
+      Caption = 'Group objects by type'
+      OnClick = menuGroupObjectsClick
     end
     object menuShowSizeColumn: TMenuItem
       Caption = 'Display size of objects'
