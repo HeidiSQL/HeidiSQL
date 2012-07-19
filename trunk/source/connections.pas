@@ -547,6 +547,8 @@ begin
     1: CellText := Sess.Hostname;
     2: CellText := Sess.Username;
     3: CellText := Sess.ServerVersion;
+    4: CellText := DateTimeToStr(Sess.LastConnect);
+    5: CellText := FormatNumber(Sess.Counter);
   end;
 end;
 

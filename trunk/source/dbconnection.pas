@@ -158,9 +158,10 @@ type
       FHostname, FUsername, FPassword, FAllDatabases, FStartupScriptFilename,
       FSessionName, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
-      FPort, FSSHPort, FSSHLocalPort, FSSHTimeout: Integer;
+      FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter: Integer;
       FLoginPrompt, FCompressed, FLocalTimeZone, FWindowsAuth, FWantSSL: Boolean;
       FSessionColor: TColor;
+      FLastConnect: TDateTime;
       function GetImageIndex: Integer;
     public
       constructor Create;
@@ -179,6 +180,8 @@ type
       property NetType: TNetType read FNetType write FNetType;
       property NetTypeGroup: TNetTypeGroup read GetNetTypeGroup;
       property ServerVersion: String read FServerVersion write FServerVersion;
+      property Counter: Integer read FCounter write FCounter;
+      property LastConnect: TDateTime read FLastConnect write FLastConnect;
       property SessionName: String read FSessionName write FSessionName;
       property SessionColor: TColor read FSessionColor write FSessionColor;
       property Hostname: String read FHostname write FHostname;
@@ -747,6 +750,8 @@ end;
 
 
 class function TConnectionParameters.ReadFromRegistry(Session: String): TConnectionParameters;
+var
+  DummyDate: TDateTime;
 begin
   if not Mainreg.KeyExists(REGPATH + REGKEY_SESSIONS + Session) then
     raise Exception.Create('Error: Session "'+Session+'" not found in registry.')
@@ -779,6 +784,9 @@ begin
     Result.Compressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session);
     Result.LocalTimeZone := GetRegValue(REGNAME_LOCALTIMEZONE, DEFAULT_LOCALTIMEZONE, Session);
     Result.ServerVersion := GetRegValue(REGNAME_SERVERVERSION_FULL, '', Session);
+    DummyDate := StrToDateTime('2000-01-01');
+    Result.LastConnect := StrToDateTimeDef(GetRegValue(REGNAME_LASTCONNECT, '', Session), DummyDate);
+    Result.Counter := GetRegValue(REGNAME_CONNECTCOUNT, 0, Session);
   end;
 end;
 
