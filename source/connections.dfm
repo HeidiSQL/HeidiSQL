@@ -134,6 +134,16 @@ object connform: Tconnform
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 3
         WideText = 'Version'
+      end
+      item
+        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+        Position = 4
+        WideText = 'Last connect'
+      end
+      item
+        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+        Position = 5
+        WideText = 'Counter'
       end>
   end
   object btnNew: TButton
