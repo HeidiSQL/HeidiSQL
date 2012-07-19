@@ -10,7 +10,7 @@ uses
 type
   { TDBObjectList and friends }
 
-  TListNodeType = (lntNone, lntDb, lntTable, lntView, lntFunction, lntProcedure, lntTrigger, lntEvent, lntColumn);
+  TListNodeType = (lntNone, lntDb, lntGroup, lntTable, lntView, lntFunction, lntProcedure, lntTrigger, lntEvent, lntColumn);
   TListNodeTypes = Set of TListNodeType;
   TDBConnection = class;
   TDBQuery = class;
@@ -28,7 +28,7 @@ type
       Name, Database, Column, Engine, Comment, RowFormat, CreateOptions, Collation: String;
       Created, Updated, LastChecked: TDateTime;
       Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
-      NodeType: TListNodeType;
+      NodeType, GroupType: TListNodeType;
       constructor Create(OwnerConnection: TDBConnection);
       procedure Assign(Source: TPersistent); override;
       function IsSameAs(CompareTo: TDBObject): Boolean;
@@ -48,14 +48,16 @@ type
       FLargestObjectSize: Int64;
       FLastUpdate: TDateTime;
       FCollation: String;
+      FOnlyNodeType: TListNodeType;
     public
       property Database: String read FDatabase;
       property DataSize: Int64 read FDataSize;
       property LargestObjectSize: Int64 read FLargestObjectSize;
       property LastUpdate: TDateTime read FLastUpdate;
       property Collation: String read FCollation;
+      property OnlyNodeType: TListNodeType read FOnlyNodeType;
   end;
-  TDatabaseList = TObjectList<TDBObjectList>; // A list of db object lists, used for caching
+  TDatabaseCache = class(TObjectList<TDBObjectList>); // A list of db object lists, used for caching
   TDBObjectComparer = class(TComparer<TDBObject>)
     function Compare(const Left, Right: TDBObject): Integer; override;
   end;
@@ -244,7 +246,7 @@ type
       FCollationTable: TDBQuery;
       FCharsetTable: TDBQuery;
       FInformationSchemaObjects: TStringList;
-      FDatabases: TDatabaseList;
+      FDatabaseCache: TDatabaseCache;
       FObjectNamesInSelectedDB: TStrings;
       FResultCount: Integer;
       FCurrentUserHostCombination: String;
@@ -276,6 +278,7 @@ type
       function GetCurrentUserHostCombination: String;
       function DecodeAPIString(a: AnsiString): String;
       procedure ClearCache(IncludeDBObjects: Boolean);
+      procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
       procedure SetObjectNamesInSelectedDB;
       procedure SetLockedByThread(Value: TThread); virtual;
     public
@@ -295,7 +298,7 @@ type
       function GetVar(SQL: String; Column: String): String; overload;
       function Ping(Reconnect: Boolean): Boolean; virtual; abstract;
       function RefreshAllDatabases: TStringList;
-      function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList; virtual; abstract;
+      function GetDBObjects(db: String; Refresh: Boolean=False; OnlyNodeType: TListNodeType=lntNone): TDBObjectList;
       function DbObjectsCached(db: String): Boolean;
       function ParseDateTime(Str: String): TDateTime;
       function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
@@ -380,13 +383,13 @@ type
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
       function GetCreateViewCode(Database, Name: String): String;
+      procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
       procedure SetLockedByThread(Value: TThread); override;
     public
       constructor Create(AOwner: TComponent); override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function ConvertServerVersion(Version: Integer): String; override;
       function Ping(Reconnect: Boolean): Boolean; override;
-      function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList; override;
       function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
       property LastRawResults: TMySQLRawResults read FLastRawResults;
@@ -411,13 +414,13 @@ type
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
       function GetInformationSchemaObjects: TStringList; override;
+      procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function ConvertServerVersion(Version: Integer): String; override;
       function Ping(Reconnect: Boolean): Boolean; override;
-      function GetDBObjects(db: String; Refresh: Boolean=False): TDBObjectList; override;
       function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
       function GetServerVariables: TDBQuery; override;
@@ -797,7 +800,7 @@ begin
   FLogPrefix := '';
   FIsUnicode := False;
   FIsSSL := False;
-  FDatabases := TDatabaseList.Create(True);
+  FDatabaseCache := TDatabaseCache.Create(True);
   FLoginPromptDone := False;
   FCurrentUserHostCombination := '';
 end;
@@ -2435,14 +2438,15 @@ end;
 procedure TDBConnection.ClearDbObjects(db: String);
 var
   i: Integer;
+  TriggerClearEvent: Boolean;
 begin
   // Free cached database object list
-  for i:=0 to FDatabases.Count-1 do begin
-    if FDatabases[i].Database = db then begin
-      FDatabases.Delete(i);
-      if Assigned(FOnDBObjectsCleared) then
+  for i:=FDatabaseCache.Count-1 downto 0 do begin
+    if FDatabaseCache[i].Database = db then begin
+      TriggerClearEvent := FDatabaseCache[i].OnlyNodeType=lntNone;
+      FDatabaseCache.Delete(i);
+      if TriggerClearEvent and Assigned(FOnDBObjectsCleared) then
         FOnDBObjectsCleared(Self, db);
-      break;
     end;
   end;
 end;
@@ -2452,8 +2456,10 @@ procedure TDBConnection.ClearAllDbObjects;
 var
   i: Integer;
 begin
-  for i:=FDatabases.Count-1 downto 0 do
-    ClearDbObjects(FDatabases[i].Database);
+  for i:=FDatabaseCache.Count-1 downto 0 do begin
+    if FDatabaseCache.Count > i then
+      ClearDbObjects(FDatabaseCache[i].Database);
+  end;
 end;
 
 
@@ -2463,8 +2469,8 @@ var
 begin
   // Check if a table list is stored in cache
   Result := False;
-  for i:=0 to FDatabases.Count-1 do begin
-    if FDatabases[i].Database = db then begin
+  for i:=0 to FDatabaseCache.Count-1 do begin
+    if FDatabaseCache[i].Database = db then begin
       Result := True;
       break;
     end;
@@ -2496,253 +2502,253 @@ begin
 end;
 
 
-function TMySQLConnection.GetDbObjects(db: String; Refresh: Boolean=False): TDBObjectList;
+function TDBConnection.GetDbObjects(db: String; Refresh: Boolean=False; OnlyNodeType: TListNodeType=lntNone): TDBObjectList;
+var
+  Cache: TDBObjectList;
+  i: Integer;
+begin
+  // Cache and return a db's table list
+  if Refresh then
+    ClearDbObjects(db);
+
+  // Find list in cache
+  Cache := nil;
+  for i:=0 to FDatabaseCache.Count-1 do begin
+    if (FDatabaseCache[i].Database = db) and (FDatabaseCache[i].OnlyNodeType=lntNone) then begin
+      Cache := FDatabaseCache[i];
+      break;
+    end;
+  end;
+
+  // Fill cache if not yet fetched
+  if not Assigned(Cache) then begin
+    Cache := TDBObjectList.Create(TDBObjectComparer.Create);
+    Cache.OwnsObjects := True;
+    Cache.FOnlyNodeType := lntNone;
+    Cache.FLastUpdate := 0;
+    Cache.FDataSize := 0;
+    Cache.FDatabase := db;
+    FetchDbObjects(db, Cache);
+    // Find youngest last update
+    for i:=0 to Cache.Count-1 do
+      Cache.FLastUpdate := Max(Cache.FLastUpdate, Max(Cache[i].Updated, Cache[i].Created));
+    // Sort list like it get sorted in AnyGridCompareNodes
+    Cache.Sort;
+    // Add list of objects in this database to cached list of all databases
+    FDatabaseCache.Add(Cache);
+    SetObjectNamesInSelectedDB;
+  end;
+
+  Result := nil;
+  for i:=0 to FDatabaseCache.Count-1 do begin
+    if (FDatabaseCache[i].Database = db) and (FDatabaseCache[i].OnlyNodeType=OnlyNodeType) then begin
+      Result := FDatabaseCache[i];
+      break;
+    end;
+  end;
+  if not Assigned(Result) then begin
+    Result := TDBObjectList.Create(TDBObjectComparer.Create);
+    Result.OwnsObjects := False;
+    Result.FOnlyNodeType := OnlyNodeType;
+    Result.FLastUpdate := Cache.FLastUpdate;
+    Result.FDataSize := Cache.FDataSize;
+    Result.FDatabase := Cache.FDatabase;
+    Result.FCollation := Cache.FCollation;
+    for i:=0 to Cache.Count-1 do begin
+      if Cache[i].NodeType = OnlyNodeType then
+        Result.Add(Cache[i]);
+    end;
+  end;
+end;
+
+
+procedure TMySQLConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
 var
   obj: TDBObject;
   Results: TDBQuery;
   rx: TRegExpr;
-  i: Integer;
 begin
-  // Cache and return a db's table list
-  if Refresh then
-    ClearDbObjects(db);
+  // Return a db's table list
+  try
+    Cache.FCollation := GetVar('SELECT '+QuoteIdent('DEFAULT_COLLATION_NAME')+
+      ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('SCHEMATA')+
+      ' WHERE '+QuoteIdent('SCHEMA_NAME')+'='+EscapeString(db));
+  except
+    Cache.FCollation := '';
+  end;
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
 
-  // Find list in cache
-  Result := nil;
-  for i:=0 to FDatabases.Count-1 do begin
-    if FDatabases[i].Database = db then begin
-      Result := FDatabases[i];
-      break;
+  // Tables and views
+  Results := nil;
+  try
+    Results := GetResults('SHOW TABLE STATUS FROM '+QuoteIdent(db));
+  except
+    on E:EDatabaseError do;
+  end;
+  if Assigned(Results) then begin
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('Name');
+      obj.Database := db;
+      obj.Rows := StrToInt64Def(Results.Col('Rows'), -1);
+      if (not Results.IsNull('Data_length')) and (not Results.IsNull('Index_length')) then begin
+        Obj.Size := StrToInt64Def(Results.Col('Data_length'), 0) + StrToInt64Def(Results.Col('Index_length'), 0);
+        Inc(Cache.FDataSize, Obj.Size);
+        Cache.FLargestObjectSize := Max(Cache.FLargestObjectSize, Obj.Size);
+      end;
+      Obj.NodeType := lntTable;
+      if Results.IsNull(1) and Results.IsNull(2) then // Engine column is NULL for views
+        Obj.NodeType := lntView;
+      Obj.Created := ParseDateTime(Results.Col('Create_time'));
+      Obj.Updated := ParseDateTime(Results.Col('Update_time'));
+      if Results.ColExists('Type') then
+        Obj.Engine := Results.Col('Type')
+      else
+        Obj.Engine := Results.Col('Engine');
+      Obj.Comment := Results.Col('Comment');
+      // Sanitize comment from automatically appendage
+      rx.Expression := '(;\s*)?InnoDB\s*free\:.*$';
+      Obj.Comment := rx.Replace(Obj.Comment, '', False);
+      Obj.Version := StrToInt64Def(Results.Col('Version', True), Obj.Version);
+      Obj.AutoInc := StrToInt64Def(Results.Col('Auto_increment'), Obj.AutoInc);
+      Obj.RowFormat := Results.Col('Row_format');
+      Obj.AvgRowLen := StrToInt64Def(Results.Col('Avg_row_length'), Obj.AvgRowLen);
+      Obj.MaxDataLen := StrToInt64Def(Results.Col('Max_data_length'), Obj.MaxDataLen);
+      Obj.IndexLen := StrToInt64Def(Results.Col('Index_length'), Obj.IndexLen);
+      Obj.DataLen := StrToInt64Def(Results.Col('Data_length'), Obj.DataLen);
+      Obj.DataFree := StrToInt64Def(Results.Col('Data_free'), Obj.DataFree);
+      Obj.LastChecked := ParseDateTime(Results.Col('Check_time'));
+      Obj.Collation := Results.Col('Collation', True);
+      Obj.CheckSum := StrToInt64Def(Results.Col('Checksum', True), Obj.CheckSum);
+      Obj.CreateOptions := Results.Col('Create_options');
+      Results.Next;
     end;
+    FreeAndNil(Results);
   end;
 
-  if not Assigned(Result) then begin
-    Result := TDBObjectList.Create(TDBObjectComparer.Create);
-    Result.FLastUpdate := 0;
-    Result.FDataSize := 0;
-    Result.FDatabase := db;
-    try
-      Result.FCollation := GetVar('SELECT '+QuoteIdent('DEFAULT_COLLATION_NAME')+
-        ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('SCHEMATA')+
-        ' WHERE '+QuoteIdent('SCHEMA_NAME')+'='+EscapeString(db));
-    except
-      Result.FCollation := '';
+  // Stored functions
+  if ServerVersionInt >= 50000 then try
+    Results := GetResults('SHOW FUNCTION STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
+  except
+    on E:EDatabaseError do;
+  end;
+  if Assigned(Results) then begin
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('Name');
+      obj.Database := db;
+      Obj.NodeType := lntFunction;
+      Obj.Created := ParseDateTime(Results.Col('Created'));
+      Obj.Updated := ParseDateTime(Results.Col('Modified'));
+      Obj.Comment := Results.Col('Comment');
+      Results.Next;
     end;
-    Results := nil;
-    rx := TRegExpr.Create;
-    rx.ModifierI := True;
-
-    // Tables and views
-    try
-      Results := GetResults('SHOW TABLE STATUS FROM '+QuoteIdent(db));
-    except
-      on E:EDatabaseError do;
-    end;
-    if Assigned(Results) then begin
-      while not Results.Eof do begin
-        obj := TDBObject.Create(Self);
-        Result.Add(obj);
-        obj.Name := Results.Col('Name');
-        obj.Database := db;
-        obj.Rows := StrToInt64Def(Results.Col('Rows'), -1);
-        if (not Results.IsNull('Data_length')) and (not Results.IsNull('Index_length')) then begin
-          Obj.Size := StrToInt64Def(Results.Col('Data_length'), 0) + StrToInt64Def(Results.Col('Index_length'), 0);
-          Inc(Result.FDataSize, Obj.Size);
-          Result.FLargestObjectSize := Max(Result.FLargestObjectSize, Obj.Size);
-        end;
-        Obj.NodeType := lntTable;
-        if Results.IsNull(1) and Results.IsNull(2) then // Engine column is NULL for views
-          Obj.NodeType := lntView;
-        Obj.Created := ParseDateTime(Results.Col('Create_time'));
-        Obj.Updated := ParseDateTime(Results.Col('Update_time'));
-        if Results.ColExists('Type') then
-          Obj.Engine := Results.Col('Type')
-        else
-          Obj.Engine := Results.Col('Engine');
-        Obj.Comment := Results.Col('Comment');
-        // Sanitize comment from automatically appendage
-        rx.Expression := '(;\s*)?InnoDB\s*free\:.*$';
-        Obj.Comment := rx.Replace(Obj.Comment, '', False);
-        Obj.Version := StrToInt64Def(Results.Col('Version', True), Obj.Version);
-        Obj.AutoInc := StrToInt64Def(Results.Col('Auto_increment'), Obj.AutoInc);
-        Obj.RowFormat := Results.Col('Row_format');
-        Obj.AvgRowLen := StrToInt64Def(Results.Col('Avg_row_length'), Obj.AvgRowLen);
-        Obj.MaxDataLen := StrToInt64Def(Results.Col('Max_data_length'), Obj.MaxDataLen);
-        Obj.IndexLen := StrToInt64Def(Results.Col('Index_length'), Obj.IndexLen);
-        Obj.DataLen := StrToInt64Def(Results.Col('Data_length'), Obj.DataLen);
-        Obj.DataFree := StrToInt64Def(Results.Col('Data_free'), Obj.DataFree);
-        Obj.LastChecked := ParseDateTime(Results.Col('Check_time'));
-        Obj.Collation := Results.Col('Collation', True);
-        Obj.CheckSum := StrToInt64Def(Results.Col('Checksum', True), Obj.CheckSum);
-        Obj.CreateOptions := Results.Col('Create_options');
-        Results.Next;
-      end;
-      FreeAndNil(Results);
-    end;
-
-    // Stored functions
-    if ServerVersionInt >= 50000 then try
-      Results := GetResults('SHOW FUNCTION STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
-    except
-      on E:EDatabaseError do;
-    end;
-    if Assigned(Results) then begin
-      while not Results.Eof do begin
-        obj := TDBObject.Create(Self);
-        Result.Add(obj);
-        obj.Name := Results.Col('Name');
-        obj.Database := db;
-        Obj.NodeType := lntFunction;
-        Obj.Created := ParseDateTime(Results.Col('Created'));
-        Obj.Updated := ParseDateTime(Results.Col('Modified'));
-        Obj.Comment := Results.Col('Comment');
-        Results.Next;
-      end;
-      FreeAndNil(Results);
-    end;
-
-    // Stored procedures
-    if ServerVersionInt >= 50000 then try
-      Results := GetResults('SHOW PROCEDURE STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
-    except
-      on E:EDatabaseError do;
-    end;
-    if Assigned(Results) then begin
-      while not Results.Eof do begin
-        obj := TDBObject.Create(Self);
-        Result.Add(obj);
-        obj.Name := Results.Col('Name');
-        obj.Database := db;
-        Obj.NodeType := lntProcedure;
-        Obj.Created := ParseDateTime(Results.Col('Created'));
-        Obj.Updated := ParseDateTime(Results.Col('Modified'));
-        Obj.Comment := Results.Col('Comment');
-        Results.Next;
-      end;
-      FreeAndNil(Results);
-    end;
-
-    // Triggers
-    if ServerVersionInt >= 50010 then try
-      Results := GetResults('SHOW TRIGGERS FROM '+QuoteIdent(db));
-    except
-      on E:EDatabaseError do;
-    end;
-    if Assigned(Results) then begin
-      while not Results.Eof do begin
-        obj := TDBObject.Create(Self);
-        Result.Add(obj);
-        obj.Name := Results.Col('Trigger');
-        obj.Database := db;
-        Obj.NodeType := lntTrigger;
-        Obj.Created := ParseDateTime(Results.Col('Created'));
-        Obj.Comment := Results.Col('Timing')+' '+Results.Col('Event')+' in table '+QuoteIdent(Results.Col('Table'));
-        Results.Next;
-      end;
-      FreeAndNil(Results);
-    end;
-
-    // Events
-    if ServerVersionInt >= 50100 then try
-      Results := GetResults('SHOW EVENTS FROM '+QuoteIdent(db));
-    except
-      on E:EDatabaseError do;
-    end;
-    if Assigned(Results) then begin
-      while not Results.Eof do begin
-        if Results.Col('Db') = db then begin
-          Obj := TDBObject.Create(Self);
-          Result.Add(obj);
-          Obj.Name := Results.Col('Name');
-          Obj.Database := db;
-          Obj.NodeType := lntEvent;
-        end;
-        Results.Next;
-      end;
-      FreeAndNil(Results);
-    end;
-
-    // Find youngest last update
-    for i:=0 to Result.Count-1 do
-      Result.FLastUpdate := Max(Result.FLastUpdate, Max(Result[i].Updated, Result[i].Created));
-    // Sort list like it get sorted in AnyGridCompareNodes
-    Result.Sort;
-    // Add list of objects in this database to cached list of all databases
-    FDatabases.Add(Result);
-    SetObjectNamesInSelectedDB;
+    FreeAndNil(Results);
   end;
 
+  // Stored procedures
+  if ServerVersionInt >= 50000 then try
+    Results := GetResults('SHOW PROCEDURE STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
+  except
+    on E:EDatabaseError do;
+  end;
+  if Assigned(Results) then begin
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('Name');
+      obj.Database := db;
+      Obj.NodeType := lntProcedure;
+      Obj.Created := ParseDateTime(Results.Col('Created'));
+      Obj.Updated := ParseDateTime(Results.Col('Modified'));
+      Obj.Comment := Results.Col('Comment');
+      Results.Next;
+    end;
+    FreeAndNil(Results);
+  end;
+
+  // Triggers
+  if ServerVersionInt >= 50010 then try
+    Results := GetResults('SHOW TRIGGERS FROM '+QuoteIdent(db));
+  except
+    on E:EDatabaseError do;
+  end;
+  if Assigned(Results) then begin
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('Trigger');
+      obj.Database := db;
+      Obj.NodeType := lntTrigger;
+      Obj.Created := ParseDateTime(Results.Col('Created'));
+      Obj.Comment := Results.Col('Timing')+' '+Results.Col('Event')+' in table '+QuoteIdent(Results.Col('Table'));
+      Results.Next;
+    end;
+    FreeAndNil(Results);
+  end;
+
+  // Events
+  if ServerVersionInt >= 50100 then try
+    Results := GetResults('SHOW EVENTS FROM '+QuoteIdent(db));
+  except
+    on E:EDatabaseError do;
+  end;
+  if Assigned(Results) then begin
+    while not Results.Eof do begin
+      if Results.Col('Db') = db then begin
+        Obj := TDBObject.Create(Self);
+        Cache.Add(obj);
+        Obj.Name := Results.Col('Name');
+        Obj.Database := db;
+        Obj.NodeType := lntEvent;
+      end;
+      Results.Next;
+    end;
+    FreeAndNil(Results);
+  end;
 end;
 
 
-function TAdoDBConnection.GetDbObjects(db: String; Refresh: Boolean=False): TDBObjectList;
+procedure TAdoDBConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
 var
   obj: TDBObject;
   Results: TDBQuery;
-  i: Integer;
   tp: String;
 begin
-  // Cache and return a db's table list
-  if Refresh then
-    ClearDbObjects(db);
-
-  // Find list in cache
-  Result := nil;
-  for i:=0 to FDatabases.Count-1 do begin
-    if FDatabases[i].Database = db then begin
-      Result := FDatabases[i];
-      break;
-    end;
+  // Tables, views and procedures
+  Results := nil;
+  try
+    Results := GetResults('SELECT * FROM '+QuoteIdent(db)+GetSQLSpecifity(spDbObjectsTable)+
+      ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+', '+EscapeString('TR')+', '+EscapeString('FN')+')');
+  except
+    on E:EDatabaseError do;
   end;
-
-  if not Assigned(Result) then begin
-    Result := TDBObjectList.Create(TDBObjectComparer.Create);
-    Result.FLastUpdate := 0;
-    Result.FDataSize := 0;
-    Result.FDatabase := db;
-    Results := nil;
-
-    // Tables, views and procedures
-    try
-      Results := GetResults('SELECT * FROM '+QuoteIdent(db)+GetSQLSpecifity(spDbObjectsTable)+
-        ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+', '+EscapeString('TR')+', '+EscapeString('FN')+')');
-    except
-      on E:EDatabaseError do;
+  if Assigned(Results) then begin
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('name');
+      obj.Created := ParseDateTime(Results.Col(GetSQLSpecifity(spDbObjectsCreateCol), True));
+      obj.Updated := ParseDateTime(Results.Col(GetSQLSpecifity(spDbObjectsUpdateCol), True));
+      obj.Database := db;
+      tp := Trim(Results.Col(GetSQLSpecifity(spDbObjectsTypeCol), True));
+      if tp = 'U' then
+        obj.NodeType := lntTable
+      else if tp = 'P' then
+        obj.NodeType := lntProcedure
+      else if tp = 'V' then
+        obj.NodeType := lntView
+      else if tp = 'TR' then
+        obj.NodeType := lntTrigger
+      else if tp = 'FN' then
+        obj.NodeType := lntFunction;
+      Results.Next;
     end;
-    if Assigned(Results) then begin
-      while not Results.Eof do begin
-        obj := TDBObject.Create(Self);
-        Result.Add(obj);
-        obj.Name := Results.Col('name');
-        obj.Created := ParseDateTime(Results.Col(GetSQLSpecifity(spDbObjectsCreateCol), True));
-        obj.Updated := ParseDateTime(Results.Col(GetSQLSpecifity(spDbObjectsUpdateCol), True));
-        obj.Database := db;
-        tp := Trim(Results.Col(GetSQLSpecifity(spDbObjectsTypeCol), True));
-        if tp = 'U' then
-          obj.NodeType := lntTable
-        else if tp = 'P' then
-          obj.NodeType := lntProcedure
-        else if tp = 'V' then
-          obj.NodeType := lntView
-        else if tp = 'TR' then
-          obj.NodeType := lntTrigger
-        else if tp = 'FN' then
-          obj.NodeType := lntFunction;
-        Results.Next;
-      end;
-      FreeAndNil(Results);
-    end;
-
-    // Find youngest last update
-    for i:=0 to Result.Count-1 do
-      Result.FLastUpdate := Max(Result.FLastUpdate, Max(Result[i].Updated, Result[i].Created));
-    // Sort list like it get sorted in AnyGridCompareNodes
-    Result.Sort;
-    // Add list of objects in this database to cached list of all databases
-    FDatabases.Add(Result);
-    SetObjectNamesInSelectedDB;
+    FreeAndNil(Results);
   end;
-
 end;
 
 
@@ -4567,6 +4573,7 @@ begin
     Engine := s.Engine;
     Database := s.Database;
     NodeType := s.NodeType;
+    GroupType := s.GroupType;
     Created := s.Created;
     Updated := s.Updated;
     Comment := s.Comment;
@@ -4613,6 +4620,18 @@ begin
     lntNone: Result := FConnection.Parameters.ImageIndex;
 
     lntDb: Result := ICONINDEX_DB;
+
+    lntGroup: begin
+      case GroupType of
+        lntTable: Result := ICONINDEX_TABLE;
+        lntFunction: Result := ICONINDEX_STOREDFUNCTION;
+        lntProcedure: Result := ICONINDEX_STOREDPROCEDURE;
+        lntView: Result := ICONINDEX_VIEW;
+        lntTrigger: Result := ICONINDEX_TRIGGER;
+        lntEvent: Result := ICONINDEX_EVENT;
+        else Result := -1;
+      end;
+    end;
 
     lntTable: Result := ICONINDEX_TABLE;
     lntFunction: Result := ICONINDEX_STOREDFUNCTION;

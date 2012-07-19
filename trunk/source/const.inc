@@ -293,6 +293,8 @@ const
   REGNAME_BG_NULL = 'Field_NullBackground';
   DEFAULT_BG_NULL = $00FF00FF; // clMagenta
 
+  REGNAME_GROUPOBJECTS = 'GroupTreeObjects';
+  DEFAULT_GROUPOBJECTS = False;
   REGNAME_SIZECOL_TREE = 'DisplayObjectSizeColumn';
   DEFAULT_SIZECOL_TREE = True;
 
