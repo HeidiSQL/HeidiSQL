@@ -9641,20 +9641,9 @@ end;
 procedure TMainForm.SetWindowCaption;
 var
   Cap: String;
-  Conn: TDBConnection;
 begin
   // Set window caption and taskbar text
-  Cap := '';
-  Conn := ActiveConnection;
-  if Conn <> nil then begin
-    Cap := Cap + Conn.Parameters.SessionName;
-    if Conn.Database <> '' then
-      Cap := Cap + ' /' + Conn.Database;
-    if Assigned(ActiveDbObj) and (ActiveDbObj.Name <> '') then
-      Cap := Cap + '/' + ActiveDbObj.Name;
-    Cap := Cap + ' - ';
-  end;
-  Cap := Cap + APPNAME;
+  Cap := DBtree.Path(DBtree.FocusedNode, 0, ttNormal, '/') + ' - ' + APPNAME;
   if PortableMode then
     Cap := Cap + ' Portable';
   Cap := Cap + ' ' + AppVersion;
