@@ -505,9 +505,9 @@ end;
 
 procedure TfrmTableTools.Execute(Sender: TObject);
 var
-  SessionNode, DBNode, TableNode: PVirtualNode;
-  Triggers, Views: TDBObjectList;
-  DBObj: PDBObject;
+  SessionNode, DBNode: PVirtualNode;
+  CheckedObjects, Triggers, Views: TDBObjectList;
+  DBObj: TDBObject;
   i: Integer;
   Conn: TDBConnection;
 
@@ -534,6 +534,40 @@ var
     end;
   end;
 
+  procedure SetCheckedObjects(DBNode: PVirtualNode);
+  var
+    Child, GrandChild: PVirtualNode;
+    ChildObj, GrandChildObj: PDBObject;
+  begin
+    CheckedObjects.Clear;
+    Child := TreeObjects.GetFirstChild(DBNode);
+    while Assigned(Child) do begin
+      if Child.CheckState in CheckedStates then begin
+        ChildObj := TreeObjects.GetNodeData(Child);
+
+        case ChildObj.NodeType of
+
+          lntGroup: begin
+            GrandChild := TreeObjects.GetFirstChild(Child);
+            while Assigned(GrandChild) do begin
+              if GrandChild.CheckState in CheckedStates then begin
+                GrandChildObj := TreeObjects.GetNodeData(GrandChild);
+                CheckedObjects.Add(GrandChildObj^);
+              end;
+              GrandChild := TreeObjects.GetNextSibling(GrandChild);
+            end;
+          end
+
+          else begin
+            CheckedObjects.Add(ChildObj^);
+          end;
+
+        end;
+      end;
+      Child := TreeObjects.GetNextSibling(Child);
+    end;
+  end;
+
 begin
   Screen.Cursor := crHourGlass;
   // Disable critical controls so ProcessMessages is unable to do things while export is in progress
@@ -553,6 +587,7 @@ begin
   ResultGrid.Clear;
   FResults.Clear;
   FFindSeeResultSQL.Clear;
+  CheckedObjects := TDBObjectList.Create(False);
   Triggers := TDBObjectList.Create(False); // False, so we can .Free that object afterwards without loosing the contained objects
   Views := TDBObjectList.Create(False);
   FHeaderCreated := False;
@@ -568,24 +603,20 @@ begin
         Triggers.Clear;
         Views.Clear;
         FSecondExportPass := False;
-        TableNode := TreeObjects.GetFirstChild(DBNode);
-        while Assigned(TableNode) do begin
-          if (csCheckedNormal in [TableNode.CheckState, DBNode.CheckState]) and (TableNode.CheckType <> ctNone) then begin
-            DBObj := TreeObjects.GetNodeData(TableNode);
-            // Triggers have to be exported at the very end
-            if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntTrigger) then
-              Triggers.Add(DBObj^)
-            else begin
-              ProcessNode(DBObj^);
-              FObjectSizesDone := FObjectSizesDone + Max(DBObj.Size, 0);
-              FObjectSizesDoneExact := FObjectSizesDone;
-              if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntView) then
-                Views.Add(DBObj^);
-            end;
+        SetCheckedObjects(DBNode);
+        for DBObj in CheckedObjects do begin
+          // Triggers have to be exported at the very end
+          if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntTrigger) then
+            Triggers.Add(DBObj)
+          else begin
+            ProcessNode(DBObj);
+            FObjectSizesDone := FObjectSizesDone + Max(DBObj.Size, 0);
+            FObjectSizesDoneExact := FObjectSizesDone;
+            if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntView) then
+              Views.Add(DBObj);
           end;
           // File creation exception occurred or user clicked cancel button
           if FCancelled then Break;
-          TableNode := TreeObjects.GetNextSibling(TableNode);
         end; // End of db object node loop in db
 
         // Special block for late created triggers in export mode
