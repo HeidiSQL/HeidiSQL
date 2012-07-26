@@ -689,17 +689,20 @@ begin
   S.WriteString(tmp);
 
   if radioOutputCopyToClipboard.Checked then begin
-    case ExportFormat of
-      efSQLInsert, efSQLReplace: begin
-        Exporter := TSynExporterHTML.Create(Self);
-        Exporter.Highlighter := MainForm.SynSQLSyn1;
-        Exporter.ExportAll(Explode(CRLF, S.DataString));
-        HTML := TMemoryStream.Create;
-        Exporter.SaveToStream(HTML);
-        Exporter.Free;
+    // SynEdit's exporter is slow on large strings, see issue #2903
+    if S.Size < 100*SIZE_KB then begin
+      case ExportFormat of
+        efSQLInsert, efSQLReplace: begin
+          Exporter := TSynExporterHTML.Create(Self);
+          Exporter.Highlighter := MainForm.SynSQLSyn1;
+          Exporter.ExportAll(Explode(CRLF, S.DataString));
+          HTML := TMemoryStream.Create;
+          Exporter.SaveToStream(HTML);
+          Exporter.Free;
+        end;
+        efHTML: HTML := S;
+        else HTML := nil;
       end;
-      efHTML: HTML := S;
-      else HTML := nil;
     end;
     StreamToClipboard(S, HTML, (ExportFormat=efHTML) and (HTML <> nil));
   end else begin
