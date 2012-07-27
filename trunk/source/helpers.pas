@@ -182,10 +182,12 @@ type
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   function ComposeOrderClause(Cols: TOrderColArray): String;
-  procedure OpenRegistry(Session: String = '');
-  function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer; Overload;
-  function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean; Overload;
-  function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String; Overload;
+  procedure OpenRegistry(SessionPath: String = '');
+  function GetRegValue( valueName: String; defaultValue: Integer; SessionPath: String = '' ) : Integer; Overload;
+  function GetRegValue( valueName: String; defaultValue: Boolean; SessionPath: String = '' ) : Boolean; Overload;
+  function GetRegValue( valueName: String; defaultValue: String; SessionPath: String = '' ) : String; Overload;
+  function GetSessionNames(ParentPath: String; var Folders: TStringList): TStringList;
+  procedure GetSessionPaths(ParentPath: String; var Sessions: TStringList);
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   function ListIndexByRegExpr(List: TStrings; Expression: String): Integer;
   function FindNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode): PVirtualNode;
@@ -1489,7 +1491,7 @@ end;
   Outsoureced from GetRegValue() to avoid redundant code
   in these 3 overloaded methods.
 }
-procedure OpenRegistry(Session: String = '');
+procedure OpenRegistry(SessionPath: String = '');
 var
   folder : String;
 begin
@@ -1498,8 +1500,8 @@ begin
     HandlePortableSettings(True);
   end;
   folder := RegPath;
-  if Session <> '' then
-    folder := folder + REGKEY_SESSIONS + Session;
+  if SessionPath <> '' then
+    folder := folder + REGKEY_SESSIONS + '\' + SessionPath;
   if MainReg.CurrentPath <> folder then
     MainReg.OpenKey(folder, true);
 end;
@@ -1508,10 +1510,10 @@ end;
 {**
   Read a numeric preference value from registry
 }
-function GetRegValue( valueName: String; defaultValue: Integer; Session: String = '' ) : Integer;
+function GetRegValue( valueName: String; defaultValue: Integer; SessionPath: String = '' ) : Integer;
 begin
   result := defaultValue;
-  OpenRegistry(Session);
+  OpenRegistry(SessionPath);
   if MainReg.ValueExists( valueName ) then
     result := MainReg.ReadInteger( valueName );
 end;
@@ -1523,10 +1525,10 @@ end;
   @param boolean Default-value to return if valueName was not found
   @param string Subkey of RegPath where to search for the value
 }
-function GetRegValue( valueName: String; defaultValue: Boolean; Session: String = '' ) : Boolean;
+function GetRegValue( valueName: String; defaultValue: Boolean; SessionPath: String = '' ) : Boolean;
 begin
   result := defaultValue;
-  OpenRegistry(Session);
+  OpenRegistry(SessionPath);
   if MainReg.ValueExists( valueName ) then
     result := MainReg.ReadBool( valueName );
 end;
@@ -1536,12 +1538,48 @@ end;
 {***
   Read a text preference value from registry
 }
-function GetRegValue( valueName: String; defaultValue: String; Session: String = '' ) : String;
+function GetRegValue( valueName: String; defaultValue: String; SessionPath: String = '' ) : String;
 begin
   result := defaultValue;
-  OpenRegistry(Session);
+  OpenRegistry(SessionPath);
   if MainReg.ValueExists( valueName ) then
     result := MainReg.ReadString( valueName );
+end;
+
+
+function GetSessionNames(ParentPath: String; var Folders: TStringList): TStringList;
+var
+  i: Integer;
+  CurPath: String;
+begin
+  Result := TStringlist.Create;
+  OpenRegistry;
+  CurPath := RegPath + REGKEY_SESSIONS + '\' + ParentPath;
+  MainReg.OpenKey(CurPath, False);
+  MainReg.GetKeyNames(Result);
+  for i:=Result.Count-1 downto 0 do begin
+    MainReg.OpenKey(CurPath+'\'+Result[i], False);
+    if MainReg.ValueExists(REGNAME_SESSIONFOLDER) then begin
+      Folders.Add(Result[i]);
+      Result.Delete(i);
+    end;
+  end;
+end;
+
+
+procedure GetSessionPaths(ParentPath: String; var Sessions: TStringList);
+var
+  Folders, Names: TStringList;
+  i: Integer;
+begin
+  Folders := TStringList.Create;
+  Names := GetSessionNames(ParentPath, Folders);
+  for i:=0 to Names.Count-1 do
+    Sessions.Add(ParentPath+Names[i]);
+  for i:=0 to Folders.Count-1 do
+    GetSessionPaths(ParentPath+Folders[i]+'\', Sessions);
+  Names.Free;
+  Folders.Free;
 end;
 
 
@@ -1614,6 +1652,8 @@ procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
 var
   OldFocus: PVirtualNode;
 begin
+  if Node = VT.RootNode then
+    Node := nil;
   OldFocus := VT.FocusedNode;
   VT.ClearSelection;
   VT.FocusedNode := Node;

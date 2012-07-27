@@ -156,15 +156,18 @@ type
     strict private
       FNetType: TNetType;
       FHostname, FUsername, FPassword, FAllDatabases, FStartupScriptFilename,
-      FSessionName, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FServerVersion,
+      FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter: Integer;
-      FLoginPrompt, FCompressed, FLocalTimeZone, FWindowsAuth, FWantSSL: Boolean;
+      FLoginPrompt, FCompressed, FLocalTimeZone, FWindowsAuth, FWantSSL, FIsFolder: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
       function GetImageIndex: Integer;
+      function GetSessionName: String;
     public
-      constructor Create;
+      constructor Create; overload;
+      constructor Create(SessionRegPath: String); overload;
+      procedure SaveToRegistry;
       function CreateConnection(AOwner: TComponent): TDBConnection;
       function CreateQuery(AOwner: TComponent): TDBQuery;
       function NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
@@ -174,15 +177,16 @@ type
       function IsTokudb: Boolean;
       function IsInfiniDB: Boolean;
       function IsInfobright: Boolean;
-      class function ReadFromRegistry(Session: String): TConnectionParameters;
       property ImageIndex: Integer read GetImageIndex;
     published
+      property IsFolder: Boolean read FIsFolder write FIsFolder;
       property NetType: TNetType read FNetType write FNetType;
       property NetTypeGroup: TNetTypeGroup read GetNetTypeGroup;
       property ServerVersion: String read FServerVersion write FServerVersion;
-      property Counter: Integer read FCounter write FCounter;
-      property LastConnect: TDateTime read FLastConnect write FLastConnect;
-      property SessionName: String read FSessionName write FSessionName;
+      property Counter: Integer read FCounter;
+      property LastConnect: TDateTime read FLastConnect;
+      property SessionPath: String read FSessionPath write FSessionPath;
+      property SessionName: String read GetSessionName;
       property SessionColor: TColor read FSessionColor write FSessionColor;
       property Hostname: String read FHostname write FHostname;
       property Port: Integer read FPort write FPort;
@@ -603,7 +607,9 @@ uses helpers, loginform;
 
 constructor TConnectionParameters.Create;
 begin
+  inherited Create;
   FNetType := ntMySQL_TCPIP;
+  FIsFolder := False;
   FHostname := DEFAULT_HOST;
   FUsername := DEFAULT_USER;
   FPassword := '';
@@ -617,6 +623,101 @@ begin
   FSSLCACertificate := '';
   FStartupScriptFilename := '';
   FSessionColor := DEFAULT_TREEBACKGROUND;
+  FLastConnect := 0;
+  FCounter := 0;
+  FServerVersion := '';
+end;
+
+
+constructor TConnectionParameters.Create(SessionRegPath: String);
+var
+  DummyDate: TDateTime;
+  RegKey: String;
+begin
+  // Parameters from stored registry key
+  Create;
+  RegKey := REGPATH + REGKEY_SESSIONS + '\' + SessionRegPath;
+  FSessionPath := SessionRegPath;
+
+  if not Mainreg.KeyExists(RegKey) then
+    raise Exception.Create('Error: Session "'+SessionName+'" not found in registry.');
+
+  MainReg.OpenKey(RegKey, True);
+  if MainReg.ValueExists(REGNAME_SESSIONFOLDER) then begin
+    FIsFolder := True;
+  end else begin
+    FSessionColor := GetRegValue(REGNAME_TREEBACKGROUND, DEFAULT_TREEBACKGROUND, SessionRegPath);
+    FNetType := TNetType(GetRegValue(REGNAME_NETTYPE, Integer(ntMySQL_TCPIP), SessionRegPath));
+    FHostname := GetRegValue(REGNAME_HOST, '', SessionRegPath);
+    FUsername := GetRegValue(REGNAME_USER, '', SessionRegPath);
+    FPassword := decrypt(GetRegValue(REGNAME_PASSWORD, '', SessionRegPath));
+    FLoginPrompt := GetRegValue(REGNAME_LOGINPROMPT, False, SessionRegPath);
+    FWindowsAuth := GetRegValue(REGNAME_WINDOWSAUTH, False, SessionRegPath);
+    FPort := StrToIntDef(GetRegValue(REGNAME_PORT, '', SessionRegPath), DEFAULT_PORT);
+    FAllDatabases := GetRegValue(REGNAME_DATABASES, '', SessionRegPath);
+    FSSHHost := GetRegValue(REGNAME_SSHHOST, '', SessionRegPath);
+    FSSHPort := GetRegValue(REGNAME_SSHPORT, DEFAULT_SSHPORT, SessionRegPath);
+    FSSHUser := GetRegValue(REGNAME_SSHUSER, '', SessionRegPath);
+    FSSHPassword := decrypt(GetRegValue(REGNAME_SSHPASSWORD, '', SessionRegPath));
+    FSSHTimeout := GetRegValue(REGNAME_SSHTIMEOUT, DEFAULT_SSHTIMEOUT, SessionRegPath);
+    FSSHPrivateKey := GetRegValue(REGNAME_SSHKEY, '', SessionRegPath);
+    FSSHLocalPort := GetRegValue(REGNAME_SSHLOCALPORT, 0, SessionRegPath);
+    FSSHPlinkExe := GetRegValue(REGNAME_PLINKEXE, '');
+    FSSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', SessionRegPath);
+    // Auto-activate SSL for sessions created before UseSSL was introduced:
+    FWantSSL := GetRegValue(REGNAME_SSL_ACTIVE, FSSLPrivateKey<>'', SessionRegPath);
+    FSSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', SessionRegPath);
+    FSSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', SessionRegPath);
+    FStartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, '', SessionRegPath);
+    FCompressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SessionRegPath);
+    FLocalTimeZone := GetRegValue(REGNAME_LOCALTIMEZONE, DEFAULT_LOCALTIMEZONE, SessionRegPath);
+    FServerVersion := GetRegValue(REGNAME_SERVERVERSION_FULL, '', SessionRegPath);
+    DummyDate := 0;
+    FLastConnect := StrToDateTimeDef(GetRegValue(REGNAME_LASTCONNECT, '', SessionRegPath), DummyDate);
+    FCounter := GetRegValue(REGNAME_CONNECTCOUNT, 0, SessionRegPath);
+  end;
+end;
+
+
+procedure TConnectionParameters.SaveToRegistry;
+var
+  IsNew: Boolean;
+begin
+  // Save current values to registry
+  OpenRegistry;
+  MainReg.OpenKey(REGKEY_SESSIONS, False);
+  IsNew := not MainReg.KeyExists(FSessionPath);
+  MainReg.OpenKey(FSessionPath, True);
+  if IsNew then
+    MainReg.WriteString(REGNAME_SESSIONCREATED, DateTimeToStr(Now));
+  if FIsFolder then
+    MainReg.WriteBool(REGNAME_SESSIONFOLDER, True)
+  else begin
+    MainReg.WriteString(REGNAME_HOST, FHostname);
+    MainReg.WriteBool(REGNAME_WINDOWSAUTH, FWindowsAuth);
+    MainReg.WriteString(REGNAME_USER, FUsername);
+    MainReg.WriteString(REGNAME_PASSWORD, encrypt(FPassword));
+    MainReg.WriteBool(REGNAME_LOGINPROMPT, FLoginPrompt);
+    MainReg.WriteString(REGNAME_PORT, IntToStr(FPort));
+    MainReg.WriteInteger(REGNAME_NETTYPE, Integer(FNetType));
+    MainReg.WriteBool(REGNAME_COMPRESSED, FCompressed);
+    MainReg.WriteBool(REGNAME_LOCALTIMEZONE, FLocalTimeZone);
+    MainReg.WriteString(REGNAME_DATABASES, FAllDatabases);
+    MainReg.WriteString(REGNAME_STARTUPSCRIPT, FStartupScriptFilename);
+    MainReg.WriteString(REGNAME_SSHHOST, FSSHHost);
+    MainReg.WriteInteger(REGNAME_SSHPORT, FSSHPort);
+    MainReg.WriteString(REGNAME_SSHUSER, FSSHUser);
+    MainReg.WriteString(REGNAME_SSHPASSWORD, encrypt(FSSHPassword));
+    MainReg.WriteInteger(REGNAME_SSHTIMEOUT, FSSHTimeout);
+    MainReg.WriteString(REGNAME_SSHKEY, FSSHPrivateKey);
+    MainReg.WriteInteger(REGNAME_SSHLOCALPORT, FSSHLocalPort);
+    MainReg.WriteBool(REGNAME_SSL_ACTIVE, FWantSSL);
+    MainReg.WriteString(REGNAME_SSL_KEY, FSSLPrivateKey);
+    MainReg.WriteString(REGNAME_SSL_CERT, FSSLCertificate);
+    MainReg.WriteString(REGNAME_SSL_CA, FSSLCACertificate);
+    OpenRegistry;
+    MainReg.WriteString(REGNAME_PLINKEXE, FSSHPlinkExe);
+  end;
 end;
 
 
@@ -734,7 +835,9 @@ end;
 
 function TConnectionParameters.GetImageIndex: Integer;
 begin
-  case NetTypeGroup of
+  if IsFolder then
+    Result := 174
+  else case NetTypeGroup of
     ngMySQL: begin
       Result := 164;
       if IsMariaDB then Result := 166
@@ -749,46 +852,11 @@ begin
 end;
 
 
-class function TConnectionParameters.ReadFromRegistry(Session: String): TConnectionParameters;
-var
-  DummyDate: TDateTime;
+function TConnectionParameters.GetSessionName: String;
 begin
-  if not Mainreg.KeyExists(REGPATH + REGKEY_SESSIONS + Session) then
-    raise Exception.Create('Error: Session "'+Session+'" not found in registry.')
-  else begin
-    Result := TConnectionParameters.Create;
-    Result.SessionName := Session;
-    Result.SessionColor := GetRegValue(REGNAME_TREEBACKGROUND, DEFAULT_TREEBACKGROUND, Session);
-    Result.NetType := TNetType(GetRegValue(REGNAME_NETTYPE, Integer(ntMySQL_TCPIP), Session));
-    Result.Hostname := GetRegValue(REGNAME_HOST, '', Session);
-    Result.Username := GetRegValue(REGNAME_USER, '', Session);
-    Result.Password := decrypt(GetRegValue(REGNAME_PASSWORD, '', Session));
-    Result.LoginPrompt := GetRegValue(REGNAME_LOGINPROMPT, False, Session);
-    Result.WindowsAuth := GetRegValue(REGNAME_WINDOWSAUTH, False, Session);
-    Result.Port := StrToIntDef(GetRegValue(REGNAME_PORT, '', Session), DEFAULT_PORT);
-    Result.AllDatabasesStr := GetRegValue(REGNAME_DATABASES, '', Session);
-    Result.SSHHost := GetRegValue(REGNAME_SSHHOST, '', Session);
-    Result.SSHPort := GetRegValue(REGNAME_SSHPORT, DEFAULT_SSHPORT, Session);
-    Result.SSHUser := GetRegValue(REGNAME_SSHUSER, '', Session);
-    Result.SSHPassword := decrypt(GetRegValue(REGNAME_SSHPASSWORD, '', Session));
-    Result.SSHTimeout := GetRegValue(REGNAME_SSHTIMEOUT, DEFAULT_SSHTIMEOUT, Session);
-    Result.SSHPrivateKey := GetRegValue(REGNAME_SSHKEY, '', Session);
-    Result.SSHLocalPort := GetRegValue(REGNAME_SSHLOCALPORT, 0, Session);
-    Result.SSHPlinkExe := GetRegValue(REGNAME_PLINKEXE, '');
-    Result.SSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', Session);
-    // Auto-activate SSL for sessions created before UseSSL was introduced:
-    Result.WantSSL := GetRegValue(REGNAME_SSL_ACTIVE, Result.SSLPrivateKey<>'', Session);
-    Result.SSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', Session);
-    Result.SSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', Session);
-    Result.StartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, '', Session);
-    Result.Compressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, Session);
-    Result.LocalTimeZone := GetRegValue(REGNAME_LOCALTIMEZONE, DEFAULT_LOCALTIMEZONE, Session);
-    Result.ServerVersion := GetRegValue(REGNAME_SERVERVERSION_FULL, '', Session);
-    DummyDate := StrToDateTime('2000-01-01');
-    Result.LastConnect := StrToDateTimeDef(GetRegValue(REGNAME_LASTCONNECT, '', Session), DummyDate);
-    Result.Counter := GetRegValue(REGNAME_CONNECTCOUNT, 0, Session);
-  end;
+  Result := ExtractFilename(FSessionPath);
 end;
+
 
 
 
@@ -1270,7 +1338,7 @@ end;
 
 procedure TDBConnection.DoAfterConnect;
 begin
-  OpenRegistry(FParameters.SessionName);
+  OpenRegistry(FParameters.SessionPath);
   MainReg.WriteString(REGNAME_SERVERVERSION_FULL, FServerVersionUntouched);
   FParameters.ServerVersion := FServerVersionUntouched;
   if Assigned(FOnConnected) then

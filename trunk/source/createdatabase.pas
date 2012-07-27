@@ -273,7 +273,7 @@ begin
       AllDatabases[i] := editDBname.Text
     else
       AllDatabases.Add(editDBname.Text);
-    OpenRegistry(FConnection.Parameters.SessionName);
+    OpenRegistry(FConnection.Parameters.SessionPath);
     FConnection.Parameters.AllDatabasesStr := ImplodeStr(';', AllDatabases);
     MainReg.WriteString(REGNAME_DATABASES, FConnection.Parameters.AllDatabasesStr);
   end;

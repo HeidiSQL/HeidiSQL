@@ -87,6 +87,7 @@ object connform: Tconnform
     Margins.Right = 0
     Margins.Bottom = 40
     Align = alLeft
+    DragMode = dmAutomatic
     EditDelay = 250
     Header.AutoSizeIndex = -1
     Header.Font.Charset = DEFAULT_CHARSET
@@ -94,7 +95,7 @@ object connform: Tconnform
     Header.Font.Height = -11
     Header.Font.Name = 'Tahoma'
     Header.Font.Style = []
-    Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+    Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
     Header.PopupMenu = MainForm.popupListHeader
     Header.SortColumn = 0
     HintMode = hmTooltip
@@ -102,19 +103,21 @@ object connform: Tconnform
     IncrementalSearch = isAll
     PopupMenu = popupSessions
     TabOrder = 0
-    TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]
-    TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-    TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
-    TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+    TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking]
+    TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toFullRowDrag, toEditOnClick]
+    TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+    TreeOptions.SelectionOptions = [toRightClickSelect]
     OnCreateEditor = ListSessionsCreateEditor
     OnDblClick = btnOpenClick
+    OnDragOver = ListSessionsDragOver
+    OnDragDrop = ListSessionsDragDrop
     OnFocusChanged = ListSessionsFocusChanged
     OnFocusChanging = ListSessionsFocusChanging
     OnGetText = ListSessionsGetText
     OnGetImageIndex = ListSessionsGetImageIndex
     OnGetNodeDataSize = ListSessionsGetNodeDataSize
-    OnInitNode = ListSessionsInitNode
     OnNewText = ListSessionsNewText
+    OnStructureChange = ListSessionsStructureChange
     Columns = <
       item
         Position = 0
@@ -154,6 +157,8 @@ object connform: Tconnform
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'New'
+    DropDownMenu = popupNew
+    Style = bsSplitButton
     TabOrder = 1
     OnClick = btnNewClick
   end
@@ -733,37 +738,62 @@ object connform: Tconnform
   end
   object popupSessions: TPopupMenu
     Images = MainForm.ImageListMain
-    Left = 16
-    Top = 35
-    object Save1: TMenuItem
+    Left = 23
+    Top = 83
+    object menuSave: TMenuItem
       Caption = 'Save'
       ImageIndex = 10
       ShortCut = 16467
       OnClick = btnSaveClick
     end
-    object Saveas1: TMenuItem
+    object menuSaveAs: TMenuItem
       Caption = 'Save as ...'
       ImageIndex = 10
       ShortCut = 123
       OnClick = btnSaveAsClick
     end
-    object Delete1: TMenuItem
+    object menuDelete: TMenuItem
       Caption = 'Delete'
       ImageIndex = 26
       ShortCut = 46
       OnClick = btnDeleteClick
     end
+    object menuNewSession2: TMenuItem
+      Caption = 'New session'
+      ImageIndex = 72
+      OnClick = btnNewClick
+    end
+    object menuNewFolder2: TMenuItem
+      Caption = 'New folder'
+      ImageIndex = 174
+      OnClick = btnNewClick
+    end
   end
   object TimerStatistics: TTimer
     Interval = 60000
     OnTimer = TimerStatisticsTimer
-    Left = 48
+    Left = 24
     Top = 35
   end
   object timerSettingsImport: TTimer
     Enabled = False
     OnTimer = timerSettingsImportTimer
-    Left = 88
-    Top = 32
+    Left = 110
+    Top = 35
+  end
+  object popupNew: TPopupMenu
+    Images = MainForm.ImageListMain
+    Left = 109
+    Top = 82
+    object menuNewSession: TMenuItem
+      Caption = 'Session'
+      ImageIndex = 72
+      OnClick = btnNewClick
+    end
+    object menuNewFolder: TMenuItem
+      Caption = 'Folder'
+      ImageIndex = 174
+      OnClick = btnNewClick
+    end
   end
 end

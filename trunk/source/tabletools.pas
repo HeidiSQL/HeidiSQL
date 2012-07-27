@@ -174,7 +174,7 @@ procedure TfrmTableTools.FormCreate(Sender: TObject);
 var
   i: Integer;
   dtc: TDBDatatypeCategoryIndex;
-  SessionNames: TStringList;
+  SessionPaths: TStringList;
   MenuItem: TMenuItem;
   dt: TListNodeType;
   Obj: TDBObject;
@@ -202,13 +202,13 @@ begin
   comboExportData.ItemIndex := GetRegValue(REGNAME_EXP_DATAHOW, 0);
   // Add hardcoded output options and session names from registry
   comboExportOutputType.Items.Text := OUTPUT_FILE+CRLF +OUTPUT_DIR+CRLF +OUTPUT_CLIPBOARD+CRLF +OUTPUT_DB;
-  SessionNames := TStringList.Create;
-  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
-  MainReg.GetKeyNames(SessionNames);
-  for i:=0 to SessionNames.Count-1 do begin
-    if SessionNames[i] <> Mainform.ActiveConnection.Parameters.SessionName then
-      comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionNames[i]);
+  SessionPaths := TStringList.Create;
+  GetSessionPaths('', SessionPaths);
+  for i:=0 to SessionPaths.Count-1 do begin
+    if SessionPaths[i] <> Mainform.ActiveConnection.Parameters.SessionPath then
+      comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionPaths[i]);
   end;
+  SessionPaths.Free;
   comboExportOutputTarget.Text := '';
 
   // Various
@@ -976,7 +976,7 @@ begin
     btnExportOutputTargetSelect.ImageIndex := 27;
     SessionName := Copy(comboExportOutputType.Text, Length(OUTPUT_SERVER)+1, Length(comboExportOutputType.Text));
     FreeAndNil(FTargetConnection);
-    Params := TConnectionParameters.ReadFromRegistry(SessionName);
+    Params := TConnectionParameters.Create(SessionName);
     FTargetConnection := Params.CreateConnection(Self);
     FTargetConnection.LogPrefix := SessionName;
     FTargetConnection.OnLog := Mainform.LogSQL;

@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  VirtualTrees, Menus, Graphics, Generics.Collections,
+  VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX,
   dbconnection;
 
 type
@@ -22,9 +22,9 @@ type
     btnNew: TButton;
     btnDelete: TButton;
     popupSessions: TPopupMenu;
-    Save1: TMenuItem;
-    Delete1: TMenuItem;
-    Saveas1: TMenuItem;
+    menuSave: TMenuItem;
+    menuDelete: TMenuItem;
+    menuSaveAs: TMenuItem;
     TimerStatistics: TTimer;
     PageControlDetails: TPageControl;
     tabSettings: TTabSheet;
@@ -85,6 +85,11 @@ type
     btnImportSettings: TButton;
     timerSettingsImport: TTimer;
     chkLocalTimeZone: TCheckBox;
+    popupNew: TPopupMenu;
+    menuNewSession: TMenuItem;
+    menuNewFolder: TMenuItem;
+    menuNewFolder2: TMenuItem;
+    menuNewSession2: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -117,28 +122,33 @@ type
     procedure lblDownloadPlinkClick(Sender: TObject);
     procedure comboDatabasesDropDown(Sender: TObject);
     procedure chkLoginPromptClick(Sender: TObject);
-    procedure ListSessionsInitNode(Sender: TBaseVirtualTree; ParentNode,
-      Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure ListSessionsGetNodeDataSize(Sender: TBaseVirtualTree;
       var NodeDataSize: Integer);
     procedure comboNetTypeChange(Sender: TObject);
     procedure splitterMainMoved(Sender: TObject);
     procedure btnImportSettingsClick(Sender: TObject);
     procedure timerSettingsImportTimer(Sender: TObject);
+    procedure ListSessionsStructureChange(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Reason: TChangeReason);
+    procedure ListSessionsDragOver(Sender: TBaseVirtualTree; Source: TObject;
+      Shift: TShiftState; State: TDragState; Pt: TPoint; Mode: TDropMode;
+      var Effect: Integer; var Accept: Boolean);
+    procedure ListSessionsDragDrop(Sender: TBaseVirtualTree; Source: TObject;
+      DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
+      Pt: TPoint; var Effect: Integer; Mode: TDropMode);
   private
     { Private declarations }
     FLoaded: Boolean;
-    FSessions: TObjectList<TConnectionParameters>;
-    FSessionModified, FOnlyPasswordModified, FSessionAdded: Boolean;
+    FSessionModified, FOnlyPasswordModified: Boolean;
     FServerVersion: String;
     FSessionColor: TColor;
     FSettingsImportWaitTime: Cardinal;
-    procedure SetSessions;
-    function SelectedSession: String;
+    procedure RefreshSessions(ParentNode: PVirtualNode);
+    function SelectedSessionPath: String;
     function CurrentParams: TConnectionParameters;
     procedure FinalizeModifications(var CanProceed: Boolean);
-    procedure SaveCurrentValues(Session: String; IsNew: Boolean);
     procedure ValidateControls;
+    function NodeSessionNames(Node: PVirtualNode; var RegKey: String): TStringList;
   public
     { Public declarations }
   end;
@@ -184,8 +194,8 @@ begin
     comboNetType.Items.Add(Params.NetTypeName(nt, True));
   Params.Free;
 
-  FSessions := TObjectList<TConnectionParameters>.Create;
-  SetSessions;
+  // Init sessions tree
+  RefreshSessions(nil);
 
   // Focus last session
   SelectNode(ListSessions, nil);
@@ -196,9 +206,9 @@ begin
   Node := ListSessions.GetFirst;
   while Assigned(Node) do begin
     PSess := ListSessions.GetNodeData(Node);
-    if PSess.SessionName = LastActiveSession then
+    if PSess.SessionPath = LastActiveSession then
       SelectNode(ListSessions, Node);
-    Node := ListSessions.GetNextSibling(Node);
+    Node := ListSessions.GetNext(Node);
   end;
 
   // Add own menu items to system menu
@@ -210,21 +220,26 @@ begin
 end;
 
 
-procedure Tconnform.SetSessions;
+procedure Tconnform.RefreshSessions(ParentNode: PVirtualNode);
 var
   SessionNames: TStringList;
+  RegKey: String;
   i: Integer;
-  Sess: TConnectionParameters;
+  Params: TConnectionParameters;
+  SessNode: PVirtualNode;
 begin
   // Initialize session tree
-  SessionNames := TStringList.Create;
-  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
-  MainReg.GetKeyNames(SessionNames);
+  if ParentNode=nil then
+    ListSessions.Clear
+  else
+    ListSessions.DeleteChildren(ParentNode, True);
+  SessionNames := NodeSessionNames(ParentNode, RegKey);
   for i:=0 to SessionNames.Count-1 do begin
-    Sess := TConnectionParameters.ReadFromRegistry(SessionNames[i]);
-    FSessions.Add(Sess);
+    Params := TConnectionParameters.Create(RegKey+SessionNames[i]);
+    SessNode := ListSessions.AddChild(ParentNode, PConnectionParameters(Params));
+    if Params.IsFolder then
+      RefreshSessions(SessNode);
   end;
-  ListSessions.RootNodeCount := FSessions.Count;
 end;
 
 
@@ -269,6 +284,8 @@ var
   Connection: TDBConnection;
 begin
   // Connect to selected session
+  if not btnOpen.Enabled then
+    Exit;
   Screen.Cursor := crHourglass;
   if Mainform.InitConnection(CurrentParams, True, Connection) then
     ModalResult := mrOK
@@ -280,39 +297,11 @@ begin
 end;
 
 
-procedure Tconnform.SaveCurrentValues(Session: String; IsNew: Boolean);
+procedure Tconnform.btnSaveClick(Sender: TObject);
 var
   Sess: PConnectionParameters;
 begin
-  OpenRegistry(Session);
-  MainReg.WriteString(REGNAME_HOST, editHost.Text);
-  MainReg.WriteBool(REGNAME_WINDOWSAUTH, chkWindowsAuth.Checked);
-  MainReg.WriteString(REGNAME_USER, editUsername.Text);
-  MainReg.WriteString(REGNAME_PASSWORD, encrypt(editPassword.Text));
-  MainReg.WriteBool(REGNAME_LOGINPROMPT, chkLoginPrompt.Checked);
-  MainReg.WriteString(REGNAME_PORT, IntToStr(updownPort.Position));
-  MainReg.WriteInteger(REGNAME_NETTYPE, comboNetType.ItemIndex);
-  MainReg.WriteBool(REGNAME_COMPRESSED, chkCompressed.Checked);
-  MainReg.WriteBool(REGNAME_LOCALTIMEZONE, chkLocalTimeZone.Checked);
-  MainReg.WriteString(REGNAME_DATABASES, comboDatabases.Text);
-  MainReg.WriteString(REGNAME_STARTUPSCRIPT, editStartupScript.Text);
-  MainReg.WriteString(REGNAME_SSHHOST, editSSHHost.Text);
-  MainReg.WriteInteger(REGNAME_SSHPORT, MakeInt(editSSHport.Text));
-  MainReg.WriteString(REGNAME_SSHUSER, editSSHUser.Text);
-  MainReg.WriteString(REGNAME_SSHPASSWORD, encrypt(editSSHPassword.Text));
-  MainReg.WriteInteger(REGNAME_SSHTIMEOUT, updownSSHTimeout.Position);
-  MainReg.WriteString(REGNAME_SSHKEY, editSSHPrivateKey.Text);
-  MainReg.WriteInteger(REGNAME_SSHLOCALPORT, MakeInt(editSSHlocalport.Text));
-  MainReg.WriteBool(REGNAME_SSL_ACTIVE, chkWantSSL.Checked);
-  MainReg.WriteString(REGNAME_SSL_KEY, editSSLPrivateKey.Text);
-  MainReg.WriteString(REGNAME_SSL_CERT, editSSLCertificate.Text);
-  MainReg.WriteString(REGNAME_SSL_CA, editSSLCACertificate.Text);
-  if IsNew then
-    MainReg.WriteString(REGNAME_SESSIONCREATED, DateTimeToStr(Now));
-  OpenRegistry;
-  MainReg.WriteString(REGNAME_PLINKEXE, editSSHPlinkExe.Text);
-
-  // Overtake edited values for in-memory parameter object
+  // Overtake edited values for current parameter object and save to registry
   Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
   Sess.Hostname := editHost.Text;
   Sess.Username := editUsername.Text;
@@ -336,48 +325,43 @@ begin
   Sess.SSLPrivateKey := editSSLPrivateKey.Text;
   Sess.SSLCertificate := editSSLCertificate.Text;
   Sess.SSLCACertificate := editSSLCACertificate.Text;
+  Sess.SaveToRegistry;
 
   FSessionModified := False;
-  FSessionAdded := False;
   ListSessions.Invalidate;
   ValidateControls;
 end;
 
 
-procedure Tconnform.btnSaveClick(Sender: TObject);
-begin
-  // Save session settings
-  SaveCurrentValues(SelectedSession, FSessionAdded);
-end;
-
-
 procedure Tconnform.btnSaveAsClick(Sender: TObject);
 var
-  newName: String;
+  newName, ParentKey: String;
   NameOK: Boolean;
   NewSess: TConnectionParameters;
   Node: PVirtualNode;
+  SessionNames: TStringList;
 begin
   // Save session as ...
   newName := 'Enter new session name ...';
   NameOK := False;
-  OpenRegistry;
+  SessionNames := NodeSessionNames(ListSessions.FocusedNode.Parent, ParentKey);
   while not NameOK do begin
     if not InputQuery('Clone session ...', 'New session name:', newName) then
       Exit; // Cancelled
-    NameOK := not MainReg.KeyExists(REGKEY_SESSIONS + newName);
+    NameOK := SessionNames.IndexOf(newName) = -1;
     if not NameOK then
-      ErrorDialog('Session name '''+newName+''' already in use.')
+      ErrorDialog('Session name '''+ParentKey+newName+''' already in use.')
     else begin
       // Create the key and save its values
-      OpenRegistry(newName);
-      SaveCurrentValues(newName, True);
-      NewSess := TConnectionParameters.ReadFromRegistry(newName);
-      FSessions.Add(NewSess);
-      Node := ListSessions.AddChild(nil, @NewSess);
+      NewSess := CurrentParams;
+      NewSess.SessionPath := ParentKey+newName;
+      NewSess.SaveToRegistry;
+      Node := ListSessions.InsertNode(ListSessions.FocusedNode, amInsertAfter, PConnectionParameters(NewSess));
+      FSessionModified := False;
       SelectNode(ListSessions, Node);
     end;
   end;
+  SessionNames.Free;
 end;
 
 
@@ -385,15 +369,15 @@ procedure Tconnform.btnImportSettingsClick(Sender: TObject);
 begin
   MainForm.actImportSettings.Execute;
   FSettingsImportWaitTime := 0;
-  timerSettingsImport.Enabled := True;
+  timerSettingsImport.Enabled := MainForm.ImportSettingsDone;
 end;
 
 
 procedure Tconnform.timerSettingsImportTimer(Sender: TObject);
 begin
   Inc(FSettingsImportWaitTime, timerSettingsImport.Interval);
-  SetSessions;
-  if FSessions.Count > 0 then
+  RefreshSessions(nil);
+  if ListSessions.RootNodeCount > 0 then
     timerSettingsImport.Enabled := False;
   if FSettingsImportWaitTime >= 10000 then begin
     timerSettingsImport.Enabled := False;
@@ -407,93 +391,118 @@ var
   i: Integer;
   CanProceed: Boolean;
   NewSess: TConnectionParameters;
-  Node: PVirtualNode;
+  ParentSess: PConnectionParameters;
+  ParentNode, NewNode: PVirtualNode;
+  ParentPath: String;
+  SiblingSessionNames: TStringList;
 begin
-  // Create new session
+  // Create new session or folder
   FinalizeModifications(CanProceed);
   if not CanProceed then
     Exit;
 
-  i := 0;
+  ParentSess := ListSessions.GetNodeData(ListSessions.FocusedNode);
+  if ParentSess = nil then
+    ParentNode := nil
+  else if ParentSess.IsFolder then
+    ParentNode := ListSessions.FocusedNode
+  else
+    ParentNode := ListSessions.FocusedNode.Parent;
+  SiblingSessionNames := NodeSessionNames(ParentNode, ParentPath);
+
   NewSess := TConnectionParameters.Create;
-  NewSess.SessionName := 'Unnamed';
-  while MainReg.KeyExists(RegPath + REGKEY_SESSIONS + NewSess.SessionName) do begin
+  NewSess.IsFolder := (Sender = menuNewFolder) or (Sender = menuNewFolder2);
+  NewSess.SessionPath := ParentPath + 'Unnamed';
+  i := 0;
+  while SiblingSessionNames.IndexOf(NewSess.SessionName) > -1 do begin
     inc(i);
-    NewSess.SessionName := 'Unnamed-' + IntToStr(i);
+    NewSess.SessionPath := ParentPath + 'Unnamed-' + IntToStr(i);
   end;
-  FSessions.Add(NewSess);
-  Node := ListSessions.AddChild(nil, @NewSess);
+  NewSess.SaveToRegistry;
+  SiblingSessionNames.Free;
+  NewNode := ListSessions.AddChild(ParentNode, PConnectionParameters(NewSess));
   // Select it
-  SelectNode(ListSessions, Node);
-  FSessionAdded := True;
+  SelectNode(ListSessions, NewNode);
   ValidateControls;
-  ListSessions.EditNode(Node, 0);
+  ListSessions.EditNode(NewNode, 0);
 end;
 
 
 procedure Tconnform.btnDeleteClick(Sender: TObject);
 var
-  SessionKey: String;
   Sess: PConnectionParameters;
+  Node, FocusNode: PVirtualNode;
 begin
-  Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
+  Node := ListSessions.FocusedNode;
+  Sess := ListSessions.GetNodeData(Node);
   if MessageDialog('Delete session "' + Sess.SessionName + '" ?', mtConfirmation, [mbYes, mbCancel]) = mrYes then
   begin
-    SessionKey := RegPath + REGKEY_SESSIONS + Sess.SessionName;
-    if MainReg.KeyExists(SessionKey) then
-      MainReg.DeleteKey(SessionKey);
-    ListSessions.DeleteSelectedNodes;
-    FSessions.Remove(Sess^);
-    if (not Assigned(ListSessions.FocusedNode)) and (ListSessions.RootNodeCount > 0) then
-      SelectNode(ListSessions, ListSessions.RootNodeCount-1)
+    OpenRegistry;
+    MainReg.OpenKey(REGKEY_SESSIONS, False);
+    if MainReg.KeyExists(Sess.SessionPath) then
+      MainReg.DeleteKey(Sess.SessionPath);
+    if Assigned(Node.NextSibling) then
+      FocusNode := Node.NextSibling
+    else if Assigned(Node.PrevSibling) then
+      FocusNode := Node.PrevSibling
     else
-      SelectNode(ListSessions, nil);
+      FocusNode := Node.Parent;
+    ListSessions.DeleteNode(Node);
+    SelectNode(ListSessions, FocusNode);
+    ListSessions.SetFocus;
   end;
 end;
 
 
-function Tconnform.SelectedSession: String;
+function Tconnform.SelectedSessionPath: String;
 var
   Sess: PConnectionParameters;
 begin
   Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
-  Result := Sess.SessionName;
+  Result := Sess.SessionPath;
 end;
 
 
 function Tconnform.CurrentParams: TConnectionParameters;
+var
+  FromReg: PConnectionParameters;
 begin
   // Return non-stored parameters
-  Result := TConnectionParameters.Create;
-  Result.SessionName := SelectedSession;
-  Result.SessionColor := FSessionColor;
-  Result.NetType := TNetType(comboNetType.ItemIndex);
-  Result.ServerVersion := FServerVersion;
-  Result.Hostname := editHost.Text;
-  Result.Username := editUsername.Text;
-  Result.Password := editPassword.Text;
-  Result.LoginPrompt := chkLoginPrompt.Checked;
-  Result.WindowsAuth := chkWindowsAuth.Checked;
-  if updownPort.Enabled then
-    Result.Port := updownPort.Position
-  else
-    Result.Port := 0;
-  Result.AllDatabasesStr := comboDatabases.Text;
-  Result.SSHHost := editSSHHost.Text;
-  Result.SSHPort := MakeInt(editSSHPort.Text);
-  Result.SSHUser := editSSHuser.Text;
-  Result.SSHPassword := editSSHpassword.Text;
-  Result.SSHTimeout := updownSSHTimeout.Position;
-  Result.SSHPrivateKey := editSSHPrivateKey.Text;
-  Result.SSHLocalPort := MakeInt(editSSHlocalport.Text);
-  Result.SSHPlinkExe := editSSHplinkexe.Text;
-  Result.WantSSL := chkWantSSL.Checked;
-  Result.SSLPrivateKey := editSSLPrivateKey.Text;
-  Result.SSLCertificate := editSSLCertificate.Text;
-  Result.SSLCACertificate := editSSLCACertificate.Text;
-  Result.StartupScriptFilename := editStartupScript.Text;
-  Result.Compressed := chkCompressed.Checked;
-  Result.LocalTimeZone := chkLocalTimeZone.Checked;
+  FromReg := ListSessions.GetNodeData(ListSessions.FocusedNode);
+  if FromReg.IsFolder then begin
+    Result := FromReg^;
+  end else begin
+    Result := TConnectionParameters.Create;
+    Result.SessionPath := SelectedSessionPath;
+    Result.SessionColor := FSessionColor;
+    Result.NetType := TNetType(comboNetType.ItemIndex);
+    Result.ServerVersion := FServerVersion;
+    Result.Hostname := editHost.Text;
+    Result.Username := editUsername.Text;
+    Result.Password := editPassword.Text;
+    Result.LoginPrompt := chkLoginPrompt.Checked;
+    Result.WindowsAuth := chkWindowsAuth.Checked;
+    if updownPort.Enabled then
+      Result.Port := updownPort.Position
+    else
+      Result.Port := 0;
+    Result.AllDatabasesStr := comboDatabases.Text;
+    Result.SSHHost := editSSHHost.Text;
+    Result.SSHPort := MakeInt(editSSHPort.Text);
+    Result.SSHUser := editSSHuser.Text;
+    Result.SSHPassword := editSSHpassword.Text;
+    Result.SSHTimeout := updownSSHTimeout.Position;
+    Result.SSHPrivateKey := editSSHPrivateKey.Text;
+    Result.SSHLocalPort := MakeInt(editSSHlocalport.Text);
+    Result.SSHPlinkExe := editSSHplinkexe.Text;
+    Result.WantSSL := chkWantSSL.Checked;
+    Result.SSLPrivateKey := editSSLPrivateKey.Text;
+    Result.SSLCertificate := editSSLCertificate.Text;
+    Result.SSLCACertificate := editSSLCACertificate.Text;
+    Result.StartupScriptFilename := editStartupScript.Text;
+    Result.Compressed := chkCompressed.Checked;
+    Result.LocalTimeZone := chkLocalTimeZone.Checked;
+  end;
 end;
 
 
@@ -503,7 +512,7 @@ procedure Tconnform.ListSessionsGetImageIndex(Sender: TBaseVirtualTree;
 var
   Sess: PConnectionParameters;
 begin
-  // A new session gets an additional plus symbol, editing gets a pencil
+  // An edited session gets an additional pencil symbol
   if Column > 0 then
     ImageIndex := -1
   else case Kind of
@@ -512,12 +521,9 @@ begin
       ImageIndex := Sess.ImageIndex;
     end;
 
-    ikOverlay: if Node = Sender.FocusedNode then begin
-      if FSessionAdded then
-        ImageIndex := 163
-      else if FSessionModified then
+    ikOverlay:
+      if (Node = Sender.FocusedNode) and FSessionModified then
         ImageIndex := 162;
-    end;
 
   end;
 end;
@@ -538,28 +544,53 @@ var
 begin
   // Display session name cell
   Sess := Sender.GetNodeData(Node);
-  case Column of
-    0: begin
-      CellText := Sess.SessionName;
-      if (FSessionModified or FSessionAdded) and (Node = Sender.FocusedNode) and (not Sender.IsEditing) then
-        CellText := CellText + ' *';
+  if Sess.IsFolder then begin
+    case Column of
+      0: CellText := Sess.SessionName;
+      else CellText := '';
     end;
-    1: CellText := Sess.Hostname;
-    2: CellText := Sess.Username;
-    3: CellText := Sess.ServerVersion;
-    4: CellText := DateTimeToStr(Sess.LastConnect);
-    5: CellText := FormatNumber(Sess.Counter);
+  end else begin
+    case Column of
+      0: begin
+        CellText := Sess.SessionName;
+        if FSessionModified and (Node = Sender.FocusedNode) and (not Sender.IsEditing) then
+          CellText := CellText + ' *';
+      end;
+      1: CellText := Sess.Hostname;
+      2: CellText := Sess.Username;
+      3: CellText := Sess.ServerVersion;
+      4: if Sess.LastConnect>0 then
+          CellText := DateTimeToStr(Sess.LastConnect)
+        else
+          CellText := '';
+      5: CellText := FormatNumber(Sess.Counter);
+    end;
   end;
 end;
 
 
-procedure Tconnform.ListSessionsInitNode(Sender: TBaseVirtualTree; ParentNode,
-  Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+function Tconnform.NodeSessionNames(Node: PVirtualNode; var RegKey: String): TStringList;
 var
   Sess: PConnectionParameters;
+  Folders: TStringList;
 begin
-  Sess := Sender.GetNodeData(Node);
-  Sess^ := FSessions[Node.Index];
+  // Find sibling session names in a folder node
+
+  if Node = nil then
+    Node := ListSessions.RootNode;
+
+  // Find registry sub path for given node
+  RegKey := '';
+  if Node <> ListSessions.RootNode then begin
+    Sess := ListSessions.GetNodeData(Node);
+    RegKey := Sess.SessionPath + '\';
+  end;
+
+  // Fetch from registry using helpers:GetSessionNames()
+  Folders := TStringList.Create;
+  Result := GetSessionNames(RegKey, Folders);
+  Result.AddStrings(Folders);
+  Folders.Free;
 end;
 
 
@@ -568,6 +599,80 @@ procedure Tconnform.ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVi
 begin
   // Use our own text editor to rename a session
   EditLink := TInplaceEditorLink.Create(Sender as TVirtualStringTree);
+end;
+
+
+procedure Tconnform.ListSessionsDragDrop(Sender: TBaseVirtualTree;
+  Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
+  Shift: TShiftState; Pt: TPoint; var Effect: Integer; Mode: TDropMode);
+var
+  TargetNode, ParentNode: PVirtualNode;
+  AttachMode: TVTNodeAttachMode;
+  TargetSess, FocusedSess: PConnectionParameters;
+  ParentKey: String;
+  SiblingSessions: TStringList;
+begin
+  TargetNode := Sender.GetNodeAt(Pt.X, Pt.Y);
+  if not Assigned(TargetNode) then begin
+    MessageBeep(MB_ICONEXCLAMATION);
+    Exit;
+  end;
+  TargetSess := Sender.GetNodeData(TargetNode);
+  FocusedSess := Sender.GetNodeData(ListSessions.FocusedNode);
+  case Mode of
+    dmAbove:
+      AttachMode := amInsertBefore;
+    dmOnNode:
+      if TargetSess.IsFolder then
+        AttachMode := amAddChildFirst
+      else
+        AttachMode := amInsertBefore;
+    dmBelow:
+      AttachMode := amInsertAfter;
+    else
+      AttachMode := amInsertAfter;
+  end;
+  if AttachMode in [amInsertBefore, amInsertAfter] then
+    ParentNode := TargetNode.Parent
+  else
+    ParentNode := TargetNode;
+
+  SiblingSessions := NodeSessionNames(ParentNode, ParentKey);
+  // Test if target folder has an equal named node
+  if SiblingSessions.IndexOf(FocusedSess.SessionName) > -1 then
+    ErrorDialog('Session "'+ParentKey+FocusedSess.SessionName+'" already exists!')
+  else begin
+    try
+      OpenRegistry;
+      MainReg.OpenKey(REGKEY_SESSIONS, False);
+      if not MainReg.KeyExists(FocusedSess.SessionPath) then
+        raise Exception.Create('Misconfigured session path: '+FocusedSess.SessionPath);
+      MainReg.MoveKey(FocusedSess.SessionPath, ParentKey+FocusedSess.SessionName, True);
+      ListSessions.MoveTo(ListSessions.FocusedNode, TargetNode, AttachMode, False);
+      FocusedSess.SessionPath := ParentKey+FocusedSess.SessionName;
+    except
+      on E:Exception do
+        ErrorDialog('Error while moving registry key: '+E.Message);
+    end;
+  end;
+  SiblingSessions.Free;
+end;
+
+
+procedure Tconnform.ListSessionsDragOver(Sender: TBaseVirtualTree;
+  Source: TObject; Shift: TShiftState; State: TDragState; Pt: TPoint;
+  Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
+var
+  TargetNode: PVirtualNode;
+  TargetSess: PConnectionParameters;
+begin
+  // Allow node dragging everywhere except within the current folder
+  TargetNode := Sender.GetNodeAt(Pt.X, Pt.Y);
+  TargetSess := Sender.GetNodeData(TargetNode);
+  Accept := (Source = Sender)
+    and ((TargetNode.Parent <> ListSessions.FocusedNode.Parent) or TargetSess.IsFolder)
+    and (TargetNode <> ListSessions.FocusedNode.Parent)
+    and (Mode <> dmNowhere);
 end;
 
 
@@ -580,7 +685,12 @@ begin
   // select one connection!
   Screen.Cursor := crHourglass;
   TimerStatistics.Enabled := False;
-  SessionFocused := Assigned(Node);
+  SessionFocused := False;
+  Sess := nil;
+  if Assigned(Node) then begin
+    Sess := Sender.GetNodeData(Node);
+    SessionFocused := not Sess.IsFolder;
+  end;
   FLoaded := False;
   tabStart.TabVisible := not SessionFocused;
   tabSettings.TabVisible := SessionFocused;
@@ -590,7 +700,7 @@ begin
 
   if not SessionFocused then begin
     PageControlDetails.ActivePage := tabStart;
-    if FSessions.Count = 0 then
+    if ListSessions.RootNodeCount = 0 then
       lblHelp.Caption := 'New here? In order to connect to a server, you have to create a so called '+
         '"session" at first. Just click the "New" button on the bottom left to create your first session.'+CRLF+CRLF+
         'Give it a friendly name (e.g. "Local DB server") so you''ll recall it the next time you start '+APPNAME+'.'
@@ -598,7 +708,6 @@ begin
       lblHelp.Caption := 'Please click a session on the left list to edit parameters, doubleclick to open it.';
   end else begin
     PageControlDetails.ActivePage := tabSettings;
-    Sess := Sender.GetNodeData(Node);
 
     comboNetType.ItemIndex := Integer(Sess.NetType);
     editHost.Text := Sess.Hostname;
@@ -629,7 +738,6 @@ begin
 
   FLoaded := True;
   FSessionModified := False;
-  FSessionAdded := False;
   ListSessions.Repaint;
   ValidateControls;
   TimerStatistics.Enabled := True;
@@ -655,24 +763,24 @@ begin
   lblCounterRight.Enabled := False;
 
   if (not Assigned(ListSessions.FocusedNode))
-    or (not MainReg.KeyExists(RegPath + REGKEY_SESSIONS + SelectedSession)) then
+    or (not MainReg.KeyExists(RegPath + REGKEY_SESSIONS + '\' + SelectedSessionPath)) then
     Exit;
 
   DummyDate := StrToDateTime('2000-01-01');
-  LastConnect := StrToDateTimeDef(GetRegValue(REGNAME_LASTCONNECT, '', SelectedSession), DummyDate);
+  LastConnect := StrToDateTimeDef(GetRegValue(REGNAME_LASTCONNECT, '', SelectedSessionPath), DummyDate);
   if LastConnect <> DummyDate then begin
     lblLastConnectRight.Hint := DateTimeToStr(LastConnect);
     lblLastConnectRight.Caption := DateBackFriendlyCaption(LastConnect);
     lblLastConnectRight.Enabled := True;
   end;
-  Created := StrToDateTimeDef(GetRegValue(REGNAME_SESSIONCREATED, '', SelectedSession), DummyDate);
+  Created := StrToDateTimeDef(GetRegValue(REGNAME_SESSIONCREATED, '', SelectedSessionPath), DummyDate);
   if Created <> DummyDate then begin
     lblCreatedRight.Hint := DateTimeToStr(Created);
     lblCreatedRight.Caption := DateBackFriendlyCaption(Created);
     lblCreatedRight.Enabled := True;
   end;
-  Connects := GetRegValue(REGNAME_CONNECTCOUNT, 0, SelectedSession);
-  Refused := GetRegValue(REGNAME_REFUSEDCOUNT, 0, SelectedSession);
+  Connects := GetRegValue(REGNAME_CONNECTCOUNT, 0, SelectedSessionPath);
+  Refused := GetRegValue(REGNAME_REFUSEDCOUNT, 0, SelectedSessionPath);
   lblCounterRight.Enabled := Connects + Refused > 0;
   if Connects > 0 then begin
     lblCounterRight.Caption := 'Successful connects: '+IntToStr(Connects);
@@ -698,36 +806,39 @@ end;
 procedure Tconnform.ListSessionsNewText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
-  SessionKey: String;
+  ParentKey: String;
   Connection: TDBConnection;
   Sess: PConnectionParameters;
-  Names: TStringList;
-  idx: Integer;
+  SiblingSessions: TStringList;
 begin
   // Rename session
   Sess := Sender.GetNodeData(Node);
+  SiblingSessions := NodeSessionNames(Node.Parent, ParentKey);
   OpenRegistry;
-  Names := TStringList.Create;
-  MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, true);
-  MainReg.GetKeyNames(Names);
-  idx := Names.IndexOf(Sess.SessionName);
-  if idx > -1 then
-    Names.Delete(idx);
-  if Names.IndexOf(NewText) > -1 then begin
-    ErrorDialog('Session "'+NewText+'" already exists!');
+  MainReg.OpenKey(REGKEY_SESSIONS, False);
+  if SiblingSessions.IndexOf(NewText) > -1 then begin
+    ErrorDialog('Session "'+ParentKey+NewText+'" already exists!');
     NewText := Sess.SessionName;
   end else begin
-    SessionKey := RegPath + REGKEY_SESSIONS + Sess.SessionName;
-    if MainReg.KeyExists(SessionKey) then
-      MainReg.MoveKey(SessionKey, RegPath + REGKEY_SESSIONS + NewText, true);
+    MainReg.MoveKey(Sess.SessionPath, ParentKey+NewText, true);
     // Also fix internal session names in main form, which gets used to store e.g. "lastuseddb" later
     for Connection in MainForm.Connections do begin
-      if Connection.Parameters.SessionName = Sess.SessionName then
-        Connection.Parameters.SessionName := NewText;
+      if Connection.Parameters.SessionPath = Sess.SessionPath then
+        Connection.Parameters.SessionPath := ParentKey+NewText;
     end;
     MainForm.SetWindowCaption;
-    Sess.SessionName := NewText;
+    Sess.SessionPath := ParentKey+NewText;
   end;
+  SiblingSessions.Free;
+end;
+
+
+procedure Tconnform.ListSessionsStructureChange(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Reason: TChangeReason);
+begin
+  // Node added or removed. Tree needs a repaint in some cases.
+  // TODO: does not work
+  Sender.Repaint;
 end;
 
 
@@ -761,7 +872,7 @@ begin
   Params := CurrentParams;
   Connection := Params.CreateConnection(Self);
   Connection.Parameters.AllDatabasesStr := '';
-  Connection.LogPrefix := SelectedSession;
+  Connection.LogPrefix := SelectedSessionPath;
   Connection.OnLog := Mainform.LogSQL;
   comboDatabases.Items.Clear;
   Screen.Cursor := crHourglass;
@@ -837,8 +948,8 @@ end;
 
 procedure Tconnform.FinalizeModifications(var CanProceed: Boolean);
 begin
-  if (FSessionModified and (not FOnlyPasswordModified)) or FSessionAdded then begin
-    case MessageDialog('Save modifications?', 'Settings for "'+SelectedSession+'" were changed.', mtConfirmation, [mbYes, mbNo, mbCancel]) of
+  if FSessionModified and (not FOnlyPasswordModified) then begin
+    case MessageDialog('Save modifications?', 'Settings for "'+ExtractFilename(SelectedSessionPath)+'" were changed.', mtConfirmation, [mbYes, mbNo, mbCancel]) of
       mrYes: begin
           btnSave.OnClick(Self);
           CanProceed := True;
@@ -855,45 +966,52 @@ end;
 
 procedure Tconnform.ValidateControls;
 var
-  SessionFocused: Boolean;
+  SessionFocused, FolderFocused: Boolean;
   Params: TConnectionParameters;
 begin
-  SessionFocused := Assigned(ListSessions.FocusedNode);
-
-  btnOpen.Enabled := SessionFocused;
-  btnNew.Enabled := not FSessionAdded;
-  btnSave.Enabled := FSessionModified or FSessionAdded;
-  btnDelete.Enabled := SessionFocused;
-  btnOpen.Enabled := SessionFocused;
-
-  if SessionFocused then begin
-    // Validate session GUI stuff
+  SessionFocused := False;
+  FolderFocused := False;
+  if Assigned(ListSessions.FocusedNode) then begin
     Params := CurrentParams;
-    if Params.NetType = ntMySQL_NamedPipe then
-      lblHost.Caption := 'Socket name:'
-    else
-      lblHost.Caption := 'Hostname / IP:';
-    chkWindowsAuth.Enabled := Params.NetTypeGroup = ngMSSQL;
-    lblUsername.Enabled := ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
-      and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
-    editUsername.Enabled := lblUsername.Enabled;
-    lblPassword.Enabled := lblUsername.Enabled;
-    editPassword.Enabled := lblUsername.Enabled;
-    lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP];
-    if (Params.NetType = ntMSSQL_TCPIP) and (Pos('\', editHost.Text) > 0) then
-      lblPort.Enabled := False; // Named instance without port
-    editPort.Enabled := lblPort.Enabled;
-    updownPort.Enabled := lblPort.Enabled;
-    tabSSLoptions.TabVisible := Params.NetType = ntMySQL_TCPIP;
-    lblSSLPrivateKey.Enabled := Params.WantSSL;
-    editSSLPrivateKey.Enabled := Params.WantSSL;
-    lblSSLCACertificate.Enabled := Params.WantSSL;
-    editSSLCACertificate.Enabled := Params.WantSSL;
-    lblSSLCertificate.Enabled := Params.WantSSL;
-    editSSLCertificate.Enabled := Params.WantSSL;
-    tabSSHtunnel.TabVisible := Params.NetType = ntMySQL_SSHtunnel;
-    FreeAndNil(Params);
+    SessionFocused := not Params.IsFolder;
+    FolderFocused := Params.IsFolder;
+
+    if SessionFocused then begin
+      // Validate session GUI stuff
+      if Params.NetType = ntMySQL_NamedPipe then
+        lblHost.Caption := 'Socket name:'
+      else
+        lblHost.Caption := 'Hostname / IP:';
+      chkWindowsAuth.Enabled := Params.NetTypeGroup = ngMSSQL;
+      lblUsername.Enabled := ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
+        and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
+      editUsername.Enabled := lblUsername.Enabled;
+      lblPassword.Enabled := lblUsername.Enabled;
+      editPassword.Enabled := lblUsername.Enabled;
+      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP];
+      if (Params.NetType = ntMSSQL_TCPIP) and (Pos('\', editHost.Text) > 0) then
+        lblPort.Enabled := False; // Named instance without port
+      editPort.Enabled := lblPort.Enabled;
+      updownPort.Enabled := lblPort.Enabled;
+      tabSSLoptions.TabVisible := Params.NetType = ntMySQL_TCPIP;
+      lblSSLPrivateKey.Enabled := Params.WantSSL;
+      editSSLPrivateKey.Enabled := Params.WantSSL;
+      lblSSLCACertificate.Enabled := Params.WantSSL;
+      editSSLCACertificate.Enabled := Params.WantSSL;
+      lblSSLCertificate.Enabled := Params.WantSSL;
+      editSSLCertificate.Enabled := Params.WantSSL;
+      tabSSHtunnel.TabVisible := Params.NetType = ntMySQL_SSHtunnel;
+      Params.Free;
+    end;
   end;
+
+  // Main buttons
+  btnOpen.Enabled := SessionFocused;
+  btnSave.Enabled := SessionFocused and FSessionModified;
+  btnDelete.Enabled := SessionFocused or FolderFocused;
+  menuSave.Enabled := btnSave.Enabled;
+  menuSaveAs.Enabled := SessionFocused;
+  menuDelete.Enabled := btnDelete.Enabled;
 end;
 
 
