@@ -13,7 +13,7 @@ const
   // General things
   APPNAME          = 'HeidiSQL';
   APPDOMAIN        = 'http://www.heidisql.com/';
-  REGKEY_SESSIONS  = 'Servers\';
+  REGKEY_SESSIONS  = 'Servers';
   REGKEY_QUERYHISTORY = 'QueryHistory';
   // Some unique char, used to separate e.g. selected columns in registry
   DELIM = '|';
@@ -222,6 +222,7 @@ const
   REGNAME_CONNECTCOUNT = 'ConnectCount';
   REGNAME_REFUSEDCOUNT = 'RefusedCount';
   REGNAME_SESSIONCREATED = 'SessionCreated';
+  REGNAME_SESSIONFOLDER = 'Folder';
   REGNAME_DO_STATISTICS = 'DoUsageStatistics';
   DEFAULT_DO_STATISTICS = False;
   REGNAME_LAST_STATSCALL = 'LastUsageStatisticCall';

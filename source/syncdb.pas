@@ -104,6 +104,7 @@ end;
 procedure TfrmSyncDB.FormCreate(Sender: TObject);
 var
   SessNode: PVirtualNode;
+  SessionPaths: TStringList;
 begin
   Caption := MainForm.actSynchronizeDatabase.Caption;
   InheritFont(Font);
@@ -117,8 +118,10 @@ begin
   if Assigned(SessNode) then
     treeSource.ToggleNode(SessNode);
 
-  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
-  MainReg.GetKeyNames(comboTargetServer.Items);
+  SessionPaths := TStringList.Create;
+  GetSessionPaths('', SessionPaths);
+  comboTargetServer.Items.Assign(SessionPaths);
+  SessionPaths.Free;
   comboTargetServer.Items.Insert(0, 'Select server session ...');
   comboTargetServer.ItemIndex := 0;
   comboTargetServer.OnChange(Sender);
@@ -359,7 +362,7 @@ var
   Parameters: TConnectionParameters;
 begin
   // Create target connection
-  Parameters := TConnectionParameters.ReadFromRegistry(comboTargetServer.Text);
+  Parameters := TConnectionParameters.Create(comboTargetServer.Text);
   Result := Parameters.CreateConnection(Self);
   Result.OnLog := MainForm.LogSQL;
   Result.LogPrefix := comboTargetServer.Text;

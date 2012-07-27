@@ -953,6 +953,7 @@ type
     QueryTabs: TObjectList<TQueryTab>;
     ActiveObjectEditor: TDBObjectEditor;
     FileEncodings: TStringList;
+    ImportSettingsDone: Boolean;
 
     // Variables set by preferences dialog
     prefRememberFilters: Boolean;
@@ -1249,11 +1250,11 @@ begin
   OpenRegistry;
   OpenSessions := '';
   for Connection in Connections do
-    OpenSessions := OpenSessions + Connection.Parameters.SessionName + DELIM;
+    OpenSessions := OpenSessions + Connection.Parameters.SessionPath + DELIM;
   Delete(OpenSessions, Length(OpenSessions)-Length(DELIM)+1, Length(DELIM));
   MainReg.WriteString(REGNAME_LASTSESSIONS, OpenSessions);
   if Assigned(ActiveConnection) then
-    MainReg.WriteString(REGNAME_LASTACTIVESESSION, ActiveConnection.Parameters.SessionName);
+    MainReg.WriteString(REGNAME_LASTACTIVESESSION, ActiveConnection.Parameters.SessionPath);
 
   // Some grid editors access the registry - be sure these are gone before freeing MainReg
   QueryTabs.Clear;
@@ -1667,7 +1668,7 @@ var
   frm : TfrmUpdateCheck;
   Connected, DecideForStatistic: Boolean;
   StatsCall: THttpDownload;
-  SessionNames: TStringlist;
+  SessionPaths: TStringlist;
   DlgResult: TModalResult;
   Tab: TQueryTab;
   SessionManager: TConnForm;
@@ -1692,9 +1693,8 @@ begin
   end;
 
   // Get all session names
-  SessionNames := TStringlist.Create;
-  if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, true) then
-    MainReg.GetKeyNames(SessionNames);
+  SessionPaths := TStringList.Create;
+  GetSessionPaths('', SessionPaths);
 
   // Call user statistics if checked in settings
   if GetRegValue(REGNAME_DO_STATISTICS, DEFAULT_DO_STATISTICS) then begin
@@ -1708,14 +1708,14 @@ begin
       StatsCall := THttpDownload.Create(Self);
       StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(AppVerRevision);
       // Enumerate actively used server versions
-      for i:=0 to SessionNames.Count-1 do begin
+      for i:=0 to SessionPaths.Count-1 do begin
         try
-          LastConnect := StrToDateTime(GetRegValue(REGNAME_LASTCONNECT, DefaultLastrunDate, SessionNames[i]));
+          LastConnect := StrToDateTime(GetRegValue(REGNAME_LASTCONNECT, DefaultLastrunDate, SessionPaths[i]));
         except
           LastConnect := StrToDateTime(DefaultLastrunDate);
         end;
         if LastConnect > LastStatsCall then begin
-          StatsCall.URL := StatsCall.URL + '&s[]=' + IntToStr(GetRegValue(REGNAME_SERVERVERSION, 0, SessionNames[i]));
+          StatsCall.URL := StatsCall.URL + '&s[]=' + IntToStr(GetRegValue(REGNAME_SERVERVERSION, 0, SessionPaths[i]));
         end;
       end;
       try
@@ -1754,7 +1754,7 @@ begin
     LastSessions := Explode(DELIM, GetRegValue(REGNAME_LASTSESSIONS, ''));
     LastActiveSession := GetRegValue(REGNAME_LASTACTIVESESSION, '');
     for i:=LastSessions.Count-1 downto 0 do begin
-      if SessionNames.IndexOf(LastSessions[i]) = -1 then
+      if SessionPaths.IndexOf(LastSessions[i]) = -1 then
         LastSessions.Delete(i);
     end;
     if LastSessions.Count > 0 then begin
@@ -1762,7 +1762,7 @@ begin
         LastActiveSession := LastSessions[0];
       for i:=0 to LastSessions.Count-1 do begin
         try
-          LoadedParams := TConnectionParameters.ReadFromRegistry(LastSessions[i]);
+          LoadedParams := TConnectionParameters.Create(LastSessions[i]);
           if InitConnection(LoadedParams, LastActiveSession=LastSessions[i], Connection) then
             Connected := True;
         except on E:Exception do
@@ -1831,7 +1831,7 @@ begin
   SessName := GetParamValue('d', 'description');
   if SessName <> '' then begin
     try
-      FCmdlineConnectionParams := TConnectionParameters.ReadFromRegistry(SessName);
+      FCmdlineConnectionParams := TConnectionParameters.Create(SessName);
     except
       on E:Exception do begin
         // Session params not found in registry
@@ -1854,7 +1854,7 @@ begin
   if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> 0) or (Socket <> '') then begin
     if not Assigned(FCmdlineConnectionParams) then begin
       FCmdlineConnectionParams := TConnectionParameters.Create;
-      FCmdlineConnectionParams.SessionName := SessName;
+      FCmdlineConnectionParams.SessionPath := SessName;
     end;
     if Host <> '' then FCmdlineConnectionParams.Hostname := Host;
     if User <> '' then FCmdlineConnectionParams.Username := User;
@@ -1865,8 +1865,8 @@ begin
       FCmdlineConnectionParams.NetType := ntMySQL_NamedPipe;
     end;
     // Ensure we have a session name to pass to InitConnection
-    if (FCmdlineConnectionParams.SessionName = '') and (FCmdlineConnectionParams.Hostname <> '') then
-      FCmdlineConnectionParams.SessionName := FCmdlineConnectionParams.Hostname;
+    if (FCmdlineConnectionParams.SessionPath = '') and (FCmdlineConnectionParams.Hostname <> '') then
+      FCmdlineConnectionParams.SessionPath := FCmdlineConnectionParams.Hostname;
   end;
 
   // Check for valid filename(s) in parameters
@@ -1948,7 +1948,7 @@ begin
 
       // Remove filters if unwanted
       if not prefRememberFilters then begin
-        OpenRegistry(Item.Parameters.SessionName);
+        OpenRegistry(Item.Parameters.SessionPath);
         Keys := TStringList.Create;
         MainReg.GetKeyNames(Keys);
         rx := TRegExpr.Create;
@@ -1965,7 +1965,7 @@ begin
       RefreshHelperNode(HELPERNODE_COLUMNS);
 
       // Last chance to access connection related properties before disconnecting
-      OpenRegistry(Item.Parameters.SessionName);
+      OpenRegistry(Item.Parameters.SessionPath);
       MainReg.WriteString(REGNAME_LASTUSEDDB, Item.Database);
 
       // Disconnect
@@ -2150,7 +2150,7 @@ procedure TMainForm.menuConnectionsPopup(Sender: TObject);
 var
   i: integer;
   item: TMenuItem;
-  SessionNames: TStringList;
+  SessionPaths: TStringList;
   Connection: TDBConnection;
 begin
   // Delete dynamically added connection menu items.
@@ -2169,23 +2169,19 @@ begin
   menuConnections.Items.Add(item);
 
   // All sessions
-  if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, False) then begin
-    SessionNames := TStringList.Create;
-    MainReg.GetKeyNames(SessionNames);
-    for i:=0 to SessionNames.Count-1 do begin
-      item := TMenuItem.Create(menuConnections);
-      item.Caption := SessionNames[i];
-      item.OnClick := SessionConnect;
-      item.ImageIndex := 37;
-      for Connection in Connections do begin
-        if SessionNames[i] = Connection.Parameters.SessionName then begin
-          item.Checked := True;
-          item.ImageIndex := -1;
-          break;
-        end;
+  SessionPaths := TStringList.Create;
+  GetSessionPaths('', SessionPaths);
+  for i:=0 to SessionPaths.Count-1 do begin
+    item := TMenuItem.Create(menuConnections);
+    item.Caption := SessionPaths[i];
+    item.OnClick := SessionConnect;
+    for Connection in Connections do begin
+      if SessionPaths[i] = Connection.Parameters.SessionPath then begin
+        item.Checked := True;
+        break;
       end;
-      menuConnections.Items.Add(item);
     end;
+    menuConnections.Items.Add(item);
   end;
 
 end;
@@ -2195,33 +2191,24 @@ procedure TMainForm.File1Click(Sender: TObject);
 var
   Item: TMenuItem;
   i: Integer;
-  SessionNames, ConnectedSessions: TStringList;
+  SessionPaths: TStringList;
+  Connection: TDBConnection;
 begin
-  // Decide if "Connect to" menu should be enabled
-  menuConnectTo.Enabled := False;
-  if MainReg.OpenKey(REGPATH + REGKEY_SESSIONS, False) then begin
-    menuConnectTo.Enabled := MainReg.HasSubKeys;
-    if menuConnectTo.Enabled then begin
-      // Add all sessions to submenu
-      for i := menuConnectTo.Count - 1 downto 0 do
-        menuConnectTo.Delete(i);
-      ConnectedSessions := TStringList.Create;
-      for i:=0 to Connections.Count-1 do
-        ConnectedSessions.Add(Connections[i].Parameters.SessionName);
-      SessionNames := TStringList.Create;
-      MainReg.GetKeyNames(SessionNames);
-      for i:=0 to SessionNames.Count-1 do begin
-        Item := TMenuItem.Create(menuConnectTo);
-        Item.Caption := SessionNames[i];
-        Item.OnClick := SessionConnect;
-        Item.ImageIndex := 37;
-        if ConnectedSessions.IndexOf(SessionNames[i]) > -1 then begin
-          Item.Checked := True;
-          Item.ImageIndex := -1;
-        end;
-        menuConnectTo.Add(Item);
+  // Add all sessions to submenu
+  menuConnectTo.Clear;
+  SessionPaths := TStringList.Create;
+  GetSessionPaths('', SessionPaths);
+  for i:=0 to SessionPaths.Count-1 do begin
+    Item := TMenuItem.Create(menuConnectTo);
+    Item.Caption := SessionPaths[i];
+    Item.OnClick := SessionConnect;
+    for Connection in Connections do begin
+      if SessionPaths[i] = Connection.Parameters.SessionPath then begin
+        Item.Checked := True;
+        break;
       end;
     end;
+    menuConnectTo.Add(Item);
   end;
 end;
 
@@ -2262,6 +2249,7 @@ begin
   Dialog := TOpenDialog.Create(Self);
   Dialog.Title := 'Import '+APPNAME+' settings from file ...';
   Dialog.Filter := 'Textfiles (*.txt)|*.txt|Registry dump, deprecated (*.reg)|*.reg|All files (*.*)|*.*';
+  ImportSettingsDone := False;
   if Dialog.Execute then try
     if LowerCase(ExtractFileExt(Dialog.FileName)) = 'reg' then
       ShellExec('regedit.exe', '', '"'+Dialog.FileName+'"')
@@ -2269,6 +2257,7 @@ begin
       ImportSettings(Dialog.FileName);
       MessageDialog('Settings successfully restored from '+Dialog.FileName, mtInformation, [mbOK]);
     end;
+    ImportSettingsDone := True;
   except
     on E:Exception do
       ErrorDialog(E.Message);
@@ -2535,7 +2524,7 @@ begin
   // Assume that a bunch of up to 5 queries is not a batch.
   if IsEmpty(Thread.ErrorMessage) and (Thread.Batch.Count <= 5) and (Thread.Batch.Size <= SIZE_MB) then begin
     ShowStatusMsg('Updating query history ...');
-    OpenRegistry(Thread.Connection.Parameters.SessionName);
+    OpenRegistry(Thread.Connection.Parameters.SessionPath);
     MainReg.OpenKey(REGKEY_QUERYHISTORY, true);
 
     // Load all items so we can clean up
@@ -3112,7 +3101,7 @@ end;
 
 procedure TMainForm.SessionConnect(Sender: TObject);
 var
-  Session: String;
+  SessionPath: String;
   Connection: TDBConnection;
   Params: TConnectionParameters;
   Node, SessionNode: PVirtualNode;
@@ -3120,13 +3109,13 @@ var
   i: Integer;
 begin
   // Click on quick-session menu item:
-  Session := (Sender as TMenuItem).Caption;
+  SessionPath := (Sender as TMenuItem).Caption;
   Node := nil;
   // Probably wanted session was clicked before: navigate to last node
   for i:=High(FTreeClickHistory) downto Low(FTreeClickHistory) do begin
     if FTreeClickHistory[i] <> nil then begin
       DBObj := DBtree.GetNodeData(FTreeClickHistory[i]);
-      if DBObj.Connection.Parameters.SessionName = Session then begin
+      if DBObj.Connection.Parameters.SessionPath = SessionPath then begin
         Node := FTreeClickHistory[i];
         break;
       end;
@@ -3137,7 +3126,7 @@ begin
     SessionNode := DBtree.GetFirstChild(nil);
     while Assigned(SessionNode) do begin
       DBObj := DBtree.GetNodeData(SessionNode);
-      if DBObj.Connection.Parameters.SessionName = Session then begin
+      if DBObj.Connection.Parameters.SessionPath = SessionPath then begin
         Node := SessionNode;
       end;
       SessionNode := DBtree.GetNextSibling(SessionNode);
@@ -3147,7 +3136,7 @@ begin
   if Assigned(Node) then
     SelectNode(DBtree, Node)
   else begin
-    Params := TConnectionParameters.ReadFromRegistry(Session);
+    Params := TConnectionParameters.Create(SessionPath);
     InitConnection(Params, True, Connection);
   end;
 end;
@@ -3179,13 +3168,13 @@ begin
   end;
 
   // attempt to establish connection
-  SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + Params.SessionName);
+  SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + '\' + Params.SessionPath);
   if not Connection.Active then begin
     // attempt failed
     if SessionExists then begin
       // Save "refused" counter
-      OpenRegistry(Params.SessionName);
-      MainReg.WriteInteger(REGNAME_REFUSEDCOUNT, GetRegValue(REGNAME_REFUSEDCOUNT, 0, Params.SessionName)+1);
+      OpenRegistry(Params.SessionPath);
+      MainReg.WriteInteger(REGNAME_REFUSEDCOUNT, GetRegValue(REGNAME_REFUSEDCOUNT, 0, Params.SessionPath)+1);
     end;
     Result := False;
     FreeAndNil(Connection);
@@ -3196,8 +3185,8 @@ begin
 
     if SessionExists then begin
       // Save "connected" counter
-      OpenRegistry(Params.SessionName);
-      MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, Params.SessionName)+1);
+      OpenRegistry(Params.SessionPath);
+      MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, Params.SessionPath)+1);
       // Save server version
       Mainreg.WriteInteger(REGNAME_SERVERVERSION, Connection.ServerVersionInt);
       Mainreg.WriteString(REGNAME_LASTCONNECT, DateTimeToStr(Now));
@@ -3206,7 +3195,7 @@ begin
     if ActivateMe then begin
       // Set focus on last uses db. If not wanted or db is gone, go to root node at least
       RestoreLastActiveDatabase := GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
-      LastActiveDatabase := GetRegValue(REGNAME_LASTUSEDDB, '', Params.SessionName);
+      LastActiveDatabase := GetRegValue(REGNAME_LASTUSEDDB, '', Params.SessionPath);
       if RestoreLastActiveDatabase and (Connection.AllDatabases.IndexOf(LastActiveDatabase) >- 1) then begin
         SetActiveDatabase(LastActiveDatabase, Connection);
         DBNode := FindDBNode(DBtree, Connection, LastActiveDatabase);
@@ -4126,7 +4115,7 @@ end;
 procedure TMainForm.actSelectTreeBackgroundExecute(Sender: TObject);
 var
   cs: TColorSelect;
-  SessionNames: TStringList;
+  SessionPaths: TStringList;
   i: Integer;
   Col: TColor;
   ColString: String;
@@ -4151,12 +4140,11 @@ begin
   cs := TColorSelect.Create(Self);
   cs.Dialog.Color := ActiveConnection.Parameters.SessionColor;
   // Add custom colors from all sessions
-  SessionNames := TStringList.Create;
-  MainReg.OpenKey(RegPath + REGKEY_SESSIONS, True);
-  MainReg.GetKeyNames(SessionNames);
+  SessionPaths := TStringList.Create;
+  GetSessionPaths('', SessionPaths);
   CharPostfix := 'A';
-  for i:=0 to SessionNames.Count-1 do begin
-    Col := GetRegValue(REGNAME_TREEBACKGROUND, clDefault, SessionNames[i]);
+  for i:=0 to SessionPaths.Count-1 do begin
+    Col := GetRegValue(REGNAME_TREEBACKGROUND, clDefault, SessionPaths[i]);
     if Col <> clDefault then begin
       ColString := IntToHex(ColorToRgb(Col), 6);
       if not ValueExists(ColString) then begin
@@ -4169,7 +4157,7 @@ begin
   end;
   if cs.Execute then begin
     ActiveConnection.Parameters.SessionColor := cs.Dialog.Color;
-    OpenRegistry(ActiveConnection.Parameters.SessionName);
+    OpenRegistry(ActiveConnection.Parameters.SessionPath);
     MainReg.WriteInteger(REGNAME_TREEBACKGROUND, cs.Dialog.Color);
   end;
 end;
@@ -4232,7 +4220,7 @@ begin
   try
     Sess := '';
     if Assigned(Connection) then
-      Sess := Connection.Parameters.SessionName;
+      Sess := Connection.Parameters.SessionPath;
     WriteLn(FFileHandleSessionLog, Format('/* %s [%s] */ %s', [DateTimeToStr(Now), Sess, msg]));
   except
     on E:Exception do begin
@@ -6268,13 +6256,13 @@ var
   Values: TStringList;
 begin
   // Clear query history items in registry
-  OpenRegistry(ActiveConnection.Parameters.SessionName);
+  OpenRegistry(ActiveConnection.Parameters.SessionPath);
   MainReg.OpenKey(REGKEY_QUERYHISTORY, True);
   Values := TStringList.Create;
   MainReg.GetValueNames(Values);
   if MessageDialog('Clear query history?', FormatNumber(Values.Count)+' history items will be deleted.', mtConfirmation, [mbYes, mbNo]) = mrYes then begin
     Screen.Cursor := crHourglass;
-    OpenRegistry(ActiveConnection.Parameters.SessionName);
+    OpenRegistry(ActiveConnection.Parameters.SessionPath);
     MainReg.DeleteKey(REGKEY_QUERYHISTORY);
     RefreshHelperNode(HELPERNODE_HISTORY);
     Screen.Cursor := crDefault;
@@ -7035,7 +7023,7 @@ begin
   DBObj := Sender.GetNodeData(Node);
   case Column of
     0: case DBObj.NodeType of
-        lntNone: CellText := DBObj.Connection.Parameters.SessionName;
+        lntNone: CellText := DBObj.Connection.Parameters.SessionPath;
         lntDb: CellText := DBObj.Database;
         lntGroup: CellText := DBObj.Name;
         lntTable..lntEvent: CellText := DBObj.Name;
@@ -7331,7 +7319,7 @@ begin
 
     // When clicked node is from a different connection than before, do session specific stuff here:
     if (PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) then begin
-      LogSQL('Entering session "'+FActiveDbObj.Connection.Parameters.SessionName+'"', lcInfo);
+      LogSQL('Entering session "'+FActiveDbObj.Connection.Parameters.SessionPath+'"', lcInfo);
       RefreshHelperNode(HELPERNODE_HISTORY);
       case FActiveDbObj.Connection.Parameters.NetTypeGroup of
         ngMySQL:
@@ -8384,8 +8372,8 @@ end;
 
 function TMainForm.GetRegKeyTable: String;
 begin
-  // Return the slightly complex registry path to \Servers\ThisServer\curdb|curtable
-  Result := REGPATH + REGKEY_SESSIONS + ActiveDbObj.Connection.Parameters.SessionName + '\' +
+  // Return the slightly complex registry path to \Servers\CustomFolder\ActiveServer\curdb|curtable
+  Result := REGPATH + REGKEY_SESSIONS + '\' + ActiveDbObj.Connection.Parameters.SessionPath + '\' +
     ActiveDatabase + DELIM + ActiveDbObj.Name;
 end;
 
@@ -9643,7 +9631,7 @@ var
   Cap: String;
 begin
   // Set window caption and taskbar text
-  Cap := DBtree.Path(DBtree.FocusedNode, 0, ttNormal, '/') + ' - ' + APPNAME;
+  Cap := DBtree.Path(DBtree.FocusedNode, 0, ttNormal, '\') + ' - ' + APPNAME;
   if PortableMode then
     Cap := Cap + ' Portable';
   Cap := Cap + ' ' + AppVersion;
@@ -10632,7 +10620,7 @@ begin
            if not Assigned(Tab.HistoryDays) then
              Tab.HistoryDays := TStringList.Create;
            Tab.HistoryDays.Clear;
-           OpenRegistry(ActiveConnection.Parameters.SessionName);
+           OpenRegistry(ActiveConnection.Parameters.SessionPath);
            MainReg.OpenKey(REGKEY_QUERYHISTORY, true);
            Values := TStringList.Create;
            MainReg.GetValueNames(Values);
@@ -10657,7 +10645,7 @@ begin
       HELPERNODE_HISTORY: begin
         History := TQueryHistory.Create;
         Tab.HistoryDays.Objects[Node.Index] := History;
-        OpenRegistry(ActiveConnection.Parameters.SessionName);
+        OpenRegistry(ActiveConnection.Parameters.SessionPath);
         MainReg.OpenKey(REGKEY_QUERYHISTORY, true);
         Values := TStringList.Create;
         MainReg.GetValueNames(Values);
