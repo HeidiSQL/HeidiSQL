@@ -949,7 +949,7 @@ end;
 procedure Tconnform.FinalizeModifications(var CanProceed: Boolean);
 begin
   if FSessionModified and (not FOnlyPasswordModified) then begin
-    case MessageDialog('Save modifications?', 'Settings for "'+ExtractFilename(SelectedSessionPath)+'" were changed.', mtConfirmation, [mbYes, mbNo, mbCancel]) of
+    case MessageDialog('Save modifications?', 'Settings for "'+SelectedSessionPath+'" were changed.', mtConfirmation, [mbYes, mbNo, mbCancel]) of
       mrYes: begin
           btnSave.OnClick(Self);
           CanProceed := True;
