@@ -853,8 +853,14 @@ end;
 
 
 function TConnectionParameters.GetSessionName: String;
+var
+  LastBackSlash: Integer;
 begin
-  Result := ExtractFilename(FSessionPath);
+  LastBackSlash := LastDelimiter('\', FSessionPath);
+  if LastBackSlash > 0 then
+    Result := Copy(FSessionPath, LastBackSlash+1, MaxInt)
+  else
+    Result := FSessionPath;
 end;
 
 
