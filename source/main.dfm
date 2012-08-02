@@ -18,7 +18,7 @@ object MainForm: TMainForm
   OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13
-  object splitterTopBottom: TSplitter
+  object spltTopBottom: TSplitter
     Left = 0
     Top = 383
     Width = 824
@@ -811,7 +811,7 @@ object MainForm: TMainForm
             object tabProcessList: TTabSheet
               Caption = 'Processes'
               ImageIndex = 57
-              object Splitter3: TSplitter
+              object spltProcessList: TSplitter
                 Left = 0
                 Top = 200
                 Width = 635
@@ -1442,7 +1442,6 @@ object MainForm: TMainForm
           Caption = 'Query'
           ImageIndex = 57
           object spltQuery: TSplitter
-            Tag = 8
             Left = 0
             Top = 96
             Width = 643
@@ -1453,7 +1452,6 @@ object MainForm: TMainForm
             ResizeStyle = rsUpdate
           end
           object pnlQueryMemo: TPanel
-            Tag = 1
             Left = 0
             Top = 0
             Width = 643
@@ -1463,7 +1461,6 @@ object MainForm: TMainForm
             TabOrder = 0
             OnCanResize = pnlQueryMemoCanResize
             object spltQueryHelpers: TSplitter
-              Tag = 5
               Left = 448
               Top = 0
               Width = 4
@@ -1473,7 +1470,6 @@ object MainForm: TMainForm
               ResizeStyle = rsUpdate
             end
             object SynMemoQuery: TSynMemo
-              Tag = 6
               Left = 0
               Top = 0
               Width = 448
@@ -1571,7 +1567,6 @@ object MainForm: TMainForm
             end
           end
           object QueryGrid: TVirtualStringTree
-            Tag = 7
             Left = 0
             Top = 124
             Width = 643
@@ -1662,7 +1657,6 @@ object MainForm: TMainForm
     Left = 40
     Top = 32
     object File1: TMenuItem
-      Tag = 17
       Caption = '&File'
       Hint = 'File related commands'
       OnClick = File1Click
@@ -1673,7 +1667,6 @@ object MainForm: TMainForm
         Caption = 'Connect to'
       end
       object FileNewItem: TMenuItem
-        Tag = 23
         Action = actNewWindow
       end
       object Newquerytab1: TMenuItem
@@ -1698,13 +1691,11 @@ object MainForm: TMainForm
         Caption = '-'
       end
       object FileExitItem: TMenuItem
-        Tag = 26
         Action = actExitApplication
         ShortCut = 32883
       end
     end
     object Edit1: TMenuItem
-      Tag = 18
       Caption = '&Edit'
       Hint = 'Edit commands'
       object CopyItem: TMenuItem
@@ -1749,7 +1740,6 @@ object MainForm: TMainForm
       end
     end
     object Extra1: TMenuItem
-      Tag = 19
       Caption = '&Tools'
       object Nexttab1: TMenuItem
         Action = actNextTab
@@ -1758,30 +1748,23 @@ object MainForm: TMainForm
         Action = actPreviousTab
       end
       object Flush1: TMenuItem
-        Tag = 33
         Caption = 'Flush'
         object MenuFlushHosts: TMenuItem
-          Tag = 37
           Action = actFlushHosts
         end
         object MenuFlushLogs: TMenuItem
-          Tag = 38
           Action = actFlushLogs
         end
         object FlushUserPrivileges1: TMenuItem
-          Tag = 39
           Action = actFlushPrivileges
         end
         object MenuFlushTables: TMenuItem
-          Tag = 40
           Action = actFlushTables
         end
         object MenuFlushTableswithreadlock: TMenuItem
-          Tag = 41
           Action = actFlushTableswithreadlock
         end
         object MenuFlushStatus: TMenuItem
-          Tag = 42
           Action = actFlushStatus
         end
       end
@@ -1828,12 +1811,10 @@ object MainForm: TMainForm
         Caption = '-'
       end
       object MenuPreferences: TMenuItem
-        Tag = 36
         Action = actPreferences
       end
     end
     object Help1: TMenuItem
-      Tag = 22
       Caption = '&Help'
       Hint = 'Help topics'
       object menuSQLHelp1: TMenuItem
@@ -1855,7 +1836,6 @@ object MainForm: TMainForm
         Action = actWebChangelog
       end
       object menuReadme: TMenuItem
-        Tag = 55
         Action = actReadme
       end
       object menuAbout: TMenuItem
@@ -1890,7 +1870,6 @@ object MainForm: TMainForm
       OnExecute = actExitApplicationExecute
     end
     object actCopy: TAction
-      Tag = 27
       Category = 'Various'
       Caption = '&Copy'
       Hint = 'Copy|Copy to Clipboard'
@@ -1899,7 +1878,6 @@ object MainForm: TMainForm
       OnExecute = actCopyOrCutExecute
     end
     object actPaste: TAction
-      Tag = 58
       Category = 'Various'
       Caption = '&Paste'
       Hint = 'Paste|Paste from Clipboard'
@@ -1908,7 +1886,6 @@ object MainForm: TMainForm
       OnExecute = actPasteExecute
     end
     object actUserManager: TAction
-      Tag = 34
       Category = 'Tools'
       Caption = 'User manager'
       Hint = 'Manage user authentication and privileges'
@@ -1931,7 +1908,6 @@ object MainForm: TMainForm
       ShortCut = 32776
     end
     object actAboutBox: TAction
-      Tag = 57
       Category = 'Various'
       Caption = 'About...'
       Hint = 'About this application'
@@ -1939,7 +1915,6 @@ object MainForm: TMainForm
       OnExecute = actAboutBoxExecute
     end
     object actMaintenance: TAction
-      Tag = 35
       Category = 'Tools'
       Caption = 'Maintenance'
       Hint = 'Optimize, repair and analyse tables'
@@ -1963,7 +1938,6 @@ object MainForm: TMainForm
       OnExecute = actExportDataExecute
     end
     object actPrintList: TAction
-      Tag = 61
       Category = 'Various'
       Caption = 'Print...'
       Hint = 'Print List or Data'
@@ -1972,7 +1946,6 @@ object MainForm: TMainForm
       OnExecute = actPrintListExecute
     end
     object actCopyTable: TAction
-      Tag = 62
       Category = 'Database'
       Caption = 'Table copy'
       Enabled = False
@@ -2257,7 +2230,6 @@ object MainForm: TMainForm
       OnExecute = actSaveSQLAsExecute
     end
     object actSaveSQLselection: TAction
-      Tag = 1
       Category = 'SQL'
       Caption = 'Save selection to file ...'
       Enabled = False
@@ -2275,7 +2247,6 @@ object MainForm: TMainForm
       OnExecute = actSaveSQLSnippetExecute
     end
     object actSaveSQLSelectionSnippet: TAction
-      Tag = 1
       Category = 'SQL'
       Caption = 'Save selection as snippet ...'
       Enabled = False
@@ -2583,6 +2554,18 @@ object MainForm: TMainForm
       ImageIndex = 13
       ShortCut = 16497
       OnExecute = actGridEditFunctionExecute
+    end
+    object actLogHorizontalScrollbar: TAction
+      Category = 'Various'
+      AutoCheck = True
+      Caption = 'Horizontal scrollbar'
+      OnExecute = actLogHorizontalScrollbarExecute
+    end
+    object actGroupObjects: TAction
+      Category = 'Various'
+      AutoCheck = True
+      Caption = 'Group objects by type'
+      OnExecute = actGroupObjectsExecute
     end
   end
   object menuConnections: TPopupMenu
@@ -8493,9 +8476,8 @@ object MainForm: TMainForm
       OnClick = menuTreeCollapseAllClick
     end
     object menuGroupObjects: TMenuItem
+      Action = actGroupObjects
       AutoCheck = True
-      Caption = 'Group objects by type'
-      OnClick = menuGroupObjectsClick
     end
     object menuShowSizeColumn: TMenuItem
       Caption = 'Display size of objects'
@@ -8557,7 +8539,6 @@ object MainForm: TMainForm
       Action = actPrintList
     end
     object Refresh1: TMenuItem
-      Tag = 28
       Action = actRefresh
     end
   end
@@ -8829,7 +8810,6 @@ object MainForm: TMainForm
       Action = actSQLhelp
     end
     object Refresh3: TMenuItem
-      Tag = 28
       Action = actRefresh
     end
   end
@@ -8856,8 +8836,8 @@ object MainForm: TMainForm
       OnClick = Clear2Click
     end
     object menuLogHorizontalScrollbar: TMenuItem
-      Caption = 'Horizontal scrollbar'
-      OnClick = menuLogHorizontalScrollbarClick
+      Action = actLogHorizontalScrollbar
+      AutoCheck = True
     end
     object N15: TMenuItem
       Caption = '-'
@@ -8996,14 +8976,12 @@ object MainForm: TMainForm
       Action = actSaveSQLAs
     end
     object menuSaveSelectionToFile: TMenuItem
-      Tag = 1
       Action = actSaveSQLselection
     end
     object menuSaveAsSnippet: TMenuItem
       Action = actSaveSQLSnippet
     end
     object menuSaveSelectionAsSnippet: TMenuItem
-      Tag = 1
       Action = actSaveSQLSelectionSnippet
     end
     object N23: TMenuItem
