@@ -1278,19 +1278,19 @@ begin
   MainReg.WriteInteger(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
   MainReg.WriteBool(REGNAME_STOPONERRORSINBATCH, actQueryStopOnErrors.Checked);
   MainReg.WriteBool(REGNAME_BLOBASTEXT, actBlobAsText.Checked);
-  MainReg.WriteString( REGNAME_DELIMITER, Delimiter );
-  MainReg.WriteInteger( REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height );
-  MainReg.WriteInteger( REGNAME_QUERYHELPERSWIDTH, treeQueryHelpers.Width );
-  MainReg.WriteInteger( REGNAME_DBTREEWIDTH, pnlLeft.width );
-  MainReg.WriteBool(REGNAME_GROUPOBJECTS, menuGroupObjects.Checked);
-  MainReg.WriteString( REGNAME_DATABASE_FILTER, comboDBFilter.Items.Text );
+  MainReg.WriteString(REGNAME_DELIMITER, FDelimiter);
+  MainReg.WriteInteger(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
+  MainReg.WriteInteger(REGNAME_QUERYHELPERSWIDTH, treeQueryHelpers.Width);
+  MainReg.WriteInteger(REGNAME_DBTREEWIDTH, pnlLeft.width);
+  MainReg.WriteBool(REGNAME_GROUPOBJECTS, actGroupObjects.Checked);
+  MainReg.WriteString(REGNAME_DATABASE_FILTER, comboDBFilter.Items.Text);
   MainReg.WriteInteger(REGNAME_PREVIEW_HEIGHT, pnlPreview.Height);
   MainReg.WriteBool(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked);
-  MainReg.WriteInteger( REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height );
+  MainReg.WriteInteger(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
   MainReg.WriteBool(REGNAME_FILTERACTIVE, pnlFilterVT.Tag=Integer(True));
   MainReg.WriteBool(REGNAME_WRAPLINES, actQueryWordWrap.Checked);
   MainReg.WriteBool(REGNAME_SINGLEQUERIES, actSingleQueries.Checked);
-  MainReg.WriteBool(REGNAME_LOG_HORIZONTALSCROLLBAR, SynMemoSQLLog.ScrollBars = ssBoth);
+  MainReg.WriteBool(REGNAME_LOG_HORIZONTALSCROLLBAR, actLogHorizontalScrollbar.Checked);
   MainReg.WriteBool(REGNAME_WINMAXIMIZED, WindowState=wsMaximized);
   MainReg.WriteInteger(REGNAME_WINONMONITOR, Monitor.MonitorNum);
   // Window dimensions are only valid when WindowState is normal.
@@ -2044,7 +2044,7 @@ begin
     // Decrease height of pnlMemo if grid has not enough height
     Tab.pnlMemo.Height := Max(Tab.pnlMemo.Height-GridNeedHeight, Tab.spltQuery.MinSize);
     // Try again and resize SQLLog if required
-    SynMemoSQLLog.Height := Max(SynMemoSQLLog.Height-GridNeedHeight, splitterTopBottom.MinSize);
+    SynMemoSQLLog.Height := Max(SynMemoSQLLog.Height-GridNeedHeight, spltTopBottom.MinSize);
   end;
 end;
 
