@@ -259,7 +259,7 @@ type
     PageControlMain: TPageControl;
     tabData: TTabSheet;
     tabDatabase: TTabSheet;
-    splitterTopBottom: TSplitter;
+    spltTopBottom: TSplitter;
     tabQuery: TTabSheet;
     popupDB: TPopupMenu;
     menuRefreshDB: TMenuItem;
@@ -378,7 +378,7 @@ type
     menuOpenLogFolder: TMenuItem;
     tabStatus: TTabSheet;
     ListStatus: TVirtualStringTree;
-    Splitter3: TSplitter;
+    spltProcessList: TSplitter;
     pnlProcessViewBox: TPanel;
     pnlProcessView: TPanel;
     SynMemoProcessView: TSynMemo;
@@ -553,6 +553,8 @@ type
     actGridEditFunction: TAction;
     InsertSQLfunction1: TMenuItem;
     menuGroupObjects: TMenuItem;
+    actLogHorizontalScrollbar: TAction;
+    actGroupObjects: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -857,7 +859,7 @@ type
     procedure actDisconnectExecute(Sender: TObject);
     procedure menuEditObjectClick(Sender: TObject);
     procedure Copylinetonewquerytab1Click(Sender: TObject);
-    procedure menuLogHorizontalScrollbarClick(Sender: TObject);
+    procedure actLogHorizontalScrollbarExecute(Sender: TObject);
     procedure actBatchInOneGoExecute(Sender: TObject);
     procedure actCancelOperationExecute(Sender: TObject);
     procedure AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
@@ -874,7 +876,7 @@ type
       TextType: TVSTTextType);
     procedure DBtreeExpanding(Sender: TBaseVirtualTree; Node: PVirtualNode;
       var Allowed: Boolean);
-    procedure menuGroupObjectsClick(Sender: TObject);
+    procedure actGroupObjectsExecute(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -1531,7 +1533,7 @@ begin
   pnlPreview.Height := GetRegValue(REGNAME_PREVIEW_HEIGHT, pnlPreview.Height);
   if GetRegValue(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked) and (not actDataPreview.Checked) then
     actDataPreviewExecute(actDataPreview);
-  SynMemoSQLLog.Height := Max(GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height), splitterTopBottom.MinSize);
+  SynMemoSQLLog.Height := Max(GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height), spltTopBottom.MinSize);
   // Force status bar position to below log memo
   StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
   prefMaxColWidth := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
@@ -1552,7 +1554,7 @@ begin
     ActivateFileLogging;
   prefRememberFilters := GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
   if GetRegValue(REGNAME_LOG_HORIZONTALSCROLLBAR, SynMemoSQLLog.ScrollBars = ssBoth) then
-    menuLogHorizontalScrollbar.OnClick(menuLogHorizontalScrollbar);
+    actLogHorizontalScrollbar.Execute;
   prefLogErrors := GetRegValue(REGNAME_LOG_ERRORS, DEFAULT_LOG_ERRORS);
   prefLogUserSQL := GetRegValue(REGNAME_LOG_USERSQL, DEFAULT_LOG_USERSQL);
   prefLogSQL := GetRegValue(REGNAME_LOG_SQL, DEFAULT_LOG_SQL);
@@ -1590,7 +1592,7 @@ begin
   prefEnableSetEditor := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
 
   // Database tree options
-  menuGroupObjects.Checked := GetRegValue(REGNAME_GROUPOBJECTS, DEFAULT_GROUPOBJECTS);
+  actGroupObjects.Checked := GetRegValue(REGNAME_GROUPOBJECTS, DEFAULT_GROUPOBJECTS);
   menuShowSizeColumn.Checked := GetRegValue(REGNAME_SIZECOL_TREE, DEFAULT_SIZECOL_TREE);
   if menuShowSizeColumn.Checked then
     DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible]
@@ -3645,6 +3647,7 @@ procedure TMainForm.actSaveSQLAsExecute(Sender: TObject);
 var
   i: Integer;
   CanSave: TModalResult;
+  OnlySelection: Boolean;
 begin
   // Save SQL
   CanSave := mrNo;
@@ -3661,7 +3664,8 @@ begin
     end;
   end;
   if CanSave = mrYes then begin
-    ActiveQueryTab.SaveContents(SaveDialogSQLFile.FileName, (Sender as TAction).Tag = 1);
+    OnlySelection := (Sender = actSaveSQLselection) or (Sender = actSaveSQLSelectionSnippet);
+    ActiveQueryTab.SaveContents(SaveDialogSQLFile.FileName, OnlySelection);
     for i:=0 to QueryTabs.Count-1 do begin
       if QueryTabs[i] = ActiveQueryTab then
         continue;
@@ -3940,7 +3944,7 @@ begin
   end else begin
     FDelimiter := Value;
     LogSQL('Delimiter changed to '+FDelimiter, lcInfo);
-    actSetDelimiter.Hint := actSetDelimiter.Caption + ' (current value: '+Delimiter+')';
+    actSetDelimiter.Hint := actSetDelimiter.Caption + ' (current value: '+FDelimiter+')';
   end;
 end;
 
@@ -5706,7 +5710,7 @@ begin
     // Show certain items which are valid only here
     menuTreeExpandAll.Visible := True;
     menuTreeCollapseAll.Visible := True;
-    menuGroupObjects.Visible := True;
+    actGroupObjects.Visible := True;
     menuShowSizeColumn.Visible := True;
     actSelectTreeBackground.Visible := True;
   end else begin
@@ -5728,7 +5732,7 @@ begin
     end;
     menuTreeExpandAll.Visible := False;
     menuTreeCollapseAll.Visible := False;
-    menuGroupObjects.Visible := False;
+    actGroupObjects.Visible := False;
     menuShowSizeColumn.Visible := False;
     actSelectTreeBackground.Visible := False;
   end;
@@ -6575,14 +6579,10 @@ begin
 end;
 
 
-procedure TMainForm.menuLogHorizontalScrollbarClick(Sender: TObject);
-var
-  Item: TMenuItem;
+procedure TMainForm.actLogHorizontalScrollbarExecute(Sender: TObject);
 begin
   // Toggle visibility of horizontal scrollbar
-  Item := Sender as TMenuItem;
-  Item.Checked := not Item.Checked;
-  if Item.Checked then
+  if TAction(Sender).Checked then
     SynMemoSQLLog.ScrollBars := ssBoth
   else
     SynMemoSQLLog.ScrollBars := ssVertical;
@@ -7128,7 +7128,7 @@ begin
       end;
     // DB node expanding
     lntDb: begin
-        if menuGroupObjects.Checked then begin
+        if actGroupObjects.Checked then begin
           // Just tables, views, etc.
           ChildCount := 6;
         end else begin
@@ -7184,7 +7184,7 @@ begin
         Include(InitialStates, ivsHasChildren);
       end;
       lntDb: begin
-        if menuGroupObjects.Checked then begin
+        if actGroupObjects.Checked then begin
           Item^ := TDBObject.Create(ParentObj.Connection);
           Item.NodeType := lntGroup;
           case Node.Index of
@@ -8171,7 +8171,7 @@ begin
 end;
 
 
-procedure TMainForm.menuGroupObjectsClick(Sender: TObject);
+procedure TMainForm.actGroupObjectsExecute(Sender: TObject);
 begin
   // Group tree objects by type
   RefreshTree(nil);
@@ -9088,13 +9088,11 @@ begin
   // Dumb code which replicates all controls from tabQuery
   QueryTab.pnlMemo := TPanel.Create(QueryTab.TabSheet);
   QueryTab.pnlMemo.Parent := QueryTab.TabSheet;
-  QueryTab.pnlMemo.Tag := pnlQueryMemo.Tag;
   QueryTab.pnlMemo.BevelOuter := pnlQueryMemo.BevelOuter;
   QueryTab.pnlMemo.Align := pnlQueryMemo.Align;
 
   QueryTab.Memo := TSynMemo.Create(QueryTab.pnlMemo);
   QueryTab.Memo.Parent := QueryTab.pnlMemo;
-  QueryTab.Memo.Tag := SynMemoQuery.Tag;
   QueryTab.Memo.Align := SynMemoQuery.Align;
   QueryTab.Memo.Options := SynMemoQuery.Options;
   QueryTab.Memo.PopupMenu := SynMemoQuery.PopupMenu;
@@ -9116,7 +9114,6 @@ begin
 
   QueryTab.spltHelpers := TSplitter.Create(QueryTab.pnlMemo);
   QueryTab.spltHelpers.Parent := QueryTab.pnlMemo;
-  QueryTab.spltHelpers.Tag := spltQueryHelpers.Tag;
   QueryTab.spltHelpers.Align := spltQueryHelpers.Align;
   QueryTab.spltHelpers.Cursor := spltQueryHelpers.Cursor;
   QueryTab.spltHelpers.ResizeStyle := spltQueryHelpers.ResizeStyle;
@@ -9154,7 +9151,6 @@ begin
 
   QueryTab.spltQuery := TSplitter.Create(QueryTab.TabSheet);
   QueryTab.spltQuery.Parent := QueryTab.TabSheet;
-  QueryTab.spltQuery.Tag := spltQuery.Tag;
   QueryTab.spltQuery.Align := spltQuery.Align;
   QueryTab.spltQuery.Height := spltQuery.Height;
   QueryTab.spltQuery.Cursor := spltQuery.Cursor;

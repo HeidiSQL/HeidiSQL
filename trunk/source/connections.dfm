@@ -1,5 +1,4 @@
 object connform: Tconnform
-  Tag = 1
   Left = 288
   Top = 129
   BorderIcons = [biSystemMenu]
@@ -52,7 +51,6 @@ object connform: Tconnform
     OnClick = btnSaveClick
   end
   object btnOpen: TButton
-    Tag = 15
     Left = 320
     Top = 331
     Width = 80
@@ -65,7 +63,6 @@ object connform: Tconnform
     OnClick = btnOpenClick
   end
   object btnCancel: TButton
-    Tag = 16
     Left = 406
     Top = 331
     Width = 80
@@ -230,7 +227,6 @@ object connform: Tconnform
         FocusControl = editStartupScript
       end
       object lblPort: TLabel
-        Tag = 9
         Left = 3
         Top = 168
         Width = 24
@@ -239,7 +235,6 @@ object connform: Tconnform
         FocusControl = editPort
       end
       object lblPassword: TLabel
-        Tag = 8
         Left = 3
         Top = 143
         Width = 50
@@ -248,7 +243,6 @@ object connform: Tconnform
         FocusControl = editPassword
       end
       object lblHost: TLabel
-        Tag = 6
         Left = 3
         Top = 45
         Width = 72
@@ -257,7 +251,6 @@ object connform: Tconnform
         FocusControl = editHost
       end
       object lblUsername: TLabel
-        Tag = 7
         Left = 3
         Top = 118
         Width = 26
@@ -294,7 +287,6 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object chkCompressed: TCheckBox
-        Tag = 12
         Left = 101
         Top = 190
         Width = 191
@@ -604,7 +596,6 @@ object connform: Tconnform
         295
         287)
       object lblSSLPrivateKey: TLabel
-        Tag = 6
         Left = 3
         Top = 39
         Width = 78
@@ -613,7 +604,6 @@ object connform: Tconnform
         FocusControl = editSSLPrivateKey
       end
       object lblSSLCACertificate: TLabel
-        Tag = 6
         Left = 3
         Top = 68
         Width = 89
@@ -622,7 +612,6 @@ object connform: Tconnform
         FocusControl = editSSLCACertificate
       end
       object lblSSLCertificate: TLabel
-        Tag = 6
         Left = 3
         Top = 95
         Width = 72

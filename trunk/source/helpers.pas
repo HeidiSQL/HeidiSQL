@@ -183,9 +183,9 @@ type
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   function ComposeOrderClause(Cols: TOrderColArray): String;
   procedure OpenRegistry(SessionPath: String = '');
-  function GetRegValue( valueName: String; defaultValue: Integer; SessionPath: String = '' ) : Integer; Overload;
-  function GetRegValue( valueName: String; defaultValue: Boolean; SessionPath: String = '' ) : Boolean; Overload;
-  function GetRegValue( valueName: String; defaultValue: String; SessionPath: String = '' ) : String; Overload;
+  function GetRegValue(ValueName: String; DefaultValue: Integer; SessionPath: String=''): Integer; overload;
+  function GetRegValue(ValueName: String; DefaultValue: Boolean; SessionPath: String=''): Boolean; overload;
+  function GetRegValue(ValueName: String; DefaultValue: String; SessionPath: String=''): String; overload;
   function GetSessionNames(ParentPath: String; var Folders: TStringList): TStringList;
   procedure GetSessionPaths(ParentPath: String; var Sessions: TStringList);
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
@@ -1507,43 +1507,33 @@ begin
 end;
 
 
-{**
-  Read a numeric preference value from registry
-}
-function GetRegValue( valueName: String; defaultValue: Integer; SessionPath: String = '' ) : Integer;
+function GetRegValue(ValueName: String; DefaultValue: Integer; SessionPath: String=''): Integer;
 begin
-  result := defaultValue;
+  // Read a numeric user setting value from registry
+  Result := DefaultValue;
   OpenRegistry(SessionPath);
-  if MainReg.ValueExists( valueName ) then
-    result := MainReg.ReadInteger( valueName );
+  if MainReg.ValueExists(ValueName) then
+    Result := MainReg.ReadInteger(ValueName);
 end;
 
 
-{***
-  Read a boolean preference value from registry
-  @param string Name of the value
-  @param boolean Default-value to return if valueName was not found
-  @param string Subkey of RegPath where to search for the value
-}
-function GetRegValue( valueName: String; defaultValue: Boolean; SessionPath: String = '' ) : Boolean;
+function GetRegValue(ValueName: String; DefaultValue: Boolean; SessionPath: String=''): Boolean;
 begin
-  result := defaultValue;
+  // Read a boolean user setting value from registry
+  Result := DefaultValue;
   OpenRegistry(SessionPath);
-  if MainReg.ValueExists( valueName ) then
-    result := MainReg.ReadBool( valueName );
+  if MainReg.ValueExists(ValueName) then
+    Result := MainReg.ReadBool(ValueName);
 end;
 
 
-
-{***
-  Read a text preference value from registry
-}
-function GetRegValue( valueName: String; defaultValue: String; SessionPath: String = '' ) : String;
+function GetRegValue(ValueName: String; DefaultValue: String; SessionPath: String=''): String;
 begin
-  result := defaultValue;
+  // Read a text user setting value from registry
+  Result := DefaultValue;
   OpenRegistry(SessionPath);
-  if MainReg.ValueExists( valueName ) then
-    result := MainReg.ReadString( valueName );
+  if MainReg.ValueExists(ValueName) then
+    Result := MainReg.ReadString(ValueName);
 end;
 
 
