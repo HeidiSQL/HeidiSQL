@@ -62,8 +62,8 @@ end;
 
 procedure TfrmSelectDBObject.FormCreate(Sender: TObject);
 begin
-  Width := GetRegValue(REGNAME_SELECTDBO_WINWIDTH, Width);
-  Height := GetRegValue(REGNAME_SELECTDBO_WINHEIGHT, Height);
+  Width := AppSettings.ReadInt(asSelectDBOWindowWidth);
+  Height := AppSettings.ReadInt(asSelectDBOWindowHeight);
   SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
   TreeDBO.TreeOptions := MainForm.DBtree.TreeOptions;
@@ -73,9 +73,8 @@ end;
 
 procedure TfrmSelectDBObject.FormDestroy(Sender: TObject);
 begin
-  OpenRegistry;
-  MainReg.WriteInteger( REGNAME_SELECTDBO_WINWIDTH, Width );
-  MainReg.WriteInteger( REGNAME_SELECTDBO_WINHEIGHT, Height );
+  AppSettings.WriteInt(asSelectDBOWindowWidth, Width);
+  AppSettings.WriteInt(asSelectDBOWindowHeight, Height);
 end;
 
 

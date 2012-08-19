@@ -122,7 +122,6 @@ end;
 destructor TfrmRoutineEditor.Destroy;
 begin
   // Store GUI setup
-  OpenRegistry;
   Mainform.SaveListSetup(listParameters);
   inherited;
 end;

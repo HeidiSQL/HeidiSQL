@@ -608,21 +608,21 @@ uses helpers, loginform;
 constructor TConnectionParameters.Create;
 begin
   inherited Create;
-  FNetType := ntMySQL_TCPIP;
+  FNetType := TNetType(AppSettings.GetDefaultInt(asNetType));
   FIsFolder := False;
-  FHostname := DEFAULT_HOST;
-  FUsername := DEFAULT_USER;
+  FHostname := AppSettings.GetDefaultString(asHost);
+  FUsername := AppSettings.GetDefaultString(asUser);
   FPassword := '';
-  FPort := DEFAULT_PORT;
-  FSSHPlinkExe := GetRegValue(REGNAME_PLINKEXE, '');
-  FSSHPort := DEFAULT_SSHPORT;
-  FSSHTimeout := DEFAULT_SSHTIMEOUT;
+  FPort := AppSettings.GetDefaultInt(asPort);
+  FSSHPlinkExe := AppSettings.ReadString(asPlinkExecutable);
+  FSSHPort := AppSettings.GetDefaultInt(asSSHtunnelPort);
+  FSSHTimeout := AppSettings.GetDefaultInt(asSSHtunnelTimeout);
   FSSHLocalPort := FPort + 1;
   FSSLPrivateKey := '';
   FSSLCertificate := '';
   FSSLCACertificate := '';
   FStartupScriptFilename := '';
-  FSessionColor := DEFAULT_TREEBACKGROUND;
+  FSessionColor := AppSettings.GetDefaultInt(asTreeBackground);
   FLastConnect := 0;
   FCounter := 0;
   FServerVersion := '';
@@ -632,49 +632,49 @@ end;
 constructor TConnectionParameters.Create(SessionRegPath: String);
 var
   DummyDate: TDateTime;
-  RegKey: String;
 begin
   // Parameters from stored registry key
   Create;
-  RegKey := REGPATH + REGKEY_SESSIONS + '\' + SessionRegPath;
+
+  if not AppSettings.SessionPathExists(SessionRegPath) then
+    raise Exception.Create('Error: Session "'+SessionRegPath+'" not found in registry.');
+
   FSessionPath := SessionRegPath;
+  AppSettings.SessionPath := SessionRegPath;
 
-  if not Mainreg.KeyExists(RegKey) then
-    raise Exception.Create('Error: Session "'+SessionName+'" not found in registry.');
-
-  MainReg.OpenKey(RegKey, True);
-  if MainReg.ValueExists(REGNAME_SESSIONFOLDER) then begin
+  if AppSettings.ValueExists(asSessionFolder) then begin
     FIsFolder := True;
   end else begin
-    FSessionColor := GetRegValue(REGNAME_TREEBACKGROUND, DEFAULT_TREEBACKGROUND, SessionRegPath);
-    FNetType := TNetType(GetRegValue(REGNAME_NETTYPE, Integer(ntMySQL_TCPIP), SessionRegPath));
-    FHostname := GetRegValue(REGNAME_HOST, '', SessionRegPath);
-    FUsername := GetRegValue(REGNAME_USER, '', SessionRegPath);
-    FPassword := decrypt(GetRegValue(REGNAME_PASSWORD, '', SessionRegPath));
-    FLoginPrompt := GetRegValue(REGNAME_LOGINPROMPT, False, SessionRegPath);
-    FWindowsAuth := GetRegValue(REGNAME_WINDOWSAUTH, False, SessionRegPath);
-    FPort := StrToIntDef(GetRegValue(REGNAME_PORT, '', SessionRegPath), DEFAULT_PORT);
-    FAllDatabases := GetRegValue(REGNAME_DATABASES, '', SessionRegPath);
-    FSSHHost := GetRegValue(REGNAME_SSHHOST, '', SessionRegPath);
-    FSSHPort := GetRegValue(REGNAME_SSHPORT, DEFAULT_SSHPORT, SessionRegPath);
-    FSSHUser := GetRegValue(REGNAME_SSHUSER, '', SessionRegPath);
-    FSSHPassword := decrypt(GetRegValue(REGNAME_SSHPASSWORD, '', SessionRegPath));
-    FSSHTimeout := GetRegValue(REGNAME_SSHTIMEOUT, DEFAULT_SSHTIMEOUT, SessionRegPath);
-    FSSHPrivateKey := GetRegValue(REGNAME_SSHKEY, '', SessionRegPath);
-    FSSHLocalPort := GetRegValue(REGNAME_SSHLOCALPORT, 0, SessionRegPath);
-    FSSHPlinkExe := GetRegValue(REGNAME_PLINKEXE, '');
-    FSSLPrivateKey := GetRegValue(REGNAME_SSL_KEY, '', SessionRegPath);
+    FSessionColor := AppSettings.ReadInt(asTreeBackground);
+    FNetType := TNetType(AppSettings.ReadInt(asNetType));
+    FHostname := AppSettings.ReadString(asHost);
+    FUsername := AppSettings.ReadString(asUser);
+    FPassword := decrypt(AppSettings.ReadString(asPassword));
+    FLoginPrompt := AppSettings.ReadBool(asLoginPrompt);
+    FWindowsAuth := AppSettings.ReadBool(asWindowsAuth);
+    FPort := MakeInt(AppSettings.ReadString(asPort));
+    FAllDatabases := AppSettings.ReadString(asDatabases);
+    FSSHHost := AppSettings.ReadString(asSSHtunnelHost);
+    FSSHPort := AppSettings.ReadInt(asSSHtunnelHostPort);
+    FSSHUser := AppSettings.ReadString(asSSHtunnelUser);
+    FSSHPassword := decrypt(AppSettings.ReadString(asSSHtunnelPassword));
+    FSSHTimeout := AppSettings.ReadInt(asSSHtunnelTimeout);
+    FSSHPrivateKey := AppSettings.ReadString(asSSHtunnelPrivateKey);
+    FSSHLocalPort := AppSettings.ReadInt(asSSHtunnelPort);
+    FSSLPrivateKey := AppSettings.ReadString(asSSLKey);
     // Auto-activate SSL for sessions created before UseSSL was introduced:
-    FWantSSL := GetRegValue(REGNAME_SSL_ACTIVE, FSSLPrivateKey<>'', SessionRegPath);
-    FSSLCertificate := GetRegValue(REGNAME_SSL_CERT, '', SessionRegPath);
-    FSSLCACertificate := GetRegValue(REGNAME_SSL_CA, '', SessionRegPath);
-    FStartupScriptFilename := GetRegValue(REGNAME_STARTUPSCRIPT, '', SessionRegPath);
-    FCompressed := GetRegValue(REGNAME_COMPRESSED, DEFAULT_COMPRESSED, SessionRegPath);
-    FLocalTimeZone := GetRegValue(REGNAME_LOCALTIMEZONE, DEFAULT_LOCALTIMEZONE, SessionRegPath);
-    FServerVersion := GetRegValue(REGNAME_SERVERVERSION_FULL, '', SessionRegPath);
+    FWantSSL := AppSettings.ReadBool(asSSLActive, '', FSSLPrivateKey<>'');
+    FSSLCertificate := AppSettings.ReadString(asSSLCert);
+    FSSLCACertificate := AppSettings.ReadString(asSSLCA);
+    FStartupScriptFilename := AppSettings.ReadString(asStartupScriptFilename);
+    FCompressed := AppSettings.ReadBool(asCompressed);
+    FLocalTimeZone := AppSettings.ReadBool(asLocalTimeZone);
+    FServerVersion := AppSettings.ReadString(asServerVersionFull);
     DummyDate := 0;
-    FLastConnect := StrToDateTimeDef(GetRegValue(REGNAME_LASTCONNECT, '', SessionRegPath), DummyDate);
-    FCounter := GetRegValue(REGNAME_CONNECTCOUNT, 0, SessionRegPath);
+    FLastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DummyDate);
+    FCounter := AppSettings.ReadInt(asConnectCount);
+    AppSettings.ResetPath;
+    FSSHPlinkExe := AppSettings.ReadString(asPlinkExecutable);
   end;
 end;
 
@@ -684,39 +684,37 @@ var
   IsNew: Boolean;
 begin
   // Save current values to registry
-  OpenRegistry;
-  MainReg.OpenKey(REGKEY_SESSIONS, False);
-  IsNew := not MainReg.KeyExists(FSessionPath);
-  MainReg.OpenKey(FSessionPath, True);
+  IsNew := not AppSettings.SessionPathExists(FSessionPath);
+  AppSettings.SessionPath := FSessionPath;
   if IsNew then
-    MainReg.WriteString(REGNAME_SESSIONCREATED, DateTimeToStr(Now));
+    AppSettings.WriteString(asSessionCreated, DateTimeToStr(Now));
   if FIsFolder then
-    MainReg.WriteBool(REGNAME_SESSIONFOLDER, True)
+    AppSettings.WriteBool(asSessionFolder, True)
   else begin
-    MainReg.WriteString(REGNAME_HOST, FHostname);
-    MainReg.WriteBool(REGNAME_WINDOWSAUTH, FWindowsAuth);
-    MainReg.WriteString(REGNAME_USER, FUsername);
-    MainReg.WriteString(REGNAME_PASSWORD, encrypt(FPassword));
-    MainReg.WriteBool(REGNAME_LOGINPROMPT, FLoginPrompt);
-    MainReg.WriteString(REGNAME_PORT, IntToStr(FPort));
-    MainReg.WriteInteger(REGNAME_NETTYPE, Integer(FNetType));
-    MainReg.WriteBool(REGNAME_COMPRESSED, FCompressed);
-    MainReg.WriteBool(REGNAME_LOCALTIMEZONE, FLocalTimeZone);
-    MainReg.WriteString(REGNAME_DATABASES, FAllDatabases);
-    MainReg.WriteString(REGNAME_STARTUPSCRIPT, FStartupScriptFilename);
-    MainReg.WriteString(REGNAME_SSHHOST, FSSHHost);
-    MainReg.WriteInteger(REGNAME_SSHPORT, FSSHPort);
-    MainReg.WriteString(REGNAME_SSHUSER, FSSHUser);
-    MainReg.WriteString(REGNAME_SSHPASSWORD, encrypt(FSSHPassword));
-    MainReg.WriteInteger(REGNAME_SSHTIMEOUT, FSSHTimeout);
-    MainReg.WriteString(REGNAME_SSHKEY, FSSHPrivateKey);
-    MainReg.WriteInteger(REGNAME_SSHLOCALPORT, FSSHLocalPort);
-    MainReg.WriteBool(REGNAME_SSL_ACTIVE, FWantSSL);
-    MainReg.WriteString(REGNAME_SSL_KEY, FSSLPrivateKey);
-    MainReg.WriteString(REGNAME_SSL_CERT, FSSLCertificate);
-    MainReg.WriteString(REGNAME_SSL_CA, FSSLCACertificate);
-    OpenRegistry;
-    MainReg.WriteString(REGNAME_PLINKEXE, FSSHPlinkExe);
+    AppSettings.WriteString(asHost, FHostname);
+    AppSettings.WriteBool(asWindowsAuth, FWindowsAuth);
+    AppSettings.WriteString(asUser, FUsername);
+    AppSettings.WriteString(asPassword, encrypt(FPassword));
+    AppSettings.WriteBool(asLoginPrompt, FLoginPrompt);
+    AppSettings.WriteString(asPort, IntToStr(FPort));
+    AppSettings.WriteInt(asNetType, Integer(FNetType));
+    AppSettings.WriteBool(asCompressed, FCompressed);
+    AppSettings.WriteBool(asLocalTimeZone, FLocalTimeZone);
+    AppSettings.WriteString(asDatabases, FAllDatabases);
+    AppSettings.WriteString(asStartupScriptFilename, FStartupScriptFilename);
+    AppSettings.WriteString(asSSHtunnelHost, FSSHHost);
+    AppSettings.WriteInt(asSSHtunnelHostPort, FSSHPort);
+    AppSettings.WriteString(asSSHtunnelUser, FSSHUser);
+    AppSettings.WriteString(asSSHtunnelPassword, encrypt(FSSHPassword));
+    AppSettings.WriteInt(asSSHtunnelTimeout, FSSHTimeout);
+    AppSettings.WriteString(asSSHtunnelPrivateKey, FSSHPrivateKey);
+    AppSettings.WriteInt(asSSHtunnelPort, FSSHLocalPort);
+    AppSettings.WriteBool(asSSLActive, FWantSSL);
+    AppSettings.WriteString(asSSLKey, FSSLPrivateKey);
+    AppSettings.WriteString(asSSLCert, FSSLCertificate);
+    AppSettings.WriteString(asSSLCA, FSSLCACertificate);
+    AppSettings.ResetPath;
+    AppSettings.WriteString(asPlinkExecutable, FSSHPlinkExe);
   end;
 end;
 
@@ -1344,8 +1342,8 @@ end;
 
 procedure TDBConnection.DoAfterConnect;
 begin
-  OpenRegistry(FParameters.SessionPath);
-  MainReg.WriteString(REGNAME_SERVERVERSION_FULL, FServerVersionUntouched);
+  AppSettings.SessionPath := FParameters.SessionPath;
+  AppSettings.WriteString(asServerVersionFull, FServerVersionUntouched);
   FParameters.ServerVersion := FServerVersionUntouched;
   if Assigned(FOnConnected) then
     FOnConnected(Self, FDatabase);

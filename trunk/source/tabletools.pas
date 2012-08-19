@@ -181,29 +181,29 @@ var
 begin
   // Restore GUI setup
   InheritFont(Font);
-  Width := GetRegValue(REGNAME_TOOLSWINWIDTH, Width);
-  Height := GetRegValue(REGNAME_TOOLSWINHEIGHT, Height);
-  TreeObjects.Width := GetRegValue(REGNAME_TOOLSTREEWIDTH, TreeObjects.Width);
+  Width := AppSettings.ReadInt(asTableToolsWindowWidth);
+  Height := AppSettings.ReadInt(asTableToolsWindowHeight);
+  TreeObjects.Width := AppSettings.ReadInt(asTableToolsTreeWidth);
 
   // Find text tab
-  memoFindText.Text := GetRegValue(REGNAME_TOOLSFINDTEXT, '');
+  memoFindText.Text := AppSettings.ReadString(asTableToolsFindText);
   comboDatatypes.Items.Add('All data types');
   for dtc:=Low(DatatypeCategories) to High(DatatypeCategories) do
     comboDatatypes.Items.Add(DatatypeCategories[dtc].Name);
-  comboDatatypes.ItemIndex := GetRegValue(REGNAME_TOOLSDATATYPE, 0);
-  chkCaseSensitive.Checked := GetRegValue(REGNAME_TOOLSCASESENSITIVE, chkCaseSensitive.Checked);
+  comboDatatypes.ItemIndex := AppSettings.ReadInt(asTableToolsDatatype);
+  chkCaseSensitive.Checked := AppSettings.ReadBool(asTableToolsFindCaseSensitive);
 
   // SQL export tab
-  chkExportDatabasesCreate.Checked := GetRegValue(REGNAME_EXP_CREATEDB, chkExportDatabasesCreate.Checked);
-  chkExportDatabasesDrop.Checked := GetRegValue(REGNAME_EXP_DROPDB, chkExportDatabasesDrop.Checked);
-  chkExportTablesCreate.Checked := GetRegValue(REGNAME_EXP_CREATETABLE, chkExportTablesCreate.Checked);
-  chkExportTablesDrop.Checked := GetRegValue(REGNAME_EXP_DROPTABLE, chkExportTablesDrop.Checked);
+  chkExportDatabasesCreate.Checked := AppSettings.ReadBool(asExportSQLCreateDatabases);
+  chkExportDatabasesDrop.Checked := AppSettings.ReadBool(asExportSQLDropDatabases);
+  chkExportTablesCreate.Checked := AppSettings.ReadBool(asExportSQLCreateTables);
+  chkExportTablesDrop.Checked := AppSettings.ReadBool(asExportSQLDropTables);
   comboExportData.Items.Text := DATA_NO+CRLF +DATA_REPLACE+CRLF +DATA_INSERT+CRLF +DATA_INSERTNEW+CRLF +DATA_UPDATE;
-  comboExportData.ItemIndex := GetRegValue(REGNAME_EXP_DATAHOW, 0);
+  comboExportData.ItemIndex := AppSettings.ReadInt(asExportSQLDataHow);
   // Add hardcoded output options and session names from registry
   comboExportOutputType.Items.Text := OUTPUT_FILE+CRLF +OUTPUT_DIR+CRLF +OUTPUT_CLIPBOARD+CRLF +OUTPUT_DB;
   SessionPaths := TStringList.Create;
-  GetSessionPaths('', SessionPaths);
+  AppSettings.GetSessionPaths('', SessionPaths);
   for i:=0 to SessionPaths.Count-1 do begin
     if SessionPaths[i] <> Mainform.ActiveConnection.Parameters.SessionPath then
       comboExportOutputType.Items.Add(OUTPUT_SERVER+SessionPaths[i]);
@@ -239,10 +239,9 @@ end;
 procedure TfrmTableTools.FormDestroy(Sender: TObject);
 begin
   // Save GUI setup
-  OpenRegistry;
-  MainReg.WriteInteger( REGNAME_TOOLSWINWIDTH, Width );
-  MainReg.WriteInteger( REGNAME_TOOLSWINHEIGHT, Height );
-  MainReg.WriteInteger( REGNAME_TOOLSTREEWIDTH, TreeObjects.Width);
+  AppSettings.WriteInt(asTableToolsWindowWidth, Width );
+  AppSettings.WriteInt(asTableToolsWindowHeight, Height );
+  AppSettings.WriteInt(asTableToolsTreeWidth, TreeObjects.Width);
 end;
 
 
@@ -285,7 +284,7 @@ begin
 
   // Restore output option. Use Server preselection in tmSQLExport mode only, to avoid
   // unwanted connects in other modes.
-  idx := GetRegValue(REGNAME_EXP_OUTPUT, 0);
+  idx := AppSettings.ReadInt(asExportSQLOutput);
   if (idx = -1) or (idx >= comboExportOutputType.Items.Count) then
     idx := 0;
   if (copy(comboExportOutputType.Items[idx], 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER)
@@ -325,33 +324,31 @@ end;
 
 procedure TfrmTableTools.SaveSettings(Sender: TObject);
 begin
-  OpenRegistry;
-
   case ToolMode of
     tmFind: begin
-      MainReg.WriteString(REGNAME_TOOLSFINDTEXT, memoFindText.Text);
-      MainReg.WriteInteger(REGNAME_TOOLSDATATYPE, comboDatatypes.ItemIndex);
-      MainReg.WriteBool(REGNAME_TOOLSCASESENSITIVE, chkCaseSensitive.Checked);
+      AppSettings.WriteString(asTableToolsFindText, memoFindText.Text);
+      AppSettings.WriteInt(asTableToolsDatatype, comboDatatypes.ItemIndex);
+      AppSettings.WriteBool(asTableToolsFindCaseSensitive, chkCaseSensitive.Checked);
     end;
 
     tmSQLExport: begin
-      MainReg.WriteBool(REGNAME_EXP_CREATEDB, chkExportDatabasesCreate.Checked);
-      MainReg.WriteBool(REGNAME_EXP_DROPDB, chkExportDatabasesDrop.Checked);
-      MainReg.WriteBool(REGNAME_EXP_CREATETABLE, chkExportTablesCreate.Checked);
-      MainReg.WriteBool(REGNAME_EXP_DROPTABLE, chkExportTablesDrop.Checked);
-      MainReg.WriteInteger(REGNAME_EXP_DATAHOW, comboExportData.ItemIndex);
-      MainReg.WriteInteger(REGNAME_EXP_OUTPUT, comboExportOutputType.ItemIndex);
+      AppSettings.WriteBool(asExportSQLCreateDatabases, chkExportDatabasesCreate.Checked);
+      AppSettings.WriteBool(asExportSQLDropDatabases, chkExportDatabasesDrop.Checked);
+      AppSettings.WriteBool(asExportSQLCreateTables, chkExportTablesCreate.Checked);
+      AppSettings.WriteBool(asExportSQLDropTables, chkExportTablesDrop.Checked);
+      AppSettings.WriteInt(asExportSQLDataHow, comboExportData.ItemIndex);
+      AppSettings.WriteInt(asExportSQLOutput, comboExportOutputType.ItemIndex);
 
       if comboExportOutputType.Text = OUTPUT_FILE then begin
         comboExportOutputTarget.Items.Insert(0, comboExportOutputTarget.Text);
-        MainReg.WriteString(REGNAME_EXP_OUTFILES, comboExportOutputTarget.Items.Text);
+        AppSettings.WriteString(asExportSQLFilenames, comboExportOutputTarget.Items.Text);
       end else if comboExportOutputType.Text = OUTPUT_DIR then begin
         comboExportOutputTarget.Items.Insert(0, comboExportOutputTarget.Text);
-        MainReg.WriteString(REGNAME_EXP_OUTDIRS, comboExportOutputTarget.Items.Text);
+        AppSettings.WriteString(asExportSQLDirectories, comboExportOutputTarget.Items.Text);
       end else if comboExportOutputType.Text = OUTPUT_DB then begin
-        MainReg.WriteString(REGNAME_EXP_OUTDATABASE, comboExportOutputTarget.Text);
+        AppSettings.WriteString(asExportSQLDatabase, comboExportOutputTarget.Text);
       end else if copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER then begin
-        MainReg.WriteString(REGNAME_EXP_OUTSERVERDB, comboExportOutputTarget.Text);
+        AppSettings.WriteString(asExportSQLServerDatabase, comboExportOutputTarget.Text);
       end;
     end;
 
@@ -931,7 +928,7 @@ begin
     FreeAndNil(FTargetConnection);
   if comboExportOutputType.Text = OUTPUT_FILE then begin
     comboExportOutputTarget.Style := csDropDown;
-    comboExportOutputTarget.Items.Text := GetRegValue(REGNAME_EXP_OUTFILES, '');
+    comboExportOutputTarget.Items.Text := AppSettings.ReadString(asExportSQLFilenames, '');
     if comboExportOutputTarget.Items.Count > 0 then
       comboExportOutputTarget.ItemIndex := 0;
     lblExportOutputTarget.Caption := 'Filename:';
@@ -939,7 +936,7 @@ begin
     btnExportOutputTargetSelect.ImageIndex := 10;
   end else if comboExportOutputType.Text = OUTPUT_DIR then begin
     comboExportOutputTarget.Style := csDropDown;
-    comboExportOutputTarget.Items.Text := GetRegValue(REGNAME_EXP_OUTDIRS, '');
+    comboExportOutputTarget.Items.Text := AppSettings.ReadString(asExportSQLDirectories, '');
     if comboExportOutputTarget.Items.Count > 0 then
       comboExportOutputTarget.ItemIndex := 0;
     lblExportOutputTarget.Caption := 'Directory:';
@@ -965,7 +962,7 @@ begin
         comboExportOutputTarget.Items.Add(TreeObjects.Text[DBNode, 0]);
       DBNode := TreeObjects.GetNextSibling(DBNode);
     end;
-    comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(GetRegValue(REGNAME_EXP_OUTDATABASE, ''));
+    comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(AppSettings.ReadString(asExportSQLDatabase));
     if comboExportOutputTarget.ItemIndex = -1 then
       comboExportOutputTarget.ItemIndex := 0;
   end else begin
@@ -985,7 +982,7 @@ begin
       FTargetConnection.Active := True;
       comboExportOutputTarget.Items := FTargetConnection.AllDatabases;
       comboExportOutputTarget.Items.Insert(0, '[Same as on source server]');
-      comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(GetRegValue(REGNAME_EXP_OUTSERVERDB, ''));
+      comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(AppSettings.ReadString(asExportSQLServerDatabase));
       if comboExportOutputTarget.ItemIndex = -1 then
         comboExportOutputTarget.ItemIndex := 0;
       Screen.Cursor := crDefault;

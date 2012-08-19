@@ -273,9 +273,9 @@ begin
       AllDatabases[i] := editDBname.Text
     else
       AllDatabases.Add(editDBname.Text);
-    OpenRegistry(FConnection.Parameters.SessionPath);
+    AppSettings.SessionPath := FConnection.Parameters.SessionPath;
     FConnection.Parameters.AllDatabasesStr := ImplodeStr(';', AllDatabases);
-    MainReg.WriteString(REGNAME_DATABASES, FConnection.Parameters.AllDatabasesStr);
+    AppSettings.WriteString(asDatabases, FConnection.Parameters.AllDatabasesStr);
   end;
 end;
 

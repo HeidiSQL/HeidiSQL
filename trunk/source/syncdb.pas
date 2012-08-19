@@ -119,7 +119,7 @@ begin
     treeSource.ToggleNode(SessNode);
 
   SessionPaths := TStringList.Create;
-  GetSessionPaths('', SessionPaths);
+  AppSettings.GetSessionPaths('', SessionPaths);
   comboTargetServer.Items.Assign(SessionPaths);
   SessionPaths.Free;
   comboTargetServer.Items.Insert(0, 'Select server session ...');

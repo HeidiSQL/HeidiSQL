@@ -207,9 +207,9 @@ procedure TUserManagerForm.FormCreate(Sender: TObject);
 begin
   // Restore GUI setup
   InheritFont(Font);
-  Width := GetRegValue(REGNAME_USERMNGR_WINWIDTH, Width);
-  Height := GetRegValue(REGNAME_USERMNGR_WINHEIGHT, Height);
-  pnlLeft.Width := GetRegValue(REGNAME_USERMNGR_LISTWIDTH, pnlLeft.Width);
+  Width := AppSettings.ReadInt(asUsermanagerWindowWidth);
+  Height := AppSettings.ReadInt(asUsermanagerWindowHeight);
+  pnlLeft.Width := AppSettings.ReadInt(asUsermanagerListWidth);
   SetWindowSizeGrip( Self.Handle, True );
   FixVT(listUsers);
   FixVT(treePrivs);
@@ -223,10 +223,9 @@ end;
 procedure TUserManagerForm.FormDestroy(Sender: TObject);
 begin
   // FormDestroy: Save GUI setup
-  OpenRegistry;
-  MainReg.WriteInteger( REGNAME_USERMNGR_WINWIDTH, Width );
-  MainReg.WriteInteger( REGNAME_USERMNGR_WINHEIGHT, Height );
-  MainReg.WriteInteger( REGNAME_USERMNGR_LISTWIDTH, pnlLeft.Width );
+  AppSettings.WriteInt(asUsermanagerWindowWidth, Width);
+  AppSettings.WriteInt(asUsermanagerWindowHeight, Height);
+  AppSettings.WriteInt(asUsermanagerListWidth, pnlLeft.Width);
   Mainform.SaveListSetup(listUsers);
 end;
 

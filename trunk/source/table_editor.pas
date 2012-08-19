@@ -210,7 +210,7 @@ uses main;
 constructor TfrmTableEditor.Create(AOwner: TComponent);
 begin
   inherited;
-  PageControlMain.Height := GetRegValue(REGNAME_TABLEEDITOR_TABSHEIGHT, DEFAULT_TABLEEDITOR_TABSHEIGHT);
+  PageControlMain.Height := AppSettings.ReadInt(asTableEditorTabsHeight);
   FixVT(listColumns);
   FixVT(treeIndexes);
   FixVT(listForeignKeys);
@@ -236,8 +236,7 @@ end;
 destructor TfrmTableEditor.Destroy;
 begin
   // Store GUI setup
-  OpenRegistry;
-  MainReg.WriteInteger(REGNAME_TABLEEDITOR_TABSHEIGHT, PageControlMain.Height);
+  AppSettings.WriteInt(asTableEditorTabsHeight, PageControlMain.Height);
   Mainform.SaveListSetup(listColumns);
   Mainform.SaveListSetup(treeIndexes);
   Mainform.SaveListSetup(listForeignKeys);

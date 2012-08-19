@@ -95,41 +95,40 @@ begin
   InheritFont(Font);
   SetWindowSizeGrip(Handle, True);
   // Restore settings
-  Width := GetRegValue(REGNAME_CSV_WINDOWWIDTH, Width);
-  Height := GetRegValue(REGNAME_CSV_WINDOWHEIGHT, Height);
-  editFilename.Text := GetRegValue(REGNAME_CSV_FILENAME, '');
-  editFieldTerminator.Text := GetRegValue(REGNAME_CSV_SEPARATOR, DEFAULT_CSV_SEPARATOR);
-  editFieldEncloser.Text := GetRegValue(REGNAME_CSV_ENCLOSER, DEFAULT_CSV_ENCLOSER);
-  editLineTerminator.Text := GetRegValue(REGNAME_CSV_TERMINATOR, DEFAULT_CSV_TERMINATOR);
-  chkFieldsEnclosedOptionally.Checked :=  GetRegValue(REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked);
-  editFieldEscaper.Text := GetRegValue(REGNAME_CSV_ESCAPER, editFieldEscaper.Text);
-  updownIgnoreLines.Position := GetRegValue(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
-  chkLowPriority.Checked := GetRegValue(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
-  chkLocalNumbers.Checked := GetRegValue(REGNAME_CSV_LOCALNUMBERS, chkLocalNumbers.Checked);
-  chkTruncateTable.Checked := GetRegValue(REGNAME_CSV_TRUNCATETABLE, chkTruncateTable.Checked);
-  grpDuplicates.ItemIndex := GetRegValue(REGNAME_CSV_DUPLICATES, grpDuplicates.ItemIndex);
-  grpParseMethod.ItemIndex := GetRegValue(REGNAME_CSV_PARSEMETHOD, grpParseMethod.ItemIndex);
+  Width := AppSettings.ReadInt(asCSVImportWindowWidth);
+  Height := AppSettings.ReadInt(asCSVImportWindowHeight);
+  editFilename.Text := AppSettings.ReadString(asCSVImportFilename);
+  editFieldTerminator.Text := AppSettings.ReadString(asCSVImportSeparator);
+  editFieldEncloser.Text := AppSettings.ReadString(asCSVImportEncloser);
+  editLineTerminator.Text := AppSettings.ReadString(asCSVImportTerminator);
+  chkFieldsEnclosedOptionally.Checked :=  AppSettings.ReadBool(asCSVImportFieldsEnclosedOptionally);
+  editFieldEscaper.Text := AppSettings.ReadString(asCSVImportFieldEscaper);
+  updownIgnoreLines.Position := AppSettings.ReadInt(asCSVImportIgnoreLines);
+  chkLowPriority.Checked := AppSettings.ReadBool(asCSVImportLowPriority);
+  chkLocalNumbers.Checked := AppSettings.ReadBool(asCSVImportLocalNumbers);
+  chkTruncateTable.Checked := AppSettings.ReadBool(asCSVImportTruncateTable);
+  grpDuplicates.ItemIndex := AppSettings.ReadInt(asCSVImportDuplicateHandling);
+  grpParseMethod.ItemIndex := AppSettings.ReadInt(asCSVImportParseMethod);
 end;
 
 
 procedure Tloaddataform.FormDestroy(Sender: TObject);
 begin
   // Save settings
-  OpenRegistry;
-  MainReg.WriteInteger(REGNAME_CSV_WINDOWWIDTH, Width);
-  MainReg.WriteInteger(REGNAME_CSV_WINDOWHEIGHT, Height);
-  MainReg.WriteString(REGNAME_CSV_FILENAME, editFilename.Text);
-  MainReg.WriteString(REGNAME_CSV_SEPARATOR, editFieldTerminator.Text);
-  MainReg.WriteString(REGNAME_CSV_ENCLOSER, editFieldEncloser.Text);
-  MainReg.WriteString(REGNAME_CSV_TERMINATOR, editLineTerminator.Text);
-  MainReg.WriteBool(REGNAME_CSV_ENCLOPTION, chkFieldsEnclosedOptionally.Checked);
-  MainReg.WriteString(REGNAME_CSV_ESCAPER, editFieldEscaper.Text);
-  MainReg.WriteInteger(REGNAME_CSV_IGNORELINES, updownIgnoreLines.Position);
-  MainReg.WriteBool(REGNAME_CSV_LOWPRIO, chkLowPriority.Checked);
-  MainReg.WriteBool(REGNAME_CSV_LOCALNUMBERS, chkLocalNumbers.Checked);
-  MainReg.WriteBool(REGNAME_CSV_TRUNCATETABLE, chkTruncateTable.Checked);
-  MainReg.WriteInteger(REGNAME_CSV_DUPLICATES, grpDuplicates.ItemIndex);
-  MainReg.WriteInteger(REGNAME_CSV_PARSEMETHOD, grpParseMethod.ItemIndex);
+  AppSettings.WriteInt(asCSVImportWindowWidth, Width);
+  AppSettings.WriteInt(asCSVImportWindowHeight, Height);
+  AppSettings.WriteString(asCSVImportFilename, editFilename.Text);
+  AppSettings.WriteString(asCSVImportSeparator, editFieldTerminator.Text);
+  AppSettings.WriteString(asCSVImportEncloser, editFieldEncloser.Text);
+  AppSettings.WriteString(asCSVImportTerminator, editLineTerminator.Text);
+  AppSettings.WriteBool(asCSVImportFieldsEnclosedOptionally, chkFieldsEnclosedOptionally.Checked);
+  AppSettings.WriteString(asCSVImportFieldEscaper, editFieldEscaper.Text);
+  AppSettings.WriteInt(asCSVImportIgnoreLines, updownIgnoreLines.Position);
+  AppSettings.WriteBool(asCSVImportLowPriority, chkLowPriority.Checked);
+  AppSettings.WriteBool(asCSVImportLocalNumbers, chkLocalNumbers.Checked);
+  AppSettings.WriteBool(asCSVImportTruncateTable, chkTruncateTable.Checked);
+  AppSettings.WriteInt(asCSVImportDuplicateHandling, grpDuplicates.ItemIndex);
+  AppSettings.WriteInt(asCSVImportParseMethod, grpParseMethod.ItemIndex);
 end;
 
 

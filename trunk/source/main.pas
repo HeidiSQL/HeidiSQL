@@ -82,8 +82,8 @@ type
     private
       FMaxDuration: Cardinal;
     public
+      constructor Create(SessionPath: String);
       property MaxDuration: Cardinal read FMaxDuration;
-      function ReadItem(RegValue: String): TQueryHistoryItem;
   end;
   TQueryHistoryItemComparer = class(TComparer<TQueryHistoryItem>)
     function Compare(const Left, Right: TQueryHistoryItem): Integer; override;
@@ -923,11 +923,6 @@ type
     FCommandStatsQueryCount: Int64;
     FCommandStatsServerUptime: Integer;
 
-    // Common directories
-    FDirnameCommonAppData: String;
-    FDirnameUserAppData: String;
-    FDirnameSnippets: String;
-
     procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
@@ -956,33 +951,6 @@ type
     ActiveObjectEditor: TDBObjectEditor;
     FileEncodings: TStringList;
     ImportSettingsDone: Boolean;
-
-    // Variables set by preferences dialog
-    prefRememberFilters: Boolean;
-    prefLogsqlnum: Integer;
-    prefLogSqlWidth: Integer;
-    prefDirnameSessionLogs: String;
-    prefMaxColWidth: Integer;
-    prefGridRowcountStep: Integer;
-    prefGridRowcountMax: Integer;
-    prefGridRowsLineCount: Word;
-    prefLogToFile: Boolean;
-    prefLogErrors: Boolean;
-    prefLogUserSQL: Boolean;
-    prefLogSQL: Boolean;
-    prefLogInfos: Boolean;
-    prefLogDebug: Boolean;
-    prefEnableBinaryEditor: Boolean;
-    prefEnableDatetimeEditor: Boolean;
-    prefPrefillDateTime: Boolean;
-    prefEnableEnumEditor: Boolean;
-    prefEnableSetEditor: Boolean;
-    prefNullColorDefault: TColor;
-    prefNullBG: TColor;
-    prefDisplayBars: Boolean;
-    prefBarColor: TColor;
-    prefCompletionProposal: Boolean;
-    prefMaxQueryResults: Integer;
 
     // Data grid related stuff
     DataGridHiddenColumns: TStringList;
@@ -1249,16 +1217,15 @@ begin
   FreeAndNil(FSearchReplaceDialog);
 
   // Save opened session names in root folder
-  OpenRegistry;
   OpenSessions := '';
   for Connection in Connections do
     OpenSessions := OpenSessions + Connection.Parameters.SessionPath + DELIM;
   Delete(OpenSessions, Length(OpenSessions)-Length(DELIM)+1, Length(DELIM));
-  MainReg.WriteString(REGNAME_LASTSESSIONS, OpenSessions);
+  AppSettings.WriteString(asLastSessions, OpenSessions);
   if Assigned(ActiveConnection) then
-    MainReg.WriteString(REGNAME_LASTACTIVESESSION, ActiveConnection.Parameters.SessionPath);
+    AppSettings.WriteString(asLastActiveSession, ActiveConnection.Parameters.SessionPath);
 
-  // Some grid editors access the registry - be sure these are gone before freeing MainReg
+  // Some grid editors access the registry - be sure these are gone before freeing AppSettings
   QueryTabs.Clear;
   DataGrid.EndEditNode;
 
@@ -1269,36 +1236,35 @@ begin
   Connections.Clear;
 
   // Save various settings
-  OpenRegistry;
-  MainReg.WriteInteger(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
-  MainReg.WriteInteger(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
-  MainReg.WriteInteger(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
-  MainReg.WriteInteger(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
-  MainReg.WriteInteger(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
-  MainReg.WriteInteger(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
-  MainReg.WriteBool(REGNAME_STOPONERRORSINBATCH, actQueryStopOnErrors.Checked);
-  MainReg.WriteBool(REGNAME_BLOBASTEXT, actBlobAsText.Checked);
-  MainReg.WriteString(REGNAME_DELIMITER, FDelimiter);
-  MainReg.WriteInteger(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
-  MainReg.WriteInteger(REGNAME_QUERYHELPERSWIDTH, treeQueryHelpers.Width);
-  MainReg.WriteInteger(REGNAME_DBTREEWIDTH, pnlLeft.width);
-  MainReg.WriteBool(REGNAME_GROUPOBJECTS, actGroupObjects.Checked);
-  MainReg.WriteString(REGNAME_DATABASE_FILTER, comboDBFilter.Items.Text);
-  MainReg.WriteInteger(REGNAME_PREVIEW_HEIGHT, pnlPreview.Height);
-  MainReg.WriteBool(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked);
-  MainReg.WriteInteger(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height);
-  MainReg.WriteBool(REGNAME_FILTERACTIVE, pnlFilterVT.Tag=Integer(True));
-  MainReg.WriteBool(REGNAME_WRAPLINES, actQueryWordWrap.Checked);
-  MainReg.WriteBool(REGNAME_SINGLEQUERIES, actSingleQueries.Checked);
-  MainReg.WriteBool(REGNAME_LOG_HORIZONTALSCROLLBAR, actLogHorizontalScrollbar.Checked);
-  MainReg.WriteBool(REGNAME_WINMAXIMIZED, WindowState=wsMaximized);
-  MainReg.WriteInteger(REGNAME_WINONMONITOR, Monitor.MonitorNum);
+  AppSettings.WriteInt(asToolbar2Left, ToolBarStandard.Left);
+  AppSettings.WriteInt(asToolBar2Top, ToolBarStandard.Top);
+  AppSettings.WriteInt(asToolBarDataLeft, ToolBarData.Left);
+  AppSettings.WriteInt(asToolBarDataTop, ToolBarData.Top);
+  AppSettings.WriteInt(asToolBarQueryLeft, ToolBarQuery.Left);
+  AppSettings.WriteInt(asToolBarQueryTop, ToolBarQuery.Top);
+  AppSettings.WriteBool(asStopOnErrorsInBatchMode, actQueryStopOnErrors.Checked);
+  AppSettings.WriteBool(asDisplayBLOBsAsText, actBlobAsText.Checked);
+  AppSettings.WriteString(asDelimiter, FDelimiter);
+  AppSettings.WriteInt(asQuerymemoheight, pnlQueryMemo.Height);
+  AppSettings.WriteInt(asQueryhelperswidth, treeQueryHelpers.Width);
+  AppSettings.WriteInt(asDbtreewidth, pnlLeft.width);
+  AppSettings.WriteBool(asGroupTreeObjects, actGroupObjects.Checked);
+  AppSettings.WriteString(asDatabaseFilter, comboDBFilter.Items.Text);
+  AppSettings.WriteInt(asDataPreviewHeight, pnlPreview.Height);
+  AppSettings.WriteBool(asDataPreviewEnabled, actDataPreview.Checked);
+  AppSettings.WriteInt(asLogHeight, SynMemoSQLLog.Height);
+  AppSettings.WriteBool(asFilterPanel, pnlFilterVT.Tag=Integer(True));
+  AppSettings.WriteBool(asWrapLongLines, actQueryWordWrap.Checked);
+  AppSettings.WriteBool(asSingleQueries, actSingleQueries.Checked);
+  AppSettings.WriteBool(asLogHorizontalScrollbar, actLogHorizontalScrollbar.Checked);
+  AppSettings.WriteBool(asMainWinMaximized, WindowState=wsMaximized);
+  AppSettings.WriteInt(asMainWinOnMonitor, Monitor.MonitorNum);
   // Window dimensions are only valid when WindowState is normal.
   if WindowState = wsNormal then begin
-    MainReg.WriteInteger(REGNAME_WINLEFT, Left);
-    MainReg.WriteInteger(REGNAME_WINTOP, Top);
-    MainReg.WriteInteger(REGNAME_WINWIDTH, Width);
-    MainReg.WriteInteger(REGNAME_WINHEIGHT, Height);
+    AppSettings.WriteInt(asMainWinLeft, Left);
+    AppSettings.WriteInt(asMainWinTop, Top);
+    AppSettings.WriteInt(asMainWinWidth, Width);
+    AppSettings.WriteInt(asMainWinHeight, Height);
   end;
   SaveListSetup(ListDatabases);
   SaveListSetup(ListVariables);
@@ -1307,15 +1273,10 @@ begin
   SaveListSetup(ListCommandStats);
   SaveListSetup(ListTables);
 
-  if prefLogToFile then
+  if AppSettings.ReadBool(asLogToFile) then
     DeactivateFileLogging;
 
-  if MainReg <> nil then begin
-    MainReg.CloseKey;
-    // Export settings into textfile in portable mode.
-    HandlePortableSettings(False);
-    MainReg.Free;
-  end;
+  AppSettings.Free;
 end;
 
 
@@ -1347,7 +1308,6 @@ var
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
 begin
   caption := APPNAME;
-  setLocales;
 
   // Detect version
   dwInfoSize := GetFileVersionInfoSize(PChar(Application.ExeName), dwWnd);
@@ -1386,16 +1346,10 @@ begin
     Supports(TaskbarList, IID_ITaskbarList4, TaskbarList4);
   end;
 
-  // "All users" folder for HeidiSQL's data (All Users\Application Data)
-  FDirnameCommonAppData := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\';
-
-  // User folder for HeidiSQL's data (<user name>\Application Data)
-  FDirnameUserAppData := GetShellFolder(CSIDL_APPDATA) + '\' + APPNAME + '\';
   // Ensure directory exists
-  ForceDirectories(FDirnameUserAppData);
+  ForceDirectories(DirnameUserAppData);
 
-  // Folder which contains snippet-files
-  FDirnameSnippets := FDirnameCommonAppData + 'Snippets\';
+  // Load snippet filenames
   SetSnippetFilenames;
 
   // SQLFiles-History
@@ -1444,7 +1398,7 @@ begin
   end;
   FunctionCategories.Free;
 
-  Delimiter := GetRegValue(REGNAME_DELIMITER, DEFAULT_DELIMITER);
+  Delimiter := AppSettings.ReadString(asDelimiter);
 
   // Delphi work around to force usage of Vista's default font (other OSes will be unaffected)
   if (Win32MajorVersion >= 6) and (Screen.Fonts.IndexOf(VistaFont) >= 0) then begin
@@ -1500,100 +1454,71 @@ begin
   FixVT(treeQueryHelpers);
 
   // Window position
-  Left := GetRegValue(REGNAME_WINLEFT, Left);
-  Top := GetRegValue(REGNAME_WINTOP, Top);
+  Left := AppSettings.ReadInt(asMainWinLeft);
+  Top := AppSettings.ReadInt(asMainWinTop);
   // .. dimensions
-  Width := GetRegValue(REGNAME_WINWIDTH, Width);
-  Height := GetRegValue(REGNAME_WINHEIGHT, Height);
+  Width := AppSettings.ReadInt(asMainWinWidth);
+  Height := AppSettings.ReadInt(asMainWinHeight);
   // ... state
-  if GetRegValue(REGNAME_WINMAXIMIZED, WindowState=wsMaximized) then
+  if AppSettings.ReadBool(asMainWinMaximized) then
     WindowState := wsMaximized;
   // ... and monitor placement
-  MonitorIndex := GetRegValue(REGNAME_WINONMONITOR, Monitor.MonitorNum);
+  AppSettings.ReadInt(asMainWinOnMonitor);
+  MonitorIndex := AppSettings.ReadInt(asMainWinOnMonitor);
   MonitorIndex := Max(0, MonitorIndex);
   MonitorIndex := Min(Screen.MonitorCount-1, MonitorIndex);
   MakeFullyVisible(Screen.Monitors[MonitorIndex]);
 
   // Position of Toolbars
-  ToolBarStandard.Left := GetRegValue(REGNAME_TOOLBAR2LEFT, ToolBarStandard.Left);
-  ToolBarStandard.Top := GetRegValue(REGNAME_TOOLBAR2TOP, ToolBarStandard.Top);
-  ToolBarData.Left := GetRegValue(REGNAME_TOOLBARDATALEFT, ToolBarData.Left);
-  ToolBarData.Top := GetRegValue(REGNAME_TOOLBARDATATOP, ToolBarData.Top);
-  ToolBarQuery.Left := GetRegValue(REGNAME_TOOLBARQUERYLEFT, ToolBarQuery.Left);
-  ToolBarQuery.Top := GetRegValue(REGNAME_TOOLBARQUERYTOP, ToolBarQuery.Top);
-  actQueryStopOnErrors.Checked := GetRegValue(REGNAME_STOPONERRORSINBATCH, DEFAULT_STOPONERRORSINBATCH);
-  actBlobAsText.Checked := GetRegValue(REGNAME_BLOBASTEXT, DEFAULT_BLOBASTEXT);
-  actQueryWordWrap.Checked := GetRegValue(REGNAME_WRAPLINES, actQueryWordWrap.Checked);
-  actSingleQueries.Checked := GetRegValue(REGNAME_SINGLEQUERIES, actSingleQueries.Checked);
-  actBatchInOneGo.Checked := not GetRegValue(REGNAME_SINGLEQUERIES, actSingleQueries.Checked);
+  ToolBarStandard.Left := AppSettings.ReadInt(asToolbar2Left);
+  ToolBarStandard.Top := AppSettings.ReadInt(asToolbar2Top);
+  ToolBarData.Left := AppSettings.ReadInt(asToolbarDataLeft);
+  ToolBarData.Top := AppSettings.ReadInt(asToolbarDataTop);
+  ToolBarQuery.Left := AppSettings.ReadInt(asToolBarQueryLeft);
+  ToolBarQuery.Top := AppSettings.ReadInt(asToolBarQueryTop);
+  actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
+  actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
+  actQueryWordWrap.Checked := AppSettings.ReadBool(asWrapLongLines);
+  actSingleQueries.Checked := AppSettings.ReadBool(asSingleQueries);
+  actBatchInOneGo.Checked := not AppSettings.ReadBool(asSingleQueries);
 
-  pnlQueryMemo.Height := GetRegValue(REGNAME_QUERYMEMOHEIGHT, pnlQueryMemo.Height);
-  treeQueryHelpers.Width := GetRegValue(REGNAME_QUERYHELPERSWIDTH, treeQueryHelpers.Width);
-  pnlLeft.Width := GetRegValue(REGNAME_DBTREEWIDTH, pnlLeft.Width);
-  pnlPreview.Height := GetRegValue(REGNAME_PREVIEW_HEIGHT, pnlPreview.Height);
-  if GetRegValue(REGNAME_PREVIEW_ENABLED, actDataPreview.Checked) and (not actDataPreview.Checked) then
+  pnlQueryMemo.Height := AppSettings.ReadInt(asQuerymemoheight);
+  treeQueryHelpers.Width := AppSettings.ReadInt(asQueryhelperswidth);
+  pnlLeft.Width := AppSettings.ReadInt(asDbtreewidth);
+  pnlPreview.Height := AppSettings.ReadInt(asDataPreviewHeight);
+  if AppSettings.ReadBool(asDataPreviewEnabled) then
     actDataPreviewExecute(actDataPreview);
-  SynMemoSQLLog.Height := Max(GetRegValue(REGNAME_SQLOUTHEIGHT, SynMemoSQLLog.Height), spltTopBottom.MinSize);
+  SynMemoSQLLog.Height := Max(AppSettings.ReadInt(asLogHeight), spltTopBottom.MinSize);
   // Force status bar position to below log memo
   StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
-  prefMaxColWidth := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
-  prefGridRowcountMax := GetRegValue(REGNAME_MAXTOTALROWS, DEFAULT_MAXTOTALROWS);
-  prefGridRowcountStep := GetRegValue(REGNAME_ROWSPERSTEP, DEFAULT_ROWSPERSTEP);
-  prefGridRowsLineCount := GetRegValue(REGNAME_GRIDROWSLINECOUNT, DEFAULT_GRIDROWSLINECOUNT);
-  actDataShowNext.Hint := 'Show next '+FormatNumber(prefGridRowcountStep)+' rows ...';
+  actDataShowNext.Hint := 'Show next '+FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))+' rows ...';
   actAboutBox.Caption := 'About '+APPNAME+' '+AppVersion;
-  // Fix registry entry from older versions which can have 0 here which makes no sense
-  // since the autosetting was removed
-  if prefMaxColWidth <= 0 then
-    prefMaxColWidth := DEFAULT_MAXCOLWIDTH;
-  prefLogsqlnum := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
-  prefLogSqlWidth := GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
-  prefDirnameSessionLogs := GetRegValue(REGNAME_LOGDIR, FDirnameUserAppData + 'Sessionlogs\');
   // Activate logging
-  if GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE) then
+  if AppSettings.ReadBool(asLogToFile) then
     ActivateFileLogging;
-  prefRememberFilters := GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
-  if GetRegValue(REGNAME_LOG_HORIZONTALSCROLLBAR, SynMemoSQLLog.ScrollBars = ssBoth) then
+  if AppSettings.ReadBool(asLogHorizontalScrollbar) then
     actLogHorizontalScrollbar.Execute;
-  prefLogErrors := GetRegValue(REGNAME_LOG_ERRORS, DEFAULT_LOG_ERRORS);
-  prefLogUserSQL := GetRegValue(REGNAME_LOG_USERSQL, DEFAULT_LOG_USERSQL);
-  prefLogSQL := GetRegValue(REGNAME_LOG_SQL, DEFAULT_LOG_SQL);
-  prefLogInfos := GetRegValue(REGNAME_LOG_INFOS, DEFAULT_LOG_INFOS);
-  prefLogDebug := GetRegValue(REGNAME_LOG_DEBUG, DEFAULT_LOG_DEBUG);
-  prefDisplayBars := GetRegValue(REGNAME_DISPLAYBARS, DEFAULT_DISPLAYBARS);
-  prefBarColor := GetRegValue(REGNAME_BARCOLOR, DEFAULT_BARCOLOR);
-  prefCompletionProposal := GetRegValue(REGNAME_COMPLETIONPROPOSAL, DEFAULT_COMPLETIONPROPOSAL);
-  prefMaxQueryResults := GetRegValue(REGNAME_MAXQUERYRESULTS, DEFAULT_MAXQUERYRESULTS);
 
   // Data-Font:
-  datafontname := GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
-  datafontsize := GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
-  DataGrid.Font.Name := datafontname;
-  QueryGrid.Font.Name := datafontname;
-  DataGrid.Font.Size := datafontsize;
-  QueryGrid.Font.Size := datafontsize;
-  FixVT(DataGrid, prefGridRowsLineCount);
-  FixVT(QueryGrid, prefGridRowsLineCount);
+  DataGrid.Font.Name := AppSettings.ReadString(asDataFontName);
+  QueryGrid.Font.Name := AppSettings.ReadString(asDataFontName);
+  DataGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
+  QueryGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
+  FixVT(DataGrid, AppSettings.ReadInt(asGridRowLineCount));
+  FixVT(QueryGrid, AppSettings.ReadInt(asGridRowLineCount));
   // Load color settings
-  DatatypeCategories[dtcInteger].Color := GetRegValue(REGNAME_FIELDCOLOR_INTEGER, DEFAULT_FIELDCOLOR_INTEGER);
-  DatatypeCategories[dtcReal].Color := GetRegValue(REGNAME_FIELDCOLOR_REAL, DEFAULT_FIELDCOLOR_REAL);
-  DatatypeCategories[dtcText].Color := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
-  DatatypeCategories[dtcBinary].Color := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
-  DatatypeCategories[dtcTemporal].Color := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
-  DatatypeCategories[dtcSpatial].Color := GetRegValue(REGNAME_FIELDCOLOR_SPATIAL, DEFAULT_FIELDCOLOR_SPATIAL);
-  DatatypeCategories[dtcOther].Color := GetRegValue(REGNAME_FIELDCOLOR_OTHER, DEFAULT_FIELDCOLOR_OTHER);
-  prefNullBG := GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
+  DatatypeCategories[dtcInteger].Color := AppSettings.ReadInt(asFieldColorNumeric);
+  DatatypeCategories[dtcReal].Color := AppSettings.ReadInt(asFieldColorReal);
+  DatatypeCategories[dtcText].Color := AppSettings.ReadInt(asFieldColorText);
+  DatatypeCategories[dtcBinary].Color := AppSettings.ReadInt(asFieldColorBinary);
+  DatatypeCategories[dtcTemporal].Color := AppSettings.ReadInt(asFieldColorDatetime);
+  DatatypeCategories[dtcSpatial].Color := AppSettings.ReadInt(asFieldColorSpatial);
+  DatatypeCategories[dtcOther].Color := AppSettings.ReadInt(asFieldColorOther);
   CalcNullColors;
-  // Editor enablings
-  prefEnableBinaryEditor := GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
-  prefEnableDatetimeEditor := GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
-  prefPrefillDateTime := GetRegValue(REGNAME_PREFILL_DATETIME, DEFAULT_PREFILL_DATETIME);
-  prefEnableEnumEditor := GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
-  prefEnableSetEditor := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
 
   // Database tree options
-  actGroupObjects.Checked := GetRegValue(REGNAME_GROUPOBJECTS, DEFAULT_GROUPOBJECTS);
-  menuShowSizeColumn.Checked := GetRegValue(REGNAME_SIZECOL_TREE, DEFAULT_SIZECOL_TREE);
+  actGroupObjects.Checked := AppSettings.ReadBool(asGroupTreeObjects);
+  menuShowSizeColumn.Checked := AppSettings.ReadBool(asDisplayObjectSizeColumn);
   if menuShowSizeColumn.Checked then
     DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible]
   else
@@ -1610,7 +1535,7 @@ begin
   // Shortcuts
   for i:=0 to ActionList1.ActionCount-1 do begin
     Action := TAction(ActionList1.Actions[i]);
-    Action.ShortCut := GetRegValue(REGPREFIX_SHORTCUT1+Action.Name, Action.ShortCut);
+    Action.ShortCut := AppSettings.ReadInt(asActionShortcut1, Action.Name, Action.ShortCut);
   end;
 
   // Place progressbar on the statusbar
@@ -1631,7 +1556,7 @@ begin
 
   // Filter panel
   ImageListMain.GetBitmap(134, btnCloseFilterPanel.Glyph);
-  if GetRegValue(REGNAME_FILTERACTIVE, DEFAULT_FILTERACTIVE) then
+  if AppSettings.ReadBool(asFilterPanel) then
     actFilterPanelExecute(nil);
   lblFilterVTInfo.Caption := '';
 
@@ -1644,7 +1569,7 @@ begin
   FConnections.OnNotify := ConnectionsNotify;
 
   // Load database filter items. Was previously bound to sessions before multi connections were implemented
-  comboDBFilter.Items.Text := GetRegValue(REGNAME_DATABASE_FILTER, '');
+  comboDBFilter.Items.Text := AppSettings.ReadString(asDatabaseFilter);
   if comboDBFilter.Items.Count > 0 then
     comboDBFilter.ItemIndex := 0
   else
@@ -1668,7 +1593,7 @@ var
   UpdatecheckInterval, i: Integer;
   DefaultLastrunDate, LastActiveSession: String;
   frm : TfrmUpdateCheck;
-  Connected, DecideForStatistic: Boolean;
+  Connected: Boolean;
   StatsCall: THttpDownload;
   SessionPaths: TStringlist;
   DlgResult: TModalResult;
@@ -1678,17 +1603,17 @@ begin
   DefaultLastrunDate := '2000-01-01';
 
   // Do an updatecheck if checked in settings
-  if GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK) then begin
+  if AppSettings.ReadBool(asUpdatecheck) then begin
     try
-      LastUpdatecheck := StrToDateTime( GetRegValue(REGNAME_LAST_UPDATECHECK, DefaultLastrunDate) );
+      LastUpdatecheck := StrToDateTime(AppSettings.ReadString(asUpdatecheckLastrun));
     except
-      LastUpdatecheck := StrToDateTime( DefaultLastrunDate );
+      LastUpdatecheck := StrToDateTime(DefaultLastrunDate);
     end;
-    UpdatecheckInterval := GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
+    UpdatecheckInterval := AppSettings.ReadInt(asUpdatecheckInterval);
     if DaysBetween(Now, LastUpdatecheck) >= UpdatecheckInterval then begin
       frm := TfrmUpdateCheck.Create(Self);
       frm.AutoClose := True;
-      frm.CheckForBuildsInAutoMode := GetRegValue(REGNAME_DO_UPDATECHECK_BUILDS, DEFAULT_DO_UPDATECHECK_BUILDS);
+      frm.CheckForBuildsInAutoMode := AppSettings.ReadBool(asUpdatecheckBuilds);
       frm.ShowModal;
       FreeAndNil(frm);
     end;
@@ -1696,14 +1621,14 @@ begin
 
   // Get all session names
   SessionPaths := TStringList.Create;
-  GetSessionPaths('', SessionPaths);
+  AppSettings.GetSessionPaths('', SessionPaths);
 
   // Call user statistics if checked in settings
-  if GetRegValue(REGNAME_DO_STATISTICS, DEFAULT_DO_STATISTICS) then begin
+  if AppSettings.ReadBool(asDoUsageStatistics) then begin
     try
-      LastStatsCall := StrToDateTime( GetRegValue(REGNAME_LAST_STATSCALL, DefaultLastrunDate) );
+      LastStatsCall := StrToDateTime(AppSettings.ReadString(asLastUsageStatisticCall));
     except
-      LastStatsCall := StrToDateTime( DefaultLastrunDate );
+      LastStatsCall := StrToDateTime(DefaultLastrunDate);
     end;
     if DaysBetween(Now, LastStatsCall) >= 30 then begin
       // Report used SVN revision
@@ -1711,19 +1636,20 @@ begin
       StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(AppVerRevision);
       // Enumerate actively used server versions
       for i:=0 to SessionPaths.Count-1 do begin
+        AppSettings.SessionPath := SessionPaths[i];
         try
-          LastConnect := StrToDateTime(GetRegValue(REGNAME_LASTCONNECT, DefaultLastrunDate, SessionPaths[i]));
+          LastConnect := StrToDateTime(AppSettings.ReadString(asLastConnect));
         except
           LastConnect := StrToDateTime(DefaultLastrunDate);
         end;
         if LastConnect > LastStatsCall then begin
-          StatsCall.URL := StatsCall.URL + '&s[]=' + IntToStr(GetRegValue(REGNAME_SERVERVERSION, 0, SessionPaths[i]));
+          StatsCall.URL := StatsCall.URL + '&s[]=' + IntToStr(AppSettings.ReadInt(asServerVersion));
         end;
       end;
+      AppSettings.ResetPath;
       try
         StatsCall.SendRequest('');
-        OpenRegistry;
-        MainReg.WriteString(REGNAME_LAST_STATSCALL, DateTimeToStr(Now));
+        AppSettings.WriteString(asLastUsageStatisticCall, DateTimeToStr(Now));
       except
         // Silently ignore it when the url could not be called over the network.
       end;
@@ -1731,18 +1657,8 @@ begin
     end;
   end;
 
-  // Ask if we shall activate statistic calls. Would be used by noone otherwise.
-  OpenRegistry;
-  if not Mainreg.ValueExists(REGNAME_DO_STATISTICS) then begin
-    DecideForStatistic := MessageDialog(APPNAME + ' has a new statistics feature: If activated, server and client versions '+
-      'are reported once per month and displayed on heidisql.com.'+CRLF+CRLF+'Activate this feature?',
-      mtConfirmation, [mbYes, mbNo]) = mrYes;
-    Mainreg.WriteBool(REGNAME_DO_STATISTICS, DecideForStatistic);
-  end;
-
   Connected := False;
 
-  OpenRegistry;
   CmdlineParameters := TStringList.Create;
   for i:=1 to ParamCount do
     CmdlineParameters.Add(ParamStr(i));
@@ -1750,11 +1666,11 @@ begin
   if Assigned(FCmdlineConnectionParams) then begin
     // Minimal parameter for command line mode is hostname
     Connected := InitConnection(FCmdlineConnectionParams, True, Connection);
-  end else if GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT) then begin
+  end else if AppSettings.ReadBool(asAutoReconnect) then begin
     // Auto connection via preference setting
     // Do not autoconnect if we're in commandline mode and the connection was not successful
-    LastSessions := Explode(DELIM, GetRegValue(REGNAME_LASTSESSIONS, ''));
-    LastActiveSession := GetRegValue(REGNAME_LASTACTIVESESSION, '');
+    LastSessions := Explode(DELIM, AppSettings.ReadString(asLastSessions));
+    LastActiveSession := AppSettings.ReadString(asLastActiveSession);
     for i:=LastSessions.Count-1 downto 0 do begin
       if SessionPaths.IndexOf(LastSessions[i]) = -1 then
         LastSessions.Delete(i);
@@ -1949,15 +1865,16 @@ begin
       end;
 
       // Remove filters if unwanted
-      if not prefRememberFilters then begin
-        OpenRegistry(Item.Parameters.SessionPath);
-        Keys := TStringList.Create;
-        MainReg.GetKeyNames(Keys);
+      if not AppSettings.ReadBool(asRememberFilters) then begin
+        AppSettings.SessionPath := Item.Parameters.SessionPath;
+        Keys := AppSettings.GetKeyNames;
         rx := TRegExpr.Create;
         rx.Expression := '.+'+QuoteRegExprMetaChars(DELIM)+'.+';
         for i:=0 to Keys.Count-1 do begin
-          if rx.Exec(Keys[i]) then
-            MainReg.DeleteKey(Keys[i]);
+          if rx.Exec(Keys[i]) then begin
+            AppSettings.SessionPath := Item.Parameters.SessionPath + '\' + Keys[i];
+            AppSettings.DeleteCurrentKey;
+          end;
         end;
         rx.Free;
       end;
@@ -1967,8 +1884,8 @@ begin
       RefreshHelperNode(HELPERNODE_COLUMNS);
 
       // Last chance to access connection related properties before disconnecting
-      OpenRegistry(Item.Parameters.SessionPath);
-      MainReg.WriteString(REGNAME_LASTUSEDDB, Item.Database);
+      AppSettings.SessionPath := Item.Parameters.SessionPath;
+      AppSettings.WriteString(asLastUsedDB, Item.Database);
 
       // Disconnect
       Item.Active := False;
@@ -2172,7 +2089,7 @@ begin
 
   // All sessions
   SessionPaths := TStringList.Create;
-  GetSessionPaths('', SessionPaths);
+  AppSettings.GetSessionPaths('', SessionPaths);
   for i:=0 to SessionPaths.Count-1 do begin
     item := TMenuItem.Create(menuConnections);
     item.Caption := SessionPaths[i];
@@ -2199,7 +2116,7 @@ begin
   // Add all sessions to submenu
   menuConnectTo.Clear;
   SessionPaths := TStringList.Create;
-  GetSessionPaths('', SessionPaths);
+  AppSettings.GetSessionPaths('', SessionPaths);
   for i:=0 to SessionPaths.Count-1 do begin
     Item := TMenuItem.Create(menuConnectTo);
     Item.Caption := SessionPaths[i];
@@ -2233,7 +2150,7 @@ begin
   Dialog.Filter := 'Textfiles (*.txt)|*.txt|All files (*.*)|*.*';
   Dialog.Options := Dialog.Options + [ofOverwritePrompt];
   if Dialog.Execute then try
-    ExportSettings(Dialog.FileName);
+    AppSettings.ExportSettings(Dialog.FileName);
     MessageDialog('Settings successfully exported to '+Dialog.FileName, mtInformation, [mbOK]);
   except
     on E:Exception do
@@ -2256,7 +2173,7 @@ begin
     if LowerCase(ExtractFileExt(Dialog.FileName)) = 'reg' then
       ShellExec('regedit.exe', '', '"'+Dialog.FileName+'"')
     else begin
-      ImportSettings(Dialog.FileName);
+      AppSettings.ImportSettings(Dialog.FileName);
       MessageDialog('Settings successfully restored from '+Dialog.FileName, mtInformation, [mbOK]);
     end;
     ImportSettingsDone := True;
@@ -2401,15 +2318,14 @@ end;
 procedure TMainForm.FinishedQueryExecution(Thread: TQueryThread);
 var
   Tab, WarningsTab: TQueryTab;
-  MetaInfo, ErroneousSQL, RegName, RegItem, MsgTitle, MsgText: String;
+  MetaInfo, ErroneousSQL, RegName, MsgTitle, MsgText: String;
   ProfileAllTime: Extended;
   ProfileNode: PVirtualNode;
-  AllRegItems: TStringList;
   History: TQueryHistory;
   HistoryItem: TQueryHistoryItem;
   Warnings: TDBQuery;
   HistoryNum, MaxWarnings, RegItemsSize: Integer;
-  DoDelete: Boolean;
+  DoDelete, ValueFound: Boolean;
   MinDate: TDateTime;
 
   procedure GoToErrorPos(Err: String);
@@ -2526,32 +2442,30 @@ begin
   // Assume that a bunch of up to 5 queries is not a batch.
   if IsEmpty(Thread.ErrorMessage) and (Thread.Batch.Count <= 5) and (Thread.Batch.Size <= SIZE_MB) then begin
     ShowStatusMsg('Updating query history ...');
-    OpenRegistry(Thread.Connection.Parameters.SessionPath);
-    MainReg.OpenKey(REGKEY_QUERYHISTORY, true);
 
     // Load all items so we can clean up
-    AllRegItems := TStringList.Create;
-    MainReg.GetValueNames(AllRegItems);
-    History := TQueryHistory.Create;
-    for RegItem in AllRegItems do begin
-      History.ReadItem(RegItem);
-    end;
+    History := TQueryHistory.Create(Thread.Connection.Parameters.SessionPath);
 
     // Find lowest unused item number
     HistoryNum := 0;
     while True do begin
       Inc(HistoryNum);
       RegName := IntToStr(HistoryNum);
-      if AllRegItems.IndexOf(RegName) = -1 then
+      ValueFound := False;
+      for HistoryItem in History do begin
+        if HistoryItem.RegValue = HistoryNum then begin
+          ValueFound := True;
+          Break;
+        end;
+      end;
+      if not ValueFound then
         break;
     end;
-
-    // Sort by date
-    History.Sort(TQueryHistoryItemComparer.Create);
 
     // Delete identical history items to avoid spam
     // Delete old items
     // Delete items which exceed a max datasize barrier
+    AppSettings.SessionPath := Thread.Connection.Parameters.SessionPath + '\' + REGKEY_QUERYHISTORY;
     MinDate := IncDay(Now, -30);
     RegItemsSize := Thread.Batch.Size;
     for HistoryItem in History do begin
@@ -2560,16 +2474,15 @@ begin
         or (HistoryItem.Time < MinDate)
         or (RegItemsSize > SIZE_MB);
       if DoDelete then
-        MainReg.DeleteValue(IntToStr(HistoryItem.RegValue));
+        AppSettings.DeleteValue(IntToStr(HistoryItem.RegValue));
     end;
     History.Free;
 
     // Store history item and closing registry key to ensure writing has finished
-    MainReg.WriteString(RegName, DateTimeToStr(Now) + DELIM +
+    AppSettings.WriteString(RegName, DateTimeToStr(Now) + DELIM +
       Thread.Connection.Database + DELIM +
       IntToStr(Thread.QueryTime+Thread.QueryNetTime) + DELIM +
       Thread.Batch.SQL);
-    MainReg.CloseKey;
 
     RefreshHelperNode(HELPERNODE_HISTORY);
   end;
@@ -2925,7 +2838,7 @@ begin
       cmd := 'mysql.exe';
       sep := '\';
     end;
-    path := GetRegValue(REGNAME_MYSQLBINARIES, DEFAULT_MYSQLBINARIES);
+    path := AppSettings.ReadString(asMySQLBinaries);
     if (Length(path)>0) and (path[Length(path)] <> sep) then
       path := path + sep;
     if not FileExists(path+cmd, true) then begin
@@ -3084,7 +2997,7 @@ begin
           RunFileDialog.ShowModal;
           RunFileDialog.Free;
           // Add filename to history menu
-          if Pos(MainForm.FDirnameSnippets, Filenames[i]) = 0 then
+          if Pos(DirnameSnippets, Filenames[i]) = 0 then
             MainForm.AddOrRemoveFromQueryLoadHistory(Filenames[i], True, True);
         end;
       end;
@@ -3150,7 +3063,7 @@ end;
 }
 function TMainform.InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
 var
-  SessionExists, RestoreLastActiveDatabase: Boolean;
+  RestoreLastActiveDatabase: Boolean;
   StartupScript, LastActiveDatabase: String;
   StartupBatch: TSQLBatch;
   Query: TSQLSentence;
@@ -3170,13 +3083,12 @@ begin
   end;
 
   // attempt to establish connection
-  SessionExists := MainReg.KeyExists(REGPATH + REGKEY_SESSIONS + '\' + Params.SessionPath);
   if not Connection.Active then begin
     // attempt failed
-    if SessionExists then begin
+    if AppSettings.SessionPathExists(Params.SessionPath) then begin
       // Save "refused" counter
-      OpenRegistry(Params.SessionPath);
-      MainReg.WriteInteger(REGNAME_REFUSEDCOUNT, GetRegValue(REGNAME_REFUSEDCOUNT, 0, Params.SessionPath)+1);
+      AppSettings.SessionPath := Params.SessionPath;
+      AppSettings.WriteInt(asRefusedCount, AppSettings.ReadInt(asRefusedCount)+1);
     end;
     Result := False;
     FreeAndNil(Connection);
@@ -3185,19 +3097,20 @@ begin
     Result := True;
     FConnections.Add(Connection);
 
-    if SessionExists then begin
+    if AppSettings.SessionPathExists(Params.SessionPath) then begin
       // Save "connected" counter
-      OpenRegistry(Params.SessionPath);
-      MainReg.WriteInteger(REGNAME_CONNECTCOUNT, GetRegValue(REGNAME_CONNECTCOUNT, 0, Params.SessionPath)+1);
+      AppSettings.SessionPath := Params.SessionPath;
+      AppSettings.WriteInt(asConnectCount, AppSettings.ReadInt(asConnectCount)+1);
       // Save server version
-      Mainreg.WriteInteger(REGNAME_SERVERVERSION, Connection.ServerVersionInt);
-      Mainreg.WriteString(REGNAME_LASTCONNECT, DateTimeToStr(Now));
+      AppSettings.WriteInt(asServerVersion, Connection.ServerVersionInt);
+      AppSettings.WriteString(asLastConnect, DateTimeToStr(Now));
     end;
 
     if ActivateMe then begin
       // Set focus on last uses db. If not wanted or db is gone, go to root node at least
-      RestoreLastActiveDatabase := GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
-      LastActiveDatabase := GetRegValue(REGNAME_LASTUSEDDB, '', Params.SessionPath);
+      RestoreLastActiveDatabase := AppSettings.ReadBool(asRestoreLastUsedDB);
+      AppSettings.SessionPath := Params.SessionPath;
+      LastActiveDatabase := AppSettings.ReadString(asLastUsedDB);
       if RestoreLastActiveDatabase and (Connection.AllDatabases.IndexOf(LastActiveDatabase) >- 1) then begin
         SetActiveDatabase(LastActiveDatabase, Connection);
         DBNode := FindDBNode(DBtree, Connection, LastActiveDatabase);
@@ -3706,7 +3619,7 @@ begin
     if Copy( snippetname, Length(snippetname)-4, 4 ) <> '.sql' then
       snippetname := snippetname + '.sql';
     // cleanup snippetname from special characters
-    snippetname := FDirnameSnippets + goodfilename(snippetname);
+    snippetname := DirnameSnippets + goodfilename(snippetname);
     if FileExists( snippetname ) then
     begin
       if MessageDialog('Overwrite existing snippet '+snippetname+'?', mtConfirmation, [mbOK, mbCancel]) <> mrOK then
@@ -3727,8 +3640,8 @@ begin
     end;
     if LB <> '' then
       Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
-    if not DirectoryExists(FDirnameSnippets) then
-      ForceDirectories(FDirnameSnippets);
+    if not DirectoryExists(DirnameSnippets) then
+      ForceDirectories(DirnameSnippets);
     SaveUnicodeFile( snippetname, Text );
     FillPopupQueryLoad;
     SetSnippetFilenames;
@@ -3779,7 +3692,7 @@ begin
   // Recent files
   j := 0;
   for i:=0 to 19 do begin
-    sqlFilename := GetRegValue( 'SQLFile'+IntToStr(i), '' );
+    sqlFilename := AppSettings.ReadString(asSQLfile, IntToStr(i));
     if sqlFilename = '' then
       continue;
     inc(j);
@@ -3816,15 +3729,11 @@ end;
 
 procedure TMainform.PopupQueryLoadRemoveAllFiles(Sender: TObject);
 var
-  Values: TStringList;
   i: Integer;
 begin
-  Values := TStringList.Create;
-  OpenRegistry;
-  MainReg.GetValueNames(Values);
-  for i:=0 to Values.Count-1 do begin
-    if Pos('SQLFile', Values[i]) = 1 then
-      MainReg.DeleteValue(Values[i]);
+  for i:=0 to 20 do begin
+    if not AppSettings.DeleteValue(asSQLfile, IntToStr(i)) then
+      break;
   end;
   FillPopupQueryLoad;
 end;
@@ -3841,7 +3750,7 @@ begin
   Filename := (Sender as TMenuItem).Caption;
   Filename := StripHotkey(Filename);
   if Pos('\', Filename) = 0 then // assuming we load a snippet
-    Filename := FDirnameSnippets + Filename + '.sql'
+    Filename := DirnameSnippets + Filename + '.sql'
   else begin // assuming we load a file from the recent-list
     p := Pos(' ', Filename) + 1;
     filename := Copy(Filename, p, Length(Filename));
@@ -3859,27 +3768,25 @@ end;
 
 procedure TMainform.AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
 var
-  i                     : Integer;
-  Values, newfilelist   : TStringList;
-  savedfilename         : String;
+  i: Integer;
+  newfilelist: TStringList;
+  savedfilename: String;
 begin
   // Add or remove filename to/from history, avoiding duplicates
 
   newfilelist := TStringList.create;
-  Values := TStringList.create;
-  OpenRegistry;
-  MainReg.GetValueNames( Values );
+  AppSettings.ResetPath;
 
   // Add new filename
   if AddIt then
     newfilelist.Add( filename );
 
   // Add all other filenames
-  for i:=0 to Values.Count-1 do begin
-    if Pos( 'SQLFile', Values[i] ) <> 1 then
-      continue;
-    savedfilename := GetRegValue( Values[i], '' );
-    MainReg.DeleteValue( Values[i] );
+  for i:=0 to 20 do begin
+    savedfilename := AppSettings.ReadString(asSQLfile, IntToStr(i));
+    if IsEmpty(savedfilename) then
+      Break;
+    AppSettings.DeleteValue(asSQLfile, IntToStr(i));
     if CheckIfFileExists and (not FileExists( savedfilename )) then
       continue;
     if (savedfilename <> filename) and (newfilelist.IndexOf(savedfilename)=-1) then
@@ -3890,7 +3797,7 @@ begin
   for i := 0 to newfilelist.Count-1 do begin
     if i >= 20 then
       break;
-    MainReg.WriteString( 'SQLFile'+IntToStr(i), newfilelist[i] );
+    AppSettings.WriteString(asSQLfile, newfilelist[i], IntToStr(i));
   end;
 end;
 
@@ -3951,8 +3858,8 @@ end;
 
 procedure TMainForm.actApplyFilterExecute(Sender: TObject);
 var
-  i, nr: Integer;
-  OldNumbers, Filters: TStringList;
+  i: Integer;
+  Filters: TStringList;
   val: String;
 begin
   // If filter box is empty but filter generator box not, most users expect
@@ -3963,27 +3870,21 @@ begin
   if SynMemoFilter.GetTextLen > 0 then begin
     // Recreate recent filters list
     Filters := TStringList.Create;
-    OldNumbers := TStringList.Create;
     Filters.Add(Trim(SynMemoFilter.Text));
-    MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, True);
-    MainReg.GetValueNames(OldNumbers);
-    OldNumbers.CustomSort(StringListCompareAnythingAsc);
+    AppSettings.SessionPath := GetRegKeyTable+'\'+REGKEY_RECENTFILTERS;
     // Add old filters
-    for i := 0 to OldNumbers.Count - 1 do begin
-      nr := MakeInt(OldNumbers[i]);
-      if nr = 0 then continue; // Not a valid entry, ignore that
-      val := MainReg.ReadString(OldNumbers[i]);
+    for i:=1 to 20 do begin
+      val := AppSettings.ReadString(asRecentFilter, IntToStr(i));
+      if IsEmpty(val) then
+        Continue;
       if Filters.IndexOf(val) = -1 then
         Filters.Add(val);
-      MainReg.DeleteValue(OldNumbers[i]);
+      AppSettings.DeleteValue(asRecentFilter, IntToStr(i));
     end;
-    for i := 1 to Filters.Count do begin
-      MainReg.WriteString(IntToStr(i), Filters[i-1]);
-      // Avoid too much registry spam with mega old filters
-      if i = 20 then break;
-    end;
-    FreeAndNil(OldNumbers);
+    for i:=0 to Filters.Count-1 do
+      AppSettings.WriteString(asRecentFilter, Filters[i], IntToStr(i+1));
     FreeAndNil(Filters);
+    AppSettings.ResetPath;
   end;
   // Keep current column widths on "Quick filter" clicks, don't keep them on "Apply filter" clicks
   if (Sender is TMenuItem) and ((Sender as TMenuItem).GetParentMenu = popupDataGrid) then begin
@@ -4059,7 +3960,7 @@ var
 begin
   Grid := ActiveGrid;
   // Be sure to have all rows
-  if (Grid = DataGrid) and (DatagridWantedRowCount < prefGridRowcountMax) then
+  if (Grid = DataGrid) and (DatagridWantedRowCount < AppSettings.ReadInt(asDatagridMaximumRows)) then
     actDataShowAll.Execute;
   Node := Grid.GetLast;
   if Assigned(Node) then
@@ -4145,11 +4046,12 @@ begin
   cs.Dialog.Color := ActiveConnection.Parameters.SessionColor;
   // Add custom colors from all sessions
   SessionPaths := TStringList.Create;
-  GetSessionPaths('', SessionPaths);
+  AppSettings.GetSessionPaths('', SessionPaths);
   CharPostfix := 'A';
   for i:=0 to SessionPaths.Count-1 do begin
-    Col := GetRegValue(REGNAME_TREEBACKGROUND, clDefault, SessionPaths[i]);
-    if Col <> clDefault then begin
+    AppSettings.SessionPath := SessionPaths[i];
+    Col := AppSettings.ReadInt(asTreeBackground);
+    if Col <> clNone then begin
       ColString := IntToHex(ColorToRgb(Col), 6);
       if not ValueExists(ColString) then begin
         cs.Dialog.CustomColors.Add('Color'+CharPostfix+'='+ColString);
@@ -4161,8 +4063,8 @@ begin
   end;
   if cs.Execute then begin
     ActiveConnection.Parameters.SessionColor := cs.Dialog.Color;
-    OpenRegistry(ActiveConnection.Parameters.SessionPath);
-    MainReg.WriteInteger(REGNAME_TREEBACKGROUND, cs.Dialog.Color);
+    AppSettings.SessionPath := ActiveConnection.Parameters.SessionPath;
+    AppSettings.WriteInt(asTreeBackground, cs.Dialog.Color);
   end;
 end;
 
@@ -4173,7 +4075,7 @@ end;
 procedure TMainForm.LogSQL(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil);
 var
   snip, IsSQL: Boolean;
-  Len, i: Integer;
+  Len, i, MaxLineWidth: Integer;
   Sess: String;
 begin
   if csDestroying in ComponentState then
@@ -4181,22 +4083,23 @@ begin
 
   // Log only wanted events
   case Category of
-    lcError: if not prefLogErrors then Exit;
-    lcUserFiredSQL: if not prefLogUserSQL then Exit;
-    lcSQL: if not prefLogSQL then Exit;
-    lcInfo: if not prefLogInfos then Exit;
-    lcDebug: if not prefLogDebug then Exit;
+    lcError: if not AppSettings.ReadBool(asLogErrors) then Exit;
+    lcUserFiredSQL: if not AppSettings.ReadBool(asLogUserSQL) then Exit;
+    lcSQL: if not AppSettings.ReadBool(asLogSQL) then Exit;
+    lcInfo: if not AppSettings.ReadBool(asLogInfos) then Exit;
+    lcDebug: if not AppSettings.ReadBool(asLogDebug) then Exit;
   end;
 
   // Shorten very long messages
   Len := Length(Msg);
-  snip := (prefLogSqlWidth > 0) and (Len > prefLogSqlWidth);
+  MaxLineWidth := AppSettings.ReadInt(asLogsqlwidth);
+  snip := (MaxLineWidth > 0) and (Len > MaxLineWidth);
   IsSQL := Category in [lcSQL, lcUserFiredSQL];
   if snip then begin
     Msg :=
-      Copy(Msg, 0, prefLogSqlWidth) +
+      Copy(Msg, 0, MaxLineWidth) +
       '/* large SQL query ('+FormatByteNumber(Len)+'), snipped at ' +
-      FormatNumber(prefLogSqlWidth) +
+      FormatNumber(MaxLineWidth) +
       ' characters */';
   end else if (not snip) and IsSQL then
     Msg := Msg + Delimiter;
@@ -4207,7 +4110,7 @@ begin
 
   // Delete first line(s) in SQL log and adjust LineNumberStart in gutter
   i := 0;
-  while SynMemoSQLLog.Lines.Count > prefLogsqlnum do begin
+  while SynMemoSQLLog.Lines.Count > AppSettings.ReadInt(asLogsqlnum) do begin
     SynMemoSQLLog.Lines.Delete(0);
     Inc(i);
   end;
@@ -4220,7 +4123,7 @@ begin
   SynMemoSQLLog.Repaint;
 
   // Log to file?
-  if prefLogToFile then
+  if AppSettings.ReadBool(asLogToFile) then
   try
     Sess := '';
     if Assigned(Connection) then
@@ -4241,8 +4144,8 @@ var
 begin
   // Show next X rows in datagrid
   OldRowCount := DatagridWantedRowCount;
-  Inc(DatagridWantedRowCount, prefGridRowcountStep);
-  DataGridWantedRowCount := Min(DataGridWantedRowCount, prefGridRowcountMax);
+  Inc(DatagridWantedRowCount, AppSettings.ReadInt(asDatagridRowsPerStep));
+  DataGridWantedRowCount := Min(DataGridWantedRowCount, AppSettings.ReadInt(asDatagridMaximumRows));
   InvalidateVT(DataGrid, VTREE_NOTLOADED, True);
   SelectNode(DataGrid, OldRowCount);
 end;
@@ -4251,7 +4154,7 @@ end;
 procedure TMainForm.actDataShowAllExecute(Sender: TObject);
 begin
   // Remove LIMIT clause
-  DatagridWantedRowCount := prefGridRowcountMax;
+  DatagridWantedRowCount := AppSettings.ReadInt(asDatagridMaximumRows);
   InvalidateVT(DataGrid, VTREE_NOTLOADED, True);
 end;
 
@@ -4299,7 +4202,7 @@ var
   vt: TVirtualStringTree;
   Select: String;
   RefreshingData, IsKeyColumn: Boolean;
-  i, Offset, ColLen, ColWidth, VisibleColumns: Integer;
+  i, Offset, ColLen, ColWidth, VisibleColumns, MaximumRows: Integer;
   KeyCols, ColWidths, WantedColumnOrgnames: TStringList;
   WantedColumns: TTableColumnList;
   c: TTableColumn;
@@ -4519,12 +4422,13 @@ begin
     vt.UpdateScrollBars(True);
     ValidateControls(Sender);
     DisplayRowCountStats(vt);
-    actDataShowNext.Enabled := (vt.RootNodeCount = DatagridWantedRowCount) and (DatagridWantedRowCount < prefGridRowcountMax);
+    MaximumRows := AppSettings.ReadInt(asDatagridMaximumRows);
+    actDataShowNext.Enabled := (vt.RootNodeCount = DatagridWantedRowCount) and (DatagridWantedRowCount < MaximumRows);
     actDataShowAll.Enabled := actDataShowNext.Enabled;
     EnumerateRecentFilters;
     ColWidths.Free;
-    if Integer(vt.RootNodeCount) = prefGridRowcountMax then
-      LogSQL('Browsing is currently limited to a maximum of '+FormatNumber(prefGridRowcountMax)+' rows. To see more rows, increase this maximum in Tools > Preferences > Data .', lcInfo);
+    if Integer(vt.RootNodeCount) = MaximumRows then
+      LogSQL('Browsing is currently limited to a maximum of '+FormatNumber(MaximumRows)+' rows. To see more rows, increase this maximum in Tools > Preferences > Data .', lcInfo);
 
   end;
   vt.Tag := VTREE_LOADED;
@@ -4592,7 +4496,7 @@ var
   Idx: PCardinal;
 begin
   // Display multiline grid rows
-  if prefGridRowsLineCount = DEFAULT_GRIDROWSLINECOUNT then
+  if AppSettings.ReadInt(asGridRowLineCount) = 1 then
     Exclude(Node.States, vsMultiLine)
   else
     Include(Node.States, vsMultiLine);
@@ -5038,7 +4942,7 @@ begin
   Conn := ActiveConnection;
   Editor := Proposal.Form.CurrentEditor;
   Editor.GetHighlighterAttriAtRowColEx(Editor.PrevWordPos, Token, TokenTypeInt, Start, Attri);
-  CanExecute := prefCompletionProposal and
+  CanExecute := AppSettings.ReadBool(asCompletionProposal) and
     (not (TtkTokenKind(TokenTypeInt) in [tkString, tkComment]));
   if not CanExecute then
     Exit;
@@ -5208,7 +5112,7 @@ begin
   // Display hint on function and procedure parameters
 
   // Activated in preferences?
-  if not prefCompletionProposal then begin
+  if not AppSettings.ReadBool(asCompletionProposal) then begin
     CanExecute := False;
     Exit;
   end;
@@ -5491,7 +5395,7 @@ begin
       1:
         case Tree.FocusedNode.Parent.Index of
           HELPERNODE_SNIPPETS:
-            Text := ReadTextFile(FDirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', nil);
+            Text := ReadTextFile(DirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', nil);
           HELPERNODE_HISTORY:
             Text := '';
           else begin
@@ -6198,7 +6102,7 @@ begin
   if not Assigned(ActiveQueryHelpers.FocusedNode) then
     Exit;
 
-  snippetfile := FDirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql';
+  snippetfile := DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql';
   if MessageDialog('Delete snippet file?', snippetfile, mtConfirmation, [mbOk, mbCancel]) = mrOk then
   begin
     Screen.Cursor := crHourGlass;
@@ -6220,7 +6124,7 @@ end;
 }
 procedure TMainForm.menuInsertSnippetAtCursorClick(Sender: TObject);
 begin
-  ActiveQueryTab.LoadContents(FDirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', False, nil);
+  ActiveQueryTab.LoadContents(DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', False, nil);
 end;
 
 
@@ -6229,7 +6133,7 @@ end;
 }
 procedure TMainForm.menuLoadSnippetClick(Sender: TObject);
 begin
-  ActiveQueryTab.LoadContents(FDirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', True, nil);
+  ActiveQueryTab.LoadContents(DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', True, nil);
 end;
 
 
@@ -6241,14 +6145,14 @@ begin
   // Normally the snippets folder is created at installation. But it sure
   // can be the case that it has been deleted or that the application was
   // not installed properly. Ask if we should create the folder now.
-  if DirectoryExists(FDirnameSnippets) then
-    ShellExec('', FDirnameSnippets)
+  if DirectoryExists(DirnameSnippets) then
+    ShellExec('', DirnameSnippets)
   else
-    if MessageDialog('Snippets folder does not exist', 'The folder "'+FDirnameSnippets+'" is normally created when you install '+appname+'.' + CRLF + CRLF + 'Shall it be created now?',
+    if MessageDialog('Snippets folder does not exist', 'The folder "'+DirnameSnippets+'" is normally created when you install '+appname+'.' + CRLF + CRLF + 'Shall it be created now?',
       mtWarning, [mbYes, mbNo]) = mrYes then
     try
       Screen.Cursor := crHourglass;
-      ForceDirectories(FDirnameSnippets);
+      ForceDirectories(DirnameSnippets);
     finally
       Screen.Cursor := crDefault;
     end;
@@ -6260,18 +6164,16 @@ var
   Values: TStringList;
 begin
   // Clear query history items in registry
-  OpenRegistry(ActiveConnection.Parameters.SessionPath);
-  MainReg.OpenKey(REGKEY_QUERYHISTORY, True);
-  Values := TStringList.Create;
-  MainReg.GetValueNames(Values);
+  AppSettings.SessionPath := ActiveConnection.Parameters.SessionPath + '\' + REGKEY_QUERYHISTORY;
+  Values := AppSettings.GetValueNames;
   if MessageDialog('Clear query history?', FormatNumber(Values.Count)+' history items will be deleted.', mtConfirmation, [mbYes, mbNo]) = mrYes then begin
     Screen.Cursor := crHourglass;
-    OpenRegistry(ActiveConnection.Parameters.SessionPath);
-    MainReg.DeleteKey(REGKEY_QUERYHISTORY);
+    AppSettings.DeleteCurrentKey;;
     RefreshHelperNode(HELPERNODE_HISTORY);
     Screen.Cursor := crDefault;
   end;
   Values.Free;
+  AppSettings.ResetPath;
 end;
 
 
@@ -6410,11 +6312,11 @@ begin
   if not Assigned(OwnerForm) then
     Exit;
   Regname := OwnerForm.Name + '.' + List.Name;
-  OpenRegistry;
-  MainReg.WriteString( REGPREFIX_COLWIDTHS + Regname, ColWidths );
-  MainReg.WriteString( REGPREFIX_COLSVISIBLE + Regname, ColsVisible );
-  MainReg.WriteString( REGPREFIX_COLPOS + Regname, ColPos );
-  MainReg.WriteString( REGPREFIX_COLSORT + Regname, IntToStr(List.Header.SortColumn) + ',' + IntToStr(Integer(List.Header.SortDirection)));
+  AppSettings.ResetPath;
+  AppSettings.WriteString(asListColWidths, ColWidths, Regname);
+  AppSettings.WriteString(asListColsVisible, ColsVisible, Regname);
+  AppSettings.WriteString(asListColPositions, ColPos, Regname);
+  AppSettings.WriteString(asListColSort, IntToStr(List.Header.SortColumn) + ',' + IntToStr(Integer(List.Header.SortDirection)), RegName);
 end;
 
 
@@ -6435,7 +6337,7 @@ begin
   // Column widths
   OwnerForm := GetParentFormOrFrame(List);
   Regname := OwnerForm.Name + '.' + List.Name;
-  Value := GetRegValue(REGPREFIX_COLWIDTHS + Regname, '');
+  Value := AppSettings.ReadString(asListColWidths, Regname);
   if Value <> '' then begin
     ValueList := Explode( ',', Value );
     for i := 0 to ValueList.Count - 1 do
@@ -6448,7 +6350,7 @@ begin
   end;
 
   // Column visibility
-  Value := GetRegValue(REGPREFIX_COLSVISIBLE + Regname, '');
+  Value := AppSettings.ReadString(asListColsVisible, Regname);
   if Value <> '' then begin
     ValueList := Explode( ',', Value );
     for i:=0 to List.Header.Columns.Count-1 do begin
@@ -6460,7 +6362,7 @@ begin
   end;
 
   // Column position
-  Value := GetRegValue(REGPREFIX_COLPOS + Regname, '');
+  Value := AppSettings.ReadString(asListColPositions, Regname);
   if Value <> '' then begin
     ValueList := Explode( ',', Value );
     for i := 0 to ValueList.Count - 1 do
@@ -6473,7 +6375,7 @@ begin
   end;
 
   // Sort column and direction
-  Value := GetRegValue(REGPREFIX_COLSORT + Regname, '');
+  Value := AppSettings.ReadString(asListColSort, Regname);
   if Value <> '' then begin
     ValueList := Explode(',', Value);
     if ValueList.Count = 2 then begin
@@ -6495,21 +6397,25 @@ end;
 }
 procedure TMainForm.ActivateFileLogging;
 var
-  LogfilePattern : String;
+  LogfilePattern, LogDir: String;
   i : Integer;
 begin
+  if AppSettings.ReadBool(asLogToFile) then
+    Exit;
+
   // Ensure directory exists
-  if prefDirnameSessionLogs[Length(prefDirnameSessionLogs)] <> '\' then
-    prefDirnameSessionLogs := prefDirnameSessionLogs + '\';
-  ForceDirectories(prefDirnameSessionLogs);
+  LogDir := AppSettings.ReadString(asSessionLogsDirectory);
+  if LogDir[Length(LogDir)] <> '\' then
+    LogDir := LogDir + '\';
+  ForceDirectories(LogDir);
 
   // Determine free filename
   LogfilePattern := '%.6u.log';
   i := 1;
-  FFileNameSessionLog := prefDirnameSessionLogs + goodfilename(Format(LogfilePattern, [i]));
+  FFileNameSessionLog := LogDir + goodfilename(Format(LogfilePattern, [i]));
   while FileExists(FFileNameSessionLog) do begin
     inc(i);
-    FFileNameSessionLog := prefDirnameSessionLogs + goodfilename(Format(LogfilePattern, [i]));
+    FFileNameSessionLog := LogDir + goodfilename(Format(LogfilePattern, [i]));
   end;
 
   // Create file handle for writing
@@ -6523,12 +6429,12 @@ begin
   if IOResult <> 0 then
   begin
     ErrorDialog('Error opening session log file', FFileNameSessionLog+CRLF+CRLF+'Logging is disabled now.');
-    prefLogToFile := False;
+    AppSettings.WriteBool(asLogToFile, False);
   end else
-    prefLogToFile := True;
+    AppSettings.WriteBool(asLogToFile, True);
   // Update popupMenu items
-  menuLogToFile.Checked := prefLogToFile;
-  menuOpenLogFolder.Enabled := prefLogToFile;
+  menuLogToFile.Checked := AppSettings.ReadBool(asLogToFile);
+  menuOpenLogFolder.Enabled := AppSettings.ReadBool(asLogToFile);
 end;
 
 
@@ -6538,15 +6444,17 @@ end;
 }
 procedure TMainForm.DeactivateFileLogging;
 begin
-  prefLogToFile := False;
+  if not AppSettings.ReadBool(asLogToFile) then
+    Exit;
+  AppSettings.WriteBool(asLogToFile, False);
   {$I-} // Supress errors
   CloseFile(FFileHandleSessionLog);
   {$I+}
   // Reset IOResult so later checks in ActivateFileLogging doesn't get an old value
   IOResult;
   // Update popupMenu items
-  menuLogToFile.Checked := prefLogToFile;
-  menuOpenLogFolder.Enabled := prefLogToFile;
+  menuLogToFile.Checked := AppSettings.ReadBool(asLogToFile);
+  menuOpenLogFolder.Enabled := AppSettings.ReadBool(asLogToFile);
 end;
 
 
@@ -6594,20 +6502,17 @@ end;
 }
 procedure TMainForm.menuLogToFileClick(Sender: TObject);
 var
-  OldprefLogToFile: Boolean;
+  WasActivated: Boolean;
 begin
-  OldprefLogToFile := prefLogToFile;
-  if not prefLogToFile then
+  WasActivated := AppSettings.ReadBool(asLogToFile);
+  if not WasActivated then
     ActivateFileLogging
   else
     DeactivateFileLogging;
 
   // Save option
-  if prefLogToFile <> OldprefLogToFile then
-  begin
-    OpenRegistry;
-    MainReg.WriteBool('LogToFile', prefLogToFile);
-  end;
+  AppSettings.ResetPath;
+  AppSettings.WriteBool(asLogToFile, not WasActivated);
 end;
 
 
@@ -6616,7 +6521,7 @@ end;
 }
 procedure TMainForm.menuOpenLogFolderClick(Sender: TObject);
 begin
-  ShellExec('', prefDirnameSessionLogs);
+  ShellExec('', AppSettings.ReadString(asSessionLogsDirectory));
 end;
 
 
@@ -6670,7 +6575,7 @@ procedure TMainForm.PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; C
 var
   BarWidth, CellWidth: Integer;
 begin
-  if not prefDisplayBars then
+  if not AppSettings.ReadBool(asDisplayBars) then
     Exit;
 
   // Add minimal margin to cell edges
@@ -6680,7 +6585,7 @@ begin
   // Avoid division by zero, when max is 0 - very rare case but reported in issue #2196.
   if (Value > 0) and (Max > 0) then begin
     BarWidth := Round(CellWidth / Max * Value);
-    TargetCanvas.Brush.Color := prefBarColor;
+    TargetCanvas.Brush.Color := AppSettings.ReadInt(asBarColor);
     TargetCanvas.Pen.Color := ColorAdjustBrightness(TargetCanvas.Brush.Color, -40);
     TargetCanvas.RoundRect(CellRect.Left, CellRect.Top, CellRect.Left+BarWidth, CellRect.Bottom, 2, 2);
   end;
@@ -8112,7 +8017,7 @@ begin
   TypeCat := Results.DataType(Column).Category;
   if Assigned(EditLink) then
     // Editor was created above, do nothing now
-  else if (Results.DataType(Column).Index = dtEnum) and prefEnableEnumEditor then begin
+  else if (Results.DataType(Column).Index = dtEnum) and AppSettings.ReadBool(asFieldEditorEnum) then begin
     EnumEditor := TEnumEditorLink.Create(VT);
     EnumEditor.DataType := Results.DataType(Column).Index;
     EnumEditor.ValueList := Results.ValueList(Column);
@@ -8123,14 +8028,14 @@ begin
     InplaceEditor.MaxLength := Results.MaxLength(Column);
     InplaceEditor.ButtonVisible := True;
     EditLink := InplaceEditor;
-  end else if (TypeCat in [dtcBinary, dtcSpatial]) and prefEnableBinaryEditor then begin
+  end else if (TypeCat in [dtcBinary, dtcSpatial]) and AppSettings.ReadBool(asFieldEditorBinary) then begin
     HexEditor := THexEditorLink.Create(VT);
     HexEditor.DataType := Results.DataType(Column).Index;
     HexEditor.MaxLength := Results.MaxLength(Column);
     EditLink := HexEditor;
-  end else if (TypeCat = dtcTemporal) and prefEnableDatetimeEditor then begin
+  end else if (TypeCat = dtcTemporal) and AppSettings.ReadBool(asFieldEditorDatetime) then begin
     // Ensure date/time editor starts with a non-empty text value
-    if (Results.Col(Column) = '') and prefPrefillDateTime then begin
+    if (Results.Col(Column) = '') and AppSettings.ReadBool(asFieldEditorDatetimePrefill) then begin
       case Results.DataType(Column).Index of
         dtDate: NowText := DateToStr(Now);
         dtTime: NowText := TimeToStr(Now);
@@ -8141,7 +8046,7 @@ begin
     DateTimeEditor := TDateTimeEditorLink.Create(VT);
     DateTimeEditor.DataType := Results.DataType(Column).Index;
     EditLink := DateTimeEditor;
-  end else if (Results.DataType(Column).Index = dtSet) and prefEnableSetEditor then begin
+  end else if (Results.DataType(Column).Index = dtSet) and AppSettings.ReadBool(asFieldEditorSet) then begin
     SetEditor := TSetEditorLink.Create(VT);
     SetEditor.DataType := Results.DataType(Column).Index;
     SetEditor.ValueList := Results.ValueList(Column);
@@ -8166,8 +8071,8 @@ begin
     DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible]
   else
     DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options - [coVisible];
-  OpenRegistry;
-  MainReg.WriteBool(REGNAME_SIZECOL_TREE, NewVal);
+  AppSettings.ResetPath;
+  AppSettings.WriteBool(asDisplayObjectSizeColumn, NewVal);
 end;
 
 
@@ -8226,7 +8131,7 @@ begin
   end;
   // text margins and minimal extra space
   ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 20;
-  ColTextWidth := Min(ColTextWidth, prefMaxColWidth);
+  ColTextWidth := Min(ColTextWidth, AppSettings.ReadInt(asMaxColWidth));
   Col.Width := ColTextWidth;
 end;
 
@@ -8249,8 +8154,8 @@ begin
     cl := clHighlight
   else if vsSelected in Node.States then
     cl := $00DDDDDD
-  else if (prefNullBG <> clNone) and r.IsNull(Column) then
-    cl := prefNullBG;
+  else if r.IsNull(Column) then
+    cl := AppSettings.ReadInt(asFieldNullBackground);
   if cl <> clNone then begin
     TargetCanvas.Brush.Color := cl;
     TargetCanvas.FillRect(CellRect);
@@ -8262,11 +8167,8 @@ procedure TMainForm.HandleDataGridAttributes(RefreshingData: Boolean);
 var
   rx: TRegExpr;
   idx, i: Integer;
-  TestList: TStringList;
   Sort, KeyName, FocusedCol, CellFocus, Filter: String;
 begin
-  OpenRegistry;
-  MainReg.OpenKey(GetRegKeyTable, True);
   actDataResetSorting.Enabled := False;
   // Clear filter, column names and sort structure if gr
   if not Assigned(DataGridHiddenColumns) then begin
@@ -8298,44 +8200,46 @@ begin
     SetLength(DataGridSortColumns, 0);
     DataGridWantedRowCount := 0;
     while DataGridFocusedNodeIndex >= DataGridWantedRowCount do
-      Inc(DataGridWantedRowCount, prefGridRowcountStep);
+      Inc(DataGridWantedRowCount, AppSettings.ReadInt(asDatagridRowsPerStep));
   end else begin
     // Save current attributes if grid gets refreshed
+    AppSettings.SessionPath := GetRegKeyTable;
     if DataGridHiddenColumns.Count > 0 then
-      MainReg.WriteString(REGNAME_HIDDENCOLUMNS, DataGridHiddenColumns.DelimitedText)
-    else if MainReg.ValueExists(REGNAME_HIDDENCOLUMNS) then
-      MainReg.DeleteValue(REGNAME_HIDDENCOLUMNS);
+      AppSettings.WriteString(asHiddenColumns, DataGridHiddenColumns.DelimitedText)
+    else if AppSettings.ValueExists(asHiddenColumns) then
+      AppSettings.DeleteValue(asHiddenColumns);
 
     if SynMemoFilter.GetTextLen > 0 then
-      MainReg.WriteString(REGNAME_FILTER, SynMemoFilter.Text)
-    else if MainReg.ValueExists(REGNAME_FILTER) then
-      MainReg.DeleteValue(REGNAME_FILTER);
+      AppSettings.WriteString(asFilter, SynMemoFilter.Text)
+    else if AppSettings.ValueExists(asFilter) then
+      AppSettings.DeleteValue(asFilter);
 
     for i := 0 to High(DataGridSortColumns) do
       Sort := Sort + IntToStr(DataGridSortColumns[i].SortDirection) + '_' + DataGridSortColumns[i].ColumnName + DELIM;
     if Sort <> '' then
-      MainReg.WriteString(REGNAME_SORT, Sort)
-    else if MainReg.ValueExists(REGNAME_SORT) then
-      MainReg.DeleteValue(REGNAME_SORT);
+      AppSettings.WriteString(asSort, Sort)
+    else if AppSettings.ValueExists(asSort) then
+      AppSettings.DeleteValue(asSort);
   end;
 
   // Auto remove registry spam if table folder is empty
-  TestList := TStringList.Create;
-  MainReg.GetValueNames(TestList);
-  if (not MainReg.HasSubKeys) and (TestList.Count = 0) then
-    MainReg.DeleteKey(GetRegKeyTable);
+  if AppSettings.SessionPathExists(GetRegKeyTable) then begin
+    AppSettings.SessionPath := GetRegKeyTable;
+    if AppSettings.IsEmptyKey then
+      AppSettings.DeleteCurrentKey;
+  end;
 
   // Do nothing if table was not filtered yet
-  if not MainReg.OpenKey(GetRegKeyTable, False) then
+  if not AppSettings.SessionPathExists(GetRegKeyTable) then
     Exit;
 
   // Columns
-  if MainReg.ValueExists(REGNAME_HIDDENCOLUMNS) then
-    DataGridHiddenColumns.DelimitedText := MainReg.ReadString(REGNAME_HIDDENCOLUMNS);
+  if AppSettings.ValueExists(asHiddenColumns) then
+    DataGridHiddenColumns.DelimitedText := AppSettings.ReadString(asHiddenColumns);
 
   // Set filter, without changing cursor position
-  if MainReg.ValueExists(REGNAME_FILTER) then begin
-    Filter := MainReg.ReadString(REGNAME_FILTER);
+  if AppSettings.ValueExists(asFilter) then begin
+    Filter := AppSettings.ReadString(asFilter);
     if SynMemoFilter.Text <> Filter then begin
       SynMemoFilter.Text := Filter;
       SynMemoFilter.Modified := True;
@@ -8345,12 +8249,12 @@ begin
   end;
 
   // Sort
-  if MainReg.ValueExists(REGNAME_SORT) then begin
+  if AppSettings.ValueExists(asSort) then begin
     SetLength(DataGridSortColumns, 0);
     rx := TRegExpr.Create;
     rx.Expression := '\b(\d)_(.+)\'+DELIM;
     rx.ModifierG := False;
-    if rx.Exec(MainReg.ReadString(REGNAME_SORT)) then while true do begin
+    if rx.Exec(AppSettings.ReadString(asSort)) then while true do begin
       idx := Length(DataGridSortColumns);
       // Check if column exists, could be renamed or deleted
       for i:=0 to SelectedTableColumns.Count-1 do begin
@@ -8367,13 +8271,15 @@ begin
     end;
     actDataResetSorting.Enabled := Length(DataGridSortColumns) > 0;
   end;
+
+  AppSettings.ResetPath;
 end;
 
 
 function TMainForm.GetRegKeyTable: String;
 begin
   // Return the slightly complex registry path to \Servers\CustomFolder\ActiveServer\curdb|curtable
-  Result := REGPATH + REGKEY_SESSIONS + '\' + ActiveDbObj.Connection.Parameters.SessionPath + '\' +
+  Result := ActiveDbObj.Connection.Parameters.SessionPath + '\' +
     ActiveDatabase + DELIM + ActiveDbObj.Name;
 end;
 
@@ -8907,7 +8813,7 @@ var
   i: Integer;
   item: TMenuItem;
   rx: TRegExpr;
-  capt: String;
+  capt, Path: String;
 begin
   // Reset menu and combobox
   menuRecentFilters.Enabled := False;
@@ -8915,17 +8821,18 @@ begin
     menuRecentFilters.Delete(i);
   comboRecentFilters.Items.Clear;
   // Enumerate recent filters from registry
-  if MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, False) then begin
-    flt := TStringList.Create;
+  Path := GetRegKeyTable+'\'+REGKEY_RECENTFILTERS;
+  if AppSettings.SessionPathExists(Path) then begin
+    AppSettings.SessionPath := Path;
+    flt := AppSettings.GetValueNames;
     rx := TRegExpr.Create;
     rx.Expression := '\s+';
-    MainReg.GetValueNames(flt);
-    for i := 0 to flt.Count - 1 do begin
-      // Legacy releases seem to store some integers here
-      if MainReg.GetDataType(flt[i]) <> rdString then
+    for i:=0 to flt.Count-1 do begin
+      // Previously introduced bugs stored some other settings here, see issue #2127
+      if flt[i] <> IntToStr(MakeInt(flt[i])) then
         continue;
       item := TMenuItem.Create(popupFilter);
-      capt := MainReg.ReadString(flt[i]);
+      capt := AppSettings.ReadString(flt[i]);
       capt := rx.Replace(capt, ' ', True);
       item.Hint := capt;
       item.Caption := sstr(capt, 50);
@@ -8936,6 +8843,7 @@ begin
     end;
     FreeAndNil(rx);
     FreeAndNil(flt);
+    AppSettings.ResetPath;
     menuRecentFilters.Enabled := menuRecentFilters.Count > 0;
   end;
   comboRecentFilters.Visible := comboRecentFilters.Items.Count > 0;
@@ -8953,18 +8861,22 @@ end;
 procedure TMainForm.LoadRecentFilter(Sender: TObject);
 var
   key: Integer;
+  Path: String;
 begin
   // Event handler for both dynamic popup menu items and filter combobox
   if Sender is TMenuItem then
     key := (Sender as TMenuItem).Tag
   else
     key := (Sender as TComboBox).ItemIndex+1;
-  if MainReg.OpenKey(GetRegKeyTable+'\'+REGNAME_FILTERS, False) then begin
+  Path := GetRegKeyTable+'\'+REGKEY_RECENTFILTERS;
+  if AppSettings.SessionPathExists(Path) then begin
+    AppSettings.SessionPath := Path;
     SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.BeginUpdate;
     SynMemoFilter.SelectAll;
-    SynMemoFilter.SelText := MainReg.ReadString(IntToStr(key));
+    SynMemoFilter.SelText := AppSettings.ReadString(IntToStr(key));
     SynMemoFilter.EndUpdate;
+    AppSettings.ResetPath;
   end;
 end;
 
@@ -9628,7 +9540,7 @@ var
 begin
   // Set window caption and taskbar text
   Cap := DBtree.Path(DBtree.FocusedNode, 0, ttNormal, '\') + ' - ' + APPNAME;
-  if PortableMode then
+  if AppSettings.PortableMode then
     Cap := Cap + ' Portable';
   Cap := Cap + ' ' + AppVersion;
   Caption := Cap;
@@ -9697,7 +9609,7 @@ var
   Tab: TQueryTab;
 begin
   Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
-  if (not Tab.Memo.Modified) or (not GetRegValue(REGNAME_PROMPTFILESAVE, DEFAULT_PROMPTFILESAVE)) then
+  if (not Tab.Memo.Modified) or (not AppSettings.ReadBool(asPromptSaveFileOnTabClose)) then
     Result := True
   else begin
     // Unhide tabsheet so the user sees the memo content
@@ -9783,8 +9695,6 @@ var
   i, j: Integer;
   Editors: TObjectList;
   BaseEditor, Editor: TSynMemo;
-  FontName: String;
-  FontSize, TabWidth: Integer;
   KeyStroke: TSynEditKeyStroke;
   ActiveLineColor: TColor;
   Attri: TSynHighlighterAttributes;
@@ -9814,14 +9724,11 @@ begin
   if Assigned(FPreferencesDialog) then
     Editors.Add(FPreferencesDialog.SynMemoSQLSample);
 
-  FontName := GetRegValue(REGNAME_FONTNAME, DEFAULT_FONTNAME);
-  FontSize := GetRegValue(REGNAME_FONTSIZE, DEFAULT_FONTSIZE);
-  TabWidth := GetRegValue(REGNAME_TABWIDTH, DEFAULT_TABWIDTH);
-  if GetRegValue(REGNAME_TABSTOSPACES, DEFAULT_TABSTOSPACES) then
+  if AppSettings.ReadBool(asTabsToSpaces) then
     BaseEditor.Options := BaseEditor.Options + [eoTabsToSpaces]
   else
     BaseEditor.Options := BaseEditor.Options - [eoTabsToSpaces];
-  ActiveLineColor := StringToColor(GetRegValue(REGNAME_SQLCOLACTIVELINE, ColorToString(DEFAULT_SQLCOLACTIVELINE)));
+  ActiveLineColor := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
   for i:=0 to Editors.Count-1 do begin
     // See issue #2651:
     if Editors[i]=nil then
@@ -9830,10 +9737,10 @@ begin
     if Editor = nil then
       continue;
     LogSQL('Setting up TSynMemo "'+Editor.Name+'"', lcDebug);
-    Editor.Font.Name := FontName;
-    Editor.Font.Size := FontSize;
-    Editor.Gutter.Font.Name := FontName;
-    Editor.Gutter.Font.Size := FontSize;
+    Editor.Font.Name := AppSettings.ReadString(asFontName);
+    Editor.Font.Size := AppSettings.ReadInt(asFontSize);
+    Editor.Gutter.Font.Name := Editor.Font.Name;
+    Editor.Gutter.Font.Size := Editor.Font.Size;
     Editor.Gutter.AutoSize := BaseEditor.Gutter.AutoSize;
     Editor.Gutter.DigitCount := BaseEditor.Gutter.DigitCount;
     Editor.Gutter.LeftOffset := BaseEditor.Gutter.LeftOffset;
@@ -9845,18 +9752,20 @@ begin
     Editor.Options := BaseEditor.Options;
     if Editor = SynMemoSQLLog then
       Editor.Options := Editor.Options + [eoRightMouseMovesCursor];
-    Editor.TabWidth := TabWidth;
+    Editor.TabWidth := AppSettings.ReadInt(asTabWidth);
     Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
     Editor.WantTabs := BaseEditor.WantTabs;
     Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
     // Shortcuts
     if Editor = BaseEditor then for j:=0 to Editor.Keystrokes.Count-1 do begin
       KeyStroke := Editor.Keystrokes[j];
-      Shortcut1 := GetRegValue(REGPREFIX_SHORTCUT1+EditorCommandToCodeString(Keystroke.Command), KeyStroke.ShortCut);
-      Shortcut2 := GetRegValue(REGPREFIX_SHORTCUT2+EditorCommandToCodeString(Keystroke.Command), KeyStroke.ShortCut2);
+      Shortcut1 := AppSettings.ReadInt(asActionShortcut1, EditorCommandToCodeString(Keystroke.Command));
+      Shortcut2 := AppSettings.ReadInt(asActionShortcut2, EditorCommandToCodeString(Keystroke.Command));
       try
-        Keystroke.ShortCut := Shortcut1;
-        Keystroke.ShortCut2 := Shortcut2;
+        if Shortcut1<>0 then
+          Keystroke.ShortCut := Shortcut1;
+        if Shortcut2<>0 then
+          Keystroke.ShortCut2 := Shortcut2;
       except
         on E:ESynKeyError do begin
           LogSQL('Could not apply SynEdit keystroke shortcut "'+ShortCutToText(Shortcut1)+'"' +
@@ -9870,9 +9779,9 @@ begin
   // Highlighting
   for i:=0 to SynSQLSyn1.AttrCount - 1 do begin
     Attri := SynSQLSyn1.Attribute[i];
-    Attri.Foreground := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_FG, Attri.Foreground);
-    Attri.Background := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_BG, Attri.Background);
-    Attri.IntegerStyle := GetRegValue(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Attri.IntegerStyle);
+    Attri.Foreground := AppSettings.ReadInt(asHighlighterForeground, Attri.FriendlyName, Attri.Foreground);
+    Attri.Background := AppSettings.ReadInt(asHighlighterBackground, Attri.FriendlyName, Attri.Background);
+    Attri.IntegerStyle := AppSettings.ReadInt(asHighlighterStyle, Attri.FriendlyName, Attri.IntegerStyle);
   end;
 end;
 
@@ -10016,7 +9925,7 @@ var
 begin
   if CellPaintMode=cpmPaint then begin
     DBObj := Sender.GetNodeData(Node);
-    if DbObj.Connection.Parameters.SessionColor <> DEFAULT_TREEBACKGROUND then begin
+    if DbObj.Connection.Parameters.SessionColor <> AppSettings.GetDefaultInt(asTreeBackground) then begin
       TargetCanvas.Brush.Color := DbObj.Connection.Parameters.SessionColor;
       TargetCanvas.FillRect(CellRect);
     end;
@@ -10587,11 +10496,11 @@ end;
 procedure TMainForm.treeQueryHelpersInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
   var ChildCount: Cardinal);
 var
-  Values: TStringList;
-  v, QueryDay: String;
+  QueryDay: String;
   History: TQueryHistory;
   Item: TQueryHistoryItem;
   Tab: TQueryTab;
+  i: Integer;
 begin
   Tab := GetQueryTabByHelpers(Sender);
   case Sender.GetNodeLevel(Node) of
@@ -10616,21 +10525,13 @@ begin
            if not Assigned(Tab.HistoryDays) then
              Tab.HistoryDays := TStringList.Create;
            Tab.HistoryDays.Clear;
-           OpenRegistry(ActiveConnection.Parameters.SessionPath);
-           MainReg.OpenKey(REGKEY_QUERYHISTORY, true);
-           Values := TStringList.Create;
-           MainReg.GetValueNames(Values);
-           History := TQueryHistory.Create;
-           for v in Values do begin
-             Item := History.ReadItem(v);
-             if Assigned(Item) then begin
-               QueryDay := DateToStr(Item.Time);
-               if Tab.HistoryDays.IndexOf(QueryDay) = -1 then
-                 Tab.HistoryDays.Add(QueryDay);
-             end;
+           History := TQueryHistory.Create(ActiveConnection.Parameters.SessionPath);
+           for Item in History do begin
+             QueryDay := DateToStr(Item.Time);
+             if Tab.HistoryDays.IndexOf(QueryDay) = -1 then
+               Tab.HistoryDays.Add(QueryDay);
            end;
            History.Free;
-           Values.Free;
            Tab.HistoryDays.CustomSort(StringListCompareAnythingDesc);
            ChildCount := Tab.HistoryDays.Count;
          end;
@@ -10639,23 +10540,14 @@ begin
        end;
     1: case Node.Parent.Index of
       HELPERNODE_HISTORY: begin
-        History := TQueryHistory.Create;
+        History := TQueryHistory.Create(ActiveConnection.Parameters.SessionPath);
         Tab.HistoryDays.Objects[Node.Index] := History;
-        OpenRegistry(ActiveConnection.Parameters.SessionPath);
-        MainReg.OpenKey(REGKEY_QUERYHISTORY, true);
-        Values := TStringList.Create;
-        MainReg.GetValueNames(Values);
-        for v in Values do begin
-          Item := History.ReadItem(v);
-          if Assigned(Item) then begin
-            QueryDay := DateToStr(Item.Time);
-            if QueryDay <> Tab.HistoryDays[Node.Index] then
-              History.Remove(Item);
-          end;
+        for i:=History.Count-1 downto 0 do begin
+          QueryDay := DateToStr(History[i].Time);
+          if QueryDay <> Tab.HistoryDays[Node.Index] then
+            History.Delete(i);
         end;
-        History.Sort(TQueryHistoryItemComparer.Create);
         ChildCount := History.Count;
-        Values.Free;
       end;
       else ChildCount := 0;
     end;
@@ -10674,7 +10566,7 @@ begin
     FSnippetFilenames := TStringList.Create;
   FSnippetFilenames.Clear;
   try
-    Files := TDirectory.GetFiles(FDirnameSnippets, '*.sql');
+    Files := TDirectory.GetFiles(DirnameSnippets, '*.sql');
     for i:=0 to Length(Files)-1 do begin
       Snip := ExtractFilename(Files[i]);
       Snip := Copy(Snip, 1, Length(Snip)-4);
@@ -10982,7 +10874,7 @@ begin
   MainForm.LogSQL('Loading file "'+Filename+'" ('+FormatByteNumber(Filesize)+') into query tab #'+IntToStr(Number)+' ...', lcInfo);
   try
     Content := ReadTextfile(Filename, Encoding);
-    if Pos(MainForm.FDirnameSnippets, Filename) = 0 then
+    if Pos(DirnameSnippets, Filename) = 0 then
       MainForm.AddOrRemoveFromQueryLoadHistory(Filename, True, True);
     MainForm.FillPopupQueryLoad;
     Memo.UndoList.AddGroupBreak;
@@ -11113,7 +11005,7 @@ begin
   Grid.OnNewText := OrgGrid.OnNewText;
   Grid.OnPaintText := OrgGrid.OnPaintText;
   Grid.OnStartOperation := OrgGrid.OnStartOperation;
-  FixVT(Grid, Mainform.prefGridRowsLineCount);
+  FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
 end;
 
 destructor TResultTab.Destroy;
@@ -11129,31 +11021,39 @@ end;
 
 { TQueryHistory }
 
-function TQueryHistory.ReadItem(RegValue: String): TQueryHistoryItem;
+constructor TQueryHistory.Create(SessionPath: String);
 var
-  i, p: Integer;
+  ValueNames: TStringList;
+  i, j, p: Integer;
   Raw: String;
+  Item: TQueryHistoryItem;
 begin
-  i := StrToIntDef(RegValue, -1);
-  // Prevent from running into serious errors when registry has some non-numeric value
-  if i=-1 then begin
-    Result := nil;
-    Exit;
+  AppSettings.SessionPath := SessionPath + '\' + REGKEY_QUERYHISTORY;
+  ValueNames := AppSettings.GetValueNames;
+  for i:=0 to ValueNames.Count-1 do begin
+    j := StrToIntDef(ValueNames[i], -1);
+    // Prevent from running into serious errors when registry has some non-numeric value
+    if i<>-1 then begin
+      Item := TQueryHistoryItem.Create;
+      Item.RegValue := j;
+      Raw := AppSettings.ReadString(ValueNames[i]);
+      p := Pos(DELIM, Raw);
+      Item.Time := StrToDateTime(Copy(Raw, 1, p-1));
+      System.Delete(Raw, 1, p);
+      p := Pos(DELIM, Raw);
+      Item.Database := Copy(Raw, 1, p-1);
+      System.Delete(Raw, 1, p);
+      p := Pos(DELIM, Raw);
+      Item.Duration := StrToIntDef(Copy(Raw, 1, p-1), 0);
+      FMaxDuration := Max(FMaxDuration, Item.Duration);
+      Item.SQL := Copy(Raw, p+1, Length(Raw));
+      Add(Item);
+    end;
   end;
-  Result := TQueryHistoryItem.Create;
-  Result.RegValue := i;
-  Raw := MainReg.ReadString(RegValue);
-  p := Pos(DELIM, Raw);
-  Result.Time := StrToDateTime(Copy(Raw, 1, p-1));
-  System.Delete(Raw, 1, p);
-  p := Pos(DELIM, Raw);
-  Result.Database := Copy(Raw, 1, p-1);
-  System.Delete(Raw, 1, p);
-  p := Pos(DELIM, Raw);
-  Result.Duration := StrToIntDef(Copy(Raw, 1, p-1), 0);
-  FMaxDuration := Max(FMaxDuration, Result.Duration);
-  Result.SQL := Copy(Raw, p+1, Length(Raw));
-  Add(Result);
+  // Sort by date
+  Sort(TQueryHistoryItemComparer.Create);
+  ValueNames.Free;
+  AppSettings.ResetPath;
 end;
 
 
