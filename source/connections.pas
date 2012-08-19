@@ -313,6 +313,7 @@ begin
   Sess.LocalTimeZone := chkLocalTimeZone.Checked;
   Sess.AllDatabasesStr := comboDatabases.Text;
   Sess.StartupScriptFilename := editStartupScript.Text;
+  Sess.SSHPlinkExe := editSSHPlinkExe.Text;
   Sess.SSHHost := editSSHhost.Text;
   Sess.SSHPort := MakeInt(editSSHport.Text);
   Sess.SSHUser := editSSHUser.Text;
