@@ -82,12 +82,12 @@ begin
   // Set window-layout
   InheritFont(Font);
   SetWindowSizeGrip(Handle, True);
-  Top := GetRegValue( REGNAME_SQLHELPWINTOP, Top );
-  Left := GetRegValue( REGNAME_SQLHELPWINLEFT, Left );
-  Width := GetRegValue( REGNAME_SQLHELPWINWIDTH, Width );
-  Height := GetRegValue( REGNAME_SQLHELPWINHEIGHT, Height );
-  pnlLeft.Width := GetRegValue( REGNAME_SQLHELPPLWIDTH, pnlLeft.Width );
-  memoDescription.Height := GetRegValue( REGNAME_SQLHELPPRHEIGHT, memoDescription.Height );
+  Top := AppSettings.ReadInt(asSQLHelpWindowTop);
+  Left := AppSettings.ReadInt(asSQLHelpWindowLeft);
+  Width := AppSettings.ReadInt(asSQLHelpWindowWidth);
+  Height := AppSettings.ReadInt(asSQLHelpWindowHeight);
+  pnlLeft.Width := AppSettings.ReadInt(asSQLHelpPnlLeftWidth);
+  memoDescription.Height := AppSettings.ReadInt(asSQLHelpPnlRightTopHeight);
   Caption := DEFAULT_WINDOW_CAPTION;
   MainForm.SetupSynEditors;
   FixVT(treeTopics);
@@ -259,13 +259,12 @@ end;
 
 procedure TfrmSQLhelp.FormDestroy(Sender: TObject);
 begin
-  OpenRegistry;
-  MainReg.WriteInteger( REGNAME_SQLHELPWINLEFT, Left );
-  MainReg.WriteInteger( REGNAME_SQLHELPWINTOP, Top );
-  MainReg.WriteInteger( REGNAME_SQLHELPWINWIDTH, Width );
-  MainReg.WriteInteger( REGNAME_SQLHELPWINHEIGHT, Height );
-  MainReg.WriteInteger( REGNAME_SQLHELPPLWIDTH, pnlLeft.Width );
-  MainReg.WriteInteger( REGNAME_SQLHELPPRHEIGHT, memoDescription.Height );
+  AppSettings.WriteInt(asSQLHelpWindowLeft, Left );
+  AppSettings.WriteInt(asSQLHelpWindowTop, Top );
+  AppSettings.WriteInt(asSQLHelpWindowWidth, Width );
+  AppSettings.WriteInt(asSQLHelpWindowHeight, Height );
+  AppSettings.WriteInt(asSQLHelpPnlLeftWidth, pnlLeft.Width );
+  AppSettings.WriteInt(asSQLHelpPnlRightTopHeight, memoDescription.Height );
 end;
 
 

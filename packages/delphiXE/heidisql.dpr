@@ -46,15 +46,11 @@ uses
 {$R ..\..\res\manifest.RES}
 {$R ..\..\res\updater.RES}
 
-var
-  DoStop, prefAllowMultipleInstances: Boolean;
 begin
-  prefAllowMultipleInstances := GetRegValue(REGNAME_MULTI_INSTANCES, DEFAULT_MULTI_INSTANCES);
+  SetLocales;
+  AppSettings := TAppSettings.Create;
   SecondInstMsgId := RegisterWindowMessage(APPNAME);
-  DoStop := False;
-  if not prefAllowMultipleInstances then
-    DoStop := CheckForSecondInstance;
-  if DoStop then
+  if (not AppSettings.ReadBool(asAllowMultipleInstances)) and CheckForSecondInstance then
     Application.Terminate
   else begin
     Application.Initialize;

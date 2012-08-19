@@ -66,8 +66,8 @@ const
 procedure TCopyTableForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
-  Width := GetRegValue(REGNAME_COPYTABLE_WINWIDTH, Width);
-  Height := GetRegValue(REGNAME_COPYTABLE_WINHEIGHT, Height);
+  Width := AppSettings.ReadInt(asCopyTableWindowWidth);
+  Height := AppSettings.ReadInt(asCopyTableWindowHeight);
   SetWindowSizeGrip(Handle, True);
   MainForm.SetupSynEditors;
   FixVT(TreeElements);
@@ -80,8 +80,8 @@ end;
 procedure TCopyTableForm.FormDestroy(Sender: TObject);
 begin
   // Save GUI stuff
-  MainReg.WriteInteger(REGNAME_COPYTABLE_WINWIDTH, Width);
-  MainReg.WriteInteger(REGNAME_COPYTABLE_WINHEIGHT, Height);
+  AppSettings.WriteInt(asCopyTableWindowWidth, Width);
+  AppSettings.WriteInt(asCopyTableWindowHeight, Height);
 end;
 
 
@@ -90,8 +90,7 @@ var
   Filter: String;
   Dummy: String;
   Obj: PDBObject;
-  Values: TStringList;
-  i, j: Integer;
+  i: Integer;
   Item: TMenuItem;
   Tree: TVirtualStringTree;
 begin
@@ -129,17 +128,12 @@ begin
 
   // Load recent WHERE clauses from registry into dropdown menu
   popupRecentFilters.Items.Clear;
-  OpenRegistry;
-  Values := TStringList.Create;
-  MainReg.GetValueNames(Values);
-  j := 0;
-  for i:=0 to Values.Count-1 do begin
-    if Pos(REGPREFIX_COPYTABLE_FILTERS, Values[i]) <> 1 then
-      continue;
-    Inc(j);
-    Filter := MainReg.ReadString(Values[i]);
+  for i:=1 to 20 do begin
+    Filter := AppSettings.ReadString(asCopyTableRecentFilter, IntToStr(i));
+    if IsEmpty(Filter) then
+      Continue;
     Item := TMenuItem.Create(popupRecentFilters);
-    Item.Caption := IntToStr(j) + '  ' + sstr(Filter, 100);
+    Item.Caption := IntToStr(i) + '  ' + sstr(Filter, 100);
     Item.Hint := Filter;
     Item.OnClick := RecentFilterClick;
     popupRecentFilters.Items.Add(Item);
@@ -152,43 +146,39 @@ end;
 procedure TCopyTableForm.FormClose(Sender: TObject; var Action: TCloseAction);
 var
   Node: PVirtualNode;
-  Option, Filter: String;
-  Values, NewValues: TStringList;
+  Option: TAppSettingIndex;
+  Filter: String;
+  NewValues: TStringList;
   i: Integer;
 begin
   // Save first level node check options
   Node := TreeElements.GetFirst;
   while Assigned(Node) do begin
     case Node.Index of
-      nColumns:      Option := REGNAME_COPYTABLE_COLUMNS;
-      nKeys:         Option := REGNAME_COPYTABLE_KEYS;
-      nForeignKeys:  Option := REGNAME_COPYTABLE_FOREIGN;
-      nData:         Option := REGNAME_COPYTABLE_DATA;
+      nColumns:      Option := asCopyTableColumns;
+      nKeys:         Option := asCopyTableKeys;
+      nForeignKeys:  Option := asCopyTableForeignKeys;
+      nData:         Option := asCopyTableData;
       else raise Exception.Create(SUnhandledNodeIndex);
     end;
     if not (vsDisabled in Node.States) then
-      MainReg.WriteBool(Option, Node.CheckState in CheckedStates);
+      AppSettings.WriteBool(Option, Node.CheckState in CheckedStates);
     Node := TreeElements.GetNextSibling(Node);
   end;
   // Store recent filters
   if MemoFilter.Enabled and (MemoFilter.GetTextLen > 0) then begin
-    OpenRegistry;
-    Values := TStringList.Create;
     NewValues := TStringList.Create;
     NewValues.Add(MemoFilter.Text);
-    MainReg.GetValueNames(Values);
-    for i:=0 to Values.Count-1 do begin
-      if Pos(REGPREFIX_COPYTABLE_FILTERS, Values[i]) <> 1 then
-        continue;
-      Filter := MainReg.ReadString(Values[i]);
+    for i:=1 to 20 do begin
+      Filter := AppSettings.ReadString(asCopyTableRecentFilter, IntToStr(i));
+      if IsEmpty(Filter) then
+        Continue;
       if NewValues.IndexOf(Filter) = -1 then
         NewValues.Add(Filter);
-      MainReg.DeleteValue(Values[i]);
+      AppSettings.DeleteValue(asCopyTableRecentFilter, IntToStr(i));
     end;
     for i:=0 to NewValues.Count-1 do begin
-      if i = 20 then
-        break;
-      MainReg.WriteString(REGPREFIX_COPYTABLE_FILTERS+IntToStr(i), NewValues[i]);
+      AppSettings.WriteString(asCopyTableRecentFilter, NewValues[i], IntToStr(i));
     end;
   end;
   Action := caFree;
@@ -292,7 +282,7 @@ end;
 procedure TCopyTableForm.TreeElementsInitNode(Sender: TBaseVirtualTree; ParentNode,
   Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 var
-  Option: String;
+  Option: TAppSettingIndex;
   ChildCount: Integer;
 begin
   // First three upper nodes mostly have child nodes
@@ -300,17 +290,17 @@ begin
   case Sender.GetNodeLevel(Node) of
     0: begin
       case Node.Index of
-        nColumns:      begin Option := REGNAME_COPYTABLE_COLUMNS; ChildCount := FColumns.Count; end;
-        nKeys:         begin Option := REGNAME_COPYTABLE_KEYS; ChildCount := FKeys.Count; end;
-        nForeignKeys:  begin Option := REGNAME_COPYTABLE_FOREIGN; ChildCount := FForeignKeys.Count; end;
-        nData:         begin Option := REGNAME_COPYTABLE_DATA; ChildCount := -1; end;
+        nColumns:      begin Option := asCopyTableColumns; ChildCount := FColumns.Count; end;
+        nKeys:         begin Option := asCopyTableKeys; ChildCount := FKeys.Count; end;
+        nForeignKeys:  begin Option := asCopyTableForeignKeys; ChildCount := FForeignKeys.Count; end;
+        nData:         begin Option := asCopyTableData; ChildCount := -1; end;
         else raise Exception.Create(SUnhandledNodeIndex);
       end;
       if ChildCount > 0 then
         Include(InitialStates, ivsHasChildren);
       if (ChildCount = 0) or ((Node.Index = nData) and (FDBObj.Rows = 0)) then
         Node.States := Node.States + [vsDisabled]
-      else if GetRegValue(Option, True) then
+      else if AppSettings.ReadBool(Option) then
         Node.CheckState := csCheckedNormal;
       (Sender as TVirtualStringTree).OnChecked(Sender, Node);
     end;

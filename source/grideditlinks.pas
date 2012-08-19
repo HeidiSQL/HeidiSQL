@@ -527,8 +527,7 @@ end;
 
 destructor TDateTimeEditorLink.Destroy;
 begin
-  OpenRegistry;
-  Mainreg.WriteInteger(REGPREFIX_DATEEDITOR_CURSOR+IntToStr(Integer(Datatype)), FMaskEdit.SelStart);
+  AppSettings.WriteInt(asDateTimeEditorCursorPos, FMaskEdit.SelStart, IntToStr(Integer(Datatype)));
   FreeAndNil(FTimer);
   FreeAndNil(FUpDown);
   FreeAndNil(FMaskEdit);
@@ -544,7 +543,7 @@ begin
     FPanel.Show;
     FMaskEdit.SetFocus;
     // Focus very last segment of date
-    FMaskEdit.SelStart := GetRegValue(REGPREFIX_DATEEDITOR_CURSOR+IntToStr(Integer(Datatype)), Length(FMaskEdit.Text)-1);
+    FMaskEdit.SelStart := AppSettings.ReadInt(asDateTimeEditorCursorPos, IntToStr(Integer(Datatype)));
     FMaskEdit.SelLength := 1;
   end;
 end;
@@ -883,8 +882,8 @@ begin
   FPanel.Hide;
   FPanel.Parent := FParentForm;
   FPanel.ParentBackground := False;
-  FPanel.Width := GetRegValue(REGNAME_SETEDITORWIDTH, DEFAULT_SETEDITORWIDTH);
-  FPanel.Height := GetRegValue(REGNAME_SETEDITORHEIGHT, DEFAULT_SETEDITORHEIGHT);
+  FPanel.Width := AppSettings.ReadInt(asSetEditorWidth);
+  FPanel.Height := AppSettings.ReadInt(asSetEditorHeight);
   SetWindowSizeGrip(FPanel.Handle, True);
   FPanel.OnResize := PanelResize;
   FPanel.OnExit := DoEndEdit;
@@ -908,8 +907,8 @@ end;
 
 destructor TSetEditorLink.Destroy;
 begin
-  Mainreg.WriteInteger(REGNAME_SETEDITORWIDTH, FPanel.Width);
-  Mainreg.WriteInteger(REGNAME_SETEDITORHEIGHT, FPanel.Height);
+  AppSettings.WriteInt(asSetEditorWidth, FPanel.Width);
+  AppSettings.WriteInt(asSetEditorHeight, FPanel.Height);
   FreeAndNil(FPanel);
   inherited;
 end;

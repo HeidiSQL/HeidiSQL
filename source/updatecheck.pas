@@ -102,8 +102,7 @@ begin
     else if groupRelease.Enabled or btnBuild.Enabled then
       Status('Updates available.');
     // Remember when we did the updatecheck to enable the automatic interval
-    OpenRegistry;
-    MainReg.WriteString(REGNAME_LAST_UPDATECHECK, DateTimeToStr(Now));
+    AppSettings.WriteString(asUpdatecheckLastrun, DateTimeToStr(Now));
   except
     // Do not popup errors, just display them in the status label
     on E:Exception do

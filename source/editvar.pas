@@ -57,16 +57,15 @@ procedure TfrmEditVariable.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
   SetWindowSizeGrip(Handle, True);
-  Width := GetRegValue(REGNAME_EDITVARWINWIDTH, Width);
-  Height := GetRegValue(REGNAME_EDITVARWINHEIGHT, Height);
+  Width := AppSettings.ReadInt(asEditVarWindowWidth);
+  Height := AppSettings.ReadInt(asEditVarWindowHeight);
 end;
 
 
 procedure TfrmEditVariable.FormDestroy(Sender: TObject);
 begin
-  OpenRegistry;
-  MainReg.WriteInteger(REGNAME_EDITVARWINWIDTH, Width);
-  MainReg.WriteInteger(REGNAME_EDITVARWINHEIGHT, Height);
+  AppSettings.WriteInt(asEditVarWindowWidth, Width);
+  AppSettings.WriteInt(asEditVarWindowHeight, Height);
 end;
 
 

@@ -130,6 +130,106 @@ type
     procedure LogFromOutside(Msg: String; Category: TDBLogCategory);
   end;
 
+  TAppSettingDataType = (adInt, adBool, adString);
+  TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
+    asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground,
+    asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize,
+    asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
+    asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asRememberFilters,
+    asLogToFile, asMainWinMaximized, asMainWinLeft, asMainWinTop, asMainWinWidth,
+    asMainWinHeight, asMainWinOnMonitor, asToolBar2Left, asToolBar2Top, asToolBarDataLeft,
+    asToolBarDataTop, asToolBarQueryLeft, asToolBarQueryTop, asQuerymemoheight, asDbtreewidth,
+    asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asStopOnErrorsInBatchMode,
+    asWrapLongLines, asDisplayBLOBsAsText, asSingleQueries, asMemoEditorWidth, asMemoEditorHeight,
+    asMemoEditorWrap, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
+    asSQLHelpWindowHeight, asSQLHelpPnlLeftWidth, asSQLHelpPnlRightTopHeight, asTableEditorTabsHeight, asHost,
+    asUser, asPassword, asWindowsAuth, asLoginPrompt, asPort,
+    asPlinkExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
+    asSSHtunnelPassword, asSSHtunnelTimeout, asSSHtunnelPrivateKey, asSSLActive, asSSLKey,
+    asSSLCert, asSSLCA, asNetType, asCompressed, asLocalTimeZone,
+    asStartupScriptFilename, asDatabases, asDatabaseFilter, asExportSQLCreateDatabases, asExportSQLDropDatabases,
+    asExportSQLCreateTables, asExportSQLDropTables, asExportSQLDataHow, asExportSQLFilenames, asExportSQLDirectories,
+    asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asGridExportOutputCopy, asGridExportOutputFile,
+    asGridExportFilename, asGridExportRecentFiles, asGridExportEncoding, asGridExportFormat, asGridExportSelection,
+    asGridExportColumnNames, asGridExportSeparator, asGridExportEncloser, asGridExportTerminator, asCSVImportSeparator,
+    asCSVImportEncloser, asCSVImportTerminator, asCSVImportFieldEscaper, asCSVImportWindowWidth, asCSVImportWindowHeight,
+    asCSVImportFilename, asCSVImportFieldsEnclosedOptionally, asCSVImportIgnoreLines, asCSVImportLowPriority, asCSVImportLocalNumbers,
+    asCSVImportTruncateTable, asCSVImportDuplicateHandling, asCSVImportParseMethod, asUpdatecheck, asUpdatecheckBuilds,
+    asUpdatecheckInterval, asUpdatecheckLastrun, asTableToolsWindowWidth, asTableToolsWindowHeight, asTableToolsTreeWidth,
+    asTableToolsFindText, asTableToolsDatatype, asTableToolsFindCaseSensitive, asFileImportWindowWidth, asFileImportWindowHeight,
+    asEditVarWindowWidth, asEditVarWindowHeight, asUsermanagerWindowWidth, asUsermanagerWindowHeight, asUsermanagerListWidth,
+    asSelectDBOWindowWidth, asSelectDBOWindowHeight, asSessionManagerListWidth, asSessionManagerWindowWidth, asSessionManagerWindowHeight,
+    asCopyTableWindowHeight, asCopyTableWindowWidth, asCopyTableColumns, asCopyTableKeys, asCopyTableForeignKeys,
+    asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
+    asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
+    asLastUsageStatisticCall, asDisplayBars, asBarColor, asMySQLBinaries, asPromptSaveFileOnTabClose,
+    asCompletionProposal, asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory,
+    asFindDialogReplaceHistory, asMaxQueryResults, asSetEditorWidth, asSetEditorHeight, asLogErrors,
+    asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asFieldColorNumeric,
+    asFieldColorReal, asFieldColorText, asFieldColorBinary, asFieldColorDatetime, asFieldColorSpatial,
+    asFieldColorOther, asFieldEditorBinary, asFieldEditorDatetime, asFieldEditorDatetimePrefill, asFieldEditorEnum,
+    asFieldEditorSet, asFieldNullBackground, asGroupTreeObjects, asDisplayObjectSizeColumn, asSQLfile,
+    asActionShortcut1, asActionShortcut2, asHighlighterForeground, asHighlighterBackground, asHighlighterStyle,
+    asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
+    asRecentFilter, asDateTimeEditorCursorPos);
+  TAppSetting = record
+    Name: String;
+    Session: Boolean;
+    DefaultInt, CurrentInt: Integer;
+    DefaultBool, CurrentBool: Boolean;
+    DefaultString, CurrentString: String;
+    Synced: Boolean;
+  end;
+  TAppSettings = class(TObject)
+    private
+      FReads, FWrites: Integer;
+      FBasePath: String;
+      FSessionPath: String;
+      FRegistry: TRegistry;
+      FPortableMode: Boolean;
+      FSettingsFile: String;
+      FSettings: Array[TAppSettingIndex] of TAppSetting;
+      procedure InitSetting(Index: TAppSettingIndex; Name: String;
+        DefaultInt: Integer=0; DefaultBool: Boolean=False; DefaultString: String='';
+        Session: Boolean=False);
+      procedure SetSessionPath(Value: String);
+      procedure PrepareRegistry;
+      procedure Read(Index: TAppSettingIndex; FormatName: String;
+        DataType: TAppSettingDataType; var I: Integer; var B: Boolean; var S: String;
+        DI: Integer; DB: Boolean; DS: String);
+      procedure Write(Index: TAppSettingIndex; FormatName: String;
+        DataType: TAppSettingDataType; I: Integer; B: Boolean; S: String);
+    public
+      constructor Create;
+      destructor Destroy; override;
+      function ReadInt(Index: TAppSettingIndex; FormatName: String=''; Default: Integer=0): Integer;
+      function ReadBool(Index: TAppSettingIndex; FormatName: String=''; Default: Boolean=False): Boolean;
+      function ReadString(Index: TAppSettingIndex; FormatName: String=''; Default: String=''): String; overload;
+      function ReadString(ValueName: String): String; overload;
+      procedure WriteInt(Index: TAppSettingIndex; Value: Integer; FormatName: String='');
+      procedure WriteBool(Index: TAppSettingIndex; Value: Boolean; FormatName: String='');
+      procedure WriteString(Index: TAppSettingIndex; Value: String; FormatName: String=''); overload;
+      procedure WriteString(ValueName, Value: String); overload;
+      function GetDefaultInt(Index: TAppSettingIndex): Integer;
+      function GetDefaultString(Index: TAppSettingIndex): String;
+      function GetValueName(Index: TAppSettingIndex): String;
+      function GetValueNames: TStringList;
+      function GetKeyNames: TStringList;
+      function GetSessionNames(ParentPath: String; var Folders: TStringList): TStringList;
+      procedure GetSessionPaths(ParentPath: String; var Sessions: TStringList);
+      function DeleteValue(Index: TAppSettingIndex; FormatName: String=''): Boolean; overload;
+      function DeleteValue(ValueName: String): Boolean; overload;
+      procedure DeleteCurrentKey;
+      procedure MoveCurrentKey(TargetPath: String);
+      function ValueExists(Index: TAppSettingIndex): Boolean;
+      function SessionPathExists(SessionPath: String): Boolean;
+      function IsEmptyKey: Boolean;
+      procedure ResetPath;
+      property SessionPath: String read FSessionPath write SetSessionPath;
+      property PortableMode: Boolean read FPortableMode;
+      procedure ImportSettings(Filename: String);
+      procedure ExportSettings(Filename: String);
+  end;
 
 
 {$I const.inc}
@@ -156,6 +256,10 @@ type
   function RemoveNulChars(Text: String): String;
   function fixNewlines(txt: String): String;
   function GetShellFolder(CSIDL: integer): string;
+  // Common directories
+  function DirnameCommonAppData: String;
+  function DirnameUserAppData: String;
+  function DirnameSnippets: String;
   function goodfilename( str: String ): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
   function UnformatNumber(Val: String): String;
@@ -182,12 +286,6 @@ type
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   function ComposeOrderClause(Cols: TOrderColArray): String;
-  procedure OpenRegistry(SessionPath: String = '');
-  function GetRegValue(ValueName: String; DefaultValue: Integer; SessionPath: String=''): Integer; overload;
-  function GetRegValue(ValueName: String; DefaultValue: Boolean; SessionPath: String=''): Boolean; overload;
-  function GetRegValue(ValueName: String; DefaultValue: String; SessionPath: String=''): String; overload;
-  function GetSessionNames(ParentPath: String; var Folders: TStringList): TStringList;
-  procedure GetSessionPaths(ParentPath: String; var Sessions: TStringList);
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   function ListIndexByRegExpr(List: TStrings; Expression: String): Integer;
   function FindNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode): PVirtualNode;
@@ -208,9 +306,6 @@ type
   function KeyPressed(Code: Integer): Boolean;
   function GeneratePassword(Len: Integer): String;
   procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
-  procedure HandlePortableSettings(StartupMode: Boolean);
-  procedure ImportSettings(Filename: String);
-  procedure ExportSettings(Filename: String);
   function CharAtPos(Str: String; Pos: Integer): Char;
   function CompareAnyNode(Text1, Text2: String): Integer;
   function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
@@ -227,9 +322,7 @@ type
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
 
 var
-  MainReg: TRegistry;
-  RegPath: String = '\Software\' + APPNAME + '\';
-  PortableMode: Boolean = False;
+  AppSettings: TAppSettings;
   MutexHandle: THandle = 0;
   DecimalSeparatorSystemdefault: Char;
 
@@ -708,6 +801,26 @@ begin
   end;
 end;
 
+
+function DirnameCommonAppData: String;
+begin
+  // "All users" folder for HeidiSQL's data (All Users\Application Data)
+  Result := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\';
+end;
+
+
+function DirnameUserAppData: String;
+begin
+  // User folder for HeidiSQL's data (<user name>\Application Data)
+  Result := GetShellFolder(CSIDL_APPDATA) + '\' + APPNAME + '\';
+end;
+
+
+function DirnameSnippets: String;
+begin
+  // Folder for snippets
+  Result := DirnameCommonAppData + 'Snippets\'
+end;
 
 
 {***
@@ -1486,93 +1599,6 @@ begin
 end;
 
 
-{**
-  Init main registry object and open desired key
-  Outsoureced from GetRegValue() to avoid redundant code
-  in these 3 overloaded methods.
-}
-procedure OpenRegistry(SessionPath: String = '');
-var
-  folder : String;
-begin
-  if MainReg = nil then begin
-    MainReg := TRegistry.Create;
-    HandlePortableSettings(True);
-  end;
-  folder := RegPath;
-  if SessionPath <> '' then
-    folder := folder + REGKEY_SESSIONS + '\' + SessionPath;
-  if MainReg.CurrentPath <> folder then
-    MainReg.OpenKey(folder, true);
-end;
-
-
-function GetRegValue(ValueName: String; DefaultValue: Integer; SessionPath: String=''): Integer;
-begin
-  // Read a numeric user setting value from registry
-  Result := DefaultValue;
-  OpenRegistry(SessionPath);
-  if MainReg.ValueExists(ValueName) then
-    Result := MainReg.ReadInteger(ValueName);
-end;
-
-
-function GetRegValue(ValueName: String; DefaultValue: Boolean; SessionPath: String=''): Boolean;
-begin
-  // Read a boolean user setting value from registry
-  Result := DefaultValue;
-  OpenRegistry(SessionPath);
-  if MainReg.ValueExists(ValueName) then
-    Result := MainReg.ReadBool(ValueName);
-end;
-
-
-function GetRegValue(ValueName: String; DefaultValue: String; SessionPath: String=''): String;
-begin
-  // Read a text user setting value from registry
-  Result := DefaultValue;
-  OpenRegistry(SessionPath);
-  if MainReg.ValueExists(ValueName) then
-    Result := MainReg.ReadString(ValueName);
-end;
-
-
-function GetSessionNames(ParentPath: String; var Folders: TStringList): TStringList;
-var
-  i: Integer;
-  CurPath: String;
-begin
-  Result := TStringlist.Create;
-  OpenRegistry;
-  CurPath := RegPath + REGKEY_SESSIONS + '\' + ParentPath;
-  MainReg.OpenKey(CurPath, False);
-  MainReg.GetKeyNames(Result);
-  for i:=Result.Count-1 downto 0 do begin
-    MainReg.OpenKey(CurPath+'\'+Result[i], False);
-    if MainReg.ValueExists(REGNAME_SESSIONFOLDER) then begin
-      Folders.Add(Result[i]);
-      Result.Delete(i);
-    end;
-  end;
-end;
-
-
-procedure GetSessionPaths(ParentPath: String; var Sessions: TStringList);
-var
-  Folders, Names: TStringList;
-  i: Integer;
-begin
-  Folders := TStringList.Create;
-  Names := GetSessionNames(ParentPath, Folders);
-  for i:=0 to Names.Count-1 do
-    Sessions.Add(ParentPath+Names[i]);
-  for i:=0 to Folders.Count-1 do
-    GetSessionPaths(ParentPath+Folders[i]+'\', Sessions);
-  Names.Free;
-  Folders.Free;
-end;
-
-
 procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
 var
   Node: PVirtualNode;
@@ -2202,176 +2228,6 @@ begin
 end;
 
 
-procedure ImportSettings(Filename: String);
-var
-  Content, Name, Value, KeyPath: String;
-  Lines, Segments: TStringList;
-  i: Integer;
-  DataType: TRegDataType;
-begin
-  // Load registry settings from file
-  Content := ReadTextfile(FileName, nil);
-  Lines := Explode(CRLF, Content);
-  for i:=0 to Lines.Count-1 do begin
-    // Each line has 3 segments: reg path | data type | value. Continue if explode finds less or more than 3.
-    Segments := Explode(DELIMITER, Lines[i]);
-    if Segments.Count <> 3 then
-      continue;
-    KeyPath := RegPath + ExtractFilePath(Segments[0]);
-    Name := ExtractFileName(Segments[0]);
-    DataType := TRegDataType(StrToInt(Segments[1]));
-    MainReg.OpenKey(KeyPath, True);
-    if MainReg.ValueExists(Name) then
-      Continue; // Don't touch value if already there
-    Value := '';
-    if Segments.Count >= 3 then
-      Value := Segments[2];
-    case DataType of
-      rdString: begin
-        Value := StringReplace(Value, CHR13REPLACEMENT, #13, [rfReplaceAll]);
-        Value := StringReplace(Value, CHR10REPLACEMENT, #10, [rfReplaceAll]);
-        MainReg.WriteString(Name, Value);
-      end;
-      rdInteger:
-        MainReg.WriteInteger(Name, MakeInt(Value));
-      rdBinary, rdUnknown, rdExpandString:
-        ErrorDialog(Name+' has an unsupported data type.');
-    end;
-    Segments.Free;
-  end;
-  Lines.Free;
-end;
-
-
-procedure ExportSettings(Filename: String);
-var
-  Content, Value: String;
-  DataType: TRegDataType;
-
-  procedure ReadKeyToContent(Path: String);
-  var
-    Names: TStringList;
-    i: Integer;
-    SubPath: String;
-  begin
-    // Recursively read values in keys and their subkeys into "content" variable
-    MainReg.OpenKey(Path, True);
-    SubPath := Copy(Path, Length(RegPath)+1, MaxInt);
-    Names := TStringList.Create;
-    MainReg.GetValueNames(Names);
-    for i:=0 to Names.Count-1 do begin
-      DataType := MainReg.GetDataType(Names[i]);
-      Content := Content +
-        SubPath + Names[i] + DELIMITER +
-        IntToStr(Integer(DataType)) + DELIMITER;
-      case DataType of
-        rdString: begin
-          Value := MainReg.ReadString(Names[i]);
-          Value := StringReplace(Value, #13, CHR13REPLACEMENT, [rfReplaceAll]);
-          Value := StringReplace(Value, #10, CHR10REPLACEMENT, [rfReplaceAll]);
-        end;
-        rdInteger:
-          Value := IntToStr(MainReg.ReadInteger(Names[i]));
-        rdBinary, rdUnknown, rdExpandString:
-          ErrorDialog(Names[i]+' has an unsupported data type.');
-      end;
-      Content := Content + Value + CRLF;
-    end;
-    Names.Clear;
-    MainReg.GetKeyNames(Names);
-    for i:=0 to Names.Count-1 do
-      ReadKeyToContent(Path + Names[i] + '\');
-    Names.Free;
-  end;
-
-begin
-  // Save registry settings to file
-  Content := '';
-  ReadKeyToContent(RegPath);
-  SaveUnicodeFile(FileName, Content);
-end;
-
-
-procedure HandlePortableSettings(StartupMode: Boolean);
-var
-  FileName: String;
-  AllKeys: TStringList;
-  i: Integer;
-  Proc: TProcessEntry32;
-  ProcRuns: Boolean;
-  SnapShot: THandle;
-  rx: TRegExpr;
-begin
-  // Export registry keys and values into textfile, for portable reasons
-
-  // Use filename from command line. If not given, use file in directory of executable.
-  rx := TRegExpr.Create;
-  rx.Expression := '^\-\-?psettings\=(.+)$';
-  for i:=1 to ParamCount do begin
-    if rx.Exec(ParamStr(i)) then begin
-      Filename := rx.Match[1];
-      break;
-    end;
-  end;
-  if Filename = '' then
-    Filename := ExtractFilePath(ParamStr(0)) + 'portable_settings.txt';
-  if not FileExists(FileName) then
-    Exit;
-
-  // Open the right key
-  if StartupMode then begin
-    RegPath := '\Software\' + APPNAME + ' Portable '+IntToStr(GetCurrentProcessId)+'\';
-    PortableMode := True;
-  end else begin
-    // Do not work like a portable on exit, if at application start we didn't either
-    if not PortableMode then
-      Exit;
-  end;
-
-  Screen.Cursor := crHourGlass;
-  try
-    // Both ImportSettings and ExportSettings rely on RegPath pointing to the right reg key
-    if StartupMode then begin
-      ImportSettings(Filename);
-    end else begin
-      // Application closes
-      ExportSettings(Filename);
-      MainReg.CloseKey;
-      MainReg.DeleteKey(RegPath);
-
-      // Remove dead keys from instances which didn't close clean, e.g. because of an AV
-      SnapShot := CreateToolhelp32Snapshot(TH32CS_SnapProcess, 0);
-      Proc.dwSize := Sizeof(Proc);
-      MainReg.OpenKeyReadOnly('\Software\');
-      AllKeys := TStringList.Create;
-      MainReg.GetKeyNames(AllKeys);
-      rx.Expression := '^' + QuoteRegExprMetaChars(APPNAME) + ' Portable (\d+)$';
-      for i:=0 to AllKeys.Count-1 do begin
-        if not rx.Exec(AllKeys[i]) then
-          Continue;
-        ProcRuns := False;
-        if Process32First(SnapShot, Proc) then while True do begin
-          ProcRuns := rx.Match[1] = IntToStr(Proc.th32ProcessID);
-          if ProcRuns or (not Process32Next(SnapShot, Proc)) then
-            break;
-        end;
-        if not ProcRuns then
-          MainReg.DeleteKey(AllKeys[i]);
-      end;
-      MainReg.CloseKey;
-      CloseHandle(SnapShot);
-      AllKeys.Free;
-      rx.Free;
-    end;
-  except
-    On E:Exception do
-      ErrorDialog(E.Message);
-  end;
-  Screen.Cursor := crDefault;
-
-end;
-
-
 function CharAtPos(Str: String; Pos: Integer): Char;
 begin
   // Access char in string without causing access violation
@@ -2699,7 +2555,7 @@ begin
     Synchronize(BeforeQuery);
     try
       FConnection.LockedByThread := Self;
-      DoStoreResult := ResultCount < Mainform.prefMaxQueryResults;
+      DoStoreResult := ResultCount < AppSettings.ReadInt(asMaxQueryResults);
       FConnection.Query(SQL, DoStoreResult, lcUserFiredSQL);
       Inc(ResultCount, FConnection.ResultCount);
       FBatchPosition := i;
@@ -2967,6 +2823,733 @@ begin
     if Assigned(NetHandle) then
       InternetCloseHandle(NetHandle);
   end;
+end;
+
+
+
+{ TAppSettings }
+
+constructor TAppSettings.Create;
+var
+  rx: TRegExpr;
+  i: Integer;
+begin
+  inherited;
+  FRegistry := TRegistry.Create;
+  FReads := 0;
+  FWrites := 0;
+
+  // Use filename from command line. If not given, use file in directory of executable.
+  rx := TRegExpr.Create;
+  rx.Expression := '^\-\-?psettings\=(.+)$';
+  for i:=1 to ParamCount do begin
+    if rx.Exec(ParamStr(i)) then begin
+      FSettingsFile := rx.Match[1];
+      break;
+    end;
+  end;
+  if FSettingsFile = '' then
+    FSettingsFile := ExtractFilePath(ParamStr(0)) + 'portable_settings.txt';
+  if FileExists(FSettingsFile) then begin
+    FPortableMode := True;
+    FBasePath := '\Software\' + APPNAME + ' Portable '+IntToStr(GetCurrentProcessId)+'\';
+    try
+      ImportSettings(FSettingsFile);
+    except
+      on E:Exception do
+        ErrorDialog(E.Message);
+    end;
+  end else begin
+    FPortableMode := False;
+    FBasePath := '\Software\' + APPNAME + '\';
+    FSettingsFile := '';
+  end;
+
+  PrepareRegistry;
+
+  InitSetting(asHiddenColumns,                    'HiddenColumns',                         0, False, '', True);
+  InitSetting(asFilter,                           'Filter',                                0, False, '', True);
+  InitSetting(asSort,                             'Sort',                                  0, False, '', True);
+  InitSetting(asDisplayedColumnsSorted,           'DisplayedColumnsSorted',                0, False);
+  InitSetting(asLastSessions,                     'LastSessions',                          0, False, '');
+  InitSetting(asLastActiveSession,                'LastActiveSession',                     0, False, '');
+  InitSetting(asAutoReconnect,                    'AutoReconnect',                         0, False);
+  InitSetting(asRestoreLastUsedDB,                'RestoreLastUsedDB',                     0, True);
+  InitSetting(asLastUsedDB,                       'lastUsedDB',                            0, False, '');
+  InitSetting(asTreeBackground,                   'TreeBackground',                        clNone, False, '', True);
+  InitSetting(asFontName,                         'FontName',                              0, False, 'Courier New');
+  InitSetting(asFontSize,                         'FontSize',                              9);
+  InitSetting(asTabWidth,                         'TabWidth',                              3);
+  InitSetting(asDataFontName,                     'DataFontName',                          0, False, 'Tahoma');
+  InitSetting(asDataFontSize,                     'DataFontSize',                          8);
+  InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
+  InitSetting(asLogsqlwidth,                      'logsqlwidth',                           2000);
+  InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs\');
+  InitSetting(asLogHorizontalScrollbar,           'LogHorizontalScrollbar',                0, False);
+  InitSetting(asSQLColActiveLine,                 'SQLColActiveLine',                      0, False, 'clNone');
+  InitSetting(asMaxColWidth,                      'MaxColWidth',                           300);
+  InitSetting(asDatagridMaximumRows,              'DatagridMaximumRows',                   100000);
+  InitSetting(asDatagridRowsPerStep,              'DatagridRowsPerStep',                   1000);
+  InitSetting(asGridRowLineCount,                 'GridRowLineCount',                      1);
+  InitSetting(asRememberFilters,                  'RememberFilters',                       0, True);
+  InitSetting(asLogToFile,                        'LogToFile',                             0, False);
+  InitSetting(asMainWinMaximized,                 'MainWinMaximized',                      0, False);
+  InitSetting(asMainWinLeft,                      'MainWinLeft',                           100);
+  InitSetting(asMainWinTop,                       'MainWinTop',                            100);
+  InitSetting(asMainWinWidth,                     'MainWinWidth',                          800);
+  InitSetting(asMainWinHeight,                    'MainWinHeight',                         600);
+  InitSetting(asMainWinOnMonitor,                 'MainWinOnMonitor',                      1);
+  InitSetting(asToolBar2Left,                     'ToolBar2Left',                          11);
+  InitSetting(asToolBar2Top,                      'ToolBar2Top',                           2);
+  InitSetting(asToolBarDataLeft,                  'ToolBarDataLeft',                       343);
+  InitSetting(asToolBarDataTop,                   'ToolBarDataTop',                        2);
+  InitSetting(asToolBarQueryLeft,                 'ToolBarQueryLeft',                      494);
+  InitSetting(asToolBarQueryTop,                  'ToolBarQueryTop',                       2);
+  InitSetting(asQuerymemoheight,                  'querymemoheight',                       100);
+  InitSetting(asDbtreewidth,                      'dbtreewidth',                           170);
+  InitSetting(asDataPreviewHeight,                'DataPreviewHeight',                     100);
+  InitSetting(asDataPreviewEnabled,               'DataPreviewEnabled',                    0, False);
+  InitSetting(asLogHeight,                        'sqloutheight',                          80);
+  InitSetting(asQueryhelperswidth,                'queryhelperswidth',                     200);
+  InitSetting(asStopOnErrorsInBatchMode,          'StopOnErrorsInBatchMode',               0, True);
+  InitSetting(asWrapLongLines,                    'WrapLongLines',                         0, False);
+  InitSetting(asDisplayBLOBsAsText,               'DisplayBLOBsAsText',                    0, False);
+  InitSetting(asSingleQueries,                    'SingleQueries',                         0, True);
+  InitSetting(asMemoEditorWidth,                  'MemoEditorWidth',                       100);
+  InitSetting(asMemoEditorHeight,                 'MemoEditorHeight',                      100);
+  InitSetting(asMemoEditorWrap,                   'MemoEditorWrap',                        0, False);
+  InitSetting(asDelimiter,                        'Delimiter',                             0, False, ';');
+  InitSetting(asSQLHelpWindowLeft,                'SQLHelp_WindowLeft',                    0);
+  InitSetting(asSQLHelpWindowTop,                 'SQLHelp_WindowTop',                     0);
+  InitSetting(asSQLHelpWindowWidth,               'SQLHelp_WindowWidth',                   600);
+  InitSetting(asSQLHelpWindowHeight,              'SQLHelp_WindowHeight',                  400);
+  InitSetting(asSQLHelpPnlLeftWidth,              'SQLHelp_PnlLeftWidth',                  150);
+  InitSetting(asSQLHelpPnlRightTopHeight,         'SQLHelp_PnlRightTopHeight',             150);
+  InitSetting(asTableEditorTabsHeight,            'TableEditorTabsHeight',                 150);
+  InitSetting(asHost,                             'Host',                                  0, False, '127.0.0.1', True);
+  InitSetting(asUser,                             'User',                                  0, False, 'root', True);
+  InitSetting(asPassword,                         'Password',                              0, False, '', True);
+  InitSetting(asWindowsAuth,                      'WindowsAuth',                           0, False, '', True);
+  InitSetting(asLoginPrompt,                      'LoginPrompt',                           0, False, '', True);
+  InitSetting(asPort,                             'Port',                                  0, False, '3306', True);
+  InitSetting(asPlinkExecutable,                  'PlinkExecutable',                       0, False, '');
+  InitSetting(asSSHtunnelHost,                    'SSHtunnelHost',                         0, False, '', True);
+  InitSetting(asSSHtunnelHostPort,                'SSHtunnelHostPort',                     22, False, '', True);
+  InitSetting(asSSHtunnelPort,                    'SSHtunnelPort',                         0, False, '', True);
+  InitSetting(asSSHtunnelUser,                    'SSHtunnelUser',                         0, False, '', True);
+  InitSetting(asSSHtunnelPassword,                'SSHtunnelPassword',                     0, False, '', True);
+  InitSetting(asSSHtunnelTimeout,                 'SSHtunnelTimeout',                      4, False, '', True);
+  InitSetting(asSSHtunnelPrivateKey,              'SSHtunnelPrivateKey',                   0, False, '', True);
+  InitSetting(asSSLActive,                        'SSL_Active',                            0, False, '', True);
+  InitSetting(asSSLKey,                           'SSL_Key',                               0, False, '', True);
+  InitSetting(asSSLCert,                          'SSL_Cert',                              0, False, '', True);
+  InitSetting(asSSLCA,                            'SSL_CA',                                0, False, '', True);
+  InitSetting(asNetType,                          'NetType',                               Integer(ntMySQL_TCPIP), False, '', True);
+  InitSetting(asCompressed,                       'Compressed',                            0, False, '', True);
+  InitSetting(asLocalTimeZone,                    'LocalTimeZone',                         0, False, '', True);
+  InitSetting(asStartupScriptFilename,            'StartupScriptFilename',                 0, False, '', True);
+  InitSetting(asDatabases,                        'Databases',                             0, False, '', True);
+  InitSetting(asDatabaseFilter,                   'DatabaseFilter',                        0, False, '');
+  InitSetting(asExportSQLCreateDatabases,         'ExportSQL_CreateDatabases',             0, False);
+  InitSetting(asExportSQLDropDatabases,           'ExportSQL_DropDatabases',               0, False);
+  InitSetting(asExportSQLCreateTables,            'ExportSQL_CreateTables',                0, False);
+  InitSetting(asExportSQLDropTables,              'ExportSQL_DropTables',                  0, False);
+  InitSetting(asExportSQLDataHow,                 'ExportSQL_DataHow',                     0);
+  InitSetting(asExportSQLFilenames,               'ExportSQL_Filenames',                   0, False, '');
+  InitSetting(asExportSQLDirectories,             'ExportSQL_Directories',                 0, False, '');
+  InitSetting(asExportSQLDatabase,                'ExportSQL_Database',                    0, False, '');
+  InitSetting(asExportSQLServerDatabase,          'ExportSQL_ServerDatabase',              0, False, '');
+  InitSetting(asExportSQLOutput,                  'ExportSQL_Output',                      0);
+  InitSetting(asGridExportOutputCopy,             'GridExportOutputCopy',                  0, True);
+  InitSetting(asGridExportOutputFile,             'GridExportOutputFile',                  0, False);
+  InitSetting(asGridExportFilename,               'GridExportFilename',                    0, False, '');
+  InitSetting(asGridExportRecentFiles,            'GridExportRecentFiles',                 0, False, '');
+  InitSetting(asGridExportEncoding,               'GridExportEncoding',                    4);
+  InitSetting(asGridExportFormat,                 'GridExportFormat',                      0);
+  InitSetting(asGridExportSelection,              'GridExportSelection',                   1);
+  InitSetting(asGridExportColumnNames,            'GridExportColumnNames',                 0, True);
+  InitSetting(asGridExportSeparator,              'GridExportSeparator',                   0, False, ';');
+  InitSetting(asGridExportEncloser,               'GridExportEncloser',                    0, False, '');
+  InitSetting(asGridExportTerminator,             'GridExportTerminator',                  0, False, '\r\n');
+  InitSetting(asCSVImportSeparator,               'CSVSeparatorV2',                        0, False, ';');
+  InitSetting(asCSVImportEncloser,                'CSVEncloserV2',                         0, False, '"');
+  InitSetting(asCSVImportTerminator,              'CSVTerminator',                         0, False, '\r\n');
+  InitSetting(asCSVImportFieldEscaper,            'CSVImportFieldEscaperV2',               0, False, '"');
+  InitSetting(asCSVImportWindowWidth,             'CSVImportWindowWidth',                  530);
+  InitSetting(asCSVImportWindowHeight,            'CSVImportWindowHeight',                 530);
+  InitSetting(asCSVImportFilename,                'loadfilename',                          0, False, '');
+  InitSetting(asCSVImportFieldsEnclosedOptionally, 'CSVImportFieldsEnclosedOptionallyV2',  0, True);
+  InitSetting(asCSVImportIgnoreLines,             'CSVImportIgnoreLines',                  1);
+  InitSetting(asCSVImportLowPriority,             'CSVImportLowPriority',                  0, True);
+  InitSetting(asCSVImportLocalNumbers,            'CSVImportLocalNumbers',                 0, False);
+  InitSetting(asCSVImportTruncateTable,           'CSVImportTruncateTable',                0, False);
+  InitSetting(asCSVImportDuplicateHandling,       'CSVImportDuplicateHandling',            2);
+  InitSetting(asCSVImportParseMethod,             'CSVImportParseMethod',                  0);
+  InitSetting(asUpdatecheck,                      'Updatecheck',                           0, False);
+  InitSetting(asUpdatecheckBuilds,                'UpdatecheckBuilds',                     0, False);
+  InitSetting(asUpdatecheckInterval,              'UpdatecheckInterval',                   3);
+  InitSetting(asUpdatecheckLastrun,               'UpdatecheckLastrun',                    0, False, '2000-01-01');
+  InitSetting(asTableToolsWindowWidth,            'TableTools_WindowWidth',                560);
+  InitSetting(asTableToolsWindowHeight,           'TableTools_WindowHeight',               420);
+  InitSetting(asTableToolsTreeWidth,              'TableTools_TreeWidth',                  150);
+  InitSetting(asTableToolsFindText,               'TableTools_FindText',                   0, False, '');
+  InitSetting(asTableToolsDatatype,               'TableTools_Datatype',                   0);
+  InitSetting(asTableToolsFindCaseSensitive,      'TableTools_FindCaseSensitive',          0, False);
+  InitSetting(asFileImportWindowWidth,            'FileImport_WindowWidth',                530);
+  InitSetting(asFileImportWindowHeight,           'FileImport_WindowHeight',               530);
+  InitSetting(asEditVarWindowWidth,               'EditVar_WindowWidth',                   300);
+  InitSetting(asEditVarWindowHeight,              'EditVar_WindowHeight',                  260);
+  InitSetting(asUsermanagerWindowWidth,           'Usermanager_WindowWidth',               500);
+  InitSetting(asUsermanagerWindowHeight,          'Usermanager_WindowHeight',              400);
+  InitSetting(asUsermanagerListWidth,             'Usermanager_ListWidth',                 180);
+  InitSetting(asSelectDBOWindowWidth,             'SelectDBO_WindowWidth',                 250);
+  InitSetting(asSelectDBOWindowHeight,            'SelectDBO_WindowHeight',                350);
+  InitSetting(asSessionManagerListWidth,          'SessionManager_ListWidth',              170);
+  InitSetting(asSessionManagerWindowWidth,        'SessionManager_WindowWidth',            500);
+  InitSetting(asSessionManagerWindowHeight,       'SessionManager_WindowHeight',           400);
+  InitSetting(asCopyTableWindowHeight,            'CopyTable_WindowHeight',                340);
+  InitSetting(asCopyTableWindowWidth,             'CopyTable_WindowWidth',                 380);
+  InitSetting(asCopyTableColumns,                 'CopyTable_Columns',                     0, True);
+  InitSetting(asCopyTableKeys,                    'CopyTable_Keys',                        0, True);
+  InitSetting(asCopyTableForeignKeys,             'CopyTable_ForeignKeys',                 0, True);
+  InitSetting(asCopyTableData,                    'CopyTable_Data',                        0, True);
+  InitSetting(asCopyTableRecentFilter,            'CopyTable_RecentFilter_%s',             0, False, '');
+  InitSetting(asServerVersion,                    'ServerVersion',                         0, False, '', True);
+  InitSetting(asServerVersionFull,                'ServerVersionFull',                     0, False, '', True);
+  InitSetting(asLastConnect,                      'LastConnect',                           0, False, '2000-01-01', True);
+  InitSetting(asConnectCount,                     'ConnectCount',                          0, False, '', True);
+  InitSetting(asRefusedCount,                     'RefusedCount',                          0, False, '', True);
+  InitSetting(asSessionCreated,                   'SessionCreated',                        0, False, '', True);
+  InitSetting(asDoUsageStatistics,                'DoUsageStatistics',                     0, False);
+  InitSetting(asLastUsageStatisticCall,           'LastUsageStatisticCall',                0, False, '2000-01-01');
+  InitSetting(asDisplayBars,                      'DisplayBars',                           0, true);
+  InitSetting(asBarColor,                         'BarColor',                              $00BBFFDD);
+  InitSetting(asMySQLBinaries,                    'MySQL_Binaries',                        0, False, '');
+  InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
+  InitSetting(asCompletionProposal,               'CompletionProposal',                    0, True);
+  InitSetting(asTabsToSpaces,                     'TabsToSpaces',                          0, False);
+  InitSetting(asFilterPanel,                      'FilterPanel',                           0, False);
+  InitSetting(asAllowMultipleInstances,           'AllowMultipleInstances',                0, True);
+  InitSetting(asFindDialogSearchHistory,          'FindDialogSearchHistory',               0, False, '');
+  InitSetting(asFindDialogReplaceHistory,         'FindDialogReplaceHistory',              0, False, '');
+  InitSetting(asMaxQueryResults,                  'MaxQueryResults',                       10);
+  InitSetting(asSetEditorWidth,                   'SetEditorWidth',                        100);
+  InitSetting(asSetEditorHeight,                  'SetEditorHeight',                       130);
+  InitSetting(asLogErrors,                        'LogErrors',                             0, True);
+  InitSetting(asLogUserSQL,                       'LogUserSQL',                            0, True);
+  InitSetting(asLogSQL,                           'LogSQL',                                0, True);
+  InitSetting(asLogInfos,                         'LogInfos',                              0, True);
+  InitSetting(asLogDebug,                         'LogDebug',                              0, False);
+  InitSetting(asFieldColorNumeric,                'FieldColor_Numeric',                    $00FF0000);
+  InitSetting(asFieldColorReal,                   'FieldColor_Real',                       $00FF0048);
+  InitSetting(asFieldColorText,                   'FieldColor_Text',                       $00008000);
+  InitSetting(asFieldColorBinary,                 'FieldColor_Binary',                     $00800080);
+  InitSetting(asFieldColorDatetime,               'FieldColor_Datetime',                   $00000080);
+  InitSetting(asFieldColorSpatial,                'FieldColor_Spatial',                    $00808000);
+  InitSetting(asFieldColorOther,                  'FieldColor_Other',                      $00008080);
+  InitSetting(asFieldEditorBinary,                'FieldEditor_Binary',                    0, True);
+  InitSetting(asFieldEditorDatetime,              'FieldEditor_Datetime',                  0, True);
+  InitSetting(asFieldEditorDatetimePrefill,       'FieldEditor_Datetime_Prefill',          0, True);
+  InitSetting(asFieldEditorEnum,                  'FieldEditor_Enum',                      0, True);
+  InitSetting(asFieldEditorSet,                   'FieldEditor_Set',                       0, True);
+  InitSetting(asFieldNullBackground,              'Field_NullBackground',                  $00FF00FF);
+  InitSetting(asGroupTreeObjects,                 'GroupTreeObjects',                      0, False);
+  InitSetting(asDisplayObjectSizeColumn,          'DisplayObjectSizeColumn',               0, True);
+  InitSetting(asActionShortcut1,                  'Shortcut1_%s',                          0);
+  InitSetting(asActionShortcut2,                  'Shortcut2_%s',                          0);
+  InitSetting(asHighlighterForeground,            'SQL Attr %s Foreground',                0);
+  InitSetting(asHighlighterBackground,            'SQL Attr %s Background',                0);
+  InitSetting(asHighlighterStyle,                 'SQL Attr %s Style',                     0);
+  InitSetting(asSQLfile,                          'SQLFile%s',                             0, False, '');
+  InitSetting(asListColWidths,                    'ColWidths_%s',                          0, False, '');
+  InitSetting(asListColsVisible,                  'ColsVisible_%s',                        0, False, '');
+  InitSetting(asListColPositions,                 'ColPositions_%s',                       0, False, '');
+  InitSetting(asListColSort,                      'ColSort_%s',                            0, False, '');
+  InitSetting(asSessionFolder,                    'Folder',                                0, False);
+  InitSetting(asRecentFilter,                     '',                                      0, False, '');
+  InitSetting(asDateTimeEditorCursorPos,          'DateTimeEditor_CursorPos_Type%s',       0);
+end;
+
+
+destructor TAppSettings.Destroy;
+var
+  AllKeys: TStringList;
+  i: Integer;
+  Proc: TProcessEntry32;
+  ProcRuns: Boolean;
+  SnapShot: THandle;
+  rx: TRegExpr;
+begin
+  // Export settings into textfile in portable mode.
+  if FPortableMode then try
+    ExportSettings(FSettingsFile);
+    FRegistry.CloseKey;
+    FRegistry.DeleteKey(FBasePath);
+
+    // Remove dead keys from instances which didn't close clean, e.g. because of an AV
+    SnapShot := CreateToolhelp32Snapshot(TH32CS_SnapProcess, 0);
+    Proc.dwSize := Sizeof(Proc);
+    FRegistry.OpenKeyReadOnly('\Software\');
+    AllKeys := TStringList.Create;
+    FRegistry.GetKeyNames(AllKeys);
+    rx := TRegExpr.Create;
+    rx.Expression := '^' + QuoteRegExprMetaChars(APPNAME) + ' Portable (\d+)$';
+    for i:=0 to AllKeys.Count-1 do begin
+      if not rx.Exec(AllKeys[i]) then
+        Continue;
+      ProcRuns := False;
+      if Process32First(SnapShot, Proc) then while True do begin
+        ProcRuns := rx.Match[1] = IntToStr(Proc.th32ProcessID);
+        if ProcRuns or (not Process32Next(SnapShot, Proc)) then
+          break;
+      end;
+      if not ProcRuns then
+        FRegistry.DeleteKey(AllKeys[i]);
+    end;
+    FRegistry.CloseKey;
+    CloseHandle(SnapShot);
+    AllKeys.Free;
+    rx.Free;
+  except
+    on E:Exception do
+      ErrorDialog(E.Message);
+  end;
+  FRegistry.Free;
+  inherited;
+end;
+
+
+procedure TAppSettings.InitSetting(Index: TAppSettingIndex; Name: String;
+  DefaultInt: Integer=0; DefaultBool: Boolean=False; DefaultString: String='';
+  Session: Boolean=False);
+begin
+  FSettings[Index].Name := Name;
+  FSettings[Index].Session := Session;
+  FSettings[Index].DefaultInt := DefaultInt;
+  FSettings[Index].DefaultBool := DefaultBool;
+  FSettings[Index].DefaultString := DefaultString;
+  FSettings[Index].Synced := False;
+end;
+
+
+procedure TAppSettings.SetSessionPath(Value: String);
+begin
+  // Following calls may want to read or write some session specific setting
+  FSessionPath := Value;
+  PrepareRegistry;
+end;
+
+
+procedure TAppSettings.ResetPath;
+begin
+  SessionPath := '';
+end;
+
+
+procedure TAppSettings.PrepareRegistry;
+var
+  Folder: String;
+begin
+  // Open the wanted registry path
+  Folder := FBasePath;
+  if FSessionPath <> '' then
+    Folder := Folder + REGKEY_SESSIONS + '\' + FSessionPath;
+  if '\'+FRegistry.CurrentPath <> Folder then
+    FRegistry.OpenKey(Folder, True);
+end;
+
+
+function TAppSettings.GetValueNames: TStringList;
+begin
+  PrepareRegistry;
+  Result := TStringList.Create;
+  FRegistry.GetValueNames(Result);
+end;
+
+
+function TAppSettings.GetValueName(Index: TAppSettingIndex): String;
+begin
+  Result := FSettings[Index].Name;
+end;
+
+
+function TAppSettings.GetKeyNames: TStringList;
+begin
+  PrepareRegistry;
+  Result := TStringList.Create;
+  FRegistry.GetKeyNames(Result);
+end;
+
+
+function TAppSettings.DeleteValue(Index: TAppSettingIndex; FormatName: String=''): Boolean;
+var
+  ValueName: String;
+begin
+  PrepareRegistry;
+  ValueName := GetValueName(Index);
+  if FormatName <> '' then
+    ValueName := Format(ValueName, [FormatName]);
+  Result := FRegistry.DeleteValue(ValueName);
+end;
+
+
+function TAppSettings.DeleteValue(ValueName: String): Boolean;
+begin
+  Result := FRegistry.DeleteValue(ValueName);
+end;
+
+
+procedure TAppSettings.DeleteCurrentKey;
+var
+  KeyPath: String;
+begin
+  PrepareRegistry;
+  if IsEmpty(FSessionPath) then
+    raise Exception.Create('No path set, won''t delete root key '+FRegistry.CurrentPath)
+  else begin
+    KeyPath := REGKEY_SESSIONS + '\' + FSessionPath;
+    ResetPath;
+    FRegistry.DeleteKey(KeyPath);
+  end;
+end;
+
+
+procedure TAppSettings.MoveCurrentKey(TargetPath: String);
+var
+  KeyPath: String;
+begin
+  PrepareRegistry;
+  if IsEmpty(FSessionPath) then
+    raise Exception.Create('No path set, won''t move root key '+FRegistry.CurrentPath)
+  else begin
+    KeyPath := REGKEY_SESSIONS + '\' + FSessionPath;
+    ResetPath;
+    FRegistry.MoveKey(KeyPath, TargetPath, True);
+  end;
+end;
+
+
+function TAppSettings.ValueExists(Index: TAppSettingIndex): Boolean;
+var
+  ValueName: String;
+begin
+  PrepareRegistry;
+  ValueName := GetValueName(Index);
+  Result := FRegistry.ValueExists(ValueName);
+end;
+
+
+function TAppSettings.SessionPathExists(SessionPath: String): Boolean;
+begin
+  Result := FRegistry.KeyExists(FBasePath + REGKEY_SESSIONS + '\' + SessionPath);
+end;
+
+
+function TAppSettings.IsEmptyKey: Boolean;
+var
+  TestList: TStringList;
+begin
+  TestList := GetValueNames;
+  Result := (not FRegistry.HasSubKeys) and (TestList.Count = 0);
+  TestList.Free;
+end;
+
+
+function TAppSettings.GetDefaultInt(Index: TAppSettingIndex): Integer;
+begin
+  // Return default integer value
+  Result := FSettings[Index].DefaultInt;
+end;
+
+
+function TAppSettings.GetDefaultString(Index: TAppSettingIndex): String;
+begin
+  // Return default string value
+  Result := FSettings[Index].DefaultString;
+end;
+
+
+procedure TAppSettings.Read(Index: TAppSettingIndex; FormatName: String;
+  DataType: TAppSettingDataType; var I: Integer; var B: Boolean; var S: String;
+  DI: Integer; DB: Boolean; DS: String);
+var
+  ValueName: String;
+begin
+  // Read user setting value from registry
+  I := FSettings[Index].DefaultInt;
+  B := FSettings[Index].DefaultBool;
+  S := FSettings[Index].DefaultString;
+  if DI<>0 then I := DI;
+  if DB<>False then B := DB;
+  if DS<>'' then S := DS;
+  ValueName := FSettings[Index].Name;
+  if FormatName <> '' then
+    ValueName := Format(ValueName, [FormatName]);
+  if FSettings[Index].Session and IsEmpty(FSessionPath) then
+    raise Exception.Create('Attempt to read session setting without session path');
+  if (not FSettings[Index].Session) and IsNotEmpty(FSessionPath) then
+    FSessionPath := '';
+  PrepareRegistry;
+  if FSettings[Index].Synced then begin
+    case DataType of
+      adInt: I := FSettings[Index].CurrentInt;
+      adBool: B := FSettings[Index].CurrentBool;
+      adString: S := FSettings[Index].CurrentString;
+      else raise Exception.CreateFmt(SUnsupportedSettingsDatatype, [FSettings[Index].Name]);
+    end;
+  end else if FRegistry.ValueExists(ValueName) then begin
+    Inc(FReads);
+    case DataType of
+      adInt: I := FRegistry.ReadInteger(ValueName);
+      adBool: B := FRegistry.ReadBool(ValueName);
+      adString: S := FRegistry.ReadString(ValueName);
+      else raise Exception.CreateFmt(SUnsupportedSettingsDatatype, [FSettings[Index].Name]);
+    end;
+  end;
+  if (FormatName = '') and (FSessionPath = '') then begin
+    FSettings[Index].Synced := True;
+    FSettings[Index].CurrentInt := I;
+    FSettings[Index].CurrentBool := B;
+    FSettings[Index].CurrentString := S;
+  end;
+end;
+
+
+function TAppSettings.ReadInt(Index: TAppSettingIndex; FormatName: String=''; Default: Integer=0): Integer;
+var
+  S: String;
+  B: Boolean;
+begin
+  Read(Index, FormatName, adInt, Result, B, S, Default, False, '');
+end;
+
+
+function TAppSettings.ReadBool(Index: TAppSettingIndex; FormatName: String=''; Default: Boolean=False): Boolean;
+var
+  I: Integer;
+  S: String;
+begin
+  Read(Index, FormatName, adBool, I, Result, S, 0, Default, '');
+end;
+
+
+function TAppSettings.ReadString(Index: TAppSettingIndex; FormatName: String=''; Default: String=''): String;
+var
+  I: Integer;
+  B: Boolean;
+begin
+  Read(Index, FormatName, adString, I, B, Result, 0, False, Default);
+end;
+
+
+function TAppSettings.ReadString(ValueName: String): String;
+begin
+  PrepareRegistry;
+  Result := FRegistry.ReadString(ValueName);
+end;
+
+
+procedure TAppSettings.Write(Index: TAppSettingIndex; FormatName: String;
+  DataType: TAppSettingDataType; I: Integer; B: Boolean; S: String);
+var
+  ValueName: String;
+  SameAsDefault, SameAsCurrent: Boolean;
+begin
+  // Write user setting value to registry
+  ValueName := FSettings[Index].Name;
+  if FormatName <> '' then
+    ValueName := Format(ValueName, [FormatName]);
+  if FSettings[Index].Session and IsEmpty(FSessionPath) then
+    raise Exception.Create('Attempt to write session setting without session path');
+  if (not FSettings[Index].Session) and IsNotEmpty(FSessionPath) then
+    FSessionPath := '';
+  PrepareRegistry;
+  case DataType of
+    adInt: begin
+      SameAsDefault := I = FSettings[Index].DefaultInt;
+      SameAsCurrent := FSettings[Index].Synced and (I = FSettings[Index].CurrentInt);
+      if (not SameAsDefault) and (not SameAsCurrent) then begin
+        FRegistry.WriteInteger(ValueName, I);
+        Inc(FWrites);
+        FSettings[Index].CurrentInt := I;
+      end;
+    end;
+    adBool:  begin
+      SameAsDefault := B = FSettings[Index].DefaultBool;
+      SameAsCurrent := FSettings[Index].Synced and (B = FSettings[Index].CurrentBool);
+      if (not SameAsDefault) and (not SameAsCurrent) then begin
+        FRegistry.WriteBool(ValueName, B);
+        Inc(FWrites);
+        FSettings[Index].CurrentBool := B;
+      end;
+    end;
+    adString: begin
+      SameAsDefault := S = FSettings[Index].DefaultString;
+      SameAsCurrent := FSettings[Index].Synced and (S = FSettings[Index].CurrentString);
+      if (not SameAsDefault) and (not SameAsCurrent) then begin
+        FRegistry.WriteString(ValueName, S);
+        Inc(FWrites);
+        FSettings[Index].CurrentString := S;
+      end;
+    end;
+    else
+      raise Exception.CreateFmt(SUnsupportedSettingsDatatype, [FSettings[Index].Name]);
+  end;
+  if SameAsDefault and FRegistry.ValueExists(ValueName) then
+    FRegistry.DeleteValue(ValueName);
+  if (FormatName = '') and (FSessionPath = '') then
+    FSettings[Index].Synced := True;
+end;
+
+
+procedure TAppSettings.WriteInt(Index: TAppSettingIndex; Value: Integer; FormatName: String='');
+begin
+  Write(Index, FormatName, adInt, Value, False, '');
+end;
+
+
+procedure TAppSettings.WriteBool(Index: TAppSettingIndex; Value: Boolean; FormatName: String='');
+begin
+  Write(Index, FormatName, adBool, 0, Value, '');
+end;
+
+
+procedure TAppSettings.WriteString(Index: TAppSettingIndex; Value: String; FormatName: String='');
+begin
+  Write(Index, FormatName, adString, 0, False, Value);
+end;
+
+
+procedure TAppSettings.WriteString(ValueName, Value: String);
+begin
+  PrepareRegistry;
+  FRegistry.WriteString(ValueName, Value);
+end;
+
+
+function TAppSettings.GetSessionNames(ParentPath: String; var Folders: TStringList): TStringList;
+var
+  i: Integer;
+  CurPath: String;
+begin
+  ResetPath;
+  CurPath := FBasePath + REGKEY_SESSIONS + '\' + ParentPath;
+  FRegistry.OpenKey(CurPath, False);
+  Result := TStringList.Create;
+  FRegistry.GetKeyNames(Result);
+  for i:=Result.Count-1 downto 0 do begin
+    FRegistry.OpenKey(CurPath+'\'+Result[i], False);
+    if ValueExists(asSessionFolder) then begin
+      Folders.Add(Result[i]);
+      Result.Delete(i);
+    end;
+  end;
+end;
+
+
+procedure TAppSettings.GetSessionPaths(ParentPath: String; var Sessions: TStringList);
+var
+  Folders, Names: TStringList;
+  i: Integer;
+begin
+  Folders := TStringList.Create;
+  Names := GetSessionNames(ParentPath, Folders);
+  for i:=0 to Names.Count-1 do
+    Sessions.Add(ParentPath+Names[i]);
+  for i:=0 to Folders.Count-1 do
+    GetSessionPaths(ParentPath+Folders[i]+'\', Sessions);
+  Names.Free;
+  Folders.Free;
+end;
+
+
+procedure TAppSettings.ImportSettings(Filename: String);
+var
+  Content, Name, Value, KeyPath: String;
+  Lines, Segments: TStringList;
+  i: Integer;
+  DataType: TRegDataType;
+begin
+  // Load registry settings from file
+  Content := ReadTextfile(FileName, nil);
+  Lines := Explode(CRLF, Content);
+  for i:=0 to Lines.Count-1 do begin
+    // Each line has 3 segments: reg path | data type | value. Continue if explode finds less or more than 3.
+    Segments := Explode(DELIMITER, Lines[i]);
+    if Segments.Count <> 3 then
+      continue;
+    KeyPath := FBasePath + ExtractFilePath(Segments[0]);
+    Name := ExtractFileName(Segments[0]);
+    DataType := TRegDataType(StrToInt(Segments[1]));
+    FRegistry.OpenKey(KeyPath, True);
+    if FRegistry.ValueExists(Name) then
+      Continue; // Don't touch value if already there
+    Value := '';
+    if Segments.Count >= 3 then
+      Value := Segments[2];
+    case DataType of
+      rdString: begin
+        Value := StringReplace(Value, CHR13REPLACEMENT, #13, [rfReplaceAll]);
+        Value := StringReplace(Value, CHR10REPLACEMENT, #10, [rfReplaceAll]);
+        FRegistry.WriteString(Name, Value);
+      end;
+      rdInteger:
+        FRegistry.WriteInteger(Name, MakeInt(Value));
+      rdBinary, rdUnknown, rdExpandString:
+        ErrorDialog(Name+' has an unsupported data type.');
+    end;
+    Segments.Free;
+  end;
+  Lines.Free;
+end;
+
+
+procedure TAppSettings.ExportSettings(Filename: String);
+var
+  Content, Value: String;
+  DataType: TRegDataType;
+
+  procedure ReadKeyToContent(Path: String);
+  var
+    Names: TStringList;
+    i: Integer;
+    SubPath: String;
+  begin
+    // Recursively read values in keys and their subkeys into "content" variable
+    FRegistry.OpenKey(Path, True);
+    SubPath := Copy(Path, Length(FBasePath)+1, MaxInt);
+    Names := TStringList.Create;
+    FRegistry.GetValueNames(Names);
+    for i:=0 to Names.Count-1 do begin
+      DataType := FRegistry.GetDataType(Names[i]);
+      Content := Content +
+        SubPath + Names[i] + DELIMITER +
+        IntToStr(Integer(DataType)) + DELIMITER;
+      case DataType of
+        rdString: begin
+          Value := FRegistry.ReadString(Names[i]);
+          Value := StringReplace(Value, #13, CHR13REPLACEMENT, [rfReplaceAll]);
+          Value := StringReplace(Value, #10, CHR10REPLACEMENT, [rfReplaceAll]);
+        end;
+        rdInteger:
+          Value := IntToStr(FRegistry.ReadInteger(Names[i]));
+        rdBinary, rdUnknown, rdExpandString:
+          ErrorDialog(Names[i]+' has an unsupported data type.');
+      end;
+      Content := Content + Value + CRLF;
+    end;
+    Names.Clear;
+    FRegistry.GetKeyNames(Names);
+    for i:=0 to Names.Count-1 do
+      ReadKeyToContent(Path + Names[i] + '\');
+    Names.Free;
+  end;
+
+begin
+  // Save registry settings to file
+  Content := '';
+  ReadKeyToContent(FBasePath);
+  SaveUnicodeFile(FileName, Content);
 end;
 
 

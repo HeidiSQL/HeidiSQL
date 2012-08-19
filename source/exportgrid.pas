@@ -85,19 +85,18 @@ uses main, helpers, dbconnection, mysql_structures;
 procedure TfrmExportGrid.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
-  OpenRegistry;
-  editFilename.Text := GetRegValue(REGNAME_GEXP_FILENAME, editFilename.Text);
-  radioOutputCopyToClipboard.Checked := GetRegValue(REGNAME_GEXP_OUTPUTCOPY, radioOutputCopyToClipboard.Checked);
-  radioOutputFile.Checked := GetRegValue(REGNAME_GEXP_OUTPUTFILE, radioOutputFile.Checked);
-  FRecentFiles := Explode(DELIM, GetRegValue(REGNAME_GEXP_RECENTFILES, ''));
+  editFilename.Text := AppSettings.ReadString(asGridExportFilename);
+  radioOutputCopyToClipboard.Checked := AppSettings.ReadBool(asGridExportOutputCopy);
+  radioOutputFile.Checked := AppSettings.ReadBool(asGridExportOutputFile);
+  FRecentFiles := Explode(DELIM, AppSettings.ReadString(asGridExportRecentFiles));
   comboEncoding.Items.Assign(MainForm.FileEncodings);
   comboEncoding.Items.Delete(0); // Remove "Auto detect"
-  comboEncoding.ItemIndex := GetRegValue(REGNAME_GEXP_ENCODING, 4);
-  grpFormat.ItemIndex := GetRegValue(REGNAME_GEXP_FORMAT, grpFormat.ItemIndex);
-  chkColumnHeader.Checked := GetRegValue(REGNAME_GEXP_COLUMNNAMES, chkColumnHeader.Checked);
-  FCSVSeparator := GetRegValue(REGNAME_GEXP_SEPARATOR, editSeparator.Text);
-  FCSVEncloser := GetRegValue(REGNAME_GEXP_ENCLOSER, editEncloser.Text);
-  FCSVTerminator := GetRegValue(REGNAME_GEXP_TERMINATOR, editTerminator.Text);
+  comboEncoding.ItemIndex := AppSettings.ReadInt(asGridExportEncoding);
+  grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
+  chkColumnHeader.Checked := AppSettings.ReadBool(asGridExportColumnNames);
+  FCSVSeparator := AppSettings.ReadString(asGridExportSeparator);
+  FCSVEncloser := AppSettings.ReadString(asGridExportEncloser);
+  FCSVTerminator := AppSettings.ReadString(asGridExportTerminator);
   ValidateControls(Sender);
 end;
 
@@ -106,17 +105,17 @@ procedure TfrmExportGrid.FormDestroy(Sender: TObject);
 begin
   // Store settings
   if ModalResult = mrOK then begin
-    MainReg.WriteBool(REGNAME_GEXP_OUTPUTCOPY, radioOutputCopyToClipboard.Checked);
-    MainReg.WriteBool(REGNAME_GEXP_OUTPUTFILE, radioOutputFile.Checked);
-    MainReg.WriteString(REGNAME_GEXP_FILENAME, editFilename.Text);
-    MainReg.WriteString(REGNAME_GEXP_RECENTFILES, ImplodeStr(DELIM, FRecentFiles));
-    MainReg.WriteInteger(REGNAME_GEXP_ENCODING, comboEncoding.ItemIndex);
-    MainReg.WriteInteger(REGNAME_GEXP_FORMAT, grpFormat.ItemIndex);
-    MainReg.WriteInteger(REGNAME_GEXP_SELECTION, grpSelection.ItemIndex);
-    MainReg.WriteBool(REGNAME_GEXP_COLUMNNAMES, chkColumnHeader.Checked);
-    MainReg.WriteString(REGNAME_GEXP_SEPARATOR, FCSVSeparator);
-    MainReg.WriteString(REGNAME_GEXP_ENCLOSER, FCSVEncloser);
-    MainReg.WriteString(REGNAME_GEXP_TERMINATOR, FCSVTerminator);
+    AppSettings.WriteBool(asGridExportOutputCopy, radioOutputCopyToClipboard.Checked);
+    AppSettings.WriteBool(asGridExportOutputFile, radioOutputFile.Checked);
+    AppSettings.WriteString(asGridExportFilename, editFilename.Text);
+    AppSettings.WriteString(asGridExportRecentFiles, ImplodeStr(DELIM, FRecentFiles));
+    AppSettings.WriteInt(asGridExportEncoding, comboEncoding.ItemIndex);
+    AppSettings.WriteInt(asGridExportFormat, grpFormat.ItemIndex);
+    AppSettings.WriteInt(asGridExportSelection, grpSelection.ItemIndex);
+    AppSettings.WriteBool(asGridExportColumnNames, chkColumnHeader.Checked);
+    AppSettings.WriteString(asGridExportSeparator, FCSVSeparator);
+    AppSettings.WriteString(asGridExportEncloser, FCSVEncloser);
+    AppSettings.WriteString(asGridExportTerminator, FCSVTerminator);
   end;
 end;
 
@@ -149,7 +148,7 @@ begin
   end;
   grpSelection.Items.Add('Selection ('+FormatNumber(Grid.SelectedCount)+' rows, '+FormatByteNumber(SelectionSize)+')');
   grpSelection.Items.Add('Complete ('+FormatNumber(Grid.RootNodeCount)+' rows, '+FormatByteNumber(AllSize)+')');
-  grpSelection.ItemIndex := GetRegValue(REGNAME_GEXP_SELECTION, grpSelection.ItemIndex);
+  grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
 end;
 
 

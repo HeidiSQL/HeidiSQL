@@ -139,9 +139,8 @@ end;
 
 procedure TfrmInsertFiles.FormDestroy(Sender: TObject);
 begin
-  OpenRegistry;
-  MainReg.WriteInteger(REGNAME_FILEIMPORTWINWIDTH, Width);
-  MainReg.WriteInteger(REGNAME_FILEIMPORTWINHEIGHT, Height);
+  AppSettings.WriteInt(asFileImportWindowWidth, Width);
+  AppSettings.WriteInt(asFileImportWindowHeight, Height);
   MainForm.SaveListSetup(ListColumns);
   MainForm.SaveListSetup(listFiles);
 end;
@@ -149,8 +148,8 @@ end;
 
 procedure TfrmInsertFiles.FormShow(Sender: TObject);
 begin
-  Width := GetRegValue(REGNAME_FILEIMPORTWINWIDTH, Width);
-  Height := GetRegValue(REGNAME_FILEIMPORTWINHEIGHT, Height);
+  Width := AppSettings.ReadInt(asFileImportWindowWidth);
+  Height := AppSettings.ReadInt(asFileImportWindowHeight);
   FConnection := Mainform.ActiveConnection;
   Caption := FConnection.Parameters.SessionName + ' - ' + MainForm.actInsertFiles.Caption;
   comboDBs.Items.Clear;

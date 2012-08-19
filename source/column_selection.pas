@@ -64,7 +64,7 @@ begin
   chklistColumnsClickCheck( Sender );
 
   // Restore last used sorting state from registry
-  chkSort.Checked := GetRegValue(REGNAME_SORTDISPLAYEDCOLUMNS, chkSort.Checked);
+  chkSort.Checked := AppSettings.ReadBool(asDisplayedColumnsSorted);
 end;
 
 

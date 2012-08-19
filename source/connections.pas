@@ -176,9 +176,9 @@ begin
   // Fix GUI stuff
   InheritFont(Font);
   SetWindowSizeGrip(Handle, True);
-  Width := GetRegValue(REGNAME_SESSMNGR_WINWIDTH, Width);
-  Height := GetRegValue(REGNAME_SESSMNGR_WINHEIGHT, Height);
-  ListSessions.Width := GetRegValue(REGNAME_SESSMNGR_LISTWIDTH, ListSessions.Width);
+  Width := AppSettings.ReadInt(asSessionManagerWindowWidth);
+  Height := AppSettings.ReadInt(asSessionManagerWindowHeight);
+  ListSessions.Width := AppSettings.ReadInt(asSessionManagerListWidth);
   splitterMain.OnMoved(Sender);
   FixVT(ListSessions);
   MainForm.RestoreListSetup(ListSessions);
@@ -199,8 +199,8 @@ begin
 
   // Focus last session
   SelectNode(ListSessions, nil);
-  LastSessions := Explode(DELIM, GetRegValue(REGNAME_LASTSESSIONS, ''));
-  LastActiveSession := GetRegValue(REGNAME_LASTACTIVESESSION, '');
+  LastSessions := Explode(DELIM, AppSettings.ReadString(asLastSessions));
+  LastActiveSession := AppSettings.ReadString(asLastActiveSession);
   if (LastActiveSession = '') and (LastSessions.Count > 0) then
     LastActiveSession := LastSessions[0];
   Node := ListSessions.GetFirst;
@@ -246,10 +246,9 @@ end;
 procedure Tconnform.FormDestroy(Sender: TObject);
 begin
   // Save GUI stuff
-  OpenRegistry;
-  MainReg.WriteInteger(REGNAME_SESSMNGR_LISTWIDTH, ListSessions.Width);
-  MainReg.WriteInteger(REGNAME_SESSMNGR_WINWIDTH, Width);
-  MainReg.WriteInteger(REGNAME_SESSMNGR_WINHEIGHT, Height);
+  AppSettings.WriteInt(asSessionManagerListWidth, ListSessions.Width);
+  AppSettings.WriteInt(asSessionManagerWindowWidth, Width);
+  AppSettings.WriteInt(asSessionManagerWindowHeight, Height);
   MainForm.SaveListSetup(ListSessions);
 end;
 
@@ -437,10 +436,8 @@ begin
   Sess := ListSessions.GetNodeData(Node);
   if MessageDialog('Delete session "' + Sess.SessionName + '" ?', mtConfirmation, [mbYes, mbCancel]) = mrYes then
   begin
-    OpenRegistry;
-    MainReg.OpenKey(REGKEY_SESSIONS, False);
-    if MainReg.KeyExists(Sess.SessionPath) then
-      MainReg.DeleteKey(Sess.SessionPath);
+    AppSettings.SessionPath := Sess.SessionPath;
+    AppSettings.DeleteCurrentKey;
     if Assigned(Node.NextSibling) then
       FocusNode := Node.NextSibling
     else if Assigned(Node.PrevSibling) then
@@ -586,9 +583,9 @@ begin
     RegKey := Sess.SessionPath + '\';
   end;
 
-  // Fetch from registry using helpers:GetSessionNames()
+  // Fetch from registry
   Folders := TStringList.Create;
-  Result := GetSessionNames(RegKey, Folders);
+  Result := AppSettings.GetSessionNames(RegKey, Folders);
   Result.AddStrings(Folders);
   Folders.Free;
 end;
@@ -643,11 +640,8 @@ begin
     ErrorDialog('Session "'+ParentKey+FocusedSess.SessionName+'" already exists!')
   else begin
     try
-      OpenRegistry;
-      MainReg.OpenKey(REGKEY_SESSIONS, False);
-      if not MainReg.KeyExists(FocusedSess.SessionPath) then
-        raise Exception.Create('Misconfigured session path: '+FocusedSess.SessionPath);
-      MainReg.MoveKey(FocusedSess.SessionPath, ParentKey+FocusedSess.SessionName, True);
+      AppSettings.SessionPath := FocusedSess.SessionPath;
+      AppSettings.MoveCurrentKey(REGKEY_SESSIONS+'\'+ParentKey+FocusedSess.SessionName);
       ListSessions.MoveTo(ListSessions.FocusedNode, TargetNode, AttachMode, False);
       FocusedSess.SessionPath := ParentKey+FocusedSess.SessionName;
     except
@@ -762,25 +756,25 @@ begin
   lblCounterRight.Caption := 'not available';
   lblCounterRight.Enabled := False;
 
-  if (not Assigned(ListSessions.FocusedNode))
-    or (not MainReg.KeyExists(RegPath + REGKEY_SESSIONS + '\' + SelectedSessionPath)) then
+  if not Assigned(ListSessions.FocusedNode) then
     Exit;
 
+  AppSettings.SessionPath := SelectedSessionPath;
   DummyDate := StrToDateTime('2000-01-01');
-  LastConnect := StrToDateTimeDef(GetRegValue(REGNAME_LASTCONNECT, '', SelectedSessionPath), DummyDate);
+  LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DummyDate);
   if LastConnect <> DummyDate then begin
     lblLastConnectRight.Hint := DateTimeToStr(LastConnect);
     lblLastConnectRight.Caption := DateBackFriendlyCaption(LastConnect);
     lblLastConnectRight.Enabled := True;
   end;
-  Created := StrToDateTimeDef(GetRegValue(REGNAME_SESSIONCREATED, '', SelectedSessionPath), DummyDate);
+  Created := StrToDateTimeDef(AppSettings.ReadString(asSessionCreated), DummyDate);
   if Created <> DummyDate then begin
     lblCreatedRight.Hint := DateTimeToStr(Created);
     lblCreatedRight.Caption := DateBackFriendlyCaption(Created);
     lblCreatedRight.Enabled := True;
   end;
-  Connects := GetRegValue(REGNAME_CONNECTCOUNT, 0, SelectedSessionPath);
-  Refused := GetRegValue(REGNAME_REFUSEDCOUNT, 0, SelectedSessionPath);
+  Connects := AppSettings.ReadInt(asConnectCount);
+  Refused := AppSettings.ReadInt(asRefusedCount);
   lblCounterRight.Enabled := Connects + Refused > 0;
   if Connects > 0 then begin
     lblCounterRight.Caption := 'Successful connects: '+IntToStr(Connects);
@@ -814,13 +808,12 @@ begin
   // Rename session
   Sess := Sender.GetNodeData(Node);
   SiblingSessions := NodeSessionNames(Node.Parent, ParentKey);
-  OpenRegistry;
-  MainReg.OpenKey(REGKEY_SESSIONS, False);
   if SiblingSessions.IndexOf(NewText) > -1 then begin
     ErrorDialog('Session "'+ParentKey+NewText+'" already exists!');
     NewText := Sess.SessionName;
   end else begin
-    MainReg.MoveKey(Sess.SessionPath, ParentKey+NewText, true);
+    AppSettings.SessionPath := Sess.SessionPath;
+    AppSettings.MoveCurrentKey(REGKEY_SESSIONS+'\'+ParentKey+NewText);
     // Also fix internal session names in main form, which gets used to store e.g. "lastuseddb" later
     for Connection in MainForm.Connections do begin
       if Connection.Parameters.SessionPath = Sess.SessionPath then
@@ -896,7 +889,7 @@ begin
     Params := CurrentParams;
     case Params.NetTypeGroup of
       ngMySQL:
-        updownPort.Position := DEFAULT_PORT;
+        updownPort.Position := MakeInt(AppSettings.GetDefaultString(asPort));
       ngMSSQL:
         updownPort.Position := 1433;
     end;

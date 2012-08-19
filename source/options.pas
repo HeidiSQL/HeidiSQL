@@ -205,69 +205,64 @@ var
 begin
   Screen.Cursor := crHourGlass;
 
-  // Open registry key
-  OpenRegistry;
-
   // Save values
-  MainReg.WriteBool(REGNAME_AUTORECONNECT, chkAutoReconnect.Checked);
-  MainReg.WriteBool(REGNAME_MULTI_INSTANCES, chkAllowMultiInstances.Checked);
-  MainReg.WriteBool(REGNAME_RESTORELASTUSEDDB, chkRestoreLastDB.Checked);
-  MainReg.WriteBool(REGNAME_PROMPTFILESAVE, chkAskFileSave.Checked);
-  MainReg.WriteString(REGNAME_FONTNAME, comboSQLFontName.Text);
-  MainReg.WriteInteger(REGNAME_FONTSIZE, updownSQLFontSize.Position);
-  MainReg.WriteInteger(REGNAME_TABWIDTH, updownSQLTabWidth.Position);
-  MainReg.WriteInteger(REGNAME_LOGSQLNUM, updownLogLines.Position);
-  MainReg.WriteInteger(REGNAME_LOGSQLWIDTH, updownLogSnip.Position);
-  MainReg.WriteString(REGNAME_LOGDIR, editLogDir.Text);
-  MainReg.WriteBool(REGNAME_LOG_ERRORS, chkLogEventErrors.Checked);
-  MainReg.WriteBool(REGNAME_LOG_USERSQL, chkLogEventUserFiredSQL.Checked);
-  MainReg.WriteBool(REGNAME_LOG_SQL, chkLogEventSQL.Checked);
-  MainReg.WriteBool(REGNAME_LOG_INFOS, chkLogEventInfo.Checked);
-  MainReg.WriteBool(REGNAME_LOG_DEBUG, chkLogEventDebug.Checked);
+  AppSettings.WriteBool(asAutoReconnect, chkAutoReconnect.Checked);
+  AppSettings.WriteBool(asAllowMultipleInstances, chkAllowMultiInstances.Checked);
+  AppSettings.WriteBool(asRestoreLastUsedDB, chkRestoreLastDB.Checked);
+  AppSettings.WriteBool(asPromptSaveFileOnTabClose, chkAskFileSave.Checked);
+  AppSettings.WriteString(asFontName, comboSQLFontName.Text);
+  AppSettings.WriteInt(asFontSize, updownSQLFontSize.Position);
+  AppSettings.WriteInt(asTabWidth, updownSQLTabWidth.Position);
+  AppSettings.WriteInt(asLogsqlnum, updownLogLines.Position);
+  AppSettings.WriteInt(asLogsqlwidth, updownLogSnip.Position);
+  AppSettings.WriteString(asSessionLogsDirectory, editLogDir.Text);
+  AppSettings.WriteBool(asLogErrors, chkLogEventErrors.Checked);
+  AppSettings.WriteBool(asLogUserSQL, chkLogEventUserFiredSQL.Checked);
+  AppSettings.WriteBool(asLogSQL, chkLogEventSQL.Checked);
+  AppSettings.WriteBool(asLogInfos, chkLogEventInfo.Checked);
+  AppSettings.WriteBool(asLogDebug, chkLogEventDebug.Checked);
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
     Attri := SynSQLSynSQLSample.Attribute[i];
-    MainReg.WriteInteger(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_FG, Attri.Foreground);
-    MainReg.WriteInteger(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_BG, Attri.Background);
-    MainReg.WriteInteger(REGPREFIX_SQLATTRI+Attri.FriendlyName+REGPOSTFIX_SQL_STYLE, Attri.IntegerStyle);
+    AppSettings.WriteInt(asHighlighterForeground, Attri.Foreground, Attri.FriendlyName);
+    AppSettings.WriteInt(asHighlighterBackground, Attri.Background, Attri.FriendlyName);
+    AppSettings.WriteInt(asHighlighterStyle, Attri.IntegerStyle, Attri.FriendlyName);
   end;
-  MainReg.WriteString(REGNAME_SQLCOLACTIVELINE, ColorToString(SynMemoSQLSample.ActiveLineColor));
+  AppSettings.WriteString(asSQLColActiveLine, ColorToString(SynMemoSQLSample.ActiveLineColor));
 
-  MainReg.WriteInteger(REGNAME_MAXCOLWIDTH, updownMaxColWidth.Position);
-  Mainform.prefGridRowcountStep := StrToIntDef(editGridRowCountStep.Text, DEFAULT_ROWSPERSTEP);
-  Mainform.prefGridRowcountMax := StrToIntDef(editGridRowCountMax.Text, DEFAULT_MAXTOTALROWS);
-  MainReg.WriteInteger(REGNAME_ROWSPERSTEP, Mainform.prefGridRowcountStep);
-  MainReg.WriteInteger(REGNAME_MAXTOTALROWS, Mainform.prefGridRowcountMax);
-  MainReg.WriteInteger(REGNAME_GRIDROWSLINECOUNT, updownGridRowsLineCount.Position);
-  MainReg.WriteString(REGNAME_DATAFONTNAME, comboDataFontName.Text);
-  MainReg.WriteInteger(REGNAME_DATAFONTSIZE, updownDataFontSize.Position);
-  MainReg.WriteBool(REGNAME_LOGTOFILE, chkLogToFile.Checked);
-  MainReg.WriteBool(REGNAME_DO_UPDATECHECK, chkUpdatecheck.Checked);
-  MainReg.WriteBool(REGNAME_DO_UPDATECHECK_BUILDS, chkUpdatecheckBuilds.Checked);
-  MainReg.WriteInteger(REGNAME_UPDATECHECK_INTERVAL, updownUpdatecheckInterval.Position);
-  MainReg.WriteBool(REGNAME_DO_STATISTICS, chkDoStatistics.Checked);
-  MainReg.WriteBool(REGNAME_DISPLAYBARS, chkColorBars.Checked);
-  MainReg.WriteInteger(REGNAME_BARCOLOR, cboxColorBars.Selected);
-  MainReg.WriteString(REGNAME_MYSQLBINARIES, editMySQLBinaries.Text);
-  MainReg.WriteInteger(REGNAME_MAXQUERYRESULTS, updownMaxQueryResults.Position);
+  AppSettings.WriteInt(asMaxColWidth, updownMaxColWidth.Position);
+  AppSettings.WriteInt(asDatagridRowsPerStep, StrToIntDef(editGridRowCountStep.Text, -1));
+  AppSettings.WriteInt(asDatagridMaximumRows, StrToIntDef(editGridRowCountMax.Text, -1));
+  AppSettings.WriteInt(asGridRowLineCount, updownGridRowsLineCount.Position);
+  AppSettings.WriteString(asDataFontName, comboDataFontName.Text);
+  AppSettings.WriteInt(asDataFontSize, updownDataFontSize.Position);
+  AppSettings.WriteBool(asLogToFile, chkLogToFile.Checked);
+  AppSettings.WriteBool(asUpdatecheck, chkUpdatecheck.Checked);
+  AppSettings.WriteBool(asUpdatecheckBuilds, chkUpdatecheckBuilds.Checked);
+  AppSettings.WriteInt(asUpdatecheckInterval, updownUpdatecheckInterval.Position);
+  AppSettings.WriteBool(asDoUsageStatistics, chkDoStatistics.Checked);
+  AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
+  AppSettings.WriteInt(asBarColor, cboxColorBars.Selected);
+  AppSettings.WriteString(asMySQLBinaries, editMySQLBinaries.Text);
+  AppSettings.WriteInt(asMaxQueryResults, updownMaxQueryResults.Position);
   // Save color settings
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_INTEGER, FGridTextColors[dtcInteger]);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_REAL, FGridTextColors[dtcReal]);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_TEXT, FGridTextColors[dtcText]);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_BINARY, FGridTextColors[dtcBinary]);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_DATETIME, FGridTextColors[dtcTemporal]);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_SPATIAL, FGridTextColors[dtcSpatial]);
-  MainReg.WriteInteger(REGNAME_FIELDCOLOR_OTHER, FGridTextColors[dtcOther]);
-  MainReg.WriteInteger(REGNAME_BG_NULL, cboxNullBackground.Selected);
+  AppSettings.WriteInt(asFieldColorNumeric, FGridTextColors[dtcInteger]);
+  AppSettings.WriteInt(asFieldColorReal, FGridTextColors[dtcReal]);
+  AppSettings.WriteInt(asFieldColorText, FGridTextColors[dtcText]);
+  AppSettings.WriteInt(asFieldColorBinary, FGridTextColors[dtcBinary]);
+  AppSettings.WriteInt(asFieldColorDatetime, FGridTextColors[dtcTemporal]);
+  AppSettings.WriteInt(asFieldColorSpatial, FGridTextColors[dtcSpatial]);
+  AppSettings.WriteInt(asFieldColorOther, FGridTextColors[dtcOther]);
+  AppSettings.WriteInt(asFieldNullBackground, cboxNullBackground.Selected);
   // Editor enablings
-  MainReg.WriteBool(REGNAME_FIELDEDITOR_BINARY, chkEditorBinary.Checked);
-  MainReg.WriteBool(REGNAME_FIELDEDITOR_DATETIME, chkEditorDatetime.Checked);
-  MainReg.WriteBool(REGNAME_PREFILL_DATETIME, chkPrefillDatetime.Checked);
-  MainReg.WriteBool(REGNAME_FIELDEDITOR_ENUM, chkEditorEnum.Checked);
-  MainReg.WriteBool(REGNAME_FIELDEDITOR_SET, chkEditorSet.Checked);
-  MainReg.WriteBool(REGNAME_REMEMBERFILTERS, chkRememberFilters.Checked);
+  AppSettings.WriteBool(asFieldEditorBinary, chkEditorBinary.Checked);
+  AppSettings.WriteBool(asFieldEditorDatetime, chkEditorDatetime.Checked);
+  AppSettings.WriteBool(asFieldEditorDatetimePrefill, chkPrefillDatetime.Checked);
+  AppSettings.WriteBool(asFieldEditorEnum, chkEditorEnum.Checked);
+  AppSettings.WriteBool(asFieldEditorSet, chkEditorSet.Checked);
+  AppSettings.WriteBool(asRememberFilters, chkRememberFilters.Checked);
 
-  MainReg.WriteBool(REGNAME_COMPLETIONPROPOSAL, chkCompletionProposal.Checked);
-  MainReg.WriteBool(REGNAME_TABSTOSPACES, chkTabsToSpaces.Checked);
+  AppSettings.WriteBool(asCompletionProposal, chkCompletionProposal.Checked);
+  AppSettings.WriteBool(asTabsToSpaces, chkTabsToSpaces.Checked);
 
   // Shortcuts
   CatNode := TreeShortcutItems.GetFirst;
@@ -278,12 +273,12 @@ begin
       // Save modified shortcuts
       if Assigned(Data.KeyStroke) then begin
         if Data.Shortcut1 <> Data.KeyStroke.ShortCut then
-          MainReg.WriteInteger(REGPREFIX_SHORTCUT1+EditorCommandToCodeString(Data.KeyStroke.Command), Data.Shortcut1);
+          AppSettings.WriteInt(asActionShortcut1, Data.Shortcut1, EditorCommandToCodeString(Data.KeyStroke.Command));
         if Data.Shortcut2 <> Data.KeyStroke.ShortCut2 then
-          MainReg.WriteInteger(REGPREFIX_SHORTCUT2+EditorCommandToCodeString(Data.KeyStroke.Command), Data.Shortcut2);
+          AppSettings.WriteInt(asActionShortcut2, Data.Shortcut2, EditorCommandToCodeString(Data.KeyStroke.Command));
       end else begin
         if Data.Shortcut1 <> Data.Action.ShortCut then
-          MainReg.WriteInteger(REGPREFIX_SHORTCUT1+Data.Action.Name, Data.Shortcut1);
+          AppSettings.WriteInt(asActionShortcut1, Data.Shortcut1, Data.Action.Name);
         // Apply shortcut for this session
         Data.Action.ShortCut := Data.Shortcut1;
       end;
@@ -297,31 +292,21 @@ begin
   // Set relevant properties in mainform
   Mainform.DataGrid.Font.Name := comboDataFontName.Text;
   Mainform.DataGrid.Font.Size := updownDataFontSize.Position;
-  Mainform.prefGridRowsLineCount := updownGridRowsLineCount.Position;
-  FixVT(Mainform.DataGrid, Mainform.prefGridRowsLineCount);
+  FixVT(Mainform.DataGrid, updownGridRowsLineCount.Position);
   for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
     QueryTab := Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex];
     for j:=0 to QueryTab.ResultTabs.Count-1 do begin
       Grid := QueryTab.ResultTabs[j].Grid;
       Grid.Font.Name := comboDataFontName.Text;
       Grid.Font.Size := updownDataFontSize.Position;
-      FixVT(Grid, Mainform.prefGridRowsLineCount);
+      FixVT(Grid, updownGridRowsLineCount.Position);
     end;
   end;
 
-  Mainform.prefLogsqlnum := updownLogLines.Position;
-  Mainform.prefLogSqlWidth := updownLogSnip.Position;
-  Mainform.prefLogErrors := chkLogEventErrors.Checked;
-  Mainform.prefLogUserSQL := chkLogEventUserFiredSQL.Checked;
-  Mainform.prefLogSQL := chkLogEventSQL.Checked;
-  Mainform.prefLogInfos := chkLogEventInfo.Checked;
-  Mainform.prefLogDebug := chkLogEventDebug.Checked;
-  Mainform.prefDirnameSessionLogs := editLogDir.Text;
   if chkLogToFile.Checked then
     Mainform.ActivateFileLogging
-  else if Mainform.prefLogToFile then
+  else
     Mainform.DeactivateFileLogging;
-  Mainform.prefMaxColWidth := updownMaxColWidth.Position;
   DatatypeCategories[dtcInteger].Color := FGridTextColors[dtcInteger];
   DatatypeCategories[dtcReal].Color := FGridTextColors[dtcReal];
   DatatypeCategories[dtcText].Color := FGridTextColors[dtcText];
@@ -329,20 +314,9 @@ begin
   DatatypeCategories[dtcTemporal].Color := FGridTextColors[dtcTemporal];
   DatatypeCategories[dtcSpatial].Color := FGridTextColors[dtcSpatial];
   DatatypeCategories[dtcOther].Color := FGridTextColors[dtcOther];
-  Mainform.prefNullBG := cboxNullBackground.Selected;
   Mainform.CalcNullColors;
   Mainform.DataGrid.Repaint;
   Mainform.QueryGrid.Repaint;
-  Mainform.prefEnableBinaryEditor := chkEditorBinary.Checked;
-  Mainform.prefEnableDatetimeEditor := chkEditorDatetime.Checked;
-  Mainform.prefPrefillDateTime := chkPrefillDateTime.Checked;
-  Mainform.prefEnableEnumEditor := chkEditorEnum.Checked;
-  Mainform.prefEnableSetEditor := chkEditorSet.Checked;
-  Mainform.prefRememberFilters := chkRememberFilters.Checked;
-  Mainform.prefDisplayBars := chkColorBars.Checked;
-  Mainform.prefBarColor := cboxColorBars.Selected;
-  Mainform.prefCompletionProposal := chkCompletionProposal.Checked;
-  Mainform.prefMaxQueryResults := updownMaxQueryResults.Position;
   Mainform.ListTables.Invalidate;
   Mainform.ListProcesses.Invalidate;
   Mainform.ListCommandStats.Invalidate;
@@ -415,77 +389,72 @@ end;
 
 
 procedure Toptionsform.FormShow(Sender: TObject);
-var
-  datafontname : String;
-  datafontsize : Integer;
 begin
   screen.Cursor := crHourGlass;
 
   // Read and display values
-  datafontname := GetRegValue(REGNAME_DATAFONTNAME, DEFAULT_DATAFONTNAME);
-  datafontsize := GetRegValue(REGNAME_DATAFONTSIZE, DEFAULT_DATAFONTSIZE);
-  chkAutoReconnect.Checked := GetRegValue(REGNAME_AUTORECONNECT, DEFAULT_AUTORECONNECT);
-  chkAllowMultiInstances.Checked := GetRegValue(REGNAME_MULTI_INSTANCES, DEFAULT_MULTI_INSTANCES);
-  chkRestoreLastDB.Checked := GetRegValue(REGNAME_RESTORELASTUSEDDB, DEFAULT_RESTORELASTUSEDDB);
-  chkUpdatecheck.Checked := GetRegValue(REGNAME_DO_UPDATECHECK, DEFAULT_DO_UPDATECHECK);
-  chkUpdatecheckBuilds.Checked := GetRegValue(REGNAME_DO_UPDATECHECK_BUILDS, DEFAULT_DO_UPDATECHECK_BUILDS);
-  updownUpdatecheckInterval.Position := GetRegValue(REGNAME_UPDATECHECK_INTERVAL, DEFAULT_UPDATECHECK_INTERVAL);
+  chkAutoReconnect.Checked := AppSettings.ReadBool(asAutoReconnect);;
+  chkAllowMultiInstances.Checked := AppSettings.ReadBool(asAllowMultipleInstances);
+  chkRestoreLastDB.Checked := AppSettings.ReadBool(asRestoreLastUsedDB);
+  chkUpdatecheck.Checked := AppSettings.ReadBool(asUpdatecheck);
+  chkUpdatecheckBuilds.Checked := AppSettings.ReadBool(asUpdatecheckBuilds);
+  updownUpdatecheckInterval.Position := AppSettings.ReadInt(asUpdatecheckInterval);
   chkUpdatecheckClick(Sender);
-  chkDoStatistics.Checked := GetRegValue(REGNAME_DO_STATISTICS, DEFAULT_DO_STATISTICS);
-  chkColorBars.Checked := GetRegValue(REGNAME_DISPLAYBARS, DEFAULT_DISPLAYBARS);
-  cboxColorBars.Selected := GetRegValue(REGNAME_BARCOLOR, DEFAULT_BARCOLOR);
-  editMySQLBinaries.Text := GetRegValue(REGNAME_MYSQLBINARIES, DEFAULT_MYSQLBINARIES);
-  chkAskFileSave.Checked := GetRegValue(REGNAME_PROMPTFILESAVE, DEFAULT_PROMPTFILESAVE);
+  chkDoStatistics.Checked := AppSettings.ReadBool(asDoUsageStatistics);
+  chkColorBars.Checked := AppSettings.ReadBool(asDisplayBars);
+  cboxColorBars.Selected := AppSettings.ReadInt(asBarColor);
+  editMySQLBinaries.Text := AppSettings.ReadString(asMySQLBinaries);
+  chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
 
   // Logging
-  updownLogLines.Position := GetRegValue(REGNAME_LOGSQLNUM, DEFAULT_LOGSQLNUM);
-  updownLogSnip.Position := GetRegValue(REGNAME_LOGSQLWIDTH, DEFAULT_LOGSQLWIDTH);
-  chkLogToFile.Checked := GetRegValue(REGNAME_LOGTOFILE, DEFAULT_LOGTOFILE);
-  editLogDir.Text := GetRegValue(REGNAME_LOGDIR, Mainform.prefDirnameSessionLogs);
-  chkLogEventErrors.Checked := GetRegValue(REGNAME_LOG_ERRORS, DEFAULT_LOG_ERRORS);
-  chkLogEventUserFiredSQL.Checked := GetRegValue(REGNAME_LOG_USERSQL, DEFAULT_LOG_USERSQL);
-  chkLogEventSQL.Checked := GetRegValue(REGNAME_LOG_SQL, DEFAULT_LOG_SQL);
-  chkLogEventInfo.Checked := GetRegValue(REGNAME_LOG_INFOS, DEFAULT_LOG_INFOS);
-  chkLogEventDebug.Checked := GetRegValue(REGNAME_LOG_DEBUG, DEFAULT_LOG_DEBUG);
+  updownLogLines.Position := AppSettings.ReadInt(asLogsqlnum);
+  updownLogSnip.Position := AppSettings.ReadInt(asLogsqlwidth);
+  chkLogToFile.Checked := AppSettings.ReadBool(asLogToFile);
+  editLogDir.Text := AppSettings.ReadString(asSessionLogsDirectory);
+  chkLogEventErrors.Checked := AppSettings.ReadBool(asLogErrors);
+  chkLogEventUserFiredSQL.Checked := AppSettings.ReadBool(asLogUserSQL);
+  chkLogEventSQL.Checked := AppSettings.ReadBool(asLogSQL);
+  chkLogEventInfo.Checked := AppSettings.ReadBool(asLogInfos);
+  chkLogEventDebug.Checked := AppSettings.ReadBool(asLogDebug);
 
   // Default Column-Width in DBGrids:
-  updownMaxColWidth.Position := GetRegValue(REGNAME_MAXCOLWIDTH, DEFAULT_MAXCOLWIDTH);
-  editGridRowCountStep.Text := IntToStr(GetRegValue(REGNAME_ROWSPERSTEP, DEFAULT_ROWSPERSTEP));
-  editGridRowCountMax.Text := IntToStr(GetRegValue(REGNAME_MAXTOTALROWS, DEFAULT_MAXTOTALROWS));
-  updownGridRowsLineCount.Position := GetRegValue(REGNAME_GRIDROWSLINECOUNT, DEFAULT_GRIDROWSLINECOUNT);
+  updownMaxColWidth.Position := AppSettings.ReadInt(asMaxColWidth);
+  editGridRowCountStep.Text := IntToStr(AppSettings.ReadInt(asDatagridRowsPerStep));
+  editGridRowCountMax.Text := IntToStr(AppSettings.ReadInt(asDatagridMaximumRows));
+  updownGridRowsLineCount.Position := AppSettings.ReadInt(asGridRowLineCount);
 
   // SQL:
   Mainform.SetupSynEditors;
   comboSQLFontName.ItemIndex := comboSQLFontName.Items.IndexOf(SynMemoSQLSample.Font.Name);
   updownSQLFontSize.Position := SynMemoSQLSample.Font.Size;
   updownSQLTabWidth.Position := SynMemoSQLSample.TabWidth;
-  chkCompletionProposal.Checked := GetRegValue(REGNAME_COMPLETIONPROPOSAL, DEFAULT_COMPLETIONPROPOSAL);
-  chkTabsToSpaces.Checked := GetRegValue(REGNAME_TABSTOSPACES, DEFAULT_TABSTOSPACES);
+  chkCompletionProposal.Checked := AppSettings.ReadBool(asCompletionProposal);
+  chkTabsToSpaces.Checked := AppSettings.ReadBool(asTabsToSpaces);
   comboSQLColElementChange(Sender);
 
   // Data-Appearance:
   comboDataFontName.Items := Screen.Fonts;
-  comboDataFontName.ItemIndex := comboDataFontName.Items.IndexOf(datafontname);
-  updownDataFontSize.Position := datafontsize;
-  updownMaxQueryResults.Position := GetRegValue(REGNAME_MAXQUERYRESULTS, DEFAULT_MAXQUERYRESULTS);
+  comboDataFontName.ItemIndex := comboDataFontName.Items.IndexOf(AppSettings.ReadString(asDataFontName));
+  updownDataFontSize.Position := AppSettings.ReadInt(asDataFontSize);
+  updownMaxQueryResults.Position := AppSettings.ReadINt(asMaxQueryResults);
   // Load color settings
-  FGridTextColors[dtcInteger] := GetRegValue(REGNAME_FIELDCOLOR_INTEGER, DEFAULT_FIELDCOLOR_INTEGER);
-  FGridTextColors[dtcReal] := GetRegValue(REGNAME_FIELDCOLOR_REAL, DEFAULT_FIELDCOLOR_REAL);
-  FGridTextColors[dtcText] := GetRegValue(REGNAME_FIELDCOLOR_TEXT, DEFAULT_FIELDCOLOR_TEXT);
-  FGridTextColors[dtcBinary] := GetRegValue(REGNAME_FIELDCOLOR_BINARY, DEFAULT_FIELDCOLOR_BINARY);
-  FGridTextColors[dtcTemporal] := GetRegValue(REGNAME_FIELDCOLOR_DATETIME, DEFAULT_FIELDCOLOR_DATETIME);
-  FGridTextColors[dtcSpatial] := GetRegValue(REGNAME_FIELDCOLOR_SPATIAL, DEFAULT_FIELDCOLOR_SPATIAL);
-  FGridTextColors[dtcOther] := GetRegValue(REGNAME_FIELDCOLOR_OTHER, DEFAULT_FIELDCOLOR_OTHER);
+  FGridTextColors[dtcInteger] := AppSettings.ReadInt(asFieldColorNumeric);
+  FGridTextColors[dtcReal] := AppSettings.ReadInt(asFieldColorReal);
+  FGridTextColors[dtcText] := AppSettings.ReadInt(asFieldColorText);
+  FGridTextColors[dtcBinary] := AppSettings.ReadInt(asFieldColorBinary);
+  FGridTextColors[dtcTemporal] := AppSettings.ReadInt(asFieldColorDatetime);
+  FGridTextColors[dtcSpatial] := AppSettings.ReadInt(asFieldColorSpatial);
+  FGridTextColors[dtcOther] := AppSettings.ReadInt(asFieldColorOther);
   comboGridTextColors.ItemIndex := 0;
   comboGridTextColors.OnSelect(comboGridTextColors);
-  cboxNullBackground.Selected := GetRegValue(REGNAME_BG_NULL, DEFAULT_BG_NULL);
+  cboxNullBackground.Selected := AppSettings.ReadInt(asFieldNullBackground);
   // Editor enablings
-  chkEditorBinary.Checked := GetRegValue(REGNAME_FIELDEDITOR_BINARY, DEFAULT_FIELDEDITOR_BINARY);
-  chkEditorDatetime.Checked := GetRegValue(REGNAME_FIELDEDITOR_DATETIME, DEFAULT_FIELDEDITOR_DATETIME);
-  chkPrefillDateTime.Checked := GetRegValue(REGNAME_PREFILL_DATETIME, DEFAULT_PREFILL_DATETIME);
-  chkEditorEnum.Checked := GetRegValue(REGNAME_FIELDEDITOR_ENUM, DEFAULT_FIELDEDITOR_ENUM);
-  chkEditorSet.Checked := GetRegValue(REGNAME_FIELDEDITOR_SET, DEFAULT_FIELDEDITOR_SET);
-  chkRememberFilters.Checked := GetRegValue(REGNAME_REMEMBERFILTERS, DEFAULT_REMEMBERFILTERS);
+  chkEditorBinary.Checked := AppSettings.ReadBool(asFieldEditorBinary);
+  chkEditorDatetime.Checked := AppSettings.ReadBool(asFieldEditorDatetime);
+  chkPrefillDateTime.Checked := AppSettings.ReadBool(asFieldEditorDatetimePrefill);
+  chkEditorEnum.Checked := AppSettings.ReadBool(asFieldEditorEnum);
+  chkEditorSet.Checked := AppSettings.ReadBool(asFieldEditorEnum);
+  chkRememberFilters.Checked := AppSettings.ReadBool(asRememberFilters);
 
   // Shortcuts
   TreeShortcutItems.ReinitChildren(nil, True);
@@ -681,11 +650,10 @@ begin
     'This also applies to automatic settings, e.g. toolbar positions.',
     mtConfirmation, [mbOK, mbCancel]) = mrCancel then
     Exit;
-  OpenRegistry;
-  ValueList := TStringlist.Create;
-  Mainreg.GetValueNames(ValueList);
+  AppSettings.ResetPath;
+  ValueList := AppSettings.GetValueNames;
   for i:=0 to ValueList.Count-1 do
-    Mainreg.DeleteValue(ValueList[i]);
+    AppSettings.DeleteValue(ValueList[i]);
   FormShow(Sender);
 end;
 

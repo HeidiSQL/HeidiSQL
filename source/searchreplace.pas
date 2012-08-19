@@ -49,8 +49,8 @@ uses helpers;
 
 procedure TfrmSearchReplace.FormCreate(Sender: TObject);
 begin
-  comboSearch.Items.Text := GetRegValue(REGNAME_SEARCHTEXT, '');
-  comboReplace.Items.Text := GetRegValue(REGNAME_REPLACETEXT, '');
+  comboSearch.Items.Text := AppSettings.ReadString(asFindDialogSearchHistory);
+  comboReplace.Items.Text := AppSettings.ReadString(asFindDialogReplaceHistory);
   comboSearch.Text := '';
   comboReplace.Text := '';
   if comboSearch.Items.Count > 0 then comboSearch.Text := comboSearch.Items[0];
@@ -104,9 +104,8 @@ end;
 
 procedure TfrmSearchReplace.FormDestroy(Sender: TObject);
 begin
-  OpenRegistry;
-  Mainreg.WriteString(REGNAME_SEARCHTEXT, comboSearch.Items.Text);
-  Mainreg.WriteString(REGNAME_REPLACETEXT, comboReplace.Items.Text);
+  AppSettings.WriteString(asFindDialogSearchHistory, comboSearch.Items.Text);
+  AppSettings.WriteString(asFindDialogReplaceHistory, comboReplace.Items.Text);
 end;
 
 
