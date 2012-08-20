@@ -932,6 +932,23 @@ object MainForm: TMainForm
                     ParentFont = False
                     OnClick = lblExplainProcessClick
                   end
+                  object lblExplainProcessAnalyzer: TLabel
+                    Left = 142
+                    Top = 2
+                    Width = 163
+                    Height = 13
+                    Cursor = crHandPoint
+                    Hint = 'Pass EXPLAIN output to MariaDB'#39's analyzer webpage'
+                    Caption = 'EXPLAIN Analyzer on MariaDB.org'
+                    Enabled = False
+                    Font.Charset = DEFAULT_CHARSET
+                    Font.Color = clBlue
+                    Font.Height = -11
+                    Font.Name = 'Default'
+                    Font.Style = [fsUnderline]
+                    ParentFont = False
+                    OnClick = lblExplainProcessAnalyzerClick
+                  end
                 end
                 object SynMemoProcessView: TSynMemo
                   Left = 0
@@ -8531,6 +8548,13 @@ object MainForm: TMainForm
       Hint = 'Analyze selected process SQL'
       ImageIndex = 39
       OnClick = lblExplainProcessClick
+    end
+    object menuExplainAnalyzer: TMenuItem
+      Caption = 'EXPLAIN analyzer on MariaDB.org'
+      Enabled = False
+      Hint = 'Pass EXPLAIN output to MariaDB'#39's analyzer webpage'
+      ImageIndex = 39
+      OnClick = lblExplainProcessAnalyzerClick
     end
     object N1a: TMenuItem
       Caption = '-'
