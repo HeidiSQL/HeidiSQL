@@ -11033,7 +11033,7 @@ begin
   for i:=0 to ValueNames.Count-1 do begin
     j := StrToIntDef(ValueNames[i], -1);
     // Prevent from running into serious errors when registry has some non-numeric value
-    if i<>-1 then begin
+    if j<>-1 then begin
       Item := TQueryHistoryItem.Create;
       Item.RegValue := j;
       Raw := AppSettings.ReadString(ValueNames[i]);
