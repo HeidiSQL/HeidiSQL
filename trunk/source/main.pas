@@ -555,6 +555,8 @@ type
     menuGroupObjects: TMenuItem;
     actLogHorizontalScrollbar: TAction;
     actGroupObjects: TAction;
+    lblExplainProcessAnalyzer: TLabel;
+    menuExplainAnalyzer: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -877,6 +879,7 @@ type
     procedure DBtreeExpanding(Sender: TBaseVirtualTree; Node: PVirtualNode;
       var Allowed: Boolean);
     procedure actGroupObjectsExecute(Sender: TObject);
+    procedure lblExplainProcessAnalyzerClick(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -1409,6 +1412,7 @@ begin
   InheritFont(ParameterCompletionProposal.Font);
   // Simulated link label, has non inherited blue font color
   InheritFont(lblExplainProcess.Font);
+  InheritFont(lblExplainProcessAnalyzer.Font);
 
   StatusBar.Height := GetTextHeight(StatusBar.Font)+4;
   // Upscale panels in non-96-DPI mode
@@ -6617,6 +6621,8 @@ begin
     and (UpperCase(GetFirstWord(SynMemoProcessView.Text)) <> 'SHOW')
     and (SynMemoProcessView.GetTextLen > 0);
   menuExplainProcess.Enabled := lblExplainProcess.Enabled;
+  lblExplainProcessAnalyzer.Enabled := lblExplainProcess.Enabled;
+  menuExplainAnalyzer.Enabled := lblExplainProcess.Enabled;
 end;
 
 
@@ -10024,6 +10030,32 @@ begin
   // To avoid confusion, terminate editors then.
   if Sender.IsEditing and (DeltaX=0) then
     Sender.EndEditNode;
+end;
+
+
+procedure TMainForm.lblExplainProcessAnalyzerClick(Sender: TObject);
+var
+  Results: TDBQuery;
+  Raw, URL: String;
+  i: Integer;
+begin
+  ActiveConnection.Database := listProcesses.Text[listProcesses.FocusedNode, 3];
+  Results := ActiveConnection.GetResults('EXPLAIN '+SynMemoProcessView.Text);
+  Raw := '+' + CRLF + '|';
+  for i:=0 to Results.ColumnCount-1 do begin
+    Raw := Raw + Results.ColumnNames[i] + '|';
+  end;
+  Raw := Raw + CRLF + '+';
+  while not Results.Eof do begin
+    Raw := Raw + CRLF + '|';
+    for i:=0 to Results.ColumnCount-1 do begin
+      Raw := Raw + Results.Col(i) + '|';
+    end;
+    Results.Next;
+  end;
+  Raw := Raw + CRLF;
+  URL := 'http://mariadb.org/explain_analyzer/api/1/?raw_explain='+EncodeURL(Raw)+'&client='+APPNAME;
+  ShellExec(URL);
 end;
 
 
