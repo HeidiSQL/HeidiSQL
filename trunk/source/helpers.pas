@@ -3439,7 +3439,7 @@ begin
   FRegistry.GetKeyNames(Result);
   for i:=Result.Count-1 downto 0 do begin
     FRegistry.OpenKey(CurPath+'\'+Result[i], False);
-    if ValueExists(asSessionFolder) then begin
+    if FRegistry.ValueExists(GetValueName(asSessionFolder)) then begin
       Folders.Add(Result[i]);
       Result.Delete(i);
     end;
