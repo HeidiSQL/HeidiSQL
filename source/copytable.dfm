@@ -17,6 +17,7 @@ object CopyTableForm: TCopyTableForm
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
     364
@@ -50,7 +51,6 @@ object CopyTableForm: TCopyTableForm
     Top = 24
     Width = 197
     Height = 21
-    Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
     OnChange = editNewTablenameChange
   end
