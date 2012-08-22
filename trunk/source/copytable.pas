@@ -37,6 +37,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnRecentFiltersClick(Sender: TObject);
     procedure RecentFilterClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
     FDBObj: TDBObject;
@@ -82,6 +83,20 @@ begin
   // Save GUI stuff
   AppSettings.WriteInt(asCopyTableWindowWidth, Width);
   AppSettings.WriteInt(asCopyTableWindowHeight, Height);
+end;
+
+
+procedure TCopyTableForm.FormResize(Sender: TObject);
+var
+  HalfWidth: Integer;
+const
+  Space: Integer=8;
+begin
+  // Give both dropdown and edit box the same width. See http://www.heidisql.com/forum.php?t=11039
+  HalfWidth := (ClientWidth - (3*Space)) div 2;
+  comboDatabase.Width := HalfWidth;
+  editNewTablename.Width := HalfWidth;
+  editNewTablename.Left := comboDatabase.Left + comboDatabase.Width + Space;
 end;
 
 
