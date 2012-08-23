@@ -880,10 +880,12 @@ type
       var Allowed: Boolean);
     procedure actGroupObjectsExecute(Sender: TObject);
     procedure lblExplainProcessAnalyzerClick(Sender: TObject);
+    procedure popupSqlLogPopup(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
     FDelimiter: String;
+    FLogToFile: Boolean;
     FFileNameSessionLog: String;
     FFileHandleSessionLog: Textfile;
     FLastMouseUpOnPageControl: Cardinal;
@@ -949,6 +951,7 @@ type
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
     procedure OperationRunning(Runs: Boolean);
     function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding): Boolean;
+    procedure SetLogToFile(Value: Boolean);
   public
     QueryTabs: TObjectList<TQueryTab>;
     ActiveObjectEditor: TDBObjectEditor;
@@ -1003,8 +1006,7 @@ type
     property ActiveConnection: TDBConnection read GetActiveConnection;
     property ActiveDatabase: String read GetActiveDatabase;
     property ActiveDbObj: TDBObject read FActiveDbObj write SetActiveDBObj;
-    procedure ActivateFileLogging;
-    procedure DeactivateFileLogging;
+    property LogToFile: Boolean read FLogToFile write SetLogToFile;
     procedure RefreshTree(FocusNewObject: TDBObject=nil);
     function GetRootNode(Tree: TBaseVirtualTree; Connection: TDBConnection): PVirtualNode;
     function FindDBObjectNode(Tree: TBaseVirtualTree; Obj: TDBObject): PVirtualNode;
@@ -1276,9 +1278,7 @@ begin
   SaveListSetup(ListCommandStats);
   SaveListSetup(ListTables);
 
-  if AppSettings.ReadBool(asLogToFile) then
-    DeactivateFileLogging;
-
+  LogToFile := False;
   AppSettings.Free;
 end;
 
@@ -1498,8 +1498,7 @@ begin
   actDataShowNext.Hint := 'Show next '+FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))+' rows ...';
   actAboutBox.Caption := 'About '+APPNAME+' '+AppVersion;
   // Activate logging
-  if AppSettings.ReadBool(asLogToFile) then
-    ActivateFileLogging;
+  LogToFile := AppSettings.ReadBool(asLogToFile);
   if AppSettings.ReadBool(asLogHorizontalScrollbar) then
     actLogHorizontalScrollbar.Execute;
 
@@ -4127,7 +4126,7 @@ begin
   SynMemoSQLLog.Repaint;
 
   // Log to file?
-  if AppSettings.ReadBool(asLogToFile) then
+  if FLogToFile then
   try
     Sess := '';
     if Assigned(Connection) then
@@ -4135,8 +4134,9 @@ begin
     WriteLn(FFileHandleSessionLog, Format('/* %s [%s] */ %s', [DateTimeToStr(Now), Sess, msg]));
   except
     on E:Exception do begin
-      DeactivateFileLogging;
-      ErrorDialog('Error writing to session log file.', FFileNameSessionLog+CRLF+CRLF+E.Message+CRLF+CRLF+'Logging is disabled now.');
+      LogToFile := False;
+      AppSettings.WriteBool(asLogToFile, False);
+      ErrorDialog('Error writing to session log file.', E.Message+CRLF+'Filename: '+FFileNameSessionLog+CRLF+CRLF+'Logging is disabled now.');
     end;
   end;
 end;
@@ -5318,6 +5318,15 @@ begin
   ActiveQueryMemo.SetFocus;
 end;
 
+
+procedure TMainForm.popupSqlLogPopup(Sender: TObject);
+begin
+  // Update popupMenu items
+  menuLogToFile.Checked := FLogToFile;
+  menuOpenLogFolder.Enabled := FLogToFile;
+end;
+
+
 procedure TMainForm.AutoRefreshSetInterval(Sender: TObject);
 var
   SecondsStr: String;
@@ -6399,66 +6408,54 @@ end;
   Start writing logfile.
   Called either in FormShow or after closing preferences dialog
 }
-procedure TMainForm.ActivateFileLogging;
+procedure TMainForm.SetLogToFile(Value: Boolean);
 var
   LogfilePattern, LogDir: String;
   i : Integer;
 begin
-  if AppSettings.ReadBool(asLogToFile) then
+  if Value = FLogToFile then
     Exit;
 
-  // Ensure directory exists
-  LogDir := AppSettings.ReadString(asSessionLogsDirectory);
-  if LogDir[Length(LogDir)] <> '\' then
-    LogDir := LogDir + '\';
-  ForceDirectories(LogDir);
+  if Value then begin
+    // Ensure directory exists
+    LogDir := AppSettings.ReadString(asSessionLogsDirectory);
+    if LogDir[Length(LogDir)] <> '\' then
+      LogDir := LogDir + '\';
+    ForceDirectories(LogDir);
 
-  // Determine free filename
-  LogfilePattern := '%.6u.log';
-  i := 1;
-  FFileNameSessionLog := LogDir + goodfilename(Format(LogfilePattern, [i]));
-  while FileExists(FFileNameSessionLog) do begin
-    inc(i);
+    // Determine free filename
+    LogfilePattern := '%.6u.log';
+    i := 1;
     FFileNameSessionLog := LogDir + goodfilename(Format(LogfilePattern, [i]));
+    while FileExists(FFileNameSessionLog) do begin
+      inc(i);
+      FFileNameSessionLog := LogDir + goodfilename(Format(LogfilePattern, [i]));
+    end;
+
+    // Create file handle for writing
+    AssignFile( FFileHandleSessionLog, FFileNameSessionLog );
+    {$I-} // Supress errors
+    if FileExists(FFileNameSessionLog) then
+      Append(FFileHandleSessionLog)
+    else
+      Rewrite(FFileHandleSessionLog);
+    {$I+}
+    if IOResult <> 0 then begin
+      AppSettings.WriteBool(asLogToFile, False);
+      ErrorDialog('Error opening session log file', FFileNameSessionLog+CRLF+CRLF+'Logging is disabled now.');
+    end else begin
+      FLogToFile := Value;
+      LogSQL('Writing to session log file now: '+FFileNameSessionLog);
+    end;
+  end else begin
+    {$I-} // Supress errors
+    CloseFile(FFileHandleSessionLog);
+    {$I+}
+    // Reset IOResult so later checks in ActivateFileLogging doesn't get an old value
+    IOResult;
+    FLogToFile := Value;
+    LogSQL('Writing to session log file disabled now');
   end;
-
-  // Create file handle for writing
-  AssignFile( FFileHandleSessionLog, FFileNameSessionLog );
-  {$I-} // Supress errors
-  if FileExists(FFileNameSessionLog) then
-    Append(FFileHandleSessionLog)
-  else
-    Rewrite(FFileHandleSessionLog);
-  {$I+}
-  if IOResult <> 0 then
-  begin
-    ErrorDialog('Error opening session log file', FFileNameSessionLog+CRLF+CRLF+'Logging is disabled now.');
-    AppSettings.WriteBool(asLogToFile, False);
-  end else
-    AppSettings.WriteBool(asLogToFile, True);
-  // Update popupMenu items
-  menuLogToFile.Checked := AppSettings.ReadBool(asLogToFile);
-  menuOpenLogFolder.Enabled := AppSettings.ReadBool(asLogToFile);
-end;
-
-
-{**
-  Close logfile.
-  Called in FormClose, in ActivateFileLogging and on closing preferences dialog
-}
-procedure TMainForm.DeactivateFileLogging;
-begin
-  if not AppSettings.ReadBool(asLogToFile) then
-    Exit;
-  AppSettings.WriteBool(asLogToFile, False);
-  {$I-} // Supress errors
-  CloseFile(FFileHandleSessionLog);
-  {$I+}
-  // Reset IOResult so later checks in ActivateFileLogging doesn't get an old value
-  IOResult;
-  // Update popupMenu items
-  menuLogToFile.Checked := AppSettings.ReadBool(asLogToFile);
-  menuOpenLogFolder.Enabled := AppSettings.ReadBool(asLogToFile);
 end;
 
 
@@ -6505,18 +6502,11 @@ end;
   Enable/disable file logging by popupmenuclick
 }
 procedure TMainForm.menuLogToFileClick(Sender: TObject);
-var
-  WasActivated: Boolean;
 begin
-  WasActivated := AppSettings.ReadBool(asLogToFile);
-  if not WasActivated then
-    ActivateFileLogging
-  else
-    DeactivateFileLogging;
-
+  LogToFile := not LogToFile;
   // Save option
   AppSettings.ResetPath;
-  AppSettings.WriteBool(asLogToFile, not WasActivated);
+  AppSettings.WriteBool(asLogToFile, LogToFile);
 end;
 
 

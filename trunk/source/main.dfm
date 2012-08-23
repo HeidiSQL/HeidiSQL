@@ -8844,6 +8844,7 @@ object MainForm: TMainForm
   end
   object popupSqlLog: TPopupMenu
     Images = ImageListMain
+    OnPopup = popupSqlLogPopup
     Left = 8
     Top = 96
     object Copy1: TMenuItem

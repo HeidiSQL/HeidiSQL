@@ -3371,8 +3371,8 @@ begin
       if (not SameAsDefault) and (not SameAsCurrent) then begin
         FRegistry.WriteInteger(ValueName, I);
         Inc(FWrites);
-        FSettings[Index].CurrentInt := I;
       end;
+      FSettings[Index].CurrentInt := I;
     end;
     adBool:  begin
       SameAsDefault := B = FSettings[Index].DefaultBool;
@@ -3380,8 +3380,8 @@ begin
       if (not SameAsDefault) and (not SameAsCurrent) then begin
         FRegistry.WriteBool(ValueName, B);
         Inc(FWrites);
-        FSettings[Index].CurrentBool := B;
       end;
+      FSettings[Index].CurrentBool := B;
     end;
     adString: begin
       SameAsDefault := S = FSettings[Index].DefaultString;
@@ -3389,8 +3389,8 @@ begin
       if (not SameAsDefault) and (not SameAsCurrent) then begin
         FRegistry.WriteString(ValueName, S);
         Inc(FWrites);
-        FSettings[Index].CurrentString := S;
       end;
+      FSettings[Index].CurrentString := S;
     end;
     else
       raise Exception.CreateFmt(SUnsupportedSettingsDatatype, [FSettings[Index].Name]);
