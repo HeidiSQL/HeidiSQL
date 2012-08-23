@@ -303,10 +303,7 @@ begin
     end;
   end;
 
-  if chkLogToFile.Checked then
-    Mainform.ActivateFileLogging
-  else
-    Mainform.DeactivateFileLogging;
+  Mainform.LogToFile := chkLogToFile.Checked;
   DatatypeCategories[dtcInteger].Color := FGridTextColors[dtcInteger];
   DatatypeCategories[dtcReal].Color := FGridTextColors[dtcReal];
   DatatypeCategories[dtcText].Color := FGridTextColors[dtcText];
