@@ -3,7 +3,7 @@ object frmExportGrid: TfrmExportGrid
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Export grid rows'
-  ClientHeight = 351
+  ClientHeight = 378
   ClientWidth = 383
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -19,12 +19,12 @@ object frmExportGrid: TfrmExportGrid
   OnShow = FormShow
   DesignSize = (
     383
-    351)
+    378)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOK: TButton
     Left = 219
-    Top = 318
+    Top = 345
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -36,7 +36,7 @@ object frmExportGrid: TfrmExportGrid
   end
   object btnCancel: TButton
     Left = 300
-    Top = 318
+    Top = 345
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -49,7 +49,7 @@ object frmExportGrid: TfrmExportGrid
     Left = 8
     Top = 112
     Width = 161
-    Height = 200
+    Height = 227
     Anchors = [akLeft, akTop, akBottom]
     Caption = 'Output format'
     ItemIndex = 0
@@ -151,30 +151,30 @@ object frmExportGrid: TfrmExportGrid
     Left = 175
     Top = 184
     Width = 200
-    Height = 128
+    Height = 155
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Options'
     TabOrder = 5
     DesignSize = (
       200
-      128)
+      155)
     object lblSeparator: TLabel
       Left = 6
-      Top = 45
+      Top = 74
       Width = 76
       Height = 13
       Caption = 'Field separator:'
     end
     object lblEncloser: TLabel
       Left = 6
-      Top = 70
+      Top = 99
       Width = 44
       Height = 13
       Caption = 'Encloser:'
     end
     object lblTerminator: TLabel
       Left = 6
-      Top = 96
+      Top = 125
       Width = 76
       Height = 13
       Caption = 'Line terminator:'
@@ -192,7 +192,7 @@ object frmExportGrid: TfrmExportGrid
     end
     object editSeparator: TButtonedEdit
       Left = 106
-      Top = 41
+      Top = 70
       Width = 80
       Height = 21
       Images = MainForm.ImageListMain
@@ -206,7 +206,7 @@ object frmExportGrid: TfrmExportGrid
     end
     object editEncloser: TButtonedEdit
       Left = 106
-      Top = 67
+      Top = 96
       Width = 80
       Height = 21
       Images = MainForm.ImageListMain
@@ -219,7 +219,7 @@ object frmExportGrid: TfrmExportGrid
     end
     object editTerminator: TButtonedEdit
       Left = 106
-      Top = 93
+      Top = 122
       Width = 80
       Height = 21
       Images = MainForm.ImageListMain
@@ -231,11 +231,21 @@ object frmExportGrid: TfrmExportGrid
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
+    object chkIncludeAutoIncrement: TCheckBox
+      Left = 8
+      Top = 41
+      Width = 177
+      Height = 17
+      Anchors = [akLeft, akTop, akRight]
+      Caption = 'Include auto increment column'
+      TabOrder = 4
+      OnClick = CalcSize
+    end
   end
   object popupCSVchar: TPopupMenu
     AutoHotkeys = maManual
     Left = 8
-    Top = 320
+    Top = 344
     object menuCSVtab: TMenuItem
       Caption = 'Tab'
       Hint = '\t'
@@ -296,6 +306,6 @@ object frmExportGrid: TfrmExportGrid
     AutoHotkeys = maManual
     OnPopup = popupRecentFilesPopup
     Left = 40
-    Top = 320
+    Top = 344
   end
 end

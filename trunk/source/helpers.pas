@@ -151,7 +151,7 @@ type
     asExportSQLCreateTables, asExportSQLDropTables, asExportSQLDataHow, asExportSQLFilenames, asExportSQLDirectories,
     asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asGridExportOutputCopy, asGridExportOutputFile,
     asGridExportFilename, asGridExportRecentFiles, asGridExportEncoding, asGridExportFormat, asGridExportSelection,
-    asGridExportColumnNames, asGridExportSeparator, asGridExportEncloser, asGridExportTerminator, asCSVImportSeparator,
+    asGridExportColumnNames, asGridExportIncludeAutoInc, asGridExportSeparator, asGridExportEncloser, asGridExportTerminator, asCSVImportSeparator,
     asCSVImportEncloser, asCSVImportTerminator, asCSVImportFieldEscaper, asCSVImportWindowWidth, asCSVImportWindowHeight,
     asCSVImportFilename, asCSVImportFieldsEnclosedOptionally, asCSVImportIgnoreLines, asCSVImportLowPriority, asCSVImportLocalNumbers,
     asCSVImportTruncateTable, asCSVImportDuplicateHandling, asCSVImportParseMethod, asUpdatecheck, asUpdatecheckBuilds,
@@ -2968,6 +2968,7 @@ begin
   InitSetting(asGridExportFormat,                 'GridExportFormat',                      0);
   InitSetting(asGridExportSelection,              'GridExportSelection',                   1);
   InitSetting(asGridExportColumnNames,            'GridExportColumnNames',                 0, True);
+  InitSetting(asGridExportIncludeAutoInc,         'GridExportAutoInc',                     0, True);
   InitSetting(asGridExportSeparator,              'GridExportSeparator',                   0, False, ';');
   InitSetting(asGridExportEncloser,               'GridExportEncloser',                    0, False, '');
   InitSetting(asGridExportTerminator,             'GridExportTerminator',                  0, False, '\r\n');

@@ -478,6 +478,7 @@ type
       function MaxLength(Column: Integer): Int64;
       function ValueList(Column: Integer): TStringList;
       function ColExists(Column: String): Boolean;
+      function ColIsAutoIncrement(Column: Integer): Boolean; virtual; abstract;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; virtual; abstract;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; virtual; abstract;
       function ColIsKeyPart(Column: Integer): Boolean; virtual; abstract;
@@ -524,6 +525,7 @@ type
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
+      function ColIsAutoIncrement(Column: Integer): Boolean; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
       function ColIsKeyPart(Column: Integer): Boolean; override;
@@ -542,6 +544,7 @@ type
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
+      function ColIsAutoIncrement(Column: Integer): Boolean; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
       function ColIsKeyPart(Column: Integer): Boolean; override;
@@ -3948,6 +3951,21 @@ end;
 function TDBQuery.ColExists(Column: String): Boolean;
 begin
   Result := (ColumnNames <> nil) and (ColumnNames.IndexOf(Column) > -1);
+end;
+
+
+function TMySQLQuery.ColIsAutoIncrement(Column: Integer): Boolean;
+var
+  Field: PMYSQL_FIELD;
+begin
+  Field := mysql_fetch_field_direct(FCurrentResults, Column);
+  Result := (Field.flags and AUTO_INCREMENT_FLAG) = AUTO_INCREMENT_FLAG;
+end;
+
+
+function TAdoDBQuery.ColIsAutoIncrement(Column: Integer): Boolean;
+begin
+  Result := False;
 end;
 
 

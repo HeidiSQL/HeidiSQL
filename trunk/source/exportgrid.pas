@@ -44,9 +44,10 @@ type
     N1: TMenuItem;
     N2: TMenuItem;
     N3: TMenuItem;
+    chkIncludeAutoIncrement: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure FormShow(Sender: TObject);
+    procedure CalcSize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure editFilenameRightButtonClick(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
@@ -57,6 +58,7 @@ type
     procedure editCSVChange(Sender: TObject);
     procedure ValidateControls(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
     FCSVEditor: TButtonedEdit;
@@ -93,7 +95,9 @@ begin
   comboEncoding.Items.Delete(0); // Remove "Auto detect"
   comboEncoding.ItemIndex := AppSettings.ReadInt(asGridExportEncoding);
   grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
+  grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
   chkColumnHeader.Checked := AppSettings.ReadBool(asGridExportColumnNames);
+  chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportIncludeAutoInc);
   FCSVSeparator := AppSettings.ReadString(asGridExportSeparator);
   FCSVEncloser := AppSettings.ReadString(asGridExportEncloser);
   FCSVTerminator := AppSettings.ReadString(asGridExportTerminator);
@@ -113,6 +117,7 @@ begin
     AppSettings.WriteInt(asGridExportFormat, grpFormat.ItemIndex);
     AppSettings.WriteInt(asGridExportSelection, grpSelection.ItemIndex);
     AppSettings.WriteBool(asGridExportColumnNames, chkColumnHeader.Checked);
+    AppSettings.WriteBool(asGridExportIncludeAutoInc, chkIncludeAutoIncrement.Checked);
     AppSettings.WriteString(asGridExportSeparator, FCSVSeparator);
     AppSettings.WriteString(asGridExportEncloser, FCSVEncloser);
     AppSettings.WriteString(asGridExportTerminator, FCSVTerminator);
@@ -121,34 +126,9 @@ end;
 
 
 procedure TfrmExportGrid.FormShow(Sender: TObject);
-var
-  GridData: TDBQuery;
-  Node: PVirtualNode;
-  Col: TColumnIndex;
-  RowNum: PCardinal;
-  SelectionSize, AllSize: Int64;
 begin
   // Show dialog. Expect "Grid" property to be set now by the caller.
-  grpSelection.Items.Clear;
-  GridData := Mainform.GridResult(Grid);
-  AllSize := 0;
-  SelectionSize := 0;
-  Node := GetNextNode(Grid, nil, False);
-  while Assigned(Node) do begin
-    RowNum := Grid.GetNodeData(Node);
-    GridData.RecNo := RowNum^;
-    Col := Grid.Header.Columns.GetFirstVisibleColumn;
-    while Col > NoColumn do begin
-      Inc(AllSize, GridData.ColumnLengths(Col));
-      if vsSelected in Node.States then
-        Inc(SelectionSize, GridData.ColumnLengths(Col));
-      Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
-    end;
-    Node := GetNextNode(Grid, Node, False);
-  end;
-  grpSelection.Items.Add('Selection ('+FormatNumber(Grid.SelectedCount)+' rows, '+FormatByteNumber(SelectionSize)+')');
-  grpSelection.Items.Add('Complete ('+FormatNumber(Grid.RootNodeCount)+' rows, '+FormatByteNumber(AllSize)+')');
-  grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
+  CalcSize(Sender);
 end;
 
 
@@ -302,6 +282,47 @@ begin
 end;
 
 
+procedure TfrmExportGrid.CalcSize(Sender: TObject);
+var
+  GridData: TDBQuery;
+  Node: PVirtualNode;
+  Col, ExcludeCol: TColumnIndex;
+  RowNum: PCardinal;
+  SelectionSize, AllSize: Int64;
+begin
+  GridData := Mainform.GridResult(Grid);
+  AllSize := 0;
+  SelectionSize := 0;
+
+  ExcludeCol := NoColumn;
+  Col := Grid.Header.Columns.GetFirstVisibleColumn;
+  while Col > NoColumn do begin
+    if (not chkIncludeAutoIncrement.Checked) and GridData.ColIsAutoIncrement(Col) then
+      ExcludeCol := Col;
+    Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+  end;
+  chkIncludeAutoIncrement.Enabled := ExcludeCol <> NoColumn;
+
+  Node := GetNextNode(Grid, nil, False);
+  while Assigned(Node) do begin
+    RowNum := Grid.GetNodeData(Node);
+    GridData.RecNo := RowNum^;
+    Col := Grid.Header.Columns.GetFirstVisibleColumn;
+    while Col > NoColumn do begin
+      if Col <> ExcludeCol then begin
+        Inc(AllSize, GridData.ColumnLengths(Col));
+        if vsSelected in Node.States then
+          Inc(SelectionSize, GridData.ColumnLengths(Col));
+      end;
+      Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+    end;
+    Node := GetNextNode(Grid, Node, False);
+  end;
+  grpSelection.Items[0] := 'Selection ('+FormatNumber(Grid.SelectedCount)+' rows, '+FormatByteNumber(SelectionSize)+')';
+  grpSelection.Items[1] := 'Complete ('+FormatNumber(Grid.RootNodeCount)+' rows, '+FormatByteNumber(AllSize)+')';
+end;
+
+
 procedure TfrmExportGrid.editCSVChange(Sender: TObject);
 var
   Edit: TButtonedEdit;
@@ -361,7 +382,7 @@ end;
 
 procedure TfrmExportGrid.btnOKClick(Sender: TObject);
 var
-  Col: TColumnIndex;
+  Col, ExcludeCol: TColumnIndex;
   Header, Data, tmp, Encloser, Separator, Terminator, TableName: String;
   Node: PVirtualNode;
   GridData: TDBQuery;
@@ -394,6 +415,13 @@ begin
     NodeCount := Grid.RootNodeCount;
   MainForm.EnableProgress(NodeCount);
   TableName := BestTableName(GridData);
+  ExcludeCol := NoColumn;
+  Col := Grid.Header.Columns.GetFirstVisibleColumn;
+  while Col > NoColumn do begin
+    if (not chkIncludeAutoIncrement.Checked) and GridData.ColIsAutoIncrement(Col) then
+      ExcludeCol := Col;
+    Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+  end;
 
   if radioOutputCopyToClipboard.Checked then
     Encoding := TEncoding.UTF8
@@ -445,7 +473,8 @@ begin
           '        <tr>' + CRLF;
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
-          Header := Header + '          <th class="col' + IntToStr(Col) + '">' + Grid.Header.Columns[Col].Text + '</th>' + CRLF;
+          if Col <> ExcludeCol then
+            Header := Header + '          <th class="col' + IntToStr(Col) + '">' + Grid.Header.Columns[Col].Text + '</th>' + CRLF;
           Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
         end;
         Header := Header +
@@ -464,13 +493,15 @@ begin
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
           // Alter column name in header if data is not raw.
-          Data := Grid.Header.Columns[Col].Text;
-          if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-            Data := 'HEX(' + Data + ')';
-          // Add header item.
-          if Header <> '' then
-            Header := Header + Separator;
-          Header := Header + Encloser + Data + Encloser;
+          if Col <> ExcludeCol then begin
+            Data := Grid.Header.Columns[Col].Text;
+            if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+              Data := 'HEX(' + Data + ')';
+            // Add header item.
+            if Header <> '' then
+              Header := Header + Separator;
+            Header := Header + Encloser + Data + Encloser;
+          end;
           Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
         end;
         Header := Header + Terminator;
@@ -490,14 +521,16 @@ begin
       Header := Header + '{';
       Col := Grid.Header.Columns.GetFirstVisibleColumn;
       while Col > NoColumn do begin
-        Header := Header + ' c ';
+        if Col <> ExcludeCol then
+          Header := Header + ' c ';
         Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
       end;
       Header := Header + '}' + CRLF;
       if chkColumnHeader.Checked then begin
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
-          Header := Header + Grid.Header.Columns[Col].Text + Separator;
+          if Col <> ExcludeCol then
+            Header := Header + Grid.Header.Columns[Col].Text + Separator;
           Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
         end;
         Delete(Header, Length(Header)-Length(Separator)+1, Length(Separator));
@@ -513,7 +546,8 @@ begin
         Header := '|| ';
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
-          Header := Header + '*' + Grid.Header.Columns[Col].Text + '*' + Separator;
+          if Col <> ExcludeCol then
+            Header := Header + '*' + Grid.Header.Columns[Col].Text + '*' + Separator;
           Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
         end;
         Delete(Header, Length(Header)-Length(Separator)+1, Length(Separator));
@@ -559,7 +593,8 @@ begin
           tmp := tmp + ' (';
           Col := Grid.Header.Columns.GetFirstVisibleColumn;
           while Col > NoColumn do begin
-            tmp := tmp + GridData.Connection.QuoteIdent(Grid.Header.Columns[Col].Text)+', ';
+            if Col <> ExcludeCol then
+              tmp := tmp + GridData.Connection.QuoteIdent(Grid.Header.Columns[Col].Text)+', ';
             Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
           end;
           Delete(tmp, Length(tmp)-1, 2);
@@ -577,62 +612,64 @@ begin
 
     Col := Grid.Header.Columns.GetFirstVisibleColumn;
     while Col > NoColumn do begin
-      if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-        Data := GridData.HexValue(Col)
-      else
-        Data := GridData.Col(Col);
-      // Keep formatted numeric values
-      if (GridData.DataType(Col).Category in [dtcInteger, dtcReal])
-        and (ExportFormat in [efExcel, efHTML]) then
-          Data := FormatNumber(Data, False);
+      if Col <> ExcludeCol then begin
+        if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+          Data := GridData.HexValue(Col)
+        else
+          Data := GridData.Col(Col);
+        // Keep formatted numeric values
+        if (GridData.DataType(Col).Category in [dtcInteger, dtcReal])
+          and (ExportFormat in [efExcel, efHTML]) then
+            Data := FormatNumber(Data, False);
 
-      case ExportFormat of
-        efHTML: begin
-          // Escape HTML control characters in data.
-          Data := htmlentities(Data);
-          tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
-        end;
-
-        efExcel, efCSV, efLaTeX, efWiki: begin
-          // Escape encloser characters inside data per de-facto CSV.
-          Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
-          Data := Encloser + Data + Encloser;
-          tmp := tmp + Data + Separator;
-        end;
-
-        efXML: begin
-          // Print cell start tag.
-          tmp := tmp + #9#9'<' + Grid.Header.Columns[Col].Text;
-          if GridData.IsNull(Col) then
-            tmp := tmp + ' isnull="true" />' + CRLF
-          else begin
-            if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-              tmp := tmp + ' format="hex"';
-            tmp := tmp + '>' + htmlentities(Data) + '</' + Grid.Header.Columns[Col].Text + '>' + CRLF;
+        case ExportFormat of
+          efHTML: begin
+            // Escape HTML control characters in data.
+            Data := htmlentities(Data);
+            tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
           end;
-        end;
 
-        efSQLInsert, efSQLReplace: begin
-          if GridData.IsNull(Col) then
-            Data := 'NULL'
-          else if GridData.DataType(Col).Index = dtBit then
-            Data := 'b' + esc(Data)
-          else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal, dtcBinary, dtcSpatial]) then
-            Data := esc(Data);
-          tmp := tmp + Data + ', ';
-        end;
+          efExcel, efCSV, efLaTeX, efWiki: begin
+            // Escape encloser characters inside data per de-facto CSV.
+            Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
+            Data := Encloser + Data + Encloser;
+            tmp := tmp + Data + Separator;
+          end;
 
-        efPHPArray: begin
-          if GridData.IsNull(Col) then
-            Data := 'NULL'
-          else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
-            Data := esc(Data);
-          if chkColumnHeader.Checked then
-            tmp := tmp + #9#9 + '''' + Grid.Header.Columns[Col].Text + ''' => ' + Data + ','+CRLF
-          else
-            tmp := tmp + #9#9 + Data + ','+CRLF;
-        end;
+          efXML: begin
+            // Print cell start tag.
+            tmp := tmp + #9#9'<' + Grid.Header.Columns[Col].Text;
+            if GridData.IsNull(Col) then
+              tmp := tmp + ' isnull="true" />' + CRLF
+            else begin
+              if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+                tmp := tmp + ' format="hex"';
+              tmp := tmp + '>' + htmlentities(Data) + '</' + Grid.Header.Columns[Col].Text + '>' + CRLF;
+            end;
+          end;
 
+          efSQLInsert, efSQLReplace: begin
+            if GridData.IsNull(Col) then
+              Data := 'NULL'
+            else if GridData.DataType(Col).Index = dtBit then
+              Data := 'b' + esc(Data)
+            else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal, dtcBinary, dtcSpatial]) then
+              Data := esc(Data);
+            tmp := tmp + Data + ', ';
+          end;
+
+          efPHPArray: begin
+            if GridData.IsNull(Col) then
+              Data := 'NULL'
+            else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
+              Data := esc(Data);
+            if chkColumnHeader.Checked then
+              tmp := tmp + #9#9 + '''' + Grid.Header.Columns[Col].Text + ''' => ' + Data + ','+CRLF
+            else
+              tmp := tmp + #9#9 + Data + ','+CRLF;
+          end;
+
+        end;
       end;
 
       Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
