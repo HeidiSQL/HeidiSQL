@@ -445,6 +445,7 @@ type
       FRecordCount: Int64;
       FColumnNames: TStringList;
       FColumnOrgNames: TStringList;
+      FAutoIncrementColumn: Integer;
       FColumnTypes: Array of TDBDatatype;
       FColumnLengths: TIntegerDynArray;
       FColumnFlags: TCardinalDynArray;
@@ -478,7 +479,6 @@ type
       function MaxLength(Column: Integer): Int64;
       function ValueList(Column: Integer): TStringList;
       function ColExists(Column: String): Boolean;
-      function ColIsAutoIncrement(Column: Integer): Boolean; virtual; abstract;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; virtual; abstract;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; virtual; abstract;
       function ColIsKeyPart(Column: Integer): Boolean; virtual; abstract;
@@ -507,6 +507,7 @@ type
       property ColumnNames: TStringList read FColumnNames;
       property StoreResult: Boolean read FStoreResult write FStoreResult;
       property ColumnOrgNames: TStringList read FColumnOrgNames write SetColumnOrgNames;
+      property AutoIncrementColumn: Integer read FAutoIncrementColumn;
     published
       property SQL: String read FSQL write FSQL;
       property Connection: TDBConnection read FConnection write FConnection;
@@ -525,7 +526,6 @@ type
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
-      function ColIsAutoIncrement(Column: Integer): Boolean; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
       function ColIsKeyPart(Column: Integer): Boolean; override;
@@ -544,7 +544,6 @@ type
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
-      function ColIsAutoIncrement(Column: Integer): Boolean; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
       function ColIsKeyPart(Column: Integer): Boolean; override;
@@ -3476,6 +3475,7 @@ begin
       mysql_free_result(FResultList[i]);
     NumResults := 1;
     FRecordCount := 0;
+    FAutoIncrementColumn := -1;
     FEditingPrepared := False;
   end;
   if LastResult <> nil then begin
@@ -3503,6 +3503,8 @@ begin
           FColumnOrgNames.Add(Connection.DecodeAPIString(Field.name));
         FColumnFlags[i] := Field.flags;
         FColumnTypes[i] := FConnection.Datatypes[0];
+        if (Field.flags and AUTO_INCREMENT_FLAG) = AUTO_INCREMENT_FLAG then
+          FAutoIncrementColumn := i;
         for j:=0 to High(FConnection.Datatypes) do begin
           if (Field.flags and ENUM_FLAG) = ENUM_FLAG then begin
             if FConnection.Datatypes[j].Index = dtEnum then
@@ -3566,6 +3568,7 @@ begin
     end;
     NumResults := 1;
     FRecordCount := 0;
+    FAutoIncrementColumn := -1;
     FEditingPrepared := False;
   end;
   if LastResult <> nil then begin
@@ -3600,8 +3603,12 @@ begin
         case LastResult.Fields[i].DataType of
           ftSmallint, ftWord:
             TypeIndex := dtMediumInt;
-          ftInteger, ftAutoInc:
+          ftInteger:
             TypeIndex := dtInt;
+          ftAutoInc: begin
+            TypeIndex := dtInt;
+            FAutoIncrementColumn := i;
+          end;
           ftLargeint:
             TypeIndex := dtBigInt;
           ftBCD, ftFMTBcd:
@@ -3951,21 +3958,6 @@ end;
 function TDBQuery.ColExists(Column: String): Boolean;
 begin
   Result := (ColumnNames <> nil) and (ColumnNames.IndexOf(Column) > -1);
-end;
-
-
-function TMySQLQuery.ColIsAutoIncrement(Column: Integer): Boolean;
-var
-  Field: PMYSQL_FIELD;
-begin
-  Field := mysql_fetch_field_direct(FCurrentResults, Column);
-  Result := (Field.flags and AUTO_INCREMENT_FLAG) = AUTO_INCREMENT_FLAG;
-end;
-
-
-function TAdoDBQuery.ColIsAutoIncrement(Column: Integer): Boolean;
-begin
-  Result := False;
 end;
 
 
