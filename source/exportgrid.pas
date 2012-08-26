@@ -97,7 +97,6 @@ begin
   grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
   grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
   chkColumnHeader.Checked := AppSettings.ReadBool(asGridExportColumnNames);
-  chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportIncludeAutoInc);
   FCSVSeparator := AppSettings.ReadString(asGridExportSeparator);
   FCSVEncloser := AppSettings.ReadString(asGridExportEncloser);
   FCSVTerminator := AppSettings.ReadString(asGridExportTerminator);
@@ -128,6 +127,7 @@ end;
 procedure TfrmExportGrid.FormShow(Sender: TObject);
 begin
   // Show dialog. Expect "Grid" property to be set now by the caller.
+  chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportIncludeAutoInc);
   CalcSize(Sender);
 end;
 
@@ -293,15 +293,10 @@ begin
   GridData := Mainform.GridResult(Grid);
   AllSize := 0;
   SelectionSize := 0;
-
-  ExcludeCol := NoColumn;
-  Col := Grid.Header.Columns.GetFirstVisibleColumn;
-  while Col > NoColumn do begin
-    if (not chkIncludeAutoIncrement.Checked) and GridData.ColIsAutoIncrement(Col) then
-      ExcludeCol := Col;
-    Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
-  end;
-  chkIncludeAutoIncrement.Enabled := ExcludeCol <> NoColumn;
+  chkIncludeAutoIncrement.Enabled := GridData.AutoIncrementColumn > -1;
+  ExcludeCol := -1;
+  if chkIncludeAutoIncrement.Enabled and (not chkIncludeAutoIncrement.Checked) then
+    ExcludeCol := GridData.AutoIncrementColumn;
 
   Node := GetNextNode(Grid, nil, False);
   while Assigned(Node) do begin
@@ -415,13 +410,9 @@ begin
     NodeCount := Grid.RootNodeCount;
   MainForm.EnableProgress(NodeCount);
   TableName := BestTableName(GridData);
-  ExcludeCol := NoColumn;
-  Col := Grid.Header.Columns.GetFirstVisibleColumn;
-  while Col > NoColumn do begin
-    if (not chkIncludeAutoIncrement.Checked) and GridData.ColIsAutoIncrement(Col) then
-      ExcludeCol := Col;
-    Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
-  end;
+  ExcludeCol := -1;
+  if (not chkIncludeAutoIncrement.Checked) or (not chkIncludeAutoIncrement.Enabled) then
+    ExcludeCol := GridData.AutoIncrementColumn;
 
   if radioOutputCopyToClipboard.Checked then
     Encoding := TEncoding.UTF8
