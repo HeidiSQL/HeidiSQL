@@ -630,7 +630,10 @@ begin
           efExcel, efCSV, efLaTeX, efWiki: begin
             // Escape encloser characters inside data per de-facto CSV.
             Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
-            Data := Encloser + Data + Encloser;
+            if GridData.IsNull(Col) and (ExportFormat = efCSV) then
+              Data := '\N'
+            else
+              Data := Encloser + Data + Encloser;
             tmp := tmp + Data + Separator;
           end;
 
