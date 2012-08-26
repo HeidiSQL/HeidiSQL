@@ -45,6 +45,7 @@ type
     N2: TMenuItem;
     N3: TMenuItem;
     chkIncludeAutoIncrement: TCheckBox;
+    chkIncludeQuery: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure CalcSize(Sender: TObject);
@@ -97,6 +98,7 @@ begin
   grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
   grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
   chkColumnHeader.Checked := AppSettings.ReadBool(asGridExportColumnNames);
+  chkIncludeQuery.Checked := AppSettings.ReadBool(asGridExportIncludeQuery);
   FCSVSeparator := AppSettings.ReadString(asGridExportSeparator);
   FCSVEncloser := AppSettings.ReadString(asGridExportEncloser);
   FCSVTerminator := AppSettings.ReadString(asGridExportTerminator);
@@ -117,6 +119,7 @@ begin
     AppSettings.WriteInt(asGridExportSelection, grpSelection.ItemIndex);
     AppSettings.WriteBool(asGridExportColumnNames, chkColumnHeader.Checked);
     AppSettings.WriteBool(asGridExportIncludeAutoInc, chkIncludeAutoIncrement.Checked);
+    AppSettings.WriteBool(asGridExportIncludeQuery, chkIncludeQuery.Checked);
     AppSettings.WriteString(asGridExportSeparator, FCSVSeparator);
     AppSettings.WriteString(asGridExportEncloser, FCSVEncloser);
     AppSettings.WriteString(asGridExportTerminator, FCSVTerminator);
@@ -169,6 +172,8 @@ begin
     end;
   end;
 
+  chkColumnHeader.Enabled := ExportFormat <> efXML;
+  chkIncludeQuery.Enabled := ExportFormat = efHTML;
   Enable := ExportFormat = efCSV;
   lblSeparator.Enabled := Enable;
   editSeparator.Enabled := Enable;
@@ -456,8 +461,10 @@ begin
       Header := Header +
         '    </style>' + CRLF +
         '  </head>' + CRLF + CRLF +
-        '  <body>' + CRLF + CRLF +
-        '    <table caption="' + TableName + ' (' + inttostr(NodeCount) + ' rows)">' + CRLF;
+        '  <body>' + CRLF + CRLF;
+      if chkIncludeQuery.Checked then
+        Header := Header + '<p style="font-family: monospace; white-space: pre;">' + GridData.SQL + '</p>' + CRLF + CRLF;
+      Header := Header + '    <table caption="' + TableName + ' (' + inttostr(NodeCount) + ' rows)">' + CRLF;
       if chkColumnHeader.Checked then begin
         Header := Header +
           '      <thead>' + CRLF +
