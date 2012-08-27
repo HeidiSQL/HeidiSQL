@@ -2533,18 +2533,15 @@ begin
     end else begin
       // Concat queries up to a size of max_allowed_packet
       if MaxAllowedPacket = 0 then begin
-        if FConnection.Parameters.NetTypeGroup = ngMySQL then begin
-          FConnection.LockedByThread := Self;
-          MaxAllowedPacket := MakeInt(FConnection.GetVar('SHOW VARIABLES LIKE '+esc('max_allowed_packet'), 1));
-          FConnection.LockedByThread := nil;
-        end else
-          MaxAllowedPacket := SIZE_MB;
+        FConnection.LockedByThread := Self;
+        MaxAllowedPacket := FConnection.MaxAllowedPacket;
+        FConnection.LockedByThread := nil;
         // TODO: Log('Detected maximum allowed packet size: '+FormatByteNumber(MaxAllowedPacket), lcDebug);
       end;
       BatchStartOffset := FBatch[i].LeftOffset;
       while i < FBatch.Count do begin
-        PacketSize := FBatch[i].RightOffset - BatchStartOffset + ((i-FBatchPosition) * 10);
-        if (PacketSize >= MaxAllowedPacket) or (i-FBatchPosition >= 50) then begin
+        PacketSize := FBatch[i].RightOffset - BatchStartOffset + ((i-FBatchPosition) * 20);
+        if PacketSize >= MaxAllowedPacket then begin
           // TODO: Log('Limiting batch packet size to '+FormatByteNumber(Length(SQL))+' with '+FormatNumber(i-FUserQueryOffset)+' queries.', lcDebug);
           break;
         end;

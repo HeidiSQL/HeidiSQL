@@ -252,10 +252,12 @@ type
       FTableEngineDefault: String;
       FCollationTable: TDBQuery;
       FCharsetTable: TDBQuery;
+      FServerVariables: TDBQuery;
       FInformationSchemaObjects: TStringList;
       FDatabaseCache: TDatabaseCache;
       FObjectNamesInSelectedDB: TStrings;
       FResultCount: Integer;
+      FStatementNum: Cardinal;
       FCurrentUserHostCombination: String;
       FLockedByThread: TThread;
       FQuoteChar: Char;
@@ -312,7 +314,8 @@ type
       function ConnectionInfo: TStringList;
       function GetLastResults: TDBQueryList; virtual; abstract;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; virtual; abstract;
-      function GetServerVariables: TDBQuery; virtual; abstract;
+      function GetServerVariables(Refresh: Boolean): TDBQuery; virtual; abstract;
+      function MaxAllowedPacket: Int64; virtual; abstract;
       function GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
@@ -400,7 +403,8 @@ type
       function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
       property LastRawResults: TMySQLRawResults read FLastRawResults;
-      function GetServerVariables: TDBQuery; override;
+      function GetServerVariables(Refresh: Boolean): TDBQuery; override;
+      function MaxAllowedPacket: Int64; override;
   end;
 
   TAdoRawResults = Array of _RecordSet;
@@ -430,7 +434,8 @@ type
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
-      function GetServerVariables: TDBQuery; override;
+      function GetServerVariables(Refresh: Boolean): TDBQuery; override;
+      function MaxAllowedPacket: Int64; override;
       property LastRawResults: TAdoRawResults read FLastRawResults;
   end;
 
@@ -1125,7 +1130,7 @@ begin
         Status.Next;
       end;
       FServerVersionUntouched := DecodeAPIString(mysql_get_server_info(FHandle));
-      Vars := GetServerVariables;
+      Vars := GetServerVariables(False);
       while not Vars.Eof do begin
         if Vars.Col(0) = 'version_compile_os' then
           FServerOS := Vars.Col(1);
@@ -1479,6 +1484,7 @@ begin
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
   FResultCount := 0;
+  FStatementNum := 1;
   QueryStatus := mysql_real_query(FHandle, PAnsiChar(NativeSQL), Length(NativeSQL));
   FLastQueryDuration := GetTickCount - TimerStart;
   FLastQueryNetworkDuration := 0;
@@ -1489,48 +1495,28 @@ begin
   end else begin
     // We must call mysql_store_result() + mysql_free_result() to unblock the connection
     // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html
-    FRowsAffected := mysql_affected_rows(FHandle);
+    FRowsAffected := 0;
     FWarningCount := mysql_warning_count(FHandle);
+    FRowsFound := 0;
     TimerStart := GetTickCount;
     QueryResult := mysql_store_result(FHandle);
     FLastQueryNetworkDuration := GetTickCount - TimerStart;
-    if (QueryResult = nil) and (FRowsAffected = -1) then begin
+
+    if (QueryResult = nil) and (mysql_affected_rows(FHandle) = -1) then begin
       // Indicates a late error, e.g. triggered by mysql_store_result(), after selecting a stored
       // function with invalid SQL body. Also SHOW TABLE STATUS on older servers.
+      // See http://dev.mysql.com/doc/refman/5.0/en/mysql-affected-rows.html
+      //   "An integer greater than zero indicates the number of rows affected or
+      //   retrieved. Zero indicates that no records were updated for an UPDATE statement, no rows
+      //   matched the WHERE clause in the query or that no query has yet been executed. -1
+      //   indicates that the query returned an error or that, for a SELECT query,
+      //   mysql_affected_rows() was called prior to calling mysql_store_result()."
       Log(lcError, GetLastError);
       raise EDatabaseError.Create(GetLastError);
     end;
-    if QueryResult <> nil then begin
-      FRowsFound := mysql_num_rows(QueryResult);
-      FRowsAffected := 0;
-      Log(lcDebug, IntToStr(RowsFound)+' rows found, '+IntToStr(WarningCount)+' warnings.');
 
-      while true do begin
-        if QueryResult <> nil then begin
-          if DoStoreResult then begin
-            SetLength(FLastRawResults, Length(FLastRawResults)+1);
-            FLastRawResults[Length(FLastRawResults)-1] := QueryResult;
-          end else begin
-            mysql_free_result(QueryResult);
-          end;
-        end;
-        // more results? -1 = no, >0 = error, 0 = yes (keep looping)
-        QueryStatus := mysql_next_result(FHandle);
-        case QueryStatus of
-          -1: break;
-          0: QueryResult := mysql_store_result(FHandle);
-          else begin
-            Log(lcError, GetLastError);
-            raise EDatabaseError.Create(GetLastError);
-          end;
-        end;
-      end;
-      FResultCount := Length(FLastRawResults);
-
-    end else begin
-      // Query did not return a result
-      FRowsFound := 0;
-      Log(lcDebug, IntToStr(RowsAffected)+' rows affected.');
+    if (QueryResult = nil) and (UpperCase(Copy(SQL, 1, 3)) = 'USE') then begin
+      // First query did not return a result and fired USE...
       if UpperCase(Copy(SQL, 1, 3)) = 'USE' then begin
         FDatabase := Trim(Copy(SQL, 4, Length(SQL)-3));
         FDatabase := DeQuoteIdent(FDatabase);
@@ -1539,6 +1525,35 @@ begin
           FOnDatabaseChanged(Self, Database);
       end;
     end;
+
+    while QueryStatus=0 do begin
+      if QueryResult <> nil then begin
+        // Statement returned a result set
+        Inc(FRowsFound, mysql_num_rows(QueryResult));
+        if DoStoreResult then begin
+          SetLength(FLastRawResults, Length(FLastRawResults)+1);
+          FLastRawResults[Length(FLastRawResults)-1] := QueryResult;
+        end else begin
+          mysql_free_result(QueryResult);
+        end;
+      end else begin
+        // No result, but probably affected rows
+        Inc(FRowsAffected, mysql_affected_rows(FHandle));
+      end;
+      // more results? -1 = no, >0 = error, 0 = yes (keep looping)
+      Inc(FStatementNum);
+      QueryStatus := mysql_next_result(FHandle);
+      if QueryStatus = 0 then
+        QueryResult := mysql_store_result(FHandle)
+      else if QueryStatus > 0 then begin
+        // MySQL stops executing a multi-query when an error occurs. So do we here by raising an exception.
+        SetLength(FLastRawResults, 0);
+        Log(lcError, GetLastError);
+        raise EDatabaseError.Create(GetLastError);
+      end;
+    end;
+    FResultCount := Length(FLastRawResults);
+
   end;
 end;
 
@@ -1846,7 +1861,10 @@ begin
       Msg := Msg + CRLF + CRLF + Additional;
   end;
   rx.Free;
-  Result := Format(MsgSQLError, [LastErrorCode, Msg]);
+  if FStatementNum = 1 then
+    Result := Format(MsgSQLError, [LastErrorCode, Msg])
+  else
+    Result := Format(MsgSQLErrorMultiStatements, [LastErrorCode, FStatementNum, Msg]);
 end;
 
 
@@ -2290,7 +2308,7 @@ begin
       // Manually fetch available engine types by analysing have_* options
       // This is for servers below 4.1 or when the SHOW ENGINES statement has
       // failed for some other reason
-      Results := GetServerVariables;
+      Results := GetServerVariables(False);
       // Add default engines which will not show in a have_* variable:
       FTableEngines.CommaText := 'MyISAM,MRG_MyISAM,HEAP';
       FTableEngineDefault := 'MyISAM';
@@ -2400,17 +2418,57 @@ begin
 end;
 
 
-function TMySQLConnection.GetServerVariables: TDBQuery;
+function TMySQLConnection.GetServerVariables(Refresh: Boolean): TDBQuery;
 begin
   // Return server variables
-  Result := GetResults('SHOW VARIABLES');
+  if (not Assigned(FServerVariables)) or Refresh then begin
+    if Assigned(FServerVariables) then
+      FreeAndNil(FServerVariables);
+    FServerVariables := GetResults('SHOW VARIABLES');
+  end;
+  FServerVariables.First;
+  Result := FServerVariables;
 end;
 
 
-function TAdoDBConnection.GetServerVariables: TDBQuery;
+function TAdoDBConnection.GetServerVariables(Refresh: Boolean): TDBQuery;
 begin
   // Enumerate some config values on MS SQL
-  Result := GetResults('SELECT '+QuoteIdent('comment')+', '+QuoteIdent('value')+' FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('syscurconfigs')+' ORDER BY '+QuoteIdent('comment'));
+  if (not Assigned(FServerVariables)) or Refresh then begin
+    if Assigned(FServerVariables) then
+      FreeAndNil(FServerVariables);
+    FServerVariables := GetResults('SELECT '+QuoteIdent('comment')+', '+QuoteIdent('value')+' FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('syscurconfigs')+' ORDER BY '+QuoteIdent('comment'));
+  end;
+  FServerVariables.First;
+  Result := FServerVariables;
+end;
+
+
+function TMySQLConnection.MaxAllowedPacket: Int64;
+var
+  Vars: TDBQuery;
+begin
+  Vars := GetServerVariables(False);
+  Result := 0;
+  while not Vars.Eof do begin
+    if Vars.Col(0) = 'max_allowed_packet' then begin
+      Result := MakeInt(Vars.Col(1));
+      Break;
+    end;
+    Vars.Next;
+  end;
+  if Result = 0 then begin
+    Log(lcError, 'The server did not return a non-zero value for the max_allowed_packet variable. Assuming 1M now.');
+    Result := SIZE_MB;
+  end;
+
+end;
+
+
+function TAdoDBConnection.MaxAllowedPacket: Int64;
+begin
+  // No clue what MS SQL allows
+  Result := SIZE_MB;
 end;
 
 
@@ -2507,6 +2565,8 @@ begin
   // Free cached lists and results. Called when the connection was closed and/or destroyed
   FreeAndNil(FCollationTable);
   FreeAndNil(FCharsetTable);
+  if Assigned(FServerVariables) then
+    FreeAndNil(FServerVariables);
   FreeAndNil(FTableEngines);
   FreeAndNil(FInformationSchemaObjects);
   if IncludeDBObjects then
@@ -2926,6 +2986,8 @@ begin
     Result.Values['Compressed protocol'] := EvalBool(Parameters.Compressed);
     Result.Values['Unicode enabled'] := EvalBool(IsUnicode);
     Result.Values['SSL enabled'] := EvalBool(IsSSL);
+    if Assigned(FServerVariables) then
+      Result.Values['max_allowed_packet'] := FormatByteNumber(MaxAllowedPacket);
     case Parameters.NetTypeGroup of
       ngMySQL: begin
         Result.Values['Client version (libmysql)'] := DecodeApiString(mysql_get_client_info);
