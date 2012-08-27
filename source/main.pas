@@ -11057,19 +11057,27 @@ begin
     // Prevent from running into serious errors when registry has some non-numeric value
     if j<>-1 then begin
       Item := TQueryHistoryItem.Create;
-      Item.RegValue := j;
-      Raw := AppSettings.ReadString(ValueNames[i]);
-      p := Pos(DELIM, Raw);
-      Item.Time := StrToDateTime(Copy(Raw, 1, p-1));
-      System.Delete(Raw, 1, p);
-      p := Pos(DELIM, Raw);
-      Item.Database := Copy(Raw, 1, p-1);
-      System.Delete(Raw, 1, p);
-      p := Pos(DELIM, Raw);
-      Item.Duration := StrToIntDef(Copy(Raw, 1, p-1), 0);
-      FMaxDuration := Max(FMaxDuration, Item.Duration);
-      Item.SQL := Copy(Raw, p+1, Length(Raw));
-      Add(Item);
+      try
+        Item.RegValue := j;
+        Raw := AppSettings.ReadString(ValueNames[i]);
+        p := Pos(DELIM, Raw);
+        Item.Time := StrToDateTime(Copy(Raw, 1, p-1));
+        System.Delete(Raw, 1, p);
+        p := Pos(DELIM, Raw);
+        Item.Database := Copy(Raw, 1, p-1);
+        System.Delete(Raw, 1, p);
+        p := Pos(DELIM, Raw);
+        Item.Duration := StrToIntDef(Copy(Raw, 1, p-1), 0);
+        FMaxDuration := Max(FMaxDuration, Item.Duration);
+        Item.SQL := Copy(Raw, p+1, Length(Raw));
+        Add(Item);
+      except
+        on E:Exception do begin
+          MainForm.LogSQL(E.ClassName+': '+E.Message, lcError);
+          Item.Free;
+          Continue;
+        end;
+      end;
     end;
   end;
   // Sort by date
