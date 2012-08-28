@@ -3057,7 +3057,7 @@ begin
     Col.Name := DeQuoteIdent(rx.Match[1]);
     Col.OldName := Col.Name;
     Col.Status := esUntouched;
-    Col.LengthCustomized := True;
+    Col.LengthCustomized := False;
 
     // Datatype
     Col.DataType := GetDatatypeByName(UpperCase(rx.Match[2]));
