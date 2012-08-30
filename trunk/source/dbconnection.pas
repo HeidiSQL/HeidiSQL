@@ -2565,8 +2565,7 @@ begin
   // Free cached lists and results. Called when the connection was closed and/or destroyed
   FreeAndNil(FCollationTable);
   FreeAndNil(FCharsetTable);
-  if Assigned(FServerVariables) then
-    FreeAndNil(FServerVariables);
+  FreeAndNil(FServerVariables);
   FreeAndNil(FTableEngines);
   FreeAndNil(FInformationSchemaObjects);
   if IncludeDBObjects then
