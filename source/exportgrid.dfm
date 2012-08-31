@@ -48,7 +48,7 @@ object frmExportGrid: TfrmExportGrid
   object grpFormat: TRadioGroup
     Left = 8
     Top = 112
-    Width = 161
+    Width = 137
     Height = 252
     Anchors = [akLeft, akTop, akBottom]
     Caption = 'Output format'
@@ -64,12 +64,12 @@ object frmExportGrid: TfrmExportGrid
       'Wiki markup'
       'PHP Array')
     TabOrder = 2
-    OnClick = ValidateControls
+    OnClick = grpFormatClick
   end
   object grpSelection: TRadioGroup
-    Left = 175
+    Left = 151
     Top = 112
-    Width = 200
+    Width = 224
     Height = 66
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Row selection'
@@ -148,15 +148,15 @@ object frmExportGrid: TfrmExportGrid
     end
   end
   object grpOptions: TGroupBox
-    Left = 175
+    Left = 151
     Top = 184
-    Width = 200
+    Width = 224
     Height = 180
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Options'
     TabOrder = 5
     DesignSize = (
-      200
+      224
       180)
     object lblSeparator: TLabel
       Left = 6
@@ -179,13 +179,13 @@ object frmExportGrid: TfrmExportGrid
       Height = 13
       Caption = 'Line terminator:'
     end
-    object chkColumnHeader: TCheckBox
+    object chkIncludeColumnNames: TCheckBox
       Left = 8
       Top = 18
-      Width = 177
+      Width = 201
       Height = 17
       Anchors = [akLeft, akTop, akRight]
-      Caption = 'Column names in first row'
+      Caption = 'Include column names'
       Checked = True
       State = cbChecked
       TabOrder = 0
@@ -193,8 +193,9 @@ object frmExportGrid: TfrmExportGrid
     object editSeparator: TButtonedEdit
       Left = 106
       Top = 93
-      Width = 80
+      Width = 103
       Height = 21
+      Anchors = [akLeft, akTop, akRight]
       Images = MainForm.ImageListMain
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
@@ -207,8 +208,9 @@ object frmExportGrid: TfrmExportGrid
     object editEncloser: TButtonedEdit
       Left = 106
       Top = 119
-      Width = 80
+      Width = 103
       Height = 21
+      Anchors = [akLeft, akTop, akRight]
       Images = MainForm.ImageListMain
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
@@ -220,8 +222,9 @@ object frmExportGrid: TfrmExportGrid
     object editTerminator: TButtonedEdit
       Left = 106
       Top = 145
-      Width = 80
+      Width = 103
       Height = 21
+      Anchors = [akLeft, akTop, akRight]
       Images = MainForm.ImageListMain
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
@@ -234,7 +237,7 @@ object frmExportGrid: TfrmExportGrid
     object chkIncludeAutoIncrement: TCheckBox
       Left = 8
       Top = 41
-      Width = 177
+      Width = 201
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Include auto increment column'
