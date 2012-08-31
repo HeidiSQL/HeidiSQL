@@ -242,7 +242,7 @@ type
   function sstr(str: String; len: Integer) : String;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
-  function htmlentities(str: String): String;
+  function HTMLSpecialChars(str: String): String;
   function BestTableName(Data: TDBQuery): String;
   function EncodeURL(const Src: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
@@ -477,15 +477,9 @@ begin
 end;
 
 
-
-{***
-  Convert HTML-characters to their corresponding entities
-
-  @param string Text used for search+replace
-  @return string Text with entities
-}
-function htmlentities(str: String) : String;
+function HTMLSpecialChars(str: String) : String;
 begin
+  // Convert critical HTML-characters to entities. Used in grid export.
   result := StringReplace(str, '&', '&amp;', [rfReplaceAll]);
   result := StringReplace(result, '<', '&lt;', [rfReplaceAll]);
   result := StringReplace(result, '>', '&gt;', [rfReplaceAll]);

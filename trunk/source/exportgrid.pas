@@ -19,7 +19,7 @@ type
     radioOutputFile: TRadioButton;
     editFilename: TButtonedEdit;
     grpOptions: TGroupBox;
-    chkColumnHeader: TCheckBox;
+    chkIncludeColumnNames: TCheckBox;
     editSeparator: TButtonedEdit;
     editEncloser: TButtonedEdit;
     editTerminator: TButtonedEdit;
@@ -60,12 +60,15 @@ type
     procedure ValidateControls(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure grpFormatClick(Sender: TObject);
   private
     { Private declarations }
     FCSVEditor: TButtonedEdit;
     FCSVSeparator, FCSVEncloser, FCSVTerminator: String;
     FGrid: TVirtualStringTree;
     FRecentFiles: TStringList;
+    const FormatToFileExtension: Array[TGridExportFormat] of String =
+      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'));
     procedure SaveDialogTypeChange(Sender: TObject);
     function GetExportFormat: TGridExportFormat;
     procedure SetExportFormat(Value: TGridExportFormat);
@@ -97,7 +100,7 @@ begin
   comboEncoding.ItemIndex := AppSettings.ReadInt(asGridExportEncoding);
   grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
   grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
-  chkColumnHeader.Checked := AppSettings.ReadBool(asGridExportColumnNames);
+  chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportColumnNames);
   chkIncludeQuery.Checked := AppSettings.ReadBool(asGridExportIncludeQuery);
   FCSVSeparator := AppSettings.ReadString(asGridExportSeparator);
   FCSVEncloser := AppSettings.ReadString(asGridExportEncloser);
@@ -117,7 +120,7 @@ begin
     AppSettings.WriteInt(asGridExportEncoding, comboEncoding.ItemIndex);
     AppSettings.WriteInt(asGridExportFormat, grpFormat.ItemIndex);
     AppSettings.WriteInt(asGridExportSelection, grpSelection.ItemIndex);
-    AppSettings.WriteBool(asGridExportColumnNames, chkColumnHeader.Checked);
+    AppSettings.WriteBool(asGridExportColumnNames, chkIncludeColumnNames.Checked);
     AppSettings.WriteBool(asGridExportIncludeAutoInc, chkIncludeAutoIncrement.Checked);
     AppSettings.WriteBool(asGridExportIncludeQuery, chkIncludeQuery.Checked);
     AppSettings.WriteString(asGridExportSeparator, FCSVSeparator);
@@ -172,8 +175,7 @@ begin
     end;
   end;
 
-  chkColumnHeader.Enabled := ExportFormat <> efXML;
-  chkIncludeQuery.Enabled := ExportFormat = efHTML;
+  chkIncludeQuery.Enabled := ExportFormat in [efHTML, efXML];
   Enable := ExportFormat = efCSV;
   lblSeparator.Enabled := Enable;
   editSeparator.Enabled := Enable;
@@ -191,6 +193,8 @@ begin
     editFilename.Font.Color := clGrayText;
   comboEncoding.Enabled := radioOutputFile.Checked;
   lblEncoding.Enabled := radioOutputFile.Checked;
+  if ExportFormat = efExcel then
+    comboEncoding.ItemIndex := comboEncoding.Items.IndexOf('ANSI');
 end;
 
 
@@ -206,20 +210,39 @@ begin
 end;
 
 
+procedure TfrmExportGrid.grpFormatClick(Sender: TObject);
+var
+  Filename, Extension: String;
+begin
+  // Auto-modify file extension when selecting export format
+  // Be careful about triggering editFilename.OnChange event, as we may have come here from that event!
+  if radioOutputFile.Checked then begin
+    Filename := editFilename.Text;
+    Extension := ExtractFileExt(Filename);
+    Filename := Copy(Filename, 1, Length(Filename)-Length(Extension)) + '.' + FormatToFileExtension[ExportFormat];
+    if CompareText(Filename, editFilename.Text) <> 0 then begin
+      editFilename.Text := Filename;
+      ValidateControls(Sender);
+    end;
+  end;
+end;
+
+
 procedure TfrmExportGrid.SetExportFormatByFilename;
 var
   ext: String;
+  efrm: TGridExportFormat;
 begin
   // Set format by file extension
   ext := LowerCase(Copy(ExtractFileExt(editFilename.Text), 2, 10));
-  if (ext = 'csv') and (not (ExportFormat in [efExcel, efCSV]))
-                         then ExportFormat := efCSV
-  else if ext = 'html'   then ExportFormat := efHTML
-  else if ext = 'xml'    then ExportFormat := efXML
-  else if ext = 'sql'    then ExportFormat := efSQLInsert
-  else if ext = 'latex'  then ExportFormat := efLaTeX
-  else if ext = 'wiki'   then ExportFormat := efWiki
-  else if ext = 'php'    then ExportFormat := efPHPArray;
+  for efrm :=Low(TGridExportFormat) to High(TGridExportFormat) do begin
+    if ext = FormatToFileExtension[ExportFormat] then
+      break;
+    if ext = FormatToFileExtension[efrm] then begin
+      ExportFormat := efrm;
+      break;
+    end;
+  end;
 end;
 
 
@@ -347,12 +370,12 @@ begin
   // Set default file-extension of saved file and options on the dialog to show
   Dialog := Sender as TSaveDialog;
   case Dialog.FilterIndex of
-    1: Dialog.DefaultExt := 'csv';
-    2: Dialog.DefaultExt := 'html';
-    3: Dialog.DefaultExt := 'xml';
-    4: Dialog.DefaultExt := 'sql';
-    5: Dialog.DefaultExt := 'LaTeX';
-    6: Dialog.DefaultExt := 'wiki';
+    1: Dialog.DefaultExt := FormatToFileExtension[efCSV];
+    2: Dialog.DefaultExt := FormatToFileExtension[efHTML];
+    3: Dialog.DefaultExt := FormatToFileExtension[efXML];
+    4: Dialog.DefaultExt := FormatToFileExtension[efSQLInsert];
+    5: Dialog.DefaultExt := FormatToFileExtension[efLaTeX];
+    6: Dialog.DefaultExt := FormatToFileExtension[efWiki];
   end;
 end;
 
@@ -465,7 +488,7 @@ begin
       if chkIncludeQuery.Checked then
         Header := Header + '<p style="font-family: monospace; white-space: pre;">' + GridData.SQL + '</p>' + CRLF + CRLF;
       Header := Header + '    <table caption="' + TableName + ' (' + inttostr(NodeCount) + ' rows)">' + CRLF;
-      if chkColumnHeader.Checked then begin
+      if chkIncludeColumnNames.Checked then begin
         Header := Header +
           '      <thead>' + CRLF +
           '        <tr>' + CRLF;
@@ -487,7 +510,7 @@ begin
       Separator := GridData.Connection.UnescapeString(editSeparator.Text);
       Encloser := GridData.Connection.UnescapeString(editEncloser.Text);
       Terminator := GridData.Connection.UnescapeString(editTerminator.Text);
-      if chkColumnHeader.Checked then begin
+      if chkIncludeColumnNames.Checked then begin
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
           // Alter column name in header if data is not raw.
@@ -507,8 +530,12 @@ begin
     end;
 
     efXML: begin
-      Header := '<?xml version="1.0" encoding="'+MainForm.GetCharsetByEncoding(Encoding)+'"?>' + CRLF + CRLF +
-          '<table name="'+TableName+'">' + CRLF;
+      // Imitate mysqldump's XML style
+      Header := '<?xml version="1.0" encoding="'+MainForm.GetCharsetByEncoding(Encoding)+'"?>' + CRLF + CRLF;
+      if chkIncludeQuery.Checked then
+        Header := Header + '<resultset statement="'+HTMLSpecialChars(GridData.SQL)+'" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' + CRLF
+      else
+        Header := Header + '<table_data name="'+HTMLSpecialChars(TableName)+'">' + CRLF;
     end;
 
     efLaTeX: begin
@@ -524,7 +551,7 @@ begin
         Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
       end;
       Header := Header + '}' + CRLF;
-      if chkColumnHeader.Checked then begin
+      if chkIncludeColumnNames.Checked then begin
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
           if Col <> ExcludeCol then
@@ -540,7 +567,7 @@ begin
       Separator := ' || ';
       Encloser := '';
       Terminator := ' ||'+CRLF;
-      if chkColumnHeader.Checked then begin
+      if chkIncludeColumnNames.Checked then begin
         Header := '|| ';
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
@@ -587,7 +614,7 @@ begin
         else
           tmp := 'REPLACE';
         tmp := tmp + ' INTO '+GridData.Connection.QuoteIdent(Tablename);
-        if chkColumnHeader.Checked then begin
+        if chkIncludeColumnNames.Checked then begin
           tmp := tmp + ' (';
           Col := Grid.Header.Columns.GetFirstVisibleColumn;
           while Col > NoColumn do begin
@@ -623,7 +650,7 @@ begin
         case ExportFormat of
           efHTML: begin
             // Escape HTML control characters in data.
-            Data := htmlentities(Data);
+            Data := HTMLSpecialChars(Data);
             tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
           end;
 
@@ -639,13 +666,15 @@ begin
 
           efXML: begin
             // Print cell start tag.
-            tmp := tmp + #9#9'<' + Grid.Header.Columns[Col].Text;
+            tmp := tmp + #9#9'<field';
+            if chkIncludeColumnNames.Checked then
+              tmp := tmp + ' name="' + HTMLSpecialChars(Grid.Header.Columns[Col].Text) + '"';
             if GridData.IsNull(Col) then
-              tmp := tmp + ' isnull="true" />' + CRLF
+              tmp := tmp + ' xsi:nil="true" />' + CRLF
             else begin
               if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
                 tmp := tmp + ' format="hex"';
-              tmp := tmp + '>' + htmlentities(Data) + '</' + Grid.Header.Columns[Col].Text + '>' + CRLF;
+              tmp := tmp + '>' + HTMLSpecialChars(Data) + '</field>' + CRLF;
             end;
           end;
 
@@ -664,7 +693,7 @@ begin
               Data := 'NULL'
             else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
               Data := esc(Data);
-            if chkColumnHeader.Checked then
+            if chkIncludeColumnNames.Checked then
               tmp := tmp + #9#9 + '''' + Grid.Header.Columns[Col].Text + ''' => ' + Data + ','+CRLF
             else
               tmp := tmp + #9#9 + Data + ','+CRLF;
@@ -711,8 +740,12 @@ begin
         '  </body>' + CRLF +
         '</html>' + CRLF;
     end;
-    efXML:
-      tmp := '</table>' + CRLF;
+    efXML: begin
+      if chkIncludeQuery.Checked then
+        tmp := '</resultset>' + CRLF
+      else
+        tmp := '</table_data>' + CRLF;
+    end;
     efLaTeX:
       tmp := '\end{tabular}' + CRLF;
     efPHPArray: begin
