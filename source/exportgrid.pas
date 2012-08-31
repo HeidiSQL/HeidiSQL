@@ -67,8 +67,10 @@ type
     FCSVSeparator, FCSVEncloser, FCSVTerminator: String;
     FGrid: TVirtualStringTree;
     FRecentFiles: TStringList;
-    const FormatToFileExtension: Array[TGridExportFormat] of String =
+    const FFormatToFileExtension: Array[TGridExportFormat] of String =
       (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'));
+    const FFormatToDescription: Array[TGridExportFormat] of String =
+      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('LaTeX'), ('Wiki markup'), ('PHP Array'));
     procedure SaveDialogTypeChange(Sender: TObject);
     function GetExportFormat: TGridExportFormat;
     procedure SetExportFormat(Value: TGridExportFormat);
@@ -89,6 +91,8 @@ uses main, helpers, dbconnection, mysql_structures;
 
 
 procedure TfrmExportGrid.FormCreate(Sender: TObject);
+var
+  FormatDesc: String;
 begin
   InheritFont(Font);
   editFilename.Text := AppSettings.ReadString(asGridExportFilename);
@@ -98,6 +102,9 @@ begin
   comboEncoding.Items.Assign(MainForm.FileEncodings);
   comboEncoding.Items.Delete(0); // Remove "Auto detect"
   comboEncoding.ItemIndex := AppSettings.ReadInt(asGridExportEncoding);
+  grpFormat.Items.Clear;
+  for FormatDesc in FFormatToDescription do
+    grpFormat.Items.Add(FormatDesc);
   grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
   grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
   chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportColumnNames);
@@ -212,19 +219,18 @@ end;
 
 procedure TfrmExportGrid.grpFormatClick(Sender: TObject);
 var
-  Filename, Extension: String;
+  Filename: String;
 begin
   // Auto-modify file extension when selecting export format
   // Be careful about triggering editFilename.OnChange event, as we may have come here from that event!
   if radioOutputFile.Checked then begin
-    Filename := editFilename.Text;
-    Extension := ExtractFileExt(Filename);
-    Filename := Copy(Filename, 1, Length(Filename)-Length(Extension)) + '.' + FormatToFileExtension[ExportFormat];
-    if CompareText(Filename, editFilename.Text) <> 0 then begin
+    Filename := ExtractFilePath(editFilename.Text) +
+      ExtractBaseFileName(editFilename.Text) +
+      '.' + FFormatToFileExtension[ExportFormat];
+    if CompareText(Filename, editFilename.Text) <> 0 then
       editFilename.Text := Filename;
-      ValidateControls(Sender);
-    end;
   end;
+  ValidateControls(Sender);
 end;
 
 
@@ -236,9 +242,9 @@ begin
   // Set format by file extension
   ext := LowerCase(Copy(ExtractFileExt(editFilename.Text), 2, 10));
   for efrm :=Low(TGridExportFormat) to High(TGridExportFormat) do begin
-    if ext = FormatToFileExtension[ExportFormat] then
+    if ext = FFormatToFileExtension[ExportFormat] then
       break;
-    if ext = FormatToFileExtension[efrm] then begin
+    if ext = FFormatToFileExtension[efrm] then begin
       ExportFormat := efrm;
       break;
     end;
@@ -255,28 +261,22 @@ end;
 procedure TfrmExportGrid.editFilenameRightButtonClick(Sender: TObject);
 var
   Dialog: TSaveDialog;
+  ef: TGridExportFormat;
 begin
   // Select file target
   Dialog := TSaveDialog.Create(Self);
   Dialog.InitialDir := ExtractFilePath(editFilename.Text);
-  Dialog.FileName := ExtractFileName(editFilename.Text);
-  Dialog.FileName := Copy(Dialog.FileName, 1, Length(Dialog.FileName)-Length(ExtractFileExt(Dialog.FileName)));
+  Dialog.FileName := ExtractBaseFileName(editFilename.Text);
+  Dialog.Filter := '';
+  for ef:=Low(TGridExportFormat) to High(TGridExportFormat) do
+    Dialog.Filter := Dialog.Filter + FFormatToDescription[ef] + ' (*.'+FFormatToFileExtension[ef]+')|*.'+FFormatToFileExtension[ef]+'|';
+  Dialog.Filter := Dialog.Filter + 'All files (*.*)|*.*';
   Dialog.OnTypeChange := SaveDialogTypeChange;
-  Dialog.OnTypeChange(Dialog);
   Dialog.FilterIndex := grpFormat.ItemIndex+1;
-  Dialog.Filter := 'Tab separated values (*.csv)|*.csv|'+
-    'Comma separated values (*.csv)|*.csv|'+
-    'Hypertext markup language (*.html)|*.html|'+
-    'Extensible markup language (*.xml)|*.xml|'+
-    'Structured query language (*.sql)|*.sql|'+
-    'LaTeX table (*.latex)|*.latex|'+
-    'Wiki markup table (*.wiki)|*.wiki|'+
-    'PHP script (*.php)|*.php|'+
-    'All files (*.*)|*.*';
+  Dialog.OnTypeChange(Dialog);
   if Dialog.Execute then begin
     editFilename.Text := Dialog.FileName;
     SetExportFormatByFilename;
-    ValidateControls(Sender);
   end;
   Dialog.Free;
 end;
@@ -366,16 +366,13 @@ end;
 procedure TfrmExportGrid.SaveDialogTypeChange(Sender: TObject);
 var
   Dialog: TSaveDialog;
+  ef: TGridExportFormat;
 begin
   // Set default file-extension of saved file and options on the dialog to show
   Dialog := Sender as TSaveDialog;
-  case Dialog.FilterIndex of
-    1: Dialog.DefaultExt := FormatToFileExtension[efCSV];
-    2: Dialog.DefaultExt := FormatToFileExtension[efHTML];
-    3: Dialog.DefaultExt := FormatToFileExtension[efXML];
-    4: Dialog.DefaultExt := FormatToFileExtension[efSQLInsert];
-    5: Dialog.DefaultExt := FormatToFileExtension[efLaTeX];
-    6: Dialog.DefaultExt := FormatToFileExtension[efWiki];
+  for ef:=Low(TGridExportFormat) to High(TGridExportFormat) do begin
+    if Dialog.FilterIndex = Integer(ef)+1 then
+      Dialog.DefaultExt := FFormatToFileExtension[ef];
   end;
 end;
 

@@ -262,6 +262,7 @@ type
   function DirnameUserAppData: String;
   function DirnameSnippets: String;
   function goodfilename( str: String ): String;
+  function ExtractBaseFileName(FileName: String): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
   function UnformatNumber(Val: String): String;
   function FormatNumber( int: Int64; Thousands: Boolean=True): String; Overload;
@@ -833,6 +834,16 @@ begin
     result := StringReplace( result, c, '_', [rfReplaceAll] );
 end;
 
+
+function ExtractBaseFileName(FileName: String): String;
+var
+  Ext: String;
+begin
+  // Extract file name without path and file extension
+  FileName := ExtractFileName(FileName);
+  Ext := ExtractFileExt(FileName);
+  Result := Copy(FileName, 1, Length(FileName)-Length(Ext));
+end;
 
 
 {**
