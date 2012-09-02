@@ -215,14 +215,20 @@ end;
 procedure TfrmRoutineEditor.btnAddParamClick(Sender: TObject);
 var
   Param: TRoutineParam;
+  Position: Integer;
 begin
   Param := TRoutineParam.Create;
   Param.Name := 'Param'+IntToStr(Parameters.Count+1);
   Param.Datatype := 'INT';
   Param.Context := 'IN';
-  Parameters.Add(Param);
+  if Assigned(listParameters.FocusedNode) then
+    Position := listParameters.FocusedNode.Index+1
+  else
+    Position := Parameters.Count;
+  Parameters.Insert(Position, Param);
   // See List.OnPaint:
   listParameters.Repaint;
+  SelectNode(listParameters, Position);
   Modification(Sender);
 end;
 
