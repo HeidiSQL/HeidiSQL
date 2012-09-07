@@ -317,6 +317,7 @@ type
       function GetServerVariables(Refresh: Boolean): TDBQuery; virtual; abstract;
       function MaxAllowedPacket: Int64; virtual; abstract;
       function GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
+      function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; virtual;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
       procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
@@ -405,6 +406,7 @@ type
       property LastRawResults: TMySQLRawResults read FLastRawResults;
       function GetServerVariables(Refresh: Boolean): TDBQuery; override;
       function MaxAllowedPacket: Int64; override;
+      function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; override;
   end;
 
   TAdoRawResults = Array of _RecordSet;
@@ -2557,6 +2559,41 @@ begin
   if FCurrentUserHostCombination = '' then
     FCurrentUserHostCombination := GetVar(GetSQLSpecifity(spCurrentUserHost));
   Result := FCurrentUserHostCombination;
+end;
+
+
+function TDBConnection.ExplainAnalyzer(SQL, DatabaseName: String): Boolean;
+begin
+  Result := False;
+  MessageDialog('Not implemented for this DBMS', mtError, [mbOK]);
+end;
+
+
+function TMySQLConnection.ExplainAnalyzer(SQL, DatabaseName: String): Boolean;
+var
+  Results: TDBQuery;
+  Raw, URL: String;
+  i: Integer;
+begin
+  // Send EXPLAIN output to MariaDB.org
+  Result := True;
+  Database := DatabaseName;
+  Results := GetResults('EXPLAIN '+SQL);
+  Raw := '+' + CRLF + '|';
+  for i:=0 to Results.ColumnCount-1 do begin
+    Raw := Raw + Results.ColumnNames[i] + '|';
+  end;
+  Raw := Raw + CRLF + '+';
+  while not Results.Eof do begin
+    Raw := Raw + CRLF + '|';
+    for i:=0 to Results.ColumnCount-1 do begin
+      Raw := Raw + Results.Col(i) + '|';
+    end;
+    Results.Next;
+  end;
+  Raw := Raw + CRLF;
+  URL := 'http://mariadb.org/explain_analyzer/api/1/?raw_explain='+EncodeURL(Raw)+'&client='+APPNAME;
+  ShellExec(URL);
 end;
 
 

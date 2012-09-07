@@ -557,6 +557,11 @@ type
     actGroupObjects: TAction;
     lblExplainProcessAnalyzer: TLabel;
     menuExplainAnalyzer: TMenuItem;
+    menuQueryExplain: TMenuItem;
+    actExplainCurrentQuery: TAction;
+    actExplainAnalyzeCurrentQuery: TAction;
+    Explaincurrentquery1: TMenuItem;
+    Explainanalyzerforcurrentquery1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -881,6 +886,8 @@ type
     procedure actGroupObjectsExecute(Sender: TObject);
     procedure lblExplainProcessAnalyzerClick(Sender: TObject);
     procedure popupSqlLogPopup(Sender: TObject);
+    procedure actExplainAnalyzeCurrentQueryExecute(Sender: TObject);
+    procedure menuQueryExplainClick(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -934,6 +941,7 @@ type
     procedure insertFunction(Sender: TObject);
     function GetActiveConnection: TDBConnection;
     function GetActiveDatabase: String;
+    function GetCurrentQuery(Tab: TQueryTab): String;
     procedure SetActiveDatabase(db: String; Connection: TDBConnection);
     procedure SetActiveDBObj(Obj: TDBObject);
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
@@ -2188,13 +2196,31 @@ begin
 end;
 
 
+function TMainForm.GetCurrentQuery(Tab: TQueryTab): String;
+var
+  BatchAll: TSQLBatch;
+  Query: TSQLSentence;
+begin
+  // Return SQL query on cursor position
+  Result := '';
+  BatchAll := TSQLBatch.Create;
+  BatchAll.SQL := Tab.Memo.Text;
+  for Query in BatchAll do begin
+    if (Tab.Memo.SelStart >= Query.LeftOffset-1) and (Tab.Memo.SelStart < Query.RightOffset) then begin
+      Result := Query.SQL;
+      Tab.LeftOffsetInMemo := Query.LeftOffset;
+      break;
+    end;
+  end;
+  BatchAll.Free;
+end;
+
+
 procedure TMainForm.actExecuteQueryExecute(Sender: TObject);
 var
-  Query: TSQLSentence;
   ProfileNode: PVirtualNode;
-  BatchAll, Batch: TSQLBatch;
+  Batch: TSQLBatch;
   Tab: TQueryTab;
-
 begin
   Screen.Cursor := crHourGlass;
   Tab := ActiveQueryTab;
@@ -2202,20 +2228,13 @@ begin
 
   ShowStatusMsg('Splitting SQL queries ...');
   Batch := TSQLBatch.Create;
-  if Sender = actExecuteCurrentQuery then begin
-    BatchAll := TSQLBatch.Create;
-    BatchAll.SQL := Tab.Memo.Text;
-    for Query in BatchAll do begin
-      if (Tab.Memo.SelStart >= Query.LeftOffset-1) and (Tab.Memo.SelStart < Query.RightOffset) then begin
-        Batch.SQL := Query.SQL;
-        Tab.LeftOffsetInMemo := Query.LeftOffset;
-        break;
-      end;
-    end;
-    BatchAll.Free;
-  end else if Sender = actExecuteSelection then begin
+  if Sender = actExecuteSelection then begin
     Batch.SQL := Tab.Memo.SelText;
     Tab.LeftOffsetInMemo := Tab.Memo.SelStart;
+  end else if Sender = actExecuteCurrentQuery then begin
+    Batch.SQL := GetCurrentQuery(Tab);
+  end else if Sender = actExplainCurrentQuery then begin
+    Batch.SQL := 'EXPLAIN ' + GetCurrentQuery(Tab);
   end else begin
     Batch.SQL := Tab.Memo.Text;
     Tab.LeftOffsetInMemo := 0;
@@ -2538,6 +2557,30 @@ begin
   except
     ImageIndex := -1;
   end;
+end;
+
+
+procedure TMainForm.menuQueryExplainClick(Sender: TObject);
+var
+  SQL: String;
+begin
+  // Sub menu with EXPLAIN items pops up
+  SQL := GetCurrentQuery(ActiveQueryTab);
+  actExplainCurrentQuery.Enabled := (UpperCase(GetFirstWord(SQL)) = 'SELECT')
+    and (ActiveConnection.Parameters.NetTypeGroup = ngMySQL);
+  actExplainAnalyzeCurrentQuery.Enabled := actExplainCurrentQuery.Enabled;
+end;
+
+
+procedure TMainForm.actExplainAnalyzeCurrentQueryExecute(Sender: TObject);
+var
+  Conn: TDBConnection;
+  SQL: String;
+begin
+  // Send EXPLAIN output to analyzer
+  Conn := ActiveConnection;
+  SQL := GetCurrentQuery(ActiveQueryTab);
+  Conn.ExplainAnalyzer(SQL, Conn.Database);
 end;
 
 
@@ -4797,6 +4840,7 @@ begin
   actExecuteQuery.Enabled := InQueryTab and NotEmpty and (not Tab.QueryRunning);
   actExecuteSelection.Enabled := InQueryTab and HasSelection and (not Tab.QueryRunning);
   actExecuteCurrentQuery.Enabled := actExecuteQuery.Enabled;
+  actExplainAnalyzeCurrentQuery.Enabled := actExecuteQuery.Enabled;
   actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
   actSaveSQL.Enabled := actSaveSQLAs.Enabled and Tab.Memo.Modified;
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;
@@ -6608,8 +6652,8 @@ begin
     SynMemoProcessView.Color := clBtnFace;
   end;
   lblExplainProcess.Enabled := enableSQLView
-    and (UpperCase(GetFirstWord(SynMemoProcessView.Text)) <> 'SHOW')
-    and (SynMemoProcessView.GetTextLen > 0);
+    and (UpperCase(GetFirstWord(SynMemoProcessView.Text)) = 'SELECT')
+    and (ActiveConnection.Parameters.NetTypeGroup = ngMySQL);
   menuExplainProcess.Enabled := lblExplainProcess.Enabled;
   lblExplainProcessAnalyzer.Enabled := lblExplainProcess.Enabled;
   menuExplainAnalyzer.Enabled := lblExplainProcess.Enabled;
@@ -10024,28 +10068,8 @@ end;
 
 
 procedure TMainForm.lblExplainProcessAnalyzerClick(Sender: TObject);
-var
-  Results: TDBQuery;
-  Raw, URL: String;
-  i: Integer;
 begin
-  ActiveConnection.Database := listProcesses.Text[listProcesses.FocusedNode, 3];
-  Results := ActiveConnection.GetResults('EXPLAIN '+SynMemoProcessView.Text);
-  Raw := '+' + CRLF + '|';
-  for i:=0 to Results.ColumnCount-1 do begin
-    Raw := Raw + Results.ColumnNames[i] + '|';
-  end;
-  Raw := Raw + CRLF + '+';
-  while not Results.Eof do begin
-    Raw := Raw + CRLF + '|';
-    for i:=0 to Results.ColumnCount-1 do begin
-      Raw := Raw + Results.Col(i) + '|';
-    end;
-    Results.Next;
-  end;
-  Raw := Raw + CRLF;
-  URL := 'http://mariadb.org/explain_analyzer/api/1/?raw_explain='+EncodeURL(Raw)+'&client='+APPNAME;
-  ShellExec(URL);
+  ActiveConnection.ExplainAnalyzer(SynMemoProcessView.Text, listProcesses.Text[listProcesses.FocusedNode, 3]);
 end;
 
 

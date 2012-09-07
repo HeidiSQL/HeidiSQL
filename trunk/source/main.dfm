@@ -938,7 +938,7 @@ object MainForm: TMainForm
                     Width = 163
                     Height = 13
                     Cursor = crHandPoint
-                    Hint = 'Pass EXPLAIN output to MariaDB'#39's analyzer webpage'
+                    Hint = 'Analyze this query on MariaDB.org'
                     Caption = 'EXPLAIN Analyzer on MariaDB.org'
                     Enabled = False
                     Font.Charset = DEFAULT_CHARSET
@@ -1996,6 +1996,18 @@ object MainForm: TMainForm
       ImageIndex = 105
       ShortCut = 24696
       OnExecute = actExecuteQueryExecute
+    end
+    object actExplainCurrentQuery: TAction
+      Category = 'SQL'
+      Caption = 'Explain current query'
+      Hint = 'Run EXPLAIN <current query> and show results'
+      OnExecute = actExecuteQueryExecute
+    end
+    object actExplainAnalyzeCurrentQuery: TAction
+      Category = 'SQL'
+      Caption = 'Explain analyzer for current query'
+      Hint = 'Run EXPLAIN <current query> and send results to MariaDB.org'
+      OnExecute = actExplainAnalyzeCurrentQueryExecute
     end
     object actDataPreview: TAction
       Category = 'Data'
@@ -8954,6 +8966,16 @@ object MainForm: TMainForm
     end
     object MenuRunLine: TMenuItem
       Action = actExecuteCurrentQuery
+    end
+    object menuQueryExplain: TMenuItem
+      Caption = 'Explain'
+      OnClick = menuQueryExplainClick
+      object Explaincurrentquery1: TMenuItem
+        Action = actExplainCurrentQuery
+      end
+      object Explainanalyzerforcurrentquery1: TMenuItem
+        Action = actExplainAnalyzeCurrentQuery
+      end
     end
     object MenuItem1: TMenuItem
       Caption = '-'
