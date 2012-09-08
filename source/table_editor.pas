@@ -962,6 +962,7 @@ end;
 function TfrmTableEditor.CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
   Col: PTableColumn;
+  i: Integer;
 begin
   Col := listColumns.GetNodeData(Node);
   case Column of
@@ -969,6 +970,20 @@ begin
     0: Result := False;
     3: Result := Col.DataType.HasLength;
     4,6: Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+    5: begin
+      // Do not allow NULL, and force NOT NULL, on primary key columns
+      Result := True;
+      for i:=0 to FKeys.Count-1 do begin
+        if (FKeys[i].IndexType = PKEY) and (FKeys[i].Columns.IndexOf(Col.Name) > -1) then begin
+          if Col.AllowNull then begin
+            Col.AllowNull := False;
+            Col.Status := esModified;
+          end;
+          Result := False;
+          break;
+        end;
+      end;
+    end;
     // No editing of collation allowed if "Convert data" was checked
     9: Result := not chkCharsetConvert.Checked;
     else Result := True;
