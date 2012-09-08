@@ -893,6 +893,7 @@ var
   Col: PTableColumn;
   ImageIndex, X, Y, i: Integer;
   VT: TVirtualStringTree;
+  Checked: Boolean;
 begin
   VT := TVirtualStringTree(Sender);
   Col := Sender.GetNodeData(Node);
@@ -919,10 +920,15 @@ begin
 
   // Paint checkbox image in certain columns
   // while restricting "Allow NULL" checkbox to numeric datatypes
-  if (Column in [4, 5, 6]) and CellEditingAllowed(Node, Column) then begin
-    if (Col.Unsigned and (Column=4)) or (Col.AllowNull and (Column=5)) or (Col.ZeroFill and (Column = 6)) then
-      ImageIndex := 128
-    else ImageIndex := 127;
+  if (Column in [4, 5, 6]) then begin
+    Checked := (Col.Unsigned and (Column=4)) or (Col.AllowNull and (Column=5)) or (Col.ZeroFill and (Column = 6));
+    if CellEditingAllowed(Node, Column) then begin
+      if Checked then ImageIndex := 128
+      else ImageIndex := 127;
+    end else begin
+      if Checked then ImageIndex := 176
+      else ImageIndex := 175;
+    end;
     X := CellRect.Left + (VT.Header.Columns[Column].Width div 2) - (VT.Images.Width div 2);
     VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
   end;
@@ -969,7 +975,13 @@ begin
     // No editor for very first column and checkbox columns
     0: Result := False;
     3: Result := Col.DataType.HasLength;
-    4,6: Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+    4: begin
+      Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+      if (not Result) and Col.Unsigned then begin
+        Col.Unsigned := False;
+        Col.Status := esModified;
+      end;
+    end;
     5: begin
       // Do not allow NULL, and force NOT NULL, on primary key columns
       Result := True;
@@ -982,6 +994,13 @@ begin
           Result := False;
           break;
         end;
+      end;
+    end;
+    6: begin
+      Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+      if (not Result) and Col.ZeroFill then begin
+        Col.ZeroFill := False;
+        Col.Status := esModified;
       end;
     end;
     // No editing of collation allowed if "Convert data" was checked
