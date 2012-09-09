@@ -8849,7 +8849,6 @@ end;
 
 procedure TMainForm.EnumerateRecentFilters;
 var
-  flt: TStringList;
   i: Integer;
   item: TMenuItem;
   rx: TRegExpr;
@@ -8864,25 +8863,23 @@ begin
   Path := GetRegKeyTable+'\'+REGKEY_RECENTFILTERS;
   if AppSettings.SessionPathExists(Path) then begin
     AppSettings.SessionPath := Path;
-    flt := AppSettings.GetValueNames;
     rx := TRegExpr.Create;
     rx.Expression := '\s+';
-    for i:=0 to flt.Count-1 do begin
+    for i:=1 to 20 do begin
       // Previously introduced bugs stored some other settings here, see issue #2127
-      if flt[i] <> IntToStr(MakeInt(flt[i])) then
-        continue;
       item := TMenuItem.Create(popupFilter);
-      capt := AppSettings.ReadString(flt[i]);
+      capt := AppSettings.ReadString(asRecentFilter, IntToStr(i));
+      if IsEmpty(capt) then
+        Break;
       capt := rx.Replace(capt, ' ', True);
       item.Hint := capt;
       item.Caption := sstr(capt, 50);
-      item.Tag := MakeInt(flt[i]);
+      item.Tag := i;
       item.OnClick := LoadRecentFilter;
       menuRecentFilters.Add(item);
       comboRecentFilters.Items.Add(sstr(capt, 100));
     end;
     FreeAndNil(rx);
-    FreeAndNil(flt);
     AppSettings.ResetPath;
     menuRecentFilters.Enabled := menuRecentFilters.Count > 0;
   end;
@@ -8914,7 +8911,7 @@ begin
     SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.BeginUpdate;
     SynMemoFilter.SelectAll;
-    SynMemoFilter.SelText := AppSettings.ReadString(IntToStr(key));
+    SynMemoFilter.SelText := AppSettings.ReadString(asRecentFilter, IntToStr(key));
     SynMemoFilter.EndUpdate;
     AppSettings.ResetPath;
   end;
