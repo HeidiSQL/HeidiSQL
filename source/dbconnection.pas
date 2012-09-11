@@ -656,6 +656,11 @@ begin
   end else begin
     FSessionColor := AppSettings.ReadInt(asTreeBackground);
     FNetType := TNetType(AppSettings.ReadInt(asNetType));
+    if (FNetType > High(TNetType)) or (FNetType < Low(TNetType)) then begin
+      ErrorDialog('Broken "NetType" value ('+IntToStr(Integer(FNetType))+') found in settings for session "'+FSessionPath+'".'+CRLF+CRLF+
+        'Please report that on http://code.google.com/p/heidisql/issues/detail?id=2958');
+      FNetType := ntMySQL_TCPIP;
+    end;
     FHostname := AppSettings.ReadString(asHost);
     FUsername := AppSettings.ReadString(asUser);
     FPassword := decrypt(AppSettings.ReadString(asPassword));
