@@ -267,7 +267,6 @@ type
   function UnformatNumber(Val: String): String;
   function FormatNumber( int: Int64; Thousands: Boolean=True): String; Overload;
   function FormatNumber( flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
-  procedure setLocales;
   procedure ShellExec(cmd: String; path: String=''; params: String='');
   function getFirstWord( text: String ): String;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
@@ -322,11 +321,12 @@ type
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
+  procedure ParseCommandLine(Parameters: TStringlist;
+    var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
 
 var
   AppSettings: TAppSettings;
   MutexHandle: THandle = 0;
-  DecimalSeparatorSystemdefault: Char;
 
 
 implementation
@@ -931,27 +931,6 @@ begin
   Result := Trim(Result);
   Result := FormatNumber(Result, Thousands);
 end;
-
-
-
-{***
-  Set global variables containing the standard local format for date and time
-  values. Standard means the MySQL-standard format, which is YYYY-MM-DD HH:MM:SS
-
-  @note Be aware that Delphi internally converts the slashes in ShortDateFormat
-        to the DateSeparator
-}
-procedure setLocales;
-begin
-  FormatSettings.DateSeparator := '-';
-  FormatSettings.TimeSeparator := ':';
-  FormatSettings.ShortDateFormat := 'yyyy/mm/dd';
-  FormatSettings.LongTimeFormat := 'hh:nn:ss';
-  if DecimalSeparatorSystemdefault = '' then
-    DecimalSeparatorSystemdefault := FormatSettings.DecimalSeparator;
-  FormatSettings.DecimalSeparator := DecimalSeparatorSystemdefault;
-end;
-
 
 
 {***
@@ -2491,6 +2470,77 @@ begin
     Result := 'utf-7';
 end;
 
+
+procedure ParseCommandLine(Parameters: TStringlist;
+  var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
+var
+  rx: TRegExpr;
+  AllParams, SessName, Host, User, Pass, Socket: String;
+  i, Port: Integer;
+
+  function GetParamValue(ShortName, LongName: String): String;
+  begin
+    Result := '';
+    rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')\s*\=?\s*([^\-]\S*)';
+    if rx.Exec(AllParams) then
+      Result := rx.Match[2];
+  end;
+
+begin
+  SessName := '';
+  FileNames := TStringList.Create;
+
+  // Prepend a space, so the regular expression can request a mandantory space
+  // before each param name including the first one
+  AllParams := ' ' + ImplodeStr(' ', Parameters);
+  rx := TRegExpr.Create;
+  SessName := GetParamValue('d', 'description');
+  if SessName <> '' then begin
+    try
+      ConnectionParams := TConnectionParameters.Create(SessName);
+    except
+      on E:Exception do begin
+        // Session params not found in registry
+        MainForm.LogSQL(E.Message);
+        SessName := '';
+      end;
+    end;
+
+  end;
+
+  // Test if params were passed. If given, override previous values loaded from registry.
+  // Enables the user to log into a session with a different, non-stored user: -dSession -uSomeOther
+  Host := GetParamValue('h', 'host');
+  User := GetParamValue('u', 'user');
+  Pass := GetParamValue('p', 'password');
+  Socket := GetParamValue('S', 'socket');
+  Port := StrToIntDef(GetParamValue('P', 'port'), 0);
+  // Leave out support for startup script, seems reasonable for command line connecting
+
+  if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> 0) or (Socket <> '') then begin
+    if not Assigned(ConnectionParams) then begin
+      ConnectionParams := TConnectionParameters.Create;
+      ConnectionParams.SessionPath := SessName;
+    end;
+    if Host <> '' then ConnectionParams.Hostname := Host;
+    if User <> '' then ConnectionParams.Username := User;
+    if Pass <> '' then ConnectionParams.Password := Pass;
+    if Port <> 0 then ConnectionParams.Port := Port;
+    if Socket <> '' then begin
+      ConnectionParams.Hostname := Socket;
+      ConnectionParams.NetType := ntMySQL_NamedPipe;
+    end;
+    // Ensure we have a session name to pass to InitConnection
+    if (ConnectionParams.SessionPath = '') and (ConnectionParams.Hostname <> '') then
+      ConnectionParams.SessionPath := ConnectionParams.Hostname;
+  end;
+
+  // Check for valid filename(s) in parameters
+  for i:=0 to Parameters.Count-1 do begin
+    if FileExists(Parameters[i]) then
+      FileNames.Add(Parameters[i]);
+  end;
+end;
 
 
 { Threading stuff }

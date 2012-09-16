@@ -568,7 +568,7 @@ type
     procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure Startup;
+    procedure AfterFormCreate;
     procedure FormResize(Sender: TObject);
     procedure actUserManagerExecute(Sender: TObject);
     procedure actAboutBoxExecute(Sender: TObject);
@@ -908,8 +908,6 @@ type
     FFilterTextDatabase,
     FFilterTextData: String;
     FTreeRefreshInProgress: Boolean;
-    FCmdlineFilenames: TStringlist;
-    FCmdlineConnectionParams: TConnectionParameters;
     FSearchReplaceExecuted: Boolean;
     FDataGridColumnWidthsCustomized: Boolean;
     FSnippetFilenames: TStringList;
@@ -935,7 +933,6 @@ type
     FCommandStatsQueryCount: Int64;
     FCommandStatsServerUptime: Integer;
 
-    procedure ParseCommandLineParameters(Parameters: TStringlist);
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
     procedure insertFunction(Sender: TObject);
@@ -1595,16 +1592,15 @@ end;
 {**
   Check for connection parameters on commandline or show connections form.
 }
-procedure TMainForm.Startup;
+procedure TMainForm.AfterFormCreate;
 var
-  CmdlineParameters, LastSessions: TStringlist;
+  CmdlineParameters, LastSessions, FileNames: TStringlist;
   Connection: TDBConnection;
-  LoadedParams: TConnectionParameters;
+  LoadedParams, ConnectionParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
   DefaultLastrunDate, LastActiveSession: String;
   frm : TfrmUpdateCheck;
-  Connected: Boolean;
   StatsCall: THttpDownload;
   SessionPaths: TStringlist;
   DlgResult: TModalResult;
@@ -1668,15 +1664,13 @@ begin
     end;
   end;
 
-  Connected := False;
-
   CmdlineParameters := TStringList.Create;
   for i:=1 to ParamCount do
     CmdlineParameters.Add(ParamStr(i));
-  ParseCommandLineParameters(CmdlineParameters);
-  if Assigned(FCmdlineConnectionParams) then begin
+  ParseCommandLine(CmdlineParameters, ConnectionParams, FileNames);
+  if Assigned(ConnectionParams) then begin
     // Minimal parameter for command line mode is hostname
-    Connected := InitConnection(FCmdlineConnectionParams, True, Connection);
+    InitConnection(ConnectionParams, True, Connection);
   end else if AppSettings.ReadBool(asAutoReconnect) then begin
     // Auto connection via preference setting
     // Do not autoconnect if we're in commandline mode and the connection was not successful
@@ -1692,8 +1686,7 @@ begin
       for i:=0 to LastSessions.Count-1 do begin
         try
           LoadedParams := TConnectionParameters.Create(LastSessions[i]);
-          if InitConnection(LoadedParams, LastActiveSession=LastSessions[i], Connection) then
-            Connected := True;
+          InitConnection(LoadedParams, LastActiveSession=LastSessions[i], Connection);
         except on E:Exception do
           ErrorDialog(E.Message);
         end;
@@ -1702,7 +1695,7 @@ begin
   end;
 
   // Display session manager
-  if not Connected then begin
+  if Connections.Count = 0 then begin
     // Cannot be done in OnCreate because we need ready forms here:
     SessionManager := TConnForm.Create(Self);
     DlgResult := mrCancel;
@@ -1720,88 +1713,13 @@ begin
   end;
 
   // Load SQL file(s) by command line
-  if not RunQueryFiles(FCmdlineFilenames, nil) then begin
-    for i:=0 to FCmdlineFilenames.Count-1 do begin
+  if not RunQueryFiles(FileNames, nil) then begin
+    for i:=0 to FileNames.Count-1 do begin
       Tab := ActiveOrEmptyQueryTab(False);
-      Tab.LoadContents(FCmdlineFilenames[i], True, nil);
-      if i = FCmdlineFilenames.Count-1 then
+      Tab.LoadContents(FileNames[i], True, nil);
+      if i = FileNames.Count-1 then
         SetMainTab(Tab.TabSheet);
     end;
-  end;
-end;
-
-
-procedure TMainForm.ParseCommandLineParameters(Parameters: TStringlist);
-var
-  rx: TRegExpr;
-  AllParams, SessName, Host, User, Pass, Socket: String;
-  i, Port: Integer;
-
-  function GetParamValue(ShortName, LongName: String): String;
-  begin
-    Result := '';
-    rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')\s*\=?\s*([^\-]\S*)';
-    if rx.Exec(AllParams) then
-      Result := rx.Match[2];
-  end;
-
-begin
-  // Initialize and clear variables
-  if not Assigned(FCmdlineFilenames) then
-    FCmdlineFilenames := TStringlist.Create;
-  FCmdlineFilenames.Clear;
-  SessName := '';
-  FreeAndNil(FCmdlineConnectionParams);
-
-  // Prepend a space, so the regular expression can request a mandantory space
-  // before each param name including the first one
-  AllParams := ' ' + ImplodeStr(' ', Parameters);
-  rx := TRegExpr.Create;
-  SessName := GetParamValue('d', 'description');
-  if SessName <> '' then begin
-    try
-      FCmdlineConnectionParams := TConnectionParameters.Create(SessName);
-    except
-      on E:Exception do begin
-        // Session params not found in registry
-        LogSQL(E.Message);
-        SessName := '';
-      end;
-    end;
-
-  end;
-
-  // Test if params were passed. If given, override previous values loaded from registry.
-  // Enables the user to log into a session with a different, non-stored user: -dSession -uSomeOther
-  Host := GetParamValue('h', 'host');
-  User := GetParamValue('u', 'user');
-  Pass := GetParamValue('p', 'password');
-  Socket := GetParamValue('S', 'socket');
-  Port := StrToIntDef(GetParamValue('P', 'port'), 0);
-  // Leave out support for startup script, seems reasonable for command line connecting
-
-  if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> 0) or (Socket <> '') then begin
-    if not Assigned(FCmdlineConnectionParams) then begin
-      FCmdlineConnectionParams := TConnectionParameters.Create;
-      FCmdlineConnectionParams.SessionPath := SessName;
-    end;
-    if Host <> '' then FCmdlineConnectionParams.Hostname := Host;
-    if User <> '' then FCmdlineConnectionParams.Username := User;
-    if Pass <> '' then FCmdlineConnectionParams.Password := Pass;
-    if Port <> 0 then FCmdlineConnectionParams.Port := Port;
-    if Socket <> '' then begin
-      FCmdlineConnectionParams.Hostname := Socket;
-      FCmdlineConnectionParams.NetType := ntMySQL_NamedPipe;
-    end;
-    // Ensure we have a session name to pass to InitConnection
-    if (FCmdlineConnectionParams.SessionPath = '') and (FCmdlineConnectionParams.Hostname <> '') then
-      FCmdlineConnectionParams.SessionPath := FCmdlineConnectionParams.Hostname;
-  end;
-
-  // Check for valid filename(s) in parameters
-  for i:=0 to Parameters.Count-1 do begin
-    if FileExists(Parameters[i]) then
-      FCmdlineFilenames.Add(Parameters[i]);
   end;
 end;
 
@@ -10018,18 +9936,20 @@ var
   i: Integer;
   Connection: TDBConnection;
   Tab: TQueryTab;
+  ConnectionParams: TConnectionParameters;
+  FileNames: TStringList;
 begin
   // Probably a second instance is posting its command line parameters here
   if (Msg.CopyDataStruct.dwData = SecondInstMsgId) and (SecondInstMsgId <> 0) then begin
-    ParseCommandLineParameters(ParamBlobToStr(Msg.CopyDataStruct.lpData));
-    if not RunQueryFiles(FCmdlineFilenames, nil) then begin
-      for i:=0 to FCmdlineFilenames.Count-1 do begin
+    ParseCommandLine(ParamBlobToStr(Msg.CopyDataStruct.lpData), ConnectionParams, FileNames);
+    if not RunQueryFiles(FileNames, nil) then begin
+      for i:=0 to FileNames.Count-1 do begin
         Tab := ActiveOrEmptyQueryTab(False);
-        Tab.LoadContents(FCmdlineFilenames[i], True, nil);
+        Tab.LoadContents(FileNames[i], True, nil);
       end;
     end;
-    if Assigned(FCmdlineConnectionParams) then
-      InitConnection(FCmdlineConnectionParams, True, Connection);
+    if Assigned(ConnectionParams) then
+      InitConnection(ConnectionParams, True, Connection);
   end else
     // Not the right message id
     inherited;

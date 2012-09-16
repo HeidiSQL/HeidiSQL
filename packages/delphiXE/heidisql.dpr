@@ -47,18 +47,25 @@ uses
 {$R ..\..\res\updater.RES}
 
 begin
-  SetLocales;
+  // Use MySQL standard format for date/time variables: YYYY-MM-DD HH:MM:SS
+  // Be aware that Delphi internally converts the slashes in ShortDateFormat to the DateSeparator
+  FormatSettings.DateSeparator := '-';
+  FormatSettings.TimeSeparator := ':';
+  FormatSettings.ShortDateFormat := 'yyyy/mm/dd';
+  FormatSettings.LongTimeFormat := 'hh:nn:ss';
+
   AppSettings := TAppSettings.Create;
   SecondInstMsgId := RegisterWindowMessage(APPNAME);
-  if (not AppSettings.ReadBool(asAllowMultipleInstances)) and CheckForSecondInstance then
-    Application.Terminate
-  else begin
+  if (not AppSettings.ReadBool(asAllowMultipleInstances)) and CheckForSecondInstance then begin
+    AppSettings.Free;
+    Application.Terminate;
+  end else begin
     Application.Initialize;
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;
     Application.CreateForm(TMainForm, MainForm);
     Application.OnMessage := Mainform.OnMessageHandler;
-    MainForm.Startup;
+    MainForm.AfterFormCreate;
     Application.MainFormOnTaskBar := True;
     Application.Run;
   end;
