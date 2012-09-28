@@ -1553,6 +1553,7 @@ begin
   // SynMemo font, hightlighting and shortcuts
   SetupSynEditors;
 
+  SetMainTab(tabHost);
   FBtnAddTab := TSpeedButton.Create(PageControlMain);
   FBtnAddTab.Parent := PageControlMain;
   ImageListMain.GetBitmap(actNewQueryTab.ImageIndex, FBtnAddTab.Glyph);
@@ -7209,7 +7210,6 @@ begin
   end else begin
     LogSQL('DBtreeFocusChanged without node.', lcDebug);
     FreeAndNil(FActiveDbObj);
-    MainTabToActivate := tabHost;
     tabHost.Caption := 'Host';
     tabDatabase.Caption := 'Database';
     // Clear server version panel
