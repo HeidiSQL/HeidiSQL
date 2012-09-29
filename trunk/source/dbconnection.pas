@@ -1406,7 +1406,7 @@ begin
   FSQLSpecifities[spAddColumn] := 'ADD %s';
   FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
   case ServerVersionInt of
-    2000: begin
+    0..899: begin
       FSQLSpecifities[spDatabaseTable] := QuoteIdent('master')+'..'+QuoteIdent('sysdatabases');
       FSQLSpecifities[spDatabaseTableId] := QuoteIdent('dbid');
       FSQLSpecifities[spDbObjectsTable] := '..'+QuoteIdent('sysobjects');
@@ -1945,13 +1945,21 @@ end;
 function TAdoDBConnection.GetServerVersionInt: Integer;
 var
   rx: TRegExpr;
+  v1, v2: String;
 begin
+  // See http://support.microsoft.com/kb/321185
+  // "Microsoft SQL Server 7.00 - 7.00.1094 (Intel X86)" ==> 700
+  // "Microsoft SQL Server 2008 (RTM) - 10.0.1600.22 (Intel X86)" ==> 1000
+  // "Microsoft SQL Server 2008 R2 (RTM) - 10.50.1600.1 (Intel X86)" ==> 1050
   rx := TRegExpr.Create;
   rx.ModifierG := False;
-  rx.Expression := '(\d{4})\D';
-  if rx.Exec(FServerVersionUntouched) then
-    Result := MakeInt(rx.Match[1])
-  else
+  rx.Expression := '\s(\d+)\.(\d+)\D';
+  if rx.Exec(FServerVersionUntouched) then begin
+    v1 := rx.Match[1];
+    v2 := rx.Match[2];
+    Result := StrToIntDef(v1, 0) *100 +
+      StrToIntDef(v2, 0);
+  end else
     Result := 0;
   rx.Free;
 end;
@@ -2046,8 +2054,12 @@ end;
 
 
 function TAdoDBConnection.ConvertServerVersion(Version: Integer): String;
+var
+  v1, v2: Integer;
 begin
-  Result := IntToStr(Version);
+  v1 := Version div 100;
+  v2 := Version mod (Version div 100);
+  Result := IntToStr(v1) + '.' + IntToStr(v2);
 end;
 
 
