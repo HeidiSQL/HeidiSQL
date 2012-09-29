@@ -449,7 +449,7 @@ end;
 function TfrmTableEditor.ComposeAlterStatement: TSQLBatch;
 var
   Specs: TStringList;
-  ColSpec, IndexSQL, SQL: String;
+  ColSpec, IndexSQL, SQL, OldColName: String;
   i: Integer;
   Results: TDBQuery;
   Col, PreviousCol: PTableColumn;
@@ -486,7 +486,8 @@ begin
   // appending an ALTER COLUMN ... DROP DEFAULT, without getting an "unknown column" error.
   // Also, do this after the data type was altered, if from TEXT > VARCHAR e.g.
   for i:=0 to FColumns.Count-1 do begin
-    if (FColumns[i].FStatus = esModified)
+    if (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL)
+      and (FColumns[i].FStatus = esModified)
       and (FColumns[i].DefaultType = cdtNothing)
       and (FColumns[i].OldDataType.HasDefault)
       then
@@ -542,7 +543,7 @@ begin
       ColSpec := DBObject.Connection.QuoteIdent(Col.Name);
       ColSpec := ColSpec + ' ' + Col.DataType.Name;
       IsVirtual := (Col.Expression <> '') and (Col.Virtuality <> '');
-      if Col.LengthSet <> '' then
+      if (Col.LengthSet <> '') and Col.DataType.HasLength then
         ColSpec := ColSpec + '(' + Col.LengthSet + ')';
       if (Col.DataType.Category in [dtcInteger, dtcReal]) and Col.Unsigned then
         ColSpec := ColSpec + ' UNSIGNED';
@@ -563,6 +564,7 @@ begin
         ColSpec := ColSpec + ' COMMENT '+esc(Col.Comment);
       if Col.Collation <> '' then begin
         ColSpec := ColSpec + ' COLLATE ';
+        // TODO: Is this the only reason why we don't just use Col.SQLCode?
         if chkCharsetConvert.Checked then
           ColSpec := ColSpec + esc(comboCollation.Text)
         else
@@ -575,10 +577,14 @@ begin
         else
           ColSpec := ColSpec + ' AFTER '+DBObject.Connection.QuoteIdent(PreviousCol.Name);
       end;
+      case DBObject.Connection.Parameters.NetTypeGroup of
+        ngMySQL: OldColName := DBObject.Connection.QuoteIdent(Col.OldName);
+        ngMSSQL: OldColName := '';
+      end;
       if Col.Status = esModified then
-        Specs.Add('CHANGE COLUMN '+DBObject.Connection.QuoteIdent(Col.OldName) + ' ' + ColSpec)
+        Specs.Add(Format(DBObject.Connection.GetSQLSpecifity(spChangeColumn), [OldColName, ColSpec]))
       else if Col.Status in [esAddedUntouched, esAddedModified] then
-        Specs.Add('ADD COLUMN ' + ColSpec);
+        Specs.Add(Format(DBObject.Connection.GetSQLSpecifity(spAddColumn), [ColSpec]));
     end;
     PreviousCol := Col;
     Node := listColumns.GetNextSibling(Node);
@@ -743,7 +749,8 @@ begin
   end else begin
     idx := listColumns.RootNodeCount;
     NewCol.DataType := DBObject.Connection.GetDatatypeByName('INT');
-    NewCol.LengthSet := '10';
+    if NewCol.DataType.HasLength then
+      NewCol.LengthSet := '10';
     NewCol.Unsigned := False;
     NewCol.AllowNull := True;
     NewCol.DefaultType := cdtNothing;

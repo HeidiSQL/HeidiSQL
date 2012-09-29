@@ -222,7 +222,8 @@ type
   TDBDataTypeArray = Array of TDBDataType;
   TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId,
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
-    spEmptyTable, spCurrentUserHost);
+    spEmptyTable, spCurrentUserHost,
+    spAddColumn, spChangeColumn);
 
   TDBConnection = class(TComponent)
     private
@@ -1373,6 +1374,8 @@ begin
   inherited;
   FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
   FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
+  FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
+  FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
 
   // Set timezone offset to UTC
   if (ServerVersionInt >= 40103) and Parameters.LocalTimeZone then begin
@@ -1400,6 +1403,8 @@ begin
   inherited;
   FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
   FSQLSpecifities[spCurrentUserHost] := 'SELECT SYSTEM_USER';
+  FSQLSpecifities[spAddColumn] := 'ADD %s';
+  FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
   case ServerVersionInt of
     2000: begin
       FSQLSpecifities[spDatabaseTable] := QuoteIdent('master')+'..'+QuoteIdent('sysdatabases');
@@ -4902,7 +4907,7 @@ var
 begin
   Result := FConnection.QuoteIdent(Name) + ' ' +DataType.Name;
   IsVirtual := (Expression <> '') and (Virtuality <> '');
-  if LengthSet <> '' then
+  if (LengthSet <> '') and DataType.HasLength then
     Result := Result + '(' + LengthSet + ')';
   if (DataType.Category in [dtcInteger, dtcReal]) and Unsigned then
     Result := Result + ' UNSIGNED';
