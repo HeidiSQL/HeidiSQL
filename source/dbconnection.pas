@@ -2345,7 +2345,6 @@ begin
         Results.Next;
       end;
       rx.Free;
-      Results.Free;
     end;
   end;
   Result := FTableEngines;
