@@ -106,7 +106,8 @@ begin
   updownIgnoreLines.Position := AppSettings.ReadInt(asCSVImportIgnoreLines);
   chkLowPriority.Checked := AppSettings.ReadBool(asCSVImportLowPriority);
   chkLocalNumbers.Checked := AppSettings.ReadBool(asCSVImportLocalNumbers);
-  chkTruncateTable.Checked := AppSettings.ReadBool(asCSVImportTruncateTable);
+  // Uncheck critical "Truncate table" checkbox, to avoid accidental data removal
+  chkTruncateTable.Checked := False;
   grpDuplicates.ItemIndex := AppSettings.ReadInt(asCSVImportDuplicateHandling);
   grpParseMethod.ItemIndex := AppSettings.ReadInt(asCSVImportParseMethod);
 end;
@@ -126,7 +127,6 @@ begin
   AppSettings.WriteInt(asCSVImportIgnoreLines, updownIgnoreLines.Position);
   AppSettings.WriteBool(asCSVImportLowPriority, chkLowPriority.Checked);
   AppSettings.WriteBool(asCSVImportLocalNumbers, chkLocalNumbers.Checked);
-  AppSettings.WriteBool(asCSVImportTruncateTable, chkTruncateTable.Checked);
   AppSettings.WriteInt(asCSVImportDuplicateHandling, grpDuplicates.ItemIndex);
   AppSettings.WriteInt(asCSVImportParseMethod, grpParseMethod.ItemIndex);
 end;

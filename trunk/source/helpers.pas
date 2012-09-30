@@ -155,7 +155,7 @@ type
     asGridExportSeparator, asGridExportEncloser, asGridExportTerminator, asCSVImportSeparator,
     asCSVImportEncloser, asCSVImportTerminator, asCSVImportFieldEscaper, asCSVImportWindowWidth, asCSVImportWindowHeight,
     asCSVImportFilename, asCSVImportFieldsEnclosedOptionally, asCSVImportIgnoreLines, asCSVImportLowPriority, asCSVImportLocalNumbers,
-    asCSVImportTruncateTable, asCSVImportDuplicateHandling, asCSVImportParseMethod, asUpdatecheck, asUpdatecheckBuilds,
+    asCSVImportDuplicateHandling, asCSVImportParseMethod, asUpdatecheck, asUpdatecheckBuilds,
     asUpdatecheckInterval, asUpdatecheckLastrun, asTableToolsWindowWidth, asTableToolsWindowHeight, asTableToolsTreeWidth,
     asTableToolsFindText, asTableToolsDatatype, asTableToolsFindCaseSensitive, asFileImportWindowWidth, asFileImportWindowHeight,
     asEditVarWindowWidth, asEditVarWindowHeight, asUsermanagerWindowWidth, asUsermanagerWindowHeight, asUsermanagerListWidth,
@@ -3041,7 +3041,6 @@ begin
   InitSetting(asCSVImportIgnoreLines,             'CSVImportIgnoreLines',                  1);
   InitSetting(asCSVImportLowPriority,             'CSVImportLowPriority',                  0, True);
   InitSetting(asCSVImportLocalNumbers,            'CSVImportLocalNumbers',                 0, False);
-  InitSetting(asCSVImportTruncateTable,           'CSVImportTruncateTable',                0, False);
   InitSetting(asCSVImportDuplicateHandling,       'CSVImportDuplicateHandling',            2);
   InitSetting(asCSVImportParseMethod,             'CSVImportParseMethod',                  0);
   InitSetting(asUpdatecheck,                      'Updatecheck',                           0, False);
