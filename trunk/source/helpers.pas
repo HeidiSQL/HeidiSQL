@@ -289,8 +289,8 @@ type
   function ComposeOrderClause(Cols: TOrderColArray): String;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   function ListIndexByRegExpr(List: TStrings; Expression: String): Integer;
-  function FindNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode): PVirtualNode;
-  procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
+  function FindNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
+  procedure SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil); overload;
   procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
   function GetVTSelection(VT: TVirtualStringTree): TStringList;
   procedure SetVTSelection(VT: TVirtualStringTree; Captions: TStringList);
@@ -1618,27 +1618,31 @@ begin
 end;
 
 
-function FindNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode): PVirtualNode;
+function FindNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
 var
   Node: PVirtualNode;
 begin
   // Helper to find a node by its index
   Result := nil;
-  if Assigned(ParentNode) then
-    Node := VT.GetFirstChild(ParentNode)
-  else
-    Node := VT.GetFirst;
-  while Assigned(Node) do begin
-    if Node.Index = idx then begin
-      Result := Node;
-      break;
+  // Grid.RootNodeCount is unfortunately Cardinal, not Int64.
+  // Work around that as long as VT does not change that.
+  if (idx >= Low(Cardinal)) or (idx <= High(Cardinal)) then begin
+    if Assigned(ParentNode) then
+      Node := VT.GetFirstChild(ParentNode)
+    else
+      Node := VT.GetFirst;
+    while Assigned(Node) do begin
+      if Node.Index = idx then begin
+        Result := Node;
+        break;
+      end;
+      Node := VT.GetNextSibling(Node);
     end;
-    Node := VT.GetNextSibling(Node);
   end;
 end;
 
 
-procedure SelectNode(VT: TVirtualStringTree; idx: Cardinal; ParentNode: PVirtualNode=nil); overload;
+procedure SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil); overload;
 var
   Node: PVirtualNode;
 begin

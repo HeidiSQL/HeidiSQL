@@ -4373,7 +4373,7 @@ begin
     if not SynMemoFilter.Focused then
       vt.SetFocus;
 
-    DataGridFocusedNodeIndex := Min(DataGridFocusedNodeIndex, vt.RootNodeCount-1);
+    DataGridFocusedNodeIndex := Min(DataGridFocusedNodeIndex, Int64(vt.RootNodeCount)-1);
     SelectNode(vt, DataGridFocusedNodeIndex);
     for i:=0 to vt.Header.Columns.Count-1 do begin
       if vt.Header.Columns[i].Text = DataGridFocusedColumnName then begin
