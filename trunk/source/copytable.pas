@@ -356,9 +356,17 @@ end;
 
 procedure TCopyTableForm.btnOKClick(Sender: TObject);
 var
-  CreateCode, InsertCode, TargetTable, Clause, DataCols, TableExistance: String;
+  CreateCode, InsertCode, TargetTable, DataCols, TableExistance: String;
   ParentNode, Node: PVirtualNode;
-  DoData: Boolean;
+  DoData, AutoIncGetsPrimaryKey, AutoIncRemoved, TableHasAutoInc: Boolean;
+  SelectedColumns: TTableColumnList;
+  SelectedKeys: TTableKeyList;
+  SelectedForeignKeys: TForeignKeyList;
+  Column: TTableColumn;
+  Key: TTableKey;
+  ForeignKey: TForeignKey;
+const
+  ClausePattern: String = #9 + '%s,' + CRLF;
 begin
   // Compose and run CREATE query
   TargetTable := FDBObj.Connection.QuoteIdent(comboDatabase.Text)+'.'+FDBObj.Connection.QuoteIdent(editNewTablename.Text);
@@ -374,6 +382,9 @@ begin
   Screen.Cursor := crHourglass;
   MainForm.ShowStatusMsg('Generating SQL code ...');
   DataCols := '';
+  SelectedColumns := TTableColumnList.Create(False);
+  SelectedKeys := TTableKeyList.Create(False);
+  SelectedForeignKeys := TForeignKeyList.Create(False);
   DoData := False;
   ParentNode := TreeElements.GetFirst;
   while Assigned(ParentNode) do begin
@@ -381,15 +392,11 @@ begin
     while Assigned(Node) do begin
       if Node.CheckState in CheckedStates then begin
         case ParentNode.Index of
-          nColumns: begin
-            Clause := FColumns[Node.Index].SQLCode;
-            DataCols := DataCols + FDBObj.Connection.QuoteIdent(FColumns[Node.Index].Name) + ', ';
-          end;
-          nKeys:         Clause := FKeys[Node.Index].SQLCode;
-          nForeignkeys:  Clause := FForeignKeys[Node.Index].SQLCode(False);
+          nColumns: SelectedColumns.Add(FColumns[Node.Index]);
+          nKeys: SelectedKeys.Add(FKeys[Node.Index]);
+          nForeignkeys: SelectedForeignKeys.Add(FForeignKeys[Node.Index]);
           else raise Exception.Create(SUnhandledNodeIndex);
         end;
-        CreateCode := CreateCode + #9 + Clause + ',' + CRLF;
       end;
       Node := TreeElements.GetNextSibling(Node);
     end;
@@ -397,6 +404,43 @@ begin
       DoData := ParentNode.CheckState in CheckedStates;
     ParentNode := TreeElements.GetNextSibling(ParentNode);
   end;
+
+  CreateCode := '';
+  TableHasAutoInc := False;
+
+  // Columns code. Remove auto_increment attribute if pkey was unchecked, to overcome
+  // "there can be only one auto column and it must be defined as a key"
+  for Column in SelectedColumns do begin
+    AutoIncGetsPrimaryKey := False;
+    AutoIncRemoved := False;
+    if Column.DefaultType = cdtAutoInc then begin
+      for Key in SelectedKeys do begin
+        if (Key.IndexType = PKEY) and (Key.Columns.IndexOf(Column.Name) > -1) then begin
+          AutoIncGetsPrimaryKey := True;
+          Break;
+        end;
+      end;
+      if not AutoIncGetsPrimaryKey then begin
+        Column.DefaultType := cdtNothing;
+        AutoIncRemoved := True;
+      end;
+    end;
+    TableHasAutoInc := TableHasAutoInc or (Column.DefaultType = cdtAutoInc);
+    CreateCode := CreateCode + Format(ClausePattern, [Column.SQLCode]);
+    if AutoIncRemoved then
+      Column.DefaultType := cdtAutoInc;
+    DataCols := DataCols + FDBObj.Connection.QuoteIdent(Column.Name) + ', ';
+  end;
+
+  // Indexes code
+  for Key in SelectedKeys do
+    CreateCode := CreateCode + Format(ClausePattern, [Key.SQLCode]);
+
+  // Foreign keys code
+  for ForeignKey in SelectedForeignKeys do
+    CreateCode := CreateCode + Format(ClausePattern, [ForeignKey.SQLCode(False)]);
+
+  // Finish code
   Delete(CreateCode, Length(CreateCode)-2, 3);
   CreateCode := 'CREATE TABLE '+TargetTable+' ('+CRLF+CreateCode+CRLF+')'+CRLF;
 
@@ -411,7 +455,7 @@ begin
   end;
   if FDBObj.RowFormat <> '' then
     CreateCode := CreateCode + ' ROW_FORMAT=' + FDBObj.RowFormat;
-  if FDBObj.AutoInc > -1 then
+  if (FDBObj.AutoInc > -1) and TableHasAutoInc then
     CreateCode := CreateCode + ' AUTO_INCREMENT=' + IntToStr(FDBObj.AutoInc);
   CreateCode := CreateCode + ' COMMENT=' + esc(FDBObj.Comment);
 
