@@ -222,7 +222,7 @@ type
   TDBDataTypeArray = Array of TDBDataType;
   TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId,
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
-    spEmptyTable, spCurrentUserHost,
+    spEmptyTable, spRenameTable, spCurrentUserHost,
     spAddColumn, spChangeColumn);
 
   TDBConnection = class(TComponent)
@@ -1373,6 +1373,7 @@ var
 begin
   inherited;
   FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
+  FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
   FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
   FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
   FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
@@ -1402,6 +1403,7 @@ procedure TAdoDBConnection.DoAfterConnect;
 begin
   inherited;
   FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
+  FSQLSpecifities[spRenameTable] := 'EXEC sp_rename %s, %s';
   FSQLSpecifities[spCurrentUserHost] := 'SELECT SYSTEM_USER';
   FSQLSpecifities[spAddColumn] := 'ADD %s';
   FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
