@@ -470,6 +470,7 @@ type
       procedure CreateUpdateRow;
       function GetKeyColumns: TStringList;
       function GetWhereClause: String;
+      function GridQuery(QueryType, QueryBody: String): String;
       function ColAttributes(Column: Integer): TTableColumn;
     public
       constructor Create(AOwner: TComponent); override;
@@ -4209,7 +4210,7 @@ begin
   PrepareEditing;
   IsVirtual := Assigned(FCurrentUpdateRow) and FCurrentUpdateRow.Inserted;
   if not IsVirtual then begin
-    sql := Connection.ApplyLimitClause('DELETE', 'FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause, 1, 0);
+    sql := GridQuery('DELETE', 'FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause);
     Connection.Query(sql);
     if Connection.RowsAffected = 0 then
       raise EDatabaseError.Create(FormatNumber(Connection.RowsAffected)+' rows deleted when that should have been 1.');
@@ -4328,7 +4329,7 @@ begin
       sql := sql + Connection.QuoteIdent(FColumnOrgNames[i]);
     end;
     sql := sql + ' FROM '+QuotedDbAndTableName+' WHERE '+GetWhereClause;
-    sql := Connection.ApplyLimitClause('SELECT', sql, 1, 0);
+    sql := GridQuery('SELECT', sql);
     Data := Connection.GetResults(sql);
     Result := Data.RecordCount = 1;
     if Result then begin
@@ -4434,7 +4435,7 @@ begin
         end;
       end else begin
         sqlUpdate := QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause;
-        sqlUpdate := Connection.ApplyLimitClause('UPDATE', sqlUpdate, 1, 0);
+        sqlUpdate := GridQuery('UPDATE', sqlUpdate);
         Connection.Query(sqlUpdate);
         if Connection.RowsAffected = 0 then begin
           raise EDatabaseError.Create(FormatNumber(Connection.RowsAffected)+' rows updated when that should have been 1.');
@@ -4701,6 +4702,19 @@ begin
       end;
     end;
   end;
+end;
+
+
+function TDBQuery.GridQuery(QueryType, QueryBody: String): String;
+var
+  KeyColumns: TStringList;
+begin
+  // Return automatic grid UPDATE/DELETE/SELECT, and apply LIMIT clause if no good key is present
+  KeyColumns := Connection.GetKeyColumns(FColumns, FKeys);
+  if KeyColumns.Count > 0 then
+    Result := QueryType + ' ' + QueryBody
+  else
+    Result := Connection.ApplyLimitClause(QueryType, QueryBody, 1, 0);
 end;
 
 
