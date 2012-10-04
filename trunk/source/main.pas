@@ -5174,6 +5174,7 @@ procedure TMainForm.ListTablesNewText(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   Obj: PDBObject;
+  sql: String;
 begin
   // Fetch data from node
   Obj := Sender.GetNodeData(Node);
@@ -5181,7 +5182,9 @@ begin
   // Try to rename, on any error abort and don't rename ListItem
   try
     // rename table
-    Obj.Connection.Query('RENAME TABLE ' + Obj.QuotedName + ' TO ' + Obj.Connection.QuoteIdent(NewText));
+    sql := Obj.Connection.GetSQLSpecifity(spRenameTable);
+    sql := Format(sql, [Obj.QuotedName, Obj.Connection.QuoteIdent(NewText)]);
+    Obj.Connection.Query(sql);
 
     if SynSQLSyn1.TableNames.IndexOf( NewText ) = -1 then begin
       SynSQLSyn1.TableNames.Add(NewText);

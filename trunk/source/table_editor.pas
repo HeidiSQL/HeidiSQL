@@ -370,6 +370,7 @@ var
   Batch: TSQLBatch;
   Query: TSQLSentence;
   i: Integer;
+  Rename: String;
 begin
   // Create or alter table
   Result := mrOk;
@@ -380,6 +381,12 @@ begin
   try
     for Query in Batch do
       DBObject.Connection.Query(Query.SQL);
+    // Rename table
+    if (DBObject.Name <> '') and (editName.Text <> DBObject.Name) then begin
+      Rename := DBObject.Connection.GetSQLSpecifity(spRenameTable);
+      Rename := Format(Rename, [DBObject.QuotedName, DBObject.Connection.QuoteIdent(editName.Text)]);
+      DBObject.Connection.Query(Rename);
+    end;
     tabALTERcode.TabVisible := DBObject.Name <> '';
     if chkCharsetConvert.Checked then begin
       // Autoadjust column collations
@@ -495,8 +502,6 @@ begin
   end;
   AddQuery;
 
-  if editName.Text <> DBObject.Name then
-    Specs.Add('RENAME TO ' + DBObject.Connection.QuoteIdent(editName.Text));
   if memoComment.Tag = MODIFIEDFLAG then
     Specs.Add('COMMENT=' + esc(memoComment.Text));
   if (comboCollation.Tag = MODIFIEDFLAG) or (chkCharsetConvert.Checked) then
