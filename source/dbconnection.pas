@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, windows, mysql_structures, SynRegExpr, Generics.Collections, Generics.Defaults,
-  DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics;
+  DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls;
 
 
 type
@@ -265,6 +265,7 @@ type
       FDatatypes: TDBDataTypeArray;
       FThreadID: Cardinal;
       FSQLSpecifities: Array[TSQLSpecifityId] of String;
+      FKeepAliveTimer: TTimer;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -291,6 +292,7 @@ type
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
       procedure SetObjectNamesInSelectedDB;
       procedure SetLockedByThread(Value: TThread); virtual;
+      procedure KeepAliveTimerEvent(Sender: TObject);
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -899,6 +901,9 @@ begin
   FDatabaseCache := TDatabaseCache.Create(True);
   FLoginPromptDone := False;
   FCurrentUserHostCombination := '';
+  FKeepAliveTimer := TTimer.Create(Self);
+  FKeepAliveTimer.Interval := 20000;
+  FKeepAliveTimer.OnTimer := KeepAliveTimerEvent;
 end;
 
 
@@ -933,6 +938,7 @@ begin
   if Active then Active := False;
   FOnDBObjectsCleared := nil;
   ClearCache(True);
+  FKeepAliveTimer.Free;
   inherited;
 end;
 
@@ -1439,6 +1445,9 @@ begin
       Active := True;
   end;
   Result := FActive;
+  // Restart keep-alive timer
+  FKeepAliveTimer.Enabled := False;
+  FKeepAliveTimer.Enabled := True;
 end;
 
 
@@ -1455,8 +1464,18 @@ begin
         Active := True;
     end;
   end;
-
   Result := FActive;
+  // Restart keep-alive timer
+  FKeepAliveTimer.Enabled := False;
+  FKeepAliveTimer.Enabled := True;
+end;
+
+
+procedure TDBConnection.KeepAliveTimerEvent(Sender: TObject);
+begin
+  // Ping server in intervals, without automatically reconnecting
+  if Active then
+    Ping(False);
 end;
 
 
