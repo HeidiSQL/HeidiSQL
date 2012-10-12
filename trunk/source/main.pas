@@ -9944,6 +9944,8 @@ var
 begin
   // Probably a second instance is posting its command line parameters here
   if (Msg.CopyDataStruct.dwData = SecondInstMsgId) and (SecondInstMsgId <> 0) then begin
+    LogSQL('Preventing second application instance - disabled in Tools > Preferences > Miscellaneous.', lcInfo);
+    ConnectionParams := nil;
     ParseCommandLine(ParamBlobToStr(Msg.CopyDataStruct.lpData), ConnectionParams, FileNames);
     if not RunQueryFiles(FileNames, nil) then begin
       for i:=0 to FileNames.Count-1 do begin
@@ -9951,7 +9953,7 @@ begin
         Tab.LoadContents(FileNames[i], True, nil);
       end;
     end;
-    if Assigned(ConnectionParams) then
+    if ConnectionParams <> nil then
       InitConnection(ConnectionParams, True, Connection);
   end else
     // Not the right message id
