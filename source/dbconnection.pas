@@ -1013,13 +1013,14 @@ procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
   ClientFlags, FinalPort: Integer;
-  Error, tmpdb, FinalHost, FinalSocket, PlinkCmd, StatusName: String;
+  Error, tmpdb, FinalHost, FinalSocket, PlinkCmd, PlinkCmdDisplay, StatusName: String;
   CurCharset: String;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
   sslca, sslkey, sslcert: PAnsiChar;
   PluginDir: AnsiString;
   Vars, Status: TDBQuery;
+  rx: TRegExpr;
 begin
   if Value and (FHandle = nil) then begin
     DoBeforeConnect;
@@ -1077,6 +1078,10 @@ begin
         if FParameters.SSHPrivateKey <> '' then
           PlinkCmd := PlinkCmd + ' -i "' + FParameters.SSHPrivateKey + '"';
         PlinkCmd := PlinkCmd + ' -N -L ' + IntToStr(FParameters.SSHLocalPort) + ':' + FParameters.Hostname + ':' + IntToStr(FParameters.Port);
+        rx := TRegExpr.Create;
+        rx.Expression := '(-pw\s+")[^"]*(")';
+        PlinkCmdDisplay := rx.Replace(PlinkCmd, '${1}******${2}', True);
+        rx.Free;
         Log(lcInfo, 'Attempt to create plink.exe process, waiting '+FormatNumber(FParameters.SSHTimeout)+'s for response ...');
         // Create plink.exe process
         FillChar(FPlinkProcInfo, SizeOf(TProcessInformation), 0);
@@ -1088,10 +1093,10 @@ begin
           WaitForSingleObject(FPlinkProcInfo.hProcess, FParameters.SSHTimeout*1000);
           GetExitCodeProcess(FPlinkProcInfo.hProcess, ExitCode);
           if ExitCode <> STILL_ACTIVE then
-            raise EDatabaseError.Create('PLink exited unexpected. Command line was:'+CRLF+PlinkCmd);
+            raise EDatabaseError.Create('PLink exited unexpected. Command line was:'+CRLF+PlinkCmdDisplay);
         end else begin
           ClosePlink;
-          raise EDatabaseError.Create('Couldn''t execute PLink: '+CRLF+PlinkCmd);
+          raise EDatabaseError.Create('Couldn''t execute PLink: '+CRLF+PlinkCmdDisplay);
         end;
         FinalHost := 'localhost';
         FinalPort := FParameters.SSHLocalPort;
