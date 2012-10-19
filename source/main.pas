@@ -2485,8 +2485,7 @@ var
 begin
   // Sub menu with EXPLAIN items pops up
   SQL := GetCurrentQuery(ActiveQueryTab);
-  actExplainCurrentQuery.Enabled := (UpperCase(GetFirstWord(SQL)) = 'SELECT')
-    and (ActiveConnection.Parameters.NetTypeGroup = ngMySQL);
+  actExplainCurrentQuery.Enabled := ActiveConnection.Parameters.NetTypeGroup = ngMySQL;
   actExplainAnalyzeCurrentQuery.Enabled := actExplainCurrentQuery.Enabled;
 end;
 
@@ -6574,7 +6573,6 @@ begin
     SynMemoProcessView.Color := clBtnFace;
   end;
   lblExplainProcess.Enabled := enableSQLView
-    and (UpperCase(GetFirstWord(SynMemoProcessView.Text)) = 'SELECT')
     and (ActiveConnection.Parameters.NetTypeGroup = ngMySQL);
   menuExplainProcess.Enabled := lblExplainProcess.Enabled;
   lblExplainProcessAnalyzer.Enabled := lblExplainProcess.Enabled;
