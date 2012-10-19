@@ -276,6 +276,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.PaintOptions = [toHideFocusRect, toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toFullVertGridLines, toUseExplorerTheme]
         TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
+        OnAfterPaint = listParametersAfterPaint
         OnBeforePaint = listParametersBeforePaint
         OnCreateEditor = listParametersCreateEditor
         OnEditing = listParametersEditing
@@ -286,7 +287,6 @@ object frmRoutineEditor: TfrmRoutineEditor
         OnNewText = listParametersNewText
         Columns = <
           item
-            Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
             Width = 25
             WideText = '#'
