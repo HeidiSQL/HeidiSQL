@@ -465,7 +465,7 @@ begin
         '    <meta http-equiv="Content-Type" content="text/html; charset='+GetHTMLCharsetByEncoding(Encoding)+'" />' + CRLF +
         '    <style type="text/css">' + CRLF +
         '      thead tr {background-color: ActiveCaption; color: CaptionText;}' + CRLF +
-        '      th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'"; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
+        '      th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'", Arial, Helvetica, sans-serif; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
         '      table, td {border: 1px solid silver;}' + CRLF +
         '      table {border-collapse: collapse;}' + CRLF;
       Col := Grid.Header.Columns.GetFirstVisibleColumn;
