@@ -4376,7 +4376,10 @@ var
   i: Integer;
 begin
   Result := True;
-  for i:=0 to ColumnCount-1 do begin
+  // In case we created a update-row we know for sure that we already loaded full contents
+  if Assigned(FCurrentUpdateRow) then
+    Result := True
+  else for i:=0 to ColumnCount-1 do begin
     if not (Datatype(i).Category in [dtcText, dtcBinary]) then
       continue;
     Val := Col(i);
