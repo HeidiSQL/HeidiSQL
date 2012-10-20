@@ -4811,13 +4811,17 @@ procedure TMainForm.SynCompletionProposalCodeCompletion(Sender: TObject;
 var
   Proposal: TSynCompletionProposal;
   rx: TRegExpr;
+  ImageIndex: Integer;
 begin
   Proposal := Sender as TSynCompletionProposal;
   // Surround identifiers with backticks if it is a column, table, routine, db
   rx := TRegExpr.Create;
-  rx.Expression := '\\image\{('+IntToStr(ICONINDEX_KEYWORD)+'|'+IntToStr(ICONINDEX_FUNCTION)+')\}';
-  if not rx.Exec(Proposal.ItemList[Index]) then
-    Value := ActiveConnection.QuoteIdent(Value, False);
+  rx.Expression := '\\image\{(\d+)\}';
+  if rx.Exec(Proposal.ItemList[Index]) then begin
+    ImageIndex := MakeInt(rx.Match[1]);
+    if not (ImageIndex in [ICONINDEX_KEYWORD, ICONINDEX_FUNCTION, 113]) then
+      Value := ActiveConnection.QuoteIdent(Value, False);
+  end;
   rx.Free;
   Proposal.Form.CurrentEditor.UndoList.AddGroupBreak;
 end;
@@ -4864,27 +4868,29 @@ var
     Proposal.AddItem(DisplayText, Obj.Name);
   end;
 
-  procedure AddColumns(TableName: String);
+  procedure AddColumns(const LeftToken: String);
   var
-    dbname, Dummy: String;
+    dbname, tblname, Dummy, AllColumns: String;
     Columns: TTableColumnList;
     Col: TTableColumn;
     Obj: TDBObject;
+    idx: Integer;
   begin
     dbname := '';
-    if Pos('.', TableName) > -1 then
-    begin
-      dbname := Copy(TableName, 0, Pos( '.', TableName )-1);
-      TableName := Copy(TableName, Pos( '.', TableName )+1, Length(TableName));
+    tblname := LeftToken;
+    if Pos('.', tblname) > -1 then begin
+      dbname := Copy(tblname, 0, Pos('.', tblname)-1);
+      tblname := Copy(tblname, Pos('.', tblname)+1, Length(tblname));
     end;
     // db and table name may already be quoted
     if dbname = '' then
       dbname := Conn.Database;
     dbname := Conn.DeQuoteIdent(dbname);
-    TableName := Conn.DeQuoteIdent(TableName);
+    tblname := Conn.DeQuoteIdent(tblname);
     DBObjects := Conn.GetDBObjects(dbname);
+    AllColumns := '';
     for Obj in DBObjects do begin
-      if Obj.Name = TableName then begin
+      if Obj.Name = tblname then begin
         Columns := TTableColumnList.Create(True);
         case Obj.NodeType of
           lntTable:
@@ -4892,10 +4898,16 @@ var
           lntView:
             Conn.ParseViewStructure(Obj.CreateCode, Obj.Name, Columns, Dummy, Dummy, Dummy, Dummy, Dummy);
         end;
+        idx := Proposal.InsertList.Count;
         for Col in Columns do begin
           Proposal.InsertList.Add(Col.Name);
           Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name]) );
+          AllColumns := AllColumns + Obj.Connection.QuoteIdent(Col.Name, False);
+          if Proposal.ItemList.Count-idx < Columns.Count then
+            AllColumns := AllColumns + ', ' + LeftToken + '.';
         end;
+        Proposal.InsertList.Insert(idx, AllColumns);
+        Proposal.ItemList.Insert(idx, Format(SYNCOMPLETION_PATTERN, [113, '', 'All '+IntToStr(Columns.Count)+' columns']));
         Columns.Free;
         break;
       end;
@@ -4995,9 +5007,9 @@ begin
     if TableName <> '' then
       AddColumns(TableName)
     else if Token1 <> '' then
-      AddColumns(Conn.QuoteIdent(Token1)+'.'+Conn.QuoteIdent(Token2))
+      AddColumns(Conn.QuoteIdent(Token1, False)+'.'+Conn.QuoteIdent(Token2, False))
     else if Token2 <> '' then
-      AddColumns(Conn.QuoteIdent(Token2));
+      AddColumns(Conn.QuoteIdent(Token2, False));
 
     if Token1 = '' then begin
       i := Conn.AllDatabases.IndexOf(Token2);
