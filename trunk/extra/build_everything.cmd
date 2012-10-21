@@ -80,7 +80,7 @@ set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BD
 set params=%params% -B
 set params=%params% -i"%base_dir%\source"
 set params=%params% -r"%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources"
-set params=%params% -u"%compiler_dir%\lib\win32\release;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\graphicex;%mad_dir%\madExcept\BDS8;%mad_dir%\madDisAsm\BDS8;%mad_dir%\madBasic\BDS8"
+set params=%params% -u"%compiler_dir%\lib\win32\release;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\graphicex;%base_dir%\components\synapse;%mad_dir%\madExcept\BDS8;%mad_dir%\madDisAsm\BDS8;%mad_dir%\madBasic\BDS8"
 set params=%params% -N0"..\..\build" 
 set params=%params% -LE"..\..\build"
 set params=%params% -LN"..\..\build"
