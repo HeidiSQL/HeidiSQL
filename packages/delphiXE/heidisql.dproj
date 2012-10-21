@@ -1,4 +1,4 @@
-﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 		<PropertyGroup>
 			<ProjectGuid>{53d02113-9bb2-4326-83eb-53734f07dae7}</ProjectGuid>
 			<MainSource>heidisql.dpr</MainSource>
@@ -27,7 +27,7 @@
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
 			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
-			<DCC_UnitSearchPath>..\..\components\graphicex;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_UnitSearchPath>..\..\components\graphicex;..\..\components\synapse;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<BRCC_OutputDir>..\..\res</BRCC_OutputDir>
 			<DCC_DependencyCheckOutputName>heidisql.exe</DCC_DependencyCheckOutputName>
 		</PropertyGroup>
@@ -43,7 +43,7 @@
 			<DCC_HppOutput>..\..\build</DCC_HppOutput>
 			<DCC_BplOutput>..\..\build</DCC_BplOutput>
 			<DCC_DcpOutput>..\..\build</DCC_DcpOutput>
-			<DCC_UnitSearchPath>..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;..\..\components\synapse;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_UnitSearchPath>..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<DCC_ResourcePath>..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;$(DCC_ResourcePath)</DCC_ResourcePath>
 			<DCC_ObjPath>..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;$(DCC_ObjPath)</DCC_ObjPath>
 			<DCC_IncludePath>..\..\components\synedit\build;..\..\components\synedit\resources;..\..\components\virtualtreeview\build;..\..\components\virtualtreeview\Resources;$(DCC_IncludePath)</DCC_IncludePath>
