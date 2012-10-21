@@ -12,7 +12,7 @@ uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi,
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
-  dbconnection, mysql_structures, SynMemo, Menus, WinInet;
+  dbconnection, mysql_structures, SynMemo, Menus, WinInet, synacode;
 
 type
 
@@ -244,7 +244,7 @@ type
   function decrypt(str: String): String;
   function HTMLSpecialChars(str: String): String;
   function BestTableName(Data: TDBQuery): String;
-  function EncodeURL(const Src: String): String;
+  function EncodeURLElementUnicode(const Value: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
   function _GetFileSize(Filename: String): Int64;
   function MakeInt( Str: String ) : Int64;
@@ -498,24 +498,10 @@ begin
 end;
 
 
-{***
-  Encode critical characters in URL segments
-  @param string URL to encode
-  @return string
-}
-function EncodeURL(const Src: String): String;
-var
-  i: Integer;
-const
-  SafeChars = ['A'..'Z','a'..'z','*','@','.','_','-','0'..'9','$','!','''','(',')'];
+function EncodeURLElementUnicode(const Value: String): String;
 begin
-  Result := '';
-  for i:=1 to Length(Src) do begin
-    if CharInSet(Src[i], SafeChars) then
-      Result := Result + Src[i]
-    else
-      Result := Result + '%' + IntToHex(Ord(Src[i]), 2);
-  end;
+  // Unicode String version of synacode.pas:EncodeURLElement
+  Result := String(EncodeURLElement(UTF8Encode(Value)));
 end;
 
 
