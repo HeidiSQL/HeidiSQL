@@ -16,7 +16,7 @@ With HeidiSQL you will also be able to
 * Synchronize tables between two databases
 * Manage user-privileges
 * Import text-files
-* Export grid-data as CSV, HTML, XML, SQL, LaTeX and Wiki style
+* Export grid-data as CSV, HTML, XML, SQL, LaTeX, Wiki and PHP Array style
 * Browse and edit table-data using a comfortable grid
 * Create and edit tables, views, stored routines, triggers and scheduled events
 * Bulk edit tables (move to db, change engine, collation etc.)
@@ -33,9 +33,13 @@ With HeidiSQL you will also be able to
 
 *** Requirements:
 
-HeidiSQL runs fine on Windows 2000, XP, Vista and 7. Running HeidiSQL on Wine/Linux
-also works fine, apart from some minor graphical glitches, e.g. the transparent
-areas of all icons are displayed with black color. 
+HeidiSQL runs fine on Windows XP, Vista and 7. Running HeidiSQL on Wine/Linux
+also works fine.
+
+On Windows 2000 you might run into some "illegal function call into KERNEL.DLL",
+which is caused by the newer libmysql.dll which dropped Win2k support. You can fix
+that by placing an older one into the HeidiSQL directory, overwriting the original:
+http://heidisql.googlecode.com/svn-history/r3106/trunk/out/libmysql.dll
 
 HeidiSQL does not run on Windows 95/98 or ME, as the Unicode extensions are not
 available on these systems.
@@ -54,6 +58,7 @@ and are based on those used by the MySQL command line applications, e.g. mysqldu
 -P, -port           Port (defaults to 3306 if not given)
 -S, -socket         Socket name (for connecting via named pipe)
 --psettings         Custom filename for portable settings. Ignored if file does not exist.
+                    Default filename is "portable_settings.txt"
 
 Examples:
 
@@ -75,6 +80,16 @@ Examples:
     c:\path\to\heidisql.exe --psettings=c:\temp\p.txt
 
 
+*** HeidiSQL portable:
+
+If HeidiSQL finds a "portable_settings.txt" (or the custom filename as noted above)
+it starts in portable mode. Which means basically that all settings are restored
+from that file and when exiting stored again into that file.
+
+When you download the portable zip, that "portable_settings.txt" needs to be manually
+copied from your old directory, overwriting the empty default file.
+
+
 *** License:
 
 HeidiSQL is OpenSource and released under GPL (GNU GENERAL PUBLIC LICENSE).
@@ -92,4 +107,4 @@ Mike Lischke + Timo Tegtmeier (VirtualTreeView, GLPL), Maël Hörz (SynEdit, MPL
 Iztok Kacin (Cromis.DirectoryWatch, BSD License), Lukas Gebauer (Ararat Synapse),
 Mark James (Silk icons, Creative Commons 2.5), Jordan Russell (Inno Setup)
 
-1000 thanks to MySQL for great database software
+1000 thanks to MySQL and MariaDB for great database software
