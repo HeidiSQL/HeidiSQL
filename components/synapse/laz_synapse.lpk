@@ -1,0 +1,170 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <Package Version="3">
+    <Name Value="laz_synapse"/>
+    <CompilerOptions>
+      <Version Value="8"/>
+      <SearchPaths>
+        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)/"/>
+      </SearchPaths>
+      <Parsing>
+        <SyntaxOptions>
+          <UseAnsiStrings Value="True"/>
+        </SyntaxOptions>
+      </Parsing>
+      <Other>
+        <CompilerPath Value="$(CompPath)"/>
+      </Other>
+    </CompilerOptions>
+    <Files Count="33">
+      <Item1>
+        <Filename Value="asn1util.pas"/>
+        <UnitName Value="asn1util"/>
+      </Item1>
+      <Item2>
+        <Filename Value="blcksock.pas"/>
+        <UnitName Value="blcksock"/>
+      </Item2>
+      <Item3>
+        <Filename Value="clamsend.pas"/>
+        <UnitName Value="clamsend"/>
+      </Item3>
+      <Item4>
+        <Filename Value="dnssend.pas"/>
+        <UnitName Value="dnssend"/>
+      </Item4>
+      <Item5>
+        <Filename Value="ftpsend.pas"/>
+        <UnitName Value="ftpsend"/>
+      </Item5>
+      <Item6>
+        <Filename Value="ftptsend.pas"/>
+        <UnitName Value="ftptsend"/>
+      </Item6>
+      <Item7>
+        <Filename Value="httpsend.pas"/>
+        <UnitName Value="httpsend"/>
+      </Item7>
+      <Item8>
+        <Filename Value="imapsend.pas"/>
+        <UnitName Value="imapsend"/>
+      </Item8>
+      <Item9>
+        <Filename Value="ldapsend.pas"/>
+        <UnitName Value="ldapsend"/>
+      </Item9>
+      <Item10>
+        <Filename Value="mimeinln.pas"/>
+        <UnitName Value="mimeinln"/>
+      </Item10>
+      <Item11>
+        <Filename Value="mimemess.pas"/>
+        <UnitName Value="mimemess"/>
+      </Item11>
+      <Item12>
+        <Filename Value="mimepart.pas"/>
+        <UnitName Value="mimepart"/>
+      </Item12>
+      <Item13>
+        <Filename Value="nntpsend.pas"/>
+        <UnitName Value="nntpsend"/>
+      </Item13>
+      <Item14>
+        <Filename Value="pingsend.pas"/>
+        <UnitName Value="pingsend"/>
+      </Item14>
+      <Item15>
+        <Filename Value="pop3send.pas"/>
+        <UnitName Value="pop3send"/>
+      </Item15>
+      <Item16>
+        <Filename Value="slogsend.pas"/>
+        <UnitName Value="slogsend"/>
+      </Item16>
+      <Item17>
+        <Filename Value="smtpsend.pas"/>
+        <UnitName Value="smtpsend"/>
+      </Item17>
+      <Item18>
+        <Filename Value="snmpsend.pas"/>
+        <UnitName Value="snmpsend"/>
+      </Item18>
+      <Item19>
+        <Filename Value="sntpsend.pas"/>
+        <UnitName Value="sntpsend"/>
+      </Item19>
+      <Item20>
+        <Filename Value="ssfpc.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="ssfpc"/>
+      </Item20>
+      <Item21>
+        <Filename Value="sswin32.pas"/>
+        <AddToUsesPkgSection Value="False"/>
+        <UnitName Value="sswin32"/>
+      </Item21>
+      <Item22>
+        <Filename Value="synachar.pas"/>
+        <UnitName Value="synachar"/>
+      </Item22>
+      <Item23>
+        <Filename Value="synacode.pas"/>
+        <UnitName Value="synacode"/>
+      </Item23>
+      <Item24>
+        <Filename Value="synacrypt.pas"/>
+        <UnitName Value="synacrypt"/>
+      </Item24>
+      <Item25>
+        <Filename Value="synadbg.pas"/>
+        <UnitName Value="synadbg"/>
+      </Item25>
+      <Item26>
+        <Filename Value="synafpc.pas"/>
+        <UnitName Value="synafpc"/>
+      </Item26>
+      <Item27>
+        <Filename Value="synaicnv.pas"/>
+        <UnitName Value="synaicnv"/>
+      </Item27>
+      <Item28>
+        <Filename Value="synaip.pas"/>
+        <UnitName Value="synaip"/>
+      </Item28>
+      <Item29>
+        <Filename Value="synamisc.pas"/>
+        <UnitName Value="synamisc"/>
+      </Item29>
+      <Item30>
+        <Filename Value="synaser.pas"/>
+        <UnitName Value="synaser"/>
+      </Item30>
+      <Item31>
+        <Filename Value="synautil.pas"/>
+        <UnitName Value="synautil"/>
+      </Item31>
+      <Item32>
+        <Filename Value="synsock.pas"/>
+        <UnitName Value="synsock"/>
+      </Item32>
+      <Item33>
+        <Filename Value="tlntsend.pas"/>
+        <UnitName Value="tlntsend"/>
+      </Item33>
+    </Files>
+    <Type Value="RunAndDesignTime"/>
+    <RequiredPkgs Count="1">
+      <Item1>
+        <PackageName Value="FCL"/>
+        <MinVersion Major="1" Valid="True"/>
+      </Item1>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
