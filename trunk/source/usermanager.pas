@@ -1107,6 +1107,11 @@ begin
     FocusedUser.Username := editUsername.Text;
     FocusedUser.Host := editFromHost.Text;
   end;
+  if (FocusedUser.Problem=upNone) and IsEmpty(editPassword.Text) then
+    FocusedUser.Problem := upEmptyPassword
+  else if (FocusedUser.Problem = upEmptyPassword) and IsNotEmpty(editPassword.Text) then
+    FocusedUser.Problem := upNone;
+
   OrgUserHost := esc(FocusedUser.Username)+'@'+esc(FocusedUser.Host);
   UserHost := esc(editUsername.Text)+'@'+esc(editFromHost.Text);
 
