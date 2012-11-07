@@ -1587,6 +1587,7 @@ begin
   FTreeRefreshInProgress := False;
 
   FileEncodings := Explode(',', 'Auto detect (may fail),ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
+  ASCIIEncoding := TEncoding.GetEncoding(437);
 end;
 
 
@@ -10129,7 +10130,7 @@ begin
   Result := nil;
   case FileEncodings.IndexOf(Name) of
     1: Result := TEncoding.Default;
-    2: Result := TEncoding.ASCII;
+    2: Result := ASCIIEncoding;
     3: Result := TEncoding.Unicode;
     4: Result := TEncoding.BigEndianUnicode;
     5: Result := TEncoding.UTF8;
@@ -10143,7 +10144,7 @@ var
   idx: Integer;
 begin
   if Encoding = TEncoding.Default then idx := 1
-  else if Encoding = TEncoding.ASCII then idx := 2
+  else if Encoding = ASCIIEncoding then idx := 2
   else if Encoding = TEncoding.Unicode then idx := 3
   else if Encoding = TEncoding.BigEndianUnicode then idx := 4
   else if Encoding = TEncoding.UTF8 then idx := 5
@@ -10208,7 +10209,7 @@ begin
       54936: Result := 'gb18030';
       65001: Result := 'utf8';
     end;
-  end else if Encoding = TEncoding.ASCII then
+  end else if Encoding = ASCIIEncoding then
     Result := 'ascii'
   else if Encoding = TEncoding.Unicode then
     Result := 'utf16le'

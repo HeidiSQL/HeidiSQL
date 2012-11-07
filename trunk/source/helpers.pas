@@ -327,6 +327,7 @@ type
 var
   AppSettings: TAppSettings;
   MutexHandle: THandle = 0;
+  ASCIIEncoding: TEncoding;
 
 
 implementation
@@ -2448,7 +2449,7 @@ begin
   Result := '';
   if Encoding = TEncoding.Default then
     Result := 'Windows-'+IntToStr(GetACP)
-  else if Encoding = TEncoding.ASCII then
+  else if Encoding = ASCIIEncoding then
     Result := 'ascii'
   else if Encoding = TEncoding.Unicode then
     Result := 'utf-16le'
