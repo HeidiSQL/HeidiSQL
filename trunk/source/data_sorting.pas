@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ExtCtrls, ComCtrls, Buttons,
 
-  helpers;
+  helpers, gnugettext;
 
 
 type
@@ -54,6 +54,7 @@ uses main;
 procedure TDataSortingForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  TranslateComponent(Self);
   ColumnNames := TStringList.Create;
 end;
 

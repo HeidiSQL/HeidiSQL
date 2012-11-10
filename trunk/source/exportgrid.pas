@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML;
+  Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML, gnugettext;
 
 type
   TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efLaTeX, efWiki, efPHPArray);
@@ -94,6 +94,7 @@ procedure TfrmExportGrid.FormCreate(Sender: TObject);
 var
   FormatDesc: String;
 begin
+  TranslateComponent(Self);
   InheritFont(Font);
   editFilename.Text := AppSettings.ReadString(asGridExportFilename);
   radioOutputCopyToClipboard.Checked := AppSettings.ReadBool(asGridExportOutputCopy);

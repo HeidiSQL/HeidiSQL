@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
-  dbconnection, mysql_structures, ComCtrls;
+  dbconnection, mysql_structures, ComCtrls, gnugettext;
 
 type
   TVarType = (vtString, vtNumeric, vtBoolean, vtEnum);
@@ -56,6 +56,7 @@ uses main, helpers;
 procedure TfrmEditVariable.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  TranslateComponent(Self);
   SetWindowSizeGrip(Handle, True);
   Width := AppSettings.ReadInt(asEditVarWindowWidth);
   Height := AppSettings.ReadInt(asEditVarWindowHeight);

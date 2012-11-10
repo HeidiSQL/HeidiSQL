@@ -9,7 +9,7 @@ unit printlist;
 interface
 
 uses
-  Windows, Classes, Controls, Forms, Dialogs, StdCtrls, Printers, VirtualTrees;
+  Windows, Classes, Controls, Forms, Dialogs, StdCtrls, Printers, VirtualTrees, gnugettext;
 
 type
   TprintlistForm = class(TForm)
@@ -42,6 +42,7 @@ uses main, helpers, table_editor, dbconnection;
 procedure TprintlistForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  TranslateComponent(Self);
 end;
 
 procedure TprintlistForm.FormShow(Sender: TObject);

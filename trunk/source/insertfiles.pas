@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ImgList,
   ShellApi, Math, Graphics, ComCtrls, ToolWin,
-  dbconnection, mysql_structures, VirtualTrees, grideditlinks, SynRegExpr;
+  dbconnection, mysql_structures, VirtualTrees, grideditlinks, SynRegExpr, gnugettext;
 
 type
   TColInfo = class
@@ -120,6 +120,7 @@ var
  SysIL : uint;
  SFI   : TSHFileInfo;
 begin
+  TranslateComponent(Self);
   FSmallImages := TImageList.Create(Self);
   SysIL := SHGetFileInfo('', 0, SFI, SizeOf(SFI), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
   if SysIL <> 0 then begin

@@ -6,7 +6,7 @@ uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
   SynMemo, Menus, Clipbrd, Math,
-  grideditlinks, mysql_structures, dbconnection, helpers;
+  grideditlinks, mysql_structures, dbconnection, helpers, gnugettext;
 
 type
   TFrame = TDBObjectEditor;
@@ -210,6 +210,7 @@ uses main;
 constructor TfrmTableEditor.Create(AOwner: TComponent);
 begin
   inherited;
+  TranslateComponent(Self);
   PageControlMain.Height := AppSettings.ReadInt(asTableEditorTabsHeight);
   FixVT(listColumns);
   FixVT(treeIndexes);

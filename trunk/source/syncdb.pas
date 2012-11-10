@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Generics.Collections, VirtualTrees,
-  dbconnection;
+  dbconnection, gnugettext;
 
 type
   TfrmSyncDB = class(TForm)
@@ -107,6 +107,7 @@ var
   SessionPaths: TStringList;
 begin
   Caption := MainForm.actSynchronizeDatabase.Caption;
+  TranslateComponent(Self);
   InheritFont(Font);
   SetWindowSizeGrip(Self.Handle, True);
   FixVT(treeSource);

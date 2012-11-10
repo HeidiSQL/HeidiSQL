@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Classes, Controls, Forms, StdCtrls, CheckLst, ExtCtrls,
-  helpers;
+  helpers, gnugettext;
 
 type
   TColumnSelectionForm = class(TForm)
@@ -44,6 +44,7 @@ uses main;
 procedure TColumnSelectionForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  TranslateComponent(Self);
 end;
 
 

@@ -5,7 +5,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
-  dbconnection, VirtualTrees, SynEdit, SynMemo, Menus;
+  dbconnection, VirtualTrees, SynEdit, SynMemo, Menus, gnugettext;
 
 type
   TCopyTableForm = class(TForm)
@@ -66,6 +66,7 @@ const
 
 procedure TCopyTableForm.FormCreate(Sender: TObject);
 begin
+  TranslateComponent(Self);
   InheritFont(Font);
   Width := AppSettings.ReadInt(asCopyTableWindowWidth);
   Height := AppSettings.ReadInt(asCopyTableWindowHeight);

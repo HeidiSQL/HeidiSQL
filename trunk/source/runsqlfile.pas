@@ -3,7 +3,7 @@ unit runsqlfile;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, Dialogs, ComCtrls, StdCtrls;
+  Windows, SysUtils, Classes, Controls, Forms, Dialogs, ComCtrls, StdCtrls, gnugettext;
 
 type
   TRunSQLFileForm = class(TForm)
@@ -148,6 +148,7 @@ end;
 procedure TRunSQLFileForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  TranslateComponent(Self);
 end;
 
 end.

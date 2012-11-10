@@ -12,7 +12,7 @@ uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns, Menus,
-  mysql_structures;
+  mysql_structures, gnugettext;
 
 type
   TShortcutItemData = record
@@ -342,6 +342,7 @@ var
       (TStrings(Data)).Add(String(lpelf^.elfLogFont.lfFaceName));
   end;
 begin
+  TranslateComponent(Self);
   InheritFont(Font);
 
   // Misecllaneous

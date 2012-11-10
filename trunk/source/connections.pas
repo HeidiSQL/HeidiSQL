@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX,
-  dbconnection;
+  dbconnection, gnugettext;
 
 type
   Tconnform = class(TForm)
@@ -174,6 +174,7 @@ var
   Params: TConnectionParameters;
 begin
   // Fix GUI stuff
+  TranslateComponent(Self);
   InheritFont(Font);
   SetWindowSizeGrip(Handle, True);
   Width := AppSettings.ReadInt(asSessionManagerWindowWidth);

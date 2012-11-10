@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, SynEdit, SynMemo, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees,
-  dbconnection, helpers;
+  dbconnection, helpers, gnugettext;
 
 type
   TFrame = TDBObjectEditor;
@@ -102,6 +102,7 @@ uses main, mysql_structures, grideditlinks;
 constructor TfrmRoutineEditor.Create(AOwner: TComponent);
 begin
   inherited;
+  TranslateComponent(Self);
   ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
   // Combo items in a .dfm are sporadically lost after an IDE restart,
   // so we set them here to avoid developer annoyance

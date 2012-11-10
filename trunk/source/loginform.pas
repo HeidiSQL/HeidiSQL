@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls;
+  Dialogs, StdCtrls, ExtCtrls, gnugettext;
 
 type
   TfrmLogin = class(TForm)
@@ -36,6 +36,7 @@ uses helpers, main;
 
 procedure TfrmLogin.FormCreate(Sender: TObject);
 begin
+  TranslateComponent(Self);
   InheritFont(Font);
   Caption := APPNAME + ' - Login';
   MainForm.ImageListMain.GetBitmap(144, imgIcon.Picture.Bitmap);

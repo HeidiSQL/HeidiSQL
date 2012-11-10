@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst,
   SynRegExpr, Buttons, ExtCtrls, ToolWin, ExtDlgs, Math,
-  dbconnection, mysql_structures;
+  dbconnection, mysql_structures, gnugettext;
 
 type
   Tloaddataform = class(TForm)
@@ -92,6 +92,7 @@ const
 
 procedure Tloaddataform.FormCreate(Sender: TObject);
 begin
+  TranslateComponent(Self);
   InheritFont(Font);
   SetWindowSizeGrip(Handle, True);
   // Restore settings

@@ -1,4 +1,4 @@
-	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 		<PropertyGroup>
 			<ProjectGuid>{53d02113-9bb2-4326-83eb-53734f07dae7}</ProjectGuid>
 			<MainSource>heidisql.dpr</MainSource>
@@ -215,6 +215,7 @@
 			<DCCReference Include="..\..\source\syncdb.pas">
 				<Form>frmSyncDB</Form>
 			</DCCReference>
+			<DCCReference Include="..\..\source\gnugettext.pas"/>
 			<RcCompile Include="..\..\res\updater.rc">
 				<Form>updater.res</Form>
 			</RcCompile>

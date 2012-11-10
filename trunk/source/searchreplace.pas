@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
-  ExtCtrls, SynMemo, SynEditTypes;
+  ExtCtrls, SynMemo, SynEditTypes, gnugettext;
 
 type
   TfrmSearchReplace = class(TForm)
@@ -49,6 +49,7 @@ uses helpers;
 
 procedure TfrmSearchReplace.FormCreate(Sender: TObject);
 begin
+  TranslateComponent(Self);
   comboSearch.Items.Text := AppSettings.ReadString(asFindDialogSearchHistory);
   comboReplace.Items.Text := AppSettings.ReadString(asFindDialogReplaceHistory);
   comboSearch.Text := '';
