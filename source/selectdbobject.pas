@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees, Graphics,
-  dbconnection;
+  dbconnection, gnugettext;
 
 type
   TfrmSelectDBObject = class(TForm)
@@ -62,6 +62,7 @@ end;
 
 procedure TfrmSelectDBObject.FormCreate(Sender: TObject);
 begin
+  TranslateComponent(Self);
   Width := AppSettings.ReadInt(asSelectDBOWindowWidth);
   Height := AppSettings.ReadInt(asSelectDBOWindowHeight);
   SetWindowSizeGrip( Self.Handle, True );

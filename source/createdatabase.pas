@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
-  dbconnection;
+  dbconnection, gnugettext;
 
 type
   TCreateDatabaseForm = class(TForm)
@@ -50,6 +50,7 @@ uses main, helpers;
 procedure TCreateDatabaseForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  TranslateComponent(Self);
   // Setup SynMemoPreview
   SynMemoPreview.Highlighter := Mainform.SynSQLSyn1;
 end;

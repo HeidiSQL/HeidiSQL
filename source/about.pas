@@ -7,7 +7,7 @@ unit About;
 interface
 
 uses
-  Windows, Classes, Graphics, Forms, Controls, StdCtrls, ExtCtrls, SysUtils, ComCtrls, pngimage;
+  Windows, Classes, Graphics, Forms, Controls, StdCtrls, ExtCtrls, SysUtils, ComCtrls, pngimage, gnugettext;
 
 type
   TAboutBox = class(TForm)
@@ -59,6 +59,8 @@ end;
 procedure TAboutBox.FormShow(Sender: TObject);
 begin
   Screen.Cursor := crHourGlass;
+
+  TranslateComponent(Self);
 
   InheritFont(Font);
   InheritFont(lblAppName.Font);

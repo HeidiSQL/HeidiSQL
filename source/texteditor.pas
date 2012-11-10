@@ -5,7 +5,7 @@ interface
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
   ComCtrls, ToolWin, Dialogs, SysUtils, Menus, ExtDlgs,
-  helpers;
+  helpers, gnugettext;
 
 {$I const.inc}
 
@@ -163,6 +163,7 @@ end;
 procedure TfrmTextEditor.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  TranslateComponent(Self);
 end;
 
 

@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, SynEdit, SynMemo, SynRegExpr, ComCtrls, ExtCtrls, WideStrUtils,
-  helpers, dbconnection;
+  helpers, dbconnection, gnugettext;
 
 type
   TFrame = TDBObjectEditor;
@@ -74,6 +74,7 @@ uses main;
 constructor TfrmEventEditor.Create(AOwner: TComponent);
 begin
   inherited;
+  TranslateComponent(Self);
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   comboEveryInterval.Items := Explode('|', 'YEAR|QUARTER|MONTH|DAY|HOUR|MINUTE|WEEK|SECOND|YEAR_MONTH|'+
     'DAY_HOUR|DAY_MINUTE|DAY_SECOND|HOUR_MINUTE|HOUR_SECOND|MINUTE_SECOND');

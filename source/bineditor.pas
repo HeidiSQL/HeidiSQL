@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils;
+  ComCtrls, ToolWin, Dialogs, SysUtils, gnugettext;
 
 {$I const.inc}
 
@@ -80,6 +80,7 @@ end;
 procedure TfrmBinEditor.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  TranslateComponent(Self);
 end;
 
 

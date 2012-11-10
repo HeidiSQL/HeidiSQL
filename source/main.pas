@@ -18,7 +18,7 @@ uses
   CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
-  insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB;
+  insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext;
 
 
 type
@@ -1316,6 +1316,8 @@ var
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
 begin
   caption := APPNAME;
+
+  TranslateComponent(Self);
 
   // Detect version
   dwInfoSize := GetFileVersionInfoSize(PChar(Application.ExeName), dwWnd);

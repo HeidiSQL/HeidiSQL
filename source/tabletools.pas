@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
   VirtualTrees, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections,
-  dbconnection, helpers, Menus;
+  dbconnection, helpers, Menus, gnugettext;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
@@ -179,6 +179,8 @@ var
   dt: TListNodeType;
   Obj: TDBObject;
 begin
+  TranslateComponent(Self);
+
   // Restore GUI setup
   InheritFont(Font);
   Width := AppSettings.ReadInt(asTableToolsWindowWidth);

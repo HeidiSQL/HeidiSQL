@@ -6,7 +6,7 @@ uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, ExtCtrls,
   Buttons, SynMemo, SynEditHighlighter, SynHighlighterURI,
   SynURIOpener, SynEdit, VirtualTrees, Graphics,
-  dbconnection;
+  dbconnection, gnugettext;
 
 type
   TfrmSQLhelp = class(TForm)
@@ -91,6 +91,7 @@ begin
   Caption := DEFAULT_WINDOW_CAPTION;
   MainForm.SetupSynEditors;
   FixVT(treeTopics);
+  TranslateComponent(Self);
 
   treeTopics.Clear;
   FreeAndNil(FRootTopics);

@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
-  helpers;
+  helpers, gnugettext;
 
 type
   TfrmUpdateCheck = class(TForm)
@@ -55,6 +55,7 @@ begin
   // Should be false by default. Callers can set this to True after Create()
   AutoClose := False;
   InheritFont(Font);
+  TranslateComponent(Self);
 end;
 
 {**

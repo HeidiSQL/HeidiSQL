@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
   SynCompletionProposal,
-  dbconnection, mysql_structures, helpers;
+  dbconnection, mysql_structures, helpers, gnugettext;
 
 type
   TFrame = TDBObjectEditor;
@@ -57,6 +57,7 @@ var
   i: Integer;
 begin
   inherited;
+  TranslateComponent(Self);
   SynMemoBody.Highlighter := Mainform.SynSQLSyn1;
   editName.MaxLength := NAME_LEN;
   comboTiming.Items.Text := 'BEFORE'+CRLF+'AFTER';
