@@ -6399,8 +6399,7 @@ begin
   if Value then begin
     // Ensure directory exists
     LogDir := AppSettings.ReadString(asSessionLogsDirectory);
-    if LogDir[Length(LogDir)] <> '\' then
-      LogDir := LogDir + '\';
+    LogDir := IncludeTrailingPathDelimiter(LogDir);
     ForceDirectories(LogDir);
 
     // Determine free filename
