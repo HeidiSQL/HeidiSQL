@@ -1177,10 +1177,7 @@ begin
   ExportStreamStartOfQueryPos := 0;
   if ToDir then begin
     FreeAndNil(ExportStream);
-    DbDir := comboExportOutputTarget.Text;
-    if DbDir[Length(DbDir)] <> '\' then
-      DbDir := DbDir + '\';
-    DbDir := DbDir + DBObj.Database + '\';
+    DbDir := IncludeTrailingPathDelimiter(comboExportOutputTarget.Text) + DBObj.Database + '\';
     if not DirectoryExists(DbDir) then
       ForceDirectories(DbDir);
     ExportStream := TFileStream.Create(DbDir + DBObj.Name+'.sql', fmCreate or fmOpenWrite);
