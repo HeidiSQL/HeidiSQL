@@ -3396,36 +3396,6 @@ msgstr "Operation:"
 msgid "Options:"
 msgstr "Options:"
 
-#. frmTableTools..pnlTop..pnlRight..tabsTools..tabMaintenance..chkQuick..Caption
-#: tabletools.dfm:190
-msgid "Quick"
-msgstr "Quick"
-
-#. frmTableTools..pnlTop..pnlRight..tabsTools..tabMaintenance..chkFast..Caption
-#: tabletools.dfm:199
-msgid "Fast"
-msgstr "Fast"
-
-#. frmTableTools..pnlTop..pnlRight..tabsTools..tabMaintenance..chkMedium..Caption
-#: tabletools.dfm:208
-msgid "Medium"
-msgstr "Medium"
-
-#. frmTableTools..pnlTop..pnlRight..tabsTools..tabMaintenance..chkExtended..Caption
-#: tabletools.dfm:217
-msgid "Extended"
-msgstr "Extended"
-
-#. frmTableTools..pnlTop..pnlRight..tabsTools..tabMaintenance..chkChanged..Caption
-#: tabletools.dfm:226
-msgid "Changed"
-msgstr "Changed"
-
-#. frmTableTools..pnlTop..pnlRight..tabsTools..tabMaintenance..chkUseFrm..Caption
-#: tabletools.dfm:235
-msgid "Use FRM file"
-msgstr "Use FRM file"
-
 #. frmTableTools..pnlTop..pnlRight..tabsTools..tabFind..Caption
 #: tabletools.dfm:251
 msgid "Find text"
