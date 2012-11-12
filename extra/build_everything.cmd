@@ -150,10 +150,15 @@ brcc32 ..\..\res\updater.rc
 "%compiler%" %params% -e"%base_dir%\out" heidisql.dpr
 if not %errorlevel% == 0 goto end
 
+rem Get translation files from Transifex server
+cd /d "%base_dir%"
+extra\internationalization\tx.exe pull -a
+rem Compile .po translation files
+for /f %%p IN ('dir /S /B out\locale\*.po') do extra\internationalization\msgfmt.exe -o %%~dpp\%%~np.mo %%p
 rem Patch executable with .mo files
 rem Must be done before madExcept writes a new crc header, otherwise it will complain about a corrupt .exe
 rem See http://tech.dir.groups.yahoo.com/group/dxgettext/message/3623
-..\..\extra\dxgettext_assemble.exe "%base_dir%\out\heidisql.exe" --dxgettext
+extra\internationalization\assemble.exe out\heidisql.exe --dxgettext
 
 rem Patch executable with exception handler
 "%mad_dir%\madExcept\Tools\madExceptPatch.exe" "%base_dir%\out\heidisql.exe" heidisql.mes
