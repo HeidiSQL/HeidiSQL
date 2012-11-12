@@ -161,6 +161,7 @@ rem See http://tech.dir.groups.yahoo.com/group/dxgettext/message/3623
 extra\internationalization\assemble.exe out\heidisql.exe --dxgettext
 
 rem Patch executable with exception handler
+cd /d "%base_dir%\packages\%package_dir%\"
 "%mad_dir%\madExcept\Tools\madExceptPatch.exe" "%base_dir%\out\heidisql.exe" heidisql.mes
 
 rem Create installer
