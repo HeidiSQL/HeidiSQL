@@ -172,7 +172,7 @@ type
     asFieldEditorSet, asFieldNullBackground, asGroupTreeObjects, asDisplayObjectSizeColumn, asSQLfile,
     asActionShortcut1, asActionShortcut2, asHighlighterForeground, asHighlighterBackground, asHighlighterStyle,
     asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
-    asRecentFilter, asDateTimeEditorCursorPos);
+    asRecentFilter, asDateTimeEditorCursorPos, asAppLanguage);
   TAppSetting = record
     Name: String;
     Session: Boolean;
@@ -3113,6 +3113,7 @@ begin
   InitSetting(asSessionFolder,                    'Folder',                                0, False);
   InitSetting(asRecentFilter,                     '%s',                                    0, False, '', True);
   InitSetting(asDateTimeEditorCursorPos,          'DateTimeEditor_CursorPos_Type%s',       0);
+  InitSetting(asAppLanguage,                      'Language',                              0, False, '');
 end;
 
 

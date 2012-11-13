@@ -47,6 +47,8 @@ uses
 {$R ..\..\res\manifest.RES}
 {$R ..\..\res\updater.RES}
 
+var
+  AppLanguage: String;
 begin
   // Use MySQL standard format for date/time variables: YYYY-MM-DD HH:MM:SS
   // Be aware that Delphi internally converts the slashes in ShortDateFormat to the DateSeparator
@@ -61,6 +63,8 @@ begin
     AppSettings.Free;
     Application.Terminate;
   end else begin
+    AppLanguage := AppSettings.ReadString(asAppLanguage);
+    UseLanguage(AppLanguage);
     Application.Initialize;
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;
