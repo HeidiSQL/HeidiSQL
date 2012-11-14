@@ -985,7 +985,6 @@ type
     AppVerRelease: Integer;
     AppVerRevision: Integer;
     AppVersion: String;
-    AppDescription: String;
 
     // Task button interface
     TaskbarList: ITaskbarList;
@@ -1329,14 +1328,6 @@ begin
   AppVerRelease := HiWord(FI.dwFileVersionLS);
   AppVerRevision := LoWord(FI.dwFileVersionLS);
   AppVersion := Format('%d.%d.%d.%d', [AppVerMajor, AppVerMinor, AppVerRelease, AppVerRevision]);
-  // Fetch language code and file description
-  VerQueryValue(ptrVerBuf,'\\VarFileInfo\\Translation', Translation, dwInfoSize);
-  VerQueryValue(ptrVerBuf,
-    PChar(Format('\\StringFileInfo\\%.4x%.4x\\%s',
-      [LoWord(Longint(translation^)), HiWord(Longint(Translation^)), 'FileDescription'])),
-    Info,
-    dwInfoSize);
-  SetString(AppDescription, PChar(Info), dwInfoSize-1);
   FreeMem(ptrVerBuf);
 
   // Detect if we're running on Wine, not on native Windows

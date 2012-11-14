@@ -38,7 +38,7 @@ object AboutBox: TAboutBox
   end
   object lblAppVersion: TLabel
     Left = 117
-    Top = 55
+    Top = 43
     Width = 64
     Height = 13
     Caption = 'lblAppVersion'
@@ -47,7 +47,7 @@ object AboutBox: TAboutBox
   end
   object lblAppCompiled: TLabel
     Left = 117
-    Top = 72
+    Top = 60
     Width = 72
     Height = 13
     Caption = 'lblAppCompiled'
@@ -55,7 +55,7 @@ object AboutBox: TAboutBox
   end
   object lblAppWebpage: TLabel
     Left = 117
-    Top = 90
+    Top = 78
     Width = 75
     Height = 13
     Cursor = crHandPoint
@@ -298,13 +298,6 @@ object AboutBox: TAboutBox
       749E4252C9A3DF8AAC28952808A9417EEF4F06CE588EF7B7F8FCDE230916AB8B
       2408E7CCF1F37BC43F60FF3F716B9E839162A1450000000049454E44AE426082}
     OnClick = OpenURL
-  end
-  object lblAppDescription: TLabel
-    Left = 117
-    Top = 38
-    Width = 82
-    Height = 13
-    Caption = 'lblAppDescription'
   end
   object btnClose: TButton
     Left = 374
