@@ -549,11 +549,6 @@ msgstr "Number:"
 msgid "Enumeration:"
 msgstr "Enumeration:"
 
-#. frmEditVariable..gbValue..lblBoolean..Caption
-#: editvar.dfm:110
-msgid "Bolean:"
-msgstr "Bolean:"
-
 #. frmEditVariable..gbValue..radioBooleanOn..Caption
 #: editvar.dfm:117
 msgid "On"
@@ -686,34 +681,9 @@ msgid "HTML table"
 msgstr "HTML table"
 
 #. frmExportGrid..grpFormat....Items.Strings
-#: exportgrid.dfm:60
-msgid "XML"
-msgstr "XML"
-
-#. frmExportGrid..grpFormat....Items.Strings
-#: exportgrid.dfm:61
-msgid "SQL INSERTs"
-msgstr "SQL INSERTs"
-
-#. frmExportGrid..grpFormat....Items.Strings
-#: exportgrid.dfm:62
-msgid "SQL REPLACEs"
-msgstr "SQL REPLACEs"
-
-#. frmExportGrid..grpFormat....Items.Strings
-#: exportgrid.dfm:63
-msgid "LaTeX"
-msgstr "LaTeX"
-
-#. frmExportGrid..grpFormat....Items.Strings
 #: exportgrid.dfm:64
 msgid "Wiki markup"
 msgstr "Wiki markup"
-
-#. frmExportGrid..grpFormat....Items.Strings
-#: exportgrid.dfm:65
-msgid "PHP Array"
-msgstr "PHP Array"
 
 #. frmExportGrid..grpSelection..Caption
 #: exportgrid.dfm:75
@@ -848,16 +818,6 @@ msgstr "Mac OS linebreak"
 #: exportgrid.dfm:304
 msgid "NUL character"
 msgstr "NUL character"
-
-#. frmExportGrid..popupCSVchar..menuCSVbackspace..Caption
-#: exportgrid.dfm:308
-msgid "Backspace"
-msgstr "Backspace"
-
-#. frmExportGrid..popupCSVchar..menuCSVcontrolz..Caption
-#: exportgrid.dfm:312
-msgid "Control+Z"
-msgstr "Control+Z"
 
 #. frmInsertFiles..Caption
 #: insertfiles.dfm:5
@@ -1328,11 +1288,6 @@ msgid "Processes"
 msgstr "Processes"
 
 #. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
-#: main.dfm:864
-msgid "id"
-msgstr "id"
-
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
 #: main.dfm:879
 msgid "DB"
 msgstr "DB"
@@ -1361,11 +1316,6 @@ msgstr "Process SQL:"
 #: main.dfm:924
 msgid "Analyze this query"
 msgstr "Analyze this query"
-
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..pnlProcessViewBox..pnlProcessView..lblExplainProcess..Caption
-#: main.dfm:925
-msgid "EXPLAIN"
-msgstr "EXPLAIN"
 
 #. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..pnlProcessViewBox..pnlProcessView..lblExplainProcessAnalyzer..Hint
 #: main.dfm:941
@@ -1572,11 +1522,6 @@ msgstr "Search"
 #: main.dfm:1762
 msgid "&Tools"
 msgstr "&Tools"
-
-#. MainForm..MainMenu1..Extra1..Flush1..Caption
-#: main.dfm:1770
-msgid "Flush"
-msgstr "Flush"
 
 #. MainForm..MainMenu1..Help1..Caption
 #: main.dfm:1837
@@ -2028,26 +1973,6 @@ msgstr "Export settings ..."
 msgid "Preferences"
 msgstr "Preferences"
 
-#. MainForm..ActionList1..actFlushHosts..Caption
-#: main.dfm:2186
-msgid "Hosts"
-msgstr "Hosts"
-
-#. MainForm..ActionList1..actFlushLogs..Caption
-#: main.dfm:2192
-msgid "Logs"
-msgstr "Logs"
-
-#. MainForm..ActionList1..actFlushPrivileges..Caption
-#: main.dfm:2198
-msgid "Privileges"
-msgstr "Privileges"
-
-#. MainForm..ActionList1..actFlushTableswithreadlock..Caption
-#: main.dfm:2210
-msgid "Tables with read lock"
-msgstr "Tables with read lock"
-
 #. MainForm..ActionList1..actUpdateCheck..Caption
 #. frmUpdateCheck..Caption
 #: main.dfm:2222 updatecheck.dfm:5
@@ -2314,11 +2239,6 @@ msgstr "Event"
 msgid "Create new event in selected database"
 msgstr "Create new event in selected database"
 
-#. MainForm..ActionList1..actDataSetNull..Caption
-#: main.dfm:2517
-msgid "NULL"
-msgstr "NULL"
-
 #. MainForm..ActionList1..actDataSetNull..Hint
 #: main.dfm:2519
 msgid "Set focused cell to NULL"
@@ -2469,12 +2389,6 @@ msgstr "Pass EXPLAIN output to MariaDB's analyzer webpage"
 #: main.dfm:8716
 msgid "SQL files (*.sql)|*.sql"
 msgstr "SQL files (*.sql)|*.sql"
-
-#. MainForm..OpenDialog1..DefaultExt
-#. MainForm..SaveDialogSQLFile..DefaultExt
-#: main.dfm:8734 main.dfm:9080
-msgid "sql"
-msgstr "sql"
 
 #. MainForm..OpenDialog1..Filter
 #: main.dfm:8735
@@ -3729,11 +3643,6 @@ msgstr "Specify requirements..."
 #: usermanager.dfm:573
 msgid "Access from server location only"
 msgstr "Access from server location only"
-
-#. UserManagerForm..menuHost..menuHost1..Hint
-#: usermanager.dfm:574
-msgid "localhost"
-msgstr "localhost"
 
 #. UserManagerForm..menuHost..menuHost2..Caption
 #: usermanager.dfm:578
