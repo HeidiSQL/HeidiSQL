@@ -117,6 +117,8 @@ type
     lblMySQLBinaries: TLabel;
     editMySQLBinaries: TButtonedEdit;
     chkRememberFilters: TCheckBox;
+    lblLanguage: TLabel;
+    comboAppLanguage: TComboBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -243,6 +245,7 @@ begin
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
   AppSettings.WriteInt(asBarColor, cboxColorBars.Selected);
   AppSettings.WriteString(asMySQLBinaries, editMySQLBinaries.Text);
+  AppSettings.WriteString(asAppLanguage, comboAppLanguage.Text);
   AppSettings.WriteInt(asMaxQueryResults, updownMaxQueryResults.Position);
   // Save color settings
   AppSettings.WriteInt(asFieldColorNumeric, FGridTextColors[dtcInteger]);
@@ -334,6 +337,7 @@ procedure Toptionsform.FormCreate(Sender: TObject);
 var
   i: Integer;
   dtc: TDBDatatypeCategoryIndex;
+  LanguageCodes: TStringList;
   // Callback function used by EnumFontFamilies()
   function EnumFixedProc(lpelf: PEnumLogFont; lpntm: PNewTextMetric; FontType: Integer; Data: LPARAM): Integer; stdcall;
   begin
@@ -351,6 +355,10 @@ begin
     editMySQLBinaries.RightButton.Visible := False;
     editMySQLBinaries.OnDblClick := nil;
   end;
+  LanguageCodes := TStringList.Create;
+  DefaultInstance.GetListOfLanguages('default', LanguageCodes);
+  comboAppLanguage.Items.AddStrings(LanguageCodes);
+  LanguageCodes.Free;
 
   // Data
   // Populate datatype categories pulldown
@@ -402,6 +410,9 @@ begin
   chkColorBars.Checked := AppSettings.ReadBool(asDisplayBars);
   cboxColorBars.Selected := AppSettings.ReadInt(asBarColor);
   editMySQLBinaries.Text := AppSettings.ReadString(asMySQLBinaries);
+  comboAppLanguage.ItemIndex := comboAppLanguage.Items.IndexOf(AppSettings.ReadString(asAppLanguage));
+  if comboAppLanguage.ItemIndex = -1 then
+    comboAppLanguage.ItemIndex := 0;
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
 
   // Logging

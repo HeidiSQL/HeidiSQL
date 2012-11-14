@@ -2614,8 +2614,18 @@ msgstr "Miscellaneous"
 
 #. optionsform..pagecontrolMain..tabMisc..lblMySQLBinaries..Caption
 #: options.dfm:48
-msgid "Location of MySQL command line binaries:"
-msgstr "Location of MySQL command line binaries:"
+msgid "MySQL command line programs:"
+msgstr "MySQL command line programs:"
+
+#. Language selector
+#: preferences dialog
+msgid "Application language:"
+msgstr "Application language:"
+
+#. Default in language selector
+#: preferences dialog
+msgid "Auto detect"
+msgstr "Auto detect"
 
 #. optionsform..pagecontrolMain..tabMisc..chkAutoReconnect..Caption
 #: options.dfm:57
