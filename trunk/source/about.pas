@@ -21,7 +21,6 @@ type
     btnUpdateCheck: TButton;
     ImageHeidisql: TImage;
     btnDonate: TButton;
-    lblAppDescription: TLabel;
     procedure OpenURL(Sender: TObject);
     procedure MouseOver(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
@@ -70,7 +69,6 @@ begin
   // Assign text
   Caption := 'About '+AppName;
   lblAppName.Caption := AppName;
-  lblAppDescription.Caption := Mainform.AppDescription;
   lblAppVersion.Caption := 'Version '+Mainform.AppVersion;
   lblAppCompiled.Caption := 'Compiled on: ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName));
   lblAppWebpage.Caption := AppDomain;
