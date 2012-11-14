@@ -245,7 +245,10 @@ begin
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
   AppSettings.WriteInt(asBarColor, cboxColorBars.Selected);
   AppSettings.WriteString(asMySQLBinaries, editMySQLBinaries.Text);
-  AppSettings.WriteString(asAppLanguage, comboAppLanguage.Text);
+  if comboAppLanguage.ItemIndex > 0 then
+    AppSettings.WriteString(asAppLanguage, comboAppLanguage.Text)
+  else
+    AppSettings.WriteString(asAppLanguage, '');
   AppSettings.WriteInt(asMaxQueryResults, updownMaxQueryResults.Position);
   // Save color settings
   AppSettings.WriteInt(asFieldColorNumeric, FGridTextColors[dtcInteger]);
