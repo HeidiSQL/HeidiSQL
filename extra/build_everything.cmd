@@ -142,6 +142,7 @@ if not %err% == 0 goto end
 rem Build main executable
 echo Compiling main project.
 cd /d "%base_dir%\packages\%package_dir%\"
+svn.exe revert ..\..\res\version.rc
 ..\..\extra\SetVersion\SetVersion.exe ..\..\res\version.rc
 brcc32 ..\..\res\version.rc
 brcc32 ..\..\res\icon.rc
