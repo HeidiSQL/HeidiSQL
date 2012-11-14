@@ -33,13 +33,22 @@ object optionsform: Toptionsform
     OnChanging = pagecontrolMainChanging
     object tabMisc: TTabSheet
       Caption = 'Miscellaneous'
+      DesignSize = (
+        450
+        353)
       object lblMySQLBinaries: TLabel
         Left = 8
-        Top = 224
-        Width = 129
-        Height = 33
-        Caption = 'Location of MySQL command line binaries:'
-        WordWrap = True
+        Top = 219
+        Width = 152
+        Height = 13
+        Caption = 'MySQL command line programs:'
+      end
+      object lblLanguage: TLabel
+        Left = 8
+        Top = 246
+        Width = 103
+        Height = 13
+        Caption = 'Application language:'
       end
       object chkAutoReconnect: TCheckBox
         Left = 8
@@ -66,7 +75,7 @@ object optionsform: Toptionsform
       object chkUpdatecheck: TCheckBox
         Left = 8
         Top = 77
-        Width = 300
+        Width = 360
         Height = 28
         Anchors = [akLeft, akTop, akRight]
         Caption = 
@@ -114,7 +123,7 @@ object optionsform: Toptionsform
       object chkDoStatistics: TCheckBox
         Left = 8
         Top = 134
-        Width = 417
+        Width = 425
         Height = 48
         Anchors = [akLeft, akTop, akRight]
         Caption = 
@@ -138,16 +147,15 @@ object optionsform: Toptionsform
       end
       object chkColorBars: TCheckBox
         Left = 8
-        Top = 188
-        Width = 129
-        Height = 30
+        Top = 190
+        Width = 226
+        Height = 17
         Caption = 'Display bars in various list columns'
         TabOrder = 8
-        WordWrap = True
         OnClick = chkColorBarsClick
       end
       object cboxColorBars: TColorBox
-        Left = 150
+        Left = 240
         Top = 188
         Width = 123
         Height = 22
@@ -157,9 +165,9 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object editMySQLBinaries: TButtonedEdit
-        Left = 152
-        Top = 221
-        Width = 281
+        Left = 240
+        Top = 216
+        Width = 207
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -172,10 +180,23 @@ object optionsform: Toptionsform
         OnDblClick = editMySQLBinariesRightButtonClick
         OnRightButtonClick = editMySQLBinariesRightButtonClick
       end
+      object comboAppLanguage: TComboBox
+        Left = 240
+        Top = 243
+        Width = 123
+        Height = 21
+        Style = csDropDownList
+        TabOrder = 11
+        Items.Strings = (
+          'Auto detect')
+      end
     end
     object tabLogging: TTabSheet
       Caption = 'Logging'
       ImageIndex = 5
+      DesignSize = (
+        450
+        353)
       object Label4: TLabel
         Left = 8
         Top = 11
@@ -250,7 +271,7 @@ object optionsform: Toptionsform
         Width = 53
         Height = 21
         TabOrder = 2
-        Text = '2000'
+        Text = '2.000'
         OnChange = Modified
       end
       object chkLogToFile: TCheckBox
@@ -328,6 +349,9 @@ object optionsform: Toptionsform
     object tabSQL: TTabSheet
       Caption = 'SQL'
       ImageIndex = 1
+      DesignSize = (
+        450
+        353)
       object lblFont: TLabel
         Left = 8
         Top = 11
@@ -573,6 +597,9 @@ object optionsform: Toptionsform
     object tabData: TTabSheet
       Caption = 'Data'
       ImageIndex = 4
+      DesignSize = (
+        450
+        353)
       object lblMaxColWidth: TLabel
         Left = 8
         Top = 11
@@ -803,7 +830,6 @@ object optionsform: Toptionsform
         Top = 279
         Width = 433
         Height = 17
-        Anchors = [akLeft, akTop, akRight]
         Caption = 'Remember filters, sorting and column selection across sessions'
         TabOrder = 17
       end
@@ -868,7 +894,7 @@ object optionsform: Toptionsform
         Top = 86
         Width = 207
         Height = 19
-        HotKey = 0
+        HotKey = 32768
         Modifiers = []
         OnChange = Shortcut1Change
         OnEnter = ShortcutEnter
@@ -879,7 +905,7 @@ object optionsform: Toptionsform
         Top = 130
         Width = 207
         Height = 19
-        HotKey = 0
+        HotKey = 32768
         Modifiers = []
         OnChange = Shortcut2Change
         OnEnter = ShortcutEnter
