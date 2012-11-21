@@ -1610,20 +1610,17 @@ var
 begin
   // Helper to find a node by its index
   Result := nil;
-  // Grid.RootNodeCount is unfortunately Cardinal, not Int64.
-  // Work around that as long as VT does not change that.
-  if (idx >= Low(Cardinal)) or (idx <= High(Cardinal)) then begin
-    if Assigned(ParentNode) then
-      Node := VT.GetFirstChild(ParentNode)
-    else
-      Node := VT.GetFirst;
-    while Assigned(Node) do begin
-      if Node.Index = idx then begin
-        Result := Node;
-        break;
-      end;
-      Node := VT.GetNextSibling(Node);
+  if Assigned(ParentNode) then
+    Node := VT.GetFirstChild(ParentNode)
+  else
+    Node := VT.GetFirst;
+  while Assigned(Node) do begin
+    // Note: Grid.RootNodeCount is unfortunately Cardinal, not UInt64.
+    if Node.Index = idx then begin
+      Result := Node;
+      break;
     end;
+    Node := VT.GetNextSibling(Node);
   end;
 end;
 
