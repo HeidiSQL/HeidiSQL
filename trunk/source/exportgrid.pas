@@ -342,8 +342,8 @@ begin
     end;
     Node := GetNextNode(Grid, Node, False);
   end;
-  grpSelection.Items[0] := f_('Selection (%d rows, %s)', [FormatNumber(Grid.SelectedCount), FormatByteNumber(SelectionSize)]);
-  grpSelection.Items[1] := f_('Complete (%d rows, %s)', [FormatNumber(Grid.RootNodeCount), FormatByteNumber(AllSize)]);
+  grpSelection.Items[0] := f_('Selection (%s rows, %s)', [FormatNumber(Grid.SelectedCount), FormatByteNumber(SelectionSize)]);
+  grpSelection.Items[1] := f_('Complete (%s rows, %s)', [FormatNumber(Grid.RootNodeCount), FormatByteNumber(AllSize)]);
 end;
 
 
