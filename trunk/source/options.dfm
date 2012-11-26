@@ -187,6 +187,7 @@ object optionsform: Toptionsform
         Height = 21
         Style = csDropDownList
         TabOrder = 11
+        OnClick = Modified
         Items.Strings = (
           'Auto detect')
       end
