@@ -67,10 +67,10 @@ begin
   InheritFont(lblAppWebpage.Font);
 
   // Assign text
-  Caption := 'About '+AppName;
-  lblAppName.Caption := AppName;
-  lblAppVersion.Caption := 'Version '+Mainform.AppVersion;
-  lblAppCompiled.Caption := 'Compiled on: ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName));
+  Caption := f_('About %s', [APPNAME]);
+  lblAppName.Caption := APPNAME;
+  lblAppVersion.Caption := _('Version') + ' ' + Mainform.AppVersion;
+  lblAppCompiled.Caption := _('Compiled on:') + ' ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName));
   lblAppWebpage.Caption := AppDomain;
   lblAppWebpage.Hint := AppDomain;
   // Avoid scroll by removing blank line outside visible area in Authors text box

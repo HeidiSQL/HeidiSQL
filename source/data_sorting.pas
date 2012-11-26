@@ -158,7 +158,7 @@ begin
       buttonOrder.Caption := TXT_DESC;
       buttonOrder.Down := True;
     end;
-    buttonOrder.Hint := 'Toggle the sort direction for this column.';
+    buttonOrder.Hint := _('Toggle the sort direction for this column.');
     buttonOrder.Tag := i+1;
     buttonOrder.OnClick := buttonOrderClick;
     Inc( xPosition, buttonOrder.Width + MARGIN );
@@ -171,7 +171,7 @@ begin
     buttonDelete.Left := xPosition;
     buttonDelete.Top := topPosition;
     buttonDelete.Caption := 'X';
-    buttonDelete.Hint := 'Drops sorting by this column.';
+    buttonDelete.Hint := _('Drops sorting by this column.');
     buttonDelete.Tag := i+1;
     buttonDelete.OnClick := buttonDeleteClick;
     Inc( xPosition, buttonDelete.Width + MARGIN );

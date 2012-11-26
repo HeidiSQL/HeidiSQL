@@ -123,7 +123,7 @@ begin
   AppSettings.GetSessionPaths('', SessionPaths);
   comboTargetServer.Items.Assign(SessionPaths);
   SessionPaths.Free;
-  comboTargetServer.Items.Insert(0, 'Select server session ...');
+  comboTargetServer.Items.Insert(0, _('Select server session ...'));
   comboTargetServer.ItemIndex := 0;
   comboTargetServer.OnChange(Sender);
 end;
@@ -150,7 +150,7 @@ begin
     comboTargetDatabase.Items.Assign(Connection.AllDatabases);
     Connection.Active := False;
     Connection.Free;
-    comboTargetDatabase.Items.Insert(0, '[Same as source]');
+    comboTargetDatabase.Items.Insert(0, '['+_('Same as source')+']');
     comboTargetDatabase.ItemIndex := 0;
     comboTargetDatabase.OnChange(Sender);
   end;
@@ -179,7 +179,7 @@ begin
     Connection.Active := False;
     Connection.Free;
   end;
-  comboTargetTable.Items.Insert(0, '[Same as source]');
+  comboTargetTable.Items.Insert(0, '['+_('Same as source')+']');
   comboTargetTable.ItemIndex := 0;
 end;
 
@@ -424,7 +424,7 @@ begin
       end;
     end;
     if not ObjExists then begin
-      Diff.AddItem('Create missing '+LowerCase(SourceObj.ObjType), SourceObj.CreateCode, diCreate);
+      Diff.AddItem(f_('Create missing %s', [LowerCase(SourceObj.ObjType)]), SourceObj.CreateCode, diCreate);
     end;
     treeDifferences.EndUpdate;
   end;

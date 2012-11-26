@@ -1,15 +1,16 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# 
+#
 # Translators:
 msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2012-11-09 10:37+0000\n"
-"Last-Translator: david.proweb <david.proweb@gmail.com>\n"
-"Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
+"PO-Revision-Date: 2012-11-26 06:40+0100\n"
+"Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
+"Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
+"language/en/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -179,6 +180,7 @@ msgstr "Session name"
 #. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
 #. UserManagerForm..pnlLeft..listUsers......WideText
 #: connections.dfm:128 main.dfm:601 main.dfm:874 usermanager.dfm:136
+#: tabletools.pas:1197
 msgid "Host"
 msgstr "Host"
 
@@ -190,7 +192,7 @@ msgstr "User"
 
 #. connform..ListSessions......WideText
 #. MainForm..panelTop..pnlRight..PageControlMain..tabDatabase..ListTables......WideText
-#: connections.dfm:138 main.dfm:1136
+#: connections.dfm:138 main.dfm:1136 tabletools.pas:1200
 msgid "Version"
 msgstr "Version"
 
@@ -250,7 +252,7 @@ msgid "Password:"
 msgstr "Password:"
 
 #. connform..PageControlDetails..tabSettings..lblHost..Caption
-#: connections.dfm:253
+#: connections.dfm:253 connections.pas:986
 msgid "Hostname / IP:"
 msgstr "Hostname / IP:"
 
@@ -311,7 +313,9 @@ msgstr "Use Windows authentication"
 msgid ""
 "Use your client time zone in date/time SQL functions, e.g. NOW(), for MySQL "
 "4.1.3+"
-msgstr "Use your client time zone in date/time SQL functions, e.g. NOW(), for MySQL 4.1.3+"
+msgstr ""
+"Use your client time zone in date/time SQL functions, e.g. NOW(), for MySQL "
+"4.1.3+"
 
 #. connform..PageControlDetails..tabSettings..chkLocalTimeZone..Caption
 #: connections.dfm:408
@@ -472,7 +476,7 @@ msgid "Recent filters"
 msgstr "Recent filters"
 
 #. CreateDatabaseForm..Caption
-#: createdatabase.dfm:5
+#: createdatabase.dfm:5 createdatabase.pas:92
 msgid "Create database ..."
 msgstr "Create database ..."
 
@@ -842,9 +846,9 @@ msgstr "Database, table:"
 #. frmInsertFiles..grpSelectObject..lblFilecontents....Caption
 #: insertfiles.dfm:76
 msgid ""
-"Column values (Hint: Assign \"%filecontent%\" value to a BLOB or TEXT "
-"column)"
-msgstr "Column values (Hint: Assign \"%filecontent%\" value to a BLOB or TEXT column)"
+"Column values (Hint: Assign \"%filecontent%\" value to a BLOB or TEXT column)"
+msgstr ""
+"Column values (Hint: Assign \"%filecontent%\" value to a BLOB or TEXT column)"
 
 #. frmInsertFiles..grpSelectObject..ListColumns......WideText
 #: insertfiles.dfm:129
@@ -935,9 +939,11 @@ msgstr "Clear"
 #. frmInsertFiles..OpenDialog....Filter
 #: insertfiles.dfm:269
 msgid ""
-"All files (*.*)|*.*|Common images (*.jpg, *.gif, *.bmp, "
-"*.png)|*.jpg;*.gif;*.bmp;*.png"
-msgstr "All files (*.*)|*.*|Common images (*.jpg, *.gif, *.bmp, *.png)|*.jpg;*.gif;*.bmp;*.png"
+"All files (*.*)|*.*|Common images (*.jpg, *.gif, *.bmp, *.png)|*.jpg;*.gif;*."
+"bmp;*.png"
+msgstr ""
+"All files (*.*)|*.*|Common images (*.jpg, *.gif, *.bmp, *.png)|*.jpg;*.gif;*."
+"bmp;*.png"
 
 #. loaddataform..Caption
 #: loaddata.dfm:4
@@ -1141,7 +1147,9 @@ msgstr "Data"
 msgid ""
 "Database filter|A list of databases, separated by semicolon. Can contain "
 "regular expressions, e.g. \"mydb;test.*;project\\d+\"."
-msgstr "Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. \"mydb;test.*;project\\d+\"."
+msgstr ""
+"Database filter|A list of databases, separated by semicolon. Can contain "
+"regular expressions, e.g. \"mydb;test.*;project\\d+\"."
 
 #. MainForm..panelTop..pnlLeft..comboDBFilter..TextHint
 #: main.dfm:393
@@ -1363,7 +1371,7 @@ msgid "Rows"
 msgstr "Rows"
 
 #. MainForm..panelTop..pnlRight..PageControlMain..tabDatabase..ListTables......WideText
-#: main.dfm:1116
+#: main.dfm:1116 tabletools.pas:1201
 msgid "Created"
 msgstr "Created"
 
@@ -1457,7 +1465,7 @@ msgstr "Sorting"
 
 #. MainForm..panelTop..pnlRight..PageControlMain..tabData..pnlDataTop..tlbDataButtons..tbtnDataColumns..Caption
 #. frmTableEditor..PageControlMain..tabForeignKeys..pnlNoForeignKeys..listForeignKeys......WideText
-#: main.dfm:1298 table_editor.dfm:587
+#: main.dfm:1298 table_editor.dfm:587 copytable.pas:254
 msgid "Columns"
 msgstr "Columns"
 
@@ -2196,7 +2204,9 @@ msgstr "Reformat SQL"
 msgid ""
 "Automatically reformat disordered SQL in active editor to make it more "
 "readable"
-msgstr "Automatically reformat disordered SQL in active editor to make it more readable"
+msgstr ""
+"Automatically reformat disordered SQL in active editor to make it more "
+"readable"
 
 #. MainForm..ActionList1..actBlobAsText..Caption
 #. MainForm..ActionList1..actBlobAsText..Hint
@@ -2395,6 +2405,15 @@ msgstr "SQL files (*.sql)|*.sql"
 msgid "SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*"
 msgstr "SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*"
 
+#: tabletools.pas:1061 main.pas:2855 connections.pas:1047
+msgid "SQL files"
+msgstr "SQL files"
+
+#: tabletools.pas:1061 main.pas:2855 main.pas:2653 bineditor.pas:146
+#: connections.pas:1047 connections.pas:1049 exportgrid.pas:274
+msgid "All files"
+msgstr "All files"
+
 #. MainForm..popupDataGrid..DataInsertValue..Caption
 #: main.dfm:8757
 msgid "Insert value"
@@ -2512,7 +2531,7 @@ msgid "Generate DELETE ..."
 msgstr "Generate DELETE ..."
 
 #. MainForm..popupRefresh..menuAutoRefresh..Caption
-#: main.dfm:9270
+#: main.dfm:9270 main.pas:5308
 msgid "Auto refresh"
 msgstr "Auto refresh"
 
@@ -2556,7 +2575,9 @@ msgstr "Restore last used database on startup"
 msgid ""
 "Automatically check for updates / Interval [days]:\n"
 "(0 = each time the application is started)"
-msgstr "Automatically check for updates / Interval [days]:\n(0 = each time the application is started)"
+msgstr ""
+"Automatically check for updates / Interval [days]:\n"
+"(0 = each time the application is started)"
 
 #. optionsform..pagecontrolMain..tabMisc..chkUpdateCheckBuilds..Caption
 #: options.dfm:116
@@ -2569,7 +2590,10 @@ msgid ""
 "Count in usage statistics. This option, if enabled, will cause HeidiSQL to "
 "ping heidisql.com at most once every month.  This is used to count the used "
 "HeidiSQL and MySQL versions."
-msgstr "Count in usage statistics. This option, if enabled, will cause HeidiSQL to ping heidisql.com at most once every month.  This is used to count the used HeidiSQL and MySQL versions."
+msgstr ""
+"Count in usage statistics. This option, if enabled, will cause HeidiSQL to "
+"ping heidisql.com at most once every month.  This is used to count the used "
+"HeidiSQL and MySQL versions."
 
 #. optionsform..pagecontrolMain..tabMisc..chkAllowMultiInstances..Caption
 #: options.dfm:141
@@ -3197,7 +3221,7 @@ msgid "Convert data"
 msgstr "Convert data"
 
 #. frmTableEditor..PageControlMain..tabIndexes..Caption
-#: table_editor.dfm:385
+#: table_editor.dfm:385 copytable.pas:255
 msgid "Indexes"
 msgstr "Indexes"
 
@@ -3243,7 +3267,7 @@ msgid "Down"
 msgstr "Down"
 
 #. frmTableEditor..PageControlMain..tabForeignKeys..Caption
-#: table_editor.dfm:499
+#: table_editor.dfm:499 copytable.pas:256
 msgid "Foreign keys"
 msgstr "Foreign keys"
 
@@ -3444,27 +3468,27 @@ msgid "Load textfile"
 msgstr "Load textfile"
 
 #. frmTextEditor..popupLinebreaks..menuWindowsLB..Caption
-#: texteditor.dfm:109
+#: texteditor.dfm:109 texteditor.pas:133
 msgid "Windows linebreaks"
 msgstr "Windows linebreaks"
 
 #. frmTextEditor..popupLinebreaks..menuUnixLB..Caption
-#: texteditor.dfm:114
+#: texteditor.dfm:114 texteditor.pas:134
 msgid "UNIX linebreaks"
 msgstr "UNIX linebreaks"
 
 #. frmTextEditor..popupLinebreaks..menuMacLB..Caption
-#: texteditor.dfm:119
+#: texteditor.dfm:119 texteditor.pas:135
 msgid "Mac OS linebreaks"
 msgstr "Mac OS linebreaks"
 
 #. frmTextEditor..popupLinebreaks..menuWideLB..Caption
-#: texteditor.dfm:124
+#: texteditor.dfm:124 texteditor.pas:136
 msgid "Unicode linebreaks"
 msgstr "Unicode linebreaks"
 
 #. frmTextEditor..popupLinebreaks..menuMixedLB..Caption
-#: texteditor.dfm:129
+#: texteditor.dfm:129 texteditor.pas:137
 msgid "Mixed linebreaks"
 msgstr "Mixed linebreaks"
 
@@ -3708,3 +3732,1588 @@ msgstr "Check option for updates"
 #: view.dfm:134
 msgid "None"
 msgstr "None"
+
+#: about.pas:73
+msgid "Compiled on:"
+msgstr "Compiled on:"
+
+#: bineditor.pas:175 texteditor.pas:259
+msgid "Apply modifications?"
+msgstr "Apply modifications?"
+
+#: connections.pas:347
+msgid "Enter new session name ..."
+msgstr "Enter new session name ..."
+
+#: connections.pas:351
+msgid "Clone session ..."
+msgstr "Clone session ..."
+
+#: connections.pas:351
+msgid "New session name:"
+msgstr "New session name:"
+
+#: connections.pas:355
+msgid "Session name \"%s\" already in use."
+msgstr "Session name \"%s\" already in use."
+
+#: connections.pas:386
+msgid ""
+"Imported sessions could not be detected. Restarting HeidiSQL may solve that."
+msgstr ""
+"Imported sessions could not be detected. Restarting HeidiSQL may solve that."
+
+#: connections.pas:440
+msgid "Delete session \"%s\"?"
+msgstr "Delete session \"%s\"?"
+
+#: connections.pas:649 connections.pas:821
+msgid "Session \"%s\" already exists!"
+msgstr "Session \"%s\" already exists!"
+
+#: connections.pas:658
+msgid "Error while moving registry key: %s"
+msgstr "Error while moving registry key: %s"
+
+#: connections.pas:707
+msgid ""
+"New here? In order to connect to a server, you have to create a so called "
+"\"session\" at first. Just click the \"New\" button on the bottom left to "
+"create your first session. Give it a friendly name (e.g. \"Local DB server"
+"\") so you'll recall it the next time you start %s."
+msgstr ""
+"New here? In order to connect to a server, you have to create a so called "
+"\"session\" at first. Just click the \"New\" button on the bottom left to "
+"create your first session. Give it a friendly name (e.g. \"Local DB server"
+"\") so you'll recall it the next time you start %s."
+
+#: connections.pas:711
+msgid ""
+"Please click a session on the left list to edit parameters, doubleclick to "
+"open it."
+msgstr ""
+"Please click a session on the left list to edit parameters, doubleclick to "
+"open it."
+
+#: connections.pas:759
+msgid "unknown or never"
+msgstr "unknown or never"
+
+#: connections.pas:765
+msgid "not available"
+msgstr "not available"
+
+#: connections.pas:789
+msgid "Successful connects: %d"
+msgstr "Successful connects: %d"
+
+#: connections.pas:791
+msgid "unsuccessful"
+msgstr "unsuccessful"
+
+#: connections.pas:793
+msgid "Unsuccessful connects: %d"
+msgstr "Unsuccessful connects: %d"
+
+#: connections.pas:954
+msgid "Save modifications?"
+msgstr "Save modifications?"
+
+#: connections.pas:954
+msgid "Settings for \"%s\" were changed."
+msgstr "Settings for \"%s\" were changed."
+
+#: connections.pas:984
+msgid "Socket name:"
+msgstr "Socket name:"
+
+#: connections.pas:1049
+msgid "Executables"
+msgstr "Executables"
+
+#: connections.pas:1051
+msgid "PuTTY private key"
+msgstr "PuTTY private key"
+
+#: connections.pas:1053
+msgid "Privacy Enhanced Mail certificates"
+msgstr "Privacy Enhanced Mail certificates"
+
+#: connections.pas:1053
+msgid "Certificates"
+msgstr "Certificates"
+
+#: copytable.pas:138
+msgid "Neither table nor view: %s"
+msgstr "Neither table nor view: %s"
+
+#: copytable.pas:257
+msgid "Data (%s rows)"
+msgstr "Data (%s rows)"
+
+#: copytable.pas:376
+msgid "Target table exists. Drop it and overwrite?"
+msgstr "Target table exists. Drop it and overwrite?"
+
+#: copytable.pas:384
+msgid "Generating SQL code ..."
+msgstr "Generating SQL code ..."
+
+#: copytable.pas:475
+msgid "Creating table ..."
+msgstr "Creating table ..."
+
+#: createdatabase.pas:98
+msgid "Alter database ..."
+msgstr "Alter database ..."
+
+#: createdatabase.pas:196
+msgid "Creating database \"%s\" failed."
+msgstr "Creating database \"%s\" failed."
+
+#: createdatabase.pas:220
+msgid "Database \"%s\" contains stored routine(s), which cannot be moved."
+msgstr "Database \"%s\" contains stored routine(s), which cannot be moved."
+
+#: createdatabase.pas:226
+msgid "Database \"%s\" exists and has objects with same names as in \"%s\""
+msgstr "Database \"%s\" exists and has objects with same names as in \"%s\""
+
+#: createdatabase.pas:236
+msgid ""
+"Database \"%s\" exists. But it does not contain objects with same names as "
+"in \"%s\", so it's uncritical to move everything. Move all objects to \"%s\"?"
+msgstr ""
+"Database \"%s\" exists. But it does not contain objects with same names as "
+"in \"%s\", so it's uncritical to move everything. Move all objects to \"%s\"?"
+
+#: createdatabase.pas:265
+msgid "Altering database \"%s\" failed."
+msgstr "Altering database \"%s\" failed."
+
+#: data_sorting.pas:161
+msgid "Toggle the sort direction for this column."
+msgstr "Toggle the sort direction for this column."
+
+#: data_sorting.pas:174
+msgid "Drops sorting by this column."
+msgstr "Drops sorting by this column."
+
+#: dbconnection.pas:669
+msgid "Error: Session \"%s\" not found in registry."
+msgstr "Error: Session \"%s\" not found in registry."
+
+#: dbconnection.pas:680
+msgid "Broken \"NetType\" value (%d) found in settings for session \"%s\"."
+msgstr "Broken \"NetType\" value (%d) found in settings for session \"%s\"."
+
+#: dbconnection.pas:681
+msgid ""
+"Please report that on http://code.google.com/p/heidisql/issues/detail?id=2958"
+msgstr ""
+"Please report that on http://code.google.com/p/heidisql/issues/detail?id=2958"
+
+#. Comes into SQL log when assigning dll procedures from libmysql.dll
+#: dbconnection.pas:1038
+msgid "Assign procedure \"%s\""
+msgstr "Assign procedure \"%s\""
+
+#: dbconnection.pas:1047
+msgid ""
+"Your %s is out-dated or somehow incompatible to %s. Please use the one from "
+"the installer, or just reinstall %s."
+msgstr ""
+"Your %s is out-dated or somehow incompatible to %s. Please use the one from "
+"the installer, or just reinstall %s."
+
+#: dbconnection.pas:1121
+msgid "SSL parameters successfully set."
+msgstr "SSL parameters successfully set."
+
+#: dbconnection.pas:1151
+msgid "Attempt to create plink.exe process, waiting %ds for response ..."
+msgstr "Attempt to create plink.exe process, waiting %ds for response ..."
+
+#: dbconnection.pas:1162
+msgid "PLink exited unexpected. Command line was: %s"
+msgstr "PLink exited unexpected. Command line was: %s"
+
+#: dbconnection.pas:1165
+msgid "Could not execute PLink: %s"
+msgstr "Could not execute PLink: %s"
+
+#: dbconnection.pas:1207 dbconnection.pas:1316
+msgid "Connected. Thread-ID: %d"
+msgstr "Connected. Thread-ID: %d"
+
+#: dbconnection.pas:1286
+msgid "On Wine, you can try to install MDAC:"
+msgstr "On Wine, you can try to install MDAC:"
+
+#: dbconnection.pas:1343
+msgid "OLE DB property \"%s\": %s"
+msgstr "OLE DB property \"%s\": %s"
+
+#: dbconnection.pas:1389
+msgid "Loading library file %s ..."
+msgstr "Loading library file %s ..."
+
+#: dbconnection.pas:1392
+msgid ""
+"Cannot find a usable %s. Please launch %s from the directory where you have "
+"installed it."
+msgstr ""
+"Cannot find a usable %s. Please launch %s from the directory where you have "
+"installed it."
+
+#: dbconnection.pas:1430
+msgid "Login to %s:"
+msgstr "Login to %s:"
+
+#: dbconnection.pas:1442
+msgid "Connecting to %s via %s, username %s, using password: %s ..."
+msgstr "Connecting to %s via %s, username %s, using password: %s ..."
+
+#: dbconnection.pas:1530 dbconnection.pas:1553
+msgid "Ping server ..."
+msgstr "Ping server ..."
+
+#: dbconnection.pas:1582
+msgid "Closing plink.exe process #%d ..."
+msgstr "Closing plink.exe process #%d ..."
+
+#: dbconnection.pas:1600 dbconnection.pas:1706
+msgid "Waiting for running query to finish ..."
+msgstr "Waiting for running query to finish ..."
+
+#: dbconnection.pas:1654 dbconnection.pas:1749
+msgid "Database \"%s\" selected"
+msgstr "Database \"%s\" selected"
+
+#: dbconnection.pas:1820
+msgid "Unhandled list node type in %s.GetCreateCode"
+msgstr "Unhandled list node type in %s.GetCreateCode"
+
+#: dbconnection.pas:2193
+msgid "Database names not available due to missing privileges for user %s."
+msgstr "Database names not available due to missing privileges for user %s."
+
+#: dbconnection.pas:2625
+msgid ""
+"The server did not return a non-zero value for the max_allowed_packet "
+"variable. Assuming 1M now."
+msgstr ""
+"The server did not return a non-zero value for the max_allowed_packet "
+"variable. Assuming 1M now."
+
+#: dbconnection.pas:2757
+msgid "Not implemented for this DBMS"
+msgstr "Not implemented for this DBMS"
+
+#: dbconnection.pas:3180
+msgid "Real Hostname"
+msgstr "Real Hostname"
+
+#: dbconnection.pas:3181 tabletools.pas:1199
+msgid "Server OS"
+msgstr "Server OS"
+
+#: dbconnection.pas:3182 tabletools.pas:1198
+msgid "Server version"
+msgstr "Server version"
+
+#: dbconnection.pas:3183
+msgid "Connection port"
+msgstr "Connection port"
+
+#: dbconnection.pas:3184
+msgid "Compressed protocol"
+msgstr "Compressed protocol"
+
+#: dbconnection.pas:3185
+msgid "Unicode enabled"
+msgstr "Unicode enabled"
+
+#: dbconnection.pas:3186
+msgid "SSL enabled"
+msgstr "SSL enabled"
+
+#: dbconnection.pas:3191
+msgid "Client version (libmysql)"
+msgstr "Client version (libmysql)"
+
+#: dbconnection.pas:3494
+msgid ""
+"Regular expression did not match the VIEW code in ParseViewStructure(): %s"
+msgstr ""
+"Regular expression did not match the VIEW code in ParseViewStructure(): %s"
+
+#: dbconnection.pas:3909
+msgid "Unknown data type for column #%d - %s: %d"
+msgstr "Unknown data type for column #%d - %s: %d"
+
+#: dbconnection.pas:4144
+msgid "Column \"%s\" not available."
+msgstr "Column \"%s\" not available."
+
+#: dbconnection.pas:4577
+msgid "Internal error: Cannot post modifications before editing was prepared."
+msgstr "Internal error: Cannot post modifications before editing was prepared."
+
+#: dbconnection.pas:4781
+msgid "More than one table involved."
+msgstr "More than one table involved."
+
+#: dbconnection.pas:4788 dbconnection.pas:4812
+msgid "Could not determine name of table."
+msgstr "Could not determine name of table."
+
+#: dbconnection.pas:4859
+msgid "Column #%d has an undefined origin: %s"
+msgstr "Column #%d has an undefined origin: %s"
+
+#: dbconnection.pas:4877
+msgid "Cannot compose WHERE clause - column missing: %s"
+msgstr "Cannot compose WHERE clause - column missing: %s"
+
+#: dbconnection.pas:5043
+msgid "Unknown, should never appear"
+msgstr "Unknown, should never appear"
+
+#: dbconnection.pas:5316
+msgid "Unsupported type (%d) in mysql_authentication_dialog_ask."
+msgstr "Unsupported type (%d) in mysql_authentication_dialog_ask."
+
+#: editvar.pas:90
+msgid "Could not find %s variable in internal mapping."
+msgstr "Could not find %s variable in internal mapping."
+
+#: exportgrid.pas:73
+msgid "Excel CSV"
+msgstr "Excel CSV"
+
+#: exportgrid.pas:345
+msgid "Selection (%d rows, %s)"
+msgstr "Selection (%d rows, %s)"
+
+#: exportgrid.pas:346
+msgid "Complete (%d rows, %s)"
+msgstr "Complete (%d rows, %s)"
+
+#: exportgrid.pas:422
+msgid "File exists"
+msgstr "File exists"
+
+#: exportgrid.pas:422
+msgid "Overwrite file %s?"
+msgstr "Overwrite file %s?"
+
+#: exportgrid.pas:595
+msgid "Exporting row %s of %s (%d%%, %s)"
+msgstr "Exporting row %s of %s (%d%%, %s)"
+
+#: exportgrid.pas:790
+msgid "Freeing data..."
+msgstr "Freeing data..."
+
+#: grideditlinks.pas:218
+msgid ""
+"Wrong constructor called: %s.Create. Instead, please call the overloaded "
+"version %s.Create(VirtualStringTree)."
+msgstr ""
+"Wrong constructor called: %s.Create. Instead, please call the overloaded "
+"version %s.Create(VirtualStringTree)."
+
+#: grideditlinks.pas:1022
+msgid "Edit text in popup editor ..."
+msgstr "Edit text in popup editor ..."
+
+#: grideditlinks.pas:1156
+msgid "No default value"
+msgstr "No default value"
+
+# grideditlinks.pas:1165
+# TODO: rephrase
+# msgid "Custom:"
+# msgstr "Custom:"
+#: helpers.pas:1045
+msgid "days"
+msgstr "days"
+
+#: helpers.pas:1728
+msgid "%s month ago"
+msgstr "%s month ago"
+
+#: helpers.pas:1728
+msgid "%s months ago"
+msgstr "%s months ago"
+
+#: helpers.pas:1728
+msgid "%s day ago"
+msgstr "%s day ago"
+
+#: helpers.pas:1728
+msgid "%s days ago"
+msgstr "%s days ago"
+
+#: helpers.pas:1728
+msgid "%s hour ago"
+msgstr "%s hour ago"
+
+#: helpers.pas:1728
+msgid "%s hours ago"
+msgstr "%s hours ago"
+
+#: helpers.pas:1728
+msgid "%s minute ago"
+msgstr "%s minute ago"
+
+#: helpers.pas:1728
+msgid "%s minutes ago"
+msgstr "%s minutes ago"
+
+#: helpers.pas:1728
+msgid "less than a minute ago"
+msgstr "less than a minute ago"
+
+#: helpers.pas:1922
+msgid "Initializing editor ..."
+msgstr "Initializing editor ..."
+
+#: helpers.pas:1964
+msgid "Save modified %s \"%s\"?"
+msgstr "Save modified %s \"%s\"?"
+
+#: helpers.pas:1966
+msgid "Save new %s?"
+msgstr "Save new %s?"
+
+#: helpers.pas:2821
+msgid "Could not open URL: %s"
+msgstr "Could not open URL: %s"
+
+#: helpers.pas:2829
+msgid "Server did not send required \"Content-Length\" header: %s"
+msgstr "Server did not send required \"Content-Length\" header: %s"
+
+#: helpers.pas:2837
+msgid "Got HTTP status %d from %s"
+msgstr "Got HTTP status %d from %s"
+
+#: helpers.pas:3251
+msgid "No path set, won't delete root key %s"
+msgstr "No path set, won't delete root key %s"
+
+#: helpers.pas:3266
+msgid "No path set, won't move root key %s"
+msgstr "No path set, won't move root key %s"
+
+#: helpers.pas:3332
+msgid "Attempt to read session setting without session path"
+msgstr "Attempt to read session setting without session path"
+
+#: helpers.pas:3406
+msgid "Attempt to write session setting without session path"
+msgstr "Attempt to write session setting without session path"
+
+#: insertfiles.pas:488
+msgid "%u files, %s, %u files selected."
+msgstr "%u files, %s, %u files selected."
+
+#: loaddata.pas:176
+msgid "Let server/database decide"
+msgstr "Let server/database decide"
+
+#: loaddata.pas:201
+msgid "Unsupported by this server"
+msgstr "Unsupported by this server"
+
+#: loaddata.pas:315
+msgid ""
+"Your file was imported but the server returned %s warnings and/or notes. See "
+"the log panel for details."
+msgstr ""
+"Your file was imported but the server returned %s warnings and/or notes. See "
+"the log panel for details."
+
+#: loaddata.pas:321
+msgid "No rows were imported"
+msgstr "No rows were imported"
+
+#: loaddata.pas:322
+msgid "This can have several causes:"
+msgstr "This can have several causes:"
+
+#: loaddata.pas:323
+msgid " - File is empty"
+msgstr " - File is empty"
+
+#: loaddata.pas:324
+msgid " - Wrong file encoding was selected or detected"
+msgstr " - Wrong file encoding was selected or detected"
+
+#: loaddata.pas:325
+msgid " - Field and/or line terminator do not fit to the file contents"
+msgstr " - Field and/or line terminator do not fit to the file contents"
+
+#: loaddata.pas:428
+msgid "Importing textfile, row %s, %d%%"
+msgstr "Importing textfile, row %s, %d%%"
+
+#: loaddata.pas:532
+msgid "Reading textfile (%s) ..."
+msgstr "Reading textfile (%s) ..."
+
+#: loaddata.pas:588
+msgid ""
+"MySQL CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt|All files (*.*)|*.*"
+msgstr ""
+"MySQL CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt|All files (*.*)|*.*"
+
+#: loaddata.pas:588
+msgid "CSV files"
+msgstr "CSV files"
+
+#: loaddata.pas:588
+msgid "Text files"
+msgstr "Text files"
+
+#: main.pas:1181
+msgid ""
+"Tables have been flushed and read lock acquired. Perform backup or snapshot "
+"of table data files now. Press OK to unlock when done..."
+msgstr ""
+"Tables have been flushed and read lock acquired. Perform backup or snapshot "
+"of table data files now. Press OK to unlock when done..."
+
+#: main.pas:1496
+msgid "Show next %s rows ..."
+msgstr "Show next %s rows ..."
+
+#: main.pas:1497
+msgid "About %s"
+msgstr "About %s"
+
+#: main.pas:1582
+msgid "Auto detect (may fail)"
+msgstr "Auto detect (may fail)"
+
+#: main.pas:2071
+msgid "Export %s settings to file ..."
+msgstr "Export %s settings to file ..."
+
+#: main.pas:2078
+msgid "Settings successfully exported to %s"
+msgstr "Settings successfully exported to %s"
+
+#: main.pas:2092
+msgid "Import %s settings from file ..."
+msgstr "Import %s settings from file ..."
+
+#: main.pas:2093
+msgid "Registry dump, deprecated"
+msgstr "Registry dump, deprecated"
+
+#: main.pas:2101
+msgid "Settings successfully restored from %s"
+msgstr "Settings successfully restored from %s"
+
+#: main.pas:2142
+msgid "Splitting SQL queries ..."
+msgstr "Splitting SQL queries ..."
+
+#: main.pas:2166
+msgid ""
+"Query profiling requires MySQL 5.0.37 or later, and the server must not be "
+"configured with --disable-profiling."
+msgstr ""
+"Query profiling requires MySQL 5.0.37 or later, and the server must not be "
+"configured with --disable-profiling."
+
+#: main.pas:2185
+msgid "query"
+msgstr "query"
+
+#: main.pas:2186
+msgid "queries #%s to #%s"
+msgstr "queries #%s to #%s"
+
+#: main.pas:2187
+msgid "Executing %s of %s ..."
+msgstr "Executing %s of %s ..."
+
+#: main.pas:2203
+msgid "Setting up result grid(s) ..."
+msgstr "Setting up result grid(s) ..."
+
+#: main.pas:2220
+msgid "Result"
+msgstr "Result"
+
+#: main.pas:2310
+msgid "Found rows"
+msgstr "Found rows"
+
+#: main.pas:2310
+msgid "Warnings"
+msgstr "Warnings"
+
+#: main.pas:2310
+msgid "Duration for"
+msgstr "Duration for"
+
+#: main.pas:2346
+msgid "Your query produced %s warnings."
+msgstr "Your query produced %s warnings."
+
+#: main.pas:2351
+msgid "Warnings from last query:"
+msgstr "Warnings from last query:"
+
+#: main.pas:2352
+msgid "First %s warnings:"
+msgstr "First %s warnings:"
+
+#: main.pas:2361
+msgid "Show all warnings in a new query tab?"
+msgstr "Show all warnings in a new query tab?"
+
+#: main.pas:2364
+msgid ""
+"The server variable @@max_error_count is currently set to %d, so you won't "
+"see all warnings."
+msgstr ""
+"The server variable @@max_error_count is currently set to %d, so you won't "
+"see all warnings."
+
+#: main.pas:2379
+msgid "Updating query history ..."
+msgstr "Updating query history ..."
+
+#: main.pas:2557
+msgid "Loading contents into image viewer ..."
+msgstr "Loading contents into image viewer ..."
+
+#: main.pas:2558
+msgid "Loading ..."
+msgstr "Loading ..."
+
+#: main.pas:2611
+msgid "No image detected."
+msgstr "No image detected."
+
+#: main.pas:2711
+msgid "Drop Database \"%s\"?"
+msgstr "Drop Database \"%s\"?"
+
+#: main.pas:2711
+msgid "WARNING: You will lose all objects in database %s!"
+msgstr "WARNING: You will lose all objects in database %s!"
+
+#: main.pas:2753
+msgid "Drop %d object(s) in database \"%s\"?"
+msgstr "Drop %d object(s) in database \"%s\"?"
+
+#: main.pas:2712
+msgid "WARNING: You will lose all objects in database %s"
+msgstr "WARNING: You will lose all objects in database %s"
+
+#: main.pas:2790
+msgid "Command line only works on MySQL connections."
+msgstr "Command line only works on MySQL connections."
+
+#: main.pas:2802
+msgid ""
+"You need to tell %s where your MySQL binaries reside, in Tools > Preferences "
+"> Miscellaneous."
+msgstr ""
+"You need to tell %s where your MySQL binaries reside, in Tools > Preferences "
+"> Miscellaneous."
+
+#: main.pas:2803
+msgid "Current setting is: \"%s\""
+msgstr "Current setting is: \"%s\""
+
+#: main.pas:2836
+msgid "Launching command line: %s"
+msgstr "Launching command line: %s"
+
+#: main.pas:2916
+msgid "Opening large files"
+msgstr "Opening large files"
+
+#: main.pas:2917
+msgid "Selected files have a size of %s"
+msgstr "Selected files have a size of %s"
+
+#: main.pas:2918
+msgid "File list"
+msgstr "File list"
+
+#: main.pas:2924
+msgid "Run file(s) directly"
+msgstr "Run file(s) directly"
+
+#: main.pas:2925
+msgid "... without loading into the editor"
+msgstr "... without loading into the editor"
+
+#: main.pas:2928
+msgid "Load file(s) into the editor"
+msgstr "Load file(s) into the editor"
+
+#: main.pas:2929
+msgid "Can cause large memory usage"
+msgstr "Can cause large memory usage"
+
+#: main.pas:2937
+msgid "One or more of the selected files are larger than %s:"
+msgstr "One or more of the selected files are larger than %s:"
+
+#: main.pas:2940
+msgid ""
+"Just run these files to avoid loading them into the query-editor (= memory)?"
+msgstr ""
+"Just run these files to avoid loading them into the query-editor (= memory)?"
+
+#: main.pas:2941
+msgid "Press"
+msgstr "Press"
+
+#: main.pas:2942
+msgid "  [Yes] to run file(s) without loading it into the editor"
+msgstr "  [Yes] to run file(s) without loading it into the editor"
+
+#: main.pas:2943
+msgid "  [No] to load file(s) into the query editor"
+msgstr "  [No] to load file(s) into the query editor"
+
+#: main.pas:2944
+msgid "  [Cancel] to cancel file opening."
+msgstr "  [Cancel] to cancel file opening."
+
+#: main.pas:2945
+msgid "Execute query file(s)?"
+msgstr "Execute query file(s)?"
+
+#: main.pas:2968
+msgid "Could not load file(s):"
+msgstr "Could not load file(s):"
+
+#: main.pas:3088
+msgid "Startup script file not found: %s"
+msgstr "Startup script file not found: %s"
+
+#: main.pas:3102
+msgid "SSL not used."
+msgstr "SSL not used."
+
+#: main.pas:3103
+msgid ""
+"Your SSL settings were not accepted by the server, or the server does not "
+"support any SSL configuration."
+msgstr ""
+"Your SSL settings were not accepted by the server, or the server does not "
+"support any SSL configuration."
+
+#: main.pas:3127
+msgid "No rows selected"
+msgstr "No rows selected"
+
+#: main.pas:3127
+msgid "Please select one or more rows to delete them."
+msgstr "Please select one or more rows to delete them."
+
+#: main.pas:3136
+msgid "Delete %s row(s)?"
+msgstr "Delete %s row(s)?"
+
+#: main.pas:3136
+msgid "Deleting row #%s of %s ..."
+msgstr "Deleting row #%s of %s ..."
+
+#: main.pas:3146
+msgid "Clean up ..."
+msgstr "Clean up ..."
+
+#: main.pas:3163 main.pas:3909 main.pas:7878
+msgid "Grid editing error"
+msgstr "Grid editing error"
+
+#: main.pas:3227
+msgid "No table(s) selected."
+msgstr "No table(s) selected."
+
+#: main.pas:3228
+msgid "Empty %d table(s) and/or view(s)?"
+msgstr "Empty %d table(s) and/or view(s)?"
+
+#: main.pas:3285
+msgid "No stored procedure selected."
+msgstr "No stored procedure selected."
+
+#: main.pas:3285
+msgid "Please select one or more stored function(s) or routine(s)."
+msgstr "Please select one or more stored function(s) or routine(s)."
+
+#: main.pas:3304
+msgid "Parameter"
+msgstr "Parameter"
+
+#: main.pas:3389
+msgid "Searching ..."
+msgstr "Searching ..."
+
+#: main.pas:3399
+msgid "Text \"%s\" %s times replaced."
+msgstr "Text \"%s\" %s times replaced."
+
+#: main.pas:3403
+msgid "Text \"%s\" not found."
+msgstr "Text \"%s\" not found."
+
+#: main.pas:3412
+msgid "Replace this occurrence of \"%s\"?"
+msgstr "Replace this occurrence of \"%s\"?"
+
+#: main.pas:3513
+msgid "SQL help not available."
+msgstr "SQL help not available."
+
+#: main.pas:3513
+msgid "HELP <keyword> requires MySQL 4.1 or newer."
+msgstr "HELP <keyword> requires MySQL 4.1 or newer."
+
+#: main.pas:3531 routine_editor.pas:474
+msgid "Overwrite \"%s\"?"
+msgstr "Overwrite \"%s\"?"
+
+#: main.pas:3531
+msgid "This file is already open in query tab #%d."
+msgstr "This file is already open in query tab #%d."
+
+#: main.pas:3575
+msgid "Save snippet"
+msgstr "Save snippet"
+
+#: main.pas:3575
+msgid "Snippet name:"
+msgstr "Snippet name:"
+
+#: main.pas:3583
+msgid "Overwrite existing snippet %s?"
+msgstr "Overwrite existing snippet %s?"
+
+#: main.pas:3669
+msgid "Remove absent files"
+msgstr "Remove absent files"
+
+#: main.pas:3674
+msgid "Clear file list"
+msgstr "Clear file list"
+
+#: main.pas:3775
+msgid "Set delimiter"
+msgstr "Set delimiter"
+
+#: main.pas:3775
+msgid "SQL statement delimiter (default is \";\"):"
+msgstr "SQL statement delimiter (default is \";\"):"
+
+#: main.pas:3798
+msgid "Empty value."
+msgstr "Empty value."
+
+#: main.pas:3803
+msgid "Start-of-comment tokens or string literal markers are not allowed."
+msgstr "Start-of-comment tokens or string literal markers are not allowed."
+
+#: main.pas:3806
+msgid "Error setting delimiter to \"%s\": %s"
+msgstr "Error setting delimiter to \"%s\": %s"
+
+#: main.pas:3811
+msgid "Delimiter changed to %s"
+msgstr "Delimiter changed to %s"
+
+#: main.pas:4058
+msgid "large SQL query (%s), snipped at %s characters"
+msgstr "large SQL query (%s), snipped at %s characters"
+
+#: main.pas:4094
+msgid "Error writing to session log file."
+msgstr "Error writing to session log file."
+
+#: main.pas:4094 main.pas:6415
+msgid "Logging is disabled now."
+msgstr "Logging is disabled now."
+
+#: main.pas:4309
+msgid "Fetching rows ..."
+msgstr "Fetching rows ..."
+
+#: main.pas:4322
+msgid "Data in this table will be read-only."
+msgstr "Data in this table will be read-only."
+
+#: main.pas:4332
+msgid "Setting up columns ..."
+msgstr "Setting up columns ..."
+
+#: main.pas:4390 main.pas:4389
+msgid ""
+"Browsing is currently limited to a maximum of %s rows. To see more rows, "
+"increase this maximum in Tools > Preferences > Data."
+msgstr ""
+"Browsing is currently limited to a maximum of %s rows. To see more rows, "
+"increase this maximum in Tools > Preferences > Data."
+
+#: main.pas:4439
+msgid "rows total"
+msgstr "rows total"
+
+#: main.pas:4439
+msgid "approximately"
+msgstr "approximately"
+
+#: main.pas:4439
+msgid "limited to"
+msgstr "limited to"
+
+#: main.pas:4442
+msgid "all rows match to filter"
+msgstr "all rows match to filter"
+
+#: main.pas:4442
+msgid "rows match to filter"
+msgstr "rows match to filter"
+
+#: main.pas:4558
+msgid "Displaying objects from \"%s\" ..."
+msgstr "Displaying objects from \"%s\" ..."
+
+#: main.pas:4784
+msgid "Ignoring own process id #%s when trying to kill it."
+msgstr "Ignoring own process id #%s when trying to kill it."
+
+#: main.pas:5158
+msgid "Uptime"
+msgstr "Uptime"
+
+#: main.pas:5158 connections.pas:762
+msgid "unknown"
+msgstr "unknown"
+
+#: main.pas:5261
+msgid "Specify filter-value..."
+msgstr "Specify filter-value..."
+
+#: main.pas:5308
+msgid "Refresh list every ... second(s):"
+msgstr "Refresh list every ... second(s):"
+
+#: main.pas:5315
+msgid "Seconds must be between 0 and %d."
+msgstr "Seconds must be between 0 and %d."
+
+#: main.pas:5410
+msgid "Unspecified source control in drag'n drop operation!"
+msgstr "Unspecified source control in drag'n drop operation!"
+
+#: main.pas:5783
+msgid "Fetching distinct values ..."
+msgstr "Fetching distinct values ..."
+
+#: main.pas:5819
+msgid "UNIX Timestamp"
+msgstr "UNIX Timestamp"
+
+#: main.pas:5824
+msgid "Default value"
+msgstr "Default value"
+
+msgid "Table node \"%s\" not found in tree."
+msgstr "Table node \"%s\" not found in tree."
+
+#: main.pas:6090
+msgid "Delete snippet file?"
+msgstr "Delete snippet file?"
+
+#: main.pas:6099
+msgid "Failed deleting %s"
+msgstr "Failed deleting %s"
+
+#: main.pas:6135
+msgid "Snippets folder does not exist"
+msgstr "Snippets folder does not exist"
+
+#: main.pas:6135
+msgid "The folder \"%s\" is normally created when you install %s."
+msgstr "The folder \"%s\" is normally created when you install %s."
+
+#: main.pas:6135
+msgid "Shall it be created now?"
+msgstr "Shall it be created now?"
+
+#: main.pas:6153
+msgid "Clear query history?"
+msgstr "Clear query history?"
+
+#: main.pas:6153
+msgid "%s history items will be deleted."
+msgstr "%s history items will be deleted."
+
+#: main.pas:6415
+msgid "Error opening session log file"
+msgstr "Error opening session log file"
+
+#: main.pas:6418
+msgid "Writing to session log file now: %s"
+msgstr "Writing to session log file now: %s"
+
+#: main.pas:6427
+msgid "Writing to session log file disabled now"
+msgstr "Writing to session log file disabled now"
+
+#: main.pas:6577
+msgid "Please select a process in the above list."
+msgstr "Please select a process in the above list."
+
+#: main.pas:6990
+msgid "Reading Databases..."
+msgstr "Reading Databases..."
+
+#: main.pas:7005
+msgid "Reading objects ..."
+msgstr "Reading objects ..."
+
+#: main.pas:7192
+msgid "Entering session \"%s\""
+msgstr "Entering session \"%s\""
+
+#: main.pas:7454
+msgid "Could not find node to focus."
+msgstr "Could not find node to focus."
+
+#: main.pas:7870
+msgid "Could not load full row data."
+msgstr "Could not load full row data."
+
+#: main.pas:8462
+msgid "Not available on %s"
+msgstr "Not available on %s"
+
+#: main.pas:9579
+msgid "Save changes to file %s ?"
+msgstr "Save changes to file %s ?"
+
+#: main.pas:9581
+msgid "Save content of tab \"%s\"?"
+msgstr "Save content of tab \"%s\"?"
+
+#: main.pas:9582
+msgid "Modified query"
+msgstr "Modified query"
+
+#: main.pas:9732
+msgid ""
+"Could not apply SynEdit keystroke shortcut \"%s\" (or secondary: \"%s\") to "
+"%s. %s. Please go to Tools > Preferences > Shortcuts to change this settings."
+msgstr ""
+"Could not apply SynEdit keystroke shortcut \"%s\" (or secondary: \"%s\") to "
+"%s. %s. Please go to Tools > Preferences > Shortcuts to change this settings."
+
+#: main.pas:9759
+msgid "Cannot reformat"
+msgstr "Cannot reformat"
+
+#: main.pas:9759
+msgid "Please select a non-readonly SQL editor first."
+msgstr "Please select a non-readonly SQL editor first."
+
+#: main.pas:9768
+msgid "The current editor is empty."
+msgstr "The current editor is empty."
+
+#: main.pas:9950
+msgid ""
+"Preventing second application instance - disabled in Tools > Preferences > "
+"Miscellaneous."
+msgstr ""
+"Preventing second application instance - disabled in Tools > Preferences > "
+"Miscellaneous."
+
+#: main.pas:10047
+msgid "Sorting grid nodes ..."
+msgstr "Sorting grid nodes ..."
+
+#: main.pas:10074
+msgid "Sorting cancelled."
+msgstr "Sorting cancelled."
+
+#: main.pas:10075
+msgid "Helper connection"
+msgstr "Helper connection"
+
+#: main.pas:10375
+msgid "Parameters in %s"
+msgstr "Parameters in %s"
+
+#: main.pas:10376
+msgid "Columns in %s"
+msgstr "Columns in %s"
+
+#: main.pas:10379
+msgid "SQL functions"
+msgstr "SQL functions"
+
+#: main.pas:10380
+msgid "SQL keywords"
+msgstr "SQL keywords"
+
+#: main.pas:10382
+msgid "Query history"
+msgstr "Query history"
+
+#: main.pas:10384
+msgid "Query profile"
+msgstr "Query profile"
+
+#: main.pas:10404
+msgid "today"
+msgstr "today"
+
+#: main.pas:10406
+msgid "yesterday"
+msgstr "yesterday"
+
+#: main.pas:10548
+msgid "Error with snippets directory: %s"
+msgstr "Error with snippets directory: %s"
+
+#: main.pas:10790
+msgid "Close file and query tab?"
+msgstr "Close file and query tab?"
+
+#: main.pas:10790
+msgid "File was deleted from outside: %s"
+msgstr "File was deleted from outside: %s"
+
+#: main.pas:10822
+msgid "Reload file?"
+msgstr "Reload file?"
+
+#: main.pas:10822
+msgid "File was modified from outside: %s"
+msgstr "File was modified from outside: %s"
+
+#: main.pas:10845
+msgid "Loading file \"%s\" (%s) into query tab #%d"
+msgstr "Loading file \"%s\" (%s) into query tab #%d"
+
+#: main.pas:10870
+msgid ""
+"This file contains mixed linebreaks. They have been converted to Windows "
+"linebreaks (CR+LF)."
+msgstr ""
+"This file contains mixed linebreaks. They have been converted to Windows "
+"linebreaks (CR+LF)."
+
+#: main.pas:10891
+msgid "Saving file ..."
+msgstr "Saving file ..."
+
+#: options.pas:386
+msgid "Active line background"
+msgstr "Active line background"
+
+#: options.pas:395
+msgid "SQL editing"
+msgstr "SQL editing"
+
+#: options.pas:527 tabletools.pas:1070
+msgid "Select output directory"
+msgstr "Select output directory"
+
+#: options.pas:545
+msgid "Find mysql.exe directory"
+msgstr "Find mysql.exe directory"
+
+#: options.pas:661
+msgid "Reset all preference options to default values?"
+msgstr "Reset all preference options to default values?"
+
+#: options.pas:662
+msgid "This also applies to automatic settings, e.g. toolbar positions."
+msgstr "This also applies to automatic settings, e.g. toolbar positions."
+
+#: routine_editor.pas:109
+msgid "Procedure (doesn't return a result)"
+msgstr "Procedure (doesn't return a result)"
+
+#: routine_editor.pas:110
+msgid "Function (returns a result)"
+msgstr "Function (returns a result)"
+
+#: routine_editor.pas:156 view.pas:70 trigger_editor.pas:89
+msgid "Current user (%s)"
+msgstr "Current user (%s)"
+
+#: routine_editor.pas:157 view.pas:71 trigger_editor.pas:90
+msgid "Leave empty for current user (%s)"
+msgstr "Leave empty for current user (%s)"
+
+#: routine_editor.pas:411
+msgid ""
+"A stored function can only have IN parameters so context editing is blocked."
+msgstr ""
+"A stored function can only have IN parameters so context editing is blocked."
+
+#: routine_editor.pas:474
+msgid "Routine \"%s\" already exists."
+msgstr "Routine \"%s\" already exists."
+
+#: runsqlfile.pas:138
+msgid "Error while reading file \"%s\""
+msgstr "Error while reading file \"%s\""
+
+#: searchreplace.pas:60
+msgid "Search patterns:"
+msgstr "Search patterns:"
+
+#: searchreplace.pas:60
+msgid "Start of line"
+msgstr "Start of line"
+
+#: searchreplace.pas:60
+msgid "End of lin"
+msgstr "End of lin"
+
+#: searchreplace.pas:60
+msgid "Any word characte"
+msgstr "Any word characte"
+
+#: searchreplace.pas:60
+msgid "Digit"
+msgstr "Digit"
+
+#: searchreplace.pas:60
+msgid "Whitespace"
+msgstr "Whitespace"
+
+#: searchreplace.pas:60
+msgid "Replacement patterns:"
+msgstr "Replacement patterns:"
+
+#: searchreplace.pas:60
+msgid "Callback parentheses"
+msgstr "Callback parentheses"
+
+#: sqlhelp.pas:140
+msgid "No help available for this keyword or no keyword was selected."
+msgstr "No help available for this keyword or no keyword was selected."
+
+#: sqlhelp.pas:142
+msgid "No example available or no keyword was selected."
+msgstr "No example available or no keyword was selected."
+
+#: syncdb.pas:126
+msgid "Select server session ..."
+msgstr "Select server session ..."
+
+#: syncdb.pas:153 syncdb.pas:182
+msgid "Same as source"
+msgstr "Same as source"
+
+#: syncdb.pas:427
+msgid "Create missing %s"
+msgstr "Create missing %s"
+
+#. TODO
+#: tabletools.pas:155
+msgid "Skipped"
+msgstr "Skipped"
+
+#. TODO
+#: tabletools.pas:156
+msgid "One big file"
+msgstr "One big file"
+
+#. TODO
+#: tabletools.pas:158
+msgid "Directory - one file per object in database subdirectories"
+msgstr "Directory - one file per object in database subdirectories"
+
+#. TODO
+#: tabletools.pas:161
+msgid "No data"
+msgstr "No data"
+
+#. TODO
+#: tabletools.pas:162
+msgid "truncate existing data"
+msgstr "truncate existing data"
+
+#. TODO
+#: tabletools.pas:164
+msgid "do not update existing"
+msgstr "do not update existing"
+
+#. TODO
+#: tabletools.pas:165
+msgid "existing data"
+msgstr "existing data"
+
+#: tabletools.pas:192
+msgid "All data types"
+msgstr "All data types"
+
+#: tabletools.pas:370
+msgid "Selected objects size: %s"
+msgstr "Selected objects size: %s"
+
+#: tabletools.pas:725
+msgid "%s%s doesn't have columns of selected type (%s)."
+msgstr "%s%s doesn't have columns of selected type (%s)."
+
+#: tabletools.pas:850
+msgid "Selected objects size: %s. %s%% done."
+msgstr "Selected objects size: %s. %s%% done."
+
+#: tabletools.pas:986
+msgid "Same as on source server"
+msgstr "Same as on source server"
+
+#: tabletools.pas:1046
+msgid "Processing cancelled by user, waiting for current object to finish ..."
+msgstr "Processing cancelled by user, waiting for current object to finish ..."
+
+#: tabletools.pas:1219
+msgid "Dumping database structure for %s"
+msgstr "Dumping database structure for %s"
+
+#: tabletools.pas:1242
+msgid "Dumping structure for %s %s.%s"
+msgstr "Dumping structure for %s %s.%s"
+
+#: tabletools.pas:1283
+msgid "Creating temporary table to overcome VIEW dependency errors"
+msgstr "Creating temporary table to overcome VIEW dependency errors"
+
+#: tabletools.pas:1298
+msgid "Removing temporary table and create final VIEW structure"
+msgstr "Removing temporary table and create final VIEW structure"
+
+#: tabletools.pas:1361
+msgid "Data exporting was unselected."
+msgstr "Data exporting was unselected."
+
+#: tabletools.pas:1363
+msgid ""
+"Table data not exported because this is a %s table which holds its data in "
+"separate tables."
+msgstr ""
+"Table data not exported because this is a %s table which holds its data in "
+"separate tables."
+
+#: tabletools.pas:1368
+msgid "Dumping data for table %s.%s: %s"
+msgstr "Dumping data for table %s.%s: %s"
+
+#: tabletools.pas:1539
+msgid "Done"
+msgstr "Done"
+
+#: tabletools.pas:1540
+msgid "Success"
+msgstr "Success"
+
+#: tabletools.pas:1542
+msgid "Nothing to do"
+msgstr "Nothing to do"
+
+#: tabletools.pas:1543
+msgid "Selected operations cannot be applied to a %s"
+msgstr "Selected operations cannot be applied to a %s"
+
+#: tabletools.pas:1563
+msgid "Unhandled tree level"
+msgstr "Unhandled tree level"
+
+#: table_editor.pas:476
+msgid "Composing ALTER statement ..."
+msgstr "Composing ALTER statement ..."
+
+#: table_editor.pas:1041
+msgid "No default"
+msgstr "No default"
+
+#: table_editor.pas:1137
+msgid "Column \"%s\" already exists."
+msgstr "Column \"%s\" already exists."
+
+#: table_editor.pas:1758
+msgid "Add duplicated column to index?"
+msgstr "Add duplicated column to index?"
+
+#: table_editor.pas:1758
+msgid ""
+"Index \"%s\" already contains the column \"%s\". It is possible to add a "
+"column twice into a index, but total nonsense in practice."
+msgstr ""
+"Index \"%s\" already contains the column \"%s\". It is possible to add a "
+"column twice into a index, but total nonsense in practice."
+
+#: table_editor.pas:1815
+msgid "The selected table engine (%s) does not support foreign keys."
+msgstr "The selected table engine (%s) does not support foreign keys."
+
+#: table_editor.pas:1946
+msgid "Key already exists. Really create another identical one?"
+msgstr "Key already exists. Really create another identical one?"
+
+#: table_editor.pas:1947
+msgid ""
+"This will increase disk usage and probably slow down queries on this table."
+msgstr ""
+"This will increase disk usage and probably slow down queries on this table."
+
+#: table_editor.pas:2056
+msgid "Please select a reference table before selecting foreign columns."
+msgstr "Please select a reference table before selecting foreign columns."
+
+#: table_editor.pas:2063
+msgid "Reference table \"%s\" seems to be missing, broken or non-accessible."
+msgstr "Reference table \"%s\" seems to be missing, broken or non-accessible."
+
+#: trigger_editor.pas:122
+msgid "Trigger definition not found!"
+msgstr "Trigger definition not found!"
+
+#: updatecheck.pas:76
+msgid "Initializing"
+msgstr "Initializing"
+
+#: updatecheck.pas:77
+msgid "Check for %s updates"
+msgstr "Check for %s updates"
+
+#: updatecheck.pas:93
+msgid "Downloading check file"
+msgstr "Downloading check file"
+
+#: updatecheck.pas:95
+msgid "Reading check file"
+msgstr "Reading check file"
+
+#: updatecheck.pas:100
+msgid "Error: Cannot determine current revision. Using a developer version?"
+msgstr "Error: Cannot determine current revision. Using a developer version?"
+
+#: updatecheck.pas:102
+msgid "Your %s is up-to-date (no update available)."
+msgstr "Your %s is up-to-date (no update available)."
+
+#: updatecheck.pas:104
+msgid "Updates available."
+msgstr "Updates available."
+
+#: updatecheck.pas:147
+msgid "Version %s (yours: %s)"
+msgstr "Version %s (yours: %s)"
+
+#: updatecheck.pas:148
+msgid "Released: %s"
+msgstr "Released: %s"
+
+#: updatecheck.pas:152
+msgid "Download version %s"
+msgstr "Download version %s"
+
+#: updatecheck.pas:168
+msgid "Revision %d (yours: %d)"
+msgstr "Revision %d (yours: %d)"
+
+#: updatecheck.pas:170
+msgid "Compiled: %s (yours: %s)"
+msgstr "Compiled: %s (yours: %s)"
+
+#: updatecheck.pas:173
+msgid "Notes"
+msgstr "Notes"
+
+#: updatecheck.pas:174
+msgid "Download and install build %d"
+msgstr "Download and install build %d"
+
+#: updatecheck.pas:222
+msgid "Downloaded file not found: %s"
+msgstr "Downloaded file not found: %s"
+
+#: updatecheck.pas:224
+msgid "Update in progress"
+msgstr "Update in progress"
+
+#: updatecheck.pas:264
+msgid "Downloading: %s / %s"
+msgstr "Downloading: %s / %s"
+
+#: usermanager.pas:435
+msgid "Save modified user?"
+msgstr "Save modified user?"
+
+#: usermanager.pas:511
+msgid "Starting the server without %s may solve this issue."
+msgstr "Starting the server without %s may solve this issue."
+
+#: usermanager.pas:811
+msgid "This user has an empty password."
+msgstr "This user has an empty password."
+
+#: usermanager.pas:813
+msgid ""
+"This user is inactive due to an invalid length of its encrypted password. "
+"Please fix that in the %s table."
+msgstr ""
+"This user is inactive due to an invalid length of its encrypted password. "
+"Please fix that in the %s table."
+
+#: usermanager.pas:815
+msgid ""
+"This user is inactive due to having a host name, while the server runs with "
+"%s."
+msgstr ""
+"This user is inactive due to having a host name, while the server runs with "
+"%s."
+
+#: usermanager.pas:817
+msgid "This user is inactive due to some unknown reason."
+msgstr "This user is inactive due to some unknown reason."
+
+#: usermanager.pas:926
+msgid "Global privileges"
+msgstr "Global privileges"
+
+#: usermanager.pas:1048
+msgid "Objects of type %s cannot be part of privileges."
+msgstr "Objects of type %s cannot be part of privileges."
+
+#: usermanager.pas:1054
+msgid "Selected object is already accessible."
+msgstr "Selected object is already accessible."
+
+#: usermanager.pas:1125
+msgid "User <%s@%s> already exists."
+msgstr "User <%s@%s> already exists."
+
+#: usermanager.pas:1130
+msgid "Repeated password does not match first one."
+msgstr "Repeated password does not match first one."
+
+#: usermanager.pas:1155
+msgid "Unhandled privilege object: %s"
+msgstr "Unhandled privilege object: %s"
+
+#: usermanager.pas:1297
+msgid "Delete user %s@%s?"
+msgstr "Delete user %s@%s?"

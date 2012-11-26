@@ -73,8 +73,8 @@ end;
 }
 procedure TfrmUpdateCheck.FormShow(Sender: TObject);
 begin
-  Status('Initiating ... ');
-  Caption := 'Check for '+APPNAME+' updates ...';
+  Status(_('Initializing')+' ...');
+  Caption := f_('Check for %s updates', [APPNAME]) + ' ...';
 
   // Init GUI controls
   btnRelease.Enabled := False;
@@ -90,18 +90,18 @@ begin
   // Download the check file
   Screen.Cursor := crHourglass;
   try
-    Status('Downloading check file ...');
+    Status(_('Downloading check file')+' ...');
     CheckfileDownload.SendRequest(FCheckFilename);
-    Status('Reading check file ...');
+    Status(_('Reading check file')+' ...');
     ReadCheckFile;
     // Developer versions probably have "unknown" (0) as revision,
     // which makes it impossible to compare the revisions.
     if Mainform.AppVerRevision = 0 then
-      Status('Error: Cannot determine current revision. Using a developer version?')
+      Status(_('Error: Cannot determine current revision. Using a developer version?'))
     else if Mainform.AppVerRevision = BuildRevision then
-      Status('Your '+APPNAME+' is up-to-date (no update available).')
+      Status(f_('Your %s is up-to-date (no update available).', [APPNAME]))
     else if groupRelease.Enabled or btnBuild.Enabled then
-      Status('Updates available.');
+      Status(_('Updates available.'));
     // Remember when we did the updatecheck to enable the automatic interval
     AppSettings.WriteString(asUpdatecheckLastrun, DateTimeToStr(Now));
   except
@@ -144,12 +144,12 @@ begin
     ReleaseVersion := Ini.ReadString(INISECT_RELEASE, 'Version', 'unknown');
     ReleaseRevision := Ini.ReadInteger(INISECT_RELEASE, 'Revision', 0);
     ReleaseURL := Ini.ReadString(INISECT_RELEASE, 'URL', '');
-    memoRelease.Lines.Add( 'Version ' + ReleaseVersion + ' (yours: '+Mainform.AppVersion+')' );
-    memoRelease.Lines.Add( 'Released: ' + Ini.ReadString(INISECT_RELEASE, 'Date', '') );
+    memoRelease.Lines.Add(f_('Version %s (yours: %s)', [ReleaseVersion, Mainform.AppVersion]));
+    memoRelease.Lines.Add(f_('Released: %s', [Ini.ReadString(INISECT_RELEASE, 'Date', '')]));
     Note := Ini.ReadString(INISECT_RELEASE, 'Note', '');
     if Note <> '' then
-      memoRelease.Lines.Add( 'Note: ' + Note );
-    btnRelease.Caption := 'Download version ' + ReleaseVersion;
+      memoRelease.Lines.Add(_('Notes') + ': ' + Note);
+    btnRelease.Caption := f_('Download version %s', [ReleaseVersion]);
     // Enable the download button if the current version is outdated
     groupRelease.Enabled := ReleaseRevision > Mainform.AppVerRevision;
     btnRelease.Enabled := groupRelease.Enabled;
@@ -165,13 +165,13 @@ begin
     BuildRevision := Ini.ReadInteger(INISECT_BUILD, 'Revision', 0);
     BuildURL := Ini.ReadString(INISECT_BUILD, 'URL', '');
     BuildSize := Ini.ReadInteger(INISECT_BUILD, 'Size', 0);
-    memoBuild.Lines.Add( 'Revision ' + IntToStr(BuildRevision) + ' (yours: '+IntToStr(Mainform.AppVerRevision)+')' );
+    memoBuild.Lines.Add(f_('Revision %d (yours: %d)', [BuildRevision, Mainform.AppVerRevision]));
     FileAge(ParamStr(0), Compiled);
-    memoBuild.Lines.Add( 'Compiled: ' + Ini.ReadString(INISECT_BUILD, 'Date', '') + ' (yours: '+DateToStr(Compiled)+')' );
+    memoBuild.Lines.Add(f_('Compiled: %s (yours: %s)', [Ini.ReadString(INISECT_BUILD, 'Date', ''), DateToStr(Compiled)]));
     Note := Ini.ReadString(INISECT_BUILD, 'Note', '');
     if Note <> '' then
-      memoBuild.Lines.Add( 'Notes: * ' + StringReplace(Note, '%||%', CRLF+'* ', [rfReplaceAll] ) );
-    btnBuild.Caption := 'Download and install build ' + IntToStr(BuildRevision);
+      memoBuild.Lines.Add(_('Notes') + ': * ' + StringReplace(Note, '%||%', CRLF+'* ', [rfReplaceAll] ) );
+    btnBuild.Caption := f_('Download and install build %d', [BuildRevision]);
     // A new release should have priority over a new nightly build.
     // So the user should not be able to download a newer build here
     // before having installed the new release.
@@ -219,9 +219,9 @@ begin
 
     // Check if downloaded file exists
     if not FileExists(DownloadFilename) then
-      Raise Exception.Create('Downloaded file not found: '+DownloadFilename);
+      Raise Exception.CreateFmt(_('Downloaded file not found: %s'), [DownloadFilename]);
 
-    Status('Update in progress ...');
+    Status(_('Update in progress')+' ...');
     ResInfoblockHandle := FindResource(HInstance, 'UPDATER', 'EXE');
     ResHandle := LoadResource(HInstance, ResInfoblockHandle);
     if ResHandle <> 0 then begin
@@ -261,7 +261,7 @@ begin
   if FLastStatusUpdate > GetTickCount-200 then
     Exit;
   Download := Sender as THttpDownload;
-  Status('Downloading: '+FormatByteNumber(Download.BytesRead)+' / '+FormatByteNumber(Download.ContentLength) + ' ...');
+  Status(f_('Downloading: %s / %s', [FormatByteNumber(Download.BytesRead), FormatByteNumber(Download.ContentLength)]) + ' ...');
   FLastStatusUpdate := GetTickCount;
 end;
 

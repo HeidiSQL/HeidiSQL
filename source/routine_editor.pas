@@ -106,8 +106,8 @@ begin
   ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
   // Combo items in a .dfm are sporadically lost after an IDE restart,
   // so we set them here to avoid developer annoyance
-  comboType.Items.Add('Procedure (doesn''t return a result)');
-  comboType.Items.Add('Function (returns a result)');
+  comboType.Items.Add(_('Procedure (doesn''t return a result)'));
+  comboType.Items.Add(_('Function (returns a result)'));
   comboDataAccess.Items.Add('Contains SQL');
   comboDataAccess.Items.Add('No SQL');
   comboDataAccess.Items.Add('Reads SQL data');
@@ -153,8 +153,8 @@ begin
   comboSecurity.ItemIndex := 0;
   editComment.Clear;
   comboDefiner.Text := '';
-  comboDefiner.TextHint := 'Current user ('+Obj.Connection.CurrentUserHostCombination+')';
-  comboDefiner.Hint := 'Leave empty for current user ('+Obj.Connection.CurrentUserHostCombination+')';
+  comboDefiner.TextHint := f_('Current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
+  comboDefiner.Hint := f_('Leave empty for current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
   SynMemoBody.Text := 'BEGIN'+CRLF+CRLF+'END';
   if DBObject.Name <> '' then begin
     // Editing existing routine
@@ -408,7 +408,7 @@ begin
   Allowed := Column > 0;
   if (Column = 3) and (comboType.ItemIndex = 1) then begin
     Allowed := False;
-    MessageDialog('A stored function can only have IN parameters so context editing is blocked.', mtInformation, [mbOK]);
+    MessageDialog(_('A stored function can only have IN parameters so context editing is blocked.'), mtInformation, [mbOK]);
   end;
 end;
 
@@ -471,7 +471,7 @@ begin
       TargetExists := ((editName.Text <> DBObject.Name) or (ProcOrFunc <> FAlterRoutineType)) and
         (allRoutineNames.IndexOf(editName.Text) > -1);
       if TargetExists then begin
-        Result := MessageDialog('Overwrite?', 'Routine "'+editName.Text+'" already exists.',
+        Result := MessageDialog(f_('Overwrite "%s"?', [editName.Text]), f_('Routine "%s" already exists.', [editName.Text]),
           mtConfirmation, [mbYes, mbNo, mbCancel]);
         if Result = mrNo then
           Exit;

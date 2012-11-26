@@ -135,7 +135,7 @@ begin
   case FDBObj.NodeType of
     lntTable: FDBObj.Connection.ParseTableStructure(FDBObj.CreateCode, FColumns, FKeys, FForeignKeys);
     lntView: FDBObj.Connection.ParseViewStructure(FDBObj.CreateCode, FDBObj.Name, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
-    else raise Exception.Create('Neither table nor view: '+FDBObj.Name);
+    else raise Exception.CreateFmt(_('Neither table nor view: %s'), [FDBObj.Name]);
   end;
 
   // Reset options tree
@@ -251,10 +251,10 @@ begin
   case Sender.GetNodeLevel(Node) of
     0: begin
        case Node.Index of
-         nColumns:      CellText := 'Columns';
-         nKeys:         CellText := 'Indexes';
-         nForeignKeys:  CellText := 'Foreign keys';
-         nData:         CellText := 'Data ('+FormatNumber(FDBObj.Rows)+' rows)';
+         nColumns:      CellText := _('Columns');
+         nKeys:         CellText := _('Indexes');
+         nForeignKeys:  CellText := _('Foreign keys');
+         nData:         CellText := f_('Data (%s rows)', [FormatNumber(FDBObj.Rows)]);
          else raise Exception.Create(SUnhandledNodeIndex);
        end;
        if Node.Index <> nData then begin
@@ -373,7 +373,7 @@ begin
   TargetTable := FDBObj.Connection.QuoteIdent(comboDatabase.Text)+'.'+FDBObj.Connection.QuoteIdent(editNewTablename.Text);
   TableExistance := FDBObj.Connection.GetVar('SHOW TABLES FROM '+FDBObj.Connection.QuoteIdent(comboDatabase.Text)+' LIKE '+esc(editNewTablename.Text));
   if TableExistance <> '' then begin
-    if MessageDialog('Target table exists. Drop it and overwrite?', mtConfirmation, [mbYes, mbCancel]) = mrCancel then begin
+    if MessageDialog(_('Target table exists. Drop it and overwrite?'), mtConfirmation, [mbYes, mbCancel]) = mrCancel then begin
       ModalResult := mrNone;
       Exit;
     end;
@@ -381,7 +381,7 @@ begin
   end;
 
   Screen.Cursor := crHourglass;
-  MainForm.ShowStatusMsg('Generating SQL code ...');
+  MainForm.ShowStatusMsg(_('Generating SQL code ...'));
   DataCols := '';
   SelectedColumns := TTableColumnList.Create(False);
   SelectedKeys := TTableKeyList.Create(False);
@@ -472,7 +472,7 @@ begin
 
   // Run query and refresh list
   try
-    MainForm.ShowStatusMsg('Creating table ...');
+    MainForm.ShowStatusMsg(_('Creating table ...'));
     MainForm.ActiveConnection.Query(CreateCode);
     if InsertCode <> '' then
       MainForm.ActiveConnection.Query(InsertCode);

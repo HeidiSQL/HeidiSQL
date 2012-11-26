@@ -473,7 +473,7 @@ var
   end;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
-  Mainform.ShowStatusMsg('Composing ALTER statement ...');
+  Mainform.ShowStatusMsg(_('Composing ALTER statement ...'));
   Screen.Cursor := crHourglass;
   Specs := TStringList.Create;
   SQL := '';
@@ -1039,7 +1039,7 @@ begin
     4, 5, 6: CellText := ''; // Checkbox
     7: begin
       case Col.DefaultType of
-        cdtNothing:                 CellText := 'No default';
+        cdtNothing:                 CellText := _('No default');
         cdtText, cdtTextUpdateTS: begin
           if Col.DataType.Category in [dtcInteger, dtcReal] then
             CellText := Col.DefaultText
@@ -1135,7 +1135,7 @@ begin
     1: begin // Name of column
       for i:=0 to FColumns.Count-1 do begin
         if FColumns[i].Name = NewText then begin
-          ErrorDialog('Column "'+NewText+'" already exists.');
+          ErrorDialog(f_('Column "%s" already exists.', [NewText]));
           Exit;
         end;
       end;
@@ -1756,7 +1756,8 @@ begin
     Col := SourceVT.GetNodeData(SourceVT.FocusedNode);
     ColName := Col.Name;
     if TblKey.Columns.IndexOf(ColName) > -1 then begin
-      if MessageDialog('Add duplicated column to index?', 'Index "'+VT.Text[Node, 0]+'" already contains the column "'+ColName+'". It is possible to add a column twice into a index, but total nonsense in practice.',
+      if MessageDialog(_('Add duplicated column to index?'),
+        f_('Index "%s" already contains the column "%s". It is possible to add a column twice into a index, but total nonsense in practice.', [VT.Text[Node, 0], ColName]),
         mtConfirmation, [mbYes, mbNo]) = mrNo then
         Exit;
     end;
@@ -1813,7 +1814,7 @@ begin
     SupportsForeignKeys := LowerCase(comboEngine.Text) = 'innodb';
     ListForeignKeys.Enabled := SupportsForeignKeys;
     tlbForeignKeys.Enabled := SupportsForeignKeys;
-    pnlNoForeignKeys.Caption := 'The selected table engine ('+comboEngine.Text+') does not support foreign keys.';
+    pnlNoForeignKeys.Caption := f_('The selected table engine (%s) does not support foreign keys.', [comboEngine.Text]);
     if SupportsForeignKeys then
       ListForeignKeys.Margins.Bottom := 0
     else
@@ -1944,8 +1945,8 @@ begin
     for i:=0 to FKeys.Count-1 do begin
       TblKey := FKeys[i];
       if (TblKey.IndexType = NewType) and (TblKey.Columns.Text = NewParts.Text) then begin
-        if MessageDialog('Key already exists. Really create another identical one?',
-          'This will increase disk usage and probably slow down queries on this table.',
+        if MessageDialog(_('Key already exists. Really create another identical one?'),
+          _('This will increase disk usage and probably slow down queries on this table.'),
           mtConfirmation, [mbYes, mbNo]) = mrNo then
           Exit;
         break;
@@ -2054,14 +2055,14 @@ begin
     Key := FForeignKeys[Node.Index];
     Allowed := False;
     if Key.ReferenceTable = '' then
-      ErrorDialog('Please select a reference table before selecting foreign columns.')
+      ErrorDialog(_('Please select a reference table before selecting foreign columns.'))
     else begin
       try
         DBObject.Connection.GetVar('SELECT 1 FROM '+DBObject.Connection.QuoteIdent(Key.ReferenceTable, True, '.'));
         Allowed := True;
       except
         // Leave Allowed = False
-        ErrorDialog('Reference table "'+Key.ReferenceTable+'" seems to be missing, broken or non-accessible.')
+        ErrorDialog(f_('Reference table "%s" seems to be missing, broken or non-accessible.', [Key.ReferenceTable]))
       end;
     end;
   end else

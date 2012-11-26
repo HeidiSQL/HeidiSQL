@@ -135,7 +135,7 @@ begin
   except
     on E:EFileStreamError do
     begin
-      ErrorDialog('Error while reading file "'+SQLFileName+'"', E.Message);
+      ErrorDialog(f_('Error while reading file "%s"', [SQLFileName]), E.Message);
       Mainform.AddOrRemoveFromQueryLoadHistory(SQLFileName, False, True);
       Mainform.FillPopupQueryLoad;
     end;

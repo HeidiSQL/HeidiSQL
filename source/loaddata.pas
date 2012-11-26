@@ -173,7 +173,7 @@ begin
       Charset := MainForm.GetCharsetByEncoding(Encoding);
       try
         // Detect db charset
-        DefCharset := 'Let server/database decide';
+        DefCharset := _('Let server/database decide');
         dbcreate := FConnection.GetVar('SHOW CREATE DATABASE '+FConnection.QuoteIdent(comboDatabase.Text), 1);
         rx := TRegExpr.Create;
         rx.ModifierG := True;
@@ -198,7 +198,7 @@ begin
         SelectedCharsetIndex := 0;
       comboEncoding.ItemIndex := SelectedCharsetIndex;
     end else begin
-      comboEncoding.Items.Add('Unsupported by this server');
+      comboEncoding.Items.Add(_('Unsupported by this server'));
       comboEncoding.ItemIndex := 0;
     end;
   end else begin
@@ -312,17 +312,17 @@ begin
         Warnings.Next;
       end;
       if Warnings.RecordCount > 0 then begin
-        ErrorDialog('Your file was imported but the server returned '+FormatNumber(Warnings.RecordCount)+' warnings and/or notes. See the log panel for details.');
+        ErrorDialog(f_('Your file was imported but the server returned %s warnings and/or notes. See the log panel for details.', [FormatNumber(Warnings.RecordCount)]));
         ModalResult := mrNone;
       end;
     end;
     // Hint user if zero rows were detected in file
     if (ModalResult <> mrNone) and (RowCount = 0) then begin
-      ErrorDialog('No rows were imported',
-        'This can have several causes:'+CRLF+
-        ' - File is empty'+CRLF+
-        ' - Wrong file encoding was selected or detected'+CRLF+
-        ' - Field and/or line terminator do not fit to the file contents'
+      ErrorDialog(_('No rows were imported'),
+        _('This can have several causes:')+CRLF+
+        _(' - File is empty')+CRLF+
+        _(' - Wrong file encoding was selected or detected')+CRLF+
+        _(' - Field and/or line terminator do not fit to the file contents')
         );
       ModalResult := mrNone;
     end;
@@ -425,7 +425,7 @@ var
     Inc(ProgressChars);
     if ProgressChars >= ProgressCharsPerStep then begin
       Mainform.ProgressStep;
-      Mainform.ShowStatusMsg('Importing textfile, row '+FormatNumber(RowCount-IgnoreLines)+', '+IntToStr(Mainform.ProgressBarStatus.Position)+'%');
+      Mainform.ShowStatusMsg(f_('Importing textfile, row %s, %d%%', [FormatNumber(RowCount-IgnoreLines), Mainform.ProgressBarStatus.Position]));
       ProgressChars := 0;
     end;
   end;
@@ -529,7 +529,7 @@ begin
   Value := '';
   OutStream := TMemoryStream.Create;
 
-  MainForm.ShowStatusMsg('Reading textfile ('+FormatByteNumber(_GetFileSize(editFilename.Text))+') ...');
+  MainForm.ShowStatusMsg(f_('Reading textfile (%s) ...', [FormatByteNumber(_GetFileSize(editFilename.Text))]));
   Contents := ReadTextfile(editFilename.Text, Encoding);
   ContentLen := Length(Contents);
   MainForm.ShowStatusMsg;
@@ -585,7 +585,7 @@ var
   TestStream: TFileStream;
 begin
   Dialog := TOpenTextFileDialog.Create(Self);
-  Dialog.Filter := 'MySQL CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt|All files (*.*)|*.*';
+  Dialog.Filter := _('CSV files')+' (*.csv)|*.csv|'+_('Text files')+' (*.txt)|*.txt|'+_('All files')+' (*.*)|*.*';
   Dialog.DefaultExt := 'csv';
   Dialog.Encodings.Assign(Mainform.FileEncodings);
   Dialog.EncodingIndex := 0;

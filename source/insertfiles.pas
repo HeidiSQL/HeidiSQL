@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ImgList,
   ShellApi, Math, Graphics, ComCtrls, ToolWin,
-  dbconnection, mysql_structures, VirtualTrees, grideditlinks, SynRegExpr, gnugettext;
+  dbconnection, mysql_structures, VirtualTrees, grideditlinks, SynRegExpr, gnugettext, helpers;
 
 type
   TColInfo = class
@@ -101,7 +101,7 @@ type
 
 implementation
 
-uses main, helpers;
+uses main;
 
 const
   ColColname = 0;
@@ -485,7 +485,7 @@ begin
     CheckState := csMixedNormal;
   Grid.Header.Columns[ColBinary].CheckState := CheckState;
 
-  lblFileCount.Caption := Format('%u files, %s, %u files selected.', [Grid.RootNodeCount, FormatByteNumber(Bytes), Grid.SelectedCount]);
+  lblFileCount.Caption := f_('%u files, %s, %u files selected.', [Grid.RootNodeCount, FormatByteNumber(Bytes), Grid.SelectedCount]);
   Modified;
 end;
 

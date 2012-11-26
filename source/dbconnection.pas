@@ -4,7 +4,8 @@ interface
 
 uses
   Classes, SysUtils, windows, mysql_structures, SynRegExpr, Generics.Collections, Generics.Defaults,
-  DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls;
+  DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls,
+  gnugettext;
 
 
 type
@@ -650,7 +651,7 @@ begin
   Create;
 
   if not AppSettings.SessionPathExists(SessionRegPath) then
-    raise Exception.Create('Error: Session "'+SessionRegPath+'" not found in registry.');
+    raise Exception.Create(f_('Error: Session "%s" not found in registry.', [SessionRegPath]));
 
   FSessionPath := SessionRegPath;
   AppSettings.SessionPath := SessionRegPath;
@@ -661,8 +662,10 @@ begin
     FSessionColor := AppSettings.ReadInt(asTreeBackground);
     FNetType := TNetType(AppSettings.ReadInt(asNetType));
     if (FNetType > High(TNetType)) or (FNetType < Low(TNetType)) then begin
-      ErrorDialog('Broken "NetType" value ('+IntToStr(Integer(FNetType))+') found in settings for session "'+FSessionPath+'".'+CRLF+CRLF+
-        'Please report that on http://code.google.com/p/heidisql/issues/detail?id=2958');
+      ErrorDialog(f_('Broken "NetType" value (%d) found in settings for session "%s".', [Integer(FNetType), FSessionPath])
+        +CRLF+CRLF+
+        _('Please report that on http://code.google.com/p/heidisql/issues/detail?id=2958')
+        );
       FNetType := ntMySQL_TCPIP;
     end;
     FHostname := AppSettings.ReadString(asHost);
@@ -969,7 +972,7 @@ var
   ClientVersion: String;
 begin
   // Map library procedure to internal procedure
-  Log(lcDebug, 'Assign procedure "'+Name+'"');
+  Log(lcDebug, f_('Assign procedure "%s"', [Name]));
   Proc := GetProcAddress(LibMysqlHandle, Name);
   if Proc = nil then begin
     if @mysql_get_client_info = nil then
@@ -978,7 +981,7 @@ begin
     if @mysql_get_client_info <> nil then
       ClientVersion := ' ('+DecodeApiString(mysql_get_client_info)+')';
     LibMysqlHandle := 0;
-    raise EDatabaseError.Create('Your '+LibMysqlPath+ClientVersion+' is out-dated or somehow incompatible to '+APPNAME+'. Please use the one from the installer, or just reinstall '+APPNAME+'.');
+    raise EDatabaseError.Create(f_('Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s.', [LibMysqlPath+ClientVersion, APPNAME, APPNAME]));
   end;
 end;
 
@@ -1052,7 +1055,7 @@ begin
             sslca,
             nil,
             nil);
-          Log(lcInfo, 'SSL parameters successfully set.');
+          Log(lcInfo, _('SSL parameters successfully set.'));
         end;
       end;
 
@@ -1082,7 +1085,7 @@ begin
         rx.Expression := '(-pw\s+")[^"]*(")';
         PlinkCmdDisplay := rx.Replace(PlinkCmd, '${1}******${2}', True);
         rx.Free;
-        Log(lcInfo, 'Attempt to create plink.exe process, waiting '+FormatNumber(FParameters.SSHTimeout)+'s for response ...');
+        Log(lcInfo, f_('Attempt to create plink.exe process, waiting %ds for response ...', [FParameters.SSHTimeout]));
         // Create plink.exe process
         FillChar(FPlinkProcInfo, SizeOf(TProcessInformation), 0);
         FillChar(StartupInfo, SizeOf(TStartupInfo), 0);
@@ -1093,10 +1096,10 @@ begin
           WaitForSingleObject(FPlinkProcInfo.hProcess, FParameters.SSHTimeout*1000);
           GetExitCodeProcess(FPlinkProcInfo.hProcess, ExitCode);
           if ExitCode <> STILL_ACTIVE then
-            raise EDatabaseError.Create('PLink exited unexpected. Command line was:'+CRLF+PlinkCmdDisplay);
+            raise EDatabaseError.CreateFmt(_('PLink exited unexpected. Command line was: %s'), [CRLF+PlinkCmdDisplay]);
         end else begin
           ClosePlink;
-          raise EDatabaseError.Create('Couldn''t execute PLink: '+CRLF+PlinkCmdDisplay);
+          raise EDatabaseError.CreateFmt(_('Could not execute PLink: %s'), [CRLF+PlinkCmdDisplay]);
         end;
         FinalHost := 'localhost';
         FinalPort := FParameters.SSHLocalPort;
@@ -1133,7 +1136,7 @@ begin
       raise EDatabaseError.Create(Error);
     end else begin
       FActive := True;
-      Log(lcInfo, 'Connected. Thread-ID: '+IntToStr(ThreadId));
+      Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
       CharacterSet := 'utf8';
       CurCharset := CharacterSet;
       Log(lcDebug, 'Characterset: '+CurCharset);
@@ -1202,7 +1205,7 @@ begin
     except
       on E:Exception do
         raise EDatabaseError.Create(E.Message+CRLF+CRLF+
-            'On Wine, you can try to install MDAC:'+CRLF+
+            _('On Wine, you can try to install MDAC:')+CRLF+
             '> wget http://winetricks.org/winetricks'+CRLF+
             '> chmod +x winetricks'+CRLF+
             '> sh winetricks mdac28');
@@ -1232,7 +1235,7 @@ begin
       FAdoHandle.Connected := True;
       FConnectionStarted := GetTickCount div 1000;
       FActive := True;
-      Log(lcInfo, 'Connected. Thread-ID: '+IntToStr(ThreadId));
+      Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
       // No need to set a charset for MS SQL
       // CharacterSet := 'utf8';
       // CurCharset := CharacterSet;
@@ -1259,7 +1262,7 @@ begin
 
       // Show up dynamic connection properties, probably useful for debugging
       for i:=0 to FAdoHandle.Properties.Count-1 do
-        Log(lcDebug, 'OLE DB property "'+FAdoHandle.Properties[i].Name+'": '+String(FAdoHandle.Properties[i].Value));
+        Log(lcDebug, f_('OLE DB property "%s": %s', [FAdoHandle.Properties[i].Name, String(FAdoHandle.Properties[i].Value)]));
 
       DoAfterConnect;
 
@@ -1304,7 +1307,7 @@ begin
   // Prompt for password on initial connect
   if FParameters.LoginPrompt and (not FLoginPromptDone) then begin
     Dialog := TfrmLogin.Create(Self);
-    Dialog.lblPrompt.Caption := 'Login to '+FParameters.Hostname+':';
+    Dialog.lblPrompt.Caption := f_('Login to %s:', [FParameters.Hostname]);
     Dialog.editUsername.Text := FParameters.Username;
     Dialog.editPassword.Text := FParameters.Password;
     Dialog.ShowModal;
@@ -1316,9 +1319,9 @@ begin
 
   // Prepare connection
   if FParameters.Password <> '' then UsingPass := 'Yes' else UsingPass := 'No';
-  Log(lcInfo, 'Connecting to '+FParameters.Hostname+' via '+FParameters.NetTypeName(FParameters.NetType, True)+
-    ', username '+FParameters.Username+
-    ', using password: '+UsingPass+' ...');
+  Log(lcInfo, f_('Connecting to %s via %s, username %s, using password: %s ...',
+    [FParameters.Hostname, FParameters.NetTypeName(FParameters.NetType, True), FParameters.Username, UsingPass]
+    ));
 end;
 
 
@@ -1327,10 +1330,10 @@ begin
   // Init libmysql before actually connecting.
   // Each connection has its own library handle
   if LibMysqlHandle = 0 then begin
-    Log(lcDebug, 'Loading library file '+LibMysqlPath+' ...');
+    Log(lcDebug, f_('Loading library file %s ...', [LibMysqlPath]));
     LibMysqlHandle := LoadLibrary(PWideChar(LibMysqlPath));
     if LibMysqlHandle = 0 then
-      raise EDatabaseError.Create('Can''t find a usable '+LibMysqlPath+'. Please launch '+ExtractFileName(ParamStr(0))+' from the directory where you have installed it.')
+      raise EDatabaseError.CreateFmt(_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.'), [LibMysqlPath, ExtractFileName(ParamStr(0))])
     else begin
       AssignProc(@mysql_affected_rows, 'mysql_affected_rows');
       AssignProc(@mysql_character_set_name, 'mysql_character_set_name');
@@ -1442,7 +1445,7 @@ end;
 
 function TMySQLConnection.Ping(Reconnect: Boolean): Boolean;
 begin
-  Log(lcDebug, 'Ping server ...');
+  Log(lcDebug, _('Ping server ...'));
   if (FHandle=nil) or (mysql_ping(FHandle) <> 0) then begin
     // Be sure to release some stuff before reconnecting
     Active := False;
@@ -1458,7 +1461,7 @@ end;
 
 function TAdoDBConnection.Ping(Reconnect: Boolean): Boolean;
 begin
-  Log(lcDebug, 'Ping server ...');
+  Log(lcDebug, _('Ping server ...'));
   if FActive then try
     FAdoHandle.Execute('SELECT 1');
   except
@@ -1487,7 +1490,7 @@ end;
 procedure TMySQLConnection.ClosePlink;
 begin
   if FPlinkProcInfo.hProcess <> 0 then begin
-    Log(lcInfo, 'Closing plink.exe process #'+IntToStr(FPlinkProcInfo.dwProcessId)+' ...');
+    Log(lcInfo, f_('Closing plink.exe process #%d ...', [FPlinkProcInfo.dwProcessId]));
     TerminateProcess(FPlinkProcInfo.hProcess, 0);
     CloseHandle(FPlinkProcInfo.hProcess);
   end;
@@ -1505,7 +1508,7 @@ var
   QueryResult: PMYSQL_RES;
 begin
   if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
-    Log(lcDebug, 'Waiting for running query to finish ...');
+    Log(lcDebug, _('Waiting for running query to finish ...'));
     try
       FLockedByThread.WaitFor;
     except
@@ -1559,7 +1562,7 @@ begin
       if UpperCase(Copy(SQL, 1, 3)) = 'USE' then begin
         FDatabase := Trim(Copy(SQL, 4, Length(SQL)-3));
         FDatabase := DeQuoteIdent(FDatabase);
-        Log(lcDebug, 'Database "'+FDatabase+'" selected');
+        Log(lcDebug, f_('Database "%s" selected', [FDatabase]));
         if Assigned(FOnDatabaseChanged) then
           FOnDatabaseChanged(Self, Database);
       end;
@@ -1605,7 +1608,7 @@ var
   Affected: Int64;
 begin
   if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
-    Log(lcDebug, 'Waiting for running query to finish ...');
+    Log(lcDebug, _('Waiting for running query to finish ...'));
     try
       FLockedByThread.WaitFor;
     except
@@ -1648,7 +1651,7 @@ begin
     if UpperCase(Copy(SQL, 1, 3)) = 'USE' then begin
       FDatabase := Trim(Copy(SQL, 4, Length(SQL)-3));
       FDatabase := DeQuoteIdent(FDatabase);
-      Log(lcDebug, 'Database "'+FDatabase+'" selected');
+      Log(lcDebug, f_('Database "%s" selected', [FDatabase]));
       if Assigned(FOnDatabaseChanged) then
         FOnDatabaseChanged(Self, Database);
     end;
@@ -1708,7 +1711,7 @@ begin
     lntTable, lntView: Column := 1;
     lntFunction, lntProcedure, lntTrigger: Column := 2;
     lntEvent: Column := 3;
-    else Exception.Create('Unhandled list node type in '+ClassName+'.GetCreateCode');
+    else Exception.CreateFmt(_('Unhandled list node type in %s.GetCreateCode'), [ClassName]);
   end;
   if NodeType = lntView then
     Result := GetCreateViewCode(Database, Name)
@@ -2035,7 +2038,7 @@ begin
       except
         on E:EDatabaseError do begin
           FAllDatabases := TStringList.Create;
-          Log(lcError, 'Database names not available due to missing privileges for user '+CurrentUserHostCombination+'.');
+          Log(lcError, f_('Database names not available due to missing privileges for user %s.', [CurrentUserHostCombination]));
         end;
       end;
     end;
@@ -2508,7 +2511,7 @@ begin
     Vars.Next;
   end;
   if Result = 0 then begin
-    Log(lcError, 'The server did not return a non-zero value for the max_allowed_packet variable. Assuming 1M now.');
+    Log(lcError, _('The server did not return a non-zero value for the max_allowed_packet variable. Assuming 1M now.'));
     Result := SIZE_MB;
   end;
 
@@ -2613,7 +2616,7 @@ end;
 function TDBConnection.ExplainAnalyzer(SQL, DatabaseName: String): Boolean;
 begin
   Result := False;
-  MessageDialog('Not implemented for this DBMS', mtError, [mbOK]);
+  MessageDialog(_('Not implemented for this DBMS'), mtError, [mbOK]);
 end;
 
 
@@ -3063,18 +3066,18 @@ begin
   Ping(False);
   Result.Values['Connected'] := EvalBool(FActive);
   if FActive then begin
-    Result.Values['Real Hostname'] := FRealHostname;
-    Result.Values['Server OS'] := ServerOS;
-    Result.Values['Server version'] := FServerVersionUntouched;
-    Result.Values['Connection port'] := IntToStr(Parameters.Port);
-    Result.Values['Compressed protocol'] := EvalBool(Parameters.Compressed);
-    Result.Values['Unicode enabled'] := EvalBool(IsUnicode);
-    Result.Values['SSL enabled'] := EvalBool(IsSSL);
+    Result.Values[_('Real Hostname')] := FRealHostname;
+    Result.Values[_('Server OS')] := ServerOS;
+    Result.Values[_('Server version')] := FServerVersionUntouched;
+    Result.Values[_('Connection port')] := IntToStr(Parameters.Port);
+    Result.Values[_('Compressed protocol')] := EvalBool(Parameters.Compressed);
+    Result.Values[_('Unicode enabled')] := EvalBool(IsUnicode);
+    Result.Values[_('SSL enabled')] := EvalBool(IsSSL);
     if Assigned(FServerVariables) then
       Result.Values['max_allowed_packet'] := FormatByteNumber(MaxAllowedPacket);
     case Parameters.NetTypeGroup of
       ngMySQL: begin
-        Result.Values['Client version (libmysql)'] := DecodeApiString(mysql_get_client_info);
+        Result.Values[_('Client version (libmysql)')] := DecodeApiString(mysql_get_client_info);
         Infos := DecodeApiString(mysql_stat((Self as TMySQLConnection).FHandle));
         rx := TRegExpr.Create;
         rx.ModifierG := False;
@@ -3377,7 +3380,7 @@ begin
       CheckOption := Trim(rx.Match[13]);
       SelectCode := rx.Match[11];
     end else
-      raise Exception.Create('Regular expression did not match the VIEW code in ParseViewStructure(): '+CRLF+CRLF+CreateCode);
+      raise Exception.CreateFmt(_('Regular expression did not match the VIEW code in ParseViewStructure(): %s'), [CRLF+CRLF+CreateCode]);
     rx.Free;
   end;
 
@@ -3780,7 +3783,7 @@ begin
           ftDateTime:
             TypeIndex := dtDateTime;
           else
-            raise EDatabaseError.Create('Unknown data type for column #'+IntToStr(i)+' - '+FColumnNames[i]+': '+IntToStr(Integer(LastResult.Fields[i].DataType)));
+            raise EDatabaseError.CreateFmt(_('Unknown data type for column #%d - %s: %d'), [i, FColumnNames[i], Integer(LastResult.Fields[i].DataType)]);
         end;
         for j:=0 to High(FConnection.DataTypes) do begin
           if TypeIndex = FConnection.DataTypes[j].Index then
@@ -4003,7 +4006,7 @@ begin
   if idx > -1 then
     Result := Col(idx)
   else if not IgnoreErrors then
-    Raise EDatabaseError.CreateFmt('Column "%s" not available.', [ColumnName]);
+    Raise EDatabaseError.CreateFmt(_('Column "%s" not available.'), [ColumnName]);
 end;
 
 
@@ -4089,7 +4092,7 @@ var
 begin
   Result := nil;
   if (Column = -1) or (Column >= FColumnOrgNames.Count) then
-    raise EDatabaseError.Create('Column #'+IntToStr(Column)+' not available.');
+    raise EDatabaseError.CreateFmt(_('Column #%s not available.'), [IntToStr(Column)]);
   if FEditingPrepared then begin
     for i:=0 to FColumns.Count-1 do begin
       if FColumns[i].Name = FColumnOrgNames[Column] then begin
@@ -4407,7 +4410,7 @@ var
 begin
   Result := True;
   if not FEditingPrepared then
-    raise EDatabaseError.Create('Internal error: Cannot post modifications before editing was prepared.');
+    raise EDatabaseError.Create(_('Internal error: Cannot post modifications before editing was prepared.'));
 
   for Row in FUpdateData do begin
     // Prepare update and insert queries
@@ -4605,14 +4608,14 @@ begin
     end;
 
     if (Field.org_table <> '') and (tbl <> '') and ((tbl <> Field.org_table) or (db <> Field.db)) then
-      raise EDatabaseError.Create('More than one table involved.');
+      raise EDatabaseError.Create(_('More than one table involved.'));
     if Field.org_table <> '' then begin
       tbl := Field.org_table;
       db := Field.db;
     end;
   end;
   if tbl = '' then
-    raise EDatabaseError.Create('Could not determine name of table.')
+    raise EDatabaseError.Create(_('Could not determine name of table.'))
   else
     Result := Connection.DecodeAPIString(tbl)
 end;
@@ -4677,7 +4680,7 @@ begin
   // All column names must be present in order to send valid INSERT/UPDATE/DELETE queries
   for i:=0 to FColumnOrgNames.Count-1 do begin
     if FColumnOrgNames[i] = '' then
-      raise EDatabaseError.Create('Column #'+IntToStr(i)+' has an undefined origin: '+ColumnNames[i]);
+      raise EDatabaseError.CreateFmt(_('Column #%d has an undefined origin: %s'), [i, ColumnNames[i]]);
   end;
 end;
 
@@ -4695,7 +4698,7 @@ begin
   for i:=0 to NeededCols.Count-1 do begin
     j := FColumnOrgNames.IndexOf(NeededCols[i]);
     if j = -1 then
-      raise EDatabaseError.Create('Cannot compose WHERE clause - column missing: '+NeededCols[i]);
+      raise EDatabaseError.CreateFmt(_('Cannot compose WHERE clause - column missing: %s'), [NeededCols[i]]);
     if Result <> '' then
       Result := Result + ' AND';
     Result := Result + ' ' + Connection.QuoteIdent(FColumnOrgNames[j]);
@@ -4861,7 +4864,7 @@ begin
     lntTrigger: Result := 'Trigger';
     lntEvent: Result := 'Event';
     lntColumn: Result := 'Column';
-    else Result := 'Unknown, should never appear';
+    else Result := _('Unknown, should never appear');
   end;
 end;
 
@@ -5134,7 +5137,7 @@ begin
   case _type of
     1: Result := PAnsiChar(AnsiString(Dialog.editUsername.Text));
     2: Result := PAnsiChar(AnsiString(Dialog.editPassword.Text));
-    else raise EDatabaseError.Create('Unsupported type ('+IntToStr(_type)+') in mysql_authentication_dialog_ask.');
+    else raise EDatabaseError.CreateFmt(_('Unsupported type (%d) in mysql_authentication_dialog_ask.'), [_type]);
   end;
   Dialog.Free;
 end;

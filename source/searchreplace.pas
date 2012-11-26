@@ -57,14 +57,14 @@ begin
   if comboSearch.Items.Count > 0 then comboSearch.Text := comboSearch.Items[0];
   if comboReplace.Items.Count > 0 then comboReplace.Text := comboReplace.Items[0];
 
-  chkRegularExpression.Hint := 'Search patterns:'+CRLF+
-    ' ^ Start of line'+CRLF+
-    ' $ End of line'+CRLF+
-    ' \w Any word character'+CRLF+
-    ' \d Digit (0-9)'+CRLF+
-    ' \s Whitespace'+CRLF+
-    'Replacement patterns:'+CRLF+
-    ' $0 .. $n Callback parentheses'
+  chkRegularExpression.Hint := _('Search patterns:')+CRLF+
+    ' ^ '+_('Start of line')+CRLF+
+    ' $ '+_('End of line')+CRLF+
+    ' \w '+_('Any word character')+CRLF+
+    ' \d '+_('Digit')+' (0-9)'+CRLF+
+    ' \s '+_('Whitespace')+CRLF+
+    _('Replacement patterns:')+CRLF+
+    ' $0 .. $n '+_('Callback parentheses')
     ;
 end;
 

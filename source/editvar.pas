@@ -87,7 +87,7 @@ begin
     end;
   end;
   if not Found then
-    raise EVariableError.Create('Could not find '+Value+' variable in internal mapping.');
+    raise EVariableError.CreateFmt(_('Could not find %s variable in internal mapping.'), [Value]);
 end;
 
 
