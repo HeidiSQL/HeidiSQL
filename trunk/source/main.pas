@@ -10112,8 +10112,6 @@ end;
 
 
 function TMainForm.GetEncodingByName(Name: String): TEncoding;
-var
-  Enc: TEncoding;
 begin
   Result := nil;
   case FileEncodings.IndexOf(Name) of
