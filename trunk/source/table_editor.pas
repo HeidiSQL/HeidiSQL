@@ -750,7 +750,6 @@ begin
       NewCol.DefaultType := FocusedCol.DefaultType;
       NewCol.DefaultText := FocusedCol.DefaultText;
     end;
-    NewCol.Comment := FocusedCol.Comment;
     NewCol.Collation := '';
   end else begin
     idx := listColumns.RootNodeCount;
