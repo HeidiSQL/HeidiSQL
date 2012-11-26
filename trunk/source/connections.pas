@@ -343,15 +343,15 @@ var
   SessionNames: TStringList;
 begin
   // Save session as ...
-  newName := 'Enter new session name ...';
+  newName := _('Enter new session name ...');
   NameOK := False;
   SessionNames := NodeSessionNames(ListSessions.FocusedNode.Parent, ParentKey);
   while not NameOK do begin
-    if not InputQuery('Clone session ...', 'New session name:', newName) then
+    if not InputQuery(_('Clone session ...'), _('New session name:'), newName) then
       Exit; // Cancelled
     NameOK := SessionNames.IndexOf(newName) = -1;
     if not NameOK then
-      ErrorDialog('Session name '''+ParentKey+newName+''' already in use.')
+      ErrorDialog(f_('Session name "%s" already in use.', [ParentKey+newName]))
     else begin
       // Create the key and save its values
       NewSess := CurrentParams;
@@ -382,7 +382,7 @@ begin
     timerSettingsImport.Enabled := False;
   if FSettingsImportWaitTime >= 10000 then begin
     timerSettingsImport.Enabled := False;
-    MessageDialog('Imported sessions could not be detected. Restarting HeidiSQL may solve that.', mtWarning, [mbOK]);
+    MessageDialog(_('Imported sessions could not be detected. Restarting HeidiSQL may solve that.'), mtWarning, [mbOK]);
   end;
 end;
 
@@ -436,7 +436,7 @@ var
 begin
   Node := ListSessions.FocusedNode;
   Sess := ListSessions.GetNodeData(Node);
-  if MessageDialog('Delete session "' + Sess.SessionName + '" ?', mtConfirmation, [mbYes, mbCancel]) = mrYes then
+  if MessageDialog(f_('Delete session "%s"?', [Sess.SessionName]), mtConfirmation, [mbYes, mbCancel]) = mrYes then
   begin
     AppSettings.SessionPath := Sess.SessionPath;
     AppSettings.DeleteCurrentKey;
@@ -639,7 +639,7 @@ begin
   SiblingSessions := NodeSessionNames(ParentNode, ParentKey);
   // Test if target folder has an equal named node
   if SiblingSessions.IndexOf(FocusedSess.SessionName) > -1 then
-    ErrorDialog('Session "'+ParentKey+FocusedSess.SessionName+'" already exists!')
+    ErrorDialog(f_('Session "%s" already exists!', [ParentKey+FocusedSess.SessionName]))
   else begin
     try
       AppSettings.SessionPath := FocusedSess.SessionPath;
@@ -648,7 +648,7 @@ begin
       FocusedSess.SessionPath := ParentKey+FocusedSess.SessionName;
     except
       on E:Exception do
-        ErrorDialog('Error while moving registry key: '+E.Message);
+        ErrorDialog(f_('Error while moving registry key: %s', [E.Message]));
     end;
   end;
   SiblingSessions.Free;
@@ -697,11 +697,11 @@ begin
   if not SessionFocused then begin
     PageControlDetails.ActivePage := tabStart;
     if ListSessions.RootNodeCount = 0 then
-      lblHelp.Caption := 'New here? In order to connect to a server, you have to create a so called '+
-        '"session" at first. Just click the "New" button on the bottom left to create your first session.'+CRLF+CRLF+
-        'Give it a friendly name (e.g. "Local DB server") so you''ll recall it the next time you start '+APPNAME+'.'
+      lblHelp.Caption := f_('New here? In order to connect to a server, you have to create a so called '+
+        '"session" at first. Just click the "New" button on the bottom left to create your first session.'+
+        'Give it a friendly name (e.g. "Local DB server") so you''ll recall it the next time you start %s.', [APPNAME])
     else
-      lblHelp.Caption := 'Please click a session on the left list to edit parameters, doubleclick to open it.';
+      lblHelp.Caption := _('Please click a session on the left list to edit parameters, doubleclick to open it.');
   end else begin
     PageControlDetails.ActivePage := tabSettings;
 
@@ -749,13 +749,13 @@ var
   Connects, Refused: Integer;
 begin
   // Continuously update statistics labels
-  lblLastConnectRight.Caption := 'unknown or never';
+  lblLastConnectRight.Caption := _('unknown or never');
   lblLastConnectRight.Hint := '';
   lblLastConnectRight.Enabled := False;
-  lblCreatedRight.Caption := 'unknown';
+  lblCreatedRight.Caption := _('unknown');
   lblCreatedRight.Hint := '';
   lblCreatedRight.Enabled := False;
-  lblCounterRight.Caption := 'not available';
+  lblCounterRight.Caption := _('not available');
   lblCounterRight.Enabled := False;
 
   if not Assigned(ListSessions.FocusedNode) then
@@ -779,11 +779,11 @@ begin
   Refused := AppSettings.ReadInt(asRefusedCount);
   lblCounterRight.Enabled := Connects + Refused > 0;
   if Connects > 0 then begin
-    lblCounterRight.Caption := 'Successful connects: '+IntToStr(Connects);
+    lblCounterRight.Caption := f_('Successful connects: %d', [Connects]);
     if Refused > 0 then
-      lblCounterRight.Caption := lblCounterRight.Caption + ', unsuccessful: '+IntToStr(Refused);
+      lblCounterRight.Caption := lblCounterRight.Caption + ', '+_('unsuccessful')+': '+IntToStr(Refused);
   end else if Refused > 0 then
-    lblCounterRight.Caption := 'Unsuccessful connects: '+IntToStr(Refused);
+    lblCounterRight.Caption := f_('Unsuccessful connects: %d', [Refused]);
   Invalidate;
 end;
 
@@ -811,7 +811,7 @@ begin
   Sess := Sender.GetNodeData(Node);
   SiblingSessions := NodeSessionNames(Node.Parent, ParentKey);
   if SiblingSessions.IndexOf(NewText) > -1 then begin
-    ErrorDialog('Session "'+ParentKey+NewText+'" already exists!');
+    ErrorDialog(f_('Session "%s" already exists!', [ParentKey+NewText]));
     NewText := Sess.SessionName;
   end else begin
     AppSettings.SessionPath := Sess.SessionPath;
@@ -944,7 +944,7 @@ end;
 procedure Tconnform.FinalizeModifications(var CanProceed: Boolean);
 begin
   if FSessionModified and (not FOnlyPasswordModified) then begin
-    case MessageDialog('Save modifications?', 'Settings for "'+SelectedSessionPath+'" were changed.', mtConfirmation, [mbYes, mbNo, mbCancel]) of
+    case MessageDialog(_('Save modifications?'), f_('Settings for "%s" were changed.', [SelectedSessionPath]), mtConfirmation, [mbYes, mbNo, mbCancel]) of
       mrYes: begin
           btnSave.OnClick(Self);
           CanProceed := True;
@@ -974,9 +974,9 @@ begin
     if SessionFocused then begin
       // Validate session GUI stuff
       if Params.NetType = ntMySQL_NamedPipe then
-        lblHost.Caption := 'Socket name:'
+        lblHost.Caption := _('Socket name:')
       else
-        lblHost.Caption := 'Hostname / IP:';
+        lblHost.Caption := _('Hostname / IP:');
       chkWindowsAuth.Enabled := Params.NetTypeGroup = ngMSSQL;
       lblUsername.Enabled := ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
         and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
@@ -1037,13 +1037,13 @@ begin
   Selector := TOpenDialog.Create(Self);
   Selector.FileName := editStartupScript.Text;
   if Edit = editStartupScript then
-    Selector.Filter := 'SQL-files (*.sql)|*.sql|All files (*.*)|*.*'
+    Selector.Filter := _('SQL-files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
   else if Edit = editSSHPlinkExe then
-    Selector.Filter := 'Executables (*.exe)|*.exe|All files (*.*)|*.*'
+    Selector.Filter := _('Executables')+' (*.exe)|*.exe|'+_('All files')+' (*.*)|*.*'
   else if Edit = editSSHPrivateKey then
-    Selector.Filter := 'PuTTY private key (*.ppk)|*.ppk|All files (*.*)|*.*'
+    Selector.Filter := _('PuTTY private key')+' (*.ppk)|*.ppk|'+_('All files')+' (*.*)|*.*'
   else
-    Selector.Filter := 'Privacy Enhanced Mail certificates (*.pem)|*.pem|Certificates (*.crt)|*.crt|All files (*.*)|*.*';
+    Selector.Filter := _('Privacy Enhanced Mail certificates')+' (*.pem)|*.pem|'+_('Certificates')+' (*.crt)|*.crt|'+_('All files')+' (*.*)|*.*';
   // Find relevant label and set open dialog's title
   for i:=0 to Edit.Parent.ControlCount - 1 do begin
     Control := Edit.Parent.Controls[i];

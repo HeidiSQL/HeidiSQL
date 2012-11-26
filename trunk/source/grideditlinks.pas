@@ -7,7 +7,7 @@ interface
 uses
   Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Mask, DateUtils, Math,
-  dbconnection, mysql_structures, helpers, texteditor, bineditor;
+  dbconnection, mysql_structures, helpers, texteditor, bineditor, gnugettext;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
@@ -215,8 +215,8 @@ end;
 
 constructor TBaseGridEditorLink.Create;
 begin
-  raise Exception.Create('Wrong constructor called: ' + Self.ClassName + '.Create.' + CRLF +
-    'Instead, please call the overloaded version ' + Self.ClassName + '.Create(VirtualStringTree).');
+  raise Exception.CreateFmt(_('Wrong constructor called: %s.Create. Instead, please call the overloaded version %s.Create(VirtualStringTree).'),
+    [Self.ClassName, Self.ClassName]);
 end;
 
 constructor TBaseGridEditorLink.Create(Tree: TVirtualStringTree);
@@ -1019,7 +1019,7 @@ begin
   FButton.Parent := FPanel;
   FButton.TabStop := False;
   FButton.Caption := '…';
-  FButton.Hint := 'Edit text in popup editor ...';
+  FButton.Hint := _('Edit text in popup editor ...');
   FButton.ShowHint := True;
   FButton.OnClick := ButtonClick;
 end;
@@ -1153,7 +1153,7 @@ begin
   FRadioNothing.Width := FRadioNothing.Parent.Width - 2 * FRadioNothing.Left;
   FRadioNothing.OnClick := RadioClick;
   FRadioNothing.OnKeyDown := DoKeyDown;
-  FRadioNothing.Caption := 'No default value';
+  FRadioNothing.Caption := _('No default value');
 
   FRadioText := TAllKeysRadioButton.Create(FPanel);
   FRadioText.Parent := FPanel;

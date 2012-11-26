@@ -383,7 +383,7 @@ begin
     SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(MainForm.SynSQLSyn1.Attribute[i]);
     comboSQLColElement.Items.Add(SynSQLSynSQLSample.Attribute[i].FriendlyName);
   end;
-  comboSQLColElement.Items.Add('Active line background');
+  comboSQLColElement.Items.Add(_('Active line background'));
   comboSQLColElement.ItemIndex := 0;
 
   // Shortcuts
@@ -392,7 +392,7 @@ begin
     if FShortcutCategories.IndexOf(Mainform.ActionList1.Actions[i].Category) = -1 then
       FShortcutCategories.Add(Mainform.ActionList1.Actions[i].Category);
   end;
-  FShortcutCategories.Add('SQL editing');
+  FShortcutCategories.Add(_('SQL editing'));
   TreeShortcutItems.RootNodeCount := FShortcutCategories.Count;
 end;
 
@@ -524,7 +524,7 @@ begin
   // Select folder for session logs
   Browse := TBrowseForFolder.Create(Self);
   Browse.Folder := (Sender as TButtonedEdit).Text;
-  Browse.DialogCaption := 'Select output directory';
+  Browse.DialogCaption := _('Select output directory');
   // Enable "Create new folder" button
   Browse.BrowseOptions := Browse.BrowseOptions - [bifNoNewFolderButton] + [bifNewDialogStyle];
   if Browse.Execute then begin
@@ -542,7 +542,7 @@ begin
   // Select folder where MySQL binaries reside
   Browse := TBrowseForFolder.Create(Self);
   Browse.Folder := (Sender as TButtonedEdit).Text;
-  Browse.DialogCaption := 'Find mysql.exe directory';
+  Browse.DialogCaption := _('Find mysql.exe directory');
   Browse.BrowseOptions := Browse.BrowseOptions + [bifNewDialogStyle];
   if Browse.Execute then begin
     (Sender as TButtonedEdit).Text := Browse.Folder;
@@ -658,8 +658,8 @@ var
   i: Integer;
 begin
   // Factory defaults
-  if MessageDialog('Reset all preference options to default values?',
-    'This also applies to automatic settings, e.g. toolbar positions.',
+  if MessageDialog(_('Reset all preference options to default values?'),
+    _('This also applies to automatic settings, e.g. toolbar positions.'),
     mtConfirmation, [mbOK, mbCancel]) = mrCancel then
     Exit;
   AppSettings.ResetPath;

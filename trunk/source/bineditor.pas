@@ -143,7 +143,7 @@ var
   d: TOpenDialog;
 begin
   d := TOpenDialog.Create(Self);
-  d.Filter := 'All binary files (*.*)|*.*';
+  d.Filter := _('All files')+' (*.*)|*.*';
   d.FilterIndex := 0;
   if d.Execute then try
     Screen.Cursor := crHourglass;
@@ -172,7 +172,7 @@ begin
     Exit;
   FStopping := True;
   if Modified then
-    DoPost := MessageDialog('Apply modifications?', mtConfirmation, [mbYes, mbNo]) = mrYes
+    DoPost := MessageDialog(_('Apply modifications?'), mtConfirmation, [mbYes, mbNo]) = mrYes
   else
     DoPost := False;
   if DoPost then

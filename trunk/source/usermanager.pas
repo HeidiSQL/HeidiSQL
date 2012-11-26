@@ -432,7 +432,7 @@ begin
   // the old one, otherwise OnFocusChanged will be triggered.
   Allowed := (NewNode <> OldNode) and (not Assigned(NewNode) or (not (vsDisabled in NewNode.States)));
   if Allowed and FModified then begin
-    case MessageDialog('Save modified user?', mtConfirmation, [mbYes, mbNo, mbCancel]) of
+    case MessageDialog(_('Save modified user?'), mtConfirmation, [mbYes, mbNo, mbCancel]) of
       mrYes: begin
         btnSave.Click;
         Allowed := not FModified;
@@ -508,7 +508,7 @@ begin
         Msg := E.Message;
         if FConnection.LastErrorCode = 1141 then begin
           // Disable this user node lately, for old server which do not show skip-name-resolve variable
-          Msg := Msg + CRLF + CRLF + 'Starting the server without --skip-name-resolve may solve this issue.';
+          Msg := Msg + CRLF + CRLF + f_('Starting the server without %s may solve this issue.', ['--skip-name-resolve']);
           User.Problem := upUnknown;
           Node.States := Node.States + [vsDisabled];
         end;
@@ -808,13 +808,13 @@ begin
     Msg := '';
     case User.Problem of
       upEmptyPassword:
-        Msg := 'This user has an empty password.';
+        Msg := _('This user has an empty password.');
       upInvalidPasswordLen:
-        Msg := 'This user is inactive due to an invalid length of its encrypted password. Please fix that in the mysql.user table.';
+        Msg := f_('This user is inactive due to an invalid length of its encrypted password. Please fix that in the %s table.', ['mysql.user']);
       upSkipNameResolve:
-        Msg := 'This user is inactive due to having a host name, while the server runs with --skip-name-resolve.';
+        Msg := f_('This user is inactive due to having a host name, while the server runs with %s.', ['--skip-name-resolve']);
       upUnknown:
-        Msg := 'This user is inactive due to some unknown reason.';
+        Msg := _('This user is inactive due to some unknown reason.');
     end;
   end;
   lblWarning.Caption := Msg;
@@ -923,9 +923,9 @@ begin
     0: begin
       case p.DBObj.NodeType of
         lntNone:
-          CellText := 'Global privileges';
+          CellText := _('Global privileges');
         lntDb:
-          CellText := 'Database: '+p.DBObj.Database;
+          CellText := _('Database')+': '+p.DBObj.Database;
         lntTable, lntProcedure, lntFunction:
           CellText := p.DBObj.ObjType+': '+p.DBObj.Database+'.'+p.DBObj.Name;
         lntColumn:
@@ -1045,13 +1045,13 @@ begin
     Exit;
   // Check for unsupported object type, selectable in tree
   if not (DBObj.NodeType in [lntDb, lntTable, lntFunction, lntProcedure, lntColumn]) then begin
-    ErrorDialog('Objects of type '+DBObj.ObjType+' cannot be part of privileges.');
+    ErrorDialog(f_('Objects of type %s cannot be part of privileges.', [DBObj.ObjType]));
     Exit;
   end;
   // Check if this would be a duplicate object
   for Priv in FPrivObjects do begin
     if Priv.DBObj.IsSameAs(DBObj) then begin
-      ErrorDialog('Selected object is already accessible.');
+      ErrorDialog(_('Selected object is already accessible.'));
       Exit;
     end;
   end;
@@ -1122,12 +1122,12 @@ begin
       if User = FocusedUser^ then
         Continue;
       if (User.Username = editUsername.Text) and (User.Host = editFromHost.Text) then
-        raise EInputError.Create('User <'+editUsername.Text+'@'+editFromHost.Text+'> already exists.');
+        raise EInputError.CreateFmt('User <%s@%s> already exists.', [editUsername.Text, editFromHost.Text]);
     end;
 
     // Check input: Ensure we have a unique user@host combination
     if editPassword.Text <> editRepeatPassword.Text then
-      raise EInputError.Create('Repeated password does not match first one.');
+      raise EInputError.Create(_('Repeated password does not match first one.'));
 
     // Create added user
     PasswordSet := False;
@@ -1152,7 +1152,7 @@ begin
         lntColumn:
           OnObj := GetObjectType('TABLE') + P.DBObj.QuotedDatabase + '.' + P.DBObj.QuotedName;
         else
-          raise Exception.Create('Unhandled privilege object: '+P.DBObj.ObjType);
+          raise Exception.CreateFmt(_('Unhandled privilege object: %s'), [P.DBObj.ObjType]);
       end;
 
       // Revoke privileges
@@ -1294,7 +1294,7 @@ begin
     FUsers.Remove(User^);
     listUsers.DeleteNode(listUsers.FocusedNode);
     FAdded := False;
-  end else if MessageDialog('Delete user '+User.Username+'@'+User.Host+'?', mtConfirmation, [mbYes, mbCancel]) = mrYes then begin
+  end else if MessageDialog(f_('Delete user %s@%s?', [User.Username, User.Host]), mtConfirmation, [mbYes, mbCancel]) = mrYes then begin
     UserHost := esc(User.Username)+'@'+esc(User.Host);
     try
       // Revoke privs explicitly, required on old servers.

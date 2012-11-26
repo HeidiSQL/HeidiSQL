@@ -189,7 +189,7 @@ begin
 
   // Find text tab
   memoFindText.Text := AppSettings.ReadString(asTableToolsFindText);
-  comboDatatypes.Items.Add('All data types');
+  comboDatatypes.Items.Add(_('All data types'));
   for dtc:=Low(DatatypeCategories) to High(DatatypeCategories) do
     comboDatatypes.Items.Add(DatatypeCategories[dtc].Name);
   comboDatatypes.ItemIndex := AppSettings.ReadInt(asTableToolsDatatype);
@@ -367,7 +367,7 @@ var
 begin
   SomeChecked := TreeObjects.CheckedCount > 0;
   btnSeeResults.Visible := tabsTools.ActivePage = tabFind;
-  lblCheckedSize.Caption := 'Selected objects size: '+FormatByteNumber(FObjectSizes);
+  lblCheckedSize.Caption := f_('Selected objects size: %s', [FormatByteNumber(FObjectSizes)]);
   if tabsTools.ActivePage = tabMaintenance then begin
     btnExecute.Caption := 'Execute';
     btnExecute.Enabled := (Pos(SUnsupported, comboOperation.Text) = 0) and SomeChecked;
@@ -722,7 +722,7 @@ begin
         + SQL;
       AddResults(SQL);
     end else
-      AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+DBObj.ObjType+' doesn''t have columns of selected type ('+comboDatatypes.Text+').', '');
+      AddNotes(DBObj.Database, DBObj.Name, f_('%s%s doesn''t have columns of selected type (%s).', [STRSKIPPED, DBObj.ObjType, comboDatatypes.Text]), '');
   end;
   Columns.Free;
 end;
@@ -847,8 +847,7 @@ begin
   ResultGrid.FocusedNode := ResultGrid.GetLast;
   ResultGrid.Selected[ResultGrid.FocusedNode] := True;
   Percent := 100 / Max(FObjectSizes,1) * FObjectSizesDoneExact;
-  lblCheckedSize.Caption := 'Selected objects size: '+FormatByteNumber(FObjectSizes)+'. '+
-    FormatNumber(Percent, 1) + '% done.';
+  lblCheckedSize.Caption := f_('Selected objects size: %s. %s%% done.', [FormatByteNumber(FObjectSizes), FormatNumber(Percent, 1)]);
   MainForm.SetProgressPosition(Round(Percent));
   Application.ProcessMessages;
 end;
@@ -983,7 +982,7 @@ begin
     try
       FTargetConnection.Active := True;
       comboExportOutputTarget.Items := FTargetConnection.AllDatabases;
-      comboExportOutputTarget.Items.Insert(0, '[Same as on source server]');
+      comboExportOutputTarget.Items.Insert(0, '['+_('Same as on source server')+']');
       comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(AppSettings.ReadString(asExportSQLServerDatabase));
       if comboExportOutputTarget.ItemIndex = -1 then
         comboExportOutputTarget.ItemIndex := 0;
@@ -1043,7 +1042,7 @@ begin
   // Set cancel flag to stop running loop in the next possible loop position
   if TButton(Sender).ModalResult = mrNone then begin
     FCancelled := True;
-    Mainform.LogSQL('Processing cancelled by user, waiting for current object to finish ...', lcInfo);
+    Mainform.LogSQL(_('Processing cancelled by user, waiting for current object to finish ...'), lcInfo);
   end;
 end;
 
@@ -1058,7 +1057,7 @@ begin
       // Select filename
       SaveDialog := TSaveDialog.Create(Self);
       SaveDialog.DefaultExt := 'sql';
-      SaveDialog.Filter := 'SQL-Scripts (*.sql)|*.sql|All Files (*.*)|*.*';
+      SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
       SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
       if SaveDialog.Execute then
         comboExportOutputTarget.Text := SaveDialog.FileName;
@@ -1067,7 +1066,7 @@ begin
     1: begin
       Browse := TBrowseForFolder.Create(Self);
       Browse.Folder := comboExportOutputTarget.Text;
-      Browse.DialogCaption := 'Select output directory';
+      Browse.DialogCaption := _('Select output directory');
       // Enable "Create new folder" button
       Browse.BrowseOptions := Browse.BrowseOptions - [bifNoNewFolderButton] + [bifNewDialogStyle];
       if Browse.Execute then
@@ -1194,11 +1193,11 @@ begin
   end;
   if not FHeaderCreated then begin
     Header := '-- --------------------------------------------------------' + CRLF +
-      Format('-- %-30s%s', ['Host:', DBObj.Connection.Parameters.HostName]) + CRLF +
-      Format('-- %-30s%s', ['Server version:', DBObj.Connection.ServerVersionUntouched]) + CRLF +
-      Format('-- %-30s%s', ['Server OS:', DBObj.Connection.ServerOS]) + CRLF +
-      Format('-- %-30s%s', [APPNAME + ' version:', Mainform.AppVersion]) + CRLF +
-      Format('-- %-30s%s', ['Date/time:', DateTimeToStr(Now)]) + CRLF +
+      Format('-- %-30s:%s', [_('Host'), DBObj.Connection.Parameters.HostName]) + CRLF +
+      Format('-- %-30s:%s', [_('Server version'), DBObj.Connection.ServerVersionUntouched]) + CRLF +
+      Format('-- %-30s:%s', [_('Server OS'), DBObj.Connection.ServerOS]) + CRLF +
+      Format('-- %-30s:%s', [APPNAME + ' ' + _('Version'), Mainform.AppVersion]) + CRLF +
+      Format('-- %-30s:%s', [_('Created'), DateTimeToStr(Now)]) + CRLF +
       '-- --------------------------------------------------------' + CRLF + CRLF +
       '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
       '/*!40101 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF +
@@ -1216,7 +1215,7 @@ begin
     FinalDbName := comboExportOutputTarget.Text;
   NeedsDBStructure := FinalDbName <> ExportLastDatabase;
   if chkExportDatabasesDrop.Checked or chkExportDatabasesCreate.Checked then begin
-    Output(CRLF+CRLF+'-- Dumping database structure for '+DBObj.Database+CRLF, False, NeedsDBStructure, False, False, False);
+    Output(CRLF+CRLF+'-- '+f_('Dumping database structure for %s', [DBObj.Database])+CRLF, False, NeedsDBStructure, False, False, False);
     if chkExportDatabasesDrop.Checked and chkExportDatabasesDrop.Enabled then
       Output('DROP DATABASE IF EXISTS '+Quoter.QuoteIdent(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     if chkExportDatabasesCreate.Checked and chkExportDatabasesCreate.Enabled then begin
@@ -1239,7 +1238,7 @@ begin
 
   // Table structure
   if chkExportTablesDrop.Checked or chkExportTablesCreate.Checked then begin
-    Output(CRLF+CRLF+'-- Dumping structure for '+LowerCase(DBObj.ObjType)+' '+DBObj.Database+'.'+DBObj.Name+CRLF, False, True, True, False, False);
+    Output(CRLF+CRLF+'-- '+f_('Dumping structure for %s %s.%s', [LowerCase(DBObj.ObjType), DBObj.Database, DBObj.Name])+CRLF, False, True, True, False, False);
     if chkExportTablesDrop.Checked then begin
       Struc := 'DROP '+UpperCase(DBObj.ObjType)+' IF EXISTS ';
       if ToDb then
@@ -1280,7 +1279,7 @@ begin
               // Create temporary VIEW replacement
               ColumnList := TTableColumnList.Create(True);
               DBObj.Connection.ParseViewStructure(DBObj.CreateCode, DBObj.Name, ColumnList, Dummy, Dummy, Dummy, Dummy, Dummy);
-              Struc := '-- Creating temporary table to overcome VIEW dependency errors'+CRLF+
+              Struc := '-- '+_('Creating temporary table to overcome VIEW dependency errors')+CRLF+
                 'CREATE TABLE ';
               if ToDb then
                 Struc := Struc + Quoter.QuoteIdent(FinalDbName) + '.';
@@ -1295,7 +1294,7 @@ begin
               Struc := Struc + CRLF + ') ENGINE=MyISAM';
               ColumnList.Free;
             end else begin
-              Struc := '-- Removing temporary table and create final VIEW structure'+CRLF+
+              Struc := '-- '+_('Removing temporary table and create final VIEW structure')+CRLF+
                 'DROP TABLE IF EXISTS ';
               if ToDb then
                 Struc := Struc + Quoter.QuoteIdent(FinalDbName)+'.';
@@ -1358,14 +1357,14 @@ begin
   if DBObj.NodeType = lntTable then begin
     // Table data
     if comboExportData.Text = DATA_NO then begin
-      Output(CRLF+'-- Data exporting was unselected.'+CRLF, False, True, True, False, False);
+      Output(CRLF+'-- '+_('Data exporting was unselected.')+CRLF, False, True, True, False, False);
     end else if DBObj.Engine = 'MRG_MYISAM' then begin
-      Output(CRLF+'-- Table data not exported because this is '+DBObj.Engine+' table which holds its data in separate tables.'+CRLF, False, True, True, False, False);
+      Output(CRLF+'-- '+f_('Table data not exported because this is %s table which holds its data in separate tables.', [DBObj.Engine])+CRLF, False, True, True, False, False);
     end else begin
       tmp := FormatNumber(DBObj.Rows)+' rows';
       if LowerCase(DBObj.Engine) = 'innodb' then
-        tmp := '~'+tmp+' (approximately)';
-      Output(CRLF+'-- Dumping data for table '+DBObj.Database+'.'+DBObj.Name+': '+tmp+CRLF, False, True, True, False, False);
+        tmp := '~'+tmp+' ('+_('approximately')+')';
+      Output(CRLF+'-- '+f_('Dumping data for table %s.%s: %s', [DBObj.Database, DBObj.Name, tmp])+CRLF, False, True, True, False, False);
       TargetDbAndObject := Quoter.QuoteIdent(DBObj.Name);
       if ToDb then
         TargetDbAndObject := Quoter.QuoteIdent(FinalDbName) + '.' + TargetDbAndObject;
@@ -1536,11 +1535,11 @@ begin
   LogRow := FResults.Last;
   if Specs.Count > 0 then begin
     DBObj.Connection.Query('ALTER TABLE ' + DBObj.QuotedDatabase + '.' + DBObj.QuotedName + ' ' + ImplodeStr(', ', Specs));
-    LogRow[2] := 'Done';
-    LogRow[3] := 'Success';
+    LogRow[2] := _('Done');
+    LogRow[3] := _('Success');
   end else begin
-    LogRow[2] := 'Nothing to do';
-    LogRow[3] := 'Selected operations cannot be applied to a '+LowerCase(DBObj.ObjType);
+    LogRow[2] := _('Nothing to do');
+    LogRow[3] := f_('Selected operations cannot be applied to a %s', [LowerCase(DBObj.ObjType)]);
   end;
   UpdateResultGrid;
 end;
@@ -1560,7 +1559,7 @@ begin
   case TreeObjects.GetNodeLevel(TreeObjects.FocusedNode) of
     1: DBNode := TreeObjects.FocusedNode;
     2: DBNode := TreeObjects.FocusedNode.Parent;
-    else raise Exception.Create('Unhandled tree level');
+    else raise Exception.Create(_('Unhandled tree level'));
   end;
   ObjNode := TreeObjects.GetFirstChild(DBNode);
   CheckedNodes := 0;

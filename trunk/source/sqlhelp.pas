@@ -137,9 +137,9 @@ begin
 
   // Show the user if topic is (not) available
   if memoDescription.GetTextLen = 0 then
-    memoDescription.Text := 'No help available for this keyword or no keyword was selected.';
+    memoDescription.Text := _('No help available for this keyword or no keyword was selected.');
   if memoExample.GetTextLen = 0 then
-    memoExample.Text := 'No example available or no keyword was selected.';
+    memoExample.Text := _('No example available or no keyword was selected.');
 end;
 
 

@@ -86,8 +86,8 @@ begin
   inherited;
   editName.Text := '';
   comboDefiner.Text := '';
-  comboDefiner.TextHint := 'Current user ('+Obj.Connection.CurrentUserHostCombination+')';
-  comboDefiner.Hint := 'Leave empty for current user ('+Obj.Connection.CurrentUserHostCombination+')';
+  comboDefiner.TextHint := f_('Current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
+  comboDefiner.Hint := f_('Leave empty for current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
   SynMemoBody.Text := 'BEGIN'+CRLF+CRLF+'END';
   comboEvent.ItemIndex := 0;
   comboTiming.ItemIndex := 0;
@@ -119,7 +119,7 @@ begin
     end;
     FreeAndNil(Definitions);
     if not Found then
-      Raise Exception.Create('Trigger definition not found!');
+      Raise Exception.Create(_('Trigger definition not found!'));
   end else begin
     editName.Text := '';
   end;

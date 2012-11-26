@@ -89,13 +89,13 @@ begin
 
   if modifyDB = '' then
   begin
-    Caption := 'Create database ...';
+    Caption := _('Create database ...');
     editDBName.Text := '';
     editDBName.SetFocus;
     selectCharset := defaultCharset;
   end
   else begin
-    Caption := 'Alter database ...';
+    Caption := _('Alter database ...');
     editDBName.Text := modifyDB;
     editDBName.SetFocus;
     editDBName.SelectAll;
@@ -193,7 +193,7 @@ begin
     ModalResult := mrOK;
   except
     on E:EDatabaseError do
-      ErrorDialog('Creating database "'+editDBName.Text+'" failed.', E.Message);
+      ErrorDialog(f_('Creating database "%s" failed.', [editDBName.Text]), E.Message);
     // Keep form open
   end else try
     sql := 'ALTER DATABASE ' + FConnection.QuoteIdent( modifyDB );
@@ -217,13 +217,13 @@ begin
       // Warn if there are tables with same names in new db
       for i:=0 to ObjectsInOldDb.Count-1 do begin
         if not (ObjectsInOldDb[i].NodeType in [lntTable, lntView]) then
-          Raise Exception.Create('Database "'+modifyDB+'" contains stored routine(s), which cannot be moved.');
+          Raise Exception.CreateFmt(_('Database "%s" contains stored routine(s), which cannot be moved.'), [modifyDB]);
         if Assigned(ObjectsInNewDb) then begin
           for j:=0 to ObjectsInNewDb.Count-1 do begin
             if (ObjectsInOldDb[i].Name = ObjectsInNewDb[j].Name)
               and (ObjectsInOldDb[i].NodeType = ObjectsInNewDb[j].NodeType) then begin
               // One or more objects have a naming conflict
-              Raise Exception.Create('Database "'+editDBName.Text+'" exists and has objects with same names as in "'+modifyDB+'"');
+              Raise Exception.CreateFmt(_('Database "%s" exists and has objects with same names as in "%s"'), [editDBName.Text, modifyDB]);
             end;
           end;
         end;
@@ -233,8 +233,7 @@ begin
         // Target db does not exist - create it
         FConnection.Query(GetCreateStatement);
       end else begin
-        if MessageDialog('Database "'+editDBName.Text+'" exists. But it does not contain objects with same names as in '+
-          '"'+modifyDB+'", so it''s uncritical to move everything.'+CRLF+CRLF+'Move all objects to "'+editDBName.Text+'"?',
+        if MessageDialog(f_('Database "%s" exists. But it does not contain objects with same names as in "%s", so it''s uncritical to move everything. Move all objects to "%s"?', [editDBName.Text, modifyDB, editDBName.Text]),
           mtConfirmation, [mbYes, mbCancel]) <> mrYes then
           Exit;
       end;
@@ -262,7 +261,7 @@ begin
     ModalResult := mrOK;
   except
     on E:Exception do
-      ErrorDialog('Altering database "'+editDBName.Text+'" failed.', E.Message);
+      ErrorDialog(f_('Altering database "%s" failed.', [editDBName.Text]), E.Message);
     // Keep form open
   end;
 

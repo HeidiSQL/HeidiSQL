@@ -271,7 +271,7 @@ begin
   Dialog.Filter := '';
   for ef:=Low(TGridExportFormat) to High(TGridExportFormat) do
     Dialog.Filter := Dialog.Filter + FFormatToDescription[ef] + ' (*.'+FFormatToFileExtension[ef]+')|*.'+FFormatToFileExtension[ef]+'|';
-  Dialog.Filter := Dialog.Filter + 'All files (*.*)|*.*';
+  Dialog.Filter := Dialog.Filter + _('All files')+' (*.*)|*.*';
   Dialog.OnTypeChange := SaveDialogTypeChange;
   Dialog.FilterIndex := grpFormat.ItemIndex+1;
   Dialog.OnTypeChange(Dialog);
@@ -342,8 +342,8 @@ begin
     end;
     Node := GetNextNode(Grid, Node, False);
   end;
-  grpSelection.Items[0] := 'Selection ('+FormatNumber(Grid.SelectedCount)+' rows, '+FormatByteNumber(SelectionSize)+')';
-  grpSelection.Items[1] := 'Complete ('+FormatNumber(Grid.RootNodeCount)+' rows, '+FormatByteNumber(AllSize)+')';
+  grpSelection.Items[0] := f_('Selection (%d rows, %s)', [FormatNumber(Grid.SelectedCount), FormatByteNumber(SelectionSize)]);
+  grpSelection.Items[1] := f_('Complete (%d rows, %s)', [FormatNumber(Grid.RootNodeCount), FormatByteNumber(AllSize)]);
 end;
 
 
@@ -419,7 +419,7 @@ begin
   // Confirmation dialog if file exists
   if radioOutputFile.Checked
     and FileExists(editFilename.Text)
-    and (MessageDialog('File exists', 'Overwrite file '+editFilename.Text+'?', mtConfirmation, [mbYes, mbCancel]) = mrCancel)
+    and (MessageDialog(_('File exists'), f_('Overwrite file %s?', [editFilename.Text]), mtConfirmation, [mbYes, mbCancel]) = mrCancel)
     then begin
       ModalResult := mrNone;
       Exit;
@@ -592,9 +592,12 @@ begin
   while Assigned(Node) do begin
     // Update status once in a while.
     if (Node.Index+1) mod 100 = 0 then begin
-      Mainform.ShowStatusMsg('Exporting row '+FormatNumber(Node.Index+1)+' of '+FormatNumber(NodeCount)+
-        ' ('+IntToStr(Trunc((Node.Index+1) / NodeCount *100))+'%, '+FormatByteNumber(S.Size)+')'
-        );
+      MainForm.ShowStatusMsg(f_('Exporting row %s of %s (%d%%, %s)',
+        [FormatNumber(Node.Index+1),
+        FormatNumber(NodeCount),
+        Trunc((Node.Index+1) / NodeCount *100),
+        FormatByteNumber(S.Size)]
+        ));
       MainForm.ProgressStep;
     end;
     RowNum := Grid.GetNodeData(Node);
@@ -787,7 +790,7 @@ begin
   end;
 
   Mainform.DisableProgress;
-  Mainform.ShowStatusMsg('Freeing data...');
+  Mainform.ShowStatusMsg(_('Freeing data...'));
   FreeAndNil(S);
   Mainform.ShowStatusMsg;
   Screen.Cursor := crDefault;

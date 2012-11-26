@@ -12,7 +12,7 @@ uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi,
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
-  dbconnection, mysql_structures, SynMemo, Menus, WinInet, synacode;
+  dbconnection, mysql_structures, SynMemo, Menus, WinInet, synacode, gnugettext;
 
 type
 
@@ -323,6 +323,7 @@ type
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
   procedure ParseCommandLine(Parameters: TStringlist;
     var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
+  function f_(const Pattern: string; const Args: array of const): string;
 
 var
   AppSettings: TAppSettings;
@@ -1041,9 +1042,9 @@ begin
   s := s mod 60;
   if d > 0 then begin
     if DisplaySeconds then
-      Result := Format('%d days, %.2d:%.2d:%.2d', [d, h, m, s])
+      Result := Format('%d '+_('days')+', %.2d:%.2d:%.2d', [d, h, m, s])
     else
-      Result := Format('%d days, %.2d:%.2d h', [d, h, m]);
+      Result := Format('%d '+_('days')+', %.2d:%.2d h', [d, h, m]);
   end else begin
     if DisplaySeconds then
       Result := Format('%.2d:%.2d:%.2d', [h, m, s])
@@ -1716,15 +1717,15 @@ begin
   DaysAgo := DaysBetween(Now, d);
   HoursAgo := HoursBetween(Now, d);
   MinutesAgo := MinutesBetween(Now, d);
-  if MonthsAgo = 1 then Result := FormatNumber(MonthsAgo)+' month ago'
-  else if MonthsAgo > 1 then Result := FormatNumber(MonthsAgo)+' months ago'
-  else if DaysAgo = 1 then Result := FormatNumber(DaysAgo)+' day ago'
-  else if DaysAgo > 1 then Result := FormatNumber(DaysAgo)+' days ago'
-  else if HoursAgo = 1 then Result := FormatNumber(HoursAgo)+' hour ago'
-  else if HoursAgo > 1 then Result := FormatNumber(HoursAgo)+' hours ago'
-  else if MinutesAgo = 1 then Result := FormatNumber(MinutesAgo)+' minute ago'
-  else if MinutesAgo > 0 then Result := FormatNumber(MinutesAgo)+' minutes ago'
-  else Result := 'less than a minute ago';
+  if MonthsAgo = 1 then Result := f_('%s month ago', [FormatNumber(MonthsAgo)])
+  else if MonthsAgo > 1 then Result := f_('%s months ago', [FormatNumber(MonthsAgo)])
+  else if DaysAgo = 1 then Result := f_('%s day ago', [FormatNumber(DaysAgo)])
+  else if DaysAgo > 1 then Result := f_('%s days ago', [FormatNumber(DaysAgo)])
+  else if HoursAgo = 1 then Result := f_('%s hour ago', [FormatNumber(HoursAgo)])
+  else if HoursAgo > 1 then Result := f_('%s hours ago', [FormatNumber(HoursAgo)])
+  else if MinutesAgo = 1 then Result := f_('%s minute ago', [FormatNumber(MinutesAgo)])
+  else if MinutesAgo > 0 then Result := f_('%s minutes ago', [FormatNumber(MinutesAgo)])
+  else Result := _('less than a minute ago');
 end;
 
 
@@ -1918,7 +1919,7 @@ var
   popup: TPopupMenu;
   Item: TMenuItem;
 begin
-  Mainform.ShowStatusMsg('Initializing editor ...');
+  Mainform.ShowStatusMsg(_('Initializing editor ...'));
   Mainform.LogSQL(Self.ClassName+'.Init, using object "'+Obj.Name+'"', lcDebug);
   DBObject := TDBObject.Create(Obj.Connection);
   DBObject.Assign(Obj);
@@ -1960,9 +1961,9 @@ begin
   if Modified then begin
     ObjType := LowerCase(DBObject.ObjType);
     if DBObject.Name <> '' then
-      Msg := 'Save modified '+ObjType+' "'+DBObject.Name+'"?'
+      Msg := f_('Save modified %s "%s"?', [ObjType, DBObject.Name])
     else
-      Msg := 'Save new '+ObjType+'?';
+      Msg := f_('Save new %s?', [ObjType]);
     Result := MessageDialog(Msg, mtConfirmation, [mbYes, mbNo, mbCancel]);
     case Result of
       mrYes: Result := ApplyModifications;
@@ -2530,6 +2531,13 @@ begin
 end;
 
 
+function f_(const Pattern: string; const Args: array of const): string;
+begin
+  // Helper for translation, replacement for Format(_())
+  Result := Format(_(Pattern), Args);
+end;
+
+
 { Threading stuff }
 
 constructor TQueryThread.Create(Connection: TDBConnection; Batch: TSQLBatch; TabNumber: Integer);
@@ -2817,7 +2825,7 @@ begin
   try
     UrlHandle := InternetOpenURL(NetHandle, PChar(FURL), nil, 0, INTERNET_FLAG_RELOAD, 0);
     if not Assigned(UrlHandle) then
-      raise Exception.Create('Could not open URL: '+FURL);
+      raise Exception.CreateFmt(_('Could not open URL: %s'), [FURL]);
 
     // Detect content length
     HeadSize := SizeOf(Head);
@@ -2825,7 +2833,7 @@ begin
     if HttpQueryInfo(UrlHandle, HTTP_QUERY_CONTENT_LENGTH, @Head, HeadSize, Reserved) then
       FContentLength := StrToIntDef(Head, -1)
     else
-      raise Exception.Create('Server did not send required "Content-Length" header: '+FURL);
+      raise Exception.CreateFmt(_('Server did not send required "Content-Length" header: %s'), [FURL]);
 
     // Check if we got HTTP status 200
     HeadSize := SizeOf(Head);
@@ -2833,7 +2841,7 @@ begin
     if HttpQueryInfo(UrlHandle, HTTP_QUERY_STATUS_CODE, @Head, HeadSize, Reserved) then begin
       HttpStatus := StrToIntDef(Head, -1);
       if HttpStatus <> 200 then
-        raise Exception.Create('Got HTTP status '+IntToStr(HttpStatus)+' from '+FURL);
+        raise Exception.CreateFmt(_('Got HTTP status %d from %s'), [HttpStatus, FURL]);
     end;
 
     // Create local file
@@ -3247,7 +3255,7 @@ var
 begin
   PrepareRegistry;
   if IsEmpty(FSessionPath) then
-    raise Exception.Create('No path set, won''t delete root key '+FRegistry.CurrentPath)
+    raise Exception.CreateFmt(_('No path set, won''t delete root key %s'), [FRegistry.CurrentPath])
   else begin
     KeyPath := REGKEY_SESSIONS + '\' + FSessionPath;
     ResetPath;
@@ -3262,7 +3270,7 @@ var
 begin
   PrepareRegistry;
   if IsEmpty(FSessionPath) then
-    raise Exception.Create('No path set, won''t move root key '+FRegistry.CurrentPath)
+    raise Exception.CreateFmt(_('No path set, won''t move root key %s'), [FRegistry.CurrentPath])
   else begin
     KeyPath := REGKEY_SESSIONS + '\' + FSessionPath;
     ResetPath;
@@ -3328,7 +3336,7 @@ begin
   if FormatName <> '' then
     ValueName := Format(ValueName, [FormatName]);
   if FSettings[Index].Session and IsEmpty(FSessionPath) then
-    raise Exception.Create('Attempt to read session setting without session path');
+    raise Exception.Create(_('Attempt to read session setting without session path'));
   if (not FSettings[Index].Session) and IsNotEmpty(FSessionPath) then
     FSessionPath := '';
   PrepareRegistry;
@@ -3402,7 +3410,7 @@ begin
   if FormatName <> '' then
     ValueName := Format(ValueName, [FormatName]);
   if FSettings[Index].Session and IsEmpty(FSessionPath) then
-    raise Exception.Create('Attempt to write session setting without session path');
+    raise Exception.Create(_('Attempt to write session setting without session path'));
   if (not FSettings[Index].Session) and IsNotEmpty(FSessionPath) then
     FSessionPath := '';
   PrepareRegistry;

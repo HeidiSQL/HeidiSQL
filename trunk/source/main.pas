@@ -1178,9 +1178,7 @@ begin
     ActiveConnection.Query('FLUSH ' + flushwhat);
     if Sender = actFlushTableswithreadlock then begin
       MessageDialog(
-        'Tables have been flushed and read lock acquired.'#10 +
-        'Perform backup or snapshot of table data files now.'#10 +
-        'Press OK to unlock when done...',
+        _('Tables have been flushed and read lock acquired. Perform backup or snapshot of table data files now. Press OK to unlock when done...'),
         mtInformation, [mbOk]
       );
       ActiveConnection.Query('UNLOCK TABLES');
@@ -1493,8 +1491,8 @@ begin
   SynMemoSQLLog.Height := Max(AppSettings.ReadInt(asLogHeight), spltTopBottom.MinSize);
   // Force status bar position to below log memo
   StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
-  actDataShowNext.Hint := 'Show next '+FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))+' rows ...';
-  actAboutBox.Caption := 'About '+APPNAME+' '+AppVersion;
+  actDataShowNext.Hint := f_('Show next %s rows ...', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
+  actAboutBox.Caption := f_('About %s', [APPNAME+' '+AppVersion]);
   // Activate logging
   LogToFile := AppSettings.ReadBool(asLogToFile);
   if AppSettings.ReadBool(asLogHorizontalScrollbar) then
@@ -1579,7 +1577,7 @@ begin
 
   FTreeRefreshInProgress := False;
 
-  FileEncodings := Explode(',', 'Auto detect (may fail),ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
+  FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
 end;
 
 
@@ -2068,13 +2066,13 @@ var
 begin
   // Export settings to .txt file
   Dialog := TSaveDialog.Create(Self);
-  Dialog.Title := 'Export '+APPNAME+' settings to file ...';
+  Dialog.Title := f_('Export %s settings to file ...', [APPNAME]);
   Dialog.DefaultExt := 'txt';
-  Dialog.Filter := 'Textfiles (*.txt)|*.txt|All files (*.*)|*.*';
+  Dialog.Filter := _('Text files')+' (*.txt)|*.txt|'+_('All files')+' (*.*)|*.*';
   Dialog.Options := Dialog.Options + [ofOverwritePrompt];
   if Dialog.Execute then try
     AppSettings.ExportSettings(Dialog.FileName);
-    MessageDialog('Settings successfully exported to '+Dialog.FileName, mtInformation, [mbOK]);
+    MessageDialog(f_('Settings successfully exported to %s', [Dialog.FileName]), mtInformation, [mbOK]);
   except
     on E:Exception do
       ErrorDialog(E.Message);
@@ -2089,15 +2087,15 @@ var
 begin
   // Import settings from .txt or .reg file
   Dialog := TOpenDialog.Create(Self);
-  Dialog.Title := 'Import '+APPNAME+' settings from file ...';
-  Dialog.Filter := 'Textfiles (*.txt)|*.txt|Registry dump, deprecated (*.reg)|*.reg|All files (*.*)|*.*';
+  Dialog.Title := f_('Import %s settings from file ...', [APPNAME]);
+  Dialog.Filter := _('Text files')+' (*.txt)|*.txt|'+_('Registry dump, deprecated')+' (*.reg)|*.reg|'+_('All files')+' (*.*)|*.*';
   ImportSettingsDone := False;
   if Dialog.Execute then try
     if LowerCase(ExtractFileExt(Dialog.FileName)) = 'reg' then
       ShellExec('regedit.exe', '', '"'+Dialog.FileName+'"')
     else begin
       AppSettings.ImportSettings(Dialog.FileName);
-      MessageDialog('Settings successfully restored from '+Dialog.FileName, mtInformation, [mbOK]);
+      MessageDialog(f_('Settings successfully restored from %s', [Dialog.FileName]), mtInformation, [mbOK]);
     end;
     ImportSettingsDone := True;
   except
@@ -2138,7 +2136,7 @@ begin
   Tab := ActiveQueryTab;
   OperationRunning(True);
 
-  ShowStatusMsg('Splitting SQL queries ...');
+  ShowStatusMsg(_('Splitting SQL queries ...'));
   Batch := TSQLBatch.Create;
   if Sender = actExecuteSelection then begin
     Batch.SQL := Tab.Memo.SelText;
@@ -2162,7 +2160,7 @@ begin
     ActiveConnection.Query('SET profiling=1');
   except
     on E:EDatabaseError do begin
-      ErrorDialog('Query profiling requires MySQL 5.0.37 or later, and the server must not be configured with --disable-profiling.', E.Message);
+      ErrorDialog(_('Query profiling requires MySQL 5.0.37 or later, and the server must not be configured with --disable-profiling.'), E.Message);
       Tab.DoProfile := False;
     end;
   end;
@@ -2181,10 +2179,10 @@ var
   Text: String;
 begin
   // Update GUI stuff
-  Text := 'query #' + FormatNumber(Thread.BatchPosition+1);
+  Text := _('query')+' #' + FormatNumber(Thread.BatchPosition+1);
   if Thread.QueriesInPacket > 1 then
-    Text := 'queries #' + FormatNumber(Thread.BatchPosition+1) + ' to #' + FormatNumber(Thread.BatchPosition+Thread.QueriesInPacket);
-  ShowStatusMsg('Executing '+Text+' of '+FormatNumber(Thread.Batch.Count)+' ...');
+    Text := f_('queries #%s to #%s', [FormatNumber(Thread.BatchPosition+1), FormatNumber(Thread.BatchPosition+Thread.QueriesInPacket)]);
+  ShowStatusMsg(f_('Executing %s of %s ...', [Text, FormatNumber(Thread.Batch.Count)]));
   SetProgressPosition(Thread.BatchPosition);
 end;
 
@@ -2200,7 +2198,7 @@ var
 begin
   // Single query or query packet has finished
 
-  ShowStatusMsg('Setting up result grid(s) ...');
+  ShowStatusMsg(_('Setting up result grid(s) ...'));
   Tab := GetQueryTabByNumber(Thread.TabNumber);
 
   // Create result tabs
@@ -2217,7 +2215,7 @@ begin
         TabCaption := NewTab.Results.TableName + ' #' + IntToStr(i);
       end;
     except on E:EDatabaseError do
-      TabCaption := 'Result #'+IntToStr(Tab.ResultTabs.Count);
+      TabCaption := _('Result')+' #'+IntToStr(Tab.ResultTabs.Count);
     end;
     Tab.tabsetQuery.Tabs.Add(TabCaption);
 
@@ -2307,9 +2305,9 @@ begin
 
   // Gather meta info for logging
   MetaInfo := 'Affected rows: '+FormatNumber(Thread.RowsAffected)+
-    '  Found rows: '+FormatNumber(Thread.RowsFound)+
-    '  Warnings: '+FormatNumber(Thread.WarningCount)+
-    '  Duration for ' + FormatNumber(Thread.BatchPosition);
+    '  '+_('Found rows')+': '+FormatNumber(Thread.RowsFound)+
+    '  '+_('Warnings')+': '+FormatNumber(Thread.WarningCount)+
+    '  '+_('Duration for')+' ' + FormatNumber(Thread.BatchPosition);
   if Thread.BatchPosition < Thread.Batch.Count then
     MetaInfo := MetaInfo + ' of ' + FormatNumber(Thread.Batch.Count);
   if Thread.Batch.Count = 1 then
@@ -2343,13 +2341,13 @@ begin
 
   // Show warnings
   if Thread.WarningCount > 0 then begin
-    MsgTitle := 'Your query produced '+FormatNumber(Thread.WarningCount)+' warnings.';
+    MsgTitle := f_('Your query produced %s warnings.', [FormatNumber(Thread.WarningCount)]);
     MsgText := '';
     Warnings := Thread.Connection.GetResults('SHOW WARNINGS LIMIT 5');
     if Warnings.RecordCount < 5 then
-      MsgText := MsgText + 'Warnings from last query:'+CRLF
+      MsgText := MsgText + _('Warnings from last query:')+CRLF
     else if Warnings.RecordCount < Thread.WarningCount then
-      MsgText := MsgText + 'First '+FormatNumber(Warnings.RecordCount)+' warnings:'+CRLF;
+      MsgText := MsgText + f_('First %s warnings:', [FormatNumber(Warnings.RecordCount)])+CRLF;
     while not Warnings.Eof do begin
       MsgText := MsgText + Warnings.Col('Level') + ': ' + Warnings.Col('Message') + CRLF;
       Warnings.Next;
@@ -2358,10 +2356,10 @@ begin
     if (Warnings.RecordCount = Thread.WarningCount) or (Warnings.RecordCount < 5) then
       MessageDialog(MsgTitle, MsgText, mtWarning, [mbOk])
     else begin
-      MsgText := MsgText + CRLF+CRLF + 'Show all warnings in a new query tab?';
+      MsgText := MsgText + CRLF+CRLF + _('Show all warnings in a new query tab?');
       MaxWarnings := MakeInt(Thread.Connection.GetVar('SELECT @@max_error_count'));
       if MaxWarnings < Thread.WarningCount then
-        MsgText := MsgText + CRLF+CRLF+ 'The server variable @@max_error_count is currently set to '+IntToStr(MaxWarnings)+', so you won''t see all warnings.';
+        MsgText := MsgText + CRLF+CRLF+ f_('The server variable @@max_error_count is currently set to %d, so you won''t see all warnings.', [MaxWarnings]);
       if MessageDialog(MsgTitle, MsgText, mtWarning, [mbYes, mbNo]) = mrYes then begin
         actNewQueryTab.Execute;
         WarningsTab := QueryTabs[QueryTabs.Count-1];
@@ -2375,7 +2373,7 @@ begin
   // Store successful query packet in history if it's not a batch.
   // Assume that a bunch of up to 5 queries is not a batch.
   if IsEmpty(Thread.ErrorMessage) and (Thread.Batch.Count <= 5) and (Thread.Batch.Size <= SIZE_MB) then begin
-    ShowStatusMsg('Updating query history ...');
+    ShowStatusMsg(_('Updating query history ...'));
 
     // Load all items so we can clean up
     History := TQueryHistory.Create(Thread.Connection.Parameters.SessionPath);
@@ -2553,8 +2551,8 @@ begin
     Exit;
   Screen.Cursor := crHourGlass;
   try
-    ShowStatusMsg('Loading contents into image viewer ...');
-    lblPreviewTitle.Caption := 'Loading ...';
+    ShowStatusMsg(_('Loading contents into image viewer ...'));
+    lblPreviewTitle.Caption := _('Loading ...');
     lblPreviewTitle.Repaint;
     imgPreview.Picture := nil;
     AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
@@ -2607,7 +2605,7 @@ begin
       end;
       FreeAndNil(ContentStream);
     end else
-      lblPreviewTitle.Caption := 'No image detected.';
+      lblPreviewTitle.Caption := _('No image detected.');
   finally
     lblPreviewTitle.Hint := lblPreviewTitle.Caption;
     ShowStatusMsg;
@@ -2649,7 +2647,7 @@ begin
   Grid := ActiveGrid;
   Results := GridResult(Grid);
   Dialog := TSaveDialog.Create(Self);
-  Dialog.Filter := 'All files (*.*)|*.*';
+  Dialog.Filter := _('All files')+' (*.*)|*.*';
   Dialog.FileName := Results.ColumnOrgNames[Grid.FocusedColumn];
   if not (Results.DataType(Grid.FocusedColumn).Category in [dtcBinary, dtcSpatial]) then
     Dialog.FileName := Dialog.FileName + '.txt';
@@ -2708,7 +2706,7 @@ begin
     // drop table selected in tree view.
     case ActiveDBObj.NodeType of
       lntDb: begin
-        if MessageDialog('Drop Database "'+Conn.Database+'"?', 'WARNING: You will lose all objects in database '+Conn.Database+'!', mtConfirmation, [mbok,mbcancel]) <> mrok then
+        if MessageDialog(f_('Drop Database "%s"?', [Conn.Database]), f_('WARNING: You will lose all objects in database %s!', [Conn.Database]), mtConfirmation, [mbok,mbcancel]) <> mrok then
           Abort;
         try
           db := Conn.Database;
@@ -2750,7 +2748,7 @@ begin
   for DBObject in ObjectList do
     msg := msg + DBObject.Name + ', ';
   Delete(msg, Length(msg)-1, 2);
-  if MessageDialog('Drop ' + IntToStr(ObjectList.Count) + ' object(s) in database "'+Conn.Database+'"?', msg, mtConfirmation, [mbok,mbcancel]) = mrOk then begin
+  if MessageDialog(f_('Drop %d object(s) in database "%s"?', [ObjectList.Count, Conn.Database]), msg, mtConfirmation, [mbok,mbcancel]) = mrOk then begin
     try
       // Disable foreign key checks to avoid SQL errors
       if Conn.ServerVersionInt >= 40014 then
@@ -2786,7 +2784,7 @@ begin
   // Launch mysql.exe
   Conn := ActiveConnection;
   if Conn.Parameters.NetTypeGroup <> ngMySQL then
-    ErrorDialog('Command line only works on MySQL connections.')
+    ErrorDialog(_('Command line only works on MySQL connections.'))
   else begin
     if FIsWine then begin
       cmd := 'mysql';
@@ -2799,8 +2797,8 @@ begin
     if (Length(path)>0) and (path[Length(path)] <> sep) then
       path := path + sep;
     if not FileExists(path+cmd, true) then begin
-      ErrorDialog('You need to tell '+APPNAME+' where your MySQL binaries reside, in Tools > Preferences > Miscellaneous.'+
-        CRLF+CRLF+'Current setting is: '+CRLF+'"'+path+'"');
+      ErrorDialog(f_('You need to tell %s where your MySQL binaries reside, in Tools > Preferences > Miscellaneous.', [APPNAME])+
+        CRLF+CRLF+f_('Current setting is: "%s"', [path]));
     end else begin
       p := '';
       if FIsWine then begin
@@ -2832,7 +2830,7 @@ begin
       rx.Expression := '(\-\-password\=")([^"]*)(")';
       log := path + cmd + p;
       log := rx.Replace(log, '$1********$3', true);
-      LogSQL('Launching command line: '+log, lcInfo);
+      LogSQL(f_('Launching command line: %s', [log]), lcInfo);
       rx.Free;
       ShellExec(cmd, path, p);
     end;
@@ -2851,7 +2849,7 @@ var
 begin
   Dialog := TOpenTextFileDialog.Create(Self);
   Dialog.Options := Dialog.Options + [ofAllowMultiSelect];
-  Dialog.Filter := 'SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*';
+  Dialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
   Dialog.DefaultExt := 'sql';
   Dialog.Encodings.Assign(FileEncodings);
   Dialog.EncodingIndex := 0;
@@ -2912,36 +2910,36 @@ begin
   if DoRunFiles then begin
     if (Win32MajorVersion >= 6) and ThemeServices.ThemesEnabled then begin
       Dialog := TTaskDialog.Create(Self);
-      Dialog.Caption := 'Opening large files';
-      Dialog.Text := 'Selected files have a size of '+FormatByteNumber(FilesizeSum, 1);
-      Dialog.ExpandButtonCaption := 'File list';
+      Dialog.Caption := _('Opening large files');
+      Dialog.Text := f_('Selected files have a size of %s', [FormatByteNumber(FilesizeSum, 1)]);
+      Dialog.ExpandButtonCaption := _('File list');
       Dialog.ExpandedText := PopupFileList.Text;
       Dialog.Flags := [tfUseCommandLinks, tfExpandFooterArea];
       Dialog.CommonButtons := [];
       Dialog.MainIcon := tdiWarning;
       Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
-      Btn.Caption := 'Run file(s) directly';
-      Btn.CommandLinkHint := '... without loading into the editor';
+      Btn.Caption := _('Run file(s) directly');
+      Btn.CommandLinkHint := _('... without loading into the editor');
       Btn.ModalResult := mrYes;
       Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
-      Btn.Caption := 'Load file(s) into the editor';
-      Btn.CommandLinkHint := 'Can cause large memory usage';
+      Btn.Caption := _('Load file(s) into the editor');
+      Btn.CommandLinkHint := _('Can cause large memory usage');
       Btn.ModalResult := mrNo;
       Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
-      Btn.Caption := 'Cancel';
+      Btn.Caption := _('Cancel');
       Btn.ModalResult := mrCancel;
       Dialog.Execute;
       DialogResult := Dialog.ModalResult;
       Dialog.Free;
     end else begin
-      msgtext := 'One or more of the selected files are larger than '+FormatByteNumber(RunFileSize, 0)+':' + CRLF +
+      msgtext := f_('One or more of the selected files are larger than %s:', [FormatByteNumber(RunFileSize, 0)]) + CRLF +
         ImplodeStr(CRLF, PopupFileList) + CRLF + CRLF +
-        'Just run these files to avoid loading them into the query-editor (= memory)?' + CRLF + CRLF +
-        'Press' + CRLF +
-        '  [Yes] to run file(s) without loading it into the editor' + CRLF +
-        '  [No] to load file(s) into the query editor' + CRLF +
-        '  [Cancel] to cancel file opening.';
-      DialogResult := MessageDialog('Execute query file(s)?', msgtext, mtWarning, [mbYes, mbNo, mbCancel]);
+        _('Just run these files to avoid loading them into the query-editor (= memory)?') + CRLF + CRLF +
+        _('Press') + CRLF +
+        _('  [Yes] to run file(s) without loading it into the editor') + CRLF +
+        _('  [No] to load file(s) into the query editor') + CRLF +
+        _('  [Cancel] to cancel file opening.');
+      DialogResult := MessageDialog(_('Execute query file(s)?'), msgtext, mtWarning, [mbYes, mbNo, mbCancel]);
     end;
 
     case DialogResult of
@@ -2964,7 +2962,7 @@ begin
   end;
 
   if AbsentFiles.Count > 0 then
-    ErrorDialog('Could not load file(s):', AbsentFiles.Text);
+    ErrorDialog(_('Could not load file(s):'), AbsentFiles.Text);
   AbsentFiles.Free;
   PopupFileList.Free;
 end;
@@ -3084,7 +3082,7 @@ begin
     StartupScript := Trim(Connection.Parameters.StartupScriptFilename);
     if StartupScript <> '' then begin
       if not FileExists(StartupScript) then
-        ErrorDialog('Startup script file not found: '+StartupScript)
+        ErrorDialog(f_('Startup script file not found: %s', [StartupScript]))
       else begin
         StartupBatch := TSQLBatch.Create;
         StartupBatch.SQL := ReadTextfile(StartupScript, nil);
@@ -3098,8 +3096,8 @@ begin
     end;
 
     if Params.WantSSL and not Connection.IsSSL then begin
-      MessageDialog('SSL not used.',
-        'Your SSL settings were not accepted by the server, or the server does not support any SSL configuration.',
+      MessageDialog(_('SSL not used.'),
+        _('Your SSL settings were not accepted by the server, or the server does not support any SSL configuration.'),
         mtWarning,
         [mbOK]
         );
@@ -3123,17 +3121,17 @@ begin
   Grid := ActiveGrid;
   Results := GridResult(Grid);
   if Grid.SelectedCount = 0 then
-    ErrorDialog('No rows selected', 'Please select one or more rows to delete them.')
+    ErrorDialog(_('No rows selected'), _('Please select one or more rows to delete them.'))
   else try
     Results.CheckEditable;
-    if MessageDialog('Delete '+IntToStr(Grid.SelectedCount)+' row(s)?',
+    if MessageDialog(f_('Delete %s row(s)?', [FormatNumber(Grid.SelectedCount)]),
       mtConfirmation, [mbOK, mbCancel]) = mrOK then begin
       FocusAfterDelete := nil;
       EnableProgress(Grid.SelectedCount);
       Node := GetNextNode(Grid, nil, True);
       while Assigned(Node) do begin
         RowNum := Grid.GetNodeData(Node);
-        ShowStatusMsg('Deleting row #'+FormatNumber(ProgressBarStatus.Position+1)+' of '+FormatNumber(ProgressBarStatus.Max)+' ...');
+        ShowStatusMsg(f_('Deleting row #%s of %s ...', [FormatNumber(ProgressBarStatus.Position+1), FormatNumber(ProgressBarStatus.Max)]));
         Results.RecNo := RowNum^;
         Results.DeleteRow;
         ProgressStep;
@@ -3142,7 +3140,7 @@ begin
         FocusAfterDelete := Node;
         Node := GetNextNode(Grid, Node, True);
       end;
-      ShowStatusMsg('Clean up ...');
+      ShowStatusMsg(_('Clean up ...'));
       if Assigned(FocusAfterDelete) then
         FocusAfterDelete := Grid.GetNext(FocusAfterDelete);
       // Remove nodes and select some nearby node
@@ -3159,7 +3157,7 @@ begin
     end;
   except on E:EDatabaseError do begin
       SetProgressState(pbsError);
-      ErrorDialog('Grid editing error', E.Message);
+      ErrorDialog(_('Grid editing error'), E.Message);
     end;
   end;
   DisableProgress;
@@ -3223,9 +3221,9 @@ begin
     Names := ActiveDbObj.Name;
   end;
   if Objects.Count = 0 then
-    ErrorDialog('No table(s) selected.')
+    ErrorDialog(_('No table(s) selected.'))
   else begin
-    if MessageDialog('Empty '+IntToStr(Objects.count)+' table(s) and/or view(s) ?', Names,
+    if MessageDialog(f_('Empty %d table(s) and/or view(s)?', [Objects.count]), Names,
       mtConfirmation, [mbOk, mbCancel]) = mrOk then begin
       Screen.Cursor := crHourglass;
       EnableProgress(Objects.Count);
@@ -3281,7 +3279,7 @@ begin
     Objects.Add(ActiveDbObj);
 
   if Objects.Count = 0 then
-    ErrorDialog('No stored procedure selected.', 'Please select one or more stored function(s) or routine(s).');
+    ErrorDialog(_('No stored procedure selected.'), _('Please select one or more stored function(s) or routine(s).'));
 
   for Obj in Objects do begin
     actNewQueryTab.Execute;
@@ -3300,7 +3298,7 @@ begin
     Query := Query + Obj.QuotedName;
     Params := TStringList.Create;
     for Param in Parameters do begin
-      ParamValue := InputBox(Obj.Name, 'Parameter "'+Param.Name+'" ('+Param.Datatype+')', '');
+      ParamValue := InputBox(Obj.Name, _('Parameter')+' "'+Param.Name+'" ('+Param.Datatype+')', '');
       ParamValue := Obj.Connection.EscapeString(ParamValue);
       Params.Add(ParamValue);
     end;
@@ -3385,7 +3383,7 @@ begin
 
   FSearchReplaceDialog.Editor.BeginUpdate;
 
-  ShowStatusMsg('Searching ...');
+  ShowStatusMsg(_('Searching ...'));
   Occurences := FSearchReplaceDialog.Editor.SearchReplace(
     FSearchReplaceDialog.comboSearch.Text,
     Replacement,
@@ -3396,11 +3394,11 @@ begin
   ShowStatusMsg;
 
   if ssoReplaceAll in FSearchReplaceDialog.Options then
-    ShowStatusMsg('Text "'+FSearchReplaceDialog.comboSearch.Text+'" '+FormatNumber(Occurences)+' times replaced.', 0)
+    ShowStatusMsg(f_('Text "%s" %s times replaced.', [FSearchReplaceDialog.comboSearch.Text, FormatNumber(Occurences)]), 0)
   else begin
     if (OldCaretXY.Char = FSearchReplaceDialog.Editor.CaretXY.Char) and
       (OldCaretXY.Line = FSearchReplaceDialog.Editor.CaretXY.Line) then
-      MessageDialog('Text "'+FSearchReplaceDialog.comboSearch.Text+'" not found.', mtInformation, [mbOk]);
+      MessageDialog(f_('Text "%s" not found.', [FSearchReplaceDialog.comboSearch.Text]), mtInformation, [mbOk]);
   end;
 end;
 
@@ -3409,7 +3407,7 @@ procedure TMainForm.SynMemoQueryReplaceText(Sender: TObject; const ASearch,
   AReplace: string; Line, Column: Integer; var Action: TSynReplaceAction);
 begin
   // Fires when "Replace all" in search dialog was pressed with activated "Prompt on replace"
-  case MessageDialog('Replace this occurrence of "'+sstr(ASearch, 100)+'"?', mtConfirmation, [mbYes, mbYesToAll, mbNo, mbCancel]) of
+  case MessageDialog(f_('Replace this occurrence of "%s"?', [sstr(ASearch, 100)]), mtConfirmation, [mbYes, mbYesToAll, mbNo, mbCancel]) of
     mrYes: Action := raReplace;
     mrYesToAll: Action := raReplaceAll;
     mrNo: Action := raSkip;
@@ -3509,7 +3507,7 @@ begin
     Dialog.Show;
     Dialog.Keyword := keyword;
   end else
-    ErrorDialog('SQL help not available.', 'HELP <keyword> required MySQL 4.1 or newer.');
+    ErrorDialog(_('SQL help not available.'), _('HELP <keyword> requires MySQL 4.1 or newer.'));
 end;
 
 
@@ -3527,7 +3525,7 @@ begin
     CanSave := mrYes;
     for i:=0 to QueryTabs.Count-1 do begin
       if QueryTabs[i].MemoFilename = SaveDialogSQLFile.FileName then begin
-        CanSave := MessageDialog('Overwrite "'+SaveDialogSQLFile.FileName+'"?', 'This file is already open in query tab #'+IntToStr(QueryTabs[i].Number)+'.',
+        CanSave := MessageDialog(f_('Overwrite "%s"?', [SaveDialogSQLFile.FileName]), f_('This file is already open in query tab #%d.', [QueryTabs[i].Number]),
           mtWarning, [mbYes, mbNo, mbCancel]);
         break;
       end;
@@ -3571,7 +3569,7 @@ var
   Text, LB: String;
 begin
   // Save snippet
-  if InputQuery( 'Save snippet', 'Snippet name:', snippetname) then
+  if InputQuery(_('Save snippet'), _('Snippet name:'), snippetname) then
   begin
     if Copy( snippetname, Length(snippetname)-4, 4 ) <> '.sql' then
       snippetname := snippetname + '.sql';
@@ -3579,7 +3577,7 @@ begin
     snippetname := DirnameSnippets + goodfilename(snippetname);
     if FileExists( snippetname ) then
     begin
-      if MessageDialog('Overwrite existing snippet '+snippetname+'?', mtConfirmation, [mbOK, mbCancel]) <> mrOK then
+      if MessageDialog(f_('Overwrite existing snippet %s?', [snippetname]), mtConfirmation, [mbOK, mbCancel]) <> mrOK then
         exit;
     end;
     Screen.Cursor := crHourglass;
@@ -3665,12 +3663,12 @@ begin
   popupQueryLoad.Items.Add(menuitem);
 
   menuitem := TMenuItem.Create( popupQueryLoad );
-  menuitem.Caption := 'Remove absent files';
+  menuitem.Caption := _('Remove absent files');
   menuitem.OnClick := PopupQueryLoadRemoveAbsentFiles;
   popupQueryLoad.Items.Add(menuitem);
 
   menuitem := TMenuItem.Create( popupQueryLoad );
-  menuitem.Caption := 'Clear file list';
+  menuitem.Caption := _('Clear file list');
   menuitem.OnClick := PopupQueryLoadRemoveAllFiles;
   popupQueryLoad.Items.Add(menuitem);
 
@@ -3771,7 +3769,7 @@ begin
   ok := False;
   while not ok do begin
     newVal := delimiter;
-    if InputQuery('Set delimiter', 'SQL statement delimiter (default is ";"):', newVal) then try
+    if InputQuery(_('Set delimiter'), _('SQL statement delimiter (default is ";"):'), newVal) then try
       // Set new value
       Delimiter := newVal;
       ok := True;
@@ -3794,20 +3792,20 @@ begin
   Value := Trim(Value);
   Msg := '';
   if Value = '' then
-    Msg := 'Empty value.'
+    Msg := _('Empty value.')
   else begin
     rx := TRegExpr.Create;
     rx.Expression := '(/\*|--|#|\''|\"|`)';
     if rx.Exec(Value) then
-      Msg := 'Start-of-comment tokens or string literal markers are not allowed.'
+      Msg := _('Start-of-comment tokens or string literal markers are not allowed.')
   end;
   if Msg <> '' then begin
-    Msg := 'Error setting delimiter to "'+Value+'": '+Msg;
+    Msg := f_('Error setting delimiter to "%s": %s', [Value, Msg]);
     LogSQL(Msg, lcError);
     ErrorDialog(Msg);
   end else begin
     FDelimiter := Value;
-    LogSQL('Delimiter changed to '+FDelimiter, lcInfo);
+    LogSQL(f_('Delimiter changed to %s', [FDelimiter]), lcInfo);
     actSetDelimiter.Hint := actSetDelimiter.Caption + ' (current value: '+FDelimiter+')';
   end;
 end;
@@ -3905,7 +3903,7 @@ begin
       end;
     end;
   except on E:EDatabaseError do
-    ErrorDialog('Grid editing error', E.Message);
+    ErrorDialog(_('Grid editing error'), E.Message);
   end;
 end;
 
@@ -4055,9 +4053,7 @@ begin
   if snip then begin
     Msg :=
       Copy(Msg, 0, MaxLineWidth) +
-      '/* large SQL query ('+FormatByteNumber(Len)+'), snipped at ' +
-      FormatNumber(MaxLineWidth) +
-      ' characters */';
+      '/* '+f_('large SQL query (%s), snipped at %s characters', [FormatByteNumber(Len), FormatNumber(MaxLineWidth)]) + ' */';
   end else if (not snip) and IsSQL then
     Msg := Msg + Delimiter;
   if not IsSQL then
@@ -4090,7 +4086,7 @@ begin
     on E:Exception do begin
       LogToFile := False;
       AppSettings.WriteBool(asLogToFile, False);
-      ErrorDialog('Error writing to session log file.', E.Message+CRLF+'Filename: '+FFileNameSessionLog+CRLF+CRLF+'Logging is disabled now.');
+      ErrorDialog(_('Error writing to session log file.'), E.Message+CRLF+_('Filename')+': '+FFileNameSessionLog+CRLF+CRLF+_('Logging is disabled now.'));
     end;
   end;
 end;
@@ -4305,7 +4301,7 @@ begin
     vt.Clear;
 
     try
-      ShowStatusMsg('Fetching rows ...');
+      ShowStatusMsg(_('Fetching rows ...'));
       // Result object must be of the right vendor type
       if not RefreshingData then begin
         FreeAndNil(DataGridResult);
@@ -4318,7 +4314,7 @@ begin
       try
         DataGridResult.PrepareEditing;
       except on E:EDatabaseError do // Do not annoy user with popup when accessing tables in information_schema
-        LogSQL('Data in this table will be read-only.');
+        LogSQL(_('Data in this table will be read-only.'));
       end;
 
       editFilterVT.Clear;
@@ -4328,7 +4324,7 @@ begin
       vt.RootNodeCount := DataGridResult.RecordCount;
 
       // Set up grid column headers
-      ShowStatusMsg('Setting up columns ...');
+      ShowStatusMsg(_('Setting up columns ...'));
       VisibleColumns := 0;
       for i:=0 to WantedColumns.Count-1 do begin
         InitColumn(i, WantedColumns[i]);
@@ -4386,8 +4382,7 @@ begin
     EnumerateRecentFilters;
     ColWidths.Free;
     if Integer(vt.RootNodeCount) = MaximumRows then
-      LogSQL('Browsing is currently limited to a maximum of '+FormatNumber(MaximumRows)+' rows. To see more rows, increase this maximum in Tools > Preferences > Data .', lcInfo);
-
+      LogSQL(f_('Browsing is currently limited to a maximum of %s rows. To see more rows, increase this maximum in Tools > Preferences > Data.', [FormatNumber(MaximumRows)]), lcInfo);
   end;
   vt.Tag := VTREE_LOADED;
   DataGridFullRowMode := False;
@@ -4430,17 +4425,17 @@ begin
     else
       RowsTotal := MakeInt(DBObject.Connection.GetVar('SELECT COUNT(*) FROM '+DBObject.QuotedName));
     if RowsTotal > -1 then begin
-      cap := cap + ': ' + FormatNumber(RowsTotal) + ' rows total';
+      cap := cap + ': ' + FormatNumber(RowsTotal) + ' ' + _('rows total');
       if DBObject.Engine = 'InnoDB' then
-        cap := cap + ' (approximately)';
+        cap := cap + ' ('+_('approximately')+')';
       // Display either LIMIT or WHERE effect, not both at the same time
       if IsLimited then
-        cap := cap + ', limited to ' + FormatNumber(Datagrid.RootNodeCount)
+        cap := cap + ', '+_('limited to') + ' ' + FormatNumber(Datagrid.RootNodeCount)
       else if IsFiltered then begin
         if Datagrid.RootNodeCount = RowsTotal then
-          cap := cap + ', all rows match to filter'
+          cap := cap + ', '+_('all rows match to filter')
         else
-          cap := cap + ', ' + FormatNumber(Datagrid.RootNodeCount) + ' rows match to filter';
+          cap := cap + ', ' + FormatNumber(Datagrid.RootNodeCount) + ' '+_('rows match to filter');
       end;
     end;
   end;
@@ -4554,7 +4549,7 @@ begin
   vt.Clear;
   Msg := '';
   if Conn <> nil then begin
-    ShowStatusMsg( 'Displaying objects from "' + Conn.Database + '" ...' );
+    ShowStatusMsg(f_('Displaying objects from "%s" ...', [Conn.Database]));
     Objects := Conn.GetDBObjects(Conn.Database, vt.Tag = VTREE_NOTLOADED_PURGECACHE, FActiveObjectGroup);
     vt.RootNodeCount := Objects.Count;
 
@@ -4780,7 +4775,7 @@ begin
       pid := ListProcesses.Text[Node, ListProcesses.Header.MainColumn];
       // Don't kill own process
       if pid = IntToStr(Conn.ThreadId) then
-        LogSQL('Ignoring own process id #'+pid+' when trying to kill it.')
+        LogSQL(f_('Ignoring own process id #%s when trying to kill it.', [pid]))
       else try
         Conn.Query('KILL '+pid);
       except
@@ -5152,9 +5147,9 @@ begin
   if Assigned(Conn) then begin
     Uptime := Conn.ServerUptime;
     if Uptime >= 0 then
-      ShowStatusMsg('Uptime: '+FormatTimeNumber(Conn.ServerUptime, False), 4)
+      ShowStatusMsg(_('Uptime')+': '+FormatTimeNumber(Conn.ServerUptime, False), 4)
     else
-      ShowStatusMsg('Uptime: unknown', 4)
+      ShowStatusMsg(_('Uptime')+': '+_('unknown'), 4)
   end else
     ShowStatusMsg('', 4);
 end;
@@ -5257,7 +5252,7 @@ begin
   if Item.Tag = 1 then begin
     // Item needs prompt
     Val := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
-    if InputQuery('Specify filter-value...', Item.Caption, Val) then begin
+    if InputQuery(_('Specify filter-value...'), Item.Caption, Val) then begin
       if Item = QF8 then
         Filter := ActiveConnection.QuoteIdent(Col) + ' = ''' + Val + ''''
       else if Item = QF9 then
@@ -5304,7 +5299,7 @@ var
 begin
   // set interval for autorefresh-timer
   SecondsStr := FloatToStr(TimerRefresh.interval div 1000);
-  if InputQuery('Auto refresh','Refresh list every ... second(s):', SecondsStr) then begin
+  if InputQuery(_('Auto refresh'),_('Refresh list every ... second(s):'), SecondsStr) then begin
     Seconds := StrToFloatDef(SecondsStr, 0);
     if Seconds > 0 then begin
       TimerRefresh.Interval := Trunc(Seconds * 1000);
@@ -5312,7 +5307,7 @@ begin
       menuAutoRefresh.Checked := true;
     end
     else
-      ErrorDialog('Seconds must be between 0 and ' + IntToStr(maxint) + '.');
+      ErrorDialog(f_('Seconds must be between 0 and %d.', [maxint]));
   end;
 end;
 
@@ -5407,7 +5402,7 @@ begin
           end;
     end;
   end else
-    raise Exception.Create('Unspecified source control in drag''n drop operation!');
+    raise Exception.Create(_('Unspecified source control in drag''n drop operation!'));
 
   if Text <> '' then begin
     ActiveQueryMemo.SelText := Text;
@@ -5554,7 +5549,7 @@ end;
 procedure TMainForm.Saveastextfile1Click(Sender: TObject);
 begin
   with TSaveDialog.Create(self) do begin
-    Filter := 'Textfiles (*.txt)|*.txt|All Files (*.*)|*.*';
+    Filter := _('Text files')+' (*.txt)|*.txt|'+_('All Files')+' (*.*)|*.*';
     DefaultExt := 'txt';
     FilterIndex := 1;
     Options := [ofOverwritePrompt,ofHideReadOnly,ofEnableSizing];
@@ -5779,7 +5774,7 @@ begin
   if DataGrid.FocusedColumn = NoColumn then
     Exit;
   Col := DataGridResult.ColumnOrgNames[DataGrid.FocusedColumn];
-  ShowStatusMsg('Fetching distinct values ...');
+  ShowStatusMsg(_('Fetching distinct values ...'));
   Conn := ActiveConnection;
   Data := Conn.GetResults('SELECT '+Conn.QuoteIdent(Col)+', COUNT(*) AS c FROM '+ActiveDbObj.QuotedName+
     ' GROUP BY '+Conn.QuoteIdent(Col)+' ORDER BY c DESC, '+Conn.QuoteIdent(Col)+' LIMIT 30');
@@ -5815,17 +5810,17 @@ begin
   DataYear.Caption := 'YEAR: ' + Format('%.4d', [y]);
   GetSystemTime(SystemTime);
   UnixTimestamp := DateTimeToUnix(SystemTimeToDateTime(SystemTime));
-  DataUNIXtimestamp.Caption := 'UNIX Timestamp: ' + IntToStr(UnixTimestamp);
+  DataUNIXtimestamp.Caption := _('UNIX Timestamp')+': ' + IntToStr(UnixTimestamp);
   CreateGuid(Uid);
   DataGUID.Caption := 'GUID: ' + GuidToString(Uid);
 
   ColNum := DataGrid.FocusedColumn;
-  DataDefaultValue.Caption := 'Default: ?';
+  DataDefaultValue.Caption := _('Default value')+': ?';
   DataDefaultValue.Enabled := False;
   if ColNum <> NOCOLUMN then begin
     for Col in SelectedTableColumns do begin
       if (Col.Name = DataGrid.Header.Columns[ColNum].Text) and (Col.DefaultType = cdtText) then begin
-        DataDefaultValue.Caption := 'Default: '+Col.DefaultText;
+        DataDefaultValue.Caption := _('Default value')+': '+Col.DefaultText;
         DataDefaultValue.Enabled := True;
         break;
       end;
@@ -5926,7 +5921,7 @@ begin
   if Assigned(FoundNode) then
     SelectNode(DBTree, FoundNode)
   else
-    LogSQL('Table node "' + Obj.Name + '" not found in tree.', lcError);
+    LogSQL(f_('Table node "%s" not found in tree.', [Obj.Name]), lcError);
 end;
 
 
@@ -6086,7 +6081,7 @@ begin
     Exit;
 
   snippetfile := DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql';
-  if MessageDialog('Delete snippet file?', snippetfile, mtConfirmation, [mbOk, mbCancel]) = mrOk then
+  if MessageDialog(_('Delete snippet file?'), snippetfile, mtConfirmation, [mbOk, mbCancel]) = mrOk then
   begin
     Screen.Cursor := crHourGlass;
     if DeleteFile(snippetfile) then begin
@@ -6095,7 +6090,7 @@ begin
       FillPopupQueryLoad;
     end else begin
       Screen.Cursor := crDefault;
-      ErrorDialog('Failed deleting ' + snippetfile);
+      ErrorDialog(f_('Failed deleting %s', [snippetfile]));
     end;
     Screen.Cursor := crDefault;
   end;
@@ -6131,7 +6126,8 @@ begin
   if DirectoryExists(DirnameSnippets) then
     ShellExec('', DirnameSnippets)
   else
-    if MessageDialog('Snippets folder does not exist', 'The folder "'+DirnameSnippets+'" is normally created when you install '+appname+'.' + CRLF + CRLF + 'Shall it be created now?',
+    if MessageDialog(_('Snippets folder does not exist'),
+      f_('The folder "%s" is normally created when you install %s.', [DirnameSnippets, APPNAME]) + CRLF + CRLF + _('Shall it be created now?'),
       mtWarning, [mbYes, mbNo]) = mrYes then
     try
       Screen.Cursor := crHourglass;
@@ -6149,7 +6145,7 @@ begin
   // Clear query history items in registry
   AppSettings.SessionPath := ActiveConnection.Parameters.SessionPath + '\' + REGKEY_QUERYHISTORY;
   Values := AppSettings.GetValueNames;
-  if MessageDialog('Clear query history?', FormatNumber(Values.Count)+' history items will be deleted.', mtConfirmation, [mbYes, mbNo]) = mrYes then begin
+  if MessageDialog(_('Clear query history?'), f_('%s history items will be deleted.', [FormatNumber(Values.Count)]), mtConfirmation, [mbYes, mbNo]) = mrYes then begin
     Screen.Cursor := crHourglass;
     AppSettings.DeleteCurrentKey;;
     RefreshHelperNode(HELPERNODE_HISTORY);
@@ -6411,10 +6407,10 @@ begin
     {$I+}
     if IOResult <> 0 then begin
       AppSettings.WriteBool(asLogToFile, False);
-      ErrorDialog('Error opening session log file', FFileNameSessionLog+CRLF+CRLF+'Logging is disabled now.');
+      ErrorDialog(_('Error opening session log file'), FFileNameSessionLog+CRLF+CRLF+_('Logging is disabled now.'));
     end else begin
       FLogToFile := Value;
-      LogSQL('Writing to session log file now: '+FFileNameSessionLog);
+      LogSQL(f_('Writing to session log file now: %s', [FFileNameSessionLog]));
     end;
   end else begin
     {$I-} // Supress errors
@@ -6423,7 +6419,7 @@ begin
     // Reset IOResult so later checks in ActivateFileLogging doesn't get an old value
     IOResult;
     FLogToFile := Value;
-    LogSQL('Writing to session log file disabled now');
+    LogSQL(_('Writing to session log file disabled now'));
   end;
 end;
 
@@ -6573,7 +6569,7 @@ begin
     SynMemoProcessView.Color := clWindow;
   end else begin
     SynMemoProcessView.Highlighter := nil;
-    SynMemoProcessView.Text := 'Please select a process in the above list.';
+    SynMemoProcessView.Text := _('Please select a process in the above list.');
     SynMemoProcessView.Color := clBtnFace;
   end;
   lblExplainProcess.Enabled := enableSQLView
@@ -6986,7 +6982,7 @@ begin
     // Session node expanding
     lntNone: begin
         Screen.Cursor := crHourglass;
-        ShowStatusMsg('Reading Databases...');
+        ShowStatusMsg(_('Reading Databases...'));
         if Sender.Tag = VTREE_NOTLOADED_PURGECACHE then
           DBObj.Connection.RefreshAllDatabases;
         ShowStatusMsg;
@@ -7001,7 +6997,7 @@ begin
           // Just tables, views, etc.
           ChildCount := 6;
         end else begin
-          ShowStatusMsg( 'Reading objects ...' );
+          ShowStatusMsg(_('Reading objects ...'));
           Screen.Cursor := crHourglass;
           try
             ChildCount := DBObj.Connection.GetDBObjects(DBObj.Connection.AllDatabases[Node.Index]).Count;
@@ -7188,7 +7184,7 @@ begin
 
     // When clicked node is from a different connection than before, do session specific stuff here:
     if (PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) then begin
-      LogSQL('Entering session "'+FActiveDbObj.Connection.Parameters.SessionPath+'"', lcInfo);
+      LogSQL(f_('Entering session "%s"', [FActiveDbObj.Connection.Parameters.SessionPath]), lcInfo);
       RefreshHelperNode(HELPERNODE_HISTORY);
       case FActiveDbObj.Connection.Parameters.NetTypeGroup of
         ngMySQL:
@@ -7209,14 +7205,14 @@ begin
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
     if FActiveDbObj.NodeType = lntGroup then
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
-    tabHost.Caption := 'Host: '+sstr(FActiveDbObj.Connection.Parameters.HostName, 20);
-    tabDatabase.Caption := 'Database: '+sstr(FActiveDbObj.Connection.Database, 20);
+    tabHost.Caption := _('Host')+': '+sstr(FActiveDbObj.Connection.Parameters.HostName, 20);
+    tabDatabase.Caption := _('Database')+': '+sstr(FActiveDbObj.Connection.Database, 20);
     ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(FActiveDbObj.Connection.Parameters.NetType, False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
   end else begin
     LogSQL('DBtreeFocusChanged without node.', lcDebug);
     FreeAndNil(FActiveDbObj);
-    tabHost.Caption := 'Host';
-    tabDatabase.Caption := 'Database';
+    tabHost.Caption := _('Host');
+    tabDatabase.Caption := _('Database');
     // Clear server version panel
     ShowStatusMsg('', 3);
   end;
@@ -7450,7 +7446,7 @@ begin
     except
     end;
     if not Assigned(DBtree.FocusedNode) then
-      raise Exception.Create('Could not find node to focus.');
+      raise Exception.Create(_('Could not find node to focus.'));
 
   finally
     FTreeRefreshInProgress := False;
@@ -7866,7 +7862,7 @@ begin
   try
     GridResult(Sender).CheckEditable;
     if not AnyGridEnsureFullRow(Sender as TVirtualStringTree, Node) then
-      ErrorDialog('Could not load full row data.')
+      ErrorDialog(_('Could not load full row data.'))
     else begin
       Allowed := True;
       // Move Esc shortcut from "Cancel row editing" to "Cancel cell editing"
@@ -7874,7 +7870,7 @@ begin
       actDataPostChanges.ShortCut := 0;
     end;
   except on E:EDatabaseError do
-    ErrorDialog('Grid editing error', E.Message);
+    ErrorDialog(_('Grid editing error'), E.Message);
   end;
 end;
 
@@ -8458,7 +8454,7 @@ begin
     and (Conn <> nil)
     and (Conn.Parameters.NetTypeGroup <> ngMySQL) then begin
     vt.Clear;
-    vt.EmptyListMessage := 'Not available on '+Conn.Parameters.NetTypeName(Conn.Parameters.NetType, False);
+    vt.EmptyListMessage := f_('Not available on %s', [Conn.Parameters.NetTypeName(Conn.Parameters.NetType, False)]);
     vt.Tag := VTREE_LOADED;
     Exit;
   end;
@@ -9545,12 +9541,12 @@ begin
     Exit;
   // Special case if passed text is empty: Reset query tab caption to "Query #123"
   if (PageIndex = tabQuery.PageIndex) and (Text = '') then
-    Text := 'Query';
+    Text := _('Query');
   if IsQueryTab(PageIndex, False) then begin
     if Text = '' then begin
       for Tab in QueryTabs do begin
         if Tab.TabSheet = PageControlMain.Pages[PageIndex] then begin
-          Text := 'Query #'+IntToStr(Tab.Number);
+          Text := _('Query')+' #'+IntToStr(Tab.Number);
           break;
         end;
       end;
@@ -9575,10 +9571,10 @@ begin
     // Unhide tabsheet so the user sees the memo content
     Tab.TabSheet.PageControl.ActivePage := Tab.TabSheet;
     if Tab.MemoFilename <> '' then
-      msg := 'Save changes to file '+CRLF+CRLF+Tab.MemoFilename+' ?'
+      msg := f_('Save changes to file %s ?', [Tab.MemoFilename])
     else
-      msg := 'Save content of tab "'+Trim(Tab.TabSheet.Caption)+'" ?';
-    case MessageDialog('Modified query', msg, mtConfirmation, [mbYes, mbNo, mbCancel]) of
+      msg := f_('Save content of tab "%s"?', [Trim(Tab.TabSheet.Caption)]);
+    case MessageDialog(_('Modified query'), msg, mtConfirmation, [mbYes, mbNo, mbCancel]) of
       mrNo: Result := True;
       mrYes: begin
         if Tab.MemoFilename <> '' then
@@ -9728,9 +9724,8 @@ begin
           Keystroke.ShortCut2 := Shortcut2;
       except
         on E:ESynKeyError do begin
-          LogSQL('Could not apply SynEdit keystroke shortcut "'+ShortCutToText(Shortcut1)+'"' +
-            ' (or secondary: "'+ShortCutToText(Shortcut2)+'") to '+EditorCommandToCodeString(Keystroke.Command)+'. '+
-            E.Message + '. Please go to Tools > Preferences > Shortcuts to change this settings.', lcError);
+          LogSQL(f_('Could not apply SynEdit keystroke shortcut "%s" (or secondary: "%s") to %s. %s. Please go to Tools > Preferences > Shortcuts to change this settings.',
+            [ShortCutToText(Shortcut1), ShortCutToText(Shortcut2), EditorCommandToCodeString(Keystroke.Command), E.Message]), lcError);
         end;
       end;
     end else
@@ -9755,7 +9750,7 @@ begin
   // Reformat SQL query
   m := ActiveSynMemo;
   if not Assigned(m) then begin
-    ErrorDialog('Cannot reformat', 'Please select a non-readonly SQL editor first.');
+    ErrorDialog(_('Cannot reformat'), _('Please select a non-readonly SQL editor first.'));
     Exit;
   end;
   CursorPosStart := m.SelStart;
@@ -9764,7 +9759,7 @@ begin
     m.SelectAll;
   NewSQL := m.SelText;
   if Length(NewSQL) = 0 then
-    ErrorDialog('Cannot reformat anything', 'The current editor is empty.')
+    ErrorDialog(('Cannot reformat'), _('The current editor is empty.'))
   else begin
     Screen.Cursor := crHourglass;
     m.UndoList.AddGroupBreak;
@@ -9946,7 +9941,7 @@ var
 begin
   // Probably a second instance is posting its command line parameters here
   if (Msg.CopyDataStruct.dwData = SecondInstMsgId) and (SecondInstMsgId <> 0) then begin
-    LogSQL('Preventing second application instance - disabled in Tools > Preferences > Miscellaneous.', lcInfo);
+    LogSQL(_('Preventing second application instance - disabled in Tools > Preferences > Miscellaneous.'), lcInfo);
     ConnectionParams := nil;
     ParseCommandLine(ParamBlobToStr(Msg.CopyDataStruct.lpData), ConnectionParams, FileNames);
     if not RunQueryFiles(FileNames, nil) then begin
@@ -10043,7 +10038,7 @@ procedure TMainForm.AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKin
 begin
   // Display status message on long running sort operations
   if OperationKind = okSortTree then begin
-    ShowStatusMsg('Sorting grid nodes ...');
+    ShowStatusMsg(_('Sorting grid nodes ...'));
     FOperatingGrid := Sender;
     OperationRunning(True);
   end;
@@ -10070,14 +10065,14 @@ begin
   // Stop current operation (sorting grid or running user queries)
   if FOperatingGrid <> nil then begin
     FOperatingGrid.CancelOperation;
-    LogSQL('Sorting cancelled.');
+    LogSQL(_('Sorting cancelled.'));
   end;
   for Tab in QueryTabs do begin
     if Tab.QueryRunning then begin
       Tab.ExecutionThread.Aborted := True;
       Killer := ActiveConnection.Parameters.CreateConnection(Self);
       Killer.Parameters := ActiveConnection.Parameters;
-      Killer.LogPrefix := 'HelperConnection';
+      Killer.LogPrefix := _('Helper connection');
       Killer.OnLog := LogSQL;
       Killer.Active := True;
       KillCommand := 'KILL ';
@@ -10373,16 +10368,16 @@ begin
              HELPERNODE_COLUMNS: begin
                CellText := 'Columns';
                if ActiveDbObj <> nil then case ActiveDbObj.NodeType of
-                 lntProcedure, lntFunction: CellText := 'Parameters in '+ActiveDbObj.Name;
-                 lntTable, lntView: CellText := 'Columns in '+ActiveDbObj.Name;
+                 lntProcedure, lntFunction: CellText := f_('Parameters in %s', [ActiveDbObj.Name]);
+                 lntTable, lntView: CellText := f_('Columns in %s', [ActiveDbObj.Name]);
                end;
              end;
-             HELPERNODE_FUNCTIONS: CellText := 'SQL Functions';
-             HELPERNODE_KEYWORDS: CellText := 'SQL Keywords';
-             HELPERNODE_SNIPPETS: CellText := 'Snippets';
-             HELPERNODE_HISTORY: CellText := 'Query history';
+             HELPERNODE_FUNCTIONS: CellText := _('SQL functions');
+             HELPERNODE_KEYWORDS: CellText := _('SQL keywords');
+             HELPERNODE_SNIPPETS: CellText := _('Snippets');
+             HELPERNODE_HISTORY: CellText := _('Query history');
              HELPERNODE_PROFILE: begin
-                  CellText := 'Query profile';
+                  CellText := _('Query profile');
                   if Assigned(Tab.QueryProfile) then
                     CellText := CellText + ' ('+FormatNumber(Tab.ProfileTime, 6)+'s)';
                 end;
@@ -10402,9 +10397,9 @@ begin
              HELPERNODE_HISTORY: begin
                CellText := Tab.HistoryDays[Node.Index];
                if CellText = DateToStr(Today) then
-                 CellText := CellText + ', today'
+                 CellText := CellText + ', '+_('today')
                else if CellText = DateToStr(Yesterday) then
-                 CellText := CellText + ', yesterday';
+                 CellText := CellText + ', '+_('yesterday');
              end;
              HELPERNODE_PROFILE: begin
                   if Assigned(Tab.QueryProfile) then begin
@@ -10546,7 +10541,7 @@ begin
     end;
   except
     on E:Exception do begin
-      LogSQL('Error with snippets directory: '+E.Message, lcError);
+      LogSQL(f_('Error with snippets directory: %s', [E.Message]), lcError);
     end;
   end;
   RefreshHelperNode(HELPERNODE_SNIPPETS);
@@ -10788,7 +10783,7 @@ begin
   case Action of
     waRemoved:
       if IsCurrentFile
-        and (MessageDialog('Close file and query tab?', 'File was deleted from outside: '+MemoFilename, mtConfirmation, [mbYes, mbCancel]) = mrYes) then begin
+        and (MessageDialog(_('Close file and query tab?'), f_('File was deleted from outside: %s', [MemoFilename]), mtConfirmation, [mbYes, mbCancel]) = mrYes) then begin
         Mainform.actClearQueryEditor.Execute;
         if Mainform.IsQueryTab(TabSheet.PageIndex, False) then
           Mainform.CloseQueryTab(TabSheet.PageIndex);
@@ -10820,7 +10815,7 @@ var
   OldCursor: TBufferCoord;
 begin
   (Sender as TTimer).Enabled := False;
-  if MessageDialog('Reload file?', 'File was modified from outside: '+MemoFilename, mtConfirmation, [mbYes, mbCancel]) = mrYes then begin
+  if MessageDialog(_('Reload file?'), f_('File was modified from outside: %s', [MemoFilename]), mtConfirmation, [mbYes, mbCancel]) = mrYes then begin
     OldCursor := Memo.CaretXY;
     OldTopLine := Memo.TopLine;
     LoadContents(MemoFilename, True, nil);
@@ -10843,7 +10838,7 @@ begin
   // so we have to do it by replacing the SelText property
   Screen.Cursor := crHourGlass;
   Filesize := _GetFileSize(filename);
-  MainForm.LogSQL('Loading file "'+Filename+'" ('+FormatByteNumber(Filesize)+') into query tab #'+IntToStr(Number)+' ...', lcInfo);
+  MainForm.LogSQL(f_('Loading file "%s" (%s) into query tab #%d ...', [Filename, FormatByteNumber(Filesize), Number]), lcInfo);
   try
     Content := ReadTextfile(Filename, Encoding);
     if Pos(DirnameSnippets, Filename) = 0 then
@@ -10868,7 +10863,7 @@ begin
         MemoLineBreaks := LineBreaks;
     end;
     if MemoLineBreaks = lbsMixed then
-      MessageDialog('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).', mtInformation, [mbOK]);
+      MessageDialog(_('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).'), mtInformation, [mbOK]);
 
     Memo.SelText := Content;
     Memo.SelStart := Memo.SelEnd;
@@ -10889,7 +10884,7 @@ var
   Text, LB: String;
 begin
   Screen.Cursor := crHourGlass;
-  MainForm.ShowStatusMsg('Saving file ...');
+  MainForm.ShowStatusMsg(_('Saving file ...'));
   if OnlySelection then
     Text := Memo.SelText
   else

@@ -130,11 +130,11 @@ begin
     lbsMixed: Detected := menuMixedLB;
     else Detected := nil;
   end;
-  menuWindowsLB.Caption := 'Windows® linebreaks';
-  menuUnixLB.Caption := 'UNIX linebreaks';
-  menuMacLB.Caption := 'Mac OS linebreaks';
-  menuWideLB.Caption := 'Unicode linebreaks';
-  menuMixedLB.Caption := 'Mixed linebreaks';
+  menuWindowsLB.Caption := _('Windows linebreaks');
+  menuUnixLB.Caption := _('UNIX linebreaks');
+  menuMacLB.Caption := _('Mac OS linebreaks');
+  menuWideLB.Caption := _('Unicode linebreaks');
+  menuMixedLB.Caption := _('Mixed linebreaks');
   Detected.Caption := Detected.Caption + ' (detected)';
   Selected.Default := True;
   btnLineBreaks.Hint := Selected.Caption;
@@ -223,7 +223,7 @@ var
   d: TOpenTextFileDialog;
 begin
   d := TOpenTextFileDialog.Create(Self);
-  d.Filter := 'Textfiles (*.txt)|*.txt|All files (*.*)|*.*';
+  d.Filter := _('Text files')+' (*.txt)|*.txt|'+_('All files')+' (*.*)|*.*';
   d.FilterIndex := 0;
   d.Encodings.Assign(MainForm.FileEncodings);
   d.EncodingIndex := 0;
@@ -256,7 +256,7 @@ begin
     Exit;
   FStopping := True;
   if Modified then
-    DoPost := MessageDialog('Apply modifications?', mtConfirmation, [mbYes, mbNo]) = mrYes
+    DoPost := MessageDialog(_('Apply modifications?'), mtConfirmation, [mbYes, mbNo]) = mrYes
   else
     DoPost := False;
   if DoPost then
