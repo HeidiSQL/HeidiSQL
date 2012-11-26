@@ -10197,7 +10197,7 @@ begin
       54936: Result := 'gb18030';
       65001: Result := 'utf8';
     end;
-  end else if Encoding.CodePage = 437 then
+  end else if (Encoding <> nil) and (Encoding.CodePage = 437) then
     Result := 'ascii'
   else if Encoding = TEncoding.Unicode then
     Result := 'utf16le'
