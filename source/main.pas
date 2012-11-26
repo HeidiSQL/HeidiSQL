@@ -10130,7 +10130,7 @@ var
   idx: Integer;
 begin
   if Encoding = TEncoding.Default then idx := 1
-  else if Encoding.CodePage = 437 then idx := 2
+  else if (Encoding <> nil) and (Encoding.CodePage = 437) then idx := 2
   else if Encoding = TEncoding.Unicode then idx := 3
   else if Encoding = TEncoding.BigEndianUnicode then idx := 4
   else if Encoding = TEncoding.UTF8 then idx := 5
