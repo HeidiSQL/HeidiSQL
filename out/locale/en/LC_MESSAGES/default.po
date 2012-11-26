@@ -4093,12 +4093,12 @@ msgid "Excel CSV"
 msgstr "Excel CSV"
 
 #: exportgrid.pas:345
-msgid "Selection (%d rows, %s)"
-msgstr "Selection (%d rows, %s)"
+msgid "Selection (%s rows, %s)"
+msgstr "Selection (%s rows, %s)"
 
 #: exportgrid.pas:346
-msgid "Complete (%d rows, %s)"
-msgstr "Complete (%d rows, %s)"
+msgid "Complete (%s rows, %s)"
+msgstr "Complete (%s rows, %s)"
 
 #: exportgrid.pas:422
 msgid "File exists"
