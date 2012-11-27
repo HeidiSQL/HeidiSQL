@@ -664,7 +664,7 @@ begin
     if (FNetType > High(TNetType)) or (FNetType < Low(TNetType)) then begin
       ErrorDialog(f_('Broken "NetType" value (%d) found in settings for session "%s".', [Integer(FNetType), FSessionPath])
         +CRLF+CRLF+
-        _('Please report that on http://code.google.com/p/heidisql/issues/detail?id=2958')
+        f_('Please report that on %s', ['http://code.google.com/p/heidisql/issues/detail?id=2958'])
         );
       FNetType := ntMySQL_TCPIP;
     end;
@@ -2511,7 +2511,7 @@ begin
     Vars.Next;
   end;
   if Result = 0 then begin
-    Log(lcError, _('The server did not return a non-zero value for the max_allowed_packet variable. Assuming 1M now.'));
+    Log(lcError, f_('The server did not return a non-zero value for the %s variable. Assuming %s now.', ['max_allowed_packet', FormatByteNumber(Result)]));
     Result := SIZE_MB;
   end;
 
@@ -3380,7 +3380,7 @@ begin
       CheckOption := Trim(rx.Match[13]);
       SelectCode := rx.Match[11];
     end else
-      raise Exception.CreateFmt(_('Regular expression did not match the VIEW code in ParseViewStructure(): %s'), [CRLF+CRLF+CreateCode]);
+      raise Exception.CreateFmt(_('Regular expression did not match the VIEW code in %s: %s'), ['ParseViewStructure()', CRLF+CRLF+CreateCode]);
     rx.Free;
   end;
 
@@ -5137,7 +5137,7 @@ begin
   case _type of
     1: Result := PAnsiChar(AnsiString(Dialog.editUsername.Text));
     2: Result := PAnsiChar(AnsiString(Dialog.editPassword.Text));
-    else raise EDatabaseError.CreateFmt(_('Unsupported type (%d) in mysql_authentication_dialog_ask.'), [_type]);
+    else raise EDatabaseError.CreateFmt(_('Unsupported type (%d) in %s.'), [_type, 'mysql_authentication_dialog_ask']);
   end;
   Dialog.Free;
 end;

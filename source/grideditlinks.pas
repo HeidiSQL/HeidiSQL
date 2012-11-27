@@ -215,8 +215,8 @@ end;
 
 constructor TBaseGridEditorLink.Create;
 begin
-  raise Exception.CreateFmt(_('Wrong constructor called: %s.Create. Instead, please call the overloaded version %s.Create(VirtualStringTree).'),
-    [Self.ClassName, Self.ClassName]);
+  raise Exception.CreateFmt(_('Wrong constructor called: %s.%s. Instead, please call the overloaded version %s.%s.'),
+    [Self.ClassName, 'Create', Self.ClassName, 'Create(VirtualStringTree)']);
 end;
 
 constructor TBaseGridEditorLink.Create(Tree: TVirtualStringTree);
