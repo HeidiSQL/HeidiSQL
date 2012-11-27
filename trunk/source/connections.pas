@@ -351,7 +351,7 @@ begin
       Exit; // Cancelled
     NameOK := SessionNames.IndexOf(newName) = -1;
     if not NameOK then
-      ErrorDialog(f_('Session name "%s" already in use.', [ParentKey+newName]))
+      ErrorDialog(f_('Session "%s" already exists!', [ParentKey+newName]))
     else begin
       // Create the key and save its values
       NewSess := CurrentParams;
@@ -382,7 +382,7 @@ begin
     timerSettingsImport.Enabled := False;
   if FSettingsImportWaitTime >= 10000 then begin
     timerSettingsImport.Enabled := False;
-    MessageDialog(_('Imported sessions could not be detected. Restarting HeidiSQL may solve that.'), mtWarning, [mbOK]);
+    MessageDialog(f_('Imported sessions could not be detected. Restarting %s may solve that.', [APPNAME]), mtWarning, [mbOK]);
   end;
 end;
 

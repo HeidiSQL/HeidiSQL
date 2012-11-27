@@ -3753,15 +3753,11 @@ msgstr "Clone session ..."
 msgid "New session name:"
 msgstr "New session name:"
 
-#: connections.pas:355
-msgid "Session name \"%s\" already in use."
-msgstr "Session name \"%s\" already in use."
-
 #: connections.pas:386
 msgid ""
-"Imported sessions could not be detected. Restarting HeidiSQL may solve that."
+"Imported sessions could not be detected. Restarting %s may solve that."
 msgstr ""
-"Imported sessions could not be detected. Restarting HeidiSQL may solve that."
+"Imported sessions could not be detected. Restarting %s may solve that."
 
 #: connections.pas:440
 msgid "Delete session \"%s\"?"
@@ -3909,9 +3905,9 @@ msgstr "Broken \"NetType\" value (%d) found in settings for session \"%s\"."
 
 #: dbconnection.pas:681
 msgid ""
-"Please report that on http://code.google.com/p/heidisql/issues/detail?id=2958"
+"Please report that on %s"
 msgstr ""
-"Please report that on http://code.google.com/p/heidisql/issues/detail?id=2958"
+"Please report that on %s"
 
 #. Comes into SQL log when assigning dll procedures from libmysql.dll
 #: dbconnection.pas:1038
@@ -3991,8 +3987,8 @@ msgid "Database \"%s\" selected"
 msgstr "Database \"%s\" selected"
 
 #: dbconnection.pas:1820
-msgid "Unhandled list node type in %s.GetCreateCode"
-msgstr "Unhandled list node type in %s.GetCreateCode"
+msgid "Unhandled list node type in %s.%s"
+msgstr "Unhandled list node type in %s.%s"
 
 #: dbconnection.pas:2193
 msgid "Database names not available due to missing privileges for user %s."
@@ -4000,11 +3996,11 @@ msgstr "Database names not available due to missing privileges for user %s."
 
 #: dbconnection.pas:2625
 msgid ""
-"The server did not return a non-zero value for the max_allowed_packet "
-"variable. Assuming 1M now."
+"The server did not return a non-zero value for the %s "
+"variable. Assuming %s now."
 msgstr ""
-"The server did not return a non-zero value for the max_allowed_packet "
-"variable. Assuming 1M now."
+"The server did not return a non-zero value for the %s "
+"variable. Assuming %s now."
 
 #: dbconnection.pas:2757
 msgid "Not implemented for this DBMS"
@@ -4044,9 +4040,9 @@ msgstr "Client version (libmysql)"
 
 #: dbconnection.pas:3494
 msgid ""
-"Regular expression did not match the VIEW code in ParseViewStructure(): %s"
+"Regular expression did not match the VIEW code in %s: %s"
 msgstr ""
-"Regular expression did not match the VIEW code in ParseViewStructure(): %s"
+"Regular expression did not match the VIEW code in %s: %s"
 
 #: dbconnection.pas:3909
 msgid "Unknown data type for column #%d - %s: %d"
@@ -4081,8 +4077,8 @@ msgid "Unknown, should never appear"
 msgstr "Unknown, should never appear"
 
 #: dbconnection.pas:5316
-msgid "Unsupported type (%d) in mysql_authentication_dialog_ask."
-msgstr "Unsupported type (%d) in mysql_authentication_dialog_ask."
+msgid "Unsupported type (%d) in %s."
+msgstr "Unsupported type (%d) in %s."
 
 #: editvar.pas:90
 msgid "Could not find %s variable in internal mapping."
@@ -4118,11 +4114,11 @@ msgstr "Freeing data..."
 
 #: grideditlinks.pas:218
 msgid ""
-"Wrong constructor called: %s.Create. Instead, please call the overloaded "
-"version %s.Create(VirtualStringTree)."
+"Wrong constructor called: %s.%s. Instead, please call the overloaded "
+"version %s.%s."
 msgstr ""
-"Wrong constructor called: %s.Create. Instead, please call the overloaded "
-"version %s.Create(VirtualStringTree)."
+"Wrong constructor called: %s.%s. Instead, please call the overloaded "
+"version %s.%s."
 
 #: grideditlinks.pas:1022
 msgid "Edit text in popup editor ..."
@@ -4265,12 +4261,6 @@ msgid "Reading textfile (%s) ..."
 msgstr "Reading textfile (%s) ..."
 
 #: loaddata.pas:588
-msgid ""
-"MySQL CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt|All files (*.*)|*.*"
-msgstr ""
-"MySQL CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt|All files (*.*)|*.*"
-
-#: loaddata.pas:588
 msgid "CSV files"
 msgstr "CSV files"
 
@@ -4324,11 +4314,11 @@ msgstr "Splitting SQL queries ..."
 
 #: main.pas:2166
 msgid ""
-"Query profiling requires MySQL 5.0.37 or later, and the server must not be "
-"configured with --disable-profiling."
+"Query profiling requires %s or later, and the server must not be "
+"configured with %s."
 msgstr ""
-"Query profiling requires MySQL 5.0.37 or later, and the server must not be "
-"configured with --disable-profiling."
+"Query profiling requires %s or later, and the server must not be "
+"configured with %s."
 
 #: main.pas:2185
 msgid "query"
@@ -4380,10 +4370,10 @@ msgstr "Show all warnings in a new query tab?"
 
 #: main.pas:2364
 msgid ""
-"The server variable @@max_error_count is currently set to %d, so you won't "
+"The server variable %s is currently set to %d, so you won't "
 "see all warnings."
 msgstr ""
-"The server variable @@max_error_count is currently set to %d, so you won't "
+"The server variable %s is currently set to %d, so you won't "
 "see all warnings."
 
 #: main.pas:2379
@@ -4413,10 +4403,6 @@ msgstr "WARNING: You will lose all objects in database %s!"
 #: main.pas:2753
 msgid "Drop %d object(s) in database \"%s\"?"
 msgstr "Drop %d object(s) in database \"%s\"?"
-
-#: main.pas:2712
-msgid "WARNING: You will lose all objects in database %s"
-msgstr "WARNING: You will lose all objects in database %s"
 
 #: main.pas:2790
 msgid "Command line only works on MySQL connections."
@@ -4581,8 +4567,8 @@ msgid "SQL help not available."
 msgstr "SQL help not available."
 
 #: main.pas:3513
-msgid "HELP <keyword> requires MySQL 4.1 or newer."
-msgstr "HELP <keyword> requires MySQL 4.1 or newer."
+msgid "HELP <keyword> requires %s or newer."
+msgstr "HELP <keyword> requires %s or newer."
 
 #: main.pas:3531 routine_editor.pas:474
 msgid "Overwrite \"%s\"?"
@@ -4986,12 +4972,12 @@ msgid "Start of line"
 msgstr "Start of line"
 
 #: searchreplace.pas:60
-msgid "End of lin"
-msgstr "End of lin"
+msgid "End of line"
+msgstr "End of line"
 
 #: searchreplace.pas:60
-msgid "Any word characte"
-msgstr "Any word characte"
+msgid "Any word character"
+msgstr "Any word character"
 
 #: searchreplace.pas:60
 msgid "Digit"
@@ -5077,8 +5063,8 @@ msgid "%s%s doesn't have columns of selected type (%s)."
 msgstr "%s%s doesn't have columns of selected type (%s)."
 
 #: tabletools.pas:850
-msgid "Selected objects size: %s. %s%% done."
-msgstr "Selected objects size: %s. %s%% done."
+msgid "%s%% done"
+msgstr "%s%% done"
 
 #: tabletools.pas:986
 msgid "Same as on source server"

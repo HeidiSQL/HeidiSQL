@@ -2160,7 +2160,7 @@ begin
     ActiveConnection.Query('SET profiling=1');
   except
     on E:EDatabaseError do begin
-      ErrorDialog(_('Query profiling requires MySQL 5.0.37 or later, and the server must not be configured with --disable-profiling.'), E.Message);
+      ErrorDialog(f_('Query profiling requires %s or later, and the server must not be configured with %s.', ['MySQL 5.0.37', '--disable-profiling']), E.Message);
       Tab.DoProfile := False;
     end;
   end;
@@ -2359,7 +2359,7 @@ begin
       MsgText := MsgText + CRLF+CRLF + _('Show all warnings in a new query tab?');
       MaxWarnings := MakeInt(Thread.Connection.GetVar('SELECT @@max_error_count'));
       if MaxWarnings < Thread.WarningCount then
-        MsgText := MsgText + CRLF+CRLF+ f_('The server variable @@max_error_count is currently set to %d, so you won''t see all warnings.', [MaxWarnings]);
+        MsgText := MsgText + CRLF+CRLF+ f_('The server variable %s is currently set to %d, so you won''t see all warnings.', ['@@max_error_count', MaxWarnings]);
       if MessageDialog(MsgTitle, MsgText, mtWarning, [mbYes, mbNo]) = mrYes then begin
         actNewQueryTab.Execute;
         WarningsTab := QueryTabs[QueryTabs.Count-1];
@@ -3507,7 +3507,7 @@ begin
     Dialog.Show;
     Dialog.Keyword := keyword;
   end else
-    ErrorDialog(_('SQL help not available.'), _('HELP <keyword> requires MySQL 4.1 or newer.'));
+    ErrorDialog(_('SQL help not available.'), f_('HELP <keyword> requires %s or newer.', ['MySQL 4.1']));
 end;
 
 
