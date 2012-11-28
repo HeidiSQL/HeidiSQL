@@ -1011,7 +1011,7 @@ begin
   if Assigned(listUsers.FocusedNode) then
     Exit;
   User := TUser.Create;
-  User.Username := 'Unnamed';
+  User.Username := _('Unnamed');
   User.Host := 'localhost';
   FUsers.Add(User);
   FAdded := True;
@@ -1045,7 +1045,7 @@ begin
     Exit;
   // Check for unsupported object type, selectable in tree
   if not (DBObj.NodeType in [lntDb, lntTable, lntFunction, lntProcedure, lntColumn]) then begin
-    ErrorDialog(f_('Objects of type %s cannot be part of privileges.', [DBObj.ObjType]));
+    ErrorDialog(f_('Objects of type %s cannot be part of privileges.', [_(DBObj.ObjType)]));
     Exit;
   end;
   // Check if this would be a duplicate object
@@ -1152,7 +1152,7 @@ begin
         lntColumn:
           OnObj := GetObjectType('TABLE') + P.DBObj.QuotedDatabase + '.' + P.DBObj.QuotedName;
         else
-          raise Exception.CreateFmt(_('Unhandled privilege object: %s'), [P.DBObj.ObjType]);
+          raise Exception.CreateFmt(_('Unhandled privilege object: %s'), [_(P.DBObj.ObjType)]);
       end;
 
       // Revoke privileges

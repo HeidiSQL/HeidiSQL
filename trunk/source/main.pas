@@ -3630,7 +3630,7 @@ begin
   // Snippets
   SetSnippetFilenames;
   snippetsfolder := TMenuItem.Create( popupQueryLoad );
-  snippetsfolder.Caption := 'Snippets';
+  snippetsfolder.Caption := _('Snippets');
   popupQueryLoad.Items.Add(snippetsfolder);
   for i:=0 to FSnippetFilenames.Count-1 do begin
     menuitem := TMenuItem.Create( snippetsfolder );
@@ -4852,7 +4852,7 @@ var
   var
     DisplayText: String;
   begin
-    DisplayText := Format(SYNCOMPLETION_PATTERN, [Obj.ImageIndex, LowerCase(Obj.ObjType), Obj.Name]);
+    DisplayText := Format(SYNCOMPLETION_PATTERN, [Obj.ImageIndex, LowerCase(_(Obj.ObjType)), Obj.Name]);
     Proposal.AddItem(DisplayText, Obj.Name);
   end;
 
@@ -7053,12 +7053,12 @@ begin
           Item^ := TDBObject.Create(ParentObj.Connection);
           Item.NodeType := lntGroup;
           case Node.Index of
-            0: begin Item.GroupType := lntTable; Item.Name := 'Tables'; end;
-            1: begin Item.GroupType := lntView; Item.Name := 'Views'; end;
-            2: begin Item.GroupType := lntProcedure; Item.Name := 'Procedures'; end;
-            3: begin Item.GroupType := lntFunction; Item.Name := 'Functions'; end;
-            4: begin Item.GroupType := lntTrigger; Item.Name := 'Triggers'; end;
-            5: begin Item.GroupType := lntEvent; Item.Name := 'Events'; end;
+            0: begin Item.GroupType := lntTable; Item.Name := _('Tables'); end;
+            1: begin Item.GroupType := lntView; Item.Name := _('Views'); end;
+            2: begin Item.GroupType := lntProcedure; Item.Name := _('Procedures'); end;
+            3: begin Item.GroupType := lntFunction; Item.Name := _('Functions'); end;
+            4: begin Item.GroupType := lntTrigger; Item.Name := _('Triggers'); end;
+            5: begin Item.GroupType := lntEvent; Item.Name := _('Events'); end;
           end;
           Item.Database := ParentObj.Database;
           NodeStates := [ivsHasChildren];
@@ -8867,9 +8867,9 @@ var
   Cap: String;
 begin
   tabEditor.ImageIndex := ActiveObjectEditor.DBObject.ImageIndex;
-  Cap := ActiveObjectEditor.DBObject.ObjType+': ';
+  Cap := _(ActiveObjectEditor.DBObject.ObjType)+': ';
   if ActiveObjectEditor.DBObject.Name = '' then
-    Cap := Cap + '[Untitled]'
+    Cap := Cap + '['+_('Unnamed')+']'
   else
     Cap := sstr(Cap + ActiveObjectEditor.DBObject.Name, 30);
   SetTabCaption(tabEditor.PageIndex, Cap);
@@ -10364,7 +10364,7 @@ begin
     0: case Sender.GetNodeLevel(Node) of
         0: case Node.Index of
              HELPERNODE_COLUMNS: begin
-               CellText := 'Columns';
+               CellText := _('Columns');
                if ActiveDbObj <> nil then case ActiveDbObj.NodeType of
                  lntProcedure, lntFunction: CellText := f_('Parameters in %s', [ActiveDbObj.Name]);
                  lntTable, lntView: CellText := f_('Columns in %s', [ActiveDbObj.Name]);

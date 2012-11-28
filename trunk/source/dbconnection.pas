@@ -791,15 +791,15 @@ begin
     ntMySQL_SSHtunnel:
       Result := My+' (SSH tunnel)';
     ntMSSQL_NamedPipe:
-      Result := 'Microsoft SQL Server (named pipe, experimental)';
+      Result := 'Microsoft SQL Server (named pipe, '+_('experimental')+')';
     ntMSSQL_TCPIP:
-      Result := 'Microsoft SQL Server (TCP/IP, experimental)';
+      Result := 'Microsoft SQL Server (TCP/IP, '+_('experimental')+')';
     ntMSSQL_SPX:
-      Result := 'Microsoft SQL Server (SPX/IPX, experimental)';
+      Result := 'Microsoft SQL Server (SPX/IPX, '+_('experimental')+')';
     ntMSSQL_VINES:
-      Result := 'Microsoft SQL Server (Banyan VINES, experimental)';
+      Result := 'Microsoft SQL Server (Banyan VINES, '+_('experimental')+')';
     ntMSSQL_RPC:
-      Result := 'Microsoft SQL Server (Windows RPC, experimental)';
+      Result := 'Microsoft SQL Server (Windows RPC, '+_('experimental')+')';
   end else case NetType of
     ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel:
       Result := My;
@@ -1926,7 +1926,7 @@ begin
       Msg := rx.Match[1];
     rx.Free;
   end else
-    Msg := 'unknown';
+    Msg := _('unknown');
   Result := Format(MsgSQLError, [LastErrorCode, Msg]);
 end;
 
@@ -3056,15 +3056,15 @@ var
 
   function EvalBool(B: Boolean): String;
   begin
-    if B then Result := 'Yes' else Result := 'No';
+    if B then Result := _('Yes') else Result := _('No');
   end;
 begin
   Log(lcDebug, 'Get connection details ...');
   Result := TStringList.Create;
   if Assigned(Parameters) then
-    Result.Values['Hostname'] := Parameters.Hostname;
+    Result.Values[_('Host')] := Parameters.Hostname;
   Ping(False);
-  Result.Values['Connected'] := EvalBool(FActive);
+  Result.Values[_('Connected')] := EvalBool(FActive);
   if FActive then begin
     Result.Values[_('Real Hostname')] := FRealHostname;
     Result.Values[_('Server OS')] := ServerOS;
@@ -3088,7 +3088,7 @@ begin
             Val := FormatTimeNumber(StrToIntDef(Val, 0), True)
           else
             Val := FormatNumber(Val);
-          Result.Values[rx.Match[1]] := Val;
+          Result.Values[_(rx.Match[1])] := Val;
           if not rx.ExecNext then
             break;
         end;

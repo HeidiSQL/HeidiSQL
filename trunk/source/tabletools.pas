@@ -228,7 +228,7 @@ begin
   for dt:=lntTable to lntEvent do begin
     Obj.NodeType := dt;
     MenuItem := TMenuItem.Create(menuCheckByType);
-    MenuItem.Caption := UpperCase(Obj.ObjType)+'s';
+    MenuItem.Caption := _(Obj.ObjType+'s');
     MenuItem.ImageIndex := Obj.ImageIndex;
     MenuItem.OnClick := CheckAllClick;
     MenuItem.Tag := Integer(dt);
@@ -369,7 +369,7 @@ begin
   btnSeeResults.Visible := tabsTools.ActivePage = tabFind;
   lblCheckedSize.Caption := f_('Selected objects size: %s', [FormatByteNumber(FObjectSizes)]);
   if tabsTools.ActivePage = tabMaintenance then begin
-    btnExecute.Caption := 'Execute';
+    btnExecute.Caption := _('Execute');
     btnExecute.Enabled := (Pos(SUnsupported, comboOperation.Text) = 0) and SomeChecked;
     // Only enable available options
     op := LowerCase(comboOperation.Text);
@@ -385,7 +385,7 @@ begin
       else if chkQuick.Checked then chkExtended.Checked := False;
     end;
   end else if tabsTools.ActivePage = tabFind then begin
-    btnExecute.Caption := 'Find';
+    btnExecute.Caption := _('Find');
     btnExecute.Enabled := SomeChecked and (memoFindText.Text <> '');
     // Enable "See results" button if there were results
     btnSeeResults.Enabled := False;
@@ -396,10 +396,10 @@ begin
       end;
     end;
   end else if tabsTools.ActivePage = tabSQLExport then begin
-    btnExecute.Caption := 'Export';
+    btnExecute.Caption := _('Export');
     btnExecute.Enabled := SomeChecked and ((comboExportOutputTarget.Text <> '') or (not comboExportOutputTarget.Enabled));
   end else if tabsTools.ActivePage = tabBulkTableEdit then begin
-    btnExecute.Caption := 'Update';
+    btnExecute.Caption := _('Update');
     chkBulkTableEditCollation.Enabled := MainForm.ActiveConnection.IsUnicode;
     chkBulkTableEditCharset.Enabled := MainForm.ActiveConnection.IsUnicode;
     OptionChecked := chkBulkTableEditDatabase.Checked or chkBulkTableEditEngine.Checked or chkBulkTableEditCollation.Checked
@@ -571,7 +571,7 @@ begin
   Screen.Cursor := crHourGlass;
   // Disable critical controls so ProcessMessages is unable to do things while export is in progress
   btnExecute.Enabled := False;
-  btnCloseOrCancel.Caption := 'Cancel';
+  btnCloseOrCancel.Caption := _('Cancel');
   btnCloseOrCancel.ModalResult := mrNone;
   tabsTools.Enabled := False;
   treeObjects.Enabled := False;
@@ -661,7 +661,7 @@ begin
   end;
   FModifiedDbs.Clear;
 
-  btnCloseOrCancel.Caption := 'Close';
+  btnCloseOrCancel.Caption := _('Close');
   btnCloseOrCancel.ModalResult := mrCancel;
   MainForm.DisableProgress;
   tabsTools.Enabled := True;
@@ -933,7 +933,7 @@ begin
     comboExportOutputTarget.Items.Text := AppSettings.ReadString(asExportSQLFilenames, '');
     if comboExportOutputTarget.Items.Count > 0 then
       comboExportOutputTarget.ItemIndex := 0;
-    lblExportOutputTarget.Caption := 'Filename:';
+    lblExportOutputTarget.Caption := _('Filename')+':';
     btnExportOutputTargetSelect.Enabled := True;
     btnExportOutputTargetSelect.ImageIndex := 10;
   end else if comboExportOutputType.Text = OUTPUT_DIR then begin
@@ -941,7 +941,7 @@ begin
     comboExportOutputTarget.Items.Text := AppSettings.ReadString(asExportSQLDirectories, '');
     if comboExportOutputTarget.Items.Count > 0 then
       comboExportOutputTarget.ItemIndex := 0;
-    lblExportOutputTarget.Caption := 'Directory:';
+    lblExportOutputTarget.Caption := _('Directory')+':';
     btnExportOutputTargetSelect.Enabled := True;
     btnExportOutputTargetSelect.ImageIndex := 51;
   end else if comboExportOutputType.Text = OUTPUT_CLIPBOARD then begin
@@ -952,7 +952,7 @@ begin
     btnExportOutputTargetSelect.ImageIndex := 4;
   end else if comboExportOutputType.Text = OUTPUT_DB then begin
     comboExportOutputTarget.Style := csDropDownList;
-    lblExportOutputTarget.Caption := 'Database:';
+    lblExportOutputTarget.Caption := _('Database')+':';
     btnExportOutputTargetSelect.Enabled := False;
     btnExportOutputTargetSelect.ImageIndex := 27;
     // Add unchecked databases
@@ -970,7 +970,7 @@ begin
   end else begin
     // Server selected. Display databases in below dropdown
     comboExportOutputTarget.Style := csDropDownList;
-    lblExportOutputTarget.Caption := 'Database:';
+    lblExportOutputTarget.Caption := _('Database')+':';
     btnExportOutputTargetSelect.Enabled := False;
     btnExportOutputTargetSelect.ImageIndex := 27;
     SessionName := Copy(comboExportOutputType.Text, Length(OUTPUT_SERVER)+1, Length(comboExportOutputType.Text));
@@ -1239,7 +1239,7 @@ begin
 
   // Table structure
   if chkExportTablesDrop.Checked or chkExportTablesCreate.Checked then begin
-    Output(CRLF+CRLF+'-- '+f_('Dumping structure for %s %s.%s', [LowerCase(DBObj.ObjType), DBObj.Database, DBObj.Name])+CRLF, False, True, True, False, False);
+    Output(CRLF+CRLF+'-- '+f_('Dumping structure for %s %s.%s', [_(LowerCase(DBObj.ObjType)), DBObj.Database, DBObj.Name])+CRLF, False, True, True, False, False);
     if chkExportTablesDrop.Checked then begin
       Struc := 'DROP '+UpperCase(DBObj.ObjType)+' IF EXISTS ';
       if ToDb then
@@ -1540,7 +1540,7 @@ begin
     LogRow[3] := _('Success');
   end else begin
     LogRow[2] := _('Nothing to do');
-    LogRow[3] := f_('Selected operations cannot be applied to a %s', [LowerCase(DBObj.ObjType)]);
+    LogRow[3] := f_('Selected operations cannot be applied to a %s', [_(LowerCase(DBObj.ObjType))]);
   end;
   UpdateResultGrid;
 end;

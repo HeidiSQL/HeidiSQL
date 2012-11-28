@@ -424,7 +424,7 @@ begin
       end;
     end;
     if not ObjExists then begin
-      Diff.AddItem(f_('Create missing %s', [LowerCase(SourceObj.ObjType)]), SourceObj.CreateCode, diCreate);
+      Diff.AddItem(f_('Create missing %s', [_(LowerCase(SourceObj.ObjType))]), SourceObj.CreateCode, diCreate);
     end;
     treeDifferences.EndUpdate;
   end;

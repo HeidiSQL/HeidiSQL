@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2012-11-28 06:52+0100\n"
+"PO-Revision-Date: 2012-11-29 00:24+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -456,8 +456,8 @@ msgstr "Copy Table..."
 
 #. CopyTableForm..lblNewTablename..Caption
 #: copytable.dfm:32
-msgid "Copy .. to new db.table:"
-msgstr "Copy .. to new db.table:"
+msgid "Copy \"%s\" to new db.table:"
+msgstr "Copy \"%s\" to new db.table:"
 
 #. CopyTableForm..lblItems..Caption
 #: copytable.dfm:39
@@ -851,11 +851,6 @@ msgstr ""
 "Column values (Hint: Assign \"%filecontent%\" value to a BLOB or TEXT column)"
 
 #. frmInsertFiles..grpSelectObject..ListColumns......WideText
-#: insertfiles.dfm:129
-msgid "Column"
-msgstr "Column"
-
-#. frmInsertFiles..grpSelectObject..ListColumns......WideText
 #. frmRoutineEditor..PageControlMain..tabParameters..listParameters......WideText
 #. frmTableEditor..listColumns......WideText
 #: insertfiles.dfm:135 routine_editor.dfm:304 table_editor.dfm:112
@@ -1228,37 +1223,6 @@ msgid "Last modification"
 msgstr "Last modification"
 
 #. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabDatabases..ListDatabases......WideText
-#. MainForm..ActionList1..actFlushTables..Caption
-#: main.dfm:667 main.dfm:2204
-msgid "Tables"
-msgstr "Tables"
-
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabDatabases..ListDatabases......WideText
-#: main.dfm:671
-msgid "Views"
-msgstr "Views"
-
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabDatabases..ListDatabases......WideText
-#: main.dfm:675
-msgid "Functions"
-msgstr "Functions"
-
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabDatabases..ListDatabases......WideText
-#: main.dfm:679
-msgid "Procedures"
-msgstr "Procedures"
-
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabDatabases..ListDatabases......WideText
-#: main.dfm:683
-msgid "Triggers"
-msgstr "Triggers"
-
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabDatabases..ListDatabases......WideText
-#: main.dfm:687
-msgid "Events"
-msgstr "Events"
-
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabDatabases..ListDatabases......WideText
 #: main.dfm:692
 msgid "Default collation"
 msgstr "Default collation"
@@ -1447,12 +1411,6 @@ msgstr "Create options"
 msgid "Type"
 msgstr "Type"
 
-#. MainForm..panelTop..pnlRight..PageControlMain..tabEditor..Caption
-#. MainForm..ActionList1..actCreateTable..Caption
-#: main.dfm:1210 main.dfm:2121
-msgid "Table"
-msgstr "Table"
-
 #. MainForm..panelTop..pnlRight..PageControlMain..tabData..lblSorryNoData..Caption
 #: main.dfm:1223
 msgid "No data available for this item."
@@ -1462,12 +1420,6 @@ msgstr "No data available for this item."
 #: main.dfm:1289
 msgid "Sorting"
 msgstr "Sorting"
-
-#. MainForm..panelTop..pnlRight..PageControlMain..tabData..pnlDataTop..tlbDataButtons..tbtnDataColumns..Caption
-#. frmTableEditor..PageControlMain..tabForeignKeys..pnlNoForeignKeys..listForeignKeys......WideText
-#: main.dfm:1298 table_editor.dfm:587 copytable.pas:254
-msgid "Columns"
-msgstr "Columns"
 
 #. MainForm..panelTop..pnlRight..PageControlMain..tabData..pnlDataTop..tlbDataButtons..tbtnDataFilter..Caption
 #. frmSQLhelp..pnlMain..pnlLeft..editFilter..TextHint
@@ -1848,11 +1800,6 @@ msgstr "Drop ..."
 msgid "Deletes tables, views, procedures and functions"
 msgstr "Deletes tables, views, procedures and functions"
 
-#. MainForm..ActionList1..actCreateView..Caption
-#: main.dfm:2053
-msgid "View"
-msgstr "View"
-
 #. MainForm..ActionList1..actCreateView..Hint
 #: main.dfm:2055
 msgid "Create view ..."
@@ -2174,11 +2121,6 @@ msgstr "Activates the filter panel"
 msgid "Bulk table editor"
 msgstr "Bulk table editor"
 
-#. MainForm..ActionList1..actCreateTrigger..Caption
-#: main.dfm:2446
-msgid "Trigger"
-msgstr "Trigger"
-
 #. MainForm..ActionList1..actCreateTrigger..Hint
 #: main.dfm:2447
 msgid "Create a trigger"
@@ -2233,11 +2175,6 @@ msgstr "Show all rows"
 #: main.dfm:2503
 msgid "Run routine(s) ..."
 msgstr "Run routine(s) ..."
-
-#. MainForm..ActionList1..actCreateEvent..Caption
-#: main.dfm:2509
-msgid "Event"
-msgstr "Event"
 
 #. MainForm..ActionList1..actCreateEvent..Hint
 #: main.dfm:2511
@@ -3420,11 +3357,6 @@ msgstr "Change table engine:"
 #: tabletools.dfm:510
 msgid "Convert to charset:"
 msgstr "Convert to charset:"
-
-#. frmTableTools..btnExecute..Caption
-#: tabletools.dfm:534
-msgid "Execute"
-msgstr "Execute"
 
 #. frmTableTools..btnSeeResults..Caption
 #: tabletools.dfm:544
@@ -5290,3 +5222,187 @@ msgstr "Unhandled privilege object: %s"
 #: usermanager.pas:1297
 msgid "Delete user %s@%s?"
 msgstr "Delete user %s@%s?"
+
+#. dbconnection.pas
+msgid "experimental"
+msgstr "experimental"
+
+#. dbconnection.pas
+msgid "Yes"
+msgstr "Yes"
+
+#. dbconnection.pas
+msgid "No"
+msgstr "No"
+
+#. dbconnection.pas
+msgid "Connected"
+msgstr "Connected"
+
+#. dbconnection.pas
+msgid "Threads"
+msgstr "Threads"
+
+#. dbconnection.pas
+msgid "Open tables"
+msgstr "Open tables"
+
+#. dbconnection.pas
+msgid "Slow queries"
+msgstr "Slow queries"
+
+#. dbconnection.pas
+msgid "Queries per second avg"
+msgstr "Queries per second avg"
+
+#. searchreplace.pas
+msgid "Replace"
+msgstr "Replace"
+
+#. searchreplace.pas
+msgid "Find"
+msgstr "Find"
+
+#. dbconnection.pas
+msgid "Table"
+msgstr "Table"
+
+#. dbconnection.pas
+msgid "Tables"
+msgstr "Tables"
+
+#. dbconnection.pas
+msgid "table"
+msgstr "table"
+
+#. dbconnection.pas
+msgid "tables"
+msgstr "tables"
+
+#. dbconnection.pas
+msgid "View"
+msgstr "View"
+
+#. dbconnection.pas
+msgid "Views"
+msgstr "Views"
+
+#. dbconnection.pas
+msgid "view"
+msgstr "view"
+
+#. dbconnection.pas
+msgid "views"
+msgstr "views"
+
+#. dbconnection.pas
+msgid "Function"
+msgstr "Function"
+
+#. dbconnection.pas
+msgid "Functions"
+msgstr "Functions"
+
+#. dbconnection.pas
+msgid "function"
+msgstr "function"
+
+#. dbconnection.pas
+msgid "functions"
+msgstr "functions"
+
+#. dbconnection.pas
+msgid "Procedure"
+msgstr "Procedure"
+
+#. dbconnection.pas
+msgid "Procedures"
+msgstr "Procedures"
+
+#. dbconnection.pas
+msgid "procedure"
+msgstr "procedure"
+
+#. dbconnection.pas
+msgid "procedures"
+msgstr "procedures"
+
+#. dbconnection.pas
+msgid "Trigger"
+msgstr "Trigger"
+
+#. dbconnection.pas
+msgid "Triggers"
+msgstr "Triggers"
+
+#. dbconnection.pas
+msgid "trigger"
+msgstr "trigger"
+
+#. dbconnection.pas
+msgid "triggers"
+msgstr "triggers"
+
+#. dbconnection.pas
+msgid "Event"
+msgstr "Event"
+
+#. dbconnection.pas
+msgid "Events"
+msgstr "Events"
+
+#. dbconnection.pas
+msgid "event"
+msgstr "event"
+
+#. dbconnection.pas
+msgid "events"
+msgstr "events"
+
+#. dbconnection.pas
+msgid "column"
+msgstr "column"
+
+#. dbconnection.pas
+msgid "columns"
+msgstr "columns"
+
+#. dbconnection.pas
+msgid "Column"
+msgstr "Column"
+
+#. dbconnection.pas
+msgid "Columns"
+msgstr "Columns"
+
+#. helpers.pas
+msgid "UnknownTable"
+msgstr "UnknownTable"
+
+#. tabletools.pas
+msgid "Execute"
+msgstr "Execute"
+
+#. tabletools.pas
+msgid "Export"
+msgstr "Export"
+
+#. tabletools.pas
+msgid "Update"
+msgstr "Update"
+
+#. tabletools.pas
+msgid "Directory"
+msgstr "Directory"
+
+#. usermanager.pas
+msgid "Unnamed"
+msgstr "Unnamed"
+
+#. main.pas
+msgid "Snippets"
+msgstr "Snippets"
+
+#. table_editor.pas
+msgid "Index"
+msgstr "Index"
