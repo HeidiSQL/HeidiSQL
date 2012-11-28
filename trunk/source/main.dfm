@@ -1948,7 +1948,7 @@ object MainForm: TMainForm
     end
     object actExportData: TAction
       Category = 'Export/Import'
-      Caption = 'Export grid rows ...'
+      Caption = 'Export grid rows'
       Enabled = False
       Hint = 'Export rows to file or copy to clipboard, in various formats'
       ImageIndex = 20
