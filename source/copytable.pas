@@ -118,7 +118,7 @@ begin
   FDBObj := Obj^;
   editNewTablename.Text := FDBObj.Name + '_copy';
   editNewTablename.SetFocus;
-  lblNewTablename.Caption := 'Copy ''' + FDBObj.Name + ''' to new db.table:';
+  lblNewTablename.Caption := f_('Copy "%s" to new db.table:', [FDBObj.Name]);
   editNewTablename.SetFocus;
 
 	// Select TargetDatabase

@@ -763,7 +763,7 @@ begin
     NewCol.Comment := '';
     NewCol.Collation := '';
   end;
-  NewCol.Name := 'Column '+IntToStr(idx+1);
+  NewCol.Name := _('Column')+' '+IntToStr(idx+1);
   FColumns.Insert(idx, NewCol);
   NewNode := listColumns.InsertNode(fn, amInsertAfter, @NewCol);
   NewCol.Status := esAddedUntouched;
@@ -1364,7 +1364,7 @@ var
 begin
   // Add new index
   TblKey := TTableKey.Create(DBObject.Connection);
-  TblKey.Name := 'Index '+IntToStr(FKeys.Count+1);
+  TblKey.Name := _('Index')+' '+IntToStr(FKeys.Count+1);
   TblKey.OldName := TblKey.Name;
   TblKey.IndexType := KEY;
   TblKey.OldIndexType := TblKey.IndexType;

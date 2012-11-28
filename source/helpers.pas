@@ -494,7 +494,7 @@ begin
   try
     Result := Data.TableName;
   except
-    Result := 'UnknownTable';
+    Result := _('UnknownTable');
   end;
 end;
 
@@ -1959,7 +1959,7 @@ begin
   // Ask for saving modifications
   Result := mrOk;
   if Modified then begin
-    ObjType := LowerCase(DBObject.ObjType);
+    ObjType := _(LowerCase(DBObject.ObjType));
     if DBObject.Name <> '' then
       Msg := f_('Save modified %s "%s"?', [ObjType, DBObject.Name])
     else

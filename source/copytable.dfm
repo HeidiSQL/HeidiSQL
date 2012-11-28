@@ -27,9 +27,9 @@ object CopyTableForm: TCopyTableForm
   object lblNewTablename: TLabel
     Left = 8
     Top = 8
-    Width = 119
+    Width = 135
     Height = 13
-    Caption = 'Copy .. to new db.table:'
+    Caption = 'Copy "%s" to new db.table:'
   end
   object lblItems: TLabel
     Left = 8

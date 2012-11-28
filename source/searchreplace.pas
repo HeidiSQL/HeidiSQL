@@ -127,9 +127,9 @@ begin
   btnReplaceAll.Enabled := chkReplace.Checked;
   lblReplaceHint.Enabled := chkReplace.Checked;
   if chkReplace.Checked then
-    btnOK.Caption := 'Replace'
+    btnOK.Caption := _('Replace')
   else
-    btnOK.Caption := 'Find';
+    btnOK.Caption := _('Find');
 end;
 
 

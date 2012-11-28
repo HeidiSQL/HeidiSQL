@@ -895,12 +895,12 @@ begin
 
   FBtnOk := TButton.Create(FPanel);
   FBtnOk.Parent := FPanel;
-  FBtnOk.Caption := 'OK';
+  FBtnOk.Caption := _('OK');
   FBtnOk.OnClick := DoEndEdit;
 
   FBtnCancel := TButton.Create(FPanel);
   FBtnCancel.Parent := FPanel;
-  FBtnCancel.Caption := 'Cancel';
+  FBtnCancel.Caption := _('Cancel');
   FBtnCancel.OnClick := DoCancelEdit;
 end;
 
@@ -1162,7 +1162,7 @@ begin
   FRadioText.Width := FRadioText.Parent.Width - 2 * FRadioText.Left;
   FRadioText.OnClick := RadioClick;
   FRadioText.OnKeyDown := DoKeyDown;
-  FRadioText.Caption := 'Custom:';
+  FRadioText.Caption := _('Custom')+':';
 
   FMemoText := TMemo.Create(FPanel);
   FMemoText.Parent := FPanel;
@@ -1216,7 +1216,7 @@ begin
   FBtnOk.Left := FPanel.Width - 2*m - 2*FBtnOk.Width;
   FBtnOk.OnClick := DoEndEdit;
   FBtnOk.Default := True;
-  FBtnOk.Caption := 'OK';
+  FBtnOk.Caption := _('OK');
 
   FBtnCancel := TButton.Create(FPanel);
   FBtnCancel.Parent := FPanel;
@@ -1225,7 +1225,7 @@ begin
   FBtnCancel.Left := FBtnOk.Left + FBtnOk.Width + m;
   FBtnCancel.OnClick := DoCancelEdit;
   FBtnCancel.Cancel := True;
-  FBtnCancel.Caption := 'Cancel';
+  FBtnCancel.Caption := _('Cancel');
 
   FPanel.Height := FBtnOk.Top + FBtnOk.Height + m;
   FRadioNothing.Anchors := [akLeft, akTop, akRight];
