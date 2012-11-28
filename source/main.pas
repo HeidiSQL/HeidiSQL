@@ -9759,7 +9759,7 @@ begin
     m.SelectAll;
   NewSQL := m.SelText;
   if Length(NewSQL) = 0 then
-    ErrorDialog(('Cannot reformat'), _('The current editor is empty.'))
+    ErrorDialog(_('Cannot reformat'), _('The current editor is empty.'))
   else begin
     Screen.Cursor := crHourglass;
     m.UndoList.AddGroupBreak;

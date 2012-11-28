@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2012-11-26 06:40+0100\n"
+"PO-Revision-Date: 2012-11-28 06:52+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -1700,11 +1700,6 @@ msgstr "Searches selected tables for text occurences"
 #: main.dfm:2173 main.dfm:2570
 msgid "Export/Import"
 msgstr "Export/Import"
-
-#. MainForm..ActionList1..actExportData..Caption
-#: main.dfm:1953
-msgid "Export grid rows ..."
-msgstr "Export grid rows ..."
 
 #. MainForm..ActionList1..actExportData..Hint
 #: main.dfm:1955
@@ -3754,10 +3749,8 @@ msgid "New session name:"
 msgstr "New session name:"
 
 #: connections.pas:386
-msgid ""
-"Imported sessions could not be detected. Restarting %s may solve that."
-msgstr ""
-"Imported sessions could not be detected. Restarting %s may solve that."
+msgid "Imported sessions could not be detected. Restarting %s may solve that."
+msgstr "Imported sessions could not be detected. Restarting %s may solve that."
 
 #: connections.pas:440
 msgid "Delete session \"%s\"?"
@@ -3904,10 +3897,8 @@ msgid "Broken \"NetType\" value (%d) found in settings for session \"%s\"."
 msgstr "Broken \"NetType\" value (%d) found in settings for session \"%s\"."
 
 #: dbconnection.pas:681
-msgid ""
-"Please report that on %s"
-msgstr ""
-"Please report that on %s"
+msgid "Please report that on %s"
+msgstr "Please report that on %s"
 
 #. Comes into SQL log when assigning dll procedures from libmysql.dll
 #: dbconnection.pas:1038
@@ -3996,11 +3987,11 @@ msgstr "Database names not available due to missing privileges for user %s."
 
 #: dbconnection.pas:2625
 msgid ""
-"The server did not return a non-zero value for the %s "
-"variable. Assuming %s now."
+"The server did not return a non-zero value for the %s variable. Assuming %s "
+"now."
 msgstr ""
-"The server did not return a non-zero value for the %s "
-"variable. Assuming %s now."
+"The server did not return a non-zero value for the %s variable. Assuming %s "
+"now."
 
 #: dbconnection.pas:2757
 msgid "Not implemented for this DBMS"
@@ -4039,10 +4030,8 @@ msgid "Client version (libmysql)"
 msgstr "Client version (libmysql)"
 
 #: dbconnection.pas:3494
-msgid ""
-"Regular expression did not match the VIEW code in %s: %s"
-msgstr ""
-"Regular expression did not match the VIEW code in %s: %s"
+msgid "Regular expression did not match the VIEW code in %s: %s"
+msgstr "Regular expression did not match the VIEW code in %s: %s"
 
 #: dbconnection.pas:3909
 msgid "Unknown data type for column #%d - %s: %d"
@@ -4114,11 +4103,11 @@ msgstr "Freeing data..."
 
 #: grideditlinks.pas:218
 msgid ""
-"Wrong constructor called: %s.%s. Instead, please call the overloaded "
-"version %s.%s."
+"Wrong constructor called: %s.%s. Instead, please call the overloaded version "
+"%s.%s."
 msgstr ""
-"Wrong constructor called: %s.%s. Instead, please call the overloaded "
-"version %s.%s."
+"Wrong constructor called: %s.%s. Instead, please call the overloaded version "
+"%s.%s."
 
 #: grideditlinks.pas:1022
 msgid "Edit text in popup editor ..."
@@ -4314,11 +4303,11 @@ msgstr "Splitting SQL queries ..."
 
 #: main.pas:2166
 msgid ""
-"Query profiling requires %s or later, and the server must not be "
-"configured with %s."
+"Query profiling requires %s or later, and the server must not be configured "
+"with %s."
 msgstr ""
-"Query profiling requires %s or later, and the server must not be "
-"configured with %s."
+"Query profiling requires %s or later, and the server must not be configured "
+"with %s."
 
 #: main.pas:2185
 msgid "query"
@@ -4370,11 +4359,9 @@ msgstr "Show all warnings in a new query tab?"
 
 #: main.pas:2364
 msgid ""
-"The server variable %s is currently set to %d, so you won't "
-"see all warnings."
+"The server variable %s is currently set to %d, so you won't see all warnings."
 msgstr ""
-"The server variable %s is currently set to %d, so you won't "
-"see all warnings."
+"The server variable %s is currently set to %d, so you won't see all warnings."
 
 #: main.pas:2379
 msgid "Updating query history ..."
