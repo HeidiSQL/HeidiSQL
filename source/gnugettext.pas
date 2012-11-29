@@ -209,7 +209,7 @@ var
   ExecutableFilename: FilenameString; // This is set to paramstr(0) or the name of the DLL you are creating.
 
 const
-  PreferExternal             = False;       // Set to true, to prefer external *.mo over embedded translation
+  PreferExternal             = True;       // Set to true, to prefer external *.mo over embedded translation
   UseMemoryMappedFiles       = True;        // Set to False, to use the mo-file as independent copy in memory (you can update the file while it is in use)
   ReReadMoFileOnSameLanguage = False;       // Set to True, to reread mo-file if the current language is selected again
 
