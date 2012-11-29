@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2012-11-29 00:24+0100\n"
+"PO-Revision-Date: 2012-11-29 07:04+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -4141,10 +4141,6 @@ msgstr "%u files, %s, %u files selected."
 msgid "Let server/database decide"
 msgstr "Let server/database decide"
 
-#: loaddata.pas:201
-msgid "Unsupported by this server"
-msgstr "Unsupported by this server"
-
 #: loaddata.pas:315
 msgid ""
 "Your file was imported but the server returned %s warnings and/or notes. See "
@@ -5406,3 +5402,63 @@ msgstr "Snippets"
 #. table_editor.pas
 msgid "Index"
 msgstr "Index"
+
+#. const.inc
+msgid ""
+"This file contains NUL characters. They have been converted to ASCII spaces "
+"(SP)."
+msgstr ""
+"This file contains NUL characters. They have been converted to ASCII spaces "
+"(SP)."
+
+#. const.inc
+msgid ""
+"This cell contains NUL characters. They have been converted to ASCII spaces "
+"(SP). Press ESC to cancel editing."
+msgstr ""
+"This cell contains NUL characters. They have been converted to ASCII spaces "
+"(SP). Press ESC to cancel editing."
+
+#. const.inc
+msgid "Unhandled tree node index"
+msgstr "Unhandled tree node index"
+
+#. const.inc
+msgid ""
+"Selected columns don''t contain a sufficient set of key columns to allow "
+"editing. Please select primary or unique key columns, or just all columns."
+msgstr ""
+"Selected columns don''t contain a sufficient set of key columns to allow "
+"editing. Please select primary or unique key columns, or just all columns."
+
+#. const.inc
+msgid "Idle."
+msgstr "Idle."
+
+#. const.inc
+msgid "Unsupported by this server"
+msgstr "Unsupported by this server"
+
+#. const.inc
+msgid "Unsupported datatype for setting \"%s\""
+msgstr "Unsupported datatype for setting \"%s\""
+
+#. const.inc
+msgid "SQL Error (%d): %s"
+msgstr "SQL Error (%d): %s"
+
+#. const.inc
+msgid "SQL Error (%d) in statement #%d: %s"
+msgstr "SQL Error (%d) in statement #%d: %s"
+
+#. const.inc
+msgid "Unhandled connection type (%d)"
+msgstr "Unhandled connection type (%d)"
+
+#. const.inc
+msgid "Connection to %s closed at %s"
+msgstr "Connection to %s closed at %s"
+
+#. const.inc
+msgid "Column #%d not available. Query returned %d columns and %d rows."
+msgstr "Column #%d not available. Query returned %d columns and %d rows."

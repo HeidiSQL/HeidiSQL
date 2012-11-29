@@ -175,7 +175,7 @@ begin
       nKeys:         Option := asCopyTableKeys;
       nForeignKeys:  Option := asCopyTableForeignKeys;
       nData:         Option := asCopyTableData;
-      else raise Exception.Create(SUnhandledNodeIndex);
+      else raise Exception.Create(_(SUnhandledNodeIndex));
     end;
     if not (vsDisabled in Node.States) then
       AppSettings.WriteBool(Option, Node.CheckState in CheckedStates);
@@ -229,13 +229,13 @@ begin
          nKeys:         ImageIndex := 13;
          nForeignKeys:  ImageIndex := ICONINDEX_FOREIGNKEY;
          nData:         ImageIndex := 41;
-         else raise Exception.Create(SUnhandledNodeIndex);
+         else raise Exception.Create(_(SUnhandledNodeIndex));
       end;
     1: case Node.Parent.Index of
          nColumns:      ImageIndex := ICONINDEX_FIELD;
          nKeys:         ImageIndex := GetIndexIcon(FKeys[Node.Index].IndexType);
          nForeignKeys:  ImageIndex := ICONINDEX_FOREIGNKEY;
-         else raise Exception.Create(SUnhandledNodeIndex);
+         else raise Exception.Create(_(SUnhandledNodeIndex));
       end;
   end;
 end;
@@ -255,7 +255,7 @@ begin
          nKeys:         CellText := _('Indexes');
          nForeignKeys:  CellText := _('Foreign keys');
          nData:         CellText := f_('Data (%s rows)', [FormatNumber(FDBObj.Rows)]);
-         else raise Exception.Create(SUnhandledNodeIndex);
+         else raise Exception.Create(_(SUnhandledNodeIndex));
        end;
        if Node.Index <> nData then begin
          CheckedCount := 0;
@@ -272,7 +272,7 @@ begin
          nColumns:      CellText := FColumns[Node.Index].Name;
          nKeys:         CellText := FKeys[Node.Index].Name;
          nForeignKeys:  CellText := FForeignKeys[Node.Index].KeyName;
-         else raise Exception.Create(SUnhandledNodeIndex);
+         else raise Exception.Create(_(SUnhandledNodeIndex));
       end;
   end;
 end;
@@ -288,7 +288,7 @@ begin
         nKeys:         ChildCount := FKeys.Count;
         nForeignKeys:  ChildCount := FForeignKeys.Count;
         nData:         ChildCount := 0;
-        else raise Exception.Create(SUnhandledNodeIndex);
+        else raise Exception.Create(_(SUnhandledNodeIndex));
       end;
     else ChildCount := 0;
   end;
@@ -310,7 +310,7 @@ begin
         nKeys:         begin Option := asCopyTableKeys; ChildCount := FKeys.Count; end;
         nForeignKeys:  begin Option := asCopyTableForeignKeys; ChildCount := FForeignKeys.Count; end;
         nData:         begin Option := asCopyTableData; ChildCount := -1; end;
-        else raise Exception.Create(SUnhandledNodeIndex);
+        else raise Exception.Create(_(SUnhandledNodeIndex));
       end;
       if ChildCount > 0 then
         Include(InitialStates, ivsHasChildren);
@@ -396,7 +396,7 @@ begin
           nColumns: SelectedColumns.Add(FColumns[Node.Index]);
           nKeys: SelectedKeys.Add(FKeys[Node.Index]);
           nForeignkeys: SelectedForeignKeys.Add(FForeignKeys[Node.Index]);
-          else raise Exception.Create(SUnhandledNodeIndex);
+          else raise Exception.Create(_(SUnhandledNodeIndex));
         end;
       end;
       Node := TreeElements.GetNextSibling(Node);

@@ -748,7 +748,7 @@ begin
     ngMSSQL:
       Result := TAdoDBConnection.Create(AOwner);
     else
-      raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(FNetType)]);
+      raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
   Result.Parameters := Self;
 end;
@@ -762,7 +762,7 @@ begin
     ngMSSQL:
       Result := TAdoDBQuery.Create(AOwner);
     else
-      raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(FNetType)]);
+      raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
 end;
 
@@ -817,7 +817,7 @@ begin
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
       Result := ngMSSQL;
     else
-      raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(FNetType)]);
+      raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
 end;
 
@@ -1185,7 +1185,7 @@ begin
     FConnectionStarted := 0;
     FHandle := nil;
     ClosePlink;
-    Log(lcInfo, Format(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
+    Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 
 end;
@@ -1294,7 +1294,7 @@ begin
     FActive := False;
     ClearCache(False);
     FConnectionStarted := 0;
-    Log(lcInfo, Format(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
+    Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 end;
 
@@ -1711,7 +1711,7 @@ begin
     lntTable, lntView: Column := 1;
     lntFunction, lntProcedure, lntTrigger: Column := 2;
     lntEvent: Column := 3;
-    else Exception.CreateFmt(_('Unhandled list node type in %s.GetCreateCode'), [ClassName]);
+    else Exception.CreateFmt(_('Unhandled list node type in %s.%s'), [ClassName, 'GetCreateCode']);
   end;
   if NodeType = lntView then
     Result := GetCreateViewCode(Database, Name)
@@ -1904,9 +1904,9 @@ begin
   end;
   rx.Free;
   if FStatementNum = 1 then
-    Result := Format(MsgSQLError, [LastErrorCode, Msg])
+    Result := f_(MsgSQLError, [LastErrorCode, Msg])
   else
-    Result := Format(MsgSQLErrorMultiStatements, [LastErrorCode, FStatementNum, Msg]);
+    Result := f_(MsgSQLErrorMultiStatements, [LastErrorCode, FStatementNum, Msg]);
 end;
 
 
@@ -1927,7 +1927,7 @@ begin
     rx.Free;
   end else
     Msg := _('unknown');
-  Result := Format(MsgSQLError, [LastErrorCode, Msg]);
+  Result := f_(MsgSQLError, [LastErrorCode, Msg]);
 end;
 
 
@@ -3977,7 +3977,7 @@ begin
 
     end;
   end else if not IgnoreErrors then
-    Raise EDatabaseError.CreateFmt(MsgInvalidColumn, [Column, ColumnCount, RecordCount]);
+    Raise EDatabaseError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
 end;
 
 
@@ -3994,7 +3994,7 @@ begin
       end;
     end;
   end else if not IgnoreErrors then
-    Raise EDatabaseError.CreateFmt(MsgInvalidColumn, [Column, ColumnCount, RecordCount]);
+    Raise EDatabaseError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
 end;
 
 
@@ -4676,7 +4676,7 @@ var
   i: Integer;
 begin
   if GetKeyColumns.Count = 0 then
-    raise EDatabaseError.Create(MSG_NOGRIDEDITING);
+    raise EDatabaseError.Create(_(MSG_NOGRIDEDITING));
   // All column names must be present in order to send valid INSERT/UPDATE/DELETE queries
   for i:=0 to FColumnOrgNames.Count-1 do begin
     if FColumnOrgNames[i] = '' then
