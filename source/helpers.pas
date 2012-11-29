@@ -2417,15 +2417,62 @@ end;
 function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer;
 var
   m: String;
+  Dialog: TTaskDialog;
+  Btn: TTaskDialogButtonItem;
+  DialogResult: TModalResult;
+  MsgButton: TMsgDlgBtn;
+
+  procedure AddButton(BtnCaption: String; BtnResult: TModalResult);
+  begin
+    Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
+    Btn.Caption := _(BtnCaption);
+    Btn.ModalResult := BtnResult;
+  end;
 begin
- if (Win32MajorVersion >= 6) and (Title <> '') then
-   Result := TaskMessageDlg(Title, Msg, DlgType, Buttons, 0)
- else begin
-   m := Msg;
-   if Title <> '' then
-     m := Title + CRLF + CRLF + m;
-   Result := MessageDlg(m, DlgType, Buttons, 0);
- end;
+  if Win32MajorVersion >= 6 then begin
+    Dialog := TTaskDialog.Create(nil);
+    case DlgType of
+      mtWarning: Dialog.Caption := _('Warning');
+      mtError: Dialog.Caption := _('Error');
+      mtInformation: Dialog.Caption := _('Information');
+      mtConfirmation: Dialog.Caption := _('Confirm');
+    end;
+    if Title <> Dialog.Caption then
+      Dialog.Title := Title;
+    Dialog.Text := Msg;
+    Dialog.Flags := [tfEnableHyperlinks, tfAllowDialogCancellation];
+    Dialog.CommonButtons := [];
+    case DlgType of
+      mtWarning:      Dialog.MainIcon := tdiWarning;
+      mtError:        Dialog.MainIcon := tdiError;
+      mtInformation:  Dialog.MainIcon := tdiInformation;
+      mtConfirmation: Dialog.MainIcon := tdiInformation;
+      else            Dialog.MainIcon := tdiNone;
+    end;
+    for MsgButton in Buttons do begin
+      case MsgButton of
+        mbYes:       AddButton('Yes', mrYes);
+        mbNo:        AddButton('No', mrNo);
+        mbOK:        AddButton('OK', mrOk);
+        mbCancel:    AddButton('Cancel', mrCancel);
+        mbAbort:     AddButton('Abort', mrAbort);
+        mbRetry:     AddButton('Retry', mrRetry);
+        mbIgnore:    AddButton('Ignore', mrIgnore);
+        mbAll:       AddButton('All', mrAll);
+        mbNoToAll:   AddButton('No to all', mrNoToAll);
+        mbYesToAll:  AddButton('Yes to all', mrYesToAll);
+        mbClose:     AddButton('Close', mrClose);
+      end;
+    end;
+    Dialog.Execute;
+    Result := Dialog.ModalResult;
+    Dialog.Free;
+  end else begin
+    m := Msg;
+    if Title <> '' then
+      m := Title + CRLF + CRLF + m;
+    Result := MessageDlg(m, DlgType, Buttons, 0);
+  end;
 end;
 
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2012-11-29 19:10+0100\n"
+"PO-Revision-Date: 2012-11-29 23:40+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -5482,3 +5482,43 @@ msgstr "Column #%d not available. Query returned %d columns and %d rows."
 #: main.pas:1188
 msgid "Unhandled sender control: %s"
 msgstr "Unhandled sender control: %s"
+
+#. Message dialogs
+msgid "Error"
+msgstr "Error"
+
+#. Message dialogs
+msgid "Confirm"
+msgstr "Confirm"
+
+#. Message dialogs
+msgid "Warning"
+msgstr "Warning"
+
+#. Message dialogs
+msgid "Information"
+msgstr "Information"
+
+#. Message dialogs
+msgid "Abort"
+msgstr "Abort"
+
+#. Message dialogs
+msgid "Retry"
+msgstr "Retry"
+
+#. Message dialogs
+msgid "Ignore"
+msgstr "Ignore"
+
+#. Message dialogs
+msgid "All"
+msgstr "All"
+
+#. Message dialogs
+msgid "No to all"
+msgstr "No to all"
+
+#. Message dialogs
+msgid "Yes to all"
+msgstr "Yes to all"
