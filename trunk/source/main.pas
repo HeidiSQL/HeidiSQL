@@ -1170,12 +1170,24 @@ end;
 
 procedure TMainForm.actFlushExecute(Sender: TObject);
 var
-  flushwhat: String;
+  FlushWhat: String;
 begin
-  flushwhat := UpperCase(TAction(Sender).Caption);
-  flushwhat := StripHotkey(flushwhat);
+  if Sender = actFlushHosts then
+    FlushWhat := 'HOSTS'
+  else if Sender = actFlushLogs then
+    FlushWhat := 'LOGS'
+  else if Sender = actFlushPrivileges then
+    FlushWhat := 'PRIVILEGES'
+  else if Sender = actFlushTables then
+    FlushWhat := 'TABLES'
+  else if Sender = actFlushTableswithreadlock then
+    FlushWhat := 'TABLES WITH READ LOCK'
+  else if Sender = actFlushStatus then
+    FlushWhat := 'STATUS'
+  else
+    raise Exception.CreateFmt(_('Unhandled sender control: %s'), [(Sender as TControl).Name]);
   try
-    ActiveConnection.Query('FLUSH ' + flushwhat);
+    ActiveConnection.Query('FLUSH ' + FlushWhat);
     if Sender = actFlushTableswithreadlock then begin
       MessageDialog(
         _('Tables have been flushed and read lock acquired. Perform backup or snapshot of table data files now. Press OK to unlock when done...'),
