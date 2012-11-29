@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2012-11-29 19:02+0100\n"
+"PO-Revision-Date: 2012-11-29 19:10+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -1237,6 +1237,22 @@ msgstr "Variables"
 #: main.dfm:739 main.dfm:789
 msgid "Variable"
 msgstr "Variable"
+
+#. MainForm..ActionList1..actFlushHosts..Caption
+msgid "Hosts"
+msgstr "Hosts"
+
+#. MainForm..ActionList1..actFlushLogs..Caption
+msgid "Logs"
+msgstr "Logs"
+
+#. MainForm..ActionList1..actFlushPrivileges..Caption
+msgid "Privileges"
+msgstr "Privileges"
+
+#. MainForm..ActionList1..actFlushTableswithreadlock..Caption
+msgid "Tables with read lock"
+msgstr "Tables with read lock"
 
 #. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabStatus..Caption
 #. MainForm..ActionList1..actFlushStatus..Caption
