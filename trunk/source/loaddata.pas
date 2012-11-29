@@ -198,7 +198,7 @@ begin
         SelectedCharsetIndex := 0;
       comboEncoding.ItemIndex := SelectedCharsetIndex;
     end else begin
-      comboEncoding.Items.Add(_('Unsupported by this server'));
+      comboEncoding.Items.Add(_(SUnsupported));
       comboEncoding.ItemIndex := 0;
     end;
   end else begin

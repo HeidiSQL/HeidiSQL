@@ -1073,7 +1073,7 @@ var
 begin
   // Show message in some statusbar panel
   if (PanelNr = 6) and (Msg = '') then
-    Msg := SIdle;
+    Msg := _(SIdle);
   if Msg <> StatusBar.Panels[PanelNr].Text then begin
     StatusBar.Panels[PanelNr].Text := Msg;
     if PanelNr = 6 then begin
@@ -1103,7 +1103,7 @@ begin
         ImageIndex := Conn.Parameters.ImageIndex;
     end;
     6: begin
-      if Panel.Text = SIdle then
+      if Panel.Text = _(SIdle) then
         ImageIndex := 151 // Green dot
       else
         ImageIndex := 150; // Hourglass
@@ -5543,7 +5543,7 @@ begin
   if ActiveConnection.ServerVersionInt >= 40003 then
     menuEditVariable.Enabled := (PageControlHost.ActivePage = tabVariables) and Assigned(ListVariables.FocusedNode)
   else
-    menuEditVariable.Hint := SUnsupported;
+    menuEditVariable.Hint := _(SUnsupported);
 end;
 
 procedure TMainForm.Saveastextfile1Click(Sender: TObject);
@@ -7192,7 +7192,7 @@ begin
         ngMSSQL:
           SynSQLSyn1.SQLDialect := sqlMSSQL2K;
         else
-          raise Exception.CreateFmt(MsgUnhandledNetType, [Integer(FActiveDbObj.Connection.Parameters.NetType)]);
+          raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FActiveDbObj.Connection.Parameters.NetType)]);
       end;
     end;
     if (FActiveDbObj.NodeType <> lntNone)
@@ -8869,7 +8869,7 @@ begin
   tabEditor.ImageIndex := ActiveObjectEditor.DBObject.ImageIndex;
   Cap := _(ActiveObjectEditor.DBObject.ObjType)+': ';
   if ActiveObjectEditor.DBObject.Name = '' then
-    Cap := Cap + '['+_('Unnamed')+']'
+    Cap := Cap + '['+_('Untitled')+']'
   else
     Cap := sstr(Cap + ActiveObjectEditor.DBObject.Name, 30);
   SetTabCaption(tabEditor.PageIndex, Cap);
@@ -10846,7 +10846,7 @@ begin
 
     if ScanNulChar(Content) then begin
       Content := RemoveNulChars(Content);
-      MessageDialog(SContainsNulCharFile, mtInformation, [mbOK]);
+      MessageDialog(_(SContainsNulCharFile), mtInformation, [mbOK]);
     end;
 
     Memo.BeginUpdate;

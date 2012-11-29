@@ -3345,7 +3345,7 @@ begin
       adInt: I := FSettings[Index].CurrentInt;
       adBool: B := FSettings[Index].CurrentBool;
       adString: S := FSettings[Index].CurrentString;
-      else raise Exception.CreateFmt(SUnsupportedSettingsDatatype, [FSettings[Index].Name]);
+      else raise Exception.CreateFmt(_(SUnsupportedSettingsDatatype), [FSettings[Index].Name]);
     end;
   end else if FRegistry.ValueExists(ValueName) then begin
     Inc(FReads);
@@ -3353,7 +3353,7 @@ begin
       adInt: I := FRegistry.ReadInteger(ValueName);
       adBool: B := FRegistry.ReadBool(ValueName);
       adString: S := FRegistry.ReadString(ValueName);
-      else raise Exception.CreateFmt(SUnsupportedSettingsDatatype, [FSettings[Index].Name]);
+      else raise Exception.CreateFmt(_(SUnsupportedSettingsDatatype), [FSettings[Index].Name]);
     end;
   end;
   if (FormatName = '') and (FSessionPath = '') then begin
@@ -3443,7 +3443,7 @@ begin
       FSettings[Index].CurrentString := S;
     end;
     else
-      raise Exception.CreateFmt(SUnsupportedSettingsDatatype, [FSettings[Index].Name]);
+      raise Exception.CreateFmt(_(SUnsupportedSettingsDatatype), [FSettings[Index].Name]);
   end;
   if SameAsDefault and FRegistry.ValueExists(ValueName) then
     FRegistry.DeleteValue(ValueName);

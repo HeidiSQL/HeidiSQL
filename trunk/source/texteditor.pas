@@ -104,7 +104,7 @@ begin
     text := StringReplace(text, LB, CRLF, [rfReplaceAll]);
 
   if ScanNulChar(text) then begin
-    MessageDialog(SContainsNulCharGrid, mtInformation, [mbOK]);
+    MessageDialog(_(SContainsNulCharGrid), mtInformation, [mbOK]);
     text := RemoveNulChars(text);
   end;
 

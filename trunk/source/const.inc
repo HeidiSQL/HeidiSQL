@@ -84,7 +84,7 @@ const
   SUnhandledNodeIndex = 'Unhandled tree node index';
   MSG_NOGRIDEDITING = 'Selected columns don''t contain a sufficient set of key columns to allow editing. Please select primary or unique key columns, or just all columns.';
   SIdle = 'Idle.';
-  SUnsupported = 'Not supported by this server';
+  SUnsupported = 'Unsupported by this server';
   SUnsupportedSettingsDatatype = 'Unsupported datatype for setting "%s"';
   MsgSQLError: String = 'SQL Error (%d): %s';
   MsgSQLErrorMultiStatements: String = 'SQL Error (%d) in statement #%d: %s';
