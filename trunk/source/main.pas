@@ -1039,6 +1039,7 @@ type
     procedure SetProgressPosition(Value: Integer);
     procedure ProgressStep;
     procedure SetProgressState(State: TProgressbarState);
+    procedure TaskDialogHyperLinkClicked(Sender: TObject);
 end;
 
 
@@ -10744,6 +10745,14 @@ begin
     end;
     TaskBarList3.SetProgressState(Application.MainForm.Handle, Flag);
   end;
+end;
+
+
+procedure TMainForm.TaskDialogHyperLinkClicked(Sender: TObject);
+begin
+  // Used by hyperlinks in helpers.MessageDialog()
+  if Sender is TTaskDialog then
+    ShellExec(TTaskDialog(Sender).URL);
 end;
 
 

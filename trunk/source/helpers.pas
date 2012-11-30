@@ -2419,8 +2419,8 @@ var
   m: String;
   Dialog: TTaskDialog;
   Btn: TTaskDialogButtonItem;
-  DialogResult: TModalResult;
   MsgButton: TMsgDlgBtn;
+  rx: TRegExpr;
 
   procedure AddButton(BtnCaption: String; BtnResult: TModalResult);
   begin
@@ -2439,12 +2439,20 @@ begin
     end;
     if Title <> Dialog.Caption then
       Dialog.Title := Title;
-    Dialog.Text := Msg;
+    rx := TRegExpr.Create;
+    rx.Expression := 'https?\:\/\/\S+';
+    Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
+    rx.Free;
     Dialog.Flags := [tfEnableHyperlinks, tfAllowDialogCancellation];
     Dialog.CommonButtons := [];
+    Dialog.OnHyperlinkClicked := MainForm.TaskDialogHyperLinkClicked;
     case DlgType of
       mtWarning:      Dialog.MainIcon := tdiWarning;
-      mtError:        Dialog.MainIcon := tdiError;
+      mtError: begin
+        Dialog.MainIcon := tdiError;
+        Dialog.FooterText := '<a href="http://www.google.com/search?q='+EncodeURLElementUnicode(Copy(Msg, 1, 1000))+'">Find some help on this error</a>';
+        Dialog.FooterIcon := tdiInformation;
+      end;
       mtInformation:  Dialog.MainIcon := tdiInformation;
       mtConfirmation: Dialog.MainIcon := tdiInformation;
       else            Dialog.MainIcon := tdiNone;
