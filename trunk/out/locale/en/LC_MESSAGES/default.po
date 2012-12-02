@@ -2500,8 +2500,8 @@ msgstr "MySQL command line programs:"
 
 #. Language selector
 #: preferences dialog
-msgid "Application language:"
-msgstr "Application language:"
+msgid "Application language (requires restart):"
+msgstr "Application language (requires restart):"
 
 #. Default in language selector
 #: preferences dialog
