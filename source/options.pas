@@ -160,6 +160,8 @@ type
     FWasModified: Boolean;
     FShortcutCategories: TStringList;
     FGridTextColors: Array[dtcInteger..dtcOther] of TColor;
+    FLanguages: TStringList;
+    procedure InitLanguages;
   public
     { Public declarations }
   end;
@@ -204,6 +206,7 @@ var
   CatNode, ItemNode: PVirtualNode;
   Data: PShortcutItemData;
   QueryTab: TQueryTab;
+  LangCode: String;
 begin
   Screen.Cursor := crHourGlass;
 
@@ -245,9 +248,15 @@ begin
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
   AppSettings.WriteInt(asBarColor, cboxColorBars.Selected);
   AppSettings.WriteString(asMySQLBinaries, editMySQLBinaries.Text);
-  if comboAppLanguage.ItemIndex > 0 then
-    AppSettings.WriteString(asAppLanguage, comboAppLanguage.Text)
-  else
+  if comboAppLanguage.ItemIndex > 0 then begin
+    // There is no TStringList.Names[Value] getter, so we find the language code via loop
+    LangCode := '';
+    for i:=0 to FLanguages.Count-1 do begin
+      if FLanguages.ValueFromIndex[i] = comboAppLanguage.Text then
+        LangCode := FLanguages.Names[i];
+    end;
+    AppSettings.WriteString(asAppLanguage, LangCode);
+  end else
     AppSettings.WriteString(asAppLanguage, '');
   AppSettings.WriteInt(asMaxQueryResults, updownMaxQueryResults.Position);
   // Save color settings
@@ -340,7 +349,6 @@ procedure Toptionsform.FormCreate(Sender: TObject);
 var
   i: Integer;
   dtc: TDBDatatypeCategoryIndex;
-  LanguageCodes: TStringList;
   // Callback function used by EnumFontFamilies()
   function EnumFixedProc(lpelf: PEnumLogFont; lpntm: PNewTextMetric; FontType: Integer; Data: LPARAM): Integer; stdcall;
   begin
@@ -358,10 +366,11 @@ begin
     editMySQLBinaries.RightButton.Visible := False;
     editMySQLBinaries.OnDblClick := nil;
   end;
-  LanguageCodes := TStringList.Create;
-  DefaultInstance.GetListOfLanguages('default', LanguageCodes);
-  comboAppLanguage.Items.AddStrings(LanguageCodes);
-  LanguageCodes.Free;
+
+  InitLanguages;
+  for i:=0 to FLanguages.Count-1 do begin
+    comboAppLanguage.Items.Add(FLanguages.ValueFromIndex[i]);
+  end;
 
   // Data
   // Populate datatype categories pulldown
@@ -398,6 +407,8 @@ end;
 
 
 procedure Toptionsform.FormShow(Sender: TObject);
+var
+  LangCode: String;
 begin
   screen.Cursor := crHourGlass;
 
@@ -413,9 +424,8 @@ begin
   chkColorBars.Checked := AppSettings.ReadBool(asDisplayBars);
   cboxColorBars.Selected := AppSettings.ReadInt(asBarColor);
   editMySQLBinaries.Text := AppSettings.ReadString(asMySQLBinaries);
-  comboAppLanguage.ItemIndex := comboAppLanguage.Items.IndexOf(AppSettings.ReadString(asAppLanguage));
-  if comboAppLanguage.ItemIndex = -1 then
-    comboAppLanguage.ItemIndex := 0;
+  LangCode := AppSettings.ReadString(asAppLanguage);
+  comboAppLanguage.ItemIndex := comboAppLanguage.Items.IndexOf(FLanguages.Values[LangCode]);
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
 
   // Logging
@@ -841,6 +851,222 @@ begin
   // Readd Esc and Enter shortcuts to buttons
   btnOk.Default := True;
   btnCancel.Cancel := True;
+end;
+
+
+procedure Toptionsform.InitLanguages;
+var
+  AllLangCodes: TStringList;
+
+  procedure AddLang(LangCode, LangName: String);
+  begin
+    LangCode := LowerCase(LangCode);
+    if AllLangCodes.IndexOf(LangCode) > -1 then
+      FLanguages.Add(LangCode + FLanguages.NameValueSeparator + LangName);
+  end;
+
+begin
+  // Create list with present language code => language name
+  // List taken from dxgettext/languagecodes.pas
+  FLanguages := TStringList.Create;
+  FLanguages.Add('' + FLanguages.NameValueSeparator + _('Auto detect'));
+  AllLangCodes := TStringList.Create;
+  DefaultInstance.GetListOfLanguages('default', AllLangCodes);
+  AddLang('aa', 'Afar');
+  AddLang('aa', 'Afar');
+  AddLang('ab', 'Abkhazian');
+  AddLang('ae', 'Avestan');
+  AddLang('af', 'Afrikaans');
+  AddLang('ak', 'Akan');
+  AddLang('am', 'Amharic');
+  AddLang('an', 'Aragonese');
+  AddLang('ar', 'Arabic');
+  AddLang('as', 'Assamese');
+  AddLang('av', 'Avaric');
+  AddLang('ay', 'Aymara');
+  AddLang('az', 'Azerbaijani');
+  AddLang('ba', 'Bashkir');
+  AddLang('be', 'Belarusian');
+  AddLang('bg', 'Bulgarian');
+  AddLang('bh', 'Bihari');
+  AddLang('bi', 'Bislama');
+  AddLang('bm', 'Bambara');
+  AddLang('bn', 'Bengali');
+  AddLang('bo', 'Tibetan');
+  AddLang('br', 'Breton');
+  AddLang('bs', 'Bosnian');
+  AddLang('ca', 'Catalan');
+  AddLang('ce', 'Chechen');
+  AddLang('ch', 'Chamorro');
+  AddLang('co', 'Corsican');
+  AddLang('cr', 'Cree');
+  AddLang('cs', 'Czech');
+  AddLang('cv', 'Chuvash');
+  AddLang('cy', 'Welsh');
+  AddLang('da', 'Danish');
+  AddLang('de', 'German');
+  AddLang('de_AT', 'Austrian German');
+  AddLang('de_CH', 'Swiss German');
+  AddLang('dv', 'Divehi');
+  AddLang('dz', 'Dzongkha');
+  AddLang('ee', 'Ewe');
+  AddLang('el', 'Greek');
+  AddLang('en', 'English');
+  AddLang('en_AU', 'Australian English');
+  AddLang('en_CA', 'Canadian English');
+  AddLang('en_GB', 'British English');
+  AddLang('en_US', 'American English');
+  AddLang('eo', 'Esperanto');
+  AddLang('es', 'Spanish');
+  AddLang('et', 'Estonian');
+  AddLang('eu', 'Basque');
+  AddLang('fa', 'Persian');
+  AddLang('ff', 'Fulah');
+  AddLang('fi', 'Finnish');
+  AddLang('fj', 'Fijian');
+  AddLang('fo', 'Faroese');
+  AddLang('fr', 'French');
+  AddLang('fr_BE', 'Walloon');
+  AddLang('fy', 'Frisian');
+  AddLang('ga', 'Irish');
+  AddLang('gd', 'Gaelic');
+  AddLang('gl', 'Gallegan');
+  AddLang('gn', 'Guarani');
+  AddLang('gu', 'Gujarati');
+  AddLang('gv', 'Manx');
+  AddLang('ha', 'Hausa');
+  AddLang('he', 'Hebrew');
+  AddLang('hi', 'Hindi');
+  AddLang('ho', 'Hiri Motu');
+  AddLang('hr', 'Croatian');
+  AddLang('ht', 'Haitian');
+  AddLang('hu', 'Hungarian');
+  AddLang('hy', 'Armenian');
+  AddLang('hz', 'Herero');
+  AddLang('ia', 'Interlingua');
+  AddLang('id', 'Indonesian');
+  AddLang('ie', 'Interlingue');
+  AddLang('ig', 'Igbo');
+  AddLang('ii', 'Sichuan Yi');
+  AddLang('ik', 'Inupiaq');
+  AddLang('io', 'Ido');
+  AddLang('is', 'Icelandic');
+  AddLang('it', 'Italian');
+  AddLang('iu', 'Inuktitut');
+  AddLang('ja', 'Japanese');
+  AddLang('jv', 'Javanese');
+  AddLang('ka', 'Georgian');
+  AddLang('kg', 'Kongo');
+  AddLang('ki', 'Kikuyu');
+  AddLang('kj', 'Kuanyama');
+  AddLang('kk', 'Kazakh');
+  AddLang('kl', 'Greenlandic');
+  AddLang('km', 'Khmer');
+  AddLang('kn', 'Kannada');
+  AddLang('ko', 'Korean');
+  AddLang('kr', 'Kanuri');
+  AddLang('ks', 'Kashmiri');
+  AddLang('ku', 'Kurdish');
+  AddLang('kw', 'Cornish');
+  AddLang('kv', 'Komi');
+  AddLang('ky', 'Kirghiz');
+  AddLang('la', 'Latin');
+  AddLang('lb', 'Luxembourgish');
+  AddLang('lg', 'Ganda');
+  AddLang('li', 'Limburgan');
+  AddLang('ln', 'Lingala');
+  AddLang('lo', 'Lao');
+  AddLang('lt', 'Lithuanian');
+  AddLang('lu', 'Luba-Katanga');
+  AddLang('lv', 'Latvian');
+  AddLang('mg', 'Malagasy');
+  AddLang('mh', 'Marshallese');
+  AddLang('mi', 'Maori');
+  AddLang('mk', 'Macedonian');
+  AddLang('ml', 'Malayalam');
+  AddLang('mn', 'Mongolian');
+  AddLang('mo', 'Moldavian');
+  AddLang('mr', 'Marathi');
+  AddLang('ms', 'Malay');
+  AddLang('mt', 'Maltese');
+  AddLang('my', 'Burmese');
+  AddLang('na', 'Nauru');
+  AddLang('nb', 'Norwegian Bokmaal');
+  AddLang('nd', 'Ndebele, North');
+  AddLang('ne', 'Nepali');
+  AddLang('ng', 'Ndonga');
+  AddLang('nl', 'Dutch');
+  AddLang('nl_BE', 'Flemish');
+  AddLang('nn', 'Norwegian Nynorsk');
+  AddLang('no', 'Norwegian');
+  AddLang('nr', 'Ndebele, South');
+  AddLang('nv', 'Navajo');
+  AddLang('ny', 'Chichewa');
+  AddLang('oc', 'Occitan');
+  AddLang('oj', 'Ojibwa');
+  AddLang('om', 'Oromo');
+  AddLang('or', 'Oriya');
+  AddLang('os', 'Ossetian');
+  AddLang('pa', 'Panjabi');
+  AddLang('pi', 'Pali');
+  AddLang('pl', 'Polish');
+  AddLang('ps', 'Pushto');
+  AddLang('pt', 'Portuguese');
+  AddLang('pt_BR', 'Brazilian Portuguese');
+  AddLang('qu', 'Quechua');
+  AddLang('rm', 'Raeto-Romance');
+  AddLang('rn', 'Rundi');
+  AddLang('ro', 'Romanian');
+  AddLang('ru', 'Russian');
+  AddLang('rw', 'Kinyarwanda');
+  AddLang('sa', 'Sanskrit');
+  AddLang('sc', 'Sardinian');
+  AddLang('sd', 'Sindhi');
+  AddLang('se', 'Northern Sami');
+  AddLang('sg', 'Sango');
+  AddLang('si', 'Sinhalese');
+  AddLang('sk', 'Slovak');
+  AddLang('sl', 'Slovenian');
+  AddLang('sm', 'Samoan');
+  AddLang('sn', 'Shona');
+  AddLang('so', 'Somali');
+  AddLang('sq', 'Albanian');
+  AddLang('sr', 'Serbian');
+  AddLang('ss', 'Swati');
+  AddLang('st', 'Sotho, Southern');
+  AddLang('su', 'Sundanese');
+  AddLang('sv', 'Swedish');
+  AddLang('sw', 'Swahili');
+  AddLang('ta', 'Tamil');
+  AddLang('te', 'Telugu');
+  AddLang('tg', 'Tajik');
+  AddLang('th', 'Thai');
+  AddLang('ti', 'Tigrinya');
+  AddLang('tk', 'Turkmen');
+  AddLang('tl', 'Tagalog');
+  AddLang('tn', 'Tswana');
+  AddLang('to', 'Tonga');
+  AddLang('tr', 'Turkish');
+  AddLang('ts', 'Tsonga');
+  AddLang('tt', 'Tatar');
+  AddLang('tw', 'Twi');
+  AddLang('ty', 'Tahitian');
+  AddLang('ug', 'Uighur');
+  AddLang('uk', 'Ukrainian');
+  AddLang('ur', 'Urdu');
+  AddLang('uz', 'Uzbek');
+  AddLang('ve', 'Venda');
+  AddLang('vi', 'Vietnamese');
+  AddLang('vo', 'Volapuk');
+  AddLang('wa', 'Walloon');
+  AddLang('wo', 'Wolof');
+  AddLang('xh', 'Xhosa');
+  AddLang('yi', 'Yiddish');
+  AddLang('yo', 'Yoruba');
+  AddLang('za', 'Zhuang');
+  AddLang('zh', 'Chinese');
+  AddLang('zu', 'Zulu');
+  AllLangCodes.Free;
 end;
 
 
