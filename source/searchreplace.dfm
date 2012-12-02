@@ -33,10 +33,12 @@ object frmSearchReplace: TfrmSearchReplace
   object lblReplaceHint: TLabel
     Left = 90
     Top = 58
-    Width = 259
+    Width = 290
     Height = 13
+    Anchors = [akLeft, akTop, akRight]
     Caption = 'Replacement can have \n for new lines and \t for tabs'
     Enabled = False
+    WordWrap = True
   end
   object btnCancel: TButton
     Left = 305
@@ -102,7 +104,7 @@ object frmSearchReplace: TfrmSearchReplace
     object chkCaseSensitive: TCheckBox
       Left = 12
       Top = 18
-      Width = 130
+      Width = 166
       Height = 17
       Caption = 'Case sensitive'
       TabOrder = 0
@@ -110,15 +112,15 @@ object frmSearchReplace: TfrmSearchReplace
     object chkWholeWords: TCheckBox
       Left = 12
       Top = 41
-      Width = 130
+      Width = 166
       Height = 17
       Caption = 'Whole words'
       TabOrder = 1
     end
     object chkRegularExpression: TCheckBox
-      Left = 156
+      Left = 184
       Top = 18
-      Width = 130
+      Width = 177
       Height = 17
       Caption = 'Regular expression'
       ParentShowHint = False
@@ -127,9 +129,9 @@ object frmSearchReplace: TfrmSearchReplace
       OnClick = ValidateControls
     end
     object chkPromptOnReplace: TCheckBox
-      Left = 156
+      Left = 184
       Top = 41
-      Width = 130
+      Width = 177
       Height = 17
       Caption = 'Prompt on replace'
       TabOrder = 3

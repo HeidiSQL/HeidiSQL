@@ -258,7 +258,7 @@ object frmTableTools: TfrmTableTools
           end
           object lblDataTypes: TLabel
             Left = 3
-            Top = 67
+            Top = 48
             Width = 114
             Height = 13
             Anchors = [akLeft, akBottom]
@@ -268,7 +268,7 @@ object frmTableTools: TfrmTableTools
             Left = 139
             Top = 11
             Width = 230
-            Height = 46
+            Height = 27
             Anchors = [akLeft, akTop, akRight, akBottom]
             ScrollBars = ssVertical
             TabOrder = 0
@@ -276,7 +276,7 @@ object frmTableTools: TfrmTableTools
           end
           object comboDataTypes: TComboBox
             Left = 139
-            Top = 64
+            Top = 45
             Width = 230
             Height = 21
             Style = csDropDownList
@@ -285,7 +285,7 @@ object frmTableTools: TfrmTableTools
           end
           object chkCaseSensitive: TCheckBox
             Left = 139
-            Top = 91
+            Top = 72
             Width = 230
             Height = 17
             Anchors = [akLeft, akRight, akBottom]
@@ -517,9 +517,9 @@ object frmTableTools: TfrmTableTools
     OnClick = Execute
   end
   object btnSeeResults: TButton
-    Left = 299
+    Left = 256
     Top = 350
-    Width = 75
+    Width = 118
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'See results'

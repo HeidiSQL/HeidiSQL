@@ -86,7 +86,7 @@ object optionsform: Toptionsform
         OnClick = chkUpdatecheckClick
       end
       object editUpdatecheckInterval: TEdit
-        Left = 374
+        Left = 388
         Top = 77
         Width = 43
         Height = 21
@@ -97,7 +97,7 @@ object optionsform: Toptionsform
         OnChange = Modified
       end
       object updownUpdatecheckInterval: TUpDown
-        Left = 417
+        Left = 431
         Top = 77
         Width = 16
         Height = 21
@@ -148,14 +148,14 @@ object optionsform: Toptionsform
       object chkColorBars: TCheckBox
         Left = 8
         Top = 190
-        Width = 226
+        Width = 310
         Height = 17
         Caption = 'Display bars in various list columns'
         TabOrder = 8
         OnClick = chkColorBarsClick
       end
       object cboxColorBars: TColorBox
-        Left = 240
+        Left = 324
         Top = 188
         Width = 123
         Height = 22
@@ -165,9 +165,9 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object editMySQLBinaries: TButtonedEdit
-        Left = 240
+        Left = 219
         Top = 216
-        Width = 207
+        Width = 228
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -181,7 +181,7 @@ object optionsform: Toptionsform
         OnRightButtonClick = editMySQLBinariesRightButtonClick
       end
       object comboAppLanguage: TComboBox
-        Left = 240
+        Left = 324
         Top = 243
         Width = 123
         Height = 21
@@ -206,14 +206,14 @@ object optionsform: Toptionsform
         Caption = 'Log last'
       end
       object lblLogLinesHint: TLabel
-        Left = 226
+        Left = 278
         Top = 11
         Width = 71
         Height = 13
         Caption = 'lines in SQL log'
       end
       object lblLogSnipHint: TLabel
-        Left = 226
+        Left = 278
         Top = 38
         Width = 139
         Height = 13
@@ -234,7 +234,7 @@ object optionsform: Toptionsform
         Caption = 'Log events:'
       end
       object editLogLines: TEdit
-        Left = 150
+        Left = 202
         Top = 8
         Width = 53
         Height = 21
@@ -243,7 +243,7 @@ object optionsform: Toptionsform
         OnChange = Modified
       end
       object updownLogLines: TUpDown
-        Left = 203
+        Left = 255
         Top = 8
         Width = 16
         Height = 21
@@ -256,7 +256,7 @@ object optionsform: Toptionsform
         OnChanging = anyUpDownLimitChanging
       end
       object updownLogSnip: TUpDown
-        Left = 203
+        Left = 255
         Top = 35
         Width = 16
         Height = 21
@@ -267,7 +267,7 @@ object optionsform: Toptionsform
         OnChanging = anyUpDownLimitChanging
       end
       object editLogSnip: TEdit
-        Left = 150
+        Left = 202
         Top = 35
         Width = 53
         Height = 21
@@ -286,54 +286,54 @@ object optionsform: Toptionsform
         OnClick = chkLogToFileClick
       end
       object chkLogEventErrors: TCheckBox
-        Left = 150
+        Left = 202
         Top = 94
-        Width = 150
+        Width = 240
         Height = 17
         Caption = 'Errors'
         TabOrder = 6
         OnClick = Modified
       end
       object chkLogEventUserFiredSQL: TCheckBox
-        Left = 150
+        Left = 202
         Top = 113
-        Width = 150
+        Width = 240
         Height = 17
         Caption = 'User fired SQL queries'
         TabOrder = 7
         OnClick = Modified
       end
       object chkLogEventSQL: TCheckBox
-        Left = 150
+        Left = 202
         Top = 132
-        Width = 150
+        Width = 240
         Height = 17
         Caption = 'Internal SQL queries'
         TabOrder = 8
         OnClick = Modified
       end
       object chkLogEventInfo: TCheckBox
-        Left = 150
+        Left = 202
         Top = 151
-        Width = 150
+        Width = 240
         Height = 17
         Caption = 'Information messages'
         TabOrder = 9
         OnClick = Modified
       end
       object chkLogEventDebug: TCheckBox
-        Left = 150
+        Left = 202
         Top = 170
-        Width = 150
+        Width = 240
         Height = 17
         Caption = 'Debug messages'
         TabOrder = 10
         OnClick = Modified
       end
       object editLogDir: TButtonedEdit
-        Left = 150
+        Left = 202
         Top = 62
-        Width = 282
+        Width = 235
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Enabled = False
@@ -361,8 +361,8 @@ object optionsform: Toptionsform
         Caption = 'Editor font:'
       end
       object lblSQLFontSize: TLabel
-        Left = 213
-        Top = 38
+        Left = 426
+        Top = 11
         Width = 10
         Height = 13
         Anchors = [akTop, akRight]
@@ -370,22 +370,22 @@ object optionsform: Toptionsform
       end
       object Label1: TLabel
         Left = 8
-        Top = 65
+        Top = 37
         Width = 51
         Height = 13
         Caption = 'Tab width:'
       end
       object lblMaxQueryResults: TLabel
         Left = 8
-        Top = 92
+        Top = 64
         Width = 101
         Height = 13
         Caption = 'Maximum result sets:'
       end
       object comboSQLFontName: TComboBox
-        Left = 150
+        Left = 191
         Top = 8
-        Width = 289
+        Width = 163
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -393,8 +393,8 @@ object optionsform: Toptionsform
         OnChange = SQLFontChange
       end
       object editSQLFontSize: TEdit
-        Left = 150
-        Top = 35
+        Left = 363
+        Top = 8
         Width = 41
         Height = 21
         Anchors = [akTop, akRight]
@@ -403,8 +403,8 @@ object optionsform: Toptionsform
         OnExit = SQLFontChange
       end
       object updownSQLFontSize: TUpDown
-        Left = 191
-        Top = 35
+        Left = 404
+        Top = 8
         Width = 16
         Height = 21
         Anchors = [akTop, akRight]
@@ -415,7 +415,7 @@ object optionsform: Toptionsform
       end
       object chkCompletionProposal: TCheckBox
         Left = 8
-        Top = 118
+        Top = 90
         Width = 431
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -424,17 +424,17 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object chkTabsToSpaces: TCheckBox
-        Left = 8
-        Top = 142
-        Width = 431
+        Left = 264
+        Top = 36
+        Width = 183
         Height = 17
         Caption = 'Tabs to spaces'
         TabOrder = 6
         OnClick = Modified
       end
       object editSQLTabWidth: TEdit
-        Left = 150
-        Top = 62
+        Left = 191
+        Top = 34
         Width = 41
         Height = 21
         TabOrder = 3
@@ -442,8 +442,8 @@ object optionsform: Toptionsform
         OnExit = SQLFontChange
       end
       object updownSQLTabWidth: TUpDown
-        Left = 191
-        Top = 62
+        Left = 232
+        Top = 34
         Width = 16
         Height = 21
         Associate = editSQLTabWidth
@@ -452,7 +452,7 @@ object optionsform: Toptionsform
       end
       object chkAskFileSave: TCheckBox
         Left = 8
-        Top = 166
+        Top = 113
         Width = 431
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -463,8 +463,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
       object editMaxQueryResults: TEdit
-        Left = 150
-        Top = 89
+        Left = 191
+        Top = 61
         Width = 41
         Height = 21
         TabOrder = 8
@@ -472,8 +472,8 @@ object optionsform: Toptionsform
         OnChange = Modified
       end
       object updownMaxQueryResults: TUpDown
-        Left = 191
-        Top = 89
+        Left = 232
+        Top = 61
         Width = 16
         Height = 21
         Associate = editMaxQueryResults
@@ -951,7 +951,7 @@ object optionsform: Toptionsform
   object btnRestoreDefaults: TButton
     Left = 8
     Top = 393
-    Width = 97
+    Width = 177
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Factory defaults'
