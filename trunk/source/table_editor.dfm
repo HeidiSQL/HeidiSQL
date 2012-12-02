@@ -200,9 +200,9 @@ object frmTableEditor: TfrmTableEditor
         Caption = 'Comment:'
       end
       object editName: TEdit
-        Left = 72
+        Left = 96
         Top = 3
-        Width = 520
+        Width = 496
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
@@ -211,10 +211,10 @@ object frmTableEditor: TfrmTableEditor
         OnChange = Modification
       end
       object memoComment: TMemo
-        Left = 72
+        Left = 96
         Top = 30
-        Width = 520
-        Height = 86
+        Width = 496
+        Height = 85
         Anchors = [akLeft, akTop, akRight, akBottom]
         Lines.Strings = (
           'memoComment')
@@ -245,14 +245,14 @@ object frmTableEditor: TfrmTableEditor
         Caption = 'Average row length:'
       end
       object lblInsertMethod: TLabel
-        Left = 258
+        Left = 294
         Top = 98
         Width = 79
         Height = 13
         Caption = 'INSERT method:'
       end
       object lblUnion: TLabel
-        Left = 258
+        Left = 294
         Top = 52
         Width = 63
         Height = 13
@@ -273,21 +273,21 @@ object frmTableEditor: TfrmTableEditor
         Caption = 'Row format:'
       end
       object lblCollation: TLabel
-        Left = 258
+        Left = 294
         Top = 6
         Width = 81
         Height = 13
         Caption = 'Default collation:'
       end
       object lblEngine: TLabel
-        Left = 258
+        Left = 294
         Top = 29
         Width = 36
         Height = 13
         Caption = 'Engine:'
       end
       object editAvgRowLen: TEdit
-        Left = 136
+        Left = 178
         Top = 26
         Width = 110
         Height = 21
@@ -295,7 +295,7 @@ object frmTableEditor: TfrmTableEditor
         OnChange = editNumEditChange
       end
       object editMaxRows: TEdit
-        Left = 136
+        Left = 178
         Top = 49
         Width = 110
         Height = 21
@@ -305,7 +305,7 @@ object frmTableEditor: TfrmTableEditor
       object chkChecksum: TCheckBox
         Left = 4
         Top = 75
-        Width = 145
+        Width = 189
         Height = 17
         Alignment = taLeftJustify
         Caption = 'Checksum for rows:'
@@ -313,7 +313,7 @@ object frmTableEditor: TfrmTableEditor
         OnClick = Modification
       end
       object comboRowFormat: TComboBox
-        Left = 136
+        Left = 178
         Top = 95
         Width = 110
         Height = 21
@@ -322,9 +322,9 @@ object frmTableEditor: TfrmTableEditor
         OnChange = Modification
       end
       object memoUnionTables: TMemo
-        Left = 354
+        Left = 408
         Top = 49
-        Width = 238
+        Width = 184
         Height = 44
         Anchors = [akLeft, akTop, akRight]
         Lines.Strings = (
@@ -333,9 +333,9 @@ object frmTableEditor: TfrmTableEditor
         OnChange = Modification
       end
       object comboInsertMethod: TComboBox
-        Left = 354
+        Left = 408
         Top = 95
-        Width = 238
+        Width = 184
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -343,7 +343,7 @@ object frmTableEditor: TfrmTableEditor
         OnClick = Modification
       end
       object editAutoInc: TEdit
-        Left = 136
+        Left = 178
         Top = 3
         Width = 110
         Height = 21
@@ -351,9 +351,9 @@ object frmTableEditor: TfrmTableEditor
         OnChange = editNumEditChange
       end
       object comboCollation: TComboBox
-        Left = 354
+        Left = 408
         Top = 3
-        Width = 119
+        Width = 65
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -362,9 +362,9 @@ object frmTableEditor: TfrmTableEditor
         OnChange = chkCharsetConvertClick
       end
       object comboEngine: TComboBox
-        Left = 354
+        Left = 408
         Top = 26
-        Width = 238
+        Width = 184
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -422,7 +422,7 @@ object frmTableEditor: TfrmTableEditor
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
-            Width = 341
+            Width = 337
             WideText = 'Name'
           end
           item
@@ -578,7 +578,7 @@ object frmTableEditor: TfrmTableEditor
             item
               Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
               Position = 0
-              Width = 101
+              Width = 97
               WideText = 'Key name'
             end
             item

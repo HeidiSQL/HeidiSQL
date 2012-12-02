@@ -396,9 +396,9 @@ object frmRoutineEditor: TfrmRoutineEditor
     end
   end
   object btnRunProc: TButton
-    Left = 480
+    Left = 439
     Top = 455
-    Width = 123
+    Width = 164
     Height = 25
     Action = MainForm.actRunRoutines
     Anchors = [akRight, akBottom]

@@ -40,9 +40,9 @@ object frmView: TfrmView
     Caption = 'Definer:'
   end
   object editName: TEdit
-    Left = 42
+    Left = 64
     Top = 3
-    Width = 167
+    Width = 145
     Height = 21
     TabOrder = 0
     Text = 'editName'
@@ -148,9 +148,9 @@ object frmView: TfrmView
     OnClick = btnHelpClick
   end
   object comboDefiner: TComboBox
-    Left = 265
+    Left = 280
     Top = 3
-    Width = 182
+    Width = 167
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
