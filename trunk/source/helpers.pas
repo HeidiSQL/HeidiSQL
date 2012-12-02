@@ -12,7 +12,7 @@ uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi,
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
-  dbconnection, mysql_structures, SynMemo, Menus, WinInet, synacode, gnugettext;
+  dbconnection, mysql_structures, SynMemo, Menus, WinInet, synacode, gnugettext, Themes;
 
 type
 
@@ -2429,7 +2429,7 @@ var
     Btn.ModalResult := BtnResult;
   end;
 begin
-  if Win32MajorVersion >= 6 then begin
+  if (Win32MajorVersion >= 6) and ThemeServices.ThemesEnabled then begin
     Dialog := TTaskDialog.Create(nil);
     case DlgType of
       mtWarning: Dialog.Caption := _('Warning');
