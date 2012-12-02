@@ -46,9 +46,9 @@ object optionsform: Toptionsform
       object lblLanguage: TLabel
         Left = 8
         Top = 246
-        Width = 103
+        Width = 189
         Height = 13
-        Caption = 'Application language:'
+        Caption = 'Application language (requires restart):'
       end
       object chkAutoReconnect: TCheckBox
         Left = 8
