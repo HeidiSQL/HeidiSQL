@@ -1937,39 +1937,18 @@ end;
 }
 function TMySQLConnection.GetServerVersionInt: Integer;
 var
-  i, dots: Byte;
-  v1, v2, v3: String;
+  rx: TRegExpr;
 begin
   Result := -1;
-
-  dots := 0;
-  v1 := '';
-  v2 := '';
-  v3 := '';
-  for i:=1 to Length(FServerVersionUntouched) do begin
-    if FServerVersionUntouched[i] = '.' then begin
-      inc(dots);
-      // We expect exactly 2 dots.
-      if dots > 2 then
-        break;
-    end else if CharInSet(FServerVersionUntouched[i], ['0'..'9']) then begin
-      if dots = 0 then
-        v1 := v1 + FServerVersionUntouched[i]
-      else if dots = 1 then
-        v2 := v2 + FServerVersionUntouched[i]
-      else if dots = 2 then
-        v3 := v3 + FServerVersionUntouched[i];
-    end else // Don't include potential numbers of trailing string
-      break;
-  end;
-
-  // Concat tokens
-  if (Length(v1)>0) and (Length(v2)>0) and (Length(v3)>0) then begin
-    Result := StrToIntDef(v1, 0) *10000 +
-      StrToIntDef(v2, 0) *100 +
-      StrToIntDef(v3, 0);
-  end;
-
+  rx := TRegExpr.Create;
+  rx.Expression := '(\d+)\.(\d+)\.(\d+)';
+  if rx.Exec(FServerVersionUntouched) then begin
+    Result := StrToIntDef(rx.Match[1], 0) *10000 +
+      StrToIntDef(rx.Match[2], 0) *100 +
+      StrToIntDef(rx.Match[3], 0);
+  end else
+    Result := 0;
+  rx.Free;
 end;
 
 function TAdoDBConnection.GetServerVersionInt: Integer;
@@ -2073,13 +2052,14 @@ end;
 }
 function TMySQLConnection.ConvertServerVersion(Version: Integer): String;
 var
-  v : String;
-  v1, v2 : Byte;
+  v: String;
+  major, minor, build: Integer;
 begin
-  v := IntToStr( Version );
-  v1 := StrToIntDef( v[2]+v[3], 0 );
-  v2 := StrToIntDef( v[4]+v[5], 0 );
-  Result := v[1] + '.' + IntToStr(v1) + '.' + IntToStr(v2);
+  v := IntToStr(Version);
+  major := StrToIntDef(Copy(v, 1, Length(v)-4), 0);
+  minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
+  build := StrToIntDef(Copy(v, Length(v)-1, 2), 0);
+  Result := IntToStr(major) + '.' + IntToStr(minor) + '.' + IntToStr(build);
 end;
 
 
