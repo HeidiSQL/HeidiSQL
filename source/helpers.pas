@@ -2450,7 +2450,7 @@ begin
       mtWarning:      Dialog.MainIcon := tdiWarning;
       mtError: begin
         Dialog.MainIcon := tdiError;
-        Dialog.FooterText := '<a href="http://www.google.com/search?q='+EncodeURLElementUnicode(Copy(Msg, 1, 1000))+'">Find some help on this error</a>';
+        Dialog.FooterText := '<a href="http://www.google.com/search?q='+EncodeURLElementUnicode(Copy(Msg, 1, 1000))+'">'+_('Find some help on this error')+'</a>';
         Dialog.FooterIcon := tdiInformation;
       end;
       mtInformation:  Dialog.MainIcon := tdiInformation;
