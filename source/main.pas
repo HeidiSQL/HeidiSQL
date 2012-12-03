@@ -4044,64 +4044,73 @@ procedure TMainForm.LogSQL(Msg: String; Category: TDBLogCategory=lcInfo; Connect
 var
   snip, IsSQL: Boolean;
   Len, i, MaxLineWidth: Integer;
-  Sess: String;
+  Sess, OldSettingsPath: String;
+  LogIt: Boolean;
 begin
   if csDestroying in ComponentState then
     Exit;
 
+  OldSettingsPath := AppSettings.SessionPath;
+
   // Log only wanted events
   case Category of
-    lcError: if not AppSettings.ReadBool(asLogErrors) then Exit;
-    lcUserFiredSQL: if not AppSettings.ReadBool(asLogUserSQL) then Exit;
-    lcSQL: if not AppSettings.ReadBool(asLogSQL) then Exit;
-    lcInfo: if not AppSettings.ReadBool(asLogInfos) then Exit;
-    lcDebug: if not AppSettings.ReadBool(asLogDebug) then Exit;
+    lcError: LogIt := AppSettings.ReadBool(asLogErrors);
+    lcUserFiredSQL: LogIt := AppSettings.ReadBool(asLogUserSQL);
+    lcSQL: LogIt := AppSettings.ReadBool(asLogSQL);
+    lcInfo: LogIt := AppSettings.ReadBool(asLogInfos);
+    lcDebug: LogIt := AppSettings.ReadBool(asLogDebug);
+    else LogIt := False;
   end;
 
-  // Shorten very long messages
-  Len := Length(Msg);
-  MaxLineWidth := AppSettings.ReadInt(asLogsqlwidth);
-  snip := (MaxLineWidth > 0) and (Len > MaxLineWidth);
-  IsSQL := Category in [lcSQL, lcUserFiredSQL];
-  if snip then begin
-    Msg :=
-      Copy(Msg, 0, MaxLineWidth) +
-      '/* '+f_('large SQL query (%s), snipped at %s characters', [FormatByteNumber(Len), FormatNumber(MaxLineWidth)]) + ' */';
-  end else if (not snip) and IsSQL then
-    Msg := Msg + Delimiter;
-  if not IsSQL then
-    Msg := '/* ' + Msg + ' */';
+  if LogIt then begin
+    // Shorten very long messages
+    Len := Length(Msg);
+    MaxLineWidth := AppSettings.ReadInt(asLogsqlwidth);
+    snip := (MaxLineWidth > 0) and (Len > MaxLineWidth);
+    IsSQL := Category in [lcSQL, lcUserFiredSQL];
+    if snip then begin
+      Msg :=
+        Copy(Msg, 0, MaxLineWidth) +
+        '/* '+f_('large SQL query (%s), snipped at %s characters', [FormatByteNumber(Len), FormatNumber(MaxLineWidth)]) + ' */';
+    end else if (not snip) and IsSQL then
+      Msg := Msg + Delimiter;
+    if not IsSQL then
+      Msg := '/* ' + Msg + ' */';
 
-  SynMemoSQLLog.Lines.Add(Msg);
+    SynMemoSQLLog.Lines.Add(Msg);
 
-  // Delete first line(s) in SQL log and adjust LineNumberStart in gutter
-  i := 0;
-  while SynMemoSQLLog.Lines.Count > AppSettings.ReadInt(asLogsqlnum) do begin
-    SynMemoSQLLog.Lines.Delete(0);
-    Inc(i);
-  end;
-  // Increase first displayed number in gutter so it doesn't lie about the log entries
-  if i > 0 then
-    SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + i;
+    // Delete first line(s) in SQL log and adjust LineNumberStart in gutter
+    i := 0;
+    while SynMemoSQLLog.Lines.Count > AppSettings.ReadInt(asLogsqlnum) do begin
+      SynMemoSQLLog.Lines.Delete(0);
+      Inc(i);
+    end;
+    // Increase first displayed number in gutter so it doesn't lie about the log entries
+    if i > 0 then
+      SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + i;
 
-  // Scroll to last line and repaint
-  SynMemoSQLLog.GotoLineAndCenter(SynMemoSQLLog.Lines.Count);
-  SynMemoSQLLog.Repaint;
+    // Scroll to last line and repaint
+    SynMemoSQLLog.GotoLineAndCenter(SynMemoSQLLog.Lines.Count);
+    SynMemoSQLLog.Repaint;
 
-  // Log to file?
-  if FLogToFile then
-  try
-    Sess := '';
-    if Assigned(Connection) then
-      Sess := Connection.Parameters.SessionPath;
-    WriteLn(FFileHandleSessionLog, Format('/* %s [%s] */ %s', [DateTimeToStr(Now), Sess, msg]));
-  except
-    on E:Exception do begin
-      LogToFile := False;
-      AppSettings.WriteBool(asLogToFile, False);
-      ErrorDialog(_('Error writing to session log file.'), E.Message+CRLF+_('Filename')+': '+FFileNameSessionLog+CRLF+CRLF+_('Logging is disabled now.'));
+    // Log to file?
+    if FLogToFile then
+    try
+      Sess := '';
+      if Assigned(Connection) then
+        Sess := Connection.Parameters.SessionPath;
+      WriteLn(FFileHandleSessionLog, Format('/* %s [%s] */ %s', [DateTimeToStr(Now), Sess, msg]));
+    except
+      on E:Exception do begin
+        LogToFile := False;
+        AppSettings.WriteBool(asLogToFile, False);
+        ErrorDialog(_('Error writing to session log file.'), E.Message+CRLF+_('Filename')+': '+FFileNameSessionLog+CRLF+CRLF+_('Logging is disabled now.'));
+      end;
     end;
   end;
+
+  // Restore possibly overwritten session path
+  AppSettings.SessionPath := OldSettingsPath;
 end;
 
 
