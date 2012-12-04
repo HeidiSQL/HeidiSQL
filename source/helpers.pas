@@ -3240,8 +3240,10 @@ end;
 procedure TAppSettings.SetSessionPath(Value: String);
 begin
   // Following calls may want to read or write some session specific setting
-  FSessionPath := Value;
-  PrepareRegistry;
+  if Value <> FSessionPath then begin
+    FSessionPath := Value;
+    PrepareRegistry;
+  end;
 end;
 
 
@@ -3393,8 +3395,9 @@ begin
   if FSettings[Index].Session and IsEmpty(FSessionPath) then
     raise Exception.Create(_('Attempt to read session setting without session path'));
   if (not FSettings[Index].Session) and IsNotEmpty(FSessionPath) then
-    FSessionPath := '';
-  PrepareRegistry;
+    SessionPath := ''
+  else
+    PrepareRegistry;
   if FSettings[Index].Synced then begin
     case DataType of
       adInt: I := FSettings[Index].CurrentInt;
@@ -3467,8 +3470,9 @@ begin
   if FSettings[Index].Session and IsEmpty(FSessionPath) then
     raise Exception.Create(_('Attempt to write session setting without session path'));
   if (not FSettings[Index].Session) and IsNotEmpty(FSessionPath) then
-    FSessionPath := '';
-  PrepareRegistry;
+    SessionPath := ''
+  else
+    PrepareRegistry;
   case DataType of
     adInt: begin
       SameAsCurrent := FSettings[Index].Synced and (I = FSettings[Index].CurrentInt);
