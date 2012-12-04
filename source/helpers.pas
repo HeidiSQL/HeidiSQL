@@ -3458,7 +3458,7 @@ procedure TAppSettings.Write(Index: TAppSettingIndex; FormatName: String;
   DataType: TAppSettingDataType; I: Integer; B: Boolean; S: String);
 var
   ValueName: String;
-  SameAsDefault, SameAsCurrent: Boolean;
+  SameAsCurrent: Boolean;
 begin
   // Write user setting value to registry
   ValueName := FSettings[Index].Name;
@@ -3471,27 +3471,24 @@ begin
   PrepareRegistry;
   case DataType of
     adInt: begin
-      SameAsDefault := I = FSettings[Index].DefaultInt;
       SameAsCurrent := FSettings[Index].Synced and (I = FSettings[Index].CurrentInt);
-      if (not SameAsDefault) and (not SameAsCurrent) then begin
+      if not SameAsCurrent then begin
         FRegistry.WriteInteger(ValueName, I);
         Inc(FWrites);
       end;
       FSettings[Index].CurrentInt := I;
     end;
     adBool:  begin
-      SameAsDefault := B = FSettings[Index].DefaultBool;
       SameAsCurrent := FSettings[Index].Synced and (B = FSettings[Index].CurrentBool);
-      if (not SameAsDefault) and (not SameAsCurrent) then begin
+      if not SameAsCurrent then begin
         FRegistry.WriteBool(ValueName, B);
         Inc(FWrites);
       end;
       FSettings[Index].CurrentBool := B;
     end;
     adString: begin
-      SameAsDefault := S = FSettings[Index].DefaultString;
       SameAsCurrent := FSettings[Index].Synced and (S = FSettings[Index].CurrentString);
-      if (not SameAsDefault) and (not SameAsCurrent) then begin
+      if not SameAsCurrent then begin
         FRegistry.WriteString(ValueName, S);
         Inc(FWrites);
       end;
@@ -3500,8 +3497,6 @@ begin
     else
       raise Exception.CreateFmt(_(SUnsupportedSettingsDatatype), [FSettings[Index].Name]);
   end;
-  if SameAsDefault and FRegistry.ValueExists(ValueName) then
-    FRegistry.DeleteValue(ValueName);
   if (FormatName = '') and (FSessionPath = '') then
     FSettings[Index].Synced := True;
 end;
