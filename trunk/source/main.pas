@@ -9756,9 +9756,9 @@ begin
   // Highlighting
   for i:=0 to SynSQLSyn1.AttrCount - 1 do begin
     Attri := SynSQLSyn1.Attribute[i];
-    Attri.Foreground := AppSettings.ReadInt(asHighlighterForeground, Attri.FriendlyName, Attri.Foreground);
-    Attri.Background := AppSettings.ReadInt(asHighlighterBackground, Attri.FriendlyName, Attri.Background);
-    Attri.IntegerStyle := AppSettings.ReadInt(asHighlighterStyle, Attri.FriendlyName, Attri.IntegerStyle);
+    Attri.Foreground := AppSettings.ReadInt(asHighlighterForeground, Attri.Name, Attri.Foreground);
+    Attri.Background := AppSettings.ReadInt(asHighlighterBackground, Attri.Name, Attri.Background);
+    Attri.IntegerStyle := AppSettings.ReadInt(asHighlighterStyle, Attri.Name, Attri.IntegerStyle);
   end;
 end;
 

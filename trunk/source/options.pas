@@ -228,9 +228,9 @@ begin
   AppSettings.WriteBool(asLogDebug, chkLogEventDebug.Checked);
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
     Attri := SynSQLSynSQLSample.Attribute[i];
-    AppSettings.WriteInt(asHighlighterForeground, Attri.Foreground, Attri.FriendlyName);
-    AppSettings.WriteInt(asHighlighterBackground, Attri.Background, Attri.FriendlyName);
-    AppSettings.WriteInt(asHighlighterStyle, Attri.IntegerStyle, Attri.FriendlyName);
+    AppSettings.WriteInt(asHighlighterForeground, Attri.Foreground, Attri.Name);
+    AppSettings.WriteInt(asHighlighterBackground, Attri.Background, Attri.Name);
+    AppSettings.WriteInt(asHighlighterStyle, Attri.IntegerStyle, Attri.Name);
   end;
   AppSettings.WriteString(asSQLColActiveLine, ColorToString(SynMemoSQLSample.ActiveLineColor));
 
