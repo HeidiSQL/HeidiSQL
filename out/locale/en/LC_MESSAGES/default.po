@@ -3909,10 +3909,6 @@ msgstr "Login to %s:"
 msgid "Connecting to %s via %s, username %s, using password: %s ..."
 msgstr "Connecting to %s via %s, username %s, using password: %s ..."
 
-#: dbconnection.pas:1530 dbconnection.pas:1553
-msgid "Ping server ..."
-msgstr "Ping server ..."
-
 #: dbconnection.pas:1582
 msgid "Closing plink.exe process #%d ..."
 msgstr "Closing plink.exe process #%d ..."

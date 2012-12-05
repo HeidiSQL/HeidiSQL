@@ -1445,7 +1445,7 @@ end;
 
 function TMySQLConnection.Ping(Reconnect: Boolean): Boolean;
 begin
-  Log(lcDebug, _('Ping server ...'));
+  Log(lcDebug, 'Ping server ...');
   if (FHandle=nil) or (mysql_ping(FHandle) <> 0) then begin
     // Be sure to release some stuff before reconnecting
     Active := False;
@@ -1461,7 +1461,7 @@ end;
 
 function TAdoDBConnection.Ping(Reconnect: Boolean): Boolean;
 begin
-  Log(lcDebug, _('Ping server ...'));
+  Log(lcDebug, 'Ping server ...');
   if FActive then try
     FAdoHandle.Execute('SELECT 1');
   except
