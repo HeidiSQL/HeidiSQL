@@ -204,7 +204,7 @@ object connform: Tconnform
       object btnImportSettings: TButton
         Left = 10
         Top = 184
-        Width = 119
+        Width = 159
         Height = 25
         Caption = 'Import settings ...'
         ImageIndex = 101
@@ -273,9 +273,9 @@ object connform: Tconnform
         Caption = 'Databases:'
       end
       object editStartupScript: TButtonedEdit
-        Left = 101
+        Left = 120
         Top = 261
-        Width = 191
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -287,9 +287,9 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object chkCompressed: TCheckBox
-        Left = 101
+        Left = 120
         Top = 190
-        Width = 191
+        Width = 172
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Compressed client/server protocol'
@@ -297,18 +297,18 @@ object connform: Tconnform
         OnClick = Modification
       end
       object editPort: TEdit
-        Left = 101
+        Left = 120
         Top = 165
-        Width = 60
+        Width = 57
         Height = 21
         TabOrder = 6
         Text = '0'
         OnChange = Modification
       end
       object updownPort: TUpDown
-        Left = 161
+        Left = 177
         Top = 165
-        Width = 17
+        Width = 16
         Height = 21
         Associate = editPort
         Max = 65535
@@ -317,9 +317,9 @@ object connform: Tconnform
         Wrap = True
       end
       object editPassword: TEdit
-        Left = 101
+        Left = 120
         Top = 140
-        Width = 191
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
@@ -327,27 +327,27 @@ object connform: Tconnform
         OnChange = Modification
       end
       object editUsername: TEdit
-        Left = 101
+        Left = 120
         Top = 115
-        Width = 191
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 4
         OnChange = Modification
       end
       object editHost: TEdit
-        Left = 101
+        Left = 120
         Top = 42
-        Width = 191
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
         OnChange = editHostChange
       end
       object comboNetType: TComboBox
-        Left = 101
+        Left = 120
         Top = 9
-        Width = 191
+        Width = 172
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -362,9 +362,9 @@ object connform: Tconnform
           'MSSQL')
       end
       object comboDatabases: TComboBox
-        Left = 101
+        Left = 120
         Top = 236
-        Width = 191
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 10
@@ -373,9 +373,9 @@ object connform: Tconnform
         OnDropDown = comboDatabasesDropDown
       end
       object chkLoginPrompt: TCheckBox
-        Left = 101
+        Left = 120
         Top = 69
-        Width = 191
+        Width = 172
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Prompt for credentials'
@@ -383,9 +383,9 @@ object connform: Tconnform
         OnClick = chkLoginPromptClick
       end
       object chkWindowsAuth: TCheckBox
-        Left = 101
+        Left = 120
         Top = 92
-        Width = 191
+        Width = 172
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use Windows authentication'
@@ -394,9 +394,9 @@ object connform: Tconnform
         OnClick = chkLoginPromptClick
       end
       object chkLocalTimeZone: TCheckBox
-        Left = 101
+        Left = 120
         Top = 213
-        Width = 191
+        Width = 172
         Height = 17
         Hint = 
           'Use your client time zone in date/time SQL functions, e.g. NOW()' +
@@ -461,7 +461,7 @@ object connform: Tconnform
         FocusControl = editSSHPrivateKey
       end
       object lblDownloadPlink: TLabel
-        Left = 101
+        Left = 120
         Top = 33
         Width = 93
         Height = 13
@@ -484,9 +484,9 @@ object connform: Tconnform
         Caption = 'plink.exe timeout:'
       end
       object editSSHlocalport: TEdit
-        Left = 101
+        Left = 120
         Top = 187
-        Width = 182
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         NumbersOnly = True
@@ -495,9 +495,9 @@ object connform: Tconnform
         OnChange = Modification
       end
       object editSSHUser: TEdit
-        Left = 101
+        Left = 120
         Top = 79
-        Width = 182
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 3
@@ -506,9 +506,9 @@ object connform: Tconnform
         OnChange = Modification
       end
       object editSSHPassword: TEdit
-        Left = 101
+        Left = 120
         Top = 106
-        Width = 182
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
@@ -518,9 +518,9 @@ object connform: Tconnform
         OnChange = Modification
       end
       object editSSHPlinkExe: TButtonedEdit
-        Left = 101
+        Left = 120
         Top = 9
-        Width = 182
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -534,9 +534,9 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object editSSHhost: TEdit
-        Left = 101
+        Left = 120
         Top = 52
-        Width = 127
+        Width = 108
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
@@ -546,7 +546,7 @@ object connform: Tconnform
       object editSSHport: TEdit
         Left = 234
         Top = 52
-        Width = 49
+        Width = 58
         Height = 21
         Anchors = [akTop, akRight]
         NumbersOnly = True
@@ -555,9 +555,9 @@ object connform: Tconnform
         OnChange = Modification
       end
       object editSSHPrivateKey: TButtonedEdit
-        Left = 101
+        Left = 120
         Top = 160
-        Width = 182
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -571,7 +571,7 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object editSSHTimeout: TEdit
-        Left = 101
+        Left = 120
         Top = 133
         Width = 60
         Height = 21
@@ -580,7 +580,7 @@ object connform: Tconnform
         OnChange = Modification
       end
       object updownSSHTimeout: TUpDown
-        Left = 161
+        Left = 180
         Top = 133
         Width = 17
         Height = 21
@@ -620,9 +620,9 @@ object connform: Tconnform
         FocusControl = editSSLCertificate
       end
       object editSSLPrivateKey: TButtonedEdit
-        Left = 101
+        Left = 120
         Top = 36
-        Width = 191
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -634,9 +634,9 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object editSSLCACertificate: TButtonedEdit
-        Left = 101
+        Left = 120
         Top = 65
-        Width = 191
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -648,9 +648,9 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object editSSLCertificate: TButtonedEdit
-        Left = 101
+        Left = 120
         Top = 92
-        Width = 191
+        Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -662,8 +662,8 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object chkWantSSL: TCheckBox
-        Left = 101
-        Top = 9
+        Left = 120
+        Top = 13
         Width = 191
         Height = 17
         Anchors = [akLeft, akTop, akRight]
@@ -700,24 +700,24 @@ object connform: Tconnform
         Caption = 'Created:'
       end
       object lblCreatedRight: TLabel
-        Left = 101
+        Left = 120
         Top = 12
         Width = 5
         Height = 13
         Caption = '?'
       end
       object lblCounterRight: TLabel
-        Left = 101
+        Left = 120
         Top = 50
-        Width = 191
-        Height = 39
+        Width = 172
+        Height = 47
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
         Caption = '?'
         WordWrap = True
       end
       object lblLastConnectRight: TLabel
-        Left = 101
+        Left = 120
         Top = 31
         Width = 5
         Height = 13

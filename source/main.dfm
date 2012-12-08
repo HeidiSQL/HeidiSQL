@@ -66,7 +66,7 @@ object MainForm: TMainForm
     DoubleBuffered = True
     Panels = <
       item
-        Width = 170
+        Width = 150
       end
       item
         Width = 110
@@ -80,7 +80,7 @@ object MainForm: TMainForm
         Width = 105
       end
       item
-        Width = 150
+        Width = 170
       end
       item
         Width = 80

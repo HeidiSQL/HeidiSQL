@@ -540,9 +540,9 @@ object optionsform: Toptionsform
         OnChange = comboSQLColElementChange
       end
       object cboxSQLColBackground: TColorBox
-        Left = 302
+        Left = 328
         Top = 34
-        Width = 139
+        Width = 113
         Height = 22
         Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
         Anchors = [akTop, akRight]
@@ -550,9 +550,9 @@ object optionsform: Toptionsform
         OnChange = SQLFontChange
       end
       object cboxSQLColForeground: TColorBox
-        Left = 302
+        Left = 328
         Top = 8
-        Width = 139
+        Width = 113
         Height = 22
         Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
         Anchors = [akTop, akRight]

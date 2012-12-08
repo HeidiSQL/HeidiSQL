@@ -53,9 +53,9 @@ object UserManagerForm: TUserManagerForm
     WordWrap = True
   end
   object btnCancel: TButton
-    Left = 391
+    Left = 381
     Top = 332
-    Width = 85
+    Width = 95
     Height = 25
     Anchors = [akRight, akBottom]
     Cancel = True
@@ -66,9 +66,9 @@ object UserManagerForm: TUserManagerForm
     TabOrder = 4
   end
   object btnSave: TButton
-    Left = 209
+    Left = 179
     Top = 332
-    Width = 85
+    Width = 95
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Save'
@@ -285,9 +285,9 @@ object UserManagerForm: TUserManagerForm
           FocusControl = editRepeatPassword
         end
         object editRepeatPassword: TEdit
-          Left = 106
+          Left = 176
           Top = 88
-          Width = 169
+          Width = 99
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           PasswordChar = '*'
@@ -295,9 +295,9 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object editPassword: TButtonedEdit
-          Left = 106
+          Left = 176
           Top = 61
-          Width = 169
+          Width = 99
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           Images = MainForm.ImageListMain
@@ -310,9 +310,9 @@ object UserManagerForm: TUserManagerForm
           OnChange = editPasswordChange
         end
         object editFromHost: TButtonedEdit
-          Left = 106
+          Left = 176
           Top = 34
-          Width = 169
+          Width = 99
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           Images = MainForm.ImageListMain
@@ -323,9 +323,9 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object editUsername: TEdit
-          Left = 106
+          Left = 176
           Top = 7
-          Width = 169
+          Width = 99
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 0
@@ -367,9 +367,9 @@ object UserManagerForm: TUserManagerForm
           Caption = 'Simultaneous connections:'
         end
         object editMaxQueries: TEdit
-          Left = 162
+          Left = 176
           Top = 7
-          Width = 97
+          Width = 83
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           NumbersOnly = True
@@ -378,9 +378,9 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object editMaxUpdates: TEdit
-          Left = 162
+          Left = 176
           Top = 34
-          Width = 97
+          Width = 83
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           NumbersOnly = True
@@ -389,9 +389,9 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object editMaxConnections: TEdit
-          Left = 162
+          Left = 176
           Top = 61
-          Width = 97
+          Width = 83
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           NumbersOnly = True
@@ -400,9 +400,9 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object editMaxUserConnections: TEdit
-          Left = 162
+          Left = 176
           Top = 88
-          Width = 97
+          Width = 83
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           NumbersOnly = True
@@ -494,9 +494,9 @@ object UserManagerForm: TUserManagerForm
           Caption = '&Require SSL:'
         end
         object editCipher: TEdit
-          Left = 106
+          Left = 176
           Top = 33
-          Width = 169
+          Width = 99
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 1
@@ -504,9 +504,9 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object editIssuer: TEdit
-          Left = 106
+          Left = 176
           Top = 59
-          Width = 169
+          Width = 99
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 2
@@ -514,9 +514,9 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object editSubject: TEdit
-          Left = 106
+          Left = 176
           Top = 86
-          Width = 169
+          Width = 99
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 3
@@ -524,9 +524,9 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object comboSSL: TComboBox
-          Left = 106
+          Left = 176
           Top = 6
-          Width = 169
+          Width = 99
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
@@ -542,9 +542,9 @@ object UserManagerForm: TUserManagerForm
     end
   end
   object btnDiscard: TButton
-    Left = 300
+    Left = 280
     Top = 332
-    Width = 85
+    Width = 95
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Discard'

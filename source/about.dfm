@@ -344,9 +344,9 @@ object AboutBox: TAboutBox
     WordWrap = False
   end
   object btnUpdateCheck: TButton
-    Left = 336
-    Top = 83
-    Width = 138
+    Left = 117
+    Top = 97
+    Width = 242
     Height = 25
     Action = MainForm.actUpdateCheck
     Anchors = [akTop, akRight]

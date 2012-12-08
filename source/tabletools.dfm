@@ -30,9 +30,9 @@ object frmTableTools: TfrmTableTools
     Caption = 'lblCheckedSize'
   end
   object btnCloseOrCancel: TButton
-    Left = 461
+    Left = 441
     Top = 350
-    Width = 75
+    Width = 95
     Height = 25
     Anchors = [akRight, akBottom]
     Cancel = True
@@ -171,7 +171,7 @@ object frmTableTools: TfrmTableTools
           object comboOperation: TComboBox
             Left = 80
             Top = 11
-            Width = 289
+            Width = 288
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -258,35 +258,35 @@ object frmTableTools: TfrmTableTools
           end
           object lblDataTypes: TLabel
             Left = 3
-            Top = 48
+            Top = 47
             Width = 114
             Height = 13
             Anchors = [akLeft, akBottom]
             Caption = 'Search in column types:'
           end
           object memoFindText: TMemo
-            Left = 139
+            Left = 208
             Top = 11
-            Width = 230
-            Height = 27
+            Width = 161
+            Height = 26
             Anchors = [akLeft, akTop, akRight, akBottom]
             ScrollBars = ssVertical
             TabOrder = 0
             OnChange = ValidateControls
           end
           object comboDataTypes: TComboBox
-            Left = 139
-            Top = 45
-            Width = 230
+            Left = 208
+            Top = 44
+            Width = 161
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akRight, akBottom]
             TabOrder = 1
           end
           object chkCaseSensitive: TCheckBox
-            Left = 139
-            Top = 72
-            Width = 230
+            Left = 208
+            Top = 71
+            Width = 161
             Height = 17
             Anchors = [akLeft, akRight, akBottom]
             Caption = 'Case sensitive'
@@ -421,16 +421,16 @@ object frmTableTools: TfrmTableTools
           object chkBulkTableEditDatabase: TCheckBox
             Left = 3
             Top = 5
-            Width = 135
+            Width = 199
             Height = 17
             Caption = 'Move to database:'
             TabOrder = 0
             OnClick = chkBulkTableEditCheckComboClick
           end
           object comboBulkTableEditDatabase: TComboBox
-            Left = 168
+            Left = 208
             Top = 3
-            Width = 200
+            Width = 160
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -440,7 +440,7 @@ object frmTableTools: TfrmTableTools
           object chkBulkTableEditResetAutoinc: TCheckBox
             Left = 3
             Top = 97
-            Width = 166
+            Width = 366
             Height = 17
             Caption = 'Reset auto increment value'
             TabOrder = 2
@@ -448,16 +448,16 @@ object frmTableTools: TfrmTableTools
           object chkBulkTableEditCollation: TCheckBox
             Left = 3
             Top = 51
-            Width = 150
+            Width = 199
             Height = 17
             Caption = 'Change default collation:'
             TabOrder = 3
             OnClick = chkBulkTableEditCheckComboClick
           end
           object comboBulkTableEditCollation: TComboBox
-            Left = 168
+            Left = 208
             Top = 49
-            Width = 200
+            Width = 160
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -467,16 +467,16 @@ object frmTableTools: TfrmTableTools
           object chkBulkTableEditEngine: TCheckBox
             Left = 3
             Top = 28
-            Width = 150
+            Width = 199
             Height = 17
             Caption = 'Change table engine:'
             TabOrder = 5
             OnClick = chkBulkTableEditCheckComboClick
           end
           object comboBulkTableEditEngine: TComboBox
-            Left = 168
+            Left = 208
             Top = 26
-            Width = 200
+            Width = 160
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -486,16 +486,16 @@ object frmTableTools: TfrmTableTools
           object chkBulkTableEditCharset: TCheckBox
             Left = 3
             Top = 74
-            Width = 150
+            Width = 199
             Height = 17
             Caption = 'Convert to charset:'
             TabOrder = 7
             OnClick = chkBulkTableEditCheckComboClick
           end
           object comboBulkTableEditCharset: TComboBox
-            Left = 168
+            Left = 208
             Top = 72
-            Width = 200
+            Width = 160
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -507,9 +507,9 @@ object frmTableTools: TfrmTableTools
     end
   end
   object btnExecute: TButton
-    Left = 380
+    Left = 340
     Top = 350
-    Width = 75
+    Width = 95
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Execute'
@@ -517,7 +517,7 @@ object frmTableTools: TfrmTableTools
     OnClick = Execute
   end
   object btnSeeResults: TButton
-    Left = 256
+    Left = 216
     Top = 350
     Width = 118
     Height = 25
