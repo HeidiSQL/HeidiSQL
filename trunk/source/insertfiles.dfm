@@ -25,9 +25,9 @@ object frmInsertFiles: TfrmInsertFiles
   PixelsPerInch = 96
   TextHeight = 13
   object btnInsert: TButton
-    Left = 347
+    Left = 272
     Top = 458
-    Width = 75
+    Width = 130
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Import files'
@@ -38,9 +38,9 @@ object frmInsertFiles: TfrmInsertFiles
     OnClick = btnInsertClick
   end
   object btnCancel: TButton
-    Left = 428
+    Left = 408
     Top = 458
-    Width = 75
+    Width = 95
     Height = 25
     Anchors = [akRight, akBottom]
     Cancel = True
@@ -155,14 +155,15 @@ object frmInsertFiles: TfrmInsertFiles
       204)
     object lblDropHint: TLabel
       Left = 248
-      Top = 22
-      Width = 238
-      Height = 13
+      Top = 18
+      Width = 235
+      Height = 22
       Anchors = [akLeft, akTop, akRight]
       AutoSize = False
       Caption = 
         'Hint: You can drop files from your Windows Explorer onto the lis' +
         't.'
+      Layout = tlCenter
     end
     object lblFileCount: TLabel
       Left = 10

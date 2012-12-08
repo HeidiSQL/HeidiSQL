@@ -101,15 +101,15 @@ object loaddataform: Tloaddataform
     end
   end
   object grpChars: TGroupBox
-    Left = 254
+    Left = 223
     Top = 98
-    Width = 247
+    Width = 278
     Height = 135
     Anchors = [akTop, akRight]
     Caption = 'Control characters'
     TabOrder = 2
     DesignSize = (
-      247
+      278
       135)
     object lblFieldTerminater: TLabel
       Left = 10
@@ -140,7 +140,7 @@ object loaddataform: Tloaddataform
       Caption = 'Lines terminated by'
     end
     object editFieldEscaper: TEdit
-      Left = 124
+      Left = 145
       Top = 72
       Width = 49
       Height = 21
@@ -148,7 +148,7 @@ object loaddataform: Tloaddataform
       Text = '"'
     end
     object editFieldEncloser: TEdit
-      Left = 124
+      Left = 145
       Top = 48
       Width = 49
       Height = 21
@@ -156,7 +156,7 @@ object loaddataform: Tloaddataform
       Text = '"'
     end
     object editFieldTerminator: TEdit
-      Left = 124
+      Left = 145
       Top = 23
       Width = 49
       Height = 21
@@ -164,9 +164,9 @@ object loaddataform: Tloaddataform
       Text = ';'
     end
     object chkFieldsEnclosedOptionally: TCheckBox
-      Left = 179
+      Left = 200
       Top = 50
-      Width = 65
+      Width = 75
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'optionally'
@@ -175,7 +175,7 @@ object loaddataform: Tloaddataform
       TabOrder = 2
     end
     object editLineTerminator: TEdit
-      Left = 124
+      Left = 145
       Top = 97
       Width = 49
       Height = 21
@@ -186,13 +186,13 @@ object loaddataform: Tloaddataform
   object grpOptions: TGroupBox
     Left = 8
     Top = 98
-    Width = 240
+    Width = 209
     Height = 135
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Options'
     TabOrder = 1
     DesignSize = (
-      240
+      209
       135)
     object lblIgnoreLinesCount: TLabel
       Left = 143
@@ -229,7 +229,7 @@ object loaddataform: Tloaddataform
     object chkLowPriority: TCheckBox
       Left = 10
       Top = 51
-      Width = 227
+      Width = 196
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Low priority, avoid high server load'
@@ -241,7 +241,7 @@ object loaddataform: Tloaddataform
     object chkLocalNumbers: TCheckBox
       Left = 10
       Top = 70
-      Width = 227
+      Width = 196
       Height = 35
       Anchors = [akLeft, akTop, akRight]
       Caption = 
@@ -253,7 +253,7 @@ object loaddataform: Tloaddataform
     object chkTruncateTable: TCheckBox
       Left = 10
       Top = 108
-      Width = 227
+      Width = 196
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Truncate destination table before import'
@@ -263,7 +263,7 @@ object loaddataform: Tloaddataform
   object grpDuplicates: TRadioGroup
     Left = 8
     Top = 239
-    Width = 240
+    Width = 209
     Height = 123
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Handling of duplicate rows'
@@ -277,7 +277,7 @@ object loaddataform: Tloaddataform
   object grpParseMethod: TRadioGroup
     Left = 8
     Top = 368
-    Width = 240
+    Width = 209
     Height = 87
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Method'
@@ -290,15 +290,15 @@ object loaddataform: Tloaddataform
     OnClick = grpParseMethodClick
   end
   object grpDestination: TGroupBox
-    Left = 254
+    Left = 223
     Top = 239
-    Width = 247
+    Width = 278
     Height = 216
     Anchors = [akTop, akRight, akBottom]
     Caption = 'Destination'
     TabOrder = 5
     DesignSize = (
-      247
+      278
       216)
     object lblDatabase: TLabel
       Left = 10
@@ -322,9 +322,9 @@ object loaddataform: Tloaddataform
       Caption = 'Columns:'
     end
     object comboDatabase: TComboBox
-      Left = 64
+      Left = 112
       Top = 21
-      Width = 173
+      Width = 156
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -332,9 +332,9 @@ object loaddataform: Tloaddataform
       OnChange = comboDatabaseChange
     end
     object comboTable: TComboBox
-      Left = 64
+      Left = 112
       Top = 45
-      Width = 173
+      Width = 156
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -344,7 +344,7 @@ object loaddataform: Tloaddataform
     object chklistColumns: TCheckListBox
       Left = 10
       Top = 91
-      Width = 198
+      Width = 229
       Height = 116
       Anchors = [akLeft, akTop, akRight, akBottom]
       ItemHeight = 13
@@ -352,7 +352,7 @@ object loaddataform: Tloaddataform
       OnClick = chklistColumnsClick
     end
     object ToolBarColMove: TToolBar
-      Left = 214
+      Left = 245
       Top = 91
       Width = 23
       Height = 44
