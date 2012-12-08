@@ -313,11 +313,10 @@ object AboutBox: TAboutBox
   end
   object btnForum: TButton
     Left = 8
-    Top = 312
-    Width = 77
-    Height = 34
+    Top = 321
+    Width = 120
+    Height = 25
     Action = MainForm.actWebForum
-    Anchors = [akRight, akBottom]
     Images = MainForm.ImageListMain
     TabOrder = 2
     WordWrap = True
@@ -354,12 +353,11 @@ object AboutBox: TAboutBox
     TabOrder = 0
   end
   object btnDonate: TButton
-    Left = 91
-    Top = 312
-    Width = 77
-    Height = 34
+    Left = 134
+    Top = 321
+    Width = 120
+    Height = 25
     Hint = 'http://www.heidisql.com/donate.php'
-    Anchors = [akRight, akBottom]
     Caption = 'Donate'
     ImageIndex = 148
     Images = MainForm.ImageListMain

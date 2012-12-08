@@ -54,9 +54,9 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Caption = 'SQL &preview for CREATE DATABASE:'
   end
   object editDBName: TEdit
-    Left = 88
+    Left = 128
     Top = 16
-    Width = 221
+    Width = 181
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
@@ -64,9 +64,9 @@ object CreateDatabaseForm: TCreateDatabaseForm
     OnChange = Modified
   end
   object comboCharset: TComboBox
-    Left = 88
+    Left = 128
     Top = 43
-    Width = 221
+    Width = 181
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
@@ -97,9 +97,9 @@ object CreateDatabaseForm: TCreateDatabaseForm
     TabOrder = 4
   end
   object comboCollation: TComboBox
-    Left = 88
+    Left = 128
     Top = 70
-    Width = 221
+    Width = 181
     Height = 21
     Style = csDropDownList
     TabOrder = 2
@@ -124,6 +124,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Gutter.Font.Name = 'Courier New'
     Gutter.Font.Style = []
     Gutter.Visible = False
+    Gutter.Width = 0
     ReadOnly = True
     RightEdge = 0
     ScrollBars = ssNone

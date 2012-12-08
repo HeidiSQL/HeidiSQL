@@ -57,7 +57,7 @@ type
     btnDeleteUser: TToolButton;
     btnCloneUser: TToolButton;
     lblWarning: TLabel;
-    Label1: TLabel;
+    lblAllowAccessTo: TLabel;
     menuHost: TPopupMenu;
     menuHost1: TMenuItem;
     menuHostLocal4: TMenuItem;
@@ -153,6 +153,7 @@ type
     procedure listUsersHotChange(Sender: TBaseVirtualTree; OldNode, NewNode: PVirtualNode);
     procedure udMaxQueriesClick(Sender: TObject; Button: TUDBtnType);
     procedure comboSSLChange(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
     FUsers: TUserList;
@@ -228,6 +229,13 @@ begin
   AppSettings.WriteInt(asUsermanagerWindowHeight, Height);
   AppSettings.WriteInt(asUsermanagerListWidth, pnlLeft.Width);
   Mainform.SaveListSetup(listUsers);
+end;
+
+
+procedure TUserManagerForm.FormResize(Sender: TObject);
+begin
+  // Manually right align "Add object" button
+  lblAllowAccessTo.Width := pnlRight.Width - btnAddObject.Width;
 end;
 
 
