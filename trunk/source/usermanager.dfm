@@ -23,6 +23,7 @@ object UserManagerForm: TUserManagerForm
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
     484
@@ -196,19 +197,18 @@ object UserManagerForm: TUserManagerForm
       ShowHint = True
       TabOrder = 1
       Wrapable = False
-      object Label1: TLabel
+      object lblAllowAccessTo: TLabel
         Left = 0
         Top = 0
-        Width = 89
+        Width = 121
         Height = 22
-        Alignment = taCenter
         AutoSize = False
         Caption = 'Allow access to:'
         Transparent = False
         Layout = tlCenter
       end
       object btnAddObject: TToolButton
-        Left = 89
+        Left = 121
         Top = 0
         Hint = 'Add object ...'
         Caption = 'Add object'
