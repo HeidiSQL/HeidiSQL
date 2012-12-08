@@ -519,7 +519,10 @@ var
   ProcOrFunc: String;
   i: Integer;
 begin
-  ProcOrFunc := UpperCase(GetFirstWord(comboType.Text));
+  case comboType.ItemIndex of
+    0: ProcOrFunc := 'PROCEDURE';
+    else ProcOrFunc := 'FUNCTION';
+  end;
   Result := 'CREATE ';
   if comboDefiner.Text <> '' then
     Result := Result + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, True, '@')+' ';
