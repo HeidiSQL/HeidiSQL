@@ -158,7 +158,10 @@ begin
   SynMemoBody.Text := 'BEGIN'+CRLF+CRLF+'END';
   if DBObject.Name <> '' then begin
     // Editing existing routine
-    comboType.ItemIndex := ListIndexByRegExpr(comboType.Items, '^'+FAlterRoutineType+'\b');
+    case Obj.NodeType of
+      lntProcedure: comboType.ItemIndex := 0;
+      lntFunction: comboType.ItemIndex := 1;
+    end;
     DBObject.Connection.ParseRoutineStructure(Obj.CreateCode, Parameters, Deterministic, Definer, Returns, DataAccess, Security, Comment, Body);
     comboReturns.Text := Returns;
     chkDeterministic.Checked := Deterministic;
