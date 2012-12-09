@@ -3148,7 +3148,7 @@ begin
   InitSetting(asListColsVisible,                  'ColsVisible_%s',                        0, False, '');
   InitSetting(asListColPositions,                 'ColPositions_%s',                       0, False, '');
   InitSetting(asListColSort,                      'ColSort_%s',                            0, False, '');
-  InitSetting(asSessionFolder,                    'Folder',                                0, False);
+  InitSetting(asSessionFolder,                    'Folder',                                0, False, '', True);
   InitSetting(asRecentFilter,                     '%s',                                    0, False, '', True);
   InitSetting(asDateTimeEditorCursorPos,          'DateTimeEditor_CursorPos_Type%s',       0);
   InitSetting(asAppLanguage,                      'Language',                              0, False, '');
