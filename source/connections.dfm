@@ -747,12 +747,12 @@ object connform: Tconnform
       ShortCut = 46
       OnClick = btnDeleteClick
     end
-    object menuNewSession2: TMenuItem
+    object menuContextNewSessionInFolder: TMenuItem
       Caption = 'New session'
       ImageIndex = 72
       OnClick = btnNewClick
     end
-    object menuNewFolder2: TMenuItem
+    object menuContextNewFolderInFolder: TMenuItem
       Caption = 'New folder'
       ImageIndex = 174
       OnClick = btnNewClick
@@ -774,13 +774,23 @@ object connform: Tconnform
     Images = MainForm.ImageListMain
     Left = 109
     Top = 82
-    object menuNewSession: TMenuItem
-      Caption = 'Session'
+    object menuNewSessionInRoot: TMenuItem
+      Caption = 'Session in root folder'
       ImageIndex = 72
       OnClick = btnNewClick
     end
-    object menuNewFolder: TMenuItem
-      Caption = 'Folder'
+    object menuNewSessionInFolder: TMenuItem
+      Caption = 'Session in selected folder'
+      ImageIndex = 72
+      OnClick = btnNewClick
+    end
+    object menuNewFolderInRoot: TMenuItem
+      Caption = 'Folder in root folder'
+      ImageIndex = 174
+      OnClick = btnNewClick
+    end
+    object menuNewFolderInFolder: TMenuItem
+      Caption = 'Folder in selected folder'
       ImageIndex = 174
       OnClick = btnNewClick
     end
