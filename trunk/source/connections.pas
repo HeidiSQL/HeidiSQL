@@ -86,10 +86,12 @@ type
     timerSettingsImport: TTimer;
     chkLocalTimeZone: TCheckBox;
     popupNew: TPopupMenu;
-    menuNewSession: TMenuItem;
-    menuNewFolder: TMenuItem;
-    menuNewFolder2: TMenuItem;
-    menuNewSession2: TMenuItem;
+    menuNewSessionInRoot: TMenuItem;
+    menuNewFolderInRoot: TMenuItem;
+    menuContextNewFolderInFolder: TMenuItem;
+    menuContextNewSessionInFolder: TMenuItem;
+    menuNewSessionInFolder: TMenuItem;
+    menuNewFolderInFolder: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -390,7 +392,7 @@ end;
 procedure Tconnform.btnNewClick(Sender: TObject);
 var
   i: Integer;
-  CanProceed: Boolean;
+  CanProceed, CreateInRoot: Boolean;
   NewSess: TConnectionParameters;
   ParentSess: PConnectionParameters;
   ParentNode, NewNode: PVirtualNode;
@@ -402,17 +404,22 @@ begin
   if not CanProceed then
     Exit;
 
+  CreateInRoot := (Sender = menuNewSessionInRoot) or (Sender = menuNewFolderInRoot);
   ParentSess := ListSessions.GetNodeData(ListSessions.FocusedNode);
-  if ParentSess = nil then
+  if CreateInRoot then
     ParentNode := nil
-  else if ParentSess.IsFolder then
-    ParentNode := ListSessions.FocusedNode
-  else
-    ParentNode := ListSessions.FocusedNode.Parent;
+  else begin
+    if ParentSess = nil then
+      ParentNode := nil
+    else if ParentSess.IsFolder then
+      ParentNode := ListSessions.FocusedNode
+    else
+      ParentNode := ListSessions.FocusedNode.Parent;
+  end;
   SiblingSessionNames := NodeSessionNames(ParentNode, ParentPath);
 
   NewSess := TConnectionParameters.Create;
-  NewSess.IsFolder := (Sender = menuNewFolder) or (Sender = menuNewFolder2);
+  NewSess.IsFolder := (Sender = menuNewFolderInRoot) or (Sender = menuContextNewFolderInFolder) or (Sender = menuNewFolderInFolder);
   NewSess.SessionPath := ParentPath + 'Unnamed';
   i := 0;
   while SiblingSessionNames.IndexOf(NewSess.SessionName) > -1 do begin
@@ -675,17 +682,19 @@ end;
 procedure Tconnform.ListSessionsFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
-  SessionFocused: Boolean;
+  SessionFocused, InFolder: Boolean;
   Sess: PConnectionParameters;
 begin
   // select one connection!
   Screen.Cursor := crHourglass;
   TimerStatistics.Enabled := False;
   SessionFocused := False;
+  InFolder := False;
   Sess := nil;
   if Assigned(Node) then begin
     Sess := Sender.GetNodeData(Node);
     SessionFocused := not Sess.IsFolder;
+    InFolder := (ListSessions.GetNodeLevel(Node) > 0) or Sess.IsFolder;
   end;
   FLoaded := False;
   tabStart.TabVisible := not SessionFocused;
@@ -693,6 +702,8 @@ begin
   tabSSHtunnel.TabVisible := SessionFocused;
   tabSSLoptions.TabVisible := SessionFocused;
   tabStatistics.TabVisible := SessionFocused;
+  menuNewSessionInFolder.Enabled := InFolder;
+  menuNewFolderInFolder.Enabled := InFolder;
 
   if not SessionFocused then begin
     PageControlDetails.ActivePage := tabStart;
