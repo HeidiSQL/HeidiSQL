@@ -142,6 +142,7 @@ object connform: Tconnform
         WideText = 'Last connect'
       end
       item
+        Alignment = taRightJustify
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 5
         WideText = 'Counter'
