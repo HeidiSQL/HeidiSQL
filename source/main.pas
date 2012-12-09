@@ -4620,12 +4620,15 @@ procedure TMainForm.ListTablesGetImageIndex(Sender: TBaseVirtualTree; Node: PVir
 var
   Obj: PDBObject;
 begin
-  if not (Kind in [ikNormal, ikSelected]) then
-    Exit;
   if Column <> (Sender as TVirtualStringTree).Header.MainColumn then
     Exit;
   Obj := Sender.GetNodeData(Node);
-  ImageIndex := Obj.ImageIndex;
+  case Kind of
+    ikNormal, ikSelected:
+      ImageIndex := Obj.ImageIndex;
+    ikOverlay:
+      ImageIndex := Obj.OverlayImageIndex;
+  end;
 end;
 
 
@@ -6979,13 +6982,7 @@ begin
           );
       end;
     ikOverlay:
-      if DBObj.NodeType = lntNone then begin
-        if not DBObj.Connection.Active then
-          ImageIndex := 158;
-      end else if DBObj.NodeType = lntDb then begin
-        if (DBObj.Database = DBObj.Connection.Database) then
-          ImageIndex := ICONINDEX_HIGHLIGHTMARKER;
-      end;
+      ImageIndex := DBObj.OverlayImageIndex;
   end;
 end;
 
