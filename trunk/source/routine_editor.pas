@@ -458,7 +458,10 @@ var
 begin
   // Save changes
   Result := mrOk;
-  ProcOrFunc := UpperCase(GetFirstWord(comboType.Text));
+  case comboType.ItemIndex of
+    0: ProcOrFunc := 'PROCEDURE';
+    else ProcOrFunc := 'FUNCTION';
+  end;
 
   // There is no way to ALTER parameters or the name of it.
   // Create a temp routine, check for syntax errors, then drop the old routine and create it.
@@ -499,7 +502,7 @@ begin
     // Set editing name if create/alter query was successful
     DBObject.Name := editName.Text;
     DBObject.CreateCode := '';
-    FAlterRoutineType := UpperCase(GetFirstWord(comboType.Text));
+    FAlterRoutineType := ProcOrFunc;
     if FAlterRoutineType = 'PROCEDURE' then DBObject.NodeType := lntProcedure
     else DBObject.NodeType := lntFunction;
     Mainform.UpdateEditorTab;
