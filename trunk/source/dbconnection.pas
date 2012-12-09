@@ -23,6 +23,7 @@ type
       FConnection: TDBConnection;
       function GetObjType: String;
       function GetImageIndex: Integer;
+      function GetOverlayImageIndex: Integer;
       function GetCreateCode: String;
       procedure SetCreateCode(Value: String);
     public
@@ -38,6 +39,7 @@ type
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
+      property OverlayImageIndex: Integer read GetOverlayImageIndex;
       property CreateCode: String read GetCreateCode write SetCreateCode;
       property Connection: TDBConnection read FConnection;
   end;
@@ -4878,6 +4880,41 @@ begin
     lntColumn: Result := ICONINDEX_FIELD;
 
     else Result := -1;
+  end;
+end;
+
+
+function TDBObject.GetOverlayImageIndex: Integer;
+var
+  EngineUpper: String;
+begin
+  // Detect small overlay icon index for specified table engine
+  Result := -1;
+  case NodeType of
+    lntNone: begin
+      if not Connection.Active then
+        Result := 158;
+    end;
+
+    lntDb: begin
+      if Database = Connection.Database then
+        Result := ICONINDEX_HIGHLIGHTMARKER;
+    end;
+
+    lntTable: begin
+      EngineUpper := UpperCase(Engine);
+      if EngineUpper = 'FEDERATED' then
+        Result := 177
+      else if EngineUpper = 'MEMORY' then
+        Result := 178
+      else if EngineUpper = 'ARIA' then
+        Result := 179
+      else if EngineUpper = 'CSV' then
+        Result := 180
+      else if EngineUpper = 'PERFORMANCE_SCHEMA' then
+        Result := 181;
+    end;
+
   end;
 end;
 
