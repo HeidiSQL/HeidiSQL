@@ -288,7 +288,6 @@ type
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   function ComposeOrderClause(Cols: TOrderColArray): String;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
-  function ListIndexByRegExpr(List: TStrings; Expression: String): Integer;
   function FindNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
   procedure SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil); overload;
   procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
@@ -1582,26 +1581,6 @@ begin
     Node.States := Node.States - [vsInitialized];
     Node := Sender.GetNextInitialized(Node);
   end;
-end;
-
-
-function ListIndexByRegExpr(List: TStrings; Expression: String): Integer;
-var
-  rx: TRegExpr;
-  i: Integer;
-begin
-  // Find item in stringlist by passing a regular expression
-  rx := TRegExpr.Create;
-  rx.Expression := Expression;
-  rx.ModifierI := True;
-  Result := -1;
-  for i := 0 to List.Count - 1 do begin
-    if rx.Exec(List[i]) then begin
-      Result := i;
-      break;
-    end;
-  end;
-  FreeAndNil(rx);
 end;
 
 
