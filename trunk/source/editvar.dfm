@@ -105,23 +105,24 @@ object frmEditVariable: TfrmEditVariable
     object lblBoolean: TLabel
       Left = 8
       Top = 105
-      Width = 36
+      Width = 42
       Height = 13
-      Caption = 'Bolean:'
+      Caption = 'Boolean:'
     end
     object radioBooleanOn: TRadioButton
       Left = 88
       Top = 104
-      Width = 48
+      Width = 82
       Height = 17
       Caption = 'On'
       TabOrder = 0
     end
     object radioBooleanOff: TRadioButton
-      Left = 142
+      Left = 176
       Top = 104
-      Width = 113
+      Width = 91
       Height = 17
+      Anchors = [akLeft, akTop, akRight]
       Caption = 'Off'
       TabOrder = 1
     end
