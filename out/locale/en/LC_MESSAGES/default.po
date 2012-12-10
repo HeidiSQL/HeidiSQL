@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2012-12-03 19:26+0100\n"
+"PO-Revision-Date: 2012-12-10 23:21+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -552,6 +552,10 @@ msgstr "Number:"
 #: editvar.dfm:103
 msgid "Enumeration:"
 msgstr "Enumeration:"
+
+#. editvar.dfm
+msgid "Boolean:"
+msgstr "Boolean:"
 
 #. frmEditVariable..gbValue..radioBooleanOn..Caption
 #: editvar.dfm:117
@@ -4012,6 +4016,10 @@ msgstr "Unknown, should never appear"
 #: dbconnection.pas:5316
 msgid "Unsupported type (%d) in %s."
 msgstr "Unsupported type (%d) in %s."
+
+#. editvar.pas
+msgid "\"%s\" is a read only variable, not editable.
+msgstr "\"%s\" is a read only variable, not editable.
 
 #: editvar.pas:90
 msgid "Could not find %s variable in internal mapping."
