@@ -4883,11 +4883,10 @@ var
 
   procedure AddColumns(const LeftToken: String);
   var
-    dbname, tblname, Dummy, AllColumns: String;
+    dbname, tblname, Dummy: String;
     Columns: TTableColumnList;
     Col: TTableColumn;
     Obj: TDBObject;
-    idx: Integer;
   begin
     dbname := '';
     tblname := LeftToken;
@@ -4901,7 +4900,6 @@ var
     dbname := Conn.DeQuoteIdent(dbname);
     tblname := Conn.DeQuoteIdent(tblname);
     DBObjects := Conn.GetDBObjects(dbname);
-    AllColumns := '';
     for Obj in DBObjects do begin
       if Obj.Name = tblname then begin
         Columns := TTableColumnList.Create(True);
@@ -4911,16 +4909,10 @@ var
           lntView:
             Conn.ParseViewStructure(Obj.CreateCode, Obj.Name, Columns, Dummy, Dummy, Dummy, Dummy, Dummy);
         end;
-        idx := Proposal.InsertList.Count;
         for Col in Columns do begin
           Proposal.InsertList.Add(Col.Name);
           Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name]) );
-          AllColumns := AllColumns + Obj.Connection.QuoteIdent(Col.Name, False);
-          if Proposal.ItemList.Count-idx < Columns.Count then
-            AllColumns := AllColumns + ', ' + LeftToken + '.';
         end;
-        Proposal.InsertList.Insert(idx, AllColumns);
-        Proposal.ItemList.Insert(idx, Format(SYNCOMPLETION_PATTERN, [113, '', 'All '+IntToStr(Columns.Count)+' columns']));
         Columns.Free;
         break;
       end;
