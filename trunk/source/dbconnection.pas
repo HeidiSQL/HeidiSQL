@@ -629,7 +629,7 @@ begin
   FHostname := AppSettings.GetDefaultString(asHost);
   FUsername := AppSettings.GetDefaultString(asUser);
   FPassword := '';
-  FPort := AppSettings.GetDefaultInt(asPort);
+  FPort := MakeInt(AppSettings.GetDefaultString(asPort));
   FSSHPlinkExe := AppSettings.ReadString(asPlinkExecutable);
   FSSHPort := AppSettings.GetDefaultInt(asSSHtunnelPort);
   FSSHTimeout := AppSettings.GetDefaultInt(asSSHtunnelTimeout);
