@@ -1484,7 +1484,7 @@ end;
 procedure TDBConnection.KeepAliveTimerEvent(Sender: TObject);
 begin
   // Ping server in intervals, without automatically reconnecting
-  if Active then
+  if Active and (FLockedByThread = nil) then
     Ping(False);
 end;
 
