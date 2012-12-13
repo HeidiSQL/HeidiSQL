@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2012-12-10 23:21+0100\n"
+"PO-Revision-Date: 2012-12-13 21:33+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -4018,8 +4018,8 @@ msgid "Unsupported type (%d) in %s."
 msgstr "Unsupported type (%d) in %s."
 
 #. editvar.pas
-msgid "\"%s\" is a read only variable, not editable.
-msgstr "\"%s\" is a read only variable, not editable.
+msgid "\"%s\" is a read only variable, not editable"
+msgstr "\"%s\" is a read only variable, not editable"
 
 #: editvar.pas:90
 msgid "Could not find %s variable in internal mapping."
@@ -5530,3 +5530,35 @@ msgstr "Yes to all"
 #. Message dialogs
 msgid "Find some help on this error"
 msgstr "Find some help on this error"
+
+#. Table tools
+msgid "Allows the following replacement patterns:"
+msgstr "Allows the following replacement patterns:"
+
+#. Table tools
+msgid "Date and time"
+msgstr "Date and time"
+
+#. Table tools
+msgid "Day of month"
+msgstr "Day of month"
+
+#. Table tools
+msgid "Month"
+msgstr "Month"
+
+#. Table tools
+msgid "Year"
+msgstr "Year"
+
+#. Table tools
+msgid "Hour"
+msgstr "Hour"
+
+#. Table tools
+msgid "Minute"
+msgstr "Minute"
+
+#. Table tools
+msgid "Second"
+msgstr "Second"
