@@ -1385,7 +1385,7 @@ end;
 procedure TMySQLConnection.DoAfterConnect;
 var
   TZI: TTimeZoneInformation;
-  Minutes, Hours: Integer;
+  Minutes, Hours, i: Integer;
   Offset: String;
 begin
   inherited;
@@ -1413,6 +1413,16 @@ begin
     Offset := Offset + Format('%.2d:%.2d', [Abs(Hours), Abs(Minutes)]);
     Query('SET time_zone='+EscapeString(Offset));
   end;
+
+  // Support microseconds in some temporal datatypes of MariaDB 5.3+ and MySQL 5.6
+  if ((ServerVersionInt >= 50300) and Parameters.IsMariaDB) or
+    ((ServerVersionInt >= 50604) and (not Parameters.IsMariaDB)) then begin
+    for i:=Low(FDatatypes) to High(FDatatypes) do begin
+      if FDatatypes[i].Index in [dtDatetime, dtTime, dtTimestamp] then
+        FDatatypes[i].HasLength := True;
+    end;
+  end;
+
 end;
 
 
