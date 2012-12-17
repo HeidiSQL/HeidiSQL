@@ -1601,13 +1601,16 @@ begin
     // Disallow renaming primary key
     if (Column <> 0) or (VT.Text[Node, 1] <> PKEY) then
       Allowed := True
-  end else begin
-    // Column length is allowed for (var)char/text types only, even mandantory for text and blobs
-    IndexedColName := VT.Text[Node, 0];
-    for i:=0 to FColumns.Count-1 do begin
-      if FColumns[i].Name = IndexedColName then begin
-        Allowed := FColumns[i].DataType.Category = dtcText;
-        break;
+  end else case Column of
+    0: Allowed := True;
+    1: begin
+      // Column length is allowed for (var)char/text types only, even mandantory for text and blobs
+      IndexedColName := VT.Text[Node, 0];
+      for i:=0 to FColumns.Count-1 do begin
+        if FColumns[i].Name = IndexedColName then begin
+          Allowed := FColumns[i].DataType.Category = dtcText;
+          break;
+        end;
       end;
     end;
   end;
