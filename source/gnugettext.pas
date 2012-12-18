@@ -1853,6 +1853,18 @@ begin
             end;
           end;
         end { case item };
+      tkClass:
+        begin
+          obj:=GetObjectProp(AnObject, PropName);
+          if obj<>nil then begin
+            if obj is TComponent then begin
+              compmarker := TComponent(obj).FindComponent('GNUgettextMarker');
+              if Assigned(compmarker) then
+                exit;
+            end;
+            TodoList.AddObject ('',obj);
+          end;
+        end { case item };
       end { case };
   except
     on E:Exception do
