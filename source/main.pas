@@ -9576,9 +9576,12 @@ var
   Tab: TQueryTab;
 begin
   Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
-  if (not Tab.Memo.Modified) or (not AppSettings.ReadBool(asPromptSaveFileOnTabClose)) then
-    Result := True
-  else begin
+  if Tab.QueryRunning then begin
+    LogSQL(_('Cannot close tab with running query. Please wait until query has finished.'));
+    Result := False;
+  end else if not Tab.Memo.Modified then begin
+    Result := True;
+  end else begin
     // Unhide tabsheet so the user sees the memo content
     Tab.TabSheet.PageControl.ActivePage := Tab.TabSheet;
     if Tab.MemoFilename <> '' then
