@@ -1328,6 +1328,7 @@ begin
   caption := APPNAME;
 
   TranslateComponent(Self);
+  MainMenu1.Images := ImageListMain;
 
   // Detect version
   dwInfoSize := GetFileVersionInfoSize(PChar(Application.ExeName), dwWnd);
