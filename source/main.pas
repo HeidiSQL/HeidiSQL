@@ -11039,9 +11039,9 @@ begin
         Add(Item);
       except
         on E:Exception do begin
-          MainForm.LogSQL(E.ClassName+': '+E.Message+'  Sessionpath: '+AppSettings.SessionPath+'  Valuename: '+ValueNames[i]+'  Raw: '+Raw, lcError);
+          MainForm.LogSQL(E.ClassName+': '+E.Message+'  Sessionpath: '+AppSettings.SessionPath+'  Valuename: '+ValueNames[i]+'  Raw: '+Raw, lcDebug);
           Item.Free;
-          Continue;
+          Break;
         end;
       end;
     end;
