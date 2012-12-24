@@ -7,7 +7,8 @@ interface
 uses
   Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Mask, DateUtils, Math,
-  dbconnection, mysql_structures, helpers, texteditor, bineditor, gnugettext;
+  dbconnection, mysql_structures, helpers, texteditor, bineditor, gnugettext,
+  StrUtils;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
@@ -33,7 +34,7 @@ type
     FLastKeyDown: Integer;            // Set in OnKeyDown on the editor's main control
     FLastShiftState: TShiftState;
     FOldWindowProc: TWndMethod;       // Temporary switched to TempWindowProc to be able to catch Tab key
-    FFullDatatype: TDBDatatype;
+    FTableColumn: TTableColumn;
     FModified: Boolean;
     FBeginEditTime: Cardinal;
     procedure TempWindowProc(var Message: TMessage);
@@ -42,8 +43,7 @@ type
     procedure DoCancelEdit(Sender: TObject);
     function GetCellRect(InnerTextBounds: Boolean): TRect;
   public
-    Connection: TDBConnection;
-    Datatype: TDBDatatypeIndex;                        // The data type of the cell being edited. Mostly used in data grids.
+    property TableColumn: TTableColumn read FTableColumn write FTableColumn; // The table column of the cell being edited. Mostly used in data grids.
     constructor Create; overload;                    // The original constructor, not used any more, throws an exception if you do
     constructor Create(Tree: TVirtualStringTree); overload; virtual; // The right constructor, we need the Tree reference
     destructor Destroy; override;
@@ -275,7 +275,6 @@ end;
 function TBaseGridEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
   FCellTextBounds: TRect;
-  i: Integer;
 begin
   Result := not FStopping;
   if not Result then
@@ -285,14 +284,8 @@ begin
   FCellFont := TFont.Create;
   FTree.GetTextInfo(FNode, FColumn, FCellFont, FCellTextBounds, FCellText);
   // Not all editors have a connection assigned, e.g. session manager tree
-  if Assigned(Connection) then begin
-    for i:=0 to High(Connection.Datatypes) do begin
-      if Connection.Datatypes[i].Index = Datatype then begin
-        FFullDatatype := Connection.Datatypes[i];
-        break;
-      end;
-    end;
-    FCellFont.Color := DatatypeCategories[FFullDatatype.Category].Color;
+  if Assigned(FTableColumn) then begin
+    FCellFont.Color := DatatypeCategories[FTableColumn.DataType.Category].Color;
   end;
   FCellBackground := FTree.Header.Columns[FColumn].Color;
   if Assigned(FMainControl) then begin
@@ -527,7 +520,7 @@ end;
 
 destructor TDateTimeEditorLink.Destroy;
 begin
-  AppSettings.WriteInt(asDateTimeEditorCursorPos, FMaskEdit.SelStart, IntToStr(Integer(Datatype)));
+  AppSettings.WriteInt(asDateTimeEditorCursorPos, FMaskEdit.SelStart, IntToStr(Integer(FTableColumn.DataType.Category)));
   FreeAndNil(FTimer);
   FreeAndNil(FUpDown);
   FreeAndNil(FMaskEdit);
@@ -543,7 +536,7 @@ begin
     FPanel.Show;
     FMaskEdit.SetFocus;
     // Focus very last segment of date
-    FMaskEdit.SelStart := AppSettings.ReadInt(asDateTimeEditorCursorPos, IntToStr(Integer(Datatype)));
+    FMaskEdit.SelStart := AppSettings.ReadInt(asDateTimeEditorCursorPos, IntToStr(Integer(FTableColumn.DataType.Category)));
     FMaskEdit.SelLength := 1;
   end;
 end;
@@ -557,20 +550,35 @@ end;
 
 function TDateTimeEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
-  MinColWidth: Integer;
+  MinColWidth,
+  MicroSecondsPrecision,
+  ForceTextLen: Integer;
 begin
   Result := inherited PrepareEdit(Tree, Node, Column);
   if not Result then
     Exit;
-  case Datatype of
-    dtDate: FMaskEdit.EditMask := '0000-00-00;1; ';
-    dtDatetime, dtTimestamp: FMaskEdit.EditMask := '0000-00-00 00\:00\:00;1; ';
+  MicroSecondsPrecision := MakeInt(FTableColumn.LengthSet);
+  case FTableColumn.DataType.Index of
+    dtDate:
+      FMaskEdit.EditMask := '0000-00-00;1; ';
+    dtDatetime, dtTimestamp: begin
+        if MicroSecondsPrecision > 0 then
+          FMaskEdit.EditMask := '0000-00-00 00\:00\:00.'+StringOfChar('0', MicroSecondsPrecision)+';1; '
+        else
+          FMaskEdit.EditMask := '0000-00-00 00\:00\:00;1; ';
+      end;
     dtTime: begin
-      FMaskEdit.EditMask := '#900\:00\:00;1; ';
-      while Length(FCellText) < 10 do
-        FCellText := ' ' + FCellText;
-    end;
-    dtYear: FMaskEdit.EditMask := '0000;1; ';
+        ForceTextLen := 10;
+        if MicroSecondsPrecision > 0 then begin
+          FMaskEdit.EditMask := '#900\:00\:00.'+StringOfChar('0', MicroSecondsPrecision)+';1; ';
+          Inc(ForceTextLen, MicroSecondsPrecision + 1);
+        end else
+          FMaskEdit.EditMask := '#900\:00\:00;1; ';
+        while Length(FCellText) < ForceTextLen do
+          FCellText := ' ' + FCellText;
+      end;
+    dtYear:
+      FMaskEdit.EditMask := '0000;1; ';
   end;
   FMaskEdit.Text := FCellText;
   FModified := False;
@@ -669,7 +677,8 @@ var
   d: TDate;
   i, MaxSeconds, MinSeconds: Int64;
   text: String;
-  OldSelStart, OldSelLength: Integer;
+  OldSelStart, OldSelLength,
+  MicroSecondsPrecision, ms, DotPos: Integer;
 
   function TimeToSeconds(Str: String): Int64;
   var
@@ -703,7 +712,14 @@ var
   end;
 begin
   try
-    case Datatype of
+    // Detect microseconds part of value if any
+    MicroSecondsPrecision := MakeInt(FTableColumn.LengthSet);
+    if MicroSecondsPrecision > 0 then begin
+      DotPos := Length(FMaskEdit.Text) - Pos('.', ReverseString(FMaskEdit.Text)) + 2;
+      ms := MakeInt(Copy(FMaskEdit.Text, DotPos, Length(FMaskEdit.Text)));
+    end;
+
+    case FTableColumn.DataType.Index of
       dtYear: begin
         i := MakeInt(FMaskEdit.Text);
         i := i + Offset;
@@ -730,10 +746,13 @@ begin
           11,12: dt := IncHour(dt, Offset);
           14,15: dt := IncMinute(dt, Offset);
           17..19: dt := IncSecond(dt, Offset);
+          20..26: Inc(ms, Offset);
         end;
         text := DateTimeToStr(dt);
         if Length(text) = 10 then
           text := text + ' 00:00:00';
+        if MicroSecondsPrecision > 0 then
+          text := text + '.' + Format('%.'+IntToStr(MicroSecondsPrecision)+'d', [ms]);
       end;
 
       dtTime: begin
@@ -742,6 +761,7 @@ begin
           0..3: Inc(i, Offset*60*60);
           5,6: Inc(i, Offset*60);
           8,9: Inc(i, Offset);
+          10..16: Inc(ms, Offset);
         end;
         // Stop at max and min values. See http://dev.mysql.com/doc/refman/5.0/en/time.html
         MaxSeconds := 839*60*60-1;
@@ -751,6 +771,8 @@ begin
         if i < MinSeconds then
           i := MinSeconds;
         text := SecondsToTime(i);
+        if MicroSecondsPrecision > 0 then
+          text := text + '.' + Format('%.'+IntToStr(MicroSecondsPrecision)+'d', [ms]);
       end;
 
       else text := '';
@@ -1265,9 +1287,9 @@ begin
 
   // Disable non working default options per data type
   // But leave checked option enabled, regardless of if that is a valid default option or not
-  FRadioCurTS.Enabled := FRadioCurTS.Checked or (FFullDataType.Index = dtTimestamp);
+  FRadioCurTS.Enabled := FRadioCurTS.Checked or (FTableColumn.DataType.Index = dtTimestamp);
   FCheckCurTS.Enabled := FCheckCurTS.Checked or FRadioCurTS.Enabled;
-  FRadioAutoInc.Enabled := FRadioAutoInc.Checked or (FFullDataType.Category = dtcInteger);
+  FRadioAutoInc.Enabled := FRadioAutoInc.Checked or (FTableColumn.DataType.Category = dtcInteger);
 
   Result := True;
 end;
@@ -1425,7 +1447,7 @@ begin
   FTreeSelect.Font.Size := FCellFont.Size;
 
   // Find and select current datatype in tree
-  dt := Connection.GetDataTypeByName(FCellText);
+  dt := FTableColumn.Connection.GetDataTypeByName(FCellText);
   CatNode := FTreeSelect.GetFirst;
   while Assigned(CatNode) do begin
     if CatNode.Index = Cardinal(dt.Category) then begin
@@ -1501,8 +1523,8 @@ var
 begin
   // Tell number of datatypes per category
   ChildCount := 0;
-  if Sender.GetNodeLevel(Node) = 0 then for i:=0 to High(Connection.Datatypes) do begin
-    if Connection.Datatypes[i].Category = TDBDatatypeCategoryIndex(Node.Index) then
+  if Sender.GetNodeLevel(Node) = 0 then for i:=0 to High(FTableColumn.Connection.Datatypes) do begin
+    if FTableColumn.Connection.Datatypes[i].Category = TDBDatatypeCategoryIndex(Node.Index) then
       Inc(ChildCount);
   end;
 end;
@@ -1519,11 +1541,11 @@ begin
     0: CellText := DatatypeCategories[TDBDatatypeCategoryIndex(Node.Index)].Name;
     1: begin
          Counter := 0;
-         for i:=0 to High(Connection.Datatypes) do begin
-           if Connection.Datatypes[i].Category = TDBDatatypeCategoryIndex(Node.Parent.Index) then begin
+         for i:=0 to High(FTableColumn.Connection.Datatypes) do begin
+           if FTableColumn.Connection.Datatypes[i].Category = TDBDatatypeCategoryIndex(Node.Parent.Index) then begin
              Inc(Counter);
              if Counter = Node.Index+1 then begin
-               CellText := Connection.Datatypes[i].Name;
+               CellText := FTableColumn.Connection.Datatypes[i].Name;
                break;
              end;
            end;
@@ -1547,7 +1569,7 @@ begin
     FMemoHelp.Width := Min(250, FTreeSelect.Left);
     FMemoHelp.Left := FTreeSelect.Left - FMemoHelp.Width + (Integer(FTreeSelect.Indent) Div 2);
     FMemoHelp.Top := FTreeSelect.Top + R.Top + 3;
-    FMemoHelp.Text := Connection.GetDatatypeByName(NodeText).Description;
+    FMemoHelp.Text := FTableColumn.Connection.GetDatatypeByName(NodeText).Description;
     // Calc height of memo
     bmp := TBitMap.Create;
     bmp.Canvas.Font.Assign(FMemoHelp.Font);

@@ -7916,7 +7916,7 @@ var
   TypeCat: TDBDatatypeCategoryIndex;
   ForeignKey: TForeignKey;
   TblColumn: TTableColumn;
-  idx: Integer;
+  idx, MicroSecondsPrecision: Integer;
   KeyCol, TextCol, SQL, CreateTable, NowText: String;
   Columns: TTableColumnList;
   Keys: TTableKeyList;
@@ -7959,7 +7959,6 @@ begin
       ForeignResults := Conn.GetResults(SQL);
       if ForeignResults.RecordCount < 1000 then begin
         EnumEditor := TEnumEditorLink.Create(VT);
-        EnumEditor.DataType := DataGridResult.DataType(Column).Index;
         EditLink := EnumEditor;
         while not ForeignResults.Eof do begin
           EnumEditor.ValueList.Add(ForeignResults.Col(0));
@@ -7978,7 +7977,6 @@ begin
   FGridEditFunctionMode := FGridEditFunctionMode or Results.IsFunction(Column);
   if FGridEditFunctionMode then begin
     EnumEditor := TEnumEditorLink.Create(VT);
-    EnumEditor.DataType := Results.DataType(Column).Index;
     for idx:=Low(MySQLFunctions) to High(MySQLFunctions) do
       EnumEditor.ValueList.Add(MySQLFunctions[idx].Name + MySQLFunctions[idx].Declaration);
     EnumEditor.AllowCustomText := True;
@@ -7990,18 +7988,15 @@ begin
     // Editor was created above, do nothing now
   else if (Results.DataType(Column).Index = dtEnum) and AppSettings.ReadBool(asFieldEditorEnum) then begin
     EnumEditor := TEnumEditorLink.Create(VT);
-    EnumEditor.DataType := Results.DataType(Column).Index;
     EnumEditor.ValueList := Results.ValueList(Column);
     EditLink := EnumEditor;
   end else if (TypeCat = dtcText) or ((TypeCat in [dtcBinary, dtcSpatial]) and actBlobAsText.Checked) then begin
     InplaceEditor := TInplaceEditorLink.Create(VT);
-    InplaceEditor.DataType := Results.DataType(Column).Index;
     InplaceEditor.MaxLength := Results.MaxLength(Column);
     InplaceEditor.ButtonVisible := True;
     EditLink := InplaceEditor;
   end else if (TypeCat in [dtcBinary, dtcSpatial]) and AppSettings.ReadBool(asFieldEditorBinary) then begin
     HexEditor := THexEditorLink.Create(VT);
-    HexEditor.DataType := Results.DataType(Column).Index;
     HexEditor.MaxLength := Results.MaxLength(Column);
     EditLink := HexEditor;
   end else if (TypeCat = dtcTemporal) and AppSettings.ReadBool(asFieldEditorDatetime) then begin
@@ -8012,23 +8007,23 @@ begin
         dtTime: NowText := TimeToStr(Now);
         else NowText := DateTimeToStr(Now);
       end;
+      MicroSecondsPrecision := MakeInt(Results.ColAttributes(Column).LengthSet);
+      if MicroSecondsPrecision > 0 then
+        NowText := NowText + '.' + StringOfChar('0', MicroSecondsPrecision);
       VT.Text[Node, Column] := NowText;
     end;
     DateTimeEditor := TDateTimeEditorLink.Create(VT);
-    DateTimeEditor.DataType := Results.DataType(Column).Index;
     EditLink := DateTimeEditor;
   end else if (Results.DataType(Column).Index = dtSet) and AppSettings.ReadBool(asFieldEditorSet) then begin
     SetEditor := TSetEditorLink.Create(VT);
-    SetEditor.DataType := Results.DataType(Column).Index;
     SetEditor.ValueList := Results.ValueList(Column);
     EditLink := SetEditor;
   end else begin
     InplaceEditor := TInplaceEditorLink.Create(VT);
-    InplaceEditor.DataType := Results.DataType(Column).Index;
     InplaceEditor.ButtonVisible := False;
     EditLink := InplaceEditor;
   end;
-  TBaseGridEditorLink(EditLink).Connection := Conn;
+  TBaseGridEditorLink(EditLink).TableColumn := Results.ColAttributes(Column);
 end;
 
 

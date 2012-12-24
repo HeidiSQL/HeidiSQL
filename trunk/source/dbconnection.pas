@@ -91,6 +91,7 @@ type
       destructor Destroy; override;
       function SQLCode: String;
       property Status: TEditingStatus read FStatus write SetStatus;
+      property Connection: TDBConnection read FConnection;
   end;
   PTableColumn = ^TTableColumn;
   TTableColumnList = TObjectList<TTableColumn>;
@@ -476,7 +477,6 @@ type
       function GetKeyColumns: TStringList;
       function GetWhereClause: String;
       function GridQuery(QueryType, QueryBody: String): String;
-      function ColAttributes(Column: Integer): TTableColumn;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -496,6 +496,7 @@ type
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; virtual; abstract;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; virtual; abstract;
       function ColIsKeyPart(Column: Integer): Boolean; virtual; abstract;
+      function ColAttributes(Column: Integer): TTableColumn;
       function IsNull(Column: Integer): Boolean; overload; virtual; abstract;
       function IsNull(Column: String): Boolean; overload;
       function IsFunction(Column: Integer): Boolean;
