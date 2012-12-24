@@ -1294,7 +1294,6 @@ begin
   case Column of
     2: begin // Datatype pulldown
       DatatypeEditor := TDatatypeEditorLink.Create(VT);
-      DatatypeEditor.Datatype := Col.DataType.Index;
       EditLink := DataTypeEditor;
       end;
     9: begin // Collation pulldown
@@ -1308,7 +1307,6 @@ begin
       DefaultEditor := TColumnDefaultEditorLink.Create(VT);
       DefaultEditor.DefaultText := Col.DefaultText;
       DefaultEditor.DefaultType := Col.DefaultType;
-      DefaultEditor.DataType := Col.DataType.Index;
       EditLink := DefaultEditor;
     end;
     11: begin // Virtuality pulldown
@@ -1322,7 +1320,7 @@ begin
     else
       EditLink := TInplaceEditorLink.Create(VT);
   end;
-  TBaseGridEditorLink(EditLink).Connection := DBObject.Connection;
+  TBaseGridEditorLink(EditLink).TableColumn := Col^;
 end;
 
 

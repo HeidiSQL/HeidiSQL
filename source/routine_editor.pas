@@ -382,7 +382,6 @@ begin
     EditLink := TStringEditLink.Create
   else if Column = 2 then begin
     EnumEditor := TEnumEditorLink.Create(VT);
-    EnumEditor.Connection := DBObject.Connection;
     EnumEditor.AllowCustomText := True;
     EnumEditor.ValueList := TStringList.Create;
     for DBDatatype in DBObject.Connection.Datatypes do begin
@@ -394,7 +393,6 @@ begin
     EditLink := EnumEditor;
   end else if Column = 3 then begin
     EnumEditor := TEnumEditorLink.Create(VT);
-    EnumEditor.Connection := DBObject.Connection;
     EnumEditor.ValueList := TStringList.Create;
     EnumEditor.ValueList.Add('IN');
     EnumEditor.ValueList.Add('OUT');
