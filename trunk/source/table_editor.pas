@@ -1455,7 +1455,6 @@ end;
 
 procedure TfrmTableEditor.btnClearIndexesClick(Sender: TObject);
 var
-  i: Integer;
   TblKey: TTableKey;
 begin
   // Clear all indexes
@@ -1464,8 +1463,7 @@ begin
     treeIndexes.CancelEditNode;
   // Trigger ValidateIndexControls
   SelectNode(treeIndexes, nil);
-  for i:=0 to FKeys.Count-1 do begin
-    TblKey := TTableKey(FKeys[i]);
+  for TblKey in FKeys do begin
     if not TblKey.Added then
       DeletedKeys.Add(TblKey.OldName);
   end;
