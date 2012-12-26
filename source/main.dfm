@@ -448,6 +448,7 @@ object MainForm: TMainForm
           item
             Alignment = taRightJustify
             MinWidth = 0
+            Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
             Position = 1
             Width = 55
             WideText = 'Size'
@@ -8767,16 +8768,23 @@ object MainForm: TMainForm
       ImageIndex = 88
       OnClick = menuTreeCollapseAllClick
     end
-    object menuGroupObjects: TMenuItem
-      Action = actGroupObjects
-      AutoCheck = True
-    end
-    object menuShowSizeColumn: TMenuItem
-      Caption = 'Display size of objects'
-      OnClick = menuShowSizeColumnClick
-    end
-    object menuSelectBGColor: TMenuItem
-      Action = actSelectTreeBackground
+    object menuTreeOptions: TMenuItem
+      Caption = 'Tree style options'
+      object menuGroupObjects: TMenuItem
+        Action = actGroupObjects
+        AutoCheck = True
+      end
+      object menuShowSizeColumn: TMenuItem
+        Caption = 'Display size of objects'
+        OnClick = menuShowSizeColumnClick
+      end
+      object menuAutoExpand: TMenuItem
+        Caption = 'Auto expand on click'
+        OnClick = menuAutoExpandClick
+      end
+      object menuSelectBGColor: TMenuItem
+        Action = actSelectTreeBackground
+      end
     end
     object menuPrint: TMenuItem
       Action = actPrintList
