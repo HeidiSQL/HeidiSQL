@@ -1668,7 +1668,11 @@ begin
        TblKey := FKeys[Node.Index];
        case Column of
          0: TblKey.Name := NewText;
-         1: TblKey.IndexType := NewText;
+         1: begin
+             TblKey.IndexType := NewText;
+             if NewText = PKEY then
+               TblKey.Name := PKEY;
+           end;
          2: TblKey.Algorithm := NewText;
        end;
        // Needs to be called manually for Name and IndexType properties:
