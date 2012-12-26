@@ -562,6 +562,8 @@ type
     actExplainAnalyzeCurrentQuery: TAction;
     Explaincurrentquery1: TMenuItem;
     Explainanalyzerforcurrentquery1: TMenuItem;
+    menuAutoExpand: TMenuItem;
+    menuTreeOptions: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -888,6 +890,7 @@ type
     procedure popupSqlLogPopup(Sender: TObject);
     procedure actExplainAnalyzeCurrentQueryExecute(Sender: TObject);
     procedure menuQueryExplainClick(Sender: TObject);
+    procedure menuAutoExpandClick(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -1531,11 +1534,10 @@ begin
 
   // Database tree options
   actGroupObjects.Checked := AppSettings.ReadBool(asGroupTreeObjects);
-  menuShowSizeColumn.Checked := AppSettings.ReadBool(asDisplayObjectSizeColumn);
-  if menuShowSizeColumn.Checked then
-    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible]
-  else
-    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options - [coVisible];
+  if AppSettings.ReadBool(asDisplayObjectSizeColumn) then
+    menuShowSizeColumn.Click;
+  if AppSettings.ReadBool(asAutoExpand) then
+    menuAutoExpand.Click;
 
   // Restore width of columns of all VirtualTrees
   RestoreListSetup(ListDatabases);
@@ -5607,12 +5609,10 @@ begin
     actEmptyTables.Enabled := Obj.NodeType in [lntTable, lntView];
     actRunRoutines.Enabled := Obj.NodeType in [lntProcedure, lntFunction];
     menuEditObject.Enabled := IsDbOrObject;
-    // Show certain items which are valid only here
-    menuTreeExpandAll.Visible := True;
-    menuTreeCollapseAll.Visible := True;
-    actGroupObjects.Visible := True;
-    menuShowSizeColumn.Visible := True;
-    actSelectTreeBackground.Visible := True;
+    // Enable certain items which are valid only here
+    menuTreeExpandAll.Enabled := True;
+    menuTreeCollapseAll.Enabled := True;
+    menuTreeOptions.Enabled := True;
   end else begin
     HasFocus := Assigned(ListTables.FocusedNode);
     actCreateDatabase.Enabled := False;
@@ -5630,11 +5630,9 @@ begin
       Obj := ListTables.GetNodeData(ListTables.FocusedNode);
       actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
     end;
-    menuTreeExpandAll.Visible := False;
-    menuTreeCollapseAll.Visible := False;
-    actGroupObjects.Visible := False;
-    menuShowSizeColumn.Visible := False;
-    actSelectTreeBackground.Visible := False;
+    menuTreeExpandAll.Enabled := False;
+    menuTreeCollapseAll.Enabled := False;
+    menuTreeOptions.Enabled := False;
   end;
   actCreateView.Enabled := actCreateView.Enabled and (ActiveConnection.ServerVersionInt >= 50001);
   actCreateRoutine.Enabled := actCreateRoutine.Enabled and (ActiveConnection.ServerVersionInt >= 50003);
@@ -8029,16 +8027,32 @@ end;
 
 procedure TMainForm.menuShowSizeColumnClick(Sender: TObject);
 var
-  NewVal: Boolean;
+  Item: TMenuItem;
 begin
-  NewVal := not TMenuItem(Sender).Checked;
-  TMenuItem(Sender).Checked := newVal;
-  if NewVal then
-    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible]
+  if coVisible in DBtree.Header.Columns[1].Options then
+    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options - [coVisible]
   else
-    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options - [coVisible];
+    DBtree.Header.Columns[1].Options := DBtree.Header.Columns[1].Options + [coVisible];
+  Item := Sender as TMenuItem;
+  Item.Checked := coVisible in DBtree.Header.Columns[1].Options;
   AppSettings.ResetPath;
-  AppSettings.WriteBool(asDisplayObjectSizeColumn, NewVal);
+  AppSettings.WriteBool(asDisplayObjectSizeColumn, Item.Checked);
+end;
+
+
+procedure TMainForm.menuAutoExpandClick(Sender: TObject);
+var
+  Item: TMenuItem;
+begin
+  // Activate expand on click tree feature
+  if toAutoExpand in DBtree.TreeOptions.AutoOptions then
+    DBtree.TreeOptions.AutoOptions := DBtree.TreeOptions.AutoOptions - [toAutoExpand]
+  else
+    DBtree.TreeOptions.AutoOptions := DBtree.TreeOptions.AutoOptions + [toAutoExpand];
+  Item := Sender as TMenuItem;
+  Item.Checked := toAutoExpand in DBtree.TreeOptions.AutoOptions;
+  AppSettings.ResetPath;
+  AppSettings.WriteBool(asAutoExpand, Item.Checked);
 end;
 
 
