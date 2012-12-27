@@ -2830,7 +2830,7 @@ begin
             p := p + ' --ssl --ssl-key="'+Conn.Parameters.SSLPrivateKey+'" --ssl-cert="'+Conn.Parameters.SSLCertificate+'" --ssl-ca="'+Conn.Parameters.SSLCACertificate+'"';
         end;
         ntMySQL_NamedPipe:
-          p := p + ' --protocol=socket --socket="'+Conn.Parameters.Hostname+'"';
+          p := p + ' --pipe --socket="'+Conn.Parameters.Hostname+'"';
         ntMySQL_SSHtunnel:
           p := p + ' --host="localhost" --port='+IntToStr(Conn.Parameters.SSHLocalPort);
       end;
