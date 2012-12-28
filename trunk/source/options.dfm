@@ -513,16 +513,16 @@ object optionsform: Toptionsform
       object chkSQLBold: TCheckBox
         Left = 8
         Top = 35
-        Width = 57
+        Width = 89
         Height = 17
         Caption = 'Bold'
         TabOrder = 1
         OnClick = SQLFontChange
       end
       object chkSQLItalic: TCheckBox
-        Left = 71
+        Left = 103
         Top = 35
-        Width = 91
+        Width = 116
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Italic'
@@ -530,9 +530,9 @@ object optionsform: Toptionsform
         OnClick = SQLFontChange
       end
       object comboSQLColElement: TComboBox
-        Left = 64
+        Left = 72
         Top = 8
-        Width = 155
+        Width = 147
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
