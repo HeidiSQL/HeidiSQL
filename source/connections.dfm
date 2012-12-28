@@ -219,14 +219,6 @@ object connform: Tconnform
       DesignSize = (
         295
         287)
-      object lblStartupScript: TLabel
-        Left = 3
-        Top = 264
-        Width = 69
-        Height = 13
-        Caption = 'Startup script:'
-        FocusControl = editStartupScript
-      end
       object lblPort: TLabel
         Left = 3
         Top = 168
@@ -268,24 +260,10 @@ object connform: Tconnform
       end
       object lblDatabase: TLabel
         Left = 3
-        Top = 239
+        Top = 216
         Width = 55
         Height = 13
         Caption = 'Databases:'
-      end
-      object editStartupScript: TButtonedEdit
-        Left = 120
-        Top = 261
-        Width = 172
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 51
-        RightButton.Visible = True
-        TabOrder = 11
-        OnChange = Modification
-        OnDblClick = PickFile
-        OnRightButtonClick = PickFile
       end
       object chkCompressed: TCheckBox
         Left = 120
@@ -364,11 +342,11 @@ object connform: Tconnform
       end
       object comboDatabases: TComboBox
         Left = 120
-        Top = 236
+        Top = 213
         Width = 172
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 10
+        TabOrder = 9
         TextHint = 'Separated by semicolon'
         OnChange = Modification
         OnDropDown = comboDatabasesDropDown
@@ -393,19 +371,6 @@ object connform: Tconnform
         Enabled = False
         TabOrder = 3
         OnClick = chkLoginPromptClick
-      end
-      object chkLocalTimeZone: TCheckBox
-        Left = 120
-        Top = 213
-        Width = 172
-        Height = 17
-        Hint = 
-          'Use your client time zone in date/time SQL functions, e.g. NOW()' +
-          ', for MySQL 4.1.3+'
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Set client time zone'
-        TabOrder = 9
-        OnClick = Modification
       end
     end
     object tabSSHtunnel: TTabSheet
@@ -590,9 +555,9 @@ object connform: Tconnform
         Wrap = True
       end
     end
-    object tabSSLOptions: TTabSheet
-      Caption = 'SSL options'
-      ImageIndex = 144
+    object tabAdvanced: TTabSheet
+      Caption = 'Advanced'
+      ImageIndex = 98
       DesignSize = (
         295
         287)
@@ -619,6 +584,14 @@ object connform: Tconnform
         Height = 13
         Caption = 'SSL certificate:'
         FocusControl = editSSLCertificate
+      end
+      object lblStartupScript: TLabel
+        Left = 3
+        Top = 156
+        Width = 69
+        Height = 13
+        Caption = 'Startup script:'
+        FocusControl = editStartupScript
       end
       object editSSLPrivateKey: TButtonedEdit
         Left = 120
@@ -671,6 +644,33 @@ object connform: Tconnform
         Caption = 'Use SSL'
         TabOrder = 0
         OnClick = Modification
+      end
+      object chkLocalTimeZone: TCheckBox
+        Left = 120
+        Top = 130
+        Width = 172
+        Height = 17
+        Hint = 
+          'Use your client time zone in date/time SQL functions, e.g. NOW()' +
+          ', for MySQL 4.1.3+'
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Set client time zone'
+        TabOrder = 4
+        OnClick = Modification
+      end
+      object editStartupScript: TButtonedEdit
+        Left = 120
+        Top = 153
+        Width = 172
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.ImageListMain
+        RightButton.ImageIndex = 51
+        RightButton.Visible = True
+        TabOrder = 5
+        OnChange = Modification
+        OnDblClick = PickFile
+        OnRightButtonClick = PickFile
       end
     end
     object tabStatistics: TTabSheet

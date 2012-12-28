@@ -28,20 +28,18 @@ type
     TimerStatistics: TTimer;
     PageControlDetails: TPageControl;
     tabSettings: TTabSheet;
-    lblStartupScript: TLabel;
     lblPort: TLabel;
     lblPassword: TLabel;
     lblHost: TLabel;
     lblUsername: TLabel;
     lblNetworkType: TLabel;
-    editStartupScript: TButtonedEdit;
     chkCompressed: TCheckBox;
     editPort: TEdit;
     updownPort: TUpDown;
     editPassword: TEdit;
     editUsername: TEdit;
     editHost: TEdit;
-    tabSSLOptions: TTabSheet;
+    tabAdvanced: TTabSheet;
     lblSSLPrivateKey: TLabel;
     lblSSLCACertificate: TLabel;
     lblSSLCertificate: TLabel;
@@ -84,7 +82,6 @@ type
     chkWantSSL: TCheckBox;
     btnImportSettings: TButton;
     timerSettingsImport: TTimer;
-    chkLocalTimeZone: TCheckBox;
     popupNew: TPopupMenu;
     menuNewSessionInRoot: TMenuItem;
     menuNewFolderInRoot: TMenuItem;
@@ -92,6 +89,9 @@ type
     menuContextNewSessionInFolder: TMenuItem;
     menuNewSessionInFolder: TMenuItem;
     menuNewFolderInFolder: TMenuItem;
+    chkLocalTimeZone: TCheckBox;
+    editStartupScript: TButtonedEdit;
+    lblStartupScript: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -700,7 +700,7 @@ begin
   tabStart.TabVisible := not SessionFocused;
   tabSettings.TabVisible := SessionFocused;
   tabSSHtunnel.TabVisible := SessionFocused;
-  tabSSLoptions.TabVisible := SessionFocused;
+  tabAdvanced.TabVisible := SessionFocused;
   tabStatistics.TabVisible := SessionFocused;
   menuNewSessionInFolder.Enabled := InFolder;
   menuNewFolderInFolder.Enabled := InFolder;
@@ -999,7 +999,7 @@ begin
         lblPort.Enabled := False; // Named instance without port
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
-      tabSSLoptions.TabVisible := Params.NetType = ntMySQL_TCPIP;
+      chkWantSSL.Enabled := Params.NetType = ntMySQL_TCPIP;
       lblSSLPrivateKey.Enabled := Params.WantSSL;
       editSSLPrivateKey.Enabled := Params.WantSSL;
       lblSSLCACertificate.Enabled := Params.WantSSL;
