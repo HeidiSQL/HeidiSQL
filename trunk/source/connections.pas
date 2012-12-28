@@ -1048,7 +1048,7 @@ begin
   Selector := TOpenDialog.Create(Self);
   Selector.FileName := editStartupScript.Text;
   if Edit = editStartupScript then
-    Selector.Filter := _('SQL-files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
+    Selector.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
   else if Edit = editSSHPlinkExe then
     Selector.Filter := _('Executables')+' (*.exe)|*.exe|'+_('All files')+' (*.*)|*.*'
   else if Edit = editSSHPrivateKey then
