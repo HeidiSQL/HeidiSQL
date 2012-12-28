@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2012-12-26 20:20+0100\n"
+"PO-Revision-Date: 2012-12-28 21:16+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -5576,3 +5576,7 @@ msgstr "Tree style options"
 #. Tree context menu
 msgid "Auto expand on click"
 msgstr "Auto expand on click"
+
+#. Session manager
+msgid "Advanced"
+msgstr "Advanced"
