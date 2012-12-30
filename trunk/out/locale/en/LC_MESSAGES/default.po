@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2012-12-28 21:16+0100\n"
+"PO-Revision-Date: 2012-12-30 10:40+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -5580,3 +5580,19 @@ msgstr "Auto expand on click"
 #. Session manager
 msgid "Advanced"
 msgstr "Advanced"
+
+#. Session manager
+msgid "Session in root folder"
+msgstr "Session in root folder"
+
+#. Session manager
+msgid "Session in selected folder"
+msgstr "Session in selected folder"
+
+#. Session manager
+msgid "Folder in root folder"
+msgstr "Folder in root folder"
+
+#. Session manager
+msgid "Folder in selected folder"
+msgstr "Folder in selected folder"
