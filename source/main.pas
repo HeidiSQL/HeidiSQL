@@ -1330,6 +1330,11 @@ var
 begin
   caption := APPNAME;
 
+  // First time translation via dxgettext.
+  // Issue #3064: Ignore TFont, so "Default" on mainform for WinXP users does not get broken.
+  // Issue #557: Apply images *after* translating main menu, so top items don't get unused
+  // space left besides them.
+  TP_GlobalIgnoreClass(TFont);
   TranslateComponent(Self);
   MainMenu1.Images := ImageListMain;
 
