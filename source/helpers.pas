@@ -172,7 +172,7 @@ type
     asFieldEditorSet, asFieldNullBackground, asGroupTreeObjects, asDisplayObjectSizeColumn, asSQLfile,
     asActionShortcut1, asActionShortcut2, asHighlighterForeground, asHighlighterBackground, asHighlighterStyle,
     asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
-    asRecentFilter, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand);
+    asRecentFilter, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asUnused);
   TAppSetting = record
     Name: String;
     Session: Boolean;
@@ -316,7 +316,7 @@ type
   function IsEmpty(Str: String): Boolean;
   function IsNotEmpty(Str: String): Boolean;
   function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
-  function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
+  function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused): Integer; overload;
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
@@ -2397,13 +2397,14 @@ begin
 end;
 
 
-function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer;
+function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused): Integer;
 var
   m: String;
   Dialog: TTaskDialog;
   Btn: TTaskDialogButtonItem;
   MsgButton: TMsgDlgBtn;
   rx: TRegExpr;
+  KeepAskingValue: Boolean;
 
   procedure AddButton(BtnCaption: String; BtnResult: TModalResult);
   begin
@@ -2413,7 +2414,13 @@ var
   end;
 begin
   if (Win32MajorVersion >= 6) and ThemeServices.ThemesEnabled then begin
+    // Use modern task dialog on Vista and above
     Dialog := TTaskDialog.Create(nil);
+    Dialog.Flags := [tfEnableHyperlinks, tfAllowDialogCancellation];
+    Dialog.CommonButtons := [];
+    Dialog.OnHyperlinkClicked := MainForm.TaskDialogHyperLinkClicked;
+
+    // Caption, title and text
     case DlgType of
       mtWarning: Dialog.Caption := _('Warning');
       mtError: Dialog.Caption := _('Error');
@@ -2426,9 +2433,8 @@ begin
     rx.Expression := 'https?\:\/\/\S+';
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
     rx.Free;
-    Dialog.Flags := [tfEnableHyperlinks, tfAllowDialogCancellation];
-    Dialog.CommonButtons := [];
-    Dialog.OnHyperlinkClicked := MainForm.TaskDialogHyperLinkClicked;
+
+    // Main icon, and footer link
     case DlgType of
       mtWarning:      Dialog.MainIcon := tdiWarning;
       mtError: begin
@@ -2440,6 +2446,8 @@ begin
       mtConfirmation: Dialog.MainIcon := tdiInformation;
       else            Dialog.MainIcon := tdiNone;
     end;
+
+    // Add buttons
     for MsgButton in Buttons do begin
       case MsgButton of
         mbYes:       AddButton('Yes', mrYes);
@@ -2455,10 +2463,29 @@ begin
         mbClose:     AddButton('Close', mrClose);
       end;
     end;
-    Dialog.Execute;
-    Result := Dialog.ModalResult;
+
+    // Checkbox, s'il vous plait?
+    KeepAskingValue := True;
+    if KeepAskingSetting <> asUnused then begin
+      if not (mbNo in Buttons) then
+        raise Exception.CreateFmt(_('Missing "No" button in %() call'), ['MessageDialog']);
+      KeepAskingValue := AppSettings.ReadBool(KeepAskingSetting);
+      Dialog.Flags := Dialog.Flags + [tfVerificationFlagChecked];
+      Dialog.VerificationText := _('Keep asking this question.');
+    end;
+
+    // Supress dialog and assume "No" if user disabled this dialog
+    if KeepAskingValue then begin
+      Dialog.Execute;
+      Result := Dialog.ModalResult;
+      if (KeepAskingSetting <> asUnused) and (not (tfVerificationFlagChecked in Dialog.Flags)) then
+        AppSettings.WriteBool(KeepAskingSetting, False);
+    end else
+      Result := mrNo;
+
     Dialog.Free;
   end else begin
+    // Backwards compatible dialog on Windows XP
     m := Msg;
     if Title <> '' then
       m := Title + CRLF + CRLF + m;

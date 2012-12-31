@@ -9603,7 +9603,7 @@ begin
       msg := f_('Save changes to file %s ?', [Tab.MemoFilename])
     else
       msg := f_('Save content of tab "%s"?', [Trim(Tab.TabSheet.Caption)]);
-    case MessageDialog(_('Modified query'), msg, mtConfirmation, [mbYes, mbNo, mbCancel]) of
+    case MessageDialog(_('Modified query'), msg, mtConfirmation, [mbYes, mbNo, mbCancel], asPromptSaveFileOnTabClose) of
       mrNo: Result := True;
       mrYes: begin
         if Tab.MemoFilename <> '' then
