@@ -2629,7 +2629,7 @@ begin
       BatchStartOffset := FBatch[i].LeftOffset;
       while i < FBatch.Count do begin
         PacketSize := FBatch[i].RightOffset - BatchStartOffset + ((i-FBatchPosition) * 20);
-        if PacketSize >= MaxAllowedPacket then begin
+        if (PacketSize >= MaxAllowedPacket) and (SQL <> '') then begin
           // TODO: Log('Limiting batch packet size to '+FormatByteNumber(Length(SQL))+' with '+FormatNumber(i-FUserQueryOffset)+' queries.', lcDebug);
           break;
         end;
