@@ -801,7 +801,11 @@ end;
 function DirnameSnippets: String;
 begin
   // Folder for snippets
-  Result := DirnameCommonAppData + 'Snippets\'
+  if AppSettings.PortableMode then
+    Result := ExtractFilePath(ParamStr(0))
+  else
+    Result := DirnameCommonAppData;
+  Result := Result + 'Snippets\';
 end;
 
 
