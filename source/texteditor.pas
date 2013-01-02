@@ -164,6 +164,10 @@ procedure TfrmTextEditor.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
   TranslateComponent(Self);
+  // Work around broken dropdown toolbutton after translation:
+  // https://sourceforge.net/tracker/index.php?func=detail&aid=902470&group_id=74086&atid=539908
+  btnLinebreaks.Style := tbsButton;
+  btnLinebreaks.Style := tbsDropDown;
 end;
 
 
