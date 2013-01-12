@@ -100,6 +100,7 @@ contains
   SynHighlighterModelica in '..\..\Source\SynHighlighterModelica.pas',
   SynHighlighterMsg in '..\..\Source\SynHighlighterMsg.pas',
   SynHighlighterMulti in '..\..\Source\SynHighlighterMulti.pas',
+  SynEditHighlighterOptions in '..\..\Source\SynEditHighlighterOptions.pas',
   SynHighlighterPas in '..\..\Source\SynHighlighterPas.pas',
   SynHighlighterPerl in '..\..\Source\SynHighlighterPerl.pas',
   SynHighlighterPHP in '..\..\Source\SynHighlighterPHP.pas',

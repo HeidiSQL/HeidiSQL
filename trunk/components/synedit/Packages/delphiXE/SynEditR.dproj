@@ -1,4 +1,4 @@
-﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 		<PropertyGroup>
 			<ProjectGuid>{3989c409-0738-47b7-a024-aa0e95cac986}</ProjectGuid>
 			<MainSource>SynEditR.dpk</MainSource>
@@ -204,6 +204,7 @@
 			<DCCReference Include="..\..\Source\SynHighlighterModelica.pas"/>
 			<DCCReference Include="..\..\Source\SynHighlighterMsg.pas"/>
 			<DCCReference Include="..\..\Source\SynHighlighterMulti.pas"/>
+			<DCCReference Include="..\..\Source\SynEditHighlighterOptions.pas"/>
 			<DCCReference Include="..\..\Source\SynHighlighterPas.pas"/>
 			<DCCReference Include="..\..\Source\SynHighlighterPerl.pas"/>
 			<DCCReference Include="..\..\Source\SynHighlighterPHP.pas"/>
@@ -230,6 +231,7 @@
 			<DCCReference Include="..\..\Source\SynHighlighterURI.pas"/>
 			<DCCReference Include="..\..\Source\SynURIOpener.pas"/>
 			<DCCReference Include="..\..\Source\SynHighlighterDOT.pas"/>
+			<DCCReference Include="..\..\Source\SynHighlighterDWS.pas"/>
 			<DCCReference Include="..\..\Source\SynHighlighterVrml97.pas"/>
 			<DCCReference Include="..\..\Source\SynHighlighterEiffel.pas"/>
 			<DCCReference Include="..\..\Source\SynUnicode.pas"/>
