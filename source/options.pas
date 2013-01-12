@@ -155,6 +155,7 @@ type
     procedure comboGridTextColorsSelect(Sender: TObject);
     procedure colorBoxGridTextColorsSelect(Sender: TObject);
     procedure editMySQLBinariesRightButtonClick(Sender: TObject);
+    procedure editGridRowCountExit(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -524,6 +525,18 @@ procedure Toptionsform.anyUpDownLimitChanging(Sender: TObject;
   var AllowChange: Boolean);
 begin
   Modified(Sender);
+end;
+
+
+procedure Toptionsform.editGridRowCountExit(Sender: TObject);
+var
+  Edit: TEdit;
+begin
+  // Row count step and maximum shall never be "0", to avoid problems in
+  // data grids. See issue #3080.
+  Edit := Sender as TEdit;
+  if MakeInt(Edit.Text) <= 0 then
+    Edit.Text := '1';
 end;
 
 
