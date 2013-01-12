@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEdit.pas,v 1.32 2012/01/05 15:30:39 Egg Exp $
+$Id: SynEdit.pas,v 1.32.1 2012/19/09 10:50:00 CodehunterWorks Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -217,6 +217,8 @@ type
 
   TSynEditorOptions = set of TSynEditorOption;
 
+  TSynFontSmoothMethod = (fsmNone, fsmAntiAlias, fsmClearType);
+
 const
   SYNEDIT_DEFAULT_OPTIONS = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey,
     eoScrollPastEol, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces,
@@ -392,6 +394,7 @@ type
     fCharsInWindow: Integer;
     fCharWidth: Integer;
     fFontDummy: TFont;
+    fFontSmoothing: TSynFontSmoothMethod;
     fInserting: Boolean;
     fLines: TUnicodeStrings;
     fOrigLines: TUnicodeStrings;
@@ -415,7 +418,7 @@ type
     fActiveLineColor: TColor;
     fUndoList: TSynEditUndoList;
     fRedoList: TSynEditUndoList;
-    fBookMarks: array[0..9] of TSynEditMark; // these are just references, fMarkList is the owner 
+    fBookMarks: array[0..9] of TSynEditMark; // these are just references, fMarkList is the owner
     fMouseDownX: Integer;
     fMouseDownY: Integer;
     fBookMarkOpt: TSynBookMarkOpt;
@@ -517,8 +520,6 @@ type
     procedure BookMarkOptionsChanged(Sender: TObject);
     procedure ComputeCaret(X, Y: Integer);
     procedure ComputeScroll(X, Y: Integer);
-    procedure DoBlockIndent;
-    procedure DoBlockUnindent;
     procedure DoHomeKey(Selection:boolean);
     procedure DoEndKey(Selection: Boolean);
     procedure DoLinesDeleted(FirstLine, Count: integer);
@@ -552,7 +553,6 @@ type
     function GetWordAtMouse: UnicodeString;
     function GetWordWrap: Boolean;
     procedure GutterChanged(Sender: TObject);
-    procedure InsertBlock(const BB, BE: TBufferCoord; ChangeStr: PWideChar; AddToUndoList: Boolean);
     function LeftSpaces(const Line: UnicodeString): Integer;
     function LeftSpacesEx(const Line: UnicodeString; WantTabs: Boolean): Integer;
     function GetLeftSpacing(CharCount: Integer; WantTabs: Boolean): UnicodeString;
@@ -626,7 +626,7 @@ type
     procedure FindDialogFindFirst(Sender: TObject);
     procedure FindDialogFind(Sender: TObject);
     function SearchByFindDialog(FindDialog: TFindDialog) : bool;
-    procedure FindDialogClose(Sender: TObject);                                 
+    procedure FindDialogClose(Sender: TObject);
 {$ENDIF}
   protected
     FIgnoreNextChar: Boolean;
@@ -702,6 +702,7 @@ type
     procedure InternalSetCaretXY(const Value: TBufferCoord); virtual;
     procedure SetCaretXY(const Value: TBufferCoord); virtual;
     procedure SetCaretXYEx(CallEnsureCursorPos: Boolean; Value: TBufferCoord); virtual;
+    procedure SetFontSmoothing(AValue: TSynFontSmoothMethod);
     procedure SetName(const Value: TComponentName); override;
     procedure SetReadOnly(Value: boolean); virtual;
     procedure SetWantReturns(Value: Boolean);
@@ -752,6 +753,7 @@ type
     property InternalCaretX: Integer write InternalSetCaretX;
     property InternalCaretY: Integer write InternalSetCaretY;
     property InternalCaretXY: TBufferCoord write InternalSetCaretXY;
+    property FontSmoothing: TSynFontSmoothMethod read fFontSmoothing write SetFontSmoothing;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -810,6 +812,14 @@ type
     function IsIdentChar(AChar: WideChar): Boolean; virtual;
     function IsWhiteChar(AChar: WideChar): Boolean; virtual;
     function IsWordBreakChar(AChar: WideChar): Boolean; virtual;
+
+    // Codehunter patch: Make InsertBlock, DoBlockIndent, DoBlockUnindent public
+    procedure InsertBlock(const BB, BE: TBufferCoord; ChangeStr: PWideChar; AddToUndoList: Boolean);
+    // Codehunter patch: Added UnifiedSelection
+    function UnifiedSelection: TBufferBlock;
+    procedure DoBlockIndent;
+    procedure DoBlockUnindent;
+
     procedure InvalidateGutter;
     procedure InvalidateGutterLine(aLine: integer);
     procedure InvalidateGutterLines(FirstLine, LastLine: integer);
@@ -1122,6 +1132,8 @@ type
     property OnSpecialLineColors;
     property OnStatusChange;
     property OnPaintTransient;
+
+    property FontSmoothing;
   end;
 
 implementation
@@ -1601,7 +1613,7 @@ begin
   inherited Destroy;
 
   // free listeners while other fields are still valid
-  
+
   // do not use FreeAndNil, it first nils and then freey causing problems with
   // code accessing fHookedCommandHandlers while destruction
   fHookedCommandHandlers.Free;
@@ -1610,7 +1622,7 @@ begin
   // code accessing fPlugins while destruction
   fPlugins.Free;
   fPlugins := nil;
-   
+
   fMarkList.Free;
   fBookMarkOpt.Free;
   fKeyStrokes.Free;
@@ -4255,6 +4267,31 @@ begin
     Lines[CaretY - 1] := Value;
 end;
 
+procedure TCustomSynEdit.SetFontSmoothing(AValue: TSynFontSmoothMethod);
+const
+  NONANTIALIASED_QUALITY = 3;
+  ANTIALIASED_QUALITY    = 4;
+  CLEARTYPE_QUALITY      = 5;
+var
+  bMethod: Byte;
+  lf: TLogFont;
+begin
+  if fFontSmoothing <> AValue then begin
+    fFontSmoothing:= AValue;
+    case fFontSmoothing of
+      fsmAntiAlias:
+        bMethod:= ANTIALIASED_QUALITY;
+      fsmClearType:
+        bMethod:= CLEARTYPE_QUALITY;
+      else // fsmNone also
+        bMethod:= NONANTIALIASED_QUALITY;
+    end;
+    GetObject(Font.Handle, SizeOf(TLogFont), @lf);
+    lf.lfQuality:= bMethod;
+    Font.Handle:= CreateFontIndirect(lf);
+  end;
+end;
+
 procedure TCustomSynEdit.SetName(const Value: TComponentName);
 var
   TextToName: Boolean;
@@ -4646,7 +4683,7 @@ begin
 {$ENDIF}
     else
       Invalidate;
-      
+
     UpdateWindow(Handle);
     UpdateScrollBars;
     StatusChanged([scTopLine]);
@@ -4974,7 +5011,7 @@ var
 begin
   Result := inherited DoMouseWheel(Shift, WheelDelta, MousePos);
   if Result then
-    Exit;  
+    Exit;
 {$IFDEF SYN_CLX}
   if ssCtrl in Application.KeyState then
 {$ELSE}
@@ -8253,6 +8290,25 @@ begin
   fRedoList.Unlock;
 end;
 
+function TCustomSynEdit.UnifiedSelection: TBufferBlock;
+begin
+  if BlockBegin.Line > BlockEnd.Line then begin
+    result.BeginLine:= BlockEnd.Line;
+    result.EndLine:= BlockBegin.Line;
+  end else begin
+    result.BeginLine:= BlockBegin.Line;
+    result.EndLine:= BlockEnd.Line;
+  end;
+  if BlockBegin.Char > BlockEnd.Char then begin
+    result.BeginChar:= BlockEnd.Char;
+    result.EndChar:= BlockBegin.Char;
+  end else begin
+    result.BeginChar:= BlockBegin.Char;
+    result.EndChar:= BlockEnd.Char;
+  end;
+end;
+
+
 {$IFNDEF SYN_COMPILER_6_UP}
 procedure TCustomSynEdit.WMMouseWheel(var Msg: TMessage);
 var
@@ -8268,7 +8324,7 @@ const
 begin
   if csDesigning in ComponentState then
     exit;
-    
+
 	Msg.Result := 1;
 
 {$IFDEF SYN_COMPILER_4_UP}
@@ -8468,8 +8524,9 @@ begin
         end
         else
           nAction := raReplace;
-        if nAction <> raSkip then
-        begin
+        if nAction = raSkip then
+          Dec(Result)
+        else begin
           // user has been prompted and has requested to silently replace all
           // so turn off prompting
           if nAction = raReplaceAll then begin
@@ -8548,7 +8605,7 @@ procedure TCustomSynEdit.SetFocus;
 begin
   if (fFocusList.Count > 0) then
   begin
-    if TWinControl (fFocusList.Last).CanFocus then  
+    if TWinControl (fFocusList.Last).CanFocus then
       TWinControl (fFocusList.Last).SetFocus;
     exit;
   end;
@@ -9711,7 +9768,7 @@ begin
         CommandProcessor(ecCut, ' ', nil)
       else if Action is TEditCopy then
         CommandProcessor(ecCopy, ' ', nil)
-      else if Action is TEditPaste then  
+      else if Action is TEditPaste then
         CommandProcessor(ecPaste, ' ', nil)
 {$IFDEF SYN_COMPILER_5_UP}
       else if Action is TEditDelete then
@@ -9789,9 +9846,9 @@ begin
         TSearchAction(Action).Enabled := (Text<>'') and assigned(fSearchEngine)
       else if Action is TSearchReplace then
         TSearchAction(Action).Enabled := (Text<>'') and assigned(fSearchEngine);
-    end;                                                                        
-  end else if Action is TSearchFindNext then                                    
-  begin                                                                         
+    end;
+  end else if Action is TSearchFindNext then
+  begin
     Result := Focused;
     if Result then
       TSearchAction(Action).Enabled := (Text<>'')
@@ -10326,7 +10383,7 @@ begin
       Marks[i].Line := Marks[i].Line - Count
     else if Marks[i].Line > FirstLine then
       Marks[i].Line := FirstLine;
-      
+
   // plugins
   if fPlugins <> nil then
     for i := 0 to fPlugins.Count - 1 do

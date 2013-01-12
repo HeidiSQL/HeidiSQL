@@ -26,7 +26,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynUnicode.pas,v 1.1.2.46 2009/09/28 17:54:20 maelh Exp $
+$Id: SynUnicode.pas,v 1.1.3.19 2012/11/07 08:54:20 CodehunterWorks Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -40,6 +40,9 @@ Provides:
 - Unicode clipboard support
 - Unicode-version of TCanvas-methods
 - Some character constants like CR&LF.
+
+Last Changes:
+- 1.1.3.19: Added TUnicodeStringList.CustomSort
 -------------------------------------------------------------------------------}
 
 {$IFNDEF QSYNUNICODE}
@@ -234,7 +237,9 @@ type
     FObject: TObject;
   end;
 
+  TUnicodeStringList = class;
   TUnicodeStringItemList = array of TUnicodeStringItem;
+  TUnicodeStringListSortCompare = function (AString1, AString2: UnicodeString): Integer;
 
   TUnicodeStringList = class(TUnicodeStrings)
   private
@@ -246,7 +251,8 @@ type
     FOnChanging: TNotifyEvent;
     procedure ExchangeItems(Index1, Index2: Integer);
     procedure Grow;
-    procedure QuickSort(L, R: Integer);
+    procedure QuickSort(L, R: Integer); overload;
+    procedure QuickSort(L, R: Integer; SCompare: TUnicodeStringListSortCompare); overload;
     procedure InsertItem(Index: Integer; const S: UnicodeString);
     procedure SetSorted(Value: Boolean);
     {$IFDEF OWN_UnicodeString_MEMMGR}
@@ -274,6 +280,7 @@ type
     function IndexOf(const S: UnicodeString): Integer; override;
     procedure Insert(Index: Integer; const S: UnicodeString); override;
     procedure Sort; virtual;
+    procedure CustomSort(Compare: TUnicodeStringListSortCompare); virtual;
 
     property Duplicates: TDuplicates read FDuplicates write FDuplicates;
     property Sorted: Boolean read FSorted write SetSorted;
@@ -1475,6 +1482,43 @@ begin
       QuickSort(L, J);
     L := I;
   until I >= R;
+end;
+
+procedure TUnicodeStringList.QuickSort(L, R: Integer; SCompare: TUnicodeStringListSortCompare);
+var
+  I, J: Integer;
+  P: UnicodeString;
+begin
+  repeat
+    I := L;
+    J := R;
+    P := FList[(L + R) shr 1].FString;
+    repeat
+      while SCompare(FList[I].FString, P) < 0 do
+        Inc(I);
+      while SCompare(FList[J].FString, P) > 0 do
+        Dec(J);
+      if I <= J then
+      begin
+        ExchangeItems(I, J);
+        Inc(I);
+        Dec(J);
+      end;
+    until I > J;
+    if L < J then
+      QuickSort(L, J);
+    L := I;
+  until I >= R;
+end;
+
+procedure TUnicodeStringList.CustomSort(Compare: TUnicodeStringListSortCompare);
+begin
+  if not Sorted and (FCount > 1) then
+  begin
+    Changing;
+    QuickSort(0, FCount - 1, Compare);
+    Changed;
+  end;
 end;
 
 procedure TUnicodeStringList.SetCapacity(NewCapacity: Integer);

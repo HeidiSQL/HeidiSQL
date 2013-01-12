@@ -13,12 +13,13 @@ The Original Code is based on mwHighlighter.pas by Martin Waldenburg, part of
 the mwEdit component suite.
 Portions created by Martin Waldenburg are Copyright (C) 1998 Martin Waldenburg.
 Unicode translation by Maël Hörz.
+Options property added by CodehunterWorks
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
 Contributors.txt file.
 
-$Id: SynEditHighlighter.pas,v 1.9 2011/12/28 09:24:20 Egg Exp $
+$Id: SynEditHighlighter.pas,v 1.9.1 2012/09/12 08:17:19 CodehunterWorks Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -52,7 +53,8 @@ uses
   SynUnicode,
 {$ENDIF}
   SysUtils,
-  Classes;
+  Classes,
+  SynEditHighlighterOptions;
 
 {$IFNDEF SYN_CLX}
 type
@@ -90,7 +92,7 @@ type
       OldStyle: Boolean): Boolean; virtual;
     function LoadFromRegistry(Reg: TBetterRegistry): Boolean;
     function SaveToRegistry(Reg: TBetterRegistry): Boolean;
-    function LoadFromFile(Ini: TIniFile): Boolean;                             
+    function LoadFromFile(Ini: TIniFile): Boolean;
     function SaveToFile(Ini: TIniFile): Boolean;
 {$ENDIF}
   public
@@ -132,6 +134,7 @@ type
     FAdditionalWordBreakChars: TSysCharSet;
     FAdditionalIdentChars: TSysCharSet;
     FExportName: string;
+    FOptions: TSynEditHighlighterOptions;
     function GetExportName: string;
     procedure SetEnabled(const Value: Boolean);
     procedure SetAdditionalIdentChars(const Value: TSysCharSet);
@@ -148,9 +151,9 @@ type
     fLine: PWideChar;
     fLineLen: Integer;
     fLineStr: UnicodeString;
-    fLineNumber: Integer;  
-    fStringLen: Integer;   
-    fToIdent: PWideChar;   
+    fLineNumber: Integer;
+    fStringLen: Integer;
+    fToIdent: PWideChar;
     fTokenPos: Integer;
     fUpdateChange: Boolean;
     Run: Integer;
@@ -159,8 +162,8 @@ type
     procedure Loaded; override;
     procedure AddAttribute(Attri: TSynHighlighterAttributes);
     procedure DefHighlightChange(Sender: TObject);
-    procedure DefineProperties(Filer: TFiler); override;    
-    procedure FreeHighlighterAttributes;                                        
+    procedure DefineProperties(Filer: TFiler); override;
+    procedure FreeHighlighterAttributes;
     function GetAttribCount: Integer; virtual;
     function GetAttribute(Index: Integer): TSynHighlighterAttributes; virtual;
     function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
@@ -246,6 +249,7 @@ type
     property DefaultFilter: string read GetDefaultFilter write SetDefaultFilter
       stored IsFilterStored;
     property Enabled: Boolean read fEnabled write SetEnabled default True;
+    property Options: TSynEditHighlighterOptions read FOptions write FOptions; // <-- Codehunter patch
   end;
 
   TSynCustomHighlighterClass = class of TSynCustomHighlighter;
@@ -760,6 +764,7 @@ begin
   fAttrChangeHooks := TSynNotifyEventChain.CreateEx(Self);
   fDefaultFilter := '';
   fEnabled := True;
+  FOptions:= TSynEditHighlighterOptions.Create; // <-- Codehunter patch
 end;
 
 destructor TSynCustomHighlighter.Destroy;
@@ -768,6 +773,7 @@ begin
   FreeHighlighterAttributes;
   fAttributes.Free;
   fAttrChangeHooks.Free;
+  FOptions.Free; // <-- Codehunter patch
 end;
 
 procedure TSynCustomHighlighter.BeginUpdate;
@@ -891,7 +897,7 @@ begin
 end;
 
 function TSynCustomHighlighter.LoadFromFile(AFileName : String): boolean;
-var 
+var
   AIni: TIniFile;
   i: Integer;
 begin

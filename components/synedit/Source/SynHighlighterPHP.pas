@@ -13,7 +13,8 @@ The Original Code is based on the wmPHPSyn.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Willo van der Merwe.
 "Heredoc" syntax highlighting implementation by Marko Njezic.
-Unicode translation by Maël Hörz.
+Unicode translation by Ma?l H?rz.
+PHP5 keywords added by CodehunterWorks.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -29,7 +30,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynHighlighterPHP.pas,v 1.22.2.8 2008/09/14 16:25:00 maelh Exp $
+$Id: SynHighlighterPHP.pas,v 1.22.3.0 2012/09/11 16:25:00 codehunterworks Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -98,7 +99,7 @@ type
     fHeredocChecksum: Word;
 {$ENDIF}
     FTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0..136] of TIdentFuncTableFunc;
+    fIdentFuncTable: array[0..255] of TIdentFuncTableFunc;
     fCommentAttri: TSynHighlighterAttributes;
     fIdentifierAttri: TSynHighlighterAttributes;
     fKeyAttri: TSynHighlighterAttributes;
@@ -203,26 +204,33 @@ uses
 {$ENDIF}
 
 const
-  KeyWords: array[0..55] of UnicodeString = (
-    '__file__', '__line__', 'and', 'array', 'break', 'case', 'cfunction', 
-    'class', 'const', 'continue', 'default', 'die', 'do', 'double', 'echo', 
-    'else', 'elseif', 'empty', 'endfor', 'endif', 'endswitch', 'endwhile', 
-    'eval', 'exit', 'extends', 'false', 'float', 'for', 'foreach', 'function', 
-    'global', 'highlight_file', 'highlight_string', 'if', 'include', 'int', 
-    'integer', 'isset', 'list', 'new', 'object', 'old_function', 'or', 'print', 
-    'real', 'require', 'return', 'show_source', 'static', 'string', 'switch', 
-    'true', 'unset', 'var', 'while', 'xor' 
+  KeyWords: array[0..73] of UnicodeString = (
+    '__class__', '__dir__', '__file__', '__function__', '__halt_compiler',
+    '__line__', '__method__', '__namespace__', 'abstract', 'and', 'array', 'as',
+    'break', 'case', 'catch', 'class', 'clone', 'const', 'continue', 'declare',
+    'default', 'die', 'do', 'echo', 'else', 'elseif', 'empty', 'enddeclare',
+    'endfor', 'endforeach', 'endif', 'endswitch', 'endwhile', 'eval', 'exit',
+    'extends', 'false', 'final', 'for', 'foreach', 'function', 'global', 'goto',
+    'if', 'implements', 'include', 'include_once', 'instanceof', 'interface',
+    'isset', 'list', 'namespace', 'new', 'null', 'old_function', 'or', 'print',
+    'private', 'protected', 'public', 'require', 'require_once', 'return',
+    'static', 'switch', 'synedit', 'throw', 'true', 'try', 'unset', 'use',
+    'var', 'while', 'xor'
   );
 
-  KeyIndices: array[0..136] of Integer = (
-    -1, 25, -1, -1, 14, 28, -1, -1, 47, 33, -1, -1, -1, -1, 16, -1, -1, -1, -1,
-    7, 41, -1, -1, -1, 40, -1, 24, -1, -1, -1, -1, 26, 20, 9, -1, 6, -1, -1, 29,
-    -1, -1, 1, 15, 34, -1, -1, -1, -1, -1, -1, 31, 10, -1, -1, 2, -1, -1, 48,
-    -1, 30, -1, 42, 13, -1, -1, 27, -1, -1, 37, 38, -1, -1, 0, 5, -1, 4, 32, 49,
-    -1, 53, 54, -1, -1, -1, 18, 39, -1, -1, -1, -1, 55, 19, -1, -1, -1, 12, -1,
-    35, 8, -1, 50, 46, -1, 17, -1, -1, -1, -1, 43, -1, 51, 11, -1, -1, 52, -1,
-    44, -1, -1, -1, -1, -1, 23, 22, 21, -1, -1, 45, 36, -1, -1, -1, -1, -1, -1,
-    -1, 3
+  KeyIndices: array[0..222] of Integer = (
+    -1, -1, 69, -1, -1, 1, 19, -1, -1, -1, -1, -1, -1, 35, -1, 17, -1, -1, 53,
+    6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 46, -1, -1, -1,
+    52, 36, -1, -1, 66, -1, 62, -1, 38, 15, 44, -1, -1, -1, -1, 32, -1, -1, 24,
+    48, -1, -1, 56, 45, 65, 40, -1, -1, -1, -1, -1, -1, -1, 67, -1, -1, -1, -1,
+    -1, 60, -1, -1, -1, -1, -1, 31, 11, -1, 33, 20, 49, -1, -1, -1, 21, -1, -1,
+    -1, 54, -1, -1, -1, -1, -1, 29, -1, 64, -1, 23, -1, -1, 14, -1, -1, 42, -1,
+    -1, 0, 25, 50, -1, 58, 4, 27, -1, -1, 7, -1, -1, -1, -1, -1, 63, -1, 34, -1,
+    -1, -1, -1, -1, -1, -1, -1, 28, 13, 47, 51, -1, -1, 2, -1, 37, -1, -1, 71,
+    3, -1, 30, -1, 43, -1, -1, -1, -1, 57, 8, -1, -1, -1, -1, 41, 10, -1, 12,
+    72, -1, -1, -1, -1, -1, -1, 73, -1, -1, -1, -1, 5, -1, 22, -1, -1, -1, 70,
+    9, 18, -1, -1, -1, -1, -1, 59, 26, -1, -1, 16, -1, 68, -1, 61, -1, -1, -1,
+    39, -1, -1, -1, -1, -1, -1, -1, -1, 55, -1, -1, -1
   );
 
 {$Q-}
@@ -231,13 +239,12 @@ begin
   Result := 0;
   while IsIdentChar(Str^) do
   begin
-    Result := Result * 596 + Ord(Str^) * 413;
+    Result := Result * 252 + Ord(Str^) * 595;
     inc(Str);
   end;
-  Result := Result mod 137;
+  Result := Result mod 223;
   fStringLen := Str - fToIdent;
-end;
-{$Q+}
+end;{$Q+}
 
 function TSynPHPSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
@@ -271,10 +278,11 @@ end;
 
 function TSynPHPSyn.KeyWordFunc(Index: Integer): TtkTokenKind;
 begin
-  if IsCurrentToken(KeyWords[Index]) then
-    Result := tkKey
-  else
-    Result := tkIdentifier
+  if IsCurrentToken(KeyWords[Index]) then begin
+    Result := tkKey;
+  end else begin
+    Result := tkIdentifier;
+  end;
 end;
 
 constructor TSynPHPSyn.Create(AOwner: TComponent);

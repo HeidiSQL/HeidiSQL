@@ -28,7 +28,7 @@ replace them with the notice and other provisions required by the GPL.
 If you do not delete the provisions above, a recipient may use your version
 of this file under either the MPL or the GPL.
 
-$Id: SynEditTypes.pas,v 1.13.2.1 2004/08/31 12:55:18 maelh Exp $
+$Id: SynEditTypes.pas,v 1.13.2.2 2012/09/17 14:17:25 CodehunterWorks Exp $
 
 You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
@@ -81,6 +81,14 @@ type
   TBufferCoord = record
     Char: integer;
     Line: integer;
+  end;
+
+  // Codehunter patch: added TBufferBlock
+  TBufferBlock = record
+    BeginLine,
+    BeginChar,
+    EndLine,
+    EndChar: Integer;
   end;
 
   TDisplayCoord = record
