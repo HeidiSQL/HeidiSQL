@@ -34,13 +34,12 @@ You may retrieve the latest version of this file at the SynEdit home page,
 located at http://SynEdit.SourceForge.net
 
 Known Issues:
-  - small memory leak in TSpeedStringList has to be fixed
 -------------------------------------------------------------------------------}
 {
 @abstract(Provides SynEdit with a HP48 assembler syntax highlighter.)
 @author(Cyrille de Brebisson <cyrille_de-brebisson@aus.hp.com>, converted to SynEdit by David Muir <dhm@dmsoftware.co.uk>)
 @created(1998-12, converted to SynEdit 2000-06-23)
-@lastmod(2000-06-23)
+@lastmod(2012-09-12)
 The unit SynHighlighterHP48 provides SynEdit with a HP48 assembler highlighter.
 }
 
@@ -280,7 +279,7 @@ end;
 
 destructor TSpeedListObject.destroy;
 begin
-  if FSpeedList <> nil then
+  if Assigned(FSpeedList) then
     FSpeedList.ObjectDeleted(Self);
   inherited destroy;
 end;
@@ -463,7 +462,8 @@ begin
   for i := 0 to DatasUsed[crc] - 1 do
     if Datas[crc][i] = Obj then begin
       for j := i + 1 to DatasUsed[crc] - 1 do
-        Datas[i - 1] := Datas[i];
+        if i > 0 then
+          Datas[i - 1] := Datas[i];
       for j := crc + 1 to High(Datas) do
         dec(SumOfUsed[j]);
       Obj.FSpeedList := nil;

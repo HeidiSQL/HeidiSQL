@@ -915,7 +915,9 @@ procedure TheTextDrawer.ExtTextOut(X, Y: Integer; Options: TTextOutOptions;
     for i := 0 to Length - 1 do
     begin
       Size := TextExtent(PWideChar(@Text[i]), 1);
-      FETODist[i] := Ceil(Size.cx / CharWidth) * CharWidth;
+      if Size.cx <> CharWidth then
+         FETODist[i] := Ceil(Size.cx / CharWidth) * CharWidth
+      else FETODist[i] := CharWidth;
     end;
   end;
 

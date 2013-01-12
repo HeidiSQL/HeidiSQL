@@ -59,7 +59,7 @@ type
     tkSpace, tkString, tkSymbol, tkUnknown, tkFloat, tkHex, tkDirec, tkChar);
 
   TRangeState = (rsANil, rsAnsi, rsAnsiAsm, rsAsm, rsBor, rsBorAsm, rsProperty,
-    rsExports, rsDirective, rsDirectiveAsm, rsHereDoc, rsUnKnown);
+    rsExports, rsDirective, rsDirectiveAsm, rsHereDocSingle, rsHereDocDouble, rsUnKnown);
 
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function : TtkTokenKind of object;
@@ -119,12 +119,14 @@ type
     procedure SlashProc;
     procedure SpaceProc;
     procedure StringAposProc;
+    procedure StringAposMultiProc;
     procedure StringQuoteProc;
     procedure SymbolProc;
     procedure UnknownProc;
   protected
     function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
+    function IsCurrentToken(const Token: UnicodeString): Boolean; override;
 
   public
     class function GetCapabilities: TSynHighlighterCapabilities; override;
@@ -178,21 +180,21 @@ uses
 
 const
    // if the language is case-insensitive keywords *must* be in lowercase
-   cKeyWords: array[1..98] of UnicodeString = (
-      'absolute', 'abstract', 'and', 'array', 'as', 'asm',
+   cKeyWords: array[1..96] of UnicodeString = (
+      'abstract', 'and', 'array', 'as', 'asm',
       'begin', 'break', 'case', 'cdecl', 'class', 'const', 'constructor',
       'contains', 'continue', 'deprecated', 'destructor',
       'div', 'do', 'downto', 'else', 'end', 'ensure', 'except', 'exit',
       'export', 'exports', 'external', 'final', 'finalization',
-      'finally', 'for', 'forward', 'function', 'goto', 'helper', 'if',
-      'implementation', 'implements', 'implies', 'in', 'index', 'inherited',
-      'initialization', 'inline', 'interface', 'is', 'lazy', 'library',
-      'message', 'method', 'mod', 'name', 'new', 'nil', 'nodefault', 'not', 'object', 'of',
+      'finally', 'for', 'forward', 'function', 'helper', 'if',
+      'implementation', 'implements', 'implies', 'in', 'inherited',
+      'initialization', 'inline', 'interface', 'is', 'lambda', 'lazy', 'library',
+      'message', 'method', 'mod', 'new', 'nil', 'not', 'object', 'of',
       'old', 'on', 'operator', 'or', 'overload', 'override',
-      'pascal', 'private', 'procedure', 'program', 'property',
+      'pascal', 'partial', 'private', 'procedure', 'program', 'property',
       'protected', 'public', 'published', 'raise', 'record',
       'register', 'reintroduce', 'repeat', 'require', 'resourcestring',
-      'sealed', 'set', 'shl', 'shr', 'step', 'string',
+      'sar', 'sealed', 'set', 'shl', 'shr', 'static', 'step',
       'then', 'to', 'try', 'type', 'unit', 'until',
       'uses', 'var', 'virtual', 'while', 'xor', 'if'
   );
@@ -205,24 +207,21 @@ begin
    Result:=CompareText(S1, S2);
 end;
 
-{$Q-}
 function TSynDWSSyn.HashKey(Str: PWideChar): Cardinal;
 var
-  c : Word;
+   c : Word;
 begin
-  Result := 0;
-  while IsIdentChar(Str^) do
-  begin
-    c := Ord(Str^);
-    Result := Result * 812 + c * 76;
-    if c in [Ord('A')..Ord('Z')] then
-      Result := Result + (Ord('a') - Ord('A')) * 76;
-    inc(Str);
-  end;
-  Result := Result mod 389;
-  fStringLen := Str - fToIdent;
+   Result := 0;
+   while IsIdentChar(Str^) do begin
+      c := Ord(Str^);
+      Result := Result * 812 + c * 76;
+      if c in [Ord('A')..Ord('Z')] then
+         Result := Result + (Ord('a') - Ord('A')) * 76;
+      inc(Str);
+   end;
+   Result := Result mod 389;
+   fStringLen := Str - fToIdent;
 end;
-{$Q+}
 
 function TSynDWSSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
@@ -272,7 +271,7 @@ var
    buf : String;
 begin
    SetString(buf, fToIdent, fStringLen);
-   if fKeyWords.IndexOf(buf)>0 then
+   if (fKeyWords.IndexOf(buf)>0) and (FLine[Run - 1] <> '&') then
       Result := tkKey
    else Result := tkIdentifier
 end;
@@ -408,8 +407,12 @@ procedure TSynDWSSyn.AsciiCharProc;
 begin
   fTokenID := tkChar;
   Inc(Run);
-  while IsAsciiChar do
-    Inc(Run);
+  if fLine[run]='''' then
+      StringAposMultiProc
+  else begin
+     while IsAsciiChar do
+       Inc(Run);
+  end;
 end;
 
 procedure TSynDWSSyn.BorProc;
@@ -670,11 +673,28 @@ begin
   end;
 end;
 
+procedure TSynDWSSyn.StringAposMultiProc;
+begin
+  fTokenID := tkString;
+  Inc(Run);
+  fRange := rsHereDocSingle;
+  while not IsLineEnd(Run) do
+  begin
+    if fLine[Run] = '''' then begin
+      Inc(Run);
+      if fLine[Run] <> '''' then
+        fRange := rsUnknown;
+        break;
+    end;
+    Inc(Run);
+  end;
+end;
+
 procedure TSynDWSSyn.StringQuoteProc;
 begin
   fTokenID := tkString;
   Inc(Run);
-  fRange := rsHereDoc;
+  fRange := rsHereDocDouble;
   while not IsLineEnd(Run) do
   begin
     if fLine[Run] = '"' then begin
@@ -708,7 +728,9 @@ begin
          AnsiProc;
       rsBor, rsBorAsm, rsDirective, rsDirectiveAsm:
          BorProc;
-      rsHereDoc:
+      rsHereDocSingle:
+         StringAposMultiProc;
+      rsHereDocDouble:
          StringQuoteProc;
    else
       case fLine[Run] of
@@ -859,18 +881,35 @@ begin
   Result := fDefaultFilter <> SYNS_FilterPascal;
 end;
 
+// IsCurrentToken
+//
+function TSynDWSSyn.IsCurrentToken(const Token: UnicodeString): Boolean;
+var
+   i : Integer;
+   temp : PWideChar;
+begin
+   temp := fToIdent;
+   if Length(Token) = fStringLen then begin
+      Result := True;
+      for i := 1 to fStringLen do begin
+         if     (temp^ <> Token[i])
+            and (   (temp^>'z')
+                 or (UpCase(temp^)<>UpCase(Token[i])))  then begin
+            Result := False;
+            break;
+         end;
+         inc(temp);
+      end;
+   end else Result := False;
+end;
+
 // IsIdentChar
 //
 function TSynDWSSyn.IsIdentChar(AChar: WideChar): Boolean;
 begin
-   case AChar of
-      '_', '0'..'9', 'A'..'Z', 'a'..'z' :
-         Result:=True;
-      #$0080..#$FFFF :
-         Result:=TCharacter.IsLetterOrDigit(AChar);
-   else
-      Result:=False;
-   end;
+   if Ord(AChar)<=$7F then
+      Result:=AnsiChar(AChar) in ['_', '0'..'9', 'A'..'Z', 'a'..'z']
+   else Result:=TCharacter.IsLetterOrDigit(AChar);
 end;
 
 class function TSynDWSSyn.GetFriendlyLanguageName: UnicodeString;
