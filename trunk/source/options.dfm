@@ -712,6 +712,7 @@ object optionsform: Toptionsform
         NumbersOnly = True
         TabOrder = 3
         OnChange = Modified
+        OnExit = editGridRowCountExit
       end
       object editGridRowCountStep: TEdit
         Left = 309
@@ -721,6 +722,8 @@ object optionsform: Toptionsform
         Anchors = [akTop, akRight]
         NumbersOnly = True
         TabOrder = 2
+        OnChange = Modified
+        OnExit = editGridRowCountExit
       end
       object editGridRowsLineCount: TEdit
         Left = 309
