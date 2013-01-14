@@ -1497,6 +1497,7 @@ begin
   for i:=0 to Arguments.Count-1 do begin
     Result := StringReplace(Result, '%'+Arguments.Names[i], Arguments.ValueFromIndex[i], [rfReplaceAll]);
   end;
+  Arguments.Free;
 end;
 
 
