@@ -1209,11 +1209,10 @@ begin
   end;
   if not FHeaderCreated then begin
     Header := '-- --------------------------------------------------------' + CRLF +
-      Format('-- %-30s:%s', [_('Host'), DBObj.Connection.Parameters.HostName]) + CRLF +
-      Format('-- %-30s:%s', [_('Server version'), DBObj.Connection.ServerVersionUntouched]) + CRLF +
-      Format('-- %-30s:%s', [_('Server OS'), DBObj.Connection.ServerOS]) + CRLF +
-      Format('-- %-30s:%s', [APPNAME + ' ' + _('Version'), Mainform.AppVersion]) + CRLF +
-      Format('-- %-30s:%s', [_('Created'), DateTimeToStr(Now)]) + CRLF +
+      Format('-- %-30s%s', [_('Host')+':', DBObj.Connection.Parameters.HostName]) + CRLF +
+      Format('-- %-30s%s', [_('Server version')+':', DBObj.Connection.ServerVersionUntouched]) + CRLF +
+      Format('-- %-30s%s', [_('Server OS')+':', DBObj.Connection.ServerOS]) + CRLF +
+      Format('-- %-30s%s', [APPNAME + ' ' + _('Version')+':', Mainform.AppVersion]) + CRLF +
       '-- --------------------------------------------------------' + CRLF + CRLF +
       '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
       '/*!40101 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF +
