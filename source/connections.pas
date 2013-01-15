@@ -666,16 +666,33 @@ procedure Tconnform.ListSessionsDragOver(Sender: TBaseVirtualTree;
   Source: TObject; Shift: TShiftState; State: TDragState; Pt: TPoint;
   Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
 var
-  TargetNode: PVirtualNode;
+  TargetNode, ParentNode: PVirtualNode;
   TargetSess: PConnectionParameters;
 begin
   // Allow node dragging everywhere except within the current folder
   TargetNode := Sender.GetNodeAt(Pt.X, Pt.Y);
   TargetSess := Sender.GetNodeData(TargetNode);
   Accept := (Source = Sender)
-    and ((TargetNode.Parent <> ListSessions.FocusedNode.Parent) or TargetSess.IsFolder)
-    and (TargetNode <> ListSessions.FocusedNode.Parent)
-    and (Mode <> dmNowhere);
+    and Assigned(TargetSess)
+    and (Mode <> dmNowhere)
+    and (TargetNode <> ListSessions.FocusedNode.Parent);
+
+  // Moving a folder into itself would create an infinite folder structure
+  if Accept and TargetSess.IsFolder then
+    Accept := Accept and (TargetNode <> ListSessions.FocusedNode);
+  if Accept and (not TargetSess.IsFolder) then
+    Accept := Accept and (TargetNode.Parent <> ListSessions.FocusedNode.Parent);
+
+  if Accept then begin
+    // Do not allow focused node to be moved somewhere below itself
+    ParentNode := TargetNode.Parent;
+    while Assigned(ParentNode) do begin
+      Accept := Accept and (ParentNode <> ListSessions.FocusedNode);
+      if not Accept then
+        Break;
+      ParentNode := ParentNode.Parent;
+    end;
+  end;
 end;
 
 
