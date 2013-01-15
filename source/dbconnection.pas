@@ -1244,7 +1244,12 @@ begin
       // CurCharset := CharacterSet;
       // Log(lcDebug, 'Characterset: '+CurCharset);
       FIsUnicode := True;
-      FServerUptime := StrToIntDef(GetVar('SELECT DATEDIFF(SECOND, '+QuoteIdent('login_time')+', CURRENT_TIMESTAMP) FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('sysprocesses')+' WHERE '+QuoteIdent('spid')+'=1'), -1);
+      try
+        // Gracefully accept failure on MS Azure (SQL Server 11), which does not have a sysprocesses table
+        FServerUptime := StrToIntDef(GetVar('SELECT DATEDIFF(SECOND, '+QuoteIdent('login_time')+', CURRENT_TIMESTAMP) FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('sysprocesses')+' WHERE '+QuoteIdent('spid')+'=1'), -1);
+      except
+        FServerUptime := -1;
+      end;
       // Microsoft SQL Server 2008 R2 (RTM) - 10.50.1600.1 (Intel X86)
       // Apr  2 2010 15:53:02
       // Copyright (c) Microsoft Corporation
