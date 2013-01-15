@@ -1517,7 +1517,6 @@ object MainForm: TMainForm
               Highlighter = SynSQLSyn1
               Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
               RightEdge = 0
-              SearchEngine = SynEditSearch1
               TabWidth = 3
               WantTabs = True
               OnDropFiles = SynMemoQueryDropFiles
@@ -9220,10 +9219,6 @@ object MainForm: TMainForm
     Left = 72
     Top = 128
   end
-  object SynEditSearch1: TSynEditSearch
-    Left = 72
-    Top = 232
-  end
   object popupQuery: TPopupMenu
     Images = ImageListMain
     OnPopup = popupQueryPopup
@@ -9434,10 +9429,6 @@ object MainForm: TMainForm
     OnTimer = TimerFilterVTTimer
     Left = 40
     Top = 197
-  end
-  object SynEditRegexSearch1: TSynEditRegexSearch
-    Left = 104
-    Top = 232
   end
   object BalloonHint1: TBalloonHint
     Delay = 100

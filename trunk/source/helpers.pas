@@ -294,6 +294,7 @@ type
   function GetVTSelection(VT: TVirtualStringTree): TStringList;
   procedure SetVTSelection(VT: TVirtualStringTree; Captions: TStringList);
   function GetNextNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
+  function GetPreviousNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function DateBackFriendlyCaption(d: TDateTime): String;
   procedure InheritFont(AFont: TFont);
   function GetLightness(AColor: TColor): Byte;
@@ -1685,6 +1686,30 @@ begin
         Result := Tree.GetFirst
       else
         Result := Tree.GetNext(Result);
+    end;
+    if (not Assigned(Result)) or Tree.IsVisible[Result] then
+      break;
+  end;
+end;
+
+
+function GetPreviousNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
+begin
+  // Get previous visible + selected node.
+  Result := CurrentNode;
+  while True do begin
+    if Selected then begin
+      if not Assigned(Result) then begin
+        Result := Tree.GetLast;
+        if not Tree.Selected[Result] then
+          Result := Tree.GetPreviousSelected(Result);
+      end else
+        Result := Tree.GetPreviousSelected(Result);
+    end else begin
+      if not Assigned(Result) then
+        Result := Tree.GetLast
+      else
+        Result := Tree.GetPrevious(Result);
     end;
     if (not Assigned(Result)) or Tree.IsVisible[Result] then
       break;

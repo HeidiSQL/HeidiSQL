@@ -3,7 +3,7 @@ object frmSearchReplace: TfrmSearchReplace
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Search and replace text'
-  ClientHeight = 256
+  ClientHeight = 290
   ClientWidth = 388
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -13,18 +13,17 @@ object frmSearchReplace: TfrmSearchReplace
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
-  OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
     388
-    256)
+    290)
   PixelsPerInch = 96
   TextHeight = 13
   object lblSearch: TLabel
     Left = 8
-    Top = 11
+    Top = 40
     Width = 60
     Height = 13
     Caption = '&Text to find:'
@@ -32,75 +31,84 @@ object frmSearchReplace: TfrmSearchReplace
   end
   object lblReplaceHint: TLabel
     Left = 90
-    Top = 58
-    Width = 290
+    Top = 87
+    Width = 259
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Replacement can have \n for new lines and \t for tabs'
     Enabled = False
     WordWrap = True
   end
+  object lblSearchIn: TLabel
+    Left = 8
+    Top = 13
+    Width = 48
+    Height = 13
+    Caption = 'Search in:'
+  end
   object btnCancel: TButton
     Left = 305
-    Top = 223
+    Top = 257
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 9
+    TabOrder = 10
   end
   object btnReplaceAll: TButton
     Left = 224
-    Top = 223
+    Top = 257
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Replace &all'
     ModalResult = 8
-    TabOrder = 8
+    TabOrder = 9
+    OnClick = DoSearchReplace
+    ExplicitTop = 223
   end
   object chkReplace: TCheckBox
     Left = 8
-    Top = 35
+    Top = 64
     Width = 73
     Height = 17
     Caption = '&Replace:'
-    TabOrder = 1
+    TabOrder = 2
     OnClick = chkReplaceClick
   end
   object comboSearch: TComboBox
     Left = 90
-    Top = 8
+    Top = 37
     Width = 290
     Height = 21
     Anchors = [akLeft, akTop, akRight]
-    TabOrder = 0
+    TabOrder = 1
     Text = 'comboSearch'
     TextHint = 'Enter text to find ...'
     OnExit = comboSearchReplaceExit
   end
   object comboReplace: TComboBox
     Left = 90
-    Top = 33
+    Top = 62
     Width = 290
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     Enabled = False
-    TabOrder = 2
+    TabOrder = 3
     Text = 'comboReplace'
     TextHint = 'Enter replacement pattern ...'
     OnExit = comboSearchReplaceExit
   end
   object grpOptions: TGroupBox
     Left = 8
-    Top = 80
+    Top = 109
     Width = 372
     Height = 69
     Anchors = [akLeft, akTop, akRight]
     Caption = '&Options'
-    TabOrder = 3
+    TabOrder = 4
     object chkCaseSensitive: TCheckBox
       Left = 12
       Top = 18
@@ -139,52 +147,70 @@ object frmSearchReplace: TfrmSearchReplace
   end
   object grpDirection: TRadioGroup
     Left = 8
-    Top = 155
+    Top = 184
     Width = 120
-    Height = 62
+    Height = 67
     Anchors = [akLeft, akTop, akBottom]
     Caption = '&Direction'
     ItemIndex = 0
     Items.Strings = (
       '&Forward'
       '&Backward')
-    TabOrder = 4
+    TabOrder = 5
   end
   object grpOrigin: TRadioGroup
     Left = 134
-    Top = 155
+    Top = 184
     Width = 120
-    Height = 62
+    Height = 67
     Anchors = [akLeft, akTop, akBottom]
     Caption = 'Or&igin'
     ItemIndex = 1
     Items.Strings = (
       'From cursor'
       'Entire scope')
-    TabOrder = 5
+    TabOrder = 6
   end
   object grpScope: TRadioGroup
     Left = 260
-    Top = 155
+    Top = 184
     Width = 120
-    Height = 62
+    Height = 67
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = '&Scope'
     ItemIndex = 0
     Items.Strings = (
       'Global'
-      'Selected text')
-    TabOrder = 6
+      'Selection')
+    TabOrder = 7
   end
   object btnOK: TButton
     Left = 143
-    Top = 223
+    Top = 257
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'OK'
     Default = True
     ModalResult = 1
-    TabOrder = 7
+    TabOrder = 8
+    OnClick = DoSearchReplace
+  end
+  object comboSearchIn: TComboBox
+    Left = 90
+    Top = 10
+    Width = 290
+    Height = 21
+    Style = csDropDownList
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 0
+  end
+  object SynEditSearch1: TSynEditSearch
+    Left = 24
+    Top = 248
+  end
+  object SynEditRegexSearch1: TSynEditRegexSearch
+    Left = 120
+    Top = 248
   end
 end

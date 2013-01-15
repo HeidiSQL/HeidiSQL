@@ -333,8 +333,6 @@ type
     SynCompletionProposal: TSynCompletionProposal;
     ParameterCompletionProposal: TSynCompletionProposal;
     SaveDialogSQLFile: TSaveDialog;
-    SynEditSearch1: TSynEditSearch;
-    SynEditRegexSearch1: TSynEditRegexSearch;
     tabCommandStats: TTabSheet;
     ListCommandStats: TVirtualStringTree;
     QF13: TMenuItem;
@@ -911,7 +909,6 @@ type
     FFilterTextDatabase,
     FFilterTextData: String;
     FTreeRefreshInProgress: Boolean;
-    FSearchReplaceExecuted: Boolean;
     FDataGridColumnWidthsCustomized: Boolean;
     FSnippetFilenames: TStringList;
     FConnections: TDBConnectionList;
@@ -953,7 +950,6 @@ type
     procedure ConnectionReady(Connection: TDBConnection; Database: String);
     procedure DBObjectsCleared(Connection: TDBConnection; Database: String);
     procedure DatabaseChanged(Connection: TDBConnection; Database: String);
-    procedure DoSearchReplace;
     procedure UpdateLineCharPanel;
     procedure SetSnippetFilenames;
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
@@ -3345,81 +3341,40 @@ end;
 
 
 procedure TMainForm.actQueryFindReplaceExecute(Sender: TObject);
-var
-  DlgResult: TModalResult;
-  Memo: TSynMemo;
 begin
   // Display search + replace dialog
-  Memo := ActiveSynMemo;
-  if Memo = nil then
-    MessageBeep(MB_ICONASTERISK)
-  else begin
-    if not Assigned(FSearchReplaceDialog) then
-      FSearchReplaceDialog := TfrmSearchReplace.Create(Self);
-    FSearchReplaceDialog.Editor := Memo;
-    FSearchReplaceDialog.chkReplace.Checked := Sender = actQueryReplace;
-    DlgResult := FSearchReplaceDialog.ShowModal;
-    case DlgResult of
-      mrOK, mrAll: begin
-        DoSearchReplace;
-        FSearchReplaceExecuted := True; // Helper for later F3 hits
-      end;
-      mrCancel: Exit;
-    end;
-  end;
+  if not Assigned(FSearchReplaceDialog) then
+    FSearchReplaceDialog := TfrmSearchReplace.Create(Self);
+  FSearchReplaceDialog.chkReplace.Checked := Sender = actQueryReplace;
+  if (ActiveSynMemo <> nil) or (ActiveGrid <> nil) then
+    FSearchReplaceDialog.ShowModal;
 end;
 
 
 procedure TMainForm.actQueryFindAgainExecute(Sender: TObject);
+var
+  NeedDialog: Boolean;
+  Editor: TSynMemo;
+  Grid: TVirtualStringTree;
 begin
   // F3 - search or replace again, using previous settings
-  if not FSearchReplaceExecuted then
+  NeedDialog := not Assigned(FSearchReplaceDialog);
+  if Assigned(FSearchReplaceDialog) then begin
+    NeedDialog := NeedDialog or ((FSearchReplaceDialog.Grid = nil) and (FSearchReplaceDialog.Editor = nil));
+    Editor := ActiveSynMemo;
+    Grid := ActiveGrid;
+    NeedDialog := NeedDialog or ((Grid = nil) and (Editor = nil));
+    if (Editor <> nil) and (Editor.Focused) then
+      NeedDialog := NeedDialog or (FSearchReplaceDialog.Editor<>Editor);
+    if (Grid <> nil) and (Grid.Focused) then
+      NeedDialog := NeedDialog or (FSearchReplaceDialog.Grid<>Grid);
+  end;
+
+  if NeedDialog then
     actQueryFindReplaceExecute(Sender)
   else begin
-    FSearchReplaceDialog.Editor := ActiveSynMemo;
     Exclude(FSearchReplaceDialog.Options, ssoEntireScope);
-    if FSearchReplaceDialog.Editor = nil then
-      MessageBeep(MB_ICONASTERISK)
-    else
-      DoSearchReplace;
-  end;
-end;
-
-
-procedure TMainForm.DoSearchReplace;
-var
-  Occurences: Integer;
-  OldCaretXY: TBufferCoord;
-  Replacement: String;
-begin
-  if FSearchReplaceDialog.chkRegularExpression.Checked then
-    FSearchReplaceDialog.Editor.SearchEngine := SynEditRegexSearch1
-  else
-    FSearchReplaceDialog.Editor.SearchEngine := SynEditSearch1;
-
-  OldCaretXY := FSearchReplaceDialog.Editor.CaretXY;
-  Replacement := FSearchReplaceDialog.comboReplace.Text;
-  Replacement := StringReplace(Replacement, '\n', CRLF, [rfReplaceAll]);
-  Replacement := StringReplace(Replacement, '\t', #9, [rfReplaceAll]);
-
-  FSearchReplaceDialog.Editor.BeginUpdate;
-
-  ShowStatusMsg(_('Searching ...'));
-  Occurences := FSearchReplaceDialog.Editor.SearchReplace(
-    FSearchReplaceDialog.comboSearch.Text,
-    Replacement,
-    FSearchReplaceDialog.Options
-    );
-
-  FSearchReplaceDialog.Editor.EndUpdate;
-  ShowStatusMsg;
-
-  if ssoReplaceAll in FSearchReplaceDialog.Options then
-    ShowStatusMsg(f_('Text "%s" %s times replaced.', [FSearchReplaceDialog.comboSearch.Text, FormatNumber(Occurences)]), 0)
-  else begin
-    if (OldCaretXY.Char = FSearchReplaceDialog.Editor.CaretXY.Char) and
-      (OldCaretXY.Line = FSearchReplaceDialog.Editor.CaretXY.Line) then
-      MessageDialog(f_('Text "%s" not found.', [FSearchReplaceDialog.comboSearch.Text]), mtInformation, [mbOk]);
+    FSearchReplaceDialog.DoSearchReplace(Sender);
   end;
 end;
 
