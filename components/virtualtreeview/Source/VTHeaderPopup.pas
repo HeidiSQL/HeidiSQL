@@ -63,13 +63,6 @@ unit VTHeaderPopup;
 //   - Added the event to filter the items as they are added to the menu.
 //----------------------------------------------------------------------------------------------------------------------
 
-{$I Compilers.inc}
-
-{$ifdef COMPILER_12_UP}
-  {$WARN IMPLICIT_STRING_CAST       OFF}
-  {$WARN IMPLICIT_STRING_CAST_LOSS  OFF}
-{$endif COMPILER_12_UP}
-
 interface
 
 uses
