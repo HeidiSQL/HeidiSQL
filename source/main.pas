@@ -4255,10 +4255,7 @@ begin
     // Cut last comma
     Delete(Select, Length(Select)-1, 2);
     // Include db name for cases in which dbtree is switching databases and pending updates are in process
-    Select := Select + ' FROM '+DBObj.Connection.QuoteIdent(ActiveDatabase)+'.';
-    if DBObj.Connection.Parameters.NetTypeGroup = ngMSSQL then
-      Select := Select + DBObj.Connection.QuoteIdent('dbo') + '.';
-    Select := Select + DBObj.QuotedName;
+    Select := Select + ' FROM '+DBObj.QuotedDbAndTableName;
 
     // Append WHERE clause
     if SynMemoFilter.GetTextLen > 0 then begin
