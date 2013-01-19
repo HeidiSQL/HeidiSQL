@@ -1,5 +1,6 @@
 package VirtualTreesD;
 
+{$R *.res}
 {$R '..\..\Resources\VirtualTreesD.dcr'}
 {$ALIGN 8}
 {$ASSERTIONS ON}
