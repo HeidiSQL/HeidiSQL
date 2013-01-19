@@ -1391,7 +1391,13 @@ begin
         Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
       Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
       while true do begin
-        Data := DBObj.Connection.GetResults('SELECT * FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' LIMIT '+IntToStr(Offset)+', '+IntToStr(Limit));
+        Data := DBObj.Connection.GetResults(
+          DBObj.Connection.ApplyLimitClause(
+            'SELECT',
+            '* FROM '+DBObj.QuotedDbAndTableName,
+            Limit,
+            Offset)
+          );
         Inc(Offset, Limit);
         if Data.RecordCount = 0 then
           break;

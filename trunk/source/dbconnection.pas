@@ -36,6 +36,7 @@ type
       function IsSameAs(CompareTo: TDBObject): Boolean;
       function QuotedDatabase(AlwaysQuote: Boolean=True): String;
       function QuotedName(AlwaysQuote: Boolean=True): String;
+      function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
@@ -4642,9 +4643,13 @@ var
   db: String;
 begin
   // Return `db`.`table` if necessairy, otherwise `table`
+  Result := '';
   db := DatabaseName;
-  if Connection.Database <> db then
+  if Connection.Database <> db then begin
     Result := Connection.QuoteIdent(db)+'.';
+    if Connection.Parameters.NetTypeGroup = ngMSSQL then
+      Result := Result + Connection.QuoteIdent('dbo')+'.';
+  end;
   Result := Result + Connection.QuoteIdent(TableName);
 end;
 
@@ -4962,6 +4967,14 @@ end;
 function TDBObject.QuotedName(AlwaysQuote: Boolean=True): String;
 begin
   Result := Connection.QuoteIdent(Name, AlwaysQuote);
+end;
+
+function TDBObject.QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
+begin
+  Result := QuotedDatabase(AlwaysQuote) + '.';
+  if Connection.Parameters.NetTypeGroup = ngMSSQL then
+    Result := Result + Connection.QuoteIdent('dbo', AlwaysQuote) + '.';
+  Result := Result + QuotedName(AlwaysQuote);
 end;
 
 function TDBObject.QuotedColumn(AlwaysQuote: Boolean=True): String;
