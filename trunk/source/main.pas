@@ -2796,7 +2796,7 @@ var
   path, p, log, cmd: String;
   sep: Char;
   Conn: TDBConnection;
-  rx: TRegExpr;
+  PasswordStart, PasswordEnd: Integer;
 begin
   // Launch mysql.exe
   Conn := ActiveConnection;
@@ -2837,18 +2837,24 @@ begin
       end;
 
       p := p + ' --user="'+Conn.Parameters.Username+'"';
-      if Conn.Parameters.Password <> '' then
-        p := p + ' --password="'+Conn.Parameters.Password+'"';
+      // Markers for removing password from log line
+      PasswordStart := -1;
+      PasswordEnd := -1;
+      if Conn.Parameters.Password <> '' then begin
+        PasswordStart := Length(path + cmd + p) +14;
+        p := p + ' --password="'+StringReplace(Conn.Parameters.Password, '"', '\"', [rfReplaceAll])+'"';
+        PasswordEnd := Length(path + cmd + p);
+      end;
       if Conn.Parameters.Compressed then
         p := p + ' --compress';
       if ActiveDatabase <> '' then
         p := p + ' --database="' + ActiveDatabase + '"';
-      rx := TRegExpr.Create;
-      rx.Expression := '(\-\-password\=")([^"]*)(")';
       log := path + cmd + p;
-      log := rx.Replace(log, '$1********$3', true);
+      if PasswordStart > -1 then begin
+        Delete(log, PasswordStart, PasswordEnd-PasswordStart);
+        Insert('********', log, PasswordStart);
+      end;
       LogSQL(f_('Launching command line: %s', [log]), lcInfo);
-      rx.Free;
       ShellExec(cmd, path, p);
     end;
   end;
