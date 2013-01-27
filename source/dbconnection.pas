@@ -3485,6 +3485,12 @@ begin
   //  | SQL SECURITY { DEFINER | INVOKER }                               // SECURITY_TYPE
   //  | COMMENT 'string'                                                 // COMMENT
 
+  // Strip body early, so regular expressions don't get confused by keywords
+  rx.Expression := '\bBEGIN\b';
+  if rx.Exec(CreateCode) then begin
+    Body := TrimLeft(Copy(CreateCode, rx.MatchPos[0], MaxInt));
+    Delete(CreateCode, rx.MatchPos[0], MaxInt);
+  end;
   rx.Expression := '\bLANGUAGE SQL\b';
   if rx.Exec(CreateCode) then
     Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
@@ -3514,8 +3520,6 @@ begin
     Comment := StringReplace(rx.Match[1], '''''', '''', [rfReplaceAll]);
     Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]-1);
   end;
-  // Tata, remaining code is the routine body
-  Body := TrimLeft(CreateCode);
 
   rx.Free;
 end;
