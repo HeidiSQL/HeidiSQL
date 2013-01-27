@@ -6869,7 +6869,11 @@ begin
     0: case DBObj.NodeType of
         lntNone: CellText := DBObj.Connection.Parameters.SessionPath;
         lntDb: CellText := DBObj.Database;
-        lntGroup: CellText := DBObj.Name;
+        lntGroup: begin
+          CellText := DBObj.Name;
+          if Sender.ChildrenInitialized[Node] then
+            CellText := CellText + ' (' + FormatNumber(Sender.ChildCount[Node]) + ')';
+        end;
         lntTable..lntEvent: CellText := DBObj.Name;
         lntColumn: CellText := DBObj.Column;
       end;
@@ -7005,7 +7009,6 @@ var
   Item, ParentObj: PDBObject;
   DBObjects: TDBObjectList;
   Columns: TTableColumnList;
-  NodeStates: TVirtualNodeInitStates;
 begin
   Item := Sender.GetNodeData(Node);
   if not Assigned(ParentNode) then begin
@@ -7034,10 +7037,7 @@ begin
             5: begin Item.GroupType := lntEvent; Item.Name := _('Events'); end;
           end;
           Item.Database := ParentObj.Database;
-          NodeStates := [ivsHasChildren];
-          if Item.Connection.DbObjectsCached(Item.Database) then begin
-          end;
-          InitialStates := InitialStates + NodeStates;
+          InitialStates := InitialStates + [ivsHasChildren];
         end else begin
           DBObjects := ParentObj.Connection.GetDBObjects(ParentObj.Database);
           Item^ := DBObjects[Node.Index];
