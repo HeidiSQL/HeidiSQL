@@ -5562,11 +5562,11 @@ begin
     Obj := DBTree.GetNodeData(DBTree.FocusedNode);
     IsDbOrObject := Obj.NodeType in [lntDb, lntTable..lntEvent];
     actCreateDatabase.Enabled := Obj.NodeType = lntNone;
-    actCreateTable.Enabled := IsDbOrObject;
-    actCreateView.Enabled := IsDbOrObject;
-    actCreateRoutine.Enabled := IsDbOrObject;
-    actCreateTrigger.Enabled := IsDbOrObject;
-    actCreateEvent.Enabled := IsDbOrObject;
+    actCreateTable.Enabled := IsDbOrObject or (Obj.GroupType = lntTable);
+    actCreateView.Enabled := IsDbOrObject or (Obj.GroupType = lntView);
+    actCreateRoutine.Enabled := IsDbOrObject or (Obj.GroupType in [lntFunction, lntProcedure]);
+    actCreateTrigger.Enabled := IsDbOrObject or (Obj.GroupType = lntTrigger);
+    actCreateEvent.Enabled := IsDbOrObject or (Obj.GroupType = lntEvent);
     actDropObjects.Enabled := IsDbOrObject;
     actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
     actEmptyTables.Enabled := Obj.NodeType in [lntTable, lntView];
