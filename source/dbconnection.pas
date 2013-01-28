@@ -228,7 +228,8 @@ type
   TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId,
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
     spEmptyTable, spRenameTable, spCurrentUserHost,
-    spAddColumn, spChangeColumn);
+    spAddColumn, spChangeColumn,
+    spServerVariables);
 
   TDBConnection = class(TComponent)
     private
@@ -322,7 +323,7 @@ type
       function ConnectionInfo: TStringList;
       function GetLastResults: TDBQueryList; virtual; abstract;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; virtual; abstract;
-      function GetServerVariables(Refresh: Boolean): TDBQuery; virtual; abstract;
+      function GetServerVariables(Refresh: Boolean): TDBQuery;
       function MaxAllowedPacket: Int64; virtual; abstract;
       function GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
       function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; virtual;
@@ -412,7 +413,6 @@ type
       function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
       property LastRawResults: TMySQLRawResults read FLastRawResults;
-      function GetServerVariables(Refresh: Boolean): TDBQuery; override;
       function MaxAllowedPacket: Int64; override;
       function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; override;
   end;
@@ -444,7 +444,6 @@ type
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
-      function GetServerVariables(Refresh: Boolean): TDBQuery; override;
       function MaxAllowedPacket: Int64; override;
       property LastRawResults: TAdoRawResults read FLastRawResults;
   end;
@@ -1331,6 +1330,27 @@ begin
   Log(lcInfo, f_('Connecting to %s via %s, username %s, using password: %s ...',
     [FParameters.Hostname, FParameters.NetTypeName(FParameters.NetType, True), FParameters.Username, UsingPass]
     ));
+
+  case Parameters.NetTypeGroup of
+    ngMySQL: begin
+      FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
+      FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
+      FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
+      FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
+      FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
+      FSQLSpecifities[spServerVariables] := 'SHOW VARIABLES';
+    end;
+    ngMSSQL: begin
+      FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
+      FSQLSpecifities[spRenameTable] := 'EXEC sp_rename %s, %s';
+      FSQLSpecifities[spCurrentUserHost] := 'SELECT SYSTEM_USER';
+      FSQLSpecifities[spAddColumn] := 'ADD %s';
+      FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
+      FSQLSpecifities[spServerVariables] := 'SELECT '+QuoteIdent('comment')+', '+QuoteIdent('value')+' FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('syscurconfigs')+' ORDER BY '+QuoteIdent('comment');
+    end;
+
+  end;
+
 end;
 
 
@@ -1396,11 +1416,6 @@ var
   Offset: String;
 begin
   inherited;
-  FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
-  FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
-  FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
-  FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
-  FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
 
   // Set timezone offset to UTC
   if (ServerVersionInt >= 40103) and Parameters.LocalTimeZone then begin
@@ -1436,11 +1451,6 @@ end;
 procedure TAdoDBConnection.DoAfterConnect;
 begin
   inherited;
-  FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
-  FSQLSpecifities[spRenameTable] := 'EXEC sp_rename %s, %s';
-  FSQLSpecifities[spCurrentUserHost] := 'SELECT SYSTEM_USER';
-  FSQLSpecifities[spAddColumn] := 'ADD %s';
-  FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
   case ServerVersionInt of
     0..899: begin
       FSQLSpecifities[spDatabaseTable] := QuoteIdent('master')+'..'+QuoteIdent('sysdatabases');
@@ -2472,26 +2482,13 @@ begin
 end;
 
 
-function TMySQLConnection.GetServerVariables(Refresh: Boolean): TDBQuery;
+function TDBConnection.GetServerVariables(Refresh: Boolean): TDBQuery;
 begin
   // Return server variables
   if (not Assigned(FServerVariables)) or Refresh then begin
     if Assigned(FServerVariables) then
       FreeAndNil(FServerVariables);
-    FServerVariables := GetResults('SHOW VARIABLES');
-  end;
-  FServerVariables.First;
-  Result := FServerVariables;
-end;
-
-
-function TAdoDBConnection.GetServerVariables(Refresh: Boolean): TDBQuery;
-begin
-  // Enumerate some config values on MS SQL
-  if (not Assigned(FServerVariables)) or Refresh then begin
-    if Assigned(FServerVariables) then
-      FreeAndNil(FServerVariables);
-    FServerVariables := GetResults('SELECT '+QuoteIdent('comment')+', '+QuoteIdent('value')+' FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('syscurconfigs')+' ORDER BY '+QuoteIdent('comment'));
+    FServerVariables := GetResults(GetSQLSpecifity(spServerVariables));
   end;
   FServerVariables.First;
   Result := FServerVariables;
