@@ -8454,7 +8454,7 @@ begin
       FreeAndNil(Results);
     Screen.Cursor := crHourglass;
     if vt = ListVariables then begin
-      Results := Conn.GetResults('SHOW VARIABLES');
+      Results := Conn.GetResults(Conn.GetSQLSpecifity(spServerVariables));
     end else if vt = ListStatus then begin
       Results := Conn.GetResults('SHOW /*!50002 GLOBAL */ STATUS');
       FStatusServerUptime := Conn.ServerUptime;
