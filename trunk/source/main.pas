@@ -7896,45 +7896,47 @@ begin
   Conn := Results.Connection;
 
   // Find foreign key values on InnoDB table cells
-  if Sender = DataGrid then for ForeignKey in SelectedTableForeignKeys do begin
-    idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
-    if idx > -1 then try
-      // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
-      CreateTable := Conn.GetVar('SHOW CREATE TABLE '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.'), 1);
-      Columns := TTableColumnList.Create;
-      Keys := nil;
-      ForeignKeys := nil;
-      Conn.ParseTableStructure(CreateTable, Columns, Keys, ForeignKeys);
-      TextCol := '';
-      for TblColumn in Columns do begin
-        if (TblColumn.DataType.Category = dtcText) and (TblColumn.Name <> ForeignKey.ForeignColumns[idx]) then begin
-          TextCol := TblColumn.Name;
-          break;
+  if AppSettings.ReadBool(asForeignDropDown) and (Sender = DataGrid) then begin
+    for ForeignKey in SelectedTableForeignKeys do begin
+      idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
+      if idx > -1 then try
+        // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
+        CreateTable := Conn.GetVar('SHOW CREATE TABLE '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.'), 1);
+        Columns := TTableColumnList.Create;
+        Keys := nil;
+        ForeignKeys := nil;
+        Conn.ParseTableStructure(CreateTable, Columns, Keys, ForeignKeys);
+        TextCol := '';
+        for TblColumn in Columns do begin
+          if (TblColumn.DataType.Category = dtcText) and (TblColumn.Name <> ForeignKey.ForeignColumns[idx]) then begin
+            TextCol := TblColumn.Name;
+            break;
+          end;
         end;
-      end;
 
-      KeyCol := Conn.QuoteIdent(ForeignKey.ForeignColumns[idx]);
-      SQL := 'SELECT '+KeyCol;
-      if TextCol <> '' then SQL := SQL + ', LEFT(' + Conn.QuoteIdent(TextCol) + ', 256)';
-      SQL := SQL + ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+' GROUP BY '+KeyCol+' ORDER BY ';
-      if TextCol <> '' then SQL := SQL + Conn.QuoteIdent(TextCol) else SQL := SQL + KeyCol;
-      SQL := SQL + ' LIMIT 1000';
+        KeyCol := Conn.QuoteIdent(ForeignKey.ForeignColumns[idx]);
+        SQL := 'SELECT '+KeyCol;
+        if TextCol <> '' then SQL := SQL + ', LEFT(' + Conn.QuoteIdent(TextCol) + ', 256)';
+        SQL := SQL + ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+' GROUP BY '+KeyCol+' ORDER BY ';
+        if TextCol <> '' then SQL := SQL + Conn.QuoteIdent(TextCol) else SQL := SQL + KeyCol;
+        SQL := SQL + ' LIMIT 1000';
 
-      ForeignResults := Conn.GetResults(SQL);
-      if ForeignResults.RecordCount < 1000 then begin
-        EnumEditor := TEnumEditorLink.Create(VT);
-        EditLink := EnumEditor;
-        while not ForeignResults.Eof do begin
-          EnumEditor.ValueList.Add(ForeignResults.Col(0));
-          if TextCol <> '' then
-            EnumEditor.DisplayList.Add(ForeignResults.Col(0)+': '+ForeignResults.Col(1));
-          ForeignResults.Next;
+        ForeignResults := Conn.GetResults(SQL);
+        if ForeignResults.RecordCount < 1000 then begin
+          EnumEditor := TEnumEditorLink.Create(VT);
+          EditLink := EnumEditor;
+          while not ForeignResults.Eof do begin
+            EnumEditor.ValueList.Add(ForeignResults.Col(0));
+            if TextCol <> '' then
+              EnumEditor.DisplayList.Add(ForeignResults.Col(0)+': '+ForeignResults.Col(1));
+            ForeignResults.Next;
+          end;
         end;
+        ForeignResults.Free;
+        break;
+      except on E:EDatabaseError do
+        // Error gets logged, do nothing more here. All other exception types raise please.
       end;
-      ForeignResults.Free;
-      break;
-    except on E:EDatabaseError do
-      // Error gets logged, do nothing more here. All other exception types raise please.
     end;
   end;
 

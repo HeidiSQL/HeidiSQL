@@ -119,6 +119,7 @@ type
     chkRememberFilters: TCheckBox;
     lblLanguage: TLabel;
     comboAppLanguage: TComboBox;
+    chkForeignDropDown: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -276,6 +277,7 @@ begin
   AppSettings.WriteBool(asFieldEditorEnum, chkEditorEnum.Checked);
   AppSettings.WriteBool(asFieldEditorSet, chkEditorSet.Checked);
   AppSettings.WriteBool(asRememberFilters, chkRememberFilters.Checked);
+  AppSettings.WriteBool(asForeignDropDown, chkForeignDropDown.Checked);
 
   AppSettings.WriteBool(asCompletionProposal, chkCompletionProposal.Checked);
   AppSettings.WriteBool(asTabsToSpaces, chkTabsToSpaces.Checked);
@@ -478,6 +480,7 @@ begin
   chkEditorEnum.Checked := AppSettings.ReadBool(asFieldEditorEnum);
   chkEditorSet.Checked := AppSettings.ReadBool(asFieldEditorEnum);
   chkRememberFilters.Checked := AppSettings.ReadBool(asRememberFilters);
+  chkForeignDropDown.Checked := AppSettings.ReadBool(asForeignDropDown);
 
   // Shortcuts
   TreeShortcutItems.ReinitChildren(nil, True);
