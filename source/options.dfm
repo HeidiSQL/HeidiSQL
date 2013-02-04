@@ -835,6 +835,14 @@ object optionsform: Toptionsform
         Caption = 'Remember filters, sorting and column selection across sessions'
         TabOrder = 17
       end
+      object chkForeignDropDown: TCheckBox
+        Left = 8
+        Top = 302
+        Width = 433
+        Height = 17
+        Caption = 'Drop down values from foreign table in InnoDB rows'
+        TabOrder = 18
+      end
     end
     object tabShortcuts: TTabSheet
       Caption = 'Shortcuts'
