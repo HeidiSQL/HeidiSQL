@@ -2083,7 +2083,7 @@ var
   Key: TForeignKey;
   ColNode: PVirtualNode;
   Col: PTableColumn;
-  i: Integer;
+  Obj: TDBObject;
 begin
   // Init grid editor in foreign key list
   VT := Sender as TVirtualStringTree;
@@ -2103,9 +2103,9 @@ begin
         EnumEditor := TEnumEditorLink.Create(VT);
         EnumEditor.AllowCustomText := True;
         DBObjects := DBObject.Connection.GetDBObjects(DBObject.Connection.Database);
-        for i:=0 to DBObjects.Count-1 do begin
-          if DBObjects[i].NodeType = lntTable then
-            EnumEditor.ValueList.Add(DBObjects[i].Name);
+        for Obj in DBObjects do begin
+          if (Obj.NodeType = lntTable) and (LowerCase(Obj.Engine) = 'innodb') then
+            EnumEditor.ValueList.Add(Obj.Name);
         end;
         EditLink := EnumEditor;
       end;
