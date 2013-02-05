@@ -115,9 +115,9 @@ object frmTableTools: TfrmTableTools
       TabOrder = 1
       object ResultGrid: TVirtualStringTree
         Left = 0
-        Top = 145
+        Top = 153
         Width = 380
-        Height = 191
+        Height = 183
         Align = alClient
         Header.AutoSizeIndex = -1
         Header.Images = MainForm.ImageListMain
@@ -142,7 +142,7 @@ object frmTableTools: TfrmTableTools
         Left = 0
         Top = 0
         Width = 380
-        Height = 145
+        Height = 153
         ActivePage = tabSQLexport
         Align = alTop
         Images = MainForm.ImageListMain
@@ -153,7 +153,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 39
           DesignSize = (
             372
-            116)
+            124)
           object lblOperation: TLabel
             Left = 3
             Top = 14
@@ -248,7 +248,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 30
           DesignSize = (
             372
-            116)
+            124)
           object lblFindText: TLabel
             Left = 3
             Top = 14
@@ -258,7 +258,7 @@ object frmTableTools: TfrmTableTools
           end
           object lblDataTypes: TLabel
             Left = 3
-            Top = 47
+            Top = 80
             Width = 114
             Height = 13
             Anchors = [akLeft, akBottom]
@@ -268,7 +268,7 @@ object frmTableTools: TfrmTableTools
             Left = 208
             Top = 11
             Width = 161
-            Height = 26
+            Height = 60
             Anchors = [akLeft, akTop, akRight, akBottom]
             ScrollBars = ssVertical
             TabOrder = 0
@@ -276,7 +276,7 @@ object frmTableTools: TfrmTableTools
           end
           object comboDataTypes: TComboBox
             Left = 208
-            Top = 44
+            Top = 77
             Width = 161
             Height = 21
             Style = csDropDownList
@@ -285,7 +285,7 @@ object frmTableTools: TfrmTableTools
           end
           object chkCaseSensitive: TCheckBox
             Left = 208
-            Top = 71
+            Top = 104
             Width = 161
             Height = 17
             Anchors = [akLeft, akRight, akBottom]
@@ -298,7 +298,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 9
           DesignSize = (
             372
-            116)
+            124)
           object lblExportData: TLabel
             Left = 224
             Top = 4
@@ -419,7 +419,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 19
           DesignSize = (
             372
-            116)
+            124)
           object chkBulkTableEditDatabase: TCheckBox
             Left = 3
             Top = 5
