@@ -2177,8 +2177,13 @@ procedure TfrmTableEditor.listForeignKeysNewText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   Key, OtherKey: TForeignKey;
-  i: Integer;
+  i, j, k: Integer;
   NameInUse: Boolean;
+  RefCreateCode, RefDatabase, RefTable: String;
+  KeyColumnsSQLCode, RefColumnsSQLCode: String;
+  Err: String;
+  RefColumns: TTableColumnList;
+  TypesMatch: Boolean;
 begin
   // Cell text in foreign key list edited
   Key := FForeignKeys[Node.Index];
@@ -2209,7 +2214,51 @@ begin
 
       end;
     end;
-    3: Key.ForeignColumns := Explode(',', NewText);
+    3: begin
+      Key.ForeignColumns := Explode(',', NewText);
+
+      // Compare data types and unsigned flags of source and reference columns. See issue #400
+      Err := '';
+      if Key.Columns.Count <> Key.ForeignColumns.Count then begin
+        Err := _('Foreign column count does not match source column count.');
+      end else begin
+        RefDatabase := DBObject.Database;
+        RefTable := Key.ReferenceTable;
+        i := Pos('.', RefTable);
+        if i > 0 then begin
+          RefDatabase := Copy(RefTable, 1, i);
+          RefTable := Copy(RefTable, i, MaxInt);
+        end;
+        RefCreateCode := DBObject.Connection.GetCreateCode(RefDatabase, RefTable, lntTable);
+        RefColumns := TTableColumnList.Create(True);
+        DBObject.Connection.ParseTableStructure(RefCreateCode, RefColumns, nil, nil);
+        TypesMatch := True;
+        KeyColumnsSQLCode := '';
+        RefColumnsSQLCode := '';
+        for i:=0 to Key.Columns.Count-1 do begin
+          for j:=0 to FColumns.Count-1 do begin
+            if FColumns[j].Name = Key.Columns[i] then begin
+              KeyColumnsSQLCode := KeyColumnsSQLCode + FColumns[j].SQLCode + CRLF;
+              for k:=0 to RefColumns.Count-1 do begin
+                if RefColumns[k].Name = Key.ForeignColumns[i] then begin
+                  RefColumnsSQLCode := RefColumnsSQLCode + RefColumns[k].SQLCode + CRLF;
+                  TypesMatch := TypesMatch
+                    and (RefColumns[k].DataType.Index = FColumns[j].DataType.Index)
+                    and (RefColumns[k].Unsigned = FColumns[j].Unsigned);
+                end;
+              end;
+            end;
+          end;
+        end;
+        if not TypesMatch then begin
+          Err := _('The selected foreign column do not match the source columns data type and unsigned flag. This will give you an error message when trying to save this change. Please compare yourself:');
+          Err := Err + CRLF + CRLF + KeyColumnsSQLCode + CRLF + Trim(RefColumnsSQLCode);
+        end;
+      end;
+      if Err <> '' then
+        ErrorDialog(_('Foreign key mismatch'), Err);
+
+    end;
     4: Key.OnUpdate := NewText;
     5: Key.OnDelete := NewText;
   end;
