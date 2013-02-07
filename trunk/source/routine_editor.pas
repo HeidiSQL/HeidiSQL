@@ -171,9 +171,19 @@ begin
       comboSecurity.ItemIndex := comboSecurity.Items.IndexOf(Security);
     editComment.Text := Comment;
     comboDefiner.Text := Definer;
+    // The whole CREATE CODE may be empty if the user is not allowed to view code in SHOW CREATE FUNCTION
+    //   => Disable the whole editor in this case.
+    // Also, only the body may be empty, because ParseRoutineBody did not get a BEGIN..END block to see.
+    // See http://www.heidisql.com/forum.php?t=12075
+    //   => Get the body from information_schema
+    if Body = '' then begin
+      Body := Obj.Connection.GetVar('SELECT '+Obj.Connection.QuoteIdent('ROUTINE_DEFINITION')+' FROM information_schema.'+Obj.Connection.QuoteIdent('ROUTINES')+
+        ' WHERE '+Obj.Connection.QuoteIdent('ROUTINE_SCHEMA')+'='+esc(Obj.Database)+
+        ' AND '+Obj.Connection.QuoteIdent('ROUTINE_NAME')+'='+esc(Obj.Name)+
+        ' AND '+Obj.Connection.QuoteIdent('ROUTINE_TYPE')+'='+esc(FAlterRoutineType)
+        );
+    end;
     SynMemoBody.Text := Body;
-    // User may not be allowed to view code in SHOW CREATE FUNCTION, in which case we have an empty CreateCode.
-    // Disable editor in this case.
     lblDisabledWhy.Visible := Body = '';
     PageControlMain.Enabled := not lblDisabledWhy.Visible;
     SynMemoBody.Enabled := PageControlMain.Enabled;
