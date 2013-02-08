@@ -3320,7 +3320,7 @@ begin
         Query := 'EXEC ';
     end;
     Parameters := TRoutineParamList.Create;
-    Obj.Connection.ParseRoutineStructure(Obj.CreateCode, Parameters, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
+    Obj.Connection.ParseRoutineStructure(Obj, Parameters, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
     Query := Query + Obj.QuotedName;
     Params := TStringList.Create;
     for Param in Parameters do begin
@@ -5088,7 +5088,7 @@ begin
     for DbObj in DbObjects do begin
       if (CompareText(DbObj.Name, Identifier)=0) and (DbObj.NodeType in [lntFunction, lntProcedure]) then begin
         Params := TRoutineParamList.Create(True);
-        DbObj.Connection.ParseRoutineStructure(DbObj.CreateCode, Params, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
+        DbObj.Connection.ParseRoutineStructure(DbObj, Params, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
         ItemText := '';
         for i:=0 to Params.Count-1 do
           ItemText := ItemText + '"' + Params[i].Name + ': ' + Params[i].Datatype + '", ';
