@@ -332,7 +332,7 @@ type
       procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
       procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList;
         var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
-      procedure ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
+      procedure ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList;
         var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String);
       function GetDatatypeByName(Datatype: String): TDBDatatype;
       function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Cardinal): String;
@@ -3422,10 +3422,10 @@ begin
 end;
 
 
-procedure TDBConnection.ParseRoutineStructure(CreateCode: String; Parameters: TRoutineParamList;
+procedure TDBConnection.ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList;
   var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String);
 var
-  Params: String;
+  CreateCode, Params: String;
   ParenthesesCount: Integer;
   rx: TRegExpr;
   i: Integer;
@@ -3439,6 +3439,7 @@ begin
   // CREATE DEFINER=`root`@`localhost` FUNCTION `test3`(`?b` varchar(20)) RETURNS tinyint(4)
   // CREATE DEFINER=`root`@`localhost` PROCEDURE `test3`(IN `Param1` int(1) unsigned)
 
+  CreateCode := Obj.CreateCode;
   rx.Expression := '\bDEFINER\s*=\s*(\S+)\s';
   if rx.Exec(CreateCode) then
     Definer := DequoteIdent(rx.Match[1], '@')
@@ -3482,12 +3483,18 @@ begin
   //  | SQL SECURITY { DEFINER | INVOKER }                               // SECURITY_TYPE
   //  | COMMENT 'string'                                                 // COMMENT
 
-  // Strip body early, so regular expressions don't get confused by keywords
-  rx.Expression := '\bBEGIN\b';
-  if rx.Exec(CreateCode) then begin
-    Body := TrimLeft(Copy(CreateCode, rx.MatchPos[0], MaxInt));
-    Delete(CreateCode, rx.MatchPos[0], MaxInt);
-  end;
+  // Get the body from information_schema, as it's impossible to detect its start position in the CREATE code
+  // See http://www.heidisql.com/forum.php?t=12075
+  Body := GetVar('SELECT '+QuoteIdent('ROUTINE_DEFINITION')+
+    ' FROM information_schema.'+QuoteIdent('ROUTINES')+
+    ' WHERE '+QuoteIdent('ROUTINE_SCHEMA')+'='+EscapeString(Obj.Database)+
+    ' AND '+QuoteIdent('ROUTINE_NAME')+'='+EscapeString(Obj.Name)+
+    ' AND '+QuoteIdent('ROUTINE_TYPE')+'='+EscapeString(UpperCase(Obj.ObjType))
+    );
+  // Strip body early, so regular expressions don't get confused by keywords,
+  // e.g. "RETURNS" can be inside the body
+  Delete(CreateCode, Length(CreateCode)-Length(Body), MaxInt);
+
   rx.Expression := '\bLANGUAGE SQL\b';
   if rx.Exec(CreateCode) then
     Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
