@@ -3013,7 +3013,7 @@ begin
   InitSetting(asLastActiveSession,                'LastActiveSession',                     0, False, '');
   InitSetting(asAutoReconnect,                    'AutoReconnect',                         0, False);
   InitSetting(asRestoreLastUsedDB,                'RestoreLastUsedDB',                     0, True);
-  InitSetting(asLastUsedDB,                       'lastUsedDB',                            0, False, '');
+  InitSetting(asLastUsedDB,                       'lastUsedDB',                            0, False, '', True);
   InitSetting(asTreeBackground,                   'TreeBackground',                        clNone, False, '', True);
   InitSetting(asFontName,                         'FontName',                              0, False, 'Courier New');
   InitSetting(asFontSize,                         'FontSize',                              9);
