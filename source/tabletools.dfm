@@ -446,6 +446,7 @@ object frmTableTools: TfrmTableTools
             Height = 17
             Caption = 'Reset auto increment value'
             TabOrder = 2
+            OnClick = ValidateControls
           end
           object chkBulkTableEditCollation: TCheckBox
             Left = 3
