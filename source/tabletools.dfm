@@ -300,15 +300,15 @@ object frmTableTools: TfrmTableTools
             372
             124)
           object lblExportData: TLabel
-            Left = 224
-            Top = 4
+            Left = 3
+            Top = 50
             Width = 27
             Height = 13
             Caption = 'Data:'
           end
           object lblExportOutputType: TLabel
             Left = 3
-            Top = 51
+            Top = 77
             Width = 38
             Height = 13
             Caption = 'Output:'
@@ -329,14 +329,14 @@ object frmTableTools: TfrmTableTools
           end
           object lblExportOutputTarget: TLabel
             Left = 2
-            Top = 77
+            Top = 103
             Width = 46
             Height = 13
             Caption = 'Filename:'
           end
           object btnExportOutputTargetSelect: TButton
             Left = 346
-            Top = 74
+            Top = 100
             Width = 23
             Height = 21
             Hint = 'Browse filesystem'
@@ -347,54 +347,54 @@ object frmTableTools: TfrmTableTools
             OnClick = btnExportOutputTargetSelectClick
           end
           object chkExportDatabasesCreate: TCheckBox
-            Left = 144
+            Left = 192
             Top = 3
-            Width = 73
+            Width = 90
             Height = 17
             Caption = 'Create'
             TabOrder = 0
             OnClick = chkExportOptionClick
           end
           object chkExportDatabasesDrop: TCheckBox
-            Left = 80
+            Left = 100
             Top = 3
-            Width = 60
+            Width = 90
             Height = 17
             Caption = 'Drop'
             TabOrder = 1
             OnClick = chkExportOptionClick
           end
           object chkExportTablesDrop: TCheckBox
-            Left = 80
+            Left = 100
             Top = 24
-            Width = 60
+            Width = 90
             Height = 17
             Caption = 'Drop'
             TabOrder = 2
             OnClick = chkExportOptionClick
           end
           object chkExportTablesCreate: TCheckBox
-            Left = 144
+            Left = 192
             Top = 24
-            Width = 74
+            Width = 90
             Height = 17
             Caption = 'Create'
             TabOrder = 3
             OnClick = chkExportOptionClick
           end
           object comboExportData: TComboBox
-            Left = 224
-            Top = 22
-            Width = 145
+            Left = 100
+            Top = 47
+            Width = 269
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             TabOrder = 4
           end
           object comboExportOutputType: TComboBox
-            Left = 80
-            Top = 48
-            Width = 289
+            Left = 100
+            Top = 74
+            Width = 269
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -402,9 +402,9 @@ object frmTableTools: TfrmTableTools
             OnChange = comboExportOutputTypeChange
           end
           object comboExportOutputTarget: TComboBox
-            Left = 80
-            Top = 74
-            Width = 263
+            Left = 100
+            Top = 100
+            Width = 243
             Height = 21
             Anchors = [akLeft, akTop, akRight]
             ParentShowHint = False

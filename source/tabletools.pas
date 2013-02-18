@@ -1048,8 +1048,8 @@ begin
     chkExportTablesCreate.Checked := True
   else if (Sender = chkExportTablesCreate) and (not chkExportTablesCreate.Checked) then
     chkExportTablesDrop.Checked := False;
-  WarnIfChecked(chkExportDatabasesDrop, 'Drop');
-  WarnIfChecked(chkExportTablesDrop, 'Drop');
+  WarnIfChecked(chkExportDatabasesDrop, _('Drop'));
+  WarnIfChecked(chkExportTablesDrop, _('Drop'));
 end;
 
 
