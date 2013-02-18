@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-02-06 20:20+0100\n"
+"PO-Revision-Date: 2013-02-18 08:25+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2347,16 +2347,6 @@ msgstr "EXPLAIN analyzer on MariaDB.org"
 msgid "Pass EXPLAIN output to MariaDB's analyzer webpage"
 msgstr "Pass EXPLAIN output to MariaDB's analyzer webpage"
 
-#. MainForm..SynSQLSyn1..DefaultFilter
-#: main.dfm:8716
-msgid "SQL files (*.sql)|*.sql"
-msgstr "SQL files (*.sql)|*.sql"
-
-#. MainForm..OpenDialog1..Filter
-#: main.dfm:8735
-msgid "SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*"
-msgstr "SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*"
-
 #: tabletools.pas:1061 main.pas:2855 connections.pas:1047
 msgid "SQL files"
 msgstr "SQL files"
@@ -2425,11 +2415,6 @@ msgstr "Log to file"
 #: main.dfm:9026
 msgid "Open log folder ..."
 msgstr "Open log folder ..."
-
-#. MainForm..SaveDialogSQLFile..Filter
-#: main.dfm:9081
-msgid "SQL-Scripts (*.sql)|*.sql|All Files (*.*)|*.*"
-msgstr "SQL-Scripts (*.sql)|*.sql|All Files (*.*)|*.*"
 
 #. MainForm..popupQuery..menuQueryExplain..Caption
 #: main.dfm:9105
