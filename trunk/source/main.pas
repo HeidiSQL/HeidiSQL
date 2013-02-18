@@ -278,7 +278,6 @@ type
     SynSQLSyn1: TSynSQLSyn;
     SynMemoQuery: TSynMemo;
     spltQuery: TSplitter;
-    OpenDialog1: TOpenDialog;
     TimerHostUptime: TTimer;
     N5a: TMenuItem;
     popupDataGrid: TPopupMenu;
@@ -332,7 +331,6 @@ type
     popupListHeader: TVTHeaderPopupMenu;
     SynCompletionProposal: TSynCompletionProposal;
     ParameterCompletionProposal: TSynCompletionProposal;
-    SaveDialogSQLFile: TSaveDialog;
     tabCommandStats: TTabSheet;
     ListCommandStats: TVirtualStringTree;
     QF13: TMenuItem;
@@ -3501,16 +3499,21 @@ var
   i: Integer;
   CanSave: TModalResult;
   OnlySelection: Boolean;
+  SaveDialog: TSaveDialog;
 begin
   // Save SQL
   CanSave := mrNo;
-  while (CanSave = mrNo) and SaveDialogSQLFile.Execute do begin
+  SaveDialog := TSaveDialog.Create(Self);
+  SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
+  SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
+  SaveDialog.DefaultExt := 'sql';
+  while (CanSave = mrNo) and SaveDialog.Execute do begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
     CanSave := mrYes;
     for i:=0 to QueryTabs.Count-1 do begin
-      if QueryTabs[i].MemoFilename = SaveDialogSQLFile.FileName then begin
-        CanSave := MessageDialog(f_('Overwrite "%s"?', [SaveDialogSQLFile.FileName]), f_('This file is already open in query tab #%d.', [QueryTabs[i].Number]),
+      if QueryTabs[i].MemoFilename = SaveDialog.FileName then begin
+        CanSave := MessageDialog(f_('Overwrite "%s"?', [SaveDialog.FileName]), f_('This file is already open in query tab #%d.', [QueryTabs[i].Number]),
           mtWarning, [mbYes, mbNo, mbCancel]);
         break;
       end;
@@ -3518,15 +3521,16 @@ begin
   end;
   if CanSave = mrYes then begin
     OnlySelection := (Sender = actSaveSQLselection) or (Sender = actSaveSQLSelectionSnippet);
-    ActiveQueryTab.SaveContents(SaveDialogSQLFile.FileName, OnlySelection);
+    ActiveQueryTab.SaveContents(SaveDialog.FileName, OnlySelection);
     for i:=0 to QueryTabs.Count-1 do begin
       if QueryTabs[i] = ActiveQueryTab then
         continue;
-      if QueryTabs[i].MemoFilename = SaveDialogSQLFile.FileName then
+      if QueryTabs[i].MemoFilename = SaveDialog.FileName then
         QueryTabs[i].Memo.Modified := True;
     end;
     ValidateQueryControls(Sender);
   end;
+  SaveDialog.Free;
 end;
 
 
@@ -9552,6 +9556,7 @@ function TMainForm.ConfirmTabClose(PageIndex: Integer): Boolean;
 var
   msg: String;
   Tab: TQueryTab;
+  SaveDialog: TSaveDialog;
 begin
   Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
   if Tab.QueryRunning then begin
@@ -9569,12 +9574,17 @@ begin
     case MessageDialog(_('Modified query'), msg, mtConfirmation, [mbYes, mbNo, mbCancel], asPromptSaveFileOnTabClose) of
       mrNo: Result := True;
       mrYes: begin
+        SaveDialog := TSaveDialog.Create(Self);
+        SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
+        SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
+        SaveDialog.DefaultExt := 'sql';
         if Tab.MemoFilename <> '' then
           Tab.SaveContents(Tab.MemoFilename, False)
-        else if SaveDialogSQLFile.Execute then
-          Tab.SaveContents(SaveDialogSQLFile.FileName, False);
+        else if SaveDialog.Execute then
+          Tab.SaveContents(SaveDialog.FileName, False);
         // The save dialog can be cancelled.
         Result := not Tab.Memo.Modified;
+        SaveDialog.Free;
       end;
       else Result := False;
     end;

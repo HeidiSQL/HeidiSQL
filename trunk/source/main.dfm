@@ -8849,7 +8849,6 @@ object MainForm: TMainForm
     end
   end
   object SynSQLSyn1: TSynSQLSyn
-    DefaultFilter = 'SQL files (*.sql)|*.sql'
     CommentAttri.Foreground = clGray
     ConditionalCommentAttri.Foreground = clGray
     DataTypeAttri.Foreground = clMaroon
@@ -8865,12 +8864,6 @@ object MainForm: TMainForm
     SQLDialect = sqlMySQL
     Left = 7
     Top = 232
-  end
-  object OpenDialog1: TOpenDialog
-    DefaultExt = 'sql'
-    Filter = 'SQL-Scripts (*.sql)|*.sql|All files (*.*)|*.*'
-    Left = 7
-    Top = 160
   end
   object TimerHostUptime: TTimer
     OnTimer = TimerHostUptimeTimer
@@ -9211,13 +9204,6 @@ object MainForm: TMainForm
     OnCodeCompletion = SynCompletionProposalCodeCompletion
     Left = 40
     Top = 232
-  end
-  object SaveDialogSQLFile: TSaveDialog
-    DefaultExt = 'sql'
-    Filter = 'SQL-Scripts (*.sql)|*.sql|All Files (*.*)|*.*'
-    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
-    Left = 72
-    Top = 128
   end
   object popupQuery: TPopupMenu
     Images = ImageListMain
