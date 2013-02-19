@@ -2528,6 +2528,7 @@ object MainForm: TMainForm
     object actDisconnect: TAction
       Category = 'File'
       Caption = 'Disconnect'
+      Hint = 'Close selected database connection'
       ImageIndex = 29
       OnExecute = actDisconnectExecute
     end
