@@ -3430,6 +3430,7 @@ var
   rx: TRegExpr;
   i: Integer;
   Param: TRoutineParam;
+  FromIS: TDBQuery;
 begin
   // Parse CREATE code of stored function or procedure to detect parameters
   rx := TRegExpr.Create;
@@ -3439,14 +3440,8 @@ begin
   // CREATE DEFINER=`root`@`localhost` FUNCTION `test3`(`?b` varchar(20)) RETURNS tinyint(4)
   // CREATE DEFINER=`root`@`localhost` PROCEDURE `test3`(IN `Param1` int(1) unsigned)
 
-  CreateCode := Obj.CreateCode;
-  rx.Expression := '\bDEFINER\s*=\s*(\S+)\s';
-  if rx.Exec(CreateCode) then
-    Definer := DequoteIdent(rx.Match[1], '@')
-  else
-    Definer := '';
-
   // Parse parameter list
+  CreateCode := Obj.CreateCode;
   ParenthesesCount := 0;
   Params := '';
   for i:=1 to Length(CreateCode) do begin
@@ -3472,60 +3467,26 @@ begin
     if not rx.ExecNext then
       break;
   end;
+  rx.Free;
 
-  // Cut left part including parameters, so it's easier to parse the rest
-  CreateCode := Copy(CreateCode, i+1, MaxInt);
-  // CREATE PROCEDURE sp_name ([proc_parameter[,...]]) [characteristic ...] routine_body
-  // CREATE FUNCTION sp_name ([func_parameter[,...]]) RETURNS type [characteristic ...] routine_body
-  // LANGUAGE SQL
-  //  | [NOT] DETERMINISTIC                                              // IS_DETERMINISTIC
-  //  | { CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }   // DATA_ACCESS
-  //  | SQL SECURITY { DEFINER | INVOKER }                               // SECURITY_TYPE
-  //  | COMMENT 'string'                                                 // COMMENT
-
-  // Get the body from information_schema, as it's impossible to detect its start position in the CREATE code
+  // Get everything else from information_schema.
   // See http://www.heidisql.com/forum.php?t=12075
-  Body := GetVar('SELECT '+QuoteIdent('ROUTINE_DEFINITION')+
+  // See issue #3114
+  FromIS := GetResults('SELECT '+QuoteIdent('ROUTINE_DEFINITION')+', '+QuoteIdent('DEFINER')+', '+
+    QuoteIdent('DTD_IDENTIFIER')+', '+QuoteIdent('IS_DETERMINISTIC')+', '+
+    QuoteIdent('SQL_DATA_ACCESS')+', '+QuoteIdent('SECURITY_TYPE')+', '+QuoteIdent('ROUTINE_COMMENT')+
     ' FROM information_schema.'+QuoteIdent('ROUTINES')+
     ' WHERE '+QuoteIdent('ROUTINE_SCHEMA')+'='+EscapeString(Obj.Database)+
     ' AND '+QuoteIdent('ROUTINE_NAME')+'='+EscapeString(Obj.Name)+
     ' AND '+QuoteIdent('ROUTINE_TYPE')+'='+EscapeString(UpperCase(Obj.ObjType))
     );
-  // Strip body early, so regular expressions don't get confused by keywords,
-  // e.g. "RETURNS" can be inside the body
-  Delete(CreateCode, Length(CreateCode)-Length(Body), MaxInt);
-
-  rx.Expression := '\bLANGUAGE SQL\b';
-  if rx.Exec(CreateCode) then
-    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
-  rx.Expression := '\bRETURNS\s+(\w+(\([^\)]*\))?(\s+UNSIGNED)?(\s+CHARSET\s+\S+)?(\s+COLLATE\s+\S+)?)';
-  if rx.Exec(CreateCode) then begin
-    Returns := rx.Match[1];
-    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
-  end;
-  rx.Expression := '\b(NOT\s+)?DETERMINISTIC\b';
-  if rx.Exec(CreateCode) then begin
-    Deterministic := rx.MatchLen[1] = -1;
-    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
-  end;
-  rx.Expression := '\b(CONTAINS SQL|NO SQL|READS SQL DATA|MODIFIES SQL DATA)\b';
-  if rx.Exec(CreateCode) then begin
-    DataAccess := rx.Match[1];
-    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
-  end;
-  rx.Expression := '\bSQL\s+SECURITY\s+(DEFINER|INVOKER)\b';
-  if rx.Exec(CreateCode) then begin
-    Security := rx.Match[1];
-    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]);
-  end;
-  rx.ModifierG := False;
-  rx.Expression := '\bCOMMENT\s+''((.+)[^''])''[^'']';
-  if rx.Exec(CreateCode) then begin
-    Comment := StringReplace(rx.Match[1], '''''', '''', [rfReplaceAll]);
-    Delete(CreateCode, rx.MatchPos[0], rx.MatchLen[0]-1);
-  end;
-
-  rx.Free;
+  Body := FromIS.Col('ROUTINE_DEFINITION');
+  Definer := FromIS.Col('DEFINER');
+  Returns := FromIS.Col('DTD_IDENTIFIER');
+  Deterministic := FromIS.Col('IS_DETERMINISTIC') = 'YES';
+  DataAccess := FromIS.Col('SQL_DATA_ACCESS');
+  Security := FromIS.Col('SECURITY_TYPE');
+  Comment := FromIS.Col('ROUTINE_COMMENT');
 end;
 
 
