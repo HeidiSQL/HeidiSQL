@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-02-21 09:48+0100\n"
+"PO-Revision-Date: 2013-02-21 16:57+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2724,6 +2724,10 @@ msgstr "Prefill empty date/time fields with current date/time"
 #: options.dfm:838
 msgid "Remember filters, sorting and column selection across sessions"
 msgstr "Remember filters, sorting and column selection across sessions"
+
+#. Preferences > Data
+msgid "Drop down values from foreign table in InnoDB rows"
+msgstr "Drop down values from foreign table in InnoDB rows"
 
 #. optionsform..pagecontrolMain..tabShortcuts..Caption
 #: options.dfm:843
