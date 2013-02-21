@@ -132,8 +132,6 @@ end;
 
 procedure TfrmRoutineEditor.Init(Obj: TDBObject);
 var
-  Definer, Returns, DataAccess, Security, Comment, Body: String;
-  Deterministic: Boolean;
   i: Integer;
 begin
   inherited;
@@ -162,19 +160,19 @@ begin
       lntProcedure: comboType.ItemIndex := 0;
       lntFunction: comboType.ItemIndex := 1;
     end;
-    DBObject.Connection.ParseRoutineStructure(Obj, Parameters, Deterministic, Definer, Returns, DataAccess, Security, Comment, Body);
-    comboReturns.Text := Returns;
-    chkDeterministic.Checked := Deterministic;
-    if DataAccess <> '' then
-      comboDataAccess.ItemIndex := comboDataAccess.Items.IndexOf(DataAccess);
-    if Security <> '' then
-      comboSecurity.ItemIndex := comboSecurity.Items.IndexOf(Security);
-    editComment.Text := Comment;
-    comboDefiner.Text := Definer;
+    DBObject.Connection.ParseRoutineStructure(Obj, Parameters);
+    comboReturns.Text := Obj.Returns;
+    chkDeterministic.Checked := Obj.Deterministic;
+    if Obj.DataAccess <> '' then
+      comboDataAccess.ItemIndex := comboDataAccess.Items.IndexOf(Obj.DataAccess);
+    if Obj.Security <> '' then
+      comboSecurity.ItemIndex := comboSecurity.Items.IndexOf(Obj.Security);
+    editComment.Text := Obj.Comment;
+    comboDefiner.Text := Obj.Definer;
     // The whole CREATE CODE may be empty if the user is not allowed to view code in SHOW CREATE FUNCTION
     //   => Disable the whole editor in this case.
-    SynMemoBody.Text := Body;
-    lblDisabledWhy.Visible := Body = '';
+    SynMemoBody.Text := Obj.Body;
+    lblDisabledWhy.Visible := Obj.Body = '';
     PageControlMain.Enabled := not lblDisabledWhy.Visible;
     SynMemoBody.Enabled := PageControlMain.Enabled;
   end else begin

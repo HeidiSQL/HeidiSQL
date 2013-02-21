@@ -3279,9 +3279,8 @@ end;
 procedure TMainForm.actRunRoutinesExecute(Sender: TObject);
 var
   Tab: TQueryTab;
-  Query, ParamValues, ParamValue, DummyStr: String;
+  Query, ParamValues, ParamValue: String;
   Params: TStringList;
-  DummyBool: Boolean;
   pObj: PDBObject;
   Obj: TDBObject;
   Objects: TDBObjectList;
@@ -3318,7 +3317,7 @@ begin
         Query := 'EXEC ';
     end;
     Parameters := TRoutineParamList.Create;
-    Obj.Connection.ParseRoutineStructure(Obj, Parameters, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
+    Obj.Connection.ParseRoutineStructure(Obj, Parameters);
     Query := Query + Obj.QuotedName;
     Params := TStringList.Create;
     for Param in Parameters do begin
@@ -5058,11 +5057,10 @@ var
   LeftText, Identifier: String;
   rx: TRegExpr;
   i: Integer;
-  DummyBool: Boolean;
   DbObjects: TDBObjectList;
   DbObj: TDbObject;
   Params: TRoutineParamList;
-  ItemText, DummyStr: String;
+  ItemText: String;
   Prop: TSynCompletionProposal;
 begin
   // Display hint on function and procedure parameters
@@ -5092,7 +5090,7 @@ begin
     for DbObj in DbObjects do begin
       if (CompareText(DbObj.Name, Identifier)=0) and (DbObj.NodeType in [lntFunction, lntProcedure]) then begin
         Params := TRoutineParamList.Create(True);
-        DbObj.Connection.ParseRoutineStructure(DbObj, Params, DummyBool, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
+        DbObj.Connection.ParseRoutineStructure(DbObj, Params);
         ItemText := '';
         for i:=0 to Params.Count-1 do
           ItemText := ItemText + '"' + Params[i].Name + ': ' + Params[i].Datatype + '", ';

@@ -27,9 +27,14 @@ type
       function GetCreateCode: String;
       procedure SetCreateCode(Value: String);
     public
+      // Table options:
       Name, Database, Column, Engine, Comment, RowFormat, CreateOptions, Collation: String;
       Created, Updated, LastChecked: TDateTime;
       Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
+      // Routine options:
+      Body, Definer, Returns, DataAccess, Security: String;
+      Deterministic: Boolean;
+
       NodeType, GroupType: TListNodeType;
       constructor Create(OwnerConnection: TDBConnection);
       procedure Assign(Source: TPersistent); override;
@@ -332,8 +337,7 @@ type
       procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
       procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList;
         var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
-      procedure ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList;
-        var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String);
+      procedure ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList);
       function GetDatatypeByName(Datatype: String): TDBDatatype;
       function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Cardinal): String;
       property Parameters: TConnectionParameters read FParameters write FParameters;
@@ -3422,8 +3426,7 @@ begin
 end;
 
 
-procedure TDBConnection.ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList;
-  var Deterministic: Boolean; var Definer, Returns, DataAccess, Security, Comment, Body: String);
+procedure TDBConnection.ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList);
 var
   CreateCode, Params: String;
   ParenthesesCount: Integer;
@@ -3469,24 +3472,26 @@ begin
   end;
   rx.Free;
 
-  // Get everything else from information_schema.
-  // See http://www.heidisql.com/forum.php?t=12075
-  // See issue #3114
-  FromIS := GetResults('SELECT '+QuoteIdent('ROUTINE_DEFINITION')+', '+QuoteIdent('DEFINER')+', '+
-    QuoteIdent('DTD_IDENTIFIER')+', '+QuoteIdent('IS_DETERMINISTIC')+', '+
-    QuoteIdent('SQL_DATA_ACCESS')+', '+QuoteIdent('SECURITY_TYPE')+', '+QuoteIdent('ROUTINE_COMMENT')+
-    ' FROM information_schema.'+QuoteIdent('ROUTINES')+
-    ' WHERE '+QuoteIdent('ROUTINE_SCHEMA')+'='+EscapeString(Obj.Database)+
-    ' AND '+QuoteIdent('ROUTINE_NAME')+'='+EscapeString(Obj.Name)+
-    ' AND '+QuoteIdent('ROUTINE_TYPE')+'='+EscapeString(UpperCase(Obj.ObjType))
-    );
-  Body := FromIS.Col('ROUTINE_DEFINITION');
-  Definer := FromIS.Col('DEFINER');
-  Returns := FromIS.Col('DTD_IDENTIFIER');
-  Deterministic := FromIS.Col('IS_DETERMINISTIC') = 'YES';
-  DataAccess := FromIS.Col('SQL_DATA_ACCESS');
-  Security := FromIS.Col('SECURITY_TYPE');
-  Comment := FromIS.Col('ROUTINE_COMMENT');
+  if Obj.Body = '' then begin
+    // Get everything else from information_schema.
+    // See http://www.heidisql.com/forum.php?t=12075
+    // See issue #3114
+    FromIS := GetResults('SELECT '+QuoteIdent('ROUTINE_DEFINITION')+', '+QuoteIdent('DEFINER')+', '+
+      QuoteIdent('DTD_IDENTIFIER')+', '+QuoteIdent('IS_DETERMINISTIC')+', '+
+      QuoteIdent('SQL_DATA_ACCESS')+', '+QuoteIdent('SECURITY_TYPE')+', '+QuoteIdent('ROUTINE_COMMENT')+
+      ' FROM information_schema.'+QuoteIdent('ROUTINES')+
+      ' WHERE '+QuoteIdent('ROUTINE_SCHEMA')+'='+EscapeString(Obj.Database)+
+      ' AND '+QuoteIdent('ROUTINE_NAME')+'='+EscapeString(Obj.Name)+
+      ' AND '+QuoteIdent('ROUTINE_TYPE')+'='+EscapeString(UpperCase(Obj.ObjType))
+      );
+    Obj.Body := FromIS.Col('ROUTINE_DEFINITION');
+    Obj.Definer := FromIS.Col('DEFINER');
+    Obj.Returns := FromIS.Col('DTD_IDENTIFIER');
+    Obj.Deterministic := FromIS.Col('IS_DETERMINISTIC') = 'YES';
+    Obj.DataAccess := FromIS.Col('SQL_DATA_ACCESS');
+    Obj.Security := FromIS.Col('SECURITY_TYPE');
+    Obj.Comment := FromIS.Col('ROUTINE_COMMENT');
+  end;
 end;
 
 
