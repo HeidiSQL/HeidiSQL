@@ -4,22 +4,20 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
-  dbconnection, gnugettext;
+  dbconnection, gnugettext, SynRegExpr;
 
 type
   TCreateDatabaseForm = class(TForm)
     editDBName: TEdit;
     lblDBName: TLabel;
-    comboCharset: TComboBox;
-    lblCharset: TLabel;
     btnOK: TButton;
     btnCancel: TButton;
     lblCollation: TLabel;
     comboCollation: TComboBox;
-    lblPreview: TLabel;
-    SynMemoPreview: TSynMemo;
+    lblCreateCode: TLabel;
+    SynMemoCreateCode: TSynMemo;
+    lblServerDefaultCollation: TLabel;
     procedure btnOKClick(Sender: TObject);
-    procedure comboCharsetChange(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
@@ -27,9 +25,6 @@ type
     function GetCreateStatement: String;
   private
     { Private declarations }
-    CollationTable: TDBQuery;
-    defaultCharset : String;
-    currentCollation : String;
     FConnection: TDBConnection;
   public
     { Public declarations }
@@ -44,15 +39,13 @@ uses main, helpers;
 {$R *.dfm}
 
 
-{**
-  Fetch list with character sets and collations from the server
-}
 procedure TCreateDatabaseForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
   TranslateComponent(Self);
+  lblCreateCode.Caption := lblCreateCode.Caption + ':';
   // Setup SynMemoPreview
-  SynMemoPreview.Highlighter := Mainform.SynSQLSyn1;
+  SynMemoCreateCode.Highlighter := Mainform.SynSQLSyn1;
 end;
 
 
@@ -61,116 +54,74 @@ end;
 }
 procedure TCreateDatabaseForm.FormShow(Sender: TObject);
 var
-  selectCharset,
-  currentCharset,
-  sql_create : String;
-  Charset: String;
-  colpos: Integer;
+  ServerCollation, Collation, Charset, CreateCode: String;
+  CollationTable: TDBQuery;
+  rx: TRegExpr;
 begin
   FConnection := MainForm.ActiveConnection;
   CollationTable := FConnection.CollationTable;
-  // Detect servers default charset
-  defaultCharset := FConnection.GetVar( 'SHOW VARIABLES LIKE '+esc('character_set_server'), 1 );
-  comboCharset.Enabled := Assigned(CollationTable);
-  lblCharset.Enabled := comboCharset.Enabled;
-  comboCollation.Enabled := comboCharset.Enabled;
-  lblCollation.Enabled := comboCharset.Enabled;
-  if comboCharset.Enabled then begin
-    // Create a list with charsets from collations dataset
-    comboCharset.Items.BeginUpdate;
-    while not CollationTable.Eof do begin
-      Charset := CollationTable.Col('Charset');
-      if comboCharset.Items.IndexOf(Charset) = -1 then
-        comboCharset.Items.Add(Charset);
-      CollationTable.Next;
-    end;
-    comboCharset.Items.EndUpdate;
-  end;
 
-  if modifyDB = '' then
-  begin
+  // Detect servers default collation
+  // TODO: Find out how to retrieve the server's default collation on MSSQL
+  case FConnection.Parameters.NetTypeGroup of
+    ngMySQL:
+      ServerCollation := FConnection.GetVar('SHOW VARIABLES LIKE '+FConnection.EscapeString('collation_server'), 1);
+    ngMSSQL:
+      ServerCollation := '';
+  end;
+  lblServerDefaultCollation.Caption := f_('Servers default: %s', [ServerCollation]);
+
+  if modifyDB = '' then begin
     Caption := _('Create database ...');
     editDBName.Text := '';
-    editDBName.SetFocus;
-    selectCharset := defaultCharset;
+    Charset := '';
+    Collation := ServerCollation;
   end
   else begin
     Caption := _('Alter database ...');
     editDBName.Text := modifyDB;
-    editDBName.SetFocus;
-    editDBName.SelectAll;
-    
-    // Detect current charset and collation to be able to preselect them in the pulldowns
-    sql_create := FConnection.GetVar('SHOW CREATE DATABASE '+FConnection.QuoteIdent(modifyDB), 1);
-    currentCharset := Copy( sql_create, pos('CHARACTER SET', sql_create)+14, Length(sql_create));
-    currentCharset := GetFirstWord( currentCharset );
-    if currentCharset <> '' then
-      selectCharset := currentCharset
-    else
-      selectCharset := defaultCharset;
-    currentCollation := '';
-    colpos := pos('COLLATE', sql_create);
-    if colpos > 0 then begin
-      currentCollation := Copy( sql_create, colpos+8, Length(sql_create));
-      currentCollation := GetFirstWord( currentCollation );
+
+    // Detect current collation
+    CreateCode := FConnection.GetVar('SHOW CREATE DATABASE '+FConnection.QuoteIdent(modifyDB), 1);
+    rx := TRegExpr.Create;
+    rx.Expression := '\sCHARACTER\s+SET\s+(\w+)\b';
+    if rx.Exec(CreateCode) then
+      Charset := rx.Match[1];
+    rx.Expression := '\sCOLLATE\s+(\w+)\b';
+    if rx.Exec(CreateCode) then
+      Collation := rx.Match[1];
+    rx.Free;
+    // Find default collation of given charset
+    if (Collation = '') and (Charset <> '') and Assigned(CollationTable) then begin
+      while not CollationTable.Eof do begin
+        if (CollationTable.Col('Charset') = Charset) and (LowerCase(CollationTable.Col('Default')) = 'yes') then
+          Collation := CollationTable.Col('Collation');
+        CollationTable.Next;
+      end;
     end;
   end;
 
-  // Preselect charset item in pulldown
-  if comboCharset.Items.Count > 0 then
-  begin
-    if comboCharset.Items.IndexOf(selectCharset) > -1 then
-      comboCharset.ItemIndex := comboCharset.Items.IndexOf(selectCharset)
-    else
-      comboCharset.ItemIndex := 0;
-    // Invoke selecting default collation
-    comboCharsetChange( Sender );
+  // Select collation in pulldown
+  comboCollation.Enabled := Assigned(CollationTable);
+  lblCollation.Enabled := comboCollation.Enabled;
+  comboCollation.Clear;
+  if comboCollation.Enabled then begin
+    CollationTable.First;
+    while not CollationTable.Eof do begin
+      comboCollation.Items.Add(CollationTable.Col('Collation'));
+      CollationTable.Next;
+    end;
+    comboCollation.ItemIndex := comboCollation.Items.IndexOf(Collation);
+    if comboCollation.ItemIndex = -1 then
+      comboCollation.ItemIndex := 0;
   end;
+
+  editDBName.SetFocus;
+  editDBName.SelectAll;
 
   // Invoke SQL preview
   Modified(Sender);
   MainForm.SetupSynEditors;
-end;
-
-
-{**
-  Charset has been selected: Display fitting collations
-  and select default one.
-}
-procedure TCreateDatabaseForm.comboCharsetChange(Sender: TObject);
-var
-  defaultCollation : String;
-begin
-  // Abort if collations were not fetched successfully
-  if not Assigned(CollationTable) then
-    Exit;
-
-  // Fill pulldown with fitting collations
-  comboCollation.Items.BeginUpdate;
-  comboCollation.Items.Clear;
-  CollationTable.First;
-  while not CollationTable.Eof do begin
-    if CollationTable.Col('Charset') = comboCharset.Text then
-    begin
-      comboCollation.Items.Add(CollationTable.Col('Collation'));
-      if CollationTable.Col('Default') = 'Yes' then
-        defaultCollation := CollationTable.Col('Collation');
-    end;
-    CollationTable.Next;
-  end;
-
-  // Preselect default or current collation
-  if currentCollation <> '' then
-    defaultCollation := currentCollation;
-  if comboCollation.Items.IndexOf(defaultCollation) > -1 then
-    comboCollation.ItemIndex := comboCollation.Items.IndexOf(defaultCollation)
-  else
-    comboCollation.ItemIndex := 0;
-
-  comboCollation.Items.EndUpdate;
-
-  // Invoke SQL preview
-  Modified(Sender);
 end;
 
 
@@ -196,13 +147,10 @@ begin
       ErrorDialog(f_('Creating database "%s" failed.', [editDBName.Text]), E.Message);
     // Keep form open
   end else try
-    sql := 'ALTER DATABASE ' + FConnection.QuoteIdent( modifyDB );
-    if comboCharset.Enabled and (comboCharset.Text <> '') then
-    begin
-      sql := sql + ' CHARACTER SET ' + comboCharset.Text;
-      if comboCollation.Enabled and (comboCollation.Text <> '') then
-        sql := sql + ' COLLATE ' + esc(comboCollation.Text);
-    end;
+    sql := 'ALTER DATABASE ' + FConnection.QuoteIdent(modifyDB);
+    if comboCollation.Text <> '' then
+      sql := sql + ' COLLATE ' + FConnection.EscapeString(comboCollation.Text);
+
     if modifyDB = editDBName.Text then begin
       // Alter database
       FConnection.Query(sql);
@@ -285,8 +233,8 @@ end;
 }
 procedure TCreateDatabaseForm.Modified(Sender: TObject);
 begin
-  SynMemoPreview.Clear;
-  SynMemoPreview.Text := GetCreateStatement;
+  SynMemoCreateCode.Clear;
+  SynMemoCreateCode.Text := GetCreateStatement;
 end;
 
 
@@ -296,13 +244,8 @@ end;
 function TCreateDatabaseForm.GetCreateStatement: String;
 begin
   Result := 'CREATE DATABASE ' + FConnection.QuoteIdent( editDBName.Text );
-  if comboCharset.Enabled and (comboCharset.Text <> '') then
-  begin
-    Result := Result + ' /*!40100 CHARACTER SET ' + comboCharset.Text;
-    if comboCollation.Enabled and (comboCollation.Text <> '') then
-      Result := Result + ' COLLATE ' + esc(comboCollation.Text);
-    Result := Result + ' */';
-  end;
+  if comboCollation.Enabled and (comboCollation.Text <> '') then
+    Result := Result + ' /*!40100 COLLATE ' + FConnection.EscapeString(comboCollation.Text) + ' */';
 end;
 
 

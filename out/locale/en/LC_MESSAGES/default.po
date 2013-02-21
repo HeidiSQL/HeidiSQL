@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-02-19 10:19+0100\n"
+"PO-Revision-Date: 2013-02-21 09:48+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -486,25 +486,19 @@ msgstr "Create database ..."
 msgid "&Name:"
 msgstr "&Name:"
 
-#. CreateDatabaseForm..lblCharset..Caption
-#: createdatabase.dfm:37
-msgid "&Character set:"
-msgstr "&Character set:"
-
 #. CreateDatabaseForm..lblCollation..Caption
 #: createdatabase.dfm:45
 msgid "C&ollation:"
 msgstr "C&ollation:"
 
-#. CreateDatabaseForm..lblPreview..Caption
-#: createdatabase.dfm:54
-msgid "SQL &preview for CREATE DATABASE:"
-msgstr "SQL &preview for CREATE DATABASE:"
-
 #. CreateDatabaseForm..editDBName..TextHint
 #: createdatabase.dfm:63
 msgid "Enter database name"
 msgstr "Enter database name"
+
+#. Create database dialog
+msgid "Servers default: %s"
+msgstr "Servers default: %s"
 
 #. DataSortingForm..pnlBevel..btnAddCol..Caption
 #: data_sorting.dfm:63

@@ -3,7 +3,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Create database ...'
-  ClientHeight = 218
+  ClientHeight = 227
   ClientWidth = 317
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
   OnShow = FormShow
   DesignSize = (
     317
-    218)
+    227)
   PixelsPerInch = 96
   TextHeight = 13
   object lblDBName: TLabel
@@ -29,95 +29,84 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Caption = '&Name:'
     FocusControl = editDBName
   end
-  object lblCharset: TLabel
-    Left = 8
-    Top = 46
-    Width = 70
-    Height = 13
-    Caption = '&Character set:'
-    FocusControl = comboCharset
-  end
   object lblCollation: TLabel
     Left = 8
-    Top = 73
+    Top = 45
     Width = 45
     Height = 13
     Caption = 'C&ollation:'
     FocusControl = comboCollation
   end
-  object lblPreview: TLabel
+  object lblCreateCode: TLabel
     Left = 8
-    Top = 138
-    Width = 178
+    Top = 133
+    Width = 65
     Height = 13
-    Anchors = [akLeft, akRight, akBottom]
-    Caption = 'SQL &preview for CREATE DATABASE:'
+    Anchors = [akLeft, akTop, akRight]
+    Caption = 'CREATE code'
+  end
+  object lblServerDefaultCollation: TLabel
+    Left = 96
+    Top = 69
+    Width = 78
+    Height = 13
+    Caption = 'Servers default:'
   end
   object editDBName: TEdit
-    Left = 128
+    Left = 96
     Top = 16
-    Width = 181
+    Width = 213
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
     TextHint = 'Enter database name'
     OnChange = Modified
   end
-  object comboCharset: TComboBox
-    Left = 128
-    Top = 43
-    Width = 181
-    Height = 21
-    Style = csDropDownList
-    Anchors = [akLeft, akTop, akRight]
-    Sorted = True
-    TabOrder = 1
-    OnChange = comboCharsetChange
-  end
   object btnOK: TButton
     Left = 153
-    Top = 102
+    Top = 93
     Width = 75
     Height = 25
-    Anchors = [akRight, akBottom]
+    Anchors = [akTop, akRight]
     Caption = 'OK'
     Default = True
-    TabOrder = 3
+    TabOrder = 2
     OnClick = btnOKClick
   end
   object btnCancel: TButton
     Left = 234
-    Top = 102
+    Top = 93
     Width = 75
     Height = 25
-    Anchors = [akRight, akBottom]
+    Anchors = [akTop, akRight]
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 4
+    TabOrder = 3
   end
   object comboCollation: TComboBox
-    Left = 128
-    Top = 70
-    Width = 181
+    Left = 96
+    Top = 42
+    Width = 213
     Height = 21
     Style = csDropDownList
-    TabOrder = 2
+    Sorted = True
+    TabOrder = 1
     OnChange = Modified
   end
-  object SynMemoPreview: TSynMemo
+  object SynMemoCreateCode: TSynMemo
     Left = 8
-    Top = 154
+    Top = 152
     Width = 301
-    Height = 56
+    Height = 67
     SingleLineMode = False
-    Anchors = [akLeft, akRight, akBottom]
+    Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
     Font.Name = 'Courier New'
     Font.Style = []
-    TabOrder = 5
+    TabOrder = 4
     Gutter.Font.Charset = DEFAULT_CHARSET
     Gutter.Font.Color = clWindowText
     Gutter.Font.Height = -11
