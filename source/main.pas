@@ -954,6 +954,7 @@ type
     procedure OperationRunning(Runs: Boolean);
     function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding): Boolean;
     procedure SetLogToFile(Value: Boolean);
+    procedure StoreLastSessions;
   public
     QueryTabs: TObjectList<TQueryTab>;
     ActiveObjectEditor: TDBObjectEditor;
@@ -1208,6 +1209,22 @@ begin
 end;
 
 
+procedure TMainForm.StoreLastSessions;
+var
+  OpenSessions: TStringList;
+  Connection: TDBConnection;
+begin
+  // Store names of open sessions
+  OpenSessions := TStringList.Create;
+  for Connection in Connections do
+    OpenSessions.Add(Connection.Parameters.SessionPath);
+  AppSettings.WriteString(asLastSessions, ImplodeStr(DELIM, OpenSessions));
+  OpenSessions.Free;
+  if Assigned(ActiveConnection) then
+    AppSettings.WriteString(asLastActiveSession, ActiveConnection.Parameters.SessionPath);
+end;
+
+
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 var
   i: Integer;
@@ -1226,21 +1243,11 @@ begin
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
-var
-  OpenSessions: String;
-  Connection: TDBConnection;
 begin
   // Destroy dialogs
   FreeAndNil(FSearchReplaceDialog);
 
-  // Save opened session names in root folder
-  OpenSessions := '';
-  for Connection in Connections do
-    OpenSessions := OpenSessions + Connection.Parameters.SessionPath + DELIM;
-  Delete(OpenSessions, Length(OpenSessions)-Length(DELIM)+1, Length(DELIM));
-  AppSettings.WriteString(asLastSessions, OpenSessions);
-  if Assigned(ActiveConnection) then
-    AppSettings.WriteString(asLastActiveSession, ActiveConnection.Parameters.SessionPath);
+  StoreLastSessions;
 
   // Some grid editors access the registry - be sure these are gone before freeing AppSettings
   QueryTabs.Clear;
@@ -3128,6 +3135,7 @@ begin
     end;
 
   end;
+  StoreLastSessions;
   ShowStatusMsg;
 end;
 
