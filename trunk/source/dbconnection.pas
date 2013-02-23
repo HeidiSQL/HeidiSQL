@@ -1808,9 +1808,13 @@ end;
 
 function TAdoDBConnection.GetCreateCode(Database, Name: String; NodeType: TListNodeType): String;
 var
-  Cols: TDBQuery;
+  Cols, Keys: TDBQuery;
+  ConstraintName: String;
+  ColNames: TStringList;
 begin
   Result := 'CREATE TABLE '+QuoteIdent(Name)+' (';
+
+  // Retrieve column details from IS
   Cols := GetResults('SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE '+
     'TABLE_CATALOG='+EscapeString(Database)+' AND TABLE_NAME='+EscapeString(Name));
   while not Cols.Eof do begin
@@ -1824,8 +1828,38 @@ begin
     Cols.Next;
   end;
   Cols.Free;
+
+  // Retrieve primary and unique key details from IS
+  Keys := GetResults('SELECT C.CONSTRAINT_NAME, C.CONSTRAINT_TYPE, K.COLUMN_NAME'+
+    ' FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C'+
+    ' INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON'+
+    '   C.CONSTRAINT_NAME = K.CONSTRAINT_NAME'+
+    '   AND K.TABLE_CATALOG='+EscapeString(Database)+
+    '	  AND K.TABLE_NAME='+EscapeString(Name)+
+    ' WHERE C.CONSTRAINT_TYPE IN ('+EscapeString('PRIMARY KEY')+', '+EscapeString('UNIQUE')+')'+
+    ' ORDER BY K.ORDINAL_POSITION');
+  ConstraintName := '';
+  ColNames := TStringList.Create;
+  while not Keys.Eof do begin
+    if Keys.Col('CONSTRAINT_NAME') <> ConstraintName then begin
+      if ConstraintName <> '' then
+        Result := Result + ' (' + ImplodeStr(',', ColNames) + '),';
+      ConstraintName := Keys.Col('CONSTRAINT_NAME');
+      Result := Result + CRLF + #9 + Keys.Col('CONSTRAINT_TYPE');
+      if Pos('KEY', Keys.Col('CONSTRAINT_TYPE')) = 0 then
+        Result := Result + ' KEY';
+      ColNames.Clear;
+    end;
+    ColNames.Add(QuoteIdent(Keys.Col('COLUMN_NAME')));
+    Keys.Next;
+  end;
+  if ConstraintName <> '' then
+    Result := Result + ' (' + ImplodeStr(',', ColNames) + '),';
+  Keys.Free;
+  ColNames.Free;
+
   Delete(Result, Length(Result), 1);
-  Result := Result + ')';
+  Result := Result + CRLF + ')';
 end;
 
 
