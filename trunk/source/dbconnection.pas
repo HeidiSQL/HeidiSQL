@@ -4001,6 +4001,12 @@ begin
       except
         Result := String(FCurrentResults.Fields[Column].AsAnsiString);
       end;
+      if Datatype(Column).Index = dtBit then begin
+        if UpperCase(Result) = 'TRUE' then
+          Result := '1'
+        else
+          Result := '0';
+      end;
     end;
   end else if not IgnoreErrors then
     Raise EDatabaseError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
@@ -4445,7 +4451,7 @@ begin
       else case Datatype(i).Category of
         dtcInteger, dtcReal: begin
           Val := Cell.NewText;
-          if Datatype(i).Index = dtBit then
+          if (Datatype(i).Index = dtBit) and (FConnection.Parameters.NetTypeGroup=ngMySQL) then
             Val := 'b' + Connection.EscapeString(Val);
         end;
         dtcBinary, dtcSpatial:
