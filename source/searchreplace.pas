@@ -91,6 +91,8 @@ begin
   _Grid := MainForm.ActiveGrid;
   comboSearchIn.Items.Clear;
   IsQueryTab := MainForm.IsQueryTab(MainForm.PageControlMain.ActivePageIndex, True);
+  SearchText := '';
+
   if Assigned(_Editor) then begin
     ObjName := _('SQL editor');
     if IsQueryTab then
@@ -98,7 +100,12 @@ begin
     comboSearchIn.Items.AddObject(ObjName, _Editor);
     if _Editor.Focused then
       comboSearchIn.ItemIndex := comboSearchIn.Items.Count-1;
+    if _Editor.SelAvail then
+      SearchText := _Editor.SelText
+    else
+      SearchText := _Editor.WordAtCursor;
   end;
+
   if Assigned(_Grid) then begin
     ObjName := _('Data grid');
     if IsQueryTab then
@@ -106,21 +113,17 @@ begin
     comboSearchIn.Items.AddObject(ObjName, _Grid);
     if _Grid.Focused then
       comboSearchIn.ItemIndex := comboSearchIn.Items.Count-1;
+    if Assigned(_Grid.FocusedNode) then
+      SearchText := _Grid.Text[_Grid.FocusedNode, _Grid.FocusedColumn];
   end;
 
+  if (comboSearchIn.ItemIndex = -1) and (comboSearchIn.Items.Count > 0) then
+    comboSearchIn.ItemIndex := 0;
+
   // Prefill search editor with selected text
-  SearchText := '';
-  if Editor <> nil then begin
-    if Editor.SelAvail then
-      SearchText := Editor.SelText
-    else
-      SearchText := Editor.WordAtCursor;
-  end else begin
-    if Assigned(Grid.FocusedNode) then
-      SearchText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
-  end;
   if SearchText <> '' then
     comboSearch.Text := SearchText;
+
   ValidateControls(Sender);
   comboSearch.SetFocus;
 end;
