@@ -1298,10 +1298,22 @@ end;
 procedure TColumnDefaultEditorLink.SetBounds(R: TRect); stdcall;
 var
   CellRect: TRect;
+  P: TPoint;
+  Room: Integer;
 begin
   CellRect := GetCellRect(False);
   FPanel.Left := CellRect.Left;
   FPanel.Top := CellRect.Top;
+
+  // Reposition editor so it's not outside the main form
+  P := FParentForm.ClientToScreen(FPanel.BoundsRect.TopLeft);
+  Room := FParentForm.BoundsRect.Bottom - 8 {Borderwidth} - (P.Y + FPanel.Height);
+  if Room < 0 then
+    FPanel.Top := CellRect.Top + Room;
+  P := FParentForm.ClientToScreen(FPanel.BoundsRect.BottomRight);
+  Room := FParentForm.BoundsRect.Right - 8 {Borderwidth} - P.X;
+  if Room < 0 then
+    FPanel.Left := CellRect.Left + Room;
 end;
 
 
