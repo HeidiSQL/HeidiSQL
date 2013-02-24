@@ -812,7 +812,7 @@ var
 
   );
 
-  MSSQLDatatypes: array [0..25] of TDBDatatype =
+  MSSQLDatatypes: array [0..26] of TDBDatatype =
   (
     (
       Index: dtTinyint;
@@ -848,6 +848,16 @@ var
       Index:           dtBigint;
       Name:            'BIGINT';
       Description:     'Integer (whole number) data from -2^63 (-9,223,372,036,854,775,808) through 2^63-1 (9,223,372,036,854,775,807).';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtBit;
+      Name:            'BIT';
+      Description:     '0 or 1';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
