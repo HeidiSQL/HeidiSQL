@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-02-21 16:57+0100\n"
+"PO-Revision-Date: 2013-02-25 18:39+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -1148,6 +1148,14 @@ msgstr ""
 #: main.dfm:393
 msgid "Database filter"
 msgstr "Database filter"
+
+#. Table filter box
+msgid "Table filter"
+msgstr "Table filter"
+
+#. Table filter box hint
+msgid "Table filter|Can contain regular expressions, e.g. \"phpbb_\\d\""
+msgstr "Table filter|Can contain regular expressions, e.g. \"phpbb_\\d\""
 
 #. MainForm..panelTop..pnlLeft..DBtree......WideText
 #. MainForm..panelTop..pnlRight..PageControlMain..tabDatabase..ListTables......WideText

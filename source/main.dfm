@@ -519,11 +519,12 @@ object MainForm: TMainForm
           Top = 2
           Width = 89
           Height = 21
+          Hint = 'Table filter|Can contain regular expressions, e.g. "phpbb_\d"'
           Images = ImageListMain
           LeftButton.ImageIndex = 14
           LeftButton.Visible = True
           TabOrder = 1
-          TextHint = 'Table filter ...'
+          TextHint = 'Table filter'
           OnChange = editDatabaseTableFilterChange
           OnExit = editDatabaseTableFilterExit
           OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
@@ -533,11 +534,14 @@ object MainForm: TMainForm
           Top = 2
           Width = 75
           Height = 21
+          Hint = 
+            'Database filter|A list of databases, separated by semicolon. Can' +
+            ' contain regular expressions, e.g. "mydb;test.*;project\d+".'
           Images = ImageListMain
           LeftButton.ImageIndex = 5
           LeftButton.Visible = True
           TabOrder = 0
-          TextHint = 'Database filter ...'
+          TextHint = 'Database filter'
           OnChange = editDatabaseTableFilterChange
           OnExit = editDatabaseTableFilterExit
           OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
