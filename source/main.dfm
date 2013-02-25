@@ -353,7 +353,6 @@ object MainForm: TMainForm
       Height = 357
       Cursor = crSizeWE
       ResizeStyle = rsUpdate
-      OnMoved = spltPreviewMoved
     end
     object pnlLeft: TPanel
       Left = 0
@@ -363,9 +362,10 @@ object MainForm: TMainForm
       Align = alLeft
       BevelOuter = bvNone
       TabOrder = 0
+      OnResize = pnlLeftResize
       object spltPreview: TSplitter
         Left = 0
-        Top = 232
+        Top = 253
         Width = 169
         Height = 4
         Cursor = crSizeNS
@@ -374,34 +374,11 @@ object MainForm: TMainForm
         Visible = False
         OnMoved = spltPreviewMoved
       end
-      object comboDBFilter: TComboBox
-        Left = 0
-        Top = 236
-        Width = 169
-        Height = 21
-        Hint = 
-          'Database filter|A list of databases, separated by semicolon. Can' +
-          ' contain regular expressions, e.g. "mydb;test.*;project\d+".'
-        Margins.Left = 0
-        Margins.Top = 0
-        Margins.Right = 0
-        Margins.Bottom = 0
-        Align = alBottom
-        ParentShowHint = False
-        ShowHint = True
-        TabOrder = 2
-        TextHint = 'Database filter'
-        OnChange = comboDBFilterChange
-        OnDragDrop = comboDBFilterDragDrop
-        OnDragOver = comboDBFilterDragOver
-        OnExit = comboDBFilterExit
-        OnKeyDown = comboDBFilterKeyDown
-      end
       object DBtree: TVirtualStringTree
         Left = 0
         Top = 0
         Width = 169
-        Height = 232
+        Height = 228
         Align = alClient
         Constraints.MinWidth = 40
         DragMode = dmAutomatic
@@ -525,6 +502,45 @@ object MainForm: TMainForm
             ImageIndex = 26
             OnClick = actDataPreviewExecute
           end
+        end
+      end
+      object pnlBelowTree: TPanel
+        Left = 0
+        Top = 228
+        Width = 169
+        Height = 25
+        Align = alBottom
+        BevelOuter = bvNone
+        Caption = 'pnlBelowTree'
+        ShowCaption = False
+        TabOrder = 2
+        object editTableFilter: TButtonedEdit
+          Left = 78
+          Top = 2
+          Width = 89
+          Height = 21
+          Images = ImageListMain
+          LeftButton.ImageIndex = 14
+          LeftButton.Visible = True
+          TabOrder = 1
+          TextHint = 'Table filter ...'
+          OnChange = editDatabaseTableFilterChange
+          OnExit = editDatabaseTableFilterExit
+          OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
+        end
+        object editDatabaseFilter: TButtonedEdit
+          Left = 3
+          Top = 2
+          Width = 75
+          Height = 21
+          Images = ImageListMain
+          LeftButton.ImageIndex = 5
+          LeftButton.Visible = True
+          TabOrder = 0
+          TextHint = 'Database filter ...'
+          OnChange = editDatabaseTableFilterChange
+          OnExit = editDatabaseTableFilterExit
+          OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
         end
       end
     end
@@ -8864,7 +8880,7 @@ object MainForm: TMainForm
     VariableAttri.Foreground = clPurple
     SQLDialect = sqlMySQL
     Left = 7
-    Top = 232
+    Top = 144
   end
   object TimerHostUptime: TTimer
     OnTimer = TimerHostUptimeTimer
@@ -9204,7 +9220,7 @@ object MainForm: TMainForm
     OnAfterCodeCompletion = SynCompletionProposalAfterCodeCompletion
     OnCodeCompletion = SynCompletionProposalCodeCompletion
     Left = 40
-    Top = 232
+    Top = 144
   end
   object popupQuery: TPopupMenu
     Images = ImageListMain

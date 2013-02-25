@@ -254,7 +254,6 @@ type
     panelTop: TPanel;
     pnlLeft: TPanel;
     DBtree: TVirtualStringTree;
-    comboDBFilter: TComboBox;
     spltDBtree: TSplitter;
     PageControlMain: TPageControl;
     tabData: TTabSheet;
@@ -560,6 +559,9 @@ type
     Explainanalyzerforcurrentquery1: TMenuItem;
     menuAutoExpand: TMenuItem;
     menuTreeOptions: TMenuItem;
+    pnlBelowTree: TPanel;
+    editTableFilter: TButtonedEdit;
+    editDatabaseFilter: TButtonedEdit;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -835,11 +837,6 @@ type
     procedure spltPreviewMoved(Sender: TObject);
     procedure actDataSaveBlobToFileExecute(Sender: TObject);
     procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
-    procedure comboDBFilterChange(Sender: TObject);
-    procedure comboDBFilterExit(Sender: TObject);
-    procedure comboDBFilterDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState; var Accept: Boolean);
-    procedure comboDBFilterDragDrop(Sender, Source: TObject; X, Y: Integer);
-    procedure comboDBFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DBtreeAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
@@ -887,6 +884,11 @@ type
     procedure actExplainAnalyzeCurrentQueryExecute(Sender: TObject);
     procedure menuQueryExplainClick(Sender: TObject);
     procedure menuAutoExpandClick(Sender: TObject);
+    procedure pnlLeftResize(Sender: TObject);
+    procedure editDatabaseTableFilterChange(Sender: TObject);
+    procedure editDatabaseTableFilterLeftButtonClick(Sender: TObject);
+    procedure editDatabaseTableFilterMenuClick(Sender: TObject);
+    procedure editDatabaseTableFilterExit(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -1273,7 +1275,6 @@ begin
   AppSettings.WriteInt(asQueryhelperswidth, treeQueryHelpers.Width);
   AppSettings.WriteInt(asDbtreewidth, pnlLeft.width);
   AppSettings.WriteBool(asGroupTreeObjects, actGroupObjects.Checked);
-  AppSettings.WriteString(asDatabaseFilter, comboDBFilter.Items.Text);
   AppSettings.WriteInt(asDataPreviewHeight, pnlPreview.Height);
   AppSettings.WriteBool(asDataPreviewEnabled, actDataPreview.Checked);
   AppSettings.WriteInt(asLogHeight, SynMemoSQLLog.Height);
@@ -1589,13 +1590,6 @@ begin
   // Set up connections list
   FConnections := TDBConnectionList.Create;
   FConnections.OnNotify := ConnectionsNotify;
-
-  // Load database filter items. Was previously bound to sessions before multi connections were implemented
-  comboDBFilter.Items.Text := AppSettings.ReadString(asDatabaseFilter);
-  if comboDBFilter.Items.Count > 0 then
-    comboDBFilter.ItemIndex := 0
-  else
-    comboDBFilter.Text := '';
 
   FTreeRefreshInProgress := False;
 
@@ -2636,6 +2630,16 @@ begin
     ShowStatusMsg;
     Screen.Cursor := crDefault;
   end;
+end;
+
+
+procedure TMainForm.pnlLeftResize(Sender: TObject);
+begin
+  editDatabaseFilter.Left := 0;
+  editDatabaseFilter.Width := (editDatabaseFilter.Parent.Width div 2) - 1;
+  editTableFilter.Width := editDatabaseFilter.Width;
+  editTableFilter.Left := editDatabaseFilter.Width + 2;
+  spltPreview.OnMoved(Sender);
 end;
 
 
@@ -9127,108 +9131,140 @@ begin
 end;
 
 
-procedure TMainForm.comboDBFilterChange(Sender: TObject);
+procedure TMainForm.editDatabaseTableFilterChange(Sender: TObject);
 var
-  SessionNode, DBNode: PVirtualNode;
+  Edit: TButtonedEdit;
+  Node: PVirtualNode;
+  Obj: PDBObject;
   rx: TRegExpr;
   FilterError, NodeMatches: Boolean;
   VisibleCount: Cardinal;
 begin
   // Immediately apply database filter
+  Edit := Sender as TButtonedEdit;
   rx := TRegExpr.Create;
-  rx.Expression := '('+StringReplace(comboDBFilter.Text, ';', '|', [rfReplaceAll])+')';
-  SessionNode := DBtree.GetFirst;
+  rx.Expression := '('+StringReplace(Edit.Text, ';', '|', [rfReplaceAll])+')';
   VisibleCount := 0;
   FilterError := False;
-  while Assigned(SessionNode) do begin
-    DBNode := DBtree.GetFirstChild(SessionNode);
-    while Assigned(DBNode) do begin
-      try
-        NodeMatches := rx.Exec(DBtree.Text[DBNode, 0]);
-      except
-        FilterError := True;
-        NodeMatches := True;
-      end;
-      DBtree.IsVisible[DBNode] := NodeMatches;
-      if NodeMatches then
-        Inc(VisibleCount);
-      DBNode := DBtree.GetNextSibling(DBNode);
+
+  Node := DBtree.GetFirst;
+  while Assigned(Node) do begin
+    Obj := DBtree.GetNodeData(Node);
+    if ((Edit = editDatabaseFilter) and (Obj.NodeType = lntDb))
+      or
+      ((Edit = editTableFilter) and (Obj.NodeType in [lntTable..lntEvent]))
+      then begin
+        try
+          NodeMatches := rx.Exec(DBtree.Text[Node, 0]);
+        except
+          FilterError := True;
+          NodeMatches := True;
+        end;
+        DBtree.IsVisible[Node] := NodeMatches;
+        if NodeMatches then
+          Inc(VisibleCount);
     end;
-    SessionNode := DBtree.GetNextSibling(SessionNode);
+    Node := DBtree.GetNextInitialized(Node);
   end;
+
   rx.Free;
   if VisibleCount = 0 then
     FilterError := True;
   if FilterError then
-    comboDBFilter.Color := clWebPink
+    Edit.Color := clWebPink
   else
-    comboDBFilter.Color := clWindow;
+    Edit.Color := clWindow;
 end;
 
 
-procedure TMainForm.comboDBFilterExit(Sender: TObject);
+procedure TMainForm.editDatabaseTableFilterLeftButtonClick(Sender: TObject);
 var
-  i, idx: Integer;
-  FilterText: String;
+  Menu: TPopupMenu;
+  Item: TMenuItem;
+  P: TPoint;
+  Edit: TButtonedEdit;
+  History: TStringList;
+  ItemText: String;
+  Setting: TAppSettingIndex;
+begin
+  // Create right menu with filter history
+  Edit := Sender as TButtonedEdit;
+  Menu := TPopupMenu.Create(Edit);
+  Menu.AutoHotkeys := maManual;
+  Menu.Images := ImageListMain;
+  AppSettings.SessionPath := '';
+  if Edit = editDatabaseFilter then
+    Setting := asDatabaseFilter
+  else
+    Setting := asTableFilter;
+  History := TStringList.Create;
+  History.Text := AppSettings.ReadString(Setting);
+  for ItemText in History do begin
+    Item := TMenuItem.Create(Menu);
+    Item.Caption := ItemText;
+    Item.OnClick := editDatabaseTableFilterMenuClick;
+    Item.Checked := ItemText = Edit.Text;
+    Menu.Items.Add(Item);
+  end;
+  History.Free;
+
+  Item := TMenuItem.Create(Menu);
+  Item.Caption := _('Clear');
+  Item.ImageIndex := 26;
+  Item.OnClick := editDatabaseTableFilterMenuClick;
+  Item.Tag := 1;
+  Item.Enabled := Edit.Text <> '';
+  Menu.Items.Add(Item);
+
+  P := Edit.ClientToScreen(Edit.ClientRect.TopLeft);
+  Menu.Popup(p.X, p.Y+16);
+end;
+
+
+procedure TMainForm.editDatabaseTableFilterMenuClick(Sender: TObject);
+var
+  Menu: TPopupMenu;
+  Item: TMenuItem;
+  Edit: TButtonedEdit;
+begin
+  // Insert text from filter history menu
+  Item := Sender as TMenuItem;
+  Menu := Item.Owner as TPopupMenu;
+  Edit := Menu.Owner as TButtonedEdit;
+  if Item.Tag = 1 then
+    Edit.Clear
+  else
+    Edit.Text := Item.Caption;
+  Menu.Free;
+end;
+
+
+procedure TMainForm.editDatabaseTableFilterExit(Sender: TObject);
+var
+  History: TStringList;
+  Edit: TButtonedEdit;
+  i: Integer;
+  Setting: TAppSettingIndex;
 begin
   // Add (move) custom filter text to (in) drop down history, if not empty
-  FilterText := comboDBFilter.Text;
-  idx := -1;
-  for i:=0 to comboDBFilter.Items.Count-1 do begin
-    if comboDBFilter.Items[i] = FilterText then begin
-      idx := i;
-      break;
-    end;
-  end;
-  if idx > -1 then
-    comboDBFilter.Items.Move(idx, 0)
+  Edit := Sender as TButtonedEdit;
+  AppSettings.SessionPath := '';
+  if Edit = editDatabaseFilter then
+    Setting := asDatabaseFilter
   else
-    comboDBFilter.Items.Insert(0, FilterText);
-  comboDBFilter.Text := FilterText;
-end;
-
-
-procedure TMainForm.comboDBFilterDragOver(Sender, Source: TObject; X, Y: Integer; State: TDragState;
-  var Accept: Boolean);
-begin
-  // DBtree dragging node over DB filter dropdown
-  Accept := (Source = DBtree) and (ActiveDbObj.NodeType = lntDb);
-end;
-
-
-procedure TMainForm.comboDBFilterDragDrop(Sender, Source: TObject; X, Y: Integer);
-var
-  dbs: TStringList;
-  newdb: String;
-begin
-  // DBtree node dropped on DB filter dropdown
-  dbs := Explode(';', comboDBFilter.Text);
-  newdb := DBtree.Text[DBtree.FocusedNode, DBtree.FocusedColumn];
-  if dbs.IndexOf(newdb) = -1 then begin
-    if (comboDBFilter.Text <> '') and (comboDBFilter.Text[Length(comboDBFilter.Text)-1] <> ';') then
-      comboDBFilter.Text := comboDBFilter.Text + ';';
-    comboDBFilter.Text := comboDBFilter.Text + newdb;
-    comboDBFilter.Items.Insert(0, comboDBFilter.Text);
-    comboDBFilter.OnChange(Sender);
+    Setting := asTableFilter;
+  History := TStringList.Create;
+  History.Text := AppSettings.ReadString(Setting);
+  i := History.IndexOf(Edit.Text);
+  if i > -1 then
+    History.Delete(i);
+  History.Insert(0, Edit.Text);
+  for i:=History.Count-1 downto 0 do begin
+    if (i >= 20) or (Trim(History[i]) = '') then
+      History.Delete(i);
   end;
-end;
-
-
-procedure TMainForm.comboDBFilterKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-var
-  i: Integer;
-begin
-  // Pressing Delete key while filters are dropped down, deletes the filter from the list
-  i := comboDBFilter.ItemIndex;
-  if comboDBFilter.DroppedDown and (Key=VK_DELETE) and (i > -1) then begin
-    Key := 0;
-    comboDBFilter.Items.Delete(i);
-    if comboDBFilter.Items.Count > i then
-      comboDBFilter.ItemIndex := i
-    else
-      comboDBFilter.ItemIndex := i-1;
-    comboDBFilter.OnChange(Sender);
-  end;
+  AppSettings.WriteString(Setting, History.Text);
+  History.Free;
 end;
 
 
@@ -9875,7 +9911,8 @@ end;
 procedure TMainForm.DBtreeAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 begin
   // Tree node filtering needs a hit in special cases, e.g. after a db was dropped
-  comboDBFilter.OnChange(Sender);
+  editDatabaseFilter.OnChange(editDatabaseFilter);
+  editTableFilter.OnChange(editTableFilter);
 end;
 
 
