@@ -4670,22 +4670,15 @@ end;
 
 function TDBQuery.GetKeyColumns: TStringList;
 var
-  NeededCols: TStringList;
   i: Integer;
 begin
   // Return key column names, or all column names if no good key present
   PrepareEditing;
-  NeededCols := Connection.GetKeyColumns(FColumns, FKeys);
-  if NeededCols.Count = 0 then begin
+  Result := Connection.GetKeyColumns(FColumns, FKeys);
+  if Result.Count = 0 then begin
     // No good key found. Just expect all columns to be present.
     for i:=0 to FColumns.Count-1 do
-      NeededCols.Add(FColumns[i].Name);
-  end;
-
-  Result := TStringList.Create;
-  for i:=0 to NeededCols.Count-1 do begin
-    if FColumnOrgNames.IndexOf(NeededCols[i]) > -1 then
-      Result.Add(NeededCols[i]);
+      Result.Add(FColumns[i].Name);
   end;
 end;
 
@@ -4693,10 +4686,16 @@ end;
 procedure TDBQuery.CheckEditable;
 var
   i: Integer;
+  KeyCols: TStringList;
 begin
-  if GetKeyColumns.Count = 0 then
+  KeyCols := GetKeyColumns;
+  if KeyCols.Count = 0 then
     raise EDatabaseError.Create(_(MSG_NOGRIDEDITING));
   // All column names must be present in order to send valid INSERT/UPDATE/DELETE queries
+  for i:=0 to KeyCols.Count-1 do begin
+    if FColumnOrgNames.IndexOf(KeyCols[i]) = -1 then
+      raise EDatabaseError.Create(_(MSG_NOGRIDEDITING));
+  end;
   for i:=0 to FColumnOrgNames.Count-1 do begin
     if FColumnOrgNames[i] = '' then
       raise EDatabaseError.CreateFmt(_('Column #%d has an undefined origin: %s'), [i, ColumnNames[i]]);
