@@ -812,7 +812,7 @@ var
 
   );
 
-  MSSQLDatatypes: array [0..26] of TDBDatatype =
+  MSSQLDatatypes: array [0..28] of TDBDatatype =
   (
     (
       Index: dtTinyint;
@@ -925,6 +925,32 @@ var
       HasBinary:       False;
       HasDefault:      True;
       Category:        dtcReal;
+    ),
+    (
+      Index:           dtTime;
+      Name:            'TIME';
+      Description:     'The time data type stores time values only, based on a 24-hour clock. '+
+        'The time data type has a range of 00:00:00.0000000 through 23:59:59.9999999 with an '+
+        'accuracy of 100 nanoseconds. The default value is 00:00:00.0000000 (midnight). The '+
+        'time data type supports user-defined fractional second precision, and the storage '+
+        'size varies from 3 to 6 bytes, based on the precision specified.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtDate;
+      Name:            'DATE';
+      Description:     'The date data type has a range of January 1, 01 through December 31, '+
+        '9999 with an accuracy of 1 day. The default value is January 1, 1900. The storage size '+
+        'is 3 bytes.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcTemporal;
     ),
     (
       Index:           dtDatetime;
