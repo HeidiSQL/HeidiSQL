@@ -120,6 +120,7 @@ type
     lblLanguage: TLabel;
     comboAppLanguage: TComboBox;
     chkForeignDropDown: TCheckBox;
+    chkQueryHistory: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -228,6 +229,7 @@ begin
   AppSettings.WriteBool(asLogSQL, chkLogEventSQL.Checked);
   AppSettings.WriteBool(asLogInfos, chkLogEventInfo.Checked);
   AppSettings.WriteBool(asLogDebug, chkLogEventDebug.Checked);
+  AppSettings.WriteBool(asQueryHistoryEnabled, chkQueryHistory.Checked);
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
     Attri := SynSQLSynSQLSample.Attribute[i];
     AppSettings.WriteInt(asHighlighterForeground, Attri.Foreground, Attri.Name);
@@ -441,6 +443,7 @@ begin
   chkLogEventSQL.Checked := AppSettings.ReadBool(asLogSQL);
   chkLogEventInfo.Checked := AppSettings.ReadBool(asLogInfos);
   chkLogEventDebug.Checked := AppSettings.ReadBool(asLogDebug);
+  chkQueryHistory.Checked := AppSettings.ReadBool(asQueryHistoryEnabled);
 
   // Default Column-Width in DBGrids:
   updownMaxColWidth.Position := AppSettings.ReadInt(asMaxColWidth);
