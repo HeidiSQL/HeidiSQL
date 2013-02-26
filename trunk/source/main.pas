@@ -2391,7 +2391,12 @@ begin
 
   // Store successful query packet in history if it's not a batch.
   // Assume that a bunch of up to 5 queries is not a batch.
-  if IsEmpty(Thread.ErrorMessage) and (Thread.Batch.Count <= 5) and (Thread.Batch.Size <= SIZE_MB) then begin
+  AppSettings.ResetPath;
+  if AppSettings.ReadBool(asQueryHistoryEnabled)
+    and IsEmpty(Thread.ErrorMessage)
+    and (Thread.Batch.Count <= 5)
+    and (Thread.Batch.Size <= SIZE_MB)
+    then begin
     ShowStatusMsg(_('Updating query history ...'));
 
     // Load all items so we can clean up
@@ -10496,7 +10501,8 @@ begin
         Node.CheckType := ctCheckbox;
     end;
     1: begin
-      if Node.Parent.Index = HELPERNODE_HISTORY then
+      AppSettings.ResetPath;
+      if (Node.Parent.Index = HELPERNODE_HISTORY) and AppSettings.ReadBool(asQueryHistoryEnabled) then
         Include(InitialStates, ivsHasChildren);
     end;
   end;
@@ -10531,19 +10537,22 @@ begin
          HELPERNODE_KEYWORDS: ChildCount := MySQLKeywords.Count;
          HELPERNODE_SNIPPETS: ChildCount := FSnippetFilenames.Count;
          HELPERNODE_HISTORY: begin
-           // Find all unique days in history
-           if not Assigned(Tab.HistoryDays) then
-             Tab.HistoryDays := TStringList.Create;
-           Tab.HistoryDays.Clear;
-           History := TQueryHistory.Create(ActiveConnection.Parameters.SessionPath);
-           for Item in History do begin
-             QueryDay := DateToStr(Item.Time);
-             if Tab.HistoryDays.IndexOf(QueryDay) = -1 then
-               Tab.HistoryDays.Add(QueryDay);
+           AppSettings.ResetPath;
+           if AppSettings.ReadBool(asQueryHistoryEnabled) then begin
+             // Find all unique days in history
+             if not Assigned(Tab.HistoryDays) then
+               Tab.HistoryDays := TStringList.Create;
+             Tab.HistoryDays.Clear;
+             History := TQueryHistory.Create(ActiveConnection.Parameters.SessionPath);
+             for Item in History do begin
+               QueryDay := DateToStr(Item.Time);
+               if Tab.HistoryDays.IndexOf(QueryDay) = -1 then
+                 Tab.HistoryDays.Add(QueryDay);
+             end;
+             History.Free;
+             Tab.HistoryDays.CustomSort(StringListCompareAnythingDesc);
+             ChildCount := Tab.HistoryDays.Count;
            end;
-           History.Free;
-           Tab.HistoryDays.CustomSort(StringListCompareAnythingDesc);
-           ChildCount := Tab.HistoryDays.Count;
          end;
          HELPERNODE_PROFILE: if not Assigned(Tab.QueryProfile) then ChildCount := 0
             else ChildCount := Tab.QueryProfile.RecordCount;

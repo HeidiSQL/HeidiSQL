@@ -344,6 +344,14 @@ object optionsform: Toptionsform
         OnDblClick = editLogDirRightButtonClick
         OnRightButtonClick = editLogDirRightButtonClick
       end
+      object chkQueryHistory: TCheckBox
+        Left = 8
+        Top = 200
+        Width = 429
+        Height = 17
+        Caption = 'Enable query history'
+        TabOrder = 11
+      end
     end
     object tabSQL: TTabSheet
       Caption = 'SQL'

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-02-25 18:39+0100\n"
+"PO-Revision-Date: 2013-02-26 21:22+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2612,6 +2612,10 @@ msgstr "Information messages"
 #: options.dfm:321
 msgid "Debug messages"
 msgstr "Debug messages"
+
+#. Preferences
+msgid "Enable query history"
+msgstr "Enable query history"
 
 #. optionsform..pagecontrolMain..tabSQL..lblFont..Caption
 #: options.dfm:357
