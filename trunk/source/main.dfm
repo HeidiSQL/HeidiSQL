@@ -8760,6 +8760,10 @@ object MainForm: TMainForm
         Action = actCreateEvent
       end
     end
+    object menuClearDataTabFilter: TMenuItem
+      Caption = 'Clear data tab filter'
+      OnClick = menuClearDataTabFilterClick
+    end
     object N17: TMenuItem
       Caption = '-'
     end
