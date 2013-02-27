@@ -562,6 +562,7 @@ type
     pnlBelowTree: TPanel;
     editTableFilter: TButtonedEdit;
     editDatabaseFilter: TButtonedEdit;
+    menuClearDataTabFilter: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -889,6 +890,7 @@ type
     procedure editDatabaseTableFilterLeftButtonClick(Sender: TObject);
     procedure editDatabaseTableFilterMenuClick(Sender: TObject);
     procedure editDatabaseTableFilterExit(Sender: TObject);
+    procedure menuClearDataTabFilterClick(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -1944,6 +1946,18 @@ begin
   if m = SynMemoFilter then
     InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
+
+
+procedure TMainForm.menuClearDataTabFilterClick(Sender: TObject);
+begin
+  // Same as "Clear filter" button, but *before* the data tab is activated
+  AppSettings.SessionPath := GetRegKeyTable;
+  if AppSettings.ValueExists(asFilter) then begin
+    AppSettings.DeleteValue(asFilter);
+    LogSQL(f_('Data filter for %s deleted', [ActiveDbObj.Name]), lcInfo);
+  end;
+end;
+
 
 procedure TMainForm.actTableToolsExecute(Sender: TObject);
 var
@@ -5593,6 +5607,7 @@ begin
     actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
     actEmptyTables.Enabled := Obj.NodeType in [lntTable, lntView];
     actRunRoutines.Enabled := Obj.NodeType in [lntProcedure, lntFunction];
+    menuClearDataTabFilter.Enabled := Obj.NodeType in [lntTable, lntView];
     menuEditObject.Enabled := IsDbOrObject;
     // Enable certain items which are valid only here
     menuTreeExpandAll.Enabled := True;
@@ -5609,6 +5624,7 @@ begin
     actDropObjects.Enabled := ListTables.SelectedCount > 0;
     actEmptyTables.Enabled := True;
     actRunRoutines.Enabled := True;
+    menuClearDataTabFilter.Enabled := False;
     menuEditObject.Enabled := HasFocus;
     actCopyTable.Enabled := False;
     if HasFocus then begin
