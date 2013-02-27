@@ -4047,7 +4047,7 @@ begin
   Ansi := AnsiString(BinValue);
   BinLen := Length(Ansi);
   if BinLen = 0 then begin
-    Result := '';
+    Result := Connection.EscapeString('');
   end else begin
     SetLength(Result, BinLen*2);
     BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
