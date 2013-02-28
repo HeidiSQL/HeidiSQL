@@ -2215,7 +2215,7 @@ begin
   Text := _('query')+' #' + FormatNumber(Thread.BatchPosition+1);
   if Thread.QueriesInPacket > 1 then
     Text := f_('queries #%s to #%s', [FormatNumber(Thread.BatchPosition+1), FormatNumber(Thread.BatchPosition+Thread.QueriesInPacket)]);
-  ShowStatusMsg(f_('Executing %s of %s ...', [Text, FormatNumber(Thread.Batch.Count)]));
+  ShowStatusMsg(TimeToStr(Now) + ': ' + f_('Executing %s of %s ...', [Text, FormatNumber(Thread.Batch.Count)]));
   SetProgressPosition(Thread.BatchPosition);
 end;
 
