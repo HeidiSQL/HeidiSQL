@@ -4974,10 +4974,10 @@ end;
 function TDBObject.GetCreateCode: String;
 begin
   if not FCreateCodeFetched then try
-    FCreateCode := Connection.GetCreateCode(Database, Name, NodeType);
-  except
+    CreateCode := Connection.GetCreateCode(Database, Name, NodeType);
+  except on E:Exception do
+    Connection.Log(lcError, E.Message);
   end;
-  FCreateCodeFetched := True;
   Result := FCreateCode;
 end;
 
