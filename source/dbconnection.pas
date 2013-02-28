@@ -20,6 +20,7 @@ type
     private
       FCreateCode: String;
       FCreateCodeFetched: Boolean;
+      FWasSelected: Boolean;
       FConnection: TDBConnection;
       function GetObjType: String;
       function GetImageIndex: Integer;
@@ -47,6 +48,7 @@ type
       property ImageIndex: Integer read GetImageIndex;
       property OverlayImageIndex: Integer read GetOverlayImageIndex;
       property CreateCode: String read GetCreateCode write SetCreateCode;
+      property WasSelected: Boolean read FWasSelected write FWasSelected;
       property Connection: TDBConnection read FConnection;
   end;
   PDBObject = ^TDBObject;
