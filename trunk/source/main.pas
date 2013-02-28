@@ -6976,6 +6976,9 @@ begin
           and Sender.ChildrenInitialized[Node]
           and (Sender.ChildCount[Node] = 0)
           );
+        Ghosted := Ghosted or ((DBObj.NodeType in [lntTable..lntEvent])
+          and (not DBObj.WasSelected)
+          );
       end;
     ikOverlay:
       ImageIndex := DBObj.OverlayImageIndex;
@@ -7125,6 +7128,7 @@ begin
       actDataPostChangesExecute(DataGrid);
 
     DBObj := Sender.GetNodeData(Node);
+    DBObj.WasSelected := True;
     FActiveDbObj := TDBObject.Create(DBObj.Connection);
     FActiveDbObj.Assign(DBObj^);
     if Assigned(Node.Parent) then
