@@ -1812,54 +1812,68 @@ var
   ConstraintName: String;
   ColNames: TStringList;
 begin
-  Result := 'CREATE TABLE '+QuoteIdent(Name)+' (';
+  case NodeType of
+    lntTable: begin
+      Result := 'CREATE TABLE '+QuoteIdent(Name)+' (';
 
-  // Retrieve column details from IS
-  Cols := GetResults('SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE '+
-    'TABLE_CATALOG='+EscapeString(Database)+' AND TABLE_NAME='+EscapeString(Name));
-  while not Cols.Eof do begin
-    Result := Result + CRLF + #9 + QuoteIdent(Cols.Col('COLUMN_NAME')) + ' ' + UpperCase(Cols.Col('DATA_TYPE'));
-    if not Cols.IsNull('CHARACTER_MAXIMUM_LENGTH') then
-      Result := Result + '(' + Cols.Col('CHARACTER_MAXIMUM_LENGTH') + ')';
-    if Cols.Col('IS_NULLABLE') = 'NO' then
-      Result := Result + ' NOT';
-    Result := Result + ' NULL';
-    Result := Result + ',';
-    Cols.Next;
-  end;
-  Cols.Free;
+      // Retrieve column details from IS
+      Cols := GetResults('SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE '+
+        'TABLE_CATALOG='+EscapeString(Database)+' AND TABLE_NAME='+EscapeString(Name));
+      while not Cols.Eof do begin
+        Result := Result + CRLF + #9 + QuoteIdent(Cols.Col('COLUMN_NAME')) + ' ' + UpperCase(Cols.Col('DATA_TYPE'));
+        if not Cols.IsNull('CHARACTER_MAXIMUM_LENGTH') then
+          Result := Result + '(' + Cols.Col('CHARACTER_MAXIMUM_LENGTH') + ')';
+        if Cols.Col('IS_NULLABLE') = 'NO' then
+          Result := Result + ' NOT';
+        Result := Result + ' NULL';
+        Result := Result + ',';
+        Cols.Next;
+      end;
+      Cols.Free;
 
-  // Retrieve primary and unique key details from IS
-  Keys := GetResults('SELECT C.CONSTRAINT_NAME, C.CONSTRAINT_TYPE, K.COLUMN_NAME'+
-    ' FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C'+
-    ' INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON'+
-    '   C.CONSTRAINT_NAME = K.CONSTRAINT_NAME'+
-    '   AND K.TABLE_CATALOG='+EscapeString(Database)+
-    '	  AND K.TABLE_NAME='+EscapeString(Name)+
-    ' WHERE C.CONSTRAINT_TYPE IN ('+EscapeString('PRIMARY KEY')+', '+EscapeString('UNIQUE')+')'+
-    ' ORDER BY K.ORDINAL_POSITION');
-  ConstraintName := '';
-  ColNames := TStringList.Create;
-  while not Keys.Eof do begin
-    if Keys.Col('CONSTRAINT_NAME') <> ConstraintName then begin
+      // Retrieve primary and unique key details from IS
+      Keys := GetResults('SELECT C.CONSTRAINT_NAME, C.CONSTRAINT_TYPE, K.COLUMN_NAME'+
+        ' FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C'+
+        ' INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON'+
+        '   C.CONSTRAINT_NAME = K.CONSTRAINT_NAME'+
+        '   AND K.TABLE_CATALOG='+EscapeString(Database)+
+        '	  AND K.TABLE_NAME='+EscapeString(Name)+
+        ' WHERE C.CONSTRAINT_TYPE IN ('+EscapeString('PRIMARY KEY')+', '+EscapeString('UNIQUE')+')'+
+        ' ORDER BY K.ORDINAL_POSITION');
+      ConstraintName := '';
+      ColNames := TStringList.Create;
+      while not Keys.Eof do begin
+        if Keys.Col('CONSTRAINT_NAME') <> ConstraintName then begin
+          if ConstraintName <> '' then
+            Result := Result + ' (' + ImplodeStr(',', ColNames) + '),';
+          ConstraintName := Keys.Col('CONSTRAINT_NAME');
+          Result := Result + CRLF + #9 + Keys.Col('CONSTRAINT_TYPE');
+          if Pos('KEY', Keys.Col('CONSTRAINT_TYPE')) = 0 then
+            Result := Result + ' KEY';
+          ColNames.Clear;
+        end;
+        ColNames.Add(QuoteIdent(Keys.Col('COLUMN_NAME')));
+        Keys.Next;
+      end;
       if ConstraintName <> '' then
         Result := Result + ' (' + ImplodeStr(',', ColNames) + '),';
-      ConstraintName := Keys.Col('CONSTRAINT_NAME');
-      Result := Result + CRLF + #9 + Keys.Col('CONSTRAINT_TYPE');
-      if Pos('KEY', Keys.Col('CONSTRAINT_TYPE')) = 0 then
-        Result := Result + ' KEY';
-      ColNames.Clear;
-    end;
-    ColNames.Add(QuoteIdent(Keys.Col('COLUMN_NAME')));
-    Keys.Next;
-  end;
-  if ConstraintName <> '' then
-    Result := Result + ' (' + ImplodeStr(',', ColNames) + '),';
-  Keys.Free;
-  ColNames.Free;
+      Keys.Free;
+      ColNames.Free;
 
-  Delete(Result, Length(Result), 1);
-  Result := Result + CRLF + ')';
+      Delete(Result, Length(Result), 1);
+      Result := Result + CRLF + ')';
+
+    end;
+
+    lntView: begin
+      Result := GetVar('SELECT VIEW_DEFINITION'+
+        ' FROM INFORMATION_SCHEMA.VIEWS'+
+        ' WHERE TABLE_NAME='+EscapeString(Name)+
+        ' AND TABLE_CATALOG='+EscapeString(Database));
+     end;
+
+  end;
+
 end;
 
 
@@ -3403,8 +3417,8 @@ begin
       '(ALGORITHM\s*=\s*(\w*)\s*)?'+
       '(DEFINER\s*=\s*(\S+)\s+)?'+
       '(SQL\s+SECURITY\s+\w+\s+)?'+
-      'VIEW\s+(([^\.]+)\.)?([^\.]+)\s+'+
-      '(\([^\)]\)\s+)?'+
+      'VIEW\s+(([^\.]+)\.)?([^\.\(]+)\s+'+
+      '(\([^\)]+\)\s+)?'+
       'AS\s+(.+)(\s+WITH\s+(\w+\s+)?CHECK\s+OPTION\s*)?$';
     if rx.Exec(CreateCode) then begin
       Algorithm := rx.Match[3];
@@ -3422,7 +3436,7 @@ begin
 
   // Views reveal their columns only with a SHOW COLUMNS query.
   // No keys available in views - SHOW KEYS always returns an empty result
-  if Assigned(Columns) then begin
+  if Assigned(Columns) and (Parameters.NetTypeGroup=ngMySQL) then begin
     Columns.Clear;
     rx := TRegExpr.Create;
     rx.Expression := '^(\w+)(\((.+)\))?';
