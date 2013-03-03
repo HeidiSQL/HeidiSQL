@@ -376,7 +376,7 @@ object MainForm: TMainForm
       end
       object DBtree: TVirtualStringTree
         Left = 0
-        Top = 0
+        Top = 25
         Width = 169
         Height = 228
         Align = alClient
@@ -398,7 +398,7 @@ object MainForm: TMainForm
         ParentShowHint = False
         PopupMenu = popupDB
         ShowHint = True
-        TabOrder = 0
+        TabOrder = 1
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
         OnAfterPaint = DBtreeAfterPaint
@@ -439,7 +439,7 @@ object MainForm: TMainForm
         Height = 100
         Align = alBottom
         BevelOuter = bvNone
-        TabOrder = 1
+        TabOrder = 2
         Visible = False
         DesignSize = (
           169
@@ -504,16 +504,16 @@ object MainForm: TMainForm
           end
         end
       end
-      object pnlBelowTree: TPanel
+      object pnlTreeFilter: TPanel
         Left = 0
-        Top = 228
+        Top = 0
         Width = 169
         Height = 25
-        Align = alBottom
+        Align = alTop
         BevelOuter = bvNone
-        Caption = 'pnlBelowTree'
+        Caption = 'pnlTreeFilter'
         ShowCaption = False
-        TabOrder = 2
+        TabOrder = 0
         object editTableFilter: TButtonedEdit
           Left = 78
           Top = 2

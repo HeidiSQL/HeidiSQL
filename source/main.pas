@@ -559,7 +559,7 @@ type
     Explainanalyzerforcurrentquery1: TMenuItem;
     menuAutoExpand: TMenuItem;
     menuTreeOptions: TMenuItem;
-    pnlBelowTree: TPanel;
+    pnlTreeFilter: TPanel;
     editTableFilter: TButtonedEdit;
     editDatabaseFilter: TButtonedEdit;
     menuClearDataTabFilter: TMenuItem;
