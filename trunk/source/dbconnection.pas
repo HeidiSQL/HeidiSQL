@@ -1796,7 +1796,7 @@ begin
         Result := Result + 'ALGORITHM='+Uppercase(Algorithm)+' ';
       if Definer <> '' then
         Result := Result + 'DEFINER='+QuoteIdent(Definer, True, '@')+' ';
-      Result := Result + 'VIEW '+QuoteIdent(Name)+' AS '+AlternativeSelectCode+' ';
+      Result := Result + 'VIEW '+QuoteIdent(Database)+'.'+QuoteIdent(Name)+' AS '+AlternativeSelectCode+' ';
       if CheckOption <> '' then
         Result := Result + 'WITH '+Uppercase(CheckOption)+' CHECK OPTION';
     end;
