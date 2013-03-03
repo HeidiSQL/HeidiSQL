@@ -875,12 +875,12 @@ end;
 
 procedure Toptionsform.InitLanguages;
 var
-  AllLangCodes: TStringList;
+  AvailLangCodes: TStringList;
 
   procedure AddLang(LangCode, LangName: String);
   begin
     LangCode := LowerCase(LangCode);
-    if AllLangCodes.IndexOf(LangCode) > -1 then
+    if AvailLangCodes.IndexOf(LangCode) > -1 then
       FLanguages.Add(LangCode + FLanguages.NameValueSeparator + LangName);
   end;
 
@@ -889,8 +889,8 @@ begin
   // List taken from dxgettext/languagecodes.pas
   FLanguages := TStringList.Create;
   FLanguages.Add('' + FLanguages.NameValueSeparator + _('Auto detect'));
-  AllLangCodes := TStringList.Create;
-  DefaultInstance.GetListOfLanguages('default', AllLangCodes);
+  AvailLangCodes := TStringList.Create;
+  DefaultInstance.GetListOfLanguages('default', AvailLangCodes);
   AddLang('aa', 'Afar');
   AddLang('aa', 'Afar');
   AddLang('ab', 'Abkhazian');
@@ -1085,7 +1085,7 @@ begin
   AddLang('za', 'Zhuang');
   AddLang('zh', 'Chinese');
   AddLang('zu', 'Zulu');
-  AllLangCodes.Free;
+  AvailLangCodes.Free;
 end;
 
 
