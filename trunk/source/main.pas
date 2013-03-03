@@ -4696,8 +4696,15 @@ end;
 }
 procedure TMainForm.ListTablesChange(Sender: TBaseVirtualTree; Node:
     PVirtualNode);
+var
+  Msg: String;
 begin
   ValidateControls(Sender);
+  if ListTables.SelectedCount > 1 then
+    Msg := _('Selected') + ': ' + FormatNumber(ListTables.SelectedCount)
+  else
+    Msg := '';
+  ShowStatusMsg(Msg, 1)
 end;
 
 
