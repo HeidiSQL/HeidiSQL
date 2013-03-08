@@ -333,11 +333,16 @@ object AboutBox: TAboutBox
       'Author: Ansgar Becker'
       ''
       '1000 thanks go to:'
-      '* Mike Lischke and friends for VirtualTreeView'
+      
+        '* Mike Lischke and friends for VirtualTreeView and GraphicEx lib' +
+        'rary'
       '* The SynEdit authors'
       '* Mark James for his Silk icon set'
       '* Jordan Russell for Inno Setup'
-      '* MySQL and MariaDB for great database software')
+      '* MySQL and MariaDB for great database software'
+      '* Mathias Rauen for madExcept exception handler'
+      '* Lukas Gebauer for Ararat Synapse HTTP tools'
+      '* Transifex for a free translation account')
     ReadOnly = True
     TabOrder = 1
     WordWrap = False
