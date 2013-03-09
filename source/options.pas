@@ -1083,7 +1083,8 @@ begin
   AddLang('yi', 'Yiddish');
   AddLang('yo', 'Yoruba');
   AddLang('za', 'Zhuang');
-  AddLang('zh', 'Chinese');
+  AddLang('zh', 'Chinese (Simplified)');
+  AddLang('zh_TW', 'Chinese (Traditional)');
   AddLang('zu', 'Zulu');
   AvailLangCodes.Free;
 end;
