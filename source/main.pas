@@ -7849,6 +7849,9 @@ begin
   ValidateControls(Sender);
   if Assigned(Node) and pnlPreview.Visible then
     UpdatePreviewPanel;
+  // Vtree does not focus cell after tab pressing. See issue #3139.
+  // Most probably a missing thing / bug in TBaseVirtualTree.SetFocusedNodeAndColumn
+  Sender.ScrollIntoView(Sender.FocusedNode, False, True);
 end;
 
 
