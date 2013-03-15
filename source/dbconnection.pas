@@ -2340,6 +2340,8 @@ begin
   Result := StringReplace(Result, FQuoteChar+FQuoteChar, FQuoteChar, [rfReplaceAll]);
   // Remove all ANSI quotes, to fix various problems
   Result := StringReplace(Result, '"', '', [rfReplaceAll]);
+  Result := StringReplace(Result, '[', '', [rfReplaceAll]);
+  Result := StringReplace(Result, ']', '', [rfReplaceAll]);
 end;
 
 
