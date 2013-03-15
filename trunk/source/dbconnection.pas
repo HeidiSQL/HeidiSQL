@@ -3174,7 +3174,7 @@ begin
   rx := TRegExpr.Create;
   rx.ModifierS := False;
   rx.ModifierM := True;
-  rx.Expression := '^\s+[`"]([^`"]+)[`"]\s(\w+)';
+  rx.Expression := '^\s+[`"\[]([^`"\[\]]+)[`"\]]\s(\w+)';
   rxCol := TRegExpr.Create;
   rxCol.ModifierI := True;
   if rx.Exec(CreateTable) then while true do begin
@@ -3339,7 +3339,7 @@ begin
   // Detect keys
   // PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), KEY `id_2` (`id`) USING BTREE,
   // KEY `Text` (`Text`(100)), FULLTEXT KEY `Email` (`Email`,`Text`)
-  rx.Expression := '^\s+((\w+)\s+)?KEY\s+([`"]?([^`"]+)[`"]?\s+)?((USING|TYPE)\s+(\w+)\s+)?\((.+)\)(\s+USING\s+(\w+))?,?$';
+  rx.Expression := '^\s+((\w+)\s+)?KEY\s+([`"\[]?([^`"\[\]]+)[`"\]]?\s+)?((USING|TYPE)\s+(\w+)\s+)?\((.+)\)(\s+USING\s+(\w+))?,?$';
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(Keys) then
       break;
@@ -3357,7 +3357,7 @@ begin
     if Key.IndexType = '' then Key.IndexType := 'KEY'; // KEY
     Key.Columns := Explode(',', rx.Match[8]);
     for i:=0 to Key.Columns.Count-1 do begin
-      rxCol.Expression := '^[`"]?([^`"]+)[`"]?(\((\d+)\))?$';
+      rxCol.Expression := '^[`"\[]?([^`"\[\]]+)[`"\]]?(\((\d+)\))?$';
       if rxCol.Exec(Key.Columns[i]) then begin
         Key.Columns[i] := rxCol.Match[1];
         Key.SubParts.Add(rxCol.Match[3]);
@@ -3369,7 +3369,7 @@ begin
 
   // Detect foreign keys
   // CONSTRAINT `FK1` FOREIGN KEY (`which`) REFERENCES `fk1` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-  rx.Expression := '\s+CONSTRAINT\s+[`"]([^`"]+)[`"]\sFOREIGN KEY\s+\(([^\)]+)\)\s+REFERENCES\s+[`"]([^\(]+)[`"]\s\(([^\)]+)\)(\s+ON DELETE (RESTRICT|CASCADE|SET NULL|NO ACTION))?(\s+ON UPDATE (RESTRICT|CASCADE|SET NULL|NO ACTION))?';
+  rx.Expression := '\s+CONSTRAINT\s+[`"\[]([^`"\[\]]+)[`"\]]\sFOREIGN KEY\s+\(([^\)]+)\)\s+REFERENCES\s+[`"\[]([^\(]+)[`"\]]\s\(([^\)]+)\)(\s+ON DELETE (RESTRICT|CASCADE|SET NULL|NO ACTION))?(\s+ON UPDATE (RESTRICT|CASCADE|SET NULL|NO ACTION))?';
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(ForeignKeys) then
       break;
@@ -3380,6 +3380,8 @@ begin
     ForeignKey.KeyNameWasCustomized := True;
     ForeignKey.ReferenceTable := StringReplace(rx.Match[3], '`', '', [rfReplaceAll]);
     ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, '"', '', [rfReplaceAll]);
+    ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, '[', '', [rfReplaceAll]);
+    ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, ']', '', [rfReplaceAll]);
     ExplodeQuotedList(rx.Match[2], ForeignKey.Columns);
     ExplodeQuotedList(rx.Match[4], ForeignKey.ForeignColumns);
     if rx.Match[6] <> '' then
