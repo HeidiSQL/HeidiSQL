@@ -864,6 +864,8 @@ type
     procedure Copylinetonewquerytab1Click(Sender: TObject);
     procedure actLogHorizontalScrollbarExecute(Sender: TObject);
     procedure actBatchInOneGoExecute(Sender: TObject);
+    function GetFocusedObjects(Sender: TObject; NodeTypes: TListNodeTypes): TDBObjectList;
+    function DBTreeClicked(Sender: TObject): Boolean;
     procedure actCancelOperationExecute(Sender: TObject);
     procedure AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actToggleCommentExecute(Sender: TObject);
@@ -2734,8 +2736,6 @@ end;
 procedure TMainForm.actDropObjectsExecute(Sender: TObject);
 var
   msg, db: String;
-  InDBTree: Boolean;
-  Act: TAction;
   Node: PVirtualNode;
   Obj: PDBObject;
   DBObject: TDBObject;
@@ -2747,10 +2747,7 @@ begin
 
   ObjectList := TDBobjectList.Create(TDBObjectDropComparer.Create, False);
 
-  Act := Sender as TAction;
-  InDBTree := (Act.ActionComponent is TMenuItem)
-    and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
-  if InDBTree then begin
+  if DBTreeClicked(Sender) then begin
     // drop table selected in tree view.
     case ActiveDBObj.NodeType of
       lntDb: begin
@@ -3252,29 +3249,17 @@ end;
 
 procedure TMainForm.actEmptyTablesExecute(Sender: TObject);
 var
-  Node: PVirtualNode;
-  Obj: PDBObject;
   TableOrView: TDBObject;
   Objects: TDBObjectList;
   Names: String;
 begin
-  // Add selected items/tables to helper list
-  Objects := TDBObjectList.Create(False);
-  if ListTables.Focused then begin
-    Node := GetNextNode(ListTables, nil, True);
-    while Assigned(Node) do begin
-      Obj := ListTables.GetNodeData(Node);
-      if Obj.NodeType in [lntTable, lntView] then begin
-        Objects.Add(Obj^);
-        Names := Names + Obj.Name + ', ';
-      end;
-      Node := GetNextNode(ListTables, Node, True);
-    end;
-    Delete(Names, Length(Names)-1, 2);
-  end else if DBTree.Focused then begin
-    Objects.Add(ActiveDbObj);
-    Names := ActiveDbObj.Name;
+  // Delete rows from selected tables and views
+  Objects := GetFocusedObjects(Sender, [lntTable, lntView]);
+  for TableOrView in Objects do begin
+    Names := Names + TableOrView.Name + ', ';
   end;
+  Delete(Names, Length(Names)-1, 2);
+
   if Objects.Count = 0 then
     ErrorDialog(_('No table(s) selected.'))
   else begin
@@ -3307,30 +3292,67 @@ begin
   //
 end;
 
+
+function TMainForm.DBTreeClicked(Sender: TObject): Boolean;
+var
+  ClickedControl: TComponent;
+  ClickedMenu: TMenu;
+begin
+  // Find out if user rightclicked in tree or in database tab,
+  // which is a bit complex, so outsourced here.
+  Result := DBTree.Focused;
+  if Sender is TAction then begin
+    ClickedControl := (Sender as TAction).ActionComponent;
+    if ClickedControl is TMenuItem then begin
+      ClickedMenu := (ClickedControl as TMenuItem).GetParentMenu;
+      if ClickedMenu is TPopupMenu then
+        Result := (ClickedMenu as TPopupMenu).PopupComponent = DBTree;
+    end;
+  end else if Sender is TPopupMenu then begin
+    Result := (Sender as TPopupMenu).PopupComponent = DBTree;
+  end else if Sender is TMenuItem then begin
+    ClickedMenu := (Sender as TMenuItem).GetParentMenu;
+    if ClickedMenu is TPopupMenu then
+      Result := (ClickedMenu as TPopupMenu).PopupComponent = DBTree;
+  end;
+end;
+
+
+function TMainForm.GetFocusedObjects(Sender: TObject; NodeTypes: TListNodeTypes): TDBObjectList;
+var
+  Node: PVirtualNode;
+  pObj: PDBObject;
+begin
+  // Return list of selected database objects in current area
+  Result := TDBObjectList.Create(False);
+
+  if DBTreeClicked(Sender) then begin
+    if ActiveDbObj.NodeType in NodeTypes then
+      Result.Add(ActiveDbObj);
+  end else begin
+    Node := GetNextNode(ListTables, nil, True);
+    while Assigned(Node) do begin
+      pObj := ListTables.GetNodeData(Node);
+      if pObj.NodeType in NodeTypes then
+        Result.Add(pObj^);
+      Node := GetNextNode(ListTables, Node, True);
+    end;
+  end;
+end;
+
+
 procedure TMainForm.actRunRoutinesExecute(Sender: TObject);
 var
   Tab: TQueryTab;
   Query, ParamValues, ParamValue: String;
   Params: TStringList;
-  pObj: PDBObject;
   Obj: TDBObject;
   Objects: TDBObjectList;
-  Node: PVirtualNode;
   Parameters: TRoutineParamList;
   Param: TRoutineParam;
 begin
   // Run stored function(s) or procedure(s)
-  Objects := TDBObjectList.Create(False);
-  if ListTables.Focused then begin
-    Node := GetNextNode(ListTables, nil, True);
-    while Assigned(Node) do begin
-      pObj := ListTables.GetNodeData(Node);
-      if pObj.NodeType in [lntProcedure, lntFunction] then
-        Objects.Add(pObj^);
-      Node := GetNextNode(ListTables, Node, True);
-    end;
-  end else
-    Objects.Add(ActiveDbObj);
+  Objects := GetFocusedObjects(Sender, [lntProcedure, lntFunction]);
 
   if Objects.Count = 0 then
     ErrorDialog(_('No stored procedure selected.'), _('Please select one or more stored function(s) or routine(s).'));
@@ -5589,19 +5611,11 @@ end;
 
 procedure TMainForm.popupDBPopup(Sender: TObject);
 var
-  InDBTree: Boolean;
   Obj: PDBObject;
   HasFocus, IsDbOrObject: Boolean;
 begin
-  // DBtree and ListTables both use popupDB as menu. Find out which of them was rightclicked.
-  if Sender is TPopupMenu then
-    InDBTree := (Sender as TPopupMenu).PopupComponent = DBTree
-  else if Sender is TMenuItem then
-    InDBTree := TPopupMenu((Sender as TMenuItem).GetParentMenu).PopupComponent = DBTree
-  else
-    InDBTree := False;
-
-  if InDBtree then begin
+  // DBtree and ListTables both use popupDB as menu
+  if DBtreeClicked(Sender) then begin
     Obj := DBTree.GetNodeData(DBTree.FocusedNode);
     IsDbOrObject := Obj.NodeType in [lntDb, lntTable..lntEvent];
     actCreateDatabase.Enabled := Obj.NodeType = lntNone;
