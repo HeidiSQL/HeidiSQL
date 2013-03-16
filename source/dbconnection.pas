@@ -1868,7 +1868,7 @@ begin
     end;
 
     lntView: begin
-      Result := GetVar('SELECT VIEW_DEFINITION'+
+      Result := GetVar('SELECT LTRIM(VIEW_DEFINITION)'+
         ' FROM INFORMATION_SCHEMA.VIEWS'+
         ' WHERE TABLE_NAME='+EscapeString(Name)+
         ' AND TABLE_CATALOG='+EscapeString(Database));
