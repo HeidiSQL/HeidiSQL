@@ -9192,6 +9192,7 @@ begin
   // Immediately apply database filter
   Edit := Sender as TButtonedEdit;
   rx := TRegExpr.Create;
+  rx.ModifierI := True;
   rx.Expression := '('+StringReplace(Edit.Text, ';', '|', [rfReplaceAll])+')';
   VisibleCount := 0;
   FilterError := False;
