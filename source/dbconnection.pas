@@ -1868,7 +1868,7 @@ begin
     end;
 
     lntView: begin
-      Result := GetVar('SELECT LTRIM(VIEW_DEFINITION)'+
+      Result := GetVar('SELECT VIEW_DEFINITION'+
         ' FROM INFORMATION_SCHEMA.VIEWS'+
         ' WHERE TABLE_NAME='+EscapeString(Name)+
         ' AND TABLE_CATALOG='+EscapeString(Database));
@@ -3419,7 +3419,7 @@ begin
     rx := TRegExpr.Create;
     rx.ModifierG := False;
     rx.ModifierI := True;
-    rx.Expression := '^CREATE\s+(OR\s+REPLACE\s+)?'+
+    rx.Expression := 'CREATE\s+(OR\s+REPLACE\s+)?'+
       '(ALGORITHM\s*=\s*(\w*)\s*)?'+
       '(DEFINER\s*=\s*(\S+)\s+)?'+
       '(SQL\s+SECURITY\s+\w+\s+)?'+
