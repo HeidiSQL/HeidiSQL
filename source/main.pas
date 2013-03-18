@@ -4309,9 +4309,12 @@ begin
           and (c.DataType.Category in [dtcText, dtcBinary])
           and (not IsKeyColumn) // We need full length of any key column, so DataGridLoadFullRow() has the chance to fetch the right row
           and ((ColLen > GRIDMAXDATA) or (ColLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
-          then
-            Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), '
-          else
+          then begin
+            case DBObj.Connection.Parameters.NetTypeGroup of
+              ngMSSQL: Select := Select + ' LEFT(CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS VARCHAR), ' + IntToStr(GRIDMAXDATA) + '), ';
+              ngMySQL: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
+            end;
+          end else
             Select := Select + ' ' + DBObj.Connection.QuoteIdent(c.Name) + ', ';
         WantedColumns.Add(c);
         WantedColumnOrgnames.Add(c.Name);
