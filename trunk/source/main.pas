@@ -1319,6 +1319,8 @@ const
   VistaFont = 'Segoe UI';
 var
   i, j, MonitorIndex: Integer;
+  Bar: TControl;
+  ToolButton: TToolButton;
   datafontname: String;
   datafontsize : Integer;
   QueryTab: TQueryTab;
@@ -1343,6 +1345,21 @@ begin
   TP_GlobalIgnoreClass(TFont);
   TranslateComponent(Self);
   MainMenu1.Images := ImageListMain;
+
+  // Fix drop down buttons on main toolbar. Same as r4304.
+  // Caused by missing Application.MainFormOnTaskBar
+  for i:=0 to ControlBar1.ControlCount-1 do begin
+    Bar := ControlBar1.Controls[i];
+    if Bar is TToolBar then begin
+      for j:=0 to (Bar as TToolBar).ButtonCount-1 do begin
+        ToolButton := (Bar as TToolBar).Buttons[j];
+        if ToolButton.Style = tbsDropDown then begin
+          ToolButton.Style := tbsButton;
+          ToolButton.Style := tbsDropDown;
+        end;
+      end;
+    end;
+  end;
 
   // Detect version
   dwInfoSize := GetFileVersionInfoSize(PChar(Application.ExeName), dwWnd);
