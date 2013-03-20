@@ -71,7 +71,6 @@ begin
     Application.CreateForm(TMainForm, MainForm);
     Application.OnMessage := Mainform.OnMessageHandler;
     MainForm.AfterFormCreate;
-    Application.MainFormOnTaskBar := True;
     Application.Run;
   end;
  end.
