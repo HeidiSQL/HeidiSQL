@@ -3317,7 +3317,7 @@ var
 begin
   // Find out if user rightclicked in tree or in database tab,
   // which is a bit complex, so outsourced here.
-  Result := DBTree.Focused;
+  Result := DBTree.Focused or (PageControlMain.ActivePage <> tabDatabase);
   if Sender is TAction then begin
     ClickedControl := (Sender as TAction).ActionComponent;
     if ClickedControl is TMenuItem then begin
