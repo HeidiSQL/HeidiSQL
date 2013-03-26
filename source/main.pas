@@ -5081,6 +5081,12 @@ begin
     end;
 
     if Token2 = '' then begin
+
+      // Column names from selected table
+      if Editor = SynMemoFilter then begin
+        AddColumns(ActiveDbObj.QuotedName);
+      end;
+
       // All databases
       for i:=0 to Conn.AllDatabases.Count-1 do begin
         Proposal.InsertList.Add(ActiveConnection.AllDatabases[i]);
