@@ -2515,7 +2515,16 @@ begin
     m := Msg;
     if Title <> '' then
       m := Title + CRLF + CRLF + m;
-    Result := MessageDlg(m, DlgType, Buttons, 0);
+
+    if KeepAskingSetting <> asUnused then
+      KeepAskingValue := AppSettings.ReadBool(KeepAskingSetting)
+    else
+      KeepAskingValue := True;
+
+    if KeepAskingValue then
+      Result := MessageDlg(m, DlgType, Buttons, 0)
+    else
+      Result := mrNo;
   end;
 end;
 
