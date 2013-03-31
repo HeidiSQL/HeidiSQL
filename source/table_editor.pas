@@ -1691,6 +1691,7 @@ begin
          end;
          1: TblKey.SubParts[Node.Index] := NewText;
        end;
+       TblKey.Modified := True;
     end;
   end;
 
