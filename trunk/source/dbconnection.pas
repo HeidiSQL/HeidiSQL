@@ -3530,21 +3530,19 @@ begin
     // Get everything else from information_schema.
     // See http://www.heidisql.com/forum.php?t=12075
     // See issue #3114
-    FromIS := GetResults('SELECT '+QuoteIdent('ROUTINE_DEFINITION')+', '+QuoteIdent('DEFINER')+', '+
-      QuoteIdent('DTD_IDENTIFIER')+', '+QuoteIdent('IS_DETERMINISTIC')+', '+
-      QuoteIdent('SQL_DATA_ACCESS')+', '+QuoteIdent('SECURITY_TYPE')+', '+QuoteIdent('ROUTINE_COMMENT')+
-      ' FROM information_schema.'+QuoteIdent('ROUTINES')+
+    // See http://www.heidisql.com/forum.php?t=12435
+    FromIS := GetResults('SELECT * FROM information_schema.'+QuoteIdent('ROUTINES')+
       ' WHERE '+QuoteIdent('ROUTINE_SCHEMA')+'='+EscapeString(Obj.Database)+
       ' AND '+QuoteIdent('ROUTINE_NAME')+'='+EscapeString(Obj.Name)+
       ' AND '+QuoteIdent('ROUTINE_TYPE')+'='+EscapeString(UpperCase(Obj.ObjType))
       );
     Obj.Body := FromIS.Col('ROUTINE_DEFINITION');
-    Obj.Definer := FromIS.Col('DEFINER');
-    Obj.Returns := FromIS.Col('DTD_IDENTIFIER');
-    Obj.Deterministic := FromIS.Col('IS_DETERMINISTIC') = 'YES';
-    Obj.DataAccess := FromIS.Col('SQL_DATA_ACCESS');
-    Obj.Security := FromIS.Col('SECURITY_TYPE');
-    Obj.Comment := FromIS.Col('ROUTINE_COMMENT');
+    Obj.Definer := FromIS.Col('DEFINER', True);
+    Obj.Returns := FromIS.Col('DTD_IDENTIFIER', True);
+    Obj.Deterministic := FromIS.Col('IS_DETERMINISTIC', True) = 'YES';
+    Obj.DataAccess := FromIS.Col('SQL_DATA_ACCESS', True);
+    Obj.Security := FromIS.Col('SECURITY_TYPE', True);
+    Obj.Comment := FromIS.Col('ROUTINE_COMMENT', True);
   end;
 end;
 
