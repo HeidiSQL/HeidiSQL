@@ -1133,7 +1133,7 @@ begin
   case Column of
     1: begin // Name of column
       for i:=0 to FColumns.Count-1 do begin
-        if FColumns[i].Name = NewText then begin
+        if (FColumns[i].Name = NewText) and (not (FColumns[i].Status in [esDeleted, esAddedDeleted])) then begin
           ErrorDialog(f_('Column "%s" already exists.', [NewText]));
           Exit;
         end;
