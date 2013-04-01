@@ -853,9 +853,16 @@ begin
   HasDecim := False;
   for i:=1 to Length(Val) do begin
     c := Val[i];
-    if CharInSet(c, Numbers) or ((c = '-') and (i = 1)) then
+    if (c = '-') and (i = 1) then
       Result := Result + c
-    else if (c = FormatSettings.DecimalSeparator) and (not HasDecim) then begin
+    else if CharInSet(c, Numbers) then begin
+      if (c = '0') and (Result = '') then
+        // remove zeropadding
+      else
+        Result := Result + c
+    end else if (c = FormatSettings.DecimalSeparator) and (not HasDecim) then begin
+      if Result = '' then
+        Result := '0';
       Result := Result + '.';
       HasDecim := True;
     end else if c <> FormatSettings.ThousandSeparator then
