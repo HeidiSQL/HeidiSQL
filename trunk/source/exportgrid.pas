@@ -694,8 +694,16 @@ begin
           efPHPArray: begin
             if GridData.IsNull(Col) then
               Data := 'NULL'
-            else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
-              Data := esc(Data);
+            else case GridData.DataType(Col).Category of
+              dtcInteger, dtcReal: begin
+                // Remove zeropadding to avoid octal => integer conversion in PHP
+                Data := FormatNumber(Data);
+                Data := UnformatNumber(Data);
+              end;
+              else
+                Data := esc(Data);
+            end;
+
             if chkIncludeColumnNames.Checked then
               tmp := tmp + #9#9 + '''' + Grid.Header.Columns[Col].Text + ''' => ' + Data + ','+CRLF
             else
