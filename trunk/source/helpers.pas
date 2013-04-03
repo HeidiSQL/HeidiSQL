@@ -12,7 +12,8 @@ uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi,
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
-  dbconnection, mysql_structures, SynMemo, Menus, WinInet, synacode, gnugettext, Themes;
+  dbconnection, mysql_structures, SynMemo, Menus, WinInet, synacode, gnugettext, Themes,
+  Character;
 
 type
 
@@ -2438,11 +2439,24 @@ var
   MsgButton: TMsgDlgBtn;
   rx: TRegExpr;
   KeepAskingValue: Boolean;
+  Hotkeys: String;
 
   procedure AddButton(BtnCaption: String; BtnResult: TModalResult);
+  var
+    i: Integer;
+    cap: String;
   begin
     Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
-    Btn.Caption := _(BtnCaption);
+    cap := _(BtnCaption);
+    for i:=1 to Length(cap) do begin
+      // Auto apply hotkey
+      if (Pos(LowerCase(cap[i]), Hotkeys) = 0) and TCharacter.IsLetter(cap[i]) then begin
+        Hotkeys := Hotkeys + LowerCase(cap[i]);
+        Insert('&', cap, i);
+        break;
+      end;
+    end;
+    Btn.Caption := cap;
     Btn.ModalResult := BtnResult;
   end;
 begin
