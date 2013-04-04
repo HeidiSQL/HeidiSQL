@@ -1871,8 +1871,27 @@ begin
       Result := GetVar('SELECT VIEW_DEFINITION'+
         ' FROM INFORMATION_SCHEMA.VIEWS'+
         ' WHERE TABLE_NAME='+EscapeString(Name)+
-        ' AND TABLE_CATALOG='+EscapeString(Database));
-     end;
+        ' AND TABLE_CATALOG='+EscapeString(Database)
+        );
+    end;
+
+    lntFunction: begin
+      Result := GetVar('SELECT ROUTINE_DEFINITION'+
+        ' FROM INFORMATION_SCHEMA.ROUTINES'+
+        ' WHERE ROUTINE_NAME='+EscapeString(Name)+
+        ' AND ROUTINE_TYPE='+EscapeString('FUNCTION')+
+        ' AND ROUTINE_CATALOG='+EscapeString(Database)
+        );
+    end;
+
+    lntProcedure: begin
+      Result := GetVar('SELECT ROUTINE_DEFINITION'+
+        ' FROM INFORMATION_SCHEMA.ROUTINES'+
+        ' WHERE ROUTINE_NAME='+EscapeString(Name)+
+        ' AND ROUTINE_TYPE='+EscapeString('PROCEDURE')+
+        ' AND ROUTINE_CATALOG='+EscapeString(Database)
+        );
+    end;
 
   end;
 
@@ -3496,6 +3515,7 @@ begin
   // CREATE DEFINER=`root`@`localhost` PROCEDURE `bla2`(IN p1 INT, p2 VARCHAR(20))
   // CREATE DEFINER=`root`@`localhost` FUNCTION `test3`(`?b` varchar(20)) RETURNS tinyint(4)
   // CREATE DEFINER=`root`@`localhost` PROCEDURE `test3`(IN `Param1` int(1) unsigned)
+  // MSSQL: CREATE FUNCTION dbo.ConvertToInt(@string nvarchar(255), @maxValue int, @defValue int) RETURNS int
 
   // Parse parameter list
   CreateCode := Obj.CreateCode;
@@ -3512,6 +3532,7 @@ begin
     if CreateCode[i] = '(' then
       Inc(ParenthesesCount);
   end;
+  log(lcinfo, params);
   rx.Expression := '(^|,)\s*((IN|OUT|INOUT)\s+)?(\S+)\s+([^\s,\(]+(\([^\)]*\))?[^,]*)';
   if rx.Exec(Params) then while true do begin
     Param := TRoutineParam.Create;
@@ -3532,17 +3553,31 @@ begin
     // See issue #3114
     // See http://www.heidisql.com/forum.php?t=12435
     FromIS := GetResults('SELECT * FROM information_schema.'+QuoteIdent('ROUTINES')+
-      ' WHERE '+QuoteIdent('ROUTINE_SCHEMA')+'='+EscapeString(Obj.Database)+
+      ' WHERE '+
+      ' ('+QuoteIdent('ROUTINE_SCHEMA')+'='+EscapeString(Obj.Database)+
+      ' OR '+QuoteIdent('ROUTINE_CATALOG')+'='+EscapeString(Obj.Database)+')'+
       ' AND '+QuoteIdent('ROUTINE_NAME')+'='+EscapeString(Obj.Name)+
       ' AND '+QuoteIdent('ROUTINE_TYPE')+'='+EscapeString(UpperCase(Obj.ObjType))
       );
     Obj.Body := FromIS.Col('ROUTINE_DEFINITION');
     Obj.Definer := FromIS.Col('DEFINER', True);
-    Obj.Returns := FromIS.Col('DTD_IDENTIFIER', True);
+    Obj.Returns := FromIS.Col('DATA_TYPE', True);
+    if FromIS.Col('CHARACTER_MAXIMUM_LENGTH', True) <> '' then
+      Obj.Returns := Obj.Returns + '(' + FromIS.Col('CHARACTER_MAXIMUM_LENGTH', True) + ')';
     Obj.Deterministic := FromIS.Col('IS_DETERMINISTIC', True) = 'YES';
     Obj.DataAccess := FromIS.Col('SQL_DATA_ACCESS', True);
     Obj.Security := FromIS.Col('SECURITY_TYPE', True);
     Obj.Comment := FromIS.Col('ROUTINE_COMMENT', True);
+    if Self.Parameters.NetTypeGroup = ngMSSQL then begin
+      // MSSQL includes the CREATE ... clause in the definition
+      rx := TRegExpr.Create;
+      rx.ModifierI := True;
+      rx.ModifierG := True;
+      rx.Expression := '\s+AS\s+BEGIN\s+(.*)\sEND\s*$';
+      if rx.Exec(CreateCode) then
+        Obj.Body := rx.Match[1];
+      rx.Free;
+    end;
   end;
 end;
 
