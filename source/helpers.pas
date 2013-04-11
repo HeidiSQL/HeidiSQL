@@ -240,7 +240,6 @@ type
   function implodestr(seperator: String; a: TStrings) :String;
   function Explode(Separator, Text: String) :TStringList;
   procedure ExplodeQuotedList(Text: String; var List: TStringList);
-  function RemoveComments(SQL: String): String;
   function sstr(str: String; len: Integer) : String;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
@@ -400,12 +399,6 @@ begin
     Result.Add(Item);
     Delete(Text, 1, i-1+Length(Separator));
   end;
-end;
-
-
-function RemoveComments(SQL: String): String;
-begin
-  // Remove all kinds of comments from given SQL string
 end;
 
 
