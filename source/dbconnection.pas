@@ -3340,18 +3340,7 @@ begin
     end;
 
     // Comment
-    if UpperCase(Copy(ColSpec, 1, 9)) = 'COMMENT ''' then begin
-      InLiteral := True;
-      for i:=10 to Length(ColSpec) do begin
-        if ColSpec[i] = '''' then
-          InLiteral := not InLiteral
-        else if not InLiteral then
-          break;
-      end;
-      Col.Comment := Copy(ColSpec, 10, i-11);
-      Col.Comment := StringReplace(Col.Comment, '''''', '''', [rfReplaceAll]);
-      Delete(ColSpec, 1, i);
-    end;
+    Col.Comment := ExtractComment(ColSpec);
 
     if not rx.ExecNext then
       break;
@@ -3501,12 +3490,11 @@ end;
 
 procedure TDBConnection.ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList);
 var
-  CreateCode, Params: String;
+  CreateCode, Params, Body, Match: String;
   ParenthesesCount: Integer;
   rx: TRegExpr;
   i: Integer;
   Param: TRoutineParam;
-  FromIS: TDBQuery;
 begin
   // Parse CREATE code of stored function or procedure to detect parameters
   rx := TRegExpr.Create;
@@ -3517,8 +3505,15 @@ begin
   // CREATE DEFINER=`root`@`localhost` PROCEDURE `test3`(IN `Param1` int(1) unsigned)
   // MSSQL: CREATE FUNCTION dbo.ConvertToInt(@string nvarchar(255), @maxValue int, @defValue int) RETURNS int
 
-  // Parse parameter list
   CreateCode := Obj.CreateCode;
+
+  rx.Expression := '\bDEFINER\s*=\s*(\S+)\s';
+  if rx.Exec(CreateCode) then
+    Obj.Definer := DequoteIdent(rx.Match[1], '@')
+  else
+    Obj.Definer := '';
+
+  // Parse parameter list
   ParenthesesCount := 0;
   Params := '';
   for i:=1 to Length(CreateCode) do begin
@@ -3532,7 +3527,8 @@ begin
     if CreateCode[i] = '(' then
       Inc(ParenthesesCount);
   end;
-  log(lcinfo, params);
+
+  // Extract parameters from left part
   rx.Expression := '(^|,)\s*((IN|OUT|INOUT)\s+)?(\S+)\s+([^\s,\(]+(\([^\)]*\))?[^,]*)';
   if rx.Exec(Params) then while true do begin
     Param := TRoutineParam.Create;
@@ -3545,40 +3541,54 @@ begin
     if not rx.ExecNext then
       break;
   end;
-  rx.Free;
 
-  if Obj.Body = '' then begin
-    // Get everything else from information_schema.
-    // See http://www.heidisql.com/forum.php?t=12075
-    // See issue #3114
-    // See http://www.heidisql.com/forum.php?t=12435
-    FromIS := GetResults('SELECT * FROM information_schema.'+QuoteIdent('ROUTINES')+
-      ' WHERE '+
-      ' ('+QuoteIdent('ROUTINE_SCHEMA')+'='+EscapeString(Obj.Database)+
-      ' OR '+QuoteIdent('ROUTINE_CATALOG')+'='+EscapeString(Obj.Database)+')'+
-      ' AND '+QuoteIdent('ROUTINE_NAME')+'='+EscapeString(Obj.Name)+
-      ' AND '+QuoteIdent('ROUTINE_TYPE')+'='+EscapeString(UpperCase(Obj.ObjType))
-      );
-    Obj.Body := FromIS.Col('ROUTINE_DEFINITION');
-    Obj.Definer := FromIS.Col('DEFINER', True);
-    Obj.Returns := FromIS.Col('DATA_TYPE', True);
-    if FromIS.Col('CHARACTER_MAXIMUM_LENGTH', True) <> '' then
-      Obj.Returns := Obj.Returns + '(' + FromIS.Col('CHARACTER_MAXIMUM_LENGTH', True) + ')';
-    Obj.Deterministic := FromIS.Col('IS_DETERMINISTIC', True) = 'YES';
-    Obj.DataAccess := FromIS.Col('SQL_DATA_ACCESS', True);
-    Obj.Security := FromIS.Col('SECURITY_TYPE', True);
-    Obj.Comment := FromIS.Col('ROUTINE_COMMENT', True);
-    if Self.Parameters.NetTypeGroup = ngMSSQL then begin
-      // MSSQL includes the CREATE ... clause in the definition
-      rx := TRegExpr.Create;
-      rx.ModifierI := True;
-      rx.ModifierG := True;
-      rx.Expression := '\s+AS\s+BEGIN\s+(.*)\sEND\s*$';
-      if rx.Exec(CreateCode) then
-        Obj.Body := rx.Match[1];
-      rx.Free;
-    end;
+  // Right part contains routine body
+  Body := Copy(CreateCode, i+1, Length(CreateCode));
+  // Remove "RETURNS x" and routine characteristics from body
+  // LANGUAGE SQL
+  // | [NOT] DETERMINISTIC
+  // | { CONTAINS SQL | NO SQL | READS SQL DATA | MODIFIES SQL DATA }
+  // | SQL SECURITY { DEFINER | INVOKER }
+  // | COMMENT 'string'
+  rx.Expression := '^\s*('+
+    'RETURNS\s+(\S+)(\s+CHARSET\s+\S+)?(\s+COLLATE\s\S+)?|'+
+    // MySQL function characteristics - see http://dev.mysql.com/doc/refman/5.1/de/create-procedure.html
+    'LANGUAGE\s+SQL|'+
+    '(NOT\s+)?DETERMINISTIC|'+
+    'CONTAINS\s+SQL|'+
+    'NO\s+SQL|'+
+    'READS\s+SQL\s+DATA|'+
+    'MODIFIES\s+SQL\s+DATA|'+
+    'SQL\s+SECURITY\s+(DEFINER|INVOKER)|'+
+    // MS SQL function options - see http://msdn.microsoft.com/en-us/library/ms186755.aspx
+    'AS|'+
+    'WITH\s+ENCRYPTION|'+
+    'WITH\s+SCHEMABINDING|'+
+    'WITH\s+RETURNS\s+NULL\s+ON\s+NULL\s+INPUT|'+
+    'WITH\s+CALLED\s+ON\s+NULL\s+INPUT|'+
+    'WITH\s+EXECUTE_AS_Clause'+
+    ')\s';
+  if rx.Exec(Body) then while true do begin
+    Match := UpperCase(rx.Match[1]);
+    if Pos('RETURNS', Match) = 1 then
+      Obj.Returns := rx.Match[2]
+    else if Pos('DETERMINISTIC', Match) = 1 then
+      Obj.Deterministic := True
+    else if Pos('NOT DETERMINISTIC', Match) = 1 then
+      Obj.Deterministic := False
+    else if (Pos('CONTAINS SQL', Match) = 1) or (Pos('NO SQL', Match) = 1) or (Pos('READS SQL DATA', Match) = 1) or (Pos('MODIFIES SQL DATA', Match) = 1) then
+      Obj.DataAccess := rx.Match[1]
+    else if Pos('SQL SECURITY', Match) = 1 then
+      Obj.Security := rx.Match[6];
+
+
+    Delete(Body, 1, rx.MatchLen[0]);
+    if not rx.Exec(Body) then
+      break;
   end;
+  Obj.Comment := ExtractComment(Body);
+  Obj.Body := TrimLeft(Body);
+  rx.Free;
 end;
 
 

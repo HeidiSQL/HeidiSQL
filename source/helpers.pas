@@ -257,6 +257,7 @@ type
   function ScanLineBreaks(Text: String): TLineBreaks;
   function RemoveNulChars(Text: String): String;
   function fixNewlines(txt: String): String;
+  function ExtractComment(var SQL: String): String;
   function GetShellFolder(CSIDL: integer): string;
   // Common directories
   function DirnameCommonAppData: String;
@@ -740,6 +741,33 @@ begin
   result := txt;
 end;
 
+
+function ExtractComment(var SQL: String): String;
+var
+  i, LitStart: Integer;
+  InLiteral: Boolean;
+  rx: TRegExpr;
+begin
+  // Return comment from SQL and remove it from the original string
+  // Single quotes are escaped by a second single quote
+  rx := TRegExpr.Create;
+  rx.Expression := '^\s*COMMENT\s+''';
+  rx.ModifierI := True;
+  if rx.Exec(SQL) then begin
+    LitStart := rx.MatchLen[0]+1;
+    InLiteral := True;
+    for i:=LitStart to Length(SQL) do begin
+      if SQL[i] = '''' then
+        InLiteral := not InLiteral
+      else if not InLiteral then
+        break;
+    end;
+    Result := Copy(SQL, LitStart, i-LitStart-1);
+    Result := StringReplace(Result, '''''', '''', [rfReplaceAll]);
+    Delete(SQL, 1, i);
+  end;
+  rx.Free;
+end;
 
 
 {***
