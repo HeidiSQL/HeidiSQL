@@ -2227,8 +2227,8 @@ begin
         RefTable := Key.ReferenceTable;
         i := Pos('.', RefTable);
         if i > 0 then begin
-          RefDatabase := Copy(RefTable, 1, i);
-          RefTable := Copy(RefTable, i, MaxInt);
+          RefDatabase := Copy(RefTable, 1, i-1);
+          RefTable := Copy(RefTable, i+1, MaxInt);
         end;
         RefCreateCode := DBObject.Connection.GetCreateCode(RefDatabase, RefTable, lntTable);
         RefColumns := TTableColumnList.Create(True);
