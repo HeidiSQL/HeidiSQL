@@ -750,6 +750,7 @@ var
 begin
   // Return comment from SQL and remove it from the original string
   // Single quotes are escaped by a second single quote
+  Result := '';
   rx := TRegExpr.Create;
   rx.Expression := '^\s*COMMENT\s+''';
   rx.ModifierI := True;
