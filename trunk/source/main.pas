@@ -2269,6 +2269,7 @@ begin
     except on E:EDatabaseError do
       TabCaption := _('Result')+' #'+IntToStr(Tab.ResultTabs.Count);
     end;
+    TabCaption := TabCaption + ' (' + FormatNumber(Results.ColumnCount) + 'x' + FormatNumber(Results.RecordCount) + ')';
     Tab.tabsetQuery.Tabs.Add(TabCaption);
 
     NewTab.Grid.BeginUpdate;
