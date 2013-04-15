@@ -3272,6 +3272,11 @@ var
   Names: String;
 begin
   // Delete rows from selected tables and views
+
+  // See issue #3166
+  if (not DBtree.Focused) and (not ListTables.Focused) then
+    Exit;
+
   Objects := GetFocusedObjects(Sender, [lntTable, lntView]);
   for TableOrView in Objects do begin
     Names := Names + TableOrView.Name + ', ';
