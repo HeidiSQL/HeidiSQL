@@ -2269,7 +2269,7 @@ begin
     except on E:EDatabaseError do
       TabCaption := _('Result')+' #'+IntToStr(Tab.ResultTabs.Count);
     end;
-    TabCaption := TabCaption + ' (' + FormatNumber(Results.ColumnCount) + 'x' + FormatNumber(Results.RecordCount) + ')';
+    TabCaption := TabCaption + ' (' + FormatNumber(Results.ColumnCount) + '×' + FormatNumber(Results.RecordCount) + ')';
     Tab.tabsetQuery.Tabs.Add(TabCaption);
 
     NewTab.Grid.BeginUpdate;
@@ -6097,7 +6097,7 @@ begin
   HintSQL := sstr(ResultTab.Results.SQL, SIZE_KB);
   HintSQL := WrapText(HintSQL, CRLF, ['.',' ',#9,'-',',',';'], 100);
   HintSQL := Trim(HintSQL);
-  BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns x ' +
+  BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns × ' +
     FormatNumber(ResultTab.Results.RecordCount) + ' rows' + CRLF +
     HintSQL;
   Rect := Tabs.ItemRect(idx);
