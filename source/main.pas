@@ -893,6 +893,9 @@ type
     procedure editDatabaseTableFilterMenuClick(Sender: TObject);
     procedure editDatabaseTableFilterExit(Sender: TObject);
     procedure menuClearDataTabFilterClick(Sender: TObject);
+    procedure ListVariablesBeforeCellPaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -936,6 +939,7 @@ type
     FProcessListMaxTime: Int64;
     FCommandStatsQueryCount: Int64;
     FCommandStatsServerUptime: Integer;
+    FVariableNames, FSessionVars, FGlobalVars: TStringList;
 
     procedure SetDelimiter(Value: String);
     procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
@@ -6746,6 +6750,27 @@ begin
 end;
 
 
+procedure TMainForm.ListVariablesBeforeCellPaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+var
+  SessionVal, GlobalVal: String;
+  vt: TVirtualStringTree;
+begin
+  // Highlight cell if session variable is different to global variable
+  vt := Sender as TVirtualStringTree;
+  if Column = 1 then begin
+    SessionVal := vt.Text[Node, 1];
+    GlobalVal := vt.Text[Node, 2];
+    if SessionVal <> GlobalVal then begin
+      TargetCanvas.Brush.Color := clWebBlanchedAlmond;
+      TargetCanvas.Pen.Color := TargetCanvas.Brush.Color;
+      TargetCanvas.Rectangle(CellRect);
+    end;
+  end;
+end;
+
+
 procedure TMainForm.ListVariablesDblClick(Sender: TObject);
 begin
   menuEditVariable.Click;
@@ -6756,29 +6781,31 @@ procedure TMainForm.ListVariablesPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
 var
-  Results: TDBQuery;
   Idx: PCardinal;
   i, tmp: Integer;
-  Val: String;
+  VarName, SessionVal, GlobalVal: String;
   dcat: TDBDatatypeCategoryIndex;
+  vt: TVirtualStringTree;
 begin
+  vt := Sender as TVirtualStringTree;
   Idx := Sender.GetNodeData(Node);
-  Results := GridResult(Sender);
-  Results.RecNo := Idx^;
+  VarName := FVariableNames[Idx^];
   tmp := -1;
   for i:=Low(MySQLVariables) to High(MySQLVariables) do begin
-    if MySQLVariables[i].Name = Results.Col(0) then begin
+    if MySQLVariables[i].Name = VarName then begin
       tmp := i;
       break;
     end;
   end;
-  if (tmp=-1) or (not MySQLVariables[tmp].IsDynamic) then
+  if (tmp=-1) or (not MySQLVariables[tmp].IsDynamic) then begin
+    // Gray out whole row if the variable is either unknown or not editable
     TargetCanvas.Font.Color := clGrayText
-  else if Column=1 then begin
-    Val := Results.Col(1);
-    if IsNumeric(Val) then
+  end else if Column in [1, 2] then begin
+    SessionVal := vt.Text[Node, 1];
+    GlobalVal := vt.Text[Node, 2];
+    if IsNumeric(SessionVal) or IsNumeric(GlobalVal) then
       dcat := dtcInteger
-    else if (tmp > -1) and ((MySQLVariables[tmp].EnumValues <> '') or (Pos(UpperCase(Val), 'ON,OFF,0,1,YES,NO')>0)) then
+    else if (tmp > -1) and ((MySQLVariables[tmp].EnumValues <> '') or (Pos(UpperCase(SessionVal), 'ON,OFF,0,1,YES,NO')>0)) then
       dcat := dtcOther
     else
       dcat := dtcText;
@@ -6843,7 +6870,8 @@ var
 begin
   Idx := Sender.GetNodeData(Node);
   Results := GridResult(Sender);
-  Results.RecNo := Idx^;
+  if Results <> nil then
+    Results.RecNo := Idx^;
 
   if (Sender = ListStatus) and (Column in [1,2,3]) then begin
     CellText := Results.Col(1);
@@ -6902,6 +6930,13 @@ begin
         tmpval := 100 / Max(FCommandStatsQueryCount, 1) * Max(CommandCount, 1);
         CellText := FormatNumber(tmpval, 1) + ' %';
       end;
+    end;
+
+  end else if Sender = ListVariables then begin
+    case Column of
+      0: CellText := FVariableNames[Idx^];
+      1: CellText := FSessionVars.Values[FVariableNames[Idx^]];
+      2: CellText := FGlobalVars.Values[FVariableNames[Idx^]];
     end;
 
   end else begin
@@ -8517,7 +8552,7 @@ var
   OldOffset: TPoint;
   Conn: TDBConnection;
   Tab: TTabSheet;
-  Results: TDBQuery;
+  Results, Variables: TDBQuery;
   i: Integer;
   SelectedCaptions: TStringList;
   IS_objects: TDBObjectList;
@@ -8554,7 +8589,32 @@ begin
       FreeAndNil(Results);
     Screen.Cursor := crHourglass;
     if vt = ListVariables then begin
-      Results := Conn.GetResults(Conn.GetSQLSpecifity(spServerVariables));
+      // Do not use FHostListResults on Variables tab, as we cannot query
+      // session and global variables in one query
+      Results := nil;
+      FreeAndNil(FVariableNames);
+      FreeAndNil(FSessionVars);
+      FreeAndNil(FGlobalVars);
+      FVariableNames := TStringList.Create;
+      FVariableNames.Duplicates := dupIgnore;
+      FVariableNames.Sorted := True;
+      FSessionVars := TStringList.Create;
+      FGlobalVars := TStringList.Create;
+      Variables := Conn.GetResults(Conn.GetSQLSpecifity(spSessionVariables));
+      while not Variables.Eof do begin
+        FVariableNames.Add(Variables.Col(0));
+        FSessionVars.Values[Variables.Col(0)] := Variables.Col(1);
+        Variables.Next;
+      end;
+      Variables.Free;
+      Variables := Conn.GetResults(Conn.GetSQLSpecifity(spGlobalVariables));
+      while not Variables.Eof do begin
+        FVariableNames.Add(Variables.Col(0));
+        FGlobalVars.Values[Variables.Col(0)] := Variables.Col(1);
+        Variables.Next;
+      end;
+      Variables.Free;
+      vt.RootNodeCount := FVariableNames.Count;
     end else if vt = ListStatus then begin
       Results := Conn.GetResults('SHOW /*!50002 GLOBAL */ STATUS');
       FStatusServerUptime := Conn.ServerUptime;
@@ -8633,7 +8693,8 @@ begin
 
     FHostListResults[Tab.PageIndex] := Results;
     Screen.Cursor := crDefault;
-    vt.RootNodeCount := Results.RecordCount;
+    if Results <> nil then
+      vt.RootNodeCount := Results.RecordCount;
     vt.OffsetXY := OldOffset;
   end;
   // Apply or reset filter

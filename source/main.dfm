@@ -724,7 +724,7 @@ object MainForm: TMainForm
                 Height = 273
                 Align = alClient
                 DragOperations = []
-                Header.AutoSizeIndex = 1
+                Header.AutoSizeIndex = 2
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
                 Header.ParentFont = True
@@ -742,6 +742,7 @@ object MainForm: TMainForm
                 TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
                 TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
                 OnAfterPaint = AnyGridAfterPaint
+                OnBeforeCellPaint = ListVariablesBeforeCellPaint
                 OnBeforePaint = HostListBeforePaint
                 OnCompareNodes = AnyGridCompareNodes
                 OnDblClick = ListVariablesDblClick
@@ -761,8 +762,13 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 1
-                    Width = 471
-                    WideText = 'Value'
+                    Width = 200
+                    WideText = 'Session'
+                  end
+                  item
+                    Position = 2
+                    Width = 271
+                    WideText = 'Global'
                   end>
               end
             end

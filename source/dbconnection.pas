@@ -236,7 +236,7 @@ type
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
     spEmptyTable, spRenameTable, spCurrentUserHost,
     spAddColumn, spChangeColumn,
-    spServerVariables);
+    spSessionVariables, spGlobalVariables);
 
   TDBConnection = class(TComponent)
     private
@@ -266,7 +266,7 @@ type
       FTableEngineDefault: String;
       FCollationTable: TDBQuery;
       FCharsetTable: TDBQuery;
-      FServerVariables: TDBQuery;
+      FSessionVariables: TDBQuery;
       FInformationSchemaObjects: TStringList;
       FDatabaseCache: TDatabaseCache;
       FObjectNamesInSelectedDB: TStrings;
@@ -330,7 +330,7 @@ type
       function ConnectionInfo: TStringList;
       function GetLastResults: TDBQueryList; virtual; abstract;
       function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; virtual; abstract;
-      function GetServerVariables(Refresh: Boolean): TDBQuery;
+      function GetSessionVariables(Refresh: Boolean): TDBQuery;
       function MaxAllowedPacket: Int64; virtual; abstract;
       function GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
       function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; virtual;
@@ -1162,7 +1162,7 @@ begin
         Status.Next;
       end;
       FServerVersionUntouched := DecodeAPIString(mysql_get_server_info(FHandle));
-      Vars := GetServerVariables(False);
+      Vars := GetSessionVariables(False);
       while not Vars.Eof do begin
         if Vars.Col(0) = 'version_compile_os' then
           FServerOS := Vars.Col(1);
@@ -1344,7 +1344,8 @@ begin
       FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
-      FSQLSpecifities[spServerVariables] := 'SHOW VARIABLES';
+      FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
+      FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
     end;
     ngMSSQL: begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
@@ -1352,7 +1353,8 @@ begin
       FSQLSpecifities[spCurrentUserHost] := 'SELECT SYSTEM_USER';
       FSQLSpecifities[spAddColumn] := 'ADD %s';
       FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
-      FSQLSpecifities[spServerVariables] := 'SELECT '+QuoteIdent('comment')+', '+QuoteIdent('value')+' FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('syscurconfigs')+' ORDER BY '+QuoteIdent('comment');
+      FSQLSpecifities[spSessionVariables] := 'SELECT '+QuoteIdent('comment')+', '+QuoteIdent('value')+' FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('syscurconfigs')+' ORDER BY '+QuoteIdent('comment');
+      FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
     end;
 
   end;
@@ -2448,7 +2450,7 @@ begin
       // Manually fetch available engine types by analysing have_* options
       // This is for servers below 4.1 or when the SHOW ENGINES statement has
       // failed for some other reason
-      Results := GetServerVariables(False);
+      Results := GetSessionVariables(False);
       // Add default engines which will not show in a have_* variable:
       FTableEngines.CommaText := 'MyISAM,MRG_MyISAM,HEAP';
       FTableEngineDefault := 'MyISAM';
@@ -2557,16 +2559,16 @@ begin
 end;
 
 
-function TDBConnection.GetServerVariables(Refresh: Boolean): TDBQuery;
+function TDBConnection.GetSessionVariables(Refresh: Boolean): TDBQuery;
 begin
   // Return server variables
-  if (not Assigned(FServerVariables)) or Refresh then begin
-    if Assigned(FServerVariables) then
-      FreeAndNil(FServerVariables);
-    FServerVariables := GetResults(GetSQLSpecifity(spServerVariables));
+  if (not Assigned(FSessionVariables)) or Refresh then begin
+    if Assigned(FSessionVariables) then
+      FreeAndNil(FSessionVariables);
+    FSessionVariables := GetResults(GetSQLSpecifity(spSessionVariables));
   end;
-  FServerVariables.First;
-  Result := FServerVariables;
+  FSessionVariables.First;
+  Result := FSessionVariables;
 end;
 
 
@@ -2574,7 +2576,7 @@ function TMySQLConnection.MaxAllowedPacket: Int64;
 var
   Vars: TDBQuery;
 begin
-  Vars := GetServerVariables(False);
+  Vars := GetSessionVariables(False);
   Result := 0;
   while not Vars.Eof do begin
     if Vars.Col(0) = 'max_allowed_packet' then begin
@@ -2726,7 +2728,7 @@ begin
   // Free cached lists and results. Called when the connection was closed and/or destroyed
   FreeAndNil(FCollationTable);
   FreeAndNil(FCharsetTable);
-  FreeAndNil(FServerVariables);
+  FreeAndNil(FSessionVariables);
   FreeAndNil(FTableEngines);
   FreeAndNil(FInformationSchemaObjects);
   if IncludeDBObjects then
@@ -3146,7 +3148,7 @@ begin
     Result.Values[_('Compressed protocol')] := EvalBool(Parameters.Compressed);
     Result.Values[_('Unicode enabled')] := EvalBool(IsUnicode);
     Result.Values[_('SSL enabled')] := EvalBool(IsSSL);
-    if Assigned(FServerVariables) then
+    if Assigned(FSessionVariables) then
       Result.Values['max_allowed_packet'] := FormatByteNumber(MaxAllowedPacket);
     case Parameters.NetTypeGroup of
       ngMySQL: begin
