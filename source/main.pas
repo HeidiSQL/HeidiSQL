@@ -931,6 +931,7 @@ type
     FSearchReplaceDialog: TfrmSearchReplace;
     FPreferencesDialog: Toptionsform;
     FGridEditFunctionMode: Boolean;
+    FClipboardHasNull: Boolean;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -8739,11 +8740,14 @@ var
   ClpData: THandle;
   APalette: HPalette;
   Exporter: TSynExporterHTML;
+  Results: TDBQuery;
+  RowNum: PCardinal;
 begin
   // Copy text from a focused control to clipboard
   Success := False;
   Control := Screen.ActiveControl;
   DoCut := Sender = actCut;
+  FClipboardHasNull := False;
   SendingControl := (Sender as TAction).ActionComponent;
   Screen.Cursor := crHourglass;
   try
@@ -8769,10 +8773,21 @@ begin
       Grid := Control as TVirtualStringTree;
       if Assigned(Grid.FocusedNode) then begin
         IsResultGrid := Grid = ActiveGrid;
-        AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
-        Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
-        if IsResultGrid and DoCut then
-          Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
+        if IsResultGrid then begin
+          // Handle NULL values in grids, see issue #3171
+          AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
+          Results := GridResult(Grid);
+          RowNum := Grid.GetNodeData(Grid.FocusedNode);
+          Results.RecNo := RowNum^;
+          if Results.IsNull(Grid.FocusedColumn) then begin
+            Clipboard.AsText := '';
+            FClipboardHasNull := True;
+          end else
+            Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+          if DoCut then
+            Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
+        end else
+          Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
         Success := True;
       end;
     end else if Control is TSynMemo then begin
@@ -8807,6 +8822,8 @@ var
   Grid: TVirtualStringTree;
   SynMemo: TSynMemo;
   Success: Boolean;
+  Results: TDBQuery;
+  RowNum: PCardinal;
 begin
   // Paste text into the focused control
   Success := False;
@@ -8828,7 +8845,16 @@ begin
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
     if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
-      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := ClipBoard.AsText;
+      Results := GridResult(Grid);
+      RowNum := Grid.GetNodeData(Grid.FocusedNode);
+      Results.RecNo := RowNum^;
+      try
+        Results.SetCol(Grid.FocusedColumn, ClipBoard.AsText, FClipboardHasNull, False);
+      except
+        on E:EDatabaseError do
+          ErrorDialog(E.Message);
+      end;
+      Grid.RepaintNode(Grid.FocusedNode);
       Success := True;
     end;
   end else if Control is TSynMemo then begin
