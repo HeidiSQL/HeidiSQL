@@ -6,7 +6,7 @@ interface
 
 uses
   Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
-  StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Mask, DateUtils, Math,
+  StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, Mask, DateUtils, Math,
   dbconnection, mysql_structures, helpers, texteditor, bineditor, gnugettext,
   StrUtils;
 
@@ -153,10 +153,12 @@ type
     FPanel: TPanel;
     FRadioNothing, FRadioText, FRadioNULL, FRadioCurTS, FRadioAutoInc: TAllKeysRadioButton;
     FCheckCurTS: TAllKeysCheckbox;
-    FMemoText: TMemo;
+    FCustomEdit: TButtonedEdit;
+    FCustomDropDown: TPopupMenu;
     FBtnOK, FBtnCancel: TButton;
     procedure RadioClick(Sender: TObject);
-    procedure TextChange(Sender: TObject);
+    procedure CustomEditChange(Sender: TObject);
+    procedure CustomDropDownClick(Sender: TObject);
   public
     DefaultType: TColumnDefaultType;
     DefaultText: String;
@@ -1186,18 +1188,21 @@ begin
   FRadioText.OnKeyDown := DoKeyDown;
   FRadioText.Caption := _('Custom')+':';
 
-  FMemoText := TMemo.Create(FPanel);
-  FMemoText.Parent := FPanel;
-  FMemoText.Top := FRadioText.Top + FRadioText.Height + m;
-  FMemoText.Left := 2*m;
-  FMemoText.Width := FMemoText.Parent.Width - FMemoText.Left - m;
-  FMemoText.Height := 40;
-  FMemoText.ScrollBars := ssVertical;
-  FMemoText.OnChange := TextChange;
+  FCustomDropDown := TPopupMenu.Create(FPanel);
+
+  FCustomEdit := TButtonedEdit.Create(FPanel);
+  FCustomEdit.Parent := FPanel;
+  FCustomEdit.Top := FRadioText.Top + FRadioText.Height + m;
+  FCustomEdit.Left := 2*m;
+  FCustomEdit.Width := FCustomEdit.Parent.Width - FCustomEdit.Left - m;
+  FCustomEdit.OnChange := CustomEditChange;
+  FCustomEdit.Images := Tree.Images;
+  FCustomEdit.RightButton.ImageIndex := 75; // Drop down arrow
+  FCustomEdit.RightButton.DropDownMenu := FCustomDropDown;
 
   FRadioNull := TAllKeysRadioButton.Create(FPanel);
   FRadioNull.Parent := FPanel;
-  FRadioNull.Top := FMemoText.Top + FMemoText.Height + m;
+  FRadioNull.Top := FCustomEdit.Top + FCustomEdit.Height + 2*m;
   FRadioNull.Left := m;
   FRadioNull.Width := FRadioNull.Parent.Width - 2 * FRadioNull.Left;
   FRadioNull.OnClick := RadioClick;
@@ -1252,7 +1257,7 @@ begin
   FPanel.Height := FBtnOk.Top + FBtnOk.Height + m;
   FRadioNothing.Anchors := [akLeft, akTop, akRight];
   FRadioText.Anchors := [akLeft, akTop, akRight];
-  FMemoText.Anchors := [akLeft, akTop, akRight, akBottom];
+  FCustomEdit.Anchors := [akLeft, akTop, akRight, akBottom];
   FRadioNull.Anchors := [akLeft, akBottom, akRight];
   FRadioCurTS.Anchors := [akLeft, akBottom, akRight];
   FCheckCurTS.Anchors := [akLeft, akBottom, akRight];
@@ -1271,6 +1276,10 @@ end;
 
 
 function TColumnDefaultEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
+var
+  ValueList, SelectedValues: TStringList;
+  i: Integer;
+  Item: TMenuItem;
 begin
   inherited PrepareEdit(Tree, Node, Column);
 
@@ -1283,13 +1292,32 @@ begin
   FRadioAutoInc.Checked := DefaultType = cdtAutoInc;
 
   if FRadioText.Checked then
-    FMemoText.Text := DefaultText;
+    FCustomEdit.Text := DefaultText;
 
   // Disable non working default options per data type
   // But leave checked option enabled, regardless of if that is a valid default option or not
   FRadioCurTS.Enabled := FRadioCurTS.Checked or (FTableColumn.DataType.Index = dtTimestamp);
   FCheckCurTS.Enabled := FCheckCurTS.Checked or FRadioCurTS.Enabled;
   FRadioAutoInc.Enabled := FRadioAutoInc.Checked or (FTableColumn.DataType.Category = dtcInteger);
+
+  // Provide items with a check mark for ENUM and SET columns
+  if FTableColumn.DataType.Index in [dtEnum, dtSet] then begin
+    FCustomEdit.RightButton.Visible := True;
+    ValueList := FTableColumn.ValueList;
+    SelectedValues := Explode(',', FCustomEdit.Text);
+
+    for i:=0 to ValueList.Count-1 do begin
+      Item := TMenuItem.Create(FCustomDropDown);
+      Item.Caption := ValueList[i];
+      Item.RadioItem := FTableColumn.DataType.Index = dtEnum;
+      Item.Checked := SelectedValues.IndexOf(Item.Caption) > -1;
+      Item.OnClick := CustomDropDownClick;
+      FCustomDropDown.Items.Add(Item);
+    end;
+
+    ValueList.Free;
+    SelectedValues.Free;
+  end;
 
   Result := True;
 end;
@@ -1360,7 +1388,7 @@ begin
 
     case newDefaultType of
       cdtNothing: newText := '';
-      cdtText, cdtTextUpdateTS: newText := FMemoText.Text;
+      cdtText, cdtTextUpdateTS: newText := FCustomEdit.Text;
       cdtNull, cdtNullUpdateTS: newText := 'NULL';
       cdtCurTS, cdtCurTSUpdateTS: newText := 'CURRENT_TIMESTAMP';
       cdtAutoInc: newText := 'AUTO_INCREMENT';
@@ -1377,22 +1405,43 @@ end;
 procedure TColumnDefaultEditorLink.RadioClick(Sender: TObject);
 begin
   if not FRadioText.Checked then
-    FMemoText.Color := clBtnFace
+    FCustomEdit.Color := clBtnFace
   else begin
-    FMemoText.Color := clWindow;
-    if FMemoText.CanFocus then
-      FMemoText.SetFocus;
+    FCustomEdit.Color := clWindow;
+    if FCustomEdit.CanFocus then
+      FCustomEdit.SetFocus;
   end;
   FCheckCurTS.Enabled := not FRadioNothing.Checked;
   FModified := True;
 end;
 
 
-procedure TColumnDefaultEditorLink.TextChange(Sender: TObject);
+procedure TColumnDefaultEditorLink.CustomEditChange(Sender: TObject);
 begin
   FRadioText.Checked := True;
   FModified := True;
 end;
+
+
+procedure TColumnDefaultEditorLink.CustomDropDownClick(Sender: TObject);
+var
+  Item: TMenuItem;
+  NewValue: String;
+begin
+  // ENUM or SET value clicked in drop down menu
+  Item := Sender as TMenuItem;
+  Item.Checked := not Item.Checked;
+  NewValue := '';
+  for Item in Item.GetParentMenu.Items do begin
+    if Item.Checked then
+      NewValue := NewValue + StripHotkey(Item.Caption) + ',';
+  end;
+  if not IsEmpty(NewValue) then
+    Delete(NewValue, Length(NewValue), 1);
+  FCustomEdit.Text := NewValue;
+  FModified := True;
+end;
+
 
 
 

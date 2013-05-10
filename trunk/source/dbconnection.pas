@@ -98,6 +98,7 @@ type
       constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
       function SQLCode: String;
+      function ValueList: TStringList;
       property Status: TEditingStatus read FStatus write SetStatus;
       property Connection: TDBConnection read FConnection;
   end;
@@ -5111,6 +5112,17 @@ begin
     Result := Result + ' COMMENT '+esc(Comment);
   if Collation <> '' then
     Result := Result + ' COLLATE '+esc(Collation);
+end;
+
+
+function TTableColumn.ValueList: TStringList;
+begin
+  // Same as TDBQuery.ValueList, but for callers which do not have a query result
+  Result := TStringList.Create;
+  Result.QuoteChar := '''';
+  Result.Delimiter := ',';
+  if DataType.Index in [dtEnum, dtSet] then
+    Result.DelimitedText := LengthSet;
 end;
 
 
