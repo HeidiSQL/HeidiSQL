@@ -535,7 +535,7 @@ begin
     rxTemp.ModifierI := True;
     rxGrant := TRegExpr.Create;
     rxGrant.ModifierI := True;
-    rxGrant.Expression := '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?`?([^`.]+)`?\.`?([^`]+)`?\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+.+)?$';
+    rxGrant.Expression := '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?(\*|`([^`]+)`)\.(\*|`([^`]+)`)\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+.+)?$';
 
     for i:=0 to Grants.Count-1 do begin
       // Find selected priv objects via regular expression
@@ -545,21 +545,21 @@ begin
         P.Added := FAdded;
         FPrivObjects.Add(P);
 
-        if (rxGrant.Match[4] = '*') and (rxGrant.Match[5] = '*') then begin
+        if (rxGrant.Match[4] = '*') and (rxGrant.Match[6] = '*') then begin
           P.DBObj.NodeType := lntNone;
           P.AllPrivileges := PrivsGlobal;
           if not FAdded then begin
-            editPassword.TextHint := FConnection.UnescapeString(rxGrant.Match[8]);
+            editPassword.TextHint := FConnection.UnescapeString(rxGrant.Match[10]);
             // Set password for changed user, to silence the error message about invalid length
             User.Password := editPassword.TextHint;
           end;
-        end else if (rxGrant.Match[5] = '*') then begin
+        end else if (rxGrant.Match[6] = '*') then begin
           P.DBObj.NodeType := lntDb;
-          P.DBObj.Database := rxGrant.Match[4];
+          P.DBObj.Database := rxGrant.Match[5];
           P.AllPrivileges := PrivsDb;
         end else begin
-          P.DBObj.Database := rxGrant.Match[4];
-          P.DBObj.Name := rxGrant.Match[5];
+          P.DBObj.Database := rxGrant.Match[5];
+          P.DBObj.Name := rxGrant.Match[7];
           if UpperCase(rxGrant.Match[3]) = 'FUNCTION' then begin
             P.DBObj.NodeType := lntFunction;
             P.AllPrivileges := PrivsRoutine;
@@ -620,7 +620,7 @@ begin
 
         // REQUIRE SSL X509 ISSUER '456' SUBJECT '789' CIPHER '123' NONE
         rxTemp.Expression := '\sREQUIRE\s+(.+)';
-        if rxTemp.Exec(rxGrant.Match[9]) then begin
+        if rxTemp.Exec(rxGrant.Match[11]) then begin
           RequireClause := rxTemp.Match[1];
           User.SSL := 0;
           User.Cipher := '';
@@ -653,7 +653,7 @@ begin
         // WITH .. GRANT OPTION
         // MAX_QUERIES_PER_HOUR 20 MAX_UPDATES_PER_HOUR 10 MAX_CONNECTIONS_PER_HOUR 5 MAX_USER_CONNECTIONS 2
         rxTemp.Expression := '\sWITH\s+(.+)';
-        if rxTemp.Exec(rxGrant.Match[9]) then begin
+        if rxTemp.Exec(rxGrant.Match[11]) then begin
           WithClause := rxTemp.Match[1];
           User.MaxQueries := 0;
           User.MaxUpdates := 0;
