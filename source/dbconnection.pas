@@ -3181,7 +3181,7 @@ procedure TDBConnection.ParseTableStructure(CreateTable: String; Columns: TTable
 var
   ColSpec: String;
   rx, rxCol: TRegExpr;
-  i: Integer;
+  i, LiteralStart: Integer;
   InLiteral: Boolean;
   Col: TTableColumn;
   Key: TTableKey;
@@ -3317,16 +3317,17 @@ begin
         Col.DefaultType := cdtCurTS;
         Col.DefaultText := 'CURRENT_TIMESTAMP';
         Delete(ColSpec, 1, 18);
-      end else if ColSpec[1] = '''' then begin
+      end else if (ColSpec[1] = '''') or (Copy(ColSpec, 1, 2) = 'b''') then begin
         InLiteral := True;
-        for i:=2 to Length(ColSpec) do begin
+        LiteralStart := Pos('''', ColSpec)+1;
+        for i:=LiteralStart to Length(ColSpec) do begin
           if ColSpec[i] = '''' then
             InLiteral := not InLiteral
           else if not InLiteral then
             break;
         end;
         Col.DefaultType := cdtText;
-        Col.DefaultText := Copy(ColSpec, 2, i-3);
+        Col.DefaultText := Copy(ColSpec, LiteralStart, i-LiteralStart-1);
         // A single quote gets escaped by single quote - remove the escape char - escaping is done in Save action afterwards
         Col.DefaultText := StringReplace(Col.DefaultText, '''''', '''', [rfReplaceAll]);
         Delete(ColSpec, 1, i);
@@ -5103,7 +5104,7 @@ begin
     Result := Result + ' NULL';
   end;
   if DefaultType <> cdtNothing then begin
-    Result := Result + ' ' + GetColumnDefaultClause(DefaultType, DefaultText);
+    Result := Result + ' ' + GetColumnDefaultClause(DefaultType, DataType.Index, DefaultText);
     Result := TrimRight(Result); // Remove whitespace for columns without default value
   end;
   if IsVirtual then

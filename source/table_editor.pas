@@ -561,7 +561,7 @@ begin
         ColSpec := ColSpec + ' NULL';
       end;
       if Col.DefaultType <> cdtNothing then begin
-        ColSpec := ColSpec + ' ' + GetColumnDefaultClause(Col.DefaultType, Col.DefaultText);
+        ColSpec := ColSpec + ' ' + GetColumnDefaultClause(Col.DefaultType, Col.DataType.Index, Col.DefaultText);
         ColSpec := TrimRight(ColSpec); // Remove whitespace for columns without default value
       end;
       if IsVirtual then
