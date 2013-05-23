@@ -276,6 +276,7 @@ type
       FCurrentUserHostCombination: String;
       FLockedByThread: TThread;
       FQuoteChar: Char;
+      FQuoteChars: String;
       FDatatypes: TDBDataTypeArray;
       FThreadID: Cardinal;
       FSQLSpecifities: Array[TSQLSpecifityId] of String;
@@ -926,6 +927,7 @@ var
 begin
   inherited;
   FQuoteChar := '`';
+  FQuoteChars := '`"';
   // The compiler complains that dynamic and static arrays are incompatible, so this does not work:
   // FDatatypes := MySQLDatatypes
   SetLength(FDatatypes, Length(MySQLDatatypes));
@@ -940,6 +942,7 @@ var
 begin
   inherited;
   FQuoteChar := '"';
+  FQuoteChars := '"[]';
   SetLength(FDatatypes, Length(MSSQLDatatypes));
   for i:=0 to High(MSSQLDatatypes) do
     FDatatypes[i] := MSSQLDatatypes[i];
@@ -2353,6 +2356,8 @@ end;
 
 
 function TDBConnection.DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
+var
+  Quote: Char;
 begin
   Result := Identifier;
   if (Length(Identifier)>0) and (Result[1] = FQuoteChar) and (Result[Length(Identifier)] = FQuoteChar) then
@@ -2360,10 +2365,10 @@ begin
   if Glue <> #0 then
     Result := StringReplace(Result, FQuoteChar+Glue+FQuoteChar, Glue, [rfReplaceAll]);
   Result := StringReplace(Result, FQuoteChar+FQuoteChar, FQuoteChar, [rfReplaceAll]);
-  // Remove all ANSI quotes, to fix various problems
-  Result := StringReplace(Result, '"', '', [rfReplaceAll]);
-  Result := StringReplace(Result, '[', '', [rfReplaceAll]);
-  Result := StringReplace(Result, ']', '', [rfReplaceAll]);
+  // Remove all probable quote characters, to fix various problems
+  for Quote in FQuoteChars do begin
+    Result := StringReplace(Result, Quote, '', [rfReplaceAll]);
+  end;
 end;
 
 
@@ -3179,7 +3184,7 @@ end;
 
 procedure TDBConnection.ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
 var
-  ColSpec: String;
+  ColSpec, Quotes: String;
   rx, rxCol: TRegExpr;
   i, LiteralStart: Integer;
   InLiteral: Boolean;
@@ -3195,10 +3200,11 @@ begin
   if CreateTable = '' then
     Exit;
   Collations := CollationTable;
+  Quotes := QuoteRegExprMetaChars(FQuoteChars);
   rx := TRegExpr.Create;
   rx.ModifierS := False;
   rx.ModifierM := True;
-  rx.Expression := '^\s+[`"\[]([^`"\[\]]+)[`"\]]\s(\w+)';
+  rx.Expression := '^\s+['+Quotes+']([^'+Quotes+']+)['+Quotes+']\s(\w+)';
   rxCol := TRegExpr.Create;
   rxCol.ModifierI := True;
   if rx.Exec(CreateTable) then while true do begin
@@ -3353,7 +3359,7 @@ begin
   // Detect keys
   // PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), KEY `id_2` (`id`) USING BTREE,
   // KEY `Text` (`Text`(100)), FULLTEXT KEY `Email` (`Email`,`Text`)
-  rx.Expression := '^\s+((\w+)\s+)?KEY\s+([`"\[]?([^`"\[\]]+)[`"\]]?\s+)?((USING|TYPE)\s+(\w+)\s+)?\((.+)\)(\s+USING\s+(\w+))?,?$';
+  rx.Expression := '^\s+((\w+)\s+)?KEY\s+(['+Quotes+']?([^'+Quotes+']+)['+Quotes+']?\s+)?((USING|TYPE)\s+(\w+)\s+)?\((.+)\)(\s+USING\s+(\w+))?,?$';
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(Keys) then
       break;
@@ -3371,7 +3377,7 @@ begin
     if Key.IndexType = '' then Key.IndexType := 'KEY'; // KEY
     Key.Columns := Explode(',', rx.Match[8]);
     for i:=0 to Key.Columns.Count-1 do begin
-      rxCol.Expression := '^[`"\[]?([^`"\[\]]+)[`"\]]?(\((\d+)\))?$';
+      rxCol.Expression := '^['+Quotes+']?([^'+Quotes+']+)['+Quotes+']?(\((\d+)\))?$';
       if rxCol.Exec(Key.Columns[i]) then begin
         Key.Columns[i] := rxCol.Match[1];
         Key.SubParts.Add(rxCol.Match[3]);
@@ -3383,7 +3389,7 @@ begin
 
   // Detect foreign keys
   // CONSTRAINT `FK1` FOREIGN KEY (`which`) REFERENCES `fk1` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-  rx.Expression := '\s+CONSTRAINT\s+[`"\[]([^`"\[\]]+)[`"\]]\sFOREIGN KEY\s+\(([^\)]+)\)\s+REFERENCES\s+[`"\[]([^\(]+)[`"\]]\s\(([^\)]+)\)(\s+ON DELETE (RESTRICT|CASCADE|SET NULL|NO ACTION))?(\s+ON UPDATE (RESTRICT|CASCADE|SET NULL|NO ACTION))?';
+  rx.Expression := '\s+CONSTRAINT\s+['+Quotes+']([^'+Quotes+']+)['+Quotes+']\sFOREIGN KEY\s+\(([^\)]+)\)\s+REFERENCES\s+['+Quotes+']([^\(]+)['+Quotes+']\s\(([^\)]+)\)(\s+ON DELETE (RESTRICT|CASCADE|SET NULL|NO ACTION))?(\s+ON UPDATE (RESTRICT|CASCADE|SET NULL|NO ACTION))?';
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(ForeignKeys) then
       break;
