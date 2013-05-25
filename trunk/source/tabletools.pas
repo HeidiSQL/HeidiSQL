@@ -198,9 +198,7 @@ begin
 
   // SQL export tab
   chkExportDatabasesCreate.Checked := AppSettings.ReadBool(asExportSQLCreateDatabases);
-  chkExportDatabasesDrop.Checked := AppSettings.ReadBool(asExportSQLDropDatabases);
   chkExportTablesCreate.Checked := AppSettings.ReadBool(asExportSQLCreateTables);
-  chkExportTablesDrop.Checked := AppSettings.ReadBool(asExportSQLDropTables);
   comboExportData.Items.Text := DATA_NO+CRLF +DATA_REPLACE+CRLF +DATA_INSERT+CRLF +DATA_INSERTNEW+CRLF +DATA_UPDATE;
   comboExportData.ItemIndex := AppSettings.ReadInt(asExportSQLDataHow);
   // Add hardcoded output options and session names from registry
@@ -336,9 +334,7 @@ begin
 
     tmSQLExport: begin
       AppSettings.WriteBool(asExportSQLCreateDatabases, chkExportDatabasesCreate.Checked);
-      AppSettings.WriteBool(asExportSQLDropDatabases, chkExportDatabasesDrop.Checked);
       AppSettings.WriteBool(asExportSQLCreateTables, chkExportTablesCreate.Checked);
-      AppSettings.WriteBool(asExportSQLDropTables, chkExportTablesDrop.Checked);
       AppSettings.WriteInt(asExportSQLDataHow, comboExportData.ItemIndex);
       AppSettings.WriteInt(asExportSQLOutput, comboExportOutputType.ItemIndex);
 
