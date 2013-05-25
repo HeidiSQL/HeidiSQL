@@ -7340,6 +7340,7 @@ begin
     tabDatabase.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType <> lntNone);
     tabEditor.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable..lntEvent]);
     tabData.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable, lntView]);
+    actSQLhelp.Enabled := Assigned(Node);
   end;
 
   // Store click history item
