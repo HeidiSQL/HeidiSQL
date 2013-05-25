@@ -1325,6 +1325,7 @@ begin
   // Prompt for password on initial connect
   if FParameters.LoginPrompt and (not FLoginPromptDone) then begin
     Dialog := TfrmLogin.Create(Self);
+    Dialog.Caption := FParameters.SessionName;
     Dialog.lblPrompt.Caption := f_('Login to %s:', [FParameters.Hostname]);
     Dialog.editUsername.Text := FParameters.Username;
     Dialog.editPassword.Text := FParameters.Password;
