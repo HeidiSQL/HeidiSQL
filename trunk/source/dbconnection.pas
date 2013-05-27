@@ -4530,8 +4530,12 @@ begin
         end;
         dtcBinary, dtcSpatial:
           Val := HexValue(Cell.NewText);
-        else
-          Val := Connection.EscapeString(Cell.NewText);
+        else begin
+          if Datatype(i).Index in [dtNchar, dtNvarchar, dtNtext] then
+            Val := 'N' + Connection.EscapeString(Cell.NewText)
+          else
+            Val := Connection.EscapeString(Cell.NewText);
+        end;
       end;
       sqlUpdate := sqlUpdate + Connection.QuoteIdent(FColumnOrgNames[i]) + '=' + Val;
       sqlInsertColumns := sqlInsertColumns + Connection.QuoteIdent(FColumnOrgNames[i]);
