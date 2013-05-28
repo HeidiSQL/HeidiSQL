@@ -2231,25 +2231,54 @@ function TDBConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=fal
 var
   c1, c2, c3, c4, EscChar: Char;
 begin
-  c1 := '''';
-  c2 := '\';
-  c3 := '%';
-  c4 := '_';
-  EscChar := '\';
-  if not ProcessJokerChars then begin
-    // Do not escape joker-chars which are used in a LIKE-clause
-    c4 := '''';
-    c3 := '''';
+  case FParameters.NetTypeGroup of
+    ngMySQL: begin
+      c1 := '''';
+      c2 := '\';
+      c3 := '%';
+      c4 := '_';
+      EscChar := '\';
+      if not ProcessJokerChars then begin
+        // Do not escape joker-chars which are used in a LIKE-clause
+        c4 := '''';
+        c3 := '''';
+      end;
+      Result := escChars(Text, EscChar, c1, c2, c3, c4);
+
+      // Remove characters that SynEdit chokes on, so that
+      // the SQL file can be non-corruptedly loaded again.
+      c1 := #13;
+      c2 := #10;
+      c3 := #0;
+      c4 := #0;
+      // TODO: SynEdit also chokes on Char($2028) and possibly Char($2029).
+      Result := escChars(Result, EscChar, c1, c2, c3, c4);
+    end;
+
+    ngMSSQL: begin
+
+      c1 := '''';
+      c2 := '''';
+      c3 := '''';
+      c4 := '''';
+      EscChar := '''';
+      Result := escChars(Text, EscChar, c1, c2, c3, c4);
+
+      { // TODO: escape joker chars % and _ in conjunction with a specified escape char after the WHERE clause.
+      // Did not work on MSSQL 2008 here.
+      // http://www.techtamasha.com/escape-single-quotes-and-wild-cards-_-in-ms-sql/20
+      if ProcessJokerChars then begin
+        c1 := '%';
+        c2 := '_';
+        c4 := '_';
+        c3 := '_';
+        EscChar := '\';
+        Result := escChars(Text, EscChar, c1, c2, c3, c4);
+      end; }
+    end;
+
   end;
-  Result := escChars(Text, EscChar, c1, c2, c3, c4);
-  // Remove characters that SynEdit chokes on, so that
-  // the SQL file can be non-corruptedly loaded again.
-  c1 := #13;
-  c2 := #10;
-  c3 := #0;
-  c4 := #0;
-  // TODO: SynEdit also chokes on Char($2028) and possibly Char($2029).
-  Result := escChars(Result, EscChar, c1, c2, c3, c4);
+
   if DoQuote then begin
     // Add surrounding single quotes
     Result := Char(#39) + Result + Char(#39);
