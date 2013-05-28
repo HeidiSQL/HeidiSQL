@@ -2,8 +2,8 @@ object frmTextEditor: TfrmTextEditor
   Left = 0
   Top = 0
   Caption = 'Text editor'
-  ClientHeight = 95
-  ClientWidth = 253
+  ClientHeight = 104
+  ClientWidth = 332
   Color = clBtnFace
   Constraints.MinHeight = 100
   Constraints.MinWidth = 130
@@ -19,13 +19,13 @@ object frmTextEditor: TfrmTextEditor
   OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
-    253
-    95)
+    332
+    104)
   PixelsPerInch = 96
   TextHeight = 13
   object lblTextLength: TLabel
-    Left = 137
-    Top = 77
+    Left = 213
+    Top = 87
     Width = 65
     Height = 13
     Anchors = [akLeft, akBottom]
@@ -36,8 +36,8 @@ object frmTextEditor: TfrmTextEditor
   object memoText: TMemo
     Left = 0
     Top = 0
-    Width = 253
-    Height = 72
+    Width = 332
+    Height = 81
     Align = alTop
     Anchors = [akLeft, akTop, akRight, akBottom]
     Lines.Strings = (
@@ -50,16 +50,18 @@ object frmTextEditor: TfrmTextEditor
   end
   object tlbStandard: TToolBar
     Left = 0
-    Top = 73
-    Width = 131
+    Top = 82
+    Width = 207
     Height = 22
     Align = alNone
     Anchors = [akLeft, akBottom]
+    AutoSize = True
     Caption = 'tlbStandard'
     Images = MainForm.ImageListMain
     ParentShowHint = False
     ShowHint = True
     TabOrder = 1
+    Wrapable = False
     object btnWrap: TToolButton
       Left = 0
       Top = 0
@@ -100,6 +102,29 @@ object frmTextEditor: TfrmTextEditor
       ImageIndex = 55
       OnClick = btnApplyClick
     end
+    object btnSeparator1: TToolButton
+      Left = 130
+      Top = 0
+      Width = 8
+      Caption = 'btnSeparator1'
+      ImageIndex = 60
+      Style = tbsSeparator
+    end
+    object btnSearchFind: TToolButton
+      Left = 138
+      Top = 0
+      Action = actSearchFind
+    end
+    object btnSearchFindNext: TToolButton
+      Left = 161
+      Top = 0
+      Action = actSearchFindNext
+    end
+    object btnSearchReplace: TToolButton
+      Left = 184
+      Top = 0
+      Action = actSearchReplace
+    end
   end
   object popupLinebreaks: TPopupMenu
     Images = MainForm.ImageListMain
@@ -129,6 +154,31 @@ object frmTextEditor: TfrmTextEditor
       Caption = 'Mixed linebreaks'
       ImageIndex = 122
       OnClick = SelectLinebreaks
+    end
+  end
+  object ActionList1: TActionList
+    Images = MainForm.ImageListMain
+    Left = 64
+    Top = 16
+    object actSearchFind: TSearchFind
+      Category = 'Search'
+      Caption = '&Find...'
+      Hint = 'Find|Finds the specified text'
+      ImageIndex = 30
+      ShortCut = 16454
+    end
+    object actSearchFindNext: TSearchFindNext
+      Category = 'Search'
+      Caption = 'Find &Next'
+      Hint = 'Find Next|Repeats the last find'
+      ImageIndex = 142
+      ShortCut = 114
+    end
+    object actSearchReplace: TSearchReplace
+      Category = 'Search'
+      Caption = '&Replace'
+      Hint = 'Replace|Replaces specific text with different text'
+      ImageIndex = 59
     end
   end
 end

@@ -5,7 +5,7 @@ interface
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
   ComCtrls, ToolWin, Dialogs, SysUtils, Menus, ExtDlgs,
-  helpers, gnugettext;
+  helpers, gnugettext, ActnList, StdActns;
 
 {$I const.inc}
 
@@ -25,6 +25,14 @@ type
     menuMacLB: TMenuItem;
     menuMixedLB: TMenuItem;
     menuWideLB: TMenuItem;
+    ActionList1: TActionList;
+    actSearchFind: TSearchFind;
+    btnSearchFind: TToolButton;
+    actSearchFindNext: TSearchFindNext;
+    actSearchReplace: TSearchReplace;
+    btnSearchReplace: TToolButton;
+    btnSearchFindNext: TToolButton;
+    btnSeparator1: TToolButton;
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnLoadTextClick(Sender: TObject);
@@ -163,6 +171,13 @@ end;
 procedure TfrmTextEditor.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
+  // Use same text properties as in query/find/replace actions
+  actSearchFind.Caption := MainForm.actQueryFind.Caption;
+  actSearchFind.Hint := MainForm.actQueryFind.Hint;
+  actSearchFindNext.Caption := MainForm.actQueryFindAgain.Caption;
+  actSearchFindNext.Hint := MainForm.actQueryFindAgain.Hint;
+  actSearchReplace.Caption := MainForm.actQueryReplace.Caption;
+  actSearchReplace.Hint := MainForm.actQueryReplace.Hint;
   TranslateComponent(Self);
   // Work around broken dropdown toolbutton after translation:
   // https://sourceforge.net/tracker/index.php?func=detail&aid=902470&group_id=74086&atid=539908
