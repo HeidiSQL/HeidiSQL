@@ -5352,6 +5352,9 @@ begin
   end else
     Filter := Item.Hint;
 
+  if ExecRegExpr('\s+LIKE\s+''', Filter) then
+    Filter := Filter + ActiveConnection.LikeClauseTail;
+
   if Filter <> '' then begin
     SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.SelectAll;
@@ -7629,6 +7632,7 @@ begin
         Line := '';
       end;
     end;
+    Clause := Clause + Conn.LikeClauseTail;
   end;
   SynMemoFilter.UndoList.AddGroupBreak;
   SynMemoFilter.SelectAll;

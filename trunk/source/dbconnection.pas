@@ -344,6 +344,7 @@ type
       procedure ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList);
       function GetDatatypeByName(Datatype: String): TDBDatatype;
       function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Cardinal): String;
+      function LikeClauseTail: String;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property ThreadId: Cardinal read GetThreadId;
       property ConnectionUptime: Integer read GetConnectionUptime;
@@ -2264,17 +2265,16 @@ begin
       EscChar := '''';
       Result := escChars(Text, EscChar, c1, c2, c3, c4);
 
-      { // TODO: escape joker chars % and _ in conjunction with a specified escape char after the WHERE clause.
-      // Did not work on MSSQL 2008 here.
-      // http://www.techtamasha.com/escape-single-quotes-and-wild-cards-_-in-ms-sql/20
+      // Escape joker chars % and _ in conjunction with a specified escape char after the WHERE clause.
+      // See http://www.heidisql.com/forum.php?t=12747
       if ProcessJokerChars then begin
         c1 := '%';
         c2 := '_';
         c4 := '_';
         c3 := '_';
         EscChar := '\';
-        Result := escChars(Text, EscChar, c1, c2, c3, c4);
-      end; }
+        Result := escChars(Result, EscChar, c1, c2, c3, c4);
+      end;
     end;
 
   end;
@@ -3650,6 +3650,15 @@ begin
         Result := Result + IntToStr(Offset) + ', ';
       Result := Result + IntToStr(Limit);
     end;
+  end;
+end;
+
+
+function TDBConnection.LikeClauseTail: String;
+begin
+  case FParameters.NetTypeGroup of
+    ngMSSQL: Result := ' ESCAPE ' + EscapeString('\');
+    ngMySQL: Result := '';
   end;
 end;
 
