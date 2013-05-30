@@ -1800,9 +1800,22 @@ end;
 
 
 procedure InheritFont(AFont: TFont);
+var
+  LogFont: TLogFont;
 begin
-  AFont.Name := Mainform.Font.Name;
-  AFont.Size := Mainform.Font.Size;
+  // Apply system font for a given font. See issue #3204.
+  // Code taken from http://www.gerixsoft.com/blog/delphi/system-font
+  if SystemParametersInfo(SPI_GETICONTITLELOGFONT, SizeOf(TLogFont), @LogFont, 0) then begin
+    AFont.Height := LogFont.lfHeight;
+    AFont.Orientation := LogFont.lfOrientation;
+    AFont.Charset := TFontCharset(LogFont.lfCharSet);
+    AFont.Name := PChar(@LogFont.lfFaceName);
+    case LogFont.lfPitchAndFamily and $F of
+      VARIABLE_PITCH: AFont.Pitch := fpVariable;
+      FIXED_PITCH: AFont.Pitch := fpFixed;
+      else AFont.Pitch := fpDefault;
+    end;
+  end;
 end;
 
 

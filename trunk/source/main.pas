@@ -1320,8 +1320,6 @@ end;
   to complete and can be annoying.
 }
 procedure TMainForm.FormCreate(Sender: TObject);
-const
-  VistaFont = 'Segoe UI';
 var
   i, j, MonitorIndex: Integer;
   Bar: TControl;
@@ -1449,11 +1447,7 @@ begin
 
   Delimiter := AppSettings.ReadString(asDelimiter);
 
-  // Delphi work around to force usage of Vista's default font (other OSes will be unaffected)
-  if (Win32MajorVersion >= 6) and (Screen.Fonts.IndexOf(VistaFont) >= 0) then begin
-    Font.Size := Font.Size + 1;
-    Font.Name := VistaFont;
-  end;
+  InheritFont(Font);
   InheritFont(SynCompletionProposal.Font);
   InheritFont(ParameterCompletionProposal.Font);
   // Simulated link label, has non inherited blue font color
