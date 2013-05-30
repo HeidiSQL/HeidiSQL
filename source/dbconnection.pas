@@ -1302,6 +1302,7 @@ begin
       end;
     except
       on E:EOleException do begin
+        FLastError := E.Message;
         Error := LastError;
         Log(lcError, Error);
         FConnectionStarted := 0;
@@ -1509,6 +1510,7 @@ begin
     FAdoHandle.Execute('SELECT 1');
   except
     on E:EOleException do begin
+      FLastError := E.Message;
       Log(lcError, E.Message);
       Active := False;
       if Reconnect then
@@ -2037,6 +2039,8 @@ begin
     rx.Free;
   end else
     Msg := _('unknown');
+  if (FLastError <> '') and (Pos(FLastError, Msg) = 0) then
+    Msg := FLastError + ' ' + Msg;
   Result := f_(MsgSQLError, [LastErrorCode, Msg]);
 end;
 
