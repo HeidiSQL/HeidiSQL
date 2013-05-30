@@ -2040,7 +2040,7 @@ begin
   end else
     Msg := _('unknown');
   if (FLastError <> '') and (Pos(FLastError, Msg) = 0) then
-    Msg := FLastError + ' ' + Msg;
+    Msg := FLastError + CRLF + Msg;
   Result := f_(MsgSQLError, [LastErrorCode, Msg]);
 end;
 
