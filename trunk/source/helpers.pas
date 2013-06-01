@@ -326,6 +326,9 @@ type
   procedure ParseCommandLine(Parameters: TStringlist;
     var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
   function f_(const Pattern: string; const Args: array of const): string;
+  function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
+  function GetOutputFilenamePlaceholders: TStringList;
+
 
 var
   AppSettings: TAppSettings;
@@ -2696,6 +2699,57 @@ begin
   // Helper for translation, replacement for Format(_())
   Result := Format(_(Pattern), Args);
 end;
+
+
+function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
+var
+  Arguments: TStringList;
+  Year, Month, Day, Hour, Min, Sec, MSec: Word;
+  i: Integer;
+begin
+  // Rich format output filename, replace certain markers. See issue #2622
+  Arguments := TStringList.Create;
+
+  if Assigned(DBObj) then begin
+    Arguments.Values['host'] := goodfilename(DBObj.Connection.Parameters.Hostname);
+    Arguments.Values['u'] := goodfilename(DBObj.Connection.Parameters.Username);
+    Arguments.Values['db'] := goodfilename(DBObj.Database);
+  end;
+  Arguments.Values['date'] := goodfilename(DateTimeToStr(Now));
+  DecodeDateTime(Now, Year, Month, Day, Hour, Min, Sec, MSec);
+  Arguments.Values['d'] := Format('%.2d', [Day]);
+  Arguments.Values['m'] := Format('%.2d', [Month]);
+  Arguments.Values['y'] := Format('%.4d', [Year]);
+  Arguments.Values['h'] := Format('%.2d', [Hour]);
+  Arguments.Values['i'] := Format('%.2d', [Min]);
+  Arguments.Values['s'] := Format('%.2d', [Sec]);
+
+  Result := FilenameWithPlaceholders;
+  for i:=0 to Arguments.Count-1 do begin
+    Result := StringReplace(Result, '%'+Arguments.Names[i], Arguments.ValueFromIndex[i], [rfReplaceAll]);
+  end;
+  Arguments.Free;
+end;
+
+
+function GetOutputFilenamePlaceholders: TStringList;
+begin
+  // Return a list with valid placeholder=>description pairs
+  Result := TStringList.Create;
+  Result.Values['host'] := _('Hostname');
+  Result.Values['u'] := _('Username');
+  Result.Values['db'] := _('Database');
+  Result.Values['date'] := _('Date and time');
+  Result.Values['d'] := _('Day of month');
+  Result.Values['m'] := _('Month');
+  Result.Values['y'] := _('Year');
+  Result.Values['h'] := _('Hour');
+  Result.Values['i'] := _('Minute');
+  Result.Values['s'] := _('Second');
+end;
+
+
+
 
 
 { Threading stuff }

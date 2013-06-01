@@ -140,7 +140,6 @@ type
     procedure DoFind(DBObj: TDBObject);
     procedure DoExport(DBObj: TDBObject);
     procedure DoBulkTableEdit(DBObj: TDBObject);
-    function GetOutputFilename(DBObj: TDBObject): String;
   public
     { Public declarations }
     PreSelectObjects: TDBObjectList;
@@ -919,22 +918,22 @@ var
   SessionNode, DBNode: PVirtualNode;
   SessionName, FilenameHint: String;
   Params: TConnectionParameters;
+  Placeholders: TStringList;
+  i: Integer;
 begin
   // Target type (file, directory, ...) selected
   comboExportOutputTarget.Enabled := True;
   comboExportOutputTarget.Text := '';
   comboExportOutputTarget.Hint := '';
-  FilenameHint := _('Allows the following replacement patterns:') + CRLF +
-    '%host: '+_('Hostname') + CRLF +
-    '%u: '+_('Username') + CRLF +
-    '%db: '+_('Database') + CRLF +
-    '%date: '+_('Date and time') + CRLF +
-    '%d: '+_('Day of month') + CRLF +
-    '%m: '+_('Month') + CRLF +
-    '%y: '+_('Year') + CRLF +
-    '%h: '+_('Hour') + CRLF +
-    '%i: '+_('Minute') + CRLF +
-    '%s: '+_('Second');
+
+  // Create filename placeholders hint
+  Placeholders := GetOutputFilenamePlaceholders;
+  FilenameHint := _('Allows the following replacement patterns:');
+  for i:=0 to Placeholders.Count-1 do begin
+    FilenameHint := FilenameHint + CRLF + '%' + Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
+  end;
+  Placeholders.Free;
+
   if Assigned(FTargetConnection) then
     FreeAndNil(FTargetConnection);
   if comboExportOutputType.Text = OUTPUT_FILE then begin
@@ -1188,7 +1187,7 @@ begin
   ExportStreamStartOfQueryPos := 0;
   if ToDir then begin
     FreeAndNil(ExportStream);
-    DbDir := IncludeTrailingPathDelimiter(GetOutputFilename(DBObj)) + DBObj.Database + '\';
+    DbDir := IncludeTrailingPathDelimiter(GetOutputFilename(comboExportOutputTarget.Text, DBObj)) + DBObj.Database + '\';
     if not DirectoryExists(DbDir) then
       ForceDirectories(DbDir);
     ExportStream := TFileStream.Create(DbDir + DBObj.Name+'.sql', fmCreate or fmOpenWrite);
@@ -1196,7 +1195,7 @@ begin
   end;
   if not Assigned(ExportStream) then begin
     if ToFile then
-      ExportStream := TFileStream.Create(GetOutputFilename(DBObj), fmCreate or fmOpenWrite);
+      ExportStream := TFileStream.Create(GetOutputFilename(comboExportOutputTarget.Text, DBObj), fmCreate or fmOpenWrite);
     // ToDir handled above
     if ToClipboard then
       ExportStream := TMemoryStream.Create;
@@ -1472,34 +1471,6 @@ begin
   Output(EXPORT_FILE_FOOTER, False, False, True, False, False);
 
   ExportLastDatabase := FinalDbName;
-end;
-
-
-function TfrmTableTools.GetOutputFilename(DBObj: TDBObject): String;
-var
-  Arguments: TStringList;
-  Year, Month, Day, Hour, Min, Sec, MSec: Word;
-  i: Integer;
-  Path, Filename: String;
-begin
-  // Rich format output filename, replace certain markers. See issue #2622
-  Result := comboExportOutputTarget.Text;
-  Arguments := TStringList.Create;
-  Arguments.Values['host'] := goodfilename(DBObj.Connection.Parameters.Hostname);
-  Arguments.Values['u'] := goodfilename(DBObj.Connection.Parameters.Username);
-  Arguments.Values['db'] := goodfilename(DBObj.Database);
-  Arguments.Values['date'] := goodfilename(DateTimeToStr(Now));
-  DecodeDateTime(Now, Year, Month, Day, Hour, Min, Sec, MSec);
-  Arguments.Values['d'] := Format('%.2d', [Day]);
-  Arguments.Values['m'] := Format('%.2d', [Month]);
-  Arguments.Values['y'] := Format('%.4d', [Year]);
-  Arguments.Values['h'] := Format('%.2d', [Hour]);
-  Arguments.Values['i'] := Format('%.2d', [Min]);
-  Arguments.Values['s'] := Format('%.2d', [Sec]);
-  for i:=0 to Arguments.Count-1 do begin
-    Result := StringReplace(Result, '%'+Arguments.Names[i], Arguments.ValueFromIndex[i], [rfReplaceAll]);
-  end;
-  Arguments.Free;
 end;
 
 
