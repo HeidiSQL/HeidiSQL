@@ -52,7 +52,6 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure editFilenameRightButtonClick(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
-    procedure SelectRecentFile(Sender: TObject);
     procedure popupRecentFilesPopup(Sender: TObject);
     procedure menuCSVClick(Sender: TObject);
     procedure editCSVRightButtonClick(Sender: TObject);
@@ -75,6 +74,8 @@ type
     function GetExportFormat: TGridExportFormat;
     procedure SetExportFormat(Value: TGridExportFormat);
     procedure SetExportFormatByFilename;
+    procedure SelectRecentFile(Sender: TObject);
+    procedure PutFilenamePlaceholder(Sender: TObject);
   public
     { Public declarations }
     property Grid: TVirtualStringTree read FGrid write FGrid;
@@ -263,11 +264,13 @@ procedure TfrmExportGrid.editFilenameRightButtonClick(Sender: TObject);
 var
   Dialog: TSaveDialog;
   ef: TGridExportFormat;
+  Filename: String;
 begin
   // Select file target
   Dialog := TSaveDialog.Create(Self);
-  Dialog.InitialDir := ExtractFilePath(editFilename.Text);
-  Dialog.FileName := ExtractBaseFileName(editFilename.Text);
+  Filename := GetOutputFilename(editFilename.Text, MainForm.ActiveDbObj);
+  Dialog.InitialDir := ExtractFilePath(Filename);
+  Dialog.FileName := ExtractBaseFileName(Filename);
   Dialog.Filter := '';
   for ef:=Low(TGridExportFormat) to High(TGridExportFormat) do
     Dialog.Filter := Dialog.Filter + FFormatToDescription[ef] + ' (*.'+FFormatToFileExtension[ef]+')|*.'+FFormatToFileExtension[ef]+'|';
@@ -288,10 +291,13 @@ var
   Filename: String;
   Menu: TPopupMenu;
   Item: TMenuItem;
+  Placeholders: TStringList;
+  i: Integer;
 begin
-  // Clear and populate drop down menu with recent files
+  // Clear and populate drop down menu with recent files and filename placeholders
   Menu := Sender as TPopupMenu;
   Menu.Items.Clear;
+
   for Filename in FRecentFiles do begin
     Item := TMenuItem.Create(Menu);
     Menu.Items.Add(Item);
@@ -300,6 +306,21 @@ begin
     Item.OnClick := SelectRecentFile;
     Item.Checked := Filename = editFilename.Text;
   end;
+
+  Item := TMenuItem.Create(Menu);
+  Menu.Items.Add(Item);
+  Item.Caption := '-';
+
+  Placeholders := GetOutputFilenamePlaceholders;
+  for i:=0 to Placeholders.Count-1 do begin
+    Item := TMenuItem.Create(Menu);
+    Menu.Items.Add(Item);
+    Item.Caption := '%' + Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
+    Item.Hint := '%' + Placeholders.Names[i];
+    Item.OnClick := PutFilenamePlaceholder;
+  end;
+
+  Placeholders.Free;
 end;
 
 
@@ -308,6 +329,13 @@ begin
   // Select file from recently used files
   editFilename.Text := (Sender as TMenuItem).Hint;
   SetExportFormatByFilename;
+end;
+
+
+procedure TfrmExportGrid.PutFilenamePlaceholder(Sender: TObject);
+begin
+  // Put filename placeholder
+  editFilename.SelText := (Sender as TMenuItem).Hint;
 end;
 
 
@@ -404,7 +432,7 @@ end;
 procedure TfrmExportGrid.btnOKClick(Sender: TObject);
 var
   Col, ExcludeCol: TColumnIndex;
-  Header, Data, tmp, Encloser, Separator, Terminator, TableName: String;
+  Header, Data, tmp, Encloser, Separator, Terminator, TableName, Filename: String;
   Node: PVirtualNode;
   GridData: TDBQuery;
   SelectionOnly: Boolean;
@@ -416,10 +444,12 @@ var
   Exporter: TSynExporterHTML;
   Encoding: TEncoding;
 begin
+  Filename := GetOutputFilename(editFilename.Text, MainForm.ActiveDbObj);
+
   // Confirmation dialog if file exists
   if radioOutputFile.Checked
-    and FileExists(editFilename.Text)
-    and (MessageDialog(_('File exists'), f_('Overwrite file %s?', [editFilename.Text]), mtConfirmation, [mbYes, mbCancel]) = mrCancel)
+    and FileExists(Filename)
+    and (MessageDialog(_('File exists'), f_('Overwrite file %s?', [Filename]), mtConfirmation, [mbYes, mbCancel]) = mrCancel)
     then begin
       ModalResult := mrNone;
       Exit;
@@ -788,7 +818,7 @@ begin
     StreamToClipboard(S, HTML, (ExportFormat=efHTML) and (HTML <> nil));
   end else begin
     try
-      S.SaveToFile(editFilename.Text);
+      S.SaveToFile(Filename);
     except
       on E:EFCreateError do begin
         // Keep form open if file cannot be created
