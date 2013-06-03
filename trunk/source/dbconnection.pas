@@ -3887,12 +3887,12 @@ begin
             TypeIndex := dtBigInt;
           ftBCD, ftFMTBcd:
             TypeIndex := dtDecimal;
-          ftFixedChar:
+          ftFixedChar, ftFixedWideChar:
             TypeIndex := dtChar;
           ftString, ftWideString, ftBoolean, ftGuid:
             TypeIndex := dtVarchar;
           ftMemo, ftWideMemo:
-            TypeIndex := dtMediumText;
+            TypeIndex := dtText;
           ftBlob, ftVariant:
             TypeIndex := dtMediumBlob;
           ftBytes:
