@@ -5351,12 +5351,11 @@ begin
 
   if Filter <> '' then begin
     SynMemoFilter.UndoList.AddGroupBreak;
-    if KeyPressed(VK_SHIFT) then begin
-      SynmemoFilter.Text := SynmemoFilter.Text + ' AND ' + Filter;
-    end else begin
-      SynMemoFilter.SelectAll;
+    SynMemoFilter.SelectAll;
+    if KeyPressed(VK_SHIFT) then
+      SynmemoFilter.SelText := SynmemoFilter.Text + ' AND ' + Filter
+    else
       SynmemoFilter.SelText := Filter;
-    end;
     ToggleFilterPanel(True);
     actApplyFilterExecute(Sender);
   end;
