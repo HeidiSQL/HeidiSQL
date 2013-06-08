@@ -58,6 +58,7 @@ object frmTableEditor: TfrmTableEditor
     Height = 173
     Margins.Bottom = 32
     Align = alClient
+    Constraints.MinHeight = 70
     DragMode = dmAutomatic
     EditDelay = 0
     Header.AutoSizeIndex = -1
