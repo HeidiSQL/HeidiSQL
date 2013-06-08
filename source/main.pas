@@ -563,6 +563,8 @@ type
     editTableFilter: TButtonedEdit;
     editDatabaseFilter: TButtonedEdit;
     menuClearDataTabFilter: TMenuItem;
+    actUnixTimestampColumn: TAction;
+    actTimestampColumn1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -896,6 +898,7 @@ type
     procedure ListVariablesBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+    procedure actUnixTimestampColumnExecute(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -966,6 +969,7 @@ type
     function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding): Boolean;
     procedure SetLogToFile(Value: Boolean);
     procedure StoreLastSessions;
+    function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
   public
     QueryTabs: TObjectList<TQueryTab>;
     ActiveObjectEditor: TDBObjectEditor;
@@ -986,6 +990,7 @@ type
     SelectedTableColumns: TTableColumnList;
     SelectedTableKeys: TTableKeyList;
     SelectedTableForeignKeys: TForeignKeyList;
+    SelectedTableTimestampColumns: TStringList;
     FilterPanelManuallyOpened: Boolean;
 
     // Executable file details
@@ -1606,6 +1611,7 @@ begin
   SelectedTableColumns := TTableColumnList.Create;
   SelectedTableKeys := TTableKeyList.Create;
   SelectedTableForeignKeys := TForeignKeyList.Create;
+  SelectedTableTimestampColumns := TStringList.Create;
 
   // Set up connections list
   FConnections := TDBConnectionList.Create;
@@ -2010,6 +2016,47 @@ begin
   else if Sender = actBulkTableEdit then
     Dialog.ToolMode := tmBulkTableEdit;
   Dialog.ShowModal;
+end;
+
+
+procedure TMainForm.actUnixTimestampColumnExecute(Sender: TObject);
+var
+  i: Integer;
+  FocusedColumnName: String;
+  GridColumn: TVirtualTreeColumn;
+begin
+  // Mark focused column as UNIX timestamp column
+  AppSettings.SessionPath := GetRegKeyTable;
+  GridColumn := DataGrid.Header.Columns[DataGrid.FocusedColumn];
+  FocusedColumnName := GridColumn.Text;
+  i := SelectedTableTimestampColumns.IndexOf(FocusedColumnName);
+  if i > -1 then
+    SelectedTableTimestampColumns.Delete(i);
+  if (Sender as TAction).Checked then begin
+    SelectedTableTimestampColumns.Add(FocusedColumnName);
+    if GridColumn.ImageIndex = -1 then
+      GridColumn.ImageIndex := 149;
+  end else begin
+    if GridColumn.ImageIndex = 149 then
+      GridColumn.ImageIndex := -1;
+  end;
+  if SelectedTableTimestampColumns.Count > 0 then
+    AppSettings.WriteString(asTimestampColumns, SelectedTableTimestampColumns.Text)
+  else if AppSettings.ValueExists(asTimestampColumns) then
+    AppSettings.DeleteValue(asTimestampColumns);
+
+  AppSettings.ResetPath;
+  DataGrid.Invalidate;
+end;
+
+
+function TMainForm.HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
+begin
+  // Shorthand for various places where we would normally have to add all these conditions
+  Result := (Sender = DataGrid)
+    and (Column > NoColumn)
+    and (DataGridResult.DataType(Column).Index in [dtInt, dtBigint])
+    and (SelectedTableTimestampColumns.IndexOf(DataGrid.Header.Columns[Column].Text) > -1);
 end;
 
 
@@ -4263,6 +4310,10 @@ var
           break;
         end;
       end;
+      if col.ImageIndex = -1 then begin
+        if SelectedTableTimestampColumns.IndexOf(TblCol.Name) > -1 then
+          col.ImageIndex := 149;
+      end;
     end;
 
     // Data type
@@ -4765,7 +4816,8 @@ end;
 }
 procedure TMainForm.ValidateControls(Sender: TObject);
 var
-  inDataTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty, inGrid, GridHasChanges: Boolean;
+  inDataTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty, inGrid: Boolean;
+  GridHasChanges, EnableTimestamp: Boolean;
   Grid: TVirtualStringTree;
   Results: TDBQuery;
   RowNum: PCardinal;
@@ -4773,12 +4825,14 @@ begin
   Grid := ActiveGrid;
   Results := nil;
   GridHasChanges := False;
+  EnableTimestamp := False;
   if Assigned(Grid) then begin
     Results := GridResult(Grid);
     if Assigned(Grid.FocusedNode) then begin
       RowNum := Grid.GetNodeData(Grid.FocusedNode);
       Results.RecNo := RowNum^;
       GridHasChanges := Results.Modified or Results.Inserted;
+      EnableTimestamp := Results.DataType(Grid.FocusedColumn).Index in [dtInt, dtBigint];
     end;
   end;
   inDataTab := PageControlMain.ActivePage = tabData;
@@ -4795,6 +4849,8 @@ begin
   actDataCancelChanges.Enabled := GridHasChanges;
   actDataSaveBlobToFile.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actDataPreview.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
+  actUnixTimestampColumn.Enabled := inDataTab and EnableTimestamp;
+  actUnixTimestampColumn.Checked := inDataTab and HandleUnixTimestampColumn(Grid, Grid.FocusedColumn);
 
   // Activate export-options if we're on Data- or Query-tab
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
@@ -7257,6 +7313,8 @@ begin
         SelectedTableColumns.Clear;
         SelectedTableKeys.Clear;
         SelectedTableForeignKeys.Clear;
+        AppSettings.SessionPath := GetRegKeyTable;
+        SelectedTableTimestampColumns.Text := AppSettings.ReadString(asTimestampColumns);
         InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
         try
           case FActiveDbObj.NodeType of
@@ -7690,7 +7748,12 @@ begin
     CellText := TEXT_NULL
   else begin
     case Results.DataType(Column).Category of
-      dtcInteger, dtcReal: CellText := FormatNumber(Results.Col(Column), False);
+      dtcInteger, dtcReal: begin
+        if HandleUnixTimestampColumn(Sender, Column) then
+          CellText := DateTimeToStr(UnixToDateTime(MakeInt(Results.Col(Column))))
+        else
+          CellText := FormatNumber(Results.Col(Column), False);
+      end;
       dtcBinary, dtcSpatial: begin
         if actBlobAsText.Checked then
           CellText := Results.Col(Column)
@@ -7888,8 +7951,12 @@ begin
   RowNum := Sender.GetNodeData(Node);
   Results.RecNo := RowNum^;
   try
-    if (not FGridEditFunctionMode) and (Results.DataType(Column).Category in [dtcInteger, dtcReal]) then
-      NewText := UnformatNumber(NewText);
+    if (not FGridEditFunctionMode) and (Results.DataType(Column).Category in [dtcInteger, dtcReal]) then begin
+      if HandleUnixTimestampColumn(Sender, Column) then
+        NewText := IntToStr(DateTimeToUnix(StrToDateTime(NewText)))
+      else
+        NewText := UnformatNumber(NewText);
+    end;
     Results.SetCol(Column, NewText, False, FGridEditFunctionMode);
   except
     on E:EDatabaseError do
@@ -8111,6 +8178,9 @@ begin
         NowText := NowText + '.' + StringOfChar('0', MicroSecondsPrecision);
       VT.Text[Node, Column] := NowText;
     end;
+    DateTimeEditor := TDateTimeEditorLink.Create(VT);
+    EditLink := DateTimeEditor;
+  end else if AppSettings.ReadBool(asFieldEditorDatetime) and HandleUnixTimestampColumn(Sender, Column) then begin
     DateTimeEditor := TDateTimeEditorLink.Create(VT);
     EditLink := DateTimeEditor;
   end else if (Results.DataType(Column).Index = dtSet) and AppSettings.ReadBool(asFieldEditorSet) then begin

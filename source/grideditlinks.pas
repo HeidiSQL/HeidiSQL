@@ -86,6 +86,7 @@ type
     procedure DoOnTimer(Sender: TObject);
     procedure ModifyDate(Offset: Integer);
     procedure TextChange(Sender: TObject);
+    function MicroSecondsPrecision: Integer;
   public
     constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
@@ -553,17 +554,15 @@ end;
 function TDateTimeEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
 var
   MinColWidth,
-  MicroSecondsPrecision,
   ForceTextLen: Integer;
 begin
   Result := inherited PrepareEdit(Tree, Node, Column);
   if not Result then
     Exit;
-  MicroSecondsPrecision := MakeInt(FTableColumn.LengthSet);
   case FTableColumn.DataType.Index of
     dtDate:
       FMaskEdit.EditMask := '0000-00-00;1; ';
-    dtDatetime, dtTimestamp: begin
+    dtDatetime, dtTimestamp, dtInt, dtBigint: begin
         if MicroSecondsPrecision > 0 then
           FMaskEdit.EditMask := '0000-00-00 00\:00\:00.'+StringOfChar('0', MicroSecondsPrecision)+';1; '
         else
@@ -680,7 +679,7 @@ var
   i, MaxSeconds, MinSeconds: Int64;
   text: String;
   OldSelStart, OldSelLength,
-  MicroSecondsPrecision, ms, DotPos: Integer;
+  ms, DotPos: Integer;
 
   function TimeToSeconds(Str: String): Int64;
   var
@@ -715,7 +714,6 @@ var
 begin
   try
     // Detect microseconds part of value if any
-    MicroSecondsPrecision := MakeInt(FTableColumn.LengthSet);
     if MicroSecondsPrecision > 0 then begin
       DotPos := Length(FMaskEdit.Text) - Pos('.', ReverseString(FMaskEdit.Text)) + 2;
       ms := MakeInt(Copy(FMaskEdit.Text, DotPos, Length(FMaskEdit.Text)));
@@ -739,7 +737,7 @@ begin
         text := DateToStr(d);
       end;
 
-      dtDateTime, dtTimestamp: begin
+      dtDateTime, dtTimestamp, dtInt, dtBigint: begin
         dt := StrToDateTime(FMaskEdit.Text);
         case FMaskEdit.SelStart of
           0..3: dt := IncYear(dt, Offset);
@@ -800,6 +798,15 @@ end;
 procedure TDateTimeEditorLink.TextChange;
 begin
   FModified := True;
+end;
+
+
+function TDateTimeEditorLink.MicroSecondsPrecision: Integer;
+begin
+  Result := MakeInt(FTableColumn.LengthSet);
+  // No microseconds for UNIX timestamp columns
+  if FTableColumn.DataType.Index in [dtInt, dtBigint] then
+    Result := 0;
 end;
 
 

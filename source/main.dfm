@@ -2623,6 +2623,13 @@ object MainForm: TMainForm
       Caption = 'Group objects by type'
       OnExecute = actGroupObjectsExecute
     end
+    object actUnixTimestampColumn: TAction
+      Category = 'Data'
+      AutoCheck = True
+      Caption = 'This is a UNIX timestamp column'
+      Enabled = False
+      OnExecute = actUnixTimestampColumnExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -8964,6 +8971,10 @@ object MainForm: TMainForm
         ImageIndex = 112
         OnClick = InsertValue
       end
+    end
+    object actTimestampColumn1: TMenuItem
+      Action = actUnixTimestampColumn
+      AutoCheck = True
     end
     object ViewasHTML1: TMenuItem
       Action = actDataPreview
