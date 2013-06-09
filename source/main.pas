@@ -935,6 +935,7 @@ type
     FPreferencesDialog: Toptionsform;
     FGridEditFunctionMode: Boolean;
     FClipboardHasNull: Boolean;
+    FTimeZoneOffset: Integer;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1342,6 +1343,7 @@ var
   FunctionCategories: TStringList;
   miGroup, miFilterGroup, miFunction, miFilterFunction: TMenuItem;
   NTHandle: THandle;
+  TZI: TTimeZoneInformation;
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
 begin
   caption := APPNAME;
@@ -1620,6 +1622,15 @@ begin
   FTreeRefreshInProgress := False;
 
   FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
+
+  // Detect timezone offset in seconds, once
+  case GetTimeZoneInformation(TZI) of
+    TIME_ZONE_ID_STANDARD: FTimeZoneOffset := (TZI.Bias + TZI.StandardBias);
+    TIME_ZONE_ID_DAYLIGHT: FTimeZoneOffset := (TZI.Bias + TZI.DaylightBias);
+    TIME_ZONE_ID_UNKNOWN: FTimeZoneOffset := TZI.Bias;
+    else RaiseLastOSError;
+  end;
+  FTimeZoneOffset := FTimeZoneOffset * 60;
 end;
 
 
@@ -7734,6 +7745,7 @@ var
   EditingAndFocused: Boolean;
   RowNumber: PCardinal;
   Results: TDBQuery;
+  Timestamp: Int64;
 begin
   if Column = -1 then
     Exit;
@@ -7749,9 +7761,11 @@ begin
   else begin
     case Results.DataType(Column).Category of
       dtcInteger, dtcReal: begin
-        if HandleUnixTimestampColumn(Sender, Column) then
-          CellText := DateTimeToStr(UnixToDateTime(MakeInt(Results.Col(Column))))
-        else
+        if HandleUnixTimestampColumn(Sender, Column) then begin
+          Timestamp := MakeInt(Results.Col(Column));
+          Dec(Timestamp, FTimeZoneOffset);
+          CellText := DateTimeToStr(UnixToDateTime(Timestamp));
+        end else
           CellText := FormatNumber(Results.Col(Column), False);
       end;
       dtcBinary, dtcSpatial: begin
@@ -7946,15 +7960,18 @@ procedure TMainForm.AnyGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
 var
   Results: TDBQuery;
   RowNum: PCardinal;
+  Timestamp: Int64;
 begin
   Results := GridResult(Sender);
   RowNum := Sender.GetNodeData(Node);
   Results.RecNo := RowNum^;
   try
     if (not FGridEditFunctionMode) and (Results.DataType(Column).Category in [dtcInteger, dtcReal]) then begin
-      if HandleUnixTimestampColumn(Sender, Column) then
-        NewText := IntToStr(DateTimeToUnix(StrToDateTime(NewText)))
-      else
+      if HandleUnixTimestampColumn(Sender, Column) then begin
+        Timestamp := DateTimeToUnix(StrToDateTime(NewText));
+        Inc(Timestamp, FTimeZoneOffset);
+        NewText := IntToStr(Timestamp)
+      end else
         NewText := UnformatNumber(NewText);
     end;
     Results.SetCol(Column, NewText, False, FGridEditFunctionMode);
