@@ -754,8 +754,6 @@ begin
   end else begin
     idx := listColumns.RootNodeCount;
     NewCol.DataType := DBObject.Connection.GetDatatypeByName('INT');
-    if NewCol.DataType.HasLength then
-      NewCol.LengthSet := '10';
     NewCol.Unsigned := False;
     NewCol.AllowNull := True;
     NewCol.DefaultType := cdtNothing;
