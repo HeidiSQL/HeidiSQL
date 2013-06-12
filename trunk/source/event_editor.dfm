@@ -110,21 +110,27 @@ object frmEventEditor: TfrmEventEditor
         Height = 13
         Caption = 'Comment:'
       end
+      object lblDefiner: TLabel
+        Left = 408
+        Top = 6
+        Width = 39
+        Height = 13
+        Caption = 'De&finer:'
+      end
       object editName: TEdit
-        Left = 88
+        Left = 84
         Top = 3
-        Width = 567
+        Width = 310
         Height = 21
-        Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
         Text = 'editName'
         TextHint = 'Enter event name ...'
         OnChange = Modification
       end
       object chkDropAfterExpiration: TCheckBox
-        Left = 88
+        Left = 84
         Top = 57
-        Width = 567
+        Width = 571
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Drop event after expiration'
@@ -132,9 +138,9 @@ object frmEventEditor: TfrmEventEditor
         OnClick = Modification
       end
       object editComment: TEdit
-        Left = 88
+        Left = 84
         Top = 30
-        Width = 567
+        Width = 571
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
@@ -142,14 +148,25 @@ object frmEventEditor: TfrmEventEditor
         OnChange = Modification
       end
       object grpState: TRadioGroup
-        Left = 88
+        Left = 84
         Top = 80
-        Width = 349
+        Width = 353
         Height = 52
         Caption = 'State'
         Columns = 3
         TabOrder = 3
         OnClick = Modification
+      end
+      object comboDefiner: TComboBox
+        Left = 489
+        Top = 3
+        Width = 166
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 4
+        Text = 'comboDefiner'
+        OnChange = Modification
+        OnDropDown = comboDefinerDropDown
       end
     end
     object tabScheduling: TTabSheet
