@@ -41,6 +41,8 @@ type
     dateEnds: TDateTimePicker;
     SynMemoCREATEcode: TSynMemo;
     SynMemoALTERcode: TSynMemo;
+    comboDefiner: TComboBox;
+    lblDefiner: TLabel;
     procedure Modification(Sender: TObject);
     procedure radioScheduleClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
@@ -49,6 +51,7 @@ type
     procedure PageControlMainChange(Sender: TObject);
     procedure chkStartsEndsClick(Sender: TObject);
     procedure comboEveryIntervalChange(Sender: TObject);
+    procedure comboDefinerDropDown(Sender: TObject);
   private
     { Private declarations }
     AlterCodeValid, CreateCodeValid: Boolean;
@@ -99,6 +102,9 @@ begin
   inherited;
   editName.Clear;
   editComment.Clear;
+  comboDefiner.Text := '';
+  comboDefiner.TextHint := f_('Current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
+  comboDefiner.Hint := f_('Leave empty for current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
   chkDropAfterExpiration.Checked := True;
   radioEvery.Checked := True;
   grpState.ItemIndex := 0;
@@ -116,7 +122,7 @@ begin
     // Edit mode
     tabALTERcode.TabVisible := True;
     editName.Text := DBObject.Name;
-    // CREATE EVENT `eventb`
+    // CREATE DEFINER=`root`@`127.0.0.1` EVENT `eventb`
     // ON SCHEDULE EVERY 1 DAY STARTS '2010-04-08 08:05:04' ENDS '2010-04-30 01:01:28'
     // ON COMPLETION NOT PRESERVE
     // ENABLE
@@ -125,6 +131,13 @@ begin
     DateExpr := '[''"]([^''"]+)[''"]';
     rx := TRegExpr.Create;
     rx.ModifierI := True;
+
+    rx.Expression := '\bDEFINER\s*=\s*(\S+)\s';
+    if rx.Exec(CreateCode) then
+      comboDefiner.Text := Obj.Connection.DequoteIdent(rx.Match[1], '@')
+    else
+      comboDefiner.Text := '';
+
     rx.Expression := '\bON\s+SCHEDULE\s+(EVERY|AT)\s+((\d+|''[^'']+'')\s+(\S+)(\s+STARTS\s+'+DateExpr+')?(\s+ENDS\s+'+DateExpr+')?|'+DateExpr+')';
     if rx.Exec(CreateCode) then begin
       if UpperCase(rx.Match[1]) = 'AT' then begin
@@ -245,13 +258,13 @@ end;
 
 function TfrmEventEditor.ComposeCreateStatement: String;
 begin
-  Result := 'CREATE EVENT ' + DBObject.Connection.QuoteIdent(editName.Text) + ' ' + ComposeBaseStatement;
+  Result := Format(ComposeBaseStatement, ['CREATE', DBObject.Connection.QuoteIdent(editName.Text)]);
 end;
 
 
 function TfrmEventEditor.ComposeAlterStatement: String;
 begin
-  Result := 'ALTER EVENT ' + DBObject.Connection.QuoteIdent(DBObject.Name) + ' ' + ComposeBaseStatement;
+  Result := Format(ComposeBaseStatement, ['ALTER', DBObject.Connection.QuoteIdent(DBObject.Name)]);
 end;
 
 
@@ -261,7 +274,10 @@ var
   Quantity: String;
 begin
   // Return CREATE EVENT statement
-  Result := 'ON SCHEDULE' + CRLF + #9#9;
+  Result := '%s ';
+  if comboDefiner.Text <> '' then
+    Result := Result + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, True, '@')+' ';
+  Result := Result + 'EVENT %s' + CRLF + #9 + 'ON SCHEDULE' + CRLF + #9#9;
   if radioOnce.Checked then begin
     d := dateOnce.DateTime;
     ReplaceTime(d, timeOnce.DateTime);
@@ -351,6 +367,13 @@ begin
   dateEnds.Enabled := chkEnds.Checked and chkEnds.Enabled;
   timeEnds.Enabled := chkEnds.Checked and chkEnds.Enabled;
   Modification(Sender);
+end;
+
+
+procedure TfrmEventEditor.comboDefinerDropDown(Sender: TObject);
+begin
+  // Populate definers from mysql.user
+  (Sender as TComboBox).Items.Assign(GetDefiners);
 end;
 
 
