@@ -361,8 +361,8 @@ end;
 
 procedure TfrmTableEditor.btnSaveClick(Sender: TObject);
 begin
-  ApplyModifications;
-  UpdateSQLcode;
+  if ApplyModifications = mrOK then
+    Init(DBObject);
 end;
 
 
