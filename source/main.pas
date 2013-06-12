@@ -3978,6 +3978,7 @@ begin
   Node := GetNextNode(ActiveGrid, nil);
   if Assigned(Node) then
     SelectNode(ActiveGrid, Node);
+  ValidateControls(Sender);
 end;
 
 
@@ -4041,6 +4042,7 @@ begin
   Node := Grid.GetLast;
   if Assigned(Node) then
     SelectNode(Grid, Node);
+  ValidateControls(Sender);
 end;
 
 procedure TMainForm.actDataPostChangesExecute(Sender: TObject);
