@@ -1695,7 +1695,7 @@ begin
           LastConnect := StrToDateTime(DefaultLastrunDate);
         end;
         if LastConnect > LastStatsCall then begin
-          StatsCall.URL := StatsCall.URL + '&s[]=' + IntToStr(AppSettings.ReadInt(asServerVersion));
+          StatsCall.URL := StatsCall.URL + '&s[]=' + IntToStr(AppSettings.ReadInt(asNetType)) + '-' + IntToStr(AppSettings.ReadInt(asServerVersion));
         end;
       end;
       AppSettings.ResetPath;
