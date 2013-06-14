@@ -1834,9 +1834,6 @@ object MainForm: TMainForm
       object Exportgridrows1: TMenuItem
         Action = actExportData
       end
-      object Synchronizedatabase2: TMenuItem
-        Action = actSynchronizeDatabase
-      end
       object N9: TMenuItem
         Caption = '-'
       end
