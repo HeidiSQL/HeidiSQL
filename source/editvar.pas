@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
-  dbconnection, mysql_structures, ComCtrls, gnugettext;
+  dbconnection, mysql_structures, ComCtrls, gnugettext, SynRegExpr;
 
 type
   TVarType = (vtString, vtNumeric, vtBoolean, vtEnum);
@@ -171,7 +171,15 @@ begin
 
   case FVarType of
     vtNumeric: val := IntToStr(UpDownNumber.Position);
-    vtString: val := MainForm.ActiveConnection.EscapeString(editString.Text);
+    vtString: begin
+      // Various variables are int64 or float, for which we have no specific
+      // editor other than the string editor. Do not quote these to avoid
+      // "Incorrect argument type to variable.." See issue #3153.
+      if ExecRegExpr('^\d+(\.\d*)?$', FVarValue) then
+        val := editString.Text
+      else
+        val := MainForm.ActiveConnection.EscapeString(editString.Text);
+    end;
     vtBoolean: val := IntToStr(Integer(radioBooleanOn.Checked));
     vtEnum: val := MainForm.ActiveConnection.EscapeString(comboEnum.Text);
   end;
