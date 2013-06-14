@@ -539,7 +539,6 @@ type
     N9: TMenuItem;
     ExportdatabaseasSQL1: TMenuItem;
     Exportgridrows1: TMenuItem;
-    Synchronizedatabase2: TMenuItem;
     QF20: TMenuItem;
     DataDefaultValue: TMenuItem;
     actLaunchCommandline: TAction;
