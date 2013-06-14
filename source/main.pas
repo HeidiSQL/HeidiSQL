@@ -3429,6 +3429,7 @@ var
   Objects: TDBObjectList;
   Parameters: TRoutineParamList;
   Param: TRoutineParam;
+  Cancelled: Boolean;
 begin
   // Run stored function(s) or procedure(s)
   Objects := GetFocusedObjects(Sender, [lntProcedure, lntFunction]);
@@ -3451,23 +3452,33 @@ begin
     Parameters := TRoutineParamList.Create;
     Obj.Connection.ParseRoutineStructure(Obj, Parameters);
     Query := Query + Obj.QuotedName;
+    Cancelled := False;
     Params := TStringList.Create;
     for Param in Parameters do begin
-      ParamValue := InputBox(Obj.Name, _('Parameter')+' "'+Param.Name+'" ('+Param.Datatype+')', '');
+      ParamValue := '';
+      if not InputQuery(Obj.Name, _('Parameter')+' "'+Param.Name+'" ('+Param.Datatype+')', ParamValue) then begin
+        Cancelled := True;
+        Break;
+      end;
       ParamValue := Obj.Connection.EscapeString(ParamValue);
       Params.Add(ParamValue);
     end;
-    Parameters.Free;
-    ParamValues := '';
-    case Obj.Connection.Parameters.NetTypeGroup of
-      ngMySQL:
-        ParamValues := '(' + ImplodeStr(', ', Params) + ')';
-      ngMSSQL:
-        ParamValues := ' ' + ImplodeStr(' ', Params);
+    if not Cancelled then begin
+      Parameters.Free;
+      ParamValues := '';
+      case Obj.Connection.Parameters.NetTypeGroup of
+        ngMySQL:
+          ParamValues := '(' + ImplodeStr(', ', Params) + ')';
+        ngMSSQL:
+          ParamValues := ' ' + ImplodeStr(' ', Params);
+      end;
+      Query := Query + ParamValues;
+      Tab.Memo.Text := Query;
+      actExecuteQueryExecute(Sender);
     end;
-    Query := Query + ParamValues;
-    Tab.Memo.Text := Query;
-    actExecuteQueryExecute(Sender);
+    // Also cancel the whole loop over multiple procedures
+    if Cancelled then
+      Break;
   end;
 end;
 
