@@ -8321,21 +8321,35 @@ procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
   r: TDBQuery;
-  cl: TColor;
+  cl, clNull, clEven, clOdd: TColor;
   RowNumber: PCardinal;
+  isEven: Boolean;
 begin
   if Column = -1 then
     Exit;
   r := GridResult(Sender);
   RowNumber := Sender.GetNodeData(Node);
   r.RecNo := RowNumber^;
-  cl := clNone;
+
+  clEven := AppSettings.ReadInt(asRowBackgroundEven);
+  clOdd := AppSettings.ReadInt(asRowBackgroundOdd);
+  isEven := Node.Index mod 2 = 0;
+  if IsEven and (clEven <> clNone) then
+    cl := AppSettings.ReadInt(asRowBackgroundEven)
+  else if (not IsEven) and (clOdd <> clNone) then
+    cl := AppSettings.ReadInt(asRowBackgroundOdd)
+  else
+    cl := clNone;
+
   if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
     cl := clHighlight
   else if vsSelected in Node.States then
     cl := $00DDDDDD
-  else if r.IsNull(Column) then
-    cl := AppSettings.ReadInt(asFieldNullBackground);
+  else if r.IsNull(Column) then begin
+    clNull := AppSettings.ReadInt(asFieldNullBackground);
+    if clNull <> clNone then
+      cl := clNull;
+  end;
   if cl <> clNone then begin
     TargetCanvas.Brush.Color := cl;
     TargetCanvas.FillRect(CellRect);

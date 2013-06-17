@@ -653,10 +653,17 @@ object optionsform: Toptionsform
       end
       object lblNullBackground: TLabel
         Left = 8
-        Top = 137
+        Top = 140
         Width = 226
         Height = 13
         Caption = 'NULL background color (use "None" to disable):'
+      end
+      object Label2: TLabel
+        Left = 8
+        Top = 168
+        Width = 137
+        Height = 13
+        Caption = 'Alternating row background:'
       end
       object editMaxColWidth: TEdit
         Left = 309
@@ -787,69 +794,86 @@ object optionsform: Toptionsform
       end
       object chkEditorBinary: TCheckBox
         Left = 8
-        Top = 164
+        Top = 188
         Width = 433
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable popup BLOB/HEX editor'
-        TabOrder = 12
+        TabOrder = 14
         OnClick = Modified
       end
       object chkEditorDatetime: TCheckBox
         Left = 8
-        Top = 187
+        Top = 211
         Width = 433
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable inplace date/time editor'
-        TabOrder = 13
+        TabOrder = 15
         OnClick = Modified
       end
       object chkEditorEnum: TCheckBox
         Left = 8
-        Top = 233
+        Top = 257
         Width = 433
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable ENUM pulldown editor'
-        TabOrder = 15
+        TabOrder = 17
         OnClick = Modified
       end
       object chkEditorSet: TCheckBox
         Left = 8
-        Top = 256
+        Top = 280
         Width = 433
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable SET checkbox editor'
-        TabOrder = 16
+        TabOrder = 18
         OnClick = Modified
       end
       object chkPrefillDateTime: TCheckBox
         Left = 24
-        Top = 210
+        Top = 234
         Width = 417
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Prefill empty date/time fields with current date/time'
-        TabOrder = 14
+        TabOrder = 16
         OnClick = Modified
       end
       object chkRememberFilters: TCheckBox
         Left = 8
-        Top = 279
+        Top = 303
         Width = 433
         Height = 17
         Caption = 'Remember filters, sorting and column selection across sessions'
-        TabOrder = 17
+        TabOrder = 19
       end
       object chkForeignDropDown: TCheckBox
         Left = 8
-        Top = 302
+        Top = 326
         Width = 433
         Height = 17
         Caption = 'Drop down values from foreign table in InnoDB rows'
-        TabOrder = 18
+        TabOrder = 20
+      end
+      object cboxRowBackgroundOdd: TColorBox
+        Left = 309
+        Top = 165
+        Width = 132
+        Height = 22
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 13
+      end
+      object cboxRowBackgroundEven: TColorBox
+        Left = 171
+        Top = 165
+        Width = 132
+        Height = 22
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
+        TabOrder = 12
       end
     end
     object tabShortcuts: TTabSheet
@@ -977,7 +1001,7 @@ object optionsform: Toptionsform
   end
   object SynSQLSynSQLSample: TSynSQLSyn
     SQLDialect = sqlMySQL
-    Left = 112
-    Top = 360
+    Left = 432
+    Top = 352
   end
 end
