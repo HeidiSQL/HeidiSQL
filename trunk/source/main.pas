@@ -4913,7 +4913,7 @@ begin
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;
   actSaveSQLSnippet.Enabled := InQueryTab and NotEmpty;
   actSaveSQLSelectionSnippet.Enabled := InQueryTab and HasSelection;
-  actClearQueryEditor.Enabled := InQueryTab and NotEmpty;
+  actClearQueryEditor.Enabled := InQueryTab;
   actSetDelimiter.Enabled := InQueryTab;
   actCloseQueryTab.Enabled := IsQueryTab(PageControlMain.ActivePageIndex, False);
 end;
