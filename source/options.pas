@@ -121,6 +121,9 @@ type
     comboAppLanguage: TComboBox;
     chkForeignDropDown: TCheckBox;
     chkQueryHistory: TCheckBox;
+    cboxRowBackgroundOdd: TColorBox;
+    cboxRowBackgroundEven: TColorBox;
+    Label2: TLabel;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -272,6 +275,8 @@ begin
   AppSettings.WriteInt(asFieldColorSpatial, FGridTextColors[dtcSpatial]);
   AppSettings.WriteInt(asFieldColorOther, FGridTextColors[dtcOther]);
   AppSettings.WriteInt(asFieldNullBackground, cboxNullBackground.Selected);
+  AppSettings.WriteInt(asRowBackgroundEven, cboxRowBackgroundEven.Selected);
+  AppSettings.WriteInt(asRowBackgroundOdd, cboxRowBackgroundOdd.Selected);
   // Editor enablings
   AppSettings.WriteBool(asFieldEditorBinary, chkEditorBinary.Checked);
   AppSettings.WriteBool(asFieldEditorDatetime, chkEditorDatetime.Checked);
@@ -476,6 +481,8 @@ begin
   comboGridTextColors.ItemIndex := 0;
   comboGridTextColors.OnSelect(comboGridTextColors);
   cboxNullBackground.Selected := AppSettings.ReadInt(asFieldNullBackground);
+  cboxRowBackgroundEven.Selected := AppSettings.ReadInt(asRowBackgroundEven);
+  cboxRowBackgroundOdd.Selected := AppSettings.ReadInt(asRowBackgroundOdd);
   // Editor enablings
   chkEditorBinary.Checked := AppSettings.ReadBool(asFieldEditorBinary);
   chkEditorDatetime.Checked := AppSettings.ReadBool(asFieldEditorDatetime);

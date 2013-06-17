@@ -170,7 +170,7 @@ type
     asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asFieldColorNumeric,
     asFieldColorReal, asFieldColorText, asFieldColorBinary, asFieldColorDatetime, asFieldColorSpatial,
     asFieldColorOther, asFieldEditorBinary, asFieldEditorDatetime, asFieldEditorDatetimePrefill, asFieldEditorEnum,
-    asFieldEditorSet, asFieldNullBackground, asGroupTreeObjects, asDisplayObjectSizeColumn, asSQLfile,
+    asFieldEditorSet, asFieldNullBackground, asRowBackgroundEven, asRowBackgroundOdd, asGroupTreeObjects, asDisplayObjectSizeColumn, asSQLfile,
     asActionShortcut1, asActionShortcut2, asHighlighterForeground, asHighlighterBackground, asHighlighterStyle,
     asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
     asRecentFilter, asTimestampColumns, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asForeignDropDown, asQueryHistoryEnabled,
@@ -3315,6 +3315,8 @@ begin
   InitSetting(asFieldEditorEnum,                  'FieldEditor_Enum',                      0, True);
   InitSetting(asFieldEditorSet,                   'FieldEditor_Set',                       0, True);
   InitSetting(asFieldNullBackground,              'Field_NullBackground',                  $00FF00FF);
+  InitSetting(asRowBackgroundEven,                'RowBackgroundEven',                     clNone);
+  InitSetting(asRowBackgroundOdd,                 'RowBackgroundOdd',                      clNone);
   InitSetting(asGroupTreeObjects,                 'GroupTreeObjects',                      0, False);
   InitSetting(asDisplayObjectSizeColumn,          'DisplayObjectSizeColumn',               0, True);
   InitSetting(asActionShortcut1,                  'Shortcut1_%s',                          0);
