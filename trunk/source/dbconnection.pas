@@ -5068,7 +5068,11 @@ begin
       else if EngineUpper = 'CSV' then
         Result := 180
       else if EngineUpper = 'PERFORMANCE_SCHEMA' then
-        Result := 181;
+        Result := 181
+      else if EngineUpper = 'BLACKHOLE' then
+        Result := 167
+      else if EngineUpper = 'MRG_MYISAM' then
+        Result := 182;
     end;
 
   end;
