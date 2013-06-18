@@ -686,7 +686,7 @@ begin
     else
       SQL := SQL + 'ENGINE='+comboEngine.Text + CRLF;
   end;
-  if comboRowFormat.Tag = MODIFIEDFLAG then
+  if comboRowFormat.Text <> 'DEFAULT' then
     SQL := SQL + 'ROW_FORMAT='+comboRowFormat.Text + CRLF;
   if chkChecksum.Checked then
     SQL := SQL + 'CHECKSUM='+IntToStr(Integer(chkChecksum.Checked)) + CRLF;
