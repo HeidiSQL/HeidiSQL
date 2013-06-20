@@ -4316,10 +4316,9 @@ var
     col.Options := col.Options + [coSmartResize];
     if DatagridHiddenColumns.IndexOf(TblCol.Name) > -1 then
       col.Options := col.Options - [coVisible];
-    // Sorting color and title image
+    // Column header icons
     for k:=0 to Length(DataGridSortColumns)-1 do begin
       if DataGridSortColumns[k].ColumnName = TblCol.Name then begin
-        col.Color := ColorAdjustBrightness(col.Color, COLORSHIFT_SORTCOLUMNS);
         case DataGridSortColumns[k].SortDirection of
           ORDER_ASC:  col.ImageIndex := 109;
           ORDER_DESC: col.ImageIndex := 110;
