@@ -7079,7 +7079,12 @@ begin
           if Sender.ChildrenInitialized[Node] then
             CellText := CellText + ' (' + FormatNumber(Sender.ChildCount[Node]) + ')';
         end;
-        lntTable..lntEvent: CellText := DBObj.Name;
+        lntTable..lntEvent: begin
+          if DBObj.Schema <> '' then
+            CellText := DBObj.Schema + '.' + DBObj.Name
+          else
+            CellText := DBObj.Name;
+        end;
         lntColumn: CellText := DBObj.Column;
       end;
     1: if DBObj.Connection.Active then case DBObj.NodeType of
