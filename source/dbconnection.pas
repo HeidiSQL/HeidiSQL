@@ -29,7 +29,7 @@ type
       procedure SetCreateCode(Value: String);
     public
       // Table options:
-      Name, Database, Column, Engine, Comment, RowFormat, CreateOptions, Collation: String;
+      Name, Schema, Database, Column, Engine, Comment, RowFormat, CreateOptions, Collation: String;
       Created, Updated, LastChecked: TDateTime;
       Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
       // Routine options:
@@ -3065,7 +3065,8 @@ begin
   // Tables, views and procedures
   Results := nil;
   try
-    Results := GetResults('SELECT * FROM '+QuoteIdent(db)+GetSQLSpecifity(spDbObjectsTable)+
+    Results := GetResults('SELECT *, SCHEMA_NAME(schema_id) AS '+EscapeString('schema')+
+      ' FROM '+QuoteIdent(db)+GetSQLSpecifity(spDbObjectsTable)+
       ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+', '+EscapeString('TR')+', '+EscapeString('FN')+')');
   except
     on E:EDatabaseError do;
@@ -3077,6 +3078,7 @@ begin
       obj.Name := Results.Col('name');
       obj.Created := ParseDateTime(Results.Col(GetSQLSpecifity(spDbObjectsCreateCol), True));
       obj.Updated := ParseDateTime(Results.Col(GetSQLSpecifity(spDbObjectsUpdateCol), True));
+      obj.Schema := Results.Col('schema');
       obj.Database := db;
       tp := Trim(Results.Col(GetSQLSpecifity(spDbObjectsTypeCol), True));
       if tp = 'U' then
@@ -4964,6 +4966,7 @@ begin
     Column := s.Column;
     Collation := s.Collation;
     Engine := s.Engine;
+    Schema := s.Schema;
     Database := s.Database;
     NodeType := s.NodeType;
     GroupType := s.GroupType;
@@ -5103,15 +5106,15 @@ end;
 
 function TDBObject.QuotedName(AlwaysQuote: Boolean=True): String;
 begin
-  Result := Connection.QuoteIdent(Name, AlwaysQuote);
+  Result := '';
+  if Schema <> '' then
+    Result := Result + Connection.QuoteIdent(Schema, AlwaysQuote) + '.';
+  Result := Result + Connection.QuoteIdent(Name, AlwaysQuote);
 end;
 
 function TDBObject.QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
 begin
-  Result := QuotedDatabase(AlwaysQuote) + '.';
-  if Connection.Parameters.NetTypeGroup = ngMSSQL then
-    Result := Result + Connection.QuoteIdent('dbo', AlwaysQuote) + '.';
-  Result := Result + QuotedName(AlwaysQuote);
+  Result := QuotedDatabase(AlwaysQuote) + '.' + QuotedName(AlwaysQuote);
 end;
 
 function TDBObject.QuotedColumn(AlwaysQuote: Boolean=True): String;
