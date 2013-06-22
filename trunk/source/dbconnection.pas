@@ -317,6 +317,7 @@ type
       function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
       function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
       function QuotedDbAndTableName(DB, Obj: String): String;
+      function FindObject(DB, Obj: String): TDBObject;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
       function UnescapeString(Text: String): String;
       function ConvertServerVersion(Version: Integer): String; virtual; abstract;
@@ -2409,22 +2410,32 @@ end;
 
 function TDBConnection.QuotedDbAndTableName(DB, Obj: String): String;
 var
-  Objects: TDBObjectList;
   o: TDBObject;
 begin
   // Call TDBObject.QuotedDbAndTableName for db and table string.
   // Return fully qualified db and tablename, quoted, and including schema if required
-  Result := '';
+  o := FindObject(DB, Obj);
+  if o <> nil then
+    Result := o.QuotedDbAndTableName()
+  else // Fallback for target tables which do not yet exist. For example in copytable dialog.
+    Result := QuoteIdent(DB) + '.' + QuoteIdent(Obj);
+end;
+
+
+function TDBConnection.FindObject(DB, Obj: String): TDBObject;
+var
+  Objects: TDBObjectList;
+  o: TDBObject;
+begin
+  // Find TDBObject by db and table string
   Objects := GetDBObjects(DB);
+  Result := nil;
   for o in Objects do begin
     if o.Name = Obj then begin
-      Result := o.QuotedDbAndTableName();
+      Result := o;
       Break;
     end;
   end;
-  // Should not happen but who knows: Object name not found.
-  if Result = '' then
-    Result := QuoteIdent(DB) + '.' + QuoteIdent(Obj);
 end;
 
 
