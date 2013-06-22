@@ -2417,8 +2417,13 @@ begin
   o := FindObject(DB, Obj);
   if o <> nil then
     Result := o.QuotedDbAndTableName()
-  else // Fallback for target tables which do not yet exist. For example in copytable dialog.
-    Result := QuoteIdent(DB) + '.' + QuoteIdent(Obj);
+  else begin
+    // Fallback for target tables which do not yet exist. For example in copytable dialog.
+    Result := QuoteIdent(DB) + '.';
+    if Parameters.NetTypeGroup = ngMSSQL then
+      Result := Result + QuoteIdent('dbo') + '.';
+    Result := Result + QuoteIdent(Obj);
+  end;
 end;
 
 
