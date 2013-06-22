@@ -357,7 +357,10 @@ end;
 
 procedure TCopyTableForm.btnOKClick(Sender: TObject);
 var
-  CreateCode, InsertCode, TargetTable, DataCols, TableExistance: String;
+  CreateCode, InsertCode, TargetTable, DataCols: String;
+  TableExists: Boolean;
+  Objects: TDBObjectList;
+  o: TDBObject;
   ParentNode, Node: PVirtualNode;
   DoData, AutoIncGetsPrimaryKey, AutoIncRemoved, TableHasAutoInc: Boolean;
   SelectedColumns: TTableColumnList;
@@ -371,8 +374,11 @@ const
 begin
   // Compose and run CREATE query
   TargetTable := FDBObj.Connection.QuotedDbAndTableName(comboDatabase.Text, editNewTablename.Text);
-  TableExistance := FDBObj.Connection.GetVar('SHOW TABLES FROM '+FDBObj.Connection.QuoteIdent(comboDatabase.Text)+' LIKE '+esc(editNewTablename.Text));
-  if TableExistance <> '' then begin
+
+  // Refresh db cache and watch out if target table exists
+  FDBObj.Connection.ClearDbObjects(comboDatabase.Text);
+  TableExists := FDBObj.Connection.FindObject(comboDatabase.Text, editNewTablename.Text) <> nil;
+  if TableExists then begin
     if MessageDialog(_('Target table exists. Drop it and overwrite?'), mtConfirmation, [mbYes, mbCancel]) = mrCancel then begin
       ModalResult := mrNone;
       Exit;
