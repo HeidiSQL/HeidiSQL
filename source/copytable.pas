@@ -359,8 +359,6 @@ procedure TCopyTableForm.btnOKClick(Sender: TObject);
 var
   CreateCode, InsertCode, TargetTable, DataCols: String;
   TableExists: Boolean;
-  Objects: TDBObjectList;
-  o: TDBObject;
   ParentNode, Node: PVirtualNode;
   DoData, AutoIncGetsPrimaryKey, AutoIncRemoved, TableHasAutoInc: Boolean;
   SelectedColumns: TTableColumnList;
@@ -373,10 +371,12 @@ const
   ClausePattern: String = #9 + '%s,' + CRLF;
 begin
   // Compose and run CREATE query
+
+  // Refresh db cache for getting fresh results in QuotedDbAndTableName + FindObject
+  FDBObj.Connection.ClearDbObjects(comboDatabase.Text);
   TargetTable := FDBObj.Connection.QuotedDbAndTableName(comboDatabase.Text, editNewTablename.Text);
 
-  // Refresh db cache and watch out if target table exists
-  FDBObj.Connection.ClearDbObjects(comboDatabase.Text);
+  // Watch out if target table exists
   TableExists := FDBObj.Connection.FindObject(comboDatabase.Text, editNewTablename.Text) <> nil;
   if TableExists then begin
     if MessageDialog(_('Target table exists. Drop it and overwrite?'), mtConfirmation, [mbYes, mbCancel]) = mrCancel then begin
@@ -464,7 +464,8 @@ begin
     CreateCode := CreateCode + ' ROW_FORMAT=' + FDBObj.RowFormat;
   if (FDBObj.AutoInc > -1) and TableHasAutoInc then
     CreateCode := CreateCode + ' AUTO_INCREMENT=' + IntToStr(FDBObj.AutoInc);
-  CreateCode := CreateCode + ' COMMENT=' + esc(FDBObj.Comment);
+  if FDBObj.Comment <> '' then
+    CreateCode := CreateCode + ' COMMENT=' + esc(FDBObj.Comment);
 
   // Add INSERT .. SELECT .. FROM OrgTable clause
   InsertCode := '';
@@ -482,7 +483,7 @@ begin
     MainForm.ActiveConnection.Query(CreateCode);
     if InsertCode <> '' then
       MainForm.ActiveConnection.Query(InsertCode);
-    MainForm.actRefresh.Execute;
+    FDBObj.Connection.ClearDbObjects(comboDatabase.Text);
   except
     on E:EDatabaseError do begin
       Screen.Cursor := crDefault;
