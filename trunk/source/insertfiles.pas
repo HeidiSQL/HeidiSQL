@@ -620,8 +620,7 @@ begin
     FileInfo := ListFiles.GetNodeData(Node);
     FileSize := _GetFileSize(FileInfo.Filename);
     FileReadDone := False;
-    sql := 'INSERT INTO '+FConnection.QuoteIdent(comboDBs.Text)+'.'+FConnection.QuoteIdent(comboTables.Text) +
-      ' (';
+    sql := 'INSERT INTO '+FConnection.QuotedDbAndTableName(comboDBs.Text, comboTables.Text) + ' (';
     ColNode := ListColumns.GetFirst;
     while Assigned(ColNode) do begin
       ColInfo := ListColumns.GetNodeData(ColNode);

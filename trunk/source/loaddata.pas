@@ -285,7 +285,7 @@ begin
 
   // Truncate table before importing
   if chkTruncateTable.Checked then
-    FConnection.Query('TRUNCATE TABLE ' + FConnection.QuoteIdent(comboDatabase.Text) + '.' +  FConnection.QuoteIdent(comboTable.Text));
+    FConnection.Query('TRUNCATE TABLE ' + FConnection.QuotedDbAndTableName(comboDatabase.Text, comboTable.Text));
 
   ColumnCount := 0;
   for i:=0 to chkListColumns.Items.Count-1 do begin
@@ -355,7 +355,7 @@ begin
     1: SQL := SQL + 'IGNORE ';
     2: SQL := SQL + 'REPLACE ';
   end;
-  SQL := SQL + 'INTO TABLE ' + FConnection.QuoteIdent(comboDatabase.Text) + '.' +  FConnection.QuoteIdent(comboTable.Text) + ' ';
+  SQL := SQL + 'INTO TABLE ' + FConnection.QuotedDbAndTableName(comboDatabase.Text, comboTable.Text) + ' ';
 
   if comboEncoding.ItemIndex > 0 then begin
     FConnection.CharsetTable.RecNo := comboEncoding.ItemIndex-1;
@@ -462,7 +462,7 @@ var
           1: SQL := 'INSERT '+LowPrio+'IGNORE ';
           2: SQL := 'REPLACE '+LowPrio;
         end;
-        SQL := SQL + 'INTO '+FConnection.QuoteIdent(comboDatabase.Text)+'.'+FConnection.QuoteIdent(comboTable.Text)+' (';
+        SQL := SQL + 'INTO '+FConnection.QuotedDbAndTableName(comboDatabase.Text, comboTable.Text)+' (';
         for i:=0 to chkListColumns.Items.Count-1 do begin
           if chkListColumns.Checked[i] then
             SQL := SQL + FConnection.QuoteIdent(chkListColumns.Items[i]) + ', ';

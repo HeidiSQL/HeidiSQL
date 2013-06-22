@@ -316,6 +316,7 @@ type
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: Boolean=True): String;
       function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
       function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
+      function QuotedDbAndTableName(DB, Obj: String): String;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
       function UnescapeString(Text: String): String;
       function ConvertServerVersion(Version: Integer): String; virtual; abstract;
@@ -2403,6 +2404,27 @@ begin
   for Quote in FQuoteChars do begin
     Result := StringReplace(Result, Quote, '', [rfReplaceAll]);
   end;
+end;
+
+
+function TDBConnection.QuotedDbAndTableName(DB, Obj: String): String;
+var
+  Objects: TDBObjectList;
+  o: TDBObject;
+begin
+  // Call TDBObject.QuotedDbAndTableName for db and table string.
+  // Return fully qualified db and tablename, quoted, and including schema if required
+  Result := '';
+  Objects := GetDBObjects(DB);
+  for o in Objects do begin
+    if o.Name = Obj then begin
+      Result := o.QuotedDbAndTableName();
+      Break;
+    end;
+  end;
+  // Should not happen but who knows: Object name not found.
+  if Result = '' then
+    Result := QuoteIdent(DB) + '.' + QuoteIdent(Obj);
 end;
 
 
