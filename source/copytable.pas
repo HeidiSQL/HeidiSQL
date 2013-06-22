@@ -370,7 +370,7 @@ const
   ClausePattern: String = #9 + '%s,' + CRLF;
 begin
   // Compose and run CREATE query
-  TargetTable := FDBObj.Connection.QuoteIdent(comboDatabase.Text)+'.'+FDBObj.Connection.QuoteIdent(editNewTablename.Text);
+  TargetTable := FDBObj.Connection.QuotedDbAndTableName(comboDatabase.Text, editNewTablename.Text);
   TableExistance := FDBObj.Connection.GetVar('SHOW TABLES FROM '+FDBObj.Connection.QuoteIdent(comboDatabase.Text)+' LIKE '+esc(editNewTablename.Text));
   if TableExistance <> '' then begin
     if MessageDialog(_('Target table exists. Drop it and overwrite?'), mtConfirmation, [mbYes, mbCancel]) = mrCancel then begin
