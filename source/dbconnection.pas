@@ -237,7 +237,8 @@ type
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
     spEmptyTable, spRenameTable, spCurrentUserHost,
     spAddColumn, spChangeColumn,
-    spSessionVariables, spGlobalVariables);
+    spSessionVariables, spGlobalVariables,
+    spISTableSchemaCol);
 
   TDBConnection = class(TComponent)
     private
@@ -1355,6 +1356,7 @@ begin
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
+      FSQLSpecifities[spISTableSchemaCol] := 'TABLE_SCHEMA';
     end;
     ngMSSQL: begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
@@ -1364,6 +1366,7 @@ begin
       FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
       FSQLSpecifities[spSessionVariables] := 'SELECT '+QuoteIdent('comment')+', '+QuoteIdent('value')+' FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('syscurconfigs')+' ORDER BY '+QuoteIdent('comment');
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
+      FSQLSpecifities[spISTableSchemaCol] := 'TABLE_CATALOG';
     end;
 
   end;
