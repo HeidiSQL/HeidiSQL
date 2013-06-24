@@ -41,6 +41,7 @@ type
   private
     { Private declarations }
     FDBObj: TDBObject;
+    FConnection: TDBConnection;
     FColumns: TTableColumnList;
     FKeys: TTableKeyList;
     FForeignKeys: TForeignKeyList;
@@ -116,6 +117,7 @@ begin
     Tree := Mainform.ListTables;
   Obj := Tree.GetNodeData(Tree.FocusedNode);
   FDBObj := Obj^;
+  FConnection := FDBObj.Connection;
   editNewTablename.Text := FDBObj.Name + '_copy';
   editNewTablename.SetFocus;
   lblNewTablename.Caption := f_('Copy "%s" to new db.table:', [FDBObj.Name]);
@@ -123,7 +125,7 @@ begin
 
 	// Select TargetDatabase
   comboDatabase.Items.Clear;
-  comboDatabase.Items.Assign(Mainform.ActiveConnection.AllDatabases);
+  comboDatabase.Items.Assign(FConnection.AllDatabases);
   comboDatabase.ItemIndex := comboDatabase.Items.IndexOf(Mainform.ActiveDatabase);
   if comboDatabase.ItemIndex = -1 then
     comboDatabase.ItemIndex := 0;
@@ -133,8 +135,8 @@ begin
   FKeys.Clear;
   FForeignKeys.Clear;
   case FDBObj.NodeType of
-    lntTable: FDBObj.Connection.ParseTableStructure(FDBObj.CreateCode, FColumns, FKeys, FForeignKeys);
-    lntView: FDBObj.Connection.ParseViewStructure(FDBObj.CreateCode, FDBObj.Name, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
+    lntTable: FConnection.ParseTableStructure(FDBObj.CreateCode, FColumns, FKeys, FForeignKeys);
+    lntView: FConnection.ParseViewStructure(FDBObj.CreateCode, FDBObj.Name, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
     else raise Exception.CreateFmt(_('Neither table nor view: %s'), [FDBObj.Name]);
   end;
 
@@ -358,7 +360,7 @@ end;
 procedure TCopyTableForm.btnOKClick(Sender: TObject);
 var
   CreateCode, InsertCode, TargetTable, DataCols: String;
-  TableExists: Boolean;
+  TableExistence: String;
   ParentNode, Node: PVirtualNode;
   DoData, AutoIncGetsPrimaryKey, AutoIncRemoved, TableHasAutoInc: Boolean;
   SelectedColumns: TTableColumnList;
@@ -372,18 +374,20 @@ const
 begin
   // Compose and run CREATE query
 
-  // Refresh db cache for getting fresh results in QuotedDbAndTableName + FindObject
-  FDBObj.Connection.ClearDbObjects(comboDatabase.Text);
-  TargetTable := FDBObj.Connection.QuotedDbAndTableName(comboDatabase.Text, editNewTablename.Text);
+  TargetTable := FConnection.QuotedDbAndTableName(comboDatabase.Text, editNewTablename.Text);
 
   // Watch out if target table exists
-  TableExists := FDBObj.Connection.FindObject(comboDatabase.Text, editNewTablename.Text) <> nil;
-  if TableExists then begin
+  TableExistence := FConnection.GetVar('SELECT '+FConnection.QuoteIdent('TABLE_NAME')+
+    ' FROM '+FConnection.QuoteIdent('information_schema')+'.'+FConnection.QuoteIdent('TABLES')+
+    ' WHERE '+FConnection.QuoteIdent(FConnection.GetSQLSpecifity(spISTableSchemaCol))+'='+FConnection.EscapeString(comboDatabase.Text)+
+    ' AND '+FConnection.QuoteIdent('TABLE_NAME')+'='+FConnection.EscapeString(editNewTablename.Text)
+    );
+  if TableExistence <> '' then begin
     if MessageDialog(_('Target table exists. Drop it and overwrite?'), mtConfirmation, [mbYes, mbCancel]) = mrCancel then begin
       ModalResult := mrNone;
       Exit;
     end;
-    FDBObj.Connection.Query('DROP TABLE '+TargetTable);
+    FConnection.Query('DROP TABLE '+TargetTable);
   end;
 
   Screen.Cursor := crHourglass;
@@ -436,7 +440,7 @@ begin
     CreateCode := CreateCode + Format(ClausePattern, [Column.SQLCode]);
     if AutoIncRemoved then
       Column.DefaultType := cdtAutoInc;
-    DataCols := DataCols + FDBObj.Connection.QuoteIdent(Column.Name) + ', ';
+    DataCols := DataCols + FConnection.QuoteIdent(Column.Name) + ', ';
   end;
 
   // Indexes code
@@ -453,9 +457,9 @@ begin
 
   // Add collation and engine clauses
   if FDBObj.Collation <> '' then
-    CreateCode := CreateCode + ' COLLATE ' + esc(FDBObj.Collation);
+    CreateCode := CreateCode + ' COLLATE ' + FConnection.EscapeString(FDBObj.Collation);
   if FDBObj.Engine <> '' then begin
-    if MainForm.ActiveConnection.ServerVersionInt < 40018 then
+    if FConnection.ServerVersionInt < 40018 then
       CreateCode := CreateCode + ' TYPE=' + FDBObj.Engine
     else
       CreateCode := CreateCode + ' ENGINE=' + FDBObj.Engine;
@@ -465,7 +469,7 @@ begin
   if (FDBObj.AutoInc > -1) and TableHasAutoInc then
     CreateCode := CreateCode + ' AUTO_INCREMENT=' + IntToStr(FDBObj.AutoInc);
   if FDBObj.Comment <> '' then
-    CreateCode := CreateCode + ' COMMENT=' + esc(FDBObj.Comment);
+    CreateCode := CreateCode + ' COMMENT=' + FConnection.EscapeString(FDBObj.Comment);
 
   // Add INSERT .. SELECT .. FROM OrgTable clause
   InsertCode := '';
@@ -480,10 +484,14 @@ begin
   // Run query and refresh list
   try
     MainForm.ShowStatusMsg(_('Creating table ...'));
-    MainForm.ActiveConnection.Query(CreateCode);
+    FConnection.Query(CreateCode);
     if InsertCode <> '' then
-      MainForm.ActiveConnection.Query(InsertCode);
-    FDBObj.Connection.ClearDbObjects(comboDatabase.Text);
+      FConnection.Query(InsertCode);
+    // actRefresh takes care of whether the table editor is open
+    if FConnection.Database = comboDatabase.Text then
+      MainForm.actRefresh.Execute
+    else
+      FConnection.ClearDbObjects(comboDatabase.Text);
   except
     on E:EDatabaseError do begin
       Screen.Cursor := crDefault;
