@@ -362,7 +362,7 @@ var
   CreateCode, InsertCode, TargetTable, DataCols: String;
   TableExistence: String;
   ParentNode, Node: PVirtualNode;
-  DoData, AutoIncGetsPrimaryKey, AutoIncRemoved, TableHasAutoInc: Boolean;
+  DoData, AutoIncGetsKey, AutoIncRemoved, TableHasAutoInc: Boolean;
   SelectedColumns: TTableColumnList;
   SelectedKeys: TTableKeyList;
   SelectedForeignKeys: TForeignKeyList;
@@ -422,16 +422,16 @@ begin
   // Columns code. Remove auto_increment attribute if pkey was unchecked, to overcome
   // "there can be only one auto column and it must be defined as a key"
   for Column in SelectedColumns do begin
-    AutoIncGetsPrimaryKey := False;
+    AutoIncGetsKey := False;
     AutoIncRemoved := False;
     if Column.DefaultType = cdtAutoInc then begin
       for Key in SelectedKeys do begin
-        if (Key.IndexType = PKEY) and (Key.Columns.IndexOf(Column.Name) > -1) then begin
-          AutoIncGetsPrimaryKey := True;
+        if ((Key.IndexType = PKEY) or (Key.IndexType = UKEY)) and (Key.Columns.IndexOf(Column.Name) > -1) then begin
+          AutoIncGetsKey := True;
           Break;
         end;
       end;
-      if not AutoIncGetsPrimaryKey then begin
+      if not AutoIncGetsKey then begin
         Column.DefaultType := cdtNothing;
         AutoIncRemoved := True;
       end;
