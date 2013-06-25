@@ -108,6 +108,7 @@ type
   TTableKey = class(TObject)
     private
       FConnection: TDBConnection;
+      function GetImageIndex: Integer;
     public
       Name, OldName: String;
       IndexType, OldIndexType, Algorithm: String;
@@ -117,6 +118,7 @@ type
       destructor Destroy; override;
       procedure Modification(Sender: TObject);
       function SQLCode: String;
+      property ImageIndex: Integer read GetImageIndex;
   end;
   TTableKeyList = TObjectList<TTableKey>;
 
@@ -5252,6 +5254,17 @@ procedure TTableKey.Modification(Sender: TObject);
 begin
   if not Added then
     Modified := True;
+end;
+
+function TTableKey.GetImageIndex: Integer;
+begin
+  // Detect key icon index for specified index
+  if IndexType = PKEY then Result := ICONINDEX_PRIMARYKEY
+  else if IndexType = KEY then Result := ICONINDEX_INDEXKEY
+  else if IndexType = UKEY then Result := ICONINDEX_UNIQUEKEY
+  else if IndexType = FKEY then Result := ICONINDEX_FULLTEXTKEY
+  else if IndexType = SKEY then Result := ICONINDEX_SPATIALKEY
+  else Result := -1;
 end;
 
 function TTableKey.SQLCode: String;

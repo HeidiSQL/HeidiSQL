@@ -914,7 +914,7 @@ begin
     X := 0;
     for i:=0 to FKeys.Count-1 do begin
       if FKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
-        ImageIndex := GetIndexIcon(FKeys[i].IndexType);
+        ImageIndex := FKeys[i].ImageIndex;
         VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
         Inc(X, VT.Images.Width);
       end;
@@ -1482,7 +1482,7 @@ begin
   if Column <> 0 then Exit;
   if not (Kind in [ikNormal, ikSelected]) then Exit;
   case VT.GetNodeLevel(Node) of
-    0: ImageIndex := GetIndexIcon(VT.Text[Node, 1]);
+    0: ImageIndex := FKeys[Node.Index].ImageIndex;
     1: ImageIndex := 42;
   end;
 end;
@@ -1897,7 +1897,7 @@ begin
       IndexName := PKEY;
     end else
       IndexName := FKeys[i].Name + ' ('+FKeys[i].IndexType+')';
-    Item := AddItem(menuAddToIndex, IndexName, GetIndexIcon(FKeys[i].IndexType));
+    Item := AddItem(menuAddToIndex, IndexName, FKeys[i].ImageIndex);
     // Disable menuitem if all selected columns are already part of this index,
     // enable it if one or more selected columns are not.
     Item.Enabled := False;

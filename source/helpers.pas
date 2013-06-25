@@ -305,7 +305,6 @@ type
   function ParamStrToBlob(out cbData: DWORD): Pointer;
   function CheckForSecondInstance: Boolean;
   function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
-  function GetIndexIcon(IndexType: String): Integer;
   function KeyPressed(Code: Integer): Boolean;
   function GeneratePassword(Len: Integer): String;
   procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
@@ -2195,18 +2194,6 @@ begin
     if (not Assigned(Result)) or (Result is TCustomForm) or (Result is TFrame) then
       break;
   end;
-end;
-
-
-function GetIndexIcon(IndexType: String): Integer;
-begin
-  // Detect key icon index for specified index
-  if IndexType = PKEY then Result := ICONINDEX_PRIMARYKEY
-  else if IndexType = KEY then Result := ICONINDEX_INDEXKEY
-  else if IndexType = UKEY then Result := ICONINDEX_UNIQUEKEY
-  else if IndexType = FKEY then Result := ICONINDEX_FULLTEXTKEY
-  else if IndexType = SKEY then Result := ICONINDEX_SPATIALKEY
-  else Result := -1;
 end;
 
 

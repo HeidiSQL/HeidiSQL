@@ -235,7 +235,7 @@ begin
       end;
     1: case Node.Parent.Index of
          nColumns:      ImageIndex := ICONINDEX_FIELD;
-         nKeys:         ImageIndex := GetIndexIcon(FKeys[Node.Index].IndexType);
+         nKeys:         ImageIndex := FKeys[Node.Index].ImageIndex;
          nForeignKeys:  ImageIndex := ICONINDEX_FOREIGNKEY;
          else raise Exception.Create(_(SUnhandledNodeIndex));
       end;

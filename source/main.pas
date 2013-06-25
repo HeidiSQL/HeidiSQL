@@ -4328,7 +4328,7 @@ var
     if col.ImageIndex = -1 then begin
       for k:=0 to SelectedTableKeys.Count-1 do begin
         if SelectedTableKeys[k].Columns.IndexOf(TblCol.Name) > -1 then begin
-          col.ImageIndex := GetIndexIcon(SelectedTableKeys[k].IndexType);
+          col.ImageIndex := SelectedTableKeys[k].ImageIndex;
           break;
         end;
       end;
