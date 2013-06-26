@@ -336,7 +336,7 @@ type
       function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
       function ConnectionInfo: TStringList;
       function GetLastResults: TDBQueryList; virtual; abstract;
-      function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; virtual; abstract;
+      function GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String; virtual; abstract;
       function GetSessionVariables(Refresh: Boolean): TDBQuery;
       function MaxAllowedPacket: Int64; virtual; abstract;
       function GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
@@ -425,7 +425,7 @@ type
       function ConvertServerVersion(Version: Integer): String; override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetLastResults: TDBQueryList; override;
-      function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
+      function GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String; override;
       property LastRawResults: TMySQLRawResults read FLastRawResults;
       function MaxAllowedPacket: Int64; override;
       function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; override;
@@ -457,7 +457,7 @@ type
       function ConvertServerVersion(Version: Integer): String; override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetLastResults: TDBQueryList; override;
-      function GetCreateCode(Database, Name: String; NodeType: TListNodeType): String; override;
+      function GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String; override;
       function MaxAllowedPacket: Int64; override;
       property LastRawResults: TAdoRawResults read FLastRawResults;
   end;
@@ -1749,7 +1749,7 @@ begin
 end;
 
 
-function TMySQLConnection.GetCreateCode(Database, Name: String; NodeType: TListNodeType): String;
+function TMySQLConnection.GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String;
 var
   Column: Integer;
   ObjType: String;
@@ -1825,10 +1825,10 @@ begin
 end;
 
 
-function TAdoDBConnection.GetCreateCode(Database, Name: String; NodeType: TListNodeType): String;
+function TAdoDBConnection.GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String;
 var
   Cols, Keys: TDBQuery;
-  ConstraintName: String;
+  ConstraintName, SchemaClause: String;
   ColNames: TStringList;
 begin
   case NodeType of
@@ -1836,8 +1836,16 @@ begin
       Result := 'CREATE TABLE '+QuoteIdent(Name)+' (';
 
       // Retrieve column details from IS
+      if Schema <> '' then
+        SchemaClause := ' AND TABLE_SCHEMA='+EscapeString(Schema)
+      else
+        SchemaClause := '';
+
       Cols := GetResults('SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE '+
-        'TABLE_CATALOG='+EscapeString(Database)+' AND TABLE_NAME='+EscapeString(Name));
+        'TABLE_CATALOG='+EscapeString(Database) +
+        SchemaClause +
+        ' AND TABLE_NAME='+EscapeString(Name)
+        );
       while not Cols.Eof do begin
         Result := Result + CRLF + #9 + QuoteIdent(Cols.Col('COLUMN_NAME')) + ' ' + UpperCase(Cols.Col('DATA_TYPE'));
         if not Cols.IsNull('CHARACTER_MAXIMUM_LENGTH') then
@@ -4367,7 +4375,7 @@ end;
 
 procedure TDBQuery.PrepareEditing;
 var
-  CreateCode, Dummy, DB, Table: String;
+  CreateCode, Dummy, DB, Schema, Table: String;
   DBObjects: TDBObjectList;
   Obj: TDBObject;
   ObjType: TListNodeType;
@@ -4382,13 +4390,15 @@ begin
   DBObjects := Connection.GetDBObjects(DB);
   Table := TableName;
   ObjType := lntTable;
+  Schema := '';
   for Obj in DBObjects do begin
     if (Obj.NodeType in [lntTable, lntView]) and (Obj.Name = Table) then begin
       ObjType := Obj.NodeType;
+      Schema := Obj.Schema;
       break;
     end;
   end;
-  CreateCode := Connection.GetCreateCode(DatabaseName, TableName, ObjType);
+  CreateCode := Connection.GetCreateCode(DatabaseName, Schema, TableName, ObjType);
   FColumns := TTableColumnList.Create;
   FKeys := TTableKeyList.Create;
   FForeignKeys := TForeignKeyList.Create;
@@ -5128,7 +5138,7 @@ end;
 function TDBObject.GetCreateCode: String;
 begin
   if not FCreateCodeFetched then try
-    CreateCode := Connection.GetCreateCode(Database, Name, NodeType);
+    CreateCode := Connection.GetCreateCode(Database, Schema, Name, NodeType);
   except on E:Exception do
     Connection.Log(lcError, E.Message);
   end;

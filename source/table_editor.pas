@@ -2228,7 +2228,7 @@ begin
           RefDatabase := Copy(RefTable, 1, i-1);
           RefTable := Copy(RefTable, i+1, MaxInt);
         end;
-        RefCreateCode := DBObject.Connection.GetCreateCode(RefDatabase, RefTable, lntTable);
+        RefCreateCode := DBObject.Connection.GetCreateCode(RefDatabase, '', RefTable, lntTable);
         RefColumns := TTableColumnList.Create(True);
         DBObject.Connection.ParseTableStructure(RefCreateCode, RefColumns, nil, nil);
         TypesMatch := True;
