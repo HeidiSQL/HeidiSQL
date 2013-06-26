@@ -4771,7 +4771,12 @@ begin
   Obj := Sender.GetNodeData(Node);
   CellText := '';
   case Column of
-    0: CellText := Obj.Name;
+    0: begin
+      if Obj.Schema <> '' then
+        CellText := Obj.Schema + '.' + Obj.Name
+      else
+        CellText := Obj.Name;
+    end;
     1: if Obj.Rows > -1 then CellText := FormatNumber(Obj.Rows);
     2: if Obj.Size > -1 then CellText := FormatByteNumber(Obj.Size);
     3: if Obj.Created <> 0 then CellText := DateTimeToStr(Obj.Created);
