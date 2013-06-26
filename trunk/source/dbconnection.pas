@@ -4957,7 +4957,7 @@ end;
 function TDBObjectComparer.Compare(const Left, Right: TDBObject): Integer;
 begin
   // Simple sort method for a TDBObjectList
-  Result := CompareAnyNode(Left.Name, Right.Name);
+  Result := CompareAnyNode(Left.Schema+'.'+Left.Name, Right.Schema+'.'+Right.Name);
 end;
 
 
