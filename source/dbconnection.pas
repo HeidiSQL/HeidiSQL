@@ -1473,6 +1473,7 @@ end;
 procedure TAdoDBConnection.DoAfterConnect;
 begin
   inherited;
+  // See http://sqlserverbuilds.blogspot.de/
   case ServerVersionInt of
     0..899: begin
       FSQLSpecifities[spDatabaseTable] := QuoteIdent('master')+'..'+QuoteIdent('sysdatabases');
