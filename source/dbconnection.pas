@@ -1828,22 +1828,28 @@ end;
 function TAdoDBConnection.GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String;
 var
   Cols, Keys: TDBQuery;
-  ConstraintName, SchemaClause: String;
+  ConstraintName: String;
   ColNames: TStringList;
+
+  // Return fitting schema clause for queries in IS.TABLES, IS.ROUTINES etc.
+  // TODO: Does not work on MSSQL 2000
+  function SchemaClauseIS(Prefix: String): String;
+  begin
+    if Schema <> '' then
+      Result := ' AND '+Prefix+'_SCHEMA='+EscapeString(Schema)
+    else
+      Result := '';
+  end;
+
 begin
   case NodeType of
     lntTable: begin
       Result := 'CREATE TABLE '+QuoteIdent(Name)+' (';
 
       // Retrieve column details from IS
-      if Schema <> '' then
-        SchemaClause := ' AND TABLE_SCHEMA='+EscapeString(Schema)
-      else
-        SchemaClause := '';
-
       Cols := GetResults('SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE '+
         'TABLE_CATALOG='+EscapeString(Database) +
-        SchemaClause +
+        SchemaClauseIS('TABLE') +
         ' AND TABLE_NAME='+EscapeString(Name)
         );
       while not Cols.Eof do begin
@@ -1865,6 +1871,7 @@ begin
         '   C.CONSTRAINT_NAME = K.CONSTRAINT_NAME'+
         '   AND K.TABLE_CATALOG='+EscapeString(Database)+
         '	  AND K.TABLE_NAME='+EscapeString(Name)+
+        SchemaClauseIS('K.TABLE')+
         ' WHERE C.CONSTRAINT_TYPE IN ('+EscapeString('PRIMARY KEY')+', '+EscapeString('UNIQUE')+')'+
         ' ORDER BY K.ORDINAL_POSITION');
       ConstraintName := '';
@@ -1896,7 +1903,8 @@ begin
       Result := GetVar('SELECT VIEW_DEFINITION'+
         ' FROM INFORMATION_SCHEMA.VIEWS'+
         ' WHERE TABLE_NAME='+EscapeString(Name)+
-        ' AND TABLE_CATALOG='+EscapeString(Database)
+        ' AND TABLE_CATALOG='+EscapeString(Database)+
+        SchemaClauseIS('TABLE')
         );
     end;
 
@@ -1905,7 +1913,8 @@ begin
         ' FROM INFORMATION_SCHEMA.ROUTINES'+
         ' WHERE ROUTINE_NAME='+EscapeString(Name)+
         ' AND ROUTINE_TYPE='+EscapeString('FUNCTION')+
-        ' AND ROUTINE_CATALOG='+EscapeString(Database)
+        ' AND ROUTINE_CATALOG='+EscapeString(Database)+
+        SchemaClauseIS('ROUTINE')
         );
     end;
 
@@ -1914,7 +1923,8 @@ begin
         ' FROM INFORMATION_SCHEMA.ROUTINES'+
         ' WHERE ROUTINE_NAME='+EscapeString(Name)+
         ' AND ROUTINE_TYPE='+EscapeString('PROCEDURE')+
-        ' AND ROUTINE_CATALOG='+EscapeString(Database)
+        ' AND ROUTINE_CATALOG='+EscapeString(Database)+
+        SchemaClauseIS('ROUTINE')
         );
     end;
 
