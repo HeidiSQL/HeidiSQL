@@ -3121,12 +3121,16 @@ procedure TAdoDBConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
 var
   obj: TDBObject;
   Results: TDBQuery;
-  tp: String;
+  tp, SchemaSelect: String;
 begin
   // Tables, views and procedures
   Results := nil;
+  // Schema support introduced in MSSQL 2005 (9.0). See issue #3212.
+  SchemaSelect := EscapeString('');
+  if ServerVersionInt >= 900 then
+    SchemaSelect := 'SCHEMA_NAME('+QuoteIdent('schema_id')+')';
   try
-    Results := GetResults('SELECT *, SCHEMA_NAME(schema_id) AS '+EscapeString('schema')+
+    Results := GetResults('SELECT *, '+SchemaSelect+' AS '+EscapeString('schema')+
       ' FROM '+QuoteIdent(db)+GetSQLSpecifity(spDbObjectsTable)+
       ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+', '+EscapeString('TR')+', '+EscapeString('FN')+')');
   except
