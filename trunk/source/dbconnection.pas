@@ -3607,6 +3607,7 @@ var
   rx: TRegExpr;
   i: Integer;
   Param: TRoutineParam;
+  InLiteral: Boolean;
 begin
   // Parse CREATE code of stored function or procedure to detect parameters
   rx := TRegExpr.Create;
@@ -3628,15 +3629,18 @@ begin
   // Parse parameter list
   ParenthesesCount := 0;
   Params := '';
+  InLiteral := False;
   for i:=1 to Length(CreateCode) do begin
-    if CreateCode[i] = ')' then begin
+    if (CreateCode[i] = ')') and (not InLiteral) then begin
       Dec(ParenthesesCount);
       if ParenthesesCount = 0 then
         break;
     end;
+    if Pos(CreateCode[i], FQuoteChars) > 0 then
+      InLiteral := not InLiteral;
     if ParenthesesCount >= 1 then
       Params := Params + CreateCode[i];
-    if CreateCode[i] = '(' then
+    if (CreateCode[i] = '(') and (not InLiteral) then
       Inc(ParenthesesCount);
   end;
 
