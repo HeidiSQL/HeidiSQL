@@ -1815,8 +1815,7 @@ begin
       if Definer <> '' then
         Result := Result + 'DEFINER='+QuoteIdent(Definer, True, '@')+' ';
       Result := Result + 'VIEW '+QuoteIdent(Database)+'.'+QuoteIdent(Name)+' AS '+AlternativeSelectCode+' ';
-      if CheckOption <> '' then
-        Result := Result + 'WITH '+Uppercase(CheckOption)+' CHECK OPTION';
+      // WITH .. CHECK OPTION is already contained in the source
     end;
     rx.Free;
   except
