@@ -4366,7 +4366,10 @@ end;
 
 function TAdoDBQuery.IsNull(Column: Integer): Boolean;
 begin
-  Result := FCurrentResults.Fields[Column].IsNull;
+  if FEditingPrepared and Assigned(FCurrentUpdateRow) then
+    Result := FCurrentUpdateRow[Column].NewIsNull
+  else
+    Result := FCurrentResults.Fields[Column].IsNull;
 end;
 
 
