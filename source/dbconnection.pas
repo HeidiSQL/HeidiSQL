@@ -4849,18 +4849,8 @@ end;
 
 
 function TDBQuery.QuotedDbAndTableName: String;
-var
-  db: String;
 begin
-  // Return `db`.`table` if necessairy, otherwise `table`
-  Result := '';
-  db := DatabaseName;
-  if Connection.Database <> db then begin
-    Result := Connection.QuoteIdent(db)+'.';
-    if Connection.Parameters.NetTypeGroup = ngMSSQL then
-      Result := Result + Connection.QuoteIdent('dbo')+'.';
-  end;
-  Result := Result + Connection.QuoteIdent(TableName);
+  Result := FConnection.QuotedDbAndTableName(DatabaseName, TableName);
 end;
 
 
