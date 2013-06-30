@@ -485,8 +485,10 @@ type
       FForeignKeys: TForeignKeyList;
       FEditingPrepared: Boolean;
       FUpdateData: TUpdateData;
+      FDBObject: TDBObject;
       procedure SetRecNo(Value: Int64); virtual; abstract;
       procedure SetColumnOrgNames(Value: TStringList);
+      procedure SetDBObject(Value: TDBObject);
       procedure CreateUpdateRow;
       function GetKeyColumns: TStringList;
       function GetWhereClause: String;
@@ -537,6 +539,7 @@ type
       property StoreResult: Boolean read FStoreResult write FStoreResult;
       property ColumnOrgNames: TStringList read FColumnOrgNames write SetColumnOrgNames;
       property AutoIncrementColumn: Integer read FAutoIncrementColumn;
+      property DBObject: TDBObject read FDBObject write SetDBObject;
     published
       property SQL: String read FSQL write FSQL;
       property Connection: TDBConnection read FConnection write FConnection;
@@ -3751,6 +3754,7 @@ begin
   FColumnOrgNames := TStringList.Create;
   FColumnOrgNames.CaseSensitive := True;
   FStoreResult := True;
+  FDBObject := nil;
 end;
 
 
@@ -3761,6 +3765,8 @@ begin
   FreeAndNil(FColumns);
   FreeAndNil(FKeys);
   FreeAndNil(FUpdateData);
+  if FDBObject <> nil then
+    FDBObject.Free;
   SetLength(FColumnFlags, 0);
   SetLength(FColumnLengths, 0);
   SetLength(FColumnTypes, 0);
@@ -4002,6 +4008,14 @@ procedure TDBQuery.SetColumnOrgNames(Value: TStringList);
 begin
   // Retrieve original column names from caller
   FColumnOrgNames.Text := Value.Text;
+end;
+
+
+procedure TDBQuery.SetDBObject(Value: TDBObject);
+begin
+  // Assign values from outside to a new tdbobject
+  FDBObject := TDBObject.Create(FConnection);
+  FDBObject.Assign(Value);
 end;
 
 
@@ -4396,7 +4410,7 @@ end;
 
 procedure TDBQuery.PrepareEditing;
 var
-  CreateCode, Dummy, DB, Schema, Table: String;
+  CreateCode, Dummy, DB, Schema: String;
   DBObjects: TDBObjectList;
   Obj: TDBObject;
   ObjType: TListNodeType;
@@ -4405,18 +4419,23 @@ begin
   if FEditingPrepared then
     Exit;
   // This is probably a VIEW, so column names need to be fetched differently
-  DB := DatabaseName;
-  if DB = '' then
-    DB := Connection.Database;
-  DBObjects := Connection.GetDBObjects(DB);
-  Table := TableName;
-  ObjType := lntTable;
-  Schema := '';
-  for Obj in DBObjects do begin
-    if (Obj.NodeType in [lntTable, lntView]) and (Obj.Name = Table) then begin
-      ObjType := Obj.NodeType;
-      Schema := Obj.Schema;
-      break;
+
+  if FDBObject <> nil then begin
+    Schema := FDBObject.Schema;
+    ObjType := FDBObject.NodeType;
+  end else begin
+    DB := DatabaseName;
+    if DB = '' then
+      DB := Connection.Database;
+    DBObjects := Connection.GetDBObjects(DB);
+    ObjType := lntTable;
+    Schema := '';
+    for Obj in DBObjects do begin
+      if (Obj.NodeType in [lntTable, lntView]) and (Obj.Name = TableName) then begin
+        ObjType := Obj.NodeType;
+        Schema := Obj.Schema;
+        break;
+      end;
     end;
   end;
   CreateCode := Connection.GetCreateCode(DatabaseName, Schema, TableName, ObjType);
@@ -4850,7 +4869,11 @@ end;
 
 function TDBQuery.QuotedDbAndTableName: String;
 begin
-  Result := FConnection.QuotedDbAndTableName(DatabaseName, TableName);
+  // Prefer TDBObject when quoting as it knows its schema
+  if FDBObject <> nil then
+    Result := FDBObject.QuotedDbAndTableName
+  else
+    Result := FConnection.QuotedDbAndTableName(DatabaseName, TableName);
 end;
 
 

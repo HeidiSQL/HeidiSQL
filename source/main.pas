@@ -4453,6 +4453,7 @@ begin
         DataGridResult := DBObj.Connection.Parameters.CreateQuery(Self);
       end;
       DataGridResult.Connection := DBObj.Connection;
+      DataGridResult.DBObject := DBObj;
       DataGridResult.SQL := Select;
       DataGridResult.Execute(Offset > 0);
       DataGridResult.ColumnOrgNames := WantedColumnOrgnames;
