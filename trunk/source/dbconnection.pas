@@ -5054,6 +5054,7 @@ begin
     Result := (Name = CompareTo.Name)
       and (NodeType = CompareTo.NodeType)
       and (Database = CompareTo.Database)
+      and (Schema = CompareTo.Schema)
       and (Column = CompareTo.Column)
       and (Connection = CompareTo.Connection);
 end;
