@@ -1831,7 +1831,7 @@ end;
 function TAdoDBConnection.GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String;
 var
   Cols, Keys: TDBQuery;
-  ConstraintName: String;
+  ConstraintName, MaxLen: String;
   ColNames: TStringList;
 
   // Return fitting schema clause for queries in IS.TABLES, IS.ROUTINES etc.
@@ -1857,8 +1857,13 @@ begin
         );
       while not Cols.Eof do begin
         Result := Result + CRLF + #9 + QuoteIdent(Cols.Col('COLUMN_NAME')) + ' ' + UpperCase(Cols.Col('DATA_TYPE'));
-        if not Cols.IsNull('CHARACTER_MAXIMUM_LENGTH') then
-          Result := Result + '(' + Cols.Col('CHARACTER_MAXIMUM_LENGTH') + ')';
+        if not Cols.IsNull('CHARACTER_MAXIMUM_LENGTH') then begin
+          MaxLen := Cols.Col('CHARACTER_MAXIMUM_LENGTH');
+          if MaxLen = '-1' then
+            Result := Result + '(max)'
+          else
+            Result := Result + '(' + MaxLen + ')';
+        end;
         if Cols.Col('IS_NULLABLE') = 'NO' then
           Result := Result + ' NOT';
         Result := Result + ' NULL';
