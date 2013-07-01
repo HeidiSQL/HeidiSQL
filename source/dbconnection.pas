@@ -2452,7 +2452,7 @@ begin
     // Fallback for target tables which do not yet exist. For example in copytable dialog.
     Result := QuoteIdent(DB) + '.';
     if Parameters.NetTypeGroup = ngMSSQL then
-      Result := Result + QuoteIdent('dbo') + '.';
+      Result := Result + '.';
     Result := Result + QuoteIdent(Obj);
   end;
 end;
@@ -5200,8 +5200,11 @@ end;
 function TDBObject.QuotedName(AlwaysQuote: Boolean=True): String;
 begin
   Result := '';
-  if Schema <> '' then
-    Result := Result + Connection.QuoteIdent(Schema, AlwaysQuote) + '.';
+  if FConnection.Parameters.NetTypeGroup = ngMSSQL then begin
+    if Schema <> '' then
+      Result := Result + Connection.QuoteIdent(Schema, AlwaysQuote);
+    Result := Result + '.';
+  end;
   Result := Result + Connection.QuoteIdent(Name, AlwaysQuote);
 end;
 
