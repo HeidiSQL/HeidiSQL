@@ -4793,16 +4793,22 @@ var
   Field: PMYSQL_FIELD;
   i: Integer;
 begin
-  // Return first available Field.db property, or just the current database as fallback
-  for i:=0 to ColumnCount-1 do begin
-    Field := mysql_fetch_field_direct(FCurrentResults, i);
-    if Field.db <> '' then begin
-      Result := Connection.DecodeAPIString(Field.db);
-      break;
+  // Find and return name of database of current query
+  if FDBObject <> nil then begin
+    Result := FDBObject.Database;
+  end else begin
+    // Return first available Field.db property, or just the current database as fallback.
+    // For a view in db1 selecting from db2, this returns db2, which triggers errors in GetCreateViewCode!
+    for i:=0 to ColumnCount-1 do begin
+      Field := mysql_fetch_field_direct(FCurrentResults, i);
+      if Field.db <> '' then begin
+        Result := Connection.DecodeAPIString(Field.db);
+        break;
+      end;
     end;
+    if Result = '' then
+      Result := Connection.Database;
   end;
-  if Result = '' then
-    Result := Connection.Database;
 end;
 
 
