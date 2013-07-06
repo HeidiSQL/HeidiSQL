@@ -3,8 +3,8 @@ object frmLogin: TfrmLogin
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Login'
-  ClientHeight = 137
-  ClientWidth = 266
+  ClientHeight = 176
+  ClientWidth = 270
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,28 +16,28 @@ object frmLogin: TfrmLogin
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    266
-    137)
+    270
+    176)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOK: TButton
-    Left = 183
-    Top = 104
-    Width = 75
+    Left = 164
+    Top = 143
+    Width = 98
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Login'
     Default = True
     ModalResult = 1
     TabOrder = 1
-    ExplicitLeft = 168
-    ExplicitTop = 84
+    ExplicitLeft = 160
+    ExplicitTop = 104
   end
   object pnlBackground: TPanel
     Left = 0
     Top = 0
-    Width = 266
-    Height = 98
+    Width = 270
+    Height = 137
     Align = alTop
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelOuter = bvNone
@@ -46,11 +46,11 @@ object frmLogin: TfrmLogin
     ParentBackground = False
     ShowCaption = False
     TabOrder = 0
-    ExplicitWidth = 305
-    ExplicitHeight = 114
+    ExplicitWidth = 266
+    ExplicitHeight = 98
     DesignSize = (
-      266
-      98)
+      270
+      137)
     object lblPrompt: TLabel
       Left = 38
       Top = 13
@@ -60,7 +60,7 @@ object frmLogin: TfrmLogin
     end
     object lblUsername: TLabel
       Left = 38
-      Top = 43
+      Top = 44
       Width = 52
       Height = 13
       Anchors = [akLeft, akBottom]
@@ -69,7 +69,7 @@ object frmLogin: TfrmLogin
     end
     object lblPassword: TLabel
       Left = 38
-      Top = 70
+      Top = 90
       Width = 50
       Height = 13
       Anchors = [akLeft, akBottom]
@@ -83,9 +83,9 @@ object frmLogin: TfrmLogin
       Height = 16
     end
     object editPassword: TEdit
-      Left = 104
-      Top = 67
-      Width = 154
+      Left = 38
+      Top = 109
+      Width = 224
       Height = 21
       Anchors = [akLeft, akRight, akBottom]
       PasswordChar = '*'
@@ -93,13 +93,14 @@ object frmLogin: TfrmLogin
       Text = 'editPassword'
     end
     object editUsername: TEdit
-      Left = 104
-      Top = 40
-      Width = 154
+      Left = 38
+      Top = 63
+      Width = 224
       Height = 21
       Anchors = [akLeft, akRight, akBottom]
       TabOrder = 0
       Text = 'editUsername'
+      ExplicitWidth = 268
     end
   end
 end
