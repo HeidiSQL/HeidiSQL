@@ -188,7 +188,6 @@ begin
   // Auto-adjust width and position of main buttons at bottom
   btnWidth := (pnlBevel.Width -pnlBevel.BorderWidth*2 - MARGIN) DIV 3 - MARGIN;
   btnOK.Width := btnWidth;
-  btnOK.Top := Height - pnlBevel.BorderWidth - MARGIN - btnOK.Height;
   btnOK.Left := pnlBevel.BorderWidth + MARGIN;
   btnCancel.Width := btnWidth;
   btnCancel.Left := btnOK.Left + btnWidth + MARGIN;
