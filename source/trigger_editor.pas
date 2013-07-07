@@ -5,26 +5,30 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
   SynCompletionProposal,
-  dbconnection, mysql_structures, helpers, gnugettext;
+  dbconnection, mysql_structures, helpers, gnugettext, ComCtrls;
 
 type
   TFrame = TDBObjectEditor;
   TfrmTriggerEditor = class(TFrame)
-    lblName: TLabel;
-    editName: TEdit;
     SynMemoBody: TSynMemo;
     btnHelp: TButton;
     btnDiscard: TButton;
     btnSave: TButton;
-    comboTable: TComboBox;
-    lblTable: TLabel;
     lblBody: TLabel;
     SynCompletionProposalStatement: TSynCompletionProposal;
+    PageControlMain: TPageControl;
+    tabOptions: TTabSheet;
+    tabCreateCode: TTabSheet;
+    comboDefiner: TComboBox;
+    lblDefiner: TLabel;
+    editName: TEdit;
+    lblName: TLabel;
+    lblTable: TLabel;
+    comboTable: TComboBox;
     lblEvent: TLabel;
     comboTiming: TComboBox;
     comboEvent: TComboBox;
-    lblDefiner: TLabel;
-    comboDefiner: TComboBox;
+    SynMemoCreateCode: TSynMemo;
     procedure btnHelpClick(Sender: TObject);
     procedure btnDiscardClick(Sender: TObject);
     procedure Modification(Sender: TObject);
@@ -34,6 +38,7 @@ type
     procedure comboDefinerDropDown(Sender: TObject);
   private
     { Private declarations }
+    function ComposeCreateStatement: String;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -123,6 +128,7 @@ begin
   end else begin
     editName.Text := '';
   end;
+  Modification(Self);
   Modified := False;
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
@@ -140,6 +146,7 @@ begin
     and (comboTiming.ItemIndex > -1) and (comboEvent.ItemIndex > -1)
     and (SynMemoBody.Text <> '');
   btnDiscard.Enabled := Modified;
+  SynMemoCreateCode.Text := ComposeCreateStatement;
 end;
 
 
@@ -180,18 +187,7 @@ begin
       DBObject.Connection.Query('DROP TRIGGER '+DBObject.Connection.QuoteIdent(DBObject.Name));
     except
     end;
-    // CREATE
-    //   [DEFINER = { user | CURRENT_USER }]
-    //   TRIGGER trigger_name trigger_time trigger_event
-    //   ON tbl_name FOR EACH ROW trigger_stmt
-    sql := 'CREATE ';
-    if comboDefiner.Text <> '' then
-      sql := sql + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, True, '@')+' ';
-    sql := sql + 'TRIGGER '+DBObject.Connection.QuoteIdent(editName.Text)+' '+
-      comboTiming.Items[comboTiming.ItemIndex]+' '+comboEvent.Items[comboEvent.ItemIndex]+
-      ' ON '+DBObject.Connection.QuoteIdent(comboTable.Text)+
-      ' FOR EACH ROW '+SynMemoBody.Text;
-    MainForm.ActiveConnection.Query(sql);
+    MainForm.ActiveConnection.Query(ComposeCreateStatement);
     DBObject.Name := editName.Text;
     DBObject.CreateCode := '';
     Mainform.UpdateEditorTab;
@@ -241,5 +237,22 @@ procedure TfrmTriggerEditor.btnHelpClick(Sender: TObject);
 begin
   Mainform.CallSQLHelpWithKeyword('TRIGGERS');
 end;
+
+
+function TfrmTriggerEditor.ComposeCreateStatement: String;
+begin
+  // CREATE
+  //   [DEFINER = { user | CURRENT_USER }]
+  //   TRIGGER trigger_name trigger_time trigger_event
+  //   ON tbl_name FOR EACH ROW trigger_stmt
+  Result := 'CREATE ';
+  if comboDefiner.Text <> '' then
+    Result := Result + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, True, '@')+' ';
+  Result := Result + 'TRIGGER '+DBObject.Connection.QuoteIdent(editName.Text)+' '+
+    comboTiming.Items[comboTiming.ItemIndex]+' '+comboEvent.Items[comboEvent.ItemIndex]+
+    ' ON '+DBObject.Connection.QuoteIdent(comboTable.Text)+
+    ' FOR EACH ROW '+SynMemoBody.Text;
+end;
+
 
 end.
