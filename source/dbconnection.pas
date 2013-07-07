@@ -2646,7 +2646,7 @@ begin
   inherited;
   if not Assigned(FCharsetTable) then
     FCharsetTable := GetResults('SELECT '+QuoteIdent('name')+' AS '+QuoteIdent('Charset')+', '+QuoteIdent('description')+' AS '+QuoteIdent('Description')+
-      ' FROM '+QuoteIdent('sys')+'.'+QuoteIdent('syscharsets')
+      ' FROM '+QuotedDbAndTableName('master', 'syscharsets')
       );
   Result := FCharsetTable;
 end;
