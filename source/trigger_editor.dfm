@@ -73,7 +73,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Top = 3
     Width = 471
     Height = 132
-    ActivePage = tabCreateCode
+    ActivePage = tabOptions
     Align = alTop
     Images = MainForm.ImageListMain
     TabOrder = 4
