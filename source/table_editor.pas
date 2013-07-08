@@ -2059,7 +2059,7 @@ begin
       ErrorDialog(_('Please select a reference table before selecting foreign columns.'))
     else begin
       try
-        DBObject.Connection.GetVar('SELECT 1 FROM '+DBObject.Connection.QuoteIdent(Key.ReferenceTable, True, '.'));
+        DBObject.Connection.GetVar('SELECT 1 FROM '+DBObject.Connection.QuoteIdent(Key.ReferenceTable, True, '.')+' LIMIT 1');
         Allowed := True;
       except
         // Leave Allowed = False
