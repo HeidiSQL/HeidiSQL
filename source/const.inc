@@ -49,19 +49,21 @@ const
   ICONINDEX_KEYWORD = 25;
 
   // Size of byte units
-  {KiloByte} SIZE_KB = 1024;
-  {MegaByte} SIZE_MB = 1048576;
-  {GigaByte} SIZE_GB = 1073741824;
-  {TeraByte} SIZE_TB = 1099511627776;
-  {PetaByte} SIZE_PB = 1125899906842624;
+  {Kibibyte} SIZE_KB = 1024;
+  {Mebibyte} SIZE_MB = 1048576;
+  {Gibibyte} SIZE_GB = 1073741824;
+  {Tebibyte} SIZE_TB = 1099511627776;
+  {Pebibyte} SIZE_PB = 1125899906842624;
+  {Exbibyte} SIZE_EB = 1152921504606846976;
 
   // Abbreviations of byte unit names
   {Bytes} NAME_BYTES = ' B';
-  {KiloByte} NAME_KB = ' KB';
-  {MegaByte} NAME_MB = ' MB';
-  {GigaByte} NAME_GB = ' GB';
-  {TeraByte} NAME_TB = ' TB';
-  {PetaByte} NAME_PB = ' PB';
+  {Kibibyte} NAME_KB = ' KiB';
+  {Mebibyte} NAME_MB = ' MiB';
+  {Gibibyte} NAME_GB = ' GiB';
+  {Tebibyte} NAME_TB = ' TiB';
+  {Pebibyte} NAME_PB = ' PiB';
+  {Exbibyte} NAME_EB = ' EiB';
 
   // Used by ListViews and Grids
   ORDER_ASC = 0;            // Used for tag-value of "Direction"-button
