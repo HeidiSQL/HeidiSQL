@@ -2377,7 +2377,8 @@ end;
 function TDBConnection.UnescapeString(Text: String): String;
 begin
   // Return text with MySQL special sequences turned back to normal characters
-  Result := StringReplace(Text, '\0', #0, [rfReplaceAll]);
+  Result := StringReplace(Text, '\\', '\', [rfReplaceAll]);
+  Result := StringReplace(Result, '\0', #0, [rfReplaceAll]);
   Result := StringReplace(Result, '\b', #8, [rfReplaceAll]);
   Result := StringReplace(Result, '\t', #9, [rfReplaceAll]);
   Result := StringReplace(Result, '\n', #10, [rfReplaceAll]);
@@ -3443,8 +3444,9 @@ begin
         end;
         Col.DefaultType := cdtText;
         Col.DefaultText := Copy(ColSpec, LiteralStart, i-LiteralStart-1);
-        // A single quote gets escaped by single quote - remove the escape char - escaping is done in Save action afterwards
-        Col.DefaultText := StringReplace(Col.DefaultText, '''''', '''', [rfReplaceAll]);
+        // A linefeed needs to display as "\n" but a single quote must not contain a backslash here
+        Col.DefaultText := EscapeString(UnescapeString(Col.DefaultText), False, False);
+        Col.DefaultText := StringReplace(Col.DefaultText, '\''', '''', [rfReplaceAll]);
         Delete(ColSpec, 1, i);
       end;
     end;

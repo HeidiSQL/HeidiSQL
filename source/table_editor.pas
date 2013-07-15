@@ -1037,12 +1037,7 @@ begin
     7: begin
       case Col.DefaultType of
         cdtNothing:                 CellText := _('No default');
-        cdtText, cdtTextUpdateTS: begin
-          if Col.DataType.Category in [dtcInteger, dtcReal] then
-            CellText := Col.DefaultText
-          else
-            CellText := esc(Col.DefaultText);
-        end;
+        cdtText, cdtTextUpdateTS:   CellText := Col.DefaultText;
         cdtNull, cdtNullUpdateTS:   CellText := 'NULL';
         cdtCurTS, cdtCurTSUpdateTS: CellText := 'CURRENT_TIMESTAMP';
         cdtAutoInc:                 CellText := 'AUTO_INCREMENT';
