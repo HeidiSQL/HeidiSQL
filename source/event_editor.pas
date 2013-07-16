@@ -57,7 +57,7 @@ type
     AlterCodeValid, CreateCodeValid: Boolean;
     function ComposeCreateStatement: String;
     function ComposeAlterStatement: String;
-    function ComposeBaseStatement: String;
+    function ComposeStatement(CreateOrAlter, ObjName: String): String;
     procedure UpdateSQLcode;
   public
     { Public declarations }
@@ -258,26 +258,26 @@ end;
 
 function TfrmEventEditor.ComposeCreateStatement: String;
 begin
-  Result := Format(ComposeBaseStatement, ['CREATE', DBObject.Connection.QuoteIdent(editName.Text)]);
+  Result := ComposeStatement('CREATE', editName.Text);
 end;
 
 
 function TfrmEventEditor.ComposeAlterStatement: String;
 begin
-  Result := Format(ComposeBaseStatement, ['ALTER', DBObject.Connection.QuoteIdent(DBObject.Name)]);
+  Result := ComposeStatement('ALTER', DBObject.Name);
 end;
 
 
-function TfrmEventEditor.ComposeBaseStatement: String;
+function TfrmEventEditor.ComposeStatement(CreateOrAlter, ObjName: String): String;
 var
   d: TDateTime;
   Quantity: String;
 begin
   // Return CREATE EVENT statement
-  Result := '%s ';
+  Result := CreateOrAlter + ' ';
   if comboDefiner.Text <> '' then
     Result := Result + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, True, '@')+' ';
-  Result := Result + 'EVENT %s' + CRLF + #9 + 'ON SCHEDULE' + CRLF + #9#9;
+  Result := Result + 'EVENT ' + DBObject.Connection.QuoteIdent(ObjName) + CRLF + #9 + 'ON SCHEDULE' + CRLF + #9#9;
   if radioOnce.Checked then begin
     d := dateOnce.DateTime;
     ReplaceTime(d, timeOnce.DateTime);
