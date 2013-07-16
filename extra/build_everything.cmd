@@ -78,6 +78,7 @@ set params=--no-config
 set params=%params% -DDEBUG -GD
 set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BDE;DbiErrs=BDE
 set params=%params% -B
+set params=%params% -W-SYMBOL_PLATFORM
 set params=%params% -i"%base_dir%\source"
 set params=%params% -r"%base_dir%\components\synedit\resources;%base_dir%\components\virtualtreeview\Resources"
 set params=%params% -u"%compiler_dir%\lib\win32\release;%base_dir%\components\virtualtreeview\build;%base_dir%\components\synedit\build;%base_dir%\components\graphicex;%base_dir%\components\synapse;%mad_dir%\madExcept\BDS8;%mad_dir%\madDisAsm\BDS8;%mad_dir%\madBasic\BDS8"
