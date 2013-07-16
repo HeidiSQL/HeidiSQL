@@ -2086,7 +2086,6 @@ function TMySQLConnection.GetServerVersionInt: Integer;
 var
   rx: TRegExpr;
 begin
-  Result := -1;
   rx := TRegExpr.Create;
   rx.Expression := '(\d+)\.(\d+)\.(\d+)';
   if rx.Exec(FServerVersionUntouched) then begin
@@ -5447,7 +5446,6 @@ begin
   Dialog.editUsername.Visible := _type=1;
   Dialog.editPassword.Visible := _type=2;
   Dialog.ShowModal;
-  Result := buf;
   case _type of
     1: Result := PAnsiChar(AnsiString(Dialog.editUsername.Text));
     2: Result := PAnsiChar(AnsiString(Dialog.editPassword.Text));

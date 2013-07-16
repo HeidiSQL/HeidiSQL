@@ -172,8 +172,6 @@ end;
 
 
 function TfrmTriggerEditor.ApplyModifications: TModalResult;
-var
-  sql: String;
 begin
   // Edit mode means we drop the trigger and recreate it, as there is no ALTER TRIGGER.
   Result := mrOk;

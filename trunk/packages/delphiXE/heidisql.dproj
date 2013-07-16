@@ -28,6 +28,7 @@
 		<PropertyGroup Condition="'$(Base)'!=''">
 			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
 			<DCC_UnitSearchPath>..\..\components\graphicex;..\..\components\synapse;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_SYMBOL_PLATFORM>false</DCC_SYMBOL_PLATFORM>
 			<BRCC_OutputDir>..\..\res</BRCC_OutputDir>
 			<DCC_DependencyCheckOutputName>heidisql.exe</DCC_DependencyCheckOutputName>
 		</PropertyGroup>
