@@ -717,7 +717,8 @@ begin
     if MicroSecondsPrecision > 0 then begin
       DotPos := Length(FMaskEdit.Text) - Pos('.', ReverseString(FMaskEdit.Text)) + 2;
       ms := MakeInt(Copy(FMaskEdit.Text, DotPos, Length(FMaskEdit.Text)));
-    end;
+    end else
+      ms := 0;
 
     case FTableColumn.DataType.Index of
       dtYear: begin

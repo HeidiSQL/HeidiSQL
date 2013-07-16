@@ -800,6 +800,7 @@ begin
   S.WriteString(tmp);
 
   if radioOutputCopyToClipboard.Checked then begin
+    HTML := nil;
     // SynEdit's exporter is slow on large strings, see issue #2903
     if S.Size < 100*SIZE_KB then begin
       case ExportFormat of
@@ -812,7 +813,6 @@ begin
           Exporter.Free;
         end;
         efHTML: HTML := S;
-        else HTML := nil;
       end;
     end;
     StreamToClipboard(S, HTML, (ExportFormat=efHTML) and (HTML <> nil));
