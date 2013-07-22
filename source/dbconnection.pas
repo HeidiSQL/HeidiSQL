@@ -4416,7 +4416,7 @@ end;
 
 procedure TDBQuery.PrepareEditing;
 var
-  CreateCode, Dummy, DB, Schema: String;
+  CreateCode, Dummy, DB, ObjName, Schema: String;
   DBObjects: TDBObjectList;
   Obj: TDBObject;
   ObjType: TListNodeType;
@@ -4429,6 +4429,7 @@ begin
   if FDBObject <> nil then begin
     Schema := FDBObject.Schema;
     ObjType := FDBObject.NodeType;
+    ObjName := FDBObject.Name;
   end else begin
     DB := DatabaseName;
     if DB = '' then
@@ -4439,12 +4440,13 @@ begin
     for Obj in DBObjects do begin
       if (Obj.NodeType in [lntTable, lntView]) and (Obj.Name = TableName) then begin
         ObjType := Obj.NodeType;
+        ObjName := Obj.Name;
         Schema := Obj.Schema;
         break;
       end;
     end;
   end;
-  CreateCode := Connection.GetCreateCode(DatabaseName, Schema, TableName, ObjType);
+  CreateCode := Connection.GetCreateCode(DatabaseName, Schema, ObjName, ObjType);
   FColumns := TTableColumnList.Create;
   FKeys := TTableKeyList.Create;
   FForeignKeys := TForeignKeyList.Create;
@@ -4452,7 +4454,7 @@ begin
     lntTable:
       Connection.ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys);
     lntView:
-      Connection.ParseViewStructure(CreateCode, TableName, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
+      Connection.ParseViewStructure(CreateCode, ObjName, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
   end;  
   FreeAndNil(FUpdateData);
   FUpdateData := TUpdateData.Create(True);
