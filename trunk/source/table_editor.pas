@@ -467,7 +467,7 @@ var
   procedure AddQuery;
   begin
     if Specs.Count > 0 then begin
-      SQL := SQL + Trim('ALTER TABLE '+DBObject.Connection.QuoteIdent(DBObject.Name) + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs)) + ';' + CRLF;
+      SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs)) + ';' + CRLF;
       Specs.Clear;
     end;
   end;
