@@ -16,6 +16,7 @@ object MainForm: TMainForm
   OnDestroy = FormDestroy
   OnMouseWheel = FormMouseWheel
   OnResize = FormResize
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object spltTopBottom: TSplitter
@@ -401,7 +402,6 @@ object MainForm: TMainForm
         TabOrder = 1
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
-        OnAfterPaint = DBtreeAfterPaint
         OnBeforeCellPaint = DBtreeBeforeCellPaint
         OnChange = DBtreeChange
         OnDblClick = DBtreeDblClick
