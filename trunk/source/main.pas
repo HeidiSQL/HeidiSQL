@@ -571,6 +571,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure AfterFormCreate;
+    procedure FormShow(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure actUserManagerExecute(Sender: TObject);
     procedure actAboutBoxExecute(Sender: TObject);
@@ -839,7 +840,6 @@ type
     procedure spltPreviewMoved(Sender: TObject);
     procedure actDataSaveBlobToFileExecute(Sender: TObject);
     procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
-    procedure DBtreeAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure treeQueryHelpersInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
@@ -1939,6 +1939,14 @@ begin
     // Try again and resize SQLLog if required
     SynMemoSQLLog.Height := Max(SynMemoSQLLog.Height-GridNeedHeight, spltTopBottom.MinSize);
   end;
+end;
+
+procedure TMainForm.FormShow(Sender: TObject);
+begin
+  // Manually set focus to tree - otherwise the database filter as the first
+  // control catches focus on startup, which is ugly.
+  if DBtree.CanFocus then
+    DBtree.SetFocus;
 end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
@@ -7644,6 +7652,11 @@ begin
 
   finally
     FTreeRefreshInProgress := False;
+    // Tree node filtering needs a hit in special cases, e.g. after a db was dropped
+    if editDatabaseFilter.Text <> '' then
+      editDatabaseFilter.OnChange(editDatabaseFilter);
+    if editTableFilter.Text <> '' then
+      editTableFilter.OnChange(editTableFilter);
   end;
 end;
 
@@ -9439,6 +9452,7 @@ begin
   VisibleCount := 0;
   FilterError := False;
 
+  DBtree.BeginUpdate;
   Node := DBtree.GetFirst;
   while Assigned(Node) do begin
     Obj := DBtree.GetNodeData(Node);
@@ -9458,6 +9472,7 @@ begin
     end;
     Node := DBtree.GetNextInitialized(Node);
   end;
+  DBtree.EndUpdate;
 
   rx.Free;
   if VisibleCount = 0 then
@@ -10197,14 +10212,6 @@ begin
   end;
   ActiveQueryMemo.UndoList.AddGroupBreak;
   ActiveQueryMemo.SelText := sql;
-end;
-
-
-procedure TMainForm.DBtreeAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-begin
-  // Tree node filtering needs a hit in special cases, e.g. after a db was dropped
-  editDatabaseFilter.OnChange(editDatabaseFilter);
-  editTableFilter.OnChange(editTableFilter);
 end;
 
 
