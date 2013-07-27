@@ -1280,6 +1280,7 @@ end;
     ANSI
   Aimed to work better than WideStrUtils.IsUTF8String() which didn't work in any test case here.
   @see http://en.wikipedia.org/wiki/Byte_Order_Mark
+  Could also do that with TEncoding.GetBufferEncoding, but that relies on the file having a BOM
 }
 function DetectEncoding(Stream: TStream): TEncoding;
 var
@@ -1432,12 +1433,19 @@ var
   DataLeft: Int64;
   LBuffer: TBytes;
 begin
+  // Be sure to read a multiplier of the encodings max byte count per char
+  if ChunkSize mod 4 > 0 then
+    Inc(ChunkSize, ChunkSize mod 4);
   DataLeft := Stream.Size - Stream.Position;
   if (ChunkSize = 0) or (ChunkSize > DataLeft) then
     ChunkSize := DataLeft;
   SetLength(LBuffer, ChunkSize);
   Stream.ReadBuffer(Pointer(LBuffer)^, ChunkSize);
-  LBuffer := Encoding.Convert(Encoding, TEncoding.Unicode, LBuffer, 0, Length(LBuffer));
+  // Now, TEncoding.Convert returns an empty TByte array in files with russion characters
+  // See http://www.heidisql.com/forum.php?t=13044
+  LBuffer := Encoding.Convert(Encoding, TEncoding.Unicode, LBuffer);
+  if Length(LBuffer) = 0 then
+    MainForm.LogSQL('Error when converting chunk from encoding '+Encoding.EncodingName+' to '+TEncoding.Unicode.EncodingName+' in '+ExtractFileName(Stream.FileName)+' at position '+FormatByteNumber(Stream.Position));
   Result := TEncoding.Unicode.GetString(LBuffer);
 end;
 
