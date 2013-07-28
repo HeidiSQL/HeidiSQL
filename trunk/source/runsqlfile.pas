@@ -131,7 +131,7 @@ begin
           on E:Exception do
             ErrorDialog(E.Message);
         end;
-        Repaint;
+        Application.ProcessMessages;
       end;
     end;
     Queries.Free;
