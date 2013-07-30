@@ -46,6 +46,8 @@ type
     N3: TMenuItem;
     chkIncludeAutoIncrement: TCheckBox;
     chkIncludeQuery: TCheckBox;
+    lblNull: TLabel;
+    editNull: TButtonedEdit;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure CalcSize(Sender: TObject);
@@ -63,7 +65,7 @@ type
   private
     { Private declarations }
     FCSVEditor: TButtonedEdit;
-    FCSVSeparator, FCSVEncloser, FCSVTerminator: String;
+    FCSVSeparator, FCSVEncloser, FCSVTerminator, FCSVNull: String;
     FGrid: TVirtualStringTree;
     FRecentFiles: TStringList;
     const FFormatToFileExtension: Array[TGridExportFormat] of String =
@@ -114,6 +116,7 @@ begin
   FCSVSeparator := AppSettings.ReadString(asGridExportSeparator);
   FCSVEncloser := AppSettings.ReadString(asGridExportEncloser);
   FCSVTerminator := AppSettings.ReadString(asGridExportTerminator);
+  FCSVNull := AppSettings.ReadString(asGridExportNull);
   ValidateControls(Sender);
 end;
 
@@ -135,6 +138,7 @@ begin
     AppSettings.WriteString(asGridExportSeparator, FCSVSeparator);
     AppSettings.WriteString(asGridExportEncloser, FCSVEncloser);
     AppSettings.WriteString(asGridExportTerminator, FCSVTerminator);
+    AppSettings.WriteString(asGridExportNull, FCSVNull);
   end;
 end;
 
@@ -171,16 +175,19 @@ begin
         editSeparator.Text := ',';
       editEncloser.Text := '"';
       editTerminator.Text := '\r\n';
+      editNull.Text := FCSVNull;
     end;
     efCSV: begin
       editSeparator.Text := FCSVSeparator;
       editEncloser.Text := FCSVEncloser;
       editTerminator.Text := FCSVTerminator;
+      editNull.Text := FCSVNull;
     end;
     else begin
       editSeparator.Text := '';
       editEncloser.Text := '';
       editTerminator.Text := '';
+      editNull.Text := '';
     end;
   end;
 
@@ -195,6 +202,9 @@ begin
   lblTerminator.Enabled := Enable;
   editTerminator.Enabled := Enable;
   editTerminator.RightButton.Enabled := Enable;
+  lblNull.Enabled := ExportFormat in [efExcel, efCSV];
+  editNull.Enabled := lblNull.Enabled;
+  editNull.RightButton.Enabled := lblNull.Enabled;
   btnOK.Enabled := radioOutputCopyToClipboard.Checked or (radioOutputFile.Checked and (editFilename.Text <> ''));
   if radioOutputFile.Checked then
     editFilename.Font.Color := clWindowText
@@ -387,7 +397,9 @@ begin
     else if Edit = editEncloser then
       FCSVEncloser := Edit.Text
     else if Edit = editTerminator then
-      FCSVTerminator := Edit.Text;
+      FCSVTerminator := Edit.Text
+    else if Edit = editNull then
+      FCSVNull := Edit.Text;
   end;
 end;
 
@@ -415,7 +427,6 @@ begin
   FCSVEditor := Sender as TButtonedEdit;
   p := FCSVEditor.ClientToScreen(FCSVEditor.ClientRect.BottomRight);
   for Item in popupCSVchar.Items do begin
-    Item.OnClick := menuCSVClick;
     Item.Checked := FCSVEditor.Text = Item.Hint;
   end;
   popupCSVchar.Popup(p.X-16, p.Y);
@@ -688,8 +699,8 @@ begin
           efExcel, efCSV, efLaTeX, efWiki: begin
             // Escape encloser characters inside data per de-facto CSV.
             Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
-            if GridData.IsNull(Col) and (ExportFormat = efCSV) then
-              Data := '\N'
+            if GridData.IsNull(Col) and (ExportFormat in [efExcel, efCSV]) then
+              Data := FCSVNull
             else
               Data := Encloser + Data + Encloser;
             tmp := tmp + Data + Separator;
