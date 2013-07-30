@@ -391,15 +391,16 @@ var
 begin
   // Remember csv settings
   Edit := Sender as TButtonedEdit;
-  if ExportFormat = efCSV then begin
-    if Edit = editSeparator then
-      FCSVSeparator := Edit.Text
-    else if Edit = editEncloser then
-      FCSVEncloser := Edit.Text
-    else if Edit = editTerminator then
-      FCSVTerminator := Edit.Text
-    else if Edit = editNull then
-      FCSVNull := Edit.Text;
+  case ExportFormat of
+    efExcel: begin
+      if Edit = editNull then             FCSVNull := Edit.Text;
+    end;
+    efCSV: begin
+      if Edit = editSeparator then        FCSVSeparator := Edit.Text
+      else if Edit = editEncloser then    FCSVEncloser := Edit.Text
+      else if Edit = editTerminator then  FCSVTerminator := Edit.Text
+      else if Edit = editNull then        FCSVNull := Edit.Text;
+    end;
   end;
 end;
 
