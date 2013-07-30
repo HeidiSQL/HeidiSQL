@@ -5641,3 +5641,6 @@ msgstr "Data filter for %s deleted"
 #. Clear data tab filter
 msgid "Clear data tab filter"
 msgstr "Clear data tab filter"
+
+msgid "Error when updating query history: %s"
+msgstr "Error when updating query history: %s"
