@@ -2533,10 +2533,16 @@ begin
     History.Free;
 
     // Store history item and closing registry key to ensure writing has finished
-    AppSettings.WriteString(RegName, DateTimeToStr(Now) + DELIM +
-      Thread.Connection.Database + DELIM +
-      IntToStr(Thread.QueryTime+Thread.QueryNetTime) + DELIM +
-      Thread.Batch.SQL);
+    try
+      AppSettings.WriteString(RegName, DateTimeToStr(Now) + DELIM +
+        Thread.Connection.Database + DELIM +
+        IntToStr(Thread.QueryTime+Thread.QueryNetTime) + DELIM +
+        Thread.Batch.SQL);
+    except
+      // Silence sporadic boring write errors. See http://www.heidisql.com/forum.php?t=13088
+      on E:ERegistryException do
+        LogSQL(f_('Error when updating query history: %s', [E.Message]), lcError);
+    end;
 
     RefreshHelperNode(HELPERNODE_HISTORY);
   end;
