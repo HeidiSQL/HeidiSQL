@@ -3,7 +3,7 @@ object frmExportGrid: TfrmExportGrid
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Export grid rows'
-  ClientHeight = 403
+  ClientHeight = 432
   ClientWidth = 383
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -19,12 +19,12 @@ object frmExportGrid: TfrmExportGrid
   OnShow = FormShow
   DesignSize = (
     383
-    403)
+    432)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOK: TButton
     Left = 219
-    Top = 370
+    Top = 399
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -36,7 +36,7 @@ object frmExportGrid: TfrmExportGrid
   end
   object btnCancel: TButton
     Left = 300
-    Top = 370
+    Top = 399
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -49,7 +49,7 @@ object frmExportGrid: TfrmExportGrid
     Left = 8
     Top = 112
     Width = 137
-    Height = 252
+    Height = 281
     Anchors = [akLeft, akTop, akBottom]
     Caption = 'Output format'
     ItemIndex = 0
@@ -151,13 +151,13 @@ object frmExportGrid: TfrmExportGrid
     Left = 151
     Top = 184
     Width = 224
-    Height = 180
+    Height = 209
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Options'
     TabOrder = 5
     DesignSize = (
       224
-      180)
+      209)
     object lblSeparator: TLabel
       Left = 6
       Top = 97
@@ -179,8 +179,15 @@ object frmExportGrid: TfrmExportGrid
       Height = 13
       Caption = 'Line terminator:'
     end
+    object lblNull: TLabel
+      Left = 6
+      Top = 175
+      Width = 57
+      Height = 13
+      Caption = 'NULL value:'
+    end
     object chkIncludeColumnNames: TCheckBox
-      Left = 8
+      Left = 6
       Top = 18
       Width = 201
       Height = 17
@@ -200,7 +207,7 @@ object frmExportGrid: TfrmExportGrid
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
-      TabOrder = 1
+      TabOrder = 3
       Text = ';'
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
@@ -215,7 +222,7 @@ object frmExportGrid: TfrmExportGrid
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
-      TabOrder = 2
+      TabOrder = 4
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
@@ -229,34 +236,48 @@ object frmExportGrid: TfrmExportGrid
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
-      TabOrder = 3
+      TabOrder = 5
       Text = '\r\n'
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
     object chkIncludeAutoIncrement: TCheckBox
-      Left = 8
+      Left = 6
       Top = 41
       Width = 201
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Include auto increment column'
-      TabOrder = 4
+      TabOrder = 1
       OnClick = CalcSize
     end
     object chkIncludeQuery: TCheckBox
-      Left = 8
+      Left = 6
       Top = 64
       Width = 177
       Height = 17
       Caption = 'Include SQL query'
-      TabOrder = 5
+      TabOrder = 2
+    end
+    object editNull: TButtonedEdit
+      Left = 106
+      Top = 172
+      Width = 103
+      Height = 21
+      Anchors = [akLeft, akTop, akRight]
+      Images = MainForm.ImageListMain
+      RightButton.DisabledImageIndex = 107
+      RightButton.ImageIndex = 108
+      RightButton.Visible = True
+      TabOrder = 6
+      OnChange = editCSVChange
+      OnRightButtonClick = editCSVRightButtonClick
     end
   end
   object popupCSVchar: TPopupMenu
     AutoHotkeys = maManual
-    Left = 8
-    Top = 366
+    Left = 24
+    Top = 390
     object menuCSVtab: TMenuItem
       Caption = 'Tab'
       Hint = '\t'
@@ -265,10 +286,12 @@ object frmExportGrid: TfrmExportGrid
     object menuCSVcomma: TMenuItem
       Caption = 'Comma'
       Hint = ','
+      OnClick = menuCSVClick
     end
     object menuCSVsemicolon: TMenuItem
       Caption = 'Semicolon'
       Hint = ';'
+      OnClick = menuCSVClick
     end
     object N1: TMenuItem
       Caption = '-'
@@ -276,10 +299,12 @@ object frmExportGrid: TfrmExportGrid
     object menuCSVsinglequote: TMenuItem
       Caption = 'Single quote'
       Hint = #39
+      OnClick = menuCSVClick
     end
     object menuCSVdoublequote: TMenuItem
       Caption = 'Double quote'
       Hint = '"'
+      OnClick = menuCSVClick
     end
     object N2: TMenuItem
       Caption = '-'
@@ -292,10 +317,12 @@ object frmExportGrid: TfrmExportGrid
     object menuCSVunixlinebreak: TMenuItem
       Caption = 'UNIX linebreak'
       Hint = '\n'
+      OnClick = menuCSVClick
     end
     object menuCSVmaclinebreak: TMenuItem
       Caption = 'Mac OS linebreak'
       Hint = '\r'
+      OnClick = menuCSVClick
     end
     object N3: TMenuItem
       Caption = '-'
@@ -303,20 +330,23 @@ object frmExportGrid: TfrmExportGrid
     object menuCSVnul: TMenuItem
       Caption = 'NUL character'
       Hint = '\0'
+      OnClick = menuCSVClick
     end
     object menuCSVbackspace: TMenuItem
       Caption = 'Backspace'
       Hint = '\b'
+      OnClick = menuCSVClick
     end
     object menuCSVcontrolz: TMenuItem
       Caption = 'Control+Z'
       Hint = '\Z'
+      OnClick = menuCSVClick
     end
   end
   object popupRecentFiles: TPopupMenu
     AutoHotkeys = maManual
     OnPopup = popupRecentFilesPopup
-    Left = 40
-    Top = 366
+    Left = 112
+    Top = 390
   end
 end
