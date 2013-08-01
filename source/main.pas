@@ -534,7 +534,6 @@ type
     Disconnect1: TMenuItem;
     N4: TMenuItem;
     ImportCSVfile1: TMenuItem;
-    LoadSQLfile1: TMenuItem;
     InsertfilesintoTEXTBLOBfields1: TMenuItem;
     N9: TMenuItem;
     ExportdatabaseasSQL1: TMenuItem;
@@ -564,6 +563,10 @@ type
     menuClearDataTabFilter: TMenuItem;
     actUnixTimestampColumn: TAction;
     actTimestampColumn1: TMenuItem;
+    LoadSQLfile2: TMenuItem;
+    N2: TMenuItem;
+    Save1: TMenuItem;
+    Saveassnippet1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
