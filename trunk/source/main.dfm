@@ -9381,6 +9381,12 @@ object MainForm: TMainForm
       Enabled = False
       OnClick = menuClearQueryHistoryClick
     end
+    object menuQueryHelpersGenerateSelect: TMenuItem
+      Caption = 'Generate SELECT ...'
+      Enabled = False
+      ImageIndex = 114
+      OnClick = menuQueryHelpersGenerateStatementClick
+    end
     object menuQueryHelpersGenerateInsert: TMenuItem
       Caption = 'Generate INSERT ...'
       Enabled = False

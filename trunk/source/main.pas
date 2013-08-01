@@ -456,6 +456,7 @@ type
     Findtextonserver1: TMenuItem;
     actBulkTableEdit: TAction;
     menuBulkTableEdit: TMenuItem;
+    menuQueryHelpersGenerateSelect: TMenuItem;
     menuQueryHelpersGenerateInsert: TMenuItem;
     menuQueryHelpersGenerateUpdate: TMenuItem;
     menuQueryHelpersGenerateDelete: TMenuItem;
@@ -10160,7 +10161,7 @@ var
   Tree: TVirtualStringTree;
   Node: PVirtualNode;
 begin
-  // Generate INSERT, UPDATE or DELETE query using selected columns
+  // Generate SELECT, INSERT, UPDATE or DELETE query using selected columns
   MenuItem := (Sender as TMenuItem);
   ColumnNames := TStringList.Create;
   DefaultValues := TStringList.Create;
@@ -10199,7 +10200,12 @@ begin
     end;
   end;
 
-  if MenuItem = menuQueryHelpersGenerateInsert then begin
+
+  if MenuItem = menuQueryHelpersGenerateSelect then begin
+    sql := 'SELECT '+ImplodeStr(', ', ColumnNames)+CRLF+
+      #9'FROM '+ActiveDbObj.QuotedName(False);
+
+  end else if MenuItem = menuQueryHelpersGenerateInsert then begin
     sql := 'INSERT INTO '+ActiveDbObj.QuotedName(False)+CRLF+
       #9'('+ImplodeStr(', ', ColumnNames)+')'+CRLF+
       #9'VALUES ('+ImplodeStr(', ', DefaultValues)+')';
@@ -10910,6 +10916,7 @@ var
   Tree: TVirtualStringTree;
 begin
   Tree := Sender as TVirtualStringTree;
+  menuQueryHelpersGenerateSelect.Enabled := False;
   menuQueryHelpersGenerateInsert.Enabled := False;
   menuQueryHelpersGenerateUpdate.Enabled := False;
   menuQueryHelpersGenerateDelete.Enabled := False;
@@ -10924,6 +10931,7 @@ begin
     0: ;
     1: case Tree.FocusedNode.Parent.Index of
       HELPERNODE_COLUMNS: if ActiveDbObj.NodeType in [lntTable, lntView] then begin
+          menuQueryHelpersGenerateSelect.Enabled := True;
           menuQueryHelpersGenerateInsert.Enabled := True;
           menuQueryHelpersGenerateUpdate.Enabled := True;
           menuQueryHelpersGenerateDelete.Enabled := True;
