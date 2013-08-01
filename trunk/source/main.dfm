@@ -1717,6 +1717,18 @@ object MainForm: TMainForm
       object Closetab1: TMenuItem
         Action = actCloseQueryTab
       end
+      object N2: TMenuItem
+        Caption = '-'
+      end
+      object LoadSQLfile2: TMenuItem
+        Action = actLoadSQL
+      end
+      object Save1: TMenuItem
+        Action = actSaveSQL
+      end
+      object Saveassnippet1: TMenuItem
+        Action = actSaveSQLSnippet
+      end
       object N1: TMenuItem
         Caption = '-'
       end
@@ -1836,9 +1848,6 @@ object MainForm: TMainForm
       end
       object N9: TMenuItem
         Caption = '-'
-      end
-      object LoadSQLfile1: TMenuItem
-        Action = actLoadSQL
       end
       object ImportCSVfile1: TMenuItem
         Action = actImportCSV
