@@ -2460,18 +2460,8 @@ msgstr "Clear query history ..."
 
 #. MainForm..popupQueryHelpers..menuQueryHelpersGenerateInsert..Caption
 #: main.dfm:9218
-msgid "Generate INSERT ..."
-msgstr "Generate INSERT ..."
-
-#. MainForm..popupQueryHelpers..menuQueryHelpersGenerateUpdate..Caption
-#: main.dfm:9224
-msgid "Generate UPDATE ..."
-msgstr "Generate UPDATE ..."
-
-#. MainForm..popupQueryHelpers..menuQueryHelpersGenerateDelete..Caption
-#: main.dfm:9230
-msgid "Generate DELETE ..."
-msgstr "Generate DELETE ..."
+msgid "Generate %s ..."
+msgstr "Generate %s ..."
 
 #. MainForm..popupRefresh..menuAutoRefresh..Caption
 #: main.dfm:9270 main.pas:5308

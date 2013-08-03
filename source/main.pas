@@ -1358,6 +1358,11 @@ begin
   TP_GlobalIgnoreClass(TFont);
   TranslateComponent(Self);
   MainMenu1.Images := ImageListMain;
+  // Translate menu items
+  menuQueryHelpersGenerateSelect.Caption := f_('Generate %s ...', ['SELECT']);
+  menuQueryHelpersGenerateInsert.Caption := f_('Generate %s ...', ['INSERT']);
+  menuQueryHelpersGenerateUpdate.Caption := f_('Generate %s ...', ['UPDATE']);
+  menuQueryHelpersGenerateDelete.Caption := f_('Generate %s ...', ['DELETE']);
 
   // Fix drop down buttons on main toolbar. Same as r4304.
   // Caused by missing Application.MainFormOnTaskBar
