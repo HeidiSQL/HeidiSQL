@@ -344,7 +344,7 @@ type
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
       procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
-      procedure ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList;
+      procedure ParseViewStructure(CreateCode: String; DBObj: TDBObject; Columns: TTableColumnList;
         var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
       procedure ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList);
       function GetDatatypeByName(Datatype: String): TDBDatatype;
@@ -1780,9 +1780,10 @@ end;
 function TMySQLConnection.GetCreateViewCode(Database, Name: String): String;
 var
   ViewIS: TDBQuery;
-  ViewName, Algorithm, CheckOption, SelectCode, Definer, SQLSecurity: String;
+  Algorithm, CheckOption, SelectCode, Definer, SQLSecurity: String;
   AlternativeSelectCode: String;
   rx: TRegExpr;
+  Obj: TDBObject;
 begin
   // Get CREATE VIEW code, which can throw privilege errors and errors due to
   // references to renamed or deleted columns
@@ -1809,7 +1810,8 @@ begin
     rx.Expression := '\nsource\=(.+)\n\w+\=';
     if rx.Exec(AlternativeSelectCode) then begin
       // Put pieces of CREATE VIEW together
-      ParseViewStructure(Result, ViewName, nil,
+      Obj := FindObject(Database, Name);
+      ParseViewStructure(Result, Obj, nil,
         Algorithm, Definer, SQLSecurity, CheckOption, SelectCode);
       AlternativeSelectCode := UnescapeString(rx.Match[1]);
       Result := 'CREATE ';
@@ -1817,7 +1819,7 @@ begin
         Result := Result + 'ALGORITHM='+Uppercase(Algorithm)+' ';
       if Definer <> '' then
         Result := Result + 'DEFINER='+QuoteIdent(Definer, True, '@')+' ';
-      Result := Result + 'VIEW '+QuoteIdent(Database)+'.'+QuoteIdent(Name)+' AS '+AlternativeSelectCode+' ';
+      Result := Result + 'VIEW '+Obj.QuotedDbAndTableName+' AS '+AlternativeSelectCode+' ';
       // WITH .. CHECK OPTION is already contained in the source
     end;
     rx.Free;
@@ -3527,13 +3529,13 @@ begin
 end;
 
 
-procedure TDBConnection.ParseViewStructure(CreateCode, ViewName: String; Columns: TTableColumnList;
+procedure TDBConnection.ParseViewStructure(CreateCode: String; DBObj: TDBObject; Columns: TTableColumnList;
   var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
 var
   rx: TRegExpr;
   Col: TTableColumn;
   Results: TDBQuery;
-  DbName, DbAndViewName: String;
+  SchemaClause: String;
 begin
   if CreateCode <> '' then begin
     // CREATE
@@ -3557,10 +3559,6 @@ begin
     if rx.Exec(CreateCode) then begin
       Algorithm := rx.Match[3];
       Definer := DeQuoteIdent(rx.Match[5], '@');
-      // When exporting a view we need the db name for the below SHOW COLUMNS query,
-      // if the connection is on a different db currently
-      DbName := DeQuoteIdent(rx.Match[8]);
-      ViewName := DeQuoteIdent(rx.Match[9]);
       CheckOption := Trim(rx.Match[13]);
       SelectCode := rx.Match[11];
     end else
@@ -3568,31 +3566,51 @@ begin
     rx.Free;
   end;
 
-  // Views reveal their columns only with a SHOW COLUMNS query.
-  // No keys available in views - SHOW KEYS always returns an empty result
-  if Assigned(Columns) and (Parameters.NetTypeGroup=ngMySQL) then begin
+  if Assigned(Columns) then begin
     Columns.Clear;
     rx := TRegExpr.Create;
-    rx.Expression := '^(\w+)(\((.+)\))?';
-    if DbName <> '' then
-      DbAndViewName := QuoteIdent(DbName)+'.';
-    DbAndViewName := DbAndViewName + QuoteIdent(ViewName);
-    Results := GetResults('SHOW /*!32332 FULL */ COLUMNS FROM '+DbAndViewName);
+    rx.Expression := '(\((.+)\))?(\s+unsigned)?';
+    SchemaClause := '';
+    if DBObj.Schema <> '' then
+      SchemaClause := 'AND v.TABLE_SCHEMA='+EscapeString(DBObj.Schema);
+    Results := GetResults('SELECT c.* '+
+      'FROM INFORMATION_SCHEMA.VIEWS AS v '+
+      'JOIN INFORMATION_SCHEMA.COLUMNS AS c ON '+
+      '  c.TABLE_CATALOG=v.TABLE_CATALOG '+
+      '  AND c.TABLE_SCHEMA=v.TABLE_SCHEMA '+
+      '  AND c.TABLE_NAME=v.TABLE_NAME '+
+      'WHERE '+
+      '  v.TABLE_NAME='+EscapeString(DBObj.Name)+' '+
+      '  AND v.'+GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(DBObj.Database)+' '+
+      SchemaClause
+      );
     while not Results.Eof do begin
       Col := TTableColumn.Create(Self);
       Columns.Add(Col);
-      Col.Name := Results.Col('Field');
-      Col.AllowNull := Results.Col('Null') = 'YES';
-      if rx.Exec(Results.Col('Type')) then begin
-        Col.DataType := GetDatatypeByName(rx.Match[1]);
-        Col.LengthSet := rx.Match[3];
+      Col.Name := Results.Col('COLUMN_NAME');
+      Col.AllowNull := UpperCase(Results.Col('IS_NULLABLE')) = 'YES';
+      Col.DataType := GetDatatypeByName(Results.Col('DATA_TYPE'));
+      if Results.ColExists('COLUMN_TYPE') then begin
+        // Use MySQL's proprietary column_type - the only way to get SET and ENUM values
+        if rx.Exec(Results.Col('COLUMN_TYPE')) then begin
+          Col.LengthSet := rx.Match[2];
+          Col.Unsigned := (Col.DataType.Category in [dtcInteger, dtcReal]) and (rx.Match[3] <> '');
+        end;
+      end else begin
+        if not Results.IsNull('CHARACTER_MAXIMUM_LENGTH') then begin
+          Col.LengthSet := Results.Col('CHARACTER_MAXIMUM_LENGTH');
+        end else if not Results.IsNull('NUMERIC_PRECISION') then begin
+          Col.LengthSet := Results.Col('NUMERIC_PRECISION');
+          if not Results.IsNull('NUMERIC_SCALE') then
+            Col.LengthSet := Col.LengthSet + ',' + Results.Col('NUMERIC_SCALE');
+        end;
+        if Col.LengthSet = '-1' then
+          Col.LengthSet := 'max';
       end;
-      Col.Unsigned := (Col.DataType.Category = dtcInteger) and (Pos('unsigned', Results.Col('Type')) > 0);
-      Col.AllowNull := UpperCase(Results.Col('Null')) = 'YES';
-      Col.Collation := Results.Col('Collation', True);
-      Col.Comment := Results.Col('Comment', True);
-      Col.DefaultText := Results.Col('Default');
-      if Results.IsNull('Default') then begin
+      Col.Collation := Results.Col('COLLATION_NAME');
+      Col.Comment := Results.Col('COLUMN_COMMENT', True);
+      Col.DefaultText := Results.Col('COLUMN_DEFAULT');
+      if Results.IsNull('COLUMN_DEFAULT') then begin
         if Col.AllowNull then
           Col.DefaultType := cdtNull
         else
@@ -4416,45 +4434,41 @@ end;
 
 procedure TDBQuery.PrepareEditing;
 var
-  CreateCode, Dummy, DB, ObjName, Schema: String;
+  CreateCode, Dummy, DB: String;
   DBObjects: TDBObjectList;
-  Obj: TDBObject;
-  ObjType: TListNodeType;
+  LObj, Obj: TDBObject;
 begin
   // Try to fetch column names and keys
   if FEditingPrepared then
     Exit;
   // This is probably a VIEW, so column names need to be fetched differently
 
-  if FDBObject <> nil then begin
-    Schema := FDBObject.Schema;
-    ObjType := FDBObject.NodeType;
-    ObjName := FDBObject.Name;
-  end else begin
+  Obj := nil;
+  if FDBObject <> nil then
+    Obj := FDBObject
+  else begin
     DB := DatabaseName;
     if DB = '' then
       DB := Connection.Database;
     DBObjects := Connection.GetDBObjects(DB);
-    ObjType := lntTable;
-    Schema := '';
-    for Obj in DBObjects do begin
-      if (Obj.NodeType in [lntTable, lntView]) and (Obj.Name = TableName) then begin
-        ObjType := Obj.NodeType;
-        ObjName := Obj.Name;
-        Schema := Obj.Schema;
+    for LObj in DBObjects do begin
+      if (LObj.NodeType in [lntTable, lntView]) and (LObj.Name = TableName) then begin
+        Obj := LObj;
         break;
       end;
     end;
+    if Obj = nil then
+      raise EDatabaseError.Create(f_('Could not find table or view %s.%s. Please refresh database tree.', [DB, TableName]));
   end;
-  CreateCode := Connection.GetCreateCode(DatabaseName, Schema, ObjName, ObjType);
+  CreateCode := Connection.GetCreateCode(Obj.Database, Obj.Schema, Obj.Name, Obj.NodeType);
   FColumns := TTableColumnList.Create;
   FKeys := TTableKeyList.Create;
   FForeignKeys := TForeignKeyList.Create;
-  case ObjType of
+  case Obj.NodeType of
     lntTable:
       Connection.ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys);
     lntView:
-      Connection.ParseViewStructure(CreateCode, ObjName, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
+      Connection.ParseViewStructure(CreateCode, Obj, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
   end;  
   FreeAndNil(FUpdateData);
   FUpdateData := TUpdateData.Create(True);

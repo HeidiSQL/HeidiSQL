@@ -136,7 +136,7 @@ begin
   FForeignKeys.Clear;
   case FDBObj.NodeType of
     lntTable: FConnection.ParseTableStructure(FDBObj.CreateCode, FColumns, FKeys, FForeignKeys);
-    lntView: FConnection.ParseViewStructure(FDBObj.CreateCode, FDBObj.Name, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
+    lntView: FConnection.ParseViewStructure(FDBObj.CreateCode, FDBObj, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
     else raise Exception.CreateFmt(_('Neither table nor view: %s'), [FDBObj.Name]);
   end;
 
