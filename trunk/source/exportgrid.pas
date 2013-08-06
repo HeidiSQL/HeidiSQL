@@ -742,8 +742,11 @@ begin
                 Data := FormatNumber(Data);
                 Data := UnformatNumber(Data);
               end;
-              else
-                Data := esc(Data);
+              else begin
+                Data := StringReplace(Data, '\', '\\', [rfReplaceAll]);
+                Data := StringReplace(Data, '''', '\''', [rfReplaceAll]);
+                Data := '''' + Data + '''';
+              end;
             end;
 
             if chkIncludeColumnNames.Checked then
