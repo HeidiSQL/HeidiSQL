@@ -3572,16 +3572,12 @@ begin
     rx.Expression := '(\((.+)\))?(\s+unsigned)?';
     SchemaClause := '';
     if DBObj.Schema <> '' then
-      SchemaClause := 'AND v.TABLE_SCHEMA='+EscapeString(DBObj.Schema);
-    Results := GetResults('SELECT c.* '+
-      'FROM INFORMATION_SCHEMA.VIEWS AS v '+
-      'JOIN INFORMATION_SCHEMA.COLUMNS AS c ON '+
-      '  c.TABLE_CATALOG=v.TABLE_CATALOG '+
-      '  AND c.TABLE_SCHEMA=v.TABLE_SCHEMA '+
-      '  AND c.TABLE_NAME=v.TABLE_NAME '+
+      SchemaClause := 'AND TABLE_SCHEMA='+EscapeString(DBObj.Schema);
+    Results := GetResults('SELECT * '+
+      'FROM INFORMATION_SCHEMA.COLUMNS '+
       'WHERE '+
-      '  v.TABLE_NAME='+EscapeString(DBObj.Name)+' '+
-      '  AND v.'+GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(DBObj.Database)+' '+
+      '  TABLE_NAME='+EscapeString(DBObj.Name)+' '+
+      '  AND '+GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(DBObj.Database)+' '+
       SchemaClause
       );
     while not Results.Eof do begin
