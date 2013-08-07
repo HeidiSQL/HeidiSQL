@@ -78,6 +78,7 @@ type
     procedure SetExportFormatByFilename;
     procedure SelectRecentFile(Sender: TObject);
     procedure PutFilenamePlaceholder(Sender: TObject);
+    function EscapePHP(Text: String): String;
   public
     { Public declarations }
     property Grid: TVirtualStringTree read FGrid write FGrid;
@@ -441,6 +442,18 @@ begin
 end;
 
 
+function TfrmExportGrid.EscapePHP(Text: String): String;
+begin
+  // String escaping for PHP output. Incompatible to TDBConnection.EscapeString.
+  Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
+  Result := StringReplace(Result, #13, '\r', [rfReplaceAll]);
+  Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
+  Result := StringReplace(Result, #9, '\t', [rfReplaceAll]);
+  Result := StringReplace(Result, '''', '\''', [rfReplaceAll]);
+  Result := '''' + Result + '''';
+end;
+
+
 procedure TfrmExportGrid.btnOKClick(Sender: TObject);
 var
   Col, ExcludeCol: TColumnIndex;
@@ -742,15 +755,12 @@ begin
                 Data := FormatNumber(Data);
                 Data := UnformatNumber(Data);
               end;
-              else begin
-                Data := StringReplace(Data, '\', '\\', [rfReplaceAll]);
-                Data := StringReplace(Data, '''', '\''', [rfReplaceAll]);
-                Data := '''' + Data + '''';
-              end;
+              else
+                Data := EscapePHP(Data);
             end;
 
             if chkIncludeColumnNames.Checked then
-              tmp := tmp + #9#9 + '''' + Grid.Header.Columns[Col].Text + ''' => ' + Data + ','+CRLF
+              tmp := tmp + #9#9 + EscapePHP(Grid.Header.Columns[Col].Text) + ' => ' + Data + ','+CRLF
             else
               tmp := tmp + #9#9 + Data + ','+CRLF;
           end;
