@@ -3553,14 +3553,14 @@ begin
       '(ALGORITHM\s*=\s*(\w*)\s*)?'+
       '(DEFINER\s*=\s*(\S+)\s+)?'+
       '(SQL\s+SECURITY\s+\w+\s+)?'+
-      'VIEW\s+(([^\.]+)\.)?([^\.\(]+)\s+'+
+      'VIEW\s+[^\(]+\s+'+
       '(\([^\)]+\)\s+)?'+
       'AS\s+(.+)(\s+WITH\s+(\w+\s+)?CHECK\s+OPTION\s*)?$';
     if rx.Exec(CreateCode) then begin
       Algorithm := rx.Match[3];
       Definer := DeQuoteIdent(rx.Match[5], '@');
-      CheckOption := Trim(rx.Match[13]);
-      SelectCode := rx.Match[11];
+      CheckOption := Trim(rx.Match[10]);
+      SelectCode := rx.Match[8];
     end else
       raise Exception.CreateFmt(_('Regular expression did not match the VIEW code in %s: %s'), ['ParseViewStructure()', CRLF+CRLF+CreateCode]);
     rx.Free;
