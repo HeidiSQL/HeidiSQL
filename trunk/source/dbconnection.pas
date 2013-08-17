@@ -3569,7 +3569,7 @@ begin
   if Assigned(Columns) then begin
     Columns.Clear;
     rx := TRegExpr.Create;
-    rx.Expression := '(\((.+)\))?(\s+unsigned)?';
+    rx.Expression := '(\((.+)\))(\s+unsigned)?(\s+zerofill)?';
     SchemaClause := '';
     if DBObj.Schema <> '' then
       SchemaClause := 'AND TABLE_SCHEMA='+EscapeString(DBObj.Schema);
@@ -3590,7 +3590,10 @@ begin
         // Use MySQL's proprietary column_type - the only way to get SET and ENUM values
         if rx.Exec(Results.Col('COLUMN_TYPE')) then begin
           Col.LengthSet := rx.Match[2];
-          Col.Unsigned := (Col.DataType.Category in [dtcInteger, dtcReal]) and (rx.Match[3] <> '');
+          if Col.DataType.Category in [dtcInteger, dtcReal] then begin
+            Col.Unsigned := rx.Match[3] <> '';
+            Col.ZeroFill := rx.Match[4] <> '';
+          end;
         end;
       end else begin
         if not Results.IsNull('CHARACTER_MAXIMUM_LENGTH') then begin
