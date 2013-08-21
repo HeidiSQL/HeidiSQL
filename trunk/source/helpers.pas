@@ -174,6 +174,7 @@ type
     asActionShortcut1, asActionShortcut2, asHighlighterForeground, asHighlighterBackground, asHighlighterStyle,
     asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
     asRecentFilter, asTimestampColumns, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asForeignDropDown, asQueryHistoryEnabled,
+    asColumnSelectorWidth, asColumnSelectorHeight,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -3334,6 +3335,8 @@ begin
   InitSetting(asAutoExpand,                       'AutoExpand',                            0, False);
   InitSetting(asForeignDropDown,                  'ForeignDropDown',                       0, True);
   InitSetting(asQueryHistoryEnabled,              'QueryHistory',                          0, True);
+  InitSetting(asColumnSelectorWidth,              'ColumnSelectorWidth',                   200, False, '');
+  InitSetting(asColumnSelectorHeight,             'ColumnSelectorHeight',                  270, False, '');
 end;
 
 
