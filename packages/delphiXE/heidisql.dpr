@@ -21,7 +21,6 @@ uses
   mysql_structures in '..\..\source\mysql_structures.pas',
   column_selection in '..\..\source\column_selection.pas' {ColumnSelectionForm},
   data_sorting in '..\..\source\data_sorting.pas' {DataSortingForm},
-  runsqlfile in '..\..\source\runsqlfile.pas' {RunSQLFileForm},
   createdatabase in '..\..\source\createdatabase.pas' {CreateDatabaseForm},
   updatecheck in '..\..\source\updatecheck.pas' {frmUpdateCheck},
   editvar in '..\..\source\editvar.pas' {frmEditVariable},

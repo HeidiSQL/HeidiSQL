@@ -971,6 +971,7 @@ type
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
     procedure OperationRunning(Runs: Boolean);
     function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding): Boolean;
+    procedure RunQueryFile(Filename: String; Encoding: TEncoding);
     procedure SetLogToFile(Value: Boolean);
     procedure StoreLastSessions;
     function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
@@ -1078,7 +1079,7 @@ const
 implementation
 
 uses
-  About, printlist, mysql_structures, UpdateCheck, runsqlfile,
+  About, printlist, mysql_structures, UpdateCheck,
   column_selection, data_sorting, grideditlinks, ExportGrid, jpeg, GIFImg;
 
 
@@ -3025,7 +3026,6 @@ var
   msgtext: String;
   AbsentFiles, PopupFileList: TStringList;
   DoRunFiles: Boolean;
-  RunFileDialog: TRunSQLFileForm;
   Dialog: TTaskDialog;
   Btn: TTaskDialogButtonItem;
   DialogResult: TModalResult;
@@ -3093,11 +3093,7 @@ begin
       mrYes: begin
         Result := True;
         for i:=0 to Filenames.Count-1 do begin
-          RunFileDialog := TRunSQLFileForm.Create(Self);
-          RunFileDialog.SQLFileName := Filenames[i];
-          RunFileDialog.FileEncoding := Encoding;
-          RunFileDialog.ShowModal;
-          RunFileDialog.Free;
+          RunQueryFile(Filenames[i], Encoding);
           // Add filename to history menu
           if Pos(DirnameSnippets, Filenames[i]) = 0 then
             MainForm.AddOrRemoveFromQueryLoadHistory(Filenames[i], True, True);
@@ -3112,6 +3108,127 @@ begin
     ErrorDialog(_('Could not load file(s):'), AbsentFiles.Text);
   AbsentFiles.Free;
   PopupFileList.Free;
+end;
+
+
+procedure TMainForm.RunQueryFile(FileName: String; Encoding: TEncoding);
+var
+  Dialog: IProgressDialog;
+  Dummy: Pointer;
+  Stream: TFileStream;
+  Lines, LinesRemain, ErrorNotice: String;
+  Filesize, QueryCount, ErrorCount, RowsAffected, Position: Int64;
+  Queries: TSQLBatch;
+  i: Integer;
+
+  procedure StopProgress;
+  begin
+    Dialog.SetLine(1, PChar(_('Clean up ...')), False, Dummy);
+    Queries.Free;
+    Stream.Free;
+    Dialog.StopProgressDialog;
+    BringToFront;
+    SetFocus;
+  end;
+
+begin
+  // Import single SQL file and display progress dialog
+  Dialog := CreateComObject(CLSID_ProgressDialog) as IProgressDialog;
+  Dialog.SetTitle(PChar(f_('Importing file %s', [ExtractFileName(FileName)])));
+  Dummy := nil;
+  Dialog.StartProgressDialog(Handle, nil, PROGDLG_MODAL or PROGDLG_NOMINIMIZE or PROGDLG_AUTOTIME, Dummy);
+
+  Lines := '';
+  ErrorNotice := '';
+  QueryCount := 0;
+  ErrorCount := 0;
+  Position := 0;
+  RowsAffected := 0;
+  LinesRemain := '';
+  Queries := TSQLBatch.Create;
+
+  try
+    // Start file operations
+    Filesize := _GetFileSize(FileName);
+
+    OpenTextfile(FileName, Stream, Encoding);
+    while Stream.Position < Stream.Size do begin
+      if Dialog.HasUserCancelled then
+        Break;
+
+      // Read lines from SQL file until buffer reaches a limit of some MB
+      // This strategy performs vastly better than looping through each line
+      Lines := ReadTextfileChunk(Stream, Encoding, 20*SIZE_MB);
+
+      // Split buffer into single queries
+      Queries.SQL := LinesRemain + Lines;
+      Lines := '';
+      LinesRemain := '';
+
+      // Execute detected queries
+      for i:=0 to Queries.Count-1 do begin
+        if Dialog.HasUserCancelled then
+          Break;
+        // Last line has to be processed in next loop if end of file is not reached
+        if (i = Queries.Count-1) and (Stream.Position < Stream.Size) then begin
+          LinesRemain := Queries[i].SQL;
+          Break;
+        end;
+        Inc(QueryCount);
+        Position := Position + Encoding.GetByteCount(Queries[i].SQL);
+        if ErrorCount > 0 then
+          ErrorNotice := '(' + FormatNumber(ErrorCount) + ' ' + _('Errors') + ')';
+        Dialog.SetLine(1,
+          PChar(f_('Processing query #%s. %s', [FormatNumber(QueryCount), ErrorNotice])),
+          False,
+          Dummy
+          );
+        Dialog.SetLine(2,
+          PChar(f_('Position in file: %s / %s. Affected rows: %s.', [FormatByteNumber(Position), FormatByteNumber(Filesize), FormatNumber(RowsAffected)])),
+          False,
+          Dummy
+          );
+        Dialog.SetProgress64(Position, FileSize);
+        Application.ProcessMessages;
+
+        // Execute single query
+        // Break or don't break loop, depending on the state of "Stop on errors" button
+        try
+          ActiveConnection.Query(Queries[i].SQL);
+          RowsAffected := RowsAffected + ActiveConnection.RowsAffected;
+        except
+          on E:Exception do begin
+            if actQueryStopOnErrors.Checked then
+              raise
+            else
+              Inc(ErrorCount);
+          end;
+        end;
+
+      end;
+    end;
+    StopProgress;
+    if ErrorCount > 0 then begin
+      ErrorDialog(_('Errors'),
+        f_('%s%% of your file has been processed, but there were %s errors when executing %s queries. Please check the SQL log panel for messages.',
+          [FormatNumber(100/FileSize*Position, 0), FormatNumber(ErrorCount), FormatNumber(QueryCount)])
+        );
+    end;
+
+  except
+    on E:EFileStreamError do begin
+      StopProgress;
+      ErrorDialog(f_('Error while reading file "%s"', [FileName]), E.Message);
+      AddOrRemoveFromQueryLoadHistory(FileName, False, True);
+      FillPopupQueryLoad;
+    end;
+    on E:EDatabaseError do begin
+      StopProgress;
+      ErrorDialog(E.Message + CRLF + CRLF +
+        f_('Notice: You can disable the "%s" option to ignore such errors', [actQueryStopOnErrors.Caption])
+        );
+    end;
+  end;
 end;
 
 
