@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-08-04 20:55+0100\n"
+"PO-Revision-Date: 2013-08-21 05:54+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -24,13 +24,12 @@ msgid "About"
 msgstr "About"
 
 #. AboutBox..btnClose..Caption
-#. RunSQLFileForm..btnClose..Caption
 #. frmSQLhelp..ButtonClose..Caption
 #. frmSyncDB..btnClose..Caption
 #. frmTableTools..btnCloseOrCancel..Caption
 #. UserManagerForm..btnCancel..Caption
-#: about.dfm:316 runsqlfile.dfm:110 sqlhelp.dfm:42 syncdb.dfm:141
-#: tabletools.dfm:39 usermanager.dfm:62
+#: about.dfm:316 sqlhelp.dfm:42 syncdb.dfm:141 tabletools.dfm:39
+#: usermanager.dfm:62
 msgid "Close"
 msgstr "Close"
 
@@ -2865,41 +2864,6 @@ msgstr "Move up"
 msgid "Move down"
 msgstr "Move down"
 
-#. RunSQLFileForm..Caption
-#: runsqlfile.dfm:5
-msgid "Run SQL file"
-msgstr "Run SQL file"
-
-#. RunSQLFileForm..lblFilenameName..Caption
-#: runsqlfile.dfm:38
-msgid "Running file:"
-msgstr "Running file:"
-
-#. RunSQLFileForm..lblQueryName..Caption
-#: runsqlfile.dfm:45
-msgid "Last query:"
-msgstr "Last query:"
-
-#. RunSQLFileForm..lblPositionName..Caption
-#: runsqlfile.dfm:52
-msgid "Position in file:"
-msgstr "Position in file:"
-
-#. RunSQLFileForm..lblQueryCountName..Caption
-#: runsqlfile.dfm:66
-msgid "Queries:"
-msgstr "Queries:"
-
-#. RunSQLFileForm..lblTimeName..Caption
-#: runsqlfile.dfm:80
-msgid "Time elapsed:"
-msgstr "Time elapsed:"
-
-#. RunSQLFileForm..lblAffectedRowsName..Caption
-#: runsqlfile.dfm:94
-msgid "Affected rows:"
-msgstr "Affected rows:"
-
 #. frmSearchReplace..Caption
 #: searchreplace.dfm:5
 msgid "Search and replace text"
@@ -4895,10 +4859,6 @@ msgstr ""
 msgid "Routine \"%s\" already exists."
 msgstr "Routine \"%s\" already exists."
 
-#: runsqlfile.pas:138
-msgid "Error while reading file \"%s\""
-msgstr "Error while reading file \"%s\""
-
 #: searchreplace.pas:60
 msgid "Search patterns:"
 msgstr "Search patterns:"
@@ -5637,3 +5597,31 @@ msgstr "Error when updating query history: %s"
 
 msgid "Could not find table or view %s.%s. Please refresh database tree."
 msgstr "Could not find table or view %s.%s. Please refresh database tree."
+
+#. RunQueryFile
+msgid "Importing file %s"
+msgstr "Importing file %s"
+
+#. RunQueryFile
+msgid "Processing query #%s. %s"
+msgstr "Processing query #%s. %s"
+
+#. RunQueryFile
+msgid "Position in file: %s / %s. Affected rows: %s."
+msgstr "Position in file: %s / %s. Affected rows: %s."
+
+#. RunQueryFile
+msgid "Error while reading file \"%s\""
+msgstr "Error while reading file \"%s\""
+
+#. RunQueryFile
+msgid ""
+"%s%% of your file has been processed, but there were %s errors when "
+"executing %s queries. Please check the SQL log panel for messages."
+msgstr ""
+"%s%% of your file has been processed, but there were %s errors when "
+"executing %s queries. Please check the SQL log panel for messages."
+
+#. RunQueryFile
+msgid "Notice: You can disable the \"%s\" option to ignore such errors"
+msgstr "Notice: You can disable the \"%s\" option to ignore such errors"

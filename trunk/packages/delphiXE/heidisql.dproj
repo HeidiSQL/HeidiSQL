@@ -163,9 +163,6 @@
 			<DCCReference Include="..\..\source\data_sorting.pas">
 				<Form>DataSortingForm</Form>
 			</DCCReference>
-			<DCCReference Include="..\..\source\runsqlfile.pas">
-				<Form>RunSQLFileForm</Form>
-			</DCCReference>
 			<DCCReference Include="..\..\source\createdatabase.pas">
 				<Form>CreateDatabaseForm</Form>
 			</DCCReference>
