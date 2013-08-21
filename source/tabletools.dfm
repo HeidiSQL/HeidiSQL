@@ -242,6 +242,15 @@ object frmTableTools: TfrmTableTools
             TabOrder = 7
             OnClick = btnHelpClick
           end
+          object chkForUpgrade: TCheckBox
+            Left = 81
+            Top = 96
+            Width = 97
+            Height = 17
+            Caption = 'For Upgrade'
+            TabOrder = 8
+            OnClick = ValidateControls
+          end
         end
         object tabFind: TTabSheet
           Caption = 'Find text'

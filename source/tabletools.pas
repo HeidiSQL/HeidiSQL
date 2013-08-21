@@ -71,6 +71,7 @@ type
     menuCheckAll: TMenuItem;
     menuCheckByType: TMenuItem;
     menuCheckNone: TMenuItem;
+    chkForUpgrade: TCheckBox;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -375,6 +376,7 @@ begin
     chkExtended.Enabled := (op = 'check') or (op = 'checksum') or (op = 'repair');
     chkChanged.Enabled := op = 'check';
     chkUseFrm.Enabled := op = 'repair';
+    chkForUpgrade.Enabled := op = 'check';
     // CHECKSUM's options are mutually exclusive
     if comboOperation.Text = 'Checksum' then begin
       if (Sender = chkExtended) and chkExtended.Checked then chkQuick.Checked := False
@@ -683,6 +685,7 @@ begin
   if chkExtended.Enabled and chkExtended.Checked then SQL := SQL + ' EXTENDED';
   if chkChanged.Enabled and chkChanged.Checked then SQL := SQL + ' CHANGED';
   if chkUseFrm.Enabled and chkUseFrm.Checked then SQL := SQL + ' USE_FRM';
+  if chkForUpgrade.Enabled and chkForUpgrade.Checked then SQL := SQL + ' FOR UPGRADE';
   AddResults(SQL);
 end;
 
