@@ -8,7 +8,6 @@ uses
 
 type
   TColumnSelectionForm = class(TForm)
-    pnlBevel: TPanel; // This panel has the only duty to display a normal border at the edges of the form
     btnCancel: TButton;
     btnOK: TButton;
     chkSelectAll: TCheckBox;
@@ -23,6 +22,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDeactivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
   public
@@ -45,6 +45,16 @@ procedure TColumnSelectionForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
   TranslateComponent(Self);
+  SetWindowSizeGrip(Self.Handle, True);
+  Width := AppSettings.ReadInt(asColumnSelectorWidth);
+  Height := AppSettings.ReadInt(asColumnSelectorHeight);
+end;
+
+
+procedure TColumnSelectionForm.FormDestroy(Sender: TObject);
+begin
+  AppSettings.WriteInt(asColumnSelectorWidth, Width );
+  AppSettings.WriteInt(asColumnSelectorHeight, Height );
 end;
 
 
