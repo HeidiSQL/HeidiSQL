@@ -4998,7 +4998,8 @@ begin
       RowNum := Grid.GetNodeData(Grid.FocusedNode);
       Results.RecNo := RowNum^;
       GridHasChanges := Results.Modified or Results.Inserted;
-      EnableTimestamp := Results.DataType(Grid.FocusedColumn).Index in [dtInt, dtBigint];
+      if Grid.FocusedColumn > NoColumn then
+        EnableTimestamp := Results.DataType(Grid.FocusedColumn).Index in [dtInt, dtBigint];
     end;
   end;
   inDataTab := PageControlMain.ActivePage = tabData;
