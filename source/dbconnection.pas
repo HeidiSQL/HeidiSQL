@@ -4330,7 +4330,7 @@ var
   i: Integer;
 begin
   Result := nil;
-  if (Column = -1) or (Column >= FColumnOrgNames.Count) then
+  if (Column < 0) or (Column >= FColumnOrgNames.Count) then
     raise EDatabaseError.CreateFmt(_('Column #%s not available.'), [IntToStr(Column)]);
   if FEditingPrepared then begin
     for i:=0 to FColumns.Count-1 do begin
