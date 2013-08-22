@@ -8730,7 +8730,6 @@ object MainForm: TMainForm
       000000000000}
   end
   object PopupQueryLoad: TPopupMenu
-    Images = ImageListMain
     Left = 104
     Top = 32
   end
