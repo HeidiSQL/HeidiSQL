@@ -12,7 +12,7 @@ interface
 uses
   Windows, SysUtils, Classes, GraphicEx, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
-  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
+  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, ShellApi,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
   CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
@@ -3892,9 +3892,24 @@ var
   i, j: Integer;
   menuitem, snippetsfolder: TMenuItem;
   sqlFilename: String;
+  Info: TSHFileInfo;
+  ImageListHandle: Cardinal;
+  SmallImages: TImageList;
 begin
   // Fill the popupQueryLoad menu
   popupQueryLoad.Items.Clear;
+
+  // Apply shared system image list
+  TranslateComponent(Self);
+  SmallImages := TImageList.Create(Self);
+  ImageListHandle := SHGetFileInfo('', 0, Info, SizeOf(Info), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
+  if ImageListHandle <> 0 then begin
+    SmallImages.Handle := ImageListHandle;
+    SmallImages.ShareImages := true;
+  end;
+  if popupQueryLoad.Images <> nil then
+    popupQueryLoad.Images.Free;
+  popupQueryLoad.Images := SmallImages;
 
   // Snippets
   SetSnippetFilenames;
@@ -3923,6 +3938,8 @@ begin
     menuitem := TMenuItem.Create( popupQueryLoad );
     menuitem.Caption := IntToStr(j) + ' ' + sqlFilename;
     menuitem.OnClick := popupQueryLoadClick;
+    SHGetFileInfo(PChar(sqlFilename), 0, Info, SizeOf(TSHFileInfo), SHGFI_SYSIconIndex or SHGFI_TYPENAME);
+    menuitem.ImageIndex := Info.IIcon;
     popupQueryLoad.Items.Add(menuitem);
   end;
 
