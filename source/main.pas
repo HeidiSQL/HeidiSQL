@@ -12,7 +12,7 @@ interface
 uses
   Windows, SysUtils, Classes, GraphicEx, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
-  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils, ShellApi,
+  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
   CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
@@ -902,6 +902,7 @@ type
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure actUnixTimestampColumnExecute(Sender: TObject);
+    procedure PopupQueryLoadPopup(Sender: TObject);
   private
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
@@ -1018,7 +1019,6 @@ type
     procedure CallSQLHelpWithKeyword( keyword: String );
     procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
     procedure popupQueryLoadClick( sender: TObject );
-    procedure FillPopupQueryLoad;
     procedure PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
     procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
     procedure SessionConnect(Sender: TObject);
@@ -1414,9 +1414,6 @@ begin
 
   // Load snippet filenames
   SetSnippetFilenames;
-
-  // SQLFiles-History
-  FillPopupQueryLoad;
 
   // Create function menu items in popupQuery and popupFilter
   menuQueryInsertFunction.Clear;
@@ -3220,7 +3217,6 @@ begin
       StopProgress;
       ErrorDialog(f_('Error while reading file "%s"', [FileName]), E.Message);
       AddOrRemoveFromQueryLoadHistory(FileName, False, True);
-      FillPopupQueryLoad;
     end;
     on E:EDatabaseError do begin
       StopProgress;
@@ -3867,7 +3863,6 @@ begin
     if not DirectoryExists(DirnameSnippets) then
       ForceDirectories(DirnameSnippets);
     SaveUnicodeFile( snippetname, Text );
-    FillPopupQueryLoad;
     SetSnippetFilenames;
     Screen.Cursor := crDefault;
   end;
@@ -3887,84 +3882,69 @@ begin
 end;
 
 
-procedure TMainform.FillPopupQueryLoad;
+procedure TMainForm.PopupQueryLoadPopup(Sender: TObject);
 var
   i, j: Integer;
-  menuitem, snippetsfolder: TMenuItem;
-  sqlFilename: String;
-  Info: TSHFileInfo;
-  ImageListHandle: Cardinal;
-  SmallImages: TImageList;
+  Item, SnippetsFolder: TMenuItem;
+  Filename: String;
 begin
   // Fill the popupQueryLoad menu
   popupQueryLoad.Items.Clear;
 
   // Apply shared system image list
-  TranslateComponent(Self);
-  SmallImages := TImageList.Create(Self);
-  ImageListHandle := SHGetFileInfo('', 0, Info, SizeOf(Info), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
-  if ImageListHandle <> 0 then begin
-    SmallImages.Handle := ImageListHandle;
-    SmallImages.ShareImages := true;
-  end;
-  if popupQueryLoad.Images <> nil then
-    popupQueryLoad.Images.Free;
-  popupQueryLoad.Images := SmallImages;
+  popupQueryLoad.Images := GetSystemImageList;
 
   // Snippets
   SetSnippetFilenames;
-  snippetsfolder := TMenuItem.Create( popupQueryLoad );
-  snippetsfolder.Caption := _('Snippets');
-  popupQueryLoad.Items.Add(snippetsfolder);
+  SnippetsFolder := TMenuItem.Create(popupQueryLoad);
+  SnippetsFolder.Caption := _('Snippets');
+  popupQueryLoad.Items.Add(SnippetsFolder);
   for i:=0 to FSnippetFilenames.Count-1 do begin
-    menuitem := TMenuItem.Create( snippetsfolder );
-    menuitem.Caption := FSnippetFilenames[i];
-    menuitem.OnClick := popupQueryLoadClick;
-    snippetsfolder.Add(menuitem);
+    Item := TMenuItem.Create(SnippetsFolder);
+    Item.Caption := FSnippetFilenames[i];
+    Item.OnClick := popupQueryLoadClick;
+    SnippetsFolder.Add(Item);
   end;
 
   // Separator
-  menuitem := TMenuItem.Create( popupQueryLoad );
-  menuitem.Caption := '-';
-  popupQueryLoad.Items.Add(menuitem);
+  Item := TMenuItem.Create(popupQueryLoad);
+  Item.Caption := '-';
+  popupQueryLoad.Items.Add(Item);
 
   // Recent files
   j := 0;
   for i:=0 to 19 do begin
-    sqlFilename := AppSettings.ReadString(asSQLfile, IntToStr(i));
-    if sqlFilename = '' then
+    Filename := AppSettings.ReadString(asSQLfile, IntToStr(i));
+    if Filename = '' then
       continue;
-    inc(j);
-    menuitem := TMenuItem.Create( popupQueryLoad );
-    menuitem.Caption := IntToStr(j) + ' ' + sqlFilename;
-    menuitem.OnClick := popupQueryLoadClick;
-    SHGetFileInfo(PChar(sqlFilename), 0, Info, SizeOf(TSHFileInfo), SHGFI_SYSIconIndex or SHGFI_TYPENAME);
-    menuitem.ImageIndex := Info.IIcon;
-    popupQueryLoad.Items.Add(menuitem);
+    Inc(j);
+    Item := TMenuItem.Create( popupQueryLoad );
+    Item.Caption := IntToStr(j) + ' ' + Filename;
+    Item.OnClick := popupQueryLoadClick;
+    Item.ImageIndex := GetSystemImageIndex(Filename);
+    popupQueryLoad.Items.Add(Item);
   end;
 
   // Separator + "Remove absent files"
-  menuitem := TMenuItem.Create( popupQueryLoad );
-  menuitem.Caption := '-';
-  popupQueryLoad.Items.Add(menuitem);
+  Item := TMenuItem.Create(popupQueryLoad);
+  Item.Caption := '-';
+  popupQueryLoad.Items.Add(Item);
 
-  menuitem := TMenuItem.Create( popupQueryLoad );
-  menuitem.Caption := _('Remove absent files');
-  menuitem.OnClick := PopupQueryLoadRemoveAbsentFiles;
-  popupQueryLoad.Items.Add(menuitem);
+  Item := TMenuItem.Create(popupQueryLoad);
+  Item.Caption := _('Remove absent files');
+  Item.OnClick := PopupQueryLoadRemoveAbsentFiles;
+  popupQueryLoad.Items.Add(Item);
 
-  menuitem := TMenuItem.Create( popupQueryLoad );
-  menuitem.Caption := _('Clear file list');
-  menuitem.OnClick := PopupQueryLoadRemoveAllFiles;
-  popupQueryLoad.Items.Add(menuitem);
-
+  Item := TMenuItem.Create(popupQueryLoad);
+  Item.Caption := _('Clear file list');
+  Item.OnClick := PopupQueryLoadRemoveAllFiles;
+  popupQueryLoad.Items.Add(Item);
 end;
 
 
 procedure TMainform.PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
 begin
   AddOrRemoveFromQueryLoadHistory('', False, True);
-  FillPopupQueryLoad;
 end;
 
 
@@ -3976,7 +3956,6 @@ begin
     if not AppSettings.DeleteValue(asSQLfile, IntToStr(i)) then
       break;
   end;
-  FillPopupQueryLoad;
 end;
 
 
@@ -6402,7 +6381,6 @@ begin
     if DeleteFile(snippetfile) then begin
       // Refresh list with snippets
       SetSnippetFilenames;
-      FillPopupQueryLoad;
     end else begin
       Screen.Cursor := crDefault;
       ErrorDialog(f_('Failed deleting %s', [snippetfile]));
@@ -11354,7 +11332,6 @@ begin
     Content := ReadTextfile(Filename, Encoding);
     if Pos(DirnameSnippets, Filename) = 0 then
       MainForm.AddOrRemoveFromQueryLoadHistory(Filename, True, True);
-    MainForm.FillPopupQueryLoad;
     Memo.UndoList.AddGroupBreak;
 
     if ScanNulChar(Content) then begin

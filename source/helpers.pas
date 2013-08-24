@@ -13,7 +13,7 @@ uses
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, mysql_structures, SynMemo, Menus, WinInet, synacode, gnugettext, Themes,
-  Character;
+  Character, ImgList;
 
 type
 
@@ -328,11 +328,14 @@ type
   function f_(const Pattern: string; const Args: array of const): string;
   function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
   function GetOutputFilenamePlaceholders: TStringList;
+  function GetSystemImageList: TImageList;
+  function GetSystemImageIndex(Filename: String): Integer;
 
 
 var
   AppSettings: TAppSettings;
   MutexHandle: THandle = 0;
+  SystemImageList: TImageList;
 
 
 implementation
@@ -2743,6 +2746,36 @@ begin
   Result.Values['i'] := _('Minute');
   Result.Values['s'] := _('Second');
 end;
+
+
+function GetSystemImageList: TImageList;
+var
+  Info: TSHFileInfo;
+  ImageListHandle: Cardinal;
+begin
+  // Create shared imagelist once and use in TPopupMenu and TVirtualTree or whatever
+  if SystemImageList = nil then begin
+    ImageListHandle := SHGetFileInfo('', 0, Info, SizeOf(Info), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
+    if ImageListHandle <> 0 then begin
+      SystemImageList := TImageList.Create(MainForm);
+      SystemImageList.Handle := ImageListHandle;
+      SystemImageList.ShareImages := true;
+      SystemImageList.DrawingStyle := dsTransparent;
+    end;
+  end;
+  Result := SystemImageList;
+end;
+
+
+function GetSystemImageIndex(Filename: String): Integer;
+var
+  Info: TSHFileInfo;
+begin
+  // Return image index of shared system image list, for a given filename
+  SHGetFileInfo(PChar(Filename), 0, Info, SizeOf(Info), SHGFI_SYSICONINDEX or SHGFI_TYPENAME);
+  Result := Info.iIcon;
+end;
+
 
 
 
