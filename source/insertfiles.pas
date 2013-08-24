@@ -345,18 +345,18 @@ end;
 
 procedure TfrmInsertFiles.comboTablesChange(Sender: TObject);
 var
+  Selected: TDBObject;
   Columns: TTableColumnList;
   Col: TTableColumn;
   ColInfo: TColInfo;
-  DBObjects: TDBObjectList;
   Node: PVirtualNode;
 begin
   // Populate combobox with columns from selected table
   ListColumns.Clear;
   if comboTables.ItemIndex > -1 then begin
-    DBObjects := FConnection.GetDBObjects(comboDBs.Text);
     Columns := TTableColumnList.Create(True);
-    FConnection.ParseTableStructure(DBObjects[comboTables.ItemIndex].CreateCode, Columns, nil, nil);
+    Selected := FConnection.FindObject(comboDBs.Text, comboTables.Text);
+    FConnection.ParseTableStructure(Selected.CreateCode, Columns, nil, nil);
     Node := nil;
     for Col in Columns do begin
       ColInfo := TColInfo.Create;
