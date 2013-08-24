@@ -3,7 +3,7 @@ unit insertfiles;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ImgList,
+  Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
   ShellApi, Math, Graphics, ComCtrls, ToolWin,
   dbconnection, mysql_structures, VirtualTrees, grideditlinks, SynRegExpr, gnugettext, helpers;
 
@@ -91,7 +91,6 @@ type
     procedure FormDestroy(Sender: TObject);
   private
     FConnection: TDBConnection;
-    FSmallImages: TImageList;
     FMaxFileSize: Int64;
   public
     { Public declarations }
@@ -116,23 +115,14 @@ const
 
 
 procedure TfrmInsertFiles.FormCreate(Sender: TObject);
-var
- SysIL : uint;
- SFI   : TSHFileInfo;
 begin
   TranslateComponent(Self);
-  FSmallImages := TImageList.Create(Self);
-  SysIL := SHGetFileInfo('', 0, SFI, SizeOf(SFI), SHGFI_SYSICONINDEX or SHGFI_SMALLICON);
-  if SysIL <> 0 then begin
-    FSmallImages.Handle := SysIL;
-    FSmallImages.ShareImages := TRUE;
-  end;
-  ListFiles.Images := FSmallImages;
-  DragAcceptFiles(Handle , True);
+  ListFiles.Images := GetSystemImageList;
+  DragAcceptFiles(Handle, True);
   SetWindowSizeGrip(Self.Handle, True);
   InheritFont(Font);
   MainForm.RestoreListSetup(ListColumns);
-  MainForm.RestoreListSetup(listFiles);
+  MainForm.RestoreListSetup(ListFiles);
   FixVT(ListFiles);
   FixVT(ListColumns);
 end;
@@ -389,7 +379,6 @@ end;
 
 procedure TfrmInsertFiles.AddFile(Filename: String);
 var
-  Info: TSHFileInfo;
   FileInfo: TFileInfo;
   NewNode: PVirtualNode;
   rx: TRegExpr;
@@ -398,8 +387,7 @@ begin
     Exit;
   FileInfo := TFileInfo.Create;
   FileInfo.Filename := Filename;
-  SHGetFileInfo(PChar(Filename), 0, Info, SizeOf(TSHFileInfo), SHGFI_SYSIconIndex or SHGFI_TYPENAME);
-  FileInfo.ImageIndex := Info.IIcon;
+  FileInfo.ImageIndex := GetSystemImageIndex(Filename);
   FileInfo.Size := _GetFileSize(Filename);
   rx := TRegExpr.Create;
   // Decide if file is binary by excluding common text format file extensions

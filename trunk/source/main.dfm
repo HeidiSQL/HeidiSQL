@@ -8730,6 +8730,7 @@ object MainForm: TMainForm
       000000000000}
   end
   object PopupQueryLoad: TPopupMenu
+    OnPopup = PopupQueryLoadPopup
     Left = 104
     Top = 32
   end
