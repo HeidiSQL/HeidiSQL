@@ -1436,10 +1436,12 @@ function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: 
 var
   DataLeft: Int64;
   LBuffer: TBytes;
+  SplitCharSize: Integer;
 begin
   // Be sure to read a multiplier of the encodings max byte count per char
-  if ChunkSize mod 4 > 0 then
-    Inc(ChunkSize, ChunkSize mod 4);
+  SplitCharSize := ChunkSize mod Encoding.GetMaxByteCount(1);
+  if SplitCharSize > 0 then
+    Inc(ChunkSize, Encoding.GetMaxByteCount(1)-SplitCharSize);
   DataLeft := Stream.Size - Stream.Position;
   if (ChunkSize = 0) or (ChunkSize > DataLeft) then
     ChunkSize := DataLeft;
