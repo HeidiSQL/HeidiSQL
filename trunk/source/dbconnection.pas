@@ -3739,9 +3739,11 @@ begin
   Result := QueryType + ' ';
   case FParameters.NetTypeGroup of
     ngMSSQL: begin
-      if QueryType = 'UPDATE' then
-        Result := Result + 'TOP('+IntToStr(Limit)+') '
-      else if QueryType = 'SELECT' then
+      if QueryType = 'UPDATE' then begin
+        // TOP(x) clause for UPDATES + DELETES introduced in MSSQL 2005
+        if ServerVersionInt >= 900 then
+          Result := Result + 'TOP('+IntToStr(Limit)+') ';
+      end else if QueryType = 'SELECT' then
         Result := Result + 'TOP '+IntToStr(Limit)+' ';
       Result := Result + QueryBody;
     end;
