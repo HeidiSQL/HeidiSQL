@@ -293,8 +293,6 @@ type
       procedure SetCharacterSet(CharsetName: String); virtual; abstract;
       function GetLastErrorCode: Cardinal; virtual; abstract;
       function GetLastError: String; virtual; abstract;
-      function GetServerVersionStr: String;
-      function GetServerVersionInt: Integer; virtual; abstract;
       function GetAllDatabases: TStringList; virtual;
       function GetTableEngines: TStringList; virtual;
       function GetCollationTable: TDBQuery; virtual;
@@ -323,7 +321,6 @@ type
       function FindObject(DB, Obj: String): TDBObject;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
       function UnescapeString(Text: String): String;
-      function ConvertServerVersion(Version: Integer): String; virtual; abstract;
       function GetResults(SQL: String): TDBQuery;
       function GetCol(SQL: String; Column: Integer=0): TStringList;
       function GetVar(SQL: String; Column: Integer=0): String; overload;
@@ -359,8 +356,8 @@ type
       property LastError: String read GetLastError;
       property ServerOS: String read FServerOS;
       property ServerVersionUntouched: String read FServerVersionUntouched;
-      property ServerVersionStr: String read GetServerVersionStr;
-      property ServerVersionInt: Integer read GetServerVersionInt;
+      function ServerVersionStr: String;
+      function ServerVersionInt: Integer;
       property RowsFound: Int64 read FRowsFound;
       property RowsAffected: Int64 read FRowsAffected;
       property WarningCount: Cardinal read FWarningCount;
@@ -411,7 +408,6 @@ type
       procedure SetCharacterSet(CharsetName: String); override;
       function GetLastErrorCode: Cardinal; override;
       function GetLastError: String; override;
-      function GetServerVersionInt: Integer; override;
       function GetAllDatabases: TStringList; override;
       function GetTableEngines: TStringList; override;
       function GetCollationTable: TDBQuery; override;
@@ -422,7 +418,6 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
-      function ConvertServerVersion(Version: Integer): String; override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String; override;
@@ -444,7 +439,6 @@ type
       procedure SetCharacterSet(CharsetName: String); override;
       function GetLastErrorCode: Cardinal; override;
       function GetLastError: String; override;
-      function GetServerVersionInt: Integer; override;
       function GetAllDatabases: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
@@ -454,7 +448,6 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
-      function ConvertServerVersion(Version: Integer): String; override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String; override;
@@ -2084,47 +2077,60 @@ end;
   Get version string as normalized integer
   "5.1.12-beta-community-123" => 50112
 }
-function TMySQLConnection.GetServerVersionInt: Integer;
-var
-  rx: TRegExpr;
-begin
-  rx := TRegExpr.Create;
-  rx.Expression := '(\d+)\.(\d+)\.(\d+)';
-  if rx.Exec(FServerVersionUntouched) then begin
-    Result := StrToIntDef(rx.Match[1], 0) *10000 +
-      StrToIntDef(rx.Match[2], 0) *100 +
-      StrToIntDef(rx.Match[3], 0);
-  end else
-    Result := 0;
-  rx.Free;
-end;
-
-function TAdoDBConnection.GetServerVersionInt: Integer;
+function TDBConnection.ServerVersionInt: Integer;
 var
   rx: TRegExpr;
   v1, v2: String;
 begin
-  // See http://support.microsoft.com/kb/321185
-  // "Microsoft SQL Server 7.00 - 7.00.1094 (Intel X86)" ==> 700
-  // "Microsoft SQL Server 2008 (RTM) - 10.0.1600.22 (Intel X86)" ==> 1000
-  // "Microsoft SQL Server 2008 R2 (RTM) - 10.50.1600.1 (Intel X86)" ==> 1050
+  Result := 0;
   rx := TRegExpr.Create;
-  rx.ModifierG := False;
-  rx.Expression := '\s(\d+)\.(\d+)\D';
-  if rx.Exec(FServerVersionUntouched) then begin
-    v1 := rx.Match[1];
-    v2 := rx.Match[2];
-    Result := StrToIntDef(v1, 0) *100 +
-      StrToIntDef(v2, 0);
-  end else
-    Result := 0;
+  case FParameters.NetTypeGroup of
+    ngMySQL: begin
+      rx.Expression := '(\d+)\.(\d+)\.(\d+)';
+      if rx.Exec(FServerVersionUntouched) then begin
+        Result := StrToIntDef(rx.Match[1], 0) *10000 +
+          StrToIntDef(rx.Match[2], 0) *100 +
+          StrToIntDef(rx.Match[3], 0);
+      end;
+    end;
+    ngMSSQL: begin
+      // See http://support.microsoft.com/kb/321185
+      // "Microsoft SQL Server 7.00 - 7.00.1094 (Intel X86)" ==> 700
+      // "Microsoft SQL Server 2008 (RTM) - 10.0.1600.22 (Intel X86)" ==> 1000
+      // "Microsoft SQL Server 2008 R2 (RTM) - 10.50.1600.1 (Intel X86)" ==> 1050
+      rx.ModifierG := False;
+      rx.Expression := '\s(\d+)\.(\d+)\D';
+      if rx.Exec(FServerVersionUntouched) then begin
+        v1 := rx.Match[1];
+        v2 := rx.Match[2];
+        Result := StrToIntDef(v1, 0) *100 +
+          StrToIntDef(v2, 0);
+      end;
+    end;
+  end;
   rx.Free;
 end;
 
 
-function TDBConnection.GetServerVersionStr: String;
+function TDBConnection.ServerVersionStr: String;
+var
+  v: String;
+  major, minor, build: Integer;
 begin
-  Result := ConvertServerVersion(ServerVersionInt);
+  case FParameters.NetTypeGroup of
+    ngMySQL: begin
+      v := IntToStr(ServerVersionInt);
+      major := StrToIntDef(Copy(v, 1, Length(v)-4), 0);
+      minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
+      build := StrToIntDef(Copy(v, Length(v)-1, 2), 0);
+      Result := IntToStr(major) + '.' + IntToStr(minor) + '.' + IntToStr(build);
+    end;
+    ngMSSQL: begin
+      major := ServerVersionInt div 100;
+      minor := ServerVersionInt mod (ServerVersionInt div 100);
+      Result := IntToStr(major) + '.' + IntToStr(minor);
+    end;
+  end;
 end;
 
 
@@ -2192,32 +2198,6 @@ function TDBConnection.RefreshAllDatabases: TStringList;
 begin
   FreeAndNil(FAllDatabases);
   Result := AllDatabases;
-end;
-
-
-{**
-  Convert integer version to real version string
-}
-function TMySQLConnection.ConvertServerVersion(Version: Integer): String;
-var
-  v: String;
-  major, minor, build: Integer;
-begin
-  v := IntToStr(Version);
-  major := StrToIntDef(Copy(v, 1, Length(v)-4), 0);
-  minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
-  build := StrToIntDef(Copy(v, Length(v)-1, 2), 0);
-  Result := IntToStr(major) + '.' + IntToStr(minor) + '.' + IntToStr(build);
-end;
-
-
-function TAdoDBConnection.ConvertServerVersion(Version: Integer): String;
-var
-  v1, v2: Integer;
-begin
-  v1 := Version div 100;
-  v2 := Version mod (Version div 100);
-  Result := IntToStr(v1) + '.' + IntToStr(v2);
 end;
 
 
