@@ -940,6 +940,7 @@ type
     FGridEditFunctionMode: Boolean;
     FClipboardHasNull: Boolean;
     FTimeZoneOffset: Integer;
+    FGridCopying: Boolean;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1626,6 +1627,7 @@ begin
   FConnections.OnNotify := ConnectionsNotify;
 
   FTreeRefreshInProgress := False;
+  FGridCopying := False;
 
   FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
 
@@ -2081,7 +2083,8 @@ begin
   Result := (Sender = DataGrid)
     and (Column > NoColumn)
     and (DataGridResult.DataType(Column).Index in [dtInt, dtBigint])
-    and (SelectedTableTimestampColumns.IndexOf(DataGrid.Header.Columns[Column].Text) > -1);
+    and (SelectedTableTimestampColumns.IndexOf(DataGrid.Header.Columns[Column].Text) > -1)
+    and (not FGridCopying);
 end;
 
 
@@ -9037,6 +9040,7 @@ begin
       Grid := Control as TVirtualStringTree;
       if Assigned(Grid.FocusedNode) then begin
         IsResultGrid := Grid = ActiveGrid;
+        FGridCopying := True;
         if IsResultGrid then begin
           // Handle NULL values in grids, see issue #3171
           AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
@@ -9052,6 +9056,7 @@ begin
             Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
         end else
           Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+        FGridCopying := False;
         Success := True;
       end;
     end else if Control is TSynMemo then begin
