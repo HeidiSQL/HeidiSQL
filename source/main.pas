@@ -7930,7 +7930,7 @@ begin
           Dec(Timestamp, FTimeZoneOffset);
           CellText := DateTimeToStr(UnixToDateTime(Timestamp));
         end else
-          CellText := FormatNumber(Results.Col(Column), False);
+          CellText := FormatNumber(Results.Col(Column), True);
       end;
       dtcBinary, dtcSpatial: begin
         if actBlobAsText.Checked then
