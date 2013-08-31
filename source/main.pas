@@ -941,6 +941,7 @@ type
     FClipboardHasNull: Boolean;
     FTimeZoneOffset: Integer;
     FGridCopying: Boolean;
+    FGridPasting: Boolean;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1628,6 +1629,7 @@ begin
 
   FTreeRefreshInProgress := False;
   FGridCopying := False;
+  FGridPasting := False;
 
   FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
 
@@ -8125,6 +8127,7 @@ var
   Results: TDBQuery;
   RowNum: PCardinal;
   Timestamp: Int64;
+  IsNull: Boolean;
 begin
   Results := GridResult(Sender);
   RowNum := Sender.GetNodeData(Node);
@@ -8138,7 +8141,8 @@ begin
       end else
         NewText := UnformatNumber(NewText);
     end;
-    Results.SetCol(Column, NewText, False, FGridEditFunctionMode);
+    IsNull := FGridPasting and FClipboardHasNull;
+    Results.SetCol(Column, NewText, IsNull, FGridEditFunctionMode);
   except
     on E:EDatabaseError do
       ErrorDialog(E.Message);
@@ -9091,8 +9095,6 @@ var
   Grid: TVirtualStringTree;
   SynMemo: TSynMemo;
   Success: Boolean;
-  Results: TDBQuery;
-  RowNum: PCardinal;
 begin
   // Paste text into the focused control
   Success := False;
@@ -9114,17 +9116,10 @@ begin
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
     if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
-      Results := GridResult(Grid);
-      RowNum := Grid.GetNodeData(Grid.FocusedNode);
-      Results.RecNo := RowNum^;
-      try
-        Results.SetCol(Grid.FocusedColumn, ClipBoard.AsText, FClipboardHasNull, False);
-      except
-        on E:EDatabaseError do
-          ErrorDialog(E.Message);
-      end;
-      Grid.RepaintNode(Grid.FocusedNode);
+      FGridPasting := True;
+      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := ClipBoard.AsText;
       Success := True;
+      FGridPasting := False;
     end;
   end else if Control is TSynMemo then begin
     SynMemo := TSynMemo(Control);
