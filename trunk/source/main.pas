@@ -2085,8 +2085,7 @@ begin
   Result := (Sender = DataGrid)
     and (Column > NoColumn)
     and (DataGridResult.DataType(Column).Index in [dtInt, dtBigint])
-    and (SelectedTableTimestampColumns.IndexOf(DataGrid.Header.Columns[Column].Text) > -1)
-    and (not FGridCopying);
+    and (SelectedTableTimestampColumns.IndexOf(DataGrid.Header.Columns[Column].Text) > -1);
 end;
 
 
@@ -7927,12 +7926,15 @@ begin
   else begin
     case Results.DataType(Column).Category of
       dtcInteger, dtcReal: begin
-        if HandleUnixTimestampColumn(Sender, Column) then begin
+        if FGridCopying then begin
+          CellText := Results.Col(Column);
+        end else if HandleUnixTimestampColumn(Sender, Column) then begin
           Timestamp := MakeInt(Results.Col(Column));
           Dec(Timestamp, FTimeZoneOffset);
           CellText := DateTimeToStr(UnixToDateTime(Timestamp));
-        end else
+        end else begin
           CellText := FormatNumber(Results.Col(Column), True);
+        end;
       end;
       dtcBinary, dtcSpatial: begin
         if actBlobAsText.Checked then
