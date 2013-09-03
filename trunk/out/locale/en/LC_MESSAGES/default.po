@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-09-03 19:47+0100\n"
+"PO-Revision-Date: 2013-09-03 20:01+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -1128,7 +1128,6 @@ msgstr "Undo"
 #. MainForm..ActionList1..actDataSetNull..Category
 #. MainForm..ActionList1..actDataSaveBlobToFile..Category
 #. MainForm..ActionList1..actGridEditFunction..Category
-#. optionsform..pagecontrolMain..tabData..Caption
 #. frmSyncDB..grpOptions..radioOptionsData..Caption
 #: main.dfm:223 main.dfm:1214 main.dfm:1247 main.dfm:2015 main.dfm:2060
 #: main.dfm:2068 main.dfm:2076 main.dfm:2085 main.dfm:2093 main.dfm:2102
@@ -2699,6 +2698,18 @@ msgstr "Grid text colors:"
 #: options.dfm:657
 msgid "NULL background color (use \"None\" to disable):"
 msgstr "NULL background color (use \"None\" to disable):"
+
+#. Preferences
+msgid "Data appearance"
+msgstr "Data appearance"
+
+#. Preferences
+msgid "Data editing"
+msgstr "Data editing"
+
+#. Preferences > Data appearance
+msgid "Alternating row background:"
+msgstr "Alternating row background:"
 
 #. Preferences > Data appearance
 msgid "Local number format"
