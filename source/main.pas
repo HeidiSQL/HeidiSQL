@@ -995,6 +995,7 @@ type
     DataGridFocusedColumnName: String;
     DataGridResult: TDBQuery;
     DataGridFullRowMode: Boolean;
+    DataLocalNumberFormat: Boolean;
     SelectedTableColumns: TTableColumnList;
     SelectedTableKeys: TTableKeyList;
     SelectedTableForeignKeys: TForeignKeyList;
@@ -1573,6 +1574,8 @@ begin
   DatatypeCategories[dtcSpatial].Color := AppSettings.ReadInt(asFieldColorSpatial);
   DatatypeCategories[dtcOther].Color := AppSettings.ReadInt(asFieldColorOther);
   CalcNullColors;
+
+  DataLocalNumberFormat := AppSettings.ReadBool(asDataLocalNumberFormat);
 
   // Database tree options
   actGroupObjects.Checked := AppSettings.ReadBool(asGroupTreeObjects);
@@ -7933,7 +7936,10 @@ begin
           Dec(Timestamp, FTimeZoneOffset);
           CellText := DateTimeToStr(UnixToDateTime(Timestamp));
         end else begin
-          CellText := FormatNumber(Results.Col(Column), True);
+          if DataLocalNumberFormat then
+            CellText := FormatNumber(Results.Col(Column), True)
+          else
+            CellText := Results.Col(Column);
         end;
       end;
       dtcBinary, dtcSpatial: begin

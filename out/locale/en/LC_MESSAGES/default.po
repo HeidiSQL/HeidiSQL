@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-08-21 07:05+0100\n"
+"PO-Revision-Date: 2013-09-03 19:47+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2699,6 +2699,10 @@ msgstr "Grid text colors:"
 #: options.dfm:657
 msgid "NULL background color (use \"None\" to disable):"
 msgstr "NULL background color (use \"None\" to disable):"
+
+#. Preferences > Data appearance
+msgid "Local number format"
+msgstr "Local number format"
 
 #. optionsform..pagecontrolMain..tabData..chkEditorBinary..Caption
 #: options.dfm:789

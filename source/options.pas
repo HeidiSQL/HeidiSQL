@@ -30,7 +30,7 @@ type
     btnApply: TButton;
     tabSQL: TTabSheet;
     chkAutoReconnect: TCheckBox;
-    tabData: TTabSheet;
+    tabDataAppearance: TTabSheet;
     lblDataFont: TLabel;
     comboDataFontName: TComboBox;
     editDataFontSize: TEdit;
@@ -80,16 +80,6 @@ type
     updownGridRowsLineCount: TUpDown;
     chkColorBars: TCheckBox;
     cboxColorBars: TColorBox;
-    tabHighlighter: TTabSheet;
-    lblSQLColElement: TLabel;
-    chkSQLBold: TCheckBox;
-    chkSQLItalic: TCheckBox;
-    comboSQLColElement: TComboBox;
-    lblSQLColForeground: TLabel;
-    lblSQLColBackground: TLabel;
-    cboxSQLColBackground: TColorBox;
-    cboxSQLColForeground: TColorBox;
-    SynMemoSQLSample: TSynMemo;
     comboSQLFontName: TComboBox;
     lblFont: TLabel;
     editSQLFontSize: TEdit;
@@ -109,21 +99,32 @@ type
     colorBoxGridTextColors: TColorBox;
     lblNullBackground: TLabel;
     cboxNullBackground: TColorBox;
-    chkEditorBinary: TCheckBox;
-    chkEditorDatetime: TCheckBox;
-    chkEditorEnum: TCheckBox;
-    chkEditorSet: TCheckBox;
-    chkPrefillDateTime: TCheckBox;
     lblMySQLBinaries: TLabel;
     editMySQLBinaries: TButtonedEdit;
-    chkRememberFilters: TCheckBox;
     lblLanguage: TLabel;
     comboAppLanguage: TComboBox;
-    chkForeignDropDown: TCheckBox;
     chkQueryHistory: TCheckBox;
     cboxRowBackgroundOdd: TColorBox;
     cboxRowBackgroundEven: TColorBox;
     Label2: TLabel;
+    tabDataEditing: TTabSheet;
+    chkEditorBinary: TCheckBox;
+    chkEditorDatetime: TCheckBox;
+    chkPrefillDateTime: TCheckBox;
+    chkEditorEnum: TCheckBox;
+    chkEditorSet: TCheckBox;
+    chkRememberFilters: TCheckBox;
+    chkForeignDropDown: TCheckBox;
+    chkLocalNumberFormat: TCheckBox;
+    lblSQLColElement: TLabel;
+    comboSQLColElement: TComboBox;
+    chkSQLBold: TCheckBox;
+    chkSQLItalic: TCheckBox;
+    lblSQLColBackground: TLabel;
+    lblSQLColForeground: TLabel;
+    cboxSQLColForeground: TColorBox;
+    cboxSQLColBackground: TColorBox;
+    SynMemoSQLSample: TSynMemo;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -277,7 +278,9 @@ begin
   AppSettings.WriteInt(asFieldNullBackground, cboxNullBackground.Selected);
   AppSettings.WriteInt(asRowBackgroundEven, cboxRowBackgroundEven.Selected);
   AppSettings.WriteInt(asRowBackgroundOdd, cboxRowBackgroundOdd.Selected);
-  // Editor enablings
+  AppSettings.WriteBool(asDataLocalNumberFormat, chkLocalNumberFormat.Checked);
+
+  // Data editing
   AppSettings.WriteBool(asFieldEditorBinary, chkEditorBinary.Checked);
   AppSettings.WriteBool(asFieldEditorDatetime, chkEditorDatetime.Checked);
   AppSettings.WriteBool(asFieldEditorDatetimePrefill, chkPrefillDatetime.Checked);
@@ -336,6 +339,7 @@ begin
   DatatypeCategories[dtcTemporal].Color := FGridTextColors[dtcTemporal];
   DatatypeCategories[dtcSpatial].Color := FGridTextColors[dtcSpatial];
   DatatypeCategories[dtcOther].Color := FGridTextColors[dtcOther];
+  Mainform.DataLocalNumberFormat := chkLocalNumberFormat.Checked;
   Mainform.CalcNullColors;
   Mainform.DataGrid.Repaint;
   Mainform.QueryGrid.Repaint;
@@ -483,7 +487,9 @@ begin
   cboxNullBackground.Selected := AppSettings.ReadInt(asFieldNullBackground);
   cboxRowBackgroundEven.Selected := AppSettings.ReadInt(asRowBackgroundEven);
   cboxRowBackgroundOdd.Selected := AppSettings.ReadInt(asRowBackgroundOdd);
-  // Editor enablings
+  chkLocalNumberFormat.Checked := AppSettings.ReadBool(asDataLocalNumberFormat);
+
+  // Data editing
   chkEditorBinary.Checked := AppSettings.ReadBool(asFieldEditorBinary);
   chkEditorDatetime.Checked := AppSettings.ReadBool(asFieldEditorDatetime);
   chkPrefillDateTime.Checked := AppSettings.ReadBool(asFieldEditorDatetimePrefill);

@@ -134,7 +134,7 @@ type
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
     asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground,
-    asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize,
+    asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
     asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asRememberFilters,
     asLogToFile, asMainWinMaximized, asMainWinLeft, asMainWinTop, asMainWinWidth,
@@ -3176,6 +3176,7 @@ begin
   InitSetting(asTabWidth,                         'TabWidth',                              3);
   InitSetting(asDataFontName,                     'DataFontName',                          0, False, 'Tahoma');
   InitSetting(asDataFontSize,                     'DataFontSize',                          8);
+  InitSetting(asDataLocalNumberFormat,            'DataLocalNumberFormat',                 0, False);
   InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
   InitSetting(asLogsqlwidth,                      'logsqlwidth',                           2000);
   InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs\');
