@@ -3119,7 +3119,7 @@ procedure TMainForm.RunQueryFile(FileName: String; Encoding: TEncoding);
 var
   Dialog: IProgressDialog;
   Dummy: Pointer;
-  Stream: TFileStream;
+  Reader: TStreamReader;
   Lines, LinesRemain, ErrorNotice: String;
   Filesize, QueryCount, ErrorCount, RowsAffected, Position: Int64;
   Queries: TSQLBatch;
@@ -3129,7 +3129,7 @@ var
   begin
     Dialog.SetLine(1, PChar(_('Clean up ...')), False, Dummy);
     Queries.Free;
-    Stream.Free;
+    Reader.Free;
     Dialog.StopProgressDialog;
     BringToFront;
     SetFocus;
@@ -3155,14 +3155,14 @@ begin
     // Start file operations
     Filesize := _GetFileSize(FileName);
 
-    OpenTextfile(FileName, Stream, Encoding);
-    while Stream.Position < Stream.Size do begin
+    OpenTextfile(FileName, Reader, Encoding);
+    while not Reader.EndOfStream do begin
       if Dialog.HasUserCancelled then
         Break;
 
       // Read lines from SQL file until buffer reaches a limit of some MB
       // This strategy performs vastly better than looping through each line
-      Lines := ReadTextfileChunk(Stream, Encoding, 20*SIZE_MB);
+      Lines := ReadTextfileChunk(Reader, 20*SIZE_MB);
 
       // Split buffer into single queries
       Queries.SQL := LinesRemain + Lines;
@@ -3174,12 +3174,12 @@ begin
         if Dialog.HasUserCancelled then
           Break;
         // Last line has to be processed in next loop if end of file is not reached
-        if (i = Queries.Count-1) and (Stream.Position < Stream.Size) then begin
+        if (i = Queries.Count-1) and (not Reader.EndOfStream) then begin
           LinesRemain := Queries[i].SQL;
           Break;
         end;
         Inc(QueryCount);
-        Position := Position + Encoding.GetByteCount(Queries[i].SQL);
+        Position := Position + Reader.CurrentEncoding.GetByteCount(Queries[i].SQL);
         if ErrorCount > 0 then
           ErrorNotice := '(' + FormatNumber(ErrorCount) + ' ' + _('Errors') + ')';
         Dialog.SetLine(1,
@@ -11341,12 +11341,6 @@ begin
     if Pos(DirnameSnippets, Filename) = 0 then
       MainForm.AddOrRemoveFromQueryLoadHistory(Filename, True, True);
     Memo.UndoList.AddGroupBreak;
-
-    if ScanNulChar(Content) then begin
-      Content := RemoveNulChars(Content);
-      MessageDialog(_(SContainsNulCharFile), mtInformation, [mbOK]);
-    end;
-
     Memo.BeginUpdate;
     LineBreaks := ScanLineBreaks(Content);
     if ReplaceContent then begin

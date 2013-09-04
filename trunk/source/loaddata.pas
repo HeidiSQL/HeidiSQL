@@ -582,7 +582,7 @@ end;
 procedure Tloaddataform.btnOpenFileClick(Sender: TObject);
 var
   Dialog: TOpenTextFileDialog;
-  TestStream: TFileStream;
+  TestReader: TStreamReader;
 begin
   Dialog := TOpenTextFileDialog.Create(Self);
   Dialog.Filter := _('CSV files')+' (*.csv)|*.csv|'+_('Text files')+' (*.txt)|*.txt|'+_('All files')+' (*.*)|*.*';
@@ -593,9 +593,9 @@ begin
     editfilename.Text := Dialog.FileName;
     Encoding := Mainform.GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
     if Encoding = nil then begin
-      TestStream := TFileStream.Create(Dialog.Filename, fmOpenRead or fmShareDenyNone);
-      Encoding := DetectEncoding(TestStream);
-      TestStream.Free;
+      TestReader := TStreamReader.Create(Dialog.Filename, True);
+      Encoding := TestReader.CurrentEncoding;
+      TestReader.Free;
     end;
     SelectedCharsetIndex := -1;
     grpParseMethod.OnClick(Sender);
