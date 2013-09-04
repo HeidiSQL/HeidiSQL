@@ -111,11 +111,6 @@ begin
   if LB <> '' then
     text := StringReplace(text, LB, CRLF, [rfReplaceAll]);
 
-  if ScanNulChar(text) then begin
-    MessageDialog(_(SContainsNulCharGrid), mtInformation, [mbOK]);
-    text := RemoveNulChars(text);
-  end;
-
   // TODO: Find out why the Delphi IDE insists hinting that this
   //       property is ANSI when it is in fact a WideString.
   memoText.Text := text;

@@ -254,9 +254,7 @@ type
   function CleanupNumber(Str: String): String;
   function IsNumeric(Str: String): Boolean;
   function esc(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
-  function ScanNulChar(Text: String): Boolean;
   function ScanLineBreaks(Text: String): TLineBreaks;
-  function RemoveNulChars(Text: String): String;
   function fixNewlines(txt: String): String;
   function ExtractComment(var SQL: String): String;
   function GetShellFolder(CSIDL: integer): string;
@@ -278,9 +276,8 @@ type
   function GetTempDir: String;
   procedure SetWindowSizeGrip(hWnd: HWND; Enable: boolean);
   procedure SaveUnicodeFile(Filename: String; Text: String);
-  procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
-  function DetectEncoding(Stream: TStream): TEncoding;
-  function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
+  procedure OpenTextFile(const Filename: String; out Reader: TStreamReader; Encoding: TEncoding);
+  function ReadTextfileChunk(Reader: TStreamReader; ChunkSize: Integer=0): String;
   function ReadTextfile(Filename: String; Encoding: TEncoding): String;
   function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
   procedure StreamToClipboard(Text, HTML: TStream; CreateHTMLHeader: Boolean);
@@ -642,27 +639,6 @@ end;
 
 
 {***
-  Detect NUL character in a text.
-  Useful because fx SynEdit cuts of all text after it encounters a NUL.
-}
-function ScanNulChar(Text: String): boolean;
-var
-  i: integer;
-begin
-  result := false;
-  for i:=1 to length(Text) do
-  begin
-    if Text[i] = #0 then
-    begin
-      result := true;
-      exit;
-    end;
-  end;
-end;
-
-
-
-{***
   SynEdit removes all newlines and semi-randomly decides a
   new newline format to use for any text edited.
   See also: Delphi's incomplete implementation of TTextLineBreakStyle in System.pas
@@ -706,31 +682,6 @@ begin
       break;
   until i > length(Text);
 end;
-
-
-
-{***
-  Mangle input text so that SynEdit can load it.
-
-  @param string Text to test
-  @return Boolean
-}
-function RemoveNulChars(Text: String): String;
-var
-  i: integer;
-  c: Char;
-begin
-  SetLength(Result, Length(Text));
-  if Length(Text) = 0 then Exit;
-  i := 1;
-  repeat
-    c := Text[i];
-    if c = #0 then Result[i] := #32
-    else Result[i] := c;
-    i := i + 1;
-  until i > length(Text);
-end;
-
 
 
 {***
@@ -1253,219 +1204,44 @@ begin
 end;
 
 
-{**
-  Open a textfile unicode safe and return a stream + its charset
-}
-procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
-var
-  Header: TBytes;
-  BomLen: Integer;
+procedure OpenTextFile(const Filename: String; out Reader: TStreamReader; Encoding: TEncoding);
 begin
-  Stream := TFileStream.Create(Filename, fmOpenRead or fmShareDenyNone);
-  if Encoding = nil then
-    Encoding := DetectEncoding(Stream);
-  // If the file contains a BOM, advance the stream's position
-  BomLen := 0;
-  if Length(Encoding.GetPreamble) > 0 then begin
-    SetLength(Header, Length(Encoding.GetPreamble));
-    Stream.ReadBuffer(Pointer(Header)^, Length(Header));
-    if CompareMem(Header, Encoding.GetPreamble, SizeOf(Header)) then
-      BomLen := Length(Encoding.GetPreamble);
-  end;
-  Stream.Position := BomLen;
+  // Open a textfile and return a StreamReader, which detects its encoding if not passed by the caller
+  if Encoding <> nil then
+    Reader := TStreamReader.Create(Filename, Encoding)
+  else
+    Reader := TStreamReader.Create(Filename, True);
 end;
 
 
-{**
-  Detect stream's content encoding by examing first 100k bytes (MaxBufferSize). Result can be:
-    UTF-16 BE with BOM
-    UTF-16 LE with BOM
-    UTF-8 with or without BOM
-    ANSI
-  Aimed to work better than WideStrUtils.IsUTF8String() which didn't work in any test case here.
-  @see http://en.wikipedia.org/wiki/Byte_Order_Mark
-  Could also do that with TEncoding.GetBufferEncoding, but that relies on the file having a BOM
-}
-function DetectEncoding(Stream: TStream): TEncoding;
+function ReadTextfileChunk(Reader: TStreamReader; ChunkSize: Integer = 0): String;
 var
-  ByteOrderMark: Char;
-  BytesRead: Integer;
-  Utf8Test: array[0..2] of AnsiChar;
-  Buffer: array of Byte;
-  BufferSize, i, FoundUTF8Strings: Integer;
-const
-  UNICODE_BOM = Char($FEFF);
-  UNICODE_BOM_SWAPPED = Char($FFFE);
-  UTF8_BOM = AnsiString(#$EF#$BB#$BF);
-  MinimumCountOfUTF8Strings = 1;
-  MaxBufferSize = 100000;
-
-  // 3 trailing bytes are the maximum in valid UTF-8 streams,
-  // so a count of 4 trailing bytes is enough to detect invalid UTF-8 streams
-  function CountOfTrailingBytes: Integer;
-  begin
-    Result := 0;
-    inc(i);
-    while (i < BufferSize) and (Result < 4) do begin
-      if Buffer[i] in [$80..$BF] then
-        inc(Result)
-      else
-        Break;
-      inc(i);
-    end;
-  end;
-
-begin
-  // Byte Order Mark
-  ByteOrderMark := #0;
-  if (Stream.Size - Stream.Position) >= SizeOf(ByteOrderMark) then begin
-    BytesRead := Stream.Read(ByteOrderMark, SizeOf(ByteOrderMark));
-    if (ByteOrderMark <> UNICODE_BOM) and (ByteOrderMark <> UNICODE_BOM_SWAPPED) then begin
-      ByteOrderMark := #0;
-      Stream.Seek(-BytesRead, soFromCurrent);
-      if (Stream.Size - Stream.Position) >= Length(Utf8Test) * SizeOf(AnsiChar) then begin
-        BytesRead := Stream.Read(Utf8Test[0], Length(Utf8Test) * SizeOf(AnsiChar));
-        if Utf8Test <> UTF8_BOM then
-          Stream.Seek(-BytesRead, soFromCurrent);
-      end;
-    end;
-  end;
-  // Test Byte Order Mark
-  if ByteOrderMark = UNICODE_BOM then
-    Result := TEncoding.Unicode
-  else if ByteOrderMark = UNICODE_BOM_SWAPPED then
-    Result := TEncoding.BigEndianUnicode
-  else if Utf8Test = UTF8_BOM then
-    Result := TEncoding.UTF8
-  else begin
-    { @note Taken from SynUnicode.pas }
-    { If no BOM was found, check for leading/trailing byte sequences,
-      which are uncommon in usual non UTF-8 encoded text.
-
-      NOTE: There is no 100% save way to detect UTF-8 streams. The bigger
-            MinimumCountOfUTF8Strings, the lower is the probability of
-            a false positive. On the other hand, a big MinimumCountOfUTF8Strings
-            makes it unlikely to detect files with only little usage of non
-            US-ASCII chars, like usual in European languages. }
-
-    // if no special characteristics are found it is not UTF-8
-    Result := TEncoding.Default;
-
-    // start analysis at actual Stream.Position
-    BufferSize := Min(MaxBufferSize, Stream.Size - Stream.Position);
-
-    if BufferSize > 0 then begin
-      SetLength(Buffer, BufferSize);
-      Stream.ReadBuffer(Buffer[0], BufferSize);
-      Stream.Seek(-BufferSize, soFromCurrent);
-
-      FoundUTF8Strings := 0;
-      i := 0;
-      while i < BufferSize do begin
-        if FoundUTF8Strings = MinimumCountOfUTF8Strings then begin
-          Result := TEncoding.UTF8;
-          Break;
-        end;
-        case Buffer[i] of
-          $00..$7F: // skip US-ASCII characters as they could belong to various charsets
-            ;
-          $C2..$DF:
-            if CountOfTrailingBytes = 1 then
-              inc(FoundUTF8Strings)
-            else
-              Break;
-          $E0:
-            begin
-              inc(i);
-              if (i < BufferSize) and (Buffer[i] in [$A0..$BF]) and (CountOfTrailingBytes = 1) then
-                inc(FoundUTF8Strings)
-              else
-                Break;
-            end;
-          $E1..$EC, $EE..$EF:
-            if CountOfTrailingBytes = 2 then
-              inc(FoundUTF8Strings)
-            else
-              Break;
-          $ED:
-            begin
-              inc(i);
-              if (i < BufferSize) and (Buffer[i] in [$80..$9F]) and (CountOfTrailingBytes = 1) then
-                inc(FoundUTF8Strings)
-              else
-                Break;
-            end;
-          $F0:
-            begin
-              inc(i);
-              if (i < BufferSize) and (Buffer[i] in [$90..$BF]) and (CountOfTrailingBytes = 2) then
-                inc(FoundUTF8Strings)
-              else
-                Break;
-            end;
-          $F1..$F3:
-            if CountOfTrailingBytes = 3 then
-              inc(FoundUTF8Strings)
-            else
-              Break;
-          $F4:
-            begin
-              inc(i);
-              if (i < BufferSize) and (Buffer[i] in [$80..$8F]) and (CountOfTrailingBytes = 2) then
-                inc(FoundUTF8Strings)
-              else
-                Break;
-            end;
-          $C0, $C1, $F5..$FF: // invalid UTF-8 bytes
-            Break;
-          $80..$BF: // trailing bytes are consumed when handling leading bytes,
-                     // any occurence of "orphaned" trailing bytes is invalid UTF-8
-            Break;
-        end;
-        inc(i);
-      end;
-    end;
-  end;
-end;
-
-
-{**
-  Read a chunk out of a textfile unicode safe by passing a stream and its charset
-}
-function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
-var
+  Buffer: TCharArray;
   DataLeft: Int64;
-  LBuffer: TBytes;
-  SplitCharSize: Integer;
 begin
-  // Be sure to read a multiplier of the encodings max byte count per char
-  SplitCharSize := ChunkSize mod Encoding.GetMaxByteCount(1);
-  if SplitCharSize > 0 then
-    Inc(ChunkSize, Encoding.GetMaxByteCount(1)-SplitCharSize);
-  DataLeft := Stream.Size - Stream.Position;
+  // Read a chunk or the complete contents out of a textfile, opened by OpenTextFile()
+  DataLeft := Reader.BaseStream.Size - Reader.BaseStream.Position;
   if (ChunkSize = 0) or (ChunkSize > DataLeft) then
     ChunkSize := DataLeft;
-  SetLength(LBuffer, ChunkSize);
-  Stream.ReadBuffer(Pointer(LBuffer)^, ChunkSize);
-  // Now, TEncoding.Convert returns an empty TByte array in files with russion characters
-  // See http://www.heidisql.com/forum.php?t=13044
-  LBuffer := Encoding.Convert(Encoding, TEncoding.Unicode, LBuffer);
-  if Length(LBuffer) = 0 then
-    MainForm.LogSQL('Error when converting chunk from encoding '+Encoding.EncodingName+' to '+TEncoding.Unicode.EncodingName+' in '+ExtractFileName(Stream.FileName)+' at position '+FormatByteNumber(Stream.Position));
-  Result := TEncoding.Unicode.GetString(LBuffer);
+  SetLength(Buffer, ChunkSize);
+  Reader.ReadBlock(Buffer, 0, Length(Buffer));
+  if Length(Buffer) > 0 then
+    SetString(Result, PChar(@Buffer[0]), Length(Buffer))
+  else
+    Result := '';
 end;
 
-{**
-  Read a unicode or ansi file into memory
-}
+
 function ReadTextfile(Filename: String; Encoding: TEncoding): String;
 var
-  Stream: TFileStream;
+  Reader: TStreamReader;
 begin
-  OpenTextfile(Filename, Stream, Encoding);
-  Result := ReadTextfileChunk(Stream, Encoding);
-  Stream.Free;
+  // Read a text file into memory
+  OpenTextfile(Filename, Reader, Encoding);
+  Result := ReadTextfileChunk(Reader);
+  Reader.Free;
 end;
+
 
 function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
 var

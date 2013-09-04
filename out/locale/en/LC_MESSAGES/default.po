@@ -5404,22 +5404,6 @@ msgid "Index"
 msgstr "Index"
 
 #. const.inc
-msgid ""
-"This file contains NUL characters. They have been converted to ASCII spaces "
-"(SP)."
-msgstr ""
-"This file contains NUL characters. They have been converted to ASCII spaces "
-"(SP)."
-
-#. const.inc
-msgid ""
-"This cell contains NUL characters. They have been converted to ASCII spaces "
-"(SP). Press ESC to cancel editing."
-msgstr ""
-"This cell contains NUL characters. They have been converted to ASCII spaces "
-"(SP). Press ESC to cancel editing."
-
-#. const.inc
 msgid "Unhandled tree node index"
 msgstr "Unhandled tree node index"
 
