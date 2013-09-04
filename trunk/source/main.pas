@@ -7929,6 +7929,9 @@ begin
   else begin
     case Results.DataType(Column).Category of
       dtcInteger, dtcReal: begin
+        // This is a bit crappy...
+        // UNIX timestamps get *copied* as integers, but *displayed* and *edited* as date/time values.
+        // Normal integers are *copied* and *edited* as raw numbers, but probably *displayed* as formatted numbers.
         if FGridCopying then begin
           CellText := Results.Col(Column);
         end else if HandleUnixTimestampColumn(Sender, Column) then begin
@@ -7936,7 +7939,7 @@ begin
           Dec(Timestamp, FTimeZoneOffset);
           CellText := DateTimeToStr(UnixToDateTime(Timestamp));
         end else begin
-          if DataLocalNumberFormat then
+          if DataLocalNumberFormat and (not EditingAndFocused) then
             CellText := FormatNumber(Results.Col(Column), True)
           else
             CellText := Results.Col(Column);
@@ -8147,7 +8150,7 @@ begin
         Inc(Timestamp, FTimeZoneOffset);
         NewText := IntToStr(Timestamp)
       end else
-        NewText := UnformatNumber(NewText);
+        NewText := NewText;
     end;
     IsNull := FGridPasting and FClipboardHasNull;
     Results.SetCol(Column, NewText, IsNull, FGridEditFunctionMode);
