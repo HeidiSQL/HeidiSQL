@@ -904,6 +904,13 @@ type
     procedure actUnixTimestampColumnExecute(Sender: TObject);
     procedure PopupQueryLoadPopup(Sender: TObject);
   private
+    // Executable file details
+    FAppVerMajor: Integer;
+    FAppVerMinor: Integer;
+    FAppVerRelease: Integer;
+    FAppVerRevision: Integer;
+    FAppVersion: String;
+
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
     FDelimiter: String;
@@ -1002,19 +1009,14 @@ type
     SelectedTableTimestampColumns: TStringList;
     FilterPanelManuallyOpened: Boolean;
 
-    // Executable file details
-    AppVerMajor: Integer;
-    AppVerMinor: Integer;
-    AppVerRelease: Integer;
-    AppVerRevision: Integer;
-    AppVersion: String;
-
     // Task button interface
     TaskbarList: ITaskbarList;
     TaskbarList2: ITaskbarList2;
     TaskbarList3: ITaskbarList3;
     TaskbarList4: ITaskbarList4;
 
+    property AppVerRevision: Integer read FAppVerRevision;
+    property AppVersion: String read FAppVersion;
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
     property IsWine: Boolean read FIsWine;
@@ -1388,11 +1390,11 @@ begin
   GetMem(ptrVerBuf, dwInfoSize);
   GetFileVersionInfo(PChar(Application.ExeName), dwWnd, dwInfoSize, ptrVerBuf);
   VerQueryValue(ptrVerBuf, '\', Pointer(FI), dwVerSize );
-  AppVerMajor := HiWord(FI.dwFileVersionMS);
-  AppVerMinor := LoWord(FI.dwFileVersionMS);
-  AppVerRelease := HiWord(FI.dwFileVersionLS);
-  AppVerRevision := LoWord(FI.dwFileVersionLS);
-  AppVersion := Format('%d.%d.%d.%d', [AppVerMajor, AppVerMinor, AppVerRelease, AppVerRevision]);
+  FAppVerMajor := HiWord(FI.dwFileVersionMS);
+  FAppVerMinor := LoWord(FI.dwFileVersionMS);
+  FAppVerRelease := HiWord(FI.dwFileVersionLS);
+  FAppVerRevision := LoWord(FI.dwFileVersionLS);
+  FAppVersion := Format('%d.%d.%d.%d', [FAppVerMajor, FAppVerMinor, FAppVerRelease, FAppVerRevision]);
   FreeMem(ptrVerBuf);
 
   // Detect if we're running on Wine, not on native Windows
@@ -1552,7 +1554,7 @@ begin
   // Force status bar position to below log memo
   StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
   actDataShowNext.Hint := f_('Show next %s rows ...', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
-  actAboutBox.Caption := f_('About %s', [APPNAME+' '+AppVersion]);
+  actAboutBox.Caption := f_('About %s', [APPNAME+' '+FAppVersion]);
   // Activate logging
   LogToFile := AppSettings.ReadBool(asLogToFile);
   if AppSettings.ReadBool(asLogHorizontalScrollbar) then
@@ -1698,7 +1700,7 @@ begin
     if DaysBetween(Now, LastStatsCall) >= 30 then begin
       // Report used SVN revision
       StatsCall := THttpDownload.Create(Self);
-      StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(AppVerRevision);
+      StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision);
       // Enumerate actively used server versions
       for i:=0 to SessionPaths.Count-1 do begin
         AppSettings.SessionPath := SessionPaths[i];
@@ -9979,7 +9981,7 @@ begin
   Cap := DBtree.Path(DBtree.FocusedNode, 0, ttNormal, '\') + ' - ' + APPNAME;
   if AppSettings.PortableMode then
     Cap := Cap + ' Portable';
-  Cap := Cap + ' ' + AppVersion;
+  Cap := Cap + ' ' + FAppVersion;
   Caption := Cap;
   Application.Title := Cap;
 end;
