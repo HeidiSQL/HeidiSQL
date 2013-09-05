@@ -310,6 +310,7 @@ type
   function CompareAnyNode(Text1, Text2: String): Integer;
   function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
   function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Integer): Integer;
+  function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): Integer;
   function GetColumnDefaultType(var Text: String): TColumnDefaultType;
   function GetColumnDefaultClause(DefaultType: TColumnDefaultType; DataTypeIndex: TDBDatatypeIndex; Text: String): String;
   function GetImageLinkTimeStamp(const FileName: string): TDateTime;
@@ -2088,6 +2089,13 @@ function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Intege
 begin
   // Sort TStringList items, containing numbers or strings, descending
   Result := CompareAnyNode(List[Index2], List[Index1]);
+end;
+
+
+function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): Integer;
+begin
+  // Sort TStringList items which are stored as name=value pairs
+  Result := CompareAnyNode(List.ValueFromIndex[Index2], List.ValueFromIndex[Index1]);
 end;
 
 

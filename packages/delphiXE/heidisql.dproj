@@ -214,6 +214,7 @@
 				<Form>frmSyncDB</Form>
 			</DCCReference>
 			<DCCReference Include="..\..\source\gnugettext.pas"/>
+			<DCCReference Include="..\..\source\JumpList.pas"/>
 			<RcCompile Include="..\..\res\updater.rc">
 				<Form>updater.res</Form>
 			</RcCompile>

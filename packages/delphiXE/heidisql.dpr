@@ -39,7 +39,8 @@ uses
   Cromis.DirectoryWatch in '..\..\source\Cromis.DirectoryWatch.pas',
   exportgrid in '..\..\source\exportgrid.pas' {frmExportGrid},
   syncdb in '..\..\source\syncdb.pas' {frmSyncDB},
-  gnugettext in '..\..\source\gnugettext.pas';
+  gnugettext in '..\..\source\gnugettext.pas',
+  JumpList in '..\..\source\JumpList.pas';
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\version.RES}

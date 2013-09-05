@@ -5628,3 +5628,7 @@ msgstr ""
 #. RunQueryFile
 msgid "Notice: You can disable the \"%s\" option to ignore such errors"
 msgstr "Notice: You can disable the \"%s\" option to ignore such errors"
+
+#. InitConnection, JumpList
+msgid "Recent sessions"
+msgstr "Recent sessions"
