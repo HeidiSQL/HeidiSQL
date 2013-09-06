@@ -1278,8 +1278,13 @@ begin
     JumpTask.CustomCategory := _('Recent sessions');
     FJumpList.JumpItems.Add(JumpTask);
   end;
-  FJumpList.Apply;
   SortedSessions.Free;
+  try
+    FJumpList.Apply;
+  except
+    on E:Exception do
+      LogSQL(E.Message, lcError);
+  end;
 end;
 
 
