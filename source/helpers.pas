@@ -299,7 +299,7 @@ type
   procedure InheritFont(AFont: TFont);
   function GetLightness(AColor: TColor): Byte;
   function ReformatSQL(SQL: String): String;
-  function ParamBlobToStr(lpData: Pointer): TStringlist;
+  function ParamBlobToStr(lpData: Pointer): String;
   function ParamStrToBlob(out cbData: DWORD): Pointer;
   function CheckForSecondInstance: Boolean;
   function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
@@ -321,8 +321,7 @@ type
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
-  procedure ParseCommandLine(Parameters: TStringlist;
-    var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
+  procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
   function f_(const Pattern: string; const Args: array of const): string;
   function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
   function GetOutputFilenamePlaceholders: TStringList;
@@ -1843,36 +1842,22 @@ end;
 // Slightly modified to better integrate that into our code, comments translated from german.
 
 // Fetch and separate command line parameters into strings
-function ParamBlobToStr(lpData: Pointer): TStringlist;
+function ParamBlobToStr(lpData: Pointer): String;
 var
   pStr: PChar;
 begin
-  Result := TStringlist.Create;
   pStr := lpData;
-  while pStr[0] <> #0 do
-  begin
-    Result.Add(string(pStr));
-    pStr := @pStr[lstrlen(pStr) + 1];
-  end;
+  Result := string(pStr);
 end;
 
 // Pack current command line parameters
 function ParamStrToBlob(out cbData: DWORD): Pointer;
 var
-  Loop: Integer;
-  pStr: PChar;
+  cmd: String;
 begin
-  for Loop := 1 to ParamCount do
-    cbData := cbData + DWORD(Length(ParamStr(Loop))*2 + 1);
-  cbData := cbData + 2; // include appending #0#0
-  Result := GetMemory(cbData);
-  ZeroMemory(Result, cbData);
-  pStr := Result;
-  for Loop := 1 to ParamCount do
-  begin
-    lstrcpy(pStr, PChar(ParamStr(Loop)));
-    pStr := @pStr[lstrlen(pStr) + 1];
-  end;
+  cmd := Windows.GetCommandLine;
+  cbData := Length(cmd)*2 + 3;
+  Result := PChar(cmd);
 end;
 
 procedure HandleSecondInstance;
@@ -2407,28 +2392,52 @@ begin
 end;
 
 
-procedure ParseCommandLine(Parameters: TStringlist;
-  var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
+procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
 var
   rx: TRegExpr;
-  AllParams, SessName, Host, User, Pass, Socket: String;
-  i, Port: Integer;
+  ExeName, SessName, Host, User, Pass, Socket: String;
+  Port: Integer;
+  AbsentFiles: TStringList;
 
   function GetParamValue(ShortName, LongName: String): String;
   begin
+    // Return one command line switch. Doublequotes are not mandatory.
     Result := '';
-    rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')\s*\=?\s*([^\-]\S*)';
-    if rx.Exec(AllParams) then
-      Result := rx.Match[2];
+    rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')\s*\=?\s*\"([^\-][^\"]*)\"';
+    if rx.Exec(CommandLine) then
+      Result := rx.Match[2]
+    else begin
+      rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')\s*\=?\s*([^\-]\S*)';
+      if rx.Exec(CommandLine) then
+        Result := rx.Match[2];
+    end;
+  end;
+
+  procedure GetFileNames(Expression: String);
+  begin
+    rx.Expression := Expression;
+    if rx.Exec(CommandLine) then while true do begin
+      if FileExists(rx.Match[1]) then
+        FileNames.Add(rx.Match[1])
+      else
+        AbsentFiles.Add(rx.Match[1]);
+      if not rx.ExecNext then
+        break;
+    end;
   end;
 
 begin
+  // Parse command line, probably sent by blocked second application instance.
+  // Try to build connection parameters out of it.
   SessName := '';
   FileNames := TStringList.Create;
+  AbsentFiles := TStringList.Create;
 
-  // Prepend a space, so the regular expression can request a mandantory space
-  // before each param name including the first one
-  AllParams := ' ' + ImplodeStr(' ', Parameters);
+  // Add leading (and trailing) space, so the regular expressions can request a mandantory space
+  // before (and after) each param (and filename) including the first one (and last one)
+  ExeName := ExtractFileName(ParamStr(0));
+  CommandLine := Copy(CommandLine, Pos(ExeName, CommandLine)+Length(ExeName)+1, Length(CommandLine));
+  CommandLine := CommandLine + ' ';
   rx := TRegExpr.Create;
   SessName := GetParamValue('d', 'description');
   if SessName <> '' then begin
@@ -2441,7 +2450,6 @@ begin
         SessName := '';
       end;
     end;
-
   end;
 
   // Test if params were passed. If given, override previous values loaded from registry.
@@ -2471,11 +2479,15 @@ begin
       ConnectionParams.SessionPath := ConnectionParams.Hostname;
   end;
 
-  // Check for valid filename(s) in parameters
-  for i:=0 to Parameters.Count-1 do begin
-    if FileExists(Parameters[i]) then
-      FileNames.Add(Parameters[i]);
-  end;
+  // Check for valid filename(s) in parameters.
+  // We support doublequoted and unquoted parameters.
+  GetFileNames('\"([^\"]+\.sql)\"');
+  GetFileNames('\s([^\s\"]+\.sql)\b');
+  if AbsentFiles.Count > 0 then
+    ErrorDialog(_('Could not load file(s):'), AbsentFiles.Text);
+  AbsentFiles.Free;
+
+  rx.Free;
 end;
 
 
