@@ -1695,7 +1695,7 @@ end;
 }
 procedure TMainForm.AfterFormCreate;
 var
-  CmdlineParameters, LastSessions, FileNames: TStringlist;
+  LastSessions, FileNames: TStringlist;
   Connection: TDBConnection;
   LoadedParams, ConnectionParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
@@ -1765,10 +1765,7 @@ begin
     end;
   end;
 
-  CmdlineParameters := TStringList.Create;
-  for i:=1 to ParamCount do
-    CmdlineParameters.Add(ParamStr(i));
-  ParseCommandLine(CmdlineParameters, ConnectionParams, FileNames);
+  ParseCommandLine(Windows.GetCommandLine, ConnectionParams, FileNames);
   if Assigned(ConnectionParams) then begin
     // Minimal parameter for command line mode is hostname
     InitConnection(ConnectionParams, True, Connection);
