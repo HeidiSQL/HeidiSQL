@@ -3202,9 +3202,11 @@ begin
 
       // Read lines from SQL file until buffer reaches a limit of some MB
       // This strategy performs vastly better than looping through each line
+      Dialog.SetLine(1, PChar(_('Reading next chunk from file...')), False, Dummy);
       Lines := ReadTextfileChunk(Stream, Encoding, 20*SIZE_MB);
 
       // Split buffer into single queries
+      Dialog.SetLine(1, PChar(_('Splitting queries...')), False, Dummy);
       Queries.SQL := LinesRemain + Lines;
       Lines := '';
       LinesRemain := '';
