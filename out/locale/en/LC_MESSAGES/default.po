@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-09-08 07:39+0100\n"
+"PO-Revision-Date: 2013-09-10 06:41+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -5636,6 +5636,14 @@ msgstr ""
 #. RunQueryFile
 msgid "Notice: You can disable the \"%s\" option to ignore such errors"
 msgstr "Notice: You can disable the \"%s\" option to ignore such errors"
+
+#. ReadTextFileChunk
+msgid ""
+"End of file block was cut within some multibyte character, at position %s. "
+"Increasing chunk size and retry reading..."
+msgstr ""
+"End of file block was cut within some multibyte character, at position %s. "
+"Increasing chunk size and retry reading..."
 
 #. InitConnection, JumpList
 msgid "Recent sessions"

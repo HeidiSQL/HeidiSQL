@@ -1380,26 +1380,40 @@ end;
 
 
 function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
+const
+  BufferPadding = 4;
 var
-  DataLeft: Int64;
+  DataLeft, StartPosition: Int64;
   LBuffer: TBytes;
-  SplitCharSize: Integer;
+  i: Integer;
 begin
   // Read a chunk or the complete contents out of a textfile, opened by OpenTextFile()
-  // Be sure to read a multiplier of the encodings max byte count per char
-  SplitCharSize := ChunkSize mod Encoding.GetMaxByteCount(1);
-  if SplitCharSize > 0 then
-    Inc(ChunkSize, Encoding.GetMaxByteCount(1)-SplitCharSize);
+  StartPosition := Stream.Position;
   DataLeft := Stream.Size - Stream.Position;
   if (ChunkSize = 0) or (ChunkSize > DataLeft) then
     ChunkSize := DataLeft;
-  SetLength(LBuffer, ChunkSize);
-  Stream.ReadBuffer(Pointer(LBuffer)^, ChunkSize);
-  // Now, TEncoding.Convert returns an empty TByte array in files with russion characters
-  // See http://www.heidisql.com/forum.php?t=13044
-  LBuffer := Encoding.Convert(Encoding, TEncoding.Unicode, LBuffer);
-  if Length(LBuffer) = 0 then
-    MainForm.LogSQL('Error when converting chunk from encoding '+Encoding.EncodingName+' to '+TEncoding.Unicode.EncodingName+' in '+ExtractFileName(Stream.FileName)+' at position '+FormatByteNumber(Stream.Position));
+
+  i := 0;
+  while Length(LBuffer) = 0 do begin
+    SetLength(LBuffer, ChunkSize);
+    Stream.ReadBuffer(Pointer(LBuffer)^, ChunkSize);
+    LBuffer := Encoding.Convert(Encoding, TEncoding.Unicode, LBuffer);
+    if Length(LBuffer) = 0 then begin
+      // Now, TEncoding.Convert returns an empty TByte array in files with russion characters
+      // See http://www.heidisql.com/forum.php?t=13044
+      // Re-read the whole chunk + some more bytes
+      // See: Classes.TStreamReader.FillBuffer
+      // See: https://forums.embarcadero.com/message.jspa?messageID=368526
+      MainForm.LogSQL(f_('End of file block was cut within some multibyte character, at position %s. Increasing chunk size and retry reading...', [FormatNumber(Stream.Position)]), lcError);
+      Stream.Position := StartPosition;
+      Inc(ChunkSize, BufferPadding);
+    end else // Success, exit loop
+      Break;
+    Inc(i);
+    if i=10 then // Give up
+      Break;
+  end;
+
   Result := TEncoding.Unicode.GetString(LBuffer);
 end;
 
