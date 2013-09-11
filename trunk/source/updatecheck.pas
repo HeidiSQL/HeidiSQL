@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
-  helpers, gnugettext;
+  helpers, gnugettext, ExtCtrls, pngimage;
 
 type
   TfrmUpdateCheck = class(TForm)
@@ -16,10 +16,12 @@ type
     lblStatus: TLabel;
     memoRelease: TMemo;
     memoBuild: TMemo;
+    imgDonate: TImage;
     procedure FormCreate(Sender: TObject);
     procedure btnBuildClick(Sender: TObject);
     procedure btnReleaseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure imgDonateClick(Sender: TObject);
   private
     { Private declarations }
     CheckfileDownload: THttpDownLoad;
@@ -56,6 +58,7 @@ begin
   AutoClose := False;
   InheritFont(Font);
   TranslateComponent(Self);
+  imgDonate.Hint := APPDOMAIN + imgDonate.Hint;
 end;
 
 {**
@@ -121,6 +124,12 @@ begin
     and (not groupRelease.Enabled)
     and ((not CheckForBuildsInAutoMode) or (not btnBuild.Enabled)) then
     PostMessage(Self.Handle, WM_CLOSE, 0, 0);
+end;
+
+
+procedure TfrmUpdateCheck.imgDonateClick(Sender: TObject);
+begin
+  ShellExec(TControl(Sender).Hint);
 end;
 
 
