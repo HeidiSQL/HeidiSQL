@@ -1812,7 +1812,7 @@ begin
         Result := Result + 'ALGORITHM='+Uppercase(Algorithm)+' ';
       if Definer <> '' then
         Result := Result + 'DEFINER='+QuoteIdent(Definer, True, '@')+' ';
-      Result := Result + 'VIEW '+Obj.QuotedDbAndTableName+' AS '+AlternativeSelectCode+' ';
+      Result := Result + 'VIEW '+Obj.QuotedName+' AS '+AlternativeSelectCode+' ';
       // WITH .. CHECK OPTION is already contained in the source
     end;
     rx.Free;
