@@ -569,6 +569,7 @@ type
     N2: TMenuItem;
     Save1: TMenuItem;
     Saveassnippet1: TMenuItem;
+    imgDonate: TImage;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -904,6 +905,7 @@ type
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure actUnixTimestampColumnExecute(Sender: TObject);
     procedure PopupQueryLoadPopup(Sender: TObject);
+    procedure imgDonateClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1575,6 +1577,9 @@ begin
   ToolBarData.Top := AppSettings.ReadInt(asToolbarDataTop);
   ToolBarQuery.Left := AppSettings.ReadInt(asToolBarQueryLeft);
   ToolBarQuery.Top := AppSettings.ReadInt(asToolBarQueryTop);
+  imgDonate.Width := 122;
+  imgDonate.Height := 22;
+  imgDonate.Hint := APPDOMAIN + imgDonate.Hint;
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
   actQueryWordWrap.Checked := AppSettings.ReadBool(asWrapLongLines);
@@ -2227,6 +2232,12 @@ procedure TMainForm.actWebbrowse(Sender: TObject);
 begin
   // Browse to URL (hint)
   ShellExec( TAction(Sender).Hint );
+end;
+
+
+procedure TMainForm.imgDonateClick(Sender: TObject);
+begin
+  ShellExec(TControl(Sender).Hint);
 end;
 
 

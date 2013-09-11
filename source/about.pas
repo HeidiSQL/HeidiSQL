@@ -20,7 +20,7 @@ type
     lblAppWebpage: TLabel;
     btnUpdateCheck: TButton;
     ImageHeidisql: TImage;
-    btnDonate: TButton;
+    imgDonate: TImage;
     procedure OpenURL(Sender: TObject);
     procedure MouseOver(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
@@ -65,6 +65,7 @@ begin
   InheritFont(lblAppName.Font);
   lblAppName.Font.Size := 14;
   InheritFont(lblAppWebpage.Font);
+  imgDonate.Hint := APPDOMAIN + imgDonate.Hint;
 
   // Assign text
   Caption := f_('About %s', [APPNAME]);
