@@ -174,7 +174,7 @@ type
     asActionShortcut1, asActionShortcut2, asHighlighterForeground, asHighlighterBackground, asHighlighterStyle,
     asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
     asRecentFilter, asTimestampColumns, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asForeignDropDown, asQueryHistoryEnabled,
-    asColumnSelectorWidth, asColumnSelectorHeight,
+    asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -328,6 +328,7 @@ type
   function GetOutputFilenamePlaceholders: TStringList;
   function GetSystemImageList: TImageList;
   function GetSystemImageIndex(Filename: String): Integer;
+  function HasDonated: Boolean;
 
 
 var
@@ -2761,6 +2762,20 @@ begin
 end;
 
 
+function HasDonated: Boolean;
+var
+  Email: String;
+  rx: TRegExpr;
+begin
+  Email := AppSettings.ReadString(asDonatedEmail);
+  rx := TRegExpr.Create;
+  rx.Expression := '\w+@\w+\.\w{2,5}';
+  Result := rx.Exec(Email);
+  // TODO: check heidisql.com/hasdonated.php?email=...
+  rx.Free;
+end;
+
+
 
 
 
@@ -3355,6 +3370,7 @@ begin
   InitSetting(asQueryHistoryEnabled,              'QueryHistory',                          0, True);
   InitSetting(asColumnSelectorWidth,              'ColumnSelectorWidth',                   200, False, '');
   InitSetting(asColumnSelectorHeight,             'ColumnSelectorHeight',                  270, False, '');
+  InitSetting(asDonatedEmail,                     'DonatedEmail',                          0, False, '');
 end;
 
 
