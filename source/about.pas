@@ -7,7 +7,8 @@ unit About;
 interface
 
 uses
-  Windows, Classes, Graphics, Forms, Controls, StdCtrls, ExtCtrls, SysUtils, ComCtrls, pngimage, gnugettext;
+  Windows, Classes, Graphics, Forms, Controls, StdCtrls, ExtCtrls, SysUtils, ComCtrls, pngimage, gnugettext,
+  Dialogs;
 
 type
   TAboutBox = class(TForm)
@@ -21,9 +22,15 @@ type
     btnUpdateCheck: TButton;
     ImageHeidisql: TImage;
     imgDonate: TImage;
+    lblDonated: TLabel;
+    editDonated: TEdit;
+    btnDonatedOK: TButton;
     procedure OpenURL(Sender: TObject);
     procedure MouseOver(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
+    procedure editDonatedEnter(Sender: TObject);
+    procedure editDonatedExit(Sender: TObject);
+    procedure btnDonatedOKClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -55,6 +62,32 @@ begin
 end;
 
 
+procedure TAboutBox.btnDonatedOKClick(Sender: TObject);
+begin
+  AppSettings.WriteString(asDonatedEmail, editDonated.Text);
+  if HasDonated then
+    MessageDialog(_('Thanks for having donated!'), mtInformation, [mbOK])
+  else
+    ErrorDialog(_('Not a valid email address'));
+  imgDonate.Visible := not HasDonated;
+  MainForm.imgDonate.Width := 122;
+  MainForm.imgDonate.Visible := not HasDonated;
+end;
+
+
+procedure TAboutBox.editDonatedEnter(Sender: TObject);
+begin
+  btnDonatedOK.Default := True;
+  btnClose.Default := False;
+end;
+
+
+procedure TAboutBox.editDonatedExit(Sender: TObject);
+begin
+  btnDonatedOK.Default := False;
+  btnClose.Default := True;
+end;
+
 procedure TAboutBox.FormShow(Sender: TObject);
 begin
   Screen.Cursor := crHourGlass;
@@ -66,6 +99,8 @@ begin
   lblAppName.Font.Size := 14;
   InheritFont(lblAppWebpage.Font);
   imgDonate.Hint := APPDOMAIN + imgDonate.Hint;
+  imgDonate.Visible := not HasDonated;
+  editDonated.Text := AppSettings.ReadString(asDonatedEmail);
 
   // Assign text
   Caption := f_('About %s', [APPNAME]);

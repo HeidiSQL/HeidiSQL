@@ -3,7 +3,7 @@ object AboutBox: TAboutBox
   Top = 105
   BorderStyle = bsDialog
   Caption = 'About'
-  ClientHeight = 412
+  ClientHeight = 461
   ClientWidth = 482
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -18,7 +18,7 @@ object AboutBox: TAboutBox
   OnShow = FormShow
   DesignSize = (
     482
-    412)
+    461)
   PixelsPerInch = 96
   TextHeight = 13
   object lblAppName: TLabel
@@ -1370,9 +1370,16 @@ object AboutBox: TAboutBox
       0000000006120B345A43D7E6DDFFFFFF00FF}
     OnClick = OpenURL
   end
+  object lblDonated: TLabel
+    Left = 117
+    Top = 179
+    Width = 210
+    Height = 13
+    Caption = 'I have donated per following email address:'
+  end
   object btnClose: TButton
     Left = 374
-    Top = 379
+    Top = 428
     Width = 100
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1384,7 +1391,7 @@ object AboutBox: TAboutBox
   end
   object btnForum: TButton
     Left = 8
-    Top = 379
+    Top = 428
     Width = 120
     Height = 25
     Action = MainForm.actWebForum
@@ -1395,9 +1402,9 @@ object AboutBox: TAboutBox
   end
   object MemoAuthors: TMemo
     Left = 8
-    Top = 192
+    Top = 248
     Width = 466
-    Height = 176
+    Height = 169
     Anchors = [akLeft, akTop, akRight, akBottom]
     BorderStyle = bsNone
     Color = clBtnFace
@@ -1428,5 +1435,24 @@ object AboutBox: TAboutBox
     Anchors = [akTop, akRight]
     Images = MainForm.ImageListMain
     TabOrder = 0
+  end
+  object editDonated: TEdit
+    Left = 117
+    Top = 198
+    Width = 196
+    Height = 21
+    TabOrder = 4
+    TextHint = 'Email address'
+    OnEnter = editDonatedEnter
+    OnExit = editDonatedExit
+  end
+  object btnDonatedOK: TButton
+    Left = 319
+    Top = 196
+    Width = 48
+    Height = 25
+    Caption = 'OK'
+    TabOrder = 5
+    OnClick = btnDonatedOKClick
   end
 end

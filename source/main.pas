@@ -1580,6 +1580,7 @@ begin
   imgDonate.Width := 122;
   imgDonate.Height := 22;
   imgDonate.Hint := APPDOMAIN + imgDonate.Hint;
+  imgDonate.Visible := not HasDonated;
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
   actQueryWordWrap.Checked := AppSettings.ReadBool(asWrapLongLines);
