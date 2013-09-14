@@ -90,7 +90,7 @@ procedure DonateClick(Sender: TObject);
 var
   ErrorCode: Integer;
 begin
-  ShellExec('open', '{#WebSite}donate.php', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+  ShellExec('open', '{#WebSite}donatebutton.php?place=installer', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
 end;
 
 procedure InitializeWizard();
