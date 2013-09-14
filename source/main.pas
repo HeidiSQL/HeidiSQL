@@ -90,6 +90,8 @@ type
     function Compare(const Left, Right: TQueryHistoryItem): Integer; override;
   end;
 
+  TThreeStateBoolean = (nbUnset, nbFalse, nbTrue);
+
   ITaskbarList = interface(IUnknown)
     [SID_ITaskbarList]
     function HrInit: HRESULT; stdcall;
@@ -953,6 +955,7 @@ type
     FTimeZoneOffset: Integer;
     FGridCopying: Boolean;
     FGridPasting: Boolean;
+    FHasDonatedDatabaseCheck: TThreeStateBoolean;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1068,6 +1071,7 @@ type
     procedure ProgressStep;
     procedure SetProgressState(State: TProgressbarState);
     procedure TaskDialogHyperLinkClicked(Sender: TObject);
+    function HasDonated(ForceCheck: Boolean): Boolean;
 end;
 
 
@@ -1577,10 +1581,6 @@ begin
   ToolBarData.Top := AppSettings.ReadInt(asToolbarDataTop);
   ToolBarQuery.Left := AppSettings.ReadInt(asToolBarQueryLeft);
   ToolBarQuery.Top := AppSettings.ReadInt(asToolBarQueryTop);
-  imgDonate.Width := 122;
-  imgDonate.Height := 22;
-  imgDonate.Hint := APPDOMAIN + imgDonate.Hint;
-  imgDonate.Visible := not HasDonated;
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
   actQueryWordWrap.Checked := AppSettings.ReadBool(asWrapLongLines);
@@ -1678,6 +1678,12 @@ begin
   FTreeRefreshInProgress := False;
   FGridCopying := False;
   FGridPasting := False;
+
+  FHasDonatedDatabaseCheck := nbUnset;
+  imgDonate.Width := 122;
+  imgDonate.Height := 22;
+  imgDonate.Hint := APPDOMAIN + imgDonate.Hint;
+  imgDonate.Visible := not HasDonated(True);
 
   FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
 
@@ -11289,6 +11295,51 @@ begin
   if Sender is TTaskDialog then
     ShellExec(TTaskDialog(Sender).URL);
 end;
+
+
+function TMainForm.HasDonated(ForceCheck: Boolean): Boolean;
+var
+  Email, TempFileName, CheckResult: String;
+  rx: TRegExpr;
+  CheckWebpage: THttpDownload;
+begin
+  Screen.Cursor := crHourGlass;
+  Email := AppSettings.ReadString(asDonatedEmail);
+  if ((FHasDonatedDatabaseCheck = nbUnset) or (ForceCheck)) and (Email <> '') then begin
+    // Check heidisql.com/hasdonated.php?email=...
+    // HasDonatedDatabaseCheck
+    //   = 0 : No check yet done
+    //   = 1 : Not a donator
+    //   = 2 : Valid donator
+    rx := TRegExpr.Create;
+    CheckWebpage := THttpDownload.Create(MainForm);
+    CheckWebpage.URL := APPDOMAIN + 'hasdonated.php?email='+EncodeURLElementUnicode(Email);
+    TempFileName := GetTempDir + '\' + APPNAME + '_hasdonated_check.tmp';
+    try
+      CheckWebpage.SendRequest(TempFileName);
+      CheckResult := ReadTextFile(TempFileName, TEncoding.Default);
+      SysUtils.DeleteFile(TempFileName);
+      rx.Expression := '^\d+$';
+      if rx.Exec(CheckResult) then begin
+        if CheckResult = '0' then
+          FHasDonatedDatabaseCheck := nbFalse
+        else
+          FHasDonatedDatabaseCheck := nbTrue;
+      end;
+    except
+      on E:Exception do begin
+        MainForm.LogSQL(E.Message, lcError);
+        FHasDonatedDatabaseCheck := nbUnset; // Could have been set before, when ForceCheck=true
+      end;
+    end;
+    CheckWebpage.Free;
+    rx.Free;
+  end;
+  // Gracefully return true if webpage access was not successful
+  Result := FHasDonatedDatabaseCheck in [nbUnset, nbTrue];
+  Screen.Cursor := crDefault;
+end;
+
 
 
 

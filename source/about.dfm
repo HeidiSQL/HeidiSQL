@@ -1439,7 +1439,7 @@ object AboutBox: TAboutBox
   object editDonated: TEdit
     Left = 117
     Top = 198
-    Width = 196
+    Width = 180
     Height = 21
     TabOrder = 4
     TextHint = 'Email address'
@@ -1447,9 +1447,9 @@ object AboutBox: TAboutBox
     OnExit = editDonatedExit
   end
   object btnDonatedOK: TButton
-    Left = 319
+    Left = 303
     Top = 196
-    Width = 48
+    Width = 64
     Height = 25
     Caption = 'OK'
     TabOrder = 5

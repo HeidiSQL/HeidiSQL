@@ -65,13 +65,13 @@ end;
 procedure TAboutBox.btnDonatedOKClick(Sender: TObject);
 begin
   AppSettings.WriteString(asDonatedEmail, editDonated.Text);
-  if HasDonated then
-    MessageDialog(_('Thanks for having donated!'), mtInformation, [mbOK])
+  if MainForm.HasDonated(True) then
+    MessageDialog(_('Thanks for donating!'), mtInformation, [mbOK])
   else
-    ErrorDialog(_('Not a valid email address'));
-  imgDonate.Visible := not HasDonated;
+    ErrorDialog(_('Not a valid donators email address'));
+  imgDonate.Visible := not MainForm.HasDonated(False);
   MainForm.imgDonate.Width := 122;
-  MainForm.imgDonate.Visible := not HasDonated;
+  MainForm.imgDonate.Visible := not MainForm.HasDonated(False);
 end;
 
 
@@ -99,7 +99,7 @@ begin
   lblAppName.Font.Size := 14;
   InheritFont(lblAppWebpage.Font);
   imgDonate.Hint := APPDOMAIN + imgDonate.Hint;
-  imgDonate.Visible := not HasDonated;
+  imgDonate.Visible := not MainForm.HasDonated(False);
   editDonated.Text := AppSettings.ReadString(asDonatedEmail);
 
   // Assign text

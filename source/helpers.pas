@@ -328,7 +328,6 @@ type
   function GetOutputFilenamePlaceholders: TStringList;
   function GetSystemImageList: TImageList;
   function GetSystemImageIndex(Filename: String): Integer;
-  function HasDonated: Boolean;
 
 
 var
@@ -2759,20 +2758,6 @@ begin
   // Return image index of shared system image list, for a given filename
   SHGetFileInfo(PChar(Filename), 0, Info, SizeOf(Info), SHGFI_SYSICONINDEX or SHGFI_TYPENAME);
   Result := Info.iIcon;
-end;
-
-
-function HasDonated: Boolean;
-var
-  Email: String;
-  rx: TRegExpr;
-begin
-  Email := AppSettings.ReadString(asDonatedEmail);
-  rx := TRegExpr.Create;
-  rx.Expression := '\w+@\w+\.\w{2,5}';
-  Result := rx.Exec(Email);
-  // TODO: check heidisql.com/hasdonated.php?email=...
-  rx.Free;
 end;
 
 
