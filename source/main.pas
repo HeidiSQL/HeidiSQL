@@ -11304,38 +11304,44 @@ var
   CheckWebpage: THttpDownload;
 begin
   Screen.Cursor := crHourGlass;
-  Email := AppSettings.ReadString(asDonatedEmail);
-  if ((FHasDonatedDatabaseCheck = nbUnset) or (ForceCheck)) and (Email <> '') then begin
-    // Check heidisql.com/hasdonated.php?email=...
-    // HasDonatedDatabaseCheck
-    //   = 0 : No check yet done
-    //   = 1 : Not a donator
-    //   = 2 : Valid donator
-    rx := TRegExpr.Create;
-    CheckWebpage := THttpDownload.Create(MainForm);
-    CheckWebpage.URL := APPDOMAIN + 'hasdonated.php?email='+EncodeURLElementUnicode(Email);
-    TempFileName := GetTempDir + '\' + APPNAME + '_hasdonated_check.tmp';
-    try
-      CheckWebpage.SendRequest(TempFileName);
-      CheckResult := ReadTextFile(TempFileName, TEncoding.Default);
-      SysUtils.DeleteFile(TempFileName);
-      rx.Expression := '^\d+$';
-      if rx.Exec(CheckResult) then begin
-        if CheckResult = '0' then
-          FHasDonatedDatabaseCheck := nbFalse
-        else
-          FHasDonatedDatabaseCheck := nbTrue;
+  if (FHasDonatedDatabaseCheck = nbUnset) or (ForceCheck) then begin
+    Email := AppSettings.ReadString(asDonatedEmail);
+    if Email = '' then begin
+      // Nothing to check, we know this is not valid
+      FHasDonatedDatabaseCheck := nbFalse;
+    end else begin
+      // Check heidisql.com/hasdonated.php?email=...
+      // HasDonatedDatabaseCheck
+      //   = 0 : No check yet done
+      //   = 1 : Not a donator
+      //   = 2 : Valid donator
+      rx := TRegExpr.Create;
+      CheckWebpage := THttpDownload.Create(MainForm);
+      CheckWebpage.URL := APPDOMAIN + 'hasdonated.php?email='+EncodeURLElementUnicode(Email);
+      TempFileName := GetTempDir + '\' + APPNAME + '_hasdonated_check.tmp';
+      try
+        CheckWebpage.SendRequest(TempFileName);
+        CheckResult := ReadTextFile(TempFileName, TEncoding.Default);
+        SysUtils.DeleteFile(TempFileName);
+        rx.Expression := '^\d+$';
+        if rx.Exec(CheckResult) then begin
+          if CheckResult = '0' then
+            FHasDonatedDatabaseCheck := nbFalse
+          else
+            FHasDonatedDatabaseCheck := nbTrue;
+        end;
+      except
+        on E:Exception do begin
+          MainForm.LogSQL(E.Message, lcError);
+          FHasDonatedDatabaseCheck := nbUnset; // Could have been set before, when ForceCheck=true
+        end;
       end;
-    except
-      on E:Exception do begin
-        MainForm.LogSQL(E.Message, lcError);
-        FHasDonatedDatabaseCheck := nbUnset; // Could have been set before, when ForceCheck=true
-      end;
+      CheckWebpage.Free;
+      rx.Free;
     end;
-    CheckWebpage.Free;
-    rx.Free;
   end;
-  Result := FHasDonatedDatabaseCheck = nbTrue;
+  // Gracefully return true if webpage access was not successful
+  Result := FHasDonatedDatabaseCheck in [nbUnset, nbTrue];
   Screen.Cursor := crDefault;
 end;
 
