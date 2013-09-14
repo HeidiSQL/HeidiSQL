@@ -4500,7 +4500,7 @@ begin
     if Assigned(ColAttr) then begin
       c.OldIsNull := ColAttr.DefaultType in [cdtNull, cdtNullUpdateTS, cdtAutoInc];
       if ColAttr.DefaultType in [cdtText, cdtTextUpdateTS] then
-        c.OldText := ColAttr.DefaultText;
+        c.OldText := FConnection.UnescapeString(ColAttr.DefaultText);
     end;
     c.NewText := c.OldText;
     c.NewIsFunction := c.OldIsFunction;
