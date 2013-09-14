@@ -11335,8 +11335,7 @@ begin
     CheckWebpage.Free;
     rx.Free;
   end;
-  // Gracefully return true if webpage access was not successful
-  Result := FHasDonatedDatabaseCheck in [nbUnset, nbTrue];
+  Result := FHasDonatedDatabaseCheck = nbTrue;
   Screen.Cursor := crDefault;
 end;
 
