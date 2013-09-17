@@ -59,7 +59,7 @@ begin
   InheritFont(Font);
   TranslateComponent(Self);
   imgDonate.Hint := APPDOMAIN + imgDonate.Hint;
-  imgDonate.Visible := not MainForm.HasDonated(False);
+  imgDonate.Visible := MainForm.HasDonated(False) = nbFalse;
 end;
 
 {**

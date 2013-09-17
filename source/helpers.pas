@@ -80,12 +80,14 @@ type
       FURL: String;
       FBytesRead: Integer;
       FContentLength: Integer;
+      FTimeOut: Cardinal;
       FOnProgress: TNotifyEvent;
     public
       constructor Create(Owner: TComponent);
       procedure SendRequest(Filename: String);
       property OnProgress: TNotifyEvent read FOnProgress write FOnProgress;
       property URL: String read FURL write FURL;
+      property TimeOut: Cardinal read FTimeOut write FTimeOut;
       property BytesRead: Integer read FBytesRead;
       property ContentLength: Integer read FContentLength;
   end;
@@ -3026,6 +3028,7 @@ begin
   FBytesRead := -1;
   FContentLength := -1;
   FOwner := Owner;
+  FTimeOut := 10;
 end;
 
 
@@ -3035,7 +3038,7 @@ var
   UrlHandle: HINTERNET;
   Buffer: array[1..4096] of Byte;
   Head: array[1..1024] of Char;
-  BytesInChunk, HeadSize, Reserved: Cardinal;
+  BytesInChunk, HeadSize, Reserved, TimeOutSeconds: Cardinal;
   LocalFile: File;
   DoStore: Boolean;
   UserAgent, OS: String;
@@ -3048,8 +3051,12 @@ begin
     OS := 'Windows NT '+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);
   UserAgent := APPNAME+'/'+MainForm.AppVersion+' ('+OS+'; '+ExtractFilename(Application.ExeName)+'; '+FOwner.Name+')';
   NetHandle := InternetOpen(PChar(UserAgent), INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
-  UrlHandle := nil;
 
+  // Do not let the user wait 30s
+  TimeOutSeconds := FTimeOut * 1000;
+  InternetSetOption(NetHandle, INTERNET_OPTION_CONNECT_TIMEOUT, @TimeOutSeconds, SizeOf(TimeOutSeconds));
+
+  UrlHandle := nil;
   try
     UrlHandle := InternetOpenURL(NetHandle, PChar(FURL), nil, 0, INTERNET_FLAG_RELOAD, 0);
     if not Assigned(UrlHandle) then

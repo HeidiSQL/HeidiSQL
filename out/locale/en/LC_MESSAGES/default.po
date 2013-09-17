@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-09-14 06:56+0100\n"
+"PO-Revision-Date: 2013-09-17 20:06+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -48,6 +48,10 @@ msgstr "Thanks for donating!"
 #. About dialog
 msgid "Not a valid donators email address"
 msgstr "Not a valid donators email address"
+
+#. About dialog
+msgid "Could not check donation state, gracefully assuming you have donated."
+msgstr "Could not check donation state, gracefully assuming you have donated."
 
 #. frmBinEditor..Caption
 #: bineditor.dfm:4
