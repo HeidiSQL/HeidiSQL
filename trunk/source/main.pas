@@ -1071,7 +1071,7 @@ type
     procedure ProgressStep;
     procedure SetProgressState(State: TProgressbarState);
     procedure TaskDialogHyperLinkClicked(Sender: TObject);
-    function HasDonated(ForceCheck: Boolean): Boolean;
+    function HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
 end;
 
 
@@ -1683,7 +1683,7 @@ begin
   imgDonate.Width := 122;
   imgDonate.Height := 22;
   imgDonate.Hint := APPDOMAIN + imgDonate.Hint;
-  imgDonate.Visible := not HasDonated(True);
+  imgDonate.Visible := HasDonated(True) = nbFalse;
 
   FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
 
@@ -11297,7 +11297,7 @@ begin
 end;
 
 
-function TMainForm.HasDonated(ForceCheck: Boolean): Boolean;
+function TMainForm.HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
 var
   Email, TempFileName, CheckResult: String;
   rx: TRegExpr;
@@ -11318,6 +11318,7 @@ begin
       rx := TRegExpr.Create;
       CheckWebpage := THttpDownload.Create(MainForm);
       CheckWebpage.URL := APPDOMAIN + 'hasdonated.php?email='+EncodeURLElementUnicode(Email);
+      CheckWebpage.TimeOut := 3;
       TempFileName := GetTempDir + '\' + APPNAME + '_hasdonated_check.tmp';
       try
         CheckWebpage.SendRequest(TempFileName);
@@ -11340,8 +11341,7 @@ begin
       rx.Free;
     end;
   end;
-  // Gracefully return true if webpage access was not successful
-  Result := FHasDonatedDatabaseCheck in [nbUnset, nbTrue];
+  Result := FHasDonatedDatabaseCheck;
   Screen.Cursor := crDefault;
 end;
 
