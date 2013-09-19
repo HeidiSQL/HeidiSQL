@@ -8,13 +8,14 @@ interface
 
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, ExtCtrls, SysUtils, ComCtrls, pngimage, gnugettext,
-  Dialogs;
+  Dialogs, SynRegExpr;
 
 type
   TAboutBox = class(TForm)
     btnClose: TButton;
     btnForum: TButton;
-    MemoAuthors: TMemo;
+    gboxCredits: TGroupBox;
+    memoCredits: TMemo;
     lblAppName: TLabel;
     lblAppVersion: TLabel;
     lblAppCompiled: TLabel;
@@ -96,6 +97,9 @@ begin
 end;
 
 procedure TAboutBox.FormShow(Sender: TObject);
+var
+  ReadMe, Credits: String;
+  rx: TRegExpr;
 begin
   Screen.Cursor := crHourGlass;
 
@@ -116,9 +120,24 @@ begin
   lblAppCompiled.Caption := _('Compiled on:') + ' ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName));
   lblAppWebpage.Caption := AppDomain;
   lblAppWebpage.Hint := AppDomain;
-  // Avoid scroll by removing blank line outside visible area in Authors text box
-  MemoAuthors.Text := TrimRight(MemoAuthors.Text);
-  MemoAuthors.WordWrap := True;
+  // Read credits from readme.txt
+  rx := TRegExpr.Create;
+  try
+    ReadMe := ReadTextFile(ExtractFilePath(ParamStr(0)) + 'readme.txt', TEncoding.UTF8);
+    rx.Expression := '\*\*\* Credits\:\s+(\S.+)$';
+    if rx.Exec(ReadMe) then begin
+      Credits := rx.Match[1];
+      // Turn linebreaks into single spaces, and let TMemo.WordWrap insert fitting linebreaks
+      rx.Expression := '(\S)'+CRLF+'(\S)';
+      Credits := rx.Replace(Credits, '${1} ${2}', True);
+      Credits := Trim(Credits);
+      memoCredits.Text := Credits;
+    end;
+  except
+    on E:Exception do
+      memoCredits.Text := E.Message;
+  end;
+  rx.Free;
 
   Screen.Cursor := crDefault;
 end;

@@ -100,11 +100,24 @@ make a donation here: http://www.heidisql.com/donate.php
 
 *** Credits:
 
-Ansgar Becker (project lead and development), David Dindorp (former development),
-Francisco Ernesto Teixeira (former development),  Andrew Brampton (LaTeX export),
-Sven Lorenz (graphics), Mikkel M. Gerhardt-Pedersen (additional bugfixes),
-Mike Lischke + Timo Tegtmeier (VirtualTreeView, GLPL), Maël Hörz (SynEdit, MPL),
-Iztok Kacin (Cromis.DirectoryWatch, BSD License), Lukas Gebauer (Ararat Synapse),
-Mark James (Silk icons, Creative Commons 2.5), Jordan Russell (Inno Setup)
+Author: Ansgar Becker
+
+Former development contributors: David Dindorp, Francisco Ernesto Teixeira
+
+Sven Lorenz (graphics), Mike Lischke + Timo Tegtmeier (VirtualTreeView, GLPL),
+Mathias Rauen (madExcept), Maël Hörz (SynEdit, MPL), Serhiy Perevoznyk (JumpList),
+Jordan Russell (Inno Setup), Lukas Gebauer (Ararat Synapse), Iztok Kacin
+(Cromis.DirectoryWatch, BSD License), Mark James (Silk icons, Creative Commons 2.5)
+
+Thanks to Transifex.com for a free translation account, and the following translators:
+David Rodrigues (initiator and Portuguese), Richard van Laak (Dutch),
+Michele Locati (Italian), viskubov (Russian), Francisco Alvarado (Spanish), TiGeR
+(Chinese), Matej Szendi (Czech), jeff.tu (Chinese/Taiwan), Rastislav Janosik
+(Slovak), renaud (French), Hichem BOUKSANI (French), s.d.w. (Korean), Alican
+Çubukçuoğlu (Turkish), MichalDCK (Polish), Florin Chis (Romanian), udariza
+(Indonesian), Januar (Indonesian), Seiji Ogawa (Japanese), Микола Ковбаса
+(Ukrainian), mivzakim (Hebrew), Martin Bedrač (Slovenian), sith (Hungarian),
+Xtreme Power (Norwegian), Sasa Kostic (Serbian), Morne Gouws (Afrikaans)
 
 1000 thanks to MySQL and MariaDB for great database software
+
