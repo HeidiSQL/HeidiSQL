@@ -3,8 +3,8 @@ object AboutBox: TAboutBox
   Top = 105
   BorderStyle = bsDialog
   Caption = 'About'
-  ClientHeight = 461
-  ClientWidth = 482
+  ClientHeight = 462
+  ClientWidth = 607
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,8 +17,8 @@ object AboutBox: TAboutBox
   OnMouseMove = MouseOver
   OnShow = FormShow
   DesignSize = (
-    482
-    461)
+    607
+    462)
   PixelsPerInch = 96
   TextHeight = 13
   object lblAppName: TLabel
@@ -1378,8 +1378,8 @@ object AboutBox: TAboutBox
     Caption = 'I have donated per following email address:'
   end
   object btnClose: TButton
-    Left = 374
-    Top = 428
+    Left = 499
+    Top = 429
     Width = 100
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1387,44 +1387,18 @@ object AboutBox: TAboutBox
     Caption = 'Close'
     Default = True
     ModalResult = 1
-    TabOrder = 3
+    TabOrder = 5
   end
   object btnForum: TButton
     Left = 8
-    Top = 428
+    Top = 429
     Width = 120
     Height = 25
     Action = MainForm.actWebForum
     Anchors = [akLeft, akBottom]
     Images = MainForm.ImageListMain
-    TabOrder = 2
+    TabOrder = 4
     WordWrap = True
-  end
-  object MemoAuthors: TMemo
-    Left = 8
-    Top = 248
-    Width = 466
-    Height = 169
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    BorderStyle = bsNone
-    Color = clBtnFace
-    Lines.Strings = (
-      'Author: Ansgar Becker'
-      ''
-      '1000 thanks go to:'
-      
-        '* Mike Lischke and friends for VirtualTreeView and GraphicEx lib' +
-        'rary'
-      '* The SynEdit authors'
-      '* Mark James for his Silk icon set'
-      '* Jordan Russell for Inno Setup'
-      '* MySQL and MariaDB for great database software'
-      '* Mathias Rauen for madExcept exception handler'
-      '* Lukas Gebauer for Ararat Synapse HTTP tools'
-      '* Transifex for a free translation account')
-    ReadOnly = True
-    TabOrder = 1
-    WordWrap = False
   end
   object btnUpdateCheck: TButton
     Left = 117
@@ -1432,7 +1406,6 @@ object AboutBox: TAboutBox
     Width = 250
     Height = 25
     Action = MainForm.actUpdateCheck
-    Anchors = [akTop, akRight]
     Images = MainForm.ImageListMain
     TabOrder = 0
   end
@@ -1441,7 +1414,7 @@ object AboutBox: TAboutBox
     Top = 198
     Width = 180
     Height = 21
-    TabOrder = 4
+    TabOrder = 1
     TextHint = 'Email address'
     OnEnter = editDonatedEnter
     OnExit = editDonatedExit
@@ -1452,7 +1425,28 @@ object AboutBox: TAboutBox
     Width = 64
     Height = 25
     Caption = 'OK'
-    TabOrder = 5
+    TabOrder = 2
     OnClick = btnDonatedOKClick
+  end
+  object gboxCredits: TGroupBox
+    Left = 8
+    Top = 227
+    Width = 591
+    Height = 196
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Caption = 'Credits'
+    TabOrder = 3
+    object memoCredits: TMemo
+      Left = 2
+      Top = 15
+      Width = 587
+      Height = 179
+      Align = alClient
+      BorderStyle = bsNone
+      Color = clBtnFace
+      ReadOnly = True
+      ScrollBars = ssVertical
+      TabOrder = 0
+    end
   end
 end
