@@ -8555,31 +8555,36 @@ begin
   if Column = -1 then
     Exit;
   r := GridResult(Sender);
-  RowNumber := Sender.GetNodeData(Node);
-  r.RecNo := RowNumber^;
+  if not r.Connection.Active then begin
+    // This event (BeforeCellPaint) is the very first one to notice a broken connection
+    Sender.Enabled := False;
+  end else begin
+    RowNumber := Sender.GetNodeData(Node);
+    r.RecNo := RowNumber^;
 
-  clEven := AppSettings.ReadInt(asRowBackgroundEven);
-  clOdd := AppSettings.ReadInt(asRowBackgroundOdd);
-  isEven := Node.Index mod 2 = 0;
-  if IsEven and (clEven <> clNone) then
-    cl := AppSettings.ReadInt(asRowBackgroundEven)
-  else if (not IsEven) and (clOdd <> clNone) then
-    cl := AppSettings.ReadInt(asRowBackgroundOdd)
-  else
-    cl := clNone;
+    clEven := AppSettings.ReadInt(asRowBackgroundEven);
+    clOdd := AppSettings.ReadInt(asRowBackgroundOdd);
+    isEven := Node.Index mod 2 = 0;
+    if IsEven and (clEven <> clNone) then
+      cl := AppSettings.ReadInt(asRowBackgroundEven)
+    else if (not IsEven) and (clOdd <> clNone) then
+      cl := AppSettings.ReadInt(asRowBackgroundOdd)
+    else
+      cl := clNone;
 
-  if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
-    cl := clHighlight
-  else if vsSelected in Node.States then
-    cl := $00DDDDDD
-  else if r.IsNull(Column) then begin
-    clNull := AppSettings.ReadInt(asFieldNullBackground);
-    if clNull <> clNone then
-      cl := clNull;
-  end;
-  if cl <> clNone then begin
-    TargetCanvas.Brush.Color := cl;
-    TargetCanvas.FillRect(CellRect);
+    if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
+      cl := clHighlight
+    else if vsSelected in Node.States then
+      cl := $00DDDDDD
+    else if r.IsNull(Column) then begin
+      clNull := AppSettings.ReadInt(asFieldNullBackground);
+      if clNull <> clNone then
+        cl := clNull;
+    end;
+    if cl <> clNone then begin
+      TargetCanvas.Brush.Color := cl;
+      TargetCanvas.FillRect(CellRect);
+    end;
   end;
 end;
 
