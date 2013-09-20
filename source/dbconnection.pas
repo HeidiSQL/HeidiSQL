@@ -4126,16 +4126,24 @@ begin
     // Row not edited data - find it in normal result
     if not RowFound then begin
       NumRows := 0;
-      for i:=Low(FResultList) to High(FResultList) do begin
-        Inc(NumRows, FResultList[i].RecordCount);
-        if NumRows > Value then begin
-          FCurrentResults := FResultList[i];
-          WantedLocalRecNo := FCurrentResults.RecordCount-(NumRows-Value);
-          FCurrentResults.RecNo := WantedLocalRecNo+1;
-          FCurrentUpdateRow := nil;
-          for j:=Low(FColumnLengths) to High(FColumnLengths) do
-            FColumnLengths[j] := FCurrentResults.Fields[j].DataSize;
-          break;
+      try
+        for i:=Low(FResultList) to High(FResultList) do begin
+          Inc(NumRows, FResultList[i].RecordCount);
+          if NumRows > Value then begin
+            FCurrentResults := FResultList[i];
+            WantedLocalRecNo := FCurrentResults.RecordCount-(NumRows-Value);
+            FCurrentResults.RecNo := WantedLocalRecNo+1;
+            FCurrentUpdateRow := nil;
+            for j:=Low(FColumnLengths) to High(FColumnLengths) do
+              FColumnLengths[j] := FCurrentResults.Fields[j].DataSize;
+            break;
+          end;
+        end;
+      except
+        // Catch broken connection
+        on E:EOleException do begin
+          FConnection.Active := False;
+          FConnection.Log(lcError, E.Message);
         end;
       end;
     end;
@@ -4198,7 +4206,10 @@ end;
 
 function TAdoDBQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 begin
-  if (Column > -1) and (Column < ColumnCount) then begin
+  // Catch broken connection
+  if not FConnection.Active then begin
+    Result := '';
+  end else if (Column > -1) and (Column < ColumnCount) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       Result := FCurrentUpdateRow[Column].NewText;
     end else begin
@@ -4385,7 +4396,10 @@ end;
 
 function TAdoDBQuery.IsNull(Column: Integer): Boolean;
 begin
-  if FEditingPrepared and Assigned(FCurrentUpdateRow) then
+  // Catch broken connection
+  if not FConnection.Active then
+    Result := False
+  else if FEditingPrepared and Assigned(FCurrentUpdateRow) then
     Result := FCurrentUpdateRow[Column].NewIsNull
   else
     Result := FCurrentResults.Fields[Column].IsNull;
