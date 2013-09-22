@@ -692,6 +692,8 @@ begin
         Break;
       ParentNode := ParentNode.Parent;
     end;
+    // Shows the right tooltip on Aero GUI
+    Effect := DROPEFFECT_COPY;
   end;
 end;
 
