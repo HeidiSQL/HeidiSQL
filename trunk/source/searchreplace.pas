@@ -329,6 +329,7 @@ begin
   end;
 
   while Assigned(Node) do begin
+    MainForm.AnyGridEnsureFullRow(Grid, Node);
 
     // Find the first column
     if StartAtCol > InvalidColumn then begin
