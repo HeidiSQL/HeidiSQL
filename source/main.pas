@@ -950,7 +950,6 @@ type
     FDBObjectsMaxSize: Int64;
     FDBObjectsMaxRows: Int64;
     FSearchReplaceDialog: TfrmSearchReplace;
-    FPreferencesDialog: Toptionsform;
     FGridEditFunctionMode: Boolean;
     FClipboardHasNull: Boolean;
     FTimeZoneOffset: Integer;
@@ -1957,10 +1956,13 @@ begin
 end;
 
 procedure TMainForm.actPreferencesExecute(Sender: TObject);
+var
+  Dialog: Toptionsform;
 begin
   // Preferences
-  FPreferencesDialog := Toptionsform.Create(Self);
-  FPreferencesDialog.ShowModal;
+  Dialog := Toptionsform.Create(Self);
+  Dialog.ShowModal;
+  // Gets freed in Dialog.FormClose
 end;
 
 procedure TMainForm.actReadmeExecute(Sender: TObject);
@@ -10244,8 +10246,6 @@ begin
   Editors.Add(SynMemoSQLLog);
   if Assigned(ActiveObjectEditor) then
     FindEditors(ActiveObjectEditor);
-  if Assigned(FPreferencesDialog) then
-    Editors.Add(FPreferencesDialog.SynMemoSQLSample);
 
   if AppSettings.ReadBool(asTabsToSpaces) then
     BaseEditor.Options := BaseEditor.Options + [eoTabsToSpaces]
@@ -10253,12 +10253,7 @@ begin
     BaseEditor.Options := BaseEditor.Options - [eoTabsToSpaces];
   ActiveLineColor := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
   for i:=0 to Editors.Count-1 do begin
-    // See issue #2651:
-    if Editors[i]=nil then
-      Continue;
     Editor := Editors[i] as TSynMemo;
-    if Editor = nil then
-      continue;
     LogSQL('Setting up TSynMemo "'+Editor.Name+'"', lcDebug);
     Editor.Font.Name := AppSettings.ReadString(asFontName);
     Editor.Font.Size := AppSettings.ReadInt(asFontSize);
