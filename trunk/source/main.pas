@@ -908,6 +908,7 @@ type
     procedure actUnixTimestampColumnExecute(Sender: TObject);
     procedure PopupQueryLoadPopup(Sender: TObject);
     procedure imgDonateClick(Sender: TObject);
+    procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -7756,6 +7757,16 @@ begin
 end;
 
 
+procedure TMainForm.DBtreeExpanded(Sender: TBaseVirtualTree;
+  Node: PVirtualNode);
+begin
+  // Table and database filter both need initialized children
+  Sender.ReinitChildren(Node, False);
+  if edittablefilter.Text <> '' then
+    editTableFilter.OnChange(editTableFilter);
+end;
+
+
 procedure TMainForm.DBtreeExpanding(Sender: TBaseVirtualTree;
   Node: PVirtualNode; var Allowed: Boolean);
 var
@@ -9649,6 +9660,7 @@ var
   VisibleCount: Cardinal;
 begin
   // Immediately apply database filter
+  LogSQL('editDatabaseTableFilterChange', lcDebug);
   Edit := Sender as TButtonedEdit;
   rx := TRegExpr.Create;
   rx.ModifierI := True;
