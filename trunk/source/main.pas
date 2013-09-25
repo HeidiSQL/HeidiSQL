@@ -909,6 +909,7 @@ type
     procedure PopupQueryLoadPopup(Sender: TObject);
     procedure imgDonateClick(Sender: TObject);
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure ApplicationDeActivate(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -11207,6 +11208,15 @@ procedure TMainForm.ApplicationEvents1Deactivate(Sender: TObject);
 begin
   // Force result tab balloon hint to disappear. Does not do so when mouse was moved too fast.
   tabsetQueryMouseLeave(Sender);
+end;
+
+
+procedure TMainForm.ApplicationDeActivate(Sender: TObject);
+begin
+  // Prevent completion window from showing up after Alt-Tab. See issue #2640
+  // and issue #3342
+  // Does not work for some reason in TApplicationEvents.OnDeactivate
+  SynCompletionProposal.Form.Enabled := False;
 end;
 
 
