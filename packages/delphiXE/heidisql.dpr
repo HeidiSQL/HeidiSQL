@@ -66,11 +66,13 @@ begin
     AppLanguage := AppSettings.ReadString(asAppLanguage);
     UseLanguage(AppLanguage);
     Application.Initialize;
+    Application.MainFormOnTaskBar := True;
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;
     Application.CreateForm(TMainForm, MainForm);
     Application.OnMessage := Mainform.OnMessageHandler;
     MainForm.AfterFormCreate;
+    Application.OnDeactivate := MainForm.ApplicationDeActivate;
     Application.Run;
   end;
  end.
