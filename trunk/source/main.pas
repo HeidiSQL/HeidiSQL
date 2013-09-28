@@ -6104,7 +6104,7 @@ begin
   QF14.Hint := Col + ' IS NOT NULL';
 
   // Block 3: WHERE col = [clipboard content]
-  Value := Clipboard.AsText;
+  Value := Trim(Clipboard.AsText);
   if Length(Value) < SIZE_KB then begin
     QF15.Enabled := true; QF15.Hint := Col + ' = ' + esc(Value);
     QF16.Enabled := true; QF16.Hint := Col + ' != ' + esc(Value);
