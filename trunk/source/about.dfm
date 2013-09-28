@@ -305,7 +305,9 @@ object AboutBox: TAboutBox
     Width = 250
     Height = 45
     Cursor = crHandPoint
-    Hint = 'donatebutton.php?place=about'
+    Hint = 
+      'Send an arbitrary amount as donation to the author - per PayPal ' +
+      '(also supports credit cards)'
     AutoSize = True
     Picture.Data = {
       07544269746D617066840000424D66840000000000003600000028000000FA00
@@ -1368,7 +1370,6 @@ object AboutBox: TAboutBox
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000006120B345A43D7E6DDFFFFFF00FF}
-    OnClick = OpenURL
   end
   object lblDonated: TLabel
     Left = 117
