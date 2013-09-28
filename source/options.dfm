@@ -209,6 +209,8 @@ object optionsform: Toptionsform
         TabOrder = 11
         Text = 'editCustomSnippetsDirectory'
         TextHint = 'Set custom directory for SQL snippet files'
+        OnChange = Modified
+        OnDblClick = editCustomSnippetsDirectoryRightButtonClick
         OnRightButtonClick = editCustomSnippetsDirectoryRightButtonClick
       end
     end
