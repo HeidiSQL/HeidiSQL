@@ -115,7 +115,9 @@ object MainForm: TMainForm
       Width = 9
       Height = 22
       Cursor = crHandPoint
-      Hint = 'donatebutton.php?place=main'
+      Hint = 
+        'Send an arbitrary amount as donation to the author - per PayPal ' +
+        '(also supports credit cards)'
       Picture.Data = {
         07544269746D6170D61F0000424DD61F00000000000036000000280000007A00
         0000160000000100180000000000A01F0000C40E0000C40E0000000000000000

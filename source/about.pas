@@ -109,8 +109,8 @@ begin
   InheritFont(lblAppName.Font);
   lblAppName.Font.Size := 14;
   InheritFont(lblAppWebpage.Font);
-  imgDonate.Hint := APPDOMAIN + imgDonate.Hint;
   imgDonate.Visible := MainForm.HasDonated(False) = nbFalse;
+  imgDonate.OnClick := MainForm.imgDonate.OnClick;
   editDonated.Text := AppSettings.ReadString(asDonatedEmail);
 
   // Assign text

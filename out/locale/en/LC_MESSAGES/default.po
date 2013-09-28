@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-09-17 20:06+0100\n"
+"PO-Revision-Date: 2013-09-28 07:29+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -32,6 +32,14 @@ msgstr "About"
 #: usermanager.dfm:62
 msgid "Close"
 msgstr "Close"
+
+#. Donate button in various dialogs
+msgid ""
+"Send an arbitrary amount as donation to the author - per PayPal (also "
+"supports credit cards)"
+msgstr ""
+"Send an arbitrary amount as donation to the author - per PayPal (also "
+"supports credit cards)"
 
 #. About dialog
 msgid "I have donated per following email address:"

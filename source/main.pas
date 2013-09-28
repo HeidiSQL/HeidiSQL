@@ -1683,7 +1683,6 @@ begin
   FHasDonatedDatabaseCheck := nbUnset;
   imgDonate.Width := 122;
   imgDonate.Height := 22;
-  imgDonate.Hint := APPDOMAIN + imgDonate.Hint;
   imgDonate.Visible := HasDonated(True) = nbFalse;
 
   FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
@@ -2247,8 +2246,19 @@ end;
 
 
 procedure TMainForm.imgDonateClick(Sender: TObject);
+var
+  Dialog: TWinControl;
+  place: String;
 begin
-  ShellExec(TControl(Sender).Hint);
+  // Click on one of the various donate buttons
+  Dialog := (Sender as TImage).Parent;
+  if Dialog is TAboutBox then
+    place := 'about'
+  else if Dialog is TfrmUpdateCheck then
+    place := 'updatecheck'
+  else
+    place := 'main';
+  ShellExec(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLElementUnicode(place));
 end;
 
 

@@ -37,7 +37,9 @@ object frmUpdateCheck: TfrmUpdateCheck
     Width = 250
     Height = 45
     Cursor = crHandPoint
-    Hint = 'donatebutton.php?place=updatecheck'
+    Hint = 
+      'Send an arbitrary amount as donation to the author - per PayPal ' +
+      '(also supports credit cards)'
     AutoSize = True
     Picture.Data = {
       07544269746D617066840000424D66840000000000003600000028000000FA00
@@ -1100,7 +1102,6 @@ object frmUpdateCheck: TfrmUpdateCheck
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000006120B345A43D7E6DDFFFFFF00FF}
-    OnClick = imgDonateClick
   end
   object btnCancel: TButton
     Left = 270
