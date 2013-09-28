@@ -1390,6 +1390,11 @@ var
   i: Integer;
 begin
   // Read a chunk or the complete contents out of a textfile, opened by OpenTextFile()
+  if Stream.Size = 0 then begin
+    Result := '';
+    Exit;
+  end;
+
   StartPosition := Stream.Position;
   DataLeft := Stream.Size - Stream.Position;
   if (ChunkSize = 0) or (ChunkSize > DataLeft) then
