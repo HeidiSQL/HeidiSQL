@@ -45,10 +45,17 @@ object optionsform: Toptionsform
       end
       object lblLanguage: TLabel
         Left = 8
-        Top = 246
+        Top = 273
         Width = 189
         Height = 13
         Caption = 'Application language (requires restart):'
+      end
+      object lblCustomSnippetsDirectory: TLabel
+        Left = 8
+        Top = 246
+        Width = 129
+        Height = 13
+        Caption = 'Custom snippets directory:'
       end
       object chkAutoReconnect: TCheckBox
         Left = 8
@@ -175,20 +182,34 @@ object optionsform: Toptionsform
         RightButton.Visible = True
         TabOrder = 10
         Text = 'editMySQLBinaries'
-        TextHint = 'Required to launch mysql.exe shell'
+        TextHint = 'Find mysql.exe directory'
         OnChange = Modified
         OnDblClick = editMySQLBinariesRightButtonClick
         OnRightButtonClick = editMySQLBinariesRightButtonClick
       end
       object comboAppLanguage: TComboBox
         Left = 272
-        Top = 243
+        Top = 270
         Width = 319
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 11
+        TabOrder = 12
         OnClick = Modified
+      end
+      object editCustomSnippetsDirectory: TButtonedEdit
+        Left = 272
+        Top = 243
+        Width = 319
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.ImageListMain
+        RightButton.ImageIndex = 51
+        RightButton.Visible = True
+        TabOrder = 11
+        Text = 'editCustomSnippetsDirectory'
+        TextHint = 'Set custom directory for SQL snippet files'
+        OnRightButtonClick = editCustomSnippetsDirectoryRightButtonClick
       end
     end
     object tabLogging: TTabSheet
@@ -341,6 +362,7 @@ object optionsform: Toptionsform
         RightButton.Visible = True
         TabOrder = 5
         Text = 'editLogDir'
+        TextHint = 'Select output directory'
         OnChange = Modified
         OnDblClick = editLogDirRightButtonClick
         OnRightButtonClick = editLogDirRightButtonClick

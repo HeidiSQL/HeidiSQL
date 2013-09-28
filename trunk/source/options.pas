@@ -125,6 +125,8 @@ type
     cboxSQLColForeground: TColorBox;
     cboxSQLColBackground: TColorBox;
     SynMemoSQLSample: TSynMemo;
+    editCustomSnippetsDirectory: TButtonedEdit;
+    lblCustomSnippetsDirectory: TLabel;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -162,6 +164,7 @@ type
     procedure colorBoxGridTextColorsSelect(Sender: TObject);
     procedure editMySQLBinariesRightButtonClick(Sender: TObject);
     procedure editGridRowCountExit(Sender: TObject);
+    procedure editCustomSnippetsDirectoryRightButtonClick(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -169,6 +172,7 @@ type
     FGridTextColors: Array[dtcInteger..dtcOther] of TColor;
     FLanguages: TStringList;
     procedure InitLanguages;
+    procedure SelectDirectory(Sender: TObject; NewFolderButton: Boolean);
   public
     { Public declarations }
   end;
@@ -256,6 +260,7 @@ begin
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
   AppSettings.WriteInt(asBarColor, cboxColorBars.Selected);
   AppSettings.WriteString(asMySQLBinaries, editMySQLBinaries.Text);
+  AppSettings.WriteString(asCustomSnippetsDirectory, editCustomSnippetsDirectory.Text);
   if comboAppLanguage.ItemIndex > 0 then begin
     // There is no TStringList.Names[Value] getter, so we find the language code via loop
     LangCode := '';
@@ -438,6 +443,7 @@ begin
   chkColorBars.Checked := AppSettings.ReadBool(asDisplayBars);
   cboxColorBars.Selected := AppSettings.ReadInt(asBarColor);
   editMySQLBinaries.Text := AppSettings.ReadString(asMySQLBinaries);
+  editCustomSnippetsDirectory.Text := AppSettings.ReadString(asCustomSnippetsDirectory);
   LangCode := AppSettings.ReadString(asAppLanguage);
   comboAppLanguage.ItemIndex := comboAppLanguage.Items.IndexOf(FLanguages.Values[LangCode]);
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
@@ -559,38 +565,45 @@ begin
 end;
 
 
-procedure Toptionsform.editLogDirRightButtonClick(Sender: TObject);
+procedure Toptionsform.SelectDirectory(Sender: TObject; NewFolderButton: Boolean);
 var
   Browse: TBrowseForFolder;
+  Edit: TButtonedEdit;
 begin
-  // Select folder for session logs
+  // Select folder for any option
+  Edit := Sender as TButtonedEdit;
   Browse := TBrowseForFolder.Create(Self);
-  Browse.Folder := (Sender as TButtonedEdit).Text;
-  Browse.DialogCaption := _('Select output directory');
-  // Enable "Create new folder" button
-  Browse.BrowseOptions := Browse.BrowseOptions - [bifNoNewFolderButton] + [bifNewDialogStyle];
+  Browse.Folder := Edit.Text;
+  Browse.DialogCaption := _(Edit.TextHint);
+  Browse.BrowseOptions := Browse.BrowseOptions + [bifNewDialogStyle];
+  if not NewFolderButton then
+    Browse.BrowseOptions := Browse.BrowseOptions + [bifNoNewFolderButton];
   if Browse.Execute then begin
-    (Sender as TButtonedEdit).Text := Browse.Folder;
+    Edit.Text := Browse.Folder;
     Modified(Sender);
   end;
   Browse.Free;
 end;
 
 
+procedure Toptionsform.editLogDirRightButtonClick(Sender: TObject);
+begin
+  // Select folder for session logs
+  SelectDirectory(Sender, True);
+end;
+
+
 procedure Toptionsform.editMySQLBinariesRightButtonClick(Sender: TObject);
-var
-  Browse: TBrowseForFolder;
 begin
   // Select folder where MySQL binaries reside
-  Browse := TBrowseForFolder.Create(Self);
-  Browse.Folder := (Sender as TButtonedEdit).Text;
-  Browse.DialogCaption := _('Find mysql.exe directory');
-  Browse.BrowseOptions := Browse.BrowseOptions + [bifNewDialogStyle];
-  if Browse.Execute then begin
-    (Sender as TButtonedEdit).Text := Browse.Folder;
-    Modified(Sender);
-  end;
-  Browse.Free;
+  SelectDirectory(Sender, False);
+end;
+
+
+procedure Toptionsform.editCustomSnippetsDirectoryRightButtonClick(Sender: TObject);
+begin
+  // Set custom snippets directory
+  SelectDirectory(Sender, True);
 end;
 
 
