@@ -166,7 +166,7 @@ type
     asCopyTableWindowHeight, asCopyTableWindowWidth, asCopyTableColumns, asCopyTableKeys, asCopyTableForeignKeys,
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
-    asLastUsageStatisticCall, asDisplayBars, asBarColor, asMySQLBinaries, asPromptSaveFileOnTabClose,
+    asLastUsageStatisticCall, asDisplayBars, asBarColor, asMySQLBinaries, asCustomSnippetsDirectory, asPromptSaveFileOnTabClose,
     asCompletionProposal, asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory,
     asFindDialogReplaceHistory, asMaxQueryResults, asSetEditorWidth, asSetEditorHeight, asLogErrors,
     asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asFieldColorNumeric,
@@ -786,11 +786,7 @@ end;
 function DirnameSnippets: String;
 begin
   // Folder for snippets
-  if AppSettings.PortableMode then
-    Result := ExtractFilePath(ParamStr(0))
-  else
-    Result := DirnameCommonAppData;
-  Result := Result + 'Snippets\';
+  Result := IncludeTrailingBackslash(AppSettings.ReadString(asCustomSnippetsDirectory));
 end;
 
 
@@ -3121,6 +3117,7 @@ constructor TAppSettings.Create;
 var
   rx: TRegExpr;
   i: Integer;
+  DefaultSnippetsDirectory: String;
 begin
   inherited;
   FRegistry := TRegistry.Create;
@@ -3315,6 +3312,13 @@ begin
   InitSetting(asDisplayBars,                      'DisplayBars',                           0, true);
   InitSetting(asBarColor,                         'BarColor',                              $00BBFFDD);
   InitSetting(asMySQLBinaries,                    'MySQL_Binaries',                        0, False, '');
+  // Default folder for snippets
+  if FPortableMode then
+    DefaultSnippetsDirectory := ExtractFilePath(ParamStr(0))
+  else
+    DefaultSnippetsDirectory := DirnameCommonAppData;
+  DefaultSnippetsDirectory := DefaultSnippetsDirectory + 'Snippets\';
+  InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DefaultSnippetsDirectory);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   InitSetting(asCompletionProposal,               'CompletionProposal',                    0, True);
   InitSetting(asTabsToSpaces,                     'TabsToSpaces',                          0, False);

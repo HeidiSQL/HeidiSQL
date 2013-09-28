@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-09-28 07:29+0100\n"
+"PO-Revision-Date: 2013-09-28 11:59+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2503,6 +2503,10 @@ msgstr "Set interval ..."
 msgid "Miscellaneous"
 msgstr "Miscellaneous"
 
+#. Preferences
+msgid "Custom snippets directory:"
+msgstr "Custom snippets directory:"
+
 #. optionsform..pagecontrolMain..tabMisc..lblMySQLBinaries..Caption
 #: options.dfm:48
 msgid "MySQL command line programs:"
@@ -2562,11 +2566,6 @@ msgstr "Allow multiple application instances"
 #: options.dfm:151
 msgid "Display bars in various list columns"
 msgstr "Display bars in various list columns"
-
-#. optionsform..pagecontrolMain..tabMisc..editMySQLBinaries..TextHint
-#: options.dfm:177
-msgid "Required to launch mysql.exe shell"
-msgstr "Required to launch mysql.exe shell"
 
 #. optionsform..pagecontrolMain..tabLogging..Caption
 #: options.dfm:184
