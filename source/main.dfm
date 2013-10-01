@@ -2574,7 +2574,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Save as snippet ...'
       ImageIndex = 54
-      OnExecute = actSaveSQLSnippetExecute
+      OnExecute = actSaveSQLAsExecute
     end
     object actSaveSQLSelectionSnippet: TAction
       Category = 'SQL'
@@ -2582,7 +2582,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Save selected text as snippet ...'
       ImageIndex = 54
-      OnExecute = actSaveSQLSnippetExecute
+      OnExecute = actSaveSQLAsExecute
     end
     object actClearQueryEditor: TAction
       Category = 'SQL'
