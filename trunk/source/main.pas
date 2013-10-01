@@ -619,7 +619,6 @@ type
     procedure actRemoveFilterExecute(Sender: TObject);
     procedure actSaveSQLExecute(Sender: TObject);
     procedure actSaveSQLAsExecute(Sender: TObject);
-    procedure actSaveSQLSnippetExecute(Sender: TObject);
     procedure actSetDelimiterExecute(Sender: TObject);
     procedure actSQLhelpExecute(Sender: TObject);
     procedure actUpdateCheckExecute(Sender: TObject);
@@ -3862,6 +3861,13 @@ begin
   CanSave := mrNo;
   SaveDialog := TSaveDialog.Create(Self);
   SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
+  if (Sender = actSaveSQLSnippet) or (Sender = actSaveSQLSelectionSnippet) then begin
+    if not DirectoryExists(DirnameSnippets) then
+      ForceDirectories(DirnameSnippets);
+    SaveDialog.InitialDir := DirnameSnippets;
+    SaveDialog.Options := SaveDialog.Options + [ofNoChangeDir];
+    SaveDialog.Title := _('Save snippet');
+  end;
   SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
   SaveDialog.DefaultExt := 'sql';
   while (CanSave = mrNo) and SaveDialog.Execute do begin
@@ -3877,7 +3883,8 @@ begin
     end;
   end;
   if CanSave = mrYes then begin
-    OnlySelection := (Sender = actSaveSQLselection) or (Sender = actSaveSQLSelectionSnippet);
+    OnlySelection := (Sender = actSaveSQLselection) or (Sender = actSaveSQLSelectionSnippet)
+      or (Sender = actSaveSQLSnippet) or (Sender = actSaveSQLSelectionSnippet);
     ActiveQueryTab.SaveContents(SaveDialog.FileName, OnlySelection);
     for i:=0 to QueryTabs.Count-1 do begin
       if QueryTabs[i] = ActiveQueryTab then
@@ -3886,6 +3893,7 @@ begin
         QueryTabs[i].Memo.Modified := True;
     end;
     ValidateQueryControls(Sender);
+    SetSnippetFilenames;
   end;
   SaveDialog.Free;
 end;
@@ -3906,47 +3914,6 @@ begin
     ValidateQueryControls(Sender);
   end else
     actSaveSQLAsExecute(Sender);
-end;
-
-
-procedure TMainForm.actSaveSQLSnippetExecute(Sender: TObject);
-var
-  snippetname : String;
-  Text, LB: String;
-begin
-  // Save snippet
-  if InputQuery(_('Save snippet'), _('Snippet name:'), snippetname) then
-  begin
-    if Copy( snippetname, Length(snippetname)-4, 4 ) <> '.sql' then
-      snippetname := snippetname + '.sql';
-    // cleanup snippetname from special characters
-    snippetname := DirnameSnippets + goodfilename(snippetname);
-    if FileExists( snippetname ) then
-    begin
-      if MessageDialog(f_('Overwrite existing snippet %s?', [snippetname]), mtConfirmation, [mbOK, mbCancel]) <> mrOK then
-        exit;
-    end;
-    Screen.Cursor := crHourglass;
-    // Save complete content or just the selected text,
-    // depending on the tag of calling control
-    case (Sender as TComponent).Tag of
-      0: Text := ActiveQueryMemo.Text;
-      1: Text := ActiveQueryMemo.SelText;
-    end;
-    LB := '';
-    case ActiveQueryTab.MemoLineBreaks of
-      lbsUnix: LB := LB_UNIX;
-      lbsMac: LB := LB_MAC;
-      lbsWide: LB := LB_WIDE;
-    end;
-    if LB <> '' then
-      Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
-    if not DirectoryExists(DirnameSnippets) then
-      ForceDirectories(DirnameSnippets);
-    SaveUnicodeFile( snippetname, Text );
-    SetSnippetFilenames;
-    Screen.Cursor := crDefault;
-  end;
 end;
 
 
