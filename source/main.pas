@@ -3442,6 +3442,12 @@ begin
         );
     end;
 
+    // Tree node filtering needs a hit in special cases, e.g. after a db was dropped
+    if editDatabaseFilter.Text <> '' then
+      editDatabaseFilter.OnChange(editDatabaseFilter);
+    if editTableFilter.Text <> '' then
+      editTableFilter.OnChange(editTableFilter);
+
   end;
   StoreLastSessions;
   ShowStatusMsg;
