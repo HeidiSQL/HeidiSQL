@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, windows, mysql_structures, SynRegExpr, Generics.Collections, Generics.Defaults,
-  DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls,
+  DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
   gnugettext;
 
 
@@ -4167,6 +4167,7 @@ var
   NumBit: Integer;
   ByteVal: Byte;
   c: Char;
+  Field: PMYSQL_FIELD;
 begin
   if (Column > -1) and (Column < ColumnCount) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
@@ -4181,6 +4182,8 @@ begin
         Result := Connection.DecodeAPIString(AnsiStr);
       // Create string bitmask for BIT fields
       if Datatype(Column).Index = dtBit then begin
+        Field := mysql_fetch_field_direct(FCurrentResults, column);
+        // FConnection.Log(lcInfo, Field.name+':  def: '+field.def+'  length: '+inttostr(field.length)+'  max_length: '+inttostr(field.max_length)+'  decimals: '+inttostr(field.decimals));
         for c in Result do begin
           ByteVal := Byte(c);
           BitString := '';
@@ -4189,13 +4192,13 @@ begin
               BitString := BitString + '1'
             else
               BitString := BitString + '0';
-            if Length(BitString) >= MaxLength(Column) then
+            if Length(BitString) >= Field.length then
               break;
           end;
-          if Length(BitString) >= MaxLength(Column) then
+          if Length(BitString) >= Field.length then
             break;
         end;
-        Result := BitString;
+        Result := ReverseString(BitString);
       end;
 
     end;
