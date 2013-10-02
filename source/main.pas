@@ -11079,6 +11079,7 @@ begin
       Snip := Copy(Snip, 1, Length(Snip)-4);
       FSnippetFilenames.Add(snip);
     end;
+    FSnippetFilenames.Sort;
   except
     on E:Exception do begin
       LogSQL(f_('Error with snippets directory: %s', [E.Message]), lcError);
