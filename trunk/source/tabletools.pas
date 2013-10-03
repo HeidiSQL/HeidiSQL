@@ -115,6 +115,7 @@ type
       Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
       var ContentRect: TRect);
     procedure CheckAllClick(Sender: TObject);
+    procedure TreeObjectsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     { Private declarations }
     FResults: TObjectList<TStringList>;
@@ -450,6 +451,13 @@ begin
     n := Sender.GetNextSibling(n);
 end;
 
+
+procedure TfrmTableTools.TreeObjectsExpanded(Sender: TBaseVirtualTree;
+  Node: PVirtualNode);
+begin
+  // Auto-resizes the 2nd/"size" column
+  TreeObjectsChange(Sender, Node);
+end;
 
 procedure TfrmTableTools.TreeObjectsGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
