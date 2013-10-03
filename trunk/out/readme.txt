@@ -111,9 +111,9 @@ Jordan Russell (Inno Setup), Lukas Gebauer (Ararat Synapse), Iztok Kacin
 
 Thanks to Transifex.com for a free translation account, and the following translators:
 David Rodrigues (initiator and Portuguese), Richard van Laak (Dutch),
-Michele Locati (Italian), viskubov (Russian), Francisco Alvarado (Spanish), TiGeR
-(Chinese), Matej Szendi (Czech), jeff.tu (Chinese/Taiwan), Rastislav Janosik
-(Slovak), renaud (French), Hichem BOUKSANI (French), s.d.w. (Korean), Alican
+Michele Locati (Italian), viskubov (Russian), Kirill (Russian), Francisco Alvarado
+(Spanish), TiGeR (Chinese), Matej Szendi (Czech), jeff.tu (Chinese/Taiwan), Rastislav
+Janosik (Slovak), renaud (French), Hichem BOUKSANI (French), s.d.w. (Korean), Alican
 Çubukçuoğlu (Turkish), MichalDCK (Polish), Florin Chis (Romanian), udariza
 (Indonesian), Januar (Indonesian), Seiji Ogawa (Japanese), Микола Ковбаса
 (Ukrainian), mivzakim (Hebrew), Martin Bedrač (Slovenian), sith (Hungarian),
