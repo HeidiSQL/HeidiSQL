@@ -1682,7 +1682,7 @@ begin
   FHasDonatedDatabaseCheck := nbUnset;
   imgDonate.Width := 122;
   imgDonate.Height := 22;
-  imgDonate.Visible := HasDonated(True) = nbFalse;
+  imgDonate.Visible := HasDonated(True) <> nbTrue;
 
   FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
 

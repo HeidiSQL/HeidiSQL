@@ -58,7 +58,7 @@ begin
   InheritFont(Font);
   TranslateComponent(Self);
   imgDonate.OnClick := MainForm.imgDonate.OnClick;
-  imgDonate.Visible := MainForm.HasDonated(False) = nbFalse;
+  imgDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
 end;
 
 {**
