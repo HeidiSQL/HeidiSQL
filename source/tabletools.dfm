@@ -87,6 +87,7 @@ object frmTableTools: TfrmTableTools
       OnChange = TreeObjectsChange
       OnChecked = TreeObjectsChecked
       OnChecking = TreeObjectsChecking
+      OnExpanded = TreeObjectsExpanded
       OnGetText = TreeObjectsGetText
       OnPaintText = TreeObjectsPaintText
       OnGetImageIndex = TreeObjectsGetImageIndex
