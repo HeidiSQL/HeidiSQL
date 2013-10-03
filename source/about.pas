@@ -71,13 +71,13 @@ begin
   Check := MainForm.HasDonated(True);
   case Check of
     nbUnset:
-      MessageDialog(_('Could not check donation state, gracefully assuming you have donated.'), mtWarning, [mbOK]);
+      MessageDialog(_('Could not check donation state.'), mtWarning, [mbOK]);
     nbFalse:
       ErrorDialog(_('Not a valid donators email address'));
     nbTrue:
       MessageDialog(_('Thanks for donating!'), mtInformation, [mbOK]);
   end;
-  imgDonate.Visible := Check = nbFalse;
+  imgDonate.Visible := Check <> nbTrue;
   MainForm.imgDonate.Width := 122;
   MainForm.imgDonate.Visible := imgDonate.Visible;
 end;
@@ -109,7 +109,7 @@ begin
   InheritFont(lblAppName.Font);
   lblAppName.Font.Size := 14;
   InheritFont(lblAppWebpage.Font);
-  imgDonate.Visible := MainForm.HasDonated(False) = nbFalse;
+  imgDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
   imgDonate.OnClick := MainForm.imgDonate.OnClick;
   editDonated.Text := AppSettings.ReadString(asDonatedEmail);
 
