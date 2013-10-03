@@ -4486,7 +4486,7 @@ var
   vt: TVirtualStringTree;
   Select: String;
   RefreshingData, IsKeyColumn: Boolean;
-  i, Offset, ColLen, ColWidth, VisibleColumns, MaximumRows: Integer;
+  i, Offset, ColLen, ColWidth, VisibleColumns, MaximumRows, FullColumns: Integer;
   KeyCols, ColWidths, WantedColumnOrgnames: TStringList;
   WantedColumns: TTableColumnList;
   c: TTableColumn;
@@ -4597,14 +4597,21 @@ begin
               ngMSSQL: Select := Select + ' LEFT(CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ' + IntToStr(GRIDMAXDATA) + '), ';
               ngMySQL: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
             end;
-          end else
+          end else begin
             Select := Select + ' ' + DBObj.Connection.QuoteIdent(c.Name) + ', ';
+            Inc(FullColumns);
+          end;
         WantedColumns.Add(c);
         WantedColumnOrgnames.Add(c.Name);
       end;
     end;
     // Cut last comma
     Delete(Select, Length(Select)-1, 2);
+
+    // Shorten the whole query if all columns are involved
+    if FullColumns = SelectedTableColumns.Count then
+      Select := '*';
+
     // Include db name for cases in which dbtree is switching databases and pending updates are in process
     Select := Select + ' FROM '+DBObj.QuotedDbAndTableName;
 
