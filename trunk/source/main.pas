@@ -7214,10 +7214,14 @@ begin
     end;
 
   end else if Sender = ListVariables then begin
-    case Column of
-      0: CellText := FVariableNames[Idx^];
-      1: CellText := FSessionVars.Values[FVariableNames[Idx^]];
-      2: CellText := FGlobalVars.Values[FVariableNames[Idx^]];
+    try
+      case Column of
+        0: CellText := FVariableNames[Idx^];
+        1: CellText := FSessionVars.Values[FVariableNames[Idx^]];
+        2: CellText := FGlobalVars.Values[FVariableNames[Idx^]];
+      end;
+    except
+      CellText := '';
     end;
 
   end else begin
