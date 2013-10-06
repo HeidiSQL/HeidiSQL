@@ -4486,7 +4486,7 @@ var
   vt: TVirtualStringTree;
   Select: String;
   RefreshingData, IsKeyColumn: Boolean;
-  i, Offset, ColLen, ColWidth, VisibleColumns, MaximumRows, FullColumns: Integer;
+  i, Offset, ColLen, ColWidth, VisibleColumns, MaximumRows, FullColumnCount: Integer;
   KeyCols, ColWidths, WantedColumnOrgnames: TStringList;
   WantedColumns: TTableColumnList;
   c: TTableColumn;
@@ -4579,6 +4579,7 @@ begin
     KeyCols := DBObj.Connection.GetKeyColumns(SelectedTableColumns, SelectedTableKeys);
     WantedColumns := TTableColumnList.Create(False);
     WantedColumnOrgnames := TStringList.Create;
+    FullColumnCount := 0;
     for i:=0 to SelectedTableColumns.Count-1 do begin
       c := SelectedTableColumns[i];
       IsKeyColumn := KeyCols.IndexOf(c.Name) > -1;
@@ -4600,7 +4601,7 @@ begin
             end;
           end else begin
             Select := Select + ' ' + DBObj.Connection.QuoteIdent(c.Name) + ', ';
-            Inc(FullColumns);
+            Inc(FullColumnCount);
           end;
         WantedColumns.Add(c);
         WantedColumnOrgnames.Add(c.Name);
@@ -4610,7 +4611,7 @@ begin
     Delete(Select, Length(Select)-1, 2);
 
     // Shorten the whole query if all columns are involved
-    if FullColumns = SelectedTableColumns.Count then
+    if FullColumnCount = SelectedTableColumns.Count then
       Select := '*';
 
     // Include db name for cases in which dbtree is switching databases and pending updates are in process
