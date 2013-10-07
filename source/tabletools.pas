@@ -678,6 +678,7 @@ begin
       ZipWriter := TZipWrite.Create(FileNameZip);
       ZipWriter.AddDeflated(FileName);
       ZipWriter.Free;
+      DeleteFile(FileName);
       LogRow := FResults.Last;
       LogRow[2] := _('Compressing done.');
       LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000, True);
@@ -1246,7 +1247,7 @@ begin
       TargetFileName := GetOutputFilename(comboExportOutputTarget.Text, DBObj);
       FExportFileName := TargetFileName;
       if comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED then
-        TargetFileName := ChangeFileExt(TargetFileName, '.sql');
+        TargetFileName := ChangeFileExt(TargetFileName, '_temp.sql');
       ExportStream := TFileStream.Create(TargetFileName, fmCreate or fmOpenWrite);
     end;
     // ToDir handled above
