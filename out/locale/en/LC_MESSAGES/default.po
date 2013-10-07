@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-10-01 06:19+0100\n"
+"PO-Revision-Date: 2013-10-07 06:26+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2386,6 +2386,14 @@ msgstr "SQL files"
 #: connections.pas:1047 connections.pas:1049 exportgrid.pas:274
 msgid "All files"
 msgstr "All files"
+
+#. SQL export dialog
+msgid "ZIP files"
+msgstr "ZIP files"
+
+#. SQL export dialog
+msgid "Compressing"
+msgstr "Compressing"
 
 #. MainForm..popupDataGrid..DataInsertValue..Caption
 #: main.dfm:8757
