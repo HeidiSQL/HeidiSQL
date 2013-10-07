@@ -1965,8 +1965,8 @@ object MainForm: TMainForm
   end
   object MainMenu1: TMainMenu
     AutoHotkeys = maManual
-    Left = 40
-    Top = 32
+    Left = 424
+    Top = 152
     object File1: TMenuItem
       Caption = '&File'
       Hint = 'File related commands'
@@ -2162,8 +2162,8 @@ object MainForm: TMainForm
   end
   object ActionList1: TActionList
     Images = ImageListMain
-    Left = 8
-    Top = 32
+    Left = 424
+    Top = 104
     object actSessionManager: TAction
       Category = 'File'
       Caption = 'Session manager'
@@ -2910,14 +2910,14 @@ object MainForm: TMainForm
     AutoHotkeys = maManual
     Images = ImageListMain
     OnPopup = menuConnectionsPopup
-    Left = 72
-    Top = 32
+    Left = 344
+    Top = 200
   end
   object ImageListMain: TImageList
     ColorDepth = cd32Bit
     DrawingStyle = dsTransparent
-    Left = 104
-    Top = 160
+    Left = 504
+    Top = 104
     Bitmap = {
       494C0101B7005001E40210001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       000000000000360000002800000040000000E0020000010020000000000000E0
@@ -9000,14 +9000,14 @@ object MainForm: TMainForm
   end
   object PopupQueryLoad: TPopupMenu
     OnPopup = PopupQueryLoadPopup
-    Left = 104
-    Top = 32
+    Left = 272
+    Top = 104
   end
   object popupDB: TPopupMenu
     Images = ImageListMain
     OnPopup = popupDBPopup
-    Left = 136
-    Top = 32
+    Left = 272
+    Top = 152
     object menuEditObject: TMenuItem
       Caption = 'Edit'
       Hint = 'Edit selected object'
@@ -9112,8 +9112,8 @@ object MainForm: TMainForm
   object popupHost: TPopupMenu
     Images = ImageListMain
     OnPopup = popupHostPopup
-    Left = 9
-    Top = 64
+    Left = 201
+    Top = 104
     object Copy2: TMenuItem
       Action = actCopy
     end
@@ -9176,20 +9176,20 @@ object MainForm: TMainForm
     TableNameAttri.Foreground = clFuchsia
     VariableAttri.Foreground = clPurple
     SQLDialect = sqlMySQL
-    Left = 7
-    Top = 144
+    Left = 591
+    Top = 152
   end
   object TimerHostUptime: TTimer
     OnTimer = TimerHostUptimeTimer
-    Left = 7
-    Top = 197
+    Left = 687
+    Top = 101
   end
   object popupDataGrid: TPopupMenu
     AutoHotkeys = maManual
     Images = ImageListMain
     OnPopup = popupDataGridPopup
-    Left = 104
-    Top = 64
+    Left = 200
+    Top = 248
     object Copy3: TMenuItem
       Action = actCopy
     end
@@ -9432,14 +9432,14 @@ object MainForm: TMainForm
   end
   object TimerConnected: TTimer
     OnTimer = TimerConnectedTimer
-    Left = 103
-    Top = 197
+    Left = 687
+    Top = 245
   end
   object popupSqlLog: TPopupMenu
     Images = ImageListMain
     OnPopup = popupSqlLogPopup
-    Left = 8
-    Top = 96
+    Left = 272
+    Top = 200
     object Copy1: TMenuItem
       Action = actCopy
     end
@@ -9480,13 +9480,13 @@ object MainForm: TMainForm
     Enabled = False
     Interval = 5000
     OnTimer = actRefreshExecute
-    Left = 72
+    Left = 688
     Top = 197
   end
   object popupListHeader: TVTHeaderPopupMenu
     Images = ImageListMain
-    Left = 40
-    Top = 96
+    Left = 424
+    Top = 208
   end
   object SynCompletionProposal: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
@@ -9520,14 +9520,14 @@ object MainForm: TMainForm
     TimerInterval = 500
     OnAfterCodeCompletion = SynCompletionProposalAfterCodeCompletion
     OnCodeCompletion = SynCompletionProposalCodeCompletion
-    Left = 40
-    Top = 144
+    Left = 592
+    Top = 208
   end
   object popupQuery: TPopupMenu
     Images = ImageListMain
     OnPopup = popupQueryPopup
-    Left = 104
-    Top = 96
+    Left = 344
+    Top = 104
     object MenuRun: TMenuItem
       Action = actExecuteQuery
     end
@@ -9614,8 +9614,8 @@ object MainForm: TMainForm
   end
   object popupQueryHelpers: TPopupMenu
     Images = ImageListMain
-    Left = 136
-    Top = 96
+    Left = 344
+    Top = 152
     object menuInsertSnippetAtCursor: TMenuItem
       Caption = 'Insert at cursor'
       Default = True
@@ -9677,8 +9677,8 @@ object MainForm: TMainForm
   end
   object popupFilter: TPopupMenu
     Images = ImageListMain
-    Left = 72
-    Top = 96
+    Left = 344
+    Top = 248
     object menuFilterCopy: TMenuItem
       Action = actCopy
     end
@@ -9706,8 +9706,8 @@ object MainForm: TMainForm
   end
   object popupRefresh: TPopupMenu
     Images = ImageListMain
-    Left = 40
-    Top = 64
+    Left = 200
+    Top = 200
     object menuAutoRefresh: TMenuItem
       Caption = 'Auto refresh'
       ShortCut = 16500
@@ -9722,8 +9722,8 @@ object MainForm: TMainForm
     AutoPopup = False
     Images = ImageListMain
     OnPopup = popupMainTabsPopup
-    Left = 72
-    Top = 64
+    Left = 200
+    Top = 152
     object menuNewQueryTab: TMenuItem
       Action = actNewQueryTab
     end
@@ -9737,19 +9737,19 @@ object MainForm: TMainForm
     Enabled = False
     Interval = 500
     OnTimer = TimerFilterVTTimer
-    Left = 40
-    Top = 197
+    Left = 688
+    Top = 149
   end
   object BalloonHint1: TBalloonHint
     Delay = 100
     HideAfter = 10000
-    Left = 104
-    Top = 128
+    Left = 424
+    Top = 264
   end
   object popupExecuteQuery: TPopupMenu
     Images = ImageListMain
-    Left = 136
-    Top = 128
+    Left = 272
+    Top = 248
     object Run1: TMenuItem
       Action = actExecuteQuery
     end
@@ -9773,8 +9773,8 @@ object MainForm: TMainForm
   end
   object ApplicationEvents1: TApplicationEvents
     OnDeactivate = ApplicationEvents1Deactivate
-    Left = 136
-    Top = 160
+    Left = 504
+    Top = 152
   end
   object ParameterCompletionProposal: TSynCompletionProposal
     DefaultType = ctParams
@@ -9799,7 +9799,7 @@ object MainForm: TMainForm
     ShortCut = 24608
     Editor = SynMemoQuery
     TimerInterval = 500
-    Left = 136
-    Top = 197
+    Left = 592
+    Top = 101
   end
 end
