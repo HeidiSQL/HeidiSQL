@@ -151,7 +151,7 @@ type
     asSSHtunnelPassword, asSSHtunnelTimeout, asSSHtunnelPrivateKey, asSSLActive, asSSLKey,
     asSSLCert, asSSLCA, asNetType, asCompressed, asLocalTimeZone,
     asStartupScriptFilename, asDatabases, asDatabaseFilter, asTableFilter, asExportSQLCreateDatabases,
-    asExportSQLCreateTables, asExportSQLDataHow, asExportSQLFilenames, asExportSQLDirectories,
+    asExportSQLCreateTables, asExportSQLDataHow, asExportSQLFilenames, asExportZIPFilenames, asExportSQLDirectories,
     asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asGridExportOutputCopy, asGridExportOutputFile,
     asGridExportFilename, asGridExportRecentFiles, asGridExportEncoding, asGridExportFormat, asGridExportSelection,
     asGridExportColumnNames, asGridExportIncludeAutoInc, asGridExportIncludeQuery,
@@ -3241,6 +3241,7 @@ begin
   InitSetting(asExportSQLCreateTables,            'ExportSQL_CreateTables',                0, False);
   InitSetting(asExportSQLDataHow,                 'ExportSQL_DataHow',                     0);
   InitSetting(asExportSQLFilenames,               'ExportSQL_Filenames',                   0, False, '');
+  InitSetting(asExportZIPFilenames,               'ExportSQL_ZipFilenames',                0, False, '');
   InitSetting(asExportSQLDirectories,             'ExportSQL_Directories',                 0, False, '');
   InitSetting(asExportSQLDatabase,                'ExportSQL_Database',                    0, False, '');
   InitSetting(asExportSQLServerDatabase,          'ExportSQL_ServerDatabase',              0, False, '');

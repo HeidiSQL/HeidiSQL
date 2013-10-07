@@ -1,0 +1,1 @@
+brcc32 FileMain.rc

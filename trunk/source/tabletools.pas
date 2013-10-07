@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
   VirtualTrees, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections,
-  dbconnection, helpers, Menus, gnugettext, DateUtils;
+  dbconnection, helpers, Menus, gnugettext, DateUtils, SynZip;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
@@ -123,6 +123,7 @@ type
     FSecondExportPass: Boolean; // Set to True after everything is exported and final VIEWs need to be exported again
     FCancelled: Boolean;
     ExportStream: TStream;
+    FExportFileName: String;
     ExportStreamStartOfQueryPos: Int64;
     ExportLastDatabase: String;
     FTargetConnection: TDBConnection;
@@ -155,7 +156,8 @@ uses main, mysql_structures;
 
 const
   STRSKIPPED: String = 'Skipped - ';
-  OUTPUT_FILE = 'One big file';
+  OUTPUT_FILE = 'Single .sql file';
+  OUTPUT_FILE_COMPRESSED = 'ZIP compressed .sql file';
   OUTPUT_CLIPBOARD = 'Clipboard';
   OUTPUT_DIR = 'Directory - one file per object in database subdirectories';
   OUTPUT_DB = 'Database';
@@ -203,7 +205,12 @@ begin
   comboExportData.Items.Text := DATA_NO+CRLF +DATA_REPLACE+CRLF +DATA_INSERT+CRLF +DATA_INSERTNEW+CRLF +DATA_UPDATE;
   comboExportData.ItemIndex := AppSettings.ReadInt(asExportSQLDataHow);
   // Add hardcoded output options and session names from registry
-  comboExportOutputType.Items.Text := OUTPUT_FILE+CRLF +OUTPUT_DIR+CRLF +OUTPUT_CLIPBOARD+CRLF +OUTPUT_DB;
+  comboExportOutputType.Items.Text :=
+    OUTPUT_FILE + CRLF +
+    OUTPUT_FILE_COMPRESSED + CRLF +
+    OUTPUT_DIR + CRLF +
+    OUTPUT_CLIPBOARD + CRLF +
+    OUTPUT_DB;
   SessionPaths := TStringList.Create;
   AppSettings.GetSessionPaths('', SessionPaths);
   for i:=0 to SessionPaths.Count-1 do begin
@@ -342,6 +349,9 @@ begin
       if comboExportOutputType.Text = OUTPUT_FILE then begin
         comboExportOutputTarget.Items.Insert(0, comboExportOutputTarget.Text);
         AppSettings.WriteString(asExportSQLFilenames, comboExportOutputTarget.Items.Text);
+      end else if comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED then begin
+        comboExportOutputTarget.Items.Insert(0, comboExportOutputTarget.Text);
+        AppSettings.WriteString(asExportZIPFilenames, comboExportOutputTarget.Items.Text);
       end else if comboExportOutputType.Text = OUTPUT_DIR then begin
         comboExportOutputTarget.Items.Insert(0, comboExportOutputTarget.Text);
         AppSettings.WriteString(asExportSQLDirectories, comboExportOutputTarget.Items.Text);
@@ -515,6 +525,10 @@ var
   DBObj: TDBObject;
   i: Integer;
   Conn: TDBConnection;
+  FileName, FileNameZip: TFileName;
+  ZipWriter: TZipWrite;
+  StartTime: Cardinal;
+  LogRow: TStringlist;
 
   procedure ProcessNode(DBObj: TDBObject);
   begin
@@ -653,7 +667,23 @@ begin
     Output('/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */', True, False, False, True, True);
     if comboExportOutputType.Text = OUTPUT_CLIPBOARD then
       StreamToClipboard(ExportStream, nil, false);
+
+    FileName := TFileStream(ExportStream).FileName;
     FreeAndNil(ExportStream);
+
+    if comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED then begin
+      AddNotes('', '', _('Compressing')+'...', '');
+      StartTime := GetTickCount;
+      FileNameZip := FExportFileName;
+      ZipWriter := TZipWrite.Create(FileNameZip);
+      ZipWriter.AddDeflated(FileName);
+      ZipWriter.Free;
+      LogRow := FResults.Last;
+      LogRow[2] := _('Compressing done.');
+      LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000, True);
+      ResultGrid.Repaint;
+    end;
+
     // Activate ansi mode or whatever again, locally
     Conn.Query('/*!40101 SET SQL_MODE=IFNULL(@OLD_LOCAL_SQL_MODE, '''') */');
   end;
@@ -947,10 +977,14 @@ begin
 
   if Assigned(FTargetConnection) then
     FreeAndNil(FTargetConnection);
-  if comboExportOutputType.Text = OUTPUT_FILE then begin
+  if (comboExportOutputType.Text = OUTPUT_FILE)
+    or (comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED) then begin
     comboExportOutputTarget.Style := csDropDown;
     comboExportOutputTarget.Hint := FilenameHint;
-    comboExportOutputTarget.Items.Text := AppSettings.ReadString(asExportSQLFilenames, '');
+    if comboExportOutputType.Text = OUTPUT_FILE then
+      comboExportOutputTarget.Items.Text := AppSettings.ReadString(asExportSQLFilenames, '')
+    else
+      comboExportOutputTarget.Items.Text := AppSettings.ReadString(asExportZIPFilenames, '');
     if comboExportOutputTarget.Items.Count > 0 then
       comboExportOutputTarget.ItemIndex := 0;
     lblExportOutputTarget.Caption := _('Filename')+':';
@@ -1020,7 +1054,9 @@ begin
   end;
 
   FLastOutputSelectedIndex := comboExportOutputType.ItemIndex;
-  chkExportDatabasesCreate.Enabled := (comboExportOutputType.Text = OUTPUT_FILE)
+  chkExportDatabasesCreate.Enabled :=
+    (comboExportOutputType.Text = OUTPUT_FILE)
+    or (comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED)
     or (comboExportOutputType.Text = OUTPUT_CLIPBOARD)
     or (Copy(comboExportOutputType.Text, 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER);
   chkExportDatabasesDrop.Enabled := chkExportDatabasesCreate.Enabled;
@@ -1074,27 +1110,27 @@ var
   SaveDialog: TSaveDialog;
   Browse: TBrowseForFolder;
 begin
-  case comboExportOutputType.ItemIndex of
-    0: begin
-      // Select filename
-      SaveDialog := TSaveDialog.Create(Self);
-      SaveDialog.DefaultExt := 'sql';
-      SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
-      SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
-      if SaveDialog.Execute then
-        comboExportOutputTarget.Text := SaveDialog.FileName;
-      SaveDialog.Free;
-    end;
-    1: begin
-      Browse := TBrowseForFolder.Create(Self);
-      Browse.Folder := comboExportOutputTarget.Text;
-      Browse.DialogCaption := _('Select output directory');
-      // Enable "Create new folder" button
-      Browse.BrowseOptions := Browse.BrowseOptions - [bifNoNewFolderButton] + [bifNewDialogStyle];
-      if Browse.Execute then
-        comboExportOutputTarget.Text := Browse.Folder;
-      Browse.Free;
-    end;
+  if (comboExportOutputType.Text = OUTPUT_FILE) or (comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED) then begin
+    // Select filename
+    SaveDialog := TSaveDialog.Create(Self);
+    SaveDialog.DefaultExt := 'sql';
+    if comboExportOutputType.Text = OUTPUT_FILE then
+      SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
+    else
+      SaveDialog.Filter := _('ZIP files')+' (*.zip)|*.zip|'+_('All files')+' (*.*)|*.*';
+    SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
+    if SaveDialog.Execute then
+      comboExportOutputTarget.Text := SaveDialog.FileName;
+    SaveDialog.Free;
+  end else if(comboExportOutputType.Text = OUTPUT_DIR) then begin
+    Browse := TBrowseForFolder.Create(Self);
+    Browse.Folder := comboExportOutputTarget.Text;
+    Browse.DialogCaption := _('Select output directory');
+    // Enable "Create new folder" button
+    Browse.BrowseOptions := Browse.BrowseOptions - [bifNoNewFolderButton] + [bifNewDialogStyle];
+    if Browse.Execute then
+      comboExportOutputTarget.Text := Browse.Folder;
+    Browse.Free;
   end;
   ValidateControls(Sender);
 end;
@@ -1154,6 +1190,7 @@ var
   ColumnList: TTableColumnList;
   Column: TTableColumn;
   Quoter: TDBConnection;
+  TargetFileName: String;
 const
   TempDelim = '//';
 
@@ -1179,7 +1216,7 @@ begin
     IntToStr(DBObj.Rows)+' AS '+DBObj.Connection.QuoteIdent('Rows')+', '+
     '0 AS '+DBObj.Connection.QuoteIdent('Duration')
     );
-  ToFile := comboExportOutputType.Text = OUTPUT_FILE;
+  ToFile := (comboExportOutputType.Text = OUTPUT_FILE) or (comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED);
   ToDir := comboExportOutputType.Text = OUTPUT_DIR;
   ToClipboard := comboExportOutputType.Text = OUTPUT_CLIPBOARD;
   ToDb := comboExportOutputType.Text = OUTPUT_DB;
@@ -1205,8 +1242,13 @@ begin
     FHeaderCreated := False;
   end;
   if not Assigned(ExportStream) then begin
-    if ToFile then
-      ExportStream := TFileStream.Create(GetOutputFilename(comboExportOutputTarget.Text, DBObj), fmCreate or fmOpenWrite);
+    if ToFile then begin
+      TargetFileName := GetOutputFilename(comboExportOutputTarget.Text, DBObj);
+      FExportFileName := TargetFileName;
+      if comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED then
+        TargetFileName := ChangeFileExt(TargetFileName, '.sql');
+      ExportStream := TFileStream.Create(TargetFileName, fmCreate or fmOpenWrite);
+    end;
     // ToDir handled above
     if ToClipboard then
       ExportStream := TMemoryStream.Create;
