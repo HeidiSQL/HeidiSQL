@@ -8,7 +8,7 @@ uses
   Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, Mask, DateUtils, Math,
   dbconnection, mysql_structures, helpers, texteditor, bineditor, gnugettext,
-  StrUtils, ShLwApi;
+  StrUtils;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
@@ -1045,9 +1045,6 @@ begin
   FEdit.ParentColor := True;
   FEdit.BorderStyle := bsNone;
   FEdit.OnKeyDown := DoKeyDown;
-  // Get Ctrl+Backspace hotkey to work, by enabling autocompletion + autosuggestion
-  // See issue #3168
-  SHAutoComplete(FEdit.Handle, SHACF_AUTOAPPEND_FORCE_OFF or SHACF_AUTOSUGGEST_FORCE_OFF);
   FMainControl := FEdit;
 
   FButton := TButton.Create(FPanel);
