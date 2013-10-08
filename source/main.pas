@@ -3889,8 +3889,7 @@ begin
     end;
   end;
   if CanSave = mrYes then begin
-    OnlySelection := (Sender = actSaveSQLselection) or (Sender = actSaveSQLSelectionSnippet)
-      or (Sender = actSaveSQLSnippet) or (Sender = actSaveSQLSelectionSnippet);
+    OnlySelection := (Sender = actSaveSQLselection) or (Sender = actSaveSQLSelectionSnippet);
     ActiveQueryTab.SaveContents(SaveDialog.FileName, OnlySelection);
     for i:=0 to QueryTabs.Count-1 do begin
       if QueryTabs[i] = ActiveQueryTab then
