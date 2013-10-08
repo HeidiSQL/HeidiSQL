@@ -5269,6 +5269,9 @@ begin
   if not CanExecute then
     Exit;
 
+  // Work around for issue #2640. See ApplicationDeActivate
+  Proposal.Form.Enabled := True;
+
   rx := TRegExpr.Create;
 
   // Find token1.token2.token3, while cursor is somewhere in token3
@@ -11214,6 +11217,7 @@ begin
   // and issue #3342
   // Does not work for some reason in TApplicationEvents.OnDeactivate
   SynCompletionProposal.Form.Enabled := False;
+  // Gets activated again in SynCompletionProposalExecute
 end;
 
 
