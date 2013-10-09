@@ -3283,6 +3283,8 @@ var
   Key: TTableKey;
   ForeignKey: TForeignKey;
   Collations: TDBQuery;
+const
+  QuoteReplacement = '{{}}';
 begin
   Ping(True);
   if Assigned(Columns) then Columns.Clear;
@@ -3298,6 +3300,7 @@ begin
   rx.Expression := '^\s+['+Quotes+']([^'+Quotes+']+)['+Quotes+']\s(\w+)';
   rxCol := TRegExpr.Create;
   rxCol.ModifierI := True;
+  CreateTable := StringReplace(CreateTable, FQuoteChar+FQuoteChar, QuoteReplacement, [rfReplaceAll]);
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(Columns) then
       break;
@@ -3315,6 +3318,7 @@ begin
     Col := TTableColumn.Create(Self);
     Columns.Add(Col);
     Col.Name := DeQuoteIdent(rx.Match[1]);
+    Col.Name := StringReplace(Col.Name, QuoteReplacement, FQuoteChar, [rfReplaceAll]);
     Col.OldName := Col.Name;
     Col.Status := esUntouched;
     Col.LengthCustomized := False;
@@ -3459,6 +3463,7 @@ begin
     Keys.Add(Key);
     Key.Name := rx.Match[4];
     if Key.Name = '' then Key.Name := rx.Match[2]; // PRIMARY
+    Key.Name := StringReplace(Key.Name, QuoteReplacement, FQuoteChar, [rfReplaceAll]);
     Key.OldName := Key.Name;
     Key.IndexType := rx.Match[2];
     Key.OldIndexType := Key.IndexType;
@@ -3474,6 +3479,7 @@ begin
         Key.Columns[i] := rxCol.Match[1];
         Key.SubParts.Add(rxCol.Match[3]);
       end;
+      Key.Columns[i] := StringReplace(Key.Columns[i], QuoteReplacement, FQuoteChar, [rfReplaceAll]);
     end;
     if not rx.ExecNext then
       break;
@@ -3488,12 +3494,14 @@ begin
     ForeignKey := TForeignKey.Create(Self);
     ForeignKeys.Add(ForeignKey);
     ForeignKey.KeyName := rx.Match[1];
+    ForeignKey.KeyName := StringReplace(ForeignKey.KeyName, QuoteReplacement, FQuoteChar, [rfReplaceAll]);
     ForeignKey.OldKeyName := ForeignKey.KeyName;
     ForeignKey.KeyNameWasCustomized := True;
     ForeignKey.ReferenceTable := StringReplace(rx.Match[3], '`', '', [rfReplaceAll]);
     ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, '"', '', [rfReplaceAll]);
     ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, '[', '', [rfReplaceAll]);
     ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, ']', '', [rfReplaceAll]);
+    ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, QuoteReplacement, FQuoteChar, [rfReplaceAll]);
     ExplodeQuotedList(rx.Match[2], ForeignKey.Columns);
     ExplodeQuotedList(rx.Match[4], ForeignKey.ForeignColumns);
     if rx.Match[6] <> '' then
