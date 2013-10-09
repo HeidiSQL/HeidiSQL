@@ -668,7 +668,8 @@ begin
     if comboExportOutputType.Text = OUTPUT_CLIPBOARD then
       StreamToClipboard(ExportStream, nil, false);
 
-    FileName := TFileStream(ExportStream).FileName;
+    if comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED then
+      FileName := TFileStream(ExportStream).FileName;
     FreeAndNil(ExportStream);
 
     if comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED then begin
