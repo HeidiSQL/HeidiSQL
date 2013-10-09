@@ -3714,6 +3714,9 @@ end;
 
 
 function TDBConnection.ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Cardinal): String;
+var
+  rx: TRegExpr;
+  OrderClause: String;
 begin
   QueryType := UpperCase(QueryType);
   Result := QueryType + ' ';
@@ -3723,9 +3726,30 @@ begin
         // TOP(x) clause for UPDATES + DELETES introduced in MSSQL 2005
         if ServerVersionInt >= 900 then
           Result := Result + 'TOP('+IntToStr(Limit)+') ';
-      end else if QueryType = 'SELECT' then
-        Result := Result + 'TOP '+IntToStr(Limit)+' ';
-      Result := Result + QueryBody;
+        Result := Result + QueryBody;
+      end else if QueryType = 'SELECT' then begin
+        // EXCEPT operator introduced in MSSQL 2005
+        if ServerVersionInt >= 900 then begin
+          // EXCEPT accepts only one ORDER BY clause at the very end
+          rx := TRegExpr.Create;
+          rx.ModifierI := True;
+          rx.Expression := '\sORDER BY .+$';
+          OrderClause := '';
+          if rx.Exec(QueryBody) then begin
+            OrderClause := rx.Match[0];
+            log(lcinfo,orderclause);
+            Delete(QueryBody, rx.MatchPos[0], rx.MatchLen[0]);
+          end;
+          rx.Free;
+          Result := Result + 'TOP ' + IntToStr(Limit+Offset) + ' ' + QueryBody;
+          if Offset > 0 then
+            Result := Result + ' EXCEPT ' + ApplyLimitClause(QueryType, QueryBody, Offset, 0);
+          if OrderClause <> '' then
+            Result := Result + OrderClause;
+        end else begin
+          Result := Result + 'TOP ' + IntToStr(Limit) + ' ' + QueryBody;
+        end;
+      end;
     end;
     ngMySQL: begin
       Result := Result + QueryBody + ' LIMIT ';
