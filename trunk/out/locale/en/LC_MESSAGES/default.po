@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-10-07 06:26+0100\n"
+"PO-Revision-Date: 2013-10-10 06:24+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2434,6 +2434,10 @@ msgstr "Quick Filter"
 #: main.dfm:8883
 msgid "More values ..."
 msgstr "More values ..."
+
+#. Quick filters - more values
+msgid "Table too large (>%s), avoiding long running SELECT query"
+msgstr "Table too large (>%s), avoiding long running SELECT query"
 
 #. MainForm..popupSqlLog..Copylinetonewquerytab1..Caption
 #: main.dfm:9000
