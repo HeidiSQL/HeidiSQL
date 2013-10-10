@@ -4631,9 +4631,12 @@ begin
       tbtnDataSorting.ImageIndex := 107;
 
     // Append LIMIT clause
-    if RefreshingData and (vt.Tag <> VTREE_NOTLOADED_PURGECACHE) then
-      Offset := DataGridResult.RecordCount
-    else
+    if RefreshingData and (vt.Tag <> VTREE_NOTLOADED_PURGECACHE) then begin
+      case DBObj.Connection.Parameters.NetTypeGroup of
+        ngMSSQL: Offset := 0; // Does not support offset in all server versions
+        ngMySQL: Offset := DataGridResult.RecordCount;
+      end;
+    end else
       Offset := 0;
     Select := DBObj.Connection.ApplyLimitClause('SELECT', Select, DatagridWantedRowCount-Offset, Offset);
 
