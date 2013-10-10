@@ -950,6 +950,7 @@ type
     FDBObjectsMaxSize: Int64;
     FDBObjectsMaxRows: Int64;
     FSearchReplaceDialog: TfrmSearchReplace;
+    FPreferencesDialog: Toptionsform;
     FGridEditFunctionMode: Boolean;
     FClipboardHasNull: Boolean;
     FTimeZoneOffset: Integer;
@@ -1955,12 +1956,10 @@ begin
 end;
 
 procedure TMainForm.actPreferencesExecute(Sender: TObject);
-var
-  Dialog: Toptionsform;
 begin
   // Preferences
-  Dialog := Toptionsform.Create(Self);
-  Dialog.ShowModal;
+  FPreferencesDialog := Toptionsform.Create(Self);
+  FPreferencesDialog.ShowModal;
   // Gets freed in Dialog.FormClose
 end;
 
@@ -10277,6 +10276,8 @@ begin
   Editors.Add(SynMemoSQLLog);
   if Assigned(ActiveObjectEditor) then
     FindEditors(ActiveObjectEditor);
+  if FPreferencesDialog <> nil then
+    Editors.Add(FPreferencesDialog.SynMemoSQLSample);
 
   if AppSettings.ReadBool(asTabsToSpaces) then
     BaseEditor.Options := BaseEditor.Options + [eoTabsToSpaces]
