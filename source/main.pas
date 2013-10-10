@@ -6122,10 +6122,14 @@ end;
 procedure TMainForm.QFvaluesClick(Sender: TObject);
 var
   Data: TDBQuery;
+  DbObj: TDBObject;
   Conn: TDBConnection;
   Col: String;
+  TableCol: TTableColumn;
   Item: TMenuItem;
   i: Integer;
+  MaxSize: Int64;
+  ValueList: TStringList;
 begin
   // Create a list of distinct column values in selected table
   for i:=QFvalues.Count-1 downto 1 do
@@ -6137,20 +6141,45 @@ begin
     Exit;
   Col := DataGridResult.ColumnOrgNames[DataGrid.FocusedColumn];
   ShowStatusMsg(_('Fetching distinct values ...'));
-  Conn := ActiveConnection;
-  Data := Conn.GetResults('SELECT '+Conn.QuoteIdent(Col)+', COUNT(*) AS c FROM '+ActiveDbObj.QuotedName+
-    ' GROUP BY '+Conn.QuoteIdent(Col)+' ORDER BY c DESC, '+Conn.QuoteIdent(Col)+' LIMIT 30');
-  for i:=0 to Data.RecordCount-1 do begin
-    if QFvalues.Count > i then
-      Item := QFvalues[i]
-    else begin
-      Item := TMenuItem.Create(QFvalues);
-      QFvalues.Add(Item);
+  DbObj := ActiveDbObj;
+  Conn := DbObj.Connection;
+  MaxSize := SIZE_GB;
+  if DbObj.Size < MaxSize then begin
+    Data := Conn.GetResults('SELECT '+Conn.QuoteIdent(Col)+', COUNT(*) AS c FROM '+DbObj.QuotedName+
+      ' GROUP BY '+Conn.QuoteIdent(Col)+' ORDER BY c DESC, '+Conn.QuoteIdent(Col)+' LIMIT 30');
+    for i:=0 to Data.RecordCount-1 do begin
+      if QFvalues.Count > i then
+        Item := QFvalues[i]
+      else begin
+        Item := TMenuItem.Create(QFvalues);
+        QFvalues.Add(Item);
+      end;
+      Item.Hint := Conn.QuoteIdent(Col)+'='+esc(Data.Col(Col));
+      Item.Caption := sstr(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
+      Item.OnClick := QuickFilterClick;
+      Data.Next;
     end;
-    Item.Hint := Conn.QuoteIdent(Col)+'='+esc(Data.Col(Col));
-    Item.Caption := sstr(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
-    Item.OnClick := QuickFilterClick;
-    Data.Next;
+  end else begin
+    // Table is too large for the above SELECT query.
+    // Get ENUM/SET values instead if possible
+    QFvalues[0].Caption := f_('Table too large (>%s), avoiding long running SELECT query', [FormatByteNumber(MaxSize)]);
+    for TableCol in SelectedTableColumns do begin
+      if (TableCol.Name = Col) and (TableCol.DataType.Index in [dtEnum, dtSet]) then begin
+        ValueList := TableCol.ValueList;
+        for i:=0 to ValueList.Count-1 do begin
+          if QFvalues.Count > i then
+            Item := QFvalues[i]
+          else begin
+            Item := TMenuItem.Create(QFvalues);
+            QFvalues.Add(Item);
+          end;
+          Item.Hint := Conn.QuoteIdent(Col)+'='+esc(ValueList[i]);
+          Item.Caption := sstr(Item.Hint, 100);
+          Item.OnClick := QuickFilterClick;
+        end;
+        Break;
+      end;
+    end;
   end;
   ShowStatusMsg;
 end;
