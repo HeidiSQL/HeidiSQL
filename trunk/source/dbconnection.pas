@@ -1223,7 +1223,8 @@ begin
             _('On Wine, you can try to install MDAC:')+CRLF+
             '> wget http://winetricks.org/winetricks'+CRLF+
             '> chmod +x winetricks'+CRLF+
-            '> sh winetricks mdac28');
+            '> sh winetricks mdac28'+CRLF+
+            '> sh winetricks native_mdac');
     end;
     NetLib := '';
     case Parameters.NetType of
