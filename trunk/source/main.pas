@@ -4881,6 +4881,7 @@ var
   Msg: String;
   vt: TVirtualStringTree;
   Conn: TDBConnection;
+  ScrollOffset: TPoint;
 begin
   // DB-Properties
   vt := Sender as TVirtualStringTree;
@@ -4889,6 +4890,7 @@ begin
   LogSQL('ListTablesBeforePaint', lcDebug);
   Screen.Cursor := crHourGlass;
   Conn := ActiveConnection;
+  ScrollOffset := vt.OffsetXY;
   vt.BeginUpdate;
   vt.Clear;
   Msg := '';
@@ -4928,6 +4930,7 @@ begin
       Msg := Msg + ')';
     end;
   end;
+  vt.OffsetXY := ScrollOffset;
   vt.EndUpdate;
   vt.Tag := VTREE_LOADED;
   ShowStatusMsg(Msg, 0);
