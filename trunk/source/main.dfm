@@ -821,7 +821,7 @@ object MainForm: TMainForm
         object btnTreeFavorites: TToolButton
           Left = 100
           Top = 0
-          Action = actTreeFavorites
+          Action = actFavoriteObjectsOnly
         end
       end
     end
@@ -2913,13 +2913,13 @@ object MainForm: TMainForm
       Enabled = False
       OnExecute = actUnixTimestampColumnExecute
     end
-    object actTreeFavorites: TAction
+    object actFavoriteObjectsOnly: TAction
       Category = 'Various'
       AutoCheck = True
-      Caption = 'actTreeFavorites'
+      Caption = 'actFavoriteObjectsOnly'
       Hint = 'Hide non-favorite marked tree items'
       ImageIndex = 112
-      OnExecute = editDatabaseTableFilterChange
+      OnExecute = actFavoriteObjectsOnlyExecute
     end
   end
   object menuConnections: TPopupMenu
