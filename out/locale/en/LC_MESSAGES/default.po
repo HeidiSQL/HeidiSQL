@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-10-13 07:30+0100\n"
+"PO-Revision-Date: 2013-10-13 21:22+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -1183,8 +1183,8 @@ msgid "Table filter|Can contain regular expressions, e.g. \"phpbb_\\d\""
 msgstr "Table filter|Can contain regular expressions, e.g. \"phpbb_\\d\""
 
 #. Tree favorites button
-msgid "Hide non-favorite marked tree items"
-msgstr "Hide non-favorite marked tree items"
+msgid "Show only favorite tree items"
+msgstr "Show only favorite tree items"
 
 #. MainForm..panelTop..pnlLeft..DBtree......WideText
 #. MainForm..panelTop..pnlRight..PageControlMain..tabDatabase..ListTables......WideText
