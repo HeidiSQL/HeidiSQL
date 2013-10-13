@@ -176,7 +176,7 @@ type
     asActionShortcut1, asActionShortcut2, asHighlighterForeground, asHighlighterBackground, asHighlighterStyle,
     asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
     asRecentFilter, asTimestampColumns, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asForeignDropDown, asQueryHistoryEnabled,
-    asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail,
+    asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail, asFavoriteObjects,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -3373,6 +3373,7 @@ begin
   InitSetting(asColumnSelectorWidth,              'ColumnSelectorWidth',                   200, False, '');
   InitSetting(asColumnSelectorHeight,             'ColumnSelectorHeight',                  270, False, '');
   InitSetting(asDonatedEmail,                     'DonatedEmail',                          0, False, '');
+  InitSetting(asFavoriteObjects,                  'FavoriteObjects',                       0, False, '', True);
 end;
 
 

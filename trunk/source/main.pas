@@ -561,9 +561,6 @@ type
     Explainanalyzerforcurrentquery1: TMenuItem;
     menuAutoExpand: TMenuItem;
     menuTreeOptions: TMenuItem;
-    pnlTreeFilter: TPanel;
-    editTableFilter: TButtonedEdit;
-    editDatabaseFilter: TButtonedEdit;
     menuClearDataTabFilter: TMenuItem;
     actUnixTimestampColumn: TAction;
     actTimestampColumn1: TMenuItem;
@@ -572,6 +569,11 @@ type
     Save1: TMenuItem;
     Saveassnippet1: TMenuItem;
     imgDonate: TImage;
+    ToolBarTree: TToolBar;
+    editDatabaseFilter: TButtonedEdit;
+    editTableFilter: TButtonedEdit;
+    btnTreeFavorites: TToolButton;
+    actTreeFavorites: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -909,6 +911,11 @@ type
     procedure imgDonateClick(Sender: TObject);
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure ApplicationDeActivate(Sender: TObject);
+    procedure DBtreeAfterCellPaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellRect: TRect);
+    procedure DBtreeNodeClick(Sender: TBaseVirtualTree;
+      const HitInfo: THitInfo);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -2827,11 +2834,15 @@ end;
 
 
 procedure TMainForm.pnlLeftResize(Sender: TObject);
+var
+ WidthAvail: Integer;
 begin
+  WidthAvail := editDatabaseFilter.Parent.Width - btnTreeFavorites.Width;
   editDatabaseFilter.Left := 0;
-  editDatabaseFilter.Width := (editDatabaseFilter.Parent.Width div 2) - 1;
+  editDatabaseFilter.Width := (WidthAvail div 2) - 1;
   editTableFilter.Width := editDatabaseFilter.Width;
-  editTableFilter.Left := editDatabaseFilter.Width + 2;
+  editTableFilter.Left := editDatabaseFilter.Width + 1;
+  btnTreeFavorites.Left := editTableFilter.Left + editTableFilter.Width + 1;
   spltPreview.OnMoved(Sender);
 end;
 
@@ -7797,8 +7808,7 @@ procedure TMainForm.DBtreeExpanded(Sender: TBaseVirtualTree;
 begin
   // Table and database filter both need initialized children
   Sender.ReinitChildren(Node, False);
-  if edittablefilter.Text <> '' then
-    editTableFilter.OnChange(editTableFilter);
+  editDatabaseTableFilterChange(Self);
 end;
 
 
@@ -9687,51 +9697,72 @@ end;
 
 procedure TMainForm.editDatabaseTableFilterChange(Sender: TObject);
 var
-  Edit: TButtonedEdit;
   Node: PVirtualNode;
   Obj: PDBObject;
-  rx: TRegExpr;
-  FilterError, NodeMatches: Boolean;
-  VisibleCount: Cardinal;
+  rxdb, rxtable: TRegExpr;
+  NodeMatches: Boolean;
+  Errors, Favorites: TStringList;
 begin
   // Immediately apply database filter
   LogSQL('editDatabaseTableFilterChange', lcDebug);
-  Edit := Sender as TButtonedEdit;
-  rx := TRegExpr.Create;
-  rx.ModifierI := True;
-  rx.Expression := '('+StringReplace(Edit.Text, ';', '|', [rfReplaceAll])+')';
-  VisibleCount := 0;
-  FilterError := False;
+
+  rxdb := TRegExpr.Create;
+  rxdb.ModifierI := True;
+  rxdb.Expression := '('+StringReplace(editDatabaseFilter.Text, ';', '|', [rfReplaceAll])+')';
+  rxtable := TRegExpr.Create;
+  rxtable.ModifierI := True;
+  rxtable.Expression := '('+StringReplace(editTableFilter.Text, ';', '|', [rfReplaceAll])+')';
+
+  Errors := TStringList.Create;
+  Favorites := nil;
 
   DBtree.BeginUpdate;
   Node := DBtree.GetFirst;
   while Assigned(Node) do begin
     Obj := DBtree.GetNodeData(Node);
-    if ((Edit = editDatabaseFilter) and (Obj.NodeType = lntDb))
-      or
-      ((Edit = editTableFilter) and (Obj.NodeType in [lntTable..lntEvent]))
-      then begin
-        try
-          NodeMatches := rx.Exec(DBtree.Text[Node, 0]);
-        except
-          FilterError := True;
-          NodeMatches := True;
+    NodeMatches := True;
+    try
+      case Obj.NodeType of
+        lntNone: begin
+          // Get favorite paths from session settings
+          if Favorites <> nil then
+            Favorites.Free;
+          AppSettings.SessionPath := FConnections[Node.Index].Parameters.SessionPath;
+          Favorites := Explode(CRLF, AppSettings.ReadString(asFavoriteObjects));
         end;
-        DBtree.IsVisible[Node] := NodeMatches;
-        if NodeMatches then
-          Inc(VisibleCount);
+        lntDb: begin
+          // Match against database filter
+          if editDatabaseFilter.Text <> '' then
+            NodeMatches := rxdb.Exec(DBtree.Text[Node, 0]);
+        end;
+        lntTable..lntEvent: begin
+          // Match against table filter
+          if editTableFilter.Text <> '' then
+            NodeMatches := rxtable.Exec(DBtree.Text[Node, 0]);
+          if actTreeFavorites.Checked then
+            // Hide non-favorite object path
+            NodeMatches := NodeMatches and (Favorites.IndexOf(Obj.Path) > -1);
+        end;
+      end;
+    except
+      on E:Exception do begin
+        // Log regex errors, but avoid duplicate messages
+        if Errors.IndexOf(E.Message) = -1 then begin
+          LogSQL(E.Message);
+          Errors.Add(E.Message);
+        end;
+      end;
     end;
+    DBtree.IsVisible[Node] := NodeMatches;
+
     Node := DBtree.GetNextInitialized(Node);
   end;
   DBtree.EndUpdate;
 
-  rx.Free;
-  if VisibleCount = 0 then
-    FilterError := True;
-  if FilterError then
-    Edit.Color := clWebPink
-  else
-    Edit.Color := clWindow;
+  rxdb.Free;
+  rxtable.Free;
+  if Favorites <> nil then
+    Favorites.Free;
 end;
 
 
@@ -10463,6 +10494,63 @@ begin
   end;
   ActiveQueryMemo.UndoList.AddGroupBreak;
   ActiveQueryMemo.SelText := sql;
+end;
+
+
+procedure TMainForm.DBtreeAfterCellPaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellRect: TRect);
+var
+  Obj: PDBObject;
+  Favorites: TStringList;
+begin
+  // Paint favorite icon on table node
+  if Column <> 0 then
+    Exit;
+  Obj := Sender.GetNodeData(Node);
+  if Obj.NodeType in [lntTable..lntEvent] then begin
+    AppSettings.SessionPath := Obj.Connection.Parameters.SessionPath;
+    Favorites := Explode(CRLF, AppSettings.ReadString(asFavoriteObjects));
+    if Favorites.IndexOf(Obj.Path) > -1 then
+      ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 168)
+    else if Node = Sender.HotNode then
+      ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 183);
+    Favorites.Free;
+  end;
+end;
+
+
+procedure TMainForm.DBtreeNodeClick(Sender: TBaseVirtualTree; const HitInfo: THitInfo);
+var
+  Obj: PDBObject;
+  Favorites: TStringList;
+  idx: Integer;
+begin
+  // Watch out for clicks on favorite icon
+  // Add or remove object path from favorite list on click
+  if (HitInfo.HitColumn <> 0)
+    or (not Assigned(HitInfo.HitNode))
+    then Exit;
+  if
+    (not (hiOnItem in HitInfo.HitPositions))
+    or (hiOnItemLabel in HitInfo.HitPositions)
+    or (hiOnItemRight in HitInfo.HitPositions)
+    or (hiOnNormalIcon in HitInfo.HitPositions)
+    then Exit;
+
+  Obj := Sender.GetNodeData(HitInfo.HitNode);
+  if Obj.NodeType in [lntTable..lntEvent] then begin
+    AppSettings.SessionPath := Obj.Connection.Parameters.SessionPath;
+    Favorites := TStringList.Create;
+    Favorites.Text := AppSettings.ReadString(asFavoriteObjects);
+    idx := Favorites.IndexOf(Obj.Path);
+    if idx > -1 then
+      Favorites.Delete(idx)
+    else
+      Favorites.Add(Obj.Path);
+    AppSettings.WriteString(asFavoriteObjects, Favorites.Text);
+    Favorites.Free;
+  end;
 end;
 
 
