@@ -820,6 +820,7 @@ object optionsform: Toptionsform
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
         Anchors = [akTop, akRight]
         TabOrder = 13
+        OnChange = Modified
       end
       object cboxRowBackgroundEven: TColorBox
         Left = 314
@@ -829,6 +830,7 @@ object optionsform: Toptionsform
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
         Anchors = [akTop, akRight]
         TabOrder = 12
+        OnChange = Modified
       end
       object chkLocalNumberFormat: TCheckBox
         Left = 8
