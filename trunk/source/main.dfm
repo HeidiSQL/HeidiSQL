@@ -2917,7 +2917,7 @@ object MainForm: TMainForm
       Category = 'Various'
       AutoCheck = True
       Caption = 'actFavoriteObjectsOnly'
-      Hint = 'Hide non-favorite marked tree items'
+      Hint = 'Show only favorite tree items'
       ImageIndex = 112
       OnExecute = actFavoriteObjectsOnlyExecute
     end
