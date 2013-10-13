@@ -10308,9 +10308,9 @@ begin
   Editors.Add(SynMemoFilter);
   Editors.Add(SynMemoProcessView);
   Editors.Add(SynMemoSQLLog);
-  if Assigned(ActiveObjectEditor) then
+  if Assigned(ActiveObjectEditor) and (ActiveObjectEditor <> nil) then
     FindEditors(ActiveObjectEditor);
-  if FPreferencesDialog <> nil then
+  if Assigned(FPreferencesDialog) and (FPreferencesDialog <> nil) then
     Editors.Add(FPreferencesDialog.SynMemoSQLSample);
 
   if AppSettings.ReadBool(asTabsToSpaces) then
