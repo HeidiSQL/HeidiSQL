@@ -25,6 +25,7 @@ type
       function GetObjType: String;
       function GetImageIndex: Integer;
       function GetOverlayImageIndex: Integer;
+      function GetPath: String;
       function GetCreateCode: String;
       procedure SetCreateCode(Value: String);
     public
@@ -47,6 +48,7 @@ type
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
       property OverlayImageIndex: Integer read GetOverlayImageIndex;
+      property Path: String read GetPath;
       property CreateCode: String read GetCreateCode write SetCreateCode;
       property WasSelected: Boolean read FWasSelected write FWasSelected;
       property Connection: TDBConnection read FConnection;
@@ -5202,6 +5204,12 @@ begin
     end;
 
   end;
+end;
+
+
+function TDBObject.GetPath: String;
+begin
+  Result := Database + DELIM + Schema + DELIM + Name;
 end;
 
 
