@@ -573,7 +573,7 @@ type
     editDatabaseFilter: TButtonedEdit;
     editTableFilter: TButtonedEdit;
     btnTreeFavorites: TToolButton;
-    actTreeFavorites: TAction;
+    actFavoriteObjectsOnly: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -916,6 +916,7 @@ type
       CellRect: TRect);
     procedure DBtreeNodeClick(Sender: TBaseVirtualTree;
       const HitInfo: THitInfo);
+    procedure actFavoriteObjectsOnlyExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1610,6 +1611,8 @@ begin
   LogToFile := AppSettings.ReadBool(asLogToFile);
   if AppSettings.ReadBool(asLogHorizontalScrollbar) then
     actLogHorizontalScrollbar.Execute;
+  if AppSettings.ReadBool(asFavoriteObjectsOnly) then
+    actFavoriteObjectsOnly.Execute;
 
   // Data-Font:
   DataGrid.Font.Name := AppSettings.ReadString(asDataFontName);
@@ -9695,6 +9698,15 @@ begin
 end;
 
 
+procedure TMainForm.actFavoriteObjectsOnlyExecute(Sender: TObject);
+begin
+  // Click on "tree favorites" main button
+  AppSettings.ResetPath;
+  AppSettings.WriteBool(asFavoriteObjectsOnly, (Sender as TAction).Checked);
+  editDatabaseTableFilterChange(Sender);
+end;
+
+
 procedure TMainForm.editDatabaseTableFilterChange(Sender: TObject);
 var
   Node: PVirtualNode;
@@ -9739,7 +9751,7 @@ begin
           // Match against table filter
           if editTableFilter.Text <> '' then
             NodeMatches := rxtable.Exec(DBtree.Text[Node, 0]);
-          if actTreeFavorites.Checked then
+          if actFavoriteObjectsOnly.Checked then
             // Hide non-favorite object path
             NodeMatches := NodeMatches and (Favorites.IndexOf(Obj.Path) > -1);
         end;
