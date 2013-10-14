@@ -286,6 +286,7 @@ type
       FThreadID: Cardinal;
       FSQLSpecifities: Array[TSQLSpecifityId] of String;
       FKeepAliveTimer: TTimer;
+      FFavorites: TStringList;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -380,6 +381,7 @@ type
       property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
       property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
       property Datatypes: TDBDataTypeArray read FDatatypes;
+      property Favorites: TStringList read FFavorites;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -922,6 +924,7 @@ begin
   FKeepAliveTimer := TTimer.Create(Self);
   FKeepAliveTimer.Interval := 20000;
   FKeepAliveTimer.OnTimer := KeepAliveTimerEvent;
+  FFavorites := TStringList.Create;
 end;
 
 
@@ -959,6 +962,7 @@ begin
   FOnDBObjectsCleared := nil;
   ClearCache(True);
   FKeepAliveTimer.Free;
+  FFavorites.Free;
   inherited;
 end;
 
