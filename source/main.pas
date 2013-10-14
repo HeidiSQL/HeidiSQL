@@ -914,9 +914,9 @@ type
     procedure DBtreeAfterCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
-    procedure DBtreeNodeClick(Sender: TBaseVirtualTree;
-      const HitInfo: THitInfo);
     procedure actFavoriteObjectsOnlyExecute(Sender: TObject);
+    procedure DBtreeMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -10519,32 +10519,28 @@ begin
 end;
 
 
-procedure TMainForm.DBtreeNodeClick(Sender: TBaseVirtualTree; const HitInfo: THitInfo);
+procedure TMainForm.DBtreeMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
 var
   Obj: PDBObject;
+  Node: PVirtualNode;
   idx: Integer;
 begin
   // Watch out for clicks on favorite icon
   // Add or remove object path from favorite list on click
-  if (HitInfo.HitColumn <> 0)
-    or (not Assigned(HitInfo.HitNode))
-    then Exit;
-  if
-    (not (hiOnItem in HitInfo.HitPositions))
-    or (hiOnItemLabel in HitInfo.HitPositions)
-    or (hiOnItemRight in HitInfo.HitPositions)
-    or (hiOnNormalIcon in HitInfo.HitPositions)
-    then Exit;
-
-  Obj := Sender.GetNodeData(HitInfo.HitNode);
-  if Obj.NodeType in [lntTable..lntEvent] then begin
-    idx := Obj.Connection.Favorites.IndexOf(Obj.Path);
-    if idx > -1 then
-      Obj.Connection.Favorites.Delete(idx)
-    else
-      Obj.Connection.Favorites.Add(Obj.Path);
-    AppSettings.SessionPath := Obj.Connection.Parameters.SessionPath;
-    AppSettings.WriteString(asFavoriteObjects, Obj.Connection.Favorites.Text);
+  Node := DBtree.GetNodeAt(X, Y);
+  if (Button = mbLeft) and (X < ImageListMain.Width) and Assigned(Node) then begin
+    Obj := DBtree.GetNodeData(Node);
+    if Obj.NodeType in [lntTable..lntEvent] then begin
+      idx := Obj.Connection.Favorites.IndexOf(Obj.Path);
+      if idx > -1 then
+        Obj.Connection.Favorites.Delete(idx)
+      else
+        Obj.Connection.Favorites.Add(Obj.Path);
+      DBtree.RepaintNode(Node);
+      AppSettings.SessionPath := Obj.Connection.Parameters.SessionPath;
+      AppSettings.WriteString(asFavoriteObjects, Obj.Connection.Favorites.Text);
+    end;
   end;
 end;
 
