@@ -3455,11 +3455,12 @@ begin
         );
     end;
 
-    // Tree node filtering needs a hit in special cases, e.g. after a db was dropped
-    if editDatabaseFilter.Text <> '' then
-      editDatabaseFilter.OnChange(editDatabaseFilter);
-    if editTableFilter.Text <> '' then
-      editTableFilter.OnChange(editTableFilter);
+    // Apply favorite object paths
+    AppSettings.SessionPath := Params.SessionPath;
+    Connection.Favorites.Text := AppSettings.ReadString(asFavoriteObjects);
+
+    // Tree node filtering needs a hit once when connected
+    editDatabaseTableFilterChange(Self);
 
   end;
   StoreLastSessions;
@@ -9713,7 +9714,7 @@ var
   Obj: PDBObject;
   rxdb, rxtable: TRegExpr;
   NodeMatches: Boolean;
-  Errors, Favorites: TStringList;
+  Errors: TStringList;
 begin
   // Immediately apply database filter
   LogSQL('editDatabaseTableFilterChange', lcDebug);
@@ -9726,7 +9727,6 @@ begin
   rxtable.Expression := '('+StringReplace(editTableFilter.Text, ';', '|', [rfReplaceAll])+')';
 
   Errors := TStringList.Create;
-  Favorites := nil;
 
   DBtree.BeginUpdate;
   Node := DBtree.GetFirst;
@@ -9735,13 +9735,6 @@ begin
     NodeMatches := True;
     try
       case Obj.NodeType of
-        lntNone: begin
-          // Get favorite paths from session settings
-          if Favorites <> nil then
-            Favorites.Free;
-          AppSettings.SessionPath := FConnections[Node.Index].Parameters.SessionPath;
-          Favorites := Explode(CRLF, AppSettings.ReadString(asFavoriteObjects));
-        end;
         lntDb: begin
           // Match against database filter
           if editDatabaseFilter.Text <> '' then
@@ -9753,7 +9746,7 @@ begin
             NodeMatches := rxtable.Exec(DBtree.Text[Node, 0]);
           if actFavoriteObjectsOnly.Checked then
             // Hide non-favorite object path
-            NodeMatches := NodeMatches and (Favorites.IndexOf(Obj.Path) > -1);
+            NodeMatches := NodeMatches and (Obj.Connection.Favorites.IndexOf(Obj.Path) > -1);
         end;
       end;
     except
@@ -9773,8 +9766,6 @@ begin
 
   rxdb.Free;
   rxtable.Free;
-  if Favorites <> nil then
-    Favorites.Free;
 end;
 
 
@@ -10514,20 +10505,16 @@ procedure TMainForm.DBtreeAfterCellPaint(Sender: TBaseVirtualTree;
   CellRect: TRect);
 var
   Obj: PDBObject;
-  Favorites: TStringList;
 begin
   // Paint favorite icon on table node
   if Column <> 0 then
     Exit;
   Obj := Sender.GetNodeData(Node);
   if Obj.NodeType in [lntTable..lntEvent] then begin
-    AppSettings.SessionPath := Obj.Connection.Parameters.SessionPath;
-    Favorites := Explode(CRLF, AppSettings.ReadString(asFavoriteObjects));
-    if Favorites.IndexOf(Obj.Path) > -1 then
+    if Obj.Connection.Favorites.IndexOf(Obj.Path) > -1 then
       ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 168)
     else if Node = Sender.HotNode then
       ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 183);
-    Favorites.Free;
   end;
 end;
 
@@ -10535,7 +10522,6 @@ end;
 procedure TMainForm.DBtreeNodeClick(Sender: TBaseVirtualTree; const HitInfo: THitInfo);
 var
   Obj: PDBObject;
-  Favorites: TStringList;
   idx: Integer;
 begin
   // Watch out for clicks on favorite icon
@@ -10552,16 +10538,13 @@ begin
 
   Obj := Sender.GetNodeData(HitInfo.HitNode);
   if Obj.NodeType in [lntTable..lntEvent] then begin
-    AppSettings.SessionPath := Obj.Connection.Parameters.SessionPath;
-    Favorites := TStringList.Create;
-    Favorites.Text := AppSettings.ReadString(asFavoriteObjects);
-    idx := Favorites.IndexOf(Obj.Path);
+    idx := Obj.Connection.Favorites.IndexOf(Obj.Path);
     if idx > -1 then
-      Favorites.Delete(idx)
+      Obj.Connection.Favorites.Delete(idx)
     else
-      Favorites.Add(Obj.Path);
-    AppSettings.WriteString(asFavoriteObjects, Favorites.Text);
-    Favorites.Free;
+      Obj.Connection.Favorites.Add(Obj.Path);
+    AppSettings.SessionPath := Obj.Connection.Parameters.SessionPath;
+    AppSettings.WriteString(asFavoriteObjects, Obj.Connection.Favorites.Text);
   end;
 end;
 
