@@ -35,6 +35,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Lines.Strings = (
       'SynMemoBody')
     OnChange = Modification
+    FontSmoothing = fsmNone
   end
   object btnHelp: TButton
     Left = 3
@@ -191,6 +192,7 @@ object frmTriggerEditor: TfrmTriggerEditor
           'SynMemoCreateCode')
         ReadOnly = True
         WantTabs = True
+        FontSmoothing = fsmNone
       end
     end
   end
@@ -210,7 +212,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     TitleFont.Style = [fsBold]
     Columns = <
       item
-        BiggestWord = 'CONSTRUCTOR'
+        ColumnWidth = 100
       end>
     Images = MainForm.ImageListMain
     OnExecute = SynCompletionProposalStatementExecute

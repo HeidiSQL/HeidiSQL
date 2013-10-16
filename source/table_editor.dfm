@@ -646,6 +646,7 @@ object frmTableEditor: TfrmTableEditor
           'SynMemoALTERcode')
         Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
         ReadOnly = True
+        FontSmoothing = fsmNone
       end
     end
     object tabALTERCode: TTabSheet
@@ -679,6 +680,7 @@ object frmTableEditor: TfrmTableEditor
           'SynMemoALTERcode')
         Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
         ReadOnly = True
+        FontSmoothing = fsmNone
       end
     end
   end

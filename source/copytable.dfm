@@ -135,6 +135,7 @@ object CopyTableForm: TCopyTableForm
     Highlighter = MainForm.SynSQLSyn1
     Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabIndent]
     WantTabs = True
+    FontSmoothing = fsmNone
   end
   object btnRecentFilters: TButton
     Left = 248

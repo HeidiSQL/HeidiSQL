@@ -91,6 +91,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     TabWidth = 3
     WantTabs = True
     OnChange = Modification
+    FontSmoothing = fsmNone
     RemovedKeystrokes = <
       item
         Command = ecDeleteLine
@@ -392,6 +393,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Lines.Strings = (
           'SynMemoCREATEcode')
         ReadOnly = True
+        FontSmoothing = fsmNone
       end
     end
   end

@@ -90,6 +90,7 @@ object frmView: TfrmView
     RightEdge = 0
     WantTabs = True
     OnChange = Modification
+    FontSmoothing = fsmNone
     RemovedKeystrokes = <
       item
         Command = ecDeleteLine

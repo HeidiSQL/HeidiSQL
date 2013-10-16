@@ -46,6 +46,7 @@ object frmEventEditor: TfrmEventEditor
       'SynMemoBody')
     Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
     OnChange = Modification
+    FontSmoothing = fsmNone
   end
   object btnHelp: TButton
     Left = 3
@@ -333,6 +334,7 @@ object frmEventEditor: TfrmEventEditor
           'SynMemoCREATEcode')
         Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
         ReadOnly = True
+        FontSmoothing = fsmNone
       end
     end
     object tabALTERcode: TTabSheet
@@ -366,6 +368,7 @@ object frmEventEditor: TfrmEventEditor
           'SynMemoALTERcode')
         Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
         ReadOnly = True
+        FontSmoothing = fsmNone
       end
     end
   end
