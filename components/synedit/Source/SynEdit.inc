@@ -1,5 +1,3 @@
-{$I Compilers.inc}
-
 (******************************************************************************)
 (* SynEdit Include File.  This file was adapted from Brad Stowers' DFS.INC    *)
 (* file and used with permission.  This will help reduce headaches when new   *)
@@ -126,7 +124,7 @@
 { with other versions of jedi.inc in the search-path.                          }
 {------------------------------------------------------------------------------}
 
-{.$I SynEditJedi.inc}
+{$I SynEditJedi.inc}
 
 {------------------------------------------------------------------------------}
 { SYN_WIN32, SYN_LINUX and SYN_KYLIX defines                                   }
