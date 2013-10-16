@@ -4813,7 +4813,7 @@ begin
   else
     Include(Node.States, vsMultiLine);
   // Node may have data already, if added via InsertRow
-  if not (vsInitialUserData in Node.States) then begin
+  if not (vsOnFreeNodeCallRequired in Node.States) then begin
     Idx := Sender.GetNodeData(Node);
     Idx^ := Node.Index;
   end;
