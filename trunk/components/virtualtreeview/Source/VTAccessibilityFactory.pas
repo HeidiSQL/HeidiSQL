@@ -1,10 +1,5 @@
 unit VTAccessibilityFactory;
 
-//----------------------------------------------------------------------------------------------------------------------
-//
-// Version 4.7.0
-//
-
 // class to create IAccessibles for the tree passed into it.
 // If not already assigned, creates IAccessibles for the tree itself
 // and the focused item
