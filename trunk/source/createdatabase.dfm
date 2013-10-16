@@ -118,5 +118,6 @@ object CreateDatabaseForm: TCreateDatabaseForm
     RightEdge = 0
     ScrollBars = ssNone
     WordWrap = True
+    FontSmoothing = fsmNone
   end
 end

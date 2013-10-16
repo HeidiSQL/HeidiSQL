@@ -618,6 +618,7 @@ object optionsform: Toptionsform
         TabWidth = 2
         WordWrap = True
         OnChange = SQLFontChange
+        FontSmoothing = fsmNone
       end
     end
     object tabDataAppearance: TTabSheet
@@ -1042,6 +1043,9 @@ object optionsform: Toptionsform
     OnClick = btnRestoreDefaultsClick
   end
   object SynSQLSynSQLSample: TSynSQLSyn
+    Options.AutoDetectEnabled = False
+    Options.AutoDetectLineLimit = 0
+    Options.Visible = False
     SQLDialect = sqlMySQL
     Left = 432
     Top = 352

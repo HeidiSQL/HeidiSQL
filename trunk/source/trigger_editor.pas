@@ -69,7 +69,7 @@ begin
   comboEvent.Items.Text := 'INSERT'+CRLF+'UPDATE'+CRLF+'DELETE';
   for i:=0 to Mainform.SynCompletionProposal.Columns.Count-1 do begin
     col := SynCompletionProposalStatement.Columns.Add;
-    col.BiggestWord := Mainform.SynCompletionProposal.Columns[i].BiggestWord;
+    col.ColumnWidth := Mainform.SynCompletionProposal.Columns[i].ColumnWidth;
   end;
   SynCompletionProposalStatement.NbLinesInWindow := Mainform.SynCompletionProposal.NbLinesInWindow;
   SynCompletionProposalStatement.Width := Mainform.SynCompletionProposal.Width;

@@ -57,6 +57,7 @@ object MainForm: TMainForm
     ReadOnly = True
     RightEdge = 0
     ScrollBars = ssVertical
+    FontSmoothing = fsmNone
   end
   object StatusBar: TStatusBar
     Left = 0
@@ -1281,6 +1282,7 @@ object MainForm: TMainForm
                   ReadOnly = True
                   RightEdge = 0
                   WordWrap = True
+                  FontSmoothing = fsmNone
                 end
               end
             end
@@ -1688,6 +1690,7 @@ object MainForm: TMainForm
               WantTabs = True
               WordWrap = True
               OnStatusChange = SynMemoFilterStatusChange
+              FontSmoothing = fsmNone
             end
             object editFilterSearch: TEdit
               Left = 480
@@ -1826,6 +1829,7 @@ object MainForm: TMainForm
               OnReplaceText = SynMemoQueryReplaceText
               OnStatusChange = SynMemoQueryStatusChange
               OnPaintTransient = SynMemoQueryPaintTransient
+              FontSmoothing = fsmNone
               RemovedKeystrokes = <>
               AddedKeystrokes = <
                 item
@@ -9311,6 +9315,9 @@ object MainForm: TMainForm
     end
   end
   object SynSQLSyn1: TSynSQLSyn
+    Options.AutoDetectEnabled = False
+    Options.AutoDetectLineLimit = 0
+    Options.Visible = False
     CommentAttri.Foreground = clGray
     ConditionalCommentAttri.Foreground = clGray
     DataTypeAttri.Foreground = clMaroon
@@ -9654,10 +9661,10 @@ object MainForm: TMainForm
     TitleFont.Style = [fsBold]
     Columns = <
       item
-        BiggestWord = 'databasemoremore'
+        ColumnWidth = 100
       end
       item
-        BiggestWord = 'IHAVENOCLUEWHICHLENGTH'
+        ColumnWidth = 100
       end>
     ItemHeight = 18
     Images = ImageListMain
