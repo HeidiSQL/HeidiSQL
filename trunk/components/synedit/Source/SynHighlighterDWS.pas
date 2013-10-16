@@ -148,6 +148,12 @@ type
     procedure SetRange(Value: Pointer); override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
 
+    procedure LoadDelphiStyle; virtual;
+    // ^^^
+    // This routine can be called to install a Delphi style of colors
+    // and highlighting. It modifies the basic TSynDWSSyn to reproduce
+    // the most recent Delphi editor highlighting.
+
   published
     property AsmAttri: TSynHighlighterAttributes read fAsmAttri write fAsmAttri;
     property CommentAttri: TSynHighlighterAttributes read fCommentAttri
@@ -180,7 +186,7 @@ uses
 
 const
    // if the language is case-insensitive keywords *must* be in lowercase
-   cKeyWords: array[1..96] of UnicodeString = (
+   cKeyWords: array[1..95] of UnicodeString = (
       'abstract', 'and', 'array', 'as', 'asm',
       'begin', 'break', 'case', 'cdecl', 'class', 'const', 'constructor',
       'contains', 'continue', 'deprecated', 'destructor',
@@ -196,7 +202,7 @@ const
       'register', 'reintroduce', 'repeat', 'require', 'resourcestring',
       'sar', 'sealed', 'set', 'shl', 'shr', 'static', 'step',
       'then', 'to', 'try', 'type', 'unit', 'until',
-      'uses', 'var', 'virtual', 'while', 'xor', 'if'
+      'uses', 'var', 'virtual', 'while', 'xor'
   );
   cKeyWords_PropertyScoped: array [0..4] of UnicodeString = (
       'default', 'index', 'read', 'stored', 'write'
@@ -211,16 +217,16 @@ function TSynDWSSyn.HashKey(Str: PWideChar): Cardinal;
 var
    c : Word;
 begin
-   Result := 0;
+   Result:=0;
    while IsIdentChar(Str^) do begin
-      c := Ord(Str^);
-      Result := Result * 812 + c * 76;
+      c:=Ord(Str^);
       if c in [Ord('A')..Ord('Z')] then
-         Result := Result + (Ord('a') - Ord('A')) * 76;
+         c := c + (Ord('a')-Ord('A'));
+      Result := Result * 692 + c * 171;
       inc(Str);
    end;
-   Result := Result mod 389;
    fStringLen := Str - fToIdent;
+   Result := Result mod Cardinal(Length(fIdentFuncTable));
 end;
 
 function TSynDWSSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
@@ -236,16 +242,22 @@ begin
 end;
 
 procedure TSynDWSSyn.InitIdent;
+
+   procedure SetIdentFunc(h : Integer; const func : TIdentFuncTableFunc);
+   begin
+      fIdentFuncTable[h]:=func;
+   end;
+
 var
-  i: Integer;
+  i : Integer;
 begin
    for i:=Low(cKeyWords) to High(cKeyWords) do begin
-      fIdentFuncTable[HashKey(@cKeyWords[i][1])]:=KeyWordFunc;
+      SetIdentFunc(HashKey(@cKeyWords[i][1]), KeyWordFunc);
       fKeyWords.Add(cKeyWords[i]);
    end;
 
    for i:=0 to High(cKeyWords_PropertyScoped) do begin
-      fIdentFuncTable[HashKey(@cKeyWords_PropertyScoped[i][1])]:=FuncPropertyScoped;
+      SetIdentFunc(HashKey(@cKeyWords_PropertyScoped[i][1]), FuncPropertyScoped);
       fKeyWords_PropertyScoped.Add(cKeyWords_PropertyScoped[i]);
    end;
 
@@ -253,10 +265,9 @@ begin
       if @fIdentFuncTable[i] = nil then
          fIdentFuncTable[i] := AltFunc;
 
-
-   fIdentFuncTable[HashKey('asm')] := FuncAsm;
-   fIdentFuncTable[HashKey('end')] := FuncEnd;
-   fIdentFuncTable[HashKey('property')] := FuncProperty;
+   SetIdentFunc(HashKey('asm'), FuncAsm);
+   SetIdentFunc(HashKey('end'), FuncEnd);
+   SetIdentFunc(HashKey('property'), FuncProperty);
 
    fKeyWords.Sorted:=True;
 end;
@@ -271,7 +282,7 @@ var
    buf : String;
 begin
    SetString(buf, fToIdent, fStringLen);
-   if (fKeyWords.IndexOf(buf)>0) and (FLine[Run - 1] <> '&') then
+   if (fKeyWords.IndexOf(buf)>=0) and (FLine[Run - 1] <> '&') then
       Result := tkKey
    else Result := tkIdentifier
 end;
@@ -300,7 +311,7 @@ var
    buf : String;
 begin
    SetString(buf, fToIdent, fStringLen);
-   if (fRange = rsProperty) and (fKeyWords_PropertyScoped.IndexOf(buf)>0) then
+   if (fRange = rsProperty) and (fKeyWords_PropertyScoped.IndexOf(buf)>=0) then
       Result:=tkKey
    else Result:=KeyWordFunc;
 end;
@@ -508,6 +519,56 @@ procedure TSynDWSSyn.LFProc;
 begin
   fTokenID := tkSpace;
   inc(Run);
+end;
+
+procedure TSynDWSSyn.LoadDelphiStyle;
+
+
+   procedure AddKeyword( const AName : string );
+   var
+     I : integer;
+   begin
+     I := HashKey( @AName[1] );
+     fIdentFuncTable[I]:= KeyWordFunc;
+     fKeyWords.Add(AName);
+   end;
+
+   procedure RemoveKeyword( const AName : string );
+   var
+     I : integer;
+   begin
+     I := fKeyWords.IndexOf(AName);
+     if I <> -1 then
+       fKeywords.Delete( I );
+   end;
+
+const
+  clID = clNavy;
+  clString = clBlue;
+  clComment = clGreen;
+  cKeywordsToAdd: array[0..0] of UnicodeString = (
+      'string');
+  cKeywordsToRemove: array[0..1] of UnicodeString = (
+      'break', 'exit');
+var
+  i : integer;
+begin
+  // This routine can be called to install a Delphi style of colors
+  // and highlighting. It modifies the basic TSynDWSSyn to reproduce
+  // the most recent Delphi editor highlighting.
+
+  // Delphi colors...
+  KeyAttri.Foreground := clID;
+  StringAttri.Foreground := clString;
+  CommentAttri.Foreground := clComment;
+
+  // These are keywords highlighted in Delphi but not in TSynDWSSyn ..
+  for i:=Low(cKeywordsToAdd) to High(cKeywordsToAdd) do
+    AddKeyword( cKeywordsToAdd[i] );
+
+  // These are keywords highlighted in TSynDWSSyn but not in Delphi...
+  for i:=Low(cKeywordsToRemove) to High(cKeywordsToRemove) do
+    RemoveKeyword( cKeywordsToRemove[i] );
 end;
 
 procedure TSynDWSSyn.LowerProc;
@@ -759,7 +820,7 @@ begin
             end;
          end;
          #$0080..#$FFFF :
-            if TCharacter.IsLetterOrDigit(fLine[Run]) then
+            if {$IFDEF SYN_COMPILER_18_UP}Char(fLine[Run]).IsLetterOrDigit{$ELSE}TCharacter.IsLetterOrDigit(fLine[Run]){$ENDIF} then
                IdentProc
             else UnknownProc;
       else
@@ -908,8 +969,9 @@ end;
 function TSynDWSSyn.IsIdentChar(AChar: WideChar): Boolean;
 begin
    if Ord(AChar)<=$7F then
-      Result:=AnsiChar(AChar) in ['_', '0'..'9', 'A'..'Z', 'a'..'z']
-   else Result:=TCharacter.IsLetterOrDigit(AChar);
+      Result := AnsiChar(AChar) in ['_', '0'..'9', 'A'..'Z', 'a'..'z']
+   else
+      Result := {$IFDEF SYN_COMPILER_18_UP}AChar.IsLetterOrDigit{$ELSE}TCharacter.IsLetterOrDigit(AChar){$ENDIF};
 end;
 
 class function TSynDWSSyn.GetFriendlyLanguageName: UnicodeString;

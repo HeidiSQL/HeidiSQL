@@ -3162,7 +3162,7 @@ var
           if (Length(BOM) <> Length(UTF8BOM)) or
             not CompareMem(@BOM[0], @UTF8BOM[0], Length(UTF8BOM))
           then
-            Stream.Seek(-Length(BOM), soFromCurrent)
+            Stream.Seek(-Length(BOM), soCurrent)
           else
             Result := True;
         end;
@@ -3173,7 +3173,7 @@ var
           if (Length(BOM) <> Length(UTF16BOMLE)) or
             not CompareMem(@BOM[0], @UTF16BOMLE[0], Length(UTF16BOMLE))
           then
-            Stream.Seek(-Length(BOM), soFromCurrent)
+            Stream.Seek(-Length(BOM), soCurrent)
           else
             Result := True;
         end;
@@ -3184,7 +3184,7 @@ var
           if (Length(BOM) <> Length(UTF16BOMBE)) or
             not CompareMem(@BOM[0], @UTF16BOMBE[0], Length(UTF16BOMBE))
           then
-            Stream.Seek(-Length(BOM), soFromCurrent)
+            Stream.Seek(-Length(BOM), soCurrent)
           else
             Result := True;
         end;

@@ -77,8 +77,8 @@ uses
   Classes;
 
 type
-  TtkTokenKind = (tkComment, tkProperty, tkKey, tkNull,
-    tkSpace, tkString, tkSymbol, tkText, tkUndefProperty, tkValue, tkColor, tkNumber);
+  TtkTokenKind = (tkComment, tkProperty, tkKey, tkNull, tkSpace, tkString,
+    tkSymbol, tkText, tkUndefProperty, tkValue, tkColor, tkNumber, tkImportant);
 
   TRangeState = (rsComment, rsKey, rsParam, rsText, rsUnKnown, rsValue);
 
@@ -98,6 +98,7 @@ type
     fTextAttri: TSynHighlighterAttributes;
     fValueAttri: TSynHighlighterAttributes;
     fUndefPropertyAttri: TSynHighlighterAttributes;
+    fImportantPropertyAttri: TSynHighlighterAttributes;
     fKeywords: TSynHashEntryList;
     procedure DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
     function HashKey(Str: PWideChar): Integer;
@@ -117,6 +118,7 @@ type
     procedure StringProc;
     procedure HashProc;
     procedure SlashProc;
+    procedure ExclamProc;
   protected
     function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
@@ -159,6 +161,8 @@ type
       write fValueAttri;
     property UndefPropertyAttri: TSynHighlighterAttributes read fUndefPropertyAttri
       write fUndefPropertyAttri;
+    property ImportantPropertyAttri: TSynHighlighterAttributes read fImportantPropertyAttri
+      write fImportantPropertyAttri;
   end;
 
 implementation
@@ -521,6 +525,12 @@ begin
   fUndefPropertyAttri.Foreground := $00ff0080;
   AddAttribute(fUndefPropertyAttri);
 
+  fImportantPropertyAttri := TSynHighlighterAttributes.Create(
+    'Important', 'Important Marker');
+  fImportantPropertyAttri.Style := [fsBold];
+  fImportantPropertyAttri.Foreground := clRed;
+  AddAttribute(fImportantPropertyAttri);
+
   fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
   AddAttribute(fSpaceAttri);
 
@@ -645,14 +655,16 @@ begin
       end;
     rsValue:
       begin
-        fRange := rsParam;
         fTokenID := tkValue;
 
         while not IsLineEnd(Run) and
-          not CharInSet(fLine[Run], ['}', ';', ',']) do
+          not CharInSet(fLine[Run], ['}', ';', ',', ' ']) do
         begin
           Inc(Run);
         end;
+
+        if IsLineEnd(Run) or CharInSet(fLine[Run], ['}', ';']) then
+          fRange := rsParam;
       end;
     else
       fTokenID := IdentKind((fLine + Run));
@@ -730,6 +742,25 @@ begin
   while IsHexChar do Inc(Run);
 end;
 
+procedure TSynCssSyn.ExclamProc;
+begin
+  if (fLine[Run + 1] = 'i') and
+    (fLine[Run + 2] = 'm') and
+    (fLine[Run + 3] = 'p') and
+    (fLine[Run + 4] = 'o') and
+    (fLine[Run + 5] = 'r') and
+    (fLine[Run + 6] = 't') and
+    (fLine[Run + 7] = 'a') and
+    (fLine[Run + 8] = 'n') and
+    (fLine[Run + 9] = 't') then
+  begin
+    fTokenID := tkImportant;
+    Inc(Run, 10);
+  end
+  else
+    IdentProc;
+end;
+
 procedure TSynCssSyn.SlashProc;
 begin
   inc(Run);
@@ -775,6 +806,7 @@ begin
     ';': SemiProc;
     '0'..'9', '-', '.': NumberProc;
     '/': SlashProc;
+    '!': ExclamProc;
     else IdentProc;
   end;
 end;
@@ -811,6 +843,7 @@ begin
     tkSymbol: Result := fSymbolAttri;
     tkText: Result := fTextAttri;
     tkUndefProperty: Result := fUndefPropertyAttri;
+    tkImportant: Result := fImportantPropertyAttri;
     tkValue: Result := fValueAttri;
     tkColor: Result := fColorAttri;
     tkNumber: Result := fNumberAttri;

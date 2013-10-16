@@ -50,6 +50,12 @@
 (* SYN_COMPILER_15_UP   : Delphi XE   or higher is the compiler.              *)
 (* SYN_COMPILER_16      : Delphi XE2  is the compiler.                        *)
 (* SYN_COMPILER_16_UP   : Delphi XE2  or higher is the compiler.              *)
+(* SYN_COMPILER_17      : Delphi XE3  is the compiler.                        *)
+(* SYN_COMPILER_17_UP   : Delphi XE3  or higher is the compiler.              *)
+(* SYN_COMPILER_18      : Delphi XE4  is the compiler.                        *)
+(* SYN_COMPILER_18_UP   : Delphi XE4  or higher is the compiler.              *)
+(* SYN_COMPILER_19      : Delphi XE5  is the compiler.                        *)
+(* SYN_COMPILER_19_UP   : Delphi XE5  or higher is the compiler.              *)
 (* SYN_CPPB             : Any version of C++Builder is being used.            *)
 (* SYN_CPPB_1           : C++B v1.0x is being used.                           *)
 (* SYN_CPPB_3           : C++B v3.0x is being used.                           *)
@@ -90,6 +96,12 @@
 (* SYN_DELPHI_XE_UP     : Delphi XE   or higher is being used.                *)
 (* SYN_DELPHI_XE2       : Delphi XE2  is being used.                          *)
 (* SYN_DELPHI_XE2_UP    : Delphi XE2  or higher is being used.                *)
+(* SYN_DELPHI_XE3       : Delphi XE3  is being used.                          *)
+(* SYN_DELPHI_XE3_UP    : Delphi XE3  or higher is being used.                *)
+(* SYN_DELPHI_XE4       : Delphi XE4  is being used.                          *)
+(* SYN_DELPHI_XE4_UP    : Delphi XE4  or higher is being used.                *)
+(* SYN_DELPHI_XE5       : Delphi XE5  is being used.                          *)
+(* SYN_DELPHI_XE5_UP    : Delphi XE5  or higher is being used.                *)
 (* SYN_KYLIX            : Kylix 1.0 is being using.                           *)
 (* SYN_CLX              : A CLX application is being created.                 *)
 (******************************************************************************)
@@ -114,7 +126,7 @@
 { with other versions of jedi.inc in the search-path.                          }
 {------------------------------------------------------------------------------}
 
-{.$I jedi.inc}
+{.$I SynEditJedi.inc}
 
 {------------------------------------------------------------------------------}
 { SYN_WIN32, SYN_LINUX and SYN_KYLIX defines                                   }
@@ -135,6 +147,24 @@
 {------------------------------------------------------------------------------}
 { VERXXX to SYN_COMPILERX, SYN_DELPHIX and SYN_CPPBX mappings                  }
 {------------------------------------------------------------------------------}
+
+{$IFDEF VER260}
+  {$DEFINE SYN_COMPILER_19}
+  {$DEFINE SYN_DELPHI}
+  {$DEFINE SYN_DELPHI_XE5}
+{$ENDIF}
+
+{$IFDEF VER250}
+  {$DEFINE SYN_COMPILER_18}
+  {$DEFINE SYN_DELPHI}
+  {$DEFINE SYN_DELPHI_XE4}
+{$ENDIF}
+
+{$IFDEF VER240}
+  {$DEFINE SYN_COMPILER_17}
+  {$DEFINE SYN_DELPHI}
+  {$DEFINE SYN_DELPHI_XE3}
+{$ENDIF}
 
 {$IFDEF VER230}
   {$DEFINE SYN_COMPILER_16}
@@ -414,6 +444,66 @@
   {$DEFINE SYN_COMPILER_16_UP}
 {$ENDIF}
 
+{$IFDEF SYN_COMPILER_17}
+  {$DEFINE SYN_COMPILER_1_UP}
+  {$DEFINE SYN_COMPILER_2_UP}
+  {$DEFINE SYN_COMPILER_3_UP}
+  {$DEFINE SYN_COMPILER_4_UP}
+  {$DEFINE SYN_COMPILER_5_UP}
+  {$DEFINE SYN_COMPILER_6_UP}
+  {$DEFINE SYN_COMPILER_7_UP}
+  {$DEFINE SYN_COMPILER_8_UP}
+  {$DEFINE SYN_COMPILER_9_UP}
+  {$DEFINE SYN_COMPILER_10_UP}
+  {$DEFINE SYN_COMPILER_11_UP}
+  {$DEFINE SYN_COMPILER_12_UP}
+  {$DEFINE SYN_COMPILER_14_UP}
+  {$DEFINE SYN_COMPILER_15_UP}
+  {$DEFINE SYN_COMPILER_16_UP}
+  {$DEFINE SYN_COMPILER_17_UP}
+{$ENDIF}
+
+{$IFDEF SYN_COMPILER_18}
+  {$DEFINE SYN_COMPILER_1_UP}
+  {$DEFINE SYN_COMPILER_2_UP}
+  {$DEFINE SYN_COMPILER_3_UP}
+  {$DEFINE SYN_COMPILER_4_UP}
+  {$DEFINE SYN_COMPILER_5_UP}
+  {$DEFINE SYN_COMPILER_6_UP}
+  {$DEFINE SYN_COMPILER_7_UP}
+  {$DEFINE SYN_COMPILER_8_UP}
+  {$DEFINE SYN_COMPILER_9_UP}
+  {$DEFINE SYN_COMPILER_10_UP}
+  {$DEFINE SYN_COMPILER_11_UP}
+  {$DEFINE SYN_COMPILER_12_UP}
+  {$DEFINE SYN_COMPILER_14_UP}
+  {$DEFINE SYN_COMPILER_15_UP}
+  {$DEFINE SYN_COMPILER_16_UP}
+  {$DEFINE SYN_COMPILER_17_UP}
+  {$DEFINE SYN_COMPILER_18_UP}
+{$ENDIF}
+
+{$IFDEF SYN_COMPILER_19}
+  {$DEFINE SYN_COMPILER_1_UP}
+  {$DEFINE SYN_COMPILER_2_UP}
+  {$DEFINE SYN_COMPILER_3_UP}
+  {$DEFINE SYN_COMPILER_4_UP}
+  {$DEFINE SYN_COMPILER_5_UP}
+  {$DEFINE SYN_COMPILER_6_UP}
+  {$DEFINE SYN_COMPILER_7_UP}
+  {$DEFINE SYN_COMPILER_8_UP}
+  {$DEFINE SYN_COMPILER_9_UP}
+  {$DEFINE SYN_COMPILER_10_UP}
+  {$DEFINE SYN_COMPILER_11_UP}
+  {$DEFINE SYN_COMPILER_12_UP}
+  {$DEFINE SYN_COMPILER_14_UP}
+  {$DEFINE SYN_COMPILER_15_UP}
+  {$DEFINE SYN_COMPILER_16_UP}
+  {$DEFINE SYN_COMPILER_17_UP}
+  {$DEFINE SYN_COMPILER_18_UP}
+  {$DEFINE SYN_COMPILER_19_UP}
+{$ENDIF}
+
 {$IFDEF SYN_DELPHI_2}
   {$DEFINE SYN_DELPHI_2_UP}
 {$ENDIF}
@@ -559,6 +649,63 @@
   {$DEFINE SYN_DELPHI_2010_UP}
   {$DEFINE SYN_DELPHI_XE_UP}
   {$DEFINE SYN_DELPHI_XE2_UP}
+{$ENDIF}
+
+{$IFDEF SYN_DELPHI_XE3}
+  {$DEFINE SYN_DELPHI_2_UP}
+  {$DEFINE SYN_DELPHI_3_UP}
+  {$DEFINE SYN_DELPHI_4_UP}
+  {$DEFINE SYN_DELPHI_5_UP}
+  {$DEFINE SYN_DELPHI_6_UP}
+  {$DEFINE SYN_DELPHI_7_UP}
+  {$DEFINE SYN_DELPHI_8_UP}
+  {$DEFINE SYN_DELPHI_2005_UP}
+  {$DEFINE SYN_DELPHI_2006_UP}
+  {$DEFINE SYN_DELPHI_2007_UP}
+  {$DEFINE SYN_DELPHI_2009_UP}
+  {$DEFINE SYN_DELPHI_2010_UP}
+  {$DEFINE SYN_DELPHI_XE_UP}
+  {$DEFINE SYN_DELPHI_XE2_UP}
+  {$DEFINE SYN_DELPHI_XE3_UP}
+{$ENDIF}
+
+{$IFDEF SYN_DELPHI_XE4}
+  {$DEFINE SYN_DELPHI_2_UP}
+  {$DEFINE SYN_DELPHI_3_UP}
+  {$DEFINE SYN_DELPHI_4_UP}
+  {$DEFINE SYN_DELPHI_5_UP}
+  {$DEFINE SYN_DELPHI_6_UP}
+  {$DEFINE SYN_DELPHI_7_UP}
+  {$DEFINE SYN_DELPHI_8_UP}
+  {$DEFINE SYN_DELPHI_2005_UP}
+  {$DEFINE SYN_DELPHI_2006_UP}
+  {$DEFINE SYN_DELPHI_2007_UP}
+  {$DEFINE SYN_DELPHI_2009_UP}
+  {$DEFINE SYN_DELPHI_2010_UP}
+  {$DEFINE SYN_DELPHI_XE_UP}
+  {$DEFINE SYN_DELPHI_XE2_UP}
+  {$DEFINE SYN_DELPHI_XE3_UP}
+  {$DEFINE SYN_DELPHI_XE4_UP}
+{$ENDIF}
+
+{$IFDEF SYN_DELPHI_XE5}
+  {$DEFINE SYN_DELPHI_2_UP}
+  {$DEFINE SYN_DELPHI_3_UP}
+  {$DEFINE SYN_DELPHI_4_UP}
+  {$DEFINE SYN_DELPHI_5_UP}
+  {$DEFINE SYN_DELPHI_6_UP}
+  {$DEFINE SYN_DELPHI_7_UP}
+  {$DEFINE SYN_DELPHI_8_UP}
+  {$DEFINE SYN_DELPHI_2005_UP}
+  {$DEFINE SYN_DELPHI_2006_UP}
+  {$DEFINE SYN_DELPHI_2007_UP}
+  {$DEFINE SYN_DELPHI_2009_UP}
+  {$DEFINE SYN_DELPHI_2010_UP}
+  {$DEFINE SYN_DELPHI_XE_UP}
+  {$DEFINE SYN_DELPHI_XE2_UP}
+  {$DEFINE SYN_DELPHI_XE3_UP}
+  {$DEFINE SYN_DELPHI_XE4_UP}
+  {$DEFINE SYN_DELPHI_XE5_UP}
 {$ENDIF}
 
 {$IFDEF SYN_CPPB_6}
